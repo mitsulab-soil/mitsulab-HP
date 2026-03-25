@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ja-JP">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>mitsulab — 土を醸す。谷を拓く。</title>
+<meta content="有機農業・有機土木・土壌生態系に関するコンサルティング・調査・研究・支援および情報発信。mitsulab" name="description"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;600;700&family=Noto+Sans+JP:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap" rel="stylesheet"/>
+<link href="https://mitsulab.jp/" rel="canonical"/>
+<meta content="#1a2b19" name="theme-color"/>
+<meta content="index,follow" name="robots"/>
+<meta content="mitsulab" property="og:site_name"/>
+<meta content="mitsulab — 土を醸す。谷を拓く。" property="og:title"/>
+<meta content="土壌生態系の改善を事業基盤に、農業生産性と土地レジリエンスの条件を探る研究実践拠点。" property="og:description"/>
+<meta content="website" property="og:type"/>
+<meta content="ja_JP" property="og:locale"/>
+<meta content="https://mitsulab.jp/" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<style>
+:root{
+  --forest:#1a2b19;--moss:#3d6b46;--fern:#5a8a5e;--earth:#6e4a2a;
+  --sand:#c8a97e;--sand-light:#ddc8a4;--cream:#f5f0e6;--paper:#faf7f0;
+  --ink:#1e1a14;--ink-soft:#2e2820;--muted:#6b6255;--muted-light:#9a9082;
+  --rule:rgba(60,45,25,0.12);--rule-dark:rgba(60,45,25,0.25);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Serif JP',serif;font-weight:300;line-height:1.9;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:calc(.65rem + env(safe-area-inset-top)) 2rem .65rem;background:transparent;transition:all .5s cubic-bezier(.22,1,.36,1)}
+nav.scrolled{background:rgba(250,247,240,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--rule)}
+nav.scrolled .nav-logo{color:var(--forest)}
+nav.scrolled .nav-logo span{color:var(--moss)}
+nav.scrolled .nav-links a{color:var(--muted)}
+nav.scrolled .nav-links a:hover{color:var(--forest)}
+nav.scrolled .hamburger span{background:var(--forest)}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.12rem;font-weight:600;letter-spacing:.08em;color:var(--cream);text-decoration:none;transition:color .5s;flex-shrink:0}
+.nav-logo span{font-weight:300;color:rgba(245,240,230,.6);font-style:italic;transition:color .5s}
+.nav-links{display:flex;gap:1.2rem;list-style:none;align-items:center}
+.nav-links a{font-family:'Noto Sans JP',sans-serif;font-size:.67rem;letter-spacing:.1em;color:rgba(245,240,230,.6);text-decoration:none;transition:color .3s;position:relative;white-space:nowrap}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--sand);transition:width .3s}
+.nav-links a:hover{color:var(--cream)}.nav-links a:hover::after{width:100%}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;z-index:110}
+.hamburger span{display:block;width:22px;height:1.5px;background:var(--cream);transition:all .4s}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;inset:0;background:var(--forest);z-index:120;flex-direction:column;align-items:center;justify-content:center;gap:2rem}
+.mobile-menu.open{display:flex}
+.mobile-menu a{font-family:'Noto Serif JP',serif;font-size:1.2rem;color:var(--cream);text-decoration:none;letter-spacing:.1em;opacity:.7;transition:opacity .3s}
+.mobile-menu a:hover{opacity:1}
+.mobile-menu .mobile-label{font-family:'Cormorant Garamond',serif;font-size:.75rem;font-style:italic;color:var(--sand);letter-spacing:.12em;display:block;margin-top:.15rem}
+
+/* ── HERO ── */
+#hero{min-height:100svh;position:relative;overflow:hidden;display:flex;align-items:flex-end;background:var(--forest)}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg-gradient{position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 30% 90%,rgba(61,107,70,.35) 0%,transparent 60%),radial-gradient(ellipse 80% 60% at 80% 20%,rgba(110,74,42,.15) 0%,transparent 50%),rgba(26,43,25,.96)}
+.hero-roots{position:absolute;inset:0;opacity:.12}.hero-roots svg{width:100%;height:100%}
+.root-line{stroke:var(--sand);stroke-width:.5;fill:none;stroke-dasharray:800;stroke-dashoffset:800;animation:drawRoot 4s ease-out forwards}
+.root-line:nth-child(2){animation-delay:.3s;stroke-width:.4}.root-line:nth-child(3){animation-delay:.6s;stroke-width:.3}
+.root-line:nth-child(4){animation-delay:.9s;stroke-width:.6}.root-line:nth-child(5){animation-delay:1.2s;stroke-width:.35}
+.root-line:nth-child(6){animation-delay:.5s;stroke-width:.25}.root-line:nth-child(7){animation-delay:.8s;stroke-width:.45}
+.root-line:nth-child(8){animation-delay:1.4s;stroke-width:.3}
+@keyframes drawRoot{to{stroke-dashoffset:0}}
+.hero-particles{position:absolute;inset:0;overflow:hidden}
+.particle{position:absolute;width:2px;height:2px;background:var(--sand);border-radius:50%;opacity:0;animation:particleFloat 8s infinite}
+@keyframes particleFloat{0%{opacity:0;transform:translateY(0) scale(.5)}20%{opacity:.6}80%{opacity:.3}100%{opacity:0;transform:translateY(-200px) scale(0)}}
+.hero-content{position:relative;z-index:2;padding:0 5vw 9vh;max-width:920px;width:100%}
+.hero-label{font-family:'Cormorant Garamond',serif;font-size:.85rem;font-style:italic;color:var(--sand);letter-spacing:.2em;margin-bottom:2rem;opacity:0;animation:fadeUp 1s .3s forwards}
+.hero-label::before{content:'';display:inline-block;width:40px;height:1px;background:var(--sand);vertical-align:middle;margin-right:1rem;opacity:.5}
+.hero-title{font-size:clamp(3rem,6.5vw,5.5rem);font-weight:200;color:var(--cream);line-height:1.25;letter-spacing:.08em;opacity:0;animation:fadeUp 1.2s .5s forwards}
+.hero-title em{font-style:normal;color:var(--sand)}
+.hero-subcopy-en{margin-top:1.6rem;font-family:'Cormorant Garamond',serif;font-size:clamp(.95rem,1.6vw,1.18rem);font-style:italic;color:var(--sand);letter-spacing:.12em;line-height:1.9;opacity:0;animation:fadeUp 1.2s .75s forwards}
+.hero-subcopy-jp{margin-top:1rem;font-size:clamp(.8rem,1.05vw,.9rem);color:rgba(245,240,230,.58);letter-spacing:.07em;line-height:2.1;max-width:560px;opacity:0;animation:fadeUp 1.2s 1s forwards}
+.scroll-indicator{position:absolute;bottom:2.5rem;right:5vw;display:flex;flex-direction:column;align-items:center;gap:.6rem;z-index:2;opacity:0;animation:fadeUp 1s 1.5s forwards}
+.scroll-indicator span{font-family:'Cormorant Garamond',serif;font-size:.65rem;letter-spacing:.25em;color:rgba(245,240,230,.35);writing-mode:vertical-rl}
+.scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,rgba(200,169,126,.5),transparent);animation:scrollPulse 2.5s infinite}
+
+/* ── MANIFESTO ── */
+#manifesto{background:var(--forest);padding:10rem 0}
+.manifesto-inner{max-width:750px;margin:0 auto;padding:0 3rem;text-align:center}
+.manifesto-quote{font-size:clamp(1.1rem,2.2vw,1.5rem);font-weight:200;color:var(--cream);line-height:2.4;letter-spacing:.08em;opacity:0;transform:translateY(30px);transition:opacity 1.2s,transform 1.2s cubic-bezier(.22,1,.36,1)}
+.manifesto-quote.visible{opacity:1;transform:none}
+.manifesto-quote em{font-style:normal;color:var(--sand);border-bottom:1px solid rgba(200,169,126,.3);padding-bottom:2px}
+.manifesto-rule{width:1px;height:60px;background:rgba(200,169,126,.3);margin:3rem auto;opacity:0;transition:opacity 1s .3s}
+.manifesto-rule.visible{opacity:1}
+.manifesto-en{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-style:italic;color:rgba(200,169,126,.45);letter-spacing:.15em;line-height:2;opacity:0;transform:translateY(20px);transition:opacity 1s .5s,transform 1s .5s}
+.manifesto-en.visible{opacity:1;transform:none}
+
+/* ── WAVE ── */
+.wave-divider{position:relative;height:80px;overflow:hidden}
+.wave-divider svg{position:absolute;bottom:0;width:100%;height:100%}
+
+/* ── SECTIONS ── */
+section{padding:8rem 0;position:relative}
+.container{max-width:1140px;margin:0 auto;padding:0 3.5rem}
+.section-header{display:flex;align-items:flex-start;gap:2rem;margin-bottom:5rem}
+.section-num{font-family:'Cormorant Garamond',serif;font-size:5.5rem;font-weight:300;color:var(--rule);line-height:.85;user-select:none;flex-shrink:0}
+.section-title{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:600;letter-spacing:.06em;color:var(--forest);line-height:1.2}
+.section-subtitle{font-family:'Cormorant Garamond',serif;font-size:.88rem;font-style:italic;color:var(--muted);letter-spacing:.12em;margin-top:.4rem}
+.section-rule{width:40px;height:1px;background:var(--moss);margin:1.2rem 0}
+.label{font-family:'Noto Sans JP',sans-serif;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-light)}
+
+/* ── ABOUT ── */
+#about{background:var(--cream)}
+.about-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:5rem;align-items:start}
+.about-body{font-size:.93rem;color:var(--ink-soft);line-height:2.2}
+.about-body p{margin-bottom:1.8em}.about-body p:last-child{margin-bottom:0}
+.about-meta{background:var(--forest);padding:2.8rem;color:var(--cream);position:relative}
+.about-meta::before{content:'';position:absolute;top:-20px;right:30px;width:40px;height:40px;background:var(--forest);transform:rotate(45deg)}
+.about-meta-title{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--sand);letter-spacing:.1em;margin-bottom:1.8rem}
+.meta-row{display:flex;gap:1.2rem;padding:.75rem 0;border-bottom:1px solid rgba(245,240,230,.08);font-size:.85rem}
+.meta-row:last-child{border-bottom:none}
+.meta-key{font-family:'Noto Sans JP',sans-serif;font-size:.65rem;letter-spacing:.12em;color:var(--sand);min-width:5.5em;padding-top:.15em}
+.meta-val{color:rgba(245,240,230,.8);line-height:1.8}
+.meta-val a{color:var(--sand);text-decoration:none;border-bottom:1px solid rgba(200,169,126,.35);transition:border-color .3s}
+.meta-val a:hover{border-color:var(--sand)}
+
+/* ── CONCEPT ── */
+#concept{background:var(--paper)}
+.concept-intro{max-width:760px;margin:0 auto 5rem;text-align:center;font-size:.93rem;color:var(--muted);line-height:2.3}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.concept-card{padding:3.5rem 2.8rem;position:relative;border-right:1px solid var(--rule);transition:background .4s}
+.concept-card:last-child{border-right:none}
+.concept-card:hover{background:var(--cream)}
+.concept-card::after{content:'';position:absolute;bottom:0;left:2.8rem;right:2.8rem;height:2px;background:var(--moss);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.concept-card:hover::after{transform:scaleX(1)}
+.concept-pillar-num{font-family:'Cormorant Garamond',serif;font-size:.78rem;font-style:italic;color:var(--moss);letter-spacing:.15em;margin-bottom:1.5rem}
+.concept-icon{width:48px;height:48px;margin-bottom:1.8rem;opacity:.7}.concept-icon svg{width:100%;height:100%}
+.concept-title{font-size:1.05rem;font-weight:600;color:var(--forest);letter-spacing:.04em;line-height:1.7;margin-bottom:1.2rem}
+.concept-body{font-size:.85rem;color:var(--muted);line-height:2.1}
+.concept-accent{margin-top:2rem;font-family:'Cormorant Garamond',serif;font-size:.92rem;font-style:italic;color:var(--earth);letter-spacing:.08em}
+
+/* ── PROFILE ── */
+#profile{background:var(--cream)}
+.profile-body{font-size:.92rem;line-height:2.2;color:var(--ink-soft)}
+.profile-body p{margin-bottom:1.6em}.profile-body p:last-child{margin-bottom:0}
+.profile-timeline{margin-top:3rem;padding-top:2rem;border-top:1px solid var(--rule)}
+.timeline-title{font-family:'Noto Sans JP',sans-serif;font-size:.65rem;letter-spacing:.16em;color:var(--muted-light);margin-bottom:1.5rem}
+.timeline-item{display:flex;gap:1.2rem;padding:.6rem 0;font-size:.82rem;color:var(--muted);line-height:1.7}
+.timeline-year{font-family:'Cormorant Garamond',serif;font-size:.88rem;color:var(--moss);font-style:italic;min-width:9.5rem;flex-shrink:0}
+.timeline-dot{width:6px;height:6px;border-radius:50%;background:var(--moss);flex-shrink:0;margin-top:.55rem;opacity:.5}
+
+/* ── SERVICES ── */
+#services{background:var(--forest);color:var(--cream);position:relative;overflow:hidden}
+#services::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(93,138,94,.12) 0%,transparent 50%);pointer-events:none}
+#services .section-num{color:rgba(245,240,230,.06)}
+#services .section-title{color:var(--cream)}
+#services .section-subtitle{color:var(--sand)}
+#services .label{color:var(--sand)}
+.services-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(245,240,230,.08)}
+.service-card{background:var(--forest);padding:3rem 2.8rem;transition:all .4s;position:relative;overflow:hidden}
+.service-card::before{content:'';position:absolute;top:0;left:0;width:0;height:3px;background:linear-gradient(90deg,var(--sand),var(--moss));transition:width .5s cubic-bezier(.22,1,.36,1)}
+.service-card:hover::before{width:100%}
+.service-card:hover{background:rgba(61,107,70,.15)}
+.service-title{font-size:1rem;font-weight:600;color:var(--sand-light);letter-spacing:.04em;margin-bottom:.3rem}
+.service-title-en{font-family:'Cormorant Garamond',serif;font-size:.78rem;font-style:italic;color:rgba(200,169,126,.5);letter-spacing:.1em;margin-bottom:1rem}
+.service-body{font-size:.82rem;color:rgba(245,240,230,.5);line-height:2.1}
+
+/* ── PROJECTS ── */
+#projects{background:var(--paper)}
+.projects-list{display:flex;flex-direction:column;gap:0}
+.project-item{display:grid;grid-template-columns:80px 1fr auto;gap:2.5rem;align-items:start;background:var(--cream);padding:3rem;border-bottom:1px solid var(--rule);transition:all .4s;cursor:default;position:relative}
+.project-item::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--moss);transform:scaleY(0);transform-origin:top;transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.project-item:hover::before{transform:scaleY(1)}
+.project-item:hover{background:var(--paper)}
+.project-item:first-child{border-top:1px solid var(--rule)}
+.project-index{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:300;color:var(--rule-dark);line-height:1;padding-top:.3rem}
+.project-en{font-family:'Cormorant Garamond',serif;font-size:.78rem;font-style:italic;color:var(--moss);letter-spacing:.14em;margin-bottom:.4rem}
+.project-title{font-size:1.1rem;font-weight:600;color:var(--forest);letter-spacing:.04em;margin-bottom:.8rem}
+.project-body{font-size:.84rem;color:var(--muted);line-height:2}
+.project-tags{display:flex;flex-direction:column;gap:.5rem;align-items:flex-end;padding-top:.5rem}
+.tag-pill{font-family:'Noto Sans JP',sans-serif;font-size:.6rem;letter-spacing:.1em;color:var(--moss);border:1px solid rgba(61,107,70,.3);padding:.2rem .75rem;white-space:nowrap;transition:all .3s}
+.project-item:hover .tag-pill{border-color:var(--moss);background:rgba(61,107,70,.06)}
+
+/* ── ROADMAP ── */
+#roadmap{background:var(--forest);color:var(--cream);position:relative;overflow:hidden}
+#roadmap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(61,107,70,.2) 0%,transparent 55%);pointer-events:none}
+#roadmap .section-num{color:rgba(245,240,230,.06)}
+#roadmap .section-title{color:var(--cream)}
+#roadmap .section-subtitle{color:var(--sand)}
+#roadmap .label{color:var(--sand)}
+.roadmap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(245,240,230,.08)}
+.roadmap-phase{background:var(--forest);padding:2.8rem 2.4rem;position:relative;transition:background .4s}
+.roadmap-phase:hover{background:rgba(61,107,70,.18)}
+.roadmap-phase::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--sand),transparent);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.roadmap-phase:hover::before{transform:scaleX(1)}
+.phase-period{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-style:italic;color:var(--sand);letter-spacing:.1em;margin-bottom:.4rem}
+.phase-name{font-family:'Noto Sans JP',sans-serif;font-size:.68rem;letter-spacing:.14em;color:rgba(245,240,230,.4);margin-bottom:1.6rem}
+.phase-items{list-style:none;display:flex;flex-direction:column;gap:.8rem}
+.phase-items li{font-size:.82rem;color:rgba(245,240,230,.6);line-height:1.7;display:flex;gap:.6rem}
+.phase-items li::before{content:'—';color:var(--moss);flex-shrink:0}
+.roadmap-note{margin-top:3rem;padding:1.5rem 2rem;border:1px solid rgba(245,240,230,.1);border-left:2px solid rgba(200,169,126,.4);font-size:.82rem;color:rgba(245,240,230,.45);line-height:2}
+
+/* ── LINKS ── */
+#links{background:var(--paper)}
+.links-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+.link-card{display:flex;flex-direction:column;gap:.8rem;align-items:flex-start;justify-content:flex-end;min-height:210px;padding:2.4rem 2.2rem 2rem;background:var(--cream);border:1px solid var(--rule);text-decoration:none;transition:transform .35s cubic-bezier(.22,1,.36,1),border-color .35s,box-shadow .35s;position:relative;overflow:hidden}
+.link-card::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(61,107,70,.06) 0%,transparent 60%);opacity:0;transition:opacity .4s}
+.link-card:hover{transform:translateY(-5px);border-color:rgba(61,107,70,.3);box-shadow:0 16px 40px rgba(26,43,25,.08)}
+.link-card:hover::after{opacity:1}
+.link-icon{width:36px;height:36px;color:var(--moss);flex-shrink:0}
+.link-icon svg{width:100%;height:100%}
+.link-name{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;letter-spacing:.04em;color:var(--forest)}
+.link-desc{font-family:'Noto Sans JP',sans-serif;font-size:.7rem;letter-spacing:.12em;color:var(--muted-light)}
+.link-arrow{font-family:'Cormorant Garamond',serif;font-size:.9rem;color:var(--moss);letter-spacing:.06em;position:absolute;bottom:2rem;right:2.2rem;opacity:0;transform:translateX(-4px);transition:opacity .3s,transform .3s}
+.link-card:hover .link-arrow{opacity:1;transform:translateX(0)}
+
+/* ── CONTACT ── */
+#contact{background:var(--cream)}
+.contact-content{max-width:700px}
+.contact-lead{font-size:.95rem;color:var(--ink-soft);line-height:2.2;margin-bottom:2.5rem}
+.contact-email-box{background:var(--paper);border:1px solid var(--rule);padding:2.5rem 3rem;margin-bottom:2.5rem}
+.contact-email-label{font-family:'Noto Sans JP',sans-serif;font-size:.65rem;letter-spacing:.16em;color:var(--muted-light);margin-bottom:.8rem}
+.contact-email-address{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:500;letter-spacing:.06em;margin-bottom:1rem}
+.contact-email-address a{color:var(--forest);text-decoration:none;border-bottom:1px solid var(--rule-dark);padding-bottom:2px;transition:border-color .3s,color .3s}
+.contact-email-address a:hover{color:var(--moss);border-color:var(--moss)}
+.contact-email-btn{display:inline-block;font-family:'Noto Sans JP',sans-serif;font-size:.72rem;letter-spacing:.14em;color:var(--cream);background:var(--forest);padding:.8rem 2rem;text-decoration:none;transition:background .3s;margin-top:.5rem}
+.contact-email-btn:hover{background:var(--moss)}
+.contact-types-title{font-family:'Noto Sans JP',sans-serif;font-size:.65rem;letter-spacing:.16em;color:var(--muted-light);margin-bottom:1rem}
+.contact-types-list{display:flex;flex-wrap:wrap;gap:.5rem}
+.contact-type-tag{font-family:'Noto Sans JP',sans-serif;font-size:.68rem;letter-spacing:.1em;color:var(--moss);border:1px solid rgba(61,107,70,.25);padding:.3rem .85rem}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);color:rgba(245,240,230,.45);padding:4rem 0 2rem}
+.footer-inner{max-width:1140px;margin:0 auto;padding:0 3.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+.footer-logo{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--cream);letter-spacing:.08em;margin-bottom:.6rem}
+.footer-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.88rem;color:var(--sand);letter-spacing:.1em;margin-bottom:1.5rem}
+.footer-meta{font-family:'Noto Sans JP',sans-serif;font-size:.62rem;letter-spacing:.08em;line-height:2.4}
+.footer-right{display:flex;flex-direction:column;align-items:flex-end;gap:2rem}
+.footer-sns{display:flex;gap:2rem;align-items:center}
+.sns-link{color:rgba(245,240,230,.35);text-decoration:none;transition:color .3s;display:flex;align-items:center;gap:.5rem}
+.sns-link:hover{color:var(--sand)}
+.sns-link svg{width:18px;height:18px;flex-shrink:0}
+.sns-link-label{font-family:'Noto Sans JP',sans-serif;font-size:.78rem;letter-spacing:.1em}
+.footer-copy{font-family:'Noto Sans JP',sans-serif;font-size:.58rem;letter-spacing:.12em;color:rgba(245,240,230,.18)}
+.footer-bottom{max-width:1140px;margin:3rem auto 0;padding:2rem 3.5rem 0;border-top:1px solid rgba(245,240,230,.06);text-align:center}
+.footer-philosophy{font-family:'Cormorant Garamond',serif;font-size:.8rem;font-style:italic;color:rgba(200,169,126,.2);letter-spacing:.15em}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scrollPulse{0%,100%{opacity:.3}50%{opacity:.8}}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
+.reveal.visible{opacity:1;transform:none}
+.reveal-delay-1{transition-delay:.12s}.reveal-delay-2{transition-delay:.24s}.reveal-delay-3{transition-delay:.36s}
+
+/* ── ACCESSIBILITY ── */
+.skip-link{position:fixed;top:0;left:0;transform:translateY(-120%);background:var(--sand);color:var(--forest);padding:.7rem 1.1rem;z-index:1000;font-family:'Noto Sans JP',sans-serif;font-size:.75rem;letter-spacing:.08em;text-decoration:none}
+.skip-link:focus{transform:translateY(0)}
+:focus-visible{outline:2px solid var(--sand);outline-offset:3px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .roadmap-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:900px){
+  nav{padding:calc(.6rem + env(safe-area-inset-top)) 1.2rem .6rem}
+  .nav-links{display:none}.hamburger{display:flex}
+  .hero-content{padding:0 2rem 7vh}
+  #manifesto{padding:6rem 0}.manifesto-inner{padding:0 2rem}
+  .container{padding:0 1.8rem}section{padding:5rem 0}
+  .section-header{flex-direction:column;gap:.5rem}.section-num{font-size:3.5rem}
+  .about-grid{grid-template-columns:1fr;gap:3rem}.about-meta::before{display:none}
+  .concept-grid{grid-template-columns:1fr}
+  .concept-card{border-right:none;border-bottom:1px solid var(--rule)}.concept-card:last-child{border-bottom:none}
+  .services-grid{grid-template-columns:1fr}
+  .project-item{grid-template-columns:50px 1fr;gap:1.5rem;padding:2rem 1.8rem}.project-tags{display:none}
+  .roadmap-grid{grid-template-columns:1fr}
+  .links-grid{grid-template-columns:1fr}.link-card{min-height:auto;padding:1.8rem}
+  .contact-email-box{padding:2rem}.contact-email-address{font-size:1.1rem}
+  .footer-inner{grid-template-columns:1fr}.footer-right{align-items:flex-start}
+  .footer-bottom{padding:1.5rem 1.8rem 0}
+}
+@media(max-width:480px){
+  .hero-title{font-size:2.4rem}
+  .manifesto-quote{font-size:1rem}
+  .hero-subcopy-jp{font-size:.78rem}
+  .timeline-year{min-width:7.5rem}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important}
+  .reveal{opacity:1 !important;transform:none !important}
+  .manifesto-quote,.manifesto-rule,.manifesto-en{opacity:1 !important;transform:none !important}
+  .root-line{animation:none !important;stroke-dashoffset:0 !important}
+  .particle{display:none !important}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">本文へスキップ</a>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#hero">mitsu<span>lab</span></a>
+  <ul aria-label="ページ内ナビゲーション" class="nav-links">
+    <li><a href="#about">mitsulabとは</a></li>
+    <li><a href="#concept">コンセプト</a></li>
+    <li><a href="#profile">代表プロフィール</a></li>
+    <li><a href="#services">事業内容</a></li>
+    <li><a href="#projects">プロジェクト</a></li>
+    <li><a href="#roadmap">事業計画</a></li>
+    <li><a href="#links">リンク</a></li>
+    <li><a href="#contact">お問い合わせ</a></li>
+  </ul>
+  <button aria-controls="mobileMenu" aria-expanded="false" aria-label="メニューを開く" class="hamburger" id="hamburgerBtn">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a class="mobile-link" href="#about">mitsulabとは<span class="mobile-label">About</span></a>
+  <a class="mobile-link" href="#concept">コンセプト<span class="mobile-label">Concept</span></a>
+  <a class="mobile-link" href="#profile">代表プロフィール<span class="mobile-label">Profile</span></a>
+  <a class="mobile-link" href="#services">事業内容<span class="mobile-label">Services</span></a>
+  <a class="mobile-link" href="#projects">プロジェクト<span class="mobile-label">Projects</span></a>
+  <a class="mobile-link" href="#roadmap">事業計画<span class="mobile-label">Roadmap</span></a>
+  <a class="mobile-link" href="#links">リンク<span class="mobile-label">Links</span></a>
+  <a class="mobile-link" href="#contact">お問い合わせ<span class="mobile-label">Contact</span></a>
+</div>
+
+<main id="main">
+
+<!-- ══════════ HERO ══════════ -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-bg-gradient"></div>
+    <div class="hero-roots">
+      <svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 1400 900">
+        <path class="root-line" d="M700,0 C700,150 500,200 450,350 C400,500 550,550 500,700 C470,800 400,900 380,900"/>
+        <path class="root-line" d="M700,0 C720,180 850,250 900,400 C950,550 800,600 850,750 C880,850 950,900 1000,900"/>
+        <path class="root-line" d="M700,0 C680,100 600,180 550,280 C500,380 580,420 520,550 C460,680 380,750 300,900"/>
+        <path class="root-line" d="M700,0 C740,200 900,300 950,450 C1000,600 880,650 920,800 C940,880 1050,900 1100,900"/>
+        <path class="root-line" d="M450,350 C380,450 300,480 250,600 C200,720 150,800 100,900"/>
+        <path class="root-line" d="M900,400 C980,500 1050,550 1100,650 C1150,750 1200,800 1300,900"/>
+        <path class="root-line" d="M520,550 C480,620 420,660 350,750 C280,840 200,880 150,900"/>
+        <path class="root-line" d="M850,750 C900,800 970,830 1050,870 C1130,910 1200,900 1250,900"/>
+      </svg>
+    </div>
+    <div class="hero-particles" id="heroParticles"></div>
+  </div>
+  <div class="hero-content">
+    <p class="hero-label en">Restoration of soil ecosystem function</p>
+    <h1 class="hero-title"><em>土</em>を醸す。<br/>谷を<em>拓</em>く。</h1>
+    <p class="hero-subcopy-en">To ferment the soil.<br/>To open up the valley.</p>
+    <p class="hero-subcopy-jp"><br/>mitsulabは、
+      <br/>農地劣化・斜面崩壊・森林衰退——その共通根である土壌生態系の機能回復を、
+      <br/>① 有機農業・有機土木・森林土木・里山管理の総合的な知見に基づく実践
+      <br/>② AI・衛星画像・IoT・xRによる自然システムの知覚拡張 (Qualium)
+      <br/>という二つの柱から実践・探求する研究所です。</p>
+  </div>
+  <div class="scroll-indicator"><span>scroll</span><div class="scroll-line"></div></div>
+</section>
+
+<!-- MANIFESTO -->
+<section id="manifesto">
+  <div class="manifesto-inner">
+    <p class="manifesto-quote reveal-manifesto">mitsulabは、以下の問いから生まれました。<br/><br/>「壊れた土地を直すことはできる。<br/>でも、<em>壊れにくい土地</em>をつくることは<br/>できないだろうか。」<br/><br/>「<em>土壌生態系の機能低下</em>が引き起こす、<br/><em>農地劣化</em>・<em>斜面崩壊</em>・<em>森林衰退</em>などの課題を<br/>持続可能な方法で解決できないか。」
+    <div class="manifesto-rule reveal-manifesto"></div>
+    <p class="manifesto-en reveal-manifesto">We can repair broken land — but can we build land that resists breaking?<br/>We cultivate the valley — slowly, like fermentation.</p>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--forest)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--cream)" d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,45 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 01 ABOUT ══════════ -->
+<section id="about">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">01</div>
+      <div><span class="label">About</span><h2 class="section-title">mitsulabとは</h2><div class="section-subtitle">What is mitsulab?</div><div class="section-rule"></div></div>
+    </div>
+    <div class="about-grid">
+      <div class="about-body reveal">
+        <p>mitsulabは、
+        <br/>農地劣化・斜面崩壊・森林衰退——その共通根である土壌生態系の機能回復を、
+        <br/>① 有機農業・有機土木・森林土木・里山管理の総合的な知見に基づく実践
+        <br/>② AI・衛星画像・IoT・xRによる自然システムの知覚拡張 (Qualium)
+        <br/>という二つの柱から実践・探求する研究所です。</p>
+        <p>有機農業・有機土木・森林土木・里山管理——それぞれの分野は、数百年にわたる歴史的発展の中に、土壌に関する重要な知見を蓄積してきました。しかし現代の現場では、それらは分断されたまま忘れられつつあります。
+        <p>mitsulabは、それぞれの分野が蓄積した知見を統合した実践と、現代のテクノロジーを活用した自然システムの知覚拡張を二つの柱として、現代における土壌生態系の改善を実現するための研究主体として、令和8年3月16日から活動を開始しました。</p>
+      </div>
+      <div class="about-meta reveal reveal-delay-2">
+        <div class="about-meta-title">事業概要 / Overview</div>
+        <div class="meta-row"><span class="meta-key">屋号</span><span class="meta-val">mitsulab</span></div>
+        <div class="meta-row"><span class="meta-key">業務内容</span><span class="meta-val">①コンサルタント、②調査・研究、③情報発信、④研修・支援</span></div>
+        <div class="meta-row"><span class="meta-key">事業概要</span><span class="meta-val">農地劣化・斜面崩壊・森林衰退の共通根である土壌生態系の機能回復を、有機農業・有機土木・森林土木・里山管理の総合的な知見に基づく実践と、AI・衛星画像・IoT・xRによる自然システムの知覚拡張 (Qualium) の二本柱により実践・探求する。
+</span></div>
+        <div class="meta-row"><span class="meta-key">開業</span><span class="meta-val">令和8年 (2026年) 3月16日</span></div>
+        <div class="meta-row"><span class="meta-key">拠点</span><span class="meta-val">埼玉県さいたま市</span></div>
+        <div class="meta-row"><span class="meta-key">代表</span><span class="meta-val">上原光瑛</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--cream)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--paper)" d="M0,30 C480,70 960,10 1440,50 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 02 CONCEPT ══════════ -->
+<section id="concept">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">02</div>
+      <div><span class="label">Concept</span><h2 class="section-title">コンセプト</h2><div class="section-subtitle">Three Pillars of mitsulab</div><div class="section-rule"></div></div>
+    </div>
+    <p class="concept-intro reveal">mitsulabの活動は、三つの柱（実践／知覚拡張／思想・技術基盤）を中心に展開します。まず現場で、土・水・植生の振る舞いを観察し、手を動かして小さく試して、結果を記録して次の判断へつなげる。同時に、人間の感覚だけでは捉えきれない自然システムの変化を、データと表現の工夫によって「見える／共有できる」かたちへ翻訳する。この二つを往復運動として回しながら、「醸す谷」の思想的・技術的基盤を、長い時間軸で編み上げていきます。</p>
+    <div class="concept-grid">
+      <div class="concept-card reveal">
+        <div class="concept-pillar-num">Pillar Ⅰ</div>
+        <div class="concept-icon"><svg fill="none" stroke="var(--moss)" stroke-width="1" viewBox="0 0 48 48"><circle cx="24" cy="36" r="10"/><path d="M24,26 L24,8"/><path d="M18,14 L24,8 L30,14"/><path d="M14,30 C8,26 6,18 12,12"/><path d="M34,30 C40,26 42,18 36,12"/></svg></div>
+        <div class="concept-title">土壌生態系改善の施工・コンサルティング</div>
+        <!-- UPDATED BODY -->
+        <div class="concept-body">有機農業・有機土木・樹木管理・里山管理・パーマカルチャー、それぞれの分野の土壌に関する課題と知見を総合的に研究し、実践現場に根ざした実践を積み重ねながら、分野を横断した土壌生態系改善の実践とコンサルティングを行います。</div>
+        <div class="concept-accent">Construction &amp; Consulting</div>
+      </div>
+      <div class="concept-card reveal reveal-delay-1">
+        <div class="concept-pillar-num">Pillar Ⅱ</div>
+        <div class="concept-icon"><svg fill="none" stroke="var(--moss)" stroke-width="1" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16"/><circle cx="24" cy="24" r="8"/><circle cx="24" cy="24" fill="var(--moss)" r="2"/><path d="M24,8 L24,4"/><path d="M24,44 L24,40"/><path d="M8,24 L4,24"/><path d="M44,24 L40,24"/></svg></div>
+        <div class="concept-title">自然システムへの知覚拡張</div>
+        <div class="concept-body">土壌圏・水圏・生命圏・森林圏——人間の感覚では直接捉えられない自然システムの動態を、AI・衛星画像・IoT・xRなどを組み合わせて、意思決定に役立つ形へ翻訳します。現場観察（定性的）とデータ（定量的）を同じテーブルに載せ、「いま、どこで、何が起きているのか」を共有可能にする道具立てを整えます。その核心に、土壌生態系シミュレーター Qualium を据えます。</div>
+        <div class="concept-accent">Perceptual Extension</div>
+      </div>
+      <div class="concept-card reveal reveal-delay-2">
+        <div class="concept-pillar-num">Pillar Ⅲ</div>
+        <div class="concept-icon"><svg fill="none" stroke="var(--moss)" stroke-width="1" viewBox="0 0 48 48"><path d="M12,40 C12,28 20,20 24,12 C28,20 36,28 36,40"/><path d="M18,40 C18,32 22,26 24,20 C26,26 30,32 30,40"/><circle cx="24" cy="10" r="3"/><line x1="8" x2="40" y1="40" y2="40"/></svg></div>
+        <div class="concept-title">醸す谷の基盤構築・実装</div>
+        <div class="concept-body">実践と知覚拡張の両輪を回しながら、「醸す谷（Vallis Fermenti）」の技術的・思想的な基盤を築きます。土を醸すように、時間をかけて関係を育て、人・土地・コミュニティが共に発酵していく場をつくります。</div>
+        <div class="concept-accent">Vallis Fermenti</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--paper)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--cream)" d="M0,35 C480,65 960,15 1440,45 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 03 代表プロフィール ══════════ -->
+<section id="profile">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">03</div>
+      <div><span class="label">Profile</span><h2 class="section-title">代表プロフィール</h2><div class="section-subtitle">About the Founder</div><div class="section-rule"></div></div>
+    </div>
+
+    <div>
+      <div class="profile-body reveal">
+        <p>埼玉大学工学部建設工学科卒業後、埼玉県庁の土木技術職として8年間、山間部の道路・斜面・公園施設の維持管理に携わる。令和元年東日本台風では、県内最大規模となった地すべり復旧工事の主担当として現場を指揮。</p>
+        <p>その経験の中で、繰り返し崩れる斜面には共通点があることに気づく。団粒構造が失われてパサついた土、浸透せず表面を一気に流れる雨水——コンクリートや鋼材で補強するたびに一時の安定は得られるが、数年後には別の場所がまた動き始める。その繰り返しの中で、「これは地盤の強さの問題ではなく、土壌そのものの問題ではないか」という問いが生まれた。</p>
+        <p>その問いを起点に、有機農業・有機土木・森林土木・里山管理へと活動・学びの場を広げていく。有機農業の現場では「土を育てることが作物を育てること」という実践が積み重ねられており、土壌内の微生物をはじめとする土壌生態系が作物の生育に直結することを学ぶ。有機土木の分野では、高田宏臣氏の『土中環境』、矢野智徳氏の『大地の再生』、江戸時代の農書等を通じて、空気と水の循環をつくることで土壌生態系が活性化し、植生の回復や土壌の団粒化を通じて土地のレジリエンスが高まることを学んだ。これらの見立ては、現場で直感してきたこととまさに重なるものだった。</p>
+        <p>さらに、各分野の実務者との対話を通じて、それぞれの知見は分野を超えて応用可能であることを確信。土壌生態系の機能低下という共通根に対し、分野横断的な知見と現代テクノロジーを組み合わせて応答することを決意し、令和8年3月16日、mitsulabを開業。</p>
+      </div>
+      <div class="profile-timeline reveal reveal-delay-1">
+        <div class="timeline-title">JOURNEY</div>
+        <div class="timeline-item"><span class="timeline-year">1995.4</span><span class="timeline-dot"></span><span>埼玉県深谷市で生まれる</span></div>
+        <div class="timeline-item"><span class="timeline-year">2018.3</span><span class="timeline-dot"></span><span>埼玉大学工学部建設工学科卒業</span></div>
+        <div class="timeline-item"><span class="timeline-year">2018.4</span><span class="timeline-dot"></span><span>埼玉県庁入庁</span></div>
+        <div class="timeline-item"><span class="timeline-year">2021.4–2025.3</span><span class="timeline-dot"></span><span>令和元年東日本台風（台風19号）地すべり復旧工事（全建賞（災害枠・都市部門）受賞）</span></div>
+        <div class="timeline-item"><span class="timeline-year">2026.1–</span><span class="timeline-dot"></span><span>有機農業研修（すどう農場・日本農業実践学園）</span></div>
+        <div class="timeline-item"><span class="timeline-year">2026.1–</span><span class="timeline-dot"></span><span>有機土木研修（大地の再生・氷川参道土中環境）</span></div>
+        <div class="timeline-item"><span class="timeline-year">2026.3.16</span><span class="timeline-dot"></span><span>mitsulab 開業</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--cream)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--forest)" d="M0,50 C360,10 720,70 1080,30 C1260,15 1380,25 1440,20 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 04 SERVICES ══════════ -->
+<section id="services">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">04</div>
+      <div><span class="label">Services</span><h2 class="section-title">事業内容</h2><div class="section-subtitle">What we offer</div><div class="section-rule"></div></div>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-title">コンサルティング</div>
+        <div class="service-title-en">Consulting</div>
+        <div class="service-body">有機農業・有機土木・土壌生態系改善に関する計画立案・技術支援。農地・里山・公共緑地など、フィールドの状況に応じた実践的な助言を提供します。</div>
+      </div>
+      <div class="service-card reveal reveal-delay-1">
+        <div class="service-title">調査・研究</div>
+        <div class="service-title-en">Research &amp; Analysis</div>
+        <div class="service-body">土壌診断・生態系調査・文献研究・フィールドリサーチ。デジタル分析と現場調査を組み合わせ、データに基づいた提案を行います。</div>
+      </div>
+      <div class="service-card reveal reveal-delay-2">
+        <div class="service-title">情報発信</div>
+        <div class="service-title-en">Knowledge Sharing</div>
+        <div class="service-body">note・GitHub・各種メディアを通じた知見の公開と体系化。実践から得た一次情報を、誰もが活用できる形で社会へ還元します。</div>
+      </div>
+      <div class="service-card reveal reveal-delay-3">
+        <div class="service-title">研修・支援</div>
+        <div class="service-title-en">Training &amp; Support</div>
+        <div class="service-body">現場実践者・農業者・自治体向けの技術共有・研修サポート。専門家ネットワークと連携し、課題に応じたチームを組んで対応します。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--forest)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--paper)" d="M0,20 C480,60 960,20 1440,55 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 05 PROJECTS ══════════ -->
+<section id="projects">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">05</div>
+      <div><span class="label">Projects</span><h2 class="section-title">プロジェクト</h2><div class="section-subtitle">Current Initiatives</div><div class="section-rule"></div></div>
+    </div>
+    <div class="projects-list">
+      <div class="project-item reveal">
+        <div class="project-index">01</div>
+        <div class="project-content">
+          <div class="project-en">Cross-disciplinary Soil Practice</div>
+          <div class="project-title">土壌生態系改善の施工・コンサルティング</div>
+          <div class="project-body">分野横断的な土壌生態系改善の知見に基づいた、有機農業・有機土木・樹木管理の土壌生態系改善の実践と基盤構築。それぞれの専門家と連携しながら、誰もが活用できる知見として体系化することを目指す。</div>
+        </div>
+        <div class="project-tags"><span class="tag-pill">有機農業</span><span class="tag-pill">有機土木</span><span class="tag-pill">樹木管理</span></div>
+      </div>
+      <div class="project-item reveal reveal-delay-1">
+        <div class="project-index">02</div>
+        <div class="project-content">
+          <div class="project-en">Soil Ecosystem ANT Simulator</div>
+          <div class="project-title">自然システムへの知覚拡張 Qualium </div>
+          <div class="project-body">AI・IoT・衛星データを用いて土壌生態系の動態を可視化・シミュレーションするデジタルツール。Actor-Network Theory・Lotka-Volterraモデル・Digital Natureの哲学的基盤のもと、人間の知覚を超えた土壌世界の可視化を目指す。GitHubにてオープン開発中。</div>
+        </div>
+        <div class="project-tags"><span class="tag-pill">AI / IoT</span><span class="tag-pill">衛星解析</span><span class="tag-pill">GitHub</span></div>
+      </div>
+      <div class="project-item reveal reveal-delay-2">
+        <div class="project-index">03</div>
+        <div class="project-content">
+          <div class="project-en">Vallis Fermenti</div>
+          <div class="project-title">醸す谷の基盤構築・実装</div>
+          <div class="project-body">有機農業・有機土木・発酵文化を統合した、土壌生態系改善の総合実践プロジェクト。20年ロードマップに沿ってデモファームからエコビレッジへの段階的展開を描く。</div>
+        </div>
+        <div class="project-tags"><span class="tag-pill">有機農業</span><span class="tag-pill">有機土木</span><span class="tag-pill">発酵文化</span></div>
+      </div>
+      <div class="project-item reveal reveal-delay-3">
+        <div class="project-index">04</div>
+        <div class="project-content">
+          <div class="project-en">Satoyama Fieldwork</div>
+          <div class="project-title">公園・里山フィールドワーク</div>
+          <div class="project-body">公園や里山での樹木管理・草刈り・有機土木実践を通じた現場型研究。公園管理者・林業従事者と連携し、土壌医・ビオトープ管理士の資格取得と連動しながら知見を積み重ねる。</div>
+        </div>
+        <div class="project-tags"><span class="tag-pill">里山管理</span><span class="tag-pill">樹木管理</span><span class="tag-pill">土壌医</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--paper)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--forest)" d="M0,45 C360,15 720,65 1080,25 C1260,10 1380,30 1440,35 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 06 ROADMAP ══════════ -->
+<section id="roadmap">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">06</div>
+      <div><span class="label">Roadmap</span><h2 class="section-title">事業計画</h2><div class="section-subtitle">Business Roadmap</div><div class="section-rule"></div></div>
+    </div>
+    <div class="roadmap-grid reveal">
+      <div class="roadmap-phase">
+        <div class="phase-period">2026-2028</div>
+        <div class="phase-name">開業・基盤形成期</div>
+        <ul class="phase-items">
+          <li>コンサルティング・調査事業の開始</li>
+          <li>フィールドワーク（農園・公園等）</li>
+          <li>note・GitHubによる情報発信</li>
+          <li>土壌医・ビオトープ管理士 資格取得</li>
+          <li>有機農業・有機土木研修の継続</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase">
+        <div class="phase-period">2029–2031</div>
+        <div class="phase-name">知見体系化・技術開発期</div>
+        <ul class="phase-items">
+          <li>土壌生態系改善の知見 第一次体系化</li>
+          <li>Qualium 試作版の開発・公開</li>
+          <li>醸す谷 候補地の選定・調査</li>
+          <li>調査・コンサル実績の積み重ね</li>
+          <li>専門家ネットワークの構築</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase">
+        <div class="phase-period">2032–2035</div>
+        <div class="phase-name">実践拡大・社会実装期</div>
+        <ul class="phase-items">
+          <li>醸す谷 デモファーム着手</li>
+          <li>Qualium β版リリース・現場実装</li>
+          <li>調査・研究の学術的発信</li>
+          <li>自治体・農業法人との連携拡大</li>
+          <li>土壌生態系改善のモデル化</li>
+        </ul>
+      </div>
+      <div class="roadmap-phase">
+        <div class="phase-period">2036–</div>
+        <div class="phase-name">醸す谷・長期展開期</div>
+        <ul class="phase-items">
+          <li>醸す谷 エコビレッジへの段階的展開</li>
+          <li>土壌生態系改善の社会実装・普及</li>
+          <li>Qualium の広域展開・オープンソース化</li>
+          <li>次世代研究者・実践者への知見継承</li>
+          <li>「壊れにくい土地」の標準モデル確立</li>
+        </ul>
+      </div>
+    </div>
+    <p class="roadmap-note reveal reveal-delay-1">※ 各フェーズは固定された計画ではなく、現場の実践・調査・研究の成果に応じて柔軟に更新します。長期的な視点を持ちながら、目の前の一手を積み重ねていくことを基本姿勢とします。</p>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--forest)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--paper)" d="M0,30 C480,70 960,10 1440,50 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 07 LINKS ══════════ -->
+<section id="links">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">07</div>
+      <div><span class="label">Links</span><h2 class="section-title">リンク</h2><div class="section-subtitle">Further Reading &amp; Updates</div><div class="section-rule"></div></div>
+    </div>
+    <div class="links-grid reveal reveal-delay-1">
+      <!-- note -->
+      <a class="link-card" href="https://note.com/mitsu32_lab" rel="noopener" target="_blank">
+        <span class="link-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H17V9H7V7ZM7 11H13V13H7V11ZM7 15H11V17H7V15Z" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="link-name">note</span>
+        <span class="link-desc">エッセイ・記録・思索</span>
+        <span class="link-arrow">→</span>
+      </a>
+      <!-- GitHub -->
+      <a class="link-card" href="https://github.com/mitsulab-soil" rel="noopener" target="_blank">
+        <span class="link-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </span>
+        <span class="link-name">GitHub</span>
+        <span class="link-desc">開発・公開リポジトリ</span>
+        <span class="link-arrow">→</span>
+      </a>
+      <!-- X -->
+      <a class="link-card" href="https://x.com/mitsu32_lab" rel="noopener" target="_blank">
+        <span class="link-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>
+          </svg>
+        </span>
+        <span class="link-name">X</span>
+        <span class="link-desc">最新情報・短報</span>
+        <span class="link-arrow">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider" style="background:var(--paper)"><svg preserveAspectRatio="none" viewBox="0 0 1440 80"><path fill="var(--cream)" d="M0,40 C360,70 720,10 1080,50 C1260,65 1380,55 1440,50 L1440,80 L0,80 Z"/></svg></div>
+
+<!-- ══════════ 08 CONTACT ══════════ -->
+<section id="contact">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-num">08</div>
+      <div><span class="label">Contact</span><h2 class="section-title">お問い合わせ</h2><div class="section-subtitle">Get in Touch</div><div class="section-rule"></div></div>
+    </div>
+    <div class="contact-content">
+      <p class="contact-lead reveal">コンサルティング・調査・研究のご依頼、メディア取材・講演・共同研究のお声がけ、その他お問い合わせなど、お気軽に下記メールアドレスまでご連絡ください。</p>
+      <div class="contact-email-box reveal reveal-delay-1">
+        <div class="contact-email-label">EMAIL</div>
+        <div class="contact-email-address"><a href="mailto:mitsulab.biz@gmail.com">mitsulab.biz@gmail.com</a></div>
+        <a class="contact-email-btn" href="mailto:mitsulab.biz@gmail.com">メールを送信する →</a>
+      </div>
+      <div class="contact-types reveal reveal-delay-2">
+        <div class="contact-types-title">お問い合わせ種別</div>
+        <div class="contact-types-list">
+          <span class="contact-type-tag">コンサルティング依頼</span>
+          <span class="contact-type-tag">調査・研究依頼</span>
+          <span class="contact-type-tag">取材・講演依頼</span>
+          <span class="contact-type-tag">共同研究</span>
+          <span class="contact-type-tag">その他</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">mitsulab</div>
+      <div class="footer-tagline">土を醸す。谷を拓く。</div>
+      <div class="footer-meta">屋号：mitsulab<br/>代表：上原光瑛<br/>事業開始：令和8年 (2026年) 3月16日<br/>拠点：埼玉県さいたま市</div>
+    </div>
+    <div class="footer-right">
+      <div class="footer-sns">
+        <a class="sns-link" href="https://note.com/mitsu32_lab" rel="noopener" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM7 7H17V9H7V7ZM7 11H13V13H7V11ZM7 15H11V17H7V15Z"/></svg>
+          <span class="sns-link-label">note</span>
+        </a>
+        <a class="sns-link" href="https://github.com/mitsulab-soil" rel="noopener" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+          <span class="sns-link-label">GitHub</span>
+        </a>
+        <a class="sns-link" href="https://x.com/mitsu32_lab" rel="noopener" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+          <span class="sns-link-label">X</span>
+        </a>
+      </div>
+      <div class="footer-copy">© 2026 mitsulab / Uehara Mitsuaki. All rights reserved.</div>
+    </div>
+  </div>
+  <div class="footer-bottom"><div class="footer-philosophy">土を醸す。谷を拓く。— Vallis Fermenti</div></div>
+</footer>
+
+</main>
+
+<script>
+(() => {
+  const navbar = document.getElementById('navbar');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const onScroll = () => navbar.classList.toggle('scrolled', window.scrollY > 80);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const setMenuState = (open) => {
+    hamburgerBtn.classList.toggle('open', open);
+    mobileMenu.classList.toggle('open', open);
+    hamburgerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    hamburgerBtn.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニューを開く');
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+  hamburgerBtn.addEventListener('click', () => setMenuState(!mobileMenu.classList.contains('open')));
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileMenu.classList.contains('open')) { setMenuState(false); hamburgerBtn.focus(); }
+  });
+  document.querySelectorAll('.mobile-link').forEach(l => l.addEventListener('click', () => setMenuState(false)));
+
+  if (prefersReducedMotion) {
+    document.querySelectorAll('.reveal, .reveal-manifesto').forEach(el => el.classList.add('visible'));
+  } else {
+    const obs = new IntersectionObserver((entries, o) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); o.unobserve(e.target); } });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    const mObs = new IntersectionObserver((entries, o) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); o.unobserve(e.target); } });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.reveal-manifesto').forEach(el => mObs.observe(el));
+
+    const pc = document.getElementById('heroParticles');
+    if (pc) {
+      for (let i = 0; i < 24; i++) {
+        const p = document.createElement('div');
+        p.classList.add('particle');
+        p.style.left = Math.random() * 100 + '%';
+        p.style.bottom = Math.random() * 40 + '%';
+        p.style.animationDelay = (Math.random() * 8) + 's';
+        p.style.animationDuration = (6 + Math.random() * 6) + 's';
+        p.style.width = (1 + Math.random() * 2) + 'px';
+        p.style.height = p.style.width;
+        pc.appendChild(p);
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
