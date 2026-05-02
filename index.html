@@ -1,13 +1,41 @@
+<!-- mitsulab HP
+     v8: 2026-05-02 — Vision④を「協働・プラットフォーム」型に書き換え（3 Roles：補完・統合・普及）／新セクション「mitsulabの役割と事業」(Role & Business) を Profile と Natural Cycle の間に追加／Profile本文「施工管理者・観測者として」を削除／7セクション構成
+     v7: 2026-05-02 — 事業概要セクション削除（5セクション構成）／Profile年表整理／Stillpoint編集長を2026.4起点／出生地を「埼玉県」に修正
+     v6: 2026-05-02 — 6セクション構成：① mitsulabとは（三本柱+全プロジェクト統合）② mitsulabのビジョン ③ 代表プロフィール ④ 自然循環とは ⑤ 事業概要 ⑥ 用語解説 + Contact
+     v5: 2026-05-02 — OS構想を一旦HPから除外、Projects刷新（高田・矢野連携前面化）、9セクション (index_v5.html として保存済み)
+     v4: 2026-05-02 — 『土壌OS』→『自然循環OS』改称、Soil Today→Natural Cycle Today拡張、Projects/Future Vision新設 (index_v4.html として保存済み)
+     v3: 2026-04-30 — コアコンセプト刷新（土壌循環→自然循環／還す→再生する）、Profile拡張、Services/About再編 (index_v3.html として保存済み)
+     v2: 2026-04-23 — 年表に開業日・VR Academy追加、Qualia Field用語追加、Service 05更新、モバイル改善 (index_v2.html として保存済み)
+     v1: 2026-04-23 — 初版 (index_v1.html として保存済み)
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>mitsulab — 土壌循環の回復から、持続可能な社会へ</title>
-<meta name="description" content="mitsulabは、有機土木・有機農業の伝統技術と、AI・GIS・IoT・xRの現代技術を統合し、土壌循環の回復と可視化をワンストップで提供する研究所です。">
+<title>mitsulab — 傷ついた自然循環を、診て、感じて、再生する</title>
+<meta name="description" content="土・水・植物の自然循環を、診る（観測）× 感じる（体感）× 再生する（実装）の三位一体で扱う研究所。土壌再生・樹勢回復・水系循環回復を、現場経験 × 再生技術 × テクノロジー × アートの4軸で統合実践。">
 <meta name="color-scheme" content="light only">
 <meta name="theme-color" content="#f7f4ee">
 <meta name="supported-color-schemes" content="light">
+<!-- canonical -->
+<link rel="canonical" href="https://mitsulab.jp/">
+<!-- favicon -->
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mitsulab.jp/">
+<meta property="og:title" content="mitsulab — 傷ついた自然循環を、診て、感じて、再生する">
+<meta property="og:description" content="土・水・植物の自然循環を、診る × 感じる × 再生する の三位一体で扱う研究所。土壌再生・樹勢回復・水系循環回復を、現場経験 × 再生技術 × テクノロジー × アートの4軸で統合実践。">
+<meta property="og:image" content="https://mitsulab.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="mitsulab">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="mitsulab — 傷ついた自然循環を、診て、感じて、再生する">
+<meta name="twitter:description" content="土・水・植物の自然循環を、診る × 感じる × 再生する の三位一体で扱う研究所。">
+<meta name="twitter:image" content="https://mitsulab.jp/ogp.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -695,12 +723,10 @@ td,th{border-color:rgba(216,207,189,.20)}
   <div class="logo">mitsulab</div>
   <ul>
     <li><a href="#about">About</a></li>
+    <li><a href="#vision">Vision</a></li>
     <li><a href="#profile">Profile</a></li>
-    <li><a href="#today">Soil Today</a></li>
-    <li><a href="#soilos">Soil OS</a></li>
-    <li><a href="#tea">Pillars</a></li>
-    <li><a href="#services">Services</a></li>
-    <li><a href="#approach">Fieldwork</a></li>
+    <li><a href="#business">Role</a></li>
+    <li><a href="#cycle">Natural Cycle</a></li>
     <li><a href="#glossary">Glossary</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -721,7 +747,8 @@ td,th{border-color:rgba(216,207,189,.20)}
           <span class="hero-mark-letter">a</span>
           <span class="hero-mark-letter">b</span>
         </div>
-        <div class="hero-mark-label">Technology × Engineering × Art</div>
+        <div class="hero-mark-label">Observe × Immerse × Regenerate</div>
+        <div class="hero-mark-label" style="margin-top:8px;font-size:.78rem;letter-spacing:.18em">傷ついた自然循環を、診て、感じて、再生する</div>
       </div>
     </div>
   </div>
@@ -733,21 +760,21 @@ td,th{border-color:rgba(216,207,189,.20)}
   <span class="sec-num">01 / About</span>
   <h2>mitsulabとは</h2>
   <span class="sec-en">What is mitsulab?</span>
-  <p class="lead">農地が痩せる。斜面が崩れる。森が枯れる。生態系が縮む。症状は異なっても、根源は一つ——<strong>土壌循環の機能不全</strong>。</p>
+  <p class="lead">斜面が崩れる。樹勢が衰える。水脈が途切れる。生態系が痩せる。症状は異なっても、根源は一つ——<strong>土・水・植物の自然循環の機能不全</strong>。</p>
 
-  <p>土壌は農業・土木・造園・林業・環境を横断する共通基盤です。これらは別々の問題ではなく、同一の根への異なる角度からの症状にすぎません。mitsulabはこの根に対して、<strong>「診る」「触れる」「感じる」</strong>の三つの働きを一つの研究所として担います。それぞれを支えるのが、次の三本柱です。</p>
+  <p>土・水・植物は、それぞれ別の問題ではなく、一続きの自然循環として動いています。農業・土木・造園・林業・環境は、この同じ循環への異なる角度からのアプローチにすぎません。mitsulabはこの自然循環に対して、<strong>「診る」「感じる」「再生する」</strong>の三つの働きを一つの研究所として担います。それぞれを支えるのが、次の三本柱です。</p>
 
   <ul class="pillar-list">
-    <li><span class="pillar-list-label">Technology<span class="pillar-list-sub">現代技術</span></span>AI・GIS・IoT・xRによる『土壌OS』の基盤構築</li>
-    <li><span class="pillar-list-label">Engineering<span class="pillar-list-sub">伝統技術</span></span>土に触れる伝統技術の実践（有機土木・有機農業・森林土木）</li>
-    <li><span class="pillar-list-label">Art<span class="pillar-list-sub">知覚拡張</span></span>Qualia Practiceによる知覚拡張</li>
+    <li><span class="pillar-list-label">Observe<span class="pillar-list-sub">診る</span></span>IoT・GIS・3DGS・音響マイクで自然循環の動態を計測可能な形に翻訳する</li>
+    <li><span class="pillar-list-label">Immerse<span class="pillar-list-sub">感じる</span></span>観測データを音・触覚・空間に変換し、循環の傷と回復を体感に開く</li>
+    <li><span class="pillar-list-label">Regenerate<span class="pillar-list-sub">再生する</span></span>第一線の専門家と協働し、循環を本来の動きに戻す</li>
   </ul>
-  <p>頭文字は<strong>TEA</strong>——日本人の精神・侘び寂びの根底にある茶文化のように、時代を超えて受け継がれる知の器を目指します。</p>
+  <p>これらは独立した工程ではなく、観測 → 体感 → 再生の往復として一続きに動きます。再生現場の観測が次の観測の精度を上げ、体感が再生の感覚を社会に開く——この循環構造そのものが mitsulab の研究所としての形です。</p>
 
   <div class="grid grid-2" style="margin-top:32px">
     <div class="card" style="grid-column:1 / -1">
       <h3>ミッション / Mission</h3>
-      <p>現代技術×伝統技術×アートの三本柱による土壌循環技術のプラットフォーム<strong>『土壌OS』</strong>の構築と実践を通じて、土壌循環の機能不全を解決する。</p>
+      <p>傷ついた自然循環（土・水・植物）を、<strong>診る × 感じる × 再生する</strong>の三位一体で扱い、土壌再生・樹勢回復・水系循環回復を統合した「<strong>自然循環再生パッケージ</strong>」として社会に実装する。</p>
     </div>
     <div class="card">
       <h3>事業概要 / Overview</h3>
@@ -758,14 +785,85 @@ td,th{border-color:rgba(216,207,189,.20)}
     </div>
     <div class="card">
       <h3>事業領域 / Business area</h3>
-      <p>① <strong>Technology</strong>：AI・GIS・IoT・xRを用いた『土壌OS』の基盤構築<br>
-      ② <strong>Engineering</strong>：土壌循環の回復に関する調査・コンサルティング・施工支援<br>
-      ③ <strong>Art</strong>：Qualia Practice（知覚作品の制作・展示・ワークショップ）<br>
+      <p>① <strong>診る（Observe）</strong>：IoT・GIS・3DGS・音響観測による自然循環の観測・可視化<br>
+      ② <strong>再生する（Regenerate）</strong>：土壌再生・樹勢回復・水系循環回復の調査・施工支援・コンサルティング<br>
+      ③ <strong>感じる（Immerse）</strong>：Qualia Practice（知覚作品の制作・展示・ワークショップ）<br>
       ④ 研究・執筆・研修・情報発信</p>
     </div>
   </div>
 
-  <h3 style="margin-top:56px">mitsulabの活動について</h3>
+  <!-- ====== 三本柱 × 進行中プロジェクト ====== -->
+  <h3 style="margin-top:64px">三本柱と進行中のプロジェクト</h3>
+  <p style="color:var(--ink-2);font-size:.97rem;margin-bottom:18px;line-height:1.95">「診る × 感じる × 再生する」の三位一体は、独立した工程ではなく、<strong>観測 → 体感 → 再生</strong>の往復として一続きに動きます。それぞれの柱を現場で動かしているプロジェクトを、以下にすべて整理します。</p>
+
+  <!-- ── 再生する（中心。専門家連携） ── -->
+  <div style="margin-top:48px;border-left:3px solid var(--moss);padding-left:18px">
+    <span class="sec-num" style="color:var(--moss);margin-bottom:6px">Pillar Ⅰ ── Regenerate</span>
+    <h3 style="margin:0;font-size:1.4rem">再生する ── 第一線の専門家プロジェクトに参画</h3>
+    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">日本を代表する土壌・自然循環再生の実践者である<strong>高田宏臣 氏（NPO法人地球守）</strong>と<strong>矢野智徳 氏（大地の再生）</strong>が主催するプロジェクトに継続参画。施工管理者・観測者として現場で手を動かしながら、暗黙知を体得しています。</p>
+  </div>
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card">
+      <span class="tag">Project / Regenerate</span>
+      <h3>氷川参道 土壌改善プロジェクト<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">主催：高田宏臣 氏（NPO法人地球守）</small></h3>
+      <p>『土中環境』の体系化で知られる<strong>高田宏臣 氏</strong>が主催する、さいたま市・氷川参道の土壌改善プロジェクトに参画。<strong>しがら・点穴・素掘り溝</strong>による土中環境改善施工を通じて、地上の鎮守の森の樹勢を取り戻すために地下の通気と通水を回復させる実践を継続中。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Project / Regenerate</span>
+      <h3>上野原 大地の再生プロジェクト<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">主催：矢野智徳 氏（大地の再生）</small></h3>
+      <p>「大地の再生」を提唱・実践する造園家<strong>矢野智徳 氏</strong>が主催する山梨県上野原のプロジェクトに参画。<strong>水脈溝・点穴・風の草刈り</strong>を通じて、土地が本来持っていた水と空気の流れを、人の手で読み解きながら取り戻す現場で学んでいます。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Project / Regenerate</span>
+      <h3>樹勢回復プロジェクト<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">樹木医連携・構想中</small></h3>
+      <p>都市の街路樹・神社境内・里山の樹木に対する<strong>根圏改善による樹勢回復</strong>。樹木医との連携体制を構築中。地上の手入れだけでは届かない、土壌起点の樹勢回復プロトコルを確立します。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Project / Regenerate</span>
+      <h3>水系循環回復プロジェクト<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">水系再生実践者連携・構想中</small></h3>
+      <p><strong>流域スケールの水の流れの再構築</strong>。水系再生に取り組む実践者との連携体制を構築中。点ではなく流域として水循環を診て・再生する仕組みづくりに着手しています。</p>
+    </div>
+  </div>
+
+  <!-- ── 診る ── -->
+  <div style="margin-top:64px;border-left:3px solid var(--soil);padding-left:18px">
+    <span class="sec-num" style="color:var(--soil);margin-bottom:6px">Pillar Ⅱ ── Observe</span>
+    <h3 style="margin:0;font-size:1.4rem">診る ── 自社開発の観測技術</h3>
+    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">専門家の現場で得た「何を見るべきか」という問いを、IoT・3DGS・音響観測といった現代技術によって計測可能な形に翻訳します。</p>
+  </div>
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card">
+      <span class="tag">Project / Observe</span>
+      <h3>Field X<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">空間記録プロジェクト</small></h3>
+      <p>Insta360 X4 + <strong>3DGS（3D Gaussian Splatting）</strong>による空間記録プロジェクト。施工前・施工直後・3ヶ月後・6ヶ月後の根圏・樹冠・地形変化を<strong>定点で記録し、施工前後を3D空間として比較</strong>できる体系を構築中。Insta360 X4 機材を取得済み、初回撮影準備中。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Project / Observe</span>
+      <h3>Soil Sound Project<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">土中音響観測プロジェクト</small></h3>
+      <p>ピエゾマイクを土中に設置し、<strong>CO₂気泡・ミミズの移動・菌糸の活動音（100Hz〜48kHz）</strong>を収録・解析するプロジェクト。「健全な土」と「傷ついた土」で音のパターンがどう違うかを比較し、聴くことで土の状態を診る新しい指標を開発中。<strong>技術設計は完了、PoC（概念実証）準備中</strong>。</p>
+    </div>
+  </div>
+
+  <!-- ── 感じる ── -->
+  <div style="margin-top:64px;border-left:3px solid var(--amber);padding-left:18px">
+    <span class="sec-num" style="color:var(--amber);margin-bottom:6px">Pillar Ⅲ ── Immerse</span>
+    <h3 style="margin:0;font-size:1.4rem">感じる ── 知覚拡張アートの実践</h3>
+    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">観測されたデータを、数値とグラフではなく<strong>身体で感じられる体験</strong>に翻訳します。測ることの前提となる「自然との関係」を取り戻すための装置として、メディアアートを実践しています。</p>
+  </div>
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card">
+      <span class="tag">Project / Immerse</span>
+      <h3>Qualia Mind<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">メディアアート作品群（60作品超）</small></h3>
+      <p>書道（日本書作家協会認定 雅号「菱碧」）を起点に、<strong>身体性・内的深度・自然との共鳴</strong>をテーマにしたメディアアート作品群。『Qualia/sound Ⅰ・Ⅱ』『Qualia/heart Ⅰ』を発表済み、現在60作品超を継続制作中。Instagram <a href="https://www.instagram.com/mitsulab_art" target="_blank" rel="noopener">@mitsulab_art</a> で順次公開中。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Project / Immerse</span>
+      <h3>Qualia Field<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">マルチモーダル没入インスタレーション</small></h3>
+      <p>Soil Sound Projectの観測データを素材にした音響インスタレーション。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度・嗅覚へと翻訳する</strong>知覚拡張装置として開発中。芸術祭・環境アートイベントへの出展を視野に展示計画を進めています。</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:72px">mitsulabの活動について</h3>
   <p style="color:var(--ink-2);font-size:.95rem;margin-bottom:18px">日々の実践・開発・創作の記録を、各媒体で発信しています。それぞれ発信の性質が異なりますので、関心に応じてご覧ください。</p>
   <div class="activity-links">
     <a class="activity-link" href="https://note.com/mitsu32_lab" target="_blank" rel="noopener">
@@ -784,7 +882,7 @@ td,th{border-color:rgba(216,207,189,.20)}
       </span>
       <span class="activity-link-body">
         <span class="activity-link-title">開発記録（オープン開発）</span>
-        <span class="activity-link-desc">『土壌OS』関連の可視化ツール・コード・技術検証</span>
+        <span class="activity-link-desc">観測・可視化ツール・IoT・GIS・3DGS関連のコード・技術検証</span>
         <span class="activity-link-service">GitHub</span>
       </span>
     </a>
@@ -812,8 +910,108 @@ td,th{border-color:rgba(216,207,189,.20)}
 </section>
 
 
+<section id="vision">
+  <span class="sec-num">02 / Vision</span>
+  <h2>mitsulabのビジョン</h2>
+  <span class="sec-en">Our Mission &amp; Vision</span>
+
+  <!-- ── ミッションの深掘り ── -->
+  <p class="lead">mitsulab のミッションは、ひとつの宣言ではなく、現場で守り続ける一つの姿勢です。以下、ミッションを構成する5つの柱を順に解説したのち、今後の3つの方向性（ビジョン）を示します。</p>
+
+  <div class="mission-box" style="margin-top:24px">
+    <span class="mission-label">Mission Statement</span>
+    <p class="mission-statement">傷ついた自然循環（土・水・植物）を、<strong>診る × 感じる × 再生する</strong>の三位一体で扱い、<strong>土壌再生・樹勢回復・水系循環回復</strong>を統合した「<strong>自然循環再生パッケージ</strong>」として社会に実装する。</p>
+  </div>
+
+  <h3 style="margin-top:56px">① 「傷ついた自然循環」という捉え方</h3>
+  <p>自然は壊れていません。<strong>傷ついて、滞っている</strong>のです。開発・舗装・コンクリートという目立つ要因だけでなく、人の移動・日常生活・レジャー・消費活動という日常的な営みもまた、土地を踏み固め、循環を遮断します。逆に、農地・里山の管理放棄など人の手が入らなくなることもまた、別の形で自然循環を変質させます。傷は目に見えないため、問題として認識されないまま、斜面は崩れ、樹勢は衰え、水脈は途切れ、生態系は痩せていきます。</p>
+  <p>mitsulab は、この<strong>「見えない傷」を見える形に翻訳する</strong>ところから出発します。それが「診る」の役割であり、再生の前提です。</p>
+
+  <h3 style="margin-top:48px">② 土・水・植物を「ひとつの循環」として扱う</h3>
+  <p>土・水・植物は、それぞれ別の問題ではありません。<strong>一続きの自然循環として動いています</strong>。土の中の通気が失われれば、樹木の根は呼吸を失い、水脈は途切れ、流域全体の保水力が落ちます。逆に、樹木の根が伸びれば、土に空気が通り、水が浸透し、生態系が戻ります。農業・土木・造園・林業・環境という分野は、この同じ循環への異なる角度からのアプローチにすぎません。</p>
+  <p>mitsulab はこの共通根に向き合う研究所として、<strong>土壌再生・樹勢回復・水系循環回復を別々に提供せず、統合した「自然循環再生パッケージ」として扱います</strong>。</p>
+
+  <h3 style="margin-top:48px">③ 三位一体（Observe × Immerse × Regenerate）</h3>
+  <p>自然循環の機能不全に応答するには、観測（数値化）だけでも、施工（実装）だけでも届きません。三つの働きを一つの実践として往復させる必要があります。</p>
+
+  <div class="grid grid-3" style="margin-top:24px">
+    <div class="pillar">
+      <span class="roman">Pillar Ⅰ</span>
+      <h3>Observe<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">診る ── 計測可能な形に翻訳する</small></h3>
+      <p>IoTセンサー・GIS・3DGS・音響マイクによって、人の五感では捉えられない<strong>土・水・植物の動態を計測可能な形式に翻訳</strong>する。Field X・Soil Sound Project がこの柱を担います。</p>
+    </div>
+    <div class="pillar">
+      <span class="roman">Pillar Ⅱ</span>
+      <h3>Immerse<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">感じる ── 体験に開く</small></h3>
+      <p>観測データを音・触覚・映像・空間に変換し、人が自然循環の傷と回復を<strong>「体験」できる場をつくる</strong>。Qualia Mind・Qualia Field がこの柱を担います。測る前の「感じる」を社会に開く実践です。</p>
+    </div>
+    <div class="pillar">
+      <span class="roman">Pillar Ⅲ</span>
+      <h3>Regenerate<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">再生する ── 循環を取り戻す</small></h3>
+      <p>第一線の実践者と協働し、<strong>実際の土地で循環を取り戻す</strong>。氷川参道（高田氏）・上野原（矢野氏）への参画と、樹勢回復・水系循環回復の構想がこの柱を担います。</p>
+    </div>
+  </div>
+  <p style="margin-top:24px">これらは独立した工程ではなく、<strong>観測 → 体感 → 再生 → 観測</strong>の往復として一続きに動きます。再生現場の観測が次の観測の精度を上げ、体感が再生の感覚を社会に開く——この循環構造そのものが mitsulab の研究所としての形です。</p>
+
+  <h3 style="margin-top:48px">④ 自然循環再生パッケージ ── 協働で成り立つ方法論</h3>
+  <p>「自然循環再生パッケージ」は、mitsulab がすべてを単独で行う商品ではなく、<strong>土・水・植物それぞれの専門家と協働して成り立つ方法論</strong>です。土壌再生・大地の再生・樹勢回復・水系循環回復——いずれの領域にも、すでに長い実践と知恵を積み重ねてこられた第一線のプロフェッショナルが存在します。mitsulab の役割は、その実践を新たに作り直すことではなく、<strong>補完し、統合し、社会に普及させる</strong>ことです。</p>
+  <p>具体的には、以下の3つの役割を担います。</p>
+
+  <div class="approach-diagram" style="margin-top:24px">
+    <div class="approach-row">
+      <div class="approach-box">
+        <span class="label">Role 1</span>
+        <h4>補完する<br><small style="font-weight:400;font-size:.78rem">Complement</small></h4>
+        <p class="desc">専門家の現場における「観測・記録・<br>可視化」のレイヤーを補完する。<br>IoT・3DGS・GIS・音響観測で、<br>暗黙知に再現性と説明責任を加える。</p>
+        <span class="equiv">＝ 専門家の実践を強化</span>
+      </div>
+      <div class="approach-cross">×</div>
+      <div class="approach-box modern">
+        <span class="label">Role 2</span>
+        <h4>統合する<br><small style="font-weight:400;font-size:.78rem">Integrate</small></h4>
+        <p class="desc">分野ごとに分断された専門性を、<br>「診る × 感じる × 再生する」という<br>共通の軸の中で統合する。<br>土・水・植物を一続きの循環として扱う。</p>
+        <span class="equiv">＝ 領域横断のプラットフォーム</span>
+      </div>
+    </div>
+    <div class="approach-arrow">▼</div>
+    <div class="approach-box" style="border-top-color:var(--amber);max-width:720px;margin:0 auto">
+      <span class="label">Role 3</span>
+      <h4>普及させる ── Disseminate</h4>
+      <p class="desc">専門家の実践を、観測データ・空間記録・知覚体験として翻訳し、<br>企業・自治体・市民が「自分の関心軸で」アクセスできる形に開く。</p>
+      <span class="equiv" style="color:var(--amber)">＝ 専門知を社会に届ける媒介</span>
+    </div>
+  </div>
+
+  <p style="margin-top:24px">mitsulab は<strong>「すべてを自分でやる総合プレーヤー」ではなく、「協働で成り立つ統合プラットフォーム」</strong>として動きます。土・水・植物の自然循環再生という共通の地平で、専門家の実践と社会の受け手をつなぐ役割を果たすことが、研究所としての立脚点です。</p>
+
+  <!-- ── ⑤ ビジョン（3方向性） ── -->
+  <h3 style="margin-top:64px">⑤ これから挑むこと ── 3つの方向性</h3>
+  <p>パッケージを「論」で終わらせず、社会に実装するために、mitsulab は次の3方向で動きます。</p>
+
+  <div class="grid grid-3" style="margin-top:24px">
+    <div class="pillar" style="border-top-color:var(--moss)">
+      <span class="roman">Direction Ⅰ</span>
+      <h3>専門家との再生プロジェクト拡張<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">土・樹・水を統合した再生パッケージへ</small></h3>
+      <p>すでに着手している<strong>土壌再生・樹勢回復・水系循環回復</strong>をさらに深化させ、土・水・植物を統合した「自然循環再生パッケージ」の標準化を進める。高田宏臣 氏（地球守）・矢野智徳 氏（大地の再生）に加え、樹木医・水系再生の実践者・研究者との連携を広げ、<strong>専門家・企業・自治体をつなぐ実践プラットフォーム</strong>の整備を目指します。</p>
+    </div>
+    <div class="pillar" style="border-top-color:var(--amber)">
+      <span class="roman">Direction Ⅱ</span>
+      <h3>芸術イベントへの出展<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">大地の芸術祭から世界へ</small></h3>
+      <p><strong>大地の芸術祭（越後妻有アートトリエンナーレ）</strong>をはじめとする芸術祭・環境アートイベントへの出展。Soil Sound Project・Qualia Mind・Field X の観測データを素材に、自然と人間の関係を問いかけるインスタレーション作品を発表します。Ars Electronica・MUTEK Japan等の国際公募への応募準備を進めます。</p>
+    </div>
+    <div class="pillar" style="border-top-color:var(--soil)">
+      <span class="roman">Direction Ⅲ</span>
+      <h3>xRを活用した自然体験価値の創造<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">都市生活者と自然の再接続</small></h3>
+      <p>土中センサー・音響データ・3DGSによる空間記録と、<strong>xR（MR/VR/AR）</strong>を統合し、土中の生態系・自然循環・再生プロセスを「体験」できるコンテンツを開発する。<strong>自然から切り離された都市生活者</strong>が、自然との接続を再発見できる没入体験をデザインします。</p>
+    </div>
+  </div>
+
+  <div class="quote" style="margin-top:36px">経済価値の前に、感覚価値がある——人間が自然を測れるようになる前に、<br>自然と人間の関係そのものを取り戻す。<br>没入の設計は、測定の前提となる関係性を復元する作業である。</div>
+</section>
+
+
 <section id="profile">
-  <span class="sec-num">02 / Profile</span>
+  <span class="sec-num">03 / Profile</span>
   <h2>代表プロフィール</h2>
   <span class="sec-en">About the Founder</span>
 
@@ -822,170 +1020,288 @@ td,th{border-color:rgba(216,207,189,.20)}
     <div class="founder-name-en">Uehara Mitsuaki</div>
   </div>
 
-  <p>埼玉大学工学部建設工学科卒業後、埼玉県庁の土木技術職として8年間、山間部の道路・斜面・公園施設の維持管理に携わる。令和元年東日本台風では、県内最大規模となった地すべり復旧工事の主担当として現場を指揮（全建賞受賞）。</p>
+  <p>埼玉大学工学部建設工学科卒業後、埼玉県庁の土木技術職として8年間、山間部の道路・斜面・公園施設の維持管理に携わる。令和元年東日本台風では、県内最大規模となった地すべり復旧工事（規模：約7ha、地すべり土量 約980,000m³）の主担当として現場を指揮し、令和6年度<strong>全建賞（災害枠・都市部門）</strong>を受賞。第75回全国植樹祭（秩父ミューズパーク）会場整備工事の主担当も務めた。</p>
   <p>その経験の中で、繰り返し崩れる斜面には共通点があることに気づく。団粒構造が失われてパサついた土、浸透せず表面を一気に流れる雨水——コンクリートや鋼材で補強するたびに一時の安定は得られるが、数年後には別の場所がまた動き始める。その繰り返しの中で、「これは地盤の強さの問題ではなく、土壌そのものの問題ではないか」という問いが生まれた。</p>
-  <p>その問いを起点に、有機農業・有機土木・森林土木・土壌学へと学びと活動の場を広げていく。江戸期の農書・土木書、高田宏臣『土中環境』、矢野智徳『大地の再生』、アルバート・ハワードのインドール法などを通じて、土壌中の水・空気・物質の循環をデザインすることで、微生物・根圏・腐植土・団粒構造などの土壌生態系のはたらきが活性化し、植生・栽培作物・斜面の健全化が実現されることを学んだ。さらに、土木・農業・造園など土壌に関連する各分野の実務者との対話を通じて、それぞれの伝統技術は分野を超えて応用可能であることを確信した。</p>
-  <p>そして、現代技術×伝統技術×アートの三本柱による土壌循環技術のプラットフォーム<strong>『土壌OS — Soil Operating System』</strong>の構築と実践を志して、mitsulabを開業。</p>
-  <p>その他、VRプロフェッショナルアカデミー5期生として1年間VR・MRの技術を体系的に学び、ハッカソン──短期間のチーム開発形式で、複数作品のレベルデザイン・3Dオブジェクト制作を担当。書道では日本書作家協会認定の雅号「菱碧（りょうへき）」を持ち、アート作品集『Qualia/sound Ⅰ』『Qualia/sound Ⅱ』『Qualia/heart Ⅰ』を制作。また『Modarity X』──環境要素（温度・湿度・光度・音）の入力値を触覚と音に変換するIoTシステムの開発など、知覚拡張に関わる作品を多数手がけている。</p>
+  <p>同じ頃、公園管理の現場で樹木に向き合うなかで、樹木医から<strong>「根本的に樹勢を上げるには、地上部の手入れだけでは足りず、土壌改良が必要だ」</strong>という知見を得る。さらに、水系の循環回復に取り組む実践者の試みを知り、土・水・植物がそれぞれ別の問題ではなく、<strong>一続きの自然循環</strong>として動いていることに気づいた。現場で繰り返し直面していた「斜面崩壊」「樹勢の低下」「水脈の途絶」は、すべて同じ根——自然循環の機能不全——を持っていた。</p>
+  <p>その問いを起点に、有機農業・有機土木・森林土木・土壌学へと学びを広げる。高田宏臣『土中環境』、矢野智徳『大地の再生』、樹木医による根圏改善、水系再生の実践、江戸期の農書・土木書、アルバート・ハワードのインドール法——これらを通じて、すでに自然循環を回復させようと動いている実践者がいることを知り、自身の現場経験と分野横断の視点が、その流れと一致することを確信した。</p>
+  <p>8年の現場経験と、土木・農業・造園・林業を横断する分野統合の視点に、在職中から並行して実践していたテクノロジー（IoT・GIS・3DGS・AI・VR/MR）とアート（書道・メディアアート・インスタレーション）を組み合わせて、<strong>「傷ついた自然循環を、診て、感じて、再生する」</strong>を掲げ、mitsulabを開業。</p>
+  <p>VRプロフェッショナルアカデミー5期生としてVR・MRの技術を体系的に学び、ハッカソンで複数作品のレベルデザイン・3Dオブジェクト制作を担当。書道では日本書作家協会認定の雅号「菱碧（りょうへき）」を持ち、アート作品集『Qualia/sound Ⅰ』『Qualia/sound Ⅱ』『Qualia/heart Ⅰ』を制作。また『Modarity X』──環境要素（温度・湿度・光度・音）の入力値を触覚と音に変換するIoTシステムの開発など、知覚拡張に関わる作品を多数手がけている。</p>
+  <p>並行して、日本の自然・暮らし・知恵を日本語・英語・スペイン語・中国語の4言語で発信するデジタルメディア<strong>「Stillpoint」の編集長</strong>を務め、リジェネラティブ思想・東洋哲学・自然との共生を国際的に発信している。</p>
+  <p>2026年4月より、<strong>氷川参道 土壌改善プロジェクト</strong>（高田宏臣・NPO法人地球守）と<strong>上野原 大地の再生プロジェクト</strong>（矢野智徳・大地の再生）に参画。日本を代表する自然循環再生の実践者の現場で、手を動かしながら学んでいる。</p>
+
+  <h3 style="margin-top:48px">mitsulabの独自性 ── 4軸の統合</h3>
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card">
+      <span class="tag">① 現場経験</span>
+      <h3>土木技術職 8年</h3>
+      <p>山間部の道路・斜面・公園施設の維持管理、県内最大規模の地すべり復旧工事を主担当として統括。地形・水・土を読み続けた現場の感覚。</p>
+    </div>
+    <div class="card">
+      <span class="tag">② 再生技術への現場視点での理解と実践</span>
+      <h3>土・樹・水を統合的に</h3>
+      <p>土中環境（高田宏臣）・大地の再生（矢野智徳）・有機農業・有機土木・樹木医の知見を、施工管理者・観測者の現場視点で受け止め、現地で手を動かして実践している。</p>
+    </div>
+    <div class="card">
+      <span class="tag">③ テクノロジーの習熟</span>
+      <h3>在職中から並行実践</h3>
+      <p>IoT・GIS・3DGS・AI（Claude API）・VR/MR（Unity）を統合。LiDAR点群を地すべり復旧設計に応用した実務経験を起点に、自然循環の動態を観測・共有可能な形へ翻訳する。</p>
+    </div>
+    <div class="card">
+      <span class="tag">④ アートの実践</span>
+      <h3>書道からメディアアートへ</h3>
+      <p>書道（雅号「菱碧」）を起点としたメディアアート・インスタレーションを継続実践。Qualia Mind 60作品超、Modarity X、Soil Sound Project 等。測定の前に「感じる」を社会に開く。</p>
+    </div>
+  </div>
+  <p style="margin-top:18px">この4軸が一人の中に揃っていることが、mitsulabの代替できない強みです。すべての基盤に「現場の観測」があります。</p>
 
   <div class="journey">
-    <div class="journey-item"><div class="date">1995.4</div><div>埼玉県深谷市で生まれる</div></div>
+    <div class="journey-item"><div class="date">1995.4</div><div>埼玉県で生まれる</div></div>
     <div class="journey-item"><div class="date">2018.3</div><div>埼玉大学工学部建設工学科卒業</div></div>
     <div class="journey-item"><div class="date">2018.4</div><div>埼玉県庁入庁（土木技術職）</div></div>
-    <div class="journey-item"><div class="date">2021.4–2025.3</div><div>令和元年東日本台風 地すべり復旧工事 主担当（全建賞 災害枠・都市部門 受賞）</div></div>
+    <div class="journey-item"><div class="date">2021.4–2025.3</div><div>令和元年東日本台風 地すべり復旧工事 主担当（規模 約7ha・地すべり土量 約98万m³／LiDAR点群データ活用／<strong>令和6年度 全建賞 災害枠・都市部門 受賞</strong>）</div></div>
     <div class="journey-item"><div class="date">2026.1–</div><div>有機農業研修（すどう農場・日本農業実践学園）</div></div>
-    <div class="journey-item"><div class="date">2026.1–</div><div>有機土木研修（大地の再生・氷川参道土中環境・高田宏臣氏土中環境改善講習）</div></div>
+    <div class="journey-item"><div class="date">2026.3.16</div><div><strong>mitsulab 開業</strong>（埼玉県さいたま市大宮区）</div></div>
+    <div class="journey-item"><div class="date">2026.4–</div><div>氷川参道 土壌改善プロジェクト参画（高田宏臣・NPO法人地球守）／上野原 大地の再生プロジェクト参画（矢野智徳・大地の再生）</div></div>
+    <div class="journey-item"><div class="date">2026.4–</div><div>4言語デジタルメディア <strong>Stillpoint 編集長</strong>（日・英・西・中）</div></div>
   </div>
 </section>
 
 
-<section id="today">
-  <span class="sec-num">03 / Soil Today</span>
-  <h2>土壌の今と未来</h2>
-  <span class="sec-en">Soil: Now &amp; Future</span>
-  <p class="lead">mitsulabが向き合う根本的な課題は、いま世界の足元で静かに進行しています。</p>
+<section id="business">
+  <span class="sec-num">04 / Role &amp; Business</span>
+  <h2>mitsulabの役割と事業</h2>
+  <span class="sec-en">Our Role &amp; How We Sustain It</span>
+  <p class="lead">mitsulab は、自然循環再生のプロフェッショナルと<strong>協働で動くプラットフォーム</strong>として事業を組み立てます。土・水・植物それぞれの領域で長年の実践を積み重ねてこられた専門家が、すでに日本にはいます。私たちの仕事は、その実践を新たに作り直すことではなく、<strong>補完し、統合し、社会に普及させる</strong>媒介の役割を担うことです。この立ち位置こそが、TNFD・ネイチャーポジティブの世界的潮流に応答する事業として、継続性をもつ形だと考えています。</p>
 
-  <div class="grid grid-2" style="margin-top:32px">
+  <!-- ─ 役割の3層 ─ -->
+  <h3 style="margin-top:48px">① mitsulabの3つの役割</h3>
+  <div class="grid grid-3" style="margin-top:18px">
+    <div class="pillar" style="border-top-color:var(--soil)">
+      <span class="roman">Role Ⅰ</span>
+      <h3>専門家の実践を補完する<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">Complementing the experts</small></h3>
+      <p>高田宏臣 氏・矢野智徳 氏ら自然循環再生のプロフェッショナルが現場で行う再生施工に、<strong>IoT・3DGS・GIS・音響観測</strong>のレイヤーを重ねます。暗黙知として現場に蓄積されてきた判断や成果に、<strong>再現性と説明責任を持たせる</strong>ことが mitsulab の補完的役割です。</p>
+    </div>
+    <div class="pillar" style="border-top-color:var(--moss)">
+      <span class="roman">Role Ⅱ</span>
+      <h3>分野横断で統合する<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">Integrating across fields</small></h3>
+      <p>土壌・樹木・水系——それぞれに優れた専門家がいる一方で、土・水・植物が一続きに動くという視点で、これらを横断的に統合する場はまだ十分に育っていません。mitsulab は<strong>「診る × 感じる × 再生する」を共通軸に、各領域の専門性を一つのパッケージとしてまとめる</strong>役割を担います。</p>
+    </div>
+    <div class="pillar" style="border-top-color:var(--amber)">
+      <span class="roman">Role Ⅲ</span>
+      <h3>社会に普及させる<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">Disseminating to society</small></h3>
+      <p>専門家の実践を、企業・自治体・市民が「自分の関心軸で」理解できる形に翻訳します。観測データ・空間記録・知覚体験という3つの言語で、<strong>専門家と社会の受け手をつなぐ媒介</strong>として動きます。Stillpoint（4言語メディア）も、その普及機能の一部です。</p>
+    </div>
+  </div>
+
+  <!-- ─ TNFD / ネイチャーポジティブ ─ -->
+  <h3 style="margin-top:64px">② TNFD・ネイチャーポジティブ時代の必然性</h3>
+  <p>2020年代後半、自然資本の価値を企業活動に組み込む動きが世界で同時並行に進んでいます。<strong>TNFD（自然関連財務情報開示タスクフォース）</strong>はその基準であり、<strong>ネイチャーポジティブ</strong>は2030年までに自然の損失を止め、回復軌道に乗せるという国際合意です。これらの枠組みは、企業・自治体に対して次の3つを求めています。</p>
+
+  <div class="grid grid-3" style="margin-top:22px">
     <div class="card">
-      <span class="tag">Current State</span>
+      <span class="tag">Demand 01</span>
+      <h3>診る ── 自然資本の状態を測る</h3>
+      <p>定量的な観測・可視化・継続モニタリング。<strong>IoT・GIS・3DGS</strong>による mitsulab の観測技術は、この需要に直接応答します。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Demand 02</span>
+      <h3>再生する ── 回復に投資する</h3>
+      <p>自然資本を「減らさない」ではなく「増やす」動き。土壌・樹勢・水系の<strong>再生施工を専門家ネットワーク経由で実施</strong>することで応答します。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Demand 03</span>
+      <h3>感じる ── ステークホルダーに届ける</h3>
+      <p>従業員・地域住民・市民と自然の関係性を取り戻す体験。<strong>Qualia Practice</strong>による知覚翻訳で、数字では届かない層に応答します。</p>
+    </div>
+  </div>
+
+  <p style="margin-top:24px">これら3つの需要すべてに、<strong>「診る × 感じる × 再生する」のパッケージ</strong>として一括で応答できる実践者は、日本にほとんどいません。専門家ネットワークと協働しながら横断的に動ける mitsulab の立ち位置が、この時代に意味を持つ理由です。</p>
+
+  <!-- ─ 想定する事業形態 ─ -->
+  <h3 style="margin-top:64px">③ 想定する事業の形</h3>
+  <p>mitsulab は、以下の形で社会と接続することを想定しています。具体的なサービス内容・料金・スコープは、お問い合わせ後の対話の中で個別に組み立てます。</p>
+
+  <div class="grid grid-2" style="margin-top:22px">
+    <div class="card">
+      <span class="tag">For Businesses</span>
+      <h3>企業向け<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">TNFD 開示・自然資本投資・社員エンゲージメント</small></h3>
+      <p>所有・関与する土地（社有林・保有不動産・工場敷地・社員研修拠点等）の<strong>自然循環の状態評価</strong>、専門家ネットワーク経由での<strong>再生施工の調整</strong>、観測データに基づく<strong>継続モニタリング</strong>、社員向け<strong>体感ワークショップ</strong>。TNFD開示・サステナビリティレポートに資する形で支援します。</p>
+    </div>
+    <div class="card">
+      <span class="tag">For Local Governments</span>
+      <h3>自治体向け<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">ネイチャーポジティブ施策・流域管理・住民参加</small></h3>
+      <p>流域単位での<strong>GIS自然循環マッピング</strong>、優先度の高いエリアでの<strong>再生施工（専門家連携）</strong>、観測データに基づく<strong>政策評価・住民への可視化</strong>。土木技師としての行政内部の言語を共有しているため、現場・住民・議会の言語を行き来できます。</p>
+    </div>
+    <div class="card">
+      <span class="tag">For Specialists / NPOs</span>
+      <h3>専門家・実践団体向け<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">実践の補完・記録・対外的発信</small></h3>
+      <p>すでに再生実践に取り組まれている方々の現場における<strong>観測・記録・3D空間化</strong>、対外的な<strong>発信素材の制作</strong>、海外向け4言語発信（Stillpoint連携）。実践者の手の届きにくい領域を分業として担います。</p>
+    </div>
+    <div class="card">
+      <span class="tag">For Cultural / Art Sectors</span>
+      <h3>文化・芸術領域向け<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">芸術祭・展示・サイトスペシフィック作品</small></h3>
+      <p>芸術祭・美術館・企業空間における<strong>知覚拡張インスタレーション</strong>（Qualia Field・Qualia Mind）の出展、観測データを素材にした<strong>サイトスペシフィック作品</strong>の制作、アーティストトーク。自然と人間の関係を問い直す体験を場に組み込みます。</p>
+    </div>
+  </div>
+
+  <!-- ─ 事業継続性 ─ -->
+  <h3 style="margin-top:64px">④ なぜ「協働モデル」が事業として継続するのか</h3>
+  <ul class="pill-list">
+    <li><strong>自然資本の市場が拡大する</strong>：TNFD・ネイチャーポジティブの広がりにより、企業・自治体が自然資本に投資する必然性が高まっています。需要側が育つフェーズです。</li>
+    <li><strong>協働だからこそスケールする</strong>：すべてを単独で抱え込むモデルは、属人化と疲弊で止まります。専門家ネットワークと役割分担する mitsulab のモデルは、関わる人が増えるほど厚みが出る構造です。</li>
+    <li><strong>4軸の統合が代替されにくい</strong>：現場経験 × 再生技術への現場視点 × テクノロジー × アートの4軸を一人で扱える層は限られ、それを<strong>専門家ネットワークと組み合わせて運用する立ち位置</strong>は、模倣が難しい mitsulab 固有のポジションです。</li>
+    <li><strong>発信と実装が連動する</strong>：Stillpoint（4言語メディア）・note・GitHub による継続的な発信と、現場での実装が連動することで、関心層・依頼者・協働相手が同じ場所に集まる仕組みになります。</li>
+  </ul>
+
+  <div class="quote" style="margin-top:32px">mitsulab は、自然循環再生の主役ではありません。<br>主役は、<strong>土・水・植物の循環そのもの</strong>と、その循環を取り戻すために手を動かしてこられた<strong>第一線の実践者の方々</strong>です。<br>mitsulab は、その実践を補完し、統合し、社会に届ける——<strong>媒介としての研究所</strong>です。</div>
+</section>
+
+
+<section id="cycle">
+  <span class="sec-num">05 / Natural Cycle</span>
+  <h2>自然循環とは</h2>
+  <span class="sec-en">What is the Natural Cycle?</span>
+  <p class="lead">「自然循環」は、mitsulab が向き合うすべての課題の中心にある概念です。土・水・植物が互いに関わり合いながら巡り続けるひとつの大きな働き——その全体像を言葉にしておきます。</p>
+
+  <h3 style="margin-top:40px">定義 ── ひとつの循環として動く土・水・植物</h3>
+  <p>自然循環とは、<strong>土の中で水・空気・養分・微生物・植物の根が互いに関わり合いながら巡り続ける働き</strong>と、それが地上の樹勢・流域の水循環と一続きにつながった<strong>循環全体</strong>を指します。土・水・植物は別々の問題ではなく、一続きの循環として動いています。この循環が健全であれば、農地は作物を育て、森は水を貯え、斜面は崩れにくくなります。</p>
+
+  <h3 style="margin-top:40px">3つの層 ── 土・水・植物</h3>
+  <div class="grid grid-3" style="margin-top:18px">
+    <div class="card" style="border-top:3px solid var(--soil)">
+      <span class="tag">Layer 01 ── 土</span>
+      <h3>土壌の層</h3>
+      <p>団粒構造・微生物・菌糸・腐植が、空気と水を内に通します。健全な土は「呼吸」しており、根に酸素と養分を供給します。<strong>食料の95%は土から生まれる</strong>と言われ、これは農業の問題でも環境の問題でもなく、人間の生存基盤そのものに関わります。</p>
+    </div>
+    <div class="card" style="border-top:3px solid #2a6a8a">
+      <span class="tag">Layer 02 ── 水</span>
+      <h3>水脈・流域の層</h3>
+      <p>雨水が土に浸透し、地下水脈となり、湧水として再び地表に戻る——この循環が流域単位で動いています。土の中の通気・通水が失われれば、雨水は表面を一気に流れ、地下水位は下がり、平時の渇水と豪雨災害が同時進行します。</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--moss)">
+      <span class="tag">Layer 03 ── 植物</span>
+      <h3>植生・樹勢の層</h3>
+      <p>植物の根は土に空気と水の道を作り、葉は蒸散で水を循環に戻します。樹勢が回復すれば、地下の通気と通水も戻る——逆も真です。<strong>地上の手入れだけでは樹勢は戻らない</strong>。樹木医・造園・林業の現場で広がる認識です。</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:48px">機能不全 ── いま起きていること</h3>
+  <p style="margin-top:14px;color:var(--ink-2);line-height:1.95">自然循環の傷は静かに進行しています。症状はさまざまでも、根源は一つの共通根にあります。</p>
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card">
+      <span class="tag">Soil — 土</span>
       <h3>世界の農地の33％がすでに劣化</h3>
       <p>国連食糧農業機関（FAO）は、<strong>世界の農地の約33%以上がすでに劣化しており、2050年までには90%以上が劣化する恐れがある</strong>と警告しています。土壌は一度失われれば、自然の再生には数百年を要する有限の資源です。</p>
     </div>
     <div class="card">
-      <span class="tag">Root Causes</span>
-      <h3>劣化の原因</h3>
-      <p>過剰な農薬・肥料の使用、土壌の過剰な耕作、森林伐採、水分の過不足などにより、<strong>土壌の物理性・化学性・生物性</strong>が同時に悪化しています。それぞれが単独の問題ではなく、互いに連鎖して進行するのが特徴です。</p>
+      <span class="tag">Water — 水</span>
+      <h3>水脈の途絶と流域の機能不全</h3>
+      <p>舗装・側溝・直線河川化により、<strong>雨水が土に浸透せず表面を一気に流れる</strong>地表が増えています。地下水位の低下、湧水の消失、流域の保水力の低下は、平時の渇水と豪雨時の災害という両極端を同時に進行させます。</p>
     </div>
     <div class="card">
-      <span class="tag">Symptoms</span>
-      <h3>進行する具体的現象</h3>
-      <p>土壌侵食・塩類集積・養分不足・酸性化・汚染・耕盤層の形成──これらが<strong>作物の根張りを阻害し、収量の減少や土地の荒廃（砂漠化）</strong>を招きます。斜面崩壊や生態系の縮小もまた、この共通根から派生する症状です。</p>
+      <span class="tag">Plants — 植物</span>
+      <h3>樹勢の衰えと生態系の縮小</h3>
+      <p>都市の街路樹も、里山の森林も、神社境内の鎮守の森も、<strong>表層の手入れだけでは樹勢が回復しない</strong>段階に入っています。根本的な原因は地上ではなく地下——土壌の硬化・通気不全・水の停滞による根圏の窒息です。</p>
     </div>
     <div class="card">
-      <span class="tag">What Matters</span>
-      <h3>95%の食料は土から生まれる</h3>
-      <p>土壌学者・藤井一至氏の言葉に象徴されるように、<strong>私たちの食料の95%は土壌に由来</strong>します。土壌循環の機能不全は、農業・土木・環境のいずれかの問題ではなく、人間の生存基盤そのものに関わる現代の根本課題です。</p>
+      <span class="tag">Why Now — TNFD時代</span>
+      <h3>自然資本の時代へ</h3>
+      <p><strong>TNFD（自然関連財務情報開示タスクフォース）・ネイチャーポジティブ</strong>が世界的な基準になりつつある今、自然資本を「観測 → 体感 → 再生」のパッケージで扱える実践者が必要です。経済価値の前に、感覚価値がある——それが mitsulab の立脚点です。</p>
     </div>
   </div>
 
-  <div class="quote" style="margin-top:32px">土が痩せる速度は、人類が地球に残す最も静かで深刻な変化の一つである。<br>mitsulabは、この課題に「回復」と「可視化」の両輪で応答する。</div>
-</section>
-
-<section id="soilos">
-  <span class="sec-num">04 / Soil OS</span>
-  <h2>『土壌OS』とは</h2>
-  <span class="sec-en">Soil Operating System</span>
-  <p class="lead">mitsulabが構想する<strong>『土壌OS（Soil Operating System）』</strong>は、現代技術×伝統技術×アートの三本柱によって構築する、フィジカルAI時代の土壌循環技術のプラットフォームです。スマートフォンやコンピューターにOSがあるように、<strong>土壌の循環を扱うためにあらゆる情報・技術・実践知をつなぐ基盤システム</strong>を、土壌にもインストールする——それが『土壌OS』です。</p>
-
-  <div class="grid grid-2" style="margin-top:32px">
-    <div class="card">
-      <span class="tag">What it does</span>
-      <h3>何を行うか</h3>
-      <p>土壌の状態を感知し、地形と流域を読み、微生物と植生の相互作用を追跡する。点ではなく面として、瞬間ではなく時間として、分野単独ではなく領域横断として、<strong>土壌循環の全体像を一つの基盤の上で扱える</strong>ようにする。</p>
-    </div>
-    <div class="card">
-      <span class="tag">Who it connects</span>
-      <h3>誰をつなぐか</h3>
-      <p>伝統技術の実践者・現代技術の開発者・研究者・自治体・農業者・土木技術者・造園家・住民。これまで別々の言語で土を語ってきた人々が、<strong>同じ土台の上で情報と実践知を共有・活用できる</strong>共通言語としての『土壌OS』。</p>
-    </div>
-    <div class="card">
-      <span class="tag">How it grows</span>
-      <h3>どう育つか</h3>
-      <p>一度作って完成する製品ではなく、使われるたびに学習し、現場から現場へ知が循環することで成熟する生態系として設計。GitHubでオープンに開発し、<strong>地域・時間・世代を越えて伝統技術と現代技術を補完し合わせる</strong>仕組み。</p>
-    </div>
-    <div class="card">
-      <span class="tag">Why now</span>
-      <h3>なぜ今か</h3>
-      <p>AIが物理世界と直接つながる<strong>フィジカルAI時代</strong>の到来により、土壌のような複雑なシステムも、実測・推論・実行を一体化した形で扱えるようになった。この技術的転換点において、伝統技術の実践知を再興させる機会として『土壌OS』を構築する。</p>
-    </div>
-  </div>
+  <div class="quote" style="margin-top:32px">斜面が崩れる。樹勢が衰える。水脈が途切れる。生態系が痩せる。──症状はそれぞれ違っても、根源は一つ。<br>土・水・植物が一続きに動く<strong>自然循環の機能不全</strong>。<br>mitsulabは、この共通根に「診る」「感じる」「再生する」の三位一体で応答する。</div>
 </section>
 
 
-<section id="tea">
-  <span class="sec-num">05 / TEA</span>
-  <h2>『土壌OS』の三本柱</h2>
-  <span class="sec-en">Technology × Engineering × Art</span>
-  <p class="lead">『土壌OS』は、<strong>Technology・Engineering・Art</strong>という三本柱の融合によって構築されます。重要度順にT→E→Aと並ぶこの三文字は、偶然<strong>TEA（お茶）</strong>となります——日本人の精神・侘び寂びの根底にある茶文化のように、時代を超えて受け継がれる知の器を目指します。</p>
+<section id="projects-removed-v6" style="display:none" aria-hidden="true">
+  <span class="sec-num">03 / Projects (removed)</span>
+  <h2>現在進行中のプロジェクト</h2>
+  <span class="sec-en">Active Projects — Observe / Immerse / Regenerate</span>
+  <p class="lead">mitsulabは、<strong>日本を代表する土壌・自然循環再生の実践者</strong>である高田宏臣氏（NPO法人地球守）・矢野智徳氏（大地の再生）が主催するプロジェクトに参画し、現場で再生技術を学びながら、独自の観測技術・知覚拡張アートを並行して開発しています。以下は現在進行中の主要プロジェクトです。</p>
 
-  <div class="grid grid-3">
-    <div class="pillar">
-      <span class="roman">Pillar Ⅰ</span>
-      <h3>Technology<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">基盤を構築する</small></h3>
-      <p>AI・GIS・IoT・xRを融合し、<strong>『土壌OS』の基盤システムを構築する</strong>。自然を外から制御するためではなく、循環の中に入り、その動きを読むために現代技術を使う。この哲学的立場が、一般的な環境テクノロジーとmitsulabを分ける。</p>
+  <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--moss)">Regenerate ── 再生する：第一線の専門家プロジェクトへの参画</h3>
+  <p style="margin-top:14px;color:var(--ink-2);font-size:.95rem">「土・水・植物が一続きに動く自然循環」という捉え方は、頭の中で完成させるものではなく、現場で師から学ぶものです。mitsulab は日本の土壌・自然循環再生を切り拓いてきた実践者の現場に直接参画し、施工管理者・観測者として手を動かしながら学んでいます。</p>
+  <div class="grid grid-2" style="margin-top:22px">
+    <div class="card">
+      <span class="tag">Project / Regenerate</span>
+      <h3>氷川参道 土壌改善プロジェクト<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">主催：高田宏臣 氏（NPO法人地球守）</small></h3>
+      <p>『土中環境』の体系化で知られる<strong>高田宏臣氏</strong>が主催する、さいたま市・氷川参道の土壌改善プロジェクトに参画。<strong>しがら・点穴・素掘り溝</strong>による土中環境改善施工を通じて、地上の鎮守の森の樹勢を取り戻すために、地下の通気と通水を回復させる実践を継続中。<strong>定期的な施工日に参加し、施工技術と現場の読み方を学んでいます。</strong></p>
     </div>
-    <div class="pillar">
-      <span class="roman">Pillar Ⅱ</span>
-      <h3>Engineering<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">循環をつくる</small></h3>
-      <p>有機農業・有機土木・森林・生態学・土壌学に蓄積された<strong>数百年の実践知</strong>を、土壌循環という軸で統合し、現場に活かす。何を測るべきか、何を感じるべきかを決めるのは、常に現場の感覚が先にある。</p>
+    <div class="card">
+      <span class="tag">Project / Regenerate</span>
+      <h3>上野原 大地の再生プロジェクト<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">主催：矢野智徳 氏（大地の再生）</small></h3>
+      <p>「大地の再生」を提唱・実践する造園家<strong>矢野智徳氏</strong>が主催する山梨県上野原のプロジェクトに参画。<strong>水脈溝・点穴・風の草刈り</strong>などの技法を通じて、土地が本来持っていた水と空気の流れを、人の手で読み解きながら取り戻す現場で学ぶ。土・水・植物が一続きに動く感覚を、最も実践的に教えてくれる現場です。</p>
     </div>
-    <div class="pillar">
-      <span class="roman">Pillar Ⅲ</span>
-      <h3>Art<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">感覚を拡張する</small></h3>
-      <p>土壌循環は人間の感覚スケールの外側で動いている。Technologyが測定する前に、身体と感覚で先行して「感じる」——知覚作家としての<strong>Qualia Practice</strong>を、mitsulabの柱として位置づける。</p>
+  </div>
+  <p style="margin-top:18px;color:var(--ink-2);font-size:.94rem;line-height:1.95">これら2つの参画に加え、<strong>樹木医との連携による樹勢回復プロジェクト</strong>、および<strong>水系再生実践者との連携による流域スケールの水循環回復プロジェクト</strong>を構想中です。土・樹・水を統合した「自然循環再生パッケージ」の標準化に向けて、専門家ネットワークを段階的に拡張しています。</p>
+
+  <h3 style="margin-top:56px;padding-left:14px;border-left:3px solid var(--soil)">Observe ── 診る：自社開発の観測プロジェクト</h3>
+  <p style="margin-top:14px;color:var(--ink-2);font-size:.95rem">専門家の現場で得た「何を見るべきか」という問いを、IoT・3DGS・音響観測といった現代技術によって計測可能な形に翻訳します。</p>
+  <div class="grid grid-2" style="margin-top:22px">
+    <div class="card">
+      <span class="tag">Project / Observe</span>
+      <h3>Field X<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">空間記録プロジェクト</small></h3>
+      <p>Insta360 X4 + <strong>3DGS（3D Gaussian Splatting）</strong>による空間記録プロジェクト。施工前・施工直後・3ヶ月後・6ヶ月後の根圏・樹冠・地形変化を<strong>定点で記録し、施工前後を3D空間として比較</strong>できる体系を構築中。氷川参道・上野原をはじめ再生現場での月次撮影を計画。Insta360 X4 機材を取得済み、初回撮影準備中。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Project / Observe</span>
+      <h3>Soil Sound Project<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">土中音響観測プロジェクト</small></h3>
+      <p>ピエゾマイクを土中に設置し、<strong>CO₂気泡・ミミズの移動・菌糸の活動音（100Hz〜48kHz）</strong>を収録・解析するプロジェクト。「健全な土」と「傷ついた土」で音のパターンがどう違うかを比較し、聴くことで土の状態を診る新しい指標を開発中。<strong>技術設計は完了、PoC（概念実証）準備中</strong>。</p>
     </div>
   </div>
 
-  <h3 style="margin-top:48px">三本柱の相互関係</h3>
-  <div class="grid grid-3" style="margin-top:20px">
+  <h3 style="margin-top:56px;padding-left:14px;border-left:3px solid var(--amber)">Immerse ── 感じる：知覚拡張アートプロジェクト</h3>
+  <p style="margin-top:14px;color:var(--ink-2);font-size:.95rem">観測されたデータを、数値とグラフではなく<strong>身体で感じられる体験</strong>に翻訳します。測ることの前提となる「自然との関係」を取り戻すための装置として、メディアアートを実践しています。</p>
+  <div class="grid grid-2" style="margin-top:22px">
     <div class="card">
-      <span class="tag">T × E</span>
-      <h3>Technology × Engineering</h3>
-      <p>現場の実践知がセンサー設計や可視化指標の基礎となり、逆に『土壌OS』が現場に新しい問いを返す。伝統技術と現代技術が補完し合う循環。</p>
+      <span class="tag">Project / Immerse</span>
+      <h3>Qualia Mind<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">メディアアート作品群（60作品超）</small></h3>
+      <p>書道（日本書作家協会認定 雅号「菱碧」）を起点に、<strong>身体性・内的深度・自然との共鳴</strong>をテーマにしたメディアアート作品群。『Qualia/sound Ⅰ・Ⅱ』『Qualia/heart Ⅰ』を発表済み、現在60作品超を継続制作中。Instagram @mitsulab_art で順次公開中。</p>
     </div>
     <div class="card">
-      <span class="tag">E × A</span>
-      <h3>Engineering × Art</h3>
-      <p>土を触る身体経験がQualia Practiceの素材となり、知覚作品の問いが現場の「読み方」を変える。実践と感性の相互浸透。</p>
-    </div>
-    <div class="card">
-      <span class="tag">A × T</span>
-      <h3>Art × Technology</h3>
-      <p>測定の限界の手前をArtが先行感知し、その感覚的問いが『土壌OS』の設計思想に影響する。人間の感覚と機械の知覚の往復。</p>
+      <span class="tag">Project / Immerse</span>
+      <h3>Qualia Field<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">マルチモーダル没入インスタレーション</small></h3>
+      <p>Soil Sound Projectの観測データを素材にした音響インスタレーション。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度・嗅覚へと翻訳する</strong>知覚拡張装置として開発中。芸術祭・環境アートイベントへの出展を視野に、装置設計と展示計画を並行して進めています。</p>
     </div>
   </div>
 </section>
 
 
-<section id="services">
-  <span class="sec-num">06 / Services</span>
-  <h2>事業内容</h2>
+<section id="services-removed-v7" style="display:none" aria-hidden="true">
+  <span class="sec-num">05 / Business (removed v7)</span>
+  <h2>事業概要</h2>
   <span class="sec-en">What We Offer</span>
-  <p class="lead">「現状把握 → 改善実施 → 変化の可視化」を、伝統技術と現代技術の両輪で提供します。</p>
+  <p class="lead">「現状把握（診る）→ 再生実施（再生する）→ 変化の可視化と体感（感じる）」を、土・樹・水の自然循環という共通軸で統合提供します。専門家との連携で得た現場の実践知と、自社開発の観測・知覚拡張技術を組み合わせて、4つのサービスを展開します。</p>
 
   <div class="grid grid-2">
     <div class="card">
       <span class="tag">Service 01</span>
-      <h3>『土壌OS』の開発・提供</h3>
-      <p>AI・GIS・IoT・xRを統合した<strong>『土壌OS』</strong>を開発中（GitHub公開）。単にデータを可視化するだけでなく、フィジカルAI時代の土壌循環技術の基盤となるオペレーションシステムとして設計。現場データが可視化の精度を上げ、可視化が現場の問いを洗練させる——この往復構造自体をオープンに構築します。</p>
+      <h3>自然循環再生 診断パッケージ<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">土・樹・水の統合診断 → 再生施工提案 → 継続観測</small></h3>
+      <p><strong>STEP 1｜現地診断：</strong>土壌の目視・触覚診断（団粒構造・色・臭い・生物相）、樹木の樹勢・根圏診断、地形と水の流れ（水脈・通気）のGIS的読み取り、土地所有者・管理者へのヒアリング。土・樹・水を統合した診断レポートを納品。</p>
+      <p style="margin-top:10px"><strong>STEP 2｜再生施工提案：</strong>土中環境改善（点穴・水脈整備・しがら）、根圏改善による樹勢回復、流域スケールの水系循環回復——優先順位と工程を提示し、自力施工と専門家支援（高田氏・矢野氏ら専門家ネットワーク経由）を仕分けします。</p>
+      <p style="margin-top:10px"><strong>STEP 3｜IoT継続観測（必要に応じて）：</strong>土壌水分・温度・CO₂・樹冠変化センサー設置、3DGSによる空間記録、GISマップ上でリアルタイム表示、3ヶ月・6ヶ月後の変化レポート自動生成。</p>
     </div>
 
     <div class="card">
       <span class="tag">Service 02</span>
-      <h3>GIS土壌循環マッピング</h3>
-      <p>自治体・農業法人・森林組合向け。農地単位ではなく、<strong>地域・流域単位</strong>で土壌循環を可視化します。</p>
-      <p style="margin-top:10px">対象エリアの土壌データGISマップ作成、植生分布・土壌水分量の分布などをベースに土壌改善優先エリアのスコアリングを納品します。埼玉・千葉・群馬を中心に展開。</p>
+      <h3>GIS自然循環マッピング<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">流域単位で再生優先エリアを可視化</small></h3>
+      <p>自治体・農業法人・森林組合・神社仏閣向け。農地単位ではなく、<strong>地域・流域単位</strong>で土・水・植物の自然循環を可視化します。</p>
+      <p style="margin-top:10px">対象エリアの<strong>土壌・植生・水脈・地形データのGISマップ作成</strong>、土壌水分量・樹勢・浸透能の分布をベースに<strong>再生優先エリアのスコアリング</strong>を納品。土木技師として培った地形・水の読み方と、再生の現場で得た「どこから手を入れるべきか」の判断基準を組み合わせます。埼玉・千葉・群馬を中心に展開。</p>
     </div>
 
     <div class="card">
       <span class="tag">Service 03</span>
-      <h3>実践プログラム</h3>
+      <h3>実践プログラム・研修<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">伝統技術 × 現代技術の融合研修</small></h3>
       <p><strong>農業者・実践者向け：</strong>伝統技術による土の読み方、IoTセンサーの使い方と解釈、自分の農地を診断する実習。「見て・触って・データで確認する」3点セット。ビニールハウス等の温度・湿度・土壌水分量のリアルタイムモニタリングも実装可能です。</p>
-      <p style="margin-top:10px"><strong>自治体農業・土木技術職員向け：</strong>土壌改善の実践知の体系、GISを使った農地・斜面管理の考え方、住民・農家への指導に使えるフレームワーク。</p>
+      <p style="margin-top:10px"><strong>自治体農業・土木技術職員向け：</strong>土中環境・大地の再生など実践知の体系、GISを使った農地・斜面管理の考え方、住民・農家への指導に使えるフレームワーク。土木技師8年の経験を踏まえた、行政内部の言語で語れる研修を提供します。</p>
     </div>
 
     <div class="card">
       <span class="tag">Service 04</span>
-      <h3>土壌改善診断パッケージ</h3>
-      <p><strong>STEP 1｜現地診断：</strong>土壌の目視・触覚診断（団粒構造・色・臭い・生物相）、簡易測定（pH・EC・水分・硬度）、地形と水の流れのGIS的読み取り、農家・土地所有者へのヒアリング。診断レポートを納品。</p>
-      <p style="margin-top:10px"><strong>STEP 2｜改善施工提案：</strong>伝統技術からの処方（通気・透水改善・点穴・水脈整備）、優先順位と工程提案、自力施工と専門支援の仕分け。</p>
-      <p style="margin-top:10px"><strong>STEP 3｜IoT継続観測（必要に応じて）：</strong>土壌水分・温度・CO₂センサー設置、GISマップ上でリアルタイム表示、3ヶ月・6ヶ月後の変化レポート自動生成。</p>
-    </div>
-
-    <div class="card">
-      <span class="tag">Service 05</span>
-      <h3>Qualia Practice（作品・ワークショップ）</h3>
-      <p>/sound（40作）・/heart（20作）・/soil（進行中）。墨は加工された土である。土の書道ワークショップ、サイトスペシフィック・インスタレーション、アーティストトーク等を通じて、測る前の「感じる」を社会に開く。</p>
+      <h3>Qualia Practice<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">作品制作・展示・ワークショップ</small></h3>
+      <p><strong>作品制作・展示：</strong>Qualia Mind（60作品超）・Qualia Field（マルチモーダル没入装置）。芸術祭・環境アートイベント・企業空間での展示を行います。墨は加工された土である——土・水・植物の自然循環を、書道とメディアアートを通じて「感じる」体験へ翻訳します。</p>
+      <p style="margin-top:10px"><strong>ワークショップ・アーティストトーク：</strong>土の書道ワークショップ、サイトスペシフィック・インスタレーション、自然と人間の関係についてのトーク。測る前の「感じる」を社会に開きます。</p>
       <p style="margin-top:12px;font-size:.88rem"><a href="https://www.instagram.com/mitsulab_art" target="_blank" rel="noopener" aria-label="Instagram @mitsulab_art" style="color:var(--soil);font-weight:600;display:inline-flex;align-items:center;gap:8px;border:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>Instagram @mitsulab_art で作品公開中</a></p>
     </div>
   </div>
@@ -993,66 +1309,73 @@ td,th{border-color:rgba(216,207,189,.20)}
 
 
 
-<section id="approach">
-  <span class="sec-num">07 / Fieldwork</span>
-  <h2>現場での実践 ── 伝統技術 × 現代技術</h2>
-  <span class="sec-en">Traditional Wisdom × Modern Technology</span>
-  <p class="lead">現場では<strong>Technology と Engineering</strong>の二本柱が直接的な役割を担います。伝統技術による土壌改善の実践（Engineering）と、現代技術による継続観測・可視化（Technology）——両者を融合させて「実践」と「証拠」を同時に届けます。</p>
+<section id="approach-removed-v6" style="display:none" aria-hidden="true">
+  <span class="sec-num">06 / Fieldwork (removed)</span>
+  <h2>現場での実践 ── 再生技術 × 観測技術</h2>
+  <span class="sec-en">Regeneration × Observation — On the Ground</span>
+  <p class="lead">mitsulabは、現場主義を貫きます。<strong>日本を代表する自然循環再生の実践者である高田宏臣氏・矢野智徳氏</strong>のプロジェクトに参画して再生技術を直接学びながら、その同じ現場で IoT・GIS・3DGS・音響観測の観測技術を並行して走らせる——これが mitsulab の現場での実践のかたちです。</p>
 
   <div class="approach-diagram">
     <div class="approach-row">
       <div class="approach-box">
-        <span class="label">Tradition</span>
-        <h4>有機土木・有機農業の伝統技術</h4>
-        <p class="desc">土壌改善の「実践知」を持っている。<br>何をすれば土が変わるかを知っている。</p>
-        <span class="equiv">＝ 回復のための処方</span>
+        <span class="label">Regenerate</span>
+        <h4>土・樹・水の再生技術<br><small style="font-weight:400;font-size:.78rem">（高田・矢野氏らの現場で習得）</small></h4>
+        <p class="desc">土中環境改善・大地の再生・<br>樹勢回復・水系循環回復の<br>実践知を、現場視点で統合する。</p>
+        <span class="equiv">＝ 再生のための処方</span>
       </div>
       <div class="approach-cross">×</div>
       <div class="approach-box modern">
-        <span class="label">Modern Tech</span>
-        <h4>AI・GIS・IoT・xRの現代技術</h4>
-        <p class="desc">改善・変化を可視化できる。<br>再現性を高めることができる。</p>
+        <span class="label">Observe</span>
+        <h4>IoT・GIS・3DGS・音響の観測技術<br><small style="font-weight:400;font-size:.78rem">（mitsulab 自社開発）</small></h4>
+        <p class="desc">変化を計測・可視化できる。<br>再現性を高め、データとして<br>地域・時間・世代を越えて共有できる。</p>
         <span class="equiv">＝ 再現性と説明責任</span>
       </div>
     </div>
     <div class="approach-arrow">▼</div>
     <div class="approach-box" style="border-top-color:var(--amber);max-width:720px;margin:0 auto">
       <span class="label">Our Position</span>
-      <h4>土壌循環の「回復」と「可視化」をワンストップで提供する</h4>
-      <p class="desc">伝統技術による実践知、現代技術による共有可能性、そしてArtによる知覚拡張。<br>TEA三本柱を融合させた研究所として活動する。</p>
-      <span class="equiv" style="color:var(--amber)">＝ フィジカルAI時代の『土壌OS』</span>
+      <h4>自然循環の「再生」と「観測」と「体感」をワンストップで提供する</h4>
+      <p class="desc">第一線の専門家と共に手を動かして得た再生技術、自社開発の観測技術、<br>そして Qualia Practice による体感の翻訳。<br>診る × 感じる × 再生するの三位一体を融合させた研究所として活動する。</p>
+      <span class="equiv" style="color:var(--amber)">＝ 自然循環再生パッケージ</span>
     </div>
   </div>
 
+  <h3>専門家プロジェクトへの参画から得られるもの</h3>
+  <p><strong>「自然循環の再生」は、本だけでは学べない。</strong>水脈の読み方、土の硬さの判別、しがらの組み方、点穴の深さと角度——いずれも現場で師から学ぶしかない暗黙知です。mitsulab は<strong>高田宏臣氏（NPO法人地球守）の氷川参道土壌改善プロジェクト</strong>と<strong>矢野智徳氏（大地の再生）の上野原プロジェクト</strong>に継続参画することで、この暗黙知を体得しながら、同じ現場で観測機器を走らせるという独自のポジションを取っています。</p>
+
   <h3>両者が単独では届かない理由</h3>
-  <p><strong>伝統技術と現代技術は互いに補完し合う関係にある。</strong>伝統技術は経験と身体を通じた深い実践知を持ち、現代技術はその知を再現可能なかたちで地域・時間・世代を越えて共有する役割を担う。<strong>現代技術単独</strong>は「何を測るべきか」という問いを持たず、データは取れても解釈できない。両方を持つ実践者は日本にほとんどおらず、ここにmitsulabの立脚点があります。</p>
+  <p><strong>再生技術と観測技術は互いに補完し合う関係にある。</strong>再生技術は経験と身体を通じた深い実践知を持ち、観測技術はその知を再現可能なかたちで地域・時間・世代を越えて共有する。<strong>観測技術単独</strong>は「何を測るべきか」という問いを持たず、データは取れても解釈できない。<strong>再生技術単独</strong>は次世代・他地域への伝承に時間がかかる。両方を現場で同時に動かす実践者は日本にほとんどおらず、ここにmitsulabの立脚点があります。</p>
 
   <h3>顧客が抱える現実の課題</h3>
   <ul class="pill-list">
-    <li>有機農法や土中環境改善を進めているが、本当に土が良くなっているのか確信が持てない。</li>
-    <li>改善の成果を言語化・数値化して他者と共有したいが、測る手段と解釈の言語がない。</li>
-    <li>改善実績を次の担当者・次世代・他地域に引き継ぐことが難しい。</li>
-    <li>斜面・流域・農地の問題が個別に語られ、土壌循環という共通根で統合的に扱われない。</li>
+    <li>土中環境改善や樹勢回復を進めているが、本当に状態が良くなっているのか確信が持てない。</li>
+    <li>再生の成果を言語化・数値化して他者と共有したいが、測る手段と解釈の言語がない。</li>
+    <li>再生実績を次の担当者・次世代・他地域に引き継ぐことが難しい。</li>
+    <li>斜面・樹木・流域・農地の問題が個別に語られ、自然循環という共通根で統合的に扱われない。</li>
+    <li>大地の再生や土中環境のような実践知に関心はあるが、自分の現場にどう適用すれば良いか見えない。</li>
   </ul>
 </section>
 
+<!-- Vision section moved to position 02 in v6 (see below). -->
+
+
 <section id="glossary">
-  <span class="sec-num">08 / Glossary</span>
+  <span class="sec-num">06 / Glossary</span>
   <h2>用語解説</h2>
-  <span class="sec-en">Key Terms — organized by TEA</span>
-  <p class="lead">mitsulabが扱う領域の専門用語を、『土壌OS』の三本柱<strong>Technology・Engineering・Art</strong>の分類に沿って整理しました。</p>
+  <span class="sec-en">Key Terms</span>
+  <p class="lead">mitsulabが扱う領域の専門用語を、<strong>Technology（現代技術）・Engineering（伝統技術）・Art（知覚の拡張）</strong>の3カテゴリに分けて整理しました。</p>
 
   <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--soil)">Technology ── 現代技術</h3>
   <div class="glossary-grid">
     <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>『土壌OS』<small>（Soil Operating System）</small></h3>
-      <p>スマートフォンやパソコンに「OS」があるように、<strong>土壌の循環を扱うためにあらゆる情報と技術をつなぐ基盤システム</strong>を、mitsulabは「『土壌OS』」と呼んでいます。AI・GIS・IoT・xRといった現代技術を統合し、伝統技術の実践者・研究者・自治体・農業者が同じ土台の上で情報と実践知を共有・活用できる仕組みです。</p>
+      <div class="term-label">Concept</div>
+      <h3>TNFD・ネイチャーポジティブ<small>（Taskforce on Nature-related Financial Disclosures）</small></h3>
+      <p><strong>TNFD</strong>は自然関連財務情報開示タスクフォース。気候関連のTCFDに続く形で、企業活動が自然資本に与える影響を定量的に開示する国際的フレームワークです。<strong>ネイチャーポジティブ</strong>は2030年までに自然の損失を止め、回復軌道に乗せるという国際合意。これらの世界的潮流を背景に、自然循環を「診る・感じる・再生する」のパッケージで扱える実践者の必要性が高まっています。</p>
     </div>
     <div class="term">
       <div class="term-label">Technology</div>
       <h3>フィジカルAI<small>（Physical AI）</small></h3>
-      <p>デジタル空間の中だけで学習するAIから一歩進み、<strong>物理世界のセンサーやロボットと連携して、現実の環境から直接学び・働きかけるAI</strong>のことです。畑や山・川の温度・湿度・土壌状態などをリアルタイムで取り込み、状態予測や施工提案を行います。『土壌OS』の中核をなす概念です。</p>
+      <p>デジタル空間の中だけで学習するAIから一歩進み、<strong>物理世界のセンサーやロボットと連携して、現実の環境から直接学び・働きかけるAI</strong>のことです。畑や山・川の温度・湿度・土壌状態などをリアルタイムで取り込み、状態予測や施工提案を行います。mitsulabの観測・診断技術が将来統合していく中核概念の一つです。</p>
     </div>
     <div class="term">
       <div class="term-label">Technology</div>
@@ -1072,12 +1395,12 @@ td,th{border-color:rgba(216,207,189,.20)}
     <div class="term">
       <div class="term-label">Technology</div>
       <h3>マルチモーダル<small>（Multimodal）</small></h3>
-      <p>「モーダル（modal）」とは情報の種類のこと。文字・画像・音・振動・温度・位置など、<strong>異なる種類の情報を同時に扱う仕組み</strong>を指します。人間が視覚・聴覚・触覚・嗅覚を総合して土壌を判断するように、『土壌OS』も<strong>複数のセンサー・映像・音・AIによる解析を一体で扱う</strong>マルチモーダル設計を前提とします。</p>
+      <p>「モーダル（modal）」とは情報の種類のこと。文字・画像・音・振動・温度・位置など、<strong>異なる種類の情報を同時に扱う仕組み</strong>を指します。人間が視覚・聴覚・触覚・嗅覚を総合して土壌を判断するように、mitsulab の観測・没入体験も<strong>複数のセンサー・映像・音・AIによる解析を一体で扱う</strong>マルチモーダル設計を前提とします。</p>
     </div>
     <div class="term">
       <div class="term-label">Technology</div>
       <h3>ハプティクス技術<small>（Haptics）</small></h3>
-      <p><strong>振動や圧力・温度を使って、触覚に情報を届ける技術</strong>です。スマートフォンの振動も広義のハプティクス。『土壌OS』では、土壌水分や団粒構造の違いといった本来目に見えない情報を、<strong>指先の感覚として触れるように変換</strong>することで、数値やグラフよりも直感的に土の状態を理解できる体験を目指します。</p>
+      <p><strong>振動や圧力・温度を使って、触覚に情報を届ける技術</strong>です。スマートフォンの振動も広義のハプティクス。Qualia Field では、土壌水分や団粒構造の違いといった本来目に見えない情報を、<strong>指先の感覚として触れるように変換</strong>することで、数値やグラフよりも直感的に土の状態を理解できる体験を目指します。</p>
     </div>
     <div class="term">
       <div class="term-label">Technology</div>
@@ -1087,17 +1410,17 @@ td,th{border-color:rgba(216,207,189,.20)}
     <div class="term">
       <div class="term-label">Technology</div>
       <h3>ミラーワールド<small>（Mirror World）</small></h3>
-      <p>現実世界の地形・建物・植生などを、<strong>デジタル空間上にそっくり再現した"もう一つの世界"</strong>のことです。『土壌OS』では、対象エリアのミラーワールドを構築し、その上で実測データやシミュレーションを重ね、現場の過去・現在・未来を一望できるようにします。</p>
+      <p>現実世界の地形・建物・植生などを、<strong>デジタル空間上にそっくり再現した"もう一つの世界"</strong>のことです。Field X（3DGS空間記録）や GIS との組合わせで、対象エリアのミラーワールドを構築し、その上で実測データやシミュレーションを重ね、現場の過去・現在・未来を一望できるようにします。</p>
     </div>
     <div class="term">
       <div class="term-label">Technology</div>
       <h3>ロボティクス<small>（Robotics）</small></h3>
-      <p>センサーやアクチュエーターで物理世界に働きかける機械の総称。『土壌OS』においては、<strong>自動観測・土壌サンプリング・現場作業の省力化</strong>などを担う手足として位置づけます。フィジカルAIと組み合わさることで、現場と情報系が直接つながります。</p>
+      <p>センサーやアクチュエーターで物理世界に働きかける機械の総称。mitsulab の観測体系においては、<strong>自動観測・土壌サンプリング・現場作業の省力化</strong>などを担う手足として位置づけます。フィジカルAIと組み合わさることで、現場と情報系が直接つながります。</p>
     </div>
     <div class="term">
       <div class="term-label">Technology</div>
       <h3>環境DNA<small>（eDNA）</small></h3>
-      <p>水や土の中に存在する、生き物が残した<strong>ごく微量のDNAの痕跡</strong>のこと。少量のサンプルを分析するだけで、その場所にどんな生物が暮らしているかを高精度に把握できます。『土壌OS』では、<strong>微生物から大型動物まで含めた生態系全体を非破壊で観測する</strong>ための基盤技術として位置づけます。</p>
+      <p>水や土の中に存在する、生き物が残した<strong>ごく微量のDNAの痕跡</strong>のこと。少量のサンプルを分析するだけで、その場所にどんな生物が暮らしているかを高精度に把握できます。mitsulab では、<strong>微生物から大型動物まで含めた生態系全体を非破壊で観測する</strong>ための基盤技術として位置づけます。</p>
     </div>
   </div>
 
@@ -1105,8 +1428,8 @@ td,th{border-color:rgba(216,207,189,.20)}
   <div class="glossary-grid">
     <div class="term">
       <div class="term-label">Engineering</div>
-      <h3>土壌循環</h3>
-      <p>土の中で、<strong>水・空気・養分・微生物・植物の根が互いに関わり合いながら巡り続けている働き</strong>の全体を指します。この循環が健全に回っていれば、農地は作物を育て、森は水を貯え、斜面は崩れにくくなります。mitsulabが扱うすべての問題の根にある概念です。</p>
+      <h3>自然循環<small>（土・水・植物）</small></h3>
+      <p>土の中で、<strong>水・空気・養分・微生物・植物の根が互いに関わり合いながら巡り続けている働き</strong>の全体、そしてそれが地上の樹勢・流域の水循環と一続きにつながった循環全体を指します。土・水・植物は別々の問題ではなく、<strong>一続きの循環</strong>として動いています。この循環が健全であれば、農地は作物を育て、森は水を貯え、斜面は崩れにくくなります。mitsulabが扱うすべての問題の根にある概念です。</p>
     </div>
     <div class="term">
       <div class="term-label">Engineering</div>
@@ -1189,6 +1512,11 @@ td,th{border-color:rgba(216,207,189,.20)}
     </div>
     <div class="term">
       <div class="term-label">Art</div>
+      <h3>Qualia Field<small>（クオリア・フィールド）</small></h3>
+      <p>mitsulabが開発中のマルチモーダル没入体験プロジェクト。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度・嗅覚へと翻訳する</strong>インスタレーション装置です。擬似ハプティクス（視聴覚フィードバックによる触覚錯覚）や音感温度対応（低音=温/重、高音=冷/軽）を応用し、<strong>「認知外の認知への深化」</strong>を体験者に届けます。Qualia Practiceの中でも特に土壌生態系の感覚翻訳に特化したシリーズです。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Art</div>
       <h3>知覚拡張<small>（Perceptual Extension）</small></h3>
       <p>本来の人間の感覚スケールでは捉えられないものを、<strong>技術や作品を介して知覚できるようにする試み</strong>。顕微鏡が微生物を見せ、xRが土中の流れを体験させ、Qualia Practiceが身体を通じて不可視を感じさせる——これらすべてが知覚拡張の実践です。</p>
     </div>
@@ -1197,10 +1525,10 @@ td,th{border-color:rgba(216,207,189,.20)}
 
 
 <section id="contact">
-  <span class="sec-num">09 / Contact</span>
+  <span class="sec-num">07 / Contact</span>
   <h2>お問い合わせ</h2>
   <span class="sec-en">Get in Touch</span>
-  <p>土壌診断・改善コンサルティング・GISマッピング・IoT観測・研修・作品展示・共同研究・取材・講演など、お気軽にご連絡ください。</p>
+  <p>自然循環再生診断（土・樹・水）・GISマッピング・IoT観測・研修・作品展示・共同研究・取材・講演・芸術祭出展のお声がけなど、お気軽にご連絡ください。代表 上原は4言語デジタルメディア「<strong>Stillpoint</strong>」編集長も務めており、リジェネラティブ思想の対話・寄稿のご相談も承ります。</p>
   <div class="contact-box">
     <div class="label">EMAIL</div>
     <div class="email"><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></div>
@@ -1216,9 +1544,10 @@ td,th{border-color:rgba(216,207,189,.20)}
 
 <footer>
   <div class="brand">mitsulab</div>
-  <div class="tag-en">Restoration of Soil Cycles</div>
-  <p>屋号：mitsulab ／ 代表：上原光瑛 ／ 拠点：埼玉県さいたま市</p>
-  <p class="copy">© 2026 mitsulab / Uehara Mitsuaki. All rights reserved.</p>
+  <div class="tag-en">Observe × Immerse × Regenerate ── Restoring Natural Cycles</div>
+  <p>屋号：mitsulab ／ 代表：上原光瑛 ／ 拠点：埼玉県さいたま市大宮区</p>
+  <p>開業：2026年3月16日 ／ 連絡先：official@mitsulab.jp</p>
+  <p class="copy">© 2026 mitsulab / Uehara Mitsuaki. All rights reserved. — v8 (2026-05-02)</p>
 </footer>
 
 </body>
@@ -1240,5 +1569,61 @@ td,th{border-color:rgba(216,207,189,.20)}
     window.addEventListener('scroll', update, {passive:true});
     update();
   })();
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "mitsulab",
+  "alternateName": "ミツラボ",
+  "description": "土・水・植物の自然循環を、診る × 感じる × 再生する の三位一体で扱う研究所。日本を代表する自然循環再生の実践者である高田宏臣氏（NPO法人地球守）・矢野智徳氏（大地の再生）が主催するプロジェクトに継続参画しながら、土壌再生・樹勢回復・水系循環回復を統合した「自然循環再生パッケージ」として社会に実装する。",
+  "url": "https://mitsulab.jp",
+  "email": "official@mitsulab.jp",
+  "foundingDate": "2026-03-16",
+  "founder": {
+    "@type": "Person",
+    "name": "上原光瑛",
+    "alternateName": "Uehara Mitsuaki",
+    "jobTitle": "mitsulab 代表 / Stillpoint 編集長",
+    "award": "全建賞（令和6年度・災害枠・都市部門）"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "さいたま市大宮区",
+    "addressRegion": "埼玉県",
+    "addressCountry": "JP"
+  },
+  "areaServed": ["埼玉県", "千葉県", "群馬県", "日本"],
+  "knowsAbout": [
+    "自然循環再生",
+    "土壌再生",
+    "樹勢回復",
+    "水系循環回復",
+    "土中環境",
+    "大地の再生",
+    "有機土木",
+    "有機農業",
+    "TNFD",
+    "ネイチャーポジティブ",
+    "GIS",
+    "IoT",
+    "3D Gaussian Splatting",
+    "3DGS",
+    "VR/MR",
+    "メディアアート",
+    "書道",
+    "Qualia Practice",
+    "Qualia Field",
+    "Soil Sound Project",
+    "Field X"
+  ],
+  "sameAs": [
+    "https://note.com/mitsu32_lab",
+    "https://github.com/mitsulab-soil",
+    "https://www.instagram.com/mitsulab_art",
+    "https://x.com/mitsu32_lab",
+    "https://www.wantedly.com/id/Uehara_Mitsuaki"
+  ]
+}
 </script>
 </html>
