@@ -1,11 +1,17 @@
-<!-- mitsulab HP — タブ版（構造修正版）r3
-     2026-05-04 (r3) — トップページをさらにシンプルに（章ナビ・Contact CTA削除、余白拡張）
-     - トップ構成：Hero（中央）→ Mission（一文）→ 3本柱の俯瞰
-     - 章ナビ／Contact CTA を削除（タブから直接アクセス可能なため不要）
-     - Hero/Mission/Pillars の余白を拡張し、呼吸感のあるレイアウトに
-     - r1, r2 バックアップ：index_r1.html / index_r2.html
+<!-- mitsulab HP — タブ版（構造修正版）r4
+     2026-05-04 (r4) — タブナビを1行化、全体タイポグラフィ・余白を調和的にブラッシュアップ
+     - タブラベル短縮（mitsulabのビジョン → ビジョン 等）／英字サブラベル削除
+     - タブ高さを 58px に固定、横スクロール対応で1行表示を保証
+     - タブ active 表示を「線が中央から伸びる」アニメーションに洗練
+     - Top Hero: Cormorant 細字＋区切り線でエレガントに
+     - Mission: 上下に細い区切り線、サンセリフ調を抑え目に
+     - 3 Pillars: 細罫線＋区切り点線で編集的に
+     - About プロジェクトカード: タグをイタリック化、見出しを軽く
+     - approach-diagram / mission-box / contact-box のガラス感を統一
+     - r1〜r3 バックアップ：index_r1.html / index_r2.html / index_r3.html
+     2026-05-04 (r3) — 章ナビ・Contact CTA削除、余白拡張 (index_r3.html)
      2026-05-03 (r2) — トップページ追加、章番号削除、ボックス装飾軽減 (index_r2.html)
-     2026-05-03 (r1) — v9 をベースにタブナビゲーション型の単一ページ構成に再設計 (index_r1.html)
+     2026-05-03 (r1) — タブナビゲーション型に再設計 (index_r1.html)
      v9 (元の縦長版): ../index.html を参照
      v7: 2026-05-02 — 事業概要セクション削除（5セクション構成）／Profile年表整理／Stillpoint編集長を2026.4起点／出生地を「埼玉県」に修正
      v6: 2026-05-02 — 6セクション構成：① mitsulabとは（三本柱+全プロジェクト統合）② mitsulabのビジョン ③ 代表プロフィール ④ 自然循環とは ⑤ 事業概要 ⑥ 用語解説 + Contact
@@ -722,91 +728,101 @@ td,th{border-color:rgba(216,207,189,.20)}
    タブ版 専用スタイル — 単一ページタブ切替UI
    =================================================================== */
 
-/* タブナビゲーションバー（sticky） */
+/* タブナビゲーションバー（sticky・1行レイアウト） */
 .tab-nav{
   position:sticky;
   top:0;
   z-index:60;
-  background:rgba(255,255,255,0.85) !important;
-  backdrop-filter:saturate(220%) blur(28px);
-  -webkit-backdrop-filter:saturate(220%) blur(28px);
-  border-bottom:1px solid rgba(216,207,189,0.6);
-  box-shadow:0 1px 0 rgba(255,255,255,0.65) inset, 0 4px 28px rgba(120,95,60,0.06);
-  padding:14px 28px 0;
+  background:rgba(255,255,255,0.88) !important;
+  backdrop-filter:saturate(220%) blur(24px);
+  -webkit-backdrop-filter:saturate(220%) blur(24px);
+  border-bottom:1px solid rgba(216,207,189,0.5);
+  box-shadow:0 1px 0 rgba(255,255,255,0.65) inset, 0 2px 18px rgba(120,95,60,0.04);
+  padding:0 24px;
   margin:0 auto;
 }
 .tab-nav-inner{
-  max-width:1180px;
+  max-width:1240px;
   margin:0 auto;
   display:flex;
-  align-items:flex-end;
-  justify-content:flex-start;
-  gap:0;
-  flex-wrap:wrap;
-  border-bottom:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  flex-wrap:nowrap;
+  height:58px;
 }
 .tab-nav-brand{
   font-family:"Cormorant Garamond",serif;
   font-weight:600;
   letter-spacing:.18em;
-  font-size:1.15rem;
+  font-size:1.1rem;
   color:var(--ink);
-  margin-right:34px;
-  padding-bottom:14px;
-  border-bottom:none;
   cursor:pointer;
   transition:color .2s;
+  flex-shrink:0;
+  white-space:nowrap;
 }
 .tab-nav-brand:hover{color:var(--soil)}
 
 .tab-buttons{
   display:flex;
   gap:0;
-  flex-wrap:wrap;
-  flex:1;
+  flex-wrap:nowrap;
+  align-items:center;
+  overflow-x:auto;
+  scrollbar-width:none;
 }
+.tab-buttons::-webkit-scrollbar{display:none}
 .tab-btn{
   font-family:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;
   font-weight:500;
-  font-size:.92rem;
-  letter-spacing:.05em;
+  font-size:.86rem;
+  letter-spacing:.04em;
   color:var(--ink-2);
   background:transparent;
   border:none;
-  border-bottom:2px solid transparent;
-  padding:10px 18px 14px;
-  margin-right:2px;
+  padding:18px 14px;
+  margin:0;
   cursor:pointer;
-  transition:color .2s, border-color .2s, background .2s;
+  transition:color .2s;
   position:relative;
   white-space:nowrap;
+  flex-shrink:0;
 }
-.tab-btn:hover{
-  color:var(--soil);
-  background:rgba(255,255,255,0.4);
+.tab-btn::after{
+  content:"";
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:14px;
+  height:1px;
+  background:var(--soil);
+  transform:scaleX(0);
+  transform-origin:center;
+  transition:transform .25s ease;
 }
+.tab-btn:hover{color:var(--soil)}
+.tab-btn:hover::after{transform:scaleX(.4)}
 .tab-btn.active{
   color:var(--soil);
-  border-bottom-color:var(--soil);
   font-weight:600;
 }
-.tab-btn-en{
-  display:block;
-  font-family:"Cormorant Garamond",serif;
-  font-style:italic;
-  font-size:.7rem;
-  letter-spacing:.18em;
-  color:var(--ink-3);
-  margin-top:2px;
-  font-weight:400;
-}
-.tab-btn.active .tab-btn-en{color:var(--soil);opacity:.7}
+.tab-btn.active::after{transform:scaleX(1)}
 
-@media (max-width:880px){
-  .tab-nav{padding:12px 16px 0}
-  .tab-nav-brand{font-size:1rem;margin-right:18px;padding-bottom:10px}
-  .tab-btn{font-size:.84rem;padding:8px 12px 10px}
-  .tab-btn-en{display:none}
+/* 英字サブラベルは廃止（コンパクト化） */
+.tab-btn-en{display:none}
+
+@media (max-width:1000px){
+  .tab-nav{padding:0 16px}
+  .tab-nav-brand{font-size:1rem}
+  .tab-btn{font-size:.8rem;padding:16px 10px}
+  .tab-btn::after{left:10px;right:10px;bottom:12px}
+}
+@media (max-width:680px){
+  .tab-nav-inner{height:auto;padding:8px 0;flex-direction:column;align-items:stretch;gap:0}
+  .tab-nav-brand{padding:8px 0;text-align:center}
+  .tab-buttons{justify-content:flex-start;border-top:1px solid rgba(216,207,189,0.5);padding:2px 0}
+  .tab-btn{font-size:.78rem;padding:12px 10px}
 }
 
 /* タブパネル（各章コンテナ） */
@@ -860,35 +876,63 @@ section > h2{margin-top:0}
    タブ版 視覚調整 — 箱を減らし、余白とタイポで整える
    =================================================================== */
 
-/* セクション英語サブタイトルを少し抑えめに */
+/* セクションのタイトル区域を整える */
+.tab-panel section > h2{
+  font-size:clamp(1.7rem,3vw,2.2rem);
+  font-weight:500;
+  letter-spacing:.06em;
+  color:var(--ink);
+  margin-top:0;
+  margin-bottom:8px;
+  line-height:1.4;
+}
 .tab-panel section > .sec-en{
-  font-size:.92rem;
-  letter-spacing:.18em;
+  display:block;
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.86rem;
+  letter-spacing:.24em;
   color:var(--ink-3);
   font-weight:500;
-  margin-bottom:36px;
-  opacity:.85;
+  margin-bottom:48px;
+  opacity:.8;
+  text-transform:uppercase;
 }
 
 /* Lead text を読みやすく */
 .tab-panel .lead{
-  font-size:1.08rem;
-  line-height:2;
-  max-width:780px;
+  font-size:1.06rem;
+  line-height:2.05;
+  max-width:760px;
   color:var(--ink-2);
+  letter-spacing:.04em;
+  margin-bottom:32px;
 }
 
 /* 箱の主張を抑える — 既存 .card / .pillar / .term の枠線を細く、影を抑える */
 .tab-panel .card,
 .tab-panel .pillar,
 .tab-panel .term{
-  background:linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.12) 100%) !important;
-  border:1px solid rgba(255,255,255,0.35);
-  border-radius:14px;
-  box-shadow:0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(120,95,60,0.04);
+  background:rgba(255,255,255,0.25) !important;
+  backdrop-filter:saturate(180%) blur(14px) !important;
+  -webkit-backdrop-filter:saturate(180%) blur(14px) !important;
+  border:1px solid rgba(216,207,189,0.5);
+  border-radius:10px;
+  box-shadow:none;
+}
+.tab-panel .card:hover,
+.tab-panel .pillar:hover,
+.tab-panel .term:hover{
+  background:rgba(255,255,255,0.4) !important;
+  border-color:rgba(120,95,60,0.25);
+  box-shadow:0 8px 22px rgba(120,95,60,0.05);
+  transform:translateY(-2px);
 }
 
-/* pillar-list を箱から線へ */
+/* pillar-list を箱から線へ（読みやすい間隔） */
+.tab-panel .pillar-list{
+  margin:28px 0;
+}
 .tab-panel .pillar-list li{
   background:transparent !important;
   backdrop-filter:none !important;
@@ -897,18 +941,47 @@ section > h2{margin-top:0}
   border-left:2px solid var(--soil);
   border-radius:0;
   box-shadow:none;
-  padding:8px 18px 8px 18px;
+  padding:10px 22px;
+  margin-bottom:6px;
 }
 .tab-panel .pillar-list li:nth-child(2){border-left-color:var(--moss)}
 .tab-panel .pillar-list li:nth-child(3){border-left-color:var(--amber)}
 
-/* h3 セクション内見出しを調和的に */
+/* セクション内見出し h3 を調和的に */
 .tab-panel section h3{
-  font-size:1.18rem;
-  letter-spacing:.04em;
+  font-size:1.15rem;
+  font-weight:500;
+  letter-spacing:.06em;
   color:var(--ink);
-  margin-top:48px;
-  margin-bottom:16px;
+  margin-top:56px;
+  margin-bottom:18px;
+  line-height:1.6;
+}
+
+/* 一般段落の行間と段落間 */
+.tab-panel section p{
+  font-size:.97rem;
+  line-height:2;
+  color:var(--ink-2);
+  margin-bottom:1.3em;
+  letter-spacing:.03em;
+}
+
+/* quote の調和 */
+.tab-panel .quote{
+  background:transparent;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border:none;
+  border-left:2px solid var(--amber);
+  border-radius:0;
+  box-shadow:none;
+  padding:14px 28px;
+  font-style:normal;
+  font-size:.97rem;
+  line-height:2;
+  color:var(--ink-2);
+  background-color:transparent;
 }
 
 /* ===================================================================
@@ -916,118 +989,154 @@ section > h2{margin-top:0}
    =================================================================== */
 .top-hero{
   text-align:center;
-  padding:120px 28px 60px;
+  padding:140px 28px 80px;
   max-width:980px;
   margin:0 auto;
 }
 .top-hero .hero-mark{
   justify-content:center;
   gap:0;
-  margin-bottom:28px;
+  margin-bottom:36px;
 }
 .top-hero .hero-mark-letter{
   font-family:"Cormorant Garamond","Noto Serif JP",serif;
-  font-weight:400;
-  font-size:clamp(3.2rem,7vw,5.4rem);
+  font-weight:300;
+  font-size:clamp(3.4rem,7.5vw,5.8rem);
   line-height:1;
-  letter-spacing:.1em;
-  color:#111;
+  letter-spacing:.12em;
+  color:#1a1308;
 }
 .top-hero .hero-tagline-en{
   font-family:"Cormorant Garamond",serif;
   font-style:italic;
-  font-size:.95rem;
-  letter-spacing:.32em;
+  font-weight:500;
+  font-size:1rem;
+  letter-spacing:.36em;
   color:var(--soil);
-  margin-bottom:14px;
+  margin-bottom:22px;
+  text-transform:uppercase;
+}
+.top-hero .hero-tagline-en::before,
+.top-hero .hero-tagline-en::after{
+  content:"";
+  display:inline-block;
+  width:32px;
+  height:1px;
+  background:var(--soil);
+  vertical-align:middle;
+  margin:0 16px;
+  opacity:.5;
 }
 .top-hero .hero-tagline-ja{
-  font-size:1.15rem;
-  letter-spacing:.06em;
+  font-size:1.1rem;
+  letter-spacing:.12em;
   color:var(--ink);
-  font-weight:500;
-  line-height:1.85;
+  font-weight:400;
+  line-height:1.95;
 }
 
 /* トップ：3本柱の概観（線ベース、箱なし） */
 .top-pillars{
-  max-width:1100px;
-  margin:80px auto 120px;
-  padding:0 28px;
+  max-width:1080px;
+  margin:60px auto 140px;
+  padding:0 32px;
   display:grid;
   grid-template-columns:repeat(3, 1fr);
-  gap:48px;
+  gap:60px;
 }
 .top-pillar{
   text-align:left;
-  padding:28px 4px 4px;
-  border-top:2px solid var(--soil);
+  padding:32px 0 4px;
+  border-top:1px solid var(--soil);
 }
 .top-pillar:nth-child(2){border-top-color:var(--moss)}
 .top-pillar:nth-child(3){border-top-color:var(--amber)}
 .top-pillar-num{
   font-family:"Cormorant Garamond",serif;
   font-style:italic;
-  font-size:.78rem;
-  letter-spacing:.32em;
+  font-weight:500;
+  font-size:.74rem;
+  letter-spacing:.38em;
   color:var(--ink-3);
-  margin-bottom:8px;
+  margin-bottom:14px;
+  text-transform:uppercase;
 }
 .top-pillar-title{
-  font-size:1.4rem;
-  font-weight:600;
+  font-size:1.55rem;
+  font-weight:500;
   color:var(--ink);
-  margin-bottom:4px;
-  letter-spacing:.04em;
+  margin-bottom:6px;
+  letter-spacing:.06em;
+  line-height:1.3;
 }
 .top-pillar-en{
   font-family:"Cormorant Garamond",serif;
   font-style:italic;
-  font-size:.95rem;
-  letter-spacing:.18em;
+  font-weight:500;
+  font-size:.92rem;
+  letter-spacing:.22em;
   color:var(--soil);
-  margin-bottom:14px;
+  margin-bottom:20px;
+  text-transform:uppercase;
 }
 .top-pillar:nth-child(2) .top-pillar-en{color:var(--moss)}
 .top-pillar:nth-child(3) .top-pillar-en{color:var(--amber)}
 .top-pillar-desc{
-  font-size:.96rem;
-  line-height:1.95;
+  font-size:.95rem;
+  line-height:2;
   color:var(--ink-2);
+  margin-bottom:18px;
 }
 .top-pillar-projects{
-  margin-top:14px;
-  font-size:.86rem;
+  font-family:"Cormorant Garamond","Noto Serif JP",serif;
+  font-size:.82rem;
   color:var(--ink-3);
-  letter-spacing:.02em;
-  line-height:1.85;
+  letter-spacing:.04em;
+  line-height:1.9;
+  padding-top:14px;
+  border-top:1px dashed rgba(216,207,189,0.6);
 }
 @media (max-width:880px){
-  .top-pillars{grid-template-columns:1fr;gap:28px;margin-top:60px}
+  .top-pillars{grid-template-columns:1fr;gap:40px;margin-top:40px;margin-bottom:80px}
+  .top-pillar{padding-top:24px}
 }
 
 /* トップ：ミッションの一文 */
 .top-mission{
-  max-width:780px;
-  margin:60px auto 0;
-  padding:56px 32px;
+  max-width:760px;
+  margin:40px auto 0;
+  padding:64px 32px;
   text-align:center;
-  border-top:1px solid var(--line);
-  border-bottom:1px solid var(--line);
+  position:relative;
 }
+.top-mission::before,
+.top-mission::after{
+  content:"";
+  display:block;
+  width:60px;
+  height:1px;
+  background:var(--line-2);
+  margin:0 auto;
+  opacity:.7;
+}
+.top-mission::before{margin-bottom:36px}
+.top-mission::after{margin-top:36px}
 .top-mission-label{
   font-family:"Cormorant Garamond",serif;
   font-style:italic;
+  font-weight:500;
   font-size:.82rem;
-  letter-spacing:.32em;
+  letter-spacing:.36em;
   color:var(--soil);
-  margin-bottom:18px;
+  margin-bottom:24px;
+  text-transform:uppercase;
 }
 .top-mission-text{
-  font-size:1.15rem;
-  line-height:2;
+  font-size:1.08rem;
+  line-height:2.1;
   color:var(--ink);
-  letter-spacing:.04em;
+  letter-spacing:.05em;
+  font-weight:400;
 }
 .top-mission-text strong{color:var(--soil);font-weight:600}
 
@@ -1118,50 +1227,178 @@ section > h2{margin-top:0}
   background:transparent;
   border:none;
   padding:0;
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-weight:500;
   font-size:.72rem;
-  letter-spacing:.22em;
-  margin-bottom:10px;
+  letter-spacing:.28em;
+  margin-bottom:14px;
   display:inline-block;
+  color:var(--ink-3);
+  text-transform:uppercase;
 }
 .tab-panel[data-panel="about"] .card h3{
   border-bottom:none;
   padding-bottom:0;
-  margin-bottom:14px;
-  font-size:1.1rem;
+  margin-bottom:16px;
+  font-size:1.12rem;
+  font-weight:600;
+  letter-spacing:.04em;
 }
 .tab-panel[data-panel="about"] .card{
-  padding:28px 26px;
+  padding:32px 30px;
+}
+.tab-panel[data-panel="about"] .card p{
+  font-size:.94rem;
+  line-height:1.95;
 }
 
 /* 三本柱の見出しブロック（About 内）の余白整え */
-.tab-panel[data-panel="about"] .grid-2{margin-top:22px}
+.tab-panel[data-panel="about"] .grid-2{margin-top:24px}
+
+/* About 内のピラー区切り（border-leftを少しスタイリッシュに） */
+.tab-panel[data-panel="about"] > section > div[style*="border-left"]{
+  border-left-width:2px !important;
+  padding-left:22px !important;
+}
+.tab-panel[data-panel="about"] > section > div[style*="border-left"] h3{
+  font-size:1.5rem !important;
+  font-weight:500;
+  letter-spacing:.06em;
+  margin-top:0 !important;
+}
+.tab-panel[data-panel="about"] > section > div[style*="border-left"] .sec-num{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:.78rem !important;
+  letter-spacing:.34em !important;
+  text-transform:uppercase;
+}
 
 /* 活動リンクのカードを線ベースに */
 .tab-panel .activity-link{
-  background:transparent !important;
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
-  border:1px solid rgba(216,207,189,0.5);
+  background:rgba(255,255,255,0.2) !important;
+  backdrop-filter:saturate(160%) blur(10px) !important;
+  -webkit-backdrop-filter:saturate(160%) blur(10px) !important;
+  border:1px solid rgba(216,207,189,0.45);
   box-shadow:none;
-  border-radius:8px;
+  border-radius:10px;
+  padding:22px 24px;
 }
 .tab-panel .activity-link:hover{
-  background:rgba(255,255,255,0.4) !important;
-  border-color:var(--soil);
-  box-shadow:0 6px 18px rgba(120,95,60,0.06);
+  background:rgba(255,255,255,0.45) !important;
+  border-color:rgba(120,95,60,0.3);
+  box-shadow:0 6px 18px rgba(120,95,60,0.05);
 }
 .tab-panel .activity-link-icon{
   background:transparent;
   border:1px solid rgba(216,207,189,0.6);
+  width:38px;
+  height:38px;
+}
+.tab-panel .activity-link-title{
+  font-size:.93rem;
+  font-weight:600;
+  letter-spacing:.04em;
+}
+.tab-panel .activity-link-desc{
+  font-size:.8rem;
+  color:var(--ink-3);
+  line-height:1.6;
+}
+.tab-panel .activity-link-service{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:.85rem;
+  letter-spacing:.18em;
+  margin-top:4px;
 }
 
 /* journey-item の border を細く */
 .tab-panel .journey-item{
-  border-bottom:1px solid rgba(216,207,189,0.5);
+  border-bottom:1px solid rgba(216,207,189,0.4);
+  padding:14px 0;
+  font-size:.93rem;
+}
+.tab-panel .journey-item .date{
+  font-family:"Cormorant Garamond",serif;
+  font-weight:500;
+  letter-spacing:.04em;
+  color:var(--soil);
+  font-size:.86rem;
 }
 
 /* 全体のセクション間に line を最小化 */
 .tab-panel section{border-bottom:none}
+
+/* approach-diagram の調和 */
+.tab-panel .approach-diagram{
+  background:rgba(255,255,255,0.18) !important;
+  backdrop-filter:saturate(160%) blur(14px) !important;
+  -webkit-backdrop-filter:saturate(160%) blur(14px) !important;
+  border:1px solid rgba(216,207,189,0.45);
+  border-radius:14px;
+  box-shadow:none;
+  padding:40px 32px;
+}
+.tab-panel .approach-box{
+  background:transparent !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border:1px solid rgba(216,207,189,0.5);
+  border-top:2px solid var(--soil);
+  border-radius:8px;
+  box-shadow:none;
+  padding:26px 22px;
+}
+.tab-panel .approach-box.modern{border-top-color:var(--moss)}
+.tab-panel .approach-result,
+.tab-panel .approach-box[style*="amber"]{
+  border-top-color:var(--amber) !important;
+}
+
+/* mission-box（Vision内）も調和的に */
+.tab-panel .mission-box{
+  background:rgba(255,255,255,0.22) !important;
+  backdrop-filter:saturate(180%) blur(16px) !important;
+  -webkit-backdrop-filter:saturate(180%) blur(16px) !important;
+  border:1px solid rgba(216,207,189,0.45);
+  border-left:3px solid var(--soil);
+  border-radius:10px;
+  box-shadow:none;
+  padding:36px 36px;
+}
+
+/* グリッドのギャップ調整 */
+.tab-panel .grid{gap:22px;margin:28px 0}
+.tab-panel .grid-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+
+/* テーブルの整え */
+.tab-panel table{
+  background:rgba(255,255,255,0.2) !important;
+  backdrop-filter:saturate(160%) blur(10px) !important;
+  -webkit-backdrop-filter:saturate(160%) blur(10px) !important;
+  border:1px solid rgba(216,207,189,0.4);
+  border-radius:8px;
+}
+.tab-panel th,.tab-panel td{
+  border-color:rgba(216,207,189,0.35) !important;
+  padding:14px 16px;
+}
+.tab-panel th{background:rgba(245,238,220,0.25)}
+
+/* contact-box を整える */
+.tab-panel .contact-box{
+  background:rgba(255,255,255,0.22) !important;
+  backdrop-filter:saturate(180%) blur(16px) !important;
+  -webkit-backdrop-filter:saturate(180%) blur(16px) !important;
+  border:1px solid rgba(216,207,189,0.45);
+  border-radius:10px;
+  box-shadow:none;
+  padding:48px 36px;
+}
 </style>
 </head>
 <body class="tabbed-mode">
@@ -1180,14 +1417,14 @@ section > h2{margin-top:0}
   <div class="tab-nav-inner">
     <div class="tab-nav-brand" onclick="switchTab('top')">mitsulab</div>
     <div class="tab-buttons" role="tablist">
-      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="top">トップ<span class="tab-btn-en">Top</span></button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="about">mitsulabとは<span class="tab-btn-en">About</span></button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="vision">mitsulabのビジョン<span class="tab-btn-en">Vision</span></button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profile">代表プロフィール<span class="tab-btn-en">Profile</span></button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="business">役割と事業<span class="tab-btn-en">Role &amp; Business</span></button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="cycle">自然循環とは<span class="tab-btn-en">Natural Cycle</span></button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="glossary">用語解説<span class="tab-btn-en">Glossary</span></button>
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="contact">お問い合わせ<span class="tab-btn-en">Contact</span></button>
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="top">トップ</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="about">mitsulabとは</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="vision">ビジョン</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profile">プロフィール</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="business">役割と事業</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="cycle">自然循環</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="glossary">用語解説</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="contact">お問い合わせ</button>
     </div>
   </div>
 </nav>
