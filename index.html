@@ -1,5 +1,12 @@
-<!-- mitsulab HP
-     v8: 2026-05-02 — Vision④を「協働・プラットフォーム」型に書き換え（3 Roles：補完・統合・普及）／新セクション「mitsulabの役割と事業」(Role & Business) を Profile と Natural Cycle の間に追加／Profile本文「施工管理者・観測者として」を削除／7セクション構成
+<!-- mitsulab HP — タブ版（構造修正版）r3
+     2026-05-04 (r3) — トップページをさらにシンプルに（章ナビ・Contact CTA削除、余白拡張）
+     - トップ構成：Hero（中央）→ Mission（一文）→ 3本柱の俯瞰
+     - 章ナビ／Contact CTA を削除（タブから直接アクセス可能なため不要）
+     - Hero/Mission/Pillars の余白を拡張し、呼吸感のあるレイアウトに
+     - r1, r2 バックアップ：index_r1.html / index_r2.html
+     2026-05-03 (r2) — トップページ追加、章番号削除、ボックス装飾軽減 (index_r2.html)
+     2026-05-03 (r1) — v9 をベースにタブナビゲーション型の単一ページ構成に再設計 (index_r1.html)
+     v9 (元の縦長版): ../index.html を参照
      v7: 2026-05-02 — 事業概要セクション削除（5セクション構成）／Profile年表整理／Stillpoint編集長を2026.4起点／出生地を「埼玉県」に修正
      v6: 2026-05-02 — 6セクション構成：① mitsulabとは（三本柱+全プロジェクト統合）② mitsulabのビジョン ③ 代表プロフィール ④ 自然循環とは ⑤ 事業概要 ⑥ 用語解説 + Contact
      v5: 2026-05-02 — OS構想を一旦HPから除外、Projects刷新（高田・矢野連携前面化）、9セクション (index_v5.html として保存済み)
@@ -27,14 +34,14 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mitsulab.jp/">
 <meta property="og:title" content="mitsulab — 傷ついた自然循環を、診て、感じて、再生する">
-<meta property="og:description" content="土・水・植物の自然循環を、診る × 感じる × 再生する の三位一体で扱う研究所。土壌再生・樹勢回復・水系循環回復を、現場経験 × 再生技術 × テクノロジー × アートの4軸で統合実践。">
+<meta property="og:description" content="土・水・植物の自然循環を、診る × 再生する × 感じる の三位一体で扱う研究所。土壌再生・樹勢回復・水系循環回復を、現場経験 × 再生技術 × テクノロジー × アートの4軸で統合実践。">
 <meta property="og:image" content="https://mitsulab.jp/ogp.png">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:site_name" content="mitsulab">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="mitsulab — 傷ついた自然循環を、診て、感じて、再生する">
-<meta name="twitter:description" content="土・水・植物の自然循環を、診る × 感じる × 再生する の三位一体で扱う研究所。">
+<meta name="twitter:description" content="土・水・植物の自然循環を、診る × 再生する × 感じる の三位一体で扱う研究所。">
 <meta name="twitter:image" content="https://mitsulab.jp/ogp.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -212,8 +219,8 @@ strong{font-weight:600;color:var(--ink)}
   box-shadow:0 1px 0 rgba(255,255,255,0.75) inset;
   font-size:.95rem;line-height:1.8;
 }
-.pillar-list li:nth-child(2){border-left-color:var(--amber)}
-.pillar-list li:nth-child(3){border-left-color:var(--moss)}
+.pillar-list li:nth-child(2){border-left-color:var(--moss)}
+.pillar-list li:nth-child(3){border-left-color:var(--amber)}
 .pillar-list-label{
   font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:500;
   color:var(--soil);font-size:1.05rem;letter-spacing:.08em;
@@ -223,8 +230,8 @@ strong{font-weight:600;color:var(--ink)}
   font-family:"Noto Serif JP",serif;font-style:normal;font-weight:500;
   font-size:.75rem;letter-spacing:.12em;color:var(--ink-3);
 }
-.pillar-list li:nth-child(2) .pillar-list-label{color:var(--amber)}
-.pillar-list li:nth-child(3) .pillar-list-label{color:var(--moss)}
+.pillar-list li:nth-child(2) .pillar-list-label{color:var(--moss)}
+.pillar-list li:nth-child(3) .pillar-list-label{color:var(--amber)}
 @media (max-width:640px){
   .pillar-list li{grid-template-columns:1fr;gap:4px}
 }
@@ -710,97 +717,588 @@ td,th{border-color:rgba(216,207,189,.20)}
   nav ul{gap:14px;font-size:.72rem}
   .pillar,.card,.phase,.term{padding:26px 22px}
 }
+
+/* ===================================================================
+   タブ版 専用スタイル — 単一ページタブ切替UI
+   =================================================================== */
+
+/* タブナビゲーションバー（sticky） */
+.tab-nav{
+  position:sticky;
+  top:0;
+  z-index:60;
+  background:rgba(255,255,255,0.85) !important;
+  backdrop-filter:saturate(220%) blur(28px);
+  -webkit-backdrop-filter:saturate(220%) blur(28px);
+  border-bottom:1px solid rgba(216,207,189,0.6);
+  box-shadow:0 1px 0 rgba(255,255,255,0.65) inset, 0 4px 28px rgba(120,95,60,0.06);
+  padding:14px 28px 0;
+  margin:0 auto;
+}
+.tab-nav-inner{
+  max-width:1180px;
+  margin:0 auto;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  gap:0;
+  flex-wrap:wrap;
+  border-bottom:none;
+}
+.tab-nav-brand{
+  font-family:"Cormorant Garamond",serif;
+  font-weight:600;
+  letter-spacing:.18em;
+  font-size:1.15rem;
+  color:var(--ink);
+  margin-right:34px;
+  padding-bottom:14px;
+  border-bottom:none;
+  cursor:pointer;
+  transition:color .2s;
+}
+.tab-nav-brand:hover{color:var(--soil)}
+
+.tab-buttons{
+  display:flex;
+  gap:0;
+  flex-wrap:wrap;
+  flex:1;
+}
+.tab-btn{
+  font-family:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;
+  font-weight:500;
+  font-size:.92rem;
+  letter-spacing:.05em;
+  color:var(--ink-2);
+  background:transparent;
+  border:none;
+  border-bottom:2px solid transparent;
+  padding:10px 18px 14px;
+  margin-right:2px;
+  cursor:pointer;
+  transition:color .2s, border-color .2s, background .2s;
+  position:relative;
+  white-space:nowrap;
+}
+.tab-btn:hover{
+  color:var(--soil);
+  background:rgba(255,255,255,0.4);
+}
+.tab-btn.active{
+  color:var(--soil);
+  border-bottom-color:var(--soil);
+  font-weight:600;
+}
+.tab-btn-en{
+  display:block;
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.7rem;
+  letter-spacing:.18em;
+  color:var(--ink-3);
+  margin-top:2px;
+  font-weight:400;
+}
+.tab-btn.active .tab-btn-en{color:var(--soil);opacity:.7}
+
+@media (max-width:880px){
+  .tab-nav{padding:12px 16px 0}
+  .tab-nav-brand{font-size:1rem;margin-right:18px;padding-bottom:10px}
+  .tab-btn{font-size:.84rem;padding:8px 12px 10px}
+  .tab-btn-en{display:none}
+}
+
+/* タブパネル（各章コンテナ） */
+.tab-panel{
+  display:none;
+  animation:tabFadeIn 0.45s ease;
+}
+.tab-panel.active{display:block}
+@keyframes tabFadeIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* タブ版では各 section の border-bottom を不要に（最後のセクションだけ表示） */
+.tab-panel section{border-bottom:none;padding-top:80px;padding-bottom:80px}
+
+/* タブ版 hero の調整 — タブで全画面占有しない */
+.tab-panel .hero{
+  height:auto;
+  min-height:auto;
+  padding:60px 28px 40px;
+  position:relative;
+}
+.tab-panel .hero-aside-main{
+  position:relative;
+  inset:auto;
+  display:block;
+}
+.tab-panel .hero-aside-main-inner{
+  align-items:flex-start;
+  text-align:left;
+}
+.tab-panel .hero-mark-letter{
+  font-size:clamp(2.4rem,5.5vw,4rem);
+}
+.tab-panel .hero-mark-label{
+  text-align:left;
+}
+.tab-panel .hero-scroll{display:none}
+
+/* グローバルヘッダー（旧 header）は非表示にしてタブナビと統一 */
+body.tabbed-mode > header{display:none}
+
+/* ===================================================================
+   章番号（01 / About 等）の非表示 — タブで識別するため不要
+   =================================================================== */
+section > .sec-num{display:none}
+section > h2{margin-top:0}
+
+/* ===================================================================
+   タブ版 視覚調整 — 箱を減らし、余白とタイポで整える
+   =================================================================== */
+
+/* セクション英語サブタイトルを少し抑えめに */
+.tab-panel section > .sec-en{
+  font-size:.92rem;
+  letter-spacing:.18em;
+  color:var(--ink-3);
+  font-weight:500;
+  margin-bottom:36px;
+  opacity:.85;
+}
+
+/* Lead text を読みやすく */
+.tab-panel .lead{
+  font-size:1.08rem;
+  line-height:2;
+  max-width:780px;
+  color:var(--ink-2);
+}
+
+/* 箱の主張を抑える — 既存 .card / .pillar / .term の枠線を細く、影を抑える */
+.tab-panel .card,
+.tab-panel .pillar,
+.tab-panel .term{
+  background:linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.12) 100%) !important;
+  border:1px solid rgba(255,255,255,0.35);
+  border-radius:14px;
+  box-shadow:0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px rgba(120,95,60,0.04);
+}
+
+/* pillar-list を箱から線へ */
+.tab-panel .pillar-list li{
+  background:transparent !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border:none;
+  border-left:2px solid var(--soil);
+  border-radius:0;
+  box-shadow:none;
+  padding:8px 18px 8px 18px;
+}
+.tab-panel .pillar-list li:nth-child(2){border-left-color:var(--moss)}
+.tab-panel .pillar-list li:nth-child(3){border-left-color:var(--amber)}
+
+/* h3 セクション内見出しを調和的に */
+.tab-panel section h3{
+  font-size:1.18rem;
+  letter-spacing:.04em;
+  color:var(--ink);
+  margin-top:48px;
+  margin-bottom:16px;
+}
+
+/* ===================================================================
+   トップタブ（landing）専用デザイン
+   =================================================================== */
+.top-hero{
+  text-align:center;
+  padding:120px 28px 60px;
+  max-width:980px;
+  margin:0 auto;
+}
+.top-hero .hero-mark{
+  justify-content:center;
+  gap:0;
+  margin-bottom:28px;
+}
+.top-hero .hero-mark-letter{
+  font-family:"Cormorant Garamond","Noto Serif JP",serif;
+  font-weight:400;
+  font-size:clamp(3.2rem,7vw,5.4rem);
+  line-height:1;
+  letter-spacing:.1em;
+  color:#111;
+}
+.top-hero .hero-tagline-en{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.95rem;
+  letter-spacing:.32em;
+  color:var(--soil);
+  margin-bottom:14px;
+}
+.top-hero .hero-tagline-ja{
+  font-size:1.15rem;
+  letter-spacing:.06em;
+  color:var(--ink);
+  font-weight:500;
+  line-height:1.85;
+}
+
+/* トップ：3本柱の概観（線ベース、箱なし） */
+.top-pillars{
+  max-width:1100px;
+  margin:80px auto 120px;
+  padding:0 28px;
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:48px;
+}
+.top-pillar{
+  text-align:left;
+  padding:28px 4px 4px;
+  border-top:2px solid var(--soil);
+}
+.top-pillar:nth-child(2){border-top-color:var(--moss)}
+.top-pillar:nth-child(3){border-top-color:var(--amber)}
+.top-pillar-num{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.78rem;
+  letter-spacing:.32em;
+  color:var(--ink-3);
+  margin-bottom:8px;
+}
+.top-pillar-title{
+  font-size:1.4rem;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:4px;
+  letter-spacing:.04em;
+}
+.top-pillar-en{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.95rem;
+  letter-spacing:.18em;
+  color:var(--soil);
+  margin-bottom:14px;
+}
+.top-pillar:nth-child(2) .top-pillar-en{color:var(--moss)}
+.top-pillar:nth-child(3) .top-pillar-en{color:var(--amber)}
+.top-pillar-desc{
+  font-size:.96rem;
+  line-height:1.95;
+  color:var(--ink-2);
+}
+.top-pillar-projects{
+  margin-top:14px;
+  font-size:.86rem;
+  color:var(--ink-3);
+  letter-spacing:.02em;
+  line-height:1.85;
+}
+@media (max-width:880px){
+  .top-pillars{grid-template-columns:1fr;gap:28px;margin-top:60px}
+}
+
+/* トップ：ミッションの一文 */
+.top-mission{
+  max-width:780px;
+  margin:60px auto 0;
+  padding:56px 32px;
+  text-align:center;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.top-mission-label{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.82rem;
+  letter-spacing:.32em;
+  color:var(--soil);
+  margin-bottom:18px;
+}
+.top-mission-text{
+  font-size:1.15rem;
+  line-height:2;
+  color:var(--ink);
+  letter-spacing:.04em;
+}
+.top-mission-text strong{color:var(--soil);font-weight:600}
+
+/* トップ：章ナビゲーション（リンクカード — 線ベース） */
+.top-section-nav{
+  max-width:1100px;
+  margin:80px auto 0;
+  padding:0 28px;
+}
+.top-section-nav-title{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.85rem;
+  letter-spacing:.32em;
+  color:var(--ink-3);
+  text-align:center;
+  margin-bottom:32px;
+}
+.top-nav-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+}
+.top-nav-item{
+  background:rgba(255,255,255,0.4);
+  padding:32px 28px;
+  cursor:pointer;
+  transition:background .25s, transform .25s;
+  border:none;
+  text-align:left;
+  font-family:inherit;
+  width:100%;
+}
+.top-nav-item:hover{
+  background:rgba(255,255,255,0.7);
+  transform:translateY(-2px);
+}
+.top-nav-item-num{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.75rem;
+  letter-spacing:.3em;
+  color:var(--soil);
+  margin-bottom:8px;
+}
+.top-nav-item-title{
+  font-size:1.1rem;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:6px;
+  letter-spacing:.04em;
+}
+.top-nav-item-desc{
+  font-size:.86rem;
+  color:var(--ink-2);
+  line-height:1.7;
+}
+
+/* トップ：シンプルなフッター誘導 */
+.top-footer-cta{
+  max-width:880px;
+  margin:80px auto 60px;
+  padding:0 28px;
+  text-align:center;
+}
+.top-footer-cta p{
+  color:var(--ink-2);
+  font-size:.95rem;
+  margin-bottom:18px;
+}
+.top-footer-cta .top-cta-mail{
+  display:inline-block;
+  font-family:"Cormorant Garamond",serif;
+  font-size:1.4rem;
+  font-weight:600;
+  color:var(--soil);
+  letter-spacing:.04em;
+  border-bottom:1px solid var(--soil);
+  padding-bottom:4px;
+  text-decoration:none;
+}
+.top-footer-cta .top-cta-mail:hover{color:var(--ink)}
+
+/* About タブのプロジェクトカード調整 — タグを目立たせず、全体を編集的に */
+.tab-panel[data-panel="about"] .card .tag{
+  background:transparent;
+  border:none;
+  padding:0;
+  font-size:.72rem;
+  letter-spacing:.22em;
+  margin-bottom:10px;
+  display:inline-block;
+}
+.tab-panel[data-panel="about"] .card h3{
+  border-bottom:none;
+  padding-bottom:0;
+  margin-bottom:14px;
+  font-size:1.1rem;
+}
+.tab-panel[data-panel="about"] .card{
+  padding:28px 26px;
+}
+
+/* 三本柱の見出しブロック（About 内）の余白整え */
+.tab-panel[data-panel="about"] .grid-2{margin-top:22px}
+
+/* 活動リンクのカードを線ベースに */
+.tab-panel .activity-link{
+  background:transparent !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border:1px solid rgba(216,207,189,0.5);
+  box-shadow:none;
+  border-radius:8px;
+}
+.tab-panel .activity-link:hover{
+  background:rgba(255,255,255,0.4) !important;
+  border-color:var(--soil);
+  box-shadow:0 6px 18px rgba(120,95,60,0.06);
+}
+.tab-panel .activity-link-icon{
+  background:transparent;
+  border:1px solid rgba(216,207,189,0.6);
+}
+
+/* journey-item の border を細く */
+.tab-panel .journey-item{
+  border-bottom:1px solid rgba(216,207,189,0.5);
+}
+
+/* 全体のセクション間に line を最小化 */
+.tab-panel section{border-bottom:none}
 </style>
 </head>
-<body>
+<body class="tabbed-mode">
 
 <div class="aurora aurora-a"></div>
 <div class="aurora aurora-b"></div>
 <div class="aurora-c"></div>
 
+<!-- 旧ヘッダー（タブモードでは display:none） -->
 <header>
-<nav>
-  <div class="logo">mitsulab</div>
-  <ul>
-    <li><a href="#about">About</a></li>
-    <li><a href="#vision">Vision</a></li>
-    <li><a href="#profile">Profile</a></li>
-    <li><a href="#business">Role</a></li>
-    <li><a href="#cycle">Natural Cycle</a></li>
-    <li><a href="#glossary">Glossary</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-</nav>
+<nav><div class="logo">mitsulab</div></nav>
 </header>
 
-<section class="hero" id="hero">
-  <div class="hero-inner">
-    <div class="hero-aside-main">
-      <div class="hero-aside-main-inner">
-        <div class="hero-mark hero-mark-main">
-          <span class="hero-mark-letter">m</span>
-          <span class="hero-mark-letter">i</span>
-          <span class="hero-mark-letter">t</span>
-          <span class="hero-mark-letter">s</span>
-          <span class="hero-mark-letter">u</span>
-          <span class="hero-mark-letter">l</span>
-          <span class="hero-mark-letter">a</span>
-          <span class="hero-mark-letter">b</span>
-        </div>
-        <div class="hero-mark-label">Observe × Immerse × Regenerate</div>
-        <div class="hero-mark-label" style="margin-top:8px;font-size:.78rem;letter-spacing:.18em">傷ついた自然循環を、診て、感じて、再生する</div>
-      </div>
+<!-- ===== タブナビゲーション ===== -->
+<nav class="tab-nav" aria-label="Main navigation">
+  <div class="tab-nav-inner">
+    <div class="tab-nav-brand" onclick="switchTab('top')">mitsulab</div>
+    <div class="tab-buttons" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="top">トップ<span class="tab-btn-en">Top</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="about">mitsulabとは<span class="tab-btn-en">About</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="vision">mitsulabのビジョン<span class="tab-btn-en">Vision</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profile">代表プロフィール<span class="tab-btn-en">Profile</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="business">役割と事業<span class="tab-btn-en">Role &amp; Business</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="cycle">自然循環とは<span class="tab-btn-en">Natural Cycle</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="glossary">用語解説<span class="tab-btn-en">Glossary</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="contact">お問い合わせ<span class="tab-btn-en">Contact</span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== タブパネル群 ===== -->
+<main>
+
+<!-- ┌─ Tab 00: トップ（ランディング・全体俯瞰） ─────────────────── -->
+<div class="tab-panel active" data-panel="top" role="tabpanel">
+
+  <!-- Top Hero -->
+  <div class="top-hero">
+    <div class="hero-mark">
+      <span class="hero-mark-letter">m</span>
+      <span class="hero-mark-letter">i</span>
+      <span class="hero-mark-letter">t</span>
+      <span class="hero-mark-letter">s</span>
+      <span class="hero-mark-letter">u</span>
+      <span class="hero-mark-letter">l</span>
+      <span class="hero-mark-letter">a</span>
+      <span class="hero-mark-letter">b</span>
+    </div>
+    <div class="hero-tagline-en">Observe × Regenerate × Immerse</div>
+    <div class="hero-tagline-ja">傷ついた自然循環を、診て、再生し、感じる。</div>
+  </div>
+
+  <!-- Mission（一文） -->
+  <div class="top-mission">
+    <div class="top-mission-label">Mission</div>
+    <p class="top-mission-text">傷ついた自然循環（土・水・植物）を、<strong>診る × 再生する × 感じる</strong>の三位一体で扱い、<br>土壌再生・樹勢回復・水系循環回復を統合した<br>「<strong>自然循環再生パッケージ</strong>」として社会に実装する。</p>
+  </div>
+
+  <!-- 3本柱の俯瞰 -->
+  <div class="top-pillars">
+    <div class="top-pillar">
+      <div class="top-pillar-num">Pillar Ⅰ</div>
+      <div class="top-pillar-title">診る</div>
+      <div class="top-pillar-en">Observe</div>
+      <p class="top-pillar-desc">IoT・GIS・3DGS・音響観測で、自然循環の動態を計測可能な形に翻訳する。</p>
+      <p class="top-pillar-projects">Field X ／ Soil Sound Project</p>
+    </div>
+    <div class="top-pillar">
+      <div class="top-pillar-num">Pillar Ⅱ</div>
+      <div class="top-pillar-title">再生する</div>
+      <div class="top-pillar-en">Regenerate</div>
+      <p class="top-pillar-desc">日本を代表する自然循環再生の実践者と協働し、循環を本来の動きに戻す。</p>
+      <p class="top-pillar-projects">氷川参道（高田宏臣 氏）／ 上野原（矢野智徳 氏）／ 樹勢回復 ／ 水系循環回復</p>
+    </div>
+    <div class="top-pillar">
+      <div class="top-pillar-num">Pillar Ⅲ</div>
+      <div class="top-pillar-title">感じる</div>
+      <div class="top-pillar-en">Immerse</div>
+      <p class="top-pillar-desc">診る・再生するの実践を、音・触覚・空間に変換し、社会に体験として開く。</p>
+      <p class="top-pillar-projects">Qualia Mind ／ Qualia Field</p>
     </div>
   </div>
 
-  <div class="hero-scroll">Scroll</div>
-</section>
+</div><!-- /tab-panel top -->
+
+
+<!-- ┌─ Tab 01: mitsulabとは ─────────────────── -->
+<div class="tab-panel" data-panel="about" role="tabpanel">
 
 <section id="about">
   <span class="sec-num">01 / About</span>
   <h2>mitsulabとは</h2>
   <span class="sec-en">What is mitsulab?</span>
-  <p class="lead">斜面が崩れる。樹勢が衰える。水脈が途切れる。生態系が痩せる。症状は異なっても、根源は一つ——<strong>土・水・植物の自然循環の機能不全</strong>。</p>
+  <p class="lead">斜面が崩れる。樹勢が衰える。水脈が途切れる。生態系が痩せる。<br>症状は異なっても、根源は一つ——<strong>土・水・植物の自然循環の機能不全</strong>。</p>
 
-  <p>土・水・植物は、それぞれ別の問題ではなく、一続きの自然循環として動いています。農業・土木・造園・林業・環境は、この同じ循環への異なる角度からのアプローチにすぎません。mitsulabはこの自然循環に対して、<strong>「診る」「感じる」「再生する」</strong>の三つの働きを一つの研究所として担います。それぞれを支えるのが、次の三本柱です。</p>
+  <p>土・水・植物は、それぞれ別の問題ではなく、一続きの自然循環として動いています。農業・土木・造園・林業・環境は、この同じ循環への異なる角度からのアプローチにすぎません。mitsulab はこの自然循環に対して、<strong>「診る」「再生する」「感じる」</strong>の三つの働きを一つの研究所として担います。</p>
 
   <ul class="pillar-list">
     <li><span class="pillar-list-label">Observe<span class="pillar-list-sub">診る</span></span>IoT・GIS・3DGS・音響マイクで自然循環の動態を計測可能な形に翻訳する</li>
-    <li><span class="pillar-list-label">Immerse<span class="pillar-list-sub">感じる</span></span>観測データを音・触覚・空間に変換し、循環の傷と回復を体感に開く</li>
     <li><span class="pillar-list-label">Regenerate<span class="pillar-list-sub">再生する</span></span>第一線の専門家と協働し、循環を本来の動きに戻す</li>
+    <li><span class="pillar-list-label">Immerse<span class="pillar-list-sub">感じる</span></span>観測と再生の現場を音・触覚・空間に変換し、社会に体験として開く</li>
   </ul>
-  <p>これらは独立した工程ではなく、観測 → 体感 → 再生の往復として一続きに動きます。再生現場の観測が次の観測の精度を上げ、体感が再生の感覚を社会に開く——この循環構造そのものが mitsulab の研究所としての形です。</p>
-
-  <div class="grid grid-2" style="margin-top:32px">
-    <div class="card" style="grid-column:1 / -1">
-      <h3>ミッション / Mission</h3>
-      <p>傷ついた自然循環（土・水・植物）を、<strong>診る × 感じる × 再生する</strong>の三位一体で扱い、土壌再生・樹勢回復・水系循環回復を統合した「<strong>自然循環再生パッケージ</strong>」として社会に実装する。</p>
-    </div>
-    <div class="card">
-      <h3>事業概要 / Overview</h3>
-      <p><strong>屋号：</strong>mitsulab<br>
-      <strong>代表：</strong>上原 光瑛（Uehara Mitsuaki）<br>
-      <strong>拠点：</strong>埼玉県さいたま市<br>
-      <strong>Email：</strong>official@mitsulab.jp</p>
-    </div>
-    <div class="card">
-      <h3>事業領域 / Business area</h3>
-      <p>① <strong>診る（Observe）</strong>：IoT・GIS・3DGS・音響観測による自然循環の観測・可視化<br>
-      ② <strong>再生する（Regenerate）</strong>：土壌再生・樹勢回復・水系循環回復の調査・施工支援・コンサルティング<br>
-      ③ <strong>感じる（Immerse）</strong>：Qualia Practice（知覚作品の制作・展示・ワークショップ）<br>
-      ④ 研究・執筆・研修・情報発信</p>
-    </div>
-  </div>
+  <p>これらは独立した工程ではなく、<strong>観測 → 再生 → 体感</strong>の往復として一続きに動きます。再生現場の観測が次の観測の精度を上げ、再生の前後を体感として社会に開く——この循環構造そのものが mitsulab の研究所としての形です。</p>
 
   <!-- ====== 三本柱 × 進行中プロジェクト ====== -->
   <h3 style="margin-top:64px">三本柱と進行中のプロジェクト</h3>
-  <p style="color:var(--ink-2);font-size:.97rem;margin-bottom:18px;line-height:1.95">「診る × 感じる × 再生する」の三位一体は、独立した工程ではなく、<strong>観測 → 体感 → 再生</strong>の往復として一続きに動きます。それぞれの柱を現場で動かしているプロジェクトを、以下にすべて整理します。</p>
+  <p style="color:var(--ink-2);font-size:.97rem;margin-bottom:18px;line-height:1.95">「診る × 再生する × 感じる」の三位一体は、独立した工程ではなく、<strong>観測 → 体感 → 再生</strong>の往復として一続きに動きます。それぞれの柱を現場で動かしているプロジェクトを、以下にすべて整理します。</p>
 
-  <!-- ── 再生する（中心。専門家連携） ── -->
-  <div style="margin-top:48px;border-left:3px solid var(--moss);padding-left:18px">
-    <span class="sec-num" style="color:var(--moss);margin-bottom:6px">Pillar Ⅰ ── Regenerate</span>
+  <!-- ── 診る ── -->
+  <div style="margin-top:48px;border-left:3px solid var(--soil);padding-left:18px">
+    <span class="sec-num" style="color:var(--soil);margin-bottom:6px">Pillar Ⅰ ── Observe</span>
+    <h3 style="margin:0;font-size:1.4rem">診る ── 自社開発の観測技術</h3>
+    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">専門家の現場で得た「何を見るべきか」という問いを、<strong>GIS・IoT・3DGS</strong>といった観測技術によって計測可能な形に翻訳します。</p>
+    <ul class="pill-list" style="margin-top:14px">
+      <li><strong>GIS で診る</strong> ── 植生や土中水分量の可視化、変化の追従、マクロ因子の観測・分析</li>
+      <li><strong>IoT で診る</strong> ── 各種センサーで継続的な観測。ミクロ因子の観測・分析</li>
+      <li><strong>3DGS で診る</strong> ── 地表部の継続的な観測により時間変化による変化を観測</li>
+    </ul>
+  </div>
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card">
+      <span class="tag">Project / Observe</span>
+      <h3>Field X<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">空間記録プロジェクト</small></h3>
+      <p>Insta360 X4 + <strong>3DGS（3D Gaussian Splatting）</strong>による空間記録プロジェクト。施工前・施工直後・3ヶ月後・6ヶ月後の根圏・樹冠・地形変化を<strong>定点で記録し、施工前後を3D空間として比較</strong>できる体系を構築中。</p>
+    </div>
+    <div class="card">
+      <span class="tag">Project / Observe</span>
+      <h3>Soil Sound Project<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">土中音響観測プロジェクト</small></h3>
+      <p>ピエゾマイクを土中に設置し、<strong>CO₂気泡・ミミズの移動・菌糸の活動音（100Hz〜48kHz）</strong>を収録・解析するプロジェクト。「健全な土」と「傷ついた土」で音のパターンがどう違うかを比較し、聴くことで土の状態を診る新しい指標を開発中。<strong>技術設計は完了、PoC（概念実証）準備中</strong>。</p>
+    </div>
+  </div>
+
+  <!-- ── 再生する（専門家連携） ── -->
+  <div style="margin-top:64px;border-left:3px solid var(--moss);padding-left:18px">
+    <span class="sec-num" style="color:var(--moss);margin-bottom:6px">Pillar Ⅱ ── Regenerate</span>
     <h3 style="margin:0;font-size:1.4rem">再生する ── 第一線の専門家プロジェクトに参画</h3>
-    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">日本を代表する土壌・自然循環再生の実践者である<strong>高田宏臣 氏（NPO法人地球守）</strong>と<strong>矢野智徳 氏（大地の再生）</strong>が主催するプロジェクトに継続参画。施工管理者・観測者として現場で手を動かしながら、暗黙知を体得しています。</p>
+    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">日本を代表する土壌・自然循環再生の実践者である<strong>高田宏臣 氏（NPO法人地球守）</strong>と<strong>矢野智徳 氏（大地の再生）</strong>が主催するプロジェクトに参画。現場で手を動かしながら、暗黙知を体得しています。</p>
   </div>
   <div class="grid grid-2" style="margin-top:18px">
     <div class="card">
@@ -825,30 +1323,11 @@ td,th{border-color:rgba(216,207,189,.20)}
     </div>
   </div>
 
-  <!-- ── 診る ── -->
-  <div style="margin-top:64px;border-left:3px solid var(--soil);padding-left:18px">
-    <span class="sec-num" style="color:var(--soil);margin-bottom:6px">Pillar Ⅱ ── Observe</span>
-    <h3 style="margin:0;font-size:1.4rem">診る ── 自社開発の観測技術</h3>
-    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">専門家の現場で得た「何を見るべきか」という問いを、IoT・3DGS・音響観測といった現代技術によって計測可能な形に翻訳します。</p>
-  </div>
-  <div class="grid grid-2" style="margin-top:18px">
-    <div class="card">
-      <span class="tag">Project / Observe</span>
-      <h3>Field X<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">空間記録プロジェクト</small></h3>
-      <p>Insta360 X4 + <strong>3DGS（3D Gaussian Splatting）</strong>による空間記録プロジェクト。施工前・施工直後・3ヶ月後・6ヶ月後の根圏・樹冠・地形変化を<strong>定点で記録し、施工前後を3D空間として比較</strong>できる体系を構築中。Insta360 X4 機材を取得済み、初回撮影準備中。</p>
-    </div>
-    <div class="card">
-      <span class="tag">Project / Observe</span>
-      <h3>Soil Sound Project<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">土中音響観測プロジェクト</small></h3>
-      <p>ピエゾマイクを土中に設置し、<strong>CO₂気泡・ミミズの移動・菌糸の活動音（100Hz〜48kHz）</strong>を収録・解析するプロジェクト。「健全な土」と「傷ついた土」で音のパターンがどう違うかを比較し、聴くことで土の状態を診る新しい指標を開発中。<strong>技術設計は完了、PoC（概念実証）準備中</strong>。</p>
-    </div>
-  </div>
-
   <!-- ── 感じる ── -->
   <div style="margin-top:64px;border-left:3px solid var(--amber);padding-left:18px">
     <span class="sec-num" style="color:var(--amber);margin-bottom:6px">Pillar Ⅲ ── Immerse</span>
     <h3 style="margin:0;font-size:1.4rem">感じる ── 知覚拡張アートの実践</h3>
-    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">観測されたデータを、数値とグラフではなく<strong>身体で感じられる体験</strong>に翻訳します。測ることの前提となる「自然との関係」を取り戻すための装置として、メディアアートを実践しています。</p>
+    <p style="margin-top:10px;color:var(--ink-2);font-size:.95rem">診る・再生するの実践を、数値とグラフではなく<strong>身体で感じられる体験</strong>として社会に開きます。観測と再生の現場を、メディアアートを通じて受け手に届けるための柱です。</p>
   </div>
   <div class="grid grid-2" style="margin-top:18px">
     <div class="card">
@@ -859,7 +1338,7 @@ td,th{border-color:rgba(216,207,189,.20)}
     <div class="card">
       <span class="tag">Project / Immerse</span>
       <h3>Qualia Field<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">マルチモーダル没入インスタレーション</small></h3>
-      <p>Soil Sound Projectの観測データを素材にした音響インスタレーション。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度・嗅覚へと翻訳する</strong>知覚拡張装置として開発中。芸術祭・環境アートイベントへの出展を視野に展示計画を進めています。</p>
+      <p>Soil Sound Projectの観測データを素材にした音響インスタレーション。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度へと翻訳する</strong>知覚拡張装置として開発中。<strong>再生の前後の音を体感するインスタレーションにより、自然循環の再生プロジェクトの持続的な社会実装を見据えます。</strong></p>
     </div>
   </div>
 
@@ -910,6 +1389,12 @@ td,th{border-color:rgba(216,207,189,.20)}
 </section>
 
 
+</div><!-- /tab-panel about -->
+
+
+<!-- ┌─ Tab 02: mitsulabのビジョン ─────────────────── -->
+<div class="tab-panel" data-panel="vision" role="tabpanel">
+
 <section id="vision">
   <span class="sec-num">02 / Vision</span>
   <h2>mitsulabのビジョン</h2>
@@ -920,7 +1405,7 @@ td,th{border-color:rgba(216,207,189,.20)}
 
   <div class="mission-box" style="margin-top:24px">
     <span class="mission-label">Mission Statement</span>
-    <p class="mission-statement">傷ついた自然循環（土・水・植物）を、<strong>診る × 感じる × 再生する</strong>の三位一体で扱い、<strong>土壌再生・樹勢回復・水系循環回復</strong>を統合した「<strong>自然循環再生パッケージ</strong>」として社会に実装する。</p>
+    <p class="mission-statement">傷ついた自然循環（土・水・植物）を、<strong>診る × 再生する × 感じる</strong>の三位一体で扱い、<strong>土壌再生・樹勢回復・水系循環回復</strong>を統合した「<strong>自然循環再生パッケージ</strong>」として社会に実装する。</p>
   </div>
 
   <h3 style="margin-top:56px">① 「傷ついた自然循環」という捉え方</h3>
@@ -931,7 +1416,7 @@ td,th{border-color:rgba(216,207,189,.20)}
   <p>土・水・植物は、それぞれ別の問題ではありません。<strong>一続きの自然循環として動いています</strong>。土の中の通気が失われれば、樹木の根は呼吸を失い、水脈は途切れ、流域全体の保水力が落ちます。逆に、樹木の根が伸びれば、土に空気が通り、水が浸透し、生態系が戻ります。農業・土木・造園・林業・環境という分野は、この同じ循環への異なる角度からのアプローチにすぎません。</p>
   <p>mitsulab はこの共通根に向き合う研究所として、<strong>土壌再生・樹勢回復・水系循環回復を別々に提供せず、統合した「自然循環再生パッケージ」として扱います</strong>。</p>
 
-  <h3 style="margin-top:48px">③ 三位一体（Observe × Immerse × Regenerate）</h3>
+  <h3 style="margin-top:48px">③ 三位一体（Observe × Regenerate × Immerse）</h3>
   <p>自然循環の機能不全に応答するには、観測（数値化）だけでも、施工（実装）だけでも届きません。三つの働きを一つの実践として往復させる必要があります。</p>
 
   <div class="grid grid-3" style="margin-top:24px">
@@ -942,13 +1427,13 @@ td,th{border-color:rgba(216,207,189,.20)}
     </div>
     <div class="pillar">
       <span class="roman">Pillar Ⅱ</span>
-      <h3>Immerse<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">感じる ── 体験に開く</small></h3>
-      <p>観測データを音・触覚・映像・空間に変換し、人が自然循環の傷と回復を<strong>「体験」できる場をつくる</strong>。Qualia Mind・Qualia Field がこの柱を担います。測る前の「感じる」を社会に開く実践です。</p>
+      <h3>Regenerate<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">再生する ── 循環を取り戻す</small></h3>
+      <p>第一線の実践者と協働し、<strong>実際の土地で循環を取り戻す</strong>。氷川参道（高田氏）・上野原（矢野氏）への参画と、樹勢回復・水系循環回復の構想がこの柱を担います。</p>
     </div>
     <div class="pillar">
       <span class="roman">Pillar Ⅲ</span>
-      <h3>Regenerate<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">再生する ── 循環を取り戻す</small></h3>
-      <p>第一線の実践者と協働し、<strong>実際の土地で循環を取り戻す</strong>。氷川参道（高田氏）・上野原（矢野氏）への参画と、樹勢回復・水系循環回復の構想がこの柱を担います。</p>
+      <h3>Immerse<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">感じる ── 体験に開く</small></h3>
+      <p>観測データと再生現場を、音・触覚・映像・空間に変換し、人が自然循環の傷と回復を<strong>「体験」できる場をつくる</strong>。Qualia Mind・Qualia Field がこの柱を担います。<strong>診る・再生するの実践を、社会に開く媒介の柱</strong>です。</p>
     </div>
   </div>
   <p style="margin-top:24px">これらは独立した工程ではなく、<strong>観測 → 体感 → 再生 → 観測</strong>の往復として一続きに動きます。再生現場の観測が次の観測の精度を上げ、体感が再生の感覚を社会に開く——この循環構造そのものが mitsulab の研究所としての形です。</p>
@@ -969,7 +1454,7 @@ td,th{border-color:rgba(216,207,189,.20)}
       <div class="approach-box modern">
         <span class="label">Role 2</span>
         <h4>統合する<br><small style="font-weight:400;font-size:.78rem">Integrate</small></h4>
-        <p class="desc">分野ごとに分断された専門性を、<br>「診る × 感じる × 再生する」という<br>共通の軸の中で統合する。<br>土・水・植物を一続きの循環として扱う。</p>
+        <p class="desc">分野ごとに分断された専門性を、<br>「診る × 再生する × 感じる」という<br>共通の軸の中で統合する。<br>土・水・植物を一続きの循環として扱う。</p>
         <span class="equiv">＝ 領域横断のプラットフォーム</span>
       </div>
     </div>
@@ -1009,6 +1494,12 @@ td,th{border-color:rgba(216,207,189,.20)}
   <div class="quote" style="margin-top:36px">経済価値の前に、感覚価値がある——人間が自然を測れるようになる前に、<br>自然と人間の関係そのものを取り戻す。<br>没入の設計は、測定の前提となる関係性を復元する作業である。</div>
 </section>
 
+
+</div><!-- /tab-panel vision -->
+
+
+<!-- ┌─ Tab 03: 代表プロフィール ─────────────────── -->
+<div class="tab-panel" data-panel="profile" role="tabpanel">
 
 <section id="profile">
   <span class="sec-num">03 / Profile</span>
@@ -1060,12 +1551,18 @@ td,th{border-color:rgba(216,207,189,.20)}
     <div class="journey-item"><div class="date">2018.4</div><div>埼玉県庁入庁（土木技術職）</div></div>
     <div class="journey-item"><div class="date">2021.4–2025.3</div><div>令和元年東日本台風 地すべり復旧工事 主担当（規模 約7ha・地すべり土量 約98万m³／LiDAR点群データ活用／<strong>令和6年度 全建賞 災害枠・都市部門 受賞</strong>）</div></div>
     <div class="journey-item"><div class="date">2026.1–</div><div>有機農業研修（すどう農場・日本農業実践学園）</div></div>
-    <div class="journey-item"><div class="date">2026.3.16</div><div><strong>mitsulab 開業</strong>（埼玉県さいたま市大宮区）</div></div>
+    <div class="journey-item"><div class="date">2026.3</div><div><strong>mitsulab 開業</strong>（埼玉県さいたま市大宮区）</div></div>
     <div class="journey-item"><div class="date">2026.4–</div><div>氷川参道 土壌改善プロジェクト参画（高田宏臣・NPO法人地球守）／上野原 大地の再生プロジェクト参画（矢野智徳・大地の再生）</div></div>
     <div class="journey-item"><div class="date">2026.4–</div><div>4言語デジタルメディア <strong>Stillpoint 編集長</strong>（日・英・西・中）</div></div>
   </div>
 </section>
 
+
+</div><!-- /tab-panel profile -->
+
+
+<!-- ┌─ Tab 04: mitsulabの役割と事業 ─────────────────── -->
+<div class="tab-panel" data-panel="business" role="tabpanel">
 
 <section id="business">
   <span class="sec-num">04 / Role &amp; Business</span>
@@ -1084,7 +1581,7 @@ td,th{border-color:rgba(216,207,189,.20)}
     <div class="pillar" style="border-top-color:var(--moss)">
       <span class="roman">Role Ⅱ</span>
       <h3>分野横断で統合する<br><small style="font-weight:400;color:var(--ink-3);font-size:.9rem">Integrating across fields</small></h3>
-      <p>土壌・樹木・水系——それぞれに優れた専門家がいる一方で、土・水・植物が一続きに動くという視点で、これらを横断的に統合する場はまだ十分に育っていません。mitsulab は<strong>「診る × 感じる × 再生する」を共通軸に、各領域の専門性を一つのパッケージとしてまとめる</strong>役割を担います。</p>
+      <p>土壌・樹木・水系——それぞれに優れた専門家がいる一方で、土・水・植物が一続きに動くという視点で、これらを横断的に統合する場はまだ十分に育っていません。mitsulab は<strong>「診る × 再生する × 感じる」を共通軸に、各領域の専門性を一つのパッケージとしてまとめる</strong>役割を担います。</p>
     </div>
     <div class="pillar" style="border-top-color:var(--amber)">
       <span class="roman">Role Ⅲ</span>
@@ -1115,7 +1612,7 @@ td,th{border-color:rgba(216,207,189,.20)}
     </div>
   </div>
 
-  <p style="margin-top:24px">これら3つの需要すべてに、<strong>「診る × 感じる × 再生する」のパッケージ</strong>として一括で応答できる実践者は、日本にほとんどいません。専門家ネットワークと協働しながら横断的に動ける mitsulab の立ち位置が、この時代に意味を持つ理由です。</p>
+  <p style="margin-top:24px">これら3つの需要すべてに、<strong>「診る × 再生する × 感じる」のパッケージ</strong>として一括で応答できる実践者は、日本にほとんどいません。専門家ネットワークと協働しながら横断的に動ける mitsulab の立ち位置が、この時代に意味を持つ理由です。</p>
 
   <!-- ─ 想定する事業形態 ─ -->
   <h3 style="margin-top:64px">③ 想定する事業の形</h3>
@@ -1149,13 +1646,19 @@ td,th{border-color:rgba(216,207,189,.20)}
   <ul class="pill-list">
     <li><strong>自然資本の市場が拡大する</strong>：TNFD・ネイチャーポジティブの広がりにより、企業・自治体が自然資本に投資する必然性が高まっています。需要側が育つフェーズです。</li>
     <li><strong>協働だからこそスケールする</strong>：すべてを単独で抱え込むモデルは、属人化と疲弊で止まります。専門家ネットワークと役割分担する mitsulab のモデルは、関わる人が増えるほど厚みが出る構造です。</li>
-    <li><strong>4軸の統合が代替されにくい</strong>：現場経験 × 再生技術への現場視点 × テクノロジー × アートの4軸を一人で扱える層は限られ、それを<strong>専門家ネットワークと組み合わせて運用する立ち位置</strong>は、模倣が難しい mitsulab 固有のポジションです。</li>
+    <li><strong>4軸の統合が代替されにくい</strong>：<span style="white-space:nowrap">現場経験</span>・<span style="white-space:nowrap">再生技術への現場視点</span>・<span style="white-space:nowrap">テクノロジー</span>・<span style="white-space:nowrap">アート</span>——この4軸を一人で扱える層は限られ、それを<strong>専門家ネットワークと組み合わせて運用する立ち位置</strong>は、模倣が難しい mitsulab 固有のポジションです。</li>
     <li><strong>発信と実装が連動する</strong>：Stillpoint（4言語メディア）・note・GitHub による継続的な発信と、現場での実装が連動することで、関心層・依頼者・協働相手が同じ場所に集まる仕組みになります。</li>
   </ul>
 
   <div class="quote" style="margin-top:32px">mitsulab は、自然循環再生の主役ではありません。<br>主役は、<strong>土・水・植物の循環そのもの</strong>と、その循環を取り戻すために手を動かしてこられた<strong>第一線の実践者の方々</strong>です。<br>mitsulab は、その実践を補完し、統合し、社会に届ける——<strong>媒介としての研究所</strong>です。</div>
 </section>
 
+
+</div><!-- /tab-panel business -->
+
+
+<!-- ┌─ Tab 05: 自然循環とは ─────────────────── -->
+<div class="tab-panel" data-panel="cycle" role="tabpanel">
 
 <section id="cycle">
   <span class="sec-num">05 / Natural Cycle</span>
@@ -1335,7 +1838,7 @@ td,th{border-color:rgba(216,207,189,.20)}
     <div class="approach-box" style="border-top-color:var(--amber);max-width:720px;margin:0 auto">
       <span class="label">Our Position</span>
       <h4>自然循環の「再生」と「観測」と「体感」をワンストップで提供する</h4>
-      <p class="desc">第一線の専門家と共に手を動かして得た再生技術、自社開発の観測技術、<br>そして Qualia Practice による体感の翻訳。<br>診る × 感じる × 再生するの三位一体を融合させた研究所として活動する。</p>
+      <p class="desc">第一線の専門家と共に手を動かして得た再生技術、自社開発の観測技術、<br>そして Qualia Practice による体感の翻訳。<br>診る × 再生する × 感じるの三位一体を融合させた研究所として活動する。</p>
       <span class="equiv" style="color:var(--amber)">＝ 自然循環再生パッケージ</span>
     </div>
   </div>
@@ -1359,170 +1862,191 @@ td,th{border-color:rgba(216,207,189,.20)}
 <!-- Vision section moved to position 02 in v6 (see below). -->
 
 
+</div><!-- /tab-panel cycle (note: removed-v6/v7 sections are display:none and were nested here harmlessly) -->
+
+
+<!-- ┌─ Tab 06: 用語解説 ─────────────────── -->
+<div class="tab-panel" data-panel="glossary" role="tabpanel">
+
 <section id="glossary">
   <span class="sec-num">06 / Glossary</span>
   <h2>用語解説</h2>
-  <span class="sec-en">Key Terms</span>
-  <p class="lead">mitsulabが扱う領域の専門用語を、<strong>Technology（現代技術）・Engineering（伝統技術）・Art（知覚の拡張）</strong>の3カテゴリに分けて整理しました。</p>
+  <span class="sec-en">Key Terms — organized by Observe / Regenerate / Immerse</span>
+  <p class="lead">mitsulabが扱う領域の専門用語を、三本柱<strong>診る（Observe）・再生する（Regenerate）・感じる（Immerse）</strong>の分類に沿って整理しました。横断的な概念は冒頭にまとめています。</p>
 
-  <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--soil)">Technology ── 現代技術</h3>
+  <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--ink-3)">Foundation ── 横断概念</h3>
   <div class="glossary-grid">
     <div class="term">
-      <div class="term-label">Concept</div>
+      <div class="term-label">Foundation</div>
+      <h3>自然循環<small>（土・水・植物）</small></h3>
+      <p>土の中で、<strong>水・空気・養分・微生物・植物の根が互いに関わり合いながら巡り続けている働き</strong>の全体、そしてそれが地上の樹勢・流域の水循環と一続きにつながった循環全体を指します。土・水・植物は別々の問題ではなく、<strong>一続きの循環</strong>として動いています。mitsulabが扱うすべての問題の根にある概念です。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Foundation</div>
       <h3>TNFD・ネイチャーポジティブ<small>（Taskforce on Nature-related Financial Disclosures）</small></h3>
-      <p><strong>TNFD</strong>は自然関連財務情報開示タスクフォース。気候関連のTCFDに続く形で、企業活動が自然資本に与える影響を定量的に開示する国際的フレームワークです。<strong>ネイチャーポジティブ</strong>は2030年までに自然の損失を止め、回復軌道に乗せるという国際合意。これらの世界的潮流を背景に、自然循環を「診る・感じる・再生する」のパッケージで扱える実践者の必要性が高まっています。</p>
+      <p><strong>TNFD</strong>は自然関連財務情報開示タスクフォース。気候関連のTCFDに続く形で、企業活動が自然資本に与える影響を定量的に開示する国際的フレームワークです。<strong>ネイチャーポジティブ</strong>は2030年までに自然の損失を止め、回復軌道に乗せるという国際合意。これらの世界的潮流を背景に、自然循環を「診る・再生する・感じる」のパッケージで扱える実践者の必要性が高まっています。</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--soil)">診る（Observe）── 観測・可視化技術</h3>
+  <div class="glossary-grid">
+    <div class="term">
+      <div class="term-label">Observe</div>
+      <h3>GIS<small>（地理情報システム）</small></h3>
+      <p>Geographic Information Systemの略。<strong>地図の上にさまざまな情報を重ねて見るためのデジタルツール</strong>です。標高・土壌種類・水の流れ・農地区画などを一枚の地図に重ね、<strong>植生や土中水分量の可視化、変化の追従、マクロ因子の観測・分析</strong>に活用します。</p>
     </div>
     <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>フィジカルAI<small>（Physical AI）</small></h3>
-      <p>デジタル空間の中だけで学習するAIから一歩進み、<strong>物理世界のセンサーやロボットと連携して、現実の環境から直接学び・働きかけるAI</strong>のことです。畑や山・川の温度・湿度・土壌状態などをリアルタイムで取り込み、状態予測や施工提案を行います。mitsulabの観測・診断技術が将来統合していく中核概念の一つです。</p>
+      <div class="term-label">Observe</div>
+      <h3>IoT<small>（モノのインターネット）</small></h3>
+      <p>Internet of Thingsの略。<strong>現場に設置した小さなセンサーが、継続的にデータを送り続ける仕組み</strong>です。土壌水分・温度・CO₂などを畑や斜面に設置し、<strong>各種センサーで継続的な観測。ミクロ因子の観測・分析</strong>を担います。</p>
     </div>
     <div class="term">
-      <div class="term-label">Technology</div>
+      <div class="term-label">Observe</div>
+      <h3>3DGS<small>（3D Gaussian Splatting）</small></h3>
+      <p>360度カメラ等で撮影した画像群から、<strong>空間を点群とガウス関数の集合として高精度に3D再構築する技術</strong>。Field Xでは、<strong>地表部の継続的な観測により時間変化による変化を観測</strong>します。施工前・施工直後・3ヶ月後・6ヶ月後の差分を3D空間として比較できます。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Observe</div>
       <h3>AI<small>（人工知能）</small></h3>
       <p>大量のデータからパターンを読み取り、<strong>人間が気づきにくい変化や傾向を見つけ出す技術</strong>です。土壌データの解析・改善前後の比較・長期予測に活用。判断を任せるのではなく、<strong>現場の感覚と対話させるための道具</strong>として使います。</p>
     </div>
     <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>GIS<small>（地理情報システム）</small></h3>
-      <p>Geographic Information Systemの略。<strong>地図の上にさまざまな情報を重ねて見るためのデジタルツール</strong>です。標高・土壌種類・水の流れ・農地区画などを一枚の地図に重ね、どこで何が起きているかを面として把握します。</p>
+      <div class="term-label">Observe</div>
+      <h3>フィジカルAI<small>（Physical AI）</small></h3>
+      <p>デジタル空間の中だけで学習するAIから一歩進み、<strong>物理世界のセンサーやロボットと連携して、現実の環境から直接学び・働きかけるAI</strong>のことです。畑や山・川の温度・湿度・土壌状態などをリアルタイムで取り込み、状態予測や施工提案を行います。mitsulabの観測・診断技術が将来統合していく中核概念の一つです。</p>
     </div>
     <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>IoT<small>（モノのインターネット）</small></h3>
-      <p>Internet of Thingsの略。<strong>現場に設置した小さなセンサーが、継続的にデータを送り続ける仕組み</strong>です。土壌水分・温度・CO₂などを畑や斜面に設置し、土の「呼吸」を遠隔から見守ります。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>マルチモーダル<small>（Multimodal）</small></h3>
-      <p>「モーダル（modal）」とは情報の種類のこと。文字・画像・音・振動・温度・位置など、<strong>異なる種類の情報を同時に扱う仕組み</strong>を指します。人間が視覚・聴覚・触覚・嗅覚を総合して土壌を判断するように、mitsulab の観測・没入体験も<strong>複数のセンサー・映像・音・AIによる解析を一体で扱う</strong>マルチモーダル設計を前提とします。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>ハプティクス技術<small>（Haptics）</small></h3>
-      <p><strong>振動や圧力・温度を使って、触覚に情報を届ける技術</strong>です。スマートフォンの振動も広義のハプティクス。Qualia Field では、土壌水分や団粒構造の違いといった本来目に見えない情報を、<strong>指先の感覚として触れるように変換</strong>することで、数値やグラフよりも直感的に土の状態を理解できる体験を目指します。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>xR<small>（拡張・仮想・複合現実）</small></h3>
-      <p>VR・AR・MRをまとめた呼び方。<strong>目に見えないものを体験できる形に変換する技術</strong>です。土の中の水や微生物の動きを立体的・視覚的に体験できるよう変換し、教育や現場研修に活用します。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>ミラーワールド<small>（Mirror World）</small></h3>
-      <p>現実世界の地形・建物・植生などを、<strong>デジタル空間上にそっくり再現した"もう一つの世界"</strong>のことです。Field X（3DGS空間記録）や GIS との組合わせで、対象エリアのミラーワールドを構築し、その上で実測データやシミュレーションを重ね、現場の過去・現在・未来を一望できるようにします。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Technology</div>
-      <h3>ロボティクス<small>（Robotics）</small></h3>
-      <p>センサーやアクチュエーターで物理世界に働きかける機械の総称。mitsulab の観測体系においては、<strong>自動観測・土壌サンプリング・現場作業の省力化</strong>などを担う手足として位置づけます。フィジカルAIと組み合わさることで、現場と情報系が直接つながります。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Technology</div>
+      <div class="term-label">Observe</div>
       <h3>環境DNA<small>（eDNA）</small></h3>
       <p>水や土の中に存在する、生き物が残した<strong>ごく微量のDNAの痕跡</strong>のこと。少量のサンプルを分析するだけで、その場所にどんな生物が暮らしているかを高精度に把握できます。mitsulab では、<strong>微生物から大型動物まで含めた生態系全体を非破壊で観測する</strong>ための基盤技術として位置づけます。</p>
     </div>
-  </div>
-
-  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--soil)">Engineering ── 伝統技術</h3>
-  <div class="glossary-grid">
     <div class="term">
-      <div class="term-label">Engineering</div>
-      <h3>自然循環<small>（土・水・植物）</small></h3>
-      <p>土の中で、<strong>水・空気・養分・微生物・植物の根が互いに関わり合いながら巡り続けている働き</strong>の全体、そしてそれが地上の樹勢・流域の水循環と一続きにつながった循環全体を指します。土・水・植物は別々の問題ではなく、<strong>一続きの循環</strong>として動いています。この循環が健全であれば、農地は作物を育て、森は水を貯え、斜面は崩れにくくなります。mitsulabが扱うすべての問題の根にある概念です。</p>
+      <div class="term-label">Observe</div>
+      <h3>サウンドスケープ<small>（Soundscape）</small></h3>
+      <p>カナダの作曲家マリー・シェーファーが提唱した概念で、<strong>ある場所を取り巻く音の景色</strong>のこと。鳥の声・風の音・水の流れ・人の営みまで含め、その土地の健康度や時間の層を音から読み取ろうとする考え方です。『Soil Sound Project』や現場の録音は、土壌循環の<strong>"音の診断"</strong>を可能にします。</p>
     </div>
     <div class="term">
-      <div class="term-label">Engineering</div>
+      <div class="term-label">Observe</div>
+      <h3>ロボティクス<small>（Robotics）</small></h3>
+      <p>センサーやアクチュエーターで物理世界に働きかける機械の総称。mitsulab の観測体系においては、<strong>自動観測・土壌サンプリング・現場作業の省力化</strong>などを担う手足として位置づけます。フィジカルAIと組み合わさることで、現場と情報系が直接つながります。</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--moss)">再生する（Regenerate）── 自然循環再生の実践知</h3>
+  <div class="glossary-grid">
+    <div class="term">
+      <div class="term-label">Regenerate</div>
+      <h3>土中環境</h3>
+      <p>造園技術者・<strong>高田宏臣 氏</strong>が体系化した考え方で、<strong>土の中で起きている水・空気・微生物・根のやり取り全体</strong>を指します。健全な土中環境では木が元気に育ち、斜面も崩れにくくなります。mitsulabの実践はこの「見えない地下の健康」に焦点を当てます。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Regenerate</div>
+      <h3>大地の再生</h3>
+      <p>造園家・<strong>矢野智徳 氏</strong>が提唱・実践する、<strong>空気と水の流れを取り戻すことで土地を再生する技法</strong>です。点穴・水脈整備などを人の手で土地を読みながら進め、詰まった土に空気と水を通します。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Regenerate</div>
       <h3>有機土木</h3>
       <p>コンクリートや鋼材だけに頼らず、<strong>土・木・石・植物の力を活かして地形や水の流れを整える土木技術</strong>の考え方。石積み・木柵・植生による斜面保全など、江戸時代以前から続く知恵を現代の課題に応用します。</p>
     </div>
     <div class="term">
-      <div class="term-label">Engineering</div>
+      <div class="term-label">Regenerate</div>
       <h3>有機農業</h3>
       <p>化学肥料や合成農薬に頼らず、<strong>土壌中の微生物・腐植・団粒構造の働きを活かして作物を育てる農業</strong>の総称。「土を育てることが作物を育てること」という実践哲学に基づきます。</p>
     </div>
     <div class="term">
-      <div class="term-label">Engineering</div>
-      <h3>土中環境</h3>
-      <p>造園技術者・<strong>高田宏臣氏</strong>が体系化した考え方で、<strong>土の中で起きている水・空気・微生物・根のやり取り全体</strong>を指します。健全な土中環境では木が元気に育ち、斜面も崩れにくくなります。mitsulabの実践はこの「見えない地下の健康」に焦点を当てます。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Engineering</div>
-      <h3>大地の再生</h3>
-      <p>造園家・<strong>矢野智徳氏</strong>が提唱・実践する、<strong>空気と水の流れを取り戻すことで土地を再生する技法</strong>です。点穴・水脈整備などを人の手で土地を読みながら進め、詰まった土に空気と水を通します。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Engineering</div>
+      <div class="term-label">Regenerate</div>
       <h3>団粒構造</h3>
       <p>土の粒が小さな塊（団子）になり、その隙間に空気と水が通る状態のこと。<strong>健康な土は団粒構造をもち</strong>、根が伸びやすく微生物も活発。土壌改善の最も基本的な指標の一つです。</p>
     </div>
     <div class="term">
-      <div class="term-label">Engineering</div>
+      <div class="term-label">Regenerate</div>
       <h3>土壌微生物</h3>
       <p>土の中で無数に働く<strong>細菌・糸状菌・原生動物などの総称</strong>。有機物を分解して植物が使える養分に変え、団粒構造を作り、病原菌を抑える。土壌の健康度は、この微生物群集の多様性と活性で決まります。</p>
     </div>
     <div class="term">
-      <div class="term-label">Engineering</div>
+      <div class="term-label">Regenerate</div>
       <h3>菌根菌<small>（Mycorrhizal Fungi）</small></h3>
       <p>植物の根と共生する特別なキノコ・カビの仲間で、<strong>根と菌糸を繋いで養分と水分をやり取りする</strong>微生物です。植物は光合成で得た糖を菌根菌に渡し、菌根菌は土の奥深くから燐やミネラルを運んできて植物に渡す——<strong>地球上の陸上植物の約8割が菌根菌と共生関係</strong>にあると言われ、土壌循環の中核をなす存在です。</p>
     </div>
     <div class="term">
-      <div class="term-label">Engineering</div>
+      <div class="term-label">Regenerate</div>
       <h3>菌糸<small>（Mycelium）</small></h3>
       <p>糸状菌が伸ばす<strong>細い糸状のネットワーク</strong>。土中を縦横に張り巡らし、植物の根と共生（菌根菌）して養分を運び、土同士を繋ぎ止めて団粒構造の骨格を作ります。土壌の「情報と物質の高速道路」とも呼ばれます。</p>
     </div>
     <div class="term">
-      <div class="term-label">Engineering</div>
+      <div class="term-label">Regenerate</div>
       <h3>水・空気・物質循環</h3>
       <p>健全な土壌では、<strong>雨水が浸透し、空気が土中を通り、有機物が分解・再合成されて植物へ戻る</strong>という三つの循環が同時に動いています。このうち一つが詰まると全体が停滞し、斜面崩壊や農地の荒廃に繋がります。土壌改善の実践的な着眼点です。</p>
     </div>
   </div>
 
-  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--soil)">Art ── 知覚の拡張</h3>
+  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--amber)">感じる（Immerse）── 知覚拡張・体感の翻訳</h3>
   <div class="glossary-grid">
     <div class="term">
-      <div class="term-label">Art</div>
+      <div class="term-label">Immerse</div>
+      <h3>Qualia<small>（クオリア）</small></h3>
+      <p>哲学用語で、<strong>主観的に感じられる質感・感触のこと</strong>。赤色の「赤さ」、土を握ったときの「しっとり感」など、言葉や数値では完全に伝えきれない内的体験を指します。自然循環を扱う上で、機械の測定と補完関係にある人間の知の領域です。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Immerse</div>
       <h3>Qualia Practice<small>（クオリア・プラクティス）</small></h3>
-      <p>言葉や数値にならない、その人だけが感じている質感や感触（クオリア）を起点に、<strong>測る前に身体で感じ取るための創作実践</strong>です。墨による書や土を素材にした作品を通じて、データには還元できない「感じる力」を育てます。主な作品集として<strong>『Qualia/sound Ⅰ』『Qualia/sound Ⅱ』『Qualia/heart Ⅰ』</strong>があります。</p>
+      <p>言葉や数値にならない、その人だけが感じている質感や感触（クオリア）を起点に、<strong>身体で感じ取るための創作実践</strong>です。墨による書や土を素材にした作品を通じて、データには還元できない「感じる力」を育てます。主な作品集として<strong>『Qualia/sound Ⅰ』『Qualia/sound Ⅱ』『Qualia/heart Ⅰ』</strong>があります。</p>
     </div>
     <div class="term">
-      <div class="term-label">Art</div>
+      <div class="term-label">Immerse</div>
       <h3>『Soil Sound Project』</h3>
-      <p>ピエゾ素子（振動を電気信号に変換する素子）を土中に差し込み、<strong>土の中で起きている微かな音を聴くプロジェクト</strong>です。土壌生態系の活動が活発で豊かな土壌ほど多様な音が発生していることが分かっており、<strong>「Noisy soil」「Silent soil」</strong>といった聴覚領域での分類を通じて土壌循環を知覚化する試み。測るのではなく<strong>聴くことで土を診る</strong>新しい可能性を探ります。</p>
+      <p>ピエゾ素子（振動を電気信号に変換する素子）を土中に差し込み、<strong>土の中で起きている微かな音を聴くプロジェクト</strong>です。土壌生態系の活動が活発で豊かな土壌ほど多様な音が発生していることが分かっており、<strong>「Noisy soil」「Silent soil」</strong>といった聴覚領域での分類を通じて土壌循環を知覚化する試み。観測（診る）と没入体験（感じる）の橋渡し役を担います。</p>
     </div>
     <div class="term">
-      <div class="term-label">Art</div>
+      <div class="term-label">Immerse</div>
+      <h3>Qualia Field<small>（クオリア・フィールド）</small></h3>
+      <p>mitsulabが開発中のマルチモーダル没入体験プロジェクト。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度へと翻訳する</strong>インスタレーション装置です。<strong>再生の前後の音を体感する</strong>ことで、自然循環の再生プロジェクトの持続的な社会実装を見据えます。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Immerse</div>
       <h3>『Modarity X』</h3>
       <p>環境要素＝<strong>温度・湿度・光度・音の入力値を、触覚や音へと変換するIoTシステム</strong>として制作された作品。ある場所の環境情報を別の感覚モードに翻訳し直すことで、普段は意識されない環境の質感を<strong>身体で感じ取るための装置</strong>となる。ハプティクスやサウンドスケープと近縁の知覚拡張プロジェクトです。</p>
     </div>
     <div class="term">
-      <div class="term-label">Art</div>
-      <h3>サウンドスケープ<small>（Soundscape）</small></h3>
-      <p>カナダの作曲家マリー・シェーファーが提唱した概念で、<strong>ある場所を取り巻く音の景色</strong>のこと。鳥の声・風の音・水の流れ・人の営みまで含め、その土地の健康度や時間の層を音から読み取ろうとする考え方です。『Soil Sound Project』や現場の録音は、土壌循環の<strong>"音の診断"</strong>を可能にします。</p>
+      <div class="term-label">Immerse</div>
+      <h3>マルチモーダル<small>（Multimodal）</small></h3>
+      <p>「モーダル（modal）」とは情報の種類のこと。文字・画像・音・振動・温度・位置など、<strong>異なる種類の情報を同時に扱う仕組み</strong>を指します。人間が視覚・聴覚・触覚を総合して土壌を判断するように、mitsulab の没入体験も<strong>複数のセンサー・映像・音による解析を一体で扱う</strong>マルチモーダル設計を前提とします。</p>
     </div>
     <div class="term">
-      <div class="term-label">Art</div>
-      <h3>Qualia<small>（クオリア）</small></h3>
-      <p>哲学用語で、<strong>主観的に感じられる質感・感触のこと</strong>。赤色の「赤さ」、土を握ったときの「しっとり感」など、言葉や数値では完全に伝えきれない内的体験を指します。土壌循環を扱う上で、機械の測定と補完関係にある人間の知の領域です。</p>
+      <div class="term-label">Immerse</div>
+      <h3>ハプティクス技術<small>（Haptics）</small></h3>
+      <p><strong>振動や圧力・温度を使って、触覚に情報を届ける技術</strong>です。スマートフォンの振動も広義のハプティクス。Qualia Field では、土壌水分や団粒構造の違いといった本来目に見えない情報を、<strong>指先の感覚として触れるように変換</strong>することで、数値やグラフよりも直感的に土の状態を理解できる体験を目指します。</p>
     </div>
     <div class="term">
-      <div class="term-label">Art</div>
+      <div class="term-label">Immerse</div>
+      <h3>xR<small>（拡張・仮想・複合現実）</small></h3>
+      <p>VR・AR・MRをまとめた呼び方。<strong>目に見えないものを体験できる形に変換する技術</strong>です。土の中の水や微生物の動きを立体的・視覚的に体験できるよう変換し、教育や現場研修に活用します。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Immerse</div>
+      <h3>ミラーワールド<small>（Mirror World）</small></h3>
+      <p>現実世界の地形・建物・植生などを、<strong>デジタル空間上にそっくり再現した"もう一つの世界"</strong>のことです。Field X（3DGS空間記録）や GIS との組合わせで、対象エリアのミラーワールドを構築し、その上で実測データやシミュレーションを重ね、現場の過去・現在・未来を一望できるようにします。</p>
+    </div>
+    <div class="term">
+      <div class="term-label">Immerse</div>
       <h3>環世界<small>（Umwelt）</small></h3>
       <p>生物学者ユクスキュルの概念で、<strong>それぞれの生き物が独自の感覚器で捉える"その生物ならではの世界"</strong>のこと。ミミズには土の世界が、菌糸には化学物質のネットワークが異なる姿で見えています。人間中心を相対化し、土壌生態系の多層性を捉える鍵となる視点です。</p>
     </div>
     <div class="term">
-      <div class="term-label">Art</div>
-      <h3>Qualia Field<small>（クオリア・フィールド）</small></h3>
-      <p>mitsulabが開発中のマルチモーダル没入体験プロジェクト。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度・嗅覚へと翻訳する</strong>インスタレーション装置です。擬似ハプティクス（視聴覚フィードバックによる触覚錯覚）や音感温度対応（低音=温/重、高音=冷/軽）を応用し、<strong>「認知外の認知への深化」</strong>を体験者に届けます。Qualia Practiceの中でも特に土壌生態系の感覚翻訳に特化したシリーズです。</p>
-    </div>
-    <div class="term">
-      <div class="term-label">Art</div>
+      <div class="term-label">Immerse</div>
       <h3>知覚拡張<small>（Perceptual Extension）</small></h3>
       <p>本来の人間の感覚スケールでは捉えられないものを、<strong>技術や作品を介して知覚できるようにする試み</strong>。顕微鏡が微生物を見せ、xRが土中の流れを体験させ、Qualia Practiceが身体を通じて不可視を感じさせる——これらすべてが知覚拡張の実践です。</p>
     </div>
   </div>
 </section>
 
+
+</div><!-- /tab-panel glossary -->
+
+
+<!-- ┌─ Tab 07: お問い合わせ ─────────────────── -->
+<div class="tab-panel" data-panel="contact" role="tabpanel">
 
 <section id="contact">
   <span class="sec-num">07 / Contact</span>
@@ -1542,21 +2066,90 @@ td,th{border-color:rgba(216,207,189,.20)}
   </div>
 </section>
 
+</div><!-- /tab-panel contact -->
+
+</main>
+
 <footer>
   <div class="brand">mitsulab</div>
-  <div class="tag-en">Observe × Immerse × Regenerate ── Restoring Natural Cycles</div>
+  <div class="tag-en">Observe × Regenerate × Immerse ── Restoring Natural Cycles</div>
+  <p style="display:none">v9</p>
   <p>屋号：mitsulab ／ 代表：上原光瑛 ／ 拠点：埼玉県さいたま市大宮区</p>
-  <p>開業：2026年3月16日 ／ 連絡先：official@mitsulab.jp</p>
-  <p class="copy">© 2026 mitsulab / Uehara Mitsuaki. All rights reserved. — v8 (2026-05-02)</p>
+  <p>開業：2026年3月 ／ 連絡先：official@mitsulab.jp</p>
+  <p class="copy">© 2026 mitsulab / Uehara Mitsuaki. All rights reserved. — タブ版 (2026-05-03)</p>
 </footer>
 
 </body>
 <script>
-  // Fade out the pinned mitsulab emblem as the user scrolls
+  // ============================================
+  // タブ切替ロジック
+  // ============================================
+  (function(){
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    var panels  = document.querySelectorAll('.tab-panel');
+
+    window.switchTab = function(name){
+      tabBtns.forEach(function(b){
+        var active = b.getAttribute('data-tab') === name;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      panels.forEach(function(p){
+        p.classList.toggle('active', p.getAttribute('data-panel') === name);
+      });
+      // ページ上部にスクロール
+      window.scrollTo({top:0, behavior:'smooth'});
+      // URL hash 更新（共有可能に）
+      if(history.pushState){
+        history.pushState(null, '', '#' + name);
+      } else {
+        location.hash = name;
+      }
+    };
+
+    tabBtns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        switchTab(btn.getAttribute('data-tab'));
+      });
+    });
+
+    // ページ読み込み時に hash があればそのタブを開く
+    function initFromHash(){
+      var hash = (location.hash || '').replace('#','');
+      var validTabs = ['top','about','vision','profile','business','cycle','glossary','contact'];
+      if(hash && validTabs.indexOf(hash) >= 0){
+        switchTab(hash);
+      }
+    }
+    initFromHash();
+    window.addEventListener('hashchange', initFromHash);
+
+    // 内部リンク（mission/vision等のアンカー）にも対応
+    document.addEventListener('click', function(e){
+      var a = e.target.closest('a');
+      if(!a) return;
+      var href = a.getAttribute('href') || '';
+      if(href.indexOf('#') === 0){
+        var target = href.substring(1);
+        var validTabs = ['top','about','vision','profile','business','cycle','glossary','contact','mission'];
+        if(validTabs.indexOf(target) >= 0){
+          // mission は vision タブに含まれる
+          if(target === 'mission') target = 'vision';
+          e.preventDefault();
+          switchTab(target);
+        }
+      }
+    });
+  })();
+
+  // ============================================
+  // 旧 hero スクロールロジック — タブ版では不要
+  // ============================================
   (function(){
     var emblem = document.querySelector('.hero-aside-main');
     var scrollHint = document.querySelector('.hero-scroll');
     if(!emblem) return;
+    return; // タブ版ではスクロールフェードを無効化
     function update(){
       var y = window.scrollY || window.pageYOffset;
       var h = window.innerHeight;
@@ -1576,7 +2169,7 @@ td,th{border-color:rgba(216,207,189,.20)}
   "@type": "ProfessionalService",
   "name": "mitsulab",
   "alternateName": "ミツラボ",
-  "description": "土・水・植物の自然循環を、診る × 感じる × 再生する の三位一体で扱う研究所。日本を代表する自然循環再生の実践者である高田宏臣氏（NPO法人地球守）・矢野智徳氏（大地の再生）が主催するプロジェクトに継続参画しながら、土壌再生・樹勢回復・水系循環回復を統合した「自然循環再生パッケージ」として社会に実装する。",
+  "description": "土・水・植物の自然循環を、診る × 再生する × 感じる の三位一体で扱う研究所。日本を代表する自然循環再生の実践者である高田宏臣氏（NPO法人地球守）・矢野智徳氏（大地の再生）が主催するプロジェクトに継続参画しながら、土壌再生・樹勢回復・水系循環回復を統合した「自然循環再生パッケージ」として社会に実装する。",
   "url": "https://mitsulab.jp",
   "email": "official@mitsulab.jp",
   "foundingDate": "2026-03-16",
