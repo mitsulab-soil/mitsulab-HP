@@ -1076,25 +1076,26 @@ td,th{border-color:rgba(216,207,189,.20)}
   line-height:1.2;
 }
 .tab-btn .tb-ja{
-  font-family:inherit;
-  font-weight:500;
-  font-size:1.18em;
-  letter-spacing:.04em;
+  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  font-weight:400;
+  font-size:1.16em;
+  letter-spacing:.12em;
   color:inherit;
   display:inline-flex;
   align-items:center;
   gap:.18em;
 }
 .tab-btn .tb-en{
-  font-family:"Cormorant Garamond",serif;
+  font-family:"Cormorant Garamond","Times New Roman",serif;
   font-style:italic;
   font-weight:400;
-  letter-spacing:.18em;
-  font-size:.6em;
+  letter-spacing:.32em;
+  font-size:.58em;
   color:var(--lab-fg-3);
   text-transform:uppercase;
-  margin-top:2px;
+  margin-top:3px;
 }
+.tab-btn.active .tb-ja{font-weight:500}
 .tab-btn .tb-sep{display:none}
 .tab-btn:hover .tb-en,
 .tab-btn.active .tb-en{color:var(--lab-fg-2)}
@@ -1387,162 +1388,160 @@ td,th{border-color:rgba(216,207,189,.20)}
   margin-bottom:36px;
   text-transform:uppercase;
 }
-.tab-menu-overlay-list{
-  list-style:none;
-  padding:0;
-  margin:0;
+/* ===== モバイルメニュー：Apple iPhone 風ドリルダウン ===== */
+.tab-menu-section{display:none}
+.tab-menu-section.is-active{display:block;animation:menuFadeIn .25s ease-out}
+@keyframes menuFadeIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:translateX(0)}}
+
+.tab-menu-section-label{
+  font-family:"Cormorant Garamond","Times New Roman",serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:.78rem;
+  letter-spacing:.36em;
+  color:var(--lab-fg-3);
+  text-transform:uppercase;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--lab-line);
 }
-.tab-menu-overlay-list li{margin:0;padding:0}
-.tab-menu-overlay-item{
+.tab-menu-section-title{
+  margin:8px 0 24px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--lab-line);
+}
+.tab-menu-section-title .section-title-ja{
+  display:block;
+  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
+  font-weight:400;
+  font-size:1.55rem;
+  letter-spacing:.1em;
+  color:var(--lab-fg);
+  line-height:1.3;
+}
+.tab-menu-section-title .section-title-en{
+  display:block;
+  margin-top:6px;
+  font-family:"Cormorant Garamond","Times New Roman",serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:.82rem;
+  letter-spacing:.32em;
+  color:var(--lab-fg-3);
+  text-transform:uppercase;
+}
+
+.tab-menu-back{
+  background:transparent;
+  border:none;
+  color:var(--lab-fg-3);
+  font-family:"Cormorant Garamond","Hiragino Sans",serif;
+  font-style:italic;
+  font-size:.92rem;
+  letter-spacing:.12em;
+  padding:6px 0 16px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:color .2s, transform .2s;
+}
+.tab-menu-back span{font-style:normal;font-size:1.15em;font-weight:400}
+.tab-menu-back:hover{color:var(--lab-fg);transform:translateX(-3px)}
+
+.tab-menu-list{list-style:none;padding:0;margin:0}
+.tab-menu-list li{margin:0;padding:0}
+
+/* リーフ（最終タブへ遷移） */
+.tab-menu-leaf{
+  width:100%;
   display:flex;
   align-items:baseline;
-  gap:18px;
-  width:100%;
-  font-family:"Hiragino Sans","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;
-  font-style:normal;
-  font-size:1.25rem;
-  font-weight:400;
-  letter-spacing:.02em;
-  color:var(--lab-fg);
+  justify-content:flex-start;
+  gap:14px;
+  padding:18px 0;
   background:transparent;
   border:none;
   border-bottom:1px solid var(--lab-line);
-  padding:20px 0;
-  text-align:left;
   cursor:pointer;
-  transition:color .2s, opacity .2s;
-  position:relative;
+  text-align:left;
+  transition:color .2s, padding-left .2s;
 }
-.tab-menu-overlay-item .item-num{
-  font-family:inherit;
-  font-style:normal;
+.tab-menu-leaf:hover{padding-left:6px}
+.tab-menu-leaf .leaf-ja{
+  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
+  font-weight:400;
+  font-size:1.18rem;
+  letter-spacing:.1em;
+  color:var(--lab-fg);
+}
+.tab-menu-leaf .leaf-en{
+  font-family:"Cormorant Garamond","Times New Roman",serif;
+  font-style:italic;
   font-weight:400;
   font-size:.78rem;
-  letter-spacing:.06em;
+  letter-spacing:.28em;
   color:var(--lab-fg-3);
-  flex-shrink:0;
-  width:30px;
+  text-transform:uppercase;
 }
-.tab-menu-overlay-item .item-en{
-  font-family:inherit;
-  font-style:normal;
-  font-weight:500;
-  flex:1;
-}
-.tab-menu-overlay-item .item-ja{
-  font-family:inherit;
-  font-style:normal;
-  font-weight:400;
-  font-size:.86rem;
-  letter-spacing:.04em;
-  color:var(--lab-fg-2);
-}
-.tab-menu-overlay-item:hover,
-.tab-menu-overlay-item.active{
-  color:var(--lab-fg);
-  font-weight:500;
-}
-.tab-menu-overlay-item.active{
-  color:var(--lab-accent);
-}
-.tab-menu-overlay-item:hover .item-num,
-.tab-menu-overlay-item.active .item-num{color:var(--lab-fg-2)}
+.tab-menu-leaf.active .leaf-ja{color:var(--lab-accent);font-weight:500}
+.tab-menu-leaf.active .leaf-en{color:var(--lab-accent);opacity:.7}
 
-/* モバイルメニュー：階層構造 — 親（group）／中（subgroup）／子（child） */
-/* 親グループ（Apple iPhone 風 — タップで第一子へ遷移） */
-.tab-menu-overlay-group{
-  list-style:none;
-  margin:32px 0 6px;
-  padding:0;
-  border-top:2px solid var(--lab-fg-2);
-}
-.tab-menu-overlay-group:first-child{margin-top:8px}
-.tab-menu-overlay-group .tab-menu-overlay-parent{
+/* ブランチ（子セクションへドリルダウン） */
+.tab-menu-branch{
   width:100%;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:18px 0 14px;
+  padding:18px 0;
   background:transparent;
   border:none;
   border-bottom:1px solid var(--lab-line);
   cursor:pointer;
-  font-family:"Hiragino Sans","Helvetica Neue",-apple-system,sans-serif;
-  font-weight:600;
-  font-size:1.08rem;
-  letter-spacing:.06em;
-  color:var(--lab-fg);
   text-align:left;
+  transition:padding-left .2s;
 }
-.tab-menu-overlay-group .tab-menu-overlay-parent .parent-arrow{
-  font-size:1rem;
+.tab-menu-branch:hover{padding-left:6px}
+.tab-menu-branch .branch-text{display:inline-flex;align-items:baseline;gap:14px}
+.tab-menu-branch .branch-ja{
+  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
+  font-weight:400;
+  font-size:1.18rem;
+  letter-spacing:.1em;
+  color:var(--lab-fg);
+}
+.tab-menu-branch .branch-en{
+  font-family:"Cormorant Garamond","Times New Roman",serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:.78rem;
+  letter-spacing:.28em;
   color:var(--lab-fg-3);
-  margin-left:12px;
-  transition:transform .2s, color .2s;
+  text-transform:uppercase;
 }
-.tab-menu-overlay-group .tab-menu-overlay-parent:hover .parent-arrow,
-.tab-menu-overlay-group .tab-menu-overlay-parent:active .parent-arrow{
+.tab-menu-branch .branch-arrow{
+  font-size:1.6rem;
+  font-weight:300;
+  color:var(--lab-fg-3);
+  transition:transform .2s, color .2s;
+  line-height:1;
+}
+.tab-menu-branch:hover .branch-arrow{
   transform:translateX(4px);
   color:var(--lab-fg);
 }
 
-/* 中見出し（三本柱／長期ビジョン／事業形態 etc — タップで第一子へ遷移） */
-.tab-menu-overlay-subgroup{
-  list-style:none;
-  margin:8px 0 0;
-  padding:0;
-  position:relative;
-}
-.tab-menu-overlay-subgroup .tab-menu-overlay-subparent{
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 0 6px 18px;
-  background:transparent;
-  border:none;
-  cursor:pointer;
-  font-family:"Cormorant Garamond","Hiragino Sans",serif;
+/* サブグループ見出し（詳細セクション内のクラスタ見出し） */
+.tab-menu-subgroup{
+  font-family:"Cormorant Garamond","Hiragino Mincho ProN",serif;
   font-style:italic;
   font-weight:500;
-  font-size:.92rem;
-  letter-spacing:.18em;
+  font-size:.8rem;
+  letter-spacing:.28em;
   color:var(--lab-fg-3);
-  text-align:left;
-  position:relative;
-}
-.tab-menu-overlay-subgroup .tab-menu-overlay-subparent::before{
-  content:"";
-  position:absolute;
-  left:0; top:50%;
-  width:10px; height:1px;
-  background:var(--lab-fg-3);
-}
-.tab-menu-overlay-subgroup .tab-menu-overlay-subparent .parent-arrow{
-  font-size:.85rem;
-  color:var(--lab-fg-3);
-  transition:transform .2s, color .2s;
-}
-.tab-menu-overlay-subgroup .tab-menu-overlay-subparent:hover .parent-arrow{
-  transform:translateX(3px);
-  color:var(--lab-fg);
-}
-/* 子項目（具体的なタブ） */
-.tab-menu-overlay-child{
-  margin:0;
-  padding-left:30px;
-  position:relative;
-}
-.tab-menu-overlay-child::before{
-  content:"";
-  position:absolute;
-  left:14px; top:0; bottom:0;
-  width:1px;
-  background:var(--lab-line);
-}
-.tab-menu-overlay-child .tab-menu-overlay-item{
-  font-size:1.05rem;
-  padding:14px 0;
+  margin:24px 0 4px;
+  padding:8px 0 4px;
+  text-transform:none;
 }
 
 /* タブのデスクトップサイズ調整 */
@@ -1573,8 +1572,10 @@ td,th{border-color:rgba(216,207,189,.20)}
   .tab-nav-brand{font-size:1.05rem}
 }
 @media (max-width:680px){
-  .tab-menu-overlay-item{font-size:1.2rem}
-  .tab-menu-overlay-item .item-ja{display:none}
+  .tab-menu-leaf .leaf-ja,
+  .tab-menu-branch .branch-ja{font-size:1.1rem}
+  .tab-menu-leaf,
+  .tab-menu-branch{padding:16px 0}
 }
 
 /* タブパネル（各章コンテナ） */
@@ -1849,11 +1850,25 @@ section > h2{margin-top:0}
 /* TOP のビジョン提示 */
 .top-vision{
   margin:48px auto 56px;
-  padding:36px 24px;
+  padding:40px 24px 36px;
   text-align:center;
   border-top:1px solid var(--ink-line);
   border-bottom:1px solid var(--ink-line);
-  max-width:760px;
+  max-width:780px;
+  position:relative;
+}
+.top-vision .top-vision-label{
+  display:inline-block;
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:.78rem;
+  letter-spacing:.34em;
+  color:var(--soil);
+  text-transform:uppercase;
+  margin-bottom:22px;
+  padding:0 12px;
+  position:relative;
 }
 .top-vision .top-vision-jp{
   font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
@@ -2934,43 +2949,75 @@ section > h2{margin-top:0}
 <!-- ===== モバイル用ポップアップメニュー ===== -->
 <div class="tab-menu-overlay" id="tabMenuOverlay" role="dialog" aria-label="Navigation" aria-hidden="true">
   <div class="tab-menu-overlay-inner">
-    <div class="tab-menu-overlay-label">── Index ──</div>
-    <ul class="tab-menu-overlay-list">
-      <li><button class="tab-menu-overlay-item active" data-tab="top" onclick="switchTabFromMenu('top')"><span class="item-num">01</span><span class="item-en">ホーム ／ TOP</span></button></li>
 
-      <li class="tab-menu-overlay-group"><button class="tab-menu-overlay-parent" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="parent-text">mitsulab とは ／ ABOUT</span><span class="parent-arrow" aria-hidden="true">→</span></button></li>
-      <li class="tab-menu-overlay-subgroup"><button class="tab-menu-overlay-parent tab-menu-overlay-subparent" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="parent-text">三本柱 ／ Three Pillars</span><span class="parent-arrow" aria-hidden="true">→</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="item-num">02·1</span><span class="item-en">診る ／ Observe</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="regenerate" onclick="switchTabFromMenu('regenerate')"><span class="item-num">02·2</span><span class="item-en">再生する ／ Regenerate</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="immerse" onclick="switchTabFromMenu('immerse')"><span class="item-num">02·3</span><span class="item-en">感じる ／ Immerse</span></button></li>
-      <li class="tab-menu-overlay-subgroup"><button class="tab-menu-overlay-parent tab-menu-overlay-subparent" data-tab="cycle" onclick="switchTabFromMenu('cycle')"><span class="parent-text">長期ビジョン ／ Long-term Vision</span><span class="parent-arrow" aria-hidden="true">→</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="cycle" onclick="switchTabFromMenu('cycle')"><span class="item-num">02·4</span><span class="item-en">自然循環OS ／ Nature Cycle OS</span></button></li>
-      <li class="tab-menu-overlay-subgroup"><button class="tab-menu-overlay-parent tab-menu-overlay-subparent" data-tab="practice" onclick="switchTabFromMenu('practice')"><span class="parent-text">事業形態と社会的背景 ／ Practice &amp; Context</span><span class="parent-arrow" aria-hidden="true">→</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="roles" onclick="switchTabFromMenu('roles')"><span class="item-num">02·5</span><span class="item-en">役割 ／ Roles</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="practice" onclick="switchTabFromMenu('practice')"><span class="item-num">02·6</span><span class="item-en">事業形態 ／ Practice</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="policy" onclick="switchTabFromMenu('policy')"><span class="item-num">02·7</span><span class="item-en">政策的背景 ／ Policy</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="planetary" onclick="switchTabFromMenu('planetary')"><span class="item-num">02·8</span><span class="item-en">地球環境的背景 ／ Planetary</span></button></li>
+    <!-- ===== Root section（最初に表示される top-level） ===== -->
+    <section class="tab-menu-section is-active" data-section="root">
+      <div class="tab-menu-section-label">Index</div>
+      <ul class="tab-menu-list">
+        <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">ホーム</span><span class="leaf-en">TOP</span></button></li>
+        <li><button class="tab-menu-branch" onclick="showMobileSection('about')"><span class="branch-text"><span class="branch-ja">mitsulab とは</span><span class="branch-en">ABOUT</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
+        <li><button class="tab-menu-branch" onclick="showMobileSection('profile')"><span class="branch-text"><span class="branch-ja">代表プロフィール</span><span class="branch-en">PROFILE</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
+        <li><button class="tab-menu-branch" onclick="showMobileSection('link')"><span class="branch-text"><span class="branch-ja">リンク</span><span class="branch-en">LINK</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
+        <li><button class="tab-menu-branch" onclick="showMobileSection('resources')"><span class="branch-text"><span class="branch-ja">関連情報</span><span class="branch-en">RESOURCES</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="contact" onclick="switchTabFromMenu('contact')"><span class="leaf-ja">お問い合わせ</span><span class="leaf-en">CONTACT</span></button></li>
+      </ul>
+    </section>
 
-      <li class="tab-menu-overlay-group"><button class="tab-menu-overlay-parent" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="parent-text">代表プロフィール ／ PROFILE</span><span class="parent-arrow" aria-hidden="true">→</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="item-num">03·1</span><span class="item-en">概要 ／ Overview</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="profile-expertise" onclick="switchTabFromMenu('profile-expertise')"><span class="item-num">03·2</span><span class="item-en">専門領域 ／ Expertise</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="profile-works" onclick="switchTabFromMenu('profile-works')"><span class="item-num">03·3</span><span class="item-en">作品・発信 ／ Works</span></button></li>
+    <!-- ===== ABOUT 詳細 ===== -->
+    <section class="tab-menu-section" data-section="about">
+      <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
+      <div class="tab-menu-section-title"><span class="section-title-ja">mitsulab とは</span><span class="section-title-en">ABOUT</span></div>
+      <ul class="tab-menu-list">
+        <li class="tab-menu-subgroup">三本柱 ／ Three Pillars</li>
+        <li><button class="tab-menu-leaf" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="leaf-ja">診る</span><span class="leaf-en">Observe</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="regenerate" onclick="switchTabFromMenu('regenerate')"><span class="leaf-ja">再生する</span><span class="leaf-en">Regenerate</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="immerse" onclick="switchTabFromMenu('immerse')"><span class="leaf-ja">感じる</span><span class="leaf-en">Immerse</span></button></li>
+        <li class="tab-menu-subgroup">長期ビジョン ／ Long-term Vision</li>
+        <li><button class="tab-menu-leaf" data-tab="cycle" onclick="switchTabFromMenu('cycle')"><span class="leaf-ja">自然循環OS</span><span class="leaf-en">Nature Cycle OS</span></button></li>
+        <li class="tab-menu-subgroup">事業形態と社会的背景 ／ Practice &amp; Context</li>
+        <li><button class="tab-menu-leaf" data-tab="roles" onclick="switchTabFromMenu('roles')"><span class="leaf-ja">役割</span><span class="leaf-en">Roles</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="practice" onclick="switchTabFromMenu('practice')"><span class="leaf-ja">事業形態</span><span class="leaf-en">Practice</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="policy" onclick="switchTabFromMenu('policy')"><span class="leaf-ja">政策的背景</span><span class="leaf-en">Policy</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="planetary" onclick="switchTabFromMenu('planetary')"><span class="leaf-ja">地球環境的背景</span><span class="leaf-en">Planetary</span></button></li>
+      </ul>
+    </section>
 
-      <li class="tab-menu-overlay-group"><button class="tab-menu-overlay-parent" data-tab="link-media" onclick="switchTabFromMenu('link-media')"><span class="parent-text">リンク ／ LINK</span><span class="parent-arrow" aria-hidden="true">→</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="link-media" onclick="switchTabFromMenu('link-media')"><span class="item-num">04·1</span><span class="item-en">発信メディア ／ Media</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="link-shop" onclick="switchTabFromMenu('link-shop')"><span class="item-num">04·2</span><span class="item-en">作品販売 ／ Shop</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="link-career" onclick="switchTabFromMenu('link-career')"><span class="item-num">04·3</span><span class="item-en">キャリア ／ Career</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="link-stillpoint" onclick="switchTabFromMenu('link-stillpoint')"><span class="item-num">04·4</span><span class="item-en">関連メディア ／ Stillpoint</span></button></li>
+    <!-- ===== PROFILE 詳細 ===== -->
+    <section class="tab-menu-section" data-section="profile">
+      <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
+      <div class="tab-menu-section-title"><span class="section-title-ja">代表プロフィール</span><span class="section-title-en">PROFILE</span></div>
+      <ul class="tab-menu-list">
+        <li><button class="tab-menu-leaf" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="leaf-ja">概要</span><span class="leaf-en">Overview</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="profile-expertise" onclick="switchTabFromMenu('profile-expertise')"><span class="leaf-ja">専門領域</span><span class="leaf-en">Expertise</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="profile-works" onclick="switchTabFromMenu('profile-works')"><span class="leaf-ja">作品・発信</span><span class="leaf-en">Works</span></button></li>
+      </ul>
+    </section>
 
-      <li class="tab-menu-overlay-group"><button class="tab-menu-overlay-parent" data-tab="glossary" onclick="switchTabFromMenu('glossary')"><span class="parent-text">関連情報 ／ RESOURCES</span><span class="parent-arrow" aria-hidden="true">→</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="glossary" onclick="switchTabFromMenu('glossary')"><span class="item-num">05·1</span><span class="item-en">用語集 ／ Terms</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="projects" onclick="switchTabFromMenu('projects')"><span class="item-num">05·2</span><span class="item-en">関連プロジェクト ／ Projects</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="reading" onclick="switchTabFromMenu('reading')"><span class="item-num">05·3</span><span class="item-en">関連書籍 ／ Books</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="papers" onclick="switchTabFromMenu('papers')"><span class="item-num">05·4</span><span class="item-en">関連論文 ／ Papers</span></button></li>
-      <li class="tab-menu-overlay-child"><button class="tab-menu-overlay-item" data-tab="thought" onclick="switchTabFromMenu('thought')"><span class="item-num">05·5</span><span class="item-en">関連思想 ／ Thought</span></button></li>
+    <!-- ===== LINK 詳細 ===== -->
+    <section class="tab-menu-section" data-section="link">
+      <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
+      <div class="tab-menu-section-title"><span class="section-title-ja">リンク</span><span class="section-title-en">LINK</span></div>
+      <ul class="tab-menu-list">
+        <li><button class="tab-menu-leaf" data-tab="link-media" onclick="switchTabFromMenu('link-media')"><span class="leaf-ja">発信メディア</span><span class="leaf-en">Media</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="link-shop" onclick="switchTabFromMenu('link-shop')"><span class="leaf-ja">作品販売</span><span class="leaf-en">Shop</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="link-career" onclick="switchTabFromMenu('link-career')"><span class="leaf-ja">キャリア</span><span class="leaf-en">Career</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="link-stillpoint" onclick="switchTabFromMenu('link-stillpoint')"><span class="leaf-ja">関連メディア</span><span class="leaf-en">Stillpoint</span></button></li>
+      </ul>
+    </section>
 
-      <li><button class="tab-menu-overlay-item" data-tab="contact" onclick="switchTabFromMenu('contact')"><span class="item-num">06</span><span class="item-en">お問い合わせ ／ CONTACT</span></button></li>
-    </ul>
+    <!-- ===== RESOURCES 詳細 ===== -->
+    <section class="tab-menu-section" data-section="resources">
+      <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
+      <div class="tab-menu-section-title"><span class="section-title-ja">関連情報</span><span class="section-title-en">RESOURCES</span></div>
+      <ul class="tab-menu-list">
+        <li><button class="tab-menu-leaf" data-tab="glossary" onclick="switchTabFromMenu('glossary')"><span class="leaf-ja">用語集</span><span class="leaf-en">Terms</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="projects" onclick="switchTabFromMenu('projects')"><span class="leaf-ja">関連プロジェクト</span><span class="leaf-en">Projects</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="reading" onclick="switchTabFromMenu('reading')"><span class="leaf-ja">関連書籍</span><span class="leaf-en">Books</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="papers" onclick="switchTabFromMenu('papers')"><span class="leaf-ja">関連論文</span><span class="leaf-en">Papers</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="thought" onclick="switchTabFromMenu('thought')"><span class="leaf-ja">関連思想</span><span class="leaf-en">Thought</span></button></li>
+      </ul>
+    </section>
+
   </div>
 </div>
 
@@ -2986,13 +3033,12 @@ section > h2{margin-top:0}
   <span class="sec-en">What is mitsulab?</span>
 
   <div class="top-vision">
+    <span class="top-vision-label">Vision ／ ビジョン</span>
     <p class="top-vision-jp">傷ついた自然循環を、<br>診て、再生し、感じる。</p>
     <p class="top-vision-en">Observe × Regenerate × Immerse</p>
   </div>
 
-  <p class="lead">斜面が崩れる。樹勢が衰える。水脈が途切れる。生態系が痩せる。<br>症状は異なっても、根源は一つ——<strong>土・水・植物の自然循環の機能不全</strong>。</p>
-
-  <p>土・水・植物は、別々の問題ではなく一続きの循環として動いています。農業・土木・造園・林業・環境は、この同じ循環への異なる角度からのアプローチにすぎません。mitsulab は、この自然循環を取り戻すための研究所として、<strong>「診る」「再生する」「感じる」</strong>の三つの働きを一つの実践として担います。</p>
+  <p class="lead">mitsulab は、土・水・植物の<strong>自然循環</strong>を取り戻すための研究所です。<br>循環は本来一続きであり、その流れに「<strong>診る・再生する・感じる</strong>」の三つの働きで手を添えます。</p>
 
   <div class="pillar-frames">
     <div class="pillar-frame pf-observe pf-clickable" onclick="switchTab('observe')" role="link" tabindex="0" aria-label="診る／Observe の章へ" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('observe');}">
@@ -3552,9 +3598,6 @@ section > h2{margin-top:0}
   <span class="sec-num">08 / Practice</span>
   <h2>事業形態</h2>
   <span class="sec-en">Practice — Sectors &amp; Engagement Patterns</span>
-  <p class="lead">mitsulab は、自然循環再生のプロフェッショナルと<strong>協働で動くプラットフォーム</strong>として事業を組み立てます。</p>
-  <p>土・水・植物それぞれの領域で長年の実践を積み重ねてこられた専門家が、すでに日本にはいます。私たちの仕事は、その実践を作り直すことではなく、<strong>補完し、統合し、社会に普及させる</strong>媒介を担うこと。この立ち位置こそが、TNFD・ネイチャーポジティブの世界的潮流に応答する事業として継続性をもつと考えています。</p>
-  <p style="margin-top:32px"><strong>mitsulab は自然循環再生の触媒としての機能を持ちます。</strong></p>
 </section>
 
 
@@ -4994,7 +5037,7 @@ section > h2{margin-top:0}
   (function(){
     var tabBtns = document.querySelectorAll('.tab-btn[data-tab]');
     var panels  = document.querySelectorAll('.tab-panel');
-    var menuItems = document.querySelectorAll('.tab-menu-overlay-item');
+    var menuItems = document.querySelectorAll('.tab-menu-leaf');
     var menuOverlay = document.getElementById('tabMenuOverlay');
     var menuToggle = document.querySelector('.tab-menu-toggle');
     var dropdowns = document.querySelectorAll('.tab-dropdown');
@@ -5066,6 +5109,8 @@ section > h2{margin-top:0}
       }
       // bodyスクロール制御
       document.body.style.overflow = isOpen ? 'hidden' : '';
+      // 開いた時は root セクションへリセット
+      if(isOpen) showMobileSection('root');
     };
 
     // メニュー項目から切替（クリック後にメニューを閉じる）
@@ -5074,6 +5119,17 @@ section > h2{margin-top:0}
       if(menuOverlay && menuOverlay.classList.contains('open')){
         toggleTabMenu();
       }
+    };
+
+    // モバイルメニュー：セクション切替（Apple iPhone 風ドリルダウン）
+    window.showMobileSection = function(sectionName){
+      var sections = document.querySelectorAll('.tab-menu-section');
+      sections.forEach(function(sec){
+        sec.classList.toggle('is-active', sec.dataset.section === sectionName);
+      });
+      // 詳細セクションへ切り替えた際はトップへスクロール
+      var inner = document.querySelector('.tab-menu-overlay-inner');
+      if(inner) inner.scrollTop = 0;
     };
 
     // オーバーレイ背景クリックで閉じる（内部要素クリックは除外）
