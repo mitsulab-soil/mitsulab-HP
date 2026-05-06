@@ -674,6 +674,44 @@ footer .tag-en{font-family:"Cormorant Garamond",serif;font-style:italic;color:va
 footer p{color:#bfb39a;max-width:640px;margin:0 auto 16px;font-size:.88rem}
 footer .copy{font-size:.78rem;color:#8a8270;letter-spacing:.1em}
 footer a{color:var(--gold);border:none}
+/* ===== Panel-end stylish link block ===== */
+.panel-end-link{
+  margin:64px 0 0;
+  padding:18px 24px 20px;
+  border-left:2px solid var(--soil);
+  background:rgba(166,137,95,0.04);
+  border-radius:0 4px 4px 0;
+}
+.panel-end-link .panel-end-label{
+  display:block;
+  font-family:"Cormorant Garamond","Times New Roman",serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:.76rem;
+  letter-spacing:.24em;
+  color:var(--ink-3);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.panel-end-link p{
+  margin:0;
+  color:var(--ink-2);
+  font-size:.93rem;
+  line-height:1.95;
+  letter-spacing:.02em;
+}
+.panel-end-link a{
+  color:var(--soil);
+  text-decoration:none;
+  border-bottom:1px dotted var(--soil);
+  padding-bottom:1px;
+  transition:color .2s, border-color .2s;
+}
+.panel-end-link a:hover{
+  color:var(--ink);
+  border-bottom:1px solid var(--ink);
+}
+
 footer .footer-nav{
   margin:8px auto 28px;
   max-width:880px;
@@ -686,7 +724,45 @@ footer .footer-nav a{color:#d8caa6;text-decoration:none;transition:color .2s}
 footer .footer-nav a:hover{color:var(--gold)}
 footer .footer-nav .footer-sep{color:#5a5448;margin:0 .5em}
 @media (max-width:640px){
-  footer .footer-nav{font-size:.78rem;line-height:2.1}
+  /* ===== Panel-end stylish link block ===== */
+.panel-end-link{
+  margin:64px 0 0;
+  padding:18px 24px 20px;
+  border-left:2px solid var(--soil);
+  background:rgba(166,137,95,0.04);
+  border-radius:0 4px 4px 0;
+}
+.panel-end-link .panel-end-label{
+  display:block;
+  font-family:"Cormorant Garamond","Times New Roman",serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:.76rem;
+  letter-spacing:.24em;
+  color:var(--ink-3);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.panel-end-link p{
+  margin:0;
+  color:var(--ink-2);
+  font-size:.93rem;
+  line-height:1.95;
+  letter-spacing:.02em;
+}
+.panel-end-link a{
+  color:var(--soil);
+  text-decoration:none;
+  border-bottom:1px dotted var(--soil);
+  padding-bottom:1px;
+  transition:color .2s, border-color .2s;
+}
+.panel-end-link a:hover{
+  color:var(--ink);
+  border-bottom:1px solid var(--ink);
+}
+
+footer .footer-nav{font-size:.78rem;line-height:2.1}
   footer .footer-nav .footer-sep{display:none}
   footer .footer-nav a{display:inline-block;margin:2px 8px}
 }
@@ -2819,16 +2895,17 @@ section > h2{margin-top:0}
 
     <!-- デスクトップ用: 二段書き日英併記タブ（風の谷HP参考） -->
     <div class="tab-buttons" role="tablist">
-      <button class="tab-btn active" role="tab" aria-selected="true" data-tab="top">
-        <span class="tb-ja">ホーム</span><span class="tb-en">TOP</span>
-      </button>
-
-      <!-- mitsulab とは（ドロップダウン親 — 3カテゴリ） -->
+      <!-- mitsulab について（ドロップダウン親 — クリックで TOP へ遷移） -->
       <div class="tab-dropdown" id="aboutDropdown" data-dropdown="about">
-        <button class="tab-btn tab-btn-parent" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleAboutDropdown(event)">
-          <span class="tb-ja">mitsulab とは<span class="tb-caret" aria-hidden="true">▾</span></span><span class="tb-en">ABOUT</span>
+        <button class="tab-btn tab-btn-parent active" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleAboutDropdown(event)">
+          <span class="tb-ja">mitsulab について<span class="tb-caret" aria-hidden="true">▾</span></span><span class="tb-en">ABOUT</span>
         </button>
         <div class="tab-submenu tab-submenu-mega" role="menu">
+          <div class="tab-submenu-divider"><span>概観 ／ Overview</span></div>
+          <button class="tab-btn tab-btn-child" role="menuitem" data-tab="top" onclick="switchTab('top')">
+            <span class="sm-title">全体像 ／ Top</span>
+            <span class="sm-desc">mitsulab のホーム — 三本柱と長期ビジョンの俯瞰</span>
+          </button>
           <div class="tab-submenu-divider"><span>三本柱 ／ Three Pillars</span></div>
           <button class="tab-btn tab-btn-child sm-observe" role="menuitem" data-tab="observe" onclick="switchTab('observe')">
             <span class="sm-title">診る ／ Observe</span>
@@ -2847,15 +2924,29 @@ section > h2{margin-top:0}
             <span class="sm-title">自然循環OS ／ Nature Cycle OS</span>
             <span class="sm-desc">観測・再生・感覚をつなぐ長期 OS 構想</span>
           </button>
-          <div class="tab-submenu-divider"><span>事業基盤 ／ Foundation</span></div>
-          <button class="tab-btn tab-btn-child" role="menuitem" data-tab="roles" onclick="switchTab('roles')">
-            <span class="sm-title">役割 ／ Roles</span>
-            <span class="sm-desc">専門家と社会のあいだに立つ 3 つの媒介機能</span>
+        </div>
+      </div>
+
+      <!-- 事業基盤（ドロップダウン親 — 事業概要・事業形態・役割・3背景） -->
+      <div class="tab-dropdown" id="foundationDropdown" data-dropdown="foundation">
+        <button class="tab-btn tab-btn-parent" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleFoundationDropdown(event)">
+          <span class="tb-ja">事業基盤<span class="tb-caret" aria-hidden="true">▾</span></span><span class="tb-en">FOUNDATION</span>
+        </button>
+        <div class="tab-submenu tab-submenu-mega" role="menu">
+          <div class="tab-submenu-divider"><span>事業の輪郭 ／ Practice</span></div>
+          <button class="tab-btn tab-btn-child" role="menuitem" data-tab="overview" onclick="switchTab('overview')">
+            <span class="sm-title">事業概要 ／ Overview</span>
+            <span class="sm-desc">事業基盤の全体像と各章の入口</span>
           </button>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="practice" onclick="switchTab('practice')">
             <span class="sm-title">事業形態 ／ Practice</span>
             <span class="sm-desc">企業・自治体・実践団体・芸術 4 領域との協働パターン</span>
           </button>
+          <button class="tab-btn tab-btn-child" role="menuitem" data-tab="roles" onclick="switchTab('roles')">
+            <span class="sm-title">役割 ／ Roles</span>
+            <span class="sm-desc">専門家と社会のあいだに立つ 3 つの媒介機能</span>
+          </button>
+          <div class="tab-submenu-divider"><span>背景 ／ Context</span></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="policy" onclick="switchTab('policy')">
             <span class="sm-title">政策的背景 ／ Policy</span>
             <span class="sm-desc">TNFD・ネイチャーポジティブ・30by30 ほか</span>
@@ -2871,16 +2962,13 @@ section > h2{margin-top:0}
         </div>
       </div>
 
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profile">
-        <span class="tb-ja">代表プロフィール</span><span class="tb-en">PROFILE</span>
-      </button>
-
-      <!-- 関連情報（ドロップダウン親 — 関連プロジェクト追加） -->
+<!-- 関連情報（ドロップダウン親 — 関連プロジェクト追加） -->
       <div class="tab-dropdown" id="resourcesDropdown" data-dropdown="resources">
         <button class="tab-btn tab-btn-parent" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleResourcesDropdown(event)">
           <span class="tb-ja">関連情報<span class="tb-caret" aria-hidden="true">▾</span></span><span class="tb-en">RESOURCES</span>
         </button>
         <div class="tab-submenu tab-submenu-mega" role="menu">
+          <div class="tab-submenu-divider"><span>書誌・実践 ／ References</span></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="projects" onclick="switchTab('projects')">
             <span class="sm-title">関連プロジェクト ／ Projects</span>
             <span class="sm-desc">国内外の実践者・組織 25 件</span>
@@ -2897,6 +2985,7 @@ section > h2{margin-top:0}
             <span class="sm-title">関連思想 ／ Thought</span>
             <span class="sm-desc">現代思想・人類学・生物学の鍵となる 10 名</span>
           </button>
+          <div class="tab-submenu-divider"><span>索引 ／ Index</span></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="glossary" onclick="switchTab('glossary')">
             <span class="sm-title">用語集 ／ Terms</span>
             <span class="sm-desc">三本柱で整理した専門用語 30 語</span>
@@ -2904,12 +2993,17 @@ section > h2{margin-top:0}
         </div>
       </div>
 
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profile">
+        <span class="tb-ja">代表プロフィール</span><span class="tb-en">PROFILE</span>
+      </button>
+
       <!-- リンク（ドロップダウン親） -->
       <div class="tab-dropdown" id="linkDropdown" data-dropdown="link">
         <button class="tab-btn tab-btn-parent" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLinkDropdown(event)">
           <span class="tb-ja">リンク<span class="tb-caret" aria-hidden="true">▾</span></span><span class="tb-en">LINK</span>
         </button>
         <div class="tab-submenu tab-submenu-mega" role="menu">
+          <div class="tab-submenu-divider"><a href="#link-media" onclick="switchTab('link-media');return false;" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--lab-fg-3);cursor:pointer"><span>接点 ／ Touchpoints</span></a></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="link-media" onclick="switchTab('link-media')">
             <span class="sm-title">メディア ／ Media</span>
             <span class="sm-desc">note・GitHub・Instagram・X・Stillpoint</span>
@@ -2946,10 +3040,10 @@ section > h2{margin-top:0}
     <section class="tab-menu-section is-active" data-section="root">
       <div class="tab-menu-section-label">Index</div>
       <ul class="tab-menu-list">
-        <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">ホーム</span><span class="leaf-en">TOP</span></button></li>
-        <li><button class="tab-menu-branch" onclick="showMobileSection('about')"><span class="branch-text"><span class="branch-ja">mitsulab とは</span><span class="branch-en">ABOUT</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
-        <li><button class="tab-menu-leaf" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="leaf-ja">代表プロフィール</span><span class="leaf-en">PROFILE</span></button></li>
+        <li><button class="tab-menu-branch" onclick="showMobileSection('about')"><span class="branch-text"><span class="branch-ja">mitsulab について</span><span class="branch-en">ABOUT</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
+        <li><button class="tab-menu-branch" onclick="showMobileSection('foundation')"><span class="branch-text"><span class="branch-ja">事業基盤</span><span class="branch-en">FOUNDATION</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('resources')"><span class="branch-text"><span class="branch-ja">関連情報</span><span class="branch-en">RESOURCES</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="leaf-ja">代表プロフィール</span><span class="leaf-en">PROFILE</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('link')"><span class="branch-text"><span class="branch-ja">リンク</span><span class="branch-en">LINK</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="contact" onclick="switchTabFromMenu('contact')"><span class="leaf-ja">お問い合わせ</span><span class="leaf-en">CONTACT</span></button></li>
       </ul>
@@ -2958,17 +3052,28 @@ section > h2{margin-top:0}
     <!-- ===== ABOUT 詳細 ===== -->
     <section class="tab-menu-section" data-section="about">
       <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
-      <div class="tab-menu-section-title"><span class="section-title-ja">mitsulab とは</span><span class="section-title-en">ABOUT</span></div>
+      <div class="tab-menu-section-title"><span class="section-title-ja">mitsulab について</span><span class="section-title-en">ABOUT</span></div>
       <ul class="tab-menu-list">
+        <li class="tab-menu-subgroup">概観 ／ Overview</li>
+        <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">全体像</span><span class="leaf-en">Top</span></button></li>
         <li class="tab-menu-subgroup">三本柱 ／ Three Pillars</li>
         <li><button class="tab-menu-leaf" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="leaf-ja">診る</span><span class="leaf-en">Observe</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="regenerate" onclick="switchTabFromMenu('regenerate')"><span class="leaf-ja">再生する</span><span class="leaf-en">Regenerate</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="immerse" onclick="switchTabFromMenu('immerse')"><span class="leaf-ja">感じる</span><span class="leaf-en">Immerse</span></button></li>
         <li class="tab-menu-subgroup">長期ビジョン ／ Long-term Vision</li>
         <li><button class="tab-menu-leaf" data-tab="cycle" onclick="switchTabFromMenu('cycle')"><span class="leaf-ja">自然循環OS</span><span class="leaf-en">Nature Cycle OS</span></button></li>
-        <li class="tab-menu-subgroup">事業基盤 ／ Foundation</li>
-        <li><button class="tab-menu-leaf" data-tab="roles" onclick="switchTabFromMenu('roles')"><span class="leaf-ja">役割</span><span class="leaf-en">Roles</span></button></li>
+      </ul>
+    </section>
+    <!-- ===== FOUNDATION 詳細 (new in r39) ===== -->
+    <section class="tab-menu-section" data-section="foundation">
+      <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
+      <div class="tab-menu-section-title"><span class="section-title-ja">事業基盤</span><span class="section-title-en">FOUNDATION</span></div>
+      <ul class="tab-menu-list">
+        <li class="tab-menu-subgroup">事業の輪郭 ／ Practice</li>
+        <li><button class="tab-menu-leaf" data-tab="overview" onclick="switchTabFromMenu('overview')"><span class="leaf-ja">事業概要</span><span class="leaf-en">Overview</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="practice" onclick="switchTabFromMenu('practice')"><span class="leaf-ja">事業形態</span><span class="leaf-en">Practice</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="roles" onclick="switchTabFromMenu('roles')"><span class="leaf-ja">役割</span><span class="leaf-en">Roles</span></button></li>
+        <li class="tab-menu-subgroup">背景 ／ Context</li>
         <li><button class="tab-menu-leaf" data-tab="policy" onclick="switchTabFromMenu('policy')"><span class="leaf-ja">政策的背景</span><span class="leaf-en">Policy</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="planetary" onclick="switchTabFromMenu('planetary')"><span class="leaf-ja">地球環境的背景</span><span class="leaf-en">Planetary</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="technology" onclick="switchTabFromMenu('technology')"><span class="leaf-ja">技術的背景</span><span class="leaf-en">Technology</span></button></li>
@@ -2980,6 +3085,7 @@ section > h2{margin-top:0}
       <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
       <div class="tab-menu-section-title"><span class="section-title-ja">リンク</span><span class="section-title-en">LINK</span></div>
       <ul class="tab-menu-list">
+        <li class="tab-menu-subgroup">接点 ／ Touchpoints</li>
         <li><button class="tab-menu-leaf" data-tab="link-media" onclick="switchTabFromMenu('link-media')"><span class="leaf-ja">メディア</span><span class="leaf-en">Media</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="link-shop" onclick="switchTabFromMenu('link-shop')"><span class="leaf-ja">作品販売</span><span class="leaf-en">Shop</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="link-career" onclick="switchTabFromMenu('link-career')"><span class="leaf-ja">キャリア</span><span class="leaf-en">Career</span></button></li>
@@ -2991,10 +3097,12 @@ section > h2{margin-top:0}
       <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
       <div class="tab-menu-section-title"><span class="section-title-ja">関連情報</span><span class="section-title-en">RESOURCES</span></div>
       <ul class="tab-menu-list">
+        <li class="tab-menu-subgroup">書誌・実践 ／ References</li>
         <li><button class="tab-menu-leaf" data-tab="projects" onclick="switchTabFromMenu('projects')"><span class="leaf-ja">関連プロジェクト</span><span class="leaf-en">Projects</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="reading" onclick="switchTabFromMenu('reading')"><span class="leaf-ja">関連書籍</span><span class="leaf-en">Books</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="papers" onclick="switchTabFromMenu('papers')"><span class="leaf-ja">関連論文</span><span class="leaf-en">Papers</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="thought" onclick="switchTabFromMenu('thought')"><span class="leaf-ja">関連思想</span><span class="leaf-en">Thought</span></button></li>
+        <li class="tab-menu-subgroup">索引 ／ Index</li>
         <li><button class="tab-menu-leaf" data-tab="glossary" onclick="switchTabFromMenu('glossary')"><span class="leaf-ja">用語集</span><span class="leaf-en">Terms</span></button></li>
       </ul>
     </section>
@@ -3010,7 +3118,7 @@ section > h2{margin-top:0}
 
 <section id="about">
   <span class="sec-num">01 / About</span>
-  <h2>mitsulabとは</h2>
+  <h2>mitsulab について</h2>
   <span class="sec-en">What is mitsulab?</span>
 
   <div class="top-vision">
@@ -3099,21 +3207,21 @@ section > h2{margin-top:0}
     <p class="os-summary-lead">三本柱の先に、mitsulab が長期的に見据えるのは、<strong>自然循環を取り戻すための統合プラットフォーム——「自然循環OS（Nature Cycle OS）」</strong>の構築です。</p>
     <p class="os-summary-body">観測・再生・感覚の三層が、フィジカルAI をはじめとする統合技術によって有機的につながり、<strong>人間・自然・機械が三位一体</strong>となって自然循環の再生を支える仕組みを目指します。これは個別の製品や SaaS ではなく、専門家・研究者・住民・自治体・企業が共に育てていく<strong>器</strong>として構想しています。</p>
     <div class="os-summary-layers">
-      <div class="os-layer os-layer-observe">
+      <a class="os-layer os-layer-observe" href="#observe" onclick="switchTab('observe');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
         <span class="os-layer-num">Layer Ⅰ</span>
-        <span class="os-layer-name">観測層 ／ Observation</span>
+        <span class="os-layer-name">診る ／ Observe</span>
         <span class="os-layer-desc">IoT・GIS・3DGS・環境DNA・音響観測で、自然循環の動態をデータに翻訳する層。</span>
-      </div>
-      <div class="os-layer os-layer-regenerate">
+      </a>
+      <a class="os-layer os-layer-regenerate" href="#regenerate" onclick="switchTab('regenerate');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
         <span class="os-layer-num">Layer Ⅱ</span>
-        <span class="os-layer-name">再生層 ／ Regeneration</span>
+        <span class="os-layer-name">再生する ／ Regenerate</span>
         <span class="os-layer-desc">日本に蓄積された再生実践知を体系化し、観測データと連動させて現場へ展開する層。</span>
-      </div>
-      <div class="os-layer os-layer-immerse">
+      </a>
+      <a class="os-layer os-layer-immerse" href="#immerse" onclick="switchTab('immerse');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
         <span class="os-layer-num">Layer Ⅲ</span>
-        <span class="os-layer-name">感覚層 ／ Sensation</span>
+        <span class="os-layer-name">感じる ／ Immerse</span>
         <span class="os-layer-desc">観測と再生のデータを、音・触覚・空間といった人間の感覚に翻訳する層。</span>
-      </div>
+      </a>
     </div>
     <p class="os-summary-cta">
       <button class="os-summary-link" onclick="switchTab('cycle')">自然循環OS の詳細を見る ──</button>
@@ -3121,37 +3229,14 @@ section > h2{margin-top:0}
   </div>
 
 
-  <div style="margin-top:96px;padding-top:48px;border-top:1px solid var(--ink-line)">
-    <span class="sec-num" style="display:block;text-align:center;margin-bottom:14px">Walkthrough</span>
-    <h3 style="text-align:center;margin:0 0 36px">mitsulab を順に知る</h3>
-    <p style="text-align:center;color:var(--ink-2);font-size:.93rem;margin:0 auto 36px;max-width:580px">長期ビジョンとしての全体像から始まり、三本柱（診る・再生する・感じる）を順に辿ることで、mitsulab の実践全体を掴むことができます。</p>
-    <div class="grid grid-2">
-      <a class="biz-nav-card" href="#cycle" onclick="switchTab('cycle');return false;">
-        <span class="biz-nav-num">01 / Vision</span>
-        <span class="biz-nav-title">全体像</span>
-        <span class="biz-nav-desc">三本柱の先にある長期ビジョン「自然循環OS」。観測・再生・感覚を統合する mitsulab の最終的な構想。</span>
-        <span class="biz-nav-go">自然循環OS の詳細を見る ──</span>
-      </a>
-      <a class="biz-nav-card" href="#observe" onclick="switchTab('observe');return false;">
-        <span class="biz-nav-num">02 / Observe</span>
-        <span class="biz-nav-title">診る</span>
-        <span class="biz-nav-desc">IoT・GIS・3DGS・音響観測。人の五感では捉えられない自然循環の動きをデータに翻訳する第一の柱。</span>
-        <span class="biz-nav-go">診る の詳細を見る ──</span>
-      </a>
-      <a class="biz-nav-card" href="#regenerate" onclick="switchTab('regenerate');return false;">
-        <span class="biz-nav-num">03 / Regenerate</span>
-        <span class="biz-nav-title">再生する</span>
-        <span class="biz-nav-desc">高田宏臣 氏・矢野智徳 氏ら第一線の実践者と協働。土・水・植物の循環を取り戻す現場の実践。</span>
-        <span class="biz-nav-go">再生する の詳細を見る ──</span>
-      </a>
-      <a class="biz-nav-card" href="#immerse" onclick="switchTab('immerse');return false;">
-        <span class="biz-nav-num">04 / Immerse</span>
-        <span class="biz-nav-title">感じる</span>
-        <span class="biz-nav-desc">観測データと再生現場の手応えを音・触覚・空間に翻訳。数値では届かない感覚（Qualia）に開く第三の柱。</span>
-        <span class="biz-nav-go">感じる の詳細を見る ──</span>
-      </a>
-    </div>
-  </div>
+  
+
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>関連する詳細は、 <a href="#observe" onclick="switchTab('observe');return false;">診る</a> ／ <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> ／ <a href="#immerse" onclick="switchTab('immerse');return false;">感じる</a> ／ <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel top -->
@@ -3251,6 +3336,12 @@ section > h2{margin-top:0}
       </ul>
     </div>
   </div>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>日々の発信は <a href="#link-media" onclick="switchTab('link-media');return false;">メディア</a> へ。長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel profile -->
@@ -3285,41 +3376,12 @@ section > h2{margin-top:0}
       <p>ピエゾマイクを土中に設置し、<strong>CO₂気泡・ミミズの移動・菌糸の活動音（100Hz〜48kHz）</strong>を収録・解析するプロジェクト。「健全な土」と「傷ついた土」で音のパターンがどう違うかを比較し、<strong>聴くことで土の状態を診る新しい指標</strong>を確立します。技術設計は完了、PoC（概念実証）に着手しています。</p>
     </div>
   </div>
-</section>
 
 
-<section class="related-info" style="margin-top:80px;padding-top:32px;border-top:1px solid var(--ink-line)">
-  <span class="sec-num">Related Info — Observe</span>
-  <h3 style="margin-top:8px">関連情報<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">観測・可視化を深掘りするための入口</small></h3>
-  <p style="color:var(--ink-2);font-size:.94rem;margin:14px 0 0;line-height:1.9">「診る」を支える概念・道具・先行研究を整理しました。<strong>GIS・IoT・3DGS・サウンドスケープ</strong>などの基本用語、土壌や音響観測の参照書、土壌微生物多様性の定量化を試みる SOFIX のような先行プロジェクト、地下生物多様性を主題化した代表的論文 — それぞれ別タブで詳細をご覧いただけます。</p>
-
-  <div class="grid grid-3" style="margin-top:24px">
-    <div class="card">
-      <span class="tag">Terms · 関連用語</span>
-      <h4>用語集へ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><a href="#term-gis" onclick="switchTabAndScrollTo('glossary','term-gis');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>GIS（地理情報システム）</strong></a> ── 地図上に標高・植生・水脈などを重ねて可視化するツール</li><li><a href="#term-iot" onclick="switchTabAndScrollTo('glossary','term-iot');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>IoT（モノのインターネット）</strong></a> ── 土壌水分・温度・CO₂ を継続観測する小型センサ網</li><li><a href="#term-tdgs" onclick="switchTabAndScrollTo('glossary','term-tdgs');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>3DGS（3D Gaussian Splatting）</strong></a> ── 360°画像群から空間を点群+ガウス関数で再構築する技術</li><li><a href="#term-edna" onclick="switchTabAndScrollTo('glossary','term-edna');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>環境DNA（eDNA）</strong></a> ── 水・土に残る微量 DNA から生物相を非破壊で把握</li><li><a href="#term-soundscape" onclick="switchTabAndScrollTo('glossary','term-soundscape');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>サウンドスケープ</strong></a> ── 土地を取り巻く音の景色（マリー・シェーファー）</li></ul>
-      <p style="margin-top:10px"><a href="#glossary" onclick="switchTab('glossary');return false;" style="color:var(--soil);font-size:.86rem">用語集タブで詳細を見る →</a></p>
-    </div>
-    <div class="card">
-      <span class="tag">Reading · 関連書籍</span>
-      <h4>関連書籍へ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><strong>『土壌図鑑』</strong> 加藤 拓 ほか／創元社</li><li><strong>『フィールド・レコーディング入門』</strong> 柳沢 英輔／フィルムアート社</li><li><strong>『生物から見た世界』</strong> ユクスキュル／岩波文庫</li><li><strong>『マザーツリー』</strong> スザンヌ・シマード／岩波書店</li></ul>
-      <p style="margin-top:10px"><a href="#reading" onclick="switchTab('reading');return false;" style="color:var(--soil);font-size:.86rem">関連書籍タブで詳細を見る →</a></p>
-    </div>
-    <div class="card">
-      <span class="tag">Projects · 関連プロジェクト</span>
-      <h4>関連プロジェクトへ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><strong>SOFIX 土壌診断</strong> ── 横山 和成／立命館大学 — 土壌微生物多様性活性値の定量化</li><li><strong>サウンドスケープ研究</strong> ── 柳沢 英輔／同志社大学</li><li><strong>Rodale Institute</strong> ── 米国・40 年以上の Farming Systems Trial</li></ul>
-      <p style="margin-top:10px"><a href="#projects" onclick="switchTab('projects');return false;" style="color:var(--soil);font-size:.86rem">関連プロジェクトタブで詳細を見る →</a></p>
-    </div>
-  </div>
-<div class="paper">
-      <span class="paper-cite">Krause, B. (2008)</span>
-      <h4 class="paper-title">"Anatomy of the Soundscape: Evolving Perspectives"</h4>
-      <p class="paper-journal">Journal of the Audio Engineering Society 56(1/2): 73–80</p>
-      <p class="paper-summary">Bernie Krause による生物音響学の枠組み。Geophony・Biophony・Anthrophony の三層分類で、生態系の健康を音で診断するアプローチを確立。 <a href="https://www.aes.org/e-lib/browse.cfm?elib=14375" target="_blank" rel="noopener">AES</a></p>
-    </div>
-  </div>
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>次の柱は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> へ。観測技術の用語は <a href="#glossary" onclick="switchTab('glossary');return false;">用語集</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel observe -->
@@ -3360,42 +3422,12 @@ section > h2{margin-top:0}
       <p><strong>流域スケールの水の流れの再構築</strong>。水系再生に取り組む実践者と連携し、点ではなく流域として<strong>水循環を診て・再生する仕組み</strong>を組み立てます。</p>
     </div>
   </div>
-</section>
 
 
-<section class="related-info" style="margin-top:80px;padding-top:32px;border-top:1px solid var(--ink-line)">
-  <span class="sec-num">Related Info — Regenerate</span>
-  <h3 style="margin-top:8px">関連情報<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">再生実践の現場で参照する layer</small></h3>
-  <p style="color:var(--ink-2);font-size:.94rem;margin:14px 0 0;line-height:1.9">「再生する」を構成する思想・技法・実践者・科学的裏づけを整理しました。<strong>土中環境・大地の再生・団粒構造・菌根菌</strong>などの中核用語、福岡正信から続く自然農・パーマカルチャーの古典書、地球守・大地の再生など現場で動く国内実践、そして土壌炭素貯留や地下生物多様性についての論文 — 現場の手仕事と科学のあいだを行き来するための地図として機能します。</p>
-
-  <div class="grid grid-3" style="margin-top:24px">
-    <div class="card">
-      <span class="tag">Terms · 関連用語</span>
-      <h4>用語集へ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><a href="#term-dochu-kankyo" onclick="switchTabAndScrollTo('glossary','term-dochu-kankyo');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>土中環境</strong></a> ── 高田 宏臣 氏が体系化した、土中の水・空気・微生物・根のやり取り全体</li><li><a href="#term-daichi-saisei" onclick="switchTabAndScrollTo('glossary','term-daichi-saisei');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>大地の再生</strong></a> ── 矢野 智徳 氏が提唱する空気と水の流れを取り戻す技法</li><li><a href="#term-danryu" onclick="switchTabAndScrollTo('glossary','term-danryu');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>団粒構造</strong></a> ── 土の粒が小さな塊になり、隙間に空気と水が通る健康な土の指標</li><li><a href="#term-kinkonkin" onclick="switchTabAndScrollTo('glossary','term-kinkonkin');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>菌根菌（Mycorrhiza）</strong></a> ── 植物の根と共生し、養分・水分をやり取りする微生物</li><li><a href="#term-yuki-doboku" onclick="switchTabAndScrollTo('glossary','term-yuki-doboku');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>有機土木</strong></a> ── 土・木・石・植物の力で地形と水脈を整える土木技術</li></ul>
-      <p style="margin-top:10px"><a href="#glossary" onclick="switchTab('glossary');return false;" style="color:var(--soil);font-size:.86rem">用語集タブで詳細を見る →</a></p>
-    </div>
-    <div class="card">
-      <span class="tag">Reading · 関連書籍</span>
-      <h4>関連書籍へ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><strong>『土中環境』</strong> 高田 宏臣／建築資料研究社</li><li><strong>『〈大地の再生〉実践マニュアル』</strong> 大内 正伸／矢野 智徳 監修／農山漁村文化協会</li><li><strong>『わら一本の革命』</strong> 福岡 正信／春秋社</li><li><strong>『土の文明史』</strong> デイビッド・モントゴメリー／築地書館</li><li><strong>『パーマカルチャー — 農的暮らしの永久デザイン』</strong> ビル・モリソン／農山漁村文化協会</li></ul>
-      <p style="margin-top:10px"><a href="#reading" onclick="switchTab('reading');return false;" style="color:var(--soil);font-size:.86rem">関連書籍タブで詳細を見る →</a></p>
-    </div>
-    <div class="card">
-      <span class="tag">Projects · 関連プロジェクト</span>
-      <h4>関連プロジェクトへ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><strong>NPO 法人 地球守</strong> ── 高田 宏臣 ／ しがら・点穴・素掘り溝を全国に普及</li><li><strong>大地の再生講座</strong> ── 矢野 智徳 ／ 風の草刈り・水脈整備</li><li><strong>The Savory Institute</strong> ── Allan Savory ／ 全管理放牧で草原再生</li><li><strong>Commonland</strong> ── オランダ ／ 4 Returns で大規模景観再生</li></ul>
-      <p style="margin-top:10px"><a href="#projects" onclick="switchTab('projects');return false;" style="color:var(--soil);font-size:.86rem">関連プロジェクトタブで詳細を見る →</a></p>
-    </div>
-  </div>
-<div class="paper">
-      <span class="paper-cite">Montgomery, D.R. (2007)</span>
-      <h4 class="paper-title">"Soil erosion and agricultural sustainability"</h4>
-      <p class="paper-journal">PNAS 104(33): 13268–13272</p>
-      <p class="paper-summary">農地土壌侵食が長期的な持続可能性に与える影響を地形学・歴史学的視点から定量評価。慣行農法の侵食速度は土壌生成速度の 10–100 倍であり、不耕起・有機・カバークロップが鍵となることを示した。 <a href="https://doi.org/10.1073/pnas.0611508104" target="_blank" rel="noopener">DOI</a></p>
-    </div>
-
-  </div>
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>次の柱は <a href="#immerse" onclick="switchTab('immerse');return false;">感じる</a> へ。再生実践の参照点は <a href="#projects" onclick="switchTab('projects');return false;">関連プロジェクト</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel regenerate -->
@@ -3426,41 +3458,12 @@ section > h2{margin-top:0}
       <p>Soil Sound Projectの観測データを素材にした音響インスタレーション。<strong>土中音・水中音をハイドロフォンでサンプリングし、音・触覚振動・体感温度へと翻訳する</strong>知覚拡張装置として展開します。<strong>再生の前後の音を体感するインスタレーションにより、自然循環の再生プロジェクトの持続的な社会実装を見据えます。</strong></p>
     </div>
   </div>
-</section>
 
 
-<section class="related-info" style="margin-top:80px;padding-top:32px;border-top:1px solid var(--ink-line)">
-  <span class="sec-num">Related Info — Immerse</span>
-  <h3 style="margin-top:8px">関連情報<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">知覚拡張・没入体験を支える理論と先行研究</small></h3>
-  <p style="color:var(--ink-2);font-size:.94rem;margin:14px 0 0;line-height:1.9">「感じる」を支える概念・参照書・先行研究を整理しました。<strong>クオリア・環世界・ハプティクス・サウンドスケープ・マルチモーダル</strong>などの理論的キーワード、知覚論や触覚・身体共有を扱う書籍群、Bernie Krause を起点とする生物音響学・音響生態学の論文、そしてサウンドスケープ研究や Ecosystem Restoration のような実践プロジェクト — 数値で扱えない領域に身体感覚で踏み込むための入口です。</p>
-
-  <div class="grid grid-3" style="margin-top:24px">
-    <div class="card">
-      <span class="tag">Terms · 関連用語</span>
-      <h4>用語集へ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><a href="#term-qualia" onclick="switchTabAndScrollTo('glossary','term-qualia');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>Qualia（クオリア）</strong></a> ── 主観的に感じられる質感・感触の哲学概念</li><li><a href="#term-qualia-field" onclick="switchTabAndScrollTo('glossary','term-qualia-field');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>Qualia Field</strong></a> ── 土中音をハイドロフォンで収録し音・触覚・体感に翻訳する装置</li><li><a href="#term-soil-sound-project" onclick="switchTabAndScrollTo('glossary','term-soil-sound-project');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>Soil Sound Project</strong></a> ── ピエゾ素子で土中の活動音を聴くプロジェクト</li><li><a href="#term-umwelt" onclick="switchTabAndScrollTo('glossary','term-umwelt');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>環世界（Umwelt）</strong></a> ── ユクスキュルが提唱した、各生物が独自に知覚する世界</li><li><a href="#term-haptics" onclick="switchTabAndScrollTo('glossary','term-haptics');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>ハプティクス（Haptics）</strong></a> ── 振動・圧力・温度で触覚に情報を届ける技術</li><li><a href="#term-multimodal" onclick="switchTabAndScrollTo('glossary','term-multimodal');return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--ink-3)"><strong>マルチモーダル</strong></a> ── 複数の感覚モード（視覚・聴覚・触覚など）を同時に扱う設計</li></ul>
-      <p style="margin-top:10px"><a href="#glossary" onclick="switchTab('glossary');return false;" style="color:var(--soil);font-size:.86rem">用語集タブで詳細を見る →</a></p>
-    </div>
-    <div class="card">
-      <span class="tag">Reading · 関連書籍</span>
-      <h4>関連書籍へ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><strong>『クオリア入門』</strong> 茂木 健一郎</li><li><strong>『クオリアと人工意識』</strong> 茂木 健一郎</li><li><strong>『触楽入門』</strong> テクタイル</li><li><strong>『BODY SHARING — 身体共有の世界』</strong> 玉城 絵美／大和書房</li><li><strong>『自在化身体論』</strong> 稲見 昌彦 ほか／NTS</li><li><strong>『サウンドスケープ — その思想と実践』</strong> 鳥越 けい子</li></ul>
-      <p style="margin-top:10px"><a href="#reading" onclick="switchTab('reading');return false;" style="color:var(--soil);font-size:.86rem">関連書籍タブで詳細を見る →</a></p>
-    </div>
-    <div class="card">
-      <span class="tag">Projects · 関連プロジェクト</span>
-      <h4>関連プロジェクトへ</h4>
-      <ul class="pill-list" style="margin-top:8px;font-size:.88rem"><li><strong>サウンドスケープ研究</strong> ── 柳沢 英輔／同志社大学</li><li><strong>Green Gold ／ John D. Liu</strong> ── Ecosystem Restoration Camps</li><li><strong>Tokyo Urban Permaculture</strong> ── ソーヤー 海</li></ul>
-      <p style="margin-top:10px"><a href="#projects" onclick="switchTab('projects');return false;" style="color:var(--soil);font-size:.86rem">関連プロジェクトタブで詳細を見る →</a></p>
-    </div>
-  </div>
-<div class="paper">
-      <span class="paper-cite">Pijanowski, B.C. et al. (2011)</span>
-      <h4 class="paper-title">"Soundscape Ecology: The Science of Sound in the Landscape"</h4>
-      <p class="paper-journal">BioScience 61(3): 203–216</p>
-      <p class="paper-summary">Soundscape Ecology という新領域を確立した論文。風景の中の音を、生物・環境・人間活動の相互作用を読み取る信号として体系化し、現代のフィールドレコーディング研究の礎となった。 <a href="https://doi.org/10.1525/bio.2011.61.3.6" target="_blank" rel="noopener">DOI</a></p>
-    </div>
-  </div>
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>三本柱を貫く長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。背景の思想は <a href="#thought" onclick="switchTab('thought');return false;">関連思想</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel immerse -->
@@ -3522,11 +3525,72 @@ section > h2{margin-top:0}
   </div>
 
   <div class="quote" style="margin-top:48px">補完・統合・普及——3 つの役割は独立した機能ではなく、<br>専門家の実践を社会に伝えていく<strong>一連の流れ</strong>として動きます。</div>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>なぜ今この役割が必要かは <a href="#policy" onclick="switchTab('policy');return false;">政策的背景</a> へ。担い手は <a href="#profile" onclick="switchTab('profile');return false;">代表プロフィール</a> へ。</p>
+  </aside>
 </section>
 
-
-
 </div><!-- /tab-panel roles -->
+
+
+<!-- ┌─ Tab 08-overview: 事業概要 / Overview (new in r39) ─────────────────── -->
+<div class="tab-panel" data-panel="overview" role="tabpanel">
+
+<section id="overview">
+  <span class="sec-num">08 / Overview</span>
+  <h2>事業概要</h2>
+  <span class="sec-en">Overview — Foundation of mitsulab's practice</span>
+  <p class="lead">mitsulab の事業基盤は、<strong>事業形態（誰と何を）</strong>と<strong>役割（どう動くか）</strong>を具体に組み立てる二つの章と、その実装が「いま」必要となる<strong>三つの背景（政策・地球環境・技術）</strong>から構成されます。</p>
+
+  <h3 style="margin-top:48px">事業基盤の構成</h3>
+  <p style="color:var(--ink-2);font-size:.95rem">本ページは事業基盤タブの入口です。各章へジャンプできます。</p>
+
+  <div class="grid grid-2" style="margin-top:24px">
+    <a class="biz-nav-card" href="#practice" onclick="switchTab('practice');return false;">
+      <span class="biz-nav-num">01 / Practice</span>
+      <span class="biz-nav-title">事業形態</span>
+      <span class="biz-nav-desc">企業・自治体・専門家／NPO・文化芸術——4 つのセクターごとに想定する依頼内容と提供価値を具体に整理。</span>
+      <span class="biz-nav-go">事業形態 の詳細を見る ──</span>
+    </a>
+    <a class="biz-nav-card" href="#roles" onclick="switchTab('roles');return false;">
+      <span class="biz-nav-num">02 / Roles</span>
+      <span class="biz-nav-title">役割</span>
+      <span class="biz-nav-desc">補完・統合・普及——専門家ネットワークと協働しながら mitsulab が担う 3 つの媒介機能。</span>
+      <span class="biz-nav-go">役割 の詳細を見る ──</span>
+    </a>
+    <a class="biz-nav-card" href="#policy" onclick="switchTab('policy');return false;">
+      <span class="biz-nav-num">03 / Policy</span>
+      <span class="biz-nav-title">政策的背景</span>
+      <span class="biz-nav-desc">TNFD・ネイチャーポジティブ・30by30・GBF——自然資本が企業・国家の責務へと変わる潮流。</span>
+      <span class="biz-nav-go">政策的背景 の詳細を見る ──</span>
+    </a>
+    <a class="biz-nav-card" href="#planetary" onclick="switchTab('planetary');return false;">
+      <span class="biz-nav-num">04 / Planetary</span>
+      <span class="biz-nav-title">地球環境的背景</span>
+      <span class="biz-nav-desc">プラネタリーバウンダリー（6 つ超過）・土壌劣化・生物多様性喪失・水循環崩壊。</span>
+      <span class="biz-nav-go">地球環境的背景 の詳細を見る ──</span>
+    </a>
+    <a class="biz-nav-card" href="#technology" onclick="switchTab('technology');return false;">
+      <span class="biz-nav-num">05 / Technology</span>
+      <span class="biz-nav-title">技術的背景</span>
+      <span class="biz-nav-desc">観測・AI・データ基盤・知覚拡張の四領域が同時に成熟。個人スケールでの統合実装が成立する条件が揃った。</span>
+      <span class="biz-nav-go">技術的背景 の詳細を見る ──</span>
+    </a>
+  </div>
+
+  <p style="margin-top:48px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">事業形態と役割は「mitsulab が何をどう動かすか」、3 つの背景は「なぜいま、それが必要か」を語ります。両者を往復することで、mitsulab の事業の輪郭が立ち上がります。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>具体的な協働パターンは <a href="#practice" onclick="switchTab('practice');return false;">事業形態</a> へ。担う 3 つの媒介機能は <a href="#roles" onclick="switchTab('roles');return false;">役割</a> へ。</p>
+  </aside>
+</section>
+
+</div><!-- /tab-panel overview -->
 
 
 <!-- ┌─ Tab 08: 実践のかたち / Practice (5 sections consolidated in r23) ─────────────────── -->
@@ -3603,9 +3667,13 @@ section > h2{margin-top:0}
   </div>
 
   <div class="quote" style="margin-top:48px">どのセクターでも、出発点は同じです——<br><strong>傷ついた自然循環を、診て、再生し、感じる</strong>ための媒介として動きます。</div>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>事業を担う媒介機能は <a href="#roles" onclick="switchTab('roles');return false;">役割</a> へ。実践事例は <a href="#projects" onclick="switchTab('projects');return false;">関連プロジェクト</a> へ。</p>
+  </aside>
 </section>
-
-
 
 </div><!-- /tab-panel practice (consolidated) -->
 
@@ -3663,6 +3731,12 @@ section > h2{margin-top:0}
   <p style="margin-top:28px;color:var(--ink-2)">これらは別々の制度に見えて、実は一つの方向を指しています。<strong>「自然資本を測り、開示し、回復させる」</strong> ── 国家・企業・地域の意思決定基盤に自然が組み込まれていく、不可逆な構造変化です。mitsulab はこの潮流の<strong>現場側のインフラ</strong>として、土・水・植物の循環を実際に診て・再生する役割を担います。</p>
 
   <p style="margin-top:32px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">関連する地球環境的背景は <a href="#planetary" onclick="switchTab('planetary');return false;" style="color:var(--soil)">地球環境的背景</a> タブへ。引用論文は <a href="#papers" onclick="switchTab('papers');return false;" style="color:var(--soil)">関連論文</a> タブへ。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>政策の足元の地球環境は <a href="#planetary" onclick="switchTab('planetary');return false;">地球環境的背景</a> へ。引用論文は <a href="#papers" onclick="switchTab('papers');return false;">関連論文</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel policy -->
@@ -3724,6 +3798,12 @@ section > h2{margin-top:0}
   <p style="margin-top:18px">政策・地球環境の両面で課題は分野ごとに整理されていますが、自然はそれらを<strong>一続きの循環</strong>として動かしています。土壌劣化を独立に扱えば生物多様性を見落とし、生物多様性だけを扱えば水循環を見落とし、水循環だけを扱えば炭素を見落とす ── 個別最適は、現場では機能しません。この <strong>「診る × 再生する × 感じる」</strong>のパッケージとしてしか応答できない領域に、mitsulab は腰を据えます。</p>
 
   <p style="margin-top:32px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">関連する政策的背景は <a href="#policy" onclick="switchTab('policy');return false;" style="color:var(--soil)">政策的背景</a> タブへ。引用論文は <a href="#papers" onclick="switchTab('papers');return false;" style="color:var(--soil)">関連論文</a> タブへ。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>この危機に応える技術は <a href="#technology" onclick="switchTab('technology');return false;">技術的背景</a> へ。背後の思想は <a href="#thought" onclick="switchTab('thought');return false;">関連思想</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel planetary -->
@@ -3845,6 +3925,12 @@ section > h2{margin-top:0}
   </div>
 
   <p style="margin-top:48px;color:var(--ink-3);font-size:.88rem;border-left:3px solid var(--soil);padding-left:14px">3DGS・IoT・eDNA・基盤モデル・空間音響・XR——これらは別々のコミュニティで発展してきたが、2020年代半ばに同時に「個人が扱える」段階へ達した。mitsulab の独自性は、この技術的同時性を一人の制作者の手元で統合し、観測から体感翻訳までを一気通貫で設計できる点にある。技術がここまで揃った今でなければ、自然循環再生を「測り・解釈し・伝える」事業は成立しなかった。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>実装事例は <a href="#projects" onclick="switchTab('projects');return false;">関連プロジェクト</a> へ。観測の現場は <a href="#observe" onclick="switchTab('observe');return false;">診る</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel technology -->
@@ -3868,21 +3954,24 @@ section > h2{margin-top:0}
   <h3 style="margin-top:64px">OS を構成する 3つの層</h3>
 
   <div class="grid grid-3" style="margin-top:18px">
-    <div class="card" style="border-top:3px solid var(--soil)">
+    <a class="card" href="#observe" onclick="switchTab('observe');return false;" style="border-top:3px solid var(--soil);text-decoration:none;color:inherit;display:block">
       <span class="tag">Layer Ⅰ ── Observe</span>
-      <h3>観測層<small>Observation Layer</small></h3>
+      <h3>診る<small>Observe Layer</small></h3>
       <p>IoT・GIS・3DGS・環境DNA・音響観測——多様な観測技術が、土・水・植物の動態を継続的に取り込む層。<strong>マクロ（流域）とミクロ（土中）</strong>を行き来しながら、自然循環の状態を計測可能な形に翻訳します。</p>
-    </div>
-    <div class="card" style="border-top:3px solid var(--moss)">
+      <p style="margin-top:10px;font-size:.86rem;color:var(--soil)">診る の詳細を見る ──</p>
+    </a>
+    <a class="card" href="#regenerate" onclick="switchTab('regenerate');return false;" style="border-top:3px solid var(--moss);text-decoration:none;color:inherit;display:block">
       <span class="tag">Layer Ⅱ ── Regenerate</span>
-      <h3>再生層<small>Regeneration Layer</small></h3>
+      <h3>再生する<small>Regenerate Layer</small></h3>
       <p>土中環境改善・大地の再生・樹勢回復・水系循環回復——日本に蓄積されてきた<strong>再生実践知を体系化</strong>し、観測データに基づく優先順位とともに現場へ展開する層。専門家・施工者・住民が共通の言語で扱えるようにします。</p>
-    </div>
-    <div class="card" style="border-top:3px solid var(--amber)">
+      <p style="margin-top:10px;font-size:.86rem;color:var(--moss)">再生する の詳細を見る ──</p>
+    </a>
+    <a class="card" href="#immerse" onclick="switchTab('immerse');return false;" style="border-top:3px solid var(--amber);text-decoration:none;color:inherit;display:block">
       <span class="tag">Layer Ⅲ ── Immerse</span>
-      <h3>感覚層<small>Sensation Layer</small></h3>
+      <h3>感じる<small>Immerse Layer</small></h3>
       <p>観測と再生のデータを、<strong>音・触覚・空間</strong>といった人間の感覚に翻訳する層。Qualia Practice をはじめとする知覚拡張アートが、数値では届かない「感じる」の領域を社会に開きます。</p>
-    </div>
+      <p style="margin-top:10px;font-size:.86rem;color:var(--amber)">感じる の詳細を見る ──</p>
+    </a>
   </div>
 
   <!-- ===== 統合する技術 ===== -->
@@ -4048,10 +4137,15 @@ section > h2{margin-top:0}
     <li>斜面・樹木・流域・農地の問題が個別に語られ、自然循環という共通根で統合的に扱われない。</li>
     <li>大地の再生や土中環境のような実践知に関心はあるが、自分の現場にどう適用すれば良いか見えない。</li>
   </ul>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>事業基盤の入口は <a href="#overview" onclick="switchTab('overview');return false;">事業概要</a> へ。OS を支える技術は <a href="#technology" onclick="switchTab('technology');return false;">技術的背景</a> へ。</p>
+  </aside>
 </section>
 
 <!-- Vision section moved to position 02 in v6 (see below). -->
-
 
 </div><!-- /tab-panel cycle (note: removed-v6/v7 sections are display:none and were nested here harmlessly) -->
 
@@ -4151,6 +4245,12 @@ section > h2{margin-top:0}
 
   <h3 style="margin-top:64px">運用方針</h3>
   <p>5 媒体それぞれ性質を分けて運用しています。<strong>note は思考の蓄積、GitHub はコードの公開、Instagram は作品の記録、X は時々の発信、Stillpoint は思想の国際発信</strong>。深く読みたい場合は note・GitHub・Stillpoint、軽く追いたい場合は Instagram・X、という棲み分けです。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>手元に届く作品は <a href="#link-shop" onclick="switchTab('link-shop');return false;">作品販売</a> へ。発信の源泉となる書物は <a href="#reading" onclick="switchTab('reading');return false;">関連書籍</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel link-media -->
@@ -4198,6 +4298,12 @@ section > h2{margin-top:0}
   </div>
 
   <p style="margin-top:32px;color:var(--ink-2);font-size:.93rem">空間（オフィス・リビング・展示室）への設置・ギフト用・カスタムオーダーのご相談も承ります。<a href="#contact" onclick="switchTab('contact');return false;" style="color:var(--soil)">お問い合わせ</a> へ。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>協働相手の窓口は <a href="#link-career" onclick="switchTab('link-career');return false;">キャリア</a> へ。作品の根にある体験は <a href="#immerse" onclick="switchTab('immerse');return false;">感じる</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel link-shop -->
@@ -4245,6 +4351,12 @@ section > h2{margin-top:0}
   </div>
 
   <p style="margin-top:32px;color:var(--ink-2);font-size:.93rem">具体的なご相談は <a href="#contact" onclick="switchTab('contact');return false;" style="color:var(--soil)">お問い合わせ</a> から、または Wantedly のメッセージ機能でも承ります。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>具体的なご相談は <a href="#contact" onclick="switchTab('contact');return false;">お問い合わせ</a> へ。求める協働の形は <a href="#roles" onclick="switchTab('roles');return false;">役割</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel link-career -->
@@ -4262,6 +4374,12 @@ section > h2{margin-top:0}
     <div class="label">EMAIL</div>
     <div class="email"><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></div>
   </div>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>全体像へは <a href="#top" onclick="switchTab('top');return false;">mitsulab について</a> へ戻る。事業基盤の俯瞰は <a href="#overview" onclick="switchTab('overview');return false;">事業概要</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel contact -->
@@ -4495,8 +4613,13 @@ section > h2{margin-top:0}
   </div>
 
   <p style="margin-top:48px;color:var(--ink-3);font-size:.88rem">※ 各書籍の出版年・出版社は、流通状況や版により異なる場合があります。書籍タイトルの表記は原書・日本語版の慣用に従っています。</p>
-</section>
 
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>最前線の研究は <a href="#papers" onclick="switchTab('papers');return false;">関連論文</a> へ。制度の現在地は <a href="#policy" onclick="switchTab('policy');return false;">政策的背景</a> へ。</p>
+  </aside>
+</section>
 
 </div><!-- /tab-panel reading -->
 
@@ -4675,8 +4798,13 @@ section > h2{margin-top:0}
       <p>本来の人間の感覚スケールでは捉えられないものを、<strong>技術や作品を介して知覚できるようにする試み</strong>。顕微鏡が微生物を見せ、xRが土中の流れを体験させ、Qualia Practiceが身体を通じて不可視を感じさせる——これらすべてが知覚拡張の実践です。</p>
     </div>
   </div>
-</section>
 
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>担い手の人物像は <a href="#profile" onclick="switchTab('profile');return false;">代表プロフィール</a> へ。全体像は <a href="#top" onclick="switchTab('top');return false;">mitsulab について</a> へ。</p>
+  </aside>
+</section>
 
 </div><!-- /tab-panel glossary -->
 
@@ -4860,6 +4988,12 @@ section > h2{margin-top:0}
   
 
   <p class="lead" style="margin-top:48px;color:var(--ink-2);font-size:.95rem">これらは固定的なリストではなく、随時アップデートされる<strong>生きた地図</strong>です。連携可能な実践者・組織を継続的に追記していきます。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>実践を支える書物は <a href="#reading" onclick="switchTab('reading');return false;">関連書籍</a> へ。再生現場は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel projects -->
@@ -5013,6 +5147,12 @@ section > h2{margin-top:0}
   </div>
 
   <p style="margin-top:48px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">これらの論文は固定的なリストではなく、随時更新されます。各分野の関連実践者・組織は <a href="#projects" onclick="switchTab('projects');return false;" style="color:var(--soil)">関連プロジェクト</a> タブを参照してください。</p>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>思想家の系譜は <a href="#thought" onclick="switchTab('thought');return false;">関連思想</a> へ。政策接続は <a href="#policy" onclick="switchTab('policy');return false;">政策的背景</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel papers -->
@@ -5091,6 +5231,12 @@ section > h2{margin-top:0}
 
 
   </div>
+
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>共通の語彙は <a href="#glossary" onclick="switchTab('glossary');return false;">用語集</a> へ。長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+  </aside>
 </section>
 
 </div><!-- /tab-panel thought -->
@@ -5138,9 +5284,10 @@ section > h2{margin-top:0}
     dd.classList.toggle('open', willOpen);
     if(parent) parent.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   }
-  window.toggleAboutDropdown = function(e){ toggleDropdownById('aboutDropdown', e, null); };
-  window.toggleResourcesDropdown = function(e){ toggleDropdownById('resourcesDropdown', e, null); };
-  window.toggleLinkDropdown = function(e){ toggleDropdownById('linkDropdown', e, null); };
+  window.toggleAboutDropdown = function(e){ toggleDropdownById('aboutDropdown', e, 'top'); };
+  window.toggleResourcesDropdown = function(e){ toggleDropdownById('resourcesDropdown', e, 'projects'); };
+  window.toggleLinkDropdown = function(e){ toggleDropdownById('linkDropdown', e, 'link-media'); };
+  window.toggleFoundationDropdown = function(e){ toggleDropdownById('foundationDropdown', e, 'overview'); };
 
   // タブ切替＋特定要素へのスクロール（用語集の項目リンク用）
   window.switchTabAndScrollTo = function(tab, id){
@@ -5286,7 +5433,7 @@ section > h2{margin-top:0}
     // ページ読み込み時に hash があればそのタブを開く
     function initFromHash(){
       var hash = (location.hash || '').replace('#','');
-      var validTabs = ['top','profile','observe','regenerate','immerse','cycle','roles','practice','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
+      var validTabs = ['top','profile','observe','regenerate','immerse','cycle','overview','practice','roles','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
       if(hash && validTabs.indexOf(hash) >= 0){
         switchTab(hash);
       }
@@ -5301,7 +5448,7 @@ section > h2{margin-top:0}
       var href = a.getAttribute('href') || '';
       if(href.indexOf('#') === 0){
         var target = href.substring(1);
-        var validTabs = ['top','profile','observe','regenerate','immerse','cycle','roles','practice','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
+        var validTabs = ['top','profile','observe','regenerate','immerse','cycle','overview','practice','roles','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
         if(validTabs.indexOf(target) >= 0){
           // mission は vision タブに含まれる
           if(target === 'mission') target = 'vision';
