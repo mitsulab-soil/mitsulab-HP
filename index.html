@@ -1610,22 +1610,35 @@ td,th{border-color:rgba(216,207,189,.20)}
 /* サブグループ見出し（詳細セクション内のクラスタ見出し） — 子と明確に区別 */
 .tab-menu-subgroup{
   list-style:none;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:38px 0 6px;
+  padding:8px 0 10px;
   font-family:"Cormorant Garamond","Times New Roman",serif;
   font-style:italic;
   font-weight:500;
   font-size:.72rem;
-  letter-spacing:.4em;
-  color:var(--lab-accent);
-  margin:32px 0 0;
-  padding:14px 14px 10px;
-  background:rgba(166, 137, 95, 0.08);
-  border-left:3px solid var(--lab-accent);
+  letter-spacing:.36em;
+  color:var(--lab-fg-3);
   text-transform:uppercase;
 }
-.tab-menu-subgroup:first-child{margin-top:8px}
-/* サブグループ直後のリーフは左にインデント（subgroup配下であることを示す） */
+.tab-menu-subgroup::before{
+  content:"";
+  flex:0 0 24px;
+  height:1px;
+  background:linear-gradient(to right, transparent, rgba(166,137,95,0.5));
+}
+.tab-menu-subgroup::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:linear-gradient(to right, rgba(166,137,95,0.5), transparent);
+}
+.tab-menu-subgroup:first-child{margin-top:14px}
+/* サブグループ直後のリーフは左に微インデント（subgroup配下であることを示す） */
 .tab-menu-subgroup + li .tab-menu-leaf,
-.tab-menu-subgroup ~ li:not(.tab-menu-subgroup) .tab-menu-leaf{padding-left:14px}
+.tab-menu-subgroup ~ li:not(.tab-menu-subgroup) .tab-menu-leaf{padding-left:8px}
 
 /* タブのデスクトップサイズ調整 */
 @media (max-width:1280px){
@@ -1930,48 +1943,143 @@ section > h2{margin-top:0}
   letter-spacing:.12em;
   color:#1a1308;
 }
-/* TOP のビジョン提示 */
+/* TOP のビジョン提示 — 透明感のあるガラス調デザイン */
 .top-vision{
-  margin:48px auto 56px;
-  padding:40px 24px 36px;
-  text-align:center;
-  border-top:1px solid var(--ink-line);
-  border-bottom:1px solid var(--ink-line);
-  max-width:780px;
+  margin:72px auto 88px;
+  max-width:920px;
   position:relative;
+  isolation:isolate;
+  animation:visionFadeIn 1.4s cubic-bezier(.2,.7,.2,1) both;
 }
+@keyframes visionFadeIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+/* 背景の柔らかなグラデーション霧 */
+.top-vision::before{
+  content:"";
+  position:absolute;
+  inset:-40px -80px;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 30%, rgba(166,137,95,0.10), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 75% 70%, rgba(154,146,118,0.08), transparent 60%),
+    radial-gradient(ellipse 70% 30% at 50% 50%, rgba(255,251,243,0.6), transparent 70%);
+  filter:blur(28px);
+  z-index:-2;
+  pointer-events:none;
+}
+/* 上下の極細罫線（朝霧の輪郭） */
+.top-vision::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-1px;
+  width:60%;
+  max-width:480px;
+  height:1px;
+  background:linear-gradient(to right, transparent, rgba(166,137,95,0.35), transparent);
+  transform:translateX(-50%);
+  z-index:-1;
+}
+/* 透明感ガラスフレーム */
+.top-vision-frame{
+  position:relative;
+  padding:64px clamp(28px, 5vw, 56px) 56px;
+  text-align:center;
+  background:linear-gradient(180deg,
+    rgba(255,253,248,0.55) 0%,
+    rgba(252,248,238,0.35) 40%,
+    rgba(248,243,232,0.45) 100%);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  backdrop-filter:blur(16px) saturate(140%);
+  border:1px solid rgba(255,255,255,0.55);
+  border-radius:2px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 -1px 0 rgba(166,137,95,0.06) inset,
+    0 24px 60px -20px rgba(120,95,60,0.10),
+    0 1px 2px rgba(120,95,60,0.04);
+}
+/* 下端の薄い罫線 */
+.top-vision-frame::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:0;
+  width:60%;
+  max-width:480px;
+  height:1px;
+  background:linear-gradient(to right, transparent, rgba(166,137,95,0.35), transparent);
+  transform:translateX(-50%);
+}
+/* ラベル — 両端ヘアライン装飾 */
 .top-vision .top-vision-label{
-  display:inline-block;
-  font-family:"Cormorant Garamond",serif;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  font-family:"Cormorant Garamond","Times New Roman",serif;
   font-style:italic;
   font-weight:500;
-  font-size:.78rem;
-  letter-spacing:.34em;
+  font-size:.74rem;
+  letter-spacing:.42em;
   color:var(--soil);
   text-transform:uppercase;
-  margin-bottom:22px;
-  padding:0 12px;
+  margin-bottom:36px;
+  padding:0;
   position:relative;
 }
-.top-vision .top-vision-jp{
-  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
-  font-weight:300;
-  font-size:clamp(1.4rem, 2.6vw, 1.95rem);
-  line-height:1.85;
-  letter-spacing:.1em;
-  color:var(--ink);
-  margin:0;
+.top-vision .top-vision-label::before,
+.top-vision .top-vision-label::after{
+  content:"";
+  display:inline-block;
+  width:42px;
+  height:1px;
+  background:linear-gradient(to right, transparent, var(--soil));
+  opacity:.45;
 }
-.top-vision .top-vision-jp strong{font-weight:500}
+.top-vision .top-vision-label::after{
+  background:linear-gradient(to left, transparent, var(--soil));
+}
+/* JP ビジョン本文 — 軽量明朝で透明感 */
+.top-vision .top-vision-jp{
+  font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  font-weight:200;
+  font-size:clamp(1.5rem, 3vw, 2.2rem);
+  line-height:2;
+  letter-spacing:.16em;
+  color:rgba(28,18,3,0.86);
+  margin:0;
+  text-shadow:0 1px 0 rgba(255,255,255,0.5);
+}
+.top-vision .top-vision-jp strong{font-weight:400;color:var(--ink)}
+/* EN サブテキスト */
 .top-vision .top-vision-en{
-  font-family:"Cormorant Garamond",serif;
+  display:inline-block;
+  font-family:"Cormorant Garamond","Times New Roman",serif;
   font-style:italic;
   font-weight:400;
-  letter-spacing:.32em;
-  font-size:.86rem;
-  color:var(--ink-3);
-  margin:18px 0 0;
+  letter-spacing:.46em;
+  font-size:.88rem;
+  color:rgba(58,38,21,0.5);
+  margin:32px 0 0;
   text-transform:uppercase;
+  position:relative;
+}
+.top-vision .top-vision-en::before,
+.top-vision .top-vision-en::after{
+  content:"·";
+  margin:0 .8em;
+  opacity:.5;
+}
+
+@media (max-width:680px){
+  .top-vision{margin:48px auto 64px}
+  .top-vision-frame{padding:44px 22px 38px}
+  .top-vision .top-vision-label{font-size:.7rem;letter-spacing:.32em;gap:10px;margin-bottom:24px}
+  .top-vision .top-vision-label::before,
+  .top-vision .top-vision-label::after{width:24px}
+  .top-vision .top-vision-en{margin-top:22px;letter-spacing:.32em;font-size:.78rem}
 }
 
 .top-hero .hero-tagline-en{
@@ -2589,6 +2697,17 @@ section > h2{margin-top:0}
   flex-direction:column;
   gap:4px;
 }
+.pf-pj-meta{
+  display:block;
+  font-family:"Cormorant Garamond","Times New Roman",serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:.66rem;
+  letter-spacing:.26em;
+  color:var(--ink-3);
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
 .pf-pj-name{
   font-size:.88rem;
   font-weight:600;
@@ -2908,15 +3027,15 @@ section > h2{margin-top:0}
           </button>
           <div class="tab-submenu-divider"><span>三本柱 ／ Three Pillars</span></div>
           <button class="tab-btn tab-btn-child sm-observe" role="menuitem" data-tab="observe" onclick="switchTab('observe')">
-            <span class="sm-title">診る ／ Observe</span>
+            <span class="sm-title">Ⅰ：診る ／ Observe</span>
             <span class="sm-desc">見えない循環を 4 つのスケールで翻訳</span>
           </button>
           <button class="tab-btn tab-btn-child sm-regenerate" role="menuitem" data-tab="regenerate" onclick="switchTab('regenerate')">
-            <span class="sm-title">再生する ／ Regenerate</span>
+            <span class="sm-title">Ⅱ：再生する ／ Regenerate</span>
             <span class="sm-desc">高田宏臣 氏・矢野智徳 氏の現場で学ぶ統合再生</span>
           </button>
           <button class="tab-btn tab-btn-child sm-immerse" role="menuitem" data-tab="immerse" onclick="switchTab('immerse')">
-            <span class="sm-title">感じる ／ Immerse</span>
+            <span class="sm-title">Ⅲ：感じる ／ Immerse</span>
             <span class="sm-desc">数値では届かない感覚知覚（Qualia）に開く</span>
           </button>
           <div class="tab-submenu-divider"><span>長期ビジョン ／ Long-term Vision</span></div>
@@ -2987,8 +3106,8 @@ section > h2{margin-top:0}
           </button>
           <div class="tab-submenu-divider"><span>索引 ／ Index</span></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="glossary" onclick="switchTab('glossary')">
-            <span class="sm-title">用語集 ／ Terms</span>
-            <span class="sm-desc">三本柱で整理した専門用語 30 語</span>
+            <span class="sm-title">用語解説 ／ Terms</span>
+            <span class="sm-desc">三本柱で整理した専門用語の解説 30 語</span>
           </button>
         </div>
       </div>
@@ -3003,7 +3122,7 @@ section > h2{margin-top:0}
           <span class="tb-ja">リンク<span class="tb-caret" aria-hidden="true">▾</span></span><span class="tb-en">LINK</span>
         </button>
         <div class="tab-submenu tab-submenu-mega" role="menu">
-          <div class="tab-submenu-divider"><a href="#link-media" onclick="switchTab('link-media');return false;" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--lab-fg-3);cursor:pointer"><span>接点 ／ Touchpoints</span></a></div>
+          <div class="tab-submenu-divider"><a href="#link-media" onclick="switchTab('link-media');return false;" style="color:inherit;text-decoration:none;cursor:pointer"><span>リンク ／ Link</span></a></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="link-media" onclick="switchTab('link-media')">
             <span class="sm-title">メディア ／ Media</span>
             <span class="sm-desc">note・GitHub・Instagram・X・Stillpoint</span>
@@ -3057,9 +3176,9 @@ section > h2{margin-top:0}
         <li class="tab-menu-subgroup">概観 ／ Overview</li>
         <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">全体像</span><span class="leaf-en">Top</span></button></li>
         <li class="tab-menu-subgroup">三本柱 ／ Three Pillars</li>
-        <li><button class="tab-menu-leaf" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="leaf-ja">診る</span><span class="leaf-en">Observe</span></button></li>
-        <li><button class="tab-menu-leaf" data-tab="regenerate" onclick="switchTabFromMenu('regenerate')"><span class="leaf-ja">再生する</span><span class="leaf-en">Regenerate</span></button></li>
-        <li><button class="tab-menu-leaf" data-tab="immerse" onclick="switchTabFromMenu('immerse')"><span class="leaf-ja">感じる</span><span class="leaf-en">Immerse</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="leaf-ja">Ⅰ：診る</span><span class="leaf-en">Observe</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="regenerate" onclick="switchTabFromMenu('regenerate')"><span class="leaf-ja">Ⅱ：再生する</span><span class="leaf-en">Regenerate</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="immerse" onclick="switchTabFromMenu('immerse')"><span class="leaf-ja">Ⅲ：感じる</span><span class="leaf-en">Immerse</span></button></li>
         <li class="tab-menu-subgroup">長期ビジョン ／ Long-term Vision</li>
         <li><button class="tab-menu-leaf" data-tab="cycle" onclick="switchTabFromMenu('cycle')"><span class="leaf-ja">自然循環OS</span><span class="leaf-en">Nature Cycle OS</span></button></li>
       </ul>
@@ -3085,7 +3204,7 @@ section > h2{margin-top:0}
       <button class="tab-menu-back" onclick="showMobileSection('root')"><span aria-hidden="true">‹</span> Index へ戻る</button>
       <div class="tab-menu-section-title"><span class="section-title-ja">リンク</span><span class="section-title-en">LINK</span></div>
       <ul class="tab-menu-list">
-        <li class="tab-menu-subgroup">接点 ／ Touchpoints</li>
+        <li class="tab-menu-subgroup">リンク ／ Link</li>
         <li><button class="tab-menu-leaf" data-tab="link-media" onclick="switchTabFromMenu('link-media')"><span class="leaf-ja">メディア</span><span class="leaf-en">Media</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="link-shop" onclick="switchTabFromMenu('link-shop')"><span class="leaf-ja">作品販売</span><span class="leaf-en">Shop</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="link-career" onclick="switchTabFromMenu('link-career')"><span class="leaf-ja">キャリア</span><span class="leaf-en">Career</span></button></li>
@@ -3103,7 +3222,7 @@ section > h2{margin-top:0}
         <li><button class="tab-menu-leaf" data-tab="papers" onclick="switchTabFromMenu('papers')"><span class="leaf-ja">関連論文</span><span class="leaf-en">Papers</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="thought" onclick="switchTabFromMenu('thought')"><span class="leaf-ja">関連思想</span><span class="leaf-en">Thought</span></button></li>
         <li class="tab-menu-subgroup">索引 ／ Index</li>
-        <li><button class="tab-menu-leaf" data-tab="glossary" onclick="switchTabFromMenu('glossary')"><span class="leaf-ja">用語集</span><span class="leaf-en">Terms</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="glossary" onclick="switchTabFromMenu('glossary')"><span class="leaf-ja">用語解説</span><span class="leaf-en">Terms</span></button></li>
       </ul>
     </section>
 
@@ -3122,9 +3241,11 @@ section > h2{margin-top:0}
   <span class="sec-en">What is mitsulab?</span>
 
   <div class="top-vision">
-    <span class="top-vision-label">Vision ／ ビジョン</span>
-    <p class="top-vision-jp">傷ついた自然循環を、<br>診て、再生し、感じる。</p>
-    <p class="top-vision-en">Observe × Regenerate × Immerse</p>
+    <div class="top-vision-frame">
+      <span class="top-vision-label">Vision ／ ビジョン</span>
+      <p class="top-vision-jp">傷ついた自然循環を、<br>診て、再生し、感じる。</p>
+      <p class="top-vision-en">Observe × Regenerate × Immerse</p>
+    </div>
   </div>
 
   <p class="lead">斜面が崩れる。樹勢が衰える。水脈が途切れる。生態系が痩せる。<br>症状は異なっても、根源は一つ——<strong>土・水・植物の自然循環の機能不全</strong>。</p>
@@ -3135,17 +3256,29 @@ section > h2{margin-top:0}
     <a class="pillar-frame pf-observe pf-clickable" href="#observe" onclick="switchTab('observe');return false;" aria-label="診る／Observe の詳細を見る">
       <div class="pf-head">
         <span class="pf-num">Pillar Ⅰ</span>
-        <h3 class="pf-title">診る<span class="pf-en">Observe</span></h3>
+        <h3 class="pf-title">Ⅰ：診る<span class="pf-en">Observe</span></h3>
       </div>
       <p class="pf-body">IoT・GIS・3DGS・音響観測——現代の観測技術によって、人の五感では捉えられない循環の動きを翻訳します。土中の通気、微生物の活動、地表の変化、流域の水脈。<strong>見えない「傷」と「回復」をデータとして捉え直す</strong>こと。すべてはここから始まります。</p>
       <ul class="pf-projects">
         <li>
+          <span class="pf-pj-meta">Project · 進行中 ／ Ongoing</span>
           <span class="pf-pj-name">Field X</span>
           <span class="pf-pj-desc">Insta360 X4 + 3DGS による空間記録。施工前後の根圏・樹冠・地形変化を 3D で比較する観測体系。</span>
         </li>
         <li>
+          <span class="pf-pj-meta">Project · 進行中 ／ Ongoing</span>
           <span class="pf-pj-name">Soil Sound Project</span>
           <span class="pf-pj-desc">ピエゾマイクで土中の活動音（CO₂気泡・ミミズ・菌糸 等）を収録し、聴覚で土の状態を診る新しい指標。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
+          <span class="pf-pj-name">流域 GIS マッピング</span>
+          <span class="pf-pj-desc">流域単位で土壌・植生・水脈データを統合可視化。自治体のネイチャーポジティブ施策と住民理解の橋渡し。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
+          <span class="pf-pj-name">eDNA × 土壌微生物観測</span>
+          <span class="pf-pj-desc">水・土サンプルから生物相全体を非破壊で把握。SOFIX 等の指標と組み合わせ、土壌の健全度を多角的に診る。</span>
         </li>
       </ul>
       <span class="pf-go" aria-hidden="true">診る の詳細を見る <span class="pf-go-arrow">──</span></span>
@@ -3153,23 +3286,27 @@ section > h2{margin-top:0}
     <a class="pillar-frame pf-regenerate pf-clickable" href="#regenerate" onclick="switchTab('regenerate');return false;" aria-label="再生する／Regenerate の詳細を見る">
       <div class="pf-head">
         <span class="pf-num">Pillar Ⅱ</span>
-        <h3 class="pf-title">再生する<span class="pf-en">Regenerate</span></h3>
+        <h3 class="pf-title">Ⅱ：再生する<span class="pf-en">Regenerate</span></h3>
       </div>
       <p class="pf-body">高田宏臣 氏（NPO法人地球守）、矢野智徳 氏（大地の再生）——日本を代表する実践者のプロジェクトに参画し、現場で手を動かしながら学びます。土壌再生・樹勢回復・水系循環回復を、<strong>土・水・植物を一続きに扱う統合パッケージ</strong>として組み立てます。</p>
       <ul class="pf-projects">
         <li>
+          <span class="pf-pj-meta">Project · 参画中 ／ Active</span>
           <span class="pf-pj-name">氷川参道（高田氏）</span>
           <span class="pf-pj-desc">高田宏臣 氏主催の土壌改善プロジェクトに参画。しがら・点穴・素掘り溝で鎮守の森の地下を回復。</span>
         </li>
         <li>
+          <span class="pf-pj-meta">Project · 参画中 ／ Active</span>
           <span class="pf-pj-name">上野原（矢野氏）</span>
           <span class="pf-pj-desc">矢野智徳 氏主催の大地の再生プロジェクトに参画。水脈溝・点穴・風の草刈りで土地の流れを取り戻す。</span>
         </li>
         <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
           <span class="pf-pj-name">樹勢回復</span>
           <span class="pf-pj-desc">樹木医との連携を進め、根圏改善を起点とした樹勢回復プロトコルを確立する。</span>
         </li>
         <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
           <span class="pf-pj-name">水系循環回復</span>
           <span class="pf-pj-desc">水系再生実践者と連携し、流域スケールで水循環を診て・再生する仕組みを組み立てる。</span>
         </li>
@@ -3179,17 +3316,29 @@ section > h2{margin-top:0}
     <a class="pillar-frame pf-immerse pf-clickable" href="#immerse" onclick="switchTab('immerse');return false;" aria-label="感じる／Immerse の詳細を見る">
       <div class="pf-head">
         <span class="pf-num">Pillar Ⅲ</span>
-        <h3 class="pf-title">感じる<span class="pf-en">Immerse</span></h3>
+        <h3 class="pf-title">Ⅲ：感じる<span class="pf-en">Immerse</span></h3>
       </div>
       <p class="pf-body">観測データと再生現場の手応えを、音・触覚・空間に変換し、社会に開きます。書道を起点とするメディアアート（Qualia Mind）と土中音のインスタレーション（Qualia Field）が、数値では届かない<strong>感覚知覚（Qualia）の層</strong>に訴えかけ、自然と人間の関係を問い直します。</p>
       <ul class="pf-projects">
         <li>
+          <span class="pf-pj-meta">Project · 継続制作 ／ Continuing</span>
           <span class="pf-pj-name">Qualia Mind</span>
           <span class="pf-pj-desc">書道（雅号「菱碧」）を起点とする身体性・自然との共鳴をテーマにしたメディアアート作品群（60作品超）。</span>
         </li>
         <li>
+          <span class="pf-pj-meta">Project · 進行中 ／ Ongoing</span>
           <span class="pf-pj-name">Qualia Field</span>
           <span class="pf-pj-desc">土中音をハイドロフォンで収録し、音・触覚・空間へと翻訳する没入インスタレーション。芸術祭出展を視野に展開する。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 継続制作 ／ Continuing</span>
+          <span class="pf-pj-name">Modarity X</span>
+          <span class="pf-pj-desc">温度・湿度・光度・音の環境センサ入力を、触覚や音響へ変換するIoT作品。場の質感を別の感覚モードで体感する装置。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 継続制作 ／ Continuing</span>
+          <span class="pf-pj-name">Qualia/sound ・ heart シリーズ</span>
+          <span class="pf-pj-desc">音と書、心拍と書のクオリアを媒介する書道メディアアート作品集。Qualia/sound Ⅰ・Ⅱ／Qualia/heart Ⅰ。</span>
         </li>
       </ul>
       <span class="pf-go" aria-hidden="true">感じる の詳細を見る <span class="pf-go-arrow">──</span></span>
@@ -3209,17 +3358,17 @@ section > h2{margin-top:0}
     <div class="os-summary-layers">
       <a class="os-layer os-layer-observe" href="#observe" onclick="switchTab('observe');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
         <span class="os-layer-num">Layer Ⅰ</span>
-        <span class="os-layer-name">診る ／ Observe</span>
+        <span class="os-layer-name">Ⅰ：診る ／ Observe</span>
         <span class="os-layer-desc">IoT・GIS・3DGS・環境DNA・音響観測で、自然循環の動態をデータに翻訳する層。</span>
       </a>
       <a class="os-layer os-layer-regenerate" href="#regenerate" onclick="switchTab('regenerate');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
         <span class="os-layer-num">Layer Ⅱ</span>
-        <span class="os-layer-name">再生する ／ Regenerate</span>
+        <span class="os-layer-name">Ⅱ：再生する ／ Regenerate</span>
         <span class="os-layer-desc">日本に蓄積された再生実践知を体系化し、観測データと連動させて現場へ展開する層。</span>
       </a>
       <a class="os-layer os-layer-immerse" href="#immerse" onclick="switchTab('immerse');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
         <span class="os-layer-num">Layer Ⅲ</span>
-        <span class="os-layer-name">感じる ／ Immerse</span>
+        <span class="os-layer-name">Ⅲ：感じる ／ Immerse</span>
         <span class="os-layer-desc">観測と再生のデータを、音・触覚・空間といった人間の感覚に翻訳する層。</span>
       </a>
     </div>
@@ -3350,7 +3499,7 @@ section > h2{margin-top:0}
 
 <section id="observe">
   <span class="sec-num">04 / Observe</span>
-  <h2>診る</h2>
+  <h2>Ⅰ：診る</h2>
   <span class="sec-en">Observe &mdash; Translating the Invisible</span>
 
   <p class="lead">人の五感では捉えられない自然循環の動きを、現代の観測技術によって計測可能な形に翻訳します。土中の通気、微生物の活動、地表の経年変化、流域の水脈——目に見えない「傷」と「回復」を、データとして捉え直す働きです。</p>
@@ -3380,7 +3529,7 @@ section > h2{margin-top:0}
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>次の柱は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> へ。観測技術の用語は <a href="#glossary" onclick="switchTab('glossary');return false;">用語集</a> へ。</p>
+    <p>次の柱は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> へ。観測技術の用語は <a href="#glossary" onclick="switchTab('glossary');return false;">用語解説</a> へ。</p>
   </aside>
 </section>
 
@@ -3392,7 +3541,7 @@ section > h2{margin-top:0}
 
 <section id="regenerate">
   <span class="sec-num">05 / Regenerate</span>
-  <h2>再生する</h2>
+  <h2>Ⅱ：再生する</h2>
   <span class="sec-en">Regenerate &mdash; Restoring the Cycle</span>
 
   <p class="lead">日本を代表する自然循環再生の実践者が主催するプロジェクトに参画し、現場で手を動かしながら、傷ついた循環を本来の動きへと戻していきます。土壌再生・樹勢回復・水系循環回復を、土・水・植物を一続きに扱う<strong>統合パッケージ</strong>として組み立てる働きです。</p>
@@ -3438,7 +3587,7 @@ section > h2{margin-top:0}
 
 <section id="immerse">
   <span class="sec-num">06 / Immerse</span>
-  <h2>感じる</h2>
+  <h2>Ⅲ：感じる</h2>
   <span class="sec-en">Immerse &mdash; Opening to the Senses</span>
 
   <p class="lead">観測されたデータと再生現場の手応えを、音・触覚・空間に変換し、社会に体験として開きます。書道を起点とするメディアアートや土中音のインスタレーションが、数値では届かない感覚知覚（Qualia）の層に訴えかけ、自然と人間の関係そのものを問い直す装置として動きます。</p>
@@ -3956,19 +4105,19 @@ section > h2{margin-top:0}
   <div class="grid grid-3" style="margin-top:18px">
     <a class="card" href="#observe" onclick="switchTab('observe');return false;" style="border-top:3px solid var(--soil);text-decoration:none;color:inherit;display:block">
       <span class="tag">Layer Ⅰ ── Observe</span>
-      <h3>診る<small>Observe Layer</small></h3>
+      <h3>Ⅰ：診る<small>Observe Layer</small></h3>
       <p>IoT・GIS・3DGS・環境DNA・音響観測——多様な観測技術が、土・水・植物の動態を継続的に取り込む層。<strong>マクロ（流域）とミクロ（土中）</strong>を行き来しながら、自然循環の状態を計測可能な形に翻訳します。</p>
       <p style="margin-top:10px;font-size:.86rem;color:var(--soil)">診る の詳細を見る ──</p>
     </a>
     <a class="card" href="#regenerate" onclick="switchTab('regenerate');return false;" style="border-top:3px solid var(--moss);text-decoration:none;color:inherit;display:block">
       <span class="tag">Layer Ⅱ ── Regenerate</span>
-      <h3>再生する<small>Regenerate Layer</small></h3>
+      <h3>Ⅱ：再生する<small>Regenerate Layer</small></h3>
       <p>土中環境改善・大地の再生・樹勢回復・水系循環回復——日本に蓄積されてきた<strong>再生実践知を体系化</strong>し、観測データに基づく優先順位とともに現場へ展開する層。専門家・施工者・住民が共通の言語で扱えるようにします。</p>
       <p style="margin-top:10px;font-size:.86rem;color:var(--moss)">再生する の詳細を見る ──</p>
     </a>
     <a class="card" href="#immerse" onclick="switchTab('immerse');return false;" style="border-top:3px solid var(--amber);text-decoration:none;color:inherit;display:block">
       <span class="tag">Layer Ⅲ ── Immerse</span>
-      <h3>感じる<small>Immerse Layer</small></h3>
+      <h3>Ⅲ：感じる<small>Immerse Layer</small></h3>
       <p>観測と再生のデータを、<strong>音・触覚・空間</strong>といった人間の感覚に翻訳する層。Qualia Practice をはじめとする知覚拡張アートが、数値では届かない「感じる」の領域を社会に開きます。</p>
       <p style="margin-top:10px;font-size:.86rem;color:var(--amber)">感じる の詳細を見る ──</p>
     </a>
@@ -4629,7 +4778,7 @@ section > h2{margin-top:0}
 
 <section id="glossary">
   <span class="sec-num">06 / Terms</span>
-  <h2>用語集</h2>
+  <h2>用語解説</h2>
   <span class="sec-en">Key Terms — organized by Observe / Regenerate / Immerse</span>
   <p class="lead">mitsulabが扱う領域の専門用語を、三本柱<strong>診る（Observe）・再生する（Regenerate）・感じる（Immerse）</strong>の分類に沿って整理しました。横断的な概念は冒頭にまとめています。</p>
 
@@ -5235,7 +5384,7 @@ section > h2{margin-top:0}
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>共通の語彙は <a href="#glossary" onclick="switchTab('glossary');return false;">用語集</a> へ。長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+    <p>共通の語彙は <a href="#glossary" onclick="switchTab('glossary');return false;">用語解説</a> へ。長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
   </aside>
 </section>
 
