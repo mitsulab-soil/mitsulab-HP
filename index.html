@@ -1528,26 +1528,26 @@ td,th{border-color:rgba(216,207,189,.20)}
 .tab-menu-list{list-style:none;padding:0;margin:0}
 .tab-menu-list li{margin:0;padding:0}
 
-/* リーフ（最終タブへ遷移） */
+/* リーフ（最終タブへ遷移） — ボーダーなし、余白で区切る */
 .tab-menu-leaf{
   width:100%;
   display:flex;
   align-items:baseline;
   justify-content:flex-start;
-  gap:14px;
-  padding:18px 0;
+  gap:16px;
+  padding:14px 4px;
   background:transparent;
   border:none;
-  border-bottom:1px solid var(--lab-line);
   cursor:pointer;
   text-align:left;
-  transition:color .2s, padding-left .2s;
+  transition:color .2s, padding-left .2s, opacity .2s;
+  opacity:.92;
 }
-.tab-menu-leaf:hover{padding-left:6px}
+.tab-menu-leaf:hover{padding-left:8px;opacity:1}
 .tab-menu-leaf .leaf-ja{
   font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
   font-weight:400;
-  font-size:1.18rem;
+  font-size:1.16rem;
   letter-spacing:.1em;
   color:var(--lab-fg);
 }
@@ -1555,34 +1555,35 @@ td,th{border-color:rgba(216,207,189,.20)}
   font-family:"Cormorant Garamond","Times New Roman",serif;
   font-style:italic;
   font-weight:400;
-  font-size:.78rem;
+  font-size:.74rem;
   letter-spacing:.28em;
   color:var(--lab-fg-3);
   text-transform:uppercase;
 }
+.tab-menu-leaf.active{opacity:1}
 .tab-menu-leaf.active .leaf-ja{color:var(--lab-accent);font-weight:500}
 .tab-menu-leaf.active .leaf-en{color:var(--lab-accent);opacity:.7}
 
-/* ブランチ（子セクションへドリルダウン） */
+/* ブランチ（子セクションへドリルダウン） — ボーダーなし */
 .tab-menu-branch{
   width:100%;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:18px 0;
+  padding:18px 4px;
   background:transparent;
   border:none;
-  border-bottom:1px solid var(--lab-line);
   cursor:pointer;
   text-align:left;
-  transition:padding-left .2s;
+  transition:padding-left .2s, opacity .2s;
+  opacity:.92;
 }
-.tab-menu-branch:hover{padding-left:6px}
-.tab-menu-branch .branch-text{display:inline-flex;align-items:baseline;gap:14px}
+.tab-menu-branch:hover{padding-left:8px;opacity:1}
+.tab-menu-branch .branch-text{display:inline-flex;align-items:baseline;gap:16px}
 .tab-menu-branch .branch-ja{
   font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
   font-weight:400;
-  font-size:1.18rem;
+  font-size:1.2rem;
   letter-spacing:.1em;
   color:var(--lab-fg);
 }
@@ -1590,13 +1591,13 @@ td,th{border-color:rgba(216,207,189,.20)}
   font-family:"Cormorant Garamond","Times New Roman",serif;
   font-style:italic;
   font-weight:400;
-  font-size:.78rem;
+  font-size:.74rem;
   letter-spacing:.28em;
   color:var(--lab-fg-3);
   text-transform:uppercase;
 }
 .tab-menu-branch .branch-arrow{
-  font-size:1.6rem;
+  font-size:1.5rem;
   font-weight:300;
   color:var(--lab-fg-3);
   transition:transform .2s, color .2s;
@@ -1606,39 +1607,28 @@ td,th{border-color:rgba(216,207,189,.20)}
   transform:translateX(4px);
   color:var(--lab-fg);
 }
+/* root の branch のみ薄い下線で区切る（root の見通し用） */
+.tab-menu-section[data-section="root"] .tab-menu-list > li{
+  border-bottom:1px solid var(--lab-line);
+}
+.tab-menu-section[data-section="root"] .tab-menu-list > li:last-child{
+  border-bottom:none;
+}
 
-/* サブグループ見出し（詳細セクション内のクラスタ見出し） — 子と明確に区別 */
+/* サブグループ見出し — シンプルに italic 1 行のみ */
 .tab-menu-subgroup{
   list-style:none;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin:38px 0 6px;
-  padding:8px 0 10px;
+  margin:32px 0 4px;
+  padding:6px 4px 4px;
   font-family:"Cormorant Garamond","Times New Roman",serif;
   font-style:italic;
   font-weight:500;
-  font-size:.72rem;
+  font-size:.7rem;
   letter-spacing:.36em;
   color:var(--lab-fg-3);
   text-transform:uppercase;
 }
-.tab-menu-subgroup::before{
-  content:"";
-  flex:0 0 24px;
-  height:1px;
-  background:linear-gradient(to right, transparent, rgba(166,137,95,0.5));
-}
-.tab-menu-subgroup::after{
-  content:"";
-  flex:1;
-  height:1px;
-  background:linear-gradient(to right, rgba(166,137,95,0.5), transparent);
-}
-.tab-menu-subgroup:first-child{margin-top:14px}
-/* サブグループ直後のリーフは左に微インデント（subgroup配下であることを示す） */
-.tab-menu-subgroup + li .tab-menu-leaf,
-.tab-menu-subgroup ~ li:not(.tab-menu-subgroup) .tab-menu-leaf{padding-left:8px}
+.tab-menu-subgroup:first-child{margin-top:12px}
 
 /* タブのデスクトップサイズ調整 */
 @media (max-width:1280px){
