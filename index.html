@@ -196,32 +196,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>mitsulab — 傷ついた自然循環を、診て、再生し、感じる</title>
-<meta name="description" content="土・水・植物の自然循環を、診る（観測）× 感じる（体感）× 再生する（実装）の三位一体で扱う研究所。土壌再生・樹勢回復・水系循環回復を、現場経験 × 再生技術 × テクノロジー × アートの4軸で統合実践。">
+<title>mitsulab — 自然循環OS を通じて One Health の実現に貢献する研究所</title>
+<meta name="description" content="自然循環OS（Nature Cycle OS）を核に置く研究所。One Health の「環境」次元を、観測（Observe）／感覚（Immerse）／再生（Regenerate）／編集（Edit：Stillpoint）の四本柱（4 つの実行レイヤー）で実装し、ほどけた自然循環をひとつに結び直す。">
+<meta name="author" content="上原光瑛">
+<meta name="generator" content="mitsulab HP タブ版（手書き HTML / Claude Code 補助）">
+<meta name="robots" content="index, follow">
+<meta name="format-detection" content="telephone=no">
 <meta name="color-scheme" content="light only">
 <meta name="theme-color" content="#f7f4ee">
 <meta name="supported-color-schemes" content="light">
-<!-- canonical -->
+<!-- canonical / hreflang -->
 <link rel="canonical" href="https://mitsulab.jp/">
+<link rel="alternate" hreflang="ja" href="https://mitsulab.jp/">
+<link rel="alternate" hreflang="x-default" href="https://mitsulab.jp/">
 <!-- favicon -->
 <link rel="icon" href="./favicon.ico" type="image/x-icon">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mitsulab.jp/">
-<meta property="og:title" content="mitsulab — 傷ついた自然循環を、診て、再生し、感じる">
-<meta property="og:description" content="土・水・植物の自然循環を、診る × 再生する × 感じる の三位一体で扱う研究所。土壌再生・樹勢回復・水系循環回復を、現場経験 × 再生技術 × テクノロジー × アートの4軸で統合実践。">
+<meta property="og:title" content="mitsulab — 自然循環OS を通じて One Health の実現に貢献する研究所">
+<meta property="og:description" content="自然循環OS（Nature Cycle OS）を中核に、One Health の「環境」次元を実装する研究所。観測（Observe）／感覚（Immerse）／再生（Regenerate）／編集（Edit）の四本柱で、土・水・植物の循環を観測し・感じ・取り戻す。">
 <meta property="og:image" content="https://mitsulab.jp/ogp.png">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:site_name" content="mitsulab">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="mitsulab — 傷ついた自然循環を、診て、再生し、感じる">
-<meta name="twitter:description" content="土・水・植物の自然循環を、診る × 再生する × 感じる の三位一体で扱う研究所。">
+<meta name="twitter:title" content="mitsulab — 自然循環OS を通じて One Health の実現に貢献する研究所">
+<meta name="twitter:description" content="自然循環OS（Nature Cycle OS）を中核に、One Health の「環境」次元を実装する研究所。観測／感覚／再生／編集の四本柱で自然循環を観測し・感じ・取り戻す。">
 <meta name="twitter:image" content="https://mitsulab.jp/ogp.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://fonts.googleapis.com">
+<link rel="dns-prefetch" href="https://fonts.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<!-- Print stylesheet — 背景無し / モノクロ / URL を併記 -->
+<style media="print">
+  *{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important;filter:none !important}
+  html,body{background:#fff !important;color:#000 !important;font-size:11pt;line-height:1.6}
+  header,nav,.tab-buttons,.tab-menu-toggle,.tab-menu-overlay,.tab-nav,.tab-nav-inner,footer .scroll-hint,.scroll-hint{display:none !important}
+  .tab-panel{display:block !important;page-break-after:always}
+  a,a:visited{color:#000 !important;text-decoration:underline}
+  a[href^="http"]:after{content:" (" attr(href) ")";font-size:9pt;color:#444 !important;word-break:break-all}
+  a[href^="mailto:"]:after{content:" (" attr(href) ")";font-size:9pt;color:#444 !important}
+  a[href^="#"]:after,a[href^="javascript:"]:after{content:""}
+  img,svg{max-width:100% !important;page-break-inside:avoid}
+  h1,h2,h3,h4{page-break-after:avoid}
+  p,li,blockquote{page-break-inside:avoid}
+  .skip-link{display:none !important}
+</style>
+
+<!-- Accessibility: skip link & focus-visible -->
+<style>
+
+/* visually-hidden but readable by SR / search bots — added by hp_fix 2026-05-10 */
+.vh-h1{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  .skip-link{
+    position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;
+    background:#1f1a12;color:#f5ead1;padding:10px 16px;border-radius:6px;
+    font-family:"Noto Serif JP",serif;font-size:.9rem;letter-spacing:.04em;z-index:9999;
+    text-decoration:none;
+  }
+  .skip-link:focus,.skip-link:focus-visible{
+    left:16px;top:16px;width:auto;height:auto;outline:2px solid #c9a24a;outline-offset:2px;
+  }
+  /* Generic focus-visible: タブ・リンク・ボタン全般 */
+  a:focus-visible,
+  button:focus-visible,
+  [role="link"]:focus-visible,
+  [role="tab"]:focus-visible,
+  [role="menuitem"]:focus-visible,
+  [tabindex]:focus-visible{
+    outline:2px solid #7a5422;
+    outline-offset:3px;
+    border-radius:3px;
+  }
+</style>
 <style>
 /* ===== Design System =====
    Palette: Washi paper (#f7f4ee) × Deep soil (#2a1f14) × Moss (#3d5a2a) × Amber accent (#7a5422)
@@ -2101,7 +2153,7 @@ section > h2{margin-top:0}
   line-height:1.95;
 }
 
-/* トップ：3本柱の概観（線ベース、箱なし） */
+/* トップ：四本柱の概観（線ベース、箱なし） */
 .top-pillars{
   max-width:1080px;
   margin:60px auto 140px;
@@ -2293,7 +2345,7 @@ section > h2{margin-top:0}
 }
 .top-footer-cta .top-cta-mail:hover{color:var(--ink)}
 
-/* About タブの三本柱の見出しブロック（Pillar Ⅰ ── Observe 等） */
+/* About タブの四本柱の見出しブロック（Pillar Ⅰ ── Observe 等） */
 .tab-panel[data-panel="top"] > section > div[style*="border-left"]{
   border-left-width:2px !important;
   padding:8px 0 8px 22px !important;
@@ -2587,10 +2639,10 @@ section > h2{margin-top:0}
   .biz-role-title{font-size:1.25rem}
 }
 
-/* ===== 3本柱フレーム（About タブ） ===== */
+/* ===== 四本柱フレーム（About タブ） ===== */
 .pillar-frames{
   display:grid;
-  grid-template-columns:repeat(3, 1fr);
+  grid-template-columns:repeat(2, 1fr);
   gap:24px;
   margin:36px 0 12px;
 }
@@ -2774,6 +2826,414 @@ section > h2{margin-top:0}
   .pillar-frames{grid-template-columns:1fr;gap:18px}
   .pillar-frame{padding:24px 22px 26px}
   .pf-title{font-size:1.3rem;gap:10px}
+}
+
+/* Pillar Ⅳ (Stillpoint / 編む) — 第4の柱 */
+.pillar-frame.pf-stillpoint{
+  /* OIR 3色とは別の色味で第4の柱を象徴 */
+  border-left:3px solid #4a5d7e;
+}
+.pf-stillpoint .pf-num{color:#4a5d7e}
+
+/* 末尾セクション (One Health の実現 + 代表の歩み) */
+.top-vision-onehealth,
+.top-founder-journey{
+  margin:64px 0 0;
+  padding:28px 28px 24px;
+  border-top:1px solid rgba(60,42,20,0.18);
+}
+.top-vision-onehealth{border-top:2px solid var(--soil)}
+.vo-title{
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:1.3rem;
+  font-weight:500;
+  letter-spacing:.06em;
+  margin:0 0 18px;
+  color:var(--ink);
+}
+.vo-title em{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:.85em;
+  margin-left:.4em;
+  color:var(--ink-2);
+  letter-spacing:.04em;
+}
+.vo-lead{
+  font-size:1.05rem;
+  margin:0 0 1.2em;
+  padding:14px 18px;
+  background:rgba(163,123,52,0.06);
+  border-left:3px solid var(--soil);
+  border-radius:0 4px 4px 0;
+}
+.vo-cta{
+  margin-top:1.4em;
+  font-size:.95rem;
+  color:var(--ink-2);
+}
+@media (max-width:780px){
+  .top-vision-onehealth,
+  .top-founder-journey{padding:22px 18px 20px;margin-top:48px}
+  .vo-title{font-size:1.15rem}
+  .vo-title em{display:block;margin:4px 0 0}
+}
+
+/* 相互関係（Interplay）ページ */
+.ip-block{
+  margin:32px 0 0;
+  padding:24px 26px;
+  border:1px solid rgba(216,207,189,0.6);
+  border-radius:12px;
+  background:rgba(255,255,255,0.32);
+}
+.ip-block.ip-observe{border-left:4px solid var(--soil)}
+.ip-block.ip-immerse{border-left:4px solid var(--amber)}
+.ip-block.ip-regenerate{border-left:4px solid var(--moss)}
+.ip-block.ip-edit{border-left:4px solid #4a5d7e}
+.ip-head{
+  display:flex;
+  align-items:baseline;
+  gap:.5em;
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:1.3rem;
+  font-weight:500;
+  letter-spacing:.06em;
+  margin:0 0 18px;
+  padding-bottom:12px;
+  border-bottom:1px dashed rgba(216,207,189,0.7);
+  color:var(--ink);
+}
+.ip-head .ip-roman{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:1.1rem;
+  color:var(--ink-2);
+}
+.ip-head .ip-head-en{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.8rem;
+  font-weight:400;
+  color:var(--ink-2);
+  letter-spacing:.06em;
+}
+.ip-rels{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:18px;
+}
+.ip-rel{
+  padding:14px 16px;
+  background:rgba(255,255,255,0.5);
+  border:1px solid rgba(216,207,189,0.5);
+  border-radius:8px;
+}
+.ip-rel .ip-arrow{
+  display:block;
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:.96rem;
+  font-weight:600;
+  letter-spacing:.04em;
+  color:var(--soil);
+  margin-bottom:8px;
+}
+.ip-rel p{
+  margin:0;
+  font-size:.9rem;
+  line-height:1.85;
+  color:var(--ink-2);
+}
+.ip-rel p strong{color:var(--ink);font-weight:600}
+.ip-closing{
+  margin:32px 0 0;
+  padding:20px 22px;
+  background:rgba(163,123,52,0.06);
+  border-left:3px solid var(--soil);
+  border-radius:0 6px 6px 0;
+  font-size:.98rem;
+}
+@media (max-width:780px){
+  .ip-rels{grid-template-columns:1fr;gap:12px}
+  .ip-block{padding:20px 18px}
+  .ip-head{font-size:1.15rem;flex-wrap:wrap}
+}
+
+/* 全体概念イメージ図（4 レイヤーの相互補完） */
+.os-concept{
+  margin:8px 0 26px;
+  padding:24px 22px 18px;
+  background:rgba(255,255,255,0.42);
+  border:1px solid rgba(216,207,189,0.55);
+  border-radius:12px;
+}
+.os-concept-svg{
+  display:block;
+  width:100%;
+  max-width:420px;
+  height:auto;
+  margin:4px auto 0;
+}
+.os-concept-svg .ocn-roman{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:13px;
+  letter-spacing:.12em;
+  fill:#7a6f5e;
+  text-anchor:middle;
+}
+.os-concept-svg .ocn-jp{
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:20px;
+  font-weight:500;
+  letter-spacing:.08em;
+  fill:#241e16;
+  text-anchor:middle;
+}
+.os-concept-svg .ocn-en{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:11px;
+  letter-spacing:.06em;
+  fill:#7a6f5e;
+  text-anchor:middle;
+}
+.os-concept-caption{
+  margin:14px 0 0;
+  text-align:center;
+  font-size:.92rem;
+  line-height:1.9;
+  color:var(--ink-2);
+  letter-spacing:.03em;
+}
+.os-concept-caption strong{color:var(--ink);font-weight:600}
+.os-concept-note{
+  margin:10px 0 0;
+  text-align:center;
+  font-size:.86rem;
+  color:var(--ink-2);
+}
+@media (max-width:780px){
+  .os-concept-svg{max-width:320px}
+}
+
+/* One Health（os-frame 内に組み込む枠）*/
+.os-frame-onehealth{
+  margin:28px 0 0;
+  padding:24px 24px 20px;
+  background:rgba(163,123,52,0.06);
+  border:1px solid rgba(163,123,52,0.22);
+  border-radius:8px;
+}
+.os-oh-title{
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:1.2rem;
+  font-weight:500;
+  letter-spacing:.05em;
+  margin:0 0 14px;
+  color:var(--ink);
+}
+.os-oh-title em{
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:.9em;
+  color:var(--soil);
+  margin-left:.3em;
+}
+.os-oh-lead{
+  font-size:1.02rem;
+  margin:0 0 1em;
+  font-weight:500;
+}
+.os-frame-onehealth p{margin-bottom:0}
+@media (max-width:780px){
+  .os-frame-onehealth{padding:20px 16px 16px}
+  .os-oh-title{font-size:1.08rem}
+}
+
+/* 自然循環OS の枠（四本柱を内包） */
+.os-frame{
+  position:relative;
+  margin:56px 0 32px;
+  padding:36px 32px 32px;
+  background:
+    linear-gradient(180deg, rgba(250,246,238,0.62) 0%, rgba(250,246,238,0.38) 100%),
+    radial-gradient(1000px 600px at 0% 0%, rgba(163,123,52,0.05) 0%, transparent 60%);
+  border:1px solid rgba(60,42,20,0.16);
+  border-left:4px solid var(--soil);
+  border-radius:6px;
+  box-shadow:0 1px 0 rgba(255,255,255,0.6) inset, 0 2px 12px rgba(60,42,20,0.04);
+}
+.os-frame-header{
+  margin-bottom:22px;
+  padding-bottom:18px;
+  border-bottom:1px solid rgba(60,42,20,0.16);
+}
+.os-frame-eyebrow{
+  display:block;
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-size:.78rem;
+  letter-spacing:.22em;
+  color:var(--soil);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.os-frame-title{
+  font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+  font-size:1.6rem;
+  font-weight:500;
+  letter-spacing:.08em;
+  color:var(--ink);
+  margin:0;
+}
+.os-frame-title-en{
+  display:inline-block;
+  font-family:"Cormorant Garamond",serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:1rem;
+  margin-left:.7em;
+  color:var(--ink-2);
+  letter-spacing:.06em;
+}
+.os-frame-lead{margin:0 0 1.2em;font-size:1.02rem}
+
+.os-frame-body{margin:0 0 1.8em}
+.os-frame-pillars-lead{
+  font-size:.94rem;
+  color:var(--ink-2);
+  margin:0 0 1.4em;
+  padding-top:1.4em;
+  border-top:1px dashed rgba(60,42,20,0.18);
+  letter-spacing:.04em;
+}
+.os-frame .pillar-frames{
+  /* 既存スタイルを継承しつつ、枠内では余白を調整 */
+  margin-top:0;
+}
+.os-frame-close{
+  margin:1.8em 0 0;
+  padding-top:1.4em;
+  border-top:1px dashed rgba(60,42,20,0.18);
+  font-size:.98rem;
+  color:var(--ink-2);
+}
+@media (max-width:780px){
+  .os-frame{padding:28px 20px 24px;margin:40px 0 24px}
+  .os-frame-title{font-size:1.35rem}
+  .os-frame-title-en{display:block;margin:6px 0 0}
+}
+
+/* 構造見出し（os-hierarchy の外に出した見出し） */
+.structure-heading{
+  margin:96px 0 8px;
+  font-family:"Cormorant Garamond","Shippori Mincho",serif;
+  font-size:1.5rem;
+  font-weight:500;
+  letter-spacing:.08em;
+  color:var(--ink);
+  text-align:center;
+}
+.structure-lead{
+  margin:0 0 28px;
+  color:var(--ink-2);
+  font-size:.96rem;
+  text-align:center;
+  letter-spacing:.04em;
+}
+
+/* ===== One Health × 自然循環OS 階層図（TOP の VISION 直下） ===== */
+.os-hierarchy{
+  margin:36px 0 8px;
+  padding:36px 32px 30px;
+  background:linear-gradient(135deg, rgba(58,38,21,0.045) 0%, rgba(61,90,42,0.045) 55%, rgba(122,84,34,0.045) 100%);
+  border:1px solid rgba(216,207,189,0.55);
+  border-radius:16px;
+  position:relative;overflow:hidden;
+}
+.os-hierarchy::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, var(--soil) 0%, var(--moss) 50%, var(--amber) 100%);
+}
+.os-hierarchy-eyebrow{
+  display:block;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:500;
+  font-size:.78rem;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-3);
+  margin-bottom:10px;text-align:center;
+}
+.os-hierarchy-title{
+  font-size:clamp(1.2rem,2vw,1.55rem);font-weight:600;color:var(--ink);
+  text-align:center;letter-spacing:.04em;margin-bottom:6px;line-height:1.5;
+}
+.os-hierarchy-sub{
+  font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:500;
+  font-size:.95rem;letter-spacing:.18em;color:var(--ink-2);
+  text-align:center;margin-bottom:24px;
+}
+.os-hierarchy-body{margin-top:18px;color:var(--ink-2);font-size:.96rem;line-height:1.95}
+.os-hierarchy-body p{margin-bottom:.9em}
+.os-hierarchy-body p:last-child{margin-bottom:0}
+.os-hierarchy-body strong{color:var(--ink)}
+.os-tier{
+  margin:18px auto 0;max-width:760px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.os-tier-box{
+  width:100%;max-width:560px;
+  padding:14px 18px;border-radius:10px;text-align:center;
+  background:linear-gradient(135deg, rgba(255,255,255,0.36) 0%, rgba(255,255,255,0.12) 100%);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border:1px solid rgba(255,255,255,0.55);
+  box-shadow:0 1px 0 rgba(255,255,255,0.85) inset, 0 8px 22px rgba(120,95,60,0.05);
+}
+.os-tier-one-health{border-top:3px solid #5a7a3a}
+.os-tier-os{border-top:3px solid var(--soil)}
+.os-tier-label{
+  display:block;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:500;
+  font-size:.78rem;letter-spacing:.3em;color:var(--ink-3);margin-bottom:4px;text-transform:uppercase;
+}
+.os-tier-name{
+  display:block;font-size:1.05rem;font-weight:600;color:var(--ink);letter-spacing:.06em;
+}
+.os-tier-name-en{
+  display:block;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:400;
+  font-size:.86rem;letter-spacing:.15em;color:var(--ink-2);margin-top:2px;
+}
+.os-tier-desc{
+  display:block;font-size:.82rem;color:var(--ink-2);margin-top:4px;line-height:1.6;
+}
+.os-tier-arrow{
+  color:var(--ink-3);font-size:.78rem;letter-spacing:.18em;
+  display:flex;flex-direction:column;align-items:center;line-height:1.4;padding:2px 0;
+}
+.os-tier-arrow::before{content:"▼";display:block;font-size:.78rem;color:var(--ink-3);opacity:.7}
+.os-tier-arrow span{display:block;font-family:"Cormorant Garamond",serif;font-style:italic;font-size:.74rem;color:var(--ink-3);margin-top:2px}
+.os-tier-layers{
+  width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;
+}
+.os-tier-layer{
+  padding:12px 12px 10px;border-radius:10px;text-align:center;
+  background:linear-gradient(135deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.1) 100%);
+  border:1px solid rgba(255,255,255,0.55);
+  box-shadow:0 1px 0 rgba(255,255,255,0.8) inset;
+}
+.os-tier-layer.l-observe{border-top:3px solid var(--soil)}
+.os-tier-layer.l-immerse{border-top:3px solid var(--amber)}
+.os-tier-layer.l-regenerate{border-top:3px solid var(--moss)}
+.os-tier-layer .roman{
+  display:block;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:500;
+  font-size:.78rem;letter-spacing:.22em;color:var(--ink-3);margin-bottom:2px;
+}
+.os-tier-layer .name{display:block;font-size:.95rem;font-weight:600;color:var(--ink);letter-spacing:.04em}
+.os-tier-layer .en{
+  display:block;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:400;
+  font-size:.78rem;letter-spacing:.14em;color:var(--ink-2);margin-top:2px;
+}
+@media (max-width:640px){
+  .os-hierarchy{padding:26px 18px 22px}
+  .os-tier-layers{grid-template-columns:1fr;gap:8px}
 }
 
 /* ===== 自然循環OS サマリー（About タブ末尾） ===== */
@@ -2985,6 +3445,7 @@ section > h2{margin-top:0}
 </style>
 </head>
 <body class="tabbed-mode">
+<a href="#main" class="skip-link">本文へスキップ</a>
 
 <div class="aurora aurora-a"></div>
 <div class="aurora aurora-b"></div>
@@ -3013,30 +3474,49 @@ section > h2{margin-top:0}
           <div class="tab-submenu-divider"><span>概観 ／ Overview</span></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="top" onclick="switchTab('top')">
             <span class="sm-title">全体像 ／ Top</span>
-            <span class="sm-desc">mitsulab のホーム — 三本柱と長期ビジョンの俯瞰</span>
+            <span class="sm-desc">mitsulab のホーム — 自然循環OS と四本柱の俯瞰</span>
           </button>
-          <div class="tab-submenu-divider"><span>三本柱 ／ Three Pillars</span></div>
-          <button class="tab-btn tab-btn-child sm-observe" role="menuitem" data-tab="observe" onclick="switchTab('observe')">
-            <span class="sm-title">Ⅰ：診る ／ Observe</span>
-            <span class="sm-desc">見えない循環を 4 つのスケールで翻訳</span>
-          </button>
-          <button class="tab-btn tab-btn-child sm-regenerate" role="menuitem" data-tab="regenerate" onclick="switchTab('regenerate')">
-            <span class="sm-title">Ⅱ：再生する ／ Regenerate</span>
-            <span class="sm-desc">高田宏臣 氏・矢野智徳 氏の現場で学ぶ統合再生</span>
-          </button>
-          <button class="tab-btn tab-btn-child sm-immerse" role="menuitem" data-tab="immerse" onclick="switchTab('immerse')">
-            <span class="sm-title">Ⅲ：感じる ／ Immerse</span>
-            <span class="sm-desc">数値では届かない感覚知覚（Qualia）に開く</span>
-          </button>
-          <div class="tab-submenu-divider"><span>長期ビジョン ／ Long-term Vision</span></div>
+          <div class="tab-submenu-divider"><span>中核 ／ Core</span></div>
           <button class="tab-btn tab-btn-child sm-os" role="menuitem" data-tab="cycle" onclick="switchTab('cycle')">
             <span class="sm-title">自然循環OS ／ Nature Cycle OS</span>
-            <span class="sm-desc">観測・再生・感覚をつなぐ長期 OS 構想</span>
+            <span class="sm-desc">ほどけた自然循環をひとつに結び直す方法論プラットフォーム</span>
+          </button>
+          <div class="tab-submenu-divider"><span>四本柱（自然循環OS の方法論） ／ Four Pillars</span></div>
+          <button class="tab-btn tab-btn-child sm-observe" role="menuitem" data-tab="observe" onclick="switchTab('observe')">
+            <span class="sm-title">Ⅰ：観測 ／ Observe</span>
+            <span class="sm-desc">見えない自然循環を観測技術でデータに翻訳</span>
+          </button>
+          <button class="tab-btn tab-btn-child sm-immerse" role="menuitem" data-tab="immerse" onclick="switchTab('immerse')">
+            <span class="sm-title">Ⅱ：感覚 ／ Immerse</span>
+            <span class="sm-desc">数値では届かない感覚知覚（Qualia）に開く</span>
+          </button>
+          <button class="tab-btn tab-btn-child sm-regenerate" role="menuitem" data-tab="regenerate" onclick="switchTab('regenerate')">
+            <span class="sm-title">Ⅲ：再生 ／ Regenerate</span>
+            <span class="sm-desc">高田宏臣 氏・矢野智徳 氏の現場で学ぶ統合再生</span>
+          </button>
+          <button class="tab-btn tab-btn-child sm-stillpoint" role="menuitem" data-tab="cycle" onclick="switchTab('cycle')">
+            <span class="sm-title">Ⅳ：編集 ／ Edit（Stillpoint）</span>
+            <span class="sm-desc">編集工学で古今東西の自然循環を横断的にまとめる</span>
+          </button>
+          <div class="tab-submenu-divider"><span>関係性 ／ Interplay</span></div>
+          <button class="tab-btn tab-btn-child" role="menuitem" data-tab="interplay" onclick="switchTab('interplay')">
+            <span class="sm-title">相互関係 ／ Interplay</span>
+            <span class="sm-desc">観測・感覚・再生・編集が互いに影響し合う網の目</span>
+          </button>
+          <div class="tab-submenu-divider"><span>経緯 ／ Origin</span></div>
+          <button class="tab-btn tab-btn-child" role="menuitem" data-tab="journey" onclick="switchTab('journey')">
+            <span class="sm-title">mitsulabまでの経緯 ／ Journey</span>
+            <span class="sm-desc">代表が自然循環OS と四本柱に至るまでの歩み</span>
           </button>
         </div>
       </div>
 
-      <!-- 事業基盤（ドロップダウン親 — 事業概要・事業形態・役割・3背景） -->
+      <!-- 代表プロフィール（mitsulab について の次に配置） -->
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-profile" data-tab="profile">
+        <span class="tb-ja">代表プロフィール</span><span class="tb-en">PROFILE</span>
+      </button>
+
+            <!-- 事業基盤（ドロップダウン親 — 事業概要・事業形態・役割・3背景） -->
       <div class="tab-dropdown" id="foundationDropdown" data-dropdown="foundation">
         <button class="tab-btn tab-btn-parent" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleFoundationDropdown(event)">
           <span class="tb-ja">事業基盤<span class="tb-caret" aria-hidden="true">▾</span></span><span class="tb-en">FOUNDATION</span>
@@ -3097,14 +3577,10 @@ section > h2{margin-top:0}
           <div class="tab-submenu-divider"><span>索引 ／ Index</span></div>
           <button class="tab-btn tab-btn-child" role="menuitem" data-tab="glossary" onclick="switchTab('glossary')">
             <span class="sm-title">用語解説 ／ Terms</span>
-            <span class="sm-desc">三本柱で整理した専門用語の解説 30 語</span>
+            <span class="sm-desc">四本柱で整理した専門用語の解説 30 語</span>
           </button>
         </div>
       </div>
-
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="profile">
-        <span class="tb-ja">代表プロフィール</span><span class="tb-en">PROFILE</span>
-      </button>
 
       <!-- リンク（ドロップダウン親） -->
       <div class="tab-dropdown" id="linkDropdown" data-dropdown="link">
@@ -3128,7 +3604,7 @@ section > h2{margin-top:0}
         </div>
       </div>
 
-      <button class="tab-btn" role="tab" aria-selected="false" data-tab="contact">
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-contact" data-tab="contact">
         <span class="tb-ja">お問い合わせ</span><span class="tb-en">CONTACT</span>
       </button>
     </div>
@@ -3150,9 +3626,9 @@ section > h2{margin-top:0}
       <div class="tab-menu-section-label">Index</div>
       <ul class="tab-menu-list">
         <li><button class="tab-menu-branch" onclick="showMobileSection('about')"><span class="branch-text"><span class="branch-ja">mitsulab について</span><span class="branch-en">ABOUT</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="leaf-ja">代表プロフィール</span><span class="leaf-en">PROFILE</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('foundation')"><span class="branch-text"><span class="branch-ja">事業基盤</span><span class="branch-en">FOUNDATION</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('resources')"><span class="branch-text"><span class="branch-ja">関連情報</span><span class="branch-en">RESOURCES</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
-        <li><button class="tab-menu-leaf" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="leaf-ja">代表プロフィール</span><span class="leaf-en">PROFILE</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('link')"><span class="branch-text"><span class="branch-ja">リンク</span><span class="branch-en">LINK</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="contact" onclick="switchTabFromMenu('contact')"><span class="leaf-ja">お問い合わせ</span><span class="leaf-en">CONTACT</span></button></li>
       </ul>
@@ -3165,12 +3641,17 @@ section > h2{margin-top:0}
       <ul class="tab-menu-list">
         <li class="tab-menu-subgroup">概観 ／ Overview</li>
         <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">全体像</span><span class="leaf-en">Top</span></button></li>
-        <li class="tab-menu-subgroup">三本柱 ／ Three Pillars</li>
-        <li><button class="tab-menu-leaf" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="leaf-ja">Ⅰ：診る</span><span class="leaf-en">Observe</span></button></li>
-        <li><button class="tab-menu-leaf" data-tab="regenerate" onclick="switchTabFromMenu('regenerate')"><span class="leaf-ja">Ⅱ：再生する</span><span class="leaf-en">Regenerate</span></button></li>
-        <li><button class="tab-menu-leaf" data-tab="immerse" onclick="switchTabFromMenu('immerse')"><span class="leaf-ja">Ⅲ：感じる</span><span class="leaf-en">Immerse</span></button></li>
-        <li class="tab-menu-subgroup">長期ビジョン ／ Long-term Vision</li>
+        <li class="tab-menu-subgroup">中核 ／ Core</li>
         <li><button class="tab-menu-leaf" data-tab="cycle" onclick="switchTabFromMenu('cycle')"><span class="leaf-ja">自然循環OS</span><span class="leaf-en">Nature Cycle OS</span></button></li>
+        <li class="tab-menu-subgroup">四本柱（自然循環OS の方法論） ／ Four Pillars</li>
+        <li><button class="tab-menu-leaf" data-tab="observe" onclick="switchTabFromMenu('observe')"><span class="leaf-ja">Ⅰ：観測</span><span class="leaf-en">Observe</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="immerse" onclick="switchTabFromMenu('immerse')"><span class="leaf-ja">Ⅱ：感覚</span><span class="leaf-en">Immerse</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="regenerate" onclick="switchTabFromMenu('regenerate')"><span class="leaf-ja">Ⅲ：再生</span><span class="leaf-en">Regenerate</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="cycle" onclick="switchTabFromMenu('cycle')"><span class="leaf-ja">Ⅳ：編集</span><span class="leaf-en">Edit (Stillpoint)</span></button></li>
+        <li class="tab-menu-subgroup">関係性 ／ Interplay</li>
+        <li><button class="tab-menu-leaf" data-tab="interplay" onclick="switchTabFromMenu('interplay')"><span class="leaf-ja">相互関係</span><span class="leaf-en">Interplay</span></button></li>
+        <li class="tab-menu-subgroup">経緯 ／ Origin</li>
+        <li><button class="tab-menu-leaf" data-tab="journey" onclick="switchTabFromMenu('journey')"><span class="leaf-ja">mitsulabまでの経緯</span><span class="leaf-en">Journey</span></button></li>
       </ul>
     </section>
     <!-- ===== FOUNDATION 詳細 (new in r39) ===== -->
@@ -3220,35 +3701,88 @@ section > h2{margin-top:0}
 </div>
 
 <!-- ===== タブパネル群 ===== -->
-<main>
+<main id="main" tabindex="-1">
 
 <!-- ┌─ Tab 00: トップ（ランディング・全体俯瞰） ─────────────────── -->
-<div class="tab-panel active" data-panel="top" role="tabpanel">
+<div id="top" class="tab-panel active" data-panel="top" role="tabpanel">
+<h1 class="vh-h1">mitsulab — 自然循環OS を通じて One Health の実現に貢献する研究所。</h1>
+
 
 <section id="about">
   <span class="sec-num">01 / About</span>
   <h2>mitsulab について</h2>
   <span class="sec-en">What is mitsulab?</span>
 
-  <div class="top-vision">
-    <div class="top-vision-frame">
-      <span class="top-vision-label">Vision ／ ビジョン</span>
-      <p class="top-vision-jp">傷ついた自然循環を、<br>診て、再生し、感じる。</p>
-      <p class="top-vision-en">Observe × Regenerate × Immerse</p>
+  <p class="lead">mitsulab は、自然循環OS を通じて、<strong>One Health の実現に貢献する</strong>研究所です。</p>
+
+  <p>土・水・植物の自然循環は、本来ひとつのまとまりです。しかし近代以降、私たちはこれを農業・土木・林業・水文・生態・公衆衛生といった専門分野に切り分けて扱ってきました。それぞれが深まる一方で、自然循環そのものを統合的に観る視点を失い、斜面崩壊・樹勢衰退・水脈断絶・生態系の劣化などを引き起こしました。個別の症状に見えるこれらの現象は、根を辿れば<strong>「自然循環の機能不全」</strong>に行き着きます。</p>
+
+  <p>mitsulab は、この機能不全に向き合うため、<strong>「自然循環OS（Nature Cycle OS）」</strong>の構築に取り組んでいます。観測（Observe）・感覚（Immerse）・再生（Regenerate）・編集（Edit）の四つの実行レイヤーが有機的につながり、自然循環をひとつに結び直す仕組みです。これは同時に、人・動物・植物・環境の健康が不可分であるとする国際枠組み <strong>"One Health"</strong>（WHO・FAO・WOAH・UNEP 四機関合意）の「環境」次元を、現場から実装する方法論でもあります。土壌・水循環・生物多様性の機能不全を診断・回復することで、人・動物・植物の健康に資する仕組みを設計します。</p>
+
+  <p>自然循環OS の四つの実行レイヤーについて、<strong>観測</strong>は IoT・GIS・3DGS・音響観測で土地を多層的に捉え、<strong>感覚</strong>は書道を起点とするメディアアートで数値の届かない層に開き、<strong>再生</strong>は高田宏臣・矢野智徳ら第一線の実践者の現場で土と水と植物の循環を取り戻し、<strong>編集</strong>は 4 言語デジタルメディア <strong>Stillpoint</strong> で古今東西の自然循環に関する知恵を比較文化人類学的な視点から編みます。四つの実行レイヤーが連鎖することで、自然循環をひとつに結び直していきます。</p>
+
+  <p>自然循環OS が向かうのは、人間が自然を「制御する」未来ではありません。観測で自然の動きを聴き、再生で循環を取り戻し、感覚で人間と自然の関係そのものを修復し、編集で人類が築いてきた自然循環の知恵を紐解く——その全てを支える機械を、<strong>自然と人間の間に立つ媒介</strong>として位置づけます。人間が自然を制御するのでも、機械が人間に取って代わるのでもない。<strong>人間・自然・機械が互いの感覚を交換しながら、自然循環を共に支える</strong>。その器として、自然循環OS を社会と共に育てていきます。</p>
+
+  <!-- ===== 自然循環OS の枠（方法論プラットフォーム）===== -->
+  <div class="os-frame">
+    <div class="os-frame-header">
+      <span class="os-frame-eyebrow">Methodology Platform ／ 方法論プラットフォーム</span>
+      <h3 class="os-frame-title">自然循環OS<span class="os-frame-title-en">Nature Cycle OS</span></h3>
     </div>
-  </div>
 
-  <p class="lead">斜面が崩れる。樹勢が衰える。水脈が途切れる。生態系が痩せる。<br>症状は異なっても、根源は一つ——<strong>土・水・植物の自然循環の機能不全</strong>。</p>
+    <p class="os-frame-lead">自然循環OS は、観測・感覚・再生・編集という四つの実行レイヤーからなります。四つはそれぞれ独立した工程ではなく、相互に深く関連し合っています。どれかひとつだけでは自然循環の全体像は見えにくく、四つが補完し合うことではじめて、ほどけた自然循環をひとつに捉え直すことができます。</p>
 
-  <p>土・水・植物は、別々の問題ではなく一続きの循環として動いています。農業・土木・造園・林業・環境は、この同じ循環への異なる角度からのアプローチにすぎません。mitsulab は、この自然循環を取り戻すための研究所として、<strong>「診る」「再生する」「感じる」</strong>の三つの働きを一つの実践として担います。</p>
+    <!-- 全体概念イメージ図：4 レイヤーの全結合（網目）構造 -->
+    <div class="os-concept" role="img" aria-label="観測・感覚・再生・編集 の 4 レイヤーが互いに影響し合う網目構造図">
+      <svg class="os-concept-svg" viewBox="0 0 460 392" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- 6 edges（全 4 ノードを相互接続）-->
+        <g stroke="#b7a98c" stroke-width="1.4" opacity="0.85">
+          <line x1="230" y1="64" x2="396" y2="196"/>
+          <line x1="230" y1="64" x2="230" y2="328"/>
+          <line x1="230" y1="64" x2="64"  y2="196"/>
+          <line x1="396" y1="196" x2="230" y2="328"/>
+          <line x1="396" y1="196" x2="64"  y2="196"/>
+          <line x1="230" y1="328" x2="64"  y2="196"/>
+        </g>
+        <!-- 4 nodes -->
+        <g class="ocn" transform="translate(230,64)">
+          <circle r="54" fill="#fbf8f1" stroke="#9c7b3e" stroke-width="2"/>
+          <text class="ocn-roman" y="-20">I</text>
+          <text class="ocn-jp" y="6">観測</text>
+          <text class="ocn-en" y="26">Observe</text>
+        </g>
+        <g class="ocn" transform="translate(396,196)">
+          <circle r="54" fill="#fbf8f1" stroke="#c08a3a" stroke-width="2"/>
+          <text class="ocn-roman" y="-20">II</text>
+          <text class="ocn-jp" y="6">感覚</text>
+          <text class="ocn-en" y="26">Immerse</text>
+        </g>
+        <g class="ocn" transform="translate(230,328)">
+          <circle r="54" fill="#fbf8f1" stroke="#6b7b43" stroke-width="2"/>
+          <text class="ocn-roman" y="-20">III</text>
+          <text class="ocn-jp" y="6">再生</text>
+          <text class="ocn-en" y="26">Regenerate</text>
+        </g>
+        <g class="ocn" transform="translate(64,196)">
+          <circle r="54" fill="#fbf8f1" stroke="#4a5d7e" stroke-width="2"/>
+          <text class="ocn-roman" y="-20">IV</text>
+          <text class="ocn-jp" y="6">編集</text>
+          <text class="ocn-en" y="26">Edit</text>
+        </g>
+      </svg>
+      <p class="os-concept-caption">観測・感覚・再生・編集は、一方向に進むのではありません。<strong>観測</strong>は感覚・再生・編集のすべてを変え、<strong>感覚</strong>もまた観測・再生・編集を変える——四つが<strong>互いに影響し合う網の目</strong>として、ひとつでは見えない自然循環の全体像を、共に立ち上げます。</p>
+      <p class="os-concept-note">→ 四つの実践がどう相互に関係するかは <a href="#interplay" onclick="switchTab('interplay');return false;">相互関係</a> で詳しく整理しています。</p>
+    </div>
+
+    <p class="os-frame-pillars-lead">↓ 4 つの実行レイヤー（四本柱）の具体的なプロジェクト：</p>
 
   <div class="pillar-frames">
-    <a class="pillar-frame pf-observe pf-clickable" href="#observe" onclick="switchTab('observe');return false;" aria-label="診る／Observe の詳細を見る">
+    <a class="pillar-frame pf-observe pf-clickable" href="#observe" onclick="switchTab('observe');return false;" aria-label="観測／Observe の詳細を見る">
       <div class="pf-head">
         <span class="pf-num">Pillar Ⅰ</span>
-        <h3 class="pf-title">Ⅰ：診る<span class="pf-en">Observe</span></h3>
+        <h3 class="pf-title">Ⅰ：観測<span class="pf-en">Observe</span></h3>
       </div>
-      <p class="pf-body">IoT・GIS・3DGS・音響観測——現代の観測技術によって、人の五感では捉えられない循環の動きを翻訳します。土中の通気、微生物の活動、地表の変化、流域の水脈。<strong>見えない「傷」と「回復」をデータとして捉え直す</strong>こと。すべてはここから始まります。</p>
+      <p class="pf-body">IoT・GIS・3DGS・音響観測——現代の観測技術によって、人の五感では捉えられない自然循環の動きを翻訳します。土中の通気、微生物の活動、地表の変化、流域の水脈。<strong>見えない「傷」と「回復」をデータとして捉え直す</strong>こと。すべてはここから始まります。</p>
       <ul class="pf-projects">
         <li>
           <span class="pf-pj-meta">Project · 進行中 ／ Ongoing</span>
@@ -3258,7 +3792,7 @@ section > h2{margin-top:0}
         <li>
           <span class="pf-pj-meta">Project · 進行中 ／ Ongoing</span>
           <span class="pf-pj-name">Soil Sound Project</span>
-          <span class="pf-pj-desc">ピエゾマイクで土中の活動音（CO₂気泡・ミミズ・菌糸 等）を収録し、聴覚で土の状態を診る新しい指標。</span>
+          <span class="pf-pj-desc">ピエゾマイクで土中の活動音（CO₂気泡・ミミズ・菌糸 等）を収録し、聴覚で土の状態を観測する新しい指標。</span>
         </li>
         <li>
           <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
@@ -3268,45 +3802,15 @@ section > h2{margin-top:0}
         <li>
           <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
           <span class="pf-pj-name">eDNA × 土壌微生物観測</span>
-          <span class="pf-pj-desc">水・土サンプルから生物相全体を非破壊で把握。SOFIX 等の指標と組み合わせ、土壌の健全度を多角的に診る。</span>
+          <span class="pf-pj-desc">水・土サンプルから生物相全体を非破壊で把握。SOFIX 等の指標と組み合わせ、土壌の健全度を多角的に観測する。</span>
         </li>
       </ul>
-      <span class="pf-go" aria-hidden="true">診る の詳細を見る <span class="pf-go-arrow">──</span></span>
+      <span class="pf-go" aria-hidden="true">観測 の詳細を見る <span class="pf-go-arrow">──</span></span>
     </a>
-    <a class="pillar-frame pf-regenerate pf-clickable" href="#regenerate" onclick="switchTab('regenerate');return false;" aria-label="再生する／Regenerate の詳細を見る">
+    <a class="pillar-frame pf-immerse pf-clickable" href="#immerse" onclick="switchTab('immerse');return false;" aria-label="感覚／Immerse の詳細を見る">
       <div class="pf-head">
         <span class="pf-num">Pillar Ⅱ</span>
-        <h3 class="pf-title">Ⅱ：再生する<span class="pf-en">Regenerate</span></h3>
-      </div>
-      <p class="pf-body">高田宏臣 氏（NPO法人地球守）、矢野智徳 氏（大地の再生）——日本を代表する実践者のプロジェクトに参画し、現場で手を動かしながら学びます。土壌再生・樹勢回復・水系循環回復を、<strong>土・水・植物を一続きに扱う統合パッケージ</strong>として組み立てます。</p>
-      <ul class="pf-projects">
-        <li>
-          <span class="pf-pj-meta">Project · 参画中 ／ Active</span>
-          <span class="pf-pj-name">氷川参道（高田氏）</span>
-          <span class="pf-pj-desc">高田宏臣 氏主催の土壌改善プロジェクトに参画。しがら・点穴・素掘り溝で鎮守の森の地下を回復。</span>
-        </li>
-        <li>
-          <span class="pf-pj-meta">Project · 参画中 ／ Active</span>
-          <span class="pf-pj-name">上野原（矢野氏）</span>
-          <span class="pf-pj-desc">矢野智徳 氏主催の大地の再生プロジェクトに参画。水脈溝・点穴・風の草刈りで土地の流れを取り戻す。</span>
-        </li>
-        <li>
-          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
-          <span class="pf-pj-name">樹勢回復</span>
-          <span class="pf-pj-desc">樹木医との連携を進め、根圏改善を起点とした樹勢回復プロトコルを確立する。</span>
-        </li>
-        <li>
-          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
-          <span class="pf-pj-name">水系循環回復</span>
-          <span class="pf-pj-desc">水系再生実践者と連携し、流域スケールで水循環を診て・再生する仕組みを組み立てる。</span>
-        </li>
-      </ul>
-      <span class="pf-go" aria-hidden="true">再生する の詳細を見る <span class="pf-go-arrow">──</span></span>
-    </a>
-    <a class="pillar-frame pf-immerse pf-clickable" href="#immerse" onclick="switchTab('immerse');return false;" aria-label="感じる／Immerse の詳細を見る">
-      <div class="pf-head">
-        <span class="pf-num">Pillar Ⅲ</span>
-        <h3 class="pf-title">Ⅲ：感じる<span class="pf-en">Immerse</span></h3>
+        <h3 class="pf-title">Ⅱ：感覚<span class="pf-en">Immerse</span></h3>
       </div>
       <p class="pf-body">観測データと再生現場の手応えを、音・触覚・空間に変換し、社会に開きます。書道を起点とするメディアアート（Qualia Mind）と土中音のインスタレーション（Qualia Field）が、数値では届かない<strong>感覚知覚（Qualia）の層</strong>に訴えかけ、自然と人間の関係を問い直します。</p>
       <ul class="pf-projects">
@@ -3331,50 +3835,82 @@ section > h2{margin-top:0}
           <span class="pf-pj-desc">音と書、心拍と書のクオリアを媒介する書道メディアアート作品集。Qualia/sound Ⅰ・Ⅱ／Qualia/heart Ⅰ。</span>
         </li>
       </ul>
-      <span class="pf-go" aria-hidden="true">感じる の詳細を見る <span class="pf-go-arrow">──</span></span>
+      <span class="pf-go" aria-hidden="true">感覚 の詳細を見る <span class="pf-go-arrow">──</span></span>
+    </a>
+    <a class="pillar-frame pf-regenerate pf-clickable" href="#regenerate" onclick="switchTab('regenerate');return false;" aria-label="再生／Regenerate の詳細を見る">
+      <div class="pf-head">
+        <span class="pf-num">Pillar Ⅲ</span>
+        <h3 class="pf-title">Ⅲ：再生<span class="pf-en">Regenerate</span></h3>
+      </div>
+      <p class="pf-body">高田宏臣 氏（NPO法人地球守）、矢野智徳 氏（大地の再生）——日本を代表する実践者のプロジェクトに参画し、現場で手を動かしながら学びます。土壌再生・樹勢回復・水系循環回復を、<strong>土・水・植物を一続きに扱う統合パッケージ</strong>として組み立てます。</p>
+      <ul class="pf-projects">
+        <li>
+          <span class="pf-pj-meta">Project · 参画中 ／ Active</span>
+          <span class="pf-pj-name">氷川参道（高田氏）</span>
+          <span class="pf-pj-desc">高田宏臣 氏主催の土壌改善プロジェクトに参画。しがら・点穴・素掘り溝で鎮守の森の地下を回復。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 参画中 ／ Active</span>
+          <span class="pf-pj-name">上野原（矢野氏）</span>
+          <span class="pf-pj-desc">矢野智徳 氏主催の大地の再生プロジェクトに参画。水脈溝・点穴・風の草刈りで土地の流れを取り戻す。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
+          <span class="pf-pj-name">樹勢回復</span>
+          <span class="pf-pj-desc">樹木医との連携を進め、根圏改善を起点とした樹勢回復プロトコルを確立する。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
+          <span class="pf-pj-name">水系循環回復</span>
+          <span class="pf-pj-desc">水系再生実践者と連携し、流域スケールで水循環を観測し・再生する仕組みを組み立てる。</span>
+        </li>
+      </ul>
+      <span class="pf-go" aria-hidden="true">再生 の詳細を見る <span class="pf-go-arrow">──</span></span>
+    </a>
+    <a class="pillar-frame pf-stillpoint pf-clickable" href="#cycle" onclick="switchTab('cycle');return false;" aria-label="編集／Edit（Stillpoint）の詳細を見る">
+      <div class="pf-head">
+        <span class="pf-num">Pillar Ⅳ</span>
+        <h3 class="pf-title">Ⅳ：編集<span class="pf-en">Edit</span></h3>
+      </div>
+      <p class="pf-body"><strong>編集工学</strong>の考えに基づき、古今東西の自然循環の<strong>実践と知恵を横断的にまとめます</strong>。観測・感覚・再生が「いま・ここ」を扱うのに対し、編集は「<strong>古今東西</strong>」の事例を編み、四本柱を相互に厚くします。その実践媒体が、4 言語デジタルメディア <strong>Stillpoint</strong> です。</p>
+      <ul class="pf-projects">
+        <li>
+          <span class="pf-pj-meta">Project · 進行中 ／ Ongoing</span>
+          <span class="pf-pj-name">Stillpoint（4 言語編集媒体）</span>
+          <span class="pf-pj-desc">月 2 号・約 8,000 字・日／英／中／西。季節・暮らし・水・土の循環を、古今東西の文化から比較編集する長文媒体。媒体名は T.S. エリオット「Burnt Norton」の "still point"（回転する世界の静止点）に由来する。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
+          <span class="pf-pj-name">古今東西 自然循環アーカイブ</span>
+          <span class="pf-pj-desc">日本の二十四節気・古典、東アジアの暦、欧州の修道院庭園、先住民の伝統知——観測・感覚・再生と相互参照できる事例データベース。</span>
+        </li>
+        <li>
+          <span class="pf-pj-meta">Project · 構想 ／ Planned</span>
+          <span class="pf-pj-name">研究者・実践者との対話</span>
+          <span class="pf-pj-desc">比較文化人類学・環境人文学・伝統知の研究者、各地の現場実践者との対話を、4 言語で社会へひらく。</span>
+        </li>
+      </ul>
+      <span class="pf-go" aria-hidden="true">Stillpoint の詳細を見る <span class="pf-go-arrow">──</span></span>
     </a>
   </div>
 
-  <p>これら三つの柱は独立した工程ではなく、<strong>観測 → 再生 → 体感</strong>の往復として一続きに動きます。再生現場での観測が次の精度を上げ、体感が関心の輪を広げ、それがまた次の現場を呼ぶ——この循環構造そのものが、mitsulab の研究所としての形です。</p>
+    <p class="os-frame-close">これら四本柱は独立した工程ではなく、<strong>観測 → 感覚 → 再生 → 編集 → 観測</strong> の往復として一続きに動きます。観測が感覚の精度を上げ、感覚が再生の動機を呼び、再生の手応えが古今東西の編集へ還り、その編集がまた次の観測を照らす——この循環構造そのものが、mitsulab の研究所としての形です。</p>
 
-  <!-- ===== 自然循環OS（長期ビジョン）サマリー ===== -->
-  <div class="os-summary">
-    <div class="os-summary-head">
-      <span class="os-summary-num">Long-term Vision</span>
-      <h3 class="os-summary-title">自然循環OS<span class="os-summary-en">Nature Cycle OS</span></h3>
+    <!-- One Health（方法論プラットフォームが目指す先）-->
+    <div class="os-frame-onehealth">
+      <h4 class="os-oh-title">自然循環OS が目指す先 — <em>One Health の実現</em></h4>
+      <p class="os-oh-lead">mitsulab は、自然循環OS を通じて <strong>One Health の実現</strong>に貢献する研究所です。</p>
+      <p>人と動物と環境の健康は、本来ひとつの大きな循環の上にあります。雨は土に染み、土は植物を育て、植物は動物を養い、動物は人と土地を支える。土壌・水循環・生物多様性のどこかが劣化すれば、その綻びはやがて動物と人の健康へと波及していく——この認識は「<strong>One Health（ワンヘルス）</strong>」という言葉で、世界保健機関（WHO）・国連食糧農業機関（FAO）・世界動物保健機関（WOAH）・国連環境計画（UNEP）の四機関により、国際的な枠組みとして公式化されています。コロナ禍は、この不可分性を世界中に強く印象づけました。</p>
     </div>
-    <p class="os-summary-lead">三本柱の先に、mitsulab が長期的に見据えるのは、<strong>自然循環を取り戻すための統合プラットフォーム——「自然循環OS（Nature Cycle OS）」</strong>の構築です。</p>
-    <p class="os-summary-body">観測・再生・感覚の三層が、フィジカルAI をはじめとする統合技術によって有機的につながり、<strong>人間・自然・機械が三位一体</strong>となって自然循環の再生を支える仕組みを目指します。これは個別の製品や SaaS ではなく、専門家・研究者・住民・自治体・企業が共に育てていく<strong>器</strong>として構想しています。</p>
-    <div class="os-summary-layers">
-      <a class="os-layer os-layer-observe" href="#observe" onclick="switchTab('observe');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
-        <span class="os-layer-num">Layer Ⅰ</span>
-        <span class="os-layer-name">Ⅰ：診る ／ Observe</span>
-        <span class="os-layer-desc">IoT・GIS・3DGS・環境DNA・音響観測で、自然循環の動態をデータに翻訳する層。</span>
-      </a>
-      <a class="os-layer os-layer-regenerate" href="#regenerate" onclick="switchTab('regenerate');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
-        <span class="os-layer-num">Layer Ⅱ</span>
-        <span class="os-layer-name">Ⅱ：再生する ／ Regenerate</span>
-        <span class="os-layer-desc">日本に蓄積された再生実践知を体系化し、観測データと連動させて現場へ展開する層。</span>
-      </a>
-      <a class="os-layer os-layer-immerse" href="#immerse" onclick="switchTab('immerse');return false;" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer">
-        <span class="os-layer-num">Layer Ⅲ</span>
-        <span class="os-layer-name">Ⅲ：感じる ／ Immerse</span>
-        <span class="os-layer-desc">観測と再生のデータを、音・触覚・空間といった人間の感覚に翻訳する層。</span>
-      </a>
-    </div>
-    <p class="os-summary-cta">
-      <button class="os-summary-link" onclick="switchTab('cycle')">自然循環OS の詳細を見る ──</button>
-    </p>
-  </div>
 
+  </div><!-- /.os-frame -->
 
-  
-
+  </section>
 
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>関連する詳細は、 <a href="#observe" onclick="switchTab('observe');return false;">診る</a> ／ <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> ／ <a href="#immerse" onclick="switchTab('immerse');return false;">感じる</a> ／ <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+    <p>関連する詳細は、 <a href="#observe" onclick="switchTab('observe');return false;">観測</a> ／ <a href="#immerse" onclick="switchTab('immerse');return false;">感覚</a> ／ <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生</a> ／ <a href="#cycle" onclick="switchTab('cycle');return false;">編集（自然循環OS）</a> へ。</p>
   </aside>
 </section>
 
@@ -3382,7 +3918,7 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 03: 代表プロフィール ─────────────────── -->
-<div class="tab-panel" data-panel="profile" role="tabpanel">
+<div class="tab-panel" id="panel-profile" data-panel="profile" role="tabpanel" aria-label="代表プロフィール">
 
 <section id="profile">
   <span class="sec-num">03 / Profile</span>
@@ -3394,15 +3930,19 @@ section > h2{margin-top:0}
     <div class="founder-name-en">Uehara Mitsuaki</div>
   </div>
 
-  <p>埼玉大学工学部建設工学科卒業後、埼玉県庁の土木技術職として8年間、山間部の道路・斜面・公園施設の維持管理に携わる。令和元年東日本台風では、県内最大規模となった地すべり復旧工事(約7ha、地すべり土量 約98万m³)の主担当として現場を指揮し、令和6年度<strong>全建賞(災害枠・都市部門)</strong>を受賞。</p>
+  <p class="lead" style="margin-top:8px">mitsulab 代表 ／ Stillpoint 編集長。</p>
 
-  <p>繰り返し崩れる斜面に共通するのは、団粒構造が失われた土と、表面を一気に流れる雨水だった。コンクリートや鋼材で補強するたびに一時の安定は得られるが、数年後には別の場所がまた動き始める——「これは地盤の強さではなく、土壌そのものの問題ではないか」という問いが生まれた。同じ頃、公園管理の現場で樹木医から<strong>「樹勢を根本から上げるには、地上部の手入れだけでは足りず、土壌改良が必要だ」</strong>という知見を得る。水系の循環回復に取り組む実践者の試みも知り、<strong>土・水・植物は一続きの自然循環として動いている</strong>ことに気づく。</p>
+  <p>埼玉大学工学部建設工学科を卒業後、埼玉県庁の土木技術職として 8 年間、山間部の道路・斜面・橋梁・公園施設の設計・施工監理・維持管理・災害復旧に従事。令和元年東日本台風では、県内最大規模となった地すべり復旧工事（約 7ha、地すべり土量 約 98 万 m³）の主担当として現場を指揮し、<strong>令和 6 年度 全建賞（災害枠・都市部門）</strong>を受賞。</p>
 
-  <p>その問いを起点に、有機農業・有機土木・森林土木・土壌学へと学びを広げる。高田宏臣『土中環境』、矢野智徳『大地の再生』、樹木医による根圏改善、江戸期の農書・土木書、アルバート・ハワードのインドール法——これらを通じて、すでに自然循環を取り戻そうと動いている実践者がいることを知り、自身の現場経験と分野横断の視点が、その流れと一致することを確信した。</p>
+  <p>災害復旧工事への従事、樹木医や水系再生の実践者との対話の中で、「<strong>土・水・植物は一続きの自然循環として動いている</strong>」という確信に至る。同時に、人の健康と自然の健康は切り離せず、両方を支える鍵——<strong>One Health</strong>（人・動物・環境の健康の不可分）の「環境」次元——のポイントが、まさにこの自然循環にあるという確信を、県庁時代を通じて深めた。</p>
 
-  <p>8年の現場経験と、土木・農業・造園・林業を横断する分野統合の視点に、在職中から並行して実践してきたテクノロジー(IoT・GIS・3DGS・AI・VR/MR)とアート(書道・メディアアート)を組み合わせ、<strong>「傷ついた自然循環を、診て、再生し、感じる」</strong>を掲げて mitsulab を開業。書道では日本書作家協会認定の雅号「菱碧(りょうへき)」を持ち、Qualia Mind 60作品超、Modarity X、Soil Sound Project など知覚拡張に関わる作品を継続制作。VR プロフェッショナルアカデミー 5 期生として VR・MR を体系的に習得した。</p>
+  <p>2026 年 3 月、その確信を起点に mitsulab を開業。「<strong>自然循環OS を通じて One Health の実現に貢献する</strong>」というビジョンのもと、観測・感覚・再生・編集の四本柱から成る、自然循環の再生のための方法論プラットフォーム「<strong>自然循環OS（Nature Cycle OS）</strong>」を実装している。</p>
 
-  <p>並行して、4言語デジタルメディア<strong>「Stillpoint」の編集長</strong>を務め、リジェネラティブ思想・東洋哲学・自然との共生を国際的に発信。2026年4月より、<strong>氷川参道 土壌改善プロジェクト</strong>(高田宏臣・NPO法人地球守)と<strong>上野原 大地の再生プロジェクト</strong>(矢野智徳・大地の再生)に参画し、現場で手を動かしながら学んでいる。</p>
+  <p>四本柱では、それぞれ具体的に次のことに取り組んでいる。<strong>観測（Observe）</strong>では、IoT・GIS・3D Gaussian Splatting・AI・VR/MR を組み合わせ、土地の状態を多層的に可視化する技術スタックを構築（VR プロフェッショナルアカデミー 5 期生）。<strong>感覚（Immerse）</strong>では、書道（日本書作家協会認定の雅号「菱碧（りょうへき）」）を起点に、Qualia Mind 60 作品超、Modarity X、Soil Sound Project などの知覚拡張作品を継続制作。<strong>再生（Regenerate）</strong>では、高田宏臣氏（NPO 法人地球守）の<strong>氷川参道 土壌改善プロジェクト</strong>と、矢野智徳氏（大地の再生）の<strong>上野原 大地の再生プロジェクト</strong>に参画し、現場で手を動かしながら再生実践知を学んでいる。<strong>編集（Edit）</strong>では、4 言語デジタルメディア <strong>Stillpoint</strong> の編集長として、リジェネラティブ思想・東洋哲学・自然との共生を比較文化人類学的に編み、世界へ発信している。</p>
+
+  <p>自然循環OS が向かうのは、人間が自然を「制御する」未来ではない。観測で自然の動きを聴き、再生で循環を取り戻し、感覚翻訳で人間と自然の関係そのものを修復する——その全てを支える機械を、<strong>自然と人間の間に立つ媒介</strong>として位置づける。人間が自然を制御するのでも、機械が人間に取って代わるのでもない。<strong>人間・自然・機械が互いの感覚を交換しながら、自然循環を共に支える</strong>。その器として、自然循環OS を社会と共に育てていく。</p>
+
+  <h3 style="margin-top:64px">年表</h3>
 
   <div class="journey">
     <div class="journey-item"><div class="date">1995.4</div><div>埼玉県で生まれる</div></div>
@@ -3412,7 +3952,7 @@ section > h2{margin-top:0}
     <div class="journey-item"><div class="date">2026.1–</div><div>有機農業研修(すどう農場・日本農業実践学園)</div></div>
     <div class="journey-item"><div class="date">2026.3</div><div><strong>mitsulab 開業</strong>(埼玉県さいたま市大宮区)</div></div>
     <div class="journey-item"><div class="date">2026.4–</div><div>氷川参道 土壌改善プロジェクト参画(高田宏臣・NPO法人地球守)／上野原 大地の再生プロジェクト参画(矢野智徳・大地の再生)</div></div>
-    <div class="journey-item"><div class="date">2026.4–</div><div>4言語デジタルメディア <strong>Stillpoint 編集長</strong>(日・英・西・中)</div></div>
+    <div class="journey-item"><div class="date">2026.4–</div><div>自然循環OS 第 4 の柱「編集」 — 4 言語デジタルメディア <strong>Stillpoint</strong> 運営開始（日・英・西・中）</div></div>
   </div>
 </section>
 
@@ -3423,7 +3963,7 @@ section > h2{margin-top:0}
   
   <h2>専門領域</h2>
   <span class="sec-en">Four pillars of integrated practice</span>
-  <p class="lead">土木現場 8 年で培った身体感覚と、再生技術・テクノロジー・アートを横断する統合的視点。観測（measure）、再生（regenerate）、感じる（sense）の三層を、ひとつの実践として接続する。</p>
+  <p class="lead">土木現場 8 年で培った身体感覚と、再生技術・テクノロジー・アートを横断する統合的視点。観測・感覚・再生・編集の四層を、ひとつの実践として接続する。</p>
 
   <div class="grid grid-2" style="margin-top:18px">
     <div class="card">
@@ -3479,27 +4019,75 @@ section > h2{margin-top:0}
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>日々の発信は <a href="#link-media" onclick="switchTab('link-media');return false;">メディア</a> へ。長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+    <p>日々の発信は <a href="#link-media" onclick="switchTab('link-media');return false;">メディア</a> へ。中核となる方法論プラットフォームは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
   </aside>
 </section>
 
 </div><!-- /tab-panel profile -->
+
+<!-- ┌─ Tab: mitsulab までの経緯 ─────────────────── -->
+<div class="tab-panel" id="panel-journey" data-panel="journey" role="tabpanel" aria-label="mitsulab までの経緯">
+
+<section id="journey">
+  <span class="sec-num">03 · 02 / Journey</span>
+  <h2>mitsulab までの経緯</h2>
+  <span class="sec-en">The Journey to mitsulab</span>
+
+  <p class="lead">土木の現場から自然循環OS へ。代表・上原光瑛が、繰り返し崩れる斜面の前で得た問いを起点に、土・水・植物を一続きの自然循環として捉え直し、2026 年 3 月に <strong>mitsulab</strong> を開業するまでの経緯です。</p>
+
+  <h3 style="margin-top:64px">経歴のナラティブ</h3>
+
+  <p>埼玉大学工学部建設工学科卒業後、埼玉県庁の土木技術職として 8 年間、山間部の道路・斜面・公園施設の維持管理に携わる。令和元年東日本台風では、県内最大規模となった地すべり復旧工事（約 7ha、地すべり土量 約 98 万 m³）の主担当として現場を指揮し、令和 6 年度 <strong>全建賞（災害枠・都市部門）</strong>を受賞。</p>
+
+  <p>繰り返し崩れる斜面に共通するのは、団粒構造が失われた土と、表面を一気に流れる雨水だった。コンクリートや鋼材で補強するたびに一時の安定は得られるが、数年後には別の場所がまた動き始める——「これは地盤の強さではなく、土壌そのものの問題ではないか」という問いが生まれた。同じ頃、公園管理の現場で樹木医から<strong>「樹勢を根本から上げるには、地上部の手入れだけでは足りず、土壌改良が必要だ」</strong>という知見を得る。水系の循環回復に取り組む実践者の試みも知り、<strong>土・水・植物は一続きの自然循環として動いている</strong>ことに気づく。</p>
+
+  <p>その問いを起点に、有機農業・有機土木・森林土木・土壌学へと学びを広げる。高田宏臣『土中環境』、矢野智徳「大地の再生」、樹木医による根圏改善、江戸期の農書・土木書、アルバート・ハワードのインドール法——これらを通じて、すでに自然循環を取り戻そうと動いている実践者がいることを知り、自身の現場経験と分野横断の視点が、その流れと一致することを確信する。</p>
+
+  <p>同じ時期に、もうひとつの重要な気づきがあった。<strong>コロナ禍</strong>である。野生動物に由来するウイルスが、家畜を経て人へ渡り、国境を越え、暮らしと社会を一瞬で覆す——「人・動物・環境の健康は不可分である」という認識が、<strong>One Health（ワンヘルス）</strong>として WHO・FAO・WOAH・UNEP の四機関で公式化されていたことを、ここで実感をともなって学び直した。現場で扱われている個別の問題は、より広い枠組み——One Health における「環境」次元の機能不全、すなわち <strong>ほどけた自然循環</strong>——として位置づけ直せる。その実装方法論を <strong>自然循環OS（Nature Cycle OS）</strong>として構築するに至った。</p>
+
+  <p>8 年の現場経験と、土木・農業・造園・林業を横断する分野統合の視点を礎に、2026 年 3 月、<strong>ほどけた自然循環をひとつに結び直すための研究所</strong>として mitsulab を開業した。その実装方法論である自然循環OS は、<strong>観測（Ⅰ）・感覚（Ⅱ）・再生（Ⅲ）・編集（Ⅳ）の四本柱</strong>から成る。一つひとつの柱を、在職中から並行して積み重ねてきた実践が支えている。</p>
+
+  <p><strong>観測（Ⅰ）</strong>では、IoT・GIS・3D Gaussian Splatting・AI・VR/MR を組み合わせ、土地の状態を多層的に可視化する技術スタックを構築。VR プロフェッショナルアカデミー 5 期生として XR 制作の体系を習得した。<strong>感覚（Ⅱ）</strong>では、幼少より親しんだ書道を起点に——日本書作家協会認定の雅号「菱碧（りょうへき）」を持つ——Qualia Mind 60 作品超、Modarity X、Soil Sound Project など、数値では届かない自然循環を人間の感覚へ翻訳する知覚拡張作品を継続制作している。</p>
+
+  <p><strong>再生（Ⅲ）</strong>では、2026 年 4 月より <strong>氷川参道 土壌改善プロジェクト</strong>（高田宏臣・NPO 法人地球守）と <strong>上野原 大地の再生プロジェクト</strong>（矢野智徳・大地の再生）に参画し、現場で手を動かしながら再生実践知を学んでいる。<strong>編集（Ⅳ）</strong>では、編集工学の考えに基づき、古今東西の自然循環の実践と知恵を横断的にまとめる媒体として、4 言語デジタルメディア <strong>Stillpoint</strong> を運営。リジェネラティブ思想・東洋哲学・自然との共生を、比較文化人類学的な視点から編み、国際的に発信している。</p>
+
+  
+  <h3 style="margin-top:64px">年表</h3>
+
+  <div class="journey">
+    <div class="journey-item"><div class="date">1995.4</div><div>埼玉県で生まれる</div></div>
+    <div class="journey-item"><div class="date">2018.3</div><div>埼玉大学工学部建設工学科卒業</div></div>
+    <div class="journey-item"><div class="date">2018.4</div><div>埼玉県庁入庁(土木技術職)</div></div>
+    <div class="journey-item"><div class="date">2021.4–2025.3</div><div>令和元年東日本台風 地すべり復旧工事 主担当(規模 約7ha・地すべり土量 約98万m³／LiDAR点群データ活用／<strong>令和6年度 全建賞 災害枠・都市部門 受賞</strong>)</div></div>
+    <div class="journey-item"><div class="date">2026.1–</div><div>有機農業研修(すどう農場・日本農業実践学園)</div></div>
+    <div class="journey-item"><div class="date">2026.3</div><div><strong>mitsulab 開業</strong>(埼玉県さいたま市大宮区)</div></div>
+    <div class="journey-item"><div class="date">2026.4–</div><div>氷川参道 土壌改善プロジェクト参画(高田宏臣・NPO法人地球守)／上野原 大地の再生プロジェクト参画(矢野智徳・大地の再生)</div></div>
+    <div class="journey-item"><div class="date">2026.4–</div><div>自然循環OS 第 4 の柱「編集」 — 4 言語デジタルメディア <strong>Stillpoint</strong> 運営開始（日・英・西・中）</div></div>
+  </div>
+
+  <aside class="panel-end-link" style="margin-top:48px">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>代表の現在の役割・連絡先・プロフィール（コピペ可）は <a href="#profile" onclick="switchTab('profile');return false;">代表プロフィール</a> へ。事業の中核と方法論は <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+  </aside>
+</section>
+
+</div><!-- /tab-panel journey -->
 <!-- ┌─ Tab 04: 診る / Observe ─────────────────── -->
-<div class="tab-panel" data-panel="observe" role="tabpanel">
+<div id="observe" class="tab-panel" data-panel="observe" role="tabpanel">
 
 <section id="observe">
   <span class="sec-num">04 / Observe</span>
-  <h2>Ⅰ：診る</h2>
+  <h2>Ⅰ：観測</h2>
   <span class="sec-en">Observe &mdash; Translating the Invisible</span>
 
   <p class="lead">人の五感では捉えられない自然循環の動きを、現代の観測技術によって計測可能な形に翻訳します。土中の通気、微生物の活動、地表の経年変化、流域の水脈——目に見えない「傷」と「回復」を、データとして捉え直す働きです。</p>
 
   <h3 style="margin-top:64px">観測の4つのスケール</h3>
   <ul class="pill-list" style="margin-top:18px">
-    <li><strong>GIS で診る</strong> ── 流域・地形・植生・土壌水分量の分布を地図上で重ね、<strong>マクロな構造</strong>と変化の追跡を担う。</li>
-    <li><strong>IoT で診る</strong> ── 各種センサーで土壌水分・温度・CO₂等を継続観測。<strong>ミクロな因子</strong>の動態を扱う。</li>
-    <li><strong>3DGS で診る</strong> ── 360度カメラ＋3D Gaussian Splatting による空間記録。施工前後の<strong>時間変化</strong>を3D空間として比較する。</li>
-    <li><strong>音響観測で診る</strong> ── 土中ピエゾマイクや水中ハイドロフォンで、<strong>聴くことで状態を診る</strong>新しい指標を開発する。</li>
+    <li><strong>GIS で観測する</strong> ── 流域・地形・植生・土壌水分量の分布を地図上で重ね、<strong>マクロな構造</strong>と変化の追跡を担う。</li>
+    <li><strong>IoT で観測する</strong> ── 各種センサーで土壌水分・温度・CO₂等を継続観測。<strong>ミクロな因子</strong>の動態を扱う。</li>
+    <li><strong>3DGS で観測する</strong> ── 360度カメラ＋3D Gaussian Splatting による空間記録。施工前後の<strong>時間変化</strong>を3D空間として比較する。</li>
+    <li><strong>音響で観測する</strong> ── 土中ピエゾマイクや水中ハイドロフォンで、<strong>聴くことで状態を捉える</strong>新しい指標を開発する。</li>
   </ul>
 
   <h3 style="margin-top:64px">進行中の観測プロジェクト</h3>
@@ -3512,14 +4100,14 @@ section > h2{margin-top:0}
     <div class="card">
       <span class="tag">Project / Observe</span>
       <h3>Soil Sound Project<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">土中音響観測プロジェクト</small></h3>
-      <p>ピエゾマイクを土中に設置し、<strong>CO₂気泡・ミミズの移動・菌糸の活動音（100Hz〜48kHz）</strong>を収録・解析するプロジェクト。「健全な土」と「傷ついた土」で音のパターンがどう違うかを比較し、<strong>聴くことで土の状態を診る新しい指標</strong>を確立します。技術設計は完了、PoC（概念実証）に着手しています。</p>
+      <p>ピエゾマイクを土中に設置し、<strong>CO₂気泡・ミミズの移動・菌糸の活動音（100Hz〜48kHz）</strong>を収録・解析するプロジェクト。「健全な土」と「傷ついた土」で音のパターンがどう違うかを比較し、<strong>聴くことで土の状態を捉える新しい指標</strong>を確立します。技術設計は完了、PoC（概念実証）に着手しています。</p>
     </div>
   </div>
 
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>次の柱は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> へ。観測技術の用語は <a href="#glossary" onclick="switchTab('glossary');return false;">用語解説</a> へ。</p>
+    <p>次の柱は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生</a> へ。観測技術の用語は <a href="#glossary" onclick="switchTab('glossary');return false;">用語解説</a> へ。</p>
   </aside>
 </section>
 
@@ -3527,11 +4115,11 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 05: 再生する / Regenerate ─────────────────── -->
-<div class="tab-panel" data-panel="regenerate" role="tabpanel">
+<div id="regenerate" class="tab-panel" data-panel="regenerate" role="tabpanel">
 
 <section id="regenerate">
   <span class="sec-num">05 / Regenerate</span>
-  <h2>Ⅱ：再生する</h2>
+  <h2>Ⅲ：再生</h2>
   <span class="sec-en">Regenerate &mdash; Restoring the Cycle</span>
 
   <p class="lead">日本を代表する自然循環再生の実践者が主催するプロジェクトに参画し、現場で手を動かしながら、傷ついた循環を本来の動きへと戻していきます。土壌再生・樹勢回復・水系循環回復を、土・水・植物を一続きに扱う<strong>統合パッケージ</strong>として組み立てる働きです。</p>
@@ -3558,14 +4146,14 @@ section > h2{margin-top:0}
     <div class="card">
       <span class="tag">Project / Regenerate</span>
       <h3>水系循環回復プロジェクト<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">水系再生実践者との連携</small></h3>
-      <p><strong>流域スケールの水の流れの再構築</strong>。水系再生に取り組む実践者と連携し、点ではなく流域として<strong>水循環を診て・再生する仕組み</strong>を組み立てます。</p>
+      <p><strong>流域スケールの水の流れの再構築</strong>。水系再生に取り組む実践者と連携し、点ではなく流域として<strong>水循環を観測し・再生する仕組み</strong>を組み立てます。</p>
     </div>
   </div>
 
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>次の柱は <a href="#immerse" onclick="switchTab('immerse');return false;">感じる</a> へ。再生実践の参照点は <a href="#projects" onclick="switchTab('projects');return false;">関連プロジェクト</a> へ。</p>
+    <p>次の柱は <a href="#immerse" onclick="switchTab('immerse');return false;">感覚</a> へ。再生実践の参照点は <a href="#projects" onclick="switchTab('projects');return false;">関連プロジェクト</a> へ。</p>
   </aside>
 </section>
 
@@ -3573,16 +4161,16 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 06: 感じる / Immerse ─────────────────── -->
-<div class="tab-panel" data-panel="immerse" role="tabpanel">
+<div id="immerse" class="tab-panel" data-panel="immerse" role="tabpanel">
 
 <section id="immerse">
   <span class="sec-num">06 / Immerse</span>
-  <h2>Ⅲ：感じる</h2>
+  <h2>Ⅱ：感覚</h2>
   <span class="sec-en">Immerse &mdash; Opening to the Senses</span>
 
   <p class="lead">観測されたデータと再生現場の手応えを、音・触覚・空間に変換し、社会に体験として開きます。書道を起点とするメディアアートや土中音のインスタレーションが、数値では届かない感覚知覚（Qualia）の層に訴えかけ、自然と人間の関係そのものを問い直す装置として動きます。</p>
 
-  <p>診る・再生するの実践を、データやレポートでは届かない受け手にも届けるための柱です。これからの自然資本の時代において、企業や自治体のステークホルダーと「自然」の関係性を取り戻す体験設計が、再生プロジェクトの持続的な社会実装には欠かせません。</p>
+  <p>観測・再生の実践を、データやレポートでは届かない受け手にも届けるための柱です。これからの自然資本の時代において、企業や自治体のステークホルダーと「自然」の関係性を取り戻す体験設計が、再生プロジェクトの持続的な社会実装には欠かせません。</p>
 
   <h3 style="margin-top:64px">継続中の知覚拡張プロジェクト</h3>
   <div class="grid grid-2" style="margin-top:18px">
@@ -3601,7 +4189,7 @@ section > h2{margin-top:0}
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>三本柱を貫く長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。背景の思想は <a href="#thought" onclick="switchTab('thought');return false;">関連思想</a> へ。</p>
+    <p>四本柱を貫く中核は <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。背景の思想は <a href="#thought" onclick="switchTab('thought');return false;">関連思想</a> へ。</p>
   </aside>
 </section>
 
@@ -3609,14 +4197,14 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 04: mitsulabの役割 / Roles (extracted from practice in r30) ─────────────────── -->
-<div class="tab-panel" data-panel="roles" role="tabpanel">
+<div id="roles" class="tab-panel" data-panel="roles" role="tabpanel">
 
 <section id="roles">
   <span class="sec-num">04 / Roles</span>
   <h2>3 つの役割</h2>
-  <span class="sec-en">Roles — Complement, Integrate, Disseminate</span>
+  <span class="sec-en">Roles — The hands and eyes of Nature Cycle OS</span>
 
-  <p class="lead">mitsulab は「再生の主役」ではなく、第一線の実践者と社会の間に立つ<strong>媒介</strong>です。具体的には、補完・統合・普及の 3 つの役割を担います。</p>
+  <p class="lead">mitsulab は「再生の主役」ではなく、第一線の実践者と社会の間に立つ<strong>媒介</strong>です。これら 3 つの役割は、<strong>自然循環OS（Nature Cycle OS）を現場で動かす「手と目」</strong>として位置づけられます——観測と診断（① 補完する）、体験設計（③ 普及させる）、再生実装（② 統合する）が、自然循環OS の四本柱（観測・感覚・再生・編集）のうち「いま・ここ」を扱う観測・感覚・再生と直接対応します。</p>
 
   <div class="biz-role">
     <div class="biz-role-head" style="border-top-color:var(--soil)">
@@ -3638,10 +4226,10 @@ section > h2{margin-top:0}
       <span class="biz-role-num">Role Ⅱ</span>
       <h3 class="biz-role-title">統合する<small>Integrate</small></h3>
     </div>
-    <p>土壌再生・大地の再生・樹勢回復・水系循環回復——日本にはそれぞれの領域で優れた実践者がいる一方で、<strong>土・水・植物が一続きに動く自然循環</strong>という共通の地平で、これらを横断的に統合する場はまだ十分に育っていません。mitsulab は<strong>「診る × 再生する × 感じる」を共通軸</strong>に、各領域の専門性を一つのパッケージとしてまとめます。</p>
+    <p>土壌再生・大地の再生・樹勢回復・水系循環回復——日本にはそれぞれの領域で優れた実践者がいる一方で、<strong>土・水・植物が一続きに動く自然循環</strong>という共通の地平で、これらを横断的に統合する場はまだ十分に育っていません。mitsulab は<strong>「観測 × 感覚 × 再生」を共通軸</strong>に、各領域の専門性を一つのパッケージとしてまとめます。</p>
     <p>具体的には、現場ごとに「土の問題」「水の問題」「樹木の問題」と分けて発注されがちな案件を、<strong>流域・敷地・里山という生態単位</strong>で診断し、必要な専門家を必要なタイミングで投入する設計を行います。これにより、土壌改善が樹勢回復を促し、樹勢回復が水系を蘇らせる——<strong>循環の連鎖</strong>として再生を組み立てられます。</p>
     <ul class="pill-list" style="margin-top:18px">
-      <li><strong>統合診断</strong> ── 土・樹・水の三層を同時に診て、優先順位とアプローチを設計</li>
+      <li><strong>統合診断</strong> ── 土・樹・水を同時に観測し、優先順位とアプローチを設計</li>
       <li><strong>専門家ネットワーク調整</strong> ── どの専門家を、どの順序で、どの強度で投入するか</li>
       <li><strong>共通言語の整備</strong> ── 各領域の専門用語を「自然循環」という共通フレームに翻訳</li>
       <li><strong>循環単位での評価</strong> ── 土・樹・水を独立指標ではなく、相互作用として評価</li>
@@ -3676,16 +4264,21 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 08-overview: 事業概要 / Overview (new in r39) ─────────────────── -->
-<div class="tab-panel" data-panel="overview" role="tabpanel">
+<div id="overview" class="tab-panel" data-panel="overview" role="tabpanel">
 
 <section id="overview">
   <span class="sec-num">08 / Overview</span>
   <h2>事業概要</h2>
-  <span class="sec-en">Overview — Foundation of mitsulab's practice</span>
-  <p class="lead">mitsulab の事業基盤は、<strong>事業形態（誰と何を）</strong>と<strong>役割（どう動くか）</strong>を具体に組み立てる二つの章と、その実装が「いま」必要となる<strong>三つの背景（政策・地球環境・技術）</strong>から構成されます。</p>
+  <span class="sec-en">Overview — Nature Cycle OS at the core</span>
+  <p class="lead">mitsulab は、<strong>自然循環OS を通じて One Health の実現に貢献する</strong>研究所です。本ページでは、その中核となる方法論プラットフォーム <strong>自然循環OS（Nature Cycle OS）</strong> と <strong>One Health</strong> との接続を改めて確認し、続いて自然循環OS を現場で動かす<strong>事業形態</strong>と<strong>役割</strong>、そしてその実装が「いま」必要となる<strong>三つの背景（政策・地球環境・技術）</strong>を案内します。</p>
+
+  <h3 style="margin-top:48px">自然循環OS は、One Health の環境次元の実装</h3>
+  <p style="margin-top:14px"><strong>One Health</strong>（ワンヘルス）とは、人・動物・植物・環境の健康が相互に依存し合うという認識に基づく統合的アプローチで、WHO（世界保健機関）・FAO（国連食糧農業機関）・WOAH（世界動物保健機関）・UNEP（国連環境計画）の四機関合意として国際的に公式化されています。コロナ禍が示したように、野生動物に由来する感染症の 60% 以上が動物起源（zoonosis）であり、抗菌薬耐性・食品安全・気候変動・生物多様性——いま私たちが直面する課題の多くは、人・動物・環境を分けて扱う限り、解けません。</p>
+  <p>mitsulab は、その「環境」次元——土壌劣化・水循環の断絶・生物多様性の減少が、動物と人の健康へ波及していく<strong>上流</strong>——に向き合います。土・水・植生・生態系が分野ごとに切り分けられ、循環を観る視点がほどけてしまった現状を、ひとつに結び直す。そのための実装プラットフォームが、<strong>自然循環OS（Nature Cycle OS）</strong>です。両者の関係は、医療制度（上位枠組み）と個別の治療プロトコル（実装）の関係に近い、とも言えます。</p>
+  <p>自然循環OS は、観測（Observe）／感覚（Immerse）／再生（Regenerate）／編集（Edit：Stillpoint）の <strong>4 つの実行レイヤー</strong>（四本柱）で構成され、ほどけた自然循環をひとつに結び直すための mitsulab の方法論プラットフォームとして機能します。詳細は <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> タブを参照してください。</p>
 
   <h3 style="margin-top:48px">事業基盤の構成</h3>
-  <p style="color:var(--ink-2);font-size:.95rem">本ページは事業基盤タブの入口です。各章へジャンプできます。</p>
+  <p style="color:var(--ink-2);font-size:.95rem">自然循環OS という中核から派生する、事業実装のための 5 つの章へジャンプできます。</p>
 
   <div class="grid grid-2" style="margin-top:24px">
     <a class="biz-nav-card" href="#practice" onclick="switchTab('practice');return false;">
@@ -3720,7 +4313,7 @@ section > h2{margin-top:0}
     </a>
   </div>
 
-  <p style="margin-top:48px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">事業形態と役割は「mitsulab が何をどう動かすか」、3 つの背景は「なぜいま、それが必要か」を語ります。両者を往復することで、mitsulab の事業の輪郭が立ち上がります。</p>
+  <p style="margin-top:48px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">事業形態と役割は「自然循環OS をどう現場で動かすか」、3 つの背景は「なぜいま、ほどけた循環を One Health の枠組みでひとつに戻す必要があるか」を語ります。両者を往復することで、mitsulab の事業の輪郭が立ち上がります。</p>
 
 
   <aside class="panel-end-link">
@@ -3733,7 +4326,7 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 08: 実践のかたち / Practice (5 sections consolidated in r23) ─────────────────── -->
-<div class="tab-panel" data-panel="practice" role="tabpanel">
+<div id="practice" class="tab-panel" data-panel="practice" role="tabpanel">
 <section id="practice-overview">
   <span class="sec-num">08 / Practice</span>
   <h2>事業形態</h2>
@@ -3745,9 +4338,13 @@ section > h2{margin-top:0}
 <section id="practice-sectors">
   <span class="sec-num">08 · 03 / Sectors</span>
   <h2>想定する事業形態</h2>
-  <span class="sec-en">Sectors — Four Engagement Patterns</span>
+  <span class="sec-en">Sectors — Operating Forms of Nature Cycle OS</span>
 
-  <p class="lead">mitsulab は、4 つのセクターと協働することを想定しています。具体的なサービス内容・料金・スコープは、お問い合わせ後の対話の中で個別に組み立てます。</p>
+  <p class="lead">mitsulab の事業形態は、いずれも<strong>自然循環OS（Nature Cycle OS）の運用フォーム</strong>として設計されています。診断パッケージ・施工調整・継続観測・体感ワークショップ——これらはすべて、自然循環OS の四本柱（観測・感覚・再生・編集）を、案件・現場の文脈に合わせて組み立てたものです。具体的なサービス内容・料金・スコープは、お問い合わせ後の対話の中で個別に組み立てます。</p>
+
+  <p style="margin-top:14px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--moss);padding-left:14px">自然循環OS は、<strong>One Health（人・動物・環境の健康の不可分）</strong>の「環境」次元——ほどけた自然循環の機能不全——を、現場で実装するプラットフォームです。そのため本事業形態は、企業の TNFD 開示・自治体のネイチャーポジティブ施策のみならず、One Health 文脈の国内外の補助金・国際枠（環境省・農林水産省・GEF・財団等）との接続可能性を持ちます。詳細は <a href="#cycle" onclick="switchTab('cycle');return false;" style="color:var(--soil)">自然循環OS</a> を参照。</p>
+
+  <p style="margin-top:18px">想定する協働セクターは次の 4 つです。</p>
 
   <div class="biz-sector">
     <span class="biz-sector-tag">Sector 01 · For Businesses</span>
@@ -3805,7 +4402,7 @@ section > h2{margin-top:0}
     </ul>
   </div>
 
-  <div class="quote" style="margin-top:48px">どのセクターでも、出発点は同じです——<br><strong>傷ついた自然循環を、診て、再生し、感じる</strong>ための媒介として動きます。</div>
+  <div class="quote" style="margin-top:48px">どのセクターでも、出発点は同じです——<br><strong>傷ついた自然循環を、観測し、感じ、再生する</strong>ための媒介として動きます。</div>
 
 
   <aside class="panel-end-link">
@@ -3817,7 +4414,7 @@ section > h2{margin-top:0}
 </div><!-- /tab-panel practice (consolidated) -->
 
 <!-- ┌─ Tab 04A: 政策的背景 / Policy (split from context in r25) ─────────────────── -->
-<div class="tab-panel" data-panel="policy" role="tabpanel">
+<div id="policy" class="tab-panel" data-panel="policy" role="tabpanel">
 
 <section id="policy">
   <span class="sec-num">04 · A / Policy</span>
@@ -3867,7 +4464,7 @@ section > h2{margin-top:0}
     </div>
   </div>
 
-  <p style="margin-top:28px;color:var(--ink-2)">これらは別々の制度に見えて、実は一つの方向を指しています。<strong>「自然資本を測り、開示し、回復させる」</strong> ── 国家・企業・地域の意思決定基盤に自然が組み込まれていく、不可逆な構造変化です。mitsulab はこの潮流の<strong>現場側のインフラ</strong>として、土・水・植物の循環を実際に診て・再生する役割を担います。</p>
+  <p style="margin-top:28px;color:var(--ink-2)">これらは別々の制度に見えて、実は一つの方向を指しています。<strong>「自然資本を測り、開示し、回復させる」</strong> ── 国家・企業・地域の意思決定基盤に自然が組み込まれていく、不可逆な構造変化です。mitsulab はこの潮流の<strong>現場側のインフラ</strong>として、<strong>自然循環OS（Nature Cycle OS）</strong>を通じて土・水・植物の循環を実際に観測し・再生する役割を担います。さらにこれらの政策潮流は、<strong>One Health</strong>（人・動物・環境の健康の不可分）という国際枠組みと地続きであり、自然循環OS は One Health の「環境」次元の実装ツールとして、政策接続の文脈を持ちます。</p>
 
   <p style="margin-top:32px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">関連する地球環境的背景は <a href="#planetary" onclick="switchTab('planetary');return false;" style="color:var(--soil)">地球環境的背景</a> タブへ。引用論文は <a href="#papers" onclick="switchTab('papers');return false;" style="color:var(--soil)">関連論文</a> タブへ。</p>
 
@@ -3882,7 +4479,7 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 04B: 地球環境的背景 / Planetary (split from context in r25) ─────────────────── -->
-<div class="tab-panel" data-panel="planetary" role="tabpanel">
+<div id="planetary" class="tab-panel" data-panel="planetary" role="tabpanel">
 
 <section id="planetary">
   <span class="sec-num">04 · B / Planetary</span>
@@ -3934,7 +4531,7 @@ section > h2{margin-top:0}
   <p style="margin-top:10px">流域スケールで見ると、森林劣化・農地の不浸透化・地下水の過剰利用により、<strong>湧水の枯渇・小河川の干上がり・地下水位の低下</strong>が日本各地で報告されています。土壌が水を蓄える力（保水・浸透）の低下は、洪水と渇水の<strong>両方</strong>を悪化させ、植生・生物・人の暮らしの基盤を同時に揺るがします。</p>
 
   <h3 style="margin-top:64px">なぜ「統合的な再生」なのか<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">Why integrated regeneration matters</small></h3>
-  <p style="margin-top:18px">政策・地球環境の両面で課題は分野ごとに整理されていますが、自然はそれらを<strong>一続きの循環</strong>として動かしています。土壌劣化を独立に扱えば生物多様性を見落とし、生物多様性だけを扱えば水循環を見落とし、水循環だけを扱えば炭素を見落とす ── 個別最適は、現場では機能しません。この <strong>「診る × 再生する × 感じる」</strong>のパッケージとしてしか応答できない領域に、mitsulab は腰を据えます。</p>
+  <p style="margin-top:18px">政策・地球環境の両面で課題は分野ごとに整理されていますが、自然はそれらを<strong>一続きの循環</strong>として動かしています。土壌劣化を独立に扱えば生物多様性を見落とし、生物多様性だけを扱えば水循環を見落とし、水循環だけを扱えば炭素を見落とす ── 個別最適は、現場では機能しません。この <strong>四本柱（観測・感覚・再生・編集）のパッケージ（自然循環OS）</strong>としてしか応答できない領域に、mitsulab は腰を据えます。さらに、こうした環境の機能不全は <strong>One Health</strong>（人・動物・環境の健康の不可分）の上流であり、自然循環OS の実装は環境次元から人・動物の健康へと波及する<strong>予防的健康施策</strong>としても機能します。</p>
 
   <p style="margin-top:32px;color:var(--ink-2);font-size:.93rem;border-left:3px solid var(--soil);padding-left:14px">関連する政策的背景は <a href="#policy" onclick="switchTab('policy');return false;" style="color:var(--soil)">政策的背景</a> タブへ。引用論文は <a href="#papers" onclick="switchTab('papers');return false;" style="color:var(--soil)">関連論文</a> タブへ。</p>
 
@@ -3949,7 +4546,7 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 04C: 技術的背景 / Technology (new in r35) ─────────────────── -->
-<div class="tab-panel" data-panel="technology" role="tabpanel">
+<div id="technology" class="tab-panel" data-panel="technology" role="tabpanel">
 
 <section id="technology">
   <span class="sec-num">04 · C / Technology</span>
@@ -4063,12 +4660,12 @@ section > h2{margin-top:0}
     </div>
   </div>
 
-  <p style="margin-top:48px;color:var(--ink-3);font-size:.88rem;border-left:3px solid var(--soil);padding-left:14px">3DGS・IoT・eDNA・基盤モデル・空間音響・XR——これらは別々のコミュニティで発展してきたが、2020年代半ばに同時に「個人が扱える」段階へ達した。mitsulab の独自性は、この技術的同時性を一人の制作者の手元で統合し、観測から体感翻訳までを一気通貫で設計できる点にある。技術がここまで揃った今でなければ、自然循環再生を「測り・解釈し・伝える」事業は成立しなかった。</p>
+  <p style="margin-top:48px;color:var(--ink-3);font-size:.88rem;border-left:3px solid var(--soil);padding-left:14px">3DGS・IoT・eDNA・基盤モデル・空間音響・XR——これらは別々のコミュニティで発展してきたが、2020年代半ばに同時に「個人が扱える」段階へ達した。mitsulab の独自性は、この技術的同時性を一人の制作者の手元で統合し、観測から体感翻訳までを一気通貫で設計できる点にある。技術がここまで揃った今でなければ、<strong>自然循環OS</strong>を One Health の環境次元の実装プラットフォームとして社会に提示することは成立しなかった。</p>
 
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>実装事例は <a href="#projects" onclick="switchTab('projects');return false;">関連プロジェクト</a> へ。観測の現場は <a href="#observe" onclick="switchTab('observe');return false;">診る</a> へ。</p>
+    <p>実装事例は <a href="#projects" onclick="switchTab('projects');return false;">関連プロジェクト</a> へ。観測の現場は <a href="#observe" onclick="switchTab('observe');return false;">観測</a> へ。</p>
   </aside>
 </section>
 
@@ -4078,44 +4675,55 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 05: 自然循環とは ─────────────────── -->
-<div class="tab-panel" data-panel="cycle" role="tabpanel">
+<div id="cycle" class="tab-panel" data-panel="cycle" role="tabpanel">
 
 <section id="cycle">
   <span class="sec-num">05 / OS</span>
   <h2>自然循環OS</h2>
-  <span class="sec-en">Nature Cycle OS &mdash; Long-term Vision</span>
+  <span class="sec-en">Nature Cycle OS &mdash; The Core of mitsulab</span>
 
-  <p class="lead">mitsulab が長期的に見据えるのは、<strong>自然循環を取り戻すための統合プラットフォーム——「自然循環OS（Nature Cycle OS）」</strong>の構築です。</p>
+  <p class="lead"><strong>自然循環OS（Nature Cycle OS）</strong>は、mitsulab の<strong>大元（核）</strong>に置かれた実装プラットフォームです。</p>
 
-  <p>観測・再生・感覚の三層が、フィジカルAI をはじめとする技術によって有機的につながり、<strong>人間・自然・機械が三位一体</strong>となって自然循環の再生を支える仕組みを目指します。これは個別の製品でも SaaS でもなく、専門家・研究者・住民・自治体・企業が共に育てていく<strong>器</strong>として構想しています。</p>
+  <p>同時にこれは、<strong>One Health</strong>（人・動物・環境の健康の不可分）の「環境」次元を、現場から実装するための方法論プラットフォームでもあります。</p>
 
-  <!-- ===== 3つの層 ===== -->
-  <h3 style="margin-top:64px">OS を構成する 3つの層</h3>
+  <p>One Health は WHO・FAO・WOAH・UNEP の四機関合意による国際枠組みで、人・動物・植物・環境の健康が不可分であるとする統合的アプローチです。mitsulab はその「環境」次元に向き合い、自然循環OS を通じて、土壌・水循環・生物多様性の機能不全を診断・回復することで、上流から人・動物の健康に資する仕組みを設計します。</p>
 
-  <div class="grid grid-3" style="margin-top:18px">
+  <p>自然循環OS は、観測・感覚・再生・編集の四つのレイヤーが有機的につながり、<strong>ほどけた自然循環をひとつに結び直す</strong>仕組みです。これは個別の製品でも SaaS でもなく、専門家・研究者・住民・自治体・企業が共に育てていく<strong>器</strong>として実践しています。</p>
+
+  <!-- ===== 4つの実行レイヤー ===== -->
+  <h3 style="margin-top:64px">自然循環OS の 4 つの実行レイヤー</h3>
+  <p style="margin-top:14px">自然循環OS は、次の <strong>4 つの実行レイヤー（四本柱）</strong>として動きます。<strong>観測・感覚・再生</strong>が「<strong>いま・ここ</strong>」の自然循環を扱い、<strong>編集</strong>が「<strong>古今東西</strong>」の自然循環の実践と知恵を扱います。四つは独立した工程ではなく、相互に深く関連し合い、補完し合うことではじめて自然循環の全体像が立ち上がります。</p>
+
+  <div class="grid grid-2" style="margin-top:18px">
     <a class="card" href="#observe" onclick="switchTab('observe');return false;" style="border-top:3px solid var(--soil);text-decoration:none;color:inherit;display:block">
       <span class="tag">Layer Ⅰ ── Observe</span>
-      <h3>Ⅰ：診る<small>Observe Layer</small></h3>
+      <h3>Ⅰ：観測<small>Observe Layer</small></h3>
       <p>IoT・GIS・3DGS・環境DNA・音響観測——多様な観測技術が、土・水・植物の動態を継続的に取り込む層。<strong>マクロ（流域）とミクロ（土中）</strong>を行き来しながら、自然循環の状態を計測可能な形に翻訳します。</p>
-      <p style="margin-top:10px;font-size:.86rem;color:var(--soil)">診る の詳細を見る ──</p>
-    </a>
-    <a class="card" href="#regenerate" onclick="switchTab('regenerate');return false;" style="border-top:3px solid var(--moss);text-decoration:none;color:inherit;display:block">
-      <span class="tag">Layer Ⅱ ── Regenerate</span>
-      <h3>Ⅱ：再生する<small>Regenerate Layer</small></h3>
-      <p>土中環境改善・大地の再生・樹勢回復・水系循環回復——日本に蓄積されてきた<strong>再生実践知を体系化</strong>し、観測データに基づく優先順位とともに現場へ展開する層。専門家・施工者・住民が共通の言語で扱えるようにします。</p>
-      <p style="margin-top:10px;font-size:.86rem;color:var(--moss)">再生する の詳細を見る ──</p>
+      <p style="margin-top:10px;font-size:.86rem;color:var(--soil)">観測 の詳細を見る ──</p>
     </a>
     <a class="card" href="#immerse" onclick="switchTab('immerse');return false;" style="border-top:3px solid var(--amber);text-decoration:none;color:inherit;display:block">
-      <span class="tag">Layer Ⅲ ── Immerse</span>
-      <h3>Ⅲ：感じる<small>Immerse Layer</small></h3>
-      <p>観測と再生のデータを、<strong>音・触覚・空間</strong>といった人間の感覚に翻訳する層。Qualia Practice をはじめとする知覚拡張アートが、数値では届かない「感じる」の領域を社会に開きます。</p>
-      <p style="margin-top:10px;font-size:.86rem;color:var(--amber)">感じる の詳細を見る ──</p>
+      <span class="tag">Layer Ⅱ ── Immerse</span>
+      <h3>Ⅱ：感覚<small>Immerse Layer</small></h3>
+      <p>観測と再生のデータを、<strong>音・触覚・空間</strong>といった人間の感覚に翻訳する層。Qualia Mind をはじめとする知覚拡張アートが、数値では届かない「感じる」の領域を社会に開きます。</p>
+      <p style="margin-top:10px;font-size:.86rem;color:var(--amber)">感覚 の詳細を見る ──</p>
     </a>
+    <a class="card" href="#regenerate" onclick="switchTab('regenerate');return false;" style="border-top:3px solid var(--moss);text-decoration:none;color:inherit;display:block">
+      <span class="tag">Layer Ⅲ ── Regenerate</span>
+      <h3>Ⅲ：再生<small>Regenerate Layer</small></h3>
+      <p>土中環境改善・大地の再生・樹勢回復・水系循環回復——日本に蓄積されてきた<strong>再生実践知を体系化</strong>し、観測データに基づく優先順位とともに現場へ展開する層。専門家・施工者・住民が共通の言語で扱えるようにします。</p>
+      <p style="margin-top:10px;font-size:.86rem;color:var(--moss)">再生 の詳細を見る ──</p>
+    </a>
+    <div class="card" style="border-top:3px solid #4a5d7e">
+      <span class="tag">Layer Ⅳ ── Edit</span>
+      <h3>Ⅳ：編集<small>Edit Layer</small></h3>
+      <p><strong>編集工学</strong>の考えに基づき、古今東西の自然循環の<strong>実践と知恵を横断的にまとめる</strong>層。観測・感覚・再生が「いま・ここ」を扱うのに対し、編集は「古今東西」を扱い、四本柱を相互に厚くします。その実践媒体が、4 言語デジタルメディア <strong>Stillpoint</strong> です。</p>
+      <p style="margin-top:10px;font-size:.86rem;color:#4a5d7e">媒体名は T.S. エリオット「Burnt Norton」の "still point" に由来</p>
+    </div>
   </div>
 
   <!-- ===== 統合する技術 ===== -->
-  <h3 style="margin-top:64px">三層を統合する技術</h3>
-  <p>3 層をつなぐのは、<strong>フィジカルAI</strong> を中核とする統合技術群。個別のツールではなく、自然循環という共通の対象を複数の角度から扱う一つのシステムとして設計します。</p>
+  <h3 style="margin-top:64px">レイヤーを統合する技術</h3>
+  <p>観測・感覚・再生の現場レイヤーをつなぐのは、<strong>フィジカルAI</strong> を中核とする統合技術群。個別のツールではなく、自然循環という共通の対象を複数の角度から扱う一つのシステムとして設計します。</p>
 
   <ul class="pill-list" style="margin-top:18px">
     <li><strong>フィジカルAI</strong> ── 現場のセンサー・ロボットと連携し、リアルタイムに学び、状態予測や施工提案を返す。OS の中枢。</li>
@@ -4289,9 +4897,108 @@ section > h2{margin-top:0}
 </div><!-- /tab-panel cycle (note: removed-v6/v7 sections are display:none and were nested here harmlessly) -->
 
 
+<!-- ┌─ Tab: 相互関係 / Interplay ─────────────────── -->
+<div id="interplay" class="tab-panel" data-panel="interplay" role="tabpanel" aria-label="相互関係">
+<section id="interplay">
+  <span class="sec-num">07 / Interplay</span>
+  <h2>相互関係</h2>
+  <span class="sec-en">Interplay — How the Four Practices Weave Together</span>
+
+  <p class="lead">自然循環OS の四本柱——<strong>観測・感覚・再生・編集</strong>——は、独立した工程ではありません。一方向に進むのでもありません。<strong>すべてが、すべてに影響し合っています</strong>。観測が感覚・再生・編集を変え、感覚が観測・再生・編集を変える。ひとつの実践だけでは自然循環の全体像は見えにくく、四つが互いを照らし合うことではじめて、ほどけた自然循環をひとつに捉え直すことができます。</p>
+
+  <p>このページでは、四本柱が互いにどう影響し合うのか——<strong>12 の相互関係</strong>を整理します。</p>
+
+  <!-- 観測 から -->
+  <div class="ip-block ip-observe">
+    <h3 class="ip-head"><span class="ip-roman">Ⅰ</span>観測 から <span class="ip-head-en">from Observe</span></h3>
+    <div class="ip-rels">
+      <div class="ip-rel">
+        <span class="ip-arrow">観測 → 感覚</span>
+        <p>IoT・3DGS・音響観測が捉えたデータ（土中音、根圏の 3D 変化、センサー値）が、そのまま<strong>感覚表現の素材</strong>になる。数値は、音・触覚・空間へと翻訳される一次資源です。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">観測 → 再生</span>
+        <p>観測は、<strong>どこから再生に着手すべきかの優先順位と根拠</strong>を与える。施工は勘ではなく、観測されたデータの上に立ちます。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">観測 → 編集</span>
+        <p>観測で得た知見が、古今東西の事例と照らし合わされ、<strong>編集の問い</strong>を生む。「いま観ているこの現象を、過去の人々はどう観ていたか」。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 感覚 から -->
+  <div class="ip-block ip-immerse">
+    <h3 class="ip-head"><span class="ip-roman">Ⅱ</span>感覚 から <span class="ip-head-en">from Immerse</span></h3>
+    <div class="ip-rels">
+      <div class="ip-rel">
+        <span class="ip-arrow">感覚 → 観測</span>
+        <p>感覚で気づいた<strong>違和感や微細な変化</strong>が、次に何を観測すべきかを教える。身体は、計器がまだ捉えていない兆候を先に察知します。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">感覚 → 再生</span>
+        <p>「自分ごと」としての<strong>感覚的な納得</strong>が、再生への動機と合意を生む。データだけでは人は動かない——感じて、はじめて手が動きます。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">感覚 → 編集</span>
+        <p>身体で感じた質感が、<strong>編集のテーマと語り口</strong>を方向づける。何を古今東西から拾い、どう編むか——その選択は感覚から始まります。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 再生 から -->
+  <div class="ip-block ip-regenerate">
+    <h3 class="ip-head"><span class="ip-roman">Ⅲ</span>再生 から <span class="ip-head-en">from Regenerate</span></h3>
+    <div class="ip-rels">
+      <div class="ip-rel">
+        <span class="ip-arrow">再生 → 観測</span>
+        <p>再生施工の<strong>前後の変化</strong>が、新たな観測対象になる。何をしたら、どう変わったか——再生は観測に検証の機会を返します。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">再生 → 感覚</span>
+        <p>再生現場の<strong>手応え</strong>（土の匂い、水の戻り、風の通り）が、感覚表現の源泉になる。現場でしか得られない質感が、作品の核になります。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">再生 → 編集</span>
+        <p>再生で積み上がった<strong>実践知</strong>が、古今東西の事例として編集・記録される。いまの現場が、未来の誰かの参照点になります。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 編集 から -->
+  <div class="ip-block ip-edit">
+    <h3 class="ip-head"><span class="ip-roman">Ⅳ</span>編集 から <span class="ip-head-en">from Edit</span></h3>
+    <div class="ip-rels">
+      <div class="ip-rel">
+        <span class="ip-arrow">編集 → 観測</span>
+        <p>古今東西の事例が、<strong>観測の着眼点</strong>を広げる。二十四節気、修道院の暦、先住民の伝統知——昔の人が観ていたものを、いま観測し直す視点を与えます。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">編集 → 感覚</span>
+        <p>編集された<strong>物語と文脈</strong>が、感覚体験に奥行きを与える。同じ土に触れても、その土地の歴史を知って触れれば、感じ方が変わります。</p>
+      </div>
+      <div class="ip-rel">
+        <span class="ip-arrow">編集 → 再生</span>
+        <p>古今東西に蓄積された<strong>知恵</strong>が、再生手法の選択肢を増やす。世界各地の自然循環の作法は、いまの現場で使える実装のヒントの宝庫です。</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="ip-closing">四本柱は、この 12 の相互関係を通じて、ひとつの<strong>網の目</strong>として動きます。観測 → 感覚 → 再生 → 編集 という順路は、あくまで説明のための一筋にすぎません。実際には、どの実践も同時に他の三つを養い、養われている。その網の密度こそが、<strong>自然循環OS</strong> の働きそのものです。</p>
+
+  <aside class="panel-end-link">
+    <span class="panel-end-label">↳ Continue ／ 次へ</span>
+    <p>四本柱それぞれの詳細は <a href="#observe" onclick="switchTab('observe');return false;">観測</a> ／ <a href="#immerse" onclick="switchTab('immerse');return false;">感覚</a> ／ <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生</a> ／ <a href="#cycle" onclick="switchTab('cycle');return false;">編集（自然循環OS）</a> へ。</p>
+  </aside>
+</section>
+</div><!-- /tab-panel interplay -->
+
+
+
+
 <!-- ┌─ Tab 09: Link / 外部リンク ─────────────────── -->
 <!-- ┌─ Tab 09 · 01: 発信メディア / Media (split from connect in r26) ─────────────────── -->
-<div class="tab-panel" data-panel="link-media" role="tabpanel">
+<div id="link-media" class="tab-panel" data-panel="link-media" role="tabpanel">
 
 <section id="link-media">
   <span class="sec-num">09 · 01 / Media</span>
@@ -4346,7 +5053,7 @@ section > h2{margin-top:0}
   </div>
 
   <h3 style="margin-top:64px">関連メディア — Stillpoint</h3>
-  <p style="color:var(--ink-2);font-size:.93rem;margin-bottom:16px">代表 上原が編集長を務める 4 言語デジタルメディア。mitsulab の哲学的・編集的な背景を読み解く窓口です。</p>
+  <p style="color:var(--ink-2);font-size:.93rem;margin-bottom:16px">自然循環OS の第 4 の柱「編集（Edit）」の実践媒体として運営する 4 言語デジタルメディア。古今東西の自然循環の実践と知恵を編み、mitsulab の哲学的・編集的な背景を読み解く窓口です。</p>
 
   <div class="activity-links" style="margin-top:18px">
     <a class="activity-link" href="https://stillpoint.media" target="_blank" rel="noopener">
@@ -4361,7 +5068,7 @@ section > h2{margin-top:0}
     </a>
   </div>
 
-  <h4 style="margin-top:36px;font-size:1rem">編集の三本柱</h4>
+  <h4 style="margin-top:36px;font-size:1rem">Stillpoint の三つの編集テーマ</h4>
   <div class="grid grid-3" style="margin-top:14px">
     <div class="card">
       <span class="tag">テーマ Ⅰ</span>
@@ -4396,7 +5103,7 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 09 · 02: 作品販売 / Shop (split from connect in r26) ─────────────────── -->
-<div class="tab-panel" data-panel="link-shop" role="tabpanel">
+<div id="link-shop" class="tab-panel" data-panel="link-shop" role="tabpanel">
 
 <section id="link-shop">
   <span class="sec-num">09 · 02 / Shop</span>
@@ -4441,7 +5148,7 @@ section > h2{margin-top:0}
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>協働相手の窓口は <a href="#link-career" onclick="switchTab('link-career');return false;">キャリア</a> へ。作品の根にある体験は <a href="#immerse" onclick="switchTab('immerse');return false;">感じる</a> へ。</p>
+    <p>協働相手の窓口は <a href="#link-career" onclick="switchTab('link-career');return false;">キャリア</a> へ。作品の根にある体験は <a href="#immerse" onclick="switchTab('immerse');return false;">感覚</a> へ。</p>
   </aside>
 </section>
 
@@ -4449,7 +5156,7 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 09 · 03: キャリア / Career (split from connect in r26) ─────────────────── -->
-<div class="tab-panel" data-panel="link-career" role="tabpanel">
+<div id="link-career" class="tab-panel" data-panel="link-career" role="tabpanel">
 
 <section id="link-career">
   <span class="sec-num">09 · 03 / Career</span>
@@ -4501,13 +5208,13 @@ section > h2{margin-top:0}
 </div><!-- /tab-panel link-career -->
 
 <!-- ┌─ Tab 09 · 05: お問い合わせ / Contact (split from connect in r26) ─────────────────── -->
-<div class="tab-panel" data-panel="contact" role="tabpanel">
+<div class="tab-panel" id="panel-contact" data-panel="contact" role="tabpanel" aria-label="お問い合わせ">
 
 <section id="contact">
   <span class="sec-num">09 · 05 / Contact</span>
   <h2>お問い合わせ</h2>
   <span class="sec-en">Contact — Get in touch</span>
-  <p class="lead">自然循環再生診断・GIS マッピング・IoT 観測・研修・作品展示・共同研究・取材・講演・芸術祭出展などのご相談を承ります。代表は 4 言語デジタルメディア「Stillpoint」編集長も務めており、リジェネラティブ思想の対話・寄稿のご相談もお気軽にお寄せください。</p>
+  <p class="lead">自然循環再生診断・GIS マッピング・IoT 観測・研修・作品展示・共同研究・取材・講演・芸術祭出展などのご相談を承ります。自然循環OS の第 4 の柱「編集（Edit）」として 4 言語デジタルメディア <strong>Stillpoint</strong> を運営しており、リジェネラティブ思想の対話・寄稿のご相談もお気軽にお寄せください。</p>
 
   <div class="contact-box" style="margin-top:32px">
     <div class="label">EMAIL</div>
@@ -4525,7 +5232,7 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 10: Reading / 関連書籍 ─────────────────── -->
-<div class="tab-panel" data-panel="reading" role="tabpanel">
+<div id="reading" class="tab-panel" data-panel="reading" role="tabpanel">
 
 <section id="reading">
   <span class="sec-num">10 / Reading</span>
@@ -4732,7 +5439,7 @@ section > h2{margin-top:0}
     <div class="card">
       <span class="tag">落合 陽一</span>
       <h3>『デジタルネイチャー — 生態系を為す汎神化した計算機による侘と寂』<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">PLANETS／2018</small></h3>
-      <p>メディアアーティスト落合陽一が、<strong>デジタルと自然が一体化した時代の美学</strong>を提示。「計算機自然」のビジョンは、自然循環OS の構想に通じる。</p>
+      <p>メディアアーティスト落合陽一が、<strong>デジタルと自然が一体化した時代の美学</strong>を提示。「計算機自然」のビジョンは、自然循環OS の実践に通じる。</p>
     </div>
     <div class="card">
       <span class="tag">ケヴィン・ケリー</span>
@@ -4764,29 +5471,48 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 06: 用語解説 ─────────────────── -->
-<div class="tab-panel" data-panel="glossary" role="tabpanel">
+<div id="glossary" class="tab-panel" data-panel="glossary" role="tabpanel">
 
 <section id="glossary">
   <span class="sec-num">06 / Terms</span>
   <h2>用語解説</h2>
-  <span class="sec-en">Key Terms — organized by Observe / Regenerate / Immerse</span>
-  <p class="lead">mitsulabが扱う領域の専門用語を、三本柱<strong>診る（Observe）・再生する（Regenerate）・感じる（Immerse）</strong>の分類に沿って整理しました。横断的な概念は冒頭にまとめています。</p>
+  <span class="sec-en">Key Terms — organized by Observe / Immerse / Regenerate / Edit</span>
+  <p class="lead">mitsulabが扱う領域の専門用語を整理しました。冒頭の <strong>Core ── 中核概念</strong>には、HP 全体の起点となる「自然循環OS」「One Health」「四本柱（観測・感覚・再生・編集）」を最重要用語として配置しています。続く Foundation 以降は、四本柱（観測 / 感覚 / 再生 / 編集）別の分類です。</p>
+
+  <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--soil)">Core ── 中核概念（最重要）</h3>
+  <div class="glossary-grid">
+    <div class="term" id="term-nature-cycle-os">
+      <div class="term-label">Core</div>
+      <h3>自然循環OS<small>（Nature Cycle OS）</small></h3>
+      <p>mitsulab の<strong>大元（核）</strong>に置かれた、土・水・植物の循環機能を診断・回復するための実装プラットフォーム概念。<strong>One Health</strong> 枠組みにおける「環境」次元の実装ツールとして、観測（Observe）・感覚（Immerse）・再生（Regenerate）・編集（Edit）の 4 つの実行レイヤー（四本柱）で動きます。個別の製品でも SaaS でもなく、専門家・住民・自治体・企業が共に育てる<strong>器</strong>として実践しています。HP 全体のあらゆる章は、この自然循環OS から派生しています。</p>
+    </div>
+    <div class="term" id="term-one-health">
+      <div class="term-label">Core</div>
+      <h3>One Health<small>（人・動物・環境の健康の不可分）</small></h3>
+      <p>人・動物・植物・環境の健康が相互に依存し合っているという認識に基づく、統合的アプローチ。<strong>WHO・FAO・WOAH・UNEP の四機関（Quadripartite）</strong>が合意する国際枠組みであり、新興感染症（zoonosis の 60% 以上が動物起源）・抗菌薬耐性・食品安全・生物多様性・気候変動・土壌劣化を横断する。mitsulab の自然循環OS は、<strong>One Health の「環境」次元を、土の側から実装する方法論プラットフォーム</strong>として位置づけられます。</p>
+    </div>
+    <div class="term" id="term-oir">
+      <div class="term-label">Core</div>
+      <h3>四本柱<small>（観測 / 感覚 / 再生 / 編集 ── 4 つの実行レイヤー）</small></h3>
+      <p>自然循環OS を動かす <strong>4 つの実行レイヤー</strong>。観測（<strong>O</strong>bserve）で循環の動態をデータに翻訳し、感覚（<strong>I</strong>mmerse）で人間の感覚に翻訳し、再生（<strong>R</strong>egenerate）で現場の循環を取り戻し、編集（<strong>E</strong>dit）で古今東西の自然循環の事例を編集工学に基づき横断的にまとめる。その編集の実践媒体が 4 言語デジタルメディア <strong>Stillpoint</strong> です。四層は独立した工程ではなく、観測 → 感覚 → 再生 → 編集 → 観測…と<strong>往復しながら動く一続きの実践</strong>として設計されます。観測・感覚・再生が「いま・ここ」を扱うのに対し、編集は「古今東西」を扱い、四本柱を相互に厚くする役割を担います。</p>
+    </div>
+  </div>
 
   <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--ink-3)">Foundation ── 横断概念</h3>
   <div class="glossary-grid">
     <div class="term" id="term-shizen-junkan">
       <div class="term-label">Foundation</div>
       <h3>自然循環<small>（土・水・植物）</small></h3>
-      <p>土の中で、<strong>水・空気・養分・微生物・植物の根が互いに関わり合いながら巡り続けている働き</strong>の全体、そしてそれが地上の樹勢・流域の水循環と一続きにつながった循環全体を指します。土・水・植物は別々の問題ではなく、<strong>一続きの循環</strong>として動いています。mitsulabが扱うすべての問題の根にある概念です。</p>
+      <p>土の中で、<strong>水・空気・養分・微生物・植物の根が互いに関わり合いながら巡り続けている働き</strong>の全体、そしてそれが地上の樹勢・流域の水循環と一続きにつながった循環全体を指します。土・水・植物は別々の問題ではなく、<strong>一続きの循環</strong>として動いています。mitsulab が扱うすべての問題の根にある概念であり、<strong>自然循環OS</strong>はこの循環の機能不全を診断・回復するための実装プラットフォームです。</p>
     </div>
     <div class="term" id="term-tnfd">
       <div class="term-label">Foundation</div>
       <h3>TNFD・ネイチャーポジティブ<small>（Taskforce on Nature-related Financial Disclosures）</small></h3>
-      <p><strong>TNFD</strong>は自然関連財務情報開示タスクフォース。気候関連のTCFDに続く形で、企業活動が自然資本に与える影響を定量的に開示する国際的フレームワークです。<strong>ネイチャーポジティブ</strong>は2030年までに自然の損失を止め、回復軌道に乗せるという国際合意。これらの世界的潮流を背景に、自然循環を「診る・再生する・感じる」のパッケージで扱える実践者の必要性が高まっています。</p>
+      <p><strong>TNFD</strong>は自然関連財務情報開示タスクフォース。気候関連のTCFDに続く形で、企業活動が自然資本に与える影響を定量的に開示する国際的フレームワークです。<strong>ネイチャーポジティブ</strong>は2030年までに自然の損失を止め、回復軌道に乗せるという国際合意。これらは One Health の環境次元と地続きの政策的潮流であり、自然循環を「観測・感覚・再生・編集」の四本柱パッケージ（自然循環OS）で扱える実践者の必要性を高めています。</p>
     </div>
   </div>
 
-  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--soil)">診る（Observe）── 観測・可視化技術</h3>
+  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--soil)">観測（Observe）── 観測・可視化技術</h3>
   <div class="glossary-grid">
     <div class="term" id="term-gis">
       <div class="term-label">Observe</div>
@@ -4830,7 +5556,7 @@ section > h2{margin-top:0}
     </div>
   </div>
 
-  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--moss)">再生する（Regenerate）── 自然循環再生の実践知</h3>
+  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--moss)">再生（Regenerate）── 自然循環再生の実践知</h3>
   <div class="glossary-grid">
     <div class="term" id="term-dochu-kankyo">
       <div class="term-label">Regenerate</div>
@@ -4879,7 +5605,7 @@ section > h2{margin-top:0}
     </div>
   </div>
 
-  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--amber)">感じる（Immerse）── 知覚拡張・体感の翻訳</h3>
+  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--amber)">感覚（Immerse）── 知覚拡張・体感の翻訳</h3>
   <div class="glossary-grid">
     <div class="term" id="term-qualia">
       <div class="term-label">Immerse</div>
@@ -4894,7 +5620,7 @@ section > h2{margin-top:0}
     <div class="term" id="term-soil-sound-project">
       <div class="term-label">Immerse</div>
       <h3>『Soil Sound Project』</h3>
-      <p>ピエゾ素子（振動を電気信号に変換する素子）を土中に差し込み、<strong>土の中で起きている微かな音を聴くプロジェクト</strong>です。土壌生態系の活動が活発で豊かな土壌ほど多様な音が発生していることが分かっており、<strong>「Noisy soil」「Silent soil」</strong>といった聴覚領域での分類を通じて土壌循環を知覚化する試み。観測（診る）と没入体験（感じる）の橋渡し役を担います。</p>
+      <p>ピエゾ素子（振動を電気信号に変換する素子）を土中に差し込み、<strong>土の中で起きている微かな音を聴くプロジェクト</strong>です。土壌生態系の活動が活発で豊かな土壌ほど多様な音が発生していることが分かっており、<strong>「Noisy soil」「Silent soil」</strong>といった聴覚領域での分類を通じて土壌循環を知覚化する試み。観測と感覚の橋渡し役を担います。</p>
     </div>
     <div class="term" id="term-qualia-field">
       <div class="term-label">Immerse</div>
@@ -4938,6 +5664,25 @@ section > h2{margin-top:0}
     </div>
   </div>
 
+  <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--soil)">編集（Edit）── 古今東西の自然循環の編集</h3>
+  <div class="glossary-grid">
+    <div class="term" id="term-edit-layer">
+      <div class="term-label">Edit</div>
+      <h3>編集レイヤー<small>（Edit Layer）</small></h3>
+      <p>自然循環OS の第 4 の柱。<strong>編集工学</strong>の考えに基づき、古今東西の自然循環の<strong>実践と知恵を横断的にまとめる</strong>レイヤーです。観測・感覚・再生が「いま・ここ」の自然循環を扱うのに対し、編集は「<strong>古今東西</strong>」の事例を編み、四本柱を相互に厚くします。その実践媒体が、4 言語デジタルメディア <strong>Stillpoint</strong> です。</p>
+    </div>
+    <div class="term" id="term-editorial-engineering">
+      <div class="term-label">Edit</div>
+      <h3>編集工学<small>（Editorial Engineering）</small></h3>
+      <p>松岡正剛が体系化した、<strong>情報を集め・関係づけ・編み直すことで新たな意味を生み出す方法論</strong>。バラバラに見える知をつなぎ、文脈を組み替える編集の技法を指します。mitsulab はこの考え方を、古今東西の自然循環の実践と知恵を横断的にまとめる<strong>編集レイヤー</strong>の基盤に据えています。</p>
+    </div>
+    <div class="term" id="term-stillpoint">
+      <div class="term-label">Edit</div>
+      <h3>Stillpoint<small>（スティルポイント）</small></h3>
+      <p>自然循環OS の第 4 の柱「<strong>編集</strong>」の実践媒体として運営される、4 言語（日・英・西・中）デジタルメディア。リジェネラティブ思想・東洋哲学・自然との共生を、古今東西の事例から比較文化人類学的に編集し、国際的に発信します。媒体名は T.S. エリオット「Burnt Norton」の "still point"（回転する世界の静止点）に由来します。</p>
+    </div>
+  </div>
+
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
@@ -4948,13 +5693,13 @@ section > h2{margin-top:0}
 </div><!-- /tab-panel glossary -->
 
 <!-- ┌─ Tab 11: 関連プロジェクト / Projects (new in r24) ─────────────────── -->
-<div class="tab-panel" data-panel="projects" role="tabpanel">
+<div id="projects" class="tab-panel" data-panel="projects" role="tabpanel">
 
 <section id="projects">
   <span class="sec-num">11 / Projects</span>
   <h2>関連プロジェクト</h2>
   <span class="sec-en">Related Projects — Networks, Practitioners &amp; Organizations</span>
-  <p class="lead">mitsulab の実践は、世界各地で進む自然循環再生のプロジェクト群と地続きにあります。三本柱（Observe / Regenerate / Immerse）の各領域に関連する主要な実践者・組織・思想を整理しました。点ではなく面として、この運動の地図を描くために。</p>
+  <p class="lead">mitsulab の実践は、世界各地で進む自然循環再生のプロジェクト群と地続きにあります。四本柱（Observe / Immerse / Regenerate / Edit）の各領域に関連する主要な実践者・組織・思想を整理しました。点ではなく面として、この運動の地図を描くために。</p>
 
   <h3 style="margin-top:48px">日本国内 ── 自然循環再生の実践者・組織</h3>
   <p style="color:var(--ink-2);font-size:.93rem;margin-bottom:18px">mitsulab が直接参考・連携する実践群。土中環境・大地の再生・自然農・サウンドスケープなど、日本独自の系譜が並ぶ。</p>
@@ -5131,7 +5876,7 @@ section > h2{margin-top:0}
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>実践を支える書物は <a href="#reading" onclick="switchTab('reading');return false;">関連書籍</a> へ。再生現場は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生する</a> へ。</p>
+    <p>実践を支える書物は <a href="#reading" onclick="switchTab('reading');return false;">関連書籍</a> へ。再生現場は <a href="#regenerate" onclick="switchTab('regenerate');return false;">再生</a> へ。</p>
   </aside>
 </section>
 
@@ -5139,13 +5884,13 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 12: 関連論文 / Papers (consolidated in r25) ─────────────────── -->
-<div class="tab-panel" data-panel="papers" role="tabpanel">
+<div id="papers" class="tab-panel" data-panel="papers" role="tabpanel">
 
 <section id="papers">
   <span class="sec-num">12 / Papers</span>
   <h2>関連論文</h2>
   <span class="sec-en">Papers — Key References across Soil, Climate, Biodiversity, Sound</span>
-  <p class="lead">mitsulab の三本柱と社会的背景を支える主要な学術論文・国際レポートを集約しました。各分野の決定的な参照点として、引用＋概要＋公式リンクで整理しています。</p>
+  <p class="lead">mitsulab の四本柱と社会的背景を支える主要な学術論文・国際レポートを集約しました。各分野の決定的な参照点として、引用＋概要＋公式リンクで整理しています。</p>
 
   <h3 style="margin-top:48px">地球システム ── 惑星限界と人類の影響<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">Earth System — Planetary Boundaries &amp; Human Impact</small></h3>
   <div class="paper-list" style="margin-top:14px">
@@ -5298,13 +6043,13 @@ section > h2{margin-top:0}
 
 
 <!-- ┌─ Tab 13: 関連思想 / Thought (extracted from projects in r27) ─────────────────── -->
-<div class="tab-panel" data-panel="thought" role="tabpanel">
+<div id="thought" class="tab-panel" data-panel="thought" role="tabpanel">
 
 <section id="thought">
   <span class="sec-num">13 / Thought</span>
   <h2>関連思想</h2>
   <span class="sec-en">Thought — Concepts that frame our understanding</span>
-  <p class="lead">「自然」「生命」「主体」を問い直す現代思想の系譜。mitsulab の三本柱（特に Immerse / Foundation 領域）を支える哲学的・人類学的・生物学的な思考の地図。先行する論文（<a href="#papers" onclick="switchTab('papers');return false;" style="color:var(--soil)">関連論文</a>）と、現場で動く実践者・組織（<a href="#projects" onclick="switchTab('projects');return false;" style="color:var(--soil)">関連プロジェクト</a>）の中間に位置する、ゆるやかな思想の網です。</p>
+  <p class="lead">「自然」「生命」「主体」を問い直す現代思想の系譜。mitsulab の四本柱（特に Immerse / Foundation 領域）を支える哲学的・人類学的・生物学的な思考の地図。先行する論文（<a href="#papers" onclick="switchTab('papers');return false;" style="color:var(--soil)">関連論文</a>）と、現場で動く実践者・組織（<a href="#projects" onclick="switchTab('projects');return false;" style="color:var(--soil)">関連プロジェクト</a>）の中間に位置する、ゆるやかな思想の網です。</p>
 
   <h3 style="margin-top:64px">思想・概念 ── 自然循環を考えるための鍵となる人物</h3>
   <p style="color:var(--ink-2);font-size:.93rem;margin-bottom:18px">「自然」「生命」「主体」を問い直す現代思想の系譜。Immerse / Foundation 領域の哲学的支柱。</p>
@@ -5374,7 +6119,7 @@ section > h2{margin-top:0}
 
   <aside class="panel-end-link">
     <span class="panel-end-label">↳ Continue ／ 次へ</span>
-    <p>共通の語彙は <a href="#glossary" onclick="switchTab('glossary');return false;">用語解説</a> へ。長期ビジョンは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
+    <p>共通の語彙は <a href="#glossary" onclick="switchTab('glossary');return false;">用語解説</a> へ。中核となる方法論プラットフォームは <a href="#cycle" onclick="switchTab('cycle');return false;">自然循環OS</a> へ。</p>
   </aside>
 </section>
 
@@ -5572,7 +6317,7 @@ section > h2{margin-top:0}
     // ページ読み込み時に hash があればそのタブを開く
     function initFromHash(){
       var hash = (location.hash || '').replace('#','');
-      var validTabs = ['top','profile','observe','regenerate','immerse','cycle','overview','practice','roles','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
+      var validTabs = ['top','profile','journey','observe','regenerate','immerse','cycle','overview','practice','roles','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
       if(hash && validTabs.indexOf(hash) >= 0){
         switchTab(hash);
       }
@@ -5587,7 +6332,7 @@ section > h2{margin-top:0}
       var href = a.getAttribute('href') || '';
       if(href.indexOf('#') === 0){
         var target = href.substring(1);
-        var validTabs = ['top','profile','observe','regenerate','immerse','cycle','overview','practice','roles','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
+        var validTabs = ['top','profile','journey','observe','regenerate','immerse','cycle','overview','practice','roles','policy','planetary','technology','link-media','link-shop','link-career','contact','reading','glossary','projects','papers','thought'];
         if(validTabs.indexOf(target) >= 0){
           // mission は vision タブに含まれる
           if(target === 'mission') target = 'vision';
@@ -5619,23 +6364,59 @@ section > h2{margin-top:0}
     update();
   })();
 </script>
+<!-- WebSite / Person 補完（Organization 本体は次の <script> で記述） -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://mitsulab.jp/#website",
+      "url": "https://mitsulab.jp/",
+      "name": "mitsulab",
+      "alternateName": "ミツラボ",
+      "inLanguage": "ja-JP",
+      "description": "自然循環OS（Nature Cycle OS）を中核に、One Health の「環境」次元を実装する研究所。観測（Observe）／感覚（Immerse）／再生（Regenerate）／編集（Edit）の四本柱で、土・水・植物の循環を観測し・感じ・取り戻す。",
+      "publisher": { "@id": "https://mitsulab.jp/#organization" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://mitsulab.jp/#founder",
+      "name": "上原光瑛",
+      "alternateName": "Uehara Mitsuaki",
+      "jobTitle": "mitsulab 代表",
+      "email": "official@mitsulab.jp",
+      "url": "https://mitsulab.jp/",
+      "worksFor": { "@id": "https://mitsulab.jp/#organization" },
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "さいたま市大宮区",
+        "addressRegion": "埼玉県",
+        "addressCountry": "JP"
+      },
+      "award": "全建賞（令和6年度・災害枠・都市部門）",
+      "sameAs": [
+        "https://note.com/mitsu32_lab",
+        "https://github.com/mitsulab-soil",
+        "https://www.instagram.com/mitsulab_art",
+        "https://x.com/mitsu32_lab",
+        "https://www.wantedly.com/id/Uehara_Mitsuaki"
+      ]
+    }
+  ]
+}
+</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
+  "@id": "https://mitsulab.jp/#organization",
   "name": "mitsulab",
   "alternateName": "ミツラボ",
-  "description": "土・水・植物の自然循環を、診る × 再生する × 感じる の三位一体で扱う研究所。日本を代表する自然循環再生の実践者である高田宏臣氏（NPO法人地球守）・矢野智徳氏（大地の再生）が主催するプロジェクトに継続参画しながら、土壌再生・樹勢回復・水系循環回復を統合した「自然循環再生パッケージ」として社会に実装する。",
+  "description": "自然循環OS（Nature Cycle OS）を中核に置く研究所。One Health（人・動物・環境の健康の不可分）の「環境」次元を、観測（Observe）／感覚（Immerse）／再生（Regenerate）／編集（Edit）の 4 つの実行レイヤー（四本柱）で実装する。日本を代表する自然循環再生の実践者である高田宏臣氏（NPO法人地球守）・矢野智徳氏（大地の再生）が主催するプロジェクトに継続参画しながら、土壌再生・樹勢回復・水系循環回復を統合した自然循環再生パッケージとして社会に実装する。",
   "url": "https://mitsulab.jp",
   "email": "official@mitsulab.jp",
   "foundingDate": "2026-03-16",
-  "founder": {
-    "@type": "Person",
-    "name": "上原光瑛",
-    "alternateName": "Uehara Mitsuaki",
-    "jobTitle": "mitsulab 代表 / Stillpoint 編集長",
-    "award": "全建賞（令和6年度・災害枠・都市部門）"
-  },
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "さいたま市大宮区",
@@ -5644,6 +6425,9 @@ section > h2{margin-top:0}
   },
   "areaServed": ["埼玉県", "千葉県", "群馬県", "日本"],
   "knowsAbout": [
+    "自然循環OS",
+    "Nature Cycle OS",
+    "One Health",
     "自然循環再生",
     "土壌再生",
     "樹勢回復",
@@ -5672,7 +6456,9 @@ section > h2{margin-top:0}
     "https://www.instagram.com/mitsulab_art",
     "https://x.com/mitsu32_lab",
     "https://www.wantedly.com/id/Uehara_Mitsuaki"
-  ]
+  ],
+  "founder": { "@id": "https://mitsulab.jp/#founder" }
 }
 </script>
+</body>
 </html>
