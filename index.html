@@ -1,4 +1,6 @@
-<!-- mitsulab HP — タブ版（構造修正版）r56
+<!-- mitsulab HP — タブ版（構造修正版）r58
+     2026-06-06 (r58) — 上原さん指示（TOP 仕上げバッチ）。① TOP 本文を冒頭の導入 1 文に短縮＋グレー化（os-map-lead 3 段落を削除し .os-map-intro＝グレー #9fa9b6・プレーン1段落へ）。② 自然循環OS 説明を指定文へ差し替え（「5 層（ Aoi Function() ）」「人間・自然・機械のアクター間で情報（感覚）を交換」・strong 撤去）。③ Aoi Function() 別枠を撤去し HEART 5 カードを自然循環OS 枠の直下へ統合（.aoifn-box / label / lead / bridge を削除）。④ スマホの HEART を横スクロール→Wellness 風グリッド（≤640px=3 列・≤560px=2 列・overflow 撤去）。⑤ 自然循環OS ラベルから「Nature Cycle OS」を削除＋click 前の「｜」（border-left）を撤去し他カードと統一。⑥ 「class Aoi(Yorishiro) ── 5 つの関数が碧（Core）を定義する」を削除。⑦ One Health 説明を指定文へ差し替え（四機関の記述を外し、土・水・植物の自然循環の回復＋wellness へ）。⑧ 代表プロフィールの年表の年月を水色（.journey-item .date #5cc8e0）。⑨ 資格・実績の一文を差し替え（VR・MR の実践／『Qualia/sound I』『Qualia/sound Ⅱ』『Qualia/heart I』計 60 作品 ZINE）。⑩ 年表の地すべり項を簡潔化（主担当(令和6年度 全建賞 災害枠・都市部門 受賞)）。⑪ フッターの mitsulab を水色（footer .brand #5cc8e0）。⑫ スマホ実機で改行の崩れを確認・調整。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r57) — 上原さん指示（TOP 本文＝導入リード os-map-lead の整形）。① **文字強調（&lt;strong&gt;）を全撤去**（3段落＝土・水・植物の自然循環を再生する／自然循環OS（Nature Cycle OS）／碧（あおい／Aoi））。② **用語解説インラインを適用**：用語解説 JS のスキャン対象に `.os-map-lead` を追加（先頭＝DOM最初）。導入リード内の用語（自然循環／自然循環OS／依代／碧／HEART 5 層 等）のみ水色（.gloss-term・点線下線）＋クリックで用語解説オーバーレイ（gloss-ov）。③ **同一ページ内は初出のみ解説**（JS の seen 機構）。導入リードが DOM 最初なので、ここで先に解説され、以降のグラフィック枠リード（os-frame-lead 等）の重複語は自動スキップ＝「先に出てきた単語で解説」。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-05 (r56) — 上原さん指示（TOP グラフィックの説明書きを白に戻し用語インラインを適用・詳細はピルのみクリック・CLICK 大文字）。① **3 枠の説明書き（.os-frame-lead／.aoifn-box-lead／.os-oh-lead）を水色→白（var(--ink)）**（r54 の水色化を撤回）。② **代表プロフィールと同じ用語インライン機構を適用**：用語解説 JS のスキャン対象に 3 lead を追加し、説明書き内の用語（自然循環OS／依代／碧／One Health 等）のみ水色（.gloss-term・点線下線）＋クリックで用語解説オーバーレイ（gloss-ov）。③ **詳細オーバーレイのクリック対象を「名称ピル」のみに**：枠本体（.os-frame／.aoifn-box／.os-oh）から role/tabindex/onclick/onkeydown と cursor:pointer を撤去し openOsLayer を名称ピル（.os-frame-label 等）へ移設。説明書きは詳細の対象外となり、lead 内の用語クリックが詳細枠に吸われない。ピルに hover/focus 強調を追加。④ **枠内「click」→「CLICK」大文字**（.lbl-click を lowercase→uppercase・他カードの .hc-click と統一）。⑤ ブラウザ実機検証：lead 白＋用語のみ水色・用語クリック→用語解説／ピルクリック→詳細／lead 余白クリック無反応・CLICK 大文字・コンソール 0。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-05 (r55) — 上原さん指示（E 層〈編集〉の媒体リスト再構成）。Aoi Function()（自然循環OS の世界を描く長編 SF・約9万字初稿完成）と 鼎（Kanae＝Stillpoint の姉妹・食の文化媒体）を、E 層オーバーレイ Projects（os-ov-pj）と「進行中の編集プロジェクト」カード（#edit）の両方に追加。研究者・実践者との対話を両所から削除。順序を Stillpoint → Aoi Function() → 鼎 → 古今東西アーカイブ → mitsulab 発信（末尾）に統一（Projects 数 4→5）。os-ov-essence の成果媒体表記も更新。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-04 (r54) — 上原さん指示（TOP 地図：名前ピルをクリック対象として明確化・枠内説明を用語解説として水色化・強調の撤去）。① **名前ピル（小さな枠）を「押せる」要素に**：自然循環OS／Aoi Function()／One Health の各ピルラベル（.os-frame-label／.aoifn-box-label／.os-oh-label）の右上に小さな「click」注記（.lbl-click＝水色・mono・hcPulse 明滅）を追加し、ピル自体を少し拡大（padding 4px18px→7px20px・border 0.30→0.42・font 1.0→1.02rem・cursor:pointer）。枠全体は従来どおりクリックで詳細オーバーレイ（os／aoifn／oh）が開く（ピルクリックも親へ伝播して同じ詳細へ）。② **重複していた枠右上角の「Click」を撤去**：各枠の右上角に絶対配置していた注記（.os-frame-click／.aoifn-box-click／.os-oh-click＝position:absolute top13 right18）と span を削除し、クリック表示をピルの「click」に一本化。③ **枠内の説明文を用語解説として水色化＋強調解除**：3 枠リード（.os-frame-lead／.aoifn-box-lead／.os-oh-lead）の本文色を var(--txt2)（灰）→ #5cc8e0（水色）に、strong を color:inherit・font-weight:400 にして白の太字強調を解除（上原さん「文字の強調は読みにくい」）。導入本文（.os-map-lead）は概観として従来の表示を維持。④ ブラウザ実機検証：3 ピルに「click」表示・ピル拡大・枠右上角の旧 Click が消えていること・3 リードが水色で太字強調なし・各ピル／枠クリックで os／aoifn／oh の詳細が開くこと・コンソールエラー 0 件を DOM eval＋スクショで確認。境界：公開・デプロイなし（ローカル編集＋push のみ）。
@@ -727,7 +729,7 @@ th{background:var(--bg-2);font-weight:600;letter-spacing:.04em}
   font-size:.93rem;color:var(--ink);
 }
 .journey-item .date{
-  font-family:"Cormorant Garamond",serif;color:#e8eef5;
+  font-family:"Cormorant Garamond",serif;color:#5cc8e0;
   font-weight:600;font-size:.92rem;letter-spacing:.05em;
 }
 
@@ -769,7 +771,7 @@ th{background:var(--bg-2);font-weight:600;letter-spacing:.04em}
 
 /* ===== Footer ===== */
 footer{background:var(--dark);color:var(--light-on-dark);padding:70px 28px;text-align:center;font-size:.9rem;line-height:1.9}
-footer .brand{font-family:"Cormorant Garamond",serif;font-weight:600;letter-spacing:.25em;font-size:1.4rem;margin-bottom:12px;color:#fff}
+footer .brand{font-family:"Cormorant Garamond",serif;font-weight:600;letter-spacing:.25em;font-size:1.4rem;margin-bottom:12px;color:#5cc8e0}
 footer .tag-en{font-family:"Cormorant Garamond",serif;font-style:italic;color:#fff;font-size:.95rem;letter-spacing:.18em;margin-bottom:24px}
 footer p{color:var(--ink-2);max-width:640px;margin:0 auto 16px;font-size:.88rem}
 footer .copy{font-size:.78rem;color:#fff;letter-spacing:.1em}
@@ -2564,7 +2566,7 @@ section > h2{margin-top:0}
   font-family:"Cormorant Garamond",serif;
   font-weight:500;
   letter-spacing:.04em;
-  color:#e8eef5;
+  color:#5cc8e0;
   font-size:.86rem;
 }
 
@@ -3430,6 +3432,11 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 }
 .os-map-lead:last-of-type{margin-bottom:0}
 .os-map-lead strong{color:var(--txt);font-weight:700}
+/* 冒頭の導入（白ではなくグレーの落ち着いた一文・r58 上原さん指示）。.tab-panel section p より詳細度を上げて確実にグレーを適用 */
+.os-map .os-map-intro{
+  font-size:clamp(1rem,1.78vw,1.2rem);color:#8d96a3;line-height:1.95;
+  margin:0 auto;max-width:1148px;padding:0 clamp(12px,2vw,26px);font-weight:500;text-align:left;
+}
 .os-map-body{
   font-size:.95rem;color:var(--txt2);line-height:2.02;margin:0 auto 16px;max-width:830px;text-align:left;
 }
@@ -3524,8 +3531,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 }
 /* 枠ラベル（ピル）の右上に添える「click」── ピルそのものが押せることを示す注記（r54 上原さん指示）*/
 .os-frame-label .lbl-click{
-  align-self:flex-start;margin:0 0 0 3px;padding-left:11px;
-  border-left:1px solid rgba(92,200,224,0.34);
+  align-self:flex-start;margin:0 0 0 5px;padding-left:0;
   font-family:"JetBrains Mono",ui-monospace,monospace;font-style:normal;font-weight:500;
   font-size:.5rem;letter-spacing:.24em;text-transform:uppercase;color:#5cc8e0;line-height:1.25;
   pointer-events:none;animation:hcPulse 2.8s ease-in-out infinite;will-change:transform,opacity;
@@ -3779,15 +3785,13 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
   .os-map-body,.os-map-close,.os-oh p{font-size:.9rem}
   .os-ov-letter{width:54px;height:54px;font-size:2.3rem}
   .os-ov-ja{font-size:1.3rem}
-  /* 横一列を保ったまま横スワイプで全 5 層を読めるように */
+  /* スマホでは横スクロールをやめ、Wellness と同じく折り返すグリッドに（r58 上原さん指示）*/
   .heart-row{
-    flex-wrap:nowrap;justify-content:flex-start;gap:11px;
-    overflow-x:auto;scroll-snap-type:x mandatory;
-    padding:4px 16px 12px;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:11px;
+    overflow:visible;padding:4px 4px 12px;max-width:100%;
   }
   .heart-row::-webkit-scrollbar{display:none}
-  .heart-card{flex:0 0 46%;min-width:138px;scroll-snap-align:center}
+  .heart-card{flex:initial;min-width:0}
   /* Aoi function() の連動チップも横スワイプで全 5 つ読めるように */
   .aoifn-map{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;padding:2px 14px 8px}
   .aoifn-map::-webkit-scrollbar{display:none}
@@ -3804,6 +3808,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
   .tab-panel .os-map{padding:26px 12px 30px}
   .os-map-sub{font-size:.92rem}
   .os-map-title-en{font-size:.8rem}
+  .heart-row{grid-template-columns:repeat(2,1fr)}
 }
 
 /* One Health（os-frame 内に組み込む枠）*/
@@ -4300,22 +4305,17 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
   <div class="os-map-inner">
     <h2 class="os-map-title">自然循環OS の地図<span class="os-map-title-en">Nature Cycle OS — where everything begins</span></h2>
 
-    <p class="os-map-lead">mitsulab は、<strong>土・水・植物の自然循環を再生する</strong>研究所です。土と水と植物がめぐる循環は、いのちを支える見えない土台。けれど近代以降は分野ごとに切り分けられ、斜面の崩壊も、樹木の衰弱も、水脈の途絶も、根をたどればひとつ ── 自然循環の機能不全に行き着きます。</p>
-    <p class="os-map-lead">そこで mitsulab は、この循環を中心に、自然・人間・機械の三者が感覚（情報）を交わすためのプラットフォーム「<strong>自然循環OS（Nature Cycle OS）</strong>」をつくります。観測・編集・依代・再生・感覚 ── HEART 5 層からなる、自然循環の見えない土台です。</p>
-    <p class="os-map-lead">その中央に立つのが、依代・<strong>碧（あおい／Aoi）</strong>。目に見えない自然循環を、人が会える“存在”へと宿し、自然・人間・機械のあいだ、現実空間と情報空間のあいだをつなぎます。</p>
+    <p class="os-map-intro">mitsulab は、土・水・植物の自然循環を再生する研究所です。土と水と植物がめぐる自然循環は、いのちを支える見えない土台です。</p>
 
     <!-- ★★★ 地図（ひとつの図）：自然循環OS（Core＝碧）→ One Health ★★★ -->
     <div class="os-arch">
 
     <!-- ★ 自然循環OS の枠：5 層をまとめて囲み「5 層でひとつの OS」であることを示す。枠自体クリックで自然循環OS の詳細オーバーレイ。中の各カードは各層の詳細 ★ -->
     <div class="os-frame">
-      <span class="os-frame-label" role="link" tabindex="0" aria-label="自然循環OS（5 層全体）の詳細を開く" onclick="openOsLayer('os')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('os')}">自然循環OS<span class="off-en">Nature Cycle OS</span><span class="lbl-click">click</span></span>
-      <p class="os-frame-lead"><strong>自然循環OS（Nature Cycle OS）</strong>は、<strong>土・水・植物の循環と、それが育む生物多様性</strong> を、<strong>人間・自然・機械</strong> が互いの情報（感覚）を交換するための、観測・編集・依代・再生・感覚の <strong>5 層</strong>としてはたらくプラットフォームです。</p>
-      <!-- ★ Aoi function()：自然循環OS 枠の「中」の別枠。碧（Aoi）を構成する 5 つの関数（H/E/A/R/T に対応）。そのなかに HEART 5 層（各層の詳細カード）を内包する。クリックで詳細オーバーレイ。枠クリック（os）と分離するため stopPropagation ★ -->
-      <div class="aoifn-box">
-        <span class="os-frame-label aoifn-box-label" role="link" tabindex="0" aria-label="Aoi Function()（碧を構成する 5 つの関数）の詳細を開く" onclick="openOsLayer('aoifn')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('aoifn')}">Aoi Function()<span class="off-en">碧（Aoi）を構成する 5 つの関数</span><span class="lbl-click">click</span></span>
-        <p class="aoifn-box-lead"><strong>Aoi Function()</strong>は、自然循環OS の <strong>コア</strong> である日本古来の <strong>依代（神霊が宿る器）</strong>の系譜にある<strong>碧（あおい／Aoi）</strong> と、5 つの構成関数（<code>Aoi.hear() / Aoi.edit() / Aoi.yorishiro() / Aoi.renew() / Aoi.touch()</code>）として定義されます。碧は、<strong>人間・自然・機械の三者、現実空間・情報空間の両者をつなぐ存在</strong>です。</p>
-        <span class="aoifn-box-bridge">class Aoi(Yorishiro) ── 5 つの関数が碧（Core）を定義する</span>
+      <span class="os-frame-label" role="link" tabindex="0" aria-label="自然循環OS（5 層全体）の詳細を開く" onclick="openOsLayer('os')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('os')}">自然循環OS<span class="lbl-click">click</span></span>
+      <p class="os-frame-lead">自然循環OS（Nature Cycle OS）は、土・水・植物の自然循環と、それが育む生物多様性を、観測・編集・依代・再生・感覚の 5 層（ Aoi Function() ）により、人間・自然・機械のアクター間で情報（感覚）を交換するプラットフォームです。</p>
+      <!-- HEART 5 層：自然循環OS 枠の中に直接配置（旧 Aoi Function() 別枠は r58 で統合）-->
+
         <div class="heart-row" role="group" aria-label="HEART 5 層 — 各カードをクリックすると詳細が開きます">
           <button type="button" class="heart-card" onclick="event.stopPropagation();openOsLayer('h')" aria-haspopup="dialog" aria-label="観測 Hear の詳細を開く">
             <span class="hc-letter">H</span><span class="hc-ja">観測</span><span class="hc-en">Hear</span><span class="hc-fn">Aoi.hear()</span><span class="hc-click">Click</span>
@@ -4333,7 +4333,6 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
             <span class="hc-letter">T</span><span class="hc-ja">感覚</span><span class="hc-en">Touch</span><span class="hc-fn">Aoi.touch()</span><span class="hc-click">Click</span>
           </button>
         </div>
-      </div>
     </div>
 
       <!-- コネクタ：自然循環OS ↓ One Health（自然循環の回復が One Health の土台を支える）-->
@@ -4342,7 +4341,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       <!-- One Health ノード（自然循環OS が支える土台・クリックで詳細）-->
       <div class="os-oh">
         <span class="os-frame-label os-oh-label" role="link" tabindex="0" aria-label="One Health の詳細を開く" onclick="openOsLayer('oh')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('oh')}">One Health<span class="off-en">人間・土壌・水循環・生態系の健康はひとつ</span><span class="lbl-click">click</span></span>
-        <p class="os-oh-lead"><strong>One Health（ワンヘルス）</strong>は、人間・土壌・水循環・生態系の健康が、一つの大きな循環の上にあり、循環の一部が滞ると全体へ波及するという考え方です。<strong>WHO・FAO・WOAH・UNEP</strong> の四機関により国際的な枠組みに公式化されています。mitsulab は、その土台となる <strong>土壌・水循環・植物の循環の回復</strong>と、<strong>自然との触れ合いによる人間の wellness</strong> の実現を担います。</p>
+        <p class="os-oh-lead">One Healthは、人間・土壌・水循環・生態系の健康が、一つの大きな循環の上にあり、循環の一部が滞ると全体へ波及するという考え方です。mitsulab は、その土台となる 土・水・植物の自然循環の回復と、自然との触れ合いによる人間の wellness の実現を担います。</p>
         <!-- One Health の 5 つの Wellness：クリックで個別オーバーレイ（親 os-oh への伝播は stopPropagation で遮断）-->
         <div class="oh-well-grid" role="group" aria-label="One Health の 5 つの Wellness">
           <div class="oh-well" role="link" tabindex="0" aria-label="人間の Wellness の説明を開く" onclick="event.stopPropagation();openOsLayer('wh')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();openOsLayer('wh')}">
@@ -4500,7 +4499,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
         <div class="os-ov-letter">1H</div>
         <div><span class="os-ov-meta">The Goal · One Health</span><span class="os-ov-ja" id="osl-oh-ttl">One Health</span><span class="os-ov-en">人間・土壌・水循環・生態系の健康はひとつ</span></div>
       </div>
-      <p class="os-ov-essence"><strong>One Health（ワンヘルス）</strong>は、人間・土壌・水循環・生態系の健康が、一つの大きな循環の上にあり、<strong>循環の一部が滞ると全体へ波及する</strong>という考え方です。<strong>WHO・FAO・WOAH・UNEP</strong> の四機関により国際的な枠組みに公式化されています。<br><br>mitsulab が担うのは、その <strong>土台</strong> ── <strong>土壌・水循環・植物の循環の回復</strong>、そして <strong>自然との触れ合いによる人間の wellness</strong> です。すべての健康がのる循環の最も深い層から、現場で立て直していきます。</p>
+      <p class="os-ov-essence"><strong>One Health（ワンヘルス）</strong>は、人間・土壌・水循環・生態系の健康が、一つの大きな循環の上にあり、<strong>循環の一部が滞ると全体へ波及する</strong>という考え方です。<strong>WHO・FAO・WOAH・UNEP</strong> の四機関により国際的な枠組みに公式化されています。<br><br>mitsulab が担うのは、その <strong>土台</strong> ── <strong>土・水・植物の自然循環の回復</strong>、そして <strong>自然との触れ合いによる人間の wellness</strong> です。すべての健康がのる循環の最も深い層から、現場で立て直していきます。</p>
       <div class="os-ov-projs-lbl">▸ ひとつにつながる 5 つの Wellness</div>
       <span class="os-ov-pj"><span class="os-ov-pj-name">人間の Wellness ／ Human</span><span class="os-ov-pj-desc">自然との触れ合いと、生態系サービスに支えられる人の健康</span></span>
       <span class="os-ov-pj"><span class="os-ov-pj-name">土壌の Wellness ／ Soil</span><span class="os-ov-pj-desc">団粒構造と土中環境。循環のいちばん深い土台となる土の健康</span></span>
@@ -4607,7 +4606,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 
   <p>5 層では、それぞれ次のことに取り組んでいる。H：観測（Hear）では IoT・GIS・3D Gaussian Splatting・AI・VR/MR で土地の状態を多層的に可視化し、E：編集（Edit）では多言語メディア Stillpoint の編集長として自然との共生をめぐる知を世界へ編んで発信。A：依代（Aoi＝碧）では人と機械と自然の媒介となる IP「碧（Aoi）」を Aoi.function() として実装し、R：再生（Renew）では NPO 法人地球守（高田宏臣代表）および 矢野智徳氏の大地の再生講座に参画して氷川参道・上野原の現場で土中環境の回復に取り組む。T：感覚（Touch）では書道を起点に、知覚を拡張するメディアアートを継続制作している。</p>
 
-  <p>これらの探究と制作は、いくつかの資格・実績としても形になっている。VR プロフェッショナルアカデミー 5 期を卒業し、日本書作家協会より雅号「菱碧（りょうへき）」を認定された。また、知覚の拡張をめぐる制作を集成した Qualia/sound・Qualia/heart シリーズ 60 作品による作品集（ZINE）を製作している。</p>
+  <p>その他、VR プロフェッショナルアカデミー 5 期を卒業しVR・MR等の実践を重ね、日本書作家協会より雅号「菱碧（りょうへき）」を認定された。また、知覚の拡張をめぐる制作を集成した書道作品 『Qualia/sound  I』・『Qualia/sound Ⅱ』・『Qualia/heart  I』 の計 60 作品による作品集（ZINE）を製作。</p>
 
   <p>自然循環OS が向かうのは、人間が自然を「制御する」未来でも、機械が人間に取って代わる未来でもない。人間・自然・機械が互いの感覚を交換しながら、自然循環を共に支える——その器として、自然循環OS を社会と共に育てていく。</p>
 
@@ -4618,7 +4617,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
     <div class="journey-item"><div class="date">1995.4</div><div>埼玉県で生まれる</div></div>
     <div class="journey-item"><div class="date">2018.3</div><div>埼玉大学工学部建設工学科卒業</div></div>
     <div class="journey-item"><div class="date">2018.4</div><div>埼玉県庁入庁(土木技術職)</div></div>
-    <div class="journey-item"><div class="date">2021.4–2025.3</div><div>令和元年東日本台風 地すべり復旧工事 主担当(規模 約7ha・地すべり土量 約98万m³／LiDAR点群データ活用／<strong>令和6年度 全建賞 災害枠・都市部門 受賞</strong>)</div></div>
+    <div class="journey-item"><div class="date">2021.4–2025.3</div><div>令和元年東日本台風 地すべり復旧工事 主担当(令和6年度 全建賞 災害枠・都市部門 受賞)</div></div>
     <div class="journey-item"><div class="date">2026.3</div><div><strong>mitsulab 開業</strong></div></div>
   </div>
 
@@ -6899,7 +6898,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       for(var k = 0; k < seenList.length; k++){ if(seenList[k].page === page) return seenList[k].seen; }
       var ns = {}; seenList.push({ page:page, seen:ns }); return ns;
     }
-    document.querySelectorAll('.os-map-prose p, #profile p, .os-frame-lead, .aoifn-box-lead, .os-oh-lead').forEach(function(root){
+    document.querySelectorAll('.os-map-lead, .os-map-prose p, #profile p, .os-frame-lead, .aoifn-box-lead, .os-oh-lead').forEach(function(root){
       var page = (root.closest && root.closest('.tab-panel')) || document.body;
       var seen = seenFor(page);
       var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
