@@ -1,4 +1,6 @@
-<!-- mitsulab HP — タブ版（構造修正版）r66
+<!-- mitsulab HP — タブ版（構造修正版）r68
+     2026-06-06 (r68) — 上原さん指示（代表プロフィールの用語解説の精緻化＋用語追加）。① 文脈ガードを追加：「情報（感覚）」の感覚（前が「（」）と「編集長」の編集（後が「長」）は Touch/Edit 層の用語ではないので解説しない。これにより 編集・感覚 の初出が「自然循環OS は、観測・編集・依代・再生・感覚の 5 つの Aoi Function() から成る…」の文に移り、観測・編集・依代・再生・感覚 がそこで解説される。② プロフィール本文の「VR/MR」→「VR・MR」表記に。③ 用語解説を追加：新規 .term＝WHO・FAO・WOAH・UNEP（One Health 四機関）／アルバート・ハワード／インドール法／森林土木／土壌学／VR／MR／メディアアート。ALIASES に上記＋既存（生態系サービス・有機農業・有機土木）を追加し、プロフィール内でクリック解説。VR・MR はそれぞれ別語として解説。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r67) — 上原さん指示（地図の微調整）。① 自然循環OS → One Health の矢印に One Health の枠ラベルが重なる不具合を修正：`.os-frame-mitsulab > .os-oh` の margin-top を 0 → clamp(30px,3.4vw,40px) にして、浮いたラベルピンが矢印に被らない余白を確保。② HEART カード（各 Aoi Function()）を**コンパクト化しつつ Aoi.xxx() を拡大**：.heart-card の padding を縮小（上 22→14・下 16→11 等）＋gap 7→6、大文字 .hc-letter を clamp 3.6→2.9rem に縮小、関数名 .hc-fn を clamp .7→.88rem に拡大＋やや明るいグレー＋weight500 で強調。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r66) — 上原さん指示（mitsulab を水色の外枠にして自然循環OS・One Health を囲い込む）。① os-arch のグレー枠（border/背景）を撤去し、無地のコンテナに。② mitsulab を `.os-frame-mitsulab`（水色・やや明るい border＋背景）の**外枠**にし、その内側に 自然循環OS カード（HEART 5）と One Health を入れ子化（mitsulab → OS → One Health の矢印は撤去し、包含関係で表現）。クリックは従来どおりラベルから代表プロフィール。③ 説明文を上原さん指定に更新：mitsulab＝「…より良い未来を研究・実装します」／自然循環OS＝末尾に「5 つの Aoi Function() と、22 個のプロジェクトから構成されます。」を追記（22＝観測5＋編集5＋依代4＋再生4＋感覚4 の各層プロジェクト合計）／One Health＝「mitsulab が結び直す人間・自然・機械の関係の、ひとつの側面」。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r65) — 上原さん指示（章構成をやめ、mitsulab を地図グラフィックの中へ／3 中心コンセプトの整合）。① r63 の「mitsulab とは」プロローグ章（#about-mitsulab）を撤去し、mitsulab を **自然循環OS の地図（os-arch のひとつの枠）の中の最初のカード**に戻す（mitsulab → 自然循環OS → One Health の 3 カードをひとつの枠に）。② **3 中心コンセプトを整合化（重複定義の解消）**：mitsulab 文が自然循環OS の定義（情報交換プラットフォーム）を二重に述べていたため、mitsulab 文からその定義を外し、「mitsulab＝人間・自然・機械の関係をどう結び直すかを探究する総合的な研究所。自然循環OS をその体系の中心に据え、4 分野を横断して三者の協調・より良い未来を研究」へ。自然循環OS 文（土・水・植物＋生物多様性を 5 つの Aoi Function() で三者間交換するプラットフォーム）と One Health 文（健康の一循環＝mitsulab が結び直す関係のひとつの側面）はそれぞれが唯一の定義を持つ階層に。③ 用語解説：mitsulab カードのリードは data-gloss-only=自然循環OS のみ（自然循環/One Health は各カードで初出解説）。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r64) — 上原さん指示（mitsulab の本質を再定義）。① 「mitsulab とは」冒頭文を全面書き換え：One Health の実現に貢献する研究所、という一面的な定義から、**「人間・自然・機械の関係をどう結び直すかを問いつづける総合的な研究所」**へ。自然循環の再生は目的ではなくその一部（営みの一部）と明記。自然循環OS を体系の中心に据え、エンジニアリング・テクノロジー・アート・文学を横断して三者の協調と、より良い未来を研究する、と整理。One Health は「探究のひとつの広がり」として位置づけ（中心ではなく一側面に）。② One Health 枠リードの主語を mitsulab→自然循環OS に整え、末尾に「mitsulab が結び直す関係の、ひとつの側面」と添えて、mitsulab≠One Health（より広い）の関係を明確化。用語解説 data-gloss-only は据え置き（自然循環OS／自然循環／One Health）。境界：公開・デプロイなし（ローカル編集＋push のみ）。
@@ -3472,8 +3474,8 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 }
 .heart-card{
   flex:1 1 0;min-width:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;
-  padding:clamp(22px,2.2vw,34px) clamp(8px,1vw,16px) clamp(16px,1.6vw,22px);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;
+  padding:clamp(14px,1.6vw,20px) clamp(6px,.8vw,12px) clamp(11px,1.3vw,16px);
   background:rgba(8,11,16,0.55);
   border:1.4px solid rgba(92,200,224,0.34);
   border-radius:16px;
@@ -3489,7 +3491,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 }
 .heart-card .hc-letter{
   font-family:"Cormorant Garamond",serif;font-weight:700;line-height:1;
-  font-size:clamp(2.4rem,4.4vw,3.6rem);color:#5cc8e0;
+  font-size:clamp(2rem,3.6vw,2.9rem);color:#5cc8e0;
 }
 .heart-card .hc-ja{
   font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;
@@ -3501,7 +3503,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 }
 .heart-card .hc-fn{
   font-family:"JetBrains Mono",ui-monospace,monospace;
-  font-size:clamp(.58rem,.78vw,.7rem);letter-spacing:.02em;color:#8b95a6;
+  font-size:clamp(.72rem,.98vw,.88rem);letter-spacing:.01em;color:#aebdcc;font-weight:500;
 }
 /* 「Click」── 枠に添える注記（ボタンではない）。スタイリッシュにゆっくり明滅させ、ほのかに拡縮して“押せる”ことを上品に示す（r36）*/
 @keyframes hcPulse{
@@ -3690,8 +3692,8 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
   padding:clamp(40px,4.4vw,52px) clamp(12px,2vw,28px) clamp(30px,3.4vw,42px);
   background:rgba(8,11,16,0.22);
 }
-.os-frame-mitsulab > .os-frame{margin-top:clamp(28px,3.2vw,38px)}
-.os-frame-mitsulab > .os-oh{margin-top:0}
+.os-frame-mitsulab > .os-frame{margin-top:clamp(42px,4.4vw,46px)}
+.os-frame-mitsulab > .os-oh{margin-top:clamp(44px,4.4vw,48px)} /* 枠ラベル(浮き／スマホでは2行で背が高い)が上の矢印・本文に重ならないよう余白を確保（r67）*/
 /* mitsulab とは（冒頭プロローグ章）── カードではなく社説的なリード文（別デザイン）・r63 */
 .mitsulab-about .mitsulab-lead{
   font-size:clamp(1.06rem,1.7vw,1.32rem);line-height:2.1;color:#cdd6e0;font-weight:500;
@@ -4640,7 +4642,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 
   <p>mitsulab にとっての One Health は、自然を再生することだけにとどまらない。人間の健康は自然との関係性のなかにあるという実感、自然の恵み——生態系サービス——が人間社会を根底から支えているという認識、そして フィジカル AI（Physical AI）が社会へ実装されていくこれからの時代に、人間・自然・機械の関係をどう結び直すのかという実践的な問い。これらを視野に入れ、mitsulab は 「人間・自然・機械の協調のなかで、未来をより良いものにするための総合的な研究所」であろうとする。そのため自然循環OS は、HEART の 5 層を中心に、エンジニアリング・テクノロジー・アート・文学のすべての分野を横断しながら、人間・自然・機械の関係そのものを研究していく。</p>
 
-  <p>5 層では、それぞれ次のことに取り組んでいる。H：観測（Hear）では IoT・GIS・3D Gaussian Splatting・AI・VR/MR で土地の状態を多層的に可視化し、E：編集（Edit）では多言語メディア Stillpoint の編集長として自然との共生をめぐる知を世界へ編んで発信。A：依代（Aoi＝碧）では人と機械と自然の媒介となる IP「碧（Aoi）」を Aoi.function() として実装し、R：再生（Renew）では NPO 法人地球守（高田宏臣代表）および 矢野智徳氏の大地の再生講座に参画して氷川参道・上野原の現場で土中環境の回復に取り組む。T：感覚（Touch）では書道を起点に、知覚を拡張するメディアアートを継続制作している。</p>
+  <p>5 層では、それぞれ次のことに取り組んでいる。H：観測（Hear）では IoT・GIS・3D Gaussian Splatting・AI・VR・MR で土地の状態を多層的に可視化し、E：編集（Edit）では多言語メディア Stillpoint の編集長として自然との共生をめぐる知を世界へ編んで発信。A：依代（Aoi＝碧）では人と機械と自然の媒介となる IP「碧（Aoi）」を Aoi.function() として実装し、R：再生（Renew）では NPO 法人地球守（高田宏臣代表）および 矢野智徳氏の大地の再生講座に参画して氷川参道・上野原の現場で土中環境の回復に取り組む。T：感覚（Touch）では書道を起点に、知覚を拡張するメディアアートを継続制作している。</p>
 
   <p>その他、VR プロフェッショナルアカデミー 5 期を卒業しVR・MR等の実践を重ね、日本書作家協会より雅号「菱碧（りょうへき）」を認定された。また、知覚の拡張をめぐる制作を集成した書道作品 『Qualia/sound  I』・『Qualia/sound Ⅱ』・『Qualia/heart  I』 の計 60 作品による作品集（ZINE）を製作。</p>
 
@@ -6098,6 +6100,11 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       <h3>プラットフォーム<small>（platform ／ 共通の土台）</small></h3>
       <p>いろいろな人やはたらきが<strong>集まり、つながり合うための共通の土台</strong>のこと。駅のホーム（platform）のように、別々の人やものが行き交う「場」をイメージしてください。自然循環OS は、ひとつの製品やアプリではなく、専門家・住民・自治体・企業が<strong>いっしょに育てていく「器」</strong>としてのプラットフォームです。</p>
     </div>
+    <div class="term" id="term-quadripartite">
+      <div class="term-label">Foundation</div>
+      <h3>WHO・FAO・WOAH・UNEP<small>（One Health 四機関 ／ Quadripartite）</small></h3>
+      <p>One Health を国際的な枠組みとして公式化した<strong>4 つの国連系機関</strong>です。<strong>WHO</strong>（世界保健機関＝人の健康）・<strong>FAO</strong>（国連食糧農業機関＝食と農）・<strong>WOAH</strong>（国際獣疫事務局＝動物の健康。旧 OIE）・<strong>UNEP</strong>（国連環境計画＝環境）の四者が、2022 年に「Quadripartite（四者協働）」として連携を正式化しました。人・動物・植物・環境の健康を一体でとらえることを、世界の合意として裏づける枠組みです。</p>
+    </div>
   </div>
 
   <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--soil)">観測（Hear）── 計測・可視化技術</h3>
@@ -6191,6 +6198,26 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       <h3>水・空気・物質循環</h3>
       <p>健全な土壌では、<strong>雨水が浸透し、空気が土中を通り、有機物が分解・再合成されて植物へ戻る</strong>という三つの循環が同時に動いています。このうち一つが詰まると全体が停滞し、斜面崩壊や農地の荒廃に繋がります。土壌改善の実践的な着眼点です。</p>
     </div>
+    <div class="term" id="term-shinrin-doboku">
+      <div class="term-label">Renew</div>
+      <h3>森林土木<small>（治山・林道・斜面の土木）</small></h3>
+      <p>森林を守り育てるための土木——<strong>治山（山崩れ・土砂災害を防ぐ）</strong>、林道や作業道づくり、荒れた斜面の安定など。コンクリートで固める従来工法に対し、mitsulab は<strong>水と空気の通り道を活かして土がみずから締まる</strong>「有機土木」の発想で、森と土の循環を壊さない施工をめざします。</p>
+    </div>
+    <div class="term" id="term-dojougaku">
+      <div class="term-label">Renew</div>
+      <h3>土壌学<small>（Soil Science）</small></h3>
+      <p>土を、<strong>鉱物・有機物・水・空気・生きものが関わり合う一つのシステム</strong>として捉える科学。物理（団粒・水はけ）・化学（養分・pH）・生物（微生物・菌根菌）の三つの側面から、土の健康を読み解きます。自然循環の再生は、この土壌学の知見を、現場の手仕事と結び直すところから始まります。</p>
+    </div>
+    <div class="term" id="term-howard">
+      <div class="term-label">Renew</div>
+      <h3>アルバート・ハワード<small>（Sir Albert Howard ／ 1873–1947）</small></h3>
+      <p>イギリスの植物学者で、<strong>近代有機農業の父</strong>と呼ばれる人物。インドでの研究から、<strong>健康な土が健康な作物・家畜・人をつくる</strong>という「土の健康（Soil Health）」の思想を確立しました。著書『農業聖典（An Agricultural Testament）』は、世界の有機農業運動の出発点になりました。</p>
+    </div>
+    <div class="term" id="term-indore">
+      <div class="term-label">Renew</div>
+      <h3>インドール法<small>（Indore Process ／ 堆肥化法）</small></h3>
+      <p>アルバート・ハワードがインドの<strong>インドール</strong>で体系化した<strong>堆肥（コンポスト）の作り方</strong>。植物の残さ・家畜のふん・土などを層状に積み、空気と水を通しながら微生物に分解させ、良質な腐植（フミン）を含む土へ戻します。「捨てるもの」を「土の力」へ変える、循環の基本技術です。</p>
+    </div>
   </div>
 
   <h3 style="margin-top:48px;padding-left:14px;border-left:3px solid var(--amber)">感覚（Touch）── 知覚拡張・体感の翻訳</h3>
@@ -6249,6 +6276,21 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       <div class="term-label">Touch</div>
       <h3>知覚拡張<small>（Perceptual Extension）</small></h3>
       <p>本来の人間の感覚スケールでは捉えられないものを、<strong>技術や作品を介して知覚できるようにする試み</strong>。顕微鏡が微生物を見せ、xRが土中の流れを体験させ、Qualia Practiceが身体を通じて不可視を感じさせる——これらすべてが知覚拡張の実践です。</p>
+    </div>
+    <div class="term" id="term-vr">
+      <div class="term-label">Touch</div>
+      <h3>VR<small>（Virtual Reality ／ 仮想現実）</small></h3>
+      <p>ヘッドセットなどを使って、<strong>コンピュータがつくった世界の中に入り込む</strong>技術。現実の景色を遮断し、別の空間にいるように感じさせます。mitsulab では、土の中や流域の水の流れ——ふだん目に見えない自然循環——を<strong>体ごと体験する</strong>ための表現手段として用います。</p>
+    </div>
+    <div class="term" id="term-mr">
+      <div class="term-label">Touch</div>
+      <h3>MR<small>（Mixed Reality ／ 複合現実）</small></h3>
+      <p><strong>現実の風景に、デジタルの情報を重ねて溶け合わせる</strong>技術。VR が現実を遮断するのに対し、MR は目の前の畑や斜面を見ながら、土壌データや水脈を<strong>その場に重ねて</strong>見せられます。現場と数値を同時にとらえる、観測と感覚の橋渡しに向いた表現です。</p>
+    </div>
+    <div class="term" id="term-media-art">
+      <div class="term-label">Touch</div>
+      <h3>メディアアート<small>（Media Art）</small></h3>
+      <p>映像・音・センサー・プログラムなど、<strong>新しい技術（メディア）を素材にする芸術</strong>。鑑賞者が関わって変化する作品も多く、「体験」そのものが作品になります。mitsulab では、観測データや土中の音を<strong>感じられる体験へ翻訳する</strong>手段として、書道を起点にしたメディアアートを制作しています。</p>
     </div>
   </div>
 
@@ -6924,6 +6966,17 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 
     // 2) 表記ゆれ → term-id（長い順にして最長一致）
     var ALIASES = [
+      ['WHO・FAO・WOAH・UNEP','term-quadripartite'],
+      ['アルバート・ハワード','term-howard'],
+      ['生態系サービス','term-ecosystem-services'],
+      ['メディアアート','term-media-art'],
+      ['インドール法','term-indore'],
+      ['有機農業','term-yuki-nogyo'],
+      ['有機土木','term-yuki-doboku'],
+      ['森林土木','term-shinrin-doboku'],
+      ['土壌学','term-dojougaku'],
+      ['VR','term-vr'],
+      ['MR','term-mr'],
       ['Aoi Function()','term-aoi-function'],
       ['Nature Cycle OS','term-nature-cycle-os'],
       ['生物多様性','term-biodiversity'],
@@ -7000,6 +7053,8 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
           var s = m[0], i = m.index, j = i + s.length;
           var before = i > 0 ? text.charAt(i-1) : '', after = j < text.length ? text.charAt(j) : '';
           if((s === '碧' || s === '観測' || s === '編集' || s === '再生' || s === '感覚') && CJK.test(before)) continue; // 菱碧／自然循環再生 等、複合語の途中では解説しない
+          if(s === '感覚' && before === '（') continue; // 「情報（感覚）」の感覚は Touch 層の用語ではないので解説しない（r68）
+          if(s === '編集' && after === '長') continue;  // 「編集長」の編集は Edit 層の用語ではないので解説しない（r68）
           if(ASCII.test(s) && (WORD.test(before) || WORD.test(after))) continue; // 英字略語は語境界で限定
           var id = surf2id[s];
           if(only && only.indexOf(id) === -1) continue; // data-gloss-only 指定の用語だけ解説（文脈が異なる同語の誤解説を防ぐ・r63）
