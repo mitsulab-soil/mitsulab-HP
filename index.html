@@ -1,4 +1,12 @@
-<!-- mitsulab HP — タブ版（構造修正版）r58
+<!-- mitsulab HP — タブ版（構造修正版）r66
+     2026-06-06 (r66) — 上原さん指示（mitsulab を水色の外枠にして自然循環OS・One Health を囲い込む）。① os-arch のグレー枠（border/背景）を撤去し、無地のコンテナに。② mitsulab を `.os-frame-mitsulab`（水色・やや明るい border＋背景）の**外枠**にし、その内側に 自然循環OS カード（HEART 5）と One Health を入れ子化（mitsulab → OS → One Health の矢印は撤去し、包含関係で表現）。クリックは従来どおりラベルから代表プロフィール。③ 説明文を上原さん指定に更新：mitsulab＝「…より良い未来を研究・実装します」／自然循環OS＝末尾に「5 つの Aoi Function() と、22 個のプロジェクトから構成されます。」を追記（22＝観測5＋編集5＋依代4＋再生4＋感覚4 の各層プロジェクト合計）／One Health＝「mitsulab が結び直す人間・自然・機械の関係の、ひとつの側面」。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r65) — 上原さん指示（章構成をやめ、mitsulab を地図グラフィックの中へ／3 中心コンセプトの整合）。① r63 の「mitsulab とは」プロローグ章（#about-mitsulab）を撤去し、mitsulab を **自然循環OS の地図（os-arch のひとつの枠）の中の最初のカード**に戻す（mitsulab → 自然循環OS → One Health の 3 カードをひとつの枠に）。② **3 中心コンセプトを整合化（重複定義の解消）**：mitsulab 文が自然循環OS の定義（情報交換プラットフォーム）を二重に述べていたため、mitsulab 文からその定義を外し、「mitsulab＝人間・自然・機械の関係をどう結び直すかを探究する総合的な研究所。自然循環OS をその体系の中心に据え、4 分野を横断して三者の協調・より良い未来を研究」へ。自然循環OS 文（土・水・植物＋生物多様性を 5 つの Aoi Function() で三者間交換するプラットフォーム）と One Health 文（健康の一循環＝mitsulab が結び直す関係のひとつの側面）はそれぞれが唯一の定義を持つ階層に。③ 用語解説：mitsulab カードのリードは data-gloss-only=自然循環OS のみ（自然循環/One Health は各カードで初出解説）。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r64) — 上原さん指示（mitsulab の本質を再定義）。① 「mitsulab とは」冒頭文を全面書き換え：One Health の実現に貢献する研究所、という一面的な定義から、**「人間・自然・機械の関係をどう結び直すかを問いつづける総合的な研究所」**へ。自然循環の再生は目的ではなくその一部（営みの一部）と明記。自然循環OS を体系の中心に据え、エンジニアリング・テクノロジー・アート・文学を横断して三者の協調と、より良い未来を研究する、と整理。One Health は「探究のひとつの広がり」として位置づけ（中心ではなく一側面に）。② One Health 枠リードの主語を mitsulab→自然循環OS に整え、末尾に「mitsulab が結び直す関係の、ひとつの側面」と添えて、mitsulab≠One Health（より広い）の関係を明確化。用語解説 data-gloss-only は据え置き（自然循環OS／自然循環／One Health）。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r63) — 上原さん指示（TOP を 2 章構成に・地図を 1 枠化）。① mitsulab カードを廃し、冒頭のプロローグ章「mitsulab とは」（社説的リード .mitsulab-lead・別デザイン＝水色の左罫＋大きめ本文）に。代表プロフィールと同じ section＋sec-num/h2/sec-en で章立て。② 章②「自然循環OS の地図」は、自然循環OS と One Health を os-arch のボーダーで「ひとつの枠」に囲む。③ 矢印「が目指すのは」ラベルを削除（矢印のみ）。mitsulab→自然循環OS の矢印（その実現のための装置が）も撤去（章で分離）。④ 用語解説に data-gloss-only を実装：mitsulab とは のリードは「自然循環OS・自然循環・One Health」のみ解説（感覚・再生・プラットフォーム等は自然循環OS 章で解説するため、同語でも文脈が違うので冒頭では解説しない）。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r62) — 上原さん指示（3 カード地図の微調整）。① 一言説明文を mitsulab カードのリードに移設（mitsulab は…One Health の実現に貢献する研究所です。）。② mitsulab カードのラベルを「mitsulab とは」→「mitsulab」に。③ 地図冒頭の一言説明（.os-map-intro）と読み方ガイド（.os-map-guide）を削除（説明は mitsulab カードへ集約）。④ 矢印の関係ラベル（その実現のための装置が／が目指すのは）を、ピル枠を外して矢印の隣にグレー小文字で表示（.os-conn を縦→横並びに、.os-conn-label のボーダー/背景/丸み撤去）。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r61) — 上原さん指示（TOP 地図を「3 カードの関係図」に再設計）。① 冒頭文（一言説明）を更新：「mitsulab は、自然・人間・機械の三者が互いの情報（感覚）を交換し合うためのプラットフォーム『自然循環OS（Nature Cycle OS）』を通じて、土・水・植物の一続きの自然循環を再生し、One Health の実現に貢献する研究所です。」＋読み方ガイド（.os-map-guide）を追加。② TOP を mitsulab とは → 自然循環OS とは → One Health とは の 3 カード＋矢印（.os-conn-label）で関係を可視化：mitsulab カード（.os-frame-lite・めざすもの＝人間・自然・機械が協調する、より良い未来／クリックで代表プロフィール）→「その実現のための装置が ↓」→ 自然循環OS カード（既存・中央＝装置）→「が目指すのは ↓」→ One Health カード（既存・めざす先）。全体を「自然循環OS の地図」として提示。③ 「HEART 5 層」→「5 つの Aoi Function()」表現に統一（枠リード／代表プロフィール定義文。数え方は『つ』を採用）。④ 自然循環OS 枠の水色キャッチフレーズを「人間・自然・機械が感覚を交わすプラットフォーム」に更新（One Health 枠と体裁を統一）。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r60) — 上原さん指示。① TOP 冒頭文（.os-map-intro）を指定文へ差し替え：「mitsulab は、土・水・植物の一続きの自然循環を、自然・人間・機械の三者が互いの情報（感覚）を交換し合うためのプラットフォーム『自然循環OS（Nature Cycle OS）』を通じて、One Health の実現に貢献する研究所である。」（冒頭文はグレーのまま・用語解説スキャン対象外）。② 自然循環OS 枠リードの「5 層（ Aoi Function() ）」→「5 つの『Aoi Function()』」に。③ 用語解説（gloss）を拡充：新規 .term を 7 件追加＝観測 / 編集 / 再生 / 感覚（HEART 各層をやさしく解説）・Aoi Function()（碧の 5 つのはたらき）・アクター・プラットフォーム。④ ALIASES に上記＋生物多様性（既存 term-biodiversity）・Nature Cycle OS（既存 term-nature-cycle-os）を追加し、自然循環OS 枠リードの専門語（観測・編集・依代・再生・感覚・Aoi Function()・生物多様性・アクター・プラットフォーム・自然循環OS 等）をクリックで用語解説（gloss-ov）表示。⑤ 複合語ガードを拡張（碧に加え 観測・編集・再生・感覚 も、前が漢字＝複合語の途中なら解説しない）。テクノロジー非専門の読者も対象に解説は平易・広めに。境界：公開・デプロイなし（ローカル編集＋push のみ）。
+     2026-06-06 (r59) — 上原さん指示。自然循環OS 枠ラベルに One Health と同じ要領の一言コメント（.off-en）を追加：「自然・人間・機械が感覚を交わす土台」。r58 で外した英語副題の位置に和文タグラインを置き、One Health 枠（人間・土壌・水循環・生態系の健康はひとつ）と体裁を統一。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r58) — 上原さん指示（TOP 仕上げバッチ）。① TOP 本文を冒頭の導入 1 文に短縮＋グレー化（os-map-lead 3 段落を削除し .os-map-intro＝グレー #9fa9b6・プレーン1段落へ）。② 自然循環OS 説明を指定文へ差し替え（「5 層（ Aoi Function() ）」「人間・自然・機械のアクター間で情報（感覚）を交換」・strong 撤去）。③ Aoi Function() 別枠を撤去し HEART 5 カードを自然循環OS 枠の直下へ統合（.aoifn-box / label / lead / bridge を削除）。④ スマホの HEART を横スクロール→Wellness 風グリッド（≤640px=3 列・≤560px=2 列・overflow 撤去）。⑤ 自然循環OS ラベルから「Nature Cycle OS」を削除＋click 前の「｜」（border-left）を撤去し他カードと統一。⑥ 「class Aoi(Yorishiro) ── 5 つの関数が碧（Core）を定義する」を削除。⑦ One Health 説明を指定文へ差し替え（四機関の記述を外し、土・水・植物の自然循環の回復＋wellness へ）。⑧ 代表プロフィールの年表の年月を水色（.journey-item .date #5cc8e0）。⑨ 資格・実績の一文を差し替え（VR・MR の実践／『Qualia/sound I』『Qualia/sound Ⅱ』『Qualia/heart I』計 60 作品 ZINE）。⑩ 年表の地すべり項を簡潔化（主担当(令和6年度 全建賞 災害枠・都市部門 受賞)）。⑪ フッターの mitsulab を水色（footer .brand #5cc8e0）。⑫ スマホ実機で改行の崩れを確認・調整。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r57) — 上原さん指示（TOP 本文＝導入リード os-map-lead の整形）。① **文字強調（&lt;strong&gt;）を全撤去**（3段落＝土・水・植物の自然循環を再生する／自然循環OS（Nature Cycle OS）／碧（あおい／Aoi））。② **用語解説インラインを適用**：用語解説 JS のスキャン対象に `.os-map-lead` を追加（先頭＝DOM最初）。導入リード内の用語（自然循環／自然循環OS／依代／碧／HEART 5 層 等）のみ水色（.gloss-term・点線下線）＋クリックで用語解説オーバーレイ（gloss-ov）。③ **同一ページ内は初出のみ解説**（JS の seen 機構）。導入リードが DOM 最初なので、ここで先に解説され、以降のグラフィック枠リード（os-frame-lead 等）の重複語は自動スキップ＝「先に出てきた単語で解説」。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-05 (r56) — 上原さん指示（TOP グラフィックの説明書きを白に戻し用語インラインを適用・詳細はピルのみクリック・CLICK 大文字）。① **3 枠の説明書き（.os-frame-lead／.aoifn-box-lead／.os-oh-lead）を水色→白（var(--ink)）**（r54 の水色化を撤回）。② **代表プロフィールと同じ用語インライン機構を適用**：用語解説 JS のスキャン対象に 3 lead を追加し、説明書き内の用語（自然循環OS／依代／碧／One Health 等）のみ水色（.gloss-term・点線下線）＋クリックで用語解説オーバーレイ（gloss-ov）。③ **詳細オーバーレイのクリック対象を「名称ピル」のみに**：枠本体（.os-frame／.aoifn-box／.os-oh）から role/tabindex/onclick/onkeydown と cursor:pointer を撤去し openOsLayer を名称ピル（.os-frame-label 等）へ移設。説明書きは詳細の対象外となり、lead 内の用語クリックが詳細枠に吸われない。ピルに hover/focus 強調を追加。④ **枠内「click」→「CLICK」大文字**（.lbl-click を lowercase→uppercase・他カードの .hc-click と統一）。⑤ ブラウザ実機検証：lead 白＋用語のみ水色・用語クリック→用語解説／ピルクリック→詳細／lead 余白クリック無反応・CLICK 大文字・コンソール 0。境界：公開・デプロイなし（ローカル編集＋push のみ）。
@@ -3437,6 +3445,16 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
   font-size:clamp(1rem,1.78vw,1.2rem);color:#8d96a3;line-height:1.95;
   margin:0 auto;max-width:1148px;padding:0 clamp(12px,2vw,26px);font-weight:500;text-align:left;
 }
+/* 地図の読み方ガイド（3 カードの流れを一言で）・r61 */
+.os-map .os-map-guide{
+  font-size:.82rem;color:#8b95a6;line-height:1.85;text-align:left;
+  max-width:1148px;margin:10px auto 0;padding:0 clamp(12px,2vw,26px);
+}
+.os-map .os-map-guide b{color:#5cc8e0;font-weight:600}
+/* mitsulab／One Health のブックエンド・カード（中央の自然循環OS より軽い枠・r61）*/
+.os-frame.os-frame-lite{
+  padding-top:clamp(34px,3.6vw,42px);padding-bottom:clamp(20px,2.4vw,26px);
+}
 .os-map-body{
   font-size:.95rem;color:var(--txt2);line-height:2.02;margin:0 auto 16px;max-width:830px;text-align:left;
 }
@@ -3664,7 +3682,21 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 @media (max-width:560px){ .oh-well-grid{grid-template-columns:repeat(2,1fr)} }
 
 /* —— r42 アーキテクチャ図：三者のアクター（自然・人間・機械）＋コネクタ＋地図下の説明文 —— */
-.os-arch{position:relative;margin:30px auto 0;max-width:1180px}
+/* 地図コンテナ（枠は mitsulab の外枠が担うので os-arch 自体は無地に）・r66 */
+.os-arch{position:relative;margin:24px auto 0;max-width:1180px}
+/* mitsulab ＝ 水色の外枠。自然循環OS と One Health をこの中に囲い込む（r66 上原さん指示）*/
+.os-frame-mitsulab{
+  border-color:rgba(92,200,224,0.62);
+  padding:clamp(40px,4.4vw,52px) clamp(12px,2vw,28px) clamp(30px,3.4vw,42px);
+  background:rgba(8,11,16,0.22);
+}
+.os-frame-mitsulab > .os-frame{margin-top:clamp(28px,3.2vw,38px)}
+.os-frame-mitsulab > .os-oh{margin-top:0}
+/* mitsulab とは（冒頭プロローグ章）── カードではなく社説的なリード文（別デザイン）・r63 */
+.mitsulab-about .mitsulab-lead{
+  font-size:clamp(1.06rem,1.7vw,1.32rem);line-height:2.1;color:#cdd6e0;font-weight:500;
+  max-width:900px;margin:0;padding-left:clamp(14px,1.6vw,22px);border-left:2px solid rgba(92,200,224,0.55);
+}
 .os-actors{
   display:flex;gap:clamp(12px,1.8vw,22px);justify-content:center;align-items:stretch;
   max-width:880px;margin:0 auto;padding:0 4px;
@@ -3690,12 +3722,12 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
   color:#5cc8e0;font-size:.92rem;opacity:.66;z-index:2;pointer-events:none;
 }
 /* コネクタ（縦の流れ：三者 ⇅ 自然循環OS ↓ One Health）*/
-.os-conn{display:flex;flex-direction:column;align-items:center;gap:3px;margin:13px auto;max-width:640px}
+.os-conn{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:9px;margin:13px auto;max-width:640px}
 .os-conn-glyph{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(1.9rem,3.4vw,2.8rem);line-height:1;color:#5cc8e0;opacity:.95}
+/* 矢印の隣に添える関係ラベル（枠なし・グレー小・r62 上原さん指示）*/
 .os-conn-label{
   font-family:"JetBrains Mono",ui-monospace,monospace;
-  font-size:.64rem;letter-spacing:.1em;color:#8b95a6;text-align:center;
-  padding:5px 15px;border:1px solid rgba(92,200,224,0.20);border-radius:999px;background:rgba(92,200,224,0.05);
+  font-size:.7rem;letter-spacing:.05em;color:#8b95a6;text-align:center;
 }
 /* 地図の下の説明文（本文）*/
 .os-map-prose{margin:38px auto 0;max-width:830px;padding-top:30px;border-top:1px solid rgba(255,255,255,0.08)}
@@ -4300,20 +4332,23 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 <div id="top" class="tab-panel active" data-panel="top" role="tabpanel">
 <h1 class="vh-h1">mitsulab — 土・水・植物の自然循環を再生する研究所。自然循環OS と、中央に立つ依代・碧（Aoi）。</h1>
 
-<!-- ★★★ 自然循環OS の地図（フルブリード・クリッカブル index）── ここから全てが始まる ★★★ -->
-<section id="os-map" class="os-map" aria-label="自然循環OS の地図 — HEART 5 層インデックス">
+<!-- ★★★ 自然循環OS の地図：mitsulab → 自然循環OS → One Health を「ひとつの枠（.os-arch）」の中に位置づける ★★★ -->
+<section id="os-map" class="os-map" aria-label="自然循環OS の地図 — mitsulab・自然循環OS・One Health">
   <div class="os-map-inner">
     <h2 class="os-map-title">自然循環OS の地図<span class="os-map-title-en">Nature Cycle OS — where everything begins</span></h2>
 
-    <p class="os-map-intro">mitsulab は、土・水・植物の自然循環を再生する研究所です。土と水と植物がめぐる自然循環は、いのちを支える見えない土台です。</p>
-
-    <!-- ★★★ 地図（ひとつの図）：自然循環OS（Core＝碧）→ One Health ★★★ -->
+    <!-- ★ mitsulab・自然循環OS・One Health を「ひとつの枠（.os-arch）」の中に ★ -->
     <div class="os-arch">
 
-    <!-- ★ 自然循環OS の枠：5 層をまとめて囲み「5 層でひとつの OS」であることを示す。枠自体クリックで自然循環OS の詳細オーバーレイ。中の各カードは各層の詳細 ★ -->
+    <!-- ★ mitsulab ＝ 水色の外枠。自然循環OS と One Health をこの中に囲い込む（ラベルのクリックで代表プロフィール）★ -->
+    <div class="os-frame os-frame-mitsulab">
+      <span class="os-frame-label" role="link" tabindex="0" aria-label="mitsulab（代表プロフィール）を開く" onclick="switchTab('profile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('profile')}">mitsulab<span class="off-en">人間・自然・機械の関係を、結び直す</span><span class="lbl-click">click</span></span>
+      <p class="os-frame-lead" data-gloss-only="term-nature-cycle-os">mitsulab は、人間・自然・機械の関係をどう結び直すかを探究する、総合的な研究所です。その体系の中心に「自然循環OS（Nature Cycle OS）」を据え、エンジニアリング・テクノロジー・アート・文学を横断しながら、三者が協調する、より良い未来を研究・実装します。</p>
+
+    <!-- ★ 自然循環OS（mitsulab 枠の内側）：5 つの Aoi Function() をまとめて囲む。枠ラベルのクリックで詳細オーバーレイ ★ -->
     <div class="os-frame">
-      <span class="os-frame-label" role="link" tabindex="0" aria-label="自然循環OS（5 層全体）の詳細を開く" onclick="openOsLayer('os')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('os')}">自然循環OS<span class="lbl-click">click</span></span>
-      <p class="os-frame-lead">自然循環OS（Nature Cycle OS）は、土・水・植物の自然循環と、それが育む生物多様性を、観測・編集・依代・再生・感覚の 5 層（ Aoi Function() ）により、人間・自然・機械のアクター間で情報（感覚）を交換するプラットフォームです。</p>
+      <span class="os-frame-label" role="link" tabindex="0" aria-label="自然循環OS（5 層全体）の詳細を開く" onclick="openOsLayer('os')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('os')}">自然循環OS<span class="off-en">人間・自然・機械が感覚を交わすプラットフォーム</span><span class="lbl-click">click</span></span>
+      <p class="os-frame-lead">自然循環OS（Nature Cycle OS）は、土・水・植物の自然循環と、それが育む生物多様性を、観測・編集・依代・再生・感覚の 5 つの Aoi Function() により、人間・自然・機械のアクター間で情報（感覚）を交換するプラットフォームです。5 つの Aoi Function() と、22 個のプロジェクトから構成されます。</p>
       <!-- HEART 5 層：自然循環OS 枠の中に直接配置（旧 Aoi Function() 別枠は r58 で統合）-->
 
         <div class="heart-row" role="group" aria-label="HEART 5 層 — 各カードをクリックすると詳細が開きます">
@@ -4341,7 +4376,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       <!-- One Health ノード（自然循環OS が支える土台・クリックで詳細）-->
       <div class="os-oh">
         <span class="os-frame-label os-oh-label" role="link" tabindex="0" aria-label="One Health の詳細を開く" onclick="openOsLayer('oh')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('oh')}">One Health<span class="off-en">人間・土壌・水循環・生態系の健康はひとつ</span><span class="lbl-click">click</span></span>
-        <p class="os-oh-lead">One Healthは、人間・土壌・水循環・生態系の健康が、一つの大きな循環の上にあり、循環の一部が滞ると全体へ波及するという考え方です。mitsulab は、その土台となる 土・水・植物の自然循環の回復と、自然との触れ合いによる人間の wellness の実現を担います。</p>
+        <p class="os-oh-lead">One Healthは、人間・土壌・水循環・生態系の健康が、一つの大きな循環の上にあり、循環の一部が滞ると全体へ波及するという考え方です。自然循環OS は、その土台となる 土・水・植物の自然循環の回復と、自然との触れ合いによる人間の wellness の実現を担います。これは mitsulab が結び直す人間・自然・機械の関係の、ひとつの側面です。</p>
         <!-- One Health の 5 つの Wellness：クリックで個別オーバーレイ（親 os-oh への伝播は stopPropagation で遮断）-->
         <div class="oh-well-grid" role="group" aria-label="One Health の 5 つの Wellness">
           <div class="oh-well" role="link" tabindex="0" aria-label="人間の Wellness の説明を開く" onclick="event.stopPropagation();openOsLayer('wh')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();openOsLayer('wh')}">
@@ -4362,6 +4397,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
         </div>
       </div>
 
+    </div><!-- /os-frame-mitsulab：mitsulab の外枠ここまで -->
     </div><!-- /os-arch -->
   </div>
 
@@ -4600,7 +4636,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 
   <p>災害復旧工事への従事、樹木医や水系再生の実践者との対話の中で、「土・水・植物は一続きの自然循環として動いている」という確信に至る。同時に、人の健康と自然の健康は切り離せず、両方を支える鍵——One Health（人・動物・環境の健康の不可分）の「環境」次元——のポイントが、まさにこの自然循環にあるという確信を、県庁時代を通じて深めた。</p>
 
-  <p>2026 年 3 月、その確信を起点に mitsulab を開業。mitsulab は、土・水・植物の一続きの自然循環を中心に、自然・人間・機械の三者が互いの情報（感覚）を交換し合うためのプラットフォーム「自然循環OS（Nature Cycle OS）」を通じて、One Health の実現に貢献する研究所である。自然循環OS は、観測・編集・依代・再生・感覚の HEART 5 層から成る、自然循環の再生のための方法論プラットフォームである。</p>
+  <p>2026 年 3 月、その確信を起点に mitsulab を開業。mitsulab は、土・水・植物の一続きの自然循環を中心に、自然・人間・機械の三者が互いの情報（感覚）を交換し合うためのプラットフォーム「自然循環OS（Nature Cycle OS）」を通じて、One Health の実現に貢献する研究所である。自然循環OS は、観測・編集・依代・再生・感覚の 5 つの Aoi Function() から成る、自然循環の再生のための方法論プラットフォームである。</p>
 
   <p>mitsulab にとっての One Health は、自然を再生することだけにとどまらない。人間の健康は自然との関係性のなかにあるという実感、自然の恵み——生態系サービス——が人間社会を根底から支えているという認識、そして フィジカル AI（Physical AI）が社会へ実装されていくこれからの時代に、人間・自然・機械の関係をどう結び直すのかという実践的な問い。これらを視野に入れ、mitsulab は 「人間・自然・機械の協調のなかで、未来をより良いものにするための総合的な研究所」であろうとする。そのため自然循環OS は、HEART の 5 層を中心に、エンジニアリング・テクノロジー・アート・文学のすべての分野を横断しながら、人間・自然・機械の関係そのものを研究していく。</p>
 
@@ -6003,6 +6039,31 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       <h3>五層 HEART<small>（H 観測 / E 編集 / A 依代・碧 / R 再生 / T 感覚）</small></h3>
       <p>自然循環OS を実装する <strong>HEART 5 層</strong>。<strong>H</strong>ear（観測）で循環の動態をデータに翻訳し、<strong>E</strong>dit（編集）で古今東西の自然循環の事例を編集工学に基づき横断的にまとめ、<strong>A</strong>oi（依代・碧）が中央で自然・人間・機械の情報を媒介し、<strong>R</strong>enew（再生）で現場の循環を取り戻し、<strong>T</strong>ouch（感覚）で数値の届かない人間の感覚へ翻訳する。中央の <strong>碧（A）</strong> を除く 観測・感覚・再生・編集 の <strong>4 つが実行レイヤー</strong>で、独立した工程ではなく、観測 → 感覚 → 再生 → 編集 → 観測…と<strong>往復しながら動く一続きの実践</strong>として設計されます。観測・感覚・再生が「いま・ここ」を扱うのに対し、編集は「古今東西」を扱い、中央の碧がそれらを貫いて結び直します。編集の実践媒体が 4 言語デジタルメディア <strong>Stillpoint</strong> です。</p>
     </div>
+    <div class="term" id="term-kansoku">
+      <div class="term-label">Core</div>
+      <h3>観測<small>（Hear ／ Aoi.hear()）</small></h3>
+      <p>土・水・植物の循環が「いま、どんな状態にあるか」を、人の目に見えない地中まで含めて<strong>データとして受け取る</strong>こと。mitsulab の 5 層 HEART の <strong>H</strong> にあたります。土の中の水分や養分、微生物の気配、地形や水の流れを、小さなセンサー（<strong>IoT</strong>）・地図情報（<strong>GIS</strong>）・空間の 3D 記録などで「<strong>聴く</strong>」ように捉えます。評価や対策の前に、まず<strong>自然の声に耳をすます</strong>——それが観測です。</p>
+    </div>
+    <div class="term" id="term-henshu">
+      <div class="term-label">Core</div>
+      <h3>編集<small>（Edit ／ Aoi.edit()）</small></h3>
+      <p>集めた情報や、古今東西の<strong>自然との付き合い方の知恵</strong>を、意味のあるつながりへと<strong>編み直す</strong>こと。mitsulab の 5 層 HEART の <strong>E</strong> にあたります。ただ整理・要約するのではなく、ばらばらの事実・歴史・文化を結び合わせ、人が<strong>理解して動ける物語</strong>へと仕立てます。その実践の媒体が、4 言語のデジタルメディア <strong>Stillpoint</strong> です。</p>
+    </div>
+    <div class="term" id="term-saisei">
+      <div class="term-label">Core</div>
+      <h3>再生<small>（Renew ／ Aoi.renew()）</small></h3>
+      <p>はたらきが弱った土・水・植物の循環を、<strong>本来の巡りへ取り戻す</strong>現場の実践。mitsulab の 5 層 HEART の <strong>R</strong> にあたります。コンクリートで固める発想ではなく、<strong>水と空気の通り道をひらいて</strong>、土がみずから回復する力を引き出します（<strong>大地の再生</strong>・有機土木の考え方）。「新しくつくる」より「<strong>よみがえらせる</strong>」に近い営みです。</p>
+    </div>
+    <div class="term" id="term-kankaku">
+      <div class="term-label">Core</div>
+      <h3>感覚<small>（Touch ／ Aoi.touch()）</small></h3>
+      <p>数値やデータだけでは伝わらない自然のありさまを、<strong>人の身体で感じ取れる形へ翻訳する</strong>こと。mitsulab の 5 層 HEART の <strong>T</strong> にあたります。音・映像・手ざわり（触覚＝<strong>ハプティクス</strong>）・<strong>xR</strong> などを通じて、土や水の状態を「<strong>感じられる</strong>」体験に変え、専門家でなくても自然とのつながりを取り戻せるようにします。Qualia の制作はこの層の試みです。</p>
+    </div>
+    <div class="term" id="term-aoi-function">
+      <div class="term-label">Core</div>
+      <h3>Aoi Function()<small>（碧を構成する 5 つのはたらき）</small></h3>
+      <p>自然循環OS の中央に立つ依代・<strong>碧（あおい／Aoi）</strong>を形づくる、<strong>5 つのはたらき</strong>の総称です。プログラムの「関数（function）＝何かを受け取って結果を返す部品」になぞらえ、観測 <code>Aoi.hear()</code>・編集 <code>Aoi.edit()</code>・依代 <code>Aoi.yorishiro()</code>・再生 <code>Aoi.renew()</code>・感覚 <code>Aoi.touch()</code> の 5 つが組み合わさって、自然・人間・機械のあいだで情報（感覚）を受け渡します。やさしく言えば、<strong>碧にできること、そのすべて</strong>のことです。</p>
+    </div>
   </div>
 
   <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--ink-3)">Foundation ── 横断概念</h3>
@@ -6026,6 +6087,16 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       <div class="term-label">Foundation</div>
       <h3>生物多様性<small>（Biodiversity）</small></h3>
       <p>生態系・種・遺伝子の三つのレベルで捉えられる、<strong>いのちの豊かさと多様さ</strong>。それ自体が循環するのではなく、<strong>土・水・植物の循環が健やかに巡ることで育まれる</strong>結果として現れます。mitsulab は自然循環を「土・水・植物の循環と、それが育む生物多様性」と定義しています。</p>
+    </div>
+    <div class="term" id="term-actor">
+      <div class="term-label">Foundation</div>
+      <h3>アクター<small>（actor ／ 登場主体）</small></h3>
+      <p>ものごとに<strong>はたらきかけ、影響を与える「主体」</strong>のこと（英語の actor ＝ 行為者・登場人物）。mitsulab は、自然・人間・機械の三者を、どれかが主役でどれかが脇役という関係ではなく、<strong>対等なアクター</strong>として捉えます。人間だけが操作する側で自然や機械はただの道具、という見方ではなく、<strong>三者が互いに情報（感覚）を交わしながら関係を築く</strong>——その登場人物のひとりひとりがアクターです。</p>
+    </div>
+    <div class="term" id="term-platform">
+      <div class="term-label">Foundation</div>
+      <h3>プラットフォーム<small>（platform ／ 共通の土台）</small></h3>
+      <p>いろいろな人やはたらきが<strong>集まり、つながり合うための共通の土台</strong>のこと。駅のホーム（platform）のように、別々の人やものが行き交う「場」をイメージしてください。自然循環OS は、ひとつの製品やアプリではなく、専門家・住民・自治体・企業が<strong>いっしょに育てていく「器」</strong>としてのプラットフォームです。</p>
     </div>
   </div>
 
@@ -6853,6 +6924,15 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 
     // 2) 表記ゆれ → term-id（長い順にして最長一致）
     var ALIASES = [
+      ['Aoi Function()','term-aoi-function'],
+      ['Nature Cycle OS','term-nature-cycle-os'],
+      ['生物多様性','term-biodiversity'],
+      ['プラットフォーム','term-platform'],
+      ['アクター','term-actor'],
+      ['観測','term-kansoku'],
+      ['編集','term-henshu'],
+      ['再生','term-saisei'],
+      ['感覚','term-kankaku'],
       ['自然循環OS','term-nature-cycle-os'],
       ['3D Gaussian Splatting','term-tdgs'],
       ['One Health','term-one-health'],
@@ -6898,9 +6978,11 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
       for(var k = 0; k < seenList.length; k++){ if(seenList[k].page === page) return seenList[k].seen; }
       var ns = {}; seenList.push({ page:page, seen:ns }); return ns;
     }
-    document.querySelectorAll('.os-map-lead, .os-map-prose p, #profile p, .os-frame-lead, .aoifn-box-lead, .os-oh-lead').forEach(function(root){
+    document.querySelectorAll('.mitsulab-lead, .os-map-lead, .os-map-prose p, #profile p, .os-frame-lead, .aoifn-box-lead, .os-oh-lead').forEach(function(root){
       var page = (root.closest && root.closest('.tab-panel')) || document.body;
       var seen = seenFor(page);
+      var only = root.getAttribute ? root.getAttribute('data-gloss-only') : null;
+      only = only ? only.split(/\s+/) : null;
       var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
         acceptNode: function(n){
           if(!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
@@ -6917,9 +6999,10 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
         while((m = re.exec(text))){
           var s = m[0], i = m.index, j = i + s.length;
           var before = i > 0 ? text.charAt(i-1) : '', after = j < text.length ? text.charAt(j) : '';
-          if(s === '碧' && CJK.test(before)) continue;                          // 菱碧 等の複合語は除外
+          if((s === '碧' || s === '観測' || s === '編集' || s === '再生' || s === '感覚') && CJK.test(before)) continue; // 菱碧／自然循環再生 等、複合語の途中では解説しない
           if(ASCII.test(s) && (WORD.test(before) || WORD.test(after))) continue; // 英字略語は語境界で限定
           var id = surf2id[s];
+          if(only && only.indexOf(id) === -1) continue; // data-gloss-only 指定の用語だけ解説（文脈が異なる同語の誤解説を防ぐ・r63）
           if(id === 'term-stillpoint' && /^\s*編集長/.test(text.slice(j))) continue; // r44：肩書き「Stillpoint 編集長」は解説しない
           if(seen[id]) continue;                                                 // r44：同一ページで既出の用語はスキップ（初出のみ）
           seen[id] = true;
