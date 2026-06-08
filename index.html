@@ -1,4 +1,5 @@
-<!-- mitsulab HP — タブ版（構造修正版）r68
+<!-- mitsulab HP — タブ版（構造修正版）r69
+     2026-06-07 (r69) — 上原さん指示バッチ 9 点（TOP 地図の整理＋スマホ再構成＋メニュー演出）。① 水色キャッチフレーズ（mitsulab「人間・自然・機械の関係を、結び直す」／自然循環OS「人間・自然・機械が感覚を交わすプラットフォーム」／One Health「人間・土壌・水循環・生態系の健康はひとつ」＝各 .off-en）を全削除。② 「click」注記を新クラス .os-corner-click で枠の右上に固定（PC・スマホ共通。従来はスマホでピル折返しにより左下に落ちていた）。③ mitsulab 枠ラベルを静的化（.os-frame-label-static）── click 表示もオーバーレイも無し（switchTab('profile') を撤去）。④ 用語ハイライト .gloss-term の点線下線を撤去し水色文字のみに（TOP・代表プロフィール共通）。⑤ フッターの mitsulab（footer .brand）を水色→白へ戻す。⑥ HEART カードを One Health カード並みにコンパクト化：頭の 1 文字（.hc-letter）を撤去し「Hear／観測／Aoi.hear()」の順（en→ja→fn）に。padding・gap も圧縮。⑦ モバイルメニューの「Index へ戻る」（.tab-menu-back）の文字を .92rem→1.14rem に拡大。⑧ モバイルメニューに CLICK 同系統の動きを付与：オーバーレイのせり上がり／見出し・項目のスタッガー登場（showMobileSection で強制リフローし開くたび再生）／ブランチ矢印の hcPulse 明滅／leaf・branch 左端の水色アクセント。⑨ スマホの TOP（自然循環OS の地図）を再構成：入れ子 3 重のパディングで本文が約 300px に圧迫されていたのを、外側 mitsulab 枠のボーダー・背景・パディングを撤去（mitsulab はセンター見出しチップ化）して内側カード（自然循環OS／One Health）をフル幅・単一ボーダーで広々と。PC は不変。実機検証（PC1280／スマホ375）：.off-en 0・corner-click ×2・mitsulab onclick 無・gloss 下線 0px・footer #fff・hc-letter 0／順序 en|ja|fn・back 18.24px・矢印 animation=menuArrow・スマホ重なり無・自然循環OS/HEART/One Health のオーバーレイ開＝健全・コンソールエラー 0。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r68) — 上原さん指示（代表プロフィールの用語解説の精緻化＋用語追加）。① 文脈ガードを追加：「情報（感覚）」の感覚（前が「（」）と「編集長」の編集（後が「長」）は Touch/Edit 層の用語ではないので解説しない。これにより 編集・感覚 の初出が「自然循環OS は、観測・編集・依代・再生・感覚の 5 つの Aoi Function() から成る…」の文に移り、観測・編集・依代・再生・感覚 がそこで解説される。② プロフィール本文の「VR/MR」→「VR・MR」表記に。③ 用語解説を追加：新規 .term＝WHO・FAO・WOAH・UNEP（One Health 四機関）／アルバート・ハワード／インドール法／森林土木／土壌学／VR／MR／メディアアート。ALIASES に上記＋既存（生態系サービス・有機農業・有機土木）を追加し、プロフィール内でクリック解説。VR・MR はそれぞれ別語として解説。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r67) — 上原さん指示（地図の微調整）。① 自然循環OS → One Health の矢印に One Health の枠ラベルが重なる不具合を修正：`.os-frame-mitsulab > .os-oh` の margin-top を 0 → clamp(30px,3.4vw,40px) にして、浮いたラベルピンが矢印に被らない余白を確保。② HEART カード（各 Aoi Function()）を**コンパクト化しつつ Aoi.xxx() を拡大**：.heart-card の padding を縮小（上 22→14・下 16→11 等）＋gap 7→6、大文字 .hc-letter を clamp 3.6→2.9rem に縮小、関数名 .hc-fn を clamp .7→.88rem に拡大＋やや明るいグレー＋weight500 で強調。境界：公開・デプロイなし（ローカル編集＋push のみ）。
      2026-06-06 (r66) — 上原さん指示（mitsulab を水色の外枠にして自然循環OS・One Health を囲い込む）。① os-arch のグレー枠（border/背景）を撤去し、無地のコンテナに。② mitsulab を `.os-frame-mitsulab`（水色・やや明るい border＋背景）の**外枠**にし、その内側に 自然循環OS カード（HEART 5）と One Health を入れ子化（mitsulab → OS → One Health の矢印は撤去し、包含関係で表現）。クリックは従来どおりラベルから代表プロフィール。③ 説明文を上原さん指定に更新：mitsulab＝「…より良い未来を研究・実装します」／自然循環OS＝末尾に「5 つの Aoi Function() と、22 個のプロジェクトから構成されます。」を追記（22＝観測5＋編集5＋依代4＋再生4＋感覚4 の各層プロジェクト合計）／One Health＝「mitsulab が結び直す人間・自然・機械の関係の、ひとつの側面」。境界：公開・デプロイなし（ローカル編集＋push のみ）。
@@ -781,7 +782,7 @@ th{background:var(--bg-2);font-weight:600;letter-spacing:.04em}
 
 /* ===== Footer ===== */
 footer{background:var(--dark);color:var(--light-on-dark);padding:70px 28px;text-align:center;font-size:.9rem;line-height:1.9}
-footer .brand{font-family:"Cormorant Garamond",serif;font-weight:600;letter-spacing:.25em;font-size:1.4rem;margin-bottom:12px;color:#5cc8e0}
+footer .brand{font-family:"Cormorant Garamond",serif;font-weight:600;letter-spacing:.25em;font-size:1.4rem;margin-bottom:12px;color:#fff}
 footer .tag-en{font-family:"Cormorant Garamond",serif;font-style:italic;color:#fff;font-size:.95rem;letter-spacing:.18em;margin-bottom:24px}
 footer p{color:var(--ink-2);max-width:640px;margin:0 auto 16px;font-size:.88rem}
 footer .copy{font-size:.78rem;color:#fff;letter-spacing:.1em}
@@ -1621,9 +1622,9 @@ td,th{border-color:rgba(255,255,255,0.10)}
   color:var(--lab-fg-3);
   font-family:"Cormorant Garamond","Hiragino Sans",serif;
   font-style:italic;
-  font-size:.92rem;
-  letter-spacing:.12em;
-  padding:6px 0 16px;
+  font-size:1.14rem;
+  letter-spacing:.1em;
+  padding:8px 0 18px;
   cursor:pointer;
   display:inline-flex;
   align-items:center;
@@ -1737,6 +1738,47 @@ td,th{border-color:rgba(255,255,255,0.10)}
   text-transform:uppercase;
 }
 .tab-menu-subgroup:first-child{margin-top:12px}
+
+/* ===== メニューのスタイリッシュな動き（CLICK の hcPulse と同系統・r69 上原さん指示）===== */
+/* ① オーバーレイ自体が奥からせり上がって開く */
+.tab-menu-overlay-inner{transition:transform .36s cubic-bezier(.2,.7,.3,1),opacity .3s ease}
+.tab-menu-overlay:not(.open) .tab-menu-overlay-inner{transform:translateY(18px);opacity:0}
+.tab-menu-overlay.open  .tab-menu-overlay-inner{transform:translateY(0);opacity:1}
+/* ② 見出し・各項目が順に立ち上がる（stagger）*/
+.tab-menu-section.is-active .tab-menu-section-label,
+.tab-menu-section.is-active .tab-menu-back,
+.tab-menu-section.is-active .tab-menu-section-title,
+.tab-menu-section.is-active .tab-menu-list > li{
+  opacity:0;animation:menuRise .55s cubic-bezier(.2,.7,.3,1) forwards;
+}
+.tab-menu-section.is-active .tab-menu-section-label,
+.tab-menu-section.is-active .tab-menu-back{animation-delay:.02s}
+.tab-menu-section.is-active .tab-menu-section-title{animation-delay:.06s}
+.tab-menu-section.is-active .tab-menu-list > li:nth-child(1){animation-delay:.12s}
+.tab-menu-section.is-active .tab-menu-list > li:nth-child(2){animation-delay:.18s}
+.tab-menu-section.is-active .tab-menu-list > li:nth-child(3){animation-delay:.24s}
+.tab-menu-section.is-active .tab-menu-list > li:nth-child(4){animation-delay:.30s}
+.tab-menu-section.is-active .tab-menu-list > li:nth-child(5){animation-delay:.36s}
+.tab-menu-section.is-active .tab-menu-list > li:nth-child(6){animation-delay:.42s}
+@keyframes menuRise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+/* ③ 左端に伸びる水色アクセント（押せることを上品に示す）*/
+.tab-menu-leaf,.tab-menu-branch{position:relative}
+.tab-menu-leaf::before,.tab-menu-branch::before{
+  content:"";position:absolute;left:-12px;top:50%;transform:translateY(-50%) scaleY(0);
+  width:2px;height:60%;background:linear-gradient(#5cc8e0,rgba(92,200,224,.15));
+  border-radius:2px;transition:transform .28s cubic-bezier(.2,.7,.3,1);transform-origin:center;
+}
+.tab-menu-leaf:hover::before,.tab-menu-branch:hover::before,.tab-menu-leaf.active::before{transform:translateY(-50%) scaleY(1)}
+/* ④ branch の矢印は CLICK と同系統にゆっくり明滅して「展開できる」ことを示す */
+.tab-menu-branch .branch-arrow{animation:menuArrow 2.8s ease-in-out infinite}
+@keyframes menuArrow{0%,100%{opacity:.4;transform:translateX(0)}50%{opacity:.95;transform:translateX(3px)}}
+.tab-menu-branch:hover .branch-arrow{animation:none}
+@media (prefers-reduced-motion:reduce){
+  .tab-menu-overlay-inner,.tab-menu-section.is-active .tab-menu-section-label,
+  .tab-menu-section.is-active .tab-menu-back,.tab-menu-section.is-active .tab-menu-section-title,
+  .tab-menu-section.is-active .tab-menu-list > li{animation:none;opacity:1;transform:none;transition:none}
+  .tab-menu-branch .branch-arrow{animation:none}
+}
 
 /* タブのデスクトップサイズ調整 */
 @media (max-width:1280px){
@@ -3474,8 +3516,8 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 }
 .heart-card{
   flex:1 1 0;min-width:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;
-  padding:clamp(14px,1.6vw,20px) clamp(6px,.8vw,12px) clamp(11px,1.3vw,16px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding:clamp(13px,1.5vw,16px) clamp(7px,.9vw,11px) clamp(11px,1.2vw,14px);
   background:rgba(8,11,16,0.55);
   border:1.4px solid rgba(92,200,224,0.34);
   border-radius:16px;
@@ -3560,6 +3602,20 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 .os-frame-label:hover,.os-frame-label:focus-visible{
   border-color:rgba(92,200,224,0.9);background:#0c141b;
   box-shadow:0 0 0 1px rgba(92,200,224,0.20),0 8px 22px rgba(0,0,0,0.42);outline:none;
+}
+/* 「click」注記：PC・スマホ共通で枠の右上に固定（r69 上原さん指示）。heart-card と同じ hcPulse 明滅 */
+.os-corner-click{
+  position:absolute;top:13px;right:16px;z-index:4;
+  font-family:"JetBrains Mono",ui-monospace,monospace;font-style:normal;font-weight:500;
+  font-size:.5rem;letter-spacing:.26em;text-transform:uppercase;color:#5cc8e0;
+  pointer-events:none;animation:hcPulse 2.8s ease-in-out infinite;will-change:transform,opacity;
+}
+.os-frame:hover>.os-corner-click,.os-frame:focus-within>.os-corner-click,
+.os-oh:hover>.os-corner-click,.os-oh:focus-within>.os-corner-click{color:#9bdcf0;letter-spacing:.34em}
+/* mitsulab 枠ラベルは静的（クリック・オーバーレイ無し・r69 上原さん指示）*/
+.os-frame-label.os-frame-label-static{cursor:default}
+.os-frame-label.os-frame-label-static:hover,.os-frame-label.os-frame-label-static:focus-visible{
+  border-color:rgba(92,200,224,0.42);background:#070a0e;box-shadow:none;
 }
 /* スマホ：枠ラベル（特に Aoi Function() ＋副題）が枠からはみ出て一部しか見えない問題を、折り返し許可＋枠内に収まる最大幅で解消（r47 上原さん指摘）*/
 @media (max-width:600px){
@@ -3801,8 +3857,8 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 /* ===== 本文中の用語ハイライト ＋ 用語オーバーレイ（r42）=====
    用語解説に載っている語が本文（top／プロフィール）に出たら水色化し、
    クリックでオーバーレイ表示（ページ移動なし）。グラフ・カード内は対象外。 */
-.gloss-term{color:#5cc8e0;cursor:pointer;border-bottom:1px dotted rgba(92,200,224,.5);transition:color .15s,border-color .15s}
-.gloss-term:hover,.gloss-term:focus{color:#eaf7fb;border-bottom-color:#eaf7fb;outline:none}
+.gloss-term{color:#5cc8e0;cursor:pointer;transition:color .15s}
+.gloss-term:hover,.gloss-term:focus{color:#eaf7fb;outline:none}
 .gloss-term:focus-visible{outline:2px solid rgba(92,200,224,.6);outline-offset:2px;border-radius:3px}
 .gloss-ov-card{width:min(560px,100%)}
 .gloss-ov-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:15px;padding-right:36px;flex-wrap:wrap}
@@ -3843,6 +3899,24 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
   .os-map-sub{font-size:.92rem}
   .os-map-title-en{font-size:.8rem}
   .heart-row{grid-template-columns:repeat(2,1fr)}
+}
+/* ===== r69: スマホの TOP（自然循環OS の地図）を再構成 ── 入れ子枠の二重ボーダー／三重パディングで窮屈だった本文を、外側 mitsulab 枠を外して広々とした縦の流れに（PC は不変・上原さん指示）===== */
+@media (max-width:640px){
+  /* 外側 mitsulab 枠：ボーダー・背景・パディングを外し、二重枠の窮屈さを解消 */
+  .os-frame-mitsulab{border:none;background:none;padding:0;}
+  /* mitsulab ラベル：枠上の浮きピル → 中央寄せの見出しチップに（全体を束ねる頭） */
+  .os-frame-mitsulab > .os-frame-label-static{
+    position:static;transform:none;display:flex;width:fit-content;
+    margin:0 auto 24px;font-size:1.18rem;letter-spacing:.12em;
+  }
+  .os-frame-mitsulab > .os-frame-lead{margin-bottom:30px}
+  /* 内側カード（自然循環OS / One Health）：フル幅・単一ボーダーで広々と */
+  .os-frame-mitsulab > .os-frame{margin-top:0;margin-bottom:0;padding:32px 13px 22px;border-radius:18px;}
+  .os-conn-down{margin:16px auto 0}
+  .os-frame-mitsulab > .os-oh{margin-top:28px;padding:32px 13px 22px;border-radius:18px;}
+  /* 浮きラベルとリードを少しゆったり */
+  .os-frame .os-frame-lead,.os-oh .os-oh-lead{font-size:.93rem;line-height:1.95}
+  .os-corner-click{top:11px;right:13px}
 }
 
 /* One Health（os-frame 内に組み込む枠）*/
@@ -4344,30 +4418,31 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 
     <!-- ★ mitsulab ＝ 水色の外枠。自然循環OS と One Health をこの中に囲い込む（ラベルのクリックで代表プロフィール）★ -->
     <div class="os-frame os-frame-mitsulab">
-      <span class="os-frame-label" role="link" tabindex="0" aria-label="mitsulab（代表プロフィール）を開く" onclick="switchTab('profile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('profile')}">mitsulab<span class="off-en">人間・自然・機械の関係を、結び直す</span><span class="lbl-click">click</span></span>
+      <span class="os-frame-label os-frame-label-static">mitsulab</span>
       <p class="os-frame-lead" data-gloss-only="term-nature-cycle-os">mitsulab は、人間・自然・機械の関係をどう結び直すかを探究する、総合的な研究所です。その体系の中心に「自然循環OS（Nature Cycle OS）」を据え、エンジニアリング・テクノロジー・アート・文学を横断しながら、三者が協調する、より良い未来を研究・実装します。</p>
 
     <!-- ★ 自然循環OS（mitsulab 枠の内側）：5 つの Aoi Function() をまとめて囲む。枠ラベルのクリックで詳細オーバーレイ ★ -->
     <div class="os-frame">
-      <span class="os-frame-label" role="link" tabindex="0" aria-label="自然循環OS（5 層全体）の詳細を開く" onclick="openOsLayer('os')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('os')}">自然循環OS<span class="off-en">人間・自然・機械が感覚を交わすプラットフォーム</span><span class="lbl-click">click</span></span>
+      <span class="os-corner-click" aria-hidden="true">click</span>
+      <span class="os-frame-label" role="link" tabindex="0" aria-label="自然循環OS（5 層全体）の詳細を開く" onclick="openOsLayer('os')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('os')}">自然循環OS</span>
       <p class="os-frame-lead">自然循環OS（Nature Cycle OS）は、土・水・植物の自然循環と、それが育む生物多様性を、観測・編集・依代・再生・感覚の 5 つの Aoi Function() により、人間・自然・機械のアクター間で情報（感覚）を交換するプラットフォームです。5 つの Aoi Function() と、22 個のプロジェクトから構成されます。</p>
       <!-- HEART 5 層：自然循環OS 枠の中に直接配置（旧 Aoi Function() 別枠は r58 で統合）-->
 
         <div class="heart-row" role="group" aria-label="HEART 5 層 — 各カードをクリックすると詳細が開きます">
           <button type="button" class="heart-card" onclick="event.stopPropagation();openOsLayer('h')" aria-haspopup="dialog" aria-label="観測 Hear の詳細を開く">
-            <span class="hc-letter">H</span><span class="hc-ja">観測</span><span class="hc-en">Hear</span><span class="hc-fn">Aoi.hear()</span><span class="hc-click">Click</span>
+            <span class="hc-en">Hear</span><span class="hc-ja">観測</span><span class="hc-fn">Aoi.hear()</span><span class="hc-click">Click</span>
           </button>
           <button type="button" class="heart-card" onclick="event.stopPropagation();openOsLayer('e')" aria-haspopup="dialog" aria-label="編集 Edit の詳細を開く">
-            <span class="hc-letter">E</span><span class="hc-ja">編集</span><span class="hc-en">Edit</span><span class="hc-fn">Aoi.edit()</span><span class="hc-click">Click</span>
+            <span class="hc-en">Edit</span><span class="hc-ja">編集</span><span class="hc-fn">Aoi.edit()</span><span class="hc-click">Click</span>
           </button>
           <button type="button" class="heart-card" onclick="event.stopPropagation();openOsLayer('a')" aria-haspopup="dialog" aria-label="依代 Aoi 碧（中央・媒介）の詳細を開く">
-            <span class="hc-letter">A</span><span class="hc-ja">依代・碧</span><span class="hc-en">Aoi</span><span class="hc-fn">Aoi.yorishiro()</span><span class="hc-click">Click</span>
+            <span class="hc-en">Aoi</span><span class="hc-ja">依代・碧</span><span class="hc-fn">Aoi.yorishiro()</span><span class="hc-click">Click</span>
           </button>
           <button type="button" class="heart-card" onclick="event.stopPropagation();openOsLayer('r')" aria-haspopup="dialog" aria-label="再生 Renew の詳細を開く">
-            <span class="hc-letter">R</span><span class="hc-ja">再生</span><span class="hc-en">Renew</span><span class="hc-fn">Aoi.renew()</span><span class="hc-click">Click</span>
+            <span class="hc-en">Renew</span><span class="hc-ja">再生</span><span class="hc-fn">Aoi.renew()</span><span class="hc-click">Click</span>
           </button>
           <button type="button" class="heart-card" onclick="event.stopPropagation();openOsLayer('t')" aria-haspopup="dialog" aria-label="感覚 Touch の詳細を開く">
-            <span class="hc-letter">T</span><span class="hc-ja">感覚</span><span class="hc-en">Touch</span><span class="hc-fn">Aoi.touch()</span><span class="hc-click">Click</span>
+            <span class="hc-en">Touch</span><span class="hc-ja">感覚</span><span class="hc-fn">Aoi.touch()</span><span class="hc-click">Click</span>
           </button>
         </div>
     </div>
@@ -4377,7 +4452,8 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 
       <!-- One Health ノード（自然循環OS が支える土台・クリックで詳細）-->
       <div class="os-oh">
-        <span class="os-frame-label os-oh-label" role="link" tabindex="0" aria-label="One Health の詳細を開く" onclick="openOsLayer('oh')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('oh')}">One Health<span class="off-en">人間・土壌・水循環・生態系の健康はひとつ</span><span class="lbl-click">click</span></span>
+        <span class="os-corner-click" aria-hidden="true">click</span>
+        <span class="os-frame-label os-oh-label" role="link" tabindex="0" aria-label="One Health の詳細を開く" onclick="openOsLayer('oh')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOsLayer('oh')}">One Health</span>
         <p class="os-oh-lead">One Healthは、人間・土壌・水循環・生態系の健康が、一つの大きな循環の上にあり、循環の一部が滞ると全体へ波及するという考え方です。自然循環OS は、その土台となる 土・水・植物の自然循環の回復と、自然との触れ合いによる人間の wellness の実現を担います。これは mitsulab が結び直す人間・自然・機械の関係の、ひとつの側面です。</p>
         <!-- One Health の 5 つの Wellness：クリックで個別オーバーレイ（親 os-oh への伝播は stopPropagation で遮断）-->
         <div class="oh-well-grid" role="group" aria-label="One Health の 5 つの Wellness">
@@ -7232,7 +7308,14 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
     window.showMobileSection = function(sectionName){
       var sections = document.querySelectorAll('.tab-menu-section');
       sections.forEach(function(sec){
-        sec.classList.toggle('is-active', sec.dataset.section === sectionName);
+        if(sec.dataset.section === sectionName){
+          // is-active を付け直して登場アニメ（stagger）を毎回再生させる
+          sec.classList.remove('is-active');
+          void sec.offsetWidth;           // 強制リフロー
+          sec.classList.add('is-active');
+        } else {
+          sec.classList.remove('is-active');
+        }
       });
       // 詳細セクションへ切り替えた際はトップへスクロール
       var inner = document.querySelector('.tab-menu-overlay-inner');
