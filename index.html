@@ -3615,7 +3615,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 @media(max-width:1040px){.aoifn-inline{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.aoifn-inline{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.aoifn-inline{grid-template-columns:1fr}}
-/* r166: 吹き出し線(cy-ld1..5)に対応円と同一アニメを付与し接続部を円縁に固定＋サブタイトルをThe map of mitsulabに短縮＋ビジョン末尾を「社会実装する研究所です」に。旧r165: 名称=mitsulab の地図(タブ/大見出し)＋カード=プロジェクト＋地図の中にビジョン/全体像/プロジェクトの3カード。r163で入れた脈動アニメ(cy-pj/cy-c)は撤去。旧r163: 地図に再改名＋プロジェクト詳細→プロジェクト＋図中チップ.cy-pjと5円.cy-cに脈動(cyPjPulse/cyCircPulse 1.9s・floatと併走・hoverで停止・reduced-motion配慮)。r162: トップ冒頭＝「mitsulab の全体像」カード（間延び解消・既存カードトーン踏襲） */
+/* r167: スマホ限定で地図グラフィックを拡大(cy-stageラッパーをscale1.4)＋見出しJAを強調(weight800/影)＋EN副題非表示で重なり解消。PCは不変。旧r166: 吹き出し線(cy-ld1..5)に対応円と同一アニメを付与し接続部を円縁に固定＋サブタイトルをThe map of mitsulabに短縮＋ビジョン末尾を「社会実装する研究所です」に。旧r165: 名称=mitsulab の地図(タブ/大見出し)＋カード=プロジェクト＋地図の中にビジョン/全体像/プロジェクトの3カード。r163で入れた脈動アニメ(cy-pj/cy-c)は撤去。旧r163: 地図に再改名＋プロジェクト詳細→プロジェクト＋図中チップ.cy-pjと5円.cy-cに脈動(cyPjPulse/cyCircPulse 1.9s・floatと併走・hoverで停止・reduced-motion配慮)。r162: トップ冒頭＝「mitsulab の全体像」カード（間延び解消・既存カードトーン踏襲） */
 .os-overview-card{max-width:1100px;--oc:1} .os-overview-card.projects-card,.os-overview-card.cycle-card{max-width:1100px} .projects-card .aoifn-inline{margin-top:10px} .os-overview-card{margin:6px auto 10px;border:1px solid rgba(150,170,220,.18);border-radius:14px;background:rgba(8,10,13,.34);padding:22px 26px 20px;box-shadow:0 10px 34px rgba(0,0,0,.22)}
 .os-overview-title{position:relative;display:block;margin:0 0 15px;padding:2px 0 12px 16px;border-bottom:1px solid rgba(150,170,220,.16)}
 .os-overview-title::before{content:"";position:absolute;left:0;top:.2em;width:3px;height:calc(100% - .55em);background:linear-gradient(180deg,#7fd3e8,#3c8a7c);border-radius:2px;box-shadow:0 0 10px rgba(127,211,232,.35)}
@@ -5024,6 +5024,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         .cycle-card .cycle-intro{font-size:.95rem;line-height:2.05;color:var(--ink-2);margin:0 0 10px;text-align:left}
         .cycle-map{position:relative;width:100%;aspect-ratio:1200/888;margin:0 auto}
         .cycle-svg{position:absolute;inset:0;width:100%;height:100%}
+        .cy-stage{position:absolute;inset:0}
         .cycle-svg .cy-c{transform-box:fill-box;transform-origin:center}
         @keyframes cyF1{to{transform:translate(7px,-6px)}}
         @keyframes cyF2{to{transform:translate(-6px,-7px)}}
@@ -5074,6 +5075,11 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         .cy-callout-sp{display:none}
         @media (max-width:1200px){
           .cy-callout,.cycle-svg .cy-leaders{display:none}
+          .cycle-map{overflow:hidden}
+          .cy-stage{transform:scale(1.4);transform-origin:50% 50%}
+          .cy-theme .cy-ja{font-weight:800;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+          .cy-theme .cy-en{display:none}
+          .cy-theme{padding:2px 6px}
           .cy-callout-sp{display:block;list-style:none;margin:14px 0 0;padding:0}
           .cy-callout-sp li{font-size:.8rem;line-height:1.85;color:var(--ink-2);padding:6px 0 6px 16px;position:relative}
           .cy-callout-sp li::before{content:"";position:absolute;left:2px;top:1em;width:7px;height:1px;background:rgba(92,200,224,.6)}
@@ -5090,6 +5096,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       </style>
       <p class="cycle-intro" data-i18n-en="The essence of the five themes lies in their overlapping. Observation opens into sensation; practice in the field becomes stories; and at the center of the four, the vessel Aoi mediates them all. No theme completes alone — overlapping one another, the five themes and fifteen projects turn as one cycle, and every one of them leads to the vision: <strong>toward a world where soil and people flourish</strong>.">5 つのテーマの本質は、<strong>重なり合うこと</strong>にあります。観測は感覚へひらき、現場の実践は物語になり、4 つのテーマの中心では依代・碧がすべてを媒介する——どのテーマも単独では完結せず、互いに重なり合いながら、5 つのテーマと 15 個のプロジェクトはひとつの循環として回りつづけます。そして、そのすべてが、ビジョン『土と人が豊かな世界へ』へとつながっています。</p>
       <div class="cycle-map">
+        <div class="cy-stage">
         <svg class="cycle-svg" viewBox="0 0 1200 888" aria-hidden="true" fill="none">
           <defs>
             <radialGradient id="cyAoi2" cx="50%" cy="50%" r="50%">
@@ -5128,6 +5135,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         <button class="cy-theme cy-e" type="button" onclick="openOsLayer('e')" aria-label="編集（Edit）── 詳細を開く"><span class="cy-ja" data-i18n-en="Editing">編集</span><span class="cy-en">Edit</span></button>
         <button class="cy-theme cy-r" type="button" onclick="openOsLayer('r')" aria-label="再生（Engineering）── 詳細を開く"><span class="cy-ja" data-i18n-en="Regeneration">再生</span><span class="cy-en">Engineering</span></button>
         <button class="cy-theme cy-a" type="button" onclick="openOsLayer('a')" aria-label="依代・碧（Yorishiro）── 詳細を開く"><span class="cy-ja" data-i18n-en="The Vessel — Aoi">依代・碧</span><span class="cy-en">Yorishiro</span></button>
+        </div><!-- /cy-stage -->
         <div class="cy-callout cy-co-h2">
           <button class="cy-co-head" type="button" onclick="openOsLayer('h')"><b data-i18n-en="Observation">観測</b><i>Technology</i></button>
           <span class="cy-co-txt" data-i18n-en="Observing states of soil beyond the reach of the human senses, with technology (3DGS, acoustic observation, soil IoT, and soil GIS)">人間の五感では捉えられない土の状態を、テクノロジー（3DGS・音響観測・土壌IoT・土壌GIS）により観測する。</span>
