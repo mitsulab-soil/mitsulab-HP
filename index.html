@@ -3615,7 +3615,7 @@ html{overflow-x:clip} /* 100vw フルブリードで横スクロールが出な�
 @media(max-width:1040px){.aoifn-inline{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.aoifn-inline{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.aoifn-inline{grid-template-columns:1fr}}
-/* r167: スマホ限定で地図グラフィックを拡大(cy-stageラッパーをscale1.4)＋見出しJAを強調(weight800/影)＋EN副題非表示で重なり解消。PCは不変。旧r166: 吹き出し線(cy-ld1..5)に対応円と同一アニメを付与し接続部を円縁に固定＋サブタイトルをThe map of mitsulabに短縮＋ビジョン末尾を「社会実装する研究所です」に。旧r165: 名称=mitsulab の地図(タブ/大見出し)＋カード=プロジェクト＋地図の中にビジョン/全体像/プロジェクトの3カード。r163で入れた脈動アニメ(cy-pj/cy-c)は撤去。旧r163: 地図に再改名＋プロジェクト詳細→プロジェクト＋図中チップ.cy-pjと5円.cy-cに脈動(cyPjPulse/cyCircPulse 1.9s・floatと併走・hoverで停止・reduced-motion配慮)。r162: トップ冒頭＝「mitsulab の全体像」カード（間延び解消・既存カードトーン踏襲） */
+/* r168: スマホは5円クラスタにviewBoxをクロップ(JSでviewBox差替310 154 580 580)＋mapを全幅化(1/1・calc幅)で円が画面いっぱい＋ラベルをクロップ座標へ＋各テーマに枠(spリストをカード化)。PCは不変(初回ロードでviewBox分岐)。旧r167: スマホ限定で地図グラフィックを拡大(cy-stageラッパーをscale1.4)＋見出しJAを強調(weight800/影)＋EN副題非表示で重なり解消。PCは不変。旧r166: 吹き出し線(cy-ld1..5)に対応円と同一アニメを付与し接続部を円縁に固定＋サブタイトルをThe map of mitsulabに短縮＋ビジョン末尾を「社会実装する研究所です」に。旧r165: 名称=mitsulab の地図(タブ/大見出し)＋カード=プロジェクト＋地図の中にビジョン/全体像/プロジェクトの3カード。r163で入れた脈動アニメ(cy-pj/cy-c)は撤去。旧r163: 地図に再改名＋プロジェクト詳細→プロジェクト＋図中チップ.cy-pjと5円.cy-cに脈動(cyPjPulse/cyCircPulse 1.9s・floatと併走・hoverで停止・reduced-motion配慮)。r162: トップ冒頭＝「mitsulab の全体像」カード（間延び解消・既存カードトーン踏襲） */
 .os-overview-card{max-width:1100px;--oc:1} .os-overview-card.projects-card,.os-overview-card.cycle-card{max-width:1100px} .projects-card .aoifn-inline{margin-top:10px} .os-overview-card{margin:6px auto 10px;border:1px solid rgba(150,170,220,.18);border-radius:14px;background:rgba(8,10,13,.34);padding:22px 26px 20px;box-shadow:0 10px 34px rgba(0,0,0,.22)}
 .os-overview-title{position:relative;display:block;margin:0 0 15px;padding:2px 0 12px 16px;border-bottom:1px solid rgba(150,170,220,.16)}
 .os-overview-title::before{content:"";position:absolute;left:0;top:.2em;width:3px;height:calc(100% - .55em);background:linear-gradient(180deg,#7fd3e8,#3c8a7c);border-radius:2px;box-shadow:0 0 10px rgba(127,211,232,.35)}
@@ -5075,16 +5075,18 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         .cy-callout-sp{display:none}
         @media (max-width:1200px){
           .cy-callout,.cycle-svg .cy-leaders{display:none}
-          .cycle-map{overflow:hidden}
-          .cy-stage{transform:scale(1.4);transform-origin:50% 50%}
-          .cy-theme .cy-ja{font-weight:800;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+          /* r168: スマホは viewBox を円クラスタにクロップ（JSでviewBox差替）＝円が画面幅いっぱいに。ラベルもクロップ後の座標へ */
+          .cycle-card .cycle-map{aspect-ratio:1/1;width:calc(100% + 64px);margin-left:-32px;margin-right:-32px;overflow:hidden}
+          .cy-stage{transform:none}
+          .cy-h{left:25.2%;top:25.5%}.cy-e{left:74.8%;top:25.5%}.cy-t{left:25.2%;top:74.2%}.cy-r{left:74.8%;top:74.2%}.cy-a{left:50%;top:50%}
+          .cy-theme .cy-ja{font-size:1.5rem;font-weight:800;text-shadow:0 1px 7px rgba(0,0,0,.6)}
           .cy-theme .cy-en{display:none}
           .cy-theme{padding:2px 6px}
-          .cy-callout-sp{display:block;list-style:none;margin:14px 0 0;padding:0}
-          .cy-callout-sp li{font-size:.8rem;line-height:1.85;color:var(--ink-2);padding:6px 0 6px 16px;position:relative}
-          .cy-callout-sp li::before{content:"";position:absolute;left:2px;top:1em;width:7px;height:1px;background:rgba(92,200,224,.6)}
-          .cy-callout-sp b{color:var(--ink);font-weight:700;margin-right:6px}
-          .cy-callout-sp .cy-co-pjs{margin:4px 0 2px}
+          .cy-callout-sp{display:block;list-style:none;margin:20px 0 0;padding:0}
+          .cy-callout-sp li{font-size:.82rem;line-height:1.8;color:var(--ink-2);padding:12px 14px;margin-bottom:10px;border:1px solid rgba(92,200,224,.24);border-radius:12px;background:rgba(8,10,13,.3);box-shadow:0 6px 20px rgba(0,0,0,.16)}
+          .cy-callout-sp li::before{display:none}
+          .cy-callout-sp b{display:inline-block;color:var(--ink);font-weight:700;font-size:1rem;margin:0 0 3px}
+          .cy-callout-sp .cy-co-pjs{margin:7px 0 2px}
         }
         @media (max-width:600px){
           .cy-map-ttl{white-space:normal;width:92%}
@@ -5177,6 +5179,14 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       <script>
         // r154: 全体像のPJチップ → 各層オーバーレイの該当プロジェクトの詳細オーバーレイを開く
         window.cyOpenPj=function(c,i){ var el=document.querySelectorAll('.os-ov[data-c="'+c+'"] .os-ov-pj')[i]; if(el) el.click(); };
+        /* r168: スマホでは 5円クラスタにviewBoxをクロップして大きく見せる */
+        (function(){ var svg=document.querySelector('.cycle-svg'); if(!svg) return;
+          var mq=window.matchMedia('(max-width:1200px)');
+          function applyVB(){ svg.setAttribute('viewBox', mq.matches ? '310 154 580 580' : '0 0 1200 888'); }
+          applyVB();
+          if(mq.addEventListener) mq.addEventListener('change',applyVB); else if(mq.addListener) mq.addListener(applyVB);
+          window.addEventListener('resize',applyVB);
+        })();
       </script>
       </div><!-- /os-overview-card -->
     </div><!-- /os-lead-merged -->
