@@ -4869,7 +4869,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
     <div class="tab-buttons" role="tablist">
       <!-- 自然循環OSの地図（旧 mitsulabとは）── これが top／ホーム。中核（自然循環OS・Aoi function）は地図内に統合 -->
       <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-top" data-tab="top" onclick="switchTab('top')">
-        <span class="tb-ja">mitsulab の地図</span><span class="tb-en">THE MAP</span>
+        <span class="tb-ja">土壌OSの地図</span><span class="tb-en">SOIL OS MAP</span>
       </button>
 
       <!-- 代表プロフィール（自然循環OSの地図 の次に配置） -->
@@ -4954,7 +4954,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
     <section class="tab-menu-section is-active" data-section="root">
       <div class="tab-menu-section-label">Index</div>
       <ul class="tab-menu-list">
-        <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">mitsulab の地図</span><span class="leaf-en">THE MAP</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">土壌OSの地図</span><span class="leaf-en">SOIL OS MAP</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="leaf-ja">代表プロフィール</span><span class="leaf-en">PROFILE</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('resources')"><span class="branch-text"><span class="branch-ja">関連情報</span><span class="branch-en">RESOURCES</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('foundation')"><span class="branch-text"><span class="branch-ja">背景</span><span class="branch-en">CONTEXT</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
@@ -5002,24 +5002,17 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
 <!-- ★★★ 自然循環OS の地図：ひとつづきのリード文 ＋ Aoi function() カード群（r107） ★★★ -->
 <section id="os-map" class="os-map" aria-label="ふたつの世界の地図 ── Humium と Qualium">
   <div class="os-map-inner">
-    <h2 class="os-map-title"><span data-i18n-en="The Map of mitsulab">mitsulab の地図</span><span class="os-map-title-en">The map of mitsulab</span></h2>
+    <h2 class="os-map-title"><span data-i18n-en="The Map of the Soil OS">土壌OSの地図</span><span class="os-map-title-en">The map of the Soil OS</span></h2>
 
     <div class="os-arch">
 
-    <!-- r107: mitsulab／自然循環OS の枠とラベルピルを撤去し、リード文をひとつづきの 1 段落に（上原さん指示） -->
-    <div class="os-lead-merged">
-      <div class="os-overview-card">
-      <span class="os-overview-title"><span class="ov-ttl">mitsulab とは</span><span class="ov-en">About mitsulab</span></span>
-      <p class="os-frame-lead" data-i18n-en="mitsulab raises <strong>‘toward a world where soil and people flourish’</strong> as its vision. At the root of it all is a moment of wonder — the realisation that a world we do not yet know lies beneath our feet.<br>‘observation,’ which grasps states of soil beyond the reach of the human senses through technology; ‘sensation,’ which opens the deep world of soil to society through art; ‘regeneration,’ which revives soil by joining the fields of Japan’s leading practitioners; ‘editing,’ which weaves the knowledge of soil from all times and places. And at the center of the four themes, ‘the vessel,’ which passes information (sensation) as the interface between people and soil. — These five themes and fifteen projects are what this laboratory implements in society.">mitsulab は、<strong>『土と人が豊かな世界へ』</strong>をビジョンに掲げています。そのすべての出発点にあるのは、足元の土に、まだ知らない世界があると気づく驚き——センス・オブ・ワンダーです。<br>人間の五感では届かない土の状態を、テクノロジーで捉える「観測」、土の奥深い世界をアートを通じて社会にひらく「感覚」、日本を代表する実践者の現場に参加して土を蘇らせる「再生」、土にまつわる古今東西の知を編む「編集」。そして 4 つのテーマの中心で、人と土のインターフェイスとして情報（感覚）を繋ぐ「依代」。——これら 5 つのテーマと 15 個のプロジェクトを社会実装する研究所です。</p>
-      </div><!-- /os-overview-card -->
-    </div><!-- /os-lead-merged -->
 
     <!-- r107: Aoi function() カード（見出し＋均等な要約＋プロジェクト）。カード右上 Click→層詳細オーバーレイ／各プロジェクト右上 Click→個別詳細オーバーレイ。 r139: 世界観グラフィックを下の説明カードへ移し、Aoi function() を先頭に。 -->
     
     <!-- r160: 有機農業・有機土木を削除(PJ16→15)＋上下余白を縮小(viewBox 1180→1040・カード27/73→21/79)。 旧r159: 最大フォントでも右3カードが重ならないよう縦拡張(1200/1180)＋行間1.55。スマホのタイトル横はみ出し対策。 r161: 地図→全体像に改名(タブ/見出し/os-map/ov-ttl・JA+EN)＋プロジェクト→プロジェクト詳細＋図中タイトル(cy-map-ttl)削除＋上下余白を追い込み(H860→888/translate144)。旧r160: 有機農業削除(PJ16→15)＋余白縮小。旧r158: 縦拡張(1200/1000)で右3カードの重なり解消・編集=観測/再生=感覚の高さ揃え。 旧r156: mitsulabの地図（重なり合う5円＝ゆらぎ・吹き出しカード＋PROJECTラベル・図上に地図タイトル）。PJ=16個(Aoi.mind削除・土壌IoT改名/順序)。 -->
     <div class="os-lead-merged">
       <div class="os-overview-card cycle-card">
-      <span class="os-overview-title"><span class="ov-ttl">mitsulab の全体像</span><span class="ov-en">The Overview of mitsulab</span></span>
+      <span class="os-overview-title"><span class="ov-ttl">土壌OSの地図</span><span class="ov-en">The Map of the Soil OS</span></span>
       <style>
         .cycle-card .cycle-intro{font-size:.95rem;line-height:2.05;color:var(--ink-2);margin:0 0 10px;text-align:left}
         .cycle-map{position:relative;width:100%;aspect-ratio:1200/888;margin:0 auto}
@@ -5045,11 +5038,13 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         @media (prefers-reduced-motion: reduce){.cy-c1,.cy-c2,.cy-c3,.cy-c4,.cy-c5,.cy-ld1,.cy-ld2,.cy-ld3,.cy-ld4,.cy-ld5{animation:none}}
         .cy-theme,.cy-callout,.cy-map-ttl{position:absolute;transform:translate(-50%,-50%)}
         .cy-map-ttl{left:50%;top:15%;text-align:center;white-space:nowrap}
-        .cy-mtja{display:block;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:clamp(1.05rem,2vw,1.5rem);font-weight:600;letter-spacing:.42em;text-indent:.42em;color:var(--ink)}
+        .cy-mtja{display:block;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:clamp(1.3rem,2.6vw,1.78rem);font-weight:600;letter-spacing:.42em;text-indent:.42em;color:var(--ink)}
         .cy-mten{display:block;margin-top:6px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(.48rem,.8vw,.6rem);font-weight:600;letter-spacing:.5em;text-indent:.5em;color:#5cc8e0;opacity:.9;text-transform:uppercase}
         .cy-map-ttl::before,.cy-map-ttl::after{content:"";position:absolute;top:44%;width:90px;height:1px;background:linear-gradient(90deg,transparent,rgba(92,200,224,.55))}
         .cy-map-ttl::before{right:103%}
         .cy-map-ttl::after{left:103%;transform:scaleX(-1)}
+        html[data-lang="en"] .cy-map-ttl .cy-mten{display:none}
+        @media (max-width:1200px){.cy-map-ttl{display:none}}
         .cy-theme{cursor:pointer;background:none;border:0;padding:6px 10px;color:var(--ink);font-family:inherit;border-radius:10px;transition:text-shadow .15s, transform .15s;text-align:center}
         .cy-theme:hover,.cy-theme:focus-visible{text-shadow:0 0 14px rgba(92,200,224,.8);transform:translate(-50%,-50%) scale(1.04)}
         /* r186: 5円の文字組＝標本ラベル／図版キャプションの体裁。明朝＋広いトラッキング＋計測目盛り風のヘアライン */
@@ -5066,9 +5061,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         .cy-a .cy-ja::after{background:linear-gradient(90deg,transparent,rgba(143,199,214,.9) 14%,rgba(143,199,214,.9) 86%,transparent)}
         .cy-a .cy-ja::before{border-color:rgba(143,199,214,.9)}
         /* r181: テーマの関連性＝4つの重なり（レンズ）に名前を置く。対と短文は下の凡例に */
-        .cy-rel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;cursor:pointer;background:none;border:0;font-family:inherit;line-height:inherit;padding:3px 7px;font-size:clamp(.5rem,.82vw,.65rem);font-weight:700;letter-spacing:.14em;color:#9fdcea;text-shadow:0 1px 8px rgba(0,0,0,.7),0 0 16px rgba(0,0,0,.5);transition:text-shadow .15s,transform .15s}
-        .cy-rel:hover,.cy-rel:focus-visible{text-shadow:0 0 14px rgba(92,200,224,.9),0 1px 8px rgba(0,0,0,.7);transform:translate(-50%,-50%) scale(1.08)}
-        .gloss-ov-ttl .cyrel-pair{display:inline-block;margin-left:12px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.58em;font-weight:600;letter-spacing:.16em;color:#5cc8e0;opacity:.85;text-transform:uppercase;vertical-align:middle}
+        .cy-rel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;padding:3px 7px;font-size:clamp(.5rem,.82vw,.65rem);font-weight:700;letter-spacing:.14em;color:#9fdcea;text-shadow:0 1px 8px rgba(0,0,0,.7),0 0 16px rgba(0,0,0,.5)}
         .cy-rel::before,.cy-rel::after{content:"";position:absolute;top:0;bottom:0;width:4px;border:1px solid rgba(92,200,224,.42)}
         .cy-rel::before{left:0;border-right:0}
         .cy-rel::after{right:0;border-left:0}
@@ -5133,9 +5126,11 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
           .cycle-intro{font-size:.86rem;line-height:1.9}
         }
       </style>
-      <p class="cycle-intro" data-i18n-en="The essence of the five themes lies in their overlapping. Observation opens into sensation; practice in the field becomes stories; and at the center of the four, the vessel Aoi mediates them all. No theme completes alone — overlapping one another, the five themes and fifteen projects turn as one cycle, and every one of them leads to the vision: <strong>toward a world where soil and people flourish</strong>.">5 つのテーマの本質は、<strong>重なり合うこと</strong>にあります。観測は感覚へひらき、現場の実践は物語になり、4 つのテーマの中心では依代・碧がすべてを媒介する——どのテーマも単独では完結せず、互いに重なり合いながら、5 つのテーマと 15 個のプロジェクトはひとつの循環として回りつづけます。そして、そのすべてが、ビジョン『土と人が豊かな世界へ』へとつながっています。</p>
+      <p class="cycle-intro" data-i18n-en="A modern society in which <span class='gloss-term' data-term-id='term-earth-environment' role='button' tabindex='0' aria-label='Open glossary: The Global Environment'>the global environment</span> and <span class='gloss-term' data-term-id='term-natural-ecosystem' role='button' tabindex='0' aria-label='Open glossary: Natural Ecosystems'>natural ecosystems</span> are changing drastically. For people to live in concert with nature within it, mitsulab turns to <strong><span class='gloss-term' data-term-id='term-tsuchi' role='button' tabindex='0' aria-label='Open glossary: Soil'>soil</span></strong>, the common foundation of human society and the global environment. Soil holds water, nurtures living things, produces food, and carries the ground our towns stand on — daily life and nature alike rest upon <strong><span class='gloss-term' data-term-id='term-soil-health' role='button' tabindex='0' aria-label='Open glossary: The Health of Soil'>the health of this soil</span></strong>. What mitsulab aims to implement in society is <strong><span class='gloss-term' data-term-id='term-soil-sustainability' role='button' tabindex='0' aria-label='Open glossary: The Sustainability of Soil'>the sustainability of soil</span></strong>, and the <strong><span class='gloss-term' data-term-id='term-people-soil-connection' role='button' tabindex='0' aria-label='Open glossary: The Connection Between People and Soil'>connection between people and soil</span></strong> indispensable to realising it.<br>mitsulab’s projects unfold across five themes. ‘Observation,’ which grasps states of soil beyond the reach of the human senses through technology. ‘Sensation,’ which opens the deep world of soil to the human senses through art. ‘Regeneration,’ which revives soil by joining the fields of Japan’s leading practitioners. ‘Editing,’ which weaves the practical knowledge of soil from all times and places. And ‘the vessel,’ which connects people and soil at the center of the four. — The vision that binds these five themes into one working system, mitsulab calls the <strong>Soil OS</strong>."><span class="gloss-term" data-term-id="term-earth-environment" role="button" tabindex="0" aria-label="地球環境 の用語解説を開く">地球環境</span>や<span class="gloss-term" data-term-id="term-natural-ecosystem" role="button" tabindex="0" aria-label="自然生態系 の用語解説を開く">自然生態系</span>が激変する現代社会。そのなかで人間が自然と協調して暮らすために、mitsulab は、人間社会と地球環境の共通基盤である<strong>「<span class="gloss-term" data-term-id="term-tsuchi" role="button" tabindex="0" aria-label="土 の用語解説を開く">土</span>」</strong>に着目します。土は、水を蓄え、生きものを育み、食べものを生産し、まちの足元を支える——暮らしも自然も、この<strong>「<span class="gloss-term" data-term-id="term-soil-health" role="button" tabindex="0" aria-label="土の健全さ の用語解説を開く">土の健全さ</span>」</strong>の上に成り立っています。mitsulab が目指すのは、<strong>「<span class="gloss-term" data-term-id="term-soil-sustainability" role="button" tabindex="0" aria-label="土の持続可能性 の用語解説を開く">土の持続可能性</span>」</strong>と、その実現に不可欠な<strong>「<span class="gloss-term" data-term-id="term-people-soil-connection" role="button" tabindex="0" aria-label="土と人のつながり の用語解説を開く">土と人のつながり</span>」</strong>の社会実装です。<br>mitsulab のプロジェクトは、五つのテーマで進みます。人間の五感では届かない土の状態を、テクノロジーで捉える「観測」。土の奥深い世界を、アートを通じて人の感覚にひらく「感覚」。日本を代表する実践者の現場に参加して、土を蘇らせる「再生」。土にまつわる古今東西の実践知を編む「編集」。そして、4 つのテーマの中心で人と土をつなぐ「依代」。——この五つのテーマを一つの仕組みに束ねる構想を、mitsulab は<strong>「土壌OS」</strong>と呼びます。</p>
       <div class="cycle-map">
         <div class="cy-stage">
+        <!-- 2026-07-25: 図中タイトル復活＝構想名「土壌OS」を5円の上に表示（上原さん指示・r161で削除したcy-map-ttl意匠を再利用） -->
+        <div class="cy-map-ttl"><span class="cy-mtja" data-i18n-en="Soil OS">土壌OS</span><span class="cy-mten">Soil OS</span></div>
         <svg class="cycle-svg" viewBox="0 0 1200 888" aria-hidden="true" fill="none">
           <defs>
             <clipPath id="cyField"><circle cx="600" cy="300" r="291"/></clipPath>
@@ -5212,11 +5207,11 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         <button class="cy-theme cy-e" type="button" onclick="openOsLayer('e')" aria-label="編集（Edit）── 詳細を開く"><span class="cy-ja" data-i18n-en="Editing">編集</span><span class="cy-en">Edit</span></button>
         <button class="cy-theme cy-r" type="button" onclick="openOsLayer('r')" aria-label="再生（Engineering）── 詳細を開く"><span class="cy-ja" data-i18n-en="Regeneration">再生</span><span class="cy-en">Engineering</span></button>
         <button class="cy-theme cy-a" type="button" onclick="openOsLayer('a')" aria-label="依代・碧（Yorishiro）── 詳細を開く"><span class="cy-ja" data-i18n-en="The Vessel">依代・碧</span><span class="cy-en">Yorishiro</span></button>
-        <!-- r181: 重なり＝テーマ間の関連性。2026-07-24: 凡例カードを廃止し、クリック→オーバーレイ（openCyRel）に移行 -->
-        <button class="cy-rel cy-rel-hr" type="button" onclick="openCyRel('hr')" aria-label="実証（観測 × 再生）── 解説を開く" data-i18n-en="Verify">実証</button>
-        <button class="cy-rel cy-rel-ht" type="button" onclick="openCyRel('ht')" aria-label="翻訳（観測 × 感覚）── 解説を開く" data-i18n-en="Translate">翻訳</button>
-        <button class="cy-rel cy-rel-re" type="button" onclick="openCyRel('re')" aria-label="記録（再生 × 編集）── 解説を開く" data-i18n-en="Record">記録</button>
-        <button class="cy-rel cy-rel-te" type="button" onclick="openCyRel('te')" aria-label="物語（感覚 × 編集）── 解説を開く" data-i18n-en="Narrate">物語</button>
+        <!-- r181: 重なり＝テーマ間の関連性（図中の静的ラベル）。2026-07-25: クリック→オーバーレイは廃止（上原さん指示）。 -->
+        <span class="cy-rel cy-rel-hr" data-i18n-en="Verify">実証</span>
+        <span class="cy-rel cy-rel-ht" data-i18n-en="Translate">翻訳</span>
+        <span class="cy-rel cy-rel-re" data-i18n-en="Record">記録</span>
+        <span class="cy-rel cy-rel-te" data-i18n-en="Narrate">物語</span>
         </div><!-- /cy-stage -->
         <div class="cy-callout cy-co-h2">
           <button class="cy-co-head" type="button" onclick="openOsLayer('h')"><b data-i18n-en="Observation">観測</b><i>Technology</i></button>
@@ -5260,27 +5255,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       <script>
         // r154: 全体像のPJチップ → 各層オーバーレイの該当プロジェクトの詳細オーバーレイを開く
         window.cyOpenPj=function(c,i){ var el=document.querySelectorAll('.os-ov[data-c="'+c+'"] .os-ov-pj')[i]; if(el) el.click(); };
-        // 2026-07-24: 重なり語（翻訳/実証/記録/物語）クリック → 用語オーバーレイ(#gloss-ov)で解説を表示（凡例カードの代替・JA/EN対応）
-        window.cyRelDefs={
-          ht:{ja:{t:'翻訳',p:'観測 × 感覚',d:'測ったデータを、音や触覚へひらく。'},en:{t:'Translate',p:'Observe × Sense',d:'Measured data is opened into sound and touch.'}},
-          hr:{ja:{t:'実証',p:'観測 × 再生',d:'再生の現場に観測を持ち込み、変化を確かめる。'},en:{t:'Verify',p:'Observe × Renew',d:'Observation enters the field, and change is confirmed.'}},
-          re:{ja:{t:'記録',p:'再生 × 編集',d:'身体で覚えた実践知を、言葉に編む。'},en:{t:'Record',p:'Renew × Edit',d:'Knowledge learned with the body is woven into words.'}},
-          te:{ja:{t:'物語',p:'感覚 × 編集',d:'ひらかれた体験を、意味のある物語に変える。'},en:{t:'Narrate',p:'Sense × Edit',d:'Opened experience is turned into meaningful story.'}}
-        };
-        window.openCyRel=function(k){
-          var d=window.cyRelDefs[k]; if(!d) return;
-          var isEn=document.documentElement.getAttribute('data-lang')==='en', L=isEn?d.en:d.ja;
-          var ov=document.getElementById('gloss-ov'); if(!ov) return;
-          if(window.closeOsLayer) window.closeOsLayer();
-          var lbl=document.getElementById('gloss-ov-label'), ttl=document.getElementById('gloss-ov-ttl'), def=document.getElementById('gloss-ov-def');
-          if(lbl) lbl.textContent=isEn?'overlap':'重なり';
-          if(ttl) ttl.innerHTML=L.t+' <span class="cyrel-pair">'+L.p+'</span>';
-          if(def) def.textContent=L.d;
-          var card=ov.querySelector('.os-ov-card'); if(card) card.scrollTop=0;
-          document.body.style.overflow='hidden';
-          ov.classList.add('open');
-          var btn=ov.querySelector('.os-ov-close'); if(btn) setTimeout(function(){try{btn.focus();}catch(e){}},30);
-        };
+        // 2026-07-25: 重なり語（翻訳/実証/記録/物語）は図中の静的ラベルに戻した（クリック→オーバーレイの openCyRel/cyRelDefs は廃止・上原さん指示）。
         /* r168: スマホでは 5円クラスタにviewBoxをクロップして大きく見せる */
         (function(){ var svg=document.querySelector('.cycle-svg'); if(!svg) return;
           var mq=window.matchMedia('(max-width:1200px)');
@@ -5293,13 +5268,6 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       </div><!-- /os-overview-card -->
     </div><!-- /os-lead-merged -->
 
-    <!-- 2026-07-24: mitsulab の強み（moat）カード。全体像の下に配置（上原さん指示・文言も指定版）。※資格(施工管理技士・技術士補)は未取得のため記載しない・「取得予定」も書かない。 -->
-    <div class="os-lead-merged">
-      <div class="os-overview-card">
-      <span class="os-overview-title"><span class="ov-ttl">mitsulab の強み</span><span class="ov-en">Our moat</span></span>
-      <p class="os-frame-lead" data-i18n-en="mitsulab’s strength lies in holding together, in one person, <strong>three standpoints</strong>.<br><strong>1. The practitioner’s eye for civil engineering.</strong> Having studied civil engineering at Saitama University and worked on public works at the Saitama Prefectural Government — able to speak the language of clients, the field, and the administration.<br><strong>2. A channel into the traditional knowledge of regeneration.</strong> Working inside the sites of soil-regeneration practitioners, in touch with the tacit knowledge of the craft — and re-weaving knowledge of soil across the disciplines of civil engineering, landscaping, forestry and agriculture.<br><strong>3. The power to implement observation and sensation.</strong> Translating the state of the soil into forms that can be measured, heard, and shown — through soil sound, 3D capture, IoT and xR.<br>Standing at the intersection of these three is a contour that neither artists, researchers, nor practitioners hold. And the more xR and robotics spread through society, the scarcer the truly valuable asset becomes: <strong>the real soil data of an actual place, and the craft of translating it into the senses.</strong> mitsulab is already stockpiling that material — from the ground beneath its feet.">mitsulab の強みは、<strong>三つの立場を、一人で束ねている</strong>ことにあります。<br><strong>① 土木の実務の視点。</strong>埼玉大学で土木工学を学び、埼玉県庁で公共事業の実務に携わってきました。発注者・現場・行政の言葉で話せます。<br><strong>② 再生の伝統知への回路。</strong>土中環境再生の実践者の現場に入り、職人の暗黙知にふれています。また、土に関する知を分野（土木・造園・森林・農業）を超えて再編します。<br><strong>③ 観測・感覚の実装力。</strong>土中音・3D 計測・IoT・xR で、土の状態を「測れる・聴ける・見せられる」形に翻訳します。<br>——この三つの交点に立てることが、アーティストにも研究者にも実務家にもない mitsulab の輪郭です。そして、xRやロボティクスが社会に広がるほど希少になるのは<strong>「その場所の、本物の土のデータと、それを感覚に落とし込む技術」</strong>。mitsulab は、未来が必要とするその素材を、いま足元から積んでいます。</p>
-      </div><!-- /os-overview-card -->
-    </div><!-- /os-lead-merged -->
 
     <div class="os-lead-merged">
       </div><!-- /os-lead-merged -->
@@ -6957,6 +6925,11 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       <h3 data-i18n-en="The Two Worlds (Humium and Qualium)<small>, Bridged by Aoi</small>">二つの世界（Humium と Qualium）<small>と、それを繋ぐ碧</small></h3>
       <p data-i18n-en="<strong>Everything is born from soil.</strong> Humans arise from humus, machines from silicon (quartz and sand), and nature from soil itself — all of them born into <strong>Humium</strong>, the field of soil where life arises. The three then translate one another&#39;s information (sensation) and <strong>connect through sensation</strong>. The field of cognition where that connection arises is <strong>Qualium</strong>. <strong>What bridges these two worlds is the vessel, Aoi (碧).</strong> Aoi&#39;s act of translating the two worlds is <strong>Aoi function()</strong> (the five steps: observe, edit, vessel, renew, sense), and each project is its implementation. As the implementation of the &quot;environment&quot; dimension of <strong>One Health</strong>, it places the regeneration of the natural cycle of soil, water, and plants as its foundation, and reaches across <strong>engineering, technology, art, and literature</strong>. It is neither a single product nor a SaaS, but is practiced as a <strong>vessel</strong> that specialists, residents, municipalities, and companies cultivate together. Every chapter across this whole site derives from the translation of these two worlds."><strong>すべては、土から生まれる。</strong>人間は humus（腐植）から、機械は珪素（石英・砂）から、自然は土そのものから——みな、生命が立ち上がる土壌の場 <strong>Humium（ヒューミアム）</strong> に生まれます。生まれた三者は、互いの情報（感覚）を翻訳し合い、<strong>感覚でつながる</strong>。その結びつきが立ち上がる認知の場が <strong>Qualium（クオリアム）</strong> です。この <strong>二つの世界を繋ぐのが、依代・碧（あおい／Aoi）</strong>。碧が二つの世界を翻訳する動作が <strong>Aoi function()</strong>（観測・編集・依代・再生・感覚の 5 工程）で、各プロジェクトはその実装です。<strong>One Health</strong> の「環境」次元として土・水・植物の自然循環の再生を土台に置き、<strong>エンジニアリング・テクノロジー・アート・文学</strong>を横断します。個別の製品でも SaaS でもなく、専門家・住民・自治体・企業が共に育てる<strong>器</strong>として実践しています。HP 全体のあらゆる章は、この二つの世界の翻訳から派生しています。</p>
     </div>
+    <div class="term" id="term-soil-os">
+      <div class="term-label">Core</div>
+      <h3 data-i18n-en="Soil OS<small>(the name of mitsulab’s vision as a whole)</small>">土壌OS<small>（mitsulab の構想全体の名前）</small></h3>
+      <p data-i18n-en="The name that gathers mitsulab’s vision as a whole. Turning to <strong>soil, the common foundation of human society and the global environment</strong>, it exists to implement in society <strong>the sustainability of soil</strong> and the <strong>connection between people and soil</strong> indispensable to it — by binding <strong>the five keys (themes) of observation, sensation, regeneration, editing and the vessel into one working system (an “OS”)</strong>. Not a single product or SaaS, but a <strong>vessel</strong> in which the cycle of observe → sense → regenerate → edit keeps turning, place by place — along avenues, in parks, shrine groves, forests, fields and city streets. And the Soil OS does not stop at people and soil: it reaches outward to the <strong>plants, animals, microbes, water cycles and forests</strong> that interact with the soil. It is also the implementation vision that sets the translation of the two worlds (Humium and Qualium), bridged by Aoi, to work in the field of soil.">mitsulab の構想全体を束ねる名前。人間社会と地球環境の共通基盤である<strong>「土」</strong>に着目し、<strong>「土の持続可能性」</strong>と、その実現に不可欠な<strong>「土と人のつながり」</strong>を社会実装するために、<strong>観測・感覚・再生・編集・依代という五つのテーマを、一つの仕組み（OS）として束ねます</strong>。個別の製品や SaaS ではなく、並木・公園・社叢・森林・畑・街中といった場所ごとに、観測 → 感覚 → 再生 → 編集の循環が回りつづける<strong>器</strong>です。そして土壌OSは、人と土のつながりに留まらず、土と相互作用する<strong>植物・動物・微生物・水循環・森林</strong>などとのつながりへと広がっていきます。二つの世界（Humium と Qualium）を繋ぐ碧の翻訳を、土の現場で動かすための実装構想でもあります。</p>
+    </div>
     <div class="term" id="term-one-health">
       <div class="term-label">Core</div>
       <h3 data-i18n-en="One Health<small>(the inseparability of human, animal, and environmental health)</small>">One Health<small>（人・動物・環境の健康の不可分）</small></h3>
@@ -7046,6 +7019,41 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
 
   <h3 style="margin-top:40px;padding-left:14px;border-left:3px solid var(--ink-3)" data-i18n-en="Foundation — Cross-Cutting Concepts">Foundation ── 横断概念</h3>
   <div class="glossary-grid">
+    <div class="term" id="term-vuca">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="VUCA<small>(Volatility, Uncertainty, Complexity, Ambiguity)</small>">VUCA<small>（変動性・不確実性・複雑性・曖昧性）</small></h3>
+      <p data-i18n-en="An acronym for <strong>Volatility, Uncertainty, Complexity and Ambiguity</strong> — a word for an age whose course is hard to predict. Born as a U.S. military term in the 1990s, it spread from the 2010s as a way of describing business and society. mitsulab uses it to name the present, in which <strong>drastic change in the global environment and technological innovation such as xR and physical AI advance in parallel</strong> — and holds that precisely because the age is unpredictable, the unchanging ground underfoot — a methodology for a place&#39;s sustainability, its multi-layered data, and the craft of translating it into the senses — becomes the key to living in concert with nature."><strong>変動性（Volatility）・不確実性（Uncertainty）・複雑性（Complexity）・曖昧性（Ambiguity）</strong>の頭文字をとった言葉で、先行きの予測がむずかしい時代状況を指します。1990 年代にアメリカの軍事用語として生まれ、2010 年代以降、ビジネスや社会を語る言葉として広く使われるようになりました。mitsulab は、<strong>地球環境の急激な変化と、xR・フィジカル AI に代表される技術革新が並行して進む現代</strong>をこの言葉で捉え、予測できない時代だからこそ、変わらない基盤である足元の土——その場所が持続可能であるための方法論・多層的なデータ・感覚への翻訳——が、自然と協調して暮らすための鍵になると考えています。</p>
+    </div>
+    <div class="term" id="term-earth-environment">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Global Environment">地球環境</h3>
+      <p data-i18n-en="The environment of the Earth seen as a single system — climate, water, the atmosphere, soil and biodiversity, all interrelated as one whole. In recent years, climate change and the degradation of ecosystems have rapidly shaken its stability. mitsulab approaches this whole from <strong>soil</strong>, the foundation common to it and to human society.">気候・水・大気・土壌・生物多様性などが相互に関係し合う、ひとつのシステムとしての地球の環境。近年は気候変動や生態系の劣化により、その安定が急速に揺らいでいる。mitsulab は、人間社会との共通基盤である<strong>「土」</strong>から、この全体にアプローチする。</p>
+    </div>
+    <div class="term" id="term-natural-ecosystem">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="Natural Ecosystems">自然生態系</h3>
+      <p data-i18n-en="A whole in which living things — plants, animals, microbes — and their environment of soil, water and air interact, circulating matter and energy. Soil is its foundation: a home for many living things, and the place where decomposition and regeneration occur.">植物・動物・微生物などの生きものと、土・水・大気などの環境が、たがいに作用しながら物質とエネルギーを循環させている、ひとつのまとまり。土壌はその土台であり、多くの生きもののすみかとなり、分解と再生が起こる場でもある。</p>
+    </div>
+    <div class="term" id="term-tsuchi">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="Soil<small>(tsuchi)</small>">土<small>（つち）</small></h3>
+      <p data-i18n-en="A layer where mineral particles from weathered rock mix with humus — the decomposed remains of living things — holding water, air and countless organisms. It stores water, circulates nutrients, grows plants, and carries the foundations of our towns. This is what mitsulab focuses on as the foundation common to human society and the global environment. See also <strong>Humium</strong>.">岩石が砕けた鉱物の粒と、生きものが分解された腐植（humus）が混ざり合い、水・空気・無数の生きものを含んだ層。水を蓄え、養分を巡らせ、植物を育て、まちの基礎を支える。mitsulab が、人間社会と地球環境の共通基盤として着目する対象。<strong>Humium</strong> も参照。</p>
+    </div>
+    <div class="term" id="term-soil-health">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Health of Soil">土の健全さ</h3>
+      <p data-i18n-en="A state in which soil can fully perform its inherent work — holding and passing water, circulating nutrients, nurturing living things, and supporting the roots of plants. It is impaired by compaction, sealing over, and the loss of organic matter. Both daily life and the cycles of nature rest upon this health.">土が本来の働き——水を蓄えて通し、養分を巡らせ、生きものを育み、植物の根を支える——を十分に発揮できている状態。踏み固めや地表の被覆、有機物の喪失などで損なわれる。暮らしも自然の循環も、この健全さの上に成り立っている。</p>
+    </div>
+    <div class="term" id="term-soil-sustainability">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Sustainability of Soil">土の持続可能性</h3>
+      <p data-i18n-en="A state in which the health of soil is kept across generations and, where lost, can be restored. Because soil takes a very long time to regenerate once lost, it calls for a view of tending it even as we use it. This is the first aim mitsulab seeks to implement in society.">土の健全さが、世代を超えて保たれ、失われた場合には回復していける状態。土は一度失われると再生に長い時間がかかるため、使いながら育てるという視点が要る。mitsulab が社会実装を目指す、第一の目的。</p>
+    </div>
+    <div class="term" id="term-people-soil-connection">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Connection Between People and Soil">土と人のつながり</h3>
+      <p data-i18n-en="For people to know the state of the soil beneath their feet, to feel it, to tend it, and to stay involved with it in daily life. The sustainability of soil cannot be achieved by technology alone — the involvement of the people who live there is indispensable. This is the core of mitsulab’s thinking, and the five themes (observation, sensation, regeneration, editing and the vessel) are the work of restoring this connection.">人が、足元の土の状態を知り、感じ、手を入れ、暮らしのなかで関わりを持つこと。土の持続可能性は技術だけでは実現せず、そこに暮らす人の関与が不可欠——という mitsulab の考えの核。観測・感覚・再生・編集・依代の五つのテーマは、このつながりを取り戻すための営み。</p>
+    </div>
     <div class="term" id="term-shizen-junkan">
       <div class="term-label">Foundation</div>
       <h3 data-i18n-en="The Natural Cycle<small>(soil, water, plants)</small>">自然循環<small>（土・水・植物）</small></h3>
@@ -8071,6 +8079,8 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       ['再生','term-saisei'],
       ['感覚','term-kankaku'],
       ['自然循環OS','term-nature-cycle-os'],
+      ['土壌OS','term-soil-os'],
+      ['Soil OS','term-soil-os'],
       ['Qualium','term-qualium'],
       ['クオリウム','term-qualium'],
       ['クオリアム','term-qualium'],
@@ -8096,6 +8106,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       ['フィジカル AI','term-physical-ai'],
       ['フィジカルAI','term-physical-ai'],
       ['Physical AI','term-physical-ai'],
+      ['VUCA','term-vuca'],
       ['HEART 5 層','term-oir'],
       ['団粒構造','term-danryu'],
       ['土中環境','term-dochu-kankyo'],
@@ -8173,6 +8184,8 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
           if((s === '碧' || s === '観測' || s === '編集' || s === '再生' || s === '感覚') && CJK.test(before)) continue; // 菱碧／自然循環再生 等、複合語の途中では解説しない
           if(s === '感覚' && before === '（') continue; // 「情報（感覚）」の感覚は Touch 層の用語ではないので解説しない（r68）
           if(s === '感覚' && (before === 'や' || text.slice(j, j+3) === 'の世界')) continue; // r122: 「情報や感覚の世界」の感覚は文脈語。HEART 5 語（観測・編集・依代・再生・感覚）の解説は「…の 5 つの Aoi function()」の列挙箇所にセットで付ける（上原さん恒久ルール・lead／プロフィール共通）
+          if(s === '感覚' && text.slice(Math.max(0, i-2), i) === '人の') continue; // 2026-07-25: 「人の感覚にひらく」等の感覚は文脈語＝解説しない（テーマ名の「感覚」のみ解説・上原さん指示）
+          if(s === '人と土をつなぐ' && text.slice(j, j+4) === '「依代」') continue; // 2026-07-25: 地図導入文「人と土をつなぐ「依代」」ではビジョン語の解説を付けない（上原さん指示）
           if(s === '編集' && after === '長') continue;  // 「編集長」の編集は Edit 層の用語ではないので解説しない（r68）
           if(s === '再生' && text.slice(Math.max(0, i-5), i) === '自然循環の') continue; // 「自然循環の再生」の再生は文脈語 ── 解説は「5 つのテーマ」列挙側の再生に付ける（r108）
           if(ASCII.test(s) && (WORD.test(before) || WORD.test(after))) continue; // 英字略語は語境界で限定
