@@ -4869,7 +4869,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
     <div class="tab-buttons" role="tablist">
       <!-- 自然循環OSの地図（旧 mitsulabとは）── これが top／ホーム。中核（自然循環OS・Aoi function）は地図内に統合 -->
       <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-top" data-tab="top" onclick="switchTab('top')">
-        <span class="tb-ja">土壌OSの地図</span><span class="tb-en">SOIL OS MAP</span>
+        <span class="tb-ja">mitsulabの全体像</span><span class="tb-en">OVERVIEW</span>
       </button>
 
       <!-- 代表プロフィール（自然循環OSの地図 の次に配置） -->
@@ -4954,7 +4954,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
     <section class="tab-menu-section is-active" data-section="root">
       <div class="tab-menu-section-label">Index</div>
       <ul class="tab-menu-list">
-        <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">土壌OSの地図</span><span class="leaf-en">SOIL OS MAP</span></button></li>
+        <li><button class="tab-menu-leaf" data-tab="top" onclick="switchTabFromMenu('top')"><span class="leaf-ja">mitsulabの全体像</span><span class="leaf-en">OVERVIEW</span></button></li>
         <li><button class="tab-menu-leaf" data-tab="profile" onclick="switchTabFromMenu('profile')"><span class="leaf-ja">代表プロフィール</span><span class="leaf-en">PROFILE</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('resources')"><span class="branch-text"><span class="branch-ja">関連情報</span><span class="branch-en">RESOURCES</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
         <li><button class="tab-menu-branch" onclick="showMobileSection('foundation')"><span class="branch-text"><span class="branch-ja">背景</span><span class="branch-en">CONTEXT</span></span><span class="branch-arrow" aria-hidden="true">›</span></button></li>
@@ -5002,7 +5002,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
 <!-- ★★★ 自然循環OS の地図：ひとつづきのリード文 ＋ Aoi function() カード群（r107） ★★★ -->
 <section id="os-map" class="os-map" aria-label="ふたつの世界の地図 ── Humium と Qualium">
   <div class="os-map-inner">
-    <h2 class="os-map-title"><span data-i18n-en="The Map of the Soil OS">土壌OSの地図</span><span class="os-map-title-en">The map of the Soil OS</span></h2>
+    <h2 class="os-map-title"><span data-i18n-en="The Whole Picture of mitsulab">mitsulabの全体像</span><span class="os-map-title-en">The whole picture of mitsulab</span></h2>
 
     <div class="os-arch">
 
@@ -5012,32 +5012,16 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
     <!-- r160: 有機農業・有機土木を削除(PJ16→15)＋上下余白を縮小(viewBox 1180→1040・カード27/73→21/79)。 旧r159: 最大フォントでも右3カードが重ならないよう縦拡張(1200/1180)＋行間1.55。スマホのタイトル横はみ出し対策。 r161: 地図→全体像に改名(タブ/見出し/os-map/ov-ttl・JA+EN)＋プロジェクト→プロジェクト詳細＋図中タイトル(cy-map-ttl)削除＋上下余白を追い込み(H860→888/translate144)。旧r160: 有機農業削除(PJ16→15)＋余白縮小。旧r158: 縦拡張(1200/1000)で右3カードの重なり解消・編集=観測/再生=感覚の高さ揃え。 旧r156: mitsulabの地図（重なり合う5円＝ゆらぎ・吹き出しカード＋PROJECTラベル・図上に地図タイトル）。PJ=16個(Aoi.mind削除・土壌IoT改名/順序)。 -->
     <div class="os-lead-merged">
       <div class="os-overview-card cycle-card">
-      <span class="os-overview-title"><span class="ov-ttl">土壌OSの地図</span><span class="ov-en">The Map of the Soil OS</span></span>
+      <span class="os-overview-title"><span class="ov-ttl">mitsulabの全体像</span><span class="ov-en">The Whole Picture of mitsulab</span></span>
       <style>
         .cycle-card .cycle-intro{font-size:.95rem;line-height:2.05;color:var(--ink-2);margin:0 0 10px;text-align:left}
         .cycle-map{position:relative;width:100%;aspect-ratio:1200/888;margin:0 auto}
         .cycle-svg{position:absolute;inset:0;width:100%;height:100%}
         .cy-stage{position:absolute;inset:0}
-        .cycle-svg .cy-c{transform-box:fill-box;transform-origin:center}
-        @keyframes cyF1{to{transform:translate(7px,-6px)}}
-        @keyframes cyF2{to{transform:translate(-6px,-7px)}}
-        @keyframes cyF3{to{transform:translate(-7px,6px)}}
-        @keyframes cyF4{to{transform:translate(6px,7px)}}
-        @keyframes cyF5{to{transform:translate(0,-6px)}}
-        .cy-c1{animation:cyF1 8.5s ease-in-out infinite alternate}
-        .cy-c2{animation:cyF2 9.5s ease-in-out -3s infinite alternate}
-        .cy-c3{animation:cyF3 10.5s ease-in-out -6s infinite alternate}
-        .cy-c4{animation:cyF4 9s ease-in-out -1.5s infinite alternate}
-        .cy-c5{animation:cyF5 7.5s ease-in-out -4s infinite alternate}
-        .cy-ld1,.cy-ld2,.cy-ld3,.cy-ld4,.cy-ld5{transform-box:fill-box;transform-origin:center}
-        .cy-ld1{animation:cyF1 8.5s ease-in-out infinite alternate}
-        .cy-ld2{animation:cyF2 9.5s ease-in-out -3s infinite alternate}
-        .cy-ld3{animation:cyF3 10.5s ease-in-out -6s infinite alternate}
-        .cy-ld4{animation:cyF4 9s ease-in-out -1.5s infinite alternate}
-        .cy-ld5{animation:cyF5 7.5s ease-in-out -4s infinite alternate}
-        @media (prefers-reduced-motion: reduce){.cy-c1,.cy-c2,.cy-c3,.cy-c4,.cy-c5,.cy-ld1,.cy-ld2,.cy-ld3,.cy-ld4,.cy-ld5{animation:none}}
+        /* 2026-07-26: 5円は動かさない（上原さん指示）＝ゆらぎアニメーションを全廃し、位置を固定してデザイン */
         .cy-theme,.cy-callout,.cy-map-ttl{position:absolute;transform:translate(-50%,-50%)}
-        .cy-map-ttl{left:50%;top:15%;text-align:center;white-space:nowrap}
+        /* 2026-07-26: 土壌OSは5円の上部へ戻す（上原さん指示）。図中タイトルの体裁 */
+        .cy-map-ttl{left:50%;top:7%;text-align:center;white-space:nowrap}
         .cy-mtja{display:block;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:clamp(1.3rem,2.6vw,1.78rem);font-weight:600;letter-spacing:.42em;text-indent:.42em;color:var(--ink)}
         .cy-mten{display:block;margin-top:6px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(.48rem,.8vw,.6rem);font-weight:600;letter-spacing:.5em;text-indent:.5em;color:#5cc8e0;opacity:.9;text-transform:uppercase}
         .cy-map-ttl::before,.cy-map-ttl::after{content:"";position:absolute;top:44%;width:90px;height:1px;background:linear-gradient(90deg,transparent,rgba(92,200,224,.55))}
@@ -5055,20 +5039,36 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         .cy-theme .cy-en{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(.5rem,.86vw,.62rem);font-weight:500;letter-spacing:.38em;text-indent:.38em;color:#5cc8e0;opacity:.78;margin-top:8px;text-transform:uppercase}
         .cy-theme:hover .cy-en,.cy-theme:focus-visible .cy-en{opacity:1}
         .cy-h{left:38%;top:34%}.cy-r{left:62%;top:34%}.cy-t{left:38%;top:65.8%}.cy-e{left:62%;top:65.8%}
-        .cy-a{left:50%;top:50%}
+        /* 2026-07-26: 依代・碧＝中央やや上（点線円は廃止・文字サイズは観測/感覚と同一＝上原さん指示） */
+        .cy-a{left:50%;top:47%}
         /* r183: EN はテーマ名が長く、重なりの中央に置いた関連語と衝突するため縮小 */
         html[data-lang="en"] .cy-theme .cy-ja{font-size:clamp(.98rem,1.95vw,1.34rem);letter-spacing:.06em}
         .cy-a .cy-ja::after{background:linear-gradient(90deg,transparent,rgba(143,199,214,.9) 14%,rgba(143,199,214,.9) 86%,transparent)}
         .cy-a .cy-ja::before{border-color:rgba(143,199,214,.9)}
-        /* r181: テーマの関連性＝4つの重なり（レンズ）に名前を置く。対と短文は下の凡例に */
-        .cy-rel{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;padding:3px 7px;font-size:clamp(.5rem,.82vw,.65rem);font-weight:700;letter-spacing:.14em;color:#9fdcea;text-shadow:0 1px 8px rgba(0,0,0,.7),0 0 16px rgba(0,0,0,.5)}
-        .cy-rel::before,.cy-rel::after{content:"";position:absolute;top:0;bottom:0;width:4px;border:1px solid rgba(92,200,224,.42)}
-        .cy-rel::before{left:0;border-right:0}
-        .cy-rel::after{right:0;border-left:0}
-        .cy-rel-hr{left:50%;top:32.17%}
-        .cy-rel-te{left:50%;top:67.83%}
-        .cy-rel-ht{left:37.22%;top:50%}
-        .cy-rel-re{left:62.78%;top:50%}
+        /* 2026-07-25: 各テーマ円に関連キーワードを配置（上原さん指示）。旧・重なり語(実証/翻訳/物語/記録)は廃止 */
+        .cy-kw{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:auto;cursor:pointer;font-family:"Shippori Mincho","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;font-size:clamp(.54rem,.9vw,.7rem);font-weight:600;letter-spacing:.1em;color:rgba(184,228,240,.9);text-shadow:0 1px 7px rgba(0,0,0,.85),0 0 14px rgba(0,0,0,.55);transition:color .15s,text-shadow .15s;border-radius:6px}
+        .cy-kw:hover,.cy-kw:focus-visible{color:#fff;text-shadow:0 0 13px rgba(92,200,224,.95),0 1px 7px rgba(0,0,0,.9);outline:none}
+        html[data-lang="en"] .cy-kw{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(.42rem,.68vw,.52rem);letter-spacing:.02em;text-transform:none}
+        .cy-kw-sm{font-size:clamp(.46rem,.75vw,.58rem)}
+        html[data-lang="en"] .cy-kw-sm{font-size:clamp(.4rem,.62vw,.5rem)}
+        /* 2026-07-28: システマティック配置。円=(524/676,363/543)r188・中心(600,453)。重なりに1つ=中央／2つ=縦並びで対の中心が重なり中心に。全て中心対称 */
+        /* 2026-07-28再計算: ラベルは中心点でなく文字全体が「ちょうどその重なり(exact region)」に収まるよう、円弧交点から各領域の最大余白中心(Chebyshev)を算出して配置 */
+        /* 編集のみ（E単体ローブ）: 鼎＝編集名の下 */
+        .cy-kw-kanae{left:60%;top:73%}
+        /* 再生のみ（R単体ローブ・上原さん指示）: 氷川参道/上野原＝再生名の上の空きに縦並び（H/Eいずれの円にも入らない） */
+        .cy-kw-hikawa{left:60.2%;top:23.5%}.cy-kw-ueno{left:60.2%;top:28.5%}
+        /* 観測∩再生のみ（上ペタル・Chebyshev中心 50%,32.2%）: 土壌IoT/土壌GIS＝縦並びで対の中心が領域中心 */
+        .cy-kw-iot{left:50%;top:29.2%}.cy-kw-gis{left:50%;top:35.2%}
+        /* 観測∩感覚のみ（左 36.25%,51%）: Soil Sound/Modarity X ／ 再生∩編集のみ（右 63.75%,51%）: 廻/坐 ─ 左右対称 */
+        .cy-kw-ss{left:36.25%;top:47.8%}.cy-kw-mx{left:36.25%;top:54.2%}
+        .cy-kw-kai{left:63.75%;top:47.8%}.cy-kw-za{left:63.75%;top:54.2%}
+        /* 感覚∩編集のみ（下ペタル・Chebyshev中心 50%,69.8%）: 種 */
+        .cy-kw-shu{left:50%;top:69.8%}
+        /* 三重のみ（観∩再∩感=Field X／観∩感∩編=Qualia）: 細い三日月領域のため小フォント(cy-kw-sm)で文字全体を内包・上下対称(軸51%) */
+        .cy-kw-fieldx{left:43.5%;top:42.8%}.cy-kw-qualia{left:43.5%;top:59.2%}
+        /* 4円の重なり中央: Aoi project（依代ラベルの下） */
+        .cy-kw-aoip{left:50%;top:54.5%}
+        .cy-kw-ov{font-style:italic;color:rgba(159,220,234,.95)}
         /* 凡例（重なりの名前） */
         /* 2026-07-24: .cy-relkey 凡例カードは削除（重なり語クリック→オーバーレイへ移行） */
         .cy-callout{width:22.5%;text-align:left;border:1px solid rgba(92,200,224,.28);border-radius:2px;background:rgba(8,13,18,.6);padding:10px 13px 9px;backdrop-filter:blur(2px)}
@@ -5089,7 +5089,8 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         .cy-co-t2{left:12.5%;top:84%}
         .cy-co-e2{left:87.5%;top:84%}
         .cy-co-r2{left:87.5%;top:16%}
-        .cy-co-a2{left:87.5%;top:50%}
+        /* 2026-07-28: 依代カードは中右で外周リング（右端915vb=76.25%）と接触していたため、幅を詰め右へ寄せて確実に離す（left端≒78.6%で約2.4%のgap／right端<100%） */
+        .cy-co-a2{left:88.4%;top:50%;width:19.5%}
         .cy-callout-sp{display:none}
         @media (max-width:1200px){
           .cy-callout,.cycle-svg .cy-leaders{display:none}
@@ -5097,8 +5098,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
           .cycle-card .cycle-map{aspect-ratio:1/1;width:calc(100% + 64px);margin-left:-32px;margin-right:-32px;overflow:hidden}
           .cy-stage{transform:none}
           .cy-h{left:25.2%;top:25.5%}.cy-r{left:74.8%;top:25.5%}.cy-t{left:25.2%;top:74.2%}.cy-e{left:74.8%;top:74.2%}.cy-a{left:50%;top:50%}
-          .cy-rel{font-size:.6rem;letter-spacing:.08em}
-          .cy-rel-hr{left:50%;top:22.71%}.cy-rel-te{left:50%;top:77.29%}.cy-rel-ht{left:23.57%;top:50%}.cy-rel-re{left:76.43%;top:50%}
+          .cy-kw{display:none}
           .cy-theme .cy-ja{font-size:1.5rem;font-weight:600;text-shadow:0 1px 7px rgba(0,0,0,.6);padding-bottom:8px}
           .cy-theme .cy-en{display:block;font-size:.62rem;letter-spacing:.28em;text-indent:.28em;margin-top:6px}
           .cy-dial{display:none}
@@ -5106,7 +5106,6 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
           /* r181: EN はテーマ名が長く、スマホ幅で隣と衝突するため縮小 */
           html[data-lang="en"] .cy-theme .cy-ja{font-size:1.02rem;letter-spacing:.02em}
           html[data-lang="en"] .cy-theme .cy-en{font-size:.58rem;letter-spacing:.16em}
-          html[data-lang="en"] .cy-rel{font-size:.52rem;letter-spacing:.04em}
           .cy-callout-sp{display:block;list-style:none;margin:20px 0 0;padding:0}
           .cy-callout-sp li{position:relative;font-size:.82rem;line-height:1.8;color:var(--ink-2);padding:13px 15px;margin-bottom:10px;border:1px solid rgba(92,200,224,.26);border-radius:2px;background:rgba(8,10,13,.34);box-shadow:0 6px 20px rgba(0,0,0,.16)}
           .cy-callout-sp li::before{content:"";position:absolute;top:-1px;left:-1px;width:9px;height:9px;border:1px solid rgba(92,200,224,.5);border-right:0;border-bottom:0}
@@ -5126,7 +5125,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
           .cycle-intro{font-size:.86rem;line-height:1.9}
         }
       </style>
-      <p class="cycle-intro" data-i18n-en="A modern society in which <span class='gloss-term' data-term-id='term-earth-environment' role='button' tabindex='0' aria-label='Open glossary: The Global Environment'>the global environment</span> and <span class='gloss-term' data-term-id='term-natural-ecosystem' role='button' tabindex='0' aria-label='Open glossary: Natural Ecosystems'>natural ecosystems</span> are changing drastically. For people to live in concert with nature within it, mitsulab turns to <strong><span class='gloss-term' data-term-id='term-tsuchi' role='button' tabindex='0' aria-label='Open glossary: Soil'>soil</span></strong>, the common foundation of human society and the global environment. Soil holds water, nurtures living things, produces food, and carries the ground our towns stand on — daily life and nature alike rest upon <strong><span class='gloss-term' data-term-id='term-soil-health' role='button' tabindex='0' aria-label='Open glossary: The Health of Soil'>the health of this soil</span></strong>. What mitsulab aims to implement in society is <strong><span class='gloss-term' data-term-id='term-soil-sustainability' role='button' tabindex='0' aria-label='Open glossary: The Sustainability of Soil'>the sustainability of soil</span></strong>, and the <strong><span class='gloss-term' data-term-id='term-people-soil-connection' role='button' tabindex='0' aria-label='Open glossary: The Connection Between People and Soil'>connection between people and soil</span></strong> indispensable to realising it.<br>mitsulab’s projects unfold across five themes. ‘Observation,’ which grasps states of soil beyond the reach of the human senses through technology. ‘Sensation,’ which opens the deep world of soil to the human senses through art. ‘Regeneration,’ which revives soil by joining the fields of Japan’s leading practitioners. ‘Editing,’ which weaves the practical knowledge of soil from all times and places. And ‘the vessel,’ which connects people and soil at the center of the four. — The vision that binds these five themes into one working system, mitsulab calls the <strong>Soil OS</strong>."><span class="gloss-term" data-term-id="term-earth-environment" role="button" tabindex="0" aria-label="地球環境 の用語解説を開く">地球環境</span>や<span class="gloss-term" data-term-id="term-natural-ecosystem" role="button" tabindex="0" aria-label="自然生態系 の用語解説を開く">自然生態系</span>が激変する現代社会。そのなかで人間が自然と協調して暮らすために、mitsulab は、人間社会と地球環境の共通基盤である<strong>「<span class="gloss-term" data-term-id="term-tsuchi" role="button" tabindex="0" aria-label="土 の用語解説を開く">土</span>」</strong>に着目します。土は、水を蓄え、生きものを育み、食べものを生産し、まちの足元を支える——暮らしも自然も、この<strong>「<span class="gloss-term" data-term-id="term-soil-health" role="button" tabindex="0" aria-label="土の健全さ の用語解説を開く">土の健全さ</span>」</strong>の上に成り立っています。mitsulab が目指すのは、<strong>「<span class="gloss-term" data-term-id="term-soil-sustainability" role="button" tabindex="0" aria-label="土の持続可能性 の用語解説を開く">土の持続可能性</span>」</strong>と、その実現に不可欠な<strong>「<span class="gloss-term" data-term-id="term-people-soil-connection" role="button" tabindex="0" aria-label="土と人のつながり の用語解説を開く">土と人のつながり</span>」</strong>の社会実装です。<br>mitsulab のプロジェクトは、五つのテーマで進みます。人間の五感では届かない土の状態を、テクノロジーで捉える「観測」。土の奥深い世界を、アートを通じて人の感覚にひらく「感覚」。日本を代表する実践者の現場に参加して、土を蘇らせる「再生」。土にまつわる古今東西の実践知を編む「編集」。そして、4 つのテーマの中心で人と土をつなぐ「依代」。——この五つのテーマを一つの仕組みに束ねる構想を、mitsulab は<strong>「土壌OS」</strong>と呼びます。</p>
+      <p class="cycle-intro" data-i18n-en="Soil stores water, nurtures plants and animals, produces food, and supports our daily lives from underfoot. Yet across domains — <span class='gloss-term' data-term-id='term-doboku' role='button' tabindex='0' aria-label='Open glossary: Civil Engineering'>civil engineering</span>, <span class='gloss-term' data-term-id='term-zoen' role='button' tabindex='0' aria-label='Open glossary: Landscaping'>landscaping</span>, <span class='gloss-term' data-term-id='term-nogyo' role='button' tabindex='0' aria-label='Open glossary: Agriculture'>agriculture</span>, and <span class='gloss-term' data-term-id='term-shinrin' role='button' tabindex='0' aria-label='Open glossary: Forestry'>forestry</span> — <strong><span class='gloss-term' data-term-id='term-soil-issues' role='button' tabindex='0' aria-label='Open glossary: Issues Concerning Soil'>issues concerning soil</span></strong> are becoming apparent.<br>mitsulab implements two themes in society: <strong>connecting the knowledge and practice of each field</strong>, drawn from <span class='gloss-term' data-term-id='term-soil-fields' role='button' tabindex='0' aria-label='Open glossary: The Fields'>the fields</span> and <span class='gloss-term' data-term-id='term-soil-literature' role='button' tabindex='0' aria-label='Open glossary: The Literature'>the literature</span>, and <strong>translating the world of soil</strong> through <span class='gloss-term' data-term-id='term-soil-tech' role='button' tabindex='0' aria-label='Open glossary: The Technology'>technology</span> and <span class='gloss-term' data-term-id='term-soil-art' role='button' tabindex='0' aria-label='Open glossary: The Art'>art</span>.">土は、水を蓄え、動植物を育み、食べものを生産し、私たちの暮らしを足元で支えています。しかし、<span class="gloss-term" data-term-id="term-doboku" role="button" tabindex="0" aria-label="土木 の用語解説を開く">土木</span>、<span class="gloss-term" data-term-id="term-zoen" role="button" tabindex="0" aria-label="造園 の用語解説を開く">造園</span>、<span class="gloss-term" data-term-id="term-nogyo" role="button" tabindex="0" aria-label="農業 の用語解説を開く">農業</span>、<span class="gloss-term" data-term-id="term-shinrin" role="button" tabindex="0" aria-label="森林 の用語解説を開く">森林</span>など領域分野を横断して、「<strong><span class="gloss-term" data-term-id="term-soil-issues" role="button" tabindex="0" aria-label="土に関する課題 の用語解説を開く">土に関する課題</span></strong>」が顕在化しています。<br>mitsulab は、<span class="gloss-term" data-term-id="term-soil-fields" role="button" tabindex="0" aria-label="現場 の用語解説を開く">現場</span>と<span class="gloss-term" data-term-id="term-soil-literature" role="button" tabindex="0" aria-label="文献 の用語解説を開く">文献</span>から「<strong>各分野の知と実践をつなぐ</strong>」ことと、<span class="gloss-term" data-term-id="term-soil-tech" role="button" tabindex="0" aria-label="テクノロジー の用語解説を開く">テクノロジー</span>と<span class="gloss-term" data-term-id="term-soil-art" role="button" tabindex="0" aria-label="アート の用語解説を開く">アート</span>で「<strong>土の世界を翻訳する</strong>」ことをテーマに社会実装します。</p>
       <div class="cycle-map">
         <div class="cy-stage">
         <!-- 2026-07-25: 図中タイトル復活＝構想名「土壌OS」を5円の上に表示（上原さん指示・r161で削除したcy-map-ttl意匠を再利用） -->
@@ -5151,41 +5150,47 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
             <g clip-path="url(#cyField)" stroke="rgba(92,200,224,.055)" stroke-width=".6" fill="none">
               <path d="M 300 0 V 600 M 360 0 V 600 M 420 0 V 600 M 480 0 V 600 M 540 0 V 600 M 600 0 V 600 M 660 0 V 600 M 720 0 V 600 M 780 0 V 600 M 840 0 V 600 M 900 0 V 600 M 300 0 H 900 M 300 60 H 900 M 300 120 H 900 M 300 180 H 900 M 300 240 H 900 M 300 300 H 900 M 300 360 H 900 M 300 420 H 900 M 300 480 H 900 M 300 540 H 900 M 300 600 H 900"/>
             </g>
-            <circle cx="600" cy="300" r="300" stroke="rgba(92,200,224,.14)" stroke-width=".9" fill="none"/>
-            <circle cx="600" cy="300" r="291" stroke="rgba(92,200,224,.07)" stroke-width=".6" fill="none"/>
-            <g stroke="rgba(92,200,224,.13)" stroke-width=".6" fill="none">
+            <!-- 2026-07-26: 5円を包含する外周リング＝土壌OS。scale1.05で5円(先端r≈299)より一回り大きくし、吹き出し線の先端が大円でなく各テーマ円へ密着するよう分離。目盛ごと拡大 -->
+            <g transform="translate(600,300) scale(1.05) translate(-600,-300)">
+            <circle cx="600" cy="300" r="300" stroke="rgba(92,200,224,.5)" stroke-width="1.6" fill="rgba(92,200,224,.02)"/>
+            <g stroke="rgba(92,200,224,.32)" stroke-width=".7" fill="none">
               <path d="M 894.9 325.8 L 898.9 326.1 M 891.5 351.4 L 895.4 352.1 M 878.1 401.2 L 881.9 402.6 M 868.3 425.1 L 871.9 426.8 M 842.5 469.8 L 845.7 472.1 M 826.7 490.3 L 829.8 492.8 M 790.3 526.7 L 792.8 529.8 M 769.8 542.5 L 772.1 545.7 M 725.1 568.3 L 726.8 571.9 M 701.2 578.1 L 702.6 581.9 M 651.4 591.5 L 652.1 595.4 M 625.8 594.9 L 626.1 598.9 M 574.2 594.9 L 573.9 598.9 M 548.6 591.5 L 547.9 595.4 M 498.8 578.1 L 497.4 581.9 M 474.9 568.3 L 473.2 571.9 M 430.2 542.5 L 427.9 545.7 M 409.7 526.7 L 407.2 529.8 M 373.3 490.3 L 370.2 492.8 M 357.5 469.8 L 354.3 472.1 M 331.7 425.1 L 328.1 426.8 M 321.9 401.2 L 318.1 402.6 M 308.5 351.4 L 304.6 352.1 M 305.1 325.8 L 301.1 326.1 M 305.1 274.2 L 301.1 273.9 M 308.5 248.6 L 304.6 247.9 M 321.9 198.8 L 318.1 197.4 M 331.7 174.9 L 328.1 173.2 M 357.5 130.2 L 354.3 127.9 M 373.3 109.7 L 370.2 107.2 M 409.7 73.3 L 407.2 70.2 M 430.2 57.5 L 427.9 54.3 M 474.9 31.7 L 473.2 28.1 M 498.8 21.9 L 497.4 18.1 M 548.6 8.5 L 547.9 4.6 M 574.2 5.1 L 573.9 1.1 M 625.8 5.1 L 626.1 1.1 M 651.4 8.5 L 652.1 4.6 M 701.2 21.9 L 702.6 18.1 M 725.1 31.7 L 726.8 28.1 M 769.8 57.5 L 772.1 54.3 M 790.3 73.3 L 792.8 70.2 M 826.7 109.7 L 829.8 107.2 M 842.5 130.2 L 845.7 127.9 M 868.3 174.9 L 871.9 173.2 M 878.1 198.8 L 881.9 197.4 M 891.5 248.6 L 895.4 247.9 M 894.9 274.2 L 898.9 273.9"/>
             </g>
-            <g stroke="rgba(92,200,224,.26)" stroke-width=".9" fill="none">
+            <g stroke="rgba(92,200,224,.48)" stroke-width="1" fill="none">
               <path d="M 881.1 375.3 L 889.8 377.6 M 852.0 445.5 L 859.8 450.0 M 805.8 505.8 L 812.1 512.1 M 745.5 552.0 L 750.0 559.8 M 675.3 581.1 L 677.6 589.8 M 524.7 581.1 L 522.4 589.8 M 454.5 552.0 L 450.0 559.8 M 394.2 505.8 L 387.9 512.1 M 348.0 445.5 L 340.2 450.0 M 318.9 375.3 L 310.2 377.6 M 318.9 224.7 L 310.2 222.4 M 348.0 154.5 L 340.2 150.0 M 394.2 94.2 L 387.9 87.9 M 454.5 48.0 L 450.0 40.2 M 524.7 18.9 L 522.4 10.2 M 675.3 18.9 L 677.6 10.2 M 745.5 48.0 L 750.0 40.2 M 805.8 94.2 L 812.1 87.9 M 852.0 154.5 L 859.8 150.0 M 881.1 224.7 L 889.8 222.4"/>
-              <path d="M 882.0 300.0 L 900.0 300.0 M 600.0 582.0 L 600.0 600.0 M 318.0 300.0 L 300.0 300.0 M 600.0 18.0 L 600.0 0.0" stroke="rgba(92,200,224,.4)"/>
+              <path d="M 882.0 300.0 L 900.0 300.0 M 600.0 582.0 L 600.0 600.0 M 318.0 300.0 L 300.0 300.0 M 600.0 18.0 L 600.0 0.0" stroke="rgba(92,200,224,.68)"/>
+            </g>
             </g>
           </g>
-          <!-- 重なり合う4つのテーマ円（ゆらぎ付き） -->
+          <!-- 重なり合う4つのテーマ円（ゆらぎ付き）。2026-07-26: 全体サイズ維持のまま中心を内側へ寄せr拡大(175→188)＝重なりを増やす -->
           <g stroke="rgba(92,200,224,.42)" stroke-width="1.1" fill="rgba(92,200,224,.045)">
-            <circle class="cy-c cy-c1" cx="515" cy="210" r="175"/>
-            <circle class="cy-c cy-c2" cx="685" cy="210" r="175"/>
-            <circle class="cy-c cy-c3" cx="515" cy="390" r="175"/>
-            <circle class="cy-c cy-c4" cx="685" cy="390" r="175"/>
+            <circle class="cy-c cy-c1" cx="524" cy="219" r="188"/>
+            <circle class="cy-c cy-c2" cx="676" cy="219" r="188"/>
+            <circle class="cy-c cy-c3" cx="524" cy="381" r="188"/>
+            <circle class="cy-c cy-c4" cx="676" cy="381" r="188"/>
+          </g>
+          <!-- 2026-07-25: 内周5円にも円周の目盛（一定間隔の線）を付与（上原さん指示）。各円と同じゆらぎで追従 -->
+          <g fill="none" stroke="rgba(92,200,224,.55)" stroke-width="1" stroke-dasharray="1.5 13">
+            <circle class="cy-c cy-c1" cx="524" cy="219" r="188"/>
+            <circle class="cy-c cy-c2" cx="676" cy="219" r="188"/>
+            <circle class="cy-c cy-c3" cx="524" cy="381" r="188"/>
+            <circle class="cy-c cy-c4" cx="676" cy="381" r="188"/>
           </g>
           <!-- r187: 各テーマ円の外側方位目盛り -->
           <g stroke="rgba(92,200,224,.3)" stroke-width=".9" fill="none">
-            <path class="cy-dial cy-ld1" d="M 515 25 v10 M 330 210 h10"/>
-            <path class="cy-dial cy-ld2" d="M 685 25 v10 M 870 210 h-10"/>
-            <path class="cy-dial cy-ld3" d="M 515 575 v-10 M 330 390 h10"/>
-            <path class="cy-dial cy-ld4" d="M 685 575 v-10 M 870 390 h-10"/>
+            <path class="cy-dial cy-ld1" d="M 524 21 v10 M 326 219 h10"/>
+            <path class="cy-dial cy-ld2" d="M 676 21 v10 M 874 219 h-10"/>
+            <path class="cy-dial cy-ld3" d="M 524 579 v-10 M 326 381 h10"/>
+            <path class="cy-dial cy-ld4" d="M 676 579 v-10 M 874 381 h-10"/>
           </g>
-          <!-- 依代・碧の円（中央・すべてと重なる・ゆらぎ付き） -->
-          <circle class="cy-c cy-c5" cx="600" cy="300" r="105" stroke="rgba(143,199,224,.65)" stroke-width="1.2" stroke-dasharray="3 6" fill="url(#cyAoi2)"/>
-          <!-- r186: 各円の中心＝レジストレーションマーク（円と同じゆらぎで追従）-->
+          <!-- 2026-07-26: 依代＝中央にうっすら白いバッファ（発光グラデーションのみ・点線の輪郭は無し・上原さん指示） -->
+          <circle cx="600" cy="300" r="110" fill="url(#cyAoi2)" stroke="none"/>
+          <!-- r186: 各円の中心＝レジストレーションマーク -->
           <g stroke="rgba(92,200,224,.34)" stroke-width=".9" fill="none">
-            <path class="cy-ld1" d="M 501 210 h 9 M 520 210 h 9 M 515 196 v 9 M 515 215 v 9"/><circle class="cy-ld1" cx="515" cy="210" r="5.5"/>
-            <path class="cy-ld2" d="M 671 210 h 9 M 690 210 h 9 M 685 196 v 9 M 685 215 v 9"/><circle class="cy-ld2" cx="685" cy="210" r="5.5"/>
-            <path class="cy-ld3" d="M 501 390 h 9 M 520 390 h 9 M 515 376 v 9 M 515 395 v 9"/><circle class="cy-ld3" cx="515" cy="390" r="5.5"/>
-            <path class="cy-ld4" d="M 671 390 h 9 M 690 390 h 9 M 685 376 v 9 M 685 395 v 9"/><circle class="cy-ld4" cx="685" cy="390" r="5.5"/>
-            <g stroke="rgba(143,199,224,.55)">
-              <path class="cy-ld5" d="M 581 300 h 12 M 607 300 h 12 M 600 281 v 12 M 600 307 v 12"/><circle class="cy-ld5" cx="600" cy="300" r="8"/>
-            </g>
+            <path class="cy-ld1" d="M 510 219 h 9 M 529 219 h 9 M 524 205 v 9 M 524 224 v 9"/><circle class="cy-ld1" cx="524" cy="219" r="5.5"/>
+            <path class="cy-ld2" d="M 662 219 h 9 M 681 219 h 9 M 676 205 v 9 M 676 224 v 9"/><circle class="cy-ld2" cx="676" cy="219" r="5.5"/>
+            <path class="cy-ld3" d="M 510 381 h 9 M 529 381 h 9 M 524 367 v 9 M 524 386 v 9"/><circle class="cy-ld3" cx="524" cy="381" r="5.5"/>
+            <path class="cy-ld4" d="M 662 381 h 9 M 681 381 h 9 M 676 367 v 9 M 676 386 v 9"/><circle class="cy-ld4" cx="676" cy="381" r="5.5"/>
           </g>
           <!-- 吹き出し線（テーマ→カード） -->
           <g class="cy-leaders" stroke="rgba(92,200,224,.38)" stroke-width="1">
@@ -5193,12 +5198,6 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
             <path class="cy-ld2" d="M 803 81 L 880 -2"/>
             <path class="cy-ld3" d="M 390 513 L 300 602"/>
             <path class="cy-ld4" d="M 803 519 L 880 602"/>
-            <path class="cy-ld5" d="M 692.7 349.3 L 900 300"/>
-          </g>
-          <g class="cy-leaders" fill="none" stroke="rgba(92,200,224,.75)" stroke-width="1">
-            <rect class="cy-ld1" x="386" y="83" width="8" height="8"/><rect class="cy-ld2" x="799" y="77" width="8" height="8"/>
-            <rect class="cy-ld3" x="386" y="509" width="8" height="8"/><rect class="cy-ld4" x="799" y="515" width="8" height="8"/>
-            <rect class="cy-ld5" x="688.7" y="345.3" width="8" height="8"/>
           </g>
           </g>
         </svg>
@@ -5206,12 +5205,21 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         <button class="cy-theme cy-t" type="button" onclick="openOsLayer('t')" aria-label="感覚（Art）── 詳細を開く"><span class="cy-ja" data-i18n-en="Sensation">感覚</span><span class="cy-en">Art</span></button>
         <button class="cy-theme cy-e" type="button" onclick="openOsLayer('e')" aria-label="編集（Edit）── 詳細を開く"><span class="cy-ja" data-i18n-en="Editing">編集</span><span class="cy-en">Edit</span></button>
         <button class="cy-theme cy-r" type="button" onclick="openOsLayer('r')" aria-label="再生（Engineering）── 詳細を開く"><span class="cy-ja" data-i18n-en="Regeneration">再生</span><span class="cy-en">Engineering</span></button>
-        <button class="cy-theme cy-a" type="button" onclick="openOsLayer('a')" aria-label="依代・碧（Yorishiro）── 詳細を開く"><span class="cy-ja" data-i18n-en="The Vessel">依代・碧</span><span class="cy-en">Yorishiro</span></button>
-        <!-- r181: 重なり＝テーマ間の関連性（図中の静的ラベル）。2026-07-25: クリック→オーバーレイは廃止（上原さん指示）。 -->
-        <span class="cy-rel cy-rel-hr" data-i18n-en="Verify">実証</span>
-        <span class="cy-rel cy-rel-ht" data-i18n-en="Translate">翻訳</span>
-        <span class="cy-rel cy-rel-re" data-i18n-en="Record">記録</span>
-        <span class="cy-rel cy-rel-te" data-i18n-en="Narrate">物語</span>
+        <button class="cy-theme cy-a" type="button" onclick="openOsLayer('a')" aria-label="依代（Yorishiro）── 詳細を開く"><span class="cy-ja" data-i18n-en="The Vessel">依代</span><span class="cy-en">Yorishiro</span></button>
+        <!-- 2026-07-26: 5円にPJ名〈〉を配置＋クリックで各PJオーバーレイ(cyOpenPj)。橋渡しPJは重なりに置き斜体(.cy-kw-ov)。上原さん指示で再配置 -->
+        <span class="cy-kw cy-kw-ov cy-kw-sm cy-kw-fieldx" role="button" tabindex="0" onclick="cyOpenPj('h',0)">〈Field X〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-sm cy-kw-gis" role="button" tabindex="0" onclick="cyOpenPj('h',3)" data-i18n-en="〈Soil GIS〉">〈土壌GIS〉</span>
+        <span class="cy-kw cy-kw-sm cy-kw-hikawa" role="button" tabindex="0" onclick="cyOpenPj('r',0)" data-i18n-en="〈Hikawa〉">〈氷川参道〉</span>
+        <span class="cy-kw cy-kw-sm cy-kw-ueno" role="button" tabindex="0" onclick="cyOpenPj('r',1)" data-i18n-en="〈Uenohara〉">〈上野原〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-ss" role="button" tabindex="0" onclick="cyOpenPj('h',1)" data-i18n-en="〈Soil Sound〉">〈Soil Sound〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-mx" role="button" tabindex="0" onclick="cyOpenPj('t',0)">〈Modarity X〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-sm cy-kw-qualia" role="button" tabindex="0" onclick="cyOpenPj('t',1)">〈Qualia〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-sm cy-kw-iot" role="button" tabindex="0" onclick="cyOpenPj('h',2)" data-i18n-en="〈Soil IoT〉">〈土壌IoT〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-kai" role="button" tabindex="0" onclick="cyOpenPj('e',1)" data-i18n-en="〈Kai〉">〈廻〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-za" role="button" tabindex="0" onclick="cyOpenPj('e',3)" data-i18n-en="〈Za〉">〈坐〉</span>
+        <span class="cy-kw cy-kw-kanae" role="button" tabindex="0" onclick="cyOpenPj('e',2)" data-i18n-en="〈Kanae〉">〈鼎〉</span>
+        <span class="cy-kw cy-kw-ov cy-kw-shu" role="button" tabindex="0" onclick="cyOpenPj('e',0)" data-i18n-en="〈Shu〉">〈種〉</span>
+        <span class="cy-kw cy-kw-aoip" role="button" tabindex="0" onclick="cyOpenPj('a',0)">〈Aoi project〉</span>
         </div><!-- /cy-stage -->
         <div class="cy-callout cy-co-h2">
           <button class="cy-co-head" type="button" onclick="openOsLayer('h')"><b data-i18n-en="Observation">観測</b><i>Technology</i></button>
@@ -5238,10 +5246,10 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
           <span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('r',0)" data-i18n-en="Hikawa-sandō soil restoration">氷川参道 土壌改善</button><button class="cy-pj" type="button" onclick="cyOpenPj('r',1)" data-i18n-en="Uenohara — Daichi no Saisei">上野原 大地の再生</button></span>
         </div>
         <div class="cy-callout cy-co-a2">
-          <button class="cy-co-head" type="button" onclick="openOsLayer('a')"><b data-i18n-en="The Vessel — Aoi">依代・碧</b><i>Yorishiro</i></button>
+          <button class="cy-co-head" type="button" onclick="openOsLayer('a')"><b data-i18n-en="The Vessel">依代</b><i>Yorishiro</i></button>
           <span class="cy-co-txt" data-i18n-en="At the center where the four themes overlap, passing information (sensation) as the vessel — the interface connecting people and soil">4 つのテーマが重なる中心で、人と土をつなぐインターフェイス＝依代として情報（感覚）を繋ぐ。</span>
           <span class="cy-co-plbl">Project</span>
-          <span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('a',0)">Aoi.space()</button><button class="cy-pj" type="button" onclick="cyOpenPj('a',1)">Aoi.body()</button><button class="cy-pj" type="button" onclick="cyOpenPj('a',2)">Aoi.voice()</button></span>
+          <span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('a',0)">Aoi project</button></span>
         </div>
       </div>
       <!-- 2026-07-24: 「重なりのはたらき」凡例カードは削除し、図中の重なり語（翻訳/実証/記録/物語）クリック→オーバーレイに移行（上原さん指示） -->
@@ -5250,7 +5258,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         <li><b data-i18n-en="Sensation">感覚</b><i>Art</i><span data-i18n-en="Opening the deep world of soil to society, through art (sound, touch, xR space, calligraphy, and installation)">土の奥深い世界を、アート（音・触覚・xR空間・書・インスタレーション）を通じて、社会にひらく。</span><span class="cy-co-plbl">Project</span><span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('t',0)">Modarity X</button><button class="cy-pj" type="button" onclick="cyOpenPj('t',1)">Qualia/sound・heart</button></span></li>
         <li><b data-i18n-en="Regeneration">再生</b><i>Engineering</i><span data-i18n-en="Joining the fields of Japan’s leading practitioners, accumulating practical knowledge, and regenerating the soil">日本を代表する実践者の現場に参加し、実践知を蓄積しながら、土を再生する。</span><span class="cy-co-plbl">Project</span><span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('r',0)" data-i18n-en="Hikawa-sandō soil restoration">氷川参道 土壌改善</button><button class="cy-pj" type="button" onclick="cyOpenPj('r',1)" data-i18n-en="Uenohara — Daichi no Saisei">上野原 大地の再生</button></span></li>
         <li><b data-i18n-en="Editing">編集</b><i>Edit</i><span data-i18n-en="Editing the knowledge of soil from all times and places — as Kai (soil and the natural cycle), Kanae (soil and food), Za (soil and livelihoods), and Shu (soil and the future)">土にまつわる古今東西の知を、土と自然循環の『廻（Kai）』、土と食の『鼎（Kanae）』、土と生業の『坐（Za）』、土と未来の『種（Shu）』として編集する。</span><span class="cy-co-plbl">Project</span><span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('e',0)">種（Shu）</button><button class="cy-pj" type="button" onclick="cyOpenPj('e',1)">廻（Kai）</button><button class="cy-pj" type="button" onclick="cyOpenPj('e',2)">鼎（Kanae）</button><button class="cy-pj" type="button" onclick="cyOpenPj('e',3)">坐（Za）</button></span></li>
-        <li><b data-i18n-en="The Vessel — Aoi">依代・碧</b><i>Yorishiro</i><span data-i18n-en="At the center where the four themes overlap, passing information (sensation) as the vessel — the interface connecting people and soil">4 つのテーマが重なる中心で、人と土をつなぐインターフェイス＝依代として情報（感覚）を繋ぐ。</span><span class="cy-co-plbl">Project</span><span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('a',0)">Aoi.space()</button><button class="cy-pj" type="button" onclick="cyOpenPj('a',1)">Aoi.body()</button><button class="cy-pj" type="button" onclick="cyOpenPj('a',2)">Aoi.voice()</button></span></li>
+        <li><b data-i18n-en="The Vessel">依代</b><i>Yorishiro</i><span data-i18n-en="At the center where the four themes overlap, passing information (sensation) as the vessel — the interface connecting people and soil">4 つのテーマが重なる中心で、人と土をつなぐインターフェイス＝依代として情報（感覚）を繋ぐ。</span><span class="cy-co-plbl">Project</span><span class="cy-co-pjs"><button class="cy-pj" type="button" onclick="cyOpenPj('a',0)">Aoi project</button></span></li>
       </ul>
       <script>
         // r154: 全体像のPJチップ → 各層オーバーレイの該当プロジェクトの詳細オーバーレイを開く
@@ -5309,7 +5317,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       <p class="os-ov-essence" data-i18n-en="With GIS, IoT, 3DGS, and acoustic observation, we <strong>translate the state of nature into data</strong> — beyond what the human senses can reach. Air flow in the soil, microbial activity, changes in the surface, canopy, and terrain, the water veins of a watershed. All five layers begin with this observation (Hear).<br><br>Hearing is not neutral measurement but <strong>the first point of contact where nature, people, and machines exchange information</strong>. The state of nature caught by the machine&#39;s eye is received by Edit (E) and Aoi (A), and returned to people.">GIS・IoT・3DGS・音響観測で、人の五感では捉えられない <strong>自然の状態をデータに翻訳</strong>。土中の通気、微生物の活動、地表・樹冠・地形の変化、流域の水脈。5 層のすべては、この観測から始まる。<br><br>観測は中立な計測ではなく、<strong>自然・人間・機械が情報を交換し合う最初の接点</strong>。機械の眼が捉えた自然の状態を、編集（E）と碧（A）が受け取り、人へと返していく。</p>
       <div class="os-ov-projs-lbl">▸ Projects (4)</div>
       <span class="os-ov-pj" data-detail="Insta360 X4 + 3D Gaussian Splatting（3DGS）で、再生施工の前後を定点・全方位で 3D 記録するプロジェクト。根圏・樹冠・地形の微細な変化を点群として残し、『何をしたら・どう変わったか』を立体で比較できるようにします。氷川参道での初回撮影を準備中。COLMAP → Postshot → SuperSplat のパイプラインで、現場を丸ごとアーカイブします。" data-detail-en="A project that records restoration work before and after in fixed-point, omnidirectional 3D using Insta360 X4 + 3D Gaussian Splatting (3DGS). It preserves the minute changes of the root zone, canopy, and terrain as point clouds, so that &quot;what was done, and how it changed&quot; can be compared in three dimensions. The first shoot at the Hikawa Approach is in preparation. The site is archived in its entirety through a COLMAP → Postshot → SuperSplat pipeline."><span class="os-ov-pj-name">Field X</span><span class="os-ov-pj-desc" data-i18n-en="Fixed-point 3D recording and comparison of root-zone, canopy, and terrain changes before and after restoration, using Insta360 X4 + 3D Gaussian Splatting">Insta360 X4 + 3D Gaussian Splatting で施工前後の根圏・樹冠・地形変化を定点 3D 記録・比較</span><span class="os-ov-pj-meta" data-i18n-en="<b>Equipment acquired / first shoot in preparation (the Hikawa Approach)</b> · COLMAP / Postshot / SuperSplat"><b>機材購入済／初回撮影準備中（氷川参道）</b> · COLMAP / Postshot / SuperSplat</span></span>
-      <span class="os-ov-pj" data-detail="ピエゾマイクを土中に挿し込み、CO₂ の気泡・菌糸の伸長・ミミズの移動といった、ふだん聞こえない土の活動音（100Hz〜48kHz）を収録・可聴化するプロジェクト。健全な土と傷んだ土では『音』が違う ── その差を解析し、土壌の状態を耳で診断する手がかりにします。ESP32／ZOOM U-24／LR Baggs DI で構成。技術設計は完了、PoC を準備中。" data-detail-en="A project that inserts piezo mics into the soil to record and make audible the normally inaudible activity sounds of the soil (100Hz–48kHz) — CO₂ bubbles, the elongation of fungal hyphae, the movement of earthworms. Healthy soil and damaged soil &quot;sound&quot; different — by analyzing that difference, it becomes a clue for diagnosing the state of the soil by ear. Built with ESP32 / ZOOM U-24 / LR Baggs DI. Technical design complete; PoC in preparation."><span class="os-ov-pj-name">Soil Sound Project</span><span class="os-ov-pj-desc" data-i18n-en="Piezo mics placed in the soil record and make audible the activity sounds of CO₂ bubbles, fungal hyphae, and earthworms (100Hz–48kHz). Analyzing the sound of healthy vs. damaged soil">ピエゾマイクを土中に設置し、CO₂ 気泡・菌糸・ミミズの活動音（100Hz–48kHz）を収録・可聴化。健全な土と傷んだ土の音を解析</span><span class="os-ov-pj-meta" data-i18n-en="<b>Technical design complete / PoC in preparation</b> · ESP32 / ZOOM U-24 / LR Baggs DI"><b>技術設計完了／PoC 準備中</b> · ESP32 / ZOOM U-24 / LR Baggs DI</span></span>
+      <span class="os-ov-pj" data-detail="ピエゾマイクを土中に挿し込み、ミミズや土壌の小動物といった土壌生物の活動音（100Hz〜48kHz）を収録・可聴化するプロジェクト。土壌生物の餌となる土壌微生物までを含めた土壌生態系の健全さを、『音』として捉える試みです。健全な土と傷んだ土では聞こえてくる音が違う ── その差を解析し、土壌の状態を耳で診断する手がかりにします。ESP32／ZOOM U-24／LR Baggs DI で構成。技術設計は完了、PoC を準備中。" data-detail-en="A project that inserts piezo mics into the soil to record and make audible the activity sounds of soil creatures such as earthworms and small soil fauna (100Hz–48kHz). It is an attempt to capture, as sound, the health of the soil ecosystem — including the soil microbes that feed those creatures. Healthy soil and damaged soil &quot;sound&quot; different — by analyzing that difference, it becomes a clue for diagnosing the state of the soil by ear. Built with ESP32 / ZOOM U-24 / LR Baggs DI. Technical design complete; PoC in preparation."><span class="os-ov-pj-name">Soil Sound Project</span><span class="os-ov-pj-desc" data-i18n-en="Piezo mics in the soil record and make audible the activity sounds of soil creatures (100Hz–48kHz), capturing the health of the soil ecosystem — microbes included — as sound">ピエゾマイクを土中に設置し、土壌生物の活動音（100Hz–48kHz）を収録・可聴化。餌となる土壌微生物まで含めた土壌生態系の健全さを音として捉える</span><span class="os-ov-pj-meta" data-i18n-en="<b>Technical design complete / PoC in preparation</b> · ESP32 / ZOOM U-24 / LR Baggs DI"><b>技術設計完了／PoC 準備中</b> · ESP32 / ZOOM U-24 / LR Baggs DI</span></span>
       <span class="os-ov-pj" data-detail="ESP32 ベースの自作センサで、土中の温湿度・通気といった環境を常時モニタリングするプロジェクト。再生施工の前後で土中環境がどう変化するかを継続的に記録し、Field X や Soil Sound の観測と突き合わせます。安価・多点・常時という設計で、『市の耳』として土の状態を聞き続けます。試作段階。" data-detail-en="A project that continuously monitors the soil environment — temperature, humidity, aeration — with ESP32-based self-built sensors. It continuously records how the underground environment changes before and after restoration work, and cross-references this with the observations of Field X and Soil Sound. Designed to be low-cost, multi-point, and always-on, it keeps listening to the state of the soil as &quot;the city&#39;s ear.&quot; At the prototype stage."><span class="os-ov-pj-name" data-i18n-en="IoT Soil Sensor">土壌 IoT</span><span class="os-ov-pj-desc" data-i18n-en="Continuous monitoring of the soil environment (temperature, humidity, aeration) with ESP32, tracking change before and after restoration">ESP32 で土中環境（温湿度・通気）を常時モニタリングし、再生の前後変化を追跡</span><span class="os-ov-pj-meta" data-i18n-en="<b>Prototype</b> · ESP32 / self-built sensor"><b>試作</b> · ESP32 / 自作センサ</span></span>
       <span class="os-ov-pj" data-detail="QGIS・Python により、地質図・地形図（DEM）・土壌図・植生指数（NDVI）・水指数（NDWI）など、土に関わる地理空間データのレイヤ構造を構築するプロジェクト。農研機構の農耕地土壌図、国土地理院の数値標高モデル（5m/10m）、Sentinel-2 衛星画像などを統合し、土壌健全度スコアリング（soil_health_score.py：NDVI/NDWI/DEM 統合スコア）として可視化します。将来は Field X の 3DGS データと、その場所の経年的な GIS データを重ね合わせ、点で観た現場を流域スケールの面・立体・時間軸へ拡張——マクロな視点とタイムスケールの視点で観測を補完します。さらに衛星画像の合成により土壌の含水率を視覚化し、施工前後の含水率の変化を追跡する実装も視野に入れています。" data-detail-en="A project that builds, with QGIS and Python, a layer structure of soil-related geospatial data — geology maps, terrain (DEM), soil maps, vegetation index (NDVI), water index (NDWI), and more. It integrates NARO&#39;s cultivated-soil maps, the Geospatial Information Authority of Japan&#39;s digital elevation models (5m/10m), and Sentinel-2 satellite imagery, visualizing them as a soil-health score (soil_health_score.py: an integrated NDVI/NDWI/DEM score). In the future, by overlaying Field X&#39;s 3DGS data with the site&#39;s year-over-year GIS data, it will extend sites observed as points to the surfaces, volumes, and time axis of the watershed scale — complementing observation with both a macro view and a time-scale view. It also has in view visualizing soil water content through satellite-image synthesis and tracking the change in water content before and after construction."><span class="os-ov-pj-name" data-i18n-en="Soil GIS">土壌 GIS</span><span class="os-ov-pj-desc" data-i18n-en="With QGIS / Python, integrating geology, terrain (DEM), soil maps, and satellite imagery (NDVI/NDWI) into layers to map the soil&#39;s state — a future base to overlay Field X 3DGS and time-series data for a macro, temporal complement">QGIS・Python で地質図・地形図（DEM）・土壌図・衛星画像（NDVI/NDWI）のレイヤを統合し、土壌の状態を地図化。将来は Field X の 3DGS と経年データを重ね、マクロ＋時間軸で補完</span><span class="os-ov-pj-meta" data-i18n-en="<b>Geology/terrain layer structure built / soil_health_score.py v0.1 implemented</b> · QGIS / Python / Sentinel-2"><b>地質図・地形図レイヤ構造 構築済／soil_health_score.py v0.1 実装済</b> · QGIS / Python / Sentinel-2</span></span>
       <a class="os-ov-link" href="#observe" onclick="closeOsLayer();switchTab('observe');return false;" data-i18n-en="To the Hear (observation) detail page →">観測 (Hear) の詳細ページへ →</a>
@@ -5341,10 +5349,8 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
         <div><span class="os-ov-meta">HEART · Aoi — 中央</span><span class="os-ov-ja" id="osl-a-ttl">依代（碧）</span><span class="os-ov-en">自然・人間・機械の媒介</span></div>
       </div>
       <p class="os-ov-essence" data-i18n-en="<strong>The center of HEART (A)</strong>. Running through the other four layers (H/E/R/T), <strong>a modern vessel that passes, at the center, the information the three — nature, people, and machines — exchange</strong>. Aoi, a reinterpretation of the ancient &quot;vessel (a container for a divine spirit)&quot; for the age of AI, is defined as <strong>Aoi function()</strong> — the five methods <code>Aoi.hear()</code> / <code>Aoi.edit()</code> / <code>Aoi.renew()</code> / <code>Aoi.touch()</code> / <code>Aoi.yorishiro()</code> — and hands the observed and edited state of the natural cycle to people through song, voice, form, and space."><strong>HEART の中央 (A)</strong>。他 4 層 (H/E/R/T) を貫き、<strong>自然・人間・機械の三者が交換する情報を中央で受け渡す現代の依代</strong>。古来の「依代（神霊の器）」を AI 時代に再解釈した碧 (Aoi) は、<strong>Aoi function()</strong>、すなわち <code>Aoi.hear()</code> / <code>Aoi.edit()</code> / <code>Aoi.renew()</code> / <code>Aoi.touch()</code> / <code>Aoi.yorishiro()</code> の 5 メソッドとして、観測・編集された自然循環の状態を、歌・声・姿・場で人に手渡す。</p>
-      <div class="os-ov-projs-lbl">▸ Projects (3)</div>
-      <span class="os-ov-pj" data-detail="碧を xR 空間（MR・VR・AR）に出現させ、人と碧が出会う「場」をつくるプロジェクト。観測・編集された自然循環の状態を、空間のなかで碧の姿・声・気配として受け取れるようにします。展示空間や現場で、来場者の隣に碧が立ち、土・水・植物の循環を指し示す——画面のこちら側ではなく、同じ空間に依代が現れることで、自然との関係を身体で感じ直す接点を目指します。" data-detail-en="A project that makes Aoi appear in xR space (MR / VR / AR), creating a &quot;place&quot; where people and Aoi meet. It lets the observed and edited state of the natural cycle be received within space as Aoi&#39;s form, voice, and presence. In an exhibition space or on site, Aoi stands beside the visitor and points to the cycle of soil, water, and plants — not on this side of the screen, but by having the vessel appear in the same space, it aims for a point of contact where one feels the relationship with nature anew through the body."><span class="os-ov-pj-name" data-i18n-en="Aoi.space() — Aoi&#39;s Place">Aoi.space()｜碧の場</span><span class="os-ov-pj-desc" data-i18n-en="Makes the vessel Aoi appear in xR space (MR / VR / AR), creating a point of contact where people and Aoi meet">依代・碧を xR 空間（MR・VR・AR）に出現させ、人と碧が出会う接点をつくる</span><span class="os-ov-pj-meta" data-i18n-en="<b>In conception</b> · MR / VR / AR"><b>構想中</b> · MR / VR / AR</span></span>
-      <span class="os-ov-pj" data-detail="碧に身体（姿・動き）を与えるプロジェクト。Midjourney → Hedra Character-3 → Live2D／VRoid のパイプラインで、2D／3D の映像として碧を立ち上げます。声（voice）と組み合わせることで、碧は画面のなかで語り・うなずき・佇む存在になります。依代は「便りを置いて土へ還る」もの——自然と人のあいだを、かたわらからそっとつなぐ佇まいを大切にしています。" data-detail-en="A project that gives Aoi a body (form and movement). Through a Midjourney → Hedra Character-3 → Live2D / VRoid pipeline, it brings Aoi to life as 2D / 3D imagery. Combined with the voice, Aoi becomes a presence that speaks, nods, and stands within the screen. A vessel is something that &quot;leaves its tidings and returns to the soil&quot; — we value a bearing that gently connects nature and people from beside them."><span class="os-ov-pj-name" data-i18n-en="Aoi.body() — Aoi&#39;s Form">Aoi.body()｜碧の姿</span><span class="os-ov-pj-desc" data-i18n-en="Renders Aoi&#39;s form as 2D / 3D imagery, giving it voice and movement">碧の姿を 2D／3D 映像化し、声と動きを与える</span><span class="os-ov-pj-meta" data-i18n-en="<b>In production</b> · Midjourney → Hedra Character-3 → Live2D / VRoid"><b>制作中</b> · Midjourney → Hedra Character-3 → Live2D / VRoid</span></span>
-      <span class="os-ov-pj" data-detail="観測（Hear）や再生（Renew）の現場で捉えた自然循環の状態を、碧の歌・声として人へ手渡すプロジェクト。数値やグラフでは届かない土・水・植物の気配を、旋律と言葉に変換します。現在、採用 25 曲超・候補 30 曲超を制作中（Suno で作曲、Spotify／Apple Music への配信を準備）。碧の声は判断や強調をせず、自然循環の状態をそっと声に出す——自然の側に立つ静かな声として設計されています。" data-detail-en="A project that hands over to people, as Aoi&#39;s songs and voice, the state of the natural cycle captured at the sites of observation (Hear) and restoration (Renew). It converts into melody and words the presence of soil, water, and plants that numbers and graphs cannot convey. Currently producing 25+ adopted songs and 30+ candidates (composed with Suno, with distribution to Spotify / Apple Music in preparation). Aoi&#39;s voice neither judges nor emphasizes; it gently gives voice to the state of the natural cycle — designed as a quiet voice that stands on the side of nature."><span class="os-ov-pj-name" data-i18n-en="Aoi.voice() — Aoi&#39;s Voice">Aoi.voice()｜碧の声</span><span class="os-ov-pj-desc" data-i18n-en="A body of songs that turn the state of the natural cycle into song and voice. 25+ adopted, 30+ candidates">自然循環の状態を歌・声にした楽曲群。採用 25 曲超＋候補 30 曲超</span><span class="os-ov-pj-meta" data-i18n-en="<b>In production</b> · composed with Suno · Spotify / Apple distribution in preparation"><b>制作中</b> · Suno 作曲 · Spotify / Apple 配信準備中</span></span>
+      <div class="os-ov-projs-lbl">▸ Projects (1)</div>
+      <span class="os-ov-pj" data-detail="依代・碧に「声・姿・場」を与える統合プロジェクト。【声】観測（Hear）や再生（Renew）の現場で捉えた自然循環の状態を、碧の歌・声として人へ手渡します。数値やグラフでは届かない土・水・植物の気配を旋律と言葉に変換し、採用 25 曲超・候補 30 曲超を制作中（Suno で作曲、Spotify／Apple Music への配信を準備）。【姿】Midjourney → Hedra Character-3 → Live2D／VRoid のパイプラインで、碧を 2D／3D の映像として立ち上げ、語り・うなずき・佇む存在にします。【場】碧を xR 空間（MR・VR・AR）に出現させ、人と碧が出会う「場」をつくります。展示空間や現場で来場者の隣に碧が立ち、土・水・植物の循環を指し示す——同じ空間に依代が現れることで、自然との関係を身体で感じ直す接点を目指します。碧の声は判断や強調をせず、自然循環の状態をそっと声に出す——自然の側に立つ静かな依代として設計されています。" data-detail-en="An integrated project that gives the vessel Aoi a voice, a form, and a place. [Voice] It hands over to people, as Aoi&#39;s songs and voice, the state of the natural cycle captured at the sites of observation (Hear) and restoration (Renew) — converting into melody and words the presence of soil, water, and plants that numbers and graphs cannot convey. Currently producing 25+ adopted songs and 30+ candidates (composed with Suno, with distribution to Spotify / Apple Music in preparation). [Form] Through a Midjourney → Hedra Character-3 → Live2D / VRoid pipeline, it brings Aoi to life as 2D / 3D imagery — a presence that speaks, nods, and stands. [Place] It makes Aoi appear in xR space (MR / VR / AR), creating a &quot;place&quot; where people and Aoi meet: in an exhibition space or on site, Aoi stands beside the visitor and points to the cycle of soil, water, and plants — aiming for a point of contact where one feels the relationship with nature anew through the body. Aoi&#39;s voice neither judges nor emphasizes; it gently gives voice to the state of the natural cycle — designed as a quiet vessel that stands on the side of nature."><span class="os-ov-pj-name" data-i18n-en="Aoi project">Aoi project</span><span class="os-ov-pj-desc" data-i18n-en="An integrated project giving Aoi a voice, form, and place — turning the natural cycle into song, giving a 2D / 3D body, and meeting people in xR space">碧に「声・姿・場」を与える統合プロジェクト。自然循環を歌にし、2D／3D の身体を与え、xR 空間で人と出会う接点をつくる</span><span class="os-ov-pj-meta" data-i18n-en="<b>In production</b> · Voice = Suno, 25+ songs · Form = Live2D / VRoid · Place = MR / VR / AR"><b>制作中</b> · 声＝Suno 採用25曲超 · 姿＝Live2D／VRoid · 場＝MR／VR／AR</span></span>
       <a class="os-ov-link" href="#aoi" onclick="closeOsLayer();switchTab('aoi');return false;" data-i18n-en="To the vessel (Aoi) detail page →">依代 (Aoi) の詳細ページへ →</a>
     </div>
   </div>
@@ -5527,7 +5533,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
 
   <p data-i18n-en="In addition to the experience accumulated as a civil engineer on site during the prefectural-government years, through dialogue with professionals connected to soil — practitioners of soil regeneration, practitioners of organic and natural farming, practitioners of landscaping, and arborists — and through learning from Edo-period texts and modern practice books on organic agriculture and organic civil engineering, came to see that each field both carries its own challenges around soil and holds its own accumulated knowledge of it, with people putting that knowledge into practice. Convinced that weaving together this knowledge and practice scattered across fields is what opens the future of people and soil, and that a place to serve as that junction was needed, founded mitsulab under the vision of ‘toward a world where soil and people flourish.’">県庁在職中に土木技術者として現場に立つなかで蓄積された経験に加え、土の再生の実践者、有機農業・自然農業の実践者、造園業の実践者、樹木医など土に関わるプロフェッショナルとの対話や、有機農業・有機土木に関する江戸時代の書物、現代の実践書などから学ぶなかで、「各分野で土に関する課題を抱えていると同時に、各分野毎に土に関する知見の蓄積があり、それを実践している人がいる」ことを知る。こうした各分野の知と実践をつないでいくことが、これからの「人と土の未来」をひらく——そう考え、その結節点となる場が必要であると確信し、『土と人が豊かな世界へ』をビジョンに掲げて mitsulab を開業した。</p>
 
-  <p data-i18n-en="mitsulab is a research lab that, under the vision of ‘toward a world where soil and people flourish,’ implements the five themes of observation, sensation, regeneration, editing, and the vessel — fifteen projects in all — in society. In ‘observation,’ it observes states of soil beyond the reach of the human senses with technology (3DGS, acoustic observation, soil IoT, and soil GIS). In ‘sensation,’ it opens the deep world of soil to society through art (sound, touch, xR space, calligraphy, and installation). In ‘regeneration,’ it joins the fields of Japan’s leading practitioners, accumulating practical knowledge and regenerating the soil. In ‘editing,’ as editor-in-chief of the publishing house Stillpoint, it edits the knowledge of soil from all times and places into Kai (soil and the natural cycle), Kanae (soil and food), Za (soil and livelihoods), and Shu (soil and the future). And in ‘the vessel,’ at the center where the four themes overlap, the vessel Aoi passes information (sensation) as the interface connecting people and soil.">mitsulab は『土と人が豊かな世界へ』をビジョンに掲げ、「観測」・「感覚」・「再生」・「編集」・「依代」の 5 つのテーマと 15 個のプロジェクトを社会実装する研究所である。「観測」では、人間の五感では捉えられない土の状態を、テクノロジー（3DGS・音響観測・土壌IoT・土壌GIS）により観測する。「感覚」では、土の奥深い世界を、アート（音・触覚・xR空間・書・インスタレーション）を通じて社会にひらく。「再生」では、日本を代表する実践者の現場に参加し、実践知を蓄積しながら土を再生する。「編集」では、出版社 Stillpoint の編集長として、土にまつわる古今東西の知を、土と自然循環の『廻（Kai）』・土と食の『鼎（Kanae）』・土と生業の『坐（Za）』・土と未来の『種（Shu）』として編集する。そして「依代」では、4 つのテーマが重なる中心で、依代・碧（Aoi）が人と土をつなぐインターフェイスとして情報（感覚）を繋ぐ。</p>
+  <p data-i18n-en="mitsulab is a research lab that, under the vision of ‘toward a world where soil and people flourish,’ implements the five themes of observation, sensation, regeneration, editing, and the vessel — thirteen projects in all — in society. In ‘observation,’ it observes states of soil beyond the reach of the human senses with technology (3DGS, acoustic observation, soil IoT, and soil GIS). In ‘sensation,’ it opens the deep world of soil to society through art (sound, touch, xR space, calligraphy, and installation). In ‘regeneration,’ it joins the fields of Japan’s leading practitioners, accumulating practical knowledge and regenerating the soil. In ‘editing,’ as editor-in-chief of the publishing house Stillpoint, it edits the knowledge of soil from all times and places into Kai (soil and the natural cycle), Kanae (soil and food), Za (soil and livelihoods), and Shu (soil and the future). And in ‘the vessel,’ at the center where the four themes overlap, the vessel Aoi passes information (sensation) as the interface connecting people and soil.">mitsulab は『土と人が豊かな世界へ』をビジョンに掲げ、「観測」・「感覚」・「再生」・「編集」・「依代」の 5 つのテーマと 13 個のプロジェクトを社会実装する研究所である。「観測」では、人間の五感では捉えられない土の状態を、テクノロジー（3DGS・音響観測・土壌IoT・土壌GIS）により観測する。「感覚」では、土の奥深い世界を、アート（音・触覚・xR空間・書・インスタレーション）を通じて社会にひらく。「再生」では、日本を代表する実践者の現場に参加し、実践知を蓄積しながら土を再生する。「編集」では、出版社 Stillpoint の編集長として、土にまつわる古今東西の知を、土と自然循環の『廻（Kai）』・土と食の『鼎（Kanae）』・土と生業の『坐（Za）』・土と未来の『種（Shu）』として編集する。そして「依代」では、4 つのテーマが重なる中心で、依代・碧（Aoi）が人と土をつなぐインターフェイスとして情報（感覚）を繋ぐ。</p>
 
   <p data-i18n-en="Separately from mitsulab&#39;s activities, he also serves as a director of MoARC Inc., working on the spread and branding of a sustainable farming method that composts grasses from riverbanks.">また、mitsulab の活動とは別で、株式会社モアークの取締役を務め、河川敷の草を堆肥化する持続可能な農業について、農法の普及とブランディングに取り組んでいる。</p>
 
@@ -5764,21 +5770,11 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
   </ul>
 
   <h3 style="margin-top:64px" data-i18n-en="Projects That Give Aoi Its Shape">碧をかたちづくるプロジェクト</h3>
-  <div class="grid grid-2" style="margin-top:18px">
+  <div class="grid" style="margin-top:18px">
     <div class="card">
       <span class="tag">Project / Aoi</span>
-      <h3 data-i18n-en="Aoi.voice() — Aoi&#39;s Voice<small style=&quot;display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px&quot;>Turning the natural cycle into song and voice</small>">Aoi.voice()｜碧の声<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">自然循環を歌・声にする</small></h3>
-      <p data-i18n-en="A body of songs that turn the state of the natural cycle into song. <strong>Over 25 adopted and over 30 candidates</strong> are in production. Composed with Suno, with distribution to Spotify and Apple Music in preparation. The states of nature caught through observation and restoration are delivered to people as Aoi&#39;s voice.">自然循環の状態を歌にした楽曲群。<strong>採用25曲超、候補30曲超</strong>を制作中。Suno で作曲し、Spotify・Apple Music への配信を準備しています。観測・再生で捉えた自然の状態を、碧の声として人へ届けます。</p>
-    </div>
-    <div class="card">
-      <span class="tag">Project / Aoi</span>
-      <h3 data-i18n-en="Aoi.body() — Aoi&#39;s Form<small style=&quot;display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px&quot;>Giving a body through 2D / 3D imagery</small>">Aoi.body()｜碧の姿<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">2D／3D 映像で身体を与える</small></h3>
-      <p data-i18n-en="A project that renders Aoi&#39;s form as 2D / 3D imagery and gives it voice and movement. In production with the Midjourney → Hedra Character-3 → Live2D / VRoid pipeline.">碧の姿を 2D／3D 映像化し、声と動きを与えるプロジェクト。Midjourney → Hedra Character-3 → Live2D / VRoid のパイプラインで制作中。</p>
-    </div>
-    <div class="card">
-      <span class="tag">Project / Aoi</span>
-      <h3 data-i18n-en="Aoi.space() — Aoi&#39;s Place<small style=&quot;display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px&quot;>A vessel appearing in xR space</small>">Aoi.space()｜碧の場<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">xR 空間に出現する依代</small></h3>
-      <p data-i18n-en="A project that makes the vessel Aoi appear in xR space (MR / VR / AR), creating <strong>a point of contact where people and Aoi meet</strong>. It lets the observed and edited state of the natural cycle be received within space as Aoi&#39;s form, voice, and presence. In conception.">依代・碧を xR 空間（MR・VR・AR）に出現させ、<strong>人と碧が出会う接点</strong>をつくるプロジェクト。観測・編集された自然循環の状態を、空間のなかで碧の姿・声・気配として受け取れるようにします。構想中。</p>
+      <h3 data-i18n-en="Aoi project<small style=&quot;display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px&quot;>Giving Aoi a voice, a form, and a place</small>">Aoi project<small style="display:block;font-weight:400;color:var(--ink-3);font-size:.85rem;margin-top:4px">碧に「声・姿・場」を与える統合プロジェクト</small></h3>
+      <p data-i18n-en="An integrated project that gives the vessel Aoi a voice, a form, and a place. <strong>Voice</strong> — a body of songs that turn the state of the natural cycle into song: over 25 adopted and over 30 candidates in production (composed with Suno, with distribution to Spotify and Apple Music in preparation). <strong>Form</strong> — rendering Aoi as 2D / 3D imagery with voice and movement, through a Midjourney → Hedra Character-3 → Live2D / VRoid pipeline. <strong>Place</strong> — making Aoi appear in xR space (MR / VR / AR), creating a point of contact where people and Aoi meet: the observed and edited state of the natural cycle is received within space as Aoi&#39;s form, voice, and presence.">依代・碧に「声・姿・場」を与える統合プロジェクト。<strong>声</strong>——自然循環の状態を歌にした楽曲群。採用25曲超・候補30曲超を制作中（Suno で作曲、Spotify・Apple Music への配信を準備）。<strong>姿</strong>——Midjourney → Hedra Character-3 → Live2D／VRoid のパイプラインで、碧を 2D／3D の映像として立ち上げ、声と動きを与える。<strong>場</strong>——碧を xR 空間（MR・VR・AR）に出現させ、人と碧が出会う接点をつくる。観測・編集された自然循環の状態を、空間のなかで碧の姿・声・気配として受け取れるようにします。</p>
     </div>
   </div>
 
@@ -7039,6 +7035,31 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       <h3 data-i18n-en="Soil<small>(tsuchi)</small>">土<small>（つち）</small></h3>
       <p data-i18n-en="A layer where mineral particles from weathered rock mix with humus — the decomposed remains of living things — holding water, air and countless organisms. It stores water, circulates nutrients, grows plants, and carries the foundations of our towns. This is what mitsulab focuses on as the foundation common to human society and the global environment. See also <strong>Humium</strong>.">岩石が砕けた鉱物の粒と、生きものが分解された腐植（humus）が混ざり合い、水・空気・無数の生きものを含んだ層。水を蓄え、養分を巡らせ、植物を育て、まちの基礎を支える。mitsulab が、人間社会と地球環境の共通基盤として着目する対象。<strong>Humium</strong> も参照。</p>
     </div>
+    <div class="term" id="term-soil-issues">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="Issues Concerning Soil">土に関する課題</h3>
+      <p data-i18n-en="A collective term for the soil-related issues becoming apparent across domains — civil engineering, landscaping, agriculture, and forestry. In <strong>civil engineering</strong>, slope disasters, topsoil runoff, and reduced water retention; in <strong>landscaping and urban greening</strong>, the decline of street- and park-tree root systems in soil whose aggregate structure has been lost through compaction and topsoil runoff; in <strong>agriculture</strong>, soil degradation caused by the loss of organic matter and soil microbes; in <strong>forestry</strong>, topsoil runoff and reduced water retention in under-managed plantations. Although soil sits at the center of each field&#39;s problems, knowledge and practice remain divided by discipline, and an integrated view of soil is easily lost. mitsulab faces this division through cross-disciplinary editing and observation.">土木・造園・農業・森林といった分野を横断して顕在化している、土をめぐる課題の総称。<strong>土木</strong>では斜面災害や表土の流出や保水力の低下、<strong>造園・都市緑化</strong>では踏み固め（コンパクション）や表土流出による団粒構造が失われた土における街路樹・公園樹木の根系の衰退、<strong>農業</strong>では有機物・土壌微生物の減少による土壌の劣化、<strong>森林</strong>では手入れ不足の人工林における表土の流出や保水力の低下——それぞれの分野で「土」が課題の中心にあるにもかかわらず、知見と実践は分野ごとに分かれ、土を総合的に扱う視点が失われがちです。mitsulab はこの分断に、分野横断の編集と観測から向き合います。</p>
+    </div>
+    <div class="term" id="term-soil-fields">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Fields">現場</h3>
+      <p data-i18n-en="The soil sites where mitsulab actually goes and works with its hands. Joining the soil-improvement work along the Hikawa approach in Saitama and the &quot;Daichi no Saisei&quot; (regeneration of the earth) fieldwork in Uenohara, alongside Japan&#39;s leading practitioners, it learns bodily the practical knowledge of improving aeration and water retention and caring for topsoil. Practical knowledge gained on site — not desk knowledge — is the starting point for connecting the fields.">mitsulab が実際に足を運び、手を動かして学んでいる土の現場。さいたま市・氷川参道の土壌改善や、上野原での「大地の再生」の現場に、日本を代表する実践者とともに参加し、通気・保水の改善や表土の手当てといった実践知を身体で覚えています。机上の知識ではなく、現場から得た実践知を各分野をつなぐ出発点にします。</p>
+    </div>
+    <div class="term" id="term-soil-literature">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Literature">文献</h3>
+      <p data-i18n-en="The literature of soil from all times and places — from Edo-period agricultural manuals and classics of civil engineering and landscaping, to contemporary papers in soil science, ecology, and microbiology. Reading across the knowledge accumulated in each discipline, mitsulab re-edits it into the trilogy Kai, Kanae, and Za and the label Shu. By checking it against practical knowledge from the field, the knowledge of the literature is turned into knowledge that can be used.">江戸期の農書や土木・造園の古典から、現代の土壌学・生態学・微生物学の論文まで、土にまつわる古今東西の文献。分野ごとに蓄積されてきた知を横断して読み、三部作『廻』『鼎』『坐』とレーベル『種』に編み直します。現場の実践知と突き合わせることで、文献の知を「使える知」へ変えていきます。</p>
+    </div>
+    <div class="term" id="term-soil-tech">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Technology">テクノロジー</h3>
+      <p data-i18n-en="Observation technologies that capture states of soil beyond the reach of the human senses: three-dimensional recording of space with 3D Gaussian Splatting (Field X), recording of underground acoustics with piezo microphones (Soil Sound Project), soil IoT that keeps logging underground temperature and moisture, and wide-area soil mapping with satellite data and GIS (Soil GIS) — describing the invisible world of soil as data.">人間の五感では届かない土の状態を捉える観測技術。3D Gaussian Splatting による空間の三次元記録（Field X）、ピエゾマイクによる土中音響の収録（Soil Sound Project）、土中の温湿度を記録しつづける土壌IoT、衛星データと GIS による広域の土壌把握（土壌GIS）——見えない土の世界を、データとして記述します。</p>
+    </div>
+    <div class="term" id="term-soil-art">
+      <div class="term-label">Foundation</div>
+      <h3 data-i18n-en="The Art">アート</h3>
+      <p data-i18n-en="Expressions that open the observed world of soil into forms the human senses can receive: Modarity X, which amplifies and converts the faint signals within soil into sound and touch and integrates them into xR experiences, and the installation series Qualia, composing spaces with underground sound and calligraphy — translating the world of soil not into numbers and graphs, but into experiences of listening, touching, and being present.">観測した土の世界を、人の感覚が受け取れるかたちにひらく表現。土中の微弱な信号を音・触覚へ増幅・変換し、xR 空間の体験へ統合する Modarity X、土中音や書とともに空間を構成するインスタレーション『Qualia』シリーズ——数値やグラフではなく、聴く・触れる・立ち会う体験として、土の世界を翻訳します。</p>
+    </div>
     <div class="term" id="term-soil-health">
       <div class="term-label">Foundation</div>
       <h3 data-i18n-en="The Health of Soil">土の健全さ</h3>
@@ -7116,7 +7137,7 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
     <div class="term" id="term-piezo-mic">
       <div class="term-label">Hear</div>
       <h3 data-i18n-en="Piezo microphone">ピエゾマイク<small>（圧電マイク）</small></h3>
-      <p data-i18n-en="A contact microphone that uses a <strong>piezoelectric element</strong> to turn the faint vibrations traveling through solids into electrical signals. Inserted into the soil, it captures the <strong>sounds within the soil</strong> — water seeping in, the movements of roots, fungi, and soil creatures. Used in Soil Sound, the difference in &quot;sound&quot; between healthy and damaged soil becomes a clue for analysis."><strong>圧電素子（ピエゾ）</strong>を用い、固体を伝わる微細な振動を電気信号へ変える接触式マイク。土中に挿し込み、水のしみこむ音、根や菌、土壌動物の動きといった <strong>土中音</strong> をとらえます。Soil Sound で使用し、健全な土と傷んだ土の『音の違い』を解析の手がかりにします。</p>
+      <p data-i18n-en="A contact microphone that uses a <strong>piezoelectric element</strong> to turn the faint vibrations traveling through solids into electrical signals. Inserted into the soil, it captures the <strong>sounds within the soil</strong> — water seeping in, and the movements of roots and soil creatures. Used in Soil Sound, the difference in &quot;sound&quot; between healthy and damaged soil becomes a clue for analysis."><strong>圧電素子（ピエゾ）</strong>を用い、固体を伝わる微細な振動を電気信号へ変える接触式マイク。土中に挿し込み、水のしみこむ音や根・土壌生物の動きといった <strong>土中音</strong> をとらえます。Soil Sound で使用し、健全な土と傷んだ土の『音の違い』を解析の手がかりにします。</p>
     </div>
     <div class="term" id="term-acoustic-device">
       <div class="term-label">Touch</div>
@@ -7191,6 +7212,21 @@ html[data-theme="light"][data-tone="dusk"] body{background:radial-gradient(1700p
       <div class="term-label">Renew</div>
       <h3 data-i18n-en="Natural farming">自然農業（しぜんのうぎょう）</h3>
       <p data-i18n-en="Farming that uses as little plowing, fertilizer, and agrochemicals as possible, entrusting the growth of crops to the self-sustaining power of the soil ecosystem. Cut grass and fallen leaves are laid over the surface, and the work of microbes and small creatures is left to make the soil fertile of its own accord. Whereas organic agriculture enriches the soil by adding inputs from outside, natural farming belongs to a lineage that values &#39;not intervening too much&#39; — no tilling, no fertilizing, no weeding — and is also called shizen-noho or shizen-no.">耕起・肥料・農薬を極力用いず、土壌生態系が本来もつ自律的な力に作物の生育を委ねる農法。刈った草や落ち葉を地表に敷き、微生物や小動物の営みによって土が自ら肥沃になる循環を待つ。資材を外から補って土を育てる有機農業に対し、不耕起・無施肥・不除草など『手を加えすぎない』ことを重んじる系譜で、自然農法・自然農とも呼ばれる。</p>
+    </div>
+    <div class="term" id="term-doboku">
+      <div class="term-label">Renew</div>
+      <h3 data-i18n-en="Civil engineering">土木（どぼく）</h3>
+      <p data-i18n-en="The engineering field that handles the ground and the structures built upon it — roads, rivers, land grading, and retaining walls. Because it moves large volumes of soil through excavation, embankment, and compaction, it is directly tied to soil-related issues: where surplus construction soil should go, the safety of embankments, and the loss of aeration and water flow caused by compacting the ground. Drawing on the practical view accumulated as a first-class civil-engineering site manager, mitsulab connects the knowledge of civil engineering with the regeneration of soil.">道路・河川・造成・擁壁など、地面とその上の構造物をあつかう工学分野。掘削・盛土・締固めを通じて土を大きく動かすため、建設発生土（残土）の行き先、盛土の安全性、地盤の締固めによる通気・通水の悪化など、土をめぐる課題と直結する。mitsulab は、一級土木施工管理の実務で培った視点から、土木の知を土の再生へとつなぐ。</p>
+    </div>
+    <div class="term" id="term-nogyo">
+      <div class="term-label">Renew</div>
+      <h3 data-i18n-en="Agriculture">農業（のうぎょう）</h3>
+      <p data-i18n-en="The work of tilling soil and raising crops to produce food. Soil degradation surfaces as a problem of productivity and sustainability: the decline of soil organic matter, the collapse of crumb structure, and the exhaustion of the soil ecosystem through dependence on chemical fertilizers and pesticides. It is also where the practical knowledge that draws out the power of soil — organic and natural farming — is re-edited.">土を耕し、作物を育てて食べものを生産する営み。土壌有機物の減少や団粒構造の崩れ、化学肥料・農薬への依存による土壌生態系の疲弊など、土の劣化が生産性と持続可能性の課題として現れる。有機農業や自然農など、土の力を引き出す実践知を編み直す対象でもある。</p>
+    </div>
+    <div class="term" id="term-shinrin">
+      <div class="term-label">Renew</div>
+      <h3 data-i18n-en="Forests / Forestry">森林（しんりん）</h3>
+      <p data-i18n-en="An ecosystem where soil, water, and living things circulate around trees — and the setting of forestry. In under-managed plantations, understory vegetation is lost, inviting topsoil runoff and a decline in the water-holding capacity of slopes. Forest soil is the foundation of water-source recharge and carbon storage, and its health bears on the soil issues of an entire watershed.">樹木を中心に、土壌・水・生きものが循環する生態系であり、林業の場でもある。手入れ不足の人工林では下層植生が失われ、表土の流出や斜面の保水力低下を招く。森林の土は水源涵養や炭素貯留の基盤であり、その健全さは流域全体の土の課題に関わる。</p>
     </div>
     <div class="term" id="term-zoen">
       <div class="term-label">Renew</div>
