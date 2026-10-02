@@ -12,7 +12,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mitsulab — 認知拡張｜人と自然をつなぐ</title>
-<meta name="description" content="mitsulab は認知拡張の研究所。人と自然をつなぐ場と道具をつくっています。案内役は碧（AI）で、人と自然のあいだの両向きの通訳。最初の場《Feel Hikawa》（大宮の氷川参道）のデモ版と、土や生きものを見るアプリを公開中。">
+<meta name="description" content="mitsulab は認知拡張の研究所。人と自然をつなぐ場と道具をつくっています。案内役は碧（AI）で、人と自然のあいだの両向きの通訳。最初の場《Feel Hikawa》（大宮の氷川参道）と、土や生きものを見るアプリを公開中。">
 <meta name="author" content="上原光瑛">
 <meta name="robots" content="index, follow">
 <meta name="format-detection" content="telephone=no">
@@ -24,7 +24,7 @@
 <meta property="og:site_name" content="mitsulab">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:title" content="mitsulab — 認知拡張｜人と自然をつなぐ">
-<meta property="og:description" content="認知拡張。自然と世界を、より深く。人と自然をつなぐ場と道具を、碧（AI の案内役）とともにつくる。最初の場《Feel Hikawa》デモ版を公開中。">
+<meta property="og:description" content="認知拡張。自然と世界を、より深く。人と自然をつなぐ場と道具を、碧（AI の案内役）とともにつくる。最初の場《Feel Hikawa》を公開中。">
 <meta property="og:image" content="https://mitsulab.jp/img/ftw/hero_hikawa_960.webp">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -323,6 +323,15 @@ html[lang="en"] .hero-lead{letter-spacing:.04em}
 .tool-know{display:block;font-size:.82rem;color:var(--ink-2);line-height:1.75;margin-top:6px}
 .tool-know .tk{font-family:var(--mono);font-size:.7rem;color:#e8c58a;letter-spacing:.06em;margin-right:.7em}
 .guide-role{font-family:var(--serif);font-size:1.02rem;letter-spacing:.08em;color:#f2e6cf;margin:-4px 0 12px}
+.hero-vision{font-family:var(--serif);font-weight:500;font-size:clamp(1rem,2.4vw,1.2rem);line-height:1.9;letter-spacing:.08em;color:#f7fbff;margin:0 0 10px;text-shadow:0 1px 12px rgba(3,6,15,.9)}
+html[lang="en"] .hero-vision{letter-spacing:.02em}
+.how{list-style:none;margin:16px auto 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:720px;text-align:left}
+.how a{display:block;height:100%;padding:12px 14px;border:1px solid rgba(92,200,224,.32);border-radius:12px;background:rgba(3,6,15,.55);text-decoration:none;color:var(--ink-2);transition:border-color .2s}
+.how a:hover,.how a:focus-visible{border-color:var(--aoi)}
+.how-k{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;color:#e8c58a}
+.how-t{display:block;font-family:var(--serif);font-weight:600;font-size:1rem;color:#f7fbff;margin:2px 0 4px}
+.how-d{display:block;font-size:.8rem;line-height:1.65}
+@media (max-width:640px){.how{grid-template-columns:1fr;gap:8px}.how a{padding:10px 12px}}
 .hero-def{max-width:620px;margin:0 auto;font-size:.95rem;line-height:1.95;color:var(--ink-2);text-shadow:0 1px 10px rgba(3,6,15,.9)}
 .defs{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:34px;align-items:start}
 @media (max-width:900px){.defs{grid-template-columns:1fr;gap:22px}}
@@ -357,7 +366,7 @@ html[lang="en"] .qc-tags>div{grid-template-columns:6.4em 1fr}
 .btn.ghost{border-color:rgba(150,170,240,.25);color:var(--ink-3)}
 
 /* v5 */
-.terrain-space{flex:1 0 auto;min-height:20vh;width:100%}
+.terrain-space{flex:1 0 auto;min-height:30vh;width:100%}
 @media (max-width:560px){.manifesto{font-size:.92rem;letter-spacing:.04em;line-height:2}.terrain-space{min-height:27vh}main .why{padding-top:4vh}.core{margin-bottom:18px}}
 .q-cannot{margin-top:16px;padding-left:14px;border-left:2px solid rgba(232,197,138,.6);font-family:var(--serif);font-size:1rem;line-height:1.9;color:#f2e6cf;text-align:left}
 .fig-sub{margin-top:10px;width:46%!important;aspect-ratio:16/9;border:1px solid rgba(92,200,224,.22);opacity:.9}
@@ -536,7 +545,14 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <!-- コアの一行は下の script の CORE（一か所）で差し替える。ここの文字は読み込み前と検索のための控え -->
     <p class="core" id="core">認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span></p>
     <p class="hero-lead" data-i18n-en="Connecting people and nature.">人と自然を、<span class="nw">つなぐ。</span></p>
-    <p class="hero-def" data-i18n-en="mitsulab designs places and tools that connect people and nature. The guide is Aoi, an AI that interprets both ways: from nature to people, and from people to nature.">mitsulab は、人と自然をつなぐ場と道具をつくっています。<span class="nw">案内役は碧（AI）。</span><span class="nw">自然の側のことを人へ、</span><span class="nw">人の問いを自然の側へ、</span><span class="nw">両向きに訳します。</span></p>
+    <!-- ビジョンと、その実現の三段（10-03 本人指示）。三段は下の節へ飛ぶ -->
+    <p class="hero-vision" data-i18n-en="Between people, nature and machines — toward a world that can be known more deeply, and felt anew.">人と自然と機械のあいだで、<br>世界をより深く知り、<span class="nw">感じなおせる社会へ。</span></p>
+    <p class="hero-def" data-i18n-en="For that, mitsulab makes three things.">そのために、mitsulab は三つをつくっています。</p>
+    <ol class="how" aria-label="ビジョンを実現する三つ">
+      <li><a href="#site" data-go-anchor="site"><span class="how-k" data-i18n-en="Place">場</span><span class="how-t" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="how-d" data-i18n-en="A work you walk on site, stopping to look">現地を歩き、立ち止まって見る作品</span></a></li>
+      <li><a href="#apps" data-go-anchor="apps"><span class="how-k" data-i18n-en="Tools">道具</span><span class="how-t" data-i18n-en="Apps, open now">公開中のアプリ</span><span class="how-d" data-i18n-en="Landform, living things and soil, in forms you can see">地形・生きもの・土を、見える形に</span></a></li>
+      <li><a href="#guide" data-go-anchor="guide"><span class="how-k" data-i18n-en="Guide">案内役</span><span class="how-t" data-i18n-en="Aoi (AI)">碧（AI）</span><span class="how-d" data-i18n-en="Interprets both ways between people and nature">人と自然のあいだを、両向きに訳す</span></a></li>
+    </ol>
   </div>
   <div class="terrain-space" aria-hidden="true"></div>
   <p class="terrain-cap" id="terrainCap" data-i18n-en="Around Hikawa Shrine, approx. 4.8 km E–W × 3.7 km N–S, seen from the south. Height exaggerated 8×. (GSI elevation, processed by mitsulab)">氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）を南から。高さは 8 倍に強調。（国土地理院の標高を mitsulab が加工）</p>
@@ -544,7 +560,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 
 <div class="wrap">
 
-  <!-- 人と自然をつなぐ（主図＝Qualium の 3D 地形図。定義は認知拡張・知覚拡張・Qualium の三つだけ残した） -->
+  <!-- 人と自然をつなぐ（主図＝Qualium の 3D 地形図。定義は認知拡張と Qualium の二つ。知覚拡張の項は 10-03 に外し、認知拡張の定義に包んだ） -->
   <section id="connect" class="block" aria-labelledby="connectH">
     <div class="block-head">
       <span class="eyebrow">Concept</span>
@@ -570,20 +586,18 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <figcaption class="q-cap" data-i18n-en="The landform around Hikawa Shrine (approx. 4.8 km E–W × 3.7 km N–S), seen from the south-southwest. Height exaggerated 15×; contours every 2 m. The rings and the names at the ends of the lines (mitsulab's working names for kinds of tools) are illustrative, not locations. (GSI DEM5A, processed by mitsulab; approach © OpenStreetMap contributors)">氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）の地形を南南西から。高さは 15 倍に強調。等高線は 2 m おき。光の輪と、線の先の名前（mitsulab が考えている道具の種類の呼び名）は絵の配置で、地点を指すものではない。（国土地理院 DEM5A を mitsulab が加工／参道 © OpenStreetMap contributors）</figcaption>
     </figure>
     <div class="defs" id="define">
-      <div class="nest" aria-label="知覚拡張は認知拡張の一部">
+      <div class="nest" aria-label="認知拡張は知覚を含む">
         <div class="nest-outer">
           <span class="nest-name">認知拡張 <span class="nest-en">Cognitive Augmentation</span></span>
           <span class="nest-items" data-i18n-en="language · information · memory · knowledge · reasoning · models of others (living things, machines)">言語・情報・記憶・知識・推論・他者（生きもの・機械）のモデル</span>
           <div class="nest-inner">
-            <span class="nest-name">知覚拡張 <span class="nest-en">Perceptual Augmentation</span></span>
-            <span class="nest-items" data-i18n-en="range · resolution · modality of stimuli">刺激の範囲・分解能・様相</span>
+            <span class="nest-name">知覚 <span class="nest-en">Perception</span></span>
+            <span class="nest-items" data-i18n-en="what the five senses can take in, widened with tools">五感で受け取れる範囲を、道具で広げる</span>
           </div>
         </div>
-        <p class="nest-cap" data-i18n-en="Perceptual augmentation ⊂ cognitive augmentation">知覚拡張 ⊂ 認知拡張</p>
       </div>
       <dl class="deflist">
-        <div><dt data-i18n-en="Perceptual Augmentation">知覚拡張</dt><dd data-i18n-en="Widening, with tools, the range, resolution and modality of stimuli a subject can receive: turning physical quantities the human senses cannot reach directly (ultraviolet, ultrasound, minute vibration, slow change over long time) into forms the five senses can take in. It concerns what reaches the senses, not what it is understood as.">主体が受け取れる刺激の範囲・分解能・様相を、道具によって広げること。人の感覚器が直接とらえられない物理量（紫外線・超音波・微小な振動・長い時間の変化など）を、五感で受け取れる形へ変換する。感覚に届くまでを扱い、それが何として理解されるかは含まない。</dd></div>
-        <div><dt data-i18n-en="Cognitive Augmentation">認知拡張</dt><dd data-i18n-en="Using, beyond perception, language, information, memory, knowledge, reasoning and models of others (living things, machines) to widen how the world is organised for a subject: what it is distinguished as, what it is related to, what matters, over what span of time, and how one can engage with it. Perceptual augmentation is its entrance and a part of it. It does not guarantee improved ability; it creates conditions in which a new organisation can arise.">知覚に加え、言語・情報・記憶・知識・推論・他者（生きもの・機械）のモデルを用いて、主体にとって世界が何として区別され、何と関係づけられ、何が重要となり、どの時間の幅で、どう関われるか──その組み立てを広げること。知覚拡張はその入口であり一部。能力が上がることの保証ではなく、新しい組み立てが起こりうる条件をつくること。</dd></div>
+        <div><dt data-i18n-en="Cognitive Augmentation">認知拡張</dt><dd data-i18n-en="Using language, information, memory, knowledge, reasoning and models of others (living things, machines) to widen how the world is organised for a subject: what it is distinguished as, what it is related to, what matters, over what span of time, and how one can engage with it. This includes perception: widening, with tools, what the five senses can take in. It does not guarantee improved ability; it creates conditions in which a new organisation can arise.">言語・情報・記憶・知識・推論・他者（生きもの・機械）のモデルを用いて、主体にとって世界が何として区別され、何と関係づけられ、何が重要となり、どの時間の幅で、どう関われるか──その組み立てを広げること。五感で受け取れる範囲を道具で広げること（知覚）も、ここに含む。能力が上がることの保証ではなく、新しい組み立てが起こりうる条件をつくること。</dd></div>
         <div><dt>Qualium <span class="q-yomi">クオリウム</span></dt><dd data-i18n-en="mitsulab's name for the place and system where, through Aoi, the cognitive spaces of people, nature and machines connect. (-ium: a place, as in auditorium.)">碧を介して、人・自然・機械の認知空間がつながる場と仕組み。mitsulab はこれを Qualium と呼んでいます。（-ium＝場。auditorium と同じ語尾）</dd></div>
       </dl>
     </div>
@@ -600,7 +614,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
         <img class="fig-sub" src="img/ftw/sando_top_640.webp" width="640" height="360" loading="lazy" alt="同じ 3D を上から：町の中を北へのびる参道の緑の帯" data-i18n-alt="The same 3D from above: the green band of the approach running north through the town">
       </figure>
       <div>
-        <span class="badge">Demo</span> <span class="work-no">Feel site #1</span>
+        <span class="work-no">Feel site #1</span>
         <span class="card-title" style="margin-top:8px"><span class="ct-ja" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="ct-en" data-i18n-en="Walking the Hikawa approach">氷川参道を歩く</span></span>
         <p data-i18n-en="Walk the Hikawa approach in Ōmiya, phone in pocket. At six places you stop, look with your own eyes, hear Aoi, talk, and look again. The answers to its puzzles lie in the nature on site.">大宮の氷川参道を、スマホをポケットに入れて歩く。六つの場所で立ち止まり、自分の目で見て、碧の話を聞き、話して、もう一度見る。謎の答えは、現地の自然の中にある。</p>
         <ul class="chips">
@@ -611,10 +625,10 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
         </ul>
         <details class="more">
           <summary data-i18n-en="How your data is handled">記録と会話の扱い</summary>
-          <p data-i18n-en="Notes stay on your device; your route is not kept. In the published demo, you talk with Aoi by choosing prepared questions, and nothing is sent anywhere. In a version where you can write freely, only what you write — and the exchange so far at that place — goes to an external AI provider to make the reply. mitsulab does not store conversations or use them for learning. Do not watch the screen while walking; at the shrine, stand where you do not disturb worshippers.">見方の記録は端末の中だけに残り、歩いた道筋は残さない。公開中のデモ版では、碧とは用意した問いを選んで話し、どこにも送らない。自由に書いて話しかけられる版では、そのときだけ、書いた言葉とその場所でのやりとりを、答えをつくるために外部の AI 事業者に送る。mitsulab は会話を保存せず、学習にも使わない。歩きながら画面は見ない。境内では参拝の妨げにならない所で。</p>
+          <p data-i18n-en="Notes stay on your device; your route is not kept. In the published version, you talk with Aoi by choosing prepared questions, and nothing is sent anywhere. In a version where you can write freely, only what you write — and the exchange so far at that place — goes to an external AI provider to make the reply. mitsulab does not store conversations or use them for learning. Do not watch the screen while walking; at the shrine, stand where you do not disturb worshippers.">見方の記録は端末の中だけに残り、歩いた道筋は残さない。公開中の版では、碧とは用意した問いを選んで話し、どこにも送らない。自由に書いて話しかけられる版では、そのときだけ、書いた言葉とその場所でのやりとりを、答えをつくるために外部の AI 事業者に送る。mitsulab は会話を保存せず、学習にも使わない。歩きながら画面は見ない。境内では参拝の妨げにならない所で。</p>
         </details>
         <div class="btns">
-          <a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open the demo">デモ版を開く</span> <span class="arr">↗</span></a>
+          <a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a>
           <a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a>
           <a class="btn" href="mailto:official@mitsulab.jp?subject=%E7%8F%BE%E5%9C%B0%E3%81%A7%E3%81%AE%E8%A9%A6%E8%A1%8C%E3%81%AE%E7%9F%A5%E3%82%89%E3%81%9B%E3%82%92%E5%8F%97%E3%81%91%E5%8F%96%E3%82%8B"><span data-i18n-en="Get word of on-site trials">試行の知らせを受け取る</span> <span class="arr">✉</span></a>
         </div>
@@ -653,10 +667,10 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <p class="block-lead" data-i18n-en="All open on GitHub Pages and run in the browser. Each is a prototype; contents may change without notice.">どれも <span class="gloss-term" data-term-id="ghpages" role="button" tabindex="0">GitHub Pages</span> で公開していて、ブラウザで開けます。試作なので、内容は予告なく変わります。</p>
     </div>
     <ul class="tool-list">
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa (demo)">《Feel Hikawa》デモ版</span><span class="app-meta" data-i18n-en="Work · 2026-10">作品 · 2026-10</span>
+      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="app-meta" data-i18n-en="Work · 2026-10">作品 · 2026-10</span>
         <span class="tool-desc" data-i18n-en="Walk the Hikawa approach in full-scale 3D and stop at six places: look, listen to Aoi, talk, and look again. On site with your phone's location, or on screen at home.">氷川参道を実寸の 3D の中で歩き、六つの場所で立ち止まって、見る → 碧の話を聞く → 話す → もう一度見る。現地ではスマホの位置情報で、家では画面の上で。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>How the landform, water and trees of the approach look when you stop, compared with passing by."><span class="tk">わかること</span>参道の地形・水・並木が、立ち止まって見ると、通りすぎるときとどう違って見えるか。</span></div>
-        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open the demo">デモ版を開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
+        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
       <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Hikawa Ensemble">氷川重奏</span><span class="app-meta" data-i18n-en="Map · 2026-08">地図 · 2026-08</span>
         <span class="tool-desc" data-i18n-en="A map that layers wildlife records with the terrain, buildings and history of the Hikawa woods in Ōmiya; records from iNaturalist, and only photos under reuse-friendly licences are shown.">大宮・氷川の杜の、生きものの記録と地形・建物・歴史を一枚に重ねた資料地図。生きものの記録は iNaturalist、写真は再利用できる許可のものだけを表示。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>Which living things have been recorded around the approach, and where."><span class="tk">わかること</span>参道のまわりで、どんな生きものが、どこで記録されているか。</span></div>
@@ -715,7 +729,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
   </div>
   <div class="card unverified">
     <span class="card-title"><span class="ct-ja" data-i18n-en="Not yet validated">未検証</span><span class="ct-en">Honest status</span></span>
-    <p data-i18n-en="We do not promise a feeling or a change in how you see; whether anything changes is for you to find out. Demand, pricing and effects have not been validated; we are testing with the demo, and paid offerings have not started. We do not sell guiding time, make health or healing claims, diagnose, promise environmental recovery, take construction work or provide survey results.">感動や見方の変化を約束するものではありません。変わるかどうかは、試した人が確かめます。需要・価格・効果は、まだ検証していません。いまはデモ版で試している段階で、有料での提供は始めていません。案内人の時間は売りません。診断・効能・癒しをうたうこと、自然回復の保証、工事の請負、測量の成果の提供はしません。</p>
+    <p data-i18n-en="We do not promise a feeling or a change in how you see; whether anything changes is for you to find out. Demand, pricing and effects have not been validated; we are testing with the published version, and paid offerings have not started. We do not sell guiding time, make health or healing claims, diagnose, promise environmental recovery, take construction work or provide survey results.">感動や見方の変化を約束するものではありません。変わるかどうかは、試した人が確かめます。需要・価格・効果は、まだ検証していません。いまは公開中の版で試している段階で、有料での提供は始めていません。案内人の時間は売りません。診断・効能・癒しをうたうこと、自然回復の保証、工事の請負、測量の成果の提供はしません。</p>
   </div>
 </div>
 </section>
@@ -783,7 +797,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 <footer>
   <div class="f-brand">mitsulab</div>
   <div class="f-tag" data-i18n-en="Connecting people and nature">人と自然をつなぐ</div>
-  <p class="f-credit" data-i18n-en="Terrain on this page: GSI elevation tiles (DEM5A, gaps filled with DEM10B), processed by mitsulab. Images are screens of mitsulab's 3D works. Buildings: © OpenStreetMap contributors. 3D textures: CC0 materials from Poly Haven and ambientCG. Tree positions and some building heights are schematic or estimated. In the Feel Hikawa demo, buildings come from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), and the ground also uses GSI seamless aerial photos.">このページの地形：国土地理院の標高タイル（<span class="gloss-term" data-term-id="dem" role="button" tabindex="0">DEM5A</span>、欠けは DEM10B で補完）を mitsulab が加工。図版は mitsulab の 3D 作品の画面です。建物：© OpenStreetMap contributors。3D の質感：Poly Haven・ambientCG の CC0 素材。並木の位置・建物の高さの一部は模式・推定です。《Feel Hikawa》デモ版の建物は国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工し、地面には国土地理院の全国最新写真（シームレス）も使っています。</p>
+  <p class="f-credit" data-i18n-en="Terrain on this page: GSI elevation tiles (DEM5A, gaps filled with DEM10B), processed by mitsulab. Images are screens of mitsulab's 3D works. Buildings: © OpenStreetMap contributors. 3D textures: CC0 materials from Poly Haven and ambientCG. Tree positions and some building heights are schematic or estimated. In Feel Hikawa, buildings come from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), and the ground also uses GSI seamless aerial photos.">このページの地形：国土地理院の標高タイル（<span class="gloss-term" data-term-id="dem" role="button" tabindex="0">DEM5A</span>、欠けは DEM10B で補完）を mitsulab が加工。図版は mitsulab の 3D 作品の画面です。建物：© OpenStreetMap contributors。3D の質感：Poly Haven・ambientCG の CC0 素材。並木の位置・建物の高さの一部は模式・推定です。《Feel Hikawa》の建物は国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工し、地面には国土地理院の全国最新写真（シームレス）も使っています。</p>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
 </footer>
 
@@ -831,7 +845,7 @@ var TERRAIN = {"cols": 120, "rows": 92, "z0": -2.0, "dz": 0.1, "bbox": [139.615,
     cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
     var inner=document.querySelector('.why-inner'), tr=document.getElementById('terrainCap');
     var ib=inner?inner.getBoundingClientRect().bottom-r.top:H*0.45, tt=tr?tr.getBoundingClientRect().top-r.top:H*0.85;
-    bandTop=Math.max(H*0.3, ib+26); bandBot=Math.max(bandTop+80, tt-14);   // 地形の帯を、コアの一行の下〜出典の一行の上に収める
+    bandTop=Math.max(H*0.3, ib+86); bandBot=Math.max(bandTop+80, tt-14);   // 地形の帯を、冒頭の文と三段の下〜出典の一行の上に収める（尾根が上へ伸びる分 60px ほど空ける）
     draw();
   }
   function proj(row,col,z){ var t=row/(Rn-1); var x=-W*0.04+col/(C-1)*W*1.08; var y0=bandTop+(bandBot-bandTop)*t; var pxm=(W*1.08)/4780; return [x, y0-(z-hmin)*pxm*ex]; }
