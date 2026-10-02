@@ -264,7 +264,7 @@ main{position:relative;z-index:1}
 .tools{margin-top:8px}
 .tools-label{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.24em;color:var(--aoi);margin:0 0 10px;text-transform:uppercase}
 .tool-list{list-style:none;border-top:1px solid rgba(150,170,240,.16)}
-.tool{display:flex;gap:18px;align-items:center;justify-content:space-between;padding:16px 4px;border-bottom:1px solid rgba(150,170,240,.16)}
+.tool{display:flex;gap:22px;align-items:center;justify-content:space-between;padding:16px 4px;border-bottom:1px solid rgba(150,170,240,.16)}
 .tool-main{min-width:0;flex:1}
 .tool-name{font-family:var(--serif);font-size:1.05rem;letter-spacing:.06em;color:#e8eef5;margin-right:12px}
 .tool .app-meta{display:inline;margin:0}
@@ -289,6 +289,8 @@ main{position:relative;z-index:1}
 
 /* v8：人と自然をつなぐ の主図と重ねる文字 */
 .q-stage{position:relative;container-type:inline-size;border-radius:16px;overflow:hidden;border:1px solid rgba(92,200,224,.22);background:#071425}
+.tool-img{display:block;flex:0 0 240px;width:240px;max-width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;border-radius:10px;border:1px solid rgba(92,200,224,.18)}
+@media (max-width:640px){.tool-img{flex:none;width:100%}}
 .q-stage .q-img{display:block;width:100%;height:auto;border:0;border-radius:0}
 .ql{position:absolute;left:var(--dx);top:var(--dy);font-family:var(--serif);font-weight:600;font-size:1.25cqw;letter-spacing:.06em;line-height:1.2;white-space:nowrap;color:#eaf6fb;padding:.3cqw .7cqw;border-radius:99cqw;background:rgba(4,10,20,.55);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);pointer-events:none}
 .ql.a-left{transform:translate(calc(-100% - 1.2cqw),-50%)}
@@ -492,9 +494,8 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <button type="button" class="brand" data-go="top" aria-label="mitsulab トップへ">mitsulab</button>
     <div class="tab-buttons" role="tablist">
       <button class="tab-btn" role="tab" data-tab="top"><span class="tb-ja" data-i18n-en="mitsulab">mitsulab</span><span class="tb-en">Top</span></button>
-      <button class="tab-btn" data-go-anchor="apps"><span class="tb-ja" data-i18n-en="Apps">アプリ</span><span class="tb-en">Apps</span></button>
       <button class="tab-btn" data-go-anchor="guide"><span class="tb-ja" data-i18n-en="Aoi">碧</span><span class="tb-en">Guide</span></button>
-      <button class="tab-btn" role="tab" data-tab="business"><span class="tb-ja" data-i18n-en="Business">事業</span><span class="tb-en">Business</span></button>
+      <button class="tab-btn" data-go-anchor="apps"><span class="tb-ja" data-i18n-en="Apps">アプリ</span><span class="tb-en">Apps</span></button>
       <button class="tab-btn" role="tab" data-tab="profile"><span class="tb-ja" data-i18n-en="Profile">代表プロフィール</span><span class="tb-en">Profile</span></button>
       <button class="tab-btn" role="tab" data-tab="contact"><span class="tb-ja" data-i18n-en="Contact">お問い合わせ</span><span class="tb-en">Contact</span></button>
     </div>
@@ -522,7 +523,6 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <li><button class="tab-menu-leaf" data-go-anchor="guide"><span class="leaf-ja" data-i18n-en="Aoi">碧</span><span class="leaf-en">Guide</span></button></li>
       <li><button class="tab-menu-leaf" data-go-anchor="apps"><span class="leaf-ja" data-i18n-en="Apps">アプリ</span><span class="leaf-en">Apps</span></button></li>
       <li><button class="tab-menu-leaf" data-go-anchor="uses"><span class="leaf-ja" data-i18n-en="Uses">応用</span><span class="leaf-en">Uses</span></button></li>
-      <li><button class="tab-menu-leaf" data-tab="business"><span class="leaf-ja" data-i18n-en="Business">事業</span><span class="leaf-en">Business</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="profile"><span class="leaf-ja" data-i18n-en="Profile">代表プロフィール</span><span class="leaf-en">Profile</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="contact"><span class="leaf-ja" data-i18n-en="Contact">お問い合わせ</span><span class="leaf-en">Contact</span></button></li>
     </ul>
@@ -544,10 +544,8 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <span class="eyebrow">mitsulab</span>
     <!-- コアの一行は下の script の CORE（一か所）で差し替える。ここの文字は読み込み前と検索のための控え -->
     <p class="core" id="core">認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span></p>
-    <p class="hero-lead" data-i18n-en="Connecting people and nature.">人と自然を、<span class="nw">つなぐ。</span></p>
-    <!-- ビジョンと、その実現の三段（10-03 本人指示）。三段は下の節へ飛ぶ -->
-    <p class="hero-vision" data-i18n-en="Between people, nature and machines — toward a world that can be known more deeply, and felt anew.">人と自然と機械のあいだで、<br>世界をより深く知り、<span class="nw">感じなおせる社会へ。</span></p>
-    <p class="hero-def" data-i18n-en="For that, mitsulab makes three things.">そのために、mitsulab は三つをつくっています。</p>
+    <p class="hero-lead" data-i18n-en="Connecting people and nature, so the world can be known more deeply and felt anew.">人と自然をつなぎ、<br>世界をより深く知り、<span class="nw">感じなおせる社会へ。</span></p>
+    <p class="hero-def" data-i18n-en="What mitsulab makes">そのためにつくっているもの</p>
     <ol class="how" aria-label="ビジョンを実現する三つ">
       <li><a href="#site" data-go-anchor="site"><span class="how-k" data-i18n-en="Place">場</span><span class="how-t" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="how-d" data-i18n-en="A work you walk on site, stopping to look">現地を歩き、立ち止まって見る作品</span></a></li>
       <li><a href="#apps" data-go-anchor="apps"><span class="how-k" data-i18n-en="Tools">道具</span><span class="how-t" data-i18n-en="Apps, open now">公開中のアプリ</span><span class="how-d" data-i18n-en="Landform, living things and soil, in forms you can see">地形・生きもの・土を、見える形に</span></a></li>
@@ -571,20 +569,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <p data-i18n-en="mitsulab carries part of that over — with data, 3D, sound and words — into forms people can take in, and Aoi hands it to you at the place itself. We call widening how the world is organised for a person cognitive augmentation.">mitsulab は、その一部を、データ・3D・音・言葉で人が受け取れる形に移し、碧がその場で手渡します。世界の見え方の組み立てを広げること、それを<span class="nw">認知拡張と呼んでいます。</span></p>
       <p class="q-cannot" data-i18n-en="The colours a bee sees can be carried over into human colours. How the bee experiences them cannot.">ハチの目の色は、人の色に移せる。<br>ハチがそれをどう経験するかは、移せない。</p>
     </div>
-    <figure class="q-hero" id="qHero">
-      <div class="q-stage">
-        <picture>
-          <source media="(max-width:700px)" type="image/webp" srcset="img/ftw/qualium_m_640.webp 640w, img/ftw/qualium_m_960.webp 960w" sizes="100vw">
-          <source type="image/webp" srcset="img/ftw/qualium_640.webp 640w, img/ftw/qualium_960.webp 960w, img/ftw/qualium_1600.webp 1600w" sizes="(max-width:1160px) 100vw, 1100px">
-          <img class="q-img" src="img/ftw/qualium_960.webp" width="1600" height="900" loading="lazy" decoding="async" alt="氷川神社のまわりの 3D の地形の上で、碧から人・自然・機械の側へ光の線がのびる図" data-i18n-alt="Over the 3D landform around Hikawa Shrine, lines of light run from Aoi toward people, nature and machines">
-        </picture>
-        <span class="ql l-aoi a-left" style="--dx:38.32%;--dy:59.14%;--mx:46.03%;--my:46.69%" data-i18n-en="Aoi">碧</span>
-        <span class="ql l-hum a-right" style="--dx:48.44%;--dy:94.56%;--mx:59.82%;--my:68.15%" data-i18n-en="People (the approach)">人（参道）</span>
-        <span class="ql l-nat a-center" style="--dx:80.00%;--dy:80.00%;--mx:74.00%;--my:86.00%" data-i18n-en="Nature (landform)">自然（地形）</span>
-        <span class="ql l-mac a-center" style="--dx:10.00%;--dy:90.00%;--mx:18.00%;--my:93.00%" data-i18n-en="Machines (elevation grid)">機械（標高の格子）</span>
-      </div>
-      <figcaption class="q-cap" data-i18n-en="The landform around Hikawa Shrine (approx. 4.8 km E–W × 3.7 km N–S), seen from the south-southwest. Height exaggerated 15×; contours every 2 m. The rings and the names at the ends of the lines (mitsulab's working names for kinds of tools) are illustrative, not locations. (GSI DEM5A, processed by mitsulab; approach © OpenStreetMap contributors)">氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）の地形を南南西から。高さは 15 倍に強調。等高線は 2 m おき。光の輪と、線の先の名前（mitsulab が考えている道具の種類の呼び名）は絵の配置で、地点を指すものではない。（国土地理院 DEM5A を mitsulab が加工／参道 © OpenStreetMap contributors）</figcaption>
-    </figure>
+
     <div class="defs" id="define">
       <dl class="deflist">
         <div><dt data-i18n-en="Cognitive Augmentation">認知拡張</dt><dd data-i18n-en="Using language, information, memory, knowledge, reasoning and models of others (living things, machines) to widen how the world is organised for a subject: what it is distinguished as, what it is related to, what matters, over what span of time, and how one can engage with it. This includes perception: widening, with tools, what the five senses can take in. It does not guarantee improved ability; it creates conditions in which a new organisation can arise.">言語・情報・記憶・知識・推論・他者（生きもの・機械）のモデルを用いて、主体にとって世界が何として区別され、何と関係づけられ、何が重要となり、どの時間の幅で、どう関われるか──その組み立てを広げること。五感で受け取れる範囲を道具で広げること（知覚）も、ここに含む。能力が上がることの保証ではなく、新しい組み立てが起こりうる条件をつくること。</dd></div>
@@ -635,7 +620,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       </figure>
       <div>
         <span class="eyebrow">Guide</span>
-        <h2 class="panel-title" id="guideH" data-i18n-en="Aoi">碧<span class="q-yomi">あお</span></h2>
+        <h2 class="panel-title" id="guideH" data-i18n-en="Aoi">碧<span class="q-yomi">あおい</span></h2>
         <p class="guide-role" data-i18n-en="A two-way interpreter between people and nature">人と自然のあいだの、<span class="nw">両向きの通訳</span></p>
         <p class="quote" data-i18n-en="Shall we look at this place together?<br>If what you see does not match what I said,<br>trust what you see.">この場所、一緒に見てみる？<br>わたしの話と合わなかったら、<br>そちらが正しい見方です。</p>
         <p data-i18n-en="Aoi passes what nature holds — landform, water, trees, records — to people, and carries people's questions over to the side of nature. Run by mitsulab with AI. Aoi decides what to hand you and in what order, adds where it comes from and how certain it is, says when it does not know, and ends with a question.">自然の側にあるもの（地形・水・木・記録）を人へ手渡し、人の問いを自然の側へ運ぶ。mitsulab が AI で動かしています。何をどの順で手渡すかを決め、出どころと確かさを一言添える。分からないことは分からないと言い、最後に問いを返す。</p>
@@ -657,23 +642,23 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <p class="block-lead" data-i18n-en="All open on GitHub Pages and run in the browser. Each is a prototype; contents may change without notice.">どれも <span class="gloss-term" data-term-id="ghpages" role="button" tabindex="0">GitHub Pages</span> で公開していて、ブラウザで開けます。試作なので、内容は予告なく変わります。</p>
     </div>
     <ul class="tool-list">
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="app-meta" data-i18n-en="Work · 2026-10">作品 · 2026-10</span>
-        <span class="tool-desc" data-i18n-en="Walk the Hikawa approach in full-scale 3D and stop at six places: look, listen to Aoi, talk, and look again. On site with your phone's location, or on screen at home.">氷川参道を実寸の 3D の中で歩き、六つの場所で立ち止まって、見る → 碧の話を聞く → 話す → もう一度見る。現地ではスマホの位置情報で、家では画面の上で。</span>
+      <li class="tool"><img class="tool-img" src="img/apps/feel-hikawa_640.webp" width="640" height="400" loading="lazy" alt="《Feel Hikawa》の 3D：並木の参道" data-i18n-alt="Feel Hikawa in 3D: the tree-lined approach"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span>
+        <span class="tool-desc" data-i18n-en="Walk the Hikawa approach in full-scale 3D and stop at four places from the second torii to the shrine pond: look, listen to Aoi, and look again. On site with your phone's location, or on screen at home.">氷川参道を実寸の 3D の中で歩き、二の鳥居から神池まで四つの場所で立ち止まって、見る → 碧の話を聞く → 見直す。現地ではスマホの位置情報で、家では画面の上で。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>How the landform, water and trees of the approach look when you stop, compared with passing by."><span class="tk">わかること</span>参道の地形・水・並木が、立ち止まって見ると、通りすぎるときとどう違って見えるか。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Hikawa Ensemble">氷川重奏</span><span class="app-meta" data-i18n-en="Map · 2026-08">地図 · 2026-08</span>
+      <li class="tool"><img class="tool-img" src="img/apps/hikawa-ensemble_640.webp" width="640" height="400" loading="lazy" alt="氷川重奏の画面：氷川の杜のまわりの地図に生きものの記録が重なる" data-i18n-alt="Hikawa Ensemble: wildlife records over a map of the Hikawa woods"><div class="tool-main"><span class="tool-name" data-i18n-en="Hikawa Ensemble">氷川重奏</span>
         <span class="tool-desc" data-i18n-en="A map that layers wildlife records with the terrain, buildings and history of the Hikawa woods in Ōmiya; records from iNaturalist, and only photos under reuse-friendly licences are shown.">大宮・氷川の杜の、生きものの記録と地形・建物・歴史を一枚に重ねた資料地図。生きものの記録は iNaturalist、写真は再利用できる許可のものだけを表示。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>Which living things have been recorded around the approach, and where."><span class="tk">わかること</span>参道のまわりで、どんな生きものが、どこで記録されているか。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/HIKAWA-ENSEMBLE/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/HIKAWA-ENSEMBLE" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="app-meta" data-i18n-en="Work · 2026-10">作品 · 2026-10</span>
+      <li class="tool"><img class="tool-img" src="img/apps/shinra_640.webp" width="640" height="400" loading="lazy" alt="森羅百景の総目録の画面と案内役の碧" data-i18n-alt="Shinra Hyakkei: the catalogue page with Aoi as guide"><div class="tool-main"><span class="tool-name" data-i18n-en="Shinra Hyakkei">森羅百景</span>
         <span class="tool-desc" data-i18n-en="A catalogue of series on soil, rain, wind, snow, vegetables, the moon and the sun, each with its sources.">土・雨・風・雪・野菜・月・太陽などの連作を、典拠つきで束ねた総目録。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>How everyday nature has been received in words and pictures over time."><span class="tk">わかること</span>身近な自然が、昔からどんな言葉や絵で受けとめられてきたか。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/shinra-hyakkei" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Who Lives in the Soil">土の微生物の顔ぶれ</span><span class="app-meta" data-i18n-en="Teaching tool · 2026-03">教材 · 2026-03</span>
+      <li class="tool"><img class="tool-img" src="img/apps/soil-microbes_640.webp" width="640" height="400" loading="lazy" alt="土の微生物の顔ぶれの画面" data-i18n-alt="Who Lives in the Soil: the teaching page"><div class="tool-main"><span class="tool-name" data-i18n-en="Who Lives in the Soil">土の微生物の顔ぶれ</span>
         <span class="tool-desc" data-i18n-en="A teaching tool for comparing soil bacteria, archaea and fungi at the phylum level across soils such as forest and paddy. The data are illustrative, not measured.">森・水田・丘陵などの土の中の細菌・アーキア・菌類を、「門」という大きなまとまりで見くらべる教材。数値は説明のための仮のデータで、実測ではない。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>What it means for different soils to host different microbes, and how diversity indices are read."><span class="tk">わかること</span>土の種類によって顔ぶれが違うとはどういうことか。多様度指数の読み方。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/soil-metagenomics-topography-correlation" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Connections Underground">土の中のつながり</span><span class="app-meta" data-i18n-en="Teaching tool · 2026-02">教材 · 2026-02</span>
+      <li class="tool"><img class="tool-img" src="img/apps/soil-web_640.webp" width="640" height="400" loading="lazy" alt="土の中のつながりの画面：粒どうしのやりとりの網の目" data-i18n-alt="Connections Underground: the web of interactions"><div class="tool-main"><span class="tool-name" data-i18n-en="Connections Underground">土の中のつながり</span>
         <span class="tool-desc" data-i18n-en="A browser-based teaching model of soil food-web interactions viewed as a network; rules and parameters are illustrative, not measured.">細菌・菌類・線虫・ミミズ・根・水などを粒として動かし、近づいた粒どうしのやりとりを網の目として見る学習用の模擬。規則と数値は分かりやすさのために決めたもので、測った値ではない。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>A way of seeing decomposition, predation and mutual help in soil as a web of connections."><span class="tk">わかること</span>分解・捕食・助け合いが、土の中で網の目のようにつながるという見方。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/Soil-Ecosystem-ANT-Simulator/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/Soil-Ecosystem-ANT-Simulator" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
@@ -693,38 +678,6 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 </section>
 
 <!-- ┌─ 事業 ───────────── -->
-<section id="business" class="tab-panel" data-panel="business" aria-label="事業">
-<div class="wrap">
-  <div class="panel-head">
-    <span class="eyebrow">Business</span>
-    <h2 class="panel-title" data-i18n-en="For the curious, first">まず、試したくなった人のために</h2>
-    <p class="panel-lead" data-i18n-en="Curiosity and fun first, with learning as what follows. A weekend outing with friends or family — that is what we are testing first.">探究心とおもしろさが先、学びはその結果。友だちや家族と出かける週末の遊びとして選ばれるか──それを最初に確かめます。</p>
-  </div>
-  <div class="grid-2">
-    <div class="card">
-      <span class="card-title"><span class="ct-ja" data-i18n-en="Who, and how">誰に、どう届けるか</span><span class="ct-en">For whom</span></span>
-      <ul class="list">
-        <li data-i18n-en="First individuals — nature lovers, hikers, people interested in farming, puzzle fans, families. Schools are also candidates. Those who look after places come later.">まず個人（自然が好きな人、山を歩く人、農に関心のある人、謎解きが好きな人、家族）。学校も候補。場所を預かる人との協働はその後。</li>
-        <li data-i18n-en="Runs without us standing by: from starting to finishing, no staff needed; a prepared script carries on if signal, GPS or AI fail.">立ち会わずに回る。始める → 歩く → 終えるまで人の手が要らず、電波・GPS・AI が止まっても台本で最後まで進む。</li>
-        <li data-i18n-en="Same form and tools, new places and seasons. Only the stops, the evidence and the puzzles are made per place.">同じ型と道具で、場所と季節を替える。場所ごとに作るのは、地点・根拠・謎の三つだけ。</li>
-      </ul>
-    </div>
-    <div class="card">
-      <span class="card-title"><span class="ct-ja" data-i18n-en="Next place">次の場所へ</span><span class="ct-en">Next place</span></span>
-      <div class="sheet" aria-label="最初の場所と、まだ決まっていない次の場所">
-        <div class="here" data-i18n-en="Hikawa">氷川</div><div>?</div><div>?</div><div>?</div>
-      </div>
-      <p class="note" data-i18n-en="A good next place: relations of terrain, water and time can be checked in public data; one can stop safely; origins can be checked in records, with lore kept as lore; an eye for engineering, farming and landscape helps.">次の場所の条件：地形・水・時間の関係が公開データで確かめられる／安全に立ち止まれる／由来が史料で確かめられ、伝承は伝承として扱える／土木・農業・造園の目が効く。</p>
-    </div>
-  </div>
-  <div class="card unverified">
-    <span class="card-title"><span class="ct-ja" data-i18n-en="Not yet validated">未検証</span><span class="ct-en">Honest status</span></span>
-    <p data-i18n-en="We do not promise a feeling or a change in how you see; whether anything changes is for you to find out. Demand, pricing and effects have not been validated; we are testing with the published version, and paid offerings have not started. We do not sell guiding time, make health or healing claims, diagnose, promise environmental recovery, take construction work or provide survey results.">感動や見方の変化を約束するものではありません。変わるかどうかは、試した人が確かめます。需要・価格・効果は、まだ検証していません。いまは公開中の版で試している段階で、有料での提供は始めていません。案内人の時間は売りません。診断・効能・癒しをうたうこと、自然回復の保証、工事の請負、測量の成果の提供はしません。</p>
-  </div>
-</div>
-</section>
-
-<!-- ┌─ 代表プロフィール ───────────── -->
 <section id="profile" class="tab-panel" data-panel="profile" aria-label="代表プロフィール">
 <div class="wrap">
   <div class="panel-head">
@@ -738,7 +691,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <p class="pf-name">上原 光瑛</p>
       <span class="pf-name-en">Mitsuaki Uehara</span>
       <ul class="pf-roles">
-        <li data-i18n-en="Founder, mitsulab / Editor-in-Chief, Stillpoint / Director, MoARC Inc.">mitsulab 代表 ／ Stillpoint 編集長 ／ 株式会社モアーク取締役</li>
+        <li data-i18n-en="Founder, mitsulab / Director, MoARC Inc.">mitsulab 代表 ／ 株式会社モアーク取締役</li>
       </ul>
       <dl class="pf-cv" aria-label="略歴">
         <div><dt>1995</dt><dd data-i18n-en="Born in Saitama Prefecture">埼玉県に生まれる</dd></div>
@@ -871,13 +824,13 @@ var TERMS = {
   ninchi:{ja:'認知モデル',en:'Cognitive model',
     dj:'人がその場所で、何を区別し、何を結び、どう関わるかの枠組み。碧の間は、同じ場所でこの枠組みが動くかを、本人が確かめられるようにする。',
     de:'The framework of what a person distinguishes, connects and how they relate, in a given place. Aoi no Ma lets each person check whether that framework moves.'},
-  aoi:{ja:'碧（あお）',en:'Aoi',
+  aoi:{ja:'碧（あおい）',en:'Aoi',
     dj:'mitsulab が AI で動かしている依代。人と自然のあいだに立つ、両向きの通訳。人ではない。',
     de:'A yorishiro run by mitsulab with AI: a two-way interpreter between people and nature. Not a person.'},
   yorishiro:{ja:'依代（よりしろ）',en:'Yorishiro',
     dj:'もとは、神霊が宿るとされる物を指す言葉。mitsulab では、人と自然のあいだに立って語りを受け渡す、碧のありかたを指して使っている。',
     de:'Originally, an object in which a spirit is believed to dwell. mitsulab uses the word for Aoi\'s role: standing between people and nature and passing words across.'},
-  aoinoma:{ja:'碧の間（あおのま）',en:'Aoi no Ma',
+  aoinoma:{ja:'碧の間（あおいのま）',en:'Aoi no Ma',
     dj:'mitsulab の体験の型。みる → きく → かたる → かえりみる の四つの段。「間」は、人と自然のあいだと、一度目と二度目のあいだの両方を指す。',
     de:'mitsulab\'s form of experience: look, listen, talk, look back. “Ma” means both the space between people and nature, and the gap between a first and second look.'},
   konkyo:{ja:'根拠',en:'Evidence',
