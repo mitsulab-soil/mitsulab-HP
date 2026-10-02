@@ -11,8 +11,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mitsulab — 認知拡張｜Qualium</title>
-<meta name="description" content="mitsulab は認知拡張の研究所。世界の現れ方の一部を別の受け手が扱える形に転写する道具＝Qualia と、それらが碧を介してつながる場と仕組み＝Qualium をつくる。最初の場は《Feel Hikawa》。Geo-Qualia をこのページで試せる。">
+<title>mitsulab — 認知拡張｜人と自然をつなぐ</title>
+<meta name="description" content="mitsulab は認知拡張の研究所。人と自然をつなぐ場と道具をつくっています。案内役は碧（AI）で、人と自然のあいだの両向きの通訳。最初の場《Feel Hikawa》（大宮の氷川参道）のデモ版と、土や生きものを見るアプリを公開中。">
 <meta name="author" content="上原光瑛">
 <meta name="robots" content="index, follow">
 <meta name="format-detection" content="telephone=no">
@@ -23,8 +23,8 @@
 <meta property="og:url" content="https://mitsulab.jp/">
 <meta property="og:site_name" content="mitsulab">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:title" content="mitsulab — 認知拡張｜Qualium">
-<meta property="og:description" content="認知拡張。自然と世界を、より深く。Qualia（転写の道具）と Qualium（それらがつながる場と仕組み）。">
+<meta property="og:title" content="mitsulab — 認知拡張｜人と自然をつなぐ">
+<meta property="og:description" content="認知拡張。自然と世界を、より深く。人と自然をつなぐ場と道具を、碧（AI の案内役）とともにつくる。最初の場《Feel Hikawa》デモ版を公開中。">
 <meta property="og:image" content="https://mitsulab.jp/img/ftw/hero_hikawa_960.webp">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -287,8 +287,7 @@ main{position:relative;z-index:1}
 @media (max-width:700px){main .wrap{padding-bottom:84px}footer{padding-bottom:96px}}
 
 
-/* v8：Qualium の主図と重ねる文字 */
-#qualium .q-hero{max-width:1100px}
+/* v8：人と自然をつなぐ の主図と重ねる文字 */
 .q-stage{position:relative;container-type:inline-size;border-radius:16px;overflow:hidden;border:1px solid rgba(92,200,224,.22);background:#071425}
 .q-stage .q-img{display:block;width:100%;height:auto;border:0;border-radius:0}
 .ql{position:absolute;left:var(--dx);top:var(--dy);font-family:var(--serif);font-weight:600;font-size:1.25cqw;letter-spacing:.06em;line-height:1.2;white-space:nowrap;color:#eaf6fb;padding:.3cqw .7cqw;border-radius:99cqw;background:rgba(4,10,20,.55);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);pointer-events:none}
@@ -297,24 +296,33 @@ main{position:relative;z-index:1}
 .ql.a-center{transform:translate(-50%,-50%)}
 .ql.l-aoi{color:#06222b;background:rgba(160,236,246,.92);font-size:1.4cqw}
 .ql.l-hum{color:#f6dca6}
-.ql.l-per,.ql.l-cog{font-family:var(--sans);font-weight:500;font-size:1.05cqw;color:#bfe6f0;background:rgba(4,10,20,.45)}
 @media (max-width:700px){
   .q-stage .q-img{aspect-ratio:4/5}
   .ql{left:var(--mx);top:var(--my);font-size:3.1cqw;padding:.6cqw 1.4cqw}
   .ql.l-aoi{font-size:3.4cqw}
-  .ql.l-per,.ql.l-cog{font-size:2.6cqw}
-  .ql.a-left{transform:translate(calc(-100% - 2.4cqw),-50%)}
+    .ql.a-left{transform:translate(calc(-100% - 2.4cqw),-50%)}
   .ql.a-right{transform:translate(2.4cqw,-50%)}
   /* 縦長の図では、層の名は輪の端の上（認知）と右（知覚）に置き、はみ出し・重なりを避ける */
-  .ql.l-cog{transform:translate(-8%,-185%)}
-  .ql.l-per{transform:translate(2.4cqw,-50%)}
   .ql.l-hum{transform:translate(calc(-100% - 2.4cqw),-50%)}
   .ql.l-mac{left:32%}
 }
 
-/* v6：認知拡張・定義・Qualia */
+/* v6：認知拡張・定義 */
 .core-sub{display:block;font-size:.5em;letter-spacing:.14em;color:var(--ink-2);margin-top:.5em;font-weight:600}
 html[lang="en"] .core-sub{font-size:.42em;letter-spacing:.04em}
+.hero-lead{font-family:var(--serif);font-weight:600;font-size:clamp(1.15rem,3vw,1.5rem);letter-spacing:.14em;color:#f2e6cf;margin:0 0 14px;text-shadow:0 1px 12px rgba(3,6,15,.9)}
+html[lang="en"] .hero-lead{letter-spacing:.04em}
+.terrain-cap{position:relative;max-width:640px;font-size:.7rem;line-height:1.6;color:var(--ink-3);text-shadow:0 1px 8px rgba(3,6,15,.95);margin:0 auto}
+#connect .connect-copy{max-width:760px;margin:0 auto 26px;text-align:center}
+#connect .connect-copy p{line-height:2.05;margin-bottom:14px}
+#connect .q-cannot{display:inline-block;font-family:var(--serif);color:#f2e6cf;margin-top:6px}
+#connect .q-hero{margin:0 auto 34px;max-width:1100px;text-align:center}
+#connect .q-img{width:100%;height:auto;border-radius:14px;border:1px solid rgba(92,200,224,.22)}
+#connect .def-ground{margin-top:22px}
+.deflist dt .q-yomi{font-size:.72em}
+.tool-know{display:block;font-size:.82rem;color:var(--ink-2);line-height:1.75;margin-top:6px}
+.tool-know .tk{font-family:var(--mono);font-size:.7rem;color:#e8c58a;letter-spacing:.06em;margin-right:.7em}
+.guide-role{font-family:var(--serif);font-size:1.02rem;letter-spacing:.08em;color:#f2e6cf;margin:-4px 0 12px}
 .hero-def{max-width:620px;margin:0 auto;font-size:.95rem;line-height:1.95;color:var(--ink-2);text-shadow:0 1px 10px rgba(3,6,15,.9)}
 .defs{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:34px;align-items:start}
 @media (max-width:900px){.defs{grid-template-columns:1fr;gap:22px}}
@@ -330,20 +338,7 @@ html[lang="en"] .core-sub{font-size:.42em;letter-spacing:.04em}
 .deflist>div{border-left:2px solid rgba(92,200,224,.45);padding:2px 0 2px 16px}
 .deflist dt{font-family:var(--serif);font-weight:600;font-size:1.05rem;letter-spacing:.06em;color:#f7fbff;margin-bottom:4px}
 .deflist dd{font-size:.9rem;line-height:1.9;color:var(--ink-2)}
-#qualium .q-hero{margin:0 auto 26px;max-width:1100px;text-align:center}
-#qualium .q-hero .q-fig{max-width:420px}
-#qualium .q-img{width:100%;height:auto;border-radius:14px;border:1px solid rgba(92,200,224,.22)}
 .q-cap{font-size:.78rem;color:var(--ink-3);margin-top:8px}
-#qualium .q-copy{max-width:760px;margin:0 auto;text-align:center}
-#qualium .q-copy .panel-title{text-align:center}
-#qualium .q-cannot{display:inline-block}
-.layer-h{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-family:var(--serif);font-size:1.15rem;letter-spacing:.08em;color:#f7fbff;margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(150,170,240,.16)}
-.layer-en{font-family:var(--sans);font-size:.8rem;letter-spacing:.02em;color:var(--ink-3)}
-.qualia{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:14px}
-.q-card{display:flex;flex-direction:column;background:rgba(9,14,22,.9);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;transition:transform .25s cubic-bezier(.2,.7,.3,1),border-color .25s,box-shadow .25s}
-@media (hover:hover){.q-card:hover{transform:translateY(-3px);border-color:rgba(92,200,224,.6);box-shadow:0 10px 30px rgba(0,0,0,.35)}}
-.q-card.st-here{border-color:rgba(232,197,138,.55)}
-.q-card.st-soon,.q-card.st-check{border-style:dashed;background:rgba(9,14,22,.7)}
 .qc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .qc-name{font-family:var(--latin);font-style:italic;font-weight:500;font-size:1.3rem;letter-spacing:.02em;color:#f7fbff}
 .qc-dim{font-family:var(--serif);font-size:.9rem;color:var(--aoi-2)}
@@ -363,16 +358,7 @@ html[lang="en"] .qc-tags>div{grid-template-columns:6.4em 1fr}
 
 /* v5 */
 .terrain-space{flex:1 0 auto;min-height:20vh;width:100%}
-@media (max-width:560px){.manifesto{font-size:.92rem;letter-spacing:.04em;line-height:2}.terrain-space{min-height:27vh}main .why{padding-top:4vh}.try-answer{font-size:.8rem}.try-note{font-size:.68rem}.core{margin-bottom:18px}}
-.try-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-.try-orb{flex:none;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 50% 45%,#e6fffb 0%,#6ce0f4 40%,rgba(92,200,224,0) 75%);box-shadow:0 0 12px rgba(92,200,224,.6)}
-.try-q{font-family:var(--serif);font-size:clamp(1.02rem,2.6vw,1.2rem);letter-spacing:.06em;color:#f7fbff}
-.try-tool{font-family:var(--sans);font-size:.76rem;letter-spacing:.04em;color:var(--ink-3)}
-.try-range{position:relative}
-.try-hint{position:absolute;left:34px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:.78rem;color:#e8c58a;pointer-events:none;animation:hint 1.8s ease-in-out infinite}
-.try-hint.off{display:none}
-@keyframes hint{0%,100%{opacity:.35;transform:translate(0,-50%)}50%{opacity:1;transform:translate(8px,-50%)}}
-.try-answer{font-size:.86rem;line-height:1.75;color:#e8c58a;margin-top:4px;animation:panelIn .5s ease both}
+@media (max-width:560px){.manifesto{font-size:.92rem;letter-spacing:.04em;line-height:2}.terrain-space{min-height:27vh}main .why{padding-top:4vh}.core{margin-bottom:18px}}
 .q-cannot{margin-top:16px;padding-left:14px;border-left:2px solid rgba(232,197,138,.6);font-family:var(--serif);font-size:1rem;line-height:1.9;color:#f2e6cf;text-align:left}
 .fig-sub{margin-top:10px;width:46%!important;aspect-ratio:16/9;border:1px solid rgba(92,200,224,.22);opacity:.9}
 .tab-btn[data-go-anchor] .tb-en{color:var(--aoi-deep)}
@@ -416,18 +402,13 @@ footer .f-copy{font-size:.78rem;color:var(--ink-3)}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
 
-/* ===== v4（Qualium）：WHY＝Geo-Qualia・Qualium の図 ===== */
+/* ===== WHY＝地形図（高さの強調は固定） ===== */
 .why{position:relative;min-height:calc(100vh - 64px);min-height:calc(100svh - 64px);display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;padding:6vh 20px 22px;overflow:hidden;isolation:isolate;background:radial-gradient(120% 70% at 50% 0%,#0b1a2c 0%,#03060f 70%)}
 .terrain{position:absolute;inset:0;width:100%;height:100%;z-index:-1;display:block}
 .why-inner{position:relative;max-width:760px}
 .core{font-family:var(--serif);font-weight:600;font-size:clamp(2.1rem,6.6vw,3.9rem);letter-spacing:.1em;line-height:1.3;color:#f7fbff;text-shadow:0 0 28px rgba(92,200,224,.35);margin:4px 0 26px}
 html[lang="en"] .core{letter-spacing:.02em;font-family:var(--latin);font-style:italic;font-weight:500}
 .manifesto{font-family:var(--serif);font-size:clamp(.98rem,2vw,1.15rem);line-height:2.15;letter-spacing:.08em;color:var(--ink-2);text-shadow:0 1px 10px rgba(3,6,15,.9)}
-.try{position:relative;width:min(560px,100%);background:rgba(6,10,20,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:14px 18px 12px;text-align:left}
-.try-label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:.86rem;color:var(--aoi-2)}
-.try-tool{font-family:var(--serif);letter-spacing:.08em}
-.try-val{font-family:var(--mono);font-size:.82rem;color:#e8c58a}
-.try-note{font-size:.72rem;color:var(--ink-3);line-height:1.6;margin-top:6px}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:36px;background:transparent;cursor:pointer;touch-action:pan-y}
 input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--aoi-deep),var(--aoi))}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-12px;border-radius:50%;background:#c6f8f2;box-shadow:0 0 0 6px rgba(92,200,224,.18),0 0 18px rgba(92,200,224,.6);transition:transform .15s}
@@ -451,11 +432,9 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border:0;border-radiu
 @keyframes qBreath{0%,100%{opacity:.8}50%{opacity:1}}
 .q-lab{position:absolute;transform:translate(-50%,-50%);font-family:var(--serif);font-size:clamp(.9rem,2.6vw,1.05rem);letter-spacing:.1em;color:#e8eef5;pointer-events:none;white-space:nowrap}
 .l-h{left:22.5%;top:22.2%}.l-n{left:77.5%;top:22.2%}.l-m{left:50%;top:88.9%}.l-a{left:50%;top:52.8%;color:#06222b;font-weight:600}
-.q-copy .panel-title{text-align:left;font-size:clamp(2rem,4.4vw,2.8rem)}
 .q-yomi{display:inline-block;font-family:var(--sans);font-size:.42em;letter-spacing:.2em;color:var(--ink-3);margin-left:.8em;vertical-align:middle;font-weight:400}
 .q-line{font-family:var(--serif);font-size:clamp(1.1rem,2.3vw,1.35rem);line-height:1.9;letter-spacing:.06em;color:#f7fbff;margin:14px 0 14px}
 .q-facts{color:var(--ink-2);font-size:.95rem;line-height:2}
-@media (max-width:860px){.q-copy{text-align:center}.q-copy .panel-title{text-align:center}}
 
 .toolbox{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:16px}
 .tool-card{position:relative;display:flex;flex-direction:column;background:rgba(9,14,22,.9);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;transition:transform .25s cubic-bezier(.2,.7,.3,1),border-color .25s,box-shadow .25s}
@@ -489,7 +468,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 .more[open] summary::before{content:"－ "}
 .more p{font-size:.84rem!important;color:var(--ink-3)!important;line-height:1.85!important}
 .sheet{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-@media (max-width:560px){.block{padding-top:56px}.why{padding-top:7vh}.try{padding:12px 14px 10px}}
+@media (max-width:560px){.block{padding-top:56px}.why{padding-top:7vh}}
 @media (prefers-reduced-motion:reduce){.q-dots{display:none}}
 </style>
 </head>
@@ -503,8 +482,8 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
   <div class="tab-nav-inner">
     <button type="button" class="brand" data-go="top" aria-label="mitsulab トップへ">mitsulab</button>
     <div class="tab-buttons" role="tablist">
-      <button class="tab-btn" role="tab" data-tab="top"><span class="tb-ja" data-i18n-en="mitsulab">mitsulab</span><span class="tb-en">Qualium</span></button>
-      <button class="tab-btn" data-go-anchor="tools"><span class="tb-ja">Qualia</span><span class="tb-en">Tools</span></button>
+      <button class="tab-btn" role="tab" data-tab="top"><span class="tb-ja" data-i18n-en="mitsulab">mitsulab</span><span class="tb-en">Top</span></button>
+      <button class="tab-btn" data-go-anchor="apps"><span class="tb-ja" data-i18n-en="Apps">アプリ</span><span class="tb-en">Apps</span></button>
       <button class="tab-btn" data-go-anchor="guide"><span class="tb-ja" data-i18n-en="Aoi">碧</span><span class="tb-en">Guide</span></button>
       <button class="tab-btn" role="tab" data-tab="business"><span class="tb-ja" data-i18n-en="Business">事業</span><span class="tb-en">Business</span></button>
       <button class="tab-btn" role="tab" data-tab="profile"><span class="tb-ja" data-i18n-en="Profile">代表プロフィール</span><span class="tb-en">Profile</span></button>
@@ -528,14 +507,12 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
   <div class="tab-menu-inner">
     <div class="tab-menu-label">Index</div>
     <ul class="tab-menu-list">
-      <li><button class="tab-menu-leaf" data-go-anchor="why"><span class="leaf-ja" data-i18n-en="Why">はじめに</span><span class="leaf-en">Why</span></button></li>
-      <li><button class="tab-menu-leaf" data-go-anchor="qualium"><span class="leaf-ja">Qualium</span><span class="leaf-en">World</span></button></li>
+      <li><button class="tab-menu-leaf" data-go-anchor="why"><span class="leaf-ja" data-i18n-en="Top">はじめに</span><span class="leaf-en">Top</span></button></li>
+      <li><button class="tab-menu-leaf" data-go-anchor="connect"><span class="leaf-ja" data-i18n-en="Connecting people and nature">人と自然をつなぐ</span><span class="leaf-en">Concept</span></button></li>
       <li><button class="tab-menu-leaf" data-go-anchor="site"><span class="leaf-ja" data-i18n-en="Place">場</span><span class="leaf-en">Feel site</span></button></li>
-      <li><button class="tab-menu-leaf" data-go-anchor="define"><span class="leaf-ja" data-i18n-en="Definitions">定義</span><span class="leaf-en">Concepts</span></button></li>
-      <li><button class="tab-menu-leaf" data-go-anchor="tools"><span class="leaf-ja">Qualia</span><span class="leaf-en">Tools</span></button></li>
       <li><button class="tab-menu-leaf" data-go-anchor="guide"><span class="leaf-ja" data-i18n-en="Aoi">碧</span><span class="leaf-en">Guide</span></button></li>
+      <li><button class="tab-menu-leaf" data-go-anchor="apps"><span class="leaf-ja" data-i18n-en="Apps">アプリ</span><span class="leaf-en">Apps</span></button></li>
       <li><button class="tab-menu-leaf" data-go-anchor="uses"><span class="leaf-ja" data-i18n-en="Uses">応用</span><span class="leaf-en">Uses</span></button></li>
-      <li><button class="tab-menu-leaf" data-go-anchor="works"><span class="leaf-ja" data-i18n-en="Works &amp; tools">作品と道具</span><span class="leaf-en">Works</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="business"><span class="leaf-ja" data-i18n-en="Business">事業</span><span class="leaf-en">Business</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="profile"><span class="leaf-ja" data-i18n-en="Profile">代表プロフィール</span><span class="leaf-en">Profile</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="contact"><span class="leaf-ja" data-i18n-en="Contact">お問い合わせ</span><span class="leaf-en">Contact</span></button></li>
@@ -546,36 +523,53 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 
 <main id="main" tabindex="-1">
 
-<!-- ┌─ トップ：WHY → 定義 → Qualium → Qualia → 場 → 碧 → 応用 ───────────── -->
+<!-- ┌─ トップ（2026-10-03 本人指示「人と自然をつなぐをコンセプトに整理」）：
+     コアの一行 → 人と自然をつなぐ → 場《Feel Hikawa》 → 碧 → アプリ → 応用。Qualia の札の節と、地形図の問い・倍率の操作は外した ── -->
 <section id="top" class="tab-panel" data-panel="top" aria-label="mitsulab">
 <h1 class="vh" id="coreH1">mitsulab — 認知拡張。自然と世界を、より深く。</h1>
 
-<!-- WHY：背景は Geo-Qualia そのもの。指で高さを変えられる -->
+<!-- WHY：背景は氷川神社のまわりの地形（高さの強調は固定。倍率は script の TERRAIN_EX と下の一行をそろえる） -->
 <div id="why" class="why">
-  <canvas id="terrain" class="terrain" role="img" aria-label="氷川神社のまわりの地形を、横から見た線で描いた図。高さの強調はスライダーで変えられる"></canvas>
+  <canvas id="terrain" class="terrain" role="img" aria-label="氷川神社のまわりの地形を、横から見た線で描いた図。高さは 8 倍に強調している"></canvas>
   <div class="why-inner">
     <span class="eyebrow">mitsulab</span>
     <!-- コアの一行は下の script の CORE（一か所）で差し替える。ここの文字は読み込み前と検索のための控え -->
     <p class="core" id="core">認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span></p>
-    <p class="hero-def" data-i18n-en="mitsulab builds <span class='nw'>Qualia</span> — tools that carry over part of how the world appears to one being or system — and <span class='nw'>Qualium</span>, the place and system where they connect.">mitsulab は、世界の現れ方の一部を転写する道具＝<span class="nw">Qualia</span> と、それらがつながる場と仕組み＝<span class="nw">Qualium</span> をつくっています。</p>
+    <p class="hero-lead" data-i18n-en="Connecting people and nature.">人と自然を、<span class="nw">つなぐ。</span></p>
+    <p class="hero-def" data-i18n-en="mitsulab designs places and tools that connect people and nature. The guide is Aoi, an AI that interprets both ways: from nature to people, and from people to nature.">mitsulab は、人と自然をつなぐ場と道具をつくっています。<span class="nw">案内役は碧（AI）。</span><span class="nw">自然の側のことを人へ、</span><span class="nw">人の問いを自然の側へ、</span><span class="nw">両向きに訳します。</span></p>
   </div>
   <div class="terrain-space" aria-hidden="true"></div>
-  <div class="try" id="try">
-    <div class="try-head"><span class="try-orb" aria-hidden="true"></span><span class="try-q" id="tryQ" data-i18n-en="Does the approach go up, or down?"><span class="nw">参道は、</span><span class="nw">上っている？</span> <span class="nw">下っている？</span></span></div>
-    <label for="exag" class="try-label"><span class="try-tool" data-i18n-en="Geo-Qualia — slide to exaggerate the height">Geo-Qualia ── 指で高さを強調する</span><span class="try-val" id="exagVal">高さ ×1</span></label>
-    <div class="try-range"><input type="range" id="exag" min="0" max="100" step="1" value="0" aria-describedby="tryNote" aria-valuetext="高さ ×1"><span class="try-hint" id="tryHint" aria-hidden="true">← →</span></div>
-    <p class="try-answer" id="tryAnswer" hidden data-i18n-en="Answer: from Ichi-no-torii (approx. 12.55 m) to San-no-torii (approx. 13.75 m) it rises about 1.2 m over 1.9 km, with small ups and downs — almost flat. A low valley (approx. 4–5 m) lies to the east. (GSI DEM5A)">答え：一の鳥居（標高 約 12.55 m）から三の鳥居（約 13.75 m）へ、1.9 km で約 1.2 m 高くなる。途中に小さな上り下りはあるが、ほとんど平らな道。低い谷（標高 約 4〜5 m）は、参道の東にある。（国土地理院 DEM5A）</p>
-    <p class="try-note" id="tryNote" data-i18n-en="×1 is the true ratio. About 4.8 km east–west × 3.7 km north–south around Hikawa Shrine, seen from the south (GSI elevation, processed by mitsulab).">×1 は本当の比。氷川神社のまわり東西約 4.8 km・南北約 3.7 km を南から（国土地理院の標高を mitsulab が加工）。</p>
-    <span class="vh" id="exagLive" aria-live="polite"></span>
-  </div>
+  <p class="terrain-cap" id="terrainCap" data-i18n-en="Around Hikawa Shrine, approx. 4.8 km E–W × 3.7 km N–S, seen from the south. Height exaggerated 8×. (GSI elevation, processed by mitsulab)">氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）を南から。高さは 8 倍に強調。（国土地理院の標高を mitsulab が加工）</p>
 </div>
 
 <div class="wrap">
 
-  <!-- 定義（v2 §1.1。日常語で言いかえず、定義を先に置く） -->
-  <section id="define" class="block" aria-labelledby="defH">
-    <div class="block-head"><span class="eyebrow">Definitions</span><h2 class="panel-title" id="defH" data-i18n-en="Definitions">定義</h2></div>
-    <div class="defs">
+  <!-- 人と自然をつなぐ（主図＝Qualium の 3D 地形図。定義は認知拡張・知覚拡張・Qualium の三つだけ残した） -->
+  <section id="connect" class="block" aria-labelledby="connectH">
+    <div class="block-head">
+      <span class="eyebrow">Concept</span>
+      <h2 class="panel-title" id="connectH" data-i18n-en="Connecting people and nature">人と自然を、<span class="nw">つなぐ</span></h2>
+    </div>
+    <div class="connect-copy">
+      <p data-i18n-en="A honeybee's eye picks up ultraviolet; a person's eye does not. Trees on an approach record decades of change; a person passing by sees one moment. Nature holds far more than reaches us.">ミツバチの目は紫外線をとらえ、人の目はとらえない。<br>参道の木は何十年もの変化を刻み、通りすぎる人が見るのはその一瞬。<br>自然には、人に届いていないものがたくさんある。</p>
+      <p data-i18n-en="mitsulab carries part of that over — with data, 3D, sound and words — into forms people can take in, and Aoi hands it to you at the place itself. We call widening how the world is organised for a person cognitive augmentation.">mitsulab は、その一部を、データ・3D・音・言葉で人が受け取れる形に移し、碧がその場で手渡します。世界の見え方の組み立てを広げること、それを<span class="nw">認知拡張と呼んでいます。</span></p>
+      <p class="q-cannot" data-i18n-en="The colours a bee sees can be carried over into human colours. How the bee experiences them cannot.">ハチの目の色は、人の色に移せる。<br>ハチがそれをどう経験するかは、移せない。</p>
+    </div>
+    <figure class="q-hero" id="qHero">
+      <div class="q-stage">
+        <picture>
+          <source media="(max-width:700px)" type="image/webp" srcset="img/ftw/qualium_m_640.webp 640w, img/ftw/qualium_m_960.webp 960w" sizes="100vw">
+          <source type="image/webp" srcset="img/ftw/qualium_640.webp 640w, img/ftw/qualium_960.webp 960w, img/ftw/qualium_1600.webp 1600w" sizes="(max-width:1160px) 100vw, 1100px">
+          <img class="q-img" src="img/ftw/qualium_960.webp" width="1600" height="900" loading="lazy" decoding="async" alt="氷川神社のまわりの 3D の地形の上で、碧から人・自然・機械の側へ光の線がのびる図" data-i18n-alt="Over the 3D landform around Hikawa Shrine, lines of light run from Aoi toward people, nature and machines">
+        </picture>
+        <span class="ql l-aoi a-left" style="--dx:38.32%;--dy:59.14%;--mx:46.03%;--my:46.69%" data-i18n-en="Aoi">碧</span>
+        <span class="ql l-hum a-right" style="--dx:48.44%;--dy:94.56%;--mx:59.82%;--my:68.15%" data-i18n-en="People (the approach)">人（参道）</span>
+        <span class="ql l-nat a-center" style="--dx:80.00%;--dy:80.00%;--mx:74.00%;--my:86.00%" data-i18n-en="Nature (landform)">自然（地形）</span>
+        <span class="ql l-mac a-center" style="--dx:10.00%;--dy:90.00%;--mx:18.00%;--my:93.00%" data-i18n-en="Machines (elevation grid)">機械（標高の格子）</span>
+      </div>
+      <figcaption class="q-cap" data-i18n-en="The landform around Hikawa Shrine (approx. 4.8 km E–W × 3.7 km N–S), seen from the south-southwest. Height exaggerated 15×; contours every 2 m. The rings and the names at the ends of the lines (mitsulab's working names for kinds of tools) are illustrative, not locations. (GSI DEM5A, processed by mitsulab; approach © OpenStreetMap contributors)">氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）の地形を南南西から。高さは 15 倍に強調。等高線は 2 m おき。光の輪と、線の先の名前（mitsulab が考えている道具の種類の呼び名）は絵の配置で、地点を指すものではない。（国土地理院 DEM5A を mitsulab が加工／参道 © OpenStreetMap contributors）</figcaption>
+    </figure>
+    <div class="defs" id="define">
       <div class="nest" aria-label="知覚拡張は認知拡張の一部">
         <div class="nest-outer">
           <span class="nest-name">認知拡張 <span class="nest-en">Cognitive Augmentation</span></span>
@@ -590,44 +584,15 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <dl class="deflist">
         <div><dt data-i18n-en="Perceptual Augmentation">知覚拡張</dt><dd data-i18n-en="Widening, with tools, the range, resolution and modality of stimuli a subject can receive: turning physical quantities the human senses cannot reach directly (ultraviolet, ultrasound, minute vibration, slow change over long time) into forms the five senses can take in. It concerns what reaches the senses, not what it is understood as.">主体が受け取れる刺激の範囲・分解能・様相を、道具によって広げること。人の感覚器が直接とらえられない物理量（紫外線・超音波・微小な振動・長い時間の変化など）を、五感で受け取れる形へ変換する。感覚に届くまでを扱い、それが何として理解されるかは含まない。</dd></div>
         <div><dt data-i18n-en="Cognitive Augmentation">認知拡張</dt><dd data-i18n-en="Using, beyond perception, language, information, memory, knowledge, reasoning and models of others (living things, machines) to widen how the world is organised for a subject: what it is distinguished as, what it is related to, what matters, over what span of time, and how one can engage with it. Perceptual augmentation is its entrance and a part of it. It does not guarantee improved ability; it creates conditions in which a new organisation can arise.">知覚に加え、言語・情報・記憶・知識・推論・他者（生きもの・機械）のモデルを用いて、主体にとって世界が何として区別され、何と関係づけられ、何が重要となり、どの時間の幅で、どう関われるか──その組み立てを広げること。知覚拡張はその入口であり一部。能力が上がることの保証ではなく、新しい組み立てが起こりうる条件をつくること。</dd></div>
-        <div><dt>Qualia</dt><dd data-i18n-en="(as mitsulab uses it) A unit that carries over part of how the world appears to one being or system into a form another receiver can handle. For mitsulab, one tool. Each Qualia states its source, the dimension it handles, how it re-maps it, and what it keeps, changes and cannot carry. We never claim to carry over subjective experience itself.">（mitsulab の用法）ある主体・系における世界の現れ方の一部を、別の受け手が扱える形に転写する単位。mitsulab では一つの道具を指す。どれも、転写元・扱う次元・置きかえ方と、保つもの・変えるもの・移せないものを持つ。主観的な経験そのものを移すとは言わない。</dd></div>
-        <div><dt>Qualium</dt><dd data-i18n-en="The place and system where Qualia gather and, through Aoi, the cognitive spaces of people, nature and machines connect. (-ium: a place, as in auditorium.)">Qualia が集まり、碧を介して、人・自然・機械の認知空間がつながる場と仕組み。（-ium＝場。auditorium と同じ語尾）</dd></div>
+        <div><dt>Qualium <span class="q-yomi">クオリウム</span></dt><dd data-i18n-en="mitsulab's name for the place and system where, through Aoi, the cognitive spaces of people, nature and machines connect. (-ium: a place, as in auditorium.)">碧を介して、人・自然・機械の認知空間がつながる場と仕組み。mitsulab はこれを Qualium と呼んでいます。（-ium＝場。auditorium と同じ語尾）</dd></div>
       </dl>
     </div>
-  <p class="note def-ground" data-i18n-en="Groundwork (as hypotheses): the <span class='gloss-term' data-term-id='attention' role='button' tabindex='0'>education of attention</span>, <span class='gloss-term' data-term-id='umwelt' role='button' tabindex='0'>Umwelt</span>, <span class='gloss-term' data-term-id='wonder' role='button' tabindex='0'>the sense of wonder</span>. None of them guarantees change. A complete transfer is impossible, so what cannot be carried over is shown as such.">考え方の足場（仮説として）：<span class="gloss-term" data-term-id="attention" role="button" tabindex="0">注意の教育</span>、<span class="gloss-term" data-term-id="umwelt" role="button" tabindex="0">環世界</span>、<span class="gloss-term" data-term-id="wonder" role="button" tabindex="0">センス・オブ・ワンダー</span>。どれも「必ず変わる」を保証する理論ではありません。完全な転写はできないので、移せないものは移せないものとして示します。</p>
-  
-  </section>
-
-  <!-- Qualium（主図は別担当の 3D 地形図。img/ftw/qualium_640/960/1600.webp が届けば下の script が差し込む。届くまでは線の図） -->
-  <section id="qualium" class="block" aria-labelledby="qH">
-    <figure class="q-hero" id="qHero">
-      <div class="q-stage">
-        <picture>
-          <source media="(max-width:700px)" type="image/webp" srcset="img/ftw/qualium_m_640.webp 640w, img/ftw/qualium_m_960.webp 960w" sizes="100vw">
-          <source type="image/webp" srcset="img/ftw/qualium_640.webp 640w, img/ftw/qualium_960.webp 960w, img/ftw/qualium_1600.webp 1600w" sizes="(max-width:1160px) 100vw, 1100px">
-          <img class="q-img" src="img/ftw/qualium_960.webp" width="1600" height="900" loading="lazy" decoding="async" alt="Qualium の主図：氷川神社のまわりの 3D の地形の上に、碧から九つの Qualia へ光の線がのびる" data-i18n-alt="Qualium: over the 3D landform around Hikawa Shrine, lines of light run from Aoi to the nine Qualia">
-        </picture>
-        <!-- 重ねる文字（位置は _dev/ftw/qualium/qualium_points.json。図に焼いてあるのは九つの Qualia の名前だけ）。狭い画面でも間引かず cqw で比例縮小 -->
-        <span class="ql l-aoi a-left" style="--dx:38.32%;--dy:59.14%;--mx:46.03%;--my:46.69%" data-i18n-en="Aoi">碧</span>
-        <span class="ql l-hum a-right" style="--dx:48.44%;--dy:94.56%;--mx:59.82%;--my:68.15%" data-i18n-en="People (the approach)">人（参道）</span>
-        <span class="ql l-nat a-center" style="--dx:80.00%;--dy:80.00%;--mx:74.00%;--my:86.00%" data-i18n-en="Nature (landform)">自然（地形）</span>
-        <span class="ql l-mac a-center" style="--dx:10.00%;--dy:90.00%;--mx:18.00%;--my:93.00%" data-i18n-en="Machines (elevation grid)">機械（標高の格子）</span>
-        <span class="ql l-per a-left" style="--dx:26.67%;--dy:68.60%;--mx:31.05%;--my:54.14%" data-i18n-en="Perceptual layer">知覚の層</span>
-        <span class="ql l-cog a-left" style="--dx:11.16%;--dy:65.14%;--mx:10.51%;--my:52.11%" data-i18n-en="Cognitive layer">認知の層</span>
-      </div>
-      <figcaption class="q-cap" data-i18n-en="The landform around Hikawa Shrine (approx. 4.8 km E–W × 3.7 km N–S), seen from the south-southwest. Height exaggerated 15×; contours every 2 m. The rings and the placement of the nine Qualia are illustrative, not locations. (GSI DEM5A, processed by mitsulab; approach © OpenStreetMap contributors)">氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）の地形を南南西から。高さは 15 倍に強調。等高線は 2 m おき。光の輪と九つの Qualia の並びは絵の配置で、地点を指すものではない。（国土地理院 DEM5A を mitsulab が加工／参道 © OpenStreetMap contributors）</figcaption>
-    </figure>
-    <div class="q-copy">
-      <span class="eyebrow">Qualium</span>
-      <h2 class="panel-title" id="qH">Qualium<span class="q-yomi">クオリウム</span></h2>
-      <p class="q-facts" data-i18n-en="A honeybee's eye picks up ultraviolet; a person's eye does not. A machine divides a scene in yet another way. Qualium gathers Qualia that carry these differences over, and Aoi hands them to you.">ミツバチの目は紫外線をとらえ、人の目はとらえない。機械は景色を別の区切り方で分ける。Qualium は、その違いを転写する Qualia を集め、碧がそれを手渡す場と仕組みです。</p>
-      <p class="q-cannot" data-i18n-en="The colours a bee sees can be carried over into human colours. How the bee experiences them cannot.">ハチの目の色は、人の色に転写できる。<br>ハチがそれをどう経験するかは、移せない。</p>
-    </div>
+  <p class="note def-ground" data-i18n-en="Groundwork (as hypotheses): the <span class='gloss-term' data-term-id='attention' role='button' tabindex='0'>education of attention</span>, <span class='gloss-term' data-term-id='umwelt' role='button' tabindex='0'>Umwelt</span>, <span class='gloss-term' data-term-id='wonder' role='button' tabindex='0'>the sense of wonder</span>. None of them guarantees change. Nothing can be carried over completely, so what cannot be is shown as such.">考え方の足場（仮説として）：<span class="gloss-term" data-term-id="attention" role="button" tabindex="0">注意の教育</span>、<span class="gloss-term" data-term-id="umwelt" role="button" tabindex="0">環世界</span>、<span class="gloss-term" data-term-id="wonder" role="button" tabindex="0">センス・オブ・ワンダー</span>。どれも「必ず変わる」を保証する理論ではありません。すべてを移すことはできないので、移せないものは移せないものとして示します。</p>
   </section>
 
   <!-- 場 -->
   <section id="site" class="block" aria-labelledby="siteH">
-    <div class="block-head"><span class="eyebrow">Qualium Site</span><h2 class="panel-title" id="siteH" data-i18n-en="Place — Qualium Site">場 ── Qualium Site</h2></div>
+    <div class="block-head"><span class="eyebrow">Feel site</span><h2 class="panel-title" id="siteH" data-i18n-en="Place — Feel Hikawa">場 ── 《Feel Hikawa》</h2><p class="block-lead" data-i18n-en="The first place where people and nature meet through Aoi: the Hikawa approach in Ōmiya.">碧を介して人と自然が出会う、最初の場。大宮の氷川参道。</p></div>
     <article id="p1" class="card work">
       <figure class="fig">
         <img src="img/ftw/sando_eye_960.webp" srcset="img/ftw/sando_eye_640.webp 640w, img/ftw/sando_eye_960.webp 960w, img/ftw/sando_eye_1600.webp 1600w" sizes="(max-width:860px) 100vw, 540px" width="960" height="540" loading="lazy" alt="《Feel Hikawa》の 3D：並木と灯籠のあいだを、鳥居へ向かってのびる参道を目の高さから" data-i18n-alt="Feel Hikawa in 3D: the approach between rows of trees and lanterns, toward a torii, at eye level">
@@ -635,7 +600,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
         <img class="fig-sub" src="img/ftw/sando_top_640.webp" width="640" height="360" loading="lazy" alt="同じ 3D を上から：町の中を北へのびる参道の緑の帯" data-i18n-alt="The same 3D from above: the green band of the approach running north through the town">
       </figure>
       <div>
-        <span class="badge">Demo</span> <span class="work-no">Qualium Site #1</span>
+        <span class="badge">Demo</span> <span class="work-no">Feel site #1</span>
         <span class="card-title" style="margin-top:8px"><span class="ct-ja" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="ct-en" data-i18n-en="Walking the Hikawa approach">氷川参道を歩く</span></span>
         <p data-i18n-en="Walk the Hikawa approach in Ōmiya, phone in pocket. At six places you stop, look with your own eyes, hear Aoi, talk, and look again. The answers to its puzzles lie in the nature on site.">大宮の氷川参道を、スマホをポケットに入れて歩く。六つの場所で立ち止まり、自分の目で見て、碧の話を聞き、話して、もう一度見る。謎の答えは、現地の自然の中にある。</p>
         <ul class="chips">
@@ -657,20 +622,6 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     </article>
   </section>
 
-  <!-- Qualia（v2 §3.1 の九つ。知覚の層／認知の層） -->
-  <section id="tools" class="block" aria-labelledby="toolsH">
-    <div class="block-head">
-      <span class="eyebrow">Qualia</span>
-      <h2 class="panel-title" id="toolsH">Qualia</h2>
-      <p class="block-lead" data-i18n-en="Named 〈dimension〉-Qualia. Each card: source → receiver, what it keeps / changes / cannot carry, certainty, and readiness.">名前は〈次元〉-Qualia。どの札にも、<span class="nw">転写元 → 受け手、</span><span class="nw">保つ・変える・移せない、</span><span class="nw">確かさ、準備の状態。</span></p>
-      <p class="legend" data-i18n-en="Certainty (scientific basis): ● established　◐ partly / conditional　○ hypothesis">確かさ（科学的な根拠）：● 確立　◐ 一部・条件つき　○ 仮説</p>
-    </div>
-    <h3 class="layer-h"><span data-i18n-en="Perceptual layer">知覚の層</span><span class="layer-en" data-i18n-en="re-maps physical quantities that reach the senses">感覚に届く物理量を置きかえる</span></h3>
-    <ul class="qualia" id="qualiaPerc"></ul>
-    <h3 class="layer-h"><span data-i18n-en="Cognitive layer">認知の層</span><span class="layer-en" data-i18n-en="re-maps distinctions, relations and time">区別・関係・時間の組み立てを置きかえる</span></h3>
-    <ul class="qualia" id="qualiaCog"></ul>
-  </section>
-
   <!-- 碧 -->
   <section id="guide" class="block" aria-labelledby="guideH">
     <div class="guide">
@@ -681,8 +632,9 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <div>
         <span class="eyebrow">Guide</span>
         <h2 class="panel-title" id="guideH" data-i18n-en="Aoi">碧<span class="q-yomi">あお</span></h2>
-        <p class="quote" data-i18n-en="Want to try this Qualia?<br>If what you see does not match what I said,<br>trust what you see.">この Qualia、試してみる？<br>わたしの話と合わなかったら、<br>そちらが正しい見方です。</p>
-        <p data-i18n-en="The guide of Qualium and a two-way interpreter between people, nature and machines, run by mitsulab with AI. Aoi decides which Qualia to hand you and in what order, adds its source, what it keeps, what cannot be carried and how certain it is, says when it does not know, and ends with a question.">Qualium の案内役で、人と自然と機械のあいだの両向きの通訳。mitsulab が AI で動かしています。どの Qualia をどの順で手渡すかを決め、転写元・保つもの・移せないもの・確かさを一言添える。分からないことは分からないと言い、最後に問いを返す。</p>
+        <p class="guide-role" data-i18n-en="A two-way interpreter between people and nature">人と自然のあいだの、<span class="nw">両向きの通訳</span></p>
+        <p class="quote" data-i18n-en="Shall we look at this place together?<br>If what you see does not match what I said,<br>trust what you see.">この場所、一緒に見てみる？<br>わたしの話と合わなかったら、<br>そちらが正しい見方です。</p>
+        <p data-i18n-en="Aoi passes what nature holds — landform, water, trees, records — to people, and carries people's questions over to the side of nature. Run by mitsulab with AI. Aoi decides what to hand you and in what order, adds where it comes from and how certain it is, says when it does not know, and ends with a question.">自然の側にあるもの（地形・水・木・記録）を人へ手渡し、人の問いを自然の側へ運ぶ。mitsulab が AI で動かしています。何をどの順で手渡すかを決め、出どころと確かさを一言添える。分からないことは分からないと言い、最後に問いを返す。</p>
         <ul class="lines">
           <li data-i18n-en="<span class='ln'>01</span>Does not assert what it cannot know"><span class="ln">01</span>断定しない</li>
           <li data-i18n-en="<span class='ln'>02</span>Does not invent facts without sources"><span class="ln">02</span>典拠のない事実を作らない</li>
@@ -693,41 +645,45 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     </div>
   </section>
 
+  <!-- 公開中のアプリ（2026-10-03 本人指示「開発したアプリケーションをベースに整理」。公開台帳に載っているものだけ。増減はこの ul を直す） -->
+  <section id="apps" class="block" aria-labelledby="appsH">
+    <div class="block-head">
+      <span class="eyebrow">Apps</span>
+      <h2 class="panel-title" id="appsH" data-i18n-en="Apps, open now">公開中のアプリ</h2>
+      <p class="block-lead" data-i18n-en="All open on GitHub Pages and run in the browser. Each is a prototype; contents may change without notice.">どれも <span class="gloss-term" data-term-id="ghpages" role="button" tabindex="0">GitHub Pages</span> で公開していて、ブラウザで開けます。試作なので、内容は予告なく変わります。</p>
+    </div>
+    <ul class="tool-list">
+      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa (demo)">《Feel Hikawa》デモ版</span><span class="app-meta" data-i18n-en="Work · 2026-10">作品 · 2026-10</span>
+        <span class="tool-desc" data-i18n-en="Walk the Hikawa approach in full-scale 3D and stop at six places: look, listen to Aoi, talk, and look again. On site with your phone's location, or on screen at home.">氷川参道を実寸の 3D の中で歩き、六つの場所で立ち止まって、見る → 碧の話を聞く → 話す → もう一度見る。現地ではスマホの位置情報で、家では画面の上で。</span>
+        <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>How the landform, water and trees of the approach look when you stop, compared with passing by."><span class="tk">わかること</span>参道の地形・水・並木が、立ち止まって見ると、通りすぎるときとどう違って見えるか。</span></div>
+        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open the demo">デモ版を開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
+      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Hikawa Ensemble">氷川重奏</span><span class="app-meta" data-i18n-en="Map · 2026-08">地図 · 2026-08</span>
+        <span class="tool-desc" data-i18n-en="A map that layers wildlife records with the terrain, buildings and history of the Hikawa woods in Ōmiya; records from iNaturalist, and only photos under reuse-friendly licences are shown.">大宮・氷川の杜の、生きものの記録と地形・建物・歴史を一枚に重ねた資料地図。生きものの記録は iNaturalist、写真は再利用できる許可のものだけを表示。</span>
+        <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>Which living things have been recorded around the approach, and where."><span class="tk">わかること</span>参道のまわりで、どんな生きものが、どこで記録されているか。</span></div>
+        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/HIKAWA-ENSEMBLE/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/HIKAWA-ENSEMBLE" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
+      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="app-meta" data-i18n-en="Work · 2026-10">作品 · 2026-10</span>
+        <span class="tool-desc" data-i18n-en="A catalogue of series on soil, rain, wind, snow, vegetables, the moon and the sun, each with its sources.">土・雨・風・雪・野菜・月・太陽などの連作を、典拠つきで束ねた総目録。</span>
+        <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>How everyday nature has been received in words and pictures over time."><span class="tk">わかること</span>身近な自然が、昔からどんな言葉や絵で受けとめられてきたか。</span></div>
+        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/shinra-hyakkei" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
+      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Who Lives in the Soil">土の微生物の顔ぶれ</span><span class="app-meta" data-i18n-en="Teaching tool · 2026-03">教材 · 2026-03</span>
+        <span class="tool-desc" data-i18n-en="A teaching tool for comparing soil bacteria, archaea and fungi at the phylum level across soils such as forest and paddy. The data are illustrative, not measured.">森・水田・丘陵などの土の中の細菌・アーキア・菌類を、「門」という大きなまとまりで見くらべる教材。数値は説明のための仮のデータで、実測ではない。</span>
+        <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>What it means for different soils to host different microbes, and how diversity indices are read."><span class="tk">わかること</span>土の種類によって顔ぶれが違うとはどういうことか。多様度指数の読み方。</span></div>
+        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/soil-metagenomics-topography-correlation" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
+      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Connections Underground">土の中のつながり</span><span class="app-meta" data-i18n-en="Teaching tool · 2026-02">教材 · 2026-02</span>
+        <span class="tool-desc" data-i18n-en="A browser-based teaching model of soil food-web interactions viewed as a network; rules and parameters are illustrative, not measured.">細菌・菌類・線虫・ミミズ・根・水などを粒として動かし、近づいた粒どうしのやりとりを網の目として見る学習用の模擬。規則と数値は分かりやすさのために決めたもので、測った値ではない。</span>
+        <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>A way of seeing decomposition, predation and mutual help in soil as a web of connections."><span class="tk">わかること</span>分解・捕食・助け合いが、土の中で網の目のようにつながるという見方。</span></div>
+        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/Soil-Ecosystem-ANT-Simulator/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/Soil-Ecosystem-ANT-Simulator" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
+    </ul>
+  </section>
+
   <!-- 応用 -->
   <section id="uses" class="block" aria-labelledby="usesH">
     <div class="block-head"><span class="eyebrow">Uses</span><h2 class="panel-title" id="usesH" data-i18n-en="Where it goes">応用</h2></div>
     <div class="grid-3">
-      <div class="card use"><span class="field-k">Soil</span><span class="ct-ja" data-i18n-en="Soil regeneration">土の再生</span><p data-i18n-en="Our footing is civil engineering, agriculture and landscape. Geo-, Hydro- and Pedo-Qualia support the work of tending soil.">足場は土木・農業・造園の現場。Geo・Hydro・Pedo-Qualia が、土に手を入れる仕事を助ける。</p></div>
-      <div class="card use"><span class="field-k">School</span><span class="ct-ja" data-i18n-en="Education">教育</span><p data-i18n-en="Field trips and inquiry lessons where children use Qualia themselves. Being explored with schools as candidates.">子どもが自分で Qualia を使う校外学習・探究。学校は候補として相談を受けている段階。</p></div>
+      <div class="card use"><span class="field-k">Soil</span><span class="ct-ja" data-i18n-en="Soil regeneration">土の再生</span><p data-i18n-en="Our footing is civil engineering, agriculture and landscape. Seeing landform, water and soil more deeply supports the work of tending soil.">足場は土木・農業・造園の現場。地形・水・土を深く見ることが、土に手を入れる仕事を助ける。</p></div>
+      <div class="card use"><span class="field-k">School</span><span class="ct-ja" data-i18n-en="Education">教育</span><p data-i18n-en="Field trips and inquiry lessons where children use the tools themselves. Being explored with schools as candidates.">子どもが自分で道具を使う校外学習・探究。学校は候補として相談を受けている段階。</p></div>
       <div class="card use"><span class="field-k">Research</span><span class="ct-ja" data-i18n-en="Research">研究</span><p data-i18n-en="Ways to record, with conditions and sources, how a first look and a second look differ.">一度目と二度目の見え方の違いを、条件と出典つきで記録する方法。</p></div>
     </div>
-  </section>
-
-  <!-- 公開中の作品と道具（2026-10-02 本人指示「関連情報を戻して」：10-01 v3 の「作品とアプリ」の一覧を、Qualia の札に結び直して戻した。
-       説明文は 10-01 の確定版。増減はこの ul を直す。HP から外すと決めた 3 本（里山のフィールドガイド・土壌微生物ネットワーク・保水と透水の模擬）は載せない） -->
-  <section id="works" class="block" aria-labelledby="worksH">
-    <div class="block-head">
-      <span class="eyebrow">Works &amp; Tools</span>
-      <h2 class="panel-title" id="worksH" data-i18n-en="Works and tools, open now">公開中の作品と道具</h2>
-      <p class="block-lead" data-i18n-en="All open on GitHub Pages. Each is a prototype; contents may change without notice.">どれも <span class="gloss-term" data-term-id="ghpages" role="button" tabindex="0">GitHub Pages</span> で公開している試作です。内容は予告なく変わります。</p>
-    </div>
-    <ul class="tool-list">
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa (demo)">《Feel Hikawa》デモ版</span><span class="app-meta" data-i18n-en="Work · Geo / Hydro / Chrono / Mechano-Qualia · 2026-10">作品・Geo／Hydro／Chrono／Mechano-Qualia · 2026-10</span>
-        <span class="tool-desc" data-i18n-en="Walk the Hikawa approach in full-scale 3D and stop at six places: look, listen to Aoi, talk, and look again. On site with your phone's location, or on screen at home.">氷川参道を実寸の 3D の中で歩き、六つの場所で立ち止まって、見る → 碧の話を聞く → 話す → もう一度見る。現地ではスマホの位置情報で、家では画面の上で。</span></div>
-        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="app-meta" data-i18n-en="Work · Logo-Qualia · 2026-10">作品・Logo-Qualia · 2026-10</span>
-        <span class="tool-desc" data-i18n-en="A catalogue of series on soil, rain, wind, snow, vegetables, the moon and the sun, each with its sources.">土・雨・風・雪・野菜・月・太陽などの連作を、典拠つきで束ねた総目録。</span></div>
-        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/shinra-hyakkei" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Hikawa Ensemble">氷川重奏</span><span class="app-meta" data-i18n-en="Map · Bio-Qualia · 2026-08">地図・Bio-Qualia · 2026-08</span>
-        <span class="tool-desc" data-i18n-en="A map that layers wildlife records with the terrain and buildings of the Hikawa woods in Ōmiya; records from iNaturalist, and only photos under reuse-friendly licences are shown.">大宮・氷川の杜の、生きものの記録と地形・建物を一枚に重ねた資料地図。生きものの記録は iNaturalist、写真は商用にも使える許可のものだけを表示。</span></div>
-        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/HIKAWA-ENSEMBLE/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/HIKAWA-ENSEMBLE" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Who Lives in the Soil">土の微生物の顔ぶれ</span><span class="app-meta" data-i18n-en="Simulation · Pedo-Qualia · 2026-03">シミュレーション・Pedo-Qualia · 2026-03</span>
-        <span class="tool-desc" data-i18n-en="A teaching tool for comparing who lives in the soil, site by site. The data are illustrative, not measured.">土の中の微生物の顔ぶれを、地点ごとに見くらべる教材。数値は説明のための仮のデータで、実測ではない。</span></div>
-        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/soil-metagenomics-topography-correlation" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><div class="tool-main"><span class="tool-name" data-i18n-en="Connections Underground">土の中のつながり</span><span class="app-meta" data-i18n-en="Simulation · Pedo-Qualia · 2026-02">シミュレーション・Pedo-Qualia · 2026-02</span>
-        <span class="tool-desc" data-i18n-en="A browser-based teaching model of soil food-web interactions viewed as a network; rules and parameters are illustrative, not measured.">細菌・菌類・線虫・ミミズ・根・水などを粒として動かし、近づいた粒どうしのやりとりを網の目として見る学習用の模擬。規則と数値は分かりやすさのために決めたもので、測った値ではない。</span></div>
-        <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/Soil-Ecosystem-ANT-Simulator/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/Soil-Ecosystem-ANT-Simulator" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-    </ul>
   </section>
 </div>
 </section>
@@ -746,7 +702,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <ul class="list">
         <li data-i18n-en="First individuals — nature lovers, hikers, people interested in farming, puzzle fans, families. Schools are also candidates. Those who look after places come later.">まず個人（自然が好きな人、山を歩く人、農に関心のある人、謎解きが好きな人、家族）。学校も候補。場所を預かる人との協働はその後。</li>
         <li data-i18n-en="Runs without us standing by: from starting to finishing, no staff needed; a prepared script carries on if signal, GPS or AI fail.">立ち会わずに回る。始める → 歩く → 終えるまで人の手が要らず、電波・GPS・AI が止まっても台本で最後まで進む。</li>
-        <li data-i18n-en="Same Qualia, new places and seasons. Only the stops, the evidence and the puzzles are made per place.">同じ Qualia で、場所と季節を替える。場所ごとに作るのは、地点・根拠・謎の三つだけ。</li>
+        <li data-i18n-en="Same form and tools, new places and seasons. Only the stops, the evidence and the puzzles are made per place.">同じ型と道具で、場所と季節を替える。場所ごとに作るのは、地点・根拠・謎の三つだけ。</li>
       </ul>
     </div>
     <div class="card">
@@ -772,7 +728,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <h2 class="panel-title" data-i18n-en="A way of reading the world, born in the field">現場から生まれた、<span class="nw">世界の読み方。</span></h2>
   </div>
   <!-- 2026-10-02 本人指示「代表プロフィールは前のように詳細に」：2026-09-16 版（退避版 2026-09-28_1301）の本文を写し、
-       事業の説明だけを今の事業（認知拡張・Qualia・Qualium・《Feel Hikawa》）に合わせた。主語「上原は」は入れない。モアークは肩書きの行だけ。 -->
+       事業の説明だけを今の事業（認知拡張・人と自然をつなぐ・《Feel Hikawa》）に合わせた（10-03 に Qualia の語を外した）。主語「上原は」は入れない。モアークは肩書きの行だけ。 -->
   <div class="card pf">
     <div>
       <p class="pf-name">上原 光瑛</p>
@@ -791,8 +747,8 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <div>
       <p data-i18n-en="Born in Saitama Prefecture in April 1995. Graduated from the Department of Construction Engineering, Faculty of Engineering, Saitama University in March 2018. For eight years served as a civil engineer at the Saitama Prefectural Government, engaged in the disaster recovery, construction supervision and maintenance of social infrastructure (mainly roads, slopes, bridges and parks), and in developing and disseminating technical standards for construction works. Directed on site, as the engineer in charge, the recovery of the prefecture's largest landslide caused by Typhoon Hagibis (2019), and received the FY2024 Zenken Award (Disaster category, Urban division).">1995 年 4 月、埼玉県に生まれる。2018 年 3 月、埼玉大学工学部建設工学科を卒業。8 年間にわたり埼玉県庁の土木技術職として、社会インフラ（主に道路・斜面・橋梁・公園）の災害復旧事業・施工監理・維持管理と、建設工事に係る技術基準等の策定及び普及に関する業務に従事。令和元年東日本台風で被災した県内最大規模の地すべり復旧工事を担当として現場で指揮し、『令和 6 年度 全建賞（災害枠・都市部門）』を受賞。</p>
       <p data-i18n-en="On top of experience on site as a civil engineer, dialogue with professionals connected to soil — practitioners of soil regeneration, of organic and natural farming, of landscaping, and arborists — and reading from Edo-period texts to modern practice books showed that each field both carries its own challenges and holds its own knowledge, with people putting it into practice. Convinced that a junction joining that knowledge and practice was needed, opened mitsulab in March 2026.">県庁在職中に土木技術者として現場に立つなかで蓄積された経験に加え、土の再生の実践者、有機農業・自然農業の実践者、造園業の実践者、樹木医など土に関わる専門家との対話や、有機農業・有機土木に関する江戸時代の書物、現代の実践書などから学ぶなかで、「各分野で土に関する課題を抱えていると同時に、各分野毎に土に関する知見の蓄積があり、それを実践している人がいる」ことを知る。こうした各分野の知と実践をつなぐ結節点となる場が必要であると確信し、2026 年 3 月に mitsulab を開業した。</p>
-      <p data-i18n-en="The same place looks different as experience accumulates: how water gathers, how a road meets terrain. That sense is where today's mitsulab begins. mitsulab makes Qualia — tools that transfer part of how the world appears — and Qualium, the place and system where they connect through Aoi, and is testing its first place, Feel Hikawa, on the Hikawa approach in Ōmiya. Soil regeneration is one of its applications.">同じ場所でも、経験を重ねるにつれて、水の集まり方や道と地形の関係が違って見える。その実感が、いまの mitsulab の出発点である。mitsulab は、世界の現れ方の一部を転写する道具＝Qualia と、それらが碧を介してつながる場と仕組み＝Qualium をつくり、最初の場《Feel Hikawa》を大宮の氷川参道で試している。土の再生は、その応用の一つである。</p>
-      <p data-i18n-en="Holds the art name 'Ryōheki (菱碧)', granted by the Japan Calligraphy Artists Association, and has gathered 60 works of calligraphy into zines. Completed the 5th cohort of the VR Professional Academy. Since university and the prefectural government, has kept developing with AI, IoT, 3DGS, GIS and 3D printing. Calligraphy, editing at Stillpoint and that development are now all groundwork for making Qualia and Qualium.">日本書作家協会より雅号「菱碧（りょうへき）」を認定され、書の作品 計 60 点を作品集（ZINE）にまとめている。VR プロフェッショナルアカデミー 5 期修了。大学在学中・県庁在職中から AI・IoT・3DGS・GIS・3D プリントなどの開発を続けている。書も、Stillpoint での編集も、その開発も、いまはすべて Qualia と Qualium をつくるための足場である。</p>
+      <p data-i18n-en="The same place looks different as experience accumulates: how water gathers, how a road meets terrain. That sense is where today's mitsulab begins. mitsulab designs places and tools that connect people and nature, with Aoi as the guide, and is testing its first place, Feel Hikawa, on the Hikawa approach in Ōmiya. Soil regeneration is one of its applications.">同じ場所でも、経験を重ねるにつれて、水の集まり方や道と地形の関係が違って見える。その実感が、いまの mitsulab の出発点である。mitsulab は、碧を案内役に、人と自然をつなぐ場と道具をつくり、最初の場《Feel Hikawa》を大宮の氷川参道で試している。土の再生は、その応用の一つである。</p>
+      <p data-i18n-en="Holds the art name 'Ryōheki (菱碧)', granted by the Japan Calligraphy Artists Association, and has gathered 60 works of calligraphy into zines. Completed the 5th cohort of the VR Professional Academy. Since university and the prefectural government, has kept developing with AI, IoT, 3DGS, GIS and 3D printing. Calligraphy, editing at Stillpoint and that development are now all groundwork for connecting people and nature.">日本書作家協会より雅号「菱碧（りょうへき）」を認定され、書の作品 計 60 点を作品集（ZINE）にまとめている。VR プロフェッショナルアカデミー 5 期修了。大学在学中・県庁在職中から AI・IoT・3DGS・GIS・3D プリントなどの開発を続けている。書も、Stillpoint での編集も、その開発も、いまはすべて、人と自然をつなぐための足場である。</p>
     </div>
   </div>
 </div>
@@ -809,7 +765,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <p data-i18n-en="We welcome conversations like these — starting from scope, permission to use materials, and what can actually be tested. To hear about on-site trials, just send an email.">次のような相談を受け付けています。対象・資料の利用許諾・検証できる範囲を確かめるところから始めます。試行の知らせを受け取りたい方も、メールでお知らせください。</p>
     <ul class="list" style="margin-top:10px">
       <li data-i18n-en="Joint research, and artworks and exhibitions">共同研究、作品制作・展示</li>
-      <li data-i18n-en="New Qualia, and the next place (places where terrain, water and time can be checked in public data)">新しい Qualia、次の場所（地形・水・時間の関係が公開データで確かめられる場所）</li>
+      <li data-i18n-en="New tools and apps, and the next place (places where terrain, water and time can be checked in public data)">新しい道具・アプリ、次の場所（地形・水・時間の関係が公開データで確かめられる場所）</li>
       <li data-i18n-en="Trials in school lessons or at your facility">学校の授業や施設での試行</li>
       <li data-i18n-en="Lectures and training, and technical cooperation such as making places into 3D">講演・研修、場所の 3D 化などの技術協力</li>
     </ul>
@@ -826,13 +782,13 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 
 <footer>
   <div class="f-brand">mitsulab</div>
-  <div class="f-tag">Qualium</div>
+  <div class="f-tag" data-i18n-en="Connecting people and nature">人と自然をつなぐ</div>
   <p class="f-credit" data-i18n-en="Terrain on this page: GSI elevation tiles (DEM5A, gaps filled with DEM10B), processed by mitsulab. Images are screens of mitsulab's 3D works. Buildings: © OpenStreetMap contributors. 3D textures: CC0 materials from Poly Haven and ambientCG. Tree positions and some building heights are schematic or estimated. In the Feel Hikawa demo, buildings come from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), and the ground also uses GSI seamless aerial photos.">このページの地形：国土地理院の標高タイル（<span class="gloss-term" data-term-id="dem" role="button" tabindex="0">DEM5A</span>、欠けは DEM10B で補完）を mitsulab が加工。図版は mitsulab の 3D 作品の画面です。建物：© OpenStreetMap contributors。3D の質感：Poly Haven・ambientCG の CC0 素材。並木の位置・建物の高さの一部は模式・推定です。《Feel Hikawa》デモ版の建物は国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工し、地面には国土地理院の全国最新写真（シームレス）も使っています。</p>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
 </footer>
 
-<!-- 碧の灯り（押すと碧の節へ） -->
-<button type="button" class="aoi-guide" id="aoiGuide" data-go-anchor="try" aria-label="碧 ── Geo-Qualia を試す"><span class="aoi-guide-orb" aria-hidden="true"></span><span class="aoi-guide-bubble" aria-hidden="true"><span class="nm" data-i18n-en="Aoi">碧</span> ── <span data-i18n-en="try Geo-Qualia?">Geo-Qualia、試してみる？</span></span></button>
+<!-- 碧の灯り（押すと場《Feel Hikawa》の節へ） -->
+<button type="button" class="aoi-guide" id="aoiGuide" data-go-anchor="site" aria-label="碧 ── 氷川参道を一緒に歩く"><span class="aoi-guide-orb" aria-hidden="true"></span><span class="aoi-guide-bubble" aria-hidden="true"><span class="nm" data-i18n-en="Aoi">碧</span> ── <span data-i18n-en="walk the Hikawa approach with me?">氷川参道、一緒に歩いてみる？</span></span></button>
 
 <!-- 用語解説 -->
 <div class="gloss-pop" id="glossPop" role="dialog" aria-modal="false" aria-labelledby="glossTitle">
@@ -849,107 +805,20 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
    ============================================================ */
 var CORE = { ja:'認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span>', en:'Cognitive Augmentation.<br><span class="core-sub">Nature and the world, more deeply.</span>' };
 
-/* ============================================================
-   ★ Qualia の一覧（Qualium 概念の定義と道具立て v2 §3.1 が正。ここだけ直せば札が増える・減る）
-   1 つ＝{ id, name（〈次元〉-Qualia）, dimJa/dimEn（次元）, layer: 'perception'|'cognition',
-          srcJa/srcEn（転写元 → 受け手）, keepJa/En, changeJa/En, cannotJa/En（保つ／変える／移せない）,
-          mark（● ◐ ○＝科学的な根拠）, markNoteJa/En（印の補い・任意）,
-          state: 'here'（この HP で試せる）| 'open'（公開中のアプリあり）| 'soon'（準備中）| 'check'（利用条件を確認中）, stateNoteJa/En,
-          apps: [{ ja, en, url, repo }]（いまのアプリ・素材） }
-   ============================================================ */
-/* 《Feel Hikawa》デモ版（公開済み）の中で使える Qualia へのリンク。ワークスペースの試作の道具（09_Qualia）は未公開なのでリンクしない */
-var FH = { ja:'《Feel Hikawa》デモ版で', en:'In the Feel Hikawa demo', url:'https://mitsulab-soil.github.io/aoi-walk-hikawa/', repo:'https://github.com/mitsulab-soil/aoi-walk-hikawa' };
-var QUALIA = [
-  { id:'photo', name:'Photo-Qualia', dimJa:'光', dimEn:'Light', layer:'perception',
-    srcJa:'ミツバチなどの紫外線視覚 → 人の可視色', srcEn:'UV vision of bees and others → human visible colours',
-    keepJa:'模様の位置', keepEn:'where the patterns are', changeJa:'波長を人の色に置きかえる', changeEn:'wavelengths re-mapped to human colours',
-    cannotJa:'見え方の主観', cannotEn:'the subjective look', mark:'●',
-    state:'soon', stateNoteJa:'道具は試作済み（紫外線で撮った花の写真。利用条件は確認済み）', stateNoteEn:'tool prototyped (flowers photographed in UV; licences checked)', apps:[] },
-  { id:'phono', name:'Phono-Qualia', dimJa:'音', dimEn:'Sound', layer:'perception',
-    srcJa:'コウモリの超音波・土の中の振動 → 人の可聴域', srcEn:'bat ultrasound, vibration in soil → human hearing range',
-    keepJa:'時間の並び', keepEn:'order in time', changeJa:'周波数を下げる', changeEn:'frequency lowered',
-    cannotJa:'音で形をとらえる感覚', cannotEn:'sensing shape by sound', mark:'●', markNoteJa:'超音波は ●、土の音は ◐（機材の上限しだい）', markNoteEn:'● for ultrasound; ◐ for soil sound (depends on equipment)',
-    state:'soon', stateNoteJa:'道具は試作済み（コウモリの超音波。CC0 の録音）', stateNoteEn:'tool prototyped (bat ultrasound; CC0 recordings)', apps:[] },
-  { id:'geo', name:'Geo-Qualia', dimJa:'地形', dimEn:'Landform', layer:'cognition',
-    srcJa:'標高（国土地理院 DEM5A）・LiDAR → 人の目と体', srcEn:'elevation (GSI DEM5A), LiDAR → human eye and body',
-    keepJa:'高さの順', keepEn:'order of heights', changeJa:'高さを強調する', changeEn:'height exaggerated',
-    cannotJa:'歩く体が感じる勾配の重さ', cannotEn:'the weight of a slope felt by a walking body', mark:'●',
-    state:'here', apps:[{ ja:'参道 3D（Feel Hikawa デモ版）', en:'Sandō 3D (Feel Hikawa demo)', url:'https://mitsulab-soil.github.io/aoi-walk-hikawa/', repo:'https://github.com/mitsulab-soil/aoi-walk-hikawa' }] },
-  { id:'hydro', name:'Hydro-Qualia', dimJa:'水', dimEn:'Water', layer:'cognition',
-    srcJa:'地形から求めた水の集まる線・湧水・用水 → 人の目', srcEn:'lines where water gathers (from terrain), springs, canals → human eye',
-    keepJa:'流れの向き', keepEn:'direction of flow', changeJa:'地下の流れは推定で示す', changeEn:'underground flow shown as estimate',
-    cannotJa:'実際の水量', cannotEn:'the actual volume of water', mark:'◐',
-    state:'open', stateNoteJa:'《Feel Hikawa》デモ版の神池で使える。単体の道具は準備中（Web で公開予定）', stateNoteEn:'usable at the shrine pond in the Feel Hikawa demo; the stand-alone tool is coming to the web', apps:[FH] },
-  { id:'chrono', name:'Chrono-Qualia', dimJa:'時間', dimEn:'Time', layer:'cognition',
-    srcJa:'過去の空中写真・旧版地図・季節の記録 → いまの目', srcEn:'past aerial photos, old maps, seasonal records → today\'s eye',
-    keepJa:'位置', keepEn:'position', changeJa:'時間を重ねる・早送りする', changeEn:'times layered or fast-forwarded',
-    cannotJa:'その時代の人の感じ方', cannotEn:'how people of that time felt', mark:'●',
-    state:'open', stateNoteJa:'《Feel Hikawa》デモ版の一の鳥居で使える（国土地理院の昔の空中写真）。単体の道具は準備中（Web で公開予定）', stateNoteEn:'usable at Ichi-no-torii in the Feel Hikawa demo (GSI historical aerial photos); the stand-alone tool is coming to the web', apps:[FH] },
-  { id:'bio', name:'Bio-Qualia', dimJa:'生命', dimEn:'Life', layer:'cognition',
-    srcJa:'市民科学の観察記録（iNaturalist） → 人の目', srcEn:'citizen-science records (iNaturalist) → human eye',
-    keepJa:'記録の場所と日付', keepEn:'place and date of each record', changeJa:'点として地図に置く', changeEn:'placed as points on a map',
-    cannotJa:'記録されなかった生きもの', cannotEn:'living things nobody recorded', mark:'●',
-    state:'open', stateNoteJa:'写真は CC0・BY・BY-SA のみ', stateNoteEn:'photos: CC0, BY, BY-SA only',
-    apps:[{ ja:'氷川重奏', en:'Hikawa Ensemble', url:'https://mitsulab-soil.github.io/HIKAWA-ENSEMBLE/', repo:'https://github.com/mitsulab-soil/HIKAWA-ENSEMBLE' }] },
-  { id:'pedo', name:'Pedo-Qualia', dimJa:'土', dimEn:'Soil', layer:'cognition',
-    srcJa:'土の中の生物群集とそのつながり → 人の目', srcEn:'soil communities and their links → human eye',
-    keepJa:'分類の階層', keepEn:'taxonomic hierarchy', changeJa:'量と関係を模式にする', changeEn:'amounts and relations shown schematically',
-    cannotJa:'土の中の時間と化学の世界', cannotEn:'the temporal and chemical world underground', mark:'◐', markNoteJa:'教材は仮のデータ', markNoteEn:'teaching apps use illustrative data',
-    state:'open',
-    apps:[{ ja:'土の微生物の顔ぶれ', en:'Who lives in the soil', url:'https://mitsulab-soil.github.io/soil-metagenomics-topography-correlation/', repo:'https://github.com/mitsulab-soil/soil-metagenomics-topography-correlation' },
-          { ja:'土の中のつながり', en:'Connections underground', url:'https://mitsulab-soil.github.io/Soil-Ecosystem-ANT-Simulator/', repo:'https://github.com/mitsulab-soil/Soil-Ecosystem-ANT-Simulator' }] },
-  { id:'mechano', name:'Mechano-Qualia', dimJa:'機械', dimEn:'Machine', layer:'cognition',
-    srcJa:'3D 都市モデル（PLATEAU）・AI の領域分け・点群 → 人の目', srcEn:'3D city model (PLATEAU), AI segmentation, point clouds → human eye',
-    keepJa:'機械の区切り方', keepEn:'how the machine divides', changeJa:'半透明で重ねる', changeEn:'overlaid semi-transparently',
-    cannotJa:'機械に経験があるか（言わない）', cannotEn:'whether a machine has experience (we do not say)', mark:'●',
-    state:'open', stateNoteJa:'《Feel Hikawa》デモ版で、PLATEAU の建物を半透明で重ねられる。単体の道具は準備中（Web で公開予定）', stateNoteEn:'in the Feel Hikawa demo, PLATEAU buildings can be overlaid semi-transparently; the stand-alone tool is coming to the web', apps:[FH] },
-  { id:'logo', name:'Logo-Qualia', dimJa:'言語・文化', dimEn:'Language & culture', layer:'cognition',
-    srcJa:'典拠・作品・ことばの記録 → 人の目と耳', srcEn:'sources, works, records of words → human eye and ear',
-    keepJa:'典拠', keepEn:'sources', changeJa:'景として編む', changeEn:'composed as scenes',
-    cannotJa:'書き手の体験', cannotEn:'the writer\'s experience', mark:'●', markNoteJa:'典拠つき', markNoteEn:'with sources',
-    state:'open', apps:[{ ja:'森羅百景', en:'Shinra Hyakkei', url:'https://mitsulab-soil.github.io/shinra-hyakkei/', repo:'https://github.com/mitsulab-soil/shinra-hyakkei' }] }
-];
-/* ★ ここまで */
 
-(function renderQualia(){
-  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-  function T(ja,en,tag,cls){ return '<'+tag+(cls?' class="'+cls+'"':'')+' data-i18n-en="'+esc(en)+'">'+esc(ja)+'</'+tag+'>'; }
-  var ST={ here:['この上で試せる','Try it on this page'], open:['公開中','Available'], soon:['準備中（Web で公開予定）','Coming to the web'], check:['利用条件を確認中','Checking terms'] };
-  function card(q){
-    var st=ST[q.state], links='';
-    if(q.state==='here') links+='<button type="button" class="btn primary" data-go-anchor="try"><span data-i18n-en="Try above">上で試す</span> <span class="arr">↑</span></button>';
-    (q.apps||[]).forEach(function(a){ links+='<a class="btn'+(q.state==='open'?' primary':'')+'" href="'+esc(a.url)+'" target="_blank" rel="noopener"><span data-i18n-en="'+esc(a.en)+'">'+esc(a.ja)+'</span> <span class="arr">↗</span></a><a class="btn ghost" href="'+esc(a.repo)+'" target="_blank" rel="noopener" aria-label="GitHub：'+esc(a.ja)+'">GitHub</a>'; });
-    return '<li class="q-card st-'+q.state+'" id="q-'+esc(q.id)+'">'+
-      '<div class="qc-head"><h4 class="qc-name">'+esc(q.name)+'</h4>'+T(q.dimJa,q.dimEn,'span','qc-dim')+'<span class="qc-state">'+T(st[0],st[1],'span')+'</span></div>'+
-      '<p class="qc-src">'+T(q.srcJa,q.srcEn,'span')+'</p>'+
-      '<dl class="qc-tags">'+
-        '<div>'+T('保つ','Keeps','dt')+T(q.keepJa,q.keepEn,'dd')+'</div>'+
-        '<div>'+T('変える','Changes','dt')+T(q.changeJa,q.changeEn,'dd')+'</div>'+
-        '<div class="cannot">'+T('移せない','Cannot carry','dt')+T(q.cannotJa,q.cannotEn,'dd')+'</div>'+
-        '<div>'+T('確かさ','Certainty','dt')+T(q.mark+(q.markNoteJa?'　'+q.markNoteJa:''), q.mark+(q.markNoteEn?'  '+q.markNoteEn:''),'dd')+'</div>'+
-        (q.stateNoteJa?'<div>'+T('状態','Status','dt')+T(q.stateNoteJa,q.stateNoteEn,'dd')+'</div>':'')+
-      '</dl>'+(links?'<div class="qc-act">'+links+'</div>':'')+'</li>';
-  }
-  var P=document.getElementById('qualiaPerc'), C=document.getElementById('qualiaCog');
-  if(P) P.innerHTML=QUALIA.filter(function(q){return q.layer==='perception';}).map(card).join('');
-  if(C) C.innerHTML=QUALIA.filter(function(q){return q.layer==='cognition';}).map(card).join('');
-})();
+/* 人と自然をつなぐ の主図：img/ftw/qualium_*.webp・縦長 qualium_m_*.webp（HTML に直接置いた・#qHero）。 */
 
-/* Qualium の主図：2026-10-01 に届いた（img/ftw/qualium_*.webp・縦長 qualium_m_*.webp）。HTML に直接置いた（#qHero）。 */
-var QUALIUM_IMAGE_READY = true;
-
-/* ===== Geo-Qualia（WHY の背景。標高は _dev/ftw/make_terrain_data.py 120 92 の出力）
+var TERRAIN_EX = 8;   // 地形図の高さの強調（HTML の #terrainCap・canvas の aria-label の数字とそろえる）
+/* ===== 地形図（WHY の背景。標高は _dev/ftw/make_terrain_data.py 120 92 の出力）
    2026-10-02 本人指示「TOP の 3D 地形図を前のバージョンに戻して」：v7（b989c70 の俯角 44° 段彩図）をやめ、
    v6（e0b48e3）の「横から見た線」の図に戻した。退避版 2026-10-01_2025_e0b48e3 ===== */
 var TERRAIN = {"cols": 120, "rows": 92, "z0": -2.0, "dz": 0.1, "bbox": [139.615, 35.897, 139.668, 35.93], "b64": "qsHKsKyrrK6vr66xsrKxr7Curq+ura6vr7CwsrSzsaWlopydpaajpKGfnJ6goqCdlYuDhXNcVlRRTUpFR2Wfubq8uri2sq6ppqWmoaCgoKCfoaCdm5ybmpiXlpSTk5OUlpWWlpOQkoqChIOHjY2RkYt7cnNpc3V/qa66srGtrq6ura2usLCwrq6urrCvrq6vrq+urrOyrqOamJWamJympaSimpufoqKciXpxc2dWUk1LS0hDSXWotrm8u7i3taitqKenoKCfn6Cgn5+enp2ZmZiVlpWTkpKSkpOUlZaTkIqGhIeMkI+SkIuLfnRucnN8rrCxsrGvr6+trKytra+urq6vr7Cwr66trq6ur7GxsayooZygi4ybo6ShnJmdo6aZgnRsa2VUUUxMSkhDSGKUtr/Avbq3tZ+tqaikoJycoKGhnp6fnp2al5aVmJWSkJGQj5GSk5OTkY6Jh4qPkZOUk5WSjndxaXFzr7m1sa+yr66rq6utra+ur7CxsLCuq6urrq+wsLCwsK+rqqmhjoePnJ+gm5ebo6aTgHRpaWVWUU9NS0pFSFaKuL/Bvry5uJisrKmno5yYmp2enp2bm5uamZiYmpaSjo2Pjo6QkZOTkYqIhY2QkZSTlZSSjn9ubGxwrsyrrq2ur62rq6utr66vr7CvrKqnn6Clq6+wrq6wsLCvrqynmY+LjouSmpOaoKaTem9pZmZaUE9OS0xERlaHqb3DwcG9t6OgrKuroZqWkpaanp6bmZiYmJmYmJiUkI+Pj46Oj5OTjoiJi5CTl5SQk5SRiX1xbWZurcqpq6ytrKurrKqsr66xsLCvrq6rpKChp62wsLCxsbKys66sp5+akIN9hIqVnqCLdW1qaGZgU1BMSUhGRV91iJ+vrKqtsK6Xr62tp6CVkZGWnJ2bl5aWmJqZmZiXkpGQj42Ki4+QjYuPlJeXmZKMi4+MfXZzb2xor8OrrKysq6ysq6ytrq6wr6+vsLGuqaGdoKuwsbKys7S0tK+trqqlnpqLfIGKj4+Ab2p2bWZmUk5MSUdGRl5+kZqZm6KxsbSgsq+sqKKYkJKUmJual5WXnJmanJmWlZKRj4+Njo+PkI6TlpeXmJGKhYODeHVycGxpr72vrK6srq2ura2trq2trq6vsbSxqKaenKqzsrGytLS1s7Gxsa6no6OhkoV8hX92b3eFgop8Vk9LSkdJUnm3vrummp2ytLettbGtp6Kck5CUlZicmZibmpqbm5qXlJSSkJGQjo6QlZSVlpaVk5CNh4F9eH9+dW9rsLixq62ssbCur66ur62srq+usrOysKqlmaGwsLGys7S1tLGvsayopaKlpZ+Ninx/iZmRjY2CWk5MS1FRTH+0wcGzm52ztra1ubOtqKOfl5COk5ucmZmZmJiampmYlZSSkJGSkI2QlJWWmJSUkY6Oi4R/f4qNgHZtr7Kuqq2usLGwsK6qqKusra6trrGztK6lm56psLO0tbS0sa6usKunpaKlpqGalYyXlZWTkY1/V09RUUpFQ1+Gn8DApKW0tbi5urSvqKKemZGPkpmZmpiZmZmampqYlpSTkpGRj4yNkZWWlpWUkI6Mh4OAhIyPjIR8r6+trKysq7Gvr66rqq2sra6tra+wsq6lm6GosbOztbWzrqyusK6ppaWlpqKbmJaZl5aYjnxwWVVNSUhHQkxTdbvAu7a1tbm5u7avqqGfmZOQj5SWl5eYmZqbnJyamZWUlZSTkY6JjJKWlZaUkY+Mh4KAhY6OjYuHrKyrrKyqqKirrK2sqqytrq6trKyurq2pnKOprrO1trWzr6urrK6rp6WkpJ+bmJiZmJeWgm5mVk1KSklFQklQe7jBvrSsqquwtrOsp6KenJiSj5GWmJmYnJyam52bmpaWlJKRkI+JiI+Tk5KSkpKLh4WEhouPjYuMqqiorK2uq6eoqq2tqqutrq6tq6ysrKupnZmkr7O0trW1s6+tra2rqKajoZ6am5eXlpWNeWFTUE1JSUlFQklShL/Es6ikoqKksbWwqaShnJeRj42Ql5iXm52anJ6cnJiWlJGRjY2Lg4iJiImGi4+MioiHh4iOkI2OoqOmqp+WoKioqausqqyurq6tq6qqqqqpo5ihqa60s7i3s7CuqaipqKejoJ2boJeWk4uDcVlSUE1LSkpEQElMY6i/q6OenqGnt7m2sKmjm5aQjomJjpOZm5qYnZ6eoJqYlZKNiouLhoKBgoOCg4qMiIeIhoWMj42Qn6CjoKuurqqoqKiqq6utra6tqqmpqqmop5mXo6+zsri0srGtqaOgoaWjnZuYlY6Mg32EcVpTUU1MSkhDP0hLWGySnp+in6Gyurm3saqnoZiTj4yIiY+ZmpiXmZqan56bmZWPioqLjYiEgYF/fISGiIiFhYSHjo6OnqKnqrCurKmmpqanqKuurq6tq6moqKmno5eSn6iytLa0s7GtpqOfm6ChnZuXlIZ/f3t5bllRUExLSkhJQVRNUV6EuKmpqrC2t7e2sq2pqZ2Zl5OMh4mPk5eYmZmbn5+cmJeQjI2Oko+KioiFfX6ChIOCgH2AhYqNoaWsq7CurKqnp6aop6mur66tq6impKWkoZSNk6Kqtra1s7GtpaOfm5yfm5iUjHp5eXhya1pTT05NS0hRQE4cIlRop7i4t7a0s7W2tbOtpqGdm5iTiYaIjpOYl5menp2bm5qVkI+SkZCNioaGgHt7fn59eXV1eH6Ao6WrrK+urauqqKeopaeur62uqqekn5+dmZKMkZ6utbW0s6+rpaOioJ2bm5uWh3p4d3VxaVhSTktKSUpYTEQfFUdaeri+ure1s7S0tbSup6WhnZuVjYeFho2TmJmbn5qZm5yalZOSkJCOj46QiYF+fXl4fH56dnZ7oaepq6+wraupqamop6eprq2uq6ilo6CenJGLkJ2us7Ozsq2opaOin5qUl5uWiXt5eYKEb1hRT05NT1ZZV0I/FjBYgby+vbi2tLK1tbOyqqeinpmVj4qFhIeLkpaamZiZm5yZl5WVkpKSk5KRiomIhYKEhYeFfXZ4oqSpqa2wraqqqqqpqKaora2tq6mmpaajn5ONkaKss7Cuq6qopqWjoJiPjJWOi4KBiY2Kc2BUUlBUWVdWV1M/NSFWfKyxwL+5uLS2trSwqqWgnZuYkpKRioWEiY6WmJiZmZiXmJWWlJSVlZWTjYyNjIqJioqIfnd0oaWpqKmwrqurqqqqqaiprq6urKmmp6qmoJOQlqmusKutsKynpqWioZ2Xh4KChIuSkpCMemtdXF1bW1lWVlhMQzlZe5q2xcLCvbu5t7Swq6ahnZyZmZeYlYyFhIeQlpaXl5aWlpWVlZWWlpeTjo2JiIiHhoWFeXdzoqappqaur6yrqaqsqamqrK6trqqpqKupo5WSnqipq6+qoqamo6Kgn6CdloiHipSUk5KQfXhqal9cXVpXV1pZQ05XbI22xMbEwL67t7OurKmlnp2bmpmYl5OKgYGHiYyPkZWVlZSTk5SWl5WVkouGhYSFhIKAfHp3oqakpKWsr62qqqmpqampqKqsrqyqqayro5yYnqWfl6+pmZ+koZiSnp+em5eVkpaUk5KQioZ1amBcW1lWWlpaVj9YYZG4xMbEwr+9urWurKmloJ6cmpqZmZmUioB+f39/hI+YlpOTk5OUlJSWlIyIh4WEioeGjYR9oqSjpaWrrq6pqampqaqpqKusrq6uq6uqpqSclJ2YnayppZ2VlpOSmp6enJqWk5WVlpSTkY6EemdeXFpeXFlaWkZJQ3a0vsLDwb68ubW1saqoopuYmJqcmpydl4x/fHp7fYWXl5iXk5GRkpOUloyLi4mHkpOSkoeCoqSlqKerrK6rqaiqq6uqqayrra6vrKutrqqcjomamqanp6KYkY6QlZ+dnZuYlpaWlpWTkpGCcGxiXFtcXFlSP0FAHz53iqG/wL29ubW1sayopZ2ampSUlpmamZeMgHh3eH+RmJeWl5SRkZKRlI2MjI6QkpKSkIqHoqanqamqrK2sqaipq6uqqqysrK6urayso6CZiYeEfY+mp6emnJCOk52dnJqYlpaWlZWTkYx6a2plXFxcWjkcEzA+JSlfe4Sxwby9u7m3sa2pp6GdlIqRmJuampiVin11dXqJlJeTlZaUkJGQkI2Nj5OTkpKTj4uKoqSmqamoqq2tqKmqrKqrrKusq62srqyqpqOak46Fd3eXpaino5mJio6ZnJuWlpWWlpWRj4Z0a2hiXl5fUBcLAxQ8NRlZqrG7v769u7e0sq+sqKeclYeMlZybmJiXkot7dHV8ipGUmJeUkZCQjo2NkJGTkJGSkIyKoaKlp6imqayspqGepqqrq6urqquqrKyqqaaloKOhfXR3ipuTiYp/dXyLl5qXlJSUlZSTkox7amFeX2BfVhsRCh1BOhtfrL69vLy8urm3tbKtp6SZkoqCj5iXl5iYmJOFc3J0foaUl5iWk5CSkY+QkpGSkY+PjY6LoaCjpaimqKeWhJWmqaqmp6mrqqqpqKqqqKmqqquklH52dHV1c3Vua2lyg4+WmZWVlJSUkoxyZWJcX2NhWx8NCRxCOyh0tby8u7u6ury6s7Cupp+OiYiChpCVl5aXmJaRfXFvcHqQmJmWlJWWlJKRkpCQkJGQjIqLoaKlp6emoZ+qmKWmpqmmqKmpqqmopqmrqqusq6+qqqulgXN0dm9saGZmaHGGkJSXlZSRjHJmY2JfXWJfTRkKBR1BOjaMu7y9vbq6u7q2tLCsqJ+QioaGiIuSk5SVmJaViXRvbXKAkZual5eWk5GTkZCQjo+QjYqJoKKlpqamo6Wsm5mkpKWlqKenqqmmpqirrKyrq62tr66vqZuSlZJ0aGdnaGhoboySjoiJgWdiXltaXFRJJxIRFCZBOTCBtbSysLG1uLW3tbKtqaCXioiGgYKIjI6OlZSWkIFxbWxyhpiXlZaWlZOTkI+Njo6Oj46Nn6Glp6SloqSmooyipKSlpqinqqmop6mtsK2sq6urrKytrayqqKOShnBqaGdmaHl0d2xoamddWVdXVkUkEhITP1RHPDNyn5uWn6y5tbK1tbKvqaSej4h/eXp/goSLkJOVk4+DcmpqeZGXlZeXl5aTkIuIi4yNjZCPn6KjpaSkoqKlp6SipKSlpaalqamqq62trKurqKenqamrq6ytq6ahn5d3a2hnaHBraGNhaGRcWFZVVkYxJioyVFdFUVZvgYKNrbm7trGztbSyq6Sek5GJgXp6f4SJjpGSlJOTgWxobICTlZiZmJiUjomAhoiKjo+On6KkpaWlo6Kkp6WipKWlpaalqKipq6ysqamnpaOkpKirqqqqq6ukn3FqbGZlZmlrZF5dYWRbWFVTUVBQUFBPUE5GUGNxjo+RuLy8tbS1trSxrqmhpJiTjomAfoKIi4+Tk5SWkXdoaHORmJWWmJqVjIeBgIWIjZCMoKKipKWlpqOkpqeipKWlpKWmp6inq6ysqquppZ6amqSnpqemqaupnmptamdjY2VlX1tcXGJbVlNQTk5NTUxNTEpGVGF9prKpuL28uLe3tra2ta6koZ6YlJGFfHyGiY+RlJeZloBmZm2LlJWUlZqWj4eDhH+FhI2No6OipKOjpKOkpKWko6Klpqemp6mhq62ura2opJ2WlJ2joqWhpqmpoGpsa2llZGRqYF5eX2FdVlNPTU1MS0pLS01JWGaSqbS1ub2+vLm2tri3tK6moaGbmJiJe3aBh4yTlpiXk31kZGyFk5aUlpiZk4yLhoB2eYaMoqSko6OipKOjpKSloaOlpqioqamWq6yura2ppJqalJKSlpmOj5mlo3pqampnZ2drZmZmZWJhV1NQT09NTU5QT0s+TXaipq+6vb2/vLi3tri3sq6no6OZk4+DfHN1hIuRl5eWkH5pYG+HkpeUlpqdmZOQjIR8dHeFoaSkpKOio6Oio6OloaOjpKSlp6iiqKqsq6uopaSfk4iTlpWAen+Gk4B2dHFqa2tscHh5eWZkWVNQT05OTU1OTUs2TVtsiaSwtru9vLm4ubi3trOqpKOTiYJ9enRvdYOLlJaWjndlYmyGlJWUlZqfoZuWkIh9eXB6pKWko6OhoaKinqKioKGio6OkpaienKioqainpqOfmYiMkot8e3t6eHN0dHJub294jZWQg3JoW1JQT05OTU5OTk01SlNjjZWttLq8vLq4t7e3t7WupqCVi4aDg3pxbnJ9iJCRinhmYWZ5k5SVlpyhpKOfmI6GenRto6Wlo6Gfn5+hoaChoKChoaKkpaekmqioqKamo56ck4mHgoeKipGBfnRzcnJxd4iLlpiTiIByYFRRUEtPTk5OTU06Q0ZQWGeYp7i6u7m5t7W2uLWvqKKVkpGSlIt0cWtudX6CgXZlYGVxkJeZmZ+hoKOkn4+GgHhxoaSkpKGgnZyfoZ+gn56hoqOlp6ekn6SlqKijopyVjI+TjY6Vm6Wfn5J+eXV1hZSUmpmTjId9ZVRRUE9RUE1HTE1FNkZFS1xpjqy1ube3t7e4traxqKKclpGRlpSIdm1oaG51enFjX2R0k5mcnqSfnJudno+MioN6oKOmpKKenZycnZ2foJ6foqOkpqalo6aoqaijop+XjJuko52dpKimpaKYiH16jJWZmpiSkYyGblpVVFdXUktCRkZIOkFERVFddJKvube3t7i4tbWyqaefl5GLkpWVkHxvamdnbWpjX2Jzipeeo6ahnJqam5eXmJGIoaKlpaGfnpybnZ2enp6coaKkpKWkoqKlpqShoqGck5mlp6OiqKqnpqShloZ9jJabnJqVkpCNeWZeX19dWU9EQkNESDdGREdYbZe2ubq6ubW2tLOwqaaekoqHiZCTlZOFeWxoaWZmZGZwi5WepKekm5qanJ6dmZGNoaKjpaKgnp2cnZ2cnJybn6KjpKSjoqGio6Oho6ShnZykqKejqKqop6WfkIaCj5manZyZk4+IfG1kYWBcV1JKQ0JDREM/REVTfLS4ury8ubW0s7Oxq6Sbj4mFhIuRkpWShXpwZmNkYWZujpehpKinnJueoqGinZiRoaGjo6Ggn56cnZ2cnZydmqKloqSko6GioaGgoKKkpKSlpaWhpqmpp6WfkouGj5eVlZaRjYuBg3pkYV1bWVJQTEdFQ0c5RUVTkbO2ubu7ubSxsrOxq6WflI6GgoaRkJKUlZCHcmdkYWZtf4aapqmro5+mqqOkoZmSoJ+ioaCfn5+cnJ6cm5ycmKKloKKjo6GioaCfn6Clp6emo6GfpqWoqKifl42Mk5OTkpGMiYaHkH1oYVZST01NTEtLS0pEPEdSapujrru+vLm3s7SxraahnZyTf2uBjpGWmJaSiX1qY2ZsbnyapKqvqaaqqqinoZmSoKCioqCfn6CdnJybm5ycm6Gjnp+joqKgoJ+en6CkpqmopaCep6eop6ehnZSVk5KTk5OMg3t8fHdrWFJQTUxNTktKSUlJOEpQWG92ira+vby4tbayraakn5eSgnB+iY2RlZaTkZB+Y2RpbImgpqqsrKusrKmoo5uPoKGioJ6en6CdnJ2cm5ycnJyenZ6goaGhoZ+en6CipKenoJybpqenp6SjnpiYl5SUlZSLeHFuamhmYl5dYF9VUExKSUhHRThJVVxuja69v7+8vLqzraijm5SNhIF+gIOOkZOUlJWPZ2RobnqaqKqqqKmtrayqqKGWoKOhnp2enZ6dnJycm5ycnJaen6ChoqKgoKCen5+go6eoopyZnaGkpaOhnpqZmJeWlZWNhXdybWxtaWpjYV9TUU1KSEhIRzlKU1lsnbi9vr29vbu3saqknJWOi4uEeHmGiZCWlpWQYmNnbXmbq6uppqWlrK6pp6Gdn6Cgn5ycm5udnJ2cm5ubm5ubnqGipKWioqGen6ChpKenpJ2YoqaqpqShnpyamZiYlpaUkId7dn14cWhhXltWW1NHSEhFRUY4TFFxsre7vb2+vLu5t6qloJyZlpGLgXh1d4uWlpWMYWJka4CRqq6opaShpqyrpqKenKChop6cmZibnZycm5ubnKSXn6KipKWio6KfpKWmqKmmo5yXoqmoo6Ohn5yZmZmZmJWTk5KWiYd9dWxkXltXXlVISUdHRUQ9Rk9XiK2rr7O8vLu7uLCopaCblpKMfnZqanKGlpaHYF5gZnmEn6yqp6Wjp62rqKefm56ho6Gbm5udnp2dm5qbm6OYoaOio6Sjo6OipKSnq6yqpJ2Wl5aXlpmdnJmYl5qZl5WTlZqYlI2CenBqZV9fXVhOS0lGSEhMNlVVXW19qr67vry7uLWqqqKcmJONfnVsZ2pykJR/X11gZXaHg5alpamqrK+tq6qjm5+ho6SenJuenp+cm5qam52aoaKjpKKio6Ojo6Woqqmmn5eUk5OSkZKWmJaXl5mYl5WVl5mal5KLgXh2b2ZjY15QTUtJSklKQkdWXV1jp8C/vb28t7euqqWdmZeTj4uEdWlqb29lXl1hZWhveHiIpauusLCxsK2knJ2foqOhoJ+goqGcmpmZmpqaoKKio6KioqKjoqSnpaCbmJaUlJOUk5CTlZaUlJaXlpaWlpeYl5aTin14dGxqbG1ZTktJSUhGRjhRVFdgq7u7vL7AuLixrKedl5OWkY+Phm1pZWNiXl5naXKOnId9ma6ysrS1tK+mnp6goqOko6KkpqSfmpqZmZmanqKhoaGhoqKin5+eoqOinZuXlpecmZeQkZSUlZeXl5aVlpeWlpiVjoB1cHBycnNnUUtJSEdFRDhGR0perLy7u77Bu7Wyramhk4uUkY+Rk4ZwZGJhXWBreX2WpZ+Rnq2ztre4tLCsnp6goqWmpqOkpaKfmpmYmJmbmqKhoaCho6OgnZ6en6GkpKGbmpqcnJuNjZGUlZaXlpaWlpeXl5eXlox8dXh+gH50UUlIR0ZDO0A8R0daorq3uLy+vLa0rqygjoSJkZCSlJGEamFgXGFzkYuZo56lq66xtbe3tbKvnp2eoKSmpqWjoZ6dm5uZmZqamaGhoaKho6Ognp2dnZ6gpaejnZmXl5aNiImRkpSWl5aXlpaXl5aam5KFfXyCh4d9WE1JSEZAOUI1SEdSjrKwtbm9vbm1rqiei4KAkpCRk5OMfmdgW2N9lZWeqqWrsbGwsLKzs7GwmJ6cn6Kmp6afnpycnJ2amZqamZ2fn6CipaSfnZycnJudo6mmoaOblpGNhoSGipCUlpWVl5aVlZWXmZaNfXx+gYmIZmhOQkA/PT44RUZLZJShpqi5u7m0rKeYiX9+io+Vk5OSiW1iX2t7ipSfrbOwr66sra6xsKytmJyanKCmp6Wdm5ucnJ2amZmamZqdnp+ipKSknZucm5yfo6eppaeinJaRiISBgYKJl5WVlZeUk5SXmJmRf3p9e3x7bGlnW0A/PT1BO0NEUXSNhJ+2urmzrKegjIB6hI6UlY+IgmxgX2t9l5ifrbGtrKuoqq6xsaifmJiYmqCho6Gempmam52cmpmamZmdnp+hoqOjoJycnJ2go6Wnpailn5uWjoiFhICAj5WVl5iVlJeal5iSgXp8gnFva2hqY0I/PjxBN0FBR1hhbaO0tLOwqqagkH93h4uLkZWWln1eX2VxjJSarLCrqaimpaWusKWhlJaVlpyeoKGcmpmZm52bmpmZmZmbnZ2go6OinpycnZ+goqOmo6ekn5yYk42NioR/g5WWlpOUlZeTkI+Hgnt1fWxlYl5bWkI/Pj1BOUpNUV9gepiqra2sqqahlnRuiYiBhJOXlXtjZGNqgYiTq7SuqKekpKOkpaWokZGUlJibnp+cmZiam5ydm5mZmZmZnZygoqKhoZ+dnp+goaKko6ainJmZl5KMiod+fY2RkpWVlpWSj5CRjX9vbGlmZGBdWFRQUVZXQE1PTlNmcZ6ysbCtqqWhmHppgpCGdouWkW9kZGNmfIGQpbiwqaalqaumqK6wjY+QkpSZmpuam5ubm5ycnJqZmJmXnJ2eoaOhoZ6cnZ6foKOjoaKempeYmJaSjomCfICOlJSUlJSSioyUkXtraGlpYl5cW1pSTlpRPEA/Q1OFnKeys7GnmZWakoBna3lyanaIhGJkY2NZY3iKo7e0rKaorrW1t7W0h4aIi42RlpmZmZmampudnZual5iXmZ6eoaKgoZ6cnZydnqChoqSemJSYm5mVjYmFfHeLkZGSk5WVhn6GgnVxeYFmW1paW1tTPldQPT5BRlWXs7KytLGomJCNh3VmYF5eXmFhZVxeXl1bV3R/mrOxsKyutLq4trazgICAg4mPk5aWlZmampqcnZyal5eYmp+eoKGgn52cm52eoKOioKKfmJOWm5qZkYiBfHN+jI6QlJaUh3l2dHSGioFgWlpaWlpTOj88PjtBSWKut7W0sq+ro5mRd2tqZV5cW1pZV1heX15bV2Jkf5ehtLOzsrK1tbSyfH1+f4KHjZSXmJmam5qbm5ubmJeYmp+enp+fnp6cnZ+gn56en6KhmpSTm52bl4t/eHJ0gYeOlZeVjX56dnR/hHpeW1pbWFJRQD07QDpBS2WxtrOvrKuqqKCZfWx2h2hkcGZbV1hdYGNiW1ZTYXaBsrGhj5GttrWyfHx9fn6AipGWmJiYmZmamZmZmZeXmJyen5+enZybnJ6dnJycnaCinpWRmZybmpWKgXZxc3mFjZSVkoiAeXd5dW5dW1pbWU5PSUJBQjhBS1yYrq+vqaSfn6GRdG57ioKAkn9zZmBdWl1kYV5dVlR5p6qHc3+mtre0e3x7e3t8hJCUlZiUkZiYmJiZmpiXl5menqCenJybmZmampuZm56hoZmRj5abm5mUjYl6cnJ3hI+Wl5KIgH17c2tZWFZWVUtMR0JBQjhBSll6namrqqSelpWDfHiAiYuRlIyFf4F0X1teYV9dXFtaj4lxbG2ktbm3eXl7fX57f4uRkZJ9dpiYmJiYmZiXl5idnp+em5ycmJiYmJiZmp2goZ6ViYuUmpuYlZGMgnBueYuWmJWNhYV9dGdeV1VNR0ZGQz49QTZCSVeBl6WnqaiikYqNk5COi4qQk46PkZOObllbXl5fXVtUYWdnZ2yWrrq7eHt8eXl4en1/i5KSkpSWl5mYmJaWmJednZ6em5qZmJiXmJiYmp2goqGejoSLlpublpORjXhrbHqPl5WNh4WAdWtoWlhRR0ZFQDs7PzZDR1WOo6Okpaufjo+boJmUjIyNj4yQkZOSd1taW11fXVtYUmBsmKGUrry7eHl5dnV1eHp6go+QkpaXmJmYlJKVl5ibnJybmpqamZeXmJmam5+hoqKflYeBjpedmpWSkIZyaWp3jJGRi4d/dnBuXlVOSEZGQzs6PTZER1mTnqCgpKmflKGko5uSkJCNjo2Oj5GRkXVhWFtcXFtZVlt0sba5vr69eXh3dnV3eXh6hI6Sk5WWl5mWko6VlpmZmpycmpiYmZecnJycnaGhoaCfm4+DgJGbm5WUk5OIcWdqfouPkIqDeG5qXkxHSk1KQkFBQDZFRVWJmpydn6SkpKamppqRk5KQjY+OkJGSkpKGdltZVVZZV1mWtLm9vb+/d3d4eHh3d3h8h46Sk5SVl5mWkY+SlZmYmJeZmJeXmJmdnZ+en6SjoqChn5uQg4aWm5iXl5eWh21mbn+Jk46HfXJqXEtGRUZFQD49OjlCQlJ1mJqYmp2ip6ikopyVk5GTj4+RkZOSk5OPiXlmUEhWVWy3u7u6ubq/eHZ9enp7enl4gY2QkpOTlZaWkY2OlJaYmJSVlpeYmp2en6Cjoqalop2goZ+cjYSAjpmYl5iZl4VpZnJ9kZSLgnlvW01IRURCQD8+PEE+QklbhZaWmJedo6Sfnp2ZlJKUkZCQj46RkJKPjIt5YFBSVWelvbyqsri9fX14e318e3l3e4yOj5GTlZWVko2Nk5SYl5aXmZiZnaGho6SjoaWjoZ6eoKCemY1+eoeUl5mZmJSDZGR0iZWQhYF7b1JIRkVEQkI/PUM3QkNNX42TlJSZnKCenZ6fnZeVkpKQj46NioySkpCGYVZSVF+UubSVpbi0g392eXt7eXl4eHyHkJOVlZaUlI6Mk5SWmJicnJmZm6Kio6SioaWlpaKipKOhnpqIeXmNkpeamZiXfWRmdY6SiYN/dl5LR0VDQkFAPT42Q0JHU3mVlZWZm5+hoaGiop+bmJaUkZKOg3V+kZKLb1hOUFh6m5V/mrSuiYV8dXZ3eXd2d3qHkJOUlJOTkY+NkZWUmZiZnJuZm52foqKhoaKlpKSkpaajn5uRgnlyd4WYmpeXjGxgYnWQg397dGpZSUVDQUFAPjw8PUBETm2YmpqanKCioaKlpaekn5qWlJKPhHFmcomIdFxWSVFign1yh7KojYmGgXl0cHR0eXiAi5CTlZGPjo6MjpWUlpiZmpuZmpyfnpycnZ2ipKOkpKSkop+Yi4B6d3aOlZeVjH9jXWN0c3V3c21iT0hFREE/Pj1BOENFR16WnZ+fn6KjoaGkp6mpo5qXlpKPhG5hX2JiX1tXTkpTZWdmg7WukI+PiX57dHByc3V9hYmOkZOOjo6NjJOVlJial5mZmJudm5ydnJmfoqOjoqWlpKKfk4uKjHx8jZGRintxXFphbHR3c3BuVU1JSUVFRENBN0RERVWMm6CfoqCfoJ+kpaenoJeXl5CGeWhdW1hcWlhWVEVLU1hng6uxkY6NjoZ9dHFtcXV6fYGGj5KRkJGSkJSVlZWYmZOXmJmamZqZmJebnqCgoaOkp6WinJaUi4F3f5OQhYJ+Y1lZYGx3d3VqVU1LSkpKSlBTO0hERlZ1m5mbn6Gfm5qeoqOinJaXmYp9bmJebWZkYVtXVk9JT1Rloaqyk4+OjYqAdnFucXN3fYODiI2MkpSUlJaXlZaYnJKTlpaXmJaWlpaZm52dnqCho6KhnpmOhoJ9a4COiIWFc1xaWVteZGpaTFBOS1FQTUxJO0ZBSlqKnpydnqCgm5udn6CgoJyZloZ6a2VniI2Qi3xmWlNITE9YnLW0kYyLiod+dm9ubHJ1e4OGhoWIkZaYmJWVlZaWmJ+LkpWWlpWWlpeanZ2dnp+hpaimop+Zi4aGc2pzfYiHf2RdW1pZXl1SUVJTSkpLSk1QPEM/SWCUnZ2dnaCgnZ2bnZ+foqKdl42EdnWBi46RkoR0YlhFR0tTeKWgkI6IhIB8dHBwa3FyeYKIjouKjZaWlpSOio+EhpucgJCVlpaZmZidnp6cnZ6gpaempaSjlpOTgWxlb4WLhH12cmFdUFNUUFBQS0lJRkpQOUJAR12in56dnp+gn5yZmZ2anZ+dmZWPioaLjo+PkoqCeWVPR0pOWGBzjImIiIR9c3BuaW9xeH+JjZGTjY2SlZWQiYKIb4VwmZaVlpiZmpibm5ycnZ6gpaampqWil4uJh4FtY3qOi4OOjn9qTFBbVFFTTkpIRkZJOkI/RlBnfYeanp6gnp6ampqbm5mYmZeVlZCQkJGQkJGSk3VSTUZKTk1Wj42LiYN7cnBuZ25wdX6Dh42Wl5SQlJWQiIN4bH6JmaKVlJiZmpiZmpucn6CgpaimpaOhloiHhoZ5aGiPjoSKjol4VE9TVFNSTklFT01GPUFER0pSXGl5kZydoJ2bnpuam5mYmZuamZSRkpOTkIuTlYpYUlZHSERQkpCOi4l/dnBuamlvc3d3eoaQmJiUkJOQiYV7eYufjJ2glZWampiYmJmanJ+go6ampaOjmYmHhoV+b2B1fXuHinRrV1NWVVJLSEdOb1ZFPkJGSElMUFtfY3B4jYiXnZybnZycm5iXlpGQkpCRi3uFlZVxW11UQzxBj46Pi4yGe3Btbmlvb3Fyc3qIkpOXkY+NiIaAf36Xnoqfn5WYmpeYl5eYmp2foaKjpKWkmYaDgYF/d1xdXF1wamhmWFJPSUZJTFZai2BJPUFFRkhHSVFSUlJZbXeEjpiWnJ2Zl5mVk46QjY2LgGtnf4txX1tOTDw6h4iJiYmHfG9tcGhtb3FycHSFi4+VlpGNkYmDgXyEnI+DjpyTmJaYl5eXmpufoKChoKGinYiFhZCMgG1aV1VaZFlWTkdKTEtJSVt3dW1fQkRDRElGRkhMTFBTYGp0eXyPnZSFhJSWk5GRjomCeWJcWlxeW1dHQj45gYGEiIiGgHVscFdrbW1vb3R/iY+QlpKPj42GgIB9ipeSfpOYk5WXmZqYmJidoJ+foKChoI2KipqZj3lgW1dYX1lOSkxJTEtJSE1NSU1JRT5AREhCQURGRkxQV2FqbmptfHxvY2h3j5OQj35wZF5cVVRNS0pBPTw6f36BhIeIhX9ycVdqam1ub3Fzc4OMkZKRjpCJgX9/hJGHhYCokZKYm5yZmpibnJudoKGhoqCcm5uVjXRiXWhrYllQTU9VT0tKSEZFQkZGRjZBSEQ/QEBBQ0VMUlpfWlFVY2tlU1FYZ3d3bGRjYmRgXV1OSEc+Ozo5e317foSJiIp5b2RnbW1tbnB0goyRkZGRj5COiIqLgYyOhH6Pn5GYmZqZmpmampudoqOio6OamZaNdWdkZ4N4a2hZUVtWTUpIRkRCQD8/QThDRUI/Pz8/QEVMTEtOTElLV2BXSUdNU05NSmNnZWZhXVtNRUY+Ozo5fHt6eoCLjYyEbW9ocm9wb2xvfpGOjo6Qj5CSkY2OgYiMjIF7mJeUlpeZmZmampuaoaKhoqOZk46AZ2t6io6DgHtuXVhNSkhEQ0NGTT4+RkI0QUNAPT0/QEZDQ0JDRERER0lFREVHSEREQ19fVU1GQT9APj9APTw7"};
 (function(){
-  var cv=document.getElementById('terrain'), sl=document.getElementById('exag'), out=document.getElementById('exagVal'); if(!cv||!cv.getContext) return;
-  var live=document.getElementById('exagLive'), ans=document.getElementById('tryAnswer'), hint=document.getElementById('tryHint');
+  var cv=document.getElementById('terrain'); if(!cv||!cv.getContext) return;
   var ctx=cv.getContext('2d'), T=TERRAIN, C=T.cols, Rn=T.rows, MAXX=20;
   var raw=atob(T.b64), h=new Float32Array(raw.length); for(var i=0;i<raw.length;i++) h[i]=T.z0+raw.charCodeAt(i)*T.dz;
   var hmin=Infinity; for(i=0;i<h.length;i++) if(h[i]<hmin) hmin=h[i];
-  var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2), ex=1, bandTop=0, bandBot=0;
-  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2), ex=TERRAIN_EX, bandTop=0, bandBot=0;   // 高さの強調は固定（2026-10-03 本人指示「いい感じの倍率で固定」）
   var bb=T.bbox; // [lonW, latS, lonE, latN]
   function rc(lat,lon){ return [ (bb[3]-lat)/(bb[3]-bb[1])*(Rn-1), (lon-bb[0])/(bb[2]-bb[0])*(C-1) ]; }
   // 参道の両端（仕様書の座標）
@@ -957,14 +826,12 @@ var TERRAIN = {"cols": 120, "rows": 92, "z0": -2.0, "dz": 0.1, "bbox": [139.615,
   // 谷（低い所）：東の半分で、まわりを均した高さがいちばん低い所（ラベルは「谷」だけ。名前は付けない）
   var lowRC=(function(){ var best=1e9, br=0, bc=0; for(var r=8;r<Rn-8;r++) for(var c=Math.floor(C*0.55);c<C-8;c++){ var sum=0,n=0; for(var dr=-4;dr<=4;dr++) for(var dc=-4;dc<=4;dc++){ sum+=h[(r+dr)*C+c+dc]; n++; } var v=sum/n; if(v<best){best=v;br=r;bc=c;} } return [br,bc]; })();
   var highRC=(function(){ var best=-1e9, br=0, bc=0; for(var r=8;r<Rn-8;r++) for(var c=8;c<Math.floor(C*0.45);c++){ var sum=0,n=0; for(var dr=-4;dr<=4;dr++) for(var dc=-4;dc<=4;dc++){ sum+=h[(r+dr)*C+c+dc]; n++; } var v=sum/n; if(v>best){best=v;br=r;bc=c;} } return [br,bc]; })();
-  function v2x(v){ return Math.pow(MAXX, v/100); }          // 対数目盛：×1〜×5 の帯を広く
-  function x2v(x){ return Math.log(x)/Math.log(MAXX)*100; }
   function size(){
     var r=cv.getBoundingClientRect(); if(!r.width) return; W=r.width; H=r.height;
     cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
-    var inner=document.querySelector('.why-inner'), tr=document.getElementById('try');
+    var inner=document.querySelector('.why-inner'), tr=document.getElementById('terrainCap');
     var ib=inner?inner.getBoundingClientRect().bottom-r.top:H*0.45, tt=tr?tr.getBoundingClientRect().top-r.top:H*0.85;
-    bandTop=Math.max(H*0.3, ib+26); bandBot=Math.max(bandTop+80, tt-18);   // 地形の帯を、詩の下〜試すカードの上に収める
+    bandTop=Math.max(H*0.3, ib+26); bandBot=Math.max(bandTop+80, tt-14);   // 地形の帯を、コアの一行の下〜出典の一行の上に収める
     draw();
   }
   function proj(row,col,z){ var t=row/(Rn-1); var x=-W*0.04+col/(C-1)*W*1.08; var y0=bandTop+(bandBot-bandTop)*t; var pxm=(W*1.08)/4780; return [x, y0-(z-hmin)*pxm*ex]; }
@@ -988,21 +855,11 @@ var TERRAIN = {"cols": 120, "rows": 92, "z0": -2.0, "dz": 0.1, "bbox": [139.615,
     label(highRC, en?'Ōmiya Upland':'大宮台地','rgba(200,236,246,.85)');
     label(lowRC, en?'valley (low ground)':'谷（低い所）','rgba(200,236,246,.85)');
   }
-  function txt(x){ return (document.documentElement.getAttribute('data-lang')==='en'?'height ×':'高さ ×')+(x<10?x.toFixed(1).replace(/\.0$/,''):Math.round(x)); }
-  function set(x){ ex=x; sl.value=Math.round(x2v(x)); out.textContent=txt(x); sl.setAttribute('aria-valuetext',txt(x)); draw(); }
-  var touched=false, intro=0;
-  function stopIntro(){ touched=true; if(intro){ cancelAnimationFrame(intro); intro=0; } if(hint) hint.classList.add('off'); }
-  sl.addEventListener('input',function(){ stopIntro(); set(v2x(+sl.value)); if(ex>=4&&ans&&ans.hidden){ ans.hidden=false; } });
-  sl.addEventListener('change',function(){ if(live) live.textContent=txt(ex)+(ans&&!ans.hidden?'。'+ans.textContent:''); });   // 読み上げは離したときだけ
-  sl.addEventListener('pointerdown',stopIntro);
-  function playIntro(){ if(touched) return; var t0=0; function f(t){ if(touched){intro=0;return;} if(!t0) t0=t; var k=Math.min(1,(t-t0)/3200);
-      var e=Math.sin(Math.PI*k); set(1+9*e*e); if(k<1) intro=requestAnimationFrame(f); else { intro=0; set(1); } } intro=requestAnimationFrame(f); }   // ×1→×10→×1 を一度だけ
-  document.addEventListener('hp-lang-change',function(){ set(ex); });
+  document.addEventListener('hp-lang-change',function(){ draw(); });
   var rt; window.addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(size,120); });
   if(window.ResizeObserver){ new ResizeObserver(function(){ size(); }).observe(cv); }
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(size);
-  size(); set(1);
-  if(reduce){ if(hint) hint.classList.add('off'); } else setTimeout(playIntro,800);
+  size();
 })();
 
 /* ===== 用語解説（ja / en） ===== */
@@ -1059,7 +916,7 @@ var TERMS = {
     try{ document.dispatchEvent(new CustomEvent('hp-lang-change',{detail:lang})); }catch(e){}
     document.querySelectorAll('.card-title').forEach(function(t){ var a=t.querySelector('.ct-ja'), b=t.querySelector('.ct-en'); if(a&&b) b.style.display=(lang==='en'&&a.textContent.trim().replace(/[《》]/g,'')===b.textContent.trim().replace(/[《》]/g,''))?'none':''; });
     if(!window.__titleJa) window.__titleJa=document.title;
-    document.title = lang==='en' ? 'mitsulab — Cognitive Augmentation | Qualium' : window.__titleJa;
+    document.title = lang==='en' ? 'mitsulab — Cognitive Augmentation | Connecting people and nature' : window.__titleJa;
   }
   function paint(seg){
     var ind=seg.querySelector('.seg-ind'), act=seg.querySelector('.seg-btn[aria-pressed="true"]');
@@ -1114,7 +971,8 @@ var TERMS = {
     if(target&&anchor!==id){ setTimeout(function(){ var y=target.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo(0,y); },30); }
     else window.scrollTo(0,0);
   }
-  function fromHash(){ var h=(location.hash||'').slice(1); if(!h){show('top');return;}
+  var OLD={tools:'apps',works:'apps',qualium:'connect',try:'why'};   // 2026-10-03 に外した節への古いリンクの受け口
+  function fromHash(){ var h=(location.hash||'').slice(1); if(!h){show('top');return;} if(OLD[h]) h=OLD[h];
     var el=document.getElementById(h); var p=el&&(el.classList.contains('tab-panel')?el:el.closest('.tab-panel'));
     show(p?p.id:'top', h); }
   document.addEventListener('click',function(e){
