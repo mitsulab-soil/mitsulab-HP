@@ -813,6 +813,27 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
 .fn-more{display:flex;justify-content:center;margin-top:14px}
 @media (prefers-reduced-motion:reduce){.fn-card,.fn-arrow{transition:none}}
 
+/* Qualium・アプリケーションのページ：動く図（2026-10-05） */
+.qx .loop-ring,.qx .loop-dot,.qx .loop-aoi{display:none}
+.qx-cv{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.qx-aoi{position:absolute;left:50%;top:50%;width:21cqw;height:21cqw;transform:translate(-50%,-50%);border-radius:50%;object-fit:cover;object-position:50% 12%;border:1px solid rgba(160,240,246,.8);box-shadow:0 0 5cqw rgba(92,200,224,.55)}
+.qx .loop-c{top:calc(50% + 13cqw);font-size:3.2cqw;color:#c6f8f2}
+.qx .st{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.qx-dims{animation:none!important}
+.qx-dims .dm{width:auto;height:auto;background:rgba(3,6,15,.72)!important;border-radius:99cqw;padding:.6cqw 2.2cqw;transform:translate(-10%,-130%);animation:none!important;mix-blend-mode:normal;transition:box-shadow .4s}
+.qx-dims .dm.on{box-shadow:0 0 3cqw rgba(198,248,242,.45)}
+.qx-dims .dm-core{width:12%;height:12%;z-index:2}
+/* アプリの絵：ゆっくり動き、光の走査線が通る */
+.app-fig{isolation:isolate}
+.app-fig img{animation:kb 18s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.04) translate(0,0)}to{transform:scale(1.12) translate(-2%,-1.5%)}}
+.app-fig::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(198,248,242,0) 0%,rgba(198,248,242,.16) 48%,rgba(198,248,242,0) 52%);background-size:100% 260%;animation:scan 6s linear infinite;mix-blend-mode:screen;pointer-events:none}
+.app-fig::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 90% at 50% 120%,rgba(3,6,15,.55),rgba(3,6,15,0) 60%);border-radius:inherit}
+@keyframes scan{from{background-position:0 120%}to{background-position:0 -120%}}
+.app{transition:transform .6s}
+.app:hover .app-fig{box-shadow:0 0 40px rgba(92,200,224,.25)}
+@media (prefers-reduced-motion:reduce){.app-fig img,.app-fig::after{animation:none}}
+
 </style>
 </head>
 <body>
@@ -1573,6 +1594,70 @@ var AOI_FN=[
   all(); document.addEventListener('hp-lang-change',all);
 })();
 </script>
+<script>
+/* ===== Qualium とアプリケーションのページの動く図（2026-10-05）：TOP・碧のページと同じ言葉づかい（光の線・粒・碧の光）
+   ① Qualium の輪：五つの段のあいだを光の帯が流れ、段に着くたびに波が立つ。中心は碧の絵
+   ② 重なる層：自然・文化・人・情報・機械の面が、斜めに入り組んで重なり、碧の軸と光の粒が層を行き来する ===== */
+(function(){
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function canvasIn(box,cls){ var c=document.createElement('canvas'); c.className=cls; c.setAttribute('aria-hidden','true'); box.insertBefore(c,box.firstChild); return c; }
+  function runner(box,draw){ var cv=canvasIn(box,'qx-cv'), ctx=cv.getContext('2d'), DPR=Math.min(window.devicePixelRatio||1,2), W=0,H=0, vis=false, raf=0, t0=performance.now(), last=0;
+    function size(){ var r=box.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); draw(ctx,W,H,reduce?0:(performance.now()-t0)/1000); }
+    function loop(now){ if(!vis){ raf=0; return; } if(now-last>30){ draw(ctx,W,H,(now-t0)/1000); last=now; } raf=requestAnimationFrame(loop); }
+    if(window.ResizeObserver) new ResizeObserver(size).observe(box); size();
+    if(!reduce&&window.IntersectionObserver) new IntersectionObserver(function(es){ vis=es[0].isIntersecting; if(vis&&!raf) raf=requestAnimationFrame(loop); }).observe(box); }
+  function glow(ctx,x,y,r,col,a){ var g=ctx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,'rgba('+col+','+a+')'); g.addColorStop(1,'rgba('+col+',0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,6.283); ctx.fill(); }
+
+  // ① Qualium の輪
+  var loop=document.getElementById('qLoop');
+  if(loop){ loop.classList.add('qx');
+    var img=document.createElement('img'); img.className='qx-aoi'; img.src='img/ftw/aoi_portrait_480.webp'; img.alt=''; img.setAttribute('aria-hidden','true'); loop.appendChild(img);
+    var sts=[].slice.call(loop.querySelectorAll('.st')), A=[-90,-18,54,126,198].map(function(d){ return d*Math.PI/180; });
+    var COL=['120,214,236','232,197,138','180,162,255','198,248,242','244,170,150'];
+    var parts=[]; for(var i=0;i<90;i++) parts.push({a:Math.random()*6.283,s:.25+Math.random()*.35,r:(Math.random()-.5)*.05,z:Math.random()});
+    runner(loop,function(ctx,W,H,t){ ctx.clearRect(0,0,W,H); var cx=W/2, cy=H/2, R=W*.35, per=10, ph=(t/per)%1, head=-Math.PI/2+ph*6.283;
+      glow(ctx,cx,cy,W*.5,'92,200,224',.13);
+      for(var k=0;k<3;k++){ ctx.strokeStyle='rgba(92,200,224,'+(.10+k*.05)+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,R*(1+(k-1)*.06),0,6.283); ctx.stroke(); }
+      // 光の帯（彗星の尾）
+      for(var j=0;j<60;j++){ var a=head-j*.03, al=(1-j/60); ctx.strokeStyle='rgba(198,248,242,'+(.85*al)+')'; ctx.lineWidth=3*al+.5; ctx.beginPath(); ctx.arc(cx,cy,R,a-.03,a); ctx.stroke(); }
+      glow(ctx,cx+Math.cos(head)*R,cy+Math.sin(head)*R,W*.03,'198,248,242',.95);
+      // 段に着いたら波
+      A.forEach(function(a,k){ var d=((head-a)%6.283+6.283)%6.283; var on=d<.9; var x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R;
+        if(on){ var q=d/.9; ctx.strokeStyle='rgba('+COL[k]+','+(.8*(1-q))+')'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y,W*.02+W*.09*q,0,6.283); ctx.stroke(); }
+        glow(ctx,x,y,W*.05,COL[k],on?.5:.18);
+        // 碧と段を結ぶ線
+        ctx.strokeStyle='rgba('+COL[k]+','+(on?.6:.12)+')'; ctx.setLineDash([3,6]); ctx.lineDashOffset=-t*20; ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*W*.11,cy+Math.sin(a)*W*.11); ctx.lineTo(x-Math.cos(a)*W*.06,y-Math.sin(a)*W*.06); ctx.stroke(); ctx.setLineDash([]);
+        if(sts[k]) sts[k].classList.toggle('on',on); });
+      parts.forEach(function(p){ p.a+=p.s*.016*(reduce?0:1); var rr=R*(1+p.r), x=cx+Math.cos(p.a)*rr, y=cy+Math.sin(p.a)*rr; glow(ctx,x,y,2+p.z*2.5,'160,236,246',.6+.3*p.z); });
+    });
+  }
+
+  // ② 重なる層
+  var dims=document.querySelector('.dims');
+  if(dims){ dims.classList.add('qx-dims');
+    var L=[{c:'127,224,180',y:-.30,rot:-.18},{c:'242,207,140',y:-.15,rot:.22},{c:'244,170,150',y:0,rot:-.08},{c:'180,162,255',y:.15,rot:.28},{c:'120,214,236',y:.30,rot:-.24}];
+    var labs=[].slice.call(dims.querySelectorAll('.dm')), core=dims.querySelector('.dm-core');
+    var P=[]; for(var i=0;i<70;i++) P.push({t:Math.random(),s:.08+Math.random()*.14,k:i%5,dx:(Math.random()-.5)});
+    runner(dims,function(ctx,W,H,t){ ctx.clearRect(0,0,W,H); var cx=W/2, cy=H/2, S=Math.min(W,H);
+      glow(ctx,cx,cy,S*.55,'92,200,224',.10);
+      function corner(l,u,v){ var a=l.rot+Math.sin(t*.25+l.y*5)*.06; var x=u*S*.34, z=v*S*.34; var rx=x*Math.cos(a)-z*Math.sin(a), rz=x*Math.sin(a)+z*Math.cos(a); return [cx+rx, cy+l.y*S*1.1+rz*.34]; }
+      var hot=Math.floor(t/2)%5; if(reduce) hot=-1;
+      L.forEach(function(l,k){ var q=[corner(l,-1,-1),corner(l,1,-1),corner(l,1,1),corner(l,-1,1)], on=k===hot;
+        ctx.beginPath(); q.forEach(function(p,i){ i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]); }); ctx.closePath();
+        ctx.fillStyle='rgba('+l.c+','+(on?.16:.07)+')'; ctx.fill(); ctx.strokeStyle='rgba('+l.c+','+(on?.95:.5)+')'; ctx.lineWidth=on?1.6:1; ctx.stroke();
+        // 面の上の格子
+        ctx.strokeStyle='rgba('+l.c+','+(on?.28:.12)+')'; ctx.lineWidth=.7; for(var g=-.5;g<=.5;g+=.5){ var a1=corner(l,g,-1), b1=corner(l,g,1), a2=corner(l,-1,g), b2=corner(l,1,g); ctx.beginPath(); ctx.moveTo(a1[0],a1[1]); ctx.lineTo(b1[0],b1[1]); ctx.moveTo(a2[0],a2[1]); ctx.lineTo(b2[0],b2[1]); ctx.stroke(); }
+        var lb=labs[k]; if(lb){ var p=q[3]; lb.style.left=(p[0]/W*100)+'%'; lb.style.top=(p[1]/H*100)+'%'; lb.classList.toggle('on',on); } });
+      // 碧の軸
+      var gr=ctx.createLinearGradient(cx,cy-S*.48,cx,cy+S*.48); gr.addColorStop(0,'rgba(198,248,242,0)'); gr.addColorStop(.5,'rgba(198,248,242,.9)'); gr.addColorStop(1,'rgba(198,248,242,0)'); ctx.strokeStyle=gr; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(cx,cy-S*.48); ctx.lineTo(cx,cy+S*.48); ctx.stroke();
+      L.forEach(function(l){ glow(ctx,cx,cy+l.y*S*1.1,S*.03,'198,248,242',.8); });
+      P.forEach(function(p){ p.t=(p.t+p.s*.016*(reduce?0:1))%1; var y=cy+(p.t*2-1)*S*.45, x=cx+Math.sin(p.t*12+p.k)*S*.05*p.dx; glow(ctx,x,y,2.6,L[p.k].c,.9); });
+      glow(ctx,cx,cy,S*.09,'198,248,242',.9);
+      if(core){ core.style.left='50%'; core.style.top='50%'; }
+    });
+  }
+})();
+</script>
 <script type="module">
 /* ===== mitsulab の没入の場面 v3（2026-10-04 本人指示「ベースは氷川参道の 3D をワイヤーフレーム化し、碧も入れて、多次元の情報が重なり合う」）
    氷川参道の 3D（《Qualium in Hikawa》の素材から線だけを取り出したもの：_dev/sando_wire/extract.py → img/hero/sando_wire.*）を光る線で描き、
@@ -1597,16 +1682,16 @@ async function start(){
   const I=new Int16Array(bin), Q=meta.q;
   const mobile=Math.min(innerWidth,innerHeight)<700;
   const R=new THREE.WebGLRenderer({canvas:cv,antialias:!mobile,powerPreference:'high-performance'});
-  R.setPixelRatio(Math.min(devicePixelRatio||1, mobile?1.5:1.75)); R.setClearColor(0x03060f,1);
+  R.setPixelRatio(Math.min(devicePixelRatio||1, mobile?1.5:1.75)); R.setClearColor(0x03060f,1); R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.0;
   const S=new THREE.Scene(); S.fog=new THREE.FogExp2(0x03060f,0.00055);
   const cam=new THREE.PerspectiveCamera(58,1,0.3,5000);
   const HG=meta.hgrid;
   const hAt=(x,z)=>{ const c=Math.max(0,Math.min(HG.cols-1,Math.round((x-HG.x0)/HG.d))), r=Math.max(0,Math.min(HG.rows-1,Math.round((z-HG.z0)/HG.d))); return HG.v[r*HG.cols+c]/10; };
   const COL={nature:0x7fe0b4, water:0x78d6ec, culture:0xf2cf8c, people:0xf4aa96, info:0xb4a2ff, aoi:0xa8f2f6};
-  const lm=(c,o)=>new THREE.LineBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,fog:true});
+  const lm=(c,o)=>new THREE.LineBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,fog:true,toneMapped:false});
   const dotC=document.createElement('canvas'); dotC.width=dotC.height=64; { const x=dotC.getContext('2d'), g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.3,'rgba(255,255,255,.8)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); }
   const DOT=new THREE.CanvasTexture(dotC);
-  const pm=(c,s,o)=>new THREE.PointsMaterial({color:c,size:s,map:DOT,sizeAttenuation:true,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false});
+  const pm=(c,s,o)=>new THREE.PointsMaterial({color:c,size:s,map:DOT,sizeAttenuation:true,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false});
   const geo=(arr)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3)); return g; };
   const groups={nature:new THREE.Group(),culture:new THREE.Group(),people:new THREE.Group(),info:new THREE.Group(),base:new THREE.Group()};
   Object.values(groups).forEach(g=>S.add(g));
@@ -1647,7 +1732,7 @@ async function start(){
   const AO=new THREE.Vector3(near[0],near[1],near[2]);
   const beam=new THREE.LineSegments(geo([AO.x,AO.y,AO.z,AO.x,AO.y+320,AO.z]),lm(COL.aoi,.9)); S.add(beam);
   const orbT=document.createElement('canvas'); orbT.width=orbT.height=128; { const x=orbT.getContext('2d'), g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(234,255,250,1)'); g.addColorStop(.25,'rgba(160,240,246,.85)'); g.addColorStop(.55,'rgba(92,200,224,.25)'); g.addColorStop(1,'rgba(70,170,210,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); }
-  const orb=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(orbT),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));
+  const orb=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(orbT),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,toneMapped:false}));
   orb.position.set(AO.x,AO.y+3.4,AO.z); orb.scale.setScalar(2.6); S.add(orb);
   const stages=new THREE.Group(); stages.position.copy(AO); S.add(stages);
   const stP=[]; for(let k=0;k<5;k++){ const a=k/5*6.283; stP.push(Math.cos(a)*4.2,1.4,Math.sin(a)*4.2); } const stPts=new THREE.Points(geo(stP),pm(COL.aoi,1.1,1)); stages.add(stPts);
@@ -1667,8 +1752,8 @@ async function start(){
       pose(v); v.update(0);
       const holo=[]; v.scene.traverse(o=>{ if(!o.isMesh) return; o.frustumCulled=false;
         [].concat(o.material).forEach(m=>{ m.clippingPlanes=[clipBody]; m.clipping=true; m.needsUpdate=true; });
-        const hm=new THREE.MeshBasicMaterial({color:0x5fd8e0,wireframe:true,transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false,clippingPlanes:[clipHolo]});
-        const hb=new THREE.MeshBasicMaterial({color:0x1d8f9e,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false,clippingPlanes:[clipHolo]});
+        const hm=new THREE.MeshBasicMaterial({color:0x5fd8e0,wireframe:true,transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false,clippingPlanes:[clipHolo],toneMapped:false});
+        const hb=new THREE.MeshBasicMaterial({color:0x1d8f9e,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false,clippingPlanes:[clipHolo],toneMapped:false});
         holoMats.push(hm,hb); holo.push([o,hm],[o,hb]); });
       holo.forEach(([o,m])=>{ const c=o.isSkinnedMesh?new THREE.SkinnedMesh(o.geometry,m):new THREE.Mesh(o.geometry,m); if(o.isSkinnedMesh) c.bind(o.skeleton,o.bindMatrix); c.frustumCulled=false; c.renderOrder=2; o.parent.add(c); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); });
       v.scene.position.copy(AO); v.scene.rotation.y=0; S.add(v.scene); vrm=v; window.__aoi='ok';
@@ -1748,7 +1833,7 @@ async function start(){
     if(vrm){ const hy=AO.y-.05+1.8*es; clipBody.constant=em<=0?-1e4:hy; clipHolo.constant=em<=0?1e4:-hy; if(em>=1){ clipBody.constant=1e4; } scanG.visible=em>0&&em<1; scanG.position.set(AO.x,hy,AO.z);
       vrm.update(dt); holoMats.forEach(m=>m.opacity=m.wireframe?.42*(1-.75*es):.18*(1-es)); }
     world.visible=es>0.001; worldMats.forEach(m=>{ m.opacity=es; m.transparent=es<.999; m.depthWrite=es>.5; });
-    hemi.intensity=.9*es; sun.intensity=1.1*es; S.background=null; R.setClearColor(fogC.copy(bgA).lerp(bgB,es)); S.fog.color.copy(fogC); S.fog.density=.00055+.0012*es;
+    hemi.intensity=.55*es; sun.intensity=.9*es; R.toneMappingExposure=1-.22*es; S.background=null; R.setClearColor(fogC.copy(bgA).lerp(bgB,es)); S.fog.color.copy(fogC); S.fog.density=.00055+.0012*es;
     const wf=1-.55*es; for(const k of ['base','nature','culture','people','info']) groups[k].traverse(o=>{ if(o.material&&baseOp.has(o)) o.material.opacity*=wf; });
     beam.material.opacity=.9*(1-.6*es); orb.material.opacity=1-.7*es;
     R.render(S,cam);
