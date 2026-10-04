@@ -668,6 +668,7 @@ html[lang="en"] .mission{letter-spacing:.02em}
 
 /* 碧のページ */
 .tab-panel{overflow-x:clip}
+body:not(.nav-solid) .aoi-guide{display:none!important}
 .aoi-hero{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:40px;align-items:center;padding-top:20px}
 @media (max-width:860px){.aoi-hero{grid-template-columns:1fr;gap:18px}}
 .aoi-fig{position:relative;margin:0 auto;max-width:360px;width:100%}
@@ -1437,10 +1438,14 @@ async function start(){
   groups.base.add(new THREE.LineSegments(binGroup('road'),lm(0x9fd8e6,.35)));
   const cl=[]; meta.center.forEach((c,i)=>{ if(i) { const a=meta.center[i-1]; cl.push(a[0],a[1]+0.4,a[2],c[0],c[1]+0.4,c[2]); } });
   groups.base.add(new THREE.LineSegments(geo(cl),lm(0xf6e2b0,.7)));
+  const pv=[]; const OFF=[-9,-6,-3,3,6,9]; for(let i=1;i<meta.center.length;i++){ const a=meta.center[i-1], c=meta.center[i], dx=c[0]-a[0], dz=c[2]-a[2], L=Math.hypot(dx,dz)||1, nx=-dz/L, nz=dx/L;
+    OFF.forEach(o=>pv.push(a[0]+nx*o,a[1]+0.15,a[2]+nz*o,c[0]+nx*o,c[1]+0.15,c[2]+nz*o)); for(let q=0;q<4;q++){ const f=q/4, X=a[0]+dx*f, Y=a[1]+(c[1]-a[1])*f, Zz=a[2]+dz*f; pv.push(X-nx*9,Y+0.15,Zz-nz*9,X+nx*9,Y+0.15,Zz+nz*9); } }
+  groups.base.add(new THREE.LineSegments(geo(pv),lm(0x8fd2e2,.28)));   // 参道の路面の線（模式）
   // 自然：木（模式の形・位置は OSM と並木の模式）・水の集まる筋（標高から計算）
   const tr=[]; const ring=(x,y,z,r,n)=>{ for(let k=0;k<n;k++){ const a=k/n*6.283, b=(k+1)/n*6.283; tr.push(x+Math.cos(a)*r,y,z+Math.sin(a)*r,x+Math.cos(b)*r,y,z+Math.sin(b)*r); } };
-  meta.trees.forEach(([x,y,z],i)=>{ const H=14+(i*37%9); tr.push(x,y,z,x,y+H*0.55,z); ring(x,y+H*0.55,z,3.2,12); ring(x,y+H*0.78,z,4.2,12); ring(x,y+H,z,2.4,10); });
-  groups.nature.add(new THREE.LineSegments(geo(tr),lm(COL.nature,.3)));
+  meta.trees.forEach(([x,y,z],i)=>{ if(i%2) return; const H=14+(i*37%9), b=y+H*0.32, r=4.6+(i%3)*0.6;   // 欅の盃形（模式）：幹から枝が斜め上へ開く
+    tr.push(x,y,z,x,b,z); for(let k=0;k<6;k++){ const a=k/6*6.283+i; const ex=x+Math.cos(a)*r, ez=z+Math.sin(a)*r; tr.push(x,b,z,x+Math.cos(a)*r*.55,b+H*.38,z+Math.sin(a)*r*.55, x+Math.cos(a)*r*.55,b+H*.38,z+Math.sin(a)*r*.55, ex,y+H*0.95,ez); } });
+  groups.nature.add(new THREE.LineSegments(geo(tr),lm(COL.nature,.2)));
   const fl=[]; meta.flow.forEach(s=>{ fl.push(s[0],hAt(s[0],s[1])+0.6,s[1],s[2],hAt(s[2],s[3])+0.6,s[3]); });
   groups.nature.add(new THREE.LineSegments(geo(fl),lm(COL.water,.55)));
   // 文化：鳥居・楼門・燈籠・標石・丁石（OSM と写真から《Feel Hikawa》が置いたもの）
@@ -1463,16 +1468,17 @@ async function start(){
   const beam=new THREE.LineSegments(geo([AO.x,AO.y,AO.z,AO.x,AO.y+320,AO.z]),lm(COL.aoi,.9)); S.add(beam);
   const orbT=document.createElement('canvas'); orbT.width=orbT.height=128; { const x=orbT.getContext('2d'), g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(234,255,250,1)'); g.addColorStop(.25,'rgba(160,240,246,.85)'); g.addColorStop(.55,'rgba(92,200,224,.25)'); g.addColorStop(1,'rgba(70,170,210,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); }
   const orb=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(orbT),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));
-  orb.position.set(AO.x,AO.y+2.6,AO.z); orb.scale.setScalar(5); S.add(orb);
+  orb.position.set(AO.x,AO.y+3.4,AO.z); orb.scale.setScalar(2.6); S.add(orb);
   const stages=new THREE.Group(); stages.position.copy(AO); S.add(stages);
   const stP=[]; for(let k=0;k<5;k++){ const a=k/5*6.283; stP.push(Math.cos(a)*4.2,1.4,Math.sin(a)*4.2); } const stPts=new THREE.Points(geo(stP),pm(COL.aoi,1.1,1)); stages.add(stPts);
   const stR=[]; for(let k=0;k<60;k++){ const a=k/60*6.283,b=(k+1)/60*6.283; stR.push(Math.cos(a)*4.2,1.4,Math.sin(a)*4.2,Math.cos(b)*4.2,1.4,Math.sin(b)*4.2); } stages.add(new THREE.LineSegments(geo(stR),lm(COL.aoi,.35)));
   // 碧の姿（あとから読む。光のホログラム）
   let aoiObj=null;
   const loadAoi=()=>{ const L=new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); L.load('img/hero/aoi.vrm',g=>{
-      const sc=g.scene; sc.traverse(o=>{ if(o.isMesh){ const base=new THREE.MeshBasicMaterial({color:0x6fe6f2,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false});
-          const wire=new THREE.MeshBasicMaterial({color:0xbff8fb,wireframe:true,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false});
-          o.material=base; o.frustumCulled=false; const w=o.clone(); w.material=wire; o.parent.add(w); }
+      const sc=g.scene; sc.traverse(o=>{ if(o.isMesh){ const base=new THREE.MeshBasicMaterial({color:0x1f9fae,transparent:true,opacity:.55,depthWrite:true});
+          const wire=new THREE.MeshBasicMaterial({color:0x7fe6e0,wireframe:true,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false});
+          const rim=new THREE.MeshBasicMaterial({color:0x9ff2ee,side:THREE.BackSide,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false});
+          o.material=base; o.frustumCulled=false; const w=o.clone(); w.material=wire; o.parent.add(w); if(!o.isSkinnedMesh){ const rr=o.clone(); rr.material=rim; rr.scale.multiplyScalar(1.03); o.parent.add(rr); } }
         if(o.isBone){ if(/L_UpperArm$/.test(o.name)) o.rotation.z=-1.2; if(/R_UpperArm$/.test(o.name)) o.rotation.z=1.2; } });
       sc.position.copy(AO); sc.rotation.y=0; S.add(sc); aoiObj=sc; window.__aoi='ok'; },undefined,e=>{ window.__aoi='error'; console.warn('aoi',e); }); };
 
@@ -1481,17 +1487,17 @@ async function start(){
   const PN=mobile?240:420, pp=new Float32Array(PN*3), pd=[]; for(let i=0;i<PN;i++) pd.push({t:Math.random(),v:(Math.random()<.5?1:-1)*(0.01+Math.random()*0.02),o:(Math.random()-.5)*14});
   const people=new THREE.Points(geo(pp),pm(COL.people,1.6,.9)); groups.people.add(people);
   const DN=mobile?180:320, dp=new Float32Array(DN*3), dd=[]; for(let i=0;i<DN;i++){ const k=i%meta.obs.length, a=meta.obs[k]; dd.push({a:[a[0],hAt(a[0],a[1])+38,a[1]],t:Math.random(),s:.08+Math.random()*.15}); }
-  const data=new THREE.Points(geo(dp),pm(COL.info,2.2,.95)); groups.info.add(data);
+  const data=new THREE.Points(geo(dp),pm(COL.info,1.1,.8)); groups.info.add(data);
   const UN=mobile?120:200, up=new Float32Array(UN*3), ud=[]; for(let i=0;i<UN;i++) ud.push({t:Math.random(),s:.05+Math.random()*.1,r:Math.random()*3});
-  const fall=new THREE.Points(geo(up),pm(COL.aoi,1.4,.9)); S.add(fall);
+  const fall=new THREE.Points(geo(up),pm(COL.aoi,0.6,.55)); S.add(fall);
 
   // カメラの道：上空 → 参道の南の端 → 地面の高さで北へ → 碧の前
   const at=d=>{ const i=Math.max(0,Math.min(CL-1,Math.round(d*(CL-1)))); return new THREE.Vector3(C[i][0],C[i][1],C[i][2]); };
   const V=(x,y,z)=>new THREE.Vector3(x,y,z);
   const iA=C.indexOf(near), dA=iA/(CL-1);
   const KP=[0,.12,.26,.40,.54,.68,.82,.92,1];
-  const pos=[V(520,760,1500),V(300,420,1150),V(160,190,980),V(70,70,760),at(.22).add(V(10,22,40)),at(.45).add(V(6,6,30)),at(dA-.08).add(V(2,1.7,0)),at(dA-.012).add(V(0,1.7,0)),at(dA-.003).add(V(0,1.5,0))];
-  const tgt=[V(-40,0,-200),V(-20,0,-150),at(.2),at(.33),at(.45).add(V(0,6,0)),at(.62).add(V(0,4,0)),AO.clone().add(V(0,8,0)),AO.clone().add(V(0,2.2,0)),AO.clone().add(V(0,1.5,0))];
+  const pos=[V(520,760,1500),V(300,420,1150),V(160,190,980),V(70,70,760),at(.22).add(V(10,22,40)),at(.45).add(V(6,6,30)),at(dA-.022).add(V(1.5,1.8,0)),at(dA-.009).add(V(.8,1.7,0)),at(dA-.0035).add(V(.3,1.6,0))];
+  const tgt=[V(-40,0,-200),V(-20,0,-150),at(.2),at(.33),at(.45).add(V(0,6,0)),at(.62).add(V(0,4,0)),AO.clone().add(V(0,1.2,0)),AO.clone().add(V(0,.9,0)),AO.clone().add(V(0,.95,0))];
   const PC=new THREE.CatmullRomCurve3(pos), TC=new THREE.CatmullRomCurve3(tgt);
   const along=(cur,p)=>{ for(let j=0;j<KP.length-1;j++) if(p<=KP[j+1]){ let f=(p-KP[j])/(KP[j+1]-KP[j]); f=f*f*(3-2*f); return cur.getPoint((j+f)/(KP.length-1)); } return cur.getPoint(1); };
   // 拍ごとに、どの層を明るくするか
@@ -1518,11 +1524,11 @@ async function start(){
     const mv=reduce?0:1;
     for(let i=0;i<PN;i++){ const d=pd[i]; d.t=(d.t+d.v*dt*mv+1)%1; const j=d.t*(CL-1), a=C[Math.floor(j)], b=C[Math.min(CL-1,Math.floor(j)+1)], u=j%1; pp[3*i]=a[0]+(b[0]-a[0])*u+d.o; pp[3*i+1]=a[1]+(b[1]-a[1])*u+1.2; pp[3*i+2]=a[2]+(b[2]-a[2])*u; }
     people.geometry.attributes.position.needsUpdate=true;
-    for(let i=0;i<DN;i++){ const d=dd[i]; d.t=(d.t+d.s*dt*mv)%1; const e=d.t, A=d.a; dp[3*i]=A[0]+(AO.x-A[0])*e; dp[3*i+1]=A[1]+(AO.y+2.6-A[1])*e+Math.sin(e*3.14)*30; dp[3*i+2]=A[2]+(AO.z-A[2])*e; }
+    for(let i=0;i<DN;i++){ const d=dd[i]; d.t=(d.t+d.s*dt*mv)%1; const e=d.t, A=d.a; dp[3*i]=A[0]+(AO.x-A[0])*e; dp[3*i+1]=A[1]+(AO.y+3.4-A[1])*e+Math.sin(e*3.14)*30; dp[3*i+2]=A[2]+(AO.z-A[2])*e; }
     data.geometry.attributes.position.needsUpdate=true;
-    for(let i=0;i<UN;i++){ const d=ud[i]; d.t=(d.t+d.s*dt*mv)%1; up[3*i]=AO.x+Math.cos(i)*d.r; up[3*i+1]=AO.y+320-(317)*d.t; up[3*i+2]=AO.z+Math.sin(i)*d.r; }
+    for(let i=0;i<UN;i++){ const d=ud[i]; d.t=(d.t+d.s*dt*mv)%1; up[3*i]=AO.x+Math.cos(i)*d.r; up[3*i+1]=AO.y+320-(316.6)*d.t; up[3*i+2]=AO.z+Math.sin(i)*d.r; }
     fall.geometry.attributes.position.needsUpdate=true;
-    stages.rotation.y=t*0.35*mv; orb.scale.setScalar(5*(1+0.08*Math.sin(t*1.7)));
+    stages.rotation.y=t*0.35*mv; orb.scale.setScalar(2.6*(1+0.08*Math.sin(t*1.7)));
     R.render(S,cam);
     const stat=root.classList.contains('scene-static');
     beats.forEach(el=>{ const o=stat?1:beatOp(el,p); el.style.opacity=o; el.style.visibility=o>0.01?'visible':'hidden'; el.classList.toggle('on',o>0.5); });
