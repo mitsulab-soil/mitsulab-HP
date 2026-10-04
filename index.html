@@ -12,7 +12,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mitsulab — 認知拡張。自然と世界を、より深く。</title>
-<meta name="description" content="mitsulab は、Qualium と碧（AI）を通して、人と自然と機械の認知空間をつなぐ研究所。氷川参道の 3D の中で、自然・文化・人・情報の層が重なる。《Qualium in Hikawa》ほかのアプリを公開中。">
+<meta name="description" content="mitsulab は、Qualium と依代・碧を通して、人と自然と機械の認知空間をつなぐ研究所。氷川参道の 3D の中で、自然・文化・人・情報の層が重なる。《Qualium in Hikawa》ほかのアプリを公開中。">
 <meta name="author" content="上原光瑛">
 <meta name="robots" content="index, follow">
 <meta name="format-detection" content="telephone=no">
@@ -556,7 +556,7 @@ html[lang="en"] .beyond-close{letter-spacing:.02em}
 body.nav-solid .tab-nav{background:var(--nav);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);border-bottom:1px solid rgba(150,170,240,.10)}
 main{padding-top:64px}
 #top{margin-top:-64px}
-.scene{position:relative;height:720svh;margin:0;padding:0}
+.scene{position:relative;height:820svh;margin:0;padding:0}
 .scene-sticky{position:sticky;top:0;width:100%;height:100vh;height:100svh;overflow:hidden;background:#03060f}
 .scene-cv,.scene-poster{position:absolute;inset:0;width:100%;height:100%;display:block}
 .scene-poster{object-fit:cover;transition:opacity .8s}
@@ -834,6 +834,23 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
 .app:hover .app-fig{box-shadow:0 0 40px rgba(92,200,224,.25)}
 @media (prefers-reduced-motion:reduce){.app-fig img,.app-fig::after{animation:none}}
 
+/* 使命の場面（枠なし・画面いっぱい） */
+.msn{position:relative;width:100vw;margin-left:calc(50% - 50vw);height:240svh;margin-top:20px}
+.msn-sticky{position:sticky;top:0;height:100svh;overflow:hidden;container-type:inline-size}
+.msn-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.msn-l{position:absolute;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:600;font-size:clamp(.9rem,2.6cqw,1.4rem);letter-spacing:.14em;color:#eaf6fb;text-shadow:0 0 14px rgba(3,6,15,.95);pointer-events:none;will-change:left,top}
+.ml-h{color:#f8c2b2}.ml-n{color:#a8f0cc}.ml-m{color:#cfc4ff}.ml-a{color:#06222b;font-size:clamp(.9rem,2.4cqw,1.3rem)}
+.msn-text{position:absolute;left:0;right:0;top:9svh;text-align:center;padding:0 16px;pointer-events:none}
+.msn-h{font-family:var(--serif);font-weight:600;font-size:clamp(1.4rem,4.4cqw,2.6rem);line-height:1.7;letter-spacing:.12em;color:#f7fbff;text-shadow:0 0 22px rgba(3,6,15,.95)}
+.msn-h .ln,.msn-sub .ln{display:block;opacity:0;transform:translateY(.6em);filter:blur(6px);transition:opacity .9s,transform .9s,filter .9s}
+.msn-h .ln.on,.msn-sub .ln.on,.msn-foot.on{opacity:1;transform:none;filter:none}
+.msn-sub{position:absolute;left:0;right:0;top:calc(100svh - 9svh - 26svh);font-family:var(--serif);font-size:clamp(1.05rem,3cqw,1.6rem);letter-spacing:.16em;line-height:1.9;color:#c6f8f2}
+.msn-sub .ln-b{color:#f2e6cf}
+.msn-foot{position:absolute;left:0;right:0;top:calc(100svh - 9svh - 9svh);font-size:.92rem;color:var(--ink-2);opacity:0;transition:opacity .9s}
+html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
+@media (prefers-reduced-motion:reduce){.msn{height:auto}.msn-sticky{position:relative;height:100svh}.msn-h .ln,.msn-sub .ln,.msn-foot{opacity:1;transform:none;filter:none;transition:none}}
+
+.aoi-facts .af-note{font-size:.76rem;color:var(--ink-3);border-style:dashed}
 </style>
 </head>
 <body>
@@ -898,7 +915,7 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
       <span class="slab sl-culture" data-lab="ni" data-b=".86" data-i18n-en="Second torii">二の鳥居</span>
       <span class="slab sl-culture" data-lab="san" data-b=".5" data-i18n-en="Third torii">三の鳥居</span>
       <span class="slab sl-culture" data-lab="romon" data-a=".3" data-b=".6" data-i18n-en="Rōmon gate">楼門</span>
-      <span class="slab sl-aoi" data-lab="aoi" data-a=".55" data-b=".86" data-i18n-en="Aoi (AI)">碧（AI）</span>
+      <span class="slab sl-aoi" data-lab="aoi" data-a=".55" data-b=".86" data-i18n-en="Aoi (yorishiro)">碧（依代）</span>
       <span class="slab sl-st" data-lab="st0" data-a=".7" data-b=".86" data-far="40" data-i18n-en="sense">感じる</span>
       <span class="slab sl-st" data-lab="st1" data-a=".7" data-b=".86" data-far="40" data-i18n-en="record">記録する</span>
       <span class="slab sl-st" data-lab="st2" data-a=".7" data-b=".86" data-far="40" data-i18n-en="translate">訳す</span>
@@ -918,7 +935,7 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
       <p class="beat beat-r" data-beat data-a=".32" data-b=".43"><span class="bk k-culture" data-i18n-en="Culture">文化</span><span data-i18n-en="torii and milestones on the approach">鳥居と丁石、参道の記憶</span></p>
       <p class="beat beat-l" data-beat data-a=".44" data-b=".55"><span class="bk k-people" data-i18n-en="People">人</span><span data-i18n-en="houses, and people coming and going">家々と、行き交う人</span></p>
       <p class="beat beat-r" data-beat data-a=".56" data-b=".67"><span class="bk k-info" data-i18n-en="Information · machines">情報・機械</span><span data-i18n-en="observation records, flowing as data">観察記録が、データとして流れる</span></p>
-      <p class="beat beat-l" data-beat data-a=".69" data-b=".80"><span class="bk k-aoi" data-i18n-en="Aoi">碧</span><span data-i18n-en="the AI that links the layers">層をつなぐ AI</span></p>
+      <p class="beat beat-l" data-beat data-a=".69" data-b=".80"><span class="bk k-aoi" data-i18n-en="Aoi">碧</span><span data-i18n-en="the yorishiro that links the layers">層をつなぐ依代</span></p>
       <div class="beat beat-end" data-beat data-a=".86" data-b="1.2">
         <p class="end-line" data-i18n-en="The frame of the screen dissolves.<br>The world beyond our senses, right before us.">画面の枠が消えて、<br>届かなかった世界が、<span class="nw">目の前に。</span></p>
         <p class="end-sub" data-i18n-en="Aoi, alongside.">となりには、碧。</p>
@@ -930,27 +947,25 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
 
 <div class="wrap">
   <!-- 使命（図で） -->
-  <section id="mission" class="block mission-block" aria-labelledby="missionH">
-    <div class="mfig" aria-hidden="true">
-      <svg viewBox="0 0 320 280" class="tri">
-        <g class="tri-links"><path d="M160 140 L60 50"/><path d="M160 140 L260 50"/><path d="M160 140 L160 250"/><path class="tri-edge" d="M60 50 L260 50 L160 250 Z"/></g>
-        <g class="tri-flow"><circle r="3" class="f1"><animateMotion dur="3.2s" repeatCount="indefinite" path="M60 50 L160 140 L260 50"/></circle><circle r="3" class="f2"><animateMotion dur="3.8s" repeatCount="indefinite" path="M260 50 L160 140 L160 250"/></circle><circle r="3" class="f3"><animateMotion dur="4.4s" repeatCount="indefinite" path="M160 250 L160 140 L60 50"/></circle></g>
-        <g class="tri-node n-h"><circle cx="60" cy="50" r="20"/></g><g class="tri-node n-n"><circle cx="260" cy="50" r="20"/></g><g class="tri-node n-m"><circle cx="160" cy="250" r="20"/></g>
-        <circle class="tri-aoi" cx="160" cy="140" r="24"/>
-      </svg>
-      <span class="tl tl-h" data-i18n-en="People">人</span><span class="tl tl-n" data-i18n-en="Nature">自然</span><span class="tl tl-m" data-i18n-en="Machines">機械</span><span class="tl tl-a" data-i18n-en="Aoi">碧</span>
-    </div>
-    <div class="mtext">
-      <span class="eyebrow">Mission</span>
-      <h2 class="panel-title" id="missionH" data-i18n-en="Through Qualium and Aoi, linking the cognitive spaces of people, nature and machines.">Qualium と碧を通して、<br>人と自然と機械の<br><span class="nw">認知空間をつなぐ。</span></h2>
-      <p class="mlead" data-i18n-en="From internet space into real space. mitsulab makes the places, tools and systems for it.">インターネット空間から、現実空間へ。<br>そのための場・道具・仕組みをつくる研究所です。</p>
+  <!-- 使命（2026-10-05）：枠なし・画面いっぱいの動く図。人・自然・機械の光の場が碧のまわりをめぐり、
+       スクロールにつれて、データの格子（インターネット空間）が現実の地形の線へ溶けていく。仕組みは script の「使命の場面」 -->
+  <section id="mission" class="msn" aria-labelledby="missionH">
+    <div class="msn-sticky">
+      <canvas class="msn-cv" aria-hidden="true"></canvas>
+      <span class="msn-l ml-h" data-i18n-en="People">人</span><span class="msn-l ml-n" data-i18n-en="Nature">自然</span><span class="msn-l ml-m" data-i18n-en="Machines">機械</span><span class="msn-l ml-a" data-i18n-en="Aoi">碧</span>
+      <div class="msn-text">
+        <span class="eyebrow">Mission</span>
+        <h2 class="msn-h" id="missionH" data-i18n-en="<span class='ln'>Through Qualium and Aoi,</span><span class='ln'>linking the cognitive spaces</span><span class='ln'>of people, nature and machines.</span>"><span class="ln">Qualium と碧を通して、</span><span class="ln">人と自然と機械の</span><span class="ln">認知空間をつなぐ。</span></h2>
+        <p class="msn-sub" data-i18n-en="<span class='ln ln-a'>From internet space,</span><span class='ln ln-b'>into real space.</span>"><span class="ln ln-a">インターネット空間から、</span><span class="ln ln-b">現実空間へ。</span></p>
+        <p class="msn-foot" data-i18n-en="A lab that makes the places, tools and systems for it.">そのための場・道具・仕組みをつくる研究所です。</p>
+      </div>
     </div>
   </section>
 
   <!-- Aoi function() の予告（全部は碧のページ） -->
   <section class="block" aria-labelledby="fnTH">
     <div class="block-head"><span class="eyebrow">Aoi function()</span><h2 class="panel-title" id="fnTH" data-i18n-en="Aoi, as a function">碧を、<span class="nw">関数として</span></h2></div>
-    <div class="fn-wrap"><div class="aoi-fn" data-pick="0,3,4,5"></div><div class="fn-more"><button type="button" class="btn" data-tab="aoi"><span data-i18n-en="All of Aoi's functions">碧のはたらきを、すべて見る</span> <span class="arr">→</span></button></div></div>
+    <div class="fn-wrap"><div class="aoi-fn" data-pick="0,1,2,3"></div><div class="fn-more"><button type="button" class="btn" data-tab="aoi"><span data-i18n-en="All of Aoi's functions">碧のはたらきを、すべて見る</span> <span class="arr">→</span></button></div></div>
   </section>
 
   <!-- 入口：碧／Qualium／アプリケーション -->
@@ -958,13 +973,13 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
     <ul class="doors">
       <li><button type="button" class="door" data-tab="aoi">
         <span class="door-fig df-aoi" aria-hidden="true"><i></i><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
-        <span class="door-k">01</span><span class="door-t" data-i18n-en="Aoi">碧</span><span class="door-d" data-i18n-en="The AI that welcomes you, and the yorishiro">迎え手の AI と、依代たち</span><span class="door-go" aria-hidden="true">→</span></button></li>
+        <span class="door-k">01</span><span class="door-t" data-i18n-en="Aoi">碧</span><span class="door-d" data-i18n-en="The yorishiro standing between people and nature">人と自然のあいだに立つ依代</span><span class="door-go" aria-hidden="true">→</span></button></li>
       <li><button type="button" class="door" data-tab="qualium">
         <span class="door-fig df-q" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><em></em></span>
         <span class="door-k">02</span><span class="door-t">Qualium</span><span class="door-d" data-i18n-en="Sense → record → translate → tell → look again">感じる → 記録する → 訳す → 語る → 見直す</span><span class="door-go" aria-hidden="true">→</span></button></li>
       <li><button type="button" class="door" data-tab="apps">
         <span class="door-fig df-apps" aria-hidden="true"><img src="img/apps/feel-hikawa_640.webp" alt="" loading="lazy" width="640" height="400"><img src="img/apps/aoi-blueprint_640.webp" alt="" loading="lazy" width="640" height="400"><img src="img/apps/shinra_640.webp" alt="" loading="lazy" width="640" height="400"></span>
-        <span class="door-k">03</span><span class="door-t" data-i18n-en="Applications">アプリケーション</span><span class="door-d" data-i18n-en="Six works, open now">公開中の六つ</span><span class="door-go" aria-hidden="true">→</span></button></li>
+        <span class="door-k">03</span><span class="door-t" data-i18n-en="Applications">アプリケーション</span><span class="door-d" data-i18n-en="Four works, open now">公開中の四つ</span><span class="door-go" aria-hidden="true">→</span></button></li>
     </ul>
   </section>
 
@@ -975,8 +990,6 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
       <li><a href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><img src="img/apps/feel-hikawa_640.webp" width="640" height="400" loading="lazy" alt="《Qualium in Hikawa》の 3D：並木の参道" data-i18n-alt="Qualium in Hikawa in 3D: the tree-lined approach"><span class="sn" data-i18n-en="Qualium in Hikawa">《Qualium in Hikawa》</span><span class="sd" data-i18n-en="Walk the Hikawa approach with Aoi">碧と、氷川参道を歩く</span><span class="arr">↗</span></a></li>
       <li><a href="https://mitsulab-soil.github.io/aoi-blueprint/" target="_blank" rel="noopener"><img src="img/apps/aoi-blueprint_640.webp" width="640" height="400" loading="lazy" alt="碧の設計図の画面" data-i18n-alt="Aoi Blueprint"><span class="sn" data-i18n-en="Aoi Blueprint">碧の設計図</span><span class="sd" data-i18n-en="See inside Aoi in 3D">碧の中身を 3D で見る</span><span class="arr">↗</span></a></li>
       <li><a href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><img src="img/apps/shinra_640.webp" width="640" height="400" loading="lazy" alt="森羅百景の総目録の画面" data-i18n-alt="Shinra Hyakkei catalogue"><span class="sn" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="sd" data-i18n-en="Everyday nature, with sources">身近な自然を、典拠つきで</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/qualium-in-kaido/" target="_blank" rel="noopener"><img src="img/apps/qualium-in-kaido_640.webp" width="640" height="400" loading="lazy" alt="《Qualium in Kaido》の画面" data-i18n-alt="Qualium in Kaido"><span class="sn" data-i18n-en="Qualium in Kaido">《Qualium in Kaido》</span><span class="sd" data-i18n-en="The five highways of Kanto, with Aoi">関東の五街道を、碧と</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/qualium-in-junrei/" target="_blank" rel="noopener"><img src="img/apps/qualium-in-junrei_640.webp" width="640" height="400" loading="lazy" alt="《Qualium in Junrei》の画面" data-i18n-alt="Qualium in Junrei"><span class="sn" data-i18n-en="Qualium in Junrei">《Qualium in Junrei》</span><span class="sd" data-i18n-en="101 temples, with Aoi">札所 101 か所を、碧と</span><span class="arr">↗</span></a></li>
       <li><a href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><img src="img/apps/aoi-rakugo_640.webp" width="640" height="400" loading="lazy" alt="碧の自然落語の画面" data-i18n-alt="Aoi's nature rakugo"><span class="sn" data-i18n-en="The Weight of a Keyaki">《欅の目方》</span><span class="sd" data-i18n-en="Aoi's nature rakugo">碧の自然落語</span><span class="arr">↗</span></a></li>
     </ul>
   </section>
@@ -994,12 +1007,12 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
     <div>
       <span class="eyebrow">Aoi</span>
       <h2 class="panel-title">碧<span class="q-yomi">あおい</span></h2>
-      <p class="guide-role" data-i18n-en="The AI that links the layers of information — people, nature, information, culture and history. Welcomer of the yorishiro.">人・自然・情報・文化・歴史の、<br>情報の層をつなぐ AI。<br><span class="nw">依代たちの迎え手。</span></p>
+      <p class="guide-role" data-i18n-en="A yorishiro standing between people and nature — linking the layers of people, nature, information, culture and history.">人と自然のあいだに立つ<span class="nw">依代。</span><br>人・自然・情報・文化・歴史の<span class="nw">層をつなぐ。</span></p>
       <p class="quote" data-i18n-en="Shall we look at this place together?<br>If what you see does not match what I said,<br>trust what you see.">この場所、一緒に見てみる？<br>わたしの話と合わなかったら、<br>そちらが正しい見方です。</p>
       <ul class="aoi-facts">
-        <li data-i18n-en="<span class='af-k'>Runs on</span>AI, run by mitsulab"><span class="af-k">しくみ</span>mitsulab が動かす AI</li>
         <li data-i18n-en="<span class='af-k'>Memory</span>does not keep or learn from conversations"><span class="af-k">記憶</span>会話は保存せず、学習に使わない</li>
         <li data-i18n-en="<span class='af-k'>Voice</span>VOICEVOX: Meimei Himari (in Qualium in Hikawa)"><span class="af-k">声</span>VOICEVOX：冥鳴ひまり（《Qualium in Hikawa》の読み上げ）</li>
+        <li class="af-note" data-i18n-en="<span class='af-k'>Note</span>Aoi is a character that runs on AI"><span class="af-k">ことわり</span>碧は AI で動くキャラクターです</li>
       </ul>
     </div>
   </section>
@@ -1149,28 +1162,10 @@ a.fn-a:hover,a.fn-a:focus-visible{border-color:rgba(160,240,246,.7);background:r
       <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/shinra-hyakkei" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div>
     </div>
   </article>
-  <article class="app rev" id="app-kaido">
-    <figure class="app-fig"><img src="img/apps/qualium-in-kaido_640.webp" width="640" height="400" loading="lazy" alt="《Qualium in Kaido》の画面：関東の五街道の地図" data-i18n-alt="Qualium in Kaido: a map of the five highways of Kanto"></figure>
-    <div class="app-body">
-      <span class="app-no">04</span><h3 class="app-name" data-i18n-en="Qualium in Kaido">《Qualium in Kaido》</h3>
-      <p class="app-one" data-i18n-en="Tōkaidō, Nakasendō, Nikkō, Kōshū and Ōshū — the five highways of Kanto on one map, walked with Aoi stage by stage. Prototype.">東海道・中山道・日光・甲州・奥州。関東の五街道を一つの地図で、碧と宿場ごとに歩く。試作。</p>
-      <ul class="app-steps"><li data-i18n-en="Record">記録する</li><li data-i18n-en="Tell">語る</li></ul>
-      <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/qualium-in-kaido/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a></div>
-    </div>
-  </article>
-  <article class="app" id="app-junrei">
-    <figure class="app-fig"><img src="img/apps/qualium-in-junrei_640.webp" width="640" height="400" loading="lazy" alt="《Qualium in Junrei》の画面：札所の地図" data-i18n-alt="Qualium in Junrei: a map of the pilgrimage temples"></figure>
-    <div class="app-body">
-      <span class="app-no">05</span><h3 class="app-name" data-i18n-en="Qualium in Junrei">《Qualium in Junrei》</h3>
-      <p class="app-one" data-i18n-en="The 101 Kannon temples of Bandō, Chichibu and Edo on one map, walked with Aoi through landform, history and culture. Prototype.">坂東・秩父・江戸の観音札所 101 か所を一つの地図で。碧と、地形・歴史・文化を重ねて歩く。試作。</p>
-      <ul class="app-steps"><li data-i18n-en="Record">記録する</li><li data-i18n-en="Tell">語る</li></ul>
-      <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/qualium-in-junrei/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a></div>
-    </div>
-  </article>
   <article class="app rev" id="app-rakugo">
     <figure class="app-fig"><img src="img/apps/aoi-rakugo_640.webp" width="640" height="400" loading="lazy" alt="碧の自然落語：寄席の高座の碧" data-i18n-alt="Aoi's nature rakugo: Aoi on a yose stage"></figure>
     <div class="app-body">
-      <span class="app-no">06</span><h3 class="app-name" data-i18n-en="Aoi's nature rakugo (5 tales, JA/EN)">碧の自然落語（5 作・日本語と英語）</h3>
+      <span class="app-no">04</span><h3 class="app-name" data-i18n-en="Aoi's nature rakugo (5 tales, JA/EN)">碧の自然落語（5 作・日本語と英語）</h3>
       <p class="app-one" data-i18n-en="Five nature rakugo tales performed by Aoi on a yose stage — the keyaki, earthworms, crows and walnuts, cicadas, pill bugs (about 4–6 min each, Japanese and English). The stories are fiction; the facts in the opening talk come with sources. Voices: VOICEVOX: Meimei Himari / Kokoro-82M.">寄席の高座で碧が演じる自然の噺、5 作（欅・みみず・烏と胡桃・蟬・団子虫。各 4〜6 分、日本語と英語）。本題は作り話、まくらの事実には典拠つき。声＝VOICEVOX：冥鳴ひまり／Kokoro-82M。</p>
       <ul class="app-steps"><li data-i18n-en="Tell">語る</li></ul>
       <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a></div>
@@ -1559,8 +1554,6 @@ var TERMS = {
    作品の一覧はここ一か所（AOI_FN）。url が空のものは「準備中」。公開されたら url と img を足す。 ===== */
 var AOI_FN=[
   {call:'walk("Hikawa")', ja:'《Qualium in Hikawa》', en:'Qualium in Hikawa', dj:'氷川参道を、碧と歩く', de:'Walk the Hikawa approach with Aoi', url:'https://mitsulab-soil.github.io/aoi-walk-hikawa/', img:'img/apps/feel-hikawa_640.webp'},
-  {call:'walk("Kaido")', ja:'《Qualium in Kaido》', en:'Qualium in Kaido', dj:'関東の五街道を、碧と宿場ごとに歩く（試作）', de:'Walk the five old highways of Kanto with Aoi, stage by stage (prototype)', url:'https://mitsulab-soil.github.io/qualium-in-kaido/', img:'img/apps/qualium-in-kaido_640.webp'},
-  {call:'walk("Junrei")', ja:'《Qualium in Junrei》', en:'Qualium in Junrei', dj:'坂東・秩父・江戸の札所 101 か所を、碧と歩く（試作）', de:'Walk 101 Kannon temples of Bandō, Chichibu and Edo with Aoi (prototype)', url:'https://mitsulab-soil.github.io/qualium-in-junrei/', img:'img/apps/qualium-in-junrei_640.webp'},
   {call:'sing("一筆")', ja:'碧の唄《一筆》', en:'Songs of Aoi: “Ippitsu”', dj:'碧が唄う', de:'Aoi sings', url:'', img:''},
   {call:'rakugo("欅の目方")', ja:'碧の自然落語《欅の目方》', en:'Aoi\'s nature rakugo: “The Weight of a Keyaki”', dj:'大きなケヤキは何でできているのか、を笑いにする噺（約 5 分）', de:'A comic tale on what a great keyaki is made of (about 5 min)', url:'https://mitsulab-soil.github.io/aoi-shizen-rakugo/', img:'img/apps/aoi-rakugo_640.webp'},
   {call:'guide("森羅百景")', ja:'《森羅百景》', en:'Shinra Hyakkei', dj:'身近な自然を、典拠つきで案内する', de:'A sourced guide to everyday nature', url:'https://mitsulab-soil.github.io/shinra-hyakkei/', img:'img/apps/shinra_640.webp'},
@@ -1658,6 +1651,53 @@ var AOI_FN=[
   }
 })();
 </script>
+<script>
+/* ===== 使命の場面：TOP と同じ光の線と粒。2D canvas（軽い）。画面の外では止まる =====
+   進み（この節のスクロール 0→1）：0〜.45 で三行が一行ずつ浮かぶ／.45〜.8 でデータの格子が地形の線へ溶ける（インターネット空間 → 現実空間）／最後に一言 */
+(function(){
+  var sec=document.getElementById('mission'); if(!sec||!sec.classList.contains('msn')) return;
+  var cv=sec.querySelector('.msn-cv'), ctx=cv.getContext('2d'), reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var labs={h:sec.querySelector('.ml-h'),n:sec.querySelector('.ml-n'),m:sec.querySelector('.ml-m'),a:sec.querySelector('.ml-a')};
+  var DPR=Math.min(window.devicePixelRatio||1,1.5), W=0,H=0, vis=false, raf=0, t0=performance.now(), last=0, prog=reduce?1:0;
+  var N=[{k:'h',c:'244,170,150',ph:0},{k:'n',c:'127,224,180',ph:2.094},{k:'m',c:'180,162,255',ph:4.189}];
+  var P=[]; for(var i=0;i<(innerWidth<700?60:110);i++) P.push({e:i%3,t:Math.random(),s:.15+Math.random()*.25,o:Math.random()});
+  function size(){ var r=sec.querySelector('.msn-sticky').getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  function glow(x,y,r,c,a){ var g=ctx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,'rgba('+c+','+a+')'); g.addColorStop(1,'rgba('+c+',0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,6.283); ctx.fill(); }
+  function read(){ var r=sec.getBoundingClientRect(), span=r.height-innerHeight; prog=reduce?1:Math.max(0,Math.min(1,-r.top/span)); }
+  function lines(){ var ls=[].slice.call(sec.querySelectorAll('.msn-h .ln')), sb=[].slice.call(sec.querySelectorAll('.msn-sub .ln')), ft=sec.querySelector('.msn-foot');
+    ls.forEach(function(l,i){ l.classList.toggle('on',prog>.04+i*.1); }); sb.forEach(function(l,i){ l.classList.toggle('on',prog>(i?.62:.42)); }); if(ft) ft.classList.toggle('on',prog>.8); }
+  function draw(now){
+    var t=reduce?2:(now-t0)/1000; ctx.clearRect(0,0,W,H);
+    var cx=W/2, cy=H*.47, S=Math.min(W,H), mix=Math.max(0,Math.min(1,(prog-.42)/.38)); mix=mix*mix*(3-2*mix);
+    // 床：データの格子（遠近）→ 地形の等高線
+    var hz=H*.5, n=26;
+    for(var r=1;r<=n;r++){ var z=r/n, y=hz+(H-hz)*Math.pow(z,1.9), a=.05+.25*z;
+      ctx.beginPath(); for(var j=0;j<=60;j++){ var x=j/60*W, u=(x-cx)/W; var wav=Math.sin(u*9+r*.7+t*.25)*Math.cos(u*4-r*.4)*18*z*mix + Math.sin(u*23+r)*4*z*mix; var yy=y-wav; j?ctx.lineTo(x,yy):ctx.moveTo(x,yy); }
+      ctx.strokeStyle='rgba('+(mix>0?Math.round(120+mix*0):120)+','+Math.round(214-mix*20)+','+Math.round(236-mix*60)+','+a+')'; ctx.lineWidth=.8+.6*z; ctx.stroke(); }
+    var gA=(1-mix); if(gA>0.01){ ctx.strokeStyle='rgba(150,160,255,'+(.22*gA)+')'; ctx.lineWidth=.8; for(var c=-14;c<=14;c++){ ctx.beginPath(); ctx.moveTo(cx+c*W*.006,hz); ctx.lineTo(cx+c*W*.12,H); ctx.stroke(); }
+      // データの粒が床から立ちのぼる
+      for(var d=0;d<40;d++){ var ph=((t*.15+d*.137)%1), x=((d*97)%100)/100*W, y=H-ph*(H-hz)*1.1; glow(x,y,2.2,'180,162,255',.5*gA*(1-ph)); } }
+    // 三つの場と碧
+    var R=S*.26, pos={};
+    N.forEach(function(nd){ var a=nd.ph+t*.12; pos[nd.k]=[cx+Math.cos(a)*R*1.25, cy+Math.sin(a)*R*.48]; });
+    N.forEach(function(nd,i){ var p=pos[nd.k], q=pos[N[(i+1)%3].k];
+      ctx.strokeStyle='rgba('+nd.c+',.35)'; ctx.setLineDash([3,7]); ctx.lineDashOffset=-t*24; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); ctx.setLineDash([]);
+      var g=ctx.createLinearGradient(cx,cy,p[0],p[1]); g.addColorStop(0,'rgba(198,248,242,.8)'); g.addColorStop(1,'rgba('+nd.c+',.7)'); ctx.strokeStyle=g; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p[0],p[1]); ctx.stroke();
+      glow(p[0],p[1],S*.12,nd.c,.28); glow(p[0],p[1],S*.035,nd.c,.95);
+      for(var k=0;k<3;k++){ ctx.strokeStyle='rgba('+nd.c+','+(.25-k*.07)+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.ellipse(p[0],p[1],S*(.05+k*.025+.006*Math.sin(t*1.3+k)),S*(.05+k*.025)*.55,0,0,6.283); ctx.stroke(); }
+      var l=labs[nd.k]; if(l){ l.style.left=(p[0]/W*100)+'%'; l.style.top=((p[1]+S*.075)/H*100)+'%'; } });
+    P.forEach(function(pp){ pp.t=(pp.t+pp.s*.016*(reduce?0:1))%1; var p=pos[N[pp.e].k], back=pp.o>.5, u=back?1-pp.t:pp.t; var x=cx+(p[0]-cx)*u, y=cy+(p[1]-cy)*u; glow(x,y,2.6,back?'198,248,242':N[pp.e].c,.9); });
+    glow(cx,cy,S*.2,'92,200,224',.35); glow(cx,cy,S*.055,'234,255,250',1);
+    if(labs.a){ labs.a.style.left='50%'; labs.a.style.top=(cy/H*100)+'%'; }
+    lines();
+  }
+  function loop(now){ if(!vis){ raf=0; return; } read(); if(now-last>30){ draw(now); last=now; } raf=requestAnimationFrame(loop); }
+  size(); read(); draw(performance.now());
+  if(window.ResizeObserver) new ResizeObserver(function(){ size(); draw(performance.now()); }).observe(sec.querySelector('.msn-sticky'));
+  if(!reduce&&window.IntersectionObserver) new IntersectionObserver(function(es){ vis=es[0].isIntersecting; if(vis&&!raf) raf=requestAnimationFrame(loop); }).observe(sec);
+  document.addEventListener('hp-lang-change',function(){ setTimeout(lines,0); });
+})();
+</script>
 <script type="module">
 /* ===== mitsulab の没入の場面 v3（2026-10-04 本人指示「ベースは氷川参道の 3D をワイヤーフレーム化し、碧も入れて、多次元の情報が重なり合う」）
    氷川参道の 3D（《Qualium in Hikawa》の素材から線だけを取り出したもの：_dev/sando_wire/extract.py → img/hero/sando_wire.*）を光る線で描き、
@@ -1682,7 +1722,7 @@ async function start(){
   const I=new Int16Array(bin), Q=meta.q;
   const mobile=Math.min(innerWidth,innerHeight)<700;
   const R=new THREE.WebGLRenderer({canvas:cv,antialias:!mobile,powerPreference:'high-performance'});
-  R.setPixelRatio(Math.min(devicePixelRatio||1, mobile?1.5:1.75)); R.setClearColor(0x03060f,1); R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.0;
+  let PR=Math.min(devicePixelRatio||1, mobile?1.25:1.5), PRmin=mobile?.75:.9; R.setPixelRatio(PR); R.setClearColor(0x03060f,1); R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.0;
   const S=new THREE.Scene(); S.fog=new THREE.FogExp2(0x03060f,0.00055);
   const cam=new THREE.PerspectiveCamera(58,1,0.3,5000);
   const HG=meta.hgrid;
@@ -1724,7 +1764,7 @@ async function start(){
   const lat=[]; for(let x=-600;x<=600;x+=60) lat.push(x,240,-1300,x,240,1300); for(let z=-1300;z<=1300;z+=60) lat.push(-600,240,z,600,240,z);
   for(let x=-600;x<=600;x+=120) for(let z=-1300;z<=1300;z+=120) lat.push(x,180,z,x,300,z);
   const lattice=new THREE.LineSegments(geo(lat),lm(0x8fa0ff,.10)); groups.info.add(lattice);
-  const CN=mobile?700:1300, cp=new Float32Array(CN*3); for(let i=0;i<CN;i++){ cp[3*i]=(Math.random()-.5)*1400; cp[3*i+1]=170+Math.random()*260; cp[3*i+2]=(Math.random()-.5)*2800; }
+  const CN=mobile?420:1000, cp=new Float32Array(CN*3); for(let i=0;i<CN;i++){ cp[3*i]=(Math.random()-.5)*1400; cp[3*i+1]=170+Math.random()*260; cp[3*i+2]=(Math.random()-.5)*2800; }
   groups.info.add(new THREE.Points(geo(cp),pm(0x9fb0ff,4,.55)));
 
   // 碧：二の鳥居と三の鳥居のあいだ、参道の上。光の柱（遠くからも見える）・光の玉・Qualium の五つの段の輪
@@ -1772,20 +1812,32 @@ async function start(){
       const proto=[]; kg.scene.updateMatrixWorld(true); kg.scene.traverse(o=>{ if(o.isMesh) proto.push(o); });
       const box=new THREE.Box3().setFromObject(kg.scene), hh=box.max.y-box.min.y||1;
       proto.forEach(pm=>{ const mat=new THREE.MeshStandardMaterial({color:/leaf|葉|crown/i.test(pm.material.name||pm.name)?0x4f7a3c:0x5a4636,roughness:.95,transparent:true,opacity:0,side:THREE.DoubleSide}); worldMats.push(mat);
-        const im=new THREE.InstancedMesh(pm.geometry,mat,meta.trees.length), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(), ps=new THREE.Vector3();
-        meta.trees.forEach(([x,y,z],i)=>{ const s=(15+(i*37%9))/hh; q.setFromAxisAngle(new THREE.Vector3(0,1,0),i*2.39); sc.setScalar(s); ps.set(x,y-box.min.y*s,z); m4.compose(ps,q,sc).multiply(pm.matrixWorld); im.setMatrixAt(i,m4); });
+        const TR=meta.trees.filter(([x,y,z],i)=>Math.abs(z-AO.z)<260&&(Math.abs(z-AO.z)<90||i%2===0));   // 碧のまわりだけ（遠くは霧の中）
+        const im=new THREE.InstancedMesh(pm.geometry,mat,TR.length), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(), ps=new THREE.Vector3();
+        TR.forEach(([x,y,z],i)=>{ const s=(15+(i*37%9))/hh; q.setFromAxisAngle(new THREE.Vector3(0,1,0),i*2.39); sc.setScalar(s); ps.set(x,y-box.min.y*s,z); m4.compose(ps,q,sc).multiply(pm.matrixWorld); im.setMatrixAt(i,m4); });
         world.add(im); });
-      window.__world='ok'; window.__wb=[tg.scene,bg.scene].map(o=>{ const b=new THREE.Box3().setFromObject(o); let a=[]; o.traverse(m=>{ if(m.isMesh) a.push(Object.keys(m.geometry.attributes).join('/')); }); return [b.min.toArray().map(Math.round),b.max.toArray().map(Math.round),a.slice(0,2)]; });
+      const [rg,sg,pg2,place]=await Promise.all([L.loadAsync('img/hero/3d/road.glb'),L.loadAsync('img/hero/3d/structures.glb'),L.loadAsync('img/hero/3d/props.glb'),fetch('img/hero/3d/place.json').then(r=>r.json())]);
+      const RC={asphalt_dark:0x3c3f42,asphalt_light:0x66696b,bed:0x3d3226,concrete:0xa29f98,granite_band:0x8c8c88,granite_black:0x4a4a4a,granite_light:0xa8a6a0,granite_plaza:0x9a9893,gravel:0xbdb5a5,lawn:0x5b7a3e,paint:0xe6e4dc,roots:0x4a3b2b,sand:0xc6b694,sidewalk:0x9d988f,stone:0x88847d,washed:0xa59d8f};
+      rg.scene.traverse(o=>{ if(o.isMesh){ const k=(o.material&&o.material.name)||o.name.split('|')[0]; if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); o.material=new THREE.MeshStandardMaterial({color:RC[k]??0x8a8780,roughness:1,metalness:0,transparent:true,opacity:0,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}); worldMats.push(o.material); } });
+      world.add(rg.scene);
+      const models={}; sg.scene.traverse(o=>{ if(o.name&&!o.name.endsWith('_mesh')&&o.parent===sg.scene) models[o.name]=o; });
+      sg.scene.traverse(o=>{ if(o.isMesh){ [].concat(o.material).forEach(m=>{ m.transparent=true; m.opacity=0; worldMats.push(m); }); } });
+      place.struct.forEach(it=>{ const m=models[it.m]; if(!m) return; const c=m.clone(true); c.position.set(it.p[0],it.p[1],it.p[2]); c.rotation.set(0,it.r,0); c.scale.setScalar(it.s||1); world.add(c); });
+      const PM={}; pg2.scene.updateMatrixWorld(true); pg2.scene.traverse(o=>{ if(o.isMesh){ const k=o.name.split('|')[0]; (PM[k]=PM[k]||[]).push(o); [].concat(o.material).forEach(m=>{ m.transparent=true; m.opacity=0; worldMats.push(m); }); } });
+      const m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(1,1,1), ps=new THREE.Vector3(), up=new THREE.Vector3(0,1,0);
+      Object.entries(place.props).forEach(([k,arr])=>{ (PM[k]||[]).forEach(src=>{ const im=new THREE.InstancedMesh(src.geometry,src.material,arr.length);
+        arr.forEach((a,i)=>{ ps.set(a[0],hAt(a[0],a[1]),a[1]); q.setFromAxisAngle(up,a[2]); sc.setScalar(a[3]||1); m4.compose(ps,q,sc).multiply(src.matrixWorld); im.setMatrixAt(i,m4); }); world.add(im); }); });
+      window.__world='ok'; window.__sc={world,groups,R,S,parts:{terrain:tg.scene,buildings:bg.scene,road:rg.scene}}; window.__wb=[tg.scene,bg.scene].map(o=>{ const b=new THREE.Box3().setFromObject(o); let a=[]; o.traverse(m=>{ if(m.isMesh) a.push(Object.keys(m.geometry.attributes).join('/')); }); return [b.min.toArray().map(Math.round),b.max.toArray().map(Math.round),a.slice(0,2)]; });
     }catch(e){ window.__world='error'; console.warn('world',e); } };
   const bgA=new THREE.Color(0x03060f), bgB=new THREE.Color(0x30506a), fogC=new THREE.Color();
 
   // 粒：人の流れ（参道に沿って行き来）・データの流れ（観察記録 → 碧）・上空から碧へ
   const C=meta.center, CL=C.length;
-  const PN=mobile?240:420, pp=new Float32Array(PN*3), pd=[]; for(let i=0;i<PN;i++) pd.push({t:Math.random(),v:(Math.random()<.5?1:-1)*(0.01+Math.random()*0.02),o:(Math.random()-.5)*14});
+  const PN=mobile?140:320, pp=new Float32Array(PN*3), pd=[]; for(let i=0;i<PN;i++) pd.push({t:Math.random(),v:(Math.random()<.5?1:-1)*(0.01+Math.random()*0.02),o:(Math.random()-.5)*14});
   const people=new THREE.Points(geo(pp),pm(COL.people,1.6,.9)); groups.people.add(people);
-  const DN=mobile?180:320, dp=new Float32Array(DN*3), dd=[]; for(let i=0;i<DN;i++){ const k=i%meta.obs.length, a=meta.obs[k]; dd.push({a:[a[0],hAt(a[0],a[1])+38,a[1]],t:Math.random(),s:.08+Math.random()*.15}); }
+  const DN=mobile?100:240, dp=new Float32Array(DN*3), dd=[]; for(let i=0;i<DN;i++){ const k=i%meta.obs.length, a=meta.obs[k]; dd.push({a:[a[0],hAt(a[0],a[1])+38,a[1]],t:Math.random(),s:.08+Math.random()*.15}); }
   const data=new THREE.Points(geo(dp),pm(COL.info,1.1,.8)); groups.info.add(data);
-  const UN=mobile?120:200, up=new Float32Array(UN*3), ud=[]; for(let i=0;i<UN;i++) ud.push({t:Math.random(),s:.05+Math.random()*.1,r:Math.random()*3});
+  const UN=mobile?70:150, up=new Float32Array(UN*3), ud=[]; for(let i=0;i<UN;i++) ud.push({t:Math.random(),s:.05+Math.random()*.1,r:Math.random()*3});
   const fall=new THREE.Points(geo(up),pm(COL.aoi,0.6,.55)); S.add(fall);
 
   // カメラの道：上空 → 参道の南の端 → 地面の高さで北へ → 碧の前
@@ -1793,19 +1845,20 @@ async function start(){
   const V=(x,y,z)=>new THREE.Vector3(x,y,z);
   const iA=C.indexOf(near), dA=iA/(CL-1);
   const KP=[0,.12,.26,.40,.54,.68,.82,.92,1];
-  const pos=[V(520,760,1500),V(300,420,1150),V(160,190,980),V(70,70,760),at(.22).add(V(10,22,40)),at(.45).add(V(6,6,30)),at(dA-.022).add(V(1.5,1.8,0)),at(dA-.009).add(V(.8,1.7,0)),at(dA-.0035).add(V(.3,1.6,0))];
-  const tgt=[V(-40,0,-200),V(-20,0,-150),at(.2),at(.33),at(.45).add(V(0,6,0)),at(.62).add(V(0,4,0)),AO.clone().add(V(0,1.2,0)),AO.clone().add(V(0,.9,0)),AO.clone().add(V(0,.95,0))];
+  const pos=[V(520,760,1500),V(300,420,1150),V(160,190,980),V(70,70,760),at(.22).add(V(10,22,40)),at(.45).add(V(6,6,30)),at(dA-.02).add(V(1.4,1.8,0)),at(dA-.007).add(V(.6,1.65,0)),at(dA-.0013).add(V(.15,1.45,0))];
+  const tgt=[V(-40,0,-200),V(-20,0,-150),at(.2),at(.33),at(.45).add(V(0,6,0)),at(.62).add(V(0,4,0)),AO.clone().add(V(0,1.2,0)),AO.clone().add(V(0,1.1,0)),AO.clone().add(V(0,1.3,0))];
   const PC=new THREE.CatmullRomCurve3(pos), TC=new THREE.CatmullRomCurve3(tgt);
   const along=(cur,p)=>{ for(let j=0;j<KP.length-1;j++) if(p<=KP[j+1]){ let f=(p-KP[j])/(KP[j+1]-KP[j]); f=f*f*(3-2*f); return cur.getPoint((j+f)/(KP.length-1)); } return cur.getPoint(1); };
   // 拍ごとに、どの層を明るくするか
   const focus=p=>({nature:p>.2&&p<.31?1:0, culture:p>.32&&p<.43?1:0, people:p>.44&&p<.55?1:0, info:(p<.17||(p>.56&&p<.67))?1:0});
   const baseOp=new Map(); Object.values(groups).forEach(g=>g.traverse(o=>{ if(o.material) baseOp.set(o,o.material.opacity); }));
+  const OPS={}; for(const k of ['base','nature','culture','people','info']){ OPS[k]=[]; groups[k].traverse(o=>{ if(o.material&&baseOp.has(o)) OPS[k].push([o.material,baseOp.get(o)]); }); }
   const baseKeys=['base'];
 
   const labPos={ ichi:V(...meta.marks[0].p).add(V(0,18,0)), ni:V(...meta.marks[1].p).add(V(0,16,0)), san:V(...meta.marks[3].p).add(V(0,12,0)), romon:V(...meta.marks[4].p).add(V(0,14,0)), aoi:AO.clone().add(V(0,3.4,0)) };
   for(let k=0;k<5;k++){ const a=k/5*6.283; labPos['st'+k]=AO.clone().add(V(Math.cos(a)*4.2,1.4,Math.sin(a)*4.2)); }
 
-  let W=0,H=0,prog=0,target=0,px=0,py=0,pxT=0,pyT=0,run=true,last=performance.now(),raf=0;
+  let lastEs=-1, ema=16, slow=0, W=0,H=0,prog=0,target=0,px=0,py=0,pxT=0,pyT=0,run=true,last=performance.now(),raf=0;
   const t0=performance.now();
   const size=()=>{ const st=root.querySelector('.scene-sticky'); W=st.clientWidth; H=st.clientHeight; R.setSize(W,H,false); cam.aspect=W/H; cam.fov=W<H?72:58; cam.updateProjectionMatrix(); };
   const readScroll=()=>{ if(root.classList.contains('scene-static')){ target=0.02; return; } const r=root.getBoundingClientRect(), span=r.height-innerHeight; target=span>0?Math.max(0,Math.min(1,-r.top/span)):0; };
@@ -1817,8 +1870,8 @@ async function start(){
     const p=prog, cpos=along(PC,p), ctg=along(TC,p);
     const amp=Math.max(0.4, cpos.y*0.05);
     cam.position.set(cpos.x+px*amp*6, cpos.y+py*amp*3, cpos.z); cam.lookAt(ctg);
-    groups.base.traverse(o=>{ if(o.material&&baseOp.has(o)) o.material.opacity=baseOp.get(o); });
-    const f=focus(p); for(const k of ['nature','culture','people','info']){ const m=1+f[k]*1.4, dim=(f.nature||f.culture||f.people||(f.info&&p>.5))&&!f[k]?.55:1; groups[k].traverse(o=>{ if(o.material&&baseOp.has(o)) o.material.opacity=Math.min(1,baseOp.get(o)*m*dim); }); }
+    const em=Math.max(0,Math.min(1,(p-.91)/.09)), es=em*em*(3-2*em), wf=1-.55*es;   // 線から 3D へ：91% から、ゆっくり
+    const f=focus(p); for(const k of ['base','nature','culture','people','info']){ const m=k==='base'?1:1+f[k]*1.4, dim=k!=='base'&&(f.nature||f.culture||f.people||(f.info&&p>.5))&&!f[k]?.55:1; const L=OPS[k]; for(let i=0;i<L.length;i++) L[i][0].opacity=Math.min(1,L[i][1]*m*dim)*wf; }
     // 粒
     const mv=reduce?0:1;
     for(let i=0;i<PN;i++){ const d=pd[i]; d.t=(d.t+d.v*dt*mv+1)%1; const j=d.t*(CL-1), a=C[Math.floor(j)], b=C[Math.min(CL-1,Math.floor(j)+1)], u=j%1; pp[3*i]=a[0]+(b[0]-a[0])*u+d.o; pp[3*i+1]=a[1]+(b[1]-a[1])*u+1.2; pp[3*i+2]=a[2]+(b[2]-a[2])*u; }
@@ -1827,14 +1880,12 @@ async function start(){
     data.geometry.attributes.position.needsUpdate=true;
     for(let i=0;i<UN;i++){ const d=ud[i]; d.t=(d.t+d.s*dt*mv)%1; up[3*i]=AO.x+Math.cos(i)*d.r; up[3*i+1]=AO.y+320-(316.6)*d.t; up[3*i+2]=AO.z+Math.sin(i)*d.r; }
     fall.geometry.attributes.position.needsUpdate=true;
-    stages.rotation.y=t*0.35*mv; stPts.material.opacity=1-.8*Math.max(0,Math.min(1,(prog-.86)/.11)); orb.scale.setScalar(2.6*(1+0.08*Math.sin(t*1.7)));
+    stages.rotation.y=t*0.35*mv; stPts.material.opacity=1-.8*es; orb.scale.setScalar(2.6*(1+0.08*Math.sin(t*1.7)));
     // 最後の拍：情報空間（線）と、色と光のある参道・肉体の碧が重なる
-    const em=Math.max(0,Math.min(1,(p-.86)/.11)), es=em*em*(3-2*em);
-    if(vrm){ const hy=AO.y-.05+1.8*es; clipBody.constant=em<=0?-1e4:hy; clipHolo.constant=em<=0?1e4:-hy; if(em>=1){ clipBody.constant=1e4; } scanG.visible=em>0&&em<1; scanG.position.set(AO.x,hy,AO.z);
+    if(vrm){ const hy=AO.y-.05+1.8*es; clipBody.constant=em<=0?-1e4:hy; clipHolo.constant=em<=0?1e4:-hy; if(em>=1){ clipBody.constant=1e4; } scanG.visible=em>0&&em<.96; scanG.position.set(AO.x,hy,AO.z);
       vrm.update(dt); holoMats.forEach(m=>m.opacity=m.wireframe?.42*(1-.75*es):.18*(1-es)); }
-    world.visible=es>0.001; worldMats.forEach(m=>{ m.opacity=es; m.transparent=es<.999; m.depthWrite=es>.5; });
-    hemi.intensity=.55*es; sun.intensity=.9*es; R.toneMappingExposure=1-.22*es; S.background=null; R.setClearColor(fogC.copy(bgA).lerp(bgB,es)); S.fog.color.copy(fogC); S.fog.density=.00055+.0012*es;
-    const wf=1-.55*es; for(const k of ['base','nature','culture','people','info']) groups[k].traverse(o=>{ if(o.material&&baseOp.has(o)) o.material.opacity*=wf; });
+    world.visible=es>0.001; if(es!==lastEs){ for(let i=0;i<worldMats.length;i++){ const m=worldMats[i]; m.opacity=es; m.transparent=es<.999; m.depthWrite=es>.5; } lastEs=es; }
+    hemi.intensity=.55*es; sun.intensity=.9*es; R.toneMappingExposure=1-.22*es; R.setClearColor(fogC.copy(bgA).lerp(bgB,es)); S.fog.color.copy(fogC); S.fog.density=.00055+.0012*es;
     beam.material.opacity=.9*(1-.6*es); orb.material.opacity=1-.7*es;
     R.render(S,cam);
     const stat=root.classList.contains('scene-static');
@@ -1844,10 +1895,12 @@ async function start(){
       const on=v3.z<1&&Math.abs(v3.x)<1.05&&Math.abs(v3.y)<1.05&&p>=lo&&p<=hi&&dist<(+(el.dataset.far||2500));
       el.style.opacity=on?1:0; el.style.transform=`translate3d(${((v3.x*.5+.5)*W).toFixed(1)}px,${((-v3.y*.5+.5)*H).toFixed(1)}px,0)`; });
   }
-  const loop=now=>{ if(!run){ raf=0; return; } readScroll(); frame(now); raf=requestAnimationFrame(loop); };
+  const loop=now=>{ if(!run){ raf=0; return; } const d=now-last; readScroll(); if(target>.5) want3D(); frame(now); ema+=(Math.min(d,100)-ema)*.05;
+    if(ema>20){ if(++slow>90&&PR>PRmin){ PR=Math.max(PRmin,PR-.25); R.setPixelRatio(PR); size(); slow=0; ema=16; } } else slow=0;
+    raf=requestAnimationFrame(loop); };
   const go=()=>{ if(!raf&&!reduce){ last=performance.now(); raf=requestAnimationFrame(loop); } };
   size(); readScroll(); prog=target; frame(performance.now()); root.classList.add('scene-ready');
-  setTimeout(loadAoi,1200); setTimeout(load3D,2600);
+  setTimeout(loadAoi,1200); let asked3D=false; const want3D=()=>{ if(asked3D) return; asked3D=true; (window.requestIdleCallback||(f=>setTimeout(f,200)))(load3D); };
   if(reduce){ addEventListener('resize',()=>{ size(); frame(performance.now()); }); setTimeout(()=>frame(performance.now()),2500); return; }
   addEventListener('pointermove',e=>{ if(e.pointerType==='mouse'){ pxT=(e.clientX/innerWidth-.5); pyT=-(e.clientY/innerHeight-.5); } },{passive:true});
   addEventListener('deviceorientation',e=>{ if(e.gamma==null) return; pxT=Math.max(-.5,Math.min(.5,e.gamma/40)); pyT=Math.max(-.5,Math.min(.5,(e.beta-45)/60)); },{passive:true});
