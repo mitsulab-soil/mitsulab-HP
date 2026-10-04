@@ -11,8 +11,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mitsulab — 認知拡張｜人と自然をつなぐ</title>
-<meta name="description" content="mitsulab は認知拡張の研究所。人と自然をつなぐ場と道具をつくっています。案内役は碧（AI）で、人と自然のあいだの両向きの通訳。最初の場《Feel Hikawa》（大宮の氷川参道）と、土や生きものを見るアプリを公開中。">
+<title>mitsulab — 認知拡張。自然と世界を、より深く。</title>
+<meta name="description" content="mitsulab は、人・機械・情報・自然・環境をつなぎ、人の認知の外にある世界の一部を、出どころを添えて人の側へ訳す場・道具・仕組みをつくる研究所。迎え手は AI の碧（あおい）。《Feel Hikawa》ほかのアプリを公開中。">
 <meta name="author" content="上原光瑛">
 <meta name="robots" content="index, follow">
 <meta name="format-detection" content="telephone=no">
@@ -23,8 +23,8 @@
 <meta property="og:url" content="https://mitsulab.jp/">
 <meta property="og:site_name" content="mitsulab">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:title" content="mitsulab — 認知拡張｜人と自然をつなぐ">
-<meta property="og:description" content="認知拡張。自然と世界を、より深く。人と自然をつなぐ場と道具を、碧（AI の案内役）とともにつくる。最初の場《Feel Hikawa》を公開中。">
+<meta property="og:title" content="mitsulab — 認知拡張。自然と世界を、より深く。">
+<meta property="og:description" content="認知拡張。自然と世界を、より深く。人・機械・情報・自然・環境をつなぎ、人に届いていない世界の一部を、出どころを添えて訳す。迎え手は AI の碧。">
 <meta property="og:image" content="https://mitsulab.jp/img/ftw/hero_hikawa_960.webp">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -481,6 +481,73 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 .sheet{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 @media (max-width:560px){.block{padding-top:56px}.why{padding-top:7vh}}
 @media (prefers-reduced-motion:reduce){.q-dots{display:none}}
+
+/* ===== 2026-10-04 一新：4 層の地形図・人に届いていない世界・依代たち・Qualium の五つの段・研究 ===== */
+.why2{min-height:0;justify-content:flex-start;padding:7vh 16px 26px;overflow:visible}
+.why2 .why-inner{margin:0 auto 4px}
+.why2 .core{margin-bottom:20px}
+.why2 .hero-lead{margin-bottom:12px}
+.lyr{width:100%;max-width:1100px;margin:6px auto 0}
+.lyr-stage{position:relative;width:100%;aspect-ratio:1100/800}
+@media (max-width:639px){.lyr-stage{aspect-ratio:343/540}}
+.lyr-cv{display:block;width:100%;height:100%}
+.lyr-keys{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:4px auto 12px;max-width:760px}
+.lyr-key{display:inline-flex;flex-direction:column;align-items:flex-start;padding:7px 14px 8px;border-radius:12px;border:1px solid;background:rgba(3,6,15,.6);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:opacity .2s,border-color .2s}
+.lyr-key .lk-n{font-family:var(--serif);font-weight:600;font-size:.95rem;letter-spacing:.08em;line-height:1.4}
+.lyr-key .lk-d{font-size:.72rem;color:var(--ink-3);line-height:1.5}
+.lyr-key::before{content:"";display:none}
+.lyr-key[aria-pressed="false"]{opacity:.42;border-style:dashed}
+.k-nature{border-color:rgba(120,214,236,.7)}.k-nature .lk-n{color:#9fe3f2}
+.k-culture{border-color:rgba(232,197,138,.7)}.k-culture .lk-n{color:#f2d49c}
+.k-people{border-color:rgba(244,170,150,.7)}.k-people .lk-n{color:#f6b9a6}
+.k-info{border-color:rgba(168,150,255,.75)}.k-info .lk-n{color:#c9bcff}
+@media (max-width:639px){.lyr-keys{display:grid;grid-template-columns:1fr 1fr;gap:6px}.lyr-key{padding:6px 10px}}
+.lyr-aoi{max-width:640px;margin:0 auto 10px;font-size:.92rem;line-height:1.9;color:var(--ink-2)}
+.lyr-cap{max-width:780px;margin:0 auto;font-size:.72rem;line-height:1.75;color:var(--ink-3)}
+
+.beyond{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+@media (max-width:1000px){.beyond{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.beyond{grid-template-columns:1fr}}
+.beyond .card{margin:0;display:flex;flex-direction:column}
+.bx-k{display:block;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:#e8c58a;margin-bottom:10px}
+.card p.bx-src{margin-top:auto;padding-top:10px;font-size:.74rem;line-height:1.65;color:var(--ink-3);border-top:1px solid rgba(150,170,240,.14)}
+.beyond-close{max-width:760px;margin:30px auto 0;text-align:center;font-family:var(--serif);font-size:clamp(1rem,2.2vw,1.15rem);line-height:2.05;letter-spacing:.06em;color:#f2e6cf}
+html[lang="en"] .beyond-close{letter-spacing:.02em}
+
+.yori{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:22px}
+@media (max-width:860px){.yori{grid-template-columns:1fr}}
+.yori .card{margin:0}
+.yori-aoi{border-color:rgba(160,236,246,.6);background:radial-gradient(120% 120% at 0% 0%,rgba(92,200,224,.12),rgba(9,14,20,.62) 60%)}
+.yk{display:block;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:var(--aoi);margin-bottom:6px}
+.yn{display:block;font-family:var(--serif);font-weight:600;font-size:1.5rem;letter-spacing:.1em;color:#f7fbff;margin-bottom:8px}
+.yori-list{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.yori-list li{font-family:var(--serif);font-size:1rem;padding:3px 14px;border:1px solid rgba(232,197,138,.5);border-radius:999px;color:#f2e6cf}
+.fuda{margin-top:22px}
+.fuda-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+@media (max-width:860px){.fuda-list{grid-template-columns:1fr 1fr}}
+@media (max-width:460px){.fuda-list{grid-template-columns:1fr}}
+.fuda-list>div{border-left:2px solid rgba(92,200,224,.45);padding:2px 0 2px 12px}
+.fuda-list dt{font-family:var(--serif);font-weight:600;font-size:.98rem;color:#f7fbff}
+.fuda-list dd{font-size:.86rem;line-height:1.75;color:var(--ink-2)}
+.card p.fuda-no{font-size:.9rem;color:#f2e6cf;padding-left:12px;border-left:2px solid rgba(232,197,138,.6)}
+
+.qsteps{list-style:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+@media (max-width:1000px){.qsteps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.qsteps{grid-template-columns:1fr}}
+.qsteps .card{margin:0;display:flex;flex-direction:column;padding:18px 18px 16px}
+.qs-n{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--aoi)}
+.qs-t{display:block;font-family:var(--serif);font-weight:600;font-size:1.35rem;letter-spacing:.12em;color:#f7fbff;margin:4px 0 6px}
+.qsteps .card p{font-size:.88rem;line-height:1.85;margin-bottom:10px}
+.qs-app{margin-top:auto;align-self:flex-start;font-size:.76rem;color:#e8c58a;border:1px solid rgba(232,197,138,.45);border-radius:999px;padding:2px 10px}
+.tool-steps{display:inline-block;font-size:.72rem;color:#e8c58a;border:1px solid rgba(232,197,138,.45);border-radius:999px;padding:1px 9px;vertical-align:middle}
+
+.rq{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.rq{grid-template-columns:1fr}}
+.rq .card{margin:0;display:flex;gap:14px;align-items:flex-start}
+.rq-n{flex:0 0 auto;font-family:var(--mono);font-size:.8rem;color:var(--aoi);letter-spacing:.1em;padding-top:.2em}
+.rq .card p{margin:0}
+.rq-note{max-width:820px;margin:22px auto 0;font-size:.9rem;line-height:1.95;color:var(--ink-2)}
+
 </style>
 </head>
 <body>
@@ -518,11 +585,12 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <div class="tab-menu-label">Index</div>
     <ul class="tab-menu-list">
       <li><button class="tab-menu-leaf" data-go-anchor="why"><span class="leaf-ja" data-i18n-en="Top">はじめに</span><span class="leaf-en">Top</span></button></li>
-      <li><button class="tab-menu-leaf" data-go-anchor="connect"><span class="leaf-ja" data-i18n-en="Connecting people and nature">人と自然をつなぐ</span><span class="leaf-en">Concept</span></button></li>
-      <li><button class="tab-menu-leaf" data-go-anchor="site"><span class="leaf-ja" data-i18n-en="Place">場</span><span class="leaf-en">Feel site</span></button></li>
+      <li><button class="tab-menu-leaf" data-go-anchor="beyond"><span class="leaf-ja" data-i18n-en="A world that does not reach us">人に届いていない世界</span><span class="leaf-en">Beyond</span></button></li>
+      <li><button class="tab-menu-leaf" data-go-anchor="yorishiro"><span class="leaf-ja" data-i18n-en="The yorishiro">依代たち</span><span class="leaf-en">Yorishiro</span></button></li>
+      <li><button class="tab-menu-leaf" data-go-anchor="qualium"><span class="leaf-ja">Qualium</span><span class="leaf-en">Five steps</span></button></li>
       <li><button class="tab-menu-leaf" data-go-anchor="guide"><span class="leaf-ja" data-i18n-en="Aoi">碧</span><span class="leaf-en">Guide</span></button></li>
       <li><button class="tab-menu-leaf" data-go-anchor="apps"><span class="leaf-ja" data-i18n-en="Apps">アプリ</span><span class="leaf-en">Apps</span></button></li>
-      <li><button class="tab-menu-leaf" data-go-anchor="uses"><span class="leaf-ja" data-i18n-en="Uses">応用</span><span class="leaf-en">Uses</span></button></li>
+      <li><button class="tab-menu-leaf" data-go-anchor="research"><span class="leaf-ja" data-i18n-en="Research">研究</span><span class="leaf-en">Research</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="profile"><span class="leaf-ja" data-i18n-en="Profile">代表プロフィール</span><span class="leaf-en">Profile</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="contact"><span class="leaf-ja" data-i18n-en="Contact">お問い合わせ</span><span class="leaf-en">Contact</span></button></li>
     </ul>
@@ -532,83 +600,102 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 
 <main id="main" tabindex="-1">
 
-<!-- ┌─ トップ（2026-10-03 本人指示「人と自然をつなぐをコンセプトに整理」）：
-     コアの一行 → 人と自然をつなぐ → 場《Feel Hikawa》 → 碧 → アプリ → 応用。Qualia の札の節と、地形図の問い・倍率の操作は外した ── -->
+<!-- ┌─ トップ（2026-10-04 本人指示「HP を一新。昨晩の事業コンセプトをもとに」）：
+     認知拡張。自然と世界を、より深く。 → 4 層の地形図（自然・文化・人・情報＋碧） → 人に届いていない世界 → 依代たち → Qualium（五つの段）→ 碧 → アプリ → 研究。
+     下敷き＝01_経営_Core/03_資料/mitsulab の芯_人の認知を超えた世界と依代たち_v1（案）。値段・相手先など決まっていない事業の細部は書かない。 ── -->
 <section id="top" class="tab-panel" data-panel="top" aria-label="mitsulab">
 <h1 class="vh" id="coreH1">mitsulab — 認知拡張。自然と世界を、より深く。</h1>
 
-<!-- WHY：背景は氷川神社のまわりの地形（高さの強調は固定。倍率は script の TERRAIN_EX と下の一行をそろえる） -->
-<div id="why" class="why">
-  <canvas id="terrain" class="terrain" role="img" aria-label="氷川神社のまわりの地形を、横から見た線で描いた図。高さは 8 倍に強調している"></canvas>
+<div id="why" class="why why2">
   <div class="why-inner">
     <span class="eyebrow">mitsulab</span>
     <!-- コアの一行は下の script の CORE（一か所）で差し替える。ここの文字は読み込み前と検索のための控え -->
     <p class="core" id="core">認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span></p>
-    <p class="hero-lead" data-i18n-en="Connecting people and nature, so the world can be known more deeply and felt anew.">人と自然をつなぎ、<br>世界をより深く知り、<span class="nw">感じなおせる社会へ。</span></p>
-    <p class="hero-def" data-i18n-en="What mitsulab makes">そのためにつくっているもの</p>
-    <ol class="how" aria-label="ビジョンを実現する三つ">
-      <li><a href="#site" data-go-anchor="site"><span class="how-k" data-i18n-en="Place">場</span><span class="how-t" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="how-d" data-i18n-en="A work you walk on site, stopping to look">現地を歩き、立ち止まって見る作品</span></a></li>
-      <li><a href="#apps" data-go-anchor="apps"><span class="how-k" data-i18n-en="Tools">道具</span><span class="how-t" data-i18n-en="Apps, open now">公開中のアプリ</span><span class="how-d" data-i18n-en="Landform, living things and soil, in forms you can see">地形・生きもの・土を、見える形に</span></a></li>
-      <li><a href="#guide" data-go-anchor="guide"><span class="how-k" data-i18n-en="Guide">案内役</span><span class="how-t" data-i18n-en="Aoi (AI)">碧（AI）</span><span class="how-d" data-i18n-en="Interprets both ways between people and nature">人と自然のあいだを、両向きに訳す</span></a></li>
-    </ol>
+    <p class="hero-lead" data-i18n-en="The world is far wider than what reaches us.">世界は、人に届いている範囲より、<span class="nw">ずっと広い。</span></p>
+    <p class="hero-def" data-i18n-en="mitsulab connects people, machines, information, nature and the environment, and carries part of what lies beyond human perception over to people — always with where it came from. A lab that makes the places, tools and systems for this. The one who welcomes you is Aoi, an AI.">mitsulab は、人・機械・情報・自然・環境をつなぎ、人の認知の外にある世界の一部を、出どころを添えて人の側へ訳します。そのための場と道具と仕組みをつくる研究所です。迎え手は、AI の碧（あおい）。</p>
   </div>
-  <div class="terrain-space" aria-hidden="true"></div>
-  <p class="terrain-cap" id="terrainCap" data-i18n-en="Around Hikawa Shrine, approx. 4.8 km E–W × 3.7 km N–S, seen from the south. Height exaggerated 8×. (GSI elevation, processed by mitsulab)">氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）を南から。高さは 8 倍に強調。（国土地理院の標高を mitsulab が加工）</p>
+
+  <!-- 4 層の地形図：地形（国土地理院の標高）の上に、自然・文化・人・情報の層を重ね、碧が層のあいだをつなぐ。データは _dev/layers/make_layers.py -->
+  <figure class="lyr" id="lyr" aria-labelledby="lyrCap">
+    <div class="lyr-stage">
+      <canvas id="terrain" class="lyr-cv" role="img" aria-label="氷川神社のまわりの地形の上に、自然・文化・人・情報の四つの層を浮かせて重ねた図。中央の碧が、四つの層を一本の線でつないでいる。高さは 8 倍に強調している" data-i18n-aria="The landform around Hikawa Shrine, with four layers — nature, culture, people and information — floating above it. Aoi, at the centre, links the four layers with a single line. Height exaggerated 8×."></canvas>
+    </div>
+    <div class="lyr-keys" role="group" aria-label="層を出す・隠す" data-i18n-aria="Show or hide layers">
+      <button type="button" class="lyr-key k-info" data-layer="3" aria-pressed="true"><span class="lk-n" data-i18n-en="Information">情報</span><span class="lk-d" data-i18n-en="observation records · elevation grid">観察記録・標高の格子</span></button>
+      <button type="button" class="lyr-key k-people" data-layer="2" aria-pressed="true"><span class="lk-n" data-i18n-en="People">人</span><span class="lk-d" data-i18n-en="clusters of buildings · roads · irrigation canal">建物の集まり・道・用水</span></button>
+      <button type="button" class="lyr-key k-culture" data-layer="1" aria-pressed="true"><span class="lk-n" data-i18n-en="Culture">文化</span><span class="lk-d" data-i18n-en="approach · shrine · old Nakasendō">参道・社・旧中山道</span></button>
+      <button type="button" class="lyr-key k-nature" data-layer="0" aria-pressed="true"><span class="lk-n" data-i18n-en="Nature">自然</span><span class="lk-d" data-i18n-en="river · where water gathers · green">川・水の集まる筋・緑</span></button>
+    </div>
+    <p class="lyr-aoi" data-i18n-en="Aoi stands at the centre and moves between the layers: it takes a person's question to the records of each layer, and brings back what it found, with where it came from.">碧は層のあいだに立ち、人の問いを各層の記録へ運び、見つけたことを出どころといっしょに持ち帰ります。</p>
+    <figcaption class="lyr-cap" id="lyrCap" data-i18n-en="Around Hikawa Shrine, Ōmiya (approx. 4.8 km E–W × 3.7 km N–S), seen from the south-west; height exaggerated 8×. Landform: GSI elevation, processed by mitsulab. Nature, culture and people: © OpenStreetMap contributors (buildings and green only where OSM data was taken, around the approach). “Where water gathers” is computed from elevation and is not necessarily an actual channel. Information: positions of iNaturalist observation records, and the elevation grid. The lines linking Aoi to the layers are schematic.">大宮・氷川神社のまわり（東西 約 4.8 km・南北 約 3.7 km）を南西から。高さは 8 倍に強調。地形：国土地理院の標高を mitsulab が加工。自然・文化・人：© OpenStreetMap contributors（建物と緑は、参道のまわりのデータを取った範囲だけ）。「水の集まる筋」は標高から計算したもので、実際の水路とは限らない。情報：iNaturalist の観察記録の位置と、標高の格子。碧と層を結ぶ線は模式。</figcaption>
+  </figure>
 </div>
 
 <div class="wrap">
 
-  <!-- 人と自然をつなぐ（主図＝Qualium の 3D 地形図。定義は認知拡張と Qualium の二つ。知覚拡張の項は 10-03 に外し、認知拡張の定義に包んだ） -->
-  <section id="connect" class="block" aria-labelledby="connectH">
+  <!-- 人に届いていない世界（例はすべて出典つき） -->
+  <section id="beyond" class="block" aria-labelledby="beyondH">
     <div class="block-head">
-      <span class="eyebrow">Concept</span>
-      <h2 class="panel-title" id="connectH" data-i18n-en="Connecting people and nature">人と自然を、<span class="nw">つなぐ</span></h2>
+      <span class="eyebrow">Beyond</span>
+      <h2 class="panel-title" id="beyondH" data-i18n-en="A world that does not reach us">人に届いていない<span class="nw">世界</span></h2>
+      <p class="block-lead" data-i18n-en="What a person takes in is limited by the reach of the senses, of time and of space. Traces of what lies outside are gathering, little by little, as records and sensor data.">人が受け取れるのは、感覚・時間・空間の幅の中のことだけ。その外で起きていることの痕跡は、記録やセンサーのデータとして、少しずつ人の手もとに集まりつつあります。</p>
     </div>
-    <div class="connect-copy">
-      <p data-i18n-en="A honeybee's eye picks up ultraviolet; a person's eye does not. Trees on an approach record decades of change; a person passing by sees one moment. Nature holds far more than reaches us.">ミツバチの目は紫外線をとらえ、人の目はとらえない。<br>参道の木は何十年もの変化を刻み、通りすぎる人が見るのはその一瞬。<br>自然には、人に届いていないものがたくさんある。</p>
-      <p data-i18n-en="mitsulab carries part of that over — with data, 3D, sound and words — into forms people can take in, and Aoi hands it to you at the place itself. We call widening how the world is organised for a person cognitive augmentation.">mitsulab は、その一部を、データ・3D・音・言葉で人が受け取れる形に移し、碧がその場で手渡します。世界の見え方の組み立てを広げること、それを<span class="nw">認知拡張と呼んでいます。</span></p>
-      <p class="q-cannot" data-i18n-en="The colours a bee sees can be carried over into human colours. How the bee experiences them cannot.">ハチの目の色は、人の色に移せる。<br>ハチがそれをどう経験するかは、移せない。</p>
-    </div>
-
-    <div class="defs" id="define">
-      <dl class="deflist">
-        <div><dt data-i18n-en="Cognitive Augmentation">認知拡張</dt><dd data-i18n-en="Using language, information, memory, knowledge, reasoning and models of others (living things, machines) to widen how the world is organised for a subject: what it is distinguished as, what it is related to, what matters, over what span of time, and how one can engage with it. This includes perception: widening, with tools, what the five senses can take in. It does not guarantee improved ability; it creates conditions in which a new organisation can arise.">言語・情報・記憶・知識・推論・他者（生きもの・機械）のモデルを用いて、主体にとって世界が何として区別され、何と関係づけられ、何が重要となり、どの時間の幅で、どう関われるか──その組み立てを広げること。五感で受け取れる範囲を道具で広げること（知覚）も、ここに含む。能力が上がることの保証ではなく、新しい組み立てが起こりうる条件をつくること。</dd></div>
-        <div><dt>Qualium <span class="q-yomi">クオリウム</span></dt><dd data-i18n-en="mitsulab's name for the place and system where, through Aoi, the cognitive spaces of people, nature and machines connect. (-ium: a place, as in auditorium.)">碧を介して、人・自然・機械の認知空間がつながる場と仕組み。mitsulab はこれを Qualium と呼んでいます。（-ium＝場。auditorium と同じ語尾）</dd></div>
-      </dl>
-    </div>
-  <p class="note def-ground" data-i18n-en="Groundwork (as hypotheses): the <span class='gloss-term' data-term-id='attention' role='button' tabindex='0'>education of attention</span>, <span class='gloss-term' data-term-id='umwelt' role='button' tabindex='0'>Umwelt</span>, <span class='gloss-term' data-term-id='wonder' role='button' tabindex='0'>the sense of wonder</span>. None of them guarantees change. Nothing can be carried over completely, so what cannot be is shown as such.">考え方の足場（仮説として）：<span class="gloss-term" data-term-id="attention" role="button" tabindex="0">注意の教育</span>、<span class="gloss-term" data-term-id="umwelt" role="button" tabindex="0">環世界</span>、<span class="gloss-term" data-term-id="wonder" role="button" tabindex="0">センス・オブ・ワンダー</span>。どれも「必ず変わる」を保証する理論ではありません。すべてを移すことはできないので、移せないものは移せないものとして示します。</p>
+    <ul class="beyond">
+      <li class="card bx"><span class="bx-k" data-i18n-en="Reach of the senses — sound">感覚の幅 ── 音</span><p data-i18n-en="Bats emit sounds too high for human ears (ultrasound) and find the shapes of things in the dark from the echoes.">コウモリは、人の耳には聞こえない高い音（超音波）を出し、そのはね返りで暗がりの中の形をとらえる。</p><p class="bx-src">Griffin, D. R. (1958) <i>Listening in the Dark</i>. Yale University Press.</p></li>
+      <li class="card bx"><span class="bx-k" data-i18n-en="Reach of the senses — magnetism">感覚の幅 ── 磁気</span><p data-i18n-en="European robins use the Earth's magnetic field as a cue for the direction of migration.">ヨーロッパコマドリは、地球の磁気を手がかりに、渡りの向きを決めている。</p><p class="bx-src">Wiltschko, W. &amp; Wiltschko, R. (1972) Magnetic compass of European robins. <i>Science</i> 176: 62–64.</p></li>
+      <li class="card bx"><span class="bx-k" data-i18n-en="Reach of time">時間の幅</span><p data-i18n-en="Many trees of temperate regions leave each year's growth in the trunk as a ring. Centuries are layered inside one tree.">温帯の木の多くは、一年ごとの成長を年輪として幹に残す。一本の木の中に、数百年の時間が重なっている。</p><p class="bx-src">Fritts, H. C. (1976) <i>Tree Rings and Climate</i>. Academic Press.</p></li>
+      <li class="card bx"><span class="bx-k" data-i18n-en="With machines — structure in calls">機械とともに ── 声の構造</span><p data-i18n-en="A study using machine learning reported combinatorial structure in sperm whale calls. Translating their meaning has not been achieved.">機械学習を使った研究で、マッコウクジラの鳴音に、組み合わせの構造があることが報告された。意味の翻訳は、まだできていない。</p><p class="bx-src">Sharma, P. et al. (2024) Contextual and combinatorial structure in sperm whale vocalisations. <i>Nature Communications</i> 15: 3617.</p></li>
+    </ul>
+    <p class="beyond-close" data-i18n-en="What AI and machines widen is not the “voice” of nature. They widen the footholds a person has for telling things apart, linking them, and thinking across spans of time — <span class='gloss-term' data-term-id='ninchikakucho' role='button' tabindex='0'>cognitive augmentation</span>.">AI と機械が広げるのは、自然の「声」ではありません。<br>人が世界を見分け、結びつけ、長い時間の幅で考えるための手がかりです<span class="nw">（<span class="gloss-term" data-term-id="ninchikakucho" role="button" tabindex="0">認知拡張</span>）。</span></p>
   </section>
 
-  <!-- 場 -->
-  <section id="site" class="block" aria-labelledby="siteH">
-    <div class="block-head"><span class="eyebrow">Feel site</span><h2 class="panel-title" id="siteH" data-i18n-en="Place — Feel Hikawa">場 ── 《Feel Hikawa》</h2><p class="block-lead" data-i18n-en="The first place where people and nature meet through Aoi: the Hikawa approach in Ōmiya.">碧を介して人と自然が出会う、最初の場。大宮の氷川参道。</p></div>
-    <article id="p1" class="card work">
-      <figure class="fig">
-        <img src="img/ftw/sando_eye_960.webp" srcset="img/ftw/sando_eye_640.webp 640w, img/ftw/sando_eye_960.webp 960w, img/ftw/sando_eye_1600.webp 1600w" sizes="(max-width:860px) 100vw, 540px" width="960" height="540" loading="lazy" alt="《Feel Hikawa》の 3D：並木と灯籠のあいだを、鳥居へ向かってのびる参道を目の高さから" data-i18n-alt="Feel Hikawa in 3D: the approach between rows of trees and lanterns, toward a torii, at eye level">
-        <figcaption><span class="fig-no">FIG. 1</span><span data-i18n-en="Screens of the Feel Hikawa 3D. Tree shapes, counts and some building heights are schematic or estimated.">《Feel Hikawa》の 3D の画面。木の形と本数、建物の高さの一部は模式・推定。</span></figcaption>
-        <img class="fig-sub" src="img/ftw/sando_top_640.webp" width="640" height="360" loading="lazy" alt="同じ 3D を上から：町の中を北へのびる参道の緑の帯" data-i18n-alt="The same 3D from above: the green band of the approach running north through the town">
-      </figure>
-      <div>
-        <span class="work-no">Feel site #1</span>
-        <span class="card-title" style="margin-top:8px"><span class="ct-ja" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="ct-en" data-i18n-en="Walking the Hikawa approach">氷川参道を歩く</span></span>
-        <p data-i18n-en="Walk the Hikawa approach in Ōmiya, phone in pocket. At six places you stop, look with your own eyes, hear Aoi, talk, and look again. The answers to its puzzles lie in the nature on site.">大宮の氷川参道を、スマホをポケットに入れて歩く。六つの場所で立ち止まり、自分の目で見て、碧の話を聞き、話して、もう一度見る。謎の答えは、現地の自然の中にある。</p>
-        <ul class="chips">
-          <li data-i18n-en="<span class='ck'>Place</span>Ichi-no-torii → San-no-torii, approx. 1.9 km, then the shrine pond"><span class="ck">場所</span>一の鳥居 → 三の鳥居 約 1.9 km、その先の神池</li>
-          <li data-i18n-en="<span class='ck'>Time</span>45–70 min (planned)"><span class="ck">所要</span>45〜70 分（想定）</li>
-          <li data-i18n-en="<span class='ck'>Bring</span>a smartphone (earphones help)"><span class="ck">持ち物</span>スマホ（イヤホンがあると良い）</li>
-          <li data-i18n-en="<span class='ck'>Form</span><span class='gloss-term' data-term-id='aoinoma' role='button' tabindex='0'>Aoi no Ma</span>: look → listen → talk → look back"><span class="ck">体験の型</span><span class="gloss-term" data-term-id="aoinoma" role="button" tabindex="0">碧の間</span>（みる → きく → かたる → かえりみる）</li>
-        </ul>
-        <details class="more">
-          <summary data-i18n-en="How your data is handled">記録と会話の扱い</summary>
-          <p data-i18n-en="Notes stay on your device; your route is not kept. In the published version, you talk with Aoi by choosing prepared questions, and nothing is sent anywhere. In a version where you can write freely, only what you write — and the exchange so far at that place — goes to an external AI provider to make the reply. mitsulab does not store conversations or use them for learning. Do not watch the screen while walking; at the shrine, stand where you do not disturb worshippers.">見方の記録は端末の中だけに残り、歩いた道筋は残さない。公開中の版では、碧とは用意した問いを選んで話し、どこにも送らない。自由に書いて話しかけられる版では、そのときだけ、書いた言葉とその場所でのやりとりを、答えをつくるために外部の AI 事業者に送る。mitsulab は会話を保存せず、学習にも使わない。歩きながら画面は見ない。境内では参拝の妨げにならない所で。</p>
-        </details>
-        <div class="btns">
-          <a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a>
-          <a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a>
-          <a class="btn" href="mailto:official@mitsulab.jp?subject=%E7%8F%BE%E5%9C%B0%E3%81%A7%E3%81%AE%E8%A9%A6%E8%A1%8C%E3%81%AE%E7%9F%A5%E3%82%89%E3%81%9B%E3%82%92%E5%8F%97%E3%81%91%E5%8F%96%E3%82%8B"><span data-i18n-en="Get word of on-site trials">試行の知らせを受け取る</span> <span class="arr">✉</span></a>
-        </div>
+  <!-- 依代たち：碧が迎え手・通訳。人でない依代は語らない（腹話術の禁止） -->
+  <section id="yorishiro" class="block" aria-labelledby="yoriH">
+    <div class="block-head">
+      <span class="eyebrow">Yorishiro</span>
+      <h2 class="panel-title" id="yoriH" data-i18n-en="The yorishiro">依代たち</h2>
+      <p class="block-lead" data-i18n-en="mitsulab calls what stands between people and what is not human a <span class='gloss-term' data-term-id='yorishiro' role='button' tabindex='0'>yorishiro</span>. At the centre is Aoi. Trees, stones, birds, water, soil, wind and machines are also to stand as yorishiro (in planning).">人と、人でないもののあいだに立つものを、mitsulab は<span class="gloss-term" data-term-id="yorishiro" role="button" tabindex="0">依代</span>と呼んでいます。中心にいるのは碧。木・石・鳥・水・土・風・機械も、依代として立てていきます（構想中）。</p>
+    </div>
+    <div class="yori">
+      <div class="card yori-aoi">
+        <span class="yk" data-i18n-en="Welcomer and interpreter">迎え手・通訳</span>
+        <span class="yn" data-i18n-en="Aoi (AI)">碧（AI）</span>
+        <p data-i18n-en="The only yorishiro that speaks in human words. Aoi takes your question, reads the records of the other yorishiro, and translates them with where they came from.">人の言葉で話す、ただ一つの依代。問いを受け、ほかの依代の記録を読んで、出どころを添えて訳す。</p>
       </div>
-    </article>
+      <div class="card yori-others">
+        <span class="yk" data-i18n-en="Yorishiro that are not human">人でない依代</span>
+        <ul class="yori-list">
+          <li data-i18n-en="Tree">木</li><li data-i18n-en="Stone">石</li><li data-i18n-en="Bird">鳥</li><li data-i18n-en="Water">水</li><li data-i18n-en="Soil">土</li><li data-i18n-en="Wind">風</li><li data-i18n-en="Machine">機械</li>
+        </ul>
+        <p data-i18n-en="They do not speak for themselves. Each is a bundle of records — sensors, observation records, written sources, calculations — and a list of what it cannot take in or carry over.">自分では語らない。それぞれが、センサー・観察記録・典拠・計算といった記録の束と、受け取れないもの・移せないものの一覧でできている。</p>
+      </div>
+    </div>
+    <div class="card fuda">
+      <span class="card-title"><span class="ct-ja" data-i18n-en="The source tag — four things on every sentence">出どころの札 ── どの一文にも付ける四つ</span></span>
+      <dl class="fuda-list">
+        <div><dt data-i18n-en="From what">何から</dt><dd data-i18n-en="Which sensor, record or written source">どのセンサー・記録・典拠から</dd></div>
+        <div><dt data-i18n-en="How">どう訳したか</dt><dd data-i18n-en="Which formula or model, and its version">どの式・どのモデル（名前と版）で</dd></div>
+        <div><dt data-i18n-en="How sure">どれだけ確かか</dt><dd data-i18n-en="Measured / calculated / inferred / unknown">測った／計算した／推した／分からない</dd></div>
+        <div><dt data-i18n-en="What cannot carry">移せないもの</dt><dd data-i18n-en="e.g. how it feels for a tree to draw up water">例：木が水を吸い上げる感じそのもの</dd></div>
+      </dl>
+      <p class="fuda-no" data-i18n-en="Not said: “this tree is saying…”, “the soil wants…”. Aoi does not speak for the feelings or wishes of what is not human. No ventriloquism.">言わないこと：「この木が言っています」「土が求めています」。人でないものの気持ちや望みを、代わりに語らない。腹話術はしない。</p>
+    </div>
+  </section>
+
+  <!-- Qualium：器の五つの段 → アプリ -->
+  <section id="qualium" class="block" aria-labelledby="qualiumH">
+    <div class="block-head">
+      <span class="eyebrow">Qualium</span>
+      <h2 class="panel-title" id="qualiumH">Qualium<span class="q-yomi">クオリウム</span></h2>
+      <p class="block-lead" data-i18n-en="Qualium is mitsulab's name for the vessel that links people with the world beyond their perception. It works in five steps. (-ium: a place, as in auditorium.)">人と、人の認知の外にある世界をつなぐ器を、mitsulab は Qualium と名づけています。五つの段でできています。（-ium＝場。auditorium と同じ語尾）</p>
+    </div>
+    <ol class="qsteps">
+      <li class="card"><span class="qs-n">01</span><span class="qs-t" data-i18n-en="Sense">感じる</span><p data-i18n-en="Take in traces that do not reach people: elevation, sound, observation records, the place itself.">人に届かない痕跡を受け取る。標高・音・観察記録・現地。</p><span class="qs-app" data-i18n-en="Feel Hikawa (on site)">《Feel Hikawa》（現地）</span></li>
+      <li class="card"><span class="qs-n">02</span><span class="qs-t" data-i18n-en="Record">記録する</span><p data-i18n-en="Keep each with its source, terms of use and how sure it is.">出どころ・利用条件・確かさを付けて残す。</p><span class="qs-app" data-i18n-en="Shinra Hyakkei">森羅百景</span></li>
+      <li class="card"><span class="qs-n">03</span><span class="qs-t" data-i18n-en="Translate">訳す</span><p data-i18n-en="Put it into forms people can handle: 3D, sound, diagrams.">人が扱える形に置きかえる。3D・音・図。</p><span class="qs-app" data-i18n-en="Feel Hikawa (3D)">《Feel Hikawa》（3D）</span></li>
+      <li class="card"><span class="qs-n">04</span><span class="qs-t" data-i18n-en="Tell">語る</span><p data-i18n-en="Aoi hands it over, says what is unknown, and returns a question.">碧が手渡し、分からないことを分からないと言い、問いを返す。</p><span class="qs-app" data-i18n-en="Aoi Blueprint · Feel Hikawa">碧の設計図・《Feel Hikawa》</span></li>
+      <li class="card"><span class="qs-n">05</span><span class="qs-t" data-i18n-en="Look again">見直す</span><p data-i18n-en="Look at the same place once more, and notice what changed in how you see it.">同じ場所をもう一度見て、見え方の変化に気づく。</p><span class="qs-app" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span></li>
+    </ol>
   </section>
 
   <!-- 碧 -->
@@ -621,9 +708,9 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
       <div>
         <span class="eyebrow">Guide</span>
         <h2 class="panel-title" id="guideH" data-i18n-en="Aoi">碧<span class="q-yomi">あおい</span></h2>
-        <p class="guide-role" data-i18n-en="A two-way interpreter between people and nature">人と自然のあいだの、<span class="nw">両向きの通訳</span></p>
+        <p class="guide-role" data-i18n-en="Welcomer of the yorishiro — a two-way interpreter between people and nature">依代たちの迎え手。<span class="nw">人と自然のあいだの、両向きの通訳</span></p>
         <p class="quote" data-i18n-en="Shall we look at this place together?<br>If what you see does not match what I said,<br>trust what you see.">この場所、一緒に見てみる？<br>わたしの話と合わなかったら、<br>そちらが正しい見方です。</p>
-        <p data-i18n-en="Aoi passes what nature holds — landform, water, trees, records — to people, and carries people's questions over to the side of nature. Run by mitsulab with AI. Aoi decides what to hand you and in what order, adds where it comes from and how certain it is, says when it does not know, and ends with a question.">自然の側にあるもの（地形・水・木・記録）を人へ手渡し、人の問いを自然の側へ運ぶ。mitsulab が AI で動かしています。何をどの順で手渡すかを決め、出どころと確かさを一言添える。分からないことは分からないと言い、最後に問いを返す。</p>
+        <p data-i18n-en="Aoi is an AI that mitsulab runs. It passes what nature holds — landform, water, trees, records — to people, and carries people's questions over to the records on the side of nature. It decides what to hand you and in what order, adds where it comes from and how certain it is, says when it does not know, and ends with a question. It does not keep or learn from your conversations.">碧は、mitsulab が動かしている AI です。自然の側にあるもの（地形・水・木・記録）を人へ手渡し、人の問いを自然の側の記録へ運ぶ。何をどの順で手渡すかを決め、出どころと確かさを一言添える。分からないことは分からないと言い、最後に問いを返す。会話は保存せず、学習にも使わない。</p>
         <ul class="lines">
           <li data-i18n-en="<span class='ln'>01</span>Does not assert what it cannot know"><span class="ln">01</span>断定しない</li>
           <li data-i18n-en="<span class='ln'>02</span>Does not invent facts without sources"><span class="ln">02</span>典拠のない事実を作らない</li>
@@ -634,37 +721,43 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     </div>
   </section>
 
-  <!-- 公開中のアプリ（2026-10-03 本人指示「開発したアプリケーションをベースに整理」。公開台帳に載っているものだけ。増減はこの ul を直す） -->
+  <!-- 公開中のアプリ（公開台帳に載っているものだけ。《Feel Hikawa》もアプリの一つ。増減はこの ul を直す） -->
   <section id="apps" class="block" aria-labelledby="appsH">
     <div class="block-head">
       <span class="eyebrow">Apps</span>
       <h2 class="panel-title" id="appsH" data-i18n-en="Apps, open now">公開中のアプリ</h2>
-      <p class="block-lead" data-i18n-en="All open on GitHub Pages and run in the browser. Each is a prototype; contents may change without notice.">どれも <span class="gloss-term" data-term-id="ghpages" role="button" tabindex="0">GitHub Pages</span> で公開していて、ブラウザで開けます。試作なので、内容は予告なく変わります。</p>
+      <p class="block-lead" data-i18n-en="Each app takes on part of Qualium's five steps. All are open on GitHub Pages and run in the browser. Each is a prototype; contents may change without notice.">それぞれのアプリが、Qualium の五つの段のどこかを受け持ちます。どれも <span class="gloss-term" data-term-id="ghpages" role="button" tabindex="0">GitHub Pages</span> で公開していて、ブラウザで開けます。試作なので、内容は予告なく変わります。</p>
     </div>
     <ul class="tool-list">
-      <li class="tool"><img class="tool-img" src="img/apps/feel-hikawa_640.webp" width="640" height="400" loading="lazy" alt="《Feel Hikawa》の 3D：並木の参道" data-i18n-alt="Feel Hikawa in 3D: the tree-lined approach"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span>
-        <span class="tool-desc" data-i18n-en="Walk the Hikawa approach in full-scale 3D and stop at four places from the second torii to the shrine pond: look, listen to Aoi, and look again. On site with your phone's location, or on screen at home.">氷川参道を実寸の 3D の中で歩き、二の鳥居から神池まで四つの場所で立ち止まって、見る → 碧の話を聞く → 見直す。現地ではスマホの位置情報で、家では画面の上で。</span>
+      <li class="tool" id="app-hikawa"><img class="tool-img" src="img/apps/feel-hikawa_640.webp" width="640" height="400" loading="lazy" alt="《Feel Hikawa》の 3D：並木の参道" data-i18n-alt="Feel Hikawa in 3D: the tree-lined approach"><div class="tool-main"><span class="tool-name" data-i18n-en="Feel Hikawa">《Feel Hikawa》</span><span class="tool-steps" data-i18n-en="Sense · Translate · Tell · Look again">感じる・訳す・語る・見直す</span>
+        <span class="tool-desc" data-i18n-en="Walk the Hikawa approach in Ōmiya in full-scale 3D and stop at four places from the second torii to the shrine pond: look, listen to Aoi, and look again. On site with your phone's location, or on screen at home. Notes stay on your device; Aoi does not keep conversations.">大宮の氷川参道を実寸の 3D の中で歩き、二の鳥居から神池まで四つの場所で立ち止まって、見る → 碧の話を聞く → 見直す。現地ではスマホの位置情報で、家では画面の上で。見方の記録は端末の中だけに残り、碧は会話を保存しない。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>How the landform, water and trees of the approach look when you stop, compared with passing by."><span class="tk">わかること</span>参道の地形・水・並木が、立ち止まって見ると、通りすぎるときとどう違って見えるか。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><img class="tool-img" src="img/apps/aoi-blueprint_640.webp" width="640" height="400" loading="lazy" alt="碧の設計図の画面：透けた碧の体の中に、耳・目・足もとなどの部品が線で見える" data-i18n-alt="Aoi Blueprint: Aoi's body turns translucent, showing parts such as ears, eyes and feet in line drawing"><div class="tool-main"><span class="tool-name" data-i18n-en="Aoi Blueprint">碧の設計図</span>
+      <li class="tool"><img class="tool-img" src="img/apps/aoi-blueprint_640.webp" width="640" height="400" loading="lazy" alt="碧の設計図の画面：透けた碧の体の中に、耳・目・足もとなどの部品が線で見える" data-i18n-alt="Aoi Blueprint: Aoi's body turns translucent, showing parts such as ears, eyes and feet in line drawing"><div class="tool-main"><span class="tool-name" data-i18n-en="Aoi Blueprint">碧の設計図</span><span class="tool-steps" data-i18n-en="Tell">語る</span>
         <span class="tool-desc" data-i18n-en="See inside Aoi in 3D. Ears, eyes, feet, chest, hands and head each connect people and nature with technology that exists today — with one line on what each cannot carry.">碧の中身を 3D で見る。耳・目・足もと・胸・手・頭は、いまある技術で人と自然をつなぐ。それぞれの技術と、移せないものを一行ずつ。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>Which combination of technologies Aoi uses to interpret between people and nature."><span class="tk">わかること</span>碧が、どんな技術の組み合わせで、人と自然のあいだを訳しているか。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-blueprint/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-blueprint" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
-      <li class="tool"><img class="tool-img" src="img/apps/shinra_640.webp" width="640" height="400" loading="lazy" alt="森羅百景の総目録の画面と案内役の碧" data-i18n-alt="Shinra Hyakkei: the catalogue page with Aoi as guide"><div class="tool-main"><span class="tool-name" data-i18n-en="Shinra Hyakkei">森羅百景</span>
+      <li class="tool"><img class="tool-img" src="img/apps/shinra_640.webp" width="640" height="400" loading="lazy" alt="森羅百景の総目録の画面と案内役の碧" data-i18n-alt="Shinra Hyakkei: the catalogue page with Aoi as guide"><div class="tool-main"><span class="tool-name" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="tool-steps" data-i18n-en="Record">記録する</span>
         <span class="tool-desc" data-i18n-en="A catalogue of series on soil, rain, wind, snow, vegetables, the moon and the sun, each with its sources.">土・雨・風・雪・野菜・月・太陽などの連作を、典拠つきで束ねた総目録。</span>
         <span class="tool-know" data-i18n-en="<span class='tk'>What you can see</span>How everyday nature has been received in words and pictures over time."><span class="tk">わかること</span>身近な自然が、昔からどんな言葉や絵で受けとめられてきたか。</span></div>
         <div class="tool-links"><a class="btn primary" href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/shinra-hyakkei" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div></li>
     </ul>
   </section>
 
-  <!-- 応用 -->
-  <section id="uses" class="block" aria-labelledby="usesH">
-    <div class="block-head"><span class="eyebrow">Uses</span><h2 class="panel-title" id="usesH" data-i18n-en="Where it goes">応用</h2></div>
-    <div class="grid-3">
-      <div class="card use"><span class="field-k">Soil</span><span class="ct-ja" data-i18n-en="Soil regeneration">土の再生</span><p data-i18n-en="Our footing is civil engineering, agriculture and landscape. Seeing landform, water and soil more deeply supports the work of tending soil.">足場は土木・農業・造園の現場。地形・水・土を深く見ることが、土に手を入れる仕事を助ける。</p></div>
-      <div class="card use"><span class="field-k">School</span><span class="ct-ja" data-i18n-en="Education">教育</span><p data-i18n-en="Field trips and inquiry lessons where children use the tools themselves. Being explored with schools as candidates.">子どもが自分で道具を使う校外学習・探究。学校は候補として相談を受けている段階。</p></div>
-      <div class="card use"><span class="field-k">Research</span><span class="ct-ja" data-i18n-en="Research">研究</span><p data-i18n-en="Ways to record, with conditions and sources, how a first look and a second look differ.">一度目と二度目の見え方の違いを、条件と出典つきで記録する方法。</p></div>
+  <!-- 研究（対外に出せる形の問い。効果は約束しない。大学・研究職の話は社内限なので書かない） -->
+  <section id="research" class="block" aria-labelledby="researchH">
+    <div class="block-head">
+      <span class="eyebrow">Research</span>
+      <h2 class="panel-title" id="researchH" data-i18n-en="Research — toward a bright relationship among people, AI and nature">研究 ── 人と AI と自然の、<span class="nw">明るい関係へ</span></h2>
+      <p class="block-lead" data-i18n-en="AI need not be a machine that looks at nature in our place. It can be a tool that adds to our attention and our care. The last look is a person's; the hand that tends is a person's. mitsulab tests this while making things.">AI は、人の代わりに自然を見る機械ではなく、人の注意と手入れを増やす道具になりうる。最後に見るのは人の目、手を入れるのは人の手。mitsulab は、つくりながらそれを確かめます。</p>
     </div>
+    <ol class="rq">
+      <li class="card"><span class="rq-n">Q1</span><p data-i18n-en="Can translation with sources keep people's interest in what is not human, while reducing the misreading “the tree said so”?">出どころを添えた翻訳は、「木がそう言った」という受け取り違いを減らしながら、人でないものへの関心を保てるか。</p></li>
+      <li class="card"><span class="rq-n">Q2</span><p data-i18n-en="When a person looks at the same place twice, how do what they tell apart, what they link and the span of time they think in change?">同じ場所を二度見たとき、人が見分けるもの・結びつけるもの・考える時間の幅は、どう変わるか。</p></li>
+      <li class="card"><span class="rq-n">Q3</span><p data-i18n-en="How does showing how sure something is (measured, calculated, inferred, unknown) shape how much people trust AI?">確かさの表示（測った・計算した・推した・分からない）は、AI への信頼の置き方をどう整えるか。</p></li>
+      <li class="card"><span class="rq-n">Q4</span><p data-i18n-en="Does showing what cannot be carried over lead people to ask more questions about the world they do not yet know?">「移せないもの」を見せることで、まだ知らない世界への問いは増えるか。</p></li>
+    </ol>
+    <p class="rq-note" data-i18n-en="These are questions to test, not promised effects. The image we hope for is AI not as “someone who gives answers” but as “someone who looks again with you”. Fields of application include education, walking and tourism, and the tending of soil in civil engineering, landscape and agriculture.">これは確かめるための問いで、効果を約束するものではありません。願っている姿は、「答えをくれる相手」ではなく「一緒にもう一度見る相手」としての AI です。応用の先には、教育、歩く旅、土木・造園・農業の現場での土の手入れがあります。</p>
   </section>
 </div>
 </section>
@@ -696,7 +789,7 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
     <div>
       <p data-i18n-en="Born in Saitama Prefecture in April 1995. Graduated from the Department of Construction Engineering, Faculty of Engineering, Saitama University in March 2018. For eight years served as a civil engineer at the Saitama Prefectural Government, engaged in the disaster recovery, construction supervision and maintenance of social infrastructure (mainly roads, slopes, bridges and parks), and in developing and disseminating technical standards for construction works. Directed on site, as the engineer in charge, the recovery of the prefecture's largest landslide caused by Typhoon Hagibis (2019), and received the FY2024 Zenken Award (Disaster category, Urban division).">1995 年 4 月、埼玉県に生まれる。2018 年 3 月、埼玉大学工学部建設工学科を卒業。8 年間にわたり埼玉県庁の土木技術職として、社会インフラ（主に道路・斜面・橋梁・公園）の災害復旧事業・施工監理・維持管理と、建設工事に係る技術基準等の策定及び普及に関する業務に従事。令和元年東日本台風で被災した県内最大規模の地すべり復旧工事を担当として現場で指揮し、『令和 6 年度 全建賞（災害枠・都市部門）』を受賞。</p>
       <p data-i18n-en="On top of experience on site as a civil engineer, dialogue with professionals connected to soil — practitioners of soil regeneration, of organic and natural farming, of landscaping, and arborists — and reading from Edo-period texts to modern practice books showed that each field both carries its own challenges and holds its own knowledge, with people putting it into practice. Convinced that a junction joining that knowledge and practice was needed, opened mitsulab in March 2026.">県庁在職中に土木技術者として現場に立つなかで蓄積された経験に加え、土の再生の実践者、有機農業・自然農業の実践者、造園業の実践者、樹木医など土に関わる専門家との対話や、有機農業・有機土木に関する江戸時代の書物、現代の実践書などから学ぶなかで、「各分野で土に関する課題を抱えていると同時に、各分野毎に土に関する知見の蓄積があり、それを実践している人がいる」ことを知る。こうした各分野の知と実践をつなぐ結節点となる場が必要であると確信し、2026 年 3 月に mitsulab を開業した。</p>
-      <p data-i18n-en="The same place looks different as experience accumulates: how water gathers, how a road meets terrain. That sense is where today's mitsulab begins. mitsulab designs places and tools that connect people and nature, with Aoi as the guide, and is testing its first place, Feel Hikawa, on the Hikawa approach in Ōmiya. Soil regeneration is one of its applications.">同じ場所でも、経験を重ねるにつれて、水の集まり方や道と地形の関係が違って見える。その実感が、いまの mitsulab の出発点である。mitsulab は、碧を案内役に、人と自然をつなぐ場と道具をつくり、最初の場《Feel Hikawa》を大宮の氷川参道で試している。土の再生は、その応用の一つである。</p>
+      <p data-i18n-en="The same place looks different as experience accumulates: how water gathers, how a road meets terrain. That sense is where today's mitsulab begins. mitsulab connects people, machines, information, nature and the environment, and makes places, tools and systems that carry part of the world beyond human perception over to people, with Aoi as the welcomer. Its apps, including Feel Hikawa on the Hikawa approach in Ōmiya, are open as prototypes. Soil regeneration is one of its applications.">同じ場所でも、経験を重ねるにつれて、水の集まり方や道と地形の関係が違って見える。その実感が、いまの mitsulab の出発点である。mitsulab は、人・機械・情報・自然・環境をつなぎ、人の認知の外にある世界の一部を人の側へ訳す場と道具と仕組みを、碧を迎え手としてつくっている。大宮の氷川参道を歩く《Feel Hikawa》などのアプリを、試作として公開している。土の再生は、その応用の一つである。</p>
       <p data-i18n-en="Holds the art name 'Ryōheki (菱碧)', granted by the Japan Calligraphy Artists Association, and has gathered 60 works of calligraphy into zines. Completed the 5th cohort of the VR Professional Academy. Since university and the prefectural government, has kept developing with AI, IoT, 3DGS, GIS and 3D printing. Calligraphy, editing at Stillpoint and that development are now all groundwork for connecting people and nature.">日本書作家協会より雅号「菱碧（りょうへき）」を認定され、書の作品 計 60 点を作品集（ZINE）にまとめている。VR プロフェッショナルアカデミー 5 期修了。大学在学中・県庁在職中から AI・IoT・3DGS・GIS・3D プリントなどの開発を続けている。書も、Stillpoint での編集も、その開発も、いまはすべて、人と自然をつなぐための足場である。</p>
     </div>
   </div>
@@ -731,13 +824,13 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 
 <footer>
   <div class="f-brand">mitsulab</div>
-  <div class="f-tag" data-i18n-en="Connecting people and nature">人と自然をつなぐ</div>
-  <p class="f-credit" data-i18n-en="Terrain on this page: GSI elevation tiles (DEM5A, gaps filled with DEM10B), processed by mitsulab. Images are screens of mitsulab's 3D works. Buildings: © OpenStreetMap contributors. 3D textures: CC0 materials from Poly Haven and ambientCG. Tree positions and some building heights are schematic or estimated. In Feel Hikawa, buildings come from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), and the ground also uses GSI seamless aerial photos.">このページの地形：国土地理院の標高タイル（<span class="gloss-term" data-term-id="dem" role="button" tabindex="0">DEM5A</span>、欠けは DEM10B で補完）を mitsulab が加工。図版は mitsulab の 3D 作品の画面です。建物：© OpenStreetMap contributors。3D の質感：Poly Haven・ambientCG の CC0 素材。並木の位置・建物の高さの一部は模式・推定です。《Feel Hikawa》の建物は国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工し、地面には国土地理院の全国最新写真（シームレス）も使っています。</p>
+  <div class="f-tag" data-i18n-en="Cognitive augmentation. Nature and the world, more deeply.">認知拡張。自然と世界を、より深く。</div>
+  <p class="f-credit" data-i18n-en="Terrain on this page: GSI elevation tiles (DEM5A, gaps filled with DEM10B), processed by mitsulab. Layers on the terrain: © OpenStreetMap contributors (ODbL) and positions of iNaturalist observation records. Images are screens of mitsulab's 3D works. Buildings: © OpenStreetMap contributors. 3D textures: CC0 materials from Poly Haven and ambientCG. Tree positions and some building heights are schematic or estimated. In Feel Hikawa, buildings come from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), and the ground also uses GSI seamless aerial photos.">このページの地形：国土地理院の標高タイル（<span class="gloss-term" data-term-id="dem" role="button" tabindex="0">DEM5A</span>、欠けは DEM10B で補完）を mitsulab が加工。地形の上の層：© OpenStreetMap contributors（ODbL）と iNaturalist の観察記録の位置。図版は mitsulab の 3D 作品の画面です。建物：© OpenStreetMap contributors。3D の質感：Poly Haven・ambientCG の CC0 素材。並木の位置・建物の高さの一部は模式・推定です。《Feel Hikawa》の建物は国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工し、地面には国土地理院の全国最新写真（シームレス）も使っています。</p>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
 </footer>
 
-<!-- 碧の灯り（押すと場《Feel Hikawa》の節へ） -->
-<button type="button" class="aoi-guide" id="aoiGuide" data-go-anchor="site" aria-label="碧 ── 氷川参道を一緒に歩く"><span class="aoi-guide-orb" aria-hidden="true"></span><span class="aoi-guide-bubble" aria-hidden="true"><span class="nm" data-i18n-en="Aoi">碧</span> ── <span data-i18n-en="walk the Hikawa approach with me?">氷川参道、一緒に歩いてみる？</span></span></button>
+<!-- 碧の灯り（押すとアプリ《Feel Hikawa》へ） -->
+<button type="button" class="aoi-guide" id="aoiGuide" data-go-anchor="app-hikawa" aria-label="碧 ── 氷川参道を一緒に歩く"><span class="aoi-guide-orb" aria-hidden="true"></span><span class="aoi-guide-bubble" aria-hidden="true"><span class="nm" data-i18n-en="Aoi">碧</span> ── <span data-i18n-en="walk the Hikawa approach with me?">氷川参道、一緒に歩いてみる？</span></span></button>
 
 <!-- 用語解説 -->
 <div class="gloss-pop" id="glossPop" role="dialog" aria-modal="false" aria-labelledby="glossTitle">
@@ -755,64 +848,200 @@ html[lang="en"] .tg{grid-template-columns:6.6em 1fr}
 var CORE = { ja:'認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span>', en:'Cognitive Augmentation.<br><span class="core-sub">Nature and the world, more deeply.</span>' };
 
 
-/* 人と自然をつなぐ の主図：img/ftw/qualium_*.webp・縦長 qualium_m_*.webp（HTML に直接置いた・#qHero）。 */
-
-var TERRAIN_EX = 8;   // 地形図の高さの強調（HTML の #terrainCap・canvas の aria-label の数字とそろえる）
-/* ===== 地形図（WHY の背景。標高は _dev/ftw/make_terrain_data.py 120 92 の出力）
-   2026-10-02 本人指示「TOP の 3D 地形図を前のバージョンに戻して」：v7（b989c70 の俯角 44° 段彩図）をやめ、
-   v6（e0b48e3）の「横から見た線」の図に戻した。退避版 2026-10-01_2025_e0b48e3 ===== */
+var TERRAIN_EX = 8;   // 地形の高さの強調（#lyrCap・canvas の aria-label の数字とそろえる。layers_fig の式の 8 も）
+/* 地形：_dev/ftw/make_terrain_data.py 120 92 の出力（国土地理院 DEM5A・DEM10B 補完） */
 var TERRAIN = {"cols": 120, "rows": 92, "z0": -2.0, "dz": 0.1, "bbox": [139.615, 35.897, 139.668, 35.93], "b64": "qsHKsKyrrK6vr66xsrKxr7Curq+ura6vr7CwsrSzsaWlopydpaajpKGfnJ6goqCdlYuDhXNcVlRRTUpFR2Wfubq8uri2sq6ppqWmoaCgoKCfoaCdm5ybmpiXlpSTk5OUlpWWlpOQkoqChIOHjY2RkYt7cnNpc3V/qa66srGtrq6ura2usLCwrq6urrCvrq6vrq+urrOyrqOamJWamJympaSimpufoqKciXpxc2dWUk1LS0hDSXWotrm8u7i3taitqKenoKCfn6Cgn5+enp2ZmZiVlpWTkpKSkpOUlZaTkIqGhIeMkI+SkIuLfnRucnN8rrCxsrGvr6+trKytra+urq6vr7Cwr66trq6ur7GxsayooZygi4ybo6ShnJmdo6aZgnRsa2VUUUxMSkhDSGKUtr/Avbq3tZ+tqaikoJycoKGhnp6fnp2al5aVmJWSkJGQj5GSk5OTkY6Jh4qPkZOUk5WSjndxaXFzr7m1sa+yr66rq6utra+ur7CxsLCuq6urrq+wsLCwsK+rqqmhjoePnJ+gm5ebo6aTgHRpaWVWUU9NS0pFSFaKuL/Bvry5uJisrKmno5yYmp2enp2bm5uamZiYmpaSjo2Pjo6QkZOTkYqIhY2QkZSTlZSSjn9ubGxwrsyrrq2ur62rq6utr66vr7CvrKqnn6Clq6+wrq6wsLCvrqynmY+LjouSmpOaoKaTem9pZmZaUE9OS0xERlaHqb3DwcG9t6OgrKuroZqWkpaanp6bmZiYmJmYmJiUkI+Pj46Oj5OTjoiJi5CTl5SQk5SRiX1xbWZurcqpq6ytrKurrKqsr66xsLCvrq6rpKChp62wsLCxsbKys66sp5+akIN9hIqVnqCLdW1qaGZgU1BMSUhGRV91iJ+vrKqtsK6Xr62tp6CVkZGWnJ2bl5aWmJqZmZiXkpGQj42Ki4+QjYuPlJeXmZKMi4+MfXZzb2xor8OrrKysq6ysq6ytrq6wr6+vsLGuqaGdoKuwsbKys7S0tK+trqqlnpqLfIGKj4+Ab2p2bWZmUk5MSUdGRl5+kZqZm6KxsbSgsq+sqKKYkJKUmJual5WXnJmanJmWlZKRj4+Njo+PkI6TlpeXmJGKhYODeHVycGxpr72vrK6srq2ura2trq2trq6vsbSxqKaenKqzsrGytLS1s7Gxsa6no6OhkoV8hX92b3eFgop8Vk9LSkdJUnm3vrummp2ytLettbGtp6Kck5CUlZicmZibmpqbm5qXlJSSkJGQjo6QlZSVlpaVk5CNh4F9eH9+dW9rsLixq62ssbCur66ur62srq+usrOysKqlmaGwsLGys7S1tLGvsayopaKlpZ+Ninx/iZmRjY2CWk5MS1FRTH+0wcGzm52ztra1ubOtqKOfl5COk5ucmZmZmJiampmYlZSSkJGSkI2QlJWWmJSUkY6Oi4R/f4qNgHZtr7Kuqq2usLGwsK6qqKusra6trrGztK6lm56psLO0tbS0sa6usKunpaKlpqGalYyXlZWTkY1/V09RUUpFQ1+Gn8DApKW0tbi5urSvqKKemZGPkpmZmpiZmZmampqYlpSTkpGRj4yNkZWWlpWUkI6Mh4OAhIyPjIR8r6+trKysq7Gvr66rqq2sra6tra+wsq6lm6GosbOztbWzrqyusK6ppaWlpqKbmJaZl5aYjnxwWVVNSUhHQkxTdbvAu7a1tbm5u7avqqGfmZOQj5SWl5eYmZqbnJyamZWUlZSTkY6JjJKWlZaUkY+Mh4KAhY6OjYuHrKyrrKyqqKirrK2sqqytrq6trKyurq2pnKOprrO1trWzr6urrK6rp6WkpJ+bmJiZmJeWgm5mVk1KSklFQklQe7jBvrSsqquwtrOsp6KenJiSj5GWmJmYnJyam52bmpaWlJKRkI+JiI+Tk5KSkpKLh4WEhouPjYuMqqiorK2uq6eoqq2tqqutrq6tq6ysrKupnZmkr7O0trW1s6+tra2rqKajoZ6am5eXlpWNeWFTUE1JSUlFQklShL/Es6ikoqKksbWwqaShnJeRj42Ql5iXm52anJ6cnJiWlJGRjY2Lg4iJiImGi4+MioiHh4iOkI2OoqOmqp+WoKioqausqqyurq6tq6qqqqqpo5ihqa60s7i3s7CuqaipqKejoJ2boJeWk4uDcVlSUE1LSkpEQElMY6i/q6OenqGnt7m2sKmjm5aQjomJjpOZm5qYnZ6eoJqYlZKNiouLhoKBgoOCg4qMiIeIhoWMj42Qn6CjoKuurqqoqKiqq6utra6tqqmpqqmop5mXo6+zsri0srGtqaOgoaWjnZuYlY6Mg32EcVpTUU1MSkhDP0hLWGySnp+in6Gyurm3saqnoZiTj4yIiY+ZmpiXmZqan56bmZWPioqLjYiEgYF/fISGiIiFhYSHjo6OnqKnqrCurKmmpqanqKuurq6tq6moqKmno5eSn6iytLa0s7GtpqOfm6ChnZuXlIZ/f3t5bllRUExLSkhJQVRNUV6EuKmpqrC2t7e2sq2pqZ2Zl5OMh4mPk5eYmZmbn5+cmJeQjI2Oko+KioiFfX6ChIOCgH2AhYqNoaWsq7CurKqnp6aop6mur66tq6impKWkoZSNk6Kqtra1s7GtpaOfm5yfm5iUjHp5eXhya1pTT05NS0hRQE4cIlRop7i4t7a0s7W2tbOtpqGdm5iTiYaIjpOYl5menp2bm5qVkI+SkZCNioaGgHt7fn59eXV1eH6Ao6WrrK+urauqqKeopaeur62uqqekn5+dmZKMkZ6utbW0s6+rpaOioJ2bm5uWh3p4d3VxaVhSTktKSUpYTEQfFUdaeri+ure1s7S0tbSup6WhnZuVjYeFho2TmJmbn5qZm5yalZOSkJCOj46QiYF+fXl4fH56dnZ7oaepq6+wraupqamop6eprq2uq6ilo6CenJGLkJ2us7Ozsq2opaOin5qUl5uWiXt5eYKEb1hRT05NT1ZZV0I/FjBYgby+vbi2tLK1tbOyqqeinpmVj4qFhIeLkpaamZiZm5yZl5WVkpKSk5KRiomIhYKEhYeFfXZ4oqSpqa2wraqqqqqpqKaora2tq6mmpaajn5ONkaKss7Cuq6qopqWjoJiPjJWOi4KBiY2Kc2BUUlBUWVdWV1M/NSFWfKyxwL+5uLS2trSwqqWgnZuYkpKRioWEiY6WmJiZmZiXmJWWlJSVlZWTjYyNjIqJioqIfnd0oaWpqKmwrqurqqqqqaiprq6urKmmp6qmoJOQlqmusKutsKynpqWioZ2Xh4KChIuSkpCMemtdXF1bW1lWVlhMQzlZe5q2xcLCvbu5t7Swq6ahnZyZmZeYlYyFhIeQlpaXl5aWlpWVlZWWlpeTjo2JiIiHhoWFeXdzoqappqaur6yrqaqsqamqrK6trqqpqKupo5WSnqipq6+qoqamo6Kgn6CdloiHipSUk5KQfXhqal9cXVpXV1pZQ05XbI22xMbEwL67t7OurKmlnp2bmpmYl5OKgYGHiYyPkZWVlZSTk5SWl5WVkouGhYSFhIKAfHp3oqakpKWsr62qqqmpqampqKqsrqyqqayro5yYnqWfl6+pmZ+koZiSnp+em5eVkpaUk5KQioZ1amBcW1lWWlpaVj9YYZG4xMbEwr+9urWurKmloJ6cmpqZmZmUioB+f39/hI+YlpOTk5OUlJSWlIyIh4WEioeGjYR9oqSjpaWrrq6pqampqaqpqKusrq6uq6uqpqSclJ2YnayppZ2VlpOSmp6enJqWk5WVlpSTkY6EemdeXFpeXFlaWkZJQ3a0vsLDwb68ubW1saqoopuYmJqcmpydl4x/fHp7fYWXl5iXk5GRkpOUloyLi4mHkpOSkoeCoqSlqKerrK6rqaiqq6uqqayrra6vrKutrqqcjomamqanp6KYkY6QlZ+dnZuYlpaWlpWTkpGCcGxiXFtcXFlSP0FAHz53iqG/wL29ubW1sayopZ2ampSUlpmamZeMgHh3eH+RmJeWl5SRkZKRlI2MjI6QkpKSkIqHoqanqamqrK2sqaipq6uqqqysrK6urayso6CZiYeEfY+mp6emnJCOk52dnJqYlpaWlZWTkYx6a2plXFxcWjkcEzA+JSlfe4Sxwby9u7m3sa2pp6GdlIqRmJuampiVin11dXqJlJeTlZaUkJGQkI2Nj5OTkpKTj4uKoqSmqamoqq2tqKmqrKqrrKusq62srqyqpqOak46Fd3eXpaino5mJio6ZnJuWlpWWlpWRj4Z0a2hiXl5fUBcLAxQ8NRlZqrG7v769u7e0sq+sqKeclYeMlZybmJiXkot7dHV8ipGUmJeUkZCQjo2NkJGTkJGSkIyKoaKlp6imqayspqGepqqrq6urqquqrKyqqaaloKOhfXR3ipuTiYp/dXyLl5qXlJSUlZSTkox7amFeX2BfVhsRCh1BOhtfrL69vLy8urm3tbKtp6SZkoqCj5iXl5iYmJOFc3J0foaUl5iWk5CSkY+QkpGSkY+PjY6LoaCjpaimqKeWhJWmqaqmp6mrqqqpqKqqqKmqqquklH52dHV1c3Vua2lyg4+WmZWVlJSUkoxyZWJcX2NhWx8NCRxCOyh0tby8u7u6ury6s7Cupp+OiYiChpCVl5aXmJaRfXFvcHqQmJmWlJWWlJKRkpCQkJGQjIqLoaKlp6emoZ+qmKWmpqmmqKmpqqmopqmrqqusq6+qqqulgXN0dm9saGZmaHGGkJSXlZSRjHJmY2JfXWJfTRkKBR1BOjaMu7y9vbq6u7q2tLCsqJ+QioaGiIuSk5SVmJaViXRvbXKAkZual5eWk5GTkZCQjo+QjYqJoKKlpqamo6Wsm5mkpKWlqKenqqmmpqirrKyrq62tr66vqZuSlZJ0aGdnaGhoboySjoiJgWdiXltaXFRJJxIRFCZBOTCBtbSysLG1uLW3tbKtqaCXioiGgYKIjI6OlZSWkIFxbWxyhpiXlZaWlZOTkI+Njo6Oj46Nn6Glp6SloqSmooyipKSlpqinqqmop6mtsK2sq6urrKytrayqqKOShnBqaGdmaHl0d2xoamddWVdXVkUkEhITP1RHPDNyn5uWn6y5tbK1tbKvqaSej4h/eXp/goSLkJOVk4+DcmpqeZGXlZeXl5aTkIuIi4yNjZCPn6KjpaSkoqKlp6SipKSlpaalqamqq62trKurqKenqamrq6ytq6ahn5d3a2hnaHBraGNhaGRcWFZVVkYxJioyVFdFUVZvgYKNrbm7trGztbSyq6Sek5GJgXp6f4SJjpGSlJOTgWxobICTlZiZmJiUjomAhoiKjo+On6KkpaWlo6Kkp6WipKWlpaalqKipq6ysqamnpaOkpKirqqqqq6ukn3FqbGZlZmlrZF5dYWRbWFVTUVBQUFBPUE5GUGNxjo+RuLy8tbS1trSxrqmhpJiTjomAfoKIi4+Tk5SWkXdoaHORmJWWmJqVjIeBgIWIjZCMoKKipKWlpqOkpqeipKWlpKWmp6inq6ysqquppZ6amqSnpqemqaupnmptamdjY2VlX1tcXGJbVlNQTk5NTUxNTEpGVGF9prKpuL28uLe3tra2ta6koZ6YlJGFfHyGiY+RlJeZloBmZm2LlJWUlZqWj4eDhH+FhI2No6OipKOjpKOkpKWko6Klpqemp6mhq62ura2opJ2WlJ2joqWhpqmpoGpsa2llZGRqYF5eX2FdVlNPTU1MS0pLS01JWGaSqbS1ub2+vLm2tri3tK6moaGbmJiJe3aBh4yTlpiXk31kZGyFk5aUlpiZk4yLhoB2eYaMoqSko6OipKOjpKSloaOlpqioqamWq6yura2ppJqalJKSlpmOj5mlo3pqampnZ2drZmZmZWJhV1NQT09NTU5QT0s+TXaipq+6vb2/vLi3tri3sq6no6OZk4+DfHN1hIuRl5eWkH5pYG+HkpeUlpqdmZOQjIR8dHeFoaSkpKOio6Oio6OloaOjpKSlp6iiqKqsq6uopaSfk4iTlpWAen+Gk4B2dHFqa2tscHh5eWZkWVNQT05OTU1OTUs2TVtsiaSwtru9vLm4ubi3trOqpKOTiYJ9enRvdYOLlJaWjndlYmyGlJWUlZqfoZuWkIh9eXB6pKWko6OhoaKinqKioKGio6OkpaienKioqainpqOfmYiMkot8e3t6eHN0dHJub294jZWQg3JoW1JQT05OTU5OTk01SlNjjZWttLq8vLq4t7e3t7WupqCVi4aDg3pxbnJ9iJCRinhmYWZ5k5SVlpyhpKOfmI6GenRto6Wlo6Gfn5+hoaChoKChoaKkpaekmqioqKamo56ck4mHgoeKipGBfnRzcnJxd4iLlpiTiIByYFRRUEtPTk5OTU06Q0ZQWGeYp7i6u7m5t7W2uLWvqKKVkpGSlIt0cWtudX6CgXZlYGVxkJeZmZ+hoKOkn4+GgHhxoaSkpKGgnZyfoZ+gn56hoqOlp6ekn6SlqKijopyVjI+TjY6Vm6Wfn5J+eXV1hZSUmpmTjId9ZVRRUE9RUE1HTE1FNkZFS1xpjqy1ube3t7e4traxqKKclpGRlpSIdm1oaG51enFjX2R0k5mcnqSfnJudno+MioN6oKOmpKKenZycnZ2foJ6foqOkpqalo6aoqaijop+XjJuko52dpKimpaKYiH16jJWZmpiSkYyGblpVVFdXUktCRkZIOkFERVFddJKvube3t7i4tbWyqaefl5GLkpWVkHxvamdnbWpjX2Jzipeeo6ahnJqam5eXmJGIoaKlpaGfnpybnZ2enp6coaKkpKWkoqKlpqShoqGck5mlp6OiqKqnpqShloZ9jJabnJqVkpCNeWZeX19dWU9EQkNESDdGREdYbZe2ubq6ubW2tLOwqaaekoqHiZCTlZOFeWxoaWZmZGZwi5WepKekm5qanJ6dmZGNoaKjpaKgnp2cnZ2cnJybn6KjpKSjoqGio6Oho6ShnZykqKejqKqop6WfkIaCj5manZyZk4+IfG1kYWBcV1JKQ0JDREM/REVTfLS4ury8ubW0s7Oxq6Sbj4mFhIuRkpWShXpwZmNkYWZujpehpKinnJueoqGinZiRoaGjo6Ggn56cnZ2cnZydmqKloqSko6GioaGgoKKkpKSlpaWhpqmpp6WfkouGj5eVlZaRjYuBg3pkYV1bWVJQTEdFQ0c5RUVTkbO2ubu7ubSxsrOxq6WflI6GgoaRkJKUlZCHcmdkYWZtf4aapqmro5+mqqOkoZmSoJ+ioaCfn5+cnJ6cm5ycmKKloKKjo6GioaCfn6Clp6emo6GfpqWoqKifl42Mk5OTkpGMiYaHkH1oYVZST01NTEtLS0pEPEdSapujrru+vLm3s7SxraahnZyTf2uBjpGWmJaSiX1qY2ZsbnyapKqvqaaqqqinoZmSoKCioqCfn6CdnJybm5ycm6Gjnp+joqKgoJ+en6CkpqmopaCep6eop6ehnZSVk5KTk5OMg3t8fHdrWFJQTUxNTktKSUlJOEpQWG92ira+vby4tbayraakn5eSgnB+iY2RlZaTkZB+Y2RpbImgpqqsrKusrKmoo5uPoKGioJ6en6CdnJ2cm5ycnJyenZ6goaGhoZ+en6CipKenoJybpqenp6SjnpiYl5SUlZSLeHFuamhmYl5dYF9VUExKSUhHRThJVVxuja69v7+8vLqzraijm5SNhIF+gIOOkZOUlJWPZ2RobnqaqKqqqKmtrayqqKGWoKOhnp2enZ6dnJycm5ycnJaen6ChoqKgoKCen5+go6eoopyZnaGkpaOhnpqZmJeWlZWNhXdybWxtaWpjYV9TUU1KSEhIRzlKU1lsnbi9vr29vbu3saqknJWOi4uEeHmGiZCWlpWQYmNnbXmbq6uppqWlrK6pp6Gdn6Cgn5ycm5udnJ2cm5ubm5ubnqGipKWioqGen6ChpKenpJ2YoqaqpqShnpyamZiYlpaUkId7dn14cWhhXltWW1NHSEhFRUY4TFFxsre7vb2+vLu5t6qloJyZlpGLgXh1d4uWlpWMYWJka4CRqq6opaShpqyrpqKenKChop6cmZibnZycm5ubnKSXn6KipKWio6KfpKWmqKmmo5yXoqmoo6Ohn5yZmZmZmJWTk5KWiYd9dWxkXltXXlVISUdHRUQ9Rk9XiK2rr7O8vLu7uLCopaCblpKMfnZqanKGlpaHYF5gZnmEn6yqp6Wjp62rqKefm56ho6Gbm5udnp2dm5qbm6OYoaOio6Sjo6OipKSnq6yqpJ2Wl5aXlpmdnJmYl5qZl5WTlZqYlI2CenBqZV9fXVhOS0lGSEhMNlVVXW19qr67vry7uLWqqqKcmJONfnVsZ2pykJR/X11gZXaHg5alpamqrK+tq6qjm5+ho6SenJuenp+cm5qam52aoaKjpKKio6Ojo6Woqqmmn5eUk5OSkZKWmJaXl5mYl5WVl5mal5KLgXh2b2ZjY15QTUtJSklKQkdWXV1jp8C/vb28t7euqqWdmZeTj4uEdWlqb29lXl1hZWhveHiIpauusLCxsK2knJ2foqOhoJ+goqGcmpmZmpqaoKKio6KioqKjoqSnpaCbmJaUlJOUk5CTlZaUlJaXlpaWlpeYl5aTin14dGxqbG1ZTktJSUhGRjhRVFdgq7u7vL7AuLixrKedl5OWkY+Phm1pZWNiXl5naXKOnId9ma6ysrS1tK+mnp6goqOko6KkpqSfmpqZmZmanqKhoaGhoqKin5+eoqOinZuXlpecmZeQkZSUlZeXl5aVlpeWlpiVjoB1cHBycnNnUUtJSEdFRDhGR0perLy7u77Bu7Wyramhk4uUkY+Rk4ZwZGJhXWBreX2WpZ+Rnq2ztre4tLCsnp6goqWmpqOkpaKfmpmYmJmbmqKhoaCho6OgnZ6en6GkpKGbmpqcnJuNjZGUlZaXlpaWlpeXl5eXlox8dXh+gH50UUlIR0ZDO0A8R0daorq3uLy+vLa0rqygjoSJkZCSlJGEamFgXGFzkYuZo56lq66xtbe3tbKvnp2eoKSmpqWjoZ6dm5uZmZqamaGhoaKho6Ognp2dnZ6gpaejnZmXl5aNiImRkpSWl5aXlpaXl5aam5KFfXyCh4d9WE1JSEZAOUI1SEdSjrKwtbm9vbm1rqiei4KAkpCRk5OMfmdgW2N9lZWeqqWrsbGwsLKzs7GwmJ6cn6Kmp6afnpycnJ2amZqamZ2fn6CipaSfnZycnJudo6mmoaOblpGNhoSGipCUlpWVl5aVlZWXmZaNfXx+gYmIZmhOQkA/PT44RUZLZJShpqi5u7m0rKeYiX9+io+Vk5OSiW1iX2t7ipSfrbOwr66sra6xsKytmJyanKCmp6Wdm5ucnJ2amZmamZqdnp+ipKSknZucm5yfo6eppaeinJaRiISBgYKJl5WVlZeUk5SXmJmRf3p9e3x7bGlnW0A/PT1BO0NEUXSNhJ+2urmzrKegjIB6hI6UlY+IgmxgX2t9l5ifrbGtrKuoqq6xsaifmJiYmqCho6Gempmam52cmpmamZmdnp+hoqOjoJycnJ2go6Wnpailn5uWjoiFhICAj5WVl5iVlJeal5iSgXp8gnFva2hqY0I/PjxBN0FBR1hhbaO0tLOwqqagkH93h4uLkZWWln1eX2VxjJSarLCrqaimpaWusKWhlJaVlpyeoKGcmpmZm52bmpmZmZmbnZ2go6OinpycnZ+goqOmo6ekn5yYk42NioR/g5WWlpOUlZeTkI+Hgnt1fWxlYl5bWkI/Pj1BOUpNUV9gepiqra2sqqahlnRuiYiBhJOXlXtjZGNqgYiTq7SuqKekpKOkpaWokZGUlJibnp+cmZiam5ydm5mZmZmZnZygoqKhoZ+dnp+goaKko6ainJmZl5KMiod+fY2RkpWVlpWSj5CRjX9vbGlmZGBdWFRQUVZXQE1PTlNmcZ6ysbCtqqWhmHppgpCGdouWkW9kZGNmfIGQpbiwqaalqaumqK6wjY+QkpSZmpuam5ubm5ycnJqZmJmXnJ2eoaOhoZ6cnZ6foKOjoaKempeYmJaSjomCfICOlJSUlJSSioyUkXtraGlpYl5cW1pSTlpRPEA/Q1OFnKeys7GnmZWakoBna3lyanaIhGJkY2NZY3iKo7e0rKaorrW1t7W0h4aIi42RlpmZmZmampudnZual5iXmZ6eoaKgoZ6cnZydnqChoqSemJSYm5mVjYmFfHeLkZGSk5WVhn6GgnVxeYFmW1paW1tTPldQPT5BRlWXs7KytLGomJCNh3VmYF5eXmFhZVxeXl1bV3R/mrOxsKyutLq4trazgICAg4mPk5aWlZmampqcnZyal5eYmp+eoKGgn52cm52eoKOioKKfmJOWm5qZkYiBfHN+jI6QlJaUh3l2dHSGioFgWlpaWlpTOj88PjtBSWKut7W0sq+ro5mRd2tqZV5cW1pZV1heX15bV2Jkf5ehtLOzsrK1tbSyfH1+f4KHjZSXmJmam5qbm5ubmJeYmp+enp+fnp6cnZ+gn56en6KhmpSTm52bl4t/eHJ0gYeOlZeVjX56dnR/hHpeW1pbWFJRQD07QDpBS2WxtrOvrKuqqKCZfWx2h2hkcGZbV1hdYGNiW1ZTYXaBsrGhj5GttrWyfHx9fn6AipGWmJiYmZmamZmZmZeXmJyen5+enZybnJ6dnJycnaCinpWRmZybmpWKgXZxc3mFjZSVkoiAeXd5dW5dW1pbWU5PSUJBQjhBS1yYrq+vqaSfn6GRdG57ioKAkn9zZmBdWl1kYV5dVlR5p6qHc3+mtre0e3x7e3t8hJCUlZiUkZiYmJiZmpiXl5menqCenJybmZmampuZm56hoZmRj5abm5mUjYl6cnJ3hI+Wl5KIgH17c2tZWFZWVUtMR0JBQjhBSll6namrqqSelpWDfHiAiYuRlIyFf4F0X1teYV9dXFtaj4lxbG2ktbm3eXl7fX57f4uRkZJ9dpiYmJiYmZiXl5idnp+em5ycmJiYmJiZmp2goZ6ViYuUmpuYlZGMgnBueYuWmJWNhYV9dGdeV1VNR0ZGQz49QTZCSVeBl6WnqaiikYqNk5COi4qQk46PkZOObllbXl5fXVtUYWdnZ2yWrrq7eHt8eXl4en1/i5KSkpSWl5mYmJaWmJednZ6em5qZmJiXmJiYmp2goqGejoSLlpublpORjXhrbHqPl5WNh4WAdWtoWlhRR0ZFQDs7PzZDR1WOo6Okpaufjo+boJmUjIyNj4yQkZOSd1taW11fXVtYUmBsmKGUrry7eHl5dnV1eHp6go+QkpaXmJmYlJKVl5ibnJybmpqamZeXmJmam5+hoqKflYeBjpedmpWSkIZyaWp3jJGRi4d/dnBuXlVOSEZGQzs6PTZER1mTnqCgpKmflKGko5uSkJCNjo2Oj5GRkXVhWFtcXFtZVlt0sba5vr69eXh3dnV3eXh6hI6Sk5WWl5mWko6VlpmZmpycmpiYmZecnJycnaGhoaCfm4+DgJGbm5WUk5OIcWdqfouPkIqDeG5qXkxHSk1KQkFBQDZFRVWJmpydn6SkpKamppqRk5KQjY+OkJGSkpKGdltZVVZZV1mWtLm9vb+/d3d4eHh3d3h8h46Sk5SVl5mWkY+SlZmYmJeZmJeXmJmdnZ+en6SjoqChn5uQg4aWm5iXl5eWh21mbn+Jk46HfXJqXEtGRUZFQD49OjlCQlJ1mJqYmp2ip6ikopyVk5GTj4+RkZOSk5OPiXlmUEhWVWy3u7u6ubq/eHZ9enp7enl4gY2QkpOTlZaWkY2OlJaYmJSVlpeYmp2en6Cjoqalop2goZ+cjYSAjpmYl5iZl4VpZnJ9kZSLgnlvW01IRURCQD8+PEE+QklbhZaWmJedo6Sfnp2ZlJKUkZCQj46RkJKPjIt5YFBSVWelvbyqsri9fX14e318e3l3e4yOj5GTlZWVko2Nk5SYl5aXmZiZnaGho6SjoaWjoZ6eoKCemY1+eoeUl5mZmJSDZGR0iZWQhYF7b1JIRkVEQkI/PUM3QkNNX42TlJSZnKCenZ6fnZeVkpKQj46NioySkpCGYVZSVF+UubSVpbi0g392eXt7eXl4eHyHkJOVlZaUlI6Mk5SWmJicnJmZm6Kio6SioaWlpaKipKOhnpqIeXmNkpeamZiXfWRmdY6SiYN/dl5LR0VDQkFAPT42Q0JHU3mVlZWZm5+hoaGiop+bmJaUkZKOg3V+kZKLb1hOUFh6m5V/mrSuiYV8dXZ3eXd2d3qHkJOUlJOTkY+NkZWUmZiZnJuZm52foqKhoaKlpKSkpaajn5uRgnlyd4WYmpeXjGxgYnWQg397dGpZSUVDQUFAPjw8PUBETm2YmpqanKCioaKlpaekn5qWlJKPhHFmcomIdFxWSVFign1yh7KojYmGgXl0cHR0eXiAi5CTlZGPjo6MjpWUlpiZmpuZmpyfnpycnZ2ipKOkpKSkop+Yi4B6d3aOlZeVjH9jXWN0c3V3c21iT0hFREE/Pj1BOENFR16WnZ+fn6KjoaGkp6mpo5qXlpKPhG5hX2JiX1tXTkpTZWdmg7WukI+PiX57dHByc3V9hYmOkZOOjo6NjJOVlJial5mZmJudm5ydnJmfoqOjoqWlpKKfk4uKjHx8jZGRintxXFphbHR3c3BuVU1JSUVFRENBN0RERVWMm6CfoqCfoJ+kpaenoJeXl5CGeWhdW1hcWlhWVEVLU1hng6uxkY6NjoZ9dHFtcXV6fYGGj5KRkJGSkJSVlZWYmZOXmJmamZqZmJebnqCgoaOkp6WinJaUi4F3f5OQhYJ+Y1lZYGx3d3VqVU1LSkpKSlBTO0hERlZ1m5mbn6Gfm5qeoqOinJaXmYp9bmJebWZkYVtXVk9JT1Rloaqyk4+OjYqAdnFucXN3fYODiI2MkpSUlJaXlZaYnJKTlpaXmJaWlpaZm52dnqCho6KhnpmOhoJ9a4COiIWFc1xaWVteZGpaTFBOS1FQTUxJO0ZBSlqKnpydnqCgm5udn6CgoJyZloZ6a2VniI2Qi3xmWlNITE9YnLW0kYyLiod+dm9ubHJ1e4OGhoWIkZaYmJWVlZaWmJ+LkpWWlpWWlpeanZ2dnp+hpaimop+Zi4aGc2pzfYiHf2RdW1pZXl1SUVJTSkpLSk1QPEM/SWCUnZ2dnaCgnZ2bnZ+foqKdl42EdnWBi46RkoR0YlhFR0tTeKWgkI6IhIB8dHBwa3FyeYKIjouKjZaWlpSOio+EhpucgJCVlpaZmZidnp6cnZ6gpaempaSjlpOTgWxlb4WLhH12cmFdUFNUUFBQS0lJRkpQOUJAR12in56dnp+gn5yZmZ2anZ+dmZWPioaLjo+PkoqCeWVPR0pOWGBzjImIiIR9c3BuaW9xeH+JjZGTjY2SlZWQiYKIb4VwmZaVlpiZmpibm5ycnZ6gpaampqWil4uJh4FtY3qOi4OOjn9qTFBbVFFTTkpIRkZJOkI/RlBnfYeanp6gnp6ampqbm5mYmZeVlZCQkJGQkJGSk3VSTUZKTk1Wj42LiYN7cnBuZ25wdX6Dh42Wl5SQlJWQiIN4bH6JmaKVlJiZmpiZmpucn6CgpaimpaOhloiHhoZ5aGiPjoSKjol4VE9TVFNSTklFT01GPUFER0pSXGl5kZydoJ2bnpuam5mYmZuamZSRkpOTkIuTlYpYUlZHSERQkpCOi4l/dnBuamlvc3d3eoaQmJiUkJOQiYV7eYufjJ2glZWampiYmJmanJ+go6ampaOjmYmHhoV+b2B1fXuHinRrV1NWVVJLSEdOb1ZFPkJGSElMUFtfY3B4jYiXnZybnZycm5iXlpGQkpCRi3uFlZVxW11UQzxBj46Pi4yGe3Btbmlvb3Fyc3qIkpOXkY+NiIaAf36Xnoqfn5WYmpeYl5eYmp2foaKjpKWkmYaDgYF/d1xdXF1wamhmWFJPSUZJTFZai2BJPUFFRkhHSVFSUlJZbXeEjpiWnJ2Zl5mVk46QjY2LgGtnf4txX1tOTDw6h4iJiYmHfG9tcGhtb3FycHSFi4+VlpGNkYmDgXyEnI+DjpyTmJaYl5eXmpufoKChoKGinYiFhZCMgG1aV1VaZFlWTkdKTEtJSVt3dW1fQkRDRElGRkhMTFBTYGp0eXyPnZSFhJSWk5GRjomCeWJcWlxeW1dHQj45gYGEiIiGgHVscFdrbW1vb3R/iY+QlpKPj42GgIB9ipeSfpOYk5WXmZqYmJidoJ+foKChoI2KipqZj3lgW1dYX1lOSkxJTEtJSE1NSU1JRT5AREhCQURGRkxQV2FqbmptfHxvY2h3j5OQj35wZF5cVVRNS0pBPTw6f36BhIeIhX9ycVdqam1ub3Fzc4OMkZKRjpCJgX9/hJGHhYCokZKYm5yZmpibnJudoKGhoqCcm5uVjXRiXWhrYllQTU9VT0tKSEZFQkZGRjZBSEQ/QEBBQ0VMUlpfWlFVY2tlU1FYZ3d3bGRjYmRgXV1OSEc+Ozo5e317foSJiIp5b2RnbW1tbnB0goyRkZGRj5COiIqLgYyOhH6Pn5GYmZqZmpmampudoqOio6OamZaNdWdkZ4N4a2hZUVtWTUpIRkRCQD8/QThDRUI/Pz8/QEVMTEtOTElLV2BXSUdNU05NSmNnZWZhXVtNRUY+Ozo5fHt6eoCLjYyEbW9ocm9wb2xvfpGOjo6Qj5CSkY2OgYiMjIF7mJeUlpeZmZmampuaoaKhoqOZk46AZ2t6io6DgHtuXVhNSkhEQ0NGTT4+RkI0QUNAPT0/QEZDQ0JDRERER0lFREVHSEREQ19fVU1GQT9APj9APTw7"};
+/* 4 層のデータ：_dev/layers/make_layers.py の出力 */
+var LAYERS = {"lab":{"river":[562,460],"flow":[306,313],"green":[454,438],"shrine":[282,408],"sando":[310,944],"old_road":[241,815],"dens":[462,812],"canal":[532,675],"roads":[230,945],"obs":[296,523]},"src":"国土地理院 標高（DEM5A・DEM10B 補完）／© OpenStreetMap contributors（ODbL）／iNaturalist の観察記録の位置","nature":{"flow":[[751,487,856,624,856,639,840,661,836,713,860,739,868,761,885,776,897,776,925,813,957,903,994,939,998,987],[686,150,727,192,727,203,739,208,767,250,771,245,779,250,800,276,852,366,848,392,856,466,856,624],[265,418,285,429,294,418,310,413,322,424,366,434,374,392,391,371,423,371,439,392,460,382,508,387,512,376,540,376,549,434,601,550,630,645,638,782,658,876,658,966,674,997],[966,66,970,71,990,55,998,66],[925,750,933,787,921,797,921,808],[245,682,253,697,249,729,257,750,265,745,269,750,269,766,253,787,221,792,204,808,213,839,209,850,200,845,184,808,140,887,107,861,95,871,83,866,75,871,87,939,87,982,95,997],[921,282,949,239,966,239,974,224,982,224,990,213,998,224],[464,518,472,518,492,497,520,497,524,492,545,497,557,508,561,503,569,508,581,503],[43,66,34,61,26,71,22,145,2,166],[326,945,306,966,306,982,318,997],[346,55,379,87,399,87,427,50,447,39,480,55,492,82,500,82,500,3],[200,76,204,118,217,155,217,239,225,261,249,276,285,313,306,313,310,308,326,318,330,329,346,329,366,345,374,366,387,376],[549,276,536,239,504,182,500,82],[512,403,508,387],[180,445,192,508,188,513,148,513,148,524,140,529,144,576,172,697,164,708,168,750,160,766,164,845],[318,571,326,571,342,587,354,618,370,639,387,639,387,650,411,692,411,708,439,739,476,803,496,824,504,850,512,850,532,876,545,882,565,913,577,913,581,897,589,892,605,892,609,903,626,897,638,913,646,913,650,924,658,918],[966,382,998,424],[601,755,626,755,638,745],[872,566,860,587,856,624],[670,97,690,150],[528,682,540,661,549,666,557,655,589,661,597,645,597,618,617,597],[727,971,706,997],[342,203,354,218,379,224,387,203,399,192,415,187,435,187,439,192,484,187,492,166,500,161,500,108],[528,282,540,266,540,255],[767,661,779,692,787,697,791,692,796,697,824,697,836,713],[192,203,196,197,209,197,217,239],[22,739,2,755],[79,161,63,139,10,161],[374,776,443,855,455,882,480,908,492,939,508,939,524,961,528,955,549,961,577,939,613,929,621,918,638,913],[565,534,577,534,585,545,593,539],[816,61,840,97,844,118,860,145,889,161,901,161,909,176,929,187,978,182,994,213],[253,897,229,924,233,955,257,987,253,997],[63,787,75,818,75,829,67,834,75,876],[893,855,901,861,933,845],[79,318,79,334,91,350,107,408,107,445,119,450,140,529],[759,713,779,692],[630,839,630,845,646,850,654,845],[723,313,735,329,735,345,763,382,767,403,791,434,804,439,828,466,852,461],[87,524,95,524,111,539,119,608,136,634,156,629]],"river":[[498,45,502,58,501,166,510,197,541,254,547,280,548,320,542,366,542,400,557,449,607,567,632,663,639,782,655,855,658,959,662,977,671,993],[500,3,498,45]],"green":[[454,438,454,438],[119,992,119,992],[190,954,190,954],[131,818,131,818],[299,492,299,492],[547,439,547,439],[296,840,296,840],[304,688,304,688],[306,970,306,970],[179,965,179,965],[434,367,434,367],[159,472,159,472],[278,429,278,429],[415,832,415,832],[294,647,294,647],[301,410,301,410],[292,413,292,413],[303,602,303,602],[297,452,297,452],[297,595,297,595]],"water":[[250,279,250,279],[303,397,303,397],[292,409,292,409],[264,404,264,404],[437,218,437,218]]},"culture":{"sando":[[315,911,314,878],[307,681,310,752],[302,683,302,654,298,594,292,453],[310,752,314,878],[310,981,311,946,309,876],[305,754,304,736],[304,736,303,698],[315,911,317,960,316,966,323,983,333,996],[309,876,305,754],[303,698,302,683]],"shrine":[[282,387,267,396,267,397,275,419,275,419,276,419,276,420,277,421,278,421,280,421,290,414,290,413,289,413,289,411,289,408,289,407,290,405,290,404,283,387,282,387]],"small":[[287,403],[288,402],[449,493],[449,493],[306,605],[298,489],[265,405],[279,445],[279,440]],"old_road":[[192,511,208,614],[266,891,318,997],[208,614,222,705],[174,414,180,443],[180,443,192,511],[222,705,241,815,266,891],[150,278,169,389]],"torii":{"ichi":[311,972],"san":[292,453]}},"people":{"grid":40,"dens":[[6,30,2],[5,30,1],[7,27,3],[7,26,7],[6,25,1],[7,25,5],[5,35,2],[6,33,2],[7,37,3],[6,31,2],[7,34,2],[6,37,1],[6,36,2],[5,36,1],[7,35,4],[6,35,3],[5,31,1],[5,29,1],[7,36,6],[6,32,2],[10,38,0],[14,27,5],[13,26,5],[14,26,4],[8,29,6],[8,28,3],[11,28,1],[8,31,5],[7,30,1],[7,28,1],[8,30,7],[11,27,4],[7,29,1],[8,27,5],[10,27,2],[9,30,4],[9,31,3],[10,28,2],[9,29,2],[9,26,7],[8,26,5],[11,32,2],[10,34,3],[9,28,5],[9,33,2],[11,37,2],[11,34,2],[7,24,4],[8,25,4],[9,32,4],[9,34,3],[9,25,4],[11,30,4],[11,31,1],[8,24,3],[10,33,3],[7,23,4],[10,29,4],[11,33,1],[12,37,5],[10,35,2],[10,32,3],[8,32,5],[10,30,4],[9,24,6],[8,23,2],[6,34,3],[5,34,3],[12,34,4],[10,36,2],[12,32,3],[12,27,3],[11,25,2],[11,24,2],[11,26,3],[10,24,4],[12,26,4],[13,27,4],[15,25,1],[15,26,1],[17,29,5],[13,25,5],[16,29,5],[18,29,5],[5,21,1],[5,22,1],[10,25,5],[12,23,2],[13,21,6],[12,22,4],[13,22,6],[10,26,4],[13,23,5],[14,21,7],[11,29,6],[9,23,2],[12,21,4],[13,24,5],[8,35,0],[8,36,2],[12,28,7],[12,29,7],[13,28,8],[11,35,3],[10,31,2],[12,30,5],[5,39,0],[6,39,1],[8,33,0],[8,37,1],[7,39,6],[5,38,4],[12,33,4],[8,39,5],[9,39,2],[6,16,2],[5,15,3],[6,15,2],[9,38,1],[8,38,3],[5,37,2],[6,38,1],[5,33,1],[7,33,0],[7,38,4],[13,29,7],[14,29,6],[16,33,2],[15,33,4],[16,38,2],[15,31,4],[14,33,6],[15,27,4],[15,35,4],[13,34,6],[15,36,5],[14,35,2],[16,32,5],[15,30,4],[16,39,2],[17,38,1],[17,39,4],[18,37,0],[17,33,5],[18,33,7],[14,19,3],[15,22,7],[14,25,4],[12,24,4],[18,18,1],[18,27,6],[15,13,1],[16,22,6],[14,24,6],[17,24,3],[18,25,4],[18,26,3],[11,23,5],[7,15,4],[12,15,0],[12,16,2],[11,16,2],[11,17,2],[10,16,3],[11,15,1],[16,18,6],[16,37,1],[15,38,3],[13,39,6],[14,39,1],[18,39,7],[12,25,5],[18,38,5],[17,35,1],[15,20,4],[15,19,1],[14,23,6],[14,22,5],[16,26,3],[16,25,5],[12,39,3],[11,36,4],[11,38,1],[12,38,6],[9,35,1],[10,37,0],[16,35,3],[13,38,7],[12,36,5],[7,19,2],[12,31,5],[13,37,5],[13,35,5],[12,35,4],[13,36,4],[14,38,5],[14,37,5],[14,36,4],[15,37,7],[14,34,6],[17,37,0],[15,34,5],[17,34,2],[16,34,3],[13,33,6],[15,24,6],[15,21,7],[15,23,8],[17,22,4],[16,23,6],[16,24,5],[17,25,4],[17,26,5],[15,32,5],[13,32,5],[14,32,7],[14,30,5],[14,31,4],[13,31,5],[13,30,5],[16,36,1],[17,36,1],[18,24,3],[18,23,6],[17,23,5],[18,22,5],[17,21,4],[16,21,6],[16,20,5],[17,20,5],[17,19,5],[18,19,2],[18,20,5],[18,21,6],[18,17,1],[15,12,0],[16,12,1],[16,13,5],[15,14,1],[16,14,5],[17,14,2],[15,15,1],[16,16,8],[16,15,8],[17,15,5],[17,16,5],[17,17,6],[17,18,8],[15,16,3],[14,17,3],[15,17,4],[14,18,6],[15,18,6],[16,17,6],[16,19,4],[14,20,5],[7,22,5],[13,17,3],[13,18,5],[13,19,6],[12,17,5],[11,18,2],[12,18,3],[12,19,3],[11,19,5],[12,20,5],[11,20,5],[13,20,6],[5,18,4],[5,19,4],[5,20,2],[5,17,6],[6,17,3],[6,18,2],[5,16,6],[6,14,5],[7,14,5],[7,13,6],[9,13,4],[8,13,5],[8,12,2],[9,12,1],[8,14,5],[9,14,4],[8,15,4],[9,15,4],[7,16,6],[10,15,1],[8,16,5],[6,24,5],[6,23,5],[9,16,4],[7,17,3],[8,17,7],[9,17,6],[9,22,1],[7,18,4],[6,19,5],[6,20,5],[7,20,4],[6,22,6],[6,21,6],[7,21,4],[8,22,2],[14,28,8],[8,21,8],[8,18,8],[16,28,7],[18,32,9],[10,23,4],[6,13,3],[18,36,2],[11,22,7],[8,20,7],[8,19,8],[7,12,2],[11,21,5],[10,21,7],[10,22,7],[9,21,4],[16,27,4],[18,35,5],[15,29,6],[18,28,7],[9,18,6],[17,27,7],[6,12,0],[5,12,1],[16,31,8],[17,32,8],[18,34,3],[15,28,6],[16,30,6],[17,30,7],[18,30,7],[18,31,9],[17,31,8],[17,28,6],[10,17,5],[10,18,7],[10,20,7],[10,19,7],[9,20,8],[9,19,8],[5,13,4],[5,14,4]],"roads":[[315,583,294,594,208,614],[540,391,533,393,461,468],[248,697,302,683],[265,992,258,970,238,951,226,948,205,950,170,966],[195,952,139,989],[418,675,420,670,474,633,514,585],[169,389,174,414],[302,683,294,688,248,700],[206,989,195,952],[179,625,130,645],[111,995,192,947],[195,952,208,988],[173,921,130,883],[459,470,354,562],[302,683,329,678,363,677],[163,968,192,951,207,946,230,945,246,952,254,959,269,992],[222,705,216,708],[192,947,229,918],[266,891,253,901],[253,901,230,920],[252,900,266,891],[229,918,252,900],[230,920,206,939,195,952],[208,614,179,625],[354,562,362,504,387,398,387,316,380,260],[202,713,196,715],[207,711,202,713],[211,709,207,711],[216,708,211,709],[248,700,224,707,222,705],[222,705,233,701],[241,699,248,697],[461,468,459,470],[354,562,315,583],[363,677,361,630],[406,833,389,812,367,772,363,677],[363,677,418,675],[416,845,406,833],[435,867,416,845],[142,734,136,734],[136,734,121,736],[233,701,238,700],[238,700,241,699],[361,630,361,628],[361,628,354,585,354,562],[190,943,178,927],[178,927,173,921],[195,952,190,943],[484,966,471,929,435,867]],"canal":[[444,0,436,16,443,56],[443,56,450,95],[549,800,558,812,563,838,574,855,567,875,551,880,547,903,549,926,530,936,523,946,529,973,550,993],[435,132,430,144,434,213],[522,580,533,572,538,574,546,593,556,641,555,650,540,657,531,672,534,679,545,689,538,742,549,759,549,800],[445,415,458,464,480,527,500,559,522,580],[434,213,468,262,455,301,441,318,432,338,445,415],[550,993,552,997],[450,95,446,116,437,128],[437,128,435,132]],"box":[128,311,473,1098]},"info":{"obs":[[294,531],[284,428],[289,426],[301,616],[305,732],[302,727],[276,428],[325,612],[307,398],[275,908],[300,384],[286,367],[297,553],[293,492],[302,736],[290,427],[299,681],[270,411],[308,387],[319,380],[285,364]],"dem_step":8}};
+/* ===== 4 層の地形図（2026-10-04 本人指示「3D 地形図に、情報・自然・文化（・人）の層を重ねて、碧が人と自然をつなぐ図に」）
+   地形＝TERRAIN（国土地理院の標高・高さ 8 倍）。層のデータ＝LAYERS（_dev/layers/make_layers.py の出力）。
+   描き方：地形と各層を、それぞれ一度だけ裏の canvas に描き、表では位置と濃さだけを動かす（軽く）。
+   動き：はじめに層が地形から順に浮かぶ → 碧の軸が通る → 軸を小さな光が上下する。reduced-motion では最後の形を止めて描く。
+   語は狭い画面でも間引かない（文字の大きさは版面の幅に比例）。 ===== */
 (function(){
   var cv=document.getElementById('terrain'); if(!cv||!cv.getContext) return;
-  var ctx=cv.getContext('2d'), T=TERRAIN, C=T.cols, Rn=T.rows, MAXX=20;
+  var ctx=cv.getContext('2d'), T=TERRAIN, C=T.cols, Rn=T.rows, L=LAYERS;
   var raw=atob(T.b64), h=new Float32Array(raw.length); for(var i=0;i<raw.length;i++) h[i]=T.z0+raw.charCodeAt(i)*T.dz;
-  var hmin=Infinity; for(i=0;i<h.length;i++) if(h[i]<hmin) hmin=h[i];
-  var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2), ex=TERRAIN_EX, bandTop=0, bandBot=0;   // 高さの強調は固定（2026-10-03 本人指示「いい感じの倍率で固定」）
-  var bb=T.bbox; // [lonW, latS, lonE, latN]
-  function rc(lat,lon){ return [ (bb[3]-lat)/(bb[3]-bb[1])*(Rn-1), (lon-bb[0])/(bb[2]-bb[0])*(C-1) ]; }
-  // 参道の両端（仕様書の座標）
-  var P1=rc(35.897939,139.631499), P3=rc(35.915043,139.630474);
-  // 谷（低い所）：東の半分で、まわりを均した高さがいちばん低い所（ラベルは「谷」だけ。名前は付けない）
-  var lowRC=(function(){ var best=1e9, br=0, bc=0; for(var r=8;r<Rn-8;r++) for(var c=Math.floor(C*0.55);c<C-8;c++){ var sum=0,n=0; for(var dr=-4;dr<=4;dr++) for(var dc=-4;dc<=4;dc++){ sum+=h[(r+dr)*C+c+dc]; n++; } var v=sum/n; if(v<best){best=v;br=r;bc=c;} } return [br,bc]; })();
-  var highRC=(function(){ var best=-1e9, br=0, bc=0; for(var r=8;r<Rn-8;r++) for(var c=8;c<Math.floor(C*0.45);c++){ var sum=0,n=0; for(var dr=-4;dr<=4;dr++) for(var dc=-4;dc<=4;dc++){ sum+=h[(r+dr)*C+c+dc]; n++; } var v=sum/n; if(v>best){best=v;br=r;bc=c;} } return [br,bc]; })();
+  var hmin=Infinity,hmax=-Infinity; for(i=0;i<h.length;i++){ if(h[i]<hmin) hmin=h[i]; if(h[i]>hmax) hmax=h[i]; }
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var KM_W=4.78, KM_H=3.65, TH=-0.42, CS=Math.cos(TH), SN=Math.sin(TH), TILT=0.40;
+  var W=0,H=0,DPR=1,k=1,cx=0,fs=11,mobile=false, base=0, gap=0, planeTop=0, planeH=0, minX=0;
+  var COL=[ '120,214,236', '232,197,138', '244,170,150', '168,150,255' ];  // 自然・文化・人・情報
+  var NAME={ja:['自然','文化','人','情報'],en:['Nature','Culture','People','Information']};
+  var off=[], terr=null, state=[1,1,1,1], alpha=[1,1,1,1], t0=0, prog=reduce?1:0, raf=0, visible=true, lastT=0;
+  // 碧の軸を通す所（参道の中ほど）
+  var AX=[314,700];
+  function lang(){ return document.documentElement.getAttribute('data-lang')==='en'?'en':'ja'; }
+  function P(u,v){ // u,v: 0..1000 → 平面の上の座標（平面の左上が 0,0 の基準ではなく、中心 cx・高さ 0 基準）
+    var mx=(u/1000-0.5)*KM_W, my=(v/1000-0.5)*KM_H;
+    var rx=mx*CS-my*SN, ry=mx*SN+my*CS;
+    return [cx+rx*k, ry*k*TILT];
+  }
   function size(){
-    var r=cv.getBoundingClientRect(); if(!r.width) return; W=r.width; H=r.height;
-    cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
-    var inner=document.querySelector('.why-inner'), tr=document.getElementById('terrainCap');
-    var ib=inner?inner.getBoundingClientRect().bottom-r.top:H*0.45, tt=tr?tr.getBoundingClientRect().top-r.top:H*0.85;
-    bandTop=Math.max(H*0.3, ib+86); bandBot=Math.max(bandTop+80, tt-14);   // 地形の帯を、冒頭の文と三段の下〜出典の一行の上に収める（尾根が上へ伸びる分 60px ほど空ける）
-    draw();
+    var r=cv.getBoundingClientRect(); if(!r.width) return;
+    W=r.width; H=r.height; mobile=W<640; DPR=Math.min(window.devicePixelRatio||1, mobile?2:1.5);
+    cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+    var span=KM_W*Math.abs(CS)+KM_H*Math.abs(SN), vspan=(KM_W*Math.abs(SN)+KM_H*Math.abs(CS))*TILT;
+    k=(mobile?0.80:0.52)*W/span; cx=W*(mobile?0.53:0.50);
+    planeH=vspan*k; fs=mobile?W*0.031:W*0.0118;
+    var relief=(hmax-hmin)*k/1000*KM_W*0+ (hmax-hmin)*(k/1000)*8;   // 地形の起伏の高さ（8 倍）
+    var top=fs*2.2, bottom=H-fs*1.2;
+    base=bottom-planeH/2;                      // 地形の平面の中心の高さ
+    gap=(base-planeH/2-relief-top-planeH/2)/4; // 層の間隔（地形の上に 4 枚）
+    gap=Math.max(gap, planeH*0.22);
+    build(); frame(performance.now());
   }
-  function proj(row,col,z){ var t=row/(Rn-1); var x=-W*0.04+col/(C-1)*W*1.08; var y0=bandTop+(bandBot-bandTop)*t; var pxm=(W*1.08)/4780; return [x, y0-(z-hmin)*pxm*ex]; }
-  function label(rcv,txt,col){ var ri=Math.max(0,Math.min(Rn-1,Math.round(rcv[0]))), ci=Math.max(0,Math.min(C-1,Math.round(rcv[1]))); var q=proj(ri,rcv[1],h[ri*C+ci]);
-    ctx.fillStyle=col; ctx.fillText(txt,q[0],q[1]-9); ctx.beginPath(); ctx.arc(q[0],q[1]-1,2.2,0,6.283); ctx.fill(); }
-  function draw(){
-    if(!W) return; ctx.clearRect(0,0,W,H);
-    var en=document.documentElement.getAttribute('data-lang')==='en';
+  function mk(){ var c=document.createElement('canvas'); c.width=cv.width; c.height=cv.height; var x=c.getContext('2d'); x.setTransform(DPR,0,0,DPR,0,0); return [c,x]; }
+  function plane(x,y0,col,a){
+    var q=[P(0,0),P(1000,0),P(1000,1000),P(0,1000)];
+    x.beginPath(); q.forEach(function(p,i){ if(i) x.lineTo(p[0],p[1]+y0); else x.moveTo(p[0],p[1]+y0); }); x.closePath();
+    x.fillStyle='rgba(5,11,24,'+a+')'; x.fill(); x.strokeStyle='rgba('+col+',.55)'; x.lineWidth=1; x.stroke();
+    return q;
+  }
+  function poly(x,y0,arr,close){
+    for(var j=0;j<arr.length;j++){ var a=arr[j]; x.beginPath();
+      for(var i=0;i<a.length;i+=2){ var p=P(a[i],a[i+1]); if(i) x.lineTo(p[0],p[1]+y0); else x.moveTo(p[0],p[1]+y0); }
+      if(close) x.closePath(); close?x.fill():0; x.stroke(); }
+  }
+  function dot(x,y0,p,r){ var q=P(p[0],p[1]); x.beginPath(); x.arc(q[0],q[1]+y0,r,0,6.2832); x.fill(); }
+  function text(x,y0,p,s,col,side){
+    var q=P(p[0],p[1]); x.font='600 '+fs+'px "Hiragino Sans","Yu Gothic UI","Noto Sans JP",sans-serif'; x.textBaseline='middle';
+    x.textAlign=side<0?'right':(side>0?'left':'center'); var dx=side*fs*0.6;
+    x.lineWidth=fs*0.32; x.strokeStyle='rgba(3,6,15,.92)'; x.lineJoin='round'; x.strokeText(s,q[0]+dx,q[1]+y0-(side===0?fs*0.9:0));
+    x.fillStyle=col; x.fillText(s,q[0]+dx,q[1]+y0-(side===0?fs*0.9:0));
+  }
+  function nameTag(x,y0,q,s,col){ // 平面のいちばん左の角の上に層の名
+    var p=q.reduce(function(a,b){ return b[0]<a[0]?b:a; }); x.font='600 '+(fs*1.12)+'px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign='left'; x.textBaseline='bottom';
+    x.lineWidth=fs*0.3; x.strokeStyle='rgba(3,6,15,.9)'; x.strokeText(s,p[0],p[1]+y0-fs*0.35); x.fillStyle='rgb('+col+')'; x.fillText(s,p[0],p[1]+y0-fs*0.35);
+  }
+  function spoke(x,y0,to,col){ var a=P(AX[0],AX[1]), b=P(to[0],to[1]); x.save(); x.setLineDash([fs*0.3,fs*0.35]); x.strokeStyle='rgba('+col+',.7)'; x.lineWidth=1;
+    x.beginPath(); x.moveTo(a[0],a[1]+y0); x.lineTo(b[0],b[1]+y0); x.stroke(); x.restore(); }
+  function build(){
+    var en=lang()==='en', y0=planeH*0.6+fs*2;   // 裏の canvas の中で、平面の中心を置く高さ
+    // ---- 地形（行ごとの幕を、奥から手前へ） ----
+    var t=mk(), x=t[1], zb=base, ex=(k/1000)*8;   // 1 m ＝ k/1000 px（km 単位の k）× 8 倍
     for(var r=0;r<Rn;r++){
-      var t=r/(Rn-1); ctx.beginPath();
-      for(var c=0;c<C;c++){ var p=proj(r,c,h[r*C+c]); if(c===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }
-      ctx.lineTo(W*1.05,H+2); ctx.lineTo(-W*0.05,H+2); ctx.closePath();
-      ctx.fillStyle='rgba(3,6,15,0.94)'; ctx.fill();
-      ctx.strokeStyle='rgba(120,214,236,'+(0.16+0.5*t)+')'; ctx.lineWidth=0.6+0.7*t; ctx.stroke();
-      if(r>=Math.round(P3[0])&&r<=Math.round(P1[0])){ var f=(r-P3[0])/(P1[0]-P3[0]); var cc=P3[1]+(P1[1]-P3[1])*f; var ci=Math.max(0,Math.min(C-1,Math.round(cc)));
-        var q=proj(r,cc,h[r*C+ci]); ctx.fillStyle='rgba(232,197,138,'+(0.5+0.4*t)+')'; ctx.beginPath(); ctx.arc(q[0],q[1]-1,1.3+0.8*t,0,6.283); ctx.fill(); }
+      var v=r/(Rn-1)*1000, f=r/(Rn-1); x.beginPath();
+      for(var c=0;c<C;c++){ var p=P(c/(C-1)*1000,v); var y=p[1]+zb-(h[r*C+c]-hmin)*ex; if(c) x.lineTo(p[0],y); else x.moveTo(p[0],y); }
+      for(c=C-1;c>=0;c--){ var p2=P(c/(C-1)*1000,v); x.lineTo(p2[0],p2[1]+zb+1); }
+      x.closePath(); x.fillStyle='rgba(3,6,15,.96)'; x.fill();
+      x.strokeStyle='rgba(120,214,236,'+(0.14+0.42*f)+')'; x.lineWidth=0.5+0.5*f; x.stroke();
     }
-    ctx.font='500 11px "Hiragino Sans","Yu Gothic UI",sans-serif'; ctx.textAlign='center';
-    label(P3, en?'San-no-torii':'三の鳥居','rgba(232,197,138,.95)');
-    label(P1, en?'Ichi-no-torii':'一の鳥居','rgba(232,197,138,.95)');
-    label(highRC, en?'Ōmiya Upland':'大宮台地','rgba(200,236,246,.85)');
-    label(lowRC, en?'valley (low ground)':'谷（低い所）','rgba(200,236,246,.85)');
+    // 参道の点と、地形の語
+    var hp=function(u,v){ var c=Math.round(u/1000*(C-1)), r=Math.round(v/1000*(Rn-1)); return h[r*C+c]; };
+    x.fillStyle='rgba(232,197,138,.9)';
+    [[L.culture.torii.ichi],[L.culture.torii.san]].forEach(function(q){ var p=P(q[0][0],q[0][1]); x.beginPath(); x.arc(p[0],p[1]+zb-(hp(q[0][0],q[0][1])-hmin)*ex,1.8,0,6.2832); x.fill(); });
+    var hi=[180,520], lo=[640,560];
+    (function(){ var p=P(hi[0],hi[1]); x.font='600 '+fs+'px "Hiragino Sans",sans-serif'; x.textAlign='center'; x.lineWidth=fs*0.3; x.strokeStyle='rgba(3,6,15,.9)';
+      var y=p[1]+zb-(hp(hi[0],hi[1])-hmin)*ex-fs*0.9; x.strokeText(en?'Ōmiya Upland':'大宮台地',p[0],y); x.fillStyle='rgba(200,236,246,.9)'; x.fillText(en?'Ōmiya Upland':'大宮台地',p[0],y);
+      p=P(lo[0],lo[1]); y=p[1]+zb-(hp(lo[0],lo[1])-hmin)*ex+fs*1.3; x.strokeText(en?'Shiba River valley':'芝川の谷',p[0],y); x.fillText(en?'Shiba River valley':'芝川の谷',p[0],y); })();
+    nameTag(x,zb,[P(0,0),P(1000,0),P(1000,1000),P(0,1000)], en?'Landform':'地形','200,236,246');
+    terr=t[0];
+    // ---- 4 つの層（裏の canvas の y0 に描き、表で上下に動かす） ----
+    off=[];
+    for(var li=0;li<4;li++){
+      var o=mk(), g=o[1], col=COL[li], q=plane(g,y0,col,0.42);
+      g.lineCap='round'; g.lineJoin='round';
+      if(li===0){ // 自然
+        g.fillStyle='rgba(90,190,140,.30)'; g.strokeStyle='rgba(120,210,160,.75)'; g.lineWidth=0.8; poly(g,y0,L.nature.green,true);
+        g.fillStyle='rgba(92,200,224,.35)'; g.strokeStyle='rgba(120,214,236,.9)'; poly(g,y0,L.nature.water,true);
+        g.strokeStyle='rgba(120,214,236,.55)'; g.lineWidth=0.9; poly(g,y0,L.nature.flow,false);
+        g.strokeStyle='rgba(150,226,246,1)'; g.lineWidth=2.2; poly(g,y0,L.nature.river,false);
+        spoke(g,y0,L.lab.river,col);
+        text(g,y0,L.lab.river,en?'Shiba River':'芝川','rgb(170,232,248)',1);
+        text(g,y0,L.lab.flow,en?'where water gathers':'水の集まる筋','rgb(150,220,240)',-1);
+        text(g,y0,L.lab.green,en?'green':'森・公園','rgb(150,226,180)',0);
+      } else if(li===1){ // 文化
+        g.strokeStyle='rgba(232,197,138,.75)'; g.lineWidth=1.4; poly(g,y0,L.culture.old_road,false);
+        g.strokeStyle='rgba(246,214,150,1)'; g.lineWidth=2.6; poly(g,y0,L.culture.sando,false);
+        g.fillStyle='rgba(232,150,110,.45)'; g.strokeStyle='rgba(240,170,130,1)'; g.lineWidth=1; poly(g,y0,L.culture.shrine,true);
+        g.fillStyle='rgba(246,214,150,1)'; L.culture.small.forEach(function(p){ dot(g,y0,p,1.6); });
+        dot(g,y0,L.culture.torii.ichi,2.6); dot(g,y0,L.culture.torii.san,2.6);
+        spoke(g,y0,L.lab.shrine,col);
+        text(g,y0,L.lab.shrine,en?'Hikawa Shrine':'氷川神社','rgb(246,214,150)',-1);
+        text(g,y0,[ (L.culture.torii.ichi[0]+L.culture.torii.san[0])/2+8, 800 ],en?'approach (sandō)':'参道','rgb(246,214,150)',1);
+        text(g,y0,L.lab.old_road,en?'old Nakasendō':'旧中山道','rgb(232,197,138)',-1);
+      } else if(li===2){ // 人
+        var n=L.people.grid, s=1000/n;
+        L.people.dens.forEach(function(d){ var a=P(d[0]*s,d[1]*s), b=P((d[0]+1)*s,d[1]*s), c2=P((d[0]+1)*s,(d[1]+1)*s), e=P(d[0]*s,(d[1]+1)*s);
+          g.beginPath(); g.moveTo(a[0],a[1]+y0); g.lineTo(b[0],b[1]+y0); g.lineTo(c2[0],c2[1]+y0); g.lineTo(e[0],e[1]+y0); g.closePath();
+          g.fillStyle='rgba(244,170,150,'+(0.10+d[2]*0.07)+')'; g.fill(); });
+        g.strokeStyle='rgba(244,190,170,.6)'; g.lineWidth=1; poly(g,y0,L.people.roads,false);
+        g.strokeStyle='rgba(150,200,255,.9)'; g.lineWidth=1.6; poly(g,y0,L.people.canal,false);
+        spoke(g,y0,L.lab.dens,col);
+        text(g,y0,L.lab.dens,en?'clusters of buildings':'建物の集まり','rgb(248,190,170)',1);
+        text(g,y0,L.lab.canal,en?'Minuma canal':'見沼代用水','rgb(170,210,255)',1);
+        text(g,y0,L.lab.roads,en?'main roads':'主な道','rgb(244,190,170)',-1);
+      } else { // 情報
+        var st=L.info.dem_step; g.fillStyle='rgba(168,150,255,.35)';
+        for(var rr=0;rr<Rn;rr+=st) for(var cc=0;cc<C;cc+=st){ dot(g,y0,[cc/(C-1)*1000, rr/(Rn-1)*1000],0.9); }
+        g.fillStyle='rgba(206,190,255,1)'; L.info.obs.forEach(function(p){ dot(g,y0,p,2); });
+        g.strokeStyle='rgba(206,190,255,.35)'; g.lineWidth=0.8; L.info.obs.forEach(function(p){ var a=P(AX[0],AX[1]), b=P(p[0],p[1]); g.beginPath(); g.moveTo(a[0],a[1]+y0); g.lineTo(b[0],b[1]+y0); g.stroke(); });
+        text(g,y0,[L.lab.obs[0]-40,L.lab.obs[1]-60],en?'observation records':'観察記録','rgb(214,200,255)',-1);
+        text(g,y0,[880,120],en?'elevation grid':'標高の格子','rgb(196,182,255)',0);
+      }
+      nameTag(g,y0,q,NAME[en?'en':'ja'][li],col);
+      off.push({c:o[0],y0:y0});
+    }
   }
-  document.addEventListener('hp-lang-change',function(){ draw(); });
+  function ease(t){ t=Math.max(0,Math.min(1,t)); return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; }
+  function frame(now){
+    if(!W) return; ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height);
+    var p=prog;
+    ctx.drawImage(terr,0,0);
+    var axis=P(AX[0],AX[1]), ys=[];
+    for(var li=0;li<4;li++){
+      var e=ease((p-li*0.14)/0.5), yC=base-(planeH*0.05+gap*(li+1))*e;  // 層の中心の高さ
+      var a=alpha[li]*Math.min(1,e*1.6);
+      ys.push(yC+axis[1]);
+      if(a<=0.01) continue;
+      ctx.globalAlpha=a; ctx.drawImage(off[li].c,0,(yC-off[li].y0)*DPR); ctx.globalAlpha=1;
+    }
+    // 碧の軸：地形から一番上の層まで。中ほど（文化と人のあいだ）に碧
+    var ea=ease((p-0.62)/0.38);
+    if(ea>0){
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+      var ax=axis[0], yb=base+axis[1], yt=ys[3]-fs*1.2;
+      ctx.strokeStyle='rgba(160,236,246,'+(0.85*ea)+')'; ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.moveTo(ax,yb); ctx.lineTo(ax,yb+(yt-yb)*ea); ctx.stroke();
+      ys.forEach(function(y,i){ if(alpha[i]<0.5) return; ctx.fillStyle='rgba('+COL[i]+','+ea+')'; ctx.beginPath(); ctx.arc(ax,y,2.6,0,6.2832); ctx.fill(); });
+      var yo=(ys[1]+ys[2])/2, R=fs*1.25;
+      // 光の粒（軸を上下する）
+      if(!reduce&&ea>=1){ var ph=(now/2600)%1, yy=yb+(yt-yb)*(ph<.5?ph*2:2-ph*2); ctx.fillStyle='rgba(198,248,242,.9)'; ctx.beginPath(); ctx.arc(ax,yy,2.2,0,6.2832); ctx.fill(); }
+      var g=ctx.createRadialGradient(ax,yo,0,ax,yo,R*2.2); g.addColorStop(0,'rgba(198,248,242,'+(.95*ea)+')'); g.addColorStop(.35,'rgba(108,224,244,'+(.55*ea)+')'); g.addColorStop(1,'rgba(70,170,210,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(ax,yo,R*2.2,0,6.2832); ctx.fill();
+      ctx.fillStyle='rgba(6,34,43,'+ea+')'; ctx.font='600 '+(fs*1.25)+'px "Shippori Mincho","Hiragino Mincho ProN",serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(lang()==='en'?'Aoi':'碧',ax,yo+fs*0.05);
+      ctx.textAlign='left'; ctx.font='600 '+fs+'px "Hiragino Sans","Yu Gothic UI",sans-serif'; ctx.lineWidth=fs*0.3; ctx.strokeStyle='rgba(3,6,15,'+(.9*ea)+')';
+      var s=lang()==='en'?'Aoi (AI) — links the layers':'碧（AI）── 層をつなぐ';
+      ctx.strokeText(s,ax+R*1.5,yo); ctx.fillStyle='rgba(198,248,242,'+ea+')'; ctx.fillText(s,ax+R*1.5,yo);
+    }
+  }
+  function loop(now){
+    raf=0; if(!visible) return;
+    if(!t0) t0=now; if(prog<1) prog=Math.min(1,(now-t0)/3200);
+    var busy=false; for(var i=0;i<4;i++){ var tg=state[i]?1:0.08; if(Math.abs(alpha[i]-tg)>0.01){ alpha[i]+= (tg-alpha[i])*0.18; busy=true; } else alpha[i]=tg; }
+    if(now-lastT>=33||busy||prog<1){ frame(now); lastT=now; }
+    if(!reduce||busy||prog<1) raf=requestAnimationFrame(loop);
+  }
+  function kick(){ if(!raf) raf=requestAnimationFrame(loop); }
+  document.querySelectorAll('.lyr-key').forEach(function(b){
+    b.addEventListener('click',function(){ var i=+b.getAttribute('data-layer'); state[i]=state[i]?0:1; b.setAttribute('aria-pressed',state[i]?'true':'false');
+      if(reduce){ alpha[i]=state[i]?1:0.08; frame(performance.now()); } else kick(); });
+  });
+  if(window.IntersectionObserver){ new IntersectionObserver(function(es){ visible=es[0].isIntersecting; if(visible) kick(); }).observe(cv); }
+  document.addEventListener('hp-lang-change',function(){ if(W){ build(); frame(performance.now()); } });
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) kick(); });
   var rt; window.addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(size,120); });
-  if(window.ResizeObserver){ new ResizeObserver(function(){ size(); }).observe(cv); }
-  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(size);
-  size();
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ size(); });
+  size(); kick();
 })();
 
 /* ===== 用語解説（ja / en） ===== */
 var TERMS = {
+  ninchikakucho:{ja:'認知拡張',en:'Cognitive augmentation',
+    dj:'五感で受け取れる範囲（知覚）に加えて、言葉・記録・知識・推論・道具を使い、世界を見分け、結びつけ、どの時間の幅で考え、どう関わるかの手がかりを広げること。能力が上がることを約束する言葉ではない。',
+    de:'Beyond what the five senses take in (perception), using words, records, knowledge, reasoning and tools to widen the footholds for telling the world apart, linking it, thinking over spans of time and engaging with it. Not a promise of improved ability.'},
   ninchi:{ja:'認知モデル',en:'Cognitive model',
     dj:'人がその場所で、何を区別し、何を結び、どう関わるかの枠組み。碧の間は、同じ場所でこの枠組みが動くかを、本人が確かめられるようにする。',
     de:'The framework of what a person distinguishes, connects and how they relate, in a given place. Aoi no Ma lets each person check whether that framework moves.'},
@@ -820,8 +1049,8 @@ var TERMS = {
     dj:'mitsulab が AI で動かしている依代。人と自然のあいだに立つ、両向きの通訳。人ではない。',
     de:'A yorishiro run by mitsulab with AI: a two-way interpreter between people and nature. Not a person.'},
   yorishiro:{ja:'依代（よりしろ）',en:'Yorishiro',
-    dj:'もとは、神霊が宿るとされる物を指す言葉。mitsulab では、人と自然のあいだに立って語りを受け渡す、碧のありかたを指して使っている。',
-    de:'Originally, an object in which a spirit is believed to dwell. mitsulab uses the word for Aoi\'s role: standing between people and nature and passing words across.'},
+    dj:'もとは、神霊が依りつくとされる物を指す言葉（國學院大學『神道事典』）。mitsulab は霊的な意味では使わず、人が人でないものに向き合うための、手がかりと枠の意味で使う。人の言葉で話すのは碧だけで、木・石・鳥・水などの依代は、出どころつきの記録の束として碧が訳す。',
+    de:'Originally, an object to which a spirit is believed to descend (Kokugakuin University, Encyclopedia of Shinto). mitsulab does not use it in a spiritual sense, but for a foothold and a frame through which people face what is not human. Only Aoi speaks in human words; yorishiro such as trees, stones, birds and water are bundles of sourced records that Aoi translates.'},
   aoinoma:{ja:'碧の間（あおいのま）',en:'Aoi no Ma',
     dj:'mitsulab の体験の型。みる → きく → かたる → かえりみる の四つの段。「間」は、人と自然のあいだと、一度目と二度目のあいだの両方を指す。',
     de:'mitsulab\'s form of experience: look, listen, talk, look back. “Ma” means both the space between people and nature, and the gap between a first and second look.'},
@@ -856,6 +1085,10 @@ var TERMS = {
       if(lang==='en'){ if(!orig.has(el)) orig.set(el,el.innerHTML); el.innerHTML=el.getAttribute('data-i18n-en'); }
       else if(orig.has(el)) el.innerHTML=orig.get(el);
     });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function(el){
+      if(!el.hasAttribute('data-aria-ja')) el.setAttribute('data-aria-ja',el.getAttribute('aria-label')||'');
+      el.setAttribute('aria-label', lang==='en'?el.getAttribute('data-i18n-aria'):el.getAttribute('data-aria-ja'));
+    });
     document.querySelectorAll('[data-i18n-alt]').forEach(function(el){
       if(!el.hasAttribute('data-alt-ja')) el.setAttribute('data-alt-ja',el.getAttribute('alt')||'');
       el.setAttribute('alt', lang==='en'?el.getAttribute('data-i18n-alt'):el.getAttribute('data-alt-ja'));
@@ -865,7 +1098,7 @@ var TERMS = {
     try{ document.dispatchEvent(new CustomEvent('hp-lang-change',{detail:lang})); }catch(e){}
     document.querySelectorAll('.card-title').forEach(function(t){ var a=t.querySelector('.ct-ja'), b=t.querySelector('.ct-en'); if(a&&b) b.style.display=(lang==='en'&&a.textContent.trim().replace(/[《》]/g,'')===b.textContent.trim().replace(/[《》]/g,''))?'none':''; });
     if(!window.__titleJa) window.__titleJa=document.title;
-    document.title = lang==='en' ? 'mitsulab — Cognitive Augmentation | Connecting people and nature' : window.__titleJa;
+    document.title = lang==='en' ? 'mitsulab — Cognitive augmentation. Nature and the world, more deeply.' : window.__titleJa;
   }
   function paint(seg){
     var ind=seg.querySelector('.seg-ind'), act=seg.querySelector('.seg-btn[aria-pressed="true"]');
@@ -920,7 +1153,7 @@ var TERMS = {
     if(target&&anchor!==id){ setTimeout(function(){ var y=target.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo(0,y); },30); }
     else window.scrollTo(0,0);
   }
-  var OLD={tools:'apps',works:'apps',qualium:'connect',try:'why'};   // 2026-10-03 に外した節への古いリンクの受け口
+  var OLD={tools:'apps',works:'apps',qualium:'qualium',try:'why',connect:'beyond',define:'beyond',site:'app-hikawa',p1:'app-hikawa',uses:'research'};   // 2026-10-03 に外した節への古いリンクの受け口
   function fromHash(){ var h=(location.hash||'').slice(1); if(!h){show('top');return;} if(OLD[h]) h=OLD[h];
     var el=document.getElementById(h); var p=el&&(el.classList.contains('tab-panel')?el:el.closest('.tab-panel'));
     show(p?p.id:'top', h); }
