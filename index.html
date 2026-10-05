@@ -638,6 +638,10 @@ html[lang="en"] .tab-btn .tb-en,html[lang="en"] .tab-menu-leaf .leaf-en{display:
 .msn-def .qn{color:var(--aoi)}
 .card.ask{max-width:760px;margin:0 auto}
 .ask-base,.ask-first{margin-top:12px;font-size:.88rem;line-height:1.8;color:var(--ink-2)}
+.about-dl{display:grid;gap:4px 0;font-size:.95rem}
+.about-dl>div{display:grid;grid-template-columns:7em 1fr;gap:16px;padding:6px 0;border-bottom:1px solid rgba(150,170,240,.08)}
+.about-dl dt{color:var(--ink-3);font-size:.86rem}
+@media (max-width:420px){.about-dl>div{grid-template-columns:1fr;gap:0}}
 footer .f-links{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 18px;margin:0 auto 14px}
 footer .f-links a,footer .f-links button{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;background:none;border:0;color:var(--aoi);font:500 .86rem/1 var(--sans);letter-spacing:.04em;cursor:pointer;text-decoration:none}
 footer .f-links a:hover,footer .f-links button:hover{text-decoration:underline}
@@ -932,6 +936,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       <button class="tab-btn" role="tab" data-tab="apps"><span class="tb-ja" data-i18n-en="Applications">アプリケーション</span><span class="tb-en" aria-hidden="true">Apps</span></button>
       <button class="tab-btn" role="tab" data-tab="profile"><span class="tb-ja" data-i18n-en="Profile">代表プロフィール</span><span class="tb-en" aria-hidden="true">Profile</span></button>
       <button class="tab-btn" role="tab" data-tab="contact"><span class="tb-ja" data-i18n-en="Contact">お問い合わせ</span><span class="tb-en" aria-hidden="true">Contact</span></button>
+      <button class="tab-btn" role="tab" data-tab="about"><span class="tb-ja" data-i18n-en="About this site">サイトについて</span><span class="tb-en" aria-hidden="true">About</span></button>
     </div>
     <div class="ui-switch" role="group" aria-label="言語切り替え" data-i18n-aria="Language">
       <div class="seg">
@@ -957,6 +962,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       <li><button class="tab-menu-leaf" data-tab="apps"><span class="leaf-ja" data-i18n-en="Applications">アプリケーション</span><span class="leaf-en" aria-hidden="true">Apps</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="profile"><span class="leaf-ja" data-i18n-en="Profile">代表プロフィール</span><span class="leaf-en" aria-hidden="true">Profile</span></button></li>
       <li><button class="tab-menu-leaf" data-tab="contact"><span class="leaf-ja" data-i18n-en="Contact">お問い合わせ</span><span class="leaf-en" aria-hidden="true">Contact</span></button></li>
+      <li><button class="tab-menu-leaf" data-tab="about"><span class="leaf-ja" data-i18n-en="About this site">サイトについて</span><span class="leaf-en" aria-hidden="true">About</span></button></li>
     </ul>
     <p class="tab-menu-mail"><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></p>
   </div>
@@ -1319,13 +1325,47 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
 </div>
 </section>
 
+<!-- ┌─ サイトについて（2026-10-06 本人決定：事業者情報・プライバシーポリシー・利用規約・道具の紹介。独立の頁＝/privacy/・/terms/・/aoi/uploader/） ── -->
+<section id="about" class="tab-panel" data-panel="about" aria-label="サイトについて" data-i18n-aria="About this site">
+<div class="wrap">
+  <div class="panel-head">
+    <span class="eyebrow">About this site</span>
+    <h2 class="panel-title" data-i18n-en="About this site">サイトについて</h2>
+  </div>
+  <div class="card" id="operator" style="max-width:760px;margin:0 auto 22px">
+    <span class="card-title"><span class="ct-ja" data-i18n-en="Operator">事業者情報</span><span class="ct-en">Operator</span></span>
+    <dl class="about-dl">
+      <div><dt data-i18n-en="Business name">屋号</dt><dd>mitsulab</dd></div>
+      <div><dt data-i18n-en="Representative">代表</dt><dd data-i18n-en="Mitsuaki Uehara">上原 光瑛</dd></div>
+      <div><dt data-i18n-en="Location">所在地</dt><dd data-i18n-en="Omiya-ku, Saitama City, Saitama, Japan">埼玉県さいたま市大宮区</dd></div>
+      <div><dt data-i18n-en="Contact">連絡先</dt><dd><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></dd></div>
+    </dl>
+  </div>
+  <div class="card" id="privacy" style="max-width:760px;margin:0 auto 22px">
+    <span class="card-title"><span class="ct-ja" data-i18n-en="Privacy Policy">プライバシーポリシー</span><span class="ct-en">Privacy Policy</span></span>
+    <p data-i18n-en="This site uses no input forms, analytics, advertising or cookies. Only your choice of display language is remembered in your browser. The apps use your location only on your device when you allow it, and never send or store it. We receive personal information mainly when you email us, and use it only to reply.">このサイトは、入力フォーム・アクセス解析・広告・Cookie を使っていません。表示の言語の選択だけを、お使いのブラウザに覚えます。アプリは、許可したときだけ位置を端末の中で使い、送らず、残しません。個人情報を受け取るのは主にメールのお問い合わせで、返信のためだけに使います。</p>
+    <div class="btns"><a class="btn" href="/privacy/" data-i18n-en="Read the Privacy Policy →">プライバシーポリシーを読む →</a></div>
+  </div>
+  <div class="card" id="terms" style="max-width:760px;margin:0 auto 22px">
+    <span class="card-title"><span class="ct-ja" data-i18n-en="Terms of Service">利用規約</span><span class="ct-en">Terms of Service</span></span>
+    <p data-i18n-en="The site and apps are free and need no account. Many apps are prototypes. When walking with an app, please put safety first. Unless otherwise noted, rights belong to mitsulab; third-party data is used under its own terms and credited.">サイトとアプリは無料で、アカウントはいりません。アプリの多くは試作です。アプリを使って歩くときは、安全を第一にしてください。権利は、別に示したものを除き mitsulab にあり、他者のデータはそれぞれの条件に従って出典とともに使っています。</p>
+    <div class="btns"><a class="btn" href="/terms/" data-i18n-en="Read the Terms of Service →">利用規約を読む →</a></div>
+  </div>
+  <div class="card" id="uploader" style="max-width:760px;margin:0 auto 22px">
+    <span class="card-title"><span class="ct-ja" data-i18n-en="Tools: Aoi Uploader">道具の紹介：Aoi Uploader</span><span class="ct-en">Aoi Uploader (mitsulab)</span></span>
+    <p data-i18n-en="Aoi Uploader is mitsulab's internal tool for uploading its own videos to its own YouTube channel, Aoi (@aoi-mitsulab), through the YouTube API Services. It has no other users and does not collect information about viewers or other channels. Data received from YouTube is deleted after 30 days.">Aoi Uploader は、mitsulab の作品の動画を、mitsulab の YouTube チャンネル「碧」（@aoi-mitsulab）へ YouTube API Services を通して上げる、内部の道具です。ほかの利用者はおらず、視聴者やほかのチャンネルの情報は集めません。YouTube から受け取った情報は 30 日を過ぎたら消します。</p>
+    <div class="btns"><a class="btn" href="/aoi/uploader/" data-i18n-en="About Aoi Uploader →">Aoi Uploader について →</a><a class="btn" href="https://www.youtube.com/t/terms" target="_blank" rel="noopener" data-i18n-en="YouTube Terms of Service ↗">YouTube 利用規約 ↗</a><a class="btn" href="https://policies.google.com/privacy" target="_blank" rel="noopener" data-i18n-en="Google Privacy Policy ↗">Google プライバシーポリシー ↗</a></div>
+  </div>
+</div>
+</section>
+
 </main>
 
 <footer>
   <div class="f-brand">mitsulab</div>
   <div class="f-tag" data-i18n-en="Cognitive augmentation. Nature and the world, more deeply.">認知拡張。自然と世界を、より深く。</div>
   <p class="f-credit" data-i18n-en="The 3D of the Hikawa approach is from mitsulab's Aoi Walk: Hikawa — contours from GSI elevation; buildings from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements © OpenStreetMap contributors (ODbL); observation positions from iNaturalist. Tree shapes, the data lattice and particles of light are schematic. Images are screens of mitsulab's works. Aoi's voice in Aoi Walk: Hikawa — VOICEVOX: Meimei Himari.">氷川参道の 3D は mitsulab の《Aoi Walk 氷川》から：等高線＝国土地理院の標高／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors（ODbL）／観察記録の位置＝iNaturalist。木の形・上空の格子・光の粒は模式です。図版は mitsulab の作品の画面。《Aoi Walk 氷川》の碧の声＝VOICEVOX：冥鳴ひまり。</p>
-  <nav class="f-links" aria-label="フッターのリンク" data-i18n-aria="Footer links"><button type="button" data-go-anchor="contact" data-i18n-en="Contact">お問い合わせ</button><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><button type="button" data-go-anchor="profile" data-i18n-en="Profile">代表プロフィール</button><button type="button" data-go-anchor="apps" data-i18n-en="Applications">アプリケーション</button></nav>
+  <nav class="f-links" aria-label="フッターのリンク" data-i18n-aria="Footer links"><button type="button" data-go-anchor="contact" data-i18n-en="Contact">お問い合わせ</button><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><button type="button" data-go-anchor="profile" data-i18n-en="Profile">代表プロフィール</button><button type="button" data-go-anchor="apps" data-i18n-en="Applications">アプリケーション</button><button type="button" data-go-anchor="about" data-i18n-en="About this site">サイトについて</button><a href="/privacy/" data-i18n-en="Privacy Policy">プライバシーポリシー</a><a href="/terms/" data-i18n-en="Terms of Service">利用規約</a><a href="/aoi/uploader/">Aoi Uploader</a></nav>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
 </footer>
 

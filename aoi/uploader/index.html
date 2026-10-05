@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aoi Uploader (mitsulab) — 道具の紹介 ／ About the tool</title>
+<meta name="description" content="Aoi Uploader (mitsulab) は、mitsulab の作品の動画を mitsulab の YouTube チャンネル「碧」へ上げる内部の道具。YouTube API Services を使う。 Aoi Uploader is mitsulab's internal tool for uploading its own videos to its own YouTube channel.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#03060f">
+<link rel="canonical" href="https://mitsulab.jp/aoi/uploader/">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/legal.css">
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="brand" href="/">mitsulab</a>
+  <nav class="langs" aria-label="言語 / Language"><a href="#ja" lang="ja">日本語</a><a href="#en" lang="en">English</a></nav>
+</div></header>
+
+<main>
+<div class="head">
+  <span class="eyebrow">Aoi Uploader (mitsulab)</span>
+  <h1>Aoi Uploader</h1>
+  <p class="dates">道具の紹介 ／ About the tool — 2026 年 10 月 6 日 ／ October 6, 2026</p>
+</div>
+
+<!-- ===== 日本語 ===== -->
+<section id="ja" class="lang-sec" lang="ja">
+<span class="label">日本語</span>
+
+<div class="card">
+  <h2>何をする道具か</h2>
+  <p>Aoi Uploader (mitsulab) は、mitsulab がつくった動画（碧の自然落語・碧の唄の MV など）を、mitsulab の YouTube チャンネル「碧」（<a href="https://www.youtube.com/@aoi-mitsulab" rel="noopener">@aoi-mitsulab</a>）へ、決めた日に上げるための内部の道具です。mitsulab のコンピュータの上だけで動くコマンドラインの道具で、一般に公開しておらず、ほかの利用者はいません。</p>
+  <p>この道具は YouTube API Services を使います。YouTube の利用には <a href="https://www.youtube.com/t/terms" rel="noopener">YouTube 利用規約</a> が、Google による情報の扱いには <a href="https://policies.google.com/privacy" rel="noopener">Google プライバシーポリシー</a> が適用されます。</p>
+</div>
+
+<div class="card">
+  <h2>していること</h2>
+  <ul>
+    <li>用意した題・説明・タグ・言語・サムネイルをつけて、mitsulab の動画を mitsulab のチャンネルに上げる（およそ週に 1 本）。</li>
+    <li>上げた動画を、mitsulab のチャンネルの再生リストに入れる。</li>
+    <li>許可が mitsulab のチャンネルに向いていることを確かめる（チャンネルの ID を読む）。</li>
+    <li>mitsulab のチャンネルの統計（再生数など）を読み、発信をよくするために使う。</li>
+    <li>どの動画にも「改変・合成されたコンテンツ」の表示をつけ（碧は AI でつくった声と姿の案内役です）、「子ども向けではない」と申告する。説明欄には、合成音声・音楽・素材のクレジットと、事実の典拠を書く。上げる前に、クレジットと典拠の漏れを道具が確かめる。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>していないこと</h2>
+  <ul>
+    <li>YouTube の視聴者やほかのチャンネルの情報を読む・集める・保存すること。</li>
+    <li>検索・コメント・評価・登録などを自動で行うこと。</li>
+    <li>受け取った情報を第三者に提供・販売すること。広告を出すこと。</li>
+    <li>Cookie を使うこと、利用者の端末に情報を保存すること。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>求める許可（OAuth 2.0 のスコープ）と理由</h2>
+  <dl>
+    <dt><code>youtube.upload</code></dt><dd>mitsulab の動画を、mitsulab のチャンネルに上げるため。</dd>
+    <dt><code>youtube</code></dt><dd>上げた動画を mitsulab の再生リストに入れる・サムネイルをつけるため。</dd>
+    <dt><code>yt-analytics.readonly</code></dt><dd>mitsulab のチャンネルの統計（再生数など）を読むだけ。発信をよくするために使う。</dd>
+  </dl>
+  <p class="note">許可するのは、チャンネルの持ち主（mitsulab）が一度だけ。方式は、端末で動く道具のためのループバック＋ PKCE。</p>
+</div>
+
+<div class="card">
+  <h2>情報の保存・削除・取り消し</h2>
+  <ul>
+    <li>許可の鍵（OAuth の認証情報）は、mitsulab のコンピュータの macOS のキーチェーンにだけ保存します。ファイル・ソースコードの管理・記録・チャットには書きません。</li>
+    <li>YouTube API Services から受け取った情報（上げた動画の ID・統計など）は、mitsulab のコンピュータの記録にだけ置き、30 日を過ぎたら自動で消します（道具を動かすたびに確かめます）。</li>
+    <li>許可は、Google アカウントの <a href="https://myaccount.google.com/permissions" rel="noopener">https://myaccount.google.com/permissions</a> からいつでも取り消せます。</li>
+    <li>くわしくは <a href="/privacy/">プライバシーポリシー</a>・<a href="/terms/">利用規約</a>。お問い合わせは <a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a>。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>運営</h2>
+  <dl>
+    <dt>屋号</dt><dd>mitsulab</dd>
+    <dt>代表</dt><dd>上原 光瑛</dd>
+    <dt>所在地</dt><dd>埼玉県さいたま市大宮区</dd>
+    <dt>連絡先</dt><dd><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></dd>
+    <dt>サイト</dt><dd><a href="/">https://mitsulab.jp</a></dd>
+  </dl>
+</div>
+</section>
+
+<!-- ===== English ===== -->
+<section id="en" class="lang-sec en" lang="en">
+<span class="label">English</span>
+
+<div class="card">
+  <h2>What it is</h2>
+  <p>Aoi Uploader (mitsulab) is mitsulab's internal tool for uploading videos made by mitsulab (Aoi's nature rakugo, Aoi's music videos and similar works) to mitsulab's own YouTube channel, Aoi (<a href="https://www.youtube.com/@aoi-mitsulab" rel="noopener">@aoi-mitsulab</a>), on scheduled dates. It is a command-line tool that runs only on mitsulab's own computer. It is not publicly available and has no other users.</p>
+  <p>Aoi Uploader uses the YouTube API Services. Use of YouTube is subject to the <a href="https://www.youtube.com/t/terms" rel="noopener">YouTube Terms of Service</a>, and Google's handling of information is described in the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>.</p>
+</div>
+
+<div class="card">
+  <h2>What it does</h2>
+  <ul>
+    <li>Uploads mitsulab's videos to mitsulab's channel with the prepared title, description, tags, language and thumbnail (about one video per week).</li>
+    <li>Adds each uploaded video to one of mitsulab's own playlists.</li>
+    <li>Confirms that the authorization points to mitsulab's channel (reads the channel ID).</li>
+    <li>Reads mitsulab's own channel statistics (such as views) to improve how we publish.</li>
+    <li>Marks every upload as altered or synthetic content (Aoi is a guide character whose voice and figure are made with AI technology) and as not made for kids. Descriptions credit synthetic voices, music and third-party assets and cite sources for factual claims; the tool checks these before uploading.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>What it does not do</h2>
+  <ul>
+    <li>Read, collect or store information about YouTube viewers or other channels.</li>
+    <li>Search, comment, rate or subscribe automatically.</li>
+    <li>Share or sell any information to third parties, or show ads.</li>
+    <li>Use cookies or store information on users' devices.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>OAuth 2.0 scopes requested, and why</h2>
+  <dl>
+    <dt><code>youtube.upload</code></dt><dd>To upload mitsulab's videos to mitsulab's channel.</dd>
+    <dt><code>youtube</code></dt><dd>To add our uploads to our own playlists and set thumbnails.</dd>
+    <dt><code>yt-analytics.readonly</code></dt><dd>Read-only access to our own channel's statistics (such as views), used to improve how we publish.</dd>
+  </dl>
+  <p class="note">Authorization is granted once, by the channel owner (mitsulab) only, using the loopback flow with PKCE for installed applications.</p>
+</div>
+
+<div class="card">
+  <h2>Storage, deletion and revocation</h2>
+  <ul>
+    <li>OAuth credentials are stored only in the macOS Keychain on mitsulab's computer — never in files, source control, logs or chat.</li>
+    <li>Data obtained from the YouTube API Services (such as the IDs of our uploads and statistics) is kept only in a local log on mitsulab's computer and is deleted automatically after 30 days (checked every time the tool runs).</li>
+    <li>Access can be revoked at any time at <a href="https://myaccount.google.com/permissions" rel="noopener">https://myaccount.google.com/permissions</a>.</li>
+    <li>See also our <a href="/privacy/#en">Privacy Policy</a> and <a href="/terms/#en">Terms of Service</a>. Contact: <a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a>.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Operator</h2>
+  <dl>
+    <dt>Business name</dt><dd>mitsulab</dd>
+    <dt>Representative</dt><dd>Mitsuaki Uehara</dd>
+    <dt>Location</dt><dd>Omiya-ku, Saitama City, Saitama, Japan</dd>
+    <dt>Contact</dt><dd><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></dd>
+    <dt>Website</dt><dd><a href="/">https://mitsulab.jp</a></dd>
+  </dl>
+</div>
+</section>
+</main>
+
+<footer>
+  <div class="f-brand">mitsulab</div>
+  <nav class="f-links" aria-label="フッターのリンク / Footer links">
+    <a href="/">トップ / Top</a>
+    <a href="/#about">サイトについて / About this site</a>
+    <a href="/privacy/">プライバシーポリシー / Privacy</a>
+    <a href="/terms/">利用規約 / Terms</a>
+    <a href="/aoi/uploader/">Aoi Uploader</a>
+    <a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a>
+  </nav>
+  <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
+</footer>
+</body>
+</html>
