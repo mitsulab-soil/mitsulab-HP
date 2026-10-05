@@ -1809,25 +1809,32 @@ async function start(){
       photo.colorSpace=THREE.SRGBColorSpace;
       tg.scene.traverse(o=>{ if(o.isMesh){ if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); o.material=new THREE.MeshStandardMaterial({map:photo,roughness:1,metalness:0,transparent:true,opacity:0}); worldMats.push(o.material); } });
       bg.scene.traverse(o=>{ if(o.isMesh){ if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); o.material=new THREE.MeshStandardMaterial({color:0xffffff,vertexColors:!!o.geometry.attributes.color,flatShading:true,roughness:.9,metalness:0,transparent:true,opacity:0}); worldMats.push(o.material); } });
-      world.add(tg.scene,bg.scene);
+      const chunk=(root,n)=>{ const out=[]; root.updateMatrixWorld(true); root.traverse(o=>{ if(!o.isMesh||!o.geometry.index) return; const g=o.geometry, P=g.attributes.position, I=g.index.array, M=o.matrixWorld, v=new THREE.Vector3();
+          const zs=new Float32Array(I.length/3); let z0=1e9,z1=-1e9; for(let t=0;t<zs.length;t++){ let z=0; for(let j=0;j<3;j++){ v.fromBufferAttribute(P,I[3*t+j]).applyMatrix4(M); z+=v.z; } zs[t]=z/3; if(zs[t]<z0) z0=zs[t]; if(zs[t]>z1) z1=zs[t]; }
+          const bins=Array.from({length:n},()=>[]); for(let t=0;t<zs.length;t++){ const b=Math.min(n-1,Math.floor((zs[t]-z0)/(z1-z0+1e-6)*n)); bins[b].push(I[3*t],I[3*t+1],I[3*t+2]); }
+          bins.forEach(ix=>{ if(!ix.length) return; const ng=new THREE.BufferGeometry(); for(const k in g.attributes) ng.setAttribute(k,g.attributes[k]); ng.setIndex(ix);
+            const bx=new THREE.Box3(); for(let j=0;j<ix.length;j++) bx.expandByPoint(v.fromBufferAttribute(P,ix[j])); ng.boundingBox=bx; ng.boundingSphere=bx.getBoundingSphere(new THREE.Sphere());
+            const m=new THREE.Mesh(ng,o.material); m.matrixAutoUpdate=false; m.matrix.copy(M); m.matrixWorld.copy(M); out.push(m); }); });
+        const G=new THREE.Group(); out.forEach(m=>G.add(m)); return G; };
+      world.add(chunk(tg.scene,16),chunk(bg.scene,24));   // 南北に区画を分ける（参道は南北に長いので）
       // 欅：型を参道の木の位置に並べる（並木は模式の位置を含む）
       const proto=[]; kg.scene.updateMatrixWorld(true); kg.scene.traverse(o=>{ if(o.isMesh) proto.push(o); });
       const box=new THREE.Box3().setFromObject(kg.scene), hh=box.max.y-box.min.y||1;
-      proto.forEach(pm=>{ const mat=new THREE.MeshStandardMaterial({color:/leaf|葉|crown/i.test(pm.material.name||pm.name)?0x4f7a3c:0x5a4636,roughness:.95,transparent:true,opacity:0,side:THREE.DoubleSide}); xfade(mat,true); worldMats.push(mat);
-        const TR=meta.trees.filter(([x,y,z])=>Math.hypot(x-AO.x,z-AO.z)<LOD_NEAR+LOD_BAND);   // 近く：欅の型そのもの（LOD0）
+      proto.forEach(pm=>[[0,LOD_NEAR-LOD_BAND,false],[LOD_NEAR-LOD_BAND,LOD_NEAR+LOD_BAND,true]].forEach(([r0,r1,band])=>{ const mat=new THREE.MeshStandardMaterial({color:/leaf|葉|crown/i.test(pm.material.name||pm.name)?0x4f7a3c:0x5a4636,roughness:.95,transparent:true,opacity:0,side:THREE.DoubleSide}); if(band) xfade(mat,true); worldMats.push(mat);
+        const TR=meta.trees.filter(([x,y,z])=>{ const d=Math.hypot(x-AO.x,z-AO.z); return d>=r0&&d<r1; });   // 近く：欅の型そのもの（LOD0）。帯の中だけ混ぜる
         const im=new THREE.InstancedMesh(pm.geometry,mat,TR.length), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(), ps=new THREE.Vector3();
         TR.forEach(([x,y,z],i)=>{ const s=(15+(i*37%9))/hh; q.setFromAxisAngle(new THREE.Vector3(0,1,0),i*2.39); sc.setScalar(s); ps.set(x,y-box.min.y*s,z); m4.compose(ps,q,sc).multiply(pm.matrixWorld); im.setMatrixAt(i,m4); });
-        world.add(im); });
+        im.computeBoundingSphere(); world.add(im); }));
       // 中・遠の木（Unity の LOD と同じ考え）：距離で型を替える。中＝幹と三つの樹冠のかたまり（約 90 面）、遠＝幹と一つの樹冠（約 30 面）。色は頂点の色で、描く回数は二回だけ
       const lowTree=(k)=>{ const parts=[], col=(g,c)=>{ const n=g.attributes.position.count, a=new Float32Array(n*3), C=new THREE.Color(c); for(let i=0;i<n;i++){ a[3*i]=C.r; a[3*i+1]=C.g; a[3*i+2]=C.b; } g.setAttribute('color',new THREE.BufferAttribute(a,3)); return g; };
         const tr=new THREE.CylinderGeometry(.25,.45,7,k?5:4,1,true); tr.translate(0,3.5,0); parts.push(col(tr,0x5a4636));
         const blobs=k?[[0,11.6,0,4.6],[-2.8,10,1.3,3.6],[2.7,10.2,-1.2,3.7],[1.1,9.4,2.8,3.3],[-1.4,9.6,-2.8,3.4]]:[[0,10.5,0,6]];
-        blobs.forEach(([x,y,z,r])=>{ const g=new THREE.IcosahedronGeometry(1,k?1:0); g.scale(r,r*.82,r); g.translate(x,y,z); parts.push(col(g,0x4f7a3c)); });
+        blobs.forEach(([x,y,z,r])=>{ const g=new THREE.IcosahedronGeometry(1,0); g.scale(r,r*.82,r); g.translate(x,y,z); parts.push(col(g,0x4f7a3c)); });
         const G=mergeGeometries(parts.map(g=>g.index?g.toNonIndexed():g)); G.computeVertexNormals(); return G; };
-      [[LOD_NEAR-LOD_BAND,LOD_MID,1],[LOD_MID,1e9,0]].forEach(([r0,r1,k])=>{ const T=meta.trees.filter(([x,y,z])=>{ const d=Math.hypot(x-AO.x,z-AO.z); return d>=r0&&d<r1; });
-        const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,flatShading:!k,transparent:true,opacity:0}); if(k) xfade(mat,false); worldMats.push(mat);
+      [[LOD_NEAR-LOD_BAND,LOD_NEAR+LOD_BAND,1,true],[LOD_NEAR+LOD_BAND,LOD_MID,1,false],[LOD_MID,1e9,0,false]].forEach(([r0,r1,k,band])=>{ const T=meta.trees.filter(([x,y,z])=>{ const d=Math.hypot(x-AO.x,z-AO.z); return d>=r0&&d<r1; });
+        const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,flatShading:!k,transparent:true,opacity:0}); if(band) xfade(mat,false); worldMats.push(mat);
         const im=new THREE.InstancedMesh(lowTree(k),mat,T.length), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(), ps=new THREE.Vector3(), up=new THREE.Vector3(0,1,0);
-        T.forEach(([x,y,z],i)=>{ const s=(15+(i*37%9))/16; q.setFromAxisAngle(up,i*2.39); sc.setScalar(s); ps.set(x,y,z); m4.compose(ps,q,sc); im.setMatrixAt(i,m4); }); world.add(im); });
+        T.forEach(([x,y,z],i)=>{ const s=(15+(i*37%9))/16; q.setFromAxisAngle(up,i*2.39); sc.setScalar(s); ps.set(x,y,z); m4.compose(ps,q,sc); im.setMatrixAt(i,m4); }); im.computeBoundingSphere(); world.add(im); });
       const [rg,sg,pg2,place]=await Promise.all([L.loadAsync('img/hero/3d/road.glb'),L.loadAsync('img/hero/3d/structures.glb'),L.loadAsync('img/hero/3d/props.glb'),fetch('img/hero/3d/place.json').then(r=>r.json())]);
       const RC={asphalt_dark:0x3c3f42,asphalt_light:0x66696b,bed:0x3d3226,concrete:0xa29f98,granite_band:0x8c8c88,granite_black:0x4a4a4a,granite_light:0xa8a6a0,granite_plaza:0x9a9893,gravel:0xbdb5a5,lawn:0x5b7a3e,paint:0xe6e4dc,roots:0x4a3b2b,sand:0xc6b694,sidewalk:0x9d988f,stone:0x88847d,washed:0xa59d8f};
       rg.scene.traverse(o=>{ if(o.isMesh){ const k=(o.material&&o.material.name)||o.name.split('|')[0]; if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); o.material=new THREE.MeshStandardMaterial({color:RC[k]??0x8a8780,roughness:1,metalness:0,transparent:true,opacity:0,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}); worldMats.push(o.material); } });
