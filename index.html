@@ -24,15 +24,21 @@
 <meta property="og:site_name" content="mitsulab">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:title" content="mitsulab — 認知拡張。自然と世界を、より深く。">
-<meta property="og:description" content="認知拡張。自然と世界を、より深く。Qualium と碧を通して、人と自然と機械の認知空間をつなぐ。">
+<meta property="og:description" content="認知拡張。自然と世界を、より深く。Qualium と碧を通して、人と自然と機械の認知空間をつなぐ。 — A small lab in Saitama, Japan, making browser apps and 3D that widen how we sense nature.">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:locale:alternate" content="en_US">
+<link rel="alternate" hreflang="ja" href="https://mitsulab.jp/?lang=ja">
+<link rel="alternate" hreflang="en" href="https://mitsulab.jp/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://mitsulab.jp/">
 <meta property="og:image" content="https://mitsulab.jp/img/ftw/hero_hikawa_960.webp">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Shippori+Mincho:wght@600&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Shippori+Mincho:wght@600&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Shippori+Mincho:wght@600&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet"></noscript>
 <script>document.documentElement.classList.add('js');</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
-<script>try{var _l=localStorage.getItem('hp-lang');if(_l==='en'||_l==='ja')document.documentElement.setAttribute('data-lang',_l);}catch(e){}</script>
+<script>/* 言語：?lang=en|ja ＞ 前回の選択 ＞ ブラウザの言語（英語なら EN） */(function(){var _l=null;try{var m=/[?&]lang=(en|ja)\b/.exec(location.search);if(m)_l=m[1];if(!_l)_l=localStorage.getItem('hp-lang');}catch(e){}if(_l!=='en'&&_l!=='ja'){var n=(navigator.languages&&navigator.languages[0])||navigator.language||'';_l=/^en\b/i.test(n)?'en':null;}if(_l)document.documentElement.setAttribute('data-lang',_l);})();</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
  {"@type":"Organization","@id":"https://mitsulab.jp/#org","name":"mitsulab","url":"https://mitsulab.jp/","email":"official@mitsulab.jp","founder":{"@id":"https://mitsulab.jp/#founder"},"address":{"@type":"PostalAddress","addressLocality":"さいたま市大宮区","addressRegion":"埼玉県","addressCountry":"JP"},"sameAs":["https://github.com/mitsulab-soil"]},
@@ -597,6 +603,25 @@ html:not(.js) .scene-cv,html:not(.js) .scene-labs{display:none}
 .scene-static .scene-credit,html:not(.js) .scene-credit{position:static;margin-top:10px}
 .scene-static .beat-end,html:not(.js) .beat-end{text-align:center}
 
+/* 2026-10-06 検証 r1 の反映 */
+.core-plain{max-width:34em;margin:0 auto 16px;font-size:clamp(.86rem,2.4vw,.98rem);line-height:1.8;color:#dbe6f2;letter-spacing:.04em}
+html[lang="en"] .core-plain{letter-spacing:0}
+.hero-go{margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;pointer-events:auto}
+.hgo{pointer-events:auto;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(160,240,246,.45);background:rgba(3,6,15,.55);color:#eaf6fb;font:500 .86rem/1 var(--sans);letter-spacing:.08em;cursor:pointer;transition:border-color .25s,background .25s}
+.hgo:hover,.hgo:focus-visible{border-color:rgba(160,240,246,.9);background:rgba(92,200,224,.12)}
+.beat:not(.on) .hgo{pointer-events:none}
+.beat-l,.beat-r{word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.msn-def{margin-top:14px;font-size:clamp(.82rem,2.3vw,.92rem);line-height:1.8;color:var(--ink-2);max-width:40em}
+.msn-def .qn{color:var(--aoi)}
+.card.ask{max-width:760px;margin:0 auto}
+.ask-base,.ask-first{margin-top:12px;font-size:.88rem;line-height:1.8;color:var(--ink-2)}
+footer .f-links{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 18px;margin:0 auto 14px}
+footer .f-links a,footer .f-links button{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;background:none;border:0;color:var(--aoi);font:500 .86rem/1 var(--sans);letter-spacing:.04em;cursor:pointer;text-decoration:none}
+footer .f-links a:hover,footer .f-links button:hover{text-decoration:underline}
+.scene-credit{font-size:.75rem}
+.seg-btn{font-size:.75rem}
+.seg-btn::after{content:"";position:absolute;inset:-10px -2px}
+.fn-card{opacity:.5;filter:none}
 /* コンセプト（短く） */
 .cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:34px;max-width:1040px;margin:0 auto}
 @media (max-width:860px){.cgrid{grid-template-columns:1fr;gap:26px}}
@@ -877,12 +902,12 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
   <div class="tab-nav-inner">
     <button type="button" class="brand" data-go="top" aria-label="mitsulab トップへ">mitsulab</button>
     <div class="tab-buttons" role="tablist">
-      <button class="tab-btn" role="tab" data-tab="top"><span class="tb-ja">mitsulab</span><span class="tb-en">Top</span></button>
-      <button class="tab-btn" role="tab" data-tab="aoi"><span class="tb-ja" data-i18n-en="Aoi">碧</span><span class="tb-en">Aoi</span></button>
-      <button class="tab-btn" role="tab" data-tab="qualium"><span class="tb-ja">Qualium</span><span class="tb-en">Qualium</span></button>
-      <button class="tab-btn" role="tab" data-tab="apps"><span class="tb-ja" data-i18n-en="Applications">アプリケーション</span><span class="tb-en">Apps</span></button>
-      <button class="tab-btn" role="tab" data-tab="profile"><span class="tb-ja" data-i18n-en="Profile">代表プロフィール</span><span class="tb-en">Profile</span></button>
-      <button class="tab-btn" role="tab" data-tab="contact"><span class="tb-ja" data-i18n-en="Contact">お問い合わせ</span><span class="tb-en">Contact</span></button>
+      <button class="tab-btn" role="tab" data-tab="top"><span class="tb-ja">mitsulab</span><span class="tb-en" aria-hidden="true">Top</span></button>
+      <button class="tab-btn" role="tab" data-tab="aoi"><span class="tb-ja" data-i18n-en="Aoi">碧</span><span class="tb-en" aria-hidden="true">Aoi</span></button>
+      <button class="tab-btn" role="tab" data-tab="qualium"><span class="tb-ja">Qualium</span><span class="tb-en" aria-hidden="true">Qualium</span></button>
+      <button class="tab-btn" role="tab" data-tab="apps"><span class="tb-ja" data-i18n-en="Applications">アプリケーション</span><span class="tb-en" aria-hidden="true">Apps</span></button>
+      <button class="tab-btn" role="tab" data-tab="profile"><span class="tb-ja" data-i18n-en="Profile">代表プロフィール</span><span class="tb-en" aria-hidden="true">Profile</span></button>
+      <button class="tab-btn" role="tab" data-tab="contact"><span class="tb-ja" data-i18n-en="Contact">お問い合わせ</span><span class="tb-en" aria-hidden="true">Contact</span></button>
     </div>
     <div class="ui-switch" role="group" aria-label="言語切り替え">
       <div class="seg">
@@ -902,12 +927,12 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
   <div class="tab-menu-inner">
     <div class="tab-menu-label">Index</div>
     <ul class="tab-menu-list">
-      <li><button class="tab-menu-leaf" data-tab="top"><span class="leaf-ja">mitsulab</span><span class="leaf-en">Top</span></button></li>
-      <li><button class="tab-menu-leaf" data-tab="aoi"><span class="leaf-ja" data-i18n-en="Aoi">碧</span><span class="leaf-en">Aoi</span></button></li>
-      <li><button class="tab-menu-leaf" data-tab="qualium"><span class="leaf-ja">Qualium</span><span class="leaf-en">Qualium</span></button></li>
-      <li><button class="tab-menu-leaf" data-tab="apps"><span class="leaf-ja" data-i18n-en="Applications">アプリケーション</span><span class="leaf-en">Apps</span></button></li>
-      <li><button class="tab-menu-leaf" data-tab="profile"><span class="leaf-ja" data-i18n-en="Profile">代表プロフィール</span><span class="leaf-en">Profile</span></button></li>
-      <li><button class="tab-menu-leaf" data-tab="contact"><span class="leaf-ja" data-i18n-en="Contact">お問い合わせ</span><span class="leaf-en">Contact</span></button></li>
+      <li><button class="tab-menu-leaf" data-tab="top"><span class="leaf-ja">mitsulab</span><span class="leaf-en" aria-hidden="true">Top</span></button></li>
+      <li><button class="tab-menu-leaf" data-tab="aoi"><span class="leaf-ja" data-i18n-en="Aoi">碧</span><span class="leaf-en" aria-hidden="true">Aoi</span></button></li>
+      <li><button class="tab-menu-leaf" data-tab="qualium"><span class="leaf-ja">Qualium</span><span class="leaf-en" aria-hidden="true">Qualium</span></button></li>
+      <li><button class="tab-menu-leaf" data-tab="apps"><span class="leaf-ja" data-i18n-en="Applications">アプリケーション</span><span class="leaf-en" aria-hidden="true">Apps</span></button></li>
+      <li><button class="tab-menu-leaf" data-tab="profile"><span class="leaf-ja" data-i18n-en="Profile">代表プロフィール</span><span class="leaf-en" aria-hidden="true">Profile</span></button></li>
+      <li><button class="tab-menu-leaf" data-tab="contact"><span class="leaf-ja" data-i18n-en="Contact">お問い合わせ</span><span class="leaf-en" aria-hidden="true">Contact</span></button></li>
     </ul>
     <p class="tab-menu-mail"><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></p>
   </div>
@@ -918,7 +943,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
 <!-- ┌─ mitsulab（2026-10-04 v3・本人指示）：画面いっぱい・枠なしの場面（氷川参道の 3D を線で・碧が立つ・多次元の層が重なる）→ 使命 → 碧／Qualium／アプリケーションへの入口 → アプリの案内。
      詳しいことは、それぞれのタブのページへ。場面のしくみは script の「mitsulab の没入の場面 v3」。 ── -->
 <section id="top" class="tab-panel" data-panel="top" aria-label="mitsulab">
-<h1 class="vh" id="coreH1">mitsulab — 認知拡張。自然と世界を、より深く。Qualium と碧を通して、人と自然と機械の認知空間をつなぐ。</h1>
+<h1 class="vh" id="coreH1" data-i18n-en="mitsulab — Cognitive augmentation. Nature and the world, more deeply. Through Qualium and Aoi, linking the cognitive spaces of people, nature and machines.">mitsulab — 認知拡張。自然と世界を、より深く。Qualium と碧を通して、人と自然と機械の認知空間をつなぐ。</h1>
 
 <div id="why" class="scene" aria-label="氷川参道の空間の場面" data-i18n-aria="A scene in the space of the Hikawa approach">
   <div class="scene-sticky">
@@ -940,7 +965,9 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       <div class="beat beat-hero" data-beat data-a="0" data-b=".07">
         <span class="eyebrow">mitsulab</span>
         <p class="core" id="core">認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span></p>
+        <p class="core-plain" data-i18n-en="mitsulab is a small lab in Saitama, Japan. Starting from the Hikawa approach, it makes apps and 3D that widen how we sense nature — all open in the browser.">mitsulab は、さいたま市の氷川参道を最初の舞台に、<span class="nw">自然の感じ方を広げる</span>アプリと 3D をつくる小さな研究所です。<span class="nw">どれもブラウザで開けます。</span></p>
         <p class="scene-hint" data-i18n-en="Scroll — into the Hikawa approach">スクロールで、<span class="nw">氷川参道の中へ</span></p>
+        <p class="hero-go"><button type="button" class="hgo" data-go-anchor="mission"><span data-i18n-en="Skip to what we do">中身へ</span> <span aria-hidden="true">↓</span></button><button type="button" class="hgo" data-go-anchor="askTop"><span data-i18n-en="Work with us">相談する</span> <span aria-hidden="true">→</span></button></p>
       </div>
       <div class="beat beat-mission" data-beat data-a=".08" data-b=".18">
         <p class="mission" data-i18n-en="Through Qualium and Aoi,<br>linking the cognitive spaces<br>of people, nature and machines.">Qualium と碧を通して、<br>人と自然と機械の<br><span class="nw">認知空間をつなぐ。</span></p>
@@ -956,8 +983,8 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       </div>
     </div>
   </div>
-  <p class="scene-credit scene-credit-out" data-i18n-en="The Hikawa approach in 3D from Aoi Walk: Hikawa — contours from GSI elevation; buildings: MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements: © OpenStreetMap contributors; observation positions: iNaturalist. Tree shapes, the data lattice and particles of light are schematic.">《Aoi Walk 氷川》の氷川参道の 3D から：等高線＝国土地理院の標高／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors／観察記録の位置＝iNaturalist。木の形・上空の格子・光の粒は模式。</p>
 </div>
+  <p class="scene-credit scene-credit-out" data-i18n-en="The Hikawa approach in 3D from Aoi Walk: Hikawa — contours from GSI elevation; buildings: MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements: © OpenStreetMap contributors; observation positions: iNaturalist. Tree shapes, the data lattice and particles of light are schematic.">《Aoi Walk 氷川》の氷川参道の 3D から：等高線＝国土地理院の標高／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors／観察記録の位置＝iNaturalist。木の形・上空の格子・光の粒は模式。</p>
 
 <div class="wrap">
   <!-- 使命（図で） -->
@@ -973,6 +1000,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
         <h2 class="msn-h" id="missionH" data-i18n-en="<span class='ln'>Through Qualium and Aoi,</span><span class='ln'>linking the cognitive spaces</span><span class='ln'>of people, nature and machines.</span>"><span class="ln">Qualium と碧を通して、</span><span class="ln">人と自然と機械の</span><span class="ln">認知空間をつなぐ。</span></h2>
         <p class="msn-sub" data-i18n-en="<span class='ln ln-a'>From internet space,</span><span class='ln ln-b'>into real space.</span>"><span class="ln ln-a">インターネット空間から、</span><span class="ln ln-b">現実空間へ。</span></p>
         <p class="msn-foot" data-i18n-en="<span class='qn'>Qualium</span> — the world where the cognitive spaces of people, nature and machines connect.<br>mitsulab is a lab that makes the places, tools and systems for it."><span class="qn">Qualium</span> ── 人と自然と機械の認知空間が、つながる世界。<br>そのための場・道具・仕組みをつくる研究所です。</p>
+        <p class="msn-def" data-i18n-en="<span class='qn'>Cognitive augmentation</span> — widening how the world is put together for us: what we tell apart, what we link it to, what matters, over what span of time, and how we can take part. It works through words, information, memory, and models of other living things and machines. Perceptual augmentation is its entrance. It does not promise better abilities."><span class="qn">認知拡張</span> ── 世界が何として見分けられ、何と結びつき、何が大切で、どの時間の幅で、どう関われるか。その組み立てを、言葉・情報・記憶、ほかの生きものや機械のモデルを使って広げること。知覚拡張はその入口です。能力が上がることを約束するものではありません。</p>
       </div>
     </div>
   </section>
@@ -983,7 +1011,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       <p class="block-lead" data-i18n-en="People, nature, information, culture, history. One place holds many layers; Aoi moves between them and links them for you.">人・自然・情報・文化・歴史。ひとつの場所に重なる層のあいだを、碧が行き来して、人へつなぎます。</p></div>
     <div class="al" id="alFigTop">
       <canvas class="al-cv" aria-hidden="true"></canvas>
-      <img class="al-aoi" src="img/ftw/aoi_portrait_480.webp" alt="" width="480" height="614" loading="lazy">
+      <img class="al-aoi" src="img/ftw/aoi_portrait_480.webp" alt="碧の立ち姿。まわりを人・自然・情報・文化・歴史の層がめぐる" data-i18n-alt="Aoi standing, with the layers of people, nature, information, culture and history around her" width="480" height="614" loading="lazy">
       <span class="al-l" data-k="0" data-i18n-en="People">人</span><span class="al-l" data-k="1" data-i18n-en="Nature">自然</span><span class="al-l" data-k="2" data-i18n-en="Information">情報</span><span class="al-l" data-k="3" data-i18n-en="Culture">文化</span><span class="al-l" data-k="4" data-i18n-en="History">歴史</span>
     </div>
     <ul class="al-list">
@@ -1004,6 +1032,21 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       <li><a href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><video class="sv" muted playsinline loop preload="none" poster="img/apps/vid/shinra_poster.webp" data-v="img/apps/vid/shinra" width="640" height="400" aria-label="森羅百景の総目録の画面（動画）" data-i18n-aria="Shinra Hyakkei catalogue (video)"></video><span class="sn" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="sd" data-i18n-en="Everyday nature, with sources">身近な自然を、典拠つきで</span><span class="arr">↗</span></a></li>
       <li><a href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><video class="sv" muted playsinline loop preload="none" poster="img/apps/vid/rakugo_poster.webp" data-v="img/apps/vid/rakugo" width="640" height="400" aria-label="碧の自然落語の画面（動画）" data-i18n-aria="Aoi's nature rakugo (video)"></video><span class="sn" data-i18n-en="The Weight of a Keyaki">《欅の目方》</span><span class="sd" data-i18n-en="Aoi's nature rakugo">碧の自然落語</span><span class="arr">↗</span></a></li>
     </ul>
+  </section>
+
+  <!-- 相談の入口（2026-10-06 検証 r1：協働相手・英語話者・スマホの検証役の声で TOP にも置く。中身はお問い合わせタブと同じ） -->
+  <section id="askTop" class="block" aria-labelledby="askTopH">
+    <div class="block-head"><span class="eyebrow">Work with us</span><h2 class="panel-title" id="askTopH" data-i18n-en="What you can ask us">ご相談いただけること</h2></div>
+    <div class="card ask">
+      <ul class="list">
+        <li data-i18n-en="Making places into 3D, and observation apps (technical cooperation)">場所の 3D 化・観察のアプリ（技術協力）</li>
+        <li data-i18n-en="Lectures and training">講演・研修</li>
+        <li data-i18n-en="Trials in school lessons or at your facility">学校の授業や施設での試行</li>
+        <li data-i18n-en="Joint research, and artworks and exhibitions">共同研究、作品制作・展示</li>
+      </ul>
+      <p class="ask-base" data-i18n-en="Groundwork: about eight years as a civil engineer at the Saitama Prefectural Government (disaster recovery and construction supervision of roads, slopes, bridges and parks), and the FY2024 Zenken Award (Disaster category, Urban division).">土台は、埼玉県庁の土木技術職としての約 8 年（道路・斜面・橋梁・公園の災害復旧と施工監理など）と、令和 6 年度 全建賞（災害枠・都市部門）。</p>
+      <div class="btns"><button type="button" class="btn primary" data-go-anchor="contact"><span data-i18n-en="Contact">お問い合わせ</span> <span class="arr">→</span></button><a class="btn" href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><button type="button" class="btn" data-go-anchor="profile"><span data-i18n-en="Profile">代表プロフィール</span> <span class="arr">→</span></button></div>
+    </div>
   </section>
 </div>
 </section>
@@ -1046,7 +1089,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       <p class="block-lead" data-i18n-en="People, nature, information, culture, history. One place holds many layers; Aoi moves between them and links them for you.">人・自然・情報・文化・歴史。ひとつの場所に重なる層のあいだを、碧が行き来して、人へつなぎます。</p></div>
     <div class="al" id="alFig">
       <canvas class="al-cv" aria-hidden="true"></canvas>
-      <img class="al-aoi" src="img/ftw/aoi_portrait_480.webp" alt="" width="480" height="614" loading="lazy">
+      <img class="al-aoi" src="img/ftw/aoi_portrait_480.webp" alt="碧の立ち姿。まわりを人・自然・情報・文化・歴史の層がめぐる" data-i18n-alt="Aoi standing, with the layers of people, nature, information, culture and history around her" width="480" height="614" loading="lazy">
       <span class="al-l" data-k="0" data-i18n-en="People">人</span><span class="al-l" data-k="1" data-i18n-en="Nature">自然</span><span class="al-l" data-k="2" data-i18n-en="Information">情報</span><span class="al-l" data-k="3" data-i18n-en="Culture">文化</span><span class="al-l" data-k="4" data-i18n-en="History">歴史</span>
     </div>
     <ul class="al-list">
@@ -1108,7 +1151,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
   <div class="panel-head q-head">
     <span class="eyebrow">Qualium</span>
     <h2 class="panel-title">Qualium<span class="q-yomi">クオリウム</span></h2>
-    <p class="block-lead" data-i18n-en="The place and system where, through Aoi, the cognitive spaces of people, nature and machines connect. (-ium: a place)">碧を介して、人と自然と機械の認知空間がつながる場と仕組み。<span class="nw">（-ium＝場）</span></p>
+    <p class="block-lead" data-i18n-en="The place and system where, through Aoi, the cognitive spaces of people, nature and machines connect. (A word coined by mitsulab: Qualia + -ium.)">碧を介して、人と自然と機械の認知空間がつながる場と仕組み。<span class="nw">（Qualia に -ium を重ねた、mitsulab の造語）</span></p>
   </div>
   <!-- 五つの段の輪：光が段を一巡し、段ごとに小さな動きと、そこを受け持つアプリ -->
   <div class="loop" id="qLoop">
@@ -1239,6 +1282,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
       <li data-i18n-en="Trials in school lessons or at your facility">学校の授業や施設での試行</li>
       <li data-i18n-en="Lectures and training, and technical cooperation such as making places into 3D">講演・研修、場所の 3D 化などの技術協力</li>
     </ul>
+    <p class="ask-first" data-i18n-en="In your first email, it helps to include: your organisation, the place, the timing, any data you would like to use, and whether there is a budget.">最初のメールに、所属・場所・時期・使いたいデータ・予算の有無を書いていただけると、話が早く進みます。</p>
     <div class="btns">
       <a class="btn primary" href="mailto:official@mitsulab.jp">official@mitsulab.jp</a>
       <a class="btn" href="https://github.com/mitsulab-soil" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a>
@@ -1254,6 +1298,7 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
   <div class="f-brand">mitsulab</div>
   <div class="f-tag" data-i18n-en="Cognitive augmentation. Nature and the world, more deeply.">認知拡張。自然と世界を、より深く。</div>
   <p class="f-credit" data-i18n-en="The 3D of the Hikawa approach is from mitsulab's Aoi Walk: Hikawa — contours from GSI elevation; buildings from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements © OpenStreetMap contributors (ODbL); observation positions from iNaturalist. Tree shapes, the data lattice and particles of light are schematic. Images are screens of mitsulab's works. Aoi's voice in Aoi Walk: Hikawa — VOICEVOX: Meimei Himari.">氷川参道の 3D は mitsulab の《Aoi Walk 氷川》から：等高線＝国土地理院の標高／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors（ODbL）／観察記録の位置＝iNaturalist。木の形・上空の格子・光の粒は模式です。図版は mitsulab の作品の画面。《Aoi Walk 氷川》の碧の声＝VOICEVOX：冥鳴ひまり。</p>
+  <nav class="f-links" aria-label="フッターのリンク" data-i18n-aria="Footer links"><button type="button" data-go-anchor="contact" data-i18n-en="Contact">お問い合わせ</button><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><button type="button" data-go-anchor="profile" data-i18n-en="Profile">代表プロフィール</button><button type="button" data-go-anchor="apps" data-i18n-en="Applications">アプリケーション</button></nav>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
 </footer>
 
@@ -1477,17 +1522,17 @@ var TERMS = {
   var en=function(){ return document.documentElement.getAttribute('data-lang')==='en'; };
   // 使命：一文字ずつ現れる（言語を切り替えたら組み直す）
   function splitMission(){ document.querySelectorAll('.mission').forEach(function(el){ var i=0;
-    (function walk(n){ [].slice.call(n.childNodes).forEach(function(c){ if(c.nodeType===3){ var f=document.createDocumentFragment(); c.textContent.split('').forEach(function(ch){ var s=document.createElement('span'); s.className='ch'; s.textContent=ch; s.style.transitionDelay=(reduce?0:(i++*0.045))+'s'; f.appendChild(s); }); n.replaceChild(f,c); } else if(c.nodeType===1&&c.tagName!=='BR'&&!c.classList.contains('ch')) walk(c); }); })(el); }); }
+    (function walk(n){ [].slice.call(n.childNodes).forEach(function(c){ if(c.nodeType===3){ var f=document.createDocumentFragment(); c.textContent.split('').forEach(function(ch){ if(/\s/.test(ch)){ f.appendChild(document.createTextNode(ch)); return; } var s=document.createElement('span'); s.className='ch'; s.textContent=ch; s.style.transitionDelay=(reduce?0:(i++*0.045))+'s'; f.appendChild(s); }); n.replaceChild(f,c); } else if(c.nodeType===1&&c.tagName!=='BR'&&!c.classList.contains('ch')) walk(c); }); })(el); }); }
   splitMission(); document.addEventListener('hp-lang-change',function(){ setTimeout(splitMission,0); });
 
   // 依代たち：七つ。例は設計の例（構想中）。話すのは碧だけ
   var YR=[
-    {j:'木',e:'Tree',sj:'欅',se:'keyaki',say:['欅の記録では、年輪と樹高の典拠から、およその年数を幅つきで出せます。木そのものは測っていません。','From the keyaki records, the rings and height in written sources give its age as a range. The tree itself was not measured.'],
-     tag:[['年輪・樹高の典拠','written sources on rings and height'],['3D の形と言葉','3D form and words'],['〔算〕幅つき','[calc] as a range'],['水を吸い上げる感じそのもの','how it feels to draw up water']]},
+    {j:'木',e:'Tree',sj:'欅',se:'keyaki',say:['欅の記録では、年輪の典拠を主に、およその年数を幅つきで出せます（樹高だけでは幅が大きすぎます）。木そのものは測っていません。','From the keyaki records, mainly the tree-ring sources give its age as a range (height alone gives far too wide a range). The tree itself was not measured.'],
+     tag:[['年輪の典拠（樹高は参考）','tree-ring sources (height as a guide)'],['3D の形と言葉','3D form and words'],['〔算〕幅つき','[calc] as a range'],['水を吸い上げる感じそのもの','how it feels to draw up water']]},
     {j:'石',e:'Stone',sj:'丁石',se:'milestone',say:['丁石に刻まれた字と地誌から、参道の距離の数え方が読めます。','From the carved characters and local records, you can read how distance on the approach was counted.'],
-     tag:[['刻まれた字・地誌','carved text, local records'],['読みと位置の地図','reading and a map of positions'],['〔知〕典拠つき','[known] with source'],['石を運んだ人の名（記録がない）','who carried the stone (no record)']]},
-    {j:'鳥',e:'Bird',sj:'鳥',se:'bird',say:['録音から、鳴き声の種を確率つきで推します。鳴き声の意味は訳せません。','From a recording, the species is inferred with a probability. The meaning of the call cannot be translated.'],
-     tag:[['録音・観察記録','recordings, observation records'],['機械学習で種を推定','species estimated by machine learning'],['〔推〕確率つき','[inferred] with probability'],['鳥にとっての鳴き声の意味','what the call means to the bird']]},
+     tag:[['刻まれた字・地誌','carved text, local records'],['読みと位置の地図','reading and a map of positions'],['〔知〕典拠つき','[known] with source'],['石を運んだ人の名（記録が見つかっていない）','who carried the stone (no record found)']]},
+    {j:'鳥',e:'Bird',sj:'鳥',se:'bird',say:['録音から、鳴き声の種を確からしさの目安つきで推します。鳴き声の意味は訳せません。','From a recording, the species is inferred with a confidence score (not a true probability). The meaning of the call cannot be translated.'],
+     tag:[['録音・観察記録','recordings, observation records'],['機械学習で種を推定','species estimated by machine learning'],['〔推〕確からしさの目安つき','[inferred] with a confidence score'],['鳥にとっての鳴き声の意味','what the call means to the bird']]},
     {j:'水',e:'Water',sj:'水',se:'water',say:['標高から、雨水の集まりやすい筋を計算できます。実際の水路とは限りません。','From elevation, the lines where rainwater tends to gather can be computed. They are not necessarily real channels.'],
      tag:[['国土地理院の標高','GSI elevation'],['水の集まる筋を計算','computing where water gathers'],['〔算〕実際の水路とは限らない','[calc] not necessarily a real channel'],['雨の日の流れの手ざわり','the feel of the flow on a rainy day']]},
     {j:'土',e:'Soil',sj:'土',se:'soil',say:['断面の観察から、層の重なりを図にできます。その地点のことだけです。','From observing a profile, the layers can be drawn. It applies to that spot only.'],
@@ -1587,7 +1632,7 @@ var AOI_FN=[
     var h='<pre class="fn-def" aria-label="'+(L?'Definition of Aoi':'碧の定義式')+'"><code>'+esc(head).replace(/(\/\/[^\n]*)/g,'<span class="fn-c">$1</span>').replace(/\b(function|return)\b/g,'<span class="fn-k">$1</span>').replace(/\bAoi\b/,'<span class="fn-n">Aoi</span>')+'</code></pre><ol class="fn-calls">';
     list.forEach(function(w,i){
       var name=L?w.en:w.ja, d=L?w.de:w.dj, soon=!w.url;
-      var card='<span class="fn-card'+(soon?' is-soon':'')+'">'+(w.img?'<img src="'+w.img+'" alt="" loading="lazy" width="640" height="400">':'<i class="fn-ph" aria-hidden="true"></i>')+'<span class="fn-t"><span class="fn-name">'+name+'</span><span class="fn-d">'+d+'</span>'+(soon?'<span class="fn-soon">'+(L?'coming soon':'準備中')+'</span>':'')+'</span></span>';
+      var card='<span class="fn-card'+(soon?' is-soon':'')+'">'+(w.img?'<img src="'+w.img+'" alt="'+esc(name)+(L?' — screen':' の画面')+'" loading="lazy" width="640" height="400">':'<i class="fn-ph" aria-hidden="true"></i>')+'<span class="fn-t"><span class="fn-name">'+name+'</span><span class="fn-d">'+d+'</span>'+(soon?'<span class="fn-soon">'+(L?'coming soon':'準備中')+'</span>':'')+'</span></span>';
       var line='<code class="fn-line" data-txt="Aoi.'+esc(w.call)+'"><span class="fn-typed"></span><span class="fn-caret" aria-hidden="true"></span></code>';
       h+='<li class="fn-row" style="--i:'+i+'">'+(soon?'<div class="fn-a">':'<a class="fn-a" href="'+w.url+'" target="_blank" rel="noopener">')+line+'<span class="fn-arrow" aria-hidden="true">→</span>'+card+(soon?'</div>':'</a>')+'</li>';
     });
@@ -1596,7 +1641,7 @@ var AOI_FN=[
     rows.forEach(function(r){ var c=r.querySelector('.fn-line'); c.setAttribute('aria-label',c.dataset.txt); });
     function typeAll(){ rows.forEach(function(r,i){ var c=r.querySelector('.fn-line'), t=c.dataset.txt, out=c.querySelector('.fn-typed');
       if(reduce){ out.textContent=t; r.classList.add('done'); return; }
-      setTimeout(function(){ r.classList.add('typing'); var k=0; var iv=setInterval(function(){ k++; out.textContent=t.slice(0,k); if(k>=t.length){ clearInterval(iv); r.classList.remove('typing'); r.classList.add('done'); } },38); }, i*650); }); }
+      setTimeout(function(){ r.classList.add('typing'); var k=0; var iv=setInterval(function(){ k++; out.textContent=t.slice(0,k); if(k>=t.length){ clearInterval(iv); r.classList.remove('typing'); r.classList.add('done'); } },22); }, i*300); }); }
     if(reduce||!window.IntersectionObserver){ typeAll(); return; }
     var io=new IntersectionObserver(function(es){ if(es[0].isIntersecting){ io.disconnect(); typeAll(); } },{threshold:.25}); io.observe(box);
   }
@@ -1621,7 +1666,7 @@ var AOI_FN=[
   // ① Qualium の輪
   var loop=document.getElementById('qLoop');
   if(loop){ loop.classList.add('qx');
-    var img=document.createElement('img'); img.className='qx-aoi'; img.src='img/ftw/aoi_portrait_480.webp'; img.alt=''; img.setAttribute('aria-hidden','true'); loop.appendChild(img);
+    var img=document.createElement('img'); img.className='qx-aoi'; img.src='img/ftw/aoi_portrait_480.webp'; img.alt='碧'; img.setAttribute('aria-hidden','true'); loop.appendChild(img);
     var sts=[].slice.call(loop.querySelectorAll('.st')), A=[-90,-18,54,126,198].map(function(d){ return d*Math.PI/180; });
     var COL=['120,214,236','232,197,138','180,162,255','198,248,242','244,170,150'];
     var parts=[]; for(var i=0;i<90;i++) parts.push({a:Math.random()*6.283,s:.25+Math.random()*.35,r:(Math.random()-.5)*.05,z:Math.random()});
@@ -1904,7 +1949,12 @@ async function start(){
 
   let lastEs=-1, ema=16, slow=0, W=0,H=0,prog=0,target=0,px=0,py=0,pxT=0,pyT=0,run=true,last=performance.now(),raf=0;
   const t0=performance.now();
-  const size=()=>{ const st=root.querySelector('.scene-sticky'); W=st.clientWidth; H=st.clientHeight; R.setSize(W,H,false); cam.aspect=W/H; cam.fov=W<H?72:58; cam.updateProjectionMatrix(); };
+  const labM=new Map(), beatBox=new Map();
+  const measureLabs=()=>{ const st=root.querySelector('.scene-sticky'), sr=st.getBoundingClientRect(); labs.forEach(el=>labM.set(el,[el.offsetLeft,el.offsetTop,el.offsetWidth,el.offsetHeight]));
+    beats.forEach(bt=>{ const ch=bt.children.length?[...bt.children]:[bt]; beatBox.set(bt,ch.map(e=>{ const r=e.getBoundingClientRect(); return [r.left-sr.left,r.top-sr.top,r.width,r.height]; }).filter(b=>b[2]>0)); }); };
+  document.addEventListener('hp-lang-change',()=>setTimeout(measureLabs,60));
+  try{ document.fonts.ready.then(()=>measureLabs()); }catch(e){}
+  const size=()=>{ const st=root.querySelector('.scene-sticky'); W=st.clientWidth; H=st.clientHeight; R.setSize(W,H,false); cam.aspect=W/H; cam.fov=W<H?72:58; cam.updateProjectionMatrix(); measureLabs(); };
   const readScroll=()=>{ if(root.classList.contains('scene-static')){ target=0.02; return; } const r=root.getBoundingClientRect(), span=r.height-innerHeight; target=span>0?Math.max(0,Math.min(1,-r.top/span)):0; };
   const beatOp=(el,p)=>{ const a=+el.dataset.a, b=+el.dataset.b, e=.025; if(a===0&&p<e) return 1; return p<a||p>b?0:Math.min(1,(p-a)/e,(b-p)/e); };
   const v3=new THREE.Vector3(), tmp=new THREE.Vector3();
@@ -1934,11 +1984,18 @@ async function start(){
     { const hide=es>.6; groups.people.visible=!hide; cloud.visible=!hide; lattice.visible=!hide; }   // 3D の建物が見えたら、建物の線・上空の点の雲と格子は描かない（重なって見えないので）
     R.render(S,cam);
     const stat=root.classList.contains('scene-static');
-    beats.forEach(el=>{ const o=stat?1:beatOp(el,p); el.style.opacity=o; el.style.visibility=o>0.01?'visible':'hidden'; el.classList.toggle('on',o>0.5); });
+    const placed=[];
+    beats.forEach(el=>{ const o=stat?1:beatOp(el,p); el.style.opacity=o; el.style.visibility=o>0.01?'visible':'hidden'; el.classList.toggle('on',o>0.5); if(o>0.2){ const bb=beatBox.get(el); if(bb) bb.forEach(b=>placed.push(b)); } });
+    // 札：碧→段→鳥居（近い順）の順に置き、先に置いた札や最初の画面の文字と重なる札は出さない（2026-10-06 検証 r1）
+    const cand=[];
     labs.forEach(el=>{ const k=el.dataset.lab; let P3=labPos[k]; if(!P3) return; if(k.startsWith('st')){ const a=(+k.slice(2))/5*6.283-stages.rotation.y; P3=tmp.set(AO.x+Math.cos(a)*4.2,AO.y+1.4,AO.z+Math.sin(a)*4.2); }
       v3.copy(P3).project(cam); const dist=cam.position.distanceTo(P3), lo=+(el.dataset.a||0), hi=+(el.dataset.b||1);
       const on=v3.z<1&&Math.abs(v3.x)<1.05&&Math.abs(v3.y)<1.05&&p>=lo&&p<=hi&&dist<(+(el.dataset.far||2500));
-      el.style.opacity=on?1:0; el.style.transform=`translate3d(${((v3.x*.5+.5)*W).toFixed(1)}px,${((-v3.y*.5+.5)*H).toFixed(1)}px,0)`; });
+      cand.push([el,on,(v3.x*.5+.5)*W,(-v3.y*.5+.5)*H,(k==='aoi'?0:k.startsWith('st')?1:2)*1e6+dist]); });
+    cand.sort((a,b)=>a[4]-b[4]);
+    cand.forEach(([el,on,x,y])=>{ let ok=on; const m=labM.get(el);
+      if(ok&&m){ const bx=[x+m[0]-4,y+m[1]-3,m[2]+8,m[3]+6]; for(const q of placed){ if(bx[0]<q[0]+q[2]&&q[0]<bx[0]+bx[2]&&bx[1]<q[1]+q[3]&&q[1]<bx[1]+bx[3]){ ok=false; break; } } if(ok) placed.push(bx); }
+      el.style.opacity=ok?1:0; el.style.transform=`translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; });
   }
   const loop=now=>{ if(!run){ raf=0; return; } const d=now-last; readScroll(); if(target>.5) want3D(); frame(now); ema+=(Math.min(d,100)-ema)*.05;
     if(ema>15.5){ if(++slow>60&&PR>PRmin){ PR=Math.max(PRmin,PR-.25); R.setPixelRatio(PR); size(); slow=0; ema=16; } } else slow=0;
