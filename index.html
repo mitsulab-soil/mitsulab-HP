@@ -1428,11 +1428,13 @@ html[lang="en"] .mx-body>p.mx-def{letter-spacing:.02em}
 <script>
 /* 高速化（2026-10-06）：ほかのタブ（碧・Qualium・アプリ）の図や文字を組む script は、type="text/x-later" にして、
    そのタブを開いたとき・最初に触れたとき・読み込みのあと手のあいたとき（最長 4 秒）の、どれか早いときに一度だけ回す（最初の絵を先に描くため） */
+// 最初の描画（最初の絵が画面に出る）のあとで回すための合図。手のあいたとき（requestIdleCallback）は最初の描画より前に来ることがあるので、描画を一こま待ってから
+window.__afterPaint=function(f,t){ var go=function(){ requestAnimationFrame(function(){ setTimeout(function(){ if(window.requestIdleCallback) requestIdleCallback(f,{timeout:t||3000}); else setTimeout(f,300); },0); }); }; if(document.readyState==='complete') go(); else addEventListener('load',go,{once:true}); };
 window.__later=function(){ if(window.__laterDone) return; if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',window.__later,{once:true}); return; } window.__laterDone=1;
   [].slice.call(document.querySelectorAll('script[type="text/x-later"]')).forEach(function(o){ var n=document.createElement('script'); n.text=o.text; o.parentNode.replaceChild(n,o); }); };
 (function(){ var go=function(){ window.__later(); };
   ['pointerdown','keydown','touchstart'].forEach(function(ev){ addEventListener(ev,go,{once:true,passive:true}); });
-  addEventListener('load',function(){ (window.requestIdleCallback?function(f){ requestIdleCallback(f,{timeout:4000}); }:function(f){ setTimeout(f,1500); })(go); }); })();
+  window.__afterPaint(go,4000); })();
 /* ============================================================
    ★ コアの一行（ここ一か所で差し替える。本人の採否待ち：Qualium v2 §4）
    ============================================================ */
@@ -1867,8 +1869,7 @@ if(!hasGL()) staticMode(); else { if(reduce) staticMode(); start().catch(e=>{ co
 
 const yieldT=()=>new Promise(r=>(window.scheduler&&scheduler.yield)?scheduler.yield().then(r):setTimeout(r,0));
 async function start(){
-  await new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r,{once:true}));
-  await new Promise(r=>(window.requestIdleCallback?requestIdleCallback(()=>r(),{timeout:2500}):setTimeout(r,600)));   // 高速化：最初の絵と文字（書体）が描き終わってから 3D を組む。それまでは同じ絵（scene_poster）が出ている
+  await new Promise(r=>window.__afterPaint?window.__afterPaint(()=>r(),2500):addEventListener('load',()=>setTimeout(r,600),{once:true}));   // 高速化：最初の絵と文字（書体）が描き終わってから 3D を組む。それまでは同じ絵（scene_poster）が出ている
   { const m=await libs(); THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; mergeGeometries=m[3].mergeGeometries; }
   const [meta,bin]=await (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()), fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])));   // 使命と層の 3D と一度だけ取りに行く
   const I=new Int16Array(bin), Q=meta.q;
