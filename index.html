@@ -1767,7 +1767,7 @@ var AOI_FN=[
   // ① Qualium の輪
   var loop=document.getElementById('qLoop');
   if(loop){ loop.classList.add('qx');
-    var img=document.createElement('img'); img.className='qx-aoi'; img.src='img/ftw/aoi_portrait_480.webp'; img.alt='碧'; img.setAttribute('aria-hidden','true'); loop.appendChild(img);
+    var img=document.createElement('img'); img.className='qx-aoi'; img.loading='lazy'; img.decoding='async'; img.src='img/ftw/aoi_portrait_480.webp'; img.alt='碧'; img.setAttribute('aria-hidden','true'); loop.appendChild(img);
     var sts=[].slice.call(loop.querySelectorAll('.st')), A=[-90,-18,54,126,198].map(function(d){ return d*Math.PI/180; });
     var COL=['120,214,236','232,197,138','180,162,255','198,248,242','244,170,150'];
     var parts=[]; for(var i=0;i<90;i++) parts.push({a:Math.random()*6.283,s:.25+Math.random()*.35,r:(Math.random()-.5)*.05,z:Math.random()});
