@@ -12,7 +12,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mitsulab — 認知拡張。自然と世界を、より深く。</title>
-<meta name="description" content="mitsulab は、Qualium と依代・碧を通して、人と自然と機械の認知空間をつなぐ研究所。氷川参道の 3D の中で、自然・文化・人・情報の層が重なる。《Aoi Walk 氷川》ほかのアプリを公開中。">
+<meta name="description" content="mitsulab は、依代・碧と Qualium を通して、現実を再発見し、現実に没入するための場・道具・仕組みをつくる研究所。氷川参道の 3D の中で、人・自然・情報・文化・歴史の層が重なる。《Aoi Walk 氷川》ほかのアプリを公開中。">
 <meta name="author" content="上原光瑛">
 <meta name="robots" content="index, follow">
 <meta name="format-detection" content="telephone=no">
@@ -23,7 +23,7 @@
 <meta property="og:url" content="https://mitsulab.jp/">
 <meta property="og:site_name" content="mitsulab">
 <meta property="og:title" content="mitsulab — 認知拡張。自然と世界を、より深く。 / Cognitive augmentation">
-<meta property="og:description" content="認知拡張。自然と世界を、より深く。Qualium と碧を通して、人と自然と機械の認知空間をつなぐ。 — A small lab in Saitama, Japan, making browser apps and 3D that widen how we sense nature.">
+<meta property="og:description" content="認知拡張。自然と世界を、より深く。依代・碧と Qualium を通して、現実を再発見し、現実に没入する。 — A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it.">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:locale:alternate" content="en_US">
 <link rel="alternate" hreflang="ja" href="https://mitsulab.jp/?lang=ja">
@@ -36,6 +36,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Shippori+Mincho:wght@600&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Shippori+Mincho:wght@600&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet"></noscript>
 <script>document.documentElement.classList.add('js');</script>
@@ -43,7 +44,7 @@
 <script>/* 言語：?lang=en|ja ＞ 前回の選択 ＞ ブラウザの言語（英語なら EN） */(function(){var _l=null;try{var m=/[?&]lang=(en|ja)\b/.exec(location.search);if(m)_l=m[1];if(!_l)_l=localStorage.getItem('hp-lang');}catch(e){}if(_l!=='en'&&_l!=='ja'){var n=(navigator.languages&&navigator.languages[0])||navigator.language||'';_l=/^en\b/i.test(n)?'en':null;}if(_l)document.documentElement.setAttribute('data-lang',_l);})();</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
- {"@type":"Organization","@id":"https://mitsulab.jp/#org","name":"mitsulab","url":"https://mitsulab.jp/","email":"official@mitsulab.jp","founder":{"@id":"https://mitsulab.jp/#founder"},"address":{"@type":"PostalAddress","addressLocality":"さいたま市大宮区","addressRegion":"埼玉県","addressCountry":"JP"},"sameAs":["https://github.com/mitsulab-soil"]},
+ {"@type":"Organization","@id":"https://mitsulab.jp/#org","name":"mitsulab","url":"https://mitsulab.jp/","email":"official@mitsulab.jp","founder":{"@id":"https://mitsulab.jp/#founder"},"address":{"@type":"PostalAddress","addressLocality":"さいたま市","addressRegion":"埼玉県","addressCountry":"JP"},"sameAs":["https://github.com/mitsulab-soil"]},
  {"@type":"Person","@id":"https://mitsulab.jp/#founder","name":"上原光瑛","alternateName":"Mitsuaki Uehara","jobTitle":"mitsulab 代表"},
  {"@type":"WebSite","@id":"https://mitsulab.jp/#site","url":"https://mitsulab.jp/","name":"mitsulab","inLanguage":["ja","en"],"publisher":{"@id":"https://mitsulab.jp/#org"}}
 ]}
@@ -801,7 +802,7 @@ body:not(.nav-solid) .aoi-guide{display:none!important}
 .d-c{left:72%;top:43%;background:rgba(242,207,140,.14);border:1px solid rgba(242,207,140,.6);color:#f2d49c;animation-delay:-1.4s}
 .d-p{left:63%;top:69%;background:rgba(244,170,150,.14);border:1px solid rgba(244,170,150,.6);color:#f6b9a6;animation-delay:-2.8s}
 .d-i{left:37%;top:69%;background:rgba(180,162,255,.14);border:1px solid rgba(180,162,255,.6);color:#cfc4ff;animation-delay:-4.2s}
-.d-m{left:28%;top:43%;background:rgba(120,214,236,.12);border:1px solid rgba(120,214,236,.6);color:#a8e8f4;animation-delay:-5.6s}
+.d-m{left:28%;top:43%;background:rgba(200,226,236,.12);border:1px solid rgba(200,226,236,.6);color:#dcebf2;animation-delay:-5.6s}
 @keyframes breathe{50%{transform:translate(-50%,-50%) scale(1.06)}}
 .dm-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16%;height:16%;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#eafffa,#6ce0f4 60%,rgba(70,170,210,.4));color:#06222b;font-family:var(--serif);font-weight:600;font-size:4cqw}
 .dims-cap{text-align:center;font-size:.84rem;color:var(--ink-3);margin-top:14px}
@@ -994,7 +995,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 <section id="top" class="tab-panel" data-panel="top" aria-label="mitsulab">
 <h1 class="vh" id="coreH1" data-i18n-en="mitsulab — Cognitive augmentation. Nature and the world, more deeply. Through Qualium and Aoi, linking the cognitive spaces of people, nature and machines.">mitsulab — 認知拡張。自然と世界を、より深く。Qualium と碧を通して、人と自然と機械の認知空間をつなぐ。</h1>
 
-<div id="why" class="scene" aria-label="氷川参道の空間の場面" data-i18n-aria="A scene in the space of the Hikawa approach">
+<div id="why" class="scene" aria-label="氷川参道の空間の場面" data-i18n-aria="A scene in the space of the Hikawa approach"><script>/* 高速化（2026-10-06）：動きを減らす設定の端末は、最初から止まった一枚の形で組む（あとで形が変わってずれるのを防ぐ） */try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.getElementById('why').classList.add('scene-static');}catch(e){}</script>
   <div class="scene-sticky">
     <img class="scene-poster" src="img/hero/scene_poster_1600.webp" srcset="img/hero/scene_poster_800.webp 800w, img/hero/scene_poster_1600.webp 1600w" sizes="100vw" alt="氷川参道の 3D を光の線で描いた図。並木・鳥居・建物・水の筋・観察記録の光の柱が重なり合い、参道の上に碧の光の柱が立っている" data-i18n-alt="The Hikawa approach in 3D drawn in lines of light: trees, torii, buildings, traces of water and columns of observation records overlap, with Aoi's column of light standing on the approach">
     <canvas id="sceneCv" class="scene-cv" aria-hidden="true"></canvas>
@@ -1024,7 +1025,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
       <p class="beat beat-l" data-beat data-a=".20" data-b=".31"><span class="bk k-nature" data-i18n-en="Nature">自然</span><span data-i18n-en="Trees, and where water gathers">木と、水の集まる筋</span></p>
       <p class="beat beat-r" data-beat data-a=".32" data-b=".43"><span class="bk k-culture" data-i18n-en="Culture">文化</span><span data-i18n-en="Torii and milestones on the approach">鳥居と丁石、参道の記憶</span></p>
       <p class="beat beat-l" data-beat data-a=".44" data-b=".55"><span class="bk k-people" data-i18n-en="People">人</span><span data-i18n-en="Houses, and people coming and going">家々と、行き交う人</span></p>
-      <p class="beat beat-r" data-beat data-a=".56" data-b=".67"><span class="bk k-info" data-i18n-en="Information · machines">情報・機械</span><span data-i18n-en="Observation records, flowing as data">観察記録が、データとして流れる</span></p>
+      <p class="beat beat-r" data-beat data-a=".56" data-b=".67"><span class="bk k-info" data-i18n-en="Information">情報</span><span data-i18n-en="Observation records, flowing as data">観察記録が、データとして流れる</span></p>
       <p class="beat beat-l" data-beat data-a=".69" data-b=".80"><span class="bk k-aoi" data-i18n-en="Aoi">碧</span><span data-i18n-en="The yorishiro that links the layers">層をつなぐ依代</span></p>
       <div class="beat beat-end" data-beat data-a=".86" data-b="1.2">
         <p class="end-line" data-i18n-en="The frame of the screen dissolves.<br>The world beyond our senses, right before us.">画面の枠が消えて、<br>届かなかった世界が、<span class="nw">目の前に。</span></p>
@@ -1072,7 +1073,10 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 
   <!-- アプリの案内（mitsulab のページにも残す） -->
   <section id="appguide" class="block" aria-labelledby="appguideH">
-    <div class="block-head"><span class="eyebrow">Apps</span><h2 class="panel-title" id="appguideH" data-i18n-en="Try it now">いま、試せる</h2></div>
+    <!-- 2026-10-06 本人：「これがあったらいいな。を、現実にする。」のわくわくから、すぐ試すへ（作品の一行 → 試す。最初は《Aoi Walk 氷川》） -->
+    <div class="block-head"><span class="eyebrow">Try it now</span><h2 class="panel-title" id="appguideH" data-i18n-en="“If only this existed” —<br>we make it real.">これがあったらいいな。<span class="nw">を、現実にする。</span></h2>
+      <p class="block-lead" data-i18n-en="Free, in the browser. Start with Aoi Walk: Hikawa.">どれも無料で、ブラウザで開けます。まずは《Aoi Walk 氷川》から。</p>
+      <div class="btns" style="justify-content:center"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Try Aoi Walk: Hikawa">《Aoi Walk 氷川》を試す</span> <span class="arr">↗</span></a></div></div>
     <ul class="strip">
       <!-- ★作品の順（2026-10-06 本人決定・HP のどこでも）：Aoi Walk 氷川 → 森羅寄席 → 碧の唄（MV）→ 森羅美術館 → 森羅百景 → Aoi Sense。
            碧の唄の MV・森羅美術館は未公開。公開したら、この順の位置に入れる。 -->
@@ -1092,7 +1096,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 <div class="wrap">
   <section id="guide" class="aoi-hero">
     <figure class="aoi-fig">
-      <img src="img/ftw/aoi_portrait_480.webp" srcset="img/ftw/aoi_portrait_480.webp 480w, img/ftw/aoi_portrait.webp 960w" sizes="(max-width:700px) 80vw, 380px" width="480" height="614" alt="碧の 3D：茶から碧へ移る髪のボブ、耳の上に双葉の飾り、淵の色の肩・真珠白・裾へ深まる汀の色の立ち襟の長い衣" data-i18n-alt="Aoi in 3D: a bob shading from brown to blue-green, twin-leaf ornaments above the ears, a long high-collared robe — deep-pool colour at the shoulders, pearl white, deepening to the colour of the shore at the hem">
+      <img loading="lazy" src="img/ftw/aoi_portrait_480.webp" srcset="img/ftw/aoi_portrait_480.webp 480w, img/ftw/aoi_portrait.webp 960w" sizes="(max-width:700px) 80vw, 380px" width="480" height="614" alt="碧の 3D：茶から碧へ移る髪のボブ、耳の上に双葉の飾り、淵の色の肩・真珠白・裾へ深まる汀の色の立ち襟の長い衣" data-i18n-alt="Aoi in 3D: a bob shading from brown to blue-green, twin-leaf ornaments above the ears, a long high-collared robe — deep-pool colour at the shoulders, pearl white, deepening to the colour of the shore at the hem">
       <span class="aoi-halo" aria-hidden="true"></span>
     </figure>
     <div>
@@ -1207,7 +1211,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
   <section class="block" aria-labelledby="dimH">
     <div class="block-head"><span class="eyebrow">Layers</span><h2 class="panel-title" id="dimH" data-i18n-en="Layers that overlap in one place">ひとつの場所に、重なる層</h2></div>
     <div class="dims" aria-hidden="true">
-      <span class="dm d-n" data-i18n-en="Nature">自然</span><span class="dm d-c" data-i18n-en="Culture">文化</span><span class="dm d-p" data-i18n-en="People">人</span><span class="dm d-i" data-i18n-en="Information">情報</span><span class="dm d-m" data-i18n-en="Machines">機械</span><span class="dm-core" data-i18n-en="Aoi">碧</span>
+      <span class="dm d-p" data-i18n-en="People">人</span><span class="dm d-n" data-i18n-en="Nature">自然</span><span class="dm d-i" data-i18n-en="Information">情報</span><span class="dm d-c" data-i18n-en="Culture">文化</span><span class="dm d-m" data-i18n-en="History">歴史</span><span class="dm-core" data-i18n-en="Aoi">碧</span>
     </div>
     <p class="dims-cap" data-i18n-en="On the mitsulab page, they overlap in the 3D of the Hikawa approach.">mitsulab のページでは、氷川参道の 3D の中で重なります。</p>
   </section>
@@ -1352,7 +1356,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     <dl class="about-dl">
       <div><dt data-i18n-en="Business name">屋号</dt><dd>mitsulab</dd></div>
       <div><dt data-i18n-en="Representative">代表</dt><dd data-i18n-en="Mitsuaki Uehara">上原 光瑛</dd></div>
-      <div><dt data-i18n-en="Location">所在地</dt><dd data-i18n-en="Omiya-ku, Saitama City, Saitama, Japan">埼玉県さいたま市大宮区</dd></div>
+      <div><dt data-i18n-en="Location">所在地</dt><dd data-i18n-en="Saitama City, Saitama, Japan">埼玉県さいたま市</dd></div>
       <div><dt data-i18n-en="Contact">連絡先</dt><dd><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></dd></div>
     </dl>
   </div>
@@ -1465,9 +1469,9 @@ var TERMS = {
     document.querySelectorAll('.card-title').forEach(function(t){ var a=t.querySelector('.ct-ja'), b=t.querySelector('.ct-en'); if(a&&b) b.style.display=(lang==='en'&&a.textContent.trim().replace(/[《》]/g,'')===b.textContent.trim().replace(/[《》]/g,''))?'none':''; });
     if(!window.__titleJa) window.__titleJa=document.title;
     document.title = lang==='en' ? 'mitsulab — Cognitive augmentation. Nature and the world, more deeply.' : window.__titleJa;
-    [['meta[name="description"]','mitsulab is a small lab in Saitama, Japan. Through Qualium and the yorishiro Aoi, it links the cognitive spaces of people, nature and machines — in the 3D of the Hikawa approach, layers of nature, culture, people and information overlap. Apps such as Aoi Walk: Hikawa are open in the browser.'],
+    [['meta[name="description"]','mitsulab is a small lab in Saitama, Japan. Through the yorishiro Aoi and Qualium, it makes places, tools and systems for re-discovering the real world and being immersed in it — in the 3D of the Hikawa approach, layers of people, nature, information, culture and history overlap. Apps such as Aoi Walk: Hikawa are open to try.'],
      ['meta[property="og:title"]','mitsulab — Cognitive augmentation. Nature and the world, more deeply.'],
-     ['meta[property="og:description"]','A small lab in Saitama, Japan, making browser apps and 3D that widen how we sense nature. Through Qualium and Aoi, linking the cognitive spaces of people, nature and machines.'],
+     ['meta[property="og:description"]','Cognitive augmentation. Nature and the world, more deeply. A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it, with the yorishiro Aoi.'],
      ['meta[property="og:locale"]','en_US'],['meta[property="og:locale:alternate"]','ja_JP']].forEach(function(m){ var el=document.querySelector(m[0]); if(!el) return; if(!el.hasAttribute('data-ja')) el.setAttribute('data-ja',el.getAttribute('content')); el.setAttribute('content', lang==='en'?m[1]:el.getAttribute('data-ja')); });
   }
   function paint(seg){
@@ -1545,9 +1549,11 @@ var TERMS = {
   var cv=document.getElementById('bgRain'); if(!cv||!cv.getContext) return;
   var ctx=cv.getContext('2d'), reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var DPR=Math.min(window.devicePixelRatio||1,1.5), W=0,H=0, cols=[], blobs=[], last=0, raf=0;
+  var AW=0,AH=0;
   function layout(){
-    W=window.innerWidth; H=window.innerHeight;
-    cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
+    var w=window.innerWidth, h=window.innerHeight, keep=w===AW&&h<=AH&&blobs.length;   // 高速化（2026-10-06）：幅が同じで高さが縮むだけ（スマホのアドレスバー）なら、画布を作り直さない・光の位置も保つ
+    W=w; H=h; if(keep) return;
+    AW=w; AH=h; cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
     var fs=W<560?12:(W<1000?13:15), lh=fs*1.75;
     var defs = [];   /* 2026-10-01 v4 評価 #8：地形の線と二重になるので、背景の文字は出さない（光だけ残す） */
     cols=defs.map(function(d,i){ return {lines:d.lines,x:d.x,font:d.font,fs:fs,lh:lh,off:Math.random()*d.lines.length*lh,speed:6+i*1.5,typed:0}; });
@@ -1585,7 +1591,12 @@ var TERMS = {
       }
     });
   }
-  function loop(t){ raf=requestAnimationFrame(loop); if(t-last<33) return; var dt=Math.min(.1,(t-last)/1000||0); last=t; draw(dt); }
+  // 高速化（2026-10-06）：TOP の 3D の場面が画面を覆っているあいだ（場面の地は不透明）は、背景の光を描かない（見えないので）
+  var why=document.getElementById('why'), covered=false, ct=0;
+  function cover(){ ct=0; covered=false; if(!why||why.classList.contains('scene-static')||!why.offsetParent) return; var r=why.getBoundingClientRect(); covered=r.top<=0&&r.bottom>innerHeight*1.5+8; }
+  window.addEventListener('scroll',function(){ if(!ct){ ct=1; requestAnimationFrame(cover); } },{passive:true}); window.addEventListener('hashchange',function(){ setTimeout(cover,80); });
+  function loop(t){ raf=requestAnimationFrame(loop); if(t-last<33) return; if(covered){ last=t; return; } var dt=Math.min(.1,(t-last)/1000||0); last=t; draw(dt); }
+  setTimeout(cover,0);
   layout();
   if(reduce){ cols.forEach(function(c){c.typed=1e9;}); draw(0); }
   else raf=requestAnimationFrame(loop);
@@ -1597,7 +1608,7 @@ var TERMS = {
 (function(){ var sc=document.getElementById('why');
   function upd(){ var top=document.getElementById('top'), onTop=top&&top.classList.contains('active');
     var past=!sc||sc.getBoundingClientRect().bottom<80; document.body.classList.toggle('nav-solid',!onTop||past); }
-  window.addEventListener('scroll',upd,{passive:true}); window.addEventListener('hashchange',function(){ setTimeout(upd,60); }); document.addEventListener('click',function(){ setTimeout(upd,60); }); upd(); })();
+  var ut=0; window.addEventListener('scroll',function(){ if(!ut){ ut=1; requestAnimationFrame(function(){ ut=0; upd(); }); } },{passive:true}); window.addEventListener('hashchange',function(){ setTimeout(upd,60); }); document.addEventListener('click',function(){ setTimeout(upd,60); }); upd(); })();
 /* 碧の灯り：最初に一度だけ吹き出しを見せる */
 (function(){ var g=document.getElementById('aoiGuide'); if(!g) return; setTimeout(function(){g.classList.add('show');},1800); setTimeout(function(){g.classList.remove('show');},7000); })();
 </script>
@@ -1739,7 +1750,7 @@ var AOI_FN=[
 <script>
 /* ===== Qualium とアプリケーションのページの動く図（2026-10-05）：TOP・碧のページと同じ言葉づかい（光の線・粒・碧の光）
    ① Qualium の輪：五つの段のあいだを光の帯が流れ、段に着くたびに波が立つ。中心は碧の絵
-   ② 重なる層：自然・文化・人・情報・機械の面が、斜めに入り組んで重なり、碧の軸と光の粒が層を行き来する ===== */
+   ② 重なる層：人・自然・情報・文化・歴史の面が、斜めに入り組んで重なり、碧の軸と光の粒が層を行き来する ===== */
 (function(){
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function canvasIn(box,cls){ var c=document.createElement('canvas'); c.className=cls; c.setAttribute('aria-hidden','true'); box.insertBefore(c,box.firstChild); return c; }
@@ -1777,7 +1788,7 @@ var AOI_FN=[
   // ② 重なる層
   var dims=document.querySelector('.dims');
   if(dims){ dims.classList.add('qx-dims');
-    var L=[{c:'127,224,180',y:-.30,rot:-.18},{c:'242,207,140',y:-.15,rot:.22},{c:'244,170,150',y:0,rot:-.08},{c:'180,162,255',y:.15,rot:.28},{c:'120,214,236',y:.30,rot:-.24}];
+    var L=[{c:'244,170,150',y:-.30,rot:-.18},{c:'127,224,180',y:-.15,rot:.22},{c:'180,162,255',y:0,rot:-.08},{c:'242,207,140',y:.15,rot:.28},{c:'200,226,236',y:.30,rot:-.24}];   // 層の名＝人・自然・情報・文化・歴史（2026-10-06 本人決定。機械・センサー・AI は情報の中）
     var labs=[].slice.call(dims.querySelectorAll('.dm')), core=dims.querySelector('.dm-core');
     var P=[]; for(var i=0;i<70;i++) P.push({t:Math.random(),s:.08+Math.random()*.14,k:i%5,dx:(Math.random()-.5)});
     runner(dims,function(ctx,W,H,t){ ctx.clearRect(0,0,W,H); var cx=W/2, cy=H/2, S=Math.min(W,H);
@@ -1821,6 +1832,7 @@ const staticMode=()=>root.classList.add('scene-static');
 function hasGL(){ try{ const c=document.createElement('canvas'); return !!(c.getContext('webgl2')||c.getContext('webgl')); }catch(e){ return false; } }
 if(!hasGL()) staticMode(); else { if(reduce) staticMode(); start().catch(e=>{ console.warn(e); staticMode(); }); }
 
+const yieldT=()=>new Promise(r=>(window.scheduler&&scheduler.yield)?scheduler.yield().then(r):setTimeout(r,0));
 async function start(){
   const [meta,bin]=await (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()), fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])));   // 使命と層の 3D と一度だけ取りに行く
   const I=new Int16Array(bin), Q=meta.q;
@@ -1841,6 +1853,7 @@ async function start(){
   Object.values(groups).forEach(g=>S.add(g));
   function binGroup(k){ const [o,n]=meta.groups[k]; const f=new Float32Array(n*3); for(let i=0;i<n*3;i++) f[i]=I[o*3+i]*Q; return geo(f); }
 
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
   // 地面：等高線（国土地理院 DEM5A から《Aoi Walk 氷川》が作った線）と、道
   const ct=[]; meta.contours.forEach(([e,p])=>{ for(let i=0;i<p.length-2;i+=2) ct.push(p[i],e+0.2,p[i+1],p[i+2],e+0.2,p[i+3]); });
   groups.base.add(new THREE.LineSegments(geo(ct),lm(0x5fb8d0,.32)));
@@ -1850,6 +1863,7 @@ async function start(){
   const pv=[]; const OFF=[-9,-6,-3,3,6,9]; for(let i=1;i<meta.center.length;i++){ const a=meta.center[i-1], c=meta.center[i], dx=c[0]-a[0], dz=c[2]-a[2], L=Math.hypot(dx,dz)||1, nx=-dz/L, nz=dx/L;
     OFF.forEach(o=>pv.push(a[0]+nx*o,a[1]+0.15,a[2]+nz*o,c[0]+nx*o,c[1]+0.15,c[2]+nz*o)); for(let q=0;q<4;q++){ const f=q/4, X=a[0]+dx*f, Y=a[1]+(c[1]-a[1])*f, Zz=a[2]+dz*f; pv.push(X-nx*9,Y+0.15,Zz-nz*9,X+nx*9,Y+0.15,Zz+nz*9); } }
   groups.base.add(new THREE.LineSegments(geo(pv),lm(0x8fd2e2,.28)));   // 参道の路面の線（模式）
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
   // 自然：木（模式の形・位置は OSM と並木の模式）・水の集まる筋（標高から計算）
   const tr=[]; const ring=(x,y,z,r,n)=>{ for(let k=0;k<n;k++){ const a=k/n*6.283, b=(k+1)/n*6.283; tr.push(x+Math.cos(a)*r,y,z+Math.sin(a)*r,x+Math.cos(b)*r,y,z+Math.sin(b)*r); } };
   meta.trees.forEach(([x,y,z],i)=>{ if(i%2) return; const H=14+(i*37%9), b=y+H*0.32, r=4.6+(i%3)*0.6;   // 欅の盃形（模式）：幹から枝が斜め上へ開く
@@ -1857,11 +1871,14 @@ async function start(){
   groups.nature.add(new THREE.LineSegments(geo(tr),lm(COL.nature,.2)));
   const fl=[]; meta.flow.forEach(s=>{ fl.push(s[0],hAt(s[0],s[1])+0.6,s[1],s[2],hAt(s[2],s[3])+0.6,s[3]); });
   groups.nature.add(new THREE.LineSegments(geo(fl),lm(COL.water,.55)));
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
   // 文化：鳥居・楼門・燈籠・標石・丁石（OSM と写真から《Aoi Walk 氷川》が置いたもの）
   groups.culture.add(new THREE.LineSegments(binGroup('structures'),lm(COL.culture,.85)));
   const cs=[]; meta.choishi.forEach(p=>cs.push(p[0],p[1],p[2],p[0],p[1]+9,p[2])); groups.culture.add(new THREE.LineSegments(geo(cs),lm(COL.culture,.6)));
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
   // 人：建物（PLATEAU）と、参道を行き交う光の粒（模式）
   groups.people.add(new THREE.LineSegments(binGroup('buildings'),lm(COL.people,.15)));
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
   // 情報・機械：観察記録（iNaturalist）の光の柱・上空のデータの格子（模式）
   const ob=[]; meta.obs.forEach(([x,z])=>{ const y=hAt(x,z); ob.push(x,y,z,x,y+38,z); }); groups.info.add(new THREE.LineSegments(geo(ob),lm(COL.info,.75)));
   const op=[]; meta.obs.forEach(([x,z])=>op.push(x,hAt(x,z)+38,z)); groups.info.add(new THREE.Points(geo(op),pm(COL.info,9,.95)));
@@ -1871,6 +1888,7 @@ async function start(){
   const CN=mobile?420:1000, cp=new Float32Array(CN*3); for(let i=0;i<CN;i++){ cp[3*i]=(Math.random()-.5)*1400; cp[3*i+1]=170+Math.random()*260; cp[3*i+2]=(Math.random()-.5)*2800; }
   const cloud=new THREE.Points(geo(cp),pm(0x9fb0ff,4,.55)); groups.info.add(cloud);
 
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
   // 碧：二の鳥居と三の鳥居のあいだ、参道の上。光の柱（遠くからも見える）・光の玉・Qualium の五つの段の輪
   const near=meta.center.reduce((a,c)=>Math.abs(c[2]+640)<Math.abs(a[2]+640)?c:a);
   const AO=new THREE.Vector3(near[0],near[1],near[2]);
@@ -1953,6 +1971,7 @@ async function start(){
         if(R.compileAsync) await R.compileAsync(S,cam); else R.compile(S,cam);
         world.traverse(o=>{ if(o.material) [].concat(o.material).forEach(m=>{ for(const k of ['map','normalMap','roughnessMap','metalnessMap','aoMap']) if(m[k]) R.initTexture(m[k]); }); });
         ms.forEach(([m,tr])=>{ m.transparent=tr; }); world.visible=vis0; lastEs=-1; }catch(e){}
+      freeze();   // 高速化：置き終えた 3D は、毎こまの行列の計算から外す
       window.__world='ok'; window.__sc={world,groups,R,S,parts:{terrain:tg.scene,buildings:bg.scene,road:rg.scene}}; window.__wb=[tg.scene,bg.scene].map(o=>{ const b=new THREE.Box3().setFromObject(o); let a=[]; o.traverse(m=>{ if(m.isMesh) a.push(Object.keys(m.geometry.attributes).join('/')); }); return [b.min.toArray().map(Math.round),b.max.toArray().map(Math.round),a.slice(0,2)]; });
     }catch(e){ window.__world='error'; console.warn('world',e); } };
   function xfade(mat,keepNear){ mat.onBeforeCompile=sh=>{ sh.uniforms.aoXZ={value:new THREE.Vector2(AO.x,AO.z)};
@@ -1960,6 +1979,7 @@ async function start(){
       sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vD;').replace('void main() {','void main() {\n float xf=smoothstep('+(LOD_NEAR-LOD_BAND).toFixed(1)+','+(LOD_NEAR+LOD_BAND).toFixed(1)+',vD); float hh=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453);\n if('+(keepNear?'hh<xf':'hh>=xf')+') discard;'); }; mat.customProgramCacheKey=()=>'xf'+keepNear; }
   const bgA=new THREE.Color(0x03060f), bgB=new THREE.Color(0x30506a), fogC=new THREE.Color();
 
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
   // 粒：人の流れ（参道に沿って行き来）・データの流れ（観察記録 → 碧）・上空から碧へ
   const C=meta.center, CL=C.length;
   const PN=mobile?140:320, pp=new Float32Array(PN*3), pd=[]; for(let i=0;i<PN;i++) pd.push({t:Math.random(),v:(Math.random()<.5?1:-1)*(0.01+Math.random()*0.02),o:(Math.random()-.5)*14});
@@ -1996,7 +2016,10 @@ async function start(){
   try{ document.fonts.ready.then(()=>measureLabs()); }catch(e){}
   const size=()=>{ const st=root.querySelector('.scene-sticky'); W=st.clientWidth; H=st.clientHeight; R.setSize(W,H,false); cam.aspect=W/H; cam.fov=W<H?72:58; cam.updateProjectionMatrix(); measureLabs(); };
   const stk=root.querySelector('.scene-sticky'); let fadeO=1;
-  const readScroll=()=>{ if(root.classList.contains('scene-static')){ target=0.02; if(fadeO!==1){ fadeO=1; stk.style.opacity=''; } return; } const r=root.getBoundingClientRect(), span=r.height-innerHeight, hold=Math.min(span*.2,innerHeight), y=-r.top;
+  // 高速化（2026-10-06）：場面の位置と高さは、大きさが変わったときだけ測る（毎こま getBoundingClientRect で配置の計算をやり直させない）
+  let rootTop=0, rootH=0, vh=innerHeight; const geom=()=>{ const r=root.getBoundingClientRect(); rootTop=r.top+scrollY; rootH=r.height; vh=innerHeight; };
+  geom(); new ResizeObserver(geom).observe(root); addEventListener('resize',geom); try{ document.fonts.ready.then(geom); }catch(e){}
+  const readScroll=()=>{ if(root.classList.contains('scene-static')){ target=0.02; if(fadeO!==1){ fadeO=1; stk.style.opacity=''; } return; } const innerHeight=vh, span=rootH-innerHeight, hold=Math.min(span*.2,innerHeight), y=scrollY-rootTop;
     target=span>hold?Math.max(0,Math.min(1,y/(span-hold))):0;   // 最後の 100svh は寄りの碧のまま止まる（2026-10-06 検証 r2）
     const fd=innerHeight*.5, f=Math.max(0,Math.min(1,(y-(span-fd))/fd)), o=+(1-f*f*(3-2*f)).toFixed(3);   // 最後の半画面で薄れ、下から使命が重なって上がる
     if(o!==fadeO){ fadeO=o; stk.style.opacity=o<1?o:''; stk.style.pointerEvents=o<.5?'none':''; } };
@@ -2045,6 +2068,11 @@ async function start(){
     if(ema>15.5){ if(++slow>60&&PR>PRmin){ PR=Math.max(PRmin,PR-.25); R.setPixelRatio(PR); size(); slow=0; ema=16; } } else slow=0;
     raf=requestAnimationFrame(loop); };
   const go=()=>{ if(!raf&&!reduce){ last=performance.now(); raf=requestAnimationFrame(loop); } };
+  // 高速化（2026-10-06）：動かない物（線・地形・建物・木・構造物）は、行列を一度だけ計算して、毎こまの計算から外す。動く物（碧・段の輪・光の玉・走査の輪）だけ毎こま
+  const DYN=new Set([stages,orb,scanG]);
+  function freeze(){ const walk=o=>{ if(DYN.has(o)||(vrm&&o===vrm.scene)) return; if(o.matrixAutoUpdate){ o.updateMatrix(); o.matrixAutoUpdate=false; } o.updateMatrixWorld(true); o.children.forEach(walk); };
+    S.children.forEach(walk); S.matrixAutoUpdate=false; S.updateMatrix(); }
+  freeze();
   size(); readScroll(); prog=target; frame(performance.now()); root.classList.add('scene-ready');
   setTimeout(loadAoi,1200); let asked3D=false; const want3D=()=>{ if(asked3D) return; asked3D=true; (window.requestIdleCallback||(f=>setTimeout(f,200)))(load3D); };
   if(reduce){ addEventListener('resize',()=>{ size(); frame(performance.now()); }); setTimeout(()=>frame(performance.now()),2500); return; }
@@ -2234,7 +2262,11 @@ async function boot(box){
   function load(v){ if(v.dataset.ld) return; v.dataset.ld='1'; var b=v.dataset.v;
     [['webm','video/webm'],['mp4','video/mp4']].forEach(function(t){ var s=document.createElement('source'); s.src=b+'.'+t[0]; s.type=t[1]; v.appendChild(s); }); v.load(); }
   if(!window.IntersectionObserver){ vs.forEach(function(v){ load(v); v.play().catch(function(){}); }); return; }
-  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ var v=e.target; if(e.isIntersecting){ load(v); var p=v.play(); if(p&&p.catch) p.catch(function(){}); } else if(!v.paused) v.pause(); }); },{threshold:.25});
+  // 高速化（2026-10-06）：スマホ（一列のとき）は、いちばん大きく見えている一本だけを流す（同時に復号するのは一本）
+  var one=window.matchMedia('(max-width:760px)').matches, ratio=new Map();
+  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ ratio.set(e.target,e.isIntersecting?e.intersectionRatio:0); });
+    var best=null, br=0; if(one) ratio.forEach(function(r,v){ if(r>br){ br=r; best=v; } });
+    ratio.forEach(function(r,v){ var on=r>=.25&&(!one||v===best); if(on){ load(v); if(v.paused){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); } } else if(!v.paused) v.pause(); }); },{threshold:[0,.25,.5,.75,1]});
   vs.forEach(function(v){ io.observe(v); });
   document.addEventListener('visibilitychange',function(){ vs.forEach(function(v){ if(document.hidden&&!v.paused) v.pause(); }); });
 })();
