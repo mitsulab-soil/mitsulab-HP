@@ -32,11 +32,12 @@
 <meta property="og:image" content="https://mitsulab.jp/img/og_1200x630.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="氷川参道の 3D を光の線で描いた図と「認知拡張。自然と世界を、より深く。」">
+<meta property="og:image:alt" content="氷川参道の 3D を光の線で描いた図と「世界のミカタを、開発する。」">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" as="image" href="img/hero/scene_poster_1600.webp" imagesrcset="img/hero/scene_poster_800.webp 800w, img/hero/scene_poster_1600.webp 1600w" imagesizes="100vw" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Shippori+Mincho:wght@600&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Shippori+Mincho:wght@600&family=JetBrains+Mono:wght@400&family=Cormorant+Garamond:ital,wght@1,500&display=swap" rel="stylesheet"></noscript>
 <script>document.documentElement.classList.add('js');</script>
@@ -929,11 +930,17 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
 .mx-front{z-index:2}
 .mx-aoi{position:absolute;left:0;top:0;z-index:1;width:auto;height:46svh;max-width:none;transform:translate3d(-999px,0,0);opacity:0;transition:opacity .8s;filter:drop-shadow(0 0 18px rgba(92,200,224,.28))}
 .mx-ready .mx-aoi{opacity:1}
+.mx-aoi3d{position:absolute;left:0;top:0;z-index:1;transform:translate3d(-999px,0,0);pointer-events:auto}
+.mx-aoi3d .al-live{position:absolute;inset:0;width:100%;height:100%;left:0;top:0;transform:none;-webkit-mask-image:none;mask-image:none}
+.mx-aoi3d.al-has-live ~ .mx-aoi{opacity:0!important}
 .mx-l{position:absolute;left:0;top:0;z-index:3;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:600;font-size:clamp(.82rem,2.2cqw,1.1rem);letter-spacing:.12em;
   color:#eaf6fb;padding:.15em .8em;border-radius:999px;background:rgba(3,6,15,.62);border:1px solid var(--mxc,rgba(92,200,224,.5));white-space:nowrap;opacity:0;transition:opacity .35s;pointer-events:none}
 .mx-l[data-k="0"]{--mxc:rgba(244,170,150,.7)}.mx-l[data-k="1"]{--mxc:rgba(127,224,180,.7)}.mx-l[data-k="2"]{--mxc:rgba(180,162,255,.7)}.mx-l[data-k="3"]{--mxc:rgba(242,207,140,.7)}.mx-l[data-k="4"]{--mxc:rgba(200,226,236,.7)}
 html[lang="en"] .mx-l{letter-spacing:.04em}
 .mx-body{position:relative;z-index:1;max-width:760px;margin:28px auto 0;padding:0 16px}
+.mx-body>p.mx-def{font-family:var(--serif);font-weight:600;font-size:clamp(1.05rem,2.6vw,1.3rem);line-height:2;letter-spacing:.08em;color:#eaf6fb;margin-bottom:1.4em}
+html[lang="en"] .mx-body>p.mx-def{letter-spacing:.02em}
+.mx-body .mx-def .qn{font-family:var(--serif);font-style:normal;color:#c6f8f2}
 .mx-body>p{font-size:.98rem;line-height:2;letter-spacing:.03em;color:var(--ink);margin:0 0 1.1em;text-wrap:pretty}
 .mx-body .qn{font-family:var(--latin);font-style:italic;color:#c6f8f2;font-size:1.12em}
 .mx-body .msn-def{margin:18px 0 0;max-width:none}
@@ -994,11 +1001,11 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 <!-- ┌─ mitsulab（2026-10-04 v3・本人指示）：画面いっぱい・枠なしの場面（氷川参道の 3D を線で・碧が立つ・多次元の層が重なる）→ 使命 → 碧／Qualium／アプリケーションへの入口 → アプリの案内。
      詳しいことは、それぞれのタブのページへ。場面のしくみは script の「mitsulab の没入の場面 v3」。 ── -->
 <section id="top" class="tab-panel active" data-panel="top" aria-label="mitsulab">
-<h1 class="vh" id="coreH1" data-i18n-en="mitsulab — Developing ways to sense the world, and allies in it. With the yorishiro Aoi, re-discovering the real world and being immersed in it.">mitsulab — 世界のミカタを、開発する。依代・碧とともに、現実を再発見し、現実に没入する。</h1>
+<h1 class="vh" id="coreH1" data-i18n-en="mitsulab — Developing new ways of sensing the world. With the yorishiro Aoi, re-discovering the real world and being immersed in it.">mitsulab — 世界のミカタを、開発する。依代・碧とともに、現実を再発見し、現実に没入する。</h1>
 
 <div id="why" class="scene" aria-label="氷川参道の空間の場面" data-i18n-aria="A scene in the space of the Hikawa approach"><script>/* 高速化（2026-10-06）：動きを減らす設定の端末は、最初から止まった一枚の形で組む（あとで形が変わってずれるのを防ぐ） */try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.getElementById('why').classList.add('scene-static');}catch(e){}</script>
   <div class="scene-sticky">
-    <img class="scene-poster" src="img/hero/scene_poster_1600.webp" srcset="img/hero/scene_poster_800.webp 800w, img/hero/scene_poster_1600.webp 1600w" sizes="100vw" alt="氷川参道の 3D を光の線で描いた図。並木・鳥居・建物・水の筋・観察記録の光の柱が重なり合い、参道の上に碧の光の柱が立っている" data-i18n-alt="The Hikawa approach in 3D drawn in lines of light: trees, torii, buildings, traces of water and columns of observation records overlap, with Aoi's column of light standing on the approach">
+    <img class="scene-poster" fetchpriority="high" decoding="async" src="img/hero/scene_poster_1600.webp" srcset="img/hero/scene_poster_800.webp 800w, img/hero/scene_poster_1600.webp 1600w" sizes="100vw" alt="氷川参道の 3D を光の線で描いた図。並木・鳥居・建物・水の筋・観察記録の光の柱が重なり合い、参道の上に碧の光の柱が立っている" data-i18n-alt="The Hikawa approach in 3D drawn in lines of light: trees, torii, buildings, traces of water and columns of observation records overlap, with Aoi's column of light standing on the approach">
     <canvas id="sceneCv" class="scene-cv" aria-hidden="true"></canvas>
     <div class="scene-labs" aria-hidden="true">
       <span class="slab sl-culture" data-lab="ichi" data-b=".5" data-i18n-en="First torii">一の鳥居</span>
@@ -1046,11 +1053,11 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
   <section id="mission" class="msn mx" aria-labelledby="missionH">
     <div class="msn-sticky">
       <img class="mx-aoi" src="img/hero/aoi_cut_480.webp" srcset="img/hero/aoi_cut_480.webp 480w, img/hero/aoi_cut_960.webp 960w" sizes="(max-width:700px) 40vw, 240px" width="480" height="1472" loading="lazy" decoding="async" alt="碧の立ち姿" data-i18n-alt="Aoi standing">
-      <div class="mx-stage" data-mx></div>
+      <div class="mx-stage" data-mx><div class="mx-aoi3d" aria-hidden="false"></div></div>
       <span class="mx-l" data-k="0" data-i18n-en="People">人</span><span class="mx-l" data-k="1" data-i18n-en="Nature">自然</span><span class="mx-l" data-k="2" data-i18n-en="Information">情報</span><span class="mx-l" data-k="3" data-i18n-en="Culture">文化</span><span class="mx-l" data-k="4" data-i18n-en="History">歴史</span>
       <div class="msn-text">
         <span class="eyebrow">Mission</span>
-        <h2 class="msn-h" id="missionH" data-i18n-en="<span class='ln'>Developing</span><span class='ln'>ways to sense the world,</span><span class='ln'>and allies in it.</span>"><span class="ln">世界の</span><span class="ln">ミカタを、</span><span class="ln">開発する。</span></h2>
+        <h2 class="msn-h" id="missionH" data-i18n-en="<span class='ln'>Developing</span><span class='ln'>new ways of</span><span class='ln'>sensing the world.</span>"><span class="ln">世界の</span><span class="ln">ミカタを、</span><span class="ln">開発する。</span></h2>
         <div class="msn-bot">
         <p class="msn-sub" data-i18n-en="<span class='ln ln-a'>From information space</span><span class='ln ln-b'>into real space.</span>"><span class="ln ln-a">情報空間から、</span><span class="ln ln-b">現実空間へ。</span></p>
         <p class="msn-foot" data-i18n-en="Re-discover the real world, and be immersed in it.">現実を再発見し、現実に没入する。</p>
@@ -1059,8 +1066,10 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     </div>
   </section>
   <div class="mx-body">
-    <!-- 2026-10-06 本人決定：使命＝「世界のミカタを、開発する。」。ミカタ＝見方と味方。見方は目だけでなく、聴く・触れる・嗅ぐ・時間と大きさの幅・分かることまで（視覚にかたよらない） -->
-    <p data-i18n-en="Mikata carries two meanings in Japanese. One is a way of sensing — how the world is felt and understood. Not only by sight: listening, touching, smelling, sensing on time scales longer or shorter than ours and at sizes larger or smaller than ours, and understanding by knowing. The other is an ally — someone who opens those ways with you. That ally is Aoi, a yorishiro.">「ミカタ」には、二つの意味を重ねています。一つは見方 ── 世界の感じ方と、分かり方。目で見ることだけではありません。耳で聴く、手で触れる、においを感じる。人より長い時間や短い時間で、人より大きなものや小さなものを感じる。そして、知って分かる。もう一つは味方 ── そのミカタを一緒にひらいてくれる存在。それが、依代の碧です。</p>
+    <!-- 2026-10-06 本人決定：使命＝「世界のミカタを、開発する。」。ミカタ＝世界の受けとり方（本人の言葉が芯）。視覚にかたよらない。
+         「味方」の読みは使わない（本人「味方を決めると、敵が自然に想起されてしまうため。分断は避けます。」） -->
+    <p class="mx-def" data-i18n-en="<span class='qn'>Mikata</span> — how we take in the world.<br>Seeing, listening, touching, following a scent.<br>Sensing and thinking beyond human time and human cognition."><span class="qn">ミカタ</span> ── 世界の受けとり方。<br>見る、聴く、ふれる、においをたどる。<br>人の時間や認知を越えて、感じとり、考える。</p>
+    <p data-i18n-en="mitsulab develops new mikata, together with Aoi, a yorishiro who stands between people and the world.">mitsulab は、人と世界のあいだに立つ依代・碧とともに、新しいミカタを開発しています。</p>
     <p data-i18n-en="The tools mitsulab makes are not for staring at a screen. The ultrasound of bats, water moving under the ground, the time held in tree rings, the magnetism that guides migrating birds, the marks of hands left on stone: clues to a world our senses alone cannot reach are gathered from observation, data and written sources, and handed back to the place where you stand. When you look up from the screen, the same place feels deeper than before. Re-discovering the real world, and being immersed in it — that is what this technology is for.">mitsulab がつくる道具は、画面を見つめつづけるためのものではありません。蝙蝠の超音波、地面の下を動く水、年輪に刻まれた時間、渡り鳥を導く地磁気、石に残る手のあと。人の感覚だけでは届かない世界の手がかりを、観測・データ・典拠から拾い、いま立っている場所へ手渡します。画面から顔を上げたとき、同じ場所が、前よりも深く感じられる。現実を再発見し、現実に没入する。そのための技術です。</p>
     <p data-i18n-en="Aoi moves between the layers that overlap in a single place — people, nature, information, culture, history — and hands the ones you had not noticed over to the place where you stand. The layers are not limited to these five.">碧は、ひとつの場所に重なる人・自然・情報・文化・歴史の層を行き来して、気づかなかった層を、いま立っている場所に重ねて手渡します。層は、この五つに限りません。</p>
     <p data-i18n-en="<span class='qn'>Qualium</span> — the place where the world beyond human senses and we, here and now, are linked through Aoi. A word mitsulab coined by adding -ium to qualia. mitsulab is a lab that makes the places, tools and systems for it."><span class="qn">Qualium</span>（クオリウム）── 人の感覚の外にある世界と、いまここにいる私たちとが、碧を通してつながる場。Qualia に -ium を重ねた、mitsulab の造語です。mitsulab は、そのための場・道具・仕組みをつくる研究所です。</p>
@@ -1083,10 +1092,10 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     <ul class="strip">
       <!-- ★作品の順（2026-10-06 本人決定・HP のどこでも）：Aoi Walk 氷川 → 森羅寄席 → 碧の唄（MV）→ 森羅美術館 → 森羅百景 → Aoi Sense。
            碧の唄の MV・森羅美術館は未公開。公開したら、この順の位置に入れる。 -->
-      <li><a href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><img src="img/apps/vid/walk_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="《Aoi Walk 氷川》：参道を先に歩く碧" data-i18n-alt="Aoi Walk: Hikawa: Aoi walking ahead on the approach"><span class="sn" data-i18n-en="Aoi Walk: Hikawa">《Aoi Walk 氷川》</span><span class="sd" data-i18n-en="Look up, and walk the Hikawa approach with Aoi">顔を上げて、碧と氷川参道を歩く</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><img src="img/apps/vid/rakugo_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="森羅寄席（碧の自然落語）の画面" data-i18n-alt="Shinra Yose: Aoi's nature rakugo"><span class="sn" data-i18n-en="Shinra Yose">森羅寄席</span><span class="sd" data-i18n-en="Nature that technology reveals, told as rakugo">技術が見せる自然を、落語で</span><span class="slg" data-i18n-en="JA / EN">日本語・英語</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><img src="img/apps/vid/shinra_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="森羅百景の総目録の画面" data-i18n-alt="Shinra Hyakkei catalogue"><span class="sn" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="sd" data-i18n-en="How people have seen nature, subject by subject">人が自然をどう見てきたか</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/aoi-blueprint/" target="_blank" rel="noopener"><img src="img/apps/vid/sense_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="《Aoi Sense》の画面" data-i18n-alt="Aoi Sense"><span class="sn" data-i18n-en="Aoi Sense">《Aoi Sense》</span><span class="sd" data-i18n-en="See inside Aoi in 3D">碧の中身を 3D で見る</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><img src="img/apps/vid/walk_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="《Aoi Walk 氷川》：参道を先に歩く碧" data-i18n-alt="Aoi Walk: Hikawa: Aoi walking ahead on the approach"><span class="sn" data-i18n-en="Aoi Walk: Hikawa">《Aoi Walk 氷川》</span><span class="sd" data-i18n-en="Look up, and the approach begins to speak">顔を上げると、参道が語りはじめる</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><img src="img/apps/vid/rakugo_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="森羅寄席（碧の自然落語）の画面" data-i18n-alt="Shinra Yose: Aoi's nature rakugo"><span class="sn" data-i18n-en="Shinra Yose">森羅寄席</span><span class="sd" data-i18n-en="Bats, bees, starlight — onto the rakugo stage">蝙蝠も、蜂も、星の光も、高座の上へ</span><span class="slg" data-i18n-en="JA / EN">日本語・英語</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><img src="img/apps/vid/shinra_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="森羅百景の総目録の画面" data-i18n-alt="Shinra Hyakkei catalogue"><span class="sn" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="sd" data-i18n-en="How people have taken in nature, in works, words and culture">人は自然をどう受けとり、作品と言葉にしてきたか</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/aoi-blueprint/" target="_blank" rel="noopener"><img src="img/apps/vid/sense_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="《Aoi Sense》の画面" data-i18n-alt="Aoi Sense"><span class="sn" data-i18n-en="Aoi Sense">《Aoi Sense》</span><span class="sd" data-i18n-en="The yorishiro who translates between layers">層のあいだを訳す、依代・碧</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
     </ul>
   </section>
 
@@ -1244,8 +1253,8 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     <figure class="app-fig"><img src="img/apps/vid/walk_poster.webp" width="640" height="400" loading="lazy" alt="《Aoi Walk 氷川》：参道を先に歩く碧と、碧のことば" data-i18n-alt="Aoi Walk: Hikawa: Aoi walking ahead on the approach, with her words"></figure>
     <div class="app-body">
       <span class="app-no">01</span><h3 class="app-name" data-i18n-en="Aoi Walk: Hikawa">《Aoi Walk 氷川》</h3><span class="app-lang" data-i18n-en="Japanese only">日本語のみ</span>
-      <p class="app-one" data-i18n-en="Not the screen — the approach in front of you.">見るのは、画面ではなく、目の前の参道。</p>
-      <p class="app-desc" data-i18n-en="An app for walking the Hikawa approach in Ōmiya with Aoi. On site, Aoi guides you by voice and gentle cues, so you do not need to keep your eyes on the screen. It is made so that you look up and see the keyaki trunks, the torii, the words carved in stone and the layers of time with your own eyes. At home, you can walk a full-scale 3D model of the approach on screen. In development, and free to try.">大宮の氷川参道を、碧と歩くアプリです。現地では、碧が声と合図でその場の案内をするので、画面を見つめながら歩く必要はありません。顔を上げて、欅の幹、鳥居、石に刻まれた文字、積み重なった時の層を、自分の目でもう一度見るためのつくりです。家では、実寸の 3D の参道を画面で歩けます。開発中で、無料で試せます。</p>
+      <p class="app-one" data-i18n-en="Look up, and the approach begins to speak.">顔を上げると、参道が語りはじめる。</p>
+      <p class="app-desc" data-i18n-en="An app for walking the Hikawa approach in Ōmiya with Aoi, a yorishiro. By voice and gentle cues, Aoi points to what is right in front of you: the trunks of old keyaki trees, the torii, the words carved in stone, and the layers of time beneath them. You never need to keep your eyes on the screen. Look up, and walk the familiar approach as a place you did not yet know. At home, you can walk a full-scale 3D model of the approach on screen. In development, and free to try.">大宮の氷川参道を、依代の碧と歩くアプリです。碧が声と合図で、いま目の前にあるものを示します。年を重ねた欅の幹、鳥居、石に刻まれた文字、その下に積み重なった時の層。画面を見つめる必要はありません。顔を上げて、いつもの参道を、まだ知らなかった場所として歩いてください。家では、実寸の 3D の参道を画面で歩けます。開発中で、無料で試せます。</p>
       <ul class="app-steps"><li data-i18n-en="Sense">感じる</li><li data-i18n-en="Translate">訳す</li><li data-i18n-en="Tell">語る</li><li data-i18n-en="Look again">見直す</li></ul>
       <ol class="app-flow" aria-label="体験の流れ" data-i18n-aria="Flow"><li data-i18n-en="look">みる</li><li data-i18n-en="listen">きく</li><li data-i18n-en="talk">かたる</li><li data-i18n-en="look back">かえりみる</li></ol>
       <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-walk-hikawa" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div>
@@ -1255,8 +1264,8 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     <figure class="app-fig"><img src="img/apps/vid/rakugo_poster.webp" width="640" height="400" loading="lazy" alt="森羅寄席：高座で語る碧" data-i18n-alt="Shinra Yose: Aoi on a yose stage"></figure>
     <div class="app-body">
       <span class="app-no">02</span><h3 class="app-name" data-i18n-en="Shinra Yose — Aoi&#39;s nature rakugo (5 tales)">森羅寄席 ── 碧の自然落語（5 作）</h3><span class="app-lang" data-i18n-en="JA / EN">日本語・英語</span>
-      <p class="app-one" data-i18n-en="The fine detail of nature that technology reveals, carried by the imagination of rakugo.">技術が見せる自然の細かさを、落語の想像力で。</p>
-      <p class="app-desc" data-i18n-en="Rakugo is a Japanese storytelling art in which a single teller, with only a fan, a hand towel, gestures and words, raises scenes beyond time and place in the listener&#39;s mind. Shinra Yose borrows that form to carry the fine detail of nature and the world that technology reveals — the ultrasound of bats, the ultraviolet that bees see, the magnetic sense of migrating birds, the time starlight takes to reach us — into human imagination. Five tales told by Aoi, a yorishiro, on a yose stage: The Weight of a Zelkova, The Bat&#39;s Ears, The Bee&#39;s Eyes, The Migrant&#39;s Compass, Late Starlight. The facts in the opening talk come with sources; the stories themselves are fiction. In Japanese and English. Voices: VOICEVOX: Meimei Himari / Kokoro-82M.">落語は、ひとりの語り手が、扇子と手拭い、しぐさと言葉だけで、聞き手の頭の中に、時代も場所も越えた情景を立ち上げる日本の話芸です。森羅寄席は、その型を借りて、技術がとらえた自然と世界の細かさ ── 蝙蝠の超音波、蜂に見える紫外線、渡り鳥の磁気の感覚、星の光が届くまでの時間 ── を、人の想像力の中へ運びます。依代の碧が高座で語る 5 作（欅の目方・蝙蝠の耳・蜂の目・渡りの磁石・星の遅刻）。まくらの事実には典拠をつけ、本題は作り話です。日本語と英語。声＝VOICEVOX：冥鳴ひまり／Kokoro-82M。</p>
+      <p class="app-one" data-i18n-en="A bat&#39;s cry, the long journey of starlight — onto the rakugo stage.">蝙蝠の声も、星の光の長い旅も、高座の上へ。</p>
+      <p class="app-desc" data-i18n-en="With one fan and a voice, a rakugo teller raises the streets of old Edo or a night sky inside the listener&#39;s mind. Shinra Yose loads that power of imagination with the fine detail of the world that technology has caught: the ultrasound of bats that human ears cannot hear, the ultraviolet patterns that bees can see, the Earth&#39;s magnetism that migrating birds sense, starlight that has travelled for years to reach us. Five tales told by Aoi, a yorishiro, on a yose stage: The Weight of a Zelkova, The Bat&#39;s Ears, The Bee&#39;s Eyes, The Migrant&#39;s Compass, Late Starlight. The facts in the opening talk come with sources; the stories are fiction. Laugh, and try one more way of taking in the world. Japanese and English. Voices: VOICEVOX: Meimei Himari / Kokoro-82M.">扇子一本と語りだけで、聞き手の頭の中に江戸の町も夜空も立ち上げる ── それが落語です。森羅寄席は、その想像の力に、技術がとらえた世界の細かさを乗せました。人の耳には聞こえない蝙蝠の超音波、蜂には見えている紫外線の模様、渡り鳥が感じとる地磁気、何年もかけて届く星の光。依代の碧が高座で語る 5 作（欅の目方・蝙蝠の耳・蜂の目・渡りの磁石・星の遅刻）。まくらの事実には典拠をつけ、本題は作り話です。笑いながら、世界の受けとり方をひとつ増やしてみてください。日本語と英語。声＝VOICEVOX：冥鳴ひまり／Kokoro-82M。</p>
       <ul class="app-steps"><li data-i18n-en="Tell">語る</li></ul>
       <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a></div>
     </div>
@@ -1265,8 +1274,8 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     <figure class="app-fig"><img src="img/apps/vid/shinra_poster.webp" width="640" height="400" loading="lazy" alt="森羅百景の総目録の画面と、案内する碧" data-i18n-alt="Shinra Hyakkei: the catalogue page"></figure>
     <div class="app-body">
       <span class="app-no">03</span><h3 class="app-name" data-i18n-en="Shinra Hyakkei">森羅百景</h3><span class="app-lang" data-i18n-en="Japanese only">日本語のみ</span>
-      <p class="app-one" data-i18n-en="How have people seen nature, and made it into works?">人は、自然をどう見て、どう作品にしてきたか。</p>
-      <p class="app-desc" data-i18n-en="The catalogue of nature and people that underlies Aoi&#39;s knowledge. Soil, rain, wind, snow, living things, vegetables, the Moon and the Sun: for each subject, one view, gathering paintings and writings from many places and ages alongside present-day photographs. You can follow how the same creature or the same rain has been seen, and made into works, in different lands and times — with the background and the source (museum and licence) of each. 164 views, 891 works.">碧の知識の土台になる、自然と人の関係の目録です。土・雨・風・雪・いきもの・やさい・月・太陽。主題ごとに一つの景を立て、古今東西の絵と文学、いまの写真を並べました。同じ生きもの、同じ雨が、土地と時代によってどう見られ、どう作品になってきたかを、その背景と出典（所蔵館・ライセンス）とともにたどれます。164 景・作品 891 点。</p>
+      <p class="app-one" data-i18n-en="Naming the rain, painting the moon, working the soil — how have people taken in nature?">雨に名をつけ、月を描き、土を耕す。人は、自然をどう受けとってきたか。</p>
+      <p class="app-desc" data-i18n-en="Shinra Hyakkei is a catalogue that follows how people across times and places have felt nature and turned it into works, words and culture. Not only paintings and literature: the world&#39;s names for rain, wind and snow, life lived with creatures and vegetables, the ways of working the soil, the faces of the Moon and the Sun. One view for each subject, set side by side across ages and lands — and you begin to see the same rain, the same bird, received under entirely different names and forms. Every item carries its background and source (museum and licence). It is the ground of Aoi&#39;s knowledge. 164 views, 891 works.">森羅百景は、古今東西の人が自然をどう感じ、どう作品と言葉と文化にしてきたかをたどる目録です。絵や文学だけではありません。雨や風や雪につけられた世界の名前、生きものや野菜とともにある暮らし、土を耕すいとなみ、月と太陽の見え方。主題ごとに一つの景を立て、時代と土地をまたいで並べると、同じ雨が、同じ鳥が、土地と時代によってまったく違う名前と姿で受けとられてきたことが見えてきます。どれも背景と出典（所蔵館・ライセンス）つき。碧の知識の土台です。164 景・作品 891 点。</p>
       <ul class="app-steps"><li data-i18n-en="Record">記録する</li></ul>
       <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/shinra-hyakkei" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div>
     </div>
@@ -1275,8 +1284,8 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     <figure class="app-fig"><img src="img/apps/vid/sense_poster.webp" width="640" height="400" loading="lazy" alt="《Aoi Sense》の画面：碧の 3D の姿" data-i18n-alt="Aoi Sense: Aoi in 3D"></figure>
     <div class="app-body">
       <span class="app-no">04</span><h3 class="app-name" data-i18n-en="Aoi Sense">《Aoi Sense》</h3><span class="app-lang" data-i18n-en="Japanese only">日本語のみ</span>
-      <p class="app-one" data-i18n-en="How Aoi senses, in 3D.">碧の感じかたを、3D で。</p>
-      <p class="app-desc" data-i18n-en="How Aoi, a yorishiro, takes in things from the side of nature — with ears, eyes, feet, chest, hands and head — and hands them to people. The technology behind each, and what cannot yet be carried over, shown one by one on Aoi in 3D.">依代の碧が、耳・目・足もと・胸・手・頭で、自然の側のものをどう受けとり、人へ手渡すか。それぞれを支える技術と、まだ移せないものを、3D の碧の上で一つずつ見られます。</p>
+      <p class="app-one" data-i18n-en="Between what, does a yorishiro stand?">依代は、何と何のあいだに立つのか。</p>
+      <p class="app-desc" data-i18n-en="A yorishiro was originally an object to which a spirit is believed to descend; mitsulab borrows the word as a figure for one who stands in between, not for its religious meaning. Aoi is a yorishiro standing between the layers of people, nature, information, culture and history. In Aoi Sense you can see, part by part on Aoi in 3D, how her ears, eyes, feet, chest, hands and head receive what lies across those layers — birdsong, the lie of the land, the feel of soil, the recorded past — and hand it to people. To cross a layer is to translate its language into ours. The technology behind each part, and what cannot yet be carried across, are written down plainly.">依代（よりしろ）は、もとは神霊が降りるとされる物を指す言葉です。mitsulab は、その宗教的な意味ではなく、あいだに立つものの喩えとして借りています。碧は、人・自然・情報・文化・歴史の層のあいだに立つ依代です。《Aoi Sense》では、碧が耳・目・足もと・胸・手・頭で、層の向こう側にあるもの ── 鳥の声、地形、土の手ざわり、記録された過去 ── をどう受けとり、人へ手渡すかを、3D の碧の上で一つずつ見られます。層を越えるとは、向こうの言葉を、こちらの言葉へ訳すこと。それぞれを支える技術と、まだ移せないものも、隠さずに書いています。</p>
       <ul class="app-steps"><li data-i18n-en="Tell">語る</li></ul>
       <div class="btns"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-blueprint/" target="_blank" rel="noopener"><span data-i18n-en="Open">開く</span> <span class="arr">↗</span></a><a class="btn" href="https://github.com/mitsulab-soil/aoi-blueprint" target="_blank" rel="noopener">GitHub <span class="arr">↗</span></a></div>
     </div>
@@ -1385,7 +1394,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 
 <footer>
   <div class="f-brand">mitsulab</div>
-  <div class="f-tag" data-i18n-en="Developing ways to sense the world, and allies in it.">世界のミカタを、開発する。</div>
+  <div class="f-tag" data-i18n-en="Developing new ways of sensing the world.">世界のミカタを、開発する。</div>
   <p class="f-credit" data-i18n-en="The 3D of the Hikawa approach is from mitsulab's Aoi Walk: Hikawa — contours from GSI elevation; buildings from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements © OpenStreetMap contributors (ODbL); observation positions from iNaturalist. Tree shapes, the data lattice and particles of light are schematic. Images are screens of mitsulab's works. Aoi's voice in Aoi Walk: Hikawa — VOICEVOX: Meimei Himari.">氷川参道の 3D は mitsulab の《Aoi Walk 氷川》から：等高線＝国土地理院の標高／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors（ODbL）／観察記録の位置＝iNaturalist。木の形・上空の格子・光の粒は模式です。図版は mitsulab の作品の画面。《Aoi Walk 氷川》の碧の声＝VOICEVOX：冥鳴ひまり。</p>
   <nav class="f-links" aria-label="フッターのリンク" data-i18n-aria="Footer links"><button type="button" data-go-anchor="contact" data-i18n-en="Contact">お問い合わせ</button><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><button type="button" data-go-anchor="profile" data-i18n-en="Profile">代表プロフィール</button><button type="button" data-go-anchor="apps" data-i18n-en="Applications">アプリケーション</button><button type="button" data-go-anchor="about" data-i18n-en="About this site">サイトについて</button><a href="/privacy/" data-i18n-en="Privacy Policy">プライバシーポリシー</a><a href="/terms/" data-i18n-en="Terms of Service">利用規約</a><a href="/aoi/uploader/">Aoi Uploader</a></nav>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
@@ -1407,7 +1416,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 /* ============================================================
    ★ コアの一行（ここ一か所で差し替える。本人の採否待ち：Qualium v2 §4）
    ============================================================ */
-var CORE = { ja:'世界の<span class="nw">ミカタを、</span><br>開発する。', en:'Developing ways<br>to sense the world,<br><span class="core-sub">and allies in it.</span>' };   // 2026-10-06 本人決定（ミカタ＝見方と味方）
+var CORE = { ja:'世界の<span class="nw">ミカタを、</span><br>開発する。', en:'Developing new ways<br>of sensing the world.' };   // 2026-10-06 本人決定（ミカタ＝世界の受けとり方。「味方」の読みは使わない＝分断を避ける）
 
 
 /* ===== 用語解説（ja / en） ===== */
@@ -1471,11 +1480,11 @@ var TERMS = {
     try{ document.dispatchEvent(new CustomEvent('hp-lang-change',{detail:lang})); }catch(e){}
     document.querySelectorAll('.card-title').forEach(function(t){ var a=t.querySelector('.ct-ja'), b=t.querySelector('.ct-en'); if(a&&b) b.style.display=(lang==='en'&&a.textContent.trim().replace(/[《》]/g,'')===b.textContent.trim().replace(/[《》]/g,''))?'none':''; });
     if(!window.__titleJa) window.__titleJa=document.title;
-    document.title = lang==='en' ? 'mitsulab — Developing ways to sense the world, and allies in it.' : window.__titleJa;
+    document.title = lang==='en' ? 'mitsulab — Developing new ways of sensing the world.' : window.__titleJa;
     [['meta[name="description"]','mitsulab is a small lab in Saitama, Japan. Through the yorishiro Aoi and Qualium, it makes places, tools and systems for re-discovering the real world and being immersed in it — in the 3D of the Hikawa approach, layers of people, nature, information, culture and history overlap. Apps such as Aoi Walk: Hikawa are open to try.'],
-     ['meta[property="og:title"]','mitsulab — Developing ways to sense the world, and allies in it.'],
-     ['meta[property="og:description"]','Developing ways to sense the world, and allies in it. A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it, with the yorishiro Aoi.'],
-     ['meta[property="og:locale"]','en_US'],['meta[property="og:locale:alternate"]','ja_JP']].forEach(function(m){ var el=document.querySelector(m[0]); if(!el) return; if(!el.hasAttribute('data-ja')) el.setAttribute('data-ja',el.getAttribute('content')); el.setAttribute('content', lang==='en'?m[1]:el.getAttribute('data-ja')); });
+     ['meta[property="og:title"]','mitsulab — Developing new ways of sensing the world.'],
+     ['meta[property="og:description"]','Developing new ways of sensing the world. A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it, with the yorishiro Aoi.'],
+     ['meta[property="og:image"]','https://mitsulab.jp/img/og_1200x630_en.jpg'],['meta[property="og:image:alt"]','The Hikawa approach in 3D drawn in lines of light, with “Developing new ways of sensing the world.”'],['meta[property="og:locale"]','en_US'],['meta[property="og:locale:alternate"]','ja_JP']].forEach(function(m){ var el=document.querySelector(m[0]); if(!el) return; if(!el.hasAttribute('data-ja')) el.setAttribute('data-ja',el.getAttribute('content')); el.setAttribute('content', lang==='en'?m[1]:el.getAttribute('data-ja')); });
   }
   function paint(seg){
     var ind=seg.querySelector('.seg-ind'), act=seg.querySelector('.seg-btn[aria-pressed="true"]');
@@ -1716,11 +1725,11 @@ var TERMS = {
    作品の一覧はここ一か所（AOI_FN）。url が空のものは「準備中」。公開されたら url と img を足す。 ===== */
 var AOI_FN=[
   // ★作品の順（2026-10-06 本人決定）：walk → rakugo（森羅寄席）→ sing（碧の唄 MV）→ 森羅美術館（未公開・公開したら sing の次に足す）→ guide（森羅百景）→ sense
-  {call:'walk("Hikawa")', ja:'《Aoi Walk 氷川》', en:'Aoi Walk: Hikawa', dj:'顔を上げて、碧と氷川参道を歩く', de:'Look up, and walk the Hikawa approach with Aoi', url:'https://mitsulab-soil.github.io/aoi-walk-hikawa/', img:'img/apps/vid/walk_poster.webp'},
-  {call:'rakugo("欅の目方")', ja:'森羅寄席 ── 碧の自然落語', en:'Shinra Yose — Aoi\'s nature rakugo', dj:'技術がとらえた自然の細かさを、落語の想像力で（5 作）', de:'The fine detail of nature that technology reveals, told as rakugo (5 tales)', url:'https://mitsulab-soil.github.io/aoi-shizen-rakugo/', img:'img/apps/vid/rakugo_poster.webp'},
+  {call:'walk("Hikawa")', ja:'《Aoi Walk 氷川》', en:'Aoi Walk: Hikawa', dj:'顔を上げると、参道が語りはじめる', de:'Look up, and the approach begins to speak', url:'https://mitsulab-soil.github.io/aoi-walk-hikawa/', img:'img/apps/vid/walk_poster.webp'},
+  {call:'rakugo("欅の目方")', ja:'森羅寄席 ── 碧の自然落語', en:'Shinra Yose — Aoi\'s nature rakugo', dj:'蝙蝠の声も、星の光の長い旅も、高座の上へ（5 作）', de:'A bat\'s cry, the long journey of starlight — onto the rakugo stage (5 tales)', url:'https://mitsulab-soil.github.io/aoi-shizen-rakugo/', img:'img/apps/vid/rakugo_poster.webp'},
   {call:'sing("一筆")', ja:'碧の唄《一筆》', en:'Songs of Aoi: “Ippitsu”', dj:'碧が唄う', de:'Aoi sings', url:'', img:''},
-  {call:'guide("森羅百景")', ja:'《森羅百景》', en:'Shinra Hyakkei', dj:'人が自然をどう見て、どう作品にしてきたかを、主題ごとにたどる', de:'How people have seen nature and made it into works, subject by subject', url:'https://mitsulab-soil.github.io/shinra-hyakkei/', img:'img/apps/vid/shinra_poster.webp'},
-  {call:'sense()', ja:'《Aoi Sense》', en:'Aoi Sense', dj:'碧の感じかたを、3D で見せる', de:'Shows how Aoi senses, in 3D', url:'https://mitsulab-soil.github.io/aoi-blueprint/', img:'img/apps/vid/sense_poster.webp'}
+  {call:'guide("森羅百景")', ja:'《森羅百景》', en:'Shinra Hyakkei', dj:'人は自然をどう受けとり、作品と言葉と文化にしてきたか', de:'How people have taken in nature, and made it into works, words and culture', url:'https://mitsulab-soil.github.io/shinra-hyakkei/', img:'img/apps/vid/shinra_poster.webp'},
+  {call:'sense()', ja:'《Aoi Sense》', en:'Aoi Sense', dj:'層のあいだに立つ依代が、何をどう訳すか', de:'What the yorishiro between the layers translates, and how', url:'https://mitsulab-soil.github.io/aoi-blueprint/', img:'img/apps/vid/sense_poster.webp'}
 ];
 (function(){
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1821,10 +1830,9 @@ var AOI_FN=[
    スクロールで、上空のデータの格子から参道へ降り、地面の高さで参道を北へ進み、碧の前に着く。マウス・端末の傾きで少し視差。
    模式のもの：上空の格子・光の粒（人の流れ・データの流れ）・Qualium の五つの段の輪・木の形。それ以外は実データ。
    reduced-motion・WebGL なしは、止まった一枚（img/hero/scene_poster_*.webp）と言葉を全部ならべる。 ===== */
-import * as THREE from 'three';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
-import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+// 高速化（2026-10-06）：three.js（約 260 KB）は、ページの読み込みが終わってから取りに行く（最初の絵・文字・書体を先に）
+let THREE, GLTFLoader, MeshoptDecoder, mergeGeometries;
+const libs=()=>window.__threeLibs||(window.__threeLibs=new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r,{once:true})).then(()=>Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')])));
 const LOD_NEAR=80, LOD_MID=260, LOD_BAND=9;   // 80 m の前後 9 m は、二つの型をまだらに混ぜて切り替える（Unity の LOD cross-fade と同じ考え）   // 木の型を替える距離（m・碧から）
 
 const root=document.getElementById('why');
@@ -1837,6 +1845,7 @@ if(!hasGL()) staticMode(); else { if(reduce) staticMode(); start().catch(e=>{ co
 
 const yieldT=()=>new Promise(r=>(window.scheduler&&scheduler.yield)?scheduler.yield().then(r):setTimeout(r,0));
 async function start(){
+  { const m=await libs(); THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; mergeGeometries=m[3].mergeGeometries; }
   const [meta,bin]=await (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()), fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])));   // 使命と層の 3D と一度だけ取りに行く
   const I=new Int16Array(bin), Q=meta.q;
   const mobile=Math.min(innerWidth,innerHeight)<700;
@@ -2113,7 +2122,7 @@ async function start(){
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var back=document.createElement('canvas'), front=document.createElement('canvas'); back.className='mx-back'; front.className='mx-front';
   back.setAttribute('aria-hidden','true'); front.setAttribute('aria-hidden','true');
-  var aoi=sec.querySelector('.mx-aoi'); stage.appendChild(back); if(aoi) stage.appendChild(aoi); stage.appendChild(front);
+  var aoi=sec.querySelector('.mx-aoi'), a3=sec.querySelector('.mx-aoi3d'), a3w=0, a3h=0; stage.appendChild(back); if(aoi) stage.appendChild(aoi); stage.appendChild(front);
   var bx=back.getContext('2d'), fx=front.getContext('2d'), labs=[].slice.call(sec.querySelectorAll('.mx-l'));
   var COL=['244,170,150','127,224,180','180,162,255','242,207,140','200,226,236'];
   var LY=[{s:1.05,y:1.62,tx:.42,tz:.12,sp:.10},{s:1.30,y:1.20,tx:-.34,tz:.22,sp:-.07},{s:1.55,y:1.92,tx:.22,tz:-.34,sp:.05},{s:1.80,y:.78,tx:-.16,tz:-.24,sp:-.04},{s:2.05,y:1.40,tx:.48,tz:.04,sp:.03}];
@@ -2136,7 +2145,8 @@ async function start(){
     bx.clearRect(0,0,W,H); fx.clearRect(0,0,W,H); bx.globalCompositeOperation=fx.globalCompositeOperation='lighter';
     // 碧の足もとの光と、立つ位置
     var foot=proj(0,0,0), head=proj(0,1.62,0);
-    if(foot&&head){ glow(bx,foot[0],foot[1],(foot[1]-head[1])*.5,'92,200,224',.16); if(aoi){ var hh=(foot[1]-head[1])*1.04; aoi.style.height=hh+'px'; aoi.style.transform='translate3d('+(foot[0]-hh*.163)+'px,'+(foot[1]-hh*.985)+'px,0)'; } }
+    if(foot&&head){ glow(bx,foot[0],foot[1],(foot[1]-head[1])*.5,'92,200,224',.16); if(aoi){ var hh=(foot[1]-head[1])*1.04; aoi.style.height=hh+'px'; aoi.style.transform='translate3d('+(foot[0]-hh*.163)+'px,'+(foot[1]-hh*.985)+'px,0)'; }
+      if(a3){ var bh=(foot[1]-head[1])/.81, bw=bh*.55; if(Math.abs(bh-a3h)>2){ a3h=bh; a3w=bw; a3.style.width=bw+'px'; a3.style.height=bh+'px'; } a3.style.transform='translate3d('+(foot[0]-a3w/2)+'px,'+(foot[1]-.92*a3h)+'px,0)'; } }   // 3D の碧（碧のページと同じ組み立て・画面に入ったときに読む）。読むまでは切り抜きの絵
     // 碧の足もとから広がる音の輪（聴く・感じるの印。見ることだけにしない）
     for(var ri=0;ri<3;ri++){ var ph=((t*.22+ri/3)%1), rr=.4+ph*2.6, al=.32*(1-ph)*(1-m*.5); bx.strokeStyle='rgba(168,242,246,'+al+')'; bx.lineWidth=.9; bx.beginPath();
       for(var sg=0;sg<=48;sg++){ var an=sg/48*6.283, pt=proj(Math.cos(an)*rr,0.01,Math.sin(an)*rr); if(!pt) continue; sg?bx.lineTo(pt[0],pt[1]):bx.moveTo(pt[0],pt[1]); } bx.stroke(); }
@@ -2179,17 +2189,17 @@ async function start(){
    層の図のまん中に、いまの碧（img/hero/aoi.vrm）を 3D で立てる。腕＝05_碧/02_碧の身体/aoi_pose.js の写し。
    息・まばたき・小さな首の動き、ゆっくり左右に向きを変え、指でも回せる。図が画面に入ったときに読み込み、外では止める。
    reduced-motion と WebGL なしは、いままでの絵のまま。 ===== */
-import * as THREE from 'three';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+let THREE, GLTFLoader, MeshoptDecoder;   // 高速化：要るときに取りに行く（TOP の場面と同じものを使い回す）
+const libsA=()=>window.__threeLibs||(window.__threeLibs=new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r,{once:true})).then(()=>Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')])));
 const reduceA=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const getBuf=()=>window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer()));   // 碧の 3D は一度だけ取りに行き、置き場所ごとに組み立てる
-if(!reduceA) document.querySelectorAll('.al').forEach(box=>{
+if(!reduceA) document.querySelectorAll('.al, .mx-aoi3d').forEach(box=>{
   let started=false;
   const io=new IntersectionObserver(es=>{ if(es[0].isIntersecting&&!started){ started=true; io.disconnect(); boot(box).catch(e=>console.warn('aoi live',e)); } },{rootMargin:'200px'});
   io.observe(box);
 });
 async function boot(box){
+  { const m=await libsA(); THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; }
   const cv=document.createElement('canvas'); cv.className='al-live'; cv.setAttribute('aria-label','碧の 3D（ドラッグで向きを変えられる）'); cv.setAttribute('data-i18n-aria','Aoi in 3D (drag to turn her)'); if(document.documentElement.getAttribute('data-lang')==='en'){ cv.setAttribute('data-aria-ja',cv.getAttribute('aria-label')); cv.setAttribute('aria-label','Aoi in 3D (drag to turn her)'); } box.appendChild(cv);
   const R=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true,powerPreference:'low-power'});
   R.setPixelRatio(Math.min(devicePixelRatio||1, innerWidth<700?1.5:1.5)); R.outputColorSpace=THREE.SRGBColorSpace;
@@ -2206,7 +2216,7 @@ async function boot(box){
   const pivot=new THREE.Group(); pivot.add(vrm.scene); S.add(pivot);
   vrm.update(0); const bb=new THREE.Box3().setFromObject(vrm.scene), hgt=bb.max.y-bb.min.y;
   cam.position.set(0,hgt*.72,hgt*2.05); cam.lookAt(0,hgt*.62,0);   // 膝から上
-  if(box.hasAttribute('data-aoi-live')){ cam.position.set(0,hgt*.6,hgt*2.9); cam.lookAt(0,hgt*.52,0); }   // 使命の場面：全身
+  if(box.classList.contains('mx-aoi3d')){ cam.position.set(0,hgt*.6,hgt*2.9); cam.lookAt(0,hgt*.52,0); }   // 使命と層：全身（箱の 11〜92% に頭から足）
   const lookT=new THREE.Object3D(); lookT.position.set(0,hgt*.9,3); S.add(lookT); if(vrm.lookAt) vrm.lookAt.target=lookT;
   box.classList.add('al-has-live');
   const tall=box.hasAttribute('data-aoi-live');
