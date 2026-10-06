@@ -1852,6 +1852,8 @@ if(!hasGL()) staticMode(); else { if(reduce) staticMode(); start().catch(e=>{ co
 
 const yieldT=()=>new Promise(r=>(window.scheduler&&scheduler.yield)?scheduler.yield().then(r):setTimeout(r,0));
 async function start(){
+  await new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r,{once:true}));
+  await new Promise(r=>(window.requestIdleCallback?requestIdleCallback(()=>r(),{timeout:2500}):setTimeout(r,600)));   // 高速化：最初の絵と文字（書体）が描き終わってから 3D を組む。それまでは同じ絵（scene_poster）が出ている
   { const m=await libs(); THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; mergeGeometries=m[3].mergeGeometries; }
   const [meta,bin]=await (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()), fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])));   // 使命と層の 3D と一度だけ取りに行く
   const I=new Int16Array(bin), Q=meta.q;
