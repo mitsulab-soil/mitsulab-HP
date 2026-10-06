@@ -11,7 +11,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mitsulab — 認知拡張。自然と世界を、より深く。</title>
+<title>mitsulab — 世界のミカタを、開発する。</title>
 <meta name="description" content="mitsulab は、依代・碧と Qualium を通して、現実を再発見し、現実に没入するための場・道具・仕組みをつくる研究所。氷川参道の 3D の中で、人・自然・情報・文化・歴史の層が重なる。《Aoi Walk 氷川》ほかのアプリを公開中。">
 <meta name="author" content="上原光瑛">
 <meta name="robots" content="index, follow">
@@ -22,8 +22,8 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mitsulab.jp/">
 <meta property="og:site_name" content="mitsulab">
-<meta property="og:title" content="mitsulab — 認知拡張。自然と世界を、より深く。 / Cognitive augmentation">
-<meta property="og:description" content="認知拡張。自然と世界を、より深く。依代・碧と Qualium を通して、現実を再発見し、現実に没入する。 — A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it.">
+<meta property="og:title" content="mitsulab — 世界のミカタを、開発する。 / Developing ways to sense the world">
+<meta property="og:description" content="世界のミカタを、開発する。依代・碧と Qualium を通して、現実を再発見し、現実に没入する。 — A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it.">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:locale:alternate" content="en_US">
 <link rel="alternate" hreflang="ja" href="https://mitsulab.jp/?lang=ja">
@@ -925,10 +925,11 @@ html[lang="en"] .msn-h,html[lang="en"] .msn-sub{letter-spacing:.03em}
 .mx .msn-sticky{background:transparent}
 .mx-stage{position:absolute;inset:0;z-index:1}
 .mx-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y}
-.mx-poster{position:absolute;left:50%;top:52%;height:min(46svh,92vw);width:auto;transform:translate(-50%,-50%);z-index:1;object-fit:contain;
-  -webkit-mask-image:radial-gradient(50% 50% at 50% 50%,#000 62%,transparent 100%);mask-image:radial-gradient(50% 50% at 50% 50%,#000 62%,transparent 100%);transition:opacity .8s}
-.mx-ready .mx-poster{opacity:0}
-.mx-l{position:absolute;left:0;top:0;z-index:2;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:600;font-size:clamp(.82rem,2.2cqw,1.1rem);letter-spacing:.12em;
+.mx-back,.mx-front{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.mx-front{z-index:2}
+.mx-aoi{position:absolute;left:0;top:0;z-index:1;width:auto;height:46svh;max-width:none;transform:translate3d(-999px,0,0);opacity:0;transition:opacity .8s;filter:drop-shadow(0 0 18px rgba(92,200,224,.28))}
+.mx-ready .mx-aoi{opacity:1}
+.mx-l{position:absolute;left:0;top:0;z-index:3;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:600;font-size:clamp(.82rem,2.2cqw,1.1rem);letter-spacing:.12em;
   color:#eaf6fb;padding:.15em .8em;border-radius:999px;background:rgba(3,6,15,.62);border:1px solid var(--mxc,rgba(92,200,224,.5));white-space:nowrap;opacity:0;transition:opacity .35s;pointer-events:none}
 .mx-l[data-k="0"]{--mxc:rgba(244,170,150,.7)}.mx-l[data-k="1"]{--mxc:rgba(127,224,180,.7)}.mx-l[data-k="2"]{--mxc:rgba(180,162,255,.7)}.mx-l[data-k="3"]{--mxc:rgba(242,207,140,.7)}.mx-l[data-k="4"]{--mxc:rgba(200,226,236,.7)}
 html[lang="en"] .mx-l{letter-spacing:.04em}
@@ -937,7 +938,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 .mx-body .qn{font-family:var(--latin);font-style:italic;color:#c6f8f2;font-size:1.12em}
 .mx-body .msn-def{margin:18px 0 0;max-width:none}
 .mx-list{margin:18px 0 6px}
-@media (prefers-reduced-motion:reduce){.mx-l{display:none}.mx-poster{opacity:1!important}}
+@media (prefers-reduced-motion:reduce){.mx-aoi{transition:none}}
 </style>
 </head>
 <body>
@@ -993,7 +994,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 <!-- ┌─ mitsulab（2026-10-04 v3・本人指示）：画面いっぱい・枠なしの場面（氷川参道の 3D を線で・碧が立つ・多次元の層が重なる）→ 使命 → 碧／Qualium／アプリケーションへの入口 → アプリの案内。
      詳しいことは、それぞれのタブのページへ。場面のしくみは script の「mitsulab の没入の場面 v3」。 ── -->
 <section id="top" class="tab-panel" data-panel="top" aria-label="mitsulab">
-<h1 class="vh" id="coreH1" data-i18n-en="mitsulab — Cognitive augmentation. Nature and the world, more deeply. Through Qualium and Aoi, linking the cognitive spaces of people, nature and machines.">mitsulab — 認知拡張。自然と世界を、より深く。Qualium と碧を通して、人と自然と機械の認知空間をつなぐ。</h1>
+<h1 class="vh" id="coreH1" data-i18n-en="mitsulab — Developing ways to sense the world, and allies in it. With the yorishiro Aoi, re-discovering the real world and being immersed in it.">mitsulab — 世界のミカタを、開発する。依代・碧とともに、現実を再発見し、現実に没入する。</h1>
 
 <div id="why" class="scene" aria-label="氷川参道の空間の場面" data-i18n-aria="A scene in the space of the Hikawa approach"><script>/* 高速化（2026-10-06）：動きを減らす設定の端末は、最初から止まった一枚の形で組む（あとで形が変わってずれるのを防ぐ） */try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.getElementById('why').classList.add('scene-static');}catch(e){}</script>
   <div class="scene-sticky">
@@ -1014,7 +1015,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     <div class="scene-words">
       <div class="beat beat-hero" data-beat data-a="0" data-b=".07">
         <span class="eyebrow">mitsulab</span>
-        <p class="core" id="core">認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span></p>
+        <p class="core" id="core">世界の<span class="nw">ミカタを、</span><br>開発する。</p>
         <p class="core-plain" data-i18n-en="mitsulab is a small lab in Saitama, Japan. Starting from the Hikawa approach, it makes apps and 3D that widen how we sense nature — all open in the browser.">mitsulab は、さいたま市の氷川参道を最初の舞台に、<span class="nw">自然の感じ方を広げる</span>アプリと 3D をつくる小さな研究所です。<span class="nw">どれもブラウザで開けます。</span></p>
         <p class="scene-hint" data-i18n-en="Scroll — into the Hikawa approach">スクロールで、<span class="nw">氷川参道の中へ</span></p>
         <p class="hero-go"><button type="button" class="hgo" data-go-anchor="mission"><span data-i18n-en="Skip to what we do">中身へ</span> <span aria-hidden="true">↓</span></button><a class="hgo hgo-aoi" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span class="hgo-orb" aria-hidden="true"></span><span data-i18n-en="Walk with Aoi">碧と歩く</span> <span aria-hidden="true">↗</span></a><button type="button" class="hgo" data-go-anchor="contactAsk"><span data-i18n-en="Work with us">相談する</span> <span aria-hidden="true">→</span></button></p>
@@ -1038,18 +1039,18 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 
 <div class="wrap">
   <!-- 使命と層（2026-10-06 本人決定：使命の節と「碧は、情報の層をつなぐ」の節を一つに）。
-       見出し＝「認知拡張。自然と世界を、より深く。」／添える一行＝「情報空間から、現実空間へ。」。
+       見出し＝「世界のミカタを、開発する。」（2026-10-06 本人決定。旧「認知拡張。自然と世界を、より深く。」）／添える一行＝「情報空間から、現実空間へ。」。
        図＝3D の碧（img/hero/aoi.vrm・TOP の場面と一度だけ取りに行く）のまわりを、人・自然・情報・文化・歴史の層（半透明の板・光の線と粒）が流れ、
        入り組み、スクロールの終わりで地面へ降りて、氷川参道の実際の等高線・道・木の位置（《Aoi Walk 氷川》の素材＝img/hero/sando_wire.*）に溶ける。
        層の形・粒は模式。地形の高さは 3 倍に強調。仕組みは script の「使命と層の 3D」。動きを減らす設定と WebGL なしは、碧の絵と言葉だけ。 -->
   <section id="mission" class="msn mx" aria-labelledby="missionH">
     <div class="msn-sticky">
-      <img class="mx-poster" src="img/ftw/aoi_portrait_480.webp" srcset="img/ftw/aoi_portrait_480.webp 480w, img/ftw/aoi_portrait.webp 960w" sizes="(max-width:700px) 60vw, 320px" width="480" height="614" loading="lazy" alt="碧の立ち姿" data-i18n-alt="Aoi standing">
+      <img class="mx-aoi" src="img/hero/aoi_cut_480.webp" srcset="img/hero/aoi_cut_480.webp 480w, img/hero/aoi_cut_960.webp 960w" sizes="(max-width:700px) 40vw, 240px" width="480" height="1472" loading="lazy" decoding="async" alt="碧の立ち姿" data-i18n-alt="Aoi standing">
       <div class="mx-stage" data-mx></div>
       <span class="mx-l" data-k="0" data-i18n-en="People">人</span><span class="mx-l" data-k="1" data-i18n-en="Nature">自然</span><span class="mx-l" data-k="2" data-i18n-en="Information">情報</span><span class="mx-l" data-k="3" data-i18n-en="Culture">文化</span><span class="mx-l" data-k="4" data-i18n-en="History">歴史</span>
       <div class="msn-text">
         <span class="eyebrow">Mission</span>
-        <h2 class="msn-h" id="missionH" data-i18n-en="<span class='ln'>Cognitive augmentation.</span><span class='ln'>Nature and the world,</span><span class='ln'>more deeply.</span>"><span class="ln">認知拡張。</span><span class="ln">自然と世界を、</span><span class="ln">より深く。</span></h2>
+        <h2 class="msn-h" id="missionH" data-i18n-en="<span class='ln'>Developing</span><span class='ln'>ways to sense the world,</span><span class='ln'>and allies in it.</span>"><span class="ln">世界の</span><span class="ln">ミカタを、</span><span class="ln">開発する。</span></h2>
         <div class="msn-bot">
         <p class="msn-sub" data-i18n-en="<span class='ln ln-a'>From information space</span><span class='ln ln-b'>into real space.</span>"><span class="ln ln-a">情報空間から、</span><span class="ln ln-b">現実空間へ。</span></p>
         <p class="msn-foot" data-i18n-en="Re-discover the real world, and be immersed in it.">現実を再発見し、現実に没入する。</p>
@@ -1058,8 +1059,10 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     </div>
   </section>
   <div class="mx-body">
-    <p data-i18n-en="The tools mitsulab makes are not for staring at a screen. Tree rings, water moving through the ground, the migration of birds, the marks of hands left on stone: clues to a world our senses alone cannot reach are gathered from observation, data and written sources, and handed back to the place in front of you. When you look up, the same view looks deeper than before. Re-discovering the real world, and being immersed in it — that is what this technology is for.">mitsulab がつくる道具は、画面を見つめつづけるためのものではありません。木の年輪、地面の下を動く水、鳥の渡り、石に残る手のあと。人の感覚だけでは届かない世界の手がかりを、観測・データ・典拠から拾い、目の前の場所へ手渡します。顔を上げたとき、同じ景色が、前よりも深く見える。現実を再発見し、現実に没入する。そのための技術です。</p>
-    <p data-i18n-en="Standing in between is Aoi, a <span class='qn'>yorishiro</span> — one who stands between people and the world. Aoi moves between the layers that overlap in a single place — people, nature, information, culture, history — and lays the ones you had not noticed over the place where you stand. The layers are not limited to these five.">そのあいだに立つのが、依代（よりしろ）の碧（あおい）です。碧は、ひとつの場所に重なる人・自然・情報・文化・歴史の層を行き来して、気づかなかった層を、いま立っている場所の上に重ねて見せます。層は、この五つに限りません。</p>
+    <!-- 2026-10-06 本人決定：使命＝「世界のミカタを、開発する。」。ミカタ＝見方と味方。見方は目だけでなく、聴く・触れる・嗅ぐ・時間と大きさの幅・分かることまで（視覚にかたよらない） -->
+    <p data-i18n-en="Mikata carries two meanings in Japanese. One is a way of sensing — how the world is felt and understood. Not only by sight: listening, touching, smelling, sensing on time scales longer or shorter than ours and at sizes larger or smaller than ours, and understanding by knowing. The other is an ally — someone who opens those ways with you. That ally is Aoi, a yorishiro.">「ミカタ」には、二つの意味を重ねています。一つは見方 ── 世界の感じ方と、分かり方。目で見ることだけではありません。耳で聴く、手で触れる、においを感じる。人より長い時間や短い時間で、人より大きなものや小さなものを感じる。そして、知って分かる。もう一つは味方 ── そのミカタを一緒にひらいてくれる存在。それが、依代の碧です。</p>
+    <p data-i18n-en="The tools mitsulab makes are not for staring at a screen. The ultrasound of bats, water moving under the ground, the time held in tree rings, the magnetism that guides migrating birds, the marks of hands left on stone: clues to a world our senses alone cannot reach are gathered from observation, data and written sources, and handed back to the place where you stand. When you look up from the screen, the same place feels deeper than before. Re-discovering the real world, and being immersed in it — that is what this technology is for.">mitsulab がつくる道具は、画面を見つめつづけるためのものではありません。蝙蝠の超音波、地面の下を動く水、年輪に刻まれた時間、渡り鳥を導く地磁気、石に残る手のあと。人の感覚だけでは届かない世界の手がかりを、観測・データ・典拠から拾い、いま立っている場所へ手渡します。画面から顔を上げたとき、同じ場所が、前よりも深く感じられる。現実を再発見し、現実に没入する。そのための技術です。</p>
+    <p data-i18n-en="Aoi moves between the layers that overlap in a single place — people, nature, information, culture, history — and hands the ones you had not noticed over to the place where you stand. The layers are not limited to these five.">碧は、ひとつの場所に重なる人・自然・情報・文化・歴史の層を行き来して、気づかなかった層を、いま立っている場所に重ねて手渡します。層は、この五つに限りません。</p>
     <p data-i18n-en="<span class='qn'>Qualium</span> — the place where the world beyond human senses and we, here and now, are linked through Aoi. A word mitsulab coined by adding -ium to qualia. mitsulab is a lab that makes the places, tools and systems for it."><span class="qn">Qualium</span>（クオリウム）── 人の感覚の外にある世界と、いまここにいる私たちとが、碧を通してつながる場。Qualia に -ium を重ねた、mitsulab の造語です。mitsulab は、そのための場・道具・仕組みをつくる研究所です。</p>
     <ul class="al-list mx-list">
       <li><span class="alk k0" data-i18n-en="People">人</span><span data-i18n-en="questions, everyday life, how one looks">問い・暮らし・見え方</span></li>
@@ -1073,17 +1076,17 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 
   <!-- アプリの案内（mitsulab のページにも残す） -->
   <section id="appguide" class="block" aria-labelledby="appguideH">
-    <!-- 2026-10-06 本人：「これがあったらいいな。を、現実にする。」のわくわくから、すぐ試すへ（作品の一行 → 試す。最初は《Aoi Walk 氷川》） -->
-    <div class="block-head"><span class="eyebrow">Try it now</span><h2 class="panel-title" id="appguideH" data-i18n-en="“If only this existed” —<br>we make it real.">これがあったらいいな。<span class="nw">を、現実にする。</span></h2>
+    <!-- 2026-10-06：わくわくから、すぐ試すへ（作品の一行 → 試す。最初は《Aoi Walk 氷川》）。「これがあったらいいな」の一文は本人の判断で使わない -->
+    <div class="block-head"><span class="eyebrow">Try it now</span><h2 class="panel-title" id="appguideH" data-i18n-en="Try it now">いま、試せる</h2>
       <p class="block-lead" data-i18n-en="Free, in the browser. Start with Aoi Walk: Hikawa.">どれも無料で、ブラウザで開けます。まずは《Aoi Walk 氷川》から。</p>
       <div class="btns" style="justify-content:center"><a class="btn primary" href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><span data-i18n-en="Try Aoi Walk: Hikawa">《Aoi Walk 氷川》を試す</span> <span class="arr">↗</span></a></div></div>
     <ul class="strip">
       <!-- ★作品の順（2026-10-06 本人決定・HP のどこでも）：Aoi Walk 氷川 → 森羅寄席 → 碧の唄（MV）→ 森羅美術館 → 森羅百景 → Aoi Sense。
            碧の唄の MV・森羅美術館は未公開。公開したら、この順の位置に入れる。 -->
-      <li><a href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><video class="sv" muted playsinline loop preload="none" poster="img/apps/vid/walk_poster.webp" data-v="img/apps/vid/walk" width="640" height="400" aria-label="《Aoi Walk 氷川》の 3D：並木の参道（動画）" data-i18n-aria="Aoi Walk: Hikawa in 3D: the tree-lined approach (video)"></video><span class="sn" data-i18n-en="Aoi Walk: Hikawa">《Aoi Walk 氷川》</span><span class="sd" data-i18n-en="Look up, and walk the Hikawa approach with Aoi">顔を上げて、碧と氷川参道を歩く</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><video class="sv" muted playsinline loop preload="none" poster="img/apps/vid/rakugo_poster.webp" data-v="img/apps/vid/rakugo" width="640" height="400" aria-label="森羅寄席（碧の自然落語）の画面（動画）" data-i18n-aria="Shinra Yose: Aoi's nature rakugo (video)"></video><span class="sn" data-i18n-en="Shinra Yose">森羅寄席</span><span class="sd" data-i18n-en="Nature that technology reveals, told as rakugo">技術が見せる自然を、落語で</span><span class="slg" data-i18n-en="JA / EN">日本語・英語</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><video class="sv" muted playsinline loop preload="none" poster="img/apps/vid/shinra_poster.webp" data-v="img/apps/vid/shinra" width="640" height="400" aria-label="森羅百景の総目録の画面（動画）" data-i18n-aria="Shinra Hyakkei catalogue (video)"></video><span class="sn" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="sd" data-i18n-en="How people have seen nature, subject by subject">人が自然をどう見てきたか</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
-      <li><a href="https://mitsulab-soil.github.io/aoi-blueprint/" target="_blank" rel="noopener"><video class="sv" muted playsinline loop preload="none" poster="img/apps/vid/sense_poster.webp" data-v="img/apps/vid/sense" width="640" height="400" aria-label="《Aoi Sense》の画面（動画）" data-i18n-aria="Aoi Sense (video)"></video><span class="sn" data-i18n-en="Aoi Sense">《Aoi Sense》</span><span class="sd" data-i18n-en="See inside Aoi in 3D">碧の中身を 3D で見る</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener"><img src="img/apps/vid/walk_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="《Aoi Walk 氷川》：参道を先に歩く碧" data-i18n-alt="Aoi Walk: Hikawa: Aoi walking ahead on the approach"><span class="sn" data-i18n-en="Aoi Walk: Hikawa">《Aoi Walk 氷川》</span><span class="sd" data-i18n-en="Look up, and walk the Hikawa approach with Aoi">顔を上げて、碧と氷川参道を歩く</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><img src="img/apps/vid/rakugo_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="森羅寄席（碧の自然落語）の画面" data-i18n-alt="Shinra Yose: Aoi's nature rakugo"><span class="sn" data-i18n-en="Shinra Yose">森羅寄席</span><span class="sd" data-i18n-en="Nature that technology reveals, told as rakugo">技術が見せる自然を、落語で</span><span class="slg" data-i18n-en="JA / EN">日本語・英語</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/shinra-hyakkei/" target="_blank" rel="noopener"><img src="img/apps/vid/shinra_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="森羅百景の総目録の画面" data-i18n-alt="Shinra Hyakkei catalogue"><span class="sn" data-i18n-en="Shinra Hyakkei">森羅百景</span><span class="sd" data-i18n-en="How people have seen nature, subject by subject">人が自然をどう見てきたか</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
+      <li><a href="https://mitsulab-soil.github.io/aoi-blueprint/" target="_blank" rel="noopener"><img src="img/apps/vid/sense_poster.webp" width="640" height="400" loading="lazy" decoding="async" alt="《Aoi Sense》の画面" data-i18n-alt="Aoi Sense"><span class="sn" data-i18n-en="Aoi Sense">《Aoi Sense》</span><span class="sd" data-i18n-en="See inside Aoi in 3D">碧の中身を 3D で見る</span><span class="slg" data-i18n-en="Japanese only">日本語のみ</span><span class="arr">↗</span></a></li>
     </ul>
   </section>
 
@@ -1238,7 +1241,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
        用意してある紹介の下書き：碧の唄（MV）＝「碧が唄う、自然と世界の歌。3D の碧のミュージックビデオ（歌　碧（AI）・Suno）。」／
        森羅美術館＝「森羅百景の作品を、碧が案内する 3D の美術館。部屋ごとに主題があり、作品の前で出典とともに立ち止まれる。」 -->
   <article class="app" id="app-hikawa">
-    <figure class="app-fig"><img src="img/ftw/sando_eye_960.webp" srcset="img/ftw/sando_eye_640.webp 640w, img/ftw/sando_eye_960.webp 960w, img/ftw/sando_eye_1600.webp 1600w" sizes="(max-width:860px) 100vw, 60vw" width="960" height="540" loading="lazy" alt="《Aoi Walk 氷川》の 3D：並木と灯籠のあいだを鳥居へ向かう参道" data-i18n-alt="Aoi Walk: Hikawa in 3D: the approach between trees and lanterns, toward a torii"></figure>
+    <figure class="app-fig"><img src="img/apps/vid/walk_poster.webp" width="640" height="400" loading="lazy" alt="《Aoi Walk 氷川》：参道を先に歩く碧と、碧のことば" data-i18n-alt="Aoi Walk: Hikawa: Aoi walking ahead on the approach, with her words"></figure>
     <div class="app-body">
       <span class="app-no">01</span><h3 class="app-name" data-i18n-en="Aoi Walk: Hikawa">《Aoi Walk 氷川》</h3><span class="app-lang" data-i18n-en="Japanese only">日本語のみ</span>
       <p class="app-one" data-i18n-en="Not the screen — the approach in front of you.">見るのは、画面ではなく、目の前の参道。</p>
@@ -1249,7 +1252,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     </div>
   </article>
   <article class="app rev" id="app-rakugo">
-    <figure class="app-fig"><img src="img/apps/aoi-rakugo_640.webp" width="640" height="400" loading="lazy" alt="森羅寄席：高座で語る碧" data-i18n-alt="Shinra Yose: Aoi on a yose stage"></figure>
+    <figure class="app-fig"><img src="img/apps/vid/rakugo_poster.webp" width="640" height="400" loading="lazy" alt="森羅寄席：高座で語る碧" data-i18n-alt="Shinra Yose: Aoi on a yose stage"></figure>
     <div class="app-body">
       <span class="app-no">02</span><h3 class="app-name" data-i18n-en="Shinra Yose — Aoi&#39;s nature rakugo (5 tales)">森羅寄席 ── 碧の自然落語（5 作）</h3><span class="app-lang" data-i18n-en="JA / EN">日本語・英語</span>
       <p class="app-one" data-i18n-en="The fine detail of nature that technology reveals, carried by the imagination of rakugo.">技術が見せる自然の細かさを、落語の想像力で。</p>
@@ -1259,7 +1262,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     </div>
   </article>
   <article class="app" id="app-shinra">
-    <figure class="app-fig"><img src="img/apps/shinra_640.webp" width="640" height="400" loading="lazy" alt="森羅百景の総目録の画面" data-i18n-alt="Shinra Hyakkei: the catalogue page"></figure>
+    <figure class="app-fig"><img src="img/apps/vid/shinra_poster.webp" width="640" height="400" loading="lazy" alt="森羅百景の総目録の画面と、案内する碧" data-i18n-alt="Shinra Hyakkei: the catalogue page"></figure>
     <div class="app-body">
       <span class="app-no">03</span><h3 class="app-name" data-i18n-en="Shinra Hyakkei">森羅百景</h3><span class="app-lang" data-i18n-en="Japanese only">日本語のみ</span>
       <p class="app-one" data-i18n-en="How have people seen nature, and made it into works?">人は、自然をどう見て、どう作品にしてきたか。</p>
@@ -1269,7 +1272,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
     </div>
   </article>
   <article class="app rev" id="app-blueprint">
-    <figure class="app-fig"><img src="img/apps/aoi-sense_640.webp" width="640" height="400" loading="lazy" alt="《Aoi Sense》の画面：碧の 3D の姿" data-i18n-alt="Aoi Sense: Aoi in 3D"></figure>
+    <figure class="app-fig"><img src="img/apps/vid/sense_poster.webp" width="640" height="400" loading="lazy" alt="《Aoi Sense》の画面：碧の 3D の姿" data-i18n-alt="Aoi Sense: Aoi in 3D"></figure>
     <div class="app-body">
       <span class="app-no">04</span><h3 class="app-name" data-i18n-en="Aoi Sense">《Aoi Sense》</h3><span class="app-lang" data-i18n-en="Japanese only">日本語のみ</span>
       <p class="app-one" data-i18n-en="How Aoi senses, in 3D.">碧の感じかたを、3D で。</p>
@@ -1382,7 +1385,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 
 <footer>
   <div class="f-brand">mitsulab</div>
-  <div class="f-tag" data-i18n-en="Cognitive augmentation. Nature and the world, more deeply.">認知拡張。自然と世界を、より深く。</div>
+  <div class="f-tag" data-i18n-en="Developing ways to sense the world, and allies in it.">世界のミカタを、開発する。</div>
   <p class="f-credit" data-i18n-en="The 3D of the Hikawa approach is from mitsulab's Aoi Walk: Hikawa — contours from GSI elevation; buildings from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements © OpenStreetMap contributors (ODbL); observation positions from iNaturalist. Tree shapes, the data lattice and particles of light are schematic. Images are screens of mitsulab's works. Aoi's voice in Aoi Walk: Hikawa — VOICEVOX: Meimei Himari.">氷川参道の 3D は mitsulab の《Aoi Walk 氷川》から：等高線＝国土地理院の標高／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors（ODbL）／観察記録の位置＝iNaturalist。木の形・上空の格子・光の粒は模式です。図版は mitsulab の作品の画面。《Aoi Walk 氷川》の碧の声＝VOICEVOX：冥鳴ひまり。</p>
   <nav class="f-links" aria-label="フッターのリンク" data-i18n-aria="Footer links"><button type="button" data-go-anchor="contact" data-i18n-en="Contact">お問い合わせ</button><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><button type="button" data-go-anchor="profile" data-i18n-en="Profile">代表プロフィール</button><button type="button" data-go-anchor="apps" data-i18n-en="Applications">アプリケーション</button><button type="button" data-go-anchor="about" data-i18n-en="About this site">サイトについて</button><a href="/privacy/" data-i18n-en="Privacy Policy">プライバシーポリシー</a><a href="/terms/" data-i18n-en="Terms of Service">利用規約</a><a href="/aoi/uploader/">Aoi Uploader</a></nav>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki</p>
@@ -1404,7 +1407,7 @@ html[lang="en"] .mx-l{letter-spacing:.04em}
 /* ============================================================
    ★ コアの一行（ここ一か所で差し替える。本人の採否待ち：Qualium v2 §4）
    ============================================================ */
-var CORE = { ja:'認知拡張。<br><span class="core-sub">自然と世界を、<span class="nw">より深く。</span></span>', en:'Cognitive Augmentation.<br><span class="core-sub">Nature and the world, more deeply.</span>' };
+var CORE = { ja:'世界の<span class="nw">ミカタを、</span><br>開発する。', en:'Developing ways<br>to sense the world,<br><span class="core-sub">and allies in it.</span>' };   // 2026-10-06 本人決定（ミカタ＝見方と味方）
 
 
 /* ===== 用語解説（ja / en） ===== */
@@ -1468,10 +1471,10 @@ var TERMS = {
     try{ document.dispatchEvent(new CustomEvent('hp-lang-change',{detail:lang})); }catch(e){}
     document.querySelectorAll('.card-title').forEach(function(t){ var a=t.querySelector('.ct-ja'), b=t.querySelector('.ct-en'); if(a&&b) b.style.display=(lang==='en'&&a.textContent.trim().replace(/[《》]/g,'')===b.textContent.trim().replace(/[《》]/g,''))?'none':''; });
     if(!window.__titleJa) window.__titleJa=document.title;
-    document.title = lang==='en' ? 'mitsulab — Cognitive augmentation. Nature and the world, more deeply.' : window.__titleJa;
+    document.title = lang==='en' ? 'mitsulab — Developing ways to sense the world, and allies in it.' : window.__titleJa;
     [['meta[name="description"]','mitsulab is a small lab in Saitama, Japan. Through the yorishiro Aoi and Qualium, it makes places, tools and systems for re-discovering the real world and being immersed in it — in the 3D of the Hikawa approach, layers of people, nature, information, culture and history overlap. Apps such as Aoi Walk: Hikawa are open to try.'],
-     ['meta[property="og:title"]','mitsulab — Cognitive augmentation. Nature and the world, more deeply.'],
-     ['meta[property="og:description"]','Cognitive augmentation. Nature and the world, more deeply. A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it, with the yorishiro Aoi.'],
+     ['meta[property="og:title"]','mitsulab — Developing ways to sense the world, and allies in it.'],
+     ['meta[property="og:description"]','Developing ways to sense the world, and allies in it. A small lab in Saitama, Japan, making browser apps and 3D for re-discovering the real world and being immersed in it, with the yorishiro Aoi.'],
      ['meta[property="og:locale"]','en_US'],['meta[property="og:locale:alternate"]','ja_JP']].forEach(function(m){ var el=document.querySelector(m[0]); if(!el) return; if(!el.hasAttribute('data-ja')) el.setAttribute('data-ja',el.getAttribute('content')); el.setAttribute('content', lang==='en'?m[1]:el.getAttribute('data-ja')); });
   }
   function paint(seg){
@@ -1713,11 +1716,11 @@ var TERMS = {
    作品の一覧はここ一か所（AOI_FN）。url が空のものは「準備中」。公開されたら url と img を足す。 ===== */
 var AOI_FN=[
   // ★作品の順（2026-10-06 本人決定）：walk → rakugo（森羅寄席）→ sing（碧の唄 MV）→ 森羅美術館（未公開・公開したら sing の次に足す）→ guide（森羅百景）→ sense
-  {call:'walk("Hikawa")', ja:'《Aoi Walk 氷川》', en:'Aoi Walk: Hikawa', dj:'顔を上げて、碧と氷川参道を歩く', de:'Look up, and walk the Hikawa approach with Aoi', url:'https://mitsulab-soil.github.io/aoi-walk-hikawa/', img:'img/apps/feel-hikawa_640.webp'},
-  {call:'rakugo("欅の目方")', ja:'森羅寄席 ── 碧の自然落語', en:'Shinra Yose — Aoi\'s nature rakugo', dj:'技術がとらえた自然の細かさを、落語の想像力で（5 作）', de:'The fine detail of nature that technology reveals, told as rakugo (5 tales)', url:'https://mitsulab-soil.github.io/aoi-shizen-rakugo/', img:'img/apps/aoi-rakugo_640.webp'},
+  {call:'walk("Hikawa")', ja:'《Aoi Walk 氷川》', en:'Aoi Walk: Hikawa', dj:'顔を上げて、碧と氷川参道を歩く', de:'Look up, and walk the Hikawa approach with Aoi', url:'https://mitsulab-soil.github.io/aoi-walk-hikawa/', img:'img/apps/vid/walk_poster.webp'},
+  {call:'rakugo("欅の目方")', ja:'森羅寄席 ── 碧の自然落語', en:'Shinra Yose — Aoi\'s nature rakugo', dj:'技術がとらえた自然の細かさを、落語の想像力で（5 作）', de:'The fine detail of nature that technology reveals, told as rakugo (5 tales)', url:'https://mitsulab-soil.github.io/aoi-shizen-rakugo/', img:'img/apps/vid/rakugo_poster.webp'},
   {call:'sing("一筆")', ja:'碧の唄《一筆》', en:'Songs of Aoi: “Ippitsu”', dj:'碧が唄う', de:'Aoi sings', url:'', img:''},
-  {call:'guide("森羅百景")', ja:'《森羅百景》', en:'Shinra Hyakkei', dj:'人が自然をどう見て、どう作品にしてきたかを、主題ごとにたどる', de:'How people have seen nature and made it into works, subject by subject', url:'https://mitsulab-soil.github.io/shinra-hyakkei/', img:'img/apps/shinra_640.webp'},
-  {call:'sense()', ja:'《Aoi Sense》', en:'Aoi Sense', dj:'碧の感じかたを、3D で見せる', de:'Shows how Aoi senses, in 3D', url:'https://mitsulab-soil.github.io/aoi-blueprint/', img:'img/apps/aoi-sense_640.webp'}
+  {call:'guide("森羅百景")', ja:'《森羅百景》', en:'Shinra Hyakkei', dj:'人が自然をどう見て、どう作品にしてきたかを、主題ごとにたどる', de:'How people have seen nature and made it into works, subject by subject', url:'https://mitsulab-soil.github.io/shinra-hyakkei/', img:'img/apps/vid/shinra_poster.webp'},
+  {call:'sense()', ja:'《Aoi Sense》', en:'Aoi Sense', dj:'碧の感じかたを、3D で見せる', de:'Shows how Aoi senses, in 3D', url:'https://mitsulab-soil.github.io/aoi-blueprint/', img:'img/apps/vid/sense_poster.webp'}
 ];
 (function(){
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2098,102 +2101,77 @@ async function start(){
   addEventListener('resize',lines); document.addEventListener('hp-lang-change',function(){ setTimeout(lines,0); }); lines();
 })();
 </script>
-<script type="module">
-/* ===== 使命と層の 3D（2026-10-06 本人決定）：碧（aoi.vrm）のまわりを、人・自然・情報・文化・歴史の層（半透明の板・光の線・粒）が
-   傾いて流れ、入り組む。スクロールの終わりで層は地面へ降りて平らになり、氷川参道の実際の等高線・道・木の位置（sando_wire・碧の立つ所のまわり 150 m）に溶ける
-   （情報空間から、現実空間へ）。層の形と粒は模式。地形の高さは強調。画面に入る少し前に組み立て、外では止める。動きを減らす設定と WebGL なしは碧の絵。 ===== */
-import * as THREE from 'three';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
-const sec=document.getElementById('mission'), stage=sec&&sec.querySelector('[data-mx]');
-const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const okGL=(()=>{ try{ const c=document.createElement('canvas'); return !!(c.getContext('webgl2')||c.getContext('webgl')); }catch(e){ return false; } })();
-if(stage&&okGL&&!reduce){ const io=new IntersectionObserver(es=>{ if(es[0].isIntersecting){ io.disconnect(); boot().catch(e=>console.warn('mx',e)); } },{rootMargin:'600px 0px'}); io.observe(sec); }
-async function boot(){
-  const mobile=Math.min(innerWidth,innerHeight)<700;
-  const cv=document.createElement('canvas'); cv.setAttribute('aria-hidden','true'); stage.appendChild(cv);
-  const R=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:!mobile,powerPreference:'high-performance'});
-  let PR=Math.min(devicePixelRatio||1,mobile?1.25:1.5); const PRmin=mobile?.75:.9; R.setPixelRatio(PR); R.outputColorSpace=THREE.SRGBColorSpace;
-  const S=new THREE.Scene(), cam=new THREE.PerspectiveCamera(30,1,.05,80);
-  S.add(new THREE.HemisphereLight(0xe6f6ff,0x2a3a44,1.3)); const key=new THREE.DirectionalLight(0xffffff,1.5); key.position.set(1.2,2.4,2.2); S.add(key);
-  const rim=new THREE.DirectionalLight(0x8fe6f0,1.1); rim.position.set(-1.5,1.8,-2); S.add(rim);
-  const COL=[0xf4aa96,0x7fe0b4,0xb4a2ff,0xf2cf8c,0xc8e2ec];
-  const lm=(c,o)=>new THREE.LineBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false});
-  const geo=a=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(a,3)); return g; };
-  const dotC=document.createElement('canvas'); dotC.width=dotC.height=32; { const x=dotC.getContext('2d'), g=x.createRadialGradient(16,16,0,16,16,16); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.35,'rgba(255,255,255,.7)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,32,32); }
-  const DOT=new THREE.CanvasTexture(dotC);
-  // 層：一つの層＝半透明の円盤（板）＋同心の輪の線＋流れる粒。傾き・高さ・回りの速さを層ごとに変えて入り組ませる
-  const LY=[{r:1.15,y:1.55,tx:.55,tz:.18,sp:.10},{r:1.45,y:1.05,tx:-.42,tz:.30,sp:-.07},{r:1.75,y:1.85,tx:.28,tz:-.46,sp:.05},{r:2.05,y:.70,tx:-.20,tz:-.30,sp:-.04},{r:2.35,y:1.35,tx:.62,tz:.05,sp:.03}];
-  const layers=LY.map((L,k)=>{ const g=new THREE.Group(), c=COL[k];
-    const disc=new THREE.Mesh(new THREE.RingGeometry(L.r*.18,L.r,64,1),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.07,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));
-    disc.rotation.x=-Math.PI/2; g.add(disc);
-    const rl=[]; [1,.78,.56].forEach(f=>{ const rr=L.r*f; for(let i=0;i<72;i++){ const a=i/72*6.283,b=(i+1)/72*6.283; rl.push(Math.cos(a)*rr,0,Math.sin(a)*rr,Math.cos(b)*rr,0,Math.sin(b)*rr); } });
-    for(let i=0;i<12;i++){ const a=i/12*6.283; rl.push(Math.cos(a)*L.r*.18,0,Math.sin(a)*L.r*.18,Math.cos(a)*L.r,0,Math.sin(a)*L.r); }
-    const lines=new THREE.LineSegments(geo(rl),lm(c,.32)); g.add(lines);
-    const n=mobile?26:44, pp=new Float32Array(n*3), pd=[]; for(let i=0;i<n;i++) pd.push({a:Math.random()*6.283,f:.3+Math.random()*.7,s:(.2+Math.random()*.4)*(i%2?1:-1)});
-    const pts=new THREE.Points(geo(pp),new THREE.PointsMaterial({color:c,size:.07,map:DOT,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false})); g.add(pts);
-    S.add(g); return {g,L,disc,lines,pts,pp,pd,n,anchor:new THREE.Vector3()}; });
-  // 地面：氷川参道の実際の等高線・道・木（碧の立つ所＝二の鳥居と三の鳥居のあいだ、のまわり 150 m）。1 m を 0.02 に縮め、高さは 3 倍
-  const [meta,bin]=await (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()), fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])));
-  const I=new Int16Array(bin), Q=meta.q, AO=meta.center.reduce((a,c)=>Math.abs(c[2]+640)<Math.abs(a[2]+640)?c:a), K=.02, RAD=150, EX=3;
-  const loc=(x,y,z)=>[(x-AO[0])*K,(y-AO[1])*K*EX,(z-AO[2])*K], inR=(x,z)=>Math.hypot(x-AO[0],z-AO[2])<RAD;
-  const ground=new THREE.Group(); S.add(ground);
-  const ct=[]; meta.contours.forEach(([e,p])=>{ for(let i=0;i<p.length-2;i+=2){ if(!inR(p[i],p[i+1])&&!inR(p[i+2],p[i+3])) continue; ct.push(...loc(p[i],e,p[i+1]),...loc(p[i+2],e,p[i+3])); } });
-  const rd=[]; { const [o,n]=meta.groups.road; for(let i=0;i<n;i+=2){ const a=(o+i)*3,b=a+3, x1=I[a]*Q,z1=I[a+2]*Q,x2=I[b]*Q,z2=I[b+2]*Q; if(inR(x1,z1)&&inR(x2,z2)) rd.push(...loc(x1,I[a+1]*Q,z1),...loc(x2,I[b+1]*Q,z2)); } }
-  const tr=[]; meta.trees.forEach(([x,y,z])=>{ if(!inR(x,z)) return; const [a,b,c]=loc(x,y,z); tr.push(a,b,c,a,b+.24,c); });
-  const gm=[[ct,0x5fb8d0,.55],[rd,0x9fd8e6,.45],[tr,0x7fe0b4,.3]].map(([a,c,o])=>{ const m=lm(c,0); m.userData.o=o; ground.add(new THREE.LineSegments(geo(a),m)); return m; });
-  // 碧（TOP の場面と同じ VRM を一度だけ取りに行く）
-  const V=await import('@pixiv/three-vrm'); const L=new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); L.register(p=>new V.VRMLoaderPlugin(p));
-  const g=await L.parseAsync((await (window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())))).slice(0),'');
-  const vrm=g.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(g.scene); V.VRMUtils.rotateVRM0(vrm); vrm.scene.traverse(o=>{ if(o.isMesh) o.frustumCulled=false; });
-  const N=n=>vrm.humanoid.getNormalizedBoneNode(n);
-  const ARM={leftUpperArm:[-.12,0,-1.28],rightUpperArm:[-.12,0,1.28],leftLowerArm:[0,-.28,0],rightLowerArm:[0,.28,0]};   // aoi_pose.js の写し
-  for(const [k,[x,y,z]] of Object.entries(ARM)){ const b=N(k); if(b) b.rotation.set(x,y,z); }
-  const pivot=new THREE.Group(); pivot.add(vrm.scene); S.add(pivot); vrm.update(0);
-  const spine=N('spine'), chest=N('chest')||N('upperChest'), neck=N('neck'), head=N('head');
-  const labs=[...sec.querySelectorAll('.mx-l')];
-  let W=0,H=0,vis=true,raf=0,last=performance.now(),t0=last,ema=16,slow=0,nextBlink=t0+2500,yaw=0,yawT=0,drag=null,prog=0;
-  const size=()=>{ const r=stage.getBoundingClientRect(); W=r.width; H=r.height; if(!W) return; R.setSize(W,H,false); cam.aspect=W/H; cam.fov=W<H?40:30; cam.updateProjectionMatrix(); };
-  new ResizeObserver(size).observe(stage); size();
-  cv.addEventListener('pointerdown',e=>{ drag={x:e.clientX,y:yawT}; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointermove',e=>{ if(drag) yawT=drag.y+(e.clientX-drag.x)/Math.max(120,W)*2.4; });
-  cv.addEventListener('pointerup',()=>{ drag=null; });
-  const v3=new THREE.Vector3(), sm=x=>x*x*(3-2*x);
-  function frame(now){
-    const dt=Math.min(.05,(now-last)/1000); last=now; const t=(now-t0)/1000;
-    prog+=((window.__mxProg||0)-prog)*Math.min(1,dt*4);
-    const m=sm(Math.max(0,Math.min(1,(prog-.4)/.42)));   // 0＝層が碧のまわりで入り組む／1＝層が地面へ降りて、実際の地形に溶ける
-    // カメラ：はじめは碧の全身と層、終わりは少し引いて見下ろし、足もとの地形が見える
-    const far=mobile?7.9:7.4, wide=W>H; cam.position.set(0,1.35+2.4*m,far+1.8*m); cam.lookAt(0,(wide?1.42:1.18)-.35*m,0);   // 碧の頭が見出しにかからないよう、少し下に置く
-    if(!drag) yawT+=(Math.sin(t*.25)*.4-yawT)*Math.min(1,dt*.6); yaw+=(yawT-yaw)*Math.min(1,dt*6); pivot.rotation.y=yaw;
-    const br=Math.sin(t*1.6); if(spine) spine.rotation.x=.012*br; if(chest) chest.rotation.x=-.018*br;
-    if(neck) neck.rotation.y=.06*Math.sin(t*.37); if(head){ head.rotation.x=.03*Math.sin(t*.29)+.08*m; head.rotation.z=.025*Math.sin(t*.23); }
-    const em=vrm.expressionManager; if(em){ let b=0; if(now>nextBlink){ const k=(now-nextBlink)/140; b=k<1?k:(k<2?2-k:0); if(k>=2) nextBlink=now+2200+Math.random()*3200; } em.setValue('blink',b); }
-    vrm.update(dt);
-    const placed=[]; { v3.set(0,1.62,0).project(cam); const ty=(-v3.y*.5+.5)*H; v3.set(0,0,0).project(cam); const by=(-v3.y*.5+.5)*H, bw=(by-ty)*.42; placed.push([W/2-bw/2,ty,bw,by-ty]); }   // 碧の体に札を重ねない
-    layers.forEach((o,k)=>{ const L=o.L, f=1-m;
-      o.g.position.y=L.y*f+.004*k; o.g.rotation.set(L.tx*f+Math.sin(t*.3+k)*.05*f, t*L.sp, L.tz*f+Math.cos(t*.27+k)*.05*f);
-      const sc=1+m*(.6+k*.25); o.g.scale.setScalar(sc);
-      o.disc.material.opacity=.07*(1-m*.85); o.lines.material.opacity=.32*(1-m*.7); o.pts.material.opacity=.95*(1-m*.6);
-      for(let i=0;i<o.n;i++){ const d=o.pd[i]; d.a+=d.s*dt; const rr=L.r*(.2+.8*d.f); o.pp[3*i]=Math.cos(d.a)*rr; o.pp[3*i+1]=Math.sin(t*1.3+i)*.03; o.pp[3*i+2]=Math.sin(d.a)*rr; }
-      o.pts.geometry.attributes.position.needsUpdate=true;
-      // 札：輪の手前の点（碧の体に重ならない側）
-      const a=k*1.2566+.6-t*L.sp; o.g.updateMatrixWorld(); o.anchor.set(Math.cos(a)*L.r,0,Math.sin(a)*L.r).applyMatrix4(o.g.matrixWorld);
-      v3.copy(o.anchor).project(cam); const x=(v3.x*.5+.5)*W, y=(-v3.y*.5+.5)*H, lb=labs[k];
-      if(lb){ // 札は間引かない（HP の決まり）：画面の内へ寄せ、重なるときは上下へずらす。層が地面へ溶けたら消す
-        const w=lb.offsetWidth+8, h=lb.offsetHeight+6; let X=Math.max(w/2+4,Math.min(W-w/2-4,x)), Y=Math.max(H*.3,Math.min(H*.76,y));
-        for(let tries=0;tries<8;tries++){ const bx=[X-w/2,Y-h/2,w,h]; let hit=null; for(const q of placed){ if(bx[0]<q[0]+q[2]&&q[0]<bx[0]+bx[2]&&bx[1]<q[1]+q[3]&&q[1]<bx[1]+bx[3]){ hit=q; break; } } if(!hit) break; Y=(Y<hit[1]+hit[3]/2)?hit[1]-h/2-1:hit[1]+hit[3]+h/2+1; }
-        placed.push([X-w/2,Y-h/2,w,h]); lb.style.opacity=m<.55?1:0; lb.style.transform=`translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,0) translate(-50%,-50%)`; } });
-    gm.forEach(mt=>mt.opacity=mt.userData.o*(.12+.88*m));
-    R.render(S,cam);
+<script>
+/* ===== 使命と層（2026-10-06 本人「TOPのデザインのような美しいグラフィックを踏襲」「HPが重すぎます」）：WebGL を使わない 2D の線の図。
+   TOP の場面と同じ言葉づかい（紺の地・加算の細い光の線・層の色・光の粒）で、碧（img/hero/aoi_cut_*.webp＝aoi.vrm から切り抜いた立ち姿）のまわりに
+   人・自然・情報・文化・歴史の五つの層（格子の板）が傾いて重なり、粒が流れる。スクロールの終わりで層は地面へ降りて平らになり、
+   氷川参道の実際の等高線・道・木の位置（sando_wire・碧の立つ所のまわり 150 m・高さ 3 倍）に溶ける＝情報空間から、現実空間へ。
+   板の奥の半分は碧の後ろ（後ろの canvas）、手前の半分は碧の前（前の canvas）に描く。30 回／秒・画面の外では止める・動きを減らす設定では止まった一枚。 ===== */
+(function(){
+  var sec=document.getElementById('mission'), stage=sec&&sec.querySelector('[data-mx]'); if(!stage) return;
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var back=document.createElement('canvas'), front=document.createElement('canvas'); back.className='mx-back'; front.className='mx-front';
+  back.setAttribute('aria-hidden','true'); front.setAttribute('aria-hidden','true');
+  var aoi=sec.querySelector('.mx-aoi'); stage.appendChild(back); if(aoi) stage.appendChild(aoi); stage.appendChild(front);
+  var bx=back.getContext('2d'), fx=front.getContext('2d'), labs=[].slice.call(sec.querySelectorAll('.mx-l'));
+  var COL=['244,170,150','127,224,180','180,162,255','242,207,140','200,226,236'];
+  var LY=[{s:1.05,y:1.62,tx:.42,tz:.12,sp:.10},{s:1.30,y:1.20,tx:-.34,tz:.22,sp:-.07},{s:1.55,y:1.92,tx:.22,tz:-.34,sp:.05},{s:1.80,y:.78,tx:-.16,tz:-.24,sp:-.04},{s:2.05,y:1.40,tx:.48,tz:.04,sp:.03}];
+  var P=[]; for(var i=0;i<(innerWidth<700?60:100);i++) P.push({k:i%5,u:Math.random()*2-1,v:Math.random()*2-1,du:(Math.random()<.5?1:-1)*(.08+Math.random()*.12),axis:Math.random()<.5});
+  var ground=null;   // 等高線・道・木（あとから読む。TOP の場面と同じデータを一度だけ）
+  var DPR=Math.min(window.devicePixelRatio||1, innerWidth<700?1.25:1.5), W=0,H=0, vis=false, raf=0, last=0, t0=performance.now(), prog=reduce?1:0;
+  function size(){ var r=stage.getBoundingClientRect(); W=r.width; H=r.height; [back,front].forEach(function(c){ c.width=Math.round(W*DPR); c.height=Math.round(H*DPR); }); bx.setTransform(DPR,0,0,DPR,0,0); fx.setTransform(DPR,0,0,DPR,0,0); }
+  // 透視の投影：カメラは碧の正面、少し上から
+  var cam={y:1.35,z:7.4,ly:1.3,f:1};
+  function setCam(m){ var mob=W<H; cam.z=(mob?7.9:7.4)+1.8*m; cam.y=1.35+2.4*m; cam.ly=(mob?1.18:1.42)-.35*m; cam.f=(H/2)/Math.tan((mob?40:30)*Math.PI/360); }
+  function proj(x,y,z){ var dy=cam.ly-cam.y, dz=-cam.z, L=Math.hypot(dy,dz), fy=dy/L, fz=dz/L;   // 前の向き（x は 0）
+    var px=x, py=y-cam.y, pz=z-cam.z, d=py*fy+pz*fz; if(d<.1) return null; var uy=py*(-fz)+pz*fy;   // 上の向き＝(0,-fz,fy)
+    return [W/2+px/d*cam.f, H/2-uy/d*cam.f, d]; }
+  function rot(L,k,u,v,t,m){ var f=1-m, s=L.s*(1+m*(.6+k*.25)), x=u*s, z=v*s, a=t*L.sp, ca=Math.cos(a), sa=Math.sin(a), X=x*ca-z*sa, Z=x*sa+z*ca;
+    var tx=L.tx*f, tz=L.tz*f, Y=L.y*f+.004*k; var y1=Y+Z*Math.sin(tx), z1=Z*Math.cos(tx); var x2=X*Math.cos(tz)-(y1-Y)*Math.sin(tz), y2=Y+X*Math.sin(tz)+(y1-Y)*Math.cos(tz); return [x2,y2,z1]; }
+  function seg(a,b,col,al,w){ var A=proj(a[0],a[1],a[2]), B=proj(b[0],b[1],b[2]); if(!A||!B) return; var ctx=((a[2]+b[2])/2)>0?fx:bx; ctx.strokeStyle='rgba('+col+','+al+')'; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke(); }
+  function glow(ctx,x,y,r,col,a){ var g=ctx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,'rgba('+col+','+a+')'); g.addColorStop(1,'rgba('+col+',0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,6.283); ctx.fill(); }
+  function draw(now){
+    var t=reduce?3:(now-t0)/1000, m=Math.max(0,Math.min(1,(prog-.4)/.42)); m=m*m*(3-2*m); setCam(m);
+    bx.clearRect(0,0,W,H); fx.clearRect(0,0,W,H); bx.globalCompositeOperation=fx.globalCompositeOperation='lighter';
+    // 碧の足もとの光と、立つ位置
+    var foot=proj(0,0,0), head=proj(0,1.62,0);
+    if(foot&&head){ glow(bx,foot[0],foot[1],(foot[1]-head[1])*.5,'92,200,224',.16); if(aoi){ var hh=(foot[1]-head[1])*1.04; aoi.style.height=hh+'px'; aoi.style.transform='translate3d('+(foot[0]-hh*.163)+'px,'+(foot[1]-hh*.985)+'px,0)'; } }
+    // 碧の足もとから広がる音の輪（聴く・感じるの印。見ることだけにしない）
+    for(var ri=0;ri<3;ri++){ var ph=((t*.22+ri/3)%1), rr=.4+ph*2.6, al=.32*(1-ph)*(1-m*.5); bx.strokeStyle='rgba(168,242,246,'+al+')'; bx.lineWidth=.9; bx.beginPath();
+      for(var sg=0;sg<=48;sg++){ var an=sg/48*6.283, pt=proj(Math.cos(an)*rr,0.01,Math.sin(an)*rr); if(!pt) continue; sg?bx.lineTo(pt[0],pt[1]):bx.moveTo(pt[0],pt[1]); } bx.stroke(); }
+    // 地面：実際の等高線・道・木（層が降りるほど見える）
+    if(ground){ var ga=.1+.9*m; for(var gi=0;gi<ground.length;gi++){ var G=ground[gi], a2=G.a*ga; if(a2<.01) continue; bx.strokeStyle='rgba('+G.c+','+a2+')'; bx.lineWidth=G.w; bx.beginPath();
+        for(var q=0;q<G.p.length;q+=6){ var A=proj(G.p[q],G.p[q+1],G.p[q+2]), B=proj(G.p[q+3],G.p[q+4],G.p[q+5]); if(A&&B){ bx.moveTo(A[0],A[1]); bx.lineTo(B[0],B[1]); } } bx.stroke(); } }
+    // 五つの層：格子の板・縁・粒
+    var placed=[]; if(foot&&head){ var bw=(foot[1]-head[1])*.42; placed.push([foot[0]-bw/2,head[1],bw,foot[1]-head[1]]); }
+    LY.forEach(function(L,k){ var c=COL[k], fa=1-m*.7, n=4;
+      for(var i=0;i<=n;i++){ var g=-1+2*i/n; seg(rot(L,k,g,-1,t,m),rot(L,k,g,1,t,m),c,(i===0||i===n?.55:.16)*fa,i===0||i===n?1.1:.7); seg(rot(L,k,-1,g,t,m),rot(L,k,1,g,t,m),c,(i===0||i===n?.55:.16)*fa,i===0||i===n?1.1:.7); }
+      // 札：板の角（碧の体と、先に置いた札に重ねない。間引かない）
+      var lb=labs[k]; if(lb){ var cn=proj.apply(null,rot(L,k,k%2?1:-1,-1,t,m)); if(cn){ var w=lb.offsetWidth+8, h=lb.offsetHeight+6, X=Math.max(w/2+4,Math.min(W-w/2-4,cn[0])), Y=Math.max(H*.3,Math.min(H*.76,cn[1]));
+        for(var tr=0;tr<8;tr++){ var b=[X-w/2,Y-h/2,w,h], hit=null; for(var j=0;j<placed.length;j++){ var q2=placed[j]; if(b[0]<q2[0]+q2[2]&&q2[0]<b[0]+b[2]&&b[1]<q2[1]+q2[3]&&q2[1]<b[1]+b[3]){ hit=q2; break; } } if(!hit) break; Y=(Y<hit[1]+hit[3]/2)?hit[1]-h/2-1:hit[1]+hit[3]+h/2+1; }
+        placed.push([X-w/2,Y-h/2,w,h]); lb.style.opacity=m<.55?1:0; lb.style.transform='translate3d('+X.toFixed(1)+'px,'+Y.toFixed(1)+'px,0) translate(-50%,-50%)'; } } });
+    // 粒：板の格子の線に沿って流れる
+    P.forEach(function(p){ if(!reduce){ if(p.axis){ p.u+=p.du*.033; if(p.u>1) p.u=-1; if(p.u<-1) p.u=1; } else { p.v+=p.du*.033; if(p.v>1) p.v=-1; if(p.v<-1) p.v=1; } }
+      var L=LY[p.k], q=rot(L,p.k,p.axis?p.u:Math.round(p.u*2)/2,p.axis?Math.round(p.v*2)/2:p.v,t,m), A=proj(q[0],q[1],q[2]); if(!A) return;
+      glow(q[2]>0?fx:bx,A[0],A[1],2.6,COL[p.k],.85*(1-m*.6)); });
+    // 碧の光の軸（TOP の場面の光の柱と同じ）
+    if(foot&&head){ var gr=bx.createLinearGradient(0,head[1]-(foot[1]-head[1])*.6,0,foot[1]); gr.addColorStop(0,'rgba(168,242,246,0)'); gr.addColorStop(1,'rgba(168,242,246,'+(.35*(1-m))+')'); bx.strokeStyle=gr; bx.lineWidth=1; bx.beginPath(); bx.moveTo(foot[0],head[1]-(foot[1]-head[1])*.6); bx.lineTo(foot[0],foot[1]); bx.stroke(); }
   }
-  const loop=now=>{ if(!vis){ raf=0; return; } const d=now-last; frame(now); ema+=(Math.min(d,100)-ema)*.05;
-    if(ema>15.5){ if(++slow>60&&PR>PRmin){ PR=Math.max(PRmin,PR-.25); R.setPixelRatio(PR); size(); slow=0; ema=16; } } else slow=0;
-    raf=requestAnimationFrame(loop); };
-  new IntersectionObserver(es=>{ vis=es[0].isIntersecting; if(vis&&!raf){ last=performance.now(); raf=requestAnimationFrame(loop); } }).observe(sec);
-  document.addEventListener('visibilitychange',()=>{ vis=!document.hidden; if(vis&&!raf){ last=performance.now(); raf=requestAnimationFrame(loop); } });
-  frame(performance.now()); sec.classList.add('mx-ready'); raf=requestAnimationFrame(loop); window.__mx='ok';
-}
+  function loop(now){ if(!vis){ raf=0; return; } prog+=((window.__mxProg||0)-prog)*.12; if(now-last>30){ draw(now); last=now; } raf=requestAnimationFrame(loop); }
+  function loadGround(){ (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(function(r){return r.json();}),fetch('img/hero/sando_wire.bin').then(function(r){return r.arrayBuffer();})]))).then(function(d){
+      var meta=d[0], I=new Int16Array(d[1]), Q=meta.q, AO=meta.center.reduce(function(a,c){ return Math.abs(c[2]+640)<Math.abs(a[2]+640)?c:a; }), K=.02, RAD=150, EX=3;
+      function inR(x,z){ return Math.hypot(x-AO[0],z-AO[2])<RAD; } function loc(x,y,z){ return [(x-AO[0])*K,(y-AO[1])*K*EX,(z-AO[2])*K]; }
+      var ct=[]; meta.contours.forEach(function(c){ var e=c[0], p=c[1]; for(var i=0;i<p.length-2;i+=2){ if(!inR(p[i],p[i+1])&&!inR(p[i+2],p[i+3])) continue; Array.prototype.push.apply(ct,loc(p[i],e,p[i+1]).concat(loc(p[i+2],e,p[i+3]))); } });
+      var rd=[], o=meta.groups.road[0], n=meta.groups.road[1]; for(var i=0;i<n;i+=2){ var a=(o+i)*3, b=a+3, x1=I[a]*Q, z1=I[a+2]*Q, x2=I[b]*Q, z2=I[b+2]*Q; if(inR(x1,z1)&&inR(x2,z2)) Array.prototype.push.apply(rd,loc(x1,I[a+1]*Q,z1).concat(loc(x2,I[b+1]*Q,z2))); }
+      var tr=[]; meta.trees.forEach(function(q){ if(!inR(q[0],q[2])) return; var l=loc(q[0],q[1],q[2]); tr.push(l[0],l[1],l[2],l[0],l[1]+.22,l[2]); });
+      ground=[{p:ct,c:'95,184,208',a:.55,w:.8},{p:rd,c:'159,216,230',a:.42,w:.8},{p:tr,c:'127,224,180',a:.4,w:.9}]; }).catch(function(){}); }
+  size(); if(window.ResizeObserver) new ResizeObserver(function(){ size(); draw(performance.now()); }).observe(stage);
+  if(aoi){ if(aoi.complete) sec.classList.add('mx-ready'); else aoi.addEventListener('load',function(){ sec.classList.add('mx-ready'); }); }
+  var io=new IntersectionObserver(function(es){ vis=es[0].isIntersecting; if(vis){ if(!ground) loadGround(); if(!raf&&!reduce) raf=requestAnimationFrame(loop); } },{rootMargin:'300px 0px'}); io.observe(sec);
+  if(reduce){ loadGround(); setTimeout(function(){ draw(performance.now()); },600); }
+  document.addEventListener('visibilitychange',function(){ if(document.hidden) vis=false; });
+  draw(performance.now()); window.__mx='2d';
+})();
 </script>
 <script type="module">
 /* ===== 碧のページの 3D の碧（2026-10-05 本人「碧の説明で、碧の３dを表示してください」）
@@ -2253,23 +2231,6 @@ async function boot(box){
   document.addEventListener('visibilitychange',()=>{ vis=!document.hidden; if(vis&&!raf){ last=performance.now(); raf=requestAnimationFrame(loop); } });
   raf=requestAnimationFrame(loop); window.__aoiLive=(window.__aoiLive||0)+1;
 }
-</script>
-<script>
-/* ===== 「いま、試せる」の動く絵：画面に入ったら読み込んで流し、外では止める。動きを減らす設定では poster のまま ===== */
-(function(){
-  var vs=[].slice.call(document.querySelectorAll('video.sv')); if(!vs.length) return;
-  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  function load(v){ if(v.dataset.ld) return; v.dataset.ld='1'; var b=v.dataset.v;
-    [['webm','video/webm'],['mp4','video/mp4']].forEach(function(t){ var s=document.createElement('source'); s.src=b+'.'+t[0]; s.type=t[1]; v.appendChild(s); }); v.load(); }
-  if(!window.IntersectionObserver){ vs.forEach(function(v){ load(v); v.play().catch(function(){}); }); return; }
-  // 高速化（2026-10-06）：スマホ（一列のとき）は、いちばん大きく見えている一本だけを流す（同時に復号するのは一本）
-  var one=window.matchMedia('(max-width:760px)').matches, ratio=new Map();
-  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ ratio.set(e.target,e.isIntersecting?e.intersectionRatio:0); });
-    var best=null, br=0; if(one) ratio.forEach(function(r,v){ if(r>br){ br=r; best=v; } });
-    ratio.forEach(function(r,v){ var on=r>=.25&&(!one||v===best); if(on){ load(v); if(v.paused){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); } } else if(!v.paused) v.pause(); }); },{threshold:[0,.25,.5,.75,1]});
-  vs.forEach(function(v){ io.observe(v); });
-  document.addEventListener('visibilitychange',function(){ vs.forEach(function(v){ if(document.hidden&&!v.paused) v.pause(); }); });
-})();
 </script>
 </body>
 </html>
