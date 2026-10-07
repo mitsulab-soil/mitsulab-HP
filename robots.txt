@@ -1,19 +1,19 @@
 # mitsulab.jp robots.txt (2026-10-08)
-# Search engines are welcome. AI training and AI answer crawlers are asked not to collect this site.
+# Search is welcome. Crawlers that collect content to TRAIN AI models are asked not to collect these works.
 # We reserve text and data mining rights (incl. Article 4(3) of Directive (EU) 2019/790).
-# See https://mitsulab.jp/terms/#ai-en and https://mitsulab.jp/.well-known/tdmrep.json
-# 検索エンジンは歓迎します。AI の学習・回答のための収集はお断りします（利用規約 第 4 条）。
+# Terms: https://mitsulab.jp/terms/#ai-en  Machine-readable reservation: https://mitsulab.jp/.well-known/tdmrep.json
+# 検索は歓迎します。AI の学習のための収集はお断りします（mitsulab 利用規約 第 4 条）。
+#
+# Not blocked on purpose (so that mitsulab still appears in search and in AI answers that cite sources):
+#   Googlebot, Bingbot, OAI-SearchBot, Claude-SearchBot, PerplexityBot (search indexing)
+#   ChatGPT-User, Claude-User, Perplexity-User (fetch a page only when a person asks)
 
 User-agent: GPTBot
-User-agent: ChatGPT-User
 User-agent: ClaudeBot
-User-agent: Claude-User
 User-agent: anthropic-ai
 User-agent: Google-Extended
 User-agent: Applebot-Extended
 User-agent: CCBot
-User-agent: PerplexityBot
-User-agent: Perplexity-User
 User-agent: Bytespider
 User-agent: meta-externalagent
 User-agent: Amazonbot
