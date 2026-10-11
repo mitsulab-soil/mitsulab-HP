@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="tdm-reservation" content="1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>胡蝶の夢</title>
+<meta name="description" content="ひとつの庭を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・モグラ・ミミズの受けとり方に切り替えて歩く。碧が案内する。言葉と色、四つの時計も。">
+<style>
+:root{--bg:#0f1412;--ink:#eef2ea;--dim:#aab7ad;--line:#33443b;--card:#16201b;--card2:#1d2a23;--aoi:#4fb3a8;--aoi2:#18322f;--gold:#d9c27a;
+  --shadow:0 10px 30px rgba(0,0,0,.45);--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;--goth:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--goth);-webkit-text-size-adjust:100%;font-size:16px}
+#stage{position:fixed;inset:0;touch-action:none;outline:none}
+#stage canvas{display:block;width:100%;height:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+[hidden]{display:none!important}
+.btn{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card2);font-size:15px}
+.btn.pri{background:var(--aoi);border-color:var(--aoi);color:#06201d;font-weight:600}
+.btn:focus-visible,.pill:focus-visible,.tab:focus-visible,.ico:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.ico{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 85%,transparent);display:grid;place-items:center;font-size:17px;padding:0;box-shadow:var(--shadow)}
+/* 上の帯：章と場所 */
+#top{position:fixed;top:0;left:0;right:0;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;padding:max(8px,env(safe-area-inset-top)) 10px 0;z-index:5;pointer-events:none}
+#top>*{pointer-events:auto}
+#tabs{display:flex;gap:4px;background:color-mix(in srgb,var(--card) 82%,transparent);border:1px solid var(--line);border-radius:999px;padding:3px;box-shadow:var(--shadow);overflow-x:auto;scrollbar-width:none;max-width:calc(100vw - 80px)}
+#tabs::-webkit-scrollbar{display:none}
+.tab{min-height:38px;border:0;background:none;border-radius:999px;padding:0 12px;font-size:14px;white-space:nowrap;color:var(--dim)}
+.tab[aria-selected=true]{background:var(--aoi);color:#06201d;font-weight:600}
+#where{position:fixed;left:10px;top:calc(max(8px,env(safe-area-inset-top)) + 52px);z-index:5;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+#where b{display:block;font-family:var(--mincho);font-size:22px;letter-spacing:.08em;font-weight:600}
+#where small{display:inline-block;font-size:15px;color:#f4f8f2;max-width:70vw;background:rgba(6,10,8,.55);border-radius:8px;padding:1px 8px;margin-top:2px}
+/* 受けとり方のダイヤル（下の帯） */
+#dial{position:fixed;left:0;right:0;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px));z-index:5;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:4px 10px;scroll-snap-type:x proximity}
+#dial::-webkit-scrollbar{display:none}
+.pill{flex:none;min-height:44px;min-width:64px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,16,13,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:15px;scroll-snap-align:center;display:flex;align-items:center;gap:6px}
+.pill i{font-style:normal;font-size:14px;color:var(--dim)}
+.pill[aria-pressed=true]{background:var(--aoi);border-color:var(--aoi);color:#06201d;font-weight:600}
+.pill[aria-pressed=true] i{color:#0b3a35}
+@media (min-width:900px){#dial{justify-content:center}}
+/* 言葉と色の帯 */
+#langs{position:fixed;left:0;right:0;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px));z-index:5;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:4px 10px}
+#langs::-webkit-scrollbar{display:none}
+@media (min-width:900px){#langs{justify-content:center}}
+#legend{position:fixed;right:10px;top:calc(max(8px,env(safe-area-inset-top)) + 52px);z-index:5;background:rgba(10,16,13,.7);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:14px;line-height:1.6;max-width:min(46vw,260px);pointer-events:none}
+#legend b{font-size:14px}
+/* 碧の字幕 */
+#guide{position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom));width:min(620px,calc(100vw - 12px));z-index:6;
+  background:rgba(8,12,10,.5);border:1px solid rgba(220,240,230,.12);border-radius:14px;padding:6px 10px 6px 8px;display:flex;gap:8px;align-items:flex-start;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);text-shadow:0 1px 3px rgba(0,0,0,.85)}
+#guide .face{position:relative;flex:none;width:30px;height:30px;margin-top:2px}
+#guide img{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--aoi2);display:block}
+#guide .face i{position:absolute;right:-2px;bottom:-2px;width:10px;height:10px;border-radius:50%;background:var(--aoi);border:2px solid #0a0f0d;opacity:0}
+#guide.talking .face i{opacity:1;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(.7)}}
+#guide .txt{flex:1;min-width:0}
+#say{font-size:16px;line-height:1.55;margin:1px 0 0;min-height:1.55em;color:#f7fbf4}
+#acts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-top:4px}
+#acts::-webkit-scrollbar{display:none}
+#acts:empty{display:none}
+#acts .btn{min-height:36px;font-size:14px;padding:0 12px;flex:none;white-space:nowrap;background:rgba(240,255,248,.1);border-color:rgba(220,240,230,.22)}
+#acts .btn.pri{background:color-mix(in srgb,var(--aoi) 80%,transparent);color:#04201c;text-shadow:none}
+@media (max-width:760px){
+  #guide{padding:4px 6px;gap:6px}
+  #guide .face,#guide img{width:24px;height:24px}
+  #say{font-size:14.5px;line-height:1.45}
+  #acts .btn{min-height:34px;font-size:14px;padding:0 10px}
+  #where b{font-size:19px}
+  .pill{min-height:42px;font-size:14px;padding:0 12px}
+  .tab{padding:0 9px;font-size:14px}
+  #legend{top:calc(max(8px,env(safe-area-inset-top)) + 104px);max-width:62vw}
+  #where small{max-width:calc(100vw - 20px)}
+}
+/* 四つの時計の札 */
+.tlab{position:fixed;z-index:5;pointer-events:none;text-align:center;font-size:14px;line-height:1.45;text-shadow:0 1px 4px #000;color:#f2f7ef}
+.tlab b{display:block;font-family:var(--mincho);font-size:16px;letter-spacing:.06em}
+.tlab .g{position:relative;width:16px;height:70px;margin:6px auto 0;border:2px solid #ffd25a;border-radius:4px;background:rgba(0,0,0,.4)}
+.tlab .g i{position:absolute;left:0;right:0;bottom:0;height:0;background:#ffd25a}
+.tlab .g small{position:absolute;left:22px;top:-4px;font-size:14px;color:#ffd25a;white-space:nowrap}
+#panHint{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(8px,env(safe-area-inset-top)) + 100px);z-index:5;background:rgba(10,16,13,.72);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;pointer-events:none;white-space:nowrap}
+.tlab span{display:inline-block;background:rgba(0,0,0,.45);border-radius:8px;padding:2px 8px;margin-top:2px}
+.tframe{position:fixed;z-index:4;pointer-events:none;border:3px solid transparent;border-radius:4px;transition:border-color .3s,box-shadow .3s}
+.tframe.on{border-color:#ffd25a;box-shadow:inset 0 0 18px rgba(255,210,90,.55)}
+#veil{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:4;transition:opacity .45s}
+#veil.on{opacity:.85}
+#boot{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;text-align:center;transition:opacity .6s}
+#boot.gone{opacity:0;pointer-events:none}
+#boot b{font-family:var(--mincho);font-size:30px;letter-spacing:.14em;font-weight:600}
+#boot p{color:var(--dim);font-size:15px;line-height:1.8;max-width:min(88vw,460px);margin:14px auto}
+#prog{width:200px;height:3px;background:var(--line);border-radius:3px;margin:14px auto;overflow:hidden}
+#prog i{display:block;height:100%;width:0;background:var(--aoi);transition:width .3s}
+#start{margin-top:6px}
+#menu{position:fixed;inset:0;z-index:20;background:rgba(6,10,8,.7);display:grid;place-items:start center;padding:16px;overflow:auto}
+#menu .in{background:var(--card);border:1px solid var(--line);border-radius:18px;width:min(640px,100%);padding:16px;position:relative}
+#menu h2{font-family:var(--mincho);font-weight:600;font-size:20px;margin:4px 0 8px}
+#menu p,#menu li{font-size:14px;line-height:1.8;color:var(--dim)}
+#menu .x{position:absolute;right:10px;top:10px}
+.opt{display:flex;justify-content:space-between;align-items:center;min-height:44px;border-bottom:1px solid var(--line);font-size:15px}
+.opt input{width:22px;height:22px}
+#lensTable{width:100%;border-collapse:collapse;font-size:14px;line-height:1.6}
+#lensTable td{border-bottom:1px solid var(--line);padding:6px 4px;vertical-align:top;color:var(--dim)}
+#lensTable td:first-child{color:var(--ink);white-space:nowrap;font-weight:600}
+body.big #say{font-size:19px;line-height:1.6}
+body.big .pill,body.big .tab{font-size:17px}
+body.big #where small,body.big #legend{font-size:16px}
+#toast{position:fixed;left:50%;top:40%;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:15px;opacity:0;transition:opacity .3s;z-index:30;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1}
+#aoiWin{position:fixed;left:10px;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px) + 60px);width:var(--aw,140px);height:var(--aw,140px);z-index:5;pointer-events:none}
+#aoiWin i{position:absolute;inset:-2px;border-radius:6px;border:2px solid var(--ac,#4fb3a8);box-shadow:0 0 calc(6px + 26px * var(--sig,0)) calc(1px + 6px * var(--sig,0)) var(--ac,#4fb3a8);transition:box-shadow .12s}
+#aoiWin small{position:absolute;left:0;top:calc(100% + 4px);white-space:nowrap;font-size:14px;background:rgba(6,10,8,.55);border-radius:6px;padding:1px 6px;line-height:1.4;color:#eef4ec;text-shadow:0 1px 4px #000}
+@media (max-width:760px){#aoiWin{--aw:96px;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px) + 80px)}}
+#worm{position:fixed;right:10px;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px) + 56px);z-index:5;display:flex;flex-direction:column;gap:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#dial .pill{min-width:86px;padding:5px 8px;border-radius:12px;display:flex;flex-direction:column;align-items:center;position:relative}#dial .creaturePortrait{width:76px;height:57px;object-fit:contain}#dial .pill span{font-size:12px}#dial .pill i{position:absolute;right:5px;top:5px;font-size:10px}
+#habitats{position:fixed;top:70px;right:12px;z-index:6;display:flex;gap:8px}#habitats button,#flightControls button{min-height:44px;border:1px solid #bfd0bb66;border-radius:20px;background:#17291dcc;color:#e1eee0;padding:8px 14px}#habitats button[aria-pressed=true]{background:#b5cdbb;color:#183025}#flightControls{position:fixed;right:12px;top:140px;z-index:6;display:grid;gap:8px}#flightControls[hidden]{display:none}#moveNote{position:fixed;left:12px;top:110px;font-size:11px;max-width:55vw;color:#ecf1e4;text-shadow:0 1px 4px #000;z-index:4;pointer-events:none}@media(max-width:700px){#habitats{top:66px;right:8px;gap:4px}#habitats button{font-size:11px;padding:6px 9px}#moveNote{top:142px;max-width:60vw}#flightControls{top:185px}}
+#legend{top:245px;max-width:230px;font-size:12px}#legend b{font-size:12px}@media(max-width:700px){#legend{top:275px;max-width:44vw;font-size:10px;padding:6px}#legend b{font-size:10px}#dial{gap:4px}#dial .pill{min-width:72px}#dial .creaturePortrait{width:62px;height:48px}}
+#bodyForward{position:fixed;left:12px;bottom:calc(var(--gh,64px) + 140px);z-index:6;min-height:44px;padding:8px 14px;border:1px solid #c1d6bf66;border-radius:22px;color:#ebf2e4;background:#17291dcc}#bodyForward[hidden]{display:none}@media(max-width:700px){#bodyForward{bottom:calc(var(--gh,64px) + 120px)}}
+/* 左の身体のダイヤル・右の操作。中央には画面の上にUIを重ねない。 */
+#top{background:none;box-shadow:none}.dream-title{font-family:var(--mincho);letter-spacing:.2em;padding:8px 10px;color:#f0e9cf}
+#bodyWheel{position:fixed;left:8px;top:50%;transform:translateY(-50%);width:128px;height:370px;z-index:6;pointer-events:none}#bodyWheel:before{content:'';position:absolute;left:-100px;top:38px;width:190px;height:285px;border:1px solid #d1dbbe55;border-radius:50%;box-shadow:0 0 40px #b5dfc411}#bodyPrev,#bodyNext{position:absolute;left:26px;border:0;background:#14261bb3;color:#dcebcf;border-radius:50%;width:42px;height:42px;pointer-events:auto}#bodyPrev{top:0}#bodyNext{bottom:0}
+#dial{position:absolute;inset:50% auto auto 0;overflow:visible;width:126px;height:1px;padding:0;display:block;bottom:auto;scroll-snap-type:none}#dial .pill{position:absolute;left:10px;top:0;margin:0;width:92px;min-width:0;height:72px;background:linear-gradient(110deg,#102118d9,#10211855);border:0;border-radius:14px;transition:transform .3s,opacity .3s;pointer-events:auto;display:flex;align-items:center;justify-content:center;flex-direction:column}#dial .pill[hidden]{display:none}#dial .pill[aria-pressed=true]{background:linear-gradient(100deg,#c3d9bc,#93bca6);color:#142c21;box-shadow:0 0 24px #b4ddba33}#dial .creaturePortrait{width:72px;height:47px}#dial .pill span{font-size:11px}#dial .pill i{display:none}
+#bodyControls{position:fixed;right:12px;top:50%;transform:translateY(-50%);width:96px;z-index:6;display:grid;gap:10px;justify-items:center}#bodyControls button{min-width:44px;min-height:44px;background:#14261bbb;color:#e0ead7;border:1px solid #c1d8bc55;border-radius:50%;font-size:24px;display:inline-flex;align-items:center;justify-content:center;flex-direction:column}#bodyControls small{font-size:9px;line-height:1.4}#bodyControls>div{display:flex;gap:7px}#bodyForward{position:static;min-height:56px;width:56px;padding:4px;border-radius:50%}#bodyBack{width:56px;height:56px}#flightControls{position:static;display:flex!important;gap:7px}#flightControls[hidden]{display:none!important}#flightControls button{padding:4px}#where{left:50%;transform:translateX(-50%);top:62px;text-align:center;max-width:65vw}#where small{font-size:12px;background:none;padding:0;max-width:100%;text-shadow:0 1px 8px #000}#legend{left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:calc(var(--gh,64px) + 8px);max-width:46vw;background:#0b1712bb;border:0;border-radius:0;text-align:center;font-size:11px}#legend b{font-size:11px}#moveNote{left:50%;transform:translateX(-50%);top:110px;text-align:center;font-size:10px;max-width:50vw}
+@media(max-width:700px){#bodyWheel{left:0;width:84px;height:310px}#dial{width:82px}#dial .pill{width:66px;height:62px;left:0;padding:3px}#dial .creaturePortrait{width:58px;height:41px}#dial .pill span{font-size:9px}#bodyPrev,#bodyNext{left:14px;width:36px;height:36px}#bodyWheel:before{left:-135px;width:190px;height:250px;top:30px}#bodyControls{right:4px;width:68px;gap:10px}#bodyControls button{min-width:32px;min-height:38px;font-size:20px}#bodyControls>div{gap:4px}#bodyForward,#bodyBack{width:44px;height:44px;min-height:44px}#where{top:60px;max-width:64vw}#where b{font-size:18px}#where small{font-size:10px}#moveNote{top:114px;font-size:9px;max-width:65vw}#legend{max-width:55vw;font-size:9px;padding:4px}#legend b{font-size:9px}#guide{max-width:90vw}#worm{right:3px;left:auto;bottom:calc(var(--gh,64px) + 30px);display:grid;gap:4px;max-width:90px}#worm[hidden]{display:none}#worm .btn{font-size:10px;padding:5px;min-height:38px}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+"@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}
+</script>
+</head>
+<body>
+<div id="stage" tabindex="0" aria-label="森・池・川・都市がつながる3D空間。右の操作で移動し、なぞると見回す。キーボードは矢印と W A S D、数字の 1 から 9 で受けとり方を切り替える"></div>
+<div id="veil"></div>
+
+<header id="top">
+  <span class="dream-title">胡蝶の夢</span>
+  <button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button>
+</header>
+<aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
+<div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
+<div id="legend" hidden></div>
+<div id="panHint" hidden>↔ 左右になぞると、壁が動きます</div>
+
+<aside id="bodyWheel" aria-label="生きもののダイヤル"><button id="bodyPrev" aria-label="前の生きもの">⌃</button><nav id="dial" aria-label="受けとり方"></nav><button id="bodyNext" aria-label="次の生きもの">⌄</button></aside>
+<nav id="langs" hidden aria-label="言葉"></nav>
+<!-- 碧の小さな窓（声だけになる受けとり方のときも、碧がとなりで一緒に感じている）2026-10-08 -->
+<div id="aoiWin" hidden aria-hidden="true"><i></i><small id="aoiWinCap"></small></div>
+<div id="worm" hidden>
+  <button class="btn" id="wormUp" aria-label="上へ（明るいほう）">▲ 上へ</button>
+  <button class="btn" id="wormDown" aria-label="下へ（暗いほう）">▼ 下へ</button>
+  <button class="btn pri" id="wormTap" aria-label="地面をたたく">地面をたたく</button>
+</div>
+
+<section id="guide" aria-label="碧の案内">
+  <div class="face"><img id="face" alt=""><i></i></div>
+  <div class="txt">
+    <span class="sr">碧（あおい）</span>
+    <p id="say" aria-live="polite"></p>
+    <div id="acts"></div>
+  </div>
+</section>
+<div id="toast" role="status"></div>
+
+<div id="menu" hidden role="dialog" aria-modal="true" aria-label="設定と出典"><div class="in">
+  <button class="ico x" id="menuX" aria-label="閉じる">✕</button>
+  <h2>設定</h2>
+  <label class="opt">碧の声（切ると字幕だけ）<input type="checkbox" id="optVoice" checked></label>
+  <label class="opt">音を出す<input type="checkbox" id="optSound" checked></label>
+  <label class="opt">動きを減らす<input type="checkbox" id="optRM"></label>
+  <label class="opt">文字を大きく<input type="checkbox" id="optBig"></label>
+  <h2>九つの受けとり方（くらべる）</h2>
+  <table id="lensTable"></table>
+  <h2>操作</h2>
+  <p>床を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、1〜9 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば。</p>
+  <h2>この空間のつくり</h2>
+  <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、ヒマワリ・ルドベキア・ヒナゲシ・赤く塗った板・モンシロチョウの雌雄・アオガラの頭・ブルーベリーの実・空で、ほかの草木の値は目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
+  <h2>場所のつくり</h2><p>森・池・川・街をつないだ創作空間です。都市の形状にはPLATEAU、地面の写真には国土地理院の公開素材を使用しています。配置と縮尺は再構成しており、実在する地域を連続した座標で再現したものではありません。花の紫外・熱・反響などは感覚の違いを考えるための模式表現です。</p><h2>出典</h2>
+  <p id="cred"></p>
+  <p>© 2026 mitsulab. All rights reserved. この作品の文章・画像・音声・3D・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。<a href="https://mitsulab.jp/terms/#ai" target="_blank" rel="noopener">利用規約</a></p>
+</div></div>
+
+<div id="boot" role="status" aria-live="polite"><div>
+  <b data-n="app">胡蝶の夢</b>
+  <div id="prog"><i></i></div>
+  <p id="bootMsg">森と水辺と街を組み立てています。</p>
+  <button class="btn pri" id="start" hidden>世界に入る（音が出ます）</button>
+</div></div>
+
+<script>
+(function(){
+  if(location.protocol==='file:'){document.getElementById('bootMsg').innerHTML='ファイルを直接ひらくと庭を組み立てられません。同じフォルダの<b>「ひらく.command」</b>をダブルクリックしてください。';document.getElementById('prog').hidden=true;}
+})();
+</script>
+<script src="data/paths.js?v=20261010"></script>
+<script src="data/script.js?v=20261011d"></script>
+<script src="data/voice.js?v=20261011d" onerror="window.VOICE={}"></script>
+<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261011f' ;document.body.appendChild(s);}</script>
+<noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
+</body>
+</html>
