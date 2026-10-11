@@ -5,9 +5,9 @@
    シェーダーで、受けとる細胞の感度から作った行列（uM）と紫外の写し先（uUVw）で置きかえる。近似（README）。
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
-import {makeBody,creaturePortrait,flowerForest} from "./bodies.js?v=20261011f";
+import {makeBody,creaturePortrait,flowerForest} from "./bodies.js?v=20261011night";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261011f";
+import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261011night";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
 
 const $ = id => document.getElementById(id);
@@ -367,13 +367,13 @@ const residents=['chou','chou','hachi','hachi','tori','tori','hebi'].map((id,i)=
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.22);Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
 function setHabitat(place){habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
-let lens = "hito", chapter = "umwelt";
+let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
 function applyLens(id) {
   const L = LENS[id];
   G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0;
   renderer.setPixelRatio(L.blur ? BASE_PR * L.blur : BASE_PR); renderer.setSize(innerWidth, innerHeight);
   const night = !!L.night;
-  if (night) { hemi.intensity = .05; sun.intensity = 0; } else setDay(LIT.base);
+  if (night) { hemi.intensity = .05; sun.intensity = 0;scene.fog.color.set(0x020306); } else setDay(LIT.base);
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
   for (const m of moths) m.visible = night;
   garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';under.visible = L.under === "touch";
@@ -730,11 +730,11 @@ function pose(dt) {
 const dial = $("dial"), spoken = new Set();
 for (const [i, l] of S.lens.entries()) {
   const b = document.createElement("button"); b.className = "pill"; b.dataset.id = l.id; b.setAttribute("aria-pressed", String(l.id === lens)); b.setAttribute("aria-keyshortcuts", String(i + 1));
-  b.innerHTML = `<img class="creaturePortrait" alt="" src="${creaturePortrait(l.id)}"><span>${l.name}</span><i>${i + 1}</i>`; b.setAttribute("aria-label",`${l.name}の身体と受けとり方`); b.onclick = () => { first(); setLens(l.id); }; dial.appendChild(b);
+  b.innerHTML = `<img class="creaturePortrait" alt="" src="${creaturePortrait(l.id)}"><span>${l.name}</span><i>${i + 1}</i>`; b.setAttribute("aria-label",`${l.name}の身体と受けとり方`); b.onclick = () => { first(false); setLens(l.id); }; dial.appendChild(b);
 }
-function layoutBodyWheel(){const selected=LENS_IDS.indexOf(lens);[...dial.children].forEach((b,i)=>{let d=(i-selected+9)%9;if(d>4)d-=9;b.hidden=Math.abs(d)>2;const mobile=innerWidth<700,y=d*(mobile?57:67),x=(mobile?6:16)*(1-Math.abs(d)*.5);b.style.transform=`translate(${x}px,${y-34}px) scale(${1-Math.abs(d)*.13})`;b.style.opacity=String(1-Math.abs(d)*.23);});}
-$('bodyPrev').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lens)+8)%9]);$('bodyNext').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lens)+1)%9]);$('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lens)+(e.deltaY>0?1:8))%9]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
-async function veil(fn) { $("veil").classList.add("on"); await sleep(RM ? 60 : 420); fn(); await sleep(60); $("veil").classList.remove("on"); }
+function layoutBodyWheel(){const selected=LENS_IDS.indexOf(lensRequest);[...dial.children].forEach((b,i)=>{let d=(i-selected+9)%9;if(d>4)d-=9;b.hidden=Math.abs(d)>2;const mobile=innerWidth<700,y=d*(mobile?57:67),x=(mobile?6:16)*(1-Math.abs(d)*.5);b.style.transform=`translate(${x}px,${y-34}px) scale(${1-Math.abs(d)*.13})`;b.style.opacity=String(1-Math.abs(d)*.23);});}
+$('bodyPrev').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+8)%9]);$('bodyNext').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+1)%9]);$('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:8))%9]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
+async function veil(fn, token) { $("veil").classList.add("on"); await sleep(RM ? 60 : 260); if(token!==undefined&&token!==lensToken)return false; fn(); await sleep(60); if(token!==undefined&&token!==lensToken)return false; $("veil").classList.remove("on");return true; }
 function setWhere() {
   if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").textContent = LENS[lens].sub; }
   else if (chapter === "iro") { $("whereName").textContent = N.ch_iro; $("whereSub").textContent = IRO.lang ? LANGS[IRO.lang].name : "あなたの線を引く"; }
@@ -742,14 +742,18 @@ function setWhere() {
 }
 async function setLens(id, silent = false) {
   if (!LENS[id]) return;
-  const was = LENS[lens]; if (id === lens && chapter === "umwelt" && !silent) { talkLens(id, true); return; }
+  first(false);
+  const token=++lensToken; lensRequest=id; keys.clear();
+  dial.setAttribute('aria-busy','true');
+  for(const b of dial.children)b.setAttribute('aria-pressed',String(b.dataset.id===id));layoutBodyWheel();
+  const was = LENS[lens];
   if (chapter !== "umwelt") { setChapter("umwelt", true); }
-  await veil(() => {
+  const applied=await veil(() => {
     if (!was.under) { gardenSave.pos.copy(me.pos); gardenSave.yaw = me.yaw; }
     lens = id; const L = LENS[id];
     if (L.under === "touch") { me.pos.copy(TUN.getPointAt(tunT)); me.pitch = 0; const tg = TUN.getTangentAt(tunT); me.yaw = Math.atan2(-tg.x, -tg.z); }
     else if (L.under === "light") { me.depth = .25; me.pitch = 0; }
-    else if (habitat==='forest') {me.pos.set(0,L.eye||1,4);me.yaw=0;me.pitch=-.1;}
+    else if (habitat==='forest') {if(was.under){me.pos.copy(gardenSave.pos);me.yaw=gardenSave.yaw;}me.pos.y=L.eye||1;me.pitch=clamp(me.pitch,-.6,.6);}
     else if (L.spot && !silent) {
       // その生きものの受けとり方がよく分かる場所へ（蜂はヒマワリの前、マムシはネズミの近く…）。向きもそちらへ
       const [x, z, lx, ly, lz] = L.spot; me.pos.set(x, L.eye, z); me.yaw = Math.atan2(-(lx - x), -(lz - z)); me.pitch = Math.atan2(ly - L.eye, Math.hypot(lx - x, lz - z));
@@ -760,7 +764,8 @@ async function setLens(id, silent = false) {
     for (const b of dial.children) b.setAttribute("aria-pressed", String(b.dataset.id === id));layoutBodyWheel();
     
     setWhere();
-  });
+  },token);
+  if(!applied)return;dial.setAttribute("aria-busy","false");
   if (!silent) talkLens(id);
 }
 function talkLens(id, again = false) {
@@ -923,15 +928,16 @@ $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target
 $("cred").innerHTML = [
   "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。草・花・空・土の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
   "典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Martínez-Harms ら 2020（ヒナゲシ）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Siitari ら 1999（実の紫外）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Eimer 1871・Catania（モグラ）／Darwin 1881（ミミズ）",
-  "言葉と色：Berlin & Kay 1969／Kay ら 2009（World Color Survey）／Winawer ら 2007／Roberson ら 2005／Kuriki ら 2017／佐竹昭広 1955／Regier & Kay 2009。四つの時計：Altshuler ら 2005／FAO 2015。",
+  "生きものの身体と動きは独自の模式造形です。羽ばたきやカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川・都市は体験用に再配置した空間です。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
 
 // ---------------------------------------------------------------- はじめて押したとき：音を立て、碧がひとこと
 let started = false;
-function first() {
+function first(intro = true) {
   if (started) return; started = true; AUD.init();
   A.appear = true; A.intro = true; A.calm = 2.2;
   $("say").textContent = "";
+  if(!intro){A.intro=false;return;}
   setTimeout(() => talk(S.intro, [[`はじめる：${S.lens[1].name} ›`, () => { A.intro = false; setLens("hachi"); }, true], ["人の目のまま歩く", () => { A.intro = false; talkLens("hito"); }]]).then(() => { A.intro = false; }), 600);
 }
 
@@ -940,10 +946,11 @@ const clock = new THREE.Clock();
 let echo = { t: 9, next: 0, int: 1.6 }, sonT = 0;
 const ECHO_V = 20;   // 見せる波面の速さ（m/s）。本当の音の速さ（約 340 m/s）を、ゆっくりにしたもの
 let shadowTick = 0;
-let lastFrame=0;
+let lastFrame=0,simTime=0;
+addEventListener("visibilitychange",()=>{keys.clear();clock.getDelta();});
 function frame(now=0) {
   if(document.hidden||now-lastFrame<33){requestAnimationFrame(frame);return;}lastFrame=now;
-  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  const dt = Math.min(clock.getDelta(), .05); simTime += dt; const t = simTime;
   G.uTime.value = RM ? 0 : t;
   if (mobile && ++shadowTick % 3 === 0) renderer.shadowMap.needsUpdate = true;   // スマホは影の地図の描き直しを 3 こまに 1 回
   moveCam(dt);
@@ -972,7 +979,7 @@ function frame(now=0) {
     if(!RM){camera.position.y+=Math.sin(t*motion.freq)*motion.bob*(moving?1:.18);if(lens==='hebi'&&moving)camera.rotation.z=Math.sin(t*4)*.018;if(lens==='chou'&&moving)camera.rotation.z=Math.sin(t*2)*.025;bodies[lens]?.userData.animate(t,moving);}
     if (quake > 0) { camera.position.y += (Math.random() - .5) * .02 * quake; quake = Math.max(0, quake - dt * 2); }
   }
-  $('stage').dataset.lens=lens;$('stage').dataset.habitat=habitat;$('stage').dataset.position=camera.position.toArray().map(v=>v.toFixed(3)).join(',');$('stage').dataset.depth=me.depth.toFixed(3);
+  $('stage').dataset.flightHeight=flightHeight.toFixed(3);$('stage').dataset.lens=lens;$('stage').dataset.habitat=habitat;$('stage').dataset.position=camera.position.toArray().map(v=>v.toFixed(3)).join(',');$('stage').dataset.depth=me.depth.toFixed(3);
   G.uCam.value.copy(camera.position);
   // コウモリ：声を出し、波面をひろげる。獲物に近づくと間隔が短くなる
   if (chapter === "umwelt" && lens === "koumori") {
@@ -1027,7 +1034,7 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
   $('bodyForward').onclick=()=>{first();if(lens==='mogura'){tunGoal=(tunT+.08)%1;}else if(lens==='mimizu'){me.depth=clamp(me.depth+.04,0,1.5);}else walkTo(me.pos.x-Math.sin(me.yaw)*1.2,me.pos.z-Math.cos(me.yaw)*1.2);};
   document.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{me.yaw+=b.dataset.turn==='left'?.3:-.3;});$('bodyBack').onclick=()=>{if(LENS[lens].under){if(lens==='mogura')tunGoal=(tunT-.08+1)%1;else me.depth=clamp(me.depth-.04,.02,1.2);}else walkTo(me.pos.x+Math.sin(me.yaw)*1.2,me.pos.z+Math.cos(me.yaw)*1.2);};
   document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();setHabitat(b.dataset.habitat);});
-  document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();keys.add(key);}};b.onkeyup=release;b.onblur=release;});
+  document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 700);
   $("say").textContent = "画面を押すと、碧が案内をはじめます。蜂の受けとり方で、この森を歩いてみませんか。（ひとつ 1〜2 分）";
   setActs([]);
