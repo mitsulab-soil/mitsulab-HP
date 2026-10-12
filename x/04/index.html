@@ -49,8 +49,8 @@ h3 { font-size:16px; margin:14px 0 4px; }
 .route .seg.car { stroke:var(--seg-car); stroke-dasharray:14 9; }
 .route .cross { stroke:var(--cross); stroke-width:4; }
 .route .cross.end { stroke-dasharray:4 4; }
-.route .rd { fill:var(--cross); font-size:34px; }
-.route .lb { fill:var(--ink); font-size:38px; }
+.route .rd { fill:var(--cross); font-size:38px; }
+.route .lb { fill:var(--ink); font-size:42px; }
 .route .torii path { stroke:var(--ink); stroke-width:2.4; fill:none; }
 .route .stop circle { fill:var(--panel); stroke:var(--ink); stroke-width:2.5; }
 .route .stop text { font-size:32px; font-weight:700; fill:var(--ink); }
@@ -58,12 +58,22 @@ h3 { font-size:16px; margin:14px 0 4px; }
 .route .stop.done text { fill:#fff; }
 .route .stop.cur circle { stroke:var(--aoi); stroke-width:5; }
 .route .north { fill:var(--sub); font-size:32px; }
-.legend { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; color:var(--sub); margin:6px 0 0; padding:0; list-style:none; }
+.legend { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:14px; color:var(--sub); margin:6px 0 0; padding:0; list-style:none; }
 .legend i { display:inline-block; width:22px; height:0; border-top:5px solid var(--seg-ped); vertical-align:middle; margin-right:5px; border-radius:3px; }
 .legend i.car { border-top:5px dashed var(--seg-car); }
 .legend i.x { width:5px; height:14px; border:none; background:var(--cross); }
 .rules { margin:6px 0; padding-left:1.4em; }
 .rules li { margin:6px 0; }
+.rules.ic { list-style:none; padding:0; counter-reset:r; }
+.rules.ic li { display:flex; gap:10px; align-items:flex-start; counter-increment:r; }
+.rules.ic li::before { content:counter(r) "."; flex:none; width:1.2em; text-align:right; color:var(--sub); }
+.rules.ic svg { flex:none; width:34px; height:34px; margin-top:2px; }
+.pi { fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+.pi .no { stroke:var(--warn); stroke-width:2.6; }
+details.more { margin:6px 0 0; }
+details.more > summary { cursor:pointer; min-height:44px; padding:10px 0; color:var(--aoi); }
+.rules.ic.rest { counter-reset:r 3; }
+#print { display:none; }
 .warnbox { background:var(--warn2); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:10px 14px; margin:10px 0; font-size:15px; }
 .mode { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0; }
 .mode button[aria-pressed="true"] { background:var(--aoi); color:#fff; border-color:var(--aoi); }
@@ -105,6 +115,42 @@ details.fig > summary { cursor:pointer; padding:10px 14px; min-height:44px; colo
 footer { font-size:13px; color:var(--sub); margin-top:28px; border-top:1px solid var(--line); padding-top:12px; }
 footer p { margin:6px 0; }
 .hide { display:none !important; }
+/* 印刷用（A4・2 枚）：1 枚目＝道のり・約束・六つの問い、2 枚目＝ヒントと、折って隠す答え */
+@page { size:A4; margin:9mm 10mm; }
+@media print {
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]) { --bg:#fff; --panel:#fff; --ink:#111; --sub:#444; --line:#bbb; --aoi:#1f6a70; --aoi2:#e3f1f1; --edo:#7a4a1b; --edo2:#fff; --warn:#8a2b1b; --warn2:#fff; --seg-ped:#1f6a70; --seg-car:#b0651f; --cross:#8a2b1b; --shadow:none; }
+  html, body { background:#fff; color:#111; font-size:9pt; line-height:1.45; }
+  .wrap { max-width:none; padding:0; }
+  .wrap > *:not(#print) { display:none !important; }
+  #print { display:block; }
+  #print h1 { font-size:15pt; margin:0; letter-spacing:.04em; }
+  #print .pmeta { font-size:8.5pt; color:var(--sub); margin:1mm 0 2mm; }
+  #print h2 { font-size:10.5pt; margin:2.5mm 0 1mm; border-bottom:.3mm solid var(--line); padding-bottom:.6mm; }
+  #print .route { max-height:46mm; width:auto; max-width:100%; margin:0 auto; }
+  #print .route .stop.done circle { fill:var(--panel); stroke:var(--ink); }
+  #print .route .stop.done text { fill:var(--ink); }
+  #print .legend { font-size:8pt; margin:1mm 0 0; gap:1mm 5mm; }
+  #print .prules { columns:2; column-gap:6mm; margin:0; padding-left:4.5mm; font-size:8.5pt; }
+  #print .prules li { margin:0 0 .8mm; break-inside:avoid; }
+  #print .pwarn { font-size:8.5pt; margin:1mm 0 0; padding:1mm 2mm; border-left:.8mm solid var(--warn); }
+  #print .pq { display:grid; grid-template-columns:1fr 1fr; gap:2.5mm 5mm; }
+  #print .pq > div { border:.3mm solid var(--line); border-radius:2mm; padding:1.6mm 2.4mm; break-inside:avoid; }
+  #print .pq .pn { font-weight:700; font-size:9.5pt; margin:0; }
+  #print .pq .pat { font-size:8pt; color:var(--sub); margin:.4mm 0; }
+  #print .pq .pqq { margin:.6mm 0; }
+  #print .pq ul { list-style:none; margin:0; padding:0; }
+  #print .pq li::before { content:"□ "; }
+  #print .p2 { break-before:page; }
+  #print .phint { margin:0; padding-left:4.5mm; }
+  #print .phint li { margin:0 0 .8mm; }
+  #print .fold { margin:4mm 0 2mm; border-top:.5mm dashed var(--ink); padding-top:1mm; font-size:8.5pt; text-align:center; color:var(--sub); }
+  #print .pans { display:grid; grid-template-columns:1fr 1fr; gap:2mm 5mm; }
+  #print .pans > div { break-inside:avoid; font-size:8.5pt; }
+  #print .pans b { font-size:9pt; }
+  #print .pans .psrc { color:var(--sub); font-size:7.5pt; display:block; }
+  #print .pfoot { font-size:7.5pt; color:var(--sub); margin-top:3mm; border-top:.3mm solid var(--line); padding-top:1mm; }
+  a { color:inherit; text-decoration:none; }
+}
 .fade { animation:fade .6s ease; }
 @keyframes fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) { .fade { animation:none; } }
@@ -142,6 +188,8 @@ footer p { margin:6px 0; }
       <button type="button" data-mode="site" aria-pressed="true">現地で歩く</button>
       <button type="button" data-mode="home" aria-pressed="false">家で遊ぶ</button>
     </div>
+    <div class="row" style="margin-bottom:0"><button type="button" class="ghost" id="printBtn">印刷用（A4・2 枚）</button></div>
+    <p class="sub" style="margin-top:4px">紙で歩くときに。1 枚目は道のりと約束と六つの問い、2 枚目はヒントと答え（折って隠せます）。</p>
   </div>
 
   <div class="card">
@@ -183,15 +231,19 @@ footer p { margin:6px 0; }
 
   <div class="card" id="rules">
     <h2>歩く前の約束</h2>
-    <ol class="rules">
-      <li>歩いているあいだは、画面を見ない。止まってから見る。</li>
-      <li>止まるのは道の端。車道・横断歩道・自転車の通る帯の上では止まらない。止まれる所がなければ、先へ進む。</li>
-      <li>道を渡るときは画面をしまい、信号と横断歩道に従う。</li>
-      <li>並木の植えこみには入らない。葉や木の皮をちぎらない。</li>
-      <li>この版は三の鳥居の手前で終わり。境内では謎を出しません。お参りは、静かに自由に。</li>
-      <li>住まいやお店の前にたまらない。人の顔を撮らない。声は小さく。</li>
-      <li>雨・雷・体の具合が悪いときは、やめる。途中でやめても大丈夫。</li>
+    <ol class="rules ic">
+      <li><svg viewBox="0 0 34 34" class="pi" aria-hidden="true"><rect x="11" y="5" width="12" height="22" rx="2"/><path d="M15 23h4"/><circle cx="17" cy="17" r="15" class="no"/><path d="M6.4 6.4l21.2 21.2" class="no"/></svg><span>歩いているあいだは、画面を見ない。止まってから見る。</span></li>
+      <li><svg viewBox="0 0 34 34" class="pi" aria-hidden="true"><path d="M4 30h26M8 30V8M8 8h10l-3 4 3 4H8"/><circle cx="24" cy="10" r="3"/><path d="M24 13v9M20 17h8M24 22l-3 7M24 22l3 7"/></svg><span>止まるのは道の端。車道・横断歩道・自転車の通る帯の上では止まらない。止まれる所がなければ、先へ進む。</span></li>
+      <li><svg viewBox="0 0 34 34" class="pi" aria-hidden="true"><path d="M3 9h28M3 25h28M7 12v10M13 12v10M19 12v10M25 12v10"/><circle cx="29" cy="4" r="2.5"/></svg><span>道を渡るときは画面をしまい、信号と横断歩道に従う。</span></li>
     </ol>
+    <details class="more"><summary>ほかの約束（4 つ）</summary>
+    <ol class="rules ic rest">
+      <li><svg viewBox="0 0 34 34" class="pi" aria-hidden="true"><path d="M17 30V16M17 16c-6 0-9-4-9-9 5 0 9 3 9 9zM17 20c5 0 8-3 8-8-4 0-8 3-8 8z"/><circle cx="17" cy="17" r="15" class="no"/><path d="M6.4 27.6L27.6 6.4" class="no"/></svg><span>並木の植えこみには入らない。葉や木の皮をちぎらない。</span></li>
+      <li><svg viewBox="0 0 34 34" class="pi" aria-hidden="true"><path d="M5 30h24M9 30V12M25 30V12M5 10h24M7 14h20"/></svg><span>この版は三の鳥居の手前で終わり。境内では謎を出しません。お参りは、静かに自由に。</span></li>
+      <li><svg viewBox="0 0 34 34" class="pi" aria-hidden="true"><rect x="6" y="11" width="22" height="15" rx="2"/><path d="M12 11l2-3h6l2 3"/><circle cx="17" cy="18.5" r="4"/><circle cx="17" cy="17" r="15" class="no"/><path d="M6.4 6.4l21.2 21.2" class="no"/></svg><span>住まいやお店の前にたまらない。人の顔を撮らない。声は小さく。</span></li>
+      <li><svg viewBox="0 0 34 34" class="pi" aria-hidden="true"><path d="M8 16a9 9 0 0 1 18 0zM17 16v11a3 3 0 0 1-6 0M14 21l-3 6"/></svg><span>雨・雷・体の具合が悪いときは、やめる。途中でやめても大丈夫。</span></li>
+    </ol>
+    </details>
     <div class="warnbox"><b>車に気をつけて</b><br>南区間（一の鳥居〜南大通東線）と北区間（中区間の先〜大宮中央通り）は、車道と歩道が並ぶ道です。2026 年 10 月 26 日の午前 10 時より前は、一般の車も通ります。そのあとは歩行者専用ですが、許可を受けた車と自転車は通り、交差点では車が東西に横切ります。この二つの区間では、謎 1（一の鳥居の脇）のほかは謎を出しません。歩道を歩くだけにしてください。<span class="src" style="display:block;font-size:13px;color:var(--sub);margin-top:4px">さいたま市『<a href="https://www.city.saitama.lg.jp/001/010/015/004/004/p049064_d/fil/hikawasanndodayori_vol29.pdf" target="_blank" rel="noopener">ひかわ参道だより</a>』第 29 号（令和 8 年 8 月）</span></div>
     <p class="sub">答え合わせはこの端末の中だけで行い、どこにも送りません。</p>
     <div class="row"><button type="button" class="go" id="start">約束を読んだ。はじめる</button><button type="button" class="ghost hide" id="resume">続きから</button></div>
@@ -199,7 +251,7 @@ footer p { margin:6px 0; }
 </section>
 
 <!-- 謎 -->
-<section id="game" class="hide" aria-live="polite">
+<section id="game" class="hide">
   <nav class="dots" id="dots" aria-label="謎の番号"></nav>
   <article class="card fade" id="stop"></article>
   <div class="row"><button type="button" class="ghost" id="toTop">はじめの画面へ</button></div>
@@ -218,6 +270,8 @@ footer p { margin:6px 0; }
     <div class="row"><button type="button" id="again">はじめの画面へ</button><button type="button" class="ghost" id="reset">はじめから遊びなおす</button></div>
   </div>
 </section>
+
+<section id="print" aria-hidden="true"></section>
 
 <footer>
   <p>道のりの図＝© OpenStreetMap contributors（ODbL）の道をもとに mitsulab が作成。3D の参道の絵＝氷川道中の画面（地形と地面の写真：国土地理院の地理院タイルを mitsulab が加工／建物：国土交通省 PLATEAU さいたま市 2022〔CC BY 4.0〕を mitsulab が加工／道：© OpenStreetMap contributors）。物の絵は模式です。</p>
@@ -355,7 +409,7 @@ const STOPS = [
     ['s','ケヤキの葉のふちの歯は、葉先へ向かって曲線を描いて並び、先がとがります。','wkeyaki'],
     ['s','ケヤキは、さいたま市の木です。','city'],
    ],
-   tryit:'ほかの形の葉も、一枚見つけて比べてみて。ふちがなめらかな葉もあります。' },
+   tryit:'ほかの形の葉も、一枚見つけて比べてみて。ふちがなめらかな葉もあります。落ち葉にさわったら、あとで手を洗いましょう。' },
 
  { place:'平成ひろばの並木', fig:'trunk', figcap:'模式の絵',
    walk:'中区間の先は北区間（車道と歩道が並ぶ道）。歩道を北へ約 250 m。大宮中央通りを、横断歩道で渡ると平成ひろば（御影石の遊歩道と緑地）です。',
@@ -391,7 +445,7 @@ const STOPS = [
 
  { place:'二の鳥居から三の鳥居の手前まで', fig:'avenue', figcap:'氷川道中の 3D の参道（並木の形は模式）',
    walk:'謎 5 の燈籠の脇から動かずに。この先、燈籠と二の鳥居のあいだの横切る道を渡ると、三の鳥居まで車の入らない参道が約 430 m 続きます。',
-   at:'二の鳥居をくぐる前、燈籠の脇で答えます。答えたら、三の鳥居までの並木を、両側の木を見ながら自由に歩いてください。この版は、三の鳥居の手前で終わりです。',
+   at:'二の鳥居をくぐる前、燈籠の脇で答えます。答えたら、三の鳥居までの並木を、両側の木を見ながら自由に歩いてください。鳥居は、道の端を通ってくぐります。この版は、三の鳥居の手前で終わりです。',
    aoi:'三つ目の謎で見た葉を、思い出して。ここまで両側に並んでいた木は、どの木が多かったでしょう。',
    aoiHome:'三つ目の謎で見た葉を、思い出して。2010 年までの調べでは、この参道に、およそ七百本の木がありました。',
    q:'この参道で、いちばん多い木は？',
@@ -451,7 +505,7 @@ function render(){
     ${home ? `<div class="fig">${FIG[s.fig]}<p class="cap">${s.figcap}</p></div>` : `<details class="fig"><summary>絵で見る（家で遊ぶときの絵）</summary>${FIG[s.fig]}<p class="cap">${s.figcap}</p></details>`}
     <p class="q">${s.q}</p>
     <div class="choices" role="group" aria-label="答え">${s.choices.map((c,i)=>`<button type="button" data-i="${i}">${c}</button>`).join('')}</div>
-    <div class="fb" id="fb"></div>
+    <div class="fb" id="fb" role="status" aria-live="polite"></div>
     <div class="row"><button type="button" class="ghost" id="hintBtn">碧にヒントをもらう</button><button type="button" class="ghost hide" id="showAns">答えを見る</button></div>
     <div class="ans ${done?'':'hide'}" id="ans">
       <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${s.done}</div></div>
@@ -495,6 +549,40 @@ $('#toTop').addEventListener('click', () => { show('#intro'); if (solved.length)
 $('#again').addEventListener('click', () => { show('#intro'); $('#resume').classList.remove('hide'); });
 $('#reset').addEventListener('click', () => { solved = []; store.set('nazo-kit-solved', solved); cur = 0; show('#game'); render(); });
 mapState();
+
+// 印刷用（A4・2 枚）
+const strip = t => t.replace(/<[^>]+>/g,'');
+function buildPrint(){
+  const svg = document.querySelector('#intro .route');
+  const leg = document.querySelector('#intro .legend');
+  const rules = [...document.querySelectorAll('#rules .rules.ic li span')].map(x => `<li>${x.textContent}</li>`).join('');
+  const qs = STOPS.map((s,i) => `<div><p class="pn">謎 ${i+1}　${s.place}</p><p class="pat">止まる所：${s.at}</p><p class="pqq">${s.q}</p><ul>${s.choices.map(c=>`<li>${c}</li>`).join('')}</ul></div>`).join('');
+  const hints = STOPS.map((s,i) => `<li>謎 ${i+1}：${s.hint}</li>`).join('');
+  const ans = STOPS.map((s,i) => `<div><b>謎 ${i+1}　${s.choices[s.ok].replace(/^[①②③]\s*/,'')}</b><br>${s.clue}<br>${s.facts[0][1]}<span class="psrc">${s.facts[0][0]==='s'?'◎':'△'} ${SRC[s.facts[0][2]].t}</span></div>`).join('');
+  const foot = [...document.querySelectorAll('footer p')].map(p => p.textContent).join('　');
+  $('#print').innerHTML = `
+    <h1>氷川道中 謎解き版　参道の六つの謎</h1>
+    <p class="pmeta">大宮・氷川参道　一の鳥居 → 三の鳥居の手前（約 1.9 km・60〜90 分）　画面の版＝mitsulab.jp/x/04/　答えは 2 枚目にあります。</p>
+    ${svg ? svg.outerHTML.replace(/id="map([TD])"/g,'id="pmap$1"').replace(/aria-labelledby="mapT mapD"/,'aria-labelledby="pmapT pmapD"') : ''}
+    ${leg ? leg.outerHTML : ''}
+    <h2>歩く前の約束</h2>
+    <ol class="prules">${rules}</ol>
+    <p class="pwarn">南区間（一の鳥居〜南大通東線）と北区間（中区間の先〜大宮中央通り）は、車道と歩道が並ぶ道です。歩道を歩くだけにして、謎は止まる所で解きます。</p>
+    <h2>六つの問い（止まってから、□ に印を）</h2>
+    <div class="pq">${qs}</div>
+    <div class="p2">
+      <h2>ヒント</h2>
+      <ol class="phint" style="list-style:none">${hints}</ol>
+      <p class="fold">✂ ここから下は答え。この線で折って、解くまで隠してください。</p>
+      <h2>答えと、確かめたこと</h2>
+      <div class="pans">${ans}</div>
+      <p class="pmeta" style="margin-top:2mm">◎＝典拠で確かめられること　△＝言い伝え・諸説があること。くわしい典拠は画面の版にあります。</p>
+      <p class="pfoot">${foot}</p>
+    </div>`;
+}
+buildPrint();
+$('#printBtn').addEventListener('click', () => { buildPrint(); window.print(); });
+window.addEventListener('beforeprint', buildPrint);
 })();
 </script>
 </body>
