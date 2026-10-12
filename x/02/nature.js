@@ -5,6 +5,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { crownHook } from "./zen.js";
+import { makeTit as makeTitR, makeBee as makeBeeR, makeButterfly as makeButterflyR } from "./creatures.js?v=20261012real";   // 2026-10-12 生きものを写実の造形に
 
 let M, canvasTex, tx;
 // CC0 の写真の質感（Poly Haven・台帳 M-0793〜0796）。読めないときは、この画面で描いた質感のまま
@@ -422,16 +423,18 @@ export function buildNature(ctx) {
   const grass = makeGrass(garden, grassSample); grass.userData.smallCast = true;
   makePond(garden, sonic, POND);
   // アオガラ（1.5 倍）：欅の低い枝に
-  const bird = makeBlueTit(1.5); bird.position.set(TREE.x - .9, 2.55, TREE.z + .9); garden.add(bird); sonic.push(bird.userData.cap, ...bird.children.filter(c => c.isMesh).slice(0, 2));
+  const mf = (c, o = {}) => M(c, o);
+  const bird = makeTitR(mf, { state: "perch" }); bird.scale.setScalar(.145 * 1.5); bird.userData.animate(0); bird.position.set(TREE.x - .9, 2.55, TREE.z + .9); garden.add(bird); sonic.push(bird.userData.cap);
   const perch = new THREE.Mesh(new THREE.CylinderGeometry(.018, .025, 1.4, 6), M(0x6d5f50, { uv: .05, temp: .1 })); perch.rotation.z = Math.PI / 2; perch.rotation.y = .7; perch.position.set(TREE.x - .7, 2.43 - .06, TREE.z + .75); garden.add(perch);
   // ネズミ（1.5 倍）
   const mouse = makeMouse(1.5); mouse.position.set(MOUSE.x, .06, MOUSE.z); mouse.rotation.y = 2.4; garden.add(mouse); sonic.push(...mouse.children.filter(c => c.isMesh).slice(0, 2));
   // モンシロチョウの雌雄（2 倍）と、ナミアゲハ（2 倍）
-  const fem = makeButterfly("monshiro-f", .7, 2), mal = makeButterfly("monshiro-m", .02, 2), ageha = makeButterfly("ageha", .15, 2);
+  const fem = makeButterflyR("monshiro-f", mf, { uv: .7 }), mal = makeButterflyR("monshiro-m", mf, { uv: .02 }), ageha = makeButterflyR("ageha", mf, { uv: .15 });
+  fem.scale.setScalar(.02 * 2); mal.scale.setScalar(.02 * 2); ageha.scale.setScalar(.03 * 2);   // 体の長さ（モンシロチョウ 約 2 cm・アゲハ 約 3 cm）の 2 倍
   fem.userData.sex = "雌"; fem.userData.ph = 0; mal.userData.sex = "雄"; mal.userData.ph = 2.1; ageha.userData.ph = 4.2; ageha.userData.ageha = true;
   for (const b of [fem, mal, ageha]) { garden.add(b); b.traverse(o => { if (o.isMesh && o.material.map) sonic.push(o); }); }
   // 蜂（3 倍）：ヒマワリの前
-  const bee = makeBee(3); bee.position.copy(bed(-2.38, 1.43, -.82)); bee.rotation.y = BED.ry; garden.add(bee);
+  const bee = makeBeeR(mf); bee.scale.setScalar(.013 * 3); bee.position.copy(bed(-2.38, 1.43, -.82)); bee.rotation.y = BED.ry; garden.add(bee);
   return { flowers, leafMat: tree.leafMat, leafIM: tree.leafIM, grass, bird, mouse, butterflies: [fem, mal], ageha, bee };
 }
 

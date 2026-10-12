@@ -5,7 +5,7 @@
    シェーダーで、受けとる細胞の感度から作った行列（uM）と紫外の写し先（uUVw）で置きかえる。近似（README）。
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
-import { makeBody, creaturePortrait } from "./bodies.js?v=20261012forest";
+import { makeBody, creaturePortrait, makeCreature } from "./bodies.js?v=20261012real";
 import { buildForest } from "./forest.js?v=20261012native";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261012native";
@@ -237,7 +237,7 @@ let berryBush = null;
 // 蛾（夜・コウモリの獲物）
 const moths = [];
 for (let i = 0; i < 4; i++) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(.12, .08), M(0x9a8a70, { uv: .1, temp: .2, side: THREE.DoubleSide, echo: 1.6 }));
+  const m = makeCreature("chou", (c, o = {}) => M(c, { uv: .1, temp: .2, echo: 1.6, ...o }), { kind: "moth" }); m.scale.setScalar(.022 * 2.5);   // ヤガのなかま（体長 約 2 cm）の 2.5 倍
   m.userData.ph = i * 1.7; m.visible = false; garden.add(m); moths.push(m);
 }
 // 言葉と色の壁（黄緑→緑→青→紫・明るさ四段）。ラベルと境目は言語ごとに描きかえる
@@ -329,6 +329,7 @@ const waterMaterial=M(0x426e70,{std:true,rough:.08,metal:.2,uv:.12,temp:.1,echo:
 const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);pool.userData.noCast=true;forest.add(pool);
 const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;river.userData.noCast=true;forest.add(river);
 const FOREST=buildForest({M,tx,canvasTex,photoTex,forest,pick,sonic,mobile,riverCurve});
+for(const m of moths)forest.add(m);   // 夜の蛾は森に（2026-10-12）
 scene.fog.density=mobile?.03:.026;   // 木々の奥が、かすみに溶ける
 // 庭で作った生きもの（シジュウカラ・ネズミ・蝶・蜂）を、森の草地へ（碧の話に出てくるもの）。人工物の赤い板と、栽培種の実の茂みは森に置かない（2026-10-12）
 {const MW=FOREST.meadow;
@@ -343,9 +344,23 @@ const FSPOT={
   hebi:()=>[mouse.position.x+.6,mouse.position.z+1.5,mouse.position.clone()],
 };
 const meadowBed=(x,y,z)=>new THREE.Vector3(FOREST.meadow.x-2.5+x,y,FOREST.meadow.z-.3+z);
-const bodies=Object.fromEntries(S.lens.map(l=>[l.id,makeBody(l.id,c=>M(c,{temp:.7,uv:.05}))]));
-const residents=['chou','hachi','tori'].map((id,i)=>{const b=makeBody(id,c=>M(c,{uv:id==='chou'?.7:.1,temp:.7}));b.scale.setScalar(id==='tori'?.3:id==='hebi'?.25:.16);b.userData.kind=id;b.userData.phase=i*1.9;forest.add(b);return b;});
-const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.22);Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
+const bodies=Object.fromEntries(S.lens.map(l=>[l.id,makeBody(l.id,(c,o={})=>M(c,{temp:.7,uv:.05,...o}))]));
+// 森を飛ぶ生きもの（2026-10-12 写実の造形に。頭はいつも進む向きへ・曲がるときは内へ傾く）
+//   シジュウカラ 3 羽（実物の 1.5 倍）・ナミアゲハ（2 倍）・ミツバチ（3 倍）。道すじは木の間を通るなめらかな輪
+const mfR=(c,o={})=>M(c,{temp:.7,uv:.1,...o});
+const residents=[
+  {id:'tori',s:.145*1.5,c:[-3,-4],r:[4.2,3.1],h:[2.2,.5],w:.32,ph:0},{id:'tori',s:.145*1.5,c:[-3,-4],r:[4.2,3.1],h:[2.3,.45],w:.32,ph:-.16},{id:'tori',s:.145*1.5,c:[5,-2],r:[3.4,4.4],h:[2.6,.6],w:-.27,ph:2},
+  {id:'chou',s:.03*2,c:[4,-3],r:[2.6,1.8],h:[1.0,.3],w:.22,ph:1},{id:'hachi',s:.013*3,c:[-1.5,1.5],r:[1.6,1.2],h:[.8,.25],w:-.45,ph:3},
+].map((R,i)=>{const b=makeCreature(R.id,mfR,{kind:'ageha',uv:R.id==='chou'?.15:undefined,ph:i*.37});b.scale.setScalar(R.s);b.userData.kind=R.id;b.userData.R=R;b.userData.prev=new THREE.Vector3();b.userData.yaw=0;b.userData.roll=0;forest.add(b);return b;});
+// 進む向きに頭を向ける（造形は頭が +Z）。曲がる速さに合わせて内へ傾け、上り下りで頭を上げ下げする
+function faceVelocity(b,dt,bankK=.35,pitchK=1){if(!b.userData.prev){b.userData.prev=b.position.clone();b.userData.yaw=b.rotation.y;b.userData.roll=0;return;}const p=b.position,q=b.userData.prev,vx=p.x-q.x,vy=p.y-q.y,vz=p.z-q.z,h=Math.hypot(vx,vz);q.copy(p);if(h<1e-5)return;
+  const yaw=Math.atan2(vx,vz),dy=wrapA(yaw-b.userData.yaw);b.userData.yaw=yaw;const turn=dt>0?dy/dt:0;b.userData.roll+=(clamp(-turn*bankK,-.8,.8)-b.userData.roll)*ease(dt,6);
+  b.rotation.set(-Math.atan2(vy,h)*pitchK,yaw,b.userData.roll,'YXZ');}
+window.__orient=()=>residents.concat([...butterflies,ageha]).map(b=>{const f=new THREE.Vector3(0,0,1).applyQuaternion(b.getWorldQuaternion(new THREE.Quaternion()));const p=b.getWorldPosition(new THREE.Vector3());const v=p.clone().sub(b.userData.prevW||p);b.userData.prevW=p;return {kind:b.userData.kind||'chou',deg:v.length()>1e-6?+(f.angleTo(v.normalize())*180/Math.PI).toFixed(1):null};});
+// 見る人の身体：頭を前（画面の奥）へ。曲がるときは傾く
+const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.22);bodyRoot.rotation.y=Math.PI;Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
+let bodyYaw0=0,bodyRoll=0;
+const BODYPOS={hachi:[-.11,-.6],chou:[-.12,-.72],tori:[-.12,-.7],inu:[-.2,-.78],hebi:[-.16,-.8],koumori:[-.1,-.75]};
 function setHabitat(place){habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
 let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
@@ -360,6 +375,7 @@ function applyLens(id) {
   garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';if(FOREST.shafts)FOREST.shafts.visible=(id==='hito'||id==='inu')&&!night;
   flightHeight=L.eye||1.5;
   Object.entries(bodies).forEach(([key,b])=>{b.visible=key===id&&key!=='hito'&&!L.under;});
+  { const bp = BODYPOS[id] || [-.27, -.65]; bodyRoot.position.set(0, bp[0], bp[1]); }   // 画面の下の字幕に隠れない高さに（2026-10-12）
   $('flightControls').hidden=!FLIGHT.has(id)||chapter!=='umwelt';
   $('moveNote').textContent=FLIGHT.has(id)?'飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも操作）':id==='hebi'?'地面を這う · W A S D':L.under?'土の中を進む · 矢印／上へ・下へ':'歩く · W A S D ／ 押した場所へ';
   $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
@@ -455,7 +471,8 @@ function onTap(x, y) {
   const h = ray.intersectObjects(pick)[0]; if (h) walkTo(h.point.x, h.point.z);
 }
 addEventListener("keydown", e => {
-  // 設定を読んでいる間は庭の移動・視点・音声のショートカットを止める。
+  // 設定・説明を読んでいる間は庭の移動・視点・音声のショートカットを止める。
+  if (!$("why").hidden) { if (e.key === "Tab") { const items = [...$("why").querySelectorAll("button")]; const i = items.indexOf(document.activeElement); if (e.shiftKey ? i <= 0 : i === items.length - 1) { e.preventDefault(); (e.shiftKey ? items[items.length - 1] : items[0]).focus(); } } return; }
   if (!$("menu").hidden) {
     if (e.key === "Escape") { e.preventDefault(); closeMenu(); }
     if (e.key === "Tab") {
@@ -560,7 +577,7 @@ function talk(lines, extra = []) { if (SP.paused) SP.paused = false;   // 止め
 // ---------------------------------------------------------------- 碧（依代）── 森羅博物館と同じ姿・同じ声。庭のまん中に、揺れずにゆっくり現れる
 const AOI_H = 1.62;
 let aoi = null, vrm = null;
-const A = { pos: new THREE.Vector3(0, 0, 3.2), vel: new THREE.Vector3(), yaw: 0, sp: 0, k: 0, ph: 0, blink: 2, bt: -1, hip0: null, mouth: 0, talkT: 0, fade: 0, calm: 2, cur: {}, show: true };
+const A = { pos: new THREE.Vector3(0, 0, 3.2), vel: new THREE.Vector3(), yaw: 0, sp: 0, k: 0, ph: 0, tk: 0, ws: 3, wsTo: .5, wsv: 0, tl: 14, tlT: null, tlS: 1, blink: 2, bt: -1, hip0: null, mouth: 0, talkT: 0, fade: 0, calm: 2, cur: {}, show: true, spot: null, spotLens: null };
 async function loadAoi() {
   try {
     const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
@@ -630,15 +647,23 @@ function aoiTick(dt) {
   else {
     // 2026-10-08：生きものに切り替えているあいだは、碧は視界の端の少し奥（景色を隠さない）。ひとのときはとなりの右前
     const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), creature = lens !== "hito";
-    const D = creature ? 4.6 : (innerWidth / innerHeight < .8 ? 3.4 : 2.6), ang = creature ? hf / 2 * .92 : Math.atan((innerWidth / innerHeight < .8 ? 1.05 : 1.3) / D);
+    const D = creature ? 4.6 : (innerWidth / innerHeight < .8 ? 3.4 : 2.6), ang = creature ? hf / 2 * .62 : Math.atan((innerWidth / innerHeight < .8 ? 1.05 : 1.3) / D);
     const F = D * Math.cos(ang), X = D * Math.sin(ang), fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw);
-    goal = new THREE.Vector3(me.pos.x + fx * F - fz * X, 0, me.pos.z + fz * F + fx * X);
-    for (let k = 0; k < 6 && !okGround(goal.x, goal.z); k++) goal.lerp(new THREE.Vector3(me.pos.x, 0, me.pos.z), .4);
+    // 2026-10-12：見る人が向きを変えるたびに追いかけない（森羅研究室と同じ）。歩いているとき・視野の外に出たとき・近すぎ／遠すぎのときだけ立つ所を決めなおす
+    const walking = !!me.path || ["w", "s", "a", "d", "arrowup", "arrowdown"].some(k => keys.has(k));
+    const dMe = Math.hypot(A.pos.x - me.pos.x, A.pos.z - me.pos.z), rel = wrapA(Math.atan2(A.pos.x - me.pos.x, A.pos.z - me.pos.z) - Math.atan2(fx, fz));
+    if (!A.spot || walking || A.spotLens !== lens || dMe > D + 2.2 || dMe < 1.2 || Math.abs(rel) > hf / 2 * .98) {
+      A.spot = new THREE.Vector3(me.pos.x + fx * F - fz * X, 0, me.pos.z + fz * F + fx * X);
+      for (let k = 0; k < 6 && !okGround(A.spot.x, A.spot.z); k++) A.spot.lerp(new THREE.Vector3(me.pos.x, 0, me.pos.z), .4);
+      A.spotLens = lens;
+    }
+    goal = A.spot;
   }
   if (A.pos.distanceTo(goal) > 14) { A.pos.copy(goal); A.vel.set(0, 0, 0); }
   const w = 3.2, n = Math.max(1, Math.ceil(dt / .02)), h = dt / n;
   for (let i = 0; i < n; i++) {
     A.vel.x += (w * w * (goal.x - A.pos.x) - 2 * w * A.vel.x) * h; A.vel.z += (w * w * (goal.z - A.pos.z) - 2 * w * A.vel.z) * h;
+    { const dx = A.pos.x - me.pos.x, dz = A.pos.z - me.pos.z, d = Math.hypot(dx, dz); if (d < 1.4 && d > 1e-3) { const f = (1.4 - d) * 9, sx = -dz / d, sz = dx / d, sd = Math.sign(sx * A.vel.x + sz * A.vel.z) || 1; A.vel.x += (dx / d + sx * sd) * f * h; A.vel.z += (dz / d + sz * sd) * f * h; } }   // 見る人を通りぬけず、よけて回る
     const m = Math.hypot(A.vel.x, A.vel.z); if (m > 2.4) A.vel.multiplyScalar(2.4 / m);
     A.pos.x += A.vel.x * h; A.pos.z += A.vel.z * h;
   }
@@ -656,24 +681,55 @@ function aoiTick(dt) {
   if (A.calm > 0) { A.calm -= dt; const sbm = vrm.springBoneManager; sbm?.setInitState?.(); sbm?.reset?.(); }
   if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + dt / 2.2); opacity(A.fade * A.fade * (3 - 2 * A.fade)); }
 }
-// 体の動き：森羅博物館の aoiPose を小さくしたもの（腕を下ろし、息・まばたき・歩くときの脚）
+// 体の動き：森羅研究室（04_森羅研究室/★実行データ/lab.js）の aoiPose と同じ式（2026-10-12 本人「碧の動きを自然にして」・氷川道中 10-10 と同じ移植）。
+//   歩く：進む向きへ体を向け、脚・腕・腰を一歩ごとに。立つ：重心をゆっくり左右へ移し、ときどき首をかしげ、息をする。
+//   話す：はじめにうなずき、見る人のほうへ上体と首を向け、右手で話す。まばたきは 3.5〜8 秒ごと。目線は見る人へ。
 function pose(dt) {
-  const live = !RM, t = performance.now() / 1000, T = {}, S_ = (n, x = 0, y = 0, z = 0) => { T[n] = [x, y, z]; };
-  const kT = clamp((A.sp - .15) / .8, 0, 1); A.k += (kT - A.k) * ease(dt || .016, 2.6); const k = A.k;
-  A.ph += 2 * Math.PI * (.45 + .35 * Math.min(A.sp, 2)) * (dt || 0) * Math.min(1, k * 1.5);
+  const live = !RM, t = performance.now() / 1000, T_ = {}, S_ = (n, x = 0, y = 0, z = 0) => { T_[n] = [x, y, z]; };
+  const sp = A.sp, camP = aoi && aoi.parent === aoiScene ? aoiCam.position : camera.position;
+  const toCamLocal = aoi ? wrapA(Math.atan2(camP.x - A.pos.x, camP.z - A.pos.z) - A.yaw) : 0, aim = 0;
+  const kT = clamp((sp - .15) / .8, 0, 1); A.k += (kT - A.k) * ease(dt || .016, 2.6); const k = A.k;
+  A.ph += 2 * Math.PI * (.45 + .35 * Math.min(sp, 2)) * (dt || 0) * Math.min(1, k * 1.5);
   const s1 = Math.sin(A.ph), c1 = Math.cos(A.ph), br = live ? Math.sin(t * 2 * Math.PI / 4.2) : 0;
-  const talking = $("guide").classList.contains("talking"), gst = live && talking ? 1 : 0, gw = live ? Math.sin(t * 2.1) : 0;
-  if (vrm && A.hip0) vrm.humanoid.getNormalizedBoneNode("hips")?.position.set(A.hip0.x + .012 * s1 * k, A.hip0.y + .015 * Math.cos(2 * A.ph) * k - .004 * (1 - k) * br, A.hip0.z);
-  S_("hips", 0, .07 * s1 * k, .035 * s1 * k); S_("spine", .04 * k - .006 * br, -.05 * s1 * k, 0); S_("chest", -.012 * br, -.04 * s1 * k, 0);
-  const lt = -.36 * s1 * k, rt = .36 * s1 * k, lk = k * (.06 + .62 * Math.pow(Math.max(0, c1), 1.5)), rk = k * (.06 + .62 * Math.pow(Math.max(0, -c1), 1.5));
-  S_("leftUpperLeg", lt, 0, .015); S_("rightUpperLeg", rt, 0, -.015); S_("leftLowerLeg", lk); S_("rightLowerLeg", rk); S_("leftFoot", -(lt + lk) * .75); S_("rightFoot", -(rt + rk) * .75);
-  S_("leftUpperArm", .26 * s1 * k - .05 * (1 - k), 0, -1.3 + .04 * br * (1 - k)); S_("leftLowerArm", 0, -(.28 + .14 * k), 0); S_("leftHand", .05, 0, .12);
-  S_("rightUpperArm", -.26 * s1 * k - .05 * (1 - k) - .14 * gst * (1 - k), 0, 1.3 - .04 * br * (1 - k) - .06 * gst); S_("rightLowerArm", 0, .28 + .14 * k + (.34 + .08 * gw) * gst * (1 - k), 0); S_("rightHand", .05 + .08 * gst * gw, 0, -.12);
-  for (const [f, m] of [["Index", .8], ["Middle", 1], ["Ring", 1.1], ["Little", 1.25]]) { const cl = .34 * m; S_(`left${f}Proximal`, 0, 0, -cl); S_(`left${f}Intermediate`, 0, 0, -cl * 1.15); S_(`right${f}Proximal`, 0, 0, cl); S_(`right${f}Intermediate`, 0, 0, cl * 1.15); }
-  S_("neck", -.02 * br); S_("head", 0, 0, live ? .03 * Math.sin(t * .3) : 0);
+  const talk_ = $("guide").classList.contains("talking");
+  if (talk_ && !A.wasTalk) A.talkT = 0; A.wasTalk = talk_;
+  A.tk += ((talk_ ? 1 : 0) - A.tk) * ease(dt || .016, 3); const tk = live ? A.tk : 0;
+  const greet = live && talk_ && A.talkT < 1.6 ? Math.sin(Math.min(1, A.talkT / 1.6) * Math.PI) : 0, ptE = 0;
+  if (live && dt) { A.ws -= dt; if (A.ws <= 0) { A.wsTo = -A.wsTo || .5; A.ws = 4 + Math.random() * 3; } A.wsv += (A.wsTo - A.wsv) * ease(dt, 1.5);
+    A.tl -= dt; if (A.tl <= 0 && k < .4 && Math.random() < dt * .25) { A.tl = 20 + Math.random() * 10; A.tlT = 0; A.tlS = Math.random() < .5 ? 1 : -1; }
+    if (A.tlT != null) { A.tlT += dt; if (A.tlT > 2.2) A.tlT = null; } }
+  const ws = (1 - k) * A.wsv, tilt = A.tlT != null ? Math.sin(Math.min(1, A.tlT / 2.2) * Math.PI) * .14 * A.tlS : 0;
+  const turn = clamp(toCamLocal, -.7, .7) * Math.max(greet, .45 * tk) * (1 - ptE);
+  const hips = vrm?.humanoid.getNormalizedBoneNode("hips");
+  if (hips && A.hip0) hips.position.set(A.hip0.x + (.012 * s1 * k + .018 * ws), A.hip0.y + .015 * Math.cos(2 * A.ph) * k - .004 * (1 - k) * br, A.hip0.z);
+  S_("hips", 0, .07 * s1 * k, (.035 * s1 * k + .04 * ws));
+  S_("spine", .04 * k - .006 * br, -.05 * s1 * k + turn * .15, -.02 * ws);
+  S_("chest", -.012 * br, -.04 * s1 * k + turn * .15, -.015 * ws);
+  S_("upperChest", -.01 * br, turn * .15, 0);
+  const lt = -.36 * s1 * k, rt = .36 * s1 * k, lk = k * (.06 + .62 * Math.pow(Math.max(0, c1), 1.5)) + .05 * Math.max(0, ws), rk = k * (.06 + .62 * Math.pow(Math.max(0, -c1), 1.5)) + .05 * Math.max(0, -ws);
+  S_("leftUpperLeg", lt, 0, .015 + .03 * ws); S_("rightUpperLeg", rt, 0, -.015 + .03 * ws);
+  S_("leftLowerLeg", lk); S_("rightLowerLeg", rk);
+  S_("leftFoot", -(lt + lk) * .75); S_("rightFoot", -(rt + rk) * .75);
+  const gst = tk * (1 - ptE) * (1 - k * .6), gw = live ? Math.sin(t * 2 * Math.PI * .33) : 0;
+  S_("leftUpperArm", .26 * s1 * k - .05 * (1 - k), 0, -1.3 + .04 * br * (1 - k));
+  S_("leftLowerArm", 0, -(.28 + .14 * k + .12 * Math.max(0, -s1) * k), 0);
+  S_("leftHand", .05, 0, .12);
+  S_("rightUpperArm", -.26 * s1 * k - .05 * (1 - k) - .16 * gst, 0, 1.3 - .04 * br * (1 - k) - .08 * gst);
+  S_("rightLowerArm", 0, .28 + .14 * k + .12 * Math.max(0, s1) * k + (.38 + .1 * gw) * gst, 0);
+  S_("rightHand", .05 + .1 * gst * gw, 0, -.12);
+  const cu = .34 + .06 * k + (live ? .04 * Math.sin(t * .4) : 0);
+  for (const [f, m] of [["Index", .8], ["Middle", 1], ["Ring", 1.1], ["Little", 1.25]]) {
+    const cl = cu * m;
+    S_(`left${f}Proximal`, 0, 0, -cl); S_(`left${f}Intermediate`, 0, 0, -cl * 1.15); S_(`left${f}Distal`, 0, 0, -cl * .8);
+    S_(`right${f}Proximal`, 0, 0, cl); S_(`right${f}Intermediate`, 0, 0, cl * 1.15); S_(`right${f}Distal`, 0, 0, cl * .8);
+  }
+  S_("leftThumbProximal", 0, .3, -.08); S_("leftThumbDistal", 0, .15, -.2); S_("rightThumbProximal", 0, -.3, .08); S_("rightThumbDistal", 0, -.15, .2);
+  const nod = live ? .12 * greet : 0;
+  S_("neck", nod * .4 - .02 * br, turn * .2, tilt * .4);
+  S_("head", nod * .6, turn * .35, tilt * .6);
   if (!vrm) return;
   const r = live ? 12 : 30;
-  for (const [nm, tg] of Object.entries(T)) { const b = vrm.humanoid.getNormalizedBoneNode(nm); if (!b) continue; const c = A.cur[nm] ||= [...tg]; for (let i = 0; i < 3; i++) c[i] += dt ? clamp((tg[i] - c[i]) * ease(dt, r), -.14, .14) : tg[i] - c[i]; b.rotation.set(c[0], c[1], c[2]); }
+  for (const [nm, tg] of Object.entries(T_)) { const b = vrm.humanoid.getNormalizedBoneNode(nm); if (!b) continue; const c = A.cur[nm] ||= [...tg]; for (let i = 0; i < 3; i++) c[i] += dt ? clamp((tg[i] - c[i]) * ease(dt, r), -.14, .14) : tg[i] - c[i]; b.rotation.set(c[0], c[1], c[2]); }
   let bv = 0;
   if (live) { if (A.bt < 0) { A.blink -= dt; if (A.blink <= 0) A.bt = 0; } else { A.bt += dt; const u = A.bt; bv = u < .09 ? u / .09 : u < .12 ? 1 : u < .26 ? 1 - (u - .12) / .14 : 0; if (u >= .26) { A.bt = -1; A.blink = 3.5 + Math.random() * 4.5; } } }
   vrm.expressionManager?.setValue("blink", bv * bv * (3 - 2 * bv));
@@ -832,7 +888,7 @@ function renderToki() {
   TOKI.forEach((k, i) => {
     const s = t * k.rate, r = k.r; if (!r) return;
     setDay(LIT.base); setYear(200); newLayer.scale.y = .0001; newLayer.position.y = .5; layerTop.position.y = .5;
-    if (k.id === "bee") { const ang = Math.sin(2 * Math.PI * 230 * s) * .9; bee.userData.L.rotation.z = ang; bee.userData.Rw.rotation.z = -ang; }
+    if (k.id === "bee") bee.userData.animate(s);
     if (k.id === "day") setDay((s / 3600 + 6) % 24);
     if (k.id === "year") setYear((s / 86400) % 365);
     if (k.id === "soil") { const y = (s / (365 * 86400)) % 1000, th = y / 1000 * .01; newLayer.scale.y = Math.max(.0001, th); newLayer.position.y = .5 + th / 2; layerTop.position.y = .5 + th; tokiLabs[i].querySelector(".g i").style.height = (y / 10) + "%"; }
@@ -878,11 +934,26 @@ document.body.classList.toggle("big", $("optBig").checked);
 $("optBig").onchange = e => { document.body.classList.toggle("big", e.target.checked); try { e.target.checked ? localStorage.setItem("umw-big", "1") : localStorage.removeItem("umw-big"); } catch {} };
 // 八つの受けとり方をくらべる表（授業でも使えるように）
 $("lensTable").innerHTML = S.lens.map(l => `<tr><td>${l.name}</td><td>${LENS[l.id].sub}</td></tr>`).join("");
+// なぜ、そう見えるの？（2026-10-12）：いまの身体の受けとり方が、どうして分かったのか
+let whyId = "hito", whyBack = null;
+function renderWhy(id) {
+  const W = window.WHY || {}, d = W[id]; if (!d) return; whyId = id;
+  const name = S.lens.find(l => l.id === id)?.name || id, li = a => a.map(x => `<li>${x.replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c])}</li>`).join("");
+  $("whyTitle").textContent = `${name} ── なぜ、そう${["hebi", "koumori", "mimizu"].includes(id) ? "感じとれる" : "見える"}の？`;
+  $("whyBody").innerHTML = li(d.body); $("whyHow").innerHTML = li(d.how); $("whyUnknown").innerHTML = li(d.unknown); $("whyRefs").innerHTML = li(d.refs); $("whyNote").textContent = W.note || "";
+  $("whyTabs").innerHTML = ""; for (const l of S.lens) { const b = document.createElement("button"); b.textContent = l.name; b.setAttribute("aria-pressed", String(l.id === id)); b.onclick = () => renderWhy(l.id); $("whyTabs").appendChild(b); }
+}
+function openWhy() { whyBack = document.activeElement; renderWhy(lensRequest || lens); $("why").hidden = false; $("why").scrollTop = 0; $("whyX").focus(); }
+function closeWhy() { $("why").hidden = true; whyBack?.focus?.(); }
+$("whyBtn").onclick = () => { first(false); openWhy(); }; $("whyX").onclick = closeWhy;
+$("why").addEventListener("click", e => { if (e.target.id === "why") closeWhy(); });
+addEventListener("keydown", e => { if (e.key === "Escape" && !$("why").hidden) { e.stopPropagation(); closeWhy(); } }, true);
+window.__why = { open: openWhy, close: closeWhy, render: renderWhy };
 $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target.checked ? 1 : 0; };
 $("cred").innerHTML = [
   "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。樹皮・葉・土・石の写真は CC0（Poly Haven・ambientCG）。花・モミジとスギの葉・シダ・落ち葉・空の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
-  "典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
-  "生きものの身体と動きは独自の模式造形です。羽ばたきやカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
+  "「なぜ、そう見えるの？」の典拠は、その画面に一つずつ示しています。典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
+  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（外から取りこんだ 3D はありません）。ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・柴犬・マムシ・アブラコウモリ・フトミミズのなかま・夜の蛾。羽ばたき（鳥は実際より遅く、蜂は扇のかすみで示す）やカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
 
 // ---------------------------------------------------------------- はじめて押したとき：音を立て、碧がひとこと
@@ -911,17 +982,17 @@ function frame(now=0) {
   // 影の地図は、森の中では見る人のまわり（4 m ごとに寄せる）を描く
   if (habitat === 'forest') { const cx = Math.round(me.pos.x / 4) * 4, cz = Math.round(me.pos.z / 4) * 4; if (cx !== sun.target.position.x || cz !== sun.target.position.z) { sun.target.position.set(cx, 0, cz); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position); sun.target.updateMatrixWorld(); if (!renderer.shadowMap.autoUpdate) renderer.shadowMap.needsUpdate = true; } }
   bodyRoot.visible=chapter==='umwelt';
-  if(!RM&&habitat==='forest')residents.forEach((b,i)=>{const p=t*(b.userData.kind==='chou'?.4:.6)+b.userData.phase;b.position.set(Math.sin(p)*4+(i%2?4:-3),b.userData.kind==='hebi'?.1:1+Math.sin(p*1.7)*.4,Math.cos(p)*4-3);b.rotation.y=-p;b.userData.animate(t,true);});
+  if(!RM&&habitat==='forest')residents.forEach(b=>{const R=b.userData.R,p=t*R.w+R.ph;let y=R.h[0]+Math.sin(p*2.3)*R.h[1];if(R.id==='tori')y+=b.userData.bound||0;b.position.set(R.c[0]+Math.sin(p)*R.r[0]+Math.sin(p*3.1)*.3,y,R.c[1]+Math.cos(p)*R.r[1]);faceVelocity(b,dt,R.id==='tori'?.3:.15,R.id==='tori'?.6:.3);const a=b.userData.animate(t,true);if(R.id==='tori')b.userData.bound=((b.userData.bound||0)+(a===-1?-.35:.12)*dt)*.985;});
   // 生きものの動き
   if (!RM) {
     // 蝶：はばたきながら花のあいだを（モンシロチョウ 2 頭は花壇の上、アゲハはヒナゲシのあたり）
     const BB = habitat === 'forest' ? meadowBed : bed, bry = habitat === 'forest' ? 0 : BED.ry;
     [...butterflies, ageha].forEach((b, i) => { const ph = t * (b.userData.ageha ? .4 : .55) + b.userData.ph, cx = b.userData.ageha ? 3.4 : 1.6, rx = b.userData.ageha ? 1.1 : 1.4;
-      b.position.copy(BB(cx + Math.cos(ph) * rx + Math.sin(ph * 2.3) * .3, .75 + Math.sin(ph * 1.7) * .25, .3 + Math.sin(ph) * 1.0)); b.rotation.y = -ph + bry; const f = Math.sin(t * (b.userData.ageha ? 9 : 13) + i) * .85; b.userData.pl.rotation.z = -f; b.userData.pr.rotation.z = f; });
-    moths.forEach(m => { if (!m.visible) return; const ph = t * .8 + m.userData.ph; m.position.set(Math.cos(ph) * 3 + Math.sin(ph * 1.9), 1.8 + Math.sin(ph * 2.2) * .6, -1 + Math.sin(ph * 1.3) * 3); m.rotation.y = ph * 3; m.rotation.x = Math.sin(t * 20 + m.userData.ph) * .5; });
-    bird.rotation.y = (bird.userData.ry0 || 0) + Math.sin(t * .4) * .5; bird.userData.head.rotation.y = Math.sin(t * 1.3) * .4;
+      b.position.copy(BB(cx + Math.cos(ph) * rx + Math.sin(ph * 2.3) * .3, .75 + Math.sin(ph * 1.7) * .25, .3 + Math.sin(ph) * 1.0)); if (!b.userData.prev) { b.userData.prev = b.position.clone(); b.userData.yaw = 0; b.userData.roll = 0; } faceVelocity(b, dt, .12, .3); b.userData.flap(t + i * .7); });
+    moths.forEach(m => { if (!m.visible) return; const ph = t * .8 + m.userData.ph; m.position.set(Math.cos(ph) * 3 + Math.sin(ph * 1.9), 1.8 + Math.sin(ph * 2.2) * .6, -1 + Math.sin(ph * 1.3) * 3); faceVelocity(m, dt, .1, .5); m.userData.flap(t + m.userData.ph); });
+    bird.rotation.y = (bird.userData.ry0 || 0) + Math.sin(t * .4) * .5; bird.userData.animate(t);
     mouse.position.x = (mouse.userData.x0 ?? -1.1) + Math.sin(t * .3) * .08;
-    if (chapter !== "toki") { const a = Math.sin(t * 40) * .9; bee.userData.L.rotation.z = a; bee.userData.Rw.rotation.z = -a; }
+    if (chapter !== "toki") bee.userData.animate(t);
   }
   ringM.material.opacity *= Math.pow(.2, dt); ringM.scale.multiplyScalar(1 + dt * .6);
   // カメラ
@@ -934,6 +1005,7 @@ function frame(now=0) {
     camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
     const moving=!!me.path||['w','s','a','d','arrowup','arrowdown'].some(k=>keys.has(k)),motion=MOTION[lens];
     if(!RM){camera.position.y+=Math.sin(t*motion.freq)*motion.bob*(moving?1:.18);if(lens==='hebi'&&moving)camera.rotation.z=Math.sin(t*4)*.018;if(lens==='chou'&&moving)camera.rotation.z=Math.sin(t*2)*.025;bodies[lens]?.userData.animate(t,moving);}
+    { const dy = wrapA(me.yaw - bodyYaw0); bodyYaw0 = me.yaw; const turn = dt > 0 ? dy / dt : 0; bodyRoll += (clamp(turn * (FLIGHT.has(lens) ? .28 : .08), -.6, .6) - bodyRoll) * ease(dt, 5); bodyRoot.rotation.z = -bodyRoll; }
     if (quake > 0) { camera.position.y += (Math.random() - .5) * .02 * quake; quake = Math.max(0, quake - dt * 2); }
   }
   $('stage').dataset.flightHeight=flightHeight.toFixed(3);$('stage').dataset.lens=lens;$('stage').dataset.habitat=habitat;$('stage').dataset.position=camera.position.toArray().map(v=>v.toFixed(3)).join(',');$('stage').dataset.depth=me.depth.toFixed(3);

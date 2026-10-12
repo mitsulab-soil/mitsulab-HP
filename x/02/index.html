@@ -119,6 +119,23 @@ body.big #where small,body.big #legend{font-size:16px}
 #dial{position:absolute;inset:50% auto auto 0;overflow:visible;width:126px;height:1px;padding:0;display:block;bottom:auto;scroll-snap-type:none}#dial .pill{position:absolute;left:10px;top:0;margin:0;width:92px;min-width:0;height:72px;background:linear-gradient(110deg,#102118d9,#10211855);border:0;border-radius:14px;transition:transform .3s,opacity .3s;pointer-events:auto;display:flex;align-items:center;justify-content:center;flex-direction:column}#dial .pill[hidden]{display:none}#dial .pill[aria-pressed=true]{background:linear-gradient(100deg,#c3d9bc,#93bca6);color:#142c21;box-shadow:0 0 24px #b4ddba33}#dial .creaturePortrait{width:72px;height:47px}#dial .pill span{font-size:11px}#dial .pill i{display:none}
 #bodyControls{position:fixed;right:12px;top:50%;transform:translateY(-50%);width:96px;z-index:6;display:grid;gap:10px;justify-items:center}#bodyControls button{min-width:44px;min-height:44px;background:#14261bbb;color:#e0ead7;border:1px solid #c1d8bc55;border-radius:50%;font-size:24px;display:inline-flex;align-items:center;justify-content:center;flex-direction:column}#bodyControls small{font-size:9px;line-height:1.4}#bodyControls>div{display:flex;gap:7px}#bodyForward{position:static;min-height:56px;width:56px;padding:4px;border-radius:50%}#bodyBack{width:56px;height:56px}#flightControls{position:static;display:flex!important;gap:7px}#flightControls[hidden]{display:none!important}#flightControls button{padding:4px}#where{left:50%;transform:translateX(-50%);top:62px;text-align:center;max-width:65vw}#where small{font-size:12px;background:none;padding:0;max-width:100%;text-shadow:0 1px 8px #000}#legend{left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:calc(var(--gh,64px) + 8px);max-width:46vw;background:#0b1712bb;border:0;border-radius:0;text-align:center;font-size:11px}#legend b{font-size:11px}#moveNote{left:50%;transform:translateX(-50%);top:110px;text-align:center;font-size:10px;max-width:50vw}
 @media(max-width:700px){#bodyWheel{left:0;width:84px;height:310px}#dial{width:82px}#dial .pill{width:66px;height:62px;left:0;padding:3px}#dial .creaturePortrait{width:58px;height:41px}#dial .pill span{font-size:9px}#bodyPrev,#bodyNext{left:14px;width:36px;height:36px}#bodyWheel:before{left:-135px;width:190px;height:250px;top:30px}#bodyControls{right:4px;width:68px;gap:10px}#bodyControls button{min-width:32px;min-height:38px;font-size:20px}#bodyControls>div{gap:4px}#bodyForward,#bodyBack{width:44px;height:44px;min-height:44px}#where{top:60px;max-width:64vw}#where b{font-size:18px}#where small{font-size:10px}#moveNote{top:114px;font-size:9px;max-width:65vw}#legend{max-width:55vw;font-size:9px;padding:4px}#legend b{font-size:9px}#guide{max-width:90vw}#worm{right:3px;left:auto;bottom:calc(var(--gh,64px) + 30px);display:grid;gap:4px;max-width:90px}#worm[hidden]{display:none}#worm .btn{font-size:10px;padding:5px;min-height:38px}}
+/* なぜ、そう見えるの？（2026-10-12） */
+.topR{display:flex;gap:8px;align-items:center}
+.btn.why{min-height:44px;padding:0 14px;font-size:14px;background:rgba(10,16,13,.72);border-color:rgba(220,240,230,.3);box-shadow:var(--shadow);white-space:nowrap}
+#why{position:fixed;inset:0;z-index:21;background:rgba(6,10,8,.72);display:grid;grid-template-columns:minmax(0,640px);justify-content:center;align-items:start;padding:16px;overflow:auto}
+#why .in{background:var(--card);border:1px solid var(--line);border-radius:18px;width:100%;min-width:0;padding:16px 16px 12px;position:relative}
+#why .x{position:absolute;right:10px;top:10px}
+#why h2{font-family:var(--mincho);font-weight:600;font-size:20px;margin:4px 48px 10px 0;line-height:1.4}
+#why h3{font-size:15px;margin:14px 0 4px;color:var(--gold);font-weight:600}
+#why ul{margin:0;padding-left:1.2em}
+#why li{font-size:15px;line-height:1.75;color:#e3eadf;margin:2px 0}
+#why ul.refs li{font-size:13px;line-height:1.6;color:var(--dim);overflow-wrap:anywhere}
+#why .whyNote{font-size:13px;line-height:1.7;color:var(--dim);margin:12px 0 0}
+#whyTabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}
+#whyTabs::-webkit-scrollbar{display:none}
+#whyTabs button{flex:none;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card2);font-size:14px;color:var(--dim)}
+#whyTabs button[aria-pressed=true]{background:var(--aoi);border-color:var(--aoi);color:#06201d;font-weight:600}
+@media (max-width:700px){.btn.why{min-height:40px;padding:0 10px;font-size:13px}#why{padding:8px}#why .in{padding:14px 12px 10px}#why h2{font-size:18px}#why li{font-size:14.5px}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -132,7 +149,7 @@ body.big #where small,body.big #legend{font-size:16px}
 
 <header id="top">
   <span class="dream-title">胡蝶の夢</span>
-  <button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button>
+  <span class="topR"><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
 </header>
 <aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
 <div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
@@ -178,6 +195,18 @@ body.big #where small,body.big #legend{font-size:16px}
   <p>© 2026 mitsulab. All rights reserved. この作品の文章・画像・音声・3D・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。<a href="https://mitsulab.jp/terms/#ai" target="_blank" rel="noopener">利用規約</a></p>
 </div></div>
 
+<div id="why" hidden role="dialog" aria-modal="true" aria-labelledby="whyTitle"><div class="in">
+  <button class="ico x" id="whyX" aria-label="閉じる">✕</button>
+  <h2 id="whyTitle"></h2>
+  <nav id="whyTabs" aria-label="生きものを選ぶ"></nav>
+  <h3>受けとる体のしくみ</h3><ul id="whyBody"></ul>
+  <h3>どうやって分かったのか</h3><ul id="whyHow"></ul>
+  <h3>まだ分からないこと</h3><ul id="whyUnknown"></ul>
+  <p class="whyNote" id="whyNote"></p>
+  <h3>典拠</h3><ul id="whyRefs" class="refs"></ul>
+  <p class="whyNote">● その生きもの（か同じ種）で確かめられていること　◐ 近い仲間の研究から推しはかっていること</p>
+</div></div>
+
 <div id="boot" role="status" aria-live="polite"><div>
   <b data-n="app">胡蝶の夢</b>
   <div id="prog"><i></i></div>
@@ -193,7 +222,8 @@ body.big #where small,body.big #legend{font-size:16px}
 <script src="data/paths.js?v=20261010"></script>
 <script src="data/script.js?v=20261012native"></script>
 <script src="data/voice.js?v=20261012native" onerror="window.VOICE={}"></script>
-<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261012native' ;document.body.appendChild(s);}</script>
+<script src="data/why.js?v=20261012real"></script>
+<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261012real' ;document.body.appendChild(s);}</script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
 </body>
 </html>
