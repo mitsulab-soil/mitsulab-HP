@@ -10,6 +10,7 @@ import { buildForest } from "./forest.js?v=20261013fur";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261013fur";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
+import { AoiMotion } from "./kit/aoi_motion.js?v=20261013v3";   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
 
 const $ = id => document.getElementById(id);
 const S = window.SCRIPT, N = S.names, VOICE = window.VOICE || {}, P = window.PATHS || {};
@@ -552,13 +553,14 @@ function speakLine(text) {
     // 四つの時計：いま話している窓を光らせる（スマホの 2×2 でも、PC の横並びでも同じ窓を指す）
     { const k = S.toki.indexOf(text) - 1; tokiFrames.forEach((f, i) => f.classList.toggle("on", i === k)); } A.talkT = 0; window.__said = (window.__said || []).concat([text]).slice(-40);
     const v = VOICE[text];
-    const done = () => { clearTimeout(SP.timer); SP.timer = null; SP.resolve = null; SP.playing = false; $("guide").classList.remove("talking"); res(); };
+    const done = () => { clearTimeout(SP.timer); SP.timer = null; SP.resolve = null; SP.playing = false; $("guide").classList.remove("talking"); AM?.stopSpeaking(); res(); };
     SP.resolve = done;
     const timed = ms => { SP.rest = ms; SP.t0 = performance.now(); if (!SP.paused) SP.timer = setTimeout(done, ms); };
     if (v && voiceOn()) {
       const a = AUD.voice; a.onended = done; a.onerror = () => timed(est(text)); a.src = v.f; a.currentTime = 0; SP.playing = true; window.__voiceSrc = v.f;
       if (!SP.paused) a.play().catch(() => { SP.playing = false; timed(est(text)); });
-    } else timed(est(text));
+      AM?.speak({ kana: v.kana, text, dur: v.dur || est(text) / 1000, clock: () => a.currentTime, level: () => AUD.level() * 7 });   // 口は声の読み（かな）と再生位置に合わせる
+    } else { timed(est(text)); AM?.speak({ kana: v?.kana || "", text, dur: est(text) / 1000 }); }
   });
 }
 function pauseSpeech(on) {
@@ -589,7 +591,7 @@ function talk(lines, extra = []) { if (SP.paused) SP.paused = false;   // 止め
 
 // ---------------------------------------------------------------- 碧（依代）── 森羅博物館と同じ姿・同じ声。庭のまん中に、揺れずにゆっくり現れる
 const AOI_H = 1.62;
-let aoi = null, vrm = null;
+let aoi = null, vrm = null, AM = null;   // AM＝碧の動き（AoiMotion）
 const A = { pos: new THREE.Vector3(0, 0, 3.2), vel: new THREE.Vector3(), yaw: 0, sp: 0, k: 0, ph: 0, tk: 0, ws: 3, wsTo: .5, wsv: 0, tl: 14, tlT: null, tlS: 1, blink: 2, bt: -1, hip0: null, mouth: 0, talkT: 0, fade: 0, calm: 2, cur: {}, show: true, spot: null, spotLens: null };
 async function loadAoi() {
   try {
@@ -600,14 +602,15 @@ async function loadAoi() {
     V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; if (o.isMesh) o.castShadow = true; });
     aoi = new THREE.Group(); aoi.add(v.scene); garden.add(aoi); vrm = v;
-    const hp = v.humanoid.getNormalizedBoneNode("hips"); if (hp) A.hip0 = hp.position.clone();
-    pose(0); v.update(0); v.scene.updateMatrixWorld(true);
+    v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 ? AOI_H / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
-    A.gaze = new THREE.Object3D(); scene.add(A.gaze); if (v.lookAt) v.lookAt.target = A.gaze;
-    aoi.traverse(o=>{if(o.isMesh){o.material=[].concat(o.material).map(m=>{const n=new THREE.MeshStandardMaterial({map:m.map||null,color:m.color?.clone()||new THREE.Color(0xffffff),side:m.side,transparent:m.transparent,alphaTest:m.alphaTest||0,roughness:.85});prep(n,{uv:.04,temp:.75,echo:1});return n;});if(o.material.length===1)o.material=o.material[0];}});
+    aoi.traverse(o=>{if(o.isMesh){o.material=[].concat(o.material).map(m=>{const n=new THREE.MeshStandardMaterial({map:m.map||null,color:m.color?.clone()||new THREE.Color(0xffffff),side:m.side,transparent:m.transparent,alphaTest:m.alphaTest||0,roughness:.85});n.name=m.name;prep(n,{uv:.04,temp:.75,echo:1});return n;});if(o.material.length===1)o.material=o.material[0];}});
     A.mats = []; aoi.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) A.mats.push([mt, mt.transparent, mt.depthWrite]); });
-    opacity(0); window.__aoi = { vrm, aoi, A };
+    // 2026-10-13：体の動き・目・まばたき・口・表情・裾の布は共通部品 AoiMotion に任せる（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）
+    aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
+    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2 }); AM.place(A.pos.x, A.pos.z, A.yaw);
+    opacity(0); window.__aoi = { vrm, aoi, A, M: AM };
   } catch (e) { console.warn("碧の姿を読み込めませんでした（声と字幕で案内します）：", e?.message ?? e); }
 }
 function opacity(o) { for (const [mt, tr, dw] of A.mats) { mt.transparent = o < 1 ? true : tr; mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; } }
@@ -625,13 +628,10 @@ let winSig = 0, lastHeat = 0, lastTick = 0;
 const winMode = () => !!vrm && chapter === "umwelt" && !!LENS[lens].under;
 function aoiWindowTick(dt) {
   const w = WIN[lens]; $("aoiWin").hidden = false; $("aoiWinCap").textContent = w.cap; $("aoiWin").style.setProperty("--ac", w.c);
-  if (aoi.parent !== aoiScene) { aoiScene.add(aoi); aoi.position.set(0, 0, 0); aoi.rotation.y = 0; A.vel.set(0, 0, 0); A.sp = 0; A.calm = 1.2; }
-  aoi.visible = true; A.gaze?.position.copy(aoiCam.position); A.talkT += dt;
-  const want = SP.playing ? clamp(AUD.level() * 7, 0, 1) : $("guide").classList.contains("talking") && !SP.paused ? .15 + .15 * Math.abs(Math.sin(performance.now() / 90)) : 0;
-  A.mouth += (want - A.mouth) * ease(dt, 18); vrm.expressionManager?.setValue("aa", A.mouth * .8);
-  pose(dt); vrm.expressionManager?.setValue("blink", .9);     // 目を閉じて、感じている
-  vrm.update(dt);
-  if (A.calm > 0) { A.calm -= dt; const sbm = vrm.springBoneManager; sbm?.setInitState?.(); sbm?.reset?.(); }
+  if (aoi.parent !== aoiScene) { aoiScene.add(aoi); A.vel.set(0, 0, 0); A.sp = 0; AM.calm = 1.2; AM.place(0, 0, 0); }
+  aoi.visible = true; A.talkT += dt;
+  AM.eyesClosed = .9;     // 目を閉じて、感じている
+  AM.faceTo(0); AM.lookAt(null); AM.update(dt, aoiCam);
   if (A.fade < 1) { A.fade = Math.min(1, A.fade + dt / 1.2); opacity(A.fade); }
   // 信号の強さ（0〜1）
   const sig = lens === "hebi" ? lastHeat : lens === "koumori" ? Math.exp(-echo.t * 4) : G.uWorm.value;
@@ -649,7 +649,8 @@ function aoiTick(dt) {
   if (!vrm) return;
   if (winMode()) { aoiWindowTick(dt); return; }
   $("aoiWin").hidden = true;
-  if (aoi.parent !== (habitat==='forest'?forest:garden)) { (habitat==='forest'?forest:garden).add(aoi); A.fade = 0; opacity(0); A.calm = 1.2; }
+  AM.eyesClosed = 0;
+  if (aoi.parent !== (habitat==='forest'?forest:garden)) { (habitat==='forest'?forest:garden).add(aoi); A.fade = 0; opacity(0); AM.calm = 1.2; AM.place(A.pos.x, A.pos.z, A.yaw); }
   const L = LENS[lens], showNow = A.show && (chapter === "umwelt" ? !L.under : chapter === "iro");
   aoi.visible = showNow;
   if (!showNow) return;
@@ -672,7 +673,7 @@ function aoiTick(dt) {
     }
     goal = A.spot;
   }
-  if (A.pos.distanceTo(goal) > 14) { A.pos.copy(goal); A.vel.set(0, 0, 0); }
+  if (A.pos.distanceTo(goal) > 14) { A.pos.copy(goal); A.vel.set(0, 0, 0); AM.place(A.pos.x, A.pos.z); }
   const w = 3.2, n = Math.max(1, Math.ceil(dt / .02)), h = dt / n;
   for (let i = 0; i < n; i++) {
     A.vel.x += (w * w * (goal.x - A.pos.x) - 2 * w * A.vel.x) * h; A.vel.z += (w * w * (goal.z - A.pos.z) - 2 * w * A.vel.z) * h;
@@ -681,72 +682,13 @@ function aoiTick(dt) {
     A.pos.x += A.vel.x * h; A.pos.z += A.vel.z * h;
   }
   A.sp += (Math.hypot(A.vel.x, A.vel.z) - A.sp) * ease(dt, 5);
-  const toCam = Math.atan2(me.pos.x - A.pos.x, me.pos.z - A.pos.z), fy = A.sp > .35 ? Math.atan2(A.vel.x, A.vel.z) : toCam;
-  A.yaw += clamp(wrapA(fy - A.yaw) * ease(dt, 4), -2.2 * dt, 2.2 * dt);
-  aoi.position.set(A.pos.x, 0, A.pos.z); aoi.rotation.y = A.yaw;
   if (Math.hypot(A.pos.x - me.pos.x, A.pos.z - me.pos.z) < .8) aoi.visible = false;
-  A.gaze?.position.copy(camera.position);
   A.talkT += dt;
-  const want = SP.playing ? clamp(AUD.level() * 7, 0, 1) : $("guide").classList.contains("talking") && !SP.paused ? .15 + .15 * Math.abs(Math.sin(performance.now() / 90)) : 0;
-  A.mouth += (want - A.mouth) * ease(dt, 18); vrm.expressionManager?.setValue("aa", A.mouth * .8);
-  pose(dt);
-  vrm.update(dt);
-  if (A.calm > 0) { A.calm -= dt; const sbm = vrm.springBoneManager; sbm?.setInitState?.(); sbm?.reset?.(); }
+  // 体・足・向き・目・まばたき・口・表情・裾は AoiMotion（位置だけこちらで決める。向きは歩く向き／止まると見る人へ、足を踏みかえて）
+  AM.faceTo(null); AM.lookAt(null); AM.drive(A.pos.x, A.pos.z); AM.update(dt, camera); A.yaw = AM.yaw;
   if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + dt / 2.2); opacity(A.fade * A.fade * (3 - 2 * A.fade)); }
 }
-// 体の動き：森羅研究室（04_森羅研究室/★実行データ/lab.js）の aoiPose と同じ式（2026-10-12 本人「碧の動きを自然にして」・氷川道中 10-10 と同じ移植）。
-//   歩く：進む向きへ体を向け、脚・腕・腰を一歩ごとに。立つ：重心をゆっくり左右へ移し、ときどき首をかしげ、息をする。
-//   話す：はじめにうなずき、見る人のほうへ上体と首を向け、右手で話す。まばたきは 3.5〜8 秒ごと。目線は見る人へ。
-function pose(dt) {
-  const live = !RM, t = performance.now() / 1000, T_ = {}, S_ = (n, x = 0, y = 0, z = 0) => { T_[n] = [x, y, z]; };
-  const sp = A.sp, camP = aoi && aoi.parent === aoiScene ? aoiCam.position : camera.position;
-  const toCamLocal = aoi ? wrapA(Math.atan2(camP.x - A.pos.x, camP.z - A.pos.z) - A.yaw) : 0, aim = 0;
-  const kT = clamp((sp - .15) / .8, 0, 1); A.k += (kT - A.k) * ease(dt || .016, 2.6); const k = A.k;
-  A.ph += 2 * Math.PI * (.45 + .35 * Math.min(sp, 2)) * (dt || 0) * Math.min(1, k * 1.5);
-  const s1 = Math.sin(A.ph), c1 = Math.cos(A.ph), br = live ? Math.sin(t * 2 * Math.PI / 4.2) : 0;
-  const talk_ = $("guide").classList.contains("talking");
-  if (talk_ && !A.wasTalk) A.talkT = 0; A.wasTalk = talk_;
-  A.tk += ((talk_ ? 1 : 0) - A.tk) * ease(dt || .016, 3); const tk = live ? A.tk : 0;
-  const greet = live && talk_ && A.talkT < 1.6 ? Math.sin(Math.min(1, A.talkT / 1.6) * Math.PI) : 0, ptE = 0;
-  if (live && dt) { A.ws -= dt; if (A.ws <= 0) { A.wsTo = -A.wsTo || .5; A.ws = 4 + Math.random() * 3; } A.wsv += (A.wsTo - A.wsv) * ease(dt, 1.5);
-    A.tl -= dt; if (A.tl <= 0 && k < .4 && Math.random() < dt * .25) { A.tl = 20 + Math.random() * 10; A.tlT = 0; A.tlS = Math.random() < .5 ? 1 : -1; }
-    if (A.tlT != null) { A.tlT += dt; if (A.tlT > 2.2) A.tlT = null; } }
-  const ws = (1 - k) * A.wsv, tilt = A.tlT != null ? Math.sin(Math.min(1, A.tlT / 2.2) * Math.PI) * .14 * A.tlS : 0;
-  const turn = clamp(toCamLocal, -.7, .7) * Math.max(greet, .45 * tk) * (1 - ptE);
-  const hips = vrm?.humanoid.getNormalizedBoneNode("hips");
-  if (hips && A.hip0) hips.position.set(A.hip0.x + (.012 * s1 * k + .018 * ws), A.hip0.y + .015 * Math.cos(2 * A.ph) * k - .004 * (1 - k) * br, A.hip0.z);
-  S_("hips", 0, .07 * s1 * k, (.035 * s1 * k + .04 * ws));
-  S_("spine", .04 * k - .006 * br, -.05 * s1 * k + turn * .15, -.02 * ws);
-  S_("chest", -.012 * br, -.04 * s1 * k + turn * .15, -.015 * ws);
-  S_("upperChest", -.01 * br, turn * .15, 0);
-  const lt = -.36 * s1 * k, rt = .36 * s1 * k, lk = k * (.06 + .62 * Math.pow(Math.max(0, c1), 1.5)) + .05 * Math.max(0, ws), rk = k * (.06 + .62 * Math.pow(Math.max(0, -c1), 1.5)) + .05 * Math.max(0, -ws);
-  S_("leftUpperLeg", lt, 0, .015 + .03 * ws); S_("rightUpperLeg", rt, 0, -.015 + .03 * ws);
-  S_("leftLowerLeg", lk); S_("rightLowerLeg", rk);
-  S_("leftFoot", -(lt + lk) * .75); S_("rightFoot", -(rt + rk) * .75);
-  const gst = tk * (1 - ptE) * (1 - k * .6), gw = live ? Math.sin(t * 2 * Math.PI * .33) : 0;
-  S_("leftUpperArm", .26 * s1 * k - .05 * (1 - k), 0, -1.3 + .04 * br * (1 - k));
-  S_("leftLowerArm", 0, -(.28 + .14 * k + .12 * Math.max(0, -s1) * k), 0);
-  S_("leftHand", .05, 0, .12);
-  S_("rightUpperArm", -.26 * s1 * k - .05 * (1 - k) - .16 * gst, 0, 1.3 - .04 * br * (1 - k) - .08 * gst);
-  S_("rightLowerArm", 0, .28 + .14 * k + .12 * Math.max(0, s1) * k + (.38 + .1 * gw) * gst, 0);
-  S_("rightHand", .05 + .1 * gst * gw, 0, -.12);
-  const cu = .34 + .06 * k + (live ? .04 * Math.sin(t * .4) : 0);
-  for (const [f, m] of [["Index", .8], ["Middle", 1], ["Ring", 1.1], ["Little", 1.25]]) {
-    const cl = cu * m;
-    S_(`left${f}Proximal`, 0, 0, -cl); S_(`left${f}Intermediate`, 0, 0, -cl * 1.15); S_(`left${f}Distal`, 0, 0, -cl * .8);
-    S_(`right${f}Proximal`, 0, 0, cl); S_(`right${f}Intermediate`, 0, 0, cl * 1.15); S_(`right${f}Distal`, 0, 0, cl * .8);
-  }
-  S_("leftThumbProximal", 0, .3, -.08); S_("leftThumbDistal", 0, .15, -.2); S_("rightThumbProximal", 0, -.3, .08); S_("rightThumbDistal", 0, -.15, .2);
-  const nod = live ? .12 * greet : 0;
-  S_("neck", nod * .4 - .02 * br, turn * .2, tilt * .4);
-  S_("head", nod * .6, turn * .35, tilt * .6);
-  if (!vrm) return;
-  const r = live ? 12 : 30;
-  for (const [nm, tg] of Object.entries(T_)) { const b = vrm.humanoid.getNormalizedBoneNode(nm); if (!b) continue; const c = A.cur[nm] ||= [...tg]; for (let i = 0; i < 3; i++) c[i] += dt ? clamp((tg[i] - c[i]) * ease(dt, r), -.14, .14) : tg[i] - c[i]; b.rotation.set(c[0], c[1], c[2]); }
-  let bv = 0;
-  if (live) { if (A.bt < 0) { A.blink -= dt; if (A.blink <= 0) A.bt = 0; } else { A.bt += dt; const u = A.bt; bv = u < .09 ? u / .09 : u < .12 ? 1 : u < .26 ? 1 - (u - .12) / .14 : 0; if (u >= .26) { A.bt = -1; A.blink = 3.5 + Math.random() * 4.5; } } }
-  vrm.expressionManager?.setValue("blink", bv * bv * (3 - 2 * bv));
-}
+// 体の動き（以前の pose() ＝森羅研究室の式の写し）は、2026-10-13 に共通部品 AoiMotion へ置きかえた。元＝../旧ver/2026-10-13_碧の動きv3の前/umwelt.js
 
 // ---------------------------------------------------------------- 受けとり方を切り替える
 const dial = $("dial"), spoken = new Set();
@@ -973,7 +915,7 @@ $("cred").innerHTML = [
 let started = false;
 function first(intro = true) {
   if (started) return; started = true; AUD.init();
-  A.appear = true; A.intro = true; A.calm = 2.2;
+  A.appear = true; A.intro = true; if (AM) AM.calm = 2.2;
   $("say").textContent = "";
   if(!intro){A.intro=false;return;}
   setTimeout(() => talk(S.intro, [[`はじめる：${S.lens[1].name} ›`, () => { A.intro = false; setLens("hachi"); }, true], ["人の目のまま歩く", () => { A.intro = false; talkLens("hito"); }]]).then(() => { A.intro = false; }), 600);
@@ -1083,6 +1025,6 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
   setActs([]);
   requestAnimationFrame(frame);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
-  setTimeout(() => { A.appear = true; A.calm = 2.4; }, 400);
+  setTimeout(() => { A.appear = true; if (AM) AM.calm = 2.4; }, 400);
 })();
 window.__um = {FPS,get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };
