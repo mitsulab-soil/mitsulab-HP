@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>氷川道中 謎解き版</title>
+<meta name="description" content="大宮の氷川参道を、一の鳥居から三の鳥居の手前まで歩いて解く六つの謎。石・道・葉・幹・燈籠・並木を、碧と見直す。家でも遊べます。">
+<meta name="robots" content="noai, noimageai">
+<meta name="tdm-reservation" content="1">
+<meta name="theme-color" content="#f4f2ea">
+<meta property="og:title" content="氷川道中 謎解き版">
+<meta property="og:description" content="氷川参道を歩いて解く、六つの謎。">
+<meta property="og:image" content="https://mitsulab.jp/x/04/web/nazo_kit/sando.webp">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%232a7f86'/%3E%3Cpath d='M7 11h18M9 14h14M11 14v11M21 14v11' stroke='%23fff' stroke-width='2.4' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Shippori+Mincho+B1:wght@600&display=swap" rel="stylesheet">
+<style>
+/* 氷川道中 謎解き版（公道の 6 問・2026-10-12）。元＝_dev/nazo_kit/template.html（build.py が道のりの図を差し込んで ★実行データ/nazo_kit.html と HP の x/04/ を作る）。
+   謎と典拠の元＝01_経営/01_経営/12_試行_FeelHikawa/07_キット_公道だけ_6問_下書き.md。答え合わせは端末の中だけ。どこにも送らない。 */
+:root { --bg:#f4f2ea; --panel:#fffdf6; --ink:#1d2a27; --sub:#4a5a56; --line:#d9d4c4; --aoi:#2a7f86; --aoi2:#d6ecec; --edo:#8a5a2b; --edo2:#f1e3cf; --warn:#9a3b2b; --warn2:#f7e4de; --ok:#2f7a45; --shadow:0 2px 14px rgba(0,0,0,.08);
+  --seg-ped:#2a7f86; --seg-car:#c0772f; --cross:#9a3b2b; --stone:#b9b4a6; --stone2:#8f8a7c; --bark:#7a6450; --leaf:#5f8a4a; --lichen:#9fb7a0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#141a19; --panel:#1d2523; --ink:#e8ece8; --sub:#a9b6b2; --line:#33403d; --aoi:#6cc3c9; --aoi2:#23393a; --edo:#e0b27f; --edo2:#3a2e22; --warn:#f0a090; --warn2:#3a2420; --ok:#8fd19e; --shadow:0 2px 14px rgba(0,0,0,.4);
+  --seg-ped:#6cc3c9; --seg-car:#e0a060; --cross:#f0a090; --stone:#6d6a62; --stone2:#9a958a; --bark:#8a735e; --leaf:#86b46f; --lichen:#7f9a82; } }
+:root[data-theme="dark"] { --bg:#141a19; --panel:#1d2523; --ink:#e8ece8; --sub:#a9b6b2; --line:#33403d; --aoi:#6cc3c9; --aoi2:#23393a; --edo:#e0b27f; --edo2:#3a2e22; --warn:#f0a090; --warn2:#3a2420; --ok:#8fd19e; --shadow:0 2px 14px rgba(0,0,0,.4);
+  --seg-ped:#6cc3c9; --seg-car:#e0a060; --cross:#f0a090; --stone:#6d6a62; --stone2:#9a958a; --bark:#8a735e; --leaf:#86b46f; --lichen:#7f9a82; }
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+html, body { margin:0; background:var(--bg); color:var(--ink); font-family:"Zen Kaku Gothic New", system-ui, sans-serif; font-size:16px; line-height:1.8; }
+.wrap { max-width:720px; margin:0 auto; padding:16px 16px 64px; }
+a { color:var(--aoi); }
+h1 { font-family:"Shippori Mincho B1", serif; font-size:26px; letter-spacing:.06em; margin:10px 0 0; line-height:1.4; }
+h2 { font-family:"Shippori Mincho B1", serif; font-size:20px; letter-spacing:.05em; margin:0 0 8px; line-height:1.5; }
+h3 { font-size:16px; margin:14px 0 4px; }
+.sub { color:var(--sub); font-size:14px; margin:2px 0 0; }
+.card { border:1px solid var(--line); border-radius:16px; padding:14px 16px; background:var(--panel); box-shadow:var(--shadow); margin:16px 0; }
+.hero { margin:14px 0; border-radius:16px; overflow:hidden; border:1px solid var(--line); background:var(--panel); }
+.hero img { display:block; width:100%; height:auto; aspect-ratio:16/9; object-fit:cover; }
+.hero .cap, .fig .cap { font-size:13px; color:var(--sub); padding:6px 12px 10px; margin:0; }
+.say { display:flex; gap:10px; align-items:flex-start; margin:12px 0; }
+.say img { width:48px; height:48px; border-radius:50%; flex:none; border:2px solid var(--aoi); background:var(--aoi2); }
+.say .bub { background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--aoi); border-radius:14px; padding:8px 14px; box-shadow:var(--shadow); flex:1; min-width:0; }
+.say .who { font-size:12px; color:var(--aoi); letter-spacing:.1em; display:block; }
+.facts { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:10px 0; }
+.facts div { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:8px; text-align:center; font-size:13px; color:var(--sub); }
+.facts b { display:block; font-size:18px; color:var(--ink); font-weight:500; }
+.route { display:block; width:100%; height:auto; }
+.route .seg { fill:none; stroke-width:12; stroke-linecap:round; }
+.route .seg.ped { stroke:var(--seg-ped); }
+.route .seg.car { stroke:var(--seg-car); stroke-dasharray:14 9; }
+.route .cross { stroke:var(--cross); stroke-width:4; }
+.route .cross.end { stroke-dasharray:4 4; }
+.route .rd { fill:var(--cross); font-size:26px; }
+.route .lb { fill:var(--ink); font-size:30px; }
+.route .torii path { stroke:var(--ink); stroke-width:2.4; fill:none; }
+.route .stop circle { fill:var(--panel); stroke:var(--ink); stroke-width:2.5; }
+.route .stop text { font-size:28px; font-weight:700; fill:var(--ink); }
+.route .stop.done circle { fill:var(--aoi); stroke:var(--aoi); }
+.route .stop.done text { fill:#fff; }
+.route .stop.cur circle { stroke:var(--aoi); stroke-width:5; }
+.route .north { fill:var(--sub); font-size:26px; }
+.legend { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; color:var(--sub); margin:6px 0 0; padding:0; list-style:none; }
+.legend i { display:inline-block; width:22px; height:0; border-top:5px solid var(--seg-ped); vertical-align:middle; margin-right:5px; border-radius:3px; }
+.legend i.car { border-top:5px dashed var(--seg-car); }
+.legend i.x { width:5px; height:14px; border:none; background:var(--cross); }
+.rules { margin:6px 0; padding-left:1.4em; }
+.rules li { margin:6px 0; }
+.warnbox { background:var(--warn2); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:10px 14px; margin:10px 0; font-size:15px; }
+.mode { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0; }
+.mode button[aria-pressed="true"] { background:var(--aoi); color:#fff; border-color:var(--aoi); }
+button { font:inherit; min-height:48px; padding:6px 14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; text-align:center; }
+button.go { background:var(--aoi); color:#fff; border-color:var(--aoi); }
+button.ghost { background:transparent; }
+button:disabled { opacity:.5; cursor:default; }
+button:focus-visible, a:focus-visible, summary:focus-visible { outline:3px solid var(--aoi); outline-offset:2px; }
+.row { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.dots { display:flex; gap:6px; margin:10px 0; flex-wrap:wrap; }
+.dots button { min-width:44px; min-height:44px; padding:0; border-radius:50%; font-weight:700; }
+.dots button.done { background:var(--aoi2); border-color:var(--aoi); }
+.dots button[aria-current="step"] { background:var(--aoi); color:#fff; border-color:var(--aoi); }
+.kicker { font-size:13px; color:var(--aoi); letter-spacing:.12em; margin:0; }
+.walk { background:var(--bg); border:1px dashed var(--line); border-radius:12px; padding:8px 14px; margin:10px 0; font-size:15px; }
+.walk .k, .stopat .k { font-size:12px; color:var(--sub); letter-spacing:.1em; display:block; }
+.stopat { border-left:4px solid var(--edo); background:var(--edo2); border-radius:12px; padding:8px 14px; margin:10px 0; font-size:15px; }
+.fig { margin:12px 0; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--bg); }
+.fig svg { display:block; width:100%; height:auto; }
+.fig img { display:block; width:100%; height:auto; }
+details.fig > summary { cursor:pointer; padding:10px 14px; min-height:44px; color:var(--sub); font-size:14px; }
+.q { font-size:17px; margin:12px 0 6px; }
+.choices { display:grid; gap:8px; margin:8px 0; }
+.choices button { text-align:left; padding:10px 14px; }
+.choices button.right { background:var(--aoi2); border-color:var(--aoi); }
+.choices button.wrong { opacity:.55; text-decoration:line-through; }
+.fb { min-height:1em; }
+.ans { margin-top:14px; border-top:1px solid var(--line); padding-top:6px; }
+.fact { display:flex; gap:10px; margin:10px 0; }
+.mk { flex:none; display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; font-size:15px; border:1px solid var(--line); background:var(--bg); }
+.mk.s { color:var(--aoi); border-color:var(--aoi); }
+.mk.t { color:var(--edo); border-color:var(--edo); }
+.fact p { margin:0; }
+.fact .src { display:block; font-size:13px; color:var(--sub); margin-top:2px; }
+.try { background:var(--aoi2); border-radius:12px; padding:8px 14px; margin:10px 0; font-size:15px; }
+.try .k { font-size:12px; color:var(--aoi); letter-spacing:.1em; display:block; }
+.marks { font-size:14px; color:var(--sub); margin:6px 0; }
+.marks span { display:inline-flex; align-items:center; gap:6px; margin-right:14px; }
+footer { font-size:13px; color:var(--sub); margin-top:28px; border-top:1px solid var(--line); padding-top:12px; }
+footer p { margin:6px 0; }
+.hide { display:none !important; }
+.fade { animation:fade .6s ease; }
+@keyframes fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .fade { animation:none; } }
+/* 模式の絵 */
+.sc-stone { fill:var(--stone); stroke:var(--stone2); stroke-width:2; }
+.sc-line { stroke:var(--ink); fill:none; stroke-width:2; }
+.sc-txt { fill:var(--ink); font-family:"Shippori Mincho B1", serif; }
+.sc-lab { fill:var(--sub); font-size:14px; }
+.sc-num { fill:var(--ink); font-size:18px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">氷川道中</p>
+  <h1>謎解き版　参道の六つの謎</h1>
+  <p class="sub">大宮・氷川参道　一の鳥居 → 三の鳥居の手前</p>
+</header>
+
+<!-- はじめ -->
+<section id="intro">
+  <figure class="hero"><img src="web/nazo_kit/sando.webp" width="960" height="540" alt="氷川道中の 3D の参道。両側に並木と燈籠が続き、奥に鳥居が見える"><figcaption class="cap">氷川道中の 3D の参道（並木の形は模式）</figcaption></figure>
+
+  <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>一の鳥居から三の鳥居の手前まで、六つの謎を置いておきました。答えは、たいてい目の前にあります。石と道と木を、いっしょに見直しましょう。</div></div>
+
+  <div class="card">
+    <h2>遊び方</h2>
+    <div class="facts"><div><b>約 1.9 km</b>道のり</div><div><b>60〜90 分</b>目安</div><div><b>6 問</b>選んで答える</div></div>
+    <p>決められた所で立ち止まり、目の前の物を見て、答えを選びます。迷ったら碧のヒントを。解けると、その物の来歴と、確かめた典拠が開きます。</p>
+    <p class="marks"><span><i class="mk s">◎</i>典拠で確かめられること</span><span><i class="mk t">△</i>言い伝え・諸説があること</span></p>
+    <p>現地に行けない日は「家で遊ぶ」を選んでください。物の形を、模式の絵で見ながら解けます。</p>
+    <div class="mode" role="group" aria-label="遊ぶ場所">
+      <button type="button" data-mode="site" aria-pressed="true">現地で歩く</button>
+      <button type="button" data-mode="home" aria-pressed="false">家で遊ぶ</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>道のり</h2>
+    <div class="fig" style="margin-top:0"><svg viewBox="0 0 1000 240" role="img" aria-labelledby="mapT mapD" class="route">
+<title id="mapT">道のりの図</title>
+<desc id="mapD">一の鳥居から北へ、三の鳥居の手前まで約 1.9 km。車の入らない区間と、車道と歩道が並ぶ区間、渡る道 4 本、謎を解く 6 か所。</desc>
+<path class="seg car" d="M44.0,146.3 L45.9,146.2 L47.8,146.2 L49.8,146.1 L51.7,146.1 L53.6,146.0 L55.5,146.0 L57.5,145.9 L59.4,145.9 L61.3,145.8 L63.2,145.8 L65.1,145.7 L67.1,145.7 L69.0,145.6 L70.9,145.5 L72.8,145.4 L74.7,145.4 L76.7,145.3 L78.6,145.2 L80.5,145.2 L82.4,145.1 L84.4,145.0 L86.3,144.9 L88.2,144.8 L90.1,144.7 L92.0,144.6 L94.0,144.5 L95.9,144.4 L97.8,144.3 L99.7,144.3 L101.6,144.2 L103.6,144.2 L105.5,144.1 L107.4,144.1 L109.3,144.0 L111.3,144.0 L113.2,143.9 L115.1,143.9 L117.0,143.8 L118.9,143.7 L120.9,143.6 L122.8,143.5 L124.7,143.4 L126.6,143.4 L128.5,143.3 L130.5,143.2 L132.4,143.1 L134.3,143.0 L136.2,142.9 L138.1,142.8 L140.1,142.7 L142.0,142.7 L143.9,142.6 L145.8,142.6 L147.8,142.5 L149.7,142.5 L151.6,142.4 L153.5,142.4 L155.4,142.3 L157.4,142.2 L159.3,142.2 L161.2,142.1 L163.1,142.0 L165.0,141.9 L167.0,141.9 L168.9,141.8 L170.8,141.7 L172.7,141.6 L174.6,141.6 L176.6,141.5 L178.5,141.4 L180.4,141.3 L182.3,141.3 L184.3,141.2 L186.2,141.1 L188.1,141.0 L190.0,141.0 L191.9,140.9 L193.9,140.8 L195.8,140.7 L197.7,140.7 L199.6,140.6 L201.5,140.5 L203.5,140.4 L205.4,140.4 L207.3,140.3 L207.3,140.3"/>
+<path class="seg ped" d="M215.0,140.0 L216.9,139.9 L218.8,139.8 L220.8,139.7 L222.7,139.7 L224.6,139.6 L226.5,139.5 L228.4,139.4 L230.4,139.3 L232.3,139.3 L234.2,139.2 L236.1,139.1 L238.0,139.0 L240.0,138.9 L241.9,138.7 L243.8,138.6 L245.7,138.5 L247.6,138.4 L249.6,138.3 L251.5,138.1 L253.4,138.0 L255.3,137.9 L257.2,137.8 L259.2,137.7 L261.1,137.6 L263.0,137.5 L264.9,137.5 L266.8,137.4 L268.8,137.4 L270.7,137.3 L272.6,137.1 L274.5,137.1 L276.4,137.1 L278.3,137.0 L280.3,137.0 L282.2,136.9 L284.1,136.9 L286.0,136.8 L288.0,136.8 L289.9,136.7 L291.8,136.6 L293.7,136.6 L295.6,136.5 L297.6,136.5 L299.5,136.4 L301.4,136.3 L303.3,136.3 L305.2,136.2 L307.2,136.2 L309.1,136.1 L311.0,136.0 L312.9,136.0 L314.9,135.9 L316.8,135.9 L318.7,135.8 L320.6,135.7 L322.5,135.6 L324.5,135.6 L326.4,135.5 L328.3,135.4 L330.2,135.3 L332.1,135.2 L334.1,135.2 L336.0,135.1 L337.9,135.0 L339.8,134.9 L341.8,134.8 L343.7,134.7 L345.6,134.7 L347.5,134.6 L349.4,134.5 L351.4,134.4 L353.3,134.3 L355.2,134.2 L357.1,134.2 L359.0,134.1 L361.0,134.0 L362.9,133.9 L364.8,133.8 L366.7,133.7 L368.6,133.7 L370.6,133.6 L372.5,133.5 L374.4,133.4 L376.3,133.3 L378.3,133.2 L380.2,133.2 L382.1,133.1 L384.0,133.0 L385.9,132.9 L387.9,132.8 L389.8,132.7 L391.7,132.6 L393.6,132.6 L395.5,132.5 L397.5,132.4 L399.4,132.3 L401.3,132.2 L403.2,132.2 L405.1,132.1 L407.1,132.0 L409.0,131.9 L410.9,131.9 L412.8,131.8 L414.7,131.7 L416.7,131.6 L418.6,131.6 L420.5,131.5 L422.4,131.4 L424.4,131.3 L426.3,131.3 L427.2,131.2"/>
+<path class="seg car" d="M428.2,131.2 L430.1,131.1 L432.0,131.0 L434.0,130.9 L435.9,130.8 L437.8,130.7 L439.7,130.6 L441.6,130.5 L443.6,130.4 L445.5,130.3 L447.4,130.2 L449.3,130.2 L451.2,130.1 L453.2,130.1 L455.1,130.1 L457.0,130.0 L458.9,130.0 L460.9,129.9 L462.8,129.9 L464.7,129.8 L466.6,129.8 L468.5,129.7 L470.5,129.7 L472.4,129.6 L474.3,129.6 L476.2,129.5 L478.2,129.5 L480.1,129.4 L482.0,129.4 L483.9,129.3 L485.8,129.3 L487.8,129.2 L489.7,129.2 L491.6,129.1 L493.5,129.1 L495.5,129.1 L497.4,129.0 L499.3,129.0 L501.2,128.9 L503.1,128.8 L505.1,128.7 L507.0,128.6 L508.9,128.4 L510.8,128.3 L512.7,128.2 L514.6,128.0 L516.6,127.9 L518.5,127.7 L520.4,127.6 L522.3,127.5 L524.2,127.3 L526.2,127.2 L528.1,127.1 L530.0,127.0 L531.9,126.9 L533.8,126.8 L535.8,126.6 L537.7,126.5 L539.6,126.4 L541.5,126.3 L543.4,126.2 L545.3,126.1 L547.3,125.9 L548.2,125.9"/>
+<path class="seg ped" d="M557.8,125.9 L559.7,125.9 L561.7,125.8 L563.6,125.7 L565.5,125.6 L567.4,125.5 L569.3,125.4 L571.3,125.3 L573.2,125.2 L575.1,125.1 L577.0,125.0 L578.9,125.0 L580.9,124.9 L582.8,124.8 L584.7,124.7 L586.6,124.6 L588.5,124.5 L590.5,124.4 L592.4,124.3 L594.3,124.2 L596.2,124.1 L598.2,124.0 L600.1,123.9 L602.0,123.8 L603.9,123.7 L605.8,123.6 L607.7,123.4 L609.7,123.3 L611.6,123.2 L613.5,123.0 L615.4,122.9 L617.3,122.8 L619.3,122.6 L621.2,122.5 L623.1,122.4 L625.0,122.2 L626.9,122.1 L628.8,121.9 L630.8,121.8 L632.7,121.7 L634.6,121.5 L636.5,121.4 L638.4,121.3 L640.4,121.1 L642.3,121.0 L644.2,120.9 L646.1,120.7 L648.0,120.6 L649.9,120.5 L651.9,120.3 L653.8,120.2 L655.7,120.0 L657.6,119.9 L659.5,119.7 L661.4,119.6 L663.4,119.4 L665.3,119.3 L667.2,119.1 L669.1,119.0 L671.0,118.8 L672.9,118.7 L674.9,118.5 L676.8,118.4 L678.7,118.2 L680.6,118.1 L682.5,117.9 L684.4,117.7 L686.4,117.6 L688.3,117.4 L690.2,117.3 L692.1,117.1 L694.0,117.0 L695.9,116.8 L697.9,116.7 L699.8,116.5 L701.7,116.3 L703.6,116.2 L705.5,116.0 L707.4,115.9 L707.4,115.9"/>
+<path class="seg ped" d="M715.1,115.5 L717.0,115.4 L719.0,115.4 L720.9,115.3 L722.8,115.3 L724.7,115.2 L726.7,115.2 L728.6,115.2 L730.5,115.1 L732.4,115.1 L734.3,115.0 L735.3,115.0"/>
+<path class="seg ped" d="M740.1,114.8 L742.0,114.7 L743.9,114.6 L745.9,114.5 L747.8,114.4 L749.7,114.3 L751.6,114.2 L753.5,114.1 L755.5,114.0 L757.4,113.9 L759.3,113.8 L761.2,113.7 L763.1,113.6 L765.1,113.5 L767.0,113.4 L768.9,113.3 L770.8,113.2 L772.7,113.1 L774.7,113.0 L776.6,112.9 L778.5,112.9 L780.4,112.8 L782.3,112.7 L784.3,112.6 L786.2,112.5 L788.1,112.4 L790.0,112.3 L791.9,112.2 L793.9,112.1 L795.8,112.0 L797.7,111.9 L799.6,111.8 L801.6,111.7 L803.5,111.6 L805.4,111.5 L807.3,111.4 L809.2,111.3 L811.2,111.2 L813.1,111.1 L815.0,111.0 L816.9,110.9 L818.8,110.8 L820.8,110.7 L822.7,110.6 L824.6,110.5 L826.5,110.4 L828.4,110.3 L830.4,110.2 L832.3,110.1 L834.2,110.0 L836.1,109.9 L838.0,109.8 L839.9,109.7 L841.9,109.5 L843.8,109.4 L845.7,109.3 L847.6,109.2 L849.5,109.1 L851.5,109.0 L853.4,108.9 L855.3,108.8 L857.2,108.7 L859.1,108.5 L861.1,108.4 L863.0,108.3 L864.9,108.2 L866.8,108.1 L868.7,108.0 L870.7,107.9 L872.6,107.8 L874.5,107.7 L876.4,107.5 L878.3,107.4 L880.3,107.3 L882.2,107.2 L884.1,107.1 L886.0,107.0 L887.9,106.9 L889.9,106.8 L891.8,106.7 L893.7,106.5 L895.6,106.4 L897.5,106.3 L899.5,106.1 L901.4,106.0 L903.3,105.8 L905.2,105.7 L907.1,105.5 L909.0,105.4 L911.0,105.2 L912.9,105.1 L914.8,104.9 L916.7,104.8 L918.6,104.6 L920.5,104.5 L922.5,104.3 L924.4,104.2 L926.3,104.0 L928.2,103.9 L930.1,103.7 L932.0,103.6 L934.0,103.4 L935.9,103.3 L937.8,103.1 L939.7,103.0 L941.6,102.8 L943.5,102.7 L945.5,102.5 L946.4,102.4"/>
+<line class="cross" x1="211.2" y1="110.2" x2="211.2" y2="170.2"/>
+<line class="cross" x1="553.0" y1="95.8" x2="553.0" y2="155.8"/>
+<line class="cross" x1="711.3" y1="85.6" x2="711.3" y2="145.6"/>
+<line class="cross" x1="737.2" y1="84.9" x2="737.2" y2="144.9"/>
+<line class="cross" x1="948.3" y1="72.3" x2="948.3" y2="132.3"/>
+<line class="cross end" x1="947.4" y1="72.4" x2="947.4" y2="132.4"/>
+<text class="rd" x="211.2" y="202.2" text-anchor="middle">南大通東線</text>
+<text class="rd" x="567.0" y="187.8" text-anchor="end">大宮中央通り</text>
+<text class="rd" x="697.3" y="177.6" text-anchor="start">さいたま春日部線</text>
+<g class="torii" transform="translate(45.9,88.2) scale(1.6)"><path d="M-9,0 H9 M-7,4 H7 M-5,4 V16 M5,4 V16"/></g>
+<text class="lb" x="51.9" y="76.2" text-anchor="start">一の鳥居</text>
+<g class="torii" transform="translate(737.2,56.9) scale(1.6)"><path d="M-9,0 H9 M-7,4 H7 M-5,4 V16 M5,4 V16"/></g>
+<text class="lb" x="737.2" y="44.9" text-anchor="middle">二の鳥居</text>
+<g class="torii" transform="translate(953.1,44.0) scale(1.6)"><path d="M-9,0 H9 M-7,4 H7 M-5,4 V16 M5,4 V16"/></g>
+<text class="lb" x="947.1" y="32.0" text-anchor="end">三の鳥居</text>
+<g class="stop" data-n="1"><circle cx="47.8" cy="146.2" r="24"/><text x="47.8" y="156.2" text-anchor="middle">1</text></g>
+<g class="stop" data-n="2"><circle cx="262.0" cy="137.6" r="24"/><text x="262.0" y="147.6" text-anchor="middle">2</text></g>
+<g class="stop" data-n="3"><circle cx="353.3" cy="134.3" r="24"/><text x="353.3" y="144.3" text-anchor="middle">3</text></g>
+<g class="stop" data-n="4"><circle cx="631.7" cy="121.7" r="24"/><text x="631.7" y="131.7" text-anchor="middle">4</text></g>
+<g class="stop" data-n="5"><circle cx="730.5" cy="115.1" r="24"/><text x="730.5" y="125.1" text-anchor="middle">5</text></g>
+<g class="stop" data-n="6"><circle cx="938.7" cy="103.0" r="24"/><text x="938.7" y="113.0" text-anchor="middle">6</text></g>
+<text class="north" x="956.0" y="228" text-anchor="end">北 →</text>
+</svg></div>
+    <ul class="legend"><li><i></i>車の入らない区間</li><li><i class="car"></i>車道と歩道が並ぶ区間</li><li><i class="x"></i>渡る道（点線＝終わり。境内の横の道は渡らない）</li></ul>
+    <p style="margin-top:10px">一の鳥居 → 中区間の石の道 → 平成ひろば → 二の鳥居 → 三の鳥居の手前で終わり。渡る道は 4 本です（南大通東線・大宮中央通り・さいたま春日部線・二の鳥居の手前を横切る道）。</p>
+  </div>
+
+  <div class="card" id="rules">
+    <h2>歩く前の約束</h2>
+    <ol class="rules">
+      <li>歩いているあいだは、画面を見ない。止まってから見る。</li>
+      <li>止まるのは道の端。車道・横断歩道・自転車の通る帯の上では止まらない。止まれる所がなければ、先へ進む。</li>
+      <li>道を渡るときは画面をしまい、信号と横断歩道に従う。</li>
+      <li>並木の植えこみには入らない。葉や木の皮をちぎらない。</li>
+      <li>この版は三の鳥居の手前で終わり。境内では謎を出しません。お参りは、静かに自由に。</li>
+      <li>住まいやお店の前にたまらない。人の顔を撮らない。声は小さく。</li>
+      <li>雨・雷・体の具合が悪いときは、やめる。途中でやめても大丈夫。</li>
+    </ol>
+    <div class="warnbox"><b>車に気をつけて</b><br>南区間（一の鳥居〜南大通東線）と北区間（中区間の先〜大宮中央通り）は、車道と歩道が並ぶ道です。2026 年 10 月 26 日の午前 10 時より前は、一般の車も通ります。そのあとは歩行者専用ですが、許可を受けた車と自転車は通り、交差点では車が東西に横切ります。この二つの区間では、謎 1（一の鳥居の脇）のほかは謎を出しません。歩道を歩くだけにしてください。<span class="src" style="display:block;font-size:13px;color:var(--sub);margin-top:4px">さいたま市『<a href="https://www.city.saitama.lg.jp/001/010/015/004/004/p049064_d/fil/hikawasanndodayori_vol29.pdf" target="_blank" rel="noopener">ひかわ参道だより</a>』第 29 号（令和 8 年 8 月）</span></div>
+    <p class="sub">答え合わせはこの端末の中だけで行い、どこにも送りません。</p>
+    <div class="row"><button type="button" class="go" id="start">約束を読んだ。はじめる</button><button type="button" class="ghost hide" id="resume">続きから</button></div>
+  </div>
+</section>
+
+<!-- 謎 -->
+<section id="game" class="hide" aria-live="polite">
+  <nav class="dots" id="dots" aria-label="謎の番号"></nav>
+  <article class="card fade" id="stop"></article>
+  <div class="row"><button type="button" class="ghost" id="toTop">はじめの画面へ</button></div>
+</section>
+
+<!-- 結び -->
+<section id="end" class="hide">
+  <div class="card fade">
+    <p class="kicker">結び</p>
+    <h2>並木は、むかしからケヤキだった？</h2>
+    <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>おつかれさまでした。石は江戸の享保、燈籠は江戸の終わり、溝は令和のはじめ、並木は杉からケヤキへ。どの時代の人も、この道に少しずつ手を重ねてきたんですね。</div></div>
+    <h3>見つけた手がかり</h3>
+    <ol class="rules" id="clues"></ol>
+    <div class="try"><span class="k">帰り道に</span>まっすぐな幹に、針のような葉をつけた木を探してみてください。杉とヒノキのなかまは、2011 年の記録で 10 本ほどに減っていました。</div>
+    <p>家では、氷川道中の 3D の参道を、碧と歩けます。<a href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener">氷川道中をひらく ↗</a></p>
+    <div class="row"><button type="button" id="again">はじめの画面へ</button><button type="button" class="ghost" id="reset">はじめから遊びなおす</button></div>
+  </div>
+</section>
+
+<footer>
+  <p>道のりの図＝© OpenStreetMap contributors（ODbL）の道をもとに mitsulab が作成。3D の参道の絵＝氷川道中の画面（地形と地面の写真：国土地理院の地理院タイルを mitsulab が加工／建物：国土交通省 PLATEAU さいたま市 2022〔CC BY 4.0〕を mitsulab が加工／道：© OpenStreetMap contributors）。物の絵は模式です。</p>
+  <p>典拠の文は、そのまま写さず言いかえています。現地のようすは、日によって変わります。このページは mitsulab がつくったもので、氷川神社・さいたま市の催しではありません。</p>
+  <p><a href="https://mitsulab.jp/">mitsulab</a>　© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p>
+</footer>
+</div>
+
+<script>
+(() => {
+const SRC = {
+  yuisho: { t:'氷川神社「由緒・歴史」', u:'https://musashiichinomiya-hikawa.or.jp/about/' },
+  dayori14: { t:'さいたま市『ひかわ参道だより』第 14 号', u:'https://www.city.saitama.lg.jp/001/010/015/004/004/p049064_d/fil/hikawasanndodayori_vol14.pdf' },
+  dayori17: { t:'さいたま市『ひかわ参道だより』第 17 号', u:'https://www.city.saitama.lg.jp/001/010/015/004/004/p049064_d/fil/hikawasanndodayori_vol17.pdf' },
+  jumoku: { t:'さいたま市・氷川の杜まちづくり協議会『氷川参道の樹木調査』（令和 4 年 3 月改訂）p.4', u:'https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf' },
+  city: { t:'さいたま市「市の概要」', u:'https://www.city.saitama.lg.jp/006/012/001/007/p006217.html' },
+  wkeyaki: { t:'日本語版ウィキペディア「ケヤキ」をもとに言いかえ', u:'https://ja.wikipedia.org/wiki/%E3%82%B1%E3%83%A4%E3%82%AD' },
+  wlichen: { t:'日本語版ウィキペディア「地衣類」「コケ植物」をもとに言いかえ', u:'https://ja.wikipedia.org/wiki/%E5%9C%B0%E8%A1%A3%E9%A1%9E' },
+  wumeno: { t:'日本語版ウィキペディア「ウメノキゴケ」をもとに言いかえ', u:'https://ja.wikipedia.org/wiki/%E3%82%A6%E3%83%A1%E3%83%8E%E3%82%AD%E3%82%B4%E3%82%B1' },
+  wichi: { t:'日本語版ウィキペディア「一宮」をもとに言いかえ', u:'https://ja.wikipedia.org/wiki/%E4%B8%80%E5%AE%AE' },
+  shaku: { t:'度量衡法（明治 24 年）の定め' , u:'' },
+};
+
+// 模式の絵（SVG）
+const FIG = {
+  stone: `<svg viewBox="0 0 400 260" role="img" aria-label="模式の絵：鳥居の脇に立つ、背の高い石の柱。上から三文字は武藏國、残りの二文字は伏せてある">
+    <path class="sc-line" d="M40 70 H200 M50 86 H190 M70 86 V240 M170 86 V240" stroke-width="6"/>
+    <path d="M30 240 H380" stroke="var(--line)" stroke-width="3"/>
+    <rect class="sc-stone" x="250" y="20" width="62" height="220" rx="4"/>
+    <text class="sc-txt" x="281" y="62" font-size="30" text-anchor="middle">武</text>
+    <text class="sc-txt" x="281" y="100" font-size="30" text-anchor="middle">藏</text>
+    <text class="sc-txt" x="281" y="138" font-size="30" text-anchor="middle">國</text>
+    <rect x="266" y="150" width="30" height="30" fill="none" stroke="var(--ink)" stroke-dasharray="4 3"/>
+    <rect x="266" y="188" width="30" height="30" fill="none" stroke="var(--ink)" stroke-dasharray="4 3"/>
+    <text class="sc-num" x="281" y="172" text-anchor="middle">?</text><text class="sc-num" x="281" y="210" text-anchor="middle">?</text>
+    <text class="sc-lab" x="120" y="60" text-anchor="middle">鳥居</text><text class="sc-lab" x="330" y="234">石の柱</text>
+  </svg>`,
+  road: `<svg viewBox="0 0 400 250" role="img" aria-label="模式の絵：上から見た中区間の道。真ん中に灰色の石の帯、その両脇に明るい帯、さらに外に細い溝の線、いちばん外に並木">
+    <rect x="0" y="0" width="400" height="250" fill="var(--bg)"/>
+    <circle cx="60" cy="18" r="14" fill="var(--leaf)" opacity=".7"/><circle cx="200" cy="18" r="14" fill="var(--leaf)" opacity=".7"/><circle cx="340" cy="18" r="14" fill="var(--leaf)" opacity=".7"/>
+    <circle cx="60" cy="232" r="14" fill="var(--leaf)" opacity=".7"/><circle cx="200" cy="232" r="14" fill="var(--leaf)" opacity=".7"/><circle cx="340" cy="232" r="14" fill="var(--leaf)" opacity=".7"/>
+    <rect x="0" y="44" width="400" height="162" fill="var(--panel)"/>
+    <rect x="0" y="92" width="400" height="66" fill="var(--stone)"/>
+    <line x1="0" y1="44" x2="400" y2="44" stroke="var(--ink)" stroke-width="2.5" stroke-dasharray="10 4"/>
+    <line x1="0" y1="206" x2="400" y2="206" stroke="var(--ink)" stroke-width="2.5" stroke-dasharray="10 4"/>
+    <circle cx="200" cy="125" r="16" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text class="sc-num" x="200" y="131" text-anchor="middle">①</text>
+    <circle cx="372" cy="44" r="16" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text class="sc-num" x="372" y="50" text-anchor="middle">②</text>
+    <circle cx="372" cy="206" r="16" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text class="sc-num" x="372" y="212" text-anchor="middle">②</text>
+    <text class="sc-lab" x="14" y="72">明るい帯</text><text class="sc-lab" x="14" y="118">灰色の石の帯</text><text class="sc-lab" x="14" y="192">明るい帯</text>
+    <text class="sc-lab" x="250" y="64" text-anchor="middle">細い溝の線</text>
+  </svg>`,
+  leaf: `<svg viewBox="0 0 400 230" role="img" aria-label="模式の絵：葉のふちを拡大した三つの形。①は歯が葉先のほうへ曲がる、②は葉のつけねのほうへ曲がる、③は曲がらずまっすぐ外へ出る">
+    <text class="sc-lab" x="392" y="20" text-anchor="end">葉先 →</text>
+    ${[0,1,2].map(r => {
+      const y = 64 + r*68; let d = `M20 ${y}`;
+      for (let i=0;i<7;i++){ const x = 20+i*48;
+        if (r===0) d += ` Q${x+30} ${y-4} ${x+42} ${y-22} L${x+48} ${y}`;
+        if (r===1) d += ` L${x+6} ${y-22} Q${x+18} ${y-4} ${x+48} ${y}`;
+        if (r===2) d += ` L${x+24} ${y-22} L${x+48} ${y}`; }
+      return `<path d="${d} L356 ${y+16} L20 ${y+16} Z" fill="var(--leaf)" opacity=".85"/><text class="sc-num" x="372" y="${y+6}">${'①②③'[r]}</text>`;
+    }).join('')}
+  </svg>`,
+  trunk: `<svg viewBox="0 0 400 250" role="img" aria-label="模式の絵：並木の幹に付いた、灰色がかった緑の、ふちが波打つ平たいもの">
+    <rect x="130" y="0" width="140" height="250" fill="var(--bark)"/>
+    ${[40,95,150,205].map(y=>`<path d="M136 ${y} q30 -10 60 2 t66 -4" stroke="rgba(0,0,0,.25)" fill="none" stroke-width="2"/>`).join('')}
+    <path d="M165 70 q8 -18 26 -10 q16 -10 24 8 q18 4 10 22 q8 16 -12 22 q-6 16 -24 8 q-18 8 -24 -10 q-16 -8 -8 -22 q-8 -14 8 -18z" fill="var(--lichen)" stroke="rgba(0,0,0,.25)"/>
+    <path d="M200 160 q6 -12 18 -6 q12 -6 16 6 q12 4 6 16 q4 12 -10 14 q-6 10 -16 4 q-14 4 -16 -8 q-10 -6 -4 -16z" fill="var(--lichen)" stroke="rgba(0,0,0,.25)"/>
+    <text class="sc-lab" x="290" y="100">灰色がかった緑の、</text><text class="sc-lab" x="290" y="120">平たいもの</text>
+    <path d="M286 104 L236 92" stroke="var(--sub)" stroke-width="1.5"/>
+  </svg>`,
+  lantern: `<svg viewBox="0 0 400 270" role="img" aria-label="模式の絵：石燈籠。いちばん下の台は四本の脚で立ち、脚のあいだのすき間に、何かの顔がのぞいている">
+    <path class="sc-stone" d="M200 14 l14 14 h-28z"/>
+    <path class="sc-stone" d="M140 50 L200 28 L260 50 L250 60 H150 Z"/>
+    <rect class="sc-stone" x="168" y="60" width="64" height="44"/>
+    <rect x="186" y="70" width="28" height="26" fill="var(--bg)" stroke="var(--stone2)"/>
+    <rect class="sc-stone" x="156" y="104" width="88" height="14"/>
+    <rect class="sc-stone" x="186" y="118" width="28" height="66"/>
+    <rect class="sc-stone" x="140" y="184" width="120" height="18"/>
+    <rect class="sc-stone" x="140" y="202" width="22" height="48"/><rect class="sc-stone" x="238" y="202" width="22" height="48"/>
+    <rect x="162" y="202" width="76" height="48" fill="rgba(0,0,0,.55)"/>
+    <circle cx="200" cy="226" r="16" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><text class="sc-num" x="200" y="232" text-anchor="middle">?</text>
+    <path d="M60 250 H340" stroke="var(--line)" stroke-width="3"/>
+    <text class="sc-lab" x="272" y="230">脚のあいだ</text>
+  </svg>`,
+  avenue: `<img src="web/nazo_kit/sando.webp" width="960" height="540" alt="氷川道中の 3D の参道。両側に並木が続く">`,
+};
+
+const STOPS = [
+ { place:'一の鳥居の脇の、背の高い石', fig:'stone', figcap:'模式の絵（形と大きさは実物とちがいます）',
+   walk:'一の鳥居から始めます。鳥居のまわりは南区間の入口で、そばを車が通ります。車道には出ず、歩道の奥に寄って読みます。',
+   at:'一の鳥居のまわりで、人の通りをふさがない所に立ちます。',
+   aoi:'鳥居の脇に、背の高い石の柱があります。「是より宮まで十八丁」と刻まれた碑とは、別の石です。いちばん大きな字を、上から読んでみて。',
+   aoiHome:'絵の石の柱を見て。上の三文字は読めますね。残りの二文字を考えてみましょう。',
+   q:'石に大きく刻まれた五つの文字は？',
+   choices:['武藏國一宮','武藏國総社','武藏國国府'], ok:0,
+   hint:'最後の二文字は、その国でいちばん格が高いとされた社の呼び名です。「藏」は「蔵」の古い字。',
+   clue:'標石「武藏國一宮」── 享保 7 年（1722）',
+   done:'石は江戸の享保のころのもの。でも「一宮」という呼び名が指すのは、もっと前からの社の格です。それに、この石は明治に一度向きを変えられて、いまはまた元の向きに戻っています。一本の石に、いくつもの時代が重なっているんですね。',
+   facts:[
+    ['s','この標石は享保（きょうほう）7 年（1722）に氏子の人びとが奉納したもの。文字は江戸時代中ごろの書家・佐々木文山（ささき ぶんざん）の筆。神社は、残っている石の遺物の中でもっとも古いものとしています。','yuisho'],
+    ['s','石には、もとは「本地聖観世音」の文字もありましたが、慶応 4 年（1868）の神仏判然令を受けて削られ、わずかな痕が残るだけです。明治 14 年には裏に「官幣大社　氷川神社」と彫って正面に向けられましたが、いまは元に戻され、「武藏國一宮」が読めます。','yuisho'],
+    ['s','一宮は、国ごとに、いちばん格が高いとされた神社の呼び名。平安時代の終わりごろから使われるようになったとされます。','wichi'],
+   ],
+   tryit:'削られた文字の痕が、わずかに残っているそうです。石のどこかに見つかるか、目で探してみて（読めなくても大丈夫）。' },
+
+ { place:'中区間の石の道', fig:'road', figcap:'模式の絵（上から見たところ。幅の比は実物とちがいます）',
+   walk:'南区間の歩道を北へ約 350 m。南大通東線を、信号と横断歩道で渡ります。渡った先が中区間（歩く人の道）です。',
+   at:'真ん中の灰色の石の帯の、端に寄って止まります。両脇の帯は自転車も通ります。',
+   aoi:'足もとを見て。真ん中の灰色の石の帯と、そのもっと外を走る、細い溝の線があります。',
+   aoiHome:'絵は、道を上から見たところ。真ん中の灰色の帯と、外側の細い溝の線を比べてみて。',
+   q:'参道のもとの幅「三間（さんげん）」を表しているのは、どちら？',
+   choices:['① 真ん中の灰色の石の帯','② 両脇の、細い溝の線'], ok:1,
+   hint:'三間は、およそ 5.5 m。真ん中の石の帯の幅は 3.5 m です。',
+   clue:'三間の溝 ── 令和のはじめの工事',
+   done:'むかしの道の幅を、いまの道が線で描いているんです。溝は雨水も集めていて、見た目と働きを一つにしています。',
+   facts:[
+    ['s','中区間の道の作り直しでは、両脇に細い溝（スリット側溝）を入れて雨水を集め、あわせて参道のもとの幅「三間」の境を表す設計にしました。','dayori14'],
+    ['s','工事のお知らせの図では、真ん中の灰色の御影石の帯は幅 3.5 m、その両脇は洗い出しの透水性コンクリート。工事は 2019 年 9 月に始まりました。','dayori17'],
+    ['s','一間は六尺。明治 24 年の度量衡法で一尺は 10/33 m と決まり、いまの長さに直すと、一間はおよそ 1.82 m、三間はおよそ 5.5 m です。','shaku'],
+   ],
+   tryit:'溝の線を目でたどって、どこまで続いているか見てみて。道の幅を、歩かずに目で測る練習です。' },
+
+ { place:'中区間の並木の足もと', fig:'leaf', figcap:'模式の絵（葉のふちを大きくしたところ）',
+   walk:'石の帯の端を、そのまま北へ。中区間の後半の並木まで進みます。',
+   at:'石の帯の端で止まります。植えこみには入らず、道に落ちている葉を見ます。葉はちぎりません。',
+   aoi:'並木の足もとの落ち葉を、一枚見てみて。ふちが、のこぎりの歯のようにぎざぎざしている葉があります。',
+   aoiHome:'絵は、葉のふちを大きくしたところ。家の近くにケヤキがあれば、落ち葉で確かめてみて。',
+   q:'ケヤキの葉のふちのぎざぎざ。一つ一つの歯は、どちらへ曲がって並ぶ？',
+   choices:['① 葉の先のほうへ','② 葉のつけねのほうへ','③ 曲がらず、まっすぐ外へ'], ok:0,
+   hint:'ケヤキの歯は、弓のように反って、先がとがります。葉の先を上にして見ると、わかりやすいですよ。',
+   clue:'ケヤキの葉 ── 歯は葉先へ弓なりに',
+   done:'この形を覚えておいてね。最後の謎で、もう一度使います。参道にはほかの木も混じっているから、落ち葉がみんなケヤキとはかぎりません。歯の形で見分けてみて。',
+   facts:[
+    ['s','ケヤキの葉のふちの歯は、葉先へ向かって曲線を描いて並び、先がとがります。','wkeyaki'],
+    ['s','ケヤキは、さいたま市の木です。','city'],
+   ],
+   tryit:'ほかの形の葉も、一枚見つけて比べてみて。ふちがなめらかな葉もあります。' },
+
+ { place:'平成ひろばの並木', fig:'trunk', figcap:'模式の絵',
+   walk:'中区間の先は北区間（車道と歩道が並ぶ道）。歩道を北へ約 250 m。大宮中央通りを、横断歩道で渡ると平成ひろば（御影石の遊歩道と緑地）です。',
+   at:'遊歩道の上、人の流れの端で止まります。植えこみには入りません。',
+   aoi:'並木の幹を見上げて。灰色がかった緑の、平たいものが付いていないか、探してみましょう。見つからない木もあります。',
+   aoiHome:'絵の幹に付いた、灰色がかった緑のもの。街路樹や公園の木でも、見かけることがあります。',
+   q:'幹に付く、灰色がかった緑の平たいもの。これは何のなかま？（地衣類＝ちいるい）',
+   choices:['① はがれかけた木の皮','② スギゴケのようなコケ植物','③ 菌類と藻類がいっしょに暮らす生きもの（地衣類）'], ok:2,
+   hint:'一つの生きものに見えて、じつは二つのなかまが組んでできています。',
+   clue:'幹の地衣類 ── 菌類と藻類の組みあわせ',
+   done:'見つかっても、見つからなくても大丈夫。一本の木だけでは、この道の空気のことは決められません。手がかりの一つ、というくらいに覚えておいて。',
+   facts:[
+    ['s','地衣類は、菌類が藻類（緑藻やシアノバクテリア）をからだの中に住まわせて暮らす生きもの。コケ植物とは別のなかまです。ただ、日本語の「コケ」は、もとは花の咲かない小さな植物をまとめて呼ぶ言葉で、地衣類にも使われてきました。ただ、②のスギゴケのようなコケ植物とは、からだのつくりがまったくちがいます。','wlichen'],
+    ['s','ウメノキゴケは、木の皮や岩に付く灰緑色の地衣類。排気ガスに弱く、都市の中心には少ないので、空気の汚れの目安に使われます。','wumeno'],
+   ],
+   tryit:'見つけたら、幹の高い所と低い所で、付き方がちがうか見てみて。' },
+
+ { place:'二の鳥居の手前の石燈籠', fig:'lantern', figcap:'模式の絵（形は実物とちがいます）',
+   walk:'平成ひろばの北の端で、さいたま春日部線を、信号と横断歩道で渡ります。渡った先、二の鳥居の手前に、一対の石燈籠があります。',
+   at:'この区間は短く、すぐ先にも横切る道があります。燈籠の脇の、人の通りをふさがない所で止まります。',
+   aoi:'燈籠（とうろう）の、いちばん下の台のあたりを見て。だれかが、こちらをのぞいています。燈籠のまわりの囲いには入らず、外から見てね。',
+   aoiHome:'絵の燈籠の、いちばん下の暗いすき間を見て。そこから、だれかがのぞいています。',
+   q:'台の脚のあいだから、顔をのぞかせている動物は？',
+   choices:['獅子','龍','狐'], ok:0,
+   hint:'燈籠そのものに彫られた顔です（鳥居の前の狛犬とは別）。神社の入口で、対になって座っていることの多い、あの顔のなかま。',
+   clue:'八方睨み（はっぽうにらみ）の獅子 ── 嘉永 6 年（1853）',
+   done:'一基で四方、それが二基。百七十年あまり前、大宮だけでなく、周りの村や江戸の町の人も、この燈籠に名を寄せていたんですね。',
+   facts:[
+    ['s','この一対の石燈籠は嘉永（かえい）6 年（1853）のもの。神社によると、台の四本の脚のあいだから、眉の垂れた獅子が顔をのぞかせています。四方に顔をのぞかせた燈籠が二基あることから、「八方睨みの獅子」と言われています。','yuisho'],
+    ['s','片方の燈籠の正面には大宮宿の本陣・山崎喜左ェ門の名があり、大宮だけでなく、周りの村々や江戸の町の地名も刻まれています。広い範囲の人たちが寄進したことがわかります。','yuisho'],
+   ],
+   tryit:'刻まれた地名を、一つ読めるか試してみて。どこから来た人の名でしょう。' },
+
+ { place:'二の鳥居から三の鳥居の手前まで', fig:'avenue', figcap:'氷川道中の 3D の参道（並木の形は模式）',
+   walk:'燈籠と二の鳥居のあいだの、横切る道を渡ります。二の鳥居をくぐると、三の鳥居まで車の入らない参道が約 430 m 続きます。両側の木を見ながら歩きます。',
+   at:'三の鳥居の手前、境内の横の道を渡る前で、人の流れの端に止まります。この版は、ここで終わりです。',
+   aoi:'三つ目の謎で見た葉を、思い出して。二の鳥居から先、両側に並ぶ木を、よく見てきましたか。',
+   aoiHome:'三つ目の謎で見た葉を、思い出して。この参道には、およそ七百本の木が並んでいます。',
+   q:'この参道で、いちばん多い木は？',
+   choices:['スギ','ケヤキ','サクラ'], ok:1,
+   hint:'ぎざぎざの歯が、葉先へ弓なりに曲がる、あの葉の木です。',
+   clue:'並木 ── 杉並木からケヤキの並木へ',
+   done:'でも、並木はむかしからケヤキだったわけではありません。大正から昭和のはじめ、ここは杉並木でした。',
+   facts:[
+    ['s','2002 年から 2010 年にかけて調べた木を、2011 年 3 月の時点でまとめると、ケヤキが全体の 62.5%、次いでスダジイが 9.8%。2011 年の時点の数字なので、いまの割合はこれとちがうかもしれません。','jumoku'],
+    ['s','大正から昭和のはじめ、参道はうっそうとした杉並木で、「並木十八丁鉾杉つづき」と歌われていました。','yuisho'],
+    ['s','同じ調査では、戦前の参道に並んでいたスギ・ヒノキのなかまは、10 本ほどにまで減っていました。','jumoku'],
+    ['t','杉がケヤキに変わった理由は、一つに決まっていません。神社は、戦中・戦後の資材難による伐採、車の排気ガスや振動、地下水脈の低下、歩く人による根もとの踏み固めなど、いくつもの要因を挙げています。','yuisho'],
+   ],
+   tryit:'' },
+];
+
+const $ = s => document.querySelector(s);
+const store = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+};
+let mode = store.get('nazo-kit-mode') || 'site';
+let solved = store.get('nazo-kit-solved') || [];
+let cur = 0;
+
+function setMode(m){
+  mode = m; store.set('nazo-kit-mode', m);
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+}
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); if (!$('#game').classList.contains('hide')) render(); }));
+setMode(mode);
+if (solved.length) $('#resume').classList.remove('hide');
+
+function srcHTML(k){ const s = SRC[k]; return s.u ? `<a href="${s.u}" target="_blank" rel="noopener">${s.t}</a>` : s.t; }
+function markHTML(m){ return m === 's' ? '<i class="mk s" aria-label="典拠で確かめられること">◎</i>' : '<i class="mk t" aria-label="言い伝え・諸説があること">△</i>'; }
+
+function mapState(){
+  document.querySelectorAll('.route .stop').forEach(g => {
+    const n = +g.dataset.n - 1;
+    g.classList.toggle('done', solved.includes(n));
+    g.classList.toggle('cur', !$('#game').classList.contains('hide') && n === cur);
+  });
+}
+
+function dots(){
+  $('#dots').innerHTML = STOPS.map((s,i) => `<button type="button" class="${solved.includes(i)?'done':''}" ${i===cur?'aria-current="step"':''} aria-label="謎 ${i+1}：${s.place}${solved.includes(i)?'（解いた）':''}">${i+1}</button>`).join('');
+  $('#dots').querySelectorAll('button').forEach((b,i) => b.addEventListener('click', () => { cur = i; render(); }));
+}
+
+function render(){
+  const s = STOPS[cur], done = solved.includes(cur), home = mode === 'home';
+  $('#stop').innerHTML = `
+    <p class="kicker">謎 ${cur+1} ／ 6</p>
+    <h2>${s.place}</h2>
+    ${home ? '' : `<div class="walk"><span class="k">ここまでの道（歩くあいだは画面をしまう）</span>${s.walk}</div><div class="stopat"><span class="k">止まる所</span>${s.at}</div>`}
+    <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${home && s.aoiHome ? s.aoiHome : s.aoi}</div></div>
+    ${home ? `<div class="fig">${FIG[s.fig]}<p class="cap">${s.figcap}</p></div>` : `<details class="fig"><summary>絵で見る（家で遊ぶときの絵）</summary>${FIG[s.fig]}<p class="cap">${s.figcap}</p></details>`}
+    <p class="q">${s.q}</p>
+    <div class="choices" role="group" aria-label="答え">${s.choices.map((c,i)=>`<button type="button" data-i="${i}">${c}</button>`).join('')}</div>
+    <div class="fb" id="fb"></div>
+    <div class="row"><button type="button" class="ghost" id="hintBtn">碧にヒントをもらう</button><button type="button" class="ghost hide" id="showAns">答えを見る</button></div>
+    <div class="ans ${done?'':'hide'}" id="ans">
+      <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${s.done}</div></div>
+      <h3>確かめたこと</h3>
+      ${s.facts.map(f => `<div class="fact">${markHTML(f[0])}<p>${f[1]}<span class="src">${srcHTML(f[2])}</span></p></div>`).join('')}
+      ${s.tryit ? `<div class="try"><span class="k">もう一度見る</span>${s.tryit}</div>` : ''}
+      <div class="row"><button type="button" class="go" id="next">${cur < STOPS.length-1 ? (home ? '次の謎へ' : '次の場所へ（画面をしまって歩く）') : '結びへ'}</button></div>
+    </div>`;
+  let wrong = 0;
+  const bs = $('#stop').querySelectorAll('.choices button');
+  const reveal = () => {
+    bs.forEach((b,i)=>{ if (i===s.ok && !b.classList.contains('right')) { b.classList.add('right'); b.insertAdjacentText('afterbegin','✓ '); } b.disabled = true; });
+    $('#ans').classList.remove('hide'); $('#hintBtn').classList.add('hide'); $('#showAns').classList.add('hide');
+    if (!solved.includes(cur)) { solved.push(cur); store.set('nazo-kit-solved', solved); }
+    dots(); mapState();
+  };
+  if (done) reveal();
+  bs.forEach((b,i) => b.addEventListener('click', () => {
+    if (i === s.ok) { $('#fb').innerHTML = '<p style="color:var(--ok);margin:4px 0">正解です。</p>'; reveal(); $('#ans').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); }
+    else { wrong++; b.classList.add('wrong'); b.disabled = true;
+      $('#fb').innerHTML = `<div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${wrong===1 ? 'うーん、もう一度見てみて。' : 'ヒントを一つ。'}${s.hint}</div></div>`;
+      $('#hintBtn').classList.add('hide'); if (wrong >= 1) $('#showAns').classList.remove('hide'); }
+  }));
+  $('#hintBtn').addEventListener('click', () => { $('#fb').innerHTML = `<div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${s.hint}</div></div>`; $('#hintBtn').classList.add('hide'); $('#showAns').classList.remove('hide'); });
+  $('#showAns').addEventListener('click', reveal);
+  $('#next').addEventListener('click', () => {
+    if (cur < STOPS.length-1) { cur++; render(); window.scrollTo(0, $('#game').offsetTop - 8); }
+    else showEnd();
+  });
+  dots(); mapState();
+}
+
+function show(id){ ['#intro','#game','#end'].forEach(x => $(x).classList.toggle('hide', x !== id)); mapState(); window.scrollTo(0,0); }
+function showEnd(){
+  $('#clues').innerHTML = STOPS.map((s,i) => `<li>${solved.includes(i) ? s.clue : s.place + '（まだ）'}</li>`).join('');
+  show('#end');
+}
+$('#start').addEventListener('click', () => { cur = 0; show('#game'); render(); });
+$('#resume').addEventListener('click', () => { cur = Math.min(STOPS.length-1, STOPS.findIndex((_,i)=>!solved.includes(i)) < 0 ? STOPS.length-1 : STOPS.findIndex((_,i)=>!solved.includes(i))); show('#game'); render(); });
+$('#toTop').addEventListener('click', () => { show('#intro'); if (solved.length) $('#resume').classList.remove('hide'); });
+$('#again').addEventListener('click', () => { show('#intro'); $('#resume').classList.remove('hide'); });
+$('#reset').addEventListener('click', () => { solved = []; store.set('nazo-kit-solved', solved); cur = 0; show('#game'); render(); });
+mapState();
+})();
+</script>
+</body>
+</html>
