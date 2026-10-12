@@ -110,6 +110,27 @@ details.fig > summary { cursor:pointer; padding:10px 14px; min-height:44px; colo
 .fact .src { display:block; font-size:15px; color:var(--sub); margin-top:2px; }
 .try { background:var(--aoi2); border-radius:12px; padding:8px 14px; margin:10px 0; font-size:15px; }
 .try .k { font-size:12px; color:var(--aoi); letter-spacing:.1em; display:block; }
+.obs { border:1px solid var(--aoi); border-radius:12px; padding:8px 14px 10px; margin:10px 0; background:var(--panel); }
+.obs .k, .mikata .k { font-size:12px; color:var(--aoi); letter-spacing:.1em; display:block; }
+.obs p { margin:2px 0 8px; }
+.obs .opts { display:grid; gap:8px; }
+.obs .opts button { text-align:left; padding:8px 14px; }
+.obs .opts button[aria-pressed="true"] { background:var(--aoi2); border-color:var(--aoi); }
+.cnt { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.cnt button.step { width:48px; padding:0; font-size:22px; }
+.cnt output { min-width:2.4em; text-align:center; font-size:22px; font-weight:500; }
+button.link { background:none; border:none; color:var(--sub); text-decoration:underline; min-height:44px; padding:6px 0; font-size:14px; }
+.obsfb { margin:6px 0 0; font-size:15px; }
+.mikata { border:1px solid var(--edo); border-radius:12px; padding:8px 14px 4px; margin:12px 0; background:var(--edo2); }
+.mikata .k { color:var(--edo); }
+.mikata .mt { font-family:"Shippori Mincho B1", serif; font-size:18px; margin:2px 0 0; line-height:1.5; }
+.mikata .msay { margin:6px 0 8px; font-size:15px; }
+.mikata .who { font-size:12px; color:var(--aoi); letter-spacing:.1em; margin-right:8px; }
+.mklist { margin:6px 0; padding-left:1.6em; }
+.mklist li { margin:6px 0; }
+.mklist .ms { display:block; font-size:14px; color:var(--sub); }
+.mklist li.yet { color:var(--sub); }
+.fuda img { display:block; width:100%; max-width:420px; height:auto; margin:10px auto; border:1px solid var(--line); border-radius:10px; }
 .marks { font-size:14px; color:var(--sub); margin:6px 0; }
 .marks span { display:inline-flex; align-items:center; gap:6px; margin-right:14px; }
 footer { font-size:13px; color:var(--sub); margin-top:28px; border-top:1px solid var(--line); padding-top:12px; }
@@ -148,6 +169,10 @@ footer p { margin:6px 0; }
   #print .pans > div { break-inside:avoid; font-size:8.5pt; }
   #print .pans b { font-size:9pt; }
   #print .pans .psrc { color:var(--sub); font-size:7.5pt; display:block; }
+  #print .pmk { margin:0; padding-left:4.5mm; }
+  #print .pmk li { margin:0 0 .6mm; }
+  #print .pmk span { color:var(--sub); }
+  #print .pq .pob { font-size:8pt; margin:.4mm 0; }
   #print .pfoot { font-size:7.5pt; color:var(--sub); margin-top:3mm; border-top:.3mm solid var(--line); padding-top:1mm; }
   a { color:inherit; text-decoration:none; }
 }
@@ -179,9 +204,10 @@ footer p { margin:6px 0; }
 
   <div class="card">
     <h2>遊び方</h2>
-    <div class="facts"><div><b>約 1.9 km</b>道のり</div><div><b>60〜90 分</b>目安</div><div><b>6 問</b>選んで答える</div></div>
+    <div class="facts"><div><b>約 1.9 km</b>道のり</div><div><b>60〜90 分</b>目安</div><div><b>6 問</b>見て答える</div></div>
     <p>参道の両脇の細い溝は、むかしの道幅の線。いつもの道に、そんな手がかりが六つ隠れています。</p>
-    <p>決められた所で立ち止まり、目の前の物を見て、答えを選びます。迷ったら碧のヒントを。解けると、その物の来歴と、確かめた典拠が開きます。</p>
+    <p>決められた所で立ち止まり、まず目の前の物を数えたり比べたりしてから、答えを選びます。迷ったら碧のヒントを。解けると、その物の来歴と、確かめた典拠が開きます。</p>
+    <p>解くたびに、ほかの場所でも使える「見方」が一つ手に入ります。六つそろうと、画像の札にして持ち帰れます。</p>
     <p class="marks"><span><i class="mk s">◎</i>典拠で確かめられること</span><span><i class="mk t">△</i>言い伝え・諸説があること</span></p>
     <p>現地に行けない日は「家で遊ぶ」を選んでください。物の形を、模式の絵で見ながら解けます。</p>
     <div class="mode" role="group" aria-label="遊ぶ場所">
@@ -265,6 +291,17 @@ footer p { margin:6px 0; }
     <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>おつかれさまでした。石は江戸、燈籠は江戸の終わり、溝は令和、並木は杉からケヤキへ。次にこの道に手を重ねるのは、だれでしょう。</div></div>
     <h3>見つけた手がかり</h3>
     <ol class="rules" id="clues"></ol>
+  </div>
+  <div class="card fade" id="fudaCard">
+    <p class="kicker">持ち帰る</p>
+    <h2>見方の札</h2>
+    <p>ほかの場所でも使える、六つの見方です。家の近くの道・神社・並木で、試してみてください。</p>
+    <ol class="mklist" id="mklist"></ol>
+    <div class="fuda"><img id="fudaImg" alt="見方の札の画像" class="hide"></div>
+    <div class="row"><button type="button" class="go" id="fudaSave">札を画像で保存</button></div>
+    <p class="sub" id="fudaNote">画像はこの端末の中で作ります。どこにも送りません。うまく保存できないときは、画像を長押しして保存してください。</p>
+  </div>
+  <div class="card fade">
     <div class="try"><span class="k">帰り道に</span>まっすぐな幹に、針のような葉をつけた木を探してみてください。杉とヒノキのなかまは、2011 年の記録で 10 本ほどに減っていました。</div>
     <p>家では、氷川道中の 3D の参道を、碧と歩けます。<a href="https://mitsulab-soil.github.io/aoi-walk-hikawa/" target="_blank" rel="noopener">氷川道中をひらく ↗</a></p>
     <div class="row"><button type="button" id="again">はじめの画面へ</button><button type="button" class="ghost" id="reset">はじめから遊びなおす</button></div>
@@ -376,6 +413,10 @@ const STOPS = [
     ['s','石には、もとは「本地聖観世音」の文字もありましたが、慶応 4 年（1868）の神仏判然令を受けて削られ、わずかな痕が残るだけです。明治 14 年には裏に「官幣大社　氷川神社」と彫って正面に向けられましたが、いまは元に戻され、「武藏國一宮」が読めます。','yuisho'],
     ['s','一宮は、国ごとに、いちばん格が高いとされた神社の呼び名。平安時代の終わりごろから使われるようになったとされます。','wichi'],
    ],
+   obs:{ k:'count', max:9, ask:'答える前に。石にいちばん大きく刻まれた字を、上から目で数えてみて。いくつ？', askHome:'答える前に。絵の石の字を、伏せた所も入れて数えてみて。いくつ？',
+     re:n => n===5 ? '五つ。上の三文字は読めましたか。残りの二文字が、この謎です。' : `${n} つ。いちばん大きな字だけなら、五つのはず。もう一度見てから、問いへ。` },
+   mk:{ t:'刻まれた年から、数え戻す', s:'石碑や燈籠に刻まれた年を探し、いまから何年前かを数える',
+     say:'ほかの神社や道ばたでも、石碑や燈籠に刻まれた年を探してみて。享保 7 年は 1722 年、いまからおよそ 300 年前。石の年と、文字が指す時代が、ちがうこともあります。' },
    tryit:'削られた文字の痕が、わずかに残っているそうです。石のどこかに見つかるか、目で探してみて（読めなくても大丈夫）。' },
 
  { place:'中区間の石の道', fig:'road', figcap:'模式の絵（上から見たところ。幅の比は実物とちがいます）',
@@ -393,6 +434,10 @@ const STOPS = [
     ['s','工事のお知らせの図では、真ん中の灰色の御影石の帯は幅 3.5 m、その両脇は洗い出しの透水性コンクリート。工事は 2019 年 9 月に始まりました。','dayori17'],
     ['s','一間は六尺。明治 24 年の度量衡法で一尺は 10/33 m と決まり、いまの長さに直すと、一間はおよそ 1.82 m、三間はおよそ 5.5 m です。','shaku'],
    ],
+   obs:{ k:'pick', ask:'答える前に。外側の細い溝の線から、反対側の溝の線まで。それと、真ん中の灰色の石の帯。どちらの幅が広いか、目で比べて。', askHome:'答える前に。絵で、細い溝の線から反対側の線までと、真ん中の灰色の帯。どちらの幅が広いか、比べて。',
+     opts:['溝から溝のほうが広い','石の帯のほうが広い'], re:i => i===0 ? 'そう、外の線のほうが広い。その差が手がかりです。' : 'もう一度、外の細い線まで目を広げてみて。石の帯は、その内側にあります。' },
+   mk:{ t:'足もとの線に、むかしの幅を探す', s:'色や石が切りかわる線、細い溝を見つけたら、何の境かを考える',
+     say:'いつもの道でも、舗装の色や石が切りかわる線、細い溝を探してみて。見つけたら、その幅を目で測って、何の境なのかを考える。ここでは、その線がむかしの道幅でした。' },
    tryit:'溝の線を目でたどって、どこまで続いているか見てみて。道の幅を、歩かずに目で測る練習です。' },
 
  { place:'中区間の並木の足もと', fig:'leaf', figcap:'模式の絵（葉のふちを大きくしたところ）',
@@ -409,6 +454,10 @@ const STOPS = [
     ['s','ケヤキの葉のふちの歯は、葉先へ向かって曲線を描いて並び、先がとがります。','wkeyaki'],
     ['s','ケヤキは、さいたま市の木です。','city'],
    ],
+   obs:{ k:'count', max:40, ask:'答える前に。道に落ちている葉を一枚、葉先を上にして見て。片側のふちの歯を数えてみて（だいたいで大丈夫）。', askHome:'答える前に。絵のいちばん上の葉の、ふちの歯を数えてみて。',
+     re:n => `${n} こ。その歯の一つを、よく見て。先は、どちらへ曲がっている？` },
+   mk:{ t:'葉のふちの歯を読む', s:'知らない木は、落ち葉一枚のふちの歯の向きと形から',
+     say:'知らない木に会ったら、落ち葉を一枚。ふちの歯の向きと形を見るだけで、木の名前に一歩近づけます。ふちがなめらかな葉もあるので、比べてみて。' },
    tryit:'ほかの形の葉も、一枚見つけて比べてみて。ふちがなめらかな葉もあります。落ち葉にさわったら、あとで手を洗いましょう。' },
 
  { place:'平成ひろばの並木', fig:'trunk', figcap:'模式の絵',
@@ -425,6 +474,10 @@ const STOPS = [
     ['s','地衣類は、菌類が藻類（緑藻やシアノバクテリア）をからだの中に住まわせて暮らす生きもの。コケ植物とは別のなかまです。なお、日本語の「コケ」は、もとは花の咲かない小さな植物をまとめて呼ぶ言葉で、地衣類にも使われてきました。ただ、②のスギゴケのようなコケ植物とは、からだのつくりがまったくちがいます。','wlichen'],
     ['s','ウメノキゴケは、木の皮や岩に付く灰緑色の地衣類。排気ガスなど大気の汚れに弱く、都市の中心には少ないので、空気の汚れの目安に使われます。','wumeno'],
    ],
+   obs:{ k:'count', max:3, ask:'答える前に。植えこみの外から、近くの幹を 3 本見て。灰色がかった緑の平たいものが付いていたのは、何本？', askHome:'答える前に。絵の幹に、灰色がかった緑の平たいものは、いくつ付いている？', maxHome:5,
+     re:(n,home) => n===0 ? '0 本でも、ちゃんとした記録です。見つからない木もあります。' : (home ? `${n} つ。では、これは何のなかま？` : `${n} 本。付いていた高さも、覚えておいて。`) },
+   mk:{ t:'幹の上の暮らしを、何本も比べる', s:'幹の灰緑色の平たいものを、一本で決めず、場所を変えて比べる',
+     say:'街路樹や公園の木でも、幹の灰緑色の平たいものを探してみて。空気の汚れに弱いなかまもいます。一本で決めずに、街の真ん中と木の多い所で、何本も比べてみて。' },
    tryit:'見つけたら、幹の高い所と低い所で、付き方がちがうか見てみて。' },
 
  { place:'二の鳥居の手前の石燈籠', fig:'lantern', figcap:'模式の絵（形は実物とちがいます）',
@@ -441,6 +494,10 @@ const STOPS = [
     ['s','この一対の石燈籠は嘉永（かえい）6 年（1853）のもの。神社によると、台の四本の脚のあいだから、眉の垂れた獅子が顔をのぞかせています。四方に顔をのぞかせた燈籠が二基あることから、「八方睨みの獅子」と言われています。','yuisho'],
     ['s','片方の燈籠の正面には大宮宿の本陣・山崎喜左ェ門の名があり、大宮だけでなく、周りの村々や江戸の町の地名も刻まれています。広い範囲の人たちが寄進したことがわかります。','yuisho'],
    ],
+   obs:{ k:'pick', home:false, ask:'答える前に。囲いの外から、燈籠のいちばん下の台を見て。脚のあいだに、顔は見えた？',
+     opts:['見えた','よく見えない'], re:i => i===0 ? 'では、その顔の持ち主は？' : '見えなくても大丈夫。「絵で見る」を開いてから答えて。' },
+   mk:{ t:'刻まれた名と地名で、支えた人を読む', s:'燈籠や鳥居に刻まれた名前と地名を、一つ読む',
+     say:'ほかの神社でも、燈籠や鳥居、石の囲いに刻まれた名前と地名を、一つ読んでみて。どこの人がその場所を支えたのかが、見えてきます。' },
    tryit:'刻まれた地名を、一つ読めるか試してみて。どこから来た人の名でしょう。' },
 
  { place:'二の鳥居から三の鳥居の手前まで', fig:'avenue', figcap:'氷川道中の 3D の参道（並木の形は模式）',
@@ -459,6 +516,10 @@ const STOPS = [
     ['s','同じ調査では、戦前の参道に並んでいたスギ・ヒノキのなかまは、10 本ほどにまで減っていました。','jumoku'],
     ['t','杉がケヤキに変わった理由は、一つに決まっていません。神社は、戦中・戦後の資材難による伐採、車の排気ガスや振動、地下水脈の低下、歩く人による根もとの踏み固めなど、いくつもの要因を挙げています。','yuisho'],
    ],
+   obs:{ k:'pick', home:false, ask:'答える前に。足もとか近くの落ち葉を一枚見て。謎 3 の葉と、ふちの形は同じ？', opts:['同じ形','ちがう形','葉が見つからない'],
+     re:i => ['同じ形の葉が、ここにも。','ちがう木の葉かもしれません。参道には、ほかの木も混じっています。','見つからなくても大丈夫。両側の木を見てから、問いへ。'][i] },
+   mk:{ t:'いまの木に、むかしの木を問う', s:'いちばん多い木を数えて、むかしからこの木だったかを問う',
+     say:'並木や公園でも、いちばん多い木を数えて、「むかしから、この木だった？」と問いかけてみて。ここでは、杉並木がケヤキの並木に変わっていました。' },
    tryit:'' },
 ];
 
@@ -469,6 +530,7 @@ const store = {
 };
 let mode = store.get('nazo-kit-mode') || 'site';
 let solved = store.get('nazo-kit-solved') || [];
+let obsv = store.get('nazo-kit-obs') || {};   // 自分で見た記録（数・比べた答え）。この端末の中だけ
 let cur = 0;
 
 function setMode(m){
@@ -497,18 +559,25 @@ function dots(){
 
 function render(){
   const s = STOPS[cur], done = solved.includes(cur), home = mode === 'home';
+  const ob = s.obs && !(home && s.obs.home === false) ? s.obs : null;
+  const needObs = ob && !done && obsv[cur] === undefined;
   $('#stop').innerHTML = `
     <p class="kicker">謎 ${cur+1} ／ 6</p>
     <h2>${s.place}</h2>
     ${home ? '' : `<div class="walk"><span class="k">ここまでの道（歩くあいだは画面をしまう）</span>${s.walk}</div><div class="stopat"><span class="k">止まる所</span>${s.at}</div>`}
     <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${home && s.aoiHome ? s.aoiHome : s.aoi}</div></div>
     ${home ? `<div class="fig">${FIG[s.fig]}<p class="cap">${s.figcap}</p></div>` : `<details class="fig"><summary>絵で見る（家で遊ぶときの絵）</summary>${FIG[s.fig]}<p class="cap">${s.figcap}</p></details>`}
-    <p class="q">${s.q}</p>
+    ${ob ? obsHTML(s, home) : ''}
+    <div id="qwrap" class="${needObs ? 'hide' : ''}">
+    <p class="q" tabindex="-1" id="qq">${s.q}</p>
     <div class="choices" role="group" aria-label="答え">${s.choices.map((c,i)=>`<button type="button" data-i="${i}">${c}</button>`).join('')}</div>
     <div class="fb" id="fb" role="status" aria-live="polite"></div>
     <div class="row"><button type="button" class="ghost" id="hintBtn">碧にヒントをもらう</button><button type="button" class="ghost hide" id="showAns">答えを見る</button></div>
+    </div>
     <div class="ans ${done?'':'hide'}" id="ans">
       <div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${s.done}</div></div>
+      <div class="mikata"><span class="k">持ち帰る見方 ${cur+1} ／ 6</span><p class="mt">${s.mk.t}</p>
+        <p class="msay"><span class="who">碧</span>${s.mk.say}</p></div>
       <h3>確かめたこと</h3>
       ${s.facts.map(f => `<div class="fact">${markHTML(f[0])}<p>${f[1]}<span class="src">${srcHTML(f[2])}</span></p></div>`).join('')}
       ${s.tryit ? `<div class="try"><span class="k">もう一度見る</span>${s.tryit}</div>` : ''}
@@ -523,6 +592,7 @@ function render(){
     dots(); mapState();
   };
   if (done) reveal();
+  if (ob) wireObs(s, ob, home);
   bs.forEach((b,i) => b.addEventListener('click', () => {
     if (i === s.ok) { $('#fb').innerHTML = '<p style="color:var(--ok);margin:4px 0">正解です。</p>'; reveal(); $('#ans').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); }
     else { wrong++; b.classList.add('wrong'); b.disabled = true;
@@ -538,17 +608,114 @@ function render(){
   dots(); mapState();
 }
 
+// 答える前に、自分の目で見る（数える・比べる）。記録はこの端末の中だけ
+function obsHTML(s, home){
+  const o = s.obs, ask = home && o.askHome ? o.askHome : o.ask, v = obsv[cur];
+  const max = home && o.maxHome ? o.maxHome : o.max;
+  const body = o.k === 'count'
+    ? `<div class="cnt"><button type="button" class="step" id="cm" aria-label="一つ減らす">−</button><output id="cv" aria-live="off">${typeof v === 'number' ? v : 0}</output><button type="button" class="step" id="cp" aria-label="一つ増やす">＋</button><button type="button" class="go" id="cok" data-max="${max}">数えた</button></div>`
+    : `<div class="opts" role="group" aria-label="見たこと">${o.opts.map((c,i)=>`<button type="button" data-o="${i}" aria-pressed="${v===i}">${c}</button>`).join('')}</div>`;
+  const fb = v === undefined || v === null ? '' : o.re(v, home);
+  return `<div class="obs" id="obs"><span class="k">まず、見る</span><p>${ask}</p>${body}
+    <div class="obsfb" id="obsfb" role="status" aria-live="polite">${fb ? `<div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${fb}</div></div>` : ''}</div>
+    ${v === undefined ? '<button type="button" class="link" id="obsSkip">見られないときは、とばして問いへ</button>' : ''}</div>`;
+}
+function wireObs(s, o, home){
+  const open = (v, msg) => {
+    obsv[cur] = v; store.set('nazo-kit-obs', obsv);
+    $('#obsfb').innerHTML = msg ? `<div class="say"><img src="web/nazo_kit/aoi_face.webp" width="48" height="48" alt=""><div class="bub"><span class="who">碧</span>${msg}</div></div>` : '';
+    const sk = $('#obsSkip'); if (sk) sk.remove();
+    const w = $('#qwrap'); if (w.classList.contains('hide')) { w.classList.remove('hide'); $('#qq').focus({preventScroll:true}); }
+  };
+  if (o.k === 'count') {
+    const cv = $('#cv'), max = +$('#cok').dataset.max;
+    let n = +cv.textContent;
+    const set = x => { n = Math.max(0, Math.min(max, x)); cv.textContent = n; };
+    $('#cm').addEventListener('click', () => set(n-1));
+    $('#cp').addEventListener('click', () => set(n+1));
+    $('#cok').addEventListener('click', () => open(n, o.re(n, home)));
+  } else {
+    $('#obs').querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => {
+      $('#obs').querySelectorAll('[data-o]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      open(+b.dataset.o, o.re(+b.dataset.o, home));
+    }));
+  }
+  const sk = $('#obsSkip'); if (sk) sk.addEventListener('click', () => open(null, ''));
+}
+
 function show(id){ ['#intro','#game','#end'].forEach(x => $(x).classList.toggle('hide', x !== id)); mapState(); window.scrollTo(0,0); }
 function showEnd(){
   $('#clues').innerHTML = STOPS.map((s,i) => `<li>${solved.includes(i) ? s.clue : s.place + '（まだ）'}</li>`).join('');
+  $('#mklist').innerHTML = STOPS.map((s,i) => solved.includes(i) ? `<li>${s.mk.t}<span class="ms">${s.mk.s}</span></li>` : `<li class="yet">謎 ${i+1} を解くと、手に入ります</li>`).join('');
   show('#end');
+  drawFuda().catch(e => console.warn('札', e));
 }
 $('#start').addEventListener('click', () => { cur = 0; show('#game'); render(); });
 $('#resume').addEventListener('click', () => { cur = Math.min(STOPS.length-1, STOPS.findIndex((_,i)=>!solved.includes(i)) < 0 ? STOPS.length-1 : STOPS.findIndex((_,i)=>!solved.includes(i))); show('#game'); render(); });
 $('#toTop').addEventListener('click', () => { show('#intro'); if (solved.length) $('#resume').classList.remove('hide'); });
 $('#again').addEventListener('click', () => { show('#intro'); $('#resume').classList.remove('hide'); });
-$('#reset').addEventListener('click', () => { solved = []; store.set('nazo-kit-solved', solved); cur = 0; show('#game'); render(); });
+$('#reset').addEventListener('click', () => { solved = []; store.set('nazo-kit-solved', solved); obsv = {}; store.set('nazo-kit-obs', obsv); cur = 0; show('#game'); render(); });
 mapState();
+
+// 見方の札（canvas で作り、PNG で端末に保存する。サーバーには送らない）
+const OBS_LINE = [n => `大きな字 ${n} つ`, i => ['溝から溝のほうが広い','石の帯のほうが広い'][i], n => `葉の歯 ${n} こ`, n => mode === 'home' ? `絵の地衣類 ${n} つ` : `地衣類のある幹 ${n} 本`, i => ['獅子の顔が見えた','顔はよく見えなかった'][i], i => ['謎 3 と同じ形の葉','ちがう形の葉','葉は見つからず'][i]];
+let fudaURL = '';
+async function drawFuda(){
+  const W = 1080, H = 1440, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const M = '"Shippori Mincho B1", serif', G = '"Zen Kaku Gothic New", sans-serif';
+  const all = STOPS.map(s => s.mk.t + s.mk.s).join('') + '見方の札氷川参道で見つけた、ほかの場所でも使える見方自分の目で見たものまだ謎を解くと手に入りますmitsulab.jp/x/04/ © mitsulab. All rights reserved.0123456789年月日、こ大きな字葉の歯地衣類のある幹獅子の顔が見えたよく見えなかった同じ形ちがう見つからず広い石の帯溝';
+  try { await Promise.all([document.fonts.load(`600 60px ${M}`, all), document.fonts.load(`400 28px ${G}`, all), document.fonts.load(`500 28px ${G}`, all)]); } catch(e){}
+  g.fillStyle = '#f4f2ea'; g.fillRect(0,0,W,H);
+  g.strokeStyle = '#2a7f86'; g.lineWidth = 4; g.strokeRect(28,28,W-56,H-56);
+  g.strokeStyle = '#d9d4c4'; g.lineWidth = 2; g.strokeRect(44,44,W-88,H-88);
+  g.fillStyle = '#2a7f86'; g.font = `500 26px ${G}`; g.textBaseline = 'alphabetic';
+  g.fillText('氷川道中 謎解き版', 96, 130);
+  g.fillStyle = '#1d2a27'; g.font = `600 68px ${M}`; g.fillText('見方の札', 96, 214);
+  g.fillStyle = '#4a5a56'; g.font = `400 28px ${G}`; g.fillText('氷川参道で見つけた、ほかの場所でも使える見方', 96, 266);
+  try { const im = await new Promise((res, rej) => { const x = document.querySelector('#end .say img'); if (x && x.complete && x.naturalWidth) return res(x);
+      const y = new Image(); y.onload = () => res(y); y.onerror = rej; setTimeout(rej, 3000); y.src = 'web/nazo_kit/aoi_face.webp'; });
+    g.save(); g.beginPath(); g.arc(W-170, 170, 74, 0, Math.PI*2); g.clip(); g.drawImage(im, W-244, 96, 148, 148); g.restore();
+    g.strokeStyle = '#2a7f86'; g.lineWidth = 4; g.beginPath(); g.arc(W-170, 170, 74, 0, Math.PI*2); g.stroke(); } catch(e){}
+  const wrap = (t, x, y, maxW, lh) => { let line = '', yy = y; for (const ch of t) { if (g.measureText(line + ch).width > maxW && line) { g.fillText(line, x, yy); line = ch; yy += lh; } else line += ch; } if (line) g.fillText(line, x, yy); return yy; };
+  let y = 340;
+  STOPS.forEach((s,i) => {
+    const got = solved.includes(i);
+    g.beginPath(); g.arc(122, y-12, 30, 0, Math.PI*2); g.fillStyle = got ? '#2a7f86' : '#fffdf6'; g.fill(); g.strokeStyle = '#2a7f86'; g.lineWidth = 3; g.stroke();
+    g.fillStyle = got ? '#fff' : '#2a7f86'; g.font = `500 30px ${G}`; g.textAlign = 'center'; g.fillText(String(i+1), 122, y-1); g.textAlign = 'left';
+    if (got) {
+      g.fillStyle = '#1d2a27'; g.font = `600 40px ${M}`; g.fillText(s.mk.t, 176, y);
+      g.fillStyle = '#4a5a56'; g.font = `400 27px ${G}`; const yy = wrap(s.mk.s, 176, y+44, W-176-110, 38);
+      y = yy + 86;
+    } else {
+      g.fillStyle = '#8a958f'; g.font = `400 30px ${G}`; g.fillText(`謎 ${i+1} を解くと、手に入ります`, 176, y);
+      y += 100;
+    }
+  });
+  const seen = STOPS.map((_,i) => (typeof obsv[i] === 'number' && solved.includes(i)) ? OBS_LINE[i](obsv[i]) : '').filter(Boolean);
+  if (seen.length) {
+    g.strokeStyle = '#d9d4c4'; g.lineWidth = 2; g.beginPath(); g.moveTo(96, y-30); g.lineTo(W-96, y-30); g.stroke();
+    g.fillStyle = '#8a5a2b'; g.font = `500 24px ${G}`; g.fillText('自分の目で見たもの', 96, y+8);
+    g.fillStyle = '#1d2a27'; g.font = `400 26px ${G}`;
+    let line = '', yy = y+50; seen.forEach(t => { const nx = line ? line + '　／　' + t : t; if (g.measureText(nx).width > W-192 && line) { g.fillText(line, 96, yy); line = t; yy += 38; } else line = nx; }); if (line) g.fillText(line, 96, yy);
+  }
+  const d = new Date(), ds = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  g.fillStyle = '#4a5a56'; g.font = `400 22px ${G}`;
+  g.fillText(ds + '　mitsulab.jp/x/04/', 96, H-82);
+  g.textAlign = 'right'; g.fillText('© mitsulab. All rights reserved.', W-96, H-82); g.textAlign = 'left';
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  if (fudaURL) URL.revokeObjectURL(fudaURL);
+  fudaURL = URL.createObjectURL(blob);
+  const img = $('#fudaImg'); img.src = fudaURL; img.classList.remove('hide');
+  return fudaURL;
+}
+$('#fudaSave').addEventListener('click', async () => {
+  try {
+    const url = fudaURL || await drawFuda();
+    const a = document.createElement('a'); a.href = url; a.download = 'mikata_hikawa.png';
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch(e) { $('#fudaNote').textContent = 'この端末では保存できませんでした。画像を長押しして保存してください。'; }
+});
 
 // 印刷用（A4・2 枚）
 const strip = t => t.replace(/<[^>]+>/g,'');
@@ -568,11 +735,13 @@ function buildPrint(){
     <h2>歩く前の約束</h2>
     <ol class="prules">${rules}</ol>
     <p class="pwarn">南区間（一の鳥居〜南大通東線）と北区間（中区間の先〜大宮中央通り）は、車道と歩道が並ぶ道です。歩道を歩くだけにして、謎は止まる所で解きます。</p>
-    <h2>六つの問い（止まってから、□ に印を）</h2>
+    <h2>六つの問い（止まって、まず目で数えたり比べたりしてから、□ に印を）</h2>
     <div class="pq">${qs}</div>
     <div class="p2">
       <h2>ヒント</h2>
       <ol class="phint" style="list-style:none">${hints}</ol>
+      <h2>持ち帰る見方（ほかの場所でも）</h2>
+      <ol class="pmk">${STOPS.map(s => `<li>${s.mk.t}　<span>${s.mk.s}</span></li>`).join('')}</ol>
       <p class="fold">✂ ここから下は答え。この線で折って、解くまで隠してください。</p>
       <h2>答えと、確かめたこと</h2>
       <div class="pans">${ans}</div>
