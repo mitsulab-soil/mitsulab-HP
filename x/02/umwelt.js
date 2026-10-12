@@ -5,10 +5,10 @@
    シェーダーで、受けとる細胞の感度から作った行列（uM）と紫外の写し先（uUVw）で置きかえる。近似（README）。
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
-import { makeBody, creaturePortrait, makeCreature } from "./bodies.js?v=20261012real";
-import { buildForest } from "./forest.js?v=20261012native";
+import { makeBody, creaturePortrait, makeCreature } from "./bodies.js?v=20261013fur";
+import { buildForest } from "./forest.js?v=20261013fur";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261012native";
+import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261013fur";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
 
 const $ = id => document.getElementById(id);
@@ -18,6 +18,7 @@ document.title = N.app;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const ease = (dt, k) => 1 - Math.exp(-k * dt);
 const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
+const sstep = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const mobile = innerWidth<700 || matchMedia("(pointer:coarse)").matches;
 let RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -123,8 +124,10 @@ const MATS = [];
 // std＝写真の質感（法線・粗さ・AO の地図）と空の映りこみを持つ面。ほかは軽い Lambert のまま
 function M(hex, o = {}) {
   const base = { color: hex, map: o.map || null, side: o.side ?? THREE.FrontSide, transparent: !!o.transparent, alphaTest: o.alphaTest || 0, vertexColors: !!o.vc };
-  const m = o.basic ? new THREE.MeshBasicMaterial(base) : o.std ? new THREE.MeshStandardMaterial({ ...base, roughness: o.rough ?? .9, metalness: o.metal ?? 0, envMapIntensity: o.env ?? .7,
-    normalMap: o.nmap || null, normalScale: new THREE.Vector2(o.ns ?? 1, o.ns ?? 1), roughnessMap: o.orm || null, aoMap: o.ao || null, aoMapIntensity: o.aoK ?? 1 }) : new THREE.MeshLambertMaterial(base);
+  // phys＝生きものの質感（2026-10-13：クリアコート＝濡れた艶・シーン＝毛や鱗粉の照り・薄膜の虹色。creatures.js が渡す）
+  const SPm = { ...base, roughness: o.rough ?? .9, metalness: o.metal ?? 0, envMapIntensity: o.env ?? .7,
+    normalMap: o.nmap || null, normalScale: new THREE.Vector2(o.ns ?? 1, o.ns ?? 1), roughnessMap: o.orm || null, aoMap: o.ao || null, aoMapIntensity: o.aoK ?? 1 };
+  const m = o.basic ? new THREE.MeshBasicMaterial(base) : o.std && o.phys ? new THREE.MeshPhysicalMaterial({ ...SPm, ...o.phys }) : o.std ? new THREE.MeshStandardMaterial(SPm) : new THREE.MeshLambertMaterial(base);
   if (o.fog === false) m.fog = false; if (o.noTone) m.toneMapped = false;
   prep(m, o); MATS.push(m); return m;
 }
@@ -352,6 +355,16 @@ const residents=[
   {id:'tori',s:.145*1.5,c:[-3,-4],r:[4.2,3.1],h:[2.2,.5],w:.32,ph:0},{id:'tori',s:.145*1.5,c:[-3,-4],r:[4.2,3.1],h:[2.3,.45],w:.32,ph:-.16},{id:'tori',s:.145*1.5,c:[5,-2],r:[3.4,4.4],h:[2.6,.6],w:-.27,ph:2},
   {id:'chou',s:.03*2,c:[4,-3],r:[2.6,1.8],h:[1.0,.3],w:.22,ph:1},{id:'hachi',s:.013*3,c:[-1.5,1.5],r:[1.6,1.2],h:[.8,.25],w:-.45,ph:3},
 ].map((R,i)=>{const b=makeCreature(R.id,mfR,{kind:'ageha',uv:R.id==='chou'?.15:undefined,ph:i*.37});b.scale.setScalar(R.s);b.userData.kind=R.id;b.userData.R=R;b.userData.prev=new THREE.Vector3();b.userData.yaw=0;b.userData.roll=0;forest.add(b);return b;});
+// 蜂の花めぐり（2026-10-13）：花の前でホバリング（小さくゆれて止まる）→ 花にとまる（翅をたたむ）→ 飛びたって、次の花へすばやく移る。
+//   花はオカトラノオの群れ（草地の白い花）から近いものを選ぶ。とまる高さは目安（花穂の上のあたり）
+function beeForage(b,t,dt){const F=b.userData.F||(b.userData.F={st:'go',t0:t,from:b.position.clone(),to:null,i:0,spd:0});
+  if(!F.list){const c=FOREST.whiteFlower.pos;F.list=(FOREST.lists?.tora||[]).filter(it=>Math.hypot(it.x-c.x,it.z-c.z)<5).slice(0,8).map(it=>new THREE.Vector3(it.x,.72*(it.s||1)*(it.sy||1),it.z));if(F.list.length<2)F.list=[c.clone(),c.clone().add(new THREE.Vector3(.8,0,.5)),c.clone().add(new THREE.Vector3(-.6,0,.9))];b.position.copy(F.list[0]).add(new THREE.Vector3(0,.3,0));F.from.copy(b.position);}
+  const fl=F.list[F.i%F.list.length],hov=fl.clone().add(new THREE.Vector3(.07,.05,.07)),u=t-F.t0;
+  if(F.st==='go'){const d=F.from.distanceTo(hov),T=Math.max(.6,d/1.4),k=sstep(0,1,u/T);b.position.lerpVectors(F.from,hov,k);b.position.y+=Math.sin(Math.PI*k)*.15*Math.min(1,d);F.spd=k<1?1.4:0;b.userData.state='fly';faceVelocity(b,dt,.15,.3);if(u>=T){F.st='hover';F.t0=t;F.dur=1+Math.random()*1.5;}}
+  else if(F.st==='hover'){b.position.copy(hov);F.spd=0;b.userData.state='fly';const yaw=Math.atan2(fl.x-hov.x,fl.z-hov.z);b.rotation.set(0,yaw,0,'YXZ');if(u>F.dur){F.st='land';F.t0=t;}}
+  else if(F.st==='land'){const k=sstep(0,.5,u);b.position.lerpVectors(hov,fl,k);if(k>=1){F.st='rest';F.t0=t;F.dur=2+Math.random()*2.5;}}
+  else if(F.st==='rest'){b.position.copy(fl);b.userData.state='rest';if(u>F.dur){F.st='go';F.t0=t;F.from=b.position.clone().add(new THREE.Vector3(0,.04,0));F.i++;b.userData.state='fly';}}
+  b.userData.speed=F.spd;b.userData.animate(t,true);}
 // 進む向きに頭を向ける（造形は頭が +Z）。曲がる速さに合わせて内へ傾け、上り下りで頭を上げ下げする
 function faceVelocity(b,dt,bankK=.35,pitchK=1){if(!b.userData.prev){b.userData.prev=b.position.clone();b.userData.yaw=b.rotation.y;b.userData.roll=0;return;}const p=b.position,q=b.userData.prev,vx=p.x-q.x,vy=p.y-q.y,vz=p.z-q.z,h=Math.hypot(vx,vz);q.copy(p);if(h<1e-5)return;
   const yaw=Math.atan2(vx,vz),dy=wrapA(yaw-b.userData.yaw);b.userData.yaw=yaw;const turn=dt>0?dy/dt:0;b.userData.roll+=(clamp(-turn*bankK,-.8,.8)-b.userData.roll)*ease(dt,6);
@@ -359,7 +372,7 @@ function faceVelocity(b,dt,bankK=.35,pitchK=1){if(!b.userData.prev){b.userData.p
 window.__orient=()=>residents.concat([...butterflies,ageha]).map(b=>{const f=new THREE.Vector3(0,0,1).applyQuaternion(b.getWorldQuaternion(new THREE.Quaternion()));const p=b.getWorldPosition(new THREE.Vector3());const v=p.clone().sub(b.userData.prevW||p);b.userData.prevW=p;return {kind:b.userData.kind||'chou',deg:v.length()>1e-6?+(f.angleTo(v.normalize())*180/Math.PI).toFixed(1):null};});
 // 見る人の身体：頭を前（画面の奥）へ。曲がるときは傾く
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.22);bodyRoot.rotation.y=Math.PI;Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
-let bodyYaw0=0,bodyRoll=0;
+let bodyYaw0=0,bodyRoll=0,showLens='',showT=0;
 const BODYPOS={hachi:[-.11,-.6],chou:[-.12,-.72],tori:[-.12,-.7],inu:[-.2,-.78],hebi:[-.16,-.8],koumori:[-.1,-.75]};
 function setHabitat(place){habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
@@ -953,7 +966,7 @@ $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target
 $("cred").innerHTML = [
   "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。樹皮・葉・土・石の写真は CC0（Poly Haven・ambientCG）。花・モミジとスギの葉・シダ・落ち葉・空の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
   "「なぜ、そう見えるの？」の典拠は、その画面に一つずつ示しています。典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
-  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（外から取りこんだ 3D はありません）。ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・柴犬・マムシ・アブラコウモリ・フトミミズのなかま・夜の蛾。羽ばたき（鳥は実際より遅く、蜂は扇のかすみで示す）やカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
+  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（外から取りこんだ 3D はありません）。ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・柴犬・マムシ・アブラコウモリ・フトミミズのなかま・夜の蛾。羽ばたき（鳥・蝶・コウモリは実際より遅く、蜂は扇のかすみで示す）・毛・艶・透けも、画面の中で作った質感です。動きの典拠は 資料/調べたこと/生き物の動き_典拠.md。やカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
 
 // ---------------------------------------------------------------- はじめて押したとき：音を立て、碧がひとこと
@@ -971,10 +984,10 @@ const clock = new THREE.Clock();
 let echo = { t: 9, next: 0, int: 1.6 }, sonT = 0;
 const ECHO_V = 20;   // 見せる波面の速さ（m/s）。本当の音の速さ（約 340 m/s）を、ゆっくりにしたもの
 let shadowTick = 0;
-let lastFrame=0,simTime=0;
+let lastFrame=0,simTime=0;const FPS={n:0};   // 描いたこまの数（確かめ用）
 addEventListener("visibilitychange",()=>{keys.clear();clock.getDelta();});
 function frame(now=0) {
-  if(document.hidden||now-lastFrame<33){requestAnimationFrame(frame);return;}lastFrame=now;
+  if(document.hidden||now-lastFrame<33){requestAnimationFrame(frame);return;}lastFrame=now;FPS.n++;
   const dt = Math.min(clock.getDelta(), .05); simTime += dt; const t = simTime;
   G.uTime.value = RM ? 0 : t;
   if (mobile && ++shadowTick % 3 === 0) renderer.shadowMap.needsUpdate = true;   // スマホは影の地図の描き直しを 3 こまに 1 回
@@ -982,7 +995,7 @@ function frame(now=0) {
   // 影の地図は、森の中では見る人のまわり（4 m ごとに寄せる）を描く
   if (habitat === 'forest') { const cx = Math.round(me.pos.x / 4) * 4, cz = Math.round(me.pos.z / 4) * 4; if (cx !== sun.target.position.x || cz !== sun.target.position.z) { sun.target.position.set(cx, 0, cz); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position); sun.target.updateMatrixWorld(); if (!renderer.shadowMap.autoUpdate) renderer.shadowMap.needsUpdate = true; } }
   bodyRoot.visible=chapter==='umwelt';
-  if(!RM&&habitat==='forest')residents.forEach(b=>{const R=b.userData.R,p=t*R.w+R.ph;let y=R.h[0]+Math.sin(p*2.3)*R.h[1];if(R.id==='tori')y+=b.userData.bound||0;b.position.set(R.c[0]+Math.sin(p)*R.r[0]+Math.sin(p*3.1)*.3,y,R.c[1]+Math.cos(p)*R.r[1]);faceVelocity(b,dt,R.id==='tori'?.3:.15,R.id==='tori'?.6:.3);const a=b.userData.animate(t,true);if(R.id==='tori')b.userData.bound=((b.userData.bound||0)+(a===-1?-.35:.12)*dt)*.985;});
+  if(!RM&&habitat==='forest')residents.forEach(b=>{const R=b.userData.R,p=t*R.w+R.ph;if(R.id==='hachi'){beeForage(b,t,dt);return;}let y=R.h[0]+Math.sin(p*2.3)*R.h[1];if(R.id==='tori')y+=b.userData.bound||0;b.position.set(R.c[0]+Math.sin(p)*R.r[0]+Math.sin(p*3.1)*.3,y,R.c[1]+Math.cos(p)*R.r[1]);faceVelocity(b,dt,R.id==='tori'?.3:.15,R.id==='tori'?.6:.3);const a=b.userData.animate(t,true);if(R.id==='tori')b.userData.bound=((b.userData.bound||0)+(a===-1?-.35:.12)*dt)*.985;});
   // 生きものの動き
   if (!RM) {
     // 蝶：はばたきながら花のあいだを（モンシロチョウ 2 頭は花壇の上、アゲハはヒナゲシのあたり）
@@ -990,7 +1003,7 @@ function frame(now=0) {
     [...butterflies, ageha].forEach((b, i) => { const ph = t * (b.userData.ageha ? .4 : .55) + b.userData.ph, cx = b.userData.ageha ? 3.4 : 1.6, rx = b.userData.ageha ? 1.1 : 1.4;
       b.position.copy(BB(cx + Math.cos(ph) * rx + Math.sin(ph * 2.3) * .3, .75 + Math.sin(ph * 1.7) * .25, .3 + Math.sin(ph) * 1.0)); if (!b.userData.prev) { b.userData.prev = b.position.clone(); b.userData.yaw = 0; b.userData.roll = 0; } faceVelocity(b, dt, .12, .3); b.userData.flap(t + i * .7); });
     moths.forEach(m => { if (!m.visible) return; const ph = t * .8 + m.userData.ph; m.position.set(Math.cos(ph) * 3 + Math.sin(ph * 1.9), 1.8 + Math.sin(ph * 2.2) * .6, -1 + Math.sin(ph * 1.3) * 3); faceVelocity(m, dt, .1, .5); m.userData.flap(t + m.userData.ph); });
-    bird.rotation.y = (bird.userData.ry0 || 0) + Math.sin(t * .4) * .5; bird.userData.animate(t);
+    bird.rotation.y = bird.userData.ry0 || 0; bird.userData.animate(t);   // 見回し・跳ねて向きを変えるのは、鳥の中で（2026-10-13）
     mouse.position.x = (mouse.userData.x0 ?? -1.1) + Math.sin(t * .3) * .08;
     if (chapter !== "toki") bee.userData.animate(t);
   }
@@ -1006,6 +1019,9 @@ function frame(now=0) {
     const moving=!!me.path||['w','s','a','d','arrowup','arrowdown'].some(k=>keys.has(k)),motion=MOTION[lens];
     if(!RM){camera.position.y+=Math.sin(t*motion.freq)*motion.bob*(moving?1:.18);if(lens==='hebi'&&moving)camera.rotation.z=Math.sin(t*4)*.018;if(lens==='chou'&&moving)camera.rotation.z=Math.sin(t*2)*.025;bodies[lens]?.userData.animate(t,moving);}
     { const dy = wrapA(me.yaw - bodyYaw0); bodyYaw0 = me.yaw; const turn = dt > 0 ? dy / dt : 0; bodyRoll += (clamp(turn * (FLIGHT.has(lens) ? .28 : .08), -.6, .6) - bodyRoll) * ease(dt, 5); bodyRoot.rotation.z = -bodyRoll; }
+    // 身体を切り替えた直後の 2〜3 秒だけ、自分の体を横から寄せて見せる（毛・艶・翅がわかるように。2026-10-13）
+    { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, k = (RM || lens === 'hito' || lens === 'mimizu') ? 0 : sstep(0, .5, u) * (1 - sstep(2.4, 3.2, u)), bp = BODYPOS[lens] || [-.27, -.65];
+      bodyRoot.rotation.y = Math.PI - k * 1.2; bodyRoot.position.set(k * .03, bp[0] + (-.13 - bp[0]) * k, bp[1] + (-.52 - bp[1]) * k); bodyRoot.scale.setScalar(.22 * (1 + .25 * k)); }
     if (quake > 0) { camera.position.y += (Math.random() - .5) * .02 * quake; quake = Math.max(0, quake - dt * 2); }
   }
   $('stage').dataset.flightHeight=flightHeight.toFixed(3);$('stage').dataset.lens=lens;$('stage').dataset.habitat=habitat;$('stage').dataset.position=camera.position.toArray().map(v=>v.toFixed(3)).join(',');$('stage').dataset.depth=me.depth.toFixed(3);
@@ -1069,4 +1085,4 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
   setTimeout(() => { A.appear = true; A.calm = 2.4; }, 400);
 })();
-window.__um = {get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };
+window.__um = {FPS,get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };

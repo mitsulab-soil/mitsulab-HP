@@ -5,7 +5,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { crownHook } from "./zen.js";
-import { makeTit as makeTitR, makeBee as makeBeeR, makeButterfly as makeButterflyR } from "./creatures.js?v=20261012real";   // 2026-10-12 生きものを写実の造形に
+import { makeTit as makeTitR, makeBee as makeBeeR, makeButterfly as makeButterflyR } from "./creatures.js?v=20261013fur";   // 2026-10-12 生きものを写実の造形に
 
 let M, canvasTex, tx;
 // CC0 の写真の質感（Poly Haven・台帳 M-0793〜0796）。読めないときは、この画面で描いた質感のまま
