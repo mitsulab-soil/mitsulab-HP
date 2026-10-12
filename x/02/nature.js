@@ -109,7 +109,7 @@ function barkTex() {
 }
 
 // ---------------------------------------------------------------- 花：ヒマワリ・ルドベキア・ヒナゲシ
-function makeFlowers(garden, sonic, BED) {
+function makeFlowers(garden, sonic, BED, spots = null) {
   const out = new THREE.Group(); garden.add(out);
   // 植え込み（塀ぎわ）へ置く：花壇の座標（x＝長さ・z＝奥行き）を、庭の座標へ
   out.rotation.y = BED.ry; out.position.set(BED.x, 0, BED.z);
@@ -183,9 +183,13 @@ function makeFlowers(garden, sonic, BED) {
     }
     out.add(g); return g;
   }
+  // spots＝[種, x, z, 高さ] の一覧（森の草地では株のかたまりに置く。2026-10-12）。無ければ庭の植え込みの並び
+  if (spots) for (const [k, x, z, h] of spots) plant(k, x, z, h);
+  else {
   for (let i = 0; i < 7; i++) plant("himawari", -3 + (i % 4) * .62 + rnd() * .2, -1.4 + Math.floor(i / 4) * .9 + rnd() * .2, 1.3 + rnd() * .4);
   for (let i = 0; i < 16; i++) plant("rudbeckia", .3 + (i % 5) * .45 + rnd() * .15, -.9 + Math.floor(i / 5) * .5 + rnd() * .15, .5 + rnd() * .2);
   for (let i = 0; i < 14; i++) plant("hinageshi", 2.9 + (i % 4) * .36 + rnd() * .12, -.5 + Math.floor(i / 4) * .45 + rnd() * .12, .42 + rnd() * .15);
+  }
   // 動かない草花は、材質ごとに一つの形にまとめる（描く回数を減らして、スマホを軽く）
   out.updateMatrixWorld(true);
   const byMat = new Map();
@@ -424,4 +428,4 @@ export function buildNature(ctx) {
   return { flowers, leafMat: tree.leafMat, leafIM: tree.leafIM, grass, bird, mouse, butterflies: [fem, mal], ageha, bee };
 }
 
-export {makeTree,makeFlowers,makeGrass};
+export { makeTree, makeFlowers, makeGrass, bladeGeo, stemGeo, geoAt, petalTex, rockGeo, uvGrad, discTex };

@@ -5,7 +5,7 @@
 <meta name="tdm-reservation" content="1">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>胡蝶の夢</title>
-<meta name="description" content="ひとつの庭を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・モグラ・ミミズの受けとり方に切り替えて歩く。碧が案内する。言葉と色、四つの時計も。">
+<meta name="description" content="ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズの受けとり方に切り替えて歩く。碧が案内する。">
 <style>
 :root{--bg:#0f1412;--ink:#eef2ea;--dim:#aab7ad;--line:#33443b;--card:#16201b;--card2:#1d2a23;--aoi:#4fb3a8;--aoi2:#18322f;--gold:#d9c27a;
   --shadow:0 10px 30px rgba(0,0,0,.45);--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;--goth:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif}
@@ -127,7 +127,7 @@ body.big #where small,body.big #legend{font-size:16px}
 </script>
 </head>
 <body>
-<div id="stage" tabindex="0" aria-label="森・池・川・都市がつながる3D空間。右の操作で移動し、なぞると見回す。キーボードは矢印と W A S D、数字の 1 から 9 で受けとり方を切り替える"></div>
+<div id="stage" tabindex="0" aria-label="森・池・川がつながる3D空間。右の操作で移動し、なぞると見回す。キーボードは矢印と W A S D、数字の 1 から 8 で受けとり方を切り替える"></div>
 <div id="veil"></div>
 
 <header id="top">
@@ -166,13 +166,14 @@ body.big #where small,body.big #legend{font-size:16px}
   <label class="opt">音を出す<input type="checkbox" id="optSound" checked></label>
   <label class="opt">動きを減らす<input type="checkbox" id="optRM"></label>
   <label class="opt">文字を大きく<input type="checkbox" id="optBig"></label>
-  <h2>九つの受けとり方（くらべる）</h2>
+  <h2>八つの受けとり方（くらべる）</h2>
   <table id="lensTable"></table>
   <h2>操作</h2>
-  <p>床を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、1〜9 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば。</p>
+  <p>床を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば。</p>
   <h2>この空間のつくり</h2>
   <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、ヒマワリ・ルドベキア・ヒナゲシ・赤く塗った板・モンシロチョウの雌雄・アオガラの頭・ブルーベリーの実・空で、ほかの草木の値は目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
-  <h2>場所のつくり</h2><p>森・池・川・街をつないだ創作空間です。都市の形状にはPLATEAU、地面の写真には国土地理院の公開素材を使用しています。配置と縮尺は再構成しており、実在する地域を連続した座標で再現したものではありません。花の紫外・熱・反響などは感覚の違いを考えるための模式表現です。</p><h2>出典</h2>
+  <h2>場所のつくり</h2><p>森・池・川をつないだ創作空間です。関東の雑木林（コナラ・ケヤキ・イロハモミジ）と谷すじのスギ林の、夏のはじめ（7 月ごろ）の午後のつもりで、木は列にせず散らばるように、草花はそれぞれが育つ場所に群れで置いています。実在する場所を再現したものではありません。花の紫外・熱・反響などは、感覚の違いを考えるための模式表現です。</p>
+  <h2>この森の草花</h2><p>日なたの草地：ヒマワリ・アラゲハンゴンソウ（ルドベキア）・ヒナゲシ・オカトラノオ・ノカンゾウ。林の縁：ヤマユリ・ホタルブクロ。林の中の日陰：ドクダミ・ヤマアジサイ・シダ。水辺：ノハナショウブ・ハンゲショウ・ヨシ。草花の形は図鑑の記載（花びらの数・葉のつき方・花の向き）にそって作り、大きさは実物大です。ヒマワリ・ルドベキア・ヒナゲシは、蜂の目の話のために草地に植えています（ヒナゲシの盛りは 5〜6 月で、季節を少し重ねています）。</p><h2>出典</h2>
   <p id="cred"></p>
   <p>© 2026 mitsulab. All rights reserved. この作品の文章・画像・音声・3D・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。<a href="https://mitsulab.jp/terms/#ai" target="_blank" rel="noopener">利用規約</a></p>
 </div></div>
@@ -180,7 +181,7 @@ body.big #where small,body.big #legend{font-size:16px}
 <div id="boot" role="status" aria-live="polite"><div>
   <b data-n="app">胡蝶の夢</b>
   <div id="prog"><i></i></div>
-  <p id="bootMsg">森と水辺と街を組み立てています。</p>
+  <p id="bootMsg">森と水辺を組み立てています。</p>
   <button class="btn pri" id="start" hidden>世界に入る（音が出ます）</button>
 </div></div>
 
@@ -190,9 +191,9 @@ body.big #where small,body.big #legend{font-size:16px}
 })();
 </script>
 <script src="data/paths.js?v=20261010"></script>
-<script src="data/script.js?v=20261011d"></script>
-<script src="data/voice.js?v=20261011d" onerror="window.VOICE={}"></script>
-<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261011night' ;document.body.appendChild(s);}</script>
+<script src="data/script.js?v=20261012forest"></script>
+<script src="data/voice.js?v=20261012forest" onerror="window.VOICE={}"></script>
+<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261012forest' ;document.body.appendChild(s);}</script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
 </body>
 </html>

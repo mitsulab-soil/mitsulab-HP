@@ -5,9 +5,10 @@
    シェーダーで、受けとる細胞の感度から作った行列（uM）と紫外の写し先（uUVw）で置きかえる。近似（README）。
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
-import {makeBody,creaturePortrait,flowerForest} from "./bodies.js?v=20261011night";
+import { makeBody, creaturePortrait } from "./bodies.js?v=20261012forest";
+import { buildForest } from "./forest.js?v=20261012forest";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261011night";
+import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261012forest";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
 
 const $ = id => document.getElementById(id);
@@ -98,11 +99,6 @@ if (uMode == 1) {            // マムシ：目の像を暗く、温かいもの
   float trail = d < uEcho.w ? exp(-(uEcho.w - d) * .5) * .3 : 0.0;
   float k = (band + trail) * (1.0 - smoothstep(6.0, 17.0, d)) * uEchoK;
   gl_FragColor.rgb = gl_FragColor.rgb * .015 + vec3(.55, .82, 1.0) * k;
-} else if (uMode == 3) {     // モグラ：鼻先がふれたところだけ（アイマー器官）
-  float d = distance(vWP, uTouch.xyz);
-  float k = 1.0 - smoothstep(uTouch.w * .45, uTouch.w, d);
-  float n = fract(sin(dot(floor(vWP * 70.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
-  gl_FragColor.rgb = vec3(.012) + vec3(.96, .84, .66) * k * (.45 + .55 * step(.5, n));
 } else if (uMode == 4) {     // ミミズ：明るさだけ
   gl_FragColor.rgb = vec3(uWorm);
 }
@@ -171,6 +167,7 @@ function paintSky(dir, dusk = 0, lit = 1) {
     c.setXYZ(i, col.r * lit, col.g * lit, col.b * lit); }
   c.needsUpdate = true;
   scene.fog.color.copy(hz).multiplyScalar(lit * .97);
+  if (habitat === "forest") scene.fog.color.lerp(new THREE.Color(0x9fb09a).multiplyScalar(lit), .55);   // 森の中のかすみは、緑がかった灰色
 }
 // 池（なめらかな水面：音を前へはね返すので、反響は弱い＝Greif & Siemers 2010）
 const POND = { x: -8, z: -7.4, r: 2.4 };
@@ -219,9 +216,10 @@ const redBoard = new THREE.Group();
   redBoard.add(top);
   redBoard.position.copy(bed(1.4, 0, 2.2)); redBoard.rotation.y = BED.ry - .2; garden.add(redBoard); sonic.push(top);
 }
+let berryBush = null;
 // ブルーベリーのような実の茂み（実の白い粉＝ブルームが紫外を返す：Siitari et al. 1999）
 {
-  const bush = new THREE.Group(); bush.position.set(6.4, 0, -9.9);
+  const bush = new THREE.Group(); bush.position.set(6.4, 0, -9.9); berryBush = bush;
   // 葉：写真の葉を小枝に互生させた房（LeafSet014・CC0）を、株の形（横に広い楕円体）に散らす。房 0.24 m（葉一枚 約 4〜5 cm）。2026-10-09
   { const sp = tx("leaf_spray2.webp", 1, 1); sp.wrapS = sp.wrapT = THREE.ClampToEdgeWrapping;
     const n = mobile ? 260 : 520, geo = new THREE.PlaneGeometry(.24, .24).translate(0, .12, 0), im = new THREE.InstancedMesh(geo, M(0xffffff, { std: true, map: sp, alphaTest: .45, side: THREE.DoubleSide, rough: .55, env: .5, uv: .04, temp: .12, wind: .02, windH: 1.2, key: "crown", hook: crownHook }), n);
@@ -233,7 +231,7 @@ const redBoard = new THREE.Group();
     const stems = []; for (let i = 0; i < 9; i++) { const a = i * 2.4, g = new THREE.CylinderGeometry(.008, .015, .75, 5).translate(0, .37, 0); g.rotateZ(Math.cos(a) * .35).rotateX(Math.sin(a) * .3); stems.push(g); }
     bush.add(new THREE.Mesh(mergeGeometries(stems), M(0x5a4a3a, { uv: .05, temp: .1 }))); }
   const berryM = M(0x4a5a8a, { uv: .55, temp: .15 }), bg = new THREE.SphereGeometry(.035, 8, 6);
-  for (let i = 0; i < 40; i++) { const a = i * 2.39996, b = new THREE.Mesh(bg, berryM); b.position.set(Math.cos(a) * .82, .35 + (i % 7) * .09, Math.sin(a) * .62); bush.add(b); if (i < 6) sonic.push(b); }
+  { const gs = []; for (let i = 0; i < 40; i++) { const a = i * 2.39996; gs.push(bg.clone().translate(Math.cos(a) * .82, .35 + (i % 7) * .09, Math.sin(a) * .62)); } const b = new THREE.Mesh(mergeGeometries(gs), berryM); bush.add(b); sonic.push(b); }   // 実は一つの形にまとめて描く
   garden.add(bush);
 }
 // 蛾（夜・コウモリの獲物）
@@ -300,32 +298,9 @@ function drawWall() {
 }
 drawWall();
 
-// ---------------------------------------------------------------- 土の中（モグラ・ミミズ）── 庭の下の別の場所（y＝UG）
+// ---------------------------------------------------------------- 土の中（ミミズ）── 森の下の別の場所（y＝UG）。明るさだけを見せる
 const UG = -40;
-const under = new THREE.Group(); under.visible = false; scene.add(under);
-const TUN = new THREE.CatmullRomCurve3([[0, 0, 4], [3, .1, 2], [4, -.1, -1.5], [1.5, 0, -4], [-2, .05, -3.5], [-4, -.1, 0], [-2.5, 0, 3]].map(([x, y, z]) => new THREE.Vector3(x, UG + y, z)), true, "catmullrom", .5);
-const tunPick = [];
-{
-  const soilM = M(0x9a8a7a, { map: photoTex("soil_forest.webp", 60, 3), side: THREE.BackSide, uv: .02, temp: .1 });   // 森の土の写真（Forest Ground 04・CC0）
-  const tube = new THREE.Mesh(new THREE.TubeGeometry(TUN, 220, .32, 14, true), soilM); under.add(tube); tunPick.push(tube);
-  // 根（トンネルを横ぎる）・石・ミミズ（壁から半分出ている）
-  const rootM = M(0xc9b48a, { uv: .05, temp: .1 }), stoneM = M(0x8a8478, { uv: .05, temp: .1 }), wormM = M(0xb86a5e, { uv: .05, temp: .2 });
-  for (let i = 0; i < 26; i++) {
-    const t = i / 26 + .013, p = TUN.getPointAt(t), tg = TUN.getTangentAt(t), side = new THREE.Vector3().crossVectors(tg, new THREE.Vector3(0, 1, 0)).normalize();
-    if (i % 3 === 0) { const r = new THREE.Mesh(new THREE.CylinderGeometry(.012, .02, .9, 6), rootM); r.position.copy(p).addScaledVector(side, (i % 2 ? .1 : -.12)); r.rotation.set(.3 * (i % 2 ? 1 : -1), 0, .25); under.add(r); }
-    else if (i % 3 === 1) { const s = new THREE.Mesh(new THREE.DodecahedronGeometry(.09 + (i % 4) * .02, 0), stoneM); s.position.copy(p).addScaledVector(side, .3 * (i % 2 ? 1 : -1)).add(new THREE.Vector3(0, -.2 + (i % 5) * .08, 0)); under.add(s); }
-    else {
-      const pts = []; for (let k = 0; k < 6; k++) pts.push(p.clone().addScaledVector(side, (i % 2 ? 1 : -1) * (.36 - k * .05)).add(new THREE.Vector3(Math.sin(k) * .03, -.12 + k * .02, Math.cos(k * 1.3) * .03)));
-      const w = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, .012, 6), wormM); w.userData.base = w.position.clone(); w.userData.ph = i; under.add(w);
-    }
-  }
-}
-
-// モグラの鼻先（画面の下のまん中）：裸の桃色の鼻先に、アイマー器官の小さな粒。ふれたところが浮かぶのは、この鼻先の前
 scene.add(camera);
-const snout = new THREE.Mesh(new THREE.ConeGeometry(.034, .16, 18, 1, true).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: canvasTex(64, 64, (g, w, h) => { g.fillStyle = "#c98f86"; g.fillRect(0, 0, w, h); for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(255,225,215,${.4 + Math.random() * .5})`; g.beginPath(); g.arc(Math.random() * w, Math.random() * h, 1.2, 0, 7); g.fill(); } }) }));
-const snoutTip = new THREE.Mesh(new THREE.CircleGeometry(.009, 16), new THREE.MeshBasicMaterial({ color: 0xf0c4b8 })); snoutTip.position.z = -.08; snout.add(snoutTip);
-snout.position.set(0, -.085, -.27); snout.visible = false; camera.add(snout);
 
 // ---------------------------------------------------------------- 受けとり方（lens）
 //   行列は「入る linear RGB → 出す linear RGB」。紫外（uv）は uUVw の向きへ足す。数字は受けとる細胞の感度の山からの近似（README）。
@@ -344,26 +319,34 @@ const LENS = {
   inu: { eye: .5, spot: [...xz(bed(.4, 0, 4.6)), ...xyz(bed(1.4, .45, 2.2))], m: [.367322, .860646, -.227968, .280085, .672501, .047413, -.01182, .04294, .968881], uvw: [0, 0, 0], blur: .3, sub: "青と黄緑あたりの二色型", legend: "<b>二色型の近似</b><br>ぼかし＝細かさの見分けがあらい" },
   hebi: { eye: .25, mode: 1, spot: [MOUSE.x - .5, MOUSE.z + 1.4, MOUSE.x, .08, MOUSE.z], m: I3, uvw: [0, 0, 0], sub: "目と、ピット（赤外を熱で感じる）", legend: "<b>明るいところ</b>＝温かいもの<br>温かいものを見ると、低い音" },
   koumori: { eye: 2.0, mode: 2, spot: [.5, 6.5, 1, 1.6, -1], m: I3, uvw: [0, 0, 0], night: true, sub: "反響で形をとらえる（エコーロケーション）", legend: "<b>光る輪</b>＝声のとどいたところ<br>（ゆっくりにして見せている）<br>音＝人に聞こえる高さに下げた作り音" },
-  mogura: { under: "touch", mode: 3, m: I3, uvw: [0, 0, 0], sub: "鼻先のアイマー器官でふれる", legend: "<b>浮かぶところ</b>＝鼻先がふれたところ" },
   mimizu: { under: "light", mode: 4, m: I3, uvw: [0, 0, 0], sub: "目はない・体で光の明るさを感じる", legend: "<b>画面の明るさ</b>＝光の明るさだけ<br>▲▼で上へ・下へ" },
 };
 const FLIGHT=new Set(['hachi','chou','tori','koumori']);
-const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:2,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mogura:{speed:.12,bob:.009,freq:9},mimizu:{speed:.04,bob:0,freq:3}};
-const forest=flowerForest(M,pick,sonic);scene.add(forest);scene.add(sky);
-for(let i=0;i<18;i++){const a=i*2.399,r=8+(i%4)*3;makeTree(forest,sonic,{x:Math.cos(a)*r,z:Math.sin(a)*r});}
-for(const [x,z,ry] of [[-5,-3,.3],[5,-6,-.4],[-7,5,1]])makeFlowers(forest,sonic,{x,z,ry});
-makeGrass(forest,r=>{const a=r()*Math.PI*2,d=2+r()*22;return [Math.cos(a)*d,Math.sin(a)*d];});
-forest.children[0].material.map=photoTex('soil_forest.webp',12,12);forest.children[0].material.needsUpdate=true;
-forest.traverse(o=>{if(o.isMesh){o.receiveShadow=true;o.castShadow=true;}});let habitat='forest',flightHeight=1.5;
+const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:2,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mimizu:{speed:.04,bob:0,freq:3}};
+// 森（2026-10-12 組み直し：モグラと都市を外し、木と草花を森らしく。forest.js）
+const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='forest',flightHeight=1.5;
 const waterMaterial=M(0x426e70,{std:true,rough:.08,metal:.2,uv:.12,temp:.1,echo:.08});
-const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);forest.add(pool);
-const riverCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-8,.035,-7),new THREE.Vector3(-5,.035,-13),new THREE.Vector3(1,.035,-15),new THREE.Vector3(9,.035,-12),new THREE.Vector3(18,.035,-7)]);const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,90,.75,12,false),waterMaterial);river.scale.y=.035;forest.add(river);
-const aerial=new THREE.TextureLoader().load('assets/world/tex_photo_s.jpg');aerial.colorSpace=THREE.SRGBColorSpace;const cityFloor=new THREE.Mesh(new THREE.PlaneGeometry(22,22),M(0xffffff,{std:true,map:aerial,uv:.04,temp:.15}));cityFloor.rotation.x=-Math.PI/2;cityFloor.position.set(17,.02,0);forest.add(cityFloor);
-let cityReady=false;
-async function loadCity(){try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);const l=new GLTFLoader();l.setMeshoptDecoder(MeshoptDecoder);const data=await l.loadAsync('assets/world/buildings_lite.glb');const group=data.scene,box=new THREE.Box3().setFromObject(group),center=box.getCenter(new THREE.Vector3()),extent=box.getSize(new THREE.Vector3()),scale=18/Math.max(extent.x,extent.z);group.scale.setScalar(scale);group.position.set(16-center.x*scale,-box.min.y*scale,-center.z*scale);group.traverse(o=>{if(o.isMesh){if(!o.geometry.attributes.normal)o.geometry.computeVertexNormals();o.material=M(0xd5d6ca,{std:true,vc:!!o.geometry.attributes.color,uv:.04,temp:.2});}});forest.add(group);cityReady=true;}catch(e){console.warn('都市モデルを読み込めませんでした',e);}}
-loadCity();
+const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);pool.userData.noCast=true;forest.add(pool);
+const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;river.userData.noCast=true;forest.add(river);
+const FOREST=buildForest({M,tx,canvasTex,photoTex,forest,pick,sonic,mobile,riverCurve});
+scene.fog.density=mobile?.03:.026;   // 木々の奥が、かすみに溶ける
+// 庭で作った生きものと赤い板・実の茂みを、森の草地へ（碧の話に出てくるもの）
+{const MW=FOREST.meadow;
+ bird.position.copy(FOREST.perch);bird.userData.ry0=Math.atan2(FOREST.perchDir.x,FOREST.perchDir.z)+Math.PI/2;bird.rotation.y=bird.userData.ry0;forest.add(bird);
+ mouse.position.set(MW.x-2.1,.06,MW.z+2.9);mouse.userData.x0=mouse.position.x;mouse.rotation.y=2.4;forest.add(mouse);
+ for(const b of [...butterflies,ageha])forest.add(b);
+ const sf=FOREST.sunflower;bee.position.copy(sf.pos).addScaledVector(sf.dir,.2);bee.position.y-=.02;bee.lookAt(sf.pos);forest.add(bee);
+ redBoard.position.set(MW.x+3.4,0,MW.z+3.0);redBoard.rotation.y=.45;forest.add(redBoard);
+ if(berryBush){berryBush.position.set(MW.x-4.3,0,MW.z-.6);forest.add(berryBush);}}
+const FSPOT={
+  hachi:()=>{const sf=FOREST.sunflower,p=sf.pos.clone().addScaledVector(sf.dir,1.5);return [p.x,p.z,sf.pos.clone().add(new THREE.Vector3(0,-.5,0))];},
+  chou:()=>[FOREST.meadow.x-.6,FOREST.meadow.z+4.2,new THREE.Vector3(FOREST.meadow.x+.4,.7,FOREST.meadow.z)],
+  tori:()=>{const b=bird.position;return [b.x-2.2,b.z+2.4,b.clone()];},
+  hebi:()=>[mouse.position.x+.6,mouse.position.z+1.5,mouse.position.clone()],
+};
+const meadowBed=(x,y,z)=>new THREE.Vector3(FOREST.meadow.x-2.5+x,y,FOREST.meadow.z-.3+z);
 const bodies=Object.fromEntries(S.lens.map(l=>[l.id,makeBody(l.id,c=>M(c,{temp:.7,uv:.05}))]));
-const residents=['chou','chou','hachi','hachi','tori','tori','hebi'].map((id,i)=>{const b=makeBody(id,c=>M(c,{uv:id==='chou'?.7:.1,temp:.7}));b.scale.setScalar(id==='tori'?.3:id==='hebi'?.25:.16);b.userData.kind=id;b.userData.phase=i*1.9;forest.add(b);return b;});
+const residents=['chou','hachi','tori'].map((id,i)=>{const b=makeBody(id,c=>M(c,{uv:id==='chou'?.7:.1,temp:.7}));b.scale.setScalar(id==='tori'?.3:id==='hebi'?.25:.16);b.userData.kind=id;b.userData.phase=i*1.9;forest.add(b);return b;});
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.22);Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
 function setHabitat(place){habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
@@ -376,14 +359,13 @@ function applyLens(id) {
   if (night) { hemi.intensity = .05; sun.intensity = 0;scene.fog.color.set(0x020306); } else setDay(LIT.base);
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
   for (const m of moths) m.visible = night;
-  garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';under.visible = L.under === "touch";
+  garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';if(FOREST.shafts)FOREST.shafts.visible=(id==='hito'||id==='inu')&&!night;
   flightHeight=L.eye||1.5;
   Object.entries(bodies).forEach(([key,b])=>{b.visible=key===id&&key!=='hito'&&!L.under;});
   $('flightControls').hidden=!FLIGHT.has(id)||chapter!=='umwelt';
   $('moveNote').textContent=FLIGHT.has(id)?'飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも操作）':id==='hebi'?'地面を這う · W A S D':L.under?'土の中を進む · 矢印／上へ・下へ':'歩く · W A S D ／ 押した場所へ';
   $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
-  snout.visible = id === "mogura" && chapter === "umwelt";
 }
 
 // ---------------------------------------------------------------- 見る人（カメラ）の動き
@@ -395,7 +377,7 @@ function setFov() { const a = innerWidth / innerHeight; camera.fov = a < .8 ? 72
 setFov();
 addEventListener("resize", () => { renderer.setSize(innerWidth, innerHeight); setFov(); if (chapter === "iro") { frameWall(); iroLook.x = clamp(iroLook.x, -iroLook.pan, iroLook.pan); } layoutToki(); });
 function okGround(x, z) {   // 塀の内側と縁側。池・木・石組み・植え込みはよける
-  if(habitat==='forest'){if(x<-27||x>29||z<-25||z>26)return false;if(!FLIGHT.has(lens)&&Math.hypot(x+8,z+7)<4.6)return false;return true;}
+  if(habitat==='forest'){if(x<-27||x>29||z<-25||z>26)return false;if(!FLIGHT.has(lens)&&Math.hypot(x+8,z+7)<4.6)return false;return !FOREST.blocked(x,z,FLIGHT.has(lens)?.15:.25);}   // 幹・藪・石・倒木はよける
   if(FLIGHT.has(lens)) return x>YARD.x0+.3&&x<YARD.x1-.3&&z>YARD.z0+.3&&z<ENGAWA.z1-.5;
   if (x < YARD.x0 + .4 || x > YARD.x1 - .4 || z < YARD.z0 + .4 || z > ENGAWA.z1 - .5) return false;
   if (Math.hypot(x - POND.x, z - POND.z) < POND.r + .3 || Math.hypot(x - TREE.x, z - TREE.z) < .7) return false;
@@ -414,20 +396,9 @@ function walkTo(x, z) {
 const ringM = new THREE.Mesh(new THREE.RingGeometry(.18, .24, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false }));
 ringM.rotation.x = -Math.PI / 2; scene.add(ringM);
 function ring(x, z) { ringM.position.set(x, .03, z); ringM.material.opacity = .8; ringM.scale.setScalar(1); }
-// 土の中：トンネルの曲線の上の位置（0〜1）
-let tunT = 0, tunGoal = null;
 function moveCam(dt) {
   const L = LENS[lens];
   if (chapter !== "umwelt") return;
-  if (L?.under === "touch") {
-    let v = 0; if (keys.has("w") || keys.has("arrowup")) v = .12; if (keys.has("s") || keys.has("arrowdown")) v = -.12;
-    if (v) tunGoal = null;
-    if (tunGoal != null) { const d = wrapT(tunGoal - tunT); v = clamp(d, -.05, .05) * 2.4; if (Math.abs(d) < .002) tunGoal = null; }
-    if (v) { tunT = (tunT + v * dt + 1) % 1; if (Math.random() < dt * 6) tick(); }
-    const p = TUN.getPointAt(tunT), tg = TUN.getTangentAt(tunT);
-    me.pos.copy(p); if (v) { const want = Math.atan2(-tg.x * Math.sign(v), -tg.z * Math.sign(v)); me.yaw += wrapA(want - me.yaw) * ease(dt, 3); }
-    return;
-  }
   if (L?.under === "light") { me.pos.set(0, UG, 0); return; }
   // 歩く
   let fx = 0, fz = 0; const sp = MOTION[lens].speed;
@@ -448,7 +419,6 @@ function moveCam(dt) {
   if(FLIGHT.has(lens)){const up=keys.has('r'),down=keys.has('f');flightHeight=clamp(flightHeight+((up?1:0)-(down?1:0))*dt*1.4,.25,8);eye=flightHeight;}
   me.pos.y += (eye - me.pos.y) * ease(dt, 6);   // 縁側の上では床の高さぶん上
 }
-const wrapT = d => ((d % 1) + 1.5) % 1 - .5;
 // なぞる（ドラッグ）と押す（タップ）を分ける。数 px 動いたらタップにしない、二本指もタップにしない
 const drag = { on: false, x: 0, y: 0, moved: 0, id: null, recent: false, multi: false };
 const el = renderer.domElement, ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -483,15 +453,8 @@ function onTap(x, y) {
   }
   if (chapter !== "umwelt") return;
   const L = LENS[lens];
-  if (L.under === "touch") { const h = ray.intersectObjects(tunPick)[0]; if (!h) return; tunGoal = nearestT(h.point); return; }
   if (L.under) return;
   const h = ray.intersectObjects(pick)[0]; if (h) walkTo(h.point.x, h.point.z);
-}
-function nearestT(p) {
-  let best = tunT, bd = 1e9; for (let i = 0; i < 400; i++) { const t = i / 400, d = TUN.getPointAt(t).distanceToSquared(p); if (d < bd) { bd = d; best = t; } }
-  // 一回で進むのは 6 m まで
-  const len = TUN.getLength(), dt = wrapT(best - tunT), lim = MAX_STEP / len;
-  return (tunT + clamp(dt, -lim, lim) + 1) % 1;
 }
 addEventListener("keydown", e => {
   // 設定を読んでいる間は庭の移動・視点・音声のショートカットを止める。
@@ -507,7 +470,7 @@ addEventListener("keydown", e => {
   }
   if (e.target.closest?.("input,button") && e.key === " ") return;
   const k = e.key.toLowerCase(); first();
-  if (/^[1-9]$/.test(k) && chapter === "umwelt") { setLens(LENS_IDS[+k - 1]); return; }
+  if (/^[1-8]$/.test(k) && chapter === "umwelt") { setLens(LENS_IDS[+k - 1]); return; }
   if (k === " ") { e.preventDefault(); pauseSpeech(!SP.paused); return; }
   if (k === "n") { skipLine(); return; }
   if (k === "escape") { $("menu").hidden = true; return; }
@@ -547,13 +510,6 @@ function chirp(at, f0, f1, dur, vol) {
 function thump(vol = .5) {
   const c = AUD.ctx; if (!c) return; const t = c.currentTime, o = c.createOscillator(), g = c.createGain();
   o.type = "sine"; o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(34, t + .35); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .5); o.connect(g); g.connect(AUD.master); o.start(t); o.stop(t + .55);
-}
-// 土の中の小さな動物の振動を「まねて作った音」（録音ではない）。Maeder et al. 2022 で 100〜1000 Hz あたりに帯が見えたことにならい、その帯の短いノイズ
-function crackle() {
-  const c = AUD.ctx; if (!c) return; const t = c.currentTime, n = c.createBufferSource(), len = .02 + Math.random() * .05, b = c.createBuffer(1, Math.ceil(c.sampleRate * len), c.sampleRate), d = b.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
-  const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 180 + Math.random() * 700; bp.Q.value = 1.4; const g = c.createGain(); g.gain.value = .05 + Math.random() * .08;
-  n.buffer = b; n.connect(bp); bp.connect(g); g.connect(AUD.master); n.start(t);
 }
 let tickT = 0;
 function tick() { lastTick = performance.now(); const c = AUD.ctx; if (!c || c.currentTime - tickT < .09) return; tickT = c.currentTime; chirp(0, 2600 + Math.random() * 900, 1800, .025, .05); }
@@ -627,7 +583,7 @@ async function loadAoi() {
   } catch (e) { console.warn("碧の姿を読み込めませんでした（声と字幕で案内します）：", e?.message ?? e); }
 }
 function opacity(o) { for (const [mt, tr, dw] of A.mats) { mt.transparent = o < 1 ? true : tr; mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; } }
-// 碧の小さな窓：マムシ・コウモリ・モグラ・ミミズのときは、画面の隅に碧が目を閉じて、同じ受けとり方で「一緒に感じている」姿を出す。
+// 碧の小さな窓：マムシ・コウモリ・ミミズのときは、画面の隅に碧が目を閉じて、同じ受けとり方で「一緒に感じている」姿を出す。
 //   窓のふちの光は、その受けとり方の信号（熱・反響・ふれ・光の明るさ）と同じ拍子で強まる。
 const aoiScene = new THREE.Scene();
 aoiScene.add(new THREE.HemisphereLight(0xeef6ff, 0x404840, 1.7)); { const d = new THREE.DirectionalLight(0xffffff, 1.6); d.position.set(.6, 2, 2); aoiScene.add(d); }
@@ -635,7 +591,6 @@ const aoiCam = new THREE.PerspectiveCamera(26, 1, .05, 20); aoiCam.position.set(
 const WIN = {
   hebi: { c: "#ff9a4a", bg: 0x2a1410, cap: "碧も目を閉じて、熱を感じています" },
   koumori: { c: "#9fd4ff", bg: 0x050b14, cap: "碧も、反響に耳をすましています" },
-  mogura: { c: "#e8cc9a", bg: 0x120c08, cap: "碧も、鼻先でふれています" },
   mimizu: { c: "#ffffff", bg: 0x101010, cap: "碧も、光の明るさだけを感じています" },
 };
 let winSig = 0, lastHeat = 0, lastTick = 0;
@@ -651,7 +606,7 @@ function aoiWindowTick(dt) {
   if (A.calm > 0) { A.calm -= dt; const sbm = vrm.springBoneManager; sbm?.setInitState?.(); sbm?.reset?.(); }
   if (A.fade < 1) { A.fade = Math.min(1, A.fade + dt / 1.2); opacity(A.fade); }
   // 信号の強さ（0〜1）
-  const sig = lens === "hebi" ? lastHeat : lens === "koumori" ? Math.exp(-echo.t * 4) : lens === "mogura" ? Math.exp(-(performance.now() - lastTick) / 160) : G.uWorm.value;
+  const sig = lens === "hebi" ? lastHeat : lens === "koumori" ? Math.exp(-echo.t * 4) : G.uWorm.value;
   winSig += (sig - winSig) * ease(dt, 10); $("aoiWin").style.setProperty("--sig", winSig.toFixed(3));
 }
 function renderAoiWindow() {
@@ -732,8 +687,8 @@ for (const [i, l] of S.lens.entries()) {
   const b = document.createElement("button"); b.className = "pill"; b.dataset.id = l.id; b.setAttribute("aria-pressed", String(l.id === lens)); b.setAttribute("aria-keyshortcuts", String(i + 1));
   b.innerHTML = `<img class="creaturePortrait" alt="" src="${creaturePortrait(l.id)}"><span>${l.name}</span><i>${i + 1}</i>`; b.setAttribute("aria-label",`${l.name}の身体と受けとり方`); b.onclick = () => { first(false); setLens(l.id); }; dial.appendChild(b);
 }
-function layoutBodyWheel(){const selected=LENS_IDS.indexOf(lensRequest);[...dial.children].forEach((b,i)=>{let d=(i-selected+9)%9;if(d>4)d-=9;b.hidden=Math.abs(d)>2;const mobile=innerWidth<700,y=d*(mobile?57:67),x=(mobile?6:16)*(1-Math.abs(d)*.5);b.style.transform=`translate(${x}px,${y-34}px) scale(${1-Math.abs(d)*.13})`;b.style.opacity=String(1-Math.abs(d)*.23);});}
-$('bodyPrev').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+8)%9]);$('bodyNext').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+1)%9]);$('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:8))%9]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
+function layoutBodyWheel(){const selected=LENS_IDS.indexOf(lensRequest);[...dial.children].forEach((b,i)=>{const NL=LENS_IDS.length;let d=(i-selected+NL)%NL;if(d>NL/2)d-=NL;b.hidden=Math.abs(d)>2;const mobile=innerWidth<700,y=d*(mobile?57:67),x=(mobile?6:16)*(1-Math.abs(d)*.5);b.style.transform=`translate(${x}px,${y-34}px) scale(${1-Math.abs(d)*.13})`;b.style.opacity=String(1-Math.abs(d)*.23);});}
+$('bodyPrev').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+LENS_IDS.length-1)%LENS_IDS.length]);$('bodyNext').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+1)%LENS_IDS.length]);$('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:LENS_IDS.length-1))%LENS_IDS.length]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
 async function veil(fn, token) { $("veil").classList.add("on"); await sleep(RM ? 60 : 260); if(token!==undefined&&token!==lensToken)return false; fn(); await sleep(60); if(token!==undefined&&token!==lensToken)return false; $("veil").classList.remove("on");return true; }
 function setWhere() {
   if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").textContent = LENS[lens].sub; }
@@ -751,8 +706,9 @@ async function setLens(id, silent = false) {
   const applied=await veil(() => {
     if (!was.under) { gardenSave.pos.copy(me.pos); gardenSave.yaw = me.yaw; }
     lens = id; const L = LENS[id];
-    if (L.under === "touch") { me.pos.copy(TUN.getPointAt(tunT)); me.pitch = 0; const tg = TUN.getTangentAt(tunT); me.yaw = Math.atan2(-tg.x, -tg.z); }
-    else if (L.under === "light") { me.depth = .25; me.pitch = 0; }
+    if (L.under === "light") { me.depth = .25; me.pitch = 0; }
+    else if (habitat==='forest' && FSPOT[id] && !silent) {   // 話に出てくるものが見える草地の場所へ（蜂はヒマワリの前、マムシはネズミの近く…）
+      const [x, z, tgt] = FSPOT[id](); me.pos.set(x, L.eye || 1, z); me.yaw = Math.atan2(-(tgt.x - x), -(tgt.z - z)); me.pitch = clamp(Math.atan2(tgt.y - (L.eye || 1), Math.hypot(tgt.x - x, tgt.z - z)), -.6, .6); flightHeight = L.eye || 1.5; }
     else if (habitat==='forest') {if(was.under){me.pos.copy(gardenSave.pos);me.yaw=gardenSave.yaw;}me.pos.y=L.eye||1;me.pitch=clamp(me.pitch,-.6,.6);}
     else if (L.spot && !silent) {
       // その生きものの受けとり方がよく分かる場所へ（蜂はヒマワリの前、マムシはネズミの近く…）。向きもそちらへ
@@ -858,7 +814,7 @@ const SUNDIR = new THREE.Vector3();
 function setDay(h) {  // h 時（0〜24）
   const a = (h - 6) / 12 * Math.PI, up = Math.sin(a), el = Math.asin(clamp(up, -1, 1) * Math.sin(55 / 180 * Math.PI));
   SUNDIR.set(-Math.cos(a) * Math.cos(el), Math.sin(el), -Math.sin(a) * .55 * Math.cos(el) - .25).normalize();
-  sun.position.copy(SUNDIR).multiplyScalar(40); sun.target.position.set(0, 0, 0);
+  if (habitat !== 'forest') sun.target.position.set(0, 0, 0); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position);
   const hi = clamp(SUNDIR.y / .5, 0, 1), dusk = clamp(1 - SUNDIR.y / .32, 0, 1) * (SUNDIR.y > -.08 ? 1 : 0);
   sun.intensity = LIT.sun * clamp(SUNDIR.y * 6, 0, 1) * (.75 + .25 * hi);
   sun.color.setRGB(1, .96 - .38 * dusk, .9 - .62 * dusk);                       // 朝夕は赤み
@@ -922,13 +878,13 @@ $("optRM").checked = RM; $("optRM").onchange = e => { RM = e.target.checked; };
 try { $("optBig").checked = localStorage.getItem("umw-big") === "1"; } catch {}
 document.body.classList.toggle("big", $("optBig").checked);
 $("optBig").onchange = e => { document.body.classList.toggle("big", e.target.checked); try { e.target.checked ? localStorage.setItem("umw-big", "1") : localStorage.removeItem("umw-big"); } catch {} };
-// 九つの受けとり方をくらべる表（授業でも使えるように）
+// 八つの受けとり方をくらべる表（授業でも使えるように）
 $("lensTable").innerHTML = S.lens.map(l => `<tr><td>${l.name}</td><td>${LENS[l.id].sub}</td></tr>`).join("");
 $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target.checked ? 1 : 0; };
 $("cred").innerHTML = [
-  "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。草・花・空・土の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
-  "典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Martínez-Harms ら 2020（ヒナゲシ）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Siitari ら 1999（実の紫外）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Eimer 1871・Catania（モグラ）／Darwin 1881（ミミズ）",
-  "生きものの身体と動きは独自の模式造形です。羽ばたきやカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川・都市は体験用に再配置した空間です。",
+  "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。樹皮・葉・土・石の写真は CC0（Poly Haven・ambientCG）。花・モミジとスギの葉・シダ・落ち葉・空の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
+  "典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Martínez-Harms ら 2020（ヒナゲシ）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Siitari ら 1999（実の紫外）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
+  "生きものの身体と動きは独自の模式造形です。羽ばたきやカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです（蜂の話のヒナゲシは 5〜6 月が盛りですが、一緒に咲かせています）。草花の形は図鑑の記載にそって作り、紫外の値は、決めているもの（ヒマワリ・ルドベキア・ヒナゲシ・赤く塗った板など）のほかは目安です。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
 
 // ---------------------------------------------------------------- はじめて押したとき：音を立て、碧がひとこと
@@ -954,16 +910,19 @@ function frame(now=0) {
   G.uTime.value = RM ? 0 : t;
   if (mobile && ++shadowTick % 3 === 0) renderer.shadowMap.needsUpdate = true;   // スマホは影の地図の描き直しを 3 こまに 1 回
   moveCam(dt);
+  // 影の地図は、森の中では見る人のまわり（4 m ごとに寄せる）を描く
+  if (habitat === 'forest') { const cx = Math.round(me.pos.x / 4) * 4, cz = Math.round(me.pos.z / 4) * 4; if (cx !== sun.target.position.x || cz !== sun.target.position.z) { sun.target.position.set(cx, 0, cz); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position); sun.target.updateMatrixWorld(); if (!renderer.shadowMap.autoUpdate) renderer.shadowMap.needsUpdate = true; } }
   bodyRoot.visible=chapter==='umwelt';
   if(!RM&&habitat==='forest')residents.forEach((b,i)=>{const p=t*(b.userData.kind==='chou'?.4:.6)+b.userData.phase;b.position.set(Math.sin(p)*4+(i%2?4:-3),b.userData.kind==='hebi'?.1:1+Math.sin(p*1.7)*.4,Math.cos(p)*4-3);b.rotation.y=-p;b.userData.animate(t,true);});
   // 生きものの動き
   if (!RM) {
     // 蝶：はばたきながら花のあいだを（モンシロチョウ 2 頭は花壇の上、アゲハはヒナゲシのあたり）
+    const BB = habitat === 'forest' ? meadowBed : bed, bry = habitat === 'forest' ? 0 : BED.ry;
     [...butterflies, ageha].forEach((b, i) => { const ph = t * (b.userData.ageha ? .4 : .55) + b.userData.ph, cx = b.userData.ageha ? 3.4 : 1.6, rx = b.userData.ageha ? 1.1 : 1.4;
-      b.position.copy(bed(cx + Math.cos(ph) * rx + Math.sin(ph * 2.3) * .3, .75 + Math.sin(ph * 1.7) * .25, .3 + Math.sin(ph) * 1.0)); b.rotation.y = -ph + BED.ry; const f = Math.sin(t * (b.userData.ageha ? 9 : 13) + i) * .85; b.userData.pl.rotation.z = -f; b.userData.pr.rotation.z = f; });
+      b.position.copy(BB(cx + Math.cos(ph) * rx + Math.sin(ph * 2.3) * .3, .75 + Math.sin(ph * 1.7) * .25, .3 + Math.sin(ph) * 1.0)); b.rotation.y = -ph + bry; const f = Math.sin(t * (b.userData.ageha ? 9 : 13) + i) * .85; b.userData.pl.rotation.z = -f; b.userData.pr.rotation.z = f; });
     moths.forEach(m => { if (!m.visible) return; const ph = t * .8 + m.userData.ph; m.position.set(Math.cos(ph) * 3 + Math.sin(ph * 1.9), 1.8 + Math.sin(ph * 2.2) * .6, -1 + Math.sin(ph * 1.3) * 3); m.rotation.y = ph * 3; m.rotation.x = Math.sin(t * 20 + m.userData.ph) * .5; });
-    bird.rotation.y = Math.sin(t * .4) * .5; bird.userData.head.rotation.y = Math.sin(t * 1.3) * .4;
-    mouse.position.x = -1.1 + Math.sin(t * .3) * .08;
+    bird.rotation.y = (bird.userData.ry0 || 0) + Math.sin(t * .4) * .5; bird.userData.head.rotation.y = Math.sin(t * 1.3) * .4;
+    mouse.position.x = (mouse.userData.x0 ?? -1.1) + Math.sin(t * .3) * .08;
     if (chapter !== "toki") { const a = Math.sin(t * 40) * .9; bee.userData.L.rotation.z = a; bee.userData.Rw.rotation.z = -a; }
   }
   ringM.material.opacity *= Math.pow(.2, dt); ringM.scale.multiplyScalar(1 + dt * .6);
@@ -994,10 +953,7 @@ function frame(now=0) {
     }
     if (echo.o) G.uEcho.value.set(echo.o.x, echo.o.y, echo.o.z, echo.t * ECHO_V);
   }
-  if (chapter === "umwelt" && lens === "mogura") { const f = new THREE.Vector3(); camera.getWorldDirection(f); const p = camera.position.clone().addScaledVector(f, .22); G.uTouch.value.set(p.x, p.y, p.z, .62); }
-  if (chapter === "umwelt" && lens === "mogura" && AUD.ctx && Math.random() < dt * (SP.playing ? 1.5 : 3)) crackle();
   if (chapter === "umwelt" && lens === "mimizu") { G.uWorm.value = clamp(.85 * Math.exp(-me.depth * 3.2), 0, 1) * (1 - .15 * quake); scene.background.setScalar(Math.pow(G.uWorm.value, 2.2)); }
-  under.children.forEach(o => { if (o.userData.base) { o.position.y = Math.sin(t * 1.2 + o.userData.ph) * .01; } });
   // 画面のまん中にあるものを音に（紫外・温かさ）
   sonT -= dt;
   if (AUD.ctx && sonT <= 0) {
@@ -1017,7 +973,8 @@ function frame(now=0) {
 }
 
 // ---------------------------------------------------------------- 影と映りこみ（2026-10-09 よりリアルに）
-setDay(LIT.base);
+setDay(LIT.base); FOREST.aimShafts?.(SUNDIR);
+forest.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; let nc = false; for (let q = o; q; q = q.parent) if (q.userData.noCast) nc = true; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; });
 garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return; o.receiveShadow = true; o.castShadow = !o.userData.noCast && !(mobile && o.userData.smallCast); });
 { // 空の映りこみ（水面・縁側の床・瓦・石の艶）：いつもの時刻の空と、塀の向こうの木々の暗い帯を、映りこみの地図に焼く
   const env = new THREE.Scene(), sk = new THREE.Mesh(sky.geometry, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false })); env.add(sk);
@@ -1031,8 +988,8 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
   me.pos.set(0,1.55,4);prog(20); applyLens("hito"); setWhere(); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
   await loadAoi(); prog(100);
   if (vrm) { A.pos.set(0, 0, 3.4); A.yaw = 0; }
-  $('bodyForward').onclick=()=>{first();if(lens==='mogura'){tunGoal=(tunT+.08)%1;}else if(lens==='mimizu'){me.depth=clamp(me.depth+.04,0,1.5);}else walkTo(me.pos.x-Math.sin(me.yaw)*1.2,me.pos.z-Math.cos(me.yaw)*1.2);};
-  document.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{me.yaw+=b.dataset.turn==='left'?.3:-.3;});$('bodyBack').onclick=()=>{if(LENS[lens].under){if(lens==='mogura')tunGoal=(tunT-.08+1)%1;else me.depth=clamp(me.depth-.04,.02,1.2);}else walkTo(me.pos.x+Math.sin(me.yaw)*1.2,me.pos.z+Math.cos(me.yaw)*1.2);};
+  $('bodyForward').onclick=()=>{first();if(lens==='mimizu'){me.depth=clamp(me.depth+.04,0,1.5);}else walkTo(me.pos.x-Math.sin(me.yaw)*1.2,me.pos.z-Math.cos(me.yaw)*1.2);};
+  document.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{me.yaw+=b.dataset.turn==='left'?.3:-.3;});$('bodyBack').onclick=()=>{if(LENS[lens].under){me.depth=clamp(me.depth-.04,.02,1.2);}else walkTo(me.pos.x+Math.sin(me.yaw)*1.2,me.pos.z+Math.cos(me.yaw)*1.2);};
   document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();setHabitat(b.dataset.habitat);});
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 700);
@@ -1042,4 +999,4 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
   setTimeout(() => { A.appear = true; A.calm = 2.4; }, 400);
 })();
-window.__um = {get habitat(){return habitat;},bodies,forest,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };
+window.__um = {get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };
