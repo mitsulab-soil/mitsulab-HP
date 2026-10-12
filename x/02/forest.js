@@ -1,17 +1,18 @@
 /* 胡蝶の夢：森（2026-10-12）
    本人「モグラは削除。都市のところは削除。花、植物、木など、配置を変えて、より自然な景色に仕上げてください。
          また、花の種類も多様にしてください。まるで森の中を動いているような感覚がいいです。」
-   関東の雑木林（コナラ・ケヤキ・イロハモミジ）と、谷すじのスギ林のつもりの、夏のはじめ（7 月ごろ）の午後の森（ヒナゲシは 5〜6 月が盛りだが、蜂の話のために重ねて咲かせる）。
+   関東の雑木林（コナラ・ケヤキ・イロハモミジ）と、谷すじのスギ林のつもりの、夏のはじめ（7 月ごろ）の午後の森。
    層：高木（樹冠）→ 亜高木・低木（モミジ・ヤマアジサイ・藪）→ 草と花 → 落ち葉と苔。
    置き方：木は最小距離つきの乱数（ポアソン円板）で、列にしない。草花は株のかたまり（群落）で、
            日なたの草地・林の縁・林の中の日陰・水辺と、それぞれの花が育つ場所に置く。
-   花は 11 種（ヤマユリ・ノカンゾウ・オカトラノオ・ホタルブクロ・ドクダミ・ハンゲショウ・ノハナショウブ・ヤマアジサイ
-           ＋ 蜂の話に出るヒマワリ・アラゲハンゴンソウ・ヒナゲシ）。形の根拠は 資料/調べたこと/森の草木_形の確かめ.md。
+   花は 12 種、すべて日本の林・草地・水辺に自然に生える在来種で 7 月ごろに咲くもの（カワラナデシコ・キキョウ・オミナエシ・ウツボグサ・
+           オカトラノオ・ノカンゾウ・ヤマユリ・ホタルブクロ・ドクダミ・ヤマアジサイ・ノハナショウブ・ハンゲショウ）。
+           2026-10-12 栽培種・外来種（ヒマワリ・アラゲハンゴンソウ・ヒナゲシ）と人工物（赤く塗った板）は森から外した。形の根拠は 資料/調べたこと/森の草木_形の確かめ.md。
    軽さ：同じ形は InstancedMesh で一度に描く（木の葉・草・落ち葉・花）。幹は 24 m 四方ごとに一つにまとめて、見えない所は描かない。
    素材：樹皮と葉の写真は CC0（Poly Haven・ambientCG。台帳 M-0793〜0796）。モミジ・スギの葉、シダ、落ち葉、花びらは、この画面の中で描く。 */
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { bladeGeo, stemGeo, geoAt, rockGeo, makeFlowers } from "./nature.js?v=20261012forest";
+import { bladeGeo, stemGeo, geoAt, rockGeo } from "./nature.js?v=20261012native";
 import { crownHook } from "./zen.js";
 
 const TAU = Math.PI * 2, V3 = THREE.Vector3;
@@ -384,6 +385,45 @@ export function buildForest(ctx) {
     for (let i = 0; i < 6; i++) G.add(Mesh(geoAt(new THREE.CylinderGeometry(.006, .012, .7, 4), { y: .35 }).rotateZ(Math.cos(i * 2.4) * .35).rotateX(Math.sin(i * 2.4) * .3), M(0x5a4a3a, { uv: .05, temp: .1 })));
     return bake(G); };
 
+  // ---- カワラナデシコ（Dianthus superbus var. longicalycinus）：草地・河原。茎 30〜80 cm で上で分かれ、細い線形の葉が対生。花は径 3〜4 cm、淡い紅紫の花弁 5 枚の先が糸のように細かく裂ける。長い筒形のがく
+  const nadeTex = canvasTex(64, 128, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = "#e9a7c6"; g.beginPath(); g.moveTo(w * .44, h); g.lineTo(w * .56, h); g.lineTo(w * .62, h * .55);
+    for (let i = 0; i <= 18; i++) { const u = i / 18, x = w * (.62 - u * .24) + Math.sin(u * 40) * 2, a = w * (.5 + (u - .5) * 1.05); g.lineTo(a + (i % 2 ? 0 : 0), i % 2 ? h * .02 : h * .3 + Math.random() * h * .1); }
+    g.lineTo(w * .38, h * .55); g.closePath(); g.fill(); g.fillStyle = "rgba(160,60,110,.55)"; g.fillRect(w * .42, h * .5, w * .16, h * .12); for (let i = 0; i < 18; i++) { g.strokeStyle = "rgba(150,50,100,.5)"; g.beginPath(); g.moveTo(w * .5, h * .55); g.lineTo(w * (.3 + Math.random() * .4), h * (.4 + Math.random() * .1)); g.stroke(); } });
+  const nadeM = mat(0xffffff, { map: nadeTex, alphaTest: .4, uv: .25, sonic: true }), calyxM = mat(0x6f8f62);
+  const nadeProto = () => { const G = new THREE.Group(), h = rr(.45, .6), { geo, curve } = stemGeo(h, .0026, .002, .05); G.add(new THREE.Mesh(geo, stemM));
+    for (let k = 0; k < 5; k++) { const p = curve.getPointAt(.12 + k * .17); for (const sd of [0, Math.PI]) { const lf = new THREE.Mesh(bladeGeo(.06, .005, { cup: .2, curl: -.1, seg: 3 }), leafM); lf.position.copy(p); lf.rotation.set(-.7, sd + k * 1.57, 0, "YXZ"); G.add(lf); } }
+    const flower = () => { const f = new THREE.Group(); f.add(Mesh(geoAt(new THREE.CylinderGeometry(.0035, .003, .028, 6), { rx: Math.PI / 2, z: -.012 }), calyxM));
+      for (let i = 0; i < 5; i++) f.add(new THREE.Mesh(geoAt(bladeGeo(.024, .016, { cup: .05, seg: 3, shape: () => 1 }), { rx: .2 }).rotateZ(i / 5 * TAU), nadeM)); return f; };
+    headAt(G, curve, flower(), -Math.PI / 2 + .35, 0);
+    const p = curve.getPointAt(.8), f2 = flower(); f2.position.set(p.x + .05, p.y + .06, p.z); f2.rotation.set(-Math.PI / 2 + .5, 1.2, 0, "YXZ"); G.add(f2, Mesh(geoAt(new THREE.CylinderGeometry(.0014, .0014, .09, 4), { rz: -.6 }), stemM, { p: [p.x + .025, p.y + .035, p.z] }));
+    return bake(G); };
+  // ---- キキョウ（Platycodon grandiflorus）：日当たりのよい草地。茎 40〜100 cm、卵形の葉が互生し縁に鋸歯。花は青紫で径 4〜5 cm、先が 5 裂した広い鐘形で上〜横を向く。つぼみは風船のようにふくらむ
+  const kikyoM = mat(0x8582e0, { uv: .3, sonic: true }), kikyoVeinM = mat(0xeeeaf6);
+  const kikyoProto = () => { const G = new THREE.Group(), h = rr(.55, .75), { geo, curve } = stemGeo(h, .0035, .0028, .06); G.add(new THREE.Mesh(geo, stemM));
+    alternate(G, curve, 9, .12, .78, () => ovate(.05, .022), leafM, -1.0);
+    const f = new THREE.Group(); for (let i = 0; i < 5; i++) f.add(new THREE.Mesh(geoAt(bladeGeo(.03, .03, { cup: .3, curl: -.15, seg: 5, shape: t => Math.sin(Math.PI * Math.pow(t, .5)) * (t > .8 ? 1 - (t - .8) * 2.5 : 1) }), { rx: .42 }).rotateZ(i / 5 * TAU), kikyoM));
+    f.add(Mesh(geoAt(new THREE.CylinderGeometry(.0015, .0015, .016, 4), { rx: Math.PI / 2, z: .008 }), kikyoVeinM)); headAt(G, curve, f, -Math.PI / 2 + .6, 0);
+    const p = curve.getPointAt(.86), bud = Mesh(new THREE.SphereGeometry(.009, 10, 6), kikyoM, { p: [p.x + .04, p.y + .03, p.z] }); bud.scale.set(1, 1.25, 1); G.add(bud, Mesh(geoAt(new THREE.CylinderGeometry(.0012, .0012, .05, 4), { rz: -.9 }), stemM, { p: [p.x + .02, p.y + .015, p.z] }));
+    return bake(G); };
+  // ---- オミナエシ（Patrinia scabiosifolia）：日当たりのよい草地。茎 60〜100 cm、葉は対生で羽状に裂ける（根もとに多い）。茎の先で分かれ、黄色の小さな花が平らな房（散房状）にたくさんつく
+  const omiTex = canvasTex(64, 64, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 90; i++) { const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * w * .46; g.fillStyle = `hsl(${46 + Math.random() * 8},85%,${50 + Math.random() * 12}%)`; g.beginPath(); g.arc(w / 2 + Math.cos(a) * r, h / 2 + Math.sin(a) * r, 2.6, 0, TAU); g.fill(); } });
+  const omiM = mat(0xffffff, { map: omiTex, alphaTest: .4, uv: .2, sonic: true });
+  const omiProto = () => { const G = new THREE.Group(), h = rr(.75, .95), { geo, curve } = stemGeo(h, .0042, .003, .05); G.add(new THREE.Mesh(geo, stemM));
+    for (let k = 0; k < 4; k++) { const p = curve.getPointAt(.1 + k * .16); for (const sd of [0, Math.PI]) { const lf = new THREE.Mesh(bladeGeo(.09 - k * .012, .035, { cup: .1, curl: -.1, seg: 6, shape: t => Math.sin(Math.PI * Math.pow(t, .6)) * (.55 + .45 * Math.abs(Math.sin(t * 9))) }), darkLeafM); lf.position.copy(p); lf.rotation.set(-.95, sd + k * 1.57, 0, "YXZ"); G.add(lf); } }
+    const top = curve.getPointAt(1);
+    for (let k = 0; k < 6; k++) { const a = k * 2.4, r = k ? .035 + R() * .03 : 0, y = top.y + (k ? -.01 - R() * .02 : .005), x = top.x + Math.cos(a) * r, z = top.z + Math.sin(a) * r;
+      if (k) G.add(Mesh(taperTube([top.clone().add(new V3(0, -.06, 0)), new V3(x, y - .005, z)], .0016, .0012, 3, 2), stemM));
+      const d = Mesh(new THREE.CircleGeometry(.024, 10), omiM, { p: [x, y, z], r: [-Math.PI / 2, 0, 0] }); G.add(d); }
+    return bake(G); };
+  // ---- ウツボグサ（Prunella vulgaris subsp. asiatica）：日当たりのよい草地・道ばた。高さ 20〜30 cm、四角い茎に卵形の葉が対生。茎の先に長さ 3〜6 cm の円柱形の穂、紫色の唇形の花が段になって咲く
+  const utsuTex = canvasTex(32, 64, (g, w, h) => { g.fillStyle = "#9a7ccc"; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 6) { g.fillStyle = "#7d9258"; for (let x = 0; x < w; x += 8) g.fillRect(x + (y / 6 % 2) * 4, y + 3, 4, 3); } });   // 紫の花のあいだに、緑の苞
+  const utsuSpikeM = mat(0xffffff, { map: utsuTex, uv: .3 }), utsuLipM = mat(0xa486d6, { uv: .35, sonic: true });
+  const utsuProto = () => { const G = new THREE.Group(), h = rr(.18, .26), { geo, curve } = stemGeo(h, .0028, .0024, .02); G.add(new THREE.Mesh(geo, stemM));
+    for (let k = 0; k < 3; k++) { const p = curve.getPointAt(.15 + k * .25); for (const sd of [0, Math.PI]) { const lf = new THREE.Mesh(ovate(.04, .02), leafM); lf.position.copy(p); lf.rotation.set(-1.1, sd + k * 1.57, 0, "YXZ"); G.add(lf); } }
+    const top = curve.getPointAt(1); G.add(Mesh(geoAt(new THREE.CylinderGeometry(.009, .01, .045, 8), { x: top.x, y: top.y + .022, z: top.z }), utsuSpikeM));
+    for (let k = 0; k < 9; k++) { const a = k * 2.1, y = top.y + .008 + (k % 3) * .012, lp = new THREE.Mesh(bladeGeo(.016, .008, { cup: .4, curl: -.3, seg: 3 }), utsuLipM); lp.position.set(top.x + Math.cos(a) * .009, y, top.z + Math.sin(a) * .009); lp.rotation.set(-1.0, -a + Math.PI / 2, 0, "YXZ"); G.add(lp); }
+    return bake(G); };
+
   // ---------------------------------------------------------------- 置く（それぞれの花が育つ場所に、群れで）
   const shade = (x, z) => lightAt(x, z) < .35 && free(x, z) && dPath(x, z) > .9 && !inSugi(x, z);
   const edge = (x, z) => { const L = lightAt(x, z); return L > .3 && L < .85 && free(x, z) && dPath(x, z) > .7; };
@@ -393,19 +433,16 @@ export function buildForest(ctx) {
   const item = (x, z, o = {}) => ({ x, z, ry: R() * TAU, s: rr(.82, 1.18), tx: rr(-.06, .06), tz: rr(-.06, .06), ...o });
   const hue = (a, b) => col.clone().setHSL(rr(a[0], b[0]), rr(a[1], b[1]), rr(a[2], b[2]));
 
-  // 草地：ヒマワリ・アラゲハンゴンソウ・ヒナゲシ（蜂の話の花）を、株のかたまりで
-  const spots = []; const mspot = (kind, cx, cz, n, sp, h0, h1) => { for (let j = 0, t = 0; j < n && t < n * 20; t++) { const x = MEADOW.x + cx + gauss() * sp, z = MEADOW.z + cz + gauss() * sp; if (!inM(x, z)) continue; spots.push([kind, x, z, rr(h0, h1)]); j++; } };
-  mspot("himawari", -1.6, -1.8, 3, .35, 1.35, 1.75); mspot("himawari", 1.4, -3.2, 2, .3, 1.3, 1.6);
-  mspot("rudbeckia", -.6, .2, 14, .7, .48, .7); mspot("rudbeckia", 2.6, -1.0, 9, .55, .45, .68); mspot("rudbeckia", -2.9, -.6, 6, .5, .45, .65);
-  mspot("hinageshi", 1.6, 1.6, 11, .5, .4, .6); mspot("hinageshi", -1.2, 2.4, 6, .4, .38, .55);
-  const fl = makeFlowers(forest, sonic, { x: 0, z: 0, ry: 0 }, spots);
-  { const pet = fl.heads[0]; const p = new V3(), q = new THREE.Quaternion(); pet.parent.getWorldPosition(p); pet.parent.getWorldQuaternion(q); out.sunflower = { pos: p, dir: new V3(0, 0, 1).applyQuaternion(q) }; }
-  for (const m of fl.group.children) m.castShadow = !mobile;
-
+  // 草地：日本の草地・林縁に自然に生える在来の草花（2026-10-12 栽培種・外来種のヒマワリ・アラゲハンゴンソウ・ヒナゲシから置きかえ）
+  const mC = (cx, cz, n, sp, mk) => clumpsAt(MEADOW.x + cx, MEADOW.z + cz, n, sp, inM, mk);
   const lists = {
+    nade: [...mC(.6, 1.6, 22, .7, (x, z) => item(x, z)), ...mC(-2.4, .6, 14, .6, (x, z) => item(x, z)), ...mC(2.6, 2.6, 10, .5, (x, z) => item(x, z))],
+    kikyo: [...mC(-.4, .3, 16, .7, (x, z) => item(x, z)), ...mC(2.4, -.8, 11, .6, (x, z) => item(x, z)), ...mC(-2.8, 2.6, 8, .5, (x, z) => item(x, z))],
+    omi: [...mC(1.2, -3.4, 12, .7, (x, z) => item(x, z)), ...mC(-3.4, -.9, 6, .5, (x, z) => item(x, z)), ...clumps(4, 5, .5, (x, z) => sunny(x, z) && near(x, z, -3), sunny, (x, z) => item(x, z))],
+    utsubo: [...mC(-.8, 2.8, 18, .7, (x, z) => item(x, z)), ...mC(1.8, .8, 12, .6, (x, z) => item(x, z)), ...clumps(5, 10, .5, (x, z) => (sunny(x, z) || dPath(x, z) < 1.6) && free(x, z) && lightAt(x, z) > .4 && near(x, z, -3), (x, z) => free(x, z) && lightAt(x, z) > .35, (x, z) => item(x, z))],
     lily: [...clumps(10, 2, .6, (x, z) => edge(x, z) && near(x, z, -2), edge, (x, z) => item(x, z, { v: R() < .5 ? 0 : 1 })), ...clumpsAt(MEADOW.x - 4.6, MEADOW.z - 3.4, 3, .5, edge, (x, z) => item(x, z, { v: 1 }))],
     kanzou: [...clumpsAt(MEADOW.x + 3.6, MEADOW.z + 1.2, 4, .5, inM, (x, z) => item(x, z)), ...clumpsAt(MEADOW.x - 3.8, MEADOW.z + .8, 3, .4, inM, (x, z) => item(x, z)), ...clumps(5, 3, .5, (x, z) => sunny(x, z) && near(x, z, -3), sunny, (x, z) => item(x, z))],
-    tora: (() => { const l = []; for (const [cx, cz, n] of [[3.4, -2.6, 22], [-3.6, -2.4, 16], [.8, 3.6, 12]]) { const ry = rr(0, TAU); l.push(...clumpsAt(MEADOW.x + cx, MEADOW.z + cz, n, .55, inM, (x, z) => item(x, z, { ry: ry + rr(-.4, .4) }))); } l.push(...clumps(5, 10, .6, (x, z) => sunny(x, z) && near(x, z, -3), sunny, (x, z) => item(x, z, { ry: 1.2 + rr(-.4, .4) }))); return l; })(),
+    tora: (() => { const l = []; for (const [cx, cz, n] of [[-1.4, -1.6, 20], [3.4, -2.6, 18], [-3.6, -2.4, 12], [.8, 3.6, 10]]) { const ry = rr(0, TAU); l.push(...clumpsAt(MEADOW.x + cx, MEADOW.z + cz, n, .55, inM, (x, z) => item(x, z, { ry: ry + rr(-.4, .4) }))); } l.push(...clumps(5, 10, .6, (x, z) => sunny(x, z) && near(x, z, -3), sunny, (x, z) => item(x, z, { ry: 1.2 + rr(-.4, .4) }))); return l; })(),
     hotaru: clumps(14, 5, .45, (x, z) => edge(x, z) && near(x, z, -2), edge, (x, z) => item(x, z, { c: R() < .7 ? hue([.86, .25, .74], [.92, .45, .82]) : hue([.1, .05, .93], [.12, .1, .97]) })),
     doku: clumps(Math.round(16 * (mobile ? .7 : 1)), 26, .9, (x, z) => shade(x, z) && near(x, z, -3) && Math.min(dRiver(x, z), dPond(x, z) + 1) < 12, shade, (x, z) => item(x, z, { s: rr(.85, 1.15) })),
     hange: [...clumps(7, 8, .45, (x, z) => wet(x, z) && near(x, z, -2), wet, (x, z) => item(x, z))],
@@ -416,6 +453,10 @@ export function buildForest(ctx) {
   };
   // 近くの草花は細かく、置く数はスマホで間引く（同じ種の群れは残す）
   const thin = l => mobile ? l.filter((_, i) => i % 3 !== 2) : l;
+  field([nadeProto(), nadeProto()], lists.nade);
+  field([kikyoProto(), kikyoProto()], lists.kikyo);
+  field([omiProto(), omiProto()], lists.omi);
+  field([utsuProto()], thin(lists.utsubo), { noCast: true });
   field([lilyProto(1), lilyProto(2)], lists.lily);
   field([kanzouProto(), kanzouProto()], lists.kanzou);
   field([toraProto(), toraProto()], thin(lists.tora));
@@ -426,8 +467,9 @@ export function buildForest(ctx) {
   field([ajiProto()], lists.aji);
   field([fernProto(), fernProto()], lists.fern, { noCast: mobile, noRay: true });
   field([bushProto()], lists.bush, { noRay: true });
+  { const it = lists.tora[0]; out.whiteFlower = { pos: new V3(it.x, .78, it.z) }; }   // 蜂の話の「草地の白い花」（オカトラノオの群れ）
   for (const l of [lists.aji, lists.bush]) for (const it of l) addTrunk([it.x, it.z, .45 * it.s]);
-  out.lists = lists; out.counts = Object.fromEntries(Object.entries(lists).map(([k, l]) => [k, l.length])); out.counts.meadow = spots.length; out.counts.trees = placed.length;
+  out.lists = lists; out.counts = Object.fromEntries(Object.entries(lists).map(([k, l]) => [k, l.length]));  out.counts.trees = placed.length;
 
   // ---------------------------------------------------------------- 水辺のヨシ（池の奥の岸と、川の曲がり）
   {

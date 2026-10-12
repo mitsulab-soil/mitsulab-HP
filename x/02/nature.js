@@ -361,25 +361,32 @@ function makeButterfly(kind, uv, s = 1) {
   g.userData = { pl, pr }; return g;
 }
 // アオガラ（体長 約 12 cm）：頭頂の青・白い頬・黒い過眼線・首の濃い青の輪・黄色い腹・緑がかった背・青い翼に白い帯・青い尾・青灰色の脚（足指 4 本＝前 3・後 1）
-function makeBlueTit(s = 1) {
+// シジュウカラ（Parus minor・体長 約 14.5 cm）：頭は黒く、白い頬。のどから腹の中央へ黒いネクタイ。腹は白っぽい灰色、背の上は黄緑、翼と尾は青灰色で翼に白い帯。2026-10-12 森の鳥を日本の鳥に（アオガラは日本にいない）
+const TIT = {
+  aoigara: { belly: 0xe2cf3e, back: 0x9aa65f, cap: 0x3d83d6, capUV: .9, line: 0x1d2c55, ring: 0x22346a, wing: "#3a6cb4", wingD: "#24477e", tail: 0x2f5ea6, leg: 0x5b6a86, tie: null },
+  shijukara: { belly: 0xd9dbd4, back: 0x8e9a62, cap: 0x151517, capUV: .08, line: 0x151517, ring: 0x151517, wing: "#6c7a8e", wingD: "#4c586a", tail: 0x56637a, leg: 0x6a6f78, tie: 0x151517 },
+};
+function makeBlueTit(s = 1, kind = "shijukara") {
+  const K = TIT[kind];
   const g = new THREE.Group(), m = (c, uv = .06) => M(c, { uv, temp: .95 });
   const add = (geo, mat, o) => { const me = new THREE.Mesh(geoAt(geo, o), mat); g.add(me); return me; };
-  add(new THREE.SphereGeometry(.03 * s, 14, 10), m(0xe2cf3e, .08), { sx: .95, sy: .95, sz: 1.3 });                                     // 腹（黄）
-  add(new THREE.SphereGeometry(.029 * s, 14, 8, 0, TAU, 0, Math.PI / 2.1), m(0x9aa65f), { sx: .97, sy: .9, sz: 1.32, y: .003 * s });    // 背（緑がかる）
+  add(new THREE.SphereGeometry(.03 * s, 14, 10), m(K.belly, .08), { sx: .95, sy: .95, sz: 1.3 });                                     // 腹（黄）
+  add(new THREE.SphereGeometry(.029 * s, 14, 8, 0, TAU, 0, Math.PI / 2.1), m(K.back), { sx: .97, sy: .9, sz: 1.32, y: .003 * s });    // 背（緑がかる）
   const head = new THREE.Group(); head.position.set(0, .026 * s, .032 * s); g.add(head);
   const hadd = (geo, mat, o) => { const me = new THREE.Mesh(geoAt(geo, o), mat); head.add(me); return me; };
   hadd(new THREE.SphereGeometry(.019 * s, 12, 10), m(0xf3f3ee, .15), {});                                                                // 白い頬
-  const cap = hadd(new THREE.SphereGeometry(.0196 * s, 12, 8, 0, TAU, 0, Math.PI / 3), m(0x3d83d6, .9), { y: .001 * s });                 // 頭頂の青（紫外を強く返す）
-  hadd(new THREE.TorusGeometry(.0175 * s, .0028 * s, 5, 16, Math.PI * 1.1), m(0x1d2c55), { rx: Math.PI / 2, ry: 0, rz: -.05 * Math.PI, y: .0045 * s });   // 過眼線（黒〜紺）
-  hadd(new THREE.TorusGeometry(.0185 * s, .003 * s, 5, 18), m(0x22346a), { rx: Math.PI / 2 + .5, y: -.008 * s });                          // 首の濃い青の輪
+  const cap = hadd(new THREE.SphereGeometry(.0196 * s, 12, 8, 0, TAU, 0, Math.PI / 3), m(K.cap, K.capUV), { y: .001 * s });                 // 頭頂の青（紫外を強く返す）
+  hadd(new THREE.TorusGeometry(.0175 * s, .0028 * s, 5, 16, Math.PI * 1.1), m(K.line), { rx: Math.PI / 2, ry: 0, rz: -.05 * Math.PI, y: .0045 * s });   // 過眼線（黒〜紺）
+  hadd(new THREE.TorusGeometry(.0185 * s, .003 * s, 5, 18), m(K.ring), { rx: Math.PI / 2 + .5, y: -.008 * s });
+  if (K.tie) add(new THREE.BoxGeometry(.008 * s, .03 * s, .004 * s), m(K.tie, .05), { rx: -.35, y: -.004 * s, z: .036 * s });   // 黒いネクタイ                          // 首の濃い青の輪
   hadd(new THREE.ConeGeometry(.0035 * s, .009 * s, 6), m(0x27272a, .02), { rx: Math.PI / 2, z: .021 * s, y: -.002 * s });                // 短い嘴
   hadd(new THREE.SphereGeometry(.0028 * s, 6, 5), m(0x0e0e10, .02), { x: .0145 * s, y: .003 * s, z: .009 * s }); hadd(new THREE.SphereGeometry(.0028 * s, 6, 5), m(0x0e0e10, .02), { x: -.0145 * s, y: .003 * s, z: .009 * s });
-  const wingTex = canvasTex(64, 32, (c, w, h) => { c.fillStyle = "#3a6cb4"; c.fillRect(0, 0, w, h); c.fillStyle = "#f2f2ee"; c.fillRect(0, h * .3, w * .8, 4); c.fillStyle = "#24477e"; for (let i = 0; i < 6; i++) c.fillRect(w * .3 + i * 6, h * .55, 3, h * .45); });
-  const wingM = M(0xffffff, { map: wingTex, uv: .5, temp: .9, side: THREE.DoubleSide });
+  const wingTex = canvasTex(64, 32, (c, w, h) => { c.fillStyle = K.wing; c.fillRect(0, 0, w, h); c.fillStyle = "#f2f2ee"; c.fillRect(0, h * .3, w * .8, 4); c.fillStyle = K.wingD; for (let i = 0; i < 6; i++) c.fillRect(w * .3 + i * 6, h * .55, 3, h * .45); });
+  const wingM = M(0xffffff, { map: wingTex, uv: kind === "aoigara" ? .5 : .2, temp: .9, side: THREE.DoubleSide });
   for (const sd of [-1, 1]) add(new THREE.SphereGeometry(.024 * s, 10, 6, 0, Math.PI), wingM, { sx: .3, sy: .7, sz: 1.35, ry: sd * Math.PI / 2, x: sd * .026 * s, y: .004 * s, z: -.006 * s });
-  add(new THREE.BoxGeometry(.016 * s, .003 * s, .05 * s), m(0x2f5ea6, .5), { rx: .35, y: -.004 * s, z: -.055 * s });                      // 尾（青）
+  add(new THREE.BoxGeometry(.016 * s, .003 * s, .05 * s), m(K.tail, .3), { rx: .35, y: -.004 * s, z: -.055 * s });                      // 尾（青）
   // 脚と足指（前 3・後 1）
-  const legM = m(0x5b6a86, .04), lp = [];
+  const legM = m(K.leg, .04), lp = [];
   for (const sd of [-1, 1]) { lp.push(geoAt(new THREE.CylinderGeometry(.0013 * s, .0013 * s, .018 * s, 4), { x: sd * .009 * s, y: -.03 * s }));
     for (const a of [-.45, 0, .45]) lp.push(geoAt(new THREE.CylinderGeometry(.0009 * s, .0009 * s, .011 * s, 3), { rx: Math.PI / 2, ry: a, x: sd * .009 * s, y: -.039 * s, z: .005 * s }));
     lp.push(geoAt(new THREE.CylinderGeometry(.0009 * s, .0009 * s, .009 * s, 3), { rx: Math.PI / 2, x: sd * .009 * s, y: -.039 * s, z: -.0045 * s })); }

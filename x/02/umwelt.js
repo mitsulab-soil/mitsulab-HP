@@ -6,9 +6,9 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { makeBody, creaturePortrait } from "./bodies.js?v=20261012forest";
-import { buildForest } from "./forest.js?v=20261012forest";
+import { buildForest } from "./forest.js?v=20261012native";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261012forest";
+import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261012native";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
 
 const $ = id => document.getElementById(id);
@@ -330,16 +330,14 @@ const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.r
 const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;river.userData.noCast=true;forest.add(river);
 const FOREST=buildForest({M,tx,canvasTex,photoTex,forest,pick,sonic,mobile,riverCurve});
 scene.fog.density=mobile?.03:.026;   // 木々の奥が、かすみに溶ける
-// 庭で作った生きものと赤い板・実の茂みを、森の草地へ（碧の話に出てくるもの）
+// 庭で作った生きもの（シジュウカラ・ネズミ・蝶・蜂）を、森の草地へ（碧の話に出てくるもの）。人工物の赤い板と、栽培種の実の茂みは森に置かない（2026-10-12）
 {const MW=FOREST.meadow;
  bird.position.copy(FOREST.perch);bird.userData.ry0=Math.atan2(FOREST.perchDir.x,FOREST.perchDir.z)+Math.PI/2;bird.rotation.y=bird.userData.ry0;forest.add(bird);
  mouse.position.set(MW.x-2.1,.06,MW.z+2.9);mouse.userData.x0=mouse.position.x;mouse.rotation.y=2.4;forest.add(mouse);
  for(const b of [...butterflies,ageha])forest.add(b);
- const sf=FOREST.sunflower;bee.position.copy(sf.pos).addScaledVector(sf.dir,.2);bee.position.y-=.02;bee.lookAt(sf.pos);forest.add(bee);
- redBoard.position.set(MW.x+3.4,0,MW.z+3.0);redBoard.rotation.y=.45;forest.add(redBoard);
- if(berryBush){berryBush.position.set(MW.x-4.3,0,MW.z-.6);forest.add(berryBush);}}
+ const wf=FOREST.whiteFlower.pos;bee.position.set(wf.x+.18,wf.y,wf.z+.12);bee.lookAt(wf);forest.add(bee);}
 const FSPOT={
-  hachi:()=>{const sf=FOREST.sunflower,p=sf.pos.clone().addScaledVector(sf.dir,1.5);return [p.x,p.z,sf.pos.clone().add(new THREE.Vector3(0,-.5,0))];},
+  hachi:()=>{const w=FOREST.whiteFlower.pos;return [w.x+.4,w.z+1.6,w.clone().add(new THREE.Vector3(0,-.25,0))];},
   chou:()=>[FOREST.meadow.x-.6,FOREST.meadow.z+4.2,new THREE.Vector3(FOREST.meadow.x+.4,.7,FOREST.meadow.z)],
   tori:()=>{const b=bird.position;return [b.x-2.2,b.z+2.4,b.clone()];},
   hebi:()=>[mouse.position.x+.6,mouse.position.z+1.5,mouse.position.clone()],
@@ -707,7 +705,7 @@ async function setLens(id, silent = false) {
     if (!was.under) { gardenSave.pos.copy(me.pos); gardenSave.yaw = me.yaw; }
     lens = id; const L = LENS[id];
     if (L.under === "light") { me.depth = .25; me.pitch = 0; }
-    else if (habitat==='forest' && FSPOT[id] && !silent) {   // 話に出てくるものが見える草地の場所へ（蜂はヒマワリの前、マムシはネズミの近く…）
+    else if (habitat==='forest' && FSPOT[id] && !silent) {   // 話に出てくるものが見える草地の場所へ（蜂は草地の白い花の前、マムシはネズミの近く…）
       const [x, z, tgt] = FSPOT[id](); me.pos.set(x, L.eye || 1, z); me.yaw = Math.atan2(-(tgt.x - x), -(tgt.z - z)); me.pitch = clamp(Math.atan2(tgt.y - (L.eye || 1), Math.hypot(tgt.x - x, tgt.z - z)), -.6, .6); flightHeight = L.eye || 1.5; }
     else if (habitat==='forest') {if(was.under){me.pos.copy(gardenSave.pos);me.yaw=gardenSave.yaw;}me.pos.y=L.eye||1;me.pitch=clamp(me.pitch,-.6,.6);}
     else if (L.spot && !silent) {
@@ -883,8 +881,8 @@ $("lensTable").innerHTML = S.lens.map(l => `<tr><td>${l.name}</td><td>${LENS[l.i
 $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target.checked ? 1 : 0; };
 $("cred").innerHTML = [
   "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。樹皮・葉・土・石の写真は CC0（Poly Haven・ambientCG）。花・モミジとスギの葉・シダ・落ち葉・空の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
-  "典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Martínez-Harms ら 2020（ヒナゲシ）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Siitari ら 1999（実の紫外）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
-  "生きものの身体と動きは独自の模式造形です。羽ばたきやカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです（蜂の話のヒナゲシは 5〜6 月が盛りですが、一緒に咲かせています）。草花の形は図鑑の記載にそって作り、紫外の値は、決めているもの（ヒマワリ・ルドベキア・ヒナゲシ・赤く塗った板など）のほかは目安です。",
+  "典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
+  "生きものの身体と動きは独自の模式造形です。羽ばたきやカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
 
 // ---------------------------------------------------------------- はじめて押したとき：音を立て、碧がひとこと
@@ -959,7 +957,7 @@ function frame(now=0) {
   if (AUD.ctx && sonT <= 0) {
     sonT = .2; let uvv = 0, heat = 0;
     if (chapter === "umwelt" && ["hachi", "chou", "tori", "hebi"].includes(lens)) {
-      ray.setFromCamera(new THREE.Vector2(0, 0), camera); ray.far = 30; const h = ray.intersectObjects(sonic, false)[0];
+      ray.setFromCamera(new THREE.Vector2(0, 0), camera); ray.far = 30; const h = ray.intersectObjects(sonic, false).find(x => { for (let o = x.object; o; o = o.parent) if (!o.visible) return false; return true; });   // 見えていないもの（使っていない庭）は音にしない
       if (h) { const u = h.object.material.userData.u; uvv = u.uUV.value; heat = u.uTemp.value * (1 - clamp((h.distance - 5) / 9, 0, 1)); }
     }
     AUD.set(AUD.uvTone.g, ["hachi", "chou", "tori"].includes(lens) && uvv > .3 ? .05 * uvv : 0);
