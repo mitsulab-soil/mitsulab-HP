@@ -194,6 +194,7 @@ export function addFaceMorphs(vrm) {
   const sst = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
   for (const m of ms) {
     const G = m.geometry, P = G.attributes.position, MA = G.morphAttributes.position, fi = m.morphTargetDictionary.Fcl_EYE_Fun, D = MA[fi];
+    const nameKeep = { ...m.morphTargetDictionary };   // 足す前の名前の表
     const lid = new Float32Array(P.count * 3), ck = new Float32Array(P.count * 3), skin = [].concat(m.material).some(mt => /face.*skin|skin.*face/i.test(mt.name));
     for (let i = 0; i < P.count; i++) {
       const x = P.getX(i), y = P.getY(i), z = P.getZ(i), c = x >= 0 ? ctr.L : ctr.R;
@@ -215,9 +216,17 @@ export function addFaceMorphs(vrm) {
         for (let i = 0; i < P.count; i++) { const w = sst(-.003, .003, side * P.getX(i)); if (w <= 0) continue; for (let a = 0; a < 3; a++) { pa[i * 3 + a] = S0.getComponent(i, a) * w; if (na) na[i * 3 + a] = SN.getComponent(i, a) * w; } }
         const at = new THREE.Float32BufferAttribute(pa, 3); at.name = dst + (side > 0 ? "L" : "R"); MA.push(at); if (G.morphAttributes.normal) G.morphAttributes.normal.push(new THREE.Float32BufferAttribute(na || new Float32Array(P.count * 3), 3)); } }
     if (skin) G.userData.aoiCheekG = (() => { const g = new Float32Array(P.count); for (let i = 0; i < P.count; i++) g[i] = Math.hypot(ck[i * 3 + 1], ck[i * 3 + 2]) / (.103 * eh); return g; })();   // 頬の色（下の addCheekTint）に使う重み 0..1
+    // 2026-10-14：名前の表を作りなおす前に、もとの形（Fcl_*）にも名前を付ける。three の updateMorphTargets() は形の名前（attribute.name）から表を作りなおすので、
+    // 名前のない形は番号（"0"〜"56"）になり、Fcl_* を名前で引く表情（目を細める・眉・目を見ひらく・分けた形が無いときの笑み）が効かなくなっていた。
+    // 番号は変えない（VRM の表情＝aa・blink・happy などは番号で引くのでそのまま。足した形は後ろに付くだけ）
+    nameMorphs(G, nameKeep);
     const keep = m.morphTargetInfluences ? [...m.morphTargetInfluences] : []; m.updateMorphTargets(); keep.forEach((v, i) => m.morphTargetInfluences[i] = v);
   }
   return true;
+}
+// 形（morphAttributes）に、表の名前を付ける（名前のない形だけ）。同じ網を使うほかの面の表も、名前で引けるよう戻す
+function nameMorphs(G, dict) {
+  for (const k of ["position", "normal", "color"]) { const A = G.morphAttributes[k]; if (!A) continue; for (const [name, i] of Object.entries(dict)) if (A[i] && (!A[i].name || /^\d+$/.test(A[i].name))) A[i].name = name; }
 }
 
 // ---------------------------------------------------------------- 目の光（v4）
