@@ -22,6 +22,9 @@ const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
 const sstep = (a, b, x) => { const u = clamp((x - a) / (b - a), 0, 1); return u * u * (3 - 2 * u); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const mobile = innerWidth<700 || matchMedia("(pointer:coarse)").matches;
+// 短い説明の文を、句のまとまりごとに折る（375px で語の途中で折れない。2026-10-13）
+const phrases = t => String(t).split(/(?<=[・、／])|(?= · )|(?=（)/).map(p => `<span style="display:inline-block">${p.replace(/^ /, '\u00a0').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c])}</span>`).join('');
+const TOUCH = matchMedia("(pointer:coarse)").matches || (navigator.maxTouchPoints > 0 && !matchMedia("(pointer:fine)").matches);   // 指で触る端末
 let RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const prog = p => { $("prog").firstElementChild.style.width = p + "%"; };
 if (P.face) $("face").src = P.face;
@@ -371,17 +374,31 @@ function faceVelocity(b,dt,bankK=.35,pitchK=1){if(!b.userData.prev){b.userData.p
   const yaw=Math.atan2(vx,vz),dy=wrapA(yaw-b.userData.yaw);b.userData.yaw=yaw;const turn=dt>0?dy/dt:0;b.userData.roll+=(clamp(-turn*bankK,-.8,.8)-b.userData.roll)*ease(dt,6);
   b.rotation.set(-Math.atan2(vy,h)*pitchK,yaw,b.userData.roll,'YXZ');}
 window.__orient=()=>residents.concat([...butterflies,ageha]).map(b=>{const f=new THREE.Vector3(0,0,1).applyQuaternion(b.getWorldQuaternion(new THREE.Quaternion()));const p=b.getWorldPosition(new THREE.Vector3());const v=p.clone().sub(b.userData.prevW||p);b.userData.prevW=p;return {kind:b.userData.kind||'chou',deg:v.length()>1e-6?+(f.angleTo(v.normalize())*180/Math.PI).toFixed(1):null};});
+// 熱（マムシのピット）の温かさ（2026-10-13 テストプレーの直し）：
+//   体温を自分で保つ（恒温）鳥・けもの・人だけが、まわりより温かい。虫・ヘビ・ミミズは変温で、体温はまわりの気温に近いので、
+//   まわりの地面や葉と同じ値にする（熱の見え方では、ほとんど浮かばない）。飛ぶハチの胸がわずかに温まることは「なぜ」の画面に書いた。
+const AMBIENT_T = .1;
+function asAmbient(o) { o.traverse(m => { if (!m.isMesh) return; for (const mt of [].concat(m.material)) { const u = mt.userData?.u; if (u?.uTemp) u.uTemp.value = AMBIENT_T; } }); }
+for (const o of [...butterflies, ageha, bee, ...moths, ...residents.filter(b => b.userData.kind !== 'tori'), bodies.hachi, bodies.chou, bodies.hebi, bodies.mimizu]) asAmbient(o);
 // 見る人の身体：頭を前（画面の奥）へ。曲がるときは傾く
-const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.22);bodyRoot.rotation.y=Math.PI;Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
+//   2026-10-13：画面のまん中をふさがないよう、少し小さく・下へ。切り替えた直後の見せ場のあとは、うすく透ける
+const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.2);bodyRoot.rotation.y=Math.PI;Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
 let bodyYaw0=0,bodyRoll=0,showLens='',showT=0;
-const BODYPOS={hachi:[-.11,-.6],chou:[-.12,-.72],tori:[-.12,-.7],inu:[-.2,-.78],hebi:[-.16,-.8],koumori:[-.1,-.75]};
+const BODYPOS={hachi:[-.19,-.78],chou:[-.2,-.84],tori:[-.2,-.84],inu:[-.24,-.92],hebi:[-.22,-.92],koumori:[-.19,-.84]};
+// 自分の体の質感（森の生きものと共有している質感は、透かさない）
+const worldMats = new Set(); forest.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) worldMats.add(mt); });
+const bodyMats = Object.fromEntries(Object.entries(bodies).map(([k, b]) => { const list = []; b.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) if (!worldMats.has(mt)) list.push([mt, mt.opacity, mt.transparent]); }); return [k, list]; }));
+const bodyA = {};
+function setBodyAlpha(id, a) { if (Math.abs(a - (bodyA[id] ?? 1)) < .01) return; bodyA[id] = a; for (const [mt, o0, tr0] of bodyMats[id] || []) { const t = a < .999 || tr0; if (mt.transparent !== t) { mt.transparent = t; mt.needsUpdate = true; } mt.opacity = o0 * a; } }
 function setHabitat(place){habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
 let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
 function applyLens(id) {
   const L = LENS[id];
   G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0;
-  renderer.setPixelRatio(L.blur ? BASE_PR * L.blur : BASE_PR); renderer.setSize(innerWidth, innerHeight);
+  // 犬のぼかし（2026-10-13）：画素を粗くすると四角いモザイクに見えるので、描く細かさを半分にし、画面全体をなめらかにぼかす
+  renderer.setPixelRatio(L.blur ? Math.max(.5, BASE_PR * .5) : BASE_PR); renderer.setSize(innerWidth, innerHeight);
+  renderer.domElement.style.filter = L.blur ? `blur(${mobile ? 1.6 : 2.2}px)` : "";
   const night = !!L.night;
   if (night) { hemi.intensity = .05; sun.intensity = 0;scene.fog.color.set(0x020306); } else setDay(LIT.base);
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
@@ -391,7 +408,11 @@ function applyLens(id) {
   Object.entries(bodies).forEach(([key,b])=>{b.visible=key===id&&key!=='hito'&&!L.under;});
   { const bp = BODYPOS[id] || [-.27, -.65]; bodyRoot.position.set(0, bp[0], bp[1]); }   // 画面の下の字幕に隠れない高さに（2026-10-12）
   $('flightControls').hidden=!FLIGHT.has(id)||chapter!=='umwelt';
-  $('moveNote').textContent=FLIGHT.has(id)?'飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも操作）':id==='hebi'?'地面を這う · W A S D':L.under?'土の中を進む · 矢印／上へ・下へ':'歩く · W A S D ／ 押した場所へ';
+  // 操作の説明（2026-10-13）：指で触る端末では、キーボードの説明を出さない
+  $('moveNote').innerHTML = phrases(L.under ? '土の中 · ▲ 上へ・▼ 下へ で明るさが変わる'
+    : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ 長押しで進む・＋ − で上下' : (id === 'hebi' ? '地面を這う' : '歩く') + ' · ↑ 長押しで進む・なぞって見回す')
+    : FLIGHT.has(id) ? '飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも）' : id === 'hebi' ? '地面を這う · W A S D ／ 押した場所へ' : '歩く · W A S D ／ 押した場所へ');
+  $('bodyControls').hidden = !!L.under || chapter !== 'umwelt';   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
   $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
 }
@@ -661,7 +682,7 @@ function aoiTick(dt) {
   else {
     // 2026-10-08：生きものに切り替えているあいだは、碧は視界の端の少し奥（景色を隠さない）。ひとのときはとなりの右前
     const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), creature = lens !== "hito";
-    const D = creature ? 4.6 : (innerWidth / innerHeight < .8 ? 3.4 : 2.6), ang = creature ? hf / 2 * .62 : Math.atan((innerWidth / innerHeight < .8 ? 1.05 : 1.3) / D);
+    const D = creature ? 4.6 : (innerWidth / innerHeight < .8 ? 3.6 : 2.6), ang = creature ? hf / 2 * .62 : Math.atan((innerWidth / innerHeight < .8 ? .5 : 1.3) / D);   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-13）
     const F = D * Math.cos(ang), X = D * Math.sin(ang), fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw);
     // 2026-10-12：見る人が向きを変えるたびに追いかけない（森羅研究室と同じ）。歩いているとき・視野の外に出たとき・近すぎ／遠すぎのときだけ立つ所を決めなおす
     const walking = !!me.path || ["w", "s", "a", "d", "arrowup", "arrowdown"].some(k => keys.has(k));
@@ -700,7 +721,7 @@ function layoutBodyWheel(){const selected=LENS_IDS.indexOf(lensRequest);[...dial
 $('bodyPrev').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+LENS_IDS.length-1)%LENS_IDS.length]);$('bodyNext').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+1)%LENS_IDS.length]);$('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:LENS_IDS.length-1))%LENS_IDS.length]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
 async function veil(fn, token) { $("veil").classList.add("on"); await sleep(RM ? 60 : 260); if(token!==undefined&&token!==lensToken)return false; fn(); await sleep(60); if(token!==undefined&&token!==lensToken)return false; $("veil").classList.remove("on");return true; }
 function setWhere() {
-  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").textContent = LENS[lens].sub; }
+  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").innerHTML = phrases(LENS[lens].sub); }
   else if (chapter === "iro") { $("whereName").textContent = N.ch_iro; $("whereSub").textContent = IRO.lang ? LANGS[IRO.lang].name : "あなたの線を引く"; }
   else { $("whereName").textContent = N.ch_toki; $("whereSub").textContent = "同じ庭を、四つの速さで"; }
 }
@@ -708,6 +729,7 @@ async function setLens(id, silent = false) {
   if (!LENS[id]) return;
   first(false);
   const token=++lensToken; lensRequest=id; keys.clear();
+  if (!silent) { hush(); $("say").textContent = ""; setActs([]); }   // すばやく切り替えたとき、前の生きものの台詞を残さない（2026-10-13）
   dial.setAttribute('aria-busy','true');
   for(const b of dial.children)b.setAttribute('aria-pressed',String(b.dataset.id===id));layoutBodyWheel();
   const was = LENS[lens];
@@ -888,13 +910,18 @@ try { $("optBig").checked = localStorage.getItem("umw-big") === "1"; } catch {}
 document.body.classList.toggle("big", $("optBig").checked);
 $("optBig").onchange = e => { document.body.classList.toggle("big", e.target.checked); try { e.target.checked ? localStorage.setItem("umw-big", "1") : localStorage.removeItem("umw-big"); } catch {} };
 // 八つの受けとり方をくらべる表（授業でも使えるように）
-$("lensTable").innerHTML = S.lens.map(l => `<tr><td>${l.name}</td><td>${LENS[l.id].sub}</td></tr>`).join("");
+// ダイヤルの名前（短い呼び名）と、この森で形を作った種の名前（2026-10-13）
+const SPECIES = { chou: "ナミアゲハ", tori: "シジュウカラ", inu: "柴犬", hebi: "ニホンマムシ", koumori: "アブラコウモリ", mimizu: "フトミミズのなかま" };
+$("lensTable").innerHTML = S.lens.map(l => `<tr><td>${l.name}${SPECIES[l.id] ? `<br><small style="font-size:13px;font-weight:400;color:var(--dim)">${SPECIES[l.id]}</small>` : ""}</td><td>${LENS[l.id].sub}</td></tr>`).join("");
 // なぜ、そう見えるの？（2026-10-12）：いまの身体の受けとり方が、どうして分かったのか
 let whyId = "hito", whyBack = null;
 function renderWhy(id) {
   const W = window.WHY || {}, d = W[id]; if (!d) return; whyId = id;
-  const name = S.lens.find(l => l.id === id)?.name || id, li = a => a.map(x => `<li>${x.replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c])}</li>`).join("");
-  $("whyTitle").textContent = `${name} ── なぜ、そう${["hebi", "koumori", "mimizu"].includes(id) ? "感じとれる" : "見える"}の？`;
+  const esc = x => String(x).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
+  const name = S.lens.find(l => l.id === id)?.name || id, li = a => a.map(x => `<li>${esc(x)}</li>`).join("");
+  // 題は塊ごとに折る（375px で語の途中で折れない）。ダイヤルの名前と、典拠の種の名前をそろえて見せる
+  $("whyTitle").innerHTML = `<span class="nw">${esc(name)}${SPECIES[id] ? `（${esc(SPECIES[id])}）` : ""} ──</span> <span class="nw">なぜ、そう${["hebi", "koumori", "mimizu"].includes(id) ? "感じとれる" : "見える"}の？</span>`;
+  $("whyCaution").textContent = d.caution || ""; $("whyCaution").hidden = !d.caution;
   $("whyBody").innerHTML = li(d.body); $("whyHow").innerHTML = li(d.how); $("whyUnknown").innerHTML = li(d.unknown); $("whyRefs").innerHTML = li(d.refs); $("whyNote").textContent = W.note || "";
   $("whyTabs").innerHTML = ""; for (const l of S.lens) { const b = document.createElement("button"); b.textContent = l.name; b.setAttribute("aria-pressed", String(l.id === id)); b.onclick = () => renderWhy(l.id); $("whyTabs").appendChild(b); }
 }
@@ -907,8 +934,10 @@ window.__why = { open: openWhy, close: closeWhy, render: renderWhy };
 $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target.checked ? 1 : 0; };
 $("cred").innerHTML = [
   "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。樹皮・葉・土・石の写真は CC0（Poly Haven・ambientCG）。花・モミジとスギの葉・シダ・落ち葉・空の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
-  "「なぜ、そう見えるの？」の典拠は、その画面に一つずつ示しています。典拠（くわしくは README と 資料/調べたこと/）：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
-  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（外から取りこんだ 3D はありません）。ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・柴犬・マムシ・アブラコウモリ・フトミミズのなかま・夜の蛾。羽ばたき（鳥・蝶・コウモリは実際より遅く、蜂は扇のかすみで示す）・毛・艶・透けも、画面の中で作った質感です。動きの典拠は 資料/調べたこと/生き物の動き_典拠.md。やカメラの動きは見やすく調整しており、実際の速度・生きものの主観そのものを再現していません。森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
+  "「なぜ、そう見えるの？」の典拠は、その画面に一つずつ示しています。この作品が参考にしたおもな文献：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Heinrich 1993（虫の体温）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
+  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（外から取りこんだ 3D はありません）。ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・柴犬・マムシ・アブラコウモリ・フトミミズのなかま・夜の蛾。毛・艶・透けも、画面の中で作った質感です。動きは、はばたきの回数や歩き方などの研究の記載をもとにしていますが、羽ばたきの速さ（鳥・蝶・コウモリは実際より遅く、蜂は扇のかすみで示す）やカメラの動きは見やすく調整しています。実際の速さや、生きものの主観そのものを再現したものではありません。",
+  "マムシの熱の見え方では、体温を自分で保つ鳥・けもの・人を明るく重ね、体温がまわりの気温に近い虫・ヘビ・ミミズは、まわりと同じ暗さにしています。温かさの値は目安です。",
+  "森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
 
 // ---------------------------------------------------------------- はじめて押したとき：音を立て、碧がひとこと
@@ -963,7 +992,8 @@ function frame(now=0) {
     { const dy = wrapA(me.yaw - bodyYaw0); bodyYaw0 = me.yaw; const turn = dt > 0 ? dy / dt : 0; bodyRoll += (clamp(turn * (FLIGHT.has(lens) ? .28 : .08), -.6, .6) - bodyRoll) * ease(dt, 5); bodyRoot.rotation.z = -bodyRoll; }
     // 身体を切り替えた直後の 2〜3 秒だけ、自分の体を横から寄せて見せる（毛・艶・翅がわかるように。2026-10-13）
     { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, k = (RM || lens === 'hito' || lens === 'mimizu') ? 0 : sstep(0, .5, u) * (1 - sstep(2.4, 3.2, u)), bp = BODYPOS[lens] || [-.27, -.65];
-      bodyRoot.rotation.y = Math.PI - k * 1.2; bodyRoot.position.set(k * .03, bp[0] + (-.13 - bp[0]) * k, bp[1] + (-.52 - bp[1]) * k); bodyRoot.scale.setScalar(.22 * (1 + .25 * k)); }
+      bodyRoot.rotation.y = Math.PI - k * 1.2; bodyRoot.position.set(k * .03, bp[0] + (-.13 - bp[0]) * k, bp[1] + (-.52 - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (1 + .35 * k));
+      setBodyAlpha(lens, .55 + .45 * k); }
     if (quake > 0) { camera.position.y += (Math.random() - .5) * .02 * quake; quake = Math.max(0, quake - dt * 2); }
   }
   $('stage').dataset.flightHeight=flightHeight.toFixed(3);$('stage').dataset.lens=lens;$('stage').dataset.habitat=habitat;$('stage').dataset.position=camera.position.toArray().map(v=>v.toFixed(3)).join(',');$('stage').dataset.depth=me.depth.toFixed(3);
@@ -1015,9 +1045,18 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
 (async () => {
   me.pos.set(0,1.55,4);prog(20); applyLens("hito"); setWhere(); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
   await loadAoi(); prog(100);
-  if (vrm) { A.pos.set(0, 0, 3.4); A.yaw = 0; }
-  $('bodyForward').onclick=()=>{first();if(lens==='mimizu'){me.depth=clamp(me.depth+.04,0,1.5);}else walkTo(me.pos.x-Math.sin(me.yaw)*1.2,me.pos.z-Math.cos(me.yaw)*1.2);};
-  document.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{me.yaw+=b.dataset.turn==='left'?.3:-.3;});$('bodyBack').onclick=()=>{if(LENS[lens].under){me.depth=clamp(me.depth-.04,.02,1.2);}else walkTo(me.pos.x+Math.sin(me.yaw)*1.2,me.pos.z+Math.cos(me.yaw)*1.2);};
+  // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
+  if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 3.6 : 2.6, ang = Math.atan((nar ? .5 : 1.3) / D); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
+  // 右の ↑ ↓ ↶ ↷（2026-10-13）：押しているあいだ進む・向きを変える。短く押したときは一歩（1.2 m）・一ふり（約 17°）
+  const hold = (btn, key, tapFn) => { let t0 = 0;
+    btn.onpointerdown = e => { first(); if (LENS[lens].under) return; t0 = performance.now(); keys.add(key); btn.setPointerCapture?.(e.pointerId); };
+    const end = cancel => { if (!t0) return; keys.delete(key); const short = performance.now() - t0 < 260; t0 = 0; if (short && !cancel) tapFn(); };
+    btn.onpointerup = () => end(false); btn.onpointercancel = () => end(true); btn.onlostpointercapture = () => end(true);
+    btn.onclick = e => { if (e.detail === 0) { first(); tapFn(); } };   // キーボード（Enter・スペース）で押したとき
+  };
+  hold($('bodyForward'), 'w', () => walkTo(me.pos.x - Math.sin(me.yaw) * 1.2, me.pos.z - Math.cos(me.yaw) * 1.2));
+  hold($('bodyBack'), 's', () => walkTo(me.pos.x + Math.sin(me.yaw) * 1.2, me.pos.z + Math.cos(me.yaw) * 1.2));
+  document.querySelectorAll('[data-turn]').forEach(b => hold(b, b.dataset.turn === 'left' ? 'q' : 'e', () => { me.yaw += b.dataset.turn === 'left' ? .3 : -.3; }));
   document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();setHabitat(b.dataset.habitat);});
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 700);
