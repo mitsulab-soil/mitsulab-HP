@@ -30,7 +30,10 @@ const prog = p => { $("loadBar").style.width = p + "%"; };
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 
 const NAMES = await fetch("names.json").then(r => r.json()).catch(() => ({ lab: "森羅研究室", guide: "碧" }));
-const S = window.SCRIPT, VOICE = window.VOICE || {}, LIPSYNC = window.LIPSYNC || {};
+const S = window.SCRIPT, VOICE = window.VOICE || {};
+// 口の時刻表（data/lipsync.js・約 140 KB）は、部屋が見えてからあとで読む（2026-10-13 はじめの表示を軽く）。読むまでは声の大きさで口を動かす
+let LIPSYNC = {};
+function loadLater(src, done) { const s = document.createElement("script"); s.src = src; s.async = true; s.onload = done; document.head.appendChild(s); }
 const CONF = { aoi: "assets/aoi.vrm" };   // 同一実行フォルダに収めた碧の姿。公開先でも取得できる。
 document.title = NAMES.lab; $("whereT").textContent = NAMES.lab; $("loadT").textContent = NAMES.lab; $("listT").textContent = `${NAMES.lab}の実験台`;
 prog(10);
@@ -391,8 +394,7 @@ function enterBench(b) {
     trans.t = 0; trans.fromP.copy(camera.position); trans.fromQ.copy(camera.quaternion);
     trans.then = () => { mode = "exp"; };
     openPanel(b);
-    const sc = S.bench[b.id];
-    talk([...sc.what, ...sc.real, ...sc.hint], expActs);
+    benchTalk(b);
     setTimeout(() => { if (cur === b) M?.point(b.center.clone(), 3.0); }, 600);   // 話しはじめに、模型を指して見せる（目→手→見る人）
   };
   const far = me.pos.distanceTo(new THREE.Vector3(b.stand.x, EYE, b.stand.z));
@@ -413,14 +415,28 @@ function leaveBench(quiet) {
 }
 function expActs() {
   return [[SP.paused ? "▶ 続ける" : "⏸", () => pauseSpeech(!SP.paused), false, SP.paused ? "続ける" : "一時停止"], ["⏭", skipLine, false, "このことばをとばす"],
-    ["もう一度聞く", () => { const sc = S.bench[cur.id]; talk([...sc.what, ...sc.real, ...sc.hint], expActs); }], ["本物の世界では", () => { const sc = S.bench[cur.id]; talk(sc.real, expActs); }]];
+    ["もう一度聞く", () => benchTalk(cur)], ["本物の世界では", () => { const sc = S.bench[cur.id]; talk(sc.real, expActs); }], ["外で見る", () => { showLook(cur); talk(S.bench[cur.id].look?.lines || [], expActs); }]];
 }
-function freeActs() { return [["実験台をえらぶ", openList, true]]; }
+// 台の話：何をまねているか → さわり方 → 本物の世界では → 外に出たら（2026-10-13 ミカタ：台の終わりに「外でこう見る」を一つ）
+async function benchTalk(b) {
+  const sc = S.bench[b.id], look = sc.look?.lines || [];
+  $("outside").hidden = true;
+  const ok = await talk([...sc.what, ...sc.hint, ...sc.real], expActs);
+  if (!ok || cur !== b) return;
+  showLook(b); await sayQ(look);
+}
+function showLook(b) {
+  const lk = S.bench[b.id].look; if (!lk) return;
+  const o = $("outside"); o.hidden = false;
+  o.innerHTML = `<span class="k">外に出たら</span>${esc(lk.lines[0].replace(/^外に出たら、/, ""))}`;
+}
+// はじめての人には、いちばん驚きの大きい一台をすすめる（2026-10-13 ななみ「最初の 3 秒」）。一度入ったら出さない
+function freeActs() { const ph = BENCH.find(b => b.id === "phono"); return [["実験台をえらぶ", openList, true], ...(seen.size || !ph ? [] : [["まず、コウモリの声を聞く", () => enterBench(ph)]])]; }
 function openPanel(b) {
   $("exp").hidden = false; document.body.classList.add("inexp");
   $("expT").innerHTML = `${esc(NAMES[b.id] || S.bench[b.id].title)}<small>${esc(S.bench[b.id].sub)}</small>`;
   $("whereT").textContent = NAMES[b.id] || S.bench[b.id].title; $("whereS").textContent = isTouch ? "ドラッグで回す・二本指で寄る" : "ドラッグで回す・ホイールで寄る";
-  const c = $("ctrls"); c.innerHTML = ""; b.mod.ui?.(c); b.mod.enter?.();
+  const c = $("ctrls"); c.innerHTML = ""; b.mod.ui?.(c); b.mod.enter?.(); $("outside").hidden = true;
   $("read").innerHTML = b.mod.read?.() || "";
   const small = innerHeight < 700 || innerWidth < 520; $("exp").classList.toggle("mini", small && store.get("lab-mini", true)); syncMore();
 }
@@ -525,7 +541,7 @@ addEventListener("blur", () => keys.clear());
 // ---------------------------------------------------------------- 一覧・説明・小さな知らせ
 function openList() {
   const box_ = $("listItems"); box_.innerHTML = "";
-  for (const b of BENCH) { const bt = document.createElement("button"); bt.className = "it"; bt.innerHTML = `<b>${esc(NAMES[b.id])}</b><small>${esc(S.bench[b.id].sub)}</small>`; bt.onclick = () => { $("list").hidden = true; enterBench(b); }; box_.appendChild(bt); }
+  for (const b of BENCH) { const bt = document.createElement("button"); bt.className = "it"; bt.innerHTML = `<b>${esc(NAMES[b.id])}</b><small>${esc(S.bench[b.id].sub)}</small>${S.bench[b.id].look ? `<small class="lk">外で見る：${esc(S.bench[b.id].look.when)}</small>` : ""}`; bt.onclick = () => { $("list").hidden = true; enterBench(b); }; box_.appendChild(bt); }
   $("list").hidden = false; box_.querySelector("button")?.focus();
 }
 $("listBtn").onclick = () => { wake(); openList(); }; $("listX").onclick = () => { $("list").hidden = true; };
@@ -537,6 +553,7 @@ $("helpBox").innerHTML = `<button class="btn close">とじる</button><h2>${esc(
 <p>見たあとで、いつもの景色が少し違って見える実験を、八つの模型にして並べた部屋です。実験台を押すと、そばで${esc(NAMES.guide)}が、模型が何をまねているのかと、本物の世界ではどうなるのかを話します。壁の棚は、鉱物・岩石・砂・土の断面・地層の柱・種子の標本（模型）です。押すと${esc(NAMES.guide)}が話します。</p>
 <h3>うごき方</h3><ul><li>床を押す：そこへ歩く（一回に 6 m まで）</li><li>ドラッグ：見回す（実験の中では模型を回す）</li><li>実験台・棚・机を押す：近づく・話を聞く</li><li>キーボード：W A S D・矢印で歩く、Esc で実験からもどる</li></ul>
 <h3>実験台</h3><ul>${BENCH.map(b => `<li><b>${esc(NAMES[b.id])}</b>：${esc(S.bench[b.id].sub)}</li>`).join("")}</ul>
+<h3>外に出たら</h3><p>台の終わりに、${esc(NAMES.guide)}が、本物の景色でたしかめる見方を一つ話します。</p><ul>${BENCH.filter(b => S.bench[b.id].look).map(b => `<li><b>${esc(NAMES[b.id])}</b>（${esc(S.bench[b.id].look.when)}）：${esc(S.bench[b.id].look.lines[0].replace(/^外に出たら、/, ""))}</li>`).join("")}</ul>
 <h3>模型の値について</h3><p>どの模型も、仕組みを見るためのものです。地温の波の熱の伝わりやすさ（湿った土の代表的な値）と、土の粒の大きさの区分（国際土壌学会法）を除いて、数や速さは動きが見えるように決めた値か目安です。形は「模式」、標本の棚は「模型」です。</p>
 <h3>典拠</h3><ul>
 <li>Darwin, C. (1881) <i>The Formation of Vegetable Mould through the Action of Worms, with Observations on their Habits</i>. John Murray.（第 3 章：1842 年 12 月にまいた白亜が、1871 年 11 月に 7 インチ下）</li>
@@ -575,7 +592,7 @@ async function loadAoi() {
   try {
     const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
-    const g = await ld.loadAsync(CONF.aoi, e => { if (e.total) prog(40 + 50 * e.loaded / e.total); });
+    const g = await ld.loadAsync(CONF.aoi);
     const v = g.userData.vrm; if (!v) throw new Error("VRM ではない");
     V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; });
@@ -702,12 +719,15 @@ function loop() {
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
 }
-prog(35);
+prog(60);
 camera.position.copy(me.pos); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
-await loadAoi();
+// 2026-10-13：碧の姿（約 2 MB）を待たずに部屋を見せる。碧はあとから静かに現れる（もともと 1.4 秒かけて出る作り）
+renderer.compile(scene, camera); renderer.render(scene, camera);
 prog(100);
 setTimeout(() => $("load").classList.add("off"), 150);
 requestAnimationFrame(loop);
+loadAoi();
+setTimeout(() => loadLater("data/lipsync.js", () => { LIPSYNC = window.LIPSYNC || {}; }), 1200);
 $("sayState").textContent = "どこかを押すと、声で話しはじめます（音が出ます）";
 // ?b=frost などで、その台の前から始める（授業で URL を配るため。2026-10-08 検証の P3）
 { const q = new URLSearchParams(location.search).get("b"), b0 = BENCH.find(b => b.id === q); if (b0) { me.pos.set(b0.stand.x, EYE, b0.stand.z); me.yaw = Math.atan2(-(b0.center.x - b0.stand.x), -(b0.center.z - b0.stand.z)); setTimeout(() => enterBench(b0), 600); } }

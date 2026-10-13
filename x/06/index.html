@@ -39,7 +39,7 @@ a{color:var(--acc)}
 #guide .face i{position:absolute;right:-3px;bottom:-3px;width:9px;height:9px;border-radius:50%;background:var(--aoi);opacity:0;transition:opacity .2s}
 #guide.talking .face i{opacity:1}
 #guide .txt{flex:1;min-width:0;padding-right:40px}
-#say{font-family:var(--mincho);font-size:16.5px;line-height:1.7;letter-spacing:.04em;margin:1px 0 0;min-height:1.7em;color:var(--ink)}
+#say{font-family:var(--mincho);font-size:17.5px;line-height:1.7;letter-spacing:.04em;margin:1px 0 0;min-height:1.7em;color:var(--ink)}
 #sayState{font-size:13px;color:var(--dim)}
 #acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 #acts:empty{display:none}
@@ -61,7 +61,7 @@ a{color:var(--acc)}
 #ctrls .seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:rgba(3,6,15,.4)}
 #ctrls .seg button{min-width:44px;white-space:nowrap;border:0;background:none;color:var(--ink2);min-height:44px;padding:0 11px;font-size:14px;border-bottom:1px solid transparent}
 #ctrls .seg button[aria-pressed=true]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--aoi)}
-#read{font-size:14px;line-height:1.6;margin-top:6px;color:var(--ink2)}
+#read{font-size:15px;line-height:1.6;margin-top:6px;color:var(--ink2)}
 #read b{color:var(--ink);font-weight:600}
 #read .row{display:flex;flex-wrap:wrap;gap:4px 12px}
 #read .k{color:var(--dim)}
@@ -74,6 +74,9 @@ a{color:var(--acc)}
 #read td{padding:2px 4px;border-bottom:1px solid var(--line)}
 #read td.v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--mono);font-size:13px}
 #exp.mini #read{display:none}
+/* 外に出たら（2026-10-13）：台の終わりに、外でこう見る、を一つ。数字をたたんでも残す */
+#outside{margin:8px 0 0;padding:6px 10px;border-left:2px solid var(--aoi);background:rgba(92,200,224,.07);font-family:var(--mincho);font-size:15.5px;line-height:1.65;color:var(--ink)}
+#outside .k{display:block;font-family:var(--goth);font-size:13px;letter-spacing:.12em;color:var(--aoi2)}
 #expMore{font-size:13px!important;padding:0 10px!important}
 /* 実験台の一覧・説明 */
 #list,#help{position:fixed;inset:0;z-index:9;background:rgba(3,6,15,.55);display:grid;place-items:center;padding:16px}
@@ -85,7 +88,8 @@ a{color:var(--acc)}
 #list button.it{display:block;width:100%;text-align:left;border:1px solid var(--line);background:rgba(3,6,15,.4);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;min-height:44px;color:var(--ink)}
 #list button.it:hover{border-color:var(--aoi)}
 #list button.it b{display:block;font-family:var(--mincho);font-size:16px;font-weight:600;letter-spacing:.06em}
-#list button.it small{display:block;font-size:13px;color:var(--ink2)}
+#list button.it small{display:block;font-size:13.5px;color:var(--ink2)}
+#list button.it small.lk{color:var(--aoi2);margin-top:2px}
 #help .box{width:min(580px,100%);padding:16px 18px;font-size:15px;line-height:1.75}
 #help h2{font-size:20px;margin:0 0 6px}
 #help h3{font-size:14px;margin:16px 0 4px;color:var(--ink);letter-spacing:.08em;border-top:1px solid var(--line);padding-top:12px}
@@ -106,7 +110,7 @@ a{color:var(--acc)}
 @media (min-width:980px){#exp{left:12px;transform:none;width:390px;top:84px;max-height:calc(100dvh - 110px);overflow-y:auto}#exp header{flex-wrap:wrap}}
 /* 狭い画面（2026-10-13 テストプレーの P1-2）：実験の中では左上の名前を隠し（板の題と重なる）、数字は 22vh まで。数字を開くと字幕は自動でたたむ */
 @media (max-width:520px){#exp{max-height:42dvh;overflow-y:auto;overscroll-behavior:contain}#exp header{position:sticky;top:-6px;background:var(--panel2);margin:-6px -8px 0;padding:6px 8px;z-index:1}#ctrls .btn,#ctrls .seg button{font-size:13.5px;padding:0 9px}#ctrls{gap:5px}#where{max-width:56vw}#exp{padding:6px 8px}#exp h2 small{display:none}
-  body.inexp #where{display:none}#guide .txt{padding-right:38px}#say{font-size:15.5px}}
+  body.inexp #where{display:none}#guide .txt{padding-right:38px}#say{font-size:16.5px}#outside{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <script type="importmap">
@@ -118,7 +122,6 @@ a{color:var(--acc)}
 <script src="data/kanten.js"></script>
 <script src="data/qualia/cards.js"></script>
 <script src="data/voice.js" onerror="window.VOICE={}"></script>
-<script src="data/lipsync.js" onerror="window.LIPSYNC={}"></script>
 </head>
 <body>
 <div id="stage" tabindex="0" aria-label="3D の研究室。床を押すと歩き、実験台を押すと近づいて実験に入る。ドラッグで見回す。キーボードでは W A S D と矢印で動く"></div>
@@ -134,6 +137,7 @@ a{color:var(--acc)}
 <section id="exp" hidden aria-label="実験の操作">
   <header><h2 id="expT"></h2><button class="btn" id="expMore" aria-expanded="true">数字をたたむ</button><button class="btn" id="expBack">もどる</button></header>
   <div id="ctrls"></div>
+  <p id="outside" hidden></p>
   <div id="read" aria-live="off"></div>
 </section>
 <section id="guide" aria-label="碧のことば（字幕）">

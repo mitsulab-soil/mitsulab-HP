@@ -48,11 +48,21 @@ export function create(H) {
   const thT = tag("0℃", { w: .06, size: 48 }); thT.position.set(.045, .19, 0); thG.add(thT);
   const sc = note("長さは 4 倍・柱の太さと数は模式", { w: .3 }); sc.position.set(-W / 2 + .1, SY + .2, D / 2); g.add(sc);
 
+  let playB_ = null;
   let soil = "loam", sky_ = "clear", run = false, fast = 1, h = H0, L = 0, melt = false, mud = 0;
   const airT = hh => { const tmin = SKY[sky_].tmin; if (hh <= 30.5) return tmin + (6 - tmin) * Math.exp(-(hh - H0) / 4.5) - (6 - tmin) * Math.exp(-13.5 / 4.5) * ((hh - H0) / 13.5); return tmin + (6 - tmin) * THREE.MathUtils.clamp((hh - 30.5) / 3.5, 0, 1); };
   const surfT = hh => airT(hh) - (sky_ === "clear" ? 1.2 : .3);
   function reset() { h = H0; L = 0; melt = false; mud = 0; run = false; paint(); }
-  function setSoil(k) { soil = k; soilM.color.set(SOIL[k].col); topM.color.set(SOIL[k].top); capM.color.set(SOIL[k].top); reset(); }
+  // 条件を変えたら、時刻はそのままで、夕方からいまの時刻までを新しい条件で計算しなおす（2026-10-13 テストプレーの P3「17:00 に戻る」）
+  function step(dh) {
+    h = Math.min(H1, h + dh);
+    const ts = surfT(h);
+    if (ts < -.5 && !melt) L += SOIL[soil].k * Math.min(1, -ts / 3) * dh;
+    if (h > 30.5 && ts > .3 && L > 0) { melt = true; L = Math.max(0, L - 16 * dh * Math.min(1, ts / 2)); if (L === 0) mud = Math.min(1, mud + dh); }
+    if (melt && L > 0) mud = Math.min(.6, mud + dh * .2);
+  }
+  function replay() { const to = h; h = H0; L = 0; melt = false; mud = 0; while (h < to - 1e-6) step(Math.min(.02, to - h)); paint(); }
+  function setSoil(k) { soil = k; soilM.color.set(SOIL[k].col); topM.color.set(SOIL[k].top); capM.color.set(SOIL[k].top); replay(); }
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), V = new THREE.Vector3(), S = new THREE.Vector3();
   function paint() {
     const len = L / 1000 * VIS;   // m（表示）
@@ -84,18 +94,15 @@ export function create(H) {
     group: g, focus: { y: .26, dist: 1.5, pitch: .3 }, labelY: 1.0,
     tick(dt, on) {
       if (!on || !run) return;
-      const dh = dt * .2 * fast; h = Math.min(H1, h + dh);
-      const ts = surfT(h);
-      if (ts < -.5 && !melt) L += SOIL[soil].k * Math.min(1, -ts / 3) * dh;
-      if (h > 30.5 && ts > .3 && L > 0) { melt = true; L = Math.max(0, L - 16 * dh * Math.min(1, ts / 2)); if (L === 0) mud = Math.min(1, mud + dh); }
-      if (melt && L > 0) mud = Math.min(.6, mud + dh * .2);
-      if (h >= H1) run = false;
+      step(dt * .2 * fast);
+      if (h >= H1) { run = false; playB_?.(); }
       paint();
     },
     ui(box_) {
       const playB = btn(box_, "▶ 夜を進める", () => { if (h >= H1) reset(); run = !run; playB.textContent = run ? "⏸ とめる" : "▶ 夜を進める"; }, true);
-      seg(box_, Object.entries(SOIL).map(([k, v]) => [k, v.name]), soil, k => { setSoil(k); playB.textContent = "▶ 夜を進める"; }, "土の種類");
-      seg(box_, Object.entries(SKY).map(([k, v]) => [k, v.name]), sky_, k => { sky_ = k; reset(); playB.textContent = "▶ 夜を進める"; }, "空のようす");
+      playB_ = () => { playB.textContent = "▶ 夜を進める"; };
+      seg(box_, Object.entries(SOIL).map(([k, v]) => [k, v.name]), soil, k => { setSoil(k); }, "土の種類");
+      seg(box_, Object.entries(SKY).map(([k, v]) => [k, v.name]), sky_, k => { sky_ = k; replay(); }, "空のようす");
       seg(box_, [[1, "ふつう"], [3, "はやく"]], fast, v => { fast = v; }, "速さ");
       btn(box_, "はじめから", () => { reset(); playB.textContent = "▶ 夜を進める"; });
     },
