@@ -76,6 +76,15 @@ function flatShape(pts, smoothN = 0) {
   for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) - bb.min.x) / w, (p.getY(i) - bb.min.y) / h);
   g.userData.bb = { x0: bb.min.x, x1: bb.max.x, y0: bb.min.y, y1: bb.max.y }; g.rotateX(Math.PI / 2); return g;
 }
+// 外形をなめらかに（閉じた折れ線を Catmull-Rom で細かく分ける）。2026-10-13：翅のふちが多角形で角ばって見えたため。
+//   sharp に入れた番号の点（アゲハの尾の先など）は、角を残す
+function smoothPts(pts, sub = 4, sharp = []) {
+  const n = pts.length, out = [], P = i => pts[(i + n) % n];
+  for (let i = 0; i < n; i++) { const p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2); out.push(p1);
+    if (sharp.includes(i) || sharp.includes((i + 1) % n)) continue;
+    for (let k = 1; k < sub; k++) { const t = k / sub, t2 = t * t, t3 = t2 * t; out.push([0, 1].map(j => .5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3))); } }
+  return out;
+}
 // 外形の枠の座標で描く絵の具
 function shapeTex(key, geo, pts, draw, size = 512) {
   const bb0 = geo.userData.bb, ar = (bb0.y1 - bb0.y0) / (bb0.x1 - bb0.x0);
@@ -132,7 +141,7 @@ function addFur(mesh, mat, o = {}) {
   for (let s = 0; s < NS; s++) { const hgt = (ord[s] + 1) / NS; for (let i = 0; i < n; i++) { sh[s * n + i] = hgt; ln[s * n + i] = L[i]; } }
   g.setAttribute('aShell', new T.BufferAttribute(sh, 1)); g.setAttribute('aLen', new T.BufferAttribute(ln, 1));
   const idx = new Uint32Array(tri.length * NS); for (let s = 0; s < NS; s++) for (let k = 0; k < tri.length; k++) idx[s * tri.length + k] = tri[k] + s * n; g.setIndex(new T.BufferAttribute(idx, 1));
-  const m = new T.Mesh(g, mk(mat, 0xffffff, { vc: !!src.attributes.color, rough: o.rough ?? .92, key: 'fur', hook: furHook(o), phys: MOBILE ? undefined : (o.phys ?? { sheen: .35, sheenRoughness: .55, sheenColor: o.sheen ?? 0xfff0dc }), temp: o.temp ?? .9, uv: o.uv ?? .04 }));
+  const m = new T.Mesh(g, mk(mat, o.color ?? 0xffffff, { vc: !!src.attributes.color, rough: o.rough ?? .92, key: 'fur', hook: furHook(o), phys: MOBILE ? undefined : (o.phys ?? { sheen: .35, sheenRoughness: .55, sheenColor: o.sheen ?? 0xfff0dc }), temp: o.temp ?? .9, uv: o.uv ?? .04 }));
   m.userData.noCast = true; m.raycast = () => {};
   // 画面の上の大きさで層を減らす（体の長さ 1 が、見る所からどれほどの大きさか）
   const per = tri.length, P = new T.Vector3(), Q = new T.Vector3(), lod = o.lod ?? [.012, .1];
@@ -205,16 +214,19 @@ export function makeBee(mat = stdMat, o = {}) {
   const L = [[.32, [[.1, -.06, .05], [.12, -.17, .1], [.11, -.25, .13]], .016, false], [.25, [[.17, -.09, 0], [.22, -.22, -.04], [.24, -.32, -.07]], .017, false], [.17, [[.16, -.1, -.07], [.19, -.27, -.17], [.17, -.4, -.25]], .018, true]];
   for (const s of [-1, 1]) for (const [z, pts, r, hind] of L) {
     const a = [s * .055, -.07, z], P = [a, ...pts.map(([x, y, zz]) => [a[0] + s * x, a[1] + y, a[2] + zz])];
-    legs.add(tube(dark, [P[0], P[1]], r * 1.15, r)); for (const J of [P[1], P[2]]) legs.add(ell(dark, J[0], J[1], J[2], r * 1.05, r * 1.05, r * 1.05, 8));   // 関節
+    // 脚の毛（2026-10-13）：働き蜂の脚は毛が多い（腿節・脛節に短い毛、跗節にも）。後脚の脛節の外側（花粉かご）はつるりとして、ふちを長い毛が囲む
+    const legFur = (m, len) => addFur(m, mat, { color: 0x6e5636, n: MOBILE ? 4 : 8, len, dens: 260, thick: .34, root: .62, droop: .15, temp: .3, sheen: 0xf0e0c0, lod: [.02, .14] });
+    const femur = tube(dark, [P[0], P[1]], r * 1.15, r); legs.add(femur); legFur(femur, .009); for (const J of [P[1], P[2]]) legs.add(ell(dark, J[0], J[1], J[2], r * 1.05, r * 1.05, r * 1.05, 8));   // 関節
     if (hind) { const tb = new T.Mesh(sweep([P[1], P[2]], .02, .034, () => 0x3a2a1a, { n: 6, r: 8 }), dark); legs.add(tb);   // 花粉かご（平たく幅の広い脛節。外側はなめらかでつやがあり、ふちを長い毛が囲む）
+      legFur(tb, (u, v) => Math.abs(Math.cos(v * TAU)) > .75 ? .024 : 0);   // ふちの長い毛（かごの柵）
       if (o.pollen ?? true) { const m = [(P[1][0] + P[2][0]) / 2 + s * .03, (P[1][1] + P[2][1]) / 2, (P[1][2] + P[2][2]) / 2], pel = ell(pollenM(), m[0], m[1], m[2], .045, .062, .055, 14); pel.rotation.x = .5; legs.add(pel); } }   // 花粉だんご（花粉を蜜でかためて運ぶ）
-    else legs.add(tube(dark, [P[1], P[2]], r, r * .85));
-    legs.add(tube(dark, [P[2], P[3], [P[3][0] + s * .01, P[3][1] - .025, P[3][2] + .02]], r * .7, r * .45));
+    else { const ti = tube(dark, [P[1], P[2]], r, r * .85); legs.add(ti); legFur(ti, .008); }
+    { const ta = tube(dark, [P[2], P[3], [P[3][0] + s * .01, P[3][1] - .025, P[3][2] + .02]], r * .7, r * .45); legs.add(ta); legFur(ta, .005); }
   }
   function pollenM() { return pollenM.m ||= mk(mat, 0xe2a23a, { rough: .95, nmap: nmap('pollen', 64, 64, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); for (let i = 0; i < 260; i++) { const x = rnd() * w, y = rnd() * h, r = 1.5 + rnd() * 2.5, gr = c.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, '#fff'); gr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gr; c.fillRect(x - r, y - r, r * 2, r * 2); } }, 2.5, [2, 2]), uv: .1, temp: .3 }); }
   // 翅：前翅（長さ 0.68）と後翅（0.48）。翅脈の絵（前縁の太い脈・縁紋・亜縁室 3）
-  const fwP = [[0, .01], [.18, .06], [.42, .085], [.6, .075], [.68, .04], [.67, -.005], [.6, -.05], [.44, -.1], [.24, -.105], [.09, -.06], [.02, -.03]];
-  const hwP = [[0, 0], [.15, .03], [.34, .04], [.46, .02], [.48, -.012], [.42, -.05], [.26, -.08], [.1, -.06]];
+  const fwP = smoothPts([[0, .01], [.18, .06], [.42, .085], [.6, .075], [.68, .04], [.67, -.005], [.6, -.05], [.44, -.1], [.24, -.105], [.09, -.06], [.02, -.03]], 4, [0]);
+  const hwP = smoothPts([[0, 0], [.15, .03], [.34, .04], [.46, .02], [.48, -.012], [.42, -.05], [.26, -.08], [.1, -.06]], 4, [0]);
   const fwG = flatShape(fwP), hwG = flatShape(hwP);
   const wingTex = (key, geo, pts, fore) => shapeTex(key, geo, pts, (c, path, px) => { c.fillStyle = 'rgba(232,238,244,.34)'; c.fill(path); c.strokeStyle = 'rgba(70,52,34,.85)'; c.lineWidth = 2.2 * px;
     if (fore) { c.lineWidth = 4.5 * px; c.beginPath(); c.moveTo(0, .01); c.lineTo(.42, .08); c.lineTo(.6, .07); c.stroke(); c.lineWidth = 2.2 * px;
@@ -267,14 +279,14 @@ export function makeBee(mat = stdMat, o = {}) {
 // ================================================================ 蝶（ナミアゲハ・モンシロチョウの雌雄）と夜の蛾
 //   翅 4（前翅・後翅）・脚 6（アゲハチョウ科もシロチョウ科も 6 本とも歩く脚）・先がこん棒状の触角 2・巻いた口吻。蛾の触角は糸状。
 const WING = {
-  ageha: { fw: [[0, .02], [.35, .2], [.8, .37], [1.2, .5], [1.45, .56], [1.42, .4], [1.33, .1], [1.2, -.18], [1.08, -.34], [.75, -.3], [.4, -.18], [.12, -.06]],
-    hw: (() => { const o = [[0, 0], [.4, .05], [.8, .02], [1.0, -.12], [1.04, -.32]]; const sc = [[1.0, -.48], [.93, -.64]]; for (const p of sc) o.push(p); o.push([.86, -.72], [.82, -1.18], [.76, -1.22], [.72, -.82], [.6, -.88], [.48, -.92], [.38, -.86], [.3, -.72], [.2, -.5], [.08, -.24]); return o; })(), len: 1.45 },
-  monshiro: { fw: [[0, .02], [.35, .17], [.75, .3], [1.05, .38], [1.2, .36], [1.18, .15], [1.06, -.12], [.9, -.3], [.6, -.28], [.3, -.16], [.08, -.05]],
-    hw: [[0, 0], [.35, .05], [.7, .0], [.88, -.15], [.9, -.38], [.8, -.6], [.6, -.72], [.38, -.7], [.2, -.52], [.07, -.24]], len: 1.2 },
-  moth: { fw: [[0, .02], [.3, .12], [.7, .2], [.95, .22], [1.05, .12], [.95, -.12], [.75, -.26], [.45, -.22], [.15, -.08]],
-    hw: [[0, 0], [.3, .02], [.6, -.06], [.72, -.22], [.62, -.4], [.4, -.46], [.18, -.34], [.05, -.15]], len: 1.05 },
+  ageha: { fw: smoothPts([[0, .02], [.35, .2], [.8, .37], [1.2, .5], [1.45, .56], [1.42, .4], [1.33, .1], [1.2, -.18], [1.08, -.34], [.75, -.3], [.4, -.18], [.12, -.06]], 4, [0]),
+    hw: smoothPts((() => { const o = [[0, 0], [.4, .05], [.8, .02], [1.0, -.12], [1.04, -.32]]; const sc = [[1.0, -.48], [.93, -.64]]; for (const p of sc) o.push(p); o.push([.86, -.72], [.82, -1.18], [.76, -1.22], [.72, -.82], [.6, -.88], [.48, -.92], [.38, -.86], [.3, -.72], [.2, -.5], [.08, -.24]); return o; })(), 4, [0, 7, 8, 9, 10]), len: 1.45 },   // 尾状突起の角は残す
+  monshiro: { fw: smoothPts([[0, .02], [.35, .17], [.75, .3], [1.05, .38], [1.2, .36], [1.18, .15], [1.06, -.12], [.9, -.3], [.6, -.28], [.3, -.16], [.08, -.05]], 4, [0]),
+    hw: smoothPts([[0, 0], [.35, .05], [.7, .0], [.88, -.15], [.9, -.38], [.8, -.6], [.6, -.72], [.38, -.7], [.2, -.52], [.07, -.24]], 4, [0]), len: 1.2 },
+  moth: { fw: smoothPts([[0, .02], [.3, .12], [.7, .2], [.95, .22], [1.05, .12], [.95, -.12], [.75, -.26], [.45, -.22], [.15, -.08]], 4, [0]),
+    hw: smoothPts([[0, 0], [.3, .02], [.6, -.06], [.72, -.22], [.62, -.4], [.4, -.46], [.18, -.34], [.05, -.15]], 4, [0]), len: 1.05 },
 };
-function paintWing(kind, fore, c, path, px) {
+function paintWing(kind, fore, c, path, px, under = false) {
   const line = (pts, w, col) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(...pts[0]); for (const p of pts.slice(1)) c.lineTo(...p); c.stroke(); };
   const dot = (x, y, r, col, sy = 1) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, r, r * sy, 0, 0, TAU); c.fill(); };
   // 翅脈（2026-10-13 直し）：根もとから数本が出て「中室」を囲み、中室のふちから外へ枝分かれする（扇の骨のように一点から放射しない）
@@ -283,7 +295,8 @@ function paintWing(kind, fore, c, path, px) {
     const path = [L(O, A, .55), A, L(A, B, .5), B, L(O, B, .6)], n = ends.length;
     ends.forEach((e, k) => { const u = n > 1 ? k / (n - 1) * (path.length - 1) : 0, i = Math.min(path.length - 2, Math.floor(u)), o = L(path[i], path[i + 1], u - i); line([o, L(o, e, .5), e], w, col); }); };
   if (kind === 'ageha') {
-    const Y = '#f2e39c', K = '#16130f';
+    // 裏面（2026-10-13）：翅を閉じて止まると見えるのは裏。ナミアゲハの裏は地の黄が淡く、黒い帯は細めで褐色がかり、後翅の外側の黒帯の中に橙の斑が並ぶ
+    const Y = under ? '#f4ebbd' : '#f2e39c', K = under ? '#2c2418' : '#16130f';
     c.fillStyle = Y; c.fill(path);
     if (fore) {
       // 基部：黄色地に黒い縦の筋（ナミアゲハ。キアゲハは基部が黒く塗りつぶされる）
@@ -298,15 +311,17 @@ function paintWing(kind, fore, c, path, px) {
     } else {
       line([[0, -.02], [.28, -.72], [.4, -.9]], 30 * px, K);                                                     // 内縁（腹の側）の黒
       c.fillStyle = K; c.beginPath(); c.moveTo(.98, .02); c.lineTo(1.08, -.35); c.lineTo(.9, -.78); c.lineTo(.42, -.95); c.lineTo(.38, -.78); c.lineTo(.72, -.62); c.lineTo(.86, -.3); c.lineTo(.84, -.05); c.closePath(); c.fill();   // 外側の黒帯
-      for (let k = 0; k < 5; k++) { const u = k / 4; dot(lerp(.92, .62, u), lerp(-.25, -.7, u), .045, '#4a6fc0', .7); }         // 黒帯の中の青い斑
+      for (let k = 0; k < 5; k++) { const u = k / 4; dot(lerp(.92, .62, u), lerp(-.25, -.7, u), .045, under ? '#6f86b8' : '#4a6fc0', .7); }         // 黒帯の中の青い斑（裏は淡い）
+      if (under) for (let k = 0; k < 5; k++) { const u = k / 4; dot(lerp(.86, .55, u) + .02, lerp(-.18, -.6, u) + .03, .032, '#d98a3a', .6); }   // 裏：青い斑の内側に橙の斑
       for (let k = 0; k < 6; k++) { const u = k / 5; dot(lerp(1.02, .55, u), lerp(-.3, -.88, u), .03, Y, .6); }                // 外縁の黄色い三日月
       dot(.36, -.82, .065, '#e2632a'); dot(.36, -.82, .03, K);                                                                  // 後角の橙の目玉もよう
       c.fillStyle = K; c.fillRect(.7, -1.25, .14, .45);                                                                         // 尾状突起（黒）
       veinsTo([[.98, -.1], [1.0, -.32], [.92, -.55], [.82, -.72], [.65, -.82], [.5, -.9]], 4 * px, K, [.62, -.2], [.42, -.45]);
     }
   } else if (kind.startsWith('monshiro')) {
-    const W = '#f4f2e8', K = '#2f2f31', fem = kind === 'monshiro-f';
+    const W = under && !fore ? '#f1edcf' : '#f4f2e8', K = '#2f2f31', fem = kind === 'monshiro-f';   // 裏：後翅は淡い黄みを帯びる
     c.fillStyle = W; c.fill(path);
+    if (under && fore) { const gy = c.createLinearGradient(.7, 0, 1.2, 0); gy.addColorStop(0, 'rgba(240,232,180,0)'); gy.addColorStop(1, 'rgba(240,232,180,.9)'); c.fillStyle = gy; c.fill(path); }   // 裏：前翅の先も黄みを帯びる
     const gr = c.createRadialGradient(0, 0, 0, 0, 0, fore ? .38 : .3); gr.addColorStop(0, fem ? 'rgba(70,72,72,.75)' : 'rgba(80,82,82,.5)'); gr.addColorStop(1, 'rgba(80,82,82,0)'); c.fillStyle = gr; c.fill(path);   // 付け根の黒っぽい鱗粉（雌で広い）
     if (fore) {
       c.fillStyle = K; c.beginPath(); c.moveTo(.85, .36); c.lineTo(1.25, .4); c.lineTo(1.16, .08); c.quadraticCurveTo(1.02, .2, .85, .36); c.fill();   // 前翅の先の黒
@@ -353,13 +368,15 @@ export function makeButterfly(kind = 'ageha', mat = stdMat, o = {}) {
   const scaleN = nmap('wingScale', 64, 64, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); for (let y = -4; y < h + 4; y += 4) for (let x = (y / 4 % 2) * 3 - 3; x < w + 6; x += 6) { const gr = c.createLinearGradient(x, y - 3, x, y + 3); gr.addColorStop(0, '#fff'); gr.addColorStop(1, '#202020'); c.fillStyle = gr; c.beginPath(); c.ellipse(x, y, 3, 3.4, 0, 0, TAU); c.fill(); } }, 1.2, [36, 26]);
   const sheenMap = fore => ag && !fore ? shapeTex('agehaHsheen', hwG, W.hw, (c, path, px) => { c.fillStyle = '#2a2620'; c.fill(path); for (let k = 0; k < 5; k++) { const u = k / 4; c.fillStyle = '#5a8cff'; c.beginPath(); c.ellipse(lerp(.92, .62, u), lerp(-.25, -.7, u), .055, .04, 0, 0, TAU); c.fill(); } }, 256) : null;
   const sheenC = ag ? 0xffffff : moth ? 0x4a4030 : 0x55554e;
-  const mats = [true, false].map(fore => mk(mat, 0xffffff, { map: shapeTex(`${kind}${fore ? 'F' : 'H'}`, fore ? fwG : hwG, fore ? W.fw : W.hw, (c, path, px) => paintWing(kind, fore, c, path, px)), side: T.DoubleSide, rough: .78, uv: uvW, temp: .2,
-    nmap: scaleN, ns: .3, phys: { sheen: ag && !fore ? 1 : .6, sheenRoughness: .45, sheenColor: ag && fore ? 0x2a2620 : sheenC, sheenColorMap: sheenMap(fore) } }));
+  // 表と裏（2026-10-13）：形の表側（FrontSide）は翅の裏面（腹側）、BackSide は表面（背側）。止まって閉じると、外に見えるのは裏面
+  const wingMat = (fore, under) => mk(mat, 0xffffff, { map: shapeTex(`${kind}${fore ? 'F' : 'H'}${under ? 'u' : ''}`, fore ? fwG : hwG, fore ? W.fw : W.hw, (c, path, px) => paintWing(kind, fore, c, path, px, under)), side: under ? T.FrontSide : T.BackSide, rough: .78, uv: uvW, temp: .2,
+    nmap: scaleN, ns: .3, phys: { sheen: ag && !fore && !under ? 1 : .6, sheenRoughness: .45, sheenColor: ag && (fore || under) ? 0x2a2620 : sheenC, sheenColorMap: under ? null : sheenMap(fore) } });
+  const mats = [[wingMat(true, false), wingMat(true, true)], [wingMat(false, false), wingMat(false, true)]];
   const wings = [];
   for (const s of [-1, 1]) {
     const fp = new T.Group(), hp = new T.Group(); fp.position.set(s * .045, .1, .3); hp.position.set(s * .045, .096, .26); fp.rotation.order = hp.rotation.order = 'ZXY';
-    const f = new T.Mesh(fwG, mats[0]), h = new T.Mesh(hwG, mats[1]); f.rotation.y = -.12; if (s < 0) { f.scale.x = -1; h.scale.x = -1; f.rotation.y = .12; }
-    fp.add(f); hp.add(h); body.add(fp, hp); wings.push({ s, piv: fp, hp });
+    for (const k of [0, 1]) { const f = new T.Mesh(fwG, mats[0][k]), h = new T.Mesh(hwG, mats[1][k]); f.rotation.y = -.12; if (s < 0) { f.scale.x = -1; h.scale.x = -1; f.rotation.y = .12; } fp.add(f); hp.add(h); }
+    body.add(fp, hp); wings.push({ s, piv: fp, hp });
   }
   g.userData = { kind: moth ? 'ga' : 'chou', wings, ph: o.ph || 0, state: o.state || 'fly' };
   // 羽ばたき：下ろす（約 -25°）〜上げる（約 +85°。上で左右の翅が近づく）。後翅は前翅に少し遅れ、翅は打ち下ろしで前縁を下げる（ねじれ）。
@@ -444,13 +461,14 @@ export function makeTit(mat = stdMat, o = {}) {
   for (let i = 0; i < 3; i++) F.push({ seg: 0, x: .05 + i * .045, a0: .12 - i * .05, aF: -1.15, len: .2, wid: .07, layer: .006, m: 1 });            // 三列風切
   for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .25, wid: .065, layer: .004 - i * .0002, m: 0 });       // 次列風切
   for (let i = 0; i < 9; i++) F.push({ seg: 2, x: i * .006, a0: -.4 - i * .13, aF: -1.45 + i * .01, len: .25 + .12 * Math.sin(Math.min(1, i / 7) * Math.PI / 2), wid: .06, asym: .3, layer: -.002 * i, m: 0 });   // 初列風切
-  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .11, wid: .06, layer: .012, m: 2 });                      // 大雨覆（先が白い＝翼の帯）
-  for (let i = 0; i < 5; i++) F.push({ seg: 2, x: i * .008, a0: -.5 - i * .2, aF: -1.45, len: .1, wid: .05, layer: .01, m: 1 });                          // 初列雨覆
+  // 雨覆は、重なる羽どうしの高さを一枚ずつずらす（2026-10-13：同じ高さの羽が重なり、寄りで面に縞のちらつきが出ていた）
+  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .11, wid: .06, layer: .012 + i * .0009, m: 2 });                      // 大雨覆（先が白い＝翼の帯）
+  for (let i = 0; i < 5; i++) F.push({ seg: 2, x: i * .008, a0: -.5 - i * .2, aF: -1.45, len: .1, wid: .05, layer: .01 + i * .0009, m: 1 });                          // 初列雨覆
   // 小・中雨覆（前縁）：2026-10-13 大きな丸い板 2 枚をやめ、細い羽を並べて重ねた（たたんだ翼が板の重なりに見えたため）
-  for (let i = 0; i < 6; i++) F.push({ seg: 0, x: .01 + i * .024, a0: -.2 - i * .03, aF: -1.1, len: .11, wid: .055, layer: .016, m: 3 });
-  for (let i = 0; i < 7; i++) F.push({ seg: 1, x: .005 + i * .02, a0: -.15 - i * .03, aF: 1.32, len: .085, wid: .05, layer: .018, m: 3 });
+  for (let i = 0; i < 6; i++) F.push({ seg: 0, x: .01 + i * .024, a0: -.2 - i * .03, aF: -1.1, len: .11, wid: .055, layer: .02 + i * .0009, m: 3 });
+  for (let i = 0; i < 7; i++) F.push({ seg: 1, x: .005 + i * .02, a0: -.15 - i * .03, aF: 1.32, len: .085, wid: .05, layer: .026 + i * .0009, m: 3 });
   const texs = [featherTex('wf', '#5c6878', '#9fb0c2', null), featherTex('wt', '#3c4450', '#eef0ea', null), featherTex('wc', '#6c7a8c', '#8394a8', '#f0f0ea', .32), featherTex('wl', '#7a8898', '#8696a8', null)];
-  const wingMats = texs.map(tx => mk(mat, 0xffffff, { map: tx, side: T.DoubleSide, rough: .8, temp: .85, uv: .18 }));
+  const wingMats = texs.map((tx, m) => { const wm = mk(mat, 0xffffff, { map: tx, side: T.DoubleSide, rough: .8, temp: .85, uv: .18 }); if (m >= 2) { wm.polygonOffset = true; wm.polygonOffsetFactor = -(m - 1); wm.polygonOffsetUnits = -(m - 1) * 2; } return wm; });   // 雨覆は風切より手前に描く（深さの取りあいで縞にならない）
   function wingMesh(side) {
     const geos = [], base = [];
     for (const f of F) { const fg = featherGeo(f.len, f.wid, f.asym || 0); base.push(Float32Array.from(fg.attributes.position.array)); geos.push(fg); }
@@ -536,13 +554,13 @@ export function makeDog(mat = stdMat, o = {}) {
     (t, sx, cy) => { const c = urajiro(-.42)(t, sx, cy), k = sstep(.76, .86, t) * sstep(.4, .1, cy); return k > 0 ? mixc(c.isColor ? c.getHex() : c, Cr, k) : c; }, { n: 30, r: 18 }); bodyG.translate(0, -.64, 0);   // 胸の白は、境をぼかして毛の色へ
   const bodyM = new T.Mesh(bodyG, fur); trunk.add(bodyM);
   addFur(bodyM, mat, { ...FD, len: (u, v) => { const cy = Math.cos(v * TAU); return u < .03 ? 0 : (cy < -.5 ? .014 : cy > .4 ? .026 : .022) * (u > .8 ? 1.3 : 1); } });
-  const neckM = new T.Mesh(sweep([[0, .7, .3], [0, .82, .42], [0, .9, .5]], tab([[0, .11], [1, .095]]), tab([[0, .14], [1, .1]]), (t, sx, cy) => cy < -.2 ? Cr : cy < .1 ? RL : R, { n: 10, r: 16 }), fur);
+  const neckM = new T.Mesh(sweep([[0, .7, .3], [0, .82, .42], [0, .9, .5]], tab([[0, .11], [1, .095]]), tab([[0, .14], [1, .1]]), (t, sx, cy) => cy < -.35 ? Cr : cy < -.05 ? mixc(Cr, RL, (cy + .35) / .3) : cy < .25 ? mixc(RL, R, (cy + .05) / .3) : R, { n: 10, r: 16 }), fur);   // のどの白は、境をぼかして赤毛へ（2026-10-13：板のふちのような切れ目をなくす）
   const neckP = new T.Group(); neckP.position.set(0, .7, .3); g.add(neckP); neckM.geometry.translate(0, -.7, -.3); neckP.add(neckM);   // 首の付け根を軸に、頭を下げる・振り向く
   addFur(neckM, mat, { ...FD, len: .032, comb: [0, -.8, -.6] });
-  neckP.add(ellC(fur, Cr, 0, .17, .17, .085, .075, .08, 14));   // のどと頭のつなぎ目
+  { const th = ellC(fur, Cr, 0, .17, .17, .085, .075, .08, 14); neckP.add(th); addFur(th, mat, { ...FD, len: .02, comb: [0, -.8, -.4] }); }   // のどと頭のつなぎ目（毛の層で、まわりの毛となじませる）
   // 頭：額（ストップ）でくぼみ、細めのマズル。頬・口のまわり・のど・目の上の斑が白い（裏白）
-  const head = new T.Group(); head.position.set(0, .23, .2); head.scale.set(1.08, 1.06, .9); neckP.add(head);   // マズルを少し短く太く
-  const headM = new T.Mesh(sweep([[0, .02, -.07], [0, .035, .04], [0, .01, .13], [0, -.03, .22], [0, -.04, .27]], tab([[0, .07], [.25, .112], [.5, .09], [.66, .066], [.92, .05], [1, .012]]), tab([[0, .07], [.25, .1], [.5, .08], [.66, .058], [.92, .044], [1, .012]]),
+  const head = new T.Group(); head.position.set(0, .23, .2); head.scale.set(1.13, 1.08, .82); neckP.add(head);   // マズルを短く太く・額を広く（2026-10-13：柴は丸顔で、マズルは中くらい）
+  const headM = new T.Mesh(sweep([[0, .02, -.07], [0, .035, .04], [0, .01, .13], [0, -.03, .22], [0, -.04, .27]], tab([[0, .07], [.25, .116], [.5, .096], [.66, .076], [.92, .06], [1, .014]]), tab([[0, .07], [.25, .104], [.5, .085], [.66, .065], [.92, .05], [1, .014]]),
     (t, sx, cy, x, y, z) => { if (t > .5 && cy < -.05) return Cr; if (t > .3 && t < .52 && cy < .25 && Math.abs(sx) > .5) return Cr; if (t > .38 && t < .5 && cy > .55 && Math.abs(sx) > .35 && Math.abs(sx) < .7) return Cr; return t > .55 ? mixc(R, 0xd08a50, (t - .55) * 2) : R; }, { n: 24, r: 16, k: (t, sx, cy) => (1 - .12 * Math.max(0, cy) * sstep(.45, .6, t)) * (1 + .14 * Math.abs(sx) * sstep(.2, .4, t) * (1 - sstep(.5, .7, t)) * sstep(.6, -.2, cy)) }), fur);   // 頬を張らせた丸顔
   head.add(headM);
   addFur(headM, mat, { ...FD, len: (u, v) => { const cy = Math.cos(v * TAU), sx = Math.abs(Math.sin(v * TAU)); return u > .9 ? 0 : u > .55 ? .006 : (u > .25 && sx > .5 && cy < .3) ? .022 : .012; }, droop: .3, comb: [0, 0, -1.4] });
@@ -563,7 +581,7 @@ export function makeDog(mat = stdMat, o = {}) {
   // 脚：前は肩→肘→手首→足、後ろは腰→膝→かかと→足。肘と膝で曲げる。関節のすき間は丸みでつなぐ
   const legs = [];
   const leg = (s, front) => { const top = new T.Group(); top.position.set(s * (front ? .085 : .095), front ? .6 : .63, front ? .32 : -.38); g.add(top);
-    const up = new T.Mesh(sweep(front ? [[0, 0, 0], [0, -.1, -.03], [0, -.2, -.02]] : [[0, 0, 0], [0, -.12, .06], [0, -.24, .08]], tab([[0, .07], [1, .045]]), tab([[0, .08], [1, .05]]), (t, sx, cy) => s * sx < -.3 ? Cr : R, { n: 8, r: 12, up: [0, 0, 1] }), fur); top.add(up);
+    const up = new T.Mesh(sweep(front ? [[0, 0, 0], [0, -.1, -.03], [0, -.2, -.02]] : [[0, 0, 0], [0, -.12, .06], [0, -.24, .08]], tab([[0, .07], [1, .045]]), tab([[0, .08], [1, .05]]), (t, sx, cy) => mixc(R, Cr, sstep(-.05, -.55, s * sx) * sstep(0, .35, t)), { n: 8, r: 12, up: [0, 0, 1] }), fur); top.add(up);   // 脚の内の白は、つけ根では胴の毛にとけこむ
     addFur(up, mat, { ...FD, len: .012, comb: [0, -1.4, 0] });
     const knee = new T.Group(); knee.position.set(0, front ? -.2 : -.24, front ? -.02 : .08); top.add(knee);
     knee.add(ellC(fur, R, 0, 0, 0, .045, .05, .05, 10));
@@ -647,8 +665,11 @@ function lay(S, len, ang, headPos = [0, 0, .45]) {
 export function makeMamushi(mat = stdMat, o = {}) {
   const g = new T.Group(); const N = 90, R = 12;
   const tex = ctex('mamushi', 1024, 128, (c, w, h) => {
-    const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#76604a'); gr.addColorStop(.3, '#8a6e52'); gr.addColorStop(.42, '#5a5048'); gr.addColorStop(.5, '#3a3530'); gr.addColorStop(.58, '#5a5048'); gr.addColorStop(.7, '#8a6e52'); gr.addColorStop(1, '#76604a'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
-    for (let i = 0; i < 26; i++) { const u = (.06 + i * .036) * w; for (const [v, off] of [[.16, 0], [.84, .018]]) { const x = u + off * w, y = v * h; c.fillStyle = '#2e241b'; c.beginPath(); c.ellipse(x, y, 15, 13, 0, 0, TAU); c.fill(); c.fillStyle = '#7d6449'; c.beginPath(); c.ellipse(x, y, 9.5, 8, 0, 0, TAU); c.fill(); c.fillStyle = '#4a3a2c'; c.beginPath(); c.ellipse(x - 1, y, 3, 3, 0, 0, TAU); c.fill(); } }
+    // 地の色（2026-10-13 直し：淡いベージュ → 実物に近い褐色〜灰褐色。背の中央はやや暗く、わきは赤みの褐色）
+    const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#5a4433'); gr.addColorStop(.3, '#6b5039'); gr.addColorStop(.42, '#4f4339'); gr.addColorStop(.5, '#3a3530'); gr.addColorStop(.58, '#4f4339'); gr.addColorStop(.7, '#6b5039'); gr.addColorStop(1, '#5a4433'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 4000; i++) { c.fillStyle = `rgba(${rnd() < .5 ? '30,22,16' : '120,96,72'},${.12 + rnd() * .18})`; c.fillRect(rnd() * w, rnd() * h, 2, 2); }   // 鱗ごとの色のむら
+    // 銭形：ふちの黒い輪の中が、地より少し明るい褐色。背の左右に、少しずらして並ぶ。輪は少し大きく、ふちを太く（上から読めるように）
+    for (let i = 0; i < 26; i++) { const u = (.06 + i * .036) * w; for (const [v, off] of [[.16, 0], [.84, .018]]) { const x = u + off * w, y = v * h; c.fillStyle = '#1e1610'; c.beginPath(); c.ellipse(x, y, 17, 15, 0, 0, TAU); c.fill(); c.fillStyle = '#8a6c4c'; c.beginPath(); c.ellipse(x, y, 10, 8.5, 0, 0, TAU); c.fill(); c.fillStyle = '#3e3024'; c.beginPath(); c.ellipse(x - 1, y, 3.2, 3.2, 0, 0, TAU); c.fill(); } }
     for (let i = 0; i < 60; i++) { c.fillStyle = 'rgba(30,26,22,.6)'; c.beginPath(); c.arc((i / 60) * w, h * .5 + (i % 2 ? 6 : -6), 3, 0, TAU); c.fill(); }   // 腹の斑
   }, [1, 1]);
   const radius = u => .035 * Math.pow(sstep(0, .14, u), .7) * (1 - .45 * sstep(.9, 1, u)) + .0015;   // 太く短い体（2026-10-13 少し太く）
@@ -664,7 +685,7 @@ export function makeMamushi(mat = stdMat, o = {}) {
   mesh.material.map = tex; g.add(mesh);
   // 頭（三角で、首よりはっきり幅が広い）
   const head = new T.Group(); g.add(head); const headS = new T.Group(); headS.scale.set(1.35, 1.15, 1.1); head.add(headS);
-  const hc = (t, sx, cy) => { if (cy < -.3) return 0xd8cdb4; if (t > .3 && t < .78 && cy > -.25 && cy < .2 && Math.abs(sx) > .55) return 0x231b14; if (t > .3 && t < .8 && cy > .2 && cy < .38 && Math.abs(sx) > .5) return 0xcfc2a2; return 0x84705a; };
+  const hc = (t, sx, cy) => { if (cy < -.3) return 0xd8cdb4; if (t > .3 && t < .78 && cy > -.25 && cy < .2 && Math.abs(sx) > .55) return 0x231b14; if (t > .3 && t < .8 && cy > .2 && cy < .38 && Math.abs(sx) > .5) return 0xcfc2a2; return 0x664e3a; };   // 頭の地も体と同じ褐色に（2026-10-13）
   headS.add(new T.Mesh(sweep([[0, .0, -.01], [0, .002, .03], [0, .0, .065], [0, -.002, .08]], tab([[0, .017], [.35, .027], [.75, .02], [1, .006]]), tab([[0, .015], [.35, .014], [.75, .011], [1, .005]]), hc, { n: 16, r: 14, k: (t, sx, cy) => (cy > .5 ? .95 : 1) * (1 + .35 * sstep(.15, .4, t) * (1 - sstep(.45, .75, t)) * Math.abs(sx)) }), mk(mat, 0xffffff, { vc: true, map: scaleTex([6, 3]), rough: .45, temp: .3, phys: { clearcoat: .4, clearcoatRoughness: .3, sheen: .3, sheenColor: 0xe6dcc4 } })));
   const eyeM = wetEye(mat, 0xb88a3a, { temp: .3 }), pupM = mk(mat, 0x050505, { rough: .1 }), pitM = mk(mat, 0x0c0907, { rough: .9 });   // 目は透明な鱗（ブリル）におおわれ、つやがある
   for (const s of [-1, 1]) { headS.add(ell(eyeM, s * .019, .009, .05, .006, .0065, .0065, 12)); headS.add(ell(pupM, s * .0245, .009, .051, .0012, .0052, .0022, 6));   // 縦長の瞳
@@ -735,7 +756,8 @@ export function makeBat(mat = stdMat, o = {}) {
   const headM = new T.Mesh(sweep([[0, 0, -.04], [0, .01, .08], [0, -.01, .2], [0, -.02, .25]], tab([[0, .09], [.4, .1], [.8, .055], [1, .02]]), tab([[0, .09], [.4, .095], [.8, .05], [1, .02]]), (t, sx, cy) => t > .65 ? 0x2a2019 : 0x4b3a2c, { n: 12, r: 14 }), fur);
   head.add(headM); addFur(headM, mat, { n: MOBILE ? 4 : 10, comb: [0, 0, -1.2], len: (u) => .03 * (1 - sstep(.55, .75, u)), dens: 170, thick: .4, root: .5, temp: .95, sheen: 0xe8d8c4 });
   const skin = mk(mat, 0x2b201b, { rough: .7, temp: .8, side: T.DoubleSide });
-  for (const s of [-1, 1]) { const ear = new T.Mesh(sweep([[0, 0, 0], [0, .07, .0], [0, .13, -.01]], tab([[0, .055], [.6, .045], [1, .008]]), tab([[0, .02], [1, .004]]), () => 0x2b201b, { n: 6, r: 8, up: [0, 0, 1] }), skin); ear.position.set(s * .06, .07, .04); ear.rotation.set(-.2, s * -.5, s * -.35); ear.scale.set(1.35, 1.25, 1.6);   // 毛より上に出る耳 head.add(ear);
+  for (const s of [-1, 1]) { const ear = new T.Mesh(sweep([[0, 0, 0], [0, .07, .0], [0, .13, -.01]], tab([[0, .055], [.6, .045], [1, .008]]), tab([[0, .02], [1, .004]]), () => 0x2b201b, { n: 6, r: 8, up: [0, 0, 1] }), skin); ear.position.set(s * .06, .07, .04); ear.rotation.set(-.2, s * -.5, s * -.35); ear.scale.set(1.35, 1.25, 1.6); head.add(ear);   // 毛より上に出る耳（2026-10-13 直し：head.add がコメントの中に入っていて、耳が付いていなかった）
+    { const tr = new T.Mesh(sweep([[0, 0, 0], [0, .035, .004]], tab([[0, .012], [1, .003]]), tab([[0, .006], [1, .002]]), () => 0x4a3a30, { n: 3, r: 6, up: [0, 0, 1] }), skin); tr.position.set(s * .048, .07, .07); tr.rotation.set(-.1, s * -.5, s * -.2); head.add(tr); }   // 耳珠（耳の前の小さな突起。アブラコウモリは短く丸い）
     head.add(ell(wetEye(mat, 0x060606), s * .055, .025, .17, .013, .013, .013, 12)); }
   // 皮膜と骨：皮膜は薄い皮ふで、血管と弾性繊維の筋が走る。うしろから光が当たると赤褐色に透け、血管が暗い線になって浮かぶ
   const veinTex = ctex('batVein', 256, 128, (c, w, h) => { c.fillStyle = '#3d2c25'; c.fillRect(0, 0, w, h);
@@ -778,7 +800,9 @@ export function makeBat(mat = stdMat, o = {}) {
       bone(Wr, pl(W[0] + .06, W[1] + .1, .03), .012);    // 親指
       bone(hip, knee, .02); bone(knee, ank, .016); bone(ank, calc, .007);
       const P = patches[s < 0 ? 0 : 1], toW = Wr.clone();
-      fillStrip(P[0], [Sh, El, Wr], [V(s * .1, .0, .05), hip, knee, ank, d5], .18, toW, .03 * (1 - fold));     // 腕と脚のあいだ
+      // 腕と脚のあいだ（2026-10-13 直し：第 5 指の側を手首へ引き寄せていたため、手首で膜がくびれて二枚の板に見えた。
+      //   第 5 指は手首から後ろのふちへ伸びて膜の幅を保つので、膜の外のふちは第 5 指の骨（中ほどの点を通る）にそわせる）
+      fillStrip(P[0], [Sh, El, Wr, Wr.clone().lerp(d5m, .5), d5m], [V(s * .1, .0, .05), hip, knee, ank, d5], 0, null, .03 * (1 - fold));
       fillStrip(P[1], [Wr, d5m, d5], [Wr, d4m, d4], .22, toW, .02);
       fillStrip(P[2], [Wr, d4m, d4], [Wr, d3m, d3], .22, toW, .02);
       fillStrip(P[3], [Sh, El, Wr, d2m, d2], [Sh.clone().add(V(0, .0, .05)), El.clone().add(V(0, 0, .06)), Wr.clone().add(V(0, 0, .03)), d3m, d3], 0, null, 0);   // 腕の前・第 2〜3 指のあいだ

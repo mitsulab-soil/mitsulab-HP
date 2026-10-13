@@ -12,7 +12,7 @@
    素材：樹皮と葉の写真は CC0（Poly Haven・ambientCG。台帳 M-0793〜0796）。モミジ・スギの葉、シダ、落ち葉、花びらは、この画面の中で描く。 */
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { bladeGeo, stemGeo, geoAt, rockGeo } from "./nature.js?v=20261013fur";
+import { bladeGeo, stemGeo, geoAt, rockGeo } from "./nature.js?v=20261013k80";
 import { crownHook } from "./zen.js";
 
 const TAU = Math.PI * 2, V3 = THREE.Vector3;

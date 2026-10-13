@@ -142,6 +142,55 @@ body{word-break:auto-phrase;line-break:strict}
 #why .caution{font-size:14px;line-height:1.7;color:#f1d9a8;margin:8px 0 0;padding:6px 10px;border-left:3px solid var(--gold);background:rgba(217,194,122,.08)}
 #aoiWin{left:auto;right:10px;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px) + 250px)}#aoiWin small{left:auto;right:0}
 @media(max-width:700px){#aoiWin{left:auto;right:8px;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px) + 210px)}#worm{max-width:none!important}#worm .btn{white-space:nowrap}#aoiWin small{left:auto;right:0}}
+/* ================= 2026-10-13（80 点へ）見た目を mitsulab の共通の作法に（12_ブランド/世界観と見た目_v1・_共通3D/tokens.css）
+   地＝夜の紺・碧の色は線と字だけ（塗りつぶして光るボタンは使わない）・角は 2px・題と字幕は明朝・にじむ影はつけない */
+:root{--bg:#03060f;--ink:#eef5fb;--dim:#c3cce0;--line:rgba(150,170,240,.22);--card:#080e1a;--card2:rgba(6,10,18,.72);--aoi:#5cc8e0;--aoi2:#0d87a3;--aoi3:#9bdcf0;--gold:#f2cf8c;--shadow:none;
+  --mincho:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif}
+.btn,.ico,.pill,.tab,#acts .btn,#whyTabs button,#habitats button,#flightControls button,#bodyControls button,#bodyPrev,#bodyNext,#worm .btn,.btn.why{border-radius:2px!important;box-shadow:none!important}
+.btn{background:rgba(3,6,15,.55);border:1px solid var(--line);color:var(--ink);letter-spacing:.06em}
+.btn:hover,.btn:focus-visible{border-color:var(--aoi)}
+.btn.pri,#acts .btn.pri{background:rgba(3,6,15,.55)!important;border-color:var(--aoi)!important;color:var(--aoi3)!important;font-weight:500;text-shadow:none}
+#acts .btn{background:rgba(3,6,15,.5);border-color:rgba(195,204,224,.22)}
+.ico{background:rgba(6,10,18,.72);border-color:var(--line)}
+.btn.why{background:rgba(6,10,18,.72);border-color:var(--line)}
+.pill[aria-pressed=true],#whyTabs button[aria-pressed=true],.tab[aria-selected=true]{background:rgba(3,6,15,.6)!important;border:1px solid var(--aoi)!important;color:var(--aoi3)!important;font-weight:500}
+#whyTabs button{background:rgba(3,6,15,.5)}
+#dial .pill{background:rgba(6,10,18,.62)!important;border:1px solid rgba(195,204,224,.14)!important}
+#dial .pill[aria-pressed=true]{background:rgba(6,10,18,.8)!important;border-color:var(--aoi)!important;color:var(--aoi3)!important;box-shadow:none!important}
+#bodyWheel:before{border-color:rgba(92,200,224,.28);box-shadow:none}
+#bodyControls button,#bodyPrev,#bodyNext,#flightControls button{background:rgba(6,10,18,.66)!important;border:1px solid var(--line)!important;color:var(--ink)!important}
+#bodyControls button:active,#bodyControls button[aria-pressed=true]{border-color:var(--aoi)!important;color:var(--aoi3)!important}
+.dream-title{font-family:var(--mincho);color:var(--ink);font-weight:600}
+#where b,#why h2,#menu h2,#boot b{font-family:var(--mincho)}
+#guide{background:linear-gradient(90deg,rgba(3,6,15,0),rgba(3,6,15,.62) 12%,rgba(3,6,15,.62) 88%,rgba(3,6,15,0));border:0;border-radius:2px;backdrop-filter:none;-webkit-backdrop-filter:none}
+#say{font-family:var(--mincho);letter-spacing:.03em}
+#guide .face i{background:var(--aoi)}
+#why,#menu{background:rgba(3,6,15,.72)}
+#why .in,#menu .in{background:var(--card);border:1px solid var(--line);border-radius:2px}
+#why h3{color:var(--aoi3)}
+#why .caution{color:#f6e2b8;border-left-color:var(--gold);background:rgba(242,207,140,.07)}
+#legend{background:rgba(3,6,15,.6)!important}
+#boot{background:var(--bg)}#prog i{background:var(--aoi)}
+#toast{background:var(--card);border-radius:2px}
+#aoiWin i{border-radius:2px}
+/* くらべる旅 */
+#kurQ{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(8px,env(safe-area-inset-top)) + 108px);z-index:6;font-size:14px;letter-spacing:.06em;color:var(--aoi3);background:rgba(3,6,15,.66);border:1px solid rgba(92,200,224,.35);border-radius:2px;padding:4px 12px;white-space:nowrap;pointer-events:none;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+#cmpBtn{width:auto!important;min-width:56px;padding:4px 8px!important;font-size:13px!important;line-height:1.25}
+#cmpBtn b{font-size:18px;font-weight:400}
+#cmpTag{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(8px,env(safe-area-inset-top)) + 144px);z-index:6;font-size:14px;color:var(--ink);background:rgba(3,6,15,.72);border:1px solid var(--line);border-radius:2px;padding:4px 12px;pointer-events:none;white-space:nowrap}
+#takeaway{position:fixed;inset:0;z-index:22;background:rgba(3,6,15,.6);display:grid;place-items:center;padding:16px}
+#takeaway .in{position:relative;width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:2px;padding:20px 18px 16px}
+#takeaway .in::before,#takeaway .in::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--aoi);opacity:.7}
+#takeaway .in::before{left:-1px;top:-1px;border-right:0;border-bottom:0}#takeaway .in::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+#takeaway small{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.24em;color:var(--dim)}
+#takeaway h2{font-family:var(--mincho);font-weight:600;font-size:21px;margin:6px 0 4px;letter-spacing:.06em;line-height:1.5}
+#takeaway p{font-size:14px;color:var(--dim);margin:0 0 10px}
+#takeaway ol{margin:0;padding-left:1.3em}
+#takeaway li{font-size:15px;line-height:1.75;color:#e3eaf3;margin:0 0 8px}
+#takeaway li b{display:block;font-family:var(--mincho);font-weight:600;color:var(--aoi3);font-size:15px}
+#takeaway .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+@media(max-width:700px){#acts{flex-wrap:wrap;overflow:visible}.dream-title{white-space:nowrap;font-size:15px;letter-spacing:.12em;padding:8px 4px}.topR{gap:4px}.btn.why{padding:0 8px;font-size:13px}}
+@media(max-width:700px){#kurQ{top:calc(max(8px,env(safe-area-inset-top)) + 100px);font-size:13px}#cmpTag{top:calc(max(8px,env(safe-area-inset-top)) + 132px);font-size:13px;white-space:normal;text-align:center;width:calc(100vw - 32px)}#cmpBtn{min-width:44px;font-size:12px!important}#takeaway h2{font-size:19px}#takeaway li{font-size:14.5px}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -155,11 +204,20 @@ body{word-break:auto-phrase;line-break:strict}
 
 <header id="top">
   <span class="dream-title">胡蝶の夢</span>
-  <span class="topR"><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
+  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
 </header>
-<aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
+<aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
 <div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
 <div id="legend" hidden></div>
+<p id="kurQ" hidden aria-live="polite"></p>
+<p id="cmpTag" hidden></p>
+<div id="takeaway" hidden role="dialog" aria-modal="true" aria-labelledby="takeTitle"><div class="in">
+  <small>TAKE HOME</small>
+  <h2 id="takeTitle">外で使える、三つの見方</h2>
+  <p id="takeHits"></p>
+  <ol id="takeList"></ol>
+  <div class="row"><button class="btn pri" id="takeX">自由に歩く</button><button class="btn" id="takeAgain">もう一度くらべる</button></div>
+</div></div>
 <div id="panHint" hidden>↔ 左右になぞると、壁が動きます</div>
 
 <aside id="bodyWheel" aria-label="生きもののダイヤル"><button id="bodyPrev" aria-label="前の生きもの">⌃</button><nav id="dial" aria-label="受けとり方"></nav><button id="bodyNext" aria-label="次の生きもの">⌄</button></aside>
@@ -192,7 +250,8 @@ body{word-break:auto-phrase;line-break:strict}
   <h2>八つの受けとり方（くらべる）</h2>
   <table id="lensTable"></table>
   <h2>操作</h2>
-  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば。</p>
+  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
+  <p>上の「くらべる」＝同じ場所に立ったまま、ミツバチ・犬・マムシに体を入れかえる旅。切り替える前に見え方を予想してから確かめ、最後に外で使える見方を持ち帰ります。右の「◐ 人の目とくらべる」は、押しているあいだだけ同じ場所を人の目に戻します。</p>
   <h2>この空間のつくり</h2>
   <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、モンシロチョウの雌雄と空です。白い花の多くが紫外を吸うことは研究の報告にもとづきますが、この森の草花・鳥の一つひとつの値は測ったものではなく、目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
   <h2>場所のつくり</h2><p>森・池・川をつないだ創作空間です。関東の雑木林（コナラ・ケヤキ・イロハモミジ）と谷すじのスギ林の、夏のはじめ（7 月ごろ）の午後のつもりで、木は列にせず散らばるように、草花はそれぞれが育つ場所に群れで置いています。実在する場所を再現したものではありません。花の紫外・熱・反響などは、感覚の違いを考えるための模式表現です。</p>
@@ -227,10 +286,10 @@ body{word-break:auto-phrase;line-break:strict}
 })();
 </script>
 <script src="data/paths.js?v=20261010"></script>
-<script src="data/script.js?v=20261012native"></script>
-<script src="data/voice.js?v=20261012native" onerror="window.VOICE={}"></script>
+<script src="data/script.js?v=20261013k80"></script>
+<script src="data/voice.js?v=20261013k80" onerror="window.VOICE={}"></script>
 <script src="data/why.js?v=20261013tp"></script>
-<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261013tp' ;document.body.appendChild(s);}</script>
+<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261013k80' ;document.body.appendChild(s);}</script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
 </body>
 </html>

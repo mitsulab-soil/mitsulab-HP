@@ -5,12 +5,12 @@
    シェーダーで、受けとる細胞の感度から作った行列（uM）と紫外の写し先（uUVw）で置きかえる。近似（README）。
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
-import { makeBody, creaturePortrait, makeCreature } from "./bodies.js?v=20261013fur";
-import { buildForest } from "./forest.js?v=20261013fur";
+import { makeBody, creaturePortrait, makeCreature } from "./bodies.js?v=20261013k80";
+import { buildForest } from "./forest.js?v=20261013k80";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261013fur";
+import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261013k80";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
-import { AoiMotion } from "./kit/aoi_motion.js?v=20261013v3";   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
+import { AoiMotion } from "./kit/aoi_motion.js?v=20261013v31";   // v3.1（2026-10-13）：まっすぐ立ち、左右の揺れを小さく（posture:"upright"）   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
 
 const $ = id => document.getElementById(id);
 const S = window.SCRIPT, N = S.names, VOICE = window.VOICE || {}, P = window.PATHS || {};
@@ -385,6 +385,8 @@ for (const o of [...butterflies, ageha, bee, ...moths, ...residents.filter(b => 
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.2);bodyRoot.rotation.y=Math.PI;Object.values(bodies).forEach(b=>{bodyRoot.add(b);b.visible=false;});
 let bodyYaw0=0,bodyRoll=0,showLens='',showT=0;
 const BODYPOS={hachi:[-.19,-.78],chou:[-.2,-.84],tori:[-.2,-.84],inu:[-.24,-.92],hebi:[-.22,-.92],koumori:[-.19,-.84]};
+// 切り替えた直後の「寄り」（ry＝横へ回す・rx＝手前へ傾けて背を見せる・y z＝寄せる位置・s＝大きさの倍率）
+const SHOW={def:{ry:1.2,rx:0,y:-.13,z:-.52,s:1.35},hachi:{ry:1.35,rx:.12,y:-.1,z:-.44,s:1.9},tori:{ry:1.3,rx:.1,y:-.11,z:-.46,s:1.7},chou:{ry:1.0,rx:.35,y:-.12,z:-.5,s:1.45},inu:{ry:1.25,rx:.05,y:-.15,z:-.55,s:1.35},hebi:{ry:.55,rx:.85,y:-.12,z:-.5,s:1.8},koumori:{ry:.4,rx:.55,y:-.05,z:-.82,s:1.0}};
 // 自分の体の質感（森の生きものと共有している質感は、透かさない）
 const worldMats = new Set(); forest.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) worldMats.add(mt); });
 const bodyMats = Object.fromEntries(Object.entries(bodies).map(([k, b]) => { const list = []; b.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) if (!worldMats.has(mt)) list.push([mt, mt.opacity, mt.transparent]); }); return [k, list]; }));
@@ -393,8 +395,27 @@ function setBodyAlpha(id, a) { if (Math.abs(a - (bodyA[id] ?? 1)) < .01) return;
 function setHabitat(place){habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
 let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
+// 見え方だけを切りかえる（色の写し方・ぼかし・夜）。「人の目とくらべる」を押しているあいだは、ひとの見え方を一時的に重ねる（2026-10-13）
+function lensVisual(id) {
+  const L = LENS[id];
+  G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0;
+  renderer.setPixelRatio(L.blur ? Math.max(.5, BASE_PR * .5) : BASE_PR); renderer.setSize(innerWidth, innerHeight);
+  renderer.domElement.style.filter = L.blur ? `blur(${mobile ? 1.6 : 2.2}px)` : "";
+  const night = !!L.night;
+  if (night) { hemi.intensity = .05; sun.intensity = 0; scene.fog.color.set(0x020306); } else setDay(LIT.base);
+  scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
+  for (const m of moths) m.visible = night;
+  if (FOREST.shafts) FOREST.shafts.visible = (id === 'hito' || id === 'inu') && !night;
+}
+let comparing = false;
+function compareView(on) {
+  if (on === comparing || LENS[lens].under || chapter !== "umwelt") return;
+  comparing = on; lensVisual(on ? "hito" : lens); $("cmpBtn").setAttribute("aria-pressed", String(on));
+  $("cmpTag").hidden = !on; $("cmpTag").textContent = on ? "人の目で見ています（はなすと " + (S.lens.find(x => x.id === lens)?.name || "") + " に戻る）" : "";
+}
 function applyLens(id) {
   const L = LENS[id];
+  if (comparing) { comparing = false; $("cmpBtn")?.setAttribute("aria-pressed", "false"); $("cmpTag") && ($("cmpTag").hidden = true); }
   G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0;
   // 犬のぼかし（2026-10-13）：画素を粗くすると四角いモザイクに見えるので、描く細かさを半分にし、画面全体をなめらかにぼかす
   renderer.setPixelRatio(L.blur ? Math.max(.5, BASE_PR * .5) : BASE_PR); renderer.setSize(innerWidth, innerHeight);
@@ -415,6 +436,7 @@ function applyLens(id) {
   $('bodyControls').hidden = !!L.under || chapter !== 'umwelt';   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
   $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
+  $("cmpBtn").hidden = id === "hito" || !!L.under || chapter !== "umwelt";
 }
 
 // ---------------------------------------------------------------- 見る人（カメラ）の動き
@@ -630,7 +652,7 @@ async function loadAoi() {
     A.mats = []; aoi.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) A.mats.push([mt, mt.transparent, mt.depthWrite]); });
     // 2026-10-13：体の動き・目・まばたき・口・表情・裾の布は共通部品 AoiMotion に任せる（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）
     aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
-    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2 }); AM.place(A.pos.x, A.pos.z, A.yaw);
+    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright" }); AM.place(A.pos.x, A.pos.z, A.yaw);
     opacity(0); window.__aoi = { vrm, aoi, A, M: AM };
   } catch (e) { console.warn("碧の姿を読み込めませんでした（声と字幕で案内します）：", e?.message ?? e); }
 }
@@ -682,7 +704,7 @@ function aoiTick(dt) {
   else {
     // 2026-10-08：生きものに切り替えているあいだは、碧は視界の端の少し奥（景色を隠さない）。ひとのときはとなりの右前
     const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), creature = lens !== "hito";
-    const D = creature ? 4.6 : (innerWidth / innerHeight < .8 ? 3.6 : 2.6), ang = creature ? hf / 2 * .62 : Math.atan((innerWidth / innerHeight < .8 ? .5 : 1.3) / D);   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-13）
+    const D = KUR.on ? 4.6 : creature ? 4.6 : (innerWidth / innerHeight < .8 ? 3.6 : 2.6), ang = (creature || KUR.on) ? hf / 2 * .62 : Math.atan((innerWidth / innerHeight < .8 ? .5 : 1.3) / D);   // くらべる旅では、花を見下ろしても頭が切れないよう少し奥に   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-13）
     const F = D * Math.cos(ang), X = D * Math.sin(ang), fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw);
     // 2026-10-12：見る人が向きを変えるたびに追いかけない（森羅研究室と同じ）。歩いているとき・視野の外に出たとき・近すぎ／遠すぎのときだけ立つ所を決めなおす
     const walking = !!me.path || ["w", "s", "a", "d", "arrowup", "arrowdown"].some(k => keys.has(k));
@@ -694,7 +716,8 @@ function aoiTick(dt) {
     }
     goal = A.spot;
   }
-  if (A.pos.distanceTo(goal) > 14) { A.pos.copy(goal); A.vel.set(0, 0, 0); AM.place(A.pos.x, A.pos.z); }
+  // 遠く（5 m より先）へ移るときは、歩かせずに立つ所へ置きなおし、薄くから現れる（2026-10-13：くらべる旅で 9 m ほど先へ移ると、急いで歩く足の届かない姿勢が崩れて見えた）
+  if (A.pos.distanceTo(goal) > 5) { A.pos.copy(goal); A.vel.set(0, 0, 0); A.sp = 0; AM.place(A.pos.x, A.pos.z); AM.calm = 1.2; A.fade = 0; opacity(0); A.appear = true; }
   const w = 3.2, n = Math.max(1, Math.ceil(dt / .02)), h = dt / n;
   for (let i = 0; i < n; i++) {
     A.vel.x += (w * w * (goal.x - A.pos.x) - 2 * w * A.vel.x) * h; A.vel.z += (w * w * (goal.z - A.pos.z) - 2 * w * A.vel.z) * h;
@@ -725,9 +748,10 @@ function setWhere() {
   else if (chapter === "iro") { $("whereName").textContent = N.ch_iro; $("whereSub").textContent = IRO.lang ? LANGS[IRO.lang].name : "あなたの線を引く"; }
   else { $("whereName").textContent = N.ch_toki; $("whereSub").textContent = "同じ庭を、四つの速さで"; }
 }
-async function setLens(id, silent = false) {
+async function setLens(id, silent = false, opt = {}) {
   if (!LENS[id]) return;
   first(false);
+  if (!opt.at && KUR.on) kurabeEnd(false);   // ダイヤルで自由に切り替えたら、くらべる旅はそこで終わる
   const token=++lensToken; lensRequest=id; keys.clear();
   if (!silent) { hush(); $("say").textContent = ""; setActs([]); }   // すばやく切り替えたとき、前の生きものの台詞を残さない（2026-10-13）
   dial.setAttribute('aria-busy','true');
@@ -738,6 +762,8 @@ async function setLens(id, silent = false) {
     if (!was.under) { gardenSave.pos.copy(me.pos); gardenSave.yaw = me.yaw; }
     lens = id; const L = LENS[id];
     if (L.under === "light") { me.depth = .25; me.pitch = 0; }
+    else if (opt.at) {   // くらべる旅：同じ場所に立ったまま、体だけを入れかえる（目の高さだけが変わる）
+      const a = opt.at, ey = L.eye || 1; me.pos.set(a.x, ey, a.z); me.yaw = Math.atan2(-(a.tx - a.x), -(a.tz - a.z)); me.pitch = clamp(Math.atan2(a.ty - ey, Math.hypot(a.tx - a.x, a.tz - a.z)), -.7, .3); flightHeight = ey; }
     else if (habitat==='forest' && FSPOT[id] && !silent) {   // 話に出てくるものが見える草地の場所へ（蜂は草地の白い花の前、マムシはネズミの近く…）
       const [x, z, tgt] = FSPOT[id](); me.pos.set(x, L.eye || 1, z); me.yaw = Math.atan2(-(tgt.x - x), -(tgt.z - z)); me.pitch = clamp(Math.atan2(tgt.y - (L.eye || 1), Math.hypot(tgt.x - x, tgt.z - z)), -.6, .6); flightHeight = L.eye || 1.5; }
     else if (habitat==='forest') {if(was.under){me.pos.copy(gardenSave.pos);me.yaw=gardenSave.yaw;}me.pos.y=L.eye||1;me.pitch=clamp(me.pitch,-.6,.6);}
@@ -753,7 +779,8 @@ async function setLens(id, silent = false) {
     setWhere();
   },token);
   if(!applied)return;dial.setAttribute("aria-busy","false");
-  if (!silent) talkLens(id);
+  if (!silent && !opt.at) talkLens(id);
+  return true;
 }
 function talkLens(id, again = false) {
   const l = S.lens.find(x => x.id === id), i = LENS_IDS.indexOf(id), next = LENS_IDS[i + 1];
@@ -940,6 +967,66 @@ $("cred").innerHTML = [
   "森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
 
+// ---------------------------------------------------------------- くらべる旅（2026-10-13 80 点へ）
+//   本人「他も同様。基準をさらに上げてください。」／11 人の指摘＝体どうしの比べを体験の芯に。
+//   ひとつの場所（草地の白い花・橙の花・草むらのネズミが見える所）に立ったまま、体だけを入れかえる。
+//   切り替える前に「どう見えると思う？」と予想してから見る（予想してから確かめると、記憶に残りやすい）。最後に、外で使える見方を一枚にして持ち帰る。
+const K = S.kurabe || {};
+const KUR = { on: false, i: 0, hits: 0, picks: [], at: null };
+function kurabeSpot() {
+  if (KUR.at) return KUR.at;
+  const wf = FOREST.whiteFlower.pos, kz = (FOREST.lists?.kanzou || []).reduce((b, it) => { const d = Math.hypot(it.x - wf.x, it.z - wf.z); return d < b.d ? { d, it } : b; }, { d: 1e9, it: null }).it;
+  const kp = kz && Math.hypot(kz.x - wf.x, kz.z - wf.z) < 5 ? new THREE.Vector3(kz.x, .6, kz.z) : wf.clone().add(new THREE.Vector3(1.2, 0, .4));
+  const c = wf.clone().add(kp).multiplyScalar(.5), side = new THREE.Vector3(-(kp.z - wf.z), 0, kp.x - wf.x).normalize(), toM = new THREE.Vector3(FOREST.meadow.x - c.x, 0, FOREST.meadow.z - c.z);
+  if (side.dot(toM) < 0) side.negate();
+  let D = 1.8, p = c.clone().addScaledVector(side, D); for (let k = 0; k < 8 && !okGround(p.x, p.z); k++) { D += .4; p = c.clone().addScaledVector(side, D); }
+  // 草むらのネズミを、花と見る人のあいだの手前に（マムシで、温かいものとして浮かぶ）
+  const mp = c.clone().addScaledVector(side, .75).add(new THREE.Vector3((kp.x - wf.x) * .15, 0, (kp.z - wf.z) * .15)); mouse.position.set(mp.x, .06, mp.z); mouse.userData.x0 = mp.x;
+  return KUR.at = { x: p.x, z: p.z, tx: c.x, ty: .7, tz: c.z };
+}
+function kurabeStart() {
+  if (habitat !== "forest") setHabitat("forest");
+  KUR.on = true; KUR.i = 0; KUR.hits = 0; KUR.picks = []; A.intro = false; $("takeaway").hidden = true;
+  setLens("hito", true, { at: kurabeSpot() }).then(() => talk([...(K.intro || []), K.hito].filter(Boolean), [["予想する ›", () => kurabeStep(), true]]));
+}
+function kurabeStep() {
+  const q = (K.steps || [])[KUR.i]; if (!q) { kurabeFinish(); return; }
+  KUR.on = true;
+  // 予想：切り替える前に、選んでもらう（選ぶまで体は変えない）
+  const opts = q.opts.map((o, j) => [o, () => kurabeReveal(q, j)]);
+  talk([q.q], opts).then(ok => { if (ok) setActs(opts); });
+  $("moveNote").hidden = true; $("kurQ").hidden = false; $("kurQ").textContent = `予想 ${KUR.i + 1}／${K.steps.length}　${S.lens.find(l => l.id === q.id)?.name}になったら？`;
+}
+async function kurabeReveal(q, j) {
+  const hit = j === q.ans; KUR.picks.push({ id: q.id, pick: q.opts[j], hit }); if (hit) KUR.hits++;
+  $("kurQ").textContent = `あなたの予想：${q.opts[j]}`;
+  setActs([]); hush();
+  const ok = await setLens(q.id, true, { at: kurabeSpot() }); if (!ok) return;
+  showT = -99; showLens = "";   // 体の寄りの見せ場も、もう一度
+  const last = KUR.i === K.steps.length - 1;
+  KUR.i++;
+  const next = last ? [["持ち帰る見方を見る ›", kurabeFinish, true]] : [["次の予想 ›", kurabeStep, true]];
+  talk([hit ? K.hit : K.miss, ...q.reveal, ...(KUR.i === 1 ? [K.cmp] : [])].filter(Boolean), next);
+}
+function kurabeFinish() {
+  $("kurQ").hidden = true; KUR.on = false; $("moveNote").hidden = false;
+  $("takeHits").textContent = `予想が当たったのは ${KUR.hits}／${(K.steps || []).length}。`;
+  $("takeList").innerHTML = (K.take || []).map(t => `<li><b>${t[0]}</b>${t[1]}</li>`).join("");
+  $("takeaway").hidden = false; $("takeX").focus();
+  talk(K.end || [], [["自由に歩く ›", () => { $("takeaway").hidden = true; }, true], ["もう一度くらべる", kurabeStart]]);
+}
+function kurabeEnd(talkOn = true) { KUR.on = false; $("kurQ").hidden = true; $("moveNote").hidden = chapter !== "umwelt"; }
+$("takeX").onclick = () => { $("takeaway").hidden = true; };
+$("takeAgain").onclick = () => { $("takeaway").hidden = true; kurabeStart(); };
+$("kurBtn").onclick = () => { first(false); hush(); kurabeStart(); };
+// 人の目とくらべる（押しているあいだ）。キーボードは H を押しているあいだ
+{ const b = $("cmpBtn"); b.onpointerdown = e => { first(false); compareView(true); b.setPointerCapture?.(e.pointerId); };
+  const up = () => compareView(false); b.onpointerup = up; b.onpointercancel = up; b.onlostpointercapture = up; b.onblur = up;
+  b.onkeydown = e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); compareView(true); } }; b.onkeyup = up;
+  addEventListener("keydown", e => { if (e.key.toLowerCase() === "h" && !e.repeat && $("menu").hidden && $("why").hidden) compareView(true); });
+  addEventListener("keyup", e => { if (e.key.toLowerCase() === "h") compareView(false); }); }
+window.__kur = { start: kurabeStart, step: kurabeStep, reveal: (j) => kurabeReveal(K.steps[KUR.i], j), finish: kurabeFinish, KUR, compare: compareView };
+
 // ---------------------------------------------------------------- はじめて押したとき：音を立て、碧がひとこと
 let started = false;
 function first(intro = true) {
@@ -947,7 +1034,8 @@ function first(intro = true) {
   A.appear = true; A.intro = true; if (AM) AM.calm = 2.2;
   $("say").textContent = "";
   if(!intro){A.intro=false;return;}
-  setTimeout(() => talk(S.intro, [[`はじめる：${S.lens[1].name} ›`, () => { A.intro = false; setLens("hachi"); }, true], ["人の目のまま歩く", () => { A.intro = false; talkLens("hito"); }]]).then(() => { A.intro = false; }), 600);
+  // 2026-10-13：はじめの一歩は「くらべる旅」（同じ場所で、予想してから体を入れかえる）。自由に歩くこともできる
+  setTimeout(() => talk(S.intro, [["はじめる：くらべる ›", kurabeStart, true], ["自由に歩く", () => { A.intro = false; talkLens("hito"); }]]).then(() => { A.intro = false; }), 600);
 }
 
 // ---------------------------------------------------------------- 毎フレーム
@@ -991,8 +1079,11 @@ function frame(now=0) {
     if(!RM){camera.position.y+=Math.sin(t*motion.freq)*motion.bob*(moving?1:.18);if(lens==='hebi'&&moving)camera.rotation.z=Math.sin(t*4)*.018;if(lens==='chou'&&moving)camera.rotation.z=Math.sin(t*2)*.025;bodies[lens]?.userData.animate(t,moving);}
     { const dy = wrapA(me.yaw - bodyYaw0); bodyYaw0 = me.yaw; const turn = dt > 0 ? dy / dt : 0; bodyRoll += (clamp(turn * (FLIGHT.has(lens) ? .28 : .08), -.6, .6) - bodyRoll) * ease(dt, 5); bodyRoot.rotation.z = -bodyRoll; }
     // 身体を切り替えた直後の 2〜3 秒だけ、自分の体を横から寄せて見せる（毛・艶・翅がわかるように。2026-10-13）
-    { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, k = (RM || lens === 'hito' || lens === 'mimizu') ? 0 : sstep(0, .5, u) * (1 - sstep(2.4, 3.2, u)), bp = BODYPOS[lens] || [-.27, -.65];
-      bodyRoot.rotation.y = Math.PI - k * 1.2; bodyRoot.position.set(k * .03, bp[0] + (-.13 - bp[0]) * k, bp[1] + (-.52 - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (1 + .35 * k));
+    // 2026-10-13（80 点へ）：生きものごとに寄り方を変える（蜂・小鳥は横から大きく、マムシは斜め上から銭形が見えるように、コウモリは翼と耳が入る距離）。
+    //   画面が横に広いと体が小さく見えるので大きく。見せ場は 3.6 秒。⟲ のボタン（showAgain）でもう一度見られる
+    { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, sv = SHOW[lens] || SHOW.def, wide = innerWidth / innerHeight > 1.2 ? 1.3 : 1,
+        k = (RM || lens === 'hito' || lens === 'mimizu') ? 0 : sstep(0, .5, u) * (1 - sstep(3.3, 4.1, u)), bp = BODYPOS[lens] || [-.27, -.65];
+      bodyRoot.rotation.set(sv.rx * k, Math.PI - k * sv.ry, 0, 'YXZ'); bodyRoot.position.set(k * .03, bp[0] + (sv.y - bp[0]) * k, bp[1] + (sv.z - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (1 + (sv.s * wide - 1) * k));
       setBodyAlpha(lens, .55 + .45 * k); }
     if (quake > 0) { camera.position.y += (Math.random() - .5) * .02 * quake; quake = Math.max(0, quake - dt * 2); }
   }
@@ -1060,7 +1151,7 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
   document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();setHabitat(b.dataset.habitat);});
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 700);
-  $("say").textContent = "画面を押すと、碧が案内をはじめます。蜂の受けとり方で、この森を歩いてみませんか。（ひとつ 1〜2 分）";
+  $("say").textContent = "画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）";
   setActs([]);
   requestAnimationFrame(frame);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
