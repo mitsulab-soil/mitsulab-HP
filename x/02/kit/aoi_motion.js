@@ -1,4 +1,8 @@
-/* 碧（依代）の自然な動きと表情 ── aoi_motion.js（v3・2026-10-13）
+/* 碧（依代）の自然な動きと表情 ── aoi_motion.js（v3.1・2026-10-13）
+   v3.1（2026-10-13 本人「HPの碧はまっすぐ立っていてください。姿勢は良くしていながら、自然な仕草にしてください。」「碧左右に揺れすぎです。もう少し揺れを抑えて」）：
+   - 既定の立ち姿・歩きの左右の揺れを v3 の半分以下に（重心の移し 45%・骨盤の横の傾き・体の横揺れ・記録の胴の横の傾き 35%・記録の腰の横の動き 4 割・息の肩の傾き 半分・歩くときの骨盤の傾き 半分）。
+   - 新しいオプション posture:"upright"（"formal" も同じ）＝まっすぐ立つ（HP）。骨盤は水平・背を立て・肩を少し引いて水平・手は脇。仕草は息・まばたき・小さな視線・小さく首をかしげるだけ。
+     既定は posture:"natural"（ほかのアプリはこのまま）。
    本人（2026-10-12）：「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」
    調べたこと・数値の出どころ＝../../資料/碧の自然な動き_調べ.md。
    v3（2026-10-13）：
@@ -25,7 +29,7 @@
      m.bow("eshaku"|"keirei")  お辞儀（会釈 15°・敬礼 30°。腰から曲げ、背は伸ばす）
      m.express(name, w, sec)   表情（calm・warm・smile・curious・thinking・concern・surprise）。ふだんは calm
    m.eyesClosed = 0..1   目を閉じたままにする（0 で戻す）
-   新しいオプション（なくても動く）：{ groundAt: (x, z) => 地面の高さ（坂・段。氷川道中のため）, mocap: "auto"（既定・隣の aoi_mocap.json を読む）| URL | 読んだ JSON | false, robe: true | false }
+   新しいオプション（なくても動く）：{ posture: "natural"（既定）| "upright"（まっすぐ立つ）, groundAt: (x, z) => 地面の高さ（坂・段。氷川道中のため）, mocap: "auto"（既定・隣の aoi_mocap.json を読む）| URL | 読んだ JSON | false, robe: true | false }
    何もしなくても：息（3.4〜4.8 秒で一回・吸う 4 割／吐く 6 割）・重心の移しかえ（片足に体重をのせ、骨盤が傾き、肩が逆に傾く）・
    小さな揺れ・まばたき（間隔は対数正規・話すと増える・視線を大きく動かすとき・二度まばたき）・目が先に動き頭が追う・
    ときどき目をそらす・腕は振り子として遅れてついてくる・表情の小さなゆらぎ。
@@ -132,8 +136,16 @@ const MOCAP_W = { hips: .85, spine: .85, chest: .85, upperChest: .85, neck: .22,
 const TALK_BONES = ["spine", "chest", "upperChest", "neck", "leftShoulder", "rightShoulder"];
 let _mocapShared = null;   // 同じページで何人分読んでも、記録は一度だけ読む
 export class AoiMotion {
-  constructor(vrm, { root = null, seed = 0, reducedMotion = false, wind = .6, faceViewer = true, startCalm = 2.2, mocap = "auto", robe = true, groundAt = null } = {}) {
-    this.groundAt = groundAt;   // (x, z) => 地面の高さ（世界）。坂・段のある場所で、足をその高さに着ける（なければ root の高さ＝平ら）
+  constructor(vrm, { root = null, seed = 0, reducedMotion = false, wind = .6, faceViewer = true, startCalm = 2.2, mocap = "auto", robe = true, groundAt = null, posture = "natural" } = {}) {
+    this.groundAt = groundAt;
+    // 姿勢の型（v3.1・2026-10-13 本人「HPの碧はまっすぐ立っていてください。姿勢は良くしていながら、自然な仕草にしてください。」「碧左右に揺れすぎです。もう少し揺れを抑えて」）
+    //  natural（既定）＝これまでの立ち姿・歩き。ただし左右の揺れ（重心の移し・骨盤の傾き・体の横揺れ・記録の胴の横の傾き・息の肩の傾き）は v3 の半分以下に抑えた。
+    //  upright（"formal" も同じ）＝まっすぐ立つ。骨盤は水平・背は立てる・肩は少し引いて水平・手は脇に力を抜いて。重心の移し・揺れ・記録の胴の動きをさらに小さくし、
+    //  息・まばたき・小さな視線の動き・小さく首をかしげる、だけを残す（HP の顔の碧）。
+    this.posture = posture === "upright" || posture === "formal" ? "upright" : "natural";
+    this.pz = this.posture === "upright"
+      ? { ws: .3, sway: .4, lat: .2, mT: .15, mN: .1, mA: .35, mH: .15, tilt: .45, gest: .6, away: .45, chestUp: .02, shBack: .035 }
+      : { ws: 1, sway: 1, lat: .35, mT: 1, mN: 1, mA: 1, mH: 1, tilt: 1, gest: 1, away: 1, chestUp: 0, shBack: 0 };   // (x, z) => 地面の高さ（世界）。坂・段のある場所で、足をその高さに着ける（なければ root の高さ＝平ら）
     this.vrm = vrm; this.root = root || vrm.scene; this.rand = seed ? rng(seed) : Math.random;
     this.live = !reducedMotion; this.wind = wind; this.faceViewer = faceViewer; this.t = 0; this.calm = startCalm;
     const H = vrm.humanoid; this.N = n => H.getNormalizedBoneNode(n);
@@ -278,16 +290,17 @@ export class AoiMotion {
     if (L) { S.brU += dt / S.brP; if (S.brU >= 1) { S.brU -= 1; S.brP = (this.speaking ? 3.2 : 4.2) * (.85 + .3 * this.rand()); } }
     const u = S.brU, br = L ? (u < .4 ? sstep(u / .4) : 1 - sstep((u - .4) / .6)) : 0;
     // 重心：数秒〜十数秒ごとに、片足へ（体重の移し）。歩くときと、指す・礼のときは真ん中へ
-    if (L) { S.wsHold -= dt; if (S.wsHold <= 0) { const r = this.rand(); S.wsLvl = r < .15 ? 0 : (S.wsLvl > 0 ? -1 : 1) * (.55 + .45 * this.rand()); S.wsHold = 5 + 9 * this.rand(); } }
-    S.ws.t = (this.bowing || this.pointing) ? 0 : S.wsLvl * (1 - k); S.ws.step(dt); const ws = S.ws.v;
-    const swX = L ? wob(t * .9, sp) : 0, swZ = L ? wob(t * .7, sp + 5) : 0;   // 静かに立つときの小さな揺れ（前後・左右に数 mm）
+    // v3.1：重心を移す量は v3 の 45%（左右の揺れを抑える）。upright ではさらに 3 割
+    if (L) { S.wsHold -= dt; if (S.wsHold <= 0) { const r = this.rand(); S.wsLvl = r < .15 ? 0 : (S.wsLvl > 0 ? -1 : 1) * (.55 + .45 * this.rand()) * .45; S.wsHold = 5 + 9 * this.rand(); } }
+    S.ws.t = (this.bowing || this.pointing) ? 0 : S.wsLvl * (1 - k) * this.pz.ws; S.ws.step(dt); const ws = S.ws.v;
+    const swX = L ? .45 * this.pz.sway * wob(t * .9, sp) : 0, swZ = L ? this.pz.sway * wob(t * .7, sp + 5) : 0;   // 静かに立つときの小さな揺れ（前後に数 mm・左右はその半分以下）
     // お辞儀
     let bw = 0; const bo = this.bowing; if (bo) { bo.t += dt; const a = bo.t, d1 = bo.down, d2 = d1 + bo.hold, d3 = d2 + bo.up; bw = a < d1 ? sstep(a / d1) : a < d2 ? 1 : a < d3 ? 1 - sstep((a - d2) / bo.up) : 0; if (a >= d3) this.bowing = null; }
     const bA = bo ? bo.a * bw : 0; this._bowA = bA;
     S.talk.t = this.speaking ? 1 : 0; S.talk.step(dt); S.listen.t = this.listening ? 1 : 0; S.listen.step(dt);
     const tk = S.talk.v * (L ? 1 : 0), ls = S.listen.v * (L ? 1 : 0);
     // 歩く：骨盤の回り・傾き、胸は逆にひねる（足の位置から）
-    const g = this._gait || { u: 0, side: 0, ph: 0 }, gs = g.side * Math.sin(Math.PI * g.u) * k;
+    const g = this._gait || { u: 0, side: 0, ph: 0 }, gs = .5 * g.side * Math.sin(Math.PI * g.u) * k;   // 歩くときの骨盤の横の傾き（v3.1 で半分）
     // 人が動いた記録（立つ・歩く・話す）を、骨ごとの土台にする（mw＝記録の効き。読めていないときは 0＝これまでの動きだけ）
     const mw = this._mocapPose(dt, k, tk);
     // 各骨：base＝立ち姿・歩きの土台（記録があれば記録に置きかわる）、act＝その上に重ねる動き（息・礼・話す・聞く・首をかしげる）
@@ -297,24 +310,31 @@ export class AoiMotion {
     P("hips", [.02 * k, -.12 * g.ph * k, .055 * ws - .035 * gs], [bA * .7, S.turnLead.v * .2, 0]);
     P("spine", [leanB * .4 + .004 * swZ, .07 * g.ph * k, -.05 * ws + .02 * gs], [leanA * .4 + bA * .1 + .008 * br + .015 * bt, S.turnLead.v * .15, 0]);
     P("chest", [leanB * .3, .06 * g.ph * k, -.025 * ws + .012 * gs], [leanA * .3 + bA * .05 - .018 * br, S.turnLead.v * .12, 0]);
-    P("upperChest", [leanB * .2, .02 * g.ph * k, -.01 * ws], [leanA * .2 - .012 * br, 0, 0]);
-    P("leftShoulder", [0, 0, .01 * ws], [0, 0, .012 * br]); P("rightShoulder", [0, 0, .01 * ws], [0, 0, -.012 * br]);
+    const cu = this.pz.chestUp, sb = this.pz.shBack;   // upright：胸を少し起こし（首と頭で戻して目線は水平）、肩を少し後ろへ引く
+    P("upperChest", [leanB * .2 - cu, .02 * g.ph * k, -.01 * ws], [leanA * .2 - .012 * br, 0, 0]);
+    P("leftShoulder", [0, sb, .01 * ws], [0, 0, .006 * br]); P("rightShoulder", [0, -sb, .01 * ws], [0, 0, -.006 * br]);   // 息で肩が上がる（v3.1 で半分＝左右に傾いて見えない）
     // 頭の位置（首から上）は、見る先へ向ける前の基本の形。首・頭は胴の傾きを半分ほど打ち消す（目線を水平に保つ）
     const tilt = this._tilt(dt, ls);
-    P("neck", [-leanB * .3, 0, .025 * ws], [-.06 * bA + .01 * br - leanA * .3, 0, tilt * .4]);
-    P("head", [.02 * k - leanB * .3, 0, .02 * ws], [-.04 * bA - leanA * .3 + S.nod.step(dt), 0, tilt * .6]); this._tiltA = tilt;
+    P("neck", [-leanB * .3 + cu * .5, 0, .025 * ws], [-.06 * bA + .01 * br - leanA * .3, 0, tilt * .4]);
+    P("head", [.02 * k - leanB * .3 + cu * .5, 0, .02 * ws], [-.04 * bA - leanA * .3 + S.nod.step(dt), 0, tilt * .6]); this._tiltA = tilt;
     // 腰の位置：重心の側へ寄る・前後の揺れ・礼では後ろへ引く・歩くとき少し沈み、片足立ちの真ん中で高くなる
     S.hipY.t = -.024 * k + .02 * k * Math.sin(Math.PI * g.u) * (1 - mw) - .006 * Math.abs(ws) * (1 - mw) - .004 * br * (1 - k) - .06 * Math.sin(bA);   /* 礼では膝を少しゆるめる */ S.hipY.step(dt);
     const L0 = this.legLen / this.sc, mp = this._mp;   // 記録の腰の揺れ（脚の長さに対する比）→ 碧の長さへ。腰が左右に寄りすぎないよう少し控える
-    this._hipOff = [(.03 * ws + .004 * swX - .02 * gs) * (1 - mw) + mp.x * L0 * .35 * mw, S.hipY.v + mp.y * L0 * .6 * mw, (.005 * swZ) * (1 - mw) + mp.z * L0 * .3 * mw - .07 * Math.sin(bA)];
+    const mh = this.pz.mH;   // 記録の腰の横の揺れは v3 の 4 割（左右の揺れを抑える）。upright ではさらに小さく
+    this._hipOff = [(.03 * ws + .004 * swX - .02 * gs) * (1 - mw) + mp.x * L0 * .14 * mh * mw, S.hipY.v + mp.y * L0 * .6 * mw, (.005 * swZ) * (1 - mw) + mp.z * L0 * .3 * mh * mw - .07 * Math.sin(bA)];
     this._ws = ws; this._br = br; this._tk = tk; this._ls = ls; this._bw = bw;
     // 骨へ：土台（手続きの形と記録を、記録の効きで混ぜる）× 重ねる動き
     const hips = B.hips; if (hips) { const h0 = this.rest.hip0; hips.position.set(h0.x + this._hipOff[0] * this.hk, h0.y + this._hipOff[1] * this.hk, h0.z + this._hipOff[2] * this.hk); }
     for (const [n, a] of Object.entries(this._pose)) { const b = B[n]; if (!b) continue; const base = this._poseB[n];
       b.quaternion.setFromEuler(_e.set(base[0], base[1], base[2]));
-      const w = mw * (MOCAP_W[n] || 0) * (1 - .6 * bw); if (w > 1e-3 && this._mq[n]) b.quaternion.slerp(this._mq[n], w);
+      const w = mw * (MOCAP_W[n] || 0) * this._ms(n) * (1 - .6 * bw); if (w > 1e-3 && this._mq[n]) b.quaternion.slerp(this._latQ(n, this._mq[n]), w);
       b.quaternion.multiply(_q[5].setFromEuler(_e.set(a[0], a[1], a[2]))); }
   }
+  // 記録をどれだけ効かせるか（姿勢の型ごと）：胴＝mT・首と頭＝mN・肩と腕＝mA
+  _ms(n) { const p = this.pz; return n === "hips" || n === "spine" || n === "chest" || n === "upperChest" ? p.mT : n === "neck" || n === "head" ? p.mN : p.mA; }
+  // 記録の胴の「横の傾き」（体の前後の軸まわり＝左右に揺れて見える成分）だけを小さくする（v3.1：既定 35%・upright 20%）。前後・ねじれはそのまま
+  _latQ(n, q) { if (!(n === "hips" || n === "spine" || n === "chest" || n === "upperChest" || n === "neck" || n === "leftShoulder" || n === "rightShoulder")) return q;
+    const e = _e.setFromQuaternion(q, "YXZ"); e.z *= this.pz.lat; return (this._lq ||= {})[n] = ((this._lq[n]) || new THREE.Quaternion()).setFromEuler(e); }
   // 記録のこまを取り出す：立つ（二つの記録を、終わるたびに 1 秒かけて入れかえる）・歩く（足の運びの位相）・話す（胴と首）
   _mocapPose(dt, k, tk) {
     const lib = this.mc; this.mcW.t = lib && this.live ? 1 : 0; const mw = this.mcW.step(dt); if (!lib || mw < 1e-3) return 0;
@@ -335,7 +355,7 @@ export class AoiMotion {
   _tilt(dt, ls) {   // 首をかしげる（聞くとき多く、ふだんは 20〜40 秒に一度）
     const S = this.s; if (!this.live) return 0;
     S._tl = (S._tl ?? 8) - dt * (1 + 2 * ls);
-    if (S._tl <= 0) { S._tl = 18 + 20 * this.rand(); S.tilt.t = (this.rand() < .5 ? 1 : -1) * (.05 + .06 * this.rand()); S._tlHold = 1.8 + 2.5 * this.rand(); }
+    if (S._tl <= 0) { S._tl = 18 + 20 * this.rand(); S.tilt.t = (this.rand() < .5 ? 1 : -1) * (.05 + .06 * this.rand()) * this.pz.tilt; S._tlHold = 1.8 + 2.5 * this.rand(); }
     if (S._tlHold != null) { S._tlHold -= dt; if (S._tlHold <= 0) { S.tilt.t = ls > .5 ? .03 : 0; S._tlHold = null; } }
     if (ls > .5 && this.rand() < dt * .25) S.nod.d += 2.2;   // 聞くときの小さなうなずき（数秒に一度）
     return S.tilt.step(dt);
@@ -440,7 +460,7 @@ export class AoiMotion {
       for (let i = Math.max(0, sp.bi - 1); i < Math.min(b.length, sp.bi + 2); i++) { const x = c - (b[i] - .06); if (x > -.18 && x < .45) beat = Math.max(beat, sp.amp[i] * (x < 0 ? sstep(1 + x / .18) : 1 - sstep(x / .45))); }
       while (sp.nb < b.length && b[sp.nb] - .06 <= c) { const a = sp.amp[sp.nb]; if (L && a > 0 && this.rand() < .4) S.nod.d += .6 + 1.1 * a * this.rand(); if (L && a > .8 && this.rand() < .3) this.face.flash = .32; sp.nb++; }
       if (c > (sp.dur || 0) + .35) this.speaking = null; }
-    const pl = sp && L ? (sp.plan ?? 1) : 0, gon = (1 - k * .7) * (1 - this._bw);
+    const pl = sp && L ? (sp.plan ?? 1) : 0, gon = (1 - k * .7) * (1 - this._bw) * this.pz.gest;
     S.gest.t = (pl === 1 || pl === 2 ? 1 : pl === 3 ? .3 : 0) * gon; S.gest.step(dt, 4.2);
     S.gestL = S.gestL || new Spr(0, 4.2); S.gestL.t = (pl === 2 || pl === 3 ? 1 : pl === 1 ? .3 : 0) * gon; S.gestL.step(dt);
     S.gVar = (S.gVar ?? .5) + ((sp?.var ?? .5) - (S.gVar ?? .5)) * (1 - Math.exp(-3 * dt)); S.gVar2 = (S.gVar2 ?? .5) + ((sp?.var2 ?? .5) - (S.gVar2 ?? .5)) * (1 - Math.exp(-3 * dt));
@@ -476,7 +496,7 @@ export class AoiMotion {
     const mw = this.mcW.v * (this.mc ? 1 : 0) * (1 - bw), qr = _q[3], qf = _q[4];
     for (const sd of ["left", "right"]) { const o = sides[sd], r0 = rests[sd], pw2 = this._pointSide === sd ? this._pointW : 0;
       for (const [bn, key] of [["UpperArm", "ua"], ["LowerArm", "la"], ["Hand", "h"]]) { const b = B[sd + bn]; if (!b) continue;
-        qf.setFromEuler(_e.set(...o[key])); const w = mw * (MOCAP_W[sd + bn] || 0), mq = this._mq[sd + bn];
+        qf.setFromEuler(_e.set(...o[key])); const w = mw * (MOCAP_W[sd + bn] || 0) * this.pz.mA, mq = this._mq[sd + bn];
         if (w < 1e-3 || !mq) { b.quaternion.copy(qf); continue; }
         qr.setFromEuler(_e.set(...r0[key])); const dq = _q[0].copy(qr).invert().multiply(qf);   // 身ぶりの差（休めの形から）
         b.quaternion.copy(qr).slerp(mq, w).multiply(dq); if (pw2 > 1e-3) b.quaternion.slerp(qf, pw2); } }
@@ -541,7 +561,7 @@ export class AoiMotion {
     // 下を見るとき、上まぶたも少し下がる
     this._lidDown = clamp(-Math.atan2(Lk.cur.y - hpos.y, Math.hypot(Lk.cur.x - hpos.x, Lk.cur.z - hpos.z)) - .12, 0, .5) * .45;
   }
-  _pickAway() { const r = this.rand(), s = this.rand() < .5 ? -1 : 1, y = this.yaw + s * (.35 + .5 * this.rand()); const dn = r < .5 ? -(.2 + .3 * this.rand()) : r < .9 ? -.04 : .15;
+  _pickAway() { const a = this.pz.away, r = this.rand(), s = this.rand() < .5 ? -1 : 1, y = this.yaw + s * (.35 + .5 * this.rand()) * a; const dn = (r < .5 ? -(.2 + .3 * this.rand()) : r < .9 ? -.04 : .15) * a;   /* upright：目をそらす幅を小さく（うつむかない） */
     this.look.awayDir.set(Math.sin(y) * 2, dn * 2, Math.cos(y) * 2); }
 
   // ---------------------------------------------------------------- まばたき・表情・口
