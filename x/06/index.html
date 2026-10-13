@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="tdm-reservation" content="1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>森羅研究室</title>
+<meta name="description" content="森羅研究室（Shinra Lab）。いつもの景色の見え方が変わる八つの実験を 3D の模型で動かし、碧が、模型の中身と本物の世界との対応を話す部屋。">
+<style>
+/* 2026-10-13：世界観と見た目 v1の作法に。
+   地は夜の紺・パネルは薄い紺に細い線一本・角 2px・塗りつぶして光るボタンは使わない・押せる高さ 44px・題は明朝 */
+:root{--bg:#03060f;--ink:#eef5fb;--ink2:#c3cce0;--dim:#8f9bb4;--line:rgba(150,170,240,.22);--line2:rgba(92,200,224,.45);--panel:rgba(6,10,18,.8);--panel2:rgba(7,13,26,.92);
+  --aoi:#5cc8e0;--aoi2:#9bdcf0;--acc:#9bdcf0;--r:2px;
+  --mincho:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;--goth:"Inter","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--goth);-webkit-text-size-adjust:100%;font-size:16px}
+#stage{position:fixed;inset:0;touch-action:none;outline:none}
+#stage canvas{display:block;width:100%;height:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--acc)}
+[hidden]{display:none!important}
+.btn{min-height:44px;padding:0 16px;border-radius:var(--r);border:1px solid var(--line);background:rgba(3,6,15,.4);color:var(--ink);font-size:15px;letter-spacing:.04em;white-space:nowrap;position:relative}
+.btn.pri{border-color:var(--aoi);color:var(--aoi2)}
+.btn[aria-pressed=true]{border-color:var(--aoi);color:var(--aoi2);box-shadow:inset 0 -2px 0 var(--aoi)}
+.btn:hover{border-color:var(--aoi)}
+.btn:focus-visible,.ico:focus-visible,#ctrls .seg button:focus-visible{outline:1px solid var(--aoi2);outline-offset:3px}
+.ico{width:44px;height:44px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel);color:var(--ink);display:grid;place-items:center;font-size:17px;padding:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+/* 上の帯 */
+#top{position:fixed;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:max(10px,env(safe-area-inset-top)) 12px 0;pointer-events:none;z-index:5}
+#top>*{pointer-events:auto}
+#where{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:6px 12px;max-width:60vw;min-width:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#where b{display:block;font-family:var(--mincho);font-size:17px;font-weight:600;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#where small{display:block;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tools{display:flex;gap:6px}
+/* 碧の字幕：明朝・下の真ん中・薄い紺の帯 */
+#guide{position:fixed;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));width:min(640px,calc(100vw - 16px));z-index:7;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px 8px 8px;display:flex;gap:10px;align-items:flex-start;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#guide .face{position:relative;flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--aoi);color:var(--aoi2);display:grid;place-items:center;font-family:var(--mincho);font-size:16px;margin-top:2px}
+#guide .face i{position:absolute;right:-3px;bottom:-3px;width:9px;height:9px;border-radius:50%;background:var(--aoi);opacity:0;transition:opacity .2s}
+#guide.talking .face i{opacity:1}
+#guide .txt{flex:1;min-width:0;padding-right:40px}
+#say{font-family:var(--mincho);font-size:16.5px;line-height:1.7;letter-spacing:.04em;margin:1px 0 0;min-height:1.7em;color:var(--ink)}
+#sayState{font-size:13px;color:var(--dim)}
+#acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#acts:empty{display:none}
+#acts .btn{min-height:44px;font-size:14px;padding:0 12px;flex:none}
+#acts .btn.ic{min-width:44px;padding:0 10px}
+#guide .x{position:absolute;right:2px;top:2px;width:44px;height:44px;border:0;background:none;color:var(--ink2);font-size:16px}
+#guide.folded{width:auto;padding:5px;cursor:pointer}
+#guide.folded .txt,#guide.folded .x{display:none}
+/* 実験の板（台に入ったとき） */
+#exp{position:fixed;left:50%;transform:translateX(-50%);width:min(640px,calc(100vw - 16px));z-index:6;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:8px 10px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);top:max(66px,calc(env(safe-area-inset-top) + 58px))}
+#exp::before,#exp::after{content:"";position:absolute;width:12px;height:12px;border:1px solid var(--aoi);opacity:.7;pointer-events:none}
+#exp::before{left:-1px;top:-1px;border-right:0;border-bottom:0}#exp::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+#exp header{display:flex;align-items:center;gap:8px}
+#exp h2{font-family:var(--mincho);font-size:18px;margin:0;font-weight:600;letter-spacing:.08em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#exp h2 small{font-family:var(--goth);font-size:13px;color:var(--ink2);font-weight:400;margin-left:8px;letter-spacing:0}
+#ctrls{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#ctrls .btn{min-height:44px;font-size:14px;padding:0 12px}
+#ctrls .seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:rgba(3,6,15,.4)}
+#ctrls .seg button{min-width:44px;white-space:nowrap;border:0;background:none;color:var(--ink2);min-height:44px;padding:0 11px;font-size:14px;border-bottom:1px solid transparent}
+#ctrls .seg button[aria-pressed=true]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--aoi)}
+#read{font-size:14px;line-height:1.6;margin-top:6px;color:var(--ink2)}
+#read b{color:var(--ink);font-weight:600}
+#read .row{display:flex;flex-wrap:wrap;gap:4px 12px}
+#read .k{color:var(--dim)}
+#read .chip{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+#read .chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+#read .note{color:var(--dim);font-size:13.5px;margin-top:3px}
+#read .src{overflow-wrap:anywhere}
+#read .pick{border-left:2px solid var(--aoi);padding:2px 8px;margin-bottom:4px;color:var(--ink)}
+#read table{border-collapse:collapse;width:100%;font-size:14px}
+#read td{padding:2px 4px;border-bottom:1px solid var(--line)}
+#read td.v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--mono);font-size:13px}
+#exp.mini #read{display:none}
+#expMore{font-size:13px!important;padding:0 10px!important}
+/* 実験台の一覧・説明 */
+#list,#help{position:fixed;inset:0;z-index:9;background:rgba(3,6,15,.55);display:grid;place-items:center;padding:16px}
+#help{z-index:10}
+#list .box,#help .box{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);max-height:calc(100dvh - 32px);overflow:auto;color:var(--ink2)}
+#list .box{width:min(460px,100%);padding:14px}
+#list h2,#help h2{font-family:var(--mincho);font-weight:600;letter-spacing:.08em;color:var(--ink)}
+#list h2{font-size:18px;margin:2px 4px 10px}
+#list button.it{display:block;width:100%;text-align:left;border:1px solid var(--line);background:rgba(3,6,15,.4);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;min-height:44px;color:var(--ink)}
+#list button.it:hover{border-color:var(--aoi)}
+#list button.it b{display:block;font-family:var(--mincho);font-size:16px;font-weight:600;letter-spacing:.06em}
+#list button.it small{display:block;font-size:13px;color:var(--ink2)}
+#help .box{width:min(580px,100%);padding:16px 18px;font-size:15px;line-height:1.75}
+#help h2{font-size:20px;margin:0 0 6px}
+#help h3{font-size:14px;margin:16px 0 4px;color:var(--ink);letter-spacing:.08em;border-top:1px solid var(--line);padding-top:12px}
+#help p,#help ul{margin:4px 0}
+#help ul{padding-left:1.2em}
+#help li{margin:2px 0}
+#help .close{float:right}
+#toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:10px 16px;border-radius:var(--r);font-size:15px;z-index:11;pointer-events:none;opacity:0;transition:opacity .3s;max-width:calc(100vw - 32px);text-align:center}
+#toast.on{opacity:1}
+#load{position:fixed;inset:0;display:grid;place-items:center;z-index:20;background:var(--bg);color:var(--ink);transition:opacity .6s}
+#load.off{opacity:0;pointer-events:none}
+#load b{font-family:var(--mincho);font-size:22px;letter-spacing:.16em;font-weight:600}
+#load .bar{width:180px;height:1px;background:var(--line);margin:16px auto 0;overflow:hidden}
+#load .bar i{display:block;height:100%;width:0;background:var(--aoi);transition:width .3s}
+#load p{text-align:center;color:var(--dim);font-size:14px;margin-top:10px}
+#fade{position:fixed;inset:0;background:var(--bg);opacity:0;pointer-events:none;z-index:8;transition:opacity .3s}
+#fade.on{opacity:.65}
+@media (min-width:980px){#exp{left:12px;transform:none;width:390px;top:84px;max-height:calc(100dvh - 110px);overflow-y:auto}#exp header{flex-wrap:wrap}}
+/* 狭い画面（2026-10-13 テストプレーの P1-2）：実験の中では左上の名前を隠し（板の題と重なる）、数字は 22vh まで。数字を開くと字幕は自動でたたむ */
+@media (max-width:520px){#exp{max-height:42dvh;overflow-y:auto;overscroll-behavior:contain}#exp header{position:sticky;top:-6px;background:var(--panel2);margin:-6px -8px 0;padding:6px 8px;z-index:1}#ctrls .btn,#ctrls .seg button{font-size:13.5px;padding:0 9px}#ctrls{gap:5px}#where{max-width:56vw}#exp{padding:6px 8px}#exp h2 small{display:none}
+  body.inexp #where{display:none}#guide .txt{padding-right:38px}#say{font-size:15.5px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+"@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}
+</script>
+<script src="data/script.js"></script>
+<script src="data/kanten.js"></script>
+<script src="data/qualia/cards.js"></script>
+<script src="data/voice.js" onerror="window.VOICE={}"></script>
+<script src="data/lipsync.js" onerror="window.LIPSYNC={}"></script>
+</head>
+<body>
+<div id="stage" tabindex="0" aria-label="3D の研究室。床を押すと歩き、実験台を押すと近づいて実験に入る。ドラッグで見回す。キーボードでは W A S D と矢印で動く"></div>
+<div id="fade"></div>
+<div id="top">
+  <div id="where"><b id="whereT">森羅研究室</b><small id="whereS">床を押すと歩く・実験台を押すと実験に入る</small></div>
+  <div id="tools">
+    <button class="ico" id="listBtn" aria-label="実験台の一覧">☰</button>
+    <button class="ico" id="muteBtn" aria-label="音を消す" aria-pressed="false">🔊</button>
+    <button class="ico" id="helpBtn" aria-label="使い方と出典">?</button>
+  </div>
+</div>
+<section id="exp" hidden aria-label="実験の操作">
+  <header><h2 id="expT"></h2><button class="btn" id="expMore" aria-expanded="true">数字をたたむ</button><button class="btn" id="expBack">もどる</button></header>
+  <div id="ctrls"></div>
+  <div id="read" aria-live="off"></div>
+</section>
+<section id="guide" aria-label="碧のことば（字幕）">
+  <div class="face" aria-hidden="true">碧<i></i></div>
+  <div class="txt"><p id="say" aria-live="polite">ようこそ、森羅研究室へ。</p><span id="sayState"></span><div id="acts"></div></div>
+  <button class="x" id="foldBtn" aria-label="字幕をたたむ">－</button>
+</section>
+<div id="list" hidden role="dialog" aria-label="実験台の一覧"><div class="box"><h2 id="listT">実験台</h2><div id="listItems"></div><button class="btn" id="listX" style="width:100%">とじる</button></div></div>
+<div id="help" hidden role="dialog" aria-label="使い方と出典"><div class="box" id="helpBox"></div></div>
+<div id="toast" role="status"></div>
+<div id="load"><div style="text-align:center;padding:0 24px">
+  <svg width="220" height="110" viewBox="0 0 220 110" aria-hidden="true" style="display:block;margin:0 auto 14px"><rect x="10" y="62" width="200" height="8" rx="2" fill="#1a2436"/><rect x="22" y="70" width="10" height="34" fill="#1a2436"/><rect x="188" y="70" width="10" height="34" fill="#1a2436"/>
+  <rect x="40" y="22" width="44" height="40" fill="#7a5236"/><rect x="40" y="22" width="44" height="14" fill="#2a1d14"/><rect x="40" y="18" width="44" height="4" fill="#5f8a46"/>
+  <rect x="98" y="28" width="22" height="34" fill="#c9ae74"/><rect x="124" y="28" width="22" height="34" fill="#a0704c"/><rect x="150" y="28" width="22" height="34" fill="#5a4330"/>
+  <g stroke="#8cbfe6" stroke-width="2"><line x1="104" y1="6" x2="102" y2="16"/><line x1="122" y1="4" x2="120" y2="14"/><line x1="140" y1="8" x2="138" y2="18"/><line x1="160" y1="5" x2="158" y2="15"/></g>
+  <rect x="60" y="0" width="100" height="3" fill="#fff3dc"/></svg>
+  <b id="loadT">森羅研究室</b><p style="color:#c3cce0;margin:8px 0 0;font-size:15px">いつもの景色の見え方が変わる、八つの実験</p><div class="bar"><i id="loadBar"></i></div><p id="loadP">読みこんでいます…</p></div></div>
+<script type="module" src="lab.js"></script>
+</body>
+</html>
