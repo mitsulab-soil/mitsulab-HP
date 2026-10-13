@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ja" data-hp="/">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="tdm-reservation" content="1">
+<!--names:start-->
+<title>Qualium　受けとり方の翻訳の書庫 ／ mitsulab</title>
+<meta name="description" content="Qualium の、受けとり方の翻訳の書庫。ミツバチの紫外、コウモリの反響、空から測る機械。生き物・人・機械が世界をどう受けとっているかを、一枚に一つずつ。仕組み、どうやって分かったか、まだ分からないことを、典拠とともに。">
+<meta property="og:title" content="Qualium　受けとり方の翻訳の書庫 ／ mitsulab">
+<meta property="og:description" content="Qualium の、受けとり方の翻訳の書庫。ミツバチの紫外、コウモリの反響、空から測る機械。生き物・人・機械が世界をどう受けとっているかを、一枚に一つずつ。仕組み、どうやって分かったか、まだ分からないことを、典拠とともに。">
+<!--names:end-->
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#03060f">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tokens.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--ml-bg)}
+  body{min-height:100%;font-size:16px}
+  [hidden]{display:none!important}
+  a{color:var(--ml-aoi-2)}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* 3D の舞台 */
+  #stage{position:fixed;inset:0;background:var(--ml-bg) center/cover no-repeat;touch-action:none}
+  #stage canvas{display:block;width:100%;height:100%;outline:none}
+  body[data-mode="3d"] #stage{background-image:var(--poster)}
+  body[data-mode="list"] #stage{display:none}
+  /* 上の帯 */
+  .top{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:18px 24px 40px;pointer-events:none;background:linear-gradient(180deg,rgba(3,6,15,.78),rgba(3,6,15,.5) 60%,transparent)}
+  .top > *{pointer-events:auto}
+  .brand{display:grid;gap:5px;max-width:min(560px,60vw)}
+  .brand .ml-title{font-size:clamp(20px,2.5vw,27px)}
+  .brand .lead{margin:4px 0 0;font-size:.86rem;line-height:1.8;color:var(--ml-ink-2);letter-spacing:.03em;max-width:36em}
+  .acts{display:flex;gap:10px;align-items:center}
+  .acts .ml-btn{min-height:40px;font-size:.84rem;padding:0 14px}
+  /* しぼりこみ（3D：左下／一覧：上） */
+  .filters{position:fixed;left:24px;bottom:max(24px,env(safe-area-inset-bottom));z-index:5;width:min(330px,calc(100vw - 48px));display:grid;gap:10px}
+  .frow{display:flex;flex-wrap:wrap;gap:6px}
+  .frow .ml-btn{min-height:44px;font-size:.8rem;padding:0 12px;letter-spacing:.06em}
+  .hook{margin:10px 0 0;display:grid;gap:4px;max-width:36em;font-size:.9rem;line-height:1.75;color:var(--ml-ink)}
+  .hook .hk{font:400 .68rem var(--ml-mono);letter-spacing:.22em;color:var(--ml-aoi)}
+  .hook .ml-btn{justify-self:start;min-height:40px;padding:0;color:var(--ml-aoi-2);font-size:.84rem}
+  .fl{font:400 .74rem var(--ml-mono);letter-spacing:.18em;color:var(--ml-ink-3)}
+  .fl small{font-size:inherit;letter-spacing:.06em;margin-left:6px}
+  .lfilters .fade{-webkit-mask:linear-gradient(90deg,#000 85%,transparent);mask:linear-gradient(90deg,#000 85%,transparent)}
+  .gloss{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.84rem;line-height:1.7}
+  .gloss dt{color:var(--ml-ink);font-family:var(--ml-serif);font-weight:600;white-space:nowrap}
+  .gloss dd{margin:0;color:var(--ml-ink-2)}
+  .fhead{display:flex;justify-content:space-between;align-items:baseline;font:400 .74rem var(--ml-mono);letter-spacing:.2em;color:var(--ml-ink-3);text-transform:uppercase}
+  .count{font:400 .72rem var(--ml-mono);color:var(--ml-ink-3);letter-spacing:.12em}
+  .legend-fold > summary{padding:6px 0;font-size:.76rem}
+  .legend{margin:2px 0 0;font-size:.8rem;line-height:1.75;color:var(--ml-ink-3)}
+  .legend b{font-weight:400;color:var(--ml-ink-2)}
+  .mk{font-family:var(--ml-mono);font-size:.8em;color:var(--ml-aoi-2);margin-left:.25em;white-space:nowrap}
+  .swatch{display:inline-block;width:18px;height:1px;background:var(--ml-l-aoi);vertical-align:middle;margin-right:6px}
+  /* 碧のひとこと */
+  .cap{position:fixed;left:0;right:0;bottom:max(24px,env(safe-area-inset-bottom));z-index:4;display:grid;justify-items:center;pointer-events:none;transition:opacity .8s}
+  .cap .ml-caption{max-width:640px;width:100%;margin:0}
+  .cap[data-off]{opacity:0}
+  /* 読む板 */
+  #reader{position:fixed;right:24px;top:92px;bottom:24px;z-index:8;width:min(460px,calc(100vw - 48px));overflow:auto;overscroll-behavior:contain;padding:22px 24px 28px;scrollbar-width:thin}
+  #reader .close{position:sticky;top:-8px;float:right;margin:-8px -10px 0 8px;min-height:44px;font-size:.8rem;z-index:1;background:var(--ml-panel-solid)}
+  .r-kick{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font:400 .8rem var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-3)}
+  .r-name{font-family:var(--ml-serif);font-weight:600;font-size:1.42rem;line-height:1.5;letter-spacing:.06em;color:var(--ml-ink);margin:10px 0 8px}
+  .r-one{margin:0 0 12px;line-height:1.9;color:var(--ml-ink)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px;padding:0;list-style:none}
+  .tags li{font:400 .76rem var(--ml-mono);letter-spacing:.1em;color:var(--ml-ink-3);border:1px solid var(--ml-line-weak);padding:3px 7px;border-radius:2px}
+  .r-sec{margin:22px 0 0}
+  .r-sec h3{display:flex;align-items:baseline;gap:10px;margin:0 0 8px;font-family:var(--ml-serif);font-weight:600;font-size:1rem;letter-spacing:.1em;color:var(--ml-ink)}
+  .r-sec h3 span{font:italic 500 .72rem var(--ml-latin);letter-spacing:.2em;text-transform:uppercase;color:var(--ml-aoi-deep)}
+  .r-sec ul{margin:0;padding:0 0 0 1.1em;display:grid;gap:8px}
+  .r-sec li{line-height:1.85;color:var(--ml-ink-2);font-size:.94rem}
+  .r-note{margin:0 0 8px;font-size:.8rem;line-height:1.75;color:var(--ml-ink-3)}
+  .works{list-style:none;padding:0!important}
+  .works a{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--ml-line);border-radius:2px;text-decoration:none;color:var(--ml-ink)}
+  .works a small{display:block;color:var(--ml-ink-3);font-size:.8rem;margin-top:2px}
+  .works a:hover,.works a:focus-visible{border-color:var(--ml-aoi)}
+  .rel{display:flex;flex-wrap:wrap;gap:6px}
+  .rel button{appearance:none;background:none;border:1px solid var(--ml-line-weak);border-radius:2px;color:var(--ml-ink-2);font:400 .8rem var(--ml-sans);padding:7px 10px;cursor:pointer;text-align:left;line-height:1.5}
+  .rel button:hover,.rel button:focus-visible{border-color:var(--ml-aoi);color:var(--ml-ink)}
+  .rel button i{font-style:normal;font-family:var(--ml-mono);font-size:.7rem;color:var(--ml-ink-3);margin-right:6px}
+  .refs{margin:0;padding:0 0 0 1.4em;display:grid;gap:8px;font-size:.8rem;line-height:1.7;color:var(--ml-ink-3);word-break:break-word}
+  /* 一覧（スマホ・一覧で見る） */
+  #list{position:relative;z-index:2;padding:0 var(--ml-gutter) 40px;max-width:980px;margin:0 auto}
+  body[data-mode="3d"] #list{position:fixed;inset:0;z-index:7;max-width:none;margin:0;overflow:auto;background:rgba(3,6,15,.94);padding:96px max(24px,calc(50vw - 470px)) 40px}
+  .lhead{position:relative;padding:22px 0 18px;margin:0 calc(-1 * var(--ml-gutter));padding-left:var(--ml-gutter);padding-right:var(--ml-gutter);background:linear-gradient(180deg,rgba(3,6,15,.55),rgba(3,6,15,.78) 45%,var(--ml-bg) 92%),var(--poster) center 30%/cover no-repeat}
+  body[data-mode="3d"] .lhead{display:none}
+  .lhead .ml-title{font-size:1.5rem}
+  .lhead .lead{margin:8px 0 0;font-size:.9rem;line-height:1.85;color:var(--ml-ink-2)}
+  .lfilters{position:relative;z-index:3;background:rgba(3,6,15,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);margin:0 calc(-1 * var(--ml-gutter));padding:10px var(--ml-gutter);border-bottom:1px solid var(--ml-line-weak);display:grid;gap:8px}
+  body[data-mode="3d"] .lfilters{display:none}
+  .lfilters .ml-btn{flex:none;padding:0 11px}
+  .group{margin:26px 0 0}
+  .group > h2{display:flex;align-items:baseline;gap:12px;margin:0 0 10px;font-family:var(--ml-serif);font-weight:600;font-size:1.1rem;letter-spacing:.14em;color:var(--ml-ink)}
+  .group > h2::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sc);align-self:center}
+  .group > h2 span{font:italic 500 .74rem var(--ml-latin);letter-spacing:.24em;text-transform:uppercase;color:var(--ml-aoi-deep)}
+  .items{list-style:none;margin:0;padding:0;display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+  .item{appearance:none;width:100%;text-align:left;cursor:pointer;color:inherit;font:inherit;display:grid;gap:6px;min-height:44px;position:relative}
+  .item:hover,.item:focus-visible{border-color:var(--ml-aoi)}
+  .item .ik .mk{font-size:1em}
+  .item .ik{display:flex;justify-content:space-between;font:400 .76rem var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-3)}
+  .item .ik b{font-weight:400;color:var(--sc)}
+  .item .in{font-family:var(--ml-serif);font-weight:600;font-size:1.05rem;line-height:1.5;letter-spacing:.05em;color:var(--ml-ink)}
+  .item .io{font-size:.84rem;line-height:1.75;color:var(--ml-ink-2)}
+  .closeList{position:fixed;right:24px;top:20px;z-index:9}
+  body[data-mode="list"] .closeList{display:none}
+  .foot{margin:40px 0 0;padding:18px 0 0;border-top:1px solid var(--ml-line-weak);font-size:.74rem;line-height:1.85;color:var(--ml-ink-3)}
+  .foot .ml-fold > summary{font-size:.78rem;padding:10px 0}
+  .foot3d{position:fixed;right:24px;bottom:max(14px,env(safe-area-inset-bottom));z-index:4;max-width:min(520px,44vw);text-align:right;font-size:.66rem;line-height:1.6;color:var(--ml-ink-3);pointer-events:auto}
+  .foot3d a{color:var(--ml-ink-3)}
+  body[data-mode="list"] .foot3d,body[data-mode="list"] .top,body[data-mode="list"] .filters,body[data-mode="list"] .cap{display:none}
+  body[data-reading] .filters{opacity:.18;pointer-events:none}
+  body[data-mode="list"] #reader{position:fixed;inset:0;width:auto;top:0;bottom:0;right:0;border:0;padding:18px var(--ml-gutter) 40px;background:var(--ml-panel-solid);backdrop-filter:none}
+  @media (max-width:1100px){ .foot3d{display:none} }
+  body[data-shot] .top,body[data-shot] .filters,body[data-shot] .cap,body[data-shot] .foot3d{display:none!important}
+  @media (prefers-reduced-motion:reduce){ .cap{transition:none} }
+  /* ---- 字を大きく・明るい林でも読めるように（2026-10-13）
+     決まり：本文 PC 17px・スマホ 16px 以上、札・注 13px 以上。林を明るくしたので、字の下の地（上の帯・パネル）は少し濃くして AA を保つ */
+  body{font-size:17px}
+  .brand{max-width:min(620px,62vw)}
+  .brand .ml-title{font-size:clamp(28px,3vw,36px)}
+  .sub{font-family:var(--ml-serif);font-weight:600;font-size:17px;letter-spacing:.14em;color:var(--ml-ink)}
+  .ml-kicker{font-size:13px;letter-spacing:.22em;color:var(--ml-ink-2)}
+  .ml-en{font-size:14px;color:var(--ml-aoi)}
+  .r-sec h3 span,.group > h2 span{color:var(--ml-aoi)}
+  /* 上の帯は画面いっぱいに暗くせず、字の下だけに薄い紺の板（林の明るさを残す） */
+  .top{background:linear-gradient(180deg,rgba(3,6,15,.45),rgba(3,6,15,0));padding-bottom:24px}
+  .brand{background:rgba(3,6,15,.76);padding:14px 20px 16px;margin:-6px 0 0 -8px;border-radius:2px}
+  .acts .ml-btn--quiet{background:rgba(3,6,15,.6)}
+  body[data-reading] .brand .lead,body[data-reading] .brand .hook{display:none}
+  .brand .lead{font-size:17px;line-height:1.8}
+  .hook{font-size:17px}
+  .hook .hk{font-size:13px}
+  .hook .ml-btn{font-size:16px}
+  .acts .ml-btn{font-size:15px;min-height:44px}
+  .ml-panel{background:rgba(6,10,18,.84)}
+  .frow .ml-btn{font-size:15px}
+  .fhead,.fl{font-size:13px}
+  .count{font-size:13px}
+  .legend-fold > summary{font-size:14px}
+  .legend{font-size:14px}
+  .gloss{font-size:15px}
+  .ml-caption{font-size:clamp(17px,2.1vw,21px)}
+  .ml-caption small{font-size:14px}
+  #reader{width:min(520px,calc(100vw - 48px));background:rgba(6,10,18,.9)}
+  #reader .close{font-size:14px}
+  .r-kick{font-size:13px}
+  .r-name{font-size:28px}
+  .r-one{font-size:17px}
+  .tags li{font-size:13px}
+  .r-sec h3{font-size:18px}
+  .r-sec h3 span{font-size:13px}
+  .r-sec li{font-size:17px}
+  .r-note{font-size:14px}
+  .works a small{font-size:14px}
+  .rel button{font-size:15px}
+  .rel button i{font-size:13px}
+  .refs{font-size:15px}
+  .lhead{background:linear-gradient(180deg,rgba(3,6,15,.42),rgba(3,6,15,.66) 38%,rgba(3,6,15,.8) 72%,var(--ml-bg) 100%),var(--poster) center 34%/cover no-repeat}
+  body[data-mode="list"]{background:linear-gradient(rgba(3,6,15,.78),rgba(3,6,15,.84)),var(--poster) center 40%/cover fixed,var(--ml-bg)}
+  body[data-mode="list"] .lhead{background:linear-gradient(180deg,rgba(3,6,15,.42),rgba(3,6,15,.66) 38%,rgba(3,6,15,.8) 72%,rgba(3,6,15,0) 100%),var(--poster) center 34%/cover no-repeat}
+  .lhead .ml-title{font-size:30px}
+  .lhead .lead{font-size:17px}
+  .group > h2{font-size:20px}
+  .group > h2 span{font-size:13px}
+  .item .ik{font-size:13px}
+  .item .in{font-size:19px}
+  .item .io{font-size:16px}
+  .foot{font-size:14px}
+  .foot .ml-fold > summary{font-size:14px}
+  .foot3d{font-size:13px;background:rgba(3,6,15,.72);padding:6px 10px}
+  .foot3d a{color:var(--ml-ink-2)}
+  @media (max-width:700px){
+    body{font-size:16px}
+    .brand .lead,.hook,.lhead .lead,.r-one,.r-sec li{font-size:16px}
+    .item .io,.refs,.gloss{font-size:15px}
+    .lhead .ml-title{font-size:28px}
+    .r-name{font-size:24px}
+  }
+</style>
+</head>
+<body class="ml-root" data-mode="list">
+<script src="loader/loader.js" data-title="" data-en="" data-icon="icon.svg" data-max="15000"></script>
+<div id="stage" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="brand">
+    <span class="ml-kicker" data-name="kicker"></span>
+    <h1 class="ml-title" lang="en" data-name="app"></h1>
+    <span class="sub" data-name="sub"></span>
+    <span class="ml-en" data-name="sub_en"></span>
+    <p class="lead" data-name="lead"></p>
+    <p class="hook" data-hook></p>
+  </div>
+  <div class="acts">
+    <button class="ml-btn" type="button" id="openList">一覧で見る</button>
+    <a class="ml-btn ml-btn--quiet" data-hp-link="" href="/">mitsulab</a>
+  </div>
+</header>
+
+<aside class="filters ml-panel ml-panel--corner" aria-label="しぼりこみ">
+  <div class="fhead"><span>だれが受けとる</span><span class="count" data-count></span></div>
+  <div class="frow" data-f="subj" role="group" aria-label="主体でしぼる"></div>
+  <div class="fhead"><span>何を受けとる</span></div>
+  <div class="frow" data-f="dim" role="group" aria-label="次元でしぼる"></div>
+  <details class="ml-fold legend-fold"><summary>線と印</summary><p class="legend"><span class="swatch" aria-hidden="true"></span>線＝同じ次元を、ちがう主体が受けとるカードどうし。<br><b>◎</b> 典拠あり　<b>△</b> 議論中・諸説　<b>◐</b> 近い仲間から推しはかった　<b>○</b> 確かめていない</p></details>
+</aside>
+
+<div class="cap" data-off aria-live="polite"><p class="ml-caption" id="cap"></p></div>
+
+<main id="list" aria-label="カードの一覧">
+  <div class="lhead">
+    <span class="ml-kicker" data-name="kicker"></span>
+    <p class="ml-title" role="heading" aria-level="1" lang="en" data-name="app" style="margin-top:8px"></p>
+    <span class="sub" data-name="sub" style="display:block;margin-top:4px"></span>
+    <span class="ml-en" data-name="sub_en"></span>
+    <p class="lead" data-name="lead"></p>
+    <p class="hook" data-hook></p>
+  </div>
+  <div class="lfilters" aria-label="しぼりこみ">
+    <span class="fl">だれが受けとる</span>
+    <div class="frow" data-f="subj" role="group" aria-label="主体でしぼる"></div>
+    <span class="fl">何を受けとる</span>
+    <div class="frow" data-f="dim" role="group" aria-label="次元でしぼる"></div>
+    <span class="count" data-count></span>
+  </div>
+  <div id="groups"></div>
+  <footer class="foot">
+    <p style="margin:0 0 6px"><b style="font-weight:400;color:var(--ml-ink-2)">◎</b> 典拠あり　<b style="font-weight:400;color:var(--ml-ink-2)">△</b> 議論中・諸説　<b style="font-weight:400;color:var(--ml-ink-2)">◐</b> 近い仲間などの研究から推しはかった　<b style="font-weight:400;color:var(--ml-ink-2)">○</b> 典拠を確かめていない。文中の印は、その一文の確からしさです。ほかの者の受けとり方そのものは、だれにも渡せません。カードにあるのは手がかりと、それを人に届く形にした模式です。</p>
+    <details class="ml-fold"><summary>つくりとクレジット</summary>
+      <p>3D の質感の写真：Poly Haven（Forest Ground 04・Japanese Zelkova Bark・Japanese Camphor Bark）、ambientCG（LeafSet014）。いずれも CC0。描画：three.js・three-vrm（MIT）。碧の 3D は mitsulab。碧の動きの一部：CMU Graphics Lab Motion Capture Database（mocap.cs.cmu.edu。NSF EIA-0196217 の支援でつくられた）。</p>
+    </details>
+    <p style="margin:12px 0 0">つくり・運営：<a href="https://mitsulab.jp/">mitsulab</a>（さいたま市）　お問い合わせ：<a href="https://mitsulab.jp/#contact">mitsulab.jp のお問い合わせ</a></p>
+    <p style="margin:12px 0 0">© 2026 mitsulab. All rights reserved. この書庫の文章・3D・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。</p>
+  </footer>
+  <button class="ml-btn closeList" type="button" id="closeList">3D に戻る</button>
+</main>
+
+<aside id="reader" class="ml-panel ml-panel--corner" role="dialog" aria-modal="false" aria-labelledby="r-name" hidden>
+  <button class="ml-btn close" type="button" id="closeReader">閉じる</button>
+  <div id="r-body"></div>
+</aside>
+
+<p class="foot3d">© 2026 mitsulab. All rights reserved.　AI の学習・生成への利用はお断りします。　写真の質感：Poly Haven・ambientCG（CC0）</p>
+
+<script type="module" src="library.js"></script>
+</body>
+</html>
