@@ -342,22 +342,22 @@ export class AoiMotion {
   // どの点も不透明に描くので奥行きの前後が崩れない＝顔の奥の白目・口の中が透けない・目だけ先に浮かない・髪とまつげが入れちがわない。目・肌・髪が同じ速さで現れる。
   _fadeGuard() {
     if (this._fade) return; this._fade = true;
-    const BAYER = "uniform float aoiFadeA;\nfloat aoiBayer(vec2 p){ int x = int(mod(p.x, 4.0)), y = int(mod(p.y, 4.0)), i = x + y * 4;\n float m[16] = float[16](0.,8.,2.,10.,12.,4.,14.,6.,3.,11.,1.,9.,15.,7.,13.,5.); return (m[i] + .5) / 16.; }\n";
+    const BAYER = "uniform float aoiFadeA;\nuniform float aoiCutA;\nfloat aoiBayer(vec2 p){ int x = int(mod(p.x, 4.0)), y = int(mod(p.y, 4.0)), i = x + y * 4;\n float m[16] = float[16](0.,8.,2.,10.,12.,4.,14.,6.,3.,11.,1.,9.,15.,7.,13.,5.); return (m[i] + .5) / 16.; }\n";
     const mats = new Set(); this.vrm.scene.traverse(m => { if (m.isMesh && !m.userData.aoiOverlay) for (const mt of [].concat(m.material)) mats.add(mt); });
-    for (const mt of mats) { if (mt.userData.aoiFadeU) continue; const u = mt.userData.aoiFadeU = { value: 1 }; mt.userData.aoiBl = mt.blending; mt.userData.aoiTr = mt.transparent; mt.userData.aoiDW = mt.depthWrite; mt.userData.aoiPrevOBC = mt.onBeforeCompile; mt.userData.aoiBayer = BAYER;
+    for (const mt of mats) { if (mt.userData.aoiFadeU) continue; const u = mt.userData.aoiFadeU = { value: 1 }; mt.userData.aoiCutU = { value: 0 }; mt.userData.aoiBl = mt.blending; mt.userData.aoiTr = mt.transparent; mt.userData.aoiDW = mt.depthWrite; mt.userData.aoiPrevOBC = mt.onBeforeCompile; mt.userData.aoiBayer = BAYER;
       // もとから半透明の材質（目の光・線など）は、重ね塗りのまま網目だけ掛ける
       // 注：three はこの関数を文字列にして形の見分けに使うことがあるので、外の変数を使わず this（材質）から読む
-      mt.onBeforeCompile = function (sh, r) { const ud = this.userData; ud.aoiPrevOBC?.call(this, sh, r); sh.uniforms.aoiFadeA = ud.aoiFadeU; if (!/void\s+main\s*\(\s*\)\s*\{/.test(sh.fragmentShader)) return;
-        sh.fragmentShader = ud.aoiBayer + sh.fragmentShader.replace(/void\s+main\s*\(\s*\)\s*\{/, "void main() {\n  if (aoiFadeA < .999 && aoiBayer(gl_FragCoord.xy) >= aoiFadeA) discard;"); };
+      mt.onBeforeCompile = function (sh, r) { const ud = this.userData; ud.aoiPrevOBC?.call(this, sh, r); sh.uniforms.aoiFadeA = ud.aoiFadeU; sh.uniforms.aoiCutA = ud.aoiCutU; if (!/void\s+main\s*\(\s*\)\s*\{/.test(sh.fragmentShader)) return;
+        sh.fragmentShader = (ud.aoiBayer + sh.fragmentShader.replace(/void\s+main\s*\(\s*\)\s*\{/, "void main() {\n  if (aoiFadeA < .999 && aoiBayer(gl_FragCoord.xy) >= aoiFadeA) discard;")).replace(/\}\s*$/, "  if (aoiCutA > .5 && gl_FragColor.a < .08) discard;\n}\n"); };
       mt.userData.aoiPrevKey = mt.customProgramCacheKey; mt.customProgramCacheKey = function () { const k = this.userData.aoiPrevKey; return (k ? k.call(this) : "") + "|aoiFade"; }; mt.needsUpdate = true; }
     // 描く直前に、そのこまの濃さを網目の割合へ移し、重ね塗りをやめて奥行きを書く（アプリの現れ方のコードはそのまま）
     this.vrm.scene.traverse(m => { if (!m.isMesh || m.userData.aoiOverlay) return; m.userData.aoiM = this; const prev = m.onBeforeRender;
       m.onBeforeRender = function (r, s, c, g, mt, grp) { prev?.call(this, r, s, c, g, mt, grp); const u = mt?.userData?.aoiFadeU; if (!u) return;
         const o = mt.transparent ? mt.opacity : 1;
         // 濃さは網目だけで表し、材質の不透明度は 1 に（VRoid の肌・髪・服は「抜き 0.5」なので、薄くすると半分より下で全部抜けて、目だけが先に見えていた）
-        if (o < .999) { const am = this.userData.aoiM; if (am) am._fadingT = am.t; if (mt.userData.aoiTr) { u.value = 1; if (mt.uniforms?.opacity) mt.uniforms.opacity.value = Math.sqrt(o); }   // もとから半透明の細い部品（眉・まつげ・目の線・黒目・目の光）は網目にせず薄くする（網目だと線が欠けて太い帯に見える）。網目の肌と同じくらいの見え方に（目のない顔にならない）
-          else { u.value = o; if (mt.uniforms?.opacity) mt.uniforms.opacity.value = 1; if (!/outline/i.test(mt.name || "")) { mt.blending = THREE.NoBlending; mt.depthWrite = true; } } mt.userData.aoiDith = true; }   // 輪郭線の材質は重ね塗りのまま（重ね塗りをやめると、髪の輪郭線が黒い帯になる）
-        else if (mt.userData.aoiDith) { u.value = 1; mt.blending = mt.userData.aoiBl; mt.depthWrite = mt.userData.aoiDW; mt.userData.aoiDith = false; } else u.value = 1; }; });
+        if (o < .999) { const am = this.userData.aoiM; if (am) am._fadingT = am.t; if (mt.userData.aoiTr) { u.value = 1; if (mt.uniforms?.opacity) mt.uniforms.opacity.value = o; mt.userData.aoiCutU.value = 1; mt.depthWrite = true; }   /* 見えている所だけ奥行きを書く（透明な所は捨てる）。こうしないと、①四角い面の透明な所まで奥行きが入って後ろの白目と肌が抜け、黒い帯になる（11 人の P1）②描く順が入れかわり、白目が黒目の上に塗られて白く光る目になる */   // もとから半透明の細い部品（眉・まつげ・目の線・黒目・目の光）は網目にせず薄くする（網目だと線が欠けて太い帯に見える）。網目の肌と同じくらいの見え方に（目のない顔にならない）
+          else { u.value = 1 - (1 - o) * (1 - o); if (mt.uniforms?.opacity) mt.uniforms.opacity.value = 1; if (!/outline/i.test(mt.name || "")) mt.blending = THREE.NoBlending; mt.depthWrite = mt.userData.aoiDW; }   /* 奥行きを書くかどうかは、もとの材質のまま（白目はもとから書かない＝黒目が隠れない） */ mt.userData.aoiDith = true; }   // 輪郭線の材質は重ね塗りのまま（重ね塗りをやめると、髪の輪郭線が黒い帯になる）
+        else if (mt.userData.aoiDith) { u.value = 1; mt.userData.aoiCutU.value = 0; mt.blending = mt.userData.aoiBl; mt.depthWrite = mt.userData.aoiDW; mt.userData.aoiDith = false; } else u.value = 1; }; });
   }
   update(dt, camera, { vrmUpdate = true } = {}) {
     this._qTick(dt); dt = Math.min(dt, .05); if (dt <= 0) return; this.t += dt; const S = this.s;
@@ -705,7 +705,7 @@ export class AoiMotion {
     // 指：力を抜いた曲がり（人差し指から小指へ深く）。指すときは人差し指を伸ばす
     // v5：mid・low の段では、指は一こまおき（止まって見えるほどの差はない）
     if (this.q.tier !== "high" && (this.q.n & 1) && !GS.on) return;
-    const cu = .3 + .06 * k + (L ? .03 * wob(t * .4, this.seedPh + 2) : 0);
+    const cu = .26 + .06 * k + (L ? .03 * wob(t * .4, this.seedPh + 2) : 0);   // v5：力を抜いた指は少しひらき気味に（身ぶりのあと握ったままに見えない）
     for (const [b, sd, f, j] of this.fingers) { const sg = sd === "left" ? 1 : -1, gw = GS[sd].w, gsh = GS[sd].shape;
       if (f === "Thumb") { const tk = gw * (gsh === "pinch" ? .35 : gsh === "point" ? .2 : 0); b.quaternion.setFromEuler(_e.set(0, sg * ((j === "Metacarpal" ? .25 : j === "Proximal" ? .2 : .12) + tk), sg * -((j === "Distal" ? .18 : .06) + tk * .8))); continue; }
       const m = { Index: .78, Middle: 1, Ring: 1.08, Little: 1.2 }[f] * (j === "Proximal" ? 1 : j === "Intermediate" ? 1.15 : .8);
@@ -727,7 +727,7 @@ export class AoiMotion {
     else if (g.type === "metaphoric" && g.shape === "contrast") parts = [P("left", a, 1.25), P("right", a + .75, .5)];   // くらべる語で一つめを左の手に置き、少し遅れて右の手に二つめを置く（両手で見くらべる）
     else if (g.type === "iconic" && (g.shape === "small" || g.shape === "tall") && !both) parts = [P(dom, a, .45)];
     else if (g.type === "metaphoric") parts = both ? [P("left", a, .5), P("right", a, .5)] : [P(dom, a, .5)];
-    else parts = [P("left", a, .45), P("right", a, .45)];
+    else parts = [P("left", a, g.shape === "large" ? .3 : .45), P("right", a, g.shape === "large" ? .3 : .45)];   // 大きく広げる形は、止めを短く
     return (g._parts = parts);
   }
   _gPose(part, sd, out) {   // その手の、碧の入れ物から見た位置・指の向き・手のひらの向き・指の形
@@ -739,13 +739,14 @@ export class AoiMotion {
       d.y = clamp(d.y / Math.max(.2, Math.hypot(d.x, d.z)), -1.4, .3) * Math.hypot(d.x, d.z); d.normalize(); if (d.z < .2) { d.z = .2; d.normalize(); }   // 体の後ろは指さない（体を回すのは向きの仕事）。足もとの物は下へ向けて指す
       out.p.copy(sh).addScaledVector(d, .36); out.p.y -= .05; out.f.copy(d); out.n.set(-sg * .3, -1, 0); out.shape = "point"; return out; }
     if (g.type === "metaphoric") {
-      if (g.shape === "contrast") return set(sg * .17, -.36, .29, [sg * .3, -.05, 1], [-sg * .15, 1, 0], "open");   // くらべる：低めに、手のひらを上にして片方ずつ置く
+      // くらべる：二つを左右の手に載せて量るように、手のひらを内向き・上に、左右で高さを変える（前へ差し出さない＝「どうぞ」に見えない。11 人の指摘）
+      if (g.shape === "contrast") return set(sg * .2, sd === "left" ? -.27 : -.36, .22, [sg * .1, .15, 1], [-sg * .6, .8, 0], "open");
       return set(sg * .12, -.3, .28, [sg * .2, .05, 1], [-sg * .2, 1, 0], "open");   // 差し出す：手のひらを上に（Müller 2004・Kendon 2004）
     }
     switch (g.shape) {
       case "small": return set(sg * .07, -.27, .27, [-sg * .2, .2, 1], [-sg, .7, 0], "pinch");
       case "round": return set(sg * .13, -.24, .27, [-sg * .3, .2, 1], [-sg, .2, 0], "cup");
-      case "large": return set(sg * .33, -.13, .22, [sg * .55, .05, 1], [-sg * .5, .6, 0], "open");   // 大きい：肩の高さ近くまで、左右に大きく（腕は伸ばしきらない）
+      case "large": return set(sg * .3, -.22, .24, [sg * .45, .05, 1], [-sg * .7, .45, 0], "open");   // 大きい：胸の下の高さで左右へ（肩の高さまで上げると「お手上げ」「ようこそ」に見える。11 人の指摘）   // 大きい：肩の高さ近くまで、左右に大きく（腕は伸ばしきらない）
       case "long": return set(sg * .27, -.3, .3, [sg * .1, -.05, 1], [-sg, 0, 0], "flat");      // 長い：腰の上の高さで、そろえた手を横の線に
       case "tall": return set(sg * .15, -.05, .2, [0, .3, 1], [0, -1, 0], "flat");
       case "flat": return set(sg * .18, -.33, .27, [0, -.1, 1], [0, -1, 0], "flat");
