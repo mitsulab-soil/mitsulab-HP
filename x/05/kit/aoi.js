@@ -1,9 +1,9 @@
 /* mitsulab 共通の部品（aoi.js）。© 2026 mitsulab. All rights reserved. */
 import * as THREE from "three";
 import { AoiMotion } from "./aoi_motion.js";
-export { AoiMotion, EMOTIONS, timelineFromKana, timelineFromText } from "./aoi_motion.js";
+export { AoiMotion, EMOTIONS, timelineFromKana, timelineFromText, inferGestures } from "./aoi_motion.js";
 
-export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0, reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches, wind = .6, posture = "natural" } = {}) {
+export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0, reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches, wind = .6, posture = "natural", quality = "auto" } = {}) {
   const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
   const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
   const g = await ld.loadAsync(url, e => { if (e.total && onProgress) onProgress(e.loaded / e.total); });
@@ -15,10 +15,11 @@ export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0,
   vrm.humanoid.resetNormalizedPose(); vrm.update(0); vrm.scene.updateMatrixWorld(true);
   { const bx = new THREE.Box3().setFromObject(vrm.scene), h = bx.max.y - bx.min.y, sc = h > .5 ? height / h : 1; vrm.scene.scale.setScalar(sc); vrm.scene.position.y = -bx.min.y * sc; }
   root.updateMatrixWorld(true);
-  const motion = new AoiMotion(vrm, { root, seed, reducedMotion, wind, posture });
+  const motion = new AoiMotion(vrm, { root, seed, reducedMotion, wind, posture, quality });   // quality（v5）＝"auto"|"high"|"mid"|"low"
   // 透けさせて現れる
   const live = !reducedMotion; let fade = live ? 0 : 1;
   const mats = []; root.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) mats.push([mt, mt.transparent, mt.depthWrite]); });
+  // 現れるあいだの「透けた顔に白目と口の中が浮く」のは、AoiMotion（v5）が奥行きだけの写しで防ぐ（どのアプリの現れ方でも効く）
   const opacity = o => { for (const [mt, tr, dw] of mats) { mt.transparent = o < 1 ? true : tr; mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; } };
   opacity(fade);
   return {
