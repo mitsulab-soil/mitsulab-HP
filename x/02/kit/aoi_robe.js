@@ -18,6 +18,7 @@ const _hp = new THREE.Vector3(), _hs = new THREE.Vector3(), _hf = new THREE.Vect
 
 export class AoiRobe {
   constructor(vrm, { chains = 24, levels = 8, wind = .4, match = /tops|onepiece|skirt|coat|bottoms|dress|robe/i } = {}) {
+    this._floor = [.074, .058, .074, .058];   // v4：脚の表面＋布の厚み（m・腰の大きさ 1 のとき）。太もも・すね・太もも・すね
     this.vrm = vrm; this.N = chains; this.M = levels; this.wind = wind; this.ok = false; this.t = 0;
     const H = vrm.humanoid, raw = n => H.getRawBoneNode(n);
     this.hips = raw("hips"); if (!this.hips) return;
@@ -143,9 +144,14 @@ export class AoiRobe {
           if (L > hi || L < lo) { const k = (L - (L > hi ? hi : lo)) / L * .5; p.addScaledVector(d, k); q.addScaledVector(d, -k); } }
         // 脚に当たる：鎖の一区間とカプセルの、いちばん近い点どうし
         // まず点ごとに：脚の「内側」へ入りこんだ点は、その鎖の外向きの側へ出す（速く振った脚を、布がすり抜けないように）
-        const rr = this.rr, sc2 = sc * .97;
-        for (let a = 0; a < N; a++) { const P = this.p[a], out = this._out[a]; for (let j = 1; j < M; j++) caps.forEach(([A, B, r], c) => this._side(P[j], out, A, B, Math.min(r, rr[a][j][c] * sc2))); }
-        for (let a = 0; a < N; a++) { const P = this.p[a]; for (let j = 1; j < M; j++) caps.forEach(([A, B, r], c) => this._push(P[j - 1], P[j], j - 1 === 0, A, B, Math.min(r, Math.max(rr[a][j - 1][c], rr[a][j][c]) * sc2))); }
+        // v4：押し出す半径は「静止のときの距離」までに抑えるが、脚の表面（太もも 6.5 cm・すね 5 cm）＋布の厚みより内へは入れない（裾から脚が透けて出ない）
+        const rr = this.rr, sc2 = sc * .97, fl = this._floor;
+        for (let a = 0; a < N; a++) { const P = this.p[a], out = this._out[a]; for (let j = 1; j < M; j++) caps.forEach(([A, B, r], c) => this._side(P[j], out, A, B, Math.min(r, Math.max(rr[a][j][c] * sc2, fl[c] * sc)))); }
+        for (let a = 0; a < N; a++) { const P = this.p[a]; for (let j = 1; j < M; j++) caps.forEach(([A, B, r], c) => this._push(P[j - 1], P[j], j - 1 === 0, A, B, Math.min(r, Math.max(Math.max(rr[a][j - 1][c], rr[a][j][c]) * sc2, fl[c] * sc)))); }
+        // v4：となりの鎖とのあいだ（布は鎖のあいだを直線でつなぐ）も、脚の表面より内へ入れない。あいだの点が脚に入ったら、両どなりの点を外へ押す
+        for (let j = 1; j < M; j++) for (let a = 0; a < N; a++) { const p = this.p[a][j], q = this.p[(a + 1) % N][j], m = _v[0].addVectors(p, q).multiplyScalar(.5);
+          for (let c = 0; c < caps.length; c++) { const [A, B] = caps[c], r = fl[c] * sc, ab = _v[2].subVectors(B, A), t = clamp(_v[3].subVectors(m, A).dot(ab) / (ab.lengthSq() || 1e-9), 0, 1), d = _v[4].subVectors(m, _v[5].copy(A).addScaledVector(ab, t)), dist = d.length();
+            if (dist >= r) continue; if (dist < 1e-6) d.copy(this._out[a]); else d.multiplyScalar(1 / dist); const k = r - dist; p.addScaledVector(d, k); q.addScaledVector(d, k); m.addScaledVector(d, k); } }
         // 床
         if (groundY != null) for (let a = 0; a < N; a++) { const p = this.p[a][M - 1]; if (p.y < groundY + .01 * sc) p.y = groundY + .01 * sc; }
       }
@@ -194,4 +200,32 @@ export class AoiRobe {
     }
     this.hips.updateMatrixWorld(true);
   }
+}
+
+/* 2026-10-13 足しもの（氷川道中の 11 人「歩くと裾の割れ目から脚の肌が見える・脚が布を突き抜ける」）：
+   足首まであるローブの下の、ふだん見えない脚の肌（太もも〜すねの上 65％）を、読み込んだあとで畳む（.vrm は書きかえない）。
+   VRoid の「服の下の体を透明に」と同じ考え。足首と靴は残す。呼んだページだけ変わる（呼ばなければ何も変わらない）。
+   使い方：import { hideCoveredLegs } from "./aoi_robe.js"; hideCoveredLegs(vrm)  → 畳んだ頂点の数 */
+export function hideCoveredLegs(vrm, { keep = .35, match = /skin|body/i, skip = /face|hair|eye|cloth|tops|onepiece|skirt|shoe/i } = {}) {
+  const H = vrm?.humanoid; if (!H) return 0; const raw = n => H.getRawBoneNode(n);
+  const hips = raw("hips"), feet = [raw("leftFoot"), raw("rightFoot")], legs = new Set(["leftUpperLeg", "rightUpperLeg", "leftLowerLeg", "rightLowerLeg"].map(n => raw(n)).filter(Boolean));
+  if (!hips || !feet[0] || !legs.size) return 0;
+  let n = 0; const v = new THREE.Vector3(), m = new THREE.Matrix4();
+  vrm.scene.traverse(o => {
+    if (!o.isSkinnedMesh) return; const names = [].concat(o.material).map(x => x?.name ?? "").join(" ");
+    if (!match.test(names) || skip.test(names)) return;
+    const sk = o.skeleton, bi = new Set(sk.bones.map((b, i) => legs.has(b) ? i : -1).filter(i => i >= 0)), hi = sk.bones.indexOf(hips); if (!bi.size || hi < 0) return;
+    const at = b => { const k = sk.bones.indexOf(b); return k < 0 ? null : new THREE.Vector3().applyMatrix4(m.copy(sk.boneInverses[k]).invert()); };   // 骨の静止の位置（形の座標）
+    const hp = at(hips), fy = Math.max(...feet.map(at).filter(Boolean).map(p => p.y)); if (!hp || !isFinite(fy)) return;
+    const yCut = fy + (hp.y - fy) * keep, G = o.geometry, P = G.attributes.position, SI = G.attributes.skinIndex, SW = G.attributes.skinWeight; if (!SI) return;
+    const toModel = o.bindMatrix; let c = 0;
+    for (let i = 0; i < P.count; i++) {
+      let lw = 0; for (let k = 0; k < 4; k++) if (bi.has(SI.getComponent(i, k))) lw += SW.getComponent(i, k);
+      if (lw < .5) continue; v.fromBufferAttribute(P, i).applyMatrix4(toModel); if (v.y < yCut) continue;
+      const q = hp.clone().applyMatrix4(m.copy(toModel).invert()); P.setXYZ(i, q.x, q.y, q.z);   // 腰の芯へ畳む（ローブの中に隠れる）
+      SI.setXYZW(i, hi, hi, hi, hi); SW.setXYZW(i, 1, 0, 0, 0); c++;
+    }
+    if (c) { P.needsUpdate = true; SI.needsUpdate = true; SW.needsUpdate = true; G.computeBoundingSphere(); n += c; }
+  });
+  return n;
 }
