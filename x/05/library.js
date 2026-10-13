@@ -103,7 +103,7 @@ function buildList() {
     html.push(`<section class="group" style="--sc:${SUBJ_COLOR[s.key]}"><h2>${esc(s.名前)}<span>${SUBJ_EN[s.key]}</span></h2><ul class="items">`);
     for (const c of cs) html.push(`<li data-id="${c.id}"><button class="item ml-panel" type="button" data-open="${c.id}" style="--sc:${SUBJ_COLOR[s.key]}">
       <span class="ik"><span><b>${esc(c.主の次元)}</b>${c.関わる次元.length ? "　＋" + c.関わる次元.map(esc).join("・") : ""}</span><span>${c.id}<span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ}</span></span></span>
-      <span class="in">${esc(c.名前)}</span><span class="io">${esc(c.一行)}</span></button></li>`);
+      <span class="in">${esc(c.名前)}</span><span class="io">${esc(c.一行)}</span>${c.外でこう見てみる ? `<span class="iw"><b>外で</b>${esc(c.外でこう見てみる.いつ)}</span>` : ""}</button></li>`);
     html.push(`</ul></section>`);
   }
   $("#groups").innerHTML = html.join("");
@@ -116,15 +116,21 @@ const hooks = { open: [], close: [] };
 function readerHTML(c) {
   const sec = (ja, en, items, note = "") => items.length ? `<section class="r-sec"><h3>${ja}<span>${en}</span></h3>${note}<ul>${items.map(t => `<li>${fmt(t)}</li>`).join("")}</ul></section>` : "";
   const rel = related(c).map(l => ({ c: BY[l.id], dims: l.次元keys.map(k => DIMNAME[k]) })).sort((a, b) => b.dims.length - a.dims.length || a.c.id.localeCompare(b.c.id));
+  // 外でこう見てみる（2026-10-13 ミカタ）：読み終えたら、外で確かめる見方を一つ。上に「いつ」の札を出し、押すとそこへ
+  const lk = c.外でこう見てみる;
+  const lookTop = lk ? `<a class="r-lookchip" href="#r-look" data-jump="r-look"><span>外で</span>${esc(lk.いつ)}<i aria-hidden="true">↓</i></a>` : "";
+  const lookSec = lk ? `<section class="r-sec r-look" id="r-look"><h3>外でこう見てみる<span>look outside</span></h3><p class="r-when"><span>いつ</span>${esc(lk.いつ)}</p>${lk.見方.map(t => `<p>${fmt(t)}</p>`).join("")}</section>` : "";
   return `<div class="r-kick"><span>${c.id}</span><span style="color:${SUBJ_COLOR[c.主体key]}">${esc(c.主体)} ・ ${esc(c.主の次元)}</span>${c.関わる次元.length ? `<span>関わる次元：${c.関わる次元.map(esc).join("・")}</span>` : ""}<span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ} ${MARK[c.確からしさ]}</span></div>
     <h2 class="r-name" id="r-name">${esc(c.名前)}</h2>
     <p class="r-one">${fmt(c.一行)}</p>
+    ${lookTop}
     <ul class="tags" aria-label="分野">${c.分野.map(f => `<li>${esc(f)}</li>`).join("")}</ul>
     ${sec("仕組み", "how it works", c.仕組み)}
     ${sec("どうやって分かったか", "how we know", c.どうやって分かったか)}
     ${sec("まだ分からないこと", "still open", c.まだ分からないこと)}
     ${sec("人に届く翻訳", "a model made for people", c.人に届く翻訳, `<p class="r-note">手がかりを、人の目・耳・手に届く形に写した模式です。ほかの者の受けとり方そのものではありません。</p>`)}
-    ${c.試せる作品.length ? `<section class="r-sec"><h3>試せる作品<span>try it</span></h3><ul class="works">${c.試せる作品.map(w => `<li><a href="${esc(w.url)}" target="_blank" rel="noopener"><span>${esc(w.名前)}<small>${esc(w.一言)}</small></span><span aria-hidden="true">↗</span></a></li>`).join("")}</ul></section>` : ""}
+    ${c.試せる作品.length ? `<section class="r-sec"><h3>作品で試す<span>try it</span></h3><ul class="works">${c.試せる作品.map(w => `<li><a href="${esc(w.url)}" target="_blank" rel="noopener"><span>${esc(w.名前)}<small>${esc(w.一言)}</small></span><span aria-hidden="true">↗</span></a></li>`).join("")}</ul></section>` : ""}
+    ${lookSec}
     ${rel.length ? `<section class="r-sec"><h3>同じ次元のカード<span>shared dimension</span></h3><div class="rel">${rel.map(r => `<button type="button" data-open="${r.c.id}"><i>${r.dims.join("・")}</i>${esc(r.c.名前)}</button>`).join("")}</div></section>` : ""}
     ${(() => { const all = JSON.stringify([c.一行, c.仕組み, c.どうやって分かったか, c.まだ分からないこと, c.人に届く翻訳]); const g = GLOSS.filter(([w]) => all.includes(w));
       return g.length ? `<details class="ml-fold r-sec"><summary>ことば（${g.length}）</summary><dl class="gloss">${g.map(([w, d]) => `<dt>${esc(w)}</dt><dd>${esc(d)}</dd>`).join("")}</dl></details>` : ""; })()}
@@ -148,7 +154,9 @@ function close() {
   hooks.close.forEach(f => f());
   lastFocus?.focus?.({ preventScroll: true });
 }
-$("#reader").addEventListener("click", e => { const b = e.target.closest("[data-open]"); if (b) open(b.dataset.open); });
+$("#reader").addEventListener("click", e => {
+  const j = e.target.closest("[data-jump]"); if (j) { e.preventDefault(); const t = document.getElementById(j.dataset.jump); t?.scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" }); t?.setAttribute("tabindex", "-1"); t?.focus({ preventScroll: true }); return; }
+  const b = e.target.closest("[data-open]"); if (b) open(b.dataset.open); });
 $("#closeReader").addEventListener("click", close);
 addEventListener("hashchange", () => { const k = location.hash.slice(1).toLowerCase(), c = CARDS.find(x => x.key === k); if (c && c !== current) open(c.id); });
 addEventListener("keydown", e => { if (e.key === "Escape") { if (current) close(); else if (document.body.dataset.mode === "3d" && !$("#list").hidden) showList(false); } });
@@ -244,12 +252,16 @@ async function start3D() {
     x.fillStyle = "rgba(195,204,224,.55)"; x.font = `400 24px ${mono}`; x.textBaseline = "top"; x.fillText(c.id, 44, 46);
     x.textAlign = "right"; x.fillStyle = "rgba(155,220,240,.9)"; x.fillText(c.確からしさ, cw - 44, 46); x.textAlign = "left";
     x.fillStyle = col; x.font = `400 26px ${sans}`; x.fillText(`${c.主体}　・　${c.主の次元}`, 44, 96);
-    const wrap = (text, font, lh, maxW, maxL, y0, color) => { x.font = font; x.fillStyle = color; let line = "", y = y0, n = 0;
-      for (const chh of text) { const t = line + chh; if (x.measureText(t).width > maxW && line) { if (++n >= maxL) { x.fillText(line.slice(0, -1) + "…", 44, y); return y + lh; } x.fillText(line, 44, y); y += lh; line = chh; } else line = t; }
-      if (line) { x.fillText(line, 44, y); y += lh; } return y; };
+    const wrap = (text, font, lh, maxW, maxL, y0, color, x0 = 44) => { x.font = font; x.fillStyle = color; let line = "", y = y0, n = 0;
+      for (const chh of text) { const t = line + chh; if (x.measureText(t).width > maxW && line) { if (++n >= maxL) { x.fillText(line.slice(0, -1) + "…", x0, y); return y + lh; } x.fillText(line, x0, y); y += lh; line = chh; } else line = t; }
+      if (line) { x.fillText(line, x0, y); y += lh; } return y; };
     let y = wrap(c.名前, serif.replace("52px", "60px"), 80, cw - 88, 3, 156, "#eef5fb");
     x.fillStyle = "rgba(150,170,240,.35)"; x.fillRect(44, y + 18, 80, 2);
-    y = wrap(c.一行, `400 27px ${sans}`, 46, cw - 88, Math.max(3, Math.floor((ch - 120 - (y + 48)) / 46)), y + 48, "rgba(195,204,224,.92)");
+    y = wrap(c.一行, `400 27px ${sans}`, 46, cw - 88, Math.max(3, Math.floor((ch - 230 - (y + 48)) / 46)), y + 48, "rgba(195,204,224,.92)");
+    // 板の下に「外で：いつ」（2026-10-13：開く前から、外へ出る図鑑だと分かるように）
+    if (c.外でこう見てみる) { const ly = ch - 196; x.fillStyle = "rgba(127,200,230,.5)"; x.fillRect(44, ly - 4, 2, 92);
+      x.fillStyle = "rgba(127,200,230,.95)"; x.font = `400 21px ${mono}`; x.fillText("外で", 62, ly);
+      wrap(c.外でこう見てみる.いつ, `400 25px ${sans}`, 38, cw - 150, 2, ly + 32, "#e4eef6", 62); }
     x.fillStyle = "rgba(143,155,180,.85)"; x.font = `400 21px ${mono}`; x.fillText(c.分野.join("  ·  "), 44, ch - 72);
     const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
   }
@@ -274,14 +286,35 @@ async function start3D() {
 
   // ---- 札：主体（弧の上）と次元（列の足もと）。地面には主体の弧の線
   const labels = new THREE.Group(); scene.add(labels);
+  const subjLabels = [];
   for (const sc of sectors) {
     const a0 = ang(sc.a) - STEP * .45, a1 = ang(sc.b) + STEP * .45, mid = (a0 + a1) / 2, col = new THREE.Color(SUBJ_COLOR[sc.s.key]).getHex();
     const sp = K.textSprite(sc.s.名前, { sub: SUBJ_EN[sc.s.key], color: col, height: .34 }); sp.position.copy(at(mid, 3.86)); labels.add(sp);
+    subjLabels.push({ sp, a0, a1, mid, cur: mid, tgt: mid });
     const arc = []; for (let k = 0; k < 40; k++) { const u = a0 + (a1 - a0) * k / 39, v = at(u, 0, RAD + .15); arc.push(v.x, H(v.x, v.z) + .04, v.z); }
     const ag = new THREE.BufferGeometry(); ag.setAttribute("position", new THREE.Float32BufferAttribute(arc, 3)); labels.add(new THREE.Line(ag, K.lineMaterial(col, .55)));
   }
   cols.forEach((col, i) => { if (!col || !col.first) return; const n = cols.filter(c => c && c.subj === col.subj && c.dim === col.dim).length;
     const sp = K.textSprite(DIMNAME[col.dim], { color: K.LAYER.aoi, height: .2 }); sp.position.copy(at(ang(i) + STEP * (n - 1) / 2, .46, RAD - .05)); labels.add(sp); });
+
+  // 主体の札は、弧の上の「画面の板（導入・しぼりこみ・読む板）に隠れない所」へ寄せる（2026-10-13・P2：導入の板が「生き物」を隠していた）
+  const UI_BOXES = [".brand", ".filters", ".acts", "#reader"];
+  function placeSubjLabels() {
+    const boxes = UI_BOXES.map(s => $(s)).filter(el => el && !el.hidden && getComputedStyle(el).display !== "none" && +getComputedStyle(el).opacity > .3).map(el => el.getBoundingClientRect());
+    const W0 = innerWidth, H0 = innerHeight, mx = 64, my = 30, v = new THREE.Vector3();
+    for (const L of subjLabels) {
+      let best = null, bestD = 1e9;
+      for (let k = 0; k <= 24; k++) {
+        const u = L.a0 + (L.a1 - L.a0) * k / 24; v.copy(at(u, 3.86)).project(camera); if (v.z > 1) continue;
+        const x = (v.x + 1) / 2 * W0, y = (1 - v.y) / 2 * H0;
+        if (x < mx || x > W0 - mx || y < my || y > H0 - my) continue;
+        if (boxes.some(b => x + mx > b.left && x - mx < b.right && y + my > b.top && y - my < b.bottom)) continue;
+        const dd = Math.abs(u - L.mid); if (dd < bestD) { bestD = dd; best = u; }
+      }
+      L.tgt = best ?? L.mid;
+    }
+  }
+  let frameN = 0;
 
   // ---- 事実の線：同じ次元を、ちがう主体が受けとるカードどうし（主の次元どうし）
   const lineMat = K.lineMaterial(K.LAYER.aoi, .34), lineMatHi = K.lineMaterial(K.LAYER.aoi, .85);
@@ -324,9 +357,11 @@ async function start3D() {
     if (m.posture !== "upright" && m.pz) {   // 共通部品の loadAoi が posture をまだ渡さないとき：同じ upright の値をここで入れる
       m.posture = "upright"; Object.assign(m.pz, { ws: .3, sway: .4, lat: .2, mT: .15, mN: .1, mA: .35, mH: .15, tilt: .45, gest: .6, away: .45, chestUp: .02, shBack: .035 });
     }
+    m.groundAt = H;   // 空き地のゆるい起伏に足を合わせる（読む板の横へ歩くため）
     const yaw = Math.atan2(camera.position.x - aoiPos.x, camera.position.z - aoiPos.z); a.place(aoiPos.x, aoiPos.z, yaw);
     aoiHit = new THREE.Mesh(new THREE.CylinderGeometry(.32, .32, 1.7, 8), new THREE.MeshBasicMaterial({ visible: false })); aoiHit.position.copy(aoiPos).y += .85; scene.add(aoiHit);
     window.MLLoader?.done();
+    if (current) aoiAside(current);
     setTimeout(() => current ? aoiOnCard(current) : say("一枚に、ひとつの受けとり方。気になる一枚を、押してみてください。", 7000), RM ? 300 : 1600);
   }).catch(e => { console.warn("碧を読めませんでした", e); window.MLLoader?.done(); });
 
@@ -367,15 +402,18 @@ async function start3D() {
   const AOI_LINES = ["線は、同じ次元を、ちがう主体が受けとるところに引いてあります。", "一枚ずつ、どうやって分かったかと、まだ分からないことが書いてあります。", "ほかの者の受けとり方そのものは、わたしにも渡せません。渡せるのは、手がかりです。"];
   // カードを開いたときの一言（型を替える。長く話さない）
   function aoiOnCard(c) {
-    const n = related(c).length, k = parseInt(c.id.slice(3), 10) % 3;
+    const n = related(c).length, k = parseInt(c.id.slice(3), 10) % 4;
+    const out = c.外でこう見てみる ? `外でこう見てみる ── ${c.外でこう見てみる.いつ}。読み終えたら、いちばん下の、外で確かめる見方へ。` : "";
+    if (out && (k === 1 || k === 3 || !opened++)) { say(out, 7000); return; }
     let firstQ = (c.まだ分からないこと[0] || "").split("。")[0].replace(/[◎△◐○]/g, "").trim(); if (firstQ.length > 44) firstQ = "";
     const lines = [
       n ? `${c.名前}。同じ「${c.主の次元}」を受けとるカードが、ほかに ${n} 枚あります。` : `${c.名前}。`,
       firstQ ? `まだ分からないことも書いてあります。たとえば ── ${firstQ}。` : `${c.名前}。まだ分からないことも、書いてあります。`,
       `「どうやって分かったか」から読むと、${c.主体 === "機械" ? "測り方" : "確かめ方"}が見えてきます。`,
     ];
-    say(lines[k], 6500);
+    say(lines[k % 3], 6500);
   }
+  let opened = 0;
   let li = 0; function aoiTalk() { say(AOI_LINES[li++ % AOI_LINES.length], 6500); aoi?.motion.bow?.("eshaku"); }
 
   // ---- しぼりこみ・選ぶ
@@ -397,10 +435,31 @@ async function start3D() {
     relGroup.visible = true; relGroup.userData.ends = relGroup.children.filter(o => o !== dots).map(o => { const a = o.geometry.attributes.position, n = a.count - 1; return new THREE.Vector3(a.getX(n), a.getY(n), a.getZ(n)); });
     // 読む板が右にあるので、見る向きを一枚の居場所へ
     const a = Math.atan2(sel.home.x, -sel.home.z); yawT = Math.max(-YAW, Math.min(YAW, a + .12));
-    if (aoi) { aoi.motion.lookAt?.(sel.home.clone()); }
+    if (aoi) { aoi.motion.lookAt?.(sel.g); aoiAside(c); }
     aoiOnCard(c);
   });
-  hooks.close.push(() => { if (sel) sel.flyT = 0; sel = null; relGroup.visible = false; aoi?.motion.lookAt?.(null); });
+  hooks.close.push(() => { if (sel) sel.flyT = 0; sel = null; relGroup.visible = false; aoi?.motion.lookAt?.(null); aoiHome(); });
+  // 読む板を開いたら、碧は板の後ろに入らないよう、手前のカードの左へ歩いて行く（2026-10-13・P2）。閉じたら元の場所へ
+  function aoiAside() {
+    if (!aoi) return;
+    const y = yawT, d = 4, half = d * Math.tan(THREE.MathUtils.degToRad(fovT / 2)) * camera.aspect, tn = Math.tan(THREE.MathUtils.degToRad(fovT / 2)) * camera.aspect;
+    // 広い画面＝手前に来たカード（右の縁）と読む板（左の縁）のあいだ。歩く道が短く、カードの後ろを通らない。狭い画面＝左
+    const cardR = (-.62 + W / 2) / (2.3 * tn), readL = $("#reader").getBoundingClientRect().left / innerWidth * 2 - 1;
+    const nx = innerWidth > 1000 && readL - cardR > .12 ? (cardR + readL) / 2 : -.78;
+    const p = new THREE.Vector3(EYE.x, 0, EYE.z).addScaledVector(new THREE.Vector3(Math.sin(y), 0, -Math.cos(y)), d).addScaledVector(new THREE.Vector3(Math.cos(y), 0, Math.sin(y)), nx * half);
+    const rr = Math.hypot(p.x, p.z); if (rr > 5.6) p.multiplyScalar(5.6 / rr);
+    // 遠いときは、読む板の陰（右）から歩き出す（見えない所を長く歩かせない。出てくるまで 1 秒ほど）
+    const q = aoi.motion.pos;
+    if (!RM && innerWidth > 1000 && q && Math.hypot(q.x - p.x, q.z - p.z) > 2.2) {
+      const s = p.clone().addScaledVector(new THREE.Vector3(Math.cos(y), 0, Math.sin(y)), 1.3); aoi.place(s.x, s.z, Math.atan2(p.x - s.x, p.z - s.z));
+    }
+    aoiGo(p);
+  }
+  function aoiHome() { if (aoi) aoiGo(aoiPos); }
+  function aoiGo(p) {
+    if (RM) aoi.place(p.x, p.z, Math.atan2(EYE.x - p.x, EYE.z - p.z)); else aoi.walkTo(p);
+    aoi.motion.faceTo?.(null);
+  }
 
   // ---- 毎こま
   const clock = new THREE.Clock(); let last = performance.now(), frames = 0, fpsT = performance.now();
@@ -445,9 +504,12 @@ async function start3D() {
       for (const o of relGroup.children) { if (o === dots) continue; const e = relGroup.userData.ends[i++]; tmpV.copy(e).project(camera); o.visible = tmpV.x > -.98 && tmpV.x < lim && Math.abs(tmpV.y) < .98 && tmpV.z < 1; } }
     for (const l of bridges) { const target = (l.userData.on && l.userData.inView ? 1 : 0) * (current ? .12 : 1) * l.userData.base; l.material.opacity += (target - l.material.opacity) * .15; l.visible = l.material.opacity > .005; }
     labels.children.forEach(o => { if (o.material) o.material.opacity = current ? .35 : 1; });
+    for (const L of subjLabels) if (Math.abs(L.tgt - L.cur) > 1e-4) { L.cur += (L.tgt - L.cur) * (RM ? 1 : 1 - Math.exp(-dt * 4)); L.sp.position.copy(at(L.cur, 3.86)); }
     for (const sp of bridgeLabels) sp.material.opacity = Math.min(1, Math.max(...sp.userData.lines.map(l => l.material.opacity)) * 3.2);
     dust?.userData.update(dt);
     aoi?.tick(dt, camera);
+    if (aoi && aoi.motion.pos) { const q = aoi.motion.pos; ring.position.set(q.x, H(q.x, q.z) + .02, q.z); aoiHit?.position.set(q.x, H(q.x, q.z) + .85, q.z); }
+    if (!(frameN++ % 12)) placeSubjLabels();
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);

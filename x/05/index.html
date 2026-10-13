@@ -173,8 +173,30 @@
   .foot .ml-fold > summary{font-size:14px}
   .foot3d{font-size:13px;background:rgba(3,6,15,.72);padding:6px 10px}
   .foot3d a{color:var(--ml-ink-2)}
+  /* ---- 外でこう見てみる（2026-10-13 ミカタ）：読み終えたら、外で確かめる見方を一つ。HP の TOP の作法（紺・細い線・角 2px） */
+  .r-lookchip{display:inline-flex;gap:10px;margin:0 0 12px;padding:8px 12px;min-height:44px;align-items:center;border:1px solid var(--ml-line);border-left:2px solid var(--ml-aoi);border-radius:2px;color:var(--ml-ink);text-decoration:none;font-size:15px;line-height:1.5}
+  .r-lookchip span{font:400 13px var(--ml-mono);letter-spacing:.18em;color:var(--ml-aoi)}
+  .r-lookchip i{font-style:normal;color:var(--ml-aoi-2)}
+  .r-lookchip:hover,.r-lookchip:focus-visible{border-color:var(--ml-aoi)}
+  .r-look{margin-top:26px;padding:16px 18px 6px;border:1px solid var(--ml-line);border-left:2px solid var(--ml-aoi);border-radius:2px;background:rgba(3,6,15,.5)}
+  .r-look p{margin:0 0 12px;font-size:17px;line-height:1.9;color:var(--ml-ink)}
+  .r-look .r-when{display:flex;gap:12px;align-items:baseline;font-family:var(--ml-serif);font-weight:600;letter-spacing:.06em}
+  .r-look .r-when span{flex:none;font:400 13px var(--ml-mono);letter-spacing:.18em;color:var(--ml-aoi)}
+  .r-look:focus{outline:none}
+  .r-look{scroll-margin-top:76px}
+  /* 閉じるは、読む板の上の帯に（下の字やリンクの ↗ に重ならない） */
+  #reader .rbar{position:sticky;top:-22px;z-index:2;display:flex;justify-content:flex-end;margin:-22px -24px 4px;padding:8px 12px;background:#060a12;border-bottom:1px solid var(--ml-line-weak)}
+  #reader .rbar .close{position:static;float:none;margin:0}
+  body[data-mode="list"] #reader .rbar{top:-18px;margin:-18px calc(-1 * var(--ml-gutter)) 4px;padding:8px var(--ml-gutter)}
+  .item .iw{display:flex;gap:8px;align-items:baseline;margin-top:2px;padding-top:8px;border-top:1px solid var(--ml-line-weak);font-size:14px;line-height:1.6;color:var(--ml-ink-2)}
+  .item .iw b{flex:none;font:400 13px var(--ml-mono);letter-spacing:.16em;color:var(--ml-aoi)}
+  /* 読んでいるあいだ：しぼりこみは隠し（碧が左に来る）、碧のひとことは読む板にかからない左側へ */
+  body[data-reading] .filters{opacity:0;visibility:hidden}
+  @media (min-width:760px){ body[data-mode="3d"][data-reading] .cap{left:200px;right:min(560px,calc(100vw - 400px))} }
+  @media (min-width:1001px){ body[data-mode="3d"][data-reading] .cap{left:24px;right:50vw} }
   @media (max-width:700px){
     body{font-size:16px}
+    .r-look p{font-size:16px}
     .brand .lead,.hook,.lhead .lead,.r-one,.r-sec li{font-size:16px}
     .item .io,.refs,.gloss{font-size:15px}
     .lhead .ml-title{font-size:28px}
@@ -240,7 +262,7 @@
 </main>
 
 <aside id="reader" class="ml-panel ml-panel--corner" role="dialog" aria-modal="false" aria-labelledby="r-name" hidden>
-  <button class="ml-btn close" type="button" id="closeReader">閉じる</button>
+  <div class="rbar"><button class="ml-btn close" type="button" id="closeReader">閉じる</button></div>
   <div id="r-body"></div>
 </aside>
 
