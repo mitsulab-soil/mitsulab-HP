@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import * as FROST from "./exp/frost.js";
-import * as WORM from "./exp/worm.js";
+import * as WORM from "./exp/worm.js?v=20261014p3";
 import * as TEMP from "./exp/temp.js";
 import * as KANTEN from "./exp/kanten.js";
 import * as MYCO from "./exp/myco.js";
