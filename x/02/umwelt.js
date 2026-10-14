@@ -655,7 +655,7 @@ async function loadAoi() {
     A.mats = []; aoi.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) A.mats.push([mt, mt.transparent, mt.depthWrite]); });
     // 2026-10-13：体の動き・目・まばたき・口・表情・裾の布は共通部品 AoiMotion に任せる（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）
     aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
-    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright" }); AM.place(A.pos.x, A.pos.z, A.yaw);
+    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", faceLight: .45 }); AM.place(A.pos.x, A.pos.z, A.yaw);
     opacity(0); window.__aoi = { vrm, aoi, A, M: AM };
   } catch (e) { console.warn("碧の姿を読み込めませんでした（声と字幕で案内します）：", e?.message ?? e); }
 }

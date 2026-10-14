@@ -93,7 +93,7 @@ export class AoiRobe {
           at.push([seg, t, new THREE.Vector3().lerpVectors(rp[seg], rp[seg + 1], t)]); }
         return { js, rp, at, side: rp[0].x >= cx ? 1 : -1 }; }).filter(Boolean);
       this._legNow = this.legAx.map(() => [...Array(M)].map(() => new THREE.Vector3()));
-      this.legFollow = .85;   // 脚のずれを、布の行き先にどれだけ移すか（裾で最大）
+      this.legFollow = .7;   // v2.2：0.85→0.7（ふくらみを抑える）   // 脚のずれを、布の行き先にどれだけ移すか（裾で最大）
     }
     this._hv = new THREE.Vector3(); this._hpPrev = null;   // 腰の水平の速さ（歩くとき、裾が少し後ろへなびく）
     this.ok = true; this.count = sel.length; this.reset();
