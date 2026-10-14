@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="tdm-reservation" content="1">
+<meta name="robots" content="noai, noimageai">
+<title>Qualia/sound ／ mitsulab</title>
+<meta name="description" content="同じ一行でも、聞こえる音は、人によって違う。書きためた「◯◯の音」の言葉から音を組み立て、あなたの聞こえ方で鳴らしなおす。">
+<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body class="ml-root">
+<script src="loader/loader.js" data-title="Qualia/sound" data-en="imagined sounds, heard again" data-icon="favicon/icon.svg" data-max="12000"></script>
+<canvas id="cv" aria-label="夕暮れの雑木林の空き地の上に、言葉の点が分類ごとに集まって浮かんでいる 3D の場面"></canvas>
+<div id="labs" aria-hidden="true"></div>
+<div id="tip" class="tip" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="brand">
+    <span class="ml-kicker">mitsulab ／ 想像の音</span>
+    <h1 class="ml-title">Qualia/sound</h1>
+  </div>
+  <nav class="tools" aria-label="道具">
+    <button class="ml-btn ml-btn--quiet" id="bList" type="button">一覧</button>
+    <button class="ml-btn ml-btn--quiet" id="bAbout" type="button">この作品</button>
+  </nav>
+</header>
+
+<!-- 入口 -->
+<section id="intro" class="intro" aria-labelledby="introT">
+  <div class="intro-in">
+    <p class="ml-kicker">Qualia/sound</p>
+    <h2 id="introT" class="ml-title intro-line">同じ一行でも、<br>聞こえる音は、<br>人によって違う。</h2>
+    <p class="intro-body">「◯◯の音」──夕暮れの雑木林の上に浮かぶ言葉は、すべて mitsulab が書いた想像の音です。それを LLM で群れに分け、一つの音世界として音にしました。ひとつ選ぶと、その一行を翻訳した模式のひとつが鳴ります（一行は 10 秒ほど）。あなたの鳴り、別の誰かの鳴りと、聴きくらべてください。</p>
+    <div class="intro-act">
+      <button class="ml-btn ml-btn--primary" id="bStart" type="button">はじめる</button>
+      <span class="intro-note">音は、押したときだけ鳴ります。</span>
+    </div>
+  </div>
+</section>
+
+<!-- 下のパネル（選んだ一行） -->
+<section id="panel" class="panel ml-panel ml-panel--corner" aria-live="polite" aria-label="選んだ言葉と音" hidden>
+  <div class="p-head">
+    <span class="p-no" id="pNo"></span>
+    <span class="ml-label" id="pTag"></span>
+    <button class="ml-btn ml-btn--quiet p-x" id="bClose" type="button" aria-label="とじる">とじる</button>
+  </div>
+  <p class="p-line" id="pLine"></p>
+  <div class="quiet" id="quiet" hidden>
+    <p>この一行は、鳴らさずに置いています。</p>
+  </div>
+  <div class="sound" id="sound">
+    <p class="trio-q" id="trioQ">同じ一行を、三つの鳴りで。</p>
+    <div class="trio" role="group" aria-label="三つの鳴り">
+      <button class="ml-btn tri" id="bFirst" type="button" data-who="first"><span class="tk tk-first"></span>はじめの鳴り</button>
+      <button class="ml-btn tri" id="bMine" type="button" data-who="mine"><span class="tk tk-mine"></span>あなたの鳴り</button>
+      <button class="ml-btn tri" id="bOther" type="button" data-who="other"><span class="tk tk-other"></span>別の誰かの鳴り</button>
+    </div>
+    <canvas id="wave" class="wave" aria-label="いま鳴っている音の波形"></canvas>
+    <p class="p-cap" id="pCap">線は、いま鳴っている音の波形。</p>
+    <div class="ask">
+      <h3 class="ask-q" id="askQ">あなたには、どう聞こえそうですか</h3>
+      <div class="dials" id="dials">
+        <label class="dial"><span class="d-end">近い</span><span class="track"><input type="range" min="0" max="100" value="50" id="dDist" aria-label="近い・遠い"><i class="m m-first"></i><i class="m m-other"></i></span><span class="d-end">遠い</span></label>
+        <label class="dial"><span class="d-end">柔らかい</span><span class="track"><input type="range" min="0" max="100" value="50" id="dHard" aria-label="柔らかい・硬い"><i class="m m-first"></i><i class="m m-other"></i></span><span class="d-end">硬い</span></label>
+        <label class="dial"><span class="d-end">暗い</span><span class="track"><input type="range" min="0" max="100" value="50" id="dLight" aria-label="暗い・明るい"><i class="m m-first"></i><i class="m m-other"></i></span><span class="d-end">明るい</span></label>
+      </div>
+      <p class="legend"><i class="lg lg-first"></i>はじめの鳴り　<i class="lg lg-other"></i>別の誰か＝偶然に置いた聞こえ方</p>
+      <p class="ask-note" id="askNote">鳴らす前に、想像した音のほうへつまみを置いてみてください。離すと「あなたの鳴り」が鳴ります。</p>
+      <div class="p-more"><details class="ml-fold reading" id="readF" hidden><summary>この鳴りの読み</summary><p id="readT"></p></details><button class="ml-btn ml-btn--quiet" id="bLong" type="button">このまま聴く</button></div>
+    </div>
+  </div>
+
+  <div class="p-nav">
+    <button class="ml-btn ml-btn--quiet" id="bPrev" type="button">← 前</button>
+    <button class="ml-btn ml-btn--quiet" id="bRand" type="button">偶然の一行</button>
+    <button class="ml-btn ml-btn--quiet" id="bNext" type="button">次 →</button>
+  </div>
+</section>
+
+<!-- 何も選んでいないときの下の帯 -->
+<div id="hint" class="hint" hidden>
+  <p><span class="pc">浮かぶ点の一つ一つが、言葉です。ふれると見え、押すと選べます。</span><span class="spo">点の一つ一つが言葉。押すと選べます。</span></p>
+  <div class="p-row">
+    <button class="ml-btn ml-btn--primary" id="bRand2" type="button">偶然の一行</button>
+    <button class="ml-btn" id="bList2" type="button">一覧から選ぶ</button>
+  </div>
+</div>
+
+<!-- 一覧 -->
+<dialog id="dList" class="sheet" aria-labelledby="listT">
+  <div class="sheet-in">
+    <div class="sheet-head"><h2 id="listT" class="ml-title">一覧</h2><span class="ml-en">all lines</span><button class="ml-btn ml-btn--quiet" data-close type="button">とじる</button></div>
+    <p class="sheet-note">分け方は、作品の上の地図です。言葉の正しい分け方ではありません。</p>
+    <div class="chips" id="chips" role="group" aria-label="分類"></div>
+    <input type="search" id="q" class="q" placeholder="言葉でさがす（例：水、錆、沈黙）" aria-label="言葉でさがす" autocomplete="off">
+    <p class="count" id="count"></p>
+    <ol class="list" id="list"></ol>
+  </div>
+</dialog>
+
+<!-- この作品 -->
+<dialog id="dAbout" class="sheet" aria-labelledby="aboutT">
+  <div class="sheet-in about">
+    <div class="sheet-head"><h2 id="aboutT" class="ml-title">Qualia/sound</h2><span class="ml-en">about</span><button class="ml-btn ml-btn--quiet" data-close type="button">とじる</button></div>
+    <p>Qualia/sound は、mitsulab 代表・上原光瑛の、書と言葉の作品のシリーズです。「音」一字の書と、その字から生まれた言葉の作品（ZINE『Qualia/sound Ⅰ・Ⅱ』）。このアプリはその続きで、書きためた「◯◯の音」の一覧《音の言然》<span id="aTotal">839</span> 行を元にしています。いま浮かんでいるのは <span id="aShown"></span> の言葉です。</p>
+    <p>だれかの耳に聞こえている音そのものは、ほかの人に渡せません。ここで鳴る音は、一行の言葉を音に翻訳した模式のひとつです。同じ一行から、聴く人の数だけ別の音が立ちあがる。その違いに、順番はありません。</p>
+    <details class="ml-fold">
+      <summary>音のつくり</summary>
+      <p>「◯◯の音」の言葉は、すべて mitsulab が書いたものです。その言葉を LLM で九つの群れに分け、一行を音の譜にする決まりと、代表の行の譜も LLM で設計しました。その決まりにしたがって、ブラウザがその場で音を合成しています。録音した音は使っていません。</p>
+      <p>雨を雨の音に、鉄を金属の音に写すことはしていません。一行が指しているもの──時間の向き、境界、生まれることと消えること、知覚の外、自分と他者、大きさの飛躍──を読み、それを音の組み立てで鳴らします。反転は時間の向きの反転で、境界が溶けることは二つの音の倍音が混ざって一つになる過程で、無は静けさの質の違いで、大きさの飛躍は周期の入れ子で。</p>
+      <p>すべての行は、55 Hz というひとつの低い音とその倍音の上に立っています。九つの群れは、それぞれ音の高さの決まり・時間の流れ方・空間を持ち、どの行も同じ世界の中で響き合います。同じ言葉は、はじめはいつも同じ鳴り方をします。</p>
+      <p>「このまま聴く」を押すと、一行のあと、その群れの世界の響きが 45 秒ほど、ほとんど動かずに続きます。</p>
+      <p>つまみは、近い／遠い（響きと音量と左右の広がり）、柔らかい／硬い（立ち上がりと音色）、暗い／明るい（高さと音の明るさ）を動かします。「別の誰かの鳴り」は、つまみの置き場所を偶然に選んだもう一つの鳴りです。動かしたことはどこにも保存・送信せず、ページを閉じると消えます。</p>
+      <p>障害のある人の受けとり方を言う四つの行は、言葉だけを置いて、鳴らしていません。</p>
+    </details>
+    <details class="ml-fold">
+      <summary>分類について</summary>
+      <p>宇宙・生命と土・都市と機械・心と意識・ことばと文字・時間と死・水と天気・色と光・音そのもの。LLM が言葉の中の語を手がかりに置き場所を決めた、作品の上の地図です。一つの言葉は、いくつもの場所に属しうるものです。</p>
+      <p>群れの音の決まり：宇宙＝高い倍音だけ・ほとんど響かない広さ・ほとんど動かない時間／生命と土＝低い倍音・息の周期でふくらむ／都市と機械＝平均律と拍の格子／心と意識＝あいまいな音程・揺れる時間・こもった近さ／ことばと文字＝一行の拍の長短がそのまま拍に／時間と死＝下へ割られていく高さ・遅くなる時間・長く消える響き／水と天気＝倍音のあいだをすべる高さ・偶然に降る時間／色と光＝強める倍音の場所が色になる／音そのもの＝音が自分の響きを聴く。</p>
+    </details>
+    <details class="ml-fold">
+      <summary>素材とクレジット</summary>
+      <p>3D：three.js（MIT）。書体：Shippori Mincho・Inter・Cormorant Garamond・JetBrains Mono（SIL Open Font License）。地面・樹皮・葉の写真：Poly Haven（Forest Ground 04・Japanese Zelkova Bark・Japanese Camphor Bark）・ambientCG（LeafSet014）、いずれも CC0。</p>
+      <p>書の作品：<a href="https://www.instagram.com/mitsulab_art" target="_blank" rel="noopener">Instagram @mitsulab_art</a></p>
+    </details>
+    <p class="copy">お問い合わせ：<a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><br>© 2026 mitsulab. All rights reserved. この作品の言葉・音の設計・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。</p>
+  </div>
+</dialog>
+
+<script src="data/sounds.js"></script>
+<script src="data/gain.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
