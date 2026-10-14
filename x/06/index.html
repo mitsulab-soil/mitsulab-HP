@@ -30,7 +30,7 @@ a{color:var(--acc)}
 #top>*{pointer-events:auto}
 #where{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:6px 12px;max-width:60vw;min-width:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 #where b{display:block;font-family:var(--mincho);font-size:17px;font-weight:600;letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#where small{display:block;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#where small{display:block;font-size:13px;color:var(--ink2);line-height:1.45}   /* 2026-10-14：375px で「…」で切れていた → 折り返す */
 #tools{display:flex;gap:6px}
 /* 碧の字幕：明朝・下の真ん中・薄い紺の帯 */
 #guide{position:fixed;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));width:min(640px,calc(100vw - 16px));z-index:7;
@@ -112,6 +112,12 @@ a{color:var(--acc)}
 @media (max-width:520px){#exp{max-height:42dvh;overflow-y:auto;overscroll-behavior:contain}#exp header{position:sticky;top:-6px;background:var(--panel2);margin:-6px -8px 0;padding:6px 8px;z-index:1}#ctrls .btn,#ctrls .seg button{font-size:13.5px;padding:0 9px}#ctrls{gap:5px}#where{max-width:56vw}#exp{padding:6px 8px}#exp h2 small{display:none}
   body.inexp #where{display:none}#guide .txt{padding-right:38px}#say{font-size:16.5px}#outside{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media(min-width:1000px){#where small{font-size:14.5px}}   /* 2026-10-14：PC の小さな字を 14px 以上に */
+/* 2026-10-14 11 人：実験の題が「ミミズが土を混…」と切れた → 折り返す。スマホで数字の板の続きに気づけなかった → 下に続きがあるときは「↓ 続き」 */
+#exp h2{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;word-break:auto-phrase}
+@media(min-width:980px){#exp h2 small{font-size:14px;display:block;margin:2px 0 0}}
+#exp .moreHint{position:sticky;bottom:-6px;margin:4px -8px -6px;padding:10px 0 4px;text-align:center;font-size:13px;color:var(--ink2);background:linear-gradient(rgba(10,14,24,0),rgb(10,14,24) 45%);pointer-events:none}
+#exp .moreHint[hidden]{display:none}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -155,6 +161,6 @@ a{color:var(--acc)}
   <g stroke="#8cbfe6" stroke-width="2"><line x1="104" y1="6" x2="102" y2="16"/><line x1="122" y1="4" x2="120" y2="14"/><line x1="140" y1="8" x2="138" y2="18"/><line x1="160" y1="5" x2="158" y2="15"/></g>
   <rect x="60" y="0" width="100" height="3" fill="#fff3dc"/></svg>
   <b id="loadT">森羅研究室</b><p style="color:#c3cce0;margin:8px 0 0;font-size:15px">いつもの景色の見え方が変わる、八つの実験</p><div class="bar"><i id="loadBar"></i></div><p id="loadP">読みこんでいます…</p></div></div>
-<script type="module" src="lab.js"></script>
+<script type="module" src="lab.js?v=20261014p2"></script>
 </body>
 </html>

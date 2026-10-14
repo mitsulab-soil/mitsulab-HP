@@ -61,7 +61,13 @@ const std = (color, rough = .7, metal = 0, o = {}) => new THREE.MeshStandardMate
 const box = (w, h, d, m) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
 const cyl = (rt, rb, h, m, seg = 24) => new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), m);
 const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .05, metalness: 0, transmission: 0, transparent: true, opacity: .16, depthWrite: false, side: THREE.DoubleSide });
-const blobMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .1, depthWrite: false });
+// 足もとの影（2026-10-14 テストプレー「黒い楕円が穴のように見える」）：原因＝碧を現すときに、影の板の濃さまで 1 にしていた。
+//   中心から外へ消えていく柔らかい影（放射状のぼかし）にし、濃さは碧の現れ方とは別に決める（いちばん濃い所で 0.6）
+const BLOB_MAX = .6;
+const blobMat = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"), r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  r.addColorStop(0, "rgba(0,0,0,1)"); r.addColorStop(.35, "rgba(0,0,0,.72)"); r.addColorStop(.7, "rgba(0,0,0,.22)"); r.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = r; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.MeshBasicMaterial({ map: t, color: 0x000000, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }); })();
 
 // ---------------------------------------------------------------- 部屋：博物館の展示室（2026-10-09 夜）
 //   本人（2026-10-09）：「壁について、磁石実験の背後の石や砂の標本が置いてあるところの方がいいです。これを全面にしてください。
@@ -392,7 +398,7 @@ function enterBench(b) {
     cur = b; mode = "trans"; orb.ry = b.ry; orb.yaw = 0; orb.pitch = b.mod.focus?.pitch ?? .34; orb.dist = 0;
     orbitFit(); orb.dist = orb.base;
     trans.t = 0; trans.fromP.copy(camera.position); trans.fromQ.copy(camera.quaternion);
-    trans.then = () => { mode = "exp"; };
+    trans.then = () => { mode = "exp"; benchAoiSpot(b); };
     openPanel(b);
     benchTalk(b);
     setTimeout(() => { if (cur === b) M?.point(b.center.clone(), 3.0); }, 600);   // 話しはじめに、模型を指して見せる（目→手→見る人）
@@ -405,11 +411,30 @@ function enterBench(b) {
       if (M) { A.pos.copy(A.goal); A.vel.set(0, 0, 0); M.place(A.pos.x, A.pos.z); } $("fade").classList.remove("on"); go(); }, 320);
   } else { $("whereS").textContent = `${NAMES[b.id] || S.bench[b.id].title}の台へ歩いています`; goRoute(b.stand, b.center.clone(), go); }
 }
+// 実験台の前で、碧がカメラの画角の内（右の端の少し内側）に立つように（2026-10-14 11 人：台に入ると碧が画面の外・手だけが映る）
+function benchAoiSpot(b) {
+  if (!M || cur !== b) return;
+  const c = camera.position, f = new THREE.Vector3(); camera.getWorldDirection(f); f.y = 0; f.normalize();
+  const r = new THREE.Vector3(-f.z, 0, f.x), hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), v = new THREE.Vector3();
+  const inView = (x, y, z, mx, my) => { v.set(x, y, z).project(camera); return v.z < 1 && Math.abs(v.x) < mx && Math.abs(v.y) < my; };
+  // 遠い所から先にためす（スマホで碧が近すぎて模型を隠した・2026-10-14 r2）。PC は台に近いので .7 m から
+  for (const sx of [1, -1]) for (const ndc of (innerWidth / innerHeight < .8 ? [.74, .68] : [.72, .64, .8])) for (let D = 2.8; D >= .7; D -= .15) {
+    const X = Math.tan(hf / 2) * D * ndc * sx, x = c.x + f.x * D + r.x * X, z = c.z + f.z * D + r.z * X;
+    if (!walkable(x, z, .25)) continue;
+    let ok = true; for (let i = 1; i < 12 && ok; i++) { const t = i / 12; ok = walkable(A.pos.x + (x - A.pos.x) * t, A.pos.z + (z - A.pos.z) * t, .22); }
+    if (inView(x, AOI_H * .96, z, .93, .9) && inView(x, AOI_H * .76, z, .93, .97)) {
+      A.goal = new THREE.Vector3(x, 0, z); A.hideExp = false;
+      if (!ok) { A.pos.copy(A.goal); A.vel.set(0, 0, 0); M.place(x, z); M.calm = 1.2; A.fade = 0; aoiOpacity(0); }   // 台を通りぬけないと行けない所へは、歩かせずに置きなおして、ゆっくり現れる
+      return; }
+  }
+  A.hideExp = true;   // 画角の内に頭から胸まで入る所がない台では、手や肩だけが端に映らないよう、実験のあいだ姿を隠す（声と字幕は続く）
+}
 function leaveBench(quiet) {
   if (!cur) return;
   const b = cur; b.mod.exit?.(); cur = null; mode = "walk"; $("exp").hidden = true; document.body.classList.remove("inexp");
   me.pos.set(b.stand.x, EYE, b.stand.z); me.yaw = Math.atan2(-(b.center.x - b.stand.x), -(b.center.z - b.stand.z)); me.pitch = -.12; me.path = [];
-  A.goal = null; A.look = null; A.point = 0;
+  { const bx = Math.sin(me.yaw), bz = Math.cos(me.yaw); for (const k of [1.6, 1.2, .8]) if (walkable(me.pos.x + bx * k, me.pos.z + bz * k, .3)) { me.pos.x += bx * k; me.pos.z += bz * k; break; } }   // もどったら一歩さがって、台と壁の題が画面に入るように（2026-10-14）
+  A.goal = null; A.look = null; A.point = 0; A.hideExp = false; idleSpot = followSpot();   // もどったら、見る人のとなりへ（2026-10-14：台の向こうに残って画面にいなかった）
   $("whereS").textContent = "床を押すと歩く・実験台を押すと実験に入る"; $("whereT").textContent = NAMES.lab;
   if (!quiet) { hush(); talk([S.back], freeActs()); }
 }
@@ -440,6 +465,10 @@ function openPanel(b) {
   $("read").innerHTML = b.mod.read?.() || "";
   const small = innerHeight < 700 || innerWidth < 520; $("exp").classList.toggle("mini", small && store.get("lab-mini", true)); syncMore();
 }
+// 数字の板の下に続きがあるとき「↓ 続き」を出す（2026-10-14）
+{ const ex = $("exp"); const hint = document.createElement("div"); hint.className = "moreHint"; hint.textContent = "↓ 続きがあります（板の中をなぞる）"; hint.hidden = true; ex.appendChild(hint);
+  const upd = () => { if (hint.parentNode !== ex) ex.appendChild(hint); const h = ex.hidden || ex.scrollHeight - ex.clientHeight - ex.scrollTop < 8; if (hint.hidden !== h) hint.hidden = h; };
+  ex.addEventListener("scroll", upd, { passive: true }); addEventListener("resize", upd); new MutationObserver(() => requestAnimationFrame(upd)).observe(ex, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] }); }
 function syncMore() { const m = $("exp").classList.contains("mini"); $("expMore").textContent = m ? "数字を見る" : "数字をたたむ"; $("expMore").setAttribute("aria-expanded", String(!m)); }
 $("expMore").onclick = () => { $("exp").classList.toggle("mini"); store.set("lab-mini", $("exp").classList.contains("mini")); syncMore();
   // 狭い画面で数字を開いたら、字幕をたたむ（3D を見える大きさに残す。碧の顔を押すと字幕にもどり、数字はたたむ）
@@ -600,7 +629,7 @@ async function loadAoi() {
     v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
     const bx = new THREE.Box3().setFromObject(v.scene), h = bx.max.y - bx.min.y, sc = h > .5 ? AOI_H / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -bx.min.y * sc;
-    const blob = new THREE.Mesh(new THREE.CircleGeometry(.32, 32), blobMat); blob.rotation.x = -Math.PI / 2; blob.position.y = .006; aoi.add(blob);
+    const blob = new THREE.Mesh(new THREE.PlaneGeometry(.78, .62), blobMat); blob.rotation.x = -Math.PI / 2; blob.position.y = .006; blob.renderOrder = -1; blob.userData.noFade = true; aoi.add(blob);
     // 起動時：部屋の中央に、静かに現れる（2026-10-07 本人「碧が登場するときにワンピースが不自然に大きく揺れる」→ 揺れものを止めたまま、ゆっくり出す）
     A.pos.copy(followSpot()); aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
     M = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright" });   // まっすぐ立ち、揺れを小さく（2026-10-13）
@@ -623,7 +652,9 @@ function aoiTick(dt) {
   let goal = A.goal;
   if (!goal) {
     const dMe = Math.hypot(A.pos.x - me.pos.x, A.pos.z - me.pos.z);
-    if (!idleSpot || dMe > 4.6 || dMe < 1.1) idleSpot = me.path.length || dMe > 4.6 || dMe < 1.1 ? followSpot() : (idleSpot || A.pos.clone());
+    // 歩いているあいだ・画角の外に出たときも、となりへ（2026-10-14 11 人：前へ 5.6 m 歩くと碧が後ろに取り残された）
+    const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), rel = Math.atan2(Math.sin(Math.atan2(-(A.pos.x - me.pos.x), -(A.pos.z - me.pos.z)) - me.yaw), Math.cos(Math.atan2(-(A.pos.x - me.pos.x), -(A.pos.z - me.pos.z)) - me.yaw));
+    if (!idleSpot || me.path.length || dMe > 4.6 || dMe < 1.1 || Math.abs(rel) > hf / 2 * 1.05) idleSpot = me.path.length || dMe > 4.6 || dMe < 1.1 || Math.abs(rel) > hf / 2 * 1.05 ? followSpot() : (idleSpot || A.pos.clone());
     goal = idleSpot;
   }
   if (A.pos.distanceTo(goal) > 14) { A.pos.copy(goal); A.vel.set(0, 0, 0); M.calm = 1.2; A.fade = 0; M.place(A.pos.x, A.pos.z); }
@@ -643,13 +674,14 @@ function aoiTick(dt) {
   else { M.faceTo(null); M.lookAt(null); }
   A.talkT += dt;
   M.update(dt, camera);
-  aoi.visible = Math.hypot(A.pos.x - camP.x, A.pos.z - camP.z) > .7;
-  if (A.fade < 1) { A.fade = Math.min(1, A.fade + dt / 1.4); aoiOpacity(A.fade); }
+  aoi.visible = Math.hypot(A.pos.x - camP.x, A.pos.z - camP.z) > .7 && !(A.hideExp && (mode === "exp" || mode === "trans"));
+  if (A.fade < 1) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / 1.4); aoiOpacity(A.fade); }   // 秒で決める（遅い端末で網目の碧が長く残らないように。2026-10-14）
 }
-let aoiMats = null;
+let aoiMats = null, RDT = 0;
 function aoiOpacity(o) {
   if (!aoi) return;
-  if (!aoiMats) { aoiMats = []; aoi.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) aoiMats.push([mt, mt.transparent, mt.depthWrite]); }); }
+  if (!aoiMats) { aoiMats = []; aoi.traverse(m => { if (m.isMesh && !m.userData.noFade) for (const mt of [].concat(m.material)) aoiMats.push([mt, mt.transparent, mt.depthWrite]); }); }
+  blobMat.opacity = BLOB_MAX * o;
   for (const [mt, tr, dw] of aoiMats) { mt.transparent = o < 1 ? true : tr; mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; }
 }
 
@@ -689,7 +721,7 @@ function wake() {
 const clock = new THREE.Clock();
 let frames = 0, slowAcc = 0, viewOff = 0, distK = 1, lastRead = "";
 function loop() {
-  const dt = Math.min(.05, clock.getDelta()); frames++;
+  const rawDt = clock.getDelta(), dt = Math.min(.05, rawDt); RDT = Math.min(rawDt, .4); frames++;
   if (mode === "trans") {
     trans.t = Math.min(1, trans.t + dt / (RM ? .01 : trans.dur)); const e = trans.t * trans.t * (3 - 2 * trans.t);
     const P = orbitPose(); camera.position.lerpVectors(trans.fromP, P.p, e); camera.quaternion.copy(trans.fromQ).slerp(P.q, e);
@@ -731,4 +763,4 @@ setTimeout(() => loadLater("data/lipsync.js", () => { LIPSYNC = window.LIPSYNC |
 $("sayState").textContent = "どこかを押すと、声で話しはじめます（音が出ます）";
 // ?b=frost などで、その台の前から始める（授業で URL を配るため。2026-10-08 検証の P3）
 { const q = new URLSearchParams(location.search).get("b"), b0 = BENCH.find(b => b.id === q); if (b0) { me.pos.set(b0.stand.x, EYE, b0.stand.z); me.yaw = Math.atan2(-(b0.center.x - b0.stand.x), -(b0.center.z - b0.stand.z)); setTimeout(() => enterBench(b0), 600); } }
-window.__lab = { BENCH, me, A, SP, AUD, S, NAMES, enterBench, leaveBench, walkable, get mode() { return mode; }, get cur() { return cur; }, renderer, camera, scene, orb, get frames() { return frames; }, wake };
+window.__lab = { benchAoiSpot, BENCH, me, A, SP, AUD, S, NAMES, enterBench, leaveBench, walkable, get mode() { return mode; }, get cur() { return cur; }, renderer, camera, scene, orb, get frames() { return frames; }, wake };

@@ -191,6 +191,38 @@ body{word-break:auto-phrase;line-break:strict}
 #takeaway .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 @media(max-width:700px){#acts{flex-wrap:wrap;overflow:visible}.dream-title{white-space:nowrap;font-size:15px;letter-spacing:.12em;padding:8px 4px}.topR{gap:4px}.btn.why{padding:0 8px;font-size:13px}}
 @media(max-width:700px){#kurQ{top:calc(max(8px,env(safe-area-inset-top)) + 100px);font-size:13px}#cmpTag{top:calc(max(8px,env(safe-area-inset-top)) + 132px);font-size:13px;white-space:normal;text-align:center;width:calc(100vw - 32px)}#cmpBtn{min-width:44px;font-size:12px!important}#takeaway h2{font-size:19px}#takeaway li{font-size:14.5px}}
+/* 2026-10-14 テストプレーの直し：PC の字を大きく（14px 以上・ふだんの字は 16〜18px）。上の説明の 2 行目が「歩く」の行に重ならないよう、moveNote の高さは JS で #where の下にそろえる */
+#dial .pill span{font-size:13px}#bodyControls small{font-size:13px}
+@media(min-width:1000px){
+  .dream-title{font-size:18px}
+  .btn.why{font-size:16px;min-height:46px;padding:0 16px}
+  #where b{font-size:28px}#where small{font-size:17px}
+  #moveNote{font-size:16px;max-width:56vw}
+  #say{font-size:18px;line-height:1.6}
+  #guide{width:min(720px,calc(100vw - 12px))}#guide .face,#guide img{width:38px;height:38px}
+  #acts .btn{font-size:16px;min-height:42px}
+  #bodyWheel{width:148px;height:470px}#dial{width:146px}
+  #dial .pill{width:104px;height:72px}#dial .creaturePortrait{width:76px;height:44px}#dial .pill span{font-size:16px;line-height:1.2}
+  #bodyControls{width:110px}#bodyControls small{font-size:14px}#bodyForward,#bodyBack{width:62px;height:62px}
+  #cmpBtn{font-size:14px!important}
+  #kurQ,#cmpTag{font-size:16px}#legend,#legend b{font-size:15px}#aoiWin small{font-size:15px}
+  #why li{font-size:16px}#why ul.refs li{font-size:14px}#menu p,#menu li{font-size:15px}
+  #takeaway li{font-size:16px}#takeaway p{font-size:15px}
+}
+#bootFail{margin-top:10px}
+/* くらべる旅の印（見比べるもの） */
+#kurMarks{position:fixed;inset:0;pointer-events:none;z-index:4}
+#kurMarks .km{position:absolute;left:0;top:0;width:0;height:0}
+#kurMarks .km i{position:absolute;left:calc(-1 * var(--r,22px));top:calc(-1 * var(--r,22px));width:calc(2 * var(--r,22px));height:calc(2 * var(--r,22px));border:1.5px solid var(--aoi3);border-radius:50%;box-shadow:0 0 0 1px rgba(3,6,15,.5);animation:kmP 2.4s ease-in-out infinite}
+#kurMarks .km span{position:absolute;left:calc(var(--r,22px) * .72 + 6px);top:calc(var(--r,22px) * -.72 - 14px);white-space:nowrap;font-size:14px;color:#f2f8fc;background:rgba(3,6,15,.66);border-left:2px solid var(--aoi);padding:2px 8px;font-family:var(--mincho);letter-spacing:.04em}
+#kurMarks .km.l span{left:auto;right:calc(var(--r,22px) * .72 + 6px);border-left:0;border-right:2px solid var(--aoi)}
+@media(max-width:700px){#kurMarks .km span,#kurMarks .km.l span{left:0;right:auto;top:calc(var(--r,22px) + 4px);transform:translateX(calc(-50% + var(--dx,0px)));border-right:0;border-left:0;border-top:2px solid var(--aoi);font-size:13px}}
+@media(max-width:700px){#kurMarks .km.up span{top:auto;bottom:calc(var(--r,22px) + 4px);border-top:0;border-bottom:2px solid var(--aoi)}}
+@keyframes kmP{50%{transform:scale(1.18);opacity:.7}}
+@media (prefers-reduced-motion:reduce){#kurMarks .km i{animation:none}}
+@media(min-width:1000px){#kurMarks .km span{font-size:16px}}
+/* スマホ：飛ぶ体の「上昇・下降」が右の端で切れていた → 二つを細く */
+@media(max-width:700px){#flightControls button{min-width:32px!important;width:32px;padding:2px!important;font-size:17px!important}#flightControls small{font-size:12px}#bodyControls{gap:7px}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -210,6 +242,7 @@ body{word-break:auto-phrase;line-break:strict}
 <div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
 <div id="legend" hidden></div>
 <p id="kurQ" hidden aria-live="polite"></p>
+<div id="kurMarks" aria-hidden="true"></div>
 <p id="cmpTag" hidden></p>
 <div id="takeaway" hidden role="dialog" aria-modal="true" aria-labelledby="takeTitle"><div class="in">
   <small>TAKE HOME</small>
@@ -286,10 +319,16 @@ body{word-break:auto-phrase;line-break:strict}
 })();
 </script>
 <script src="data/paths.js?v=20261010"></script>
-<script src="data/script.js?v=20261013k80"></script>
+<script src="data/daihon.js?v=20261014p2"></script>
 <script src="data/voice.js?v=20261013k80" onerror="window.VOICE={}"></script>
 <script src="data/why.js?v=20261013tp"></script>
-<script>if(location.protocol!=='file:'){var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261013k80' ;document.body.appendChild(s);}</script>
+<script>
+/* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
+window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
+addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261014p2';s.onerror=window.__bootFail;document.body.appendChild(s);
+  setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
+</script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
 </body>
 </html>
