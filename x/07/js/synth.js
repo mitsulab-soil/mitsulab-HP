@@ -88,7 +88,7 @@ export class QSynth {
     const id = { item, d, t0: T0, dur: total, bus, nodes, score };
     this.cur = id; this.onstate?.(true);
     const tail = Math.min(9, conv.buffer.duration) + .4;
-    id.timer = setTimeout(() => { if (this.cur === id) { this.cur = null; this.onstate?.(false); setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, tail * 1000); } }, (total + .3) * 1000);
+    id.timer = setTimeout(() => { if (this.cur === id) { this.cur = null; this.onstate?.(false); setTimeout(() => { const t = ctx.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t); bus.gain.linearRampToValueAtTime(0, t + .1); setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, 150); }, tail * 1000); } }, (total + .3) * 1000);   // 切る前に 0.1 秒で音を消す
     return total;
   }
   level() { if (!this.analyser) return 0; const a = this.lv ||= new Float32Array(this.analyser.fftSize); this.analyser.getFloatTimeDomainData(a); let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * a[i]; return Math.sqrt(s / a.length); }

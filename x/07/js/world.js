@@ -245,7 +245,7 @@ export function compose(item, R, scores) {
     if (W.time === "rubato") ops.forEach((o, k) => { if (k) o[0] = Math.max(.1, o[0] + (R() - .5) * .3); });
     if (W.time === "still") { ops.forEach(o => { o[0] *= 1.1; if (o[2].dur) o[2].dur *= 1.1; }); dur *= 1.1; }
     if (W.time === "decel") ops.forEach((o, k) => o[0] *= 1 + k * .06);
-    if (W.time === "speech" && !ops.some(o => o[1] === "speech")) { ops.push([dur - .2, "speech", { vol: .12, mora: moraOf(item.t) }]); dur += 1.6; }   // 拍は譜の切れ目を避け、最後にそっと置く
+    if (W.time === "speech" && !ops.some(o => o[1] === "speech")) { const mora = moraOf(item.t), len = mora.reduce((a, b) => a + b, 0) * .2 + .5; ops.push([dur - .2, "speech", { vol: .12, mora }]); dur += len; }   // 拍は譜の切れ目を避け、最後にそっと置く（のばす長さ＝拍の長さ）
     return { world: W, dur, ops, reading: hand.r, hand: true };
   }
   const text = item.t.replace(/見えない人|聞こえない人|目が見えない人|目を使わずに/g, ""), found = [];

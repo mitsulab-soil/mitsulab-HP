@@ -147,3 +147,19 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 .p-more .reading{flex:1;border-top:0}
 .p-more #bLong{margin-left:auto;white-space:nowrap;font-size:.84rem}
 .p-more #bLong[aria-pressed="true"]{color:var(--ml-aoi-2)}
+
+/* 九つの音の世界（入口で一行ずつ手渡す・2026-10-14） */
+.worlds{display:grid;gap:6px;justify-items:center;width:100%}
+.worlds-h{margin:0;font:500 .9rem/1.6 var(--ml-serif);letter-spacing:.08em;color:var(--ml-ink)}
+.worlds-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:min(520px,100%)}
+.worlds-g button{appearance:none;min-height:44px;padding:4px 6px;background:rgba(3,6,15,.55);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);color:var(--ml-ink);
+  font:500 .86rem/1.3 var(--ml-serif);letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.worlds-g button::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c);flex:none}
+.worlds-g button[aria-pressed="true"]{border-color:var(--ml-aoi);color:#fff}
+.worlds-all{font-size:.84rem}
+.tourcap{position:fixed;z-index:4;left:50%;transform:translateX(-50%);top:72px;width:min(640px,calc(100vw - 32px));margin:0;text-align:center;
+  font:500 15px/1.7 var(--ml-serif);letter-spacing:.04em;color:var(--ml-ink);background:linear-gradient(90deg,transparent,rgba(3,6,15,.7) 10%,rgba(3,6,15,.7) 90%,transparent);padding:8px 6%}
+.tourcap small{display:block;font:400 .78rem var(--ml-sans);color:var(--ml-ink-2);letter-spacing:.02em}
+.p-law{flex-basis:100%;order:3;font-size:.78rem;color:var(--ml-ink-3);line-height:1.6}
+.p-head{flex-wrap:wrap}
+@media (max-width:720px){ .worlds-g button{font-size:.8rem} .worlds-h{font-size:.84rem} .tourcap{top:62px;font-size:14px} .p-law{display:none} }
