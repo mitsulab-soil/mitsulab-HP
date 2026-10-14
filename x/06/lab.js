@@ -185,7 +185,7 @@ const BW = 2.3, BD = .95, BH = .9;
 // 台＝木の展示台（天板は濃い木、胴は板張り、真鍮の金具）
 const benchTop = new THREE.MeshStandardMaterial({ map: tex("wood_dark", 2, 1), color: 0x4a3222, roughness: .35 }), benchBody = new THREE.MeshStandardMaterial({ map: tex("wood_dark", 1, 1), color: 0x6a4a32, roughness: .55 }), benchEdge = std(0x3a2818, .5, .1);
 function addObst(x, z, w, d, ry) { const sw = Math.abs(Math.cos(ry)) > .5; const hw = (sw ? w : d) / 2, hd = (sw ? d : w) / 2; obst.push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd }); }
-const H = { THREE, std, box, cyl, glassMat, label, canvasTex, toast: m => toast(m), aud: () => AUD, RM, say: lines => talk(lines, expActs) };
+const H = { THREE, std, box, cyl, glassMat, label, canvasTex, toast: m => toast(m), aud: () => AUD, RM, say: lines => talk(lines, expActs), closeUp: p => closeUp(p) };
 for (const b of BENCH) {
   const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.ry; scene.add(g);
   const top = box(BW, .05, BD, benchTop); top.position.y = BH - .025; g.add(top);
@@ -381,24 +381,32 @@ function orbitPose(out = { p: new THREE.Vector3(), q: new THREE.Quaternion() }) 
 }
 function orbitFit() {
   const f = cur.mod.focus || {}, asp = innerWidth / innerHeight;
-  orb.base = (f.dist || 1.9) * (asp < .62 ? 1.75 : asp < .9 ? 1.45 : asp < 1.3 ? 1.15 : 1);
+  orb.base = (f.dist || 1.9) * (asp < .62 ? 1.95 : asp < .9 ? 1.55 : asp < 1.3 ? 1.15 : 1);
   orb.dist = clamp(orb.dist || orb.base, orb.base * .55, orb.base * 1.6);
   // 広い画面では操作の板が左にあるので、模型が右寄りに見えるよう、見る点を左へずらす
-  const side = innerWidth >= 980 ? -.32 * orb.base / 1.9 : 0, ry = cur.ry;
+  // 縦長の画面では、模型を少し左へ寄せて、右に碧の立つ所をあける（2026-10-14 スマホ：碧が箱を隠すか、出なかった）
+  const side = innerWidth >= 980 ? -.32 * orb.base / 1.9 : asp < .9 ? .2 * orb.base / 1.9 : 0, ry = cur.ry;
   orb.target.copy(cur.center).add(new THREE.Vector3(Math.cos(ry) * side, f.y ?? .35, -Math.sin(ry) * side));
+}
+// 模型の中の一点に寄る（ミミズの台の「ミミズに寄る」。2026-10-14 スマホ：ミミズが赤い点に見えた）。p＝世界の点、null でもどる
+function closeUp(p) {
+  if (!cur || mode !== "exp") return;
+  if (!p) { orbitFit(); orb.dist = orb.base; return; }
+  orb.target.lerp(p, .25); orb.dist += (orb.base * (innerWidth / innerHeight < .9 ? .26 : .38) - orb.dist) * .2;
 }
 function enterBench(b) {
   if (mode === "exp" && cur === b) return;
   if (mode === "exp") leaveBench(true);
   hush(); seen.add(b.id);
-  // 碧は台の右手前（カメラの画角の内）に立つ。2026-10-08 検証の P2「碧が画角の外」
-  A.goal = new THREE.Vector3(b.x, 0, b.z).addScaledVector(b.face, BD / 2 + .45).add(new THREE.Vector3(Math.cos(b.ry), 0, -Math.sin(b.ry)).multiplyScalar(.95));
-  A.look = b.center.clone(); A.point = 1;
+  // 台の前に着くまでは、碧は見る人のとなりを歩く（2026-10-14 スマホ：先に台の前へ向かう碧の後ろ頭が画面を覆った）。
+  // 立つ所は、寄りおえてから benchAoiSpot が台ごとに決める
+  const g0 = new THREE.Vector3(b.x, 0, b.z).addScaledVector(b.face, BD / 2 + .45).add(new THREE.Vector3(Math.cos(b.ry), 0, -Math.sin(b.ry)).multiplyScalar(.95));
   const go = () => {
+    A.goal = A.pos.clone(); A.look = b.center.clone(); A.point = 1;
     cur = b; mode = "trans"; orb.ry = b.ry; orb.yaw = 0; orb.pitch = b.mod.focus?.pitch ?? .34; orb.dist = 0;
     orbitFit(); orb.dist = orb.base;
     trans.t = 0; trans.fromP.copy(camera.position); trans.fromQ.copy(camera.quaternion);
-    trans.then = () => { mode = "exp"; benchAoiSpot(b); };
+    trans.then = () => { mode = "exp"; setTimeout(() => benchAoiSpot(b), 300); };   // 画面のずらし（viewOffset）が落ちついてから
     openPanel(b);
     benchTalk(b);
     setTimeout(() => { if (cur === b) M?.point(b.center.clone(), 3.0); }, 600);   // 話しはじめに、模型を指して見せる（目→手→見る人）
@@ -408,26 +416,58 @@ function enterBench(b) {
   else if (far > 7 && !RM) {
     $("fade").classList.add("on"); me.path = [];
     setTimeout(() => { me.pos.set(b.stand.x, EYE, b.stand.z); me.yaw = Math.atan2(-(b.center.x - b.stand.x), -(b.center.z - b.stand.z)); me.pitch = -.12; camera.position.copy(me.pos); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
-      if (M) { A.pos.copy(A.goal); A.vel.set(0, 0, 0); M.place(A.pos.x, A.pos.z); } $("fade").classList.remove("on"); go(); }, 320);
+      if (M) { A.pos.copy(g0); A.vel.set(0, 0, 0); M.place(A.pos.x, A.pos.z); } $("fade").classList.remove("on"); go(); }, 320);
   } else { $("whereS").textContent = `${NAMES[b.id] || S.bench[b.id].title}の台へ歩いています`; goRoute(b.stand, b.center.clone(), go); }
 }
-// 実験台の前で、碧がカメラの画角の内（右の端の少し内側）に立つように（2026-10-14 11 人：台に入ると碧が画面の外・手だけが映る）
+// 実験台の前で、碧がどこに立つか（台ごとに決める。2026-10-14）
+//   ・頭から胸までが、上の操作の板と下の字幕のあいだ（PC は左の板の外）に、切れずに入る
+//   ・模型（観察箱など）に重ならない。模型の横に場所がなければ、台の向こう（模型より奥）で、頭と胸が模型の上に出る所
+//   ・どこにもなければ、実験のあいだ姿を隠す（声と字幕は続く）
+const _bx = new THREE.Box3(), _v = new THREE.Vector3();
 function benchAoiSpot(b) {
   if (!M || cur !== b) return;
+  camera.updateMatrixWorld(); camera.updateProjectionMatrix();
   const c = camera.position, f = new THREE.Vector3(); camera.getWorldDirection(f); f.y = 0; f.normalize();
-  const r = new THREE.Vector3(-f.z, 0, f.x), hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), v = new THREE.Vector3();
-  const inView = (x, y, z, mx, my) => { v.set(x, y, z).project(camera); return v.z < 1 && Math.abs(v.x) < mx && Math.abs(v.y) < my; };
-  // 遠い所から先にためす（スマホで碧が近すぎて模型を隠した・2026-10-14 r2）。PC は台に近いので .7 m から
-  for (const sx of [1, -1]) for (const ndc of (innerWidth / innerHeight < .8 ? [.74, .68] : [.72, .64, .8])) for (let D = 2.8; D >= .7; D -= .15) {
+  const r = new THREE.Vector3(-f.z, 0, f.x), hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect);
+  const P = (x, y, z) => _v.set(x, y, z).project(camera);
+  // 模型の画面の上の四角
+  _bx.setFromObject(b.mod.group); const R = { x0: 9, x1: -9, y0: 9, y1: -9 };
+  for (const X of [_bx.min.x, _bx.max.x]) for (const Y of [_bx.min.y, _bx.max.y]) for (const Z of [_bx.min.z, _bx.max.z]) { P(X, Y, Z); R.x0 = Math.min(R.x0, _v.x); R.x1 = Math.max(R.x1, _v.x); R.y0 = Math.min(R.y0, _v.y); R.y1 = Math.max(R.y1, _v.y); }
+  const Dm = Math.hypot(b.center.x - c.x, b.center.z - c.z);
+  // 画面の空いている所（ndc）
+  const ex = $("exp").getBoundingClientRect(), gd = $("guide"), wide = innerWidth >= 980;
+  const L = wide && !$("exp").hidden ? ex.right / innerWidth * 2 - 1 + .03 : -.98, Rr = .99;
+  const Ty = !wide && !$("exp").hidden ? 1 - 2 * ex.bottom / innerHeight - .02 : .96, By = gd.hidden ? -.96 : 1 - 2 * gd.getBoundingClientRect().top / innerHeight + .02;
+  let best = null; const dbg = benchAoiSpot.dbg = { n: 0, walk: 0, frame: 0, model: 0, R, Dm, L, Ty, By };
+  for (const sx of [1, -1]) for (let D = .8; D <= Dm + 2.4; D += .15) for (const ndc of [.86, .78, .7, .62, .54, .46, .38, .3]) {
     const X = Math.tan(hf / 2) * D * ndc * sx, x = c.x + f.x * D + r.x * X, z = c.z + f.z * D + r.z * X;
-    if (!walkable(x, z, .25)) continue;
-    let ok = true; for (let i = 1; i < 12 && ok; i++) { const t = i / 12; ok = walkable(A.pos.x + (x - A.pos.x) * t, A.pos.z + (z - A.pos.z) * t, .22); }
-    if (inView(x, AOI_H * .96, z, .93, .9) && inView(x, AOI_H * .76, z, .93, .97)) {
-      A.goal = new THREE.Vector3(x, 0, z); A.hideExp = false;
-      if (!ok) { A.pos.copy(A.goal); A.vel.set(0, 0, 0); M.place(x, z); M.calm = 1.2; A.fade = 0; aoiOpacity(0); }   // 台を通りぬけないと行けない所へは、歩かせずに置きなおして、ゆっくり現れる
-      return; }
+    dbg.n++; if (!walkable(x, z, .32)) { dbg.walk++; continue; }
+    // 碧の頭（顔）と、胸から上の肩の幅を画面へ
+    const rect = (ys, w) => { const q = { x0: 9, x1: -9, y0: 9, y1: -9 }; for (const y of ys) for (const s of [-w, w]) { P(x + r.x * s, y, z + r.z * s); if (_v.z > 1 || _v.z < -1) return null; q.x0 = Math.min(q.x0, _v.x); q.x1 = Math.max(q.x1, _v.x); q.y0 = Math.min(q.y0, _v.y); q.y1 = Math.max(q.y1, _v.y); } return q; };
+    const B = rect([AOI_H * 1.0, AOI_H * .72], .24), Hd = rect([AOI_H * 1.0, AOI_H * .86], .11);
+    if (!B || !Hd) continue;
+    if (B.x0 < L || B.x1 > Rr || B.y1 > Ty || B.y0 < By) { dbg.frame++; continue; }
+    const apart = (q, m) => q.x1 < R.x0 - m || q.x0 > R.x1 + m || q.y0 > R.y1 + m;
+    const ov = (Math.max(0, Math.min(B.x1, R.x1) - Math.max(B.x0, R.x0)) * Math.max(0, Math.min(B.y1, R.y1) - Math.max(B.y0, R.y0))) / ((B.x1 - B.x0) * (B.y1 - B.y0));
+    const side = apart(B, .03);                              // 模型の横（または上）に、胸から上がまるごと
+    const behind = D > Dm + .5 && apart(Hd, .02);           // 台の向こうに立ち、顔は模型にかからない（体は台と模型の陰）
+    const loose = ov < (wide ? .35 : .16);                   // 模型の四角（台の板や札も入る大きめの枠）の端に、少しかかるだけ
+    if (!side && !behind && !loose) { dbg.model++; continue; }
+    const big = B.y1 - B.y0;   // 胸から上の大きさ（小さすぎると遠い人に見える）
+    const score = Math.abs(D - (side ? Dm * .85 : Dm + .9)) + (side ? 0 : behind ? .5 : .6 + ov * 4) + (sx < 0 ? .25 : 0) + (big < .12 ? 1 : 0);
+    if (!best || score < best.score) dbg.ov = +ov.toFixed(2), dbg.kind = side ? "side" : behind ? "behind" : "loose";
+    if (!best || score < best.score) best = { x, z, score };
   }
-  A.hideExp = true;   // 画角の内に頭から胸まで入る所がない台では、手や肩だけが端に映らないよう、実験のあいだ姿を隠す（声と字幕は続く）
+  // PC で模型が画面いっぱいの台は、これまでどおり右の端の少し内側に（2026-10-14 r4 の PC の立ち位置）
+  if (!best && wide) for (const sx of [1, -1]) { for (const ndc of [.72, .64, .8]) { for (let D = 2.8; D >= .7; D -= .15) {
+    const X = Math.tan(hf / 2) * D * ndc * sx, x = c.x + f.x * D + r.x * X, z = c.z + f.z * D + r.z * X;
+    if (!walkable(x, z, .32)) continue;
+    P(x, AOI_H * .96, z); const a = _v.z < 1 && Math.abs(_v.x) < .93 && Math.abs(_v.y) < .9; P(x, AOI_H * .76, z); const b2 = _v.z < 1 && Math.abs(_v.x) < .93 && Math.abs(_v.y) < .97;
+    if (a && b2) { best = { x, z }; dbg.kind = "pc"; break; } } if (best) break; } if (best) break; }
+  if (!best) { A.hideExp = true; return; }
+  let ok = true; for (let i = 1; i < 12 && ok; i++) { const t = i / 12; ok = walkable(A.pos.x + (best.x - A.pos.x) * t, A.pos.z + (best.z - A.pos.z) * t, .3); }
+  A.goal = new THREE.Vector3(best.x, 0, best.z); A.hideExp = false;
+  if (!ok || A.pos.distanceTo(A.goal) > 4) { A.pos.copy(A.goal); A.vel.set(0, 0, 0); M.place(best.x, best.z); M.calm = 1.2; A.fade = 0; aoiOpacity(0); }   // 台を通りぬけないと行けない所・遠い所へは、歩かせずに置きなおして、ゆっくり現れる
 }
 function leaveBench(quiet) {
   if (!cur) return;
@@ -616,7 +656,7 @@ function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on
 // 口は声の時刻表（data/lipsync.js＝VOICEVOX のモーラの時刻）に合わせ、話す拍に手と首が合う
 const AOI_H = 1.62;
 let aoi = null, vrm = null, M = null;
-const A = { pos: new THREE.Vector3(0, 0, 8.8), vel: new THREE.Vector3(), goal: null, look: null, point: 0, talkT: 0, fade: 0 };
+const A = { pos: new THREE.Vector3(0, 0, 8.8), vel: new THREE.Vector3(), goal: null, look: null, point: 0, talkT: 0, fade: 0, occ: 1, op: -1 };
 async function loadAoi() {
   try {
     const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
@@ -632,7 +672,7 @@ async function loadAoi() {
     const blob = new THREE.Mesh(new THREE.PlaneGeometry(.78, .62), blobMat); blob.rotation.x = -Math.PI / 2; blob.position.y = .006; blob.renderOrder = -1; blob.userData.noFade = true; aoi.add(blob);
     // 起動時：部屋の中央に、静かに現れる（2026-10-07 本人「碧が登場するときにワンピースが不自然に大きく揺れる」→ 揺れものを止めたまま、ゆっくり出す）
     A.pos.copy(followSpot()); aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
-    M = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright" });   // まっすぐ立ち、揺れを小さく（2026-10-13）
+    M = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", faceLight: .5 });   // まっすぐ立ち、揺れを小さく（2026-10-13）
     M.place(A.pos.x, A.pos.z, Math.atan2(me.pos.x - A.pos.x, me.pos.z - A.pos.z));
     A.fade = 0; aoiOpacity(0);
     window.__aoi = { vrm, aoi, A, M };
@@ -640,7 +680,9 @@ async function loadAoi() {
 }
 function followSpot() {
   // 歩いているときは、見る人の右前（となりを歩く）。近くにいるあいだは動かない（せわしなく追わない）
-  const narrow = innerWidth / innerHeight < .8, F = narrow ? 2.6 : 2.3, X = narrow ? .6 : 1.1;
+  const narrow = innerWidth / innerHeight < .8; let F = narrow ? 2.6 : 2.3, X = narrow ? .6 : 1.1;
+  // 歩いているあいだは、画面の右の端に（2026-10-14 スマホ：碧の後ろ頭が画面のまん中を覆った）。追いつけるよう、歩く速さのぶん先に
+  if (me.path.length) { const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect); F = narrow ? 2.4 : 2.3; X = Math.tan(hf / 2) * F * (narrow ? .86 : .76); F += me.speed * .6; }
   const fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw), rx = -fz, rz = fx;
   let x = me.pos.x + fx * F + rx * X, z = me.pos.z + fz * F + rz * X;
   for (let k = 0; k < 6 && !walkable(x, z, .45); k++) { x = (x + me.pos.x) / 2; z = (z + me.pos.z) / 2; }
@@ -656,10 +698,11 @@ function aoiTick(dt) {
     const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), rel = Math.atan2(Math.sin(Math.atan2(-(A.pos.x - me.pos.x), -(A.pos.z - me.pos.z)) - me.yaw), Math.cos(Math.atan2(-(A.pos.x - me.pos.x), -(A.pos.z - me.pos.z)) - me.yaw));
     if (!idleSpot || me.path.length || dMe > 4.6 || dMe < 1.1 || Math.abs(rel) > hf / 2 * 1.05) idleSpot = me.path.length || dMe > 4.6 || dMe < 1.1 || Math.abs(rel) > hf / 2 * 1.05 ? followSpot() : (idleSpot || A.pos.clone());
     goal = idleSpot;
+    if (me.path.length && Math.abs(rel) > hf / 2 * 1.05 && A.pos.distanceTo(goal) > 2.5 && A.op >= 0) { A.pos.copy(goal); A.vel.set(0, 0, 0); M.place(goal.x, goal.z); M.calm = 1.2; A.fade = 0; }   // 後ろに取り残されたら、見えない所で先回りして、ゆっくり現れる（2026-10-14）
   }
   if (A.pos.distanceTo(goal) > 14) { A.pos.copy(goal); A.vel.set(0, 0, 0); M.calm = 1.2; A.fade = 0; M.place(A.pos.x, A.pos.z); }
   // 人の歩く速さ（1 秒に 1.4 m まで）。速く追わず、着く前にゆるめる
-  const w = A.goal ? 3.4 : 2.6, n = Math.max(1, Math.ceil(dt / .02)), h = dt / n, vmax = 1.4;
+  const w = A.goal ? 3.4 : 2.6, n = Math.max(1, Math.ceil(dt / .02)), h = dt / n, vmax = !A.goal && me.path.length ? 2.2 : 1.4;
   for (let i = 0; i < n; i++) {
     A.vel.x += (w * w * (goal.x - A.pos.x) - 2 * w * A.vel.x) * h; A.vel.z += (w * w * (goal.z - A.pos.z) - 2 * w * A.vel.z) * h;
     const m = Math.hypot(A.vel.x, A.vel.z); if (m > vmax) { A.vel.x *= vmax / m; A.vel.z *= vmax / m; }
@@ -674,8 +717,13 @@ function aoiTick(dt) {
   else { M.faceTo(null); M.lookAt(null); }
   A.talkT += dt;
   M.update(dt, camera);
-  aoi.visible = Math.hypot(A.pos.x - camP.x, A.pos.z - camP.z) > .7 && !(A.hideExp && (mode === "exp" || mode === "trans"));
-  if (A.fade < 1) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / 1.4); aoiOpacity(A.fade); }   // 秒で決める（遅い端末で網目の碧が長く残らないように。2026-10-14）
+  // 見る人のすぐ前・画面のまん中に碧が来たら、うすくして消す（後ろ頭で画面が覆われないように。2026-10-14）
+  { const d = Math.hypot(A.pos.x - camP.x, A.pos.z - camP.z); let o = 1;
+    if (mode === "walk" && d < 2.6) { _v.set(A.pos.x, AOI_H * .9, A.pos.z).project(camera); if (_v.z < 1 && Math.abs(_v.x) < .6) o = clamp((d - 1.5) / .9, 0, 1); }
+    A.occ += (o - A.occ) * Math.min(1, dt * 6); if (A.occ > .995) A.occ = 1; if (A.occ < .01) A.occ = 0; }
+  if (A.fade < 1) A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / 1.4);   // 秒で決める（遅い端末で網目の碧が長く残らないように。2026-10-14）
+  { const op = Math.min(A.fade, A.occ); if (op !== A.op) { A.op = op; aoiOpacity(op); } }
+  aoi.visible = Math.hypot(A.pos.x - camP.x, A.pos.z - camP.z) > .7 && A.op > .02 && !(A.hideExp && (mode === "exp" || mode === "trans"));
 }
 let aoiMats = null, RDT = 0;
 function aoiOpacity(o) {
