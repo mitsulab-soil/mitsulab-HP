@@ -167,3 +167,19 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 .soundActions,.mixControls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mixControls label{display:flex;gap:8px;align-items:center}#mixStatus{font-size:13px;color:#b6d3de}#generateForm{margin:14px 0}#generateForm>div{display:flex;gap:8px;margin:6px 0}#newSound{min-width:0;flex:1;padding:12px;background:#10232b;border:1px solid #557482;color:#eef7ff;border-radius:5px;font:inherit}#generateNote{color:#a8bec8}#soundSpace{height:230px;position:relative;border-top:1px solid #43616d}#spectrum{width:100%;height:205px;display:block}.spaceLabels{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#b6d3de}#panel{max-height:75dvh;overflow-y:auto}#sound .ask{margin-top:12px}@media(max-width:600px){#panel{max-height:65dvh}#soundSpace{height:190px}#spectrum{height:155px}.spaceLabels{font-size:9px}#generateForm>div{flex-wrap:wrap}#newSound{flex-basis:65%}.soundActions button{padding:8px 10px}}
 
 #mixStatus{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.mixControls label{white-space:nowrap}#soundSpace{margin-bottom:12px}
+
+/* 音を大きく見る。三つの表示を同じ版面で切り替える。 */
+#panel{width:min(820px,calc(100vw - 44px));max-height:86dvh}
+#soundSpace{height:auto;margin:16px 0 20px;border:0}
+.spaceToolbar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.spaceToolbar button{min-height:44px;padding:8px 12px;background:transparent;border:1px solid #57717a;color:#c8dadd;border-radius:3px;font:inherit;font-size:13px}
+.spaceToolbar button[aria-pressed=true]{background:#b4d7cc;color:#142d32;border-color:#b4d7cc}
+.soundStage{position:relative;height:360px;background:radial-gradient(ellipse at 50% 45%,#173a44 0%,#07141d 68%);border-radius:8px;overflow:hidden}
+#spectrum,#heatmap{display:block;width:100%;height:100%;touch-action:pan-y}
+#heatmap[hidden],#spectrum[hidden],.heatLegend[hidden]{display:none}
+#spectrum{cursor:grab;touch-action:none}
+#spaceCaption{font-size:13px;color:#c8dfdf;margin:10px 0 5px;line-height:1.6}
+.spaceNote{font-size:11px;color:#9cb4bf;line-height:1.6;margin:6px 0}
+.heatLegend{display:flex;align-items:center;gap:10px;font-size:12px;color:#c8dfdf}
+.heatLegend i{height:8px;flex:1;border-radius:8px;background:linear-gradient(90deg,#081623,#226c80,#63bcae,#e0bf81,#fff4d0)}
+@media(max-width:600px){#panel{width:calc(100vw - 16px);right:8px;bottom:8px;max-height:86dvh;padding:12px}.soundStage{height:310px}.spaceToolbar button{padding:8px;font-size:12px}.wave{height:44px}#generateForm>div{flex-wrap:wrap}}

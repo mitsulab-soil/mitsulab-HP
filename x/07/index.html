@@ -60,7 +60,12 @@
   </div>
   <div class="sound" id="sound">
     <canvas id="wave" class="wave" aria-label="いま鳴っている音の波形"></canvas>
-    <p class="p-cap" id="pCap">再生中の波形</p><div id="soundSpace"><canvas id="spectrum" aria-label="周波数・強さ・時間の3Dスペクトログラムと音域の線"></canvas><div class="spaceLabels"><span>40 Hz → 16 kHz ／ 高さ：強さ ／ 奥：時間（過去）</span><span>低域 × 中域 × 高域の線（視覚表現）</span></div></div>
+    <p class="p-cap" id="pCap">再生中の波形</p><div id="soundSpace">
+<div class="spaceToolbar" role="group" aria-label="音の表示"><button type="button" data-sound-view="sculpture" aria-pressed="true">音の彫刻</button><button type="button" data-sound-view="spectrum" aria-pressed="false">3D周波数</button><button type="button" data-sound-view="heat" aria-pressed="false">ヒートマップ</button><button type="button" id="freezeSound" aria-pressed="false">動きを止める</button></div>
+<div class="soundStage"><canvas id="spectrum" aria-label="低域・中域・高域から描く立体の線。ドラッグで回転"></canvas><canvas id="heatmap" hidden aria-label="周波数と時間ごとのFFTレベルのヒートマップ"></canvas></div>
+<p id="spaceCaption">低域・中域・高域から描く立体の線。ドラッグで回せます。音の視覚的なたとえです。</p>
+<div class="heatLegend" hidden><span>弱い −100 dB</span><i></i><span>強い −20 dB</span></div>
+<p class="spaceNote">再生出力のFFTを表示。色・高さはデジタル信号のレベルで、周囲の音圧を測った値ではありません。</p></div>
 
     <div class="soundActions"><button id="bPlay" class="ml-btn">もう一度聴く</button><button id="bStop" class="ml-btn">止める</button><button id="bKeep" class="ml-btn">合成の素材にする</button></div>
     <p id="mixStatus" role="status">音を選び、素材にして、もう一つの点を押してください。</p>

@@ -1,4 +1,4 @@
-/* Qualia/sound（2026-10-14・未公開）
+/* Qualia/sound
    夕暮れの雑木林の空き地（写実の地）の上に、本人の言葉「音の言然」が点として浮かぶ（事実の点＝一つの点が一つの言葉）。
    分類ごとにゆるく集まるのは作品の上の地図。選ぶと言葉が明朝で出て、その言葉から音を合成して鳴らす（js/synth.js）。
    聴く人のつまみで、同じ一行をその人の側へ鳴らしなおす。入力はどこにも保存・送信しない。 */
@@ -103,7 +103,7 @@ const dials = () => ({ dist: +$("dDist").value / 100, hard: +$("dHard").value / 
 const setDials = d => { $("dDist").value = Math.round(d.dist * 100); $("dHard").value = Math.round(d.hard * 100); $("dLight").value = Math.round(d.light * 100); };
 const FIRST = {dist:.5,hard:.5,light:.5};
 const second=new QSynth();let material=null,mixing=false;
-const space=new SoundSpace($('spectrum'),synth,second);
+const space=new SoundSpace($('spectrum'),synth);
 function halt(){synth.stop(.06);second.stop(.06);mixing=false;}
 function playAs(){if(!cur||cur.quiet)return;halt();synth.play(cur,dials());}
 synth.onstate=on=>{$('bPlay').setAttribute('aria-pressed',String(on));};
@@ -227,8 +227,9 @@ function drawWave() {
   const dpr = Math.min(2, devicePixelRatio || 1), w = wave.clientWidth, h = wave.clientHeight; if (!w) return;
   if (wave.width !== Math.round(w * dpr)) { wave.width = Math.round(w * dpr); wave.height = Math.round(h * dpr); }
   wctx.setTransform(dpr, 0, 0, dpr, 0, 0); wctx.clearRect(0, 0, w, h);
-  wctx.strokeStyle = synth.playing ? "rgba(155,220,240,.9)" : "rgba(150,170,240,.25)"; wctx.lineWidth = 1; wctx.beginPath();
-  if (synth.playing) { synth.wave(wbuf); if(mixing){second.wave(space.wave);for(let i=0;i<wbuf.length;i++)wbuf[i]+=space.wave[i];} for (let x = 0; x <= w; x++) { const v = wbuf[Math.floor(x / w * 1023)] || 0, y = h / 2 - v * h * 1.6; x ? wctx.lineTo(x, y) : wctx.moveTo(x, y); } }
+  wctx.strokeStyle = synth.playing || second.playing ? "rgba(155,220,240,.9)" : "rgba(150,170,240,.25)"; wctx.lineWidth = 1; wctx.beginPath();
+  // 合成相手も synth.lim に流れている。共通出力を一度だけ読み、残響も描く。
+  if (synth.analyser) { synth.wave(wbuf); for (let x = 0; x <= w; x++) { const v = wbuf[Math.floor(x / w * (wbuf.length - 1))] || 0, y = h / 2 - v * h * 1.6; x ? wctx.lineTo(x, y) : wctx.moveTo(x, y); } }
   else { wctx.moveTo(0, h / 2); wctx.lineTo(w, h / 2); }
   wctx.stroke();
 }
