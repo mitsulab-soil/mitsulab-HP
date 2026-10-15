@@ -26,7 +26,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene]')){
   const array=new Float32Array(5*20*3),g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(array,3));const motes=new T.Points(g,pointsMat(0xc7f7ed,.13,.9));world.add(motes);
   // Inner constellations suggest computation and relationships, not a brain model.
   const inner=[];for(let i=0;i<60;i++){const a=i*.73,b=i*.47;inner.push(Math.cos(a)*1.6,Math.sin(a)*.85,Math.sin(b)*.7-1.2);}world.add(new T.Points(geometry(inner),pointsMat(0x6eacb8,.09,.4)));
-  resizeExtra=()=>{camera.fov=aspect()<1.5?50:38;camera.position.z=aspect()<1.5?11.7:13;camera.updateProjectionMatrix();const buttons=host.querySelectorAll('[data-node]');pos.forEach((v,i)=>{const p=v.clone().project(camera);buttons[i].style.left=(p.x*.5+.5)*100+'%';buttons[i].style.top=(-p.y*.5+.5)*100+(i===1?-9:10)+'%';});};
+  resizeExtra=()=>{camera.fov=aspect()<1.5?50:38;camera.position.z=aspect()<1.5?11.7:13;camera.updateProjectionMatrix();camera.updateMatrixWorld();const buttons=host.querySelectorAll('[data-node]');pos.forEach((v,i)=>{const p=v.clone().project(camera);buttons[i].style.left=(p.x*.5+.5)*100+'%';buttons[i].style.top=(-p.y*.5+.5)*100+(i===1?-9:10)+'%';});};
   update=()=>{for(let i=0;i<100;i++){const p=curves[Math.floor(i/20)].getPoint((time*.085+(i%20)/20)%1);array.set(p.toArray(),i*3);}g.attributes.position.needsUpdate=true;orb.forEach((o,i)=>{o.scale.setScalar(selected===i?1.5:1);o.rotation.y=time*.3;});};
  }else{
   camera.position.set(16,16,23);camera.lookAt(0,0,0);scene.add(new T.HemisphereLight(0xb7dbed,0x17201b,.65));const sun=new T.DirectionalLight(0xcbe9f1,.7);sun.position.set(-10,25,15);scene.add(sun);
