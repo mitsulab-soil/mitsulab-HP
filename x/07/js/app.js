@@ -10,6 +10,7 @@ import { LAYER, lineMaterial } from "../kit/layers.js";
 import { QSynth, readingOf, seedOf } from "./synth.js";
 
 import { SoundSpace } from "./sound-space.js";
+import { PERFORMANCE_DEFAULTS, filterHz, rhythmHz } from "./performance-fx.js";
 const D = window.QS_SOUNDS, ITEMS = D.items, TAGS = D.tags;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = id => document.getElementById(id);
@@ -104,16 +105,36 @@ const setDials = d => { $("dDist").value = Math.round(d.dist * 100); $("dHard").
 const FIRST = {dist:.5,hard:.5,light:.5};
 const second=new QSynth();let material=null,mixing=false;
 const space=new SoundSpace($('spectrum'),synth);
-function halt(){synth.stop(.06);second.stop(.06);mixing=false;}
+function halt(){synth.stop(.06);second.stop(.06);mixing=false;$('mixRatio').disabled=true;}
 function playAs(){if(!cur||cur.quiet)return;halt();synth.play(cur,dials());}
 synth.onstate=on=>{$('bPlay').setAttribute('aria-pressed',String(on));};
-function mix(){if(!material||!cur||cur.quiet)return;halt();const ctx=synth.ensure();if(!second.ctx){second.attach(ctx);second.lim.disconnect();second.lim.connect(synth.lim);}synth.play(material,dials());second.play(cur,dials());mixing=true;balance();$('mixStatus').textContent=material.t+' ＋ '+cur.t;}
+function mix(){if(!material||!cur||cur.quiet)return;halt();const ctx=synth.ensure();if(!second.ctx){second.attach(ctx);second.lim.disconnect();second.lim.connect(synth.lim);}synth.play(material,dials());second.play(cur,dials());mixing=true;$('mixRatio').disabled=false;balance();$('mixStatus').textContent='A：'+material.t+' ／ B：'+cur.t;}
 function balance(){const r=+$('mixRatio').value/100;if(synth.out)synth.out.gain.setTargetAtTime(mixing?.9*Math.sqrt(1-r):1.45,synth.ctx.currentTime,.04);if(second.out)second.out.gain.setTargetAtTime(.9*Math.sqrt(r),second.ctx.currentTime,.04);}
 $('bPlay').onclick=()=>{playAs();balance();};$('bStop').onclick=()=>{stopTour();halt();};
-$('bKeep').onclick=()=>{if(!cur||cur.quiet)return;material={...cur};$('mixStatus').textContent='素材：'+material.t+'。次の音を選んで「二つを合成」。';};
-$('bMix').onclick=mix;$('bClearMix').onclick=()=>{material=null;halt();$('mixStatus').textContent='素材を外しました。';};$('mixRatio').oninput=balance;
+$('bKeep').onclick=()=>{if(!cur||cur.quiet)return;material={...cur};$('bMix').disabled=false;$('bClearMix').disabled=false;$('mixStatus').textContent='A：'+material.t+'。次の音を選んで「二つを合成」。';};
+$('bMix').onclick=mix;$('bClearMix').onclick=()=>{material=null;halt();$('bMix').disabled=true;$('bClearMix').disabled=true;$('mixStatus').textContent='Aの素材を外しました。';};$('mixRatio').oninput=balance;
 $('bLong').onclick=()=>{halt();if(cur&&!cur.quiet)synth.play(cur,dials(),{long:true});balance();};
 for(const id of ['dDist','dHard','dLight'])$(id).addEventListener('change',()=>{mixing?mix():playAs();balance();});
+const performanceValues=()=>({pitch:+$('dPitch').value,rhythm:+$('dRhythm').value,filter:+$('dFilter').value,echo:+$('dEcho').value});
+function applyPerformance(){
+ const v=performanceValues(),hz=filterHz(v.filter),rh=rhythmHz(v.rhythm);
+ synth.setPerformance(v);second.setPerformance(v);
+ $('vPitch').textContent=(v.pitch>0?'+':v.pitch===0?'±':'')+v.pitch+' 半音';
+ $('vRhythm').textContent=rh?rh+' 回/秒':'なし';
+ $('vFilter').textContent=hz>=1000?(hz/1000).toFixed(1).replace(/\.0$/,'')+' kHz':Math.round(hz)+' Hz';
+ $('vEcho').textContent=v.echo?v.echo+' %':'なし';
+ for(const [id,value] of [['dPitch',$('vPitch').textContent],['dRhythm',$('vRhythm').textContent],['dFilter',$('vFilter').textContent],['dEcho',$('vEcho').textContent]])$(id).setAttribute('aria-valuetext',value);
+}
+for(const id of ['dPitch','dRhythm','dFilter','dEcho'])$(id).addEventListener('input',applyPerformance);
+$('bReset').onclick=()=>{
+ const active=synth.playing||second.playing,wasMixing=mixing;
+ for(const [key,id] of [['pitch','dPitch'],['rhythm','dRhythm'],['filter','dFilter'],['echo','dEcho']])$(id).value=PERFORMANCE_DEFAULTS[key];
+ setDials(FIRST);$('mixRatio').value=50;applyPerformance();
+ if(active){wasMixing?mix():playAs();balance();}
+};
+$('bMix').disabled=true;$('bClearMix').disabled=true;$('mixRatio').disabled=true;
+applyPerformance();
+
 $('generateForm').onsubmit=e=>{e.preventDefault();const t=$('newSound').value.trim().normalize('NFKC');if(!/^.{1,76}の音$/.test(t)){$('generateNote').textContent='「雨の音」のように、末尾を「の音」にしてください。';return;}
  const old=ITEMS.find(x=>x.t===t);if(old){select(old);return;}
  const rules=[['mizu',/雨|水|川|海|滴|波/],['toshi',/機械|金属|都市|電車|歯車/],['seimei',/木|森|土|鳥|虫|葉|息/],['uchu',/星|宇宙|月|銀河/],['iro',/光|色|虹|青|赤/],['toki',/時間|記憶|過去|未来/],['kotoba',/言葉|文字|声/]];
@@ -124,7 +145,7 @@ const order = [...ITEMS].sort((a, b) => a.n - b.n);
 let target = null;   // カメラの見る先（なめらかに寄る）
 function select(it, { fly = true, fromTour = false, audible = true } = {}) {
   if (!fromTour) stopTour();   // 自分で選んだら、順に聴くのは止める
-  cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'素材：'+material.t:'音を素材にして、もう一つを選ぶと合成できます。';
+  cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'A：'+material.t+' ／ B：'+it.t:'Aの素材にして、もう一つの音を選ぶと合成できます。';
   $("sound").hidden = !!it.quiet; $("quiet").hidden = !it.quiet;
   { const rd = it.quiet ? null : readingOf(it); $("readF").hidden = !(rd && rd.hand); $("readF").open = false; if (rd && rd.hand) $("readT").textContent = rd.reading; }   // 手で譜を書いた行だけ、読みの一文を畳んで置く
   const t = tagOf(it.tag);
@@ -235,7 +256,7 @@ function drawWave() {
 }
 
 // ---- 毎こま
-let last = performance.now(), run = true, lv = 0, lensY = 0;
+let last = performance.now(), run = true, lv = 0, lensY = 0, forestFrame = 0;
 document.addEventListener("visibilitychange", () => { run = !document.hidden; if (run) { last = performance.now(); requestAnimationFrame(loop); } });
 if (RM) WIND.uGust.value = 0;
 const posAttr = wGeo.attributes.position, cen = new THREE.Vector3(0, 3.1, 0);
@@ -269,12 +290,13 @@ function loop(now) {
   for (const o of L) { o.el.style.transform = `translate(${o.x}px,${o.y}px) translate(-50%,-50%)`;
     // 押し分けたあとの位置で、案内（スマホ）と「順に聴く」の帯に重なる札を隠す
     if (o.vis && ((portrait() && !cur && o.y + o.el._h / 2 > hintTop - 4) || (tour && o.y - o.el._h / 2 < capBottom + 4))) { o.el.style.opacity = 0; o.el.style.pointerEvents = "none"; } }
-  if (cur) {drawWave();space.update(now);}
-  renderer.render(scene, camera);
+  if (cur) {if(!space.frozen)drawWave();space.update(now);}
+  // 演奏面を開いている間、背景の森は4fpsに抑え、音の立体へ描画を回す。
+  if (!cur || now - forestFrame > 250) { renderer.render(scene, camera); forestFrame = now; }
   requestAnimationFrame(loop);
 }
 addEventListener("resize", () => { camera.position.setLength(Math.min(controls.maxDistance, camera.position.distanceTo(controls.target))); });
 manager.onLoad = () => { window.MLLoader?.done(); };
 setTimeout(() => window.MLLoader?.done(), 9000);
 requestAnimationFrame(loop);
-window.__qs = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth, second, space, get current(){return cur;}, get material(){return material;} };
+window.__qs = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth, second, space, get current(){return cur;}, get material(){return material;}, get mixing(){return mixing;}, performanceValues };

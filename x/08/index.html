@@ -107,24 +107,9 @@
   v.addEventListener('play', () => { b.hidden = true; });
   v.addEventListener('ended', () => { b.hidden = false; v.currentTime = 0; v.load(); });
 
-  const c=document.getElementById('digital'),x=c.getContext('2d'),sample=document.createElement('canvas'),sx=sample.getContext('2d',{willReadFrequently:true});
-  sample.width=384;sample.height=216;let raf=0,last=-1,pixels=null;
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  function draw(){cancelAnimationFrame(raf);const vr=v.getBoundingClientRect(),fr=v.parentElement.getBoundingClientRect();c.style.left=(vr.left-fr.left)+'px';c.style.top=(vr.top-fr.top)+'px';c.style.width=vr.width+'px';c.style.height=vr.height+'px';const w=c.clientWidth,h=c.clientHeight,d=Math.min(1.5,devicePixelRatio);if(c.width!==Math.round(w*d)||c.height!==Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d);}x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);
-   if(v.readyState>=2&&Math.abs(v.currentTime-last)>.10){sx.drawImage(v,0,0,384,216);try{pixels=sx.getImageData(0,0,384,216).data;}catch{pixels=null;}last=v.currentTime;}
-   if(pixels){const lum=i=>pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722,step=w/384,sy=h/216,t=reduced.matches?0:v.currentTime;
-    // 実際の映像の輪郭に追従する。一般的な格子は重ねない。中央の碧を避けて杜を走査。
-    for(let py=2;py<204;py+=2)for(let px=2;px<382;px+=2){if(px>141&&px<243&&py>40)continue;const i=(py*384+px)*4,gx=lum(i+4)-lum(i-4),gy=lum(i+1536)-lum(i-1536),strength=Math.hypot(gx,gy);if(strength<19)continue;
-     const band=.35+.65*Math.exp(-Math.pow((py/216-(t*.07%1))/.16,2));const alpha=Math.min(.85,(strength-15)/100)*band;
-     x.strokeStyle=`rgba(121,240,211,${alpha})`;x.lineWidth=Math.max(.65,step*.45);const angle=Math.atan2(gy,gx)+Math.PI/2,len=Math.min(5,1+strength/25);x.beginPath();x.moveTo(px*step,py*sy);x.lineTo((px+Math.cos(angle)*len)*step,(py+Math.sin(angle)*len)*sy);x.stroke();
-     if((px+py)%12===0){x.fillStyle=`rgba(214,245,231,${alpha*.9})`;x.fillRect(px*step,py*sy,1.5,1.5);}
-    }
-   }
-   if(!v.paused&&!v.ended)raf=requestAnimationFrame(draw);
-  }
-  v.addEventListener('play',draw);v.addEventListener('pause',()=>cancelAnimationFrame(raf));v.addEventListener('seeked',()=>{last=-1;draw()});addEventListener('resize',draw);document.addEventListener('fullscreenchange',draw);draw();
   const full=document.createElement('button');full.className='full-layer';full.textContent='重ねた映像を全画面で見る';full.onclick=()=>{const f=document.querySelector('.frame');if(f.requestFullscreen)f.requestFullscreen().catch(()=>{full.textContent='全画面にできませんでした。通常表示でご覧ください。'});else full.textContent='この端末では通常表示で重ねた映像をご覧ください。';};document.querySelector('.frame').after(full);
 
 </script>
+<script type="module" src="digital-overlay.js?v=20261016a"></script>
 </body>
 </html>

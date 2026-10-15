@@ -5,6 +5,7 @@
    どこにも保存・送信しない。外の音源ファイルは使わない。 */
 import { compose, OPS, F0 } from "./world.js";
 import { SCORES } from "./scores.js";
+import { PerformanceFX, PERFORMANCE_DEFAULTS } from "./performance-fx.js";
 
 const lerp = (a, b, t) => a + (b - a) * t, clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
 export function seedOf(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -12,7 +13,7 @@ function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let
 export const readingOf = item => compose(item, rng(seedOf(item.t)), SCORES);
 
 export class QSynth {
-  constructor() { this.ctx = null; this.cur = null; this.irCache = new Map(); this.onstate = null; }
+  constructor() { this.ctx = null; this.cur = null; this.irCache = new Map(); this.onstate = null; this.voices = new Set(); this.performance = {...PERFORMANCE_DEFAULTS}; }
   ensure() {
     if (!this.ctx) {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
@@ -32,9 +33,14 @@ export class QSynth {
     this.lim = ctx.createDynamicsCompressor(); this.lim.threshold.value = -6; this.lim.knee.value = 0; this.lim.ratio.value = 20; this.lim.attack.value = .001; this.lim.release.value = .1;
     this.out = ctx.createGain(); this.out.gain.value = 1.45;
     this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 2048; this.analyser.smoothingTimeConstant = .6;
-    this.hiCut.connect(this.loCut); this.loCut.connect(this.comp); this.comp.connect(this.out); this.out.connect(this.lim); this.lim.connect(this.analyser); this.analyser.connect(ctx.destination);
+    this.fx = new PerformanceFX(ctx); this.fx.set(this.performance);
+    this.hiCut.connect(this.loCut); this.loCut.connect(this.comp); this.comp.connect(this.out); this.out.connect(this.lim); this.lim.connect(this.fx.input); this.fx.output.connect(this.analyser); this.analyser.connect(ctx.destination);
     this.noise = this.makeNoise(3);
     return ctx;
+  }
+  setPerformance(values) {
+    this.performance = {...this.performance,...values}; this.fx?.set(this.performance);
+    for (const voice of this.voices) voice.pitch.offset.setTargetAtTime(this.performance.pitch * 100, this.ctx.currentTime, .025);
   }
   makeNoise(sec) {
     const ctx = this.ctx, n = Math.floor(ctx.sampleRate * sec), b = ctx.createBuffer(2, n, ctx.sampleRate);
@@ -51,13 +57,23 @@ export class QSynth {
     this.irCache.set(key, b); return b;
   }
   get playing() { return !!this.cur; }
+  releaseVoice(s) {
+    if (s.closed) return; s.closed = true; this.voices.delete(s);
+    clearTimeout(s.timer); clearTimeout(s.tailTimer);
+    try { s.bus.disconnect(); } catch (e) {}
+    for (const node of s.nodes) { try { node.stop?.(); } catch (e) {} try { node.disconnect(); } catch (e) {} }
+  }
   stop(fade = .25) {
-    const s = this.cur; if (!s) return; this.cur = null;
-    const t = this.ctx.currentTime; s.bus.gain.cancelScheduledValues(t); s.bus.gain.setValueAtTime(s.bus.gain.value, t); s.bus.gain.linearRampToValueAtTime(0, t + fade);
-    clearTimeout(s.timer); setTimeout(() => { try { s.bus.disconnect(); } catch (e) {} s.nodes.forEach(n => { try { n.stop?.(); } catch (e) {} }); }, fade * 1000 + 80);
+    this.fx?.silence(fade); this.cur = null;
+    // 一行が終わって cur が空でも、残響中の前の声まで止める。
+    for (const s of [...this.voices]) {
+      this.voices.delete(s); clearTimeout(s.timer); clearTimeout(s.tailTimer);
+      const t = this.ctx.currentTime; s.bus.gain.cancelScheduledValues(t); s.bus.gain.setValueAtTime(s.bus.gain.value, t); s.bus.gain.linearRampToValueAtTime(0, t + fade);
+      s.tailTimer = setTimeout(() => this.releaseVoice(s), fade * 1000 + 80);
+    }
     this.onstate?.(false);
   }
-  // 鳴らす。item＝{n,t,tag}、d＝{dist,hard,light}（0〜1。0.5 が「はじめの鳴り」）。戻り値＝長さ（秒）
+  // 鳴らす。item＝{n,t,tag}、d＝{dist,hard,light}（0〜1。0.5 が初期値）。戻り値＝長さ（秒）
   play(item, d = { dist: .5, hard: .5, light: .5 }, opt = {}) {
     const ctx = typeof OfflineAudioContext !== "undefined" && this.ctx instanceof OfflineAudioContext ? this.ctx : this.ensure(); if (!ctx) return 0;
     this.stop(.12);
@@ -76,7 +92,9 @@ export class QSynth {
     if (W.time === "recursive") { const d1 = ctx.createDelay(2), d2 = ctx.createDelay(2), f1 = ctx.createGain(), f2 = ctx.createGain(), lp = ctx.createBiquadFilter(), back = ctx.createGain();
       d1.delayTime.value = .61; d2.delayTime.value = .61 * 1.618; f1.gain.value = .42; f2.gain.value = .3; lp.type = "lowpass"; lp.frequency.value = 2400; back.gain.value = .55;
       tone.connect(d1); d1.connect(lp); lp.connect(f1); f1.connect(d1); lp.connect(d2); d2.connect(f2); f2.connect(d2); lp.connect(back); d2.connect(back); back.connect(conv); back.connect(dry); }
-    const nodes = [], X = { ctx, out: evt, R, K, nodes, noise: this.noise, W };
+    // 音源の detune に加算。譜に書いた音程の揺れと、演奏ピッチを両方保つ。
+    const pitch = ctx.createConstantSource(); pitch.offset.value = this.performance.pitch * 100; pitch.start(T0);
+    const nodes = [pitch], X = { ctx, out: evt, R, K, nodes, noise: this.noise, W, pitch };
     // 世界の地：どの行の下にも、基音 55 Hz とその群れの倍音がかすかにある（行どうしが同じ世界で響き合う）
     OPS.ground(X, T0, { dur: score.dur + .5, vol: .022, chord: W.ground.map(h => F0 * h) }, W);
     const first=Math.min(...score.ops.map(o=>o[0]));
@@ -87,10 +105,17 @@ export class QSynth {
     if (opt.long) { const hs = W.hs.slice().sort(() => R() - .5).slice(0, 3), ch = W.ground.map(h => F0 * h).concat(hs.map(h => W.under ? F0 * 16 / h : F0 * h)).map(f => { while (f > 900) f /= 2; return f; });
       OPS.drift(X, T0 + score.dur - 1.5, { chord: ch, dur: 46, range: .04, vol: .05 }, W); OPS.ground(X, T0 + score.dur - 2, { chord: W.ground.map(h => F0 * h * 2), dur: 47, vol: .02 }, W);
       total += 45; }   // 一行より大きくしない・低い音を長く続けない（測って下げた）
-    const id = { item, d, t0: T0, dur: total, bus, nodes, score };
-    this.cur = id; this.onstate?.(true);
+    const id = { item, d, t0: T0, dur: total, bus, nodes, score, pitch };
+    this.cur = id; this.voices.add(id); this.fx.wake(); this.onstate?.(true);
     const tail = Math.min(9, conv.buffer.duration) + .4;
-    id.timer = setTimeout(() => { if (this.cur === id) { this.cur = null; this.onstate?.(false); setTimeout(() => { const t = ctx.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t); bus.gain.linearRampToValueAtTime(0, t + .1); setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, 150); }, tail * 1000); } }, (total + .3) * 1000);   // 切る前に 0.1 秒で音を消す
+    id.timer = setTimeout(() => {
+      if (this.cur !== id) return;
+      this.cur = null; this.onstate?.(false);
+      id.tailTimer = setTimeout(() => {
+        const t = ctx.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t); bus.gain.linearRampToValueAtTime(0, t + .1);
+        id.tailTimer = setTimeout(() => this.releaseVoice(id), 150);
+      }, tail * 1000);
+    }, (total + .3) * 1000);
     return total;
   }
   level() { if (!this.analyser) return 0; const a = this.lv ||= new Float32Array(this.analyser.fftSize); this.analyser.getFloatTimeDomainData(a); let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * a[i]; return Math.sqrt(s / a.length); }

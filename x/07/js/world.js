@@ -5,7 +5,7 @@
    - すべての行は、ひとつの基音 F0＝55 Hz の倍音（と下方倍音）の上に立つ。だから、どの二行を同時に鳴らしても同じ世界の中で響き合う。
    - 九つの群れは、それぞれ固有の「音律・時間の流れ方・空間」を持つ（WORLDS）。
    - 行の読み（READINGS）が、構造の操作（OPS）を文の順に並べる。手で書いた譜（scores.js）がある行はそれを使う。
-   設計の説明＝作品の「この作品」 */
+   設計の説明＝資料/音の設計_v2.md */
 import * as V from "./voices.js";
 
 export const F0 = 55;
@@ -59,7 +59,7 @@ function partials(X, t, dur, fs, as, o = {}) {           // 倍音の束：一�
   as = as.map((a, i) => a * Math.pow(i + 1, X.K.tilt ?? 0));
   const sum = as.reduce((a, b) => a + b, 0) || 1;
   fs.forEach((f, i) => {
-    const os = X.ctx.createOscillator(), og = X.ctx.createGain(); os.type = o.wave ?? "sine"; os.frequency.value = f * X.K.tr; og.gain.value = as[i] / sum; X.nodes.push(os);
+    const os = X.ctx.createOscillator(), og = X.ctx.createGain(); os.type = o.wave ?? "sine"; os.frequency.value = f * X.K.tr; og.gain.value = as[i] / sum; X.nodes.push(os); X.pitch?.connect(os.detune);
     if (o.to) { os.frequency.setValueAtTime(f * X.K.tr, t + (o.toAt ?? 0) * dur); os.frequency.exponentialRampToValueAtTime(Math.max(1, o.to[i] * X.K.tr), t + (o.toEnd ?? 1) * dur); }
     if (o.ampTo) { og.gain.setValueAtTime(as[i] / sum, t); og.gain.linearRampToValueAtTime(o.ampTo[i] / sum, t + dur); }
     if (o.drift) { for (let k = 1; k <= 4; k++) os.detune.linearRampToValueAtTime((X.R() - .5) * o.drift, t + dur * k / 4); }
@@ -74,7 +74,7 @@ function cloud(X, t, dur, o = {}) {                      // 粒の雲：密度�
     const u0 = (i + X.R() * (X.W?.time === "stochastic" ? 1.6 : .5)) / n, w = (o.d1 ?? 10) / Math.max(.1, o.d0 ?? 10), u = w === 1 ? u0 : (Math.pow(w, u0) - 1) / (w - 1), tt = t + clamp(u, 0, 1) * dur;   // 水と天気：粒の時刻をもっと偶然に散らす
     const k = (tt - t) / dur, len = lerp(o.l0 ?? .04, o.l1 ?? .04, k) * (.7 + X.R() * .6) * (X.W?.time === "still" ? 2 : 1), spread = lerp(o.s0 ?? 0, o.s1 ?? 0, k);
     let f = pick(X.R, ps) * Math.pow(2, (X.R() - .5) * spread); if (o.target) f = lerp(f, o.target, Math.pow(k, 1.5));
-    const os = X.ctx.createOscillator(), g = X.ctx.createGain(), pn = X.ctx.createStereoPanner ? X.ctx.createStereoPanner() : null; os.type = o.wave ?? "sine"; os.frequency.value = f * X.K.tr; X.nodes.push(os);
+    const os = X.ctx.createOscillator(), g = X.ctx.createGain(), pn = X.ctx.createStereoPanner ? X.ctx.createStereoPanner() : null; os.type = o.wave ?? "sine"; os.frequency.value = f * X.K.tr; X.nodes.push(os); X.pitch?.connect(os.detune);
     if (pn) { pn.pan.value = clamp((X.R() - .5) * (o.width ?? 1.2) * X.K.span, -1, 1); g.connect(pn); pn.connect(X.out); } else g.connect(X.out);
     const a = o.rev ? len * .88 : Math.max(.015, len * .08 * X.K.atk), r = o.rev ? Math.max(.06, len * .12) : Math.max(.02, len * .92), amp = vol * (o.fade === "in" ? .2 + k * .8 : o.fade === "out" ? 1 - k * .85 : 1) * (.6 + X.R() * .4);
     g.gain.setValueAtTime(S, tt); g.gain.exponentialRampToValueAtTime(amp, tt + a); g.gain.exponentialRampToValueAtTime(S, tt + a + r); g.gain.setValueAtTime(0, tt + a + r + .005);
@@ -84,7 +84,7 @@ function cloud(X, t, dur, o = {}) {                      // 粒の雲：密度�
 }
 function floor(X, t, dur, kind = "room", vol = .02) {   // 沈黙の質：部屋の静けさ・圧のある静けさ・空気だけの静けさ
   if (kind === "pressure") return partials(X, t, dur, [F0, F0 + .5, F0 * 2 + .3], [1, 1, .5], { vol: vol * 1.6, atk: 1.5, rel: 1.5, lp: 260, noCopy: true });
-  const s = X.ctx.createBufferSource(); s.buffer = X.noise; s.loop = true; X.nodes.push(s);
+  const s = X.ctx.createBufferSource(); s.buffer = X.noise; s.loop = true; X.nodes.push(s); X.pitch?.connect(s.detune);
   const f = X.ctx.createBiquadFilter(); f.type = kind === "air" ? "highpass" : "lowpass"; f.frequency.value = kind === "air" ? 5500 : 380;
   const g = X.ctx.createGain(); g.gain.setValueAtTime(S, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(1.5, dur / 3)); g.gain.setValueAtTime(vol, t + dur - Math.min(1.5, dur / 3)); g.gain.exponentialRampToValueAtTime(S, t + dur);
   s.connect(f); f.connect(g); g.connect(X.out); s.start(t); s.stop(t + dur + .05); return t + dur;

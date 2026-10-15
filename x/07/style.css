@@ -163,23 +163,39 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 .p-law{flex-basis:100%;order:3;font-size:.78rem;color:var(--ml-ink-3);line-height:1.6}
 .p-head{flex-wrap:wrap}
 @media (max-width:720px){ .worlds-g button{font-size:.8rem} .worlds-h{font-size:.84rem} .tourcap{top:62px;font-size:14px} .p-law{display:none} }
-/* 音を聴く・重ねる・言葉からつくる */
-.soundActions,.mixControls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mixControls label{display:flex;gap:8px;align-items:center}#mixStatus{font-size:13px;color:#b6d3de}#generateForm{margin:14px 0}#generateForm>div{display:flex;gap:8px;margin:6px 0}#newSound{min-width:0;flex:1;padding:12px;background:#10232b;border:1px solid #557482;color:#eef7ff;border-radius:5px;font:inherit}#generateNote{color:#a8bec8}#soundSpace{height:230px;position:relative;border-top:1px solid #43616d}#spectrum{width:100%;height:205px;display:block}.spaceLabels{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#b6d3de}#panel{max-height:75dvh;overflow-y:auto}#sound .ask{margin-top:12px}@media(max-width:600px){#panel{max-height:65dvh}#soundSpace{height:190px}#spectrum{height:155px}.spaceLabels{font-size:9px}#generateForm>div{flex-wrap:wrap}#newSound{flex-basis:65%}.soundActions button{padding:8px 10px}}
-
-#mixStatus{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.mixControls label{white-space:nowrap}#soundSpace{margin-bottom:12px}
-
-/* 音を大きく見る。三つの表示を同じ版面で切り替える。 */
-#panel{width:min(820px,calc(100vw - 44px));max-height:86dvh}
-#soundSpace{height:auto;margin:16px 0 20px;border:0}
-.spaceToolbar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.spaceToolbar button{min-height:44px;padding:8px 12px;background:transparent;border:1px solid #57717a;color:#c8dadd;border-radius:3px;font:inherit;font-size:13px}
-.spaceToolbar button[aria-pressed=true]{background:#b4d7cc;color:#142d32;border-color:#b4d7cc}
-.soundStage{position:relative;height:360px;background:radial-gradient(ellipse at 50% 45%,#173a44 0%,#07141d 68%);border-radius:8px;overflow:hidden}
-#spectrum,#heatmap{display:block;width:100%;height:100%;touch-action:pan-y}
-#heatmap[hidden],#spectrum[hidden],.heatLegend[hidden]{display:none}
-#spectrum{cursor:grab;touch-action:none}
-#spaceCaption{font-size:13px;color:#c8dfdf;margin:10px 0 5px;line-height:1.6}
-.spaceNote{font-size:11px;color:#9cb4bf;line-height:1.6;margin:6px 0}
-.heatLegend{display:flex;align-items:center;gap:10px;font-size:12px;color:#c8dfdf}
-.heatLegend i{height:8px;flex:1;border-radius:8px;background:linear-gradient(90deg,#081623,#226c80,#63bcae,#e0bf81,#fff4d0)}
-@media(max-width:600px){#panel{width:calc(100vw - 16px);right:8px;bottom:8px;max-height:86dvh;padding:12px}.soundStage{height:310px}.spaceToolbar button{padding:8px;font-size:12px}.wave{height:44px}#generateForm>div{flex-wrap:wrap}}
+/* 音を選ぶと、カードではなく演奏面へ。3Dを最も大きく置く。 */
+#panel{inset:64px 0 0;width:auto;max-height:none;padding:18px clamp(18px,3vw,48px) 28px;border:0;border-radius:0;background:linear-gradient(110deg,rgba(4,14,23,.96),rgba(6,22,30,.93));box-shadow:none;gap:0;overflow-y:auto;scrollbar-color:#406c71 transparent}
+#panel .p-head{min-height:36px;position:sticky;top:-18px;background:#07151f;z-index:2}.p-x{min-height:44px}.p-line{font-size:clamp(24px,2.7vw,38px);line-height:1.45;margin:2px 0 4px}
+#panel .p-law{display:block;margin:0 0 12px;line-height:1.5;font-size:12px;color:#a2b8bf}
+#sound{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:32px;align-items:start}
+.visualArea{min-width:0}.performance{min-width:0;border-left:1px solid #264049;padding-left:26px}
+#soundSpace{margin:0}.spaceToolbar{display:flex;flex-wrap:wrap;gap:0 20px;align-items:center;border-bottom:1px solid #29444c}
+.spaceToolbar button{min-height:44px;position:relative;padding:8px 0;background:transparent;border:0;color:#a4bfc5;font:500 14px var(--ml-sans);cursor:pointer;white-space:nowrap}
+.spaceToolbar button[aria-pressed=true]{color:#e3f8f0}.spaceToolbar button[aria-pressed=true]:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#8cd9c5}
+.spaceToolbar button:focus-visible{outline:1px solid #8cd9c5;outline-offset:3px}
+.soundStage{position:relative;height:clamp(350px,56dvh,650px);overflow:hidden;background:radial-gradient(ellipse at 50% 45%,rgba(28,75,84,.4),rgba(5,20,29,0) 70%)}
+#spectrum,#heatmap{display:block;width:100%;height:100%;touch-action:pan-y}#spectrum{cursor:grab;touch-action:none}#spectrum:active{cursor:grabbing}#spectrum:focus-visible{outline:1px solid #83c3bb;outline-offset:-2px}
+.stageWord{position:absolute;right:8px;bottom:10px;pointer-events:none;font:10px var(--ml-mono);letter-spacing:.18em;color:#8da7ac;opacity:.6}
+.viewActions{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.viewActions button{flex:none;font-size:12px}
+#spaceCaption{font-size:12px;color:#bdd7d9;margin:8px 0;line-height:1.7;max-width:580px}.wave{height:30px;margin:6px 0;opacity:.8}
+.spaceNote{font-size:11px;color:#92abb4;line-height:1.7;margin:6px 0 12px}.heatLegend{display:flex;align-items:center;gap:10px;font-size:11px;color:#bdd7d9}.heatLegend i{height:5px;flex:1;background:linear-gradient(90deg,#081623,#226c80,#63bcae,#e0bf81,#fff4d0)}
+.soundActions,.mixControls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.soundActions button{font-size:13px}.p-nav{margin-top:16px}.p-nav .ml-btn{font-size:12px}
+.performanceHead{display:flex;align-items:center;justify-content:space-between;gap:12px}.performanceHead h3{font:500 17px var(--ml-serif);letter-spacing:.08em;margin:0}.performanceHead button{font-size:12px;padding:0 4px}
+.performanceNote{font-size:11px;color:#96b2bc;margin:0 0 12px;line-height:1.7}
+.djDials{display:grid;gap:4px}.djDial{display:grid;grid-template-columns:1fr auto;column-gap:8px;align-items:center}.djDial>span{font-size:13px;color:#d5e8e9}.djDial small{font:9px var(--ml-mono);letter-spacing:.12em;color:#829fa8;margin-left:8px}.djDial output{font:11px var(--ml-mono);color:#92cfbd}.djDial input{grid-column:1/-1}
+.djDial input::-webkit-slider-thumb{height:24px;width:8px;border-radius:0;background:#9cdacb}
+.mixArea{margin-top:16px;border-top:1px solid #29444c;padding-top:12px}#mixStatus{font-size:12px;color:#b6cfd6;line-height:1.6;margin:0 0 8px;overflow-wrap:anywhere}
+.mixControls button{font-size:12px;min-height:44px;padding:0 8px}.mixControls label{width:100%;display:grid;grid-template-columns:12px 1fr 12px;gap:12px;align-items:center;color:#c2dfd7;font:12px var(--ml-mono)}
+#generateForm{margin:18px 0}#generateForm>label{font-size:13px}#generateForm>div{display:flex;gap:6px;margin:6px 0}#newSound{box-sizing:border-box;min-width:0;width:0;flex:1;padding:10px 6px;background:transparent;border:0;border-bottom:1px solid #547881;color:#e7f6f4;border-radius:0;font:16px var(--ml-sans)}#generateForm button{font-size:12px;padding:0 8px;flex:none}#generateNote{display:block;font-size:11px;color:#9db7be;line-height:1.6}
+#sound .ask{display:block;margin-top:12px;padding-top:10px}.ask>summary{cursor:pointer;min-height:44px;line-height:44px;font-size:12px;color:#bcd1d8}.ask .dial{grid-template-columns:4.1em 1fr 3em;font-size:12px;gap:6px}.ask-note{display:block;font-size:11px}.p-more{flex-wrap:wrap}.p-more #bLong{font-size:12px}
+@media(min-width:1500px){#sound{grid-template-columns:minmax(0,1fr) 320px;gap:48px}.performance{padding-left:32px}}
+@media(max-width:900px){#sound{grid-template-columns:minmax(0,1fr) 240px;gap:20px}.performance{padding-left:18px}.spaceToolbar{gap:0 14px}.spaceToolbar button{font-size:12px}}
+@media(max-width:680px){
+ #panel{inset:56px 0 0;padding:12px 16px calc(22px + env(safe-area-inset-bottom));max-height:none;width:auto}
+ #panel .p-head{gap:8px;top:-12px}.p-no{font-size:10px}.p-head .ml-label{font-size:11px}.p-x{font-size:11px;padding:0 4px}.p-line{font-size:25px}#panel .p-law{font-size:10px;margin-bottom:8px}
+ #sound{grid-template-columns:minmax(0,1fr);gap:24px}.performance{border:0;border-top:1px solid #29444c;padding:12px 0 0}
+ .spaceToolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.spaceToolbar button{text-align:center;font-size:13px}
+ .soundStage{height:clamp(310px,44dvh,430px)}.stageWord{font-size:8px}.viewActions{gap:6px}#spaceCaption{font-size:11px}.viewActions button{font-size:10px;padding:0 3px}
+ .soundActions{gap:6px}.soundActions button{font-size:11px;padding:0 8px}.p-nav{margin-top:10px}.p-nav .ml-btn{font-size:11px;padding:0 6px}
+ .performanceHead h3{font-size:18px}.djDials{grid-template-columns:1fr 1fr;column-gap:24px;row-gap:8px}.djDial small{display:block;margin:3px 0 0;font-size:8px}.djDial output{font-size:10px}.djDial>span{font-size:13px}.djDial input{min-width:0}.performanceNote{font-size:12px}.mixArea{margin-top:8px}
+}
