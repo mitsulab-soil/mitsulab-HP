@@ -2,3 +2,9 @@
 
 .qt-flow-nodes small{display:block;font-size:1.1cqw;letter-spacing:.04em;line-height:1.8;color:#7daaaa;text-decoration:none;margin-top:3px}@media(max-width:700px){.qt-flow-nodes small{font-size:1.65cqw}.qt-flow-nodes button:nth-child(4) small{letter-spacing:0}}
 .qt-scene:not([data-ready=true]){background:#030812 url('img/hero/qualium_field.jpg') center 75%/cover no-repeat}
+
+/* 2026-10-15: restore the original spatial animation and live Aoi, preserving the concise statement. */
+#top .scene-current-statement{font-family:var(--serif);font-size:clamp(28px,4.2vw,54px);font-weight:400;letter-spacing:.12em;line-height:1.7;margin:0 0 22px;text-shadow:0 3px 22px #030812}
+#top .beat-hero .core-plain{max-width:760px;margin-inline:auto;line-height:2}
+#top .mx-l{border:0;border-radius:0;background:none;padding:.15em .35em;font-weight:400;letter-spacing:.18em;text-shadow:0 0 12px #03060f,0 0 4px #03060f}
+@media(max-width:700px){#top .scene-current-statement{font-size:28px;letter-spacing:.08em}#top .beat-hero .core-plain{font-size:13px;max-width:330px}#top .beat-mission .mission-k{font-size:9px;letter-spacing:.08em}#top .mx-l{letter-spacing:.08em}}

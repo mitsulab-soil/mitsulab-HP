@@ -1055,7 +1055,7 @@ html[lang="en"] .mikata-map .mw-wh-t{letter-spacing:0}
 .mission .mission-k{display:block;font-family:var(--mono);font-weight:400;font-size:.36em;letter-spacing:.3em;color:#9fe3d2;margin-bottom:.5em}
 html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 </style>
-<link rel="stylesheet" href="qualium-top.css?v=20261015b">
+<link rel="stylesheet" href="qualium-top.css?v=20261015c">
 </head>
 <body>
 <a href="#main" class="skip-link" data-i18n-en="Skip to content">本文へスキップ</a>
@@ -1110,14 +1110,68 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 <!-- ┌─ mitsulab（2026-10-04 v3・本人指示）：画面いっぱい・枠なしの場面（氷川参道の 3D を線で・碧が立つ・多次元の層が重なる）→ 使命 → 碧／Qualium／アプリケーションへの入口 → アプリの案内。
      詳しいことは、それぞれのタブのページへ。場面のしくみは script の「mitsulab の没入の場面 v3」。 ── -->
 <section id="top" class="tab-panel active" data-panel="top" aria-label="mitsulab">
-  <section id="why" class="qt-hero" aria-labelledby="qtVision">
+  <header class="qt-hero" aria-labelledby="qtVision">
     <div class="qt-vision"><p class="qt-kicker">VISION / QUALIA DIVERSITY</p><h1 id="qtVision">Expand Perception.</h1><p data-i18n-en="More ways of sensing and thinking, within each person.">ひとりの中に、感じ方と考え方の選択肢を。</p></div>
-    <div class="qt-scene" data-qualium-scene="field"><canvas aria-hidden="true"></canvas><div class="qt-scene-copy"><h2 data-i18n-en="Beyond human scales.<br>In touch with the world.">人の尺度を越えて、<br>世界と関わる。</h2><p data-i18n-en="mitsulab explores cognitive augmentation.<br>To help people sense, understand and engage with a world transformed by AI.">mitsulab は、認知拡張を探究する研究所です。<br>AIによって変わる世界を、人が感じ、理解し、関われるように。</p></div><button class="qt-pause" type="button" aria-pressed="false" data-pause>動きを止める</button><span class="qt-corner">QUALIUM / A FIELD OF PERCEPTION</span></div>
-  </section>
+  </header>
+<div id="why" class="scene" aria-label="氷川参道の空間の場面" data-i18n-aria="A scene in the space of the Hikawa approach"><script>/* 高速化（2026-10-06）：動きを減らす設定の端末は、最初から止まった一枚の形で組む（あとで形が変わってずれるのを防ぐ） */try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.getElementById('why').classList.add('scene-static');}catch(e){}</script>
+  <div class="scene-sticky">
+    <img class="scene-poster" fetchpriority="high" decoding="async" src="img/hero/scene_poster_1600.webp" srcset="img/hero/scene_poster_800.webp 800w, img/hero/scene_poster_1600.webp 1600w" sizes="100vw" alt="氷川参道の 3D を光の線で描いた図。並木・鳥居・建物・水の筋・観察記録の光の柱が重なり合い、参道の上に碧の光の柱が立っている" data-i18n-alt="The Hikawa approach in 3D drawn in lines of light: trees, torii, buildings, traces of water and columns of observation records overlap, with Aoi's column of light standing on the approach">
+    <canvas id="sceneCv" class="scene-cv" aria-hidden="true"></canvas>
+    <div class="scene-labs" aria-hidden="true">
+      <span class="slab sl-culture" data-lab="ichi" data-b=".5" data-i18n-en="First torii">一の鳥居</span>
+      <span class="slab sl-culture" data-lab="ni" data-b=".86" data-i18n-en="Second torii">二の鳥居</span>
+      <span class="slab sl-culture" data-lab="san" data-b=".5" data-i18n-en="Third torii">三の鳥居</span>
+      <span class="slab sl-culture" data-lab="romon" data-a=".3" data-b=".6" data-i18n-en="Rōmon gate">楼門</span>
+      <span class="slab sl-aoi" data-lab="aoi" data-a=".55" data-b=".86" data-i18n-en="Aoi (yorishiro)">碧（依代）</span>
+      <span class="slab sl-st" data-lab="st0" data-a=".7" data-b=".86" data-far="40" data-i18n-en="sense">感じる</span>
+      <span class="slab sl-st" data-lab="st1" data-a=".7" data-b=".86" data-far="40" data-i18n-en="record">記録する</span>
+      <span class="slab sl-st" data-lab="st2" data-a=".7" data-b=".86" data-far="40" data-i18n-en="translate">訳す</span>
+      <span class="slab sl-st" data-lab="st3" data-a=".7" data-b=".86" data-far="40" data-i18n-en="tell">語る</span>
+      <span class="slab sl-st" data-lab="st4" data-a=".7" data-b=".86" data-far="40" data-i18n-en="look again">見直す</span>
+    </div>
+    <div class="scene-words">
+      <div class="beat beat-hero" data-beat data-a="0" data-b=".07">
+        <span class="eyebrow" lang="en" aria-hidden="true">mitsulab</span>
+        <h2 class="scene-current-statement" data-i18n-en="Beyond human scales.<br>In touch with the world.">人の尺度を越えて、<br>世界と関わる。</h2>
+        <p class="core-plain" data-i18n-en="mitsulab explores cognitive augmentation.<br>To help people sense, understand and engage with a world transformed by AI."><span class="nw">mitsulab は、認知拡張を探究する研究所です。</span><br><span class="nw">AIによって変わる世界を、</span><span class="nw">人が感じ、理解し、関われるように。</span></p>
+        <p class="hero-go"><button type="button" class="hgo" data-go-anchor="appguide"><span data-i18n-en="Experience the works">作品を体験する</span> <span class="arr" aria-hidden="true">↓</span></button></p>
+        <p class="scene-hint" data-i18n-en="Scroll into a place and its layers">スクロールで、場に重なる世界へ</p>
+      </div>
+      <div class="beat beat-mission" data-beat data-a=".08" data-b=".18">
+        <p class="mission" data-i18n-en="<span class='mission-k'>Computation · Transformation · Cognition</span>Clues beyond our senses,<br>within our reach."><span class="mission-k" lang="en">Computation · Transformation · Cognition</span>感じられなかったものを、<br><span class="nw">関われるものへ。</span></p>
+        <p class="mission-try" data-i18n-en="Computation connects clues. Tools transform them into light, sound and vibration.">計算が手がかりを結び、<br>道具が光・音・振動へ変換する。</p>
+      </div>
+      <p class="beat beat-l" data-beat data-a=".20" data-b=".31"><span class="bk k-nature" data-i18n-en="Nature">自然</span><span data-i18n-en="Trees and water">木と、水の筋</span></p>
+      <p class="beat beat-r" data-beat data-a=".32" data-b=".43"><span class="bk k-culture" data-i18n-en="Culture">文化</span><span data-i18n-en="Torii and milestones">鳥居と丁石</span></p>
+      <p class="beat beat-l" data-beat data-a=".44" data-b=".55"><span class="bk k-people" data-i18n-en="People">人</span><span data-i18n-en="Homes and passers-by">家と、行き交う人</span></p>
+      <p class="beat beat-r" data-beat data-a=".56" data-b=".67"><span class="bk k-info" data-i18n-en="Information">情報</span><span data-i18n-en="Records, flowing">流れる観察記録</span></p>
+      <p class="beat beat-l" data-beat data-a=".69" data-b=".80"><span class="bk k-aoi" data-i18n-en="Aoi">碧</span><span data-i18n-en="The yorishiro in between">あいだに立つ依代</span></p>
+      <div class="beat beat-end" data-beat data-a=".86" data-b="1.2">
+        <p class="end-line" data-i18n-en="Cues once out of reach,<br>right before you.">届かなかった手がかりが、<br><span class="nw">目の前に。</span></p>
+        <p class="end-sub" data-i18n-en="Aoi, beside you.">となりに、碧。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
   <div class="qt-content">
-    <section id="mission" class="qt-mission">
+    <section id="mission-intro" class="qt-mission">
       <div><p class="qt-kicker">MISSION</p><h2>Adapt AI to expand<br>human perception.</h2></div><div><p data-i18n-en="We adapt computational ways of interpreting the world into tools and experiences people can use.">AIの膨大な計算によって得られる世界の捉え方を、人間が使える道具と体験へ適応させます。</p><p class="qt-muted" data-i18n-en="Across art, science, engineering and culture, we explore cognitive tools that let each person move between perspectives, scales, senses and interpretations.">アート・サイエンス・工学・文化を横断し、視点・尺度・感覚・解釈を行き来する、認知的道具をつくります。</p></div>
     </section>
+  <section id="mission" class="msn mx" aria-labelledby="missionH">
+    <div class="msn-sticky">
+      <img class="mx-aoi" src="img/hero/aoi_cut_480.webp" srcset="img/hero/aoi_cut_480.webp 480w, img/hero/aoi_cut_960.webp 960w" sizes="(max-width:700px) 40vw, 240px" width="480" height="1472" loading="lazy" decoding="async" alt="碧の立ち姿" data-i18n-alt="Aoi standing">
+      <div class="mx-stage" data-mx><div class="mx-aoi3d" aria-hidden="false"></div></div>
+      <span class="mx-l" data-k="0" data-i18n-en="People">人</span><span class="mx-l" data-k="1" data-i18n-en="Nature">自然</span><span class="mx-l" data-k="2" data-i18n-en="Information">情報</span><span class="mx-l" data-k="3" data-i18n-en="Culture">文化</span><span class="mx-l" data-k="4" data-i18n-en="History">歴史</span>
+      <div class="msn-text">
+        <span class="eyebrow" lang="en" aria-hidden="true">Statement</span>
+        <h2 class="msn-h" id="missionH" data-i18n-en="<span class='ln'>Developing new ways</span><span class='ln'>of sensing the world.</span>"><span class="ln">世界のミカタを、</span><span class="ln">開発する。</span></h2>
+        <div class="msn-bot">
+        <p class="msn-sub" data-i18n-en="<span class='ln ln-a'>From information space</span><span class='ln ln-b'>into real space.</span>"><span class="ln ln-a">情報空間から、</span><span class="ln ln-b">現実空間へ。</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
     <section id="qualium-field" class="qt-field" aria-labelledby="qtFieldTitle">
       <p class="qt-kicker">QUALIUM</p><h2 id="qtFieldTitle" data-i18n-en="One place.<br>Many ways to experience it.">ひとつの世界から、<br>いくつもの受けとり方へ。</h2><p class="qt-intro" data-i18n-en="A place holds distances, times and signals beyond what we can directly sense. Qualium connects those clues with computation and experience.">目の前の場には、身体だけでは届かない距離・時間・現象が重なっています。<br>その手がかりを、計算と体験でつなぐ場。それを、Qualiumと呼びます。</p>
     </section>
@@ -2002,6 +2056,289 @@ var AOI_FN=[
 })();
 </script>
 
+<script type="module">
+/* ===== mitsulab の没入の場面 v3（2026-10-04 本人指示「ベースは氷川参道の 3D をワイヤーフレーム化し、碧も入れて、多次元の情報が重なり合う」）
+   氷川参道の 3D（氷川幽玄の素材から線だけを取り出したもの：_dev/sando_wire/extract.py → img/hero/sando_wire.*）を光る線で描き、
+   自然・文化・人・情報（機械）の層を、板ではなく、参道の空間の中に入り組ませて重ねる。碧（img/hero/aoi.vrm）は参道に立つ光の姿。
+   スクロールで、上空のデータの格子から参道へ降り、地面の高さで参道を北へ進み、碧の前に着く。マウス・端末の傾きで少し視差。
+   模式のもの：上空の格子・光の粒（人の流れ・データの流れ）・Qualium の五つの段の輪・木の形。それ以外は実データ。
+   reduced-motion・WebGL なしは、止まった一枚（img/hero/scene_poster_*.webp）と言葉を全部ならべる。 ===== */
+// 高速化（2026-10-06）：three.js（約 260 KB）は、ページの読み込みが終わってから取りに行く（最初の絵・文字・書体を先に）
+let THREE, GLTFLoader, MeshoptDecoder, mergeGeometries;
+const libs=()=>window.__threeLibs||(window.__threeLibs=new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r,{once:true})).then(()=>Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')])));
+const LOD_NEAR=Math.min(innerWidth,innerHeight)<700?45:80, LOD_MID=260, LOD_BAND=9;   // 80 m の前後 9 m は、二つの型をまだらに混ぜて切り替える（Unity の LOD cross-fade と同じ考え）   // 木の型を替える距離（m・碧から）
+
+const root=document.getElementById('why');
+const cv=document.getElementById('sceneCv');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches, SNAP=/[?&]snap/.test(location.search);   // snap＝確かめの撮影用（スクロールの位置へすぐ飛ぶ）
+const beats=[...root.querySelectorAll('[data-beat]')], labs=[...root.querySelectorAll('[data-lab]')];
+const staticMode=()=>root.classList.add('scene-static');
+function hasGL(){ try{ const c=document.createElement('canvas'); return !!(c.getContext('webgl2')||c.getContext('webgl')); }catch(e){ return false; } }
+if(!hasGL()) staticMode(); else { if(reduce) staticMode(); start().catch(e=>{ console.warn(e); staticMode(); }); }
+
+const yieldT=()=>new Promise(r=>(window.scheduler&&scheduler.yield)?scheduler.yield().then(r):setTimeout(r,0));
+async function start(){
+  await new Promise(r=>window.__afterPaint?window.__afterPaint(()=>r(),2500):addEventListener('load',()=>setTimeout(r,600),{once:true}));   // 高速化：最初の絵と文字（書体）が描き終わってから 3D を組む。それまでは同じ絵（scene_poster）が出ている
+  { const m=await libs(); THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; mergeGeometries=m[3].mergeGeometries; }
+  const [meta,bin]=await (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()), fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])));   // 使命と層の 3D と一度だけ取りに行く
+  const I=new Int16Array(bin), Q=meta.q;
+  const mobile=Math.min(innerWidth,innerHeight)<700;
+  const R=new THREE.WebGLRenderer({canvas:cv,antialias:!mobile,powerPreference:'high-performance'});
+  let PR=Math.min(devicePixelRatio||1, mobile?1:1.5), PRmin=mobile?.75:.9;   /* 2026-10-07 スマホの上限 1.25→1（本人「TOPのアニメーションが重すぎ」） */ R.setPixelRatio(PR); R.setClearColor(0x03060f,1); R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.0;
+  const S=new THREE.Scene(); S.fog=new THREE.FogExp2(0x03060f,0.00055);
+  const cam=new THREE.PerspectiveCamera(58,1,0.3,5000);
+  const HG=meta.hgrid;
+  const hAt=(x,z)=>{ const c=Math.max(0,Math.min(HG.cols-1,Math.round((x-HG.x0)/HG.d))), r=Math.max(0,Math.min(HG.rows-1,Math.round((z-HG.z0)/HG.d))); return HG.v[r*HG.cols+c]/10; };
+  const COL={nature:0x7fe0b4, water:0x78d6ec, culture:0xf2cf8c, people:0xf4aa96, info:0xb4a2ff, aoi:0xa8f2f6};
+  const lm=(c,o)=>new THREE.LineBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,fog:true,toneMapped:false});
+  const dotC=document.createElement('canvas'); dotC.width=dotC.height=64; { const x=dotC.getContext('2d'), g=x.createRadialGradient(32,32,0,32,32,32); g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(.3,'rgba(255,255,255,.8)'); g.addColorStop(1,'rgba(255,255,255,0)'); x.fillStyle=g; x.fillRect(0,0,64,64); }
+  const DOT=new THREE.CanvasTexture(dotC);
+  const pm=(c,s,o)=>new THREE.PointsMaterial({color:c,size:s,map:DOT,sizeAttenuation:true,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false});
+  const geo=(arr)=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3)); return g; };
+  const groups={nature:new THREE.Group(),culture:new THREE.Group(),people:new THREE.Group(),info:new THREE.Group(),base:new THREE.Group()};
+  Object.values(groups).forEach(g=>S.add(g));
+  function binGroup(k){ const [o,n]=meta.groups[k]; const f=new Float32Array(n*3); for(let i=0;i<n*3;i++) f[i]=I[o*3+i]*Q; return geo(f); }
+
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
+  // 地面：等高線（国土地理院 DEM5A から氷川幽玄が作った線）と、道
+  const ct=[]; meta.contours.forEach(([e,p])=>{ for(let i=0;i<p.length-2;i+=2) ct.push(p[i],e+0.2,p[i+1],p[i+2],e+0.2,p[i+3]); });
+  groups.base.add(new THREE.LineSegments(geo(ct),lm(0x5fb8d0,.32)));
+  groups.base.add(new THREE.LineSegments(binGroup('road'),lm(0x9fd8e6,.35)));
+  const cl=[]; meta.center.forEach((c,i)=>{ if(i) { const a=meta.center[i-1]; cl.push(a[0],a[1]+0.4,a[2],c[0],c[1]+0.4,c[2]); } });
+  groups.base.add(new THREE.LineSegments(geo(cl),lm(0xf6e2b0,.7)));
+  const pv=[]; const OFF=[-9,-6,-3,3,6,9]; for(let i=1;i<meta.center.length;i++){ const a=meta.center[i-1], c=meta.center[i], dx=c[0]-a[0], dz=c[2]-a[2], L=Math.hypot(dx,dz)||1, nx=-dz/L, nz=dx/L;
+    OFF.forEach(o=>pv.push(a[0]+nx*o,a[1]+0.15,a[2]+nz*o,c[0]+nx*o,c[1]+0.15,c[2]+nz*o)); for(let q=0;q<4;q++){ const f=q/4, X=a[0]+dx*f, Y=a[1]+(c[1]-a[1])*f, Zz=a[2]+dz*f; pv.push(X-nx*9,Y+0.15,Zz-nz*9,X+nx*9,Y+0.15,Zz+nz*9); } }
+  groups.base.add(new THREE.LineSegments(geo(pv),lm(0x8fd2e2,.28)));   // 参道の路面の線（模式）
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
+  // 自然：木（模式の形・位置は OSM と並木の模式）・水の集まる筋（標高から計算）
+  const tr=[]; const ring=(x,y,z,r,n)=>{ for(let k=0;k<n;k++){ const a=k/n*6.283, b=(k+1)/n*6.283; tr.push(x+Math.cos(a)*r,y,z+Math.sin(a)*r,x+Math.cos(b)*r,y,z+Math.sin(b)*r); } };
+  meta.trees.forEach(([x,y,z],i)=>{ if(i%2) return; const H=14+(i*37%9), b=y+H*0.32, r=4.6+(i%3)*0.6;   // 欅の盃形（模式）：幹から枝が斜め上へ開く
+    tr.push(x,y,z,x,b,z); for(let k=0;k<6;k++){ const a=k/6*6.283+i; const ex=x+Math.cos(a)*r, ez=z+Math.sin(a)*r; tr.push(x,b,z,x+Math.cos(a)*r*.55,b+H*.38,z+Math.sin(a)*r*.55, x+Math.cos(a)*r*.55,b+H*.38,z+Math.sin(a)*r*.55, ex,y+H*0.95,ez); } });
+  groups.nature.add(new THREE.LineSegments(geo(tr),lm(COL.nature,.2)));
+  const fl=[]; meta.flow.forEach(s=>{ fl.push(s[0],hAt(s[0],s[1])+0.6,s[1],s[2],hAt(s[2],s[3])+0.6,s[3]); });
+  groups.nature.add(new THREE.LineSegments(geo(fl),lm(COL.water,.55)));
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
+  // 文化：鳥居・楼門・燈籠・標石・丁石（OSM と写真から氷川幽玄が置いたもの）
+  groups.culture.add(new THREE.LineSegments(binGroup('structures'),lm(COL.culture,.85)));
+  const cs=[]; meta.choishi.forEach(p=>cs.push(p[0],p[1],p[2],p[0],p[1]+9,p[2])); groups.culture.add(new THREE.LineSegments(geo(cs),lm(COL.culture,.6)));
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
+  // 人：建物（PLATEAU）と、参道を行き交う光の粒（模式）
+  groups.people.add(new THREE.LineSegments(binGroup('buildings'),lm(COL.people,.15)));
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
+  // 情報・機械：観察記録（iNaturalist）の光の柱・上空のデータの格子（模式）
+  const ob=[]; meta.obs.forEach(([x,z])=>{ const y=hAt(x,z); ob.push(x,y,z,x,y+38,z); }); groups.info.add(new THREE.LineSegments(geo(ob),lm(COL.info,.75)));
+  const op=[]; meta.obs.forEach(([x,z])=>op.push(x,hAt(x,z)+38,z)); groups.info.add(new THREE.Points(geo(op),pm(COL.info,9,.95)));
+  const lat=[]; for(let x=-600;x<=600;x+=60) lat.push(x,240,-1300,x,240,1300); for(let z=-1300;z<=1300;z+=60) lat.push(-600,240,z,600,240,z);
+  for(let x=-600;x<=600;x+=120) for(let z=-1300;z<=1300;z+=120) lat.push(x,180,z,x,300,z);
+  const lattice=new THREE.LineSegments(geo(lat),lm(0x8fa0ff,.10)); groups.info.add(lattice);
+  const CN=mobile?420:1000, cp=new Float32Array(CN*3); for(let i=0;i<CN;i++){ cp[3*i]=(Math.random()-.5)*1400; cp[3*i+1]=170+Math.random()*260; cp[3*i+2]=(Math.random()-.5)*2800; }
+  const cloud=new THREE.Points(geo(cp),pm(0x9fb0ff,4,.55)); groups.info.add(cloud);
+
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
+  // 碧：二の鳥居と三の鳥居のあいだ、参道の上。光の柱（遠くからも見える）・光の玉・Qualium の五つの段の輪
+  const near=meta.center.reduce((a,c)=>Math.abs(c[2]+640)<Math.abs(a[2]+640)?c:a);
+  const AO=new THREE.Vector3(near[0],near[1],near[2]);
+  const beam=new THREE.LineSegments(geo([AO.x,AO.y,AO.z,AO.x,AO.y+320,AO.z]),lm(COL.aoi,.9)); S.add(beam);
+  const orbT=document.createElement('canvas'); orbT.width=orbT.height=128; { const x=orbT.getContext('2d'), g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(234,255,250,1)'); g.addColorStop(.25,'rgba(160,240,246,.85)'); g.addColorStop(.55,'rgba(92,200,224,.25)'); g.addColorStop(1,'rgba(70,170,210,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); }
+  const orb=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(orbT),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,toneMapped:false}));
+  orb.position.set(AO.x,AO.y+3.4,AO.z); orb.scale.setScalar(2.6); S.add(orb);
+  const stages=new THREE.Group(); stages.position.copy(AO); S.add(stages);
+  const stP=[]; for(let k=0;k<5;k++){ const a=k/5*6.283; stP.push(Math.cos(a)*4.2,1.4,Math.sin(a)*4.2); } const stPts=new THREE.Points(geo(stP),pm(COL.aoi,1.1,1)); stages.add(stPts);
+  const stR=[]; for(let k=0;k<60;k++){ const a=k/60*6.283,b=(k+1)/60*6.283; stR.push(Math.cos(a)*4.2,1.4,Math.sin(a)*4.2,Math.cos(b)*4.2,1.4,Math.sin(b)*4.2); } stages.add(new THREE.LineSegments(geo(stR),lm(COL.aoi,.35)));
+  // 碧の姿（あとから読む）：同じ骨に、ホログラム（網目の光）と、色と肉体をもつ姿（MToon）の二つを重ねる。
+  // 最後の拍で、足もとから光の帯が上がり、ホログラムから肉体の碧へ移る（クリップ面）。腕は脇へ下ろす（氷川幽玄と同じ値）
+  let vrm=null, mot=null; const clipBody=new THREE.Plane(new THREE.Vector3(0,-1,0),-1e4), clipHolo=new THREE.Plane(new THREE.Vector3(0,1,0),1e4);
+  R.localClippingEnabled=true;
+  const holoMats=[], bodyMs=[], hbMs=[];
+  const scanG=new THREE.Group(); { const r=[]; for(let k=0;k<64;k++){ const a=k/64*6.283,b=(k+1)/64*6.283; r.push(Math.cos(a)*.42,0,Math.sin(a)*.42,Math.cos(b)*.42,0,Math.sin(b)*.42); } scanG.add(new THREE.LineSegments(geo(r),lm(0xc6f8f2,.9))); } scanG.visible=false; S.add(scanG);
+  const pose=v=>{ const N=n=>v.humanoid.getNormalizedBoneNode(n); const set=(n,x,y,z)=>{ const o=N(n); if(o) o.rotation.set(x,y,z); };
+    // 腕の休めの形＝02_プロジェクト/02_プロジェクト/03_開発中（非公開）/01_碧/02_碧の身体/aoi_pose.js の写し（前腕 Y：左は負・右は正）
+    set('leftUpperArm',-.12,0,-1.28); set('rightUpperArm',-.12,0,1.28); set('leftLowerArm',0,-.28,0); set('rightLowerArm',0,.28,0); set('leftHand',0,0,0); set('rightHand',0,0,0); };
+  const loadAoi=async()=>{ try{
+      const V=await import('@pixiv/three-vrm'); const L=new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); L.register(p=>new V.VRMLoaderPlugin(p));
+      const g=await L.parseAsync((await (window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())))).slice(0),'');   /* 碧の 3D はページで一度だけ取りに行く */ const v=g.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(g.scene); V.VRMUtils.rotateVRM0(v);
+      pose(v); v.update(0);
+      const holo=[]; v.scene.traverse(o=>{ if(!o.isMesh) return; o.frustumCulled=false; bodyMs.push(o);
+        [].concat(o.material).forEach(m=>{ m.clippingPlanes=[clipBody]; m.clipping=true; m.needsUpdate=true; });
+        const hm=new THREE.MeshBasicMaterial({color:0x5fd8e0,wireframe:true,transparent:true,opacity:.42,blending:THREE.AdditiveBlending,depthWrite:false,clippingPlanes:[clipHolo],toneMapped:false});
+        const hb=new THREE.MeshBasicMaterial({color:0x1d8f9e,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false,clippingPlanes:[clipHolo],toneMapped:false});
+        holoMats.push(hm,hb); holo.push([o,hm],[o,hb]); });
+      holo.forEach(([o,m])=>{ const c=o.isSkinnedMesh?new THREE.SkinnedMesh(o.geometry,m):new THREE.Mesh(o.geometry,m); if(!m.wireframe) hbMs.push(c); if(o.isSkinnedMesh) c.bind(o.skeleton,o.bindMatrix); c.frustumCulled=false; c.renderOrder=2; o.parent.add(c); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); });
+      v.scene.position.copy(AO); v.scene.rotation.y=0; S.add(v.scene); vrm=v; try{ clipBody.constant=1e4; if(R.compileAsync) await R.compileAsync(S,cam); v.scene.traverse(o=>{ if(o.material) [].concat(o.material).forEach(m=>{ for(const u of Object.values(m.uniforms||{})) if(u&&u.value&&u.value.isTexture) R.initTexture(u.value); if(m.map) R.initTexture(m.map); }); }); clipBody.constant=-1e4; }catch(e){}
+      /* 2026-10-12 本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」：息・重心の移し・目と頭・まばたき・小さな表情（共通部品 js/aoi_motion.js） */
+      try{ const {AoiMotion}=await import('./js/aoi_motion.js'); mot=new AoiMotion(v,{root:v.scene,reducedMotion:reduce,wind:0,faceViewer:false,startCalm:0,posture:'upright'});   /* 2026-10-13 本人「HPの碧はまっすぐ立っていてください。姿勢は良くしていながら、自然な仕草にしてください。」 */ }catch(e){ console.warn('aoi motion',e); }
+      window.__aoi='ok';
+    }catch(e){ window.__aoi='error'; console.warn('aoi',e); } };
+  // 参道の 3D（色と光のある姿。氷川幽玄の素材：地形＋空中写真、PLATEAU の建物、欅の型）。最後の拍で、線の上に重なって現れる
+  const world=new THREE.Group(); world.visible=false; S.add(world); const worldMats=[];
+  const hemi=new THREE.HemisphereLight(0xd8ecff,0x3a3428,0), sun=new THREE.DirectionalLight(0xfff1dc,0); sun.position.set(-200,400,300); S.add(hemi,sun);
+  const load3D=async()=>{ try{
+      const L=new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); const TL=new THREE.TextureLoader();
+      const [tg,bg,kg,photo]=await Promise.all([L.loadAsync('img/hero/3d/terrain_lite.glb'),L.loadAsync('img/hero/3d/buildings_lite.glb'),L.loadAsync('img/hero/3d/keyaki_lod1_notex.glb'),TL.loadAsync('img/hero/3d/tex_photo_s.jpg')]);
+      photo.colorSpace=THREE.SRGBColorSpace;
+      tg.scene.traverse(o=>{ if(o.isMesh){ if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); o.material=new THREE.MeshStandardMaterial({map:photo,roughness:1,metalness:0,transparent:true,opacity:0}); worldMats.push(o.material); } });
+      bg.scene.traverse(o=>{ if(o.isMesh){ if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); o.material=new THREE.MeshStandardMaterial({color:0xffffff,vertexColors:!!o.geometry.attributes.color,flatShading:true,roughness:.9,metalness:0,transparent:true,opacity:0}); worldMats.push(o.material); } });
+      const chunk=(root,n)=>{ const out=[]; root.updateMatrixWorld(true); root.traverse(o=>{ if(!o.isMesh||!o.geometry.index) return; const g=o.geometry, P=g.attributes.position, I=g.index.array, M=o.matrixWorld, v=new THREE.Vector3();
+          const zs=new Float32Array(I.length/3); let z0=1e9,z1=-1e9; for(let t=0;t<zs.length;t++){ let z=0; for(let j=0;j<3;j++){ v.fromBufferAttribute(P,I[3*t+j]).applyMatrix4(M); z+=v.z; } zs[t]=z/3; if(zs[t]<z0) z0=zs[t]; if(zs[t]>z1) z1=zs[t]; }
+          const bins=Array.from({length:n},()=>[]); for(let t=0;t<zs.length;t++){ const b=Math.min(n-1,Math.floor((zs[t]-z0)/(z1-z0+1e-6)*n)); bins[b].push(I[3*t],I[3*t+1],I[3*t+2]); }
+          bins.forEach(ix=>{ if(!ix.length) return; const ng=new THREE.BufferGeometry(); for(const k in g.attributes) ng.setAttribute(k,g.attributes[k]); ng.setIndex(ix);
+            const bx=new THREE.Box3(); for(let j=0;j<ix.length;j++) bx.expandByPoint(v.fromBufferAttribute(P,ix[j])); ng.boundingBox=bx; ng.boundingSphere=bx.getBoundingSphere(new THREE.Sphere());
+            const m=new THREE.Mesh(ng,o.material); m.matrixAutoUpdate=false; m.matrix.copy(M); m.matrixWorld.copy(M); out.push(m); }); });
+        const G=new THREE.Group(); out.forEach(m=>G.add(m)); return G; };
+      world.add(chunk(tg.scene,16),chunk(bg.scene,24));   // 南北に区画を分ける（参道は南北に長いので）
+      // 欅：型を参道の木の位置に並べる（並木は模式の位置を含む）
+      const proto=[]; kg.scene.updateMatrixWorld(true); kg.scene.traverse(o=>{ if(o.isMesh) proto.push(o); });
+      const box=new THREE.Box3().setFromObject(kg.scene), hh=box.max.y-box.min.y||1;
+      proto.forEach(pm=>[[0,LOD_NEAR-LOD_BAND,false],[LOD_NEAR-LOD_BAND,LOD_NEAR+LOD_BAND,true]].forEach(([r0,r1,band])=>{ const mat=new THREE.MeshStandardMaterial({color:/leaf|葉|crown/i.test(pm.material.name||pm.name)?0x4f7a3c:0x5a4636,roughness:.95,transparent:true,opacity:0,side:THREE.DoubleSide}); if(band) xfade(mat,true); worldMats.push(mat);
+        const TR=meta.trees.filter(([x,y,z])=>{ const d=Math.hypot(x-AO.x,z-AO.z); return d>=r0&&d<r1; });   // 近く：欅の型そのもの（LOD0）。帯の中だけ混ぜる
+        const im=new THREE.InstancedMesh(pm.geometry,mat,TR.length), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(), ps=new THREE.Vector3();
+        TR.forEach(([x,y,z],i)=>{ const s=(15+(i*37%9))/hh; q.setFromAxisAngle(new THREE.Vector3(0,1,0),i*2.39); sc.setScalar(s); ps.set(x,y-box.min.y*s,z); m4.compose(ps,q,sc).multiply(pm.matrixWorld); im.setMatrixAt(i,m4); });
+        im.computeBoundingSphere(); world.add(im); }));
+      // 中・遠の木（Unity の LOD と同じ考え）：距離で型を替える。中＝幹と三つの樹冠のかたまり（約 90 面）、遠＝幹と一つの樹冠（約 30 面）。色は頂点の色で、描く回数は二回だけ
+      const lowTree=(k)=>{ const parts=[], col=(g,c)=>{ const n=g.attributes.position.count, a=new Float32Array(n*3), C=new THREE.Color(c); for(let i=0;i<n;i++){ a[3*i]=C.r; a[3*i+1]=C.g; a[3*i+2]=C.b; } g.setAttribute('color',new THREE.BufferAttribute(a,3)); return g; };
+        const tr=new THREE.CylinderGeometry(.25,.45,7,k?5:4,1,true); tr.translate(0,3.5,0); parts.push(col(tr,0x5a4636));
+        const blobs=k?[[0,11.6,0,4.6],[-2.8,10,1.3,3.6],[2.7,10.2,-1.2,3.7],[1.1,9.4,2.8,3.3],[-1.4,9.6,-2.8,3.4]]:[[0,10.5,0,6]];
+        blobs.forEach(([x,y,z,r])=>{ const g=new THREE.IcosahedronGeometry(1,0); g.scale(r,r*.82,r); g.translate(x,y,z); parts.push(col(g,0x4f7a3c)); });
+        const G=mergeGeometries(parts.map(g=>g.index?g.toNonIndexed():g)); G.computeVertexNormals(); return G; };
+      [[LOD_NEAR-LOD_BAND,LOD_NEAR+LOD_BAND,1,true],[LOD_NEAR+LOD_BAND,LOD_MID,1,false],[LOD_MID,1e9,0,false]].forEach(([r0,r1,k,band])=>{ const T=meta.trees.filter(([x,y,z])=>{ const d=Math.hypot(x-AO.x,z-AO.z); return d>=r0&&d<r1; });
+        const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,flatShading:!k,transparent:true,opacity:0}); if(band) xfade(mat,false); worldMats.push(mat);
+        const im=new THREE.InstancedMesh(lowTree(k),mat,T.length), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(), ps=new THREE.Vector3(), up=new THREE.Vector3(0,1,0);
+        T.forEach(([x,y,z],i)=>{ const s=(15+(i*37%9))/16; q.setFromAxisAngle(up,i*2.39); sc.setScalar(s); ps.set(x,y,z); m4.compose(ps,q,sc); im.setMatrixAt(i,m4); }); im.computeBoundingSphere(); world.add(im); });
+      const [rg,sg,pg2,place]=await Promise.all([L.loadAsync('img/hero/3d/road.glb'),L.loadAsync('img/hero/3d/structures.glb'),L.loadAsync('img/hero/3d/props.glb'),fetch('img/hero/3d/place.json').then(r=>r.json())]);
+      const RC={asphalt_dark:0x3c3f42,asphalt_light:0x66696b,bed:0x3d3226,concrete:0xa29f98,granite_band:0x8c8c88,granite_black:0x4a4a4a,granite_light:0xa8a6a0,granite_plaza:0x9a9893,gravel:0xbdb5a5,lawn:0x5b7a3e,paint:0xe6e4dc,roots:0x4a3b2b,sand:0xc6b694,sidewalk:0x9d988f,stone:0x88847d,washed:0xa59d8f};
+      rg.scene.traverse(o=>{ if(o.isMesh){ const k=(o.material&&o.material.name)||o.name.split('|')[0]; if(!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); o.material=new THREE.MeshStandardMaterial({color:RC[k]??0x8a8780,roughness:1,metalness:0,transparent:true,opacity:0,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}); worldMats.push(o.material); } });
+      world.add(rg.scene);
+      const models={}; sg.scene.traverse(o=>{ if(o.name&&!o.name.endsWith('_mesh')&&o.parent===sg.scene) models[o.name]=o; });
+      sg.scene.traverse(o=>{ if(o.isMesh){ [].concat(o.material).forEach(m=>{ m.transparent=true; m.opacity=0; worldMats.push(m); }); } });
+      { sg.scene.updateMatrixWorld(true); const byM={}; place.struct.forEach(it=>{ if(models[it.m]) (byM[it.m]=byM[it.m]||[]).push(it); }); const Pm=new THREE.Matrix4(), Q=new THREE.Quaternion(), Y=new THREE.Vector3(0,1,0), Ps=new THREE.Vector3(), Sc=new THREE.Vector3(), inv=new THREE.Matrix4(), rel=new THREE.Matrix4();
+  Object.entries(byM).forEach(([k,its])=>{ const m=models[k]; inv.copy(m.matrixWorld).invert(); m.traverse(o=>{ if(!o.isMesh) return; rel.multiplyMatrices(inv,o.matrixWorld); const im=new THREE.InstancedMesh(o.geometry,o.material,its.length);
+    its.forEach((it,i)=>{ Ps.set(it.p[0],it.p[1],it.p[2]); Q.setFromAxisAngle(Y,it.r); Sc.setScalar(it.s||1); Pm.compose(Ps,Q,Sc).multiply(rel); im.setMatrixAt(i,Pm); }); im.computeBoundingSphere(); world.add(im); }); }); }
+      const PM={}; pg2.scene.updateMatrixWorld(true); pg2.scene.traverse(o=>{ if(o.isMesh){ const k=o.name.split('|')[0]; (PM[k]=PM[k]||[]).push(o); [].concat(o.material).forEach(m=>{ m.transparent=true; m.opacity=0; worldMats.push(m); }); } });
+      const m4=new THREE.Matrix4(), q=new THREE.Quaternion(), sc=new THREE.Vector3(1,1,1), ps=new THREE.Vector3(), up=new THREE.Vector3(0,1,0);
+      Object.entries(place.props).forEach(([k,arr])=>{ (PM[k]||[]).forEach(src=>{ const im=new THREE.InstancedMesh(src.geometry,src.material,arr.length);
+        arr.forEach((a,i)=>{ ps.set(a[0],hAt(a[0],a[1]),a[1]); q.setFromAxisAngle(up,a[2]); sc.setScalar(a[3]||1); m4.compose(ps,q,sc).multiply(src.matrixWorld); im.setMatrixAt(i,m4); }); world.add(im); }); });
+      // 先に組み立てておく（初めて見えたときの引っかかりを防ぐ）：材質の組み立てと、絵を GPU へ送るのを、見えないうちに済ませる
+      try{ const vis0=world.visible; world.visible=true; const ms=[]; world.traverse(o=>{ if(o.material) [].concat(o.material).forEach(m=>{ ms.push([m,m.transparent,m.opacity]); m.transparent=true; }); });
+        if(R.compileAsync) await R.compileAsync(S,cam); else R.compile(S,cam);
+        world.traverse(o=>{ if(o.material) [].concat(o.material).forEach(m=>{ for(const k of ['map','normalMap','roughnessMap','metalnessMap','aoMap']) if(m[k]) R.initTexture(m[k]); }); });
+        ms.forEach(([m,tr])=>{ m.transparent=tr; }); world.visible=vis0; lastEs=-1; }catch(e){}
+      freeze();   // 高速化：置き終えた 3D は、毎こまの行列の計算から外す
+      window.__world='ok'; window.__sc={world,groups,R,S,parts:{terrain:tg.scene,buildings:bg.scene,road:rg.scene}}; window.__wb=[tg.scene,bg.scene].map(o=>{ const b=new THREE.Box3().setFromObject(o); let a=[]; o.traverse(m=>{ if(m.isMesh) a.push(Object.keys(m.geometry.attributes).join('/')); }); return [b.min.toArray().map(Math.round),b.max.toArray().map(Math.round),a.slice(0,2)]; });
+    }catch(e){ window.__world='error'; console.warn('world',e); } };
+  function xfade(mat,keepNear){ mat.onBeforeCompile=sh=>{ sh.uniforms.aoXZ={value:new THREE.Vector2(AO.x,AO.z)};
+      sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform vec2 aoXZ; varying float vD;').replace('#include <begin_vertex>','#include <begin_vertex>\nvD=length((instanceMatrix*vec4(0.,0.,0.,1.)).xz-aoXZ);');
+      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vD;').replace('void main() {','void main() {\n float xf=smoothstep('+(LOD_NEAR-LOD_BAND).toFixed(1)+','+(LOD_NEAR+LOD_BAND).toFixed(1)+',vD); float hh=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453);\n if('+(keepNear?'hh<xf':'hh>=xf')+') discard;'); }; mat.customProgramCacheKey=()=>'xf'+keepNear; }
+  const bgA=new THREE.Color(0x03060f), bgB=new THREE.Color(0x30506a), fogC=new THREE.Color();
+
+  await yieldT();   // 高速化：組み立てを小分けにして、長い処理で画面を止めない
+  // 粒：人の流れ（参道に沿って行き来）・データの流れ（観察記録 → 碧）・上空から碧へ
+  const C=meta.center, CL=C.length;
+  const PN=mobile?140:320, pp=new Float32Array(PN*3), pd=[]; for(let i=0;i<PN;i++) pd.push({t:Math.random(),v:(Math.random()<.5?1:-1)*(0.01+Math.random()*0.02),o:(Math.random()-.5)*14});
+  const people=new THREE.Points(geo(pp),pm(COL.people,1.6,.9)); groups.people.add(people);
+  const DN=mobile?100:240, dp=new Float32Array(DN*3), dd=[]; for(let i=0;i<DN;i++){ const k=i%meta.obs.length, a=meta.obs[k]; dd.push({a:[a[0],hAt(a[0],a[1])+38,a[1]],t:Math.random(),s:.08+Math.random()*.15}); }
+  const data=new THREE.Points(geo(dp),pm(COL.info,1.1,.8)); groups.info.add(data);
+  const UN=mobile?70:150, up=new Float32Array(UN*3), ud=[]; for(let i=0;i<UN;i++) ud.push({t:Math.random(),s:.05+Math.random()*.1,r:Math.random()*3});
+  const fall=new THREE.Points(geo(up),pm(COL.aoi,0.6,.55)); S.add(fall);
+
+  // カメラの道：上空 → 参道の南の端 → 地面の高さで北へ → 碧の前
+  const at=d=>{ const f=Math.max(0,Math.min(CL-1,d*(CL-1))), i=Math.min(CL-2,Math.floor(f)), u=f-i, A=C[i], B=C[i+1]; return new THREE.Vector3(A[0]+(B[0]-A[0])*u,A[1]+(B[1]-A[1])*u,A[2]+(B[2]-A[2])*u); };
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const iA=C.indexOf(near), dA=iA/(CL-1);
+  const KP=[0,.12,.26,.40,.54,.68,.82,.92,1];
+  const pos=[V(520,760,1500),V(300,420,1150),V(160,190,980),V(70,70,760),at(.22).add(V(10,22,40)),at(.45).add(V(6,6,30)),at(dA-.02).add(V(1.4,1.8,0)),AO.clone().add(V(1.1,1.6,3.6)),AO.clone().add(V(.42,1.5,1.12))];   // 最後は碧の胸から上（約 1.2 m・目の高さ・斜め 20° ほど）へ、ゆっくり寄る
+  const tgt=[V(-40,0,-200),V(-20,0,-150),at(.2),at(.33),at(.45).add(V(0,6,0)),at(.62).add(V(0,4,0)),AO.clone().add(V(0,1.2,0)),AO.clone().add(V(0,1.38,0)),AO.clone().add(V(0,1.43,0))];
+  const PC=new THREE.CatmullRomCurve3(pos), TC=new THREE.CatmullRomCurve3(tgt);
+  const along=(cur,p)=>{ for(let j=0;j<KP.length-1;j++) if(p<=KP[j+1]){ let f=(p-KP[j])/(KP[j+1]-KP[j]); f=f*f*(3-2*f); return cur.getPoint((j+f)/(KP.length-1)); } return cur.getPoint(1); };
+  // 拍ごとに、どの層を明るくするか
+  const focus=p=>({nature:p>.2&&p<.31?1:0, culture:p>.32&&p<.43?1:0, people:p>.44&&p<.55?1:0, info:(p<.17||(p>.56&&p<.67))?1:0});
+  const baseOp=new Map(); Object.values(groups).forEach(g=>g.traverse(o=>{ if(o.material) baseOp.set(o,o.material.opacity); }));
+  const OPS={}; for(const k of ['base','nature','culture','people','info']){ OPS[k]=[]; groups[k].traverse(o=>{ if(o.material&&baseOp.has(o)) OPS[k].push([o.material,baseOp.get(o)]); }); }
+  const baseKeys=['base'];
+
+  const labPos={ ichi:V(...meta.marks[0].p).add(V(0,18,0)), ni:V(...meta.marks[1].p).add(V(0,16,0)), san:V(...meta.marks[3].p).add(V(0,12,0)), romon:V(...meta.marks[4].p).add(V(0,14,0)), aoi:AO.clone().add(V(0,3.4,0)) };
+  for(let k=0;k<5;k++){ const a=k/5*6.283; labPos['st'+k]=AO.clone().add(V(Math.cos(a)*4.2,1.4,Math.sin(a)*4.2)); }
+
+  let lastEs=-1, ema=16, slow=0, veryslow=0, W=0,H=0,prog=0,target=0,px=0,py=0,pxT=0,pyT=0,run=true,last=performance.now(),raf=0;
+  const t0=performance.now();
+  const labM=new Map(), beatBox=new Map();
+  const measureLabs=()=>{ const st=root.querySelector('.scene-sticky'), sr=st.getBoundingClientRect(); labs.forEach(el=>labM.set(el,[el.offsetLeft,el.offsetTop,el.offsetWidth,el.offsetHeight]));
+    beats.forEach(bt=>{ const ch=bt.children.length?[...bt.children]:[bt]; beatBox.set(bt,ch.map(e=>{ const r=e.getBoundingClientRect(); return [r.left-sr.left,r.top-sr.top,r.width,r.height]; }).filter(b=>b[2]>0)); }); };
+  document.addEventListener('hp-lang-change',()=>setTimeout(measureLabs,60));
+  try{ document.fonts.ready.then(()=>measureLabs()); }catch(e){}
+  const size=()=>{ const st=root.querySelector('.scene-sticky'); W=st.clientWidth; H=st.clientHeight; R.setSize(W,H,false); cam.aspect=W/H; cam.fov=W<H?72:58; cam.updateProjectionMatrix(); measureLabs(); };
+  const stk=root.querySelector('.scene-sticky'); let fadeO=1;
+  // 高速化（2026-10-06）：場面の位置と高さは、大きさが変わったときだけ測る（毎こま getBoundingClientRect で配置の計算をやり直させない）
+  let rootTop=0, rootH=0, vh=innerHeight; const geom=()=>{ const r=root.getBoundingClientRect(); rootTop=r.top+scrollY; rootH=r.height; vh=innerHeight; };
+  geom(); new ResizeObserver(geom).observe(root); addEventListener('resize',geom); try{ document.fonts.ready.then(geom); }catch(e){}
+  const readScroll=()=>{ if(root.classList.contains('scene-static')){ target=0.02; if(fadeO!==1){ fadeO=1; stk.style.opacity=''; } return; } const innerHeight=vh, span=rootH-innerHeight, hold=Math.min(span*.2,innerHeight), y=scrollY-rootTop;
+    target=span>hold?Math.max(0,Math.min(1,y/(span-hold))):0;   // 最後の 100svh は寄りの碧のまま止まる（2026-10-06 検証 r2）
+    const fd=innerHeight*.5, f=Math.max(0,Math.min(1,(y-(span-fd))/fd)), o=+(1-f*f*(3-2*f)).toFixed(3);   // 最後の半画面で薄れ、下から使命が重なって上がる
+    if(o!==fadeO){ fadeO=o; stk.style.opacity=o<1?o:''; stk.style.pointerEvents=o<.5?'none':''; } };
+  const beatOp=(el,p)=>{ const a=+el.dataset.a, b=+el.dataset.b, e=.025, eo=.016; if(a===0&&p<e) return 1; return p<a||p>b?0:Math.min(1,(p-a)/e,(b-p)/eo); };
+  const v3=new THREE.Vector3(), tmp=new THREE.Vector3();
+  function frame(now){
+    const dt=Math.min(.05,(now-last)/1000); last=now; const t=(now-t0)/1000;
+    prog+=(target-prog)*Math.min(1,dt*5); if(SNAP) prog=target; px+=(pxT-px)*Math.min(1,dt*3); py+=(pyT-py)*Math.min(1,dt*3);
+    const p=prog, cpos=along(PC,p), ctg=along(TC,p);
+    const amp=Math.max(0.4, cpos.y*0.05);
+    cam.position.set(cpos.x+px*amp*6, cpos.y+py*amp*3, cpos.z); cam.lookAt(ctg);
+    const em=Math.max(0,Math.min(1,(p-.91)/.09)), es=em*em*(3-2*em), wf=1-.55*es;   // 線から 3D へ：91% から、ゆっくり
+    const f=focus(p); for(const k of ['base','nature','culture','people','info']){ const m=k==='base'?1:1+f[k]*1.4, dim=k!=='base'&&(f.nature||f.culture||f.people||(f.info&&p>.5))&&!f[k]?.55:1; const L=OPS[k]; for(let i=0;i<L.length;i++) L[i][0].opacity=Math.min(1,L[i][1]*m*dim)*wf; }
+    // 粒
+    const mv=reduce?0:1;
+    for(let i=0;i<PN;i++){ const d=pd[i]; d.t=(d.t+d.v*dt*mv+1)%1; const j=d.t*(CL-1), a=C[Math.floor(j)], b=C[Math.min(CL-1,Math.floor(j)+1)], u=j%1; pp[3*i]=a[0]+(b[0]-a[0])*u+d.o; pp[3*i+1]=a[1]+(b[1]-a[1])*u+1.2; pp[3*i+2]=a[2]+(b[2]-a[2])*u; }
+    people.geometry.attributes.position.needsUpdate=true;
+    for(let i=0;i<DN;i++){ const d=dd[i]; d.t=(d.t+d.s*dt*mv)%1; const e=d.t, A=d.a; dp[3*i]=A[0]+(AO.x-A[0])*e; dp[3*i+1]=A[1]+(AO.y+3.4-A[1])*e+Math.sin(e*3.14)*30; dp[3*i+2]=A[2]+(AO.z-A[2])*e; }
+    data.geometry.attributes.position.needsUpdate=true;
+    for(let i=0;i<UN;i++){ const d=ud[i]; d.t=(d.t+d.s*dt*mv)%1; up[3*i]=AO.x+Math.cos(i)*d.r; up[3*i+1]=AO.y+320-(316.6)*d.t; up[3*i+2]=AO.z+Math.sin(i)*d.r; }
+    fall.geometry.attributes.position.needsUpdate=true;
+    stages.rotation.y=t*0.35*mv; stPts.material.opacity=1-.8*es; orb.scale.setScalar(2.6*(1+0.08*Math.sin(t*1.7)));
+    // 最後の拍：情報空間（線）と、色と光のある参道・肉体の碧が重なる
+    if(vrm){ const hy=AO.y-.05+1.8*es; clipBody.constant=em<=0?-1e4:hy; clipHolo.constant=em<=0?1e4:-hy; if(em>=1){ clipBody.constant=1e4; } scanG.visible=em>0&&em<.96; scanG.position.set(AO.x,hy,AO.z);
+      if(mot) mot.update(dt,cam); else vrm.update(dt); holoMats.forEach(m=>m.opacity=m.wireframe?.42*(1-.75*es):.18*(1-es)); const bv=em>0; if(bodyMs.length&&bodyMs[0].visible!==bv) bodyMs.forEach(o=>o.visible=bv); const hv=es<.995; if(hbMs.length&&hbMs[0].visible!==hv) hbMs.forEach(o=>o.visible=hv); }
+    world.visible=es>0.001; if(es!==lastEs){ for(let i=0;i<worldMats.length;i++){ const m=worldMats[i]; m.opacity=es; m.transparent=es<.999; m.depthWrite=es>.5; } lastEs=es; }
+    hemi.intensity=.55*es; sun.intensity=.9*es; R.toneMappingExposure=1-.22*es; R.setClearColor(fogC.copy(bgA).lerp(bgB,es)); S.fog.color.copy(fogC); S.fog.density=.00055+.0012*es;
+    beam.material.opacity=.9*(1-es); orb.material.opacity=1-.7*es;
+    { const hide=es>.6; groups.people.visible=!hide; cloud.visible=!hide; lattice.visible=!hide; }   // 3D の建物が見えたら、建物の線・上空の点の雲と格子は描かない（重なって見えないので）
+    R.render(S,cam);
+    const stat=root.classList.contains('scene-static');
+    const placed=[];
+    beats.forEach(el=>{ const o=stat?1:beatOp(el,p); el.style.opacity=o; el.style.visibility=o>0.01?'visible':'hidden'; el.classList.toggle('on',o>0.5); if(o>0.02){ const bb=beatBox.get(el); if(bb) bb.forEach(b=>placed.push(b)); } });
+    // 札：碧→段→鳥居（近い順）の順に置き、先に置いた札や最初の画面の文字と重なる札は出さない（2026-10-06 検証 r1）
+    const cand=[];
+    labs.forEach(el=>{ const k=el.dataset.lab; let P3=labPos[k]; if(!P3) return; if(k.startsWith('st')){ const a=(+k.slice(2))/5*6.283-stages.rotation.y; P3=tmp.set(AO.x+Math.cos(a)*4.2,AO.y+1.4,AO.z+Math.sin(a)*4.2); }
+      v3.copy(P3).project(cam); const dist=cam.position.distanceTo(P3), lo=+(el.dataset.a||0), hi=+(el.dataset.b||1);
+      const on=v3.z<1&&Math.abs(v3.x)<1.05&&Math.abs(v3.y)<1.05&&p>=lo&&p<=hi&&dist<(+(el.dataset.far||2500));
+      cand.push([el,on,(v3.x*.5+.5)*W,(-v3.y*.5+.5)*H,(k==='aoi'?0:k.startsWith('st')?1:2)*1e6+dist]); });
+    cand.sort((a,b)=>a[4]-b[4]);
+    cand.forEach(([el,on,x,y])=>{ let ok=on; const m=labM.get(el);
+      if(ok&&m&&(x+m[0]<2||x+m[0]+m[2]>W-2)) ok=false;
+      if(ok&&m){ const bx=[x+m[0]-4,y+m[1]-3,m[2]+8,m[3]+6]; for(const q of placed){ if(bx[0]<q[0]+q[2]&&q[0]<bx[0]+bx[2]&&bx[1]<q[1]+q[3]&&q[1]<bx[1]+bx[3]){ ok=false; break; } } if(ok) placed.push(bx); }
+      el.style.opacity=ok?1:0; el.style.transform=`translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; });
+  }
+  let lastMove=0, lastDraw=0; addEventListener('pointermove',()=>lastMove=performance.now(),{passive:true}); addEventListener('scroll',()=>lastMove=performance.now(),{passive:true});
+  const loop=now=>{ if(!run){ raf=0; return; } const idle=now-lastMove>600&&Math.abs(target-prog)<.0005; if(idle&&now-lastDraw<30){ raf=requestAnimationFrame(loop); return; } lastDraw=now; const d=now-last; readScroll(); if(target>.4) wantAoi(); if(target>.5) want3D(); frame(now); if(!idle) ema+=(Math.min(d,100)-ema)*.05;
+    if(ema>15.5){ if(++slow>60&&PR>PRmin){ PR=Math.max(PRmin,PR-.25); R.setPixelRatio(PR); size(); slow=0; ema=16; } } else slow=0;
+    if((typeof idle==='undefined'||!idle)&&PR<=PRmin&&d>45){ if(++veryslow>120){ run=false; raf=0; staticMode(); readScroll(); window.__gaveUp=1; return; } } else veryslow=0;
+    raf=requestAnimationFrame(loop); };
+  const go=()=>{ if(!raf&&!reduce){ last=performance.now(); raf=requestAnimationFrame(loop); } };
+  // 高速化（2026-10-06）：動かない物（線・地形・建物・木・構造物）は、行列を一度だけ計算して、毎こまの計算から外す。動く物（碧・段の輪・光の玉・走査の輪）だけ毎こま
+  const DYN=new Set([stages,orb,scanG]);
+  function freeze(){ const walk=o=>{ if(DYN.has(o)||(vrm&&o===vrm.scene)) return; if(o.matrixAutoUpdate){ o.updateMatrix(); o.matrixAutoUpdate=false; } o.updateMatrixWorld(true); o.children.forEach(walk); };
+    S.children.forEach(walk); S.matrixAutoUpdate=false; S.updateMatrix(); }
+  freeze();
+  size(); readScroll(); prog=target; frame(performance.now()); root.classList.add('scene-ready');
+  let askedAoi=false; const wantAoi=()=>{ if(askedAoi) return; askedAoi=true; (window.requestIdleCallback||(f=>setTimeout(f,200)))(loadAoi); };   // 高速化：碧（約 2 MB）は、参道に降りてきて（4 割）から読む。上空からは見えない大きさなので見た目は同じ
+  if(reduce) wantAoi(); let asked3D=false; const want3D=()=>{ if(asked3D) return; asked3D=true; (window.requestIdleCallback||(f=>setTimeout(f,200)))(load3D); };
+  if(reduce){ addEventListener('resize',()=>{ size(); frame(performance.now()); }); setTimeout(()=>frame(performance.now()),2500); return; }
+  addEventListener('pointermove',e=>{ if(e.pointerType==='mouse'){ pxT=(e.clientX/innerWidth-.5); pyT=-(e.clientY/innerHeight-.5); } },{passive:true});
+  addEventListener('deviceorientation',e=>{ if(e.gamma==null) return; pxT=Math.max(-.5,Math.min(.5,e.gamma/40)); pyT=Math.max(-.5,Math.min(.5,(e.beta-45)/60)); },{passive:true});
+  new IntersectionObserver(es=>{ run=es[0].isIntersecting; if(run) go(); }).observe(root);
+  document.addEventListener('visibilitychange',()=>{ run=!document.hidden; if(run) go(); });
+  addEventListener('resize',size);
+  go();
+}
+</script>
 <script>
 /* ===== 使命と層：見出しの行を、スクロールに合わせて浮かべる（3D がなくても動く） ===== */
 (function(){
