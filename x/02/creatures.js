@@ -540,6 +540,58 @@ export function makeTit(mat = stdMat, o = {}) {
 // ================================================================ 犬（柴犬・体高 35〜41 cm）
 //   赤毛に「裏白」（頬・のど・胸・腹・脚の内・尾の裏が白っぽい）。立った三角の耳、巻いた尾、黒い鼻、奥まった三角の目。
 export function makeDog(mat = stdMat, o = {}) {
+  // 小さな茶色いトイプードル。丸い巻き毛、垂れ耳、短いマズル。
+  const g = new T.Group(), coat=mk(mat,0x985c34,{rough:.95,phys:{sheen:.5,sheenColor:0xc58f62}}),
+    light=mk(mat,0xb47a4a,{rough:.95}), dark=mk(mat,0x27160e,{rough:.22});
+  const sphere=new T.SphereGeometry(1,20,14);
+  const puff=(parent,x,y,z,sx,sy,sz,m=coat)=>{
+    const mesh=new T.Mesh(sphere,m);mesh.position.set(x,y,z);mesh.scale.set(sx,sy,sz);parent.add(mesh);return mesh;
+  };
+  // 巻き毛はインスタンスで描き、毛玉ごとの描画呼び出しを増やさない。
+  const wool=(parent,c,r,n)=>{
+    puff(parent,...c,...r);
+    const curls=new T.InstancedMesh(new T.SphereGeometry(1,12,8),coat,n),a=new T.Object3D();
+    for(let i=0;i<n;i++){
+      const y=1-2*(i+.5)/n,phi=i*2.39996323,rad=Math.sqrt(1-y*y),v=new T.Vector3(Math.cos(phi)*rad,y,Math.sin(phi)*rad);
+      a.position.set(c[0]+r[0]*v.x,c[1]+r[1]*v.y,c[2]+r[2]*v.z);
+      const k=.018+.007*(.5+.5*Math.sin(i*9.31));a.scale.set(k,k*.82,k);a.updateMatrix();curls.setMatrixAt(i,a.matrix);
+    } curls.instanceMatrix.needsUpdate=true;parent.add(curls);
+  };
+  wool(g,[0,.43,0],[.17,.18,.30],230);
+  wool(g,[0,.53,.21],[.13,.18,.13],100);
+  const head=new T.Group();head.position.set(0,.72,.29);g.add(head);
+  wool(head,[0,0,0],[.18,.18,.16],180);
+  puff(head,0,-.075,.15,.115,.075,.10,light);
+  puff(head,0,-.045,.24,.043,.032,.027,dark);
+  for(const s of [-1,1]){
+    puff(head,s*.078,.018,.146,.034,.039,.024,dark);
+    puff(head,s*.068,.031,.166,.009,.011,.006,mk(mat,0xffffff,{rough:.1}));
+  }
+  const ears=[];
+  for(const s of [-1,1]){
+    const e=new T.Group();e.position.set(s*.16,.025,-.005);head.add(e);
+    wool(e,[s*.025,-.13,0],[.082,.16,.075],85);ears.push(e);
+  }
+  const legs=[];
+  for(const s of [-1,1])for(const front of [false,true]){
+    const l=new T.Group();l.position.set(s*.115,.40,front?.19:-.20);g.add(l);
+    wool(l,[0,-.13,0],[.065,.17,.065],65);
+    puff(l,0,-.34,.025,.076,.055,.095);legs.push({l,s,front});
+  }
+  const tail=new T.Group();tail.position.set(0,.52,-.28);g.add(tail);
+  wool(tail,[0,.11,-.035],[.052,.13,.052],45);wool(tail,[0,.23,-.04],[.075,.075,.075],45);
+  let speed=0,last=0,phase=0;
+  g.userData={kind:'inu',breed:'toy-poodle',head,legs,tail};
+  g.userData.animate=(t,moving=true)=>{
+    const dt=Math.min(.05,Math.max(0,t-last));last=t;speed+=(Number(moving)-speed)*Math.min(1,dt*5);phase+=dt*7*speed;
+    legs.forEach(({l,s,front})=>l.rotation.x=Math.sin(phase+(s<0?Math.PI:0)+(front?0:Math.PI))*.32*speed);
+    head.rotation.y=Math.sin(t*.8)*.055;head.rotation.x=Math.sin(phase)*.025*speed;
+    ears.forEach((e,i)=>e.rotation.z=(i?1:-1)*Math.sin(phase)*.055*speed);
+    tail.rotation.z=Math.sin(t*5)*.18;g.position.y=Math.sin(phase*2)*.004*speed;
+  };g.userData.animate(0,false);g.scale.setScalar(.64);const small=new T.Group();small.add(g);small.userData=g.userData;return small;
+}
+
+function makeShibaLegacy(mat = stdMat, o = {}) {
   //   2026-10-13：赤毛（毛の先が赤く、根もとの下毛は淡い）と裏白。二重の毛（上毛と、密な下毛）を毛の層で。尾はふさふさ。
   //   鼻は湿って細かい粒のある面（鼻鏡）、目は濡れた映りこみ、まぶたのふちは黒い。
   const g = new T.Group(); const R = 0xb8692f, Cr = 0xf3e9d6, RD = 0x9c5326, RL = 0xc98a50;
