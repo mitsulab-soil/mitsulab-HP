@@ -8,3 +8,20 @@
 #top .beat-hero .core-plain{max-width:760px;margin-inline:auto;line-height:2}
 #top .mx-l{border:0;border-radius:0;background:none;padding:.15em .35em;font-weight:400;letter-spacing:.18em;text-shadow:0 0 12px #03060f,0 0 4px #03060f}
 @media(max-width:700px){#top .scene-current-statement{font-size:28px;letter-spacing:.08em}#top .beat-hero .core-plain{font-size:13px;max-width:330px}#top .beat-mission .mission-k{font-size:9px;letter-spacing:.08em}#top .mx-l{letter-spacing:.08em}}
+
+/* 2026-10-16: one material language, from the opening landscape to cognitive tools. */
+.qt-mission h2{font-family:var(--serif);font-size:clamp(26px,2.8vw,40px);letter-spacing:.055em;line-height:1.75}
+html[data-lang=en] .qt-mission h2{font-family:var(--latin);letter-spacing:-.015em;line-height:1.35}
+.qt-wide{background:#030812}.qt-wide:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(#030812a8,transparent 20%,transparent 72%,#030812d9)}
+.qt-mode,.qt-place-label,.qt-mode-detail,.qt-pause{z-index:2}.qt-mode-detail{bottom:28px;max-width:730px;padding-right:120px}
+.qt-flow{height:680px;aspect-ratio:auto;margin:20px -20px 8px;background:radial-gradient(ellipse at 50% 56%,#133b4548,transparent 68%)}
+.qt-flow-nodes button{font-size:2.25cqw;letter-spacing:.12em;line-height:1.5;padding:8px 10px;text-shadow:0 2px 12px #030812,0 0 28px #030812}
+.qt-flow-nodes small{font-size:1.05cqw;color:#9abebc;letter-spacing:.04em;line-height:1.6}
+.qt-flow-nodes button[aria-pressed=true]{color:#d7f8e9;text-decoration:none}.qt-flow-nodes button[aria-pressed=true] span{border-bottom:1px solid #a4d9c2;padding-bottom:4px}
+.qt-flow-core span{font-size:3.35cqw;color:#dceee8}.qt-flow-core small{font-size:1.15cqw;letter-spacing:.12em;display:block;margin-top:9px}
+.qt-flow .qt-pause{bottom:2px;right:14px}.qt-flow[data-ready=fallback]{background:radial-gradient(ellipse,#16495370,transparent 68%)}
+@media(max-width:700px){.qt-mission h2{font-size:26px;letter-spacing:.02em;line-height:1.75}.qt-wide{height:640px}.qt-mode-detail{bottom:48px;left:24px;right:24px;padding-right:0;max-width:none;font-size:13px}.qt-flow{height:560px;margin-inline:-10px}.qt-flow-nodes button{font-size:4.2cqw;padding:10px 4px;letter-spacing:.07em}.qt-flow-nodes small{font-size:2.65cqw;letter-spacing:0;max-width:35cqw;white-space:normal}.qt-flow-core span{font-size:6cqw}.qt-flow-core small{font-size:2.7cqw;letter-spacing:.04em}.qt-flow .qt-pause{right:0;font-size:10px}}
+
+/* Preserve word groups and give each 3D diagram useful space on a phone. */
+.qt-mode{width:max-content}.qt-mode button{white-space:nowrap;flex-shrink:0}
+@media(max-width:700px){.qt-wide{height:420px}.qt-place-label{top:74px}.qt-mode-detail{bottom:48px;font-size:12px}.qt-flow-nodes button{font-size:3.9cqw}.qt-flow-core small{font-size:2.55cqw}.qt-flow-core span{font-size:5.8cqw}}
