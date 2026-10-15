@@ -163,3 +163,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 .p-law{flex-basis:100%;order:3;font-size:.78rem;color:var(--ml-ink-3);line-height:1.6}
 .p-head{flex-wrap:wrap}
 @media (max-width:720px){ .worlds-g button{font-size:.8rem} .worlds-h{font-size:.84rem} .tourcap{top:62px;font-size:14px} .p-law{display:none} }
+/* 音を聴く・重ねる・言葉からつくる */
+.soundActions,.mixControls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mixControls label{display:flex;gap:8px;align-items:center}#mixStatus{font-size:13px;color:#b6d3de}#generateForm{margin:14px 0}#generateForm>div{display:flex;gap:8px;margin:6px 0}#newSound{min-width:0;flex:1;padding:12px;background:#10232b;border:1px solid #557482;color:#eef7ff;border-radius:5px;font:inherit}#generateNote{color:#a8bec8}#soundSpace{height:230px;position:relative;border-top:1px solid #43616d}#spectrum{width:100%;height:205px;display:block}.spaceLabels{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#b6d3de}#panel{max-height:75dvh;overflow-y:auto}#sound .ask{margin-top:12px}@media(max-width:600px){#panel{max-height:65dvh}#soundSpace{height:190px}#spectrum{height:155px}.spaceLabels{font-size:9px}#generateForm>div{flex-wrap:wrap}#newSound{flex-basis:65%}.soundActions button{padding:8px 10px}}
+
+#mixStatus{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.mixControls label{white-space:nowrap}#soundSpace{margin-bottom:12px}

@@ -48,15 +48,27 @@ let portraitRenderer; const portraits = new Map();
 const PORTRAIT_T = { koumori: .04 };
 export function creaturePortrait(id, tOverride) {
   if (tOverride == null && portraits.has(id)) return portraits.get(id);
-  const renderer = portraitRenderer ||= (new T.WebGLRenderer({ alpha: true, antialias: true })); renderer.setSize(160, 120); renderer.setPixelRatio(1); renderer.outputColorSpace = T.SRGBColorSpace;
+  const renderer = portraitRenderer ||= (new T.WebGLRenderer({ alpha: true, antialias: true })); renderer.setSize(480, 360); renderer.setPixelRatio(1); renderer.toneMapping=T.ACESFilmicToneMapping; renderer.toneMappingExposure=.9; renderer.outputColorSpace = T.SRGBColorSpace;
   const scene = new T.Scene(); scene.add(new T.HemisphereLight(0xecf7e8, 0x313b30, 2)); const sun = new T.DirectionalLight(0xffe1b1, 3); sun.position.set(-2, 4, 3); scene.add(sun);
-  const body = makeBody(id); body.userData.animate(tOverride ?? PORTRAIT_T[id] ?? .13, id === 'koumori'); scene.add(body);
+  const body = makeBody(id); body.userData.animate(tOverride ?? PORTRAIT_T[id] ?? .13, id === 'koumori'); body.traverse(o=>{if(o.isMesh&&o.geometry.type==='SphereGeometry'){const a=o.geometry.parameters;if(a.widthSegments<32){const old=o.geometry;o.geometry=new T.SphereGeometry(a.radius,32,24,a.phiStart,a.phiLength,a.thetaStart,a.thetaLength);old.dispose();}}});scene.add(body);
   const box = new T.Box3().setFromObject(body), center = box.getCenter(new T.Vector3()); let size = box.getSize(new T.Vector3()).length();
   if (id === 'hito') { center.set(0, .9, 0); size *= .5; }   // ひとは胸から上を大きく（全身だと細く小さく見える）。2026-10-14：頭の上が枠で切れていた → 中心を上げ、少し引く
-  const cam = new T.PerspectiveCamera(30, 4 / 3, .01, 40); cam.position.copy(center).add(id === 'koumori' ? new T.Vector3(size * .1, size * .9, size * .5) : new T.Vector3(size * .75, size * .55, size * 1.45)); cam.lookAt(center); renderer.render(scene, cam);   // コウモリは斜め上から（広げた翼が見える）
+  const cam = new T.PerspectiveCamera(30, 4 / 3, .01, 40); cam.position.copy(center).add(id === 'koumori' ? new T.Vector3(size * .1, size * .9, size * .5) : new T.Vector3(size * .75, size * .55, size * 1.45)); cam.lookAt(center);cam.updateMatrixWorld(true);
+  if(id!=='hito'){const pts=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])pts.push(new T.Vector3(x,y,z).project(cam));const span=Math.max(...pts.map(p=>Math.abs(p.x)),...pts.map(p=>Math.abs(p.y)));cam.position.sub(center).multiplyScalar(Math.max(.55,span/.82)).add(center);cam.lookAt(center);}
+  renderer.render(scene, cam);   // コウモリは斜め上から（広げた翼が見える）
   const image = renderer.domElement.toDataURL('image/webp');
   body.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(m => m.dispose()); } });
   if (tOverride != null) return image;
   portraits.set(id, image); if (portraits.size === 8) { renderer.dispose(); renderer.forceContextLoss(); portraitRenderer = null; }
   return image;
+}
+
+// 既存のVRoidモデルの顔・髪・衣装をそのまま高解像度で描く。一度だけ描き、共有モデルは元へ戻す。
+export function humanPortrait(root,vrm){
+ const parent=root.parent, pos=root.position.clone(),q=root.quaternion.clone(),visible=root.visible;
+ const scene=new T.Scene(),r=new T.WebGLRenderer({alpha:true,antialias:true});r.setSize(480,360);r.outputColorSpace=T.SRGBColorSpace;r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.05;
+ scene.add(new T.HemisphereLight(0xe9f4ff,0x494939,2));const key=new T.DirectionalLight(0xffe9d8,2.4);key.position.set(-1,2,3);scene.add(key);
+ try{scene.add(root);root.position.set(0,0,0);root.rotation.set(0,0,0);root.visible=true;root.updateMatrixWorld(true);
+ const head=vrm.humanoid.getRawBoneNode('head').getWorldPosition(new T.Vector3());const c=new T.PerspectiveCamera(30,4/3,.01,20);c.position.set(head.x+.09,head.y+.06,head.z+1.25);c.lookAt(head.x,head.y-.07,head.z);r.render(scene,c);return r.domElement.toDataURL('image/webp',.95);
+ }finally{parent.add(root);root.position.copy(pos);root.quaternion.copy(q);root.visible=visible;root.updateMatrixWorld(true);r.dispose();r.forceContextLoss();}
 }

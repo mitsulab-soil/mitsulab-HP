@@ -5,7 +5,7 @@
    シェーダーで、受けとる細胞の感度から作った行列（uM）と紫外の写し先（uUVw）で置きかえる。近似（README）。
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
-import { makeBody, creaturePortrait, makeCreature } from "./bodies.js?v=20261014p2";
+import { makeBody, creaturePortrait, humanPortrait, makeCreature } from "./bodies.js?v=20261014p2";
 import { buildForest } from "./forest.js?v=20261013k80";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261013k80";
@@ -656,6 +656,7 @@ async function loadAoi() {
     // 2026-10-13：体の動き・目・まばたき・口・表情・裾の布は共通部品 AoiMotion に任せる（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）
     aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
     AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", faceLight: .6 }); AM.place(A.pos.x, A.pos.z, A.yaw);
+    try { const img = document.querySelector('#dial [data-id="hito"] img') || document.querySelector('.creaturePortrait'); if(img) {img.src=humanPortrait(aoi,v); img.alt='人の身体を表す碧の3D';} } catch(e) {console.warn('人の肖像',e);}
     opacity(0); window.__aoi = { vrm, aoi, A, M: AM };
   } catch (e) { console.warn("碧の姿を読み込めませんでした（声と字幕で案内します）：", e?.message ?? e); }
 }
@@ -1097,7 +1098,7 @@ function frame(now=0) {
     //   画面が横に広いと体が小さく見えるので大きく。見せ場は 3.6 秒。⟲ のボタン（showAgain）でもう一度見られる
     { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, sv = SHOW[lens] || SHOW.def, wide = innerWidth / innerHeight > 1.2 ? 1.3 : 1,
         k = (RM || KUR.on || lens === 'hito' || lens === 'mimizu') ? 0 :   /* くらべる旅では体の見せ場を出さない（答えの瞬間に自分の体が花をふさいだ・2026-10-14 r3） */ sstep(0, .5, u) * (1 - sstep(3.3, 4.1, u)), bp = BODYPOS[lens] || [-.27, -.65];
-      bodyRoot.rotation.set(sv.rx * k, Math.PI - k * sv.ry, 0, 'YXZ'); bodyRoot.position.set(k * .03, bp[0] + (sv.y - bp[0]) * k, bp[1] + (sv.z - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (1 + (sv.s * wide - 1) * k));
+      bodyRoot.rotation.set(0, Math.PI, 0, 'YXZ'); bodyRoot.position.set(0, bp[0] + (sv.y - bp[0]) * k, bp[1] + (sv.z - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (1 + (sv.s * wide - 1) * k));
       setBodyAlpha(lens, KUR.on ? k : .55 + .45 * k); if (KUR.on && k < .01) bodyRoot.visible = false; }   // くらべる旅では、見せ場のあとは自分の体を消して、見比べる花を隠さない（2026-10-14 r2：PC の犬が中央を占めた）
     if (quake > 0) { camera.position.y += (Math.random() - .5) * .02 * quake; quake = Math.max(0, quake - dt * 2); }
   }

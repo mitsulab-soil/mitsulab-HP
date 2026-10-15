@@ -61,7 +61,7 @@ export class QSynth {
   play(item, d = { dist: .5, hard: .5, light: .5 }, opt = {}) {
     const ctx = typeof OfflineAudioContext !== "undefined" && this.ctx instanceof OfflineAudioContext ? this.ctx : this.ensure(); if (!ctx) return 0;
     this.stop(.12);
-    const R = rng(seedOf(item.t)), score = compose(item, R, SCORES), W = score.world, T0 = ctx.currentTime + .06;
+    const R = rng(seedOf(item.t)), score = compose(item, R, SCORES), W = score.world, T0 = ctx.currentTime + .015;
     // 聴く人のつまみ
     const K = { atk: lerp(2.2, .45, d.hard), br: lerp(.6, 1.5, d.light) * lerp(1.1, .6, d.dist), tr: Math.pow(2, (d.light - .5) * 3 / 12), tilt: (d.light - .5) * 2.4, hard: d.hard, dist: d.dist, span: W.space.width * lerp(1.2, .3, d.dist) };
     // 道すじ：出来事 → 群れの暗さ → 直接音と群れの空間 → 圧縮へ
@@ -79,7 +79,9 @@ export class QSynth {
     const nodes = [], X = { ctx, out: evt, R, K, nodes, noise: this.noise, W };
     // 世界の地：どの行の下にも、基音 55 Hz とその群れの倍音がかすかにある（行どうしが同じ世界で響き合う）
     OPS.ground(X, T0, { dur: score.dur + .5, vol: .022, chord: W.ground.map(h => F0 * h) }, W);
-    for (const [t, op, p] of score.ops) { const fn = OPS[op]; if (fn) fn(X, T0 + t, p, W); }
+    const first=Math.min(...score.ops.map(o=>o[0]));
+    const fingerprint=seedOf(item.t), shift=Math.pow(2,((fingerprint%17)-8)/12), pace=.8+((fingerprint>>>8)%41)/100;
+    for (const [t,op,p] of score.ops){const fn=OPS[op];if(fn){const q={...p};if(!score.hand){if(q.chord)q.chord=q.chord.map(f=>f*shift);if(q.dur)q.dur*=pace;}fn(X,T0+Math.max(0,t-first)*(score.hand?1:pace),q,W);}}
     // このまま聴く：一行のあと、その群れの世界の響きが 45 秒ほど、ほとんど動かずに続く（深く聴くための持続）
     let total = score.dur;
     if (opt.long) { const hs = W.hs.slice().sort(() => R() - .5).slice(0, 3), ch = W.ground.map(h => F0 * h).concat(hs.map(h => W.under ? F0 * 16 / h : F0 * h)).map(f => { while (f > 900) f /= 2; return f; });

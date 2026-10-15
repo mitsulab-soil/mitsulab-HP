@@ -7,8 +7,9 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { applyAtmosphere, fitRenderer } from "../kit/atmosphere.js";
 import { WIND, rng, growTree, plantTrees, leafMaterial, barkMaterial, poisson, grassField, groundPlane } from "../kit/vegetation.js";
 import { LAYER, lineMaterial } from "../kit/layers.js";
-import { QSynth, readingOf } from "./synth.js";
+import { QSynth, readingOf, seedOf } from "./synth.js";
 
+import { SoundSpace } from "./sound-space.js";
 const D = window.QS_SOUNDS, ITEMS = D.items, TAGS = D.tags;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = id => document.getElementById(id);
@@ -100,52 +101,44 @@ const synth = new QSynth();
 let cur = null;
 const dials = () => ({ dist: +$("dDist").value / 100, hard: +$("dHard").value / 100, light: +$("dLight").value / 100 });
 const setDials = d => { $("dDist").value = Math.round(d.dist * 100); $("dHard").value = Math.round(d.hard * 100); $("dLight").value = Math.round(d.light * 100); };
-// 三つの鳴り：はじめ（言葉そのまま）・あなた（つまみ）・別の誰か（偶然に置いたつまみ）。順位はつけない
-const FIRST = { dist: .5, hard: .5, light: .5 };
-let other = null, playingWho = null; const heard = new Set();
-const WHO = { first: "bFirst", mine: "bMine", other: "bOther" };
-synth.onstate = on => { if (!on) playingWho = null; $("bLong").setAttribute("aria-pressed", String(on && playingWho === "long")); $("bLong").textContent = on && playingWho === "long" ? "■ 止める" : "このまま聴く"; for (const k in WHO) { const b = $(WHO[k]), p = on && playingWho === k; b.setAttribute("aria-pressed", String(p)); const nm = { first: "はじめの鳴り", mine: "あなたの鳴り", other: "別の誰かの鳴り" }[k]; b.lastChild.textContent = nm; b.classList.toggle("on", p); b.setAttribute("aria-label", p ? nm + "（止める）" : nm + "を鳴らす"); } };
-function markOther() { document.querySelectorAll(".m-other").forEach((m, i) => { m.hidden = !other; if (other) m.style.setProperty("--v", [other.dist, other.hard, other.light][i]); }); }
-function playAs(who) {
-  if (!cur || cur.quiet) return;
-  if (who === "other") { const r = Math.random; other = { dist: .08 + r() * .84, hard: .08 + r() * .84, light: .08 + r() * .84 }; markOther(); }
-  const d = who === "first" ? FIRST : who === "mine" ? dials() : other;
-  synth.play(cur, d); playingWho = who; synth.onstate(true); if (who !== "mine" || moved()) heard.add(who); talk(who);
-}
-const moved = () => { const d = dials(); return Math.abs(d.dist - .5) + Math.abs(d.hard - .5) + Math.abs(d.light - .5) > .03; };
-function talk(who) {
-  const n = heard.size;
-  if (who === "mine" && !moved()) { $("askQ").textContent = "つまみを動かすと、あなたの鳴りに"; }
-  else $("askQ").textContent = n >= 3 ? "三つとも、この一行の音です" : n === 2 ? "二つとも、この一行の音です" : heard.has("first") ? "あなたには、どう聞こえましたか" : "あなたには、どう聞こえそうですか";
-  $("askNote").textContent = who === "other" ? "別の誰かの鳴り：つまみを偶然の場所に置いた、もう一つの聞こえ方（金の印）。押すたびに置き場所が変わります。"
-    : who === "mine" ? (moved() ? "あなたの鳴り：あなたが置いたつまみの側へ寄せた音。はじめの鳴り（灰の印）から、どれだけ離れたかが見えます。" : "つまみを動かすと、あなたの鳴りになります（いまは、はじめの鳴りと同じ置き場所です）。")
-    : n >= 2 ? "どの鳴りにも、正しい・まちがいの順番はありません。" : "はじめの鳴り：言葉の中の語と字の並びから組み立てた、翻訳の模式のひとつ。つまみを動かして離すと「あなたの鳴り」が鳴ります。";
-}
-// このまま聴く：いまの「あなたの鳴り」の置き場所で、一行のあとに 45 秒ほど世界の響きを続ける
-$("bLong").addEventListener("click", () => { if (!cur || cur.quiet) return; if (synth.playing && playingWho === "long") { synth.stop(); return; } synth.play(cur, dials(), { long: true }); playingWho = "long"; synth.onstate(true); });
-for (const k in WHO) $(WHO[k]).addEventListener("click", () => { stopTour(); if (synth.playing && playingWho === k) synth.stop(); else playAs(k); });
-let dT = 0;
-for (const id of ["dDist", "dHard", "dLight"]) $(id).addEventListener("change", () => { clearTimeout(dT); dT = setTimeout(() => playAs("mine"), 200); });
+const FIRST = {dist:.5,hard:.5,light:.5};
+const second=new QSynth();let material=null,mixing=false;
+const space=new SoundSpace($('spectrum'),synth,second);
+function halt(){synth.stop(.06);second.stop(.06);mixing=false;}
+function playAs(){if(!cur||cur.quiet)return;halt();synth.play(cur,dials());}
+synth.onstate=on=>{$('bPlay').setAttribute('aria-pressed',String(on));};
+function mix(){if(!material||!cur||cur.quiet)return;halt();const ctx=synth.ensure();if(!second.ctx){second.attach(ctx);second.lim.disconnect();second.lim.connect(synth.lim);}synth.play(material,dials());second.play(cur,dials());mixing=true;balance();$('mixStatus').textContent=material.t+' ＋ '+cur.t;}
+function balance(){const r=+$('mixRatio').value/100;if(synth.out)synth.out.gain.setTargetAtTime(mixing?.9*Math.sqrt(1-r):1.45,synth.ctx.currentTime,.04);if(second.out)second.out.gain.setTargetAtTime(.9*Math.sqrt(r),second.ctx.currentTime,.04);}
+$('bPlay').onclick=()=>{playAs();balance();};$('bStop').onclick=()=>{stopTour();halt();};
+$('bKeep').onclick=()=>{if(!cur||cur.quiet)return;material={...cur};$('mixStatus').textContent='素材：'+material.t+'。次の音を選んで「二つを合成」。';};
+$('bMix').onclick=mix;$('bClearMix').onclick=()=>{material=null;halt();$('mixStatus').textContent='素材を外しました。';};$('mixRatio').oninput=balance;
+$('bLong').onclick=()=>{halt();if(cur&&!cur.quiet)synth.play(cur,dials(),{long:true});balance();};
+for(const id of ['dDist','dHard','dLight'])$(id).addEventListener('change',()=>{mixing?mix():playAs();balance();});
+$('generateForm').onsubmit=e=>{e.preventDefault();const t=$('newSound').value.trim().normalize('NFKC');if(!/^.{1,76}の音$/.test(t)){$('generateNote').textContent='「雨の音」のように、末尾を「の音」にしてください。';return;}
+ const old=ITEMS.find(x=>x.t===t);if(old){select(old);return;}
+ const rules=[['mizu',/雨|水|川|海|滴|波/],['toshi',/機械|金属|都市|電車|歯車/],['seimei',/木|森|土|鳥|虫|葉|息/],['uchu',/星|宇宙|月|銀河/],['iro',/光|色|虹|青|赤/],['toki',/時間|記憶|過去|未来/],['kotoba',/言葉|文字|声/]];
+ const tag=rules.find(([,r])=>r.test(t))?.[0]||'kokoro';const item={n:-(seedOf(t)+1),t,tag,i:0,generated:true};$('newSound').blur();select(item,{fly:false});$('generateNote').textContent='生成しました。入力は保存・送信されません。';};
 
 // ---- 選ぶ
 const order = [...ITEMS].sort((a, b) => a.n - b.n);
 let target = null;   // カメラの見る先（なめらかに寄る）
-function select(it, { fly = true, fromTour = false } = {}) {
+function select(it, { fly = true, fromTour = false, audible = true } = {}) {
   if (!fromTour) stopTour();   // 自分で選んだら、順に聴くのは止める
-  cur = it; synth.stop(); setDials(FIRST); other = null; markOther(); heard.clear(); talk(null);
-  $("askNote").textContent = "鳴らす前に、想像した音のほうへつまみを置いてみてもいい。三つの鳴りを、聴きくらべてください。";
+  cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'素材：'+material.t:'音を素材にして、もう一つを選ぶと合成できます。';
   $("sound").hidden = !!it.quiet; $("quiet").hidden = !it.quiet;
   { const rd = it.quiet ? null : readingOf(it); $("readF").hidden = !(rd && rd.hand); $("readF").open = false; if (rd && rd.hand) $("readT").textContent = rd.reading; }   // 手で譜を書いた行だけ、読みの一文を畳んで置く
   const t = tagOf(it.tag);
-  $("pNo").textContent = "No. " + String(it.n).padStart(3, "0");
+  $("pNo").textContent = it.generated ? "生成した音" : "No. " + String(it.n).padStart(3, "0");
   $("pTag").textContent = t.ja; $("pTag").style.setProperty("--ml-label-c", css(TAGC[it.tag]));
   $("pLine").textContent = it.t;
   $("pLaw").textContent = "この群れの音の決まり：" + (LAW[it.tag] || "");
   $("panel").hidden = false; $("hint").hidden = true;
-  sel.visible = stem.visible = ring.visible = true;
+  sel.visible = stem.visible = ring.visible = !it.generated;
+  $("panel").scrollTop=0;
+  if(audible){playAs();balance();}
   if (fly) { const p = new THREE.Vector3().fromArray(POS, it.i * 3); target = portrait() ? p.clone() : p.clone().lerp(new THREE.Vector3(0, 3.1, 0), .25);  controls.autoRotate = false; }
 }
-function clearSel() { stopTour(); cur = null; synth.stop(); $("panel").hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; target = new THREE.Vector3(0, 3.1, 0); }
+function clearSel() { stopTour(); cur = null; halt(); $("panel").hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; target = new THREE.Vector3(0, 3.1, 0); }
 $("bClose").addEventListener("click", clearSel);
 addEventListener("keydown", e => { if (e.key === "Escape" && !document.querySelector("dialog[open]") && cur) clearSel(); });
 const step = k => { const i = cur ? order.indexOf(cur) : -1; select(order[(i + k + order.length) % order.length]); };
@@ -167,17 +160,17 @@ const LAW = {   // 群れの音の決まり（やさしい言い方。正は js/
   iro: "どの倍音を明るくするかが、色になる",
   oto: "音が、自分の響きを聴く（遅れの中に遅れ）",
 };
-const REPS = [["uchu", 580], ["seimei", 1], ["toshi", 3], ["kokoro", 602], ["kotoba", 322], ["toki", 26], ["mizu", 8], ["iro", 199], ["oto", 764]];   // それぞれの決まりがいちばんはっきり聞こえる一行
+const REPS = TAGS.map(t=>[t.id,ITEMS.find(x=>x.tag===t.id&&!x.quiet)?.n]).filter(x=>x[1]!=null);
 { const g = $("worldsG");
   REPS.forEach(([tag, n]) => { const t = tagOf(tag), it = ITEMS.find(x => x.n === n); if (!t || !it) return;
     const b = document.createElement("button"); b.type = "button"; b.style.setProperty("--c", css(TAGC[tag])); b.textContent = t.ja; b.title = LAW[tag]; b.setAttribute("aria-label", `${t.ja}の世界：${it.t}を鳴らす`);
-    b.addEventListener("click", () => { stopTour(); select(it); playAs("first"); }); g.appendChild(b); }); }
+    b.addEventListener("click", () => { stopTour(); select(it); }); g.appendChild(b); }); }
 let tour = null;
 function stopTour() { if (!tour) return; clearTimeout(tour.timer); tour = null; $("tourCap").hidden = true; $("bTour").textContent = "九つを順に聴く（約 1 分半）"; }
 function tourStep(k) {
   if (!tour) return; if (k >= REPS.length) { stopTour(); return; }
   const [tag, n] = REPS[k], it = ITEMS.find(x => x.n === n), t = tagOf(tag);
-  select(it, { fromTour: true }); playAs("first"); tour.k = k;
+  select(it, { fromTour: true }); tour.k = k;
   $("tourCap").innerHTML = ""; $("tourCap").append(`${k + 1}／9　${t.ja}の世界`); const sm = document.createElement("small"); sm.textContent = LAW[tag]; $("tourCap").append(sm); $("tourCap").hidden = false;
   const d = synth.cur?.dur ?? 9; tour.timer = setTimeout(() => tourStep(k + 1), (d + .8) * 1000);
 }
@@ -225,7 +218,7 @@ $("bStart").addEventListener("click", () => { synth.ensure(); start(); });
 // 見本づくり用：?skip で入口を飛ばす、#8 でその番号の言葉をひらく（音は押すまで鳴らない）
 { const sp = new URLSearchParams(location.search), h = parseInt(location.hash.slice(1), 10);
   if (sp.has("skip")) start(false);
-  if (h) { const it = ITEMS.find(x => x.n === h); if (it) { if (!sp.has("skip")) start(false); select(it); } }
+  if (h) { const it = ITEMS.find(x => x.n === h); if (it) { if (!sp.has("skip")) start(false); select(it,{audible:false}); } }
   if (sp.has("still")) controls.autoRotate = false; }
 
 // ---- 波形（いま鳴っている音の形をそのまま線に）
@@ -235,7 +228,7 @@ function drawWave() {
   if (wave.width !== Math.round(w * dpr)) { wave.width = Math.round(w * dpr); wave.height = Math.round(h * dpr); }
   wctx.setTransform(dpr, 0, 0, dpr, 0, 0); wctx.clearRect(0, 0, w, h);
   wctx.strokeStyle = synth.playing ? "rgba(155,220,240,.9)" : "rgba(150,170,240,.25)"; wctx.lineWidth = 1; wctx.beginPath();
-  if (synth.playing) { synth.wave(wbuf); for (let x = 0; x <= w; x++) { const v = wbuf[Math.floor(x / w * 1023)] || 0, y = h / 2 - v * h * 1.6; x ? wctx.lineTo(x, y) : wctx.moveTo(x, y); } }
+  if (synth.playing) { synth.wave(wbuf); if(mixing){second.wave(space.wave);for(let i=0;i<wbuf.length;i++)wbuf[i]+=space.wave[i];} for (let x = 0; x <= w; x++) { const v = wbuf[Math.floor(x / w * 1023)] || 0, y = h / 2 - v * h * 1.6; x ? wctx.lineTo(x, y) : wctx.moveTo(x, y); } }
   else { wctx.moveTo(0, h / 2); wctx.lineTo(w, h / 2); }
   wctx.stroke();
 }
@@ -250,7 +243,7 @@ function loop(now) {
   const dt = Math.min(.05, (now - last) / 1000); fit.frame(now - last); last = now; const t = now / 1000;
   WIND.uTime.value = t; wMat.uniforms.scale.value = renderer.domElement.height / 2; wMat.uniforms.maxPx.value = 16 * fit.pixelRatio;
   if (!RM) { for (let i = 0; i < N; i++) { const a = PH[i * 3], b = PH[i * 3 + 1], w = PH[i * 3 + 2]; POS[i * 3] = BASE[i * 3] + Math.sin(t * w + a) * .13; POS[i * 3 + 1] = BASE[i * 3 + 1] + Math.sin(t * w * .8 + b) * .09; POS[i * 3 + 2] = BASE[i * 3 + 2] + Math.cos(t * w + b) * .13; } posAttr.needsUpdate = true; }
-  if (cur) { const i = cur.i * 3, x = POS[i], y = POS[i + 1], z = POS[i + 2], gy = H(x, z) + .02;
+  if (cur && !cur.generated) { const i = cur.i * 3, x = POS[i], y = POS[i + 1], z = POS[i + 2], gy = H(x, z) + .02;
     selGeo.attributes.position.setXYZ(0, x, y, z); selGeo.attributes.position.needsUpdate = true;
     stemGeo.attributes.position.setXYZ(0, x, gy, z); stemGeo.attributes.position.setXYZ(1, x, y, z); stemGeo.attributes.position.needsUpdate = true;
     lv += ((synth.playing ? synth.level() : 0) - lv) * .25; selMat.size = .42 + Math.min(1, lv * 5) * .5;
@@ -275,7 +268,7 @@ function loop(now) {
   for (const o of L) { o.el.style.transform = `translate(${o.x}px,${o.y}px) translate(-50%,-50%)`;
     // 押し分けたあとの位置で、案内（スマホ）と「順に聴く」の帯に重なる札を隠す
     if (o.vis && ((portrait() && !cur && o.y + o.el._h / 2 > hintTop - 4) || (tour && o.y - o.el._h / 2 < capBottom + 4))) { o.el.style.opacity = 0; o.el.style.pointerEvents = "none"; } }
-  if (cur) drawWave();
+  if (cur) {drawWave();space.update(now);}
   renderer.render(scene, camera);
   requestAnimationFrame(loop);
 }
@@ -283,4 +276,4 @@ addEventListener("resize", () => { camera.position.setLength(Math.min(controls.m
 manager.onLoad = () => { window.MLLoader?.done(); };
 setTimeout(() => window.MLLoader?.done(), 9000);
 requestAnimationFrame(loop);
-window.__qs = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth };
+window.__qs = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth, second, space, get current(){return cur;}, get material(){return material;} };
