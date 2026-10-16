@@ -45,11 +45,8 @@
 <script>addEventListener('load',function(){ document.getElementById('fontfaces-late').media='all'; });</script>
 <script>document.documentElement.classList.add('js');</script>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<!-- 最初に見える3Dの同版ライブラリと地理データだけを並列取得。VRM/詳細モデルは場面に応じて読む。 -->
+<!-- 最初に見える点/線の3Dに使うThreeと地理データだけを並列取得。モデル用ローダー/VRM/詳細モデルは場面に応じて読む。 -->
 <link rel="modulepreload" href="./vendor/three/build/three.module.js">
-<link rel="modulepreload" href="./vendor/three/examples/jsm/loaders/GLTFLoader.js">
-<link rel="modulepreload" href="./vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
-<link rel="modulepreload" href="./vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
 <link rel="preload" href="img/hero/sando_wire.json" as="fetch" crossorigin>
 <link rel="preload" href="img/hero/sando_wire.bin" as="fetch" crossorigin>
 <script>/* 言語：?lang=en|ja ＞ 前回の選択 ＞ ブラウザの言語（英語なら EN） */(function(){var _l=null;try{var m=/[?&]lang=(en|ja)\b/.exec(location.search);if(m)_l=m[1];if(!_l)_l=localStorage.getItem('hp-lang');}catch(e){}if(_l!=='en'&&_l!=='ja'){var n=(navigator.languages&&navigator.languages[0])||navigator.language||'';_l=/^en\b/i.test(n)?'en':null;}if(_l)document.documentElement.setAttribute('data-lang',_l);})();</script>
@@ -580,7 +577,7 @@ main{padding-top:64px}
 .scene{position:relative;height:920svh;margin:0;padding:0}
 .scene-sticky{position:sticky;top:0;width:100%;height:100vh;height:100svh;overflow:hidden;background:#03060f}
 .scene-cv,.scene-poster{position:absolute;inset:0;width:100%;height:100%;display:block}
-.scene-poster{object-fit:cover;transition:opacity .8s;color:transparent}
+.scene-poster{object-fit:cover;transition:opacity .18s;color:transparent}
 .scene-ready .scene-poster{opacity:0}
 .scene-cv{touch-action:pan-y}
 .scene-labs{position:absolute;inset:0;pointer-events:none}
@@ -2059,6 +2056,7 @@ var AOI_FN=[
 // 2026-10-17：同版の描画ライブラリを先読込し、非必須の書体・画像と起動を分ける。
 let THREE, GLTFLoader, MeshoptDecoder, mergeGeometries;
 const libs=()=>window.__threeLibs||(window.__threeLibs=Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')]));
+const detailLibs=async()=>{const m=await libs();GLTFLoader=m[1].GLTFLoader;MeshoptDecoder=m[2].MeshoptDecoder;mergeGeometries=m[3].mergeGeometries;};
 const LOD_NEAR=Math.min(innerWidth,innerHeight)<700?45:80, LOD_MID=260, LOD_BAND=9;   // 80 m の前後 9 m は、二つの型をまだらに混ぜて切り替える（Unity の LOD cross-fade と同じ考え）   // 木の型を替える距離（m・碧から）
 
 const root=document.getElementById('why');
@@ -2073,12 +2071,12 @@ const yieldT=()=>new Promise(r=>(window.scheduler&&scheduler.yield)?scheduler.yi
 async function start(){
   // 2026-10-17: 初回の文字描画を二こま譲りつつ、同版ライブラリと地理データを並列取得。
   // 全画像・遅い書体の load を待つと、最初の3Dまで直列待ちが重なるためここでは待たない。
-  const [m,[meta,bin]]=await Promise.all([
-    libs(),
+  const [engine,[meta,bin]]=await Promise.all([
+    import('three'),
     window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()),fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])),
     new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))
   ]);
-  THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; mergeGeometries=m[3].mergeGeometries;
+  THREE=engine;
   const I=new Int16Array(bin), Q=meta.q;
   const mobile=Math.min(innerWidth,innerHeight)<700;
   const R=new THREE.WebGLRenderer({canvas:cv,antialias:!mobile,powerPreference:'high-performance'});
@@ -2153,7 +2151,7 @@ async function start(){
     // 腕の休めの形＝02_プロジェクト/02_プロジェクト/03_開発中（非公開）/01_碧/02_碧の身体/aoi_pose.js の写し（前腕 Y：左は負・右は正）
     set('leftUpperArm',-.12,0,-1.28); set('rightUpperArm',-.12,0,1.28); set('leftLowerArm',0,-.28,0); set('rightLowerArm',0,.28,0); set('leftHand',0,0,0); set('rightHand',0,0,0); };
   const loadAoi=async()=>{ try{
-      const V=await import('@pixiv/three-vrm'); const L=new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); L.register(p=>new V.VRMLoaderPlugin(p));
+      const [V]=await Promise.all([import('@pixiv/three-vrm'),detailLibs()]); const L=new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); L.register(p=>new V.VRMLoaderPlugin(p));
       const g=await L.parseAsync((await (window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())))).slice(0),'');   /* 碧の 3D はページで一度だけ取りに行く */ const v=g.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(g.scene); V.VRMUtils.rotateVRM0(v);
       pose(v); v.update(0);
       const holo=[]; v.scene.traverse(o=>{ if(!o.isMesh) return; o.frustumCulled=false; bodyMs.push(o);
@@ -2171,6 +2169,7 @@ async function start(){
   const world=new THREE.Group(); world.visible=false; S.add(world); const worldMats=[];
   const hemi=new THREE.HemisphereLight(0xd8ecff,0x3a3428,0), sun=new THREE.DirectionalLight(0xfff1dc,0); sun.position.set(-200,400,300); S.add(hemi,sun);
   const load3D=async()=>{ try{
+      await detailLibs();
       const L=new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); const TL=new THREE.TextureLoader();
       const [tg,bg,kg,photo]=await Promise.all([L.loadAsync('img/hero/3d/terrain_lite.glb'),L.loadAsync('img/hero/3d/buildings_lite.glb'),L.loadAsync('img/hero/3d/keyaki_lod1_notex.glb'),TL.loadAsync('img/hero/3d/tex_photo_s.jpg')]);
       photo.colorSpace=THREE.SRGBColorSpace;
