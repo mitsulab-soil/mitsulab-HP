@@ -1,21 +1,11 @@
 <!doctype html>
-<!--
-  mitsulab HP ── 2026-10-01 版を土台に、2026-10-12 から WHY＝Qualia Diversity（認知が多様な世界をつくる）／HOW＝Qualium（AI と認知拡張の道具で、人・自然・機械の認知がつながる場をつくる）／WHAT＝世界のミカタを、開発する。
-  （Feel the World は上位テーマではなくなり、「世界を、感じなおす。」は体験への呼びかけとして残す。保留中の名前は HP に出さない）
-  TOP の文章の筋（2026-10-13 再整理・同日 本人「Qualia Diversity：一人の中に、世界の受けとり方を増やす。以上をTOPの元に表示してください。」「世界の受けとり方を増やすための道具と場を開発する。以上をベースに、topから表現してください。」「これは、ステートメントとして残してください。世界のミカタを、開発する。」）：
-  一行め＝WHY「Qualia Diversity：一人の中に、世界の受けとり方を増やす。」→ WHAT「世界の受けとり方を増やすための道具と場を開発する」→ ステートメント「世界のミカタを、開発する。」→ ミカタ → WHY の中身・HOW（Qualium・依代・碧／受けとり方の翻訳を研究し、作品にし、文化の場で手渡す）→ いま、試せる。
-  土台＝公開中の mitsulab.jp（2026-08-11 版）の見た目の作法：紺の地・流れるコードの背景・光る水色・角の括弧つきのカード・
-  上のタブ／Menu ダイアログ・日本語／EN の切り替え（data-i18n-en）・用語解説・碧の灯り。
-  中身＝master_事業計画書 v10.1（2026-09-30・10-01 の決定節）・体験設計 v0.3・ビジネスモデル一枚・09-29 のワークスペース版の文言。
-  旧い内容（壁画・地図・旧い枠組みのタブ）と、それに使っていた CSS／JS／SVG／3D 背景は持ってこなかった。
-  デプロイ前（公開は本人の判断）。
--->
+<!-- mitsulab TOP: 同じ場の受けとり方と、環世界を拡張する道具。2026-10-16。冒頭の場と碧の3Dを維持。 -->
 <html lang="ja" data-lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mitsulab — Qualia Diversity</title>
-<meta name="description" content="Expand Perception. 人の尺度を越えて、世界と関わる。mitsulabは、観測・計算・変換を、人が世界と関わる道具と体験へつなぐ研究所。計算・変換・認知をつなぐQualiumを探究しています。">
+<title>mitsulab — 環世界を拡張する</title>
+<meta name="description" content="同じ場に、いくつもの世界。mitsulabは、環世界を拡張する道具と体験をつくる研究所です。観測とAIの計算で捉えた関係を、光・音・振動・空間へ変換し、人と世界との関わりを深めます。">
 <meta name="author" content="上原光瑛">
 <meta name="robots" content="index, follow">
 <meta name="tdm-reservation" content="1">
@@ -26,17 +16,17 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mitsulab.jp/">
 <meta property="og:site_name" content="mitsulab">
-<meta property="og:title" content="mitsulab — Qualia Diversity">
-<meta property="og:description" content="Expand Perception. 人の尺度を越えて、世界と関わる。mitsulabは、観測・計算・変換を、人が世界と関わる道具と体験へつなぐ研究所。計算・変換・認知をつなぐQualiumを探究しています。">
+<meta property="og:title" content="mitsulab — 環世界を拡張する">
+<meta property="og:description" content="同じ場に、いくつもの世界。mitsulabは、環世界を拡張する道具と体験をつくる研究所です。観測とAIの計算で捉えた関係を、光・音・振動・空間へ変換し、人と世界との関わりを深めます。">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:locale:alternate" content="en_US">
 <link rel="alternate" hreflang="ja" href="https://mitsulab.jp/?lang=ja">
 <link rel="alternate" hreflang="en" href="https://mitsulab.jp/?lang=en">
 <link rel="alternate" hreflang="x-default" href="https://mitsulab.jp/">
-<meta property="og:image" content="https://mitsulab.jp/img/og_1200x630.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="森・水・街・情報を光の線で重ねたQualiumの模式図とExpand Perception.">
+<meta property="og:image" content="https://mitsulab.jp/img/hero/scene_poster_1600.webp">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="1000">
+<meta property="og:image:alt" content="森・水・街・情報が重なる、Qualiumの場の3D模式図">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- 書体（2026-10-06 高速化）：Google Fonts と同じ書体（OFL）を、ページで使う字だけにしぼって自分で配る。作り直し＝_dev/fonts/build_fonts.py（deploy_hp.sh が毎回走らせる） -->
@@ -58,7 +48,7 @@
 <script>/* 言語：?lang=en|ja ＞ 前回の選択 ＞ ブラウザの言語（英語なら EN） */(function(){var _l=null;try{var m=/[?&]lang=(en|ja)\b/.exec(location.search);if(m)_l=m[1];if(!_l)_l=localStorage.getItem('hp-lang');}catch(e){}if(_l!=='en'&&_l!=='ja'){var n=(navigator.languages&&navigator.languages[0])||navigator.language||'';_l=/^en\b/i.test(n)?'en':null;}if(_l)document.documentElement.setAttribute('data-lang',_l);})();</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
- {"@type":"Organization","@id":"https://mitsulab.jp/#org","name":"mitsulab","url":"https://mitsulab.jp/","description":"Expand Perception. 人の尺度を越えて、世界と関わる。mitsulabは、観測・計算・変換を、人が世界と関わる道具と体験へつなぐ研究所。計算・変換・認知をつなぐQualiumを探究しています。","slogan":"世界のミカタを、開発する。","email":"official@mitsulab.jp","founder":{"@id":"https://mitsulab.jp/#founder"},"address":{"@type":"PostalAddress","addressLocality":"さいたま市","addressRegion":"埼玉県","addressCountry":"JP"},"sameAs":["https://github.com/mitsulab-soil"]},
+ {"@type":"Organization","@id":"https://mitsulab.jp/#org","name":"mitsulab","url":"https://mitsulab.jp/","description":"同じ場に、いくつもの世界。mitsulabは、環世界を拡張する道具と体験をつくる研究所です。観測とAIの計算で捉えた関係を、光・音・振動・空間へ変換し、人と世界との関わりを深めます。","slogan":"世界のミカタを、開発する。","email":"official@mitsulab.jp","founder":{"@id":"https://mitsulab.jp/#founder"},"address":{"@type":"PostalAddress","addressLocality":"さいたま市","addressRegion":"埼玉県","addressCountry":"JP"},"sameAs":["https://github.com/mitsulab-soil"]},
  {"@type":"Person","@id":"https://mitsulab.jp/#founder","name":"上原光瑛","alternateName":"Mitsuaki Uehara","jobTitle":"mitsulab 代表 ／ 知覚作家"},
  {"@type":"WebSite","@id":"https://mitsulab.jp/#site","url":"https://mitsulab.jp/","name":"mitsulab","inLanguage":["ja","en"],"publisher":{"@id":"https://mitsulab.jp/#org"}}
 ]}
@@ -1055,7 +1045,7 @@ html[lang="en"] .mikata-map .mw-wh-t{letter-spacing:0}
 .mission .mission-k{display:block;font-family:var(--mono);font-weight:400;font-size:.36em;letter-spacing:.3em;color:#9fe3d2;margin-bottom:.5em}
 html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 </style>
-<link rel="stylesheet" href="qualium-top.css?v=20261016-points1">
+<link rel="stylesheet" href="qualium-top.css?v=20261016-umwelt1">
 </head>
 <body>
 <a href="#main" class="skip-link" data-i18n-en="Skip to content">本文へスキップ</a>
@@ -1110,8 +1100,8 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 <!-- ┌─ mitsulab（2026-10-04 v3・本人指示）：画面いっぱい・枠なしの場面（氷川参道の 3D を線で・碧が立つ・多次元の層が重なる）→ 使命 → 碧／Qualium／アプリケーションへの入口 → アプリの案内。
      詳しいことは、それぞれのタブのページへ。場面のしくみは script の「mitsulab の没入の場面 v3」。 ── -->
 <section id="top" class="tab-panel active" data-panel="top" aria-label="mitsulab">
-  <header class="qt-hero" aria-labelledby="qtVision">
-    <div class="qt-vision"><p class="qt-kicker">VISION / QUALIA DIVERSITY</p><h1 id="qtVision">Expand Perception.</h1></div>
+  <header class="qt-hero" aria-labelledby="qtWorldTitle">
+    <div class="qt-opening"><h1 id="qtWorldTitle" data-i18n-en="One place.<br>Many worlds.">同じ場に、<br>いくつもの世界。</h1><p data-i18n-en="Living beings receive the world through their bodies and senses. People also experience and understand the same place differently through experience, language and concepts. This world as it opens to each subject is called an Umwelt.">生きものは、それぞれの身体と感覚を通して世界を受けとっています。人も、経験やことば、概念によって、同じ場を違って感じ、理解します。この主体ごとにひらかれる世界を、環世界といいます。</p></div>
   </header>
 <div id="why" class="scene" aria-label="氷川参道の空間の場面" data-i18n-aria="A scene in the space of the Hikawa approach"><script>/* 高速化（2026-10-06）：動きを減らす設定の端末は、最初から止まった一枚の形で組む（あとで形が変わってずれるのを防ぐ） */try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.getElementById('why').classList.add('scene-static');}catch(e){}</script>
   <div class="scene-sticky">
@@ -1132,7 +1122,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
     <div class="scene-words">
       <div class="beat beat-hero" data-beat data-a="0" data-b=".07">
         <span class="eyebrow" lang="en" aria-hidden="true">mitsulab</span>
-        <h2 class="scene-current-statement" data-i18n-en="Beyond human scales.<br>In touch with the world.">人の尺度を越えて、<br>世界と関わる。</h2>
+        <h2 class="scene-current-statement" data-i18n-en="Sense the world<br>in new ways.">世界を、<br>受けとりなおす。</h2>
         <p class="core-plain" data-i18n-en="mitsulab explores cognitive augmentation.<br>To help people sense, understand and engage with a changing world."><span class="nw">mitsulab は、認知拡張を探究する研究所です。</span><br><span class="nw">変わり続ける世界を、</span><span class="nw">人が感じ、理解し、関われるように。</span></p>
         <p class="hero-go"><button type="button" class="hgo" data-go-anchor="appguide"><span data-i18n-en="Experience the works">作品を体験する</span> <span class="arr" aria-hidden="true">↓</span></button></p>
         <p class="scene-hint" data-i18n-en="Scroll into a place and its layers">スクロールで、場に重なる世界へ</p>
@@ -1155,15 +1145,21 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 </div>
 
   <div class="qt-content">
-    <section id="mission-intro" class="qt-mission">
-      <div><p class="qt-kicker">MISSION</p><h2 data-i18n-en="Expand human cognition.<br>Deepen our connection with the world.">人の認知を広げ、<br>世界との関わりを深める。</h2></div><div><p data-i18n-en="We turn clues from observation and computation into tools and experiences for sensing, understanding and engaging with the world. ">観測と計算から得た手がかりを、感じ、理解し、関われる道具と体験へ。</p><p class="qt-muted" data-i18n-en="Across art, science, engineering and culture, we use AI, GIS and xR as tools to move between perspectives, scales, senses and interpretations.">アート・サイエンス・工学・文化を横断し、AI・GIS・xRなどを手立てとして、視点・尺度・感覚・解釈を行き来できる認知的道具をつくります。</p></div>
-    </section>
-    <section id="qualium-loop" class="qt-loop" aria-labelledby="qtLoopTitle">
-      <p class="qt-kicker">COMPUTATION · TRANSFORMATION · COGNITION</p><h2 id="qtLoopTitle">Qualium Loop<span data-i18n-en="A loop of computation, transformation and cognition">計算・変換・認知の循環</span></h2>
-      <p class="qt-intro" data-i18n-en="Observe clues in reality. Compute relationships. Transform them into light, sound and vibration. People perceive, interpret and act — returning to reality with new questions.">現実を観測し、計算で関係を捉え、光・音・振動へ変換する。<br>人が感じ、ことばや概念と結び、問いと行動を現実へ返す。</p>
-      <div class="qt-flow" data-qualium-scene="loop" aria-label="現実・計算・変換・認知・行動を結ぶ点群の3D情報空間" data-i18n-aria="A 3D point field linking reality, computation, transformation, cognition and action"><canvas aria-hidden="true"></canvas><div class="qt-flow-nodes"><button type="button" data-node="0" aria-pressed="false"><span data-i18n-en="Reality">現実</span><small data-i18n-en="Observe · record">観測・記録</small></button><button type="button" data-node="1" aria-pressed="false"><span data-i18n-en="Computation">計算</span><small data-i18n-en="Data · models">データ・モデル</small></button><button type="button" data-node="2" aria-pressed="false"><span data-i18n-en="Transformation">変換</span><small data-i18n-en="Light · sound · vibration">光・音・振動</small></button><button type="button" data-node="3" aria-pressed="true"><span data-i18n-en="Cognition">認知</span><small data-i18n-en="Perception · language · concepts">知覚情報・言語・概念</small></button><button type="button" data-node="4" aria-pressed="false"><span data-i18n-en="Action">行動</span><small data-i18n-en="Questions · practice">問い・実践</small></button></div><div class="qt-flow-core"><span>Qualium</span><small data-i18n-en="Tools for cognition">認知をひらく道具</small></div><button class="qt-pause" type="button" aria-pressed="false" data-pause>動きを止める</button></div>
-      <p class="qt-node-detail" aria-live="polite">認知｜知覚情報を、ことば・概念・経験と結ぶ。個の内側で解釈や視点の選択肢を増やす。</p>
-      <p class="qt-caption" data-i18n-en="An illustrative point field connecting observation, computation and perception, not measured scans or brain activity. Perception, language and concepts influence each other.">点群は、観測・計算・感覚をつなぐ情報空間の模式表現です。実測点群や脳活動の再現ではありません。知覚・言語・概念は相互に関わります。</p>
+    <section id="qualium-loop" class="qt-loop qt-unified" aria-labelledby="qtMissionTitle">
+      <div id="mission-intro" class="qt-mission">
+        <div><p class="qt-kicker">MISSION</p><h2 id="qtMissionTitle" data-i18n-en="Expand our Umwelt.<br>Deepen our connection with the world.">環世界を拡張し、<br>世界との関わりを深める。</h2></div>
+        <div><p data-i18n-en="Relationships revealed through observation and AI computation become light, sound, vibration and space — tools and experiences people can sense, understand and engage with.">観測とAIの計算で捉えた関係を、光・音・振動・空間へ。人が感じ、理解し、関われる道具と体験に変換します。</p><p class="qt-muted" data-i18n-en="Across art, science, engineering and culture, we use AI, GIS and xR to build tools for moving between perspectives, scales, senses and interpretations.">アート・サイエンス・工学・文化を横断し、AI・GIS・xRを手立てに、視点・尺度・感覚・解釈を行き来する道具をつくります。</p></div>
+      </div>
+      <div class="qt-flow" data-qualium-scene="loop" aria-label="同じ現実の場から、受け取り・観測と計算・感覚への変換・認知・現実との関わりへ戻る点群3D" data-i18n-aria="A 3D point field linking a shared place, perception, observation and computation, sensory transformation, cognition and engagement with reality"><canvas aria-hidden="true"></canvas><div class="qt-flow-nodes" role="group" aria-label="環世界を拡張する過程" data-i18n-aria="The process of expanding our Umwelt">
+          <button type="button" data-node="0" aria-pressed="false" aria-describedby="qtNodeDetail"><span data-i18n-en="Place">場</span><small data-i18n-en="Shared reality">同じ現実</small></button>
+          <button type="button" data-node="1" aria-pressed="true" aria-describedby="qtNodeDetail"><span data-i18n-en="Perceive">受けとる</span><small data-i18n-en="Body · senses · experience">身体・感覚・経験</small></button>
+          <button type="button" data-node="2" aria-pressed="false" aria-describedby="qtNodeDetail"><span data-i18n-en="Compute">捉える</span><small data-i18n-en="Observation · AI · relations">観測・AI・関係</small></button>
+          <button type="button" data-node="3" aria-pressed="false" aria-describedby="qtNodeDetail"><span data-i18n-en="Transform">変換する</span><small data-i18n-en="Light · sound · vibration">光・音・振動</small></button>
+          <button type="button" data-node="4" aria-pressed="false" aria-describedby="qtNodeDetail"><span data-i18n-en="Expand">ひらく</span><small data-i18n-en="Language · concepts · cognition">言語・概念・認知</small></button>
+          <button type="button" data-node="5" aria-pressed="false" aria-describedby="qtNodeDetail"><span data-i18n-en="Engage">関わる</span><small data-i18n-en="Questions · action · reality">問い・行動・現実</small></button>
+        </div><div class="qt-flow-core"><span>Qualium</span><small data-i18n-en="Tools to expand<br>our Umwelt">環世界を<br>拡張する道具</small></div><button class="qt-pause" type="button" aria-pressed="false" data-pause>動きを止める</button></div>
+      <p id="qtNodeDetail" class="qt-node-detail" aria-live="polite">受けとる｜同じ場でも、身体・感覚・経験・概念によって、気づく手がかりや意味が異なります。それぞれの環世界がひらかれます。</p>
+      <p class="qt-caption" data-i18n-en="An illustrative point field, not measured scans or a reproduction of subjective experience. The stages influence each other; the arrows show one path through that relationship.">点群は関係を示す模式表現です。実測や主観的体験の再現ではありません。それぞれの過程は相互に関わり、線はその往復の一つを示します。</p>
       <details class="qt-theory"><summary data-i18n-en="Why cognitive tools matter — and the questions we study">なぜ必要か・何を問うのか</summary><p data-i18n-en="Climate and other phenomena extend far beyond a single person's immediate place and time. Inspired by Timothy Morton's hyperobjects, we study how local experience can connect with wider relationships. <a href='https://www.upress.umn.edu/9780816689231/hyperobjects/' target='_blank' rel='noopener'>Source ↗</a>">気候など、人の時間と空間の尺度を越える現象を、どう身近に考えるか。ティモシー・モートンの「ハイパーオブジェクト」を着想の一つとして、局所の体験と広い関係をつなぎます。<a href="https://www.upress.umn.edu/9780816689231/hyperobjects/" target="_blank" rel="noopener">出典 ↗</a></p><p data-i18n-en="AI compares and models; GIS locates; xR overlays information on a place. Physical AI opens a future research path for sharing clues with machines acting in the physical world. These capabilities do not guarantee better cognition.">AIは比較とモデル化を、GISは位置づけを、xRは現実との重ね合わせを支える。フィジカルAIは、現実に働きかける機械と人が手がかりを共有する、将来の研究領域です。技術の存在と認知への効果は区別します。</p><p data-i18n-en="Computational cognition. Cognitive computers. Computation as cognition; cognition as computation. These are research questions about their relationship, not claims that computation and subjective experience are identical.">計算機的認知。認知的計算機。計算即認知・認知即計算。これらは関係を探究する命題であり、計算と主観的体験の同一性を断定するものではありません。</p><p data-i18n-en="We explore new experiences for education, culture and fieldwork. We test the tools and the clues they make available, without ranking people's cognition. Demand and willingness to pay remain hypotheses.">教育・文化・現場へ、新しい体験をつくる可能性を探ります。確かめるのは道具の使いやすさと届く手がかりであり、人の認知そのものを比較・採点しません。需要と支払意思は、利用者と確かめる仮説です。</p></details>
     </section>
   <section id="mission" class="msn mx" aria-labelledby="missionH">
@@ -1180,17 +1176,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
       </div>
     </div>
   </section>
-    <section id="qualium-field" class="qt-field" aria-labelledby="qtFieldTitle">
-      <p class="qt-kicker">QUALIUM</p><h2 id="qtFieldTitle" data-i18n-en="One place.<br>Many ways to experience it.">ひとつの世界から、<br>いくつもの受けとり方へ。</h2><p class="qt-intro" data-i18n-en="A place holds distances, times and signals beyond what we can directly sense. Qualium connects those clues with computation and experience.">目の前の場には、身体だけでは届かない距離・時間・現象が重なっています。<br>その手がかりを、計算と体験でつなぐ場。それを、Qualiumと呼びます。</p>
-    </section>
-  </div>
-  <section class="qt-wide" aria-label="Qualiumの場の3D模式図" data-i18n-aria="A 3D model of a Qualium place" data-qualium-scene="layers">
-    <div class="qt-mode" role="group" aria-label="場の受けとり方" data-i18n-aria="Ways to experience a place"><button type="button" data-mode="0" aria-pressed="true" data-i18n-en="Space">空間</button><button type="button" data-mode="1" aria-pressed="false" data-i18n-en="Time">時間</button><button type="button" data-mode="2" aria-pressed="false" data-i18n-en="Senses">感覚</button></div>
-    <canvas aria-hidden="true"></canvas><div class="qt-place-label" aria-hidden="true">FOREST · WATER · CITY · DATA</div><button class="qt-pause" type="button" aria-pressed="false" data-pause>動きを止める</button>
-    <p class="qt-mode-detail" aria-live="polite">空間｜足元の手がかりを、森・水・街の広がりへ結ぶ。</p>
-  </section>
-  <div class="qt-content">
-    <p class="qt-caption" data-i18n-en="Based on aerial imagery, elevation and building data around the Hikawa approach. Trees, light and information layers are illustrative, not reproductions of subjective experience.">氷川参道周辺の航空写真・標高・建物データをもとに、樹木や光、情報の層を模式化しています。主観的体験そのものの再現ではありません。</p>
+    <p class="qt-aoi-note" data-i18n-en="Aoi is a yorishiro: a body that brings clues from physical and computational worlds into forms people can receive.">依代・碧は、現実と計算の手がかりを、人が受けとれる形で手渡す身体です。</p>
       <section id="appguide" class="block" aria-labelledby="appguideH">
 
     <div class="block-head"><span class="eyebrow" lang="en" aria-hidden="true">Try it now</span><h2 class="panel-title" id="appguideH" data-i18n-en="Try it now">いま、試せる</h2>
@@ -1682,7 +1668,7 @@ window.__later=function(){ if(window.__laterDone) return; if(document.readyState
 /* ============================================================
    ★ コアの一行（ここ一か所で差し替える。本人の採否待ち：Qualium v2 §4）
    ============================================================ */
-var CORE = { ja:'<span class="core-k" lang="en">Qualia Diversity</span>', en:'<span class="core-k">Qualia Diversity</span>' };   // 2026-10-13 夜 本人「認知が多様な世界をつくる、でなく、Qualia Diversity を top に、ここだけ読んでビジョン・ミッションが伝わるようにしてください。」→ 一行め＝Qualia Diversity だけ。ビジョン＝#coreV（一人の中に、世界の受けとり方を増やす。）、ミッション＝.core-plain。og は #core＋#coreV から作る。それより前： 2026-10-13 本人「Qualia Diversity：一人の中に、世界の受けとり方を増やす。以上をTOPの元に表示してください。」（旧「世界のミカタを、開発する。」はステートメントとして使命の節の見出しへ）。og 画像（_dev/og/make_og.py）はここと #core から作る
+var CORE = { ja:'<span class="core-k">環世界を拡張する</span>', en:'<span class="core-k">Expand our Umwelt</span>' };
 
 
 /* ===== 用語解説（ja / en） ===== */
@@ -1746,11 +1732,11 @@ var TERMS = {
     try{ document.dispatchEvent(new CustomEvent('hp-lang-change',{detail:lang})); }catch(e){}
     document.querySelectorAll('.card-title').forEach(function(t){ var a=t.querySelector('.ct-ja'), b=t.querySelector('.ct-en'); if(a&&b) b.style.display=(lang==='en'&&a.textContent.trim().replace(/[《》]/g,'')===b.textContent.trim().replace(/[《》]/g,''))?'none':''; });
     if(!window.__titleJa) window.__titleJa=document.title;
-    document.title = lang==='en' ? 'mitsulab — Qualia Diversity' : window.__titleJa;
-    [['meta[name="description"]','Expand Perception. Beyond human scales, in touch with the world. mitsulab connects observation, computation and transformation with tools and experiences for engaging with the world. Explore the Qualium Loop and our interactive works.'],
-     ['meta[property="og:title"]','mitsulab — Qualia Diversity'],
-     ['meta[property="og:description"]','Expand Perception. mitsulab explores cognitive augmentation through observation, computation and transformation. Tools and experiences for sensing, understanding and engaging with the world.'],
-     ['meta[property="og:image"]','https://mitsulab.jp/img/og_1200x630_en.jpg'],['meta[property="og:image:alt"]','A three-dimensional landscape of the Hikawa approach with the Qualia Diversity title.'],['meta[property="og:locale"]','en_US'],['meta[property="og:locale:alternate"]','ja_JP']].forEach(function(m){ var el=document.querySelector(m[0]); if(!el) return; if(!el.hasAttribute('data-ja')) el.setAttribute('data-ja',el.getAttribute('content')); el.setAttribute('content', lang==='en'?m[1]:el.getAttribute('data-ja')); });
+    document.title = lang==='en' ? 'mitsulab — Expand our Umwelt' : window.__titleJa;
+    [['meta[name="description"]','One place. Many worlds. mitsulab builds tools and experiences to expand our Umwelt, connecting observation and AI computation with light, sound, vibration and space.'],
+     ['meta[property="og:title"]','mitsulab — Expand our Umwelt'],
+     ['meta[property="og:description"]','Expand our Umwelt. Deepen our connection with the world. Tools and experiences that connect observation and computation with human perception.'],
+     ['meta[property="og:image"]','https://mitsulab.jp/img/hero/scene_poster_1600.webp'],['meta[property="og:image:alt"]','A three-dimensional landscape connecting trees, water, buildings and information.'],['meta[property="og:locale"]','en_US'],['meta[property="og:locale:alternate"]','ja_JP']].forEach(function(m){ var el=document.querySelector(m[0]); if(!el) return; if(!el.hasAttribute('data-ja')) el.setAttribute('data-ja',el.getAttribute('content')); el.setAttribute('content', lang==='en'?m[1]:el.getAttribute('data-ja')); });
   }
   function paint(seg){
     var ind=seg.querySelector('.seg-ind'), act=seg.querySelector('.seg-btn[aria-pressed="true"]');
@@ -2527,6 +2513,6 @@ async function boot(box){
 
 
 
-<script type="module" src="js/qualium-top.js?v=20261016-points1"></script>
+<script type="module" src="js/qualium-top.js?v=20261016-umwelt1"></script>
 </body>
 </html>
