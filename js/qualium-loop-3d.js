@@ -1,19 +1,32 @@
 // Qualium Loop — five sculptural stages for cognitive tools.
 // This is a design metaphor, not measured data or a model of a brain.
-// No network requests, textures or animation loop are owned by this module.
-export function createLoopScene({T, scene, world, camera, host, sprite}) {
-  const palette = {ink:0x102b3b, stone:0x28535e, teal:0x4b9896, ice:0xb0eadb, gold:0xe7cd9b};
+// Uses existing CC0 surfaces. The host owns the animation loop.
+export async function createLoopScene({T, scene, world, camera, host, sprite, renderer}) {
+  const palette = {ink:0x222b2b, stone:0xa4aaa0, teal:0x4b9896, ice:0xe1e4d9, gold:0xc6a66d};
+  // Existing CC0 photographic surfaces, shared with the published forest.
+  const tex=new T.TextureLoader(),asset=(f)=>new URL('../x/02/tex/'+f,import.meta.url).href;
+  const loaded=await Promise.allSettled(['rock_surface.webp','rock_surface_n.webp','rock_surface_orm.webp','bark_zelkova.webp','leaf_cluster.webp'].map(f=>tex.loadAsync(asset(f))));
+  const [stoneMap,stoneNormal,stoneORM,barkMap,leafMap]=loaded.map(r=>r.status==='fulfilled'?r.value:null);
+  for(const t of [stoneMap,barkMap,leafMap])if(t)t.colorSpace=T.SRGBColorSpace;
+  for(const t of [stoneMap,stoneNormal,stoneORM,barkMap])if(t){t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=2;}
+  if(barkMap)barkMap.repeat.set(1,3);
+  try {
+    const {RoomEnvironment}=await import('three/addons/environments/RoomEnvironment.js');
+    const env=new RoomEnvironment(),pmrem=new T.PMREMGenerator(renderer);
+    scene.environment=pmrem.fromScene(env,.06).texture;
+    scene.environmentIntensity=.4;env.dispose();pmrem.dispose();
+  } catch(e) { console.warn('Qualium environment fallback:',e.message); }
   const root = new T.Group(); root.name = 'qualium-loop-sculptures'; world.add(root);
-  const hemi = new T.HemisphereLight(0xc8e6f3, 0x172b35, 2.0); scene.add(hemi);
-  const key = new T.DirectionalLight(0xe5f8ef, 3.4); key.position.set(-7,12,9); scene.add(key);
-  const rim = new T.DirectionalLight(0x85c5ed, 2.5); rim.position.set(8,5,-8); scene.add(rim);
-  const warm = new T.DirectionalLight(0xe8cc9b, 1.0); warm.position.set(-3,2,-4); scene.add(warm);
+  const hemi = new T.HemisphereLight(0xc8e6f3, 0x252b28, 1.2); scene.add(hemi);
+  const key = new T.DirectionalLight(0xffe8c7, 3.0); key.position.set(-7,12,9); scene.add(key);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-10;key.shadow.camera.right=10;key.shadow.camera.top=10;key.shadow.camera.bottom=-10;key.shadow.camera.near=.5;key.shadow.camera.far=40;key.shadow.bias=-.0004;key.shadow.normalBias=.025;
+  const rim = new T.DirectionalLight(0xa7c6dc, 1.25); rim.position.set(8,5,-8); scene.add(rim);
+  const warm = new T.DirectionalLight(0xe8cc9b, .45); warm.position.set(-3,2,-4); scene.add(warm);
   const solid = (color, extra={}) => new T.MeshStandardMaterial({color,metalness:.28,roughness:.4,...extra});
-  const stone = solid(palette.stone), dark = solid(palette.ink), pale = solid(palette.ice), gold = solid(palette.gold,{metalness:.5});
+  const stone = solid(palette.stone,{map:stoneMap,normalMap:stoneNormal,normalScale:new T.Vector2(.7,.7),roughnessMap:stoneORM,metalness:.04,roughness:.96}), dark = solid(palette.ink,{map:stoneMap,normalMap:stoneNormal,normalScale:new T.Vector2(.5,.5),roughness:.95,metalness:.03}), pale = solid(palette.ice,{roughness:.32,metalness:.55}), gold = solid(palette.gold,{metalness:.72,roughness:.33});
   const glass = solid(0x6dbbb8,{transparent:true,opacity:.20,depthWrite:false,side:T.DoubleSide,metalness:.12,roughness:.24});
   const lineMaterial = (color,opacity=.6) => new T.LineBasicMaterial({color,transparent:true,opacity,depthWrite:false,toneMapped:false});
   const vector = a => new T.Vector3(...a);
-  const mesh = (g,m,parent,x=0,y=0,z=0) => {const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;};
+  const mesh = (g,m,parent,x=0,y=0,z=0) => {const o=new T.Mesh(g,m);o.position.set(x,y,z);o.castShadow=!m.transparent;o.receiveShadow=true;parent.add(o);return o;};
   function line(points, parent, color=palette.ice, opacity=.6) {
     const o=new T.Line(new T.BufferGeometry().setFromPoints(points),lineMaterial(color,opacity));parent.add(o);return o;
   }
@@ -25,7 +38,7 @@ export function createLoopScene({T, scene, world, camera, host, sprite}) {
     const d=b.clone().sub(a),o=mesh(new T.CylinderGeometry(r,r,d.length(),6),material,parent);
     o.position.copy(a).add(b).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());return o;
   }
-  function slab(parent,r,y,h,material=stone,sides=6) {
+  function slab(parent,r,y,h,material=stone,sides=64) {
     const o=mesh(new T.CylinderGeometry(r,r*.95,h,sides),material,parent,0,y,0);o.rotation.y=Math.PI/6;return o;
   }
   const stations = Array.from({length:5},(_,i)=>{
@@ -41,15 +54,19 @@ export function createLoopScene({T, scene, world, camera, host, sprite}) {
   // 01 Reality: a cut section of a place — terrain, water, trees and a few buildings.
   {
     const {art,accent}=stations[0];
-    for(let k=0;k<3;k++) {const s=slab(art,.96-k*.035,-.13+k*.075,.09,k===0?dark:stone,8);s.rotation.y=.12*k;}
+    for(let k=0;k<3;k++) {const s=slab(art,.96-k*.035,-.13+k*.075,.09,k===0?dark:stone,32);s.rotation.y=.12*k;}
     const g=new T.PlaneGeometry(1.72,1.52,16,14);g.rotateX(-Math.PI/2);
     const p=g.attributes.position;
     for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);p.setY(i,.16+Math.sin(x*3.5+z)*.075+Math.exp(-((x+.5)**2+(z+.1)**2)*7)*.22);}
-    g.computeVertexNormals();mesh(g,accent,art);
+    g.computeVertexNormals();mesh(g,solid(0x737f59,{map:stoneMap,normalMap:stoneNormal,roughness:1,metalness:0}),art);
     const river=[];for(let i=0;i<32;i++){const z=i/31*1.4-.7;river.push(new T.Vector3(Math.sin(z*3)*.12+.12,.19,z));}tube(river,art,0xb4f3ed,.028);
     const trunkGeo=new T.CylinderGeometry(.025,.035,.30,5),leafGeo=new T.IcosahedronGeometry(.15,1);
-    const trunks=new T.InstancedMesh(trunkGeo,dark,8),leaves=new T.InstancedMesh(leafGeo,pale,8),dummy=new T.Object3D();
-    for(let i=0;i<8;i++){const x=-.62+(i%2)*.28,z=-.58+Math.floor(i/2)*.35,h=.25+(i%3)*.04;dummy.position.set(x,h+.12,z);dummy.scale.set(1,1,1);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=h+.34;dummy.scale.set(1,1.55,1);dummy.updateMatrix();leaves.setMatrixAt(i,dummy.matrix);}art.add(trunks,leaves);
+    const trunks=new T.InstancedMesh(trunkGeo,solid(0xb2aa90,{map:barkMap,roughness:1,metalness:0}),8),leaves=new T.InstancedMesh(leafGeo,solid(0x49633f,{roughness:.9,metalness:0}),8),dummy=new T.Object3D();
+    for(let i=0;i<8;i++){const x=-.62+(i%2)*.28,z=-.58+Math.floor(i/2)*.35,h=.25+(i%3)*.04;dummy.position.set(x,h+.12,z);dummy.scale.set(1,1,1);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=h+.34;dummy.scale.set(1,1.55,1);dummy.updateMatrix();leaves.setMatrixAt(i,dummy.matrix);}trunks.castShadow=true;leaves.castShadow=true;art.add(trunks);
+    if(leafMap){
+      const foliage=new T.InstancedMesh(new T.PlaneGeometry(.38,.27),new T.MeshStandardMaterial({map:leafMap,alphaTest:.42,side:T.DoubleSide,roughness:.84,color:0xd4dbbb}),96);
+      for(let i=0;i<96;i++){const tree=Math.floor(i/12),j=i%12,x=-.62+(tree%2)*.28,z=-.58+Math.floor(tree/2)*.35,h=.25+(tree%3)*.04;dummy.position.set(x+Math.sin(j*2.4)*.12,h+.29+Math.cos(j*1.3)*.12,z+Math.cos(j*2.4)*.12);dummy.scale.setScalar(.7+(j%3)*.15);dummy.rotation.set(j*1.7,j*2.1,j*.3);dummy.updateMatrix();foliage.setMatrixAt(i,dummy.matrix);}foliage.castShadow=true;art.add(foliage);
+    } else art.add(leaves);
     [[.54,.28,-.45],[.65,.17,.02],[.45,.37,.47]].forEach(([x,h,z])=>{const b=mesh(new T.BoxGeometry(.25,h,.23),pale,art,x,.2+h/2,z);b.rotation.y=.1;mesh(new T.BoxGeometry(.16,.015,.15),gold,b,0,h/2+.012,0);});
   }
 
@@ -108,6 +125,8 @@ export function createLoopScene({T, scene, world, camera, host, sprite}) {
 
   // The central opening stays quiet for the existing HTML title.
   const core=new T.Group(),coreAnchor=new T.Object3D();root.add(core,coreAnchor);
+  const floorMap=stoneMap?.clone();if(floorMap){floorMap.repeat.set(6,6);floorMap.needsUpdate=true;}
+  const ground=new T.Mesh(new T.CircleGeometry(11.5,96),solid(0x46504b,{map:floorMap,normalMap:stoneNormal,normalScale:new T.Vector2(.18,.18),roughness:1,metalness:0,transparent:true,opacity:.54,depthWrite:false}));ground.rotation.x=-Math.PI/2;ground.position.y=-.70;ground.receiveShadow=true;root.add(ground);
   const haloMat=lineMaterial(palette.teal,.32);
   for(let k=0;k<3;k++){const pts=[];for(let i=0;i<=90;i++){const a=i/90*Math.PI*2;pts.push(new T.Vector3(Math.cos(a)*(1.05+k*.12),Math.sin(a*.0)+k*.13-.45,Math.sin(a)*(.63+k*.07)));}core.add(new T.Line(new T.BufferGeometry().setFromPoints(pts),haloMat));}
   const links=new T.Group();root.add(links);let curves=[];

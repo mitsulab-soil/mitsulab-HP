@@ -1,187 +1,138 @@
 /**
- * A designed place: ground, water, forest and city, connected by perceptual clues.
- * Geometry and motion are illustrative. No measured geography or subjective state.
- * Rendering, visibility, timing, reduced motion and interface belong to the caller.
+ * A view inside a place, using the same aerial terrain, PLATEAU buildings and
+ * zelkova geometry as the TOP. Moving marks are illustrative translations.
+ * Time layers do not claim reconstructed historical landscapes or geology.
  */
-export function createFieldScene({T,scene,world,camera,host,sprite}){
- const root=new T.Group(),land=new T.Group(),timeLayers=new T.Group(),senses=new T.Group();
- root.name='qualium-place';world.add(root);root.add(timeLayers,land,senses);
- const disposed=new Set(),materials=[],geometries=[],textures=[];
- const ownG=g=>(geometries.push(g),g),ownM=m=>(materials.push(m),m);
- const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
- const smooth=(a,b,v)=>{const t=clamp((v-a)/(b-a));return t*t*(3-2*t);};
- const random=i=>{const f=Math.sin(i*127.13+41.7)*43758.5453;return f-Math.floor(f);};
- const color=(hex)=>new T.Color(hex);
- const palette={ground:0x243c38,forest:0x537a60,water:0x397b87,stone:0x8b947e,city:0x5a747a,navy:0x091322,teal:0x89c8bf,gold:0xe6ca92};
- const standard=opts=>ownM(new T.MeshStandardMaterial({roughness:.86,...opts}));
- const lineMaterial=(hex,opacity=.3)=>ownM(new T.LineBasicMaterial({color:hex,transparent:true,opacity,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false}));
- const pointMaterial=(hex,size,opacity)=>ownM(new T.PointsMaterial({color:hex,size,map:sprite,transparent:true,opacity,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false,sizeAttenuation:true}));
- const dummy=new T.Object3D();
- let width=host?.clientWidth||1200,height=host?.clientHeight||740,modeBlend=[1,0,0],lastMode=0;
- const lights=new T.Group();lights.name='qualium-field-lighting';scene.add(lights);
- lights.add(new T.HemisphereLight(0xc0dce5,0x142222,1.6));
- const sun=new T.DirectionalLight(0xf2dcb8,3.1);sun.position.set(-16,23,13);lights.add(sun);
- const rim=new T.DirectionalLight(0x74bdbf,1.8);rim.position.set(12,10,-15);lights.add(rim);
- // Muted, granular material generated locally, rather than an external image.
- const paper=document.createElement('canvas');paper.width=paper.height=128;const ctx=paper.getContext('2d');
- let grain;
- if(ctx){const pixels=ctx.createImageData(128,128);for(let i=0;i<128*128;i++){const n=Math.round(174+random(i)*66);pixels.data.set([n,n-3,n-9,255],i*4);}ctx.putImageData(pixels,0,0);grain=new T.CanvasTexture(paper);grain.colorSpace=T.SRGBColorSpace;grain.wrapS=grain.wrapT=T.RepeatWrapping;grain.repeat.set(14,11);textures.push(grain);}
- const riverX=z=>-2.5+Math.sin(z*.20)*1.85+Math.sin(z*.43)*.36;
- function terrainHeight(x,z){
-  const distance=Math.abs(x-riverX(z));
-  const hill=1.7*Math.exp(-((x+11)**2/45+(z+7)**2/65))+.7*Math.exp(-((x+13)**2/25+(z-3)**2/40));
-  const small=.15*Math.sin(x*.48+z*.23)+.09*Math.cos(z*.7-x*.2);
-  const rural=.45+hill+small;
-  const urban=.52+.04*Math.sin(z*.3);
-  const dry=rural*(1-smooth(1,5,x))+urban*smooth(1,5,x);
-  return .12+smooth(.78,2.1,distance)*dry;
+export async function createFieldScene({T,scene,world,camera,host,sprite,renderer}) {
+ const [{GLTFLoader},{MeshoptDecoder},{mergeGeometries}]=await Promise.all([
+  import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')
+ ]);
+ const url=path=>new URL('../'+path,import.meta.url).href;
+ const gltf=new GLTFLoader();gltf.setMeshoptDecoder(MeshoptDecoder);
+ const tl=new T.TextureLoader(),ownG=new Set(),ownM=new Set(),ownTex=new Set();
+ const geo=g=>(ownG.add(g),g),mat=m=>(ownM.add(m),m);
+ const texture=async(path,srgb=true,repeat)=>{const t=await tl.loadAsync(url(path));t.colorSpace=srgb?T.SRGBColorSpace:T.NoColorSpace;t.anisotropy=Math.min(4,renderer?.capabilities.getMaxAnisotropy()||2);if(repeat){t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(...repeat);}ownTex.add(t);return t;};
+ const [terrainAsset,cityAsset,treeAsset,roadAsset,photo,bark,barkNormal,leaf,gravel,gritNormal,meta]=await Promise.all([
+  gltf.loadAsync(url('img/hero/3d/terrain_lite.glb')),gltf.loadAsync(url('img/hero/3d/buildings_lite.glb')),
+  gltf.loadAsync(url('img/hero/3d/keyaki_lod1_notex.glb')),gltf.loadAsync(url('img/hero/3d/road.glb')),
+  texture('img/hero/3d/tex_photo_s.jpg'),texture('x/02/tex/bark_zelkova.webp',true,[1,3]),
+  texture('x/02/tex/bark_zelkova_n.webp',false,[1,3]),texture('img/hero/3d/keyaki_leaf_atlas.png'),
+  texture('x/02/tex/path_gravel.webp',true,[1,1]),texture('x/02/tex/sand_grit_n.webp',false,[1,1]),
+  window.__sandoWire?window.__sandoWire.then(x=>x[0]):fetch(url('img/hero/sando_wire.json')).then(r=>{if(!r.ok)throw Error('Place metadata unavailable');return r.json();})
+ ]);
+ // The original GLB leaf cards use the original 2 × 2 atlas, not a single
+ // branch image. Match its glTF UV orientation; the aerial map follows TOP.
+ leaf.flipY=false;
+ const root=new T.Group(),physical=new T.Group(),signals=new T.Group(),timeLayers=new T.Group(),senses=new T.Group();
+ root.name='qualium-photo-place';root.add(physical,signals,timeLayers,senses);world.add(root);
+ const source=meta.center.reduce((a,c)=>Math.abs(c[2]+640)<Math.abs(a[2]+640)?c:a),origin=new T.Vector3(...source);
+ const centerline=meta.center.map(a=>[a[0]-origin.x,a[2]-origin.z]).sort((a,b)=>a[1]-b[1]);
+ function roadCenter(z){let i=1;while(i<centerline.length-1&&centerline[i][1]<z)i++;const a=centerline[i-1],b=centerline[i],t=T.MathUtils.clamp((z-a[1])/(b[1]-a[1]||1),0,1);return T.MathUtils.lerp(a[0],b[0],t);}
+ const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),random=i=>{const n=Math.sin(i*127.13+41.7)*43758.5453;return n-Math.floor(n);};
+ const HG=meta.hgrid;
+ function heightAt(x,z){const cx=clamp((x+origin.x-HG.x0)/HG.d,0,HG.cols-1),cz=clamp((z+origin.z-HG.z0)/HG.d,0,HG.rows-1),ix=Math.floor(cx),iz=Math.floor(cz),fx=cx-ix,fz=cz-iz,read=(a,b)=>HG.v[Math.min(HG.rows-1,b)*HG.cols+Math.min(HG.cols-1,a)]/10;return T.MathUtils.lerp(T.MathUtils.lerp(read(ix,iz),read(ix+1,iz),fx),T.MathUtils.lerp(read(ix,iz+1),read(ix+1,iz+1),fx),fz)-origin.y;}
+ const standard=options=>mat(new T.MeshStandardMaterial({roughness:.9,metalness:0,...options}));
+ const lineMat=(color,opacity)=>mat(new T.LineBasicMaterial({color,transparent:true,opacity,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending}));
+ const pointMat=(color,size,opacity)=>mat(new T.PointsMaterial({color,size,map:sprite,sizeAttenuation:true,transparent:true,opacity,depthWrite:false,toneMapped:false,blending:T.AdditiveBlending}));
+ const buffer=arr=>geo(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(arr,3)));
+ // Keep the original real-world coordinates, UVs and vertex colours, then crop
+ // only distant triangles. New float attributes avoid editing quantized GLBs.
+ function cropMesh(mesh,xLimit=240,zLimit=290,planarUV=false){
+  const g=mesh.geometry,p=g.attributes.position,n=p.count,worldP=new Float32Array(n*3),v=new T.Vector3();
+  for(let i=0;i<n;i++){v.fromBufferAttribute(p,i).applyMatrix4(mesh.matrixWorld).sub(origin);worldP.set([v.x,v.y,v.z],i*3);}
+  const inds=g.index?.array,N=inds?.length||n,chosen=[],map=new Map(),outIndex=[];
+  for(let k=0;k<N;k+=3){const a=inds?inds[k]:k,b=inds?inds[k+1]:k+1,c=inds?inds[k+2]:k+2;const x=(worldP[a*3]+worldP[b*3]+worldP[c*3])/3,z=(worldP[a*3+2]+worldP[b*3+2]+worldP[c*3+2])/3;if(Math.abs(x)>xLimit||Math.abs(z)>zLimit)continue;for(const j of[a,b,c]){if(!map.has(j)){map.set(j,chosen.length);chosen.push(j);}outIndex.push(map.get(j));}}
+  if(!chosen.length)return null;
+  const result=geo(new T.BufferGeometry()),pos=new Float32Array(chosen.length*3);chosen.forEach((old,i)=>pos.set(worldP.subarray(old*3,old*3+3),i*3));result.setAttribute('position',new T.BufferAttribute(pos,3));result.setIndex(outIndex);
+  for(const name of ['uv','color']){const attr=g.attributes[name];if(!attr||name==='uv'&&planarUV)continue;const array=new Float32Array(chosen.length*attr.itemSize),get=['getX','getY','getZ','getW'];chosen.forEach((old,i)=>{for(let k=0;k<attr.itemSize;k++)array[i*attr.itemSize+k]=attr[get[k]](old);});result.setAttribute(name,new T.BufferAttribute(array,attr.itemSize));}
+  if(planarUV){const uv=new Float32Array(chosen.length*2);for(let i=0;i<chosen.length;i++)uv.set([pos[i*3]/3,pos[i*3+2]/3],i*2);result.setAttribute('uv',new T.BufferAttribute(uv,2));}
+  result.computeVertexNormals();result.computeBoundingSphere();return result;
  }
- function surfaceGeometry(w=34,d=28,sx=100,sz=82,layer=false){
-  const g=ownG(new T.PlaneGeometry(w,d,sx,sz));g.rotateX(-Math.PI/2);const p=g.attributes.position,cols=[];
-  for(let i=0;i<p.count;i++){
-   const x=p.getX(i),z=p.getZ(i),y=terrainHeight(x,z);p.setY(i,layer?y*.10:y);
-   const c=color(palette.ground),riverBank=1-smooth(.9,2.3,Math.abs(x-riverX(z)));
-   c.lerp(color(0x697c67),riverBank*.48).lerp(color(0x385245),clamp(y/3)*.6);c.multiplyScalar(.93+random(i)*.13);cols.push(c.r,c.g,c.b);
-  }
-  g.setAttribute('color',new T.Float32BufferAttribute(cols,3));g.computeVertexNormals();return g;
+ const groundMat=standard({map:photo,color:0xffffff}),cityMat=standard({color:0xe0ded6,vertexColors:true,flatShading:true,roughness:.89});
+ const groundGeometries=[];
+ for(const [asset,material,isGround]of[[terrainAsset,groundMat,true],[cityAsset,cityMat,false]]){
+  asset.scene.updateMatrixWorld(true);asset.scene.traverse(o=>{if(!o.isMesh)return;const g=cropMesh(o,isGround?290:230,isGround?360:290);if(!g)return;const m=new T.Mesh(g,material);m.receiveShadow=true;physical.add(m);if(isGround)groundGeometries.push(g);});
  }
- const groundGeo=surfaceGeometry(),ground=new T.Mesh(groundGeo,standard({...(grain?{map:grain}:{}),vertexColors:true,color:0xd4e1d6,roughness:.98}));land.add(ground);
- // Shaped cut edge gives the terrain weight; a dark base makes the scene read as land.
- function skirt(w,d,bottom,topFn,hex){
-  const positions=[],indices=[],colors=[];const edge=[];const n=44;
-  for(let i=0;i<n;i++)edge.push([-w/2+i/n*w,-d/2]);for(let i=0;i<n;i++)edge.push([w/2,-d/2+i/n*d]);for(let i=0;i<n;i++)edge.push([w/2-i/n*w,d/2]);for(let i=0;i<n;i++)edge.push([-w/2,d/2-i/n*d]);
-  edge.forEach(([x,z],i)=>{positions.push(x,topFn(x,z),z,x,bottom,z);const top=color(hex),base=color(hex).multiplyScalar(.35);colors.push(top.r,top.g,top.b,base.r,base.g,base.b);const a=i*2,b=((i+1)%edge.length)*2;indices.push(a,b,a+1,b,b+1,a+1);});
-  const g=ownG(new T.BufferGeometry());g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return new T.Mesh(g,standard({vertexColors:true,side:T.DoubleSide}));
- }
- land.add(skirt(34,28,-1.0,terrainHeight,0x4d5b4d));
- const basal=new T.Mesh(ownG(new T.BoxGeometry(34,1.5,28)),standard({color:0x122126,roughness:1}));basal.position.y=-1.72;land.add(basal);
- // Water has a surface, banks, small waves and a continuous downstream motion.
- const waterCount=110,waterPos=[],waterIndex=[];
- for(let i=0;i<=waterCount;i++){const z=-14+i/waterCount*28,x=riverX(z),half=.67+.09*Math.sin(z*.3);waterPos.push(x-half,.19,z,x+half,.19,z);if(i<waterCount){const a=i*2;waterIndex.push(a,a+2,a+1,a+1,a+2,a+3);}}
- const waterGeo=ownG(new T.BufferGeometry());waterGeo.setAttribute('position',new T.Float32BufferAttribute(waterPos,3));waterGeo.setIndex(waterIndex);waterGeo.computeVertexNormals();
- const waterMat=ownM(new T.MeshPhysicalMaterial({color:palette.water,metalness:.38,roughness:.19,clearcoat:1,clearcoatRoughness:.16,side:T.DoubleSide,emissive:0x0d343b,emissiveIntensity:.18}));
- const water=new T.Mesh(waterGeo,waterMat);land.add(water);
- const flowLines=[];for(let k=0;k<6;k++){const g=ownG(new T.BufferGeometry());g.setAttribute('position',new T.BufferAttribute(new Float32Array(81*3),3));const l=new T.Line(g,lineMaterial(k%2?0x8ad9db:0xc1d9bc,.18));land.add(l);flowLines.push(l);}
- // Forest: individual trunks, several crowns, and soft contact shadows, in four draws.
- const treeData=[];
- for(let i=0;i<144;i++){
-  const x=-15.4+random(i*3+8)*16.7,z=-12.6+random(i*5+24)*23.8;
-  if(Math.abs(x-riverX(z))<2.15||x>-2.1&&z>2.6||Math.hypot(x+7,z-8)<1.8)continue;
-  treeData.push({x,z,y:terrainHeight(x,z),h:1.55+random(i*9)*1.85,r:.57+random(i*13)*.38,seed:i});
- }
- const trunkG=ownG(new T.CylinderGeometry(.075,.14,1,7)),trunkMat=standard({color:0x655e49,roughness:1}),trunks=new T.InstancedMesh(trunkG,trunkMat,treeData.length);land.add(trunks);
- const crownG=ownG(new T.IcosahedronGeometry(1,1)),crownMat=standard({color:0xdce6d4,roughness:.92}),crowns=new T.InstancedMesh(crownG,crownMat,treeData.length*5);land.add(crowns);
- const shadowMat=ownM(new T.MeshBasicMaterial({color:0x000000,map:sprite,transparent:true,opacity:.33,depthWrite:false})),shadowG=ownG(new T.PlaneGeometry(1,1));shadowG.rotateX(-Math.PI/2);
- const shadows=new T.InstancedMesh(shadowG,shadowMat,treeData.length);land.add(shadows);
- treeData.forEach((t,i)=>{
-  dummy.position.set(t.x,t.y+t.h*.46,t.z);dummy.rotation.set(0,0,0);dummy.scale.set(1,t.h*.92,1);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);
-  dummy.position.set(t.x,t.y+.025,t.z);dummy.scale.set(t.r*3,1,t.r*2.5);dummy.updateMatrix();shadows.setMatrixAt(i,dummy.matrix);
-  for(let j=0;j<5;j++){
-   const a=j/5*Math.PI*2+t.seed*.3;dummy.position.set(t.x+Math.cos(a)*t.r*.36,t.y+t.h*(.65+random(t.seed*12+j)*.3),t.z+Math.sin(a)*t.r*.3);dummy.rotation.set(random(t.seed+j)*.3,a,random(t.seed*3+j)*.2);dummy.scale.set(t.r*(j? .8:1.1),t.r*(1.1+random(j+t.seed)*.35),t.r*.8);dummy.updateMatrix();crowns.setMatrixAt(i*5+j,dummy.matrix);
-   const c=color(palette.forest).lerp(color(0x8b9d6e),random(t.seed*27+j)*.38).multiplyScalar(.74+random(t.seed+j)*.35);crowns.setColorAt(i*5+j,c);
-  }
+ // Actual road meshes from the TOP, with restrained small-scale surface detail.
+ const roadColors={asphalt_dark:0x484b49,asphalt_light:0x777972,bed:0x4a4533,concrete:0xa39d90,granite_band:0x8c8b83,granite_black:0x575853,granite_light:0xa8a69b,granite_plaza:0x9a9b91,gravel:0xbdb5a0,lawn:0x6b7950,paint:0xdcdad1,roots:0x514333,sand:0xc6b694,sidewalk:0x9d988f,stone:0x88847d,washed:0xa59d8f};
+ const roadGroups=new Map();roadAsset.scene.updateMatrixWorld(true);roadAsset.scene.traverse(o=>{if(!o.isMesh)return;const g=cropMesh(o,110,240,true);if(!g)return;const name=o.name.split('|')[0];if(!roadGroups.has(name))roadGroups.set(name,[]);roadGroups.get(name).push(g);});
+ for(const [name,parts]of roadGroups){const g=parts.length>1?geo(mergeGeometries(parts)):parts[0],rough=['gravel','bed','sand','roots'].includes(name),m=standard({color:roadColors[name]||0x9d998c,map:rough?gravel:null,normalMap:gritNormal,normalScale:new T.Vector2(rough?.35:.12,rough?.35:.12),polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});const road=new T.Mesh(g,m);road.receiveShadow=true;physical.add(road);}
+ // The original zelkova's branches and leaf cards, repeated at the existing tree
+ // positions. No spherical crown geometry or ornamental miniature buildings.
+ treeAsset.scene.updateMatrixWorld(true);const treeBox=new T.Box3().setFromObject(treeAsset.scene),treeHeight=treeBox.max.y-treeBox.min.y||1;
+ const mobile=(host?.clientWidth||innerWidth)<700;
+ const treePositions=meta.trees.map((a,i)=>({p:new T.Vector3(a[0]-origin.x,a[1]-origin.y,a[2]-origin.z),seed:i})).filter(t=>Math.abs(t.p.x)<130&&Math.abs(t.p.z)<230).sort((a,b)=>a.p.lengthSq()-b.p.lengthSq()).slice(0,mobile?76:112);
+ const barkMat=standard({map:bark,normalMap:barkNormal,normalScale:new T.Vector2(.45,.45),color:0xc3b59e,roughness:.96});
+ const leafMat=standard({map:leaf,color:0xffffff,vertexColors:true,roughness:.9,alphaTest:.45,side:T.DoubleSide});
+ const wind={value:0};leafMat.onBeforeCompile=shader=>{shader.uniforms.fieldTime=wind;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nuniform float fieldTime;').replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n transformed.x += sin(fieldTime*.65 + position.y*7. + instanceMatrix[3].x*.14)*.004;\n transformed.z += cos(fieldTime*.48 + position.x*6. + instanceMatrix[3].z*.10)*.003;\n#endif');};leafMat.customProgramCacheKey=()=> 'qualium-leaf-wind-1';
+ const instanceMatrix=new T.Matrix4(),rotation=new T.Quaternion(),scale=new T.Vector3(),position=new T.Vector3(),up=new T.Vector3(0,1,0);
+ treeAsset.scene.traverse(o=>{if(!o.isMesh)return;ownG.add(o.geometry);const leaves=/leaf|leaves|crown/i.test(o.name+' '+o.material?.name),im=new T.InstancedMesh(o.geometry,leaves?leafMat:barkMat,treePositions.length);
+  treePositions.forEach((t,i)=>{const size=(17+random(t.seed)*3)/treeHeight;rotation.setFromAxisAngle(up,t.seed*2.399);position.copy(t.p);position.y-=treeBox.min.y*size;scale.set(size*.72,size,size*.72);instanceMatrix.compose(position,rotation,scale).multiply(o.matrixWorld);im.setMatrixAt(i,instanceMatrix);});im.castShadow=true;im.receiveShadow=true;im.computeBoundingSphere();physical.add(im);
  });
- // Low-rise streets, varied roofs and warm windows. All geometry is original.
- const buildings=[],cityZ=-9.3;
- for(let r=0;r<5;r++)for(let c=0;c<6;c++){
-  if((r===2&&c<2)||(r===4&&c===5))continue;
-  const x=4.3+c*1.6,z=cityZ+r*1.85,h=.8+random(r*6+c+110)*2.3;
-  buildings.push({x,z,y:terrainHeight(x,z),h,w:.85+random(c*7+r)*.28,d:1.08,seed:r*6+c});
- }
- const cityMat=standard({color:0xcad6d2,roughness:.7,metalness:.13});const boxG=ownG(new T.BoxGeometry(1,1,1));
- const city=new T.InstancedMesh(boxG,cityMat,buildings.length);land.add(city);
- const roofG=ownG(new T.ConeGeometry(.72,.52,4));roofG.rotateY(Math.PI/4);const roofs=new T.InstancedMesh(roofG,standard({color:0x283e48,roughness:.73,metalness:.22}),buildings.length);land.add(roofs);
- const windowG=ownG(new T.PlaneGeometry(1,1)),windowMat=ownM(new T.MeshBasicMaterial({color:0xdbd6ad,transparent:true,opacity:.52,toneMapped:false}));const windows=new T.InstancedMesh(windowG,windowMat,buildings.length*6);land.add(windows);
- buildings.forEach((b,i)=>{
-  dummy.position.set(b.x,b.y+b.h/2,b.z);dummy.rotation.set(0,0,0);dummy.scale.set(b.w,b.h,b.d);dummy.updateMatrix();city.setMatrixAt(i,dummy.matrix);city.setColorAt(i,color(palette.city).lerp(color(0xa3987d),random(b.seed+44)*.4));
-  dummy.position.y=b.y+b.h+.17;dummy.scale.set(b.w*1.12,.7,b.d*1.12);dummy.updateMatrix();roofs.setMatrixAt(i,dummy.matrix);
-  for(let j=0;j<6;j++){dummy.position.set(b.x+((j%3)-1)*b.w*.25,b.y+b.h*(j<3?.34:.72),b.z+b.d*.5+.012);dummy.rotation.set(0,0,0);dummy.scale.set(.12,.19,1);dummy.updateMatrix();windows.setMatrixAt(i*6+j,dummy.matrix);}
- });
- const roadMat=standard({color:0x39494b,roughness:.98});
- for(let r=0;r<5;r++){const z=cityZ+r*1.85+.79;const road=new T.Mesh(ownG(new T.PlaneGeometry(10.8,.35)),roadMat);road.rotation.x=-Math.PI/2;road.position.set(8.3,terrainHeight(8.3,z)+.03,z);land.add(road);}
- // A small bridge links lived space to the river bank.
- const bz=2.6,bx=riverX(bz),bridge=new T.Group();bridge.position.set(bx,.71,bz);land.add(bridge);
- const deck=new T.Mesh(ownG(new T.BoxGeometry(4.1,.18,.74)),standard({color:0x929079,roughness:.9}));bridge.add(deck);
- const postG=ownG(new T.CylinderGeometry(.035,.045,.47,6)),posts=new T.InstancedMesh(postG,standard({color:0x897e64,roughness:.8}),18);bridge.add(posts);
- for(let i=0;i<18;i++){dummy.position.set(-1.92+(i%9)*.48,.31,i<9?-.30:.30);dummy.scale.set(1,1,1);dummy.rotation.set(0,0,0);dummy.updateMatrix();posts.setMatrixAt(i,dummy.matrix);}
- for(const side of [-1,1]){const beam=new T.Mesh(ownG(new T.BoxGeometry(4,.055,.055)),standard({color:0xb3a58a,roughness:.7}));beam.position.set(0,.54,side*.3);bridge.add(beam);}
- // Stones and an unobtrusive observation point in the foreground.
- const rockG=ownG(new T.DodecahedronGeometry(1,0)),rocks=new T.InstancedMesh(rockG,standard({color:palette.stone,roughness:.96}),26);land.add(rocks);
- for(let i=0;i<26;i++){const z=-12+random(i*31)*25,x=riverX(z)+(i%2?1:-1)*(1.2+random(i+62)*.45),r=.12+random(i+74)*.23;dummy.position.set(x,terrainHeight(x,z)+r*.3,z);dummy.scale.set(r*1.4,r*.55,r);dummy.rotation.set(.3,i*.7,.2);dummy.updateMatrix();rocks.setMatrixAt(i,dummy.matrix);}
- const observer=new T.Vector3(-7,terrainHeight(-7,8)+.18,8),waterPoint=new T.Vector3(riverX(4),.4,4),forestPoint=new T.Vector3(-9,terrainHeight(-9,-4)+2.6,-4),cityPoint=new T.Vector3(8,terrainHeight(8,-5)+2,-5);
- const anchors=[observer,waterPoint,forestPoint,cityPoint],anchorPoints=new Float32Array(anchors.flatMap(v=>v.toArray())),anchorG=ownG(new T.BufferGeometry());anchorG.setAttribute('position',new T.BufferAttribute(anchorPoints,3));const anchorGlow=new T.Points(anchorG,pointMaterial(palette.gold,.6,.85));land.add(anchorGlow);
- const pin=new T.Mesh(ownG(new T.CylinderGeometry(.025,.025,.85,8)),ownM(new T.MeshBasicMaterial({color:palette.gold,transparent:true,opacity:.75})));pin.position.copy(observer).add(new T.Vector3(0,.42,0));land.add(pin);
- const footstones=new T.InstancedMesh(rockG,standard({color:0x9b9b83,roughness:.92}),5);land.add(footstones);
- for(let i=0;i<5;i++){const x=-7+(i-2)*.45,z=8.7+Math.sin(i)*.18;dummy.position.set(x,terrainHeight(x,z)+.05,z);dummy.scale.set(.20,.06,.24);dummy.rotation.set(0,i*.6,0);dummy.updateMatrix();footstones.setMatrixAt(i,dummy.matrix);}
- // Connections follow water and terrain before becoming a fine data arc above the town.
- const routes=[
-  new T.CatmullRomCurve3([observer,observer.clone().add(new T.Vector3(1.4,.5,-.8)),waterPoint]),
-  new T.CatmullRomCurve3([waterPoint,new T.Vector3(riverX(0),1.0,0),new T.Vector3(-6,2.5,-3),forestPoint]),
-  new T.CatmullRomCurve3([forestPoint,new T.Vector3(-3,6,-6),new T.Vector3(3,5.5,-6),cityPoint])
- ];
- const routeLines=[];routes.forEach((route,i)=>{const l=new T.Line(ownG(new T.BufferGeometry().setFromPoints(route.getPoints(72))),lineMaterial(i===2?palette.gold:palette.teal,.23));land.add(l);routeLines.push(l);});
- const signalCount=90,signalArray=new Float32Array(signalCount*3),signalGeo=ownG(new T.BufferGeometry());signalGeo.setAttribute('position',new T.BufferAttribute(signalArray,3));const signal=new T.Points(signalGeo,pointMaterial(0xc8e7d3,.17,.82));land.add(signal);
- // Sparse ground contours provide scale without turning the entire landscape into wireframe.
- const contours=new T.Group();land.add(contours);
- for(let j=0;j<6;j++){const pts=[];for(let i=0;i<=70;i++){const x=-16+i/70*31,z=-11+j*4.1;pts.push(new T.Vector3(x,terrainHeight(x,z)+.035,z));}const l=new T.Line(ownG(new T.BufferGeometry().setFromPoints(pts)),lineMaterial(0x76aaad,.10));contours.add(l);}
- // Solid, separated strata are revealed only in the temporal reading of the place.
- const strata=[];
- for(let k=0;k<4;k++){
-  const layer=new T.Group(),g=surfaceGeometry(33-k*.15,27-k*.15,34,28,true),mat=standard({color:[0x475655,0x5a6660,0x777667,0x8b856d][k],vertexColors:false,transparent:true,opacity:0,roughness:.91,side:T.DoubleSide});
-  const top=new T.Mesh(g,mat);layer.add(top);
-  const wall=skirt(33-k*.15,27-k*.15,-.24,(x,z)=>terrainHeight(x,z)*.10,[0x384b50,0x54615b,0x6a6957,0x7b735c][k]);wall.material.transparent=true;wall.material.opacity=0;layer.add(wall);
-  const edgePts=[];for(let i=0;i<=80;i++){const x=-16.4+i/80*32.8,z=13.35-k*.075;edgePts.push(new T.Vector3(x,terrainHeight(x,z)*.1+.025,z));}const edge=new T.Line(ownG(new T.BufferGeometry().setFromPoints(edgePts)),lineMaterial(k===3?palette.gold:palette.teal,0));layer.add(edge);
-  timeLayers.add(layer);strata.push({group:layer,mat,wall:wall.material,edge:edge.material});
- }
- // In the sensory mode, one synthetic signal is mapped into light, waves and pulses.
- const senseWaves=[];
- for(let k=0;k<3;k++){
-  const g=ownG(new T.BufferGeometry());g.setAttribute('position',new T.BufferAttribute(new Float32Array(96*3),3));const l=new T.Line(g,lineMaterial(k===1?palette.gold:palette.teal,0));senses.add(l);senseWaves.push(l);
- }
- const pulseRings=[];const ringG=ownG(new T.RingGeometry(.96,1,72));ringG.rotateX(-Math.PI/2);
- for(let i=0;i<12;i++){const m=ownM(new T.MeshBasicMaterial({color:i%3===1?palette.gold:palette.teal,transparent:true,opacity:0,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false})),ring=new T.Mesh(ringG,m);senses.add(ring);pulseRings.push(ring);}
- const sparksArray=new Float32Array(180*3);for(let i=0;i<180;i++)sparksArray.set([(random(i*3)-.5)*36,2+random(i*3+1)*7,(random(i*3+2)-.5)*29],i*3);
- const sparksGeo=ownG(new T.BufferGeometry());sparksGeo.setAttribute('position',new T.BufferAttribute(sparksArray,3));const sparks=new T.Points(sparksGeo,pointMaterial(0xa5c6be,.055,.26));root.add(sparks);
- const targetCamera=new T.Vector3(),look=new T.Vector3(),lookCurrent=new T.Vector3(0,1,0);
- function resize(size={}){
-  width=Math.max(1,size.width||host?.clientWidth||width);height=Math.max(1,size.height||host?.clientHeight||height);
-  camera.aspect=width/height;camera.fov=width/height<.9?49:43;camera.near=.1;camera.far=180;camera.updateProjectionMatrix();
- }
+ // Cropped meshes own new float buffers; release the full decoded source
+ // buffers. Only the tree's shared geometry is still used by the instances.
+ for(const asset of [terrainAsset,cityAsset,roadAsset,treeAsset])asset.scene.traverse(o=>{if(!o.isMesh)return;if(asset!==treeAsset)o.geometry.dispose();for(const m of [].concat(o.material))m?.dispose();});
+ const shadowGeometry=geo(new T.PlaneGeometry(1,1));shadowGeometry.rotateX(-Math.PI/2);const shadowMat=mat(new T.MeshBasicMaterial({color:0x0b1812,map:sprite,transparent:true,opacity:.2,depthWrite:false})),shadows=new T.InstancedMesh(shadowGeometry,shadowMat,treePositions.length);
+ treePositions.forEach((t,i)=>{instanceMatrix.makeScale(11,1,10);instanceMatrix.setPosition(t.p.x,t.p.y+.04,t.p.z);shadows.setMatrixAt(i,instanceMatrix);});physical.add(shadows);
+ // Natural slanting light and atmospheric distance. One static shadow map.
+ const oldFog=scene.fog,oldBackground=scene.background,oldShadowAuto=renderer?.shadowMap.autoUpdate;
+ scene.fog=new T.FogExp2(0x617b80,.007);scene.background=new T.Color(0x59757c);
+ const lights=new T.Group();lights.add(new T.HemisphereLight(0xd8e7ea,0x4a4535,1.05));const sun=new T.DirectionalLight(0xffe6bc,2.0);sun.position.set(-70,100,35);sun.target.position.set(0,0,-30);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-82,right:82,top:82,bottom:-82,near:1,far:240});sun.shadow.bias=-.00025;sun.shadow.normalBias=.18;lights.add(sun,sun.target);scene.add(lights);
+ if(renderer){renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;}
+ // A gradient sky, rather than a black studio surrounding a tabletop model.
+ const skyMaterial=mat(new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{top:{value:new T.Color(0x173c54)},horizon:{value:new T.Color(0x899c96)}},vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 direction;uniform vec3 top;uniform vec3 horizon;void main(){float h=clamp(normalize(direction).y,0.,1.);gl_FragColor=vec4(mix(horizon,top,pow(h,.5)),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}',fog:false}));
+ const sky=new T.Mesh(geo(new T.SphereGeometry(1100,24,16)),skyMaterial);root.add(sky);
+ // Water clues retain the existing terrain-derived flow segments; no invented
+ // river is presented as part of this real place.
+ const flowPositions=[];for(const s of meta.flow){const x=s[0]-origin.x,z=s[1]-origin.z;if(Math.abs(x)>140||Math.abs(z)>180)continue;flowPositions.push(x,heightAt(x,z)+.22,z,s[2]-origin.x,heightAt(s[2]-origin.x,s[3]-origin.z)+.22,s[3]-origin.z);}
+ const waterLines=new T.LineSegments(buffer(flowPositions),lineMat(0x8cd4df,.35));signals.add(waterLines);
+ const contourPositions=[];for(const [e,p]of meta.contours)for(let i=0;i<p.length-2;i+=2){const x=p[i]-origin.x,z=p[i+1]-origin.z;if(Math.abs(x)>145||Math.abs(z)>180)continue;contourPositions.push(x,e-origin.y+.13,z,p[i+2]-origin.x,e-origin.y+.13,p[i+3]-origin.z);}
+ const contours=new T.LineSegments(buffer(contourPositions),lineMat(0xe3d8b0,.09));signals.add(contours);
+ const observer=new T.Vector3(1,heightAt(1,20)+.3,20),waterTarget=flowPositions.length?new T.Vector3(...flowPositions.slice(0,3)):new T.Vector3(19,heightAt(19,-12)+.3,-12),forestTarget=(treePositions.find(t=>t.p.z<-24&&t.p.x<0)||treePositions[0]).p.clone().add(new T.Vector3(0,9,0)),cityTarget=new T.Vector3(72,heightAt(72,-36)+13,-36);
+ const anchors=[observer,waterTarget,forestTarget,cityTarget];const routes=[];for(let i=0;i<3;i++){const a=anchors[i],b=anchors[i+1],mid=a.clone().lerp(b,.5);mid.y+=i===2?12:2.5;const curve=new T.CatmullRomCurve3([a,mid,b]);routes.push(curve);signals.add(new T.Line(geo(new T.BufferGeometry().setFromPoints(curve.getPoints(60))),lineMat(i===2?0xe3cfa0:0x89d2d2,.24)));}
+ const anchorsGlow=new T.Points(buffer(anchors.flatMap(a=>a.toArray())),pointMat(0xe2dfbe,.9,.65));signals.add(anchorsGlow);
+ const traveling=new Float32Array(54*3),travelGeo=buffer(traveling),travelPoints=new T.Points(travelGeo,pointMat(0xd1e9da,.48,.8));signals.add(travelPoints);
+ // Transparent snapshots read as memory above the same site, not cut-out boards.
+ const snapshots=[];for(let k=0;k<3;k++){const material=standard({map:photo,color:[0x86b4b6,0xced0af,0xd6c69a][k],transparent:true,opacity:0,depthWrite:false,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1});const group=new T.Group();for(const g of groundGeometries)group.add(new T.Mesh(g,material));timeLayers.add(group);snapshots.push({group,material});}
+ const waves=[];for(let k=0;k<3;k++){const line=new T.Line(buffer(new Float32Array(100*3)),lineMat(k===1?0xe0c99c:0x8acece,0));senses.add(line);waves.push(line);}
+ const ringGeometry=geo(new T.RingGeometry(.96,1,64));ringGeometry.rotateX(-Math.PI/2);const rings=[];for(let i=0;i<8;i++){const ring=new T.Mesh(ringGeometry,mat(new T.MeshBasicMaterial({color:0xa6d9cc,transparent:true,opacity:0,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,toneMapped:false})));senses.add(ring);rings.push(ring);}
+ const dustArray=new Float32Array(100*3);for(let i=0;i<100;i++)dustArray.set([(random(i*3)-.5)*70,3+random(i*3+1)*20,-60+random(i*3+2)*120],i*3);const dust=new T.Points(buffer(dustArray),pointMat(0xe8d9b5,.11,.22));physical.add(dust);
+ let width=host?.clientWidth||1200,height=host?.clientHeight||740,blend=[1,0,0];const look=new T.Vector3(),currentLook=new T.Vector3(),targetCamera=new T.Vector3();
+ function resize(size={}){width=Math.max(1,size.width||width);height=Math.max(1,size.height||height);camera.aspect=width/height;camera.fov=width/height<.9?61:53;camera.near=.35;camera.far=1800;camera.updateProjectionMatrix();}
  function update({time=0,dt=0,mode=0,snap=false}={}){
-  mode=clamp(Math.round(mode),0,2);const damping=snap?1:1-Math.exp(-Math.max(0,dt)*3);
-  for(let i=0;i<3;i++)modeBlend[i]+=(Number(i===mode)-modeBlend[i])*damping;
-  if(snap||lastMode!==mode){lastMode=mode;if(snap)modeBlend=[Number(mode===0),Number(mode===1),Number(mode===2)];}
-  const temporal=modeBlend[1],sensory=modeBlend[2],cycle=(time%20)/20,expansion=.5-.5*Math.cos(time*.135);
-  land.position.y=temporal*4.4;
-  // The plateau opens into physical layers; it never claims an actual local geology.
-  strata.forEach((s,k)=>{s.group.visible=temporal>.005;s.group.position.y=-2.2+k*.43+temporal*k*.82;s.mat.opacity=temporal*.86;s.wall.opacity=temporal*.9;s.edge.opacity=temporal*.3;});
-  const fit=Math.max(1,Math.pow(1.25/(width/height),.85));
-  const distance=(1.38+expansion*.10)*fit;
-  targetCamera.set((23-temporal*4+Math.sin(time*.045)*1.5)*distance,(20-temporal*2+sensory*2)*distance,(28+temporal*3)*distance);
-  if(snap)camera.position.copy(targetCamera);else camera.position.lerp(targetCamera,1-Math.exp(-Math.max(0,dt)*1.3));
-  look.set(-1.5+expansion*1.1,(width/height<.9?0:-2)+temporal*1.2,-.5+(.5-expansion)*1.8);if(snap)lookCurrent.copy(look);else lookCurrent.lerp(look,1-Math.exp(-Math.max(0,dt)*1.2));camera.lookAt(lookCurrent);camera.updateMatrixWorld();
-  root.rotation.y=.025+Math.sin(time*.045)*.018;
-  const wp=waterGeo.attributes.position;for(let i=0;i<wp.count;i++){const z=wp.getZ(i),x=wp.getX(i);wp.setY(i,.19+Math.sin(z*1.3+x*2+time*1.4)*.012);}wp.needsUpdate=true;
-  flowLines.forEach((l,k)=>{const p=l.geometry.attributes.position;for(let i=0;i<p.count;i++){const z=-14+i/(p.count-1)*28,x=riverX(z)+(k-2.5)*.19+Math.sin(z*.9-time*.4+k)*.03;p.setXYZ(i,x,.225+Math.sin(z*1.3+time*1.4)*.008,z);}p.needsUpdate=true;l.material.opacity=.1+((Math.sin(time*.6+k)+1)/2)*.12;});
-  // A bright wave reaches each connection in order: foot -> water -> forest -> city.
-  const travel=cycle*4.1;
-  for(let i=0;i<signalCount;i++){
-   const pathIndex=Math.floor(i/30),local=(i%30)/29,head=travel-pathIndex,weight=Math.max(0,1-Math.abs(local-head)*5.5),p=routes[pathIndex].getPoint(local);
-   signalArray[i*3]=p.x;signalArray[i*3+1]=p.y;signalArray[i*3+2]=p.z;
-   // Move inactive motes just below the terrain instead of allocating per-point materials.
-   if(weight<.03)signalArray[i*3+1]=-4;
+  mode=clamp(Math.round(mode),0,2);const damping=snap?1:1-Math.exp(-Math.max(0,dt)*2.6);for(let i=0;i<3;i++)blend[i]+=(Number(i===mode)-blend[i])*damping;
+  const temporal=blend[1],sensory=blend[2],lift=(.5-.5*Math.cos(time*.075))*(1-temporal*.35),portrait=width/height<.9;
+  // Begin within the avenue, then reveal how that immediate field belongs to
+  // the wider forest and city. The camera never circles a miniature platform.
+  // The first camera was inside the eastern tree crown. Follow the surveyed
+  // road centre below the canopy, rise above the trees, then widen the view.
+  const rise=T.MathUtils.smoothstep(lift,0,.45),drift=T.MathUtils.smoothstep(lift,.45,1);
+  const z=62+drift*55+temporal*18,x=roadCenter(z)+drift*(portrait?34:65)+temporal*25;
+  targetCamera.set(x,heightAt(x,z)+2.2+rise*23+lift*28+temporal*32,z);
+  look.set(roadCenter(-48)+drift*15,2.3+lift*6+temporal*4,-48+lift*12);
+  if(!snap){
+   const currentClearance=camera.position.y-heightAt(camera.position.x,camera.position.z),side=Math.abs(camera.position.x-roadCenter(camera.position.z));
+   // Mode switches and the return journey must also pass over, not through,
+   // a crown. Reach the centre lane before descending below the canopy.
+   if(currentClearance<24)targetCamera.x=roadCenter(z);
+   if(side>.25&&targetCamera.y<heightAt(targetCamera.x,z)+24)targetCamera.y=heightAt(targetCamera.x,z)+24;
   }
-  signalGeo.attributes.position.needsUpdate=true;signal.material.opacity=.65+sensory*.3;
-  routeLines.forEach((l,i)=>{const active=Math.max(0,1-Math.abs(travel-(i+.55)));l.material.opacity=.12+active*.32+sensory*.12;});
-  anchorGlow.material.opacity=.62+.20*Math.sin(time*1.5)**2;anchorGlow.material.size=.46+sensory*.25;
-  senses.visible=sensory>.005;senses.position.y=land.position.y;
-  const amplitude=.55+.45*Math.sin(time*.62)**2;
-  senseWaves.forEach((l,k)=>{const p=l.geometry.attributes.position;for(let i=0;i<p.count;i++){const x=-10+i/(p.count-1)*22;p.setXYZ(i,x,3.3+k*.62+Math.sin(x*.72-time*(1.1+k*.2)+k)*amplitude*(.33+k*.12),4.3-k*2.3);}p.needsUpdate=true;l.material.opacity=sensory*(.27+k*.06);});
-  pulseRings.forEach((ring,i)=>{const t=(time*.17+(i%4)*.25)%1,a=anchors[Math.floor(i/4)+1];ring.position.set(a.x,Math.max(.28,terrainHeight(a.x,a.z)+.07)+t*.10,a.z);ring.scale.setScalar(.45+t*2.1);ring.material.opacity=sensory*(1-t)*.20;});
-  sparks.material.opacity=.2+sensory*.16;sparks.rotation.y=Math.sin(time*.04)*.025;
-  return {mode,illustrative:true};
+  if(snap){camera.position.copy(targetCamera);currentLook.copy(look);}else{const a=1-Math.exp(-Math.max(0,dt)*1.4);camera.position.lerp(targetCamera,a);currentLook.lerp(look,a);}camera.lookAt(currentLook);camera.updateMatrixWorld();
+  wind.value=time;
+  timeLayers.visible=temporal>.005;snapshots.forEach((s,k)=>{s.group.position.y=(k+1)*5.7;s.material.opacity=temporal*(.16-k*.035);});
+  waterLines.material.opacity=.28+sensory*.35;contours.material.opacity=.075+temporal*.16;
+  const phase=(time%22)/22*4.1,p=travelGeo.attributes.position;
+  for(let i=0;i<54;i++){const route=Math.floor(i/18),u=(i%18)/17,point=routes[route].getPoint(u);p.setXYZ(i,point.x,Math.abs(u-(phase-route))<.18?point.y:-100,point.z);}p.needsUpdate=true;
+  anchorsGlow.material.opacity=.57+.18*Math.sin(time*1.2)**2;
+  senses.visible=sensory>.005;
+  waves.forEach((line,k)=>{const positions=line.geometry.attributes.position;for(let i=0;i<positions.count;i++){const x=-15+i/(positions.count-1)*45,z=-9-k*12;positions.setXYZ(i,x,heightAt(x,z)+4+k*1.1+Math.sin(x*.24-time*(.9+k*.16))*(.5+k*.35),z);}positions.needsUpdate=true;line.material.opacity=sensory*(.27+k*.05);});
+  rings.forEach((ring,i)=>{const phase=(time*.17+i*.18)%1,at=i<4?observer:waterTarget;ring.position.set(at.x,heightAt(at.x,at.z)+.16+phase*.2,at.z);ring.scale.setScalar(1.3+phase*6.5);ring.material.opacity=sensory*(1-phase)*.22;});
+  dust.rotation.y=Math.sin(time*.03)*.025;return{mode,illustrative:true};
  }
+ // Only this renderer is used by this field. The shadowed geometry and sunlight
+ // stay fixed, so recomputing their maps on every motion frame would be wasteful.
+ root.userData.field={source:'TOP shared terrain / aerial photo / PLATEAU / zelkova',trees:treePositions.length,assetBytesApprox:4857707,flowSegments:flowPositions.length/6};
  resize({width,height});update({time:0,dt:0,mode:0,snap:true});
- function dispose(){world.remove(root);scene.remove(lights);for(const item of [...geometries,...materials,...textures])if(!disposed.has(item)){item.dispose();disposed.add(item);}}
- return {update,resize,dispose};
+ function dispose(){world.remove(root);scene.remove(lights);scene.fog=oldFog;scene.background=oldBackground;if(renderer)renderer.shadowMap.autoUpdate=oldShadowAuto;for(const g of ownG)g.dispose();for(const m of ownM)m.dispose();for(const t of ownTex)t.dispose();}
+ return{update,resize,dispose};
 }

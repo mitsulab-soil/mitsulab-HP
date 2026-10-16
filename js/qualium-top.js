@@ -67,7 +67,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene]')){
   if(loading)return;loading=true;
   try{
    const T=await loadThree();
-   const module=await import(kind==='loop'?'./qualium-loop-3d.js?v=20261016a':'./qualium-field-3d.js?v=20261016a');
+   const module=await import(kind==='loop'?'./qualium-loop-3d.js?v=20261016b':'./qualium-field-3d.js?v=20261016b');
    renderer=new T.WebGLRenderer({canvas,alpha:kind==='loop',antialias:true,powerPreference:'low-power'});
    renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<=700?1:1.5));
    renderer.setClearColor(0x030812,kind==='loop'?0:1);renderer.outputColorSpace=T.SRGBColorSpace;
@@ -78,7 +78,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene]')){
    const ctx=glow.getContext('2d'),grad=ctx.createRadialGradient(32,32,0,32,32,32);
    grad.addColorStop(0,'#fff');grad.addColorStop(.14,'#fff');grad.addColorStop(1,'rgba(255,255,255,0)');
    ctx.fillStyle=grad;ctx.fillRect(0,0,64,64);const sprite=new T.CanvasTexture(glow);
-   model=(kind==='loop'?module.createLoopScene:module.createFieldScene)({T,scene,world,camera,host,sprite});
+   model=await (kind==='loop'?module.createLoopScene:module.createFieldScene)({T,scene,world,camera,host,sprite,renderer});
    draw=(dt=0,snap=false)=>{
     model.update({time,dt,mode,selected,snap});scene.updateMatrixWorld(true);camera.updateMatrixWorld();
     renderer.render(scene,camera);model.projectLabels?.();
