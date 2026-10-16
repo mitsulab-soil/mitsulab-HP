@@ -67,7 +67,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene]')){
   if(loading)return;loading=true;
   try{
    const T=await loadThree();
-   const module=await import(kind==='loop'?'./qualium-loop-3d.js?v=20261016b':'./qualium-field-3d.js?v=20261016b');
+   const module=await import(kind==='loop'?'./qualium-loop-3d.js?v=20261016-points1':'./qualium-field-3d.js?v=20261016b');
    renderer=new T.WebGLRenderer({canvas,alpha:kind==='loop',antialias:true,powerPreference:'low-power'});
    renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<=700?1:1.5));
    renderer.setClearColor(0x030812,kind==='loop'?0:1);renderer.outputColorSpace=T.SRGBColorSpace;
@@ -82,7 +82,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene]')){
    draw=(dt=0,snap=false)=>{
     model.update({time,dt,mode,selected,snap});scene.updateMatrixWorld(true);camera.updateMatrixWorld();
     renderer.render(scene,camera);model.projectLabels?.();
-    info.calls=renderer.info.render.calls;info.triangles=renderer.info.render.triangles;
+    info.calls=renderer.info.render.calls;info.triangles=renderer.info.render.triangles;info.points=renderer.info.render.points;
    };
    const resize=()=>{
     const width=host.clientWidth,height=host.clientHeight;if(!width||!height)return;
