@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>氷川道中　時をこえる謎解き</title>
+<meta name="description" content="氷川参道の物を手がかりに、時代をこえて謎を解く。碧と話しながら。">
+<meta name="robots" content="noai, noimageai">
+<meta name="tdm-reservation" content="1">
+<link rel="icon" href="favicon/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Shippori+Mincho+B1:wght@600&display=swap" rel="stylesheet">
+<style>
+/* 氷川道中《時をこえる謎解き》最小の版（2026-10-09）：画面で謎解き・江戸の一往復。
+   設計＝資料/再設計_時をこえる謎解き_v1.2_2026-10-09.md。碧の答えは「事実のカード」の中だけ（CARDS）。
+   AI の差し替え：AI_ENDPOINT が空なら端末の中の台本（カードを引いて答える）、入っていればサーバー（_dev/ai_server/worker.js）へ同じ形で送る。
+   会話は保存しない（端末にも残さない）。 */
+:root { --bg:#f4f2ea; --panel:#fffdf6; --ink:#1d2a27; --sub:#4a5a56; --line:#d9d4c4; --aoi:#2a7f86; --aoi2:#d6ecec; --edo:#8a5a2b; --edo2:#f1e3cf; --now:#2a7f86; --warn:#9a3b2b; --shadow:0 2px 14px rgba(0,0,0,.08); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#141a19; --panel:#1d2523; --ink:#e8ece8; --sub:#a9b6b2; --line:#33403d; --aoi:#6cc3c9; --aoi2:#23393a; --edo:#e0b27f; --edo2:#3a2e22; --warn:#f0a090; --shadow:0 2px 14px rgba(0,0,0,.4); } }
+:root[data-theme="dark"] { --bg:#141a19; --panel:#1d2523; --ink:#e8ece8; --sub:#a9b6b2; --line:#33403d; --aoi:#6cc3c9; --aoi2:#23393a; --edo:#e0b27f; --edo2:#3a2e22; --warn:#f0a090; --shadow:0 2px 14px rgba(0,0,0,.4); }
+* { box-sizing:border-box; }
+html, body { margin:0; background:var(--bg); color:var(--ink); font-family:"Zen Kaku Gothic New", system-ui, sans-serif; font-size:16px; line-height:1.75; }
+body { min-height:100vh; }
+.wrap { max-width:720px; margin:0 auto; padding:16px 16px 120px; }
+header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+h1 { font-family:"Shippori Mincho B1", serif; font-size:22px; letter-spacing:.06em; margin:8px 0 2px; }
+.sub { color:var(--sub); font-size:14px; margin:0; }
+.era { display:inline-flex; align-items:center; gap:6px; padding:2px 12px; border-radius:999px; font-size:14px; border:1px solid var(--line); background:var(--panel); white-space:nowrap; }
+.era b { font-weight:500; }
+.scene { margin:14px 0; border-radius:16px; overflow:hidden; background:var(--panel); box-shadow:var(--shadow); border:1px solid var(--line); }
+.scene svg { display:block; width:100%; height:auto; }
+.scene .cap { padding:8px 14px 12px; font-size:14px; color:var(--sub); }
+.mark { display:inline-block; min-width:1.4em; text-align:center; font-size:13px; border-radius:6px; padding:0 4px; margin-right:4px; border:1px solid var(--line); }
+.talk { display:flex; flex-direction:column; gap:10px; margin:14px 0; }
+.say { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:10px 14px; box-shadow:var(--shadow); }
+.say.aoi { border-left:4px solid var(--aoi); }
+.say.me { background:var(--aoi2); border:none; align-self:flex-end; max-width:85%; }
+.say .who { font-size:13px; color:var(--aoi); letter-spacing:.08em; }
+.say .src { display:block; font-size:13px; color:var(--sub); margin-top:4px; }
+.btns { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+button { font:inherit; min-height:44px; padding:0 14px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; }
+button.go { background:var(--aoi); color:#fff; border-color:var(--aoi); }
+button.edo { background:var(--edo); color:#fff; border-color:var(--edo); }
+button:disabled { opacity:.45; cursor:default; }
+button:focus-visible, input:focus-visible { outline:3px solid var(--aoi); outline-offset:2px; }
+.clues { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.clue { font-size:13px; padding:2px 10px; border-radius:999px; background:var(--edo2); color:var(--ink); border:1px solid var(--line); }
+.clue.now { background:var(--aoi2); }
+form.ask { position:fixed; left:0; right:0; bottom:0; background:var(--bg); border-top:1px solid var(--line); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
+form.ask .in { max-width:720px; margin:0 auto; display:flex; gap:8px; }
+form.ask input { flex:1; min-width:0; font:inherit; min-height:44px; padding:0 12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--ink); }
+.hint { font-size:13px; color:var(--sub); max-width:720px; margin:4px auto 0; }
+.card { border:1px solid var(--line); border-radius:16px; padding:14px 16px; background:var(--panel); box-shadow:var(--shadow); margin:14px 0; }
+.card h2 { font-family:"Shippori Mincho B1", serif; font-size:19px; margin:0 0 6px; letter-spacing:.05em; }
+.card p { margin:6px 0; }
+.about { font-size:14px; color:var(--sub); }
+details summary { cursor:pointer; color:var(--sub); font-size:14px; min-height:44px; display:flex; align-items:center; }
+.fade { animation:fade .9s ease; }
+@keyframes fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .fade { animation:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>時をこえる謎解き</h1><p class="sub">氷川道中　どこからでも、一話から</p></div>
+    <span class="era" id="eraTag" aria-live="polite"><b id="eraName">いま</b></span>
+  </header>
+  <nav id="eraDial" aria-label="時代を選ぶ"></nav><label>一話の場所 <select id="episode"><option value="south">一の鳥居・石と道</option><option value="middle">二の鳥居・人の通り方</option><option value="north">神社・水と杜</option></select></label><p>神社から南へ、途中の一部分からでも。時代を切り替え、集めた手がかりを今の場所へ持ち帰ります。</p>
+  <div class="scene" id="scene" aria-hidden="false"></div>
+  <div class="clues" id="clues" aria-label="集めた手がかり"></div>
+  <div class="talk" id="talk" aria-live="polite"></div>
+  <div class="btns" id="acts"></div>
+  <details class="about"><summary>碧について・印の見かた</summary>
+    <p>碧（あおい）は、現実世界と計算世界をつなぐ依代です。話す事実は、典拠を確かめた「事実のカード」の中からだけ。カードに無いことは「分からない」と言います。ここで話したことは、どこにも残しません。</p>
+    <p><span class="mark">◎</span>事実（典拠あり）　<span class="mark">△</span>伝承・説　<span class="mark">○</span>推定（景色の模式）</p>
+    <p>江戸の景色は、記録から組んだ推定の模式です。家並みの数や形、並木の木の種類は、実際の配置ではありません。</p>
+  </details>
+</div>
+<form class="ask" id="ask" autocomplete="off">
+  <div class="in"><input id="q" maxlength="200" placeholder="碧に話す（例：この石はいつの？）" aria-label="碧に話す"><button class="go" type="submit">話す</button></div>
+  <p class="hint">名前や住所など、自分のことは書かないでください。</p>
+</form>
+<script>
+"use strict";
+/* ---- AI の差し替え口：空なら台本、URL を入れるとサーバー（同じ受け渡しの形） ---- */
+const AI_ENDPOINT = "";
+
+/* ---- 事実のカード（碧が話してよいことのすべて）。text は典拠の言葉に沿って短くしたもの。keys は台本が照らす鍵の言葉 ---- */
+const CARDS = [
+  { id:"hyoseki", mark:"◎", text:"一の鳥居のそばの標石「武藏國一宮」は、享保 7 年（1722）に氏子の人たちが奉納したもの。文字は、江戸の中ごろの書家、佐々木文山の筆です。", src:"氷川神社「由緒・歴史」", keys:["標石","石","一宮","享保","いつ","何年","文字","文山","古い"] },
+  { id:"hyoseki_old", mark:"◎", text:"神社は、この標石を、いま残る石の遺物で、もっとも古いものと書いています。", src:"氷川神社「由緒・歴史」", keys:["古い","いちばん","最古","標石"] },
+  { id:"ichinomiya", mark:"◎", text:"「一宮」は、ある地域の中で、いちばん格が高いとされる神社のこと。11 世紀から 12 世紀にかけて、平安の終わりごろにできた、とされます。", src:"日本語版 Wikipedia「一宮」（CC BY-SA 4.0）", keys:["一宮","意味","格","呼び名","国","いつから"] },
+  { id:"motoookan", mark:"◎", text:"江戸のはじめ、この台地には四つの町があり、人と馬が行き交う道は「元往還」と呼ばれていました。寛永 5 年（1628）、代官の伊奈忠治が、その道を台地の西側へ移し、町の人たちも移して、新しく大宮宿をつくりました。", src:"氷川神社「由緒・歴史」", keys:["中山道","街道","往還","元往還","寛永","宿","大宮宿","移","伊奈","道"] },
+  { id:"kyudo", mark:"△", text:"一の鳥居から神社までの約 2 km の参道は、いまの中山道ができる前の中山道だった、と伝えられています。", src:"さいたま市「武蔵一宮氷川神社と氷川参道」", keys:["中山道","昔の道","旧道","街道","前","伝え"] },
+  { id:"unknown_ookan", mark:"◎", text:"ただ、いまの参道や中山道と「元往還」が、どんな位置の関係だったかは、明らかではない、と市の資料は書いています。", src:"さいたま市・氷川の杜まちづくり協議会『氷川参道のまちづくり』", keys:["どこ","位置","本当","ほんと","同じ","元往還"] },
+  { id:"tanzaku", mark:"◎", text:"新しい宿場では、道の両側を、間口 12 m、奥行 115 m ほどの細長い土地に割って、家を移しました。", src:"さいたま市・氷川の杜まちづくり協議会『氷川参道のまちづくり』", keys:["家","土地","間口","奥行","宿場","町","屋敷"] },
+  { id:"shuku1843", mark:"◎", text:"天保 14 年（1843）の大宮宿は、319 軒、1,508 人の町で、本陣が 1 軒、脇本陣が 9 軒、旅籠が 25 軒ありました。", src:"さいたま市・氷川の杜まちづくり協議会『氷川参道のまちづくり』", keys:["何人","人口","軒","旅籠","本陣","宿","にぎわ"] },
+  { id:"sanken", mark:"◎", text:"いまの参道の中ほどの改良工事（2019〜2020 年）で、両脇に細い溝の線が入りました。この線は、参道のもとの幅「三間」を表すものです。", src:"さいたま市『ひかわ参道だより』第 14・17〜19 号", keys:["溝","線","幅","三間","広さ","石の道","工事"] },
+  { id:"ken", mark:"◎", text:"一間は六尺で、およそ 1.82 m。三間は、およそ 5.5 m です。", src:"日本語版 Wikipedia「尺貫法」（CC BY-SA 4.0）", keys:["間","何メートル","メートル","m","長さ","尺","単位"] },
+  { id:"cho", mark:"◎", text:"一丁（一町）は六十間で、およそ 109 m です。", src:"日本語版 Wikipedia「尺貫法」（CC BY-SA 4.0）", keys:["丁","町","十八丁","何メートル","距離","単位"] },
+  { id:"choishi", mark:"◎", text:"一の鳥居の脇に「是より宮まで十八丁」と刻んだ碑があり、そこを起点に、参道の東側に丁石が並びます。いまの丁石は、平成元年（1989）の奉納です。", src:"氷川神社「由緒・歴史」", keys:["丁石","十八丁","是より","起点","数","柱"] },
+  { id:"hosha", mark:"◎", text:"一の鳥居から中央通りまで、歩く人と車を分ける工事は、平成 21 年（2009）7 月に終わりました。段差をつけず、舗装のちがいと車止めで分けています。", src:"さいたま市・氷川の杜まちづくり協議会『氷川参道のまちづくり』", keys:["車","歩道","段差","いま","車止め","安全"] },
+  { id:"daiyosui", mark:"◎", text:"標石が奉納された 6 年後、享保 13 年（1728）に、利根川から水を引く見沼代用水が完成します。", src:"日本語版 Wikipedia「見沼代用水」（CC BY-SA 4.0）", keys:["水","用水","見沼","田","享保","利根川"] },
+];
+const NO_IDEA = "それは、わたしの持っている記録には、ありません。だから、分からない、と言っておきます。";
+
+/* ---- 状態（この画面の中だけ。保存しない） ---- */
+const USED = new Set();
+const ST = { era:"now", visited:new Set(["now"]), clues:new Map(), talk:[], topics:{ 道:0, 石:0, 水:0, 幅:0 }, solved:{ haba:false, cho:false }, step:"start" };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" })[c]);
+
+/* ---- 景色（SVG の模式）。いま＝並木と石の道、江戸＝○推定の家並みと松・杉、道は三間 ---- */
+function sceneSVG(era) {
+  const edo = era === "edo", W = 720, H = 300;
+  const sky = edo ? "#e9dcc3" : "#dfe9e6", ground = edo ? "#b9a07a" : "#9aa8a2";
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${edo ? "享保のころの参道の模式" : "いまの参道の模式"}"><rect width="${W}" height="${H}" fill="${sky}"/>`;
+  s += `<rect y="150" width="${W}" height="150" fill="${ground}"/>`;
+  /* 道：遠近で細くなる。いま＝中央の石の帯と両脇の溝の線（三間）、江戸＝土の道で幅が三間 */
+  const road = edo ? "#d8c39c" : "#c9cdc8";
+  s += `<polygon points="330,150 390,150 560,300 160,300" fill="${road}"/>`;
+  if (!edo) s += `<polygon points="348,150 372,150 452,300 268,300" fill="#e2e4df"/><line x1="342" y1="150" x2="236" y2="300" stroke="#6b7672" stroke-width="2"/><line x1="378" y1="150" x2="484" y2="300" stroke="#6b7672" stroke-width="2"/>`;
+  /* 並木 */
+  for (let i = 0; i < 7; i++) { const t = i / 6, y = 150 + t * 140, xl = 330 - t * 230, xr = 390 + t * 230, sc = .35 + t * .9;
+    for (const x of [xl - 18 * sc, xr + 18 * sc]) {
+      if (edo) { s += i % 2 ? `<polygon points="${x},${y - 120 * sc} ${x - 22 * sc},${y - 20 * sc} ${x + 22 * sc},${y - 20 * sc}" fill="#3f5a3a"/>` : `<ellipse cx="${x}" cy="${y - 70 * sc}" rx="${30 * sc}" ry="${18 * sc}" fill="#4d6a44"/>`; s += `<rect x="${x - 3 * sc}" y="${y - 30 * sc}" width="${6 * sc}" height="${30 * sc}" fill="#5a4630"/>`; }
+      else { s += `<ellipse cx="${x}" cy="${y - 80 * sc}" rx="${38 * sc}" ry="${48 * sc}" fill="#5f8a57"/><rect x="${x - 4 * sc}" y="${y - 40 * sc}" width="${8 * sc}" height="${40 * sc}" fill="#6b5a45"/>`; } } }
+  /* 江戸：宿場の家並み（○推定の模式） */
+  if (edo) for (let i = 0; i < 5; i++) { const x = 20 + i * 60, y = 210 + (i % 2) * 6; s += `<rect x="${x}" y="${y}" width="50" height="34" fill="#a2825a"/><polygon points="${x - 4},${y} ${x + 25},${y - 18} ${x + 54},${y}" fill="#6b5640"/>`; s += `<rect x="${W - x - 50}" y="${y}" width="50" height="34" fill="#a2825a"/><polygon points="${W - x - 54},${y} ${W - x - 25},${y - 18} ${W - x + 4},${y}" fill="#6b5640"/>`; }
+  /* 標石（いま＝古びた灰、江戸＝新しい明るい石） */
+  s += `<rect x="206" y="214" width="16" height="58" rx="2" fill="${edo ? "#e8e4da" : "#8e928c"}" stroke="#555" stroke-width="1"/><text x="214" y="290" font-size="12" text-anchor="middle" fill="#333">標石</text>`;
+  /* 一の鳥居 */
+  s += `<g fill="${edo ? "none" : "#7a6a55"}" ${edo ? 'stroke="#7a6a5544" stroke-dasharray="4 4"' : ""}><rect x="282" y="120" width="10" height="110"/><rect x="428" y="120" width="10" height="110"/><rect x="262" y="112" width="196" height="10"/><rect x="276" y="132" width="168" height="7"/></g>`;
+  s += `</svg>`;
+  return s;
+}
+function drawScene() {
+  const edo = ST.era === "edo";
+  $("scene").innerHTML = `<div class="fade">${sceneSVG(ST.era)}<div class="cap">${edo
+    ? `<span class="mark">○</span>享保 7 年（1722）のころの模式。標石は奉納されたばかり。一の鳥居は、まだこの形ではありません（いまの鳥居は昭和 30 年）。家並みと木は推定です。`
+    : `<span class="mark">◎</span>いまの参道の南の端。一の鳥居、そのそばの標石、足もとの石の道。`}</div></div>`;
+  $("eraName").textContent = edo ? "享保 7 年（1722）" : "いま";
+  $("eraTag").style.borderColor = edo ? "var(--edo)" : "var(--line)";
+}
+function drawClues() {
+  $("clues").innerHTML = [...ST.clues.values()].map(c => `<span class="clue ${c.era === "now" ? "now" : ""}">${esc(c.name)}</span>`).join("");
+}
+function addClue(id, name, era) { if (!ST.clues.has(id)) { ST.clues.set(id, { name, era }); drawClues(); } }
+
+/* ---- 話 ---- */
+function sayAoi(text, card) {
+  const d = document.createElement("div"); d.className = "say aoi fade";
+  d.innerHTML = `<div class="who">碧</div>${card ? `<span class="mark">${card.mark}</span>` : ""}${esc(text)}${card ? `<span class="src">典拠：${esc(card.src)}</span>` : ""}`;
+  $("talk").appendChild(d); d.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+}
+function sayMe(text) { const d = document.createElement("div"); d.className = "say me"; d.textContent = text; $("talk").appendChild(d); }
+function acts(list) { $("acts").innerHTML = ""; for (const [label, fn, cls] of list) { const b = document.createElement("button"); b.type = "button"; b.textContent = label; if (cls) b.className = cls; b.onclick = fn; $("acts").appendChild(b); } }
+const card = id => CARDS.find(c => c.id === id);
+function sayCard(id, pre) { const c = card(id); USED.add(id); sayAoi((pre ? pre : "") + c.text, c); }
+
+/* ---- 台本（AI_ENDPOINT が空のとき）：入力を鍵の言葉と照らし、いちばん近いカードで答える。カードに無ければ「分からない」 ---- */
+const PERSONAL = /(\d{2,4}-?\d{2,4}-?\d{3,4}|@[\w.-]+\.\w+|住所|電話|名前は|なまえは|本名|小学校|中学校|高校|学校の名前|住んで|すんで|年生|歳です|さいです)/;
+function scriptAnswer(text, era) {
+  if (PERSONAL.test(text)) return { say: "自分のことは、書かなくて大丈夫です。参道の話を、続けましょう。", cardIds: [] };
+  if (/正解|答え|おしえて|教えて/.test(text) && !/何|なに|いつ|どこ/.test(text)) return { say: "答えは、わたしからは言いません。いっしょに、手がかりを見てみましょう。", cardIds: [] };
+  let best = null, bs = 0;
+  for (const c of CARDS) { let s = 0; for (const k of c.keys) if (text.includes(k)) s += k.length >= 2 ? 2 : 1; if (era === "edo" && /享保|寛永|宿|往還/.test(c.text)) s += .5; if (s > bs) { bs = s; best = c; } }
+  if (!best || bs < 2) return { say: NO_IDEA, cardIds: [], unknown: true };
+  return { say: best.text, cardIds: [best.id] };
+}
+/* 作品側の検査：返事の中の数（年・数量）が、使ったカードの中に無ければ、その返事は出さない */
+function checkReply(r) {
+  const used = (r.cardIds || []).map(card).filter(Boolean), pool = used.map(c => c.text).join(" ");
+  const nums = (r.say.match(/\d[\d,.]*/g) || []).filter(n => !pool.includes(n));
+  return nums.length ? { say: NO_IDEA, cardIds: [], unknown: true } : r;
+}
+async function aoiAsk(text) {
+  const recent = ST.talk.slice(-6);
+  let r;
+  if (AI_ENDPOINT) {
+    try {
+      const res = await fetch(AI_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ era: ST.era, cardIds: CARDS.map(c => c.id), recent, text }) });
+      r = await res.json(); if (r.fallback || typeof r.say !== "string") r = scriptAnswer(text, ST.era);   /* 上限・失敗のときは台本に戻る */
+    } catch { r = scriptAnswer(text, ST.era); }
+  } else r = scriptAnswer(text, ST.era);
+  return checkReply(r);
+}
+
+/* ---- 謎の答え合わせ（碧は正解と言わず、カードで確かめ返す） ---- */
+function judge(text) {
+  const t = text.replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0) - 0xFEE0));
+  if (ST.step === "q_haba") {
+    if (/三間|3\s*間|5\.?[3-6]\s*(m|メートル)|５|五メートル/.test(t)) { ST.solved.haba = true; addClue("haba", "道の幅＝三間", "edo"); sayCard("ken", "三間。"); sayAoi("いまの参道にも、その幅は、残っているでしょうか。いまへ戻って、足もとを見てみましょう。"); ST.step = "back"; acts([["いまへ戻る", backNow, "go"]]); return true; }
+    return false;
+  }
+  if (ST.step === "q_cho") {
+    const m = t.match(/(\d[\d,]*\.?\d*)\s*(km|キロ|m|メートル)?/);
+    if (m) { let v = parseFloat(m[1].replace(/,/g, "")); if (/km|キロ/.test(m[2] || "")) v *= 1000; if (v >= 1850 && v <= 2050) { ST.solved.cho = true; addClue("cho", "十八丁＝約 2 km", "now"); sayAoi(`十八丁は、109 m の 18 倍で、およそ 1,960 m。参道の長さ、約 2 km と、ほとんど同じです。`, card("cho")); finale(); return true; } }
+    if (/2\s*(km|キロ)|二キロ/.test(t)) { ST.solved.cho = true; addClue("cho", "十八丁＝約 2 km", "now"); sayAoi("十八丁は、109 m の 18 倍で、およそ 1,960 m。参道の長さ、約 2 km と、ほとんど同じです。", card("cho")); finale(); return true; }
+    return false;
+  }
+  return false;
+}
+
+/* ---- 物語の流れ（最小の版：江戸の一往復） ---- */
+function start() {
+  ST.step = "now1"; drawScene();
+  sayAoi("こんにちは。碧です。ここは、氷川参道の南の端、一の鳥居の前。この道には、いくつもの時代が、重なっています。");
+  sayAoi("足もとと、鳥居のそばを、よく見てください。気になる物を、選んでみましょう。");
+  acts([["鳥居のそばの、細長い石", lookHyoseki], ["足もとの、細い溝の線", lookMizo], ["数の刻まれた、小さな石の柱", lookChoishi]]);
+}
+function lookHyoseki() { sayMe("鳥居のそばの、細長い石"); addClue("hyoseki", "標石「武藏國一宮」", "now"); sayAoi("石に、文字が刻まれています。「武藏國一宮」。この石は、いつのものでしょう。「一宮」とは、何でしょう。わたしに、聞いてみてください。"); ST.step = "ask_when"; acts([["この石に触れて、刻まれた年へ", warpEdo, "edo"], ["ほかの物も見る", start]]); }
+function lookMizo() { sayMe("足もとの、細い溝の線"); addClue("mizo", "足もとの溝の線", "now"); sayAoi("石の道の両脇に、細い線が通っています。ただの飾りでしょうか。気になったら、わたしに聞いてみてください。"); acts([["鳥居のそばの、細長い石", lookHyoseki], ["数の刻まれた、小さな石の柱", lookChoishi]]); }
+function lookChoishi() { sayMe("数の刻まれた、小さな石の柱"); addClue("choishi", "丁石と「十八丁」", "now"); sayCard("choishi"); acts([["鳥居のそばの、細長い石", lookHyoseki], ["足もとの、細い溝の線", lookMizo]]); }
+function warpEdo() {
+  ST.era = "edo"; ST.visited.add("edo"); ST.step = "edo1"; drawScene();
+  sayAoi("石が、新しくなりました。享保 7 年のころへ、来たようです。");
+  sayCard("hyoseki");
+  sayAoi("このころの道は、いまより、ずっと細く見えます。この道の幅は、どれくらいだと思いますか。数でも、昔の長さの単位でも。わたしに話してみてください。");
+  ST.step = "q_haba";
+  acts([["道の幅の手がかりを聞く", () => { sayMe("道の幅の手がかりは？"); sayAoi("この道の真ん中に立って、左右の家の軒までを、歩幅で数えるつもりで見てみましょう。昔の人は、長さを「間」という単位で数えました。"); }], ["まわりの家並みを見る", () => { sayMe("まわりの家並みを見る"); addClue("tanzaku", "細長い土地の家並み", "edo"); sayCard("tanzaku"); sayAoi("家並みの形は推定ですが、土地の割り方は記録にあります。"); }], ["この道は、昔の街道？", () => { sayMe("この道は、昔の街道？"); addClue("ookan", "元往還と寛永 5 年", "edo"); sayCard("motoookan"); sayCard("kyudo"); sayCard("unknown_ookan"); }], ["いまへ戻る", backNow]]);
+}
+function backNow() {
+  ST.era = "now"; ST.step = "now2"; drawScene();
+  if (ST.solved.haba) {
+    sayAoi("いまへ、戻ってきました。足もとの、両脇の細い線を見てください。");
+    sayCard("sanken");
+    sayAoi("江戸のころの幅が、いまの石の道に、描かれていました。最後にもう一つ。一の鳥居の脇の碑は「是より宮まで十八丁」。十八丁は、何メートルくらいでしょう。");
+    ST.step = "q_cho"; acts([["一丁の長さを聞く", () => { sayMe("一丁は何メートル？"); sayCard("cho"); }]]);
+  } else {
+    sayAoi("いまへ、戻ってきました。江戸の道の幅の謎は、まだ解けていません。もう一度、行ってみますか。");
+    acts([["標石に触れて、享保 7 年へ", warpEdo, "edo"], ["足もとの、細い溝の線", lookMizo]]);
+  }
+}
+function finale() {
+  ST.step = "end"; acts([]);
+  /* 結末は、集めた手がかりと、碧と話して確かめたカードで変わる（どれも正解。持ち帰るミカタが変わる） */
+  const name = USED.has("ichinomiya"), road = ST.clues.has("ookan") || ST.clues.has("tanzaku");
+  const [title, mi] = name && road ? ["重ね読み", "一つの道に、いくつもの時が重なっている。石の年と、石の文字が指す時代は、ちがうことがある。"]
+    : name ? ["文字の読み手", "石の年と、石の文字が指す時代は、ちがうことがある。"]
+    : road ? ["道の読み手", "道の幅と道すじは、誰がどう使ったかを覚えている。"]
+    : ["幅の読み手", "足もとの線の中に、昔の道の幅が描かれていることがある。"];
+  const d = document.createElement("div"); d.className = "card fade";
+  d.innerHTML = `<h2>${esc(title)}</h2><p>持ち帰るミカタ：${esc(mi)}</p><p class="about">ほかの場所でも、試してみてください。家の近くの神社や古い道で、「石に刻まれた年」と「道の幅」を探すと、その場所に重なった時が見えてきます。</p><p class="about">集めた手がかり：${[...ST.clues.values()].map(c => esc(c.name)).join("・")}</p>`;
+  $("talk").appendChild(d);
+  acts([["はじめから", () => location.reload()]]);
+}
+
+/* ---- 入力 ---- */
+$("ask").addEventListener("submit", async e => {
+  e.preventDefault(); const q = $("q").value.trim(); if (!q) return; $("q").value = "";
+  sayMe(q); ST.talk.push({ role: "user", text: q }); if (ST.talk.length > 12) ST.talk.shift();
+  if (/道|幅/.test(q)) ST.topics.道++;
+  if (judge(q)) return;
+  const r = await aoiAsk(q); const c = r.cardIds?.[0] ? card(r.cardIds[0]) : null; if (c) USED.add(c.id);
+  sayAoi(r.say, c); ST.talk.push({ role: "aoi", text: r.say }); if (ST.talk.length > 12) ST.talk.shift();
+  if (ST.step === "q_haba" && !r.unknown) sayAoi("道の幅の謎も、考えてみてください。");
+});
+start();
+
+/* 五時代・場所ごとに完結する一話。元の謎は引き続き選べる。 */
+const eras={future:['未来','あなたなら、この道の何を次の人へ残しますか。未来は創作で、予測ではありません。'],now:['現代','いまの道に残る、昔の幅を探しましょう。'],edo:['江戸','石の年と、道の幅を比べます。江戸の家並みは模式です。'],heisei:['平成','平成21年の歩車分離。人と車の通り方に注目します。'],jomon:['縄文','道ができる前の時間を考える模式です。この場所の縄文期の景色や人の配置は確定していません。']};
+const st=document.createElement('style');st.textContent='#eraDial{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0}#eraDial button{min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:22px;background:var(--panel);color:var(--ink)}#eraDial button[aria-pressed=true]{background:var(--aoi);color:var(--bg)}#episode{min-height:44px;padding:8px;font:inherit;background:var(--panel);color:var(--ink)}';document.head.append(st);
+for(const [id,[nm]] of Object.entries(eras)){const b=document.createElement('button');b.textContent=nm;b.dataset.era=id;b.setAttribute('aria-pressed',id==='now');b.onclick=()=>journeyEpisode(id);$('eraDial').append(b);}
+function journeyEpisode(id=ST.era){ST.era=id;ST.visited.add(id);drawScene();const cap=$('scene').querySelector('.cap');if(cap)cap.textContent=eras[id][0]+'を考える模式図。配置は実在する時代の再現ではありません。';$('eraName').textContent=eras[id][0];document.querySelectorAll('#eraDial button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.era===id));const place={south:'一の鳥居・石と道',middle:'二の鳥居・人の通り方',north:'神社・水と杜'}[$('episode').value];sayAoi(place+'から、一話をはじめましょう。'+eras[id][1]);if($('episode').value==='north')sayAoi('杜と水の一話。水の行き先を見て、昔の地図と今の場所を比べる。途中まででも、この問いを持ち帰れます。');if($('episode').value==='middle')sayAoi('人が道を分け合う一話。鳥居の周りと道の両側を見て、誰がどこを通るのか、考えてみましょう。');const choices=[];
+if(id==='edo'){choices.push(['石の年を読む',()=>{addClue('edo_stone','江戸：石に刻まれた年','edo');sayCard('hyoseki');sayAoi('同じ場所の現代へ戻り、石が残した時間を比べましょう。');}],['幅の謎に取り組む',warpEdo]);}
+if(id==='heisei'){choices.push(['人と車の道を読む',()=>{addClue('heisei_road','平成：人と車の通り方','heisei');sayCard('hosha');sayAoi('工事の記録と、今の足もとを比べましょう。この事実は一の鳥居から中央通りまでの範囲です。');}]);}
+if(id==='now'){choices.push(['丁石と距離を読む',()=>{addClue('now_distance','現代：距離を手渡す石','now');sayCard('choishi');}],['足もとの幅を読む',()=>{addClue('now_width','現代：足もとに残る幅','now');sayCard('sanken');}]);}
+if(id==='jomon'){choices.push(['水と土地の問いを持つ',()=>{addClue('jomon_question','縄文：水と土地を考える問い','jomon');sayAoi('古い地形や遺跡の資料を確かめる前に、この場所の暮らしを断定しない。水はどこから来て、どこへ行くでしょう。');}]);}
+if(id==='future'){choices.push(['次の人へ手がかりを残す',()=>{addClue('future_question','未来：次の人へ残す問い','future');sayAoi('石、道、水、杜。何を残したいと思いましたか。碧へ言葉を渡してみてください。未来は、ひとつの正解で決まりません。');}]);}
+choices.push(['この一話の発見を持ち帰る',()=>{sayAoi('ここまでの一話も、一つの旅です。'+[...ST.clues.values()].map(c=>c.name).join('、')+'。その手がかりを持って、現実の場所をもう一度見てみましょう。');}],['画面の3D参道へ戻る',()=>location.href='./']);acts(choices);}
+$('episode').onchange=()=>journeyEpisode();
+</script>
+</body>
+</html>

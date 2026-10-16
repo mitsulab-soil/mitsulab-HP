@@ -1,0 +1,264 @@
+{
+  "version": "1.0.0",
+  "attribution": "位置情報 © OpenStreetMap contributors（ODbL）。既存案内本文 mitsulab。由緒・整備の出典は各地点の sourceUrls。",
+  "anchors": [
+    {
+      "id": "torii_1",
+      "name": "一の鳥居",
+      "lat": 35.8979351,
+      "lon": 139.6314987,
+      "kind": "torii",
+      "description": "もとの石の鳥居は関東大震災で壊れ、いまの鳥居は昭和 30 年に建て替えられた。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap way 1168906842",
+          "url": "https://www.openstreetmap.org/way/1168906842"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_way_midpoint",
+      "positionNote": "保存済みOSM線形の2端点の中点。物体に重ねるラベルの目安で、測量点・安全な立ち位置ではありません。 現地のAR位置合わせは未確認。",
+      "fieldVerified": false
+    },
+    {
+      "id": "hyoseki",
+      "name": "標石「武藏國一宮」",
+      "lat": 35.8977384,
+      "lon": 139.6314458,
+      "kind": "stone",
+      "description": "享保 7 年に氏子が奉納。文字は書家・佐々木文山の筆。神社は、いま残る石の遺物でもっとも古いと書く。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap node 12455431343",
+          "url": "https://www.openstreetmap.org/node/12455431343"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_node",
+      "positionNote": "保存済みOpenStreetMapの地点座標。現地での位置合わせ・測量精度は未確認。",
+      "fieldVerified": false
+    },
+    {
+      "id": "stone_path",
+      "name": "石の道と三間の溝",
+      "lat": 35.9019554,
+      "lon": 139.6313022,
+      "kind": "path",
+      "description": "足もとの中央は、灰色の御影石。道の両脇の細い溝は、雨水を集めるとともに、三間の幅の境目を表しています。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap way 687435281（元の道）",
+          "url": "https://www.openstreetmap.org/way/687435281"
+        },
+        {
+          "title": "さいたま市「ひかわ参道だより」第17〜19号の案内",
+          "url": "https://www.city.saitama.lg.jp/001/010/015/004/004/p049064.html"
+        }
+      ],
+      "positionType": "centerline_representative",
+      "positionNote": "公開版の中心線 D.centerline の d=445 m に置いた区間の代表位置。OSMの道を1 mごとに取り直し4 mでならした線から補間した推定で、個別の溝・木・看板の実測位置ではありません。",
+      "fieldVerified": false
+    },
+    {
+      "id": "choishi_8",
+      "name": "丁石「八丁」",
+      "lat": 35.9054692,
+      "lon": 139.6311631,
+      "kind": "stone",
+      "description": "いまの丁石は平成元年の奉納。一の鳥居の脇の「是より宮まで十八丁」を起点に、参道の東側に並ぶ。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap node 5417021735",
+          "url": "https://www.openstreetmap.org/node/5417021735"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_node",
+      "positionNote": "保存済みOpenStreetMapの地点座標。現地での位置合わせ・測量精度は未確認。",
+      "fieldVerified": false
+    },
+    {
+      "id": "heisei_hiroba",
+      "name": "平成ひろば",
+      "lat": 35.9084613,
+      "lon": 139.6309772,
+      "kind": "park",
+      "description": "並木の帯には、店や住まいが建ち並んでいました。昭和60年からの整備を経て、平成元年に緑地と遊歩道のある「平成ひろば」が完成しました。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap way 190163080（元の道）",
+          "url": "https://www.openstreetmap.org/way/190163080"
+        },
+        {
+          "title": "さいたま市・氷川の杜まちづくり協議会「氷川参道のまちづくり」",
+          "url": "https://www.city.saitama.lg.jp/001/010/015/004/004/p009506_d/fil/hikawasandonomachidukuri.pdf"
+        },
+        {
+          "title": "武蔵一宮氷川神社「平成ひろばの整備」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "centerline_representative",
+      "positionNote": "公開版の中心線 D.centerline の d=1165 m に置いた区間の代表位置。OSMの道を1 mごとに取り直し4 mでならした線から補間した推定で、個別の溝・木・看板の実測位置ではありません。",
+      "fieldVerified": false
+    },
+    {
+      "id": "shagohi",
+      "name": "社号碑「官幣大社 氷川神社」",
+      "lat": 35.9106098,
+      "lon": 139.6307185,
+      "kind": "stone",
+      "description": "明治 32 年の建立。大宮町の松坂屋の先代、尾熊初五郎の遺志を継いで、子の惣次郎が建てた。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap node 8117557491",
+          "url": "https://www.openstreetmap.org/node/8117557491"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_node",
+      "positionNote": "保存済みOpenStreetMapの地点座標。現地での位置合わせ・測量精度は未確認。",
+      "fieldVerified": false
+    },
+    {
+      "id": "lantern_kaei_w",
+      "name": "嘉永の石燈籠（西）",
+      "lat": 35.9106631,
+      "lon": 139.6307286,
+      "kind": "lantern",
+      "description": "嘉永 6 年のもので、一方の燈籠には、大宮宿の本陣の名が刻まれています。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap node 8117557493",
+          "url": "https://www.openstreetmap.org/node/8117557493"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_node",
+      "positionNote": "保存済みOpenStreetMapの地点座標。現地での位置合わせ・測量精度は未確認。 一対のうち西側の燈籠の座標です。",
+      "fieldVerified": false
+    },
+    {
+      "id": "torii_2",
+      "name": "二の鳥居",
+      "lat": 35.9110981,
+      "lon": 139.6307673,
+      "kind": "torii",
+      "description": "昭和 51 年に明治神宮から移された。木は、台湾の阿里山で育った樹齢 1200 年以上の檜。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap node 2751272138",
+          "url": "https://www.openstreetmap.org/node/2751272138"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_node",
+      "positionNote": "保存済みOpenStreetMapの地点座標。現地での位置合わせ・測量精度は未確認。",
+      "fieldVerified": false
+    },
+    {
+      "id": "lantern_17_w",
+      "name": "十七丁の石燈籠（西）",
+      "lat": 35.9132569,
+      "lon": 139.6305677,
+      "kind": "lantern",
+      "description": "西の燈籠は文化 14 年の奉納で、神社の由緒が彫られている。東の燈籠は安政 6 年。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap node 8110407815",
+          "url": "https://www.openstreetmap.org/node/8110407815"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_node",
+      "positionNote": "保存済みOpenStreetMapの地点座標。現地での位置合わせ・測量精度は未確認。 説明は東西一対について述べ、座標は西側の燈籠です。",
+      "fieldVerified": false
+    },
+    {
+      "id": "torii_3",
+      "name": "三の鳥居",
+      "lat": 35.9150474,
+      "lon": 139.630474,
+      "kind": "torii",
+      "description": "昭和 9 年に片倉製糸紡績から奉納された大きな鳥居。まわりの玉垣は昭和 10 年代のもの。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap node 8110463779",
+          "url": "https://www.openstreetmap.org/node/8110463779"
+        },
+        {
+          "title": "武蔵一宮氷川神社「由緒・歴史」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/about/"
+        }
+      ],
+      "positionType": "osm_node",
+      "positionNote": "保存済みOpenStreetMapの地点座標。現地での位置合わせ・測量精度は未確認。",
+      "fieldVerified": false
+    },
+    {
+      "id": "shinkyo",
+      "name": "神橋",
+      "lat": 35.9159605,
+      "lon": 139.6301637,
+      "kind": "bridge",
+      "description": "神池を渡る神橋です。神社は、神橋と朱の楼門を自らを象徴する建物と呼んでいます。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap way 270272494",
+          "url": "https://www.openstreetmap.org/way/270272494"
+        },
+        {
+          "title": "武蔵一宮氷川神社「境内のご案内」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/keidai/"
+        }
+      ],
+      "positionType": "osm_way_midpoint",
+      "positionNote": "保存済みOSM線形の2端点の中点。物体に重ねるラベルの目安で、測量点・安全な立ち位置ではありません。 現地のAR位置合わせは未確認。 OSMのsourceタグはBing,surveyですが、mitsulabによる測量確認は行っていません。",
+      "fieldVerified": false
+    },
+    {
+      "id": "romon",
+      "name": "楼門",
+      "lat": 35.9162998,
+      "lon": 139.6300125,
+      "kind": "gate",
+      "description": "楼門は、昭和の大造営のときのもので、京都の賀茂の社の楼門を、手本にしています。神社は、神橋と朱塗りの楼門を氷川神社を象徴する建物としています。",
+      "sourceUrls": [
+        {
+          "title": "OpenStreetMap way 1258998072",
+          "url": "https://www.openstreetmap.org/way/1258998072"
+        },
+        {
+          "title": "武蔵一宮氷川神社「境内のご案内」",
+          "url": "https://musashiichinomiya-hikawa.or.jp/keidai/"
+        }
+      ],
+      "positionType": "osm_polygon_centroid",
+      "positionNote": "保存済みOSMの建物外形から求めた面積重心。屋根・建物の代表点であり、入口・視線目標の高さ・安全な立ち位置ではありません。 現地のAR位置合わせは未確認。",
+      "fieldVerified": false
+    }
+  ],
+  "license": "位置データ: Open Database License 1.0（https://opendatacommons.org/licenses/odbl/1-0/）。記述: mitsulab。",
+  "coordinateSystem": "WGS84 latitude/longitude; ground elevation is not used"
+}

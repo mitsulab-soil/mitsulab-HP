@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07151a">
+  <meta name="description" content="氷川参道の実景に、場所の記録と言葉、感覚の表現を重ねる。氷川幽玄の実景AR。">
+  <title>実景AR — 氷川幽玄〜Ghosts of Hikawa〜</title>
+  <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="web/field-ar.css?v=20261016-controls">
+</head>
+<body>
+  <div id="arStage" aria-label="実景に重なる情報空間">
+    <video id="arVideo" autoplay muted playsinline aria-label="端末のカメラ映像"></video>
+    <div id="arCanvas"></div>
+    <div id="arLabels"></div>
+  </div>
+  <header class="arMast">
+    <a href="./" class="arBrand"><span>氷川幽玄</span><small>GHOSTS OF HIKAWA</small></a>
+    <div class="arTelemetry"><span id="arMode">REALITY / LAYERS</span><span id="arHeading">— °</span></div>
+  </header>
+  <main id="arIntro">
+    <p class="arKicker">QUALIUM / FIELD INTERFACE</p>
+    <h1>風景の、<br>その奥へ。</h1>
+    <p>目の前の鳥居や石に、場所の記録を重ねる。<br>同じ景色を、異なる手がかりから見直す。</p>
+    <div class="arIntroActions">
+      <button id="arStart" disabled>立ち止まって、カメラを開く <span>↗</span></button>
+      <button id="arPreview" class="quiet" disabled>3Dで試す <span>→</span></button>
+    </div>
+    <p class="arPrivacy">カメラ・位置・向きの利用を、端末で確認します。映像と位置はこの画面内だけで使い、録画・保存・送信しません。</p>
+    <p id="arIntroStatus" role="status">道具を読み込んでいます。</p>
+    <details class="arIntroDetails"><summary>位置合わせについて</summary><p>GPSと方位センサーによる概略の重ね合わせです。建物の陰や磁気の影響でずれるため、目印へ向けて方位を補正できます。実物の自動認識・映像による位置追跡・遮蔽には対応していません。表示は道案内や安全確認に使わず、通行を妨げない場所に立ち止まってご覧ください。</p></details>
+  </main>
+  <section id="arInterface" hidden aria-label="情報レイヤーの操作">
+    <nav class="arLayers" aria-label="重ねる層">
+      <button data-layer="information" aria-pressed="true"><span>01</span>情報<i></i></button>
+      <button data-layer="cognition" aria-pressed="false"><span>02</span>認知<i></i></button>
+      <button data-layer="language" aria-pressed="true"><span>03</span>言語<i></i></button>
+      <button data-layer="senses" aria-pressed="false"><span>04</span>感覚<i></i></button>
+    </nav>
+    <div class="arActions"><button id="arPause" aria-pressed="false">動きを止める</button><button id="arSettings" aria-expanded="false" aria-controls="arSettingsPanel">位置を合わせる</button><button id="arEnd">終了・カメラ停止</button></div>
+    <div class="arCrosshair" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="arReadout"><span id="arPlace">参道の位置を確認中</span><small id="arAccuracy">位置 — / 方位 —</small></div>
+    <div class="arBottom"><p id="arStatus" role="status"></p><p id="arMeaning">情報｜地図上の地点へ、記録と距離を重ねる。</p><button id="arRead">この場所を読む <span>↗</span></button><a class="arAttribution" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">位置 © OpenStreetMap contributors / ODbL</a></div>
+  </section>
+  <section id="arSettingsPanel" class="arSheet" hidden role="dialog" aria-modal="true" aria-label="位置合わせ">
+    <div class="arSheetHead"><h2>風景と、合わせる。</h2><button id="arSettingsClose" aria-label="位置合わせを閉じる">×</button></div>
+    <label>目印<select id="arTarget"></select></label>
+    <p id="arTargetNote"></p>
+    <button id="arAlign">この目印を中央に向け、方位を合わせる</button>
+    <p id="arAlignStatus" role="status"></p>
+    <label>方位の微調整 <output id="arYawValue">0°</output><input id="arYaw" type="range" min="-180" max="180" value="0" step="1"></label>
+    <label>カメラの画角 <output id="arFovValue">60°</output><input id="arFov" type="range" min="35" max="100" value="60" step="1"></label>
+    <label id="arPreviewPitchLabel">見上げる・見下ろす<input id="arPitch" type="range" min="-40" max="60" value="0" step="1"></label>
+    <p>方位の補正だけではGPSの位置誤差は消えません。輪郭や高さは模式表現です。画角は目安のため、見え方に合わせて調整できます。</p>
+  </section>
+  <section id="arReading" class="arSheet" hidden role="dialog" aria-modal="true" aria-label="この場所の記録">
+    <div class="arSheetHead"><p class="arKicker">PLACE / RECORD</p><button id="arReadingClose" aria-label="場所の記録を閉じる">×</button></div>
+    <h2 id="arReadTitle"></h2><p id="arReadText"></p><p id="arReadPosition"></p>
+    <div id="arSources"></div><a href="web/field-anchors.json" target="_blank" rel="noopener">使用している地点データ（ODbL）</a>
+    <p class="arFineprint">位置と記録の出どころを示しています。光の線・粒子・波は、注目や感覚を考えるための創作です。地下水・生物の気持ち・音の実測値ではありません。</p>
+  </section>
+  <noscript><p class="arNoScript">JavaScriptを有効にすると、この体験を開けます。<a href="./">氷川幽玄へ</a></p></noscript>
+  <script>window.__arBootFail=()=>{const p=document.getElementById('arIntroStatus');if(p)p.textContent='読み込みを完了できませんでした。通信を確かめて、このページを読み込み直してください。';};</script>
+  <script type="module" src="web/field-ar.js?v=20261016-controls" onerror="window.__arBootFail()"></script>
+</body>
+</html>

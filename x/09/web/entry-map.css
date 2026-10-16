@@ -1,0 +1,66 @@
+/* 2026-10-16：主画面の参道と碧を保ったまま、開始地点の3D地図を重ねる。 */
+#start{display:none!important}
+body.entryPending .top,body.entryPending #sub,body.entryPending #marks,body.entryPending #kkBox,body.entryPending #bodyQuick,body.entryPending #bodyNote,body.entryPending #journeyPanel{visibility:hidden!important}
+#entryDock{position:fixed;inset:0;z-index:10;pointer-events:none;color:#e5f3ed;background:linear-gradient(120deg,rgba(3,16,21,.7),transparent 64%)}
+#entryDock[hidden]{display:none}
+.entryTitle{position:absolute;left:clamp(20px,4vw,64px);top:max(24px,env(safe-area-inset-top));margin:0;font-family:var(--title);font-weight:400;font-size:clamp(28px,3.2vw,45px);letter-spacing:.14em;line-height:1.25;text-shadow:0 2px 18px #061619}
+.entryTitle span{display:block;margin-top:9px;font:400 12px var(--ui);letter-spacing:.19em;color:#d5eae3}
+#entryStatus{position:absolute;left:clamp(20px,4vw,64px);top:116px;font-size:12px;line-height:1.8;letter-spacing:.04em;color:#d5eae3;max-width:24em}
+#entryMapOpen{position:absolute;left:clamp(20px,4vw,64px);bottom:32px;pointer-events:auto;min-height:48px;padding:10px 22px;border:1px solid #a7cebd99;background:#071e25d9;color:#e6f4ee;font:14px var(--ui);letter-spacing:.1em;cursor:pointer}
+#entryMapOpen:disabled{opacity:.6;cursor:wait}
+#ovPick{z-index:11;inset:auto;left:clamp(20px,4vw,64px);top:165px;bottom:24px;width:min(460px,43vw);display:grid;grid-template-rows:auto minmax(160px,1fr) auto;isolation:isolate;color:#e5f3ed;border:1px solid #83b6a966;background:transparent;pointer-events:auto;box-shadow:0 12px 60px #00141544}
+#ovPick[hidden]{display:none}
+#ovPick .ovH,#ovPick .ovF{position:relative;inset:auto;border:0;border-radius:0;padding:13px 14px;background:rgba(5,22,28,.92);backdrop-filter:none}
+#ovPick .ovH{padding-right:48px}
+#ovPick .ovH b{font-size:13px;font-family:var(--ui);letter-spacing:.12em}
+#ovPick .ovH small{font-size:10px;line-height:1.5;color:#9fbcb5}
+#ovPick #ovX{right:4px;top:4px;color:#d9ece3}
+#entryMapStage{position:relative;min-height:0;overflow:hidden;pointer-events:auto}
+#entryMapStage:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#001a2233,transparent 20%,transparent 80%,#001a2233);pointer-events:none}
+#ovPins{position:absolute;inset:0;overflow:hidden}
+#ovPick .ovP{padding:15px;min-width:44px;min-height:44px}
+#ovPick .ovP span{font-size:12px;background:rgba(4,22,28,.94);color:#e9f7f2;border:1px solid #9ed2bd80;padding:4px 7px;line-height:1.3;border-radius:1px}
+#ovPick .ovP.s span{font-size:10px}
+#ovPick .ovP.on span{color:#ffedc4;border-color:#e6cb92}
+#ovPick .ovF{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;font-size:12px}
+#ovPick .ovF[hidden]{display:none}
+#ovSel{grid-column:1/-1;min-height:1.4em;line-height:1.5}
+#ovPick .go{min-height:44px;margin:0;padding:10px 18px;font-size:14px;width:100%;font-family:var(--ui)}
+#entrySound{min-height:44px;background:transparent;border:1px solid #789b91;color:#cee3db;font:12px var(--ui);padding:8px 12px;cursor:pointer}
+.qStartModes{gap:7px;margin-top:10px;flex-wrap:nowrap}
+.qStartModes button{flex:1;min-height:44px;font-size:11px;padding:7px 5px}
+.qStartModes span{display:inline;font-size:17px;margin-right:4px}
+#ovPick :focus-visible,#entryMapOpen:focus-visible{outline:2px solid #f3dda9;outline-offset:2px}
+body.entryPending.ovOn #poster{display:block!important}body.entryPending.ovOn #poster.off{opacity:0}
+@media(max-width:600px){
+ #entryDock{background:linear-gradient(180deg,#031015b8,transparent 35%,transparent 65%,#03101555)}
+ .entryTitle{left:18px;top:max(18px,env(safe-area-inset-top));font-size:28px;letter-spacing:.11em}.entryTitle span{font-size:10px;margin-top:7px}
+ #entryStatus{left:18px;top:87px;font-size:11px;max-width:27em}
+ #ovPick{left:12px;right:12px;top:auto;bottom:max(12px,env(safe-area-inset-bottom));width:auto;height:min(46svh,390px);grid-template-rows:auto minmax(110px,1fr) auto}
+ #ovPick .ovH{padding:9px 44px 8px 10px}#ovPick .ovH small{display:block;font-size:9px}
+ .qStartModes{margin-top:6px;gap:6px}.qStartModes button{font-size:10px;padding:4px;min-height:40px}.qStartModes span{display:inline;font-size:15px}
+ #ovPick .ovF{padding:8px 10px;gap:6px}#ovSel{font-size:11px}#ovPick .go,#entrySound{min-height:42px;padding:8px 12px}
+ #ovPick .ovP span{font-size:11px;padding:2px 5px}.ovP.s{display:none}
+ #entryMapOpen{left:18px;bottom:max(24px,env(safe-area-inset-bottom))}
+}
+@media(max-height:560px) and (min-width:601px){#ovPick{top:104px;bottom:12px;width:43vw}.entryTitle{font-size:26px;top:14px}.entryTitle span{font-size:9px}#entryStatus{top:82px}.qStartModes{margin-top:5px}#ovPick .ovH{padding:8px 42px 8px 10px}}
+@media(prefers-reduced-motion:reduce){#poster{transition:none}}
+
+#ovPick .ovP.s{z-index:1}#ovPick .ovP:not(.s){z-index:3}
+#ovPick .ovP.s span{opacity:0;transition:opacity .15s}
+#ovPick .ovP.s:hover span,#ovPick .ovP.s:focus-visible span,#ovPick .ovP.s.on span{opacity:1}
+body.entryFallback #entryMapStage{background:#071e25e8;min-height:190px}
+body.entryFallback #ovPins{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:14px}
+body.entryFallback #ovPick .ovP{position:static;transform:none!important;display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid #72998c;min-height:46px}
+body.entryFallback #ovPick .ovP span{position:static;transform:none;font:14px var(--ui);background:none;border:0;padding:0}
+body.entryFallback #ovPick .ovP i{width:9px;height:9px;border:0;box-shadow:none}
+body.entryFallback #ovPick{grid-template-rows:auto minmax(190px,1fr) auto;height:auto;max-height:calc(100svh - 165px)}
+
+#entryOther{grid-column:1/-1;color:#c7ded4;font-size:11px}
+#entryOther summary{cursor:pointer;min-height:30px;line-height:30px;letter-spacing:.06em}
+#entryOtherPlaces{display:grid;grid-template-columns:1fr 1fr;gap:5px;max-height:150px;overflow-y:auto;padding:5px 2px 8px}
+#entryOtherPlaces button{min-height:42px;padding:8px;background:#102c31;border:1px solid #72998c66;color:#d5eae1;font:11px var(--ui);text-align:left;cursor:pointer}
+@media(max-width:600px){#ovPick:has(#entryOther[open]){height:min(65svh,540px)}#entryOtherPlaces{max-height:120px}}
+
+#entryARLink{position:absolute;right:30px;top:max(28px,env(safe-area-inset-top));pointer-events:auto;display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 14px;border:1px solid #99cfc57a;background:#071b22de;color:#d8f6ed;font:12px var(--ui);letter-spacing:.1em;text-decoration:none}#entryARLink svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.2}#entryARLink:focus-visible{outline:2px solid #eed5a1;outline-offset:3px}
+@media(max-width:600px){#entryARLink{right:14px;top:max(23px,env(safe-area-inset-top));gap:6px;padding:8px 10px;min-height:44px;font-size:10px}#entryARLink svg{width:16px;height:16px}.entryTitle{max-width:calc(100% - 142px)}}
