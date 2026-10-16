@@ -8,7 +8,29 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="qualium-scenes.css?v=20261016a">
 <link rel="preload" href="assets/aoi.vrm" as="fetch" crossorigin>
-<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script></head><body>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
+<!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
+<link rel="modulepreload" href="qualium-scenes.js?v=20261016-startup2">
+<link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
+<link rel="modulepreload" href="js/aoi_motion.js">
+<link rel="modulepreload" href="vendor/three/build/three.module.js">
+<link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
+<link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
+<link rel="modulepreload" href="field-scene.js">
+<link rel="modulepreload" href="js/aoi_mocap.js">
+<link rel="modulepreload" href="js/aoi_robe.js">
+<link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
+<link rel="preload" href="js/aoi_mocap.json" as="fetch" crossorigin>
+<link rel="preload" href="assets/sando_wire.json" as="fetch" crossorigin>
+<link rel="preload" href="assets/terrain_lite.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/buildings_lite.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/keyaki_lod1_notex.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/road.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/bark_zelkova.webp" as="image" crossorigin>
+<link rel="preload" href="assets/bark_zelkova_n.webp" as="image" crossorigin>
+<link rel="preload" href="assets/path_gravel.webp" as="image" crossorigin>
+<link rel="preload" href="assets/sand_grit_n.webp" as="image" crossorigin>
+</head><body>
 <header class="mast wrap"><a class="brand" href="#top">Qualium</a><nav aria-label="ページ内"><a href="#mission">考え方</a><a href="#experience">体験</a><a href="#works">作品</a><a href="essence.html">読む</a></nav></header>
 <main id="top"><section class="hero wrap"><div><div class="eyebrow">MITSULAB / FIELD OF PERCEPTION</div><h1>人の尺度を越えて、<br>世界と関わる。</h1><p class="lead">現実世界と計算世界をつなぐ。そのあいだに、依代・碧という新たな身体を置く。</p><p>感覚の外にある手がかりを測り、AIと人が解釈を確かめ、物語と道具で現実の場所へ返す。答えを決めるためではなく、もっと広く見て、考え、世界との関係を育てるために。</p><a class="cta primary" href="#experience">体験をはじめる ↓</a><a class="cta" href="essence.html">エッセンス版を読む ↗</a></div><div class="live-scene hero-scene" data-scene="hero" aria-label="写真地形と木立の中に立つ依代・碧の3D">
 <img class="scene-fallback" src="assets/aoi_still_960.webp" alt="依代・碧" width="960" height="1280">

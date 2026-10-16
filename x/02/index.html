@@ -81,7 +81,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tframe.on{border-color:#ffd25a;box-shadow:inset 0 0 18px rgba(255,210,90,.55)}
 #veil{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:4;transition:opacity .45s}
 #veil.on{opacity:.85}
-#boot{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;text-align:center;transition:opacity .6s}
+#boot{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;text-align:center;transition:opacity .15s}
 #boot.gone{opacity:0;pointer-events:none}
 #boot b{font-family:var(--mincho);font-size:30px;letter-spacing:.14em;font-weight:600}
 #boot p{color:var(--dim);font-size:15px;line-height:1.8;max-width:min(88vw,460px);margin:14px auto}
@@ -230,6 +230,24 @@ body{word-break:auto-phrase;line-break:strict}
 "three/addons/":"./vendor/three/examples/jsm/",
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
+<!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
+<link rel="modulepreload" href="umwelt.js?v=20261017-startup3">
+<link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
+<link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
+<link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
+<link rel="modulepreload" href="vendor/three/build/three.module.js">
+<link rel="modulepreload" href="bodies.js?v=20261016-startup1">
+<link rel="modulepreload" href="forest.js?v=20261013k80">
+<link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
+<link rel="modulepreload" href="nature.js?v=20261016-startup1">
+<link rel="modulepreload" href="zen.js">
+<link rel="modulepreload" href="kit/aoi_motion.js?v=20261013v31">
+<link rel="modulepreload" href="creatures.js?v=20261013k80">
+<link rel="modulepreload" href="nature.js?v=20261013k80">
+<link rel="modulepreload" href="kit/aoi_mocap.js">
+<link rel="modulepreload" href="kit/aoi_robe.js">
+<link rel="preload" href="kit/aoi_mocap.json" as="fetch" crossorigin>
+
 </head>
 <body>
 <div id="stage" tabindex="0" aria-label="森・池・川がつながる3D空間。右の操作で移動し、なぞると見回す。キーボードは矢印と W A S D、数字の 1 から 8 で受けとり方を切り替える"></div>
@@ -327,7 +345,7 @@ body{word-break:auto-phrase;line-break:strict}
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261016-startup2';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261017-startup3';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
