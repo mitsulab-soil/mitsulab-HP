@@ -19,8 +19,8 @@
   const css = `
 #ml-loader{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;color:#eef5fb;
   background:radial-gradient(1100px 760px at 50% 38%,rgba(36,88,143,.32),transparent 62%),radial-gradient(900px 700px at 8% 90%,rgba(26,92,129,.22),transparent 60%),#03060f;
-  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;transition:opacity .8s ease,visibility .8s}
-#ml-loader.ml-out{opacity:0;visibility:hidden}
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;transition:opacity .15s ease,visibility .15s}
+#ml-loader.ml-out{opacity:0;visibility:hidden;pointer-events:none}
 #ml-loader canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #ml-loader .ml-in{position:relative;text-align:center;padding:0 24px;width:min(560px,100%)}
 #ml-loader .ml-mark{position:relative;width:132px;height:132px;margin:0 auto 26px}
@@ -52,7 +52,7 @@
 
   // ---------------------------------------------------------------- 絵（地層の線と、立ちのぼる粒）
   const cv = el.querySelector("canvas"), g = cv.getContext("2d");
-  let W = 0, H = 0, dpr = 1, t0 = performance.now(), raf = 0, prog = null, shown = 0, auto = 0, alive = true;
+  let W = 0, H = 0, dpr = 1, t0 = performance.now(), raf = 0, prog = null, shown = 0, auto = 0, alive = true, finishing = false;
   const N_LINE = 9, N_DOT = 70, dots = [];
   let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const lines = Array.from({ length: N_LINE }, (_, i) => ({ y: .63 + i * .043 + (rnd() - .5) * .01, a: 6 + rnd() * 14, f: 1.2 + rnd() * 2.2, ph: rnd() * 6, d: i * .32, w: i % 3 === 0 ? 1.4 : .8 }));
@@ -90,8 +90,10 @@
   window.MLLoader = {
     progress(p, label) { prog = Math.max(0, Math.min(1, +p || 0)); if (label) el.querySelector(".ml-sr").textContent = label; if (RM) draw(performance.now()); },
     done() {
-      if (!alive) return; prog = 1; el.querySelector(".ml-sr").textContent = "読み込みました";
-      setTimeout(() => { el.classList.add("ml-out"); document.body.removeAttribute("aria-busy"); setTimeout(() => { alive = false; cancelAnimationFrame(raf); removeEventListener("resize", size); el.remove(); }, RM ? 0 : 850); }, RM ? 0 : 350);
+      if (!alive || finishing) return; finishing = true; prog = 1; el.querySelector(".ml-sr").textContent = "読み込みました";
+      // app が主要な 3D を実際に描いた後だけ呼ぶ。完了後の固定待ちは置かない。
+      el.classList.add("ml-out"); document.body.removeAttribute("aria-busy");
+      setTimeout(() => { alive = false; cancelAnimationFrame(raf); removeEventListener("resize", size); el.remove(); }, RM ? 0 : 150);
     },
     el,
   };

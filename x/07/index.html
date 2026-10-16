@@ -13,9 +13,23 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
+<!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
+<link rel="modulepreload" href="js/app.js?v=20261016-startup">
+<link rel="modulepreload" href="vendor/three.module.js">
+<link rel="modulepreload" href="vendor/OrbitControls.js">
+<link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
+<link rel="modulepreload" href="kit/atmosphere.js">
+<link rel="modulepreload" href="kit/vegetation.js">
+<link rel="modulepreload" href="kit/layers.js">
+<link rel="modulepreload" href="js/synth.js">
+<link rel="modulepreload" href="js/sound-space.js">
+<link rel="modulepreload" href="js/performance-fx.js">
+<link rel="modulepreload" href="js/world.js">
+<link rel="modulepreload" href="js/scores.js">
+<link rel="modulepreload" href="js/voices.js">
 </head>
 <body class="ml-root">
-<script src="loader/loader.js" data-title="Qualia/sound" data-en="sound in motion" data-icon="favicon/icon.svg" data-max="12000"></script>
+<script src="loader/loader.js?v=20261017-fast" data-title="Qualia/sound" data-en="sound in motion" data-icon="favicon/icon.svg" data-max="12000"></script>
 <canvas id="cv" aria-label="夕暮れの雑木林の空き地の上に、言葉の点が分類ごとに集まって浮かんでいる 3D の場面"></canvas>
 <div id="labs" aria-hidden="true"></div>
 <div id="tip" class="tip" aria-hidden="true"></div>

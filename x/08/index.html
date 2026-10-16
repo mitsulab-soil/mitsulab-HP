@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#03060f">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
 <style>
   /* 碧の唄（MV を一本、押して見る頁）。決まり＝世界観と見た目_v1 §8・HP の決まり（本文の白文字は太字にしない・375px） */
@@ -31,7 +31,7 @@
   .home{font-size:.84rem;letter-spacing:.08em;color:var(--ml-ink-2);text-decoration:none;min-height:44px;display:inline-flex;align-items:center;white-space:nowrap}
   .home:hover,.home:focus-visible{color:#fff}
   main{max-width:1180px;margin:0 auto;padding:clamp(18px,4vw,44px) 16px 64px}
-  /* 映像の枠：細い線一本と四隅の印。押すまで読まない（preload="none"） */
+  /* 映像の枠：細い線一本と四隅の印。選択中の動画の情報を先読みする（preload="metadata"）。再生は本人の操作後だけ */
   .frame{position:relative;border:1px solid var(--ml-line-2);background:#000}
   .frame::before,.frame::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--ml-aoi);pointer-events:none}
   .frame::before{left:-5px;top:-5px;border-right:0;border-bottom:0}
@@ -70,7 +70,7 @@
 </header>
 <main>
   <div class="frame">
-    <video id="mv" controls playsinline preload="none" poster="poster.webp" width="1920" height="1080" aria-label="森羅奏会《Breathing OS》の映像。雨上がりの杜で、碧がハンドマイクを手に歌う">
+    <video id="mv" controls playsinline preload="metadata" poster="poster.webp" width="1920" height="1080" aria-label="森羅奏会《Breathing OS》の映像。雨上がりの杜で、碧がハンドマイクを手に歌う">
       <source src="mv.mp4" type="video/mp4">
     </video>
     <canvas class="digital" id="digital" aria-hidden="true"></canvas>
