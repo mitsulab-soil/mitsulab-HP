@@ -201,6 +201,49 @@
     .item .io,.refs,.gloss{font-size:15px}
     .lhead .ml-title{font-size:28px}
     .r-name{font-size:24px}
+    /* 2026-10-15：スマホの一画面目にカードが見えるように。英語の副題はたたみ、しぼりこみは横に流れる一行ずつ（右端がうすれて続きを示す） */
+    .lhead .ml-en{display:none}
+    .lhead{padding:16px var(--ml-gutter) 14px}
+    .lhead .lead{margin-top:6px;line-height:1.75}
+    .lfilters{position:sticky;top:0;gap:4px;padding:8px var(--ml-gutter)}
+    .lfilters .frow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);mask:linear-gradient(90deg,#000 88%,transparent);padding-right:28px}
+    .lfilters .frow::-webkit-scrollbar{display:none}
+    .lfilters .fl{font-size:13px}
+    .group{margin-top:20px}
+  }
+
+  /* 375pxでも中央の3Dを確保し、説明・絞り込みは必要なときに開く。 */
+  .intro-fold>summary,#filterTools>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:12px;color:var(--ml-aoi-2);font-size:14px}
+  .intro-fold>summary:before,#filterTools>summary:before{content:'＋';font:16px var(--ml-mono)}
+  .intro-fold[open]>summary:before,#filterTools[open]>summary:before{content:'−'}
+  .intro-fold>summary::-webkit-details-marker,#filterTools>summary::-webkit-details-marker{display:none}
+  .intro-fold{max-height:50dvh;overflow:auto}.intro-fold .lead{margin-top:0}.intro-fold .hook{margin-top:8px}
+  #filterTools>summary{justify-content:space-between;gap:8px}#filterTools>summary .count{margin-left:auto;font-size:11px;letter-spacing:0}
+  .filter-body{display:grid;gap:10px;padding-top:6px}.filter-body .fhead .count{display:none}
+  .modal-list-title{margin:0 0 20px;font:400 28px var(--ml-serif)}body[data-mode="list"] .modal-list-title{display:none}
+  body[data-mode="3d"][data-list-open] .lfilters{display:grid;margin:0;padding:12px 0;position:sticky;top:64px;background:#060d18}
+  body[data-list-open] .filters,body[data-list-open] .cap{visibility:hidden}
+  @media(max-width:760px){
+    body[data-mode="3d"] .top{padding:12px 14px 28px;gap:10px;background:linear-gradient(180deg,#06111ff5 70%,transparent)}
+    body[data-mode="3d"] .brand{max-width:none;min-width:0;flex:1;margin:0;padding:0;background:none;gap:2px}
+    body[data-mode="3d"] .brand .ml-kicker{font-size:9px;letter-spacing:.06em}
+    body[data-mode="3d"] .brand .ml-title{font-size:26px;line-height:1.3}
+    body[data-mode="3d"] .brand .sub{font-size:12px;letter-spacing:.02em;line-height:1.5}
+    body[data-mode="3d"] .brand .lead,body[data-mode="3d"] .brand .hook{font-size:14px;line-height:1.8}
+    body[data-mode="3d"] .brand .hook .ml-btn{font-size:14px;white-space:normal;text-align:left}
+    body[data-mode="3d"] .acts{display:grid;gap:5px;flex:none}.acts .ml-btn{font-size:12px;padding:0 9px;min-height:44px}
+    .intro-fold>summary{font-size:12px}.intro-fold .ml-en{font-size:12px}
+    body[data-mode="3d"] .filters{left:14px;right:14px;bottom:max(12px,env(safe-area-inset-bottom));width:auto;padding:8px 12px}
+    #filterTools>summary{font-size:14px}.filter-body{gap:7px;padding-top:4px}.filter-body .fhead{font-size:12px}
+    .filter-body .frow{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}.filter-body .frow .ml-btn{flex:none;font-size:14px;padding:0 10px}
+    body[data-mode="3d"] .cap{left:14px;right:14px;bottom:calc(var(--filter-height,62px) + 26px)}
+    .cap .ml-caption{font-size:14px;line-height:1.65;padding:10px 12px;background:#06111fe6}
+    body[data-reading] .cap{visibility:hidden}
+    body[data-mode="3d"] #reader{inset:70px 12px 12px;width:auto;max-width:none;padding:18px 18px 28px;background:#060d18f5;z-index:10}
+    body[data-mode="3d"] #reader .rbar{top:-18px;margin:-18px -18px 4px;padding:8px 12px}
+    body[data-mode="3d"] #list{padding:78px 16px 32px}.closeList{right:14px;top:12px}
+    body[data-mode="3d"][data-list-open] .lfilters{top:56px}.items{grid-template-columns:minmax(0,1fr)}
+    .r-sec h3{flex-wrap:wrap;gap:2px 8px}.r-lookchip{flex-wrap:wrap}.r-name{overflow-wrap:anywhere}
   }
 </style>
 </head>
@@ -213,9 +256,9 @@
     <span class="ml-kicker" data-name="kicker"></span>
     <h1 class="ml-title" data-name="app"></h1>
     <span class="sub" data-name="sub"></span>
-    <span class="ml-en" data-name="sub_en"></span>
+    <details class="intro-fold" id="libraryIntro" open><summary>書庫の歩き方</summary><span class="ml-en" data-name="sub_en"></span>
     <p class="lead" data-name="lead"></p>
-    <p class="hook" data-hook></p>
+    <p class="hook" data-hook></p></details>
   </div>
   <div class="acts">
     <button class="ml-btn" type="button" id="openList">一覧で見る</button>
@@ -223,17 +266,17 @@
   </div>
 </header>
 
-<aside class="filters ml-panel ml-panel--corner" aria-label="しぼりこみ">
+<aside class="filters ml-panel ml-panel--corner" aria-label="しぼりこみ"><details id="filterTools" open><summary>視点を絞る <span class="count" data-count></span></summary><div class="filter-body">
   <div class="fhead"><span>だれが受けとる</span><span class="count" data-count></span></div>
   <div class="frow" data-f="subj" role="group" aria-label="主体でしぼる"></div>
   <div class="fhead"><span>何を受けとる</span></div>
   <div class="frow" data-f="dim" role="group" aria-label="次元でしぼる"></div>
-  <details class="ml-fold legend-fold"><summary>線と印</summary><p class="legend"><span class="swatch" aria-hidden="true"></span>線＝同じ次元を、ちがう主体が受けとるカードどうし。<br><b>◎</b> 典拠あり　<b>△</b> 議論中・諸説　<b>◐</b> 近い仲間から推しはかった　<b>○</b> 確かめていない</p></details>
+  <details class="ml-fold legend-fold"><summary>線と印</summary><p class="legend"><span class="swatch" aria-hidden="true"></span>線＝同じ次元を、ちがう主体が受けとるカードどうし。<br><b>◎</b> 典拠あり　<b>△</b> 議論中・諸説　<b>◐</b> 近い仲間から推しはかった　<b>○</b> 確かめていない</p></details></div></details>
 </aside>
 
 <div class="cap" data-off aria-live="polite"><p class="ml-caption" id="cap"></p></div>
 
-<main id="list" aria-label="カードの一覧">
+<main id="list" aria-label="カードの一覧"><h2 class="modal-list-title">カードを選ぶ</h2>
   <div class="lhead">
     <span class="ml-kicker" data-name="kicker"></span>
     <p class="ml-title" role="heading" aria-level="1" data-name="app" style="margin-top:8px"></p>

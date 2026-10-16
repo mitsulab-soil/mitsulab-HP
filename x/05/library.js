@@ -8,6 +8,12 @@ const SUBJ_COLOR = { being: "#7fe0b4", human: "#f4aa96", machine: "#b4a2ff" };
 const SUBJ_EN = { being: "beings", human: "humans", machine: "machines" };
 const MARK = { "◎": "典拠あり", "△": "議論中・諸説", "◐": "近い仲間などの研究から推しはかった", "○": "典拠を確かめていない" };
 
+// モバイルは説明と絞り込みを畳み、3Dの中央を空ける。内容は開いて読める。
+const compactView=matchMedia('(max-width:760px)');
+function compactLayout(){for(const id of ['libraryIntro','filterTools'])document.getElementById(id).open=!compactView.matches;}
+compactLayout();compactView.addEventListener('change',compactLayout);
+new ResizeObserver(([entry])=>document.body.style.setProperty('--filter-height',entry.target.getBoundingClientRect().height+'px')).observe($('.filters'));
+
 const [NAMES, DATA] = await Promise.all([fetch("names.json").then(r => r.json()), fetch("cards_public.json").then(r => r.json())]);
 const CARDS = DATA.カード, BY = Object.fromEntries(CARDS.map(c => [c.id, c]));
 const DIMS = DATA.次元, DIMNAME = Object.fromEntries(DIMS.map(d => [d.key, d.名前])), DIMORDER = Object.fromEntries(DIMS.map((d, i) => [d.key, i]));
@@ -94,7 +100,7 @@ function applyFilter() {
   listeners.forEach(f => f());
 }
 
-// ---- 一覧（スマホでは主の画面。PC では「一覧で見る」）
+// ---- 一覧（PC・スマホとも「一覧で見る」、WebGLなし時は主の画面）
 function buildList() {
   const html = [];
   for (const s of SUBJS) {
@@ -163,9 +169,9 @@ addEventListener("keydown", e => { if (e.key === "Escape") { if (current) close(
 
 // ---- 画面の型を決める
 function webgl() { try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; } }
-const wantList = Q.get("mode") === "list" || Math.min(innerWidth, innerHeight) < 600 || innerWidth < 760 || !webgl();
+const wantList = Q.get("mode") === "list" || !webgl();
 buildFilters(); buildList(); applyFilter();
-function showList(on) { $("#list").hidden = !on; if (on) $("#closeList").focus({ preventScroll: true }); else $("#openList").focus({ preventScroll: true }); }
+function showList(on) { if(on&&current)close();$("#list").hidden = !on;if(on)document.body.dataset.listOpen="true";else delete document.body.dataset.listOpen;$(".top").inert=on;$(".filters").inert=on; if (on) $("#closeList").focus({ preventScroll: true }); else $("#openList").focus({ preventScroll: true }); }
 $("#openList").addEventListener("click", () => showList(true));
 $("#closeList").addEventListener("click", () => showList(false));
 $("#list").addEventListener("click", e => { if (document.body.dataset.mode === "3d" && e.target.closest("[data-open]")) showList(false); }, true);
@@ -462,11 +468,13 @@ async function start3D() {
   }
 
   // ---- 毎こま
-  const clock = new THREE.Clock(); let last = performance.now(), frames = 0, fpsT = performance.now();
-  window.__lib = { fps: 0, renderer, plates: plates.length, bridges: bridges.length };
+  const clock = new THREE.Clock(); let last = performance.now(), nextFrame=performance.now(), frames = 0, fpsT = performance.now();
+  window.__lib = { fps: 0, renderer, plates: plates.length, bridges: bridges.length, get view(){return{yaw,pitch};},get visiblePlates(){return plates.filter(p=>p.visT>.5).length;},get cardPoints(){return plates.filter(p=>p.visT>.5).map(p=>{const v=p.g.getWorldPosition(new THREE.Vector3()).project(camera);return{id:p.c.id,x:(v.x+1)*innerWidth/2,y:(1-v.y)*innerHeight/2,z:v.z};});} };
   const tmpV = new THREE.Vector3(), tmpQ = new THREE.Quaternion(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
   function frame(now) {
     requestAnimationFrame(frame);
+    if(document.hidden||document.body.hasAttribute("data-list-open")){clock.getDelta();nextFrame=now;last=now;return;}
+    const delta=now-nextFrame;if(delta<1000/30-.3)return;nextFrame=now-delta%(1000/30);
     const dt = Math.min(.05, clock.getDelta()), t = clock.elapsedTime;
     fit.frame(now - last); last = now; frames++;
     if (now - fpsT > 1000) { window.__lib.fps = Math.round(frames * 1000 / (now - fpsT)); frames = 0; fpsT = now; }
