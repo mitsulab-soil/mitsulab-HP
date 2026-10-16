@@ -68,6 +68,10 @@ async function build(host){
   const g=await loader.loadAsync(asset('aoi.vrm'));vrm=g.userData.vrm;VRMUtils.removeUnnecessaryVertices(g.scene);VRMUtils.rotateVRM0(vrm);
   const pivot=new T.Group();pivot.add(vrm.scene);pivot.position.y=.1;scene.add(pivot);vrm.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;}});
   motion=new AoiMotion(vrm,{root:pivot,wind:.22,faceViewer:false,startCalm:1,posture:'upright'});
+  // The extra back-face outline passes compete with hair/headpiece/skin
+  // surfaces and sparkle at a distance. Keep every primary surface and
+  // its shading; suppress only extra outlines, leaving the VRM untouched.
+  vrm.scene.traverse(o=>{if(o.isMesh)for(const material of [].concat(o.material))if(material?.isOutline)material.visible=false;});
  }else{
   // The flower stands in the planting bed, beside the centre of the avenue.
   origin.position.x=6.5;
