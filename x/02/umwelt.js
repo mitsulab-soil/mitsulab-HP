@@ -552,7 +552,7 @@ addEventListener("keydown", e => {
   keys.add(k);
 });
 addEventListener("keyup", e => keys.delete(e.key.toLowerCase()));
-addEventListener("blur", () => keys.clear());
+addEventListener("blur", () => { keys.clear(); compareView(false); });
 
 // ---------------------------------------------------------------- 音（はじめに押してから。碧の声・その場で作る音だけ。録音は使わない）
 const AUD = {
@@ -1059,7 +1059,7 @@ let echo = { t: 9, next: 0, int: 1.6 }, sonT = 0;
 const ECHO_V = 20;   // 見せる波面の速さ（m/s）。本当の音の速さ（約 340 m/s）を、ゆっくりにしたもの
 let shadowTick = 0;
 let lastFrame=0,simTime=0,RDT=0;const FPS={n:0};   // 描いたこまの数（確かめ用）
-addEventListener("visibilitychange",()=>{keys.clear();clock.getDelta();});
+addEventListener("visibilitychange",()=>{keys.clear();if(document.hidden)compareView(false);clock.getDelta();});
 function frame(now=0) {
   if(document.hidden||now-lastFrame<33){requestAnimationFrame(frame);return;}lastFrame=now;FPS.n++;
   const rawDt = clock.getDelta(), dt = Math.min(rawDt, .05); RDT = Math.min(rawDt, .4); simTime += dt; const t = simTime;   // RDT＝実の経過（碧の現れ方は、遅い端末でも秒で決める。2026-10-14）
