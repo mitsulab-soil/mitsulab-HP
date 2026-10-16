@@ -44,7 +44,14 @@
 </style>
 <script>addEventListener('load',function(){ document.getElementById('fontfaces-late').media='all'; });</script>
 <script>document.documentElement.classList.add('js');</script>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
+<!-- 最初に見える3Dの同版ライブラリと地理データだけを並列取得。VRM/詳細モデルは場面に応じて読む。 -->
+<link rel="modulepreload" href="./vendor/three/build/three.module.js">
+<link rel="modulepreload" href="./vendor/three/examples/jsm/loaders/GLTFLoader.js">
+<link rel="modulepreload" href="./vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
+<link rel="modulepreload" href="./vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
+<link rel="preload" href="img/hero/sando_wire.json" as="fetch" crossorigin>
+<link rel="preload" href="img/hero/sando_wire.bin" as="fetch" crossorigin>
 <script>/* 言語：?lang=en|ja ＞ 前回の選択 ＞ ブラウザの言語（英語なら EN） */(function(){var _l=null;try{var m=/[?&]lang=(en|ja)\b/.exec(location.search);if(m)_l=m[1];if(!_l)_l=localStorage.getItem('hp-lang');}catch(e){}if(_l!=='en'&&_l!=='ja'){var n=(navigator.languages&&navigator.languages[0])||navigator.language||'';_l=/^en\b/i.test(n)?'en':null;}if(_l)document.documentElement.setAttribute('data-lang',_l);})();</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
@@ -2049,9 +2056,9 @@ var AOI_FN=[
    スクロールで、上空のデータの格子から参道へ降り、地面の高さで参道を北へ進み、碧の前に着く。マウス・端末の傾きで少し視差。
    模式のもの：上空の格子・光の粒（人の流れ・データの流れ）・Qualium の五つの段の輪・木の形。それ以外は実データ。
    reduced-motion・WebGL なしは、止まった一枚（img/hero/scene_poster_*.webp）と言葉を全部ならべる。 ===== */
-// 高速化（2026-10-06）：three.js（約 260 KB）は、ページの読み込みが終わってから取りに行く（最初の絵・文字・書体を先に）
+// 2026-10-17：同版の描画ライブラリを先読込し、非必須の書体・画像と起動を分ける。
 let THREE, GLTFLoader, MeshoptDecoder, mergeGeometries;
-const libs=()=>window.__threeLibs||(window.__threeLibs=new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r,{once:true})).then(()=>Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')])));
+const libs=()=>window.__threeLibs||(window.__threeLibs=Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')]));
 const LOD_NEAR=Math.min(innerWidth,innerHeight)<700?45:80, LOD_MID=260, LOD_BAND=9;   // 80 m の前後 9 m は、二つの型をまだらに混ぜて切り替える（Unity の LOD cross-fade と同じ考え）   // 木の型を替える距離（m・碧から）
 
 const root=document.getElementById('why');
@@ -2064,9 +2071,14 @@ if(!hasGL()) staticMode(); else { if(reduce) staticMode(); start().catch(e=>{ co
 
 const yieldT=()=>new Promise(r=>(window.scheduler&&scheduler.yield)?scheduler.yield().then(r):setTimeout(r,0));
 async function start(){
-  await new Promise(r=>window.__afterPaint?window.__afterPaint(()=>r(),2500):addEventListener('load',()=>setTimeout(r,600),{once:true}));   // 高速化：最初の絵と文字（書体）が描き終わってから 3D を組む。それまでは同じ絵（scene_poster）が出ている
-  { const m=await libs(); THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; mergeGeometries=m[3].mergeGeometries; }
-  const [meta,bin]=await (window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()), fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])));   // 使命と層の 3D と一度だけ取りに行く
+  // 2026-10-17: 初回の文字描画を二こま譲りつつ、同版ライブラリと地理データを並列取得。
+  // 全画像・遅い書体の load を待つと、最初の3Dまで直列待ちが重なるためここでは待たない。
+  const [m,[meta,bin]]=await Promise.all([
+    libs(),
+    window.__sandoWire||(window.__sandoWire=Promise.all([fetch('img/hero/sando_wire.json').then(r=>r.json()),fetch('img/hero/sando_wire.bin').then(r=>r.arrayBuffer())])),
+    new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))
+  ]);
+  THREE=m[0]; GLTFLoader=m[1].GLTFLoader; MeshoptDecoder=m[2].MeshoptDecoder; mergeGeometries=m[3].mergeGeometries;
   const I=new Int16Array(bin), Q=meta.q;
   const mobile=Math.min(innerWidth,innerHeight)<700;
   const R=new THREE.WebGLRenderer({canvas:cv,antialias:!mobile,powerPreference:'high-performance'});
@@ -2461,7 +2473,7 @@ async function start(){
    息・まばたき・小さな首の動き、ゆっくり左右に向きを変え、指でも回せる。図が画面に入ったときに読み込み、外では止める。
    reduced-motion と WebGL なしは、いままでの絵のまま。 ===== */
 let THREE, GLTFLoader, MeshoptDecoder;   // 高速化：要るときに取りに行く（TOP の場面と同じものを使い回す）
-const libsA=()=>window.__threeLibs||(window.__threeLibs=new Promise(r=>document.readyState==='complete'?r():addEventListener('load',r,{once:true})).then(()=>Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')])));
+const libsA=()=>window.__threeLibs||(window.__threeLibs=Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/BufferGeometryUtils.js')]));
 const reduceA=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const getBuf=()=>window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer()));   // 碧の 3D は一度だけ取りに行き、置き場所ごとに組み立てる
 if(!reduceA) document.querySelectorAll('.mx-aoi3d').forEach(box=>{   // 2026-10-07：3D の碧は TOP（使命と層）だけ。碧のページ（.al）は 2D の絵（.al-still）
