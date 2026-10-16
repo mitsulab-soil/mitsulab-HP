@@ -418,10 +418,17 @@ function makeMouse(s = 1) {
 export function buildNature(ctx) {
   M = ctx.M; canvasTex = ctx.canvasTex; tx = ctx.tx;
   const { garden, sonic, TREE, POND, grassSample, BED, bed, MOUSE } = ctx;
-  const flowers = makeFlowers(garden, sonic, BED);
-  const tree = makeTree(garden, sonic, TREE);
-  const grass = makeGrass(garden, grassSample); grass.userData.smallCast = true;
-  makePond(garden, sonic, POND);
+  // The public forest needs the animals, not the retired garden's plants.
+  // Keep the original scenery available for legacy chapter previews, on demand.
+  let scenery;
+  const initScenery = () => {
+    if (scenery) return scenery;
+    const flowers = makeFlowers(garden, sonic, BED), tree = makeTree(garden, sonic, TREE);
+    const grass = makeGrass(garden, grassSample); grass.userData.smallCast = true;
+    makePond(garden, sonic, POND);
+    return scenery = { flowers, leafMat: tree.leafMat, leafIM: tree.leafIM, grass };
+  };
+  if (ctx.scenery !== false) initScenery();
   // アオガラ（1.5 倍）：欅の低い枝に
   const mf = (c, o = {}) => M(c, o);
   const bird = makeTitR(mf, { state: "perch" }); bird.scale.setScalar(.145 * 1.5); bird.userData.animate(0); bird.position.set(TREE.x - .9, 2.55, TREE.z + .9); garden.add(bird); sonic.push(bird.userData.cap);
@@ -435,7 +442,7 @@ export function buildNature(ctx) {
   for (const b of [fem, mal, ageha]) { garden.add(b); b.traverse(o => { if (o.isMesh && o.material.map) sonic.push(o); }); }
   // 蜂（3 倍）：ヒマワリの前
   const bee = makeBeeR(mf); bee.scale.setScalar(.013 * 3); bee.position.copy(bed(-2.38, 1.43, -.82)); bee.rotation.y = BED.ry; garden.add(bee);
-  return { flowers, leafMat: tree.leafMat, leafIM: tree.leafIM, grass, bird, mouse, butterflies: [fem, mal], ageha, bee };
+  return { ...scenery, initScenery, bird, mouse, butterflies: [fem, mal], ageha, bee };
 }
 
 export { makeTree, makeFlowers, makeGrass, bladeGeo, stemGeo, geoAt, petalTex, rockGeo, uvGrad, discTex };

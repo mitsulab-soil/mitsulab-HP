@@ -57,15 +57,22 @@ function makeFlower(scene,textures){
 async function build(host){
  const kind=host.dataset.scene,canvas=host.querySelector('canvas'),renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'low-power'});
  renderers.set(host,renderer);
+ const status=diagnostics[kind]={ready:false,frames:0,startedAt:performance.now(),firstFrameAt:null,aoi:false};
+ // Fetch Aoi at the same time as the field, rather than after all field assets.
+ const aoiTask=kind==='hero'?(async()=>{
+  const [{VRMLoaderPlugin,VRMUtils},{AoiMotion}]=await Promise.all([import('@pixiv/three-vrm'),import('./js/aoi_motion.js')]);
+  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);loader.register(parser=>new VRMLoaderPlugin(parser));
+  const g=await loader.loadAsync(asset('aoi.vrm'));status.aoiAssetAt=performance.now();return{g,VRMUtils,AoiMotion};
+ })().then(value=>({value}),error=>({error})):null;
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<700?1:1.4));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
  const scene=new T.Scene(),world=new T.Group(),camera=new T.PerspectiveCamera();scene.add(world);
  const field=await createFieldScene({T,scene,world,camera,host,sprite:glowTexture(),renderer});
+ status.fieldReadyAt=performance.now();
  const origin=world.getObjectByName('qualium-photo-place');origin.children[1].visible=false;
  let motion=null,flower=null,vrm=null;
  if(kind==='hero'){
-  const [{VRMLoaderPlugin,VRMUtils},{AoiMotion}]=await Promise.all([import('@pixiv/three-vrm'),import('./js/aoi_motion.js')]);
-  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);loader.register(parser=>new VRMLoaderPlugin(parser));
-  const g=await loader.loadAsync(asset('aoi.vrm'));vrm=g.userData.vrm;VRMUtils.removeUnnecessaryVertices(g.scene);VRMUtils.rotateVRM0(vrm);
+  const loaded=await aoiTask;if(loaded.error)throw loaded.error;
+  const {g,VRMUtils,AoiMotion}=loaded.value;vrm=g.userData.vrm;VRMUtils.removeUnnecessaryVertices(g.scene);VRMUtils.rotateVRM0(vrm);
   const pivot=new T.Group();pivot.add(vrm.scene);pivot.position.y=.1;scene.add(pivot);vrm.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;}});
   motion=new AoiMotion(vrm,{root:pivot,wind:.22,faceViewer:false,startCalm:1,posture:'upright'});
   // The extra back-face outline passes compete with hair/headpiece/skin
@@ -80,7 +87,7 @@ async function build(host){
  }
  renderer.shadowMap.needsUpdate=true;
  let width=1,height=1,view='human',yaw=0,zoom=1,drag=null,visible=false,paused=reduced.matches,contextAlive=true,time=0,last=0,previous=0,raf=0,frames=0;
- const status=diagnostics[kind]={ready:true,frames,view,visible,paused},eye=new T.Vector3(),target=new T.Vector3();
+ Object.assign(status,{ready:true,frames,view,visible,paused,aoi:!!vrm});const eye=new T.Vector3(),target=new T.Vector3();
  host.dataset.ready='true';
  host.querySelectorAll('.scene-actions button').forEach(button=>button.disabled=false);
  const pause=host.querySelector('[data-scene-pause]'),reset=host.querySelector('[data-scene-reset]');
@@ -93,7 +100,7 @@ async function build(host){
    const underground=view==='soil',far=view==='field',r=(underground?2.5:far?2.6:1.65)*zoom;
    camera.fov=width/height<.9?44:39;eye.set(Math.sin(.4+yaw)*r,underground?1.6:far?1.4:1.35,Math.cos(.4+yaw)*r);target.set(0,underground?.2:.67,0);flower.update(time,view);
   }
-  camera.position.copy(eye);camera.lookAt(target);camera.updateMatrixWorld();camera.aspect=width/height;camera.near=.02;camera.far=1800;camera.updateProjectionMatrix();motion?.update(dt,camera);renderer.render(scene,camera);status.frames=++frames;status.time=time;status.view=view;status.yaw=yaw;status.zoom=zoom;status.calls=renderer.info.render.calls;status.triangles=renderer.info.render.triangles;
+  camera.position.copy(eye);camera.lookAt(target);camera.updateMatrixWorld();camera.aspect=width/height;camera.near=.02;camera.far=1800;camera.updateProjectionMatrix();motion?.update(dt,camera);renderer.render(scene,camera);status.firstFrameAt ||= performance.now();status.frames=++frames;status.time=time;status.view=view;status.yaw=yaw;status.zoom=zoom;status.calls=renderer.info.render.calls;status.triangles=renderer.info.render.triangles;
  }
  function tick(now){raf=0;if(!contextAlive||!visible||paused||document.hidden)return;const interval=1000/30,elapsed=now-last;if(elapsed>=interval){const dt=previous?Math.min(.08,(now-previous)/1000):0;previous=now;last=now-elapsed%interval;draw(dt);}raf=requestAnimationFrame(tick);}
  function schedule(){cancelAnimationFrame(raf);raf=0;last=previous=0;status.visible=visible;status.paused=paused;if(visible&&contextAlive){draw(0);if(!paused&&!document.hidden)raf=requestAnimationFrame(tick);}}

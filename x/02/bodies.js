@@ -44,6 +44,10 @@ export function makeBody(id, material = (c, o) => stdMat(c, o)) {
   return g;
 }
 let portraitRenderer; const portraits = new Map();
+export function disposePortraitRenderer() {
+  if (!portraitRenderer) return;
+  portraitRenderer.dispose(); portraitRenderer.forceContextLoss(); portraitRenderer = null;
+}
 // 絵にするときの羽ばたきの時刻（2026-10-14：コウモリは翼をたたんだこまで「茶色い棒」に見えた → 翼を広げたこまで）
 const PORTRAIT_T = { koumori: .04 };
 export function creaturePortrait(id, tOverride) {
@@ -59,7 +63,7 @@ export function creaturePortrait(id, tOverride) {
   const image = renderer.domElement.toDataURL('image/webp');
   body.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(m => m.dispose()); } });
   if (tOverride != null) return image;
-  portraits.set(id, image); if (portraits.size === 8) { renderer.dispose(); renderer.forceContextLoss(); portraitRenderer = null; }
+  portraits.set(id, image); if (portraits.size === 8) disposePortraitRenderer();
   return image;
 }
 
