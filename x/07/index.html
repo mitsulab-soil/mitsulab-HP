@@ -9,10 +9,10 @@
 <meta name="description" content="同じ一行でも、聞こえる音は、人によって違う。書きためた「◯◯の音」の言葉から音を組み立て、あなたの聞こえ方で鳴らしなおす。">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 </head>
 <body class="ml-root">
 <script src="loader/loader.js" data-title="Qualia/sound" data-en="sound in motion" data-icon="favicon/icon.svg" data-max="12000"></script>
@@ -162,6 +162,6 @@
 
 <script src="data/sounds.js"></script>
 <script src="data/gain.js"></script>
-<script type="module" src="js/app.js"></script>
+<script type="module" src="js/app.js?v=20261016-startup"></script>
 </body>
 </html>

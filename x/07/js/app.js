@@ -104,7 +104,7 @@ const dials = () => ({ dist: +$("dDist").value / 100, hard: +$("dHard").value / 
 const setDials = d => { $("dDist").value = Math.round(d.dist * 100); $("dHard").value = Math.round(d.hard * 100); $("dLight").value = Math.round(d.light * 100); };
 const FIRST = {dist:.5,hard:.5,light:.5};
 const second=new QSynth();let material=null,mixing=false;
-const space=new SoundSpace($('spectrum'),synth);
+let space=null; // 演奏面を開くまで、2個目のWebGLは作らない。
 function halt(){synth.stop(.06);second.stop(.06);mixing=false;$('mixRatio').disabled=true;}
 function playAs(){if(!cur||cur.quiet)return;halt();synth.play(cur,dials());}
 synth.onstate=on=>{$('bPlay').setAttribute('aria-pressed',String(on));};
@@ -157,6 +157,7 @@ function select(it, { fly = true, fromTour = false, audible = true } = {}) {
   sel.visible = stem.visible = ring.visible = !it.generated;
   $("panel").scrollTop=0;
   if(audible){playAs();balance();}
+  if(!space)space=new SoundSpace($('spectrum'),synth);
   if (fly) { const p = new THREE.Vector3().fromArray(POS, it.i * 3); target = portrait() ? p.clone() : p.clone().lerp(new THREE.Vector3(0, 3.1, 0), .25);  controls.autoRotate = false; }
 }
 function clearSel() { stopTour(); cur = null; halt(); $("panel").hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; target = new THREE.Vector3(0, 3.1, 0); }
@@ -256,12 +257,21 @@ function drawWave() {
 }
 
 // ---- 毎こま
-let last = performance.now(), run = true, lv = 0, lensY = 0, forestFrame = 0;
-document.addEventListener("visibilitychange", () => { run = !document.hidden; if (run) { last = performance.now(); requestAnimationFrame(loop); } });
+let last = performance.now(), run = !document.hidden, lv = 0, lensY = 0, forestFrame = 0, raf = 0, cadence = 0;
+const startup={firstFrameMs:null,texturesReadyMs:null,frames:0,forestFrames:0};
+function queueFrame(){if(run&&!raf)raf=requestAnimationFrame(loop);}
+document.addEventListener("visibilitychange", () => {
+  run=!document.hidden;cancelAnimationFrame(raf);raf=0;last=performance.now();cadence=0;
+  if(run)queueFrame();
+});
 if (RM) WIND.uGust.value = 0;
 const posAttr = wGeo.attributes.position, cen = new THREE.Vector3(0, 3.1, 0);
 function loop(now) {
-  if (!run) return;
+  raf=0;if(!run)return;
+  // 描画予約は常に1本。30fpsの端数を保持し、高リフレッシュ画面でも間引きすぎない。
+  const interval=1000/30,elapsed=cadence?now-cadence:interval;
+  if(elapsed<interval){queueFrame();return;}
+  cadence=now-(elapsed%interval);
   const dt = Math.min(.05, (now - last) / 1000); fit.frame(now - last); last = now; const t = now / 1000;
   WIND.uTime.value = t; wMat.uniforms.scale.value = renderer.domElement.height / 2; wMat.uniforms.maxPx.value = 16 * fit.pixelRatio;
   if (!RM) { for (let i = 0; i < N; i++) { const a = PH[i * 3], b = PH[i * 3 + 1], w = PH[i * 3 + 2]; POS[i * 3] = BASE[i * 3] + Math.sin(t * w + a) * .13; POS[i * 3 + 1] = BASE[i * 3 + 1] + Math.sin(t * w * .8 + b) * .09; POS[i * 3 + 2] = BASE[i * 3 + 2] + Math.cos(t * w + b) * .13; } posAttr.needsUpdate = true; }
@@ -290,13 +300,18 @@ function loop(now) {
   for (const o of L) { o.el.style.transform = `translate(${o.x}px,${o.y}px) translate(-50%,-50%)`;
     // 押し分けたあとの位置で、案内（スマホ）と「順に聴く」の帯に重なる札を隠す
     if (o.vis && ((portrait() && !cur && o.y + o.el._h / 2 > hintTop - 4) || (tour && o.y - o.el._h / 2 < capBottom + 4))) { o.el.style.opacity = 0; o.el.style.pointerEvents = "none"; } }
-  if (cur) {if(!space.frozen)drawWave();space.update(now);}
+  if (cur&&space) {if(!space.frozen)drawWave();space.update(now);}
   // 演奏面を開いている間、背景の森は4fpsに抑え、音の立体へ描画を回す。
-  if (!cur || now - forestFrame > 250) { renderer.render(scene, camera); forestFrame = now; }
-  requestAnimationFrame(loop);
+  if (!cur || now - forestFrame > 250 || startup.firstFrameMs===null) {
+    renderer.render(scene, camera);forestFrame=now;startup.forestFrames++;
+    if(startup.firstFrameMs===null){
+      // 空・床・森・音の点を実際に描いた後に操作を開く。写真素材は別に計測する。
+      startup.firstFrameMs=performance.now();document.body.dataset.ready='true';window.MLLoader?.done();
+    }
+  }
+  startup.frames++;queueFrame();
 }
 addEventListener("resize", () => { camera.position.setLength(Math.min(controls.maxDistance, camera.position.distanceTo(controls.target))); });
-manager.onLoad = () => { window.MLLoader?.done(); };
-setTimeout(() => window.MLLoader?.done(), 9000);
-requestAnimationFrame(loop);
-window.__qs = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth, second, space, get current(){return cur;}, get material(){return material;}, get mixing(){return mixing;}, performanceValues };
+manager.onLoad = () => { startup.texturesReadyMs=performance.now();document.body.dataset.texturesReady='true'; };
+queueFrame();
+window.__qs = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth, second, get space(){return space;}, startup, get pendingFrame(){return raf;}, get current(){return cur;}, get material(){return material;}, get mixing(){return mixing;}, performanceValues };
