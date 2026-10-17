@@ -24,11 +24,11 @@ for(const host of document.querySelectorAll('[data-qualium-scene="loop"]')){
  const kind='loop',canvas=host.querySelector('canvas'),pause=host.querySelector('[data-pause]');
  const nodes=[...host.closest('.qt-loop').querySelectorAll('[data-node]')],detail=host.closest('.qt-loop').querySelector('.qt-node-detail');
  let visible=false,paused=reduced.matches,loading=false,ready=false,raf=0,last=0,lastUpdate=0,time=0,selected=2,frames=0;
- let renderer,model,camera,draw=()=>{};
+ let renderer,model,camera,draw=()=>{},touring=false,nextStageAt=0;const tour=host.querySelector("[data-tour]");tour?.addEventListener("click",()=>{touring=!touring;tour.setAttribute("aria-pressed",String(touring));selected=0;nextStageAt=time+5;info.selected=selected;labels();if(ready)draw(0);});
  const info=window.__qualiumDiagnostics[kind]={ready:false,frames:0,selected,paused};
  function labels(){
   pause.textContent=paused?(isEnglish()?'Resume motion':'動きを再開する'):(isEnglish()?'Pause motion':'動きを止める');
-  pause.setAttribute('aria-pressed',String(paused));info.paused=paused;
+  pause.setAttribute('aria-pressed',String(paused));info.paused=paused;if(tour)tour.textContent=touring?(isEnglish()?'Stop guided cycle':'自動進行を止める'):(isEnglish()?'Trace the cycle':'循環をたどる');
   detail.textContent=nodeText[isEnglish()?'en':'ja'][selected];
   nodes.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===selected)));
   model?.projectLabels?.();
@@ -39,7 +39,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene="loop"]')){
   if(elapsed>=interval){
    const dt=lastUpdate?Math.min((now-lastUpdate)/1000,.08):0;
    last=now-(elapsed%interval);lastUpdate=now;time+=dt;
-   draw(dt);canvas.dataset.frames=String(++frames);info.frames=frames;info.time=time;
+   if(touring&&time>=nextStageAt){selected=(selected+1)%6;info.selected=selected;nextStageAt=time+5;labels();}draw(dt);canvas.dataset.frames=String(++frames);info.frames=frames;info.time=time;
   }
   raf=requestAnimationFrame(frame);
  }
@@ -48,7 +48,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene="loop"]')){
   if(ready&&visible&&!document.hidden){draw(0);if(!paused)raf=requestAnimationFrame(frame);}
  }
  pause.addEventListener('click',()=>{paused=!paused;labels();schedule();});
- nodes.forEach((b,i)=>b.addEventListener('click',()=>{selected=i;info.selected=i;labels();if(ready)draw(0);}));
+ nodes.forEach((b,i)=>b.addEventListener('click',()=>{touring=false;tour?.setAttribute('aria-pressed','false');selected=i;info.selected=i;labels();if(ready)draw(0);}));
  document.addEventListener('hp-lang-change',()=>{labels();if(ready)draw(0);});
  reduced.addEventListener('change',e=>{paused=e.matches;labels();schedule();});
  labels();
@@ -56,7 +56,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene="loop"]')){
   if(loading)return;loading=true;
   try{
    const T=await loadThree();
-   const module=await import('./qualium-loop-3d.js?v=20261017-human3');
+   const module=await import('./qualium-loop-3d.js?v=20261017-relations4');
    renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
    renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<=700?1:1.5));
    renderer.setClearColor(0x030812,0);renderer.outputColorSpace=T.SRGBColorSpace;
