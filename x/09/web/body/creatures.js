@@ -540,8 +540,12 @@ export function makeTit(mat = stdMat, o = {}) {
 // ================================================================ 犬（柴犬・体高 35〜41 cm）
 //   赤毛に「裏白」（頬・のど・胸・腹・脚の内・尾の裏が白っぽい）。立った三角の耳、巻いた尾、黒い鼻、奥まった三角の目。
 export function makeDog(mat = stdMat, o = {}) {
-  // 小さな茶色いトイプードル。丸い巻き毛、垂れ耳、短いマズル。
-  const g = new T.Group(), coat=mk(mat,0x985c34,{rough:.95,phys:{sheen:.5,sheenColor:0xc58f62}}),
+  // Small brown toy poodle. Continuous anatomy, fine curls, wet eyes and nose; original procedural model.
+  const curlMap=ctex('poodle-fine-curls',256,256,(ctx,w,h)=>{
+    ctx.fillStyle='#bda089';ctx.fillRect(0,0,w,h);
+    for(let i=0;i<1500;i++){const x=rnd()*w,y=rnd()*h,r=1.4+rnd()*3.5;ctx.strokeStyle=i%3?'#d3b9a0':'#88715e';ctx.lineWidth=.65;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*(1.2+rnd()*.7));ctx.stroke();}
+  },[3,3]);
+  const g = new T.Group(), coat=mk(mat,0xaa6b3e,{map:curlMap,rough:.84,phys:{sheen:.42,sheenRoughness:.8,sheenColor:0xc58f62}}),
     light=mk(mat,0xb47a4a,{rough:.95}), dark=mk(mat,0x27160e,{rough:.22});
   const sphere=new T.SphereGeometry(1,20,14);
   const puff=(parent,x,y,z,sx,sy,sz,m=coat)=>{
@@ -550,22 +554,23 @@ export function makeDog(mat = stdMat, o = {}) {
   // 巻き毛はインスタンスで描き、毛玉ごとの描画呼び出しを増やさない。
   const wool=(parent,c,r,n)=>{
     puff(parent,...c,...r);
-    const curls=new T.InstancedMesh(new T.SphereGeometry(1,12,8),coat,n),a=new T.Object3D();
+    const curls=new T.InstancedMesh(new T.TorusGeometry(.013,.0035,4,9,Math.PI*1.7),coat,n),a=new T.Object3D(),axis=new T.Vector3(0,0,1);
     for(let i=0;i<n;i++){
       const y=1-2*(i+.5)/n,phi=i*2.39996323,rad=Math.sqrt(1-y*y),v=new T.Vector3(Math.cos(phi)*rad,y,Math.sin(phi)*rad);
       a.position.set(c[0]+r[0]*v.x,c[1]+r[1]*v.y,c[2]+r[2]*v.z);
-      const k=.018+.007*(.5+.5*Math.sin(i*9.31));a.scale.set(k,k*.82,k);a.updateMatrix();curls.setMatrixAt(i,a.matrix);
+      const k=.72+.28*(.5+.5*Math.sin(i*9.31));a.quaternion.setFromUnitVectors(axis,v);a.rotateZ(i*2.4);a.scale.set(k,k*.84,k);a.updateMatrix();curls.setMatrixAt(i,a.matrix);
     } curls.instanceMatrix.needsUpdate=true;parent.add(curls);
   };
-  wool(g,[0,.43,0],[.17,.18,.30],230);
+  wool(g,[0,.43,0],[.145,.165,.28],280);
   wool(g,[0,.53,.21],[.13,.18,.13],100);
   const head=new T.Group();head.position.set(0,.72,.29);g.add(head);
-  wool(head,[0,0,0],[.18,.18,.16],180);
-  puff(head,0,-.075,.15,.115,.075,.10,light);
+  wool(head,[0,.012,-.014],[.15,.16,.14],240);
+  puff(head,0,-.065,.14,.085,.065,.105,light);
+  puff(head,0,-.105,.17,.065,.027,.072,coat);
   puff(head,0,-.045,.24,.043,.032,.027,dark);
   for(const s of [-1,1]){
-    puff(head,s*.078,.018,.146,.034,.039,.024,dark);
-    puff(head,s*.068,.031,.166,.009,.011,.006,mk(mat,0xffffff,{rough:.1}));
+    puff(head,s*.072,.018,.128,.024,.029,.018,dark);
+    puff(head,s*.068,.029,.145,.005,.006,.003,mk(mat,0xffffff,{rough:.1}));
   }
   const ears=[];
   for(const s of [-1,1]){
@@ -579,7 +584,7 @@ export function makeDog(mat = stdMat, o = {}) {
     puff(l,0,-.34,.025,.076,.055,.095);legs.push({l,s,front});
   }
   const tail=new T.Group();tail.position.set(0,.52,-.28);g.add(tail);
-  wool(tail,[0,.11,-.035],[.052,.13,.052],45);wool(tail,[0,.23,-.04],[.075,.075,.075],45);
+  wool(tail,[0,.10,-.035],[.043,.12,.043],65);wool(tail,[0,.20,-.025],[.05,.065,.045],45);
   let speed=0,last=0,phase=0;
   g.userData={kind:'inu',breed:'toy-poodle',head,legs,tail};
   g.userData.animate=(t,moving=true)=>{

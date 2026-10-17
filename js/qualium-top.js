@@ -56,7 +56,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene="loop"]')){
   if(loading)return;loading=true;
   try{
    const T=await loadThree();
-   const module=await import('./qualium-loop-3d.js?v=20261017-relations4');
+   const module=await import('./qualium-loop-3d.js?v=20261017-relations5');
    renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
    renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<=700?1:1.5));
    renderer.setClearColor(0x030812,0);renderer.outputColorSpace=T.SRGBColorSpace;

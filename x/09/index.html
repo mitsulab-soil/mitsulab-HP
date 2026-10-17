@@ -3636,7 +3636,7 @@ window.__core = { THREE, scene, world, camera, renderer, D, STRUCTS, pointAt, he
   onD(dd, yw, pt) { EYE = null; if (mode !== "walk") setMode("walk"); walkD = dd; yaw = yw ?? headingAt(dd); pitch = pt ?? -.05; placeWalker(); },
   eye(x, z, yw, pt) { EYE = [x, z]; if (mode !== "walk") setMode("walk"); if (yw != null) { yaw = yw; if (!drag) dragT = null; } if (pt != null) pitch = pt; placeWalker(); },
   look(yw, pt) { yaw = yw; pitch = Math.max(-1.2, Math.min(1.2, pt)); placeWalker(); },
-  setEyeH(h) { window.__eyeH = h; if (mode === "walk") placeWalker(); },   // 2026-10-08 座ったまま巡る：目の高さ（地面から m）
+  setEyeH(h) { window.__eyeH = Number.isFinite(h) ? Math.max(.12, Math.min(25, h)) : 1.6; if (mode === "walk") placeWalker(); },   // 2026-10-08 座ったまま巡る：目の高さ（地面から m）
   surfaceReady: () => !groundSurface.failed && [tex.photo, det, ...Object.values(gtex)].every(t => { const i = t.image; return i && (i.naturalWidth ?? i.width) > 0 && (i.naturalHeight ?? i.height) > 0 && i.complete !== false; }),
   textureStatus: () => [...roadTextures.values()].map(({name,state})=>({name,state,near:roadNearby.has(name.slice(0,-2))})),
   surfaceFailed: () => groundSurface.failed,
@@ -3682,7 +3682,7 @@ window.dispatchEvent(new Event("core3d"));   // 歩く層（先に動いてい�
 <section id="entryDock" aria-label="氷川幽玄〜Ghosts of Hikawa〜">
 <a id="entryARLink" href="field-ar.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg><span>実景AR</span><span aria-hidden="true">↗</span></a>
   <h1 class="entryTitle">氷川幽玄<span lang="en">〜Ghosts of Hikawa〜</span></h1>
-  <div id="entryStatus" role="status" aria-live="polite">参道を読み込んでいます。</div>
+  <div id="entryStatus" role="status" aria-live="polite">環世界2.0 / Qualium · 同じ場所を深く歩く。参道を読み込んでいます。</div>
   <button id="entryMapOpen" type="button" disabled aria-haspopup="dialog" aria-controls="ovPick">地図をひらく</button>
 </section>
 <div id="ovPick" hidden role="dialog" aria-modal="true" aria-label="参道の出発地点を選ぶ3D地図">
@@ -3700,10 +3700,6 @@ window.dispatchEvent(new Event("core3d"));   // 歩く層（先に動いてい�
 <div id="mapScrim" hidden></div>
 <div id="mapAsk" hidden role="dialog" aria-label="地図で移る"><div id="mapAskT"></div><div class="row"><button class="ib" id="mapNo">いいえ</button><button class="ib" id="mapYes">画面で歩く</button></div></div>
 <nav id="menu" hidden aria-label="メニュー"></nav>
-<div id="kkBox" hidden><button class="ib kkb" id="kkBtn" aria-haspopup="dialog" aria-controls="kkPanel" aria-label="集めたかけら">かけら <b id="kkN">0</b>/<span id="kkT">0</span></button></div>
-<section id="kkPanel" hidden role="dialog" aria-label="集めたかけら"></section>
-<section id="kkFin" hidden role="dialog" aria-label="かけらをならべる"></section>
-<section id="kkSee" hidden role="dialog" aria-label="かけらを近くで見る"><div class="sh"><b id="kkSeeN"></b><span id="kkSeeE"></span></div><img id="kkSeeImg" alt="" hidden><p id="kkSeeF"></p><p class="cr" id="kkSeeC"></p><div class="bt"><button id="kkSeeNext">次のかけら</button><button id="kkSeeBack">ならべる札へ戻る</button></div></section>
 <div id="slipFade" aria-hidden="true"></div>
 <div id="slipCap" hidden role="note"></div>
 <button id="actBtn" type="button" hidden></button>
@@ -4563,7 +4559,7 @@ function placeEye(dt, yawT) {
     }
   }
   /* 第10回（検証「足が画面の下で切れる 15〜28％」）：碧が 2.6 m より近いときは、少し深く見下ろす（最大 0.12 rad・ゆっくり） */
-  const p0 = (scm ? scm.p : innerWidth <= 820 ? -.25 : -.27) - .12 * clamp((2.6 - (A.gEye ?? 9)) / 1.0, 0, 1);   /* 第8回：時のかさなりの場面では、ゆっくり見上げる。第5回：少し下を向く（碧の足もとまで入る） */
+  const p0 = (scm ? scm.p : mode==="sim"&&Math.abs((window.__eyeH??1.6)-1.6)>.1 ? Math.atan2(1.1-window.__eyeH,companionAhead()) : innerWidth <= 820 ? -.25 : -.27) - .12 * clamp((2.6 - (A.gEye ?? 9)) / 1.0, 0, 1);   /* 第8回：時のかさなりの場面では、ゆっくり見上げる。第5回：少し下を向く（碧の足もとまで入る） */
   if (A.camP == null) A.camP = C.pitch ?? p0;
   A.camP += ((p0x ?? p0) - A.camP) * ease(dt, ex ? 1.1 : 2);
   C.eye(w.x, w.z, camYaw + LK.y, clamp(A.camP + LK.p, -1.15, 1.1));
@@ -4686,6 +4682,7 @@ function farHint(x, z, pr) {   /* 参道のいちばん近い所までの向き�
 function sayFar() { speak({ id: "_far", lines: [{ t: W.far_line }], layers: [] }); }
 function setMode(m) {
   if (m === mode) return; mode = m;
+  if(m!=="sim") C.setEyeH(1.6); else C.setEyeH(window.__body?.B[window.__body.cur]?.eye??1.6);
   $("mSim").setAttribute("aria-pressed", String(m === "sim")); $("mGps").setAttribute("aria-pressed", String(m === "gps"));
   for (const b of document.querySelectorAll("[data-mode]")) b.setAttribute("aria-pressed", String(b.dataset.mode === m));
   $("earRow").hidden = m !== "gps"; stNote();
@@ -4734,6 +4731,13 @@ const OV = { open: false, sel: null, raf: 0, pins: [], map: null, mode: "sim", s
 function ovChoices() {
   const L = [{ id: "from1", nm: "一の鳥居", dd: W.start_d, dr: 1, big: true }, { id: "from2", nm: "二の鳥居", dd: W.start_d2, dr: 1, big: true }, { id: "from3", nm: "神社（南へ）", dd: W.start_d3, dr: -1, big: true }];
   for (const id of (R11.stops || [])) { const sg = SEGID.get(id); if (!sg?.at) continue; const nm = (sg.tag || sg.title || "").replace(/（.*?）/g, ""); if (L.some(x => x.nm.startsWith(nm))) continue; L.push({ id, nm, dd: clamp(sg.at.d - 8, D_MIN, D_MAX), dr: 1, big: false }); }
+  for (const sg of SEGID.values()) {
+    if (!sg.at || !Number.isFinite(sg.at.d)) continue;
+    const nm=(sg.tag||sg.title||'').replace(/（.*?）/g,'').trim();
+    if (!nm || nm.length>26 || L.some(q=>Math.abs(q.dd-sg.at.d)<25 || q.nm===nm)) continue;
+    L.push({id:sg.id||'place-'+Math.round(sg.at.d),nm,dd:clamp(sg.at.d-8,D_MIN,D_MAX),dr:1,big:false});
+    if (L.length>=36) break;
+  }
   return L;
 }
 function entryMode(m) {
@@ -5343,7 +5347,7 @@ function loadAoi() {
     const { AoiMotion } = await import(new URL("web/kit/aoi_motion.js", document.baseURI).href);
     /* 2026-10-13（11 人「歩くと裾の割れ目から脚の肌が見える」）：ローブに隠れる脚の肌を畳む（共通部品の hideCoveredLegs・足首と靴は残す） */
     try { const { hideCoveredLegs } = await import(new URL("web/kit/aoi_robe.js", document.baseURI).href); A.legHidden = hideCoveredLegs?.(v, { keep: .12 }) ?? 0;   /* 11 人の P1（後ろ姿で裾の割れ目から肌）：ふくらはぎ・膝の裏まで畳む（足首と靴だけ残す） */ } catch (e) { A.legHidden = -1; }
-    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: 0, groundAt: aoiGround });   /* 髪の風は、このページの windTick（めくれ上がらない調整）のまま */
+    AM = new AoiMotion(v, { root: aoi, posture: "upright", reducedMotion: RM, wind: 0, groundAt: aoiGround });   /* 髪の風は、このページの windTick（めくれ上がらない調整）のまま */
     if (AM.robe) AM.robe.wind = .25;   /* 裾の布には、そよ風だけ */
     /* 2026-10-14（11 人 r5「腰の横が塊のように張り出す」）：ローブの下の脚の肌は畳んだので、裾を脚から押し出す当たり（カプセル）を 6 割の太さに（このページだけ） */
     if (AM.robe?._capsNow) { const c0 = AM.robe._capsNow.bind(AM.robe); AM.robe._capsNow = () => { const c = c0(); for (const q of c) q[2] *= .6; return c; }; }
@@ -5384,9 +5388,10 @@ function lookObj() {
   if (speaking?.id === "_closing" && Math.abs(d - D_MAX) < 30) return { d: D_MAX + 2, s: 0 };
   return null;
 }
+function companionAhead(){const eye=window.__eyeH??1.6;return eye<1.1?Math.max(3.8,F_AHEAD()):Math.max(F_AHEAD(),Math.min(8,(eye-1.2)*1.8+.8));}
 function aoiTarget() {   /* 道の座標での目標：見る人の、歩く向きに F 先、横へ LAT（追い越すまでは今の側のまま） */
   /* 第9回：現地で歩く向きがまだ分からないあいだは、いまカメラが向いている向きの前に置く（うしろに置かない）。歩き出したら、その向きへ回りこむ */
-  const dir = (faceT ? 1 : dirSoft()) || camSign(), F = F_AHEAD();
+  const dir = (faceT ? 1 : dirSoft()) || camSign(), F = companionAhead();
   const rel = (A.pd - d) * dir;
   if (rel > 1.2 && A.sideDir !== dir) { A.sideDir = dir; const [c0, c1] = userBand(d), mid = (c0 + c1) / 2; A.side = U.s > mid + .3 ? -1 : U.s < mid - .3 ? 1 : dir; }   /* 新しい向きの前に出たら、道の中ほどの側へ（帯の縁に寄らない） */
   let td = clamp(d + dir * F, D_MIN - 25, D_MAX + 25);
@@ -5397,6 +5402,7 @@ function aoiTarget() {   /* 道の座標での目標：見る人の、歩く向�
   const o = lookObj();
   if (o) { const ph = innerWidth <= 820, od = o.d - d, dd = Math.abs(od) > 3 ? Math.sign(od) : dir, tdd = d + dd * (ph ? clamp(Math.abs(od) * .5, 2.0, 2.5) : Math.min(1.9, Math.max(1.4, Math.abs(od) * .5)));
     const ls = Math.abs(od) > 2 ? U.s + (o.s - U.s) * clamp((tdd - d) / od, 0, 1) : U.s; td = tdd; ts = ls + (A.side || 1) * (ph ? .8 : 1.3); A.lookO = true; } else A.lookO = false;
+  if(Math.abs((window.__eyeH??1.6)-1.6)>.1 && Math.abs(td-d)<F)td=clamp(d+dir*F,D_MIN-25,D_MAX+25);
   /* 第17回（本人「話すあいだ碧は歩く」）：画面で歩く人が止まって聞いているあいだも、碧はその前と横を、ゆっくり行き来しながら話す（真顔で立ちつくさない） */
   /* 2026-10-09 本人「立ち止まって説明するときは、歩き回らず自然に振る舞う」→ 第17回の行き来はやめた。止まって話すときは、その場に立って、
      体の向き・手・目線・小さな重心の移りで話す（aoiPose）。「歩きながら話す」は、見る人が歩いているあいだだけ */
@@ -5407,7 +5413,7 @@ function aoiTarget() {   /* 道の座標での目標：見る人の、歩く向�
     const cp = C.camera.position, yw = camYaw ?? C.yaw, fx = -Math.sin(yw), fz = -Math.cos(yw), sd = A.side || 1, ph = innerWidth <= 820;
     const vis = (() => { if (!A.standP) return false; const w = toWorld(A.standP.d, A.standP.s), dx = w.x - cp.x, dz = w.z - cp.z, fwd = dx * fx + dz * fz, lat = Math.abs(dx * fz - dz * fx); return fwd > 1 && lat / fwd < (ph ? .32 : .55); })();
     /* 2026-10-10：立つ所の前の距離を、歩くときと同じ（F_AHEAD）に。止まると遠くへ下がって小さく見えていた（2.6 m） */
-    if (!A.standP || A.standSeg !== speaking.id || !vis) { const L = ph ? .32 : .62, FA = F_AHEAD(), gx = cp.x + fx * FA - fz * sd * L, gz = cp.z + fz * FA + fx * sd * L, pr = project(gx, gz); A.standP = { d: pr.d, s: pr.s }; A.standSeg = speaking.id; }
+    if (!A.standP || A.standSeg !== speaking.id || !vis) { const L = ph ? .32 : .62, FA = companionAhead(), gx = cp.x + fx * FA - fz * sd * L, gz = cp.z + fz * FA + fx * sd * L, pr = project(gx, gz); A.standP = { d: pr.d, s: pr.s }; A.standSeg = speaking.id; }
     td = A.standP.d; ts = A.standP.s; A.standing = true;
   } else { A.standP = null; A.standing = false; }
   const [b0, b1] = bandNear(td, 10, aoiBand), [u0, u1] = bandNear(td, 10, userBand);
@@ -6466,7 +6472,8 @@ function gpsEnd() {
 //      時のかけら・杜のかけら。別のモードは作らない。碧が示して目をさました物（神籬）・立ち止まって話した物・時の層の言葉から、かけらが一つ手もとに残る。
 //      左上に「かけら n/16」と、つぎのかけら（ヒント＝碧が示す一言・見つけた）。道の端で「ならべる」（いちばん古いのは？→道と並木の時間）。
 //      集めたかけらは、この端末（localStorage）にだけ覚える。一覧の「はじめから集めなおす」で消せる。位置は覚えない。
-const KK = W.kakera ? { D: W.kakera, KEY: "ftw-hikawa-kakera", st: null, q: [], fin: null, open: false } : null;
+// Retired 2026-10-17. Previous localStorage records remain untouched.
+const KK = null;
 const KKLOG = [];
 if (KK) { const s0 = store.get(KK.KEY, null); KK.st = s0 && typeof s0 === "object" && s0.got ? s0 : { got: {} }; }
 const kkItem = id => KK.D.items.find(x => x.id === id);
@@ -6618,8 +6625,8 @@ function kkSeeEnd() {
   if (speaking?.id?.startsWith("_kk_see_")) { const c0 = speaking; hush(); try { AU.pause(); } catch {} c0.after = null; done(c0, true); }
   try { C.onD(d); } catch {} placeAt(d); aoiJump(); kkFinDraw();
 }
-$("kkSeeBack").onclick = () => kkSeeEnd();
-$("kkSeeNext").onclick = () => { const o = KKS.order, i = o.indexOf(KKS.it?.id); kkSee(o[(i + 1) % o.length]); };
+if(KK) $("kkSeeBack").onclick = () => kkSeeEnd();
+if(KK) $("kkSeeNext").onclick = () => { const o = KKS.order, i = o.indexOf(KKS.it?.id); kkSee(o[(i + 1) % o.length]); };
 
 
 /* ---- 2026-10-08 音で歩く参道（?mode=oto・森羅博物館の「音で巡る館」と同じ作法）：
@@ -6996,7 +7003,7 @@ const ERA = (() => {
   function ensure(id) {
     const w = toWorld(d, U.s);
     if (gEra === id && (G || !["edo", "jomon", "future"].includes(id)) && (!gAt || Math.hypot(w.x - gAt.x, w.z - gAt.z) < 140)) return;
-    dispose(); gEra = id; gAt = w;
+    dispose(); gEra = id; gAt = w; gInfo = {era:id};
     if (!["edo", "jomon", "future"].includes(id)) return;
     G = build(id, w); G.visible = false; C.scene.add(G);
     const g0 = G; Promise.resolve(C.renderer.compileAsync?.(g0, C.camera, C.scene)).catch(() => {}).finally(() => { if (G === g0) g0.visible = true; }); }
@@ -7035,6 +7042,8 @@ const ERA = (() => {
    ② 375px：「いまへ戻る」などのボタンが碧の衣に重ならないよう、碧のいない側へ寄せる。
    ③ 未来（想像）：南区間（市の発表＝歩行者専用の道へ・車止め）で、車道の白線を消し、区間の両端に車止めの列。 */
 const R21 = (() => {
+  return { CARDS:[], ST:{open:null,done:new Map()}, open:()=>{}, close:()=>{}, era:()=>JOURNEY.manual??null, busy:()=>false };
+  /* Retired review workflow retained below for source history, never initialized. */
   /* ---- ① 見なおしの札。at＝札が出る道のり（どちら向きでも ±10 m）・obj＝見る物の道のり */
   const CARDS = [
     { id: "ichi", at: -8, obj: 0, title: "一の鳥居",
@@ -7196,8 +7205,9 @@ const BODY = (() => {
   const B = {
     hito: { name: "人", eye: null, rec: "" },
     hachi: { name: "ハチ", eye: .9, rec: "ミツバチの感覚を考える模式。RGBの色変換と高さの変更であり、実際の紫外反射を測定した映像ではありません。" },
-    inu: { name: "イヌ", eye: .55, rec: "低い目線と二色型の近似。匂いの計測・犬の主観の再現ではありません。" },
+    inu: { name: "イヌ", eye: .55, rec: "低い目線と周囲の二色型の近似。手元の犬模型は、識別できるよう本来の茶色い毛色で示します。匂いの計測・犬の主観の再現ではありません。" },
     tori: { name: "鳥", eye: 4.5, rec: "参道の記録：スズメ・ムクドリ・ハクセキレイ（iNaturalist・研究等級）。目の研究は近い仲間のアオガラなどから（◐）" },
+    koumori: { name: "コウモリ", eye: 3, rec: "3D形状へ扇状の線を投げ、届いた距離を反響の点へ変換する模式。超音波の実測や動物の主観ではなく、この模型を読む道具です。生息確認を意味しません。" },
     chou: { name: "チョウ", eye: 1.0, rec: "参道の記録：アオスジアゲハ（iNaturalist）。目の研究は同じアゲハチョウ科のナミアゲハから（◐）" },
   };
   let cur = "hito", LENS = null, RT = null, qS = null, qC = null, qM = null; const sz = { w: 0, h: 0 };
@@ -7212,26 +7222,54 @@ const BODY = (() => {
       qM.toneMapped = true; qS = new THREE.Scene(); qS.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), qM)); qC = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); }
     else if (w !== sz.w || h !== sz.h) { RT.setSize(w, h); sz.w = w; sz.h = h; }
   }
-  const models={};let bodyRoot=null,modelScene=null;
-  import(new URL('web/body/bodies.js',document.baseURI).href).then(async m=>{
+  const models={};let bodyRoot=null,modelScene=null,dogScene=null,dogLight=null;
+  import(new URL('web/body/bodies.js?v=20261017-poodle',document.baseURI).href).then(async m=>{
     await afterEntryPaint(250);
     // Generate one body at a time so the opening and subsequent controls can draw between them.
-    for(const id of ['tori','chou','hachi','inu']){
+    for(const id of ['tori','chou','hachi','inu','koumori']){
       await afterEntryPaint(0);
       const g=m.makeBody(id);g.visible=false;models[id]=g;
       await new Promise(resolve=>window.requestIdleCallback ? window.requestIdleCallback(resolve,{timeout:150}) : setTimeout(resolve,32));
     }
   }).catch(e=>console.warn('身体の読み込み',e));
-  function bodyFrame(scene,cam){if(!bodyRoot)bodyRoot=new THREE.Group();for(const g of Object.values(models))if(g.parent!==bodyRoot)bodyRoot.add(g);if(modelScene!==scene){scene.add(bodyRoot);modelScene=scene;}bodyRoot.visible=cur!=='hito'&&mode==='sim';
-    for(const id in models){models[id].visible=id===cur;if(id===cur)models[id].userData.animate(performance.now()/1000,true);}
-    bodyRoot.position.set(0,-.17,-.85).applyMatrix4(cam.matrixWorld);bodyRoot.quaternion.copy(cam.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI));bodyRoot.scale.setScalar(cur==='tori'?.22:cur==='inu'?.24:.30);
+  function bodyFrame(scene,cam){
+    if(!bodyRoot)bodyRoot=new THREE.Group();
+    if(cur==='inu'&&!dogScene){
+      dogScene=new THREE.Scene();dogScene.name='身体模型：犬の本来の毛色';
+      dogScene.add(new THREE.HemisphereLight(0xfff3df,0x4f3929,2.1));
+      dogLight=new THREE.DirectionalLight(0xffedd6,2.6);dogScene.add(dogLight,dogLight.target);
+    }
+    const target=cur==='inu'?dogScene:scene;
+    for(const g of Object.values(models))if(g.parent!==bodyRoot)bodyRoot.add(g);
+    if(modelScene!==target){target.add(bodyRoot);modelScene=target;}
+    bodyRoot.visible=cur!=='hito'&&mode==='sim';
+    for(const id in models){models[id].visible=id===cur;if(id===cur)models[id].userData.animate(performance.now()/1000,id==='inu'?(Math.abs(U.v)>.08||Math.abs(MV.v)>.08):true);}
+    bodyRoot.position.set(cur==='inu'?.06:0,cur==='inu'?-.29:-.17,cur==='inu'?-.95:-.85).applyMatrix4(cam.matrixWorld);
+    // The poodle is a small reference model facing the observer, rather than a back-facing proxy body.
+    bodyRoot.quaternion.copy(cam.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),cur==='inu'?.35:Math.PI));
+    bodyRoot.scale.setScalar(cur==='tori'?.22:cur==='inu'?.34:.30);
+    if(cur==='inu'){
+      dogLight.position.set(-1.4,2,2).applyQuaternion(cam.quaternion).add(bodyRoot.position);
+      dogLight.target.position.copy(bodyRoot.position);
+    }
   }
-  /* sando_template の描画の輪から呼ばれる（人のときは false＝ふだんどおり） */
+  function drawDog(r,cam){
+    if(cur!=='inu'||mode!=='sim'||!dogScene)return;
+    const auto=r.autoClear,exposure=r.toneMappingExposure;
+    try{r.autoClear=false;r.toneMappingExposure=1;r.clearDepth();r.render(dogScene,cam);}
+    finally{r.autoClear=auto;r.toneMappingExposure=exposure;}
+  }
+  /* The surrounding scene uses the selected sensory approximation. The handheld dog reference retains its own coat color. */
   window.__lensRender = (r, scene, cam) => {
     bodyFrame(scene,cam);
-    if (cur === "hito" || !LENS?.[cur]) return false;
+    window.__umweltEchoFrame?.(r,scene,cam,cur);
+    window.__physicalFrame?.(r,scene,cam,cur);
+    if (cur === "hito" || !LENS?.[cur]) {
+      if(cur==='inu'){r.render(scene,cam);drawDog(r,cam);return true;}
+      return false;
+    }
     ensure(r); qM.uniforms.uM.value.set(...LENS[cur].m);
-    r.setRenderTarget(RT); r.render(scene, cam); r.setRenderTarget(null); r.render(qS, qC); return true;
+    r.setRenderTarget(RT); r.render(scene, cam); r.setRenderTarget(null); r.render(qS, qC);drawDog(r,cam);return true;
   };
   /* ---- 操作：「時を越える」の欄の上に「身体」の段。いまの組み合わせは欄の見出しに一行で */
   const css = document.createElement("style");
@@ -7239,34 +7277,34 @@ const BODY = (() => {
 #bodyRow button[aria-pressed=true]{border-color:#9bdcf0;background:rgba(92,200,224,.16)}#bodyHead{font-size:11.5px;color:#a9b3c8;letter-spacing:.06em;margin-top:4px}
 #bodyNote{position:fixed;z-index:6;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 112px);max-width:min(340px,calc(100vw - 32px));background:rgba(6,10,18,.74);color:#eef5fb;border:1px solid rgba(92,200,224,.35);border-radius:2px;padding:8px 12px;font-size:12.5px;line-height:1.6;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 #bodyNote[hidden]{display:none}#bodyNote b{font-family:var(--title);font-size:13.5px;letter-spacing:.1em}#bodyNote details{margin-top:4px}#bodyNote summary{cursor:pointer;min-height:32px;line-height:32px;color:#9bdcf0}#bodyNote li{margin:2px 0}
-@media(max-width:820px){#bodyNote{left:12px;right:auto;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 176px);max-width:calc(100vw - 104px);font-size:12px}}
+@media(max-width:820px){#bodyNote{left:12px;right:auto;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 220px);max-width:calc(100vw - 104px);font-size:12px}}
+body.ovOn #bodyQuick,body:has(#menu:not([hidden])) #bodyQuick,body:has(#journeyPanel>details[open]) #bodyQuick,body:has(#minimap.big) #bodyQuick{display:none}#bodyQuick[hidden]{display:none!important}body #bodyQuick{display:block!important;grid-template-columns:none!important;width:196px!important;padding:0 10px!important;left:12px!important;right:auto!important;top:168px!important}#bodyQuick summary{width:100%;white-space:nowrap;min-height:44px}#bodyQuick>div{display:none!important}#bodyQuick[open]>div{display:grid!important}
 .jBody{color:#9bdcf0;margin-left:6px}`;
   document.head.append(css);
   const note = document.createElement("aside"); note.id = "bodyNote"; note.hidden = true; document.body.append(note);
   const e = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   function setBody(id) {
     if (!B[id]) return; const was = cur; cur = id;
-    { const A = window.__aoi?.A; if (A) { if (["chou","hachi","inu"].includes(id)) A.hideOv = true; else if (["chou","hachi","inu"].includes(was)) A.hideOv = false; } }   /* チョウの目（1 m）では碧が首から下だけ写るので、碧は出さない（11 人の P2） */ window.__eyeH = B[id].eye ?? undefined; if (B[id].eye == null) delete window.__eyeH;
-    for (const b of document.querySelectorAll("#bodyRow button")) b.setAttribute("aria-pressed", String(b.dataset.b === id));
+    // Every body keeps Aoi as a companion. Height belongs to the simulated observer.
+    { const A = window.__aoi?.A; if (A){A.hideOv = false;A.standP=null;A.standSeg=null;} }
+    window.__eyeH = mode === 'sim' ? (B[id].eye ?? 1.6) : 1.6;
+    C.setEyeH(window.__eyeH); if(mode==='sim'){const pitch=id==='hito'?-.22:Math.atan2(1.1-window.__eyeH,companionAhead());FR.pitch=pitch;FR.yaw=C.yaw;A.camP=pitch;C.look(C.yaw,pitch);} window.dispatchEvent(new CustomEvent('hikawa-body',{detail:{id,height:window.__eyeH}}));
+    for (const b of document.querySelectorAll("#bodyRow button,#bodyQuick button")) b.setAttribute("aria-pressed", String(b.dataset.b === id));
+    const qs=document.querySelector("#bodyQuick summary");if(qs)qs.textContent="身体";qs?.setAttribute('aria-label','身体を替える・'+B[id].name);
     const jb = document.querySelector("#journeyPanel .jBody"); if (jb) jb.textContent = id === "hito" ? "" : "· " + B[id].name + "の目";
     if (id === "hito") { note.hidden = true; return; }
     const L = LENS?.[id], W = window.WHY?.[id];
+    document.getElementById('echoStatus')?.replaceChildren();
     note.innerHTML = `<b>${e(B[id].name)}の身体</b>　${e(L?.sub ?? "")}<details><summary>見え方と根拠</summary><p>${e(B[id].rec)}</p><p>通常のRGB映像の色と高さを変える模式です。紫外線や匂いは測定していません。</p>${W?`<ul>${[...W.body,...W.how].map(t=>`<li>${e(t)}</li>`).join('')}</ul><small>${e(W.refs.join(' ／ '))}</small>`:''}</details>`;
     note.hidden = false;
   }
-  function mount() {
-    const det = document.querySelector("#journeyPanel > details"); if (!det || document.getElementById("bodyRow")) return !!det;
-    const sum = det.querySelector("summary"); if (sum && !sum.querySelector(".jBody")) { const s = document.createElement("span"); s.className = "jBody"; sum.append(s); }
-    const head = document.createElement("p"); head.id = "bodyHead"; head.textContent = "身体（だれの目で見るか）";
-    const row = document.createElement("div"); row.id = "bodyRow"; row.setAttribute("role", "group"); row.setAttribute("aria-label", "身体を選ぶ");
-    for (const [id, b] of Object.entries(B)) { const bt = document.createElement("button"); bt.type = "button"; bt.dataset.b = id; bt.textContent = b.name; bt.setAttribute("aria-pressed", String(id === cur)); bt.onclick = ev => { ev.stopPropagation(); setBody(id); }; row.append(bt); }
-    const sc = det.querySelector(".jScale"); (sc ?? sum).after(head, row); return true;
-  }
-  const quick=document.createElement('div');quick.id='bodyQuick';quick.setAttribute('aria-label','生きものの身体を選ぶ');
-  quick.style.cssText='position:fixed;left:12px;top:112px;z-index:7;display:flex;gap:4px;max-width:calc(100vw - 24px);flex-wrap:wrap;background:#10242cdd;border-radius:2px;padding:5px';
-  for(const [id,b] of Object.entries(B)){const bt=document.createElement('button');bt.textContent=b.name;bt.className='ib';bt.style.cssText='width:auto;padding:0 12px';bt.onclick=()=>{setBody(id);for(const el of quick.children)el.setAttribute('aria-pressed',String(el===bt));};quick.append(bt);}document.body.append(quick);
+  function mount(){return true;}
+  const quick=document.createElement('details');quick.id='bodyQuick';quick.setAttribute('aria-label','生きものの身体を選ぶ');
+  quick.style.cssText='position:fixed;left:12px;top:168px;z-index:7;width:196px;box-sizing:border-box;max-width:calc(100vw - 80px);background:#10242cee;border:1px solid #77a99c70;border-radius:2px;padding:0 10px';
+  const quickTitle=document.createElement('summary');quickTitle.textContent='身体';quickTitle.style.cssText='min-height:44px;display:flex;align-items:center;cursor:pointer;white-space:nowrap;font-size:13px';quick.append(quickTitle);const quickButtons=document.createElement('div');quickButtons.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding-bottom:8px';quick.append(quickButtons);
+  for(const [id,b] of Object.entries(B)){const bt=document.createElement('button');bt.textContent=b.name;bt.dataset.b=id;bt.className='ib';bt.style.cssText='width:auto;padding:0 12px';bt.setAttribute('aria-pressed',String(id===cur));bt.onclick=()=>{setBody(id);quickTitle.textContent='身体';for(const el of quickButtons.children)el.setAttribute('aria-pressed',String(el===bt));quick.open=false;};quickButtons.append(bt);}document.body.append(quick);
   const mt = setInterval(() => { quick.hidden=!started||mode!=='sim'; if(mount()){} }, 500);
-  return { set: setBody, get cur() { return cur; }, B };
+  return { set: setBody, get cur() { return cur; }, get modelScene(){return modelScene;}, B };
 })();
 window.__body = BODY;
 
@@ -7371,13 +7409,7 @@ const CULT = (() => {
   function set(v2) { on = v2; if (on && !G) { try { build(); } catch (e) { console.warn("culture", e); } } if (G) G.visible = on; if (!on) for (const l of labels) l.el.hidden = true;
     for (const b of document.querySelectorAll("#cultRow button")) b.setAttribute("aria-pressed", String((b.dataset.c === "on") === on));
     const jb = document.querySelector("#journeyPanel .jCult"); if (jb) jb.textContent = on ? "· 文化の線" : ""; }
-  function mount() {
-    const row0 = document.getElementById("bodyRow"); if (!row0 || document.getElementById("cultRow")) return !!row0;
-    const sum = document.querySelector("#journeyPanel > details > summary"); if (sum && !sum.querySelector(".jCult")) { const s = document.createElement("span"); s.className = "jCult jBody"; sum.append(s); }
-    const head = document.createElement("p"); head.id = "cultHead"; head.textContent = "文化の線（どこに・いつから・誰が書いたか。立てた線の高さ＝古さ・100 年で 2.5 m）";
-    const row = document.createElement("div"); row.id = "cultRow"; row.setAttribute("role", "group"); row.setAttribute("aria-label", "文化の線");
-    for (const [k, nm] of [["off", "出さない"], ["on", "見る"]]) { const b = document.createElement("button"); b.type = "button"; b.dataset.c = k; b.textContent = nm; b.setAttribute("aria-pressed", String(k === "off")); b.onclick = e => { e.stopPropagation(); set(k === "on"); }; row.append(b); }
-    row0.after(head, row); return true; }
+  function mount(){return true;}
   const mt = setInterval(() => { if (mount()) clearInterval(mt); }, 600);
   return { set, get on() { return on; }, labels };
 })();
@@ -7556,17 +7588,20 @@ const J_SRC={jomon:'寿能泥炭層遺跡（芝川流域の低地・標高 約 6
  heisei:'構造物の建った年（氷川神社の由緒ほか）。2009 年より後にできた物を消しています。',
  now:'国土地理院（地形・空中写真）・OpenStreetMap・PLATEAU・さいたま市『氷川参道の樹木調査』（令和 4 年）。',
  future:'さいたま市の基本方針「最終的には歩行者専用の道とする」、南区間と北区間の一部を歩行者専用にする予定（2026 年の発表）、二の鳥居〜三の鳥居の植樹（切株の根元にカシ・コナラ・クスノキなどの苗木）。並木の木と木のあいだが空いた所に若木（根もとに落ち葉とワラの盛り土）を置いた、数十年後の想像です。車の通らない道は、今も車を描いていないので、見た目は変えていません。'};
-const jp=document.createElement('aside');jp.id='journeyPanel';jp.hidden=true;jp.innerHTML='<details><summary>時を越える <span class="jNow" id="journeyNow">現代 · 2026</span></summary><p class="jScale">時の順 · 縄文と江戸のあいだは詰めて表示</p><div id="journeyEras" role="group" aria-label="時代を選ぶ（時の順）"></div><button id="journeyAuto" data-era="auto" aria-pressed="false">近づいて時代へ（物のそばで自動）</button><p id="journeyEraText"></p><details class="jFold"><summary>出どころ</summary><p id="journeySrc"></p></details><p>石・道・水の短い一話。どこからでも、どちら向きでも。気になる物の光に触れ、手がかりを探します。</p><p id="journeyLog">見つけた手がかり 0</p><button id="journeyClip">この場面の映像</button> <a href="nazo.html" target="_blank" rel="noopener">時をこえる謎解き ↗</a><p class="jNote">現地ではGPSの精度を確認し、立ち止まって操作してください。</p></details>';document.body.append(jp);
+const jp=document.createElement('aside');jp.id='journeyPanel';jp.hidden=true;jp.innerHTML='<details><summary>時代<span class="jNow" id="journeyNow" hidden>現代 · 2026</span></summary><p class="jScale">時の順 · 縄文と江戸のあいだは詰めて表示</p><div id="journeyEras" role="group" aria-label="時代を選ぶ（時の順）"></div><button id="journeyAuto" data-era="auto" aria-pressed="false">近づいて時代へ（物のそばで自動）</button><p id="journeyEraText"></p><details class="jFold"><summary>出どころ</summary><p id="journeySrc"></p></details><p>身体・時代・情報を切り替え、同じ参道に届く手がかりを増やします。環世界2.0 / Qualium 第一弾。</p><button id="journeyClip">この場面の映像</button> <a href="nazo.html" target="_blank" rel="noopener">時をこえる謎解き ↗</a><p class="jNote">現地ではGPSの精度を確認し、立ち止まって操作してください。</p></details>';document.body.append(jp);
 const je=$('journeyEras');for(const [id,[name]] of Object.entries(J_ERAS)){const b=document.createElement('button');b.className='jE';b.innerHTML=`<b>${name}</b><i>${J_YR[id]}</i>`;b.dataset.era=id;b.setAttribute('aria-pressed',id==='now');b.setAttribute('aria-label',`${name}（${J_YR[id]}）`);b.onclick=e=>{e.stopPropagation();chooseJourneyEra(id);};je.append(b);}const ab=$('journeyAuto');ab.onclick=()=>chooseJourneyEra('auto');$('journeySrc').textContent=J_SRC.now;$('journeyEraText').textContent=J_ERAS.now[1];
 const film=document.createElement('section');film.id='journeyScene';film.hidden=true;film.setAttribute('role','dialog');film.setAttribute('aria-modal','true');film.setAttribute('aria-label','この場面の映像');film.innerHTML='<div class="inner"><button id="journeyClose">閉じて道へ戻る</button><h2 id="journeyFilmTitle"></h2><video id="journeyVideo" controls playsinline preload="none" src="web/time_landscape.mp4"></video><p id="journeyFilmText"></p><p>国土地理院の航空写真を用いたイメージ映像です。古代・未来の実景ではありません。</p></div>';document.body.append(film);
-$('journeyClip').onclick=()=>{walking=false;userPaused=true;walkLbl();film.hidden=false;const era=JOURNEY.era;$('journeyFilmTitle').textContent=J_ERAS[era]?.[0]+' · 同じ土地を見直す';$('journeyFilmText').textContent=J_ERAS[era]?.[1]+'。一つの物を選び、今の場所と、記録の中の時間を比べてみてください。';$('journeyClose').focus();};function closeFilm(){film.hidden=true;$('journeyVideo').pause();$('journeyClip').focus();}$('journeyClose').onclick=closeFilm;addEventListener('keydown',e=>{if(e.key==='Escape'&&!film.hidden)closeFilm();});
+$('journeyClip').onclick=()=>{walking=false;userPaused=true;walkLbl();film.hidden=false;const era=JOURNEY.era;$('journeyFilmTitle').textContent=J_ERAS[era]?.[0]+' · 同じ土地、異なる時間';$('journeyFilmText').textContent=J_ERAS[era]?.[1]+'。一つの物を選び、今の場所と、記録の中の時間を比べてみてください。';$('journeyClose').focus();};function closeFilm(){film.hidden=true;$('journeyVideo').pause();$('journeyClip').focus();}$('journeyClose').onclick=closeFilm;addEventListener('keydown',e=>{if(e.key==='Escape'&&!film.hidden)closeFilm();});
 function chooseJourneyEra(id){DEV.unlock();skipNow();if(C.buildings)C.buildings.visible=true;if(C.props)C.props.visible=true;if(C.trees)C.trees.visible=true;const ng=C.world?.getObjectByName("near");if(ng)ng.visible=true;ZN.hidB=false;ZN.hidT=false;if(C.structures)C.structures.visible=true;if(C.road)C.road.visible=true;if(id==='auto')ERA.leave();JOURNEY.manual=id==='auto'?null:id;JOURNEY.era=id==='auto'?'now':id;ACT.f=null;ACT.sup=ACT.near?.z??null;ZN.k=0;ZN.kmax=0;for(const b of je.children)b.setAttribute('aria-pressed',b.dataset.era===(id==='auto'?'now':id));ab.setAttribute('aria-pressed',id==='auto');$('journeyEraText').textContent=id==='auto'?'物に近づくと、記録のある時代へ移ります。':J_ERAS[id][1];$('journeySrc').textContent=J_SRC[id==='auto'?'now':id];$('journeyNow').textContent=id==='auto'?'自動':J_ERAS[id][0]+' · '+J_YR[id].replace(' いま','');}
 // 手動の時代は各場所に重ねる。近づいて移る操作へも戻せる。
-function journeyTick(){jp.hidden=!started||!introDone;document.body.dataset.journeyEra=JOURNEY.manual||'auto';if(!jp.hidden&&speaking?.tag&&!JOURNEY.found.has(speaking.id)){JOURNEY.found.add(speaking.id);$('journeyLog').textContent=`見つけた手がかり ${JOURNEY.found.size} · ${speaking.tag}。一話だけでも、発見を持ち帰れます。`;}if(!JOURNEY.manual&&ACT.f){JOURNEY.era=['kyoho','kaei'].includes(ACT.f.era)?'edo':'heisei';}}
+function journeyTick(){jp.hidden=!started;document.body.dataset.journeyEra=JOURNEY.manual||'auto';if(!JOURNEY.manual&&ACT.f){JOURNEY.era=['kyoho','kaei'].includes(ACT.f.era)?'edo':'heisei';}}
+
 /* 2026-10-13：手動の時代の 3D（見え方・その時代の場面・出どころの札）は zTick → ERA.tick が決める。前の「歩く人のまわりに輪のように立つ木（jNature）」は、道の上にも木が立つので外した */
 const journeyLoop=()=>{journeyTick();requestAnimationFrame(journeyLoop);};
 window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEra(id)};requestAnimationFrame(journeyLoop);
 </script>
 
-<script src="web/qualium.js?v=20261016-layers"></script>
+<script src="web/qualium.js?v=20261017-umwelt2"></script>
+<script src="web/umwelt-tools.js?v=20261017-umwelt2"></script>
+<script type="module" src="web/physical-materials.js?v=20261017-umwelt2"></script>
 </body></html>

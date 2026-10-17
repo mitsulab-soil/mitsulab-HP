@@ -61,3 +61,10 @@ body:has(#top.active) .aoi-guide{display:none}
 .qt-role-row{position:relative;display:grid;grid-template-columns:220px 1fr;gap:44px;padding:20px 0;border-bottom:1px solid #8bccca20}.qt-role-row:before{content:'';position:absolute;left:-30px;top:36px;width:22px;border-top:1px solid #8bccca80}.qt-role-row a{font:400 20px/1.8 var(--serif);color:var(--ink);text-decoration:none}.qt-role-row a:after{content:' ↗';font-size:13px;color:#8bccca}.qt-role-row p{font-size:16px;line-height:1.9;margin:0;color:var(--ink-2)}.qt-role-row small{display:block;font:400 11px/1.7 var(--mono);color:#8bccca;letter-spacing:.08em;margin-top:5px}
 .qt-app-change{display:block;margin-top:12px;color:#9dcebe;line-height:1.9}.app-change{font-size:16px;line-height:2;color:#a6d6c5;margin:16px 0}
 @media(max-width:700px){.qt-tour{font-size:11px;left:12px;bottom:0}.qt-explanation h3{font-size:22px}.qt-role-graph h2{font-size:25px}.qt-role-lines{padding-left:18px}.qt-role-row{grid-template-columns:110px 1fr;gap:18px;padding:18px 0}.qt-role-row:before{left:-18px;width:12px}.qt-role-row a{font-size:16px}.qt-role-row p{font-size:14px}.qt-role-row small{font-size:10px}.qt-role-source,.qt-role-return{font-size:16px}}
+.app-preview-media{display:block;position:relative;aspect-ratio:8/5;width:100%;overflow:hidden}.app-preview-media img{display:block;width:100%;height:100%;object-fit:cover}.app-preview-media video{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}.app-preview-media.preview-playing video{opacity:1}
+
+/* Leave room for the fixed navigation when jumping to the diagram.
+   On narrow screens, the first label starts at its projected anchor instead
+   of extending half its own height above it, behind the 64px navigation. */
+.qt-flow{scroll-margin-top:84px}
+@media(max-width:700px){.qt-flow .qt-world-one{transform:translate(-50%,0)}}

@@ -1,58 +1,49 @@
-/* 氷川幽玄：場所に結びつける四層。点・波・関係線は創作した模式で、実測値ではない。 */
+/* 氷川幽玄：場所に結びつける十層。点・波・関係線は創作した模式で、実測値ではない。 */
 (() => {
-  const states = {information:false, cognition:false, language:false, senses:false};
-  const names = {information:'情報', cognition:'認知', language:'言語', senses:'感覚'};
-  const codes = {information:'01', cognition:'02', language:'03', senses:'04'};
+  const states = {information:true, cognition:true, language:true, senses:true, trees:true, water:true, terrain:true, time:true, life:true, culture:true};
+  const names = {information:'情報', cognition:'認知', language:'言語', senses:'感覚',trees:'木',water:'水',terrain:'地形',time:'時間',life:'生物',culture:'文化'};
   const explain = {
     information:'情報：木や石の位置から立ち上がる点群と目盛り。記録を重ねる模式です。',
     cognition:'認知：場所へ注意を向け、離れた手がかりを結ぶ線。心の測定ではありません。',
     language:'言語：既存の案内名と場所を結びます。距離は3D模型内の直線距離です。',
     senses:'感覚：手がかりを光と波へ変える模式。音や振動の実測ではありません。'
   };
+  Object.assign(explain,{trees:'木：樹木の案内地点で、幹から土へつながる関係を模式表示。根の実測ではありません。',water:'水：水に関する案内地点で、流れを考える線。現在の流量・水質の測定ではありません。',terrain:'地形：3D模型の地面から断面を抽出。現地測量そのものではありません。',time:'時間：歴史に関する案内地点に、記録を読む目盛り。高さは年数ではありません。',life:'生物：生き物に関する既存解説の位置を示す線。いまの生息・個体検出ではありません。',culture:'文化：鳥居・石・道など、既存の解説を持つ物どうしの関係。意味や信仰の測定ではありません。'});
   const baseText = '地理資料を基にした3D再構成。現地の実写そのものではありません。';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const panel = document.createElement('section');
   panel.id = 'qualiumPanel'; panel.setAttribute('aria-label', 'Qualiumの層');
-  panel.innerHTML = `<h3>場所に、世界を重ねる</h3><p>木や石から、情報・認知・言語・感覚の手がかりが立ち上がります。</p><div class="qualiumChoices">${Object.keys(states).map(id => `<label><input type="checkbox" data-qualium="${id}">${names[id]}</label>`).join('')}</div><p id="qualiumMeaning" role="status">${baseText}</p><label class="qStill"><input type="checkbox" id="qualiumStill">層の動きを止める</label><button type="button" id="qualiumReset" class="ib">層を外す</button><p><a class="qAR" href="field-ar.html">実景ARへ <span aria-hidden="true">↗</span></a></p><details><summary>出どころと限界</summary><p>点群・目盛り・関係線・波は創作した模式です。物の実測形状や、心・感覚の再現ではありません。言語の札には既存の案内名を使います。「3D距離」は模型内の直線距離で、現地の測量値ではありません。観測や歴史の根拠は各地点の解説と出典で確かめてください。現地モードでは、この3D演出を表示しません。</p></details>`;
-  const rail = document.createElement('nav');
-  rail.id = 'qualiumRail'; rail.hidden = true; rail.setAttribute('aria-label','重ねる層');
-  rail.innerHTML = `<span class="qCaption" aria-hidden="true">LAYERS</span>${Object.keys(states).map(id => `<button type="button" data-qualium="${id}" aria-pressed="false" aria-label="${names[id]}の層を重ねる"><small aria-hidden="true">${codes[id]}</small><span>${names[id]}</span></button>`).join('')}<span class="qCaption qModel">模式</span>`;
+  panel.innerHTML = `<p>場所の記録を重ねる · 模式</p><div class="qBulk"><button type="button" id="qualiumAll">すべてON</button><button type="button" id="qualiumReset">すべてOFF</button></div><div class="qualiumChoices">${Object.keys(states).map(id => `<label><input type="checkbox" data-qualium="${id}">${names[id]}</label>`).join('')}</div><p id="qualiumMeaning" role="status"></p><label class="qStill"><input type="checkbox" id="qualiumStill">動きを止める</label><details><summary>この場所の文化記録</summary><p id="qualiumCultureRecord">近くの記録は、歩いた場所に合わせて表示します。</p></details><details><summary>表示の意味と出どころ</summary><div id="qualiumExplanations"></div><p>${baseText} 点・波・関係線は模式です。木の根や水質・生息・心を測定した表示ではありません。地形線は3D模型から抽出。典拠は各地点の解説で確かめてください。</p><a class="qAR" href="field-ar.html">実景ARへ ↗</a></details>`;
+  panel.querySelector('#qualiumExplanations').innerHTML=Object.values(explain).map(t=>`<p>${t}</p>`).join('');
+  const rail = document.createElement('details');
+  rail.id = 'qualiumControl'; rail.hidden = true;
+  rail.innerHTML='<summary>レイヤー</summary>';rail.append(panel);document.body.append(rail);
   const style = document.createElement('style');
   style.textContent = `
-#qualiumPanel{padding:10px 0 16px;border-bottom:1px solid #365651;margin-bottom:14px;font-size:13px;line-height:1.8;color:#d8e9e3}#qualiumPanel h3{font-weight:400;margin:4px 0;font-size:17px;letter-spacing:.12em}#qualiumPanel p{margin:8px 0}.qualiumChoices{display:flex;flex-wrap:wrap;gap:0 16px}.qualiumChoices label,#qualiumPanel summary,#qualiumPanel .qStill{min-height:44px;display:inline-flex;align-items:center;gap:8px}#qualiumPanel input{width:20px;height:20px;accent-color:#91d7ca}#qualiumPanel button,#qualiumPanel .qAR{min-height:44px;display:inline-flex;align-items:center}#qualiumPanel .qAR{color:#b3e2d8;letter-spacing:.1em;text-decoration:none;border-bottom:1px solid #53786d;gap:20px}#qualiumPanel details{font-size:12px;color:#a3bdb4}#qualiumPanel :focus-visible,#qualiumRail :focus-visible{outline:2px solid #ead9ac;outline-offset:3px}
-#qualiumRail{position:fixed;right:max(8px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;align-items:stretch;width:48px;color:#b5d8cc;pointer-events:auto;border-left:1px solid #47665a66;background:linear-gradient(90deg,#07151200,#071512bf)}#qualiumRail[hidden]{display:none!important}#qualiumRail button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:48px;min-height:44px;padding:4px 0;border:0;border-radius:0;color:#b5d8cc;background:transparent;cursor:pointer;font:400 12px/1.2 "Hiragino Sans",sans-serif;letter-spacing:.1em;touch-action:manipulation}#qualiumRail button small{font:9px/1.4 ui-monospace,monospace;color:#7a9d92;letter-spacing:.1em}#qualiumRail button[aria-pressed=true]{color:#e9f7ed;background:linear-gradient(90deg,#4eaf8d36,transparent)}#qualiumRail button[aria-pressed=true]::before{content:"";position:absolute;left:-1px;top:10px;bottom:10px;width:2px;background:#c4d9a2}#qualiumRail .qCaption{text-align:center;font:8px/16px ui-monospace,monospace;letter-spacing:.12em;color:#a5c0b4}#qualiumRail .qModel{font-size:9px;letter-spacing:.25em}body.ovOn #qualiumRail,body.mkOn #qualiumRail,body:has(#menu:not([hidden])) #qualiumRail,body:has(#minimap.big) #qualiumRail,body:has(#journeyPanel>details[open]) #qualiumRail{display:none}
+#qualiumPanel{padding:10px;border-bottom:1px solid #365651;margin-bottom:14px;font-size:13px;line-height:1.8;color:#d8e9e3}#qualiumPanel h3{font-weight:400;margin:4px 0;font-size:17px;letter-spacing:.12em}#qualiumPanel p{margin:8px 0}.qualiumChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 6px}.qBulk{display:flex;gap:8px}.qBulk button{flex:1;justify-content:center;border:1px solid #6e9b8b;background:#254a3d55;color:#e4f2eb;font:inherit}.qualiumChoices label,#qualiumPanel summary,#qualiumPanel .qStill{min-height:44px;display:inline-flex;align-items:center;gap:8px}#qualiumPanel input{width:20px;height:20px;accent-color:#91d7ca}#qualiumPanel button,#qualiumPanel .qAR{min-height:44px;display:inline-flex;align-items:center}#qualiumPanel .qAR{color:#b3e2d8;letter-spacing:.1em;text-decoration:none;border-bottom:1px solid #53786d;gap:20px}#qualiumPanel details{font-size:12px;color:#a3bdb4}#qualiumPanel :focus-visible,#qualiumRail :focus-visible{outline:2px solid #ead9ac;outline-offset:3px}
+#qualiumRail{max-height:58vh;overflow-y:auto;scrollbar-width:thin;position:fixed;right:max(8px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;align-items:stretch;width:48px;color:#b5d8cc;pointer-events:auto;border-left:1px solid #47665a66;background:linear-gradient(90deg,#07151200,#071512bf)}#qualiumRail[hidden]{display:none!important}#qualiumRail button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:48px;min-height:44px;padding:4px 0;border:0;border-radius:0;color:#b5d8cc;background:transparent;cursor:pointer;font:400 12px/1.2 "Hiragino Sans",sans-serif;letter-spacing:.1em;touch-action:manipulation}#qualiumRail button small{font:9px/1.4 ui-monospace,monospace;color:#7a9d92;letter-spacing:.1em}#qualiumRail button[aria-pressed=true]{color:#e9f7ed;background:linear-gradient(90deg,#4eaf8d36,transparent)}#qualiumRail button[aria-pressed=true]::before{content:"";position:absolute;left:-1px;top:10px;bottom:10px;width:2px;background:#c4d9a2}#qualiumRail .qCaption{text-align:center;font:8px/16px ui-monospace,monospace;letter-spacing:.12em;color:#a5c0b4}#qualiumRail .qModel{font-size:9px;letter-spacing:.25em}body.ovOn #qualiumRail,body.mkOn #qualiumRail,body:has(#menu:not([hidden])) #qualiumRail,body:has(#minimap.big) #qualiumRail,body:has(#journeyPanel>details[open]) #qualiumRail{display:none}
 @media(max-width:820px){#qualiumRail{right:4px;width:44px}#qualiumRail button{width:44px;min-height:44px}}@media(max-height:520px){#qualiumRail{top:auto;bottom:8px;transform:none;flex-direction:row;width:auto}#qualiumRail .qCaption{display:none}#qualiumRail button{width:44px}}
 `;
-  document.head.append(style); document.body.append(rail);
-  // The menu replaces its children when it opens; observe that node only, without a timer.
-  function mount() {
-    const menu = document.getElementById('menu');
-    if (!menu) return;
-    const attach = () => { if (panel.parentNode !== menu) menu.prepend(panel); };
-    attach(); new MutationObserver(attach).observe(menu, {childList:true});
-  }
-  mount();
+  document.head.append(style);
   const still = panel.querySelector('#qualiumStill'); still.checked = reduced.matches;
   function sync() {
     for (const [id, on] of Object.entries(states)) {
       panel.querySelector(`[data-qualium="${id}"]`).checked = on;
-      rail.querySelector(`[data-qualium="${id}"]`).setAttribute('aria-pressed', String(on));
+
     }
-    panel.querySelector('#qualiumMeaning').textContent = Object.keys(states).filter(id => states[id]).map(id => explain[id]).join(' ') || baseText;
+    panel.querySelector('#qualiumMeaning').textContent = `${Object.values(states).filter(Boolean).length} / 10 層を表示`;
   }
   panel.addEventListener('change', event => {
     const id = event.target.dataset.qualium;
     if (id in states) { states[id] = event.target.checked; sync(); }
   });
-  rail.addEventListener('click', event => {
-    const id = event.target.closest('button')?.dataset.qualium;
-    if (id in states) { states[id] = !states[id]; sync(); }
-  });
+  panel.querySelector('#qualiumAll').onclick=()=>{Object.keys(states).forEach(id=>states[id]=true);sync();};
   panel.querySelector('#qualiumReset').onclick = () => { Object.keys(states).forEach(id => {states[id] = false;}); sync(); };
 
-  const colors = {information:0x8edbc9,cognition:0xdab77b,language:0xe1e5cd,senses:0x80cbd3};
+  sync();
+  const colors = {information:0x8edbc9,cognition:0xdab77b,language:0xe1e5cd,senses:0x80cbd3,trees:0xa0cf8d,water:0x82cce2,terrain:0xc5ae87,time:0xe5be83,life:0xc1d9ab,culture:0xdccfa6};
   let root, links, future, pools = [], clock = 0, last = 0, lastPick = -Infinity;
-  let forward, offset, activeCount = 0;
+  let forward, offset, activeCount = 0,cultureApplied;
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   function segments(T, positions, color, opacity) {
     const geometry = new T.BufferGeometry();
@@ -89,6 +80,16 @@
       }
       brackets.push(-.2,.9,.2, .3,1.3,.1, .3,1.3,.1,.65,1.95,-.15);
       slot.groups.cognition.add(segments(T,brackets,colors.cognition,.74));
+      // Six contextual layers. Shapes express a relation, never an observed root, animal or water flow.
+      const roots=[];for(let j=0;j<5;j++){const a=j/5*Math.PI*2;roots.push(0,.15,0,Math.cos(a)*.7,-.12,Math.sin(a)*.7,Math.cos(a)*.7,-.12,Math.sin(a)*.7,Math.cos(a)*1.6,-.18,Math.sin(a)*1.6);}
+      slot.groups.trees.add(segments(T,roots,colors.trees,.7));
+      const flow=[];for(let j=0;j<3;j++)for(let i=0;i<8;i++){let x=-1+i*.26;flow.push(x,.12+j*.14,Math.sin(i*.8+j)*.2,x+.2,.12+j*.14,Math.sin((i+1)*.8+j)*.2);}
+      slot.groups.water.add(segments(T,flow,colors.water,.8));
+      const years=[];for(let j=0;j<6;j++){const y=j*.4;years.push(.75,y,0,1.25,y,0);}years.push(.85,0,0,.85,2,0);slot.groups.time.add(segments(T,years,colors.time,.75));
+      slot.groups.life.add(segments(T,[-.8,.1,0,-.4,.7,.1,-.4,.7,.1,.2,1,.2,.2,1,.2,.6,1.7,.1,.2,1,.2,-.3,1.5,-.15],colors.life,.7));
+      slot.groups.culture.add(segments(T,[-1,.1,-.4,-1,1.5,-.4,-1,1.5,-.4,.8,1.5,-.4,.8,1.5,-.4,.8,.1,-.4],colors.culture,.55));
+      slot.terrainLine=segments(T,new Float32Array(12*6),colors.terrain,.85);slot.groups.terrain.scale.y=1;slot.groups.terrain.add(slot.terrainLine);
+
       const leader = segments(T,[0,.08,0, .45,1.6,.12, .45,1.6,.12,1.1,1.6,.12],colors.language,.5);
       slot.groups.language.add(leader);
       const canvas=document.createElement('canvas');canvas.width=768;canvas.height=192;
@@ -135,6 +136,12 @@
       // Face only the local annotation, never change the real object's orientation or position.
       slot.anchor.rotation.y=Math.atan2(camera.position.x-p.x,camera.position.z-p.z);
       slot.mark=mark;
+      const text=String(mark.s?.tag||mark.s?.title||mark.el?.getAttribute('aria-label')||'');
+      slot.context={trees:/木|杉|松|葉|根|樹|並木|森|杜/.test(text),water:/水|池|川|溝|橋|湿/.test(text),terrain:true,time:/鳥居|石|碑|灯|燈|平成|江戸|縄文|昭和/.test(text),life:/生物|鳥|虫|蝶|チョウ|ケヤキ|クスノキ|エノキ|地衣|葉|樹/.test(text),culture:/鳥居|石|碑|灯|燈|道|参道|社/.test(text)};
+      // Sample the reconstructed terrain in world space, then express it in this annotation's local coordinates.
+      const terrainPositions=slot.terrainLine.geometry.attributes.position, local=new T.Vector3();
+      slot.anchor.updateWorldMatrix(true,false);
+      let v=0;for(let k=0;k<12;k++)for(const x of [-3+k*.5,-2.5+k*.5]){const gy=window.__core.groundY(p.x+x,p.z);local.set(p.x+x,Number.isFinite(gy)?gy+.08:p.y,p.z);slot.anchor.worldToLocal(local);terrainPositions.setXYZ(v++,local.x,local.y,local.z);}terrainPositions.needsUpdate=true;
       const label=mark.s?.tag||mark.el?.getAttribute('aria-label')?.replace(/（.*$/,'')||'この場所';
       const distance=`3D距離 ${Math.round(chosen.distance)} m`;
       const key=label+'|'+distance;
@@ -180,8 +187,9 @@
     const started=!!document.getElementById('start')?.hidden;
     const available=started&&talk.mode==='sim'&&!document.body.classList.contains('ovOn');
     if(rail.hidden===available)rail.hidden=!available;
+    if(available&&window.__cult&&cultureApplied!==states.culture){cultureApplied=states.culture;const desired=cultureApplied;setTimeout(()=>window.__cult?.set(desired),250);}
     const isFuture=window.__r21?.era?.()==='future';
-    const shown=available&&(isFuture||Object.values(states).some(Boolean))&&!document.hidden;
+    const shown=available&&Object.values(states).some(Boolean)&&!document.hidden;
     if(!shown){if(root)root.visible=false;last=0;return;}
     if(!root)makeScene(T,scene);
     const now=performance.now();
@@ -189,10 +197,10 @@
     if(last && now-last<50)return;
     const delta=last?Math.min((now-last)/1000,.1):0;last=now;
     if(!frozen)clock+=delta;
-    if(now-lastPick>=400){refreshAnchors(T,talk,camera,now);lastPick=now;}
+    if(now-lastPick>=400){refreshAnchors(T,talk,camera,now);lastPick=now;const nearest=[...(window.__cult?.labels||[])].sort((a,b)=>a.p.distanceToSquared(camera.position)-b.p.distanceToSquared(camera.position))[0];if(nearest)panel.querySelector('#qualiumCultureRecord').textContent=nearest.el.textContent;}
     root.visible=activeCount>0;
-    for(const slot of pools)for(const id of Object.keys(states))slot.groups[id].visible=states[id];
-    links.visible=states.cognition&&activeCount>1;future.visible=isFuture;
+    for(const slot of pools)for(const id of Object.keys(states))slot.groups[id].visible=states[id]&&(slot.context?.[id]??true);
+    links.visible=states.cognition&&activeCount>1;future.visible=isFuture&&states.information;
     if(states.senses)animateWaves(clock);
     future.position.y=Math.sin(clock*.45)*.1;
   };

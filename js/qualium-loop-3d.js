@@ -1,91 +1,58 @@
-// Human-centred Umwelt. A real, openly licensed head scan; conceptual sensory fields.
+/** A shared physical place and two ways of engaging with it.
+ * People use the original Lee Perry-Smith head scan; Aoi remains a separate model.
+ * Fields / pathways are explanatory artwork, not measurements of experience.
+ */
 export async function createLoopScene({T,world,camera,host,renderer}) {
  const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('../vendor/three/examples/jsm/loaders/GLTFLoader.js'),import('../vendor/three/examples/jsm/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
- const buffer=await (window.__aoiBuf||(window.__aoiBuf=fetch(new URL('../img/hero/aoi.vrm',import.meta.url)).then(r=>{if(!r.ok)throw Error('Aoi model '+r.status);return r.arrayBuffer();})));
- const root=new T.Group();root.name='embodied-umwelt-and-physical-world';world.add(root);
- const hemi=new T.HemisphereLight(0xfff4df,0x263e49,2.0),key=new T.DirectionalLight(0xffedda,2.5),rim=new T.DirectionalLight(0x9fd7d9,1.5);key.position.set(-4,6,7);rim.position.set(4,3,-3);world.add(hemi,key,rim);
- const loader=new GLTFLoader();loader.setMeshoptDecoder(MeshoptDecoder);loader.register(p=>new V.VRMLoaderPlugin(p));const gltf=await loader.parseAsync(buffer.slice(0),'');const avatar=gltf.userData.vrm;V.VRMUtils.rotateVRM0(avatar);
- avatar.humanoid.getNormalizedBoneNode('leftUpperArm').rotation.z=-1.28;avatar.humanoid.getNormalizedBoneNode('rightUpperArm').rotation.z=1.28;avatar.humanoid.getNormalizedBoneNode('leftLowerArm').rotation.z=-.1;avatar.humanoid.getNormalizedBoneNode('rightLowerArm').rotation.z=.1;avatar.update(0);avatar.scene.updateMatrixWorld(true);
- // Freeze the authored calm pose once, share geometry/textures, and use light PBR
- // materials. Three complete VRM animation/spring systems are unnecessary here.
- const frozen=new T.Group(),vertex=new T.Vector3(),materials=new Map();
- function pbr(m){if(materials.has(m))return materials.get(m);const n=new T.MeshStandardMaterial({name:m.name,map:m.map,color:m.color?.clone()||new T.Color(0xffffff),transparent:m.transparent,opacity:m.opacity,alphaTest:m.alphaTest,side:m.side,roughness:.82,metalness:0});materials.set(m,n);return n;}
- avatar.scene.traverse(o=>{if(!o.isMesh||!o.visible)return;const g=o.geometry.clone(),position=g.getAttribute('position');for(let i=0;i<position.count;i++){o.getVertexPosition(i,vertex).applyMatrix4(o.matrixWorld);position.setXYZ(i,vertex.x,vertex.y,vertex.z);}g.deleteAttribute('skinIndex');g.deleteAttribute('skinWeight');g.morphAttributes={};g.computeVertexNormals();const mesh=new T.Mesh(g,Array.isArray(o.material)?o.material.map(pbr):pbr(o.material));frozen.add(mesh);});
- const box=new T.Box3().setFromObject(frozen),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3());
- function actor(human){const model=new T.Group(),copy=frozen.clone(true);copy.traverse(o=>{if(!o.isMesh||!human)return;const change=m=>{m=m.clone();if(/Headpiece/.test(m.name))m.visible=false;if(/HAIR/.test(m.name)){m.map=null;m.color.set(0x70503e);}return m;};o.material=Array.isArray(o.material)?o.material.map(change):change(o.material);});const scale=(human?2.85:2.3)/size.y;copy.scale.setScalar(scale);copy.position.copy(center).multiplyScalar(-scale);model.add(copy);return model;}
- const heads=[actor(true),actor(true)];heads.forEach(g=>root.add(g));const aoiActor=actor(false);root.add(aoiActor);
- // Shared physical surroundings, seen from body height: soil, water, a living branch.
- const environments=[new T.Group(),new T.Group()];environments.forEach((g,i)=>{heads[i].add(g);
-  const ground=new T.Mesh(new T.CircleGeometry(2.4,48),new T.MeshStandardMaterial({color:0x314943,roughness:1,transparent:true,opacity:.72}));ground.rotation.x=-Math.PI/2;ground.position.y=-1.48;g.add(ground);
-  const branch=new T.Mesh(new T.CylinderGeometry(.045,.09,2.6,10),new T.MeshStandardMaterial({color:0x685442,roughness:.98}));branch.position.set(-1.6,-.25,-.5);branch.rotation.z=-.18;g.add(branch);
-  const leafG=new T.SphereGeometry(.19,10,6),leafM=new T.MeshStandardMaterial({color:0x6a9478,roughness:.84});for(let k=0;k<12;k++){const l=new T.Mesh(leafG,leafM);l.scale.set(.6,1.5,.2);l.position.set(-1.6+Math.sin(k*2.4)*.35,-.5+k*.13,-.5+Math.cos(k*2.4)*.25);l.rotation.z=Math.sin(k)*.5;g.add(l);}
-  const water=new T.Mesh(new T.CircleGeometry(.65,40),new T.MeshStandardMaterial({color:0x63a9b2,roughness:.18,metalness:.15,transparent:true,opacity:.7}));water.rotation.x=-Math.PI/2;water.position.set(1.25,-1.46,.55);g.add(water);
- });
- const anchors=[new T.Object3D(),new T.Object3D()],aoi=new T.Object3D(),ai=new T.Object3D();root.add(...anchors,aoi,ai);
- let seed=9811;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const palette=[0xd7c9a5,0x8cced0,0x7ea3d9,0x9fe6d2,0xc7b8df,0xcfbfa7].map(c=>new T.Color(c));
- const points=[],colors=[],stages=[],phases=[];
- function point(x,y,z,stage,region){points.push(x,y,z);colors.push(...palette[stage].toArray());stages.push(stage);phases.push(region);}
- // A bounded shell of sensory cues around the first person.
- const native=new T.Group(),extended=new T.Group();heads[0].add(native);heads[1].add(extended);
- const makeShell=(group,large)=>{
-  const positions=[],rgb=[],count=large?18500:6800;
-  for(let i=0;i<count;i++){
-   const u=rand()*Math.PI*2,v=Math.acos(2*rand()-1),radius=(large?2.47:1.78)+(rand()-.5)*.12;
-   const x=Math.sin(v)*Math.cos(u)*radius,y=Math.cos(v)*radius*(large?1.16:1.04),z=Math.sin(v)*Math.sin(u)*radius*.65;
-   if(z>0&&Math.abs(x)<1.06&&y<1.5&&y>-1.55)continue;positions.push(x,y,z);const c=palette[large?1+Math.floor(rand()*5):0];rgb.push(c.r,c.g,c.b);
-  }
-  const geom=new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(positions,3)).setAttribute('color',new T.Float32BufferAttribute(rgb,3));
-  const material=new T.PointsMaterial({size:large?.014:.012,vertexColors:true,transparent:true,opacity:large?.28:.2,depthWrite:false,blending:T.NormalBlending});
-  group.add(new T.Points(geom,material));
- };
- makeShell(native,false);makeShell(extended,true);
- const layerGroups=[];
- function strand(group,from,to,color,n=110){const mid=from.clone().lerp(to,.5).add(new T.Vector3(0,.18,.2));const curve=new T.QuadraticBezierCurve3(from,mid,to),arr=[];for(let k=0;k<n;k++){const p=curve.getPoint(k/(n-1));arr.push(...p.toArray());}group.add(new T.Line(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(arr,3)),new T.LineBasicMaterial({color,transparent:true,opacity:.27})));return curve;}
- // Eye and ear cues originate in the head, not a map or screen.
+ const url=p=>new URL('../'+p,import.meta.url).href,loader=new GLTFLoader();loader.setMeshoptDecoder(MeshoptDecoder);loader.register(p=>new V.VRMLoaderPlugin(p));
+ const tl=new T.TextureLoader();async function texture(path,repeat){const t=await tl.loadAsync(url(path));t.colorSpace=T.SRGBColorSpace;if(repeat){t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(...repeat);}t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;}
+ const [treeAsset,bark,leaves,soil,barkN,soilN,buffer,humanAsset,colorMap,normalMap]=await Promise.all([
+  loader.loadAsync(url('img/hero/3d/keyaki_lod1_notex.glb')),texture('x/02/tex/bark_zelkova.webp',[1,3]),texture('img/hero/3d/keyaki_leaf_atlas.png'),texture('x/02/tex/soil_forest.webp',[2,2]),texture('x/02/tex/bark_zelkova_n.webp',[1,3]),texture('x/02/tex/sand_grit_n.webp',[3,3]),window.__aoiBuf||(window.__aoiBuf=fetch(url('img/hero/aoi.vrm')).then(r=>{if(!r.ok)throw Error('Aoi '+r.status);return r.arrayBuffer();})),loader.loadAsync(url('assets/human-scan/LeePerrySmith.glb')),texture('assets/human-scan/Map-COL.jpg'),texture('assets/human-scan/Infinite-Level_02_Tangent_SmoothUV.jpg')
+ ]);leaves.flipY=false;barkN.colorSpace=soilN.colorSpace=T.NoColorSpace;
+ const root=new T.Group();root.name='physical-world-and-embodied-umwelt';world.add(root);
+ const hemi=new T.HemisphereLight(0xd7efff,0x4b4135,2.3),key=new T.DirectionalLight(0xffedcf,3.3),rim=new T.DirectionalLight(0x80c4ca,2.0);key.position.set(-3,7,6);rim.position.set(4,4,-4);world.add(hemi,key,rim);
+ const material=(color,opts={})=>new T.MeshStandardMaterial({color,roughness:.84,metalness:0,...opts});
+ // These maps were authored for the legacy head geometry, with a bottom-up
+ // UV convention. Keeping flipY=false displaces the lips onto the chin.
+ colorMap.flipY=true;normalMap.flipY=true;normalMap.colorSpace=T.NoColorSpace;
+ const skin=material(0xffffff,{map:colorMap,normalMap,normalScale:new T.Vector2(.55,.55),roughness:.65,metalness:0});
+ const humanBox=new T.Box3().setFromObject(humanAsset.scene),humanSize=humanBox.getSize(new T.Vector3()),humanCenter=humanBox.getCenter(new T.Vector3());
+ function human(){const group=new T.Group(),portrait=humanAsset.scene.clone(true),scale=2.5/humanSize.y;portrait.traverse(o=>{if(o.isMesh){o.material=skin;o.castShadow=false;o.receiveShadow=false;}});portrait.scale.setScalar(scale);portrait.position.copy(humanCenter).multiplyScalar(-scale);portrait.position.y-=.15;portrait.rotation.y=-.1;group.add(portrait);return group;}
+ const people=[human(),human()];people.forEach(p=>root.add(p));
+ const sphere=new T.SphereGeometry(1,24,16);
+ function ellipsoid(parent,m,x,y,z,sx,sy,sz){const o=new T.Mesh(sphere,m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);parent.add(o);return o;}
+ function limb(parent,a,b,r1,r2,m){const from=new T.Vector3(...a),to=new T.Vector3(...b),d=to.clone().sub(from);const mesh=new T.Mesh(new T.CylinderGeometry(r2,r1,d.length(),12),m);mesh.position.copy(from).add(to).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());parent.add(mesh);}
+ const gltf=await loader.parseAsync(buffer.slice(0),'');const avatar=gltf.userData.vrm;V.VRMUtils.rotateVRM0(avatar);for(const [bone,z]of [['leftUpperArm',-1.28],['rightUpperArm',1.28]])avatar.humanoid.getNormalizedBoneNode(bone).rotation.z=z;avatar.update(0);avatar.scene.updateMatrixWorld(true);
+ const aoiActor=new T.Group(),vertex=new T.Vector3(),mats=new Map();avatar.scene.traverse(o=>{if(!o.isMesh||!o.visible)return;const g=o.geometry.clone(),p=g.getAttribute('position');for(let i=0;i<p.count;i++){o.getVertexPosition(i,vertex).applyMatrix4(o.matrixWorld);p.setXYZ(i,vertex.x,vertex.y,vertex.z);}g.deleteAttribute('skinIndex');g.deleteAttribute('skinWeight');g.morphAttributes={};g.computeVertexNormals();const convert=m=>{if(!mats.has(m))mats.set(m,material(m.color?.clone()||0xffffff,{name:m.name,map:m.map,transparent:m.transparent,alphaTest:m.alphaTest,side:m.side}));return mats.get(m);};aoiActor.add(new T.Mesh(g,Array.isArray(o.material)?o.material.map(convert):convert(o.material)));});
+ const box=new T.Box3().setFromObject(aoiActor),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3()),aoiScale=2.0/size.y;aoiActor.scale.setScalar(aoiScale);const aoiWrap=new T.Group();aoiActor.position.copy(center).multiplyScalar(-aoiScale);aoiWrap.add(aoiActor);root.add(aoiWrap);
+ const barkM=material(0xb9a48c,{map:bark,normalMap:barkN,normalScale:new T.Vector2(.65,.65)}),leafM=material(0xb9cd97,{map:leaves,vertexColors:true,alphaTest:.45,side:T.DoubleSide}),groundM=material(0x7a8370,{map:soil,normalMap:soilN,normalScale:new T.Vector2(.45,.45)});
+ const wind={value:0};leafM.onBeforeCompile=shader=>{shader.uniforms.umweltWind=wind;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nuniform float umweltWind;').replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.x += sin(umweltWind*.65 + position.y*7.)*.006; transformed.z += cos(umweltWind*.48 + position.x*6.)*.004;');};leafM.customProgramCacheKey=()=> 'umwelt-living-leaves-1';
+ const environments=[],waters=[],crowns=[],sensorNodes=[],ripples=[];treeAsset.scene.updateMatrixWorld(true);const treeBox=new T.Box3().setFromObject(treeAsset.scene),treeSize=treeBox.getSize(new T.Vector3()),treeCenter=treeBox.getCenter(new T.Vector3());
  for(let j=0;j<2;j++){
-  const local=heads[j],r=j?2.45:1.75;
-  for(let k=0;k<15;k++){const angle=k/14*Math.PI*1.7-.85*Math.PI;strand(local,new T.Vector3(.18,1.12,.17),new T.Vector3(Math.sin(angle)*r,Math.cos(angle)*r*.7,.35+Math.cos(angle)*.7),j?0x8cd3d0:0xc4bc9e);}
-  for(const side of [-1,1])for(let k=0;k<3;k++){
-   const a=[];for(let n=0;n<95;n++){const t=n/94*Math.PI*1.6-.8*Math.PI,radius=.35+k*.24;a.push(side*(.73+radius*.75),Math.cos(t)*radius*.7+.1,Math.sin(t)*radius);}
-   local.add(new T.Line(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(a,3)),new T.LineBasicMaterial({color:j?0x9ed7e4:0xd6c9aa,transparent:true,opacity:.32})));
-  }
+  const g=new T.Group();environments.push(g);people[j].add(g);
+  const ground=new T.Mesh(new T.CylinderGeometry(2.1,1.96,.16,64),groundM);ground.position.set(0,-1.55,-.08);g.add(ground);
+  const tree=new T.Group();treeAsset.scene.traverse(o=>{if(!o.isMesh)return;const mesh=new T.Mesh(o.geometry,/leaf|leaves/i.test(o.name)?leafM:barkM);mesh.applyMatrix4(o.matrixWorld);tree.add(mesh);});const s=3.55/treeSize.y;tree.scale.setScalar(s);tree.position.set(-1.15-treeCenter.x*s,-1.47-treeBox.min.y*s,-.72-treeCenter.z*s);g.add(tree);crowns.push(tree);
+  const water=new T.Mesh((()=>{const shape=new T.Shape();for(let k=0;k<=64;k++){const a=k/64*Math.PI*2,r=.59*(1+.1*Math.sin(a*3)+.065*Math.cos(a*5));const x=Math.cos(a)*r,y=Math.sin(a)*r;k?shape.lineTo(x,y):shape.moveTo(x,y);}return new T.ShapeGeometry(shape,48);})(),material(0x658e90,{normalMap:soilN,normalScale:new T.Vector2(.12,.12),roughness:.14,metalness:.45,transparent:true,opacity:.86}));water.rotation.x=-Math.PI/2;water.scale.set(1,1.42,1);water.position.set(1.05,-1.457,.24);g.add(water);waters.push(water);
+  for(let n=0;n<3;n++){const ripple=new T.Mesh(new T.TorusGeometry(.28,.005,4,64),new T.MeshBasicMaterial({color:0xb4e3d4,transparent:true,opacity:.2,depthWrite:false}));ripple.rotation.x=-Math.PI/2;ripple.position.copy(water.position).add(new T.Vector3(0,.005,0));g.add(ripple);ripples.push({mesh:ripple,n,region:j});}
+  for(let k=0;k<5;k++){const rock=ellipsoid(g,material(0x85877a),.72+Math.sin(k*2.1)*.5,-1.42,.26+Math.cos(k*2.1)*.67,.15+k*.015,.10,.14);rock.rotation.y=k;}
+  const sensor=new T.Group();sensor.position.set(1.52,-.77,-.38);limb(sensor,[0,-.7,0],[0,0,0],.018,.018,material(0x8eaaa7));const capsule=new T.Mesh(new T.BoxGeometry(.17,.24,.12),material(0xa0b7ad));sensor.add(capsule);const led=ellipsoid(sensor,material(0x9be3cf,{emissive:0x68d8bc,emissiveIntensity:.8}),0,.02,.067,.028,.028,.012);sensor.visible=j===1;g.add(sensor);sensorNodes.push(sensor);
  }
- // Six fields of computation and transformation around the extended body.
- for(let stage=0;stage<6;stage++){
-  const g=new T.Group();extended.add(g);layerGroups.push(g);
-  if(stage===0)continue;
-  const arr=[],rgb=[],n=stage===2?5800:3100;
-  for(let i=0;i<n;i++){
-   const u=rand()*Math.PI*2,v=rand(),r=2.1+v*.62;let x=Math.cos(u)*r,y=Math.sin(u)*r,z=(rand()-.5)*1.4;
-   if(stage===1){y=-1.7+rand()*.7;x=(rand()-.5)*4.7;z=Math.sin(x*2.3+v)*.4;}
-   if(stage===2){x=(rand()-.5)*3.4;y=1.8+rand()*.9;z=(rand()-.5)*2.2;}
-   if(stage===3){x=2+Math.cos(u)*.48;y=Math.sin(u)*1.55;z=Math.sin(u*3+v)*.6;}
-   if(stage===4){x=-2+Math.cos(u)*.6;y=Math.sin(u)*1.7;z=Math.cos(u*2+v)*.6;}
-   if(stage===5){x=Math.cos(u)*r;y=-1.7+v*.35;z=Math.sin(u)*r*.68;}
-   arr.push(x,y,z);rgb.push(...palette[stage].toArray());
-  }
-  const geo=new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(arr,3)).setAttribute('color',new T.Float32BufferAttribute(rgb,3));
-  g.add(new T.Points(geo,new T.PointsMaterial({size:.014,vertexColors:true,transparent:true,opacity:.4,depthWrite:false,blending:T.AdditiveBlending})));
- }
- // A leaf of light stands for Aoi, the mediator; the live character remains in TOP.
- const leafP=[];for(let i=0;i<1500;i++){const t=rand()*6.28,v=rand(),r=Math.sin(v*Math.PI);leafP.push(Math.cos(t)*r*.2,v*1.2-.4,Math.sin(t)*r*.13);}
- const leaf=new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(leafP,3)),new T.PointsMaterial({color:0xadebd8,size:.018,transparent:true,opacity:.8,depthWrite:false,blending:T.AdditiveBlending}));root.add(leaf);
- const threadP=new Float32Array(1800*3),threadG=new T.BufferGeometry().setAttribute('position',new T.BufferAttribute(threadP,3));
- const thread=new T.Points(threadG,new T.PointsMaterial({color:0xc4e5df,size:.016,transparent:true,opacity:.48,depthWrite:false,blending:T.AdditiveBlending}));root.add(thread);
- let width=1,height=1,clock=0,selected=2,curve,lastStage=-1;const tmp=new T.Vector3();
- function update({time=0,selected:s=2,dt=0}={}){clock=time;selected=s;if(s!==lastStage){lastStage=s;const h=heads[1].position.clone(),leaf=h.clone().add(new T.Vector3(-1.6,.7,-.5)),eye=h.clone().add(new T.Vector3(.12,1.12,.25)),water=h.clone().add(new T.Vector3(1.25,-1.4,.55)),sensor=h.clone().add(new T.Vector3(2,.1,.1)),aiP=h.clone().add(new T.Vector3(0,2.4,0)),aoiP=aoiActor.position.clone().add(new T.Vector3(0,.6,0));const paths=[[leaf,eye],[water,sensor],[sensor,aiP],[aiP,aoiP,eye],[eye,h.clone().add(new T.Vector3(-2.1,1,.1))],[eye,water,leaf]];curve=new T.CatmullRomCurve3(paths[s]);host.dataset.pathway=JSON.stringify(paths[s].map(p=>p.toArray()));}aoiActor.rotation.y=Math.sin(time*.08)*.03;native.rotation.y=Math.sin(time*.08)*.035;extended.rotation.y=Math.sin(time*.07)*.045;
-  layerGroups.forEach((g,i)=>g.traverse(o=>{if(o.isPoints){o.material.opacity=i===s?.4:.15;}}));leaf.rotation.y=Math.sin(time*.2)*.3;environments[1].scale.setScalar(s===5?1+Math.sin(time*.5)*.025:1);host.dataset.physicalConnection='true';host.dataset.activeStage=String(s);
-  if(curve){for(let i=0;i<1800;i++){const direction=s===5?-1:1;curve.getPoint(((i/1800+direction*time*.04)%1+1)%1,tmp);threadP.set([tmp.x+Math.sin(i)*.03,tmp.y+Math.cos(i)*.03,tmp.z],i*3);}threadG.attributes.position.needsUpdate=true;}
- }
- function resize({width:w,height:h}){
-  width=w;height=h;const portrait=w/h<1.1;
-  if(portrait){heads[0].position.set(0,2.9,0);heads[1].position.set(0,-3.8,0);anchors[0].position.set(0,5.35,0);anchors[1].position.set(0,-1.9,1.2);aoi.position.set(0,.25,1.9);ai.position.set(2.15,-6.4,0);camera.position.set(0,.1,21);camera.lookAt(0,.1,0);}
-  else{heads[0].position.set(-3.75,.5,0);heads[1].position.set(3.75,.5,0);anchors[0].position.set(-3.75,4,0);anchors[1].position.set(3.75,4,0);aoi.position.set(0,-.45,1.9);ai.position.set(6.15,-2.45,0);camera.position.set(0,1.6,14.6);camera.lookAt(0,1.0,0);}
-  aoiActor.position.copy(heads[1].position).add(new T.Vector3(1.5,-.24,.8));if(portrait){leaf.position.set(-1.9,.3,1.8);leaf.scale.setScalar(.55);}else{leaf.position.copy(aoi.position).add(new T.Vector3(0,1.3,0));leaf.scale.setScalar(1);}camera.aspect=w/h;camera.fov=40;camera.near=.1;camera.far=80;camera.updateProjectionMatrix();camera.updateMatrixWorld();
-  lastStage=-1;update({time:clock,selected});projectLabels();
- }
- function projectLabels(){root.updateMatrixWorld(true);camera.updateMatrixWorld();const place=(el,o)=>{if(!el)return;o.getWorldPosition(tmp).project(camera);el.style.left=((tmp.x*.5+.5)*width)+'px';el.style.top=((-tmp.y*.5+.5)*height)+'px';el.dataset.projected='true';};anchors.forEach((a,i)=>place(host.querySelector('[data-world-label="'+i+'"]'),a));place(host.querySelector('.qt-flow-core'),aoi);place(host.querySelector('[data-ai-label]'),ai);}
- host.dataset.representation='embodied-physical-umwelt';host.dataset.humanModel='VRoid-mitsulab';host.dataset.humanCount='2';host.dataset.aoiCount='1';host.dataset.sameSubject='true';host.dataset.pointCount='43200';
+ let seed=9811;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ const palette=[0xe1d5ad,0x8ddbc4,0x8dbbe1,0xb9e8dd,0xc0bbdf,0xe4c9a1],fields=[];
+ for(let j=0;j<2;j++){const g=new T.Group();people[j].add(g);fields.push(g);const pos=[];for(let i=0;i<(j?19000:12500);i++){const a=rand()*6.283,b=Math.acos(2*rand()-1),r=(j?2.0:1.22)+(rand()-.5)*.07;const x=Math.sin(b)*Math.cos(a)*r,y=Math.cos(b)*r*.85,z=Math.sin(b)*Math.sin(a)*r*.6;if(z>0&&Math.abs(x)<.72&&y<1.3&&y>-1.5)continue;pos.push(x,y,z);}g.add(new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(pos,3)),new T.PointsMaterial({color:palette[j?1:0],size:.009,transparent:true,opacity:j?.16:.12,depthWrite:false,blending:T.AdditiveBlending})));}
+ const ai=new T.Group();root.add(ai);const aiCore=new T.Mesh(new T.IcosahedronGeometry(.22,1),material(0x85aebe,{wireframe:true,emissive:0x467580,emissiveIntensity:.5}));ai.add(aiCore);for(let n=0;n<3;n++){const ring=new T.Mesh(new T.TorusGeometry(.35+n*.09,.003,4,60),material(0x79b4bf,{emissive:0x508b96,emissiveIntensity:.6}));ring.rotation.set(n*.9,n*.7,0);ai.add(ring);}
+ const anchors=[new T.Object3D(),new T.Object3D()],aoiLabel=new T.Object3D(),aiLabel=new T.Object3D();root.add(...anchors,aoiLabel,aiLabel);
+ const pathsGroup=new T.Group();root.add(pathsGroup);let curves=[],routes=[],selected=2,lastStage=-1,time=0,width=1,height=1;
+ const movingP=new Float32Array(900*3),movingG=new T.BufferGeometry().setAttribute('position',new T.BufferAttribute(movingP,3)),movingM=new T.PointsMaterial({color:palette[2],size:.025,transparent:true,opacity:.92,depthWrite:false,blending:T.AdditiveBlending});root.add(new T.Points(movingG,movingM));
+ const p=(base,x,y,z)=>base.clone().add(new T.Vector3(x,y,z));
+ function buildRoutes(){pathsGroup.clear();const h=people[1].position,n=people[0].position,tree=p(h,-1.2,1,-.65),eye=p(h,0,.43,.69),water=p(h,1.05,-1.4,.3),sensor=p(h,1.52,-.77,-.38),aiP=ai.position.clone(),aoiP=p(aoiWrap.position,0,.4,.12),hand=p(h,.68,-.55,.26);routes=[[p(n,-1.2,1,-.65),p(n,0,.43,.69),p(n,.68,-.55,.26)],[water,sensor],[sensor,aiP],[aiP,aoiP,eye],[aoiP,eye,hand],[hand,water,tree]];curves=routes.map((r,i)=>{const c=new T.CatmullRomCurve3(r),m=new T.LineBasicMaterial({color:palette[i],transparent:true,opacity:.1,depthWrite:false});pathsGroup.add(new T.Line(new T.BufferGeometry().setFromPoints(c.getPoints(80)),m));return c;});lastStage=-1;}
+ const tmp=new T.Vector3();
+ function update({time:t=0,selected:s=2}={}){time=t;wind.value=t;selected=s;if(s!==lastStage){lastStage=s;host.dataset.pathway=JSON.stringify(routes[s]?.map(p=>p.toArray()));host.dataset.activeStage=String(s);pathsGroup.children.forEach((o,i)=>o.material.opacity=i===s?.7:.085);movingM.color.set(palette[s]);}if(curves[s])for(let i=0;i<900;i++){curves[s].getPoint((i/900+time*.12)%1,tmp);const spread=.015;movingP.set([tmp.x+Math.sin(i*2.3)*spread,tmp.y+Math.cos(i*1.7)*spread,tmp.z],i*3);}movingG.attributes.position.needsUpdate=true;aiCore.rotation.y=time*.25;aiCore.rotation.x=time*.13;fields.forEach((g,i)=>g.rotation.y=Math.sin(time*.12)*.02*(i+1));waters.forEach((w,i)=>{w.material.emissive.set(s===5&&i===1?0x164946:0x000000);w.material.emissiveIntensity=.3+Math.sin(time*2)*.12;});ripples.forEach(({mesh,n,region})=>{const phase=(time*.22+n/3)%1;mesh.scale.setScalar(.3+phase*1.6);mesh.material.opacity=(1-phase)*(s===5&&region===1?.6:.11);});aoiWrap.rotation.y=Math.sin(time*.13)*.025;host.dataset.physicalConnection='true';}
+ function resize({width:w,height:h}){width=w;height=h;const portrait=w/h<1.1;
+  if(portrait){people[0].position.set(-.25,3.2,0);people[1].position.set(-.25,-2.4,0);aoiWrap.position.set(1.25,-2.55,.45);ai.position.set(1.55,-.7,-.3);anchors[0].position.set(0,7.05,0);anchors[1].position.set(0,.53,0);aoiLabel.position.set(0,-4.8,1);aiLabel.position.set(1.75,-1.1,.8);camera.position.set(0,3.6,22.6);camera.lookAt(0,.7,0);}
+  else{people[0].position.set(-3.4,0,0);people[1].position.set(3.1,0,0);aoiWrap.position.set(4.55,-.35,.7);ai.position.set(5.0,1.5,-.8);anchors[0].position.set(-3.4,3.65,0);anchors[1].position.set(3.1,3.65,0);aoiLabel.position.set(4.7,-2.2,1);aiLabel.position.set(5.1,2.15,-.2);camera.position.set(0,3.15,12.0);camera.lookAt(0,.65,0);}
+  camera.aspect=w/h;camera.fov=40;camera.near=.1;camera.far=80;camera.updateProjectionMatrix();camera.updateMatrixWorld();buildRoutes();update({time,selected});projectLabels();}
+ function projectLabels(){root.updateMatrixWorld(true);camera.updateMatrixWorld();const place=(el,o)=>{if(!el)return;o.getWorldPosition(tmp).project(camera);el.style.left=((tmp.x*.5+.5)*width)+'px';el.style.top=((-tmp.y*.5+.5)*height)+'px';el.dataset.projected='true';};anchors.forEach((a,i)=>place(host.querySelector('[data-world-label="'+i+'"]'),a));place(host.querySelector('.qt-flow-core'),aoiLabel);place(host.querySelector('[data-ai-label]'),aiLabel);}
+ host.dataset.representation='embodied-physical-umwelt';host.dataset.humanModel='LeePerrySmith.glb';host.dataset.humanCount='2';host.dataset.aoiCount='1';host.dataset.sameSubject='true';host.dataset.natureModel='keyaki-original-textured';
  return {update,resize,projectLabels};
 }
