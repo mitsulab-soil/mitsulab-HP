@@ -1,19 +1,19 @@
 // One conceptual field: expanding an Umwelt, not measuring subjective experience.
 const isEnglish=()=>document.documentElement.dataset.lang==='en';
 const nodeText={ja:[
- '場｜同じ場所に、光や音、生きものの営み、積み重なる時間があります。受けとれる手がかりは、その一部です。',
- '受けとる｜同じ場でも、身体・感覚・経験・概念によって、気づく手がかりや意味が異なります。それぞれの環世界がひらかれます。',
- '捉える｜観測で手がかりを記録し、AIなどの計算で関係や変化を捉える。観測されたことと、推定されたことを分けます。',
- '変換する｜見つかった関係を、光・音・振動・空間へ。情報の違いを、身体が受けとれる違いへ変換します。',
- 'ひらく｜新しい手がかりを、ことば・概念・経験と結ぶ。自分の中で、視点・尺度・感覚・解釈を行き来できるように。',
- '関わる｜感じ、理解したことから、問い・観察・行動が生まれる。その手がかりを持って現実へ戻り、道具も見直します。'
+ '受けとる｜身体の感覚で届く世界から始める。見えているものも、気づくことや意味は身体・経験・文化によって変わります。',
+ '観測する｜センサーや記録で、人の感覚だけでは届かない水・音・時間の変化を手がかりにします。',
+ '計算する｜AIなどの計算が、多くの記録から関係や変化を捉える。観測されたことと推定されたことを分けます。',
+ '変換する｜碧が媒介となり、計算で捉えた関係を光・音・振動・空間へ。情報の違いを身体が感じられる違いへ訳します。',
+ '認知する｜感じた手がかりを、ことば・概念・経験と結ぶ。同じ場所に、これまでと違う意味や関係を見つけます。',
+ '関わる｜新たな問いや行動を持って現実へ。道具を閉じたあとも場所の見方が変わり、次の観測へ戻ります。'
 ],en:[
- 'Place | Light, sound, living activity and layers of time share a place. The clues we receive are only part of it.',
- 'Perceive | Bodies, senses, experience and concepts shape the clues and meanings we notice. A particular Umwelt opens to each subject.',
- 'Compute | Record clues through observation. Use AI and other computation to find relationships and change, separating observation from inference.',
- 'Transform | Turn relationships into light, sound, vibration and space. Map differences in information to differences the body can receive.',
- 'Expand | Connect new clues with language, concepts and experience. Move between perspectives, scales, senses and interpretations within yourself.',
- 'Engage | Let sensing and understanding lead to questions, observations and actions. Return to reality with those clues, and revise the tools.'
+ 'Perceive | Begin with what bodily senses receive. Bodies, experience and culture shape the clues and meanings we notice.',
+ 'Observe | Sensors and records make changes in water, sound and time accessible beyond immediate sensation.',
+ 'Compute | AI and other computation identify relationships and change across records. Keep observation distinct from inference.',
+ 'Transform | Aoi mediates computational relationships as light, sound, vibration and space: information becomes perceptible difference.',
+ 'Make sense | Connect clues with language, concepts and experience. Find new meanings and relationships in the same place.',
+ 'Engage | Return to reality with questions and actions. New ways of seeing continue after closing the tool and lead to further observation.'
 ]};
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 let threePromise;
@@ -22,8 +22,8 @@ window.__qualiumDiagnostics={};
 // The former standalone field is intentionally not initialized.
 for(const host of document.querySelectorAll('[data-qualium-scene="loop"]')){
  const kind='loop',canvas=host.querySelector('canvas'),pause=host.querySelector('[data-pause]');
- const nodes=[...host.querySelectorAll('[data-node]')],detail=host.closest('.qt-loop').querySelector('.qt-node-detail');
- let visible=false,paused=reduced.matches,loading=false,ready=false,raf=0,last=0,lastUpdate=0,time=0,selected=1,frames=0;
+ const nodes=[...host.closest('.qt-loop').querySelectorAll('[data-node]')],detail=host.closest('.qt-loop').querySelector('.qt-node-detail');
+ let visible=false,paused=reduced.matches,loading=false,ready=false,raf=0,last=0,lastUpdate=0,time=0,selected=2,frames=0;
  let renderer,model,camera,draw=()=>{};
  const info=window.__qualiumDiagnostics[kind]={ready:false,frames:0,selected,paused};
  function labels(){
@@ -56,7 +56,7 @@ for(const host of document.querySelectorAll('[data-qualium-scene="loop"]')){
   if(loading)return;loading=true;
   try{
    const T=await loadThree();
-   const module=await import('./qualium-loop-3d.js?v=20261016-umwelt1');
+   const module=await import('./qualium-loop-3d.js?v=20261017-human3');
    renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
    renderer.setPixelRatio(Math.min(devicePixelRatio||1,innerWidth<=700?1:1.5));
    renderer.setClearColor(0x030812,0);renderer.outputColorSpace=T.SRGBColorSpace;
