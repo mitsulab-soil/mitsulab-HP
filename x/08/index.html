@@ -181,7 +181,7 @@
 </header>
 <main>
   <div class="frame">
-    <video id="mv" controls playsinline preload="metadata" poster="poster.jpg?v=20261017-selected" width="1920" height="1080" aria-label="森羅奏会《Breathing OS》の映像。雨上がりの杜で、碧がハンドマイクを手に歌う">
+    <video id="mv" controls playsinline preload="metadata" poster="poster.jpg?v=20261017-selected" width="1920" height="1080" aria-label="森羅奏会《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う">
       <source src="mv.mp4?v=20261017-selected" type="video/mp4">
     </video>
     <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
@@ -191,8 +191,8 @@
       <span class="ml-kicker">碧の唄 ／ 01</span>
       <h1 id="ttl">森羅奏会《Breathing OS》</h1>
       <p class="sub">Breathing OS / digital forest</p>
-      <p class="lead">光の柱と地形の線が重なる杜で、碧が歌う。本人が選んだ「雨上がりの杜」版の映像です。</p>
-      <p>写実的な杜に、映像から拾った木々の輪郭と点が重なります。自然の質感と計算空間が交わる、1分45秒の演奏会。光は映像に同期した演出です。</p>
+      <p class="lead">光の柱と地形の線が重なる杜で、碧が歌う。声と空間が呼応する、デジタルな森のミュージックビデオ。</p>
+      <p>自然のかたちと計算された光を、音楽とともに感じる1分45秒の演奏会。光や線は、声と空間の関係を描く創作の表現です。</p>
     </section>
     <dl class="cred" aria-label="クレジット">
       <dt>歌</dt><dd>碧</dd>
@@ -217,7 +217,7 @@
   v.addEventListener('play', () => { b.hidden = true; });
   v.addEventListener('ended', () => { b.hidden = false; v.currentTime = 0; v.load(); });
 
-  const full=document.createElement('button');full.className='full-layer';full.textContent='重ねた映像を全画面で見る';full.onclick=()=>{const f=document.querySelector('.frame');if(f.requestFullscreen)f.requestFullscreen().catch(()=>{full.textContent='全画面にできませんでした。通常表示でご覧ください。'});else full.textContent='この端末では通常表示で重ねた映像をご覧ください。';};document.querySelector('.frame').after(full);
+  const full=document.createElement('button');full.className='full-layer';full.textContent='全画面で見る';full.onclick=()=>{const f=document.querySelector('.frame');if(f.requestFullscreen)f.requestFullscreen().catch(()=>{full.textContent='全画面にできませんでした。通常表示でご覧ください。'});else full.textContent='この端末では通常表示で映像をご覧ください。';};document.querySelector('.frame').after(full);
 
 </script>
 
