@@ -119,7 +119,7 @@ export function buildForest(ctx) {
       const k = .9 + .14 * n; cs.push(r * k, gg * k, b * k);
     }
     g.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3));
-    const ground = new THREE.Mesh(g, M(0xffffff, { map: photoTex("soil_forest.webp", 40, 40), vc: true, uv: .06, temp: .1 }));
+    const ground = new THREE.Mesh(g, M(0xffffff, { std: true, rough: 1, metal: 0, env: .3, map: photoTex("soil_forest.webp", 40, 40), vc: true, uv: .06, temp: .1 }));
     ground.userData.noCast = true; forest.add(ground); pick.push(ground); out.ground = ground;
   }
 
@@ -164,7 +164,7 @@ export function buildForest(ctx) {
 
   // ---------------------------------------------------------------- 木
   const spray = tx("leaf_spray.webp", 1, 1), spray2 = tx("leaf_spray2.webp", 1, 1); for (const t of [spray, spray2]) t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
-  const leafMat = (map, o = {}) => M(0xffffff, { std: true, map, alphaTest: .45, side: THREE.DoubleSide, rough: o.rough ?? .6, env: .4, uv: o.uv ?? .04, temp: .09, wind: o.wind ?? .05, windH: o.windH ?? 9, key: "crown", hook: crownHook });
+  const leafMat = (map, o = {}) => M(0xffffff, { std: true, map, alphaTest: .45, side: THREE.DoubleSide, rough: o.rough ?? .78, env: .4, uv: o.uv ?? .04, temp: .09, wind: o.wind ?? .05, windH: o.windH ?? 9, key: "crown", hook: crownHook });
   const SP = {
     // コナラ：雑木林の主。幹はやや曲がりながら 5 m ほどまで枝を出さず、太い枝が斜めに分かれ、樹冠は不整形。葉は倒卵形であらい鋸歯（写真の葉）
     konara: { bark: "konara", leaf: leafMat(spray2), card: 1.05, trunkH: [4.5, 6.5], r: [.2, .34], limbs: [3, 4], spread: .85, len: [3.6, 5.2], fork: 2, sub: .7, up: .18, decay: .62, wig: .45, cards: 260, cluster: 1.7, tint: [.82, .9, .72] },
@@ -176,9 +176,9 @@ export function buildForest(ctx) {
     sugi: { bark: "sugi", leaf: leafMat(sugiTex, { rough: .75, windH: 14 }), card: 1.25, tint: [.78, .86, .74] },
   };
   const barkM = {
-    keyaki: M(0xd8d2c8, { std: true, map: photoTex("bark_zelkova.webp", 1, 1), nmap: tx("bark_zelkova_n.webp", 1, 1, false), ns: 1.3, orm: tx("bark_zelkova_orm.webp", 1, 1, false), rough: 1, env: .35, uv: .05, temp: .1 }),
+    keyaki: M(0xd8d2c8, { std: true, map: photoTex("bark_zelkova.webp", 1, 1), nmap: tx("bark_zelkova_n.webp", 1, 1, false), ns: .65, orm: tx("bark_zelkova_orm.webp", 1, 1, false), rough: 1, env: .35, uv: .05, temp: .1 }),
     // コナラの樹皮は灰黒色で縦に不規則な裂け目が入る。クスノキの樹皮の写真（縦の裂け目）を、灰色寄りに染めて使う
-    konara: M(0xb4aea4, { std: true, map: photoTex("bark_camphor.webp", 1, 1), nmap: tx("bark_camphor_n.webp", 1, 1, false), ns: 1.4, orm: tx("bark_camphor_orm.webp", 1, 1, false), rough: 1, env: .3, uv: .05, temp: .1 }),
+    konara: M(0xb4aea4, { std: true, map: photoTex("bark_camphor.webp", 1, 1), nmap: tx("bark_camphor_n.webp", 1, 1, false), ns: .75, orm: tx("bark_camphor_orm.webp", 1, 1, false), rough: 1, env: .3, uv: .05, temp: .1 }),
     // モミジの樹皮はなめらかな灰褐色（若いケヤキの写真を灰色寄りに）
     momiji: M(0xa9a69a, { std: true, map: photoTex("bark_zelkova.webp", 1, 1), rough: .95, env: .3, uv: .05, temp: .1 }),
     sugi: M(0xffffff, { std: true, map: sugiBark, rough: 1, env: .25, uv: .05, temp: .1 }),

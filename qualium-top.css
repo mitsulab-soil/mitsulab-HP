@@ -89,3 +89,13 @@ body:has(#top.active) .aoi-guide{display:none}
 
 .qt-mission-line{display:block}
 @media(max-width:700px){.qt-mission-line{white-space:nowrap;letter-spacing:.025em}.qt-mission h2{font-size:24px}}
+
+/* One tree, six scenes. Caption remains part of the existing diagram. */
+.qt-story-subtitle{position:absolute;left:50%;bottom:63px;transform:translateX(-50%);width:min(620px,88%);margin:0;text-align:center;font:400 18px/1.85 var(--serif);color:#d5eee4;text-shadow:0 1px 12px #030812,0 0 24px #030812;pointer-events:none}
+.qt-story-subtitle [data-story-counter]{display:block;font:400 10px/1.8 var(--mono);letter-spacing:.16em;color:#8bccca;margin-bottom:4px}
+.qt-tour:after{content:'';display:block;height:1px;background:#b5eadb;transform:scaleX(var(--story-progress,0));transform-origin:left center}
+@media(max-width:700px){.qt-flow{height:850px}.qt-story-subtitle{font-size:15px;bottom:57px;width:92%}.qt-story-subtitle [data-story-counter]{font-size:9px}.qt-node-detail{min-height:7em}}
+@media(prefers-reduced-motion:reduce){.qt-tour:after{display:none}}
+/* Keep the caption clear of Aoi's label in both languages. */
+.qt-story-subtitle{width:min(480px,72%)}
+@media(max-width:700px){.qt-story-subtitle{width:94%;bottom:5px;font-size:14px;line-height:1.75}.qt-flow .qt-tour,.qt-flow .qt-pause{top:10px;bottom:auto}.qt-story-subtitle [data-story-counter]{margin-bottom:2px}}

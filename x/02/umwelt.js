@@ -348,7 +348,8 @@ const FLIGHT=new Set(['hachi','chou','tori','koumori']);
 const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:2,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mimizu:{speed:.04,bob:0,freq:3}};
 // 森（2026-10-12 組み直し：モグラと都市を外し、木と草花を森らしく。forest.js）
 const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='forest',flightHeight=1.5;
-const waterMaterial=M(0x426e70,{std:true,rough:.08,metal:.2,uv:.12,temp:.1,echo:.08});
+// Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
+const waterMaterial=M(0x426e70,{std:true,rough:.13,metal:0,env:1,uv:.12,temp:.1,echo:.08});
 const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);pool.userData.noCast=true;forest.add(pool);
 const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;river.userData.noCast=true;forest.add(river);
 STARTUP.forestBuildStartedAt = performance.now();

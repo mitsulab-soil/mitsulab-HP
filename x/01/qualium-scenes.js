@@ -25,23 +25,23 @@ function makeFlower(scene,textures){
  for(let i=0;i<=U;i++){const u=i/U;for(let j=0;j<=V;j++){const v=j/V-.5,w=Math.sin(Math.PI*u)**.65*.115;positions.push(v*w,.018*Math.sin(u*Math.PI)-.012*u+v*v*.035,.026+u*.19);uvs.push(j/V,u);}}
  for(let i=0;i<U;i++)for(let j=0;j<V;j++){const a=i*(V+1)+j,b=a+V+1;indices.push(a,b,a+1,b,b+1,a+1);}
  const petalGeometry=new T.BufferGeometry();petalGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));petalGeometry.setAttribute('uv',new T.Float32BufferAttribute(uvs,2));petalGeometry.setIndex(indices);petalGeometry.computeVertexNormals();
- const petalMat=new T.MeshPhysicalMaterial({color:0xf6efd6,roughness:.52,side:T.DoubleSide,metalness:0,clearcoat:.1});
+ const petalMat=new T.MeshPhysicalMaterial({color:0xf6efd6,roughness:.62,side:T.DoubleSide,metalness:0,clearcoat:.025});
  petalMat.onBeforeCompile=shader=>{shader.uniforms.qUV=uv;shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float qUV;').replace('#include <color_fragment>','#include <color_fragment>\nfloat veins=.96+.04*cos(vUv.x*80.+vUv.y*9.);float centre=1.-smoothstep(.18,.62,vUv.y);diffuseColor.rgb*=veins;diffuseColor.rgb=mix(diffuseColor.rgb, mix(vec3(.48,.7,.97),vec3(.25,.08,.48),centre),qUV*.86);');};
  // vUv is needed even though the petal colour is procedural.
  petalMat.defines={USE_UV:''};
- for(let i=0;i<8;i++){const p=new T.Mesh(petalGeometry,petalMat);p.rotation.y=i*Math.PI/4;p.rotation.x=(rand(i)-.5)*.12;p.castShadow=true;flower.add(p);}
+ for(let i=0;i<8;i++){const p=new T.Mesh(petalGeometry,petalMat);p.rotation.y=i*Math.PI/4;p.rotation.x=(rand(i)-.5)*.12;p.castShadow=p.receiveShadow=true;flower.add(p);}
  const centreMat=new T.MeshStandardMaterial({color:0xc4a657,roughness:.92});
  const centre=new T.Mesh(new T.SphereGeometry(.041,24,12),centreMat);centre.scale.y=.38;centre.position.y=.009;flower.add(centre);
  const pollen=new T.InstancedMesh(new T.IcosahedronGeometry(.0027,0),new T.MeshStandardMaterial({color:0xdec57a,roughness:.82}),96),dummy=new T.Object3D();
  for(let i=0;i<96;i++){const r=.038*Math.sqrt(rand(i)),a=i*2.399;dummy.position.set(Math.cos(a)*r,.013+Math.sqrt(Math.max(0,1-r*r/.0016))*.011,Math.sin(a)*r);dummy.updateMatrix();pollen.setMatrixAt(i,dummy.matrix);}flower.add(pollen);
  const leafMaterial=new T.MeshStandardMaterial({map:textures.leaf,side:T.DoubleSide,alphaTest:.4,color:0xc4d1a3,roughness:.88});
  const leafGeo=new T.PlaneGeometry(.12,.23,4,8);const lp=leafGeo.attributes.position;for(let i=0;i<lp.count;i++)lp.setZ(i,Math.cos(lp.getX(i)*18)*.018+Math.sin(lp.getY(i)*11)*.012);leafGeo.computeVertexNormals();
- for(let i=0;i<4;i++){const leaf=new T.Mesh(leafGeo,leafMaterial);leaf.position.set(i%2?.055:-.055,.18+i*.09,0);leaf.rotation.set(-.45,Math.PI/2*i,i%2?-.8:.8);leaf.castShadow=true;plant.add(leaf);}
+ for(let i=0;i<4;i++){const leaf=new T.Mesh(leafGeo,leafMaterial);leaf.position.set(i%2?.055:-.055,.18+i*.09,0);leaf.rotation.set(-.45,Math.PI/2*i,i%2?-.8:.8);leaf.castShadow=leaf.receiveShadow=true;plant.add(leaf);}
  const rootMat=new T.MeshStandardMaterial({color:0xc7b08a,roughness:1});
  for(let i=0;i<14;i++){const a=i*2.399,r=.2+rand(i)*.46;const end=new T.Vector3(Math.cos(a)*r,-.25-rand(i+10)*.38,Math.sin(a)*r);const curve=new T.CatmullRomCurve3([new T.Vector3(0,0,0),new T.Vector3(Math.cos(a)*.08,-.12,Math.sin(a)*.08),new T.Vector3(end.x*.55,end.y*.65,end.z*.55),end]);roots.add(new T.Mesh(new T.TubeGeometry(curve,16,.005+rand(i)*.004,5,false),rootMat));}
  const soilMat=new T.MeshStandardMaterial({map:textures.soil,normalMap:textures.normal,normalScale:new T.Vector2(.45,.45),color:0x93867a,roughness:1,side:T.DoubleSide});
  const wall=new T.Mesh(new T.CylinderGeometry(.835,.835,.79,60,1,true),soilMat);wall.position.y=-.4;roots.add(wall);
- const floor=new T.Mesh(new T.CircleGeometry(.86,60),soilMat);floor.rotation.x=-Math.PI/2;floor.position.y=-.795;roots.add(floor);
+ const floor=new T.Mesh(new T.CircleGeometry(.86,60),soilMat);floor.rotation.x=-Math.PI/2;floor.position.y=-.795;floor.receiveShadow=true;roots.add(floor);
  const soilSurface=new T.Mesh(new T.CircleGeometry(1.4,64),soilMat.clone());soilSurface.rotation.x=-Math.PI/2;soilSurface.position.y=-.005;soilSurface.receiveShadow=true;plant.add(soilSurface);
  // A cutaway only when the user selects the underground model.
  const cutMaterials=[];
@@ -83,7 +83,10 @@ async function build(host){
   // The flower stands in the planting bed, beside the centre of the avenue.
   origin.position.x=6.5;
   const loader=new T.TextureLoader(),[soil,normal,leaf]=await Promise.all([loader.loadAsync(asset('soil_forest.webp')),loader.loadAsync(asset('sand_grit_n.webp')),loader.loadAsync(asset('leaf_one.webp'))]);
-  soil.colorSpace=leaf.colorSpace=T.SRGBColorSpace;soil.wrapS=soil.wrapT=T.RepeatWrapping;soil.repeat.set(1.5,1.5);flower=makeFlower(scene,{soil,normal,leaf});
+  soil.colorSpace=leaf.colorSpace=T.SRGBColorSpace;normal.colorSpace=T.NoColorSpace;
+  // Colour and normal detail must use the same repeat and UV scale.
+  for(const texture of [soil,normal]){texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(1.5,1.5);texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());}
+  flower=makeFlower(scene,{soil,normal,leaf});
  }
  renderer.shadowMap.needsUpdate=true;
  let width=1,height=1,view='human',yaw=0,zoom=1,drag=null,visible=false,paused=reduced.matches,contextAlive=true,time=0,last=0,previous=0,raf=0,frames=0;

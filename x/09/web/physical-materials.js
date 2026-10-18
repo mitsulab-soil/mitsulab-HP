@@ -2,6 +2,7 @@
    初回描画の後だけ処理する任意細部。既存CC0テクスチャを再利用。
    石はmitsulab自作の仮想の道具で、現地の物体や観測機器の表示ではない。 */
 import * as THREE from 'three';
+import {environmentFrame} from './environment-realism.js';
 const seen = new WeakSet(), processed = new WeakSet(), replacements = new WeakMap();
 let core, firstAt = 0, nextCheck = 0, stone, stoneWanted = false, stonePromise;
 const state = { materials: 0, groundDetails: 0, stone: '未読込', observation: '観測値なし・模式', era: null };
@@ -89,6 +90,7 @@ window.__physicalTool = {
 };
 window.__physicalFrame = (_r, scene, _camera, _body) => {
   core = window.__core;
+  environmentFrame(core);
   if (!core || !window.__entryFirstFrameAt) return;
   const now = performance.now();
   if (!firstAt) { firstAt = now; return; }

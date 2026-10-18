@@ -1939,11 +1939,11 @@ setInterval(()=>{
   if(document.hidden || groundUpgradeBusy || !groundUpgrades.length || !window.__entryFirstFrameAt || performance.now()-window.__entryFirstFrameAt<1200)return;
   const q=groundUpgrades.shift();if(q.t.source!==q.source)return;groundUpgradeBusy=true;
   const image=new Image();image.decoding="async";image.fetchPriority="low";
-  image.onload=async()=>{try{await image.decode();}catch{}if(q.t.source===q.source){const source=new THREE.Source(image),shared=[q.t,...Object.values(rtexC).filter(t=>t.source===q.source)];for(const t of shared){t.dispose();t.source=source;t.needsUpdate=true;}}groundUpgradeBusy=false;};
+  image.onload=async()=>{try{await image.decode();}catch{}if(q.t.source===q.source){const shared=[q.t,...Object.values(rtexC).filter(t=>t.source===q.source)];if(window.__environmentRealism)await __environmentRealism.replaceTextureSources(shared,image);else{const source=new THREE.Source(image);for(const t of shared){t.dispose();t.source=source;t.needsUpdate=true;}}}groundUpgradeBusy=false;};
   image.onerror=()=>{groundUpgradeBusy=false;};image.src=q.url;
 },1400);
 const tex = {};
-for (const k of ["photo"]) { tex[k] = groundTexture((LITE || window.__photoHold) && isUrl(B64.photo) ? "web/tex_photo_s.jpg" : imgURL(B64[k], "image/jpeg")); if (!LITE && window.__photoHold && isUrl(B64.photo)) window.__photoUp = () => { window.__photoUp = null;   /* 第9回：大きい空中写真（2304×4096）は、ほかの手を止めないよう、画像の復号を別の糸で（createImageBitmap）、GPU への送りは手の空いたときに */   fetch(imgURL(B64.photo, "image/jpeg")).then(r => r.blob()).then(b => createImageBitmap(b, { imageOrientation: "flipY" })).then(bm => { (window.requestIdleCallback ?? (f => setTimeout(f, 50)))(() => { tex.photo.dispose(); tex.photo.source = new THREE.Source(bm); tex.photo.flipY = false; tex.photo.needsUpdate = true; try { renderer.initTexture(tex.photo); } catch {} }); })     .catch(() => TL.load(imgURL(B64.photo, "image/jpeg"), t => { tex.photo.dispose(); tex.photo.source = new THREE.Source(t.image); tex.photo.needsUpdate = true; })); }; tex[k].colorSpace = THREE.SRGBColorSpace; tex[k].flipY = false; tex[k].anisotropy = 16; }
+for (const k of ["photo"]) { tex[k] = groundTexture((LITE || window.__photoHold) && isUrl(B64.photo) ? "web/tex_photo_s.jpg" : imgURL(B64[k], "image/jpeg")); if (!LITE && window.__photoHold && isUrl(B64.photo)) window.__photoUp = () => { window.__photoUp = null;   /* 第9回：大きい空中写真（2304×4096）は、ほかの手を止めないよう、画像の復号を別の糸で（createImageBitmap）、GPU への送りは手の空いたときに */   fetch(imgURL(B64.photo, "image/jpeg")).then(r => r.blob()).then(b => createImageBitmap(b, { imageOrientation: "flipY" })).then(bm => { (window.requestIdleCallback ?? (f => setTimeout(f, 50)))(async () => { if(window.__environmentRealism)await __environmentRealism.replaceTextureSources([tex.photo],bm,{flipY:false});else{tex.photo.dispose();tex.photo.source=new THREE.Source(bm);tex.photo.flipY=false;tex.photo.needsUpdate=true;try{renderer.initTexture(tex.photo);}catch{}} }); })     .catch(() => TL.load(imgURL(B64.photo, "image/jpeg"), t => { tex.photo.dispose(); tex.photo.source = new THREE.Source(t.image); tex.photo.needsUpdate = true; })); }; tex[k].colorSpace = THREE.SRGBColorSpace; tex[k].flipY = false; tex[k].anisotropy = 16; }
 let terrain = null; tex.relief = tex.photo;
 const det = groundTexture(imgURL(B64.detail, "image/jpeg")); det.wrapS = det.wrapT = THREE.RepeatWrapping; det.anisotropy = 8;
 const rep = (t, srgb = true) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
@@ -2014,7 +2014,7 @@ function roadTextureLoad(q, hi = false) {
   q.state = "loading"; if (hi) q.highTried = true; roadTextureBusy++;
   const image = new Image(); image.decoding = "async"; image.fetchPriority = hi ? "low" : "auto";
   const finish = ok => { q.state = ok ? (hi ? "high" : "ready") : (hi ? "ready" : "failed"); roadTextureBusy--; };
-  image.onload = async () => { try { await image.decode(); } catch {} q.t.dispose(); q.t.source = new THREE.Source(image); q.t.needsUpdate = true; finish(true); };
+  image.onload = async () => { try { await image.decode(); } catch {} if(window.__environmentRealism)await __environmentRealism.replaceTextureSources([q.t],image);else{q.t.dispose();q.t.source=new THREE.Source(image);q.t.needsUpdate=true;}finish(true); };
   image.onerror = () => { console.warn("舗装の細部を読めませんでした。下地で続けます。",q.src); finish(false); };
   image.src = hi ? "web/tex_road2k_" + q.name + ".webp" : q.src;
 }
@@ -2048,8 +2048,7 @@ async function struct2k() {
   const nm=[...nearby].find(n=>!structDetailState.has(n));if(!nm)return;
   structDetailState.add(nm);structDetailBusy=true;
   const image=new Image();image.decoding="async";image.fetchPriority="low";
-  image.onload=async()=>{try{await image.decode();}catch{} const replacements=new Map();
-    structures.traverse(o=>{for(const mat of [].concat(o.material??[]))for(const slot of slots){const old=mat[slot];if(old?.name!==nm)continue;let next=replacements.get(old);if(!next){next=old.clone();next.name=nm+"_2k";next.source=new THREE.Source(image);next.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());next.needsUpdate=true;replacements.set(old,next);}mat[slot]=next;}});structDetailBusy=false;};
+  image.onload=async()=>{try{await image.decode();}catch{} if(window.__environmentRealism){const targets=new Set();structures.traverse(o=>{for(const mat of [].concat(o.material??[]))for(const slot of slots)if(mat[slot]?.name===nm)targets.add(mat[slot]);});await __environmentRealism.replaceTextureSources([...targets],image);for(const t of targets)t.name=nm+"_2k";}else{const replacements=new Map();structures.traverse(o=>{for(const mat of [].concat(o.material??[]))for(const slot of slots){const old=mat[slot];if(old?.name!==nm)continue;let next=replacements.get(old);if(!next){next=old.clone();next.name=nm+"_2k";next.source=new THREE.Source(image);next.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());next.needsUpdate=true;replacements.set(old,next);}mat[slot]=next;}});}structDetailBusy=false;};
   image.onerror=()=>{structDetailBusy=false;};image.src="web/tex2k_"+nm+".webp";
 }
 setInterval(struct2k,3000);
@@ -2650,7 +2649,7 @@ bMat.onBeforeCompile = sh => {
       }
       diffuseColor.rgb *= c;`)
     .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(bRough, .2, win);")
-    .replace("#include <fog_fragment>", "#include <fog_fragment>\n { float dz = distance(vW, cameraPosition); float k = uEyeHz * (1.0 - step(.5, uMach)) * (.42 + .46 * smoothstep(8.0, 45.0, dz));\n      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.47, .53, .47), k); }");
+    .replace("#include <fog_fragment>", "#include <fog_fragment>\n { float dz = distance(vW, cameraPosition); float k = uEyeHz * (1.0 - step(.5, uMach)) * (.18 * smoothstep(40.0, 180.0, dz));\n      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.47, .53, .47), k); }");
 };
 /* 第7回（2026-10-05・軽くする）：建物（PLATEAU・約 62 万三角形の 1 枚）を 240 m 四方の区画に分ける。頂点の配列は共有し（GPU へ送るのは一度）、区画ごとに三角形の番号と境界球を持つ。
    画面の外の区画は描かない（視錐台の外）。目の高さでは、霞が消しきる距離より先の区画も描かない。見た目は変わらない */
@@ -3697,7 +3696,7 @@ async function buildNear(site) {
     await yieldUI();
     const ao = buildAO(site, marks, sd);
     /* 第7回：材質のプログラムを、描く前に（並行して）組んでおき、接地の影の絵も先に GPU へ送る（はじめて描くこまで止まらない） */
-    try { await slice(); renderer.initTexture(ao.tex); await renderer.compileAsync(g, camera, scene); } catch {}
+    try { await slice(); if(window.__environmentRealism){await __environmentRealism.warmTextures([ao.tex]);await __environmentRealism.warmGroup(g);}else{renderer.initTexture(ao.tex);await renderer.compileAsync(g,camera,scene);} } catch {}
     await slice();
     nearG.add(g); NEAR_ON.set(site.id, { g, site, ao, floor: floor_c, wet });
   } catch (e) { console.warn("近景を組めなかった：" + site.id, e); }
@@ -3768,7 +3767,7 @@ function shadowGate() { if (!renderer.shadowMap.enabled || SHU.all) return; rend
   const sp = sun.position, mv = SHU.p ? Math.hypot(sp.x - SHU.p.x, sp.y - SHU.p.y, sp.z - SHU.p.z) : 1e9;
   if (SHU.n % 2 === 0 || mv > .15) { renderer.shadowMap.needsUpdate = true; (SHU.p ||= sp.clone()).copy(sp); } }
 let loadingDrawAt=0;
-renderer.setAnimationLoop(now => { if (document.hidden) { PR.last=0; return; } const covered=document.getElementById("poster")?.classList.contains("off")===false; if(covered && now-loadingDrawAt<160)return;loadingDrawAt=now; if (!isEye()) controls.update(); dragEase(now); frame(); shadowGate(); window.__overviewFrame?.(); window.__qualiumFrame?.(scene,camera); if (!window.__lensRender?.(renderer, scene, camera)) renderer.render(scene, camera);   /* 2026-10-13 夜：身体（環世界）の色の写し方（walk_umwelt） */ labels.render(scene, camera); window.__entryMapRender?.(renderer);
+renderer.setAnimationLoop(now => { if (document.hidden) { PR.last=0; return; } const covered=document.getElementById("poster")?.classList.contains("off")===false; if(covered && now-loadingDrawAt<160)return;loadingDrawAt=now; if (!isEye()) controls.update(); dragEase(now); frame(); shadowGate(); window.__overviewFrame?.(); window.__qualiumFrame?.(scene,camera); window.__landmarkFrame?.(scene,camera); if (!window.__lensRender?.(renderer, scene, camera)) renderer.render(scene, camera);   /* 2026-10-13 夜：身体（環世界）の色の写し方（walk_umwelt） */ labels.render(scene, camera); window.__entryMapRender?.(renderer);
   // The poster yields only after the ground and Aoi have actually been drawn.
   if(window.__entryAwaitReveal && (window.__aoi?.aoi.visible || window.__entryAoiUnavailable)) {
     window.__entryAwaitReveal=false;window.__entryFirstFrameAt=performance.now();
@@ -5566,21 +5565,28 @@ function aoiTarget() {   /* 道の座標での目標：見る人の、歩く向�
   A.stroll = false;
   /* 止まって話すとき（画面で歩く）：話しはじめに一度だけ、見ている向きの前（2.4 m 先・少し脇）に立つ場所を決め、話のあいだはそこに立つ。
      見る人が歩き出すか、話が終わったら解く。見回しで少し向きが変わっても追いかけない（画面の外へ大きく外れたときだけ決め直す） */
-  if (FREE() && speaking && speaking.id !== "_closing" && !MV.goal && Math.abs(MV.v) < .05 && C.camera) {
-    const cp = C.camera.position, yw = camYaw ?? C.yaw, fx = -Math.sin(yw), fz = -Math.cos(yw), sd = A.side || 1, ph = innerWidth <= 820;
-    const vis = (() => { if (!A.standP) return false; const w = toWorld(A.standP.d, A.standP.s), dx = w.x - cp.x, dz = w.z - cp.z, fwd = dx * fx + dz * fz, lat = Math.abs(dx * fz - dz * fx); return fwd > 1 && lat / fwd < (ph ? .32 : .55); })();
-    /* 2026-10-10：立つ所の前の距離を、歩くときと同じ（F_AHEAD）に。止まると遠くへ下がって小さく見えていた（2.6 m） */
-    if (!A.standP || A.standSeg !== speaking.id || !vis) { const L = ph ? .32 : .62, FA = companionAhead(), gx = cp.x + fx * FA - fz * sd * L, gz = cp.z + fz * FA + fx * sd * L, pr = project(gx, gz); A.standP = { d: pr.d, s: pr.s }; A.standSeg = speaking.id; }
-    td = A.standP.d; ts = A.standP.s; A.standing = true;
-  } else { A.standP = null; A.standing = false; }
+  // 2026-10-18: looking around or a new subtitle must not restart walking.
+  // Wait for a real stop, then keep one resting place until the visitor walks again.
+  const eyeNow=window.__eyeH??1.6;
+  const visitorMoving=mode==='sim' ? !!MV.goal||Math.abs(MV.v)>.08||Math.abs(U.v)>.1 : Math.abs(svNow)>.22&&Math.abs(svFast)>.22;
+  const changedBody=A.restAnchor&&Math.abs(A.restAnchor.eye-eyeNow)>.35;
+  if(visitorMoving||changedBody){A.idleFor=0;A.restAnchor=null;}
+  else A.idleFor=(A.idleFor||0)+(A.dtL??.016);
+  if(A.restAnchor&&Math.hypot(d-A.restAnchor.userD,U.s-A.restAnchor.userS)>.7){A.restAnchor=null;A.idleFor=0;}
+  A.standP=null;A.standing=!visitorMoving&&(A.idleFor||0)>.55;
   const [b0, b1] = bandNear(td, 10, aoiBand), [u0, u1] = bandNear(td, 10, userBand);
   const lo = Math.max(b0, u0) + .45, hi = Math.min(b1, u1) - .45;   /* 植え込みの縁に立たない（帯の中へ 0.45 m） */
   if (o && lo <= hi && (ts < lo || ts > hi)) { const alt = ts - (A.side || 1) * 2.6; if (alt >= lo && alt <= hi) { ts = alt; } }   /* 脇が帯の外なら、反対の脇へ */
   ts = lo > hi ? (b0 + b1) / 2 : clamp(ts, lo, hi);
+  if(A.standing){
+    if(!A.restAnchor)A.restAnchor={d:td,s:ts,userD:d,userS:U.s,eye:eyeNow};
+    td=A.restAnchor.d;ts=A.restAnchor.s;
+  }
   return { td, ts };
 }
 function aoiJump() {
   if (!vrm || NO3D) return;
+  A.restAnchor=null;A.idleFor=0;
   A.side = viewDir(); A.sideDir = null; A.pd = d; A.us = U.s; const t = aoiTarget(); A.pd = t.td; A.ps = t.ts; A.vd = 0; A.vs = 0; A.sp = 0; A.gy = null;
   A.yaw = faceYaw(); A.hide = .25; A.prevW = null; A.prevYaw = null; A.settle = true;
   AG.clear(); if (AM) { const w = toWorld(A.pd, A.ps); AM.place(w.x, w.z, A.yaw); }
@@ -5653,6 +5659,8 @@ function aoiTick(dt) {
       A.stat.pushed = (A.stat.pushed ?? 0) + 1; } }
   { const ddp = A.pd - _pd0, dsp = A.ps - _ps0, m = Math.hypot(ddp, dsp), lim = 1.35 * dt * Math.max(1, TS);   /* 押し出しを足しても、こまあたり毎秒 1.35 m まで（跳ばない） */
     if (m > lim && m < 8) { const k = lim / m; A.pd = _pd0 + ddp * k; A.ps = _ps0 + dsp * k; } }
+  // A small dead zone prevents residual spring motion from triggering stepping in place.
+  if(A.standing&&Math.hypot(t.td-A.pd,t.ts-A.ps)<.025&&Math.hypot(A.vd,A.vs)<.06){A.pd=t.td;A.ps=t.ts;A.vd=0;A.vs=0;}
   const wp = toWorld(A.pd, A.ps);
   A.gy = aoiGround(wp.x, wp.z);
   const sp = Math.hypot(A.vd, A.vs); A.sp += (sp - A.sp) * ease(dt, 5);
@@ -6376,7 +6384,7 @@ function zBuild(key) {
       const p = toWorld(dd, edge + side * (off + dep / 2)), nx = -p.fz * side, nz = p.fx * side, y0 = C.groundY(p.x, p.z); if (y0 == null) continue;
       const put = (y, sx, sy, sz) => { o3.position.set(p.x, y, p.z); o3.rotation.set(0, Math.atan2(nx, nz), 0); o3.scale.set(sx, sy, sz); o3.updateMatrix(); return o3.matrix.clone(); };
       H.push(put(y0 - .3, w, eave + .3, dep)); HC.push(zRnd() < .35 ? ZCOL.plaster[H.length % 2] : ZCOL.wood[Math.floor(zRnd() * 4)]); RF.push(put(y0 + eave, w, dep * .38, dep)); RC.push(ZCOL.roof[Math.floor(zRnd() * 3)]); }
-    if (H.length) { const hg = ERA.houseGeo(); g.add(zInst(hg.wall, zm[0], H, HC), zInst(hg.roof, zm[1], RF, RC)); } }
+    if (H.length) { const hg = ERA.houseGeo(),wall=zInst(hg.wall, zm[0], H, HC),roof=zInst(hg.roof, zm[1], RF, RC);wall.userData.eraHouse="wall";roof.userData.eraHouse="roof";g.add(wall,roof); } }
   /* 松と杉（明治の絵・昭和初期の記録の模式）：今の並木の列の位置に、左右べつべつ・不揃いの間隔で（鏡写しにしない）。昭和は杉だけ */
   if (sc.trees) { const tmat = zMat(uW, false); tmat.vertexColors = true; mats.push(tmat);
     const tp = ERA.sandoPines(z.dd - 170, z.dd + 170, tmat, 1882 + Math.round(z.dd), sc.trees === "sugi" ? 1 : .5); if (tp.meshes.length) g.add(...tp.meshes); }
@@ -6399,10 +6407,12 @@ function zBuild(key) {
   const shd = new THREE.InstancedMesh(zShadowGeo(), zShadowMat("in", uW), P.length); shd.frustumCulled = false; shd.userData.slSkip = true; shd.instanceMatrix.setUsage(THREE.DynamicDrawUsage); g.add(shd); mats.push(shd.material);
   const G = { key, g, uW, uT, mats, P, PI, heads, z, t: 0, compiled: false, shd };
   C.scene.add(g); ZN.grp[key] = G;
+  // Wait for actual proximity/fade-in: speculative zone construction does not load era detail.
+  const detailTrigger=g.children.find(o=>o.isMesh);if(detailTrigger){const beforeDetail=detailTrigger.onBeforeRender;detailTrigger.onBeforeRender=function(...args){beforeDetail?.apply(this,args);ERA.refineAuto(G);};}
   g.visible = true; Promise.resolve(C.renderer.compileAsync?.(g, C.camera, C.scene)).catch(() => {}).finally(() => { G.compiled = true; g.visible = uW.value > .003; });
   return G;
 }
-function zDispose(key) { const G = ZN.grp[key]; if (!G || !G.compiled) return;   /* 2026-10-13：組み終わる前に捨てると、three の checkMaterialsReady が毎こまエラー（isReady）を出していた */C.scene.remove(G.g); G.g.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.dispose?.(); } }); for (const m of G.mats) m.dispose(); delete ZN.grp[key]; }
+function zDispose(key) { const G = ZN.grp[key]; if (!G || !G.compiled) return;   /* 2026-10-13：組み終わる前に捨てると、three の checkMaterialsReady が毎こまエラー（isReady）を出していた */C.scene.remove(G.g); G.g.traverse(o => { if (o.isMesh) { if(!o.geometry.userData.eraShared)o.geometry.dispose(); o.dispose?.(); } }); for (const m of G.mats) m.dispose(); delete ZN.grp[key]; }
 const _zm = { m: null, q: null };
 function zPeople(G, dt) {   /* 参道の上を、ゾーンの中心の前後 75 m で行き来する。碧と見る人のすぐそば（2.2 m）には出さない */
   G.t += dt; G.si = 0; if (G.uT) G.uT.value = G.t; const m4 = _zm.m ||= new THREE.Matrix4(), q = _zm.q ||= new THREE.Quaternion(), ax = new THREE.Vector3(0, 1, 0), cp = C.camera.position, ap = aoi?.position;
@@ -6571,10 +6581,10 @@ function actTick(dt) {
   ACT.near = near;
   /* 近づいて少し立ち止まると、その時代へ（画面で歩く＝速さ 0.3 m/秒未満が 1 秒。現地で歩く＝前からの輪の近さのまま） */
   const slow = mode === "sim" ? Math.abs(MV.v) < .3 && !MV.goal : still.since != null;
-  if (near && slow && !ACT.f && ACT.sup !== near.z && ZN.k < .2 && !speaking?.id?.startsWith("_slip_")) {
+  if (!JOURNEY.manual && near && slow && !ACT.f && ACT.sup !== near.z && ZN.k < .2 && !speaking?.id?.startsWith("_slip_")) {
     /* 2026-10-13 テストプレー：知らないまま「時の層」に入っていた。はじめに一言知らせ、待ちを 1 秒→2.5 秒に（ボタンが満ちていく） */
     if (ACT.still === 0 && ACT.hinted !== near.id) { ACT.hinted = near.id; toast(`立ち止まると、${ACT_NM[near.era].replace(/へ$/, "")}の景色へ`); }
-    ACT.still += dt * Math.max(1, TS); if (ACT.still > ACT_WAIT) {JOURNEY.manual=null;actGo(near, "near");} } else if (!near || !slow) ACT.still = 0;
+    ACT.still += dt * Math.max(1, TS); if (ACT.still > ACT_WAIT) {JOURNEY.manual=null;actGo(near, "near");} } else if (JOURNEY.manual || !near || !slow) ACT.still = 0;
   /* ボタン：時代の中＝「いまへ戻る」／触れられる物のそば＝「○○のころへ」 */
   const b = $("actBtn"), inEra = ZN.k > .3 && ZN.cur && (ACT.f || ZN.k > .5);
   if (!on || farMode) { if (!b.hidden) b.hidden = true; return; }
@@ -6961,9 +6971,11 @@ window.__talk = { OT, otoNext, otoWhere, ACT, TALKCUT, SUBLOG, subPlan, actGo, a
        間隔は不揃いに（鏡写しにしない）。本数・樹種の割合は分からない（模式）。構造物は、建った年が嘉永 6 年より後のものを消す。
    ・縄文（後期・約 4000 年前）：寿能泥炭層遺跡（大宮区高鼻町・縄文後期の土器）＝台地の縁の低い所は湿地。台地は森（樹種は決めない）。今の低い所（標高 8.6 m 以下）に水面。
        道はまだ無い。歩く所だけ木を置かない。
-   ・未来（想像）：市の基本方針「最終的には歩行者専用の道とする」と、二の鳥居〜三の鳥居の植樹（切株の根元に、カシ・コナラ・クスノキなどの苗木）から。
+   ・未来（2026-10-18 本人指定）：Qualium実現後の創作。木・土・人の暮らしとAIの知・ロボットの手がつながり、情報が現実の道具へ溶ける場。市の整備計画の再現ではない。
        若木は、今の並木の列の、木と木のあいだが空いた所（並木敷き）だけに置く。道（歩ける帯）・交差点・辻の上には置かない。 */
 const ERA = (() => {
+  let detailModule=null,detailPromise=null;
+  const loadDetail=()=>detailPromise||=(import(new URL("web/era-realism.js?v=20261018-era",document.baseURI).href).then(m=>detailModule=m));
   const YEAR = { jomon: -2000, edo: 1853, heisei: 2009, now: 2026, future: 2070 };
   /* 旧中山道（OSM way 229374360・902201042・229374361・22787637・770781584・617420258・908969484 をつないで 8 m ごとに間引いた線。x＝東・z＝南・m）。
      12 番目の点が一の鳥居の辻（参道の南の端）。北は 3D の範囲の外まで */
@@ -6973,12 +6985,12 @@ const ERA = (() => {
   function nkAt(s) { let i = 1; while (i < NAKA.length - 1 && NK_ACC[i] < s) i++; const a = NAKA[i - 1], b = NAKA[i], L = NK_ACC[i] - NK_ACC[i - 1] || 1, t = Math.min(1, Math.max(0, (s - NK_ACC[i - 1]) / L));
     const fx = (b[0] - a[0]) / L, fz = (b[1] - a[1]) / L; return { x: a[0] + (b[0] - a[0]) * t, z: a[1] + (b[1] - a[1]) * t, fx, fz }; }
   const SRC = {
-    jomon: "出どころ：寿能泥炭層遺跡（縄文後期・木材はクリが多い）・国土地理院の標高（模式）",
-    edo: "出どころ：『氷川参道のまちづくり』・『江戸名所図会』（並木のまわりの畑）・迅速測図・OpenStreetMap（家と畑の区画は模式）",
+    jomon: "史料：寿能泥炭層遺跡の低湿地・出土木材。森の割合・当時の水位と個々の形状は推定。水位8.6mは現在地形上の表示値",
+    edo: "史料：『氷川参道のまちづくり』・『江戸名所図会』・迅速測図・OSM。配置の背景を参照し、個々の家の材・建具・樹形と畑の区画は推定",
     heisei: "出どころ：構造物の年（神社の由緒ほか）",
     now: "出どころ：国土地理院・OpenStreetMap・樹木調査（令和 4 年）",
-    future: "想像：市の発表（南区間を歩行者専用の道へ・車止め）＝白線を消し両端に車止め／植樹（カシ・コナラ・クスノキ）＝空いた所に若木" };
-  const NAME = { jomon: "縄文（後期・約 4000 年前）", edo: "江戸（嘉永のころ）", heisei: "平成（2009 年ごろ）", now: "現代", future: "未来（想像）" };
+    future: "未来創作：Qualiumが実現し、AIの知とロボットの手が暮らしと土の手入れにつながる参道。実測値・市の計画の再現ではない" };
+  const NAME = { jomon: "縄文（後期・約 4000 年前）", edo: "江戸（嘉永のころ）", heisei: "平成（2009 年ごろ）", now: "現代", future: "未来（Qualiumの創作）" };
   const rng = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const gY = (x, z) => C.groundY(x, z);
   /* 足もとの高さ：家の四隅・木の根もとのいちばん低い所（坂でも宙に浮かない） */
@@ -7051,6 +7063,8 @@ const ERA = (() => {
     if (FR.length) { const fm = zInst(G.wall, mats[0], FR, FC); fm.userData.up = true; out.push(fm); }
     for (const m of out.slice(1)) m.userData.up = true;   /* 屋根と庇は、壁の上（宙に浮いた物の確かめから外す） */
     for (const m of out) m.castShadow = true;
+    if(H.length){out[0].userData.eraHouse="wall";out[1].userData.eraHouse="roof";}
+    let pi=2;if(PE.length)out[pi++].userData.eraHouse="awning";if(FR.length)out[pi].userData.eraHouse="facade";
     return { meshes: out, n: H.length }; }
   /* 参道の松と杉：dd0..dd1。今の列の横の位置に、左右べつべつ、不揃いの間隔（3.5〜9 m・ところどころ抜け） */
   function sandoPines(dd0, dd1, mat, seed = 1882, sugiK = .5) {
@@ -7062,7 +7076,7 @@ const ERA = (() => {
     const SG = GEO.sg ||= [zSugiGeo(20), zSugiGeo(23), zSugiGeo(18)], MG = GEO.mg ||= [zMatsuGeo(9), zMatsuGeo(11), zMatsuGeo(8.5)], o3 = new THREE.Object3D(), out = [];
     for (const [list, geos] of [[rowsS, SG], [rowsM, MG]]) { const by = geos.map(() => []);
       for (const [x, y, z, q] of list) { const sc = .85 + r() * .3; o3.position.set(x, y - .15, z); o3.rotation.set(0, r() * 6.28, 0); o3.scale.set(sc, sc * (.92 + r() * .16), sc); o3.updateMatrix(); by[Math.floor(q * geos.length)].push(o3.matrix.clone()); }
-      geos.forEach((g, k) => { if (by[k].length) { const im = zInst(g, mat, by[k], by[k].map(() => [0xffffff, 0xf0f4ec, 0xe6ece0][Math.floor(r() * 3)])); im.castShadow = true; out.push(im); } }); }
+      geos.forEach((g, k) => { if (by[k].length) { const im = zInst(g, mat, by[k], by[k].map(() => [0xffffff, 0xf0f4ec, 0xe6ece0][Math.floor(r() * 3)])); im.castShadow = true;g.computeBoundingBox();im.userData.eraTree={kind:list===rowsS?"sugi":"matsu",height:g.boundingBox.max.y,seed:211+k*13+(list===rowsS?0:70)};out.push(im); } }); }
     return { meshes: out, n: rowsS.length + rowsM.length }; }
   /* 土の道：中心線に沿う帯（参道＝今の歩ける帯の幅・中山道＝半幅 3.6 m）。地面から 4 cm 上 */
   function ribbon(pts, mat, col, KK = null) {   /* pts：[[x, z, 半幅, fx, fz], …] */
@@ -7110,7 +7124,7 @@ const ERA = (() => {
   /* ---- 手動の時代（時を越える）の場面。歩く人のまわりに組み、140 m 動いたら組み直す */
   let G = null, gEra = null, gAt = null, gInfo = {};
   const uIn = { value: 1 };
-  function dispose() { if (!G) return; C.scene.remove(G); G.traverse(o => { if (o.isMesh) { o.geometry !== GEO.house?.wall && o.geometry !== GEO.house?.roof && o.geometry !== GEO.house?.hisashi && !(GEO.sg || []).includes(o.geometry) && !(GEO.mg || []).includes(o.geometry) && o.geometry !== GEO.broad && !(GEO.jomon || []).includes(o.geometry) && o.geometry !== GEO.young && o.geometry.dispose(); o.dispose?.(); } }); G = null; gInfo = {}; }
+  function dispose() { if (!G) return; C.scene.remove(G); G.traverse(o => { if (o.isMesh) { !o.geometry.userData.eraShared && o.geometry !== GEO.house?.wall && o.geometry !== GEO.house?.roof && o.geometry !== GEO.house?.hisashi && !(GEO.sg || []).includes(o.geometry) && !(GEO.mg || []).includes(o.geometry) && o.geometry !== GEO.broad && !(GEO.jomon || []).includes(o.geometry) && o.geometry !== GEO.young && o.geometry.dispose(); o.dispose?.(); } }); G = null; gInfo = {}; }
   function build(id, w) {
     const g = new THREE.Group(); g.name = "era_manual_" + id; g.userData.slSkip = true; const info = { era: id };
     const mIn = (flat = true) => { const m = zMat(uIn, flat); return m; };
@@ -7134,7 +7148,7 @@ const ERA = (() => {
         const q = r(), kind = q < .42 ? (r() < .5 ? 0 : 1) : q < .72 ? 2 : q < .86 ? 3 : 4;   /* クリ 4 割・広葉樹 3 割・ヤマグワほどの小さな木 1.5 割・イヌガヤ 1.5 割（模式） */
         const H = kind < 2 ? 12 + r() * 8 : kind === 2 ? 13 + r() * 9 : kind === 3 ? 5 + r() * 4 : 2.5 + r() * 3.5, k = kind < 2 ? 1.05 + r() * .3 : .8 + r() * .35;
         o3.position.set(x, y - .2, z); o3.rotation.set(0, r() * 6.28, 0); o3.scale.set(H * k, H, H * k); o3.updateMatrix(); LS[kind].push(o3.matrix.clone()); CS[kind].push([0xffffff, 0xe8f0e0, 0xf4efe2, 0xdfe8d4][Math.floor(r() * 4)]); }
-      projI = keep; const mt = mIn(false); mt.vertexColors = true; JG.forEach((geo, k) => { if (!LS[k].length) return; const im = zInst(geo, mt, LS[k], CS[k]); im.castShadow = true; g.add(im); }); info.trees = LS.reduce((a, v) => a + v.length, 0);
+      projI = keep; const mt = mIn(false); mt.vertexColors = true; JG.forEach((geo, k) => { if (!LS[k].length) return; const im = zInst(geo, mt, LS[k], CS[k]); im.castShadow = true;im.userData.eraTree={kind:k<2?"kuri":k===4?"inugaya":"broad",height:1,seed:401+k*23};g.add(im); }); info.trees = LS.reduce((a, v) => a + v.length, 0);
       /* 湿地の水面：10 m の格子で、地面が水面より低い所だけ */
       const P = []; const S2 = 10; for (let gx = -420; gx < 420; gx += S2) for (let gz = -420; gz < 420; gz += S2) { const x = w.x + gx, z = w.z + gz;
         const ys = [gY(x, z), gY(x + S2, z), gY(x, z + S2), gY(x + S2, z + S2)]; if (ys.some(v => v == null) || Math.min(...ys) >= WL) continue;
@@ -7154,7 +7168,7 @@ const ERA = (() => {
       if (L.length) { const mg = new THREE.SphereGeometry(1, 12, 5, 0, Math.PI * 2, 0, Math.PI / 2); mg.scale(1.5, .22, 1.5); mg.computeVertexNormals(); const MM = [], v3 = new THREE.Vector3(), q4 = new THREE.Matrix4();
         for (const m4 of L) { v3.setFromMatrixPosition(m4); const y = gY(v3.x, v3.z) ?? v3.y; q4.makeTranslation(v3.x, y - .05, v3.z); MM.push(q4.clone()); }
         const mm = zInst(mg, new THREE.MeshLambertMaterial({ color: 0xffffff }), MM, MM.map(() => [0x8a7356, 0x7d684c, 0x947c5c][Math.floor(r() * 3)])); mm.userData.up = true; g.add(mm); }
-      const mt = new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true }); const im = zInst(geo, mt, L, CL); im.castShadow = true; g.add(im); info.young = L.length; info.skipOnBand = onBand;
+      const mt = new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true }); const im = zInst(geo, mt, L, CL); im.castShadow = true;im.userData.eraTree={kind:"broad",height:1,seed:2077};g.add(im); info.young = L.length; info.skipOnBand = onBand;
     }
     gInfo = info; return g; }
   function ensure(id) {
@@ -7163,10 +7177,17 @@ const ERA = (() => {
     dispose(); gEra = id; gAt = w; gInfo = {era:id};
     if (!["edo", "jomon", "future"].includes(id)) return;
     G = build(id, w); G.visible = false; C.scene.add(G);
+    const detailGroup=G,center={x:w.x,z:w.z},atD=d;
+    loadDetail().then(m=>{if(!detailGroup.parent)return;m.refineEra(detailGroup,{id,center,d:atD,mobile:innerWidth<700,ground:gY,toWorld,row:rowS,patch:mat=>zPatch(mat,"in",uIn),project:(x,z)=>{const keep=projI;try{return project(x,z);}finally{projI=keep;}}}).catch(e=>console.warn("時代の細部",e));}).catch(e=>console.warn("時代の細部を読めませんでした",e));
     const g0 = G; Promise.resolve(C.renderer.compileAsync?.(g0, C.camera, C.scene)).catch(() => {}).finally(() => { if (G === g0) g0.visible = true; }); }
+  function refineAuto(record){
+    if(!started||!window.__entryFirstFrameAt||record.detailRequested||record.uW.value<.03||!record.g.parent)return;
+    record.detailRequested=true;const group=record.g,center={x:record.z.p.x,z:record.z.p.z};
+    loadDetail().then(m=>{if(!group.parent)return;return m.refineEra(group,{id:"historic",center,d:record.z.dd,mobile:innerWidth<700,ground:gY,toWorld,row:rowS,patch:mat=>zPatch(mat,"in",record.uW),project:(x,z)=>{const keep=projI;try{return project(x,z);}finally{projI=keep;}}});}).catch(e=>console.warn("自動の時代の細部",e));
+  }
   /* 毎こま（zTick から。手動の時代のときだけ）：見え方を決める */
   function tick() {
-    const id = JOURNEY.manual; if (!id || !ZN.ready) return; ensure(id);
+    const id = JOURNEY.manual; if (!id || !ZN.ready) return; ensure(id); detailModule?.frame(performance.now());
     const old = id === "edo" || id === "jomon", w = toWorld(d, U.s), U8 = ZN.U;
     U8.uSlC.value.set(w.x, 0, w.z); U8.uSlR.value = 580; U8.uSlK.value = old ? 1 : 0; U8.uSlT.value = old ? 1 : 0;
     for (const k in ZN.grp) { ZN.grp[k].uW.value = 0; ZN.grp[k].g.visible = false; }
@@ -7189,7 +7210,7 @@ const ERA = (() => {
   /* 享保の時の層は、並木の記録が無いので今のケヤキが残っていた。嘉永・明治と同じく、明治の絵と昭和初期の記録の松と杉の模式にそろえる（ケヤキの並木は昭和の室戸台風のあとと言われる） */
   if (R8.slips?.kyoho && !R8.slips.kyoho.trees) R8.slips.kyoho.trees = "matsu_sugi";
   { const st = document.createElement("style"); st.textContent = "#slipCap small{display:block;font-size:10.5px;letter-spacing:.02em;opacity:.86;white-space:normal;max-width:min(520px,calc(100vw - 40px));line-height:1.45;margin-top:1px}"; document.head.append(st); }
-  return { YEAR, NAME, SRC, houseGeo: () => (GEO.house ||= houseGeo()), get active() { return gEra != null; }, tick, leave, ensure, check, nakaHouses, sandoPines, sandoRibbon, nakaRibbon, rows, get info() { return gInfo; } };
+  return { YEAR, NAME, SRC, houseGeo: () => (GEO.house ||= houseGeo()), get active() { return gEra != null; }, tick, leave, ensure, refineAuto, check, nakaHouses, sandoPines, sandoRibbon, nakaRibbon, rows, get info() { return gInfo; } };
 })();
 
 /* ======================================================================== 2026-10-13 夜「80 点へ」（build_walk.py の 11b が、ERA のあとへ差し込む）
@@ -7375,7 +7396,7 @@ const BODY = (() => {
     chou:[['アオスジアゲハの受容器の研究','https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2016.00018/full'],['ナミアゲハの採餌色覚（種差に注意）','https://pmc.ncbi.nlm.nih.gov/articles/PMC2599938/'],['色コントラストと動きの実験','https://pubmed.ncbi.nlm.nih.gov/26490417/']]
   };
   let PERCEPTION_FACTORY=null,perceptionPass=null,REFERENCE_FACTORY=null,sharedReferences=null;
-  import(new URL("web/body/perception.js?v=20261018-senses",document.baseURI).href).then(m=>{PERCEPTION_FACTORY=m.createPerceptionPass;REFERENCE_FACTORY=m.createSharedReferences;}).catch(e=>console.warn("知覚表示",e));
+  import(new URL("web/body/perception.js?v=20261018-realism2",document.baseURI).href).then(m=>{PERCEPTION_FACTORY=m.createPerceptionPass;REFERENCE_FACTORY=m.createSharedReferences;}).catch(e=>console.warn("知覚表示",e));
   let cur = "hito", LENS = null, RT = null, qS = null, qC = null, qM = null; const sz = { w: 0, h: 0 };
   import(new URL("web/kit/umwelt_lens.js", document.baseURI).href).then(m => { LENS = m.LENS; }).catch(() => {});
   { const s = document.createElement("script"); s.src = "web/kit/why.js"; s.async = true; document.head.append(s); }
@@ -7712,7 +7733,7 @@ window.__life3d = LIFE3D;
 const JOURNEY={manual:null,found:new Set(),era:'now'};
 /* 2026-10-13 テストプレー：ボタンを時の順（縄文→江戸→平成→現代→未来）に。平成と現代の違いを一言 */
 /* 2026-10-13 時代の精度：一言に、その時代の場面が何をもとにしているかを（くわしくは era_scenes_20261013.js と 資料/調べたこと/時代の一次資料_2026-10-13.md） */
-const J_ERAS={jomon:['縄文','約 4000 年前（縄文後期）。台地は森、低い所は湿地。道はまだ無い（模式）'],edo:['江戸','嘉永のころ。土の参道に松と杉、西の中山道に宿場の家並み（模式）'],heisei:['平成','少し前の参道。人と車の通り方を、いまと比べる'],now:['現代','いま目の前にある物から'],future:['未来','数十年後の想像。車の通らない参道と、並木の空いた所に育つ若木']};
+const J_ERAS={jomon:['縄文','約 4000 年前（縄文後期）。台地は森、低い所は湿地。道はまだ無い（模式）'],edo:['江戸','嘉永のころ。土の参道に松と杉、西の中山道に宿場の家並み（模式）'],heisei:['平成','少し前の参道。人と車の通り方を、いまと比べる'],now:['現代','いま目の前にある物から'],future:['未来','Qualiumが実現した世界の創作。AIの知とロボットの手が、木・土・人の日常へ溶け込む']};
 /* 2026-10-13 本人「『時を越える』の時代を並べ直した、などの GUI の表示についてもこだわってください」：世界観と見た目 v1（§2・§3・§6・§8）の作法に。
    紺の薄い板・細い線一本・角 2px・明朝の名と等幅の年。年代の目盛り（記録のある時代は実線・想像は破線・縄文と江戸のあいだは目盛りを詰めた印）といまの位置。押せる高さ 44px 以上 */
 const jStyle=document.createElement('style');jStyle.textContent=`#journeyPanel{position:fixed;z-index:12;left:12px;top:112px;color:#eef5fb;font:400 12px/1.6 "Zen Kaku Gothic New","Hiragino Sans",sans-serif;--jl:rgba(150,170,240,.22);--ja:#5cc8e0;--ja2:#9bdcf0;--j3:#8f9bb4;--jmono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -7764,12 +7785,12 @@ const jStyle=document.createElement('style');jStyle.textContent=`#journeyPanel{p
 #toast.era{background:rgba(6,10,18,.84);color:#eef5fb;border-color:rgba(92,200,224,.45);border-radius:2px;font-family:var(--title);letter-spacing:.08em}
 @media(prefers-reduced-motion:reduce){#journeyPanel *,#actBtn,#actBtn::after{transition:none!important;animation:none!important}}
 .mk3 .sz svg .gl,.mk3 .sz svg .rp,.mk3 .sz svg .ro,.mk3 .sz svg .ri{display:none}`;document.head.append(jStyle);
-const J_YR={jomon:'約4000年前',edo:'1853',heisei:'2009',now:'2026 いま',future:'数十年後'};
-const J_SRC={jomon:'寿能泥炭層遺跡（芝川流域の低地・標高 約 6 m。縄文前期に一時海の下になり、そのあと泥炭のたまる低湿地に。縄文後期の土器が出る。埼玉県教育委員会『寿能泥炭層遺跡発掘調査報告書』1982・1984、『日本歴史地名大系』）。遺跡の木材は、杭・板にクリが多く、ヤマグワも、丸木弓にイヌガヤ（森林総合研究所 能城修一 2000）。森はクリの広い樹冠を多めに、小さな広葉樹とイヌガヤを混ぜた模式です（割合は決めていません）。今の低い所（約 8.6 m 以下）に水面を置いています。',
+const J_YR={jomon:'約4000年前',edo:'1853',heisei:'2009',now:'2026 いま',future:'Qualiumの未来'};
+const J_SRC={jomon:'寿能泥炭層遺跡（芝川流域の低地・標高 約 6 m。縄文前期に一時海の下になり、そのあと泥炭のたまる低湿地に。縄文後期の土器が出る。埼玉県教育委員会『寿能泥炭層遺跡発掘調査報告書』1982・1984、『日本歴史地名大系』）。遺跡の木材は、杭・板にクリが多く、ヤマグワも、丸木弓にイヌガヤ（森林総合研究所 能城修一 2000）。森はクリなどの広葉樹とイヌガヤを組み合わせた推定模型です。描画上の配合は当時の林相を実測した割合ではありません。現在の標高約8.6m以下に置く水面も表示用の仮定で、当時の水位ではありません。',
  edo:'さいたま市『氷川参道のまちづくり』（寛永 5 年に参道の西に新往還＝中山道、間口 12 m・奥行 115 m の短冊の町割り、天保 14 年に 319 軒。明治 15〜22 年ごろの絵に松や杉）、『江戸名所図会』巻之四「氷川宮大門先」（天保 7 年刊。「並木十八丁」の松と杉の並木と、まわりの畑）、迅速測図（明治 13〜19 年。中山道の家は間口も下がりもそろわず、裏に小さな建物。参道の家はまばら。農研機構農業環境研究部門）、OpenStreetMap（今の旧中山道の線）。屋根の材・道幅・木の本数は分かっていないので模式です。',
  heisei:'構造物の建った年（氷川神社の由緒ほか）。2009 年より後にできた物を消しています。',
  now:'国土地理院（地形・空中写真）・OpenStreetMap・PLATEAU・さいたま市『氷川参道の樹木調査』（令和 4 年）。',
- future:'さいたま市の基本方針「最終的には歩行者専用の道とする」、南区間と北区間の一部を歩行者専用にする予定（2026 年の発表）、二の鳥居〜三の鳥居の植樹（切株の根元にカシ・コナラ・クスノキなどの苗木）。並木の木と木のあいだが空いた所に若木（根もとに落ち葉とワラの盛り土）を置いた、数十年後の想像です。車の通らない道は、今も車を描いていないので、見た目は変えていません。'};
+ future:'Qualiumが実現した未来を描くmitsulabの創作です。木の記憶とAIの知が共有され、ロボットが土の手入れを人と担い、道具と情報が景観へ溶け込む場を想像しています。実際の観測値や行政の整備計画・実装済みAI機能の再現ではありません。既存並木の空いた所への若木は現実の植樹の取組を着想としています。'};
 const jp=document.createElement('aside');jp.id='journeyPanel';jp.hidden=true;jp.innerHTML='<details><summary>時代<span class="jNow" id="journeyNow" hidden>現代 · 2026</span></summary><p class="jScale">時の順 · 縄文と江戸のあいだは詰めて表示</p><div id="journeyEras" role="group" aria-label="時代を選ぶ（時の順）"></div><button id="journeyAuto" data-era="auto" aria-pressed="false">近づいて時代へ（物のそばで自動）</button><p id="journeyEraText"></p><details class="jFold"><summary>出どころ</summary><p id="journeySrc"></p></details><p>身体・時代・情報を切り替え、同じ参道に届く手がかりを増やします。環世界2.0 / Qualium 第一弾。</p><button id="journeyClip">この場面の映像</button> <a href="nazo.html" target="_blank" rel="noopener">時をこえる謎解き ↗</a><p class="jNote">現地ではGPSの精度を確認し、立ち止まって操作してください。</p></details>';document.body.append(jp);
 const je=$('journeyEras');for(const [id,[name]] of Object.entries(J_ERAS)){const b=document.createElement('button');b.className='jE';b.innerHTML=`<b>${name}</b><i>${J_YR[id]}</i>`;b.dataset.era=id;b.setAttribute('aria-pressed',id==='now');b.setAttribute('aria-label',`${name}（${J_YR[id]}）`);b.onclick=e=>{e.stopPropagation();chooseJourneyEra(id);};je.append(b);}const ab=$('journeyAuto');ab.onclick=()=>chooseJourneyEra('auto');$('journeySrc').textContent=J_SRC.now;$('journeyEraText').textContent=J_ERAS.now[1];
 const film=document.createElement('section');film.id='journeyScene';film.hidden=true;film.setAttribute('role','dialog');film.setAttribute('aria-modal','true');film.setAttribute('aria-label','この場面の映像');film.innerHTML='<div class="inner"><button id="journeyClose">閉じて道へ戻る</button><h2 id="journeyFilmTitle"></h2><video id="journeyVideo" controls playsinline preload="none" src="web/time_landscape.mp4"></video><p id="journeyFilmText"></p><p>国土地理院の航空写真を用いたイメージ映像です。古代・未来の実景ではありません。</p></div>';document.body.append(film);
@@ -7785,7 +7806,7 @@ window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEr
 
 <script src="web/qualium.js?v=20261017-umwelt2"></script>
 <script src="web/umwelt-tools.js?v=20261018-senses"></script>
-<script type="module" src="web/physical-materials.js?v=20261017-umwelt2"></script>
+<script type="module" src="web/physical-materials.js?v=20261018-environment1"></script>
 <script data-source="umwelt-ui.js">
 /* Presentation only: keep native details, checkboxes and existing event handlers. */
 (() => {
@@ -7860,4 +7881,5 @@ window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEr
 })();
 
 </script>
+<script src="web/landmark-design.js?v=20261018"></script>
 </body></html>

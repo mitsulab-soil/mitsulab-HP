@@ -6,11 +6,11 @@ export class SoundSpace{
   this.history=new Float32Array(this.rows*this.bins);this.times=new Float64Array(this.rows);this.db=new Float32Array(1024);this.db.fill(-100);this.levels=[0,0,0];
   this.waveRows=28;this.waveBins=320;this.waveHistory=new Float32Array(this.waveRows*this.waveBins);this.samples=new Float32Array(2048);
   this.r=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});this.r.setPixelRatio(Math.min(1.5,devicePixelRatio));
-  this.r.toneMapping=T.ACESFilmicToneMapping;this.r.toneMappingExposure=1.25;
+  this.r.toneMapping=T.ACESFilmicToneMapping;this.r.toneMappingExposure=1.1;
   this.scene=new T.Scene();this.cam=new T.PerspectiveCamera(38,2,.1,100);
-  this.scene.add(new T.HemisphereLight(0xd6fff3,0x15333d,2));
-  const key=new T.DirectionalLight(0xedfff9,3);key.position.set(3,4,5);this.scene.add(key);
-  const rim=new T.PointLight(0x62bde1,18,20);rim.position.set(-4,-1,3);this.scene.add(rim);
+  this.scene.add(new T.HemisphereLight(0xe2edf5,0x28323a,1.4));
+  const key=new T.DirectionalLight(0xfff3e6,3);key.position.set(3,4,5);this.scene.add(key);
+  const rim=new T.PointLight(0x62bde1,10,20);rim.position.set(-4,-1,3);this.scene.add(rim);
   this.sculpture=new T.Group();this.waterfall=new T.Group();this.waveform=new T.Group();this.scene.add(this.sculpture,this.waterfall,this.waveform);
   this.lines=[];this.ribbons=[];
   for(let j=0;j<3;j++){
@@ -19,7 +19,7 @@ export class SoundSpace{
    this.sculpture.add(new T.Line(g,new T.LineBasicMaterial({color,transparent:true,opacity:.95})));this.lines.push(g);
    const ribbon=new T.BufferGeometry(),idx=[];ribbon.setAttribute('position',new T.BufferAttribute(new Float32Array(count*6),3));
    for(let i=0;i<count-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}ribbon.setIndex(idx);
-   this.sculpture.add(new T.Mesh(ribbon,new T.MeshStandardMaterial({color,metalness:.45,roughness:.3,transparent:true,opacity:.73,side:T.DoubleSide,depthWrite:false})));
+   this.sculpture.add(new T.Mesh(ribbon,new T.MeshStandardMaterial({color,metalness:0,roughness:.42,transparent:true,opacity:.86,side:T.DoubleSide,depthWrite:false})));
    this.ribbons.push(ribbon);
   }
   const wn=this.waveRows*this.waveBins,widx=[];this.wavePos=new Float32Array(wn*3);const wc=new Float32Array(wn*3);
