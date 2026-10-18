@@ -3767,7 +3767,7 @@ function shadowGate() { if (!renderer.shadowMap.enabled || SHU.all) return; rend
   const sp = sun.position, mv = SHU.p ? Math.hypot(sp.x - SHU.p.x, sp.y - SHU.p.y, sp.z - SHU.p.z) : 1e9;
   if (SHU.n % 2 === 0 || mv > .15) { renderer.shadowMap.needsUpdate = true; (SHU.p ||= sp.clone()).copy(sp); } }
 let loadingDrawAt=0;
-renderer.setAnimationLoop(now => { if (document.hidden) { PR.last=0; return; } const covered=document.getElementById("poster")?.classList.contains("off")===false; if(covered && now-loadingDrawAt<160)return;loadingDrawAt=now; if (!isEye()) controls.update(); dragEase(now); frame(); shadowGate(); window.__overviewFrame?.(); window.__qualiumFrame?.(scene,camera); window.__landmarkFrame?.(scene,camera); if (!window.__lensRender?.(renderer, scene, camera)) renderer.render(scene, camera);   /* 2026-10-13 夜：身体（環世界）の色の写し方（walk_umwelt） */ labels.render(scene, camera); window.__entryMapRender?.(renderer);
+renderer.setAnimationLoop(now => { if (document.hidden) { PR.last=0; return; } const covered=document.getElementById("poster")?.classList.contains("off")===false; if(covered && now-loadingDrawAt<160)return;loadingDrawAt=now; if (!isEye()) controls.update(); dragEase(now); frame(); shadowGate(); window.__overviewFrame?.(); window.__qualiumFrame?.(scene,camera); window.__landmarkFrame?.(scene,camera); window.__photographicLightFrame?.(window.__core); window.__botanicalRealismFrame?.(window.__core); if (!window.__lensRender?.(renderer, scene, camera)) renderer.render(scene, camera);   /* 2026-10-13 夜：身体（環世界）の色の写し方（walk_umwelt） */ labels.render(scene, camera); window.__entryMapRender?.(renderer);
   // The poster yields only after the ground and Aoi have actually been drawn.
   if(window.__entryAwaitReveal && (window.__aoi?.aoi.visible || window.__entryAoiUnavailable)) {
     window.__entryAwaitReveal=false;window.__entryFirstFrameAt=performance.now();
@@ -3788,6 +3788,7 @@ window.__sando = {
 
 // ---- 歩く層（walk.html・build_walk.py が差し込む）から 3D を動かす手足
 window.__core = { THREE, scene, world, camera, renderer, D, STRUCTS, pointAt, headingAt, toXZ, toLL, groundY, groundYs, nearestOnSando, nearestOnSandoY,
+  botanicalSurfaceAt: (()=>{const sd=sdFrom(D.centerline);return(x,z)=>{if(!NEAR?.sections||!NEAR?.profiles)return {kind:null,clearance:0};const q=sd(x,z);return {kind:bandAt(q.d,q.s),clearance:solidDist(q.d,q.s)};};})(),
   get yaw() { return yaw; }, get pitch() { return pitch; },
   onD(dd, yw, pt) { EYE = null; if (mode !== "walk") setMode("walk"); walkD = dd; yaw = yw ?? headingAt(dd); pitch = pt ?? -.05; placeWalker(); },
   eye(x, z, yw, pt) { EYE = [x, z]; if (mode !== "walk") setMode("walk"); if (yw != null) { yaw = yw; if (!drag) dragT = null; } if (pt != null) pitch = pt; placeWalker(); },
@@ -6975,7 +6976,7 @@ window.__talk = { OT, otoNext, otoWhere, ACT, TALKCUT, SUBLOG, subPlan, actGo, a
        若木は、今の並木の列の、木と木のあいだが空いた所（並木敷き）だけに置く。道（歩ける帯）・交差点・辻の上には置かない。 */
 const ERA = (() => {
   let detailModule=null,detailPromise=null;
-  const loadDetail=()=>detailPromise||=(import(new URL("web/era-realism.js?v=20261018-era",document.baseURI).href).then(m=>detailModule=m));
+  const loadDetail=()=>detailPromise||=(import(new URL("web/era-realism.js?v=20261018photo2",document.baseURI).href).then(m=>detailModule=m));
   const YEAR = { jomon: -2000, edo: 1853, heisei: 2009, now: 2026, future: 2070 };
   /* 旧中山道（OSM way 229374360・902201042・229374361・22787637・770781584・617420258・908969484 をつないで 8 m ごとに間引いた線。x＝東・z＝南・m）。
      12 番目の点が一の鳥居の辻（参道の南の端）。北は 3D の範囲の外まで */
@@ -7882,4 +7883,15 @@ window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEr
 
 </script>
 <script src="web/landmark-design.js?v=20261018"></script>
+<script type="module" data-source="photoreal-bootstrap">
+// Finish the interactive first scene before downloading optional close-up work.
+const start=()=>{if(document.hidden||!window.__entryFirstFrameAt){setTimeout(start,300);return;}
+  const run=()=>Promise.allSettled([
+    import('./web/facade-realism.js?v=20261018photo2'),
+    import('./web/photographic-light.js?v=20261018photo2'),
+    import('./web/botanical-realism.js?v=20261018photo2')
+  ]).then(results=>{window.__photorealModules=results.map(r=>r.status==='fulfilled'?'ready':String(r.reason));});
+  (window.requestIdleCallback||((f)=>setTimeout(f,50)))(run,{timeout:1200});};
+if(new URLSearchParams(location.search).get('photoreal')!=='off')start();
+</script>
 </body></html>
