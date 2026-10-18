@@ -205,6 +205,8 @@
   /* 2026-10-18：PC で碧のひとことが右下のクレジットと重なっていた。しぼりこみの板の右、クレジットの上に置く。行の切れ目もそろえる */
   .ml-caption,.r-when,.r-lookchip,.item .iw{text-wrap:balance;word-break:auto-phrase}
   .ml-caption{white-space:pre-line}
+  /* ふりがな（2026-10-18：一枚の中で初めて出る専門の語だけ） */
+  ruby rt{font-size:.5em;letter-spacing:.02em;color:var(--ml-ink-3);font-weight:400}
   /* 碧（画面の右三分の一）にもかからないよう、しぼりこみの右・画面の左半分に */
   @media (min-width:1101px){ body[data-mode="3d"]:not([data-reading]) .cap{left:380px;right:max(24px,45vw);bottom:max(84px,env(safe-area-inset-bottom))} }
   @media (max-width:700px){

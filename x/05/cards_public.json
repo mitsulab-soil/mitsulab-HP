@@ -589,7 +589,7 @@
     "航空レーザ測量は、地面へのレーザの往復の時間と機体の位置から高さを出す（国土地理院の DEM5A は 5 m ごと）。衛星 Sentinel-2 は、見える光から赤外まで 13 の波長の帯で撮る。◎"
    ],
    "どうやって分かったか": [
-    "葉は赤い光をよく吸い、近赤外をよく返す。Tucker（1979）は、赤と近赤外の組み合わせで植物の量を見積もれることを示した（NDVI につながる）。◎ DEM5A の精度は標準偏差 0.3 m 以内（地面の点が無い所は 2 m）とされる。◎"
+    "葉は赤い光をよく吸い、近赤外をよく返す。Tucker（1979）は、赤と近赤外の組み合わせで植物の量を見積もれることを示した（NDVI につながる）。◎ DEM5A の高さの精度は 0.3 m 以内（RMS 誤差。国土地理院は平均的な値と考えるよう説明している。5 m の升目の中に計測点が無い所は 2.0 m 以内）とされる。◎"
    ],
    "まだ分からないこと": [
     "5 m より細かい起伏（縁石・木の根元）はならされて消え、茂った林の下では地面に届く点が減る。人が決めた波長と格子の外にあるものは、データに残らない。"
@@ -612,7 +612,7 @@
     }
    ],
    "典拠": [
-    "国土地理院「基盤地図情報 数値標高モデル」 https://fgd.gsi.go.jp/ （精度の規定の写し＝国交省の公開資料 https://www.mlit.go.jp/common/000205884.pdf ）。",
+    "国土地理院「基盤地図情報 数値標高モデル」 https://fgd.gsi.go.jp/ （高さの精度＝国土地理院「基盤地図情報 よくあるご質問」 https://www.gsi.go.jp/kiban/faq.html ）。",
     "国土地理院「地理院タイル一覧」 https://maps.gsi.go.jp/development/ichiran.html",
     "European Space Agency, Copernicus Sentinel-2 mission. https://sentinels.copernicus.eu/",
     "Tucker, C. J. (1979). Red and photographic infrared linear combinations for monitoring vegetation. *Remote Sensing of Environment*, 8(2), 127–150."

@@ -59,7 +59,20 @@ const GLOSS = [
   ["頭部伝達関数", "音が耳の奥に届くまでに、頭・耳たぶ・肩の形によって変わる、その変わり方。人ごとに違う。"],
   ["随伴性", "自分が動くと、受けとる知らせがどう変わるか、という決まった結びつき。"],
   ["二十四節気", "1 年を、太陽の動きに合わせて 24 に分けた暦の区切り。"],
+  // 2026-10-18：子どもや初めての人がつまずいた語を足した
+  ["模式", "本物そのものではなく、しくみや手がかりが分かるように、形を単純にして表したもの。"],
+  ["水晶体", "目の中のレンズ。光を曲げて、網膜にピントを合わせる。"],
+  ["二色型", "色を受けとる細胞（錐体）が 2 種類ある色の見え方。犬など。"],
+  ["四色型", "色を受けとる細胞（錐体）が 4 種類ある色の見え方。多くの鳥など。"],
+  ["偽色", "人に見えない光の強さを、人に見える色に置きかえて表した色。その光の本当の色ではない。"],
+  ["竪琴状", "クモの脚の関節の近くにある、細い割れ目が竪琴の弦のように並んだ感覚器。脚にかかるわずかなゆがみを受けとる。"],
+  ["回旋転頭運動", "植物の茎やつるの先が、ゆっくり円をえがくように回りながら伸びる動き。"],
+  ["摩擦音", "体の一部をこすり合わせて出す音。"],
 ];
+// ふりがな：一枚の中で、初めて出る所だけ（読みは辞書で確かめた）
+const RUBY = { "受容体": "じゅようたい", "偏光": "へんこう", "錐体": "すいたい", "網膜": "もうまく", "複眼": "ふくがん", "単眼": "たんがん", "油球": "ゆきゅう", "近赤外": "きんせきがい", "周波数": "しゅうはすう", "伏角": "ふっかく", "珪藻": "けいそう", "未較正": "みこうせい", "視蓋": "しがい", "頭部伝達関数": "とうぶでんたつかんすう", "随伴性": "ずいはんせい", "季語": "きご", "模式": "もしき", "回旋転頭運動": "かいせんてんとううんどう", "竪琴状": "たてごとじょう", "偽色": "ぎしょく", "摩擦音": "まさつおん", "二色型": "にしょくがた", "三色型": "さんしょくがた", "四色型": "よんしょくがた", "水晶体": "すいしょうたい", "紫外": "しがい", "地磁気": "ちじき", "泥炭": "でいたん", "遺伝子": "いでんし" };
+const RUBY_RE = new RegExp(Object.keys(RUBY).sort((a, b) => b.length - a.length).join("|"), "g");
+const ruby = (html, seen) => html.split(/(<[^>]+>)/).map(s => s.startsWith("<") ? s : s.replace(RUBY_RE, w => seen.has(w) ? w : (seen.add(w), `<ruby>${w}<rt>${RUBY[w]}</rt></ruby>`))).join("");
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 function fmt(s) {
   let h = esc(s).replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "<i>$1</i>");
@@ -67,13 +80,14 @@ function fmt(s) {
   h = h.replace(/([◎△◐○])(?=\s|$|。|<)/g, (m, k) => `<span class="mk" title="${MARK[k]}">${k}</span>`);
   return h;
 }
+$$('[data-name="lead"]').forEach(el => el.innerHTML = esc(NAMES.lead).replace("環世界", "<ruby>環世界<rt>かんせかい</rt></ruby>"));
 
 // ---- たとえば（最初の画面に、一枚の驚きを一行で）
 // 2026-10-18：入口の一枚は、知らない人にも身近なものから（専門の語が先に来るクモは外した）
 const HOOKS = ["TC-012", "TC-010", "TC-007", "TC-013", "TC-008"].filter(id => BY[id]);
 { const hk = location.hash.slice(1).toLowerCase(), hc = CARDS.find(x => x.key === hk);
   const c = hc || BY[HOOKS[Math.floor(Math.random() * HOOKS.length)]];
-  for (const el of $$("[data-hook]")) { el.innerHTML = `<span class="hk">たとえば</span><span class="ht">${esc(c.一行)}</span><button class="ml-btn ml-btn--quiet" type="button" data-open="${c.id}">${esc(c.名前)} を読む →</button>`;
+  for (const el of $$("[data-hook]")) { el.innerHTML = `<span class="hk">たとえば</span><span class="ht">${ruby(esc(c.一行), new Set())}</span><button class="ml-btn ml-btn--quiet" type="button" data-open="${c.id}">${esc(c.名前)} を読む →</button>`;
     el.addEventListener("click", e => { const b = e.target.closest("[data-open]"); if (b) open(b.dataset.open); }); } }
 // ---- しぼりこみ
 const F = { subj: "all", dim: "all" };
@@ -110,8 +124,8 @@ function buildList() {
     if (!cs.length) continue;
     html.push(`<section class="group" style="--sc:${SUBJ_COLOR[s.key]}"><h2>${esc(s.名前)}<span>${SUBJ_EN[s.key]}</span></h2><ul class="items">`);
     for (const c of cs) html.push(`<li data-id="${c.id}"><button class="item ml-panel" type="button" data-open="${c.id}" style="--sc:${SUBJ_COLOR[s.key]}">
-      <span class="ik"><span><b>${esc(c.主の次元)}</b>${c.関わる次元.length ? "　＋" + c.関わる次元.map(esc).join("・") : ""}</span><span>${c.id}<span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ}</span></span></span>
-      <span class="in">${esc(c.名前)}</span><span class="io">${esc(c.一行)}</span>${c.外でこう見てみる ? `<span class="iw"><b>外で</b>${esc(c.外でこう見てみる.いつ)}</span>` : ""}</button></li>`);
+      <span class="ik"><span><b>${esc(c.主の次元)}</b>${c.関わる次元.length ? "　＋" + c.関わる次元.map(esc).join("・") : ""}</span><span><span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ}</span></span></span>
+      <span class="in">${esc(c.名前)}</span><span class="io">${ruby(esc(c.一行), new Set())}</span>${c.外でこう見てみる ? `<span class="iw"><b>外で</b>${esc(c.外でこう見てみる.いつ)}</span>` : ""}</button></li>`);
     html.push(`</ul></section>`);
   }
   $("#groups").innerHTML = html.join("");
@@ -122,23 +136,24 @@ function buildList() {
 let current = null, lastFocus = null;
 const hooks = { open: [], close: [] };
 function readerHTML(c) {
-  const sec = (ja, en, items, note = "") => items.length ? `<section class="r-sec"><h3>${ja}<span>${en}</span></h3>${note}<ul>${items.map(t => `<li>${fmt(t)}</li>`).join("")}</ul></section>` : "";
+  const seen = new Set(), F = t => ruby(fmt(t), seen);   // ふりがなは、この一枚の中で初めて出る所だけ
+  const sec = (ja, en, items, note = "") => items.length ? `<section class="r-sec"><h3>${ja}<span>${en}</span></h3>${note}<ul>${items.map(t => `<li>${F(t)}</li>`).join("")}</ul></section>` : "";
   const rel = related(c).map(l => ({ c: BY[l.id], dims: l.次元keys.map(k => DIMNAME[k]) })).sort((a, b) => b.dims.length - a.dims.length || a.c.id.localeCompare(b.c.id));
   // 外でこう見てみる（2026-10-13 ミカタ）：読み終えたら、外で確かめる見方を一つ。上に「いつ」の札を出し、押すとそこへ
   const lk = c.外でこう見てみる;
   const lookTop = lk ? `<a class="r-lookchip" href="#r-look" data-jump="r-look"><span>外で</span>${esc(lk.いつ)}<i aria-hidden="true">↓</i></a>` : "";
-  const lookSec = lk ? `<section class="r-sec r-look" id="r-look"><h3>外でこう見てみる<span>look outside</span></h3><p class="r-when"><span>いつ</span>${esc(lk.いつ)}</p>${lk.見方.map(t => `<p>${fmt(t)}</p>`).join("")}</section>` : "";
-  return `<div class="r-kick"><span>${c.id}</span><span style="color:${SUBJ_COLOR[c.主体key]}">${esc(c.主体)} ・ ${esc(c.主の次元)}</span>${c.関わる次元.length ? `<span>関わる次元：${c.関わる次元.map(esc).join("・")}</span>` : ""}<span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ} ${MARK[c.確からしさ]}</span></div>
+  const lookSec = () => lk ? `<section class="r-sec r-look" id="r-look"><h3>外でこう見てみる<span>look outside</span></h3><p class="r-when"><span>いつ</span>${esc(lk.いつ)}</p>${lk.見方.map(t => `<p>${F(t)}</p>`).join("")}</section>` : "";
+  return `<div class="r-kick"><span style="color:${SUBJ_COLOR[c.主体key]}">${esc(c.主体)} ・ ${esc(c.主の次元)}</span>${c.関わる次元.length ? `<span>関わる次元：${c.関わる次元.map(esc).join("・")}</span>` : ""}<span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ} ${MARK[c.確からしさ]}</span></div>
     <h2 class="r-name" id="r-name">${esc(c.名前)}</h2>
-    <p class="r-one">${fmt(c.一行)}</p>
+    <p class="r-one">${F(c.一行)}</p>
     ${lookTop}
     <ul class="tags" aria-label="分野">${c.分野.map(f => `<li>${esc(f)}</li>`).join("")}</ul>
     ${sec("仕組み", "how it works", c.仕組み)}
     ${sec("どうやって分かったか", "how we know", c.どうやって分かったか)}
     ${sec("まだ分からないこと", "still open", c.まだ分からないこと)}
-    ${sec("人に届く翻訳", "a model made for people", c.人に届く翻訳, `<p class="r-note">手がかりを、人の目・耳・手に届く形に写した模式です。その生き物や人、機械の受けとり方そのものではありません。</p>`)}
+    ${sec("人に届く翻訳", "a model made for people", c.人に届く翻訳, `<p class="r-note">${F("手がかりを、人の目・耳・手に届く形に写した模式です。その生き物や人、機械の受けとり方そのものではありません。")}</p>`)}
     ${c.試せる作品.length ? `<section class="r-sec"><h3>作品で試す<span>try it</span></h3><ul class="works">${c.試せる作品.map(w => `<li><a href="${esc(w.url)}" target="_blank" rel="noopener"><span>${esc(w.名前)}<small>${esc(w.一言)}</small></span><span aria-hidden="true">↗</span></a></li>`).join("")}</ul></section>` : ""}
-    ${lookSec}
+    ${lookSec()}
     ${rel.length ? `<section class="r-sec"><h3>同じ次元のカード<span>shared dimension</span></h3><div class="rel">${rel.map(r => `<button type="button" data-open="${r.c.id}"><i>${r.dims.join("・")}</i>${esc(r.c.名前)}</button>`).join("")}</div></section>` : ""}
     ${(() => { const all = JSON.stringify([c.一行, c.仕組み, c.どうやって分かったか, c.まだ分からないこと, c.人に届く翻訳]); const g = GLOSS.filter(([w]) => all.includes(w));
       return g.length ? `<details class="ml-fold r-sec"><summary>ことば（${g.length}）</summary><dl class="gloss">${g.map(([w, d]) => `<dt>${esc(w)}</dt><dd>${esc(d)}</dd>`).join("")}</dl></details>` : ""; })()}
@@ -222,6 +237,8 @@ async function start3D() {
   const bark = K.barkMaterial(tx("bark_zelkova.webp"), { normalMap: tx("bark_zelkova_n.webp", false) });
   const barkK = K.barkMaterial(tx("bark_camphor.webp"), { normalMap: tx("bark_camphor_n.webp", false), color: 0xb4aea4 });
   const leaf = K.leafMaterial(tx("leaf_spray.webp")), leaf2 = K.leafMaterial(tx("leaf_spray2.webp"));
+  // 2026-10-18：葉の切り抜きの縁がぎざぎざに見えた → 縁をなめらかに（アプリ側の材質の設定だけ。kit は変えない）
+  [leaf, leaf2].forEach(m => { m.alphaToCoverage = true; });
   [leaf.map, leaf2.map].forEach(t => t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping);
   K.plantTrees(nature, trees, { barkMat: { keyaki: bark, konara: barkK, default: bark }, leafMats: { konara: leaf2, keyaki: leaf, default: leaf }, R });
   const grass = K.grassField(nature, R, { count: 5000, area: 20, ok: (x, z) => { const r = Math.hypot(x, z); return r > 1.6 && r < 10; } });
@@ -260,20 +277,23 @@ async function start3D() {
   function plateTex(c) {
     const cw = 600, ch = 800, cv = document.createElement("canvas"); cv.width = cw; cv.height = ch; const x = cv.getContext("2d");
     const col = SUBJ_COLOR[c.主体key], mono = '"JetBrains Mono",ui-monospace,monospace', serif = '600 52px "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif', sans = '"Inter","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",sans-serif';
-    x.fillStyle = "rgba(195,204,224,.55)"; x.font = `400 24px ${mono}`; x.textBaseline = "top"; x.fillText(c.id, 44, 46);
+    x.fillStyle = "rgba(195,204,224,.55)"; x.font = `400 24px ${mono}`; x.textBaseline = "top";   // 番号は出さない（2026-10-18：欠番が見えていた）
     x.textAlign = "right"; x.fillStyle = "rgba(155,220,240,.9)"; x.fillText(c.確からしさ, cw - 44, 46); x.textAlign = "left";
-    x.fillStyle = col; x.font = `400 26px ${sans}`; x.fillText(`${c.主体}　・　${c.主の次元}`, 44, 96);
+    x.fillStyle = col; x.font = `400 30px ${sans}`; x.fillText(`${c.主体}　・　${c.主の次元}`, 44, 96);
     const wrap = (text, font, lh, maxW, maxL, y0, color, x0 = 44) => { x.font = font; x.fillStyle = color; let line = "", y = y0, n = 0;
       for (const chh of text) { const t = line + chh; if (x.measureText(t).width > maxW && line) { if (++n >= maxL) { x.fillText(line.slice(0, -1) + "…", x0, y); return y + lh; } x.fillText(line, x0, y); y += lh; line = chh; } else line = t; }
       if (line) { x.fillText(line, x0, y); y += lh; } return y; };
-    let y = wrap(c.名前, serif.replace("52px", "60px"), 80, cw - 88, 3, 156, "#eef5fb");
+    // 2026-10-18：字を大きく（スマホでも板の題が読めるように）
+    // スマホ（狭い画面）は板が小さく写るので、題をさらに大きくし、一行の文は板に載せない（開けば読める）
+    const big = compactView.matches;
+    let y = wrap(c.名前, serif.replace("52px", big ? "86px" : "70px"), big ? 104 : 88, cw - 88, big ? 4 : 3, 150, "#eef5fb");
     x.fillStyle = "rgba(150,170,240,.35)"; x.fillRect(44, y + 18, 80, 2);
-    y = wrap(c.一行, `400 27px ${sans}`, 46, cw - 88, Math.max(3, Math.floor((ch - 230 - (y + 48)) / 46)), y + 48, "rgba(195,204,224,.92)");
+    if (!big) y = wrap(c.一行, `400 33px ${sans}`, 50, cw - 88, Math.max(1, Math.floor((ch - 220 - (y + 44)) / 50)), y + 44, "rgba(195,204,224,.92)");
     // 板の下に「外で：いつ」（2026-10-13：開く前から、外へ出る図鑑だと分かるように）
     if (c.外でこう見てみる) { const ly = ch - 196; x.fillStyle = "rgba(127,200,230,.5)"; x.fillRect(44, ly - 4, 2, 92);
-      x.fillStyle = "rgba(127,200,230,.95)"; x.font = `400 21px ${mono}`; x.fillText("外で", 62, ly);
-      wrap(c.外でこう見てみる.いつ, `400 25px ${sans}`, 38, cw - 150, 2, ly + 32, "#e4eef6", 62); }
-    x.fillStyle = "rgba(143,155,180,.85)"; x.font = `400 21px ${mono}`; x.fillText(c.分野.join("  ·  "), 44, ch - 72);
+      x.fillStyle = "rgba(127,200,230,.95)"; x.font = `400 ${big ? 30 : 25}px ${mono}`; x.fillText("外で", 62, ly);
+      wrap(c.外でこう見てみる.いつ, `400 ${big ? 36 : 30}px ${sans}`, big ? 44 : 40, cw - 110, 2, ly + (big ? 38 : 34), "#e4eef6", 62); }
+    if (!big) x.fillStyle = "rgba(143,155,180,.85)", x.font = `400 24px ${mono}`, x.fillText(c.分野.join("  ·  "), 44, ch - 72);
     const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
   }
   cols.forEach((col, i) => {
