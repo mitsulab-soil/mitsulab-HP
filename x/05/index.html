@@ -194,6 +194,11 @@
   body[data-reading] .filters{opacity:0;visibility:hidden}
   @media (min-width:760px){ body[data-mode="3d"][data-reading] .cap{left:200px;right:min(560px,calc(100vw - 400px))} }
   @media (min-width:1001px){ body[data-mode="3d"][data-reading] .cap{left:24px;right:50vw} }
+  /* 2026-10-18：PC で碧のひとことが右下のクレジットと重なっていた。しぼりこみの板の右、クレジットの上に置く。行の切れ目もそろえる */
+  .ml-caption,.r-when,.r-lookchip,.item .iw{text-wrap:balance;word-break:auto-phrase}
+  .ml-caption{white-space:pre-line}
+  /* 碧（画面の右三分の一）にもかからないよう、しぼりこみの右・画面の左半分に */
+  @media (min-width:1101px){ body[data-mode="3d"]:not([data-reading]) .cap{left:380px;right:max(24px,45vw);bottom:max(84px,env(safe-area-inset-bottom))} }
   @media (max-width:700px){
     body{font-size:16px}
     .r-look p{font-size:16px}
@@ -244,6 +249,10 @@
     body[data-mode="3d"] #list{padding:78px 16px 32px}.closeList{right:14px;top:12px}
     body[data-mode="3d"][data-list-open] .lfilters{top:56px}.items{grid-template-columns:minmax(0,1fr)}
     .r-sec h3{flex-wrap:wrap;gap:2px 8px}.r-lookchip{flex-wrap:wrap}.r-name{overflow-wrap:anywhere}
+    /* 2026-10-18：読む板が題の行を半分切っていた → 読むあいだは画面いっぱいに。絞り込みの次元は横に流さず折り返す（続きに気づけるように） */
+    body[data-mode="3d"] #reader{inset:12px}
+    .filter-body .frow{flex-wrap:wrap;overflow-x:visible;gap:6px}
+    .lfilters .fl:nth-of-type(2)::after{content:"　横に続きます →";letter-spacing:.04em;color:var(--ml-aoi-2)}
   }
 </style>
 </head>
@@ -294,7 +303,7 @@
   </div>
   <div id="groups"></div>
   <footer class="foot">
-    <p style="margin:0 0 6px"><b style="font-weight:400;color:var(--ml-ink-2)">◎</b> 典拠あり　<b style="font-weight:400;color:var(--ml-ink-2)">△</b> 議論中・諸説　<b style="font-weight:400;color:var(--ml-ink-2)">◐</b> 近い仲間などの研究から推しはかった　<b style="font-weight:400;color:var(--ml-ink-2)">○</b> 典拠を確かめていない。文中の印は、その一文の確からしさです。ほかの者の受けとり方そのものは、だれにも渡せません。カードにあるのは手がかりと、それを人に届く形にした模式です。</p>
+    <p style="margin:0 0 6px"><b style="font-weight:400;color:var(--ml-ink-2)">◎</b> 典拠あり　<b style="font-weight:400;color:var(--ml-ink-2)">△</b> 議論中・諸説　<b style="font-weight:400;color:var(--ml-ink-2)">◐</b> 近い仲間などの研究から推しはかった　<b style="font-weight:400;color:var(--ml-ink-2)">○</b> 典拠を確かめていない。文中の印は、その一文の確からしさです。ほかの生き物や人の受けとり方そのものは、だれにも渡せません。カードにあるのは手がかりと、それを人に届く形にした模式です。</p>
     <details class="ml-fold"><summary>つくりとクレジット</summary>
       <p>3D の質感の写真：Poly Haven（Forest Ground 04・Japanese Zelkova Bark・Japanese Camphor Bark）、ambientCG（LeafSet014）。いずれも CC0。描画：three.js・three-vrm（MIT）。碧の 3D は mitsulab。碧の動きの一部：CMU Graphics Lab Motion Capture Database（mocap.cs.cmu.edu。NSF EIA-0196217 の支援でつくられた）。</p>
     </details>

@@ -10,7 +10,8 @@ const MARK = { "◎": "典拠あり", "△": "議論中・諸説", "◐": "近�
 
 // モバイルは説明と絞り込みを畳み、3Dの中央を空ける。内容は開いて読める。
 const compactView=matchMedia('(max-width:760px)');
-function compactLayout(){for(const id of ['libraryIntro','filterTools'])document.getElementById(id).open=!compactView.matches;}
+// 2026-10-18：PC も絞り込みは最初は畳む（最初の画面の左半分が字の板二枚で、林とカードが後になっていた）。導入はPCでは開いておく
+function compactLayout(){document.getElementById('libraryIntro').open=!compactView.matches;document.getElementById('filterTools').open=false;}
 compactLayout();compactView.addEventListener('change',compactLayout);
 new ResizeObserver(([entry])=>document.body.style.setProperty('--filter-height',entry.target.getBoundingClientRect().height+'px')).observe($('.filters'));
 
@@ -68,7 +69,8 @@ function fmt(s) {
 }
 
 // ---- たとえば（最初の画面に、一枚の驚きを一行で）
-const HOOKS = ["TC-007", "TC-012", "TC-010", "TC-022", "TC-013", "TC-008"].filter(id => BY[id]);
+// 2026-10-18：入口の一枚は、知らない人にも身近なものから（専門の語が先に来るクモは外した）
+const HOOKS = ["TC-012", "TC-010", "TC-007", "TC-013", "TC-008"].filter(id => BY[id]);
 { const hk = location.hash.slice(1).toLowerCase(), hc = CARDS.find(x => x.key === hk);
   const c = hc || BY[HOOKS[Math.floor(Math.random() * HOOKS.length)]];
   for (const el of $$("[data-hook]")) { el.innerHTML = `<span class="hk">たとえば</span><span class="ht">${esc(c.一行)}</span><button class="ml-btn ml-btn--quiet" type="button" data-open="${c.id}">${esc(c.名前)} を読む →</button>`;
@@ -134,7 +136,7 @@ function readerHTML(c) {
     ${sec("仕組み", "how it works", c.仕組み)}
     ${sec("どうやって分かったか", "how we know", c.どうやって分かったか)}
     ${sec("まだ分からないこと", "still open", c.まだ分からないこと)}
-    ${sec("人に届く翻訳", "a model made for people", c.人に届く翻訳, `<p class="r-note">手がかりを、人の目・耳・手に届く形に写した模式です。ほかの者の受けとり方そのものではありません。</p>`)}
+    ${sec("人に届く翻訳", "a model made for people", c.人に届く翻訳, `<p class="r-note">手がかりを、人の目・耳・手に届く形に写した模式です。その生き物や人、機械の受けとり方そのものではありません。</p>`)}
     ${c.試せる作品.length ? `<section class="r-sec"><h3>作品で試す<span>try it</span></h3><ul class="works">${c.試せる作品.map(w => `<li><a href="${esc(w.url)}" target="_blank" rel="noopener"><span>${esc(w.名前)}<small>${esc(w.一言)}</small></span><span aria-hidden="true">↗</span></a></li>`).join("")}</ul></section>` : ""}
     ${lookSec}
     ${rel.length ? `<section class="r-sec"><h3>同じ次元のカード<span>shared dimension</span></h3><div class="rel">${rel.map(r => `<button type="button" data-open="${r.c.id}"><i>${r.dims.join("・")}</i>${esc(r.c.名前)}</button>`).join("")}</div></section>` : ""}
@@ -207,7 +209,9 @@ async function start3D() {
 
   // ---- 場所：雑木林の空き地（地面・木・草）
   const H = (x, z) => { const r = Math.hypot(x, z); return .18 * Math.sin(x * .16 + .4) * Math.cos(z * .13) + .1 * Math.sin((x - z) * .08) + Math.max(0, r - 9) * .035; };
-  const TL = new THREE.TextureLoader(), tx = (f, srgb = true) => { const t = TL.load("tex/" + f); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = 8; return t; };
+  // 2026-10-18：起動 5 秒。読み込み画面は碧（VRM 約 2 MB）を待たず、林の質感がそろって最初の一こまを描いたら閉じる（碧はあとから立つ）
+  const texWait = [];
+  const TL = new THREE.TextureLoader(), tx = (f, srgb = true) => { let ok; texWait.push(new Promise(r => ok = r)); const t = TL.load("tex/" + f, ok, undefined, ok); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = 8; return t; };
   const nature = new THREE.Group(); scene.add(nature);
   K.groundPlane(nature, { size: 240, seg: 150, map: tx("soil_forest.webp"), height: H,
     tint: (x, z) => { const n = Math.sin(x * .7) * Math.sin(z * .6), r = Math.hypot(x, z), m = Math.max(0, Math.min(1, (8.5 - r) / 4)), k = .82 + .12 * n;
@@ -226,7 +230,8 @@ async function start3D() {
   window.MLLoader?.progress(.45);
 
   // ---- 置き方：主体ごとの弧（左から 生き物・人・機械）、その中で次元ごとの列（一列に 3 枚まで）
-  const RAD = 6.4, W = .9, Hh = 1.2, ROWS = [1.02, 2.34, 3.66];
+  // 2026-10-18：カードの弧を 6.4→5.7 m に寄せた（遠くて板の字が読めなかった）
+  const RAD = 5.7, W = .9, Hh = 1.2, ROWS = [1.02, 2.34, 3.66];
   const cols = [];   // {subj, dim, cards[]}
   const sectors = [];
   for (const s of SUBJS) {
@@ -354,7 +359,8 @@ async function start3D() {
   let aoi = null, aoiHit = null;
   const gaps = cols.map((c, i) => c ? -1 : i).filter(i => i >= 0);
   const aoiYaw0 = (() => { const bb = sectors.find(x => x.s.key === "being"), h = sectors.find(x => x.s.key === "human"); return bb && h ? (ang(bb.a) + ang(h.b)) / 2 * .55 + (ang(bb.b) + ang(h.a)) / 2 * .45 : 0; })();
-  const aoiPos = at(aoiYaw0 + .4, 0, 3.9); aoiPos.y = H(aoiPos.x, aoiPos.z);   // 最初の向きの右三分の一・カードの手前
+  // 2026-10-18：縦長のスマホでは、右へ寄せすぎると碧が画面の外に出ていた。縦の画面では内へ寄せて手前に立つ
+  const aoiPos = compactView.matches ? at(aoiYaw0 + .14, 0, 3.3) : at(aoiYaw0 + .4, 0, 3.9); aoiPos.y = H(aoiPos.x, aoiPos.z);   // 最初の向きの右三分の一・カードの手前
   const ring = K.aoiRing({ r: .62 }); ring.position.copy(aoiPos).y += .02; scene.add(ring);
   // 碧はまっすぐ静かに立つ（2026-10-13）：共通部品の姿勢 upright（揺れ・重心の移しを小さく、息・まばたき・視線だけ）。風の裾も弱く
   K.loadAoi(HP + "img/hero/aoi.vrm", { scene, onProgress: f => window.MLLoader?.progress(.55 + f * .4), wind: .2, posture: "upright" }).then(a => {
@@ -368,15 +374,17 @@ async function start3D() {
     aoiHit = new THREE.Mesh(new THREE.CylinderGeometry(.32, .32, 1.7, 8), new THREE.MeshBasicMaterial({ visible: false })); aoiHit.position.copy(aoiPos).y += .85; scene.add(aoiHit);
     window.MLLoader?.done();
     if (current) aoiAside(current);
-    setTimeout(() => current ? aoiOnCard(current) : say("一枚に、ひとつの受けとり方。気になる一枚を、押してみてください。", 7000), RM ? 300 : 1600);
+    setTimeout(() => current ? aoiOnCard(current) : say("一枚に、ひとつの受けとり方。\n気になる一枚を、押してみてください。", 7000), RM ? 300 : 1600);
   }).catch(e => { console.warn("碧を読めませんでした", e); window.MLLoader?.done(); });
 
   // ---- カメラ：空き地の真ん中に立って、見回す（ドラッグ・矢印キー・ホイールで寄る）
-  const EYE = new THREE.Vector3(0, 1.58, 1.1);
+  // 縦長の画面は少し後ろに立って広く見る（2026-10-18：スマホの最初の画面で、全部見えるカードが 1 枚だけだった）
+  const portrait = innerWidth / innerHeight < .8;
+  const EYE = new THREE.Vector3(0, 1.58, portrait ? 2.1 : 1.1);
   camera.position.copy(EYE);
   // 最初の向き：生き物と人のあいだ（同じ次元を受けとる線が、画面の中に見える向き）
   const home = (() => { const b = sectors.find(x => x.s.key === "being"), h = sectors.find(x => x.s.key === "human"); return b && h ? (ang(b.a) + ang(h.b)) / 2 * .55 + (ang(b.b) + ang(h.a)) / 2 * .45 : 0; })();
-  let yaw = home, pitch = .1, yawT = RM ? home : home - .5, pitchT = .1, fovT = innerWidth / innerHeight > 1.4 ? 60 : 56;
+  let yaw = home, pitch = .1, yawT = RM ? home : home - .5, pitchT = .1, fovT = innerWidth / innerHeight > 1.4 ? 60 : portrait ? 64 : 56;
   const YAW = span / 2 + .1;
   const look = () => { const d = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)); camera.lookAt(camera.position.clone().add(d)); };
   look(); if (!RM) { yaw = home - .5; yawT = home; }
@@ -405,7 +413,7 @@ async function start3D() {
   let capT = 0;
   function say(t, ms = 6000) { $("#cap").textContent = t; const box = $(".cap"); delete box.dataset.off; clearTimeout(capT); capT = setTimeout(() => box.dataset.off = "", ms);
     if (aoi) { aoi.motion.lookAt?.(null); aoi.motion.express?.("warm", .6, 2.5); } }
-  const AOI_LINES = ["線は、同じ次元を、ちがう主体が受けとるところに引いてあります。", "一枚ずつ、どうやって分かったかと、まだ分からないことが書いてあります。", "ほかの者の受けとり方そのものは、わたしにも渡せません。渡せるのは、手がかりです。"];
+  const AOI_LINES = ["線は、同じ次元を、ちがう主体が受けとるところに引いてあります。", "一枚ずつ、どうやって分かったかと、まだ分からないことが書いてあります。", "ほかの生き物や人の受けとり方そのものは、わたしにも渡せません。渡せるのは、手がかりです。"];
   // カードを開いたときの一言（型を替える。長く話さない）
   function aoiOnCard(c) {
     const n = related(c).length, k = parseInt(c.id.slice(3), 10) % 4;
@@ -444,7 +452,11 @@ async function start3D() {
     if (aoi) { aoi.motion.lookAt?.(sel.g); aoiAside(c); }
     aoiOnCard(c);
   });
-  hooks.close.push(() => { if (sel) sel.flyT = 0; sel = null; relGroup.visible = false; aoi?.motion.lookAt?.(null); aoiHome(); });
+  // 閉じたら、その一枚の話（字幕）も消す（2026-10-18：閉じたあとも別のカードの「外で」が残っていた）
+  hooks.close.push(() => { if (sel) sel.flyT = 0; sel = null; relGroup.visible = false; aoi?.motion.lookAt?.(null); aoiHome(); clearTimeout(capT); $(".cap").dataset.off = ""; });
+  // PC：最初に林を触るか一枚を開いたら、導入の板を畳む（左上の段のカードを隠していた）
+  const foldIntro = () => { const d = $("#libraryIntro"); if (d.open && !compactView.matches) d.open = false; };
+  cv.addEventListener("pointerdown", foldIntro, { once: true }); hooks.open.push(foldIntro);
   // 読む板を開いたら、碧は板の後ろに入らないよう、手前のカードの左へ歩いて行く（2026-10-13・P2）。閉じたら元の場所へ
   function aoiAside() {
     if (!aoi) return;
@@ -453,7 +465,7 @@ async function start3D() {
     const cardR = (-.62 + W / 2) / (2.3 * tn), readL = $("#reader").getBoundingClientRect().left / innerWidth * 2 - 1;
     const nx = innerWidth > 1000 && readL - cardR > .12 ? (cardR + readL) / 2 : -.78;
     const p = new THREE.Vector3(EYE.x, 0, EYE.z).addScaledVector(new THREE.Vector3(Math.sin(y), 0, -Math.cos(y)), d).addScaledVector(new THREE.Vector3(Math.cos(y), 0, Math.sin(y)), nx * half);
-    const rr = Math.hypot(p.x, p.z); if (rr > 5.6) p.multiplyScalar(5.6 / rr);
+    const rr = Math.hypot(p.x, p.z); if (rr > RAD - .8) p.multiplyScalar((RAD - .8) / rr);
     // 遠いときは、読む板の陰（右）から歩き出す（見えない所を長く歩かせない。出てくるまで 1 秒ほど）
     const q = aoi.motion.pos;
     if (!RM && innerWidth > 1000 && q && Math.hypot(q.x - p.x, q.z - p.z) > 2.2) {
@@ -519,7 +531,10 @@ async function start3D() {
     if (aoi && aoi.motion.pos) { const q = aoi.motion.pos; ring.position.set(q.x, H(q.x, q.z) + .02, q.z); aoiHit?.position.set(q.x, H(q.x, q.z) + .85, q.z); }
     if (!(frameN++ % 12)) placeSubjLabels();
     renderer.render(scene, camera);
+    if (texDone && !shown) { shown = true; window.MLLoader?.done(); }
   }
+  let texDone = false, shown = false;
+  Promise.race([Promise.all(texWait), new Promise(r => setTimeout(r, 1500))]).then(() => texDone = true);
   requestAnimationFrame(frame);
   window.MLLoader?.progress(.55);
 }
