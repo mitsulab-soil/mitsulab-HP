@@ -48,9 +48,9 @@
 </script>
 <script>if (new URLSearchParams(location.search).get("mode") !== "oto") for (const h of ["./web/vendor/hikawa-runtime-170-355.js", "./web/vendor/three-mesh-bvh-0.8.3.js", "./web/vendor/BufferGeometryUtils.js", "web/kit/aoi_motion.js", "web/kit/aoi_robe.js", "web/kit/aoi_mocap.js", "web/entry-map.js?v=20261016p"]) { const l = document.createElement("link"); l.rel = "modulepreload"; l.href = h; document.head.appendChild(l); }</script>
 
-<script>/* 初期の地形・並木・碧をHTMLの先頭から並列に読む。詳細な森・構造物・建物はその後。 */
+<script>/* 初期の地形・並木・碧と入口地図の鳥居/神社を並列取得。森・建物は実3D後。 */
 (() => { if (!window.WebGLRenderingContext || new URLSearchParams(location.search).get("mode") === "oto") return;   /* 音で歩く参道では 3D の素材を取りに行かない */   /* WebGL の文脈をここで作って確かめると、それだけで 2 秒ほど止まる端末がある（headless で起きた）ので、有無だけ見る */
-  const S = [[["aoi", "web/aoi.vrm"], ["terrain", "web/terrain.glb"], ["road", "web/road.glb"], ["keyaki", "web/keyaki.glb"], ["keyaki_lod1", "web/keyaki_lod1_notex.glb"]], [["structures", "web/structures.glb"], ["buildings", "web/buildings.glb"], ["forest", "web/forest.glb"], ["props", "web/props.glb"]]], P = {}; let g = Promise.resolve();
+  const S = [[["aoi", "web/aoi.vrm"], ["terrain", "web/terrain.glb"], ["road", "web/road.glb"], ["keyaki", "web/keyaki.glb"], ["keyaki_lod1", "web/keyaki_lod1_notex.glb"], ["structures", "web/structures.glb"]], [["buildings", "web/buildings.glb"], ["forest", "web/forest.glb"], ["props", "web/props.glb"]]], P = {}; let g = Promise.resolve();
   let stage=0;
   const entryFirst=()=>new Promise(resolve=>{const at=performance.now();const check=()=>{if(window.__entryFirstFrameAt || window.__entryMap?.state.started || performance.now()-at>20000)setTimeout(resolve,800);else setTimeout(check,100);};check();});
   for (const st of S) { const w = stage++ ? g.then(entryFirst) : g; const ps = st.map(([k, f]) => P[k] = w.then(() => fetch(f, {priority:k === "aoi" ? "high" : "auto"})).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }));
