@@ -13,7 +13,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const panel = document.createElement('section');
   panel.id = 'qualiumPanel'; panel.setAttribute('aria-label', 'Qualiumの層');
-  panel.innerHTML = `<p>場所の記録を重ねる · 模式</p><div class="qBulk"><button type="button" id="qualiumAll">すべてON</button><button type="button" id="qualiumReset">すべてOFF</button></div><div class="qualiumChoices">${Object.keys(states).map(id => `<label><input type="checkbox" data-qualium="${id}">${names[id]}</label>`).join('')}</div><p id="qualiumMeaning" role="status"></p><label class="qStill"><input type="checkbox" id="qualiumStill">動きを止める</label><details><summary>この場所の文化記録</summary><p id="qualiumCultureRecord">近くの記録は、歩いた場所に合わせて表示します。</p></details><details><summary>表示の意味と出どころ</summary><div id="qualiumExplanations"></div><p>${baseText} 点・波・関係線は模式です。木の根や水質・生息・心を測定した表示ではありません。地形線は3D模型から抽出。典拠は各地点の解説で確かめてください。</p><a class="qAR" href="field-ar.html">実景ARへ ↗</a></details>`;
+  panel.innerHTML = `<p>街歩きをアップデートする</p><p>同じ場所に、自然・時間・文化・身体の手がかりを重ねます。</p><div class="qBulk"><button type="button" id="qualiumAll">すべてON</button><button type="button" id="qualiumReset">すべてOFF</button></div><div class="qualiumChoices">${Object.keys(states).map(id => `<label><input type="checkbox" data-qualium="${id}">${names[id]}</label>`).join('')}</div><p id="qualiumMeaning" role="status"></p><label class="qStill"><input type="checkbox" id="qualiumStill">動きを止める</label><details><summary>この場所の文化記録</summary><p id="qualiumCultureRecord">近くの記録は、歩いた場所に合わせて表示します。</p></details><details><summary>表示の意味と出どころ</summary><div id="qualiumExplanations"></div><p>${baseText} 点・波・関係線は模式です。木の根や水質・生息・心を測定した表示ではありません。地形線は3D模型から抽出。典拠は各地点の解説で確かめてください。</p><a class="qAR" href="field-ar.html">実景ARへ ↗</a></details>`;
   panel.querySelector('#qualiumExplanations').innerHTML=Object.values(explain).map(t=>`<p>${t}</p>`).join('');
   const rail = document.createElement('details');
   rail.id = 'qualiumControl'; rail.hidden = true;
@@ -199,7 +199,8 @@
     if(!frozen)clock+=delta;
     if(now-lastPick>=400){refreshAnchors(T,talk,camera,now);lastPick=now;const nearest=[...(window.__cult?.labels||[])].sort((a,b)=>a.p.distanceToSquared(camera.position)-b.p.distanceToSquared(camera.position))[0];if(nearest)panel.querySelector('#qualiumCultureRecord').textContent=nearest.el.textContent;}
     root.visible=activeCount>0;
-    for(const slot of pools)for(const id of Object.keys(states))slot.groups[id].visible=states[id]&&(slot.context?.[id]??true);
+    const monitorIds=new Set((window.__fieldVisions?.status().anchors||[]).map(a=>a.id));
+    for(const slot of pools){for(const id of Object.keys(states))slot.groups[id].visible=states[id]&&(slot.context?.[id]??true);slot.sprite.visible=!monitorIds.has(slot.mark?.s?.id);}
     links.visible=states.cognition&&activeCount>1;future.visible=isFuture&&states.information;
     if(states.senses)animateWaves(clock);
     future.position.y=Math.sin(clock*.45)*.1;

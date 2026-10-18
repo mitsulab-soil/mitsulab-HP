@@ -64,3 +64,13 @@ body.entryFallback #ovPick{grid-template-rows:auto minmax(190px,1fr) auto;height
 
 #entryARLink{position:absolute;right:30px;top:max(28px,env(safe-area-inset-top));pointer-events:auto;display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 14px;border:1px solid #99cfc57a;background:#071b22de;color:#d8f6ed;font:12px var(--ui);letter-spacing:.1em;text-decoration:none}#entryARLink svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.2}#entryARLink:focus-visible{outline:2px solid #eed5a1;outline-offset:3px}
 @media(max-width:600px){#entryARLink{right:14px;top:max(23px,env(safe-area-inset-top));gap:6px;padding:8px 10px;min-height:44px;font-size:10px}#entryARLink svg{width:16px;height:16px}.entryTitle{max-width:calc(100% - 142px)}}
+
+/* Geographic overview and selected-place detail; existing entry actions stay. */
+#ovPick{width:min(610px,52vw)}
+.entryMapLevels{display:flex;gap:7px;margin-top:8px}.entryMapLevels button{min-height:36px;flex:1;padding:5px 8px;background:#102c31;color:#cce3db;border:1px solid #698d82;font:11px var(--ui);cursor:pointer}.entryMapLevels button[aria-pressed=true]{color:#ffedc4;border-color:#d8c191}
+.entryGeoLabels{position:absolute;inset:0;pointer-events:none;overflow:hidden}.entryStation,.entryStructure{position:absolute;transform:translate(-50%,-50%);font:11px/1.5 var(--ui);white-space:nowrap;padding:3px 5px;background:#142624df;color:#f2dfb7;border:1px solid #c3ad7a90;text-shadow:0 1px 3px #000}
+.entryStructure{font-size:10px;color:#e7eee2;border-color:#8aaa8a}.entryNorth{position:absolute;right:8px;top:8px;font:11px var(--ui);color:#f2dfb7;pointer-events:none;text-shadow:0 1px 4px #001}
+.entryGeoNote{position:absolute;left:6px;right:6px;bottom:0;margin:0;padding:4px;background:#071e25d9;color:#b4cec2;font:9px/1.6 var(--ui);pointer-events:none}
+.entryAreaLabel{grid-column:1/-1;margin:8px 0 2px;font:11px var(--ui);color:#e3d2ae}.entryGeoLabels[hidden]{display:none}
+#ovSel{font-size:11px;max-height:3.2em;overflow-y:auto}.ovP[hidden]{display:none!important}
+@media(max-width:600px){#ovPick{width:auto;height:min(67svh,570px)}#ovPick:has(#entryOther[open]){height:min(78svh,640px)}.entryMapLevels{margin-top:5px;gap:6px}.entryMapLevels button{min-height:32px;font-size:10px}.entryStation{font-size:9px;padding:2px 3px}.entryGeoNote{font-size:8px}.entryNorth{font-size:9px;right:5px;top:5px}}

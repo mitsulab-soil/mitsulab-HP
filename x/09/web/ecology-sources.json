@@ -1,0 +1,24 @@
+{
+  "description": "下草・落葉・鳥虫は推定/創作配置。現地植生・個体の検出ではありません。",
+  "textures": [
+    {
+      "files": [
+        "ecology-leaf-c.webp",
+        "ecology-leaf-n.webp"
+      ],
+      "asset": "Leaf Set 014",
+      "source": "https://ambientcg.com/view?id=LeafSet014",
+      "creator": "ambientCG / Lennart Demes",
+      "license": "CC0 1.0",
+      "modification": "既存1K Color/Opacity/NormalGLから単葉を切抜き、128×256へ縮小。樹種の同定には使用しない。"
+    }
+  ],
+  "referencePhotos": {
+    "source": "https://www.city.saitama.lg.jp/001/010/015/004/004/p010795.html",
+    "usage": "配置・疎密の内部観察。写真そのものはアプリ素材に転載していない。"
+  },
+  "otherSources": [
+    "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+  ],
+  "fauna": "既存の自作creatures moduleを小型化して少数配置。現在の生息記録ではない。"
+}
