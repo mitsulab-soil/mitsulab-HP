@@ -4,7 +4,7 @@
 export function createEntryMapContext(C,map,host,{places=[]}={}){
  const T=C.THREE,scene=map.scene,camera=map.camera,baseProject=map.project.bind(map),baseRender=map.render.bind(map),group=new T.Group();group.name='entry-geographic-context';scene.traverse(o=>{if(o.isPoints)o.visible=false;});scene.add(group);
  scene.add(new T.HemisphereLight(0xe0efff,0x6c7156,2.4));const sun=new T.DirectionalLight(0xffecd4,2.8);sun.position.set(-900,1600,700);scene.add(sun);
- let selectedD=0,level='wide',size='',revision=0,meshRevision=0,lastSync=0;const state={level:'wide',terrain:false,structures:[],buildings:0,stations:[],downloads:0};
+ let selectedD=0,level='wide',size='',revision=0,meshRevision=0,lastSync=0,lastStructureCount=0;const state={level:'wide',terrain:false,structures:[],buildings:0,stations:[],downloads:0};
  const geo=places.filter(p=>['大宮駅','さいたま新都心駅'].includes(p[0])).map(p=>{const q=C.toXZ(p[1],p[2]);const world=[q[0]??q.x,14,q[1]??q.z];return {name:p[0],ll:[p[1],p[2]],world};});state.stations=geo;
  const line=C.D.centerline,ends=[line[0].p,line.at(-1).p],rail=0xa8bac2;
  const contextPoints=[...ends,...geo.map(g=>g.world)],contextX=contextPoints.map(p=>p[0]),contextZ=contextPoints.map(p=>p[2]);const contextBoard=new T.Mesh(new T.PlaneGeometry(12000,12000),new T.MeshBasicMaterial({color:0x0b2329}));contextBoard.rotation.x=-Math.PI/2;contextBoard.position.set((Math.max(...contextX)+Math.min(...contextX))/2,-12,(Math.max(...contextZ)+Math.min(...contextZ))/2);group.add(contextBoard);
@@ -25,7 +25,11 @@ export function createEntryMapContext(C,map,host,{places=[]}={}){
  const hx=Math.max(...coords.map(p=>Math.abs(p.x)))+190,hy=Math.max(...coords.map(p=>Math.abs(p.y)))+(level==='wide'?300:130),halfW=Math.max(hx,hy*aspect),halfH=halfW/aspect;
  camera.left=-halfW;camera.right=halfW;camera.top=halfH;camera.bottom=-halfH;camera.near=1;camera.far=span*6;camera.updateProjectionMatrix();}
  const v=new T.Vector3();function project(p){fit();const r=host.getBoundingClientRect();v.set(...p).project(camera);return{x:(v.x+1)*r.width/2,y:(1-v.y)*r.height/2,z:v.z};}
- function sync(){const now=performance.now();if(now-lastSync<500)return;lastSync=now;
+ function sync(){const now=performance.now(),structureCount=C.STRUCTS?.length??0;
+ // Reuse this render's existing sync when structure placement changes its source count.
+ // Unchanged sources keep the 500ms cadence; a clock reset restarts the wait without an extra sync.
+ if(structureCount===lastStructureCount){if(now<lastSync){lastSync=now;return;}if(now-lastSync<500)return;}
+ lastSync=now;lastStructureCount=structureCount;
  if(!state.terrain&&C.terrain){C.terrain.updateWorldMatrix(true,false);const terrain=new T.Mesh(C.terrain.geometry,C.terrain.material);terrain.matrix.copy(C.terrain.matrixWorld);terrain.matrixAutoUpdate=false;group.add(terrain);state.terrain=true;}
  const mats=new Map();C.buildings?.traverse(o=>{if(o.isMesh)mats.set(o.geometry,{material:o.material,render:!!(o.layers.mask&1)});});scene.traverse(o=>{if(o.isMesh&&mats.has(o.geometry)){const source=mats.get(o.geometry);o.visible=source.render;if(o.material!==source.material){o.material=source.material;if(source.render)state.buildings++;}}});
  for(const s of C.STRUCTS||[]){if(!/^(torii_[123]|romon|kairo_[we]|shinkyo)$/.test(s.it.id)||state.structures.includes(s.it.id))continue;s.obj.updateWorldMatrix(true,true);const copy=s.obj.clone(true);s.obj.matrixWorld.decompose(copy.position,copy.quaternion,copy.scale);const originalScale=copy.scale.clone();actors.push({copy,scale:originalScale});copy.scale.multiplyScalar(level==='wide'?3:6);copy.visible=true;group.add(copy);state.structures.push(s.it.id);const el=document.createElement('span');el.className='entryStructure';el.textContent=s.it.name||s.it.id;if(s.it.id==='romon'){ui.append(el);labels.push({el,p:[copy.position.x,copy.position.y+100,copy.position.z],wide:false});}meshRevision++;}
