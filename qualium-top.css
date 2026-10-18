@@ -68,3 +68,24 @@ body:has(#top.active) .aoi-guide{display:none}
    of extending half its own height above it, behind the 64px navigation. */
 .qt-flow{scroll-margin-top:84px}
 @media(max-width:700px){.qt-flow .qt-world-one{transform:translate(-50%,0)}}
+/* Read purpose first; names and technologies stay within the making story. */
+.qt-mission h2{font-size:clamp(24px,2.4vw,36px)}
+.qt-making{max-width:900px;margin:38px 0 8px;padding-top:28px;border-top:1px solid #8bccca30}
+.qt-making h3,.qt-loop-caption h3{font:400 25px/1.8 var(--serif);color:var(--ink);margin:0 0 16px}
+.qt-making p,.qt-loop-caption p:not(.qt-kicker){font:400 16px/2.1 var(--sans);color:var(--ink-2);margin:0 0 16px}
+.qt-making .qt-definition{font-size:13px;line-height:1.9;color:#98b3b6;margin-top:20px}
+.qt-research{margin:30px 0 46px;padding-block:18px;border-top:1px solid #8bccca30;border-bottom:1px solid #8bccca30}
+.qt-research summary{min-height:44px;padding:8px 0;cursor:pointer;font:400 15px/1.9 var(--sans);color:#b4d8d0}
+.qt-research summary:focus-visible{outline:1px solid #b5eee0;outline-offset:4px}
+.qt-research .qt-propositions{margin-top:16px;padding-top:20px}
+.qt-research .qt-caption{margin-bottom:4px}
+@media(max-width:700px){.qt-making{margin-top:26px;padding-top:22px}.qt-making h3,.qt-loop-caption h3{font-size:22px}.qt-making p,.qt-loop-caption p:not(.qt-kicker){font-size:15px}.qt-mission h2{font-size:25px}.qt-research summary{font-size:14px}}
+
+.qt-hero-read{pointer-events:auto;min-height:44px;padding:0 4px;border:0;background:none;color:#b3d7d0;font:400 13px/1.8 var(--sans);letter-spacing:.04em;cursor:pointer;text-decoration:underline;text-underline-offset:5px;text-decoration-color:#638f8b}
+.qt-hero-read:hover{color:#e0f1e9;text-decoration-color:currentColor}
+.beat:not(.on) .qt-hero-read{pointer-events:none}
+#top .beat-hero .hero-go{column-gap:20px}
+@media(max-width:480px){#top .beat-hero .hero-go{column-gap:14px}.qt-hero-read{font-size:12px;letter-spacing:0}}
+
+.qt-mission-line{display:block}
+@media(max-width:700px){.qt-mission-line{white-space:nowrap;letter-spacing:.025em}.qt-mission h2{font-size:24px}}

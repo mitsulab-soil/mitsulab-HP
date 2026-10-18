@@ -1,7 +1,7 @@
 /* © mitsulab. 生きものの身体（見る人がなる身体と、ダイヤルの絵）。2026-10-12 写実の造形（creatures.js）に替えた。
    向き：頭が +Z。呼ぶ側（umwelt.js）で、見る人の身体は前（-Z）へ向けて置く。実寸・主観の再現ではない。 */
 import * as T from 'three';
-import { stdMat, makeBee, makeButterfly, makeTit, makeDog, makeMamushi, makeWorm, makeBat } from './creatures.js?v=20261017-poodle';
+import { stdMat, makeBee, makeButterfly, makeTit, makeDog, makeMamushi, makeWorm, makeBat } from './creatures.js?v=20261018-anatomy';
 // 画面の前に置くときの大きさ（体の長さ＝1 の造形を、見やすい大きさへ）
 const FIT = { hachi: .9, chou: .55, tori: 1, inu: .95, hebi: 1.3, koumori: .5, mimizu: 1.2 };
 // ひと（ダイヤルの絵だけに使う）。2026-10-14 テストプレー「ひとだけ作りが粗い（緑の丸い人形）」→ 7 頭身の、首・肩・肘・手・脚・靴のある立ち姿に（ほかの生き物と同じ、落ち着いた写実寄りの色）
@@ -69,4 +69,11 @@ export function humanPortrait(root,vrm){
  try{scene.add(root);root.position.set(0,0,0);root.rotation.set(0,0,0);root.visible=true;root.updateMatrixWorld(true);
  const head=vrm.humanoid.getRawBoneNode('head').getWorldPosition(new T.Vector3());const c=new T.PerspectiveCamera(30,4/3,.01,20);c.position.set(head.x+.09,head.y+.015,head.z+1.0);c.lookAt(head.x,head.y-.11,head.z);r.render(scene,c);return r.domElement.toDataURL('image/webp',.95);
  }finally{parent.add(root);root.position.copy(pos);root.quaternion.copy(q);root.visible=visible;root.updateMatrixWorld(true);r.dispose();r.forceContextLoss();}
+}
+
+// A still reference uses its own front-facing portrait camera; it never changes the walking body's heading.
+export function referencePortrait(id) {
+  const result=creaturePortrait(id);
+  if(portraitRenderer){portraitRenderer.dispose();portraitRenderer.forceContextLoss();portraitRenderer=null;}
+  return result;
 }

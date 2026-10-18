@@ -60,29 +60,51 @@ body.ovOn #perceptionDock,body:has(#menu:not([hidden])) #perceptionDock,body:has
   addEventListener('hikawa-body',e=>setHeight(e.detail.height));
   // One low-frequency control loop; visibility pauses both movement and work.
   setInterval(()=>{const now=performance.now(),dt=Math.min(.1,(now-last)/1000);last=now;mountDock();const on=usable();panel.hidden=!on;if(dock)dock.hidden=!on;if(!on||document.hidden){held=0;return;}if(held)move(held,dt);if(!started){started=true;setHeight(window.__eyeH??1.6);}},50);
-  let echo,ray,dir,lastEcho=-Infinity,points=0;
-  const hits=[];
+  let echo,echoScene,ray,dir,lastEcho=-Infinity,points=0,scanIndex=0,wasEcho=false,emitted=0,delivered=0,lastDelay=0;
+  const hits=[],pending=[],returns=[];let trail,trailPoints=[],treeCues,lastScent=-Infinity,treeSources=0;
+  function dogTrail(T,scene,camera,on){
+    if(trail)trail.visible=on;
+    if(treeCues)treeCues.visible=on;
+    if(!on)return;
+    if(!treeCues){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(new Float32Array(3*24*2*3),3));treeCues=new T.LineSegments(g,new T.LineBasicMaterial({color:0xe6b477,transparent:true,opacity:.68,depthWrite:false}));treeCues.name='木の模型に結ぶ創作の匂いの手がかり・匂い未測定';treeCues.frustumCulled=false;scene.add(treeCues);}
+    if(performance.now()-lastScent>500){lastScent=performance.now();const nearest=(window.__core.D?.trees||[]).filter(t=>t.p).map(t=>({t,d:Math.hypot(t.p[0]-camera.position.x,t.p[2]-camera.position.z)})).filter(q=>q.d<32).sort((a,b)=>a.d-b.d).slice(0,3);treeSources=nearest.length;let n=0;const a=treeCues.geometry.attributes.position;
+      for(const {t} of nearest){const [x,,z]=t.p,gy=window.__core.groundY(x,z);if(!Number.isFinite(gy))continue;for(let j=0;j<24;j++){const angle=j/24*Math.PI*4,next=(j+1)/24*Math.PI*4,r=.35+j*.045,r2=.35+(j+1)*.045;a.setXYZ(n++,x+Math.cos(angle)*r,gy+.08+j*.014,z+Math.sin(angle)*r);a.setXYZ(n++,x+Math.cos(next)*r2,gy+.08+(j+1)*.014,z+Math.sin(next)*r2);}}
+      a.needsUpdate=true;treeCues.geometry.setDrawRange(0,n);
+    }
+    if(!trail){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(new Float32Array(32*3),3));trail=new T.Line(g,new T.LineBasicMaterial({color:0xe7bd86,transparent:true,opacity:.62,depthWrite:false}));trail.name='歩いた軌跡：嗅跡を考える模式・匂い未測定';trail.frustumCulled=false;scene.add(trail);}
+    const last=trailPoints.at(-1),distance=last?Math.hypot(last.x-camera.position.x,last.z-camera.position.z):999;
+    if(distance>20)trailPoints=[];
+    if(distance>.35){const gy=window.__core.groundY(camera.position.x,camera.position.z);if(Number.isFinite(gy))trailPoints.push({x:camera.position.x,y:gy+.055,z:camera.position.z});if(trailPoints.length>32)trailPoints.shift();const a=trail.geometry.attributes.position;trailPoints.forEach((p,i)=>a.setXYZ(i,p.x,p.y,p.z));a.needsUpdate=true;trail.geometry.setDrawRange(0,trailPoints.length);}
+  }
   window.__umweltEchoFrame=(renderer,scene,camera,body)=>{
+    const C=window.__core,T=C?.THREE;if(!T)return;
+    dogTrail(T,scene,camera,body==='inu'&&usable()&&!document.hidden);
     const on=body==='koumori'&&usable()&&!document.hidden;
     if(echo)echo.visible=on;
-    if(!on){points=0;return;}
-    const C=window.__core,T=C.THREE;
-    if(!echo){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(new Float32Array(48*3),3));echo=new T.Points(g,new T.PointsMaterial({color:0xa4f5e6,size:.15,transparent:true,opacity:.9,depthWrite:false,toneMapped:false}));echo.name='Qualium: model-distance echoes (not measured ultrasound)';echo.frustumCulled=false;scene.add(echo);ray=new T.Raycaster();ray.layers.enableAll();ray.firstHitOnly=true;ray.near=.25;ray.far=42;dir=new T.Vector3();}
-    const now=performance.now();if(now-lastEcho<140)return;lastEcho=now;
-    const attr=echo.geometry.attributes.position;points=0;
-    // Forty-eight rays, BVH where present; no extra WebGL pass or render target.
-    const targets=[C.terrain].filter(Boolean);
-    // Full forest instancing would multiply ray work by every tree. Reuse nearby structure models and existing BVHs only.
-    for(const q of C.STRUCTS||[]){const obj=q.obj;if(obj&&obj.visible&&Math.hypot(obj.position.x-camera.position.x,obj.position.z-camera.position.z)<50)targets.push(obj);}
-    C.buildings?.traverse(obj=>{if(obj.isMesh&&obj.visible&&obj.geometry?.boundsTree)targets.push(obj);});
-    for(let i=0;i<48;i++){
-      dir.set(((i%12)/11-.5)*1.8,(Math.floor(i/12)/3-.5)*.9,-1).normalize().applyQuaternion(camera.quaternion);
-      ray.set(camera.position,dir);hits.length=0;ray.intersectObjects(targets,true,hits);
-      const hit=hits.find(h=>h.object.visible&&h.object.parent?.visible!==false);if(!hit)continue;
-      attr.setXYZ(points++,hit.point.x,hit.point.y,hit.point.z);
+    if(!on){points=0;if(wasEcho){pending.length=0;returns.length=0;}wasEcho=false;return;}
+    if(!wasEcho){scanIndex=0;lastEcho=-Infinity;}wasEcho=true;
+    if(!echo){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(new Float32Array(128*3),3));g.setAttribute('color',new T.Float32BufferAttribute(new Float32Array(128*3),3));echo=new T.Points(g,new T.PointsMaterial({vertexColors:true,size:.12,transparent:true,opacity:.95,depthTest:false,depthWrite:false,toneMapped:false}));echo.name='反響走査：模型距離の往復遅延・実音響ではない';echo.frustumCulled=false;echoScene=new T.Scene();echoScene.add(echo);ray=new T.Raycaster();ray.layers.enableAll();ray.firstHitOnly=true;ray.near=.25;ray.far=42;dir=new T.Vector3();}
+    const now=performance.now();
+    if(now-lastEcho>=50){
+      lastEcho=now;const targets=[C.terrain].filter(Boolean);
+      for(const q of C.STRUCTS||[]){const obj=q.obj;if(obj&&obj.visible&&Math.hypot(obj.position.x-camera.position.x,obj.position.z-camera.position.z)<50)targets.push(obj);}
+      C.buildings?.traverse(obj=>{if(obj.isMesh&&obj.visible&&obj.geometry?.boundsTree)targets.push(obj);});
+      // Eight rays per budgeted slice: sweep the cone rather than displaying an instantaneous complete cloud.
+      for(let k=0;k<8;k++){
+        const i=scanIndex;scanIndex=(scanIndex+1)%48;emitted++;
+        dir.set(((i%12)/11-.5)*1.8,(Math.floor(i/12)/3-.5)*.9,-1).normalize().applyQuaternion(camera.quaternion);
+        ray.set(camera.position,dir);hits.length=0;ray.intersectObjects(targets,true,hits);
+        const hit=hits.find(h=>h.object.visible&&h.object.parent?.visible!==false);if(!hit)continue;
+        const delay=2*hit.distance/343*1000;lastDelay=delay;pending.push({p:hit.point.clone(),due:now+delay,delay});
+      }
     }
-    echo.geometry.setDrawRange(0,points);attr.needsUpdate=true;
-    panel.querySelector('#echoStatus').textContent=`反響の模式：地面・近くの構造物から ${points} 点。熱・超音波は未測定。`;
+    for(let i=pending.length-1;i>=0;i--)if(pending[i].due<=now){const item=pending.splice(i,1)[0];returns.push({p:item.p,at:now});delivered++;}
+    while(returns.length&&(now-returns[0].at>750||returns.length>128))returns.shift();
+    points=returns.length;const attr=echo.geometry.attributes.position,color=echo.geometry.attributes.color;
+    returns.forEach((r,i)=>{const fade=Math.pow(Math.max(0,1-(now-r.at)/750),2);attr.setXYZ(i,r.p.x,r.p.y,r.p.z);color.setXYZ(i,.24*fade,.95*fade,.84*fade);});
+    echo.geometry.setDrawRange(0,points);attr.needsUpdate=true;color.needsUpdate=true;
+    panel.querySelector('#echoStatus').textContent=`反響の模式：往復遅延 ${lastDelay.toFixed(0)} ms・${points} 点。模型内で音速343m/sを仮定。超音波未測定。`;
   };
-  window.__umweltTools={setHeight,get height(){return window.__eyeH??1.6;},get echoPoints(){return points;},get panel(){return panel;}};
+  window.__umweltEchoOverlay=(r,camera,body)=>{if(body!=='koumori'||!echoScene||!usable())return;const auto=r.autoClear;try{r.autoClear=false;r.render(echoScene,camera);}finally{r.autoClear=auto;}};
+  window.__umweltTools={setHeight,get height(){return window.__eyeH??1.6;},get echoPoints(){return points;},get echoDiagnostics(){return {scanIndex,emitted,delivered,pending:pending.length,lastDelayMs:lastDelay,trailPoints:trailPoints.length,treeSources};},get panel(){return panel;}};
 })();

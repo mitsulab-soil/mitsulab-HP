@@ -1,0 +1,154 @@
+/* mitsulab — 環世界の操作。既存の4項目を保ち、景色の中央を空ける。
+   IDを重ねた特異性で、遅れて挿入される既存の!importantにも対応。 */
+body #perceptionDock#perceptionDock {
+  --dock-ink:#edf4fc;--dock-muted:#a6b7cd;--dock-aoi:#80d4e5;--dock-line:#a6c4e32b;
+  top:72px!important;left:16px!important;width:min(356px,calc(100vw - 112px))!important;
+  color:var(--dock-ink)!important;background:linear-gradient(135deg,#0b172bea,#081120e8)!important;
+  border:1px solid var(--dock-line)!important;border-radius:4px!important;
+  padding:3px!important;gap:2px!important;align-items:stretch!important;
+  box-shadow:0 5px 24px #03091333,inset 0 1px #d0e7ff08!important;
+  font:400 12px/1.65 "Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif!important;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+body #perceptionDock#perceptionDock .dockControl>summary {
+  position:relative;min-height:46px!important;padding:0 9px!important;gap:7px!important;
+  color:#b8c8da!important;background:transparent!important;border:0!important;border-radius:2px;
+  font:400 12px/1.3 "Zen Kaku Gothic New","Hiragino Sans",sans-serif!important;letter-spacing:.1em!important;
+  transition:color .18s ease,background .18s ease;
+}
+body #perceptionDock#perceptionDock .dockControl>summary::before {
+  content:attr(data-dock-index);font:9px/1 ui-monospace,SFMono-Regular,monospace;
+  letter-spacing:0;color:#7f9ab5;align-self:center;
+}
+body #perceptionDock#perceptionDock .dockControl[open]>summary {
+  color:#f1fbff!important;background:linear-gradient(180deg,#80d4e51a,#80d4e509)!important;
+  box-shadow:inset 0 -1px var(--dock-aoi);
+}
+body #perceptionDock#perceptionDock .dockControl[open]>summary::before {color:var(--dock-aoi)}
+body #perceptionDock#perceptionDock .dockControl>summary:hover {color:white!important;background:#c6eaff0b!important}
+body #perceptionDock#perceptionDock .dockPanel {
+  top:calc(100% + 10px)!important;left:-1px!important;width:min(356px,calc(100vw - 32px))!important;
+  max-height:min(calc(100svh - 170px),var(--dock-panel-room,calc(100svh - 260px)))!important;padding:18px!important;border-radius:4px!important;
+  border:1px solid #a6c4e340!important;background:linear-gradient(145deg,#0c182bf7,#080f1ff7)!important;
+  color:var(--dock-ink)!important;box-shadow:0 14px 36px #02071466,inset 0 1px #d9e9ff0a!important;
+  scrollbar-color:#7a9eae66 transparent;scrollbar-width:thin;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+body #perceptionDock#perceptionDock .dockPanel::before {
+  content:attr(data-dock-heading);display:block;margin:0 0 14px;padding-bottom:10px;
+  border-bottom:1px solid var(--dock-line);color:#d9edf7;font-size:11px;letter-spacing:.18em;
+  grid-column:1/-1;
+}
+body #perceptionDock#perceptionDock .dockPanel button {
+  min-height:44px;min-width:44px;box-sizing:border-box;color:#d5e2f0!important;
+  background:#b4d2ed06!important;border:1px solid #a6c4e32d!important;border-radius:3px!important;
+  font:400 12px/1.5 "Zen Kaku Gothic New","Hiragino Sans",sans-serif;cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+body #perceptionDock#perceptionDock .dockPanel button:hover {background:#80d4e515!important;border-color:#80d4e570!important}
+body #perceptionDock#perceptionDock .dockPanel button[aria-pressed=true] {
+  color:#eafcff!important;background:#80d4e518!important;border-color:#80d4e58a!important;
+}
+body #perceptionDock#perceptionDock :is(button,summary,input,a):focus-visible {
+  outline:2px solid #9ce4ef!important;outline-offset:3px!important;
+}
+body #perceptionDock#perceptionDock :is(p,.toolLimit,.jNote,#journeyLog) {color:var(--dock-muted)!important;line-height:1.8}
+body #perceptionDock#perceptionDock a {color:#a1deec!important}
+body #perceptionDock#perceptionDock .jScale {font-size:10px!important;letter-spacing:.08em;color:#97aec8}
+body #perceptionDock#perceptionDock #journeyEras {gap:3px;margin:8px 0 12px}
+body #perceptionDock#perceptionDock #journeyEras .jE {
+  padding:27px 1px 9px;min-width:0;min-height:70px;background:transparent!important;border-color:transparent!important;
+}
+body #perceptionDock#perceptionDock #journeyEras .jE[aria-pressed=true] {background:#80d4e512!important;border-bottom-color:#80d4e5!important}
+body #perceptionDock#perceptionDock #journeyEras .jE b {font-weight:400;font-size:13px;letter-spacing:.05em}
+body #perceptionDock#perceptionDock #journeyEras .jE i {font-size:9px;letter-spacing:0;color:#9baec5}
+body #perceptionDock#perceptionDock #journeyEraText {font-size:13px;line-height:1.9;color:#e5edf6!important}
+body #perceptionDock#perceptionDock #journeyAuto {padding:0 10px;margin-top:8px}
+body #perceptionDock#perceptionDock .jFold {border-color:var(--dock-line)}
+body #perceptionDock#perceptionDock #slipCap {background:#80d4e508!important;border:1px solid var(--dock-line)!important}
+body #perceptionDock#perceptionDock #bodyQuick[open]>.dockPanel {gap:8px!important}
+body #perceptionDock#perceptionDock #bodyQuick button {font-weight:400;letter-spacing:.08em;min-width:0;padding:8px 4px}
+body #perceptionDock#perceptionDock #bodyNote {color:var(--dock-muted)!important;line-height:1.8;font-size:12px!important}
+body #perceptionDock#perceptionDock #bodyNote summary {min-height:44px}
+body #perceptionDock#perceptionDock #qualiumPanel {font-size:12px;border-bottom:1px solid var(--dock-line)!important}
+body #perceptionDock#perceptionDock #qualiumPanel>p:first-of-type {margin:0 0 12px}
+body #perceptionDock#perceptionDock .qBulk {gap:8px;margin:10px 0 16px}
+body #perceptionDock#perceptionDock .qBulk button {font-size:11px;letter-spacing:.06em}
+body #perceptionDock#perceptionDock .qualiumChoices {display:flex!important;flex-direction:column;gap:16px!important}
+body #perceptionDock#perceptionDock .qLayerGroup {
+  min-width:0;margin:0;padding:0;border:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px;
+}
+body #perceptionDock#perceptionDock .qLayerGroup legend {
+  padding:0 0 8px;font-size:10px;letter-spacing:.1em;color:#95b0c6;line-height:1.6;
+}
+body #perceptionDock#perceptionDock .qualiumChoices label {
+  min-height:44px;box-sizing:border-box;gap:10px;padding:5px 10px;border:1px solid #a6c4e322;border-radius:3px;
+  background:#c4e3ff04;cursor:pointer;transition:background .18s ease,border-color .18s ease;
+}
+body #perceptionDock#perceptionDock .qualiumChoices label:has(input:checked) {
+  background:#80d4e50e;border-color:#80d4e547;color:#e2f8ff;
+}
+body #perceptionDock#perceptionDock #qualiumPanel input {width:16px;height:16px;flex:none;margin:0;accent-color:#80d4e5}
+body #perceptionDock#perceptionDock .qStill {width:100%;gap:10px;padding:8px 0;border-top:1px solid var(--dock-line);color:#afc2d4}
+body #perceptionDock#perceptionDock #qualiumPanel details {border-top:1px solid var(--dock-line);font-size:11px;color:#a8bdd0}
+body #perceptionDock#perceptionDock #qualiumPanel details summary {min-height:44px;cursor:pointer;align-items:center}
+body #perceptionDock#perceptionDock #qualiumMeaning {font-size:11px;color:#a6c7d7!important;margin:12px 0!important}
+body #perceptionDock#perceptionDock #umweltTools .heightRow {gap:10px;padding:6px 0}
+body #perceptionDock#perceptionDock #eyeHeight {font-size:12px;color:#d2edf5;letter-spacing:.04em}
+body #perceptionDock#perceptionDock #umweltTools .toolLimit {font-size:11px}
+body #perceptionDock#perceptionDock #umweltTools :is(#eyeReset,#stoneTool) {margin:8px 0}
+@media(max-width:600px) {
+  body #perceptionDock#perceptionDock {top:66px!important;left:8px!important;width:calc(100vw - 96px)!important}
+  body #perceptionDock#perceptionDock .dockControl>summary {font-size:11px!important;letter-spacing:.04em!important;padding:0 4px!important;gap:4px!important}
+  body #perceptionDock#perceptionDock .dockControl>summary::before {font-size:8px}
+  body #perceptionDock#perceptionDock .dockPanel {width:calc(100vw - 16px)!important;max-height:min(calc(100svh - 170px),var(--dock-panel-room,calc(100svh - 260px)))!important;padding:16px!important}
+}
+@media(prefers-reduced-motion:reduce) {
+  body #perceptionDock#perceptionDock * {transition:none!important;scroll-behavior:auto!important}
+}
+@media(forced-colors:active) {
+  body #perceptionDock#perceptionDock .qualiumChoices label:has(input:checked),body #perceptionDock#perceptionDock .dockControl[open]>summary {outline:1px solid Highlight}
+}
+
+/* 題名・設定・地図の外枠・字幕。地図SVGの信号色や3Dの変数へ波及させない。 */
+body .top :is(.ib,.brand),body #minimap#minimap,body #sub#sub,body #menu#menu {
+  border-color:#a6c4e338!important;border-radius:4px!important;
+  background:linear-gradient(135deg,#0b172bea,#081120ed)!important;
+  color:#edf4fc!important;box-shadow:0 5px 24px #03091333,inset 0 1px #d0e7ff08!important;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+body .top :is(.ib,.brand),body #menu#menu,body #sub#sub {
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+}
+body .top .brand {letter-spacing:.1em;font-weight:400}
+body .top .brand small {color:#a6b7cd!important;font-family:inherit}
+body .top .ib {min-width:44px!important;min-height:44px!important}
+body .top .ib:hover {border-color:#80d4e580!important;color:#b6edf5!important}
+body .top .ib[aria-pressed=true] {border-color:#80d4e580!important;color:#b6edf5!important;background:#102438ed!important}
+body #minimap#minimap {box-shadow:0 5px 24px #03091333!important}
+/* メニュー内だけの変数。minimapの --aoi/--sando/--panel は変えない。 */
+body #menu#menu {
+  --panel:#0b172b;--ground:#081120;--ink:#edf4fc;--sub:#a6b7cd;--line:#a6c4e32b;--aoi:#80d4e5;
+  scrollbar-color:#7a9eae66 transparent;scrollbar-width:thin;
+}
+body #menu#menu .mh {background:#0b172bf5;border-color:#a6c4e32b}
+body #menu#menu .mh b {font-weight:400;letter-spacing:.1em}
+body #menu#menu h2 {color:#a1deec;font-weight:400}
+body #menu#menu :is(button,.tg,.sw) {min-height:44px;min-width:44px;border-radius:3px}
+body #menu#menu .sw {height:44px;background:#b4d2ed06;border-color:#a6c4e338}
+body #menu#menu .sw[aria-pressed=true] {background:#80d4e518;border-color:#80d4e58a;color:#eafcff}
+body #menu#menu .grp {background:#b4d2ed06;border-color:#a6c4e32b;border-radius:3px}
+body #menu#menu .grp button[aria-pressed=true] {background:#80d4e518;color:#eafcff}
+body #menu#menu input {accent-color:#80d4e5}
+body #sub#sub {--sub:#a6b7cd;--subink:#edf4fc;--aoi:#80d4e5}
+body #sub#sub.rest {background:linear-gradient(135deg,#0b172bd9,#081120df)!important}
+body #sub#sub .who {color:#a1deec!important;letter-spacing:.09em;font-weight:400}
+body #sub#sub #subT {font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;font-weight:400}
+body #sub#sub .ctl {min-width:44px!important;min-height:44px!important;border-radius:3px;color:#a6b7cd}
+body #sub#sub .ctl:hover {background:#80d4e512;color:#d5f8ff}
+body :is(.top,#menu,#sub) :is(button,input,a):focus-visible,body #minimap#minimap:focus-visible {
+  outline:2px solid #9ce4ef!important;outline-offset:3px!important;
+}
+
+body #menu#menu .modes button {background:#b4d2ed06!important;border-color:#a6c4e338!important;color:#d5e2f0!important}
+body #menu#menu .modes button[aria-pressed=true] {background:#80d4e518!important;border-color:#80d4e58a!important;color:#eafcff!important;box-shadow:none!important}

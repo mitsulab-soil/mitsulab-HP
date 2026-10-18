@@ -397,6 +397,163 @@ body:has(#menu:not([hidden])) #journeyPanel,body:has(#menu:not([hidden])) #bodyQ
 </style>
 <link rel="stylesheet" href="web/entry-map.css?v=20261016-ar1">
 <link rel="stylesheet" href="web/ghost-interface.css?v=20261016-field">
+<style data-source="umwelt-ui.css">
+/* mitsulab — 環世界の操作。既存の4項目を保ち、景色の中央を空ける。
+   IDを重ねた特異性で、遅れて挿入される既存の!importantにも対応。 */
+body #perceptionDock#perceptionDock {
+  --dock-ink:#edf4fc;--dock-muted:#a6b7cd;--dock-aoi:#80d4e5;--dock-line:#a6c4e32b;
+  top:72px!important;left:16px!important;width:min(356px,calc(100vw - 112px))!important;
+  color:var(--dock-ink)!important;background:linear-gradient(135deg,#0b172bea,#081120e8)!important;
+  border:1px solid var(--dock-line)!important;border-radius:4px!important;
+  padding:3px!important;gap:2px!important;align-items:stretch!important;
+  box-shadow:0 5px 24px #03091333,inset 0 1px #d0e7ff08!important;
+  font:400 12px/1.65 "Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif!important;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+body #perceptionDock#perceptionDock .dockControl>summary {
+  position:relative;min-height:46px!important;padding:0 9px!important;gap:7px!important;
+  color:#b8c8da!important;background:transparent!important;border:0!important;border-radius:2px;
+  font:400 12px/1.3 "Zen Kaku Gothic New","Hiragino Sans",sans-serif!important;letter-spacing:.1em!important;
+  transition:color .18s ease,background .18s ease;
+}
+body #perceptionDock#perceptionDock .dockControl>summary::before {
+  content:attr(data-dock-index);font:9px/1 ui-monospace,SFMono-Regular,monospace;
+  letter-spacing:0;color:#7f9ab5;align-self:center;
+}
+body #perceptionDock#perceptionDock .dockControl[open]>summary {
+  color:#f1fbff!important;background:linear-gradient(180deg,#80d4e51a,#80d4e509)!important;
+  box-shadow:inset 0 -1px var(--dock-aoi);
+}
+body #perceptionDock#perceptionDock .dockControl[open]>summary::before {color:var(--dock-aoi)}
+body #perceptionDock#perceptionDock .dockControl>summary:hover {color:white!important;background:#c6eaff0b!important}
+body #perceptionDock#perceptionDock .dockPanel {
+  top:calc(100% + 10px)!important;left:-1px!important;width:min(356px,calc(100vw - 32px))!important;
+  max-height:min(calc(100svh - 170px),var(--dock-panel-room,calc(100svh - 260px)))!important;padding:18px!important;border-radius:4px!important;
+  border:1px solid #a6c4e340!important;background:linear-gradient(145deg,#0c182bf7,#080f1ff7)!important;
+  color:var(--dock-ink)!important;box-shadow:0 14px 36px #02071466,inset 0 1px #d9e9ff0a!important;
+  scrollbar-color:#7a9eae66 transparent;scrollbar-width:thin;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+body #perceptionDock#perceptionDock .dockPanel::before {
+  content:attr(data-dock-heading);display:block;margin:0 0 14px;padding-bottom:10px;
+  border-bottom:1px solid var(--dock-line);color:#d9edf7;font-size:11px;letter-spacing:.18em;
+  grid-column:1/-1;
+}
+body #perceptionDock#perceptionDock .dockPanel button {
+  min-height:44px;min-width:44px;box-sizing:border-box;color:#d5e2f0!important;
+  background:#b4d2ed06!important;border:1px solid #a6c4e32d!important;border-radius:3px!important;
+  font:400 12px/1.5 "Zen Kaku Gothic New","Hiragino Sans",sans-serif;cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+body #perceptionDock#perceptionDock .dockPanel button:hover {background:#80d4e515!important;border-color:#80d4e570!important}
+body #perceptionDock#perceptionDock .dockPanel button[aria-pressed=true] {
+  color:#eafcff!important;background:#80d4e518!important;border-color:#80d4e58a!important;
+}
+body #perceptionDock#perceptionDock :is(button,summary,input,a):focus-visible {
+  outline:2px solid #9ce4ef!important;outline-offset:3px!important;
+}
+body #perceptionDock#perceptionDock :is(p,.toolLimit,.jNote,#journeyLog) {color:var(--dock-muted)!important;line-height:1.8}
+body #perceptionDock#perceptionDock a {color:#a1deec!important}
+body #perceptionDock#perceptionDock .jScale {font-size:10px!important;letter-spacing:.08em;color:#97aec8}
+body #perceptionDock#perceptionDock #journeyEras {gap:3px;margin:8px 0 12px}
+body #perceptionDock#perceptionDock #journeyEras .jE {
+  padding:27px 1px 9px;min-width:0;min-height:70px;background:transparent!important;border-color:transparent!important;
+}
+body #perceptionDock#perceptionDock #journeyEras .jE[aria-pressed=true] {background:#80d4e512!important;border-bottom-color:#80d4e5!important}
+body #perceptionDock#perceptionDock #journeyEras .jE b {font-weight:400;font-size:13px;letter-spacing:.05em}
+body #perceptionDock#perceptionDock #journeyEras .jE i {font-size:9px;letter-spacing:0;color:#9baec5}
+body #perceptionDock#perceptionDock #journeyEraText {font-size:13px;line-height:1.9;color:#e5edf6!important}
+body #perceptionDock#perceptionDock #journeyAuto {padding:0 10px;margin-top:8px}
+body #perceptionDock#perceptionDock .jFold {border-color:var(--dock-line)}
+body #perceptionDock#perceptionDock #slipCap {background:#80d4e508!important;border:1px solid var(--dock-line)!important}
+body #perceptionDock#perceptionDock #bodyQuick[open]>.dockPanel {gap:8px!important}
+body #perceptionDock#perceptionDock #bodyQuick button {font-weight:400;letter-spacing:.08em;min-width:0;padding:8px 4px}
+body #perceptionDock#perceptionDock #bodyNote {color:var(--dock-muted)!important;line-height:1.8;font-size:12px!important}
+body #perceptionDock#perceptionDock #bodyNote summary {min-height:44px}
+body #perceptionDock#perceptionDock #qualiumPanel {font-size:12px;border-bottom:1px solid var(--dock-line)!important}
+body #perceptionDock#perceptionDock #qualiumPanel>p:first-of-type {margin:0 0 12px}
+body #perceptionDock#perceptionDock .qBulk {gap:8px;margin:10px 0 16px}
+body #perceptionDock#perceptionDock .qBulk button {font-size:11px;letter-spacing:.06em}
+body #perceptionDock#perceptionDock .qualiumChoices {display:flex!important;flex-direction:column;gap:16px!important}
+body #perceptionDock#perceptionDock .qLayerGroup {
+  min-width:0;margin:0;padding:0;border:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px;
+}
+body #perceptionDock#perceptionDock .qLayerGroup legend {
+  padding:0 0 8px;font-size:10px;letter-spacing:.1em;color:#95b0c6;line-height:1.6;
+}
+body #perceptionDock#perceptionDock .qualiumChoices label {
+  min-height:44px;box-sizing:border-box;gap:10px;padding:5px 10px;border:1px solid #a6c4e322;border-radius:3px;
+  background:#c4e3ff04;cursor:pointer;transition:background .18s ease,border-color .18s ease;
+}
+body #perceptionDock#perceptionDock .qualiumChoices label:has(input:checked) {
+  background:#80d4e50e;border-color:#80d4e547;color:#e2f8ff;
+}
+body #perceptionDock#perceptionDock #qualiumPanel input {width:16px;height:16px;flex:none;margin:0;accent-color:#80d4e5}
+body #perceptionDock#perceptionDock .qStill {width:100%;gap:10px;padding:8px 0;border-top:1px solid var(--dock-line);color:#afc2d4}
+body #perceptionDock#perceptionDock #qualiumPanel details {border-top:1px solid var(--dock-line);font-size:11px;color:#a8bdd0}
+body #perceptionDock#perceptionDock #qualiumPanel details summary {min-height:44px;cursor:pointer;align-items:center}
+body #perceptionDock#perceptionDock #qualiumMeaning {font-size:11px;color:#a6c7d7!important;margin:12px 0!important}
+body #perceptionDock#perceptionDock #umweltTools .heightRow {gap:10px;padding:6px 0}
+body #perceptionDock#perceptionDock #eyeHeight {font-size:12px;color:#d2edf5;letter-spacing:.04em}
+body #perceptionDock#perceptionDock #umweltTools .toolLimit {font-size:11px}
+body #perceptionDock#perceptionDock #umweltTools :is(#eyeReset,#stoneTool) {margin:8px 0}
+@media(max-width:600px) {
+  body #perceptionDock#perceptionDock {top:66px!important;left:8px!important;width:calc(100vw - 96px)!important}
+  body #perceptionDock#perceptionDock .dockControl>summary {font-size:11px!important;letter-spacing:.04em!important;padding:0 4px!important;gap:4px!important}
+  body #perceptionDock#perceptionDock .dockControl>summary::before {font-size:8px}
+  body #perceptionDock#perceptionDock .dockPanel {width:calc(100vw - 16px)!important;max-height:min(calc(100svh - 170px),var(--dock-panel-room,calc(100svh - 260px)))!important;padding:16px!important}
+}
+@media(prefers-reduced-motion:reduce) {
+  body #perceptionDock#perceptionDock * {transition:none!important;scroll-behavior:auto!important}
+}
+@media(forced-colors:active) {
+  body #perceptionDock#perceptionDock .qualiumChoices label:has(input:checked),body #perceptionDock#perceptionDock .dockControl[open]>summary {outline:1px solid Highlight}
+}
+
+/* 題名・設定・地図の外枠・字幕。地図SVGの信号色や3Dの変数へ波及させない。 */
+body .top :is(.ib,.brand),body #minimap#minimap,body #sub#sub,body #menu#menu {
+  border-color:#a6c4e338!important;border-radius:4px!important;
+  background:linear-gradient(135deg,#0b172bea,#081120ed)!important;
+  color:#edf4fc!important;box-shadow:0 5px 24px #03091333,inset 0 1px #d0e7ff08!important;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+body .top :is(.ib,.brand),body #menu#menu,body #sub#sub {
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+}
+body .top .brand {letter-spacing:.1em;font-weight:400}
+body .top .brand small {color:#a6b7cd!important;font-family:inherit}
+body .top .ib {min-width:44px!important;min-height:44px!important}
+body .top .ib:hover {border-color:#80d4e580!important;color:#b6edf5!important}
+body .top .ib[aria-pressed=true] {border-color:#80d4e580!important;color:#b6edf5!important;background:#102438ed!important}
+body #minimap#minimap {box-shadow:0 5px 24px #03091333!important}
+/* メニュー内だけの変数。minimapの --aoi/--sando/--panel は変えない。 */
+body #menu#menu {
+  --panel:#0b172b;--ground:#081120;--ink:#edf4fc;--sub:#a6b7cd;--line:#a6c4e32b;--aoi:#80d4e5;
+  scrollbar-color:#7a9eae66 transparent;scrollbar-width:thin;
+}
+body #menu#menu .mh {background:#0b172bf5;border-color:#a6c4e32b}
+body #menu#menu .mh b {font-weight:400;letter-spacing:.1em}
+body #menu#menu h2 {color:#a1deec;font-weight:400}
+body #menu#menu :is(button,.tg,.sw) {min-height:44px;min-width:44px;border-radius:3px}
+body #menu#menu .sw {height:44px;background:#b4d2ed06;border-color:#a6c4e338}
+body #menu#menu .sw[aria-pressed=true] {background:#80d4e518;border-color:#80d4e58a;color:#eafcff}
+body #menu#menu .grp {background:#b4d2ed06;border-color:#a6c4e32b;border-radius:3px}
+body #menu#menu .grp button[aria-pressed=true] {background:#80d4e518;color:#eafcff}
+body #menu#menu input {accent-color:#80d4e5}
+body #sub#sub {--sub:#a6b7cd;--subink:#edf4fc;--aoi:#80d4e5}
+body #sub#sub.rest {background:linear-gradient(135deg,#0b172bd9,#081120df)!important}
+body #sub#sub .who {color:#a1deec!important;letter-spacing:.09em;font-weight:400}
+body #sub#sub #subT {font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;font-weight:400}
+body #sub#sub .ctl {min-width:44px!important;min-height:44px!important;border-radius:3px;color:#a6b7cd}
+body #sub#sub .ctl:hover {background:#80d4e512;color:#d5f8ff}
+body :is(.top,#menu,#sub) :is(button,input,a):focus-visible,body #minimap#minimap:focus-visible {
+  outline:2px solid #9ce4ef!important;outline-offset:3px!important;
+}
+
+body #menu#menu .modes button {background:#b4d2ed06!important;border-color:#a6c4e338!important;color:#d5e2f0!important}
+body #menu#menu .modes button[aria-pressed=true] {background:#80d4e518!important;border-color:#80d4e58a!important;color:#eafcff!important;box-shadow:none!important}
+
+</style>
 </head><body class="entryPending">
 <div id="v" aria-label="氷川参道のまわりの 3D（実寸）"></div>
 <div class="bar">
@@ -3573,7 +3730,7 @@ if (NEAR) setInterval(nearTick, 400);
 // 近景は buildNear が現在地で必要なものだけ読む。遠い場所の全素材の先行GPU転送はしない。
 window.__near = { idle: () => nearBusy === 0 && nearPending.size === 0, on: () => [...NEAR_ON.keys()], tick: nearTick, dbg: () => ({ trunkRings, trunkAt, TYPES, INST, nearTrees, sdFrom, NEAR, LIGHTU }),
   stats: () => [...NEAR_ON.values()].map(o => { let tri = 0, n = 0; o.g.traverse(m => { if (m.isMesh) { n++; tri += (m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3 * (m.isInstancedMesh ? m.count : 1); } }); return { id: o.site.id, meshes: n, tris: Math.round(tri) }; }) };
-function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h); labels.setSize(w, h); camera.aspect = w / h; camera.fov = w < h ? 62 : 45; camera.updateProjectionMatrix(); }
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h); labels.setSize(w, h); camera.aspect = w / h; camera.fov = window.__bodyFov ?? (w < h ? 62 : 45); camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 setMode("orbit");
 // ---- 毎フレーム：霞の距離・影地図の追従・目印の出し分け
@@ -3624,7 +3781,7 @@ window.__sando = {
   setMode, walk(d, dyaw = 0, p = -.05) { if (mode !== "walk") setMode("walk"); walkD = d; yaw = headingAt(d) + dyaw; pitch = p; placeWalker(); card(); },
   view(c, t) { setMode("orbit"); camera.position.set(...c); controls.target.set(...t); controls.update(); },
   shot(w = 1600, h = 900) {
-    renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w < h ? 62 : 45; camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = window.__bodyFov ?? (w < h ? 62 : 45); camera.updateProjectionMatrix();
     if (mode === "walk") placeWalker(); else if (!isEye()) controls.update(); splitLOD(); frame(); renderer.render(scene, camera); const u = renderer.domElement.toDataURL("image/jpeg", .9); resize(); return u; },
   dbg: () => ({ ponds, trees, TYPES, INST, scene }), look(yw, pt = -.05) { yaw = yw; pitch = pt; if (mode === "walk") placeWalker(); else drawHere(); },
   structs: () => STRUCTS.map(s => ({ id: s.it.id, y0: s.y0, y: +s.y.toFixed(2) })), ready: () => !!(terrain && roadReady && buildings && treesReady && STRUCTS.length),
@@ -7204,12 +7361,21 @@ window.__r21 = R21;
 const BODY = (() => {
   const B = {
     hito: { name: "人", eye: null, rec: "" },
-    hachi: { name: "ハチ", eye: .9, rec: "ミツバチの感覚を考える模式。RGBの色変換と高さの変更であり、実際の紫外反射を測定した映像ではありません。" },
-    inu: { name: "イヌ", eye: .55, rec: "低い目線と周囲の二色型の近似。手元の犬模型は、識別できるよう本来の茶色い毛色で示します。匂いの計測・犬の主観の再現ではありません。" },
-    tori: { name: "鳥", eye: 4.5, rec: "参道の記録：スズメ・ムクドリ・ハクセキレイ（iNaturalist・研究等級）。目の研究は近い仲間のアオガラなどから（◐）" },
-    koumori: { name: "コウモリ", eye: 3, rec: "3D形状へ扇状の線を投げ、届いた距離を反響の点へ変換する模式。超音波の実測や動物の主観ではなく、この模型を読む道具です。生息確認を意味しません。" },
-    chou: { name: "チョウ", eye: 1.0, rec: "参道の記録：アオスジアゲハ（iNaturalist）。目の研究は同じアゲハチョウ科のナミアゲハから（◐）" },
+    hachi: { name: "ハチ", eye: .9, rec: "複眼の空間サンプリングを考える粗視化、青・緑中心の色変換、同じ場所に置いた仮想3D花の模様。花は感覚を比べる創作標本で、参道に実在する花や紫外反射の測定ではありません。" },
+    inu: { name: "イヌ", eye: .55, rec: "低い目線と二色型の近似。犬の身体模型は進む向きに鼻先を向け、本来の茶色で表示。木の模型座標と歩いた軌跡から嗅跡を考える線をつくりますが、匂い・濃度・風の測定や主観の再現ではありません。肖像は正面から見る参照用です。" },
+    tori: { name: "鳥", eye: 4.5, rec: "参道の記録：スズメ・ムクドリ・ハクセキレイ。縦画角を95度へ広げ、小型スズメ目3種の時間分解能研究を参考に周辺のフレーム間の変化を強調する設計上の模式です。特定種の視野角や神経活動の計測値ではありません。紫外の実測はありません。" },
+    koumori: { name: "コウモリ", eye: 3, rec: "反響へ注意を向ける表示で、視覚が無いという意味ではありません。3D形状までの距離を往復時間2×距離/343へ変換した遅延と走査の点を表示。343m/sは計算上の仮定で、反射率・回折や動く虫の音響は再現しません。超音波の実測・主観・現地の生息確認を意味しません。" },
+    chou: { name: "チョウ", eye: 1.0, rec: "参道の記録：アオスジアゲハ。粗視化と色の分離、同じ場所の仮想3D花の色パターンで、蜂と異なる色の手がかりを表す模式。アオスジアゲハの受容器研究とナミアゲハの採餌色覚研究を参照しますが、種・性による差があり、画面は主観や紫外反射の実測ではありません。" },
   };
+  const BODY_REFS={
+    inu:[['犬の色覚実験（3頭）','https://pubmed.ncbi.nlm.nih.gov/2487095/'],['犬の嗅ぎと鼻腔内の流れ','https://pmc.ncbi.nlm.nih.gov/articles/PMC2871809/']],
+    koumori:[['反射時間と距離の研究','https://pmc.ncbi.nlm.nih.gov/articles/PMC8126842/'],['反響定位の研究','https://doi.org/10.1073/pnas.2001105117']],
+    tori:[['小型スズメ目3種の時間分解能','https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0151099']],
+    hachi:[['花の紫外信号の観測','https://www.nature.com/articles/s41598-020-63997-3'],['花の信号に関する研究','https://www.nature.com/articles/s41467-020-15658-2']],
+    chou:[['アオスジアゲハの受容器の研究','https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2016.00018/full'],['ナミアゲハの採餌色覚（種差に注意）','https://pmc.ncbi.nlm.nih.gov/articles/PMC2599938/'],['色コントラストと動きの実験','https://pubmed.ncbi.nlm.nih.gov/26490417/']]
+  };
+  let PERCEPTION_FACTORY=null,perceptionPass=null,REFERENCE_FACTORY=null,sharedReferences=null;
+  import(new URL("web/body/perception.js?v=20261018-senses",document.baseURI).href).then(m=>{PERCEPTION_FACTORY=m.createPerceptionPass;REFERENCE_FACTORY=m.createSharedReferences;}).catch(e=>console.warn("知覚表示",e));
   let cur = "hito", LENS = null, RT = null, qS = null, qC = null, qM = null; const sz = { w: 0, h: 0 };
   import(new URL("web/kit/umwelt_lens.js", document.baseURI).href).then(m => { LENS = m.LENS; }).catch(() => {});
   { const s = document.createElement("script"); s.src = "web/kit/why.js"; s.async = true; document.head.append(s); }
@@ -7222,8 +7388,10 @@ const BODY = (() => {
       qM.toneMapped = true; qS = new THREE.Scene(); qS.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), qM)); qC = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); }
     else if (w !== sz.w || h !== sz.h) { RT.setSize(w, h); sz.w = w; sz.h = h; }
   }
-  const models={};let bodyRoot=null,modelScene=null,dogScene=null,dogLight=null;
-  import(new URL('web/body/bodies.js?v=20261017-poodle',document.baseURI).href).then(async m=>{
+  let BODY_ASSETS=null;const models={};let bodyRoot=null,modelScene=null,dogScene=null,dogLight=null,dogLast=null,dogYaw=null,dogAlignment=1;
+  let dogForward,dogStep;
+  import(new URL('web/body/bodies.js?v=20261018-anatomy',document.baseURI).href).then(async m=>{
+    BODY_ASSETS=m;
     await afterEntryPaint(250);
     // Generate one body at a time so the opening and subsequent controls can draw between them.
     for(const id of ['tori','chou','hachi','inu','koumori']){
@@ -7233,6 +7401,7 @@ const BODY = (() => {
     }
   }).catch(e=>console.warn('身体の読み込み',e));
   function bodyFrame(scene,cam){
+    if(REFERENCE_FACTORY&&started){sharedReferences ||=REFERENCE_FACTORY(THREE);sharedReferences.frame(scene,cam,cur,C,mode==='sim');window.__sharedReferences=sharedReferences;}
     if(!bodyRoot)bodyRoot=new THREE.Group();
     if(cur==='inu'&&!dogScene){
       dogScene=new THREE.Scene();dogScene.name='身体模型：犬の本来の毛色';
@@ -7244,10 +7413,15 @@ const BODY = (() => {
     if(modelScene!==target){target.add(bodyRoot);modelScene=target;}
     bodyRoot.visible=cur!=='hito'&&mode==='sim';
     for(const id in models){models[id].visible=id===cur;if(id===cur)models[id].userData.animate(performance.now()/1000,id==='inu'?(Math.abs(U.v)>.08||Math.abs(MV.v)>.08):true);}
-    bodyRoot.position.set(cur==='inu'?.06:0,cur==='inu'?-.29:-.17,cur==='inu'?-.95:-.85).applyMatrix4(cam.matrixWorld);
-    // The poodle is a small reference model facing the observer, rather than a back-facing proxy body.
-    bodyRoot.quaternion.copy(cam.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),cur==='inu'?.35:Math.PI));
-    bodyRoot.scale.setScalar(cur==='tori'?.22:cur==='inu'?.34:.30);
+    bodyRoot.position.set(cur==='inu'?.06:.14,cur==='inu'?-.29:-.32,cur==='inu'?-.95:-1.1).applyMatrix4(cam.matrixWorld);
+    if(cur==='inu'){
+      dogForward ||= new THREE.Vector3();dogStep ||=new THREE.Vector3();cam.getWorldDirection(dogForward);dogForward.y=0;dogForward.normalize();
+      if(dogYaw==null)dogYaw=Math.atan2(dogForward.x,dogForward.z);
+      if(dogLast){dogStep.copy(cam.position).sub(dogLast);dogStep.y=0;const distance=dogStep.length();if(distance>.0005&&distance<1.5){dogStep.normalize();dogYaw=Math.atan2(dogStep.x,dogStep.z);dogAlignment=Math.sin(dogYaw)*dogStep.x+Math.cos(dogYaw)*dogStep.z;}}
+      dogLast ||= cam.position.clone();dogLast.copy(cam.position);
+      bodyRoot.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),dogYaw);
+    }else{dogLast=null;dogYaw=null;bodyRoot.quaternion.copy(cam.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI));}
+    bodyRoot.scale.setScalar(cur==='inu'?.46:cur==='hachi'?.08:cur==='tori'?.12:cur==='chou'?.10:.15);
     if(cur==='inu'){
       dogLight.position.set(-1.4,2,2).applyQuaternion(cam.quaternion).add(bodyRoot.position);
       dogLight.target.position.copy(bodyRoot.position);
@@ -7264,10 +7438,12 @@ const BODY = (() => {
     bodyFrame(scene,cam);
     window.__umweltEchoFrame?.(r,scene,cam,cur);
     window.__physicalFrame?.(r,scene,cam,cur);
+    if(cur==='koumori'&&PERCEPTION_FACTORY){perceptionPass ||= PERCEPTION_FACTORY(THREE);window.__perception=perceptionPass;perceptionPass.render(r,scene,cam,cur);window.__umweltEchoOverlay?.(r,cam,cur);return true;}
     if (cur === "hito" || !LENS?.[cur]) {
       if(cur==='inu'){r.render(scene,cam);drawDog(r,cam);return true;}
       return false;
     }
+    if(PERCEPTION_FACTORY){perceptionPass ||= PERCEPTION_FACTORY(THREE);window.__perception=perceptionPass;perceptionPass.render(r,scene,cam,cur,LENS?.[cur]?.m);window.__umweltEchoOverlay?.(r,cam,cur);drawDog(r,cam);return true;}
     ensure(r); qM.uniforms.uM.value.set(...LENS[cur].m);
     r.setRenderTarget(RT); r.render(scene, cam); r.setRenderTarget(null); r.render(qS, qC);drawDog(r,cam);return true;
   };
@@ -7285,17 +7461,23 @@ body.ovOn #bodyQuick,body:has(#menu:not([hidden])) #bodyQuick,body:has(#journeyP
   const e = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   function setBody(id) {
     if (!B[id]) return; const was = cur; cur = id;
+    window.__bodyFov=id==='tori'?95:undefined;if(C.camera){C.camera.fov=window.__bodyFov??(innerWidth<innerHeight?62:45);C.camera.updateProjectionMatrix();}
     // Every body keeps Aoi as a companion. Height belongs to the simulated observer.
     { const A = window.__aoi?.A; if (A){A.hideOv = false;A.standP=null;A.standSeg=null;} }
     window.__eyeH = mode === 'sim' ? (B[id].eye ?? 1.6) : 1.6;
-    C.setEyeH(window.__eyeH); if(mode==='sim'){const pitch=id==='hito'?-.22:Math.atan2(1.1-window.__eyeH,companionAhead());FR.pitch=pitch;FR.yaw=C.yaw;A.camP=pitch;C.look(C.yaw,pitch);} window.dispatchEvent(new CustomEvent('hikawa-body',{detail:{id,height:window.__eyeH}}));
+    C.setEyeH(window.__eyeH); if(mode==='sim'){const pitch=id==='hito'?-.22:(id==='hachi'||id==='chou')?-.12:Math.atan2(1.1-window.__eyeH,companionAhead());FR.pitch=pitch;FR.yaw=C.yaw;A.camP=pitch;C.look(C.yaw,pitch);} window.dispatchEvent(new CustomEvent('hikawa-body',{detail:{id,height:window.__eyeH}}));
     for (const b of document.querySelectorAll("#bodyRow button,#bodyQuick button")) b.setAttribute("aria-pressed", String(b.dataset.b === id));
     const qs=document.querySelector("#bodyQuick summary");if(qs)qs.textContent="身体";qs?.setAttribute('aria-label','身体を替える・'+B[id].name);
     const jb = document.querySelector("#journeyPanel .jBody"); if (jb) jb.textContent = id === "hito" ? "" : "· " + B[id].name + "の目";
     if (id === "hito") { note.hidden = true; return; }
-    const L = LENS?.[id], W = window.WHY?.[id];
+    const L = LENS?.[id], sub={inu:"二色型の近似と創作の嗅跡",hachi:"粗視化と仮想花の信号",chou:"ナミアゲハの研究も参照した色の手がかりの模式",tori:"広い画角と動きの手がかり",koumori:"模型深度の走査と遅延"}[id]??L?.sub??"";
     document.getElementById('echoStatus')?.replaceChildren();
-    note.innerHTML = `<b>${e(B[id].name)}の身体</b>　${e(L?.sub ?? "")}<details><summary>見え方と根拠</summary><p>${e(B[id].rec)}</p><p>通常のRGB映像の色と高さを変える模式です。紫外線や匂いは測定していません。</p>${W?`<ul>${[...W.body,...W.how].map(t=>`<li>${e(t)}</li>`).join('')}</ul><small>${e(W.refs.join(' ／ '))}</small>`:''}</details>`;
+    note.innerHTML = `<b>${e(B[id].name)}の身体</b>　${e(sub)}<details><summary>見え方と根拠</summary><p>${e(B[id].rec)}</p><p>RGB・3D模型の距離・フレーム差からつくる設計上の模式です。紫外線・匂い・超音波は測定していません。</p></details>`;
+    if(BODY_REFS[id]?.length){const source=document.createElement('p');source.innerHTML=BODY_REFS[id].map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener">${e(name)} ↗</a>`).join(' ／ ');note.querySelector('details').append(source);}
+    if(id==='inu'){
+      const ref=document.createElement('details');ref.innerHTML='<summary>犬の造形を正面から見る（静止肖像）</summary><figure><img hidden width="240" height="180" alt="茶色いトイプードルの静止した造形参照" style="max-width:100%;height:auto"><figcaption>肖像の正面向きと、進行方向へ向く身体は別です。</figcaption></figure>';
+      ref.addEventListener('toggle',()=>{const img=ref.querySelector('img');if(ref.open&&!img.getAttribute('src')&&BODY_ASSETS){img.src=BODY_ASSETS.referencePortrait('inu');img.hidden=false;}});note.append(ref);
+    }
     note.hidden = false;
   }
   function mount(){return true;}
@@ -7304,7 +7486,7 @@ body.ovOn #bodyQuick,body:has(#menu:not([hidden])) #bodyQuick,body:has(#journeyP
   const quickTitle=document.createElement('summary');quickTitle.textContent='身体';quickTitle.style.cssText='min-height:44px;display:flex;align-items:center;cursor:pointer;white-space:nowrap;font-size:13px';quick.append(quickTitle);const quickButtons=document.createElement('div');quickButtons.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding-bottom:8px';quick.append(quickButtons);
   for(const [id,b] of Object.entries(B)){const bt=document.createElement('button');bt.textContent=b.name;bt.dataset.b=id;bt.className='ib';bt.style.cssText='width:auto;padding:0 12px';bt.setAttribute('aria-pressed',String(id===cur));bt.onclick=()=>{setBody(id);quickTitle.textContent='身体';for(const el of quickButtons.children)el.setAttribute('aria-pressed',String(el===bt));quick.open=false;};quickButtons.append(bt);}document.body.append(quick);
   const mt = setInterval(() => { quick.hidden=!started||mode!=='sim'; if(mount()){} }, 500);
-  return { set: setBody, get cur() { return cur; }, get modelScene(){return modelScene;}, B };
+  return { set: setBody, get cur() { return cur; }, get modelScene(){return modelScene;},get diagnostics(){return {dogAlignment,dogYaw,bodyForward:bodyRoot?new THREE.Vector3(0,0,1).applyQuaternion(bodyRoot.quaternion).toArray():null,fov:C.camera?.fov};}, B };
 })();
 window.__body = BODY;
 
@@ -7602,6 +7784,80 @@ window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEr
 </script>
 
 <script src="web/qualium.js?v=20261017-umwelt2"></script>
-<script src="web/umwelt-tools.js?v=20261017-umwelt2"></script>
+<script src="web/umwelt-tools.js?v=20261018-senses"></script>
 <script type="module" src="web/physical-materials.js?v=20261017-umwelt2"></script>
+<script data-source="umwelt-ui.js">
+/* Presentation only: keep native details, checkboxes and existing event handlers. */
+(() => {
+  function mount() {
+    const dock=document.getElementById('perceptionDock');
+    if(!dock)return false;
+    const controls=[...dock.querySelectorAll('.dockControl')];
+    if(controls.length!==4||controls.some(c=>!c.querySelector(':scope>.dockPanel')))return false;
+    if(dock.dataset.refined==='true')return true;
+    dock.dataset.refined='true';
+    const headings=['時間をたどる','身体を替える','手がかりを重ねる','視点を動かす'];
+    controls.forEach((control,i)=>{
+      const summary=control.querySelector(':scope>summary'),panel=control.querySelector(':scope>.dockPanel');
+      summary.dataset.dockIndex=String(i+1).padStart(2,'0');
+      panel.dataset.dockHeading=headings[i];
+      if(!panel.id)panel.id='perception-panel-'+i;
+      summary.setAttribute('aria-controls',panel.id);
+    });
+    // Reserve the subtitle's actual height, including long speech and large-text mode.
+    // ResizeObserver runs only when these boxes change; there is no per-frame loop.
+    const subtitle=document.getElementById('sub');
+    const reserveSubtitle=()=>{
+      const d=dock.getBoundingClientRect(),sub=subtitle?.getBoundingClientRect();
+      const visible=sub&&sub.height>0&&getComputedStyle(subtitle).visibility!=='hidden';
+      const bottom=visible?sub.top:innerHeight-12;
+      const room=Math.max(100,Math.floor(bottom-d.bottom-20));
+      const value=room+'px';
+      if(dock.style.getPropertyValue('--dock-panel-room')!==value)dock.style.setProperty('--dock-panel-room',value);
+    };
+    if(typeof ResizeObserver==='function'){
+      const resize=new ResizeObserver(reserveSubtitle);resize.observe(dock);if(subtitle)resize.observe(subtitle);
+    }
+    addEventListener('resize',reserveSubtitle,{passive:true});reserveSubtitle();
+    const choices=dock.querySelector('.qualiumChoices');
+    if(choices){
+      const groups=[['受けとり方',['information','cognition','language','senses']],['場所の手がかり',['trees','water','terrain','time','life','culture']]];
+      for(const [title,ids] of groups){
+        const fieldset=document.createElement('fieldset');fieldset.className='qLayerGroup';
+        const legend=document.createElement('legend');legend.textContent=title;fieldset.append(legend);
+        for(const id of ids){const label=choices.querySelector(`input[data-qualium="${id}"]`)?.closest('label');if(label)fieldset.append(label);}
+        choices.append(fieldset);
+      }
+    }
+    // Native summary Enter/Space remains. Arrow keys move across the four controls.
+    dock.addEventListener('keydown',e=>{
+      const summary=e.target.closest('summary');
+      const current=controls.findIndex(c=>c.querySelector(':scope>summary')===summary);
+      if(current<0)return;
+      let index;
+      if(e.key==='ArrowRight')index=(current+1)%controls.length;
+      if(e.key==='ArrowLeft')index=(current+controls.length-1)%controls.length;
+      if(e.key==='Home')index=0;
+      if(e.key==='End')index=controls.length-1;
+      if(index===undefined)return;
+      e.preventDefault();
+      const wasOpen=controls.some(c=>c.open);
+      if(wasOpen){controls.forEach(c=>c.open=false);controls[index].open=true;}
+      controls[index].querySelector(':scope>summary').focus();
+    });
+    dock.addEventListener('keydown',e=>{
+      if(e.key!=='Escape')return;
+      const open=controls.find(c=>c.open);
+      if(open){open.open=false;open.querySelector(':scope>summary').focus();e.stopPropagation();}
+    });
+    return true;
+  }
+  if(!mount()){
+    const observer=new MutationObserver(()=>{if(mount())observer.disconnect();});
+    observer.observe(document.body,{childList:true,subtree:true});
+    // No timers, animation loops, third-party resources or 3D work.
+  }
+})();
+
+</script>
 </body></html>

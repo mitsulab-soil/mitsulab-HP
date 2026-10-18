@@ -541,59 +541,70 @@ export function makeTit(mat = stdMat, o = {}) {
 //   赤毛に「裏白」（頬・のど・胸・腹・脚の内・尾の裏が白っぽい）。立った三角の耳、巻いた尾、黒い鼻、奥まった三角の目。
 export function makeDog(mat = stdMat, o = {}) {
   // Small brown toy poodle. Continuous anatomy, fine curls, wet eyes and nose; original procedural model.
-  const curlMap=ctex('poodle-fine-curls',256,256,(ctx,w,h)=>{
+  const curlMap=ctex('poodle-fine-curls-v2',256,256,(ctx,w,h)=>{
     ctx.fillStyle='#bda089';ctx.fillRect(0,0,w,h);
-    for(let i=0;i<1500;i++){const x=rnd()*w,y=rnd()*h,r=1.4+rnd()*3.5;ctx.strokeStyle=i%3?'#d3b9a0':'#88715e';ctx.lineWidth=.65;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*(1.2+rnd()*.7));ctx.stroke();}
+    for(let i=0;i<3400;i++){const x=rnd()*w,y=rnd()*h,r=.7+rnd()*1.7;ctx.strokeStyle=i%3?'#d3b9a0':'#88715e';ctx.lineWidth=.28;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*(1.2+rnd()*.7));ctx.stroke();}
   },[3,3]);
-  const g = new T.Group(), coat=mk(mat,0xaa6b3e,{map:curlMap,rough:.84,phys:{sheen:.42,sheenRoughness:.8,sheenColor:0xc58f62}}),
-    light=mk(mat,0xb47a4a,{rough:.95}), dark=mk(mat,0x27160e,{rough:.22});
+  const curlNormal=nmap('poodle-curl-normal-v2',128,128,(ctx,w,h)=>{ctx.fillStyle='#7e7e7e';ctx.fillRect(0,0,w,h);for(let i=0;i<1800;i++){ctx.strokeStyle=i%2?'#a8a8a8':'#5e5e5e';ctx.lineWidth=.6;ctx.beginPath();ctx.arc(rnd()*w,rnd()*h,.5+rnd()*1.5,0,Math.PI*1.25);ctx.stroke();}},.8,[3,3]);
+  const g = new T.Group(), coat=mk(mat,0xaa6b3e,{map:curlMap,nmap:curlNormal,ns:.10,rough:.9,phys:{sheen:.42,sheenRoughness:.8,sheenColor:0xc58f62}}),
+    light=mk(mat,0x9d6d49,{map:curlMap,nmap:curlNormal,ns:.18,rough:.88}), dark=mk(mat,0x27160e,{rough:.22});
   const sphere=new T.SphereGeometry(1,20,14);
   const puff=(parent,x,y,z,sx,sy,sz,m=coat)=>{
     const mesh=new T.Mesh(sphere,m);mesh.position.set(x,y,z);mesh.scale.set(sx,sy,sz);parent.add(mesh);return mesh;
   };
   // 巻き毛はインスタンスで描き、毛玉ごとの描画呼び出しを増やさない。
   const wool=(parent,c,r,n)=>{
-    puff(parent,...c,...r);
-    const curls=new T.InstancedMesh(new T.TorusGeometry(.013,.0035,4,9,Math.PI*1.7),coat,n),a=new T.Object3D(),axis=new T.Vector3(0,0,1);
+    const base=puff(parent,...c,...r);
+    if(n>=135)addFur(base,mat,{n:MOBILE?4:7,len:.045,dens:185,thick:.15,root:.84,droop:.15,color:0x9c6137,rough:.95,sheen:0xd8b792,lod:[.003,.06]});
+    const curls=new T.InstancedMesh(new T.TorusGeometry(.0065,.002,3,8,Math.PI*1.25),coat,n),a=new T.Object3D(),axis=new T.Vector3(0,0,1);
     for(let i=0;i<n;i++){
       const y=1-2*(i+.5)/n,phi=i*2.39996323,rad=Math.sqrt(1-y*y),v=new T.Vector3(Math.cos(phi)*rad,y,Math.sin(phi)*rad);
       a.position.set(c[0]+r[0]*v.x,c[1]+r[1]*v.y,c[2]+r[2]*v.z);
       const k=.72+.28*(.5+.5*Math.sin(i*9.31));a.quaternion.setFromUnitVectors(axis,v);a.rotateZ(i*2.4);a.scale.set(k,k*.84,k);a.updateMatrix();curls.setMatrixAt(i,a.matrix);
     } curls.instanceMatrix.needsUpdate=true;parent.add(curls);
   };
-  wool(g,[0,.43,0],[.145,.165,.28],280);
-  wool(g,[0,.53,.21],[.13,.18,.13],100);
+  wool(g,[0,.43,-.015],[.125,.16,.32],420);
+  wool(g,[0,.54,.23],[.105,.17,.12],150);
   const head=new T.Group();head.position.set(0,.72,.29);g.add(head);
-  wool(head,[0,.012,-.014],[.15,.16,.14],240);
-  puff(head,0,-.065,.14,.085,.065,.105,light);
-  puff(head,0,-.105,.17,.065,.027,.072,coat);
-  puff(head,0,-.045,.24,.043,.032,.027,dark);
+  wool(head,[0,.012,-.014],[.12,.14,.135],360);
+  // The muzzle tapers continuously from the cheeks, with a separate lower jaw and lip line.
+  const muzzle=new T.Mesh(sweep([[0,-.035,.07],[0,-.055,.14],[0,-.063,.22],[0,-.057,.26]],tab([[0,.067],[.45,.057],[.8,.034],[1,.023]]),tab([[0,.060],[.5,.038],[1,.020]]),()=>0xffffff,{n:16,r:14}),light);head.add(muzzle);
+
+  puff(head,0,-.096,.173,.046,.018,.075,light);
+  puff(head,0,-.047,.249,.032,.025,.024,dark);
+  const eye=wetEye(mat,0x24130b,{temp:.8});
   for(const s of [-1,1]){
-    puff(head,s*.072,.018,.128,.024,.029,.018,dark);
-    puff(head,s*.068,.029,.145,.005,.006,.003,mk(mat,0xffffff,{rough:.1}));
+    const rim=puff(head,s*.062,.017,.117,.021,.014,.016,dark);rim.rotation.z=s*-.15;
+    const cornea=puff(head,s*.063,.018,.125,.016,.011,.013,eye);cornea.rotation.y=s*.25;
+    puff(head,s*.058,.023,.138,.003,.003,.002,mk(mat,0xf4eee5,{rough:.1}));
+    puff(head,s*.061,.040,.113,.027,.011,.024,coat);
+    puff(head,s*.014,-.055,.268,.005,.003,.003,dark);
   }
+  const lips=new T.CatmullRomCurve3([new T.Vector3(-.047,-.081,.171),new T.Vector3(-.024,-.087,.224),new T.Vector3(0,-.082,.251),new T.Vector3(.024,-.087,.224),new T.Vector3(.047,-.081,.171)]);head.add(new T.Mesh(new T.TubeGeometry(lips,20,.0018,4,false),dark));
   const ears=[];
   for(const s of [-1,1]){
     const e=new T.Group();e.position.set(s*.16,.025,-.005);head.add(e);
-    wool(e,[s*.025,-.13,0],[.082,.16,.075],85);ears.push(e);
+    wool(e,[s*.012,-.145,-.014],[.061,.18,.04],135);ears.push(e);
   }
   const legs=[];
   for(const s of [-1,1])for(const front of [false,true]){
-    const l=new T.Group();l.position.set(s*.115,.40,front?.19:-.20);g.add(l);
-    wool(l,[0,-.13,0],[.065,.17,.065],65);
-    puff(l,0,-.34,.025,.076,.055,.095);legs.push({l,s,front});
+    const l=new T.Group();l.position.set(s*.095,.405,front?.22:-.225);g.add(l);
+    wool(l,[0,-.095,front?0:-.018],[.045,.125,.045],95);
+    const lower=new T.Group();lower.position.set(0,-.205,front?0:-.02);l.add(lower);
+    wool(lower,[0,-.06,.005],[.029,.09,.03],65);
+    puff(lower,0,-.165,.035,.041,.032,.064);for(const x of [-.024,0,.024])puff(lower,x,-.176,.082,.014,.017,.025);legs.push({l,lower,s,front});
   }
   const tail=new T.Group();tail.position.set(0,.52,-.28);g.add(tail);
-  wool(tail,[0,.10,-.035],[.043,.12,.043],65);wool(tail,[0,.20,-.025],[.05,.065,.045],45);
+  wool(tail,[0,.10,-.035],[.032,.12,.032],85);wool(tail,[0,.20,-.025],[.043,.06,.038],60);
   let speed=0,last=0,phase=0;
-  g.userData={kind:'inu',breed:'toy-poodle',head,legs,tail};
+  g.userData={kind:'inu',breed:'toy-poodle',head,legs,tail,noseForward:[0,0,1],anatomy:'articulated fore/hind legs; narrow muzzle; fine curl normals'};
   g.userData.animate=(t,moving=true)=>{
     const dt=Math.min(.05,Math.max(0,t-last));last=t;speed+=(Number(moving)-speed)*Math.min(1,dt*5);phase+=dt*7*speed;
-    legs.forEach(({l,s,front})=>l.rotation.x=Math.sin(phase+(s<0?Math.PI:0)+(front?0:Math.PI))*.32*speed);
-    head.rotation.y=Math.sin(t*.8)*.055;head.rotation.x=Math.sin(phase)*.025*speed;
+    legs.forEach(({l,lower,s,front})=>{const a=phase+(s<0?Math.PI:0)+(front?0:Math.PI);l.rotation.x=Math.sin(a)*.28*speed;lower.rotation.x=Math.max(0,-Math.cos(a))*.34*speed;});
+    head.rotation.y=Math.sin(t*.6)*(moving?.035:.12);head.rotation.x=Math.sin(phase)*.025*speed;
     ears.forEach((e,i)=>e.rotation.z=(i?1:-1)*Math.sin(phase)*.055*speed);
     tail.rotation.z=Math.sin(t*5)*.18;g.position.y=Math.sin(phase*2)*.004*speed;
-  };g.userData.animate(0,false);g.scale.setScalar(.64);const small=new T.Group();small.add(g);small.userData=g.userData;return small;
+  };g.userData.animate(0,false);g.scale.setScalar(.43);const small=new T.Group();small.add(g);small.userData=g.userData;return small;
 }
 
 function makeShibaLegacy(mat = stdMat, o = {}) {
