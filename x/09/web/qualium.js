@@ -1,7 +1,13 @@
-/* 氷川幽玄：場所に結びつける十層。点・波・関係線は創作した模式で、実測値ではない。 */
+/* 氷川幽玄：場所に結びつける手がかり。点・波・関係線は創作した模式で、実測値ではない。 */
 (() => {
   const states = {information:true, cognition:true, language:true, senses:true, trees:true, water:true, terrain:true, time:true, life:true, culture:true};
   const names = {information:'情報', cognition:'認知', language:'言語', senses:'感覚',trees:'木',water:'水',terrain:'地形',time:'時間',life:'生物',culture:'文化'};
+  const visualIds=Object.keys(states);
+  const extraIds=['folk','social','history','ecology','environment','art','events','fiction'];
+  Object.assign(states,Object.fromEntries(extraIds.map(id=>[id,true])));
+  Object.assign(names,{folk:'民俗',social:'社会',history:'歴史',ecology:'生態',environment:'環境',art:'芸術',events:'催事',fiction:'創作'});
+  const enabledIds=[...visualIds];
+  let perspectiveChoices='',nearbyKey='',nearbyAt=0;
   const explain = {
     information:'情報：木や石の位置から立ち上がる点群と目盛り。記録を重ねる模式です。',
     cognition:'認知：場所へ注意を向け、離れた手がかりを結ぶ線。心の測定ではありません。',
@@ -12,8 +18,8 @@
   const baseText = '地理資料を基にした3D再構成。現地の実写そのものではありません。';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const panel = document.createElement('section');
-  panel.id = 'qualiumPanel'; panel.setAttribute('aria-label', 'Qualiumの層');
-  panel.innerHTML = `<p>街歩きをアップデートする</p><p>同じ場所に、自然・時間・文化・身体の手がかりを重ねます。</p><div class="qBulk"><button type="button" id="qualiumAll">すべてON</button><button type="button" id="qualiumReset">すべてOFF</button></div><div class="qualiumChoices">${Object.keys(states).map(id => `<label><input type="checkbox" data-qualium="${id}">${names[id]}</label>`).join('')}</div><p id="qualiumMeaning" role="status"></p><label class="qStill"><input type="checkbox" id="qualiumStill">動きを止める</label><details><summary>この場所の文化記録</summary><p id="qualiumCultureRecord">近くの記録は、歩いた場所に合わせて表示します。</p></details><details><summary>表示の意味と出どころ</summary><div id="qualiumExplanations"></div><p>${baseText} 点・波・関係線は模式です。木の根や水質・生息・心を測定した表示ではありません。地形線は3D模型から抽出。典拠は各地点の解説で確かめてください。</p><a class="qAR" href="field-ar.html">実景ARへ ↗</a></details>`;
+  panel.id = 'qualiumPanel'; panel.setAttribute('aria-label', '場の手がかり');
+  panel.innerHTML = `<p>街歩きをアップデートする</p><p>同じ場所に、自然・時間・文化・身体の手がかりを重ねます。</p><div class="qBulk"><button type="button" id="qualiumAll">すべてON</button><button type="button" id="qualiumReset">すべてOFF</button></div><div class="qualiumChoices">${enabledIds.map(id => `<label><input type="checkbox" data-qualium="${id}">${names[id]}</label>`).join('')}</div><p id="qualiumMeaning" role="status"></p><label class="qStill"><input type="checkbox" id="qualiumStill">動きを止める</label><details><summary>この場所の文化記録</summary><p id="qualiumCultureRecord">近くの記録は、歩いた場所に合わせて表示します。</p></details><details><summary>表示の意味と出どころ</summary><div id="qualiumExplanations"></div><p>${baseText} 点・波・関係線は模式です。木の根や水質・生息・心を測定した表示ではありません。地形線は3D模型から抽出。典拠は各地点の解説で確かめてください。</p><a class="qAR" href="field-ar.html">実景ARへ ↗</a></details>`;
   panel.querySelector('#qualiumExplanations').innerHTML=Object.values(explain).map(t=>`<p>${t}</p>`).join('');
   const rail = document.createElement('details');
   rail.id = 'qualiumControl'; rail.hidden = true;
@@ -28,18 +34,42 @@
   const still = panel.querySelector('#qualiumStill'); still.checked = reduced.matches;
   function sync() {
     for (const [id, on] of Object.entries(states)) {
-      panel.querySelector(`[data-qualium="${id}"]`).checked = on;
+      const input=panel.querySelector(`[data-qualium="${id}"]`);if(input)input.checked=on;
 
     }
-    panel.querySelector('#qualiumMeaning').textContent = `${Object.values(states).filter(Boolean).length} / 10 層を表示`;
+    panel.querySelector('#qualiumMeaning').textContent = `${enabledIds.filter(id=>states[id]).length} / ${enabledIds.length} 層を表示`;
   }
   panel.addEventListener('change', event => {
     const id = event.target.dataset.qualium;
-    if (id in states) { states[id] = event.target.checked; sync(); }
+    if (id in states) { states[id] = event.target.checked; nearbyAt=0; sync(); }
   });
-  panel.querySelector('#qualiumAll').onclick=()=>{Object.keys(states).forEach(id=>states[id]=true);sync();};
-  panel.querySelector('#qualiumReset').onclick = () => { Object.keys(states).forEach(id => {states[id] = false;}); sync(); };
+  panel.querySelector('#qualiumAll').onclick=()=>{Object.keys(states).forEach(id=>states[id]=true);nearbyAt=0;sync();};
+  panel.querySelector('#qualiumReset').onclick = () => { Object.keys(states).forEach(id => {states[id] = false;}); nearbyAt=0;sync(); };
 
+  const records=document.createElement('section');records.id='placePerspectiveRecords';records.hidden=true;records.setAttribute('aria-label','この周辺の資料と見方');panel.append(records);
+  const extraStyle=document.createElement('style');extraStyle.textContent=`#placePerspectiveRecords{border-top:1px solid #638c9766;margin-top:12px;padding-top:8px}#placePerspectiveRecords h3{font-size:13px;letter-spacing:.06em;color:#baded7;font-weight:400}#placePerspectiveRecords article{padding:9px 0;border-top:1px solid #5e808433}#placePerspectiveRecords h4{font-size:12px;line-height:1.6;font-weight:400;color:#e3ebe5;margin:2px 0}#placePerspectiveRecords p{font-size:11px;line-height:1.8;margin:4px 0;color:#d0dedb}#placePerspectiveRecords small{display:block;font-size:10px;line-height:1.7;color:#b3c3ba}#placePerspectiveRecords a{display:block;min-height:44px;color:#a7d7d0;text-decoration:underline;text-underline-offset:3px;font-size:10px;line-height:1.7;padding:5px 0}.qPerspectiveGroup label small{font:10px ui-monospace,monospace;color:#9fbfb4;margin-left:auto}.qPerspectiveHint{font-size:11px;color:#b7cac1}`;document.head.append(extraStyle);
+  function mountPerspectiveChoices(){const api=window.__placePerspectives,st=api?.status();if(!st?.ready)return;const ready=extraIds.filter(id=>st.categories[id]>0),key=ready.join('|');if(key===perspectiveChoices)return;perspectiveChoices=key;for(const id of ready)if(!enabledIds.includes(id))enabledIds.push(id);const choices=panel.querySelector('.qualiumChoices');choices.querySelectorAll('.qPerspectiveGroup').forEach(e=>e.remove());panel.querySelectorAll('.qPerspectiveHint').forEach(e=>e.remove());
+   for(const [title,ids]of [['人と場所',['folk','social','history','art','events']],['環境と創作',['ecology','environment','fiction']]]){const available=ids.filter(id=>ready.includes(id));if(!available.length)continue;const field=document.createElement('fieldset');field.className='qLayerGroup qPerspectiveGroup';const legend=document.createElement('legend');legend.textContent=title;field.append(legend);for(const id of available){const label=document.createElement('label'),input=document.createElement('input'),count=document.createElement('small');input.type='checkbox';input.dataset.qualium=id;input.checked=states[id];input.setAttribute('aria-label',names[id]+'の手がかり');label.append(input,document.createTextNode(names[id]));count.textContent=String(st.categories[id]);count.setAttribute('aria-label','公開できる資料と見方 '+st.categories[id]+' 件');label.append(count);field.append(label);}choices.append(field);}
+   if(ready.length){const hint=document.createElement('p');hint.className='qPerspectiveHint';hint.textContent='資料の記載・mitsulabの見方・創作を区別。複数分類の資料は、いずれかの層がONなら一度だけ表示します。';records.before(hint);}sync();nearbyKey='';
+  }
+  // Retry only from the existing visible/start frame; no timer or additional loop.
+  function createPerspectiveRetry({now,isAllowed,importModule,onReady}){
+    let module=null,job=null,pending=false,ready=false,attempts=0,nextAt=0,error=null;
+    const history=[];
+    async function run(attempt){let stage=module?'fetch':'import';try{
+      if(!module)module=await importModule(attempt);
+      if(!isAllowed()){attempts--;return;}
+      stage='fetch';const api=await module.loadPerspectives(),state=api.status();
+      if(!state.ready)throw Error(state.errors.join(' / ')||'資料を取得できませんでした');
+      ready=true;error=null;nextAt=0;onReady();
+    }catch(e){error=e.message||String(e);history.push({attempt,stage,error,at:now()});nextAt=attempts<3?now()+(attempts===1?3000:8000):0;
+    }finally{pending=false;job=null;}}
+    return{tick(){if(pending)return job;if(ready||attempts>=3||now()<nextAt||!isAllowed())return;pending=true;const attempt=++attempts;job=run(attempt);return job;},status:()=>({ready,pending,attempts,nextAt,error,exhausted:!ready&&!pending&&attempts>=3,history:history.map(x=>({...x}))})};
+  }
+  const perspectiveRetry=createPerspectiveRetry({now:()=>performance.now(),isAllowed:()=>!document.hidden&&!!document.getElementById('start')?.hidden&&window.__talk?.mode==='sim'&&!document.body.classList.contains('ovOn')&&!!window.__entryFirstFrameAt&&performance.now()-__entryFirstFrameAt>=1800,importModule:attempt=>import('./place-perspectives.js?v=20261019layers2'+(attempt>1?'&retry='+attempt:'')),onReady:mountPerspectiveChoices});
+  function loadPerspectiveData(){perspectiveRetry.tick();}
+  function nearbyPerspectives(talk){const now=performance.now();if(now<nearbyAt)return;nearbyAt=now+400;const api=window.__placePerspectives;if(!api?.status().ready)return;mountPerspectiveChoices();const list=api.near(talk.d,talk,states,6),key=list.map(r=>r.id+':'+r.category).join('|');if(key===nearbyKey)return;nearbyKey=key;records.replaceChildren();records.hidden=!list.length;if(!list.length)return;const title=document.createElement('h3');title.textContent='この周辺の資料と見方';records.append(title);for(const r of list){const article=document.createElement('article'),h=document.createElement('h4'),text=document.createElement('p'),note=document.createElement('small');h.textContent=(r.categoryName===r.meaning?r.categoryName:r.categoryName+' · '+r.meaning)+' ｜ '+r.title.replace(/^(mitsulabの見方|創作)[：:]/,'');text.textContent=r.text;note.textContent=[r.time?.dateLabel,r.evidenceLimit,r.place.anchorPrecision].filter(Boolean).join(' ／ ');article.append(h,text);if(r.question){const question=document.createElement('p');question.textContent='mitsulabの問い：'+r.question;article.append(question);}article.append(note);for(const src of r.sourceInfo){const link=document.createElement('a');link.href=src.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=(src.publisher?src.publisher+' · ':'')+src.title+' ↗';article.append(link);}if(r.category==='fiction'){const author=document.createElement('small');author.textContent='mitsulabの創作。現地の実物・観測値・実際の催しではありません。';article.append(author);}records.append(article);}}
+  addEventListener('place-perspectives-ready',mountPerspectiveChoices);
   sync();
   const colors = {information:0x8edbc9,cognition:0xdab77b,language:0xe1e5cd,senses:0x80cbd3,trees:0xa0cf8d,water:0x82cce2,terrain:0xc5ae87,time:0xe5be83,life:0xc1d9ab,culture:0xdccfa6};
   let root, links, future, pools = [], clock = 0, last = 0, lastPick = -Infinity;
@@ -58,7 +88,7 @@
     for (let index = 0; index < 3; index++) {
       const slot = {anchor:new T.Group(), groups:{}, mark:null, label:'', labelAt:0, waves:[]};
       root.add(slot.anchor); pools.push(slot);
-      for (const id of Object.keys(states)) { slot.groups[id] = new T.Group(); slot.groups[id].scale.y=.65; slot.anchor.add(slot.groups[id]); }
+      for (const id of visualIds) { slot.groups[id] = new T.Group(); slot.groups[id].scale.y=.65; slot.anchor.add(slot.groups[id]); }
       // A local vertical scale rises from the object's existing anchor. These ticks are graphical, not height measurements.
       const ruler = [0,0,0, 0,3.35,0, 0,3.35,0, 1.3,3.35,0, 0,0,0, .3,.12,.18];
       for(let y=0;y<=12;y++){const h=y*.25;ruler.push(0,h,0,y%4===0?.28:.12,h,0);}
@@ -189,7 +219,8 @@
     if(rail.hidden===available)rail.hidden=!available;
     if(available&&window.__cult&&cultureApplied!==states.culture){cultureApplied=states.culture;const desired=cultureApplied;setTimeout(()=>window.__cult?.set(desired),250);}
     const isFuture=window.__r21?.era?.()==='future';
-    const shown=available&&Object.values(states).some(Boolean)&&!document.hidden;
+    if(available&&!document.hidden){loadPerspectiveData();nearbyPerspectives(talk);}
+    const shown=available&&enabledIds.some(id=>states[id])&&!document.hidden;
     if(!shown){if(root)root.visible=false;last=0;return;}
     if(!root)makeScene(T,scene);
     const now=performance.now();
@@ -200,10 +231,10 @@
     if(now-lastPick>=400){refreshAnchors(T,talk,camera,now);lastPick=now;const nearest=[...(window.__cult?.labels||[])].sort((a,b)=>a.p.distanceToSquared(camera.position)-b.p.distanceToSquared(camera.position))[0];if(nearest)panel.querySelector('#qualiumCultureRecord').textContent=nearest.el.textContent;}
     root.visible=activeCount>0;
     const monitorIds=new Set((window.__fieldVisions?.status().anchors||[]).map(a=>a.id));
-    for(const slot of pools){for(const id of Object.keys(states))slot.groups[id].visible=states[id]&&(slot.context?.[id]??true);slot.sprite.visible=!monitorIds.has(slot.mark?.s?.id);}
+    for(const slot of pools){for(const id of visualIds)slot.groups[id].visible=states[id]&&(slot.context?.[id]??true);slot.sprite.visible=!monitorIds.has(slot.mark?.s?.id);}
     links.visible=states.cognition&&activeCount>1;future.visible=isFuture&&states.information;
     if(states.senses)animateWaves(clock);
     future.position.y=Math.sin(clock*.45)*.1;
   };
-  window.__qualium={states,panel,rail,get visible(){return !!root?.visible;},get count(){return root?.children.length||0;},get anchors(){return pools.filter(slot=>slot.mark).map(slot=>slot.mark.s?.tag||'この場所');},get time(){return clock;},get diagnostics(){return {anchors:activeCount,particles:activeCount*72+(future?.visible?96:0),extraLoop:false};}};
+  window.__qualium={states,panel,rail,get availableIds(){return [...enabledIds];},get visible(){return !!root?.visible;},get count(){return root?.children.length||0;},get anchors(){return pools.filter(slot=>slot.mark).map(slot=>slot.mark.s?.tag||'この場所');},get time(){return clock;},get diagnostics(){return {anchors:activeCount,particles:activeCount*72+(future?.visible?96:0),extraLoop:false,perspectiveError:perspectiveRetry.status().error,perspectiveRetry:perspectiveRetry.status()};}};
 })();

@@ -1,0 +1,998 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-19",
+  "sources": [
+    {
+      "id": "city-nakasendo",
+      "title": "第44回特別展「中山道大宮宿」の展示解説",
+      "url": "https://www.city.saitama.lg.jp/004/005/004/005/008/014/001/nakasendou/p079679.html",
+      "publisher": "さいたま市立博物館",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "shrine-history",
+      "title": "由緒・歴史",
+      "url": "https://musashiichinomiya-hikawa.or.jp/about/index.html",
+      "publisher": "武蔵一宮氷川神社",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "shrine-festivals",
+      "title": "年間の祭典",
+      "url": "https://www.musashiichinomiya-hikawa.or.jp/saiten/?scroll=a_reisai",
+      "publisher": "武蔵一宮氷川神社",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "shrine-grounds",
+      "title": "境内のご案内",
+      "url": "https://musashiichinomiya-hikawa.or.jp/keidai/",
+      "publisher": "武蔵一宮氷川神社",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "tree-heritage",
+      "title": "文化財紹介 氷川参道の並木",
+      "url": "https://www.city.saitama.lg.jp/004/005/006/001/005/002/003/p000590.html",
+      "publisher": "さいたま市文化財保護課",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "tree-survey",
+      "title": "氷川参道の樹木調査",
+      "url": "https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf",
+      "publisher": "氷川の杜まちづくり協議会・さいたま市掲載",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "city-planning",
+      "title": "氷川参道のまちづくり",
+      "url": "https://www.city.saitama.lg.jp/001/010/015/004/004/p009506_d/fil/hikawasandonomachidukuri.pdf",
+      "publisher": "さいたま市・氷川の杜まちづくり協議会",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "yono-land",
+      "title": "与野郷土資料館展示web解説（その11）",
+      "url": "https://www.city.saitama.lg.jp/004/005/004/005/yono/yonokyodo_tenjikaisetsu/p074458.html",
+      "publisher": "さいたま市与野郷土資料館",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "museum-omiya",
+      "title": "名所 大宮―鉄道のまち・公園のまち―",
+      "url": "https://saitama-rekimin.spec.ed.jp/kikaku_oomiya",
+      "publisher": "埼玉県立歴史と民俗の博物館",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "gsi-compare",
+      "title": "街の移り変わりを知る",
+      "url": "https://maps.gsi.go.jp/help/intro/school/machi.html",
+      "publisher": "国土地理院",
+      "verified": true,
+      "checkedAt": "2026-10-18"
+    }
+  ],
+  "items": [
+    {
+      "id": "nakasendo-shift",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "s_nakasendo"
+        ],
+        "structureIds": [],
+        "dRange": [
+          110,
+          230
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "街道は動いた",
+      "text": "市立博物館は、中山道が参道付近から現在の旧中山道側へ移り、大宮宿も移転したと説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "city-nakasendo"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/004/005/004/005/008/014/001/nakasendou/p079679.html"
+      ],
+      "evidenceLimit": "付け替え当時の資料は残らず、後世の記録による説明。旧道を一本の確定線として描かない。",
+      "question": "道が移ると、店や宿の向きはどう変わるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "1628年",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "nakasendo-labor",
+      "category": "social",
+      "categories": [
+        "social",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "s_nakasendo"
+        ],
+        "structureIds": [],
+        "dRange": [
+          110,
+          230
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "旅を支えた人と馬",
+      "text": "大宮宿には宿泊だけでなく、荷物を次の宿へ送る役割もありました。市立博物館は、周辺の村が人馬を出す助郷の負担も紹介しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "city-nakasendo"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/004/005/004/005/008/014/001/nakasendou/p079679.html"
+      ],
+      "evidenceLimit": "宿全体の制度。いま立つ地点に問屋場/本陣があったとは断定しない。",
+      "question": "参拝や旅の華やかさの背後で、誰が働いたのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "meiji-visits",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "tk_n1"
+        ],
+        "structureIds": [],
+        "dRange": [
+          860,
+          960
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "参拝と国家制度",
+      "text": "神社の由緒には、明治元年・3年の御親祭と、11年の行幸が記されています。参道は、近代の祭祀制度を考える場所でもあります。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の歴史叙述を確認。天皇の発言を創作しない。この語り地点を行列の確定経路としない。",
+      "question": "同じ参道でも、制度が変わると見方はどう変わるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "明治元年10月28日・明治3年・明治11年。旧暦日の現代暦換算未実施",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "festival-farming",
+      "category": "folk",
+      "categories": [
+        "folk",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "tk_t3"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1760,
+          1862
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "祭日と農事",
+      "text": "神社の祭典解説は、旧暦六月の祭りから、農事繁忙を理由とする明治期の祭日変更をたどっています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-festivals"
+      ],
+      "sourceUrls": [
+        "https://www.musashiichinomiya-hikawa.or.jp/saiten/?scroll=a_reisai"
+      ],
+      "evidenceLimit": "歴史上の制度変化の説明。旧暦六月を今の六月と同じ季節として扱わない。",
+      "question": "仕事と季節の都合は、祭りの時間をどう動かしたのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "1875年",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "wheat-offering",
+      "category": "folk",
+      "categories": [
+        "folk",
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "ike_a"
+        ],
+        "structureIds": [
+          "shinkyo"
+        ],
+        "dRange": [
+          1960,
+          2000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "小麦を編み、奉納する",
+      "text": "神社は、神幸祭で用いる小麦藁の莚を、上落合地区の氏子が編み奉納する習わしを紹介しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-festivals"
+      ],
+      "sourceUrls": [
+        "https://www.musashiichinomiya-hikawa.or.jp/saiten/?scroll=a_reisai"
+      ],
+      "evidenceLimit": "管理者による慣行説明。すべての住民の信仰/参加を代表しない。小麦の現栽培地点を参道へ描かない。",
+      "question": "祭りの道具は、どの土地の仕事とつながっているだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "meoto-tree",
+      "category": "folk",
+      "categories": [
+        "folk"
+      ],
+      "place": {
+        "segmentIds": [
+          "k14_meoto"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1915,
+          1938
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "木に与えられた名前",
+      "text": "神社の境内案内は、根元でつながる楠を「夫婦楠」として紹介し、信仰の対象になっていると説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-grounds"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/keidai/"
+      ],
+      "evidenceLimit": "神社の自己説明。木が人と同じ関係や意思を持つことの科学的証明ではない。",
+      "question": "形を見た人の名づけは、木との関係をどう変えるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "romon-building",
+      "category": "history",
+      "categories": [
+        "history",
+        "art"
+      ],
+      "place": {
+        "segmentIds": [
+          "ike_a"
+        ],
+        "structureIds": [
+          "romon"
+        ],
+        "dRange": [
+          1960,
+          2000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "朱色の門も造られたもの",
+      "text": "神社は、現在の楼門を昭和の造営で建てられた門と説明しています。建物の形にも、参道を見てきた時代が重なります。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-grounds"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/keidai/"
+      ],
+      "evidenceLimit": "神社の建築説明。モデルの寸法/色は別途推定を含み、写真測量の再現とはしない。",
+      "question": "古く感じる形と、実際に建てられた年代は同じだろうか。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "water-report",
+      "category": "environment",
+      "categories": [
+        "environment"
+      ],
+      "place": {
+        "segmentIds": [
+          "ike_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1960,
+          2000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "池の水の来歴",
+      "text": "神社の境内案内は、蛇の池の湧水が神池へ注ぐと説明しています。水面の先に、見えない水のつながりを考えられます。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-grounds"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/keidai/"
+      ],
+      "evidenceLimit": "流量/水位/水質の現在値は未取得。神橋の位置で湧出口そのものを見ているとは言わない。",
+      "question": "ここに来る水は、どこを通ってきたのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "tree-mixture",
+      "category": "ecology",
+      "categories": [
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "tr7_keyaki1",
+          "tr7_tunnel"
+        ],
+        "structureIds": [],
+        "dRange": [
+          80,
+          1000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "一本ずつ違う並木",
+      "text": "市の文化財説明では、参道の並木はケヤキを中心に、常緑広葉樹と落葉広葉樹が混じる構成とされています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "tree-heritage"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/004/005/006/001/005/002/003/p000590.html"
+      ],
+      "evidenceLimit": "樹種構成の概説。画面の一本や現在の個体を同定したことにしない。",
+      "question": "葉を落とす木と冬も葉のある木を、形から比べてみよう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "heritage-dated",
+      "category": "history",
+      "categories": [
+        "history",
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "tr_a_dango"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1520,
+          1550
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "本数にも記録の時点がある",
+      "text": "市の文化財ページは、2023年7月14日現在、指定された参道の並木を11本と記録しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "tree-heritage"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/004/005/006/001/005/002/003/p000590.html"
+      ],
+      "evidenceLimit": "11は指定木の当該時点の数で、参道全木数や2026年の現在本数ではない。",
+      "question": "記録の数字を読むとき、いつ・何を数えたかを確かめよう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "2023年7月14日現在",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "citizen-tree-survey",
+      "category": "social",
+      "categories": [
+        "social",
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "tr9_metoori"
+        ],
+        "structureIds": [],
+        "dRange": [
+          25,
+          55
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "木を調べた市民の手",
+      "text": "協議会の報告は、2002年から2010年にかけ、樹木医の指導と市民参加で並木を測り記録した過程を伝えています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "tree-survey"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf"
+      ],
+      "evidenceLimit": "過去の調査報告。アプリ利用者の測定や、現在の木の健康診断ではない。",
+      "question": "風景を守るために、誰が何を記録してきたのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "2002〜2010年の調査",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "soil-record-sheet",
+      "category": "environment",
+      "categories": [
+        "environment",
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "tr8_enoki_ne",
+          "tr8_fushoku"
+        ],
+        "structureIds": [],
+        "dRange": [
+          245,
+          1255
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "木の下の土も観察する",
+      "text": "樹木調査の記録票には、根元の踏圧や、舗装に囲まれているかを記す欄があります。木だけでなく足元も調べられてきました。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "tree-survey"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf"
+      ],
+      "evidenceLimit": "調査項目の存在を確認したもの。画面上の土の硬さや個体の衰弱原因を測定/診断したとはしない。",
+      "question": "根の周りには、土・舗装・人の通り道がどう接しているだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "heisei-memory",
+      "category": "social",
+      "categories": [
+        "social",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "dj7_hiro"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1100,
+          1235
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "緑地になる前の暮らし",
+      "text": "市の冊子は、戦後に駅前の市場が参道へ移り、のちに平成ひろばの整備が進んだ経緯を記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "city-planning"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/001/010/015/004/004/p009506_d/fil/hikawasandonomachidukuri.pdf"
+      ],
+      "evidenceLimit": "地区全体の歴史。個々の家の位置/姿/住民の感情を創作して事実にしない。",
+      "question": "今は緑地に見える場所に、どんな暮らしの選択が重なったのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "shrine-land-economy",
+      "category": "social",
+      "categories": [
+        "social",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "ike_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1960,
+          2000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "神社を支えた遠くの田畑",
+      "text": "与野郷土資料館は、上落合村などの社領が、社殿の修復や神社・寺の活動を支えたと史料から説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "yono-land"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/004/005/004/005/yono/yonokyodo_tenjikaisetsu/p074458.html"
+      ],
+      "evidenceLimit": "村の年貢と制度の歴史。上落合の耕地を神橋付近に描かない。史料画像の転載権は別途。",
+      "question": "目の前の門は、見えないどの土地の生業と結ばれていたのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "gazetteer-reading",
+      "category": "history",
+      "categories": [
+        "history",
+        "art"
+      ],
+      "place": {
+        "segmentIds": [
+          "s_nakasendo"
+        ],
+        "structureIds": [],
+        "dRange": [
+          110,
+          230
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "絵図も一つの見方",
+      "text": "県立博物館は、1683年の氷川絵図を紹介しています。そこに書かれた道の名は、昔の空間を読む手がかりです。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "museum-omiya"
+      ],
+      "sourceUrls": [
+        "https://saitama-rekimin.spec.ed.jp/kikaku_oomiya"
+      ],
+      "evidenceLimit": "絵図は測量図と同じ精度ではない。元図の投影/位置合わせは未検証、画像転載は別確認。",
+      "question": "描かれた場所と省かれた場所には、どんな意図があるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "1683年",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "birdseye-art",
+      "category": "art",
+      "categories": [
+        "art",
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "ike_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1960,
+          2000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "町を魅力的に描く視線",
+      "text": "県立博物館は、1934年の吉田初三郎による大宮鳥瞰図を、町の宣伝を担う団体が作った印刷物として紹介しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "museum-omiya"
+      ],
+      "sourceUrls": [
+        "https://saitama-rekimin.spec.ed.jp/kikaku_oomiya"
+      ],
+      "evidenceLimit": "図の存在と来歴の説明。作品画像の再利用許諾は未確認。鳥瞰図の距離/大きさを実測とみなさない。",
+      "question": "便利さや名所を強調すると、同じ町はどう見えるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "1934年",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "station-park-change",
+      "category": "history",
+      "categories": [
+        "history",
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "s_nakasendo"
+        ],
+        "structureIds": [],
+        "dRange": [
+          110,
+          230
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "駅と公園が変えた街",
+      "text": "県立博物館は、1885年の大宮駅と大宮公園の誕生を、地域の仕事と観光が変化する転機として解説しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "museum-omiya"
+      ],
+      "sourceUrls": [
+        "https://saitama-rekimin.spec.ed.jp/kikaku_oomiya"
+      ],
+      "evidenceLimit": "地域史の概説。展示は2025年に終了しており現在開催と表示しない。",
+      "question": "参拝の道は、鉄道や余暇の道とどう重なったのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "1885年",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "annual-events",
+      "category": "events",
+      "categories": [
+        "events",
+        "folk"
+      ],
+      "place": {
+        "segmentIds": [
+          "san_a",
+          "ike_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1880,
+          2000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "祭りの季節を知る",
+      "text": "神社の年間案内には、8月1日の例祭と2日の神幸祭が掲載されています。日程や参観条件は、その年の公式案内で確かめます。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-festivals"
+      ],
+      "sourceUrls": [
+        "https://www.musashiichinomiya-hikawa.or.jp/saiten/?scroll=a_reisai"
+      ],
+      "evidenceLimit": "恒例説明であり2026年以降の個別開催保証/募集中の催事情報ではない。神事中の立入制限あり。",
+      "question": "普段の道は、人が集まる日にどんな役割を持つだろう。",
+      "time": {
+        "kind": "recurring-description",
+        "dateLabel": "年間案内の恒例説明（開催年は未指定）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "map-comparison-method",
+      "category": "environment",
+      "categories": [
+        "environment",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "dj7_hiro"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1100,
+          1235
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "違う時点の地図を並べる",
+      "text": "国土地理院は、過去と現在の空中写真を見比べて町の変化を読む方法を案内しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "gsi-compare"
+      ],
+      "sourceUrls": [
+        "https://maps.gsi.go.jp/help/intro/school/machi.html"
+      ],
+      "evidenceLimit": "方法の公式説明のみ。今回、氷川の特定年の図葉を取得/位置補正して比較した成果ではない。",
+      "question": "同じ範囲で見ると、残った緑と変わった街の違いに気づけるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "inscription-erasure-history",
+      "category": "history",
+      "categories": [
+        "history",
+        "folk"
+      ],
+      "place": {
+        "segmentIds": [
+          "ichi_c"
+        ],
+        "structureIds": [
+          "hyoseki"
+        ],
+        "dRange": [
+          -15,
+          20
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "標石に残る削字の痕跡",
+      "text": "神社の由緒は、一の鳥居脇の標石にあった「本地聖観世音」の刻字が神仏判然令後に除かれ、今も跡が残ると説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社管理者の由緒本文による説明。法令原本・削字当時の記録・現物の痕跡は独自確認していません。3D模型が削字跡を精密に再現するという意味ではありません。",
+      "question": "残った文字と削られた文字から、この石がたどった信仰の変化をどう読めるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "1722年奉納／1868年3月の神仏判然令後（削字時点の詳細は未確認）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "view-social",
+      "category": "social",
+      "categories": [
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "dj7_hiro"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1100,
+          1235
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "mitsulabの見方：一つの道、複数の役割",
+      "text": "参拝、通行、保全、生活。同じ参道を、それぞれの立場の手がかりから見直してみる。",
+      "status": "interpretation",
+      "publicEligible": true,
+      "sourceIds": [
+        "city-planning"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/001/010/015/004/004/p009506_d/fil/hikawasandonomachidukuri.pdf"
+      ],
+      "evidenceLimit": "mitsulabによる読み解き。住民全員の意思や合意の再現ではない。",
+      "question": "誰にとっての歩きやすさを考えているだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "view-history",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "s_nakasendo"
+        ],
+        "structureIds": [],
+        "dRange": [
+          110,
+          230
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "mitsulabの見方：動いた道、残った名",
+      "text": "昔の道筋を一本に決めず、分かる範囲と分からない範囲を重ねて歩く。",
+      "status": "interpretation",
+      "publicEligible": true,
+      "sourceIds": [
+        "city-nakasendo"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/004/005/004/005/008/014/001/nakasendou/p079679.html"
+      ],
+      "evidenceLimit": "mitsulabによる問い。推定線を復元確定図として描かない。",
+      "question": "確かでないことを残したまま、昔の町を想像できるだろうか。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "fiction-leaf-loop",
+      "category": "fiction",
+      "categories": [
+        "fiction",
+        "art"
+      ],
+      "place": {
+        "segmentIds": [
+          "tr7_tunnel"
+        ],
+        "structureIds": [],
+        "dRange": [
+          970,
+          1000
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "創作：葉影の一周",
+      "text": "創作の一場面として、碧のまわりを葉影の線が巡り、木へ戻る様子を思い描く。感じ方の往復を描くmitsulabの創作です。",
+      "status": "proposal",
+      "publicEligible": true,
+      "sourceIds": [],
+      "sourceUrls": [],
+      "evidenceLimit": "mitsulabの独自創作。現地の風の計測、木の意思、他者の主観の再現ではない。特定作品/キャラクターの模倣なし。",
+      "question": "線が消えたあと、同じ木のどこに目が向くだろう。",
+      "time": {
+        "kind": "creative",
+        "dateLabel": "独自の創作文（現地の出来事・実装済みアニメーションの記録ではない）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "gazetteer-place-name",
+      "category": "folk",
+      "categories": [
+        "folk",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "ike_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1960,
+          2000
+        ],
+        "anchorPrecision": "既存の神池周辺の語り地点。語源の発生点や原地誌の精密座標ではない"
+      },
+      "title": "地誌と地名の解釈",
+      "text": "神社の由緒は『新編武蔵風土記稿』を引く斐伊川由来説と、泉に結びつける説を紹介します。語源は一つに確定せず、資料の見方として読み比べます。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の管理者解説が複数説を紹介する事実。原地誌本文は未閲覧で、語源の確定やこの地点での由来発生を示すものではない。",
+      "question": "同じ地名に複数の説明があるとき、何を根拠に読み比べられるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "神社の由緒解説を2026年10月18日確認",
+        "start": null,
+        "end": null,
+        "calendar": ""
+      }
+    }
+  ]
+}

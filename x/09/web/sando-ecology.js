@@ -20,7 +20,7 @@ vEcologyUV=uv;float ep=instanceMatrix[3].x*.7+instanceMatrix[3].z*.4;transformed
 #endif`);sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vEcologyUV;').replace('#include <color_fragment>',`#include <color_fragment>
 float ev=sin(vEcologyUV.x*19.)*.018;diffuseColor.rgb*=1.+ev;`);};m.customProgramCacheKey=()=> 'sando-grass-wind-1';return m;}
 // Smooth, instance-seeded bends: base stays planted and leaf/trunk share one mapping.
-function shapeHook(m){const old=m.onBeforeCompile,key=m.customProgramCacheKey();m.onBeforeCompile=(sh,r)=>{old.call(m,sh,r);sh.uniforms.ecologyShape=U.shape;sh.uniforms.ecologyViewer=U.viewer;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float ecologyShape;uniform vec3 ecologyViewer;').replace('#include <project_vertex>',`{
+function shapeHook(m){const old=m.onBeforeCompile,key=m.customProgramCacheKey();m.onBeforeCompile=(sh,r)=>{old.call(m,sh,r);sh.uniforms.ecologyShape=U.shape;sh.uniforms.ecologyViewer=U.viewer;if(/uniform\s+float\s+ecologyShape\s*;/.test(sh.vertexShader))return;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float ecologyShape;uniform vec3 ecologyViewer;').replace('#include <project_vertex>',`{
 #ifdef USE_INSTANCING
 vec3 eo=(modelMatrix*instanceMatrix[3]).xyz;
 float ef=(1.-smoothstep(16.,24.,distance(eo,ecologyViewer)))*ecologyShape;
@@ -41,7 +41,7 @@ transformed.z+=ef*eb*cos(eh*.23+en*5.)*min(.5,eh*.04);
 transformed.y+=ef*branchGate*branchSide*(.55+en2*.65)*smoothstep(1.,6.,eh);
 }
 #endif
-}\n#include <project_vertex>`);};m.customProgramCacheKey=()=>key+'|sando-asymmetric-4-near-guard';}
+}\n#include <project_vertex>`);};m.customProgramCacheKey=()=>key+'|sando-asymmetric-5-idempotent';}
 function makeDepth(source,previous){
  let d;
  if(previous){d=previous.clone();d.onBeforeCompile=previous.onBeforeCompile;d.customProgramCacheKey=previous.customProgramCacheKey;shapeHook(d);return d;}

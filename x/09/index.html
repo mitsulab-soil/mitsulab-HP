@@ -2469,7 +2469,7 @@ function finishStructures() {
     }, "struct:" + (mat.name || "") + ":" + (kind ?? "-"));
   });
 }
-if (B64.structures) getBuf("structures").then(b => loader.parse(b, "", g => { const go = () => (terrain && roadReady ? placeStructures(g.scene) : setTimeout(go, 200)); go(); }));
+if (B64.structures) getBuf("structures").then(b => loader.parse(b, "", g => { const go = () => (terrain && roadReady && window.__entryFirstFrameAt ? placeStructures(g.scene) : setTimeout(go, 50)); go(); }));
 // ---- 小物（build_props.py：車止め・照明・ベンチ・柵・生垣・案内板・平成ひろばの階段）。確かさは PROPS.notes（△ は仮置き）
 //      高さは路面・地形に下向きの光線を当てて合わせる（生垣は頂点ごと）
 const props = new THREE.Group(); props.name = "props"; world.add(props);
@@ -6889,7 +6889,7 @@ function swUp() { const sw = OT.sw; OT.sw = null; if (!sw) return; const held = 
 if (SEQ) {
   $("otoNext").onclick = () => otoNext(); $("otoBack").onclick = () => otoGo(OT.i - 1, "back"); $("otoWhereB").onclick = otoWhere; $("otoMore").onclick = otoMore; $("otoStop").onclick = otoStop;
   $("otoAuto").onclick = () => otoToggle("auto"); $("otoBeacon").onclick = () => otoToggle("beacon");
-  addEventListener("keydown", e => { if (!started || !$("menu").hidden || /INPUT|TEXTAREA/.test(document.activeElement?.tagName ?? "")) return;
+  addEventListener("keydown", e => { if (e.target?.closest?.('.fieldVisionRead')) return; if (!started || !$("menu").hidden || /INPUT|TEXTAREA/.test(document.activeElement?.tagName ?? "")) return;
     if (SUWARI && e.key === " ") { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) swDown(); return; }
     const f = { ArrowRight: otoNext, " ": otoNext, ArrowLeft: () => otoGo(OT.i - 1, "back"), w: otoWhere, W: otoWhere, d: otoMore, D: otoMore, p: otoStop, P: otoStop, a: () => otoToggle("auto"), A: () => otoToggle("auto"), b: () => otoToggle("beacon"), B: () => otoToggle("beacon") }[e.key];
     if (f) { e.preventDefault(); e.stopImmediatePropagation(); if (document.activeElement?.tagName === "BUTTON" && e.key === " ") return; f(); } }, true);
@@ -6897,10 +6897,10 @@ if (SEQ) {
   if (OTO) setInterval(otoBeaconTick, 4000);
   if (SUWARI) { $("otoBeacon").hidden = true; $("otoAuto").setAttribute("aria-pressed", "true"); $("otoEye").hidden = false; $("otoEye").onclick = () => { const L = [1.6, 1.3, 1.1], k = (L.indexOf(OT.sv.eye ?? 1.6) + 1) % L.length; OT.sv.eye = L[k]; store.set(SW_KEY, OT.sv); swEye(); otoSay(`目の高さを、${L[k]} メートルにしました。`); $("otoEye").textContent = `目の高さ ${L[k]} m`; };
     $("otoEye").textContent = `目の高さ ${OT.sv.eye ?? 1.6} m`;
-    addEventListener("keyup", e => { if (e.key === " " && started) { e.preventDefault(); swUp(); } }, true);
+    addEventListener("keyup", e => { if (e.target?.closest?.('.fieldVisionRead')) { OT.sw = null; return; } if (e.key === " " && started) { e.preventDefault(); swUp(); } }, true);
     /* 画面のどこを押しても（ボタン・メニューの上はのぞく）：スイッチ一つと同じ */
-    addEventListener("pointerdown", e => { if (!started || e.target.closest("button, a, input, #menu, #kkPanel, #kkFin, #minimap, .mk3, .mkE")) return; OT.pd = { x: e.clientX, y: e.clientY }; swDown(); }, true);
-    addEventListener("pointerup", e => { if (!OT.pd) return; const mv = Math.hypot(e.clientX - OT.pd.x, e.clientY - OT.pd.y); OT.pd = null; if (mv > 12) { OT.sw = null; return; } swUp(); }, true); }
+    addEventListener("pointerdown", e => { if (!started || e.target.closest("button, a, input, #menu, #kkPanel, #kkFin, #minimap, .mk3, .mkE, .fieldVisionRead")) return; OT.pd = { x: e.clientX, y: e.clientY }; swDown(); }, true);
+    addEventListener("pointerup", e => { if (e.target?.closest?.('.fieldVisionRead')) { OT.pd = null; OT.sw = null; return; } if (!OT.pd) return; const mv = Math.hypot(e.clientX - OT.pd.x, e.clientY - OT.pd.y); OT.pd = null; if (mv > 12) { OT.sw = null; return; } swUp(); }, true); }
   /* 自動で進む：話が終わって 3 秒たったら、次の場所へ */
   setInterval(() => { if (!OT.auto || !started || !introDone || speaking || OT.busy) return; if (performance.now() - Math.max(lastEnd, OT.waitT || 0) > 3000 / Math.max(1, TS)) otoNext(); }, 500);
 }
@@ -7197,7 +7197,7 @@ const ERA = (() => {
     if (C.road) C.road.visible = !old; if (C.structures) C.structures.visible = id !== "jomon";
     { const pd = C.world.getObjectByName("ponds"); if (pd) pd.visible = id !== "jomon"; }   /* 縄文：今の池（石の縁の庭の池）は出さない。水は湿地の水面だけ */
     ZN.hidB = old; ZN.hidT = old;
-    for (const h of ZN.hideU || []) h.u.value = h.yr > YEAR[id] ? 1 : 0;
+    for (const h of ZN.hideU || []) h.u.value = (id === 'now' || id === 'future') ? 0 : h.yr > YEAR[id] ? 1 : 0;
     window.__fogEye = id === "edo" ? [16, 420] : id === "jomon" ? [12, 250] : null;
     const fg = C.scene.fog; if (fg) { ZN.fog0 ??= fg.color.clone(); fg.color.copy(ZN.fog0).lerp(ZN.fogW ||= new THREE.Color(0xd8cdb4), old ? .22 : 0); }
     if (ZN.sun?.shadow && "intensity" in ZN.sun.shadow) ZN.sun.shadow.intensity = 1;
@@ -7805,9 +7805,9 @@ const journeyLoop=()=>{journeyTick();requestAnimationFrame(journeyLoop);};
 window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEra(id)};requestAnimationFrame(journeyLoop);
 </script>
 
-<script src="web/qualium.js?v=20261018walk3"></script>
+<script src="web/qualium.js?v=20261018layers1"></script>
 <script src="web/umwelt-tools.js?v=20261018-senses"></script>
-<script type="module" src="web/physical-materials.js?v=20261018-environment1"></script>
+<script type="module" src="web/physical-materials.js?v=20261019court2"></script>
 <script data-source="umwelt-ui.js">
 /* Presentation only: keep native details, checkboxes and existing event handlers. */
 (() => {
@@ -7892,8 +7892,8 @@ const start=()=>{if(document.hidden||!window.__entryFirstFrameAt){setTimeout(sta
     import('./web/facade-realism.js?v=20261018photo2'),
     import('./web/photographic-light.js?v=20261018photo2'),
     import('./web/botanical-realism.js?v=20261018photo2'),
-    import('./web/sando-ecology.js?v=20261018walk3'),
-    import('./web/field-visions.js?v=20261018walk3')
+    import('./web/sando-ecology.js?v=20261018ecology5'),
+    import('./web/field-visions.js?v=20261019read3')
   ]).then(results=>{window.__photorealModules=results.map(r=>r.status==='fulfilled'?'ready':String(r.reason));});
   (window.requestIdleCallback||((f)=>setTimeout(f,50)))(run,{timeout:1200});};
 start();
