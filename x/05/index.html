@@ -16,6 +16,14 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="tokens.css">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
+<!-- 2026-10-18：起動 5 秒。読み込みが一つずつ順に待つ形（滝）になっていたので、3D に要るものを最初から並べて取りに行く -->
+<link rel="modulepreload" href="library.js">
+<link rel="preload" href="names.json" as="fetch" crossorigin>
+<link rel="preload" href="cards_public.json" as="fetch" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/utils/BufferGeometryUtils.js" crossorigin>
+<link rel="modulepreload" href="kit/index.js"><link rel="modulepreload" href="kit/atmosphere.js"><link rel="modulepreload" href="kit/vegetation.js"><link rel="modulepreload" href="kit/layers.js"><link rel="modulepreload" href="kit/aoi.js"><link rel="modulepreload" href="kit/aoi_motion.js"><link rel="modulepreload" href="kit/aoi_mocap.js"><link rel="modulepreload" href="kit/aoi_robe.js">
+<link rel="preload" href="tex/soil_forest.webp" as="image" crossorigin><link rel="preload" href="tex/bark_zelkova.webp" as="image" crossorigin><link rel="preload" href="tex/bark_camphor.webp" as="image" crossorigin><link rel="preload" href="tex/leaf_spray.webp" as="image" crossorigin><link rel="preload" href="tex/leaf_spray2.webp" as="image" crossorigin>
 <style>
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--ml-bg)}
