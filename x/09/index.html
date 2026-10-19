@@ -2623,7 +2623,7 @@ bMat.onBeforeCompile = sh => {
         }
         c = wall * pat;
         { /* 2026-10-19 写実：外壁の経年（面の大きなむら・上から下へ細る雨だれ・地際の汚れ）。遠くまで残す弱いむらで、平らな板に見えるのを避ける。現地の汚れの実測ではない */
-          float fw2 = 1.0 - smoothstep(.06, .45, fwidth(hgt));
+          float fw2 = 1.0 - smoothstep(.15, 1.2, fwidth(hgt));   /* 2026-10-19：スマホの解像度でも経年のむらが残るように */
           float mott = bvn(vec2(along, hgt) * .18 + seed * 9.0) * .6 + bvn(vec2(along, hgt) * .9 + seed * 3.0) * .4;
           float col = hsh(vec2(floor(along * 2.2), seed * 7.0)), run = smoothstep(.62, 1.0, col) * (.55 + .45 * bvn(vec2(along * 2.2, hgt * .35)));
           float grime = 1.0 - smoothstep(0.0, 1.2, hgt);
@@ -3808,7 +3808,7 @@ function shadowGate() { if (!renderer.shadowMap.enabled || SHU.all) return; rend
   const sp = sun.position, mv = SHU.p ? Math.hypot(sp.x - SHU.p.x, sp.y - SHU.p.y, sp.z - SHU.p.z) : 1e9;
   if (SHU.n % 2 === 0 || mv > .15) { renderer.shadowMap.needsUpdate = true; (SHU.p ||= sp.clone()).copy(sp); } }
 let loadingDrawAt=0;
-renderer.setAnimationLoop(now => { if (document.hidden) { PR.last=0; return; } const covered=document.getElementById("poster")?.classList.contains("off")===false; if(covered && now-loadingDrawAt<160)return;loadingDrawAt=now; if (!isEye()) controls.update(); dragEase(now); frame(); shadowGate(); window.__overviewFrame?.(); window.__qualiumFrame?.(scene,camera); window.__landmarkFrame?.(scene,camera); window.__photographicLightFrame?.(window.__core); window.__botanicalRealismFrame?.(window.__core); window.__sandoEcologyFrame?.(window.__core); window.__fieldVisionsFrame?.(scene,camera); if (!window.__lensRender?.(renderer, scene, camera)) renderer.render(scene, camera);   /* 2026-10-13 夜：身体（環世界）の色の写し方（walk_umwelt） */ labels.render(scene, camera); window.__fieldVisionsAfterLabels?.(camera); window.__entryMapRender?.(renderer);
+renderer.setAnimationLoop(now => { if (document.hidden) { PR.last=0; return; } const covered=document.getElementById("poster")?.classList.contains("off")===false; if(covered && now-loadingDrawAt<160)return;loadingDrawAt=now; if (!isEye()) controls.update(); dragEase(now); frame(); shadowGate(); window.__overviewFrame?.(); window.__qualiumFrame?.(scene,camera); window.__landmarkFrame?.(scene,camera); window.__photographicLightFrame?.(window.__core); window.__botanicalRealismFrame?.(window.__core); window.__sandoEcologyFrame?.(window.__core); window.__fieldVisionsFrame?.(scene,camera); window.__layerOverlayFrame?.(scene,camera); if (!window.__lensRender?.(renderer, scene, camera)) renderer.render(scene, camera);   /* 2026-10-13 夜：身体（環世界）の色の写し方（walk_umwelt） */ labels.render(scene, camera); window.__fieldVisionsAfterLabels?.(camera); window.__entryMapRender?.(renderer);
   // The poster yields only after the ground and Aoi have actually been drawn.
   if(window.__entryAwaitReveal && (window.__aoi?.aoi.visible || window.__entryAoiUnavailable)) {
     window.__entryAwaitReveal=false;window.__entryFirstFrameAt=performance.now();
@@ -3828,7 +3828,7 @@ window.__sando = {
 };
 
 // ---- 歩く層（walk.html・build_walk.py が差し込む）から 3D を動かす手足
-window.__core = { THREE, scene, world, camera, renderer, D, STRUCTS, inPond: (x, z) => !!pondAt(x, z), pointAt, headingAt, toXZ, toLL, groundY, groundYs, nearestOnSando, nearestOnSandoY,
+window.__core = { THREE, scene, world, camera, renderer, D, STRUCTS, forest: FOREST, inPond: (x, z) => !!pondAt(x, z), pointAt, headingAt, toXZ, toLL, groundY, groundYs, nearestOnSando, nearestOnSandoY,
   botanicalSurfaceAt: (()=>{const sd=sdFrom(D.centerline);return(x,z)=>{if(!NEAR?.sections||!NEAR?.profiles)return {kind:null,clearance:0};const q=sd(x,z);return {kind:bandAt(q.d,q.s),clearance:solidDist(q.d,q.s)};};})(),
   get yaw() { return yaw; }, get pitch() { return pitch; },
   onD(dd, yw, pt) { EYE = null; if (mode !== "walk") setMode("walk"); walkD = dd; yaw = yw ?? headingAt(dd); pitch = pt ?? -.05; placeWalker(); },
@@ -3915,7 +3915,7 @@ window.dispatchEvent(new Event("core3d"));   // 歩く層（先に動いてい�
 
 <script type="module" async>
 import { createEntryMap } from "./web/entry-map.js?v=20261016p";
-import { createEntryMapContext } from "./web/entry-map-context.js?v=20261019sync2";
+import { createEntryMapContext } from "./web/entry-map-context.js?v=20261019ov1";
 try { performance.mark("walk"); } catch {}
 // ---- 《Aoi Walk 氷川》：碧が斜め前を歩き、いまいる場所の話を声でする。画面の文字は、碧が話している文だけ（下の字幕）。
 //      第3回（2026-10-04・本人が現地で南へ歩いて試した結果から）：
@@ -4428,6 +4428,7 @@ function tick() {
   const s = pick(); if (!s) return;
   if (s.kind !== "safety" && !isKey(s) && !inX(d) && toXe() < 10) return;
   if (mode === "gps" && (xGuard() < XM + 6 && s.kind !== "safety" || xGuard() - estDur(s) * xSp() < XM)) return;   /* 2026-10-13 安全（現地）：帯の手前で言い終わらない話は始めない（大事な物の話・安全の案内も） */   /* 第10回：横断の 10 m 手前からは、新しい話（大事な物のほか）を始めない */
+  if (s.kind !== "safety" && window.__layerOverlayHold?.()) return;   /* 2026-10-19：碧が重なった層の記録を語っているあいだ（9 秒まで）は、次の話を待つ */
   if (s.kind !== "safety" && !(s.kind === "anchor" && (rel(s).ahead < 14 || isKey(s))) && now - lastEnd < nextGap / TS) return;   /* 自然な間（地点の話が近いときは待たない） */
   if (s.kind === "safety" && now - lastEnd < 900 / TS) return;
   speak(s, s.kind === "anchor" && !s.xCut ? 0 : (s.resume ?? 0)); if (s.xCut) s.xCut = false;
@@ -7849,6 +7850,7 @@ window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEr
 </script>
 
 <script src="web/qualium.js?v=20261019layers3"></script>
+<script src="web/layer-overlay.js?v=20261019ov1" defer></script>
 <script src="web/umwelt-tools.js?v=20261018-senses"></script>
 <script type="module" src="web/physical-materials.js?v=20261019court2"></script>
 <script data-source="umwelt-ui.js">
