@@ -6,7 +6,18 @@
   const extraIds=['folk','social','history','ecology','environment','art','events','body','fiction'];
   Object.assign(states,Object.fromEntries(extraIds.map(id=>[id,true])));
   Object.assign(names,{folk:'民俗',social:'社会',history:'歴史',ecology:'生態',environment:'環境',art:'芸術',events:'催事',body:'身体',fiction:'創作'});
-  const enabledIds=[...visualIds];
+  /* 2026-10-19 本人「層が多すぎるので整理してください。多くても３〜５個くらいがいいです。」：見せる層は 3 つ。中の手がかり（模式の線・資料）は消さず、層ごとにまとめて ON/OFF する。
+     時代・身体は別のつまみがあるので層に立てない（生きものの感じ方の資料は「自然」に入り、各記録から身体のつまみへ切り替えられる）。
+     資料の記載／mitsulabの見方／創作は、層ではなく記録ごとの印。 */
+  const LAYERS=[
+    {id:'nature',name:'自然',ids:['trees','water','terrain','life','senses','ecology','environment','body'],desc:'自然：地形・水・植生・生き物。木の根もと・水の流れ・地形の断面・生き物の線は模式で、根・水質・生息の測定ではありません。生きものの感じ方の研究の要約もここに入ります（この参道で測った値や主観の再現ではありません）。'},
+    {id:'history',name:'歴史',ids:['time','history'],desc:'歴史：中山道・地誌・由緒・時代の景観の資料。記録を読む目盛りの高さは年数ではありません。'},
+    {id:'culture',name:'暮らしと文化',ids:['culture','folk','social','art','events','fiction'],desc:'暮らしと文化：民俗・社会・芸術・催事と、mitsulabの創作の一場面。鳥居・石・道などの関係の線は、意味や信仰の測定ではありません。'}
+  ];
+  const BASE_IDS=['information','cognition','language'];   /* 目印の点群・離れた手がかりを結ぶ線・地点名の札：どれかの層が ON なら出す */
+  const layerOn=Object.fromEntries(LAYERS.map(l=>[l.id,true]));
+  function applyLayers(){for(const l of LAYERS)for(const id of l.ids)states[id]=layerOn[l.id];const any=LAYERS.some(l=>layerOn[l.id]);for(const id of BASE_IDS)states[id]=any;}
+  const enabledIds=LAYERS.map(l=>l.id);
   let perspectiveChoices='',nearbyKey='',nearbyAt=0;
   const explain = {
     information:'情報：木や石の位置から立ち上がる点群と目盛り。記録を重ねる模式です。',
@@ -19,38 +30,36 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const panel = document.createElement('section');
   panel.id = 'qualiumPanel'; panel.setAttribute('aria-label', '場の手がかり');
-  panel.innerHTML = `<p>街歩きをアップデートする</p><p>同じ場所に、自然・時間・文化・身体の手がかりを重ねます。</p><div class="qBulk"><button type="button" id="qualiumAll">すべてON</button><button type="button" id="qualiumReset">すべてOFF</button></div><div class="qualiumChoices">${enabledIds.map(id => `<label><input type="checkbox" data-qualium="${id}">${names[id]}</label>`).join('')}</div><p id="qualiumMeaning" role="status"></p><label class="qStill"><input type="checkbox" id="qualiumStill">動きを止める</label><details><summary>この場所の文化記録</summary><p id="qualiumCultureRecord">近くの記録は、歩いた場所に合わせて表示します。</p></details><details><summary>表示の意味と出どころ</summary><div id="qualiumExplanations"></div><p>${baseText} 点・波・関係線は模式です。木の根や水質・生息・心を測定した表示ではありません。地形線は3D模型から抽出。典拠は各地点の解説で確かめてください。</p><a class="qAR" href="field-ar.html">実景ARへ ↗</a></details>`;
-  panel.querySelector('#qualiumExplanations').innerHTML=Object.values(explain).map(t=>`<p>${t}</p>`).join('');
+  panel.innerHTML = `<p>街歩きをアップデートする</p><p>同じ場所に、自然・歴史・暮らしと文化の手がかりを重ねます。時代と身体は、となりのつまみで替えられます。</p><div class="qBulk"><button type="button" id="qualiumAll">すべてON</button><button type="button" id="qualiumReset">すべてOFF</button></div><div class="qualiumChoices">${LAYERS.map(l => `<label><input type="checkbox" data-layer="${l.id}" aria-label="${l.name}の層">${l.name}<small data-count="${l.id}"></small></label>`).join('')}</div><p class="qMarks">記録ごとの印：資料の記載／mitsulabの見方／創作</p><p id="qualiumMeaning" role="status"></p><label class="qStill"><input type="checkbox" id="qualiumStill">動きを止める</label><details><summary>この場所の文化記録</summary><p id="qualiumCultureRecord">近くの記録は、歩いた場所に合わせて表示します。</p></details><details><summary>表示の意味と出どころ</summary><div id="qualiumExplanations"></div><p>${baseText} 点・波・関係線は模式です。木の根や水質・生息・心を測定した表示ではありません。地形線は3D模型から抽出。典拠は各地点の解説で確かめてください。</p><a class="qAR" href="field-ar.html">実景ARへ ↗</a></details>`;
+  panel.querySelector('#qualiumExplanations').innerHTML=[...LAYERS.map(l=>l.desc),'どの層でも：木や石の位置から立ち上がる点群と目盛り、離れた手がかりを結ぶ線、既存の案内名の札を出します（すべてOFFにすると、これも消えます）。記録を重ねる模式で、心の測定ではありません。距離は3D模型内の直線距離です。'].map(t=>`<p>${t}</p>`).join('');
   const rail = document.createElement('details');
   rail.id = 'qualiumControl'; rail.hidden = true;
   rail.innerHTML='<summary>レイヤー</summary>';rail.append(panel);document.body.append(rail);
   const style = document.createElement('style');
   style.textContent = `
-#qualiumPanel{padding:10px;border-bottom:1px solid #365651;margin-bottom:14px;font-size:13px;line-height:1.8;color:#d8e9e3}#qualiumPanel h3{font-weight:400;margin:4px 0;font-size:17px;letter-spacing:.12em}#qualiumPanel p{margin:8px 0}.qualiumChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 6px}.qBulk{display:flex;gap:8px}.qBulk button{flex:1;justify-content:center;border:1px solid #6e9b8b;background:#254a3d55;color:#e4f2eb;font:inherit}.qualiumChoices label,#qualiumPanel summary,#qualiumPanel .qStill{min-height:44px;display:inline-flex;align-items:center;gap:8px}#qualiumPanel input{width:20px;height:20px;accent-color:#91d7ca}#qualiumPanel button,#qualiumPanel .qAR{min-height:44px;display:inline-flex;align-items:center}#qualiumPanel .qAR{color:#b3e2d8;letter-spacing:.1em;text-decoration:none;border-bottom:1px solid #53786d;gap:20px}#qualiumPanel details{font-size:12px;color:#a3bdb4}#qualiumPanel :focus-visible,#qualiumRail :focus-visible{outline:2px solid #ead9ac;outline-offset:3px}
+#qualiumPanel{padding:10px;border-bottom:1px solid #365651;margin-bottom:14px;font-size:13px;line-height:1.8;color:#d8e9e3}#qualiumPanel h3{font-weight:400;margin:4px 0;font-size:17px;letter-spacing:.12em}#qualiumPanel p{margin:8px 0}.qualiumChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 6px}.qualiumChoices label small{font:11px ui-monospace,monospace;color:#9fbfb4;margin-left:2px}#qualiumPanel .qMarks{font-size:12px;color:#b7cac1;margin:4px 0 0}.qBulk{display:flex;gap:8px}.qBulk button{flex:1;justify-content:center;border:1px solid #6e9b8b;background:#254a3d55;color:#e4f2eb;font:inherit}.qualiumChoices label,#qualiumPanel summary,#qualiumPanel .qStill{min-height:44px;display:inline-flex;align-items:center;gap:8px}#qualiumPanel input{width:20px;height:20px;accent-color:#91d7ca}#qualiumPanel button,#qualiumPanel .qAR{min-height:44px;display:inline-flex;align-items:center}#qualiumPanel .qAR{color:#b3e2d8;letter-spacing:.1em;text-decoration:none;border-bottom:1px solid #53786d;gap:20px}#qualiumPanel details{font-size:12px;color:#a3bdb4}#qualiumPanel :focus-visible,#qualiumRail :focus-visible{outline:2px solid #ead9ac;outline-offset:3px}
 #qualiumRail{max-height:58vh;overflow-y:auto;scrollbar-width:thin;position:fixed;right:max(8px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;align-items:stretch;width:48px;color:#b5d8cc;pointer-events:auto;border-left:1px solid #47665a66;background:linear-gradient(90deg,#07151200,#071512bf)}#qualiumRail[hidden]{display:none!important}#qualiumRail button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:48px;min-height:44px;padding:4px 0;border:0;border-radius:0;color:#b5d8cc;background:transparent;cursor:pointer;font:400 12px/1.2 "Hiragino Sans",sans-serif;letter-spacing:.1em;touch-action:manipulation}#qualiumRail button small{font:9px/1.4 ui-monospace,monospace;color:#7a9d92;letter-spacing:.1em}#qualiumRail button[aria-pressed=true]{color:#e9f7ed;background:linear-gradient(90deg,#4eaf8d36,transparent)}#qualiumRail button[aria-pressed=true]::before{content:"";position:absolute;left:-1px;top:10px;bottom:10px;width:2px;background:#c4d9a2}#qualiumRail .qCaption{text-align:center;font:8px/16px ui-monospace,monospace;letter-spacing:.12em;color:#a5c0b4}#qualiumRail .qModel{font-size:9px;letter-spacing:.25em}body.ovOn #qualiumRail,body.mkOn #qualiumRail,body:has(#menu:not([hidden])) #qualiumRail,body:has(#minimap.big) #qualiumRail,body:has(#journeyPanel>details[open]) #qualiumRail{display:none}
 @media(max-width:820px){#qualiumRail{right:4px;width:44px}#qualiumRail button{width:44px;min-height:44px}}@media(max-height:520px){#qualiumRail{top:auto;bottom:8px;transform:none;flex-direction:row;width:auto}#qualiumRail .qCaption{display:none}#qualiumRail button{width:44px}}
 `;
   document.head.append(style);
   const still = panel.querySelector('#qualiumStill'); still.checked = reduced.matches;
   function sync() {
-    for (const [id, on] of Object.entries(states)) {
-      const input=panel.querySelector(`[data-qualium="${id}"]`);if(input)input.checked=on;
-
-    }
-    panel.querySelector('#qualiumMeaning').textContent = `${enabledIds.filter(id=>states[id]).length} / ${enabledIds.length} 層を表示`;
+    applyLayers();
+    for (const l of LAYERS) { const input=panel.querySelector(`[data-layer="${l.id}"]`); if(input) input.checked=layerOn[l.id]; }
+    panel.querySelector('#qualiumMeaning').textContent = `${LAYERS.filter(l=>layerOn[l.id]).length} / ${LAYERS.length} 層を表示`;
   }
   panel.addEventListener('change', event => {
-    const id = event.target.dataset.qualium;
-    if (id in states) { states[id] = event.target.checked; nearbyAt=0; sync(); }
+    const id = event.target.dataset.layer;
+    if (id in layerOn) { layerOn[id] = event.target.checked; nearbyAt=0; nearbyKey=''; sync(); const l=LAYERS.find(x=>x.id===id); panel.querySelector('#qualiumMeaning').textContent += `　${l.name}の手がかりを${layerOn[id]?'出しました':'隠しました'}`; }
   });
-  panel.querySelector('#qualiumAll').onclick=()=>{Object.keys(states).forEach(id=>states[id]=true);nearbyAt=0;sync();};
-  panel.querySelector('#qualiumReset').onclick = () => { Object.keys(states).forEach(id => {states[id] = false;}); nearbyAt=0;sync(); };
+  panel.querySelector('#qualiumAll').onclick=()=>{Object.keys(layerOn).forEach(id=>layerOn[id]=true);nearbyAt=0;nearbyKey='';sync();};
+  panel.querySelector('#qualiumReset').onclick = () => { Object.keys(layerOn).forEach(id => {layerOn[id] = false;}); nearbyAt=0;nearbyKey='';sync(); };
 
   const records=document.createElement('section');records.id='placePerspectiveRecords';records.hidden=true;records.setAttribute('aria-label','この周辺の資料と見方');panel.append(records);
   const extraStyle=document.createElement('style');extraStyle.textContent=`#placePerspectiveRecords{border-top:1px solid #638c9766;margin-top:12px;padding-top:8px}#placePerspectiveRecords h3{font-size:13px;letter-spacing:.06em;color:#baded7;font-weight:400}#placePerspectiveRecords article{padding:9px 0;border-top:1px solid #5e808433}#placePerspectiveRecords h4{font-size:14px;line-height:1.6;font-weight:400;color:#e3ebe5;margin:2px 0}#placePerspectiveRecords p{font-size:13px;line-height:1.8;margin:4px 0;color:#d0dedb}#placePerspectiveRecords small{display:block;font-size:11.5px;line-height:1.7;color:#b3c3ba}#placePerspectiveRecords a{display:block;min-height:44px;color:#a7d7d0;text-decoration:underline;text-underline-offset:3px;font-size:12px;line-height:1.7;padding:5px 0}.qPerspectiveGroup label small{font:10px ui-monospace,monospace;color:#9fbfb4;margin-left:auto}.qBodyTry{display:flex;align-items:center;min-height:44px;margin:6px 0;padding:0 12px;border:1px solid #6e9b8b;background:#254a3d55;color:#e4f2eb;font:inherit;font-size:13px;letter-spacing:.06em;cursor:pointer}.qPerspectiveHint{font-size:12px;color:#b7cac1}#placePerspectiveRecords .qRecordsFoot{font-size:12px;color:#b3c3ba;border-top:1px solid #5e808433;padding-top:8px}`;document.head.append(extraStyle);
-  function mountPerspectiveChoices(){const api=window.__placePerspectives,st=api?.status();if(!st?.ready)return;const ready=extraIds.filter(id=>st.categories[id]>0),key=ready.join('|');if(key===perspectiveChoices)return;perspectiveChoices=key;for(const id of ready)if(!enabledIds.includes(id))enabledIds.push(id);const choices=panel.querySelector('.qualiumChoices');choices.querySelectorAll('.qPerspectiveGroup').forEach(e=>e.remove());panel.querySelectorAll('.qPerspectiveHint').forEach(e=>e.remove());
-   for(const [title,ids]of [['自然',['ecology','environment']],['文化',['folk','social','art','events']],['時間',['history']],['身体（生きものの感じ方）',['body']],['創作',['fiction']]]){const available=ids.filter(id=>ready.includes(id));if(!available.length)continue;const field=document.createElement('fieldset');field.className='qLayerGroup qPerspectiveGroup';const legend=document.createElement('legend');legend.textContent=title;field.append(legend);for(const id of available){const label=document.createElement('label'),input=document.createElement('input'),count=document.createElement('small');input.type='checkbox';input.dataset.qualium=id;input.checked=states[id];input.setAttribute('aria-label',names[id]+'の手がかり');label.append(input,document.createTextNode(names[id]));count.textContent=String(st.categories[id]);count.setAttribute('aria-label','公開できる資料と見方 '+st.categories[id]+' 件');label.append(count);field.append(label);}choices.append(field);}
-   if(ready.length){const hint=document.createElement('p');hint.className='qPerspectiveHint';hint.textContent='資料の記載・mitsulabの見方・創作を区別。複数分類の資料は、いずれかの層がONなら一度だけ表示します。「身体」は生きものの感覚についての研究の要約で、この参道で測った値や主観の再現ではありません。';records.before(hint);}sync();nearbyKey='';
+  function mountPerspectiveChoices(){const api=window.__placePerspectives,st=api?.status();if(!st?.ready)return;const key=String(st.items);if(key===perspectiveChoices)return;perspectiveChoices=key;
+   for(const l of LAYERS){const c=api.countFor?api.countFor(l.ids):0,el=panel.querySelector(`[data-count="${l.id}"]`);if(el){el.textContent=c?c+'件':'';el.setAttribute('aria-label','資料と見方 '+c+' 件');}}
+   panel.querySelectorAll('.qPerspectiveHint').forEach(e=>e.remove());const hint=document.createElement('p');hint.className='qPerspectiveHint';hint.textContent='数は、その層の資料と見方の件数。いくつかの層にまたがる記録は、どれかの層がONなら一度だけ出ます。生きものの感じ方は研究の要約で、この参道で測った値や主観の再現ではありません。';records.before(hint);sync();nearbyKey='';
   }
   // Retry only from the existing visible/start frame; no timer or additional loop.
   function createPerspectiveRetry({now,isAllowed,importModule,onReady}){
@@ -66,7 +75,7 @@
     }finally{pending=false;job=null;}}
     return{tick(){if(pending)return job;if(ready||attempts>=3||now()<nextAt||!isAllowed())return;pending=true;const attempt=++attempts;job=run(attempt);return job;},status:()=>({ready,pending,attempts,nextAt,error,exhausted:!ready&&!pending&&attempts>=3,history:history.map(x=>({...x}))})};
   }
-  const perspectiveRetry=createPerspectiveRetry({now:()=>performance.now(),isAllowed:()=>!document.hidden&&!!document.getElementById('start')?.hidden&&window.__talk?.mode==='sim'&&!document.body.classList.contains('ovOn')&&!!window.__entryFirstFrameAt&&performance.now()-__entryFirstFrameAt>=1800,importModule:attempt=>import('./place-perspectives.js?v=20261019photoreal2'+(attempt>1?'&retry='+attempt:'')),onReady:mountPerspectiveChoices});
+  const perspectiveRetry=createPerspectiveRetry({now:()=>performance.now(),isAllowed:()=>!document.hidden&&!!document.getElementById('start')?.hidden&&window.__talk?.mode==='sim'&&!document.body.classList.contains('ovOn')&&!!window.__entryFirstFrameAt&&performance.now()-__entryFirstFrameAt>=1800,importModule:attempt=>import('./place-perspectives.js?v=20261019layers3'+(attempt>1?'&retry='+attempt:'')),onReady:mountPerspectiveChoices});
   function loadPerspectiveData(){perspectiveRetry.tick();}
   function nearbyPerspectives(talk){const now=performance.now();if(now<nearbyAt)return;nearbyAt=now+400;const api=window.__placePerspectives;if(!api?.status().ready)return;mountPerspectiveChoices();const list=api.near(talk.d,talk,states,6),key=list.map(r=>r.id+':'+r.category).join('|');if(key===nearbyKey)return;nearbyKey=key;records.replaceChildren();records.hidden=!list.length;if(!list.length)return;const title=document.createElement('h3');title.textContent='この周辺の資料と見方';records.append(title);for(const r of list){const article=document.createElement('article'),h=document.createElement('h4'),text=document.createElement('p'),note=document.createElement('small');h.textContent=(r.categoryName===r.meaning?r.categoryName:r.categoryName+' · '+r.meaning)+' ｜ '+r.title.replace(/^(mitsulabの見方|創作)[：:]/,'');text.textContent=r.text;note.textContent=[r.time?.dateLabel,r.evidenceLimit].filter(Boolean).join('。');article.append(h,text);if(r.question){const question=document.createElement('p');question.textContent='mitsulabの問い：'+r.question;article.append(question);}article.append(note);for(const src of r.sourceInfo){const link=document.createElement('a');link.href=src.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=(src.publisher?src.publisher+' · ':'')+src.title+' ↗';article.append(link);}if(r.bodyMode&&window.__body?.B?.[r.bodyMode]){const nm=window.__body.B[r.bodyMode].name,bt=document.createElement('button');bt.type='button';bt.className='qBodyTry';bt.textContent=nm+'の身体で歩いてみる（模式）';bt.setAttribute('aria-label',nm+'の身体の表示に切り替える。受けとれる信号の置きかえの模式で、主観の再現ではありません');bt.onclick=()=>{window.__body.set(r.bodyMode);};article.append(bt);}if(r.category==='fiction'){const author=document.createElement('small');author.textContent='mitsulabの創作。現地の実物・観測値・実際の催しではありません。';article.append(author);}records.append(article);}const foot=document.createElement('p');foot.className='qRecordsFoot';foot.textContent='場所は、作品の語りの地点に結んだもの。出来事の起きた位置や現物の正確な座標とは限りません。';records.append(foot);}
   addEventListener('place-perspectives-ready',mountPerspectiveChoices);
@@ -180,7 +189,7 @@
         const ctx=slot.canvas.getContext('2d');ctx.clearRect(0,0,768,192);ctx.shadowColor='#041310';ctx.shadowBlur=5;
         ctx.fillStyle='#dce8d9';ctx.font='400 42px "Hiragino Mincho ProN",serif';ctx.textAlign='left';
         const text=String(label).slice(0,20);ctx.fillText(text,18,78,720);
-        ctx.fillStyle='#a2cfc1';ctx.font='24px "Hiragino Sans",sans-serif';ctx.fillText(distance+'  /  言語の層',20,132);
+        ctx.fillStyle='#a2cfc1';ctx.font='24px "Hiragino Sans",sans-serif';ctx.fillText(distance+'  /  地点の札',20,132);
         ctx.fillStyle='#b5d0bb';ctx.fillRect(20,157,440,1);ctx.fillStyle='#d9b67b';ctx.fillRect(20,155,32,3);
         slot.texture.needsUpdate=true;
       }
@@ -220,7 +229,7 @@
     if(available&&window.__cult&&cultureApplied!==states.culture){cultureApplied=states.culture;const desired=cultureApplied;setTimeout(()=>window.__cult?.set(desired),250);}
     const isFuture=window.__r21?.era?.()==='future';
     if(available&&!document.hidden){loadPerspectiveData();nearbyPerspectives(talk);}
-    const shown=available&&enabledIds.some(id=>states[id])&&!document.hidden;
+    const shown=available&&LAYERS.some(l=>layerOn[l.id])&&!document.hidden;
     if(!shown){if(root)root.visible=false;last=0;return;}
     if(!root)makeScene(T,scene);
     const now=performance.now();
@@ -236,5 +245,5 @@
     if(states.senses)animateWaves(clock);
     future.position.y=Math.sin(clock*.45)*.1;
   };
-  window.__qualium={states,panel,rail,get availableIds(){return [...enabledIds];},get visible(){return !!root?.visible;},get count(){return root?.children.length||0;},get anchors(){return pools.filter(slot=>slot.mark).map(slot=>slot.mark.s?.tag||'この場所');},get time(){return clock;},get diagnostics(){return {anchors:activeCount,particles:activeCount*72+(future?.visible?96:0),extraLoop:false,perspectiveError:perspectiveRetry.status().error,perspectiveRetry:perspectiveRetry.status()};}};
+  window.__qualium={states,layers:LAYERS,layerOn,setLayer(id,on){if(id in layerOn){layerOn[id]=!!on;nearbyAt=0;nearbyKey='';sync();}},panel,rail,get availableIds(){return [...enabledIds];},get visible(){return !!root?.visible;},get count(){return root?.children.length||0;},get anchors(){return pools.filter(slot=>slot.mark).map(slot=>slot.mark.s?.tag||'この場所');},get time(){return clock;},get diagnostics(){return {anchors:activeCount,particles:activeCount*72+(future?.visible?96:0),extraLoop:false,perspectiveError:perspectiveRetry.status().error,perspectiveRetry:perspectiveRetry.status()};}};
 })();

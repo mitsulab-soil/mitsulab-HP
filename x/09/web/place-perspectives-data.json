@@ -844,9 +844,8 @@
     },
     {
       "id": "map-comparison-method",
-      "category": "environment",
+      "category": "history",
       "categories": [
-        "environment",
         "history"
       ],
       "place": {
@@ -1451,8 +1450,7 @@
       "id": "workshop-redesign",
       "category": "social",
       "categories": [
-        "social",
-        "environment"
+        "social"
       ],
       "place": {
         "segmentIds": [

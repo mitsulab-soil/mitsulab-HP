@@ -34,9 +34,10 @@
     if(choices){
       const groups=[['受けとり方',['information','cognition','language','senses']],['場所の手がかり',['trees','water','terrain','time','life','culture']]];
       for(const [title,ids] of groups){
+        const labels=ids.map(id=>choices.querySelector(`input[data-qualium="${id}"]`)?.closest('label')).filter(Boolean);if(!labels.length)continue;   /* 2026-10-19：層を 3 つにまとめた版では、この組は作らない */
         const fieldset=document.createElement('fieldset');fieldset.className='qLayerGroup';
         const legend=document.createElement('legend');legend.textContent=title;fieldset.append(legend);
-        for(const id of ids){const label=choices.querySelector(`input[data-qualium="${id}"]`)?.closest('label');if(label)fieldset.append(label);}
+        for(const label of labels)fieldset.append(label);
         choices.append(fieldset);
       }
     }

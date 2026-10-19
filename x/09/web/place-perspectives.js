@@ -1,5 +1,7 @@
 /* 場の手がかり。資料の記載、mitsulabの見方、創作を区別し、既存地点へ結ぶ。 */
 export const CATEGORIES=Object.freeze({folk:'民俗',social:'社会',history:'歴史',ecology:'生態',environment:'環境',art:'芸術',events:'催事',body:'身体',fiction:'創作'});
+/* 2026-10-19：見せる層は 3 つ（自然・歴史・暮らしと文化）。分類は記録の中の目安として残し、札には層の名を出す */
+export const LAYER_NAME=Object.freeze({ecology:'自然',environment:'自然',body:'自然・生きものの感じ方',history:'歴史',folk:'暮らしと文化',social:'暮らしと文化',art:'暮らしと文化',events:'暮らしと文化',fiction:'暮らしと文化'});
 const clean=s=>String(s??'').replace(/\s+/g,' ').trim();
 const safeUrl=s=>{try{const u=new URL(s);return /^https?:$/.test(u.protocol)?u.href:null;}catch{return null;}};
 export function publicPerspectives(raw){
@@ -18,7 +20,7 @@ function segmentDistance(item,talk,d){const p=item.place;if(p.dRange){const [a,b
 export function matchesPlace(item,mark){const p=item.place;if(p.segmentIds.length)return p.segmentIds.includes(mark.s?.id);if(p.structureIds.length)return !!mark.sid&&p.structureIds.includes(mark.sid);return p.dRange&&Number.isFinite(mark.at?.d)&&mark.at.d>=p.dRange[0]&&mark.at.d<=p.dRange[1];}
 let data={sources:[],items:[]},sourceIndex=new Map(),loading;
 const state={ready:false,inFlight:false,errors:[],failureHistory:[],requests:0,checkedAt:null,categories:{}};
-const decorate=(item,states)=>{const category=item.category==='fiction'?'fiction':item.categories.find(c=>!states||states[c])||item.category;return({...item,category,sourceInfo:item.sourceIds.map(id=>sourceIndex.get(id)).filter(Boolean),meaning:item.category==='fiction'?'創作':item.status==='interpretation'?'mitsulabの見方':'資料の記載',categoryName:CATEGORIES[category]});};
+const decorate=(item,states)=>{const category=item.category==='fiction'?'fiction':item.categories.find(c=>!states||states[c])||item.category;return({...item,category,sourceInfo:item.sourceIds.map(id=>sourceIndex.get(id)).filter(Boolean),meaning:item.category==='fiction'?'創作':item.status==='interpretation'?'mitsulabの見方':'資料の記載',categoryName:LAYER_NAME[category]||CATEGORIES[category]});};
 export async function loadPerspectives(){
  if(state.ready)return api;if(loading)return loading;if(state.requests>=3||(typeof document!=='undefined'&&document.hidden))return api;
  state.requests++;state.inFlight=true;
@@ -28,5 +30,5 @@ export async function loadPerspectives(){
   if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('place-perspectives-ready'));return api;
  }).catch(e=>{state.errors=[e.message];state.failureHistory.push({attempt:state.requests,error:e.message,at:new Date().toISOString()});return api;}).finally(()=>{loading=null;state.inFlight=false;});return loading;
 }
-const api={categories:CATEGORIES,load:loadPerspectives,forMark(mark,states){return data.items.filter(r=>matchesPlace(r,mark)&&(!states||r.categories.some(c=>states[c]))).map(r=>decorate(r,states));},near(d,talk,states,limit=6){return data.items.filter(r=>r.categories.some(c=>states[c])).map(r=>({r,distance:segmentDistance(r,talk,d)})).filter(x=>x.distance<=65).sort((a,b)=>a.distance-b.distance).slice(0,limit).map(({r,distance})=>({...decorate(r,states),distance}));},status:()=>({...state,categories:{...state.categories},items:data.items.length,sources:data.sources.length,errors:[...state.errors],failureHistory:state.failureHistory.map(x=>({...x}))})};
+const api={categories:CATEGORIES,layerNames:LAYER_NAME,countFor(ids){return data.items.filter(r=>r.categories.some(c=>ids.includes(c))).length;},load:loadPerspectives,forMark(mark,states){return data.items.filter(r=>matchesPlace(r,mark)&&(!states||r.categories.some(c=>states[c]))).map(r=>decorate(r,states));},near(d,talk,states,limit=6){return data.items.filter(r=>r.categories.some(c=>states[c])).map(r=>({r,distance:segmentDistance(r,talk,d)})).filter(x=>x.distance<=65).sort((a,b)=>a.distance-b.distance).slice(0,limit).map(({r,distance})=>({...decorate(r,states),distance}));},status:()=>({...state,categories:{...state.categories},items:data.items.length,sources:data.sources.length,errors:[...state.errors],failureHistory:state.failureHistory.map(x=>({...x}))})};
 if(typeof window!=='undefined')window.__placePerspectives=api;
