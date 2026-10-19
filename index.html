@@ -2588,7 +2588,7 @@ async function boot(box){
 
 
 <script>/* 2026-10-19 Qualia Layer の 3D：層の図が画面に近づいてから読む（前の「3D の循環の図」〈js/qualium-top.js〉と入れ替え。TOP の 3D は二つまで） */
-(function(){var st=document.querySelector('[data-layers3d]');if(!st||!('IntersectionObserver' in window))return;var go=false;var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();import('./js/qualia-layers-3d.js?v=20261019-ql6').then(function(m){return m.boot(st);}).catch(function(e){console.warn('qualia layer 3d',e);});}},{rootMargin:'600px 0px'});io.observe(st);})();</script>
+(function(){var st=document.querySelector('[data-layers3d]');if(!st||!('IntersectionObserver' in window))return;var go=false;var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();import('./js/qualia-layers-3d.js?v=20261019-ql7').then(function(m){return m.boot(st);}).catch(function(e){console.warn('qualia layer 3d',e);});}},{rootMargin:'600px 0px'});io.observe(st);})();</script>
 <script type="module" src="js/app-previews.js?v=20261019-ql3"></script>
 </body>
 </html>

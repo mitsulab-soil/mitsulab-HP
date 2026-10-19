@@ -54,7 +54,7 @@ export async function boot(stage) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(SIZE * 1.25, SIZE * 1.25), mat);
     m.rotation.x = -Math.PI / 2; ground.add(m);
   }
-  (async () => {   // 欅一本（冒頭の場と同じ欅の模型。葉の画像はスマホでは読まない）
+  if (!mobile) (async () => {   // 欅一本（冒頭の場と同じ欅の模型）。スマホでは葉の画像なしだと粗く見えるので、欅は置かず石畳と板だけにする
     try {
       const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
       const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
