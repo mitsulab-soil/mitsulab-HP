@@ -264,6 +264,13 @@
     .filter-body .frow{flex-wrap:wrap;overflow-x:visible;gap:6px}
     .lfilters .fl:nth-of-type(2)::after{content:"　横に続きます →";letter-spacing:.04em;color:var(--ml-aoi-2)}
   }
+  /* 2026-10-19 点検：押す所は縦横とも 44px 以上・カードの頭に、小学生にも分かる一行 */
+  .frow .ml-btn,.filter-body .frow .ml-btn{min-width:44px}
+  .hook .ml-btn,.acts .ml-btn{min-height:44px}
+  .ml-fold > summary,.legend-fold > summary,.foot .ml-fold > summary{min-height:44px;box-sizing:border-box}
+  .r-kid{margin:0 0 10px;padding:8px 0 8px 12px;border-left:2px solid var(--ml-aoi);font-size:17px;line-height:1.85;color:var(--ml-ink)}
+  .r-kid span{display:block;font:400 11px var(--ml-mono);letter-spacing:.2em;color:var(--ml-aoi-2);margin-bottom:2px}
+  .io-kid{display:block;color:var(--ml-ink);line-height:1.75}
 </style>
 </head>
 <body class="ml-root" data-mode="list">

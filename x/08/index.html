@@ -161,7 +161,10 @@
   .song h1{font-family:var(--ml-serif);font-weight:600;font-size:clamp(24px,3.4vw,34px);letter-spacing:.1em;line-height:1.45;margin:0}
   .song .sub{margin:6px 0 0;font-family:"Cormorant Garamond",serif;font-style:italic;font-size:1.02rem;letter-spacing:.12em;color:var(--ml-ink-3)}
   .song p.lead{margin:18px 0 0;color:var(--ml-ink);max-width:34em;font-weight:400}
-  .song p.lead + p{margin:10px 0 0;color:var(--ml-ink-2);font-size:.92rem;max-width:34em}
+  .song p.lead + p,.song .read + p{margin:10px 0 0;color:var(--ml-ink-2);font-size:.92rem;max-width:34em}
+  .read{margin:16px 0 0;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:.9rem;line-height:1.75;max-width:34em}
+  .read dt{font-family:var(--ml-serif);font-weight:600;color:var(--ml-aoi-2);white-space:nowrap;letter-spacing:.06em}
+  .read dd{margin:0;color:var(--ml-ink-2)}
   .cred{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:.88rem;line-height:1.7;align-self:start;border-top:1px solid var(--ml-line-weak);padding-top:14px}
   .cred dt{font-family:var(--ml-serif);font-weight:600;color:var(--ml-ink);white-space:nowrap;letter-spacing:.08em}
   .cred dd{margin:0;color:var(--ml-ink-2)}
@@ -182,8 +185,18 @@
 <main>
   <div class="frame">
     <video id="mv" controls playsinline preload="metadata" poster="poster.jpg?v=20261017-selected" width="1920" height="1080" aria-label="森羅奏会《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う">
-      <source src="mv.mp4?v=20261017-selected" type="video/mp4">
     </video>
+    <script>
+      // 画面の幅と通信のようすで、同じ映像の 1080p／720p／540p を選ぶ（2026-10-19。スマホで止まらないように）
+      (function () {
+        var v = document.getElementById('mv'), w = window.innerWidth || 1280, c = navigator.connection || {};
+        var lv = w <= 600 ? 2 : (w <= 1100 ? 1 : 0);
+        if (c.saveData || /(^|-)2g|3g/.test(c.effectiveType || '')) lv = 2;   // 回線が遅いと分かるときだけ軽く。途中で待ちが続いたら、下の処理で一段ずつ軽くする
+        v.dataset.lv = lv;
+        v.src = ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'][lv] + '?v=20261019';
+      })();
+    </script>
+    <noscript><video controls playsinline preload="metadata" poster="poster.jpg" src="mv_720.mp4" style="width:100%"></video></noscript>
     <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
   </div>
   <div class="meta">
@@ -191,8 +204,14 @@
       <span class="ml-kicker">碧の唄 ／ 01</span>
       <h1 id="ttl">森羅奏会《Breathing OS》</h1>
       <p class="sub">Breathing OS / digital forest</p>
-      <p class="lead">光の柱と地形の線が重なる杜で、碧が歌う。声と空間が呼応する、デジタルな森のミュージックビデオ。</p>
-      <p>自然のかたちと計算された光を、音楽とともに感じる1分45秒の演奏会。光や線は、声と空間の関係を描く創作の表現です。</p>
+      <p class="lead">踏まれてきた土の下でも、根と水はつながり、杜は息をしている。碧はその見えない気配を、声と光に置きかえて歌う。1分45秒の演奏会。</p>
+      <dl class="read" aria-label="映像の見かた">
+        <dt>地を這う線</dt><dd>木々の根と、地の下の水の道。土の中のつながりを、光の線で描いた。</dd>
+        <dt>光の木</dt><dd>幹と枝を、ガラスのような光の筒に。土から吸い上げた水が、梢へのぼっていく道。</dd>
+        <dt>広がる輪</dt><dd>碧の声とともに、足もとから広がる波。音で土を聴き、杜が息をする。</dd>
+        <dt>宙の 0 と 1</dt><dd>機械のことば。歌詞の「0 と 1 のあいだに緑」から。</dd>
+      </dl>
+      <p>聴き終えたら、足もとの土に、すこし耳をすませてみてください。</p>
     </section>
     <dl class="cred" aria-label="クレジット">
       <dt>歌</dt><dd>碧</dd>
@@ -215,7 +234,23 @@
   const v = document.getElementById('mv'), b = document.getElementById('play');
   b.addEventListener('click', () => { b.hidden = true; v.play().catch(() => { b.hidden = false; }); });
   v.addEventListener('play', () => { b.hidden = true; });
-  v.addEventListener('ended', () => { b.hidden = false; v.currentTime = 0; v.load(); });
+  v.addEventListener('ended', () => { b.hidden = false; v.currentTime = 0; });
+  // 再生中に読み込み待ちが続いたら、同じ場所から一段軽い映像へ切りかえる（いちばん軽い 540p まで）
+  const SRC = ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'];
+  let waits = [], waitT = 0;
+  const down = () => {
+    const lv = +v.dataset.lv || 0; if (lv >= 2) return;
+    const t = v.currentTime, playing = !v.paused;
+    v.dataset.lv = lv + 1; v.src = SRC[lv + 1] + '?v=20261019'; waits = [];
+    v.addEventListener('loadedmetadata', () => { v.currentTime = t; if (playing) v.play().catch(() => {}); }, { once: true });
+  };
+  v.addEventListener('waiting', () => {
+    if (v.paused || v.seeking || v.currentTime < 0.5) return;
+    const now = performance.now(); waits = waits.filter(x => now - x < 30000); waits.push(now);
+    clearTimeout(waitT); waitT = setTimeout(() => { if (v.readyState < 3 && !v.paused) down(); }, 2500);
+    if (waits.length >= 2) down();
+  });
+  v.addEventListener('playing', () => clearTimeout(waitT));
 
   const full=document.createElement('button');full.className='full-layer';full.textContent='全画面で見る';full.onclick=()=>{const f=document.querySelector('.frame');if(f.requestFullscreen)f.requestFullscreen().catch(()=>{full.textContent='全画面にできませんでした。通常表示でご覧ください。'});else full.textContent='この端末では通常表示で映像をご覧ください。';};document.querySelector('.frame').after(full);
 
