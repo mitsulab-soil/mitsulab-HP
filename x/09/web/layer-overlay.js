@@ -211,8 +211,19 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
     ghost = { t0: now, why, pts, info, cone, ring, eyes, halo, n }; st.ghosts++;
   }
   const tmpA = { a: null, b: null };
-  function updateGhost(now) {
-    if (!ghost) return; const A = window.__aoi, vrm = A?.vrm, t = (now - ghost.t0) / 1000, D = reduced.matches ? 1.6 : 4.2;
+  /* 2026-10-20：Ghost が降りるあいだ、狭い画面では碧の全身が画面に入るよう、視線を少しずつ寄せる（指で見回しているときは寄せない） */
+  let userDrag = false; addEventListener('pointerdown', () => { userDrag = true; }, true); addEventListener('pointerup', () => { userDrag = false; }, true); addEventListener('pointercancel', () => { userDrag = false; }, true);
+  function frameAoi(t, dt) {
+    const A = window.__aoi, FR = window.__talk?.FR, cam = C.camera; if (!A?.aoi?.visible || !FR || FR.yaw == null || userDrag || t > 3.8 || innerWidth >= 760 || ghost?.why !== 'first' || window.__freezeEye || document.querySelector('.fieldVisionRead.fvVisible')) return;   /* 歩き出すときの一度だけ。読む画面を開いているときは動かさない */
+    const vrm = A.vrm, base = A.aoi.getWorldPosition(new T.Vector3()), head = boneWorld(vrm, 'head', new T.Vector3()) || base.clone().add(new T.Vector3(0, 1.5, 0));
+    const mid = base.clone().lerp(head, .5).project(cam), feet = base.clone().project(cam), top = head.clone().add(new T.Vector3(0, .14, 0)).project(cam);
+    if (mid.z > 1) return; const k = Math.min(1, dt * 2.2), tx = Math.sign(mid.x || 1) * .32;
+    if (Math.abs(mid.x) > .4) FR.yaw -= (mid.x - tx) * .55 * k;
+    if (feet.y < -.9 && top.y < .9) FR.pitch = Math.max(-.85, FR.pitch - .35 * k); else if (top.y > .92 && feet.y > -.8) FR.pitch = Math.min(.3, FR.pitch + .25 * k);
+    st.framed = (st.framed || 0) + 1;
+  }
+  function updateGhost(now, dt = .016) {
+    if (!ghost) return; frameAoi((now - ghost.t0) / 1000, dt); const A = window.__aoi, vrm = A?.vrm, t = (now - ghost.t0) / 1000, D = reduced.matches ? 1.6 : 4.2;
     if (!A?.aoi || t > D) { for (const o of [ghost.pts, ghost.cone, ghost.ring, ghost.halo, ...ghost.eyes]) { root.remove(o); o.geometry?.dispose(); o.material.dispose(); } ghost = null; return; }
     const base = A.aoi.getWorldPosition(new T.Vector3()), env = Math.min(1, t / .5) * (1 - Math.max(0, (t - (D - 1)) / 1));
     ghost.cone.position.set(base.x, base.y + 4.9, base.z); ghost.cone.material.uniforms.uA.value = reduced.matches ? 0 : env * (t < 2.4 ? 1 : .5); ghost.cone.material.uniforms.uT.value = t;
@@ -324,6 +335,17 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
     P.needsUpdate = true; thread.material.color.setRGB(...LAYER_STYLE[focus.layer].color);
   }
 
+  /* 2026-10-20：操作のヒント（#howto）と層の札（#layerNowChips）を、字幕（碧の語りを含む）の上に置く。重ならないように */
+  let placeAt = 0;
+  function placeAboveSub() {
+    const now = performance.now(); if (now - placeAt < 300) return; placeAt = now;
+    const sub = document.getElementById('sub'), cap = document.getElementById('layerAoiLine'); let top = innerHeight;
+    for (const el of [sub, cap]) { if (!el || el.hidden || getComputedStyle(el).display === 'none') continue; const r = el.getBoundingClientRect(); if (r.height > 4) top = Math.min(top, r.top); }
+    const chips = document.getElementById('layerNowChips'); let ctop = top;
+    if (chips && !chips.hidden) { const b = Math.round(innerHeight - top + 8); chips.style.bottom = b + 'px'; ctop = top - 8 - chips.getBoundingClientRect().height; }
+    const how = document.getElementById('howto');
+    if (how && !how.hidden) { const hr = how.getBoundingClientRect(), limit = ctop - 8; if (hr.bottom > limit) { how.style.bottom = Math.round(innerHeight - limit) + 'px'; how.style.top = 'auto'; } }
+  }
   function updateChips() {
     const box = document.getElementById('layerNowChips'); if (!box) return;
     for (const el of box.children) { const id = el.dataset.chip; el.classList.toggle('off', !layerOn(id)); el.classList.toggle('focus', focus?.layer === id); }
@@ -351,7 +373,7 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
       updateNature(now, dt, camera, layerOn('nature')); updateHistory(now, dt, talk, layerOn('history'));
       for (const m of sheets) { const id = m.userData.layer, on = layerOn(id), goal = on ? (focus ? (focus.layer === id ? .2 : .04) : .085) : 0, u = m.material.uniforms; u.uA.value += (goal - u.uA.value) * Math.min(1, dt * 2); m.visible = u.uA.value > .004 && st.tier >= 1;
         const gy = C.groundY(cp.x, cp.z); m.position.set(cp.x, (Number.isFinite(gy) ? gy : cp.y - 1.6) + LAYER_STYLE[id].h + .55, cp.z); u.uT.value = reduced.matches ? 0 : now / 1000; }
-      updateThread(now, dt); updateGhost(now);
+      updateThread(now, dt); updateGhost(now, dt); placeAboveSub();
     } catch (e) { if (st.errors.length < 5) st.errors.push(String(e.message || e)); }
   };
   // 層を ON にしたとき（深く開く節目）にも Ghost を一度
