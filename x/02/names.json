@@ -1,8 +1,8 @@
 {
   "_": "表示する名前の表（ここだけを直せば、画面・字幕・碧の台本が変わる）。2026-10-07 本人「環世界の体験」。名前はまだ案。台本の名前を変えたら python3 _dev/script.py → _dev/build_voice.py で声を作り直す。フォルダ名・コードの識別子（umwelt・lens・iro・toki）は中立のまま変えない。",
-  "app": "胡蝶の夢",
-  "app_yomi": "こちょうのゆめ",
-  "app_en": "Butterfly Dream",
+  "app": "Qualia/sight",
+  "app_yomi": "くおりあ さいと",
+  "app_en": "Qualia/sight",
   "guide": "碧",
   "guide_yomi": "あおい",
   "ch_umwelt": "受けとり方を切り替える",
