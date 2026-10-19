@@ -29,7 +29,7 @@ const decorTick = [];
 const prog = p => { $("loadBar").style.width = p + "%"; };
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
 
-const NAMES = await fetch("names.json").then(r => r.json()).catch(() => ({ lab: "森羅研究室", guide: "碧" }));
+const NAMES = await fetch("names.json").then(r => r.json()).catch(() => ({ lab: "Qualia Lab", guide: "碧" }));
 const S = window.SCRIPT, VOICE = window.VOICE || {};
 // 口の時刻表（data/lipsync.js・約 140 KB）は、部屋が見えてからあとで読む（2026-10-13 はじめの表示を軽く）。読むまでは声の大きさで口を動かす
 let LIPSYNC = {};
@@ -634,7 +634,7 @@ $("helpBox").innerHTML = `<button class="btn close">とじる</button><h2>${esc(
 <li>Smith, S. E. &amp; Read, D. J. (2008) <i>Mycorrhizal Symbiosis</i>, 3rd ed. Academic Press.</li>
 <li>Beiler, K. J. ほか (2010) Architecture of the wood-wide web. <i>New Phytologist</i> 185: 543–553.</li>
 <li>Karst, J., Jones, M. D. &amp; Hoeksema, J. D. (2023) Positive citation bias and overinterpreted results lead to misinformation on common mycorrhizal networks in forests. <i>Nature Ecology &amp; Evolution</i> 7: 501–511.</li>
-<li>観天望気のことば・しるし・典拠：森羅博物館の観天望気のデータ（気象庁「はれるんランド」・英国気象庁 ほか。各景の札に記載）</li>
+<li>観天望気のことば・しるし・典拠：Qualia Museum の観天望気のデータ（気象庁「はれるんランド」・英国気象庁 ほか。各景の札に記載）</li>
 <li>超音波を聞こえる音に：録音＝Kaldari / Wikimedia Commons（CC0 1.0）。<a href="https://commons.wikimedia.org/wiki/File:Hoary_bat_chirp_recording.wav" target="_blank" rel="noopener">録音 1</a>・<a href="https://commons.wikimedia.org/wiki/File:Bat_feeding_buzz.wav" target="_blank" rel="noopener">録音 2</a>（米国 ペンシルベニア州で 2020 年に録られたもの。種は録音者の推定）</li>
 <li>Eloy, C. (2011) Leonardo's rule, self-similarity, and wind-induced stresses in trees. <i>Physical Review Letters</i> 107: 258101.（枝分かれの太さ）</li>
 <li>標本の棚：鉱物の形（結晶の形）・岩石・砂は教科書の水準。土の断面の名は日本の土壌分類体系（日本ペドロジー学会 2017）</li>

@@ -126,7 +126,7 @@ export function create(H) {
       const src = esc(it.src).replace(/https?:\/\/[^\s）)]+/g, u => `<a href="${u}" target="_blank" rel="noopener">${u.length > 48 ? u.slice(0, 46) + "…" : u}</a>`);
       return `<div><b>${it.text}</b>　<span class="k">${MARK[it.verdict]} ${it.verdict}（${K.verdict[it.verdict] || ""}）</span></div>
 <div>${it.meaning}</div><div class="note">しくみ：${it.how}</div><div class="note src">典拠：${src}</div>
-<div class="note">ことば・しるし・典拠は森羅博物館の観天望気のデータから写したもの。空の模型は、しくみの説明を絵にしたものです（西が左）。</div>`;
+<div class="note">ことば・しるし・典拠は Qualia Museum の観天望気のデータから写したもの。空の模型は、しくみの説明を絵にしたものです（西が左）。</div>`;
     },
   };
 }
