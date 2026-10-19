@@ -237,16 +237,17 @@
   v.addEventListener('ended', () => { b.hidden = false; v.currentTime = 0; });
   // 再生中に読み込み待ちが続いたら、同じ場所から一段軽い映像へ切りかえる（いちばん軽い 540p まで）
   const SRC = ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'];
-  let waits = [], waitT = 0;
+  let waits = [], waitT = 0, lastSwitch = -1e9;
   const down = () => {
     const lv = +v.dataset.lv || 0; if (lv >= 2) return;
     const t = v.currentTime, playing = !v.paused;
-    v.dataset.lv = lv + 1; v.src = SRC[lv + 1] + '?v=20261019'; waits = [];
+    clearTimeout(waitT); v.dataset.lv = lv + 1; v.src = SRC[lv + 1] + '?v=20261019'; waits = []; lastSwitch = performance.now();
     v.addEventListener('loadedmetadata', () => { v.currentTime = t; if (playing) v.play().catch(() => {}); }, { once: true });
   };
   v.addEventListener('waiting', () => {
     if (v.paused || v.seeking || v.currentTime < 0.5) return;
-    const now = performance.now(); waits = waits.filter(x => now - x < 30000); waits.push(now);
+    const now = performance.now(); if (now - lastSwitch < 8000) return;   // 切りかえた直後の読み込みは数えない
+    waits = waits.filter(x => now - x < 30000); waits.push(now);
     clearTimeout(waitT); waitT = setTimeout(() => { if (v.readyState < 3 && !v.paused) down(); }, 2500);
     if (waits.length >= 2) down();
   });

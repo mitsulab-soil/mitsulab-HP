@@ -125,7 +125,7 @@ function buildList() {
     html.push(`<section class="group" style="--sc:${SUBJ_COLOR[s.key]}"><h2>${esc(s.名前)}<span>${SUBJ_EN[s.key]}</span></h2><ul class="items">`);
     for (const c of cs) html.push(`<li data-id="${c.id}"><button class="item ml-panel" type="button" data-open="${c.id}" style="--sc:${SUBJ_COLOR[s.key]}">
       <span class="ik"><span><b>${esc(c.主の次元)}</b>${c.関わる次元.length ? "　＋" + c.関わる次元.map(esc).join("・") : ""}</span><span><span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ}</span></span></span>
-      <span class="in">${esc(c.名前)}</span><span class="io">${c.やさしく ? `<span class="io-kid">${esc(c.やさしく)}</span>` : ruby(esc(c.一行), new Set())}</span>${c.外でこう見てみる ? `<span class="iw"><b>外で</b>${esc(c.外でこう見てみる.いつ)}</span>` : ""}</button></li>`);
+      <span class="in">${esc(c.名前)}</span><span class="io">${ruby(esc(c.一行), new Set())}</span>${c.外でこう見てみる ? `<span class="iw"><b>外で</b>${esc(c.外でこう見てみる.いつ)}</span>` : ""}</button></li>`);
     html.push(`</ul></section>`);
   }
   $("#groups").innerHTML = html.join("");
@@ -145,14 +145,13 @@ function readerHTML(c) {
   const lookSec = () => lk ? `<section class="r-sec r-look" id="r-look"><h3>外でこう見てみる<span>look outside</span></h3><p class="r-when"><span>いつ</span>${esc(lk.いつ)}</p>${lk.見方.map(t => `<p>${F(t)}</p>`).join("")}</section>` : "";
   return `<div class="r-kick"><span style="color:${SUBJ_COLOR[c.主体key]}">${esc(c.主体)} ・ ${esc(c.主の次元)}</span>${c.関わる次元.length ? `<span>関わる次元：${c.関わる次元.map(esc).join("・")}</span>` : ""}<span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ} ${MARK[c.確からしさ]}</span></div>
     <h2 class="r-name" id="r-name">${esc(c.名前)}</h2>
-    ${c.やさしく ? `<p class="r-kid"><span>ひとことで</span>${esc(c.やさしく)}</p>` : ""}
     <p class="r-one">${F(c.一行)}</p>
     ${lookTop}
     <ul class="tags" aria-label="分野">${c.分野.map(f => `<li>${esc(f)}</li>`).join("")}</ul>
     ${sec("仕組み", "how it works", c.仕組み)}
     ${sec("どうやって分かったか", "how we know", c.どうやって分かったか)}
     ${sec("まだ分からないこと", "still open", c.まだ分からないこと)}
-    ${sec("人に届く翻訳の案", "a proposed model for people", c.人に届く翻訳, `<p class="r-note">${F("手がかりを、人の目・耳・手に届く形に写す案です。その生き物や人、機械の受けとり方そのものではありません。")}</p>`)}
+    ${sec("人に届く翻訳", "a model made for people", c.人に届く翻訳, `<p class="r-note">${F("手がかりを、人の目・耳・手に届く形に写した模式です。その生き物や人、機械の受けとり方そのものではありません。")}</p>`)}
     ${c.試せる作品.length ? `<section class="r-sec"><h3>作品で試す<span>try it</span></h3><ul class="works">${c.試せる作品.map(w => `<li><a href="${esc(w.url)}" target="_blank" rel="noopener"><span>${esc(w.名前)}<small>${esc(w.一言)}</small></span><span aria-hidden="true">↗</span></a></li>`).join("")}</ul></section>` : ""}
     ${lookSec()}
     ${rel.length ? `<section class="r-sec"><h3>同じ次元のカード<span>shared dimension</span></h3><div class="rel">${rel.map(r => `<button type="button" data-open="${r.c.id}"><i>${r.dims.join("・")}</i>${esc(r.c.名前)}</button>`).join("")}</div></section>` : ""}
