@@ -1,8 +1,8 @@
 // Decorative clips: no initial video requests, one visible clip, still-image fallback.
-const clips={walk:'walk',qsound:'sound',butterfly:'butterfly',museum:'museum',rakugo:'rakugo',x08:'song'};
+const clips={qsound:'sound',rakugo:'rakugo',x08:'song'};  /* 2026-10-19：walk・museum・butterfly の動画には旧い名前の題が写るので外した（静止画だけ） */
 const reduced=matchMedia('(prefers-reduced-motion: reduce)'),items=[],ratios=new Map();let active=null,preferred=null;
 const enabled=()=>!reduced.matches&&!navigator.connection?.saveData&&!['slow-2g','2g'].includes(navigator.connection?.effectiveType)&&!document.hidden;
-for(const img of document.querySelectorAll('#appguide .strip img,#apps .app-fig img')){
+for(const img of document.querySelectorAll('#appguide .strip img,#appguide .qt-layer img,#apps .app-fig img')){
  const key=Object.keys(clips).find(k=>img.getAttribute('src')?.split('/').pop().startsWith(k+'_'));if(!key)continue;
  const holder=document.createElement('span');holder.className='app-preview-media';img.before(holder);holder.append(img);
  const video=document.createElement('video');video.muted=true;video.loop=true;video.playsInline=true;video.preload='none';video.setAttribute('aria-hidden','true');video.tabIndex=-1;video.dataset.preview=clips[key];holder.append(video);
