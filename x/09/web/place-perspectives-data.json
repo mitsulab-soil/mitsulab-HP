@@ -81,6 +81,78 @@
       "publisher": "国土地理院",
       "verified": true,
       "checkedAt": "2026-10-18"
+    },
+    {
+      "id": "pref-chisei",
+      "title": "令和02年(2020年)統計年鑑 1-1 地勢",
+      "url": "https://www.pref.saitama.lg.jp/a0206/a310/a2020_01-01_tisei.html",
+      "publisher": "埼玉県",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "city-sando-dayori17",
+      "title": "氷川参道だより 第17号（令和元年10月発行）",
+      "url": "https://www.city.saitama.lg.jp/001/010/015/004/004/p049064_d/fil/hikawasanndodayori_vol17.pdf",
+      "publisher": "さいたま市（氷川参道対策室）",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "museum-note-chu2",
+      "title": "博物館学習ノート 中学校②",
+      "url": "https://www.city.saitama.lg.jp/004/005/004/005/008/009/p074216_d/fil/tyu2.pdf",
+      "publisher": "さいたま市立博物館",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "hart-2001-avian",
+      "title": "Hart NS (2001) The visual ecology of avian photoreceptors. Progress in Retinal and Eye Research",
+      "url": "https://doi.org/10.1016/S1350-9462(01)00009-X",
+      "publisher": "Elsevier（PMID 11470455）",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "bennett-1997-starling",
+      "title": "Bennett ATD ほか (1997) Ultraviolet plumage colors predict mate preferences in starlings. PNAS 94:8618",
+      "url": "https://doi.org/10.1073/pnas.94.16.8618",
+      "publisher": "PNAS（PMID 9238026）",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "chen-2016-graphium",
+      "title": "Chen PJ, Awata H, Matsushita A, Yang EC, Arikawa K (2016) Extreme spectral richness in the eye of the common bluebottle butterfly, Graphium sarpedon. Front. Ecol. Evol. 4:18",
+      "url": "https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2016.00018/full",
+      "publisher": "Frontiers（DOI 10.3389/fevo.2016.00018）",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "mittmannsgruber-2024-earthworm",
+      "title": "Mittmannsgruber M ほか (2024) Artificial light at night reduces earthworm activity but increases growth of invasive ragweed. BMC Ecology and Evolution",
+      "url": "https://doi.org/10.1186/s12862-024-02200-x",
+      "publisher": "BMC（PMID 38243160）",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "hiryu-2008-pipistrellus",
+      "title": "Hiryu S ほか (2008) Adaptive echolocation sounds of insectivorous bats, Pipistrellus abramus, during foraging flights in the field. J. Acoust. Soc. Am. 124(2):EL51",
+      "url": "https://doi.org/10.1121/1.2947629",
+      "publisher": "Acoustical Society of America（PMID 18681502）",
+      "verified": true,
+      "checkedAt": "2026-10-19"
+    },
+    {
+      "id": "nduwimana-2026-sparrow",
+      "title": "Nduwimana LA ほか (2026) Can you hear me? House sparrow auditory processing differs across an urbanization gradient. J. Comp. Physiol. A",
+      "url": "https://doi.org/10.1007/s00359-026-01800-w",
+      "publisher": "Springer（PMID 41874591）",
+      "verified": true,
+      "checkedAt": "2026-10-19"
     }
   ],
   "items": [
@@ -992,6 +1064,926 @@
         "start": null,
         "end": null,
         "calendar": ""
+      }
+    },
+    {
+      "id": "ichi-torii-rebuilt",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "ichi_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          -15,
+          15
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "一の鳥居の移り変わり",
+      "text": "神社の由緒は、石の一の鳥居が関東大震災で壊れて撤去され、昭和9年に大鳥居を移し、昭和30年に建て替えたと記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の由緒本文による。現在の鳥居の材質は本文に明記がなく、現物も確かめていない。令和5・7年に補強と補修の記載あり。",
+      "question": "いま立つ鳥居は、何代目の姿だろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "1923年（大正12）・1934年（昭和9）・1955年（昭和30）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "torii-four-to-three",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "t1_17"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1707,
+          1737
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "四つの鳥居から三つへ",
+      "text": "神社は、江戸期には参道17丁付近にも鳥居があり、そこがかつての二の鳥居の場所だったと説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の由緒本文による説明。江戸期の鳥居の正確な位置・形は現物で確かめられない。",
+      "question": "鳥居の数が減ると、参道の区切りの感じ方はどう変わるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "江戸期〜昭和9年（1934）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "san-torii-katakura",
+      "category": "history",
+      "categories": [
+        "history",
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "san_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1879,
+          1909
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "赤い鳥居から大きな鳥居へ",
+      "text": "神社は、三の鳥居が江戸期から境内入口にあり、明治35年の報告書に「赤色華表」とあることから赤鳥居と呼ばれていたようだとし、昭和9年に片倉製糸紡績が一回り大きな鳥居を奉納したと記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の由緒本文による。明治期の色・形は報告書の語からの推測を含む。平成18年に柱・基礎の改修あり。",
+      "question": "奉納した人の名から、当時の町の仕事が見えてくるだろうか。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "江戸期／明治35年（1902）の記述／昭和9年（1934）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "motoorai-east",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "tk5_z_moto"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1260,
+          1365
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "東を通っていた古い街道",
+      "text": "神社は、かつての中山道が今の参道の東を通り、二の鳥居と三の鳥居の中間で参道を越えて北へ向かっていたと考えられる、と説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history",
+        "city-nakasendo"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html",
+        "https://www.city.saitama.lg.jp/004/005/004/005/008/014/001/nakasendou/p079679.html"
+      ],
+      "evidenceLimit": "推定による説明（神社は「考えられています」、市立博物館も「とされ」と記す）。旧道を一本の確定線として描かない。",
+      "question": "見えない古い道は、どこで今の道と交わっていたのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "寛永5年（1628）以前",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "hyoseki-bunzan",
+      "category": "history",
+      "categories": [
+        "history",
+        "art"
+      ],
+      "place": {
+        "segmentIds": [
+          "ichi_c"
+        ],
+        "structureIds": [
+          "hyoseki"
+        ],
+        "dRange": [
+          -13,
+          17
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "いちばん古い石の文字",
+      "text": "神社は、一の鳥居脇の「武蔵国一宮」の標石を享保7年(1722)に氏子が奉納し、文字は書家佐々木文山の筆で、現存する石造遺物で最も古いと記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の由緒本文による。筆者の比定や「最古」の判断は神社の説明で、独自に確かめていない。",
+      "question": "三百年前の筆の跡を、指でなく目でたどってみよう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "享保7年（1722）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "showa-1940-shaden",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "tk_k1"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1897,
+          1992
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "今の本殿ができた年",
+      "text": "神社の年表は、昭和15年（1940）に本殿・拝殿・幣殿などが竣工し、正遷座祭を行ったと記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の年表による。建物ごとの詳しい工期は確かめていない。境内の建物の3D表現は推定を含む。",
+      "question": "古いと感じる社殿の姿は、いつの時代の形だろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "昭和15年（1940）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "choishi-start",
+      "category": "folk",
+      "categories": [
+        "folk",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "ichi_d"
+        ],
+        "structureIds": [],
+        "dRange": [
+          -20,
+          40
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "十八丁を数える石",
+      "text": "神社は、一の鳥居脇の「是より宮まで十八丁」の碑が参道東側に並ぶ丁石の起点で、今の丁石は平成元年の奉納だと記しています。市立博物館は一丁を約109mとしています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history",
+        "museum-note-chu2"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html",
+        "https://www.city.saitama.lg.jp/004/005/004/005/008/009/p074216_d/fil/tyu2.pdf"
+      ],
+      "evidenceLimit": "丁石の個々の位置・刻字は現物で確かめていない。一丁の長さは市立博物館の学習資料の値（約109m）。",
+      "question": "次の丁石まで、何歩で届くだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "江戸時代／平成元年（1989）奉納",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "tourou-ohashi",
+      "category": "folk",
+      "categories": [
+        "folk",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "t1_tourou"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1685,
+          1715
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "「御橋内」と刻まれた燈籠",
+      "text": "神社は、明治44年建立の大鳥居が大正8年に石燈籠二基とともに参道17丁付近へ移され、燈籠には「氷川大宮御橋内」と刻まれていると説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の由緒本文による。大鳥居はのちに一の鳥居として移され、燈籠は残ったとされる。刻字の全文と現物は確かめていない。",
+      "question": "場所が変わっても残った文字は、何を伝えているだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "明治44年（1911）建立・大正8年（1919）移築",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "oyusai-tokaichi",
+      "category": "events",
+      "categories": [
+        "events",
+        "folk"
+      ],
+      "place": {
+        "segmentIds": [
+          "tk_t2"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1600,
+          1700
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "十二日間の大湯祭と十日市",
+      "text": "神社は、大湯祭を11月30日から12月11日までの祭典と説明し、10日の本祭に合わせて酉の市がたち、境内や参道に約350軒が並ぶと記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-festivals"
+      ],
+      "sourceUrls": [
+        "https://www.musashiichinomiya-hikawa.or.jp/saiten/?scroll=a_reisai"
+      ],
+      "evidenceLimit": "神社の祭典案内の記載（約350軒）。日程・出店数はその年の公式案内で確かめる。",
+      "question": "冬の夜の篝火と人の声は、昼の参道をどう変えるだろう。",
+      "time": {
+        "kind": "recurring",
+        "dateLabel": "毎年11月30日〜12月11日（本祭12月10日）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "pedestrian-2019",
+      "category": "social",
+      "categories": [
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "dj_m_date"
+        ],
+        "structureIds": [],
+        "dRange": [
+          480,
+          560
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "協議から歩行者専用へ",
+      "text": "市の広報は、平成26年に協議会を設け、交通調査やアンケートを重ねて、平成31年4月25日に中区間を歩行者専用にした経緯を記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "city-sando-dayori17"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/001/010/015/004/004/p049064_d/fil/hikawasanndodayori_vol17.pdf"
+      ],
+      "evidenceLimit": "市の広報紙（令和元年10月時点）の記述。その後の北・南区間の扱いは別の資料で確かめる。",
+      "question": "車が通らなくなった道で、足音はどう聞こえるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "平成26年（2014）〜平成31年（2019）4月25日",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "workshop-redesign",
+      "category": "social",
+      "categories": [
+        "social",
+        "environment"
+      ],
+      "place": {
+        "segmentIds": [
+          "dj_m_kouji"
+        ],
+        "structureIds": [],
+        "dRange": [
+          540,
+          620
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "みんなで考えた足もと",
+      "text": "市の広報は、中区間の舗装・照明・側溝の作り替えを、ワークショップ等で検討した新しい設えを実現する工事と説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "city-sando-dayori17"
+      ],
+      "sourceUrls": [
+        "https://www.city.saitama.lg.jp/001/010/015/004/004/p049064_d/fil/hikawasanndodayori_vol17.pdf"
+      ],
+      "evidenceLimit": "市の広報紙の工事案内（2019年9月〜2020年3月予定、約300m）。完成後の現状は現地で確かめていない。",
+      "question": "足もとの石の並びに、誰の意見が入っているのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "2019年9月6日〜2020年3月13日（予定）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "omiya-terrace-loam",
+      "category": "environment",
+      "categories": [
+        "environment"
+      ],
+      "place": {
+        "segmentIds": [
+          "dw_s1"
+        ],
+        "structureIds": [],
+        "dRange": [
+          -30,
+          60
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "ローム層に覆われた台地",
+      "text": "埼玉県は、荒川の東に低平な大宮台地があり、県内の台地は関東ローム層で覆われていると説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "pref-chisei"
+      ],
+      "sourceUrls": [
+        "https://www.pref.saitama.lg.jp/a0206/a310/a2020_01-01_tisei.html"
+      ],
+      "evidenceLimit": "県全体の地勢の概説。この参道の地下の層の厚さや性質を示すものではない。",
+      "question": "足もとの赤土は、どこから飛んできたのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点（2020年統計年鑑）",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "spring-on-terrace",
+      "category": "environment",
+      "categories": [
+        "environment",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "dw5_z_ike"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1897,
+          1960
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "低地に突き出た台地の泉",
+      "text": "神社は、鎮座地の高鼻が見沼の低地に突き出た大宮台地上にあり、古代からの湧水地で、泉が氷川の祭祀の対象だったと説明しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の由緒本文による説明。古代の祭祀の具体的な形は確かめられない。今の湧水量は測っていない。",
+      "question": "台地の端に立つと、水はどちらへ流れていくだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "古代〜",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "trees-650",
+      "category": "ecology",
+      "categories": [
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "tr_z1_a"
+        ],
+        "structureIds": [],
+        "dRange": [
+          15,
+          120
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "650本、37種の並木",
+      "text": "神社は、平成22年の資料によると参道には約650本の高木があり、ケヤキ約65％、スダジイ約10％、ほかクスノキ・エノキ・サクラなど37種と記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history",
+        "city-planning"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html",
+        "https://www.city.saitama.lg.jp/001/010/015/004/004/p009506_d/fil/hikawasandonomachidukuri.pdf"
+      ],
+      "evidenceLimit": "平成22年時点の調査に基づく数。その後の伐採や植栽で変わっている。画面の木の本数・樹種と一致しない。",
+      "question": "同じ「並木」の中に、何種類の葉の形が見つかるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "平成22年（2010）時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "sugi-to-keyaki",
+      "category": "ecology",
+      "categories": [
+        "ecology",
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "tr_z2_d"
+        ],
+        "structureIds": [],
+        "dRange": [
+          730,
+          790
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "杉並木がケヤキに変わった理由",
+      "text": "神社は、杉からケヤキへ変わった要因に、戦中戦後の伐採、排気ガスや振動、地下水脈の低下、根元の踏み固めなど複数を挙げています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "神社の説明で「考えられます」とされる複数の要因。どれがどれだけ効いたかは示されていない。",
+      "question": "今の並木の足もとには、どの要因がまだ残っているだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "大正〜昭和初期／戦中・戦後",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "heisei-planting",
+      "category": "environment",
+      "categories": [
+        "environment",
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "h_hiro"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1076,
+          1140
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "植えなおされた緑地",
+      "text": "神社は、平成ひろばの緑地帯にケヤキ・エノキ・シイを主体に植栽し、散策路やせせらぎも設けたと記しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "整備時（平成元年完成）の記述。今の植栽やせせらぎの状態は確かめていない。",
+      "question": "植えられた木と、自然に生えた木は見分けられるだろうか。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "昭和60年（1985）〜平成元年（1989）7月",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "body-bird-cones",
+      "category": "body",
+      "categories": [
+        "body",
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "lf_z_hiyo"
+        ],
+        "structureIds": [],
+        "dRange": [
+          480,
+          560
+        ],
+        "anchorPrecision": "語りに出てくる生きものの近くに結んだ、研究の要約。この地点で調べた記録ではない"
+      },
+      "title": "鳥の目の四種類の単錐体",
+      "text": "Hart（2001）は、鳥の網膜には桿体・二重錐体と四種類の単錐体があり、色を感じる範囲は種や生息環境で異なると総説しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "hart-2001-avian"
+      ],
+      "sourceUrls": [
+        "https://doi.org/10.1016/S1350-9462(01)00009-X"
+      ],
+      "evidenceLimit": "一般的な研究の知見。この参道で測ったものではなく、その生きものが何をどう感じているか（主観）を再現するものでもない。ヒヨドリを調べた研究ではなく、多くの鳥の比較による一般論。",
+      "question": "鳥には、この景色が違う色に見えているかもしれない。",
+      "time": {
+        "kind": "research",
+        "dateLabel": "研究の発表年 2001",
+        "start": null,
+        "end": null,
+        "calendar": ""
+      },
+      "bodyMode": "tori"
+    },
+    {
+      "id": "body-starling-uv",
+      "category": "body",
+      "categories": [
+        "body",
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "lf_z_mukudori"
+        ],
+        "structureIds": [],
+        "dRange": [
+          440,
+          520
+        ],
+        "anchorPrecision": "語りに出てくる生きものの近くに結んだ、研究の要約。この地点で調べた記録ではない"
+      },
+      "title": "紫外線で相手を選ぶ",
+      "text": "Bennettら（1997）は、ホシムクドリの雌が紫外線の有無で雄の順位づけを変えたと報告し、多くの鳥が紫外線を見ると述べています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "bennett-1997-starling"
+      ],
+      "sourceUrls": [
+        "https://doi.org/10.1073/pnas.94.16.8618"
+      ],
+      "evidenceLimit": "一般的な研究の知見。この参道で測ったものではなく、その生きものが何をどう感じているか（主観）を再現するものでもない。対象はヨーロッパのホシムクドリで、ムクドリとは別の種。",
+      "question": "人の目には同じに見える羽の色も、鳥どうしでは違って見えるのだろうか。",
+      "time": {
+        "kind": "research",
+        "dateLabel": "研究の発表年 1997",
+        "start": null,
+        "end": null,
+        "calendar": ""
+      },
+      "bodyMode": "tori"
+    },
+    {
+      "id": "body-graphium-eye",
+      "category": "body",
+      "categories": [
+        "body",
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "life_aosuji"
+        ],
+        "structureIds": [],
+        "dRange": [
+          120,
+          165
+        ],
+        "anchorPrecision": "語りに出てくる生きものの近くに結んだ、研究の要約。この地点で調べた記録ではない"
+      },
+      "title": "アオスジアゲハの15種の光受容細胞",
+      "text": "Chenら（2016）は、アオスジアゲハの複眼に分光感度の異なる15種類の光受容細胞を見つけ、紫外から赤までの6群に分けられると報告しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "chen-2016-graphium"
+      ],
+      "sourceUrls": [
+        "https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2016.00018/full"
+      ],
+      "evidenceLimit": "一般的な研究の知見。この参道で測ったものではなく、その生きものが何をどう感じているか（主観）を再現するものでもない。神奈川で採集した個体の実験室での記録。15種の細胞がそのまま15色を見分けることを意味しない。",
+      "question": "空を背にした葉の色は、蝶にはどんな手がかりだろう。",
+      "time": {
+        "kind": "research",
+        "dateLabel": "研究の発表年 2016",
+        "start": null,
+        "end": null,
+        "calendar": ""
+      },
+      "bodyMode": "chou"
+    },
+    {
+      "id": "body-earthworm-light",
+      "category": "body",
+      "categories": [
+        "body",
+        "ecology",
+        "environment"
+      ],
+      "place": {
+        "segmentIds": [
+          "lf_z_mimizu"
+        ],
+        "structureIds": [],
+        "dRange": [
+          600,
+          680
+        ],
+        "anchorPrecision": "語りに出てくる生きものの近くに結んだ、研究の要約。この地点で調べた記録ではない"
+      },
+      "title": "夜の灯りとミミズ",
+      "text": "Mittmannsgruberら（2024）は、温室の実験で夜間5ルクスの光があるとミミズ（Lumbricus terrestris）の地表での活動が76％減ったと報告しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "mittmannsgruber-2024-earthworm"
+      ],
+      "sourceUrls": [
+        "https://doi.org/10.1186/s12862-024-02200-x"
+      ],
+      "evidenceLimit": "一般的な研究の知見。この参道で測ったものではなく、その生きものが何をどう感じているか（主観）を再現するものでもない。欧州の種を鉢で調べた結果で、参道の種や街灯の明るさとは条件が違う。",
+      "question": "夜の参道の灯りの下で、土の中の動きは変わるだろうか。",
+      "time": {
+        "kind": "research",
+        "dateLabel": "研究の発表年 2024",
+        "start": null,
+        "end": null,
+        "calendar": ""
+      }
+    },
+    {
+      "id": "body-bat-echo",
+      "category": "body",
+      "categories": [
+        "body",
+        "ecology"
+      ],
+      "place": {
+        "segmentIds": [
+          "lf_z_koumori"
+        ],
+        "structureIds": [],
+        "dRange": [
+          890,
+          960
+        ],
+        "anchorPrecision": "語りに出てくる生きものの近くに結んだ、研究の要約。この地点で調べた記録ではない"
+      },
+      "title": "アブラコウモリの音の手がかり",
+      "text": "飛龍ら（2008）は、野外で餌を探すアブラコウモリが、探索中に9〜11ミリ秒の、高さがゆるやかに変わる長めの音を出していたと報告しています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "hiryu-2008-pipistrellus"
+      ],
+      "sourceUrls": [
+        "https://doi.org/10.1121/1.2947629"
+      ],
+      "evidenceLimit": "一般的な研究の知見。この参道で測ったものではなく、その生きものが何をどう感じているか（主観）を再現するものでもない。別の場所の野外録音による。人の耳には多くが聞こえない超音波で、この作品で鳴らす音は実測の再現ではない。",
+      "question": "見えない音で虫を探す空は、どんな広さに感じられるだろう。",
+      "time": {
+        "kind": "research",
+        "dateLabel": "研究の発表年 2008",
+        "start": null,
+        "end": null,
+        "calendar": ""
+      },
+      "bodyMode": "koumori"
+    },
+    {
+      "id": "body-sparrow-hearing",
+      "category": "body",
+      "categories": [
+        "body",
+        "ecology",
+        "social"
+      ],
+      "place": {
+        "segmentIds": [
+          "life_suzume"
+        ],
+        "structureIds": [],
+        "dRange": [
+          45,
+          85
+        ],
+        "anchorPrecision": "語りに出てくる生きものの近くに結んだ、研究の要約。この地点で調べた記録ではない"
+      },
+      "title": "町に住む鳥の聞こえ",
+      "text": "Nduwimanaら（2026）は、都市化の度合いが高い場所のイエスズメほど、音への脳の反応で測った聞こえの感度が低い傾向を報告し、効果は条件で変わるとしています。",
+      "status": "verified",
+      "publicEligible": true,
+      "sourceIds": [
+        "nduwimana-2026-sparrow"
+      ],
+      "sourceUrls": [
+        "https://doi.org/10.1007/s00359-026-01800-w"
+      ],
+      "evidenceLimit": "一般的な研究の知見。この参道で測ったものではなく、その生きものが何をどう感じているか（主観）を再現するものでもない。対象はイエスズメで、日本のスズメとは別の種。結果は指標や性別で変わる混合的なもの。",
+      "question": "車の音のそばでくらす鳥に、この道の音はどう届いているだろう。",
+      "time": {
+        "kind": "research",
+        "dateLabel": "研究の発表年 2026",
+        "start": null,
+        "end": null,
+        "calendar": ""
+      },
+      "bodyMode": "tori"
+    },
+    {
+      "id": "view-torii-moving",
+      "category": "history",
+      "categories": [
+        "history"
+      ],
+      "place": {
+        "segmentIds": [
+          "t1_17"
+        ],
+        "structureIds": [],
+        "dRange": [
+          1707,
+          1737
+        ],
+        "anchorPrecision": "既存の語り/表示候補地点。史実の発生点・現物の精密座標と同一ではない"
+      },
+      "title": "mitsulabの見方：鳥居も歩いてきた",
+      "text": "鳥居は移され、建て替えられてきた。いま立つ姿を、長い時間の中の一つの時点として見る。",
+      "status": "interpretation",
+      "publicEligible": true,
+      "sourceIds": [
+        "shrine-history"
+      ],
+      "sourceUrls": [
+        "https://musashiichinomiya-hikawa.or.jp/about/index.html"
+      ],
+      "evidenceLimit": "mitsulabによる見方。移築の経緯は神社の由緒による。",
+      "question": "いま見ている鳥居の姿は、どんな移り変わりの上にあるのだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
+      }
+    },
+    {
+      "id": "view-body-clues",
+      "category": "body",
+      "categories": [
+        "body"
+      ],
+      "place": {
+        "segmentIds": [
+          "lf_z_ichi"
+        ],
+        "structureIds": [],
+        "dRange": [
+          -35,
+          25
+        ],
+        "anchorPrecision": "語りに出てくる生きものの近くに結んだ、研究の要約。この地点で調べた記録ではない"
+      },
+      "title": "mitsulabの見方：違う手がかりを想像する",
+      "text": "生きものの感覚の研究は、その生きものの体験の代わりではない。人に届かない手がかりがあると知り、自分の受けとり方を見直す入口にする。",
+      "status": "interpretation",
+      "publicEligible": true,
+      "sourceIds": [
+        "chen-2016-graphium",
+        "hart-2001-avian"
+      ],
+      "sourceUrls": [
+        "https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2016.00018/full",
+        "https://doi.org/10.1016/S1350-9462(01)00009-X"
+      ],
+      "evidenceLimit": "mitsulabによる見方。研究は一般的な知見で、この参道で測ったものではない。他の生きものの主観は再現できない。",
+      "question": "自分に届いていない手がかりを、どうやって想像できるだろう。",
+      "time": {
+        "kind": "historical",
+        "dateLabel": "出典の記述時点",
+        "start": null,
+        "end": null,
+        "calendar": "和暦の原表記は換算せず保持"
       }
     }
   ]

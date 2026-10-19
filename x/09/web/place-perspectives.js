@@ -1,5 +1,5 @@
 /* 場の手がかり。資料の記載、mitsulabの見方、創作を区別し、既存地点へ結ぶ。 */
-export const CATEGORIES=Object.freeze({folk:'民俗',social:'社会',history:'歴史',ecology:'生態',environment:'環境',art:'芸術',events:'催事',fiction:'創作'});
+export const CATEGORIES=Object.freeze({folk:'民俗',social:'社会',history:'歴史',ecology:'生態',environment:'環境',art:'芸術',events:'催事',body:'身体',fiction:'創作'});
 const clean=s=>String(s??'').replace(/\s+/g,' ').trim();
 const safeUrl=s=>{try{const u=new URL(s);return /^https?:$/.test(u.protocol)?u.href:null;}catch{return null;}};
 export function publicPerspectives(raw){
@@ -9,7 +9,7 @@ export function publicPerspectives(raw){
   if(!segmentIds.length&&!structureIds.length&&!dRange)continue;
   const declaredSourceIds=[...new Set(input.sourceIds||[])],sourceIds=declaredSourceIds.filter(id=>{const s=allSources.get(id);return s&&safeUrl(s.url)&&s.verified===true;});if(!fiction&&(!sourceIds.length||sourceIds.length!==declaredSourceIds.length))continue;
   const id=clean(input.id),title=clean(input.title),text=clean(input.text);if(!id||ids.has(id)||!title||!text)continue;ids.add(id);sourceIds.forEach(id=>used.add(id));
-  items.push({id,category:fiction?'fiction':categories[0],categories,place:{segmentIds,structureIds,dRange,anchorPrecision:clean(place.anchorPrecision)},title,text,status,publicEligible:true,sourceIds,sourceUrls:sourceIds.map(id=>safeUrl(allSources.get(id).url)),evidenceLimit:clean(input.evidenceLimit),question:clean(input.question),time:input.time?{kind:clean(input.time.kind),dateLabel:clean(input.time.dateLabel),start:input.time.start||null,end:input.time.end||null,calendar:clean(input.time.calendar)}:null});
+  items.push({id,category:fiction?'fiction':categories[0],categories,place:{segmentIds,structureIds,dRange,anchorPrecision:clean(place.anchorPrecision)},title,text,status,publicEligible:true,sourceIds,sourceUrls:sourceIds.map(id=>safeUrl(allSources.get(id).url)),evidenceLimit:clean(input.evidenceLimit),question:clean(input.question),bodyMode:['tori','koumori','chou','hachi','inu'].includes(input.bodyMode)?input.bodyMode:null,time:input.time?{kind:clean(input.time.kind),dateLabel:clean(input.time.dateLabel),start:input.time.start||null,end:input.time.end||null,calendar:clean(input.time.calendar)}:null});
  }
  const sources=[...used].map(id=>{const s=allSources.get(id);return{id,title:clean(s.title||s.name),url:safeUrl(s.url),publisher:clean(s.publisher),verified:true,checkedAt:clean(s.checkedAt||raw.checkedAt)};});
  return{schemaVersion:1,checkedAt:clean(raw.checkedAt),sources,items};
