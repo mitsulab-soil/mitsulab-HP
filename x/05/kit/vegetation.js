@@ -60,7 +60,8 @@ export function growTree(kind, x, z, R, { det = true, scale = 1, q = 1 } = {}) {
   const limb = (from, dir, len, r0, depth) => {
     const pts = [from.clone()]; let p = from.clone(); const d = dir.clone(), n = det ? 4 : 3;
     for (let i = 1; i <= n; i++) { d.add(new V3((R() - .5) * sp.wig, .04, (R() - .5) * sp.wig)).normalize(); p = p.clone().addScaledVector(d, len / n); pts.push(p); }
-    const r1 = r0 * .55; geos.push(taperTube(pts, r0, r1, det ? 6 : 4, det ? 6 : 3));
+    const r1 = r0 * .55; geos.push(taperTube(pts, r0, r1, det ? 8 : 4, det ? 6 : 3));
+    if (depth > 0) { const kn = new THREE.SphereGeometry(r1 * 1.08, det ? 10 : 6, det ? 8 : 4); kn.translate(p.x, p.y, p.z); geos.push(kn); }   // 碧の唄 MV の写し（2026-10-14）：分かれ目の段を、こぶでなめらかに
     if (depth > 0) { mids.push(p.clone()); for (let j = 0; j < sp.fork; j++) { const a = j / sp.fork * TAU + R() * 2.2; limb(pts[n - (j % 2)], new V3(d.x + Math.cos(a) * sp.sub, d.y + sp.up, d.z + Math.sin(a) * sp.sub).normalize(), len * sp.decay, r1, depth - 1); } }
     else tips.push(p);
   };
@@ -68,7 +69,8 @@ export function growTree(kind, x, z, R, { det = true, scale = 1, q = 1 } = {}) {
   geos.push(taperTube([base, base.clone().lerp(top, .5).add(new V3(rr(-.1, .1), 0, rr(-.1, .1))), top], r0, r0 * .78, det ? 10 : 6, det ? 6 : 3));
   if (det) { const fl = new THREE.CylinderGeometry(r0, r0 * 1.45, .45, 10, 1, true); fl.translate(x, .2, z); geos.push(fl); }   // 根張り
   const nL = Math.round(rr(...sp.limbs)), a0 = R() * TAU;
-  for (let k = 0; k < nL; k++) { const a = a0 + k / nL * TAU + rr(-.3, .3); limb(top.clone().add(new V3(0, -rr(0, .5), 0)), new V3(Math.cos(a) * sp.spread, 1, Math.sin(a) * sp.spread).normalize(), rr(...sp.len) * scale, r0 * .62, det ? 1 : 0); }
+  for (let k = 0; k < nL; k++) { const a = a0 + k / nL * TAU + rr(-.3, .3); limb(top.clone().add(new V3(0, -rr(0, .5), 0)), new V3(Math.cos(a) * sp.spread, 1, Math.sin(a) * sp.spread).normalize(), rr(...sp.len) * scale, r0 * .7, det ? 1 : 0); }
+  { const kn = new THREE.SphereGeometry(r0 * .86, det ? 12 : 6, det ? 8 : 4); kn.scale(1, 1.25, 1); kn.translate(top.x, top.y - .12, top.z); geos.push(kn); }   // 幹の頭のこぶ（太枝との継ぎ目の段を隠す。MV の写しだけの直し）
   const ctr = tips.reduce((s, t) => s.add(t), new V3()).multiplyScalar(1 / tips.length); ctr.y -= 1;
   const n = Math.round(sp.cards * (det ? 1 : .42) * q * scale), ys = tips.map(t => t.y), ymin = Math.min(...ys), ymax = Math.max(...ys);
   const anchors = mids.length ? [...tips, ...tips, ...mids] : tips, cards = [];

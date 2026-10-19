@@ -130,6 +130,7 @@ export class AoiRobe {
   update(dt, { groundY = null, live = true } = {}) {
     if (!this.ok) return; dt = Math.min(dt, .05); if (dt <= 0) return; this.t += dt;
     const N = this.N, M = this.M;
+    this._kv ||= [...Array(N)].map((_, a) => 1 + .25 * Math.sin(a * 2.1 + 1.3) * Math.cos(a * .9));   // v2.3：鎖ごとの戻る力（滑らかに変わる）
     // 前のこまの静止の位置（この区間で、腰がどれだけ動いたか）
     for (let a = 0; a < N; a++) for (let j = 0; j < M; j++) this.t0[a][j].copy(this.tg[a][j]);
     this.hips.updateWorldMatrix(true, false);
@@ -158,7 +159,7 @@ export class AoiRobe {
         o.subVectors(p, Tb); const op = this.pp[a][j], f = j / (M - 1);   // 静止の位置からのずれ（前のずれ＝op）
         const vx = (o.x - op.x) * damp, vy = (o.y - op.y) * damp, vz = (o.z - op.z) * damp; op.copy(o);
         o.x += vx - acc.x * inert + wx * f; o.y += vy - acc.y * inert + g; o.z += vz - acc.z * inert + wz * f;
-        o.multiplyScalar(1 - K[Math.min(j, K.length - 1)]);
+        o.multiplyScalar(1 - Math.min(.9, K[Math.min(j, K.length - 1)] * (j > 2 ? this._kv[a] : 1)));
         p.addVectors(Tn, o); this._tb[a][j].copy(Tn);
       }
       for (let it = 0; it < 3; it++) {
