@@ -1,5 +1,5 @@
 // Decorative clips: no initial video requests, one visible clip, still-image fallback.
-const clips={qsound:'sound',rakugo:'rakugo',x08:'song'};  /* 2026-10-19：walk・museum・butterfly の動画には旧い名前の題が写るので外した（静止画だけ） */
+const clips={walk:'walk',qsound:'sound',butterfly:'butterfly',museum:'museum',rakugo:'rakugo',x08:'song'};  /* 2026-10-19：walk・museum・butterfly は新しい名前で撮り直した動画に差し替えたので戻した */
 const reduced=matchMedia('(prefers-reduced-motion: reduce)'),items=[],ratios=new Map();let active=null,preferred=null;
 const enabled=()=>!reduced.matches&&!navigator.connection?.saveData&&!['slow-2g','2g'].includes(navigator.connection?.effectiveType)&&!document.hidden;
 for(const img of document.querySelectorAll('#appguide .strip img,#appguide .qt-layer img,#apps .app-fig img')){
