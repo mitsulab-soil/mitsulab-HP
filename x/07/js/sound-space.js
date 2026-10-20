@@ -1,103 +1,244 @@
 import * as T from 'three';
+import { seedOf } from './synth.js';
 // 音源と全エフェクトを通った共通出力だけを解析。混合相手を二重計上しない。
+// 表示は六つ：3D波形・粒の流れ・倍音の層・3D音の彫刻・3D周波数・ヒートマップ。どれも同じ解析の値から描く（でたらめな飾りは足さない）。
+// カメラは斜め上から、ゆっくり一周（約90秒）。手で動かすと止まり、6秒ほど触らなければ、なめらかに戻る。
+const TAU = Math.PI * 2, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const MOBILE = matchMedia('(max-width: 680px), (pointer: coarse)').matches;
+const mulberry = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+// 周波数（または明るさ）の色：低い＝琥珀 → 淡い黄緑 → 青緑 → 青 → 青白。粒・倍音・彫刻で同じ並び。
+const STOPS = [[.9, .6, .3], [.86, .8, .52], [.52, .86, .74], [.4, .74, .92], [.88, .95, 1]];
+const freqColor = (u, o = [0, 0, 0]) => { u = clamp(u, 0, 1) * 4; const k = Math.min(3, Math.floor(u)), f = u - k, a = STOPS[k], b = STOPS[k + 1]; for (let i = 0; i < 3; i++) o[i] = a[i] + (b[i] - a[i]) * f; return o; };
+const LOGF = hz => Math.log(hz / 40) / Math.log(400);   // 40 Hz → 0、16 kHz → 1
+const dotTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), g = x.createRadialGradient(16, 16, 0, 16, 16, 16); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.35, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 32, 32); return new T.CanvasTexture(c); })();
+const VIEWS = {
+ waveform: { at: [0, .35, -.5], elev: .5, dist: a => Math.max(7.6, 10.5 / a) },
+ flow: { at: [0, .35, 0], elev: .62, dist: a => Math.max(8.2, 9.6 / a) },
+ harmonics: { at: [0, .55, 0], elev: .46, dist: a => Math.max(8, 9.2 / a) },
+ sculpture: { at: [0, 0, 0], elev: .32, dist: a => Math.max(5, 5.4 / a) },
+ spectrum: { at: [0, .5, 0], elev: .62, dist: a => Math.max(8.4, 9.4 / a) },
+};
 export class SoundSpace{
  constructor(canvas,a){
-  this.a=a;this.last=0;this.lastDraw=0;this.rows=80;this.bins=96;this.view='waveform';this.frozen=false;this.yaw=0;this.pitch=.25;this.phase=0;
+  this.a=a;this.last=0;this.lastDraw=0;this.rows=80;this.bins=96;this.view='waveform';this.frozen=false;this.yaw=0;this.pitch=0;this.az=.5;this.phase=0;this.touched=-1e9;this.tPrev=0;this.clock=0;
   this.history=new Float32Array(this.rows*this.bins);this.times=new Float64Array(this.rows);this.db=new Float32Array(1024);this.db.fill(-100);this.levels=[0,0,0];
   this.waveRows=28;this.waveBins=320;this.waveHistory=new Float32Array(this.waveRows*this.waveBins);this.samples=new Float32Array(2048);
-  this.r=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});this.r.setPixelRatio(Math.min(1.5,devicePixelRatio));
+  this.feat={L:0,c:.4,flux:0,f0:null,conf:0};
+  this.r=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});this.r.setPixelRatio(Math.min(MOBILE?1.5:1.75,devicePixelRatio));
   this.r.toneMapping=T.ACESFilmicToneMapping;this.r.toneMappingExposure=1.1;
-  this.scene=new T.Scene();this.cam=new T.PerspectiveCamera(38,2,.1,100);
+  this.scene=new T.Scene();this.cam=new T.PerspectiveCamera(38,2,.1,100);this.fog=new T.FogExp2(0x05131c,.085);
   this.scene.add(new T.HemisphereLight(0xe2edf5,0x28323a,1.4));
   const key=new T.DirectionalLight(0xfff3e6,3);key.position.set(3,4,5);this.scene.add(key);
-  const rim=new T.PointLight(0x62bde1,10,20);rim.position.set(-4,-1,3);this.scene.add(rim);
-  this.sculpture=new T.Group();this.waterfall=new T.Group();this.waveform=new T.Group();this.scene.add(this.sculpture,this.waterfall,this.waveform);
-  this.lines=[];this.ribbons=[];
-  for(let j=0;j<3;j++){
-   const count=480,color=new T.Color([0x7edcc9,0xd6eee5,0xbabf8d][j]),g=new T.BufferGeometry();
-   g.setAttribute('position',new T.BufferAttribute(new Float32Array(count*3),3));
-   this.sculpture.add(new T.Line(g,new T.LineBasicMaterial({color,transparent:true,opacity:.95})));this.lines.push(g);
-   const ribbon=new T.BufferGeometry(),idx=[];ribbon.setAttribute('position',new T.BufferAttribute(new Float32Array(count*6),3));
-   for(let i=0;i<count-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}ribbon.setIndex(idx);
-   this.sculpture.add(new T.Mesh(ribbon,new T.MeshStandardMaterial({color,metalness:0,roughness:.42,transparent:true,opacity:.86,side:T.DoubleSide,depthWrite:false})));
-   this.ribbons.push(ribbon);
-  }
+  this.groups={};for(const k of ['waveform','flow','harmonics','sculpture','spectrum']){this.groups[k]=new T.Group();this.scene.add(this.groups[k]);}
+  // ---- 3D波形（手前が今、奥が過去）
   const wn=this.waveRows*this.waveBins,widx=[];this.wavePos=new Float32Array(wn*3);const wc=new Float32Array(wn*3);
   for(let z=0;z<this.waveRows;z++)for(let x=0;x<this.waveBins;x++){
    const i=z*this.waveBins+x,fade=1-z/this.waveRows,c=new T.Color().setRGB(.18+.42*fade,.38+.5*fade,.42+.38*fade);
    wc.set([c.r,c.g,c.b],i*3);if(x<this.waveBins-1)widx.push(i,i+1);
   }
   this.waveGeo=new T.BufferGeometry();this.waveGeo.setAttribute('position',new T.BufferAttribute(this.wavePos,3));this.waveGeo.setAttribute('color',new T.BufferAttribute(wc,3));this.waveGeo.setIndex(widx);
-  this.waveform.add(new T.LineSegments(this.waveGeo,new T.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.83})));
+  this.groups.waveform.add(new T.LineSegments(this.waveGeo,new T.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.83})));
   this.frontGeo=new T.BufferGeometry();this.frontGeo.setAttribute('position',new T.BufferAttribute(new Float32Array(this.waveBins*3),3));
-  this.waveform.add(new T.Line(this.frontGeo,new T.LineBasicMaterial({color:0xd9fff1})));
+  this.groups.waveform.add(new T.Line(this.frontGeo,new T.LineBasicMaterial({color:0xd9fff1})));
+  this.groups.waveform.children.forEach(o=>o.frustumCulled=false);
+  // ---- 3D周波数（滝の図）
   const n=this.rows*this.bins;this.pos=new Float32Array(n*3);this.colors=new Float32Array(n*3);const indices=[];
   for(let z=0;z<this.rows;z++)for(let x=0;x<this.bins;x++){const i=z*this.bins+x;this.pos[3*i]=(x/(this.bins-1)-.5)*6;this.pos[3*i+2]=(.5-z/(this.rows-1))*4;if(x<this.bins-1)indices.push(i,i+1);}
   this.g=new T.BufferGeometry();this.g.setAttribute('position',new T.BufferAttribute(this.pos,3));this.g.setAttribute('color',new T.BufferAttribute(this.colors,3));this.g.setIndex(indices);
-  this.waterfall.add(new T.LineSegments(this.g,new T.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.78})));
-  this.heat=document.getElementById('heatmap');this.buffer=document.createElement('canvas');this.buffer.width=this.bins;this.buffer.height=this.rows;this.img=this.buffer.getContext('2d').createImageData(this.bins,this.rows);
+  const wf=new T.LineSegments(this.g,new T.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.78}));wf.frustumCulled=false;this.groups.spectrum.add(wf);
   this.palette=Array.from({length:256},(_,i)=>{const stops=[[8,22,35],[34,108,128],[99,188,174],[224,191,129],[255,244,208]],x=i/255*4,k=Math.min(3,Math.floor(x)),u=x-k;return stops[k].map((v,c)=>Math.round(v*(1-u)+stops[k+1][c]*u));});
-  document.querySelectorAll('[data-sound-view]').forEach(btn=>btn.onclick=()=>{this.view=btn.dataset.soundView;this.yaw=0;this.pitch=.25;document.querySelectorAll('[data-sound-view]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));canvas.hidden=this.view==='heat';this.heat.hidden=this.view!=='heat';document.querySelector('.heatLegend').hidden=this.view!=='heat';this.draw(performance.now());});
+  this.makeFlow();this.makeHarmonics();this.makeSculpture();
+  // ---- ヒートマップ（2D）
+  this.heat=document.getElementById('heatmap');this.buffer=document.createElement('canvas');this.buffer.width=this.bins;this.buffer.height=this.rows;this.img=this.buffer.getContext('2d').createImageData(this.bins,this.rows);
+  // ---- 操作
+  document.querySelectorAll('[data-sound-view]').forEach(btn=>btn.onclick=()=>this.setView(btn.dataset.soundView));
   document.getElementById('freezeSound').onclick=e=>{this.frozen=!this.frozen;e.currentTarget.setAttribute('aria-pressed',String(this.frozen));e.currentTarget.textContent=this.frozen?'表示を再開':'表示を止める';};
-  let drag=null;canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
-  canvas.addEventListener('pointermove',e=>{if(!drag)return;this.yaw+=(e.clientX-drag.x)*.006;this.pitch=Math.max(-.6,Math.min(.9,this.pitch+(e.clientY-drag.y)*.004));drag={x:e.clientX,y:e.clientY};this.draw(performance.now());});
-  canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
-  canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key))return;e.preventDefault();if(e.key==='Home'){this.yaw=0;this.pitch=.25;}else{this.yaw+=e.key==='ArrowLeft'?-.15:e.key==='ArrowRight'?.15:0;this.pitch=Math.max(-.6,Math.min(.9,this.pitch+(e.key==='ArrowUp'?-.1:e.key==='ArrowDown'?.1:0)));}this.draw(performance.now());});
+  const touch=()=>{this.touched=performance.now();};
+  let drag=null;canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};touch();canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!drag)return;this.yaw-=(e.clientX-drag.x)*.006;this.pitch=clamp(this.pitch+(e.clientY-drag.y)*.004,-.5,.8);drag={x:e.clientX,y:e.clientY};touch();this.draw(performance.now());});
+  canvas.addEventListener('pointerup',()=>{drag=null;touch();});canvas.addEventListener('pointercancel',()=>drag=null);
+  canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key))return;e.preventDefault();touch();if(e.key==='Home'){this.yaw=0;this.pitch=0;this.az=.5;}else{this.yaw+=e.key==='ArrowLeft'?-.15:e.key==='ArrowRight'?.15:0;this.pitch=clamp(this.pitch+(e.key==='ArrowUp'?-.1:e.key==='ArrowDown'?.1:0),-.5,.8);}this.draw(performance.now());});
   this.rm=matchMedia('(prefers-reduced-motion: reduce)');window.__soundSpace=this;
   this.resize=new ResizeObserver(()=>this.draw(performance.now()));this.resize.observe(document.querySelector('.soundStage'));
  }
- update(now){
-  if(this.frozen||now-this.lastDraw<32)return;this.lastDraw=now;
-  if(now-this.last>=70){
-   this.last=now;this.db.fill(-100);if(this.a.analyser)this.a.analyser.getFloatFrequencyData(this.db);
-   const sr=this.a.ctx?.sampleRate||48000;this.history.copyWithin(this.bins,0,this.history.length-this.bins);this.times.copyWithin(1,0,this.rows-1);this.times[0]=now;
-   const bands=[0,0,0],counts=[0,0,0];
-   for(let x=0;x<this.bins;x++){
-    const lo=40*Math.pow(400,x/this.bins),hi=40*Math.pow(400,(x+1)/this.bins),start=Math.max(1,Math.floor(lo/(sr/2048))),end=Math.min(1023,Math.ceil(hi/(sr/2048)));let peak=-100;
-    for(let k=start;k<=end;k++)if(Number.isFinite(this.db[k]))peak=Math.max(peak,this.db[k]);
-    const v=Math.max(0,Math.min(1,(peak+100)/80));this.history[x]=v;const band=lo<250?0:lo<2000?1:2;bands[band]+=v;counts[band]++;
+ setView(v){
+  this.view=v;this.yaw=0;this.pitch=0;const canvas=this.r.domElement;
+  document.querySelectorAll('[data-sound-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.soundView===v)));
+  canvas.hidden=v==='heat';this.heat.hidden=v!=='heat';document.querySelector('.heatLegend').hidden=v!=='heat';this.draw(performance.now());
+ }
+ // ---- 粒の流れ：円周＝周波数（対数）、中心から外＝時間、粒の多さ・高さ・明るさ＝その周波数の強さ
+ makeFlow(){
+  const P=this.flowCap=MOBILE?12000:40000;this.flowW=0;   // 約6秒ぶんを上書きせずに持てる数
+  const g=this.flowGeo=new T.BufferGeometry();
+  g.setAttribute('position',new T.BufferAttribute(new Float32Array(P*3),3));
+  for(const [k,s] of [['aBirth',1],['aAng',1],['aLev',1],['aSeed',1],['color',3]]){const arr=new Float32Array(P*s);if(k==='aBirth')arr.fill(-1e6);g.setAttribute(k,new T.BufferAttribute(arr,s));}
+  this.flowMat=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,vertexColors:true,
+   uniforms:{uTime:{value:0},uLife:{value:6},uPx:{value:Math.min(2,devicePixelRatio)},map:{value:dotTex}},
+   vertexShader:`attribute float aBirth,aAng,aLev,aSeed;uniform float uTime,uLife,uPx;varying vec3 vC;varying float vA;
+    void main(){float age=uTime-aBirth,k=age/uLife;if(age<0.||k>1.){gl_Position=vec4(2.,2.,2.,1.);gl_PointSize=0.;return;}
+     float r=1.+age*.36,ang=aAng+.02*sin(aSeed*6.283+age*1.6);float y=aLev*1.1*(1.-.4*k)+.03*sin(aSeed*37.+age*2.2);
+     vec3 p=vec3(r*sin(ang),y,r*cos(ang));
+     // 外へ（過去へ）行くほど、ゆるい流れ場で煙のようにほどける。放たれた位置（周波数）は保つ
+     p+=age*age*.022*vec3(sin(p.z*1.3+aSeed*3.),.6*sin(p.x*1.1+aSeed*5.),cos(p.y*2.+p.x*1.2));
+     vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
+     gl_PointSize=uPx*(.8+aLev*2.4)*(1.-.45*k)*(7./-mv.z);vC=color;vA=(.25+.75*aLev)*(1.-k)*(1.-k);}`,
+   fragmentShader:`uniform sampler2D map;varying vec3 vC;varying float vA;void main(){float a=texture2D(map,gl_PointCoord).a;gl_FragColor=vec4(vC*1.5,a*vA);}`});
+  const pts=new T.Points(g,this.flowMat);pts.frustumCulled=false;this.groups.flow.add(pts);
+  // 目盛り：内側の輪と、100 Hz・1 kHz・10 kHz の長い目盛り
+  const lp=[];for(let k=0;k<128;k++){const a=k/128*TAU,b=(k+1)/128*TAU;lp.push(Math.sin(a),0,Math.cos(a),Math.sin(b),0,Math.cos(b));}
+  for(const hz of [100,200,500,1000,2000,5000,10000]){const a=LOGF(hz)*TAU,l=[100,1000,10000].includes(hz)?.28:.1;lp.push(Math.sin(a),0,Math.cos(a),(1-l)*Math.sin(a),0,(1-l)*Math.cos(a));}
+  const tg=new T.BufferGeometry();tg.setAttribute('position',new T.Float32BufferAttribute(lp,3));
+  this.groups.flow.add(new T.LineSegments(tg,new T.LineBasicMaterial({color:0x8fb9b9,transparent:true,opacity:.45})));
+ }
+ spawnFlow(R){
+  const g=this.flowGeo,B=g.attributes.aBirth.array,A=g.attributes.aAng.array,Lv=g.attributes.aLev.array,S=g.attributes.aSeed.array,C=g.attributes.color.array,K=MOBILE?8:22,col=[0,0,0];let spawned=0;
+  for(let x=0;x<this.bins;x++){const v=this.history[x];if(v<.18)continue;let m=Math.floor(v*v*v*K+R());
+   while(m-->0&&spawned<(MOBILE?135:460)){const i=this.flowW;this.flowW=(this.flowW+1)%this.flowCap;spawned++;
+    const u=(x+R())/this.bins;B[i]=this.clock-R()*.06;A[i]=u*TAU;Lv[i]=v;S[i]=R();freqColor(u,col);C.set(col,i*3);}}
+  if(spawned)for(const k of ['aBirth','aAng','aLev','aSeed','color'])g.attributes[k].needsUpdate=true;
+ }
+ // ---- 倍音の層：推定した基音の整数倍（第1〜第8倍音）の強さを、奥へ重ねた帯にする
+ makeHarmonics(){
+  const K=this.hK=8,H=this.hH=MOBILE?72:110;this.harm=new Float32Array(K*H);this.hMesh=[];this.hLine=[];
+  for(let k=0;k<K;k++){const col=new T.Color().setRGB(...freqColor(k/(K-1)));
+   const mg=new T.BufferGeometry();mg.setAttribute('position',new T.BufferAttribute(new Float32Array(H*2*3),3));const idx=[];for(let c=0;c<H-1;c++){const a=c*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}mg.setIndex(idx);
+   const m=new T.Mesh(mg,new T.MeshBasicMaterial({color:col,transparent:true,opacity:.26,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending}));
+   const lg=new T.BufferGeometry();lg.setAttribute('position',new T.BufferAttribute(new Float32Array(H*3),3));
+   const l=new T.Line(lg,new T.LineBasicMaterial({color:col,transparent:true,opacity:.95}));
+   m.frustumCulled=l.frustumCulled=false;this.groups.harmonics.add(m,l);this.hMesh.push(mg);this.hLine.push(lg);}
+  const base=[];for(let k=0;k<K;k++){const z=1.4-k*.4;base.push(-2.8,0,z,2.8,0,z);}
+  const bg=new T.BufferGeometry();bg.setAttribute('position',new T.Float32BufferAttribute(base,3));
+  this.groups.harmonics.add(new T.LineSegments(bg,new T.LineBasicMaterial({color:0x5f8a8f,transparent:true,opacity:.35})));
+ }
+ estimateF0(sr){
+  const s=this.samples,n=1024,x=this.dec||=new Float32Array(n),r=this.ac||=new Float32Array(n);for(let i=0;i<n;i++)x[i]=(s[2*i]+s[2*i+1])*.5;const fs=sr/2;
+  let e=0;for(let i=0;i<n;i++)e+=x[i]*x[i];if(e<1e-5)return {f0:null,conf:0};
+  const minL=Math.max(2,Math.floor(fs/1200)),maxL=Math.min(n-256,Math.ceil(fs/45));let best=0;r.fill(0);
+  for(let L=minL;L<=maxL;L++){let s1=0,a=0,b=0;for(let i=0;i<n-L;i++){const p=x[i],q=x[i+L];s1+=p*q;a+=p*p;b+=q*q;}const v=s1/Math.sqrt(a*b+1e-12);r[L]=v;if(v>best)best=v;}
+  if(best<.5)return {f0:null,conf:best};
+  let L=minL+1;for(;L<maxL;L++)if(r[L]>=.9*best&&r[L]>=r[L-1]&&r[L]>=r[L+1])break;   // 最初の高い山＝下のオクターブへの取り違えを避ける
+  const d=(r[L-1]-r[L+1])/(2*(r[L-1]-2*r[L]+r[L+1])||1);return {f0:fs/(L+clamp(d,-.5,.5)),conf:r[L]};
+ }
+ pushHarmonics(sr){
+  const K=this.hK,H=this.hH,h=this.harm,f0=this.feat.f0,bin=sr/2048;
+  for(let k=0;k<K;k++){h.copyWithin(k*H,k*H+1,(k+1)*H);let v=0;
+   if(f0){const f=f0*(k+1);if(f<sr/2-200){const lo=Math.max(1,Math.floor(f*.98/bin)),hi=Math.min(1023,Math.ceil(f*1.02/bin));let p=-100;for(let j=lo;j<=hi;j++)if(Number.isFinite(this.db[j]))p=Math.max(p,this.db[j]);v=clamp((p+100)/80,0,1);}}
+   h[(k+1)*H-1]=v;}
+ }
+ // ---- 3D音の彫刻：分岐の成長 × ABC流れ場（カオス的な流れ）。
+ // 流れの三つの強さ A・B・C＝低・中・高域、伸びる長さ＝音の大きさ、枝分かれ＝スペクトルの変化量、色＝重心周波数（音の明るさ）。
+ makeSculpture(){
+  const cap=this.segCap=MOBILE?12000:42000;this.maxTips=MOBILE?80:180;this.sc=new T.Vector3();this.scAt=new T.Vector3();
+  const g=this.sGeo=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(new Float32Array(cap*6),3));g.setAttribute('color',new T.BufferAttribute(new Float32Array(cap*6),3));g.setDrawRange(0,0);
+  g.attributes.position.setUsage(T.DynamicDrawUsage);g.attributes.color.setUsage(T.DynamicDrawUsage);
+  const ls=new T.LineSegments(g,new T.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.78,blending:T.AdditiveBlending,depthWrite:false}));ls.frustumCulled=false;
+  const tg=this.tipGeo=new T.BufferGeometry();tg.setAttribute('position',new T.BufferAttribute(new Float32Array(this.maxTips*3*2),3));tg.setDrawRange(0,0);
+  const tp=new T.Points(tg,new T.PointsMaterial({size:.07,map:dotTex,color:0xdff7f0,transparent:true,opacity:.85,blending:T.AdditiveBlending,depthWrite:false}));tp.frustumCulled=false;
+  this.groups.sculpture.add(ls,tp);this.v=new T.Vector3();this.q=new T.Vector3();this.ax=new T.Vector3();this.resetSculpture(1);
+ }
+ resetSculpture(seed){
+  this.R=mulberry(seed);this.nSeg=0;this.sym=0;this.symN=0;this.sGeo.setDrawRange(0,0);this.tips=[];this.sc.set(0,0,0);const n=MOBILE?14:20;
+  for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),a=i*2.39996+this.R();const d=new T.Vector3(r*Math.cos(a),y,r*Math.sin(a));this.tips.push({p:d.clone().multiplyScalar(.05),d,o:new T.Vector3(this.R(),this.R(),this.R()).multiplyScalar(Math.PI),gen:0,age:0,life:110+this.R()*110});}
+ }
+ grow(){
+  const f=this.feat,[lo,mid,hi]=this.levels;if(f.L<.05||this.nSeg>=this.segCap)return;
+  // 回転の対称の数＝鳴りはじめの、はっきりした周波数の山の数（1〜7）
+  // 鳴りはじめの約0.5秒（8回分）のスペクトルを平均してから数える（毎回同じ数になるように）
+  if(!this.sym){const acc=this.symAcc||=new Float32Array(this.bins);if(!this.symN)acc.fill(0);for(let x=0;x<this.bins;x++)acc[x]+=this.history[x];if(++this.symN<8)return;
+   let k=0;for(let x=1;x<this.bins-1;x++){const v=acc[x]/8;if(v>.45&&v>=acc[x-1]/8&&v>acc[x+1]/8)k++;}this.sym=clamp(k,1,7);}
+  const n=this.sym,R=this.R,A=.35+1.8*lo,B=.35+1.8*mid,C=.35+1.8*hi,s=2.6+2.4*f.c,step0=.006+.03*f.L,col=freqColor(f.c),bright=.3+.7*f.L,fl=clamp(f.flux*14,0,1),sum=lo+mid+hi+1e-6,ex=.75+1.1*lo/sum,ey=.75+1.1*hi/sum,minT=MOBILE?14:24;   // 外形：横の広がり＝低域の割合、縦＝高域の割合
+  const P=this.sGeo.attributes.position.array,Cl=this.sGeo.attributes.color.array,start=this.nSeg,v=this.v,q=this.q,born=[];
+  for(const t of this.tips){
+   const fade=Math.pow(.8,t.gen)*Math.min(1,1.4/Math.sqrt(n));   // 対称で重なる分、一本を細く淡く
+   for(let sub=0;sub<3&&this.nSeg+n<=this.segCap&&t.age<t.life;sub++){
+    const p=t.p,x=p.x*s+t.o.x,y=p.y*s+t.o.y,z=p.z*s+t.o.z;   // 枝ごとに流れ場の別の場所を読む（同じ流線へ束ならない）
+    v.set(A*Math.sin(z)+C*Math.cos(y),B*Math.sin(x)+A*Math.cos(z),C*Math.sin(y)+B*Math.cos(x)).normalize();
+    t.d.multiplyScalar(.8).addScaledVector(v,.25+.25*mid);const rr=Math.hypot(p.x/ex,p.y/ey,p.z/ex);if(rr>.8)t.d.addScaledVector(p,-.5*(rr-.8)/rr);if(rr>1.12)t.age=t.life;t.d.normalize();   // 外形に届いた枝は止まる
+    q.copy(p).addScaledVector(t.d,step0*Math.pow(.88,t.gen));
+    for(let r=0;r<n;r++){const a=r*TAU/n,ca=Math.cos(a),sa=Math.sin(a),i=this.nSeg*6;
+     P[i]=p.x*ca-p.z*sa;P[i+1]=p.y;P[i+2]=p.x*sa+p.z*ca;P[i+3]=q.x*ca-q.z*sa;P[i+4]=q.y;P[i+5]=q.x*sa+q.z*ca;
+     for(let c=0;c<3;c++){Cl[i+c]=col[c]*bright*fade*.3;Cl[i+3+c]=col[c]*bright*fade*.55;}this.nSeg++;}
+    p.copy(q);if(n>1)this.sc.y+=q.y*n;else this.sc.add(q);   // 重心（対称なら軸の上）
    }
-   this.levels=bands.map((v,i)=>this.levels[i]*.65+v/Math.max(1,counts[i])*.35);
-   this.samples.fill(0);this.a.wave(this.samples);
-   // ゼロ交差をそろえ、音程の変化が波の密度として見えるようにする。
-   let offset=0;for(let i=1;i<1024;i++)if(this.samples[i-1]<=0&&this.samples[i]>0){offset=i;break;}
-   this.waveHistory.copyWithin(this.waveBins,0,this.waveHistory.length-this.waveBins);
-   for(let i=0;i<this.waveBins;i++)this.waveHistory[i]=this.samples[offset+Math.floor(i/(this.waveBins-1)*1023)];
+   t.age++;
+   if(R()<.02+.25*fl&&t.gen<8&&this.tips.length+born.length<this.maxTips){
+    this.ax.set(R()-.5,R()-.5,R()-.5).cross(t.d).normalize();
+    born.push({p:t.p.clone(),o:t.o.clone().addScalar((R()-.5)*.6),d:t.d.clone().applyAxisAngle(this.ax,(.3+.9*f.c)*(R()<.5?-1:1)),gen:t.gen+1,age:0,life:(80+R()*110)*Math.pow(.9,t.gen+1)});
+   }
   }
+  this.tips=this.tips.filter(t=>t.age<t.life).concat(born);
+  // 育った枝の途中から新しい芽
+  while(this.tips.length<minT&&this.nSeg>0){const k=Math.floor(R()*this.nSeg/n)*n*6+3,p=new T.Vector3(P[k],P[k+1],P[k+2]);const d=p.clone().normalize().multiplyScalar(.7).add(new T.Vector3(R()-.5,R()-.5,R()-.5)).normalize();this.tips.push({p,d,o:new T.Vector3(R(),R(),R()).multiplyScalar(Math.PI),gen:1+Math.floor(R()*2),age:0,life:80+R()*90});}
+  const pa=this.sGeo.attributes.position,ca=this.sGeo.attributes.color,cnt=this.nSeg-start;
+  if(cnt>0){pa.addUpdateRange(start*6,cnt*6);ca.addUpdateRange(start*6,cnt*6);pa.needsUpdate=ca.needsUpdate=true;this.sGeo.setDrawRange(0,this.nSeg*2);}
+  const tpa=this.tipGeo.attributes.position;this.tips.forEach((t,i)=>tpa.setXYZ(i,t.p.x,t.p.y,t.p.z));tpa.needsUpdate=true;this.tipGeo.setDrawRange(0,this.tips.length);
+ }
+ update(now){
+  if(this.frozen||now-this.lastDraw<(MOBILE?30:14))return;this.lastDraw=now;
+  if(now-this.last>=70)this.analyze(now);
   this.draw(now);
+ }
+ analyze(now){
+  this.last=now;this.db.fill(-100);if(this.a.analyser)this.a.analyser.getFloatFrequencyData(this.db);
+  // 新しい音が始まったら、彫刻を初めから育てる（同じ言葉・同じつまみなら、同じ育ち方の種）
+  const cur=this.a.cur;if(cur&&cur!==this.curId){this.curId=cur;this.resetSculpture(seedOf(cur.item?.t||'')^Math.round(cur.d?.dist*100+cur.d?.hard*1e4+cur.d?.light*1e6||0));}
+  const sr=this.a.ctx?.sampleRate||48000,bin=sr/2048;this.history.copyWithin(this.bins,0,this.history.length-this.bins);this.times.copyWithin(1,0,this.rows-1);this.times[0]=now;
+  const bands=[0,0,0],counts=[0,0,0];let flux=0;
+  for(let x=0;x<this.bins;x++){
+   const lo=40*Math.pow(400,x/this.bins),hi=40*Math.pow(400,(x+1)/this.bins),start=Math.max(1,Math.floor(lo/bin)),end=Math.min(1023,Math.ceil(hi/bin));let peak=-100;
+   for(let k=start;k<=end;k++)if(Number.isFinite(this.db[k]))peak=Math.max(peak,this.db[k]);
+   const v=Math.max(0,Math.min(1,(peak+100)/80));this.history[x]=v;flux+=Math.max(0,v-this.history[this.bins+x]);const band=lo<250?0:lo<2000?1:2;bands[band]+=v;counts[band]++;
+  }
+  this.levels=bands.map((v,i)=>this.levels[i]*.65+v/Math.max(1,counts[i])*.35);
+  // 重心周波数（音の明るさ）
+  let ps=0,pf=0;for(let k=2;k*bin<16000;k++){const d=this.db[k];if(!Number.isFinite(d)||d<-95)continue;const p=Math.pow(10,d/10);ps+=p;pf+=p*k*bin;}
+  const cen=ps>0?pf/ps:0;this.cen=cen;
+  this.samples.fill(0);this.a.wave(this.samples);let e=0;for(let i=0;i<2048;i++)e+=this.samples[i]*this.samples[i];const rms=Math.sqrt(e/2048);
+  const f=this.feat;f.L=clamp((20*Math.log10(rms+1e-9)+60)/50,0,1);f.c=cen?clamp(Math.log(cen/150)/Math.log(40),0,1):f.c;f.flux=flux/this.bins;   // 明るさ：150 Hz〜6 kHz を 0〜1 に
+  const est=f.L>.05?this.estimateF0(sr):{f0:null,conf:0};
+  // 基準：自己相関で推定した基音。読めない時は 0.6 秒だけ前の値を保ち、それも無ければ最も強い成分を基準にする
+  if(est.f0){f.f0=est.f0;f.src='f0';f.hold=now;}else if(f.src==='f0'&&now-f.hold<600){}else if(f.L>.05){let bk=2,bv=-200;for(let k=2;k*bin<8000;k++)if(this.db[k]>bv){bv=this.db[k];bk=k;}f.f0=bk*bin;f.src='peak';}else{f.f0=null;f.src=null;}
+  f.conf=est.conf;
+  // ゼロ交差をそろえ、音程の変化が波の密度として見えるようにする。
+  let offset=0;for(let i=1;i<1024;i++)if(this.samples[i-1]<=0&&this.samples[i]>0){offset=i;break;}
+  this.waveHistory.copyWithin(this.waveBins,0,this.waveHistory.length-this.waveBins);
+  for(let i=0;i<this.waveBins;i++)this.waveHistory[i]=this.samples[offset+Math.floor(i/(this.waveBins-1)*1023)];
+  this.pushHarmonics(sr);this.spawnFlow(Math.random);this.grow();
+ }
+ orbit(now){
+  const dt=this.tPrev?Math.min(.1,(now-this.tPrev)/1000):0;this.tPrev=now;
+  if(!this.frozen){this.clock+=dt;if(!this.rm.matches){const k=clamp((now-this.touched-6000)/2500,0,1);this.az+=dt*TAU/90*k*k;}}
+  this.phase=this.rm.matches?0:this.az;
+  const v=VIEWS[this.view],el=clamp(v.elev+this.pitch,.1,1.3),az=this.az+this.yaw,d=v.dist(this.cam.aspect);let at=v.at;
+  if(this.view==='sculpture'){if(this.nSeg)this.scAt.lerp(this.v.copy(this.sc).divideScalar(this.nSeg),.08);at=[this.scAt.x,this.scAt.y,this.scAt.z];}   // 育った形の重心を見る
+  this.cam.position.set(at[0]+d*Math.cos(el)*Math.sin(az),at[1]+d*Math.sin(el),at[2]+d*Math.cos(el)*Math.cos(az));this.cam.lookAt(at[0],at[1],at[2]);
  }
  draw(now){
   const stage=document.querySelector('.soundStage'),w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
-  if(!this.frozen)this.phase=this.rm.matches?0:now*.00018;
-  const [lo,mid,hi]=this.levels,t=this.phase;
   if(this.view==='heat'){this.drawHeat(w,h);return;}
   if(this.w!==w||this.h!==h){this.w=w;this.h=h;this.r.setSize(w,h,false);this.cam.aspect=w/h;this.cam.updateProjectionMatrix();}
-  this.sculpture.visible=this.view==='sculpture';this.waterfall.visible=this.view==='spectrum';this.waveform.visible=this.view==='waveform';
-  if(this.sculpture.visible){
-   this.cam.position.set(0,.1,Math.max(6.8,5/this.cam.aspect));this.cam.lookAt(0,0,0);this.sculpture.rotation.set(this.pitch,this.yaw+t*.25,0);
-   this.lines.forEach((g,j)=>{
-    const p=g.attributes.position.array,rp=this.ribbons[j].attributes.position.array,count=p.length/3,level=this.levels[j];
-    for(let i=0;i<count;i++){
-     const u=i/(count-1)*Math.PI*2,phase=j*Math.PI*2/3,r=1.18+j*.15+.24*Math.sin(u*3+phase+mid*2),bend=.16+lo*.35;
-     const x=r*Math.cos(u)+bend*Math.cos(u*2+phase),y=r*Math.sin(u)+.18*mid*Math.sin(u*4+phase),z=(.55+hi*.65)*Math.sin(u*2+phase)+level*.35*Math.sin(u*7+t);
-     p[i*3]=x;p[i*3+1]=y;p[i*3+2]=z;
-     const width=.025+level*.075,twist=u*3+phase;
-     for(let side=0;side<2;side++){const k=i*6+side*3,sign=side?1:-1;rp[k]=x+sign*width*Math.cos(u)*Math.cos(twist);rp[k+1]=y+sign*width*Math.sin(u)*Math.cos(twist);rp[k+2]=z+sign*width*Math.sin(twist);}
-    }
-    g.attributes.position.needsUpdate=true;g.computeBoundingSphere();this.ribbons[j].attributes.position.needsUpdate=true;this.ribbons[j].computeVertexNormals();this.ribbons[j].computeBoundingSphere();
-   });
-   this.caption('低域 × 中域 × 高域。三つの帯が、音とともにほどけ、重なります。ドラッグで回転。');
-  }else if(this.waveform.visible){
-   this.cam.position.set(0,2.7,Math.max(7.3,10/this.cam.aspect));this.cam.lookAt(0,0,-.8);this.waveform.rotation.set(this.pitch*.4,this.yaw,0);
-   for(let z=0;z<this.waveRows;z++)for(let x=0;x<this.waveBins;x++){const i=z*this.waveBins+x;this.wavePos[i*3]=(x/(this.waveBins-1)-.5)*5.8;this.wavePos[i*3+1]=this.waveHistory[i]*5;this.wavePos[i*3+2]=1.25-z/(this.waveRows-1)*3.5;}
-   this.waveGeo.attributes.position.needsUpdate=true;this.waveGeo.computeBoundingSphere();this.frontGeo.attributes.position.array.set(this.wavePos.subarray(0,this.waveBins*3));this.frontGeo.attributes.position.needsUpdate=true;this.frontGeo.computeBoundingSphere();
+  for(const k in this.groups)this.groups[k].visible=k===this.view;
+  this.scene.fog=this.view==='sculpture'?this.fog:null;this.orbit(now);
+  if(this.view==='waveform'){
+   for(let z=0;z<this.waveRows;z++)for(let x=0;x<this.waveBins;x++){const i=z*this.waveBins+x;this.wavePos[i*3]=(x/(this.waveBins-1)-.5)*5.8;this.wavePos[i*3+1]=Math.tanh(this.waveHistory[i]*1.6)*2;/* 大きな音でも枠に収める（小さな振幅ではほぼ比例） */this.wavePos[i*3+2]=1.25-z/(this.waveRows-1)*3.5;}
+   this.waveGeo.attributes.position.needsUpdate=true;this.frontGeo.attributes.position.array.set(this.wavePos.subarray(0,this.waveBins*3));this.frontGeo.attributes.position.needsUpdate=true;
    const span=(1024/(this.a.ctx?.sampleRate||48000)*1000).toFixed(1);
-   this.caption('横：'+span+' msの波形 ／ 高さ：振幅。手前が今、奥は過去の波形。操作で音と形が変わります。');
+   this.caption('横：'+span+' msの波形 ／ 高さ：振幅 ／ 手前が今、奥は過去。斜め上からゆっくり一周します（ドラッグで止まり、触らなければ戻ります）。');
+  }else if(this.view==='flow'){
+   this.flowMat.uniforms.uTime.value=this.clock;
+   this.caption('粒の流れ：円周＝周波数（40 Hz から一周で 16 kHz・対数。長い目盛り＝100 Hz・1 kHz・10 kHz）／中心から外へ＝時間（外ほど過去・約6秒）／粒の多さ・高さ・明るさ＝その周波数の強さ。');
+  }else if(this.view==='harmonics'){
+   const K=this.hK,H=this.hH;
+   for(let k=0;k<K;k++){const m=this.hMesh[k].attributes.position.array,l=this.hLine[k].attributes.position.array,z=1.4-k*.4;
+    for(let c=0;c<H;c++){const x=-2.8+5.6*c/(H-1),y=this.harm[k*H+c]*1.6;m.set([x,0,z,x,y,z],c*6);l.set([x,y,z],c*3);}
+    this.hMesh[k].attributes.position.needsUpdate=true;this.hLine[k].attributes.position.needsUpdate=true;}
+   const f=this.feat;this.caption('倍音の層：手前から奥へ第1〜第8倍音（推定した基音の整数倍）／横＝時間（右が今）／高さ＝各倍音のFFTレベル。'+(f.src==='f0'?'いまの基音の推定：約 '+Math.round(f.f0)+' Hz。':f.src==='peak'?'基音が読みとれないので、最も強い成分（約 '+Math.round(f.f0)+' Hz）を基準にしています。':'いまは音がありません。'));
+  }else if(this.view==='sculpture'){
+   this.caption('鳴っているあいだ、音の帯ごとの強さが流れになって、枝が育ちます。くわしく：分岐の成長 × ABC流れ場（カオス的な流れ）。流れの三つの強さ＝低・中・高域／外形の横・縦＝低域・高域の割合／回転の対称の数＝鳴りはじめの周波数の山の数／伸びる長さ＝音の大きさ／枝分かれ＝音の変化／色＝音の明るさ（重心周波数）。止めると形が残ります。'+(this.nSeg?'':'音を鳴らすと育ちはじめます。'));
   }else{
-   this.cam.position.set(0,5.6,Math.max(8.4,5.2/this.cam.aspect));this.cam.lookAt(0,.3,0);this.waterfall.rotation.set(this.pitch*.4,this.yaw,0);
    for(let i=0;i<this.history.length;i++){const v=this.history[i],c=this.palette[Math.round(v*255)];this.pos[i*3+1]=v*2.1;for(let k=0;k<3;k++)this.colors[i*3+k]=c[k]/255;}
-   this.g.attributes.position.needsUpdate=true;this.g.attributes.color.needsUpdate=true;this.g.computeBoundingSphere();
-   this.caption('横：40 Hz → 16 kHz（対数）／高さ・色：FFTレベル／手前：現在、奥：過去。ドラッグで回転。');
+   this.g.attributes.position.needsUpdate=true;this.g.attributes.color.needsUpdate=true;
+   this.caption('横：40 Hz → 16 kHz（対数）／高さ・色：FFTレベル／手前：現在、奥：過去。斜め上からゆっくり一周します。');
   }
   this.r.render(this.scene,this.cam);
  }

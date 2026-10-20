@@ -140,6 +140,19 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
   #labs .lab small{display:none}
 }
 @media (prefers-reduced-motion:reduce){ .intro,.tip,#labs .lab{transition:none} }
+/* 下の案内は、ボタンだけが押せる。すき間と文字の下の点は、そのまま押せる（2026-10-20） */
+.hint{pointer-events:none}.hint button{pointer-events:auto}
+/* 1回目に押した点の札（何の音か）。2回目で鳴らす */
+.peek{position:fixed;left:0;top:0;z-index:5;width:min(330px,calc(100vw - 32px));box-sizing:border-box;padding:12px 16px 10px;background:var(--ml-panel-solid,rgba(6,16,24,.94));border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);color:var(--ml-ink);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.peek p{margin:0}
+.peek-n{font:400 .7rem var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-3)}
+.peek-n::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);margin-right:7px;vertical-align:middle}
+.peek-t{font:500 1.12rem/1.55 var(--ml-serif);letter-spacing:.04em;margin:4px 0 6px!important;overflow-wrap:anywhere}
+.peek-d{font-size:.8rem;line-height:1.6;color:var(--ml-ink-2)}
+.peek-s{font-size:.72rem;line-height:1.6;color:var(--ml-ink-3);margin-top:4px!important}
+.peek-a{display:flex;gap:8px;margin-top:10px}.peek-a .ml-btn{min-height:44px}
+.peek-h{display:block;font-size:.7rem;color:var(--ml-ink-3);margin-top:6px}
+.peek.dock{left:16px;right:16px;top:auto;bottom:max(16px,env(safe-area-inset-bottom));width:auto}
 
 .reading > summary{padding:10px 0;font-size:.82rem}
 .reading p{margin:0 0 8px;font:500 .95rem/1.8 var(--ml-serif);color:var(--ml-ink-2)}
@@ -194,7 +207,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
  #panel{inset:56px 0 0;padding:12px 16px calc(22px + env(safe-area-inset-bottom));max-height:none;width:auto}
  #panel .p-head{gap:8px;top:-12px}.p-no{font-size:10px}.p-head .ml-label{font-size:11px}.p-x{font-size:11px;padding:0 4px}.p-line{font-size:25px}#panel .p-law{font-size:10px;margin-bottom:8px}
  #sound{grid-template-columns:minmax(0,1fr);gap:24px}.performance{border:0;border-top:1px solid #29444c;padding:12px 0 0}
- .spaceToolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.spaceToolbar button{text-align:center;font-size:13px}
+ .spaceToolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px}.spaceToolbar button{text-align:center;font-size:12.5px}
  .soundStage{height:clamp(310px,44dvh,430px)}.stageWord{font-size:8px}.viewActions{gap:6px}#spaceCaption{font-size:11px}.viewActions button{font-size:10px;padding:0 3px}
  .soundActions{gap:6px}.soundActions button{font-size:11px;padding:0 8px}.p-nav{margin-top:10px}.p-nav .ml-btn{font-size:11px;padding:0 6px}
  .performanceHead h3{font-size:18px}.djDials{grid-template-columns:1fr 1fr;column-gap:24px;row-gap:8px}.djDial small{display:block;margin:3px 0 0;font-size:8px}.djDial output{font-size:10px}.djDial>span{font-size:13px}.djDial input{min-width:0}.performanceNote{font-size:12px}.mixArea{margin-top:8px}

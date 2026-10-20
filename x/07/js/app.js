@@ -145,6 +145,7 @@ const order = [...ITEMS].sort((a, b) => a.n - b.n);
 let target = null;   // カメラの見る先（なめらかに寄る）
 function select(it, { fly = true, fromTour = false, audible = true } = {}) {
   if (!fromTour) stopTour();   // 自分で選んだら、順に聴くのは止める
+  closePeek(false);
   cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'A：'+material.t+' ／ B：'+it.t:'Aの素材にして、もう一つの音を選ぶと合成できます。';
   $("sound").hidden = !!it.quiet; $("quiet").hidden = !it.quiet;
   { const rd = it.quiet ? null : readingOf(it); $("readF").hidden = !(rd && rd.hand); $("readF").open = false; if (rd && rd.hand) $("readT").textContent = rd.reading; }   // 手で譜を書いた行だけ、読みの一文を畳んで置く
@@ -160,9 +161,9 @@ function select(it, { fly = true, fromTour = false, audible = true } = {}) {
   if(!space)space=new SoundSpace($('spectrum'),synth);
   if (fly) { const p = new THREE.Vector3().fromArray(POS, it.i * 3); target = portrait() ? p.clone() : p.clone().lerp(new THREE.Vector3(0, 3.1, 0), .25);  controls.autoRotate = false; }
 }
-function clearSel() { stopTour(); cur = null; halt(); $("panel").hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; target = new THREE.Vector3(0, 3.1, 0); }
+function clearSel() { stopTour(); closePeek(false); cur = null; halt(); $("panel").hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; target = new THREE.Vector3(0, 3.1, 0); }
 $("bClose").addEventListener("click", clearSel);
-addEventListener("keydown", e => { if (e.key === "Escape" && !document.querySelector("dialog[open]") && cur) clearSel(); });
+addEventListener("keydown", e => { if (e.key !== "Escape" || document.querySelector("dialog[open]")) return; if (peekIt) closePeek(); else if (cur) clearSel(); });
 const step = k => { const i = cur ? order.indexOf(cur) : -1; select(order[(i + k + order.length) % order.length]); };
 $("bPrev").addEventListener("click", () => step(-1)); $("bNext").addEventListener("click", () => step(1));
 // 偶然の一行：はじめの三回は、重い語（死・髑髏・悪魔・恐怖など）を含まない行から選ぶ
@@ -198,16 +199,47 @@ function tourStep(k) {
 }
 $("bTour").addEventListener("click", () => { if (tour) { stopTour(); synth.stop(); return; } tour = { k: 0 }; $("bTour").textContent = "■ 止める"; tourStep(0); });
 // ---- 点にふれる・押す（画面の上で一番近い点）
+// 1回目：何の音か（名前・音の決まり・出どころ）を札で出す。2回目（同じ点、または札の「鳴らす」）：鳴らす。
 const v3 = new THREE.Vector3();
-function nearest(cx, cy, maxPx) { let best = -1, bd = maxPx * maxPx; const w = innerWidth, h = innerHeight;
+function nearest(cx, cy, maxPx) { let best = -1, bd = maxPx * maxPx; const w = innerWidth, h = innerHeight; camera.updateMatrixWorld();
   for (let i = 0; i < N; i++) { v3.fromArray(POS, i * 3).project(camera); if (v3.z > 1) continue; const dx = (v3.x * .5 + .5) * w - cx, dy = (-v3.y * .5 + .5) * h - cy, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
   return best; }
+const screenOf = i => { v3.fromArray(POS, i * 3).project(camera); return { x: (v3.x * .5 + .5) * innerWidth, y: (-v3.y * .5 + .5) * innerHeight, z: v3.z }; };
+const peek = $("peek"); let peekIt = null;
+function openPeek(it) {
+  peekIt = it; const t = tagOf(it.tag);
+  $("peekN").textContent = `No. ${String(it.n).padStart(3, "0")} · ${t.ja}`; $("peekN").style.setProperty("--c", css(TAGC[it.tag]));
+  $("peekT").textContent = it.t;
+  $("peekD").textContent = it.quiet ? "この一行は、鳴らさずに置いています。" : "この群れの音の決まり：" + (LAW[it.tag] || "");
+  $("peekS").textContent = `出どころ：mitsulab の言葉《音の言然》No. ${it.n}`;
+  $("peekPlay").textContent = it.quiet ? "ひらく" : "▶ 鳴らす";
+  peek.hidden = false; if (portrait()) $("hint").hidden = true; sel.visible = stem.visible = true; placePeek();
+}
+function closePeek(restore = true) { if (!peekIt) return; peekIt = null; peek.hidden = true; if (!cur) { sel.visible = stem.visible = false; if (restore) $("hint").hidden = false; } }
+function placePeek() {
+  if (!peekIt) return;
+  if (portrait()) { peek.style.transform = ""; peek.classList.add("dock"); return; }
+  peek.classList.remove("dock"); const s = screenOf(peekIt.i), w = peek.offsetWidth, h = peek.offsetHeight;
+  let x = s.x + 22, y = s.y - h - 18; if (x + w > innerWidth - 16) x = s.x - w - 22; if (y < 76) y = s.y + 22;
+  x = Math.max(16, Math.min(innerWidth - w - 16, x)); y = Math.max(76, Math.min(innerHeight - h - 16, y));
+  peek.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`;
+}
+$("peekPlay").addEventListener("click", () => { if (peekIt) select(peekIt); });
+$("peekX").addEventListener("click", () => closePeek());
+// 指で押したあとに続いて届く click が、新しく出た札やボタンを押してしまわないようにする
+let ghostUntil = 0, ghostX = 0, ghostY = 0;
+document.addEventListener("click", e => { if (performance.now() < ghostUntil && e.target !== cv && Math.hypot(e.clientX - ghostX, e.clientY - ghostY) < 40) { e.stopPropagation(); e.preventDefault(); } }, true);
 const tip = $("tip"); let down = null;
 cv.addEventListener("pointerdown", e => { down = { x: e.clientX, y: e.clientY }; controls.autoRotate = false; });
-cv.addEventListener("pointerup", e => { if (!down) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y); down = null; if (moved > 7) return;
-  const i = nearest(e.clientX, e.clientY, e.pointerType === "touch" ? 30 : 20); if (i >= 0) select(ITEMS[i]); });
+cv.addEventListener("pointerup", e => { if (!down) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y); down = null; if (moved > 9) return;
+  const touch = e.pointerType !== "mouse"; if (touch) { ghostUntil = performance.now() + 500; ghostX = e.clientX; ghostY = e.clientY; }
+  let i = nearest(e.clientX, e.clientY, touch ? 34 : 22);
+  if (peekIt) { const s = screenOf(peekIt.i); if (Math.hypot(s.x - e.clientX, s.y - e.clientY) < (touch ? 44 : 30)) i = peekIt.i; }
+  if (i < 0) { closePeek(); return; }
+  tip.classList.remove("on");
+  if (peekIt && peekIt.i === i) select(ITEMS[i]); else openPeek(ITEMS[i]); });
 cv.addEventListener("pointermove", e => { if (e.pointerType !== "mouse" || e.buttons) { tip.classList.remove("on"); return; }
-  const i = nearest(e.clientX, e.clientY, 18); if (i < 0) { tip.classList.remove("on"); cv.style.cursor = ""; return; }
+  const i = nearest(e.clientX, e.clientY, 22); if (i < 0 || (peekIt && peekIt.i === i)) { tip.classList.remove("on"); cv.style.cursor = i < 0 ? "" : "pointer"; return; }
   const it = ITEMS[i]; tip.innerHTML = `<span class="n">No. ${String(it.n).padStart(3, "0")} · ${tagOf(it.tag).ja}</span>`; tip.append(it.t);
   const x = Math.min(e.clientX + 16, innerWidth - tip.offsetWidth - 12), y = Math.max(70, e.clientY - tip.offsetHeight - 14); tip.style.transform = `translate(${x}px,${y}px)`; tip.classList.add("on"); cv.style.cursor = "pointer"; });
 cv.addEventListener("pointerleave", () => tip.classList.remove("on"));
@@ -269,16 +301,18 @@ const posAttr = wGeo.attributes.position, cen = new THREE.Vector3(0, 3.1, 0);
 function loop(now) {
   raf=0;if(!run)return;
   // 描画予約は常に1本。30fpsの端数を保持し、高リフレッシュ画面でも間引きすぎない。
-  const interval=1000/30,elapsed=cadence?now-cadence:interval;
+  const interval=mobile?1000/30:1000/60,elapsed=cadence?now-cadence:interval;
   if(elapsed<interval){queueFrame();return;}
   cadence=now-(elapsed%interval);
   const dt = Math.min(.05, (now - last) / 1000); fit.frame(now - last); last = now; const t = now / 1000;
   WIND.uTime.value = t; wMat.uniforms.scale.value = renderer.domElement.height / 2; wMat.uniforms.maxPx.value = 16 * fit.pixelRatio;
   if (!RM) { for (let i = 0; i < N; i++) { const a = PH[i * 3], b = PH[i * 3 + 1], w = PH[i * 3 + 2]; POS[i * 3] = BASE[i * 3] + Math.sin(t * w + a) * .13; POS[i * 3 + 1] = BASE[i * 3 + 1] + Math.sin(t * w * .8 + b) * .09; POS[i * 3 + 2] = BASE[i * 3 + 2] + Math.cos(t * w + b) * .13; } posAttr.needsUpdate = true; }
-  if (cur && !cur.generated) { const i = cur.i * 3, x = POS[i], y = POS[i + 1], z = POS[i + 2], gy = H(x, z) + .02;
+  const hl = cur && !cur.generated ? cur : !cur && peekIt ? peekIt : null;
+  if (hl) { const i = hl.i * 3, x = POS[i], y = POS[i + 1], z = POS[i + 2], gy = H(x, z) + .02;
     selGeo.attributes.position.setXYZ(0, x, y, z); selGeo.attributes.position.needsUpdate = true;
     stemGeo.attributes.position.setXYZ(0, x, gy, z); stemGeo.attributes.position.setXYZ(1, x, y, z); stemGeo.attributes.position.needsUpdate = true;
     lv += ((synth.playing ? synth.level() : 0) - lv) * .25; selMat.size = .42 + Math.min(1, lv * 5) * .5;
+    if (!cur) selMat.size = .5 + .12 * Math.sin(t * 4);
     const d = dials(); ring.position.set(x, gy, z); ring.scale.setScalar(.5 + d.dist * 2.6 + Math.min(1, lv * 5) * .3); ring.material.opacity = .18 + Math.min(1, lv * 5) * .3; }
   if (target) { controls.target.lerp(target, Math.min(1, dt * 2.2)); if (controls.target.distanceTo(target) < .01) target = null; }
   // 縦長の画面：パネルが下を覆うあいだは、レンズをずらして、見る先（選んだ点）をパネルの上の空きの真ん中に出す
@@ -290,7 +324,7 @@ function loop(now) {
   // 札の置き場所（重なったら下の札を下へずらす。語は間引かない）
   const L = [], hintTop = $("hint").hidden ? 1e9 : $("hint").getBoundingClientRect().top, capBottom = $("tourCap").hidden ? -1 : $("tourCap").getBoundingClientRect().bottom;
   for (const id in labEls) { const c = centers[id]; v3.set(c.x, c.y + 1.75, c.z).project(camera); const el = labEls[id];
-    const vis = v3.z < 1 && Math.abs(v3.x) < 1.05 && v3.y < .92; const show = vis && !(cur && cur.tag !== id); el.style.opacity = show ? 1 : 0; el.style.pointerEvents = show ? "auto" : "none";   // スマホでは案内や帯に重なる札を出さない
+    const vis = v3.z < 1 && Math.abs(v3.x) < 1.05 && v3.y < .92; const show = vis && !cur && !(peekIt && portrait()); /* 演奏面を開いているあいだと、スマホで点の札を出しているあいだは、分類の札を出さない（指の下に札が現れないように） */ el.style.opacity = show ? 1 : 0; el.style.pointerEvents = show ? "auto" : "none";   // スマホでは案内や帯に重なる札を出さない
     if (!el._w) { el._w = el.offsetWidth || 120; el._h = el.offsetHeight || 44; }
     L.push({ el, x: (v3.x * .5 + .5) * innerWidth, y: Math.max(70, (-v3.y * .5 + .5) * innerHeight), vis: show }); }
   L.forEach(o => o.x = Math.max(o.el._w / 2 + 6, Math.min(innerWidth - o.el._w / 2 - 6, o.x)));
@@ -301,6 +335,7 @@ function loop(now) {
     // 押し分けたあとの位置で、案内（スマホ）と「順に聴く」の帯に重なる札を隠す
     if (o.vis && ((portrait() && !cur && o.y + o.el._h / 2 > hintTop - 4) || (tour && o.y - o.el._h / 2 < capBottom + 4))) { o.el.style.opacity = 0; o.el.style.pointerEvents = "none"; } }
   if (cur&&space) {if(!space.frozen)drawWave();space.update(now);}
+  if (peekIt) placePeek();
   // 演奏面を開いている間、背景の森は4fpsに抑え、音の立体へ描画を回す。
   if (!cur || now - forestFrame > 250 || startup.firstFrameMs===null) {
     renderer.render(scene, camera);forestFrame=now;startup.forestFrames++;
@@ -314,4 +349,4 @@ function loop(now) {
 addEventListener("resize", () => { camera.position.setLength(Math.min(controls.maxDistance, camera.position.distanceTo(controls.target))); });
 manager.onLoad = () => { startup.texturesReadyMs=performance.now();document.body.dataset.texturesReady='true'; };
 queueFrame();
-window.__qs = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth, second, get space(){return space;}, startup, get pendingFrame(){return raf;}, get current(){return cur;}, get material(){return material;}, get mixing(){return mixing;}, performanceValues };
+window.__qs = { renderer, camera, screenOf, get peek(){return peekIt;}, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, n: N }), select: n => select(ITEMS.find(x => x.n === n)), synth, second, get space(){return space;}, startup, get pendingFrame(){return raf;}, get current(){return cur;}, get material(){return material;}, get mixing(){return mixing;}, performanceValues };

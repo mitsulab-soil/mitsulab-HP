@@ -35,6 +35,14 @@
 <canvas id="cv" aria-label="夕暮れの雑木林の空き地の上に、言葉の点が分類ごとに集まって浮かんでいる 3D の場面"></canvas>
 <div id="labs" aria-hidden="true"></div>
 <div id="tip" class="tip" aria-hidden="true"></div>
+<div id="peek" class="peek" role="group" aria-label="選んだ音" aria-live="polite" hidden>
+  <p class="peek-n" id="peekN"></p>
+  <p class="peek-t" id="peekT"></p>
+  <p class="peek-d" id="peekD"></p>
+  <p class="peek-s" id="peekS"></p>
+  <div class="peek-a"><button class="ml-btn ml-btn--primary" id="peekPlay" type="button">▶ 鳴らす</button><button class="ml-btn ml-btn--quiet" id="peekX" type="button">とじる</button></div>
+  <small class="peek-h">同じ点をもう一度押しても鳴ります。</small>
+</div>
 
 <header class="top">
   <div class="brand">
@@ -52,7 +60,7 @@
   <div class="intro-in">
     <p class="ml-kicker">Qualia/sound</p>
     <h2 id="introT" class="ml-title intro-line">同じ一行でも、<br>聞こえる音は、<br>人によって違う。</h2>
-    <p class="intro-body">「◯◯の音」──森に浮かぶ言葉を押すと、音が鳴ります。二つの音を重ねたり、自分の言葉から新しい音をつくったり。音の高さやリズムを動かして、大きな3D波形と音の彫刻で違いを眺めてください。音は言葉を手がかりに合成した表現で、実際の録音ではありません。</p>
+    <p class="intro-body">「◯◯の音」──森に浮かぶ点を押すと何の音かが出て、もう一度押すと鳴ります。二つの音を重ねたり、自分の言葉から新しい音をつくったり。音の高さやリズムを動かして、3D波形・粒の流れ・倍音の層・音の彫刻で違いを眺めてください。音は言葉を手がかりに合成した表現で、実際の録音ではありません。</p>
     <div class="intro-act">
       <button class="ml-btn ml-btn--primary" id="bStart" type="button">はじめる</button>
       <span class="intro-note">音は、押したときだけ鳴ります。</span>
@@ -76,6 +84,8 @@
       <div id="soundSpace">
         <div class="spaceToolbar" role="group" aria-label="音の表示">
           <button type="button" data-sound-view="waveform" aria-pressed="true">3D波形</button>
+          <button type="button" data-sound-view="flow" aria-pressed="false">粒の流れ</button>
+          <button type="button" data-sound-view="harmonics" aria-pressed="false">倍音の層</button>
           <button type="button" data-sound-view="sculpture" aria-pressed="false">3D音の彫刻</button>
           <button type="button" data-sound-view="spectrum" aria-pressed="false">3D周波数</button>
           <button type="button" data-sound-view="heat" aria-pressed="false">ヒートマップ</button>
@@ -88,7 +98,7 @@
         <div class="viewActions"><p id="spaceCaption"></p><button type="button" id="freezeSound" class="ml-btn ml-btn--quiet" aria-pressed="false">表示を止める</button></div>
         <div class="heatLegend" hidden><span>弱い −100 dB</span><i></i><span>強い −20 dB</span></div>
         <canvas id="wave" class="wave" aria-label="最終出力の波形"></canvas>
-        <p class="spaceNote">波形・周波数は、操作後の再生出力を解析。彫刻は低・中・高域を形へ訳す表現です。周囲の音圧を測った値ではありません。</p>
+        <p class="spaceNote">どの表示も、操作後の再生出力を解析した値から描きます。彫刻は、その値で育てた形です。周囲の音圧を測った値ではありません。</p>
       </div>
       <div class="soundActions"><button id="bPlay" type="button" class="ml-btn ml-btn--primary">もう一度聴く</button><button id="bStop" type="button" class="ml-btn">■ 音を止める</button><button id="bKeep" type="button" class="ml-btn ml-btn--quiet">Aの素材にする</button></div>
       <div class="p-nav"><button class="ml-btn ml-btn--quiet" id="bPrev" type="button">← 前の音</button><button class="ml-btn ml-btn--quiet" id="bRand" type="button">偶然の一行</button><button class="ml-btn ml-btn--quiet" id="bNext" type="button">次の音 →</button></div>
@@ -122,7 +132,7 @@
 
 <!-- 何も選んでいないときの下の帯 -->
 <div id="hint" class="hint" hidden>
-  <p><span class="pc">浮かぶ点の一つ一つが、言葉です。ふれると見え、押すと音が出ます。</span><span class="spo">点の一つ一つが言葉。押すと音が出ます。</span></p>
+  <p><span class="pc">浮かぶ点の一つ一つが、言葉です。押すと何の音かが出て、もう一度押すと鳴ります。</span><span class="spo">点の一つ一つが言葉。押すと何の音か、もう一度で鳴ります。</span></p>
   <div class="worlds" aria-labelledby="worldsH">
     <p class="worlds-h" id="worldsH">九つの音の世界を、一行ずつ聴きくらべる</p>
     <div class="worlds-g" id="worldsG" role="group" aria-label="九つの音の世界"></div>
