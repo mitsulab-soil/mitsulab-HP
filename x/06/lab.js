@@ -478,7 +478,7 @@ function expActs() {
   return [[SP.paused ? "▶ 続ける" : "⏸", () => pauseSpeech(!SP.paused), false, SP.paused ? "続ける" : "一時停止"], ["⏭", skipLine, false, "このことばをとばす"],
     ["もう一度聞く", () => benchTalk(cur)], ["本物の世界では", () => { const sc = S.bench[cur.id]; talk(sc.real, expActs); }], ["外で見る", () => { showLook(cur); talk(S.bench[cur.id].look?.lines || [], expActs); }]];
 }
-// 台の話：何をまねているか → さわり方 → 本物の世界では → 外に出たら（2026-10-13 ミカタ：台の終わりに「外でこう見る」を一つ）
+// 台の話：何をまねているか → さわり方 → 本物の世界では → 外に出たら（2026-10-13 評価者パネル：台の終わりに「外でこう見る」を一つ）
 async function benchTalk(b) {
   const sc = S.bench[b.id], look = sc.look?.lines || [];
   $("outside").hidden = true;
@@ -618,7 +618,7 @@ $("helpBox").innerHTML = `<button class="btn close">とじる</button><h2>${esc(
 <p>受けとり方（Qualia）を、自分の手で試すラボです。同じ場所から何が届くかは、受けとる主体（人・生き物・機械）によって変わります。実験台を押すと、そばで${esc(NAMES.guide)}が、台が何を試しているのかと、本物の世界ではどうなるのかを話します。壁の図を押すと、ラボの考え方を話します。</p>
 <h3>うごき方</h3><ul><li>床を押す：そこへ歩く（一回に 6 m まで）</li><li>ドラッグ：見回す（実験の中では模型を回す）</li><li>実験台・壁の図・まん中の像を押す：近づく・話を聞く</li><li>キーボード：W A S D・矢印で歩く、Esc で実験からもどる</li></ul>
 <h3>実験台</h3><ul>${BENCH.map(b => `<li><b>${esc(NAMES[b.id])}</b>：${esc(S.bench[b.id].sub)}</li>`).join("")}</ul>
-<h3>外に出たら</h3><p>台の終わりに、${esc(NAMES.guide)}が、本物の景色でたしかめる見方を一つ話します。</p><ul>${BENCH.filter(b => S.bench[b.id].look).map(b => `<li><b>${esc(NAMES[b.id])}</b>（${esc(S.bench[b.id].look.when)}）：${esc(S.bench[b.id].look.lines[0].replace(/^外に出たら、/, ""))}</li>`).join("")}</ul>
+<h3>外に出たら</h3><p>台の終わりに、${esc(NAMES.guide)}が、本物の景色でたしかめることを一つ話します。</p><ul>${BENCH.filter(b => S.bench[b.id].look).map(b => `<li><b>${esc(NAMES[b.id])}</b>（${esc(S.bench[b.id].look.when)}）：${esc(S.bench[b.id].look.lines[0].replace(/^外に出たら、/, ""))}</li>`).join("")}</ul>
 <h3>ことば</h3><ul><li><b>受けとり方（Qualia）</b>：場所と、受けとる主体のあいだに立ち上がる関係。q ＝ Φ（場所, 主体）と書く。Φ は数の式ではなく、組みあわせ方を表す記号です。</li><li><b>受けとる主体</b>：人・生き物・機械。</li><li><b>碧</b>：受けとる主体ごとに一人ずつ現れる案内役。</li><li><b>Qualia Layer</b>：ほかの主体や場所の受けとり方を、人の感覚に写した一枚。何の手がかりか・どこから取ったか・どう届けるかで決まる。</li><li><b>出どころの五つの印</b>：測った値・計算の推定・資料の記載・mitsulab の問い・創作。</li></ul>
 <h3>模型と表示について</h3><p>ミツバチ・コウモリ・機械の見え方と聞こえ方は、研究にもとづいて人の目と耳に写した模式です。ほかの主体が受けとっているものそのものは、渡せません。温度・飛び方・声の間隔などは、仕組みを見るために決めた値です。このラボは、見た人の情報を、どこにも送らず、残しません（音を消す設定と、板をたたむかどうかだけ、この端末に覚えます）。</p>
 <h3>典拠</h3><ul>
