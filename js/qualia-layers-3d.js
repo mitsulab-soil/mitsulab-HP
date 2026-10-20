@@ -35,13 +35,16 @@ export async function boot(stage) {
   const key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(3, 6, 4); S.add(key);
   const rim = new THREE.DirectionalLight(0x8fe6f0, 1.1); rim.position.set(-4, 3, -3); S.add(rim);
 
+  let aoiPivot = null, person = null, standY = 0;
   const SIZE = 5.2, GAP = .62, N = LAYERS.length;   // 2026-10-20 本人「潜る」：第 0 層（いつもの風景）がいちばん上、その下へ層が重なる
   const H = SIZE / 2;
   const add = THREE.AdditiveBlending;
 
   // 地：参道の線画（冒頭の場の静止画）を、いちばん下の一枚に
   // 第 0 層：いつもの風景（参道の一区画＝石畳と欅一本）
-  const ground = new THREE.Group(); S.add(ground);
+  // 潜る：碧と主体と見る人はその場にとどまり、層の世界のほうが上へ送られていく（＝一枚ずつ下へ潜る）。碧の足の置き方（AoiMotion）を崩さないため
+  const world = new THREE.Group(); S.add(world);
+  const ground = new THREE.Group(); world.add(ground);
   {
     // 石畳（CC0：ambientCG PavingStones133。Qualia/walk 氷川の路面と同じ材・CC 管理台帳 M-0822）。縁は丸くぼかして、箱に入った模型に見せない
     const tl = new THREE.TextureLoader();
@@ -71,18 +74,18 @@ export async function boot(stage) {
   })();
   // 碧が立つ、層を縦に貫く光の軸
   const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 2.4, 0), new THREE.Vector3(0, -(N + 1) * GAP, 0)]), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false }));
-  S.add(axis);
+  world.add(axis);
   // 積層の足場：四隅の縦の線と、層ごとの目盛り（横から見て何枚重なっているかが分かる）
   {
     const pos = [], bottom = -(N + .6) * GAP;
     for (const [x, z] of [[-H, -H], [H, -H], [H, H], [-H, H]]) pos.push(x, 0, z, x, bottom, z);
     for (let i = 0; i <= N; i++) { const y = -i * GAP, L = i ? .34 : .5; pos.push(-H, y, H, -H - L, y, H, -H, y, H, -H, y, H + L); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    S.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x8bccca, transparent: true, opacity: .32, depthWrite: false })));
+    world.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x8bccca, transparent: true, opacity: .32, depthWrite: false })));
   }
   // いちばん深いところ：Qualium の光
   const deep = new THREE.Mesh(new THREE.CircleGeometry(1.7, 48), new THREE.MeshBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  deep.rotation.x = -Math.PI / 2; deep.position.y = -(N + .9) * GAP; S.add(deep);
+  deep.rotation.x = -Math.PI / 2; deep.position.y = -(N + .9) * GAP; world.add(deep);
   // 主体 S：碧のそばに立つ一人（点で描いた人のかたち。特定の人ではない）
   {
     const pts = [], add = (cx, cy, cz, rx, ry, rz, n) => { for (let i = 0; i < n; i++) { const u = Math.random() * Math.PI * 2, v = Math.acos(2 * Math.random() - 1); pts.push(cx + rx * Math.sin(v) * Math.cos(u), cy + ry * Math.cos(v), cz + rz * Math.sin(v) * Math.sin(u)); } };
@@ -90,8 +93,8 @@ export async function boot(stage) {
     add(0, 1.86, 0, .12, .14, .12, 160 * n); add(0, 1.38, 0, .2, .3, .13, 320 * n); add(0, .78, 0, .17, .36, .12, 300 * n);
     add(-.27, 1.3, 0, .06, .3, .06, 90 * n); add(.27, 1.3, 0, .06, .3, .06, 90 * n);
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    const person = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xf4aa96, size: .022, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false }));
-    person.position.set(.95, 0, .35); S.add(person);
+    person = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xf4aa96, size: .022, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false }));
+    person.position.set(.75, 0, .35); S.add(person);
   }
 
   function frame(color, op) {
@@ -189,15 +192,15 @@ export async function boot(stage) {
   const layers = LAYERS.map((L, i) => {
     const grp = new THREE.Group(); grp.position.y = -(i + 1) * GAP;
     // 厚みのある板（横から見ると断面が見える）＋板の下の薄い陰（重なりの濃さ）
-    const slabG = new THREE.BoxGeometry(SIZE, .05, SIZE);
-    const fill = new THREE.Mesh(slabG, new THREE.MeshBasicMaterial({ color: L.c, transparent: true, opacity: .085, depthWrite: false }));
+    const slabG = new THREE.BoxGeometry(SIZE, .13, SIZE);
+    const fill = new THREE.Mesh(slabG, new THREE.MeshBasicMaterial({ color: L.c, transparent: true, opacity: .14, depthWrite: false }));
     grp.add(fill);
     grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(slabG), new THREE.LineBasicMaterial({ color: L.c, transparent: true, opacity: .9, depthWrite: false })));
     const shade = new THREE.Mesh(new THREE.PlaneGeometry(SIZE * .98, SIZE * .98), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .22, depthWrite: false, side: THREE.DoubleSide }));
-    shade.rotation.x = -Math.PI / 2; shade.position.y = -.06; grp.add(shade);
-    const lift = new THREE.Group(); lift.position.y = .035; grp.add(lift);
+    shade.rotation.x = -Math.PI / 2; shade.position.y = -.1; grp.add(shade);
+    const lift = new THREE.Group(); lift.position.y = .075; grp.add(lift);
     const info = (mobile && i >= 3) ? { g: new THREE.Group() } : builders[L.key](L.c); lift.add(info.g);
-    S.add(grp);
+    world.add(grp);
     const mats = []; grp.traverse(o => { if (o.material) { mats.push([o.material, o.material.opacity]); } });
     return { grp, info, mats, t: 0, y0: grp.position.y };
   });
@@ -215,7 +218,7 @@ export async function boot(stage) {
       const pivot = new THREE.Group(); pivot.add(vrm.scene); S.add(pivot);
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);
       const bb = new THREE.Box3().setFromObject(vrm.scene), h = bb.max.y - bb.min.y;
-      const s = 2.1 / h; pivot.scale.setScalar(s); pivot.position.x = -.35;   // 人の背丈（参道の欅と釣り合う大きさ）。いちばん上の第 0 層に立ち、光の軸が足もとから下の層を貫く
+      const s = 2.1 / h; pivot.scale.setScalar(s);    // 光の軸（x=0）の上に立ち、見る人と一緒に下の層へ降りていく   // 人の背丈（参道の欅と釣り合う大きさ）。いちばん上の第 0 層に立ち、光の軸が足もとから下の層を貫く
       const { AoiMotion } = await import('./aoi_motion.js?v=20261019-v59');
       mot = new AoiMotion(vrm, { root: pivot, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
       stage.classList.add('has-aoi');
@@ -251,7 +254,11 @@ export async function boot(stage) {
     deep.material.opacity += ((all ? .32 : 0) - deep.material.opacity) * Math.min(1, dt * 2);
     // 見る人が、層を一枚ずつ下へ潜っていく（k＝重なった枚数。動きを減らす設定では真ん中の深さで止める）
     const d = reduce ? N / 2 : k;
-    const lookY = .9 - Math.min(1, d) * .9 - d * GAP;
+    // 碧と主体は、いま重なった層の上へ降りる（第 0 層＝ y 0 から、層 k の上面へ）
+    const sTarget = reduce ? 0 : -Math.max(0, Math.round(target <= LAYERS.length ? Math.min(target, LAYERS.length) : 0)) * GAP + (target > 0 ? .07 : 0);
+    standY += (sTarget - standY) * Math.min(1, dt * 1.8);
+    world.position.y = -standY;   // 層の世界を上へ送る（碧と主体は、いま重なった層の上に立つ）
+    const lookY = .9 - Math.min(1, d) * .35;
     const ang = -.62 + (reduce ? 0 : t * .04), rad = mobile ? 9.6 : 8.6;
     cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 2.5 : 2.1), Math.cos(ang) * rad);
     cam.lookAt(0, lookY, 0);

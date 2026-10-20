@@ -275,3 +275,7 @@ html[lang="en"] #top .scene-current-statement .h1-sub{font-family:var(--latin);f
 html[lang="en"] .qt-poem .poem-st{font-family:var(--latin);font-size:19px;line-height:1.75;letter-spacing:0}
 @media(max-width:700px){.qt-poem .poem-st{font-size:15px;line-height:2.05;letter-spacing:.03em;margin-bottom:26px}html[lang="en"] .qt-poem .poem-st{font-size:17px}}
 @media(max-width:700px){.q4-core{position:relative;left:auto;top:auto;transform:none;grid-column:1 / -1;justify-self:center;margin:10px 0;box-shadow:none}.q4-grid{background:transparent;border:0;gap:1px}.q4-cell{border:1px solid #8bccca33}}
+.q4-core{position:relative;left:auto;top:auto;transform:none;grid-column:1 / -1;justify-self:center;margin:12px 0 2px;box-shadow:none}
+.q4-grid{background:transparent;border:0}.q4-cell{border:1px solid #8bccca33}
+.q4-ax{font-size:11px}
+.qt-gather-lab{grid-template-columns:1fr;margin-top:22px;padding-top:18px;border-top:1px solid #8bccca22}
