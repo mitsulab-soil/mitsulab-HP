@@ -73,7 +73,7 @@ async function loadStone() {
   state.stone = '読込中';
   stonePromise = core.loader.loadAsync(new URL('tools/stone.glb', base).href).then(gltf => {
     stone = gltf.scene;
-    stone.name = '創作の道具_石の依代';
+    stone.name = '創作の道具_石の手がかり';
     const box = new THREE.Box3().setFromObject(stone), size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
     const wrapper = new THREE.Group(); wrapper.name = 'virtual_stone_tool';
     stone.position.sub(center); wrapper.add(stone); wrapper.scale.setScalar(.12 / Math.max(size.x, size.y, size.z, .001));

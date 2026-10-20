@@ -4057,7 +4057,7 @@ const LMETA = {
   "土と水": { ic: '<path d="M4 12h26"/><path d="M4 18c3 0 3 2 6 2s3-2 6-2 3 2 6 2 3-2 6-2"/><path d="M4 25c3 0 3 2 6 2s3-2 6-2 3 2 6 2 3-2 6-2"/><path d="M17 4v8"/>', inv: "足もとの台地と、湧き水の道を聞く", w: "歩いている足の下には、台地をつくる土と、ゆっくり動く水があります。見えない地面の下へ、感覚をのばします。" },
   "時のかさなり": { ic: '<path d="M6 8h22M8 12h18"/><path d="M11 12v19M23 12v19"/><path d="M6 8c4-2 18-2 22 0"/>', inv: "鳥居や石に残る、昔の手のあとを聞く", w: "鳥居や石には、ここを歩いた人の手のあとが重なっています。いまの景色の中に、昔の時間を見つけます。" },
   "生きもの": { ic: '<path d="M8 22c4-8 14-8 18 0"/><circle cx="12" cy="14" r="2"/><path d="M17 26c0 3 0 5 0 5"/><path d="M5 9c2 2 4 2 6 0M23 9c2 2 4 2 6 0"/>', inv: "並木にくらす虫や鳥の記録を聞く", w: "並木には、人の目に入りにくい小さな生きものが、それぞれの時間でくらしています。その気配を、記録からたどります。" },
-  "道と人": { ic: '<path d="M10 31L15 4M24 31L19 4"/><circle cx="12" cy="15" r="2"/><path d="M12 17v6M22 12v8"/><circle cx="22" cy="10" r="2"/>', inv: "人と木が、この道をどう分け合ってきたかを聞く", w: "人は、この道を木と分け合いながら歩いてきました。舗装や祭りや、木を見守る人の手から、人と自然の関わりを見なおします。" },
+  "道と人": { ic: '<path d="M10 31L15 4M24 31L19 4"/><circle cx="12" cy="15" r="2"/><path d="M12 17v6M22 12v8"/><circle cx="22" cy="10" r="2"/>', inv: "人と木が、この道をどう分け合ってきたかを聞く", w: "人は、この道を木と分け合いながら歩いてきました。舗装や祭りや、木を見守る人の手から、人と自然の関わりを一枚の層として重ねます。" },
 };
 function cardsHTML() { return LAYERS.map(l => `<button type="button" role="radio" data-l="${l}" aria-checked="${l === layer}"><svg viewBox="0 0 34 34" aria-hidden="true">${LMETA[l]?.ic ?? ""}</svg><div><b>${l}</b><span>${LMETA[l]?.inv ?? ""}</span></div></button>`).join(""); }
 function worldHTML() { if (ONE) return `<h1 style="margin:0 0 6px;font-family:var(--title);font-size:22px;letter-spacing:.04em;font-weight:600">${esc(W.title ?? "")}</h1><p>${esc(W.world_intro?.[0] ?? "")}</p><p>${esc(R11.world ?? "")}</p><p>${esc(W.world_intro?.[1] ?? "")}</p>${W.kakera ? `<p style="font-family:var(--ui);font-size:13px;color:var(--sub)">${esc(W.kakera.lead ?? "")}</p>` : ""}`;
@@ -7020,7 +7020,7 @@ window.__talk = { OT, otoNext, otoWhere, ACT, TALKCUT, SUBLOG, subPlan, actGo, a
        若木は、今の並木の列の、木と木のあいだが空いた所（並木敷き）だけに置く。道（歩ける帯）・交差点・辻の上には置かない。 */
 const ERA = (() => {
   let detailModule=null,detailPromise=null;
-  const loadDetail=()=>detailPromise||=(import(new URL("web/era-realism.js?v=20261018photo2",document.baseURI).href).then(m=>detailModule=m));
+  const loadDetail=()=>detailPromise||=(import(new URL("web/era-realism.js?v=20261020w10",document.baseURI).href).then(m=>detailModule=m));
   const YEAR = { jomon: -2000, edo: 1853, heisei: 2009, now: 2026, future: 2070 };
   /* 旧中山道（OSM way 229374360・902201042・229374361・22787637・770781584・617420258・908969484 をつないで 8 m ごとに間引いた線。x＝東・z＝南・m）。
      12 番目の点が一の鳥居の辻（参道の南の端）。北は 3D の範囲の外まで */
@@ -7851,8 +7851,8 @@ window.__era={check:()=>ERA.check(),info:()=>ERA.info,choose:id=>chooseJourneyEr
 
 <script src="web/qualium.js?v=20261019layers3"></script>
 <script src="web/layer-overlay.js?v=20261020np2" defer></script>
-<script src="web/umwelt-tools.js?v=20261018-senses"></script>
-<script type="module" src="web/physical-materials.js?v=20261019court2"></script>
+<script src="web/umwelt-tools.js?v=20261020w9"></script>
+<script type="module" src="web/physical-materials.js?v=20261020w9"></script>
 <script data-source="umwelt-ui.js">
 /* Presentation only: keep native details, checkboxes and existing event handlers. */
 (() => {
