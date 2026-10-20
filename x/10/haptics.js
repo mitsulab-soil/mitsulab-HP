@@ -81,52 +81,79 @@ export class Vibe {
   stop() { if (this.ok) try { navigator.vibrate(0); } catch (e) { /* 何もしない */ } }
 }
 
-// 触れ心地の音（Web Audio で合成。外の音源は使わない）。
-// 振動の一回ごとに、短い「ざらっ」「こつ」を一粒鳴らす。粗さ＝雑音の多さ、硬さ＝明るさと短さ、強さ＝音量。
-// 最初に触れたとき（利用者の操作のあと）に音の道具をつくる＝自動再生の制限を守る。
+// 触れた音（実際にその物に触れた・なでた・たたいた録音から鳴らす。録音はすべて Freesound の CC0）。
+// 振動の一回ごとに、なでる音の帯から短い一粒を切り出して鳴らす（グラニュラー）。
+// 速さ＝再生の速さと明るさ、強さ＝音量と、帯のどの辺り（静か〜ざらつく所）を使うか、粗さ＝粒の短さとむら、硬さ＝高い音の通り。
+// 音のファイルは、最初に触れたとき（利用者の操作のあと）に、いまの素材の分だけ読む＝自動再生の制限を守り、起動を遅らせない。
 export class Sonic {
-  constructor() {
+  constructor(sounds, base = "snd/") {
     this.AC = typeof window !== "undefined" ? (window.AudioContext || window.webkitAudioContext) : null;
-    this.ok = !!this.AC; this.on = this.ok; this.ctx = null; this.d = null; this.p = null;
+    this.ok = !!this.AC && typeof fetch !== "undefined"; this.on = this.ok; this.ctx = null; this.p = null; this.p0 = null;
+    this.S = sounds; this.base = base; this.mat = null; this.bufs = new Map(); this.dec = new Map(); this.lv = new Map();
     try { if (localStorage.getItem("qt-sound") === "off") this.on = false; } catch (e) { /* 保存できない端末は入から */ }
   }
-  setSurface(params) { this.p = params; this.d = derive(params); }
+  setSurface(params, p0) { this.p = params; this.p0 = p0 || params; }
+  setMaterial(m) { if (!this.S[m]) return; this.mat = m; if (this.ctx) this.load(m); }
+  load(m) {
+    if (this.bufs.has(m)) return this.bufs.get(m);
+    const pr = fetch(this.base + m + ".m4a").then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(ab => new Promise((ok, ng) => { const q = this.ctx.decodeAudioData(ab, ok, ng); if (q && q.catch) q.catch(ng); }))
+      .then(buf => {   // なでる音の帯を 10 ms ごとの大きさにし、静か〜大きい順に並べておく（強さで使う所を選ぶ）
+        const d = buf.getChannelData(0), sr = buf.sampleRate, [s0, sl] = this.S[m].stroke, hop = Math.round(sr * .01), a = Math.round(s0 * sr), n = Math.floor(sl * sr / hop) - 12, env = [];
+        for (let i = 0; i < n; i++) { let e = 0; for (let k = 0; k < hop; k++) { const v = d[a + i * hop + k] || 0; e += v * v; } env.push([i * hop / sr + s0, e]); }
+        env.sort((x, y) => x[1] - y[1]); this.lv.set(m, env); this.dec.set(m, buf); return buf;
+      })
+      .catch(e => { this.bufs.delete(m); console.warn("音を読めませんでした", m, e); return null; });
+    this.bufs.set(m, pr); return pr;
+  }
   wake() {                                   // pointerdown の中で呼ぶ
     if (!this.ok || !this.on) return;
     try {
       if (!this.ctx) {
         const c = this.ctx = new this.AC();
-        this.master = c.createGain(); this.master.gain.value = .5;
-        const comp = c.createDynamicsCompressor(); comp.threshold.value = -20; comp.knee.value = 12; comp.ratio.value = 8; comp.attack.value = .002; comp.release.value = .12;
+        this.master = c.createGain(); this.master.gain.value = .42;           // 控えめに
+        const comp = c.createDynamicsCompressor(); comp.threshold.value = -22; comp.knee.value = 10; comp.ratio.value = 6; comp.attack.value = .003; comp.release.value = .15;
         this.master.connect(comp); comp.connect(c.destination);
-        const n = c.createBuffer(1, c.sampleRate, c.sampleRate), d = n.getChannelData(0);
-        let b = 0; for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; b = .97 * b + .03 * w; d[i] = w * .7 + b * 2.2; }   // 白い雑音に少し低い成分を混ぜる
-        this.noise = n;
       }
       if (this.ctx.state !== "running") this.ctx.resume().catch(() => {});
+      if (this.mat) this.load(this.mat);
     } catch (e) { this.ok = false; }
   }
   sleep() { if (this.ctx && this.ctx.state === "running") this.ctx.suspend().catch(() => {}); }
-  // 一粒：ms＝振動の長さ、amp＝強さ（0..1）
-  grain(ms, amp, kind = "stroke") {
-    if (!this.ok || !this.on || !this.ctx || this.ctx.state !== "running" || !this.p) return;
-    const c = this.ctx, t = c.currentTime + .005, p = this.p;
-    const center = kind === "tap" ? 180 + 1500 * p.hard ** 1.3 : 260 + 2600 * p.hard ** 1.2 + 500 * p.rough;   // 硬いほど明るい
-    const dur = Math.max(.012, Math.min(.12, ms / 1000 * (kind === "tap" ? 2.2 : 1.1) * (1.25 - .55 * p.hard) * (1 + .6 * p.spring)));
-    const vol = Math.min(1, amp) * (kind === "tap" ? .16 : .22) * (.55 + .45 * p.rough);
-    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + Math.min(.004, dur * .2)); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
-    const f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = center * (.9 + Math.random() * .2); f.Q.value = .8 + 5 * (1 - p.rough);   // なめらかなほど音の高さがはっきりする
-    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900 + 5200 * p.hard;                                               // やわらかいほど高い音が鈍る
-    const s = c.createBufferSource(); s.buffer = this.noise; s.connect(f); f.connect(lp); lp.connect(g); g.connect(this.master);
-    s.start(t, Math.random() * .8, dur + .02);
-    if (p.rough < .5 || kind === "tap") {   // なめらか・硬い面は、雑音に小さな響きを足す（金属・石の「こつ」）
-      const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.value = center;
-      const ov = vol * (kind === "tap" ? .9 : .6) * (1 - p.rough) * p.hard;
-      og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(ov, t + .003); og.gain.exponentialRampToValueAtTime(.0005, t + dur * 1.4);
-      o.connect(og); og.connect(this.master); o.start(t); o.stop(t + dur * 1.4 + .02);
-    }
+  ready() { return this.ok && this.on && this.ctx && this.ctx.state === "running" && this.p && this.mat; }
+  // 鳴らす。buf の [at, len] を、rate の速さ・vol の大きさ・cut の高い音の通りで
+  play(buf, at, len, rate, vol, cut, atk) {
+    const c = this.ctx, t = c.currentTime + .004, dur = len / rate;
+    const s = c.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate;
+    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = Math.min(18000, cut); lp.Q.value = .5;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + atk);
+    g.gain.setValueAtTime(vol, t + Math.max(atk, dur * .55)); g.gain.linearRampToValueAtTime(0, t + dur);
+    s.connect(lp); lp.connect(g); g.connect(this.master); s.start(t, at, len + .01); s.stop(t + dur + .03);
   }
-  tap() { this.grain(14, .7, "tap"); }
+  level(m) { return Math.min(6, 10 ** ((-24 - (this.S[m].rms_db ?? -24)) / 20)) * (this.S[m].tone?.gain ?? 1); }   // 素材ごとの大きさをそろえ、味付けを掛ける
+  // 一粒：ms＝振動の長さ、amp＝強さ（0..1）、speed＝なぞる速さ（mm/s）
+  grain(ms, amp, speed = 60) {
+    if (!this.ready()) return;
+    const m = this.mat, buf = this.dec.get(m); if (!buf) { this.load(m); return; }
+    const p = this.p, p0 = this.p0, env = this.lv.get(m); if (!env || !env.length) return;
+    const dr = p.rough - p0.rough, dh = p.hard - p0.hard;
+    // 強く当たるほど、帯の中の大きい（ざらつく）所から。粗さを上げるとむらを大きく
+    const tn = this.S[m].tone || {}, q0 = tn.qmin ?? 0;
+    const q = Math.min(.98, Math.max(q0, .25 + .7 * Math.min(1, amp) + (Math.random() - .5) * (.3 + .4 * Math.max(0, dr))));
+    const at = env[Math.floor(q * (env.length - 1))][0] + Math.random() * .008;
+    const len = Math.max(.045, Math.min(.16, (.06 + ms / 1000 * 2.4) * (1 - .45 * Math.max(0, dr))));
+    const rate = Math.max(.7, Math.min(1.5, (.84 + Math.min(1, speed / 220) * .42) * (tn.rate ?? 1) * (1 + .18 * dh) * (1 + (Math.random() - .5) * .05)));
+    const vol = Math.min(1, amp) ** 1.1 * .5 * this.level(m) * (.55 + .45 * Math.min(1, speed / 90));
+    const cut = Math.min(tn.cut ?? 18000, (2600 + 14000 * Math.min(1, .25 + speed / 200 + amp * .4)) * 2 ** (dh * 1.6));
+    this.play(buf, at, len, rate, vol, cut, Math.min(.012, len * .25));
+  }
+  tap() {
+    if (!this.ready()) return;
+    const m = this.mat, buf = this.dec.get(m); if (!buf) return;
+    const T = this.S[m].taps; if (!T.length) return; const [at, len] = T[Math.floor(Math.random() * T.length)];
+    const dh = this.p.hard - this.p0.hard, tn = this.S[m].tone || {};
+    this.play(buf, at, len, (tn.rate ?? 1) * (1 + .2 * dh) * (1 + (Math.random() - .5) * .04), .38 * Math.min(1, tn.gain ?? 1), Math.min(tn.cut ?? 18000, 18000 * 2 ** (Math.min(0, dh) * 2)), .002);
+  }
   setOn(on) { this.on = on && this.ok; try { localStorage.setItem("qt-sound", on ? "on" : "off"); } catch (e) { /* 何もしない */ } if (!on) this.sleep(); }
 }
 
