@@ -300,3 +300,6 @@ html.simple #top .beat-hero{position:relative;top:auto;left:auto;right:auto;tran
 html.simple #why .scene-words{padding-top:0}
 .scene-static .mission .ch{opacity:1;transform:none;filter:none}
 html.simple #top .beat-mission{margin-top:28px}
+/* 2026-10-20 夜 本人「Qualia Lab のカードにも写真を」：Museum と同じ並び（絵＋文）。狭い画面は縦に */
+.qt-gather-lab.has-img{grid-template-columns:minmax(0,440px) 1fr}
+@media(max-width:860px){.qt-gather-lab.has-img{grid-template-columns:1fr}}
