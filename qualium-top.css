@@ -233,3 +233,45 @@ html[lang="en"] #top .scene-current-statement .h1-sub{font-family:var(--latin);f
 .qt-stack-end h3{word-break:keep-all;overflow-wrap:anywhere}
 .qt-layer .ql-card{border-top-style:dashed}
 @media(max-width:860px){.qt-layer,.qt-stack-end{scroll-margin-top:calc(64px + 44svh + 48px)}}
+/* 2026-10-20 三回目：潜る向き。層の深さの目盛り（左の縦の札） */
+.qt-depth{position:absolute;left:10px;top:12%;bottom:16%;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;justify-content:space-between;z-index:2;pointer-events:none;border-left:1px solid #8bccca33}
+.qt-depth li{display:flex;gap:8px;align-items:center;padding-left:8px;font:400 10px/1.2 var(--mono);letter-spacing:.12em;color:#8f9bb466;transition:color .4s}
+.qt-depth li .qd-n{display:inline-block;min-width:1.2em;color:inherit}
+.qt-depth li.on{color:#b9d9d4}
+.qt-depth li.now{color:#f4fbff}
+.qt-depth li.now::before{content:"";position:absolute;left:-3px;width:5px;height:5px;border-radius:50%;background:#a8f2f6}
+@media(max-width:860px){.qt-depth{left:4px;top:10%;bottom:20%}.qt-depth li{font-size:9px;letter-spacing:.06em}.qt-depth li span:not(.qd-n){display:none}}
+.qt-depth li{position:relative}
+/* 2026-10-20 Qualium の構造の表（考え方の注の中） */
+.qt-struct{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:14.5px;line-height:1.85}
+.qt-struct th,.qt-struct td{text-align:left;vertical-align:top;padding:10px 0;border-bottom:1px solid #8bccca1c;font-weight:400;color:var(--ink-2)}
+.qt-struct th{width:15em;padding-right:18px;color:var(--ink)}
+.qt-struct .qs-k{display:inline-block;width:1.6em;font:400 12px/1.8 var(--mono);color:#8bccca}
+.qt-end-aoi{color:#a8f2f6!important}
+@media(max-width:700px){.qt-struct th,.qt-struct td{display:block;width:auto;padding:4px 0}.qt-struct th{padding-top:12px;border-bottom:0}}
+/* 2026-10-20 定式化のプルダウン：四象限・式 */
+.q4{position:relative;margin:18px 0 10px;padding:26px 0 26px 28px}
+.q4-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:1px;background:#8bccca33;border:1px solid #8bccca44}
+.q4-cell{background:#060d18;padding:18px 18px 22px;display:grid;gap:6px;min-height:118px}
+.q4-env.q4-phys{border-top:2px solid #c9a27a}.q4-env.q4-dig{border-top:2px solid #78b8ec}.q4-sub.q4-phys{border-top:2px solid #f4aa96}.q4-sub.q4-dig{border-top:2px solid #a8f2f6}
+.q4-t{font:400 16px/1.6 var(--serif);color:var(--ink)}
+.q4-d{font-size:13.5px;line-height:1.8;color:var(--ink-2)}
+.q4-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#03060f;border:1px solid #a8f2f6;border-radius:999px;padding:10px 18px;text-align:center;box-shadow:0 0 0 6px #03060f}
+.q4-core span{display:block;font:400 italic 20px/1.2 var(--latin);color:#f4fbff}
+.q4-core small{display:block;font:400 11px/1.6 var(--mono);color:#a8f2f6;letter-spacing:.04em}
+.q4-ax{position:absolute;font:400 10px/1.4 var(--mono);letter-spacing:.18em;color:#8bccca}
+.q4-ax-x1{top:4px;left:28px}.q4-ax-x2{top:4px;right:0}
+.q4-ax-y1{left:0;top:30%;writing-mode:vertical-rl;transform:rotate(180deg)}.q4-ax-y2{left:0;bottom:12%;writing-mode:vertical-rl;transform:rotate(180deg)}
+.qf-row{padding:12px 0;border-bottom:1px solid #8bccca1c}
+.qf-eq{font:400 17px/1.9 "Cambria Math","STIX Two Math","Times New Roman",serif;color:#f4fbff;margin:0 0 6px!important;overflow-wrap:anywhere}
+.qf-eq sub{font-size:.7em}
+.qt-formal{margin-top:-20px}
+.qt-story p{margin-bottom:22px}
+.pf-story-h{font:400 20px/1.8 var(--serif);color:var(--ink);margin-top:8px}
+@media(max-width:700px){.q4{padding-left:22px}.q4-cell{padding:14px 12px 18px;min-height:150px}.q4-t{font-size:14.5px}.q4-d{font-size:12.5px}.q4-core{padding:8px 12px}.q4-core span{font-size:17px}.qf-eq{font-size:15px}}
+@media(max-width:700px){.qt-stack-end h3{font-size:23px;letter-spacing:.04em}}
+/* 2026-10-20 創業ストーリー（詩の版）：行の区切りと連の余白 */
+.qt-poem .poem-st{font:400 16.5px/2.15 var(--serif);letter-spacing:.06em;color:var(--ink-2);margin:0 0 30px;word-break:keep-all;overflow-wrap:anywhere}
+html[lang="en"] .qt-poem .poem-st{font-family:var(--latin);font-size:19px;line-height:1.75;letter-spacing:0}
+@media(max-width:700px){.qt-poem .poem-st{font-size:15px;line-height:2.05;letter-spacing:.03em;margin-bottom:26px}html[lang="en"] .qt-poem .poem-st{font-size:17px}}
+@media(max-width:700px){.q4-core{position:relative;left:auto;top:auto;transform:none;grid-column:1 / -1;justify-self:center;margin:10px 0;box-shadow:none}.q4-grid{background:transparent;border:0;gap:1px}.q4-cell{border:1px solid #8bccca33}}
