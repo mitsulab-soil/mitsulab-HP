@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="tdm-reservation" content="1">
+<meta name="robots" content="noai, noimageai">
+<title>Qualia/touch ／ mitsulab</title>
+<meta name="description" content="布、樹皮、金属、水面、生き物の模様、絵。触覚にしたい画像を一枚選ぶと、凹凸の面が立ち上がる。硬さや弾みを合わせて、指先に届く触れ心地を組み立てる。">
+<meta property="og:title" content="Qualia/touch ／ mitsulab">
+<meta property="og:description" content="布、樹皮、金属、水面、生き物の模様、絵。触覚にしたい画像を一枚選ぶと、凹凸の面が立ち上がる。硬さや弾みを合わせて、指先に届く触れ心地を組み立てる。">
+<meta name="theme-color" content="#03060f">
+<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css?v=20261020">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
+<link rel="modulepreload" href="app.js?v=20261020">
+<link rel="modulepreload" href="vendor/three/build/three.module.js">
+<link rel="modulepreload" href="i18n.js">
+<link rel="modulepreload" href="haptics.js">
+<link rel="modulepreload" href="estimate.js">
+<link rel="preload" as="image" href="tex/bark_c.webp" type="image/webp">
+<link rel="preload" as="image" href="tex/bark_n.webp" type="image/webp">
+<link rel="preload" as="image" href="tex/bark_h.webp" type="image/webp">
+</head>
+<body class="ml-root">
+<script src="loader/loader.js" data-title="Qualia/touch" data-en="touch, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>
+
+<div id="stage">
+  <canvas id="cv" aria-label="10 cm 四方の表面の 3D。指でなぞる・押すと、触れ心地の波が描かれる"></canvas>
+  <header class="top">
+    <div class="brand">
+      <span class="ml-kicker" data-t="kicker">mitsulab ／ 触れる</span>
+      <h1 class="ml-title">Qualia/touch</h1>
+    </div>
+    <nav class="tools" aria-label="道具">
+      <div class="ml-seg lang" role="group" aria-label="Language">
+        <button type="button" data-lang="ja" aria-pressed="true">日本語</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <button class="ml-btn ml-btn--quiet" id="bView" type="button"><span data-t="view">向き</span>：<span id="viewName" data-t="view.0">斜め</span></button>
+      <button class="ml-btn ml-btn--quiet" id="bAbout" type="button" data-t="about">この作品</button>
+    </nav>
+  </header>
+  <div id="aoiBox" class="ml-panel--corner" aria-hidden="true"></div>
+  <p id="cap" class="ml-caption" aria-live="polite"></p>
+  <div id="origin" class="origin"><span class="ml-label" data-layer="info" id="originT">見本の写真の凹凸</span></div>
+  <div id="scaleL" class="scaleL" data-t="scale">10 cm</div>
+  <div id="wave" class="wave">
+    <canvas id="wv" aria-hidden="true"></canvas>
+    <p id="waveHint" class="wave-hint" data-t="wave.hint">なぞると、指先に届く振動の波（模式）がここに描かれます</p>
+    <span class="ml-label wave-model" data-layer="info" data-t="wave.model">模式</span>
+    <dl class="reads">
+      <div><dt data-t="r.speed">速さ</dt><dd><span id="rSpeed">0</span> mm/s</dd></div>
+      <div><dt data-t="r.freq">振動</dt><dd><span id="rFreq">0</span> Hz</dd></div>
+      <div><dt data-t="r.amp">強さ</dt><dd><span id="rAmp">0</span></dd></div>
+      <div><dt data-t="r.dent">へこみ</dt><dd><span id="rDent">0.0</span> mm</dd></div>
+    </dl>
+  </div>
+  <div id="busy" class="busy" hidden><span data-t="busy">凹凸をつくっています</span></div>
+</div>
+
+<main id="panel">
+  <p class="intro" data-t="intro">布、樹皮、金属、水面、生き物の模様、絵。触覚にしたい画像を一枚選ぶと、凹凸の面が立ち上がる。硬さや弾みを合わせて、指先に届く触れ心地を組み立てる。</p>
+
+  <section aria-labelledby="hS">
+    <h2 id="hS" class="sec" data-t="sec.surface">表面</h2>
+    <div class="chips" id="chips" role="group" aria-labelledby="hS">
+      <button type="button" class="chip" data-s="photo" aria-pressed="false" hidden><canvas id="photoThumb" width="48" height="48"></canvas><span><b data-t="s.photo">写真</b><small data-t="s.photo.sub">あなたの一枚</small></span></button>
+    </div>
+    <div class="row">
+      <label class="ml-btn ml-btn--primary file"><input type="file" id="fPick" accept="image/*"><span data-t="btn.pick">触覚にしたい画像を選ぶ</span></label>
+      <label class="ml-btn file"><input type="file" id="fShoot" accept="image/*" capture="environment"><span data-t="btn.shoot">写真を撮る</span></label>
+    </div>
+    <p class="note" data-t="privacy">選んだ画像は、この端末の中だけで凹凸に変えます。どこにも送らず、残しません。</p>
+    <p class="err" id="err" role="alert" hidden></p>
+  </section>
+
+  <section aria-labelledby="hT">
+    <h2 id="hT" class="sec" data-t="sec.touch">触れ方</h2>
+    <div class="sliders" id="sliders"></div>
+    <p class="note" data-t="p.note">つまみの値は模式です。見本の初期値も、測った値ではありません。</p>
+    <div class="row">
+      <button class="ml-btn" id="bReset" type="button" data-t="reset">初期値に戻す</button>
+      <button class="ml-btn" id="bVib" type="button" aria-pressed="true" hidden data-t="vib.on">振動 入</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="hL">
+    <h2 id="hL" class="sec" data-t="sec.layer">触覚の層（触れ心地のデータ）</h2>
+    <p class="body" data-t="layer.desc"></p>
+    <div class="row">
+      <button class="ml-btn" id="bShow" type="button" data-t="btn.show">層を見る</button>
+      <button class="ml-btn ml-btn--primary" id="bSave" type="button" data-t="btn.save">触れ心地を保存（JSON）</button>
+    </div>
+  </section>
+
+  <footer class="foot"><p data-t="foot">© 2026 mitsulab. All rights reserved.</p></footer>
+</main>
+
+<dialog id="dlgAbout" class="dlg ml-panel">
+  <div class="dlg-in">
+    <p class="ml-kicker">mitsulab</p>
+    <h2 class="ml-title" data-t="about.h">Qualia/touch</h2>
+    <p data-t="about.lead"></p>
+    <h3 data-t="about.h1"></h3><p data-t="about.p1"></p>
+    <h3 data-t="about.h2"></h3><p data-t="about.p2"></p>
+    <h3 data-t="about.h3"></h3><p data-t="about.p3"></p>
+    <h3 data-t="about.h4"></h3><p data-t="about.p4"></p>
+    <details class="ml-fold"><summary data-t="about.h5"></summary><p data-t="about.p5"></p></details>
+    <p class="copy"><span data-t="contact">お問い合わせ</span>：<a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><br><span data-t="copy"></span></p>
+    <button class="ml-btn" type="button" data-close data-t="close">閉じる</button>
+  </div>
+</dialog>
+<dialog id="dlgLayer" class="dlg ml-panel">
+  <div class="dlg-in">
+    <h2 class="ml-title" data-t="dlg.layer">触覚の層</h2>
+    <pre id="layerPre"></pre>
+    <div class="row">
+      <button class="ml-btn ml-btn--primary" id="bSave2" type="button" data-t="btn.save">触れ心地を保存（JSON）</button>
+      <button class="ml-btn" type="button" data-close data-t="close">閉じる</button>
+    </div>
+  </div>
+</dialog>
+
+<script type="module" src="app.js?v=20261020"></script>
+</body>
+</html>
