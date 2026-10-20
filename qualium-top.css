@@ -279,3 +279,24 @@ html[lang="en"] .qt-poem .poem-st{font-family:var(--latin);font-size:19px;line-h
 .q4-grid{background:transparent;border:0}.q4-cell{border:1px solid #8bccca33}
 .q4-ax{font-size:11px}
 .qt-gather-lab{grid-template-columns:1fr;margin-top:22px;padding-top:18px;border-top:1px solid #8bccca22}
+/* 2026-10-20 夜 本人「層は上に重ねていく」「アニメーションにレイヤーの表現も」：深さの目盛りは下から上へ（0 がいちばん下）。新しく重なった板に名前と一言の札 */
+.qt-depth{flex-direction:column-reverse}
+.ql3d-tag{position:absolute;left:0;top:0;margin:0;max-width:min(19em,54%);padding:8px 12px 9px;border-left:2px solid var(--c,#8bccca);background:linear-gradient(90deg,rgba(3,6,15,.82),rgba(3,6,15,.45));pointer-events:none;opacity:0;transition:opacity .6s ease;z-index:3;will-change:transform}
+.ql3d-tag.on{opacity:1}
+.ql3d-tag .qt-n{display:block;font:400 italic 17px/1.3 var(--latin);color:var(--c,#f4fbff);letter-spacing:.02em}
+.ql3d-tag .qt-l{display:block;font:400 14px/1.75 var(--serif);color:#e8f1f4;letter-spacing:.04em;margin-top:2px}
+html[lang="en"] .ql3d-tag .qt-l{font-family:var(--latin);font-size:15px;letter-spacing:0}
+@media(prefers-reduced-motion:reduce){.ql3d-tag{display:none}}
+.qt-layer .ql-line{display:block;font:400 18px/1.75 var(--serif);color:var(--ink);letter-spacing:.04em}
+html[lang="en"] .qt-layer .ql-line{font-family:var(--latin);font-size:19px;letter-spacing:0}
+/* 2026-10-20 夜 本人：スマホは TOP のアニメーションと層の 3D を出さない（文字と静かな見た目）。html.simple は head の小さな script が 700px 以下で付ける */
+html.simple .qt-stack-stage{display:none}
+html.simple .qt-stack{display:block}
+html.simple .qt-layer,html.simple .qt-stack-end{scroll-margin-top:80px}
+html.simple .qt-layer{opacity:1!important}
+html.simple #why .scene-cv,html.simple #why .scene-labs{display:none}
+html.simple #why .scene-poster{position:relative;display:block;width:100%;height:52svh;max-height:480px;object-fit:cover;opacity:.5;-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent)}
+html.simple #top .beat-hero{position:relative;top:auto;left:auto;right:auto;transform:none;margin-top:-30svh;padding:0 0 8px}
+html.simple #why .scene-words{padding-top:0}
+.scene-static .mission .ch{opacity:1;transform:none;filter:none}
+html.simple #top .beat-mission{margin-top:28px}

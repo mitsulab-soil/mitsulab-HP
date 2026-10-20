@@ -1,7 +1,8 @@
 // Qualia Layer の 3D（2026-10-19 本人「レイヤーであることを表現するアニメーションに」「情報量を増やすレイヤーを３d上で表現」「中央に碧の３dモデル」）
 // TOP の 3D の描画は二つまで：冒頭の場（参道）と、この層の図。前の「3D の循環の図」はこれと入れ替えた。
 // ・画面に近づいてから読む（three・碧の VRM は冒頭の場と同じものを使い回す）・画面の外とタブを隠したときは止める・スマホは軽く（画素 1・アンチエイリアスなし・点を減らす）
-// ・層は七枚（walk・sight・sound・touch・heart・rakugo・song）。スクロールで見えている札の番号まで一枚ずつ降りてきて重なり、重なるほど線と点（情報）が増える
+// ・層は七枚（walk・sight・sound・touch・heart・rakugo・song）。スクロールで見えている札の番号まで、一枚ずつ上へ積み重なり、重なるほど線と点（情報）が増える
+// ・2026-10-20 夜 本人「層は地下に潜るのではなく、上に重ねていく」「アニメーションにレイヤーの表現も」：層は第 0 層（いつもの風景）の上へ積む。新しい層が重なるとき、その板に名前と一言の札が寄りそう
 // ・線と点は創作の模式（実測の値ではない）。碧は kit v5.9（uprightWeight:.9）
 import * as THREE from 'three';
 
@@ -15,6 +16,7 @@ const LAYERS = [
   { key: 'rakugo', c: 0xf08a6c },
   { key: 'song',   c: 0xf4fbff },
 ];
+// 札の一言は、TOP の層の一覧（.ql-line）と同じ文を読む（日英の切りかえもそこに従う）
 
 export async function boot(stage) {
   const mobile = innerWidth < 860 || matchMedia('(pointer:coarse)').matches;
@@ -35,14 +37,13 @@ export async function boot(stage) {
   const key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(3, 6, 4); S.add(key);
   const rim = new THREE.DirectionalLight(0x8fe6f0, 1.1); rim.position.set(-4, 3, -3); S.add(rim);
 
-  let aoiPivot = null, person = null, standY = 0;
-  const SIZE = 5.2, GAP = .62, N = LAYERS.length;   // 2026-10-20 本人「潜る」：第 0 層（いつもの風景）がいちばん上、その下へ層が重なる
+  let aoiPivot = null, person = null, standY = 0, treeObj = null;
+  const SIZE = 5.2, GAP = .62, N = LAYERS.length;   // 第 0 層（いつもの風景）がいちばん下、その上へ層が積み重なる
   const H = SIZE / 2;
   const add = THREE.AdditiveBlending;
 
-  // 地：参道の線画（冒頭の場の静止画）を、いちばん下の一枚に
   // 第 0 層：いつもの風景（参道の一区画＝石畳と欅一本）
-  // 潜る：碧と主体と見る人はその場にとどまり、層の世界のほうが上へ送られていく（＝一枚ずつ下へ潜る）。碧の足の置き方（AoiMotion）を崩さないため
+  // 重なる：碧と主体は、いちばん新しい層の上に立つ。見る位置を保つため、層の世界のほうを下へ送る（碧の足の置き方〈AoiMotion〉を崩さないため）
   const world = new THREE.Group(); S.add(world);
   const ground = new THREE.Group(); world.add(ground);
   {
@@ -69,23 +70,23 @@ export async function boot(stage) {
       const tree = new THREE.Group(); g.scene.traverse(o => { if (!o.isMesh) return; const mesh = new THREE.Mesh(o.geometry, /leaf|leaves/i.test(o.name) ? leaf : bark); mesh.applyMatrix4(o.matrixWorld); tree.add(mesh); });
       const bb = new THREE.Box3().setFromObject(tree), sz = bb.getSize(new THREE.Vector3()), sc = 3.3 / sz.y;
       tree.scale.setScalar(sc); tree.position.set(-1.45 - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, -1.25 - (bb.min.z + sz.z / 2) * sc);
-      ground.add(tree); window.__qlTree = { ok: true, h: 3.3, pos: tree.position.toArray().map(v => +v.toFixed(2)) }; kick();
+      ground.add(tree); treeObj = tree; window.__qlTree = { ok: true, h: 3.3, pos: tree.position.toArray().map(v => +v.toFixed(2)) }; kick();
     } catch (e) { window.__qlTree = { ok: false, e: String(e) }; console.warn('qualia layer tree', e); }
   })();
   // 碧が立つ、層を縦に貫く光の軸
-  const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 2.4, 0), new THREE.Vector3(0, -(N + 1) * GAP, 0)]), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, (N + 1) * GAP + 2.4, 0), new THREE.Vector3(0, -.3, 0)]), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false }));
   world.add(axis);
   // 積層の足場：四隅の縦の線と、層ごとの目盛り（横から見て何枚重なっているかが分かる）
   {
-    const pos = [], bottom = -(N + .6) * GAP;
-    for (const [x, z] of [[-H, -H], [H, -H], [H, H], [-H, H]]) pos.push(x, 0, z, x, bottom, z);
-    for (let i = 0; i <= N; i++) { const y = -i * GAP, L = i ? .34 : .5; pos.push(-H, y, H, -H - L, y, H, -H, y, H, -H, y, H + L); }
+    const pos = [], top = (N + .6) * GAP;
+    for (const [x, z] of [[-H, -H], [H, -H], [H, H], [-H, H]]) pos.push(x, 0, z, x, top, z);
+    for (let i = 0; i <= N; i++) { const y = i * GAP, L = i ? .34 : .5; pos.push(-H, y, H, -H - L, y, H, -H, y, H, -H, y, H + L); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     world.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x8bccca, transparent: true, opacity: .32, depthWrite: false })));
   }
-  // いちばん深いところ：Qualium の光
+  // 重なりのいちばん上：Qualium の光（七枚が重なったとき）
   const deep = new THREE.Mesh(new THREE.CircleGeometry(1.7, 48), new THREE.MeshBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  deep.rotation.x = -Math.PI / 2; deep.position.y = -(N + .9) * GAP; world.add(deep);
+  deep.rotation.x = -Math.PI / 2; deep.position.y = N * GAP + .16; world.add(deep);
   // 主体 S：碧のそばに立つ一人（点で描いた人のかたち。特定の人ではない）
   {
     const pts = [], add = (cx, cy, cz, rx, ry, rz, n) => { for (let i = 0; i < n; i++) { const u = Math.random() * Math.PI * 2, v = Math.acos(2 * Math.random() - 1); pts.push(cx + rx * Math.sin(v) * Math.cos(u), cy + ry * Math.cos(v), cz + rz * Math.sin(v) * Math.sin(u)); } };
@@ -190,7 +191,7 @@ export async function boot(stage) {
 
   // 375px では、線と点の情報を描くのは三枚（walk・sight・sound）まで。四枚目からは板の枠だけ（数と絵をそろえ、軽く）
   const layers = LAYERS.map((L, i) => {
-    const grp = new THREE.Group(); grp.position.y = -(i + 1) * GAP;
+    const grp = new THREE.Group(); grp.position.y = (i + 1) * GAP;
     // 厚みのある板（横から見ると断面が見える）＋板の下の薄い陰（重なりの濃さ）
     const slabG = new THREE.BoxGeometry(SIZE, .13, SIZE);
     const fill = new THREE.Mesh(slabG, new THREE.MeshBasicMaterial({ color: L.c, transparent: true, opacity: .14, depthWrite: false }));
@@ -218,7 +219,7 @@ export async function boot(stage) {
       const pivot = new THREE.Group(); pivot.add(vrm.scene); S.add(pivot);
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);
       const bb = new THREE.Box3().setFromObject(vrm.scene), h = bb.max.y - bb.min.y;
-      const s = 2.1 / h; pivot.scale.setScalar(s);    // 光の軸（x=0）の上に立ち、見る人と一緒に下の層へ降りていく   // 人の背丈（参道の欅と釣り合う大きさ）。いちばん上の第 0 層に立ち、光の軸が足もとから下の層を貫く
+      const s = 2.1 / h; pivot.scale.setScalar(s);    // 人の背丈（参道の欅と釣り合う大きさ）。光の軸（x=0）の上、いちばん新しい層の上に立つ
       const { AoiMotion } = await import('./aoi_motion.js?v=20261019-v59');
       mot = new AoiMotion(vrm, { root: pivot, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
       stage.classList.add('has-aoi');
@@ -229,6 +230,36 @@ export async function boot(stage) {
   // 見えている札の番号（0〜7）。インラインの小さな script が送ってくる
   let target = window.__qlayerK || 0;
   document.addEventListener('qlayer', e => { target = e.detail; kick(); });
+
+  // 層の札：いちばん新しく重なった層の板に、名前と一言が寄りそう（一枚だけ出して重ねない・動きを減らす設定では出さない）
+  const tagEl = document.createElement('p'); tagEl.className = 'ql3d-tag'; tagEl.setAttribute('aria-hidden', 'true');
+  tagEl.innerHTML = '<span class="qt-n"></span><span class="qt-l"></span>'; stage.appendChild(tagEl);
+  let tagK = -1;
+  const v3 = new THREE.Vector3();
+  function tagText(i) {
+    const li = document.querySelector('.qt-layer[data-layer="' + (i + 1) + '"]');
+    tagEl.style.setProperty('--c', '#' + LAYERS[i].c.toString(16).padStart(6, '0'));
+    tagEl.querySelector('.qt-n').textContent = 'Qualia/' + LAYERS[i].key;
+    tagEl.querySelector('.qt-l').textContent = li ? (li.querySelector('.ql-line') || {}).textContent || '' : '';
+  }
+  document.addEventListener('hp-lang-change', () => { if (tagK >= 0) tagText(tagK); });
+  function placeTag() {
+    const k = Math.min(LAYERS.length, Math.round(target)) - 1;
+    if (reduce || k < 0) { tagEl.classList.remove('on'); tagK = -1; return; }
+    if (k !== tagK) { tagK = k; tagEl.classList.remove('on'); tagText(k); }
+    const L = layers[k]; if (L.t < .6) return;
+    // 板の四隅のうち、画面でいちばん右の角に寄せる
+    let bx = -1e9, by = 0;
+    for (const [x, z] of [[-H, -H], [H, -H], [H, H], [-H, H]]) {
+      v3.set(x, L.grp.position.y + .08, z).add(world.position).project(cam);
+      const sx = (v3.x * .5 + .5) * W, sy = (-v3.y * .5 + .5) * Hh;
+      if (sx > bx) { bx = sx; by = sy; }
+    }
+    const tw = tagEl.offsetWidth || 200;
+    const left = Math.max(8, Math.min(W - tw - 8, bx + 10));
+    tagEl.style.transform = 'translate(' + Math.round(left) + 'px,' + Math.round(Math.max(8, Math.min(Hh - 60, by - 22))) + 'px)';
+    tagEl.classList.add('on');
+  }
 
   let W = 0, Hh = 0;
   const size = () => { W = cv.clientWidth; Hh = cv.clientHeight; if (!W || !Hh) return; R.setSize(W, Hh, false); cam.aspect = W / Hh; cam.updateProjectionMatrix(); };
@@ -245,25 +276,27 @@ export async function boot(stage) {
       const on = (reduce ? true : i < target) ? 1 : 0;
       L.t += (on - L.t) * (reduce ? 1 : Math.min(1, dt * 3.2));
       const e = L.t * L.t * (3 - 2 * L.t);
-      L.grp.position.y = L.y0 - (1 - e) * .9;   // 下から浮かび上がって、その位置に重なる
+      L.grp.position.y = L.y0 + (1 - e) * .9;   // 上から降りて、重なりのいちばん上に載る
       L.grp.visible = L.t > .01;
       L.mats.forEach(([m, op]) => { m.opacity = op * e; });
       if (L.info.tick && L.grp.visible && !reduce) L.info.tick(t, e);
     });
     const k = layers.reduce((a, L) => a + L.t, 0);
     deep.material.opacity += ((all ? .32 : 0) - deep.material.opacity) * Math.min(1, dt * 2);
-    // 見る人が、層を一枚ずつ下へ潜っていく（k＝重なった枚数。動きを減らす設定では真ん中の深さで止める）
+    // k＝重なった枚数（動きを減らす設定では真ん中で止める）
     const d = reduce ? N / 2 : k;
-    // 碧と主体は、いま重なった層の上へ降りる（第 0 層＝ y 0 から、層 k の上面へ）
-    const sTarget = reduce ? 0 : -Math.max(0, Math.round(target <= LAYERS.length ? Math.min(target, LAYERS.length) : 0)) * GAP + (target > 0 ? .07 : 0);
+    // 碧と主体は、いま重なった層の上へ上がる（第 0 層＝ y 0 から、層 k の上面へ）
+    const sTarget = reduce ? 0 : Math.max(0, Math.round(target <= LAYERS.length ? Math.min(target, LAYERS.length) : 0)) * GAP + (target > 0 ? .07 : 0);
     standY += (sTarget - standY) * Math.min(1, dt * 1.8);
-    world.position.y = -standY;   // 層の世界を上へ送る（碧と主体は、いま重なった層の上に立つ）
+    world.position.y = -standY;
+    if (treeObj) treeObj.visible = standY < GAP * .8;   // 層が重なりはじめたら、地の欅は隠す（積み重なった板と絡まないように）   // 層の世界を下へ送る（碧と主体は、いちばん新しい層の上に立つ）
     const lookY = .9 - Math.min(1, d) * .35;
     const ang = -.62 + (reduce ? 0 : t * .04), rad = mobile ? 9.6 : 8.6;
     cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 2.5 : 2.1), Math.cos(ang) * rad);
     cam.lookAt(0, lookY, 0);
     if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam); }
     R.render(S, cam);
+    placeTag();
     fps.n++; if (now - fps.t > 1000) { fps.v = Math.round(fps.n * 1000 / (now - fps.t)); fps.n = 0; fps.t = now; }
   }
   const loop = now => { if (!vis || document.hidden) { raf = 0; return; } render(now); raf = reduce ? 0 : requestAnimationFrame(loop); };
