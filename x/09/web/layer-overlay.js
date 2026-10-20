@@ -191,7 +191,7 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
   const SEGS = [['head', 'neck'], ['neck', 'chest'], ['chest', 'hips'], ['leftUpperArm', 'leftLowerArm'], ['leftLowerArm', 'leftHand'], ['rightUpperArm', 'rightLowerArm'], ['rightLowerArm', 'rightHand'], ['hips', 'leftUpperLeg'], ['leftUpperLeg', 'leftLowerLeg'], ['leftLowerLeg', 'leftFoot'], ['hips', 'rightUpperLeg'], ['rightUpperLeg', 'rightLowerLeg'], ['rightLowerLeg', 'rightFoot']];
   function startGhost(now, why) {
     const A = window.__aoi; if (!A?.aoi?.visible || ghost) return;
-    const n = 0;   /* 2026-10-20 本人「氷川の碧のパーティクルを解除してください」：碧のまわりの光の粒は出さない。残すのは目と胸元の淡い光と、淡い光の柱だけ */
+    const n = 0;   /* 2026-10-20 本人「氷川の碧のパーティクルを解除してください」：碧のまわりの光の粒は出さない。残すのは胸元の淡い光と、淡い光の柱だけ */
     const pos = new Float32Array(Math.max(n, 1) * 3), info = [];
     for (let i = 0; i < n; i++) info.push({ seg: SEGS[i % SEGS.length], t: Math.random(), jr: .05 + Math.random() * .16, ja: Math.random() * 6.28, jy: (Math.random() - .5) * .08, h0: 5.5 + Math.random() * 4, r0: Math.random() * 1.3, a0: Math.random() * 6.28, delay: Math.random() * .7 });
     const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
@@ -207,7 +207,7 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
     ring.rotation.x = -Math.PI / 2; ring.renderOrder = 7;
     const eyes = [0, 1].map(() => { const s = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xcff9ff, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false })); s.scale.set(.05, .05, 1); s.renderOrder = 9; return s; });
     const halo = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0x9ff0d8, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false })); halo.scale.set(1.1, 2.1, 1); halo.renderOrder = 6;
-    root.add(cone, halo, ...eyes);   /* 粒（pts）と足もとの光の輪は加えない */
+    root.add(cone, halo);   /* 粒（pts）・足もとの光の輪・目の光は加えない（2026-10-20：目の光が髪の後ろから透けて見えたため外した。残すのは胸元の淡い光と光の柱） */
     ghost = { t0: now, why, pts, info, cone, ring, eyes, halo, n }; st.ghosts++;
   }
   const tmpA = { a: null, b: null };
