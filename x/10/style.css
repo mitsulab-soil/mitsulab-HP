@@ -49,7 +49,7 @@ section{margin:0 0 26px}
 .row .ml-btn{flex:1 1 140px}
 .row .file:first-child{flex-basis:100%}
 .row .ml-btn{white-space:nowrap;padding:0 12px}
-#bSave,#bSave2{flex-basis:100%}
+#bStl,#bStl2{flex-basis:100%}
 .file{position:relative}
 .file input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:0}
 .file:focus-within{border-color:var(--ml-aoi);outline:1px solid var(--ml-aoi-2);outline-offset:3px}

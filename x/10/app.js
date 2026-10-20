@@ -2,8 +2,8 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js";
-import { TouchModel, Vibe, SIZE_MM, FORCE_MAX, buildLayer } from "./haptics.js";
+import { T, setLang, lang } from "./i18n.js?v=20261020b";
+import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261020b";
 import { estimateFromFile, N as EN } from "./estimate.js";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -104,7 +104,8 @@ const heightAt = (xmm, ymm) => {                       // x：左→右、y：�
   return (H[i] * (1 - tx) + H[i + 1] * tx) * (1 - ty) + (H[i + HN] * (1 - tx) + H[i + HN + 1] * tx) * ty;
 };
 let surf = null, params = null;
-const model = new TouchModel(), vibe = new Vibe();
+const model = new TouchModel(), vibe = new Vibe(), sonic = new Sonic();
+vibe.onPulse = (ms, amp) => sonic.grain(ms, amp);   // 振動と同じ刻みで音を一粒
 const cache = new Map(), maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 const tex = (src, srgb) => { const t = src instanceof HTMLCanvasElement ? new THREE.CanvasTexture(src) : new THREE.Texture(src); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso; t.needsUpdate = true; return t; };
 const img = url => new Promise((ok, ng) => { const i = new Image(); i.decoding = "async"; i.onload = () => ok(i); i.onerror = ng; i.src = url; });
@@ -135,7 +136,7 @@ function applyParams() {
   mat.roughness = .55 + .45 * p.rough;
   U.uDentR.value = (5 + 7 * (1 - p.hard)) / SIZE_MM;
   ring.material.color.copy(COLD).lerp(WARM, p.warm);
-  model.setSurface(heightAt, p);
+  model.setSurface(heightAt, p); sonic.setSurface(p);
 }
 
 // ---- つまみ
@@ -206,7 +207,7 @@ cv.addEventListener("pointerdown", e => {
   const p = toPlate(e); if (!inside(p)) return;
   cv.setPointerCapture(e.pointerId); e.preventDefault();
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
-  dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; vibe.tap(); addTrail(p, p, true);
+  dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.tap(); sonic.tap(); addTrail(p, p, true);
   $("#waveHint").style.opacity = 0; aoiWatch(true);
 });
 cv.addEventListener("pointermove", e => {
@@ -254,7 +255,7 @@ async function loadAoi() {
     const K = await import("./kit/aoi.js");
     aoi = await K.loadAoi(AOI_URL, { scene: aoiScene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" });
     aoi.place(0, 0, 0);
-    if (!said.hello) say("aoi.hello", 8000);
+    if (!said.hello) hello();
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
 const LOOK = new THREE.Vector3(MOBILE ? -.9 : .9, .75, .9);
@@ -262,6 +263,8 @@ function aoiWatch(on) { aoi?.motion.lookAt(on ? LOOK : null); }
 function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 
 // ---- 碧の字幕
+// はじめに一度だけ名乗り、そのあとに触れ方を伝える（触れはじめたら名乗りは切りあげる）
+function hello() { said.hello = true; say("aoi.name", 5200); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 5400); }
 let capKey = null, capTimer = 0;
 function say(k, ms = 6000) {
   said[k.replace("aoi.", "")] = true; capKey = k; const c = $("#cap"); c.textContent = T(k); c.classList.add("on");
@@ -279,6 +282,16 @@ function save() {
   say("aoi.save", 5000);
 }
 $("#bSave").addEventListener("click", save); $("#bSave2").addEventListener("click", save);
+// 触覚の層の形を STL（3D プリント用・mm）で保存。この端末の中でつくるだけで、送信しない
+function saveSTL() {
+  const r = buildSTL(heightAt, params), d = new Date(), pad = n => String(n).padStart(2, "0");
+  const blob = new Blob([r.buf], { type: "model/stl" }), u = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = u; a.download = `qualia-touch_${surf.id}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.stl`;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+  say("aoi.stl", 6000);
+  return r;
+}
+$("#bStl").addEventListener("click", saveSTL); $("#bStl2").addEventListener("click", saveSTL);
 $("#bShow").addEventListener("click", () => {
   const L = layerNow(), short = JSON.stringify(L, (k, v) => typeof v === "string" && v.length > 80 ? v.slice(0, 48) + `…（${v.length}）` : v, 1);
   $("#layerPre").textContent = short; $("#dlgLayer").showModal();
@@ -286,6 +299,8 @@ $("#bShow").addEventListener("click", () => {
 $("#bAbout").addEventListener("click", () => $("#dlgAbout").showModal());
 for (const d of document.querySelectorAll("dialog")) { d.addEventListener("click", e => { if (e.target === d || e.target.closest("[data-close]")) d.close(); }); }
 $("#bReset").addEventListener("click", () => { params = { ...surf.p0 }; applyParams(); buildSliders(); dirty = 2; });
+if (sonic.ok) { const b = $("#bSnd"); b.hidden = false; const show = () => { b.setAttribute("aria-pressed", String(sonic.on)); b.dataset.t = sonic.on ? "snd.on" : "snd.off"; b.textContent = T(b.dataset.t); }; show(); b.addEventListener("click", () => { sonic.setOn(!sonic.on); if (sonic.on) { sonic.wake(); sonic.tap(); } show(); }); }
+document.addEventListener("visibilitychange", () => { if (document.hidden) sonic.sleep(); });
 if (vibe.ok) { const b = $("#bVib"); b.hidden = false; b.addEventListener("click", () => { vibe.on = !vibe.on; b.setAttribute("aria-pressed", String(vibe.on)); b.dataset.t = vibe.on ? "vib.on" : "vib.off"; b.textContent = T(b.dataset.t); if (!vibe.on) vibe.stop(); }); }
 for (const b of document.querySelectorAll("[data-lang]")) b.addEventListener("click", () => {
   setLang(b.dataset.lang);
@@ -309,7 +324,7 @@ function frame(now) {
   const dent = model.press(dt, force);
   U.uDent.value.set(dentAt.x, dentAt.y, dent / SIZE_MM);
   const r = model.measure();
-  if (touch) { vibe.tick(now, r.amp); strokeMs += dtMs; if (!vibe.ok && strokeMs > 600 && !said.novib) say("aoi.novib", 6000); if (strokeMs > 1400 && !said.stroke && r.speed > 30) say("aoi.stroke", 5500); if (dent > 1.2 && !said.press) say("aoi.press", 5500); }
+  if (touch) { vibe.tick(now, r.amp); strokeMs += dtMs; if (!vibe.ok && strokeMs > 600 && !said.novib) say(sonic.ok && sonic.on ? "aoi.novib" : "aoi.novib.mute", 6000); if (strokeMs > 1400 && !said.stroke && r.speed > 30) say("aoi.stroke", 5500); if (dent > 1.2 && !said.press) say("aoi.press", 5500); }
   // 輪
   // 振動の代わりに目で：強く当たるほど輪が明るく、少し広がる
   ring.material.opacity += ((touch ? .55 + .45 * r.amp : 0) - ring.material.opacity) * Math.min(1, dt * 8);
@@ -347,10 +362,10 @@ resize();
   catch (e) { console.error(e); }
   window.MLLoader?.done();
   requestAnimationFrame(frame);
-  setTimeout(() => { if (!said.hello) say("aoi.hello", 8000); }, 1600);
+  setTimeout(() => { if (!said.hello) hello(); }, 1600);
   setTimeout(loadAoi, 350);
   // ほかの見本は、手が空いたときに先に読んでおく
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
   idle(() => SAMPLES.slice(1, 4).reduce((p, s) => p.then(() => loadSample(s).catch(() => {})), Promise.resolve()));
 })();
-window.__qt = { model, get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };
+window.__qt = { model, sonic, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };

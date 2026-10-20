@@ -66,15 +66,113 @@ export class TouchModel {
   }
 }
 
-// 端末の振動（対応する端末だけ。音は使わない）
+// 端末の振動（対応する端末だけ）。震えるたびに onPulse(ms, amp) を呼ぶ（音を同じ刻みで鳴らすため）。
+// 振動できない端末でも、同じ刻みで onPulse を呼ぶ（光の輪と音で確かめる）。
 export class Vibe {
-  constructor() { this.ok = typeof navigator !== "undefined" && "vibrate" in navigator; this.on = this.ok; this.last = 0; }
-  tick(now, amp, pressing) {
-    if (!this.ok || !this.on) return;
-    if (amp > .06 && now - this.last > 45) { try { navigator.vibrate(Math.round(6 + 28 * Math.min(1, amp))); } catch (e) { /* 止められた端末 */ } this.last = now; }
+  constructor() { this.ok = typeof navigator !== "undefined" && "vibrate" in navigator; this.on = this.ok; this.last = 0; this.onPulse = null; }
+  tick(now, amp) {
+    if (amp > .06 && now - this.last > 45) {
+      const ms = Math.round(6 + 28 * Math.min(1, amp));
+      if (this.ok && this.on) try { navigator.vibrate(ms); } catch (e) { /* 止められた端末 */ }
+      this.onPulse?.(ms, amp); this.last = now;
+    }
   }
   tap() { if (this.ok && this.on) try { navigator.vibrate(12); } catch (e) { /* 何もしない */ } }
   stop() { if (this.ok) try { navigator.vibrate(0); } catch (e) { /* 何もしない */ } }
+}
+
+// 触れ心地の音（Web Audio で合成。外の音源は使わない）。
+// 振動の一回ごとに、短い「ざらっ」「こつ」を一粒鳴らす。粗さ＝雑音の多さ、硬さ＝明るさと短さ、強さ＝音量。
+// 最初に触れたとき（利用者の操作のあと）に音の道具をつくる＝自動再生の制限を守る。
+export class Sonic {
+  constructor() {
+    this.AC = typeof window !== "undefined" ? (window.AudioContext || window.webkitAudioContext) : null;
+    this.ok = !!this.AC; this.on = this.ok; this.ctx = null; this.d = null; this.p = null;
+    try { if (localStorage.getItem("qt-sound") === "off") this.on = false; } catch (e) { /* 保存できない端末は入から */ }
+  }
+  setSurface(params) { this.p = params; this.d = derive(params); }
+  wake() {                                   // pointerdown の中で呼ぶ
+    if (!this.ok || !this.on) return;
+    try {
+      if (!this.ctx) {
+        const c = this.ctx = new this.AC();
+        this.master = c.createGain(); this.master.gain.value = .5;
+        const comp = c.createDynamicsCompressor(); comp.threshold.value = -20; comp.knee.value = 12; comp.ratio.value = 8; comp.attack.value = .002; comp.release.value = .12;
+        this.master.connect(comp); comp.connect(c.destination);
+        const n = c.createBuffer(1, c.sampleRate, c.sampleRate), d = n.getChannelData(0);
+        let b = 0; for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; b = .97 * b + .03 * w; d[i] = w * .7 + b * 2.2; }   // 白い雑音に少し低い成分を混ぜる
+        this.noise = n;
+      }
+      if (this.ctx.state !== "running") this.ctx.resume().catch(() => {});
+    } catch (e) { this.ok = false; }
+  }
+  sleep() { if (this.ctx && this.ctx.state === "running") this.ctx.suspend().catch(() => {}); }
+  // 一粒：ms＝振動の長さ、amp＝強さ（0..1）
+  grain(ms, amp, kind = "stroke") {
+    if (!this.ok || !this.on || !this.ctx || this.ctx.state !== "running" || !this.p) return;
+    const c = this.ctx, t = c.currentTime + .005, p = this.p;
+    const center = kind === "tap" ? 180 + 1500 * p.hard ** 1.3 : 260 + 2600 * p.hard ** 1.2 + 500 * p.rough;   // 硬いほど明るい
+    const dur = Math.max(.012, Math.min(.12, ms / 1000 * (kind === "tap" ? 2.2 : 1.1) * (1.25 - .55 * p.hard) * (1 + .6 * p.spring)));
+    const vol = Math.min(1, amp) * (kind === "tap" ? .16 : .22) * (.55 + .45 * p.rough);
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + Math.min(.004, dur * .2)); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
+    const f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = center * (.9 + Math.random() * .2); f.Q.value = .8 + 5 * (1 - p.rough);   // なめらかなほど音の高さがはっきりする
+    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900 + 5200 * p.hard;                                               // やわらかいほど高い音が鈍る
+    const s = c.createBufferSource(); s.buffer = this.noise; s.connect(f); f.connect(lp); lp.connect(g); g.connect(this.master);
+    s.start(t, Math.random() * .8, dur + .02);
+    if (p.rough < .5 || kind === "tap") {   // なめらか・硬い面は、雑音に小さな響きを足す（金属・石の「こつ」）
+      const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.value = center;
+      const ov = vol * (kind === "tap" ? .9 : .6) * (1 - p.rough) * p.hard;
+      og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(ov, t + .003); og.gain.exponentialRampToValueAtTime(.0005, t + dur * 1.4);
+      o.connect(og); og.connect(this.master); o.start(t); o.stop(t + dur * 1.4 + .02);
+    }
+  }
+  tap() { this.grain(14, .7, "tap"); }
+  setOn(on) { this.on = on && this.ok; try { localStorage.setItem("qt-sound", on ? "on" : "off"); } catch (e) { /* 何もしない */ } if (!on) this.sleep(); }
+}
+
+// 「触覚の層」の形を STL（バイナリ・mm）にする。3D プリントで触れる板になる。
+// 板＝一辺 sizeMm（既定 100 mm）、土台の厚み baseMm（既定 2 mm）、その上に凹凸（つまみの深さ）。閉じた形（すき間なし）。
+// 上から見て画面と同じ向き（左右・奥手前が反転しない）。
+export function buildSTL(heightAt, params, { sizeMm = SIZE_MM, baseMm = 2, grid = 200 } = {}) {
+  const G = grid, s = sizeMm / SIZE_MM, step = SIZE_MM / (G - 1);
+  const Z = new Float32Array(G * G);
+  for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) Z[j * G + i] = baseMm + Math.max(0, Math.min(1, heightAt(i * step, j * step))) * params.depth;
+  // 頂点の位置：X＝左→右、Y＝手前→奥（画面の上の行が奥）、Z＝上
+  const X = i => i * step * s, Y = j => (SIZE_MM - j * step) * s;
+  const nTri = 2 * (G - 1) * (G - 1) + 4 * (G - 1) * 2 + 4 * (G - 1);
+  const buf = new ArrayBuffer(84 + nTri * 50), dv = new DataView(buf);
+  const head = "mitsulab Qualia/touch layer (STL, mm). (c) 2026 mitsulab. All rights reserved.";
+  for (let k = 0; k < 80; k++) dv.setUint8(k, k < head.length ? head.charCodeAt(k) & 127 : 32);
+  dv.setUint32(80, nTri, true);
+  let o = 84;
+  const tri = (a, b, c) => {   // a,b,c＝[x,y,z]、外から見て反時計回り
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const L = Math.hypot(nx, ny, nz) || 1; nx /= L; ny /= L; nz /= L;
+    for (const v of [nx, ny, nz, ...a, ...b, ...c]) { dv.setFloat32(o, v, true); o += 4; }
+    dv.setUint16(o, 0, true); o += 2;
+  };
+  const T = (i, j) => [X(i), Y(j), Z[j * G + i]], B = (i, j) => [X(i), Y(j), 0];
+  // 上の面（Y は j とともに減るので、(i,j)→(i,j+1)→(i+1,j) の向きが上から見て反時計回り）
+  for (let j = 0; j < G - 1; j++) for (let i = 0; i < G - 1; i++) {
+    const a = T(i, j), b = T(i + 1, j), c = T(i, j + 1), d = T(i + 1, j + 1);
+    tri(a, c, b); tri(b, c, d);
+  }
+  // 側面：外周を上から見て反時計回りにたどる（手前の辺 j=G-1 を左→右、右の辺を手前→奥、奥の辺を右→左、左の辺を奥→手前）
+  const ring = [];
+  for (let i = 0; i < G - 1; i++) ring.push([i, G - 1]);
+  for (let j = G - 1; j > 0; j--) ring.push([G - 1, j]);
+  for (let i = G - 1; i > 0; i--) ring.push([i, 0]);
+  for (let j = 0; j < G - 1; j++) ring.push([0, j]);
+  for (let k = 0; k < ring.length; k++) {
+    const [i0, j0] = ring[k], [i1, j1] = ring[(k + 1) % ring.length];
+    const a = B(i0, j0), b = B(i1, j1), c = T(i1, j1), d = T(i0, j0);
+    tri(a, b, c); tri(a, c, d);
+  }
+  // 底：中心から外周へ扇。下から見て反時計回り＝上から見て時計回り
+  const ctr = [X((G - 1) / 2), Y((G - 1) / 2), 0];
+  for (let k = 0; k < ring.length; k++) { const [i0, j0] = ring[k], [i1, j1] = ring[(k + 1) % ring.length]; tri(ctr, B(i1, j1), B(i0, j0)); }
+  if (o !== buf.byteLength) throw new Error("STL size mismatch");
+  return { buf, triangles: nTri, sizeMm, baseMm, reliefMm: params.depth, heightMm: baseMm + params.depth };
 }
 
 // 決まった速さでまっすぐなぞったときの振動（書き出しの profile）
