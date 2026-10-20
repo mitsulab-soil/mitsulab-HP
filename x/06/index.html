@@ -5,9 +5,9 @@
 <meta name="tdm-reservation" content="1">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qualia Lab</title>
-<meta name="description" content="Qualia Lab。いつもの景色の見え方が変わる八つの実験を 3D の模型で動かし、碧が、模型の中身と本物の世界との対応を話す部屋。">
+<meta name="description" content="Qualia Lab。同じ場所から、人・ミツバチ・コウモリ・機械に届くものはどう違うのか。受けとり方（Qualia）を、自分の手で試すラボ。碧がそばで話します。">
 <meta property="og:title" content="Qualia Lab">
-<meta property="og:description" content="Qualia Lab。いつもの景色の見え方が変わる八つの実験を 3D の模型で動かし、碧が、模型の中身と本物の世界との対応を話す部屋。">
+<meta property="og:description" content="Qualia Lab。同じ場所から、人・ミツバチ・コウモリ・機械に届くものはどう違うのか。受けとり方（Qualia）を、自分の手で試すラボ。碧がそばで話します。">
 <style>
 /* 2026-10-13：世界観と見た目 v1の作法に。
    地は夜の紺・パネルは薄い紺に細い線一本・角 2px・塗りつぶして光るボタンは使わない・押せる高さ 44px・題は明朝 */
@@ -120,6 +120,17 @@ a{color:var(--acc)}
 @media(min-width:980px){#exp h2 small{font-size:14px;display:block;margin:2px 0 0}}
 #exp .moreHint{position:sticky;bottom:-6px;margin:4px -8px -6px;padding:10px 0 4px;text-align:center;font-size:13px;color:var(--ink2);background:linear-gradient(rgba(10,14,24,0),rgb(10,14,24) 45%);pointer-events:none}
 #exp .moreHint[hidden]{display:none}
+/* 2026-10-20 Qualia Lab：印の札・届く／届かないの並び */
+#read .mk{display:inline-block;font-size:12.5px;line-height:1.4;padding:0 6px;border:1px solid var(--line2);border-radius:var(--r);color:var(--aoi2);margin-left:4px;white-space:nowrap}
+#read .ls{margin:2px 0 4px;padding-left:1.1em}#read .ls li{margin:1px 0}
+#read .row2{display:grid;grid-template-columns:1fr;gap:4px}
+#read td.k{white-space:nowrap;vertical-align:top;padding-right:10px}
+#read .pick b{color:var(--aoi2)}
+#ctrls button:disabled{opacity:.4;cursor:not-allowed}
+#ctrls .markQ{flex:1 1 100%;margin:0;padding:6px 10px;border-left:2px solid var(--aoi);background:rgba(241,233,214,.06);font-family:var(--mincho);font-size:16px;line-height:1.6;color:var(--ink)}
+#ctrls .markQ span{display:block;font-family:var(--goth);font-size:12.5px;color:var(--dim);letter-spacing:.08em}
+#ctrls .markQ b{display:block;font-family:var(--goth);font-size:14px;color:var(--aoi2);font-weight:600;margin-top:2px}
+@media (max-width:520px){#exp header{background:#070d1a}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -127,7 +138,6 @@ a{color:var(--acc)}
 "@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}
 </script>
 <script src="data/script.js"></script>
-<script src="data/kanten.js"></script>
 <script src="data/qualia/cards.js"></script>
 <script src="data/voice.js" onerror="window.VOICE={}"></script>
 </head>
@@ -143,7 +153,7 @@ a{color:var(--acc)}
   </div>
 </div>
 <section id="exp" hidden aria-label="実験の操作">
-  <header><h2 id="expT"></h2><button class="btn" id="expMore" aria-expanded="true">数字をたたむ</button><button class="btn" id="expBack">もどる</button></header>
+  <header><h2 id="expT"></h2><button class="btn" id="expMore" aria-expanded="true">板をたたむ</button><button class="btn" id="expBack">もどる</button></header>
   <div id="ctrls"></div>
   <p id="outside" hidden></p>
   <div id="read" aria-live="off"></div>
@@ -157,12 +167,8 @@ a{color:var(--acc)}
 <div id="help" hidden role="dialog" aria-label="使い方と出典"><div class="box" id="helpBox"></div></div>
 <div id="toast" role="status"></div>
 <div id="load"><div style="text-align:center;padding:0 24px">
-  <svg width="220" height="110" viewBox="0 0 220 110" aria-hidden="true" style="display:block;margin:0 auto 14px"><rect x="10" y="62" width="200" height="8" rx="2" fill="#1a2436"/><rect x="22" y="70" width="10" height="34" fill="#1a2436"/><rect x="188" y="70" width="10" height="34" fill="#1a2436"/>
-  <rect x="40" y="22" width="44" height="40" fill="#7a5236"/><rect x="40" y="22" width="44" height="14" fill="#2a1d14"/><rect x="40" y="18" width="44" height="4" fill="#5f8a46"/>
-  <rect x="98" y="28" width="22" height="34" fill="#c9ae74"/><rect x="124" y="28" width="22" height="34" fill="#a0704c"/><rect x="150" y="28" width="22" height="34" fill="#5a4330"/>
-  <g stroke="#8cbfe6" stroke-width="2"><line x1="104" y1="6" x2="102" y2="16"/><line x1="122" y1="4" x2="120" y2="14"/><line x1="140" y1="8" x2="138" y2="18"/><line x1="160" y1="5" x2="158" y2="15"/></g>
-  <rect x="60" y="0" width="100" height="3" fill="#fff3dc"/></svg>
-  <b id="loadT">Qualia Lab</b><p style="color:#c3cce0;margin:8px 0 0;font-size:15px">いつもの景色の見え方が変わる、八つの実験</p><div class="bar"><i id="loadBar"></i></div><p id="loadP">読みこんでいます…</p></div></div>
-<script type="module" src="lab.js?v=20261014p3"></script>
+  <svg width="220" height="110" viewBox="0 0 220 110" aria-hidden="true" style="display:block;margin:0 auto 14px"><g fill="none" stroke="#9bdcf0" stroke-width="1.5"><path d="M40 30 L90 12 L180 12 L130 30 Z" stroke="#c8b48e" fill="rgba(200,180,142,.18)"/><path d="M40 52 L90 34 L180 34 L130 52 Z" opacity=".8"/><path d="M40 74 L90 56 L180 56 L130 74 Z" opacity=".6"/><path d="M40 96 L90 78 L180 78 L130 96 Z" opacity=".4"/></g></svg>
+  <b id="loadT">Qualia Lab</b><p style="color:#c3cce0;margin:8px 0 0;font-size:15px">同じ場所から、受けとる主体ごとに届くもの</p><div class="bar"><i id="loadBar"></i></div><p id="loadP">読みこんでいます…</p></div></div>
+<script type="module" src="lab.js?v=20261020"></script>
 </body>
 </html>

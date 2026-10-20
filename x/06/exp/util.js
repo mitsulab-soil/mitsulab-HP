@@ -1,4 +1,4 @@
-/* 森羅研究室の小道具：キャンバスの絵を貼る・浮かぶ札 */
+/* Qualia Lab の小道具：キャンバスの絵を貼る・浮かぶ札 */
 import * as THREE from "three";
 
 export function canvasTex(w, h, draw) {

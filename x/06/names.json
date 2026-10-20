@@ -5,13 +5,13 @@
  "lab_en": "Qualia Lab",
  "guide": "碧",
  "guide_yomi": "あおい",
- "worm": "ミミズが土を混ぜる",
- "grain": "土の粒と団粒（100 倍）",
- "frost": "霜柱が立つ",
- "temp": "地面の中の温度の波",
- "phono": "超音波を聞こえる音に",
- "gw": "地下水と湧き水",
- "kanten": "観天望気",
- "myco": "菌根",
- "qualia_corner": "受けとり方の道具（Qualia）"
+ "guide_en": "Aoi",
+ "phi": "主体を選びかえる",
+ "phi_en": "Switch the Receiver",
+ "phono": "超音波を人の耳へ",
+ "phono_en": "Ultrasound for Human Ears",
+ "layer": "Qualia Layer を組む",
+ "layer_en": "Build a Qualia Layer",
+ "mark": "出どころの印を見分ける",
+ "mark_en": "Where Does It Come From?"
 }

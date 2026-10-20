@@ -1,19 +1,18 @@
-/* 森羅研究室（lab）── いつもの景色の見え方が変わる実験を、3D の模型で動かす部屋。2026-10-07、2026-10-09 夜に 8 台へ絞り、博物館の展示室に作り直した。
-   操作は森羅博物館と同じ：床を押すと歩く（一回の押しで STEP_MAX m まで）・ドラッグで見回す・
+/* Qualia Lab（lab）── 受けとり方（Qualia）q＝Φ(場所, 主体) を、見る人が自分の手で試すラボ。
+   2026-10-20 本人「土の実験ではなく、Qualiaのラボという立ち位置で全面的に作り変えた上で、公開してください。」→ 四つの台（主体を選びかえる・
+   超音波を人の耳へ・Qualia Layer を組む・出どころの印を見分ける）と、壁の図・まん中の層の像に。部屋の骨組みと歩き方は前のまま。
+   2026-10-20 本人「一旦残響はしないで保留に」「データをとらない方向」→ 何も送らず、何も残さない（音を消す設定と板のたたみ方だけ端末に覚える）。
+   操作は Qualia Museum と同じ：床を押すと歩く（一回の押しで STEP_MAX m まで）・ドラッグで見回す・
    壁ぎわでも下がれる・足音。実験台を押すと、台の前へ歩き、そのまま台の上の模型に寄る（同じ空間の中で寄る＝短い遷移）。
    碧の声と字幕は museum.js から借りた（speakLine・talk）。体の動きと表情は共通部品 kit/aoi_motion.js（2026-10-12・足はすべらず、口は声の時刻表 data/lipsync.js に合わせる）。
-   名前は names.json だけに置く（コードの識別子は lab・worm・grain・frost・temp・phono・gw・kanten・myco）。 */
+   名前は names.json だけに置く（コードの識別子は lab・phi・phono・layer・mark）。 */
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import * as FROST from "./exp/frost.js";
-import * as WORM from "./exp/worm.js?v=20261014p3";
-import * as TEMP from "./exp/temp.js";
-import * as KANTEN from "./exp/kanten.js";
-import * as MYCO from "./exp/myco.js";
-import * as GW from "./exp/gw.js";
+import * as PHI from "./exp/phi.js?v=20261020";
+import * as LAYER from "./exp/layer.js?v=20261020";
+import * as MARK from "./exp/mark.js?v=20261020";
 import * as PHONO from "./exp/phono.js";
-import * as GRAIN from "./exp/grain.js";
-import { buildWunder } from "./exp/wunder.js";
+import { buildRoom } from "./exp/room.js?v=20261020";
 import { label, canvasTex, tex } from "./exp/util.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { AoiMotion } from "./kit/aoi_motion.js";   // 碧の自然な動きと表情（mitsulab の共通部品の写し。2026-10-12）
@@ -72,7 +71,7 @@ const blobMat = (() => { const c = document.createElement("canvas"); c.width = c
 // ---------------------------------------------------------------- 部屋：博物館の展示室（2026-10-09 夜）
 //   本人（2026-10-09）：「壁について、磁石実験の背後の石や砂の標本が置いてあるところの方がいいです。これを全面にしてください。
 //   また、床や天井も、博物館の雰囲気に仕上げてください。」
-//   幅 22 m・奥行 30 m・天井 6 m。四つの壁＝木とガラスの標本の棚（exp/wunder.js）。入口の扉（手前の壁のまん中）と右の窓はあける。
+//   幅 22 m・奥行 30 m・天井 6 m。壁ぎわ＝低い木の棚と、受けとり方の仕組みの図（exp/room.js・2026-10-20）。入口の扉（手前の壁のまん中）と右の窓はあける。
 //   床＝寄木（市松に組んだ木の板）、天井＝格天井（木の梁の格子）とまん中の天窓・真鍮と乳白ガラスの吊り照明・壁の上の蛇腹（コーニス）。
 //   質感はこの画面の中で描く（外から読まない＝スマホを軽く）。木の写真は CC0（Poly Haven）の wood_dark・wood_light（data/tex）。
 const RX = 11, RZ = 15, CEIL = 6, EYE = 1.55;
@@ -160,7 +159,7 @@ const blinkers = [];
   const bt = canvasTex(1024, 300, (c, w, h) => {
     c.fillStyle = "#1f1712"; c.fillRect(0, 0, w, h); c.strokeStyle = "#b8913a"; c.lineWidth = 8; c.strokeRect(10, 10, w - 20, h - 20); c.lineWidth = 2; c.strokeRect(26, 26, w - 52, h - 52);
     c.fillStyle = "#e3c27a"; c.textAlign = "center"; c.font = "600 84px 'Hiragino Mincho ProN','Yu Mincho',serif"; c.fillText(NAMES.lab, w / 2, 135);
-    c.font = "32px 'Hiragino Mincho ProN','Yu Mincho',serif"; c.fillStyle = "#d9c9a0"; c.fillText("いつもの景色の見え方が変わる、八つの実験", w / 2, 210);
+    c.font = "32px 'Hiragino Mincho ProN','Yu Mincho',serif"; c.fillStyle = "#d9c9a0"; c.fillText("同じ場所から、受けとる主体ごとに届くもの", w / 2, 210);
   });
   const board = new THREE.Mesh(new THREE.PlaneGeometry(2.9, .85), new THREE.MeshBasicMaterial({ map: bt, toneMapped: false })); board.position.set(0, 5.25, -RZ + .06); scene.add(board);
 }
@@ -171,21 +170,18 @@ const poolMat = new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, d
 // ---------------------------------------------------------------- 実験台（8 台・2026-10-09 本人「世界の見え方が変わる実験に絞って」）
 //   左右の壁ぎわに 4 台ずつ。台の向こうに標本の棚が見えるよう、台は部屋のまん中を向き、見る人は棚の方を向いて立つ。
 //   観天望気は窓の前（空を背に）。
+//   2026-10-20：四台。左＝主体を選びかえる・Qualia Layer を組む／右＝超音波を人の耳へ・出どころの印（窓の前）。一覧の並びは試す順
 const BENCH = [
-  { id: "worm", mod: WORM, x: -7.6, z: 7.0, ry: Math.PI / 2 },
-  { id: "grain", mod: GRAIN, x: -7.6, z: 1.5, ry: Math.PI / 2 },
-  { id: "frost", mod: FROST, x: -7.6, z: -4.0, ry: Math.PI / 2 },
-  { id: "temp", mod: TEMP, x: -7.6, z: -9.5, ry: Math.PI / 2 },
-  { id: "phono", mod: PHONO, x: 7.6, z: 7.0, ry: -Math.PI / 2 },
-  { id: "gw", mod: GW, x: 7.6, z: 1.5, ry: -Math.PI / 2 },
-  { id: "kanten", mod: KANTEN, x: 7.6, z: -3.9, ry: -Math.PI / 2 },
-  { id: "myco", mod: MYCO, x: 7.6, z: -9.5, ry: -Math.PI / 2 },
+  { id: "phi", mod: PHI, x: -7.6, z: 6.0, ry: Math.PI / 2 },
+  { id: "phono", mod: PHONO, x: 7.6, z: 6.0, ry: -Math.PI / 2 },
+  { id: "layer", mod: LAYER, x: -7.6, z: -2.5, ry: Math.PI / 2 },
+  { id: "mark", mod: MARK, x: 7.6, z: -2.5, ry: -Math.PI / 2 },
 ];
 const BW = 2.3, BD = .95, BH = .9;
 // 台＝木の展示台（天板は濃い木、胴は板張り、真鍮の金具）
 const benchTop = new THREE.MeshStandardMaterial({ map: tex("wood_dark", 2, 1), color: 0x4a3222, roughness: .35 }), benchBody = new THREE.MeshStandardMaterial({ map: tex("wood_dark", 1, 1), color: 0x6a4a32, roughness: .55 }), benchEdge = std(0x3a2818, .5, .1);
 function addObst(x, z, w, d, ry) { const sw = Math.abs(Math.cos(ry)) > .5; const hw = (sw ? w : d) / 2, hd = (sw ? d : w) / 2; obst.push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd }); }
-const H = { THREE, std, box, cyl, glassMat, label, canvasTex, toast: m => toast(m), aud: () => AUD, RM, say: lines => talk(lines, expActs), closeUp: p => closeUp(p) };
+const H = { THREE, std, box, cyl, glassMat, label, canvasTex, toast: m => toast(m), aud: () => AUD, RM, say: lines => talk(lines, expActs), closeUp: p => closeUp(p), lang: "ja", S, EN: window.SCRIPT_EN || {} };
 for (const b of BENCH) {
   const g = new THREE.Group(); g.position.set(b.x, 0, b.z); g.rotation.y = b.ry; scene.add(g);
   const top = box(BW, .05, BD, benchTop); top.position.y = BH - .025; g.add(top);
@@ -205,8 +201,8 @@ for (const b of BENCH) {
 }
 function collect(g) { const a = []; g.traverse(o => { if (o.isMesh || o.isSprite || o.isInstancedMesh || o.isPoints) a.push(o); }); return a; }
 
-// ---------------------------------------------------------------- 標本の壁と驚異の机（exp/wunder.js）
-buildWunder(scene, { RX, RZ, std, box, cyl, glassMat, obst, clickables, decorTick, openings: { window: WIN, door: DOOR } });
+// ---------------------------------------------------------------- 壁の図・棚・まん中の層の像（exp/room.js）
+buildRoom(scene, { RX, RZ, std, obst, clickables, decorTick, windowZ: WIN });
 // ---------------------------------------------------------------- 歩ける所
 const M_ = .35;
 function walkable(x, z, m = M_) {
@@ -496,7 +492,7 @@ function showLook(b) {
   o.innerHTML = `<span class="k">外に出たら</span>${esc(lk.lines[0].replace(/^外に出たら、/, ""))}`;
 }
 // はじめての人には、いちばん驚きの大きい一台をすすめる（2026-10-13 ななみ「最初の 3 秒」）。一度入ったら出さない
-function freeActs() { const ph = BENCH.find(b => b.id === "phono"); return [["実験台をえらぶ", openList, true], ...(seen.size || !ph ? [] : [["まず、コウモリの声を聞く", () => enterBench(ph)]])]; }
+function freeActs() { const ph = BENCH.find(b => b.id === "phi"); return [["実験台をえらぶ", openList, true], ...(seen.size || !ph ? [] : [["まず、主体を選びかえる", () => enterBench(ph)]])]; }
 function openPanel(b) {
   $("exp").hidden = false; document.body.classList.add("inexp");
   $("expT").innerHTML = `${esc(NAMES[b.id] || S.bench[b.id].title)}<small>${esc(S.bench[b.id].sub)}</small>`;
@@ -509,7 +505,7 @@ function openPanel(b) {
 { const ex = $("exp"); const hint = document.createElement("div"); hint.className = "moreHint"; hint.textContent = "↓ 続きがあります（板の中をなぞる）"; hint.hidden = true; ex.appendChild(hint);
   const upd = () => { if (hint.parentNode !== ex) ex.appendChild(hint); const h = ex.hidden || ex.scrollHeight - ex.clientHeight - ex.scrollTop < 8; if (hint.hidden !== h) hint.hidden = h; };
   ex.addEventListener("scroll", upd, { passive: true }); addEventListener("resize", upd); new MutationObserver(() => requestAnimationFrame(upd)).observe(ex, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] }); }
-function syncMore() { const m = $("exp").classList.contains("mini"); $("expMore").textContent = m ? "数字を見る" : "数字をたたむ"; $("expMore").setAttribute("aria-expanded", String(!m)); }
+function syncMore() { const m = $("exp").classList.contains("mini"); $("expMore").textContent = m ? "板を見る" : "板をたたむ"; $("expMore").setAttribute("aria-expanded", String(!m)); }
 $("expMore").onclick = () => { $("exp").classList.toggle("mini"); store.set("lab-mini", $("exp").classList.contains("mini")); syncMore();
   // 狭い画面で数字を開いたら、字幕をたたむ（3D を見える大きさに残す。碧の顔を押すと字幕にもどり、数字はたたむ）
   if (narrowNums()) { fold(true); SP.autoFolded = true; } else if (innerWidth < 520) { fold(false); SP.autoFolded = false; } };
@@ -619,34 +615,24 @@ $("muteBtn").onclick = () => { wake(); AUD.setMute(!AUD.muted); };
 $("helpBtn").onclick = () => { $("help").hidden = false; $("helpBox").querySelector(".close")?.focus(); };
 $("help").addEventListener("click", e => { if (e.target === $("help") || e.target.closest(".close")) $("help").hidden = true; });
 $("helpBox").innerHTML = `<button class="btn close">とじる</button><h2>${esc(NAMES.lab)}</h2>
-<p>見たあとで、いつもの景色が少し違って見える実験を、八つの模型にして並べた部屋です。実験台を押すと、そばで${esc(NAMES.guide)}が、模型が何をまねているのかと、本物の世界ではどうなるのかを話します。壁の棚は、鉱物・岩石・砂・土の断面・地層の柱・種子の標本（模型）です。押すと${esc(NAMES.guide)}が話します。</p>
-<h3>うごき方</h3><ul><li>床を押す：そこへ歩く（一回に 6 m まで）</li><li>ドラッグ：見回す（実験の中では模型を回す）</li><li>実験台・棚・机を押す：近づく・話を聞く</li><li>キーボード：W A S D・矢印で歩く、Esc で実験からもどる</li></ul>
+<p>受けとり方（Qualia）を、自分の手で試すラボです。同じ場所から何が届くかは、受けとる主体（人・生き物・機械）によって変わります。実験台を押すと、そばで${esc(NAMES.guide)}が、台が何を試しているのかと、本物の世界ではどうなるのかを話します。壁の図を押すと、ラボの考え方を話します。</p>
+<h3>うごき方</h3><ul><li>床を押す：そこへ歩く（一回に 6 m まで）</li><li>ドラッグ：見回す（実験の中では模型を回す）</li><li>実験台・壁の図・まん中の像を押す：近づく・話を聞く</li><li>キーボード：W A S D・矢印で歩く、Esc で実験からもどる</li></ul>
 <h3>実験台</h3><ul>${BENCH.map(b => `<li><b>${esc(NAMES[b.id])}</b>：${esc(S.bench[b.id].sub)}</li>`).join("")}</ul>
 <h3>外に出たら</h3><p>台の終わりに、${esc(NAMES.guide)}が、本物の景色でたしかめる見方を一つ話します。</p><ul>${BENCH.filter(b => S.bench[b.id].look).map(b => `<li><b>${esc(NAMES[b.id])}</b>（${esc(S.bench[b.id].look.when)}）：${esc(S.bench[b.id].look.lines[0].replace(/^外に出たら、/, ""))}</li>`).join("")}</ul>
-<h3>模型の値について</h3><p>どの模型も、仕組みを見るためのものです。地温の波の熱の伝わりやすさ（湿った土の代表的な値）と、土の粒の大きさの区分（国際土壌学会法）を除いて、数や速さは動きが見えるように決めた値か目安です。形は「模式」、標本の棚は「模型」です。</p>
+<h3>ことば</h3><ul><li><b>受けとり方（Qualia）</b>：場所と、受けとる主体のあいだに立ち上がる関係。q ＝ Φ（場所, 主体）と書く。Φ は数の式ではなく、組みあわせ方を表す記号です。</li><li><b>受けとる主体</b>：人・生き物・機械。</li><li><b>碧</b>：受けとる主体ごとに一人ずつ現れる案内役。</li><li><b>Qualia Layer</b>：ほかの主体や場所の受けとり方を、人の感覚に写した一枚。何の手がかりか・どこから取ったか・どう届けるかで決まる。</li><li><b>出どころの五つの印</b>：測った値・計算の推定・資料の記載・mitsulab の問い・創作。</li></ul>
+<h3>模型と表示について</h3><p>ミツバチ・コウモリ・機械の見え方と聞こえ方は、研究にもとづいて人の目と耳に写した模式です。ほかの主体が受けとっているものそのものは、渡せません。温度・飛び方・声の間隔などは、仕組みを見るために決めた値です。このラボは、見た人の情報を、どこにも送らず、残しません（音を消す設定と、板をたたむかどうかだけ、この端末に覚えます）。</p>
 <h3>典拠</h3><ul>
-<li>Darwin, C. (1881) <i>The Formation of Vegetable Mould through the Action of Worms, with Observations on their Habits</i>. John Murray.（第 3 章：1842 年 12 月にまいた白亜が、1871 年 11 月に 7 インチ下）</li>
-<li>Hillel, D. (1998) <i>Environmental Soil Physics</i>. Academic Press.（地温の波）</li>
-<li>霜柱の成因・放射冷却（教科書の水準。木下誠一 編『凍土の物理学』森北出版 ほか）</li>
-<li>Freeze, R. A. &amp; Cherry, J. A. (1979) <i>Groundwater</i>. Prentice-Hall.（地下水の流れ・Darcy の法則）／環境省「名水百選」（お鷹の道・真姿の池湧水群）</li>
-<li>Tisdall, J. M. &amp; Oades, J. M. (1982) Organic matter and water-stable aggregates in soils. <i>J. Soil Science</i> 33: 141–163.／粒の大きさの区分は国際土壌学会法</li>
-<li>Lekner, J. &amp; Dorf, M. C. (1988) Why some things are darker when wet. <i>Applied Optics</i> 27: 1278–1280.</li>
-<li>Smith, S. E. &amp; Read, D. J. (2008) <i>Mycorrhizal Symbiosis</i>, 3rd ed. Academic Press.</li>
-<li>Beiler, K. J. ほか (2010) Architecture of the wood-wide web. <i>New Phytologist</i> 185: 543–553.</li>
-<li>Karst, J., Jones, M. D. &amp; Hoeksema, J. D. (2023) Positive citation bias and overinterpreted results lead to misinformation on common mycorrhizal networks in forests. <i>Nature Ecology &amp; Evolution</i> 7: 501–511.</li>
-<li>観天望気のことば・しるし・典拠：Qualia Museum の観天望気のデータ（気象庁「はれるんランド」・英国気象庁 ほか。各景の札に記載）</li>
-<li>超音波を聞こえる音に：録音＝Kaldari / Wikimedia Commons（CC0 1.0）。<a href="https://commons.wikimedia.org/wiki/File:Hoary_bat_chirp_recording.wav" target="_blank" rel="noopener">録音 1</a>・<a href="https://commons.wikimedia.org/wiki/File:Bat_feeding_buzz.wav" target="_blank" rel="noopener">録音 2</a>（米国 ペンシルベニア州で 2020 年に録られたもの。種は録音者の推定）</li>
-<li>Eloy, C. (2011) Leonardo's rule, self-similarity, and wind-induced stresses in trees. <i>Physical Review Letters</i> 107: 258101.（枝分かれの太さ）</li>
-<li>標本の棚：鉱物の形（結晶の形）・岩石・砂は教科書の水準。土の断面の名は日本の土壌分類体系（日本ペドロジー学会 2017）</li>
-<li>奥の壁の植物図版と押し葉（一点ずつ）：
-  呉其濬『植物名實圖考』（1848）の薯莨（<a href="https://commons.wikimedia.org/wiki/File:%E6%A4%8D%E7%89%A9%E5%90%8D%E5%AF%A6%E5%9C%96%E8%80%83%C2%B7%E8%96%AF%E8%8E%A8.jpg" target="_blank" rel="noopener">パブリックドメイン</a>）／
-  『Florilegium（花の図譜）』1608 の Pepper Plant with Geometric Border（クリーブランド美術館 1963.594.46.b・<a href="https://clevelandart.org/art/1963.594.46.b" target="_blank" rel="noopener">CC0</a>）／
-  Descourtilz『Flore médicale des Antilles』Pl. 405 Tomate à côtes（1828・<a href="https://commons.wikimedia.org/wiki/File:Flore_m%C3%A9dicale_des_Antilles,_ou,_Trait%C3%A9_des_plantes_usuelles_(10420969506).jpg" target="_blank" rel="noopener">パブリックドメイン</a>・Biodiversity Heritage Library）／
-  Blanco『Flora de Filipinas』の Saccharum officinarum（<a href="https://commons.wikimedia.org/wiki/File:Saccharum_officinarum_Blanco1.18.jpg" target="_blank" rel="noopener">パブリックドメイン</a>）／
-  押し葉 Saccharum robustum（スミソニアン国立自然史博物館・<a href="https://commons.wikimedia.org/wiki/File:Saccharum_robustum.jpg" target="_blank" rel="noopener">CC0</a>）</li>
+<li>人の目に届く光（およそ 380〜780 nm）・耳に届く高さ（およそ 20 kHz まで）：教科書の水準</li>
+<li>Peitsch, D. ほか (1992) The spectral input systems of hymenopteran insects and their receptor-based colour vision. <i>J. Comp. Physiol. A</i> 170: 23–40.（ミツバチの紫外線・青・緑の視細胞）</li>
+<li>花びらの紫外線の模様（蜜標）：教科書の水準。色の置きかえ（紫外線→青・青→緑・緑→赤）は、ミツバチの見え方を人の目に写すときの慣習</li>
+<li>Griffin, D. R. (1958) <i>Listening in the Dark</i>. Yale University Press.（コウモリの反響定位）</li>
+<li>標本化定理（48 kHz で記録すると、記録できるのは 24 kHz まで）・熱画像（表面から出る赤外線）：教科書の水準</li>
+<li>McHarg, I. L. (1969) <i>Design with Nature</i>. Natural History Press.（透明な主題図を重ねて土地を読む方法を広く示した。地理情報システムのレイヤーの前史とされる）</li>
+<li>超音波を人の耳へ：録音＝Kaldari / Wikimedia Commons（CC0 1.0）。<a href="https://commons.wikimedia.org/wiki/File:Hoary_bat_chirp_recording.wav" target="_blank" rel="noopener">録音 1</a>・<a href="https://commons.wikimedia.org/wiki/File:Bat_feeding_buzz.wav" target="_blank" rel="noopener">録音 2</a>（米国 ペンシルベニア州で 2020 年に録られたもの。種は録音者の推定）</li>
+<li>出どころの印の台の文は、印の種類を見せるための例です（特定の場所の事実として書いたものではありません）。</li>
 <li>質感の写真：Poly Haven（CC0）</li>
 </ul>
-<h3>つくり</h3><p>表示の道具は three.js と three-vrm（MIT）。${esc(NAMES.guide)}の声：VOICEVOX:冥鳴ひまり。${esc(NAMES.guide)}の動きの一部は、人の動きの記録をもとにしています（The data used in this project was obtained from <a href="http://mocap.cs.cmu.edu/" target="_blank" rel="noopener">mocap.cs.cmu.edu</a>. The database was created with funding from NSF EIA-0196217.）。${esc(NAMES.guide)}の 3D の姿は © mitsulab（この作品の中で表示するためだけに置いています）。足音・雨の音はこの画面の中でその場で作っています。</p>
+<h3>つくり</h3><p>表示の道具は three.js と three-vrm（MIT）。${esc(NAMES.guide)}の声：VOICEVOX:冥鳴ひまり。${esc(NAMES.guide)}の動きの一部は、人の動きの記録をもとにしています（The data used in this project was obtained from <a href="http://mocap.cs.cmu.edu/" target="_blank" rel="noopener">mocap.cs.cmu.edu</a>. The database was created with funding from NSF EIA-0196217.）。${esc(NAMES.guide)}の 3D の姿は © mitsulab（この作品の中で表示するためだけに置いています）。足音と小さな音はこの画面の中でその場で作っています。</p>
 <p>© 2026 mitsulab. All rights reserved. この作品の文章・画像・音声・3D・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。<a href="https://mitsulab.jp/terms/#ai" target="_blank" rel="noopener">利用規約</a> ／ <a href="https://mitsulab.jp" target="_blank" rel="noopener">mitsulab.jp</a></p>`;
 let toastT = 0;
 function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2200); }
