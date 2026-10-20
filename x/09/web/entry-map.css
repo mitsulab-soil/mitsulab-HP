@@ -74,3 +74,7 @@ body.entryFallback #ovPick{grid-template-rows:auto minmax(190px,1fr) auto;height
 .entryAreaLabel{grid-column:1/-1;margin:8px 0 2px;font:11px var(--ui);color:#e3d2ae}.entryGeoLabels[hidden]{display:none}
 #ovSel{font-size:11px;max-height:3.2em;overflow-y:auto}.ovP[hidden]{display:none!important}
 @media(max-width:600px){#ovPick{width:auto;height:min(67svh,570px)}#ovPick:has(#entryOther[open]){height:min(78svh,640px)}.entryMapLevels{margin-top:5px;gap:6px}.entryMapLevels button{min-height:32px;font-size:10px}.entryStation{font-size:9px;padding:2px 3px}.entryGeoNote{font-size:8px}.entryNorth{font-size:9px;right:5px;top:5px}}
+
+/* 2026-10-20 本人 ok「スマホの地図を大きく」：375px などの縦の画面では、選ぶ欄を上の題の下まで伸ばし、地図の欄を大きく取る */
+@media(max-width:600px){#ovPick,#ovPick:has(#entryOther[open]){height:calc(100svh - 128px - env(safe-area-inset-bottom,0px));grid-template-rows:auto minmax(260px,1fr) auto}}
+@media(max-width:600px) and (max-height:640px){#ovPick,#ovPick:has(#entryOther[open]){height:calc(100svh - 96px)}}

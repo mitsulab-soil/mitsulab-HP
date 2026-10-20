@@ -191,7 +191,7 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
   const SEGS = [['head', 'neck'], ['neck', 'chest'], ['chest', 'hips'], ['leftUpperArm', 'leftLowerArm'], ['leftLowerArm', 'leftHand'], ['rightUpperArm', 'rightLowerArm'], ['rightLowerArm', 'rightHand'], ['hips', 'leftUpperLeg'], ['leftUpperLeg', 'leftLowerLeg'], ['leftLowerLeg', 'leftFoot'], ['hips', 'rightUpperLeg'], ['rightUpperLeg', 'rightLowerLeg'], ['rightLowerLeg', 'rightFoot']];
   function startGhost(now, why) {
     const A = window.__aoi; if (!A?.aoi?.visible || ghost) return;
-    const n = reduced.matches ? 0 : st.tier >= 2 ? 520 : 240;
+    const n = 0;   /* 2026-10-20 本人「氷川の碧のパーティクルを解除してください」：碧のまわりの光の粒は出さない。残すのは目と胸元の淡い光と、淡い光の柱だけ */
     const pos = new Float32Array(Math.max(n, 1) * 3), info = [];
     for (let i = 0; i < n; i++) info.push({ seg: SEGS[i % SEGS.length], t: Math.random(), jr: .05 + Math.random() * .16, ja: Math.random() * 6.28, jy: (Math.random() - .5) * .08, h0: 5.5 + Math.random() * 4, r0: Math.random() * 1.3, a0: Math.random() * 6.28, delay: Math.random() * .7 });
     const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
@@ -207,7 +207,7 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
     ring.rotation.x = -Math.PI / 2; ring.renderOrder = 7;
     const eyes = [0, 1].map(() => { const s = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xcff9ff, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false })); s.scale.set(.05, .05, 1); s.renderOrder = 9; return s; });
     const halo = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0x9ff0d8, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false })); halo.scale.set(1.1, 2.1, 1); halo.renderOrder = 6;
-    root.add(pts, cone, ring, halo, ...eyes);
+    root.add(cone, halo, ...eyes);   /* 粒（pts）と足もとの光の輪は加えない */
     ghost = { t0: now, why, pts, info, cone, ring, eyes, halo, n }; st.ghosts++;
   }
   const tmpA = { a: null, b: null };
@@ -225,11 +225,12 @@ body.layerTalk #sub{visibility:hidden}body.layerTalk #layerNowChips{opacity:0}bo
   function updateGhost(now, dt = .016) {
     if (!ghost) return; frameAoi((now - ghost.t0) / 1000, dt); const A = window.__aoi, vrm = A?.vrm, t = (now - ghost.t0) / 1000, D = reduced.matches ? 1.6 : 4.2;
     if (!A?.aoi || t > D) { for (const o of [ghost.pts, ghost.cone, ghost.ring, ghost.halo, ...ghost.eyes]) { root.remove(o); o.geometry?.dispose(); o.material.dispose(); } ghost = null; return; }
+    ghost.ring.visible = false; ghost.pts.visible = false;
     const base = A.aoi.getWorldPosition(new T.Vector3()), env = Math.min(1, t / .5) * (1 - Math.max(0, (t - (D - 1)) / 1));
     ghost.cone.position.set(base.x, base.y + 4.9, base.z); ghost.cone.material.uniforms.uA.value = reduced.matches ? 0 : env * (t < 2.4 ? 1 : .5); ghost.cone.material.uniforms.uT.value = t;
     ghost.ring.position.set(base.x, base.y + .03, base.z); ghost.ring.material.opacity = .16 * env; const rs = reduced.matches ? 1 : .6 + .5 * Math.min(1, t / 2.2); ghost.ring.scale.set(rs, rs, rs);
     const chest = boneWorld(vrm, 'chest', new T.Vector3()) || base.clone().add(new T.Vector3(0, 1.15, 0));
-    ghost.halo.position.copy(chest); ghost.halo.position.y -= .25; ghost.halo.material.opacity = .22 * env * Math.min(1, Math.max(0, (t - 1.2) / .8));
+    ghost.halo.position.copy(chest); ghost.halo.position.y -= .25; ghost.halo.material.opacity = .3 * env * Math.min(1, Math.max(0, (t - 1.2) / .8));
     const head = boneWorld(vrm, 'head', new T.Vector3()); const le = boneWorld(vrm, 'leftEye', new T.Vector3()), re = boneWorld(vrm, 'rightEye', new T.Vector3());
     const eyeA = Math.max(0, Math.min(1, (t - 1.7) / .4)) * Math.max(0, 1 - Math.max(0, t - 3.4) / .8);
     if (head) { const fwd = new T.Vector3(0, 0, 1).applyQuaternion(A.aoi.getWorldQuaternion(new T.Quaternion())), rt = new T.Vector3(1, 0, 0).applyQuaternion(A.aoi.getWorldQuaternion(new T.Quaternion()));

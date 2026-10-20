@@ -8,7 +8,7 @@ const faunaVec=new T.Vector3(),faunaForward=new T.Vector3();
 const depthLinks=new Map();
 const U={t:{value:0},viewer:{value:new T.Vector3()},shape:{value:OFF?0:1}},seen=new WeakSet(),held=new Set();
 let core,group,grass,herbs,litter,busy=false,ready=false,last=0,anchor=new T.Vector2(1e8,1e8),generation=0,creatures=[],stopped=false,faunaEnabled=true;
-const stats={enabled:!OFF,ready:false,busy:false,grass:0,herbs:0,litter:0,birds:0,insects:0,treeMaterials:0,triangles:0,faunaEnabled:true,animalBuilds:0,animalUpdates:0,animalSkipped:0,maxAnimalBuildMs:0,maxAnimalUpdateMs:0,maxPopulationSliceMs:0,errors:[],measured:false,range:19,caps:{grass:220,herbs:84,litter:120,birds:1,insects:2},label:'写真を参照した推定植栽・生きものの創作配置（現地観測ではありません）'};
+const stats={enabled:!OFF,ready:false,busy:false,grass:0,herbs:0,litter:0,birds:0,insects:0,treeMaterials:0,triangles:0,faunaEnabled:true,animalBuilds:0,animalUpdates:0,animalSkipped:0,maxAnimalBuildMs:0,maxAnimalUpdateMs:0,maxPopulationSliceMs:0,errors:[],measured:false,range:19,caps:(matchMedia('(pointer: coarse)').matches||innerWidth<760)?{grass:260,herbs:96,litter:200,birds:1,insects:2}:{grass:360,herbs:124,litter:280,birds:1,insects:2}   /* 2026-10-20：下草と落ち葉を少し増やす（スマホは控えめ） */,label:'写真を参照した推定植栽・生きものの創作配置（現地観測ではありません）'};
 const idle=()=>new Promise(r=>(window.requestIdleCallback||((f)=>setTimeout(f,30)))(r,{timeout:200}));
 export const seeded=n=>()=>((n=n*16807%2147483647)-1)/2147483646;
 export function blade(length,width,bend=.16,segments=6){const g=new T.PlaneGeometry(1,1,2,segments),p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),t=p.getY(i)+.5,w=width*Math.pow(Math.sin(Math.PI*Math.pow(t,.8)),.65);p.setXYZ(i,x*w,t*length,bend*t*t+Math.abs(x)*width*.14);}g.computeVertexNormals();return g;}

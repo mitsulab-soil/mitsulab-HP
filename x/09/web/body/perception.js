@@ -80,6 +80,6 @@ export function createSharedReferences(T) {
     const c=document.createElement('canvas');c.width=768;c.height=128;const ctx=c.getContext('2d');ctx.fillStyle='#071a20e6';ctx.fillRect(0,0,768,128);ctx.fillStyle='#e0eee5';ctx.textAlign='center';ctx.font='32px sans-serif';ctx.fillText('感覚を比べる仮想の花',384,48);ctx.font='24px sans-serif';ctx.fillText('創作した比較標本 · UV反射は未測定',384,95);
     const texture=new T.CanvasTexture(c);texture.colorSpace=T.SRGBColorSpace;label=new T.Sprite(new T.SpriteMaterial({map:texture,depthTest:true,depthWrite:false,toneMapped:false}));label.scale.set(1.3,.217,1);label.position.set(0,1.08,0);root.add(label);scene.add(root);
   }
-  function frame(scene,camera,body,core,active){if(!active){if(root)root.visible=false;return;}if(!root)build(scene,camera,core);if(root){root.visible=true;mode.value=band[body]??0;if(label)label.visible=(body==='hachi'||body==='chou')&&camera.position.distanceTo(root.position)<3;}}
+  function frame(scene,camera,body,core,active){if(!active||!(body==='hachi'||body==='chou')){if(root)root.visible=false;return;}   /* 2026-10-20 本人「黄色い花がわざとらしく咲いている」：感覚を比べる仮想の花は、ハチ・チョウの身体のときだけ出す */if(!root)build(scene,camera,core);if(root){root.visible=true;mode.value=band[body]??0;if(label)label.visible=(body==='hachi'||body==='chou')&&camera.position.distanceTo(root.position)<3;}}
   return {frame,get diagnostics(){return {exists:!!root,position:root?.position.toArray(),bodyBand:mode.value,authored:true,observedUV:false};}};
 }

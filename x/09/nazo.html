@@ -74,7 +74,7 @@ details summary { cursor:pointer; color:var(--sub); font-size:14px; min-height:4
   <div class="talk" id="talk" aria-live="polite"></div>
   <div class="btns" id="acts"></div>
   <details class="about"><summary>碧について・印の見かた</summary>
-    <p>碧（あおい）は、現実世界と計算世界をつなぐ依代です。話す事実は、典拠を確かめた「事実のカード」の中からだけ。カードに無いことは「分からない」と言います。ここで話したことは、どこにも残しません。</p>
+    <p>碧（あおい）は、層と層のあいだを渡って訳す身体です。話す事実は、典拠を確かめた「事実のカード」の中からだけ。カードに無いことは「分からない」と言います。ここで話したことは、どこにも残しません。</p>
     <p><span class="mark">◎</span>事実（典拠あり）　<span class="mark">△</span>伝承・説　<span class="mark">○</span>推定（景色の模式）</p>
     <p>江戸の景色は、記録から組んだ推定の模式です。家並みの数や形、並木の木の種類は、実際の配置ではありません。</p>
   </details>
@@ -237,14 +237,14 @@ function backNow() {
 }
 function finale() {
   ST.step = "end"; acts([]);
-  /* 結末は、集めた手がかりと、碧と話して確かめたカードで変わる（どれも正解。持ち帰るミカタが変わる） */
+  /* 結末は、集めた手がかりと、碧と話して確かめたカードで変わる（どれも正解。持ち帰るものが変わる） */
   const name = USED.has("ichinomiya"), road = ST.clues.has("ookan") || ST.clues.has("tanzaku");
   const [title, mi] = name && road ? ["重ね読み", "一つの道に、いくつもの時が重なっている。石の年と、石の文字が指す時代は、ちがうことがある。"]
     : name ? ["文字の読み手", "石の年と、石の文字が指す時代は、ちがうことがある。"]
     : road ? ["道の読み手", "道の幅と道すじは、誰がどう使ったかを覚えている。"]
     : ["幅の読み手", "足もとの線の中に、昔の道の幅が描かれていることがある。"];
   const d = document.createElement("div"); d.className = "card fade";
-  d.innerHTML = `<h2>${esc(title)}</h2><p>持ち帰るミカタ：${esc(mi)}</p><p class="about">ほかの場所でも、試してみてください。家の近くの神社や古い道で、「石に刻まれた年」と「道の幅」を探すと、その場所に重なった時が見えてきます。</p><p class="about">集めた手がかり：${[...ST.clues.values()].map(c => esc(c.name)).join("・")}</p>`;
+  d.innerHTML = `<h2>${esc(title)}</h2><p>持ち帰るもの：${esc(mi)}</p><p class="about">ほかの場所でも、試してみてください。家の近くの神社や古い道で、「石に刻まれた年」と「道の幅」を探すと、その場所に重なった時が見えてきます。</p><p class="about">集めた手がかり：${[...ST.clues.values()].map(c => esc(c.name)).join("・")}</p>`;
   $("talk").appendChild(d);
   acts([["はじめから", () => location.reload()]]);
 }
