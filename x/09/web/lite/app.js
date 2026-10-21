@@ -18,7 +18,7 @@ const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
 const canvas = $("#gl");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: !MOBILE, powerPreference: "high-performance", alpha: false, stencil: false });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !MOBILE, powerPreference: "high-performance", alpha: false, stencil: true });   // 道の上に地形が出ないよう、道の画素に印を付ける（下の ROAD_STENCIL）
 QW.renderer = renderer;
 const PR_MAX = MOBILE ? Math.min(devicePixelRatio, 1.6) : Math.min(devicePixelRatio, 1.5);
 let pr = PR_MAX; renderer.setPixelRatio(pr);
@@ -97,6 +97,8 @@ async function buildBase() {
       .replace("#include <map_fragment>", "#include <map_fragment>\n{ float dist=length(vWp-cameraPosition); float k=1.-smoothstep(25.,140.,dist); vec3 dt=texture2D(detail,vWp.xz*.33).rgb; float l=dot(dt,vec3(.333)); diffuseColor.rgb*=mix(1.,.55+l*1.1,k*.85); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0),.45)*vec3(.86,.83,.76); float lu=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.37,.36,.34)*(.8+lu*.25),smoothstep(.28,.52,lu)*.92); }");
   };
   tm.customProgramCacheKey = () => "terrainDetail";
+  // 軽くした地形は参道の路面より数十 cm 高い所があり、降りた所の路面にふちの鋭い黒い形として出ていた。道を先に描いて印を付け、印のある画素には地形を描かない
+  tm.stencilWrite = true; tm.stencilRef = 1; tm.stencilFunc = THREE.NotEqualStencilFunc; tm.stencilFail = tm.stencilZFail = tm.stencilZPass = THREE.KeepStencilOp;
   terrainMesh.material = tm;
   world.add(tg.scene); pickables.push(terrainMesh);
   buildPath(); buildPonds(env); buildStarts();
@@ -257,6 +259,7 @@ function buildCrowns() {
   TREE.trunk = new THREE.InstancedMesh(tgeo, new THREE.MeshStandardMaterial({ color: "#4a3f35", roughness: 1 }), D.trees.length);
   for (const im of [TREE.crown, TREE.trunk]) { im.count = 0; im.frustumCulled = false; world.add(im); }
   TREE.list = D.trees.map(t => ({ x: t[0], y: groundY(t[0], t[2]), z: t[2], sp: t[3], s: t[4], r: t[5] }));
+  { const L = TREE.list; for (const t of L) t.lone = !L.some(u => u !== t && (u.x - t.x) ** 2 + (u.z - t.z) ** 2 < 144); }   // 12 m 以内にほかの木がない
   TREE.lastPos.set(1e9, 0, 0); updateTrees(true);
 }
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _c = new THREE.Color(), _up = new THREE.Vector3(0, 1, 0);
@@ -278,10 +281,10 @@ function updateTrees(force = false) {
     if (d2 < nr2 && P) {
       _q.setFromAxisAngle(_up, t.r); _m.compose(_p.set(t.x, t.y - .15, t.z), _q, _s.setScalar(t.s));
       for (const im of P.parts) im.setMatrixAt(im.count++, _m);
-    } else if (d2 < mr2 && P) {
+    } else if ((d2 < mr2 || (t.lone && mode === "fly" && d2 < 62500)) && P) {   // 一本だけ立つ木（10 本ほど）は、飛ぶときも 250 m までは中くらいの形、その先は横から写した絵で（丸い樹冠だと粗く見える）
       _q.setFromAxisAngle(_up, t.r); _m.compose(_p.set(t.x, t.y - .15, t.z), _q, _s.setScalar(t.s));
       for (const im of P.mid) im.setMatrixAt(im.count++, _m);
-    } else if (useImp && P?.imp) {
+    } else if ((useImp || (t.lone && mode === "fly")) && P?.imp) {   // 真上から見る上空では板が細く暗く写るので、丸い樹冠のまま
       _q.setFromAxisAngle(_up, t.r); _m.compose(_p.set(t.x, t.y - .15, t.z), _q, _s.setScalar(t.s)); P.imp.setMatrixAt(P.imp.count++, _m);
     } else {
       const h = (SPH[t.sp] || 14) * t.s, w = (P ? P.w : h * .7) * .5 * t.s;
@@ -306,7 +309,8 @@ function loadLate() {
   const road = glb("web/road.glb").then(g => {
     const mats = {};
     for (const [k, [t, c, r, n]] of Object.entries(ROAD_MATS)) mats[k] = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/" + t + "_c5.webp"), normalMap: MOBILE ? null : tex(BASE + "tex/" + t + "_n5.webp", false), normalScale: new THREE.Vector2(n, -n), color: new THREE.Color(...c), roughness: r, metalness: 0, envMapIntensity: .5 });
-    g.scene.traverse(o => { if (o.isMesh) { const k = o.name.split("|")[0]; if (mats[k]) o.material = mats[k]; o.userData.stone = k === "stone"; pickables.push(o); } });
+    for (const m of Object.values(mats)) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }   // ROAD_STENCIL
+    g.scene.traverse(o => { if (o.isMesh) { const k = o.name.split("|")[0]; if (mats[k]) o.material = mats[k]; o.renderOrder = -1; o.userData.stone = k === "stone"; pickables.push(o); } });
     roadGroup = g.scene; world.add(roadGroup); roadGroup.updateMatrixWorld(true);
     roadGroup.traverse(o => { if (o.isMesh && o.userData.stone) { o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); STONES.push(o); } });
   });
