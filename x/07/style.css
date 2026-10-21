@@ -94,8 +94,9 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 /* 一覧・この作品 */
 .sheet{border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);background:var(--ml-panel-solid);color:var(--ml-ink-2);padding:0;width:min(720px,calc(100vw - 32px));max-height:calc(100dvh - 48px);box-sizing:border-box}
 .sheet::backdrop{background:rgba(3,6,15,.6);backdrop-filter:blur(4px)}
-.sheet-in{padding:18px 22px 22px;display:grid;gap:12px}
-.sheet-head{display:flex;align-items:baseline;gap:12px;position:sticky;top:0}
+.sheet-in{padding:18px 22px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.sheet-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;position:sticky;top:0}
+.ml-btn:disabled{opacity:.4;cursor:default}
 .sheet-head .ml-title{font-size:1.3rem}
 .sheet-head .ml-btn{margin-left:auto;white-space:nowrap;flex:none}
 .sheet-head .ml-title{min-width:0}
@@ -208,7 +209,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
  #panel .p-head{gap:8px;top:-12px}.p-no{font-size:10px}.p-head .ml-label{font-size:11px}.p-x{font-size:11px;padding:0 4px}.p-line{font-size:25px}#panel .p-law{font-size:10px;margin-bottom:8px}
  #sound{grid-template-columns:minmax(0,1fr);gap:24px}.performance{border:0;border-top:1px solid #29444c;padding:12px 0 0}
  .spaceToolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px}.spaceToolbar button{text-align:center;font-size:12.5px}
- .soundStage{height:clamp(310px,44dvh,430px)}.stageWord{font-size:8px}.viewActions{gap:6px}#spaceCaption{font-size:11px}.viewActions button{font-size:10px;padding:0 3px}
+ .soundStage{height:clamp(310px,44dvh,430px)}.stageWord{font-size:8px}.viewActions{gap:6px}#spaceCaption{font-size:12.5px;line-height:1.65}.viewActions button{font-size:12px;padding:0 4px}
  .soundActions{gap:6px}.soundActions button{font-size:11px;padding:0 8px}.p-nav{margin-top:10px}.p-nav .ml-btn{font-size:11px;padding:0 6px}
  .performanceHead h3{font-size:18px}.djDials{grid-template-columns:1fr 1fr;column-gap:24px;row-gap:8px}.djDial small{display:block;margin:3px 0 0;font-size:8px}.djDial output{font-size:10px}.djDial>span{font-size:13px}.djDial input{min-width:0}.performanceNote{font-size:12px}.mixArea{margin-top:8px}
 }

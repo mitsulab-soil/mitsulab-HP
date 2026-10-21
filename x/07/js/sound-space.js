@@ -64,7 +64,7 @@ export class SoundSpace{
  setView(v){
   this.view=v;this.yaw=0;this.pitch=0;const canvas=this.r.domElement;
   document.querySelectorAll('[data-sound-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.soundView===v)));
-  canvas.hidden=v==='heat';this.heat.hidden=v!=='heat';document.querySelector('.heatLegend').hidden=v!=='heat';this.draw(performance.now());
+  canvas.hidden=v==='heat';this.heat.hidden=v!=='heat';const sw=document.querySelector('.stageWord');if(sw)sw.hidden=v==='heat';document.querySelector('.heatLegend').hidden=v!=='heat';this.draw(performance.now());
  }
  // ---- 粒の流れ：円周＝周波数（対数）、中心から外＝時間、粒の多さ・高さ・明るさ＝その周波数の強さ
  makeFlow(){
@@ -117,8 +117,24 @@ export class SoundSpace{
   for(let L=minL;L<=maxL;L++){let s1=0,a=0,b=0;for(let i=0;i<n-L;i++){const p=x[i],q=x[i+L];s1+=p*q;a+=p*p;b+=q*q;}const v=s1/Math.sqrt(a*b+1e-12);r[L]=v;if(v>best)best=v;}
   if(best<.5)return {f0:null,conf:best};
   let L=minL+1;for(;L<maxL;L++)if(r[L]>=.9*best&&r[L]>=r[L-1]&&r[L]>=r[L+1])break;   // 最初の高い山＝下のオクターブへの取り違えを避ける
+  // 1150〜4000 Hz の基音は、間引かない元の標本で読む（間引いた側では 1200 Hz を超える基音がその数分の一に見える）
+  const hi=this.f0Hi(sr,best);if(hi)return hi;
   const d=(r[L-1]-r[L+1])/(2*(r[L-1]-2*r[L]+r[L+1])||1);return {f0:fs/(L+clamp(d,-.5,.5)),conf:r[L]};
  }
+ f0Hi(sr,bestLo){
+  const s=this.samples,n=2048,a0=Math.max(2,Math.floor(sr/4000)),a1=Math.ceil(sr/1150)+1,r=this.acH||=new Float32Array(a1+2);let best=0;
+  for(let L=a0-1;L<=a1+1;L++){let s1=0,a=0,b=0;for(let i=0;i<n-L;i++){const p=s[i],q=s[i+L];s1+=p*q;a+=p*p;b+=q*q;}const v=s1/Math.sqrt(a*b+1e-12);r[L]=v;if(v>best)best=v;}
+  const th=.9*Math.max(best,bestLo);
+  for(let L=a0;L<=a1;L++)if(r[L]>=th&&r[L]>=r[L-1]&&r[L]>=r[L+1]&&r[L]>.5){const d=(r[L-1]-r[L+1])/(2*(r[L-1]-2*r[L]+r[L+1])||1);return {f0:sr/(L+clamp(d,-.5,.5)),conf:r[L]};}
+  return null;
+ }
+ // 基音とは扱わない場合：①推定した基音の位置の FFT レベルが最も強い成分より 30 dB 以上低い
+ // ②第1〜第8倍音の位置に入る力が、全体の 2 割に満たない（いくつもの音が重なり、強い成分が高い倍音の外にあるとき）
+ f0Weak(f0,sr){const bin=sr/2048,db=this.db,P=d=>Number.isFinite(d)?Math.pow(10,d/10):0;let mx=-200,mk=0,tot=0;for(let k=2;k*bin<16000;k++){if(db[k]>mx){mx=db[k];mk=k;}tot+=P(db[k]);}
+  const used=new Uint8Array(1024);let p1=-200,har=0;
+  for(let h=1;h<=8;h++){const f=f0*h;if(f>=16000)break;const lo=Math.max(2,Math.floor(f*.97/bin)),hi=Math.min(1023,Math.ceil(f*1.03/bin));for(let j=lo;j<=hi;j++){if(h===1&&Number.isFinite(db[j]))p1=Math.max(p1,db[j]);if(!used[j]){used[j]=1;har+=P(db[j]);}}}
+  // ③最も強い成分が第1〜第8倍音の窓の外にあり、基音より 10 dB 以上強い（下で鳴る弱い持続音を基音と読んだとき）
+  return p1<mx-30||har<.2*tot||(!used[mk]&&mx>p1+10);}
  pushHarmonics(sr){
   const K=this.hK,H=this.hH,h=this.harm,f0=this.feat.f0,bin=sr/2048;
   for(let k=0;k<K;k++){h.copyWithin(k*H,k*H+1,(k+1)*H);let v=0;
@@ -195,7 +211,9 @@ export class SoundSpace{
   const cen=ps>0?pf/ps:0;this.cen=cen;
   this.samples.fill(0);this.a.wave(this.samples);let e=0;for(let i=0;i<2048;i++)e+=this.samples[i]*this.samples[i];const rms=Math.sqrt(e/2048);
   const f=this.feat;f.L=clamp((20*Math.log10(rms+1e-9)+60)/50,0,1);f.c=cen?clamp(Math.log(cen/150)/Math.log(40),0,1):f.c;f.flux=flux/this.bins;   // 明るさ：150 Hz〜6 kHz を 0〜1 に
-  const est=f.L>.05?this.estimateF0(sr):{f0:null,conf:0};
+  let est=f.L>.05?this.estimateF0(sr):{f0:null,conf:0};if(est.f0&&this.f0Weak(est.f0,sr))est={f0:null,conf:est.conf};
+  // 直近 5 回の中央値をとり、0.3 秒ごとのオクターブの行き来で倍音の列がちらつかないようにする
+  if(est.f0){const h=f.hist||=[];h.push(est.f0);if(h.length>5)h.shift();const m=[...h].sort((a,b)=>a-b)[h.length>>1];est={f0:m,conf:est.conf};}else if(f.hist&&f.L<=.05)f.hist.length=0;
   // 基準：自己相関で推定した基音。読めない時は 0.6 秒だけ前の値を保ち、それも無ければ最も強い成分を基準にする
   if(est.f0){f.f0=est.f0;f.src='f0';f.hold=now;}else if(f.src==='f0'&&now-f.hold<600){}else if(f.L>.05){let bk=2,bv=-200;for(let k=2;k*bin<8000;k++)if(this.db[k]>bv){bv=this.db[k];bk=k;}f.f0=bk*bin;f.src='peak';}else{f.f0=null;f.src=null;}
   f.conf=est.conf;
@@ -223,10 +241,10 @@ export class SoundSpace{
    for(let z=0;z<this.waveRows;z++)for(let x=0;x<this.waveBins;x++){const i=z*this.waveBins+x;this.wavePos[i*3]=(x/(this.waveBins-1)-.5)*5.8;this.wavePos[i*3+1]=Math.tanh(this.waveHistory[i]*1.6)*2;/* 大きな音でも枠に収める（小さな振幅ではほぼ比例） */this.wavePos[i*3+2]=1.25-z/(this.waveRows-1)*3.5;}
    this.waveGeo.attributes.position.needsUpdate=true;this.frontGeo.attributes.position.array.set(this.wavePos.subarray(0,this.waveBins*3));this.frontGeo.attributes.position.needsUpdate=true;
    const span=(1024/(this.a.ctx?.sampleRate||48000)*1000).toFixed(1);
-   this.caption('横：'+span+' msの波形 ／ 高さ：振幅 ／ 手前が今、奥は過去。斜め上からゆっくり一周します（ドラッグで止まり、触らなければ戻ります）。');
+   this.caption('横：'+span+' msの波形 ／ 高さ：振幅 ／ いちばん明るい先頭の線が今、うしろへ流れるほど過去。斜め上からゆっくり一周します（ドラッグで止まり、触らなければ戻ります）。');
   }else if(this.view==='flow'){
    this.flowMat.uniforms.uTime.value=this.clock;
-   this.caption('粒の流れ：円周＝周波数（40 Hz から一周で 16 kHz・対数。長い目盛り＝100 Hz・1 kHz・10 kHz）／中心から外へ＝時間（外ほど過去・約6秒）／粒の多さ・高さ・明るさ＝その周波数の強さ。');
+   this.caption('粒の流れ：円周＝周波数（40 Hz から一周で 16 kHz・対数。長い目盛り＝100 Hz・1 kHz・10 kHz）／中心から外へ＝時間（外ほど過去・約6秒）／粒の多さ・高さ・明るさ＝その周波数の強さ／色＝周波数（低い琥珀 → 高い青白）。');
   }else if(this.view==='harmonics'){
    const K=this.hK,H=this.hH;
    for(let k=0;k<K;k++){const m=this.hMesh[k].attributes.position.array,l=this.hLine[k].attributes.position.array,z=1.4-k*.4;
@@ -234,11 +252,11 @@ export class SoundSpace{
     this.hMesh[k].attributes.position.needsUpdate=true;this.hLine[k].attributes.position.needsUpdate=true;}
    const f=this.feat;this.caption('倍音の層：手前から奥へ第1〜第8倍音（推定した基音の整数倍）／横＝時間（右が今）／高さ＝各倍音のFFTレベル。'+(f.src==='f0'?'いまの基音の推定：約 '+Math.round(f.f0)+' Hz。':f.src==='peak'?'基音が読みとれないので、最も強い成分（約 '+Math.round(f.f0)+' Hz）を基準にしています。':'いまは音がありません。'));
   }else if(this.view==='sculpture'){
-   this.caption('鳴っているあいだ、音の帯ごとの強さが流れになって、枝が育ちます。くわしく：分岐の成長 × ABC流れ場（カオス的な流れ）。流れの三つの強さ＝低・中・高域／外形の横・縦＝低域・高域の割合／回転の対称の数＝鳴りはじめの周波数の山の数／伸びる長さ＝音の大きさ／枝分かれ＝音の変化／色＝音の明るさ（重心周波数）。止めると形が残ります。'+(this.nSeg?'':'音を鳴らすと育ちはじめます。'));
+   this.caption('鳴っているあいだ、音の帯ごとの強さが流れになって、枝が育ちます。くわしく：分岐の成長 × ABC流れ場（カオス的な流れ）。流れの三つの強さ＝低・中・高域／外形の横・縦＝低域・高域の割合／回転の対称の数＝鳴りはじめの周波数の山の数／伸びる長さ＝音の大きさ／枝分かれ＝音の変化／色＝音の明るさ（重心周波数）。止めると形が残ります。'+(this.nSeg>=this.segCap?'形は育ちきりました（もう一度育てるには、ほかの音を選ぶか同じ音を鳴らしなおします）。':this.nSeg?'':'音を鳴らすと育ちはじめます。'));
   }else{
    for(let i=0;i<this.history.length;i++){const v=this.history[i],c=this.palette[Math.round(v*255)];this.pos[i*3+1]=v*2.1;for(let k=0;k<3;k++)this.colors[i*3+k]=c[k]/255;}
    this.g.attributes.position.needsUpdate=true;this.g.attributes.color.needsUpdate=true;
-   this.caption('横：40 Hz → 16 kHz（対数）／高さ・色：FFTレベル／手前：現在、奥：過去。斜め上からゆっくり一周します。');
+   this.caption('横：40 Hz → 16 kHz（対数）／高さ・色：FFTレベル／いちばん明るい先頭の列が今、うしろほど過去。斜め上からゆっくり一周します。');
   }
   this.r.render(this.scene,this.cam);
  }
