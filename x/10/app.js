@@ -2,9 +2,9 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261020f";
-import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261020f";
-import { SOUNDS } from "./sounds.js?v=20261020f";
+import { T, setLang, lang } from "./i18n.js?v=20261021";
+import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261021";
+import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -131,7 +131,7 @@ function softDisp(h, r = 2, passes = 2) {
 }
 async function loadSample(s) {
   if (cache.has(s.id)) return cache.get(s.id);
-  const [c, n, r, hi] = await Promise.all(["c", "n", "r", "h"].map(k => img(`tex/${s.id}_${k}.webp`)));
+  const [c, n, r, hi] = await Promise.all(["c", "n", "r", "h"].map(k => img(`tex/${s.id}_${k}.webp?v=20261021`)));
   const { h } = heightFrom(hi), hc = softDisp(h);
   const v = { id: s.id, origin: "normal-map", material: s.mat, map: tex(c, true), normalMap: tex(n), roughMap: tex(r), dispMap: tex(hc), H: h, p0: { ...s.p }, metal: s.metal || 0, nBase: 1, snd: s.id };
   cache.set(s.id, v); return v;
@@ -179,7 +179,7 @@ function buildSliders() {
 const chips = $("#chips"), photoChip = chips.querySelector('[data-s="photo"]');
 for (const s of SAMPLES) {
   const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.s = s.id; b.setAttribute("aria-pressed", "false");
-  b.innerHTML = `<img src="tex/${s.id}_t.webp" alt="" width="48" height="48" loading="lazy"><span><b data-t="s.${s.id}">${T("s." + s.id)}</b><small data-t="s.${s.id}.sub">${T("s." + s.id + ".sub")}</small></span>`;
+  b.innerHTML = `<img src="tex/${s.id}_t.webp?v=20261021" alt="" width="48" height="48" loading="lazy"><span><b data-t="s.${s.id}">${T("s." + s.id)}</b><small data-t="s.${s.id}.sub">${T("s." + s.id + ".sub")}</small></span>`;
   b.addEventListener("click", async () => { if (surf?.id === s.id) return; busy(true); try { applySurface(await loadSample(s)); say("aoi." + s.id, 6500); aoiReact(); } finally { busy(false); } });
   chips.insertBefore(b, photoChip);
 }

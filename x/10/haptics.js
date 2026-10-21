@@ -96,7 +96,7 @@ export class Sonic {
   setMaterial(m) { if (!this.S[m]) return; this.mat = m; if (this.ctx) this.load(m); }
   load(m) {
     if (this.bufs.has(m)) return this.bufs.get(m);
-    const pr = fetch(this.base + m + ".m4a").then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    const pr = fetch(this.base + m + ".m4a?v=20261021").then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
       .then(ab => new Promise((ok, ng) => { const q = this.ctx.decodeAudioData(ab, ok, ng); if (q && q.catch) q.catch(ng); }))
       .then(buf => {   // なでる音の帯を 10 ms ごとの大きさにし、静か〜大きい順に並べておく（強さで使う所を選ぶ）
         const d = buf.getChannelData(0), sr = buf.sampleRate, [s0, sl] = this.S[m].stroke, hop = Math.round(sr * .01), a = Math.round(s0 * sr), n = Math.floor(sl * sr / hop) - 12, env = [];
