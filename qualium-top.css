@@ -552,3 +552,125 @@ html.simple .qt-layer .ql-card{min-height:0}
 .qp-more{margin:0}
 .qp-more>summary{margin-top:18px}
 .ql3d-tag{max-width:min(18.5em,44%)}.ql3d-tag .qt-l{word-break:keep-all;overflow-wrap:anywhere}
+
+/* ===== 2026-10-23 朝 本人の指示：QUALIA LAYER を一番上に・ビジョン・各層にアプリ・場・PHILOSOPHY の 3D・場面は最後へ ===== */
+#top .qt-content>#appguide{border-top:0;padding-top:clamp(96px,11vw,132px)}
+#appguide .qt-layers-title{margin:6px 0 26px}
+.qt-vision{max-width:760px;margin:0 0 26px;padding:18px 0 20px 22px;border-left:1px solid #8bccca66}
+.qt-vision-k{margin:0 0 6px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;font:400 11px/1.6 var(--mono);letter-spacing:.24em;color:#8bccca}
+.qt-vision-name{font:400 italic clamp(26px,2.8vw,36px)/1.2 var(--latin);letter-spacing:.02em;color:var(--ink)}
+.qt-vision-line{margin:0 0 14px;font:400 clamp(18px,1.9vw,22px)/1.8 var(--serif);letter-spacing:.12em;color:#dff6f1}
+html[lang="en"] .qt-vision-line{font-family:var(--latin);font-style:italic;letter-spacing:.02em}
+.qt-vision-p{margin:0 0 10px;font-size:15.5px;line-height:2.05;color:var(--ink-2)}
+.qt-vision-p:last-child{margin-bottom:0}
+/* 各層の中のアプリ（前の .qt-layer a の型〈札ごと押せた頃の形〉を、層の中のリンクには使わない） */
+.qt-layer .ql-card a{display:revert;padding:0;border-top:0;min-height:0;gap:0}
+.qt-layer .ql-card a.pf-media{display:block;border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.qt-layer .ql-card a.pf-open{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid color-mix(in srgb,var(--c) 60%,transparent)}
+.qt-layer .ql-name a{color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;min-height:44px}
+.qt-layer .ql-name a:hover,.qt-layer .ql-name a:focus-visible{color:var(--c)}
+.qt-layer h3.ql-name{margin:0;font:400 italic clamp(26px,2.6vw,32px)/1.3 var(--latin);letter-spacing:.02em;color:var(--ink)}
+.ql-apps{display:grid;gap:26px;margin:8px 0 4px}
+.ql-app{display:grid;gap:12px;min-width:0}
+.qt-layer .ql-app img{max-width:none;width:100%;border:0;aspect-ratio:16/10}
+.qt-layer .ql-app .app-preview-media{max-width:none}
+.ql-app .pf-media{max-width:560px}
+.ql-app-name{margin:0;font:400 17px/1.6 var(--serif);letter-spacing:.06em;color:var(--ink)}
+.ql-app-name a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;min-height:44px}
+html[lang="en"] .ql-app-name{font-family:var(--latin);font-size:19px;letter-spacing:.01em}
+.qt-layer .pf-sig{margin-top:4px}
+/* 場（Museum・Lab・Qualium） */
+.qt-places{margin:56px 0 0;padding-top:32px;border-top:1px solid #a8f2f666}
+.qt-places-title{margin:6px 0 30px;font:400 clamp(22px,2.4vw,30px)/1.6 var(--serif);letter-spacing:.08em;color:var(--ink)}
+html[lang="en"] .qt-places-title{font-family:var(--latin);letter-spacing:.01em}
+.qt-places .pf-grid-g{margin-top:0}
+@media(min-width:1101px){.pf-grid-3{grid-template-columns:repeat(3,minmax(0,1fr));gap:44px 32px}}
+.pf-open-sub{border-style:dashed!important}
+/* PHILOSOPHY の 3D：環境エージェント E・主体エージェント S・関係 Φ・Qualia q */
+.qp-es{margin:28px 0 34px}
+.qp-es-stage{position:relative;aspect-ratio:16/9;max-height:620px;width:100%;border:1px solid #8bccca30;background:radial-gradient(80% 70% at 50% 55%,#0a1a26,#03060f 78%);overflow:hidden}
+.qp-es-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.qp-es-labs{position:absolute;inset:0;pointer-events:none}
+.qe-lab{position:absolute;left:0;top:0;white-space:nowrap;translate:-50% -50%;font:400 13px/1.4 var(--serif);letter-spacing:.06em;color:#dff6f1;text-align:center;opacity:0;transition:opacity .5s}
+.has-3d .qe-lab,.has-3d .qe-top{opacity:1}
+.qe-lab i,.qe-top i{font:400 italic 1.25em/1 var(--latin);color:#a8f2f6;margin-left:.15em}
+.qe-lab small{display:block;font:400 11px/1.5 var(--sans,system-ui);letter-spacing:.04em;color:#9fb8c4}
+.qe-lab .qe-k,.qe-top .qe-k{font-weight:400;color:var(--ink)}
+.qe-e{translate:-50% -50%;background:rgba(3,6,15,.55);padding:4px 10px;border-radius:6px}
+.qe-m{font-size:11px;color:#9fd9cf;translate:0 -50%}
+.qe-phi{translate:-100% -50%}.qe-phi i{font-size:1.6em}.qe-q{translate:-100% -50%}.qe-q i{font-size:1.4em}
+.qe-s{translate:-50% -100%;font-size:14px;color:color-mix(in srgb,var(--c) 70%,#fff);padding:2px 8px;border:1px solid transparent;border-radius:999px;background:rgba(3,6,15,.6)}
+.qe-s.on{border-color:var(--c);color:#fff}
+.qe-top{position:absolute;left:16px;top:12px;margin:0;font:400 13px/1.4 var(--serif);letter-spacing:.06em;color:#dff6f1;opacity:0;transition:opacity .5s}
+.qp-es.no-3d .qp-es-stage{display:none}
+.qp-es-cap{margin-top:16px;display:grid;gap:10px;max-width:820px}
+.qp-es-eq{margin:0;font:400 italic 22px/1.4 var(--latin);color:#a8f2f6;letter-spacing:.04em}
+.qp-es-txt{margin:0;font-size:15px;line-height:2;color:var(--ink-2)}
+.qp-es-subj{display:flex;flex-wrap:wrap;gap:8px}
+.qp-es-subj button{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);background:transparent;color:var(--ink-2);font:400 15px/1 var(--serif);letter-spacing:.06em;cursor:pointer}
+.qp-es-subj button[aria-pressed="true"]{border-color:var(--c);color:#fff;background:color-mix(in srgb,var(--c) 14%,transparent)}
+.qp-es-subj button:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.qp-es-now{min-height:2em}
+.qp-es-now p{display:none;margin:0;font:400 16px/1.9 var(--serif);color:var(--ink);letter-spacing:.04em}
+.qp-es-now p.on{display:block}
+html[lang="en"] .qp-es-now p,html[lang="en"] .qp-es-subj button{font-family:var(--latin);letter-spacing:0}
+.qp-es-note{margin:0;font-size:12.5px;color:#8f9bb4}
+.qp-more>.qp-fig{margin:18px 0 26px}
+/* 場面（氷川参道のアニメーション）はページの最後：上の余白 */
+#top>.scene{margin-top:56px}
+/* スマホ：層の 3D も出す（10-23 本人「スマホでも見やすく」）。上に小さく貼りつけ、札は下を流れる（3D と字が重ならない） */
+@media(max-width:700px){
+  #top .qt-content>#appguide{padding-top:84px}
+  .qt-vision{padding:12px 0 14px 14px;margin-bottom:20px}
+  .qt-vision-p{font-size:15px;line-height:1.95}
+  html.simple .qt-stack{display:grid;grid-template-columns:1fr;gap:0}
+  html.simple .qt-stack-stage{display:flex;position:sticky;top:56px;height:clamp(210px,31svh,280px);z-index:2;grid-row:auto;background:#03060f;padding-bottom:4px;margin:0 -24px;width:auto}
+  html.simple .qt-stack-stage::after{content:"";position:absolute;left:0;right:0;top:100%;height:18px;background:linear-gradient(#03060f,rgba(3,6,15,0));pointer-events:none}
+  html.simple .qt-stack-scene{width:min(40vw,150px)}
+  html.simple .qt-layer,html.simple .qt-places{scroll-margin-top:calc(56px + 31svh + 24px)}
+  html.simple .ql3d-tag{display:none}
+  html.simple .qt-stack-stage .qt-stack-count{bottom:6px;font-size:10px}
+  html.simple .qt-depth{top:8%;bottom:16%}
+  .qt-layer h3.ql-name{font-size:26px}
+  .qp-es-stage{aspect-ratio:4/3.6}
+  .qe-lab{font-size:11.5px}.qe-lab small{font-size:10px}.qe-s{font-size:12px;padding:1px 6px}
+  .qe-top{font-size:12px;left:10px;top:8px}
+  .qp-es-subj button{padding:0 14px;font-size:14px}
+}
+
+/* 2026-10-23 層の 3D は一定の角度から眺める。板に寄りそう札は重なりと碧に重なるので出さない（同じ一言は右の層の一覧と、下の「Qualia Layer n／7」に出る） */
+.ql3d-tag{display:none!important}
+/* 2026-10-23 本人「Qualia/walk を Qualium に」：Qualium（場）と Qualia Layer（個別の層）の二つの段 */
+.qm-tier{margin:8px 0 72px}
+.qm-title{margin:4px 0 14px;font:400 clamp(24px,2.8vw,36px)/1.5 var(--serif);letter-spacing:.08em;color:var(--ink)}
+html[lang="en"] .qm-title{font-family:var(--latin);letter-spacing:.01em}
+.qm-lead{max-width:760px;margin:0 0 30px;font-size:15.5px;line-height:2;color:var(--ink-2)}
+.qm-grid{gap:48px 40px}
+.qm-card .pf-name a{font-size:inherit}
+.qm-more{border-top:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-bottom:1px solid color-mix(in srgb,var(--c) 25%,transparent)}
+.qm-more>summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font:400 15px/1.5 var(--serif);letter-spacing:.06em;color:#dff6f1}
+.qm-more>summary::-webkit-details-marker{display:none}
+.qm-more>summary::before{content:"＋";font:400 13px/1 var(--mono);color:var(--c);width:1.2em}
+.qm-more[open]>summary::before{content:"−"}
+.qm-more>summary:focus-visible{outline:1px solid var(--c);outline-offset:3px}
+html[lang="en"] .qm-more>summary{font-family:var(--latin);letter-spacing:0}
+.qm-d{padding:4px 0 14px}
+.qm-dk{margin:0 0 6px;font:400 11px/1.8 var(--mono);letter-spacing:.18em;color:var(--c)}
+.qm-d>p:not(.qm-dk),.qm-ul li{margin:0;font-size:14.5px;line-height:1.95;color:var(--ink-2)}
+.qm-ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.qm-ul li{padding-left:12px;border-left:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.qm-k{display:block;font:400 13.5px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}
+html[lang="en"] .qm-k{font-family:var(--latin);font-size:15px;letter-spacing:0}
+.ql-tier-head{max-width:900px;margin:0 0 26px;padding-top:30px;border-top:1px solid #8bccca30}
+.ql-in{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:2px 10px;border:1px solid #a8f2f655;border-radius:999px;font:400 12px/1.7 var(--serif);letter-spacing:.04em;color:#bfeee9}
+html[lang="en"] .ql-in{font-family:var(--latin);font-size:13px;letter-spacing:0}
+/* 採点の直し：PC の E/S の図は一画面に収める・375 の層の 3D の札を板から離す・番号の列に余白 */
+.qp-es-stage{max-height:min(620px,62vh)}
+@media(max-width:700px){
+  .qp-es-stage{max-height:none}
+  html.simple .qt-stack-stage canvas.ql3d{top:0;bottom:22px;height:auto}
+  html.simple .qt-stack-stage .qt-stack-count{bottom:3px;font-size:11px;letter-spacing:.08em}
+  html.simple .qt-depth{left:16px}
+  .qm-tier{margin-bottom:56px}
+  .qm-d>p:not(.qm-dk),.qm-ul li{font-size:14.5px}
+}

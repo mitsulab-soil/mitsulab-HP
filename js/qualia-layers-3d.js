@@ -8,8 +8,8 @@
 import * as THREE from 'three';
 
 // 色は Qualia Layer の概念の文書（§5）の案：walk＝土・sight＝紫外の淡い紫・sound＝青・touch＝石の灰・heart＝墨（紺の地で見えるよう淡く）・rakugo＝朱・song＝光の白
+// 2026-10-23 本人「Qualia/walk を Qualium に」：walk は層から外し（氷川・川越は Qualium＝場）、個別の層は六枚
 const LAYERS = [
-  { key: 'walk',   c: 0xc9a27a },
   { key: 'sight',  c: 0xc4b2ff },
   { key: 'sound',  c: 0x78b8ec },
   { key: 'touch',  c: 0xc2c7cc },
@@ -26,9 +26,9 @@ export async function boot(stage) {
   cv.className = 'ql3d';
   cv.setAttribute('aria-hidden', 'true');
   let R;
-  try { R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: !mobile, powerPreference: 'low-power' }); }
+  try { R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, powerPreference: 'low-power' }); }
   catch (e) { return; }
-  R.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1 : 1.5));
+  R.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.75 : 1.5));   // 2026-10-23 スマホでも層の 3D を出す（欄は小さいので 1.75 まで。碧の輪郭が荒れないように）
   R.outputColorSpace = THREE.SRGBColorSpace;
   stage.prepend(cv);
 
@@ -297,9 +297,10 @@ export async function boot(stage) {
     world.position.y = 0;
     // 欅はいつも見せる（層はその上に薄く重なる）
     const lookY = 3.7 + Math.min(1, d / N) * .15;   // 碧が重なりの中に立つので、重なりの全体と碧の頭、欅の梢が入る高さへ   // 2026-10-22：高くした欅の梢まで入るよう、見る高さと距離を少し上げた
-    const ang = -.62 + (reduce ? 0 : t * .04), rad = mobile ? 17 : 19.5;
-    cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 2.8 : 2.4), Math.cos(ang) * rad);
-    cam.lookAt(.9, lookY, -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
+    // 2026-10-23 本人「360度まわるのではなく、一定の角度から眺めるように」：カメラは回さず、積み重なりがいちばん分かる斜め上の一つの向きに置く（ゆるい呼吸の上下だけ）
+    const ang = -.62, rad = mobile ? 17.5 : 19.5, br = reduce ? 0 : Math.sin(t * .5) * .06;
+    cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 5.2 : 4.6) + br, Math.cos(ang) * rad);
+    cam.lookAt(.9, lookY - (mobile ? .55 : 0), -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
     if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam, { vrmUpdate: false }); stand(); vrm.update(dt); mot.afterVrmUpdate(dt); }
     R.render(S, cam);
     placeTag();
