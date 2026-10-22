@@ -159,7 +159,8 @@ function buildBuildings(g) {
       { vec3 fn = normalize(cross(dFdx(vWp), dFdy(vWp))); float dist = length(vWp - cameraPosition);
         // 壁と屋根の肌（コンクリートの写真・CC0）を近くだけ重ね、足もとを暗く（地面との接し方）、遠くは空の色へ溶かす（大気の遠近）
         vec2 tuv = abs(fn.y) > .6 ? vWp.xz * .12 : vec2(dot(vWp.xz, vec2(-fn.z, fn.x)), vWp.y) * .12; float tl = dot(texture2D(wallTex, tuv).rgb, vec3(.333));
-        float kn = 1. - smoothstep(40., 160., dist); diffuseColor.rgb *= mix(1., .7 + tl * .75, kn * .85);
+        float kn = 1. - smoothstep(40., 160., dist); diffuseColor.rgb *= mix(1., .55 + tl * 1.05, kn * .9);
+        if (abs(fn.y) < .6) { float st = texture2D(wallTex, vec2(tuv.x * .35, vWp.y * .02)).r; diffuseColor.rgb *= mix(1., .82 + .3 * st, kn * .8) * mix(1., .9 + .1 * smoothstep(0., 1., fract(vWp.y / 3.15)), kn); }   // 雨の筋と階ごとの目地（近くだけ）
         diffuseColor.rgb *= .78 + .22 * smoothstep(13., 17.5, vWp.y);
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.70,.74,.78), smoothstep(120., 520., dist) * .45);
         if (abs(fn.y) > .6) { diffuseColor.rgb *= vec3(.74,.73,.71); }
@@ -174,7 +175,7 @@ function buildBuildings(g) {
           diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * .55, shop * k * .8);
           diffuseColor.rgb *= mix(1., .95 + .05 * smoothstep(.0, .06, c.y), k); } }`);
   };
-  m.customProgramCacheKey = () => "facade2";
+  m.customProgramCacheKey = () => "facade3";
   g.scene.updateMatrixWorld(true);
   g.scene.traverse(o => { if (o.isMesh) { o.material = m; o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); } });
   bldGroup = g.scene; world.add(bldGroup); BLD.length = 0; bldGroup.traverse(o => { if (o.isMesh) BLD.push(o); });
@@ -439,7 +440,7 @@ function stepMapLabels() {
   if (QW.mode !== "sky" || !MAP.labels.length) return;
   const placed = [], W = innerWidth, H = innerHeight, all = MAP.here?.visible ? [...MAP.labels, MAP.hereLabel] : MAP.labels;
   for (const L of all) {
-    _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W; let y = (1 - _v3.y) / 2 * H; if (L === MAP.hereLabel && _v3.z < 1) y = Math.max(96, y);   // 「いま」の札は上の端で切らない
+    _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W; let y = (1 - _v3.y) / 2 * H; if (L === MAP.hereLabel && _v3.z < 1) { y = Math.max(130, Math.min(H - 60, y)); }   // 「いま」の札は上の端で切らない
     let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x < W - 20 && y > 70 && y < H - 40;
     if (ok && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < (MOBILE ? 96 : 70) && Math.abs(q[1] - y) < (MOBILE ? 22 : 18)) { ok = false; break; }   // 重なる名札は出さない（大きな鳥居の名札も）
     if (!ok) { if (L.vis !== false) { L.e.style.display = "none"; L.vis = false; } continue; }
@@ -1129,7 +1130,7 @@ function chirp() {   // 9〜11 ミリ秒の、高さがゆるやかに変わる�
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.12, t + .015); g.gain.exponentialRampToValueAtTime(.001, t + .17); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .2); } catch { }
 }
 function showSightUI(sp) {
-  $("#sightUI").hidden = false; $("#sName").textContent = sp.name; $("#sEn").textContent = sp.en; $("#sLead").textContent = sp.lead;
+  $("#sightUI").hidden = false; $("#sName").textContent = sp.name; $("#sEn").textContent = sp.en; $("#sLead").innerHTML = esc(sp.lead).replace(/（[^）]*）/, m => `<span style="white-space:nowrap">${m}</span>`);   // かっこの中は折らない
   $("#walkUI").hidden = !(sp.move === "trot" || sp.move === "crawl"); $("#flyUI").hidden = true; $("#sUpDn").hidden = sp.move === "trot" || sp.move === "crawl";
   $("#sUp").textContent = sp.move === "swim" ? "水面へ" : "上へ"; $("#sDown").textContent = sp.move === "swim" ? "もぐる" : "下へ";
 }
