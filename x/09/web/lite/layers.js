@@ -72,6 +72,7 @@ function headShape(id) {
   } else if (id === "touch") {   // 触れる：指の腹の渦（三つの弧）
     for (const r of [.1, .18, .26]) { const p = Array.from({ length: 29 }, (_, i) => { const a = Math.PI * (.15 + 1.7 * i / 28); return V(Math.cos(a) * r, Math.sin(a) * r * 1.2 - .04); }); for (let i = 0; i < 28; i++) L.push([p[i], p[i + 1]]); }
     F.push(new THREE.CircleGeometry(.07, 24));
+  } else if (id === "nature" || id === "history" || id === "culture") { return headShape({ nature: "trees", history: "history", culture: "matsuri" }[id]);
   } else { const g = new THREE.SphereGeometry(.2, 12, 8); F.push(g); }
   return { L, F };
 }

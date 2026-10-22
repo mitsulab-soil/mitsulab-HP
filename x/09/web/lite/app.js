@@ -684,7 +684,7 @@ function buildObjs() {
   const list = [...D.objs, ...D.sound.map(s => ({ id: s.id, x: s.x, y: s.y, z: s.z, ll: s.ll, layer: "sound", title: s.title, h: 2.0, lines: [], snd: s })), ...D.touch.map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "touch", title: t.title, h: 1.25, lines: [], tch: t })), ...(D.sho || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "sho", title: t.title, h: .7, lines: [], sho: t }))];
   for (const o of list) {
     const L0 = GL[o.layer]; if (!L0) continue;
-    const m = makeMarker(o.layer, L0.color, o.h, MOBILE); m.root.position.set(o.x, o.y, o.z); m.root.visible = false; m.root.name = o.id;
+    const m = makeMarker(o.sub || o.layer, L0.color, o.h, MOBILE);   // 形は細かい分類（樹木・鳥居と石…）、色はまとめた層の色 m.root.position.set(o.x, o.y, o.z); m.root.visible = false; m.root.name = o.id;
     world.add(m.root); LAYER.objs.push({ o, ...m, k: 0, show: 0, open: 0, label: null });
   }
   // はじめから、すべての層を重ねておく（2026-10-22 本人「デフォルトで全て on に」）。外すのは見る人が選んだときだけ
