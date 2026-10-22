@@ -383,7 +383,7 @@ export function addCheekTint(vrm) {
 
 // ---------------------------------------------------------------- 本体
 // 記録（モーションキャプチャ）を、どの骨にどれだけ使うか。首と頭は視線が主なので少し、手首は話す身ぶりと合わせて半分ほど
-const MOCAP_W = { hips: .85, spine: .85, chest: .85, upperChest: .85, neck: .22, head: .15, leftShoulder: .7, rightShoulder: .7, leftUpperArm: .9, rightUpperArm: .9, leftLowerArm: .85, rightLowerArm: .85, leftHand: .55, rightHand: .55 };
+const MOCAP_W = { hips: .85, spine: .85, chest: .85, upperChest: .85, neck: .22, head: .15, leftShoulder: .7, rightShoulder: .7, leftUpperArm: .9, rightUpperArm: .9, leftLowerArm: .85, rightLowerArm: .85, leftHand: .22, rightHand: .22 };   // 氷川の写し（2026-10-22）：手首が内に折れたまま止まって見えた（採点）→ 記録の手首は少しだけ
 // v4：立ち姿の記録ごとの効き（腕・胴）。140 の二本は手を体の前に出しがちなので、腕は休めの形へ半分ほど寄せ、胴の前かがみも少し控える
 const IDLE_K = { "140_06": { arm: .4, torso: .7 }, "140_07": { arm: .45, torso: .75 } };
 const TALK_BONES = ["spine", "chest", "upperChest", "neck", "leftShoulder", "rightShoulder"];
@@ -1028,7 +1028,7 @@ export class AoiMotion {
     // 指：力を抜いた曲がり（人差し指から小指へ深く）。指すときは人差し指を伸ばす
     // v5：mid・low の段では、指は一こまおき（止まって見えるほどの差はない）
     if (this.q.tier !== "high" && (this.q.n & 1) && !GS.on) return;
-    const cu = .26 + .06 * k + (L ? .03 * wob(t * .4, this.seedPh + 2) : 0);   // v5：力を抜いた指は少しひらき気味に（身ぶりのあと握ったままに見えない）
+    const cu = .2 + .05 * k + (L ? .03 * wob(t * .4, this.seedPh + 2) : 0);   // 氷川の写し：指は力を抜いて少しひらく   // v5：力を抜いた指は少しひらき気味に（身ぶりのあと握ったままに見えない）
     for (const [b, sd, f, j] of this.fingers) { const sg = sd === "left" ? 1 : -1, gw = GS[sd].w, gsh = GS[sd].shape;
       if (f === "Thumb") { const tk = gw * (gsh === "pinch" ? .35 : gsh === "point" ? .2 : 0) + (sd === this._pointSide ? .3 * (this._pointWH || 0) : 0); b.quaternion.setFromEuler(_e.set(0, sg * ((j === "Metacarpal" ? .25 : j === "Proximal" ? .2 : .12) + tk), sg * -((j === "Distal" ? .18 : .06) + tk * .8))); continue; }
       const m = { Index: .78, Middle: 1, Ring: 1.08, Little: 1.2 }[f] * (j === "Proximal" ? 1 : j === "Intermediate" ? 1.15 : .8);
