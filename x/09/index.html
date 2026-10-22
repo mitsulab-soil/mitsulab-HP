@@ -8,10 +8,10 @@
 <meta name="aoiwalk-build" content="lite-20261022">
 <link rel="icon" href="favicon/favicon.ico" sizes="any"><link rel="icon" href="favicon/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="favicon/apple-touch-icon.png"><link rel="manifest" href="favicon/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/lite/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/lite/data.json?v=20261022p" as="fetch" crossorigin>
+<link rel="preload" href="web/lite/data.json?v=20261022q" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/vendor/BufferGeometryUtils.js"}}
@@ -167,6 +167,8 @@ body[data-mode="sight"] #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 19
 #sightUI .sl{font-size:12.5px;line-height:1.55;color:var(--ml-ink-2)}
 #sightUI .sRow{display:flex;gap:8px;margin-top:10px}#sightUI .sRow .ib{padding:0 12px;font-size:12.5px;letter-spacing:.1em}
 #sUpDn{position:fixed;right:var(--g);bottom:max(16px,env(safe-area-inset-bottom));z-index:5;display:flex;flex-direction:column;gap:8px}
+#sEcho{color:#e6ddff!important;--bc0:rgba(196,178,255,.75)}
+@media (max-width:640px){body[data-mode="sight"] #caption{left:var(--g);right:92px;width:auto;transform:none;text-align:left;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 12px)}body[data-mode="sight"] #caption::before{inset:-6px -8px}#sightUI .sl{display:none}#sightUI{padding:8px 10px}}
 body[data-mode="sight"] #dock #talkBtn{display:flex}
 
 
@@ -289,7 +291,87 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 #talkBtn{color:var(--hud)}
 #talkBtn i{border-radius:50%}
 .ib.ud{min-width:72px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ===== 2026-10-22 夜 本人「層の文字は白でなく、攻殻機動隊感のあるデザインがいい」→ mitsulab 独自の電脳の HUD：
+   字は白一色をやめ、層の色を帯びて光る（にじむ光）。番号と英字は細いモノスペース、名前は明朝。わきに小さな記号・目盛り・座標。
+   視野の端に走査線とかすかなちらつき（動きを減らす設定では止める）。明るい空でも読めるよう、字の下に暗い影を残す。押せる所は 44px 以上のまま ===== */
+:root{--hud:#e2f5fb;--hud-2:#9fc6d4;--cy:#7fe3f7;--mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --hud-sh:0 0 1px rgba(0,6,14,.95),0 1px 2px rgba(0,6,14,.85),0 0 9px rgba(2,10,22,.62),0 0 18px rgba(2,10,22,.3);
+  --glow:0 0 6px rgba(127,227,247,.45),0 0 14px rgba(127,227,247,.18)}
+#lsHead .lt,#lsHead .lc,.lySep,.lyBtn .no,.lyBtn .nm small,.lyBtn .ct,.lsBase .no,#capTag,#pLayer,#sightUI .sk,.spBtn .sk,#sndTag::before,#hud .brand small,.tpad span,#lsGeo{font-family:var(--mono)!important;font-weight:300!important}
+/* 見出し：QUALIA LAYER と、いまいる所の座標の行 */
+#lsHead .lt{color:var(--cy);letter-spacing:.34em;text-shadow:var(--hud-sh),var(--glow)}
+#lsHead .lt::before{content:"◢ ";font-size:7px;letter-spacing:0;opacity:.8}
+#lsHead .lc{color:var(--hud-2)}
+#lsGeo{display:block;margin:-8px 0 6px 6px;font-size:8.5px;line-height:1.5;letter-spacing:.14em;color:rgba(159,198,212,.9);text-shadow:var(--hud-sh);white-space:pre;pointer-events:none}
+#lsGeo b{font-weight:300;color:var(--cy)}
+#lstack.closed #lsGeo{display:none}
+/* 目盛りの縦線：細い光の線と、5 px ごとの小さな刻み */
+#lsBody::before{background:linear-gradient(transparent,rgba(127,227,247,.75) 5%,rgba(127,227,247,.6) 95%,rgba(127,227,247,.25));box-shadow:0 0 4px rgba(127,227,247,.5),0 0 2px rgba(3,6,15,.8)}
+#lsBody::after{content:"";position:absolute;left:12px;top:6px;bottom:59px;width:3px;background:repeating-linear-gradient(180deg,rgba(127,227,247,.45) 0 1px,transparent 1px 6px);pointer-events:none}
+#lstack.closed #lsBody::after{bottom:15px}
+/* 一段ずつ：番号＝層の色で光る L01、名前＝層の色を帯びた明朝、英字＝細いモノスペースの符号 */
+.lyBtn{grid-template-columns:30px 30px minmax(0,1fr) auto}
+#lstack{width:224px}#lstack::before{width:270px}
+.lyBtn .no{font-size:10px;letter-spacing:.06em;color:color-mix(in srgb,var(--gc) 60%,#7c8aa0);text-shadow:var(--hud-sh)}
+.lyBtn .nm b{color:color-mix(in srgb,var(--gc) 26%,#eef9fd)}
+.lyBtn .nm small{font-size:8px;letter-spacing:.28em;color:color-mix(in srgb,var(--gc) 62%,#a8b8c8)}
+.lyBtn .nm small i{font-style:normal;opacity:.7;letter-spacing:.1em}
+.lyBtn .ct{font-size:9.5px;letter-spacing:.08em;color:color-mix(in srgb,var(--gc) 45%,#c8d6e2)}
+.lyBtn .ct::before{content:"×";opacity:.55;margin-right:1px}
+.lyBtn[aria-pressed="true"] .no{color:var(--gc);text-shadow:var(--hud-sh),0 0 6px var(--gc),0 0 14px color-mix(in srgb,var(--gc) 45%,transparent)}
+.lyBtn[aria-pressed="true"] .nm b{color:color-mix(in srgb,var(--gc) 32%,#f4fcff);text-shadow:var(--hud-sh),0 0 7px color-mix(in srgb,var(--gc) 70%,transparent),0 0 18px color-mix(in srgb,var(--gc) 35%,transparent)}
+.lyBtn[aria-pressed="true"] .nm small{color:var(--gc);text-shadow:var(--hud-sh),0 0 6px color-mix(in srgb,var(--gc) 55%,transparent)}
+.lyBtn[aria-pressed="true"] .nm{animation:hudOn .42s steps(1,end)}
+.lyBtn[aria-pressed="true"] .tk::after{border-radius:0;transform:rotate(45deg)}
+.lySep{color:var(--cy);opacity:.7;letter-spacing:.4em}
+.lySep::before{content:"―― ";letter-spacing:0;opacity:.6}
+.lsBase .no{color:var(--hud-2)}.lsBase .nm{color:color-mix(in srgb,var(--cy) 25%,#dfeef4)}
+.lyGo{color:color-mix(in srgb,var(--gc) 40%,#eef9fd);text-shadow:var(--hud-sh),0 0 8px color-mix(in srgb,var(--gc) 55%,transparent)}
+.lsFoot button{color:var(--hud-2);text-decoration-color:rgba(127,227,247,.45)}
+.lsFoot button:hover{color:var(--cy)}
+/* 走査線（細い横線が並び、光の帯がゆっくり下へ）と、かすかなちらつき */
+#lsBody{isolation:isolate}
+#lstack .scan{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:3;mix-blend-mode:screen;
+  background:linear-gradient(180deg,transparent 0,rgba(127,227,247,.10) 46%,rgba(127,227,247,.18) 50%,rgba(127,227,247,.10) 54%,transparent 100%) 0 -120px/100% 120px no-repeat,
+  repeating-linear-gradient(180deg,rgba(127,227,247,.06) 0 1px,transparent 1px 3px);animation:hudScan 6.5s linear infinite}
+#lstack{animation:hudFlick 9s steps(1,end) infinite}
+@keyframes hudScan{to{background-position:0 calc(100% + 120px),0 0}}
+@keyframes hudFlick{0%,100%{opacity:1}61%{opacity:.86}61.6%{opacity:1}88%{opacity:.93}88.4%{opacity:1}}
+@keyframes hudOn{0%{opacity:.25}20%{opacity:1}35%{opacity:.4}55%{opacity:1}}
+/* 上の帯・字幕・知らせ・札：同じ光の字に */
+#hud .brand{color:#eaf8fc}
+#hud .brand small{color:var(--cy);letter-spacing:.32em;text-shadow:var(--hud-sh),var(--glow)}
+.seg button{font-feature-settings:"palt"}
+.seg button[aria-pressed="true"]{color:#eafaff;text-shadow:var(--hud-sh),var(--glow)}
+#capText{color:#eef9fc;text-shadow:var(--hud-sh),0 0 14px rgba(127,227,247,.16)}
+#capTag{font-size:9.5px;letter-spacing:.24em;text-shadow:var(--hud-sh),0 0 7px color-mix(in srgb,var(--c,#9bdcf0) 60%,transparent)}
+#toast{color:#e6f7fc}
+#toast::before{background:var(--cy)}
+#pLayer{text-shadow:var(--hud-sh),0 0 7px color-mix(in srgb,var(--pc) 60%,transparent)}
+#pTitle{color:#effafd;text-shadow:var(--hud-sh),0 0 16px rgba(127,227,247,.18)}
+#sightUI .sk,.spBtn .sk{text-shadow:var(--hud-sh),0 0 7px rgba(196,178,255,.55)}
+#sndTag::before{text-shadow:0 0 7px rgba(120,184,236,.6)}
+#talkBtn span,#autoBtn,#gyroBtn,#land,.ib.ud{color:var(--hud)}
+.mapLabel{text-shadow:0 1px 3px rgba(3,6,15,.95),0 0 10px rgba(3,6,15,.7),0 0 8px color-mix(in srgb,currentColor 35%,transparent)}
+/* 2 回目の採点：明るい空や幹の上で、小さい字が消えた → 小さい字は太さ 400・一段大きく、字の下に暗い縁を足し、目盛りの帯を一段濃く */
+#lsHead .lt,#lsHead .lc,.lyBtn .no,.lyBtn .nm small,.lyBtn .ct,.lsBase .no,#lsGeo{font-weight:400!important}
+#lsGeo{font-size:9.5px;color:#bfe0ea;text-shadow:0 0 1px #000,0 0 2px rgba(0,6,14,1),0 1px 3px rgba(0,6,14,.95),0 0 10px rgba(2,10,22,.75)}
+.lyBtn .nm small{font-size:9px;letter-spacing:.22em;text-shadow:0 0 1px #000,0 0 2px rgba(0,6,14,1),0 1px 3px rgba(0,6,14,.9)}
+.lyBtn .ct{font-size:11px;color:color-mix(in srgb,var(--gc) 30%,#f0f6fa);text-shadow:0 0 1px #000,0 0 2px rgba(0,6,14,1),0 1px 3px rgba(0,6,14,.9)}
+.lyBtn .no{font-size:11px;color:color-mix(in srgb,var(--gc) 50%,#dde6ee);text-shadow:0 0 1px #000,0 0 2px rgba(0,6,14,1),0 1px 3px rgba(0,6,14,.9)}
+.lyBtn .nm{opacity:.72}
+.lyBtn .nm b{text-shadow:0 0 1px #000,0 0 2px rgba(0,6,14,1),0 1px 3px rgba(0,6,14,.9),0 0 10px rgba(2,10,22,.6)}
+#lstack::before{background:linear-gradient(90deg,rgba(3,6,15,.6),rgba(3,6,15,.34) 60%,transparent)}
+.mapLabel.k-torii{background:linear-gradient(90deg,rgba(60,14,10,.6),rgba(3,6,15,.25) 80%,transparent)}
+/* 6 回目の採点（P2「小さな数・英字の符号・QUALIA DIVE が明るい所で薄い」）：数と符号は不透明に・一段明るく、縁を濃く */
+.lyBtn .ct{opacity:1;font-size:11.5px;color:color-mix(in srgb,var(--gc) 22%,#f7fbfd);text-shadow:0 0 1px #000,0 0 2px #000,0 1px 3px rgba(0,6,14,1),0 0 8px rgba(2,10,22,.8)}
+.lyBtn .ct::before{opacity:.8}
+.lyBtn .nm small{color:color-mix(in srgb,var(--gc) 45%,#d8e4ee);text-shadow:0 0 1px #000,0 0 2px #000,0 1px 3px rgba(0,6,14,1)}
+.lyBtn .nm{opacity:.84}
+#hud .brand small{font-size:9.5px;font-weight:400!important;color:#a9ecfa;text-shadow:0 0 1px #000,0 0 2px #000,0 1px 3px rgba(0,6,14,1),0 0 8px rgba(127,227,247,.35)}
+#lsGeo{color:#d4edf4}
+@media (max-width:640px){.lyBtn{grid-template-columns:27px 24px minmax(0,1fr)}.lyBtn .no{font-size:9px;letter-spacing:0}#lsGeo{display:none}#lstack{width:176px}#lstack::before{width:250px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}#lstack .scan{display:none}}
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
@@ -319,7 +401,8 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 <button class="ib" id="talkBtn" aria-pressed="true"><i aria-hidden="true"></i><span>碧の話：止める</span></button>
 <aside id="lstack" aria-label="Qualia Layer：風景に重ねている層（触れると表示・非表示）">
   <button id="lsHead" aria-expanded="true" aria-controls="lsBody"><span class="lt">QUALIA LAYER</span><span class="lc" id="lsCount">7 / 7</span><i aria-hidden="true"></i></button>
-  <div id="lsBody">
+  <span id="lsGeo" aria-hidden="true"></span>
+  <div id="lsBody"><span class="scan" aria-hidden="true"></span>
     <ol id="layersAll"></ol>
     <div class="lsBase" aria-hidden="true"><span class="tk"></span><span class="no">00</span><span class="nm">風景</span></div>
     <div class="lsFoot"><button id="lsAll">すべて重ねる</button><button id="lsNone">すべて外す</button></div>
@@ -330,7 +413,7 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 
 <div id="walkUI" hidden><button class="ib" id="gyroBtn" aria-pressed="false">端末の向きで見回す</button><button class="ib" id="autoBtn" aria-pressed="false"><span>歩きつづける</span></button></div>
 <section id="sightUI" hidden aria-label="Qualia/sight"><div class="sTop"><span class="sk">QUALIA/SIGHT　<b id="sEn"></b></span><span class="sn" id="sName"></span><span class="sl" id="sLead"></span></div><div class="sRow"><button class="ib" id="sWhy">手がかりと出典</button><button class="ib" id="sBack">人にもどる</button></div></section>
-<div id="sUpDn" hidden><button class="ib ud" id="sUp" aria-label="押しているあいだ、上がる">上へ</button><button class="ib ud" id="sDown" aria-label="押しているあいだ、下がる">下へ</button></div>
+<div id="sUpDn" hidden><button class="ib ud" id="sEcho" aria-label="超音波を出す（スペースキーでも）" hidden>超音波</button><button class="ib ud" id="sUp" aria-label="押しているあいだ、上がる（R キー）">上へ</button><button class="ib ud" id="sDown" aria-label="押しているあいだ、下がる（F キー）">下へ</button><button class="ib ud" id="sFwd" aria-label="押しているあいだ、前へ進む（W キー）">前へ</button></div>
 <div id="flyUI" hidden><button class="ib ud" id="flyUp" aria-label="押しているあいだ、上がる">上へ</button><button class="ib ud" id="flyDown" aria-label="押しているあいだ、下がる">下へ</button><button class="ib" id="land">地上へ降りる</button></div>
 
 <article id="panel" class="ml-panel ml-panel--corner" hidden aria-live="polite">
@@ -361,6 +444,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261022p").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261022r").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

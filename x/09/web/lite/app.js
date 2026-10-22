@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
-import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=3";
+import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=4";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -14,7 +14,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261022p";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261022q";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -215,6 +215,106 @@ function buildPonds(env) {
 }
 
 /* 建物：区画ごと（見えない区画は描かない） */
+const BLDU = { t: { value: 0 }, g: { value: -1e4 } }, GEO = { t: 0, el: null, last: "" }, EDGEQ = [];
+/* 建物の輪郭の線：面の向きが 28° 以上変わる辺と、縁の辺だけ（three の EdgesGeometry より速い、数の鍵の版） */
+function bldEdges(geo, cosT = Math.cos(28 * Math.PI / 180)) {
+  const P = geo.attributes.position; if (!geo.boundingBox) geo.computeBoundingBox();
+  const bb = geo.boundingBox, q = 1e5 / Math.max(1e-6, bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
+  const vid = new Int32Array(P.count), map = new Map(), px = []; let nv = 0;
+  for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), k = (Math.round((x - bb.min.x) * q) * 17179869184) + Math.round((y - bb.min.y) * q) * 131072 + Math.round((z - bb.min.z) * q);   // 1e5 < 2^17：重ならない鍵
+    let id = map.get(k); if (id === undefined) { id = nv++; map.set(k, id); px.push(x, y, z); } vid[i] = id; }
+  const ix = geo.index ? geo.index.array : null, nT = (ix ? ix.length : P.count) / 3, N = new Float32Array(nT * 3), E = new Map(), out = [];
+  for (let t = 0; t < nT; t++) {
+    const a = vid[ix ? ix[t * 3] : t * 3], b = vid[ix ? ix[t * 3 + 1] : t * 3 + 1], c = vid[ix ? ix[t * 3 + 2] : t * 3 + 2]; if (a === b || b === c || a === c) continue;
+    const ux = px[b * 3] - px[a * 3], uy = px[b * 3 + 1] - px[a * 3 + 1], uz = px[b * 3 + 2] - px[a * 3 + 2], vx = px[c * 3] - px[a * 3], vy = px[c * 3 + 1] - px[a * 3 + 1], vz = px[c * 3 + 2] - px[a * 3 + 2];
+    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const l = Math.hypot(nx, ny, nz); if (l < 1e-12) continue; N[t * 3] = nx / l; N[t * 3 + 1] = ny / l; N[t * 3 + 2] = nz / l;
+    for (const [u0, v0] of [[a, b], [b, c], [c, a]]) { const u = Math.min(u0, v0), v = Math.max(u0, v0), k = u * nv + v, pr = E.get(k);
+      if (pr === undefined) E.set(k, t); else if (pr >= 0) { if (N[pr * 3] * N[t * 3] + N[pr * 3 + 1] * N[t * 3 + 1] + N[pr * 3 + 2] * N[t * 3 + 2] < cosT) out.push(u, v); E.set(k, -1); } }
+  }
+  for (const [k, t] of E) if (t >= 0) out.push(Math.floor(k / nv), k % nv);
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(px, 3)); g.setIndex(nv > 65535 ? new THREE.Uint32BufferAttribute(out, 1) : new THREE.Uint16BufferAttribute(out, 1)); return g;
+}
+/* Qualia/sight のヒヨドリ（2026-10-22 合格した自作の 3D・CC管理台帳 M-0860）。使い方を絞る：
+   近く＝植え込みにとまる横の姿（やや見下ろす角度だけ。いつも横を向け、2.5 m より寄らない）、遠く＝並木の上を飛ぶ姿（実寸のまま・画面で 120 px 以下のときだけ）。正面・真上・真下から寄って見せない */
+const HIYO = { near: null, far: null, loading: false, a: 0, yaw: null, c: null }; QW.HIYO = HIYO;
+/* 参道の縁の植え込みの、低木にも下草にも隠れない地面（d＝道のり） */
+function surfaceY(x, z) {   // 目に見えている地面の高さ（標高の値より、描いている地面の面が少し高い所がある）。建物・木・草・札は除いて、真上から当てる
+  let gy = groundY(x, z); const rc = new THREE.Raycaster(new THREE.Vector3(x, gy + 6, z), new THREE.Vector3(0, -1, 0), 0, 12);
+  if (!surfaceY.o || surfaceY.n !== world.children.length) { surfaceY.n = world.children.length; surfaceY.o = []; world.traverse(o => { if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !BLD.includes(o) && o.material && !o.material.transparent) surfaceY.o.push(o); }); }   // 当てる面の一覧は一度だけ作る
+  const objs = surfaceY.o;
+  for (const h of rc.intersectObjects(objs, false)) { if (h.point.y < gy + 1.2) { gy = Math.max(gy, h.point.y); break; } }
+  return gy; }
+function clearSpot(d) { let best = -1, x = 0, z = 0;
+  for (let dd = -12; dd <= 12; dd += .5) for (const sd of [1, -1]) for (const lat of [4.5, 4.9]) {
+    const q = atD(d + dd), cx = q.x - q.tz * lat * sd, cz = q.z + q.tx * lat * sd; let near = 1e9;
+    for (const S of VEG.sp) for (let k = 0; k < S.m; k++) { const ex = S.xs[k * 6] - cx, ez = S.xs[k * 6 + 2] - cz; if (Math.abs(ex) > 3 || Math.abs(ez) > 3) continue; near = Math.min(near, Math.hypot(ex, ez) - S.xs[k * 6 + 3] * (S.s <= 2 || S.s === 7 ? .45 : .25)); }
+    for (const t of TREE.list) { const ex = t.x - cx, ez = t.z - cz; if (Math.abs(ex) < 4 && Math.abs(ez) < 4) near = Math.min(near, Math.hypot(ex, ez) - 1.6); }   // 木の根元の盛り上がりも避ける
+    const sc = Math.min(near, 2) - Math.abs(dd) * .02; if (sc > best) { best = sc; x = cx; z = cz; } }
+  return { x, z }; }
+/* ミミズ（2026-10-22 合格・自作の 3D）：近く＝土の上をはう横の姿（真横寄りだけ。4 倍で見せ、札に書く）。1.8〜7 m のときだけ */
+const MIMI = { m: null, loading: false, yaw: null, lb: null }; QW.MIMI = MIMI;
+function loadMimi() {
+  if (MIMI.loading || !D) return; MIMI.loading = true;
+  import("./sight/sightModels.js?v=1").then(async ({ loadSight }) => {
+    const m = await loadSight("mimizu", { shadow: false }); await (VEG.p || Promise.resolve());
+    const sp = D.sight.find(q => q.id === "mimizu"), d = sp ? nearestOnLine(sp.x, sp.z).d : 640, { x, z } = clearSpot(d);
+    const gy = surfaceY(x, z);
+    m.object.position.set(x, gy + .012, z); m.object.scale.setScalar(4); m.play("crawl", 0, .8);
+    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ミミズ（4 倍で見せています）", GL.sight?.color || "#c4b2ff"); lb.position.set(0, .06, 0); lb.scale.set(.16, .04, 1); lb.material.depthTest = false; lb.renderOrder = 9; m.object.add(lb); MIMI.lb = lb;
+    m.object.visible = false; world.add(m.object); MIMI.m = m;
+  }).catch(e => console.warn("mimizu", e));
+}
+function stepMimi(dt) {
+  if (!MIMI.m) return; const o = MIMI.m.object, cp = camera.position, dx = cp.x - o.position.x, dz = cp.z - o.position.z, dh = Math.hypot(dx, dz), down = Math.atan2(cp.y - o.position.y, dh);
+  const show = LAYER.worn.includes("sight") && QW.mode === "walk" && dh > 1.8 && dh < 7 && down < .8; o.visible = show; if (MIMI.lb) MIMI.lb.visible = dh < 4.5;
+  if (show) { const ty = Math.atan2(dx, dz) - Math.PI / 2; if (MIMI.yaw === null) MIMI.yaw = ty; let e = ty - MIMI.yaw; e = Math.atan2(Math.sin(e), Math.cos(e)); MIMI.yaw += e * Math.min(1, dt * .8); o.rotation.y = MIMI.yaw; MIMI.m.update(dt); }   // いつも真横を見せる（ゆっくり向きを変える）
+}
+function loadHiyo() {
+  if (HIYO.loading || !D) return; HIYO.loading = true;
+  import("./sight/sightModels.js?v=1").then(async ({ loadSight }) => {
+    const [n, f] = await Promise.all([loadSight("hiyo", { shadow: false }), loadSight("hiyo", { lod: "far", shadow: false })]);
+    const sp = D.sight.find(q => q.id === "hiyo"), d = sp ? nearestOnLine(sp.x, sp.z).d : 499, p = atD(d), side = 7.2;
+    let x = p.x - p.tz * side, z = p.z + p.tx * side, top = groundY(x, z) + 1.0; HIYO.c = { x, z, y: groundY(x, z) };
+    await (VEG.p || Promise.resolve()); ({ x, z } = clearSpot(d)); top = surfaceY(x, z) + .02;   // とまる所＝参道の縁の植え込みの地面（落ち葉の上で餌をさがす横の姿）
+    n.object.position.set(x, top, z); n.object.scale.setScalar(2.5); n.play("perch", 0);   // 見つけやすいよう 2.5 倍（札に書く）
+    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ヒヨドリ（2.5 倍で見せています）", GL.sight?.color || "#c4b2ff"); lb.position.set(0, .22, 0); lb.scale.set(.44, .11, 1); lb.material.depthTest = false; lb.renderOrder = 9; n.object.add(lb); HIYO.lb = lb; n.object.visible = false; world.add(n.object);
+    f.play("fly", 0, .7); f.object.visible = false; world.add(f.object);
+    n.object.traverse(o => { if (o.isMesh) o.renderOrder = 3; }); HIYO.near = n; HIYO.far = f;
+  }).catch(e => console.warn("hiyo", e));
+}
+function stepHiyo(dt) {
+  if (!HIYO.near) return;
+  const on = LAYER.worn.includes("sight"), cp = camera.position, M = QW.mode;
+  const o = HIYO.near.object, dx = cp.x - o.position.x, dz = cp.z - o.position.z, dh = Math.hypot(dx, dz), down = Math.atan2(cp.y - o.position.y, dh);
+  const showN = on && M === "walk" && dh > 3 && dh < 30 && down > -.01 && down < .42; if (HIYO.lb) HIYO.lb.visible = dh < 6.5;   // 横から〜見下ろす 24° まで（下から見上げる角度では出さない）
+  o.visible = showN;
+  if (showN) { const ty = Math.atan2(dx, dz) - Math.PI / 2; if (HIYO.yaw === null) HIYO.yaw = ty; let e = ty - HIYO.yaw; e = Math.atan2(Math.sin(e), Math.cos(e)); HIYO.yaw += e * Math.min(1, dt * 1.5); o.rotation.y = HIYO.yaw; HIYO.near.update(dt); }
+  const fo = HIYO.far.object, c = HIYO.c; HIYO.a += dt * .24; const a = HIYO.a, R = 30;
+  fo.position.set(c.x + Math.cos(a) * R, c.y + 17 + Math.sin(a * 2.3) * 2.2, c.z + Math.sin(a) * R * 1.6);
+  fo.rotation.set(0, Math.atan2(-Math.sin(a) * R, Math.cos(a) * R * 1.6), 0);
+  const d = fo.position.distanceTo(cp), px = .275 * innerHeight / (2 * Math.max(.1, d) * Math.tan(camera.fov * Math.PI / 360));
+  const showF = on && (M === "walk" || M === "fly") && px < 120 && px > 1.2 && d > 12;
+  fo.visible = showF; if (showF) HIYO.far.update(dt);
+}
+/* アブラコウモリ（2026-10-22 合格した自作の 3D・遠く用だけ）：コウモリの身体に入った夕方の暗さの中で、遠くを飛ぶほかのコウモリ。近くでは見せない（12 m より寄ると消し、画面で 120 px 以下のときだけ） */
+const BATS = { list: [], loading: false, c: null, t: 0 }; QW.BATS = BATS; QW.camera = camera;
+function stepBats(dt) {
+  const on = QW.mode === "sight" && SIGHT.sp?.id === "koumori";
+  if (on && !BATS.loading) { BATS.loading = true;
+    import("./sight/sightModels.js?v=1").then(({ loadSight }) => Promise.all([0, 1, 2].map(() => loadSight("koumori", { lod: "far", shadow: false })))).then(ms => {
+      ms.forEach((m, i) => { m.object.scale.setScalar(5); m.play("fly", 0, .55 + i * .07); m.object.visible = false; world.add(m.object); BATS.list.push({ m, r: 6 + i * 4, w: (.5 + i * .13) * (i % 2 ? -1 : 1), ph: i * 2.1, h: 4 + i * 2.2 });   /* 空を背にして見えるよう、少し上を */ });
+    }).catch(e => console.warn("bats", e)); }
+  if (!BATS.list.length) return;
+  if (!on) { for (const b of BATS.list) b.m.object.visible = false; BATS.c = null; return; }
+  const cp = camera.position; camera.getWorldDirection(_v3); _v3.y = 0; _v3.normalize(); const tgt = cp.clone().addScaledVector(_v3, 28); if (!BATS.c) BATS.c = tgt; BATS.c.lerp(tgt, Math.min(1, dt * .6)); BATS.t += dt;   // 群れの輪は、ゆっくりあとを追う
+  for (const b of BATS.list) { const a = b.ph + BATS.t * b.w, o = b.m.object;
+    o.position.set(BATS.c.x + Math.cos(a) * b.r, BATS.c.y + b.h + Math.sin(BATS.t * 1.3 + b.ph) * 1.2, BATS.c.z + Math.sin(a) * b.r);
+    o.rotation.set(0, Math.atan2(-Math.sin(a) * b.w, Math.cos(a) * b.w), 0);
+    const d = o.position.distanceTo(cp), px = .2 * 5 * innerHeight / (2 * Math.max(.1, d) * Math.tan(camera.fov * Math.PI / 360));
+    o.visible = d > 12 && px < 120; if (o.visible) b.m.update(dt); }
+}
+function stepEdges() { if (!EDGEQ.length) return; const t0 = performance.now();
+  do { const o = EDGEQ.shift(); const ln = new THREE.LineSegments(bldEdges(o.geometry), QW.bldLine); ln.renderOrder = 2; ln.matrixAutoUpdate = false; o.add(ln); } while (EDGEQ.length && performance.now() - t0 < (MOBILE ? 3 : 6)); }
 let bldGroup = null; const BLD = [], ROOF = { x0: -680, z0: -1360, cell: 20, nx: 68, nz: 136, h: new Float32Array(68 * 136) };
 function roofAt(x, z, r = 1) {   // まわり r 区画の、いちばん高い屋根
   const R = ROOF, c0 = Math.floor((x - R.x0) / R.cell), r0 = Math.floor((z - R.z0) / R.cell); let m = 0;
@@ -222,36 +322,39 @@ function roofAt(x, z, r = 1) {   // まわり r 区画の、いちばん高い�
   return m;
 }
 function buildBuildings(g) {
-  const m = new THREE.MeshStandardMaterial({ vertexColors: true, color: "#a7a196", roughness: .92, metalness: 0, flatShading: true, envMapIntensity: .35 });
-  const wallTex = tex(BASE + "tex/concrete_pavement_c5.webp");
-  m.onBeforeCompile = sh => {   // 壁に階と窓の並び（模式）、屋根は少し暗く。PLATEAU の形と高さはそのまま
-    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
-    sh.uniforms.wallTex = { value: wallTex };
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform sampler2D wallTex;")
+  // 2026-10-22 本人「建物がキューブ系でよくないので、半透明にして、薄いグラフィックに」→ PLATEAU の形と高さはそのまま、写実の箱をやめて「データの層」として描く：
+  // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
+  const U = BLDU;
+  const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
+    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * .25); gl_FragColor.a *= 1. - fgF * .82;\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+  const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
+  m.onBeforeCompile = sh => { vs(sh);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG;")
       .replace("#include <color_fragment>", `#include <color_fragment>
-      { vec3 fn = normalize(cross(dFdx(vWp), dFdy(vWp))); float dist = length(vWp - cameraPosition);
-        // 壁と屋根の肌（コンクリートの写真・CC0）を近くだけ重ね、足もとを暗く（地面との接し方）、遠くは空の色へ溶かす（大気の遠近）
-        vec2 tuv = abs(fn.y) > .6 ? vWp.xz * .12 : vec2(dot(vWp.xz, vec2(-fn.z, fn.x)), vWp.y) * .12; float tl = dot(texture2D(wallTex, tuv).rgb, vec3(.333));
-        float kn = 1. - smoothstep(40., 160., dist); diffuseColor.rgb *= mix(1., .55 + tl * 1.05, kn * .9);
-        if (abs(fn.y) < .6) { float st = texture2D(wallTex, vec2(tuv.x * .35, vWp.y * .02)).r; diffuseColor.rgb *= mix(1., .82 + .3 * st, kn * .8) * mix(1., .9 + .1 * smoothstep(0., 1., fract(vWp.y / 3.15)), kn); }   // 雨の筋と階ごとの目地（近くだけ）
-        diffuseColor.rgb *= .78 + .22 * smoothstep(13., 17.5, vWp.y);
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.70,.74,.78), smoothstep(120., 520., dist) * .45);
-        if (abs(fn.y) > .6) { diffuseColor.rgb *= vec3(.74,.73,.71); }
-        else { float u = dot(vWp.xz, vec2(-fn.z, fn.x)); float fy = (vWp.y - 13.2) / 3.15;
-          float k = 1. - smoothstep(70., 230., dist);
-          vec2 c = vec2(fract(u / 2.8), fract(fy)); vec2 w = fwidth(vec2(u / 2.8, fy)) * 1.5;
-          float win = smoothstep(.22 - w.x, .22 + w.x, c.x) * (1. - smoothstep(.78 - w.x, .78 + w.x, c.x)) * smoothstep(.34 - w.y, .34 + w.y, c.y) * (1. - smoothstep(.82 - w.y, .82 + w.y, c.y)) * step(1., fy);
-          float shop = (1. - step(1., fy)) * step(.1, fy);
-          float r = fract(sin(floor(u / 2.8) * 12.9 + floor(fy) * 78.2) * 437.5);
-          vec3 glass = mix(vec3(.2,.23,.26), vec3(.34,.39,.44), r * .5);
-          diffuseColor.rgb = mix(diffuseColor.rgb, glass, win * k * .7);
-          diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * .55, shop * k * .8);
-          diffuseColor.rgb *= mix(1., .95 + .05 * smoothstep(.0, .06, c.y), k); } }`);
+      { vec3 fn = normalize(cross(dFdx(vWp), dFdy(vWp))); float dist = length(vWp - cameraPosition); vec3 vd = (cameraPosition - vWp) / max(dist, 1e-3);
+        float fr = pow(1. - abs(dot(fn, vd)), 2.); float roof = step(.6, abs(fn.y)); float nr = 1. - smoothstep(80., 420., dist);
+        float fy = (vWp.y - 13.2) / 3.15; float d = abs(fract(fy + .5) - .5); float fl = (1. - roof) * step(.5, fy) * (1. - smoothstep(0., fwidth(fy) * 1.2, d));
+        float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.1, 2.)) * (1. - roof);
+        float fade = mix(1., .6, smoothstep(140., 760., dist));
+        diffuseColor.rgb = mix(vec3(.25,.35,.43), vec3(.36,.66,.78), fr * .7 + band * .7 + fl * nr * .6) * (roof > .5 ? 1.1 : 1.);
+        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y); }`);
   };
-  m.customProgramCacheKey = () => "facade3";
+  m.customProgramCacheKey = () => "bldGhost1";
+  const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
+  lm.onBeforeCompile = sh => { vs(sh);
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG;")
+      .replace("#include <color_fragment>", `#include <color_fragment>
+      { float dist = length(vWp - cameraPosition); float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.6, 2.));
+        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y);
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86,.99,1.), band * .7); }`);
+  };
+  lm.customProgramCacheKey = () => "bldGhostL1";
+  QW.bldMat = m; QW.bldLine = lm;
   g.scene.updateMatrixWorld(true);
   g.scene.traverse(o => { if (o.isMesh) { o.material = m; o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); } });
   bldGroup = g.scene; world.add(bldGroup); BLD.length = 0; bldGroup.traverse(o => { if (o.isMesh) BLD.push(o); });
+  bldGroup.traverse(o => { if (o.isMesh) { o.renderOrder = 1; o.castShadow = o.receiveShadow = false; } });
+  { const cp = camera.position; EDGEQ.length = 0; EDGEQ.push(...BLD.slice().sort((p, r) => p.userData.ws.center.distanceTo(cp) - r.userData.ws.center.distanceTo(cp))); }   // 輪郭の線は、近い区画から、こまごとに少しずつ作る（起動を重くしない）
   // 屋根の高さの粗い地図（20 m 四方ごとの最も高い所）。飛ぶとき、建物にもぐらないように
   const v = new THREE.Vector3(), R = ROOF;
   for (const b of BLD) { const P = b.geometry.attributes.position; for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i).applyMatrix4(b.matrixWorld);
@@ -411,6 +514,7 @@ const STRUCT_WEATHER = { stone_new: { moss: .38, grime: .55, lichen: .45 }, gran
 let lateP = null; const STONES = [];
 function loadLate() {
   if (lateP) return lateP;
+  setTimeout(loadHiyo, 2500); setTimeout(loadMimi, 4000);   // ヒヨドリの 3D は、歩きはじめて少ししてから（起動を重くしない）
   const road = glb("web/road.glb").then(g => {
     const mats = {};
     for (const [k, [t, c, r, n]] of Object.entries(ROAD_MATS)) { mats[k] = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/" + t + "_c5.webp"), normalMap: MOBILE ? null : tex(BASE + "tex/" + t + "_n5.webp", false), normalScale: new THREE.Vector2(n, -n), color: new THREE.Color(...c), roughness: r, metalness: 0, envMapIntensity: .5 }); if (ROAD_WEATHER[k]) weather(mats[k], ROAD_WEATHER[k]); }
@@ -618,7 +722,7 @@ function buildMap(M) {
   // 名前（HTML の札。上空のときだけ）
   const box = $("#mapLabels"); box.innerHTML = "";
   for (const [nm, k, x, z] of M.labels) { const e = document.createElement("div"); e.className = "mapLabel k-" + ({ "道": "road", "公園": "park", "池": "water", "社": "shrine", "寺": "shrine", "駅": "station" }[k] || "road"); e.textContent = nm; box.appendChild(e); MAP.labels.push({ e, p: lift(x, z, 3) }); }
-  for (const s of D.structs) if (/^torii_|^romon$|^shinkyo$/.test(s.id)) { const e = document.createElement("div"); e.className = "mapLabel k-torii"; e.textContent = s.name; box.appendChild(e); MAP.labels.push({ e, p: new THREE.Vector3(s.p[0], s.p[1] + (s.id === "romon" ? 120 : 90), s.p[2]), big: true }); }
+  for (const s of D.structs) if (/^torii_|^romon$|^shinkyo$/.test(s.id) && !D.starts.some(t => t.name === s.name)) {   /* 始める場所の札と同じ名前は出さない（二つの札が重なって「二」が「三」に見えた） */ const e = document.createElement("div"); e.className = "mapLabel k-torii"; e.textContent = s.name; box.appendChild(e); MAP.labels.push({ e, p: new THREE.Vector3(s.p[0], s.p[1] + (s.id === "romon" ? 120 : 90), s.p[2]), big: true }); }
   // いまの地点
   const hg = new THREE.Group(), hr = new THREE.RingGeometry(5.5, 7, 48); hr.rotateX(-Math.PI / 2);
   const hm = new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: .9, depthWrite: false, fog: false });
@@ -762,7 +866,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
     if ((n.d > 1990 && dir === ty) || (n.d < -15 && dir !== ty)) { WALK.auto = false; syncAutoBtn(); }
   }
   // 見回したあと、しばらく触れずに歩いていると、目はゆっくり進む向きへ戻る
-  if (moving && !GYRO.on && performance.now() - CAM.lastDrag > 3500) CAM.look -= wrap(CAM.look) * Math.min(1, dt * .5);
+  if (moving && !GYRO.on && QW.mode === "walk" && performance.now() - CAM.lastDrag > 3500) CAM.look -= wrap(CAM.look) * Math.min(1, dt * .5);
   CAM.look = wrap(CAM.look);
   corridorClamp(CAM.pos);
   const gy = groundY(CAM.pos.x, CAM.pos.z) + eye;
@@ -844,7 +948,7 @@ canvas.addEventListener("pointerdown", e => {
   if (ptr.pts.size === 2) { const [a, b] = [...ptr.pts.values()]; ptr.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), dist: SKY.tDist }; return; }
   ptr.down = true; ptr.id = e.pointerId; ptr.x = ptr.sx = e.clientX; ptr.y = ptr.sy = e.clientY; ptr.t = performance.now(); ptr.moved = 0;
   canvas.setPointerCapture(e.pointerId);
-  if (QW.mode === "fly" || (QW.mode === "sight" && SIGHT.sp?.move !== "trot" && SIGHT.sp?.move !== "crawl")) FLY.drag = { dx: 0, dy: 0 };
+  if (QW.mode === "fly") FLY.drag = { dx: 0, dy: 0 };   // 生きものの身体では、ドラッグは見回すだけ（勝手に曲がらない）
 });
 canvas.addEventListener("pointermove", e => {
   if (ptr.pts.has(e.pointerId)) ptr.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -862,7 +966,7 @@ const endPtr = e => {
 };
 canvas.addEventListener("pointerup", endPtr); canvas.addEventListener("pointercancel", endPtr);
 canvas.addEventListener("wheel", e => { if (QW.mode === "sky") { SKY.tDist = Math.min(2800, Math.max(380, SKY.tDist * (1 + e.deltaY * .0012))); e.preventDefault(); } }, { passive: false });
-addEventListener("keydown", e => { if (e.target.closest?.("input,textarea")) return; const k = e.key.toLowerCase(); WALK.keys.add(k); if (k === "escape") { if (!$("#panel").hidden) hidePanel(); } if (k === " " && QW.mode === "walk") { WALK.auto = !WALK.auto; syncAutoBtn(); e.preventDefault(); } });
+addEventListener("keydown", e => { if (e.target.closest?.("input,textarea")) return; const k = e.key.toLowerCase(); WALK.keys.add(k); if (k === "escape") { if (!$("#panel").hidden) hidePanel(); } if (k === " " && QW.mode === "walk") { WALK.auto = !WALK.auto; syncAutoBtn(); e.preventDefault(); } if (k === " " && QW.mode === "sight" && SIGHT.sp?.move === "echo") { echoNow(); e.preventDefault(); } });
 addEventListener("keyup", e => WALK.keys.delete(e.key.toLowerCase()));
 addEventListener("blur", () => WALK.keys.clear());
 
@@ -996,7 +1100,7 @@ function openObj(L) {
   const sp = o.sp ? D.sight.find(s => s.id === o.sp) : null;
   openPanel({ color: g.color, layer: `${String(layerNo(o.layer)).padStart(2, "0")}　${g.name}`, title: o.title, lines: o.lines, more: o.more, src: o.src, ll: o.ll, note: o.note,
     how: o.how === "研究の知見" ? "研究の知見（ほかの場所で調べられたこと）" : "記録（公的な資料・神社の由緒・樹木調査など）",
-    figs: sp ? EXP_FIG[sp.fig] || "" : "", buttons: sp ? [{ label: `${sp.name}になる`, primary: true, run: () => enterSight(sp, L) }] : [] });
+    figs: sp ? EXP_FIG[sp.fig] || "" : "", buttons: sp && BODY_D[sp.id] ? [{ label: `${sp.name}になる`, primary: true, run: () => enterSight(sp, L) }] : [] });
   if (o.seg) TALK.spoken.add(o.seg);
   speakLines(o.lines, L);
 }
@@ -1085,10 +1189,11 @@ $("#talkBtn").addEventListener("click", () => { TALK.on = !TALK.on; syncTalkBtn(
 
 /* ---------- 碧（共通部品 AoiMotion） ---------- */
 const AOI = { root: null, m: null, ready: false, vrm: null, pos: new THREE.Vector3(), focus: null, low: false, greeted: false, loading: null };
+QW.AOI = AOI;
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261022h"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261022o"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
@@ -1146,7 +1251,7 @@ function stepAoi(dt) {
 
 /* ---------- Qualia/sight：生きものを選んで、その身体へ ---------- */
 const EXP_FIG = {
-  echo: `<figcaption>はね返ってくる音だけで、まわりの形をとらえる。押すたびに前へ音がひろがり、木と地面と建物に当たって戻るまでの時間の順に、点が灯ります。音の速さ（秒速 343 m）で計算し、時間を 16 倍に引きのばした模式です。鳴る音も 16 倍に引きのばした模式の音です。</figcaption>`,
+  echo: `<figcaption>おもに、はね返ってくる音で、まわりの形をとらえる。押すたびに前へ音がひろがり、木と地面と建物に当たって戻るまでの時間の順に、点が灯ります。音の速さ（秒速 343 m）で計算し、時間を 16 倍に引きのばした模式です。鳴る音も 16 倍に引きのばした模式の音です。</figcaption>`,
   cones: `<svg viewBox="0 0 320 120" role="img" aria-label="人の三種類と鳥の四種類の錐体の、感じる光の範囲の模式"><defs><linearGradient id="spg" x1="0" x2="1"><stop offset="0" stop-color="#6b4bd8"/><stop offset=".18" stop-color="#5a5cf0"/><stop offset=".38" stop-color="#3fb4e0"/><stop offset=".58" stop-color="#7fe08a"/><stop offset=".78" stop-color="#f2cf5c"/><stop offset="1" stop-color="#ef6a4a"/></linearGradient></defs>
     <rect x="20" y="96" width="280" height="4" fill="url(#spg)" opacity=".85"/><text x="20" y="114" class="t">紫外</text><text x="300" y="114" class="t" text-anchor="end">赤</text>
     <text x="20" y="20" class="t">人：3 種類</text>${[.42, .62, .72].map(c => `<path d="M${20 + 280 * (c - .16)} 52 Q${20 + 280 * c} 18 ${20 + 280 * (c + .16)} 52" class="cu h"/>`).join("")}
@@ -1156,9 +1261,9 @@ const EXP_FIG = {
     <rect x="20" y="50" width="280" height="4" fill="url(#spg2)" opacity=".85"/>${[[0, 2], [1, 2], [2, 3], [3, 4], [4, 2], [5, 2]].map(([g, n]) => Array.from({ length: n }, (_, k) => `<circle cx="${34 + g * 50 + k * 8}" cy="${32 - (k % 2) * 8}" r="3" class="dt"/>`).join("") + `<text x="${34 + g * 50}" y="66" class="t">${["紫外", "紫", "青", "緑", "橙", "赤"][g]}</text>`).join("")}</svg>
     <figcaption>15 種類の細胞を 6 つの群に分けた、という報告の模式（Chen ほか 2016）。15 の色を見分けるという意味ではありません。複眼の六角の目の並びも模式です。</figcaption>`,
 };
-const SIGHT = { sp: null, t: 0, pulse: 0, echo: [], post: null, kusu: null, prevExp: 1.02, flap: 0 };
+const SIGHT = { sp: null, t: 0, pulse: 0, echo: [], post: null, kusu: null, prevExp: 1.02, flap: 0, v: 0, vy: 0, fwd: false, body: null };
 function openSightChooser() {
-  const box = $("#sightList"); if (!box.childElementCount) for (const sp of D.sight) {
+  const box = $("#sightList"); if (!box.childElementCount) for (const sp of D.sight.filter(q => BODY_D[q.id])) {   /* 後ろ姿の 3D の確かめが済んだ生きものだけを選べる（カイツブリは合格まで外す） */
     const b = document.createElement("button"); b.type = "button"; b.className = "spBtn"; b.dataset.id = sp.id;
     b.innerHTML = `<span class="sk">${sp.en}</span><span class="sn">${sp.name}</span><span class="sl">${sp.lead}</span>`;
     b.addEventListener("click", () => { const L = LAYER.objs.find(l => l.o.sp === sp.id); enterSight(sp, null); });
@@ -1172,33 +1277,75 @@ function enterSight(sp, L) {
   if (!LAYER.worn.includes("sight")) wearLayer("sight", { noChooser: true });
   // その生きものがいる所へ（記録の区間）。犬は見る人のそばで
   let px = CAM.pos.x, pz = CAM.pos.z, yaw = CAM.yaw + CAM.look;
-  if (sp.x != null && (sp.move === "swim" || QW.mode === "sky" || !QW.walked || Math.hypot(sp.x - CAM.pos.x, sp.z - CAM.pos.z) > 160)) { px = sp.x; pz = sp.z; yaw = yawAlong(sp.d + 5); }
+  // 2026-10-22 本人「特定の場所ではなく、今いる場所で人間の視点から生き物の環世界に入れ替わるように」→ いま立っている所・向きのまま、目の高さだけが変わる。
+  // 例外は、水の上でしか泳げないカイツブリ（神池から離れているときだけ池へ）と、上空の地図から入るとき（まだ地上にいない）
+  if (sp.x != null && ((sp.move === "swim" && !(sp.pond && inPoly(CAM.pos.x, CAM.pos.z, sp.pond))) || QW.mode === "sky" || !QW.walked)) { px = sp.x; pz = sp.z; yaw = yawAlong(sp.d + 5); }
+  if (sp.move === "crawl" && QW.mode !== "sky") { const n = nearestOnLine(px, pz); if (n.dist < 4.4) { const q = atD(n.d), sd = ((px - q.x) * -q.tz + (pz - q.z) * q.tx) >= 0 ? 1 : -1; px = q.x - q.tz * 4.8 * sd; pz = q.z + q.tx * 4.8 * sd; } }   // ミミズは土の生きもの：石畳の上にいるときは、すぐ横の植え込みの土へ
   if (QW.mode === "sky" && sp.x == null) { const s = D.starts[Math.max(0, START.sel)], a = atD(s.d); px = a.x; pz = a.z; yaw = yawAlong(s.d + 5); }
   let y = groundY(px, pz) + sp.eye; if (sp.move === "swim") { let m = 1e9, far = null, fd = 0; for (const [x, z] of sp.pond) { m = Math.min(m, groundY(x, z)); const d = Math.hypot(x - px, z - pz); if (d > fd) { fd = d; far = [x, z]; } } y = m + .24; const rm = D.structs.find(q => q.id === "romon"); yaw = rm ? Math.atan2(-(rm.p[0] - px), -(rm.p[2] - pz)) : Math.atan2(-(far[0] - px), -(far[1] - pz)); }   // 楼門と社叢の方を向いて浮かぶ
   hideSkyUI(); hideFlyUI(); loadLate(); if (AOI.root) AOI.root.visible = false;
   const from = QW.mode; TWFOG = [from === "sky" ? FOGS.sky() : from === "fly" ? FOGS.fly() : FOGS.walk(), FOGS.walk()]; setMode("descend");
   SIGHT.pending = sp;
-  lateP.then(() => tweenTo(new THREE.Vector3(px, y, pz), yaw, sp.move === "crawl" ? -.08 : -.05, from === "sky" ? 2.4 : 1.6, () => {
-    CAM.pos.set(px, y, pz); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = sp.move === "crawl" ? -.08 : -.05; SIGHT.sp = sp; SIGHT.t = 0; SIGHT.pending = null;
+  lateP.then(() => tweenTo(new THREE.Vector3(px, y, pz), yaw, sp.move === "crawl" ? -.5 : -.05, from === "sky" ? 2.4 : 1.6, () => {
+    CAM.pos.set(px, y, pz); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = sp.move === "crawl" ? -.5 : -.05; SIGHT.sp = sp; SIGHT.t = 0; SIGHT.pending = null; SIGHT.v = SIGHT.vy = 0; showBody(sp);
     setMode("sight"); document.body.dataset.sp = sp.id; showSightUI(sp);
     camera.fov = sp.fov; camera.updateProjectionMatrix();
     setupSightLook(sp);
     if (sp.lines?.length) speakLines(sp.lines, null, { done: () => { TALK.nextT = performance.now() + 3000; } });
-  }, from === "sky" ? 0 : 3));
+  }, 0));
 }
 function exitSight(quiet = false) {
-  const sp = SIGHT.sp; if (!sp) return; SIGHT.sp = null; SIGHT.surf = null; delete document.body.dataset.sp; hideSightUI(); stopEcho();
+  const sp = SIGHT.sp; if (!sp) return; SIGHT.sp = null; SIGHT.surf = null; delete document.body.dataset.sp; hideSightUI(); stopEcho(); hideBody();
   teardownSightLook(); camera.fov = MOBILE ? 62 : 55; camera.updateProjectionMatrix();
   if (quiet) return;
-  const n = nearestOnLine(CAM.pos.x, CAM.pos.z), d = Math.min(1985, Math.max(-20, n.d)), a = atD(d), y = groundY(a.x, a.z) + EYE;
+  const a = CAM.pos.clone(); corridorClamp(a); const y = groundY(a.x, a.z) + EYE, yaw = CAM.yaw + CAM.look;   // 戻るのも、いまいる所（歩ける所の中）・いまの向きのまま
   TWFOG = [FOGS.walk(), FOGS.walk()]; setMode("descend");
-  tweenTo(new THREE.Vector3(a.x, y, a.z), CAM.yaw, -.04, 1.4, () => { CAM.pos.set(a.x, y, a.z); CAM.look = 0; CAM.pitch = -.04; enterWalk(); if (D.say?.back) speakLines([D.say.back], null); }, 2);
+  tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.04, 1.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.04; enterWalk(); if (D.say?.back) speakLines([D.say.back], null); }, 0);
 }
+/* 生きものの後ろ姿（2026-10-22 本人「画面上にその生き物の後ろ姿が見えるように」）：肩越しの視点で、画面の下のほうに、少し上の後ろから。
+   ヒヨドリ・アブラコウモリは合格した 3D（コウモリは遠く用の形を、画面で小さく）、ほかの種もいまの 3D。寄りすぎない（体の長さの 5 倍ほど離す） */
+const BODY = { id: null, m: null, p: null, last: new THREE.Vector3(), spd: 0, scene: null };
+function renderBody() {   // 後ろ姿は、生きものの見え方の置きかえ（ぼかし・色）の外に、くっきり重ねる（自分の体は、その目で見た景色の一部ではない）
+  if (!BODY.m || !BODY.scene || QW.mode !== "sight") return;
+  const ac = renderer.autoClear; renderer.autoClear = false; renderer.clearDepth(); renderer.render(BODY.scene, camera); renderer.autoClear = ac;
+}
+const BODY_D = { hiyo: [.9, .36, .62, "far"], koumori: [.85, .24, 0, "far"], aosuji: [.36, .15, .7, "far"], mimizu: [.26, .2], inu: [2.5, .62] };   // カイツブリの 3D は、まだ種の形の確かめが済んでいないので後ろ姿を出さない   // [離す距離 m, 下げる m, 斜めにずらす向き rad, 形]
+// 10-22 深夜（採点「ヒヨドリの真後ろの姿が、フードを被った人影に見える」）：飛ぶものは真後ろでなく、斜め後ろの少し上から（翼と尾が読める・合格した画角＝遠く用の飛ぶ姿）
+function showBody(sp) {
+  hideBody(); if (!BODY_D[sp.id]) return; BODY.id = sp.id; const id = sp.id;
+  BODY.p = import("./sight/sightModels.js?v=1").then(({ loadSight }) => loadSight(id, { lod: BODY_D[id][3], shadow: false })).then(m => {
+    if (BODY.id !== id) { m.dispose(); return; } BODY.m = m;
+    if (!BODY.scene) { BODY.scene = new THREE.Scene(); BODY.scene.environment = QW.env; BODY.hemi = new THREE.HemisphereLight("#dfe9ff", "#4d4636", 1.1); BODY.sun = new THREE.DirectionalLight("#fff1dc", 2.0); BODY.sun.position.set(.4, 1, .3); BODY.scene.add(BODY.hemi, BODY.sun); }
+    if (id === "inu") m.object.traverse(o => { if (!o.isMesh) return; for (const mt of [].concat(o.material)) mt.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ vec3 c0 = gl_FragColor.rgb; gl_FragColor.rgb = max(vec3(0.), vec3(dot(vec3(.367,.861,-.228),c0), dot(vec3(.280,.673,.047),c0), dot(vec3(-.012,.043,.969),c0))); }"); }; });   // 10-22 深夜（採点「二色型の世界で、犬の体だけ元の色で浮く」）：犬の体も、景色と同じ二色型の置きかえで
+    const k = id === "koumori" ? 1.6 : id === "hiyo" ? 1.3 : 1; BODY.hemi.intensity = 1.1 * k; BODY.sun.intensity = 2 * k; BODY.scene.add(m.object); BODY.last.copy(camera.position);
+    const main = id === "kaitsuburi" ? "swim" : id === "mimizu" ? "crawl" : id === "inu" ? "walk" : "fly"; m.play(main, 0, id === "koumori" ? .6 : 1); BODY.main = main; BODY.cur = main;
+  }).catch(e => console.warn("body", e));
+}
+function hideBody() { BODY.id = null; if (BODY.m) { BODY.m.dispose(); BODY.m = null; } }
+function stepBody(dt) {
+  const m = BODY.m, sp = SIGHT.sp; if (!m || !sp || QW.mode !== "sight") return;
+  const [dd, dn, dy = 0] = BODY_D[sp.id] || [1.5, .3], vyaw = CAM.yaw + CAM.look, o = m.object;
+  const fx = -Math.sin(vyaw), fz = -Math.cos(vyaw), cp = camera.position;
+  o.position.set(cp.x + fx * dd, cp.y - dn, cp.z + fz * dd);
+  if (sp.move === "trot" || sp.move === "crawl") { if ((BODY.sT = (BODY.sT || 0) - dt) <= 0) { BODY.sT = .5; BODY.sOff = surfaceY(o.position.x, o.position.z) - groundY(o.position.x, o.position.z); }   // 描いている地面の面に合わせる（0.5 秒ごと）
+    o.position.y = groundY(o.position.x, o.position.z) + (BODY.sOff || 0) + .005; if (sp.move === "crawl") camera.position.y = Math.max(camera.position.y, o.position.y + .2); }
+  if (sp.move === "swim") o.position.y = (SIGHT.surf ?? o.position.y) - SIGHT.dive * .6;
+  o.rotation.set(sp.move === "fly" || sp.move === "echo" || sp.move === "flutter" ? -SIGHT.vy * .06 : 0, vyaw + Math.PI + (sp.id === "mimizu" ? 1.45 : dy), 0);   // ミミズは真後ろだと棒に見えるので、ほぼ真横の姿に（節と環帯が見える向き）
+  const spd = cp.distanceTo(BODY.last) / Math.max(dt, 1e-3); BODY.last.copy(cp); BODY.spd += (spd - BODY.spd) * Math.min(1, dt * 4);
+  const still = BODY.spd < .15, want = still && (sp.id === "inu" || sp.id === "kaitsuburi") ? "idle" : BODY.main;   // ミミズはいつもはう（まっすぐ止まると棒に見える）   // 鳥は翼を板のように止めず、いつもはばたく
+  if (want !== BODY.cur && m.actions[want]) { m.play(want, .4, sp.id === "koumori" ? .6 : 1); BODY.cur = want; }
+  m.update(dt);
+}
+/* 夕方の空：上は夜の紺、地平の近くに残照（コウモリの飛ぶ時刻。遠くを飛ぶほかのコウモリが空を背に影で見える） */
+let DUSK = null;
+function duskSky() { if (DUSK) return DUSK; const c = document.createElement("canvas"); c.width = 4; c.height = 256; const x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, "#0a1024"); g.addColorStop(.45, "#16203e"); g.addColorStop(.72, "#3a3658"); g.addColorStop(.86, "#7a5a68"); g.addColorStop(1, "#8e6a62"); x.fillStyle = g; x.fillRect(0, 0, 4, 256);
+  DUSK = new THREE.CanvasTexture(c); DUSK.colorSpace = THREE.SRGBColorSpace; return DUSK; }
 /* 見え方の模式（人の目への置きかえ）：画面を一度べつの面へ描き、色・ぼけ・明るさだけを置きかえる */
 function setupSightLook(sp) {
   const mode = { hiyo: 1, aosuji: 3, mimizu: 4, inu: 5, kaitsuburi: 6 }[sp.id] || 0;   // コウモリは夕方の暗さと反響の点だけ（画面の置きかえはしない）
   if (sp.id === "koumori") {   // 夕方の暗さ：目の手がかりはほとんど使わない模式
-    renderer.toneMappingExposure = .24; scene.background = new THREE.Color("#0b1226"); applyFog({ c: new THREE.Color("#0b1226"), n: 20, f: 160 });
+    renderer.toneMappingExposure = .24; scene.background = duskSky(); applyFog({ c: new THREE.Color("#0b1226"), n: 20, f: 160 });
   } else if (sp.id === "mimizu") { applyFog({ c: FOG_SKY, n: 4, f: 60 }); }
   else applyFog(FOGS.walk());
   if (sp.id === "aosuji") showKusu(true);
@@ -1254,38 +1401,26 @@ function showKusu(on) {
 function stepSight(dt) {
   const sp = SIGHT.sp; if (!sp) return; SIGHT.t += dt; const t = SIGHT.t, K = WALK.keys;
   if (sp.move === "trot" || sp.move === "crawl") {   // 歩く身体：見回し・歩きつづける・押した所へ、は人と同じ。目の高さと速さと揺れがちがう
-    const bob = sp.move === "trot" ? Math.abs(Math.sin(t * 9.5)) * .03 : 0;
+    const bob = sp.move === "trot" ? Math.abs(Math.sin(t * 9.5)) * .008 : 0;   // 揺れはごく小さく（酔わないように）
     stepWalk(dt, sp.eye, sp.speed, bob);
-    if (sp.move === "crawl") camera.position.y = groundY(camera.position.x, camera.position.z) + sp.eye + Math.sin(t * 2.2) * .004;
+    if (sp.move === "crawl") camera.position.y = groundY(camera.position.x, camera.position.z) + .2;   // ミミズは肩越しの視点を少し上（20 cm）から：はう体の節が見える
     return;
   }
   if (sp.move === "swim") { stepSwim(dt, sp); return; }
-  // 飛ぶ身体：参道に沿って前へ。なぞると曲がり、上下する
-  let turn = (K.has("a") || K.has("arrowleft") ? 1 : 0) - (K.has("d") || K.has("arrowright") ? 1 : 0), climb = (K.has("w") || K.has("arrowup") || FLY.up ? 1 : 0) - (K.has("s") || K.has("arrowdown") || FLY.down ? 1 : 0);
-  if (FLY.drag) { turn += -FLY.drag.dx * 2.4; climb += -FLY.drag.dy * 2.4; }
-  const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), ty = Math.atan2(-a.tx, -a.tz), dir = Math.cos(wrap(ty - CAM.yaw)) >= 0 ? ty : ty + Math.PI;
-  if (!FLY.drag && !turn) turn = Math.max(-1, Math.min(1, wrap(dir - CAM.yaw) * 1.2 - n.dist * .01 * Math.sign(((CAM.pos.x - a.x) * -a.tz + (CAM.pos.z - a.z) * a.tx) * (dir === ty ? 1 : -1))));   // 触れていなければ、参道の上へ寄って進む
-  if (sp.move === "echo") turn += Math.sin(t * 1.7) * .3 + Math.sin(t * 4.3) * .2;   // ジグザグに、急に向きを変えて虫を追う
-  if (sp.move === "flutter") { turn += Math.sin(t * 2.3) * .5; climb += Math.sin(t * 3.1) * .6; }
-  turn = Math.max(-1.4, Math.min(1.4, turn)); climb = Math.max(-1, Math.min(1, climb));
-  const rate = sp.move === "echo" ? 1.5 : sp.move === "flutter" ? 1.1 : .7;
-  FLY.yawRate += (turn * rate - FLY.yawRate) * Math.min(1, dt * 3); CAM.yaw += FLY.yawRate * dt;
-  FLY.climb += (climb * (sp.move === "fly" ? 3 : 1.6) - FLY.climb) * Math.min(1, dt * 2);
-  // 羽ばたき：ヒヨドリは羽ばたきと翼を閉じる時間をくり返して波のように飛ぶ（模式）／蝶は小刻み
-  let bob = 0, sp2 = sp.speed;
-  if (sp.move === "fly") { const ph = (t % 1.9) / 1.9, flap = ph < .55; SIGHT.flap += ((flap ? 1 : 0) - SIGHT.flap) * Math.min(1, dt * 6); bob = flap ? Math.sin(ph / .55 * Math.PI * 7) * .05 : 0; FLY.climb += (flap ? .9 : -1.2) * dt * 2; sp2 *= flap ? 1.05 : .95; }
-  if (sp.move === "flutter") bob = Math.sin(t * 52) * .012 + Math.sin(t * 7) * .05;
-  if (sp.move === "echo") bob = Math.sin(t * 24) * .02;
-  CAM.pos.x += -Math.sin(CAM.yaw) * sp2 * dt; CAM.pos.z += -Math.cos(CAM.yaw) * sp2 * dt; CAM.pos.y += FLY.climb * dt;
-  const g = groundY(CAM.pos.x, CAM.pos.z), hi0 = g + sp.eye * 1.7 + 2, lo = Math.max(g + Math.max(.8, sp.eye * .45), sp.move === "flutter" ? 0 : roofAt(CAM.pos.x - Math.sin(CAM.yaw) * 10, CAM.pos.z - Math.cos(CAM.yaw) * 10, 0) + 4), hi = Math.max(hi0, lo + 3);   // 建物にはもぐらない
-  if (CAM.pos.y < lo) { CAM.pos.y += (lo - CAM.pos.y) * Math.min(1, dt * 3); FLY.climb = Math.max(FLY.climb, 0); }
-  if (CAM.pos.y > hi) { CAM.pos.y += (hi - CAM.pos.y) * Math.min(1, dt * 3); FLY.climb = Math.min(FLY.climb, 0); }
-  if (sp.move === "echo" && n.dist > 3) CAM.yaw += wrap(Math.atan2(-(a.x + a.tx * 12 - CAM.pos.x), -(a.z + a.tz * 12 - CAM.pos.z)) * 0 + (Math.atan2(-((a.x + (dir === ty ? 1 : -1) * a.tx * 14) - CAM.pos.x), -((a.z + (dir === ty ? 1 : -1) * a.tz * 14) - CAM.pos.z))) - CAM.yaw) * Math.min(1, dt * .9);   // 並木の幹のあいだ（参道の上の空）を飛ぶ
-  if (n.dist > (sp.move === "flutter" ? 24 : 40)) { CAM.yaw += wrap(Math.atan2(-(a.x - CAM.pos.x), -(a.z - CAM.pos.z)) - CAM.yaw) * Math.min(1, dt * 1.2); }
-  if (n.d > 2005 || n.d < -30) CAM.yaw += wrap(Math.atan2(-(atD(1000).x - CAM.pos.x), -(atD(1000).z - CAM.pos.z)) - CAM.yaw) * Math.min(1, dt * 1.5);
-  FLY.roll += (-FLY.yawRate * (sp.move === "fly" ? .35 : .2) - FLY.roll) * Math.min(1, dt * 3);
-  camera.position.copy(CAM.pos); camera.position.y += bob;
-  camera.quaternion.setFromEuler(_eu.set(-.06 + FLY.climb * .03, CAM.yaw, FLY.roll));
+  // 飛ぶ身体（2026-10-22 本人「自分で操作する感じに。勝手に画面が動くと酔ってしまいます」）：動くのは本人の操作だけ。
+  // 向き＝ドラッグ（見回す）と A・D／← →、進む＝W・↑ か「前へ」を押しているあいだ、上下＝R・F か「上へ」「下へ」。速さはゆっくり立ち上がり、ゆっくり止まる。画面の揺れ・自動の旋回はない
+  const fw = (K.has("w") || K.has("arrowup") || SIGHT.fwd ? 1 : 0) - (K.has("s") || K.has("arrowdown") ? 1 : 0);
+  const turn = (K.has("a") || K.has("arrowleft") ? 1 : 0) - (K.has("d") || K.has("arrowright") ? 1 : 0);
+  const climb = (K.has("r") || K.has("pageup") || FLY.up ? 1 : 0) - (K.has("f") || K.has("pagedown") || FLY.down ? 1 : 0);
+  CAM.yaw += turn * .9 * dt;
+  SIGHT.v += (fw * sp.speed * (fw < 0 ? .5 : 1) - SIGHT.v) * Math.min(1, dt * 1.6);
+  SIGHT.vy += (climb * Math.min(3, sp.speed * .5) - SIGHT.vy) * Math.min(1, dt * 1.8);
+  const vyaw = CAM.yaw + CAM.look, nx = CAM.pos.x - Math.sin(vyaw) * SIGHT.v * dt, nz = CAM.pos.z - Math.cos(vyaw) * SIGHT.v * dt;
+  const n2 = nearestOnLine(nx, nz); if (n2.dist < (sp.move === "flutter" ? 30 : 60) && n2.d > -40 && n2.d < 2020) { CAM.pos.x = nx; CAM.pos.z = nz; } else SIGHT.v *= .5;   // 参道から離れすぎる所へは進まない（向きは変えない）
+  const g = groundY(CAM.pos.x, CAM.pos.z), lo = g + Math.max(.6, sp.eye * .25), hi = g + Math.max(sp.eye * 2.2, 20);
+  CAM.pos.y = Math.min(hi, Math.max(lo, CAM.pos.y + SIGHT.vy * dt));
+  camera.position.copy(CAM.pos);
+  camera.quaternion.setFromEuler(_eu.set(CAM.pitch, vyaw, 0));
   if (sp.move === "echo") stepEcho(dt);
 }
 /* カイツブリ：神池の水面を泳ぎ、「下へ」でもぐる（池の形から出ない） */
@@ -1293,14 +1428,15 @@ function inPoly(x, z, P) { let c = false; for (let i = 0, j = P.length - 1; i < 
 function stepSwim(dt, sp) {
   const P = sp.pond, K = WALK.keys; if (SIGHT.surf == null) { let y = 1e9; for (const [x, z] of P) y = Math.min(y, groundY(x, z)); SIGHT.surf = y + .12; SIGHT.dive = 0; }
   let turn = (K.has("a") || K.has("arrowleft") ? 1 : 0) - (K.has("d") || K.has("arrowright") ? 1 : 0); if (FLY.drag) turn += -FLY.drag.dx * 2;
-  turn += Math.sin(SIGHT.t * .7) * .25; FLY.yawRate += (Math.max(-1, Math.min(1, turn)) * .8 - FLY.yawRate) * Math.min(1, dt * 2); CAM.yaw += FLY.yawRate * dt;
-  const want = FLY.down || K.has("s") || K.has("arrowdown") ? 1 : FLY.up || K.has("w") || K.has("arrowup") ? 0 : SIGHT.dive > .5 && SIGHT.t - (SIGHT.dT || 0) > 6 ? 0 : SIGHT.dive;
+  FLY.yawRate += (Math.max(-1, Math.min(1, turn)) * .8 - FLY.yawRate) * Math.min(1, dt * 2); CAM.yaw += FLY.yawRate * dt;
+  const want = FLY.down || K.has("f") ? 1 : FLY.up || K.has("r") ? 0 : SIGHT.dive > .5 && SIGHT.t - (SIGHT.dT || 0) > 6 ? 0 : SIGHT.dive;
   if (want > SIGHT.dive && SIGHT.dive < .05) SIGHT.dT = SIGHT.t; SIGHT.dive += (want - SIGHT.dive) * Math.min(1, dt * 1.6);
-  const sp2 = sp.speed * (1 + SIGHT.dive * .6), nx = CAM.pos.x - Math.sin(CAM.yaw) * sp2 * dt, nz = CAM.pos.z - Math.cos(CAM.yaw) * sp2 * dt;
-  if (inPoly(nx, nz, P)) { CAM.pos.x = nx; CAM.pos.z = nz; } else CAM.yaw += Math.PI * .6 * dt * 3;
+  const fw = (K.has("w") || K.has("arrowup") || SIGHT.fwd ? 1 : 0) - (K.has("s") || K.has("arrowdown") ? .5 : 0); SIGHT.v += (fw * sp.speed * (1 + SIGHT.dive * .6) - SIGHT.v) * Math.min(1, dt * 1.6);   // 進むのは押しているあいだだけ
+  const vyaw = CAM.yaw + CAM.look, nx = CAM.pos.x - Math.sin(vyaw) * SIGHT.v * dt, nz = CAM.pos.z - Math.cos(vyaw) * SIGHT.v * dt;
+  if (inPoly(nx, nz, P)) { CAM.pos.x = nx; CAM.pos.z = nz; } else SIGHT.v = 0;   // 池の縁では止まる（向きは変えない）
   if (!inPoly(CAM.pos.x, CAM.pos.z, P)) { CAM.pos.x += (sp.x - CAM.pos.x) * dt; CAM.pos.z += (sp.z - CAM.pos.z) * dt; }
-  CAM.pos.y = SIGHT.surf + .12 - SIGHT.dive * .85 + Math.sin(SIGHT.t * 2.4) * .01 * (1 - SIGHT.dive);
-  camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(_eu.set(-.04 - SIGHT.dive * .25, CAM.yaw, FLY.yawRate * .05));
+  CAM.pos.y = SIGHT.surf + .12 - SIGHT.dive * .85;
+  camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(_eu.set(CAM.pitch - SIGHT.dive * .2, CAM.yaw + CAM.look, 0));
   if (SIGHT.post) SIGHT.post.mat.uniforms.under.value = Math.min(1, Math.max(0, (SIGHT.surf - CAM.pos.y) / .2));
 }
 /* コウモリ：前へ音を出し、はね返りの点が戻る時間の順に灯る（16 倍に引きのばした模式） */
@@ -1314,16 +1450,17 @@ function emitEcho() {
     if (dir.y < -.02) { const tt = (groundY(src.x, src.z) - src.y) / dir.y; if (tt > 0) best = Math.min(best, tt); }
     for (const t of near) { const h = (SPH[t.sp] || 14) * t.s, c = _v3.set(t.x, t.y + h * .62, t.z), rad = (TREE.protos[t.sp]?.w || h * .7) * .45 * t.s, oc = src.clone().sub(c), b = oc.dot(dir), cc = oc.lengthSq() - rad * rad, disc = b * b - cc; if (disc > 0) { const tt = -b - Math.sqrt(disc); if (tt > .5 && tt < best) best = tt; } }
     for (let s = 4; s < best; s += 4) { const p = src.clone().addScaledVector(dir, s); if (p.y < roofAt(p.x, p.z, 0) && roofAt(p.x, p.z, 0) > groundY(p.x, p.z) + 2) { best = s; break; } }
-    if (best < 45) hits.push({ p: src.clone().addScaledVector(dir, best), d: best });
+    if (best < 45 && best > 2.5) hits.push({ p: src.clone().addScaledVector(dir, best), d: best });   // すぐそばの葉の点は、まぶしい塊になるので出さない
   }
   hits.sort((a, b) => a.d - b.d);
   const pos = new Float32Array(hits.length * 3); hits.forEach((h, i) => pos.set([h.p.x, h.p.y, h.p.z], i * 3));
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setDrawRange(0, 0);
-  const pts = new THREE.Points(g, new THREE.PointsMaterial({ map: glowTex(), color: "#ece6ff", size: MOBILE ? 1.0 : .8, sizeAttenuation: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ map: glowTex(), color: "#a99cff", opacity: .85, size: MOBILE ? .55 : .42, sizeAttenuation: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
   world.add(pts); SIGHT.echo.push({ pts, hits, t: 0 }); chirp();
 }
+function echoNow() { if (SIGHT.pulse > 0) return; SIGHT.pulse = .45; emitEcho(); }   // 本人が押したときだけ、超音波を出す（続けて押せるのは 0.45 秒ごと）
 function stepEcho(dt) {
-  SIGHT.pulse -= dt; if (SIGHT.pulse <= 0) { SIGHT.pulse = .85; emitEcho(); }
+  SIGHT.pulse -= dt;
   const c = 343 / 16;
   for (const E of SIGHT.echo) {
     E.t += dt; const back = E.t * c / 2; let n = 0; while (n < E.hits.length && E.hits[n].d < back) n++; E.pts.geometry.setDrawRange(0, n);
@@ -1341,7 +1478,8 @@ function chirp() {   // 9〜11 ミリ秒の、高さがゆるやかに変わる�
 }
 function showSightUI(sp) {
   $("#sightUI").hidden = false; $("#sName").textContent = sp.name; $("#sEn").textContent = sp.en; $("#sLead").innerHTML = esc(sp.lead).replace(/（[^）]*）/, m => `<span style="white-space:nowrap">${m}</span>`);   // かっこの中は折らない
-  $("#walkUI").hidden = !(sp.move === "trot" || sp.move === "crawl"); $("#flyUI").hidden = true; $("#sUpDn").hidden = sp.move === "trot" || sp.move === "crawl";
+  if (sp.id === "koumori") $("#sLead").insertAdjacentHTML("beforeend", '<br><span style="opacity:.8">遠くを飛ぶほかのコウモリは、5 倍の大きさで見せています。</span>');
+  /* 「歩きつづける」（自動で進む）は生きものの身体では出さず、「前へ」にそろえる */ $("#walkUI").hidden = true; $("#flyUI").hidden = true; $("#sUpDn").hidden = false; $("#sEcho").hidden = sp.move !== "echo"; $("#sUp").hidden = $("#sDown").hidden = sp.move === "trot" || sp.move === "crawl";   // 歩く身体にも「前へ」を置き、操作の形をそろえる
   $("#sUp").textContent = sp.move === "swim" ? "水面へ" : "上へ"; $("#sDown").textContent = sp.move === "swim" ? "もぐる" : "下へ";
 }
 function hideSightUI() { $("#sightUI").hidden = true; $("#sUpDn").hidden = true; }
@@ -1604,6 +1742,8 @@ const holdBtn = (el, on, off) => { el.addEventListener("pointerdown", e => { e.p
 holdBtn($("#flyUp"), () => FLY.up = true, () => FLY.up = false);
 holdBtn($("#flyDown"), () => FLY.down = true, () => FLY.down = false);
 holdBtn($("#sUp"), () => FLY.up = true, () => FLY.up = false);
+holdBtn($("#sFwd"), () => { SIGHT.fwd = true; WALK.hold = true; }, () => { SIGHT.fwd = false; WALK.hold = false; });
+$("#sEcho").addEventListener("click", () => echoNow());
 holdBtn($("#sDown"), () => FLY.down = true, () => FLY.down = false);
 $("#autoBtn").addEventListener("click", () => { WALK.auto = !WALK.auto; WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; syncAutoBtn(); });
 $("#gyroBtn").addEventListener("click", toggleGyro);
@@ -1617,10 +1757,11 @@ QW.hold = on => { WALK.hold = on; };
 QW.look = (dy, dp = 0) => { CAM.look += dy; CAM.pitch += dp; CAM.lastDrag = performance.now(); };
 QW.dbg = () => ({ moving: WALK.moving, v: AOI.v, vis: AOI.root?.visible, cam: [CAM.pos.x, CAM.pos.y, CAM.pos.z], yaw: CAM.yaw, look: CAM.look, mode: QW.mode, talk: voiceQ?.talk?.id || null, spoken: TALK.spoken.size, sp: SIGHT.sp?.id || null, worn: [...LAYER.worn] });
 QW.wear = id => wearLayer(id);
-QW.sight = id => { const sp = D.sight.find(s => s.id === id); if (sp) enterSight(sp, null); };
+QW.sight = id => { const sp = D.sight.find(s => s.id === id); if (sp && BODY_D[sp.id]) enterSight(sp, null); };
 QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = yawAlong(d + 5); CAM.look = 0; if (AOI.m) { aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, CAM.yaw + Math.PI); } updateTrees(true); };
 QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) { L.show = 1; L.root.visible = true; openObj(L); } return !!L; };
 QW.talkNow = () => { TALK.nextT = 0; };
+QW.place = (x, z, tx, tz, p = -.12) => { CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = Math.atan2(-(tx - x), -(tz - z)); CAM.look = 0; CAM.pitch = p; };   // 確かめ用：その場所から、その点の方を見る
 QW.sky = SKY;
 
 function fillMenu() {
@@ -1631,11 +1772,11 @@ function fillMenu() {
 /* 左の層の板：一枚が一つの情報の層。触れると表示・非表示。板の色＝風景に重ねた物の色 */
 function buildTray() {
   const mk = (L, box, i) => {   // 目盛りの一段（下から 01・02…と上へ重なる）
-    const n = L.id === "sight" ? D.sight.length : L.id === "sound" ? D.sound.length : L.id === "touch" ? D.touch.length : L.id === "sho" ? (D.sho || []).length : D.objs.filter(o => o.layer === L.id).length;
+    const n = L.id === "sight" ? D.sight.filter(q => BODY_D[q.id]).length : L.id === "sound" ? D.sound.length : L.id === "touch" ? D.touch.length : L.id === "sho" ? (D.sho || []).length : D.objs.filter(o => o.layer === L.id).length;
     const li = document.createElement("li"); li.className = "ly";
     const b = document.createElement("button"); b.type = "button"; b.className = "lyBtn" + (L.q ? " q" : ""); b.dataset.id = L.id; b.setAttribute("aria-pressed", "false"); b.style.setProperty("--gc", L.color);
     b.title = L.lead; b.setAttribute("aria-label", `${L.name}（${L.lead}）`);
-    b.innerHTML = `<span class="tk" aria-hidden="true"></span><span class="no">${String(i + 1).padStart(2, "0")}</span><span class="nm"><b>${L.name}</b><small>${L.en}</small></span><span class="ct">${n}</span>`;
+    b.innerHTML = `<span class="tk" aria-hidden="true"></span><span class="no">L${String(i + 1).padStart(2, "0")}</span><span class="nm"><b>${L.name}</b><small>${L.en}</small></span><span class="ct">${String(n).padStart(2, "0")}</span>`;
     b.addEventListener("click", () => wearLayer(L.id, { noChooser: true })); li.appendChild(b);
     if (L.id === "sight") { const g = document.createElement("button"); g.type = "button"; g.className = "lyGo hb"; g.style.setProperty("--gc", L.color); g.textContent = "入る"; g.setAttribute("aria-label", "生きものの身体に入る"); g.addEventListener("click", e => { e.stopPropagation(); openSightChooser(); }); li.appendChild(g); }
     box.appendChild(li);
@@ -1668,7 +1809,10 @@ function frame() {
     if (MAP.here?.visible) MAP.here.scale.setScalar(1 + .15 * Math.sin(performance.now() / 300));
   }
   if (WALK.ring?.visible) { WALK.ringT = (WALK.ringT || 0) + dt; WALK.ring.material.opacity = .85 * (.6 + .4 * Math.cos(WALK.ringT * 4)); }
-  updateTrees(); VEG.time.value += dt; updateVeg();
+  if ((GEO.t -= dt) < 0 && QW.mode !== "boot") { GEO.t = .25; const g = GEO.el || (GEO.el = document.getElementById("lsGeo")); const cp = camera.position;   // 視野の左上：いまいる所（緯度・経度・地面からの高さ）
+    const la = 35.90725 - cp.z / 110980, lo = 139.631 + cp.x / (111320 * Math.cos(la * Math.PI / 180)), h = Math.max(0, cp.y - groundY(cp.x, cp.z));
+    const txt = `POS <b>${la.toFixed(4)}N ${lo.toFixed(4)}E</b>\nALT ${Math.round(h)}m  ${QW.mode.toUpperCase()}`; if (g && txt !== GEO.last) { g.innerHTML = txt; GEO.last = txt; } }
+  updateTrees(); VEG.time.value += dt; updateVeg(); if (!RM) BLDU.t.value += dt; BLDU.g.value = QW.mode === "walk" || QW.mode === "sight" ? groundY(camera.position.x, camera.position.z) : -1e4; stepEdges(); stepHiyo(dt); stepMimi(dt); stepBats(dt); stepBody(dt);
   if (BLD.length) { const cp = camera.position, far = QW.mode === "walk" || QW.mode === "sight" ? (MOBILE ? 320 : 430) : 1e9; for (const b of BLD) { const s = b.userData.ws; b.visible = Math.hypot(s.center.x - cp.x, s.center.z - cp.z) - s.radius < far; } }
   if (STONES.length && QW.mode !== "sky") { const cp = camera.position; for (const r of STONES) { const s = r.userData.ws; r.visible = s.center.distanceTo(cp) - s.radius < 160; } }
   stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk();
@@ -1677,6 +1821,7 @@ function frame() {
     SIGHT.post.mat.uniforms.time.value += dt;
     renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam);
   } else renderer.render(scene, camera);
+  renderBody();
   // こまの速さを見て、画面の細かさを上げ下げする（落ち込みを止める）
   fpsAcc += dt; fpsN++; prT += dt;
   if (prT > 1.5) { const avg = fpsAcc / fpsN; fpsAcc = 0; fpsN = 0; prT = 0; const lim = MOBILE ? 1 / 32 : 1 / 52;

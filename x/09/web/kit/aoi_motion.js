@@ -1004,7 +1004,7 @@ export class AoiMotion {
       // v4：力を抜いた手が体から離れすぎない（記録によっては肘が横へ張り、手が腰から 20 cm 以上も離れる＝人形・構えに見える）。
       // 手の位置（碧の向きで見た横・前）が、横 15 cm・前 12 cm を越えたら、上腕を内へ・後ろへ戻す。指す・話す身ぶり・礼のときは外す
       const ua = B[sd + "UpperArm"], hd = B[sd + "Hand"], sg = sd === "left" ? 1 : -1, free = (1 - pw2) * (1 - (sd === "right" ? g : g2)) * (1 - this._bw) * (1 - this.k * .7);
-      if (ua && hd && free > .01) { const h = this.root.worldToLocal(hd.getWorldPosition(_v[1])), ex = sg * h.x - .15, ez = h.z - .12, Lr = .42;   /* 碧の入れ物から見た位置（大きさをそろえた体の寸法） */
+      if (ua && hd && free > .01) { const h = this.root.worldToLocal(hd.getWorldPosition(_v[1])), ex = sg * h.x - .15 + .03 * (this.s.hang?.v || 0), ez = h.z - .12, Lr = .42;   /* 10-22 深夜：待つあいだは横 12 cm まで（腕が A の字に開かない） */   /* 碧の入れ物から見た位置（大きさをそろえた体の寸法） */
         if (ex > 0) ua.quaternion.premultiply(_q[0].setFromAxisAngle(_v[2].set(0, 0, 1), -sg * Math.atan(ex / Lr) * 1.1 * free));
         if (ez > 0) ua.quaternion.premultiply(_q[0].setFromAxisAngle(_v[2].set(1, 0, 0), Math.atan(ez / Lr) * free)); }
       // v5：話す身ぶりで、手が体の真ん中を越えて反対の腕の上に重ならない（腕を組んだように見える・腕どうしがめりこむ）。真ん中から 4 cm 手前で止める
@@ -1017,7 +1017,7 @@ export class AoiMotion {
     { const S2 = this.s; S2.clasp ||= new Spr(0, 1.5); S2.claspHold = (S2.claspHold ?? 5 + 6 * this.rand()) - dt;
       const free = L && k < .05 && !sp && !this.pointing && !this.bowing && !this.listening && !GS.on && !this._turn && !this.goal;
       S2.claspHold0 = (S2.claspHold0 ?? 3 + 3 * this.rand());
-      if (S2.claspHold <= 0 || (S2.claspFirst !== true && (S2.claspHold0 -= dt) <= 0 && free)) { S2.claspOn = free && (!S2.claspOn || this.rand() < .35); if (S2.claspFirst !== true && free) { S2.claspOn = true; S2.claspFirst = true; } S2.claspTop = this.rand() < .6 ? "left" : "right"; S2.claspHold = S2.claspOn ? 9 + 8 * this.rand() : 5 + 5 * this.rand(); S2.cvT = 4 + 3 * this.rand(); S2.cv = [0, 0, 0]; }   // v5.6：くじではなく、重ねない回の次は必ず重ねる（はじめは 3〜6 秒で）
+      if (S2.claspHold <= 0 || (S2.claspFirst !== true && (S2.claspHold0 -= dt) <= 0 && free)) { S2.claspOn = free && (!S2.claspOn || this.rand() < .35); if (S2.claspFirst !== true && free) { S2.claspOn = true; S2.claspFirst = true; } S2.claspTop = this.rand() < .6 ? "left" : "right"; S2.claspHold = S2.claspOn ? 10 + 8 * this.rand() : 2.2 + 1.8 * this.rand();   /* 10-22 夜：手を下ろしたまま待つ時間を短く（採点「腕が開いたままでマネキンのよう」） */ S2.cvT = 4 + 3 * this.rand(); S2.cv = [0, 0, 0]; }   // v5.6：くじではなく、重ねない回の次は必ず重ねる（はじめは 3〜6 秒で）
       if (S2.claspOn && (S2.cvT = (S2.cvT ?? 5) - dt) <= 0) { S2.cvT = 3 + 3 * this.rand(); if (this.rand() < .45) S2.claspTop = S2.claspTop === "left" ? "right" : "left"; S2.cvt = [(this.rand() - .5) * .05, (this.rand() - .5) * .06, (this.rand() - .5) * .04]; }   // 小さく組みなおす
       S2.cv ||= [0, 0, 0]; if (S2.cvt) for (let i = 0; i < 3; i++) S2.cv[i] += (S2.cvt[i] - S2.cv[i]) * (1 - Math.exp(-2.5 * dt));
       S2.clasp.t = S2.claspOn && free ? 1 : 0; S2.clasp.step(dt); const cw = S2.clasp.v;
@@ -1025,6 +1025,14 @@ export class AoiMotion {
         for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1, R = this.armRest[sd], top = sd === S2.claspTop;
           const o2 = S2.cv; cv.p.set(sg * .03 + o2[0], R.sh.y - .5 * this.legLen / .78 + o2[1], R.sh.z + .19 + o2[2] + (top ? .02 : 0)); cv.f.set(-sg * .6, -.7, .2); cv.n.set(-sg * .25, .1, -1);
           this._armIK(sd, cv.p, cv.f, cv.n, cw * .9); } } }
+    // 10-22 深夜（採点「手を下ろして待つとき、腕が開いて手のひらが前を向いたまま止まる＝マネキン」）：手を重ねていない待ちのあいだ、
+    // 前腕を内へ少しひねって手のひらを腿へ向け、手首を少し落とす（人がふつうに立つ形）。ひねりの量は息に合わせてごくわずかに揺らす
+    { const S3 = this.s; S3.hang ||= new Spr(0, 1.8); const fr = L && k < .05 && !this.pointing && !this.bowing && !GS.on && !this._turn;
+      S3.hang.t = fr ? 1 - (S3.clasp?.v || 0) : 0; S3.hang.step(dt); const hw = S3.hang.v, HS = -.85;
+      if (hw > .01) for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1, la = this.bones[sd + "LowerArm"], hd = this.bones[sd + "Hand"]; if (!la || !hd) continue;
+        const tw = (.62 + .05 * wob(t * .21, this.seedPh + (sd === "left" ? 3 : 7))) * hw * HS;
+        la.quaternion.multiply(_q[0].setFromAxisAngle(_v[2].set(1, 0, 0), sg * tw * .65));
+        hd.quaternion.multiply(_q[0].setFromAxisAngle(_v[2].set(1, 0, 0), sg * tw * .35)); } }
     // 指：力を抜いた曲がり（人差し指から小指へ深く）。指すときは人差し指を伸ばす
     // v5：mid・low の段では、指は一こまおき（止まって見えるほどの差はない）
     if (this.q.tier !== "high" && (this.q.n & 1) && !GS.on) return;

@@ -108,16 +108,22 @@ export function makeMarker(id, color, h, mobile = false) {
 
 /* 名札（明朝）：層の番号と名前・物の名前。近くに来たときだけ出す */
 const FONT = '"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif';
+const MONO = '"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace';
+function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")"; }
 export function makeLabel(no, layer, title, color) {
   const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const x = cv.getContext("2d");
   // 2026-10-22 箱をやめ、視野に重なる札に：左の細い線と角だけ。字の下だけ、横にうすく暗く（明るい空や地面でも読める）
   const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.6)"); gr.addColorStop(.7, "rgba(3,6,15,.3)"); gr.addColorStop(1, "rgba(3,6,15,0)");
   x.fillStyle = gr; x.fillRect(0, 22, W, 84);
   x.fillStyle = color; x.fillRect(0, 18, 3, 92); x.fillRect(0, 18, 22, 2); x.fillRect(0, 108, 22, 2);
-  x.shadowColor = "rgba(0,0,0,.9)"; x.shadowBlur = 6; x.shadowOffsetY = 1;
-  x.font = `500 22px ${FONT}`; x.fillStyle = color; x.fillText(`${String(no).padStart(2, "0")}　${layer}`, 22, 50);
+  // 2026-10-22 夜 電脳の HUD の字：番号と層は細いモノスペースで層の色に光り、名前は層の色を帯びた明朝。暗い影の上に、色のにじむ光を重ねる
+  const glow = (txt, px, py, fill, blur) => { x.shadowOffsetY = 1; x.shadowColor = "rgba(0,6,14,.95)"; x.shadowBlur = 6; x.fillStyle = fill; x.fillText(txt, px, py); x.shadowOffsetY = 0; x.shadowColor = color; x.shadowBlur = blur; x.fillText(txt, px, py); };
+  x.font = `300 20px ${MONO}`; glow(`L${String(no).padStart(2, "0")} ⁄ `, 22, 50, color, 10);
+  const w0 = x.measureText(`L${String(no).padStart(2, "0")} ⁄ `).width; x.font = `500 21px ${FONT}`; glow(layer, 22 + w0, 50, color, 10);
+  x.fillStyle = color; for (let i = 0; i < 6; i++) x.fillRect(W - 120 + i * 9, 40, 5, 2);   // 右の小さな刻み
   let fs = 38; x.font = `600 ${fs}px ${FONT}`; while (x.measureText(title).width > W - 44 && fs > 22) { fs -= 2; x.font = `600 ${fs}px ${FONT}`; }
-  x.fillStyle = "#f6f9fc"; x.fillText(title, 22, 94);
+  glow(title, 22, 94, mixHex(color, "#f2fbff", .7), 14);
+  x.shadowBlur = 0; x.shadowColor = "transparent";
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, depthTest: true, fog: true }));
   s.center.set(0, 0); s.scale.set(1.6, .4, 1); s.renderOrder = 6; return s;
