@@ -68,9 +68,10 @@ export async function boot(stage) {
       if (!mobile) { const t = await new THREE.TextureLoader().loadAsync('img/hero/3d/keyaki_leaf_atlas.png'); t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; leaf.map = t; leaf.alphaTest = .45; leaf.transparent = false; leaf.color.set(0xb9cd97); }
       g.scene.updateMatrixWorld(true);
       const tree = new THREE.Group(); g.scene.traverse(o => { if (!o.isMesh) return; const mesh = new THREE.Mesh(o.geometry, /leaf|leaves/i.test(o.name) ? leaf : bark); mesh.applyMatrix4(o.matrixWorld); tree.add(mesh); });
-      const bb = new THREE.Box3().setFromObject(tree), sz = bb.getSize(new THREE.Vector3()), sc = 4.3 / sz.y;
-      tree.scale.setScalar(sc); tree.position.set(-1.45 - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, -1.25 - (bb.min.z + sz.z / 2) * sc);
-      ground.add(tree); treeObj = tree; window.__qlTree = { ok: true, h: 4.3, pos: tree.position.toArray().map(v => +v.toFixed(2)) }; kick();
+      const TREE_H = 10.5;   // 2026-10-22 本人「碧より木が小さいのが気になります。木をもっと大きくして」：欅を碧（6.4）より明らかに高く（約 1.7 倍）。碧のさらに右奥に立ち、碧の顔に葉がかからない
+      const bb = new THREE.Box3().setFromObject(tree), sz = bb.getSize(new THREE.Vector3()), sc = TREE_H / sz.y;
+      tree.scale.setScalar(sc); tree.position.set(2.2 - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, -7.2 - (bb.min.z + sz.z / 2) * sc);   // 碧の右奥（碧より奥＝顔に葉がかからない）
+      ground.add(tree); treeObj = tree; window.__qlTree = { ok: true, h: TREE_H, pos: tree.position.toArray().map(v => +v.toFixed(2)) }; kick();
     } catch (e) { window.__qlTree = { ok: false, e: String(e) }; console.warn('qualia layer tree', e); }
   })();
   // 碧が立つ、層を縦に貫く光の軸
@@ -249,7 +250,7 @@ export async function boot(stage) {
     }
     const tw = tagEl.offsetWidth || 200;
     const left = Math.max(8, Math.min(W - tw - 8, bx + 10));
-    tagEl.style.transform = 'translate(' + Math.round(left) + 'px,' + Math.round(Math.max(8, Math.min(Hh - 60, by - 22))) + 'px)';
+    tagEl.style.transform = 'translate(' + Math.round(left) + 'px,' + Math.round(Math.max(8, Math.min(Hh - 130, by - 22))) + 'px)';
     tagEl.classList.add('on');
   }
 
@@ -259,10 +260,12 @@ export async function boot(stage) {
 
   let vis = true, raf = 0, last = performance.now(), t0 = last;
   const fps = { n: 0, t: last, v: 0 };
-  window.__qlayers3d = { get fps() { return fps.v; }, get layers() { return layers.filter(l => l.t > .5).length; }, get aoi() { return !!vrm; } };
+  window.__qlayers3d = { get fps() { return fps.v; }, get layers() { return layers.filter(l => l.t > .5).length; }, get aoi() { return !!vrm; }, get target() { return target; }, get vis() { return vis; }, get ts() { return layers.map(l => +l.t.toFixed(2)); } };
 
   function render(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now; const t = (now - t0) / 1000;
+    // 2026-10-22：rAF の時刻が kick() の時刻より前のことがあり、負の dt で層の値が負へ振れて板が出なかった → dt を 0 以上に
+    const dt = Math.max(0, Math.min(.05, (now - last) / 1000)); last = now; const t = (now - t0) / 1000;
+    if (typeof window.__qlayerK === 'number') target = window.__qlayerK;   // 2026-10-22：読み込みの途中に札の合図を取りこぼしても、いま見えている札の番号にそろえる
     const all = target >= LAYERS.length;
     layers.forEach((L, i) => {
       const on = (reduce ? true : i < target) ? 1 : 0;
@@ -280,10 +283,10 @@ export async function boot(stage) {
     // 2026-10-20 夜：碧は上がらない・層の世界も動かさない（欅の上に層が重なっていく）
     world.position.y = 0;
     // 欅はいつも見せる（層はその上に薄く重なる）
-    const lookY = 2.55 + Math.min(1, d / N) * .15;
-    const ang = -.62 + (reduce ? 0 : t * .04), rad = mobile ? 14.6 : 13.8;
+    const lookY = 4.1 + Math.min(1, d / N) * .15;   // 2026-10-22：高くした欅の梢まで入るよう、見る高さと距離を少し上げた
+    const ang = -.62 + (reduce ? 0 : t * .04), rad = mobile ? 16.4 : 18.5;
     cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 2.8 : 2.4), Math.cos(ang) * rad);
-    cam.lookAt(0, lookY, 0);
+    cam.lookAt(.9, lookY, -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
     if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam); }
     R.render(S, cam);
     placeTag();

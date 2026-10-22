@@ -303,3 +303,138 @@ html.simple #top .beat-mission{margin-top:28px}
 /* 2026-10-20 夜 本人「Qualia Lab のカードにも写真を」：Museum と同じ並び（絵＋文）。狭い画面は縦に */
 .qt-gather-lab.has-img{grid-template-columns:minmax(0,440px) 1fr}
 @media(max-width:860px){.qt-gather-lab.has-img{grid-template-columns:1fr}}
+
+/* ===== 2026-10-22 HP の全面整理（タブ 4 枚・「Qualium と碧」・定式化の記号の表・ひらく前に・代表プロフィールの書体） ===== */
+.q-toc{max-width:760px;margin:8px auto 0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.q-toc button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1px solid #8bccca40;border-radius:999px;background:none;color:var(--ink);font:400 14.5px/1.4 var(--serif);letter-spacing:.06em;cursor:pointer}
+.q-toc button:hover,.q-toc button:focus-visible{border-color:#8bccca;outline:none}
+.q-toc .qn{font:400 11px/1 var(--mono);color:#8bccca;letter-spacing:.08em}
+.q-sub{margin:34px 0 0}
+.q-sub-h{font:600 1.12rem/1.6 var(--serif);letter-spacing:.06em;color:#f7fbff;margin:0 0 14px}
+#qualium .qr>p{margin:0 0 16px}
+#qualium .qt-three{margin:8px 0 22px}
+#qualium .qt-text-link{min-height:44px}
+.aoi-name{font-family:var(--serif);font-weight:600;font-size:clamp(1.9rem,4.4vw,2.6rem);letter-spacing:.06em;color:#f7fbff;margin:0 0 6px}
+#qualium #aoi .aoi-hero{margin:0 auto 30px;max-width:900px}
+.q-deep .qt-research{margin:10px 0 18px}
+#qualium .qt-kicker{font:400 11px/1.6 var(--mono);letter-spacing:.2em;color:#8bccca;margin:0 0 18px}
+.qt-deeper{display:flex;flex-wrap:wrap;gap:6px 22px}
+/* 定式化：記号の表（PC は 4 列、700px 以下は 1 記号＝1 枚の札） */
+.qt-sym-wrap{margin:8px 0 18px}
+.qt-sym{width:100%;border-collapse:collapse;font-size:14px;line-height:1.8;table-layout:fixed}
+.qt-sym thead th{font:400 11px/1.6 var(--mono);letter-spacing:.14em;color:#8bccca;text-align:left;padding:6px 10px 8px 0;border-bottom:1px solid #8bccca40}
+.qt-sym thead th:nth-child(1){width:19%}.qt-sym thead th:nth-child(2){width:31%}.qt-sym thead th:nth-child(3){width:24%}.qt-sym thead th:nth-child(4){width:26%}
+.qt-sym th[scope=row],.qt-sym td{text-align:left;vertical-align:top;padding:12px 12px 12px 0;border-bottom:1px solid #8bccca1c;font-weight:400;color:var(--ink-2);overflow-wrap:anywhere}
+.qt-sym .qs-sym{display:block;font:400 15px/1.6 var(--serif);color:#f7fbff;letter-spacing:.02em}
+.qt-sym .qs-name{display:block;font-size:12.5px;color:#8bccca;margin-top:2px}
+.qt-sym td.qs-ex{color:var(--ink)}
+@media(max-width:700px){
+  .qt-sym,.qt-sym tbody,.qt-sym tr,.qt-sym th[scope=row],.qt-sym td{display:block;width:auto}
+  .qt-sym thead{display:none}
+  .qt-sym tr{border:1px solid #8bccca30;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+  .qt-sym th[scope=row],.qt-sym td{padding:4px 0;border:0}
+  .qt-sym td::before{content:attr(data-k);display:block;font:400 10.5px/1.6 var(--mono);letter-spacing:.12em;color:#8bccca;margin-top:6px}
+  html[lang=en] .qt-sym td::before{content:attr(data-k-en)}
+  .qt-sym .qs-sym{font-size:16px}
+}
+/* TOP：ひらく前に */
+.qt-open-notes{margin:40px 0 0;padding-top:24px;border-top:1px solid #8bccca30}
+.qt-open-notes ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.qt-open-notes li{font-size:14.5px;line-height:1.9;color:var(--ink-2);border-left:2px solid #8bccca55;padding:2px 0 2px 14px}
+.qt-open-notes .qo-k{display:block;font:400 13px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}
+.qt-open-notes a{color:#8bccca;display:inline-block;min-height:24px;margin-right:10px}
+/* 代表プロフィール：本文の三つの段（経歴・創業の詩・書と開発）を、同じ明朝・同じ大きさ・同じ色に */
+.pf>div:last-child>p,.pf .pf-poem .poem-st{font-family:var(--serif);font-size:16.5px;color:var(--ink-2);letter-spacing:.04em;font-weight:400}
+.pf>div:last-child>p{line-height:2.05}
+.pf .pf-story-h{color:var(--ink)}
+html[lang=en] .pf>div:last-child>p,html[lang=en] .pf .pf-poem .poem-st{font-family:var(--latin);font-size:19px;line-height:1.75;letter-spacing:0}
+@media(max-width:700px){.pf>div:last-child>p,.pf .pf-poem .poem-st{font-size:15px}html[lang=en] .pf>div:last-child>p,html[lang=en] .pf .pf-poem .poem-st{font-size:17px}}
+.q-head .btns{justify-content:center}
+#qualium .q-deep .qr{max-width:1040px}
+
+/* ===== 2026-10-22 本人「スマホ版が全然ダメです。もっと美しく」：スマホのための組み（PC の縮小にしない） ===== */
+/* 節ごとの一枚（3D を出さないスマホだけ。PC は出さず、画像も読まない＝loading=lazy＋display:none） */
+.q-fig{display:none}
+@media(max-width:700px){
+  .q-fig{display:block;margin:0 calc(50% - 50vw) 26px;width:100vw;max-width:none}
+  .q-fig img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;-webkit-mask:linear-gradient(#000 70%,transparent);mask:linear-gradient(#000 70%,transparent)}
+  .q-fig figcaption{margin:-18px 24px 0;position:relative;font:400 12.5px/1.8 var(--serif);letter-spacing:.06em;color:var(--ink-2)}
+  .q-fig.q-fig-top img,#define .q-fig img{aspect-ratio:auto;max-height:70svh;object-fit:contain;-webkit-mask:linear-gradient(#000 82%,transparent);mask:linear-gradient(#000 82%,transparent)}
+  .q-fig-top{margin-top:6px}
+  /* 字と余白：本文 15.5px／行 2.05・段落の間を広く・見出しは明朝で一段大きく */
+  #qualium .wrap,#profile .wrap,#contact .wrap{padding-inline:22px}
+  #qualium .block{padding-top:64px}
+  #qualium .block-head{margin-bottom:22px}
+  #qualium .block-head .panel-title{font-size:1.55rem;line-height:1.5;letter-spacing:.08em}
+  #qualium .qr>p,#qualium .qr li,#qualium .deflist dd,#qualium .qt-three dd{font-size:15.5px;line-height:2.05;letter-spacing:.02em}
+  #qualium .qr>p{margin:0 0 20px}
+  #qualium .q-head .panel-title{font-size:2.1rem}
+  #qualium .q-head .block-lead{font-size:15px;line-height:2;text-align:left}
+  #qualium .q-head .btns{flex-direction:column;align-items:stretch}
+  #qualium .q-head .btns .btn{justify-content:center;min-height:48px}
+  .q-toc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:22px}
+  .q-toc button{justify-content:flex-start;border-radius:12px;font-size:14px}
+  .q-sub-h{font-size:1.08rem;margin-top:8px}
+  #qualium .qt-three>div{padding:14px 0}
+  #qualium .aoi-hero{gap:14px}
+  #qualium .aoi-fig{max-width:300px;margin:0 auto}
+  .qt-open-notes li{font-size:14px}
+  /* TOP：層の札と、詩の行 */
+  .qt-layer a{padding:26px 0 28px}
+  .qt-layer .ql-name{font-size:1.65rem}
+}
+@media(max-width:340px){.q-toc{grid-template-columns:1fr}}
+/* スマホの冒頭：参道の画をもう少し見せ、場面の地（#03060f）から下の地へなだらかにつなぐ */
+@media(max-width:700px){
+  html.simple #why .scene-poster{opacity:.78;height:58svh;max-height:540px}
+  html.simple #why .scene-sticky{background:linear-gradient(#03060f 0,#03060f 78%,rgba(3,6,15,0) 100%)}
+  html.simple #top .beat-hero{margin-top:-24svh}
+  html.simple #top .beat-l,html.simple #top .beat-r{padding-inline:6px}
+}
+/* 採点 1 回目の直し */
+details.q-more>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;margin:4px 0 18px;border:1px solid #8bccca55;border-radius:999px;color:#8bccca;font:400 14px/1 var(--serif);letter-spacing:.08em}
+details.q-more>summary::-webkit-details-marker{display:none}
+details.q-more>summary::after{content:"↓";font-size:12px}
+details.q-more[open]>summary{display:none}
+@media(min-width:701px){details.q-more>summary{display:none}}
+html[lang=en] .q-yomi{display:none}
+.pf-roles li,.pf-cv dd{font-family:var(--serif)}
+html[lang=en] .pf-roles li,html[lang=en] .pf-cv dd{font-family:var(--latin);font-size:1.02em}
+.qt-depth li>span:not(.qd-n){background:rgba(3,6,15,.72);padding:0 4px;border-radius:3px}
+@media(max-width:700px){
+  .seg-btn{position:relative}
+  .seg-btn::after{content:"";position:absolute;left:-2px;right:-2px;top:-10px;bottom:-10px}
+  .tab-menu-toggle{min-height:44px}
+  .qt-open-notes a,.qt-bottom-credits a,footer .f-links a,footer .f-links button,footer a{display:inline-flex;align-items:center;min-height:44px}
+}
+/* 環境エージェント・碧の流れ（測る → 計算する → 語り、層を重ねる → 潜る）。線画の流儀：細い碧色の線と、明朝の札 */
+.aoi-agent{margin:34px 0 30px}
+.aoi-flow{list-style:none;margin:18px 0 26px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;position:relative;counter-reset:af}
+.aoi-flow::before{content:"";position:absolute;left:12px;right:12px;top:15px;height:1px;background:linear-gradient(90deg,#c9a27a,#8bccca 45%,#c4b2ff 75%,#f4fbff)}
+.aoi-flow li{position:relative;padding:34px 14px 0 0;display:grid;gap:4px;align-content:start}
+.aoi-flow li::before{content:"";position:absolute;left:8px;top:10px;width:9px;height:9px;border:1px solid #8bccca;border-radius:50%;background:#03060f;box-shadow:0 0 10px #8bccca66}
+.aoi-flow li:nth-child(3)::before{background:#8bccca;box-shadow:0 0 16px #8bcccacc}
+.aoi-flow .af-n{font:400 10.5px/1.4 var(--mono);color:#8bccca;letter-spacing:.14em}
+.aoi-flow .af-k{font:400 10.5px/1.4 var(--mono);color:var(--ink-2);letter-spacing:.16em}
+.aoi-flow .af-t{font:600 1.05rem/1.5 var(--serif);color:#f7fbff;letter-spacing:.06em}
+.aoi-flow .af-d{font-size:13.5px;line-height:1.85;color:var(--ink-2)}
+.aoi-flow-c{margin:6px 0 8px}
+.aoi-flow-c .af-t{font-size:.98rem}
+.aoi-agent-top{margin:30px 0 8px;padding-top:22px;border-top:1px solid #8bccca30}
+.aoi-nownext{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.aoi-nownext>div{border:1px solid #8bccca30;border-radius:14px;padding:16px 18px}
+.aoi-nownext .an-next{border-style:dashed}
+.aoi-nownext .an-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:600 1rem/1.5 var(--serif);color:#f7fbff}
+.aoi-nownext .an-tag{font:400 10px/1 var(--mono);letter-spacing:.18em;color:#03060f;background:#8bccca;border-radius:999px;padding:5px 8px}
+.aoi-nownext .an-next .an-tag{background:none;color:#8bccca;border:1px solid #8bccca}
+.aoi-nownext ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.aoi-nownext li{font-size:14px;line-height:1.9;color:var(--ink-2)}
+.aoi-nownext .an-k{display:block;font:400 13.5px/1.6 var(--serif);color:var(--ink);letter-spacing:.04em}
+@media(max-width:860px){.aoi-nownext{grid-template-columns:1fr}}
+@media(max-width:700px){
+  .aoi-flow{grid-template-columns:1fr;gap:18px;padding-left:28px}
+  .aoi-flow::before{left:12px;right:auto;top:8px;bottom:8px;width:1px;height:auto;background:linear-gradient(#c9a27a,#8bccca 45%,#c4b2ff 75%,#f4fbff)}
+  .aoi-flow li{padding:0}
+  .aoi-flow li::before{left:-20px;top:4px}
+  .aoi-flow .af-d{font-size:14.5px}
+}
