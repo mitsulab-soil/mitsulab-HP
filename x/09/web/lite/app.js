@@ -14,7 +14,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/";
+const BASE = "web/lite/", VER = "20261022n";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -68,7 +68,7 @@ const tex = (u, srgb = true, rep = true) => { const t = TL.load(u); if (srgb) t.
 const glb = u => new Promise((res, rej) => loader.load(u, res, undefined, rej));
 const texP = (u, srgb = true) => new Promise((res, rej) => TL.load(u, t => { if (srgb) t.colorSpace = THREE.SRGBColorSpace; res(t); }, undefined, rej));
 
-const pData = fetch(BASE + "data.json").then(r => r.json());
+const pData = fetch(BASE + "data.json?v=" + VER).then(r => r.json());
 const pDem = fetch(BASE + "dem.bin").then(r => r.arrayBuffer());
 const pTerrain = glb("web/lite/terrain.glb");
 const pPhoto = texP(BASE + "tex/" + (MOBILE ? "photo_1k.webp" : "photo_2k.webp"));
@@ -439,7 +439,7 @@ function stepMapLabels() {
   if (QW.mode !== "sky" || !MAP.labels.length) return;
   const placed = [], W = innerWidth, H = innerHeight, all = MAP.here?.visible ? [...MAP.labels, MAP.hereLabel] : MAP.labels;
   for (const L of all) {
-    _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W, y = (1 - _v3.y) / 2 * H;
+    _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W; let y = (1 - _v3.y) / 2 * H; if (L === MAP.hereLabel && _v3.z < 1) y = Math.max(96, y);   // 「いま」の札は上の端で切らない
     let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x < W - 20 && y > 70 && y < H - 40;
     if (ok && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < (MOBILE ? 96 : 70) && Math.abs(q[1] - y) < (MOBILE ? 22 : 18)) { ok = false; break; }   // 重なる名札は出さない（大きな鳥居の名札も）
     if (!ok) { if (L.vis !== false) { L.e.style.display = "none"; L.vis = false; } continue; }
@@ -834,7 +834,7 @@ const TALK = { on: true, segs: [], byId: {}, spoken: new Set(), nextT: 0, idleSi
 try { for (const k of JSON.parse(sessionStorage.getItem("hk_spoken") || "[]")) TALK.spoken.add(k); } catch { }
 function loadTalk() {
   if (TALK.loading) return TALK.loading;
-  return TALK.loading = Promise.all([fetch(BASE + "talk.json").then(r => r.json()), fetch(BASE + "lip.json").then(r => r.json()).catch(() => ({}))]).then(([t, lip]) => {
+  return TALK.loading = Promise.all([fetch(BASE + "talk.json?v=" + VER).then(r => r.json()), fetch(BASE + "lip.json?v=" + VER).then(r => r.json()).catch(() => ({}))]).then(([t, lip]) => {
     TALK.segs = t.segs; for (const s of t.segs) TALK.byId[s.id] = s; Object.assign(D.lip, lip); TALK.loaded = true;
   }).catch(e => console.warn("talk", e));
 }
@@ -1483,7 +1483,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     document.body.classList.add("ready");
     QW.ready = true; QW.tReady = performance.now() - T0;
     // 歩く前に要るものを、上空で選んでいるあいだに読む（地図の線と名前 → 道・木・構造物 → 碧 → 話）
-    setTimeout(() => { fetch(BASE + "map.json").then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
+    setTimeout(() => { fetch(BASE + "map.json?v=" + VER).then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
     setTimeout(() => { loadLate(); setTimeout(loadAoi, 400); setTimeout(loadTalk, 900); }, 300);
     const s0 = Q.get("start"); if (s0 != null && D.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
     if (Q.get("layer")) setTimeout(() => wearLayer(Q.get("layer")), 200);

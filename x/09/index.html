@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/lite/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/lite/data.json" as="fetch" crossorigin>
+<link rel="preload" href="web/lite/data.json?v=20261022n" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/vendor/BufferGeometryUtils.js"}}
@@ -106,7 +106,7 @@ body[data-mode="boot"] #lstack{display:none}
   #lstack.closed #lsHead .lc{font-size:8.5px;letter-spacing:0}
   body[data-mode="walk"] #caption{top:calc(max(12px,env(safe-area-inset-top)) + 62px);bottom:auto;left:76px;right:var(--g);width:auto;transform:none;text-align:left}
   body[data-mode="walk"] #capText{font-size:12.8px;letter-spacing:0;line-height:1.75;padding:2px 6px}
-  body[data-mode="walk"] #toast{top:auto;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 120px)}
+  body[data-mode="walk"] #toast{top:calc(max(12px,env(safe-area-inset-top)) + 176px);bottom:auto}
   #sightUI{left:76px;right:var(--g);max-width:none;padding:10px 12px}#sightUI .sl{white-space:normal}#sightUI .sl{font-size:12px}
   #lstack{width:auto;max-height:calc(100% - 210px)}
   #lstack.closed{width:52px}
@@ -277,6 +277,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261022m").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261022n").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
