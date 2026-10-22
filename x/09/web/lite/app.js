@@ -1843,7 +1843,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     QW.ready = true; QW.tReady = performance.now() - T0;
     // 歩く前に要るものを、上空で選んでいるあいだに読む（地図の線と名前 → 道・木・構造物 → 碧 → 話）
     setTimeout(() => { fetch(BASE + "map.json?v=" + VER).then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
-    setTimeout(() => { loadLate(); setTimeout(loadAoi, 400); setTimeout(loadTalk, 900); }, 300);
+    setTimeout(() => { loadAoi(); loadLate(); setTimeout(loadTalk, 900); }, 300);   // 2026-10-23：碧を道・木・構造物と同時に読みはじめる（前は 0.4 秒あと）
     const s0 = Q.get("start"); if (s0 != null && D.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
     if (Q.get("layer")) setTimeout(() => wearLayer(Q.get("layer")), 200);
     if (Q.get("sight")) setTimeout(() => QW.sight(Q.get("sight")), 300);

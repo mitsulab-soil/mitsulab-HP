@@ -6,7 +6,7 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
-import { buildForest } from "./forest.js?v=20261013k80";
+import { buildForest } from "./forest.js?v=20261023-boot";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -1209,7 +1209,9 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
 STARTUP.sceneBuiltAt = performance.now();
 (async () => {
   me.pos.set(0,1.55,4);prog(20); applyLens("hito"); setWhere(); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
-  await loadAoi(); prog(100);
+  // 2026-10-23 起動 5 秒：碧を読むあいだに、森の材質（シェーダー）を並行に組み立てておく（はじめのこまで一つずつ組み立てて数秒止まっていた）
+  const preCompile = renderer.compileAsync ? renderer.compileAsync(scene, camera).catch(() => {}) : null;
+  await loadAoi(); await preCompile; prog(100);
   // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
   if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 3.6 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
   // 右の ↑ ↓ ↶ ↷（2026-10-13）：押しているあいだ進む・向きを変える。短く押したときは一歩（1.2 m）・一ふり（約 17°）

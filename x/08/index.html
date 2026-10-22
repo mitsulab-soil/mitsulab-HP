@@ -142,7 +142,7 @@
   .home{font-size:.84rem;letter-spacing:.08em;color:var(--ml-ink-2);text-decoration:none;min-height:44px;display:inline-flex;align-items:center;white-space:nowrap}
   .home:hover,.home:focus-visible{color:#fff}
   main{max-width:1180px;margin:0 auto;padding:clamp(18px,4vw,44px) 16px 64px}
-  /* 映像の枠：細い線一本と四隅の印。選択中の動画の情報を先読みする（preload="metadata"）。再生は本人の操作後だけ */
+  /* 映像の枠：細い線一本と四隅の印。選択中の動画を先に読みはじめる（preload="auto"。データ節約の設定のときは情報だけ）。再生は本人の操作後だけ */
   .frame{position:relative;border:1px solid var(--ml-line-2);background:#000}
   .frame::before,.frame::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--ml-aoi);pointer-events:none}
   .frame::before{left:-5px;top:-5px;border-right:0;border-bottom:0}
@@ -191,8 +191,12 @@
       (function () {
         var v = document.getElementById('mv'), w = window.innerWidth || 1280, c = navigator.connection || {};
         var lv = w <= 600 ? 2 : (w <= 1100 ? 1 : 0);
-        if (c.saveData || /(^|-)2g|3g/.test(c.effectiveType || '')) lv = 2;   // 回線が遅いと分かるときだけ軽く。途中で待ちが続いたら、下の処理で一段ずつ軽くする
+        var et = c.effectiveType || '';
+        if (c.saveData || /(^|-)2g/.test(et)) lv = 2;          // とても遅い・データ節約のときだけ、いちばん軽く
+        else if (et === '3g') lv = Math.max(lv, 1);            // 遅めの判定では一段だけ軽く（PC でも 540p まで落とさない）。途中で待ちが続いたら、下の処理で一段ずつ軽くする
         v.dataset.lv = lv;
+        // 2026-10-23：押す前から続きを読んでおく（preload="metadata" だと最初の約 1 秒分で読むのを止め、押してから取り直すため 1 秒の所で止まった）
+        v.preload = c.saveData ? 'metadata' : 'auto';
         v.src = ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'][lv] + '?v=20261019';
       })();
     </script>

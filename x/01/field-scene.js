@@ -11,12 +11,15 @@ export async function createFieldScene({T,scene,world,camera,host,sprite,rendere
  const gltf=new GLTFLoader();gltf.setMeshoptDecoder(MeshoptDecoder);
  const tl=new T.TextureLoader(),ownG=new Set(),ownM=new Set(),ownTex=new Set();
  const geo=g=>(ownG.add(g),g),mat=m=>(ownM.add(m),m);
+ // 2026-10-23 起動 5 秒：欅の葉の地図（2048 四方）は PNG 1.7 MB → WebP 0.27 MB にし、画面の外（ImageBitmap）でほどく。上下は反転しない（元も flipY=false）
+ const bitmapTexture=async path=>{if(typeof createImageBitmap!=='function')return null;try{const r=await fetch(url(path));if(!r.ok)return null;const bmp=await createImageBitmap(await r.blob(),{premultiplyAlpha:'none',colorSpaceConversion:'none'});const t=new T.Texture(bmp);t.flipY=false;t.needsUpdate=true;return t;}catch{return null;}};
+ const leafTexture=async()=>{const t=await bitmapTexture('img/hero/3d/keyaki_leaf_atlas.webp');if(!t)return texture('img/hero/3d/keyaki_leaf_atlas.webp');t.colorSpace=T.SRGBColorSpace;t.anisotropy=Math.min(4,renderer?.capabilities.getMaxAnisotropy()||2);ownTex.add(t);return t;};
  const texture=async(path,srgb=true,repeat)=>{const t=await tl.loadAsync(url(path));t.colorSpace=srgb?T.SRGBColorSpace:T.NoColorSpace;t.anisotropy=Math.min(4,renderer?.capabilities.getMaxAnisotropy()||2);if(repeat){t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(...repeat);}ownTex.add(t);return t;};
  const [terrainAsset,cityAsset,treeAsset,roadAsset,photo,bark,barkNormal,leaf,gravel,gritNormal,meta]=await Promise.all([
   gltf.loadAsync(url('img/hero/3d/terrain_lite.glb')),gltf.loadAsync(url('img/hero/3d/buildings_lite.glb')),
   gltf.loadAsync(url('img/hero/3d/keyaki_lod1_notex.glb')),gltf.loadAsync(url('img/hero/3d/road.glb')),
   texture('img/hero/3d/tex_photo_s.jpg'),texture('x/02/tex/bark_zelkova.webp',true,[1,3]),
-  texture('x/02/tex/bark_zelkova_n.webp',false,[1,3]),texture('img/hero/3d/keyaki_leaf_atlas.png'),
+  texture('x/02/tex/bark_zelkova_n.webp',false,[1,3]),leafTexture(),
   texture('x/02/tex/path_gravel.webp',true,[1,1]),texture('x/02/tex/sand_grit_n.webp',false,[1,1]),
   window.__sandoWire?window.__sandoWire.then(x=>x[0]):fetch(url('img/hero/sando_wire.json')).then(r=>{if(!r.ok)throw Error('Place metadata unavailable');return r.json();})
  ]);

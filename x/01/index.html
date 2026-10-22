@@ -12,13 +12,25 @@
 <link rel="preload" href="assets/aoi.vrm" as="fetch" crossorigin>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="qualium-scenes.js?v=20261016-startup2">
+<link rel="modulepreload" href="qualium-scenes.js?v=20261023-boot">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
 <link rel="modulepreload" href="js/aoi_motion.js">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
-<link rel="modulepreload" href="field-scene.js">
+<link rel="modulepreload" href="field-scene.js?v=20261023-boot">
+<!-- 2026-10-23 起動 5 秒：場所の 3D と質感も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
+<link rel="preload" href="assets/terrain_lite.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/buildings_lite.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/keyaki_lod1_notex.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/road.glb" as="fetch" crossorigin>
+<link rel="preload" href="assets/sando_wire.json" as="fetch" crossorigin>
+<link rel="preload" href="assets/keyaki_leaf_atlas.webp" as="fetch" crossorigin>
+<link rel="preload" href="assets/tex_photo_s.jpg" as="image" crossorigin="anonymous">
+<link rel="preload" href="assets/bark_zelkova.webp" as="image" crossorigin="anonymous">
+<link rel="preload" href="assets/bark_zelkova_n.webp" as="image" crossorigin="anonymous">
+<link rel="preload" href="assets/path_gravel.webp" as="image" crossorigin="anonymous">
+<link rel="preload" href="assets/sand_grit_n.webp" as="image" crossorigin="anonymous">
 <link rel="modulepreload" href="js/aoi_mocap.js">
 <link rel="modulepreload" href="js/aoi_robe.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
@@ -55,4 +67,4 @@
 const nodes=[['知覚','感覚器と道具が手がかりを受けとる。Qualia/sight は、人の目と耳の外にある信号を模型で見せる。'],['言語','見つけた違いに名前を与える。碧は出どころと限界を添えて、人に届く言葉へ写す。'],['概念','個々の事実を結び、別の場所でも使える問いにする。Qualia/rakugo は物語から概念への入口。'],['物語','時間と立場を渡って考える。編集の廻・鼎・坐・種は、経験を次の問いとして残す。'],['体験','場所に戻って、身体で確かめる。Qualia/walk 氷川は参道の現実をもう一度見るための入口。'],['環世界','生きものごとに意味ある手がかりは違う。ほかの生きものの主観を断定せず、測れるしるしから違いを考える。']];
 const nd=document.getElementById('node-detail');function pickNode(i){nd.innerHTML='<b>'+nodes[i][0]+'</b> — '+nodes[i][1];document.querySelectorAll('.node').forEach((b,n)=>{b.classList.toggle('active',n===i);b.setAttribute('aria-pressed',String(n===i))})}document.querySelectorAll('.node').forEach(b=>b.addEventListener('click',()=>pickNode(Number(b.dataset.node))));pickNode(0);
 const views={human:['人の目に見える花','まず、見える色と形。ここが出発点。'],bee:['紫外線反射の模様','一部の花は紫外線反射に模様がある。表示色は人に見える色へ置き換えた模式図。'],soil:['土の中のつながり','根、水、菌類、粒の関係を想像する入口。線は実測値ではない。'],story:['物語から概念へ','「花はだれに向けて咲く？」という問いが、次に花を見る視線を変える。'],field:['現実の花へ戻る','画面を閉じて花を見よう。種類や条件を確かめ、分からないことを残す。']};const stage=document.getElementById('stage'),label=document.getElementById('scene-label');function pickView(k){stage.dataset.view=k;window.dispatchEvent(new CustomEvent('qualium-view',{detail:{view:k}}));label.innerHTML='<strong>'+views[k][0]+'</strong><br>'+views[k][1];document.querySelectorAll('[data-view].control button,.control button[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===k)))}document.querySelectorAll('.control button[data-view]').forEach(b=>b.addEventListener('click',()=>pickView(b.dataset.view)));pickView('human');
-</script><script type="module" src="qualium-scenes.js?v=20261016-startup2"></script><script>if(location.protocol==='file:'){const p=document.createElement('p');p.className='wrap model-note';p.textContent='3Dは、同じフォルダの「ひらく.command」から開いてください。本文とエッセンス版はこのまま読めます。';document.querySelector('header').after(p);}</script></body></html>
+</script><script type="module" src="qualium-scenes.js?v=20261023-boot"></script><script>if(location.protocol==='file:'){const p=document.createElement('p');p.className='wrap model-note';p.textContent='3Dは、同じフォルダの「ひらく.command」から開いてください。本文とエッセンス版はこのまま読めます。';document.querySelector('header').after(p);}</script></body></html>

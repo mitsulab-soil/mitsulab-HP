@@ -37,8 +37,21 @@ function polyDist(P, x, z) {
   return best;
 }
 // 川はなめらかな曲線（umwelt.js の川と同じ点）を細かくとった折れ線で測る
-let RIVER_PTS = null;
-const dRiver = (x, z) => polyDist(RIVER_PTS, x, z);
+let RIVER_PTS = null, RIVER_C = null;
+// 2026-10-23 起動 5 秒：川までの距離は数万回測るので、16 区間ごとの外枠より遠い区間は測らない（結果は同じ最小値）
+function polyChunks(P, n = 16) { const C = []; for (let i = 0; i < P.length - 1; i += n) { const j = Math.min(P.length - 1, i + n); let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = i; k <= j; k++) { const [px, pz] = P[k]; if (px < x0) x0 = px; if (px > x1) x1 = px; if (pz < z0) z0 = pz; if (pz > z1) z1 = pz; } C.push([i, j, x0, x1, z0, z1]); } return C; }
+function polyDistC(P, C, x, z) {
+  let best = 1e9; const n = C.length, dd = polyDistC.dd || (polyDistC.dd = new Float64Array(64)), ord = polyDistC.ord || (polyDistC.ord = []);
+  for (let c = 0; c < n; c++) { const [, , x0, x1, z0, z1] = C[c], bx = x < x0 ? x0 - x : x > x1 ? x - x1 : 0, bz = z < z0 ? z0 - z : z > z1 ? z - z1 : 0; dd[c] = Math.hypot(bx, bz); ord[c] = c; }
+  ord.length = n; ord.sort((p, q) => dd[p] - dd[q]);   // 近い外枠から測る
+  for (const c of ord) {
+    const [i0, i1] = C[c];
+    if (dd[c] > best + 1e-9) break;
+    for (let i = i0; i < i1; i++) { const [ax, az] = P[i], [bx2, bz2] = P[i + 1], dx = bx2 - ax, dz = bz2 - az, t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1); best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t)); }
+  }
+  return best;
+}
+const dRiver = (x, z) => polyDistC(RIVER_PTS, RIVER_C, x, z);
 const dPond = (x, z) => Math.hypot(x - POND.x, z - POND.z) - POND.r;
 const dPath = (x, z) => polyDist(PATH, x, z);
 const gapK = (x, z) => GAPS.reduce((m, g) => Math.max(m, sstep(g.r + 2.6, g.r - .8, Math.hypot(x - g.x, z - g.z))), 0);
@@ -66,7 +79,7 @@ const Mesh = (geo, mat, o = {}) => { const m = new THREE.Mesh(geo, mat); if (o.p
 
 export function buildForest(ctx) {
   const { M, tx, canvasTex, photoTex, forest, pick, sonic, mobile, riverCurve } = ctx;
-  RIVER_PTS = riverCurve.getSpacedPoints(160).map(v => [v.x, v.z]);
+  RIVER_PTS = riverCurve.getSpacedPoints(160).map(v => [v.x, v.z]); RIVER_C = polyChunks(RIVER_PTS);
   const out = { trunks: [], shafts: null, sunflower: null, meadow: MEADOW };
   const Q = mobile ? .5 : 1;                                  // スマホは数を半分ほどに
   const quat = new THREE.Quaternion(), eul = new THREE.Euler(), m4 = new THREE.Matrix4(), col = new THREE.Color();
