@@ -110,11 +110,14 @@ export function makeMarker(id, color, h, mobile = false) {
 const FONT = '"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif';
 export function makeLabel(no, layer, title, color) {
   const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const x = cv.getContext("2d");
-  x.fillStyle = "rgba(3,6,15,.62)"; x.fillRect(0, 18, W, 92);
-  x.fillStyle = color; x.fillRect(0, 18, 4, 92);
+  // 2026-10-22 箱をやめ、視野に重なる札に：左の細い線と角だけ。字の下だけ、横にうすく暗く（明るい空や地面でも読める）
+  const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.6)"); gr.addColorStop(.7, "rgba(3,6,15,.3)"); gr.addColorStop(1, "rgba(3,6,15,0)");
+  x.fillStyle = gr; x.fillRect(0, 22, W, 84);
+  x.fillStyle = color; x.fillRect(0, 18, 3, 92); x.fillRect(0, 18, 22, 2); x.fillRect(0, 108, 22, 2);
+  x.shadowColor = "rgba(0,0,0,.9)"; x.shadowBlur = 6; x.shadowOffsetY = 1;
   x.font = `500 22px ${FONT}`; x.fillStyle = color; x.fillText(`${String(no).padStart(2, "0")}　${layer}`, 22, 50);
   let fs = 38; x.font = `600 ${fs}px ${FONT}`; while (x.measureText(title).width > W - 44 && fs > 22) { fs -= 2; x.font = `600 ${fs}px ${FONT}`; }
-  x.fillStyle = "#eef3f8"; x.fillText(title, 22, 94);
+  x.fillStyle = "#f6f9fc"; x.fillText(title, 22, 94);
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, depthTest: true, fog: true }));
   s.center.set(0, 0); s.scale.set(1.6, .4, 1); s.renderOrder = 6; return s;
