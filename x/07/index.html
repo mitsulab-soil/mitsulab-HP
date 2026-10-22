@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261022-touch">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 <!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
-<link rel="modulepreload" href="js/app.js?v=20261016-startup">
+<link rel="modulepreload" href="js/app.js?v=20261022-touch">
 <link rel="modulepreload" href="vendor/three.module.js">
 <link rel="modulepreload" href="vendor/OrbitControls.js">
 <link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
@@ -32,17 +32,10 @@
 </head>
 <body class="ml-root">
 <script src="loader/loader.js?v=20261017-fast" data-title="Qualia/sound" data-en="sound in motion" data-icon="favicon/icon.svg" data-max="12000"></script>
-<canvas id="cv" aria-label="夕暮れの雑木林の空き地の上に、言葉の点が分類ごとに集まって浮かんでいる 3D の場面"></canvas>
-<div id="labs" aria-hidden="true"></div>
+<canvas id="cv" tabindex="0" aria-label="夕暮れの雑木林の空き地の上に、言葉の点が浮かんでいる 3D の場面。押すと、その言葉の音が鳴ります。キーボードでは、左右の矢印キーで点を移り、Enter で鳴らします"></canvas>
+<p id="say" class="vh" aria-live="polite"></p>
 <div id="tip" class="tip" aria-hidden="true"></div>
-<div id="peek" class="peek" role="group" aria-label="選んだ音" aria-live="polite" hidden>
-  <p class="peek-n" id="peekN"></p>
-  <p class="peek-t" id="peekT"></p>
-  <p class="peek-d" id="peekD"></p>
-  <p class="peek-s" id="peekS"></p>
-  <div class="peek-a"><button class="ml-btn ml-btn--primary" id="peekPlay" type="button">▶ 鳴らす</button><button class="ml-btn ml-btn--quiet" id="peekX" type="button">とじる</button></div>
-  <small class="peek-h">同じ点をもう一度押しても鳴ります。</small>
-</div>
+<div id="now" class="tip now" aria-hidden="true"></div>
 
 <header class="top">
   <div class="brand">
@@ -60,7 +53,7 @@
   <div class="intro-in">
     <p class="ml-kicker">Qualia/sound</p>
     <h2 id="introT" class="ml-title intro-line">同じ一行でも、<br>聞こえる音は、<br>人によって違う。</h2>
-    <p class="intro-body">「◯◯の音」──森に浮かぶ点を押すと何の音かが出て、もう一度押すと鳴ります。二つの音を重ねたり、自分の言葉から新しい音をつくったり。音の高さやリズムを動かして、3D波形・粒の流れ・倍音の層・音の彫刻で違いを眺めてください。音は言葉を手がかりに合成した表現で、実際の録音ではありません。</p>
+    <p class="intro-body">「◯◯の音」──森に浮かぶ点にかざすと、その音の言葉が出ます。押すと、その場で鳴ります。二つの音を重ねたり、自分の言葉から新しい音をつくったり。音の高さやリズムを動かして、3D波形・粒の流れ・倍音の層・音の彫刻で違いを眺めてください。音は言葉を手がかりに合成した表現で、実際の録音ではありません。</p>
     <div class="intro-act">
       <button class="ml-btn ml-btn--primary" id="bStart" type="button">はじめる</button>
       <span class="intro-note">音は、押したときだけ鳴ります。</span>
@@ -68,16 +61,14 @@
   </div>
 </section>
 
-<!-- 下のパネル（選んだ一行） -->
-<p id="tourCap" class="tourcap" aria-live="polite" hidden></p>
+<!-- 押した音の面（森は見えたまま。点を押すと、鳴る音が切りかわる） -->
 
 <section id="panel" class="panel" aria-label="音の演奏面" hidden>
   <div class="p-head">
-    <span class="p-no" id="pNo"></span><span class="ml-label" id="pTag"></span>
-    <button class="ml-btn ml-btn--quiet p-x" id="bClose" type="button">森にもどる ↗</button>
+    <span class="p-no" id="pNo"></span>
+    <button class="ml-btn ml-btn--quiet p-x" id="bClose" type="button">とじる</button>
   </div>
   <p class="p-line" id="pLine" aria-live="polite"></p>
-  <p class="p-law" id="pLaw"></p>
   <div class="quiet" id="quiet" hidden><p>この一行は、鳴らさずに置いています。</p></div>
   <div class="sound" id="sound">
     <div class="visualArea">
@@ -100,7 +91,7 @@
         <canvas id="wave" class="wave" aria-label="最終出力の波形"></canvas>
         <p class="spaceNote">どの表示も、操作後の再生出力を解析した値から描きます。彫刻は、その値で育てた形です。周囲の音圧を測った値ではありません。</p>
       </div>
-      <div class="soundActions"><button id="bPlay" type="button" class="ml-btn ml-btn--primary">もう一度聴く</button><button id="bStop" type="button" class="ml-btn">■ 音を止める</button><button id="bKeep" type="button" class="ml-btn ml-btn--quiet">Aの素材にする</button></div>
+      <div class="soundActions"><p class="playHint" id="playHint">点をもう一度押すと止まり、ほかの点を押すと切りかわります。</p><button id="bStop" type="button" class="ml-btn">■ 音を止める</button><button id="bKeep" type="button" class="ml-btn ml-btn--quiet">Aの素材にする</button></div>
       <div class="p-nav"><button class="ml-btn ml-btn--quiet" id="bPrev" type="button">← 前の音</button><button class="ml-btn ml-btn--quiet" id="bRand" type="button">偶然の一行</button><button class="ml-btn ml-btn--quiet" id="bNext" type="button">次の音 →</button></div>
     </div>
     <aside class="performance" aria-label="音を動かす">
@@ -132,12 +123,7 @@
 
 <!-- 何も選んでいないときの下の帯 -->
 <div id="hint" class="hint" hidden>
-  <p><span class="pc">浮かぶ点の一つ一つが、言葉です。押すと何の音かが出て、もう一度押すと鳴ります。</span><span class="spo">点の一つ一つが言葉。押すと何の音か、もう一度で鳴ります。</span></p>
-  <div class="worlds" aria-labelledby="worldsH">
-    <p class="worlds-h" id="worldsH">九つの音の世界を、一行ずつ聴きくらべる</p>
-    <div class="worlds-g" id="worldsG" role="group" aria-label="九つの音の世界"></div>
-    <button class="ml-btn ml-btn--quiet worlds-all" id="bTour" type="button">九つを順に聴く（約 1 分半）</button>
-  </div>
+  <p><span class="pc">浮かぶ点の一つ一つが、言葉です。かざすと言葉が出て、押すと鳴ります。</span><span class="spo">点の一つ一つが言葉。触れると鳴ります。</span></p>
   <div class="p-row">
     <button class="ml-btn ml-btn--primary" id="bRand2" type="button">偶然の一行</button>
     <button class="ml-btn" id="bList2" type="button">一覧から選ぶ</button>
@@ -148,8 +134,6 @@
 <dialog id="dList" class="sheet" aria-labelledby="listT">
   <div class="sheet-in">
     <div class="sheet-head"><h2 id="listT" class="ml-title">一覧</h2><span class="ml-en">all lines</span><button class="ml-btn ml-btn--quiet" data-close type="button">とじる</button></div>
-    <p class="sheet-note">分け方は、作品の上の地図です。言葉の正しい分け方ではありません。</p>
-    <div class="chips" id="chips" role="group" aria-label="分類"></div>
     <input type="search" id="q" class="q" placeholder="言葉でさがす（例：水、錆、沈黙）" aria-label="言葉でさがす" autocomplete="off">
     <p class="count" id="count"></p>
     <ol class="list" id="list"></ol>
@@ -167,7 +151,6 @@
       <p>「◯◯の音」の言葉は、すべて mitsulab が書いたものです。その言葉を LLM で九つの群れに分け、一行を音の譜にする決まりと、代表の行の譜も LLM で設計しました。その決まりにしたがって、ブラウザがその場で音を合成しています。録音した音は使っていません。</p>
       <p>雨を雨の音に、鉄を金属の音に写すことはしていません。一行が指しているもの──時間の向き、境界、生まれることと消えること、知覚の外、自分と他者、大きさの飛躍──を読み、それを音の組み立てで鳴らします。反転は時間の向きの反転で、境界が溶けることは二つの音の倍音が混ざって一つになる過程で、無は静けさの質の違いで、大きさの飛躍は周期の入れ子で。</p>
       <p>すべての行は、55 Hz というひとつの低い音とその倍音の上に立っています。九つの群れは、それぞれ音の高さの決まり・時間の流れ方・空間を持ち、どの行も同じ世界の中で響き合います。同じ言葉は、はじめはいつも同じ鳴り方をします。</p>
-      <p>入口の「九つの音の世界」では、群れごとに、その決まりがいちばんはっきり聞こえる一行を手渡します。「九つを順に聴く」で、宇宙から音そのものまで、一行ずつ続けて聴きくらべられます。</p>
       <p>「長く聴く」を押すと、一行のあと、その群れの世界の響きが 45 秒ほど、ほとんど動かずに続きます。</p>
       <p>「音を動かす」のつまみは、高さ（±12半音）、刻み（毎秒1・2・4・8回の音量変化）、こもり（高い成分を落とすフィルター）、こだま（0.28秒おきのエコー）を再生中に変えます。「響き・質感・明るさ」では、近い／遠い、柔らかい／硬い、暗い／明るいを変えて音を組み直せます。二つの音を重ねて合成比を変えたり、新しい「◯◯の音」を入力して合成できます。生成する音は言葉から組み立てる表現で、実在の音や誰かの知覚を再現するものではありません。動かしたことはどこにも保存・送信せず、ページを閉じると消えます。</p>
 
@@ -188,6 +171,6 @@
 
 <script src="data/sounds.js"></script>
 <script src="data/gain.js"></script>
-<script type="module" src="js/app.js?v=20261016-startup"></script>
+<script type="module" src="js/app.js?v=20261022-touch"></script>
 </body>
 </html>
