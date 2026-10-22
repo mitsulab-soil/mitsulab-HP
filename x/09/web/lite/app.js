@@ -440,8 +440,8 @@ function stepMapLabels() {
   const placed = [], W = innerWidth, H = innerHeight, all = MAP.here?.visible ? [...MAP.labels, MAP.hereLabel] : MAP.labels;
   for (const L of all) {
     _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W, y = (1 - _v3.y) / 2 * H;
-    let ok = _v3.z < 1 && x > -40 && x < W + 40 && y > 40 && y < H - 40;
-    if (ok && !L.big && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < 70 && Math.abs(q[1] - y) < 18) { ok = false; break; }
+    let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x < W - 20 && y > 70 && y < H - 40;
+    if (ok && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < (MOBILE ? 96 : 70) && Math.abs(q[1] - y) < (MOBILE ? 22 : 18)) { ok = false; break; }   // 重なる名札は出さない（大きな鳥居の名札も）
     if (!ok) { if (L.vis !== false) { L.e.style.display = "none"; L.vis = false; } continue; }
     placed.push([x, y]); if (L.vis !== true) { L.e.style.display = ""; L.vis = true; }
     L.e.style.transform = `translate(${x | 0}px,${y | 0}px)`;
@@ -1007,7 +1007,7 @@ function setupSightLook(sp) {
           vec2 p=uv*res/ (res.y/90.); vec2 r=vec2(1.,1.732), h=r*.5; vec2 a=mod(p,r)-h, b=mod(p-h,r)-h; vec2 g=dot(a,a)<dot(b,b)?a:b; vec2 cell=(p-g)*(res.y/90.)/res;
           c=blur(cell, 3.); float e=smoothstep(.36,.5,length(g)); c*=1.-.35*e; c=mix(vec3(dot(c,vec3(.333))),c,1.25);
         } else if(mode==4){   // ミミズ：目はない。皮ふで受けとる明るさだけの模式（形はほとんど分からない）
-          c=blur(uv, 6.); float l=dot(c,vec3(.2126,.7152,.0722)); l=smoothstep(.05,.9,l); c=vec3(l*l*1.1)*vec3(1.,.95,.88);
+          c=blur(uv, 22.); c=mix(c, blur(uv, 40.), .5); float l=dot(c,vec3(.2126,.7152,.0722)); l=smoothstep(.05,.9,l);   // 形は分からず、明暗のむらだけ c=vec3(l*l*1.1)*vec3(1.,.95,.88);
         } else if(mode==5){   // 犬：二種類の錐体（二色型）の模式。赤と緑の差がなくなる。像は人よりあらい
           c=blur(uv, 1.6); c=max(vec3(0.),vec3(dot(vec3(.367,.861,-.228),c),dot(vec3(.280,.673,.047),c),dot(vec3(-.012,.043,.969),c)));   // Machado ほか（2009）の二色型の置きかえ
         } else if(mode==6){   // カイツブリ：水面と水の中。もぐると、水の色と濁りと、ゆれる光（模式）
@@ -1187,7 +1187,7 @@ function stepSoundscape(dt) {
   }
   if (on && WALK.moving && QW.mode === "walk") { const n = nearestOnLine(cp.x, cp.z); if (n.d > 1897) { SND.step += dt; if (SND.step > .56) { SND.step = 0; gravelStep(); SND.stepRing = { x: CAM.pos.x, z: CAM.pos.z, t: 0 }; } } }
   stepViz(dt);
-  const tg = $("#sndTag"), show = SND.tag && performance.now() < SND.tagUntil && LAYER.worn.includes("sound");
+  const tg = $("#sndTag"), show = SND.tag && performance.now() < SND.tagUntil && LAYER.worn.includes("sound") && QW.mode !== "sight";   // 生きものの身体のあいだは、音の札を出さない
   if (show) { if (tg.dataset.id !== SND.tag.id) { tg.dataset.id = SND.tag.id; tg.textContent = SND.tag.label || ""; tg.dataset.k = SND.tag.kind === "rec" ? "rec" : /^poem/.test(SND.tag.kind) ? "poem" : "re"; } tg.hidden = false; } else if (!tg.hidden) { tg.hidden = true; tg.dataset.id = ""; }
 }
 function drop(dest, big = 1) {   // しずく：泡がふるえて鳴る音（Minnaert の共鳴 f≈3.26/半径。半径 1〜4 mm で 0.8〜3.3 kHz）。泡が水面へ上がるにつれて高さが少し上がる

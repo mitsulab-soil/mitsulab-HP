@@ -66,13 +66,13 @@ body[data-mode="sky"] #talkBtn,body[data-mode="descend"] #talkBtn,body[data-mode
 #land{width:auto!important;min-width:auto;padding:0 14px;font-size:13px;letter-spacing:.12em;white-space:nowrap}
 /* ---- Qualia Layer：画面の左に、層の板を縦に重ねる（HP の層と同じ考え）。板に触れると表示・非表示 ---- */
 #lstack{position:fixed;left:var(--g);top:calc(max(12px,env(safe-area-inset-top)) + 62px);z-index:6;width:236px;max-height:calc(100% - 150px);display:flex;flex-direction:column;font-family:var(--sans);
-  background:linear-gradient(180deg,rgba(4,10,20,.66),rgba(4,10,20,.42));border:1px solid rgba(150,200,230,.14);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  background:linear-gradient(180deg,rgba(4,10,20,.8),rgba(4,10,20,.62));border:1px solid rgba(150,200,230,.16);backdrop-filter:blur(12px) saturate(.8);-webkit-backdrop-filter:blur(12px) saturate(.8)}
 #lstack::before,#lstack::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--ml-aoi-2);opacity:.8;pointer-events:none}
 #lstack::before{left:-1px;top:-1px;border-right:0;border-bottom:0}#lstack::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
 body[data-mode="boot"] #lstack{display:none}
 #lsHead{appearance:none;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;background:none;border:0;border-bottom:1px solid rgba(150,200,230,.14);color:var(--ml-ink);cursor:pointer;text-align:left}
 #lsHead .lt{font:400 10px/1 var(--ml-mono);letter-spacing:.32em;color:var(--ml-aoi-2)}
-#lsHead .lc{margin-left:auto;font:400 10px/1 var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-3)}
+#lsHead .lc{white-space:nowrap;margin-left:auto;font:400 10px/1 var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-3)}
 #lsHead i{width:8px;height:8px;border-right:1px solid var(--ml-ink-2);border-bottom:1px solid var(--ml-ink-2);transform:rotate(45deg) translate(-2px,-2px);transition:transform .3s}
 #lstack.closed #lsHead i{transform:rotate(-45deg)}
 #lsBody{overflow:auto;overscroll-behavior:contain;padding:4px 0 6px;scrollbar-width:thin}
@@ -102,7 +102,11 @@ body[data-mode="boot"] #lstack{display:none}
 #lstack ol li:focus-visible,.lyBtn:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset:1px}
 /* スマホ：細い帯（色と番号だけ）にたたむ。帯に触れると広がる */
 @media (max-width:640px){
-  #skyUI{padding-left:72px}#skyUI .row .ml-btn{padding:0 10px;font-size:.9rem}
+  #skyUI{padding-left:72px}#skyUI .row .ml-btn{padding:0 8px;font-size:.86rem;letter-spacing:.02em;white-space:nowrap}
+  #lstack.closed #lsHead .lc{font-size:8.5px;letter-spacing:0}
+  body[data-mode="walk"] #caption{top:calc(max(12px,env(safe-area-inset-top)) + 62px);bottom:auto;left:76px;right:var(--g);width:auto;transform:none;text-align:left}
+  body[data-mode="walk"] #capText{font-size:12.8px;letter-spacing:0;line-height:1.75;padding:2px 6px}
+  body[data-mode="walk"] #toast{top:auto;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 120px)}
   #sightUI{left:76px;right:var(--g);max-width:none;padding:10px 12px}#sightUI .sl{white-space:normal}#sightUI .sl{font-size:12px}
   #lstack{width:auto;max-height:calc(100% - 210px)}
   #lstack.closed{width:52px}
@@ -273,6 +277,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261022k").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261022l").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
