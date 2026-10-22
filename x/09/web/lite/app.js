@@ -963,7 +963,7 @@ function enterSight(sp, L) {
   let px = CAM.pos.x, pz = CAM.pos.z, yaw = CAM.yaw + CAM.look;
   if (sp.x != null && (sp.move === "swim" || QW.mode === "sky" || !QW.walked || Math.hypot(sp.x - CAM.pos.x, sp.z - CAM.pos.z) > 160)) { px = sp.x; pz = sp.z; yaw = yawAlong(sp.d + 5); }
   if (QW.mode === "sky" && sp.x == null) { const s = D.starts[Math.max(0, START.sel)], a = atD(s.d); px = a.x; pz = a.z; yaw = yawAlong(s.d + 5); }
-  let y = groundY(px, pz) + sp.eye; if (sp.move === "swim") { let m = 1e9, far = null, fd = 0; for (const [x, z] of sp.pond) { m = Math.min(m, groundY(x, z)); const d = Math.hypot(x - px, z - pz); if (d > fd) { fd = d; far = [x, z]; } } y = m + .24; yaw = Math.atan2(-(far[0] - px), -(far[1] - pz)); }   // 池のいちばん遠い岸の方を向いて浮かぶ
+  let y = groundY(px, pz) + sp.eye; if (sp.move === "swim") { let m = 1e9, far = null, fd = 0; for (const [x, z] of sp.pond) { m = Math.min(m, groundY(x, z)); const d = Math.hypot(x - px, z - pz); if (d > fd) { fd = d; far = [x, z]; } } y = m + .24; const rm = D.structs.find(q => q.id === "romon"); yaw = rm ? Math.atan2(-(rm.p[0] - px), -(rm.p[2] - pz)) : Math.atan2(-(far[0] - px), -(far[1] - pz)); }   // 楼門と社叢の方を向いて浮かぶ
   hideSkyUI(); hideFlyUI(); loadLate(); if (AOI.root) AOI.root.visible = false;
   const from = QW.mode; TWFOG = [from === "sky" ? FOGS.sky() : from === "fly" ? FOGS.fly() : FOGS.walk(), FOGS.walk()]; setMode("descend");
   SIGHT.pending = sp;
