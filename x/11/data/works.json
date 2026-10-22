@@ -1,0 +1,137 @@
+{
+ "note": "© mitsulab. All rights reserved. 書＝上原光瑛",
+ "works": [
+  {
+   "id": "oto",
+   "src": "data/oto.png",
+   "title": "音",
+   "preset": "oto",
+   "w": 384,
+   "h": 308,
+   "pitch": 1.0,
+   "orig": "data/orig/oto.webp",
+   "ow": 1000,
+   "oh": 667
+  },
+  {
+   "id": "001",
+   "src": "data/001.png",
+   "title": "菌糸の胞子が惑星の心臓を蔽いつくす音",
+   "preset": "void",
+   "w": 384,
+   "h": 310,
+   "pitch": 1.35,
+   "orig": "data/orig/001.webp",
+   "ow": 1000,
+   "oh": 773
+  },
+  {
+   "id": "007",
+   "src": "data/007.png",
+   "title": "鳥の雛が卵の殻を破壊し広大な環世界を創造する音",
+   "preset": "bloom",
+   "w": 384,
+   "h": 350,
+   "pitch": 1.25,
+   "orig": "data/orig/007.webp",
+   "ow": 1000,
+   "oh": 773
+  },
+  {
+   "id": "008",
+   "src": "data/008.png",
+   "title": "クモの巣に滴る水滴が朝日に揺れる音",
+   "preset": "dew",
+   "w": 384,
+   "h": 311,
+   "pitch": 1.0,
+   "orig": "data/orig/008.webp",
+   "ow": 1000,
+   "oh": 773
+  },
+  {
+   "id": "012",
+   "src": "data/012.png",
+   "title": "無自体の音",
+   "preset": "oto",
+   "w": 316,
+   "h": 384,
+   "pitch": 0.75,
+   "orig": "data/orig/012.webp",
+   "ow": 1000,
+   "oh": 854
+  },
+  {
+   "id": "020",
+   "src": "data/020.png",
+   "title": "宇宙の虚空間の音",
+   "preset": "void",
+   "w": 384,
+   "h": 360,
+   "pitch": 1.0,
+   "orig": "data/orig/020.webp",
+   "ow": 1000,
+   "oh": 773
+  },
+  {
+   "id": "025",
+   "src": "data/025.png",
+   "title": "夜の森に漂う無数の眼の音",
+   "preset": "dew",
+   "w": 296,
+   "h": 384,
+   "pitch": 0.62,
+   "orig": "data/orig/025.webp",
+   "ow": 814,
+   "oh": 1000
+  },
+  {
+   "id": "027",
+   "src": "data/027.png",
+   "title": "木の中で水と養分が循環する音",
+   "preset": "water",
+   "w": 185,
+   "h": 384,
+   "pitch": 1.0,
+   "orig": "data/orig/027.webp",
+   "ow": 1000,
+   "oh": 910
+  },
+  {
+   "id": "034",
+   "src": "data/034.png",
+   "title": "蕾が春化粧をする音",
+   "preset": "bloom",
+   "w": 384,
+   "h": 290,
+   "pitch": 1.5,
+   "orig": "data/orig/034.webp",
+   "ow": 1000,
+   "oh": 619
+  },
+  {
+   "id": "035",
+   "src": "data/035.png",
+   "title": "花が産声を上げて咲く音",
+   "preset": "bloom",
+   "w": 384,
+   "h": 382,
+   "pitch": 1.0,
+   "orig": "data/orig/035.webp",
+   "ow": 1000,
+   "oh": 782
+  },
+  {
+   "id": "038",
+   "src": "data/038.png",
+   "title": "いのちの最初に聴こえる音",
+   "preset": "water",
+   "w": 322,
+   "h": 384,
+   "pitch": 0.7,
+   "orig": "data/orig/038.webp",
+   "ow": 1000,
+   "oh": 832
+  }
+ ]
+}

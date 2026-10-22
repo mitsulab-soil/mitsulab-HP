@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="tdm-reservation" content="1">
+<meta name="robots" content="noai, noimageai">
+<title>Qualia/sho ／ mitsulab</title>
+<meta name="description" content="上原光瑛の書「〇〇の音」を、墨の彫刻として回廊に置いた。触れると、墨は粒にほどけて宙を漂い、音が鳴り、また一つの書に集まる。">
+<meta property="og:title" content="Qualia/sho ／ mitsulab">
+<meta property="og:description" content="上原光瑛の書を、墨の彫刻として回廊に置いた。触れると墨が粒にほどけ、音が鳴り、また書に集まる。">
+<meta name="theme-color" content="#03060f">
+<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css?v=20261022">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js"}}</script>
+<link rel="modulepreload" href="vendor/three/build/three.module.js">
+<link rel="modulepreload" href="app.js?v=20261022">
+<link rel="modulepreload" href="kit/sho3d.js?v=20261022">
+<link rel="preload" href="data/works.json" as="fetch" crossorigin>
+</head>
+<body class="ml-root">
+<script src="loader/loader.js" data-title="Qualia/sho" data-en="calligraphy, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>
+
+<canvas id="cv" aria-label="書の回廊の 3D。押すと、いまの書が粒にほどけて音が鳴る。左右に払うと、となりの書へ"></canvas>
+<div id="rings" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="https://mitsulab.jp/" aria-label="mitsulab のトップへ">
+    <span class="ml-kicker">mitsulab ／ 書</span>
+    <span class="name">Qualia/sho</span>
+  </a>
+  <nav class="tools" aria-label="道具">
+    <button class="ml-btn tb" id="snd" type="button" aria-pressed="true">音 入</button>
+    <button class="ml-btn tb" id="origBtn" type="button" aria-expanded="false" aria-controls="orig">元の書</button>
+    <button class="ml-btn tb" id="listBtn" type="button" aria-expanded="false" aria-controls="list">目録</button>
+    <button class="ml-btn tb" id="infoBtn" type="button" aria-expanded="false" aria-controls="info">解説</button>
+  </nav>
+</header>
+
+<footer class="bottom">
+  <div class="cap" aria-live="polite">
+    <span class="no" id="capNo"></span>
+    <span class="ti" id="capTi"></span>
+    <span class="hint" id="hint">押すと、墨が粒にほどけて音が鳴る。押したままなら、離すまでほどけたまま。左右に払うと、となりの書へ。</span>
+  </div>
+  <div class="nav">
+    <button class="ml-btn arrow" id="prev" type="button" aria-label="前の書">‹</button>
+    <span class="count" id="count"></span>
+    <button class="ml-btn arrow" id="next" type="button" aria-label="次の書">›</button>
+  </div>
+</footer>
+
+<section class="sheet" id="list" hidden aria-label="目録">
+  <div class="sheet-in">
+    <div class="sheet-head"><span class="ml-kicker">目録</span><button class="ml-btn close" type="button" data-close aria-label="閉じる">×</button></div>
+    <ol class="works" id="works"></ol>
+  </div>
+</section>
+
+<section class="sheet orig" id="orig" hidden aria-label="元の書">
+  <div class="sheet-in">
+    <div class="sheet-head"><span class="ml-kicker">元の書</span><button class="ml-btn close" type="button" data-close aria-label="閉じる">×</button></div>
+    <figure class="orig-fig"><img id="origImg" alt="" decoding="async"><figcaption id="origCap"></figcaption></figure>
+  </div>
+</section>
+
+<section class="sheet" id="info" hidden aria-label="この作品について">
+  <div class="sheet-in">
+    <div class="sheet-head"><span class="ml-kicker">解説</span><button class="ml-btn close" type="button" data-close aria-label="閉じる">×</button></div>
+    <h2>Qualia/sho ── 書の回廊</h2>
+    <p>上原光瑛が墨で書いた「〇〇の音」の連作から、十作と「音」の字を選び、回廊に置いた。紙の上の墨の形はそのままに、墨の太さから見立てた厚みを起伏にし、墨の流れから読みとった向きに沿って粒がほどけるようにした（厚みも向きも、画像から見立てたもので、測ったものではない）。</p>
+    <p>触れると、墨は左上から右下へ渡るように粒にほどけ、宙を漂い、また一つの書に集まる。集まりきったところで、一打が鳴る。「元の書」で、紙の上の書をそのまま見られる。</p>
+    <p>音は書ごとの型から、その場で合成している（録音は使っていない）。振動のある端末では、ほどける粒に合わせて震える。</p>
+    <dl class="credit">
+      <dt>書</dt><dd>上原光瑛（墨・紙）</dd>
+      <dt>3D・音・プログラム</dt><dd>mitsulab</dd>
+      <dt>使った部品</dt><dd>three.js（MIT License）</dd>
+    </dl>
+    <p class="rights">© mitsulab. All rights reserved.<br>書・画像・音・3D・プログラムの無断の複製・転載・改変と、AI の学習・生成への利用はお断りします。</p>
+    <p class="back"><a href="https://mitsulab.jp/" class="ml-btn">mitsulab.jp へ</a></p>
+  </div>
+</section>
+
+<noscript><p class="nojs">この作品は JavaScript と WebGL で動きます。</p></noscript>
+<script type="module" src="app.js?v=20261022"></script>
+</body>
+</html>

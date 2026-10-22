@@ -336,7 +336,19 @@ html.simple #top .beat-mission{margin-top:28px}
   .qt-sym td::before{content:attr(data-k);display:block;font:400 10.5px/1.6 var(--mono);letter-spacing:.12em;color:#8bccca;margin-top:6px}
   html[lang=en] .qt-sym td::before{content:attr(data-k-en)}
   .qt-sym .qs-sym{font-size:16px}
+  /* 2026-10-22 記号ごとに開閉：閉じているときは記号と名前だけ */
+  .qt-sym tr{padding:0 14px}
+  .qt-sym tr:not(.qs-open) td{display:none}
+  .qt-sym tr.qs-open{padding-bottom:12px}
+  .qt-sym .qs-mk{position:absolute;right:0;top:50%;width:12px;height:12px;margin-top:-6px}
+  .qt-sym .qs-mk::before,.qt-sym .qs-mk::after{content:"";position:absolute;left:0;top:5px;width:12px;height:1.5px;background:#8bccca;transition:transform .25s}
+  .qt-sym .qs-mk::after{transform:rotate(90deg)}
+  .qt-sym tr.qs-open .qs-mk::after{transform:rotate(0)}
 }
+/* 開閉の札（PC では押しても何も変わらない、ふつうの見出し） */
+.qt-sym .qs-tog{appearance:none;background:none;border:0;color:inherit;font:inherit;text-align:left;width:100%;padding:0;margin:0;cursor:default;position:relative;display:block}
+.qt-sym .qs-mk{display:none}
+@media(max-width:700px){.qt-sym .qs-tog{cursor:pointer;min-height:52px;padding:10px 30px 10px 0}.qt-sym .qs-mk{display:block}.qt-sym .qs-tog:focus-visible{outline:1px solid #8bccca;outline-offset:2px}}
 /* TOP：ひらく前に */
 .qt-open-notes{margin:40px 0 0;padding-top:24px;border-top:1px solid #8bccca30}
 .qt-open-notes ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}

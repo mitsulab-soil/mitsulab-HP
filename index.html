@@ -1018,7 +1018,7 @@ html[lang="en"] .core-v{font-family:var(--latin);font-style:italic;font-weight:5
 .tab-menu-overlay,.gloss-pop .card{backdrop-filter:none;-webkit-backdrop-filter:none}
 @media (max-width:760px),(pointer:coarse){
   .tab-nav,body.nav-solid .tab-nav,footer,.seg,.ql,.qx .st{backdrop-filter:none;-webkit-backdrop-filter:none}
-  body.nav-solid .tab-nav{background:rgba(6,8,15,.9)}
+  body.nav-solid .tab-nav{background:rgb(6,8,15)}   /* 2026-10-22 下の本文が透けて読みにくい（採点の指摘）→ 不透明に */
   footer{background:rgba(6,8,15,.86)}
   .ql{background:rgba(4,10,20,.7)}
   .aurora{animation:none}   /* 38 秒で 2% だけ動く光。スマホでは止めて、全画面の層の描き直しをなくす（見た目はほぼ同じ） */
@@ -1052,7 +1052,7 @@ html[lang="en"] .mikata-map .mw-wh-t{letter-spacing:0}
 .mission .mission-k{display:block;font-family:var(--mono);font-weight:400;font-size:.36em;letter-spacing:.3em;color:#9fe3d2;margin-bottom:.5em}
 html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 </style>
-<link rel="stylesheet" href="qualium-top.css?v=20261022-r4">
+<link rel="stylesheet" href="qualium-top.css?v=20261022-r5">
 </head>
 <body>
 <a href="#main" class="skip-link" data-i18n-en="Skip to content">本文へスキップ</a>
@@ -1186,11 +1186,12 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
         <span class="ql-adds"><span class="ql-adds-k" data-i18n-en="adds">重ねるもの</span><span data-i18n-en="Texture and vibration">手ざわりと振動</span></span>
         <span class="ql-line" data-i18n-en="A single image becomes a texture at your fingertips.">一枚の画像が、指先に届く手ざわりになる。</span>
         <img src="img/apps/touch_640.webp" width="640" height="400" loading="lazy" decoding="async" alt="Qualia/touch：木の台にのせた土の標本の3D" data-i18n-alt="Qualia/touch: a 3D specimen of soil on a wooden stand"><span class="ql-foot"><span class="ql-lang" data-i18n-en="Japanese only">日本語のみ</span><span class="ql-open" data-i18n-en="Open ↗">ひらく ↗</span></span></a></li>
-<li class="qt-layer" id="app-sho" data-layer="5" style="--c:#9aa3b8"><a href="https://www.instagram.com/mitsulab_art" target="_blank" rel="noopener"><span class="ql-num">Qualia Layer 05 ── sho</span>
+<li class="qt-layer" id="app-sho" data-layer="5" style="--c:#9aa3b8"><a href="/x/11/" target="_blank" rel="noopener"><span class="ql-num">Qualia Layer 05 ── sho</span>
         <span class="ql-name">Qualia/sho</span>
         <span class="ql-adds"><span class="ql-adds-k" data-i18n-en="adds">重ねるもの</span><span data-i18n-en="Calligraphy">書</span></span>
         <span class="ql-line" data-i18n-en="The brush leaves the texture of a word.">筆の跡に、ことばの手ざわりが残る。</span>
-        <span class="ql-foot"><span class="ql-lang" data-i18n-en="Instagram">Instagram</span><span class="ql-open" data-i18n-en="Open ↗">ひらく ↗</span></span></a></li>
+        <img src="img/apps/sho_480.webp" srcset="img/apps/sho_480.webp 480w, img/apps/sho_960.webp 960w" sizes="(max-width:700px) 92vw, 440px" width="640" height="400" loading="lazy" decoding="async" alt="Qualia/sho：上原光瑛の書「音」を 3D にし、格子窓の回廊で墨が粒にほどけはじめる画面" data-i18n-alt="Qualia/sho: Uehara Mitsuaki’s calligraphy “音” (sound) made 3D, its ink beginning to unravel into particles in a latticed corridor">
+        <span class="ql-foot"><span class="ql-lang" data-i18n-en="Japanese only">日本語のみ</span><span class="ql-open" data-i18n-en="Open ↗">ひらく ↗</span></span></a></li>
 <li class="qt-layer" id="app-rakugo" data-layer="6" style="--c:#f08a6c"><a href="https://mitsulab-soil.github.io/aoi-shizen-rakugo/" target="_blank" rel="noopener"><span class="ql-num">Qualia Layer 06 ── rakugo</span>
         <span class="ql-name">Qualia/rakugo</span>
         <span class="ql-adds"><span class="ql-adds-k" data-i18n-en="adds">重ねるもの</span><span data-i18n-en="Tales">語り</span></span>
@@ -1206,7 +1207,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
       <div class="qt-stack-end" data-layer-end>
         <p class="qt-kicker" lang="en">QUALIUM</p>
         <h3 data-i18n-en="The landscape is layer zero.&lt;br&gt;Dive deep through the layers over it,&lt;br&gt;and you reach Qualium — Umwelt 2.0.">風景は、第 0 層。<br>重ねた層の奥まで<wbr>潜った世界が、<br>Qualium&nbsp;──<wbr> 環世界2.0。</h3>
-        <p class="qt-end-aoi" data-i18n-en="“I am Aoi. Beside you, I will guide you into the layers beneath the landscape.”">「わたしは碧。あなたのとなりで、風景の下の層へいざないます。」</p>
+        <p class="qt-end-aoi" data-i18n-en="“I am Aoi. Standing where <span class='gloss-term' data-term-id='bitatom' role='button' tabindex='0'>bits meet atoms</span>, I trace the memory of this place, open the senses, and lay new layers over the landscape before you.”">「わたしは碧。<span class="gloss-term" data-term-id="bitatom" role="button" tabindex="0">ビットとアトム</span>のあわいに立ち、この場所の記憶をたどり、五感をひらいて、目の前の風景に層を重ねます。」</p>
         <p class="qt-end-links"><a class="qt-pill" href="x/01/" data-i18n-en="Open the Qualium app →">体験アプリ Qualium をひらく →</a><a class="qt-pill" href="x/01/essence.html" data-i18n-en="Read the Essence Edition →">エッセンス版を読む →</a></p>
       </div>
 <script>/* 2026-10-19 層を重ねる：見えている道具の番号まで、層を一枚ずつ灯す（描画は CSS だけ。3D を増やさない） */
@@ -1300,12 +1301,11 @@ paint();})();</script>
     </figure>
     <div>
       <p class="aoi-name" data-i18n-en="Aoi">碧<span class="q-yomi">あおい</span></p>
-      <p class="guide-role" data-i18n-en="I am Aoi. Beside you, I will guide you into the layers beneath the landscape.">わたしは碧。あなたのとなりで、<br>風景の下の層へ誘（いざな）います。</p>
+      <p class="guide-role" data-i18n-en="I am Aoi. Standing where <span class='gloss-term' data-term-id='bitatom' role='button' tabindex='0'>bits meet atoms</span>, I trace the memory of this place, open the senses, and lay new layers over the landscape before you.">わたしは碧。<br><span class="gloss-term" data-term-id="bitatom" role="button" tabindex="0">ビットとアトム</span>のあわいに立ち、<br>この場所の記憶をたどり、<br>五感をひらいて、<br>目の前の風景に層を重ねます。</p>
       <p class="quote" data-i18n-en="Shall we look at this place together?<br>If what you find differs from what I said,<br>let's look again together.">この場所、一緒に見てみる？<br>わたしの話と違うものを見つけたら、<br>もう一度、一緒に確かめよう。</p>
       <ul class="aoi-facts">
         <li data-i18n-en="<span class='af-k'>Memory</span>does not keep or learn from conversations"><span class="af-k">記憶</span>会話は保存せず、学習に使わない</li>
         <li data-i18n-en="<span class='af-k'>Voice</span>VOICEVOX: Meimei Himari (in Qualia/walk Hikawa)"><span class="af-k">声</span>VOICEVOX：冥鳴ひまり（Qualia/walk 氷川の読み上げ）</li>
-        <li class="af-note" data-i18n-en="<span class='af-k'>Note</span>Aoi is a character that runs on AI"><span class="af-k">ことわり</span>碧は AI で動くキャラクターです</li>
       </ul>
     </div>
     </div>
@@ -1574,7 +1574,7 @@ paint();})();</script>
 <footer>
   <div class="f-brand">mitsulab</div>
   <div class="f-tag" data-i18n-en="Qualia Dive — Feel the world more deeply.">Qualia Dive ── 世界をより深く体感する。</div>
-  <p class="f-credit" data-i18n-en="The 3D of the Hikawa approach is from mitsulab's Qualia/walk Hikawa — terrain and ground photo: GSI Tiles (elevation tiles DEM5A; seamless aerial photo), processed by mitsulab (source: &lt;a href=&quot;https://maps.gsi.go.jp/development/ichiran.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Geospatial Information Authority of Japan (GSI Tiles)&lt;/a&gt;); contours made by mitsulab from the same elevation; buildings from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements © OpenStreetMap contributors (ODbL); observation positions from iNaturalist. Tree shapes, the data lattice and particles of light are schematic. Images are screens of mitsulab's works. Aoi's voice in Qualia/walk Hikawa — VOICEVOX: Meimei Himari.">氷川参道の 3D は mitsulab のQualia/walk 氷川から：地形と地面の写真＝地理院タイル（標高タイル〔DEM5A〕・全国最新写真〔シームレス〕）を mitsulab が加工して作成（出典：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>）／等高線＝同じ標高から mitsulab が作成／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors（ODbL）／観察記録の位置＝iNaturalist。木の形・上空の格子・光の粒は模式です。図版は mitsulab の作品の画面。Qualia/walk 氷川の碧の声＝VOICEVOX：冥鳴ひまり。</p>
+  <p class="f-credit" data-i18n-en="The 3D of the Hikawa approach is from mitsulab's Qualia/walk Hikawa — terrain and ground photo: GSI Tiles (elevation tiles DEM5A; seamless aerial photo), processed by mitsulab (source: &lt;a href=&quot;https://maps.gsi.go.jp/development/ichiran.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Geospatial Information Authority of Japan (GSI Tiles)&lt;/a&gt;); contours made by mitsulab from the same elevation; buildings from MLIT Project PLATEAU, Saitama City 2022 (CC BY 4.0), processed by mitsulab; roads and placements © OpenStreetMap contributors (ODbL); observation positions from iNaturalist (the pillars of light only mark, schematically, where records exist; in Qualia/walk Hikawa Aoi just names the species from the records and does not guide you to positions). Tree shapes, the data lattice and particles of light are schematic. Images are screens of mitsulab's works. Aoi's voice in Qualia/walk Hikawa — VOICEVOX: Meimei Himari.">氷川参道の 3D は mitsulab のQualia/walk 氷川から：地形と地面の写真＝地理院タイル（標高タイル〔DEM5A〕・全国最新写真〔シームレス〕）を mitsulab が加工して作成（出典：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>）／等高線＝同じ標高から mitsulab が作成／建物＝国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を mitsulab が加工／道と置き場所＝© OpenStreetMap contributors（ODbL）／観察記録の位置＝iNaturalist（光の柱は、記録のある辺りを模式に示したもの。Qualia/walk 氷川の碧は、記録から種の名前を語るだけで、位置は案内しません）。木の形・上空の格子・光の粒は模式です。図版は mitsulab の作品の画面。Qualia/walk 氷川の碧の声＝VOICEVOX：冥鳴ひまり。</p>
   <nav class="f-links" aria-label="フッターのリンク" data-i18n-aria="Footer links"><button type="button" data-go-anchor="contact" data-i18n-en="Contact">お問い合わせ</button><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><button type="button" data-go-anchor="profile" data-i18n-en="Profile">代表プロフィール</button><button type="button" data-go-anchor="appguide" data-i18n-en="Apps (Qualia Layer)">アプリ（Qualia Layer）</button><button type="button" data-go-anchor="qualium" data-i18n-en="Qualium &amp;amp; Aoi">Qualium と碧</button><button type="button" data-go-anchor="about" data-i18n-en="About this site">サイトについて</button><a href="/privacy/" data-i18n-en="Privacy Policy">プライバシーポリシー</a><a href="/terms/" data-i18n-en="Terms of Service">利用規約</a><a href="/aoi/uploader/">Aoi Uploader</a></nav>
   <p class="f-rights"><span data-i18n-en="Copyright in the text, images, audio, 3D and software of this site and its works belongs to mitsulab, except third-party materials credited separately. Copying, reposting or modifying them without permission, and using them for AI training or generation, are not permitted. Text and data mining rights are reserved.">このサイトと作品の文章・画像・音声・3D・プログラムの著作権は、別に示した他者の素材を除き mitsulab にあります。無断の複製・転載・改変と、AI の学習・生成への利用はお断りします（テキスト・データマイニングの権利を留保します）。</span> <a href="/terms/#copyright" data-i18n-en="Terms of Service">利用規約</a></p>
   <p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki. All rights reserved.</p>
@@ -1610,6 +1610,9 @@ var CORE = { ja:'<span class="core-k">Qualia Dive ── 世界をより深く�
 
 /* ===== 用語解説（ja / en） ===== */
 var TERMS = {
+  bitatom:{ja:'ビットとアトム',en:'Bits and atoms',
+    dj:'ビット＝情報の最小の単位。アトム＝物質をつくる原子。情報と物質、デジタルとフィジカルを指す対の言葉（メディア研究で使われてきた言い方）。',
+    de:'Bit: the smallest unit of information. Atom: the atoms that make up matter. A paired phrase for information and matter, the digital and the physical (a way of speaking used in media studies).'},
   ninchikakucho:{ja:'認知拡張',en:'Cognitive augmentation',
     dj:'五感で受け取れる範囲（知覚）に加えて、言葉・記録・知識・推論・道具を使い、世界を見分け、結びつけ、どの時間の幅で考え、どう関わるかの手がかりを広げること。能力が上がることを約束する言葉ではない。',
     de:'Beyond what the five senses take in (perception), using words, records, knowledge, reasoning and tools to widen the footholds for telling the world apart, linking it, thinking over spans of time and engaging with it. Not a promise of improved ability.'},
@@ -2464,5 +2467,6 @@ async function boot(box){
 (function(){var st=document.querySelector('[data-layers3d]');if(!st||!('IntersectionObserver' in window)||document.documentElement.classList.contains('simple'))return;var go=false;var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();import('./js/qualia-layers-3d.js?v=20261022-r1').then(function(m){return m.boot(st);}).catch(function(e){console.warn('qualia layer 3d',e);});}},{rootMargin:'600px 0px'});io.observe(st);})();</script>
 <script type="module" src="js/app-previews.js?v=20261019-ql3"></script>
 <script>/* 2026-10-22 スマホだけ「続きを読む」で畳む。701px 以上は開いておく */(function(){function f(){var pc=innerWidth>700;[].forEach.call(document.querySelectorAll('details.q-more'),function(d){if(pc)d.open=true;});}f();addEventListener('resize',f);})();</script>
+<script>/* 2026-10-22 スマホの定式化：記号ごとに開閉（記号と名前だけ並べ、押すと説明が開く）。701px 以上は表のまま */(function(){var t=document.querySelector('.qt-sym');if(!t)return;[].forEach.call(t.querySelectorAll('tbody tr'),function(tr,i){var th=tr.querySelector('th[scope=row]');if(!th)return;var b=document.createElement('button');b.type='button';b.className='qs-tog';b.setAttribute('aria-expanded','false');var id='qs-d'+i;tr.querySelectorAll('td').forEach(function(td,k){td.id=id+'-'+k;});b.setAttribute('aria-controls',[].map.call(tr.querySelectorAll('td'),function(td){return td.id;}).join(' '));while(th.firstChild)b.appendChild(th.firstChild);var mk=document.createElement('span');mk.className='qs-mk';mk.setAttribute('aria-hidden','true');b.appendChild(mk);th.appendChild(b);b.addEventListener('click',function(){var o=tr.classList.toggle('qs-open');b.setAttribute('aria-expanded',o?'true':'false');});});})();</script>
 </body>
 </html>
