@@ -291,6 +291,7 @@ cv.addEventListener("pointerdown", e => {
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
   dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.tap(); sonic.tap(); addTrail(p, p, true);
   $("#waveHint").style.opacity = 0; aoiWatch(true);
+  if (capKey === "aoi.name") { clearTimeout(capTimer); $("#cap").classList.remove("on"); capKey = null; }   // 2026-10-22 なではじめたら名乗りの字幕をたたむ（面を覆わない）
 });
 cv.addEventListener("pointermove", e => {
   if (!ptrs.has(e.pointerId)) return;
@@ -363,7 +364,7 @@ function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 
 // ---- 碧の字幕
 // はじめに一度だけ名乗り、そのあとに触れ方を伝える（触れはじめたら名乗りは切りあげる）
-function hello() { said.hello = true; say("aoi.name", 5200); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 5400); }
+function hello() { said.hello = true; say("aoi.name", 8600); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 8800); }   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
 let capKey = null, capTimer = 0;
 function say(k, ms = 6000) {
   said[k.replace("aoi.", "")] = true; capKey = k; const c = $("#cap"); c.textContent = T(k); c.classList.add("on");
