@@ -1,0 +1,760 @@
+{
+ "v": "20261022k",
+ "note": "Qualium 川越の地点ごとの典拠つきの情報（content.json から生成）。facts は碧が話す文と声、src は出典。",
+ "places": [
+  {
+   "id": "n_daichi",
+   "layer": "nature",
+   "kind": "土",
+   "title": "台地の上の通り",
+   "ll": [
+    139.4826521,
+    35.9217728
+   ],
+   "x": -62.02,
+   "z": 189.46,
+   "facts": [
+    {
+     "t": "川越の中心の町は、武蔵野台地の北東の端にあります。",
+     "voice": "web/voice/6876925a82b9.m4a"
+    },
+    {
+     "t": "この通りの地面の高さは、およそ 19 から 20 メートル。南の本川越駅から札の辻まで、ほとんど平らです。",
+     "voice": "web/voice/275feeb03b46.m4a"
+    }
+   ],
+   "more": [
+    "高さは国土地理院の標高（5 m の格子）から計算した値です。"
+   ],
+   "how": "記録＋計算",
+   "src": [
+    {
+     "t": "川越市「川越市歴史的風致維持向上計画」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/010/672/rekimachi-1.pdf"
+    },
+    {
+     "t": "国土地理院 標高タイル（DEM5A）から mitsulab が計算",
+     "u": "https://maps.gsi.go.jp/development/ichiran.html"
+    }
+   ]
+  },
+  {
+   "id": "n_fuchi",
+   "layer": "nature",
+   "kind": "水",
+   "title": "台地の縁と、川",
+   "ll": [
+    139.4830564,
+    35.9250947
+   ],
+   "x": -25.57,
+   "z": -179.2,
+   "facts": [
+    {
+     "t": "札の辻から東の城の方へは、土地がゆるく下がります。",
+     "voice": "web/voice/f46ad83d560b.m4a"
+    },
+    {
+     "t": "本丸御殿のあたりで 17 メートルほど、その東を流れる新河岸川の川面は、9 メートルほどです。",
+     "voice": "web/voice/b113b57c90a7.m4a"
+    }
+   ],
+   "more": [
+    "町は台地の上に、川はおよそ 10 m 下に。数値は国土地理院の標高から計算した値（地点は 調査の §1.1）。",
+    "長禄元年（1457）、上杉持朝の命で、太田道真・道灌が河越城を築いた（川越市「伝建地区の概要」の年表）。"
+   ],
+   "how": "計算＋記録",
+   "src": [
+    {
+     "t": "国土地理院 標高タイル（DEM5A）から mitsulab が計算",
+     "u": "https://maps.gsi.go.jp/development/ichiran.html"
+    },
+    {
+     "t": "川越市「川越市歴史的風致維持向上計画」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/010/672/rekimachi-1.pdf"
+    },
+    {
+     "t": "川越市「伝建地区の概要」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/111/denkentikugaiyour4.pdf"
+    }
+   ]
+  },
+  {
+   "id": "n_tori",
+   "layer": "nature",
+   "kind": "生き物",
+   "title": "記録された鳥",
+   "ll": [
+    139.4829175,
+    35.9228407
+   ],
+   "x": -38.09,
+   "z": 70.94,
+   "facts": [
+    {
+     "t": "このあたりの鳥の記録を数えると、ヒヨドリ、キジバト、ハクセキレイが多く、イソヒヨドリの記録もあります。",
+     "voice": "web/voice/b6947a064f14.m4a"
+    },
+    {
+     "t": "記録の数は、まだ少ないので、いる、とは言わずに、記録がある、と言います。",
+     "voice": "web/voice/97ad7ae05719.m4a"
+    }
+   ],
+   "more": [
+    "iNaturalist の研究用の質の記録（半径 2 km）：ヒヨドリ 9・キジバト 7・ハクセキレイ 5・カワラバト 4・メジロ 4・イソヒヨドリ 2 ほか、鳥 30 種。"
+   ],
+   "how": "記録（市民の観察）",
+   "src": [
+    {
+     "t": "iNaturalist（研究用の質の記録・中心 35.920N 139.486E 半径 2 km・2026-10-22 に数えた）",
+     "u": "https://www.inaturalist.org/"
+    }
+   ]
+  },
+  {
+   "id": "h_denken",
+   "layer": "history",
+   "kind": "歴史",
+   "title": "蔵造りの町並み",
+   "ll": [
+    139.4828462,
+    35.9218548
+   ],
+   "x": -44.51,
+   "z": 180.36,
+   "facts": [
+    {
+     "t": "ここから札の辻までは、国の重要伝統的建造物群保存地区。平成 11 年に選ばれた、商家の町です。",
+     "voice": "web/voice/c85a85b4ce16.m4a"
+    },
+    {
+     "t": "町割りは、江戸時代の慶安年間に定められた形を、幕末まで受けついできました。",
+     "voice": "web/voice/9ae5dd579421.m4a"
+    }
+   ],
+   "more": [
+    "面積 約 7.8 ha・選定 平成 11 年（1999）12 月 1 日・種別 商家町。",
+    "通りに並べた蔵の 3D は、蔵造りの店蔵の型（5 つ）を mitsulab が組んだ模式です。どの建物が蔵造りかを一棟ずつ写したものではありません。"
+   ],
+   "how": "記録",
+   "src": [
+    {
+     "t": "文化庁「保存地区の概要 川越市川越（埼玉県）」（令和 8 年 4 月 1 日・川越市作成）",
+     "u": "https://www.bunka.go.jp/seisaku/bunkazai/shokai/hozonchiku/pdf/94428201_15.pdf"
+    }
+   ]
+  },
+  {
+   "id": "h_taika",
+   "layer": "history",
+   "kind": "歴史",
+   "title": "明治 26 年の大火",
+   "ll": [
+    139.4827748,
+    35.9230338
+   ],
+   "x": -50.95,
+   "z": 49.51,
+   "facts": [
+    {
+     "t": "明治 26 年、1893 年の 3 月 17 日。川越の大火で、当時の川越町の 3 分の 1 にあたる、1,302 戸が焼けました。",
+     "voice": "web/voice/d5a0b9a41061.m4a"
+    },
+    {
+     "t": "時の鐘も、このとき焼け落ちています。",
+     "voice": "web/voice/8c36ac0ae261.m4a"
+    }
+   ],
+   "more": [],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    },
+    {
+     "t": "川越市「伝建地区の概要」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/111/denkentikugaiyour4.pdf"
+    }
+   ]
+  },
+  {
+   "id": "h_kura",
+   "layer": "history",
+   "kind": "歴史",
+   "title": "大火のあとの蔵",
+   "ll": [
+    139.4830295,
+    35.9236555
+   ],
+   "x": -27.99,
+   "z": -19.48,
+   "facts": [
+    {
+     "t": "大火のあとの町づくりで、川越の商人は、火に強い土蔵造りを選びました。",
+     "voice": "web/voice/92646887b537.m4a"
+    },
+    {
+     "t": "手本にしたのは、当時、表通りで、ただ一つ焼け残った、大沢家住宅の店蔵です。",
+     "voice": "web/voice/b685fa158a69.m4a"
+    },
+    {
+     "t": "黒漆喰を塗った蔵造りの町並みは、明治 40 年代ごろまでに、できあがりました。",
+     "voice": "web/voice/daf8ded161a9.m4a"
+    }
+   ],
+   "more": [
+    "大沢家住宅は寛政 4 年（1792）の建物で、国の重要文化財。"
+   ],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市「伝建地区の概要」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/111/denkentikugaiyour4.pdf"
+    },
+    {
+     "t": "文化庁「保存地区の概要 川越市川越（埼玉県）」（令和 8 年 4 月 1 日・川越市作成）",
+     "u": "https://www.bunka.go.jp/seisaku/bunkazai/shokai/hozonchiku/pdf/94428201_15.pdf"
+    }
+   ]
+  },
+  {
+   "id": "h_kane",
+   "layer": "history",
+   "kind": "歴史",
+   "title": "時の鐘のはじまり",
+   "ll": [
+    139.4832734,
+    35.923444
+   ],
+   "x": -6,
+   "z": 4,
+   "facts": [
+    {
+     "t": "時の鐘は、酒井忠勝が川越城主だった、寛永 4 年から 11 年のあいだに、多賀町、いまの幸町の常蓮寺の境内に建てられたと伝えられています。",
+     "voice": "web/voice/d42f72c0f6e2.m4a"
+    },
+    {
+     "t": "火事で焼けるたびに建て直され、いまの鐘つき堂は、明治 27 年に再建されたものです。",
+     "voice": "web/voice/1c1442e595a5.m4a"
+    }
+   ],
+   "more": [
+    "高さは、礎石から桁の上端まで 16.127 m、土間から頂部まで 17.6 m（パンフレット）。",
+    "鐘は何度も鋳なおされ、借りた鐘で時を報らせた時期もあります（パンフレットの年表）。",
+    "明治 27 年の再建の棟梁は関根松五郎、鐘は矢沢四郎右衛門の鋳造。",
+    "平成 27・28 年度の耐震化の工事で、主柱の根もとを、明治の図面のとおりの礎石建ちに戻しました。"
+   ],
+   "how": "記録（伝えをふくむ）",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    }
+   ]
+  },
+  {
+   "id": "h_hinomi",
+   "layer": "history",
+   "kind": "歴史",
+   "title": "火の見と早鐘",
+   "ll": [
+    139.4834066,
+    35.9235251
+   ],
+   "x": 6,
+   "z": -5,
+   "facts": [
+    {
+     "t": "享保 18 年、1733 年に、時の鐘の上へ、火の見櫓がつけ足されました。",
+     "voice": "web/voice/c5b49c9715ee.m4a"
+    },
+    {
+     "t": "火事を知らせる早鐘は、火元が遠いときは、1 回から 3 回打って 1 回休み、近いときは、休まず打ちつづけたそうです。",
+     "voice": "web/voice/d55e5cbfc4aa.m4a"
+    }
+   ],
+   "more": [],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    }
+   ]
+  },
+  {
+   "id": "h_shuun",
+   "layer": "history",
+   "kind": "歴史",
+   "title": "舟運の町",
+   "ll": [
+    139.4829622,
+    35.924929
+   ],
+   "x": -34.05,
+   "z": -160.81,
+   "facts": [
+    {
+     "t": "川越の繁栄は、新河岸川の舟で、江戸へ物を運んだ商いに支えられていました。小江戸と呼ばれるようになったのは、江戸時代の後半、松平大和守家の頃です。",
+     "voice": "web/voice/2622a87ff299.m4a"
+    },
+    {
+     "t": "大正 3 年に東上鉄道が通り、川の改修で舟が通りにくくなると、昭和 6 年に船を止める県令が出て、およそ 300 年の舟運は終わりました。",
+     "voice": "web/voice/c8549c0e32fe.m4a"
+    }
+   ],
+   "more": [],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市「川越市歴史的風致維持向上計画」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/010/672/rekimachi-1.pdf"
+    }
+   ]
+  },
+  {
+   "id": "h_taisho",
+   "layer": "history",
+   "kind": "歴史",
+   "title": "大正の建物が残る町",
+   "ll": [
+    139.4834651,
+    35.9199837
+   ],
+   "x": 11.27,
+   "z": 388.02,
+   "facts": [
+    {
+     "t": "大正 11 年、川越は、埼玉県で初めて市になりました。",
+     "voice": "web/voice/b5e0a5f52325.m4a"
+    },
+    {
+     "t": "大正 12 年の関東大震災の被害は軽かったため、大正時代の建物や、洋風のつくりが多く残っています。",
+     "voice": "web/voice/104d8ae75cd5.m4a"
+    }
+   ],
+   "more": [],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市「川越市歴史的風致維持向上計画」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/010/672/rekimachi-1.pdf"
+    }
+   ]
+  },
+  {
+   "id": "c_jiho",
+   "layer": "culture",
+   "kind": "文化",
+   "title": "一日 4 回の鐘",
+   "ll": [
+    139.4834287,
+    35.9234259
+   ],
+   "x": 8,
+   "z": 6,
+   "facts": [
+    {
+     "t": "いまの時の鐘は、一日 4 回。午前 6 時、正午、午後 3 時、午後 6 時に鳴ります。",
+     "voice": "web/voice/797f0a87b127.m4a"
+    },
+    {
+     "t": "江戸時代は、夜明けから日暮れまでを昼、日暮れから夜明けまでを夜として、それぞれを 6 つに分けていました。季節で一刻の長さが変わる、不定時法です。",
+     "voice": "web/voice/01b4d7fe8f02.m4a"
+    },
+    {
+     "t": "九つには 9 回、というように時の数だけ撞き、一刻のなかほどに 3 回撞いていたようです。",
+     "voice": "web/voice/fa32bb583294.m4a"
+    }
+   ],
+   "more": [],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    }
+   ]
+  },
+  {
+   "id": "c_oto100",
+   "layer": "culture",
+   "kind": "文化",
+   "title": "残したい音",
+   "ll": [
+    139.4832513,
+    35.9235341
+   ],
+   "x": -8,
+   "z": -6,
+   "facts": [
+    {
+     "t": "時計の普及と、大正 14 年のラジオの時報の始まりで、時の鐘は、時を知らせる役目を終えます。関東大震災のあとには、やめよう、という声もあった、と伝えられています。",
+     "voice": "web/voice/5b534853fde0.m4a"
+    },
+    {
+     "t": "昭和 50 年に自動で撞く機械が寄贈され、平成 8 年には、残したい日本の音風景 100 選に選ばれました。",
+     "voice": "web/voice/3eacdfc1e4bd.m4a"
+    }
+   ],
+   "more": [],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    }
+   ]
+  },
+  {
+   "id": "c_matsuri",
+   "layer": "culture",
+   "kind": "文化",
+   "title": "川越氷川祭の山車行事",
+   "ll": [
+    139.4827095,
+    35.9224031
+   ],
+   "x": -56.84,
+   "z": 119.51,
+   "facts": [
+    {
+     "t": "川越氷川神社は、川越城が築かれてから、城下の守護神、藩領の総鎮守として、あつく崇敬されてきました。",
+     "voice": "web/voice/2ed0c6ad3d96.m4a"
+    },
+    {
+     "t": "その祭礼では、江戸の天下祭をそのままに模した、盛大な山車が、町衆によって曳きまわされました。",
+     "voice": "web/voice/122d09ad466f.m4a"
+    },
+    {
+     "t": "川越氷川祭の山車行事は、平成 28 年、2016 年に、ユネスコの無形文化遺産「山・鉾・屋台行事」の一つとして、登録されています。",
+     "voice": "web/voice/65cad6ec1f44.m4a"
+    }
+   ],
+   "more": [],
+   "how": "記録",
+   "src": [
+    {
+     "t": "川越市「川越市歴史的風致維持向上計画」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/010/672/rekimachi-1.pdf"
+    },
+    {
+     "t": "文化庁「保存地区の概要 川越市川越（埼玉県）」（令和 8 年 4 月 1 日・川越市作成）",
+     "u": "https://www.bunka.go.jp/seisaku/bunkazai/shokai/hozonchiku/pdf/94428201_15.pdf"
+    },
+    {
+     "t": "文化遺産オンライン「川越氷川祭の山車行事」",
+     "u": "https://online.bunka.go.jp/heritages/detail/200456"
+    },
+    {
+     "t": "川越氷川神社 公式「神社紹介」（はじめに）",
+     "u": "https://www.kawagoehikawa.jp/shoukai/"
+    }
+   ]
+  },
+  {
+   "id": "c_takasa",
+   "layer": "culture",
+   "kind": "文化",
+   "title": "町並みを守るきまり",
+   "ll": [
+    139.4829736,
+    35.9233549
+   ],
+   "x": -33.03,
+   "z": 13.88,
+   "facts": [
+    {
+     "t": "この地区には、建物、工作物、道まで、町づくりのきまりがあり、それにもとづいて、町並みが整えられています。",
+     "voice": "web/voice/9d1e1db97130.m4a"
+    },
+    {
+     "t": "このあたりの景観のきまりでは、建物の高さの上限を、16 メートルにしている地区があります。",
+     "voice": "web/voice/bd4d448d533a.m4a"
+    }
+   ],
+   "more": [
+    "市の景観計画：川越十ヵ町地区都市景観形成地域では、都市景観形成基準で高さの上限を 16 m に規制している地区がある。"
+   ],
+   "how": "記録",
+   "src": [
+    {
+     "t": "文化庁「保存地区の概要 川越市川越（埼玉県）」（令和 8 年 4 月 1 日・川越市作成）",
+     "u": "https://www.bunka.go.jp/seisaku/bunkazai/shokai/hozonchiku/pdf/94428201_15.pdf"
+    },
+    {
+     "t": "川越市「景観計画」（PDF）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/010/643/keikankeikaku6.pdf"
+    }
+   ]
+  },
+  {
+   "id": "s_kokonotsu",
+   "layer": "sound",
+   "kind": "音",
+   "title": "江戸の時の鐘「九つ」",
+   "ll": [
+    139.4831847,
+    35.9233899
+   ],
+   "x": -14,
+   "z": 10,
+   "facts": [
+    {
+     "t": "江戸の頃は、九つには、9 回撞いたようです。その数を、組み立てた鐘の音で、鳴らします。",
+     "voice": "web/voice/738a20e2b6bc.m4a"
+    }
+   ],
+   "more": [],
+   "how": "パンフレットの「九つには 9 回撞いた」をもとに、鐘の響き（低い唸りと、ゆれる倍音）をその場で組み立てた模式。撞く間合いは記録が無いので、仮に 5 秒にしています。",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    }
+   ]
+  },
+  {
+   "id": "s_hayagane",
+   "layer": "sound",
+   "kind": "音",
+   "title": "火事の早鐘",
+   "ll": [
+    139.4834953,
+    35.9235881
+   ],
+   "x": 14,
+   "z": -12,
+   "facts": [
+    {
+     "t": "遠い火事は、打って、打って、休む。近い火事は、休まず。早鐘の撞き方を、組み立てた音で、鳴らします。",
+     "voice": "web/voice/c16f2b1bdcbe.m4a"
+    }
+   ],
+   "more": [],
+   "how": "パンフレットの撞き方（遠い火事＝1〜3 回打って 1 回休む／近い火事＝休まず連打）を、組み立てた鐘の音で順に鳴らす模式。",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    }
+   ]
+  },
+  {
+   "id": "s_wa",
+   "layer": "sound",
+   "kind": "音",
+   "title": "時が町に広がる輪",
+   "ll": [
+    139.4830618,
+    35.9233734
+   ],
+   "x": -25.08,
+   "z": 11.83,
+   "facts": [
+    {
+     "t": "鐘の音は、町の端から端まで、少しずつ遅れて届きます。その広がりを、輪にしました。",
+     "voice": "web/voice/27f2b484de14.m4a"
+    }
+   ],
+   "more": [],
+   "how": "一打ごとに、時の鐘から光の輪が町へ広がり、輪が届いた所で、音が少し遅れて聞こえる（音の速さ 秒速約 340 m で遅らせる）。音そのものは組み立てた鐘。",
+   "src": []
+  },
+  {
+   "id": "t_shikkui",
+   "layer": "touch",
+   "kind": "肌",
+   "title": "蔵の黒漆喰の壁",
+   "ll": [
+    139.483019,
+    35.923747
+   ],
+   "x": -28.94,
+   "z": -29.63,
+   "facts": [
+    {
+     "t": "蔵造りの町家は、黒漆喰を塗った壁です。",
+     "voice": "web/voice/aef1db8340c7.m4a"
+    }
+   ],
+   "more": [],
+   "how": "",
+   "src": [
+    {
+     "t": "文化庁「保存地区の概要 川越市川越（埼玉県）」（令和 8 年 4 月 1 日・川越市作成）",
+     "u": "https://www.bunka.go.jp/seisaku/bunkazai/shokai/hozonchiku/pdf/94428201_15.pdf"
+    },
+    {
+     "t": "面の写真：Poly Haven「White Plaster 02」（CC0）を黒く塗り直した mitsulab の模式"
+    }
+   ]
+  },
+  {
+   "id": "t_kawara",
+   "layer": "touch",
+   "kind": "肌",
+   "title": "蔵の瓦",
+   "ll": [
+    139.4828678,
+    35.9223041
+   ],
+   "x": -42.57,
+   "z": 130.5,
+   "facts": [
+    {
+     "t": "瓦の波の形は、mitsulab が組んだ模式です。屋根の上には上らず、現地の写真で、形を確かめていきます。",
+     "voice": "web/voice/2d0484a3dd27.m4a"
+    }
+   ],
+   "more": [],
+   "how": "",
+   "src": [
+    {
+     "t": "瓦の形：mitsulab が組んだ模式（日本の桟瓦の CC0 の質感は見つかっていない）"
+    }
+   ]
+  },
+  {
+   "id": "t_kane",
+   "layer": "touch",
+   "kind": "肌",
+   "title": "時の鐘の鐘",
+   "ll": [
+    139.4833733,
+    35.923507
+   ],
+   "x": 3,
+   "z": -3,
+   "facts": [
+    {
+     "t": "いまの鐘は、明治 27 年の鋳造。重さ 186 貫 250 匁、全長 1.3 メートル、外径 82 センチです。",
+     "voice": "web/voice/fe701b00a8fd.m4a"
+    }
+   ],
+   "more": [
+    "186 貫 250 匁は、1 貫＝3.75 kg として約 698 kg（計算）。"
+   ],
+   "how": "",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    },
+    {
+     "t": "面の写真：ambientCG「Metal058B」（CC0）"
+    }
+   ]
+  },
+  {
+   "id": "t_shitami",
+   "layer": "touch",
+   "kind": "肌",
+   "title": "鐘つき堂の下見板",
+   "ll": [
+    139.4833067,
+    35.923453
+   ],
+   "x": -3,
+   "z": 3,
+   "facts": [
+    {
+     "t": "鐘つき堂の外の壁は、横に重ねた板の、下見板です。昭和 35 年の大改修で張りかえられました。",
+     "voice": "web/voice/dcaa81ec063f.m4a"
+    }
+   ],
+   "more": [],
+   "how": "",
+   "src": [
+    {
+     "t": "川越市教育委員会 文化財保護課「川越市指定文化財 時の鐘」（パンフレット）",
+     "u": "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/079/panph-tokinokanenew.pdf"
+    },
+    {
+     "t": "面の写真：Poly Haven「Dark Wooden Planks」（CC0）"
+    }
+   ]
+  },
+  {
+   "id": "sho026",
+   "layer": "sho",
+   "kind": "書",
+   "title": "時間概念が解体される音",
+   "ll": [
+    139.4828641,
+    35.9234066
+   ],
+   "x": -42.9,
+   "z": 8.14,
+   "facts": [],
+   "more": [],
+   "how": "",
+   "src": [
+    {
+     "t": "web/sho/data/026.png"
+    }
+   ]
+  },
+  {
+   "id": "sho023",
+   "layer": "sho",
+   "kind": "書",
+   "title": "膨大な情報が発信され積み重なり石化する音",
+   "ll": [
+    139.4829212,
+    35.9239364
+   ],
+   "x": -37.76,
+   "z": -50.65,
+   "facts": [],
+   "more": [],
+   "how": "",
+   "src": [
+    {
+     "t": "web/sho/data/023.png"
+    }
+   ]
+  },
+  {
+   "id": "sho024",
+   "layer": "sho",
+   "kind": "書",
+   "title": "記憶の時系列が狂う音",
+   "ll": [
+    139.4836236,
+    35.9199268
+   ],
+   "x": 25.57,
+   "z": 394.33,
+   "facts": [],
+   "more": [],
+   "how": "",
+   "src": [
+    {
+     "t": "web/sho/data/024.png"
+    }
+   ]
+  },
+  {
+   "id": "sho033",
+   "layer": "sho",
+   "kind": "書",
+   "title": "少年には聴こえるが大人には聴こえない音",
+   "ll": [
+    139.4808904,
+    35.9251341
+   ],
+   "x": -220.82,
+   "z": -183.57,
+   "facts": [],
+   "more": [],
+   "how": "",
+   "src": [
+    {
+     "t": "web/sho/data/033.png"
+    }
+   ]
+  }
+ ]
+}
