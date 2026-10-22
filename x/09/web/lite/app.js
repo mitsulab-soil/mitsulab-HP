@@ -143,11 +143,18 @@ function roofAt(x, z, r = 1) {   // まわり r 区画の、いちばん高い�
 }
 function buildBuildings(g) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, color: "#a7a196", roughness: .92, metalness: 0, flatShading: true, envMapIntensity: .35 });
+  const wallTex = tex(BASE + "tex/concrete_pavement_c5.webp");
   m.onBeforeCompile = sh => {   // 壁に階と窓の並び（模式）、屋根は少し暗く。PLATEAU の形と高さはそのまま
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;")
+    sh.uniforms.wallTex = { value: wallTex };
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform sampler2D wallTex;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { vec3 fn = normalize(cross(dFdx(vWp), dFdy(vWp))); float dist = length(vWp - cameraPosition);
+        // 壁と屋根の肌（コンクリートの写真・CC0）を近くだけ重ね、足もとを暗く（地面との接し方）、遠くは空の色へ溶かす（大気の遠近）
+        vec2 tuv = abs(fn.y) > .6 ? vWp.xz * .12 : vec2(dot(vWp.xz, vec2(-fn.z, fn.x)), vWp.y) * .12; float tl = dot(texture2D(wallTex, tuv).rgb, vec3(.333));
+        float kn = 1. - smoothstep(40., 160., dist); diffuseColor.rgb *= mix(1., .7 + tl * .75, kn * .85);
+        diffuseColor.rgb *= .78 + .22 * smoothstep(13., 17.5, vWp.y);
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.70,.74,.78), smoothstep(120., 520., dist) * .45);
         if (abs(fn.y) > .6) { diffuseColor.rgb *= vec3(.74,.73,.71); }
         else { float u = dot(vWp.xz, vec2(-fn.z, fn.x)); float fy = (vWp.y - 13.2) / 3.15;
           float k = 1. - smoothstep(70., 230., dist);
@@ -160,7 +167,7 @@ function buildBuildings(g) {
           diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * .55, shop * k * .8);
           diffuseColor.rgb *= mix(1., .95 + .05 * smoothstep(.0, .06, c.y), k); } }`);
   };
-  m.customProgramCacheKey = () => "facade1";
+  m.customProgramCacheKey = () => "facade2";
   g.scene.updateMatrixWorld(true);
   g.scene.traverse(o => { if (o.isMesh) { o.material = m; o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); } });
   bldGroup = g.scene; world.add(bldGroup); BLD.length = 0; bldGroup.traverse(o => { if (o.isMesh) BLD.push(o); });
@@ -328,7 +335,9 @@ function loadLate() {
     for (const s of D.structs) {
       const src = g.scene.getObjectByName(s.m); if (!src) continue;
       const o = src.clone(true); o.position.set(s.p[0], s.p[1], s.p[2]); o.rotation.set(0, s.r, 0); o.scale.setScalar(1);
-      o.traverse(n => { if (n.isMesh && n.material) n.material.envMapIntensity = .6; });
+      o.traverse(n => { if (n.isMesh && n.material) { n.material.envMapIntensity = .6;
+        if (n.material.name === "black") { n.material = n.material.clone(); n.material.color.set("#1c1a19"); n.material.roughness = .38; n.material.metalness = .05; n.material.envMapIntensity = 1.25; }   // 根巻と笠木の黒：漆のような艶（平らな黒い箱に見えないように）
+        if (n.material.name === "granite") { n.material = n.material.clone(); n.material.roughness = .82; n.material.envMapIntensity = .8; } } });
       o.name = s.id; structGroup.add(o);
       if (QW.mode === "sky" && /^torii_|^romon$|^shinkyo$/.test(s.id)) o.visible = false;
     }
@@ -795,6 +804,7 @@ function playNext() {
   const next = gap => setTimeout(() => { if (voiceQ === v) { v.i++; playNext(); } }, gap);
   if (!soundOn || !l.f) { next(Math.max(2200, (l.dur || l.t.length * .16) * 1000 + 600)); return; }
   audio.src = l.f; audio.currentTime = 0;
+  if (AOI.m && v.i === 0) AOI.m.express(v.talk ? (Math.random() < .5 ? "warm" : "curious") : "warm", .55, Math.min(6, (l.dur || 3) + 1));
   audio.play().then(() => { AOI.m?.speak({ timeline: D.lip[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }); }).catch(() => next(1500));
   audio.onended = () => { if (voiceQ !== v) return; AOI.m?.stopSpeaking(); next(420); };
 }
@@ -871,7 +881,7 @@ function loadAoi() {
     const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 && Math.abs(h - 1.67) / 1.67 > .02 ? 1.67 / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
     try { Robe?.hideCoveredLegs?.(v, { keep: .12 }); } catch { }
-    AOI.m = new Mot.AoiMotion(v, { root, posture: "upright", reducedMotion: RM, wind: 0, groundAt: (x, z) => groundY(x, z), quality: MOBILE ? "mid" : "auto" });
+    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => groundY(x, z), quality: MOBILE ? "mid" : "auto" });
     if (AOI.m.robe) AOI.m.robe.wind = .25;
     AOI.root = root; AOI.vrm = v; AOI.ready = true;
     try { root.visible = true; await renderer.compileAsync(root, camera, scene); } catch { } root.visible = QW.mode === "walk";
