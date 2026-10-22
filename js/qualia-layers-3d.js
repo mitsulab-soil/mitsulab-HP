@@ -4,6 +4,7 @@
 // ・層は七枚（walk・sight・sound・touch・heart・rakugo・song）。スクロールで見えている札の番号まで、一枚ずつ上へ積み重なり、重なるほど線と点（情報）が増える
 // ・2026-10-20 夜 本人「層は地下に潜るのではなく、上に重ねていく」「アニメーションにレイヤーの表現も」：層は第 0 層（いつもの風景）の上へ積む。新しい層が重なるとき、その板に名前と一言の札が寄りそう
 // ・線と点は創作の模式（実測の値ではない）。碧は kit v5.9（uprightWeight:.9）
+// ・2026-10-22 夜：碧を重なりの中（光の軸の上）へ。骨盤を起こして反り腰を直す（stand()）
 import * as THREE from 'three';
 
 // 色は Qualia Layer の概念の文書（§5）の案：walk＝土・sight＝紫外の淡い紫・sound＝青・touch＝石の灰・heart＝墨（紺の地で見えるよう淡く）・rakugo＝朱・song＝光の白
@@ -74,8 +75,8 @@ export async function boot(stage) {
       ground.add(tree); treeObj = tree; window.__qlTree = { ok: true, h: TREE_H, pos: tree.position.toArray().map(v => +v.toFixed(2)) }; kick();
     } catch (e) { window.__qlTree = { ok: false, e: String(e) }; console.warn('qualia layer tree', e); }
   })();
-  // 碧が立つ、層を縦に貫く光の軸
-  const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, (N + 1) * GAP + 2.4, 0), new THREE.Vector3(0, -.3, 0)]), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false }));
+  // 碧が立つ、層を縦に貫く光の軸（2026-10-22 夜：碧が重なりの中に立つので、軸は碧の背後・重なりの高さまで＝顔を貫かない）
+  const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, (N + .6) * GAP, -1.1), new THREE.Vector3(0, -.3, -1.1)]),  new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false }));
   world.add(axis);
   // 積層の足場：四隅の縦の線と、層ごとの目盛り（横から見て何枚重なっているかが分かる）
   {
@@ -212,13 +213,25 @@ export async function boot(stage) {
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);
       const bb = new THREE.Box3().setFromObject(vrm.scene), h = bb.max.y - bb.min.y;
       const s = 6.4 / h; pivot.scale.setScalar(s);    // 2026-10-20 夜 本人「碧は上へ上がっていかず、重なりに覆いかぶさるように」：重なりの奥に大きく立ち、層の上から見下ろす
-      pivot.position.set(0, -.5, -H - 1.5); pivot.rotation.x = .16;   // 少し前へ傾け、重なりを上から包むように
+      pivot.position.set(0, 0, -.35);   // 2026-10-22 本人「碧もレイヤーの中に入ってください。今はレイヤーの外に碧がいます」：重なりの真ん中、光の軸の上に立つ。層は碧の足もとから胸の高さまでを通り抜けていく（前へ傾けるのはやめた＝反り腰に見えた一因）
       const { AoiMotion } = await import('./aoi_motion.js?v=20261019-v59');
       mot = new AoiMotion(vrm, { root: pivot, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
-      stage.classList.add('has-aoi');
+      stage.classList.add('has-aoi'); window.__qlAoi = { vrm, pivot, mot };
       kick();
     } catch (e) { console.warn('qualia layer aoi', e); }
   })();
+
+  // 2026-10-22 本人「お尻が出ていて反り腰なのが気になります。姿勢を矯正して」：
+  // 骨盤だけを後ろへ起こし（前傾を戻す）、太ももと背骨でその分を打ち消す＝脚と胴の向きは変えずに、腰の反りとお尻の張り出しだけを抑える。
+  // 胸の張りも少し戻し、首で目線を保つ。共通部品（aoi_motion.js）は変えず、HP の層の図だけで直す。
+  const FIX = { pelvis: .13, chest: .045 };
+  const _qa = new THREE.Quaternion(), _ex = new THREE.Vector3(1, 0, 0);
+  // post＝その骨の向きを回す／pre＝親の回しを打ち消す（子の世界の向きを保つ）
+  function rotX(name, a, pre) { const b = vrm.humanoid.getNormalizedBoneNode(name); if (!b) return; _qa.setFromAxisAngle(_ex, a); if (pre) b.quaternion.premultiply(_qa); else b.quaternion.multiply(_qa); }
+  function stand() {
+    rotX('hips', -FIX.pelvis); rotX('leftUpperLeg', FIX.pelvis, 1); rotX('rightUpperLeg', FIX.pelvis, 1); rotX('spine', FIX.pelvis * .85, 1);
+    rotX('upperChest', FIX.chest); rotX('neck', -FIX.chest * .7, 1);
+  }
 
   // 見えている札の番号（0〜7）。インラインの小さな script が送ってくる
   let target = window.__qlayerK || 0;
@@ -249,7 +262,7 @@ export async function boot(stage) {
       if (sx > bx) { bx = sx; by = sy; }
     }
     const tw = tagEl.offsetWidth || 200;
-    const left = Math.max(8, Math.min(W - tw - 8, bx + 10));
+    const left = Math.max(8, Math.min(W - tw - 8, Math.max(bx + 10, W * .58)));   // 碧（中央）に重ならないよう、図の右側に
     tagEl.style.transform = 'translate(' + Math.round(left) + 'px,' + Math.round(Math.max(8, Math.min(Hh - 130, by - 22))) + 'px)';
     tagEl.classList.add('on');
   }
@@ -283,11 +296,11 @@ export async function boot(stage) {
     // 2026-10-20 夜：碧は上がらない・層の世界も動かさない（欅の上に層が重なっていく）
     world.position.y = 0;
     // 欅はいつも見せる（層はその上に薄く重なる）
-    const lookY = 4.1 + Math.min(1, d / N) * .15;   // 2026-10-22：高くした欅の梢まで入るよう、見る高さと距離を少し上げた
-    const ang = -.62 + (reduce ? 0 : t * .04), rad = mobile ? 16.4 : 18.5;
+    const lookY = 3.7 + Math.min(1, d / N) * .15;   // 碧が重なりの中に立つので、重なりの全体と碧の頭、欅の梢が入る高さへ   // 2026-10-22：高くした欅の梢まで入るよう、見る高さと距離を少し上げた
+    const ang = -.62 + (reduce ? 0 : t * .04), rad = mobile ? 17 : 19.5;
     cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 2.8 : 2.4), Math.cos(ang) * rad);
     cam.lookAt(.9, lookY, -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
-    if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam); }
+    if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam, { vrmUpdate: false }); stand(); vrm.update(dt); mot.afterVrmUpdate(dt); }
     R.render(S, cam);
     placeTag();
     fps.n++; if (now - fps.t > 1000) { fps.v = Math.round(fps.n * 1000 / (now - fps.t)); fps.n = 0; fps.t = now; }
