@@ -103,7 +103,7 @@ body[data-mode="boot"] #lstack{display:none}
 /* スマホ：細い帯（色と番号だけ）にたたむ。帯に触れると広がる */
 @media (max-width:640px){
   #skyUI{padding-left:72px}#skyUI .row .ml-btn{padding:0 10px;font-size:.9rem}
-  #sightUI{max-width:calc(100% - 96px);padding:10px 12px}#sightUI .sl{font-size:12px}
+  #sightUI{left:76px;right:var(--g);max-width:none;padding:10px 12px}#sightUI .sl{white-space:normal}#sightUI .sl{font-size:12px}
   #lstack{width:auto;max-height:calc(100% - 210px)}
   #lstack.closed{width:52px}
   #lstack.closed #lsBody{display:flex;flex-direction:column;padding:2px 0}
@@ -272,6 +272,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261022h").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261022i").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

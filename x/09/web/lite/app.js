@@ -291,12 +291,12 @@ function updateTrees(force = false) {
   const cp = camera.position, alt = cp.y - groundY(cp.x, cp.z), mode = QW.mode === "descend" || QW.mode === "boot" || QW.mode === "sight" ? (alt < 30 ? "walk" : alt < 260 ? "fly" : "sky") : QW.mode;   // 生きものの身体は、高さで木の細かさを選ぶ
   if (!force && TREE.lastMode === mode && TREE.lastPos.distanceToSquared(cp) < (mode === "walk" ? 16 : 400)) return;
   TREE.lastPos.copy(cp); TREE.lastMode = mode;
-  const nearR = mode === "walk" ? (MOBILE ? 32 : 40) : 0;
+  const nearR = mode === "walk" ? (MOBILE ? 32 : 40) : 0;   // 飛ぶときも、遠くの木は横から写した絵（丸い塊にしない）
   const farR = mode === "walk" ? (MOBILE ? 300 : 400) : 1e9;
   const midR = mode === "walk" ? (MOBILE ? 85 : 120) : mode === "fly" ? (MOBILE ? 70 : 140) : 0;
   const nr2 = nearR * nearR, fr2 = farR * farR, mr2 = midR * midR;
   for (const p of Object.values(TREE.protos)) [...p.parts, ...p.mid, ...(p.imp ? [p.imp] : [])].forEach(im => im.count = 0);
-  let nc = 0; const useImp = mode === "walk";
+  let nc = 0; const useImp = mode === "walk" || mode === "fly";
   for (const t of TREE.list) {
     const d2 = (t.x - cp.x) ** 2 + (t.z - cp.z) ** 2;
     if (d2 > fr2) continue;
@@ -585,7 +585,7 @@ function syncAutoBtn() { const b = $("#autoBtn"); if (b) { b.setAttribute("aria-
 /* 鳥になって飛ぶ（ゆっくり・高さは控えめ・地面と木にもぐらない） */
 const FLY = { yawRate: 0, climb: 0, roll: 0, speed: 9, up: false, down: false, drag: null };
 function startFly() {
-  hideSkyUI(); hideWalkUI(); hidePanel(); loadLate();
+  hideSkyUI(); hideWalkUI(); hidePanel(); stopVoice(); loadLate();
   let p, yaw;
   if (QW.mode === "walk" || QW.mode === "sight") { p = CAM.pos.clone(); yaw = CAM.yaw + CAM.look; if (QW.mode === "sight") exitSight(true); }
   else { const s = D.starts[Math.max(0, START.sel)]; const a = atD(s.d); p = new THREE.Vector3(a.x, 0, a.z); yaw = yawAlong(s.d + 5); }
@@ -898,7 +898,7 @@ function loadAoi() {
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
   const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .62 : 1.1;   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
-  const rx = -fz, rz = fx, side = ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
+  const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side); out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
