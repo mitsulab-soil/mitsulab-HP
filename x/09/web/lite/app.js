@@ -131,6 +131,13 @@ function buildPonds(env) {
     const g = new THREE.ShapeGeometry(s); g.rotateX(-Math.PI / 2);
     let y = 1e9; for (const [x, z] of p.poly) y = Math.min(y, groundY(x, z));
     const mesh = new THREE.Mesh(g, m); mesh.position.y = y + .12; world.add(mesh);
+    // 池の縁：自然の石を積んだ護岸とみられる（写真から）→ 石積みの質感の低い壁を、池の形にそって
+    const P = [], U = [], I = []; let acc = 0;
+    for (let i = 0; i < p.poly.length; i++) { const [x0, z0] = p.poly[i], [x1, z1] = p.poly[(i + 1) % p.poly.length], L = Math.hypot(x1 - x0, z1 - z0), b = P.length / 3;
+      P.push(x0, y - .7, z0, x1, y - .7, z1, x1, y + .3, z1, x0, y + .3, z0); U.push(acc / 1.6, 0, (acc + L) / 1.6, 0, (acc + L) / 1.6, .72, acc / 1.6, .72); I.push(b, b + 1, b + 2, b, b + 2, b + 3); acc += L; }
+    const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); rg.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); rg.setIndex(I); rg.computeVertexNormals();
+    world.add(new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/japanese_stone_wall_c5.webp"), normalMap: MOBILE ? null : tex(BASE + "tex/japanese_stone_wall_n5.webp", false), color: "#b8b2a6", roughness: .95, side: THREE.DoubleSide, envMapIntensity: .4 })));
+    const bot = new THREE.Mesh(g.clone(), new THREE.MeshStandardMaterial({ color: "#2b3326", roughness: 1 })); bot.position.y = y - .75; world.add(bot);   // 池の底（もぐったときに見える）
   }
 }
 
@@ -578,7 +585,7 @@ function syncAutoBtn() { const b = $("#autoBtn"); if (b) { b.setAttribute("aria-
 /* 鳥になって飛ぶ（ゆっくり・高さは控えめ・地面と木にもぐらない） */
 const FLY = { yawRate: 0, climb: 0, roll: 0, speed: 9, up: false, down: false, drag: null };
 function startFly() {
-  hideSkyUI(); hidePanel(); loadLate();
+  hideSkyUI(); hideWalkUI(); hidePanel(); loadLate();
   let p, yaw;
   if (QW.mode === "walk" || QW.mode === "sight") { p = CAM.pos.clone(); yaw = CAM.yaw + CAM.look; if (QW.mode === "sight") exitSight(true); }
   else { const s = D.starts[Math.max(0, START.sel)]; const a = atD(s.d); p = new THREE.Vector3(a.x, 0, a.z); yaw = yawAlong(s.d + 5); }
@@ -889,7 +896,7 @@ function loadAoi() {
   })().catch(e => { console.warn("碧の姿を読み込めませんでした：", e?.message ?? e); });
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 3.0 : 2.4, s = MOBILE ? .8 : 1.1;   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .62 : 1.1;   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
   const rx = -fz, rz = fx, side = ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side); out.y = groundY(out.x, out.z); return out;
@@ -956,7 +963,7 @@ function enterSight(sp, L) {
   let px = CAM.pos.x, pz = CAM.pos.z, yaw = CAM.yaw + CAM.look;
   if (sp.x != null && (sp.move === "swim" || QW.mode === "sky" || !QW.walked || Math.hypot(sp.x - CAM.pos.x, sp.z - CAM.pos.z) > 160)) { px = sp.x; pz = sp.z; yaw = yawAlong(sp.d + 5); }
   if (QW.mode === "sky" && sp.x == null) { const s = D.starts[Math.max(0, START.sel)], a = atD(s.d); px = a.x; pz = a.z; yaw = yawAlong(s.d + 5); }
-  let y = groundY(px, pz) + sp.eye; if (sp.move === "swim") { let m = 1e9; for (const [x, z] of sp.pond) m = Math.min(m, groundY(x, z)); y = m + .24; }
+  let y = groundY(px, pz) + sp.eye; if (sp.move === "swim") { let m = 1e9, far = null, fd = 0; for (const [x, z] of sp.pond) { m = Math.min(m, groundY(x, z)); const d = Math.hypot(x - px, z - pz); if (d > fd) { fd = d; far = [x, z]; } } y = m + .24; yaw = Math.atan2(-(far[0] - px), -(far[1] - pz)); }   // 池のいちばん遠い岸の方を向いて浮かぶ
   hideSkyUI(); hideFlyUI(); loadLate(); if (AOI.root) AOI.root.visible = false;
   const from = QW.mode; TWFOG = [from === "sky" ? FOGS.sky() : from === "fly" ? FOGS.fly() : FOGS.walk(), FOGS.walk()]; setMode("descend");
   SIGHT.pending = sp;
