@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
-import {createFieldScene} from './field-scene.js?v=20261023-boot';
+import {createFieldScene} from './field-scene.js?v=20261023-boot2';
 
 // These scenes are artistic models. UV colours and roots are explanatory,
 // not measurements of this flower or a reconstruction of an animal's mind.
