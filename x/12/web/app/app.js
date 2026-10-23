@@ -17,7 +17,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261023e";
+const VER = "20261023f";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -217,7 +217,7 @@ const LAYER = { worn: [], objs: [] };
 /* 2026-10-23 本人「sight, touch, sound, nature, culture です」→ 層は 5 つ。Qualia/sho は sound の中、歴史は culture の中（中身はそのまま・どの層で重ねるかだけを付け替える） */
 const PARENT = { sho: "sound", history: "culture" }, SUBNAME = { sho: "sho", history: "history" };
 const top5 = id => PARENT[id] || id;
-const COLOR5 = { sight: "#a898d2", touch: "#deb778", sound: "#9b9bda", nature: "#78ad7a", culture: "#e28692" };   // 2026-10-23 層の 5 色（かさねっこの体＝落ち着かせた組。HUD と夜の地の札は明るめの列＝ここ）
+const COLOR5 = { sight: "#b9b0dc", touch: "#f0d19d", sound: "#9eaad6", nature: "#88b68f", culture: "#e79592" };   // 2026-10-23 層の 5 色（案 10：藤鼠・砥粉・藍鉄・老竹・小豆。体の色を抑えた組の、夜の地の HUD の線と字の列＝ここ）
 function layerNo(id) { return ALL.findIndex(l => l.id === top5(id)) + 1; }
 function buildObjs() {
   const rec = Object.fromEntries(C.layers.map(l => [l.id, l])), q = Object.fromEntries(QLAYERS.map(l => [l.id, { ...l, lead: C.ql[l.id] || l.lead }]));
@@ -609,7 +609,7 @@ const WAVE = { rings: [], on: false, t0: 0,
   stop() { this.on = false; for (const r of this.rings) world.remove(r); this.rings.length = 0; },
   step() { if (!this.on || !KURA.tower) return; const t = performance.now() / 1000 - this.t0;
     for (const k of [0, 7, 14]) { const age = t - k; let r = this.rings[k / 7]; if (age < 0) continue;
-      if (!r) { r = new THREE.Mesh(new THREE.RingGeometry(.96, 1, 128), new THREE.MeshBasicMaterial({ color: "#9b9bda", transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false })); r.rotation.x = -Math.PI / 2; r.position.set(KURA.tower.position.x, KURA.bellY - 2, KURA.tower.position.z); world.add(r); this.rings[k / 7] = r; }
+      if (!r) { r = new THREE.Mesh(new THREE.RingGeometry(.96, 1, 128), new THREE.MeshBasicMaterial({ color: "#9eaad6", transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false })); r.rotation.x = -Math.PI / 2; r.position.set(KURA.tower.position.x, KURA.bellY - 2, KURA.tower.position.z); world.add(r); this.rings[k / 7] = r; }
       const R = age * 340 * .25 + 1; r.scale.setScalar(R); r.material.opacity = Math.max(0, .7 * (1 - age / 8)); }
     if (t > 24) this.stop(); } };
 

@@ -14,7 +14,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261023t";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261023u";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -260,7 +260,7 @@ function loadMimi() {
     const sp = D.sight.find(q => q.id === "mimizu"), d = sp ? nearestOnLine(sp.x, sp.z).d : 640, { x, z } = clearSpot(d);
     const gy = surfaceY(x, z);
     m.object.position.set(x, gy + .012, z); m.object.scale.setScalar(4); m.play("crawl", 0, .8);
-    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ミミズ（4 倍で見せています）", GL.sight?.color || "#a898d2"); lb.position.set(0, .06, 0); lb.scale.set(.16, .04, 1); lb.material.depthTest = false; lb.renderOrder = 9; m.object.add(lb); MIMI.lb = lb;
+    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ミミズ（4 倍で見せています）", GL.sight?.color || "#b9b0dc"); lb.position.set(0, .06, 0); lb.scale.set(.16, .04, 1); lb.material.depthTest = false; lb.renderOrder = 9; m.object.add(lb); MIMI.lb = lb;
     m.object.visible = false; world.add(m.object); MIMI.m = m;
   }).catch(e => console.warn("mimizu", e));
 }
@@ -277,7 +277,7 @@ function loadHiyo() {
     let x = p.x - p.tz * side, z = p.z + p.tx * side, top = groundY(x, z) + 1.0; HIYO.c = { x, z, y: groundY(x, z) };
     await (VEG.p || Promise.resolve()); ({ x, z } = clearSpot(d)); top = surfaceY(x, z) + .02;   // とまる所＝参道の縁の植え込みの地面（落ち葉の上で餌をさがす横の姿）
     n.object.position.set(x, top, z); n.object.scale.setScalar(2.5); n.play("perch", 0);   // 見つけやすいよう 2.5 倍（札に書く）
-    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ヒヨドリ（2.5 倍で見せています）", GL.sight?.color || "#a898d2"); lb.position.set(0, .22, 0); lb.scale.set(.44, .11, 1); lb.material.depthTest = false; lb.renderOrder = 9; n.object.add(lb); HIYO.lb = lb; n.object.visible = false; world.add(n.object);
+    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ヒヨドリ（2.5 倍で見せています）", GL.sight?.color || "#b9b0dc"); lb.position.set(0, .22, 0); lb.scale.set(.44, .11, 1); lb.material.depthTest = false; lb.renderOrder = 9; n.object.add(lb); HIYO.lb = lb; n.object.visible = false; world.add(n.object);
     f.play("fly", 0, .7); f.object.visible = false; world.add(f.object);
     n.object.traverse(o => { if (o.isMesh) o.renderOrder = 3; }); HIYO.near = n; HIYO.far = f;
   }).catch(e => console.warn("hiyo", e));
@@ -1064,7 +1064,7 @@ const LAYER = { worn: [], objs: [], ripple: null, rippleR: 0, wear: null, thumbs
 /* 2026-10-23 本人「sight, touch, sound, nature, culture です」→ 層は 5 つ。Qualia/sho は sound の中、Qualia/rakugo と歴史は culture の中（中身はそのまま・どの層で重ねるかだけを付け替える） */
 const PARENT = { sho: "sound", rakugo: "culture", history: "culture" };
 const top5 = id => PARENT[id] || id;
-const COLOR5 = { sight: "#a898d2", touch: "#deb778", sound: "#9b9bda", nature: "#78ad7a", culture: "#e28692" };   // 2026-10-23 層の 5 色（かさねっこの体＝落ち着かせた組。HUD と夜の地の札は明るめの列＝ここ）
+const COLOR5 = { sight: "#b9b0dc", touch: "#f0d19d", sound: "#9eaad6", nature: "#88b68f", culture: "#e79592" };   // 2026-10-23 層の 5 色（案 10：藤鼠・砥粉・藍鉄・老竹・小豆。体の色を抑えた組の、夜の地の HUD の線と字の列＝ここ）
 const SUBNAME = { sho: "sho", rakugo: "rakugo", history: "history" };
 const LEAD5 = {
   sound: "参道の音（葉ずれ・鳥と蟬の声・玉砂利・池の水）と、上原光瑛の書（Qualia/sho）。書に近づくと、音が鳴る",
@@ -1773,7 +1773,7 @@ function stepSho(dt) {
         const n = nearestOnLine(it.x, it.z), a = atD(n.d); sho.group.position.set(it.x, it.y + 1.6, it.z); sho.group.rotation.y = Math.atan2(a.x - it.x, a.z - it.z);   // 参道の方を向く
         sho.setScale(innerHeight * renderer.getPixelRatio() * .9); world.add(sho.group);
         const ac = sndCtx(); const snd = ac ? SHO.mod.createShoSound(it.preset, { context: ac, destination: SND.out, volume: .45 }) : null;
-        const lb = makeLabel(layerNo("sho"), GL.sho?.name || "Qualia/sound", it.title, GL.sho?.color || "#9b9bda"); lb.position.set(it.x, it.y + 3.4, it.z); lb.scale.set(4, 1, 1); lb.material.depthTest = false; lb.renderOrder = 9; world.add(lb);   // 層の物だと分かるように、層の名札を添える
+        const lb = makeLabel(layerNo("sho"), GL.sho?.name || "Qualia/sound", it.title, GL.sho?.color || "#9eaad6"); lb.position.set(it.x, it.y + 3.4, it.z); lb.scale.set(4, 1, 1); lb.material.depthTest = false; lb.renderOrder = 9; world.add(lb);   // 層の物だと分かるように、層の名札を添える
         SHO.live[it.id] = { sho, snd, it, hold: 0, lb };
       }).catch(e => console.warn("sho map", e)); }
       continue;
