@@ -6,7 +6,7 @@
 <meta name="tdm-reservation" content="1">
 <meta name="robots" content="noai, noimageai">
 <title>Qualia/sho ／ mitsulab</title>
-<meta name="description" content="上原光瑛の書「〇〇の音」の連作から三作が、古寺の板の間の広間に墨の立体として浮かぶ。歩いて近づき、触れるとその書の音が鳴る。">
+<meta name="description" content="上原光瑛の書「〇〇の音」の連作から三作が、古寺の板の間の広間に墨の立体として浮かび、壁にはそれぞれの紙の原本が掛かる。歩いて近づき、触れるとその書が震えて音が鳴る。碧が書の脇で語る。">
 <meta property="og:title" content="Qualia/sho ／ mitsulab">
 <meta property="og:description" content="墨の立体の書が浮かぶ広間を歩き、触れると、その書の音が鳴る。">
 <meta name="theme-color" content="#03060f">
@@ -14,20 +14,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261023d">
-<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js"}}</script>
+<link rel="stylesheet" href="style.css?v=20261023e">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261023d">
-<link rel="modulepreload" href="kit/sho3d.js?v=20261023d">
-<link rel="modulepreload" href="room.js?v=20261023d">
-<link rel="modulepreload" href="live.js?v=20261023d">
-<link rel="modulepreload" href="dof.js?v=20261023d">
+<link rel="modulepreload" href="app.js?v=20261023e">
+<link rel="modulepreload" href="kit/sho3d.js?v=20261023e">
+<link rel="modulepreload" href="room.js?v=20261023e">
+<link rel="modulepreload" href="live.js?v=20261023e">
+<link rel="modulepreload" href="dof.js?v=20261023e">
 <link rel="preload" href="data/works.json" as="fetch" crossorigin>
 </head>
 <body class="ml-root">
 <script src="loader/loader.js" data-title="Qualia/sho" data-en="calligraphy, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>
 
-<canvas id="cv" aria-label="書の広間の 3D。床を押すとその向きへ歩き、書に触れるとその音が鳴って墨が揺れる。ドラッグで見回す"></canvas>
+<canvas id="cv" aria-label="書の広間の 3D。床を押すとその向きへ歩き、書に触れるとその書が震えて音が鳴る。ドラッグで見回す"></canvas>
 <div id="veil" aria-hidden="true"></div>
 <div id="rings" aria-hidden="true"></div>
 
@@ -76,14 +76,15 @@
   <div class="sheet-in">
     <div class="sheet-head"><span class="ml-kicker">解説</span><button class="ml-btn close" type="button" data-close aria-label="閉じる">×</button></div>
     <h2>Qualia/sho ── 書の広間</h2>
-    <p>上原光瑛が墨で書いた「〇〇の音」の連作から三作が、古寺の板の間の広間に、墨の立体として浮かんでいる。西の壁には「蕾が春化粧をする音」を、立体にせず紙の原本のまま一枚掛けた。</p>
+    <p>上原光瑛が墨で書いた「〇〇の音」の連作から三作が、古寺の板の間の広間に、墨の立体として浮かんでいる。それぞれの立体の近くの壁には、同じ書の紙の原本を掛けた。西の壁の「蕾が春化粧をする音」は、立体にせず紙の原本だけを掛けている。</p>
     <p>紙の上の筆の跡を骨格にして、墨の太さから見立てた厚みと、前後へのふくらみを与えた立体にした。原本の墨のかすれ・擦れも、そのまま肌に写している。色は墨だけ。題の違いは、墨の状態（濡れ・乾き・にじみ・滴り）で表した。どう読んだかは、書に触れると出る一行に書いた（見立てで、題の正しい意味として示すものではない）。</p>
-    <p>床を押すと、その向きへ数歩ずつ歩く（矢印キー・WASD でも）。ドラッグで見回す。書に触れると、その書の音が鳴って題が出て、墨が揺れ、かけらが漂い、空間が震える。しばらくすると字の形に戻る。下の矢印と目録で、書の前へ歩いていける。</p>
-    <p>音は書ごとの型から、その場で合成している（録音は使っていない）。振動のある端末では、触れたときと湧く墨に合わせて震える。</p>
+    <p>床を押すと、その向きへ数歩ずつ歩く（矢印キー・WASD でも）。ドラッグで見回す。書に触れると、その書の音が鳴って題が出て、字の形のまま書が細かく震え、空間もかすかに震える。押しているあいだは震え続ける。下の矢印と目録で、書の前へ歩いていける。書に近づくと、碧が書の脇へ来て、その書のことを短く話す（字幕）。</p>
+    <p>音は書ごとの型から、その場で合成している（録音は使っていない）。振動のある端末では、触れたときに端末も震える。振動のない端末では、触れた所に光の輪が出る。</p>
     <dl class="credit">
       <dt>書</dt><dd>上原光瑛（墨・紙）</dd>
       <dt>3D・音・プログラム</dt><dd>mitsulab</dd>
-      <dt>使った部品</dt><dd>three.js（MIT License）</dd>
+      <dt>碧</dt><dd>3D の姿 © mitsulab（この作品の中で表示するためだけに置いています）。動きの一部は人の動きの記録から（The data used in this project was obtained from <a href="http://mocap.cs.cmu.edu/" target="_blank" rel="noopener">mocap.cs.cmu.edu</a>. The database was created with funding from NSF EIA-0196217.）</dd>
+      <dt>使った部品</dt><dd>three.js・three-vrm（MIT License）</dd>
       <dt>質感</dt><dd>板の間・柱と壁の木・漆喰・まわりの景色：Poly Haven（CC0）</dd>
     </dl>
     <p class="rights">© mitsulab. All rights reserved.<br>書・画像・音・3D・プログラムの無断の複製・転載・改変と、AI の学習・生成への利用はお断りします。</p>
@@ -92,6 +93,6 @@
 </section>
 
 <noscript><p class="nojs">この作品は JavaScript と WebGL で動きます。</p></noscript>
-<script type="module" src="app.js?v=20261023d"></script>
+<script type="module" src="app.js?v=20261023e"></script>
 </body>
 </html>

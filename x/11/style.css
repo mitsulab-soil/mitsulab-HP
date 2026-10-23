@@ -100,3 +100,6 @@ body.is-all .count{font-family:var(--ml-serif);letter-spacing:.14em;color:var(--
 
 /* v5.4 読み込み画面が消えるとき、アイコンと題を先に消す（最初のこまに透けて残らない） */
 #ml-loader.ml-out > *{opacity:0!important;transition:opacity .2s ease!important}
+/* v9 碧のことば（字幕） */
+.cap .rd.aoi{color:var(--ml-aoi-2)}
+.cap .rd.aoi{text-shadow:0 1px 3px rgba(3,6,15,.95),0 0 12px rgba(3,6,15,.9)}

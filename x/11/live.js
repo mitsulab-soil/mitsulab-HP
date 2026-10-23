@@ -6,7 +6,7 @@
 // ・振動：音の強さと触れた強さで、書・層・部屋が一緒に震える（減らす設定ではほぼ止める）
 import * as THREE from 'three';
 
-export function createLive(scene, sho, { mobile, RM }) {
+export function createLive(scene, sho, { mobile, RM, drops = true }) {   /* v9 drops:false＝書から離れる墨の滴を出さない（本人「触れてもバラバラにならないで」） */
   const g = new THREE.Group(); g.name = 'live';
   const C = sho.group.position.clone();
   const W = sho.width, Hh = sho.height, R0 = Math.max(W, Hh) * 0.62;
@@ -29,7 +29,7 @@ export function createLive(scene, sho, { mobile, RM }) {
     const d = new THREE.Vector3(rnd() - .5, rnd() - .3, rnd() - .5).normalize();
     B.push({ sq: [0.72 + rnd() * 0.5, 0.8 + rnd() * 0.5, 0.65 + rnd() * 0.45], a, d, r: 0.011 + Math.pow(rnd(), 2.6) * 0.04, far: 0.3 + rnd() * 1.0, ph: rnd() * 30, sp: 0.09 + rnd() * 0.13 }   /* v6 LIVE：滴を一回り大きく・速く（6 秒で離れて戻るのが見える） */);
   }
-  scene.add(blobs);
+  if (drops) scene.add(blobs);
   // v5.4 書の背の霞：書のすぐ後ろに、障子の照り返しのような淡い明るみ（どの向きから見ても、柱や暗い壁に墨が刺さって溶けない）
   const haloMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, fog: false, uniforms: { uA: { value: 0.32 } },
     vertexShader: 'varying vec2 vU; void main(){ vU = uv * 2.0 - 1.0; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',

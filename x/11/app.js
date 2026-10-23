@@ -1,12 +1,13 @@
 // Qualia/sho ── 書の広間（v1 2026-10-22 回廊 ／ v4〜v6 一つの書に一つの部屋 ／ v7 2026-10-23 一つの広間）
 // © mitsulab. All rights reserved.  書は上原光瑛の作品。3D・音・プログラム＝mitsulab。
 // 本人（10-23）「一つの広間に音の３dグラフィックが浮遊していて、消える演出は不要で、その空間を歩いて、それに触れると音が出て、モーションも発生してください。」
+// v9（10-23 本人「音に触れてもバラバラにならないで、振動と音だけ発生させてください。また、それぞれの作品で、３d立体と合わせて、紙の作品を壁に飾ってください。また、碧も登場させてください。」）
 // 古寺の板の間の広間に、墨の立体の書が浮かぶ。床を押すとその向きへ歩き（一度に進むのは数歩まで）、書に触れるとその音が鳴って題が出て、墨が揺れる。動いたあとは字の形に戻る。
 import * as THREE from 'three';
-import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261023d';
-import { buildRoom, loadRoomTextures, setRoomHalf } from './room.js?v=20261023d';
-import { createLive } from './live.js?v=20261023d';
-import { createDOF } from './dof.js?v=20261023d';
+import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261023e';
+import { buildRoom, loadRoomTextures, setRoomHalf } from './room.js?v=20261023e';
+import { createLive } from './live.js?v=20261023e';
+import { createDOF } from './dof.js?v=20261023e';
 
 const q = new URLSearchParams(location.search);
 const SHOT = q.has('shot');                                    // 静止画（?shot=1&x=&z=&yaw=&pitch=&hit=027）
@@ -39,14 +40,23 @@ const SPAWN = { x: 0, z: mobile ? 10.1 : 8.6, yaw: 0, pitch: 0.07 };   /* スマ
 // 点の届いた書だけを置く（本人 10-23：012・027・025）。面の質が上がった書から、あとで足す
 const PLACE = [
   { id: '027', x: 0, z: -4.6, y: 3.0 },
-  { id: '012', x: -4.6, z: 0.2, y: 2.55 },
+  { id: '012', x: -3.5, z: 0.7, y: 2.55 },   /* v8b 西の壁の紙の原本をふさがない */
   { id: '025', x: 4.4, z: -1.4, y: 2.85 },
 ].map(p => mobile ? { ...p, x: { '027': 0.15, '012': -1.72, '025': 2.2 }[p.id] } : p);   /* v8 スマホ：012 が左で切れない位置（縦長の視野の幅から決めた） */   /* 高さと奥行きに差をつけて散らす */
 const PAPER = { id: '034', x: -HALF + 0.05, z: -5.8, y: 2.25, w: 3.1 };   // 紙の原本：西の漆喰の壁に掛ける（3D にしない）
+// v9 立体の書の近くの壁に、同じ書の紙の原本を一枚ずつ（3D と紙が対に見える。北と東は障子なので、漆喰の壁を一間ぶん入れて掛ける＝room.js の niches）
+const PAPERS = [
+  { id: '034', wall: 'w', z: PAPER.z, y: PAPER.y, w: PAPER.w, only: true },
+  { id: '012', wall: 'w', z: 3.7, y: 2.35, w: 2.3 },   /* 立体の 012 に隠れない所 */
+  { id: '027', wall: 'n', x: 3.2, y: 2.45, w: 2.1 },
+  { id: '025', wall: 'e', z: -1.9, y: 2.45, w: 1.75 },
+];
 
 const meta = await (await fetch('data/works.json')).json();
 const works = PLACE.map((p, i) => ({ ...p, i, w: meta.works.find(w => w.id === p.id), sho: null, snd: null, live: null, shadow: null, face: 0, base: 0, hold: 0, pressed: false, near: 0 })).filter(it => it.w);
 const paperW = meta.works.find(w => w.id === PAPER.id);
+PAPERS.forEach(p => { p.w8 = meta.works.find(w => w.id === p.id); });
+const paperOf = it => PAPERS.find(p => p.id === it.w.id && !p.only);
 
 async function prepare(it) {
   if (it.sho) return it;
@@ -75,7 +85,7 @@ function hiRes(it) {                                           // 原本から�
         new Promise(ok => new THREE.TextureLoader().load(`data/hi/${it.w.id}_d${N}.webp`, t => { t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; ok(t); }, undefined, () => ok(null))),
       ]);
       it.sho.setHiRes(m, d);
-      await new Promise(ok => new THREE.TextureLoader().load(`data/hi/${it.w.id}_f512.png`, t => { t.colorSpace = THREE.NoColorSpace; t.magFilter = t.minFilter = THREE.LinearFilter; t.premultiplyAlpha = false; t.generateMipmaps = false; if (!q.has('noisl')) it.sho.setIslands(t); ok(); }, undefined, ok));
+      /* v9 ちぎれたかけらの地図（f512）は読まない：かけらは本体から離れて漂わず、字の一部のまま（本人「バラバラにならないで」） */
     } catch (e) { console.warn('hi', e); }
   })(); return it.hiP;
 }
@@ -90,7 +100,7 @@ function placeInRoom(it) {
   it.shadow = it.sho.makeShadow(room.sun.clone().setY(room.sun.y * 1.3).normalize(), { strength: 1.25 * it.sho.shadowK, blur: 3.2 }   /* v8 床に墨の影（やわらかく濃く） */); scene.add(it.shadow);
   if (ENV) it.sho.setEnv(ENV, ENVG);
   it.sho.setLight(room.sun);
-  if (!it.live) { it.live = createLive(scene, it.sho, { mobile, RM }); it.live.grid.position.x = it.x; it.live.grid.position.z = it.z; }
+  if (!it.live) { it.live = createLive(scene, it.sho, { mobile, RM, drops: false }); it.live.grid.position.x = it.x; it.live.grid.position.z = it.z; }
 }
 function buildHall(tex) {
   if (room) { scene.remove(room.group); room.dispose(); }
@@ -98,21 +108,27 @@ function buildHall(tex) {
   scene.add(room.group);
   scene.fog.density = room.fog * (dof.on ? 0.55 : 1); R.toneMappingExposure = room.expo * (+(q.get('ex') || 1.12));
 }
-// 紙の原本：額のない、紙一枚を壁に（紙の色に墨をかける＝白地が紙の色になる）
-const paperG = new THREE.Group(); paperG.name = 'paper';
-{
-  const im = new THREE.TextureLoader().load(mobile ? 'data/orig/034_p1200.webp' : 'data/orig/034_p2000.webp', t => { t.anisotropy = 8; });
+// 紙の原本：紙一枚を表具の地と細い木の縁で壁に（紙の色に墨をかける＝白地が紙の色になる）
+const paperG = new THREE.Group(); paperG.name = 'papers';
+function makePaper(p) {
+  const big = p.id === '034', url = big ? (mobile ? 'data/orig/034_p1200.webp' : 'data/orig/034_p2000.webp') : p.w8.orig;
+  const im = new THREE.TextureLoader().load(url, t => { t.anisotropy = 8; });
   im.colorSpace = THREE.SRGBColorSpace;
-  const asp = 2000 / 1239, w = PAPER.w, h = w / asp, m = 0.16;
+  const asp = big ? 2000 / 1239 : p.w8.ow / p.w8.oh, w = asp >= 1 ? p.w : p.w * asp, h = asp >= 1 ? p.w / asp : p.w, m = 0.16;
+  const g = new THREE.Group();
   const back = new THREE.Mesh(new THREE.PlaneGeometry(w + m * 2, h + m * 2), new THREE.MeshStandardMaterial({ color: 0xcfc6b4, roughness: 0.95 }));   /* 表具の地（紙より少し沈んだ色） */
   const sheet = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: im, color: 0xf3efe6, roughness: 0.95 }));
-  sheet.position.z = 0.004; back.name = 'paper-hit';
+  sheet.position.z = 0.004;
   const edge = new THREE.Mesh(new THREE.BoxGeometry(w + m * 2 + 0.012, h + m * 2 + 0.012, 0.016), new THREE.MeshStandardMaterial({ color: 0x6b5a48, roughness: 0.9 }));   /* 細い木の縁 */
   edge.position.z = -0.012;
-  paperG.add(edge, back, sheet);
-  paperG.position.set(PAPER.x + 0.03, PAPER.y, PAPER.z); paperG.rotation.y = Math.PI / 2;
-  paperG.userData = { w: w + m * 2, h: h + m * 2 };
+  g.add(edge, back, sheet);
+  if (p.wall === 'w') { p.wx = -HALF + 0.08; p.wz = p.z; g.rotation.y = Math.PI / 2; }
+  else if (p.wall === 'e') { p.wx = HALF - 0.1; p.wz = p.z; g.rotation.y = -Math.PI / 2; }
+  else { p.wx = p.x; p.wz = -HALF + 0.1; g.rotation.y = 0; }
+  g.position.set(p.wx, p.y, p.wz); g.userData = { paper: p, w: w + m * 2, h: h + m * 2 };
+  p.g = g; paperG.add(g);
 }
+PAPERS.forEach(makePaper);
 
 /* ── 歩く：押した所からは向きだけを読み、一度に進むのは数歩まで（walk 氷川と同じ） ── */
 const STEP_MAX = 3.2, SPEED = 1.45, KEEP = 1.0;               // 一度に進む上限（m）・歩く速さ（m/秒）・書からとる間合い（m）
@@ -137,7 +153,8 @@ function standBefore(it) {
   P.retry = 0;                                     // 次の書・目録から：その書の前に立つ（正面から少し斜め）
   const d = it.sho ? Math.max(mobile ? 6.2 : 5.4, it.sho.height * (mobile ? 1.9 : 1.6)) : 5.5; const a = it.base + (it.i % 2 ? 0.16 : -0.16);   /* 立つ所は、はじめの向き（入口側）の正面から */
   const tx = it.x + Math.sin(a) * d, tz = it.z + Math.cos(a) * d;
-  route([{ x: tx, z: tz }]); P.turn = Math.atan2(-(it.x - tx), -(it.z - tz)); P.pitchGoal = Math.atan2(Y_C - EYE, d) * 0.95;   /* 書の中心を見上げる */
+  const pp = paperOf(it), kp = mobile ? 0.06 : 0.2, lx = pp ? it.x * (1 - kp) + pp.wx * kp : it.x, lz = pp ? it.z * (1 - kp) + pp.wz * kp : it.z;   /* v9 立体と、壁の紙の原本の両方が入る向きに（スマホは立体を真ん中に） */
+  route([{ x: tx, z: tz }]); P.turn = Math.atan2(-(lx - tx), -(lz - tz)); P.pitchGoal = Math.atan2(Y_C - EYE, d) * 0.72;   /* 書の中心を少し見上げる（v9 脇に立つ碧の足もとまで入る） */
   setFocus(it);
 }
 function blocked(ax, az, bx, bz) { for (let k = 1; k < 20; k++) { const t = k / 20, x = ax + (bx - ax) * t, z = az + (bz - az) * t, [px, pz] = keepOut(x, z); if (Math.hypot(px - x, pz - z) > 0.01) return true; } return false; }
@@ -175,11 +192,11 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書 ── Qualia/sho';
   $('capTi').textContent = '書の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = '「〇〇の音」の連作から三つの書が、古寺の板の間に浮かんでいる。西の壁には、紙に墨で書いた原本を一枚。';
+  $('capRd').textContent = '「〇〇の音」の連作から三つの書が、古寺の板の間に浮かんでいる。壁には、それぞれの紙の原本を掛けた。';
   $('count').textContent = `-- / ${String(stops.length).padStart(2, '0')}`;
 }
 function setFocus(it) {
-  focus = it; const w = it.w;
+  focus = it; const w = it.w; $('capRd').classList.remove('aoi');
   $('capNo').textContent = it.paper ? `上原光瑛の書 ── 紙の原本　Qualia${w.id}/sound` : idLabel(w);
   $('capTi').textContent = w.title; $('capTi').classList.toggle('long', w.title.length > 16);
   $('capRd').textContent = it.paper ? '紙に墨で書いた、もとの書。立体にせず、紙の上の墨のまま掛けた。' : (w.reading || '');
@@ -272,25 +289,25 @@ function pick(x, y) {                                          // 押した所�
     if (u < -0.02 || u > 1.02 || v < -0.02 || v > 1.02 || !shapeAt(it, u, v)) continue;
     const dist = t * it.sho.group.scale.x; if (!best || dist < best.dist) best = { kind: 'work', it, u, v, side: rc.ray.origin.clone().applyMatrix4(inv).z, dist };
   }
-  const ph = rc.intersectObject(paperG, true)[0]; if (ph && (!best || ph.distance < best.dist)) best = { kind: 'paper', dist: ph.distance };
+  const ph = rc.intersectObject(paperG, true)[0]; if (ph && (!best || ph.distance < best.dist)) { let o = ph.object; while (o && !o.userData.paper) o = o.parent; best = { kind: 'paper', dist: ph.distance, p: o ? o.userData.paper : PAPERS[0] }; }
   if (!best && rc.ray.direction.y < -0.02) { const t = (0 - rc.ray.origin.y) / rc.ray.direction.y; best = { kind: 'floor', x: rc.ray.origin.x + rc.ray.direction.x * t, z: rc.ray.origin.z + rc.ray.direction.z * t }; }
   return best;
 }
 function touchWork(h, holdSec, force = 0.7, x = innerWidth / 2, y = innerHeight / 2) {
   const it = h.it; ringAt = [x, y];
   if (it.snd) it.snd.touch(THREE.MathUtils.clamp(h.u, 0, 1), THREE.MathUtils.clamp(h.v, 0, 1), force);
-  if (canVibe) { try { navigator.vibrate(Math.round(10 + 18 * force)); } catch (e) { /* 何もしない */ } }
-  it.sho.target = 0.9; it.hold = holdSec; it.pressed = true;
-  it.sho.pullTarget = holdSec > 50 ? 1 : 0.7; if (holdSec <= 50) setTimeout(() => { if (!it.pressed) it.sho.pullTarget = 0; }, 260);
-  it.sho.kick(0.6 + 0.4 * force, new THREE.Vector2(h.u, h.v), h.side);
-  it.sho.burst(new THREE.Vector2(h.u, h.v), h.side);   /* v8 字が一度はっきり波打って崩れ、かけらが字の外へ散り、字の形へ戻る */
-  it.kickAt = performance.now(); it.wob = 1;   /* 触れると、書全体が一度大きく揺れて、かけらが離れ、3 秒ほどで字の形に戻る */
+  if (canVibe) { try { navigator.vibrate([Math.round(14 + 20 * force), 30, Math.round(8 + 12 * force)]); } catch (e) { /* 何もしない */ } }
+  else if (mobile) ring(x, y, false);   /* 振動のない端末（iPhone など）は光の輪（Qualia/touch と同じ） */
+  /* v9（10-23 本人「音に触れてもバラバラにならないで、振動と音だけ」）：崩れない・散らない・かけらを動かさない。字の形のまま細かく震え、空間がかすかに震え、音が鳴る */
+  it.pressed = true; it.hold = holdSec;
+  it.sho.kick(0.55 + 0.3 * force, new THREE.Vector2(h.u, h.v), h.side);
+  it.kickAt = performance.now(); it.vib = 1;
   setFocus(it); lastUser = performance.now();
 }
 function touchAt(x, y, holdSec, force = 0.7) {
   const h = pick(x, y); if (!h) return null;
   if (h.kind === 'work') touchWork(h, holdSec, force, x, y);
-  else if (h.kind === 'paper') { setFocus(stops[stops.length - 1]); if (holdSec < 50) { closeSheets(); openOrig(paperW); sheets.origBtn.hidden = false; $('origBtn').setAttribute('aria-expanded', 'true'); opener = $('origBtn'); } }
+  else if (h.kind === 'paper') { const pw = h.p.w8; setFocus(h.p.only ? stops[stops.length - 1] : works.find(it => it.w.id === h.p.id)); if (holdSec < 50) { closeSheets(); openOrig(pw); sheets.origBtn.hidden = false; $('origBtn').setAttribute('aria-expanded', 'true'); opener = $('origBtn'); } }
   else if (h.kind === 'floor' && holdSec < 50) { P.turn = null; walkToward(h.x, h.z); }
   return h;
 }
@@ -320,10 +337,10 @@ function endPtr(e) {
   if (ptrs.size) return;
   const g = gest; gest = null; if (!g || g.pinch) return;
   if (!g.drag) {
-    if (g.held) { const it = g.held; const dt = performance.now() - g.t; it.hold = dt < 450 ? 3.2 : 0; if (!it.hold) it.sho.target = 0; }
+    if (g.held) { const it = g.held; it.hold = 0; }
     else touchAt(g.x0, g.y0, 3.2, g.force);
   }
-  works.forEach(it => { if (it.pressed) { it.pressed = false; setTimeout(() => { if (!it.pressed) it.sho.pullTarget = 0; }, 120); } });
+  works.forEach(it => { it.pressed = false; });
 }
 addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr);
 setInterval(() => {                                            // 書を長く押すと、離すまで墨が引かれて湧く
@@ -351,6 +368,98 @@ const later = () => loadRoomTextures(R, mobile).then(t => {
   works.forEach(it => { if (ENV) it.sho.setEnv(ENV, ENVG); it.sho.setLight(room.sun); });
 }).catch(e => console.warn('tex', e));
 const hiAll = async () => { const s = [...works].sort((a, b) => Math.hypot(a.x - P.x, a.z - P.z) - Math.hypot(b.x - P.x, b.z - P.z)); for (const it of s) await hiRes(it); };
+
+/* ── 碧（v9・本人「碧も登場させてください」）：広間に立ち、人が書に近づくと、その書の脇へ歩いて書に目を向け、短く語る（字幕だけ・声は作っていない）。書と紙の原本の前はふさがない ── */
+const AOI_LINES = {
+  '027': '「木の中で水と養分が循環する音」。墨が液になって、幹の中を巡っています。壁の紙が、もとの書です。',
+  '012': '「無自体の音」。芯は濃い墨のまま、ふちだけが霧になってほどけていきます。',
+  '025': '「夜の森に漂う無数の眼の音」。夜の墨の奥で、小さな照り返しが灯っては消えます。',
+  '034': '「蕾が春化粧をする音」。この書だけは、紙の上の墨のまま掛けています。',
+};
+const AOI_H = 1.6;
+const AO = { root: null, M: null, mats: null, pos: new THREE.Vector3(mobile ? 1.5 : 3.4, 0, mobile ? 6.4 : 4.0), vel: new THREE.Vector3(), goal: null, from: null, fade: 0, op: -1, out: 0, for: null, said: null, sayT: 99, ready: false };
+let aoiLoading = null;
+function loadAoi() {
+  if (aoiLoading || q.has('noaoi')) return aoiLoading; aoiLoading = (async () => {
+    try {
+      const [{ GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm'), import('./kit/aoi_motion.js?v=20261023e')]);
+      const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
+      const g = await ld.loadAsync('data/aoi.vrm');
+      const v = g.userData.vrm; if (!v) throw new Error('VRM ではない');
+      V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
+      v.scene.traverse(o => { o.frustumCulled = false; });
+      const root = new THREE.Group(); root.name = 'aoi'; root.add(v.scene);
+      v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
+      const bx = new THREE.Box3().setFromObject(v.scene), h = bx.max.y - bx.min.y, sc = h > .5 ? AOI_H / h : 1;
+      v.scene.scale.setScalar(sc); v.scene.position.y = -bx.min.y * sc;
+      { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 2, 32, 32, 31); gr.addColorStop(0, 'rgba(0,0,0,.42)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+        const sh = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.62), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.012; sh.userData.noFade = true; sh.renderOrder = -1; root.add(sh); AO.shadow = sh; }   /* 足もとのやわらかい影 */
+      root.position.copy(AO.pos); scene.add(root); root.updateMatrixWorld(true);
+      AO.M = new AoiMotion(v, { root, reducedMotion: RM, wind: .3, startCalm: 2.2, posture: 'upright', faceLight: .5 });   /* まっすぐ立つ（反り腰にしない）・自然な息とまばたき */
+      AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z));
+      AO.root = root; AO.vrm = v; AO.fade = 0; aoiOpacity(0); AO.ready = true;
+      window.__aoi = AO;
+    } catch (e) { console.warn('碧の姿を読み込めませんでした：', e?.message ?? e); }
+  })(); return aoiLoading;
+}
+function aoiOpacity(o) {
+  if (!AO.root) return;
+  if (!AO.mats) { AO.mats = []; AO.root.traverse(m => { if (m.isMesh && !m.userData.noFade) for (const mt of [].concat(m.material)) AO.mats.push([mt, mt.transparent, mt.depthWrite]); }); }
+  if (AO.shadow) AO.shadow.material.opacity = o;
+  for (const [mt, tr, dw] of AO.mats) { mt.transparent = o < 1 ? true : tr; mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; }
+}
+function aoiSpot(it) {                                         // 書の脇（紙の原本と反対の側）。見る人から見て、書の幅の外・画面の内に立つ（書と紙の前はふさがない）
+  const vx = it.x - P.x, vz = it.z - P.z, l = Math.hypot(vx, vz) || 1, dx = vx / l, dz = vz / l, lx = -dz, lz = dx;
+  const pp = paperOf(it); let side = it.i % 2 ? 1 : -1;
+  if (pp) side = ((pp.wx - it.x) * lx + (pp.wz - it.z) * lz) > 0 ? -1 : 1;
+  const hf = Math.atan(Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * cam.aspect), hw = Math.atan((it.sho ? it.sho.width / 2 : 1.6) / l);
+  let a = Math.min(hw + 0.07, hf - 0.08), D = mobile ? Math.max(3.4, l - 2.4) : Math.max(3.0, l - 0.4);
+  if (it.paper && mobile) { a = hf - 0.02; D = 2.8; }   /* スマホの紙の前：紙の幅が画面いっぱいなので、碧は手前の端に */
+  for (const sd of [side, -side]) { const [x, z] = keepOut(P.x + (dx * Math.cos(a) + lx * sd * Math.sin(a)) * D, P.z + (dz * Math.cos(a) + lz * sd * Math.sin(a)) * D); if (Math.hypot(x - P.x, z - P.z) > 1.4) return new THREE.Vector3(x, 0, z); }
+  return null;
+}
+const paperStop = { paper: true, x: -HALF + 1.0, z: PAPER.z, i: 9, w: null, sho: { width: 3.4, group: { position: { y: 2.6 } } } };
+function aoiSay(it) {
+  const line = AOI_LINES[it.w.id]; if (!line) return;
+  AO.said = it; AO.sayT = 0;
+  $('capRd').textContent = `碧 ──${line}`; $('capRd').classList.add('aoi');
+  if (AO.M) { const c = new THREE.Vector3(it.x, it.sho ? it.sho.group.position.y - 0.3 : 2.2, it.z); AO.M.lookAt(c); if (!RM) AO.M.point(c, 2.4); }
+}
+function aoiTick(dt) {
+  if (!AO.ready) return;
+  const M = AO.M, f = fwd(P.yaw);
+  // いま見ている書：近く（7.5 m まで）で、見ている向きの 40 度の内
+  let tgt = null, td = 1e9;
+  paperStop.w = paperW;
+  if (focus && focus.paper && Math.hypot(paperStop.x - P.x, paperStop.z - P.z) < 8) tgt = paperStop;   /* 紙の原本の前では、紙の脇へ */
+  else if (focus && !focus.paper && Math.hypot(focus.x - P.x, focus.z - P.z) < 9) tgt = focus;   /* 書の前へ向かう・立っているあいだは、その書の脇へ（途中の書には寄り道しない） */
+  else for (const it of works) { const vx = it.x - P.x, vz = it.z - P.z, d = Math.hypot(vx, vz); if (d < 7.5 && (vx * f.x + vz * f.z) / d > 0.76 && d < td) { td = d; tgt = it; } }
+  if (tgt && (tgt !== AO.for || (AO.from && Math.hypot(P.x - AO.from.x, P.z - AO.from.z) > 1.0))) { const sp = aoiSpot(tgt); if (sp) { if (tgt !== AO.for) AO.said = null; AO.for = tgt; AO.goal = sp; AO.from = { x: P.x, z: P.z }; } }
+  if (AO.goal) {
+    const gd = Math.hypot(AO.goal.x - AO.pos.x, AO.goal.z - AO.pos.z);
+    if (gd > 4.2 && !AO.out) AO.out = 1;                          // 遠い・書を回りこむ所へは歩かず、うすれて、脇に現れる
+    if (AO.out) { AO.fade = Math.max(0, AO.fade - dt / 0.5); if (AO.fade <= 0) { AO.pos.copy(AO.goal); AO.vel.set(0, 0, 0); M.teleport(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); AO.out = 0; } }
+    else {
+      const w = 2.6, n = Math.max(1, Math.ceil(dt / .02)), h = dt / n;
+      for (let i = 0; i < n; i++) {
+        AO.vel.x += (w * w * (AO.goal.x - AO.pos.x) - 2 * w * AO.vel.x) * h; AO.vel.z += (w * w * (AO.goal.z - AO.pos.z) - 2 * w * AO.vel.z) * h;
+        const m = Math.hypot(AO.vel.x, AO.vel.z); if (m > 1.15) { AO.vel.x *= 1.15 / m; AO.vel.z *= 1.15 / m; }
+        [AO.pos.x, AO.pos.z] = keepOut(AO.pos.x + AO.vel.x * h, AO.pos.z + AO.vel.z * h);
+      }
+      M.drive(AO.pos.x, AO.pos.z);
+      if (gd < 0.35 && AO.for && AO.said !== AO.for && AO.fade > 0.9) aoiSay(AO.for);
+    }
+  }
+  AO.sayT += dt;
+  if (AO.said && AO.sayT < 7.0) {   /* 語るあいだは書のほうへ半分向き、書に目を向ける */ const it = AO.said, toCam = Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z), toW = Math.atan2(it.x - AO.pos.x, it.z - AO.pos.z); M.faceTo(toCam + Math.atan2(Math.sin(toW - toCam), Math.cos(toW - toCam)) * 0.5); }
+  else if (AO.sayT < 7.2) { M.faceTo(null); M.lookAt(null); }
+  if (AO.sayT > 10 && $('capRd').classList.contains('aoi')) { $('capRd').classList.remove('aoi'); if (focus) setFocus(focus); }
+  M.update(dt, cam);
+  if (!AO.out && AO.fade < 1) AO.fade = Math.min(1, AO.fade + dt / 1.4);
+  const dc = Math.hypot(AO.pos.x - P.x, AO.pos.z - P.z), occ = THREE.MathUtils.clamp((dc - 0.8) / 0.6, 0, 1);   /* 見る人のすぐ前では、うすく */
+  const op = Math.min(AO.fade, occ); if (Math.abs(op - AO.op) > 0.004 || (op === 1 && AO.op !== 1) || (op === 0 && AO.op !== 0)) { AO.op = op; aoiOpacity(op); }
+  AO.root.visible = op > 0.02;
+}
 
 /* ── 毎こま ── */
 const clock = new THREE.Clock(); let acc = 0, started = false;
@@ -401,7 +510,7 @@ function frame() {
     if (!RM) {
       const kk = Math.min(1, s.kickT || 0), lv = it.snd ? it.snd.level : 0, Pp = Math.PI * 2, o = it.i * 2.3;
       const dip = Math.pow(Math.max(0, Math.sin(t * 0.093 + o) * Math.sin(t * 0.141 + 2.0 + o)), 3) * 0.14;
-      s.group.position.y = it.y + 0.1 * Math.sin(t * Pp / 4.7 + o) + 0.05 * Math.sin(t * Pp / 2.9 + 1.3 + o) + 0.012 * Math.sin(t * Pp / 1.3 + 0.4) + 0.004 * Math.sin(t * 11.3) * (1 + 3 * lv) - dip - 0.09 * kk * Math.cos(t * 13.0) * kk;
+      s.group.position.y = it.y + 0.17 * Math.sin(t * Pp / 6.3 + o) + 0.07 * Math.sin(t * Pp / 3.7 + 1.3 + o) + 0.012 * Math.sin(t * Pp / 1.3 + 0.4) + 0.004 * Math.sin(t * 11.3) * (1 + 3 * lv) - dip - 0.09 * kk * Math.cos(t * 13.0) * kk;
       s.group.rotation.x = 0.045 * Math.sin(t * Pp / 5.3 + o) + 0.012 * Math.sin(t * Pp / 2.3 + 1.0) + 0.025 * kk * Math.sin(t * 17.0);
       s.group.rotation.z = 0.04 * Math.sin(t * Pp / 6.1 + 1.0 + o) + 0.01 * Math.sin(t * Pp / 1.9) + dip * 0.2 + 0.02 * kk * Math.cos(t * 15.0);
     }
@@ -410,25 +519,27 @@ function frame() {
     if (over > 0 && dist < 14) it.face += Math.sign(e) * over * Math.min(1, dt * 1.2);
     s.group.rotation.y = (RM ? 0 : Math.sin(t * 0.13 + it.i) * 0.1 + Math.sin(t * 0.41 + 1.0 + it.i) * 0.03) + it.face;
     if (room) { litV.set(dx, 0, dz).normalize().multiplyScalar(0.55).add(room.sun).normalize(); s.setLight(litV); }   /* 見る人の側の斜め上からも光を回す（逆光の切り絵にしない） */
-    if (it.wob > 0) {                                          // 触れたあとの揺れ（ばねのように大きく揺れて、なだらかに静まる）
-      it.wob = Math.max(0, it.wob - dt / 3.2); const w = it.wob * it.wob * (RM ? 0.2 : 1), age = (1 - it.wob) * 3.2;
-      s.group.position.y += 0.2 * w * Math.sin(age * 5.2); s.group.rotation.y += 0.2 * w * Math.sin(age * 3.6); s.group.rotation.z += 0.07 * w * Math.sin(age * 6.1); s.group.rotation.x += 0.05 * w * Math.sin(age * 4.4 + 1.0);
-      s.group.scale.setScalar(1 + 0.045 * w * Math.sin(age * 7.5)); s.kickT = Math.max(s.kickT || 0, 0.85 * w);
-    } else if (s.group.scale.x !== 1) s.group.scale.setScalar(1);
+    /* v9 触れたとき：字の形は保ったまま、細かく震える（押しているあいだは震え続け、離すと 1.8 秒で静まる）。崩れ・散り・大きな揺れはしない */
+    if (it.vib > 0) { if (!it.pressed) it.vib = Math.max(0, it.vib - dt / 1.8); }
+    { const w = (it.vib || 0) * (RM ? 0.3 : 1), j = 0.011 * w * w;
+      s.group.position.x = it.x + j * (Math.sin(t * 83.0 + it.i) + 0.5 * Math.sin(t * 131.0)); s.group.position.z = it.z + j * Math.sin(t * 67.0 + 2.1);
+      if (RM) s.group.position.y = it.y; s.group.position.y += j * Math.sin(t * 71.0 + 1.3);
+      if (!RM) s.group.rotation.z += 0.005 * w * w * Math.sin(t * 59.0); if (w > 0) s.kickT = Math.max(s.kickT || 0, 0.6 * w); }
   }
   // さわらないあいだも、近い書はときどき墨が湧く（LIVE）
-  if (closest && idle > 9000 && !closest.pressed && !(closest.hold > 0)) { const ph = (t + closest.i * 5) % 16; closest.sho.target = ph > 6 && ph < 9.5 ? 0.6 : 0; }
+  /* v9 さわらないあいだに墨が湧く（ほどける）のはやめた＝字の形のまま浮かぶ */
   for (const it of works) {
     if (!it.live || !it.sho) continue;
     const near = it === closest || (it.kickAt && now - it.kickAt < 4000);
-    const amp = it.live.update(t, dt, it.snd ? it.snd.level : 0, Math.min(1, Math.max(it.sho.kickT || 0, it.wob || 0)), near && it.snd && it.snd.running ? it.snd.wave() : null, near ? room && room.group : null, cam);
+    const amp = it.live.update(t, dt, it.snd ? it.snd.level : 0, Math.min(1, Math.max(it.sho.kickT || 0, it.vib || 0)), near && it.snd && it.snd.running ? it.snd.wave() : null, near ? room && room.group : null, cam);
     if (near) shakeAmp = Math.max(shakeAmp, amp);
-    if (it.snd) pulse(now, near ? Math.abs(it.sho.state.du) * 1.6 + (it.sho.state.u > 0.3 ? it.snd.level * 0.6 : 0) : 0);
+    if (it.snd && it.vib > 0.15) pulse(now, it.vib * 0.7);   /* 震えているあいだ、端末も細かく震える（無い端末は光の輪） */
   }
   if (room) room.update(t);
+  aoiTick(dt);
   if (shakeAmp > 0) cam.position.add(tmpV.set(Math.sin(t * 71) * shakeAmp * 0.4, Math.cos(t * 67) * shakeAmp * 0.4, 0));
   dof.render(scene, cam, focusDist());
-  if (!started) { started = true; window.MLLoader?.done(); window.__shoReady = performance.now(); later().then(hiAll); }
+  if (!started) { started = true; window.MLLoader?.done(); window.__shoReady = performance.now(); later().then(hiAll).then(loadAoi); }
 }
 function focusDist() {                                         // 画面の中央に見えている書の距離（無ければ近い書）
   rc.setFromCamera(ndc.set(0, 0), cam); let best = 1e9;

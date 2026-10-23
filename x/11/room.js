@@ -15,7 +15,7 @@ export const ROOMS = {
   '020': { win: 'top', sun: 1.45, haze: 0.08, fog: 0.03, walls: ['wood', 'shoji', 'wood', 'plaster'], dust: 1.4, expo: 1.05 },
   '025': { win: 'n', sun: 0.6, haze: 0.06, fog: 0.05, walls: ['wood', 'wood', 'wood', 'shoji'], dust: 0.6, expo: 0.8 },
   '027': { win: 'top', sun: 1.25, haze: 0.06, fog: 0.035, walls: ['plaster', 'shoji', 'shoji', 'shoji'], glow: [0, 0.7, 0.95, 0.5], wide: [0, 1, 2, 3], dust: 1.0, expo: 0.95, tall: true },   // v5.4 西は漆喰の壁（古寺らしさ。板壁だと墨が闇に溶けた）・障子の明るさは面ごとに違う（東が明るく、南は暗め）・北（正面の奥）は中の柱を外して、上の点の後ろに柱が来ない
-  hall: { win: 'top', sun: 1.35, haze: 0.05, fog: 0.03, walls: ['plaster', 'shoji', 'shoji', 'shoji'], glow: [0, 0.36, 0.5, 0.3], wide: [0, 1, 2, 3], dust: 1.4, expo: 0.9, tall: true, shojiK: 0.78, noSky: true },   /* v8 障子をもう一段落とす・天窓の白い四角を出さない（光は天井の上から） */   /* 障子を一段落とす（墨の階調が白飛びの前で潰れない） */   // v7 一つの広間（027 の部屋の作りを広げた。西は漆喰＝紙の原本を掛ける）
+  hall: { win: 'top', sun: 1.35, haze: 0.05, fog: 0.03, walls: ['plaster', 'shoji', 'shoji', 'shoji'], glow: [0, 0.36, 0.5, 0.3], wide: [0, 1, 2, 3], dust: 1.4, expo: 0.9, tall: true, shojiK: 0.78, noSky: true, niches: [{ side: 1, x: 3.2, w: 3.0 }, { side: 2, x: -1.9, w: 2.8 }] },   /* v9 北（027 の紙）と東（025 の紙）に漆喰の壁 */   /* v8 障子をもう一段落とす・天窓の白い四角を出さない（光は天井の上から） */   /* 障子を一段落とす（墨の階調が白飛びの前で潰れない） */   // v7 一つの広間（027 の部屋の作りを広げた。西は漆喰＝紙の原本を掛ける）
   '034': { win: 'w', sun: 1.15, haze: 0.05, fog: 0.04, walls: ['shoji', 'shoji', 'plaster', 'shoji'], dust: 0.7, expo: 1.1 },
   '035': { win: 'e', sun: 1.5, haze: 0.06, fog: 0.035, walls: ['shoji', 'shoji', 'open', 'wood'], dust: 1.2, expo: 1.1 },
   '038': { win: 'w', sun: 0.9, haze: 0.05, fog: 0.045, walls: ['wood', 'shoji', 'wood', 'shoji'], dust: 0.6, expo: 0.8, pulse: true },
@@ -158,6 +158,12 @@ export function buildRoom(id, { mobile, tex }) {
     for (const x of (cfg.wide && cfg.wide.includes(i) ? (i === 1 ? [-HALF + 0.12, -HALF * 0.88, HALF * 0.88, HALF - 0.12] : [-HALF + 0.12, HALF - 0.12]) : [-HALF + 0.12, -HALF / 3, HALF / 3, HALF - 0.12])) { const pw = cfg.glow && Math.abs(Math.abs(x) - HALF * 0.88) > 0.05 ? 0.13 : 0.26;   /* 北の面だけ、書の真後ろから外れた所に太い柱を二本（古寺の骨格） */ const c = new THREE.Mesh(new THREE.BoxGeometry(pw, H, pw), woodMat); c.position.set(x, H / 2, 0.08); wall.add(c); }
     const nage = new THREE.Mesh(new THREE.BoxGeometry(HALF * 2, 0.2, 0.12), darkMat); nage.position.set(0, cfg.glow ? H - 0.35 : H - 0.9, 0.12);   /* 障子に囲まれた部屋は、柱を細く・長押を天井ぎわへ（上の塊の後ろに太い木を通さない） */ wall.add(nage);
     const shiki = new THREE.Mesh(new THREE.BoxGeometry(HALF * 2, 0.1, 0.18), darkMat); shiki.position.set(0, 0.05, 0.1); wall.add(shiki);
+    /* v9（10-23 本人「紙の作品を壁に飾ってください」）：障子の面に、紙の原本を掛ける漆喰の壁を一間ぶん（両脇に柱） */
+    for (const nc of (cfg.niches || []).filter(n => n.side === i)) {
+      const nm = Object.assign(plasterMat.clone(), { color: new THREE.Color(0xd8d2c8), emissive: new THREE.Color(0xa69e90), emissiveMap: plasterMat.map, emissiveIntensity: 1.0 });
+      const pl = new THREE.Mesh(new THREE.PlaneGeometry(nc.w, H - 0.3), nm); pl.position.set(nc.x, (H - 0.3) / 2, 0.06); wall.add(pl);
+      for (const sx of [-1, 1]) { const c = new THREE.Mesh(new THREE.BoxGeometry(0.14, H, 0.14), woodMat); c.position.set(nc.x + sx * (nc.w / 2 + 0.07), H / 2, 0.1); wall.add(c); }
+    }
     g.add(wall);
   });
 

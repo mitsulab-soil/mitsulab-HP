@@ -118,7 +118,7 @@ export function createSho(THREE, map, opts = {}) {
     transparent: TRANS, depthWrite: MID !== 4,
     vertexShader: /* glsl */`
       uniform sampler2D uMap, uDet; uniform float uThick, uSide, uTime, uLevel, uU, uDepth, uSeed, uKeep, uHasDet; uniform vec2 uTexel, uWH, uTouch; uniform float uPull, uPullS; uniform sampler2D uIsl; uniform float uHasIsl, uFloat;
-      varying vec2 vUv; varying vec3 vView; varying float vG, vGg; varying vec3 vNX, vNY, vNZ, vNg; varying vec2 vDs; varying vec3 vPm; varying float vPl; varying float vBk;
+      varying vec2 vUv; varying vec3 vView; varying float vG, vGg; varying vec3 vNX, vNY, vNZ, vNg; varying vec2 vDs; varying vec3 vPm; varying float vPl; varying float vBk; varying vec2 vCr;
       // 奥行きの場：筆の流れ（左上→右下）に沿って、画が前後へゆるく曲がる（書の形は正面から見ると変わらない）
       // 液体の墨（v1.5）：時間とともにうねる奥行き（無重力の中でゆっくり波打つ）。uFlow＝うねりの強さ、uKick＝触れた・音の強さ
       uniform float uFlow, uKick; uniform float uMat; uniform float uBurstA;
@@ -137,7 +137,7 @@ export function createSho(THREE, map, opts = {}) {
         float pullZ = uPull * uPullS * 0.7 * exp(-td * td * 3.0);   /* 押しているあいだ、墨が指のほうへ引かれて伸びる（離すとぶるんと戻る） */
         return pullZ + dField(q) + uSide * h * (1.0 + 0.12 * uU * sin(uTime * 3.0 + q.x * 9.0) + 0.14 * sin(uTime * 1.3 + q.x * 6.0 + q.y * 4.0) + 0.22 * uKick * (0.6 * sin(uTime * 31.0 + q.y * 40.0 + 2.5 * sin(q.y * 13.0 + uSeed)) + 0.4 * sin(uTime * 23.0 + q.y * 67.0 + q.x * 11.0)) * (0.5 + 0.5 * g)); }   /* v1.9 震えの周期を不揃いに・縁で半分（押したとき縁が鋸歯にならない） */   // 表面張力でふくらみ、音で震える
       void main(){
-        vBk = 0.0; vUv = uv; vNX = normalMatrix * vec3(1.,0.,0.); vNY = normalMatrix * vec3(0.,1.,0.); vNZ = normalMatrix * vec3(0.,0.,1.); vec4 m = texture2D(uMap, uv); vG = m.g; vGg = clamp((m.g - 0.1) / 0.9, 0.0, 1.0);
+        vBk = 0.0; vCr = vec2(0.0); vUv = uv; vNX = normalMatrix * vec3(1.,0.,0.); vNY = normalMatrix * vec3(0.,1.,0.); vNZ = normalMatrix * vec3(0.,0.,1.); vec4 m = texture2D(uMap, uv); vG = m.g; vGg = clamp((m.g - 0.1) / 0.9, 0.0, 1.0);
         vec3 p = position;
         float sway = sin(p.x * 5.0 + uTime * 7.0) * sin(p.y * 4.0 - uTime * 5.0);
         p.z = zAt(uv) + uLevel * 0.02 * sway * m.r;
@@ -176,8 +176,8 @@ export function createSho(THREE, map, opts = {}) {
             float S = smoothstep(0.0, 0.32, A2) * (1.0 - smoothstep(0.75, 3.1, A2)); S = S * S * (3.0 - 2.0 * S);
             vec2 dir = normalize(cq + (vec2(hs2, hs) - 0.5) * 0.9 + vec2(0.0, 0.25));
             float dist = (0.3 + 0.95 * hs2) * (0.7 + 0.5 * exp(-cl * 0.5));
-            vec2 rq = p.xy - ccL; float an = (hs2 - 0.5) * 1.3 * S; rq = mat2(cos(an), sin(an), -sin(an), cos(an)) * rq;
-            p.xy = ccL + rq + dir * dist * S; p.z += S * (uPullS * (0.2 + 0.5 * hs) + rq.x * (hs - 0.5) * 0.5); vBk = S * (1.0 + hs); } }
+            vec2 rq = p.xy - ccL; vCr = rq / 0.21; float an = (hs2 - 0.5) * 1.3 * S; rq = mat2(cos(an), sin(an), -sin(an), cos(an)) * rq;
+            p.xy = ccL + rq + dir * dist * S; p.z += S * uPullS * (0.2 + 0.5 * hs); p.xy -= rq * 0.35 * S; vBk = S * (1.0 + hs); } }   /* v3.3b かけらは平たく回さず、表面張力で丸く縮んだ墨の滴に */
         vNg = vNZ;   // 面の向きは画素ごとに求める（頂点では計算しない＝軽い）
         vec2 ed = vec2(0.004, 0.004); vDs = vec2((dField(uv + vec2(ed.x, 0.)) - dField(uv - vec2(ed.x, 0.))) / (2.0 * ed.x * uWH.x), (dField(uv + vec2(0., ed.y)) - dField(uv - vec2(0., ed.y))) / (2.0 * ed.y * uWH.y));
         { vec2 dqw = (uv - uTouch) * uWH; vPl = uPull * exp(-dot(dqw, dqw) * 3.0); vDs += uPull * uPullS * 0.7 * exp(-dot(dqw, dqw) * 3.0) * (-6.0) * dqw; }   /* 引かれた形の傾きも陰影に入れる（平らな板に見せない） */   // 奥行きの場の傾き（なめらかなので頂点で）
@@ -189,7 +189,7 @@ export function createSho(THREE, map, opts = {}) {
       uniform sampler2D uMap, uEnv; uniform vec2 uTexel; uniform float uThick, uSide, uU, uHasEnv, uEnvGain, uFiber, uMat, uTime, uSeed, uHasDet; uniform sampler2D uDet; uniform vec2 uDetTexel;
       #define uSeed2 uSeed
       uniform vec3 uInk, uGlow, uTint, uLight; uniform float uEdge, uDeep, uRim, uInkCap;
-      varying vec2 vUv; varying vec3 vView; varying float vG, vGg; varying vec3 vNX, vNY, vNZ, vNg; varying vec2 vDs; varying vec3 vPm; varying float vPl; varying float vBk;
+      varying vec2 vUv; varying vec3 vView; varying float vG, vGg; varying vec3 vNX, vNY, vNZ, vNg; varying vec2 vDs; varying vec3 vPm; varying float vPl; varying float vBk; varying vec2 vCr; uniform float uBurstA;
       uniform float uKeep, uDepth; uniform vec2 uWH;
       // 面の向きは画素ごとに求める（頂点の網の段が、ふちで縞にならないように）
       float dF(vec2 q){ return uDepth * (0.45 * sin(q.x * 4.3 + uSeed2) * cos(q.y * 3.7 + uSeed2 * 1.7) + 0.35 * sin((q.x * 0.62 + (1.0 - q.y) * 0.38) * 6.2 + uSeed2 * 2.3) + 0.2 * sin(q.y * 7.1 - q.x * 2.0 + uSeed2 * 3.1)); }
@@ -208,8 +208,10 @@ export function createSho(THREE, map, opts = {}) {
         float aw = clamp(fwidth(m.r) * 0.75, 0.004, 0.08);   /* 真横（かすめる角度）でも透けない */
         float cov = smoothstep(0.5 - aw, 0.5 + aw, m.r);
         { vec2 ux = dFdx(vUv) * uWH, uy = dFdy(vUv) * uWH; float sx = length(dFdx(vPm.xy)) / max(length(ux), 1e-6), sy = length(dFdy(vPm.xy)) / max(length(uy), 1e-6);
-          if (max(sx, sy) > 3.0) discard; }
-        if (fwidth(vBk) > 0.0004) discard;   /* v3.3 散った区画の境（ちがう区画をつなぐ三角形）は描かない＝ちぎれた墨のかけらになる */   /* 漂う墨と本体のあいだで伸びた三角形（空中の針の線）は描かない：面の中で uv の割に大きく伸びた所 */
+          if (max(sx, sy) > (uBurstA < 4.0 ? 1.7 : 3.0)) discard; }   /* v3.3b 崩れているあいだは、少し伸びた三角形（棒・糸の線）も描かない */
+        if (fwidth(vBk) > 0.0004) discard;
+        if (vBk > 0.002) { float sB = vBk - floor(vBk); float rr = length(vCr) + 0.12 * (vn(vCr * 5.0 + sB * 9.0) - 0.5); if (rr > mix(0.62, 0.36, smoothstep(0.0, 0.6, vBk))) discard; }   /* 散ったかけらは丸い滴の形（角のある板・ガラスの破片にしない） */
+        if (uBurstA < 4.0) { float s3 = length(dFdx(vPm)) / max(length(dFdx(vUv) * uWH), 1e-6); if (s3 > 14.0 && vBk < 0.002 && fwidth(vPm.z) > 0.02) discard; }   /* 崩れているあいだに伸びた一本の棒を描かない */   /* v3.3 散った区画の境（ちがう区画をつなぐ三角形）は描かない＝ちぎれた墨のかけらになる */   /* 漂う墨と本体のあいだで伸びた三角形（空中の針の線）は描かない：面の中で uv の割に大きく伸びた所 */
         vec3 gnm = normalize(cross(dFdx(vPm), dFdy(vPm)));   /* 網の面の向き：表と裏をつなぐ側面（ふちの壁）は切らない＝横から見て中が抜けない */
         float wallK = 1.0 - smoothstep(0.3, 0.65, abs(gnm.z));
         float wallC = wallK * (1.0 - smoothstep(0.35, 0.6, m.r));   /* v2.2 色の上では、側面は原本の形の外側だけ（三角形ごとの判定が縁の内側に階段の帯を作っていた） */
