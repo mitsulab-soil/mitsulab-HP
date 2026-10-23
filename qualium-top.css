@@ -674,3 +674,5 @@ html[lang="en"] .ql-in{font-family:var(--latin);font-size:13px;letter-spacing:0}
   .qm-tier{margin-bottom:56px}
   .qm-d>p:not(.qm-dk),.qm-ul li{font-size:14.5px}
 }
+/* 採点の P2：PC の層の 3D の左の目盛りが木の葉に重なって読みにくい → 地を濃く・字を明るく */
+.qt-depth li{color:#a9b6cc}.qt-depth li>span:not(.qd-n){background:rgba(3,6,15,.86)}.qt-depth li.on{color:#d6ece8}

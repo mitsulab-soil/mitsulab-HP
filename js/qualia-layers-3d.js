@@ -200,7 +200,7 @@ export async function boot(stage) {
   });
 
   // 碧（中央に立つ）：冒頭の場と同じ VRM のバイト列を使い回す
-  let mot = null, vrm = null;
+  let mot = null, vrm = null, aoiPivot = null, aoiFrames = 0;   // 2026-10-23 採点の P1：動きを当てる前の T ポーズを見せない（動きを当て終えて数こま回してから出す）
   (async () => {
     try {
       const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm')]);
@@ -209,7 +209,7 @@ export async function boot(stage) {
       const g = await L.parseAsync(buf.slice(0), '');
       vrm = g.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(g.scene); V.VRMUtils.rotateVRM0(vrm);
       vrm.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-      const pivot = new THREE.Group(); pivot.add(vrm.scene); S.add(pivot);
+      const pivot = new THREE.Group(); pivot.add(vrm.scene); pivot.visible = false; aoiPivot = pivot; S.add(pivot);
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);
       const bb = new THREE.Box3().setFromObject(vrm.scene), h = bb.max.y - bb.min.y;
       const s = 6.4 / h; pivot.scale.setScalar(s);    // 2026-10-20 夜 本人「碧は上へ上がっていかず、重なりに覆いかぶさるように」：重なりの奥に大きく立ち、層の上から見下ろす
@@ -301,7 +301,7 @@ export async function boot(stage) {
     const ang = -.62, rad = mobile ? 17.5 : 19.5, br = reduce ? 0 : Math.sin(t * .5) * .06;
     cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 5.2 : 4.6) + br, Math.cos(ang) * rad);
     cam.lookAt(.9, lookY - (mobile ? .55 : 0), -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
-    if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam, { vrmUpdate: false }); stand(); vrm.update(dt); mot.afterVrmUpdate(dt); }
+    if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam, { vrmUpdate: false }); stand(); vrm.update(dt); mot.afterVrmUpdate(dt); if (aoiPivot && !aoiPivot.visible && ++aoiFrames > 3) aoiPivot.visible = true; }
     R.render(S, cam);
     placeTag();
     fps.n++; if (now - fps.t > 1000) { fps.v = Math.round(fps.n * 1000 / (now - fps.t)); fps.n = 0; fps.t = now; }
