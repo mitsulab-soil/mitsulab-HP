@@ -17,7 +17,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261023f";
+const VER = "20261023k";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -217,7 +217,7 @@ const LAYER = { worn: [], objs: [] };
 /* 2026-10-23 本人「sight, touch, sound, nature, culture です」→ 層は 5 つ。Qualia/sho は sound の中、歴史は culture の中（中身はそのまま・どの層で重ねるかだけを付け替える） */
 const PARENT = { sho: "sound", history: "culture" }, SUBNAME = { sho: "sho", history: "history" };
 const top5 = id => PARENT[id] || id;
-const COLOR5 = { sight: "#b9b0dc", touch: "#f0d19d", sound: "#9eaad6", nature: "#88b68f", culture: "#e79592" };   // 2026-10-23 層の 5 色（案 10：藤鼠・砥粉・藍鉄・老竹・小豆。体の色を抑えた組の、夜の地の HUD の線と字の列＝ここ）
+const COLOR5 = { sight: "#c9abe0", touch: "#f0d19d", sound: "#8fb6dc", nature: "#88b68f", culture: "#e79592" };   // 2026-10-23 本人「案１０で採用」：層の 5 色＝案 10（体の色：藤鼠 #a59fc3・砥粉 #d6c09b・藍鉄 #3a4360・老竹 #6c8d71・小豆 #864e4c）の、夜の地の HUD の線と字の列。sight と sound は夜の地で色相が近かったので、HUD の色だけ紫と青へ少し離した（体の色は変えない）
 function layerNo(id) { return ALL.findIndex(l => l.id === top5(id)) + 1; }
 function buildObjs() {
   const rec = Object.fromEntries(C.layers.map(l => [l.id, l])), q = Object.fromEntries(QLAYERS.map(l => [l.id, { ...l, lead: C.ql[l.id] || l.lead }]));
@@ -236,7 +236,7 @@ function buildObjs() {
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
 }
-function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); }
+function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();
 function stepLayer(dt) {
   const cp = camera.position, t = performance.now() / 1000, sky = QW.mode === "sky" || QW.mode === "descend";
@@ -289,7 +289,7 @@ function openPanel({ color, layer, title, lines = [], more = [], how, note, src 
   $("#pPos").textContent = ll ? `位置：${ll[1].toFixed(5)}N ${ll[0].toFixed(5)}E` : "";
   p.hidden = false; document.body.classList.add("pOpen");
 }
-function hidePanel() { if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); PANEL.cur = null; stopVoice(); TOUCH.stop?.(); }
+function hidePanel() { if (KASA.cur) { KASA.herd?.release(KASA.cur); KASA.cur = null; } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); PANEL.cur = null; stopVoice(); TOUCH.stop?.(); }
 $("#pClose").addEventListener("click", hidePanel);
 function openObj(L) {
   PANEL.cur = L; const g = GL[L.layer], no = `${String(layerNo(L.layer)).padStart(2, "0")}　${g.name}`;
@@ -508,11 +508,63 @@ addEventListener("blur", () => KEYS.clear());
 function tap(x, y) {
   if (QW.mode === "sky") { let bi = -1, bd = 60; START.pins.forEach((p, i) => { p.head.getWorldPosition(_v); _v.project(camera); const sx = (_v.x + 1) / 2 * innerWidth, sy = (1 - _v.y) / 2 * innerHeight, d = Math.hypot(sx - x, sy - y); if (d < bd) { bd = d; bi = i; } }); if (bi >= 0) selectStart(bi); return; }
   if (QW.mode !== "walk") return;
+  if (KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   const L = pickObj(x, y); if (L) { openObj(L); return; }
   const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
   const hit = r.intersectObject(QW.terrain, false)[0]; if (hit && hit.distance < 60) { WALK.goal = hit.point.clone(); corridorClamp(WALK.goal); showGoal(WALK.goal); }
 }
 function showGoal(p) { if (!WALK.ring) { WALK.ring = new THREE.Mesh(new THREE.RingGeometry(.28, .36, 40), new THREE.MeshBasicMaterial({ color: "#7fe3f7", transparent: true, opacity: .85, depthWrite: false })); WALK.ring.rotation.x = -Math.PI / 2; world.add(WALK.ring); } WALK.ring.position.set(p.x, groundY(p.x, p.z) + .06, p.z); WALK.ring.visible = true; }
+
+/* ---------- かさねっこ（小さな環境エージェント）：層の地点のそばに、その層の色の子がいる（2026-10-23 本人「かさねっこを、川越と氷川にたくさん入れてください」）
+   触れると、点の吹き出しで応え、碧がその地点の典拠つきの記録を訳して読む（いまの札と声の仕組み）。蔵や町家の角から覗く・層の地点へ案内する（一度したら、しばらく来ない）。
+   歩くのは通りの上だけ（店蔵・町家・時の鐘の中には入らない）。遠くは描かず、起動のあと（降りてから）読む。部品＝web/kit/envAgents/kasane.js */
+const KASA = { herd: null, p: null, cur: null, n: 0 };
+function kasaBox(x, z, r = .25) {   // 店蔵・町家・時の鐘の箱の中か
+  const inb = (cx, cz, yaw, hw, hd) => { const c = Math.cos(yaw), s = Math.sin(yaw), dx = x - cx, dz = z - cz, lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) < hw + r && Math.abs(lz) < hd + r; };
+  for (const k of G.kura) if (Math.abs(k.x - x) < 14 && Math.abs(k.z - z) < 14 && inb(k.x, k.z, k.yaw, k.w / 2, k.dp / 2 + .9)) return true;
+  for (const k of G.machi || []) if (Math.abs(k.x - x) < 14 && Math.abs(k.z - z) < 14 && inb(k.x, k.z, k.yaw, k.w / 2, k.dp / 2 + .6)) return true;
+  if (KURA.tower && inb(KURA.tower.position.x, KURA.tower.position.z, KURA.tower.rotation.y, 2.4, 2.4)) return true;
+  return false;
+}
+function kasaOk(x, z) { return nearestOnLine(x, z).dist < 5 && !kasaBox(x, z); }   // 通りの中ほど（両側の建物の前まで出ない）
+function kasaPeek(x, z) { return nearestOnLine(x, z).dist < 11 && !kasaBox(x, z, .02); }   // 覗く所：建物の角のすぐ脇
+function loadKasane() {
+  if (KASA.p) return KASA.p;
+  return KASA.p = (async () => {
+    const M = await import("../kit/envAgents/kasane.js?v=20261023m");
+    const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 28 });
+    const near = (x, z, Rm = 9) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
+    // 物陰：通りに面した店蔵・町家の角（角から 0.35 m 内側を物陰の中心とみなす）
+    const covers = [];
+    for (const k of [...G.kura, ...(G.machi || [])]) { const c = Math.cos(k.yaw), s = Math.sin(k.yaw), hw = k.w / 2 - .35, hd = k.dp / 2 - .35;
+      for (const [lx, lz] of [[hw, hd], [-hw, hd], [hw, -hd], [-hw, -hd]]) { const x = k.x + lx * c + lz * s, z = k.z - lx * s + lz * c; if (nearestOnLine(x, z).dist < 10) covers.push({ x, z, r: .38 }); } }
+    const coverNear = (x, z) => { let best = null, bd = 16; for (const c of covers) { const d = Math.hypot(c.x - x, c.z - z); if (d < bd && d > 2 && [0, 1, 2, 3, 4, 5, 6, 7].filter(i => kasaPeek(c.x + Math.cos(i * .785) * (c.r + .1), c.z + Math.sin(i * .785) * (c.r + .1))).length >= 2) { bd = d; best = c; } } return best; };
+    const usedC = new Set(); let k = 0; const crowd = (x, z) => herd.agents.filter(a => Math.hypot(a.anchor.x - x, a.anchor.y - z) < 11).length >= 5;   // 時の鐘のまわりのように地点が集まる所は、5 体まで
+    const objs = LAYER.objs.filter(L => L.kind !== "sho" || true).map(L => ({ L, d: nearestOnLine(L.o.x, L.o.z).d })).sort((a, b) => a.d - b.d);
+    // 2026-10-23 本人「一人より、群れでわちゃわちゃしている方が可愛い」＝地点ごとに 3〜5 体の群れ（近くの地点の層の子も混ざる）。地点が集まる所は 12 m に一つの群れまで
+    const centers = [];
+    for (const { L } of objs) {
+      k++; const p = near(L.o.x, L.o.z); if (!p || centers.some(c => Math.hypot(c[0] - p[0], c[1] - p[1]) < 12)) continue; centers.push(p);
+      const n = 3 + (k % 3), others = objs.map(o => o.L).filter(o => o !== L && Math.hypot(o.o.x - L.o.x, o.o.z - L.o.z) < 30), mem = [{ layer: top5(L.layer), data: L, target: { x: L.o.x, z: L.o.z } }];
+      for (let m = 1; m < n; m++) { const O = others.length && m % 2 ? others[(k + m) % others.length] : L; mem.push({ layer: top5(O.layer), data: O, target: { x: O.o.x, z: O.o.z } }); }
+      const G = herd.addGroup(mem, { x: p[0], z: p[1], radius: 2.6, role: k % 3 === 0 ? "watch" : "" }); for (const a of G.members) a.d = nearestOnLine(p[0], p[1]).d;
+    }
+    // 地点のない区間（本川越駅から夢通りなど）にも：通り全体の記録（台地の上の通り）の子と、生きもの（Qualia/sight）へ誘う子の群れを 34 m ごとに
+    const daichi = LAYER.objs.find(L => L.o.id === "n_daichi"), endD = G.lineD[G.lineD.length - 1]; let g = 0;
+    for (let d = 15; d < endD - 6 && daichi; d += 34) {
+      if (herd.agents.some(a => a.d != null && Math.abs(a.d - d) < 22)) continue;
+      const c = atD(d), side = (g % 2 ? 1 : -1) * 1.5, p = near(c.x + c.tz * side, c.z - c.tx * side, 4); if (!p) continue; g++;
+      const mem = [{ layer: "nature", data: daichi }, { layer: "sight", data: { sightPick: true } }, { layer: "nature", data: daichi }]; if (g % 2) mem.push({ layer: "sight", data: { sightPick: true } });
+      const G2 = herd.addGroup(mem, { x: p[0], z: p[1], radius: 2.6, role: g % 3 === 0 ? "watch" : "" }); for (const a of G2.members) a.d = d;
+    }
+    KASA.n = herd.agents.length; QW.KASA = KASA; herd.setLayers(LAYER.worn);
+    await herd.load();
+  })().catch(e => console.warn("かさねっこ：", e?.message ?? e));
+}
+function touchKasane(a) {
+  KASA.cur = a; KASA.herd.touch(a, () => { if (KASA.cur !== a || QW.mode !== "walk") return; if (a.data?.sightPick) { KASA.herd.release(a); KASA.cur = null; openSightChooser(); return; } openObj(a.data); KASA.cur = a; a.state = "focus"; a.focusTo = new THREE.Vector2(camera.position.x, camera.position.z);
+    if (AOI.m) { const p = a.center(new THREE.Vector3()); AOI.focus = p; AOI.m.lookAt(p); setTimeout(() => { if (AOI.focus === p) { AOI.focus = null; AOI.m?.lookAt(camera.position.clone()); } }, 1600); } });
+}
 
 /* ---------- Qualia/sight：いまいる所で、生きものの身体に入れ替わる（動くのは見る人の操作だけ） ---------- */
 const SIGHT = { sp: null, post: null, fwd: false };
@@ -609,7 +661,7 @@ const WAVE = { rings: [], on: false, t0: 0,
   stop() { this.on = false; for (const r of this.rings) world.remove(r); this.rings.length = 0; },
   step() { if (!this.on || !KURA.tower) return; const t = performance.now() / 1000 - this.t0;
     for (const k of [0, 7, 14]) { const age = t - k; let r = this.rings[k / 7]; if (age < 0) continue;
-      if (!r) { r = new THREE.Mesh(new THREE.RingGeometry(.96, 1, 128), new THREE.MeshBasicMaterial({ color: "#9eaad6", transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false })); r.rotation.x = -Math.PI / 2; r.position.set(KURA.tower.position.x, KURA.bellY - 2, KURA.tower.position.z); world.add(r); this.rings[k / 7] = r; }
+      if (!r) { r = new THREE.Mesh(new THREE.RingGeometry(.96, 1, 128), new THREE.MeshBasicMaterial({ color: "#8fb6dc", transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false })); r.rotation.x = -Math.PI / 2; r.position.set(KURA.tower.position.x, KURA.bellY - 2, KURA.tower.position.z); world.add(r); this.rings[k / 7] = r; }
       const R = age * 340 * .25 + 1; r.scale.setScalar(R); r.material.opacity = Math.max(0, .7 * (1 - age / 8)); }
     if (t > 24) this.stop(); } };
 
@@ -676,7 +728,7 @@ function syncAutoBtn() { const b = $("#autoBtn"); b.setAttribute("aria-pressed",
 $("#autoBtn").addEventListener("click", () => { WALK.auto = !WALK.auto; WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; syncAutoBtn(); });
 $("#sightX").addEventListener("click", () => { $("#sightBox").hidden = true; });
 $("#lsHead").addEventListener("click", () => { const c = $("#lstack").classList.toggle("closed"); $("#lsHead").setAttribute("aria-expanded", String(!c)); });
-$("#lsAll").addEventListener("click", () => { LAYER.worn = ALL.map(l => l.id); syncTray(); });
+$("#lsAll").addEventListener("click", () => { LAYER.worn = ALL.map(l => l.id); syncTray(); KASA.herd?.setLayers(LAYER.worn); });
 $("#lsNone").addEventListener("click", () => wearLayer(null));
 if (innerWidth < 640) { $("#lstack").classList.add("closed"); $("#lsHead").setAttribute("aria-expanded", "false"); }
 let unlocked = false;
@@ -767,7 +819,7 @@ function frame() {
   if (!RM) BLDU.t.value += dt;
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
-  stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step();
+  stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden });
   if (KURA.tags) stepTag();
   if (QW.mode === "walk") stepAoi(dt);
   if (QW.mode === "sight") stepBody(dt);
@@ -794,6 +846,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);
+    setTimeout(loadKasane, 3000);
     setTimeout(() => { loadAoi(); fetch("web/app/lip.json?v=" + VER).then(r => r.json()).then(j => { LIP = j; }).catch(() => { }); }, 500);
     const s0 = Q.get("start"); if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
   } catch (e) { console.error(e); status("読み込めませんでした。ページを開きなおしてください。"); }

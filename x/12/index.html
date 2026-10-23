@@ -10,8 +10,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261023a" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261023a" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261023k" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261023k" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
@@ -130,12 +130,12 @@ body[data-mode="boot"] #lstack{display:none}
 }
 #sightBox{position:fixed;z-index:8;left:50%;transform:translateX(-50%);top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:min(520px,calc(100% - 32px));max-height:calc(100% - 140px);overflow:auto}
 #sightBox .hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-#sightBox h2{font-family:var(--ml-latin);font-style:italic;font-weight:500;font-size:19px;margin:0;color:#b9b0dc;display:grid;gap:2px}
+#sightBox h2{font-family:var(--ml-latin);font-style:italic;font-weight:500;font-size:19px;margin:0;color:#c9abe0;display:grid;gap:2px}
 #sightBox h2 small{font:500 12px/1.3 var(--serif);font-style:normal;color:var(--ml-ink-2);letter-spacing:.1em}
 #sightX{margin-left:auto;min-width:44px;min-height:44px}
 #sightList{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .spBtn{appearance:none;text-align:left;display:grid;gap:2px;padding:9px 12px;min-height:64px;background:rgba(196,178,255,.06);border:1px solid rgba(196,178,255,.32);border-radius:var(--ml-radius);cursor:pointer;color:var(--ml-ink)}
-.spBtn .sk{font:400 9.5px/1.2 var(--ml-mono);letter-spacing:.2em;color:#b9b0dc}
+.spBtn .sk{font:400 9.5px/1.2 var(--ml-mono);letter-spacing:.2em;color:#c9abe0}
 .spBtn .sn{font-family:var(--serif);font-size:15px;letter-spacing:.1em}
 .spBtn .sl{font-size:12px;line-height:1.45;color:var(--ml-ink-2)}
 @media (max-width:560px){#sightList{grid-template-columns:1fr}}
@@ -144,8 +144,8 @@ body[data-mode="boot"] #lstack{display:none}
 .tpad span{position:absolute;left:8px;bottom:6px;font:400 10px/1 var(--ml-mono);letter-spacing:.16em;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none}
 .tpad i{position:absolute;left:50%;top:50%;width:46px;height:46px;border:1.5px solid #fff;border-radius:50%;opacity:0;transform:translate(-50%,-50%);pointer-events:none;transition:opacity .15s;box-shadow:0 0 14px rgba(255,255,255,.6)}
 /* 鳴っている音の札（その場で録った音／ほかの場所で録った同じ種類の音／再現音／詩の音） */
-#sndTag{position:fixed;right:var(--g);top:calc(max(12px,env(safe-area-inset-top)) + 62px);z-index:5;max-width:min(360px,calc(100% - 100px));padding:7px 10px 7px 12px;font:500 11.5px/1.55 var(--serif);letter-spacing:.06em;color:var(--ml-ink);background:rgba(3,6,15,.6);border-right:2px solid #9eaad6;text-align:right;pointer-events:none}
-#sndTag::before{display:block;font:400 8.5px/1.4 var(--ml-mono);letter-spacing:.3em;color:#9eaad6}
+#sndTag{position:fixed;right:var(--g);top:calc(max(12px,env(safe-area-inset-top)) + 62px);z-index:5;max-width:min(360px,calc(100% - 100px));padding:7px 10px 7px 12px;font:500 11.5px/1.55 var(--serif);letter-spacing:.06em;color:var(--ml-ink);background:rgba(3,6,15,.6);border-right:2px solid #8fb6dc;text-align:right;pointer-events:none}
+#sndTag::before{display:block;font:400 8.5px/1.4 var(--ml-mono);letter-spacing:.3em;color:#8fb6dc}
 #sndTag[data-k="poem"]{border-color:#e6d3ff}#sndTag[data-k="poem"]::before{content:"QUALIA/SOUND　POEM";color:#e6d3ff}
 #sndTag[data-k="re"]::before{content:"QUALIA/SOUND　RE-CREATION"}#sndTag[data-k="rec"]::before{content:"QUALIA/SOUND　RECORDING"}
 body[data-mode="sight"] #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 190px)}
@@ -160,10 +160,10 @@ body.pOpen #sndTag{display:none!important}
 .mapLabel.k-torii{font-size:13px;font-weight:600;color:#fff;padding:3px 8px 3px 10px;background:rgba(150,40,30,.55);border-left:2px solid #ff8a6e;margin:-12px 0 0 6px}.mapLabel.k-torii::before{display:none}
 .mapLabel.k-here{font-size:13px;font-weight:600;color:#03060f;background:#fff;padding:4px 9px;margin:-14px 0 0 8px}.mapLabel.k-here::before{display:none}
 /* Qualia/sight：生きものの身体 */
-#sightUI{position:fixed;right:var(--g);top:calc(max(12px,env(safe-area-inset-top)) + 58px);z-index:5;max-width:min(420px,calc(100% - 32px));padding:12px 14px;background:rgba(3,6,15,.5);border-right:2px solid #b9b0dc;text-align:right}
+#sightUI{position:fixed;right:var(--g);top:calc(max(12px,env(safe-area-inset-top)) + 58px);z-index:5;max-width:min(420px,calc(100% - 32px));padding:12px 14px;background:rgba(3,6,15,.5);border-right:2px solid #c9abe0;text-align:right}
 #sightUI .sRow{justify-content:flex-end}
 #sightUI .sTop{display:grid;gap:3px}
-#sightUI .sk{font:400 9.5px/1.2 var(--ml-mono);letter-spacing:.22em;color:#b9b0dc}
+#sightUI .sk{font:400 9.5px/1.2 var(--ml-mono);letter-spacing:.22em;color:#c9abe0}
 #sightUI .sk b{font-weight:400;color:var(--ml-ink-3)}
 #sightUI .sn{font-family:var(--serif);font-weight:600;font-size:clamp(18px,5vw,22px);letter-spacing:.14em;color:var(--ml-ink)}
 #sightUI .sl{font-size:12.5px;line-height:1.55;color:var(--ml-ink-2)}
@@ -470,6 +470,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261023f").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261023k").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
