@@ -518,6 +518,7 @@ addEventListener("blur", () => KEYS.clear());
 function tap(x, y) {
   if (QW.mode === "sky") { let bi = -1, bd = 60; START.pins.forEach((p, i) => { p.head.getWorldPosition(_v); _v.project(camera); const sx = (_v.x + 1) / 2 * innerWidth, sy = (1 - _v.y) / 2 * innerHeight, d = Math.hypot(sx - x, sy - y); if (d < bd) { bd = d; bi = i; } }); if (bi >= 0) selectStart(bi); return; }
   if (QW.mode !== "walk") return;
+  if (KASA.herd?.pickView(x, y)) return;   // 空中の 3D の窓に触れたら閉じる
   if (KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   const L = pickObj(x, y); if (L) { openObj(L); return; }
   const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
@@ -541,8 +542,9 @@ function kasaPeek(x, z) { return nearestOnLine(x, z).dist < 11 && !kasaBox(x, z,
 function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
-    const M = await import("../kit/envAgents/kasane.js?v=20261023m");
-    const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 28 });
+    const M = await import("../kit/envAgents/kasane.js?v=20261023v3");
+    const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
+      muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || a.data?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない・窓は層の一覧にかけない
     const near = (x, z, Rm = 9) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
     // 物陰：通りに面した店蔵・町家の角（角から 0.35 m 内側を物陰の中心とみなす）
     const covers = [];
@@ -554,17 +556,19 @@ function loadKasane() {
     // 2026-10-23 本人「一人より、群れでわちゃわちゃしている方が可愛い」＝地点ごとに 3〜5 体の群れ（近くの地点の層の子も混ざる）。地点が集まる所は 12 m に一つの群れまで
     const centers = [];
     for (const { L } of objs) {
-      k++; const p = near(L.o.x, L.o.z); if (!p || centers.some(c => Math.hypot(c[0] - p[0], c[1] - p[1]) < 12)) continue; centers.push(p);
-      const n = 3 + (k % 3), others = objs.map(o => o.L).filter(o => o !== L && Math.hypot(o.o.x - L.o.x, o.o.z - L.o.z) < 30), mem = [{ layer: top5(L.layer), data: L, target: { x: L.o.x, z: L.o.z } }];
-      for (let m = 1; m < n; m++) { const O = others.length && m % 2 ? others[(k + m) % others.length] : L; mem.push({ layer: top5(O.layer), data: O, target: { x: O.o.x, z: O.o.z } }); }
+      // 2026-10-23 夜 本人「数が多すぎます」＝群れは 24 m に一つ・2〜3 体（全部で 70〜90 体）。本人「多少混ざって…メインとなるレイヤーが多く」＝およそ 7 割はその地点の層の色
+      k++; const p = near(L.o.x, L.o.z); if (!p || centers.some(c => Math.hypot(c[0] - p[0], c[1] - p[1]) < 24)) continue; centers.push(p);
+      const main = top5(L.layer), n = [2, 3, 2, 3, 3][k % 5], others = objs.map(o => o.L).filter(o => o !== L && Math.hypot(o.o.x - L.o.x, o.o.z - L.o.z) < 30), mem = [{ layer: main, data: L, target: { x: L.o.x, z: L.o.z } }];
+      const lays = M.kasaneMix(main, n, { mix: .3, rnd: Math.random });
+      for (let m = 1; m < n; m++) { const ly = lays[m], O = ly === main ? (others.find(X => top5(X.layer) === main && !mem.some(q => q.data === X)) || L) : others.find(X => top5(X.layer) === ly && !mem.some(q => q.data === X)); if (O) mem.push({ layer: top5(O.layer), data: O, target: { x: O.o.x, z: O.o.z } }); else mem.push({ layer: main, data: L, target: { x: L.o.x, z: L.o.z } }); }
       const G = herd.addGroup(mem, { x: p[0], z: p[1], radius: 2.6, role: k % 3 === 0 ? "watch" : "" }); for (const a of G.members) a.d = nearestOnLine(p[0], p[1]).d;
     }
     // 地点のない区間（本川越駅から夢通りなど）にも：通り全体の記録（台地の上の通り）の子と、生きもの（Qualia/sight）へ誘う子の群れを 34 m ごとに
     const daichi = LAYER.objs.find(L => L.o.id === "n_daichi"), endD = G.lineD[G.lineD.length - 1]; let g = 0;
-    for (let d = 15; d < endD - 6 && daichi; d += 34) {
-      if (herd.agents.some(a => a.d != null && Math.abs(a.d - d) < 22)) continue;
+    for (let d = 15; d < endD - 6 && daichi; d += 64) {
+      if (herd.agents.some(a => a.d != null && Math.abs(a.d - d) < 36)) continue;
       const c = atD(d), side = (g % 2 ? 1 : -1) * 1.5, p = near(c.x + c.tz * side, c.z - c.tx * side, 4); if (!p) continue; g++;
-      const mem = [{ layer: "nature", data: daichi }, { layer: "sight", data: { sightPick: true } }, { layer: "nature", data: daichi }]; if (g % 2) mem.push({ layer: "sight", data: { sightPick: true } });
+      const mem = [{ layer: "nature", data: daichi }, { layer: "nature", data: daichi }, { layer: "sight", data: { sightPick: true } }];
       const G2 = herd.addGroup(mem, { x: p[0], z: p[1], radius: 2.6, role: g % 3 === 0 ? "watch" : "" }); for (const a of G2.members) a.d = d;
     }
     KASA.n = herd.agents.length; QW.KASA = KASA; herd.setLayers(LAYER.worn);

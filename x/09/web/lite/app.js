@@ -1046,6 +1046,7 @@ function tap(x, y) {
     if (best >= 0) selectStart(best); return;
   }
   if (QW.mode !== "walk" && QW.mode !== "sight") return;
+  if (QW.mode === "walk" && KASA.herd?.pickView(x, y)) return;   // 空中の 3D の窓に触れたら閉じる
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   const o = pickObj(x, y); if (o) { openObj(o); return; }
   if (QW.mode !== "walk") return;
@@ -1375,20 +1376,22 @@ function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
     await loadLate(); if (!roadGroup || !COLL) return;
-    const M = await import("../kit/envAgents/kasane.js?v=20261023m");
+    const M = await import("../kit/envAgents/kasane.js?v=20261023v3");
     KASA.ok = new Uint8Array(COLL.nx * COLL.nz); roadGroup.traverse(o => { if (o.isMesh && /^(roots|bed|lawn)\|/.test(o.name)) kasaRaster(o, 2); }); roadGroup.traverse(o => { if (o.isMesh && KASA_SURF.test(o.name)) kasaRaster(o, 1); });
     await VEG.p?.catch(() => { });
     for (const S of VEG.sp) if (S.s <= 2 || S.s === 7) for (let i = 0; i < S.m; i++) { const x = S.xs[i * 6], z = S.xs[i * 6 + 2], r = S.xs[i * 6 + 3] * .55 + .2, c = COLL.c; for (let dz = -r; dz <= r; dz += c) for (let dx = -r; dx <= r; dx += c) if (dx * dx + dz * dz <= r * r) { const k = kasaCell(x + dx, z + dz); if (k >= 0 && KASA.ok[k] === 2) KASA.ok[k] = 4; } }   // 低木の株のまわり
     for (let pass = 0; pass < 2; pass++) { const g = KASA.ok, nx = COLL.nx, h = g.slice(); for (let k = nx; k < g.length - nx; k++) if (h[k] === 1 && (h[k - 1] !== 1 || h[k + 1] !== 1 || h[k - nx] !== 1 || h[k + nx] !== 1)) g[k] = [h[k - 1], h[k + 1], h[k - nx], h[k + nx]].some(v => v >= 2) ? 3 : 0; }   // 縁から 2 こま（約 1 m）は歩かない（縁石の上や陰に入らない）   // 縁は 1 こま削る（縁石の外へはみ出さない）
-    const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: kasaOk, walkSurface: kasaPeek, canSee: kasaSee, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 28 });
+    const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: kasaOk, walkSurface: kasaPeek, canSee: kasaSee, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
+      muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // 窓は層の一覧にかけない   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない
     const R = (() => { let s = 20261023; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); })();
     const near = (x, z, Rm = 7) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
     // 物陰：並木の幹と、石・木の燈籠（見かけの太さ）
     const covers = []; for (const t of D.trees) covers.push({ x: t[0], z: t[2], r: Math.max(.24, .3 * t[4]) });
     for (const s of D.structs) if (/^(ishidoro|mokutoro|komainu|hyoseki|shagohi)/.test(s.id)) covers.push({ x: s.p[0], z: s.p[2], r: /^(ishidoro|mokutoro)/.test(s.id) ? .42 : .36 });
     const coverNear = (x, z) => { let best = null, bd = 12; for (const c of covers) { const d = Math.hypot(c.x - x, c.z - z); if (d < bd && d > .8 && [0, 1, 2, 3, 4, 5, 6, 7].filter(i => { const px = c.x + Math.cos(i * .785) * (c.r + .1), pz = c.z + Math.sin(i * .785) * (c.r + .1), L = Math.hypot(px - x, pz - z); if (!kasaPeek(px, pz)) return false; for (let u = 0; u <= L; u += .25) if (!kasaPeek(x + (px - x) * u / L, z + (pz - z) * u / L)) return false; return true; }).length >= 2) { bd = d; best = c; } } return best; };
-    // 道のり 34 m ごとに、その区間の層の地点のそばへ 3〜4 体の小さな群れ（近くでは 3〜5 体が見える）。層は、少ない層を先に（sight・touch・sound も混ざる）
-    const BIN = 40, bins = new Map();
+    // 2026-10-23 夜 本人「数が多すぎます」＝道のり 56 m ごとに、その区間の層の地点のそばへ 2〜4 体の群れ（全部で 70〜90 体・近くで画面に入るのは 1〜2 群れ）。
+    //   本人「同じ色だけの集団でなく、多少混ざって…メインとなるレイヤーが多く」＝群れの先頭とおよそ 7 割は、その地点の層の色。ほかの層の子は、同じ区間のその層の地点の話をする
+    const BIN = 56, bins = new Map();
     for (const L of LAYER.objs) { const o = L.o; if (o.sho) continue; const n = nearestOnLine(o.x, o.z); if (n.dist > 40) continue; const b = Math.floor(n.d / BIN); if (!bins.has(b)) bins.set(b, []); bins.get(b).push(L); }
     const used = { sight: 0, touch: 0, sound: 0, nature: 0, culture: 0 }; let k = 0;
     const pickL = (list, not = []) => { let best = null, bs = 1e9; for (const L of list) { if (not.includes(L) || L._kmiss) continue; const ly = top5(L.o.layer); if (!(ly in used)) continue; const sc = used[ly] + R() * .9; if (sc < bs) { bs = sc; best = L; } } return best; };
@@ -1397,8 +1400,13 @@ function loadKasane() {
     KASA.bins = bins.size;
     for (const b of [...bins.keys()].sort((a, c) => a - c)) {   // 2026-10-23 本人「一人より、群れでわちゃわちゃしている方が可愛い」＝区間ごとに 3〜5 体の群れ（色は混ざってよい）
       const list = bins.get(b), A = place(list, []); if (!A) { KASA.miss++; continue; } k++;
-      const n = 3 + (k % 3), mem = [{ layer: top5(A.L.o.layer), data: A.L, target: { x: A.L.o.x, z: A.L.o.z } }], not = [A.L];
-      while (mem.length < n) { const L = pickL(list, not) || A.L; not.push(L); used[top5(L.o.layer)]++; mem.push({ layer: top5(L.o.layer), data: L, target: { x: L.o.x, z: L.o.z } }); }
+      const main = top5(A.L.o.layer), n = [2, 3, 2, 2, 3][k % 5], lays = M.kasaneMix(main, n, { mix: .3, rnd: R }), mem = [], not = [A.L];
+      const nb = [...(bins.get(b - 1) || []), ...(bins.get(b + 1) || [])];
+      for (const ly of lays) {
+        let L = mem.length ? [...list, ...nb].find(X => !not.includes(X) && top5(X.o.layer) === ly) : A.L; if (!L) L = ly === main ? A.L : null;
+        if (!L) { const Lm = list.find(X => !not.includes(X) && top5(X.o.layer) === main) || A.L; mem.push({ layer: main, data: Lm, target: { x: Lm.o.x, z: Lm.o.z } }); continue; }
+        if (L !== A.L) not.push(L); used[top5(L.o.layer)]++; mem.push({ layer: ly, data: L, target: { x: L.o.x, z: L.o.z } });
+      }
       const G = herd.addGroup(mem, { x: A.p[0], z: A.p[1], radius: 2.6, role: k % 3 === 0 ? "watch" : "" }); for (const a of G.members) a.d = nearestOnLine(A.p[0], A.p[1]).d;
     }
     KASA.n = herd.agents.length; QW.KASA = KASA; herd.setLayers(LAYER.worn);
