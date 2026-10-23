@@ -1,22 +1,15 @@
 // Qualia Layer の 3D（2026-10-19 本人「レイヤーであることを表現するアニメーションに」「情報量を増やすレイヤーを３d上で表現」「中央に碧の３dモデル」）
 // TOP の 3D の描画は二つまで：冒頭の場（参道）と、この層の図。前の「3D の循環の図」はこれと入れ替えた。
 // ・画面に近づいてから読む（three・碧の VRM は冒頭の場と同じものを使い回す）・画面の外とタブを隠したときは止める・スマホは軽く（画素 1・アンチエイリアスなし・点を減らす）
-// ・層は七枚（walk・sight・sound・touch・heart・rakugo・song）。スクロールで見えている札の番号まで、一枚ずつ上へ積み重なり、重なるほど線と点（情報）が増える
+// ・層は五枚（2026-10-23：sight・touch・sound・nature・culture。以前は七枚→六枚）。スクロールで見えている札の番号まで、一枚ずつ上へ積み重なり、重なるほど線と点（情報）が増える
 // ・2026-10-20 夜 本人「層は地下に潜るのではなく、上に重ねていく」「アニメーションにレイヤーの表現も」：層は第 0 層（いつもの風景）の上へ積む。新しい層が重なるとき、その板に名前と一言の札が寄りそう
 // ・線と点は創作の模式（実測の値ではない）。碧は kit v5.9（uprightWeight:.9）
 // ・2026-10-22 夜：碧を重なりの中（光の軸の上）へ。骨盤を起こして反り腰を直す（stand()）
 import * as THREE from 'three';
+import { LAYER5 } from './kit/layer-colors.js';
 
-// 色は Qualia Layer の概念の文書（§5）の案：walk＝土・sight＝紫外の淡い紫・sound＝青・touch＝石の灰・heart＝墨（紺の地で見えるよう淡く）・rakugo＝朱・song＝光の白
-// 2026-10-23 本人「Qualia/walk を Qualium に」：walk は層から外し（氷川・川越は Qualium＝場）、個別の層は六枚
-const LAYERS = [
-  { key: 'sight',  c: 0xc4b2ff },
-  { key: 'sound',  c: 0x78b8ec },
-  { key: 'touch',  c: 0xc2c7cc },
-  { key: 'sho',    c: 0x9aa3b8 },
-  { key: 'rakugo', c: 0xf08a6c },
-  { key: 'song',   c: 0xf4fbff },
-];
+// 2026-10-23 本人「Qualia の層は 5 つに整理」：sight・touch・sound（sho を含む）・nature・culture（rakugo・history を含む）。色は js/kit/layer-colors.js の一か所から
+const LAYERS = LAYER5.map(L => ({ key: L.key, c: L.c }));
 // 札の一言は、TOP の層の一覧（.ql-line）と同じ文を読む（日英の切りかえもそこに従う）
 
 export async function boot(stage) {
@@ -39,7 +32,7 @@ export async function boot(stage) {
   const rim = new THREE.DirectionalLight(0x8fe6f0, 1.1); rim.position.set(-4, 3, -3); S.add(rim);
 
   let treeObj = null;
-  const SIZE = 5.2, GAP = .5, N = LAYERS.length;   // 2026-10-20 夜 本人「木（欅）は消さずに、その上に層を薄く重ねる」：板を薄く・間を詰める   // 第 0 層（いつもの風景）がいちばん下、その上へ層が積み重なる
+  const SIZE = 5.2, GAP = .6, N = LAYERS.length;   // 2026-10-23 五枚になったので間を .5→.6（重なりの高さは六枚のときと同じ 3.0）   // 2026-10-20 夜 本人「木（欅）は消さずに、その上に層を薄く重ねる」：板を薄く・間を詰める   // 第 0 層（いつもの風景）がいちばん下、その上へ層が積み重なる
   const H = SIZE / 2;
   const add = THREE.AdditiveBlending;
   // 2026-10-23 採点の P1（層の板が碧の体を貫く）：碧の立つところだけ、どの板も丸く切り欠く（碧の体の半径は最大 1.03＝足もと〜腰。0.3 の余白）。
@@ -172,7 +165,11 @@ export async function boot(stage) {
         geo.attributes.position.needsUpdate = true;
       };
       upd(0);
-      return { g: ln, tick: upd };
+      const g = new THREE.Group(); g.add(ln);
+      // sho（書）も音の層に含める：筆の運びの線を薄く添える
+      const sl = []; for (let k = 0; k < 4; k++) { const x0 = H * .35 + k * .42, pts = []; for (let i = 0; i <= 26; i++) { const t = i / 26; pts.push([x0 + Math.sin(t * 3.1 + k) * .14, -H * .62 + t * H * 1.24 + Math.sin(t * 9 + k * 2) * .04]); } sl.push(pts); }
+      const sho = lines(c, .45, sl); g.add(sho);
+      return { g, tick(t, e) { upd(t); sho.material.opacity = .45 * e * (.8 + .2 * Math.sin(t * .9)); } };
     },
     touch(c) {   // 振動の等高線（中心から広がる輪）
       const g = new THREE.Group(), rings = [];
@@ -187,6 +184,26 @@ export async function boot(stage) {
       for (let k = 0; k < 6; k++) { const x0 = -H * .75 + k * .52, pts = []; for (let i = 0; i <= 30; i++) { const t = i / 30; pts.push([x0 + Math.sin(t * 3.1 + k) * .18, -H * .7 + t * H * 1.4 + Math.sin(t * 9 + k * 2) * .05]); } list.push(pts); }
       const l = lines(c, .8, list);
       return { g: l, tick(t, e) { l.material.opacity = .8 * e * (.8 + .2 * Math.sin(t * .9)); } };
+    },
+    nature(c) {   // 自然の記録：樹冠のまとまり（点）と、土と水の流れ（線）
+      const g = new THREE.Group(), pos = [];
+      const C = [[-1.6, -1.2], [.2, -1.9], [1.5, -.6], [1.2, 1.4], [-.6, .9], [-1.8, 1.6]];
+      let sd = 3; const rr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+      for (const [cx, cz] of C) for (let i = 0; i < (mobile ? 26 : 40); i++) { const a = rr() * Math.PI * 2, r = Math.sqrt(rr()) * .62; pos.push(cx + Math.cos(a) * r, 0, cz + Math.sin(a) * r); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      const m = holed(new THREE.PointsMaterial({ color: c, size: mobile ? .07 : .06, transparent: true, opacity: .9, blending: add, depthWrite: false }));
+      g.add(new THREE.Points(geo, m));
+      const flow = []; for (let k = 0; k < 3; k++) { const p = []; for (let i = 0; i <= 40; i++) { const t = i / 40; p.push([lerp(-H * .9, H * .9, t), -H * .55 + k * .5 + Math.sin(t * 4 + k) * .22]); } flow.push(p); }
+      const fl = lines(c, .55, flow); g.add(fl);
+      return { g, tick(t, e) { m.size = (mobile ? .07 : .06) * (1 + .12 * Math.sin(t * .9)); fl.material.opacity = .55 * e * (.8 + .2 * Math.sin(t * 1.2)); } };
+    },
+    culture(c) {   // 文化と歴史：一点から広がる語りの弧（rakugo・song）と、年の目盛り（history）
+      const list = [];
+      for (let k = 1; k <= 7; k++) { const r = k * .38, pts = []; for (let a = 0; a <= 40; a++) { const th = -1.05 + a / 40 * 2.1; pts.push([-H * .85 + Math.cos(th) * r, Math.sin(th) * r]); } list.push(pts); }
+      list.push([[-H * .85, H * .72], [H * .85, H * .72]]);
+      for (let i = 0; i <= 12; i++) { const x = lerp(-H * .85, H * .85, i / 12), L = i % 4 ? .1 : .22; list.push([[x, H * .72 - L], [x, H * .72 + L]]); }
+      const l = lines(c, .6, list);
+      return { g: l, tick(t, e) { l.material.opacity = .6 * e * (.75 + .25 * Math.sin(t * 1.3)); } };
     },
     rakugo(c) {   // 語り：一点から広がる弧（声の届き方）
       const list = [];
@@ -217,7 +234,7 @@ export async function boot(stage) {
     const shade = new THREE.Mesh(new THREE.PlaneGeometry(SIZE * .98, SIZE * .98), holed(new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .06, depthWrite: false, side: THREE.DoubleSide })));
     shade.rotation.x = -Math.PI / 2; shade.position.y = -.03; grp.add(shade);
     const lift = new THREE.Group(); lift.position.y = .02; grp.add(lift);
-    const info = (mobile && i >= 3) ? { g: new THREE.Group() } : builders[L.key](L.c); lift.add(info.g);
+    const info = builders[L.key](L.c);   // 2026-10-23：五つになったので、スマホでも全部の層に模様を描く lift.add(info.g);
     world.add(grp);
     const mats = []; grp.traverse(o => { if (o.material) { mats.push([o.material, o.material.opacity]); } });
     return { grp, info, mats, t: 0, y0: grp.position.y };
@@ -353,7 +370,7 @@ export async function boot(stage) {
   }
   const loop = now => { if (!vis || document.hidden) { raf = 0; return; } render(now); raf = reduce ? 0 : requestAnimationFrame(loop); };
   function kick() { if (!raf && vis && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(loop); } }
-  new IntersectionObserver(es => { vis = es[0].isIntersecting; kick(); }).observe(cv);
+  new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; kick(); }).observe(cv);
   document.addEventListener('visibilitychange', kick);
   cv.addEventListener('webglcontextlost', e => { e.preventDefault(); stage.classList.remove('has-3d'); });
   stage.classList.add('has-3d');

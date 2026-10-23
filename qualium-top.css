@@ -598,7 +598,7 @@ html[lang="en"] .qt-places-title{font-family:var(--latin);letter-spacing:.01em}
 .qe-lab .qe-k,.qe-top .qe-k{font-weight:400;color:var(--ink)}
 .qe-e{translate:-50% -50%;background:rgba(3,6,15,.55);padding:4px 10px;border-radius:6px}
 .qe-m{font-size:11px;color:#9fd9cf;translate:0 -50%}
-.qe-phi{translate:-100% -50%}.qe-phi i{font-size:1.6em}.qe-q{translate:-100% -50%}.qe-q i{font-size:1.4em}
+.qe-phi{translate:-100% -50%}.qe-phi i{font-size:1.6em}.qe-q{translate:-100% -50%}.qe-q i{font-size:2em;color:#fff}
 .qe-s{translate:-50% -100%;font-size:14px;color:color-mix(in srgb,var(--c) 70%,#fff);padding:2px 8px;border:1px solid transparent;border-radius:999px;background:rgba(3,6,15,.6)}
 .qe-s.on{border-color:var(--c);color:#fff}
 .qe-top{position:absolute;left:16px;top:12px;margin:0;font:400 13px/1.4 var(--serif);letter-spacing:.06em;color:#dff6f1;opacity:0;transition:opacity .5s}
@@ -676,3 +676,27 @@ html[lang="en"] .ql-in{font-family:var(--latin);font-size:13px;letter-spacing:0}
 }
 /* 採点の P2：PC の層の 3D の左の目盛りが木の葉に重なって読みにくい → 地を濃く・字を明るく */
 .qt-depth li{color:#a9b6cc}.qt-depth li>span:not(.qd-n){background:rgba(3,6,15,.86)}.qt-depth li.on{color:#d6ece8}
+/* 2026-10-23 冒頭の 3D（情報が五つの層に訳され、第 0 層に重なる）。カメラは固定・札は少なく */
+.qv-fig{margin:4px 0 26px;max-width:1100px}
+.qv-stage{position:relative;aspect-ratio:16/9;max-height:min(600px,64vh);width:100%;border:1px solid #8bccca30;background:radial-gradient(80% 70% at 50% 58%,#0a1a26,#03060f 78%);overflow:hidden}
+.qv-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .8s}
+.qv-fig.has-3d .qv-poster{opacity:0}
+.qv-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.qv-lab{position:absolute;left:0;top:0;white-space:nowrap;translate:-50% -50%;pointer-events:none;opacity:0;will-change:transform,opacity}
+.qv-src{font:400 italic 17px/1 var(--latin);letter-spacing:.06em;color:#dff6ff;padding:3px 9px;border:1px solid #dff6ff44;border-radius:999px;background:rgba(3,6,15,.55)}
+.qv-layer{translate:0 -50%;padding-left:10px;font:400 italic 14px/1 var(--latin);letter-spacing:.02em;color:color-mix(in srgb,var(--c) 55%,#fff);border-left:2px solid var(--c)}
+.qv-base{font:400 12.5px/1.4 var(--serif);letter-spacing:.08em;color:#cfd8d2;background:rgba(3,6,15,.6);padding:3px 9px;border-radius:4px}
+.qv-qm{translate:-100% -50%;font:400 italic 20px/1 var(--latin);letter-spacing:.04em;color:#a8f2f6}
+.qv-cap{margin:10px 0 0;font-size:12.5px;line-height:1.8;color:#8f9bb4}
+html[lang="en"] .qv-base{font-family:var(--latin);letter-spacing:.02em}
+.qe-qm{font:400 italic 20px/1 var(--latin);letter-spacing:.04em;color:#a8f2f6;translate:-50% -50%}
+.qe-s i{font-size:1.05em}
+.ql-app-place .pf-foot{gap:10px 20px}
+@media(max-width:700px){
+  .qv-fig{margin:0 -24px 22px}
+  .qv-stage{aspect-ratio:4/3.9;max-height:none;border-left:0;border-right:0}
+  .qv-cap{padding:0 24px}
+  .qv-src{font-size:13px;padding:2px 7px}.qv-layer{font-size:11.5px;padding-left:6px}.qv-base{font-size:10.5px}.qv-qm{font-size:15px}
+  .qe-qm{font-size:15px}
+}
+/* 五つの層の色＝姿の案 9 の「明るめ」の列（夜の地の線と字に使う色）。字はそのまま読める */
