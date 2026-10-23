@@ -37,6 +37,7 @@ button{font:inherit;color:inherit}
 #skyUI{position:fixed;left:0;right:0;bottom:0;z-index:4;padding:0 var(--g) max(16px,env(safe-area-inset-bottom));pointer-events:none}
 #skyUI .card{pointer-events:auto;max-width:560px;margin:0 auto;padding:16px 18px 14px}
 #skySight{width:100%;margin-top:8px}
+#skyUI .row.r2{margin-top:8px;gap:8px}#skyUI .row.r2 .ml-btn{flex:1 1 0;min-width:0;margin-top:0;white-space:normal;line-height:1.3;letter-spacing:.02em}@media (max-width:640px){#skyUI .row.r2 .ml-btn{font-size:.82rem;padding:0 4px}}#skyHere[aria-pressed="true"],#hereBtn[aria-pressed="true"]{border-color:#ffb648;color:#ffd58a}
 #skyUI h2{font-family:var(--serif);font-weight:600;font-size:clamp(17px,4.6vw,21px);letter-spacing:.14em;margin:0 0 4px}
 #skyUI .sub{margin:0 0 12px;color:var(--ml-ink-2);font-size:12.5px;letter-spacing:.06em;line-height:1.6}
 #starts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;scroll-snap-type:x proximity;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);mask:linear-gradient(90deg,#000 88%,transparent);padding-right:28px}
@@ -448,7 +449,7 @@ body.ready #lstack .ly:nth-child(2){animation-delay:.08s}body.ready #lstack .ly:
     <div id="starts" role="group" aria-label="始める場所"></div>
     <div id="stMeter" aria-hidden="true"><span class="tr"><i></i></span><span id="stHint"></span></div>
     <div class="row"><button class="ml-btn ml-btn--primary" id="goDown" disabled>ここから歩く</button><button class="ml-btn" id="skyFly">鳥になって飛ぶ</button></div>
-    <button class="ml-btn ml-btn--quiet" id="skySight">生きものの身体に入る（Qualia/sight）</button>
+    <div class="row r2"><button class="ml-btn ml-btn--quiet" id="skyHere" aria-pressed="false">現在地から歩く</button><button class="ml-btn ml-btn--quiet" id="skySight">生きものの身体に入る<br>（Qualia/sight）</button></div>
   </div>
 </section>
 
@@ -464,7 +465,7 @@ body.ready #lstack .ly:nth-child(2){animation-delay:.08s}body.ready #lstack .ly:
 </aside>
 <section id="sightBox" class="ml-panel ml-panel--corner" hidden aria-label="Qualia/sight の生きもの"><div class="hd"><h2>Qualia/sight<small>どの生きものの身体に入りますか（いまいる所で入れ替わります）</small></h2><button class="ib" id="sightX" aria-label="閉じる">×</button></div><div id="sightList"></div></section>
 
-<div id="walkUI" hidden><button class="ib" id="autoBtn" aria-pressed="false"><span>歩きつづける</span></button></div>
+<div id="walkUI" hidden><button class="ib" id="hereBtn" aria-pressed="false">現在地で歩く</button><button class="ib" id="autoBtn" aria-pressed="false"><span>歩きつづける</span></button></div>
 <section id="sightUI" hidden aria-label="Qualia/sight"><div class="sTop"><span class="sk">QUALIA/SIGHT　<b id="sEn"></b></span><span class="sn" id="sName"></span><span class="sl" id="sLead"></span></div><div class="sRow"><button class="ib" id="sWhy">手がかりと出典</button><button class="ib" id="sBack">人にもどる</button></div></section>
 <div id="sUpDn" hidden><button class="ib ud" id="sUp" aria-label="押しているあいだ、上がる（R キー）">上へ</button><button class="ib ud" id="sDown" aria-label="押しているあいだ、下がる（F キー）">下へ</button><button class="ib ud" id="sFwd" aria-label="押しているあいだ、前へ進む（W キー）">前へ</button></div>
 <div id="flyUI" hidden><button class="ib ud" id="flyUp" aria-label="押しているあいだ、上がる">上へ</button><button class="ib ud" id="flyDown" aria-label="押しているあいだ、下がる">下へ</button><button class="ib" id="land">地上へ降りる</button></div>
@@ -497,6 +498,6 @@ body.ready #lstack .ly:nth-child(2){animation-delay:.08s}body.ready #lstack .ly:
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261024a").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261024g").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

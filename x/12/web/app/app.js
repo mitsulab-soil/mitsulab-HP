@@ -11,6 +11,7 @@ import { QLAYERS, makeMarker, makeLabel } from "./layers.js?v=k1";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q2";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k3";
 import { BellSynth } from "./bell.js?v=k1";
+import { makeHereWalk } from "./herewalk.js?v=1";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -412,6 +413,7 @@ const KEYS = new Set();
 const FOGS = { sky: { n: 1200, f: 5200 }, walk: { n: 160, f: 1100 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { QW.mode = m; document.body.dataset.mode = m;
+  if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
   $("#modeSky").setAttribute("aria-pressed", String(m === "sky" || m === "descend")); $("#modeWalk").setAttribute("aria-pressed", String(m === "walk" || m === "sight")); $("#modeFly").setAttribute("aria-pressed", String(m === "fly"));
   applyFog(FOGS[m === "descend" ? "sky" : m] || FOGS.walk);
   if (ROUTE) { ROUTE.material.opacity = m === "sky" || m === "descend" ? .95 : m === "fly" ? .7 : .0; ROUTE.visible = ROUTE.material.opacity > 0; }
@@ -451,11 +453,11 @@ function selectStart(i) { START.sel = i; document.querySelectorAll(".stBtn").for
   START.pins.forEach((p, k) => { const on = k === i; p.ring.material.color.set(on ? PICK : "#7fe3f7"); p.ring.material.opacity = on ? 1 : .4; p.ring.scale.setScalar(on ? 1.8 : .8); p.beam.material.color.set(on ? PICK : "#7fe3f7"); p.beam.material.opacity = on ? .9 : .18; p.beam.scale.set(on ? 1.8 : 1, 1, on ? 1.8 : 1); });   // 選んでいる所は濃く、ほかは薄く
   setTimeout(() => { const box = $("#starts"), bb = box?.querySelectorAll(".stBtn")[i]; if (bb && START.sel === i) { box.scrollLeft = Math.max(0, bb.offsetLeft - box.offsetLeft - 8); syncStMeter(); } }, 400);   // 選んだ場所のボタンを列の中に見せる
   const a = atD(C.starts[i].d); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
-function descendTo(i) {
-  const s = C.starts[i], d = Math.min(s.d, G.lineD[G.lineD.length - 1] - 3), a = atD(d), y = groundY(a.x, a.z) + EYE;
+function descendTo(i, at) {   // at＝現在地（GPS）の位置
+  const s = C.starts[i], d = Math.min(at ? at.d : s.d, G.lineD[G.lineD.length - 1] - 3), a = at ? { x: at.x, z: at.z } : atD(d), y = groundY(a.x, a.z) + EYE;
   hideSkyUI(); exitSight(true); hideFlyUI(); setMode("descend"); hidePanel();
   CAM.pos.set(a.x, y, a.z); CAM.yaw = i === C.starts.length - 1 ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = -.04;
-  if (/時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
+  if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
   tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.6, () => { setMode("walk"); showWalkUI(); aoiArrive(); });
 }
 function corridorClamp(p) { const n = nearestOnLine(p.x, p.z); if (n.dist > 14) { const a = atD(n.d), k = 14 / n.dist; p.x = a.x + (p.x - a.x) * k; p.z = a.z + (p.z - a.z) * k; } solids(p); }
@@ -748,6 +750,34 @@ function unlockAudio() { if (unlocked || !C) return; unlocked = true; try { bell
 addEventListener("pointerup", () => unlockAudio(), true);
 $("#goDown").addEventListener("click", () => { unlockAudio(); descendTo(Math.max(0, START.sel)); });
 $("#skyFly").addEventListener("click", () => { unlockAudio(); startFly(); });
+/* 現在地で歩く（GPS・2026-10-24）：いまいる所から、その場の Qualium を歩く。位置はこの端末の中だけで使い、送らず、残さない */
+function hereMove(x, z, f, jump) {
+  if (QW.mode !== "walk") return;
+  WALK.auto = false; syncAutoBtn(); if (WALK.ring) WALK.ring.visible = false;
+  if (jump || Math.hypot(x - CAM.pos.x, z - CAM.pos.z) > 30) { CAM.pos.x = x; CAM.pos.z = z; WALK.goal = null; return; }   // 遠くへ跳んだときは、その場へ
+  WALK.goal = new THREE.Vector3(x, 0, z);
+}
+const HERE = QW.HERE = makeHereWalk({
+  name: "川越の道筋",
+  toXZ: (lat, lon) => [(lon - G.origin[1]) * G.kx, -(lat - G.origin[0]) * G.ky],
+  place(x, z) {
+    const g = G.dem, n = nearestOnLine(x, z), in_ = x > g.x0 && x < g.x0 + g.cell * (g.nx - 1) && z > g.z0 && z < g.z0 + g.cell * (g.nz - 1);
+    if (!in_ || n.dist > 250) return { ok: false, dist: n.dist };
+    const p = { x, z }; corridorClamp(p);
+    return { ok: true, dist: n.dist, d: n.d, x: p.x, z: p.z, off: n.dist > 16 };
+  },
+  first(x, z, f) {
+    if (f.off) toast(`道筋から ${Math.round(f.dist)} m ほど離れています。いちばん近い道の上から歩きます。`);
+    if (QW.mode === "walk") { hereMove(x, z, f, true); return; }
+    const i = C.starts.reduce((b, t, k) => Math.abs(t.d - f.d) < Math.abs(C.starts[b].d - f.d) ? k : b, 0);
+    descendTo(i, { x, z, d: f.d });
+  },
+  move: (x, z, f) => hereMove(x, z, f),
+  toast: t => toast(t),
+  sync(on) { for (const id of ["#hereBtn", "#skyHere"]) { const b = $(id); if (b) { b.setAttribute("aria-pressed", String(on)); b.textContent = on ? (id === "#hereBtn" ? "現在地で歩く：入" : "現在地を探しています…") : (id === "#hereBtn" ? "現在地で歩く" : "現在地から歩く"); } } }
+});
+$("#hereBtn").addEventListener("click", () => { unlockAudio(); HERE.toggle(); });
+$("#skyHere").addEventListener("click", () => { unlockAudio(); HERE.toggle(); });
 $("#skySight").addEventListener("click", () => { unlockAudio(); openSightChooser(); });
 $("#modeSky").addEventListener("click", () => { if (QW.mode !== "sky") toSky(); });
 $("#modeWalk").addEventListener("click", () => { if (QW.mode === "fly") landFromFly(); else if (QW.mode === "sky") descendTo(Math.max(0, START.sel)); else if (QW.mode === "sight") exitSight(); });

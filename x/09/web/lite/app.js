@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q2";
+import { makeHereWalk } from "./herewalk.js?v=1";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -838,6 +839,7 @@ const FOGS = { sky: () => ({ c: FOG_SKY, n: 2600, f: 9000 }), walk: () => ({ c: 
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m;
+  if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
   const walk = m === "walk", fly = m === "fly", sky = m === "sky", sight = m === "sight";
   if (m !== "descend" && !sight) applyFog(walk ? FOGS.walk() : fly ? FOGS.fly() : FOGS.sky());
   camera.near = walk || sight ? .03 : 1; camera.far = walk ? 700 : sight ? 1400 : 9000; camera.updateProjectionMatrix();
@@ -873,10 +875,10 @@ function stepTween(dt) {
   return true;
 }
 function yawAlong(d) { const a = atD(d); return Math.atan2(-a.tx, -a.tz); }   // 道のりの増える向き（北の社へ）を向く
-function descendTo(i) {
+function descendTo(i, at) {
   const s = D.starts[i]; if (!s) return;
   hideSkyUI(); loadLate();
-  const a = atD(s.d), yaw = yawAlong(Math.min(s.d + 6, 1985)), y = groundY(a.x, a.z) + EYE;
+  const a = at ? { x: at.x, z: at.z } : atD(s.d), yaw = yawAlong(Math.min((at ? at.d : s.d) + 6, 1985)), y = groundY(a.x, a.z) + EYE;   // at＝現在地（GPS）の位置
   setMode("descend");
   // まず斜め上空へ寄り、そこから目の高さへ（道と木が届くまでは、斜め上空でゆっくり回りながら待つ）
   const mid = new THREE.Vector3(a.x + Math.sin(yaw) * 140, y + 120, a.z + Math.cos(yaw) * 140);
@@ -893,6 +895,40 @@ function stepWaitOrbit(dt) {   // 待つあいだも画は止めない
   camera.position.set(W.c.x + Math.sin(a) * 140, W.c.y + 120, W.c.z + Math.cos(a) * 140); camera.lookAt(W.c.x, W.c.y, W.c.z);
 }
 QW.startAt = i => { if (QW.mode === "sky") descendTo(i ?? 0); };
+
+/* 現在地で歩く（GPS・2026-10-24 戻した）：いまいる所から、その場の Qualium を歩く。位置はこの端末の中だけで使い、送らず、残さない */
+function descendToXZ(x, z) {
+  const n = nearestOnLine(x, z), d = Math.max(-20, Math.min(1985, n.d)), s = START.sel;
+  const i = D.starts.reduce((b, t, k) => Math.abs(t.d - d) < Math.abs(D.starts[b].d - d) ? k : b, 0); if (s < 0) selectStart(i);
+  descendTo(i, { x, z, d });
+}
+const HERE = makeHereWalk({
+  name: "氷川参道",
+  toXZ: (lat, lon) => [(lon - D.origin[0]) * 111320 * Math.cos(D.origin[1] * Math.PI / 180), -(lat - D.origin[1]) * 110574],
+  place(x, z) {
+    const [x0, x1, z0, z1] = D.extent, n = nearestOnLine(x, z);
+    if (x < x0 || x > x1 || z < z0 || z > z1 || n.dist > 250) return { ok: false, dist: n.dist };
+    const p = { x, z }; corridorClamp(p);
+    if (blocked(p.x, p.z)) { const a = atD(Math.max(-20, Math.min(1985, n.d))); p.x = a.x; p.z = a.z; }   // 植え込みや池の上なら、道の上へ
+    return { ok: true, dist: n.dist, x: p.x, z: p.z, off: n.dist > 16 };
+  },
+  first(x, z, f) {
+    if (f.off) toast(`参道から ${Math.round(f.dist)} m ほど離れています。いちばん近い参道の上から歩きます。`);
+    if (QW.mode === "walk") { hereMove(x, z, f, true); return; }
+    if (QW.mode === "fly" || QW.mode === "sight") { if (QW.mode === "sight") exitSight(true); hideFlyUI(); }
+    descendToXZ(x, z);
+  },
+  move: (x, z, f) => hereMove(x, z, f),
+  toast: t => toast(t),
+  sync(on) { for (const id of ["#hereBtn", "#skyHere"]) { const b = $(id); if (b) { b.setAttribute("aria-pressed", String(on)); b.textContent = on ? (id === "#hereBtn" ? "現在地で歩く：入" : "現在地を探しています…") : (id === "#hereBtn" ? "現在地で歩く" : "現在地から歩く"); } } }
+});
+function hereMove(x, z, f, jump) {
+    if (QW.mode !== "walk") return;
+    WALK.auto = false; syncAutoBtn(); if (WALK.ring) WALK.ring.visible = false;
+    if (jump || Math.hypot(x - CAM.pos.x, z - CAM.pos.z) > 30) { CAM.pos.x = x; CAM.pos.z = z; WALK.goal = null; return; }   // 遠くへ跳んだときは、その場へ
+    WALK.goal = new THREE.Vector3(x, 0, z);
+}
+QW.HERE = HERE;
 
 /* 歩く：体は道に沿って進み、目は自由に見回せる */
 const WALK = { goal: null, keys: new Set(), hold: false, auto: false, speed: 1.35, ring: null, moving: false }; QW.WALK = WALK;
@@ -1933,6 +1969,8 @@ $("#sEcho").addEventListener("click", () => echoNow());
 holdBtn($("#sDown"), () => FLY.down = true, () => FLY.down = false);
 $("#autoBtn").addEventListener("click", () => { WALK.auto = !WALK.auto; WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; syncAutoBtn(); });
 $("#gyroBtn").addEventListener("click", toggleGyro);
+$("#hereBtn").addEventListener("click", () => { unlockAudio(); HERE.toggle(); });
+$("#skyHere").addEventListener("click", () => { unlockAudio(); HERE.toggle(); });
 if (!MOBILE || typeof DeviceOrientationEvent === "undefined") $("#gyroBtn").hidden = true;
 $("#land").addEventListener("click", landFromFly);
 $("#menuBtn").addEventListener("click", () => { const m = $("#menu"); m.hidden = !m.hidden; $("#menuBtn").setAttribute("aria-expanded", String(!m.hidden)); });
