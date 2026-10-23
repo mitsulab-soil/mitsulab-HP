@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel } from "./layers.js?v=k1";
-import { makeQMarks } from "./qmarks.js?v=q1";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q2";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k3";
 import { BellSynth } from "./bell.js?v=k1";
 
@@ -41,6 +41,10 @@ scene.background = skyTex();
 { const pm = new THREE.PMREMGenerator(renderer); const e = new THREE.Scene(); e.background = scene.background; scene.environment = pm.fromScene(e, .04).texture; pm.dispose(); }
 // 雲のある空（walk 氷川と同じ写し：Poly Haven「Kloofendal 48d Partly Cloudy (Pure Sky)」CC0）。読めたら差し替える
 const NAVY = new THREE.Color("#03060f"); QW.skyBg = scene.background;   // 2026-10-23 夜：3D 地図は暗い地（電脳の地図・氷川と同じ）
+// 2026-10-23 深夜：降りる途中の空を途切れなく。暗い地（電脳の地図）から写真の空へ、高さに合わせて少しずつ（空を一度に切りかえると、真っ黒な空のこまが出た）
+const VEIL = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.ShaderMaterial({ uniforms: { opacity: { value: 0 }, uC: { value: NAVY } }, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false,
+  vertexShader: "varying float vY; void main(){ vY = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader: "uniform float opacity; uniform vec3 uC; varying float vY; void main(){ gl_FragColor = vec4(uC, opacity * mix(1., .22, smoothstep(-.16, .05, vY))); \n#include <colorspace_fragment>\n}" })); VEIL.renderOrder = -10; VEIL.visible = false; VEIL.frustumCulled = false; scene.add(VEIL);
 const CYBER = { v: { value: 1 }, scan: { value: 0 } };   // 3D 地図の地面：暗い地に細い格子・等高線・ゆっくり流れる光の走査（1＝地図・0＝歩く）
 const cyberize = sh => { sh.uniforms.uCy = CYBER.v; sh.uniforms.uScan = CYBER.scan;
   sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vCw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvCw=(modelMatrix*vec4(transformed,1.)).xyz;");
@@ -234,7 +238,7 @@ function buildObjs() {
   const add = (o, layer, kind) => {
     const L = GL[layer], m = makeMarker(layer, L.color, o.h || 1.8, MOBILE), y = o.bell ? groundY(o.x, o.z) : groundY(o.x, o.z);
     m.root.position.set(o.x, y, o.z); world.add(m.root);
-    const lb = makeLabel(layerNo(layer), L.name, o.title, L.color); lb.position.set(o.x + .45, y + (o.h || 1.8) + .75, o.z); world.add(lb);
+    const lb = makeLabel(layerNo(layer), L.name, o.title, L.color); lb.position.set(o.x + .45, y + (o.h || 1.8) + .75, o.z); lb.userData.by = lb.position.y; world.add(lb);
     for (const c of m.glyph.children) c.visible = false; m.beam.visible = false; m.base.visible = false;   // 2026-10-23 夜：線の印は描かず、かさねっこの形の結晶（qmarks.js）で描く
     LAYER.objs.push({ ...m, o, layer, kind, lb, show: 0 });
   };
@@ -260,21 +264,15 @@ function stepLayer(dt) {
     if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (34 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
   }
   LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
-  declutter();
+  declutter(dt);
 }
-/* 札どうしを重ねない：近い札から順に置き、先に置いた札と重なる遠い札は出さない（層の一覧の上にも出さない） */
-const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+/* 札どうし・札と結晶を重ねない（2026-10-23 深夜）：近い札から置き、重なる札は上へ一段ずつ逃がす（3 段まで）。それでも重なる遠い札はうすく消す。層の一覧の上にも出さない */
 const DC = { t: 0, ls: null };
-function declutter() {
-  const vis = LAYER.objs.filter(L => L.lb.visible).map(L => ({ L, d: L.lb.position.distanceTo(camera.position) })).sort((p, q) => p.d - q.d), put = [];
+function declutter(dt) {
   const now = performance.now(); if (!DC.ls || now - DC.t > 500) { DC.t = now; DC.ls = $("#lstack").getBoundingClientRect(); }   // 画面の部品の位置は 0.5 秒ごとに読む（毎こま読むと重い）
-  const ls = DC.ls, lr = ls.width ? ls.right : 0, lb = ls.bottom;
-  for (const { L } of vis) {
-    _a.copy(L.lb.position).project(camera); _b.copy(L.lb.position); _b.y += L.lb.scale.y; _b.project(camera);
-    if (_a.z > 1) continue; const x = (_a.x + 1) / 2 * innerWidth, y = (1 - _a.y) / 2 * innerHeight, h = Math.max(8, y - (1 - _b.y) / 2 * innerHeight), r = { x0: x, x1: x + h * 4, y0: y - h * 1.35, y1: y + h * .35 };   // 上下に少し余白（柱が上の札にかからない）
-    if (r.x0 < lr + 14 && r.y0 < lb + 14 || put.some(q => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0)) { L.lb.visible = false; continue; }
-    put.push(r);
-  }
+  const ls = DC.ls, avoid = [...(LAYER.qm?.rects || [])]; if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 });
+  const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
+  if (list.length) placeLabels(THREE, camera, list, avoid, dt);
 }
 function pickObj(x, y) {
   const r = new THREE.Raycaster(), p = new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); r.setFromCamera(p, camera);
@@ -542,7 +540,7 @@ function kasaPeek(x, z) { return nearestOnLine(x, z).dist < 11 && !kasaBox(x, z,
 function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
-    const M = await import("../kit/envAgents/kasane.js?v=20261023v3");
+    const M = await import("../kit/envAgents/kasane.js?v=20261024a");
     const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
       muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || a.data?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない・窓は層の一覧にかけない
     const near = (x, z, Rm = 9) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
@@ -833,8 +831,8 @@ function frame() {
   if (!RM) BLDU.t.value += dt;
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
-  { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? (camH > 90 ? 1 : 0) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
-    const bg = CYBER.v.value > .5 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
+  { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
+    const vt = m === "sky" || m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden });
   if (KURA.tags) stepTag();
   if (QW.mode === "walk") stepAoi(dt);

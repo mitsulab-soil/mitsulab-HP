@@ -323,6 +323,14 @@ export class KasaneHerd {
     root.updateMatrixWorld(true); const by = {}; root.traverse(o => { if (o.isMesh) by[o.name.replace(/\..*$/, "")] = o; });
     const T = by.kasane_tint, F = by.kasane_fix, N = this.max;
     const mT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .72, metalness: 0, envMapIntensity: .35 });
+    // 2026-10-23 深夜 本人「小豆色（culture）の子の顔が暗く見える」→ 暗い体の色ほど、顔のあたり（前・目の高さ）を少しだけ内から明るく（目とほおの差が見えるように）。明るい色の子はほとんど変えない
+    mT.onBeforeCompile = sh => {
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vKP;").replace("#include <project_vertex>", "#include <project_vertex>\n  vKP = transformed;");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vKP;").replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+  { float lum = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722)); float dk = 1. - smoothstep(.06, .32, lum);
+    vec3 fd = (vKP - vec3(0., .088, .07)) / vec3(.075, .05, .06); float fw = exp(-dot(fd, fd));   // 顔のまわりを、丸くやわらかく
+    totalEmissiveRadiance += diffuseColor.rgb * dk * (.14 + .7 * fw); }`);
+    };
     const mF = new THREE.MeshBasicMaterial({ vertexColors: true });
     // 左右の写し（先の傾きの向き）は、写しの組（物の行列を x で反転＝面の向きもそろう）で描く
     const mk = (geo, mat, mir) => { const im = new THREE.InstancedMesh(geo, mat, N); if (mir) { im.scale.x = -1; im.updateMatrix(); } im.frustumCulled = false; im.castShadow = im.receiveShadow = false; this.group.add(im); return im; };
@@ -401,7 +409,8 @@ export class KasaneHerd {
     const hex = this.hud[a.layer] || "#ffffff", content = this._viewContent(a, hex); if (!content) return;
     const g = new THREE.Group(); g.renderOrder = 20;
     const W = 512, H = 360, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
-    x.fillStyle = "rgba(4,9,16,.8)"; x.fillRect(6, 6, W - 12, H - 12);   // 後ろの景色と二重に見えないよう、地を締める
+    { const gr = x.createLinearGradient(0, 6, 0, H - 6); gr.addColorStop(0, "rgba(5,10,18,.97)"); gr.addColorStop(1, "rgba(2,5,10,.97)"); x.fillStyle = gr; x.fillRect(6, 6, W - 12, H - 12); }   // 2026-10-23 深夜：後ろの景色と二重に見えないよう、地はほぼ不透明に
+    x.fillStyle = "rgba(0,0,0,.35)"; x.fillRect(14, 66, W - 28, H - 66 - (40)); x.strokeStyle = hex; x.globalAlpha = .18; x.lineWidth = 1; x.strokeRect(14.5, 66.5, W - 29, H - 107); x.globalAlpha = 1;   // 中身の台（窓の地と中身の線を分ける）
     x.strokeStyle = hex; x.globalAlpha = .55; x.lineWidth = 1.2; x.strokeRect(6.5, 6.5, W - 13, H - 13); x.globalAlpha = 1; x.lineWidth = 3;
     for (const [px, py, dx, dy] of [[6, 6, 1, 1], [W - 6, 6, -1, 1], [6, H - 6, 1, -1], [W - 6, H - 6, -1, -1]]) { x.beginPath(); x.moveTo(px + dx * 26, py); x.lineTo(px, py); x.lineTo(px, py + dy * 22); x.stroke(); }
     x.globalAlpha = .07; x.fillStyle = hex; for (let y = 8; y < H - 8; y += 4) x.fillRect(8, y, W - 16, 1.4); x.globalAlpha = 1;
@@ -488,6 +497,25 @@ export class KasaneHerd {
     _v2.set(nx * D * th * cam.aspect, (ny - pxH / H) * D * th, -D).applyMatrix4(cam.matrixWorld); bp.setXYZ(1, _v2.x, _v2.y, _v2.z); bp.needsUpdate = true;
   }
 
+  /** 2026-10-23 深夜 本人「375 で画面の端の子が切れる・碧の足に重なる」→ 近くの子が画面の左右の端にかかったら内へ、碧の足もとに重なったら横へ、少しずつ歩かせる */
+  _keepInView(a, dt) {
+    if (a.pd > (this.mobile ? 14 : 18) || a.state === "focus") return;
+    const cam = this.camera, W = innerWidth, H = innerHeight, th = Math.tan(cam.fov * Math.PI / 360);
+    _v.set(a.pos.x, (a.gy || 0) + KASANE_H * a.S * .5, a.pos.y); const dist = _v.distanceTo(cam.position), c = _v.project(cam); if (c.z > 1) return;
+    const sx = (c.x * .5 + .5) * W, sy = (-c.y * .5 + .5) * H, px = KASANE_H * a.S / (2 * dist * th) * H, half = px * .6, m = this.mobile ? 14 : 10;
+    const rx = -this.F.y, rz = this.F.x; let push = 0;   // 画面の右へ＝(rx, rz)
+    if (sx - half < m && sx + half > -half) push = 1; else if (sx + half > W - m && sx - half < W + half) push = -1;
+    const av = this.avoid?.();
+    if (av && !push) { _v2.set(av.x, av.y + .25, av.z); const fd = _v2.distanceTo(cam.position), fc = _v2.project(cam); if (fc.z < 1) { const fx = (fc.x * .5 + .5) * W, fy = (-fc.y * .5 + .5) * H, aw = Math.max(24, .32 / (2 * fd * th) * H);
+      if (Math.abs(sx - fx) < aw + half && sy > fy - aw * 2.4 && sy < fy + aw * .8) push = sx < fx ? -1 : 1; } }   // 碧の足もと（膝から下）の前後に重なる
+    if (!push) return;
+    const sp = (this.mobile ? 1.1 : .8) * dt, F = this.F;
+    // 横へ（画面の内へ）。横が歩けない所なら、見る人から離れる向きへ（遠くなるほど画面の内へ寄る）
+    for (const [ux, uz] of [[rx * push, rz * push], [(rx * push + F.x) * .7, (rz * push + F.y) * .7], [F.x, F.y]]) {
+      const x = a.pos.x + ux * sp, z = a.pos.y + uz * sp;
+      if (!this.walkable || this.walkable(x, z)) { a.pos.set(x, z); if (!a.flock) a.anchor.set(a.anchor.x + ux * sp, a.anchor.y + uz * sp); if (a.goal) { a.goal.x += ux * sp; a.goal.y += uz * sp; } if (a.flock && a.flock.mode !== "follow") { const G = a.flock, k = 1 / Math.max(1, G.members.length) * 1.5; G.c.x += ux * sp * k; G.c.y += uz * sp * k; G.anchor.x += ux * sp * k; G.anchor.y += uz * sp * k; } a.held = (a.held || 0) + dt; return; }   // 群れの子なら、群れごと少し内へ
+    }
+  }
   update(dt, { active = true, busy = false } = {}) {
     this.active = active && this.ready; this.group.visible = this.active; if (!this.active) return;
     this.t += dt; const t = this.t, cam = this.camera, s = this.scale;
@@ -505,7 +533,7 @@ export class KasaneHerd {
         const n = a.pd || 1e-3, k = this.minCamDist / n, x = this.P.x + (a.pos.x - this.P.x) * k, z = this.P.y + (a.pos.y - this.P.y) * k;
         if (!this.walkable || this.walkable(x, z)) a.pos.set(x, z); else { a.pos.x = lerp(a.pos.x, x, .5); a.pos.y = lerp(a.pos.y, z, .5); }
       }
-      if (pd < this.maxDist && live.length < this.max) live.push(a);
+      if (pd < this.maxDist && live.length < this.max) { live.push(a); this._keepInView(a, dt); }
     }
     // ---- 描く
     if (!this.iT) return;
