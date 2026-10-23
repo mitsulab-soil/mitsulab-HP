@@ -14,7 +14,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261023q";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261023s";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -260,7 +260,7 @@ function loadMimi() {
     const sp = D.sight.find(q => q.id === "mimizu"), d = sp ? nearestOnLine(sp.x, sp.z).d : 640, { x, z } = clearSpot(d);
     const gy = surfaceY(x, z);
     m.object.position.set(x, gy + .012, z); m.object.scale.setScalar(4); m.play("crawl", 0, .8);
-    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ミミズ（4 倍で見せています）", GL.sight?.color || "#c4b2ff"); lb.position.set(0, .06, 0); lb.scale.set(.16, .04, 1); lb.material.depthTest = false; lb.renderOrder = 9; m.object.add(lb); MIMI.lb = lb;
+    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ミミズ（4 倍で見せています）", GL.sight?.color || "#a898d2"); lb.position.set(0, .06, 0); lb.scale.set(.16, .04, 1); lb.material.depthTest = false; lb.renderOrder = 9; m.object.add(lb); MIMI.lb = lb;
     m.object.visible = false; world.add(m.object); MIMI.m = m;
   }).catch(e => console.warn("mimizu", e));
 }
@@ -277,7 +277,7 @@ function loadHiyo() {
     let x = p.x - p.tz * side, z = p.z + p.tx * side, top = groundY(x, z) + 1.0; HIYO.c = { x, z, y: groundY(x, z) };
     await (VEG.p || Promise.resolve()); ({ x, z } = clearSpot(d)); top = surfaceY(x, z) + .02;   // とまる所＝参道の縁の植え込みの地面（落ち葉の上で餌をさがす横の姿）
     n.object.position.set(x, top, z); n.object.scale.setScalar(2.5); n.play("perch", 0);   // 見つけやすいよう 2.5 倍（札に書く）
-    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ヒヨドリ（2.5 倍で見せています）", GL.sight?.color || "#c4b2ff"); lb.position.set(0, .22, 0); lb.scale.set(.44, .11, 1); lb.material.depthTest = false; lb.renderOrder = 9; n.object.add(lb); HIYO.lb = lb; n.object.visible = false; world.add(n.object);
+    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ヒヨドリ（2.5 倍で見せています）", GL.sight?.color || "#a898d2"); lb.position.set(0, .22, 0); lb.scale.set(.44, .11, 1); lb.material.depthTest = false; lb.renderOrder = 9; n.object.add(lb); HIYO.lb = lb; n.object.visible = false; world.add(n.object);
     f.play("fly", 0, .7); f.object.visible = false; world.add(f.object);
     n.object.traverse(o => { if (o.isMesh) o.renderOrder = 3; }); HIYO.near = n; HIYO.far = f;
   }).catch(e => console.warn("hiyo", e));
@@ -522,13 +522,14 @@ function updateTrees(force = false) {
 }
 
 /* 道（舗装の材ごと）と構造物は、歩きはじめる前に後から読む */
-const ROAD_MATS = { asphalt_dark: ["Asphalt023S", [1, 1, 1], 1, .8], asphalt_light: ["asphalt_04", [1, 1, 1], 1, .8], sidewalk: ["concrete_pavers_02", [1, 1, 1], 1, 1], granite_light: ["concrete_pavement", [1, 1, 1], .9, 1],
-  granite_plaza: ["granite_tile_04", [1, 1, 1], 1, 1], granite_black: ["granite_tile", [1, 1, 1], .85, .7], washed: ["gravel_embedded_concrete", [1, 1, 1], 1, 1], granite_band: ["PavingStones133", [1, 1, 1], .95, 1],
-  stone: ["japanese_stone_wall", [1, 1, 1], 1, 1], sand: ["gravelly_sand", [1, 1, 1], 1, .9], roots: ["roots", [.46, .42, .37], 1, 1.2], bed: ["Ground047", [.8, .74, .66], 1, 1], lawn: ["Ground047", [.78, 1.05, .62], 1, 1],
-  gravel: ["Gravel023", [.8, .79, .76], 1, 1.2], concrete: ["asphalt_04", [1.25, 1.25, 1.22], .9, .5], paint: ["Asphalt023S", [2.3, 2.3, 2.25], .6, .4] };
+/* 2026-10-23 本人「舗装が白くて眩しいので、もっと自然な色に」→ 写真の質感（CC0）はそのまま、色を少し暖かい灰・使い込まれた石へ寄せて明度を下げ、照り返しを抑える */
+const ROAD_MATS = { asphalt_dark: ["Asphalt023S", [.95, .93, .9], 1, .8], asphalt_light: ["asphalt_04", [.84, .82, .78], 1, .8], sidewalk: ["concrete_pavers_02", [.72, .68, .62], 1, 1], granite_light: ["concrete_pavement", [.74, .7, .64], 1, 1],
+  granite_plaza: ["granite_tile_04", [.72, .68, .62], 1, 1], granite_black: ["granite_tile", [1, 1, 1], .92, .7], washed: ["gravel_embedded_concrete", [.78, .74, .68], 1, 1], granite_band: ["PavingStones133", [.76, .72, .66], 1, 1],
+  stone: ["japanese_stone_wall", [.84, .8, .74], 1, 1], sand: ["gravelly_sand", [1, 1, 1], 1, .9], roots: ["roots", [.46, .42, .37], 1, 1.2], bed: ["Ground047", [.8, .74, .66], 1, 1], lawn: ["Ground047", [.78, 1.05, .62], 1, 1],
+  gravel: ["Gravel023", [.8, .79, .76], 1, 1.2], concrete: ["asphalt_04", [.9, .87, .82], 1, .5], paint: ["Asphalt023S", [1.55, 1.52, 1.45], .8, .4] };
 const ROAD_WEATHER = { stone: { moss: 0, grime: .45, lichen: 0, scale: 1.1, bump: .05 }, concrete: { moss: 0, grime: .55, lichen: 0, scale: 1.5, bump: .03 },   // 2026-10-23 本人「石畳の舗装に苔を生やさない」＝舗装の面は苔・地衣（緑のしみ）なし。縁の外の土・植え込みはそのまま
-  granite_light: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .82 }, granite_plaza: { flat: 1, moss: 0, grime: .38, lichen: 0, scale: 1, bump: .022, rough: .82 },
-  granite_black: { flat: 1, moss: 0, grime: .3, lichen: 0, scale: 1, bump: .02, rough: .8 }, granite_band: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .82 },
+  granite_light: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .93 }, granite_plaza: { flat: 1, moss: 0, grime: .38, lichen: 0, scale: 1, bump: .022, rough: .93 },
+  granite_black: { flat: 1, moss: 0, grime: .3, lichen: 0, scale: 1, bump: .02, rough: .9 }, granite_band: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .93 },
   sidewalk: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .02 }, washed: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .025 } };
 const STRUCT_WEATHER = { stone_new: { moss: .38, grime: .55, lichen: .45 }, granite: { moss: .32, grime: .5, lichen: .4 }, old_lantern: { moss: .55, grime: .65, lichen: .65 },
   old_komainu: { moss: .5, grime: .6, lichen: .6 }, old_hyoseki: { moss: .45, grime: .6, lichen: .55 }, old_shago: { moss: .45, grime: .6, lichen: .55 },
@@ -569,7 +570,7 @@ function loadLate() {
   setTimeout(loadHiyo, 2500); setTimeout(loadMimi, 4000);   // ヒヨドリの 3D は、歩きはじめて少ししてから（起動を重くしない）
   const road = glb("web/road.glb").then(g => {
     const mats = {};
-    for (const [k, [t, c, r, n]] of Object.entries(ROAD_MATS)) { mats[k] = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/" + t + "_c5.webp"), normalMap: MOBILE ? null : tex(BASE + "tex/" + t + "_n5.webp", false), normalScale: new THREE.Vector2(n, -n), color: new THREE.Color(...c), roughness: r, metalness: 0, envMapIntensity: .5 }); if (ROAD_WEATHER[k]) weather(mats[k], ROAD_WEATHER[k]); }
+    for (const [k, [t, c, r, n]] of Object.entries(ROAD_MATS)) { mats[k] = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/" + t + "_c5.webp"), normalMap: MOBILE ? null : tex(BASE + "tex/" + t + "_n5.webp", false), normalScale: new THREE.Vector2(n, -n), color: new THREE.Color(...c), roughness: r, metalness: 0, envMapIntensity: .3 }); if (ROAD_WEATHER[k]) weather(mats[k], ROAD_WEATHER[k]); }
     for (const m of Object.values(mats)) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }   // ROAD_STENCIL
     g.scene.traverse(o => { if (o.isMesh) { const k = o.name.split("|")[0]; if (mats[k]) o.material = mats[k]; o.renderOrder = -1; o.userData.stone = k === "stone"; pickables.push(o); } });
     roadGroup = g.scene; world.add(roadGroup); roadGroup.updateMatrixWorld(true);
@@ -1059,9 +1060,22 @@ function showGoalRing(p) {
 /* ---------- Qualia Layer：層を重ねる（記録の 9 層と、Qualia/sight・Qualia/sound） ---------- */
 let ALL = [], GL = {};
 const LAYER = { worn: [], objs: [], ripple: null, rippleR: 0, wear: null, thumbs: null };
-function layerNo(id) { return ALL.findIndex(l => l.id === id) + 1; }
+/* 2026-10-23 本人「sight, touch, sound, nature, culture です」→ 層は 5 つ。Qualia/sho は sound の中、Qualia/rakugo と歴史は culture の中（中身はそのまま・どの層で重ねるかだけを付け替える） */
+const PARENT = { sho: "sound", rakugo: "culture", history: "culture" };
+const top5 = id => PARENT[id] || id;
+const COLOR5 = { sight: "#a898d2", touch: "#deb778", sound: "#9b9bda", nature: "#78ad7a", culture: "#e28692" };   // 2026-10-23 層の 5 色（かさねっこの体＝落ち着かせた組。HUD と夜の地の札は明るめの列＝ここ）
+const SUBNAME = { sho: "sho", rakugo: "rakugo", history: "history" };
+const LEAD5 = {
+  sound: "参道の音（葉ずれ・鳥と蟬の声・玉砂利・池の水）と、上原光瑛の書（Qualia/sho）。書に近づくと、音が鳴る",
+  culture: "参道の暮らし・祭礼と暦・街道と宿場・鳥居と石・地名・災害と変わり目、そしてその場所にちなんだ噺（Qualia/rakugo）",
+};
+function layerNo(id) { return ALL.findIndex(l => l.id === top5(id)) + 1; }
 function buildObjs() {
-  ALL = [...D.layers, ...QLAYERS]; GL = Object.fromEntries(ALL.map(l => [l.id, l]));
+  const rec = Object.fromEntries(D.layers.map(l => [l.id, l])), q = Object.fromEntries(QLAYERS.map(l => [l.id, l]));
+  // 下から 01：記録の層（culture・nature）の上に、五感の層（sound・touch・sight）を重ねる。上から読むと sight・touch・sound・nature・culture
+  ALL = [{ ...rec.culture, lead: LEAD5.culture }, { ...rec.nature }, { ...q.sound, lead: LEAD5.sound }, q.touch, q.sight];
+  ALL = ALL.map(l => ({ ...l, color: COLOR5[l.id] || l.color })); GL = Object.fromEntries(ALL.map(l => [l.id, l]));
+  for (const [sub, par] of Object.entries(PARENT)) { const b = rec[sub] || q[sub] || { id: sub }; GL[sub] = { ...b, color: GL[par].color, name: `${GL[par].name} ／ ${SUBNAME[sub]}` }; }
   const list = [...D.objs, ...D.sound.map(s => ({ id: s.id, x: s.x, y: s.y, z: s.z, ll: s.ll, layer: "sound", title: s.title, h: 2.0, lines: [], snd: s })), ...D.touch.map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "touch", title: t.title, h: 1.25, lines: [], tch: t })), ...(D.sho || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "sho", title: t.title, h: .7, lines: [], sho: t })), ...(D.rakugo || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "rakugo", title: t.title, h: 1.9, lines: [], rk: t }))];
   for (const o of list) {
     const L0 = GL[o.layer]; if (!L0) continue;
@@ -1085,7 +1099,7 @@ function wearLayer(id, opts = {}) {   // 層は重ねられる（重ねた順に
 
   // 層が重なる：見る人の足もとから輪がひろがり、届いた所から物が現れる
   if (g) { LAYER.rippleR = 0; LAYER.ripple.visible = QW.mode !== "sky"; LAYER.ripple.material.color.set(g.color); LAYER.ripple.position.set(camera.position.x, groundY(camera.position.x, camera.position.z) + .06, camera.position.z); LAYER.rippleLayer = g.id; }
-  for (const L of LAYER.objs) { L.want = W.includes(L.o.layer); if (!L.want) L.arr = false; if (L.label) { L.glyph.remove(L.label); L.label.material.map.dispose(); L.label.material.dispose(); L.label = null; } }
+  for (const L of LAYER.objs) { L.want = W.includes(top5(L.o.layer)); if (!L.want) L.arr = false; if (L.label) { L.glyph.remove(L.label); L.label.material.map.dispose(); L.label.material.dispose(); L.label = null; } }
   if (g) putOnAnim(g);
   if (!W.includes("sight") && SIGHT.sp) exitSight();
   updateStack();
@@ -1104,7 +1118,7 @@ function stepLayer(dt) {
   const far = sky ? 1e9 : flyish ? (MOBILE ? 600 : 900) : M === "walk" || M === "sight" || M === "descend" ? (MOBILE ? 200 : 300) : 0, lod = sky || flyish ? 0 : MOBILE ? 50 : 70;
   for (const L of LAYER.objs) {
     const dx = L.o.x - cp.x, dz = L.o.z - cp.z, dist = Math.hypot(dx, dz);
-    if (L.want && !L.arr && (!LAYER.ripple.visible || L.o.layer !== LAYER.rippleLayer || dist < LAYER.rippleR - 10)) L.arr = true;
+    if (L.want && !L.arr && (!LAYER.ripple.visible || top5(L.o.layer) !== LAYER.rippleLayer || dist < LAYER.rippleR - 10)) L.arr = true;
     const target = L.want && L.arr && dist < far ? 1 : 0;
     L.show += (target - L.show) * Math.min(1, dt * (target ? 3 : 6));
     const vis = L.show > .01; L.root.visible = vis; if (!vis) continue;
@@ -1239,7 +1253,7 @@ function pickTalk() {
     else ok = d >= s.d0 - pad && d <= s.d1 + pad;
     if (!ok && quiet > 16000) ok = Math.abs((s.d0 + s.d1) / 2 - d) < (air ? 260 : 120);   // しばらく話すことがないときは、少し離れた話も
     if (!ok) continue;
-    let sc = s.p + (LAYER.worn.includes(s.k) ? 5 : 0) + (s.a && !air ? 2 : 0) - Math.abs((s.d0 + s.d1) / 2 - d) / 150;
+    let sc = s.p + (LAYER.worn.includes(top5(s.k)) ? 5 : 0) + (s.a && !air ? 2 : 0) - Math.abs((s.d0 + s.d1) / 2 - d) / 150;
     if (air) sc -= s.lines.length > 3 ? 1 : 0;
     if (sc > bs) { bs = sc; best = s; }
   }
@@ -1748,7 +1762,7 @@ function touchRing(amp, p) { const r = $("#tring"); if (!r) return; if (p) { r.s
 const SHO = { mod: null, loading: null, live: {}, near: null };
 function loadShoMod() { return SHO.loading ||= import("./sho/sho3d.js").then(m => { SHO.mod = m; return m; }).catch(e => console.warn("sho", e)); }
 function stepSho(dt) {
-  const list = D.sho || [], on = LAYER.worn.includes("sho") && (QW.mode === "walk" || QW.mode === "sight" || QW.mode === "fly"), cp = camera.position, t = performance.now() / 1000;
+  const list = D.sho || [], on = LAYER.worn.includes("sound") && (QW.mode === "walk" || QW.mode === "sight" || QW.mode === "fly"), cp = camera.position, t = performance.now() / 1000;
   for (const it of list) {
     const dist = Math.hypot(it.x - cp.x, it.z - cp.z), want = on && dist < 60, S = SHO.live[it.id];
     if (want && !S) {
@@ -1758,7 +1772,7 @@ function stepSho(dt) {
         const n = nearestOnLine(it.x, it.z), a = atD(n.d); sho.group.position.set(it.x, it.y + 1.6, it.z); sho.group.rotation.y = Math.atan2(a.x - it.x, a.z - it.z);   // 参道の方を向く
         sho.setScale(innerHeight * renderer.getPixelRatio() * .9); world.add(sho.group);
         const ac = sndCtx(); const snd = ac ? SHO.mod.createShoSound(it.preset, { context: ac, destination: SND.out, volume: .45 }) : null;
-        const lb = makeLabel(layerNo("sho"), "Qualia/sho", it.title, GL.sho?.color || "#9aa3b8"); lb.position.set(it.x, it.y + 3.4, it.z); lb.scale.set(4, 1, 1); lb.material.depthTest = false; lb.renderOrder = 9; world.add(lb);   // 層の物だと分かるように、層の名札を添える
+        const lb = makeLabel(layerNo("sho"), GL.sho?.name || "Qualia/sound", it.title, GL.sho?.color || "#9b9bda"); lb.position.set(it.x, it.y + 3.4, it.z); lb.scale.set(4, 1, 1); lb.material.depthTest = false; lb.renderOrder = 9; world.add(lb);   // 層の物だと分かるように、層の名札を添える
         SHO.live[it.id] = { sho, snd, it, hold: 0, lb };
       }).catch(e => console.warn("sho map", e)); }
       continue;
@@ -1775,7 +1789,7 @@ function stepSho(dt) {
 }
 function openSho(L) {
   const it = L.o.sho, g = GL.sho;
-  openPanel({ color: g.color, layer: `${String(layerNo("sho")).padStart(2, "0")}　Qualia/sho`, title: `《${it.title}》`, lines: [],
+  openPanel({ color: g.color, layer: `${String(layerNo("sho")).padStart(2, "0")}　${g.name}`, title: `《${it.title}》`, lines: [],
     more: ["上原光瑛の書。墨の形を 3D の起伏にし、近づくと筆の向きに沿って粒にほどけ、また集まります。音は、ほどける速さに合わせて、その場で組み立てています。", "置いた場所：" + it.why + "（題と場所の結びつけは、作品としての解釈です）"],
     src: [{ t: "書：上原光瑛（© mitsulab. All rights reserved.）" }], ll: it.ll, how: "作品（mitsulab）",
     buttons: [{ label: "ほどく・集める", primary: true, run: () => touchSho(it) }] });
@@ -1786,7 +1800,7 @@ const RK_BASE = "https://mitsulab-soil.github.io/aoi-shizen-rakugo/";
 function openRakugo(L) {
   const it = L.o.rk, g = GL.rakugo, v = MOBILE ? "_v540" : "_h720", mm = s => `${Math.floor(s / 60)} 分`;
   const figs = `<video class="rkV" controls playsinline preload="none" poster="${RK_BASE}img/${esc(it.slug)}_poster${MOBILE ? "_v" : ""}.webp" src="${RK_BASE}video/${esc(it.slug)}${v}.mp4" aria-label="噺《${esc(it.title)}》の高座（約 ${mm(it.dur)}）"></video><figcaption>《${esc(it.title)}》（${esc(it.r)}）・約 ${mm(it.dur)}。高座の碧が演じます。音が出ます。</figcaption>`;
-  openPanel({ color: g.color, layer: `${String(layerNo("rakugo")).padStart(2, "0")}　Qualia/rakugo`, title: `《${it.title}》`, lines: [it.say], more: [it.lead, "置いた場所：" + it.why, "ためしてみる：" + it.invite],
+  openPanel({ color: g.color, layer: `${String(layerNo("rakugo")).padStart(2, "0")}　${g.name}`, title: `《${it.title}》`, lines: [it.say], more: [it.lead, "置いた場所：" + it.why, "ためしてみる：" + it.invite],
     note: it.fic + (it.warn ? "　" + it.warn : ""), src: [{ t: "高座：Qualia/rakugo（mitsulab）", u: RK_BASE + "?e=" + it.slug }, ...it.src], ll: it.ll, how: "作品（mitsulab）── 噺の中の人物と見立ては作り話。典拠は噺のもとになった記録", figs });
   const vid = $("#pExp video"); if (vid) { let was = null; vid.addEventListener("play", () => { stopVoice(); stopSound(); if (was === null) was = TALK.on; TALK.on = false; syncTalkBtn(); }); const back = () => { if (was) { TALK.on = true; syncTalkBtn(); TALK.nextT = performance.now() + 4000; } was = null; }; vid.addEventListener("pause", back); vid.addEventListener("ended", back); }   // 噺のあいだは、碧の歩きながらの話を止める
   speakLines([it.say], L);
@@ -1857,7 +1871,7 @@ function fillMenu() {
 /* 左の層の板：一枚が一つの情報の層。触れると表示・非表示。板の色＝風景に重ねた物の色 */
 function buildTray() {
   const mk = (L, box, i) => {   // 目盛りの一段（下から 01・02…と上へ重なる）
-    const n = L.id === "sight" ? D.sight.filter(q => BODY_D[q.id]).length : L.id === "sound" ? D.sound.length : L.id === "touch" ? D.touch.length : L.id === "sho" ? (D.sho || []).length : L.id === "rakugo" ? (D.rakugo || []).length : D.objs.filter(o => o.layer === L.id).length;
+    const n = L.id === "sight" ? D.sight.filter(q => BODY_D[q.id]).length : L.id === "sound" ? D.sound.length + (D.sho || []).length : L.id === "touch" ? D.touch.length : L.id === "culture" ? D.objs.filter(o => top5(o.layer) === "culture").length + (D.rakugo || []).length : D.objs.filter(o => o.layer === L.id).length;
     const li = document.createElement("li"); li.className = "ly";
     const b = document.createElement("button"); b.type = "button"; b.className = "lyBtn" + (L.q ? " q" : ""); b.dataset.id = L.id; b.setAttribute("aria-pressed", "false"); b.style.setProperty("--gc", L.color);
     b.title = L.lead; b.setAttribute("aria-label", `${L.name}（${L.lead}）`);
@@ -1867,9 +1881,9 @@ function buildTray() {
     box.appendChild(li);
   };
   const a = $("#layersAll"); a.innerHTML = "";
-  D.layers.forEach((L, i) => mk(L, a, i));
+  ALL.slice(0, 2).forEach((L, i) => mk(L, a, i));
   const sep = document.createElement("li"); sep.className = "lySep"; sep.setAttribute("aria-hidden", "true"); sep.textContent = "五感 · SENSES"; a.appendChild(sep);
-  QLAYERS.forEach((L, i) => mk(L, a, D.layers.length + i));
+  ALL.slice(2).forEach((L, i) => mk(L, a, 2 + i));
   syncTray();
 }
 function syncTray() {

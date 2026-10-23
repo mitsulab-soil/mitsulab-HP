@@ -1,6 +1,6 @@
 /* Qualium 川越（旧 Qualia/walk 川越）── （2026-10-22 初版・10-23 公開）
    3D 地図（上空）から始める場所を選ぶ → 降りて歩く（見回しながら）／鳥になって飛ぶ／生きもの（Qualia/sight）になる。
-   左の層の一覧：記録の 3 層（自然・歴史・文化）＋ Qualia/sight・sound・sho・touch。触れると重ねる／外す（既定は全部重ねる）。
+   左の層の一覧：Qualia/sight・touch・sound（sho を含む）・nature・culture（歴史を含む）の 5 つ。触れると重ねる／外す（既定は全部重ねる）。
    建物は OpenStreetMap の平面を、電脳の HUD のような半透明の薄いグラフィックに（高さは模式）。一番街の店蔵の型と時の鐘だけ写実の 3D。
    座標：x＝東 m・y＝標高 m・z＝南 m（原点＝時の鐘 35.92348N 139.48334E）。
    walk 氷川（web/lite/app.js）の作りを写して、川越の中身で組み直した（氷川のファイルは触っていない）。 */
@@ -17,7 +17,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261023a";
+const VER = "20261023d";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -78,7 +78,7 @@ async function buildBase() {
     pos[k * 3] = x; pos[k * 3 + 1] = DEM[(j * st) * d.nx + i * st] / 100; pos[k * 3 + 2] = z; uv[k * 2] = (x - ph.x0) / (ph.x1 - ph.x0); uv[k * 2 + 1] = 1 - (z - ph.z0) / (ph.z1 - ph.z0); }
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c2 = a + nx, e = c2 + 1; idx.push(a, c2, b, b, c2, e); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ map: photo, roughness: .95, metalness: 0, color: "#c4c2bc" });
+  const mat = new THREE.MeshStandardMaterial({ map: photo, roughness: 1, metalness: 0, color: "#9c968c" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ
   desat(mat); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain;
   buildRoute(); buildRoads(); buildWater();
   if (G.near) texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
@@ -88,7 +88,7 @@ async function buildBase() {
     for (let j = 0; j < h - 1; j++) for (let i = 0; i < w - 1; i++) { const a = j * w + i; I.push(a, a + w, a + 1, a + 1, a + w, a + w + 1); }
     const g2 = new THREE.BufferGeometry(); g2.setAttribute("position", new THREE.BufferAttribute(P, 3)); g2.setAttribute("uv", new THREE.BufferAttribute(U, 2)); g2.setIndex(I); g2.computeVertexNormals();
     t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
-    const m2 = new THREE.MeshStandardMaterial({ map: t, roughness: .95, color: "#a9a7a2", polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+    const m2 = new THREE.MeshStandardMaterial({ map: t, roughness: 1, color: "#8f8a82", polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
     m2.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n float eg=min(min(vMapUv.x,1.-vMapUv.x),min(vMapUv.y,1.-vMapUv.y)); if(eg<0.) discard;"); };
     m2._obc = m2.onBeforeCompile; desat(m2);
     const near = new THREE.Mesh(g2, m2); near.renderOrder = 1; world.add(near); QW.near = near;
@@ -99,7 +99,7 @@ let ASPH = null;
 function roadMat() {   // 道の面：Poly Haven「Asphalt 04」（CC0）の色・法線・粗さ。3 m ごとに繰り返し、大きなむら（補修跡・踏まれた筋）を重ねて繰り返しを目立たせない
   if (ASPH) return ASPH;
   const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 12; return t; };
-  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#8d8d8f", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
+  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#7d7a76", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
   m.onBeforeCompile = sh => {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWxz=(modelMatrix*vec4(transformed,1.)).xz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;\nfloat n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);float a=fract(sin(dot(i,vec2(127.1,311.7)))*43758.5),b=fract(sin(dot(i+vec2(1,0),vec2(127.1,311.7)))*43758.5),c=fract(sin(dot(i+vec2(0,1),vec2(127.1,311.7)))*43758.5),d=fract(sin(dot(i+vec2(1,1),vec2(127.1,311.7)))*43758.5);return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}")
@@ -126,7 +126,7 @@ function buildRoads() {
   // 歩道（模式）：車の通る道の両わきに、コンクリートの舗装の帯を道の下に敷く（Poly Haven「Concrete Pavement」CC0）
   const sw = []; for (const r of G.roads) { if (r.w < 7) continue; if (!r.p.some(p => Math.hypot(p[0], p[1] - 400) < 900)) continue; sw.push(ribbon(densify(r.p, 4), r.w + 4.6, .03, 1.2)); }
   if (sw.length) { const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
-    const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#a3a19c", roughness: .9, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
+    const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#8e8981", roughness: 1, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
     const pv = new THREE.Mesh(mergeIdx(sw), pm); pv.name = "walkway"; world.add(pv); QW.pave = pv; }
 }
 function mergeIdx(gs) { let n = 0; const P = [], U = [], N = [], I = []; for (const g of gs) { const p = g.attributes.position.array, u = g.attributes.uv.array, nn = g.attributes.normal.array, ix = g.index.array; for (let i = 0; i < p.length; i++) P.push(p[i]); for (let i = 0; i < u.length; i++) U.push(u[i]); for (let i = 0; i < nn.length; i++) N.push(nn[i]); for (let i = 0; i < ix.length; i++) I.push(ix[i] + n); n += p.length / 3; g.dispose(); }
@@ -214,9 +214,16 @@ function buildKura() {
 /* ---------- Qualia Layer：記録の 3 層と、Qualia/sight・sound・sho・touch ---------- */
 let ALL = [], GL = {};
 const LAYER = { worn: [], objs: [] };
-function layerNo(id) { return ALL.findIndex(l => l.id === id) + 1; }
+/* 2026-10-23 本人「sight, touch, sound, nature, culture です」→ 層は 5 つ。Qualia/sho は sound の中、歴史は culture の中（中身はそのまま・どの層で重ねるかだけを付け替える） */
+const PARENT = { sho: "sound", history: "culture" }, SUBNAME = { sho: "sho", history: "history" };
+const top5 = id => PARENT[id] || id;
+const COLOR5 = { sight: "#a898d2", touch: "#deb778", sound: "#9b9bda", nature: "#78ad7a", culture: "#e28692" };   // 2026-10-23 層の 5 色（かさねっこの体＝落ち着かせた組。HUD と夜の地の札は明るめの列＝ここ）
+function layerNo(id) { return ALL.findIndex(l => l.id === top5(id)) + 1; }
 function buildObjs() {
-  ALL = [...C.layers, ...QLAYERS.map(l => ({ ...l, lead: C.ql[l.id] || l.lead }))]; GL = Object.fromEntries(ALL.map(l => [l.id, l]));
+  const rec = Object.fromEntries(C.layers.map(l => [l.id, l])), q = Object.fromEntries(QLAYERS.map(l => [l.id, { ...l, lead: C.ql[l.id] || l.lead }]));
+  // 下から 01：記録の層（culture・nature）の上に、五感の層（sound・touch・sight）を重ねる。上から読むと sight・touch・sound・nature・culture
+  ALL = [rec.culture, rec.nature, q.sound, q.touch, q.sight].map(l => ({ ...l, color: COLOR5[l.id] || l.color })); GL = Object.fromEntries(ALL.map(l => [l.id, l]));
+  for (const [sub, par] of Object.entries(PARENT)) { const b = rec[sub] || q[sub] || { id: sub }; GL[sub] = { ...b, color: GL[par].color, name: `${GL[par].name} ／ ${SUBNAME[sub]}` }; }
   const add = (o, layer, kind) => {
     const L = GL[layer], m = makeMarker(layer, L.color, o.h || 1.8, MOBILE), y = o.bell ? groundY(o.x, o.z) : groundY(o.x, o.z);
     m.root.position.set(o.x, y, o.z); world.add(m.root);
@@ -234,7 +241,7 @@ const _v = new THREE.Vector3();
 function stepLayer(dt) {
   const cp = camera.position, t = performance.now() / 1000, sky = QW.mode === "sky" || QW.mode === "descend";
   for (const L of LAYER.objs) {
-    const on = LAYER.worn.includes(L.layer) && QW.mode !== "sight", d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
+    const on = LAYER.worn.includes(top5(L.layer)) && QW.mode !== "sight", d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
     const want = on ? (sky ? 1 : d < 140 ? 1 : 0) : 0; L.show += (want - L.show) * Math.min(1, dt * 4);
     const vis = L.show > .02; L.root.visible = vis; L.lb.visible = vis && (sky ? false : d < 34);
     if (!vis) continue;
@@ -409,7 +416,7 @@ function stepTween(dt) { if (!TW) return false; TW.t += dt / TW.dur; const k = M
   camera.position.lerpVectors(TW.p0, TW.p1, e); const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; camera.quaternion.slerpQuaternions(TW.q0, TW.q1, e);
   if (k >= 1) { const d = TW.done; TW = null; d?.(); } return true; }
 /* 始める場所（道筋 A の 7 地点） */
-const START = { sel: 0, pins: [], labels: [] };
+const START = { sel: 3, pins: [], labels: [] };   // 2026-10-23 はじめは蔵造りの一番街（仲町交差点）から
 function buildStarts() {
   const box = $("#starts"); box.innerHTML = ""; const pl = $("#pinLabels");
   C.starts.forEach((s, i) => {
@@ -600,7 +607,7 @@ const WAVE = { rings: [], on: false, t0: 0,
   stop() { this.on = false; for (const r of this.rings) world.remove(r); this.rings.length = 0; },
   step() { if (!this.on || !KURA.tower) return; const t = performance.now() / 1000 - this.t0;
     for (const k of [0, 7, 14]) { const age = t - k; let r = this.rings[k / 7]; if (age < 0) continue;
-      if (!r) { r = new THREE.Mesh(new THREE.RingGeometry(.96, 1, 128), new THREE.MeshBasicMaterial({ color: "#78b8ec", transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false })); r.rotation.x = -Math.PI / 2; r.position.set(KURA.tower.position.x, KURA.bellY - 2, KURA.tower.position.z); world.add(r); this.rings[k / 7] = r; }
+      if (!r) { r = new THREE.Mesh(new THREE.RingGeometry(.96, 1, 128), new THREE.MeshBasicMaterial({ color: "#9b9bda", transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false })); r.rotation.x = -Math.PI / 2; r.position.set(KURA.tower.position.x, KURA.bellY - 2, KURA.tower.position.z); world.add(r); this.rings[k / 7] = r; }
       const R = age * 340 * .25 + 1; r.scale.setScalar(R); r.material.opacity = Math.max(0, .7 * (1 - age / 8)); }
     if (t > 24) this.stop(); } };
 
@@ -630,7 +637,7 @@ function openTouch(L, no) {
 const SHO = { mod: null, loading: null, live: {} };
 function loadShoMod() { return SHO.loading ||= import("../sho/sho3d.js").then(m => { SHO.mod = m; return m; }).catch(e => console.warn("sho", e)); }
 function stepSho(dt) {
-  const on = LAYER.worn.includes("sho") && (QW.mode === "walk" || QW.mode === "fly"), cp = camera.position, t = performance.now() / 1000;
+  const on = LAYER.worn.includes("sound") && (QW.mode === "walk" || QW.mode === "fly"), cp = camera.position, t = performance.now() / 1000;
   for (const it of C.sho) {
     const dist = Math.hypot(it.x - cp.x, it.z - cp.z), want = on && dist < 60, S = SHO.live[it.id];
     if (want && !S) { if (!SHO.mod) { loadShoMod(); continue; }
@@ -691,15 +698,15 @@ function fillMenu() { $("#about").textContent = C.about; $("#credit").textConten
 function buildTray() {
   const a = $("#layersAll"); a.innerHTML = "";
   const mk = (L, i) => {
-    const n = L.id === "sight" ? C.sight.length : L.id === "sound" ? C.sound.length : L.id === "touch" ? C.touch.length : L.id === "sho" ? C.sho.length : C.objs.filter(o => o.layer === L.id).length;
+    const n = L.id === "sight" ? C.sight.length : L.id === "sound" ? C.sound.length + C.sho.length : L.id === "touch" ? C.touch.length : C.objs.filter(o => top5(o.layer) === L.id).length;
     const li = document.createElement("li"); li.className = "ly"; const b = document.createElement("button"); b.type = "button"; b.className = "lyBtn" + (L.q ? " q" : ""); b.dataset.id = L.id; b.style.setProperty("--gc", L.color); b.title = L.lead; b.setAttribute("aria-label", `${L.name}（${L.lead}）`);
     b.innerHTML = `<span class="tk" aria-hidden="true"></span><span class="no">L${String(i + 1).padStart(2, "0")}</span><span class="nm"><b>${L.name}</b><small>${L.en}</small></span><span class="ct">${String(n).padStart(2, "0")}</span>`;
     b.addEventListener("click", () => wearLayer(L.id)); li.appendChild(b);
     if (L.id === "sight") { const g = document.createElement("button"); g.type = "button"; g.className = "lyGo hb"; g.style.setProperty("--gc", L.color); g.textContent = "入る"; g.setAttribute("aria-label", "生きものの身体に入る"); g.addEventListener("click", e => { e.stopPropagation(); openSightChooser(); }); li.appendChild(g); }
     a.appendChild(li); };
-  C.layers.forEach((L, i) => mk(L, i));
-  const sep = document.createElement("li"); sep.className = "lySep"; sep.setAttribute("aria-hidden", "true"); sep.textContent = "QUALIA"; a.appendChild(sep);
-  ALL.slice(C.layers.length).forEach((L, i) => mk(L, C.layers.length + i));
+  ALL.slice(0, 2).forEach((L, i) => mk(L, i));
+  const sep = document.createElement("li"); sep.className = "lySep"; sep.setAttribute("aria-hidden", "true"); sep.textContent = "五感 · SENSES"; a.appendChild(sep);
+  ALL.slice(2).forEach((L, i) => mk(L, 2 + i));
   syncTray();
 }
 function syncTray() { document.querySelectorAll(".lyBtn").forEach(b => b.setAttribute("aria-pressed", LAYER.worn.includes(b.dataset.id) ? "true" : "false")); const c = $("#lsCount"); if (c) c.textContent = `${LAYER.worn.length} / ${ALL.length}`; }
@@ -779,7 +786,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await buildBase();
     buildObjs(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn();
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
-    setMode("sky"); selectStart(0); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 1500 : 1150; SKY.c.set(-30, 20, 420); skyCam(); showSkyUI();
+    setMode("sky"); selectStart(START.sel); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 1500 : 1150; SKY.c.set(-30, 20, 420); skyCam(); showSkyUI();
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;
