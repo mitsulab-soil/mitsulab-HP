@@ -399,6 +399,33 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 .pinLabel{background:rgba(6,12,22,.72);color:#e6edf5}
 .pinLabel.on{background:rgba(64,40,8,.9);color:#fff;border-left-color:var(--pick);box-shadow:-6px 0 12px -6px var(--pick)}
 .pinLabel.on::after{background:var(--pick)}
+/* 2026-10-23 夜（氷川の公開版 49e809b と同じ）本人「レイヤーの文字デザインを、もっとデジタル感のあるものに（電脳の HUD のイメージ）」「場所の選択画面が 3D 地図と重なって見えにくい」
+   → 層の一覧は等幅の細い字・英数字の層コード・細い罫線と目盛り・走査線・組み上がる出方・かすかな発光（独自のデザイン。特定の作品のロゴ・書体・画面は使わない）。明朝は解説の本文だけ。層の色は COLOR5 のまま */
+:root{--hudmono:"JetBrains Mono","SFMono-Regular",ui-monospace,Menlo,Consolas,monospace}
+#lstack .lyBtn .nm b,#lstack .lyBtn.q .nm b{font:400 11px/1.1 var(--hudmono)!important;font-style:normal!important;letter-spacing:0!important;text-transform:none;color:color-mix(in srgb,var(--gc) 35%,#e8f6ff)}
+#lstack .lyBtn[aria-pressed="true"] .nm b{color:#f2fbff;text-shadow:0 0 6px color-mix(in srgb,var(--gc) 70%,transparent),0 0 1px #fff!important}
+#lstack .lyBtn .nm small{font:300 8px/1 var(--hudmono)!important;letter-spacing:.28em;color:color-mix(in srgb,var(--gc) 70%,#9fb2c8)}
+#lstack .lyBtn .no{font:300 10px/1 var(--hudmono)!important;letter-spacing:.08em}
+#lstack .lyBtn .no::before{content:"▸";margin-right:2px;opacity:.0;transition:opacity .2s}
+#lstack .lyBtn[aria-pressed="true"] .no::before{opacity:.9}
+#lstack .lyBtn .ct{font:300 10px/1 var(--hudmono)!important;padding:2px 4px;border:1px solid color-mix(in srgb,var(--gc) 45%,transparent);border-radius:1px;color:color-mix(in srgb,var(--gc) 60%,#dbe6f2)}
+#lstack .ly{border-bottom:1px solid rgba(143,182,220,.10)}
+#lstack .ly::after{content:"";position:absolute;left:30px;right:2px;bottom:-1px;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--gc,#8fb6dc) 0%,transparent),transparent);pointer-events:none}
+#lstack .lySep{font:300 8px/16px var(--hudmono)!important;letter-spacing:.42em;color:#8fb6dc;opacity:.7}
+#lstack #lsHead .lt,#lstack #lsHead .lc,#lsGeo{font-family:var(--hudmono)!important;font-weight:300!important}
+#lstack::after{content:"";position:fixed;left:0;top:calc(max(12px,env(safe-area-inset-top)) + 56px);width:250px;height:min(520px,calc(100% - 150px));pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(143,182,220,.045) 0 1px,transparent 1px 3px);-webkit-mask:linear-gradient(90deg,#000 55%,transparent);mask:linear-gradient(90deg,#000 55%,transparent);z-index:-1}
+@keyframes lyBuild{0%{clip-path:inset(0 100% 0 0);opacity:.2}60%{clip-path:inset(0 0 0 0);opacity:1}70%{opacity:.6}100%{opacity:1}}
+body.ready #lstack .ly{animation:lyBuild .7s steps(14,end) both}
+body.ready #lstack .ly:nth-child(2){animation-delay:.08s}body.ready #lstack .ly:nth-child(3){animation-delay:.16s}body.ready #lstack .ly:nth-child(4){animation-delay:.24s}body.ready #lstack .ly:nth-child(5){animation-delay:.32s}body.ready #lstack .ly:nth-child(6){animation-delay:.4s}
+@media (prefers-reduced-motion:reduce){body.ready #lstack .ly{animation:none}}
+/* 場所を選ぶ欄：地図にかからないよう、下に暗い帯を敷き、その中に並べる（地図の 3D は帯の上に見える） */
+#skyUI::before{display:none}
+#skyUI{background:linear-gradient(to top,rgba(2,6,13,.95) 0,rgba(2,6,13,.92) calc(100% - 22px),rgba(2,6,13,0) 100%);padding-top:22px}
+#skyUI .card{border-top:1px solid rgba(127,227,247,.28)}
+#skyUI h2{font-family:var(--hudmono)!important;font-weight:400;font-size:13px;letter-spacing:.24em}
+#starts .stBtn .nm{font-family:var(--serif)}
+#starts .stBtn .no{font-family:var(--hudmono)!important;font-weight:300}
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
@@ -470,6 +497,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261023k").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261023m").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

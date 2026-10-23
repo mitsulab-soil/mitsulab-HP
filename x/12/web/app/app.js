@@ -39,7 +39,13 @@ function skyTex() { const c = document.createElement("canvas"); c.width = 4; c.h
 scene.background = skyTex();
 { const pm = new THREE.PMREMGenerator(renderer); const e = new THREE.Scene(); e.background = scene.background; scene.environment = pm.fromScene(e, .04).texture; pm.dispose(); }
 // 雲のある空（walk 氷川と同じ写し：Poly Haven「Kloofendal 48d Partly Cloudy (Pure Sky)」CC0）。読めたら差し替える
-new THREE.TextureLoader().load("web/tex/sky.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.mapping = THREE.EquirectangularReflectionMapping; scene.background = t; const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); });
+const NAVY = new THREE.Color("#03060f"); QW.skyBg = scene.background;   // 2026-10-23 夜：3D 地図は暗い地（電脳の地図・氷川と同じ）
+const CYBER = { v: { value: 1 }, scan: { value: 0 } };   // 3D 地図の地面：暗い地に細い格子・等高線・ゆっくり流れる光の走査（1＝地図・0＝歩く）
+const cyberize = sh => { sh.uniforms.uCy = CYBER.v; sh.uniforms.uScan = CYBER.scan;
+  sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vCw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvCw=(modelMatrix*vec4(transformed,1.)).xyz;");
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uCy; uniform float uScan; varying vec3 vCw;\nfloat gridL(vec2 p, float s){ vec2 q=abs(fract(p/s+.5)-.5)*s; vec2 w=fwidth(p)*1.3; vec2 l=1.-smoothstep(vec2(0.),w,q); return max(l.x,l.y); }")
+    .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\nif(uCy>.001){ vec2 p=vCw.xz; float fw=length(fwidth(p)); float g1=gridL(p,100.), g2=gridL(p,20.)*(1.-smoothstep(1.5,5.,fw)); float hh=vCw.y; float cq=abs(fract(hh+.5)-.5); float cl=1.-smoothstep(0.,fwidth(hh)*1.3,cq); float sc=exp(-pow((p.y-uScan)/60.,2.)); vec3 ln=vec3(.32,.78,.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.01,.025,.045),uCy); totalEmissiveRadiance+=uCy*(ln*(g1*.32+g2*.1+cl*.18)+ln*sc*(.05+g1*.4+cl*.3)); }"); };
+new THREE.TextureLoader().load("web/tex/sky.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.mapping = THREE.EquirectangularReflectionMapping; QW.skyBg = t; if (CYBER.v.value < .5) scene.background = t; const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); });
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 
@@ -70,7 +76,6 @@ async function buildBase() {
   status("地形を読み込んでいます");
   const [g, c, dem] = await Promise.all([fetch("web/geo/geo.json?v=" + VER).then(r => r.json()), fetch("web/app/content.json?v=" + VER).then(r => r.json()), fetch("web/geo/dem.bin?v=" + VER).then(r => r.arrayBuffer())]);
   G = g; C = c; DEM = new Int16Array(dem); QW.G = G; QW.C = C;
-  const photo = await texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp");
   const d = G.dem, st = MOBILE ? 2 : 1, nx = Math.floor((d.nx - 1) / st) + 1, nz = Math.floor((d.nz - 1) / st) + 1;
   const pos = new Float32Array(nx * nz * 3), uv = new Float32Array(nx * nz * 2), idx = [];
   const ph = G.photo;
@@ -78,10 +83,11 @@ async function buildBase() {
     pos[k * 3] = x; pos[k * 3 + 1] = DEM[(j * st) * d.nx + i * st] / 100; pos[k * 3 + 2] = z; uv[k * 2] = (x - ph.x0) / (ph.x1 - ph.x0); uv[k * 2 + 1] = 1 - (z - ph.z0) / (ph.z1 - ph.z0); }
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c2 = a + nx, e = c2 + 1; idx.push(a, c2, b, b, c2, e); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ map: photo, roughness: 1, metalness: 0, color: "#9c968c" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ
-  desat(mat); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain;
+  const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
+  mat._obc = cyberize; desat(mat);   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
+  setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain;
   buildRoute(); buildRoads(); buildWater();
-  if (G.near) texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
+  if (G.near) setTimeout(() => texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
     const n = G.near, d2 = G.dem, i0 = Math.max(0, Math.floor((n.x0 - d2.x0) / d2.cell)), i1 = Math.min(d2.nx - 1, Math.ceil((n.x1 - d2.x0) / d2.cell)), j0 = Math.max(0, Math.floor((n.z0 - d2.z0) / d2.cell)), j1 = Math.min(d2.nz - 1, Math.ceil((n.z1 - d2.z0) / d2.cell));
     const w = i1 - i0 + 1, h = j1 - j0 + 1, P = new Float32Array(w * h * 3), U = new Float32Array(w * h * 2), I = [];
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const k = j * w + i, x = d2.x0 + (i0 + i) * d2.cell, z = d2.z0 + (j0 + j) * d2.cell; P[k * 3] = x; P[k * 3 + 1] = DEM[(j0 + j) * d2.nx + i0 + i] / 100 + .02; P[k * 3 + 2] = z; U[k * 2] = (x - n.x0) / (n.x1 - n.x0); U[k * 2 + 1] = 1 - (z - n.z0) / (n.z1 - n.z0); }
@@ -92,7 +98,7 @@ async function buildBase() {
     m2.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n float eg=min(min(vMapUv.x,1.-vMapUv.x),min(vMapUv.y,1.-vMapUv.y)); if(eg<0.) discard;"); };
     m2._obc = m2.onBeforeCompile; desat(m2);
     const near = new THREE.Mesh(g2, m2); near.renderOrder = 1; world.add(near); QW.near = near;
-  }).catch(() => { });
+  }).catch(() => { }), 2200);
 }
 /* 道：OSM の道を地面に沿った帯に（道筋 A は HUD の光る線を重ねる） */
 let ASPH = null;
@@ -819,6 +825,8 @@ function frame() {
   if (!RM) BLDU.t.value += dt;
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
+  { const m = QW.mode, want = m === "sky" || m === "boot" ? 1 : m === "descend" ? CYBER.v.value : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
+    const bg = CYBER.v.value > .5 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden });
   if (KURA.tags) stepTag();
   if (QW.mode === "walk") stepAoi(dt);
