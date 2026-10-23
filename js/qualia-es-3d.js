@@ -208,7 +208,7 @@ export function boot(fig) {
     AT.qm = new THREE.Vector3(.2, 3.5, -3.4);
     AT.aoi = A_P.clone().add(new THREE.Vector3(-.15, 0, .5));
     AT.L = PANE_P.clone().add(new THREE.Vector3(0, .42, 0));
-    AT.kasane = mobile ? new THREE.Vector3(-.5, .05, 1.1) : new THREE.Vector3(-.75, .05, 2.05);
+    AT.kasane = mobile ? new THREE.Vector3(2.6, .05, 4.9) : new THREE.Vector3(3.7, .05, 3.4);   // 2026-10-24 輪にかからないよう、輪の外（手前）へ
     for (let i = 0; i < 4; i++) AT['s' + i] = i === 0 ? new THREE.Vector3(POS[0][0], -.05, POS[0][2] + .3) : subj[i].eye.clone().add(new THREE.Vector3(0, i === 3 ? .5 : .75, 0));
     labs.forEach(el => {
       const at = el.dataset.at, p = AT[at]; if (!p) return;
