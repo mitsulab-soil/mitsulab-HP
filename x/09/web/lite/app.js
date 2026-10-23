@@ -14,7 +14,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261023s";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261023t";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -728,16 +728,17 @@ QW.veg = () => VEG.sp.map(S => [S.s, S.im.count, S.m]); QW.VEG = VEG;
 /* ---------- 3D 地図（上空）：始める場所・道と地名・等高線・鳥居の 3D・いまの地点 ---------- */
 const START = { pins: [], sel: -1, labels: [] };
 const MAP = { group: null, labels: [], big: [], here: null, data: null };
+const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）
 function buildStarts() {
   const g = new THREE.Group(); world.add(g); START.group = g;
   const colG = new THREE.CylinderGeometry(.6, .6, 1, 8, 1, true); colG.translate(0, .5, 0);
   const ringG = new THREE.RingGeometry(9, 10.5, 48); ringG.rotateX(-Math.PI / 2);
   D.starts.forEach((s, i) => {
     const y = groundY(s.x, s.z);
-    const m = new THREE.MeshBasicMaterial({ color: "#9bdcf0", transparent: true, opacity: .55, depthWrite: false, fog: false });
+    const m = new THREE.MeshBasicMaterial({ color: "#9bdcf0", transparent: true, opacity: .55, depthWrite: false, fog: false, toneMapped: false });   // しるしは地図を暗くしても明るいまま
     const col = new THREE.Mesh(colG, m); col.position.set(s.x, y, s.z); col.scale.y = 46;
     const ring = new THREE.Mesh(ringG, m.clone()); ring.position.set(s.x, y + .8, s.z); ring.material.opacity = .8;
-    const head = new THREE.Mesh(new THREE.OctahedronGeometry(3.2), new THREE.MeshBasicMaterial({ color: "#e8fbff", fog: false }));
+    const head = new THREE.Mesh(new THREE.OctahedronGeometry(3.2), new THREE.MeshBasicMaterial({ color: "#e8fbff", fog: false, toneMapped: false }));
     head.position.set(s.x, y + 50, s.z); head.scale.y = 1.5;
     g.add(col, ring, head); START.pins.push({ s, col, ring, head, y });
   });
@@ -752,7 +753,7 @@ function buildStarts() {
 }
 function selectStart(i) {
   START.sel = i;
-  START.pins.forEach((p, k) => { const on = k === i; p.col.material.opacity = on ? .95 : .4; p.ring.scale.setScalar(on ? 1.6 : 1); p.head.material.color.set(on ? "#ffffff" : "#bfe9f5"); });
+  START.pins.forEach((p, k) => { const on = k === i; p.col.material.color.set(on ? PICK : "#9bdcf0"); p.col.material.opacity = on ? 1 : .2; p.ring.material.color.set(on ? PICK : "#9bdcf0"); p.ring.material.opacity = on ? 1 : .35; p.ring.scale.setScalar(on ? 1.8 : .8); p.head.material.color.set(on ? PICK : "#7f9aa6"); p.head.scale.set(on ? 1.3 : .75, on ? 1.95 : 1.1, on ? 1.3 : .75); });   // 選んでいる所は濃く、ほかは薄く
   document.querySelectorAll(".stBtn").forEach((b, k) => b.setAttribute("aria-pressed", k === i ? "true" : "false"));
   START.labels.forEach((l, k) => l.classList.toggle("on", k === i));
   $("#goDown").disabled = false; $("#goDown").setAttribute("aria-label", D.starts[i].name + "から歩く");
@@ -1920,6 +1921,7 @@ function frame() {
     SIGHT.post.mat.uniforms.time.value += dt;
     renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam);
   } else renderer.render(scene, camera);
+  if (QW.mode === "sky" || QW.mode === "descend" || QW.mode === "walk" || QW.mode === "fly") renderer.toneMappingExposure += ((QW.mode === "sky" ? .5 : 1.02) - renderer.toneMappingExposure) * Math.min(1, dt * 3);   // 3D 地図は暗めに（白すぎないように）
   renderBody();
   // こまの速さを見て、画面の細かさを上げ下げする（落ち込みを止める）
   fpsAcc += dt; fpsN++; prT += dt;

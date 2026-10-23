@@ -390,6 +390,15 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 @media (max-width:640px){.lyGo{min-width:44px}.lsFoot{flex-direction:column;gap:6px}.lsFoot button{width:132px;text-align:left}}
 @media (min-width:641px){#starts{flex-wrap:wrap;overflow:visible;-webkit-mask:none;mask:none;padding-right:0}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}#lstack .scan{display:none}}
+/* 2026-10-23 本人「3D 地図が白すぎる・選ぶ場所を濃く、ほかは薄く・場所のボタンが背景に溶ける」→ 地図は暗めに、選んでいる所は琥珀（地図のしるしと同じ色）、ボタンは暗い板に明るい字 */
+:root{--pick:#ffb648}
+#starts .stBtn{background-color:rgba(6,12,22,.8);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.45)}
+#starts .stBtn .no{color:#c9d6e6}
+#starts .stBtn[aria-pressed="true"]{--bc0:var(--pick);background-color:rgba(64,40,8,.9);box-shadow:inset 0 -2px 0 var(--pick),0 2px 12px rgba(0,0,0,.5)}
+#starts .stBtn[aria-pressed="true"] .no{color:var(--pick)}
+.pinLabel{background:rgba(6,12,22,.72);color:#e6edf5}
+.pinLabel.on{background:rgba(64,40,8,.9);color:#fff;border-left-color:var(--pick);box-shadow:-6px 0 12px -6px var(--pick)}
+.pinLabel.on::after{background:var(--pick)}
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
@@ -461,6 +470,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261023d").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261023e").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

@@ -17,7 +17,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261023d";
+const VER = "20261023e";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -416,6 +416,7 @@ function stepTween(dt) { if (!TW) return false; TW.t += dt / TW.dur; const k = M
   camera.position.lerpVectors(TW.p0, TW.p1, e); const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; camera.quaternion.slerpQuaternions(TW.q0, TW.q1, e);
   if (k >= 1) { const d = TW.done; TW = null; d?.(); } return true; }
 /* 始める場所（道筋 A の 7 地点） */
+const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）
 const START = { sel: 3, pins: [], labels: [] };   // 2026-10-23 はじめは蔵造りの一番街（仲町交差点）から
 function buildStarts() {
   const box = $("#starts"); box.innerHTML = ""; const pl = $("#pinLabels");
@@ -423,9 +424,9 @@ function buildStarts() {
     const b = document.createElement("button"); b.className = "stBtn"; b.type = "button"; b.setAttribute("aria-pressed", "false"); b.innerHTML = `<span class="no">${String(i + 1).padStart(2, "0")}</span><span class="nm">${s.name}</span>`;
     b.addEventListener("click", () => selectStart(i)); box.appendChild(b);
     const a = atD(s.d), y = groundY(a.x, a.z), g = new THREE.Group(); g.position.set(a.x, y, a.z);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(5, 6.4, 48), new THREE.MeshBasicMaterial({ color: "#7fe3f7", transparent: true, opacity: .9, depthTest: false, side: THREE.DoubleSide, fog: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = .6; ring.renderOrder = 5;
+    const ring = new THREE.Mesh(new THREE.RingGeometry(5, 6.4, 48), new THREE.MeshBasicMaterial({ color: "#7fe3f7", transparent: true, opacity: .9, depthTest: false, side: THREE.DoubleSide, fog: false, toneMapped: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = .6; ring.renderOrder = 5;
     const head = new THREE.Object3D(); head.position.y = 26; g.add(ring, head);
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, 26, 6, 1, true), new THREE.MeshBasicMaterial({ color: "#7fe3f7", transparent: true, opacity: .35, depthTest: false, fog: false })); beam.position.y = 13; beam.renderOrder = 5; g.add(beam);
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, 26, 6, 1, true), new THREE.MeshBasicMaterial({ color: "#7fe3f7", transparent: true, opacity: .35, depthTest: false, fog: false, toneMapped: false })); beam.position.y = 13; beam.renderOrder = 5; g.add(beam);
     world.add(g); START.pins.push({ g, ring, head, beam });
     const l = document.createElement("button"); l.className = "pinLabel"; l.type = "button"; l.dataset.full = `${String(i + 1).padStart(2, "0")} ${s.name}`; l.dataset.short = String(i + 1).padStart(2, "0"); l.textContent = MOBILE ? l.dataset.short : l.dataset.full; l.addEventListener("click", () => selectStart(i)); pl.appendChild(l); START.labels.push(l);
   });
@@ -439,7 +440,8 @@ function syncStMeter() {
   $("#stHint").textContent = hid ? `横にずらすと、ほかに ${hid} 地点` : `全 ${C.starts.length} 地点`;
 }
 function selectStart(i) { START.sel = i; document.querySelectorAll(".stBtn").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i))); START.labels.forEach((l, k) => { l.classList.toggle("on", k === i); if (MOBILE) l.textContent = k === i ? l.dataset.full.replace(/（.*）/, "") : l.dataset.short; }); $("#goDown").disabled = false;
-  START.pins.forEach((p, k) => { p.ring.material.color.set(k === i ? "#ffffff" : "#7fe3f7"); p.ring.scale.setScalar(k === i ? 1.5 : 1); });
+  START.pins.forEach((p, k) => { const on = k === i; p.ring.material.color.set(on ? PICK : "#7fe3f7"); p.ring.material.opacity = on ? 1 : .4; p.ring.scale.setScalar(on ? 1.8 : .8); p.beam.material.color.set(on ? PICK : "#7fe3f7"); p.beam.material.opacity = on ? .9 : .18; p.beam.scale.set(on ? 1.8 : 1, 1, on ? 1.8 : 1); });   // 選んでいる所は濃く、ほかは薄く
+  setTimeout(() => { const box = $("#starts"), bb = box?.querySelectorAll(".stBtn")[i]; if (bb && START.sel === i) { box.scrollLeft = Math.max(0, bb.offsetLeft - box.offsetLeft - 8); syncStMeter(); } }, 400);   // 選んだ場所のボタンを列の中に見せる
   const a = atD(C.starts[i].d); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
 function descendTo(i) {
   const s = C.starts[i], d = Math.min(s.d, G.lineD[G.lineD.length - 1] - 3), a = atD(d), y = groundY(a.x, a.z) + EYE;
@@ -771,6 +773,7 @@ function frame() {
   if (QW.mode === "sight") stepBody(dt);
   if (SIGHT.post && QW.mode === "sight") { renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam); renderBody(); }
   else renderer.render(scene, camera);
+  if (QW.mode === "sky" || QW.mode === "descend" || QW.mode === "walk" || QW.mode === "fly") renderer.toneMappingExposure += ((QW.mode === "sky" ? .55 : 1) - renderer.toneMappingExposure) * Math.min(1, dt * 3);   // 3D 地図は暗めに（白すぎないように）
   fpsAcc += dt; fpsN++; prT += dt;
   if (prT > 1.5) { const avg = fpsAcc / fpsN; fpsAcc = 0; fpsN = 0; prT = 0; const lim = MOBILE ? 1 / 32 : 1 / 52;
     if (avg > lim && pr > .9) { pr = Math.max(.9, pr - .15); renderer.setPixelRatio(pr); resize(); resizePost(); }
