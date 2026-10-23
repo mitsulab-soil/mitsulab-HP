@@ -728,6 +728,7 @@ function renderAoiWindow() {
 function aoiSideAng(hf) { const asp = innerWidth / innerHeight, ndc = asp >= 1.2 ? .6 : asp >= .8 ? .36 : .3; return Math.atan(ndc * Math.tan(hf / 2)); }
 function aoiTick(dt) {
   if (!vrm) return;
+  if (A.hold) { aoi.visible = false; return; }
   if (winMode()) { aoiWindowTick(dt); return; }
   $("aoiWin").hidden = true;
   AM.eyesClosed = 0;
@@ -768,7 +769,7 @@ function aoiTick(dt) {
   A.talkT += dt;
   // 体・足・向き・目・まばたき・口・表情・裾は AoiMotion（位置だけこちらで決める。向きは歩く向き／止まると見る人へ、足を踏みかえて）
   AM.faceTo(null); AM.lookAt(null); AM.drive(A.pos.x, A.pos.z); AM.update(dt, camera); A.yaw = AM.yaw;
-  if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / (A.intro ? .18 : 2.2)); opacity(A.fade * A.fade * (3 - 2 * A.fade)); }   // 初回は180msで表示。体験中の出現は従来の2.2秒を保つ（2026-10-17）
+  if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / (A.intro ? (A.late ? 1 : .18) : 2.2)); opacity(A.fade * A.fade * (3 - 2 * A.fade)); }   // 初回は180msで表示。体験中の出現は従来の2.2秒を保つ（2026-10-17）
 }
 // 体の動き（以前の pose() ＝森羅研究室の式の写し）は、2026-10-13 に共通部品 AoiMotion へ置きかえた。元＝../旧ver/2026-10-13_碧の動きv3の前/umwelt.js
 
@@ -1188,7 +1189,7 @@ function frame(now=0) {
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits();
   }
-  if (!STARTUP.fallbackAt && (!vrm || STARTUP.assetErrors.length) && !STARTUP.assetsLoading && $("boot").hidden) {
+  if (!STARTUP.fallbackAt && ((!vrm && A.loadDone) || STARTUP.assetErrors.length) && !STARTUP.assetsLoading && $("boot").hidden) {
     STARTUP.fallbackAt = performance.now(); $("stage").dataset.ready = 'fallback'; schedulePortraits();
   }
   requestAnimationFrame(frame);
@@ -1211,9 +1212,17 @@ STARTUP.sceneBuiltAt = performance.now();
   me.pos.set(0,1.55,4);prog(20); applyLens("hito"); setWhere(); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
   // 2026-10-23 起動 5 秒：碧を読むあいだに、森の材質（シェーダー）を並行に組み立てておく（はじめのこまで一つずつ組み立てて数秒止まっていた）
   const preCompile = renderer.compileAsync ? renderer.compileAsync(scene, camera).catch(() => {}) : null;
-  await loadAoi(); await preCompile; if (aoi && renderer.compileAsync) await renderer.compileAsync(aoi, camera, scene).catch(() => {}); prog(100);   // 碧の材質も、はじめのこまの前に組み立てる
-  // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
-  if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 3.6 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
+  // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
+  A.hold = true;
+  const aoiReady = loadAoi().then(async () => {
+    if (aoi && renderer.compileAsync) { aoi.visible = true; await renderer.compileAsync(aoi, camera, scene).catch(() => {}); }   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
+    // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
+    if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 3.6 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
+    A.loadDone = true;
+    if (vrm && A.sayOnShow && !started) $("say").textContent = A.sayOnShow;   // 碧が現れてから「となりに立っているのが…」を出す
+    if (vrm) { A.late = !!$("boot").hidden; A.hold = false; A.appear = true; if (!started) A.intro = true; if (AM) AM.calm = 2.4; }   // 幕のあとに届いたときは、1 秒かけて静かに現れる
+  });
+  await preCompile; await Promise.race([aoiReady, sleep(mobile ? 0 : 800)]); prog(100);
   // 右の ↑ ↓ ↶ ↷（2026-10-13）：押しているあいだ進む・向きを変える。短く押したときは一歩（1.2 m）・一ふり（約 17°）
   const hold = (btn, key, tapFn) => { let t0 = 0;
     btn.onpointerdown = e => { first(); if (LENS[lens].under) return; t0 = performance.now(); keys.add(key); btn.setPointerCapture?.(e.pointerId); };
@@ -1228,11 +1237,11 @@ STARTUP.sceneBuiltAt = performance.now();
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   STARTUP.controlsReadyAt = performance.now();
   window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
-  $("say").textContent = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）";
+  { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   requestAnimationFrame(frame);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
-  A.appear = true; A.intro = true; if (AM) AM.calm = 2.4;   // 2026-10-14：待たずに、最初のこまから現れはじめる
+  if (!A.hold) { A.appear = true; A.intro = true; if (AM) AM.calm = 2.4; }   // 2026-10-14：待たずに、最初のこまから現れはじめる
 })();
 // 2026-10-14：上の説明（#where）が 2 行に折れても、「歩く…」の行（#moveNote）と予想の札が重ならないよう、高さを #where の下にそろえる
 { const W = $("where"), N = $("moveNote"), Q = $("kurQ"), C = $("cmpTag");

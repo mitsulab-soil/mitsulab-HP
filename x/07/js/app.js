@@ -89,6 +89,14 @@ const stem = new THREE.LineSegments(stemGeo, lineMaterial(LAYER.aoi, .45)); stem
 const ringGeo = new THREE.BufferGeometry(); { const a = []; for (let k = 0; k < 96; k++) { const p = k / 96 * Math.PI * 2, q = (k + 1) / 96 * Math.PI * 2; a.push(Math.cos(p), 0, Math.sin(p), Math.cos(q), 0, Math.sin(q)); } ringGeo.setAttribute("position", new THREE.Float32BufferAttribute(a, 3)); }
 const ring = new THREE.LineSegments(ringGeo, lineMaterial(LAYER.aoi, .3)); ring.visible = false; scene.add(ring);
 
+// ---- 分類の札（HTML。語は間引かない・2026-10-23 本人「九つのジャンルを前のように表示」で戻した）
+const labs = $("labs"), labEls = {};
+TAGS.forEach(t => { const b = document.createElement("button"); b.type = "button"; b.className = "lab"; b.style.setProperty("--c", css(TAGC[t.id]));
+  b.innerHTML = `${t.ja}<span class="c">${count[t.id] || 0}</span><small>${t.en}</small>`; b.setAttribute("aria-label", `${t.ja}（${count[t.id] || 0}）の一覧をひらく`);
+  b.addEventListener("click", () => openList(t.id)); labs.appendChild(b); labEls[t.id] = b; });
+const measure = () => { for (const id in labEls) { const el = labEls[id]; el._w = el.offsetWidth; el._h = el.offsetHeight; } };
+document.fonts?.ready.then(measure); addEventListener("resize", measure);
+
 // ---- 音
 const synth = new QSynth();
 let cur = null;
@@ -103,10 +111,9 @@ function playAs(){if(!cur||cur.quiet)return;halt();synth.play(cur,dials());say('
 const playing=()=>synth.playing||second.playing;
 function mix(){if(!material||!cur||cur.quiet)return;halt();const ctx=synth.ensure();if(!second.ctx){second.attach(ctx);second.lim.disconnect();second.lim.connect(synth.lim);}synth.play(material,dials());second.play(cur,dials());mixing=true;$('mixRatio').disabled=false;balance();$('mixStatus').textContent='A：'+material.t+' ／ B：'+cur.t;}
 function balance(){const r=+$('mixRatio').value/100;if(synth.out)synth.out.gain.setTargetAtTime(mixing?.9*Math.sqrt(1-r):1.45,synth.ctx.currentTime,.04);if(second.out)second.out.gain.setTargetAtTime(.9*Math.sqrt(r),second.ctx.currentTime,.04);}
-$('bStop').onclick=()=>halt();
+$('bStop').onclick=()=>{stopTour();halt();};
 $('bKeep').onclick=()=>{if(!cur||cur.quiet)return;material={...cur};$('bMix').disabled=false;$('bClearMix').disabled=false;$('mixStatus').textContent='A：'+material.t+'。次の音を選んで「二つを合成」。';};
 $('bMix').onclick=mix;$('bClearMix').onclick=()=>{material=null;halt();$('bMix').disabled=true;$('bClearMix').disabled=true;$('mixStatus').textContent='Aの素材を外しました。';};$('mixRatio').oninput=balance;
-$('bLong').onclick=()=>{halt();if(cur&&!cur.quiet)synth.play(cur,dials(),{long:true});balance();};
 for(const id of ['dDist','dHard','dLight'])$(id).addEventListener('change',()=>{mixing?mix():playAs();balance();});
 const performanceValues=()=>({pitch:+$('dPitch').value,rhythm:+$('dRhythm').value,filter:+$('dFilter').value,echo:+$('dEcho').value});
 function applyPerformance(){
@@ -140,12 +147,15 @@ const lensWant = () => { if (!cur || panel.hidden) return { x: 0, y: 0 }; const 
 const order = [...ITEMS].sort((a, b) => a.n - b.n);
 let target = null;   // カメラの見る先（なめらかに寄る）
 const panel = $("panel"), sheetMQ = matchMedia("(max-width:680px)");   // 狭い画面＝下から出る面、広い画面＝右の面
-function select(it, { fly = true, audible = true } = {}) {
+function select(it, { fly = true, audible = true, fromTour = false } = {}) {
+  if (!fromTour) stopTour();   // 自分で選んだら、順に聴くのは止める
   cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'A：'+material.t+' ／ B：'+it.t:'Aの素材にして、もう一つの音を選ぶと合成できます。';
   $("sound").hidden = !!it.quiet; $("quiet").hidden = !it.quiet;
   { const rd = it.quiet ? null : readingOf(it); $("readF").hidden = !(rd && rd.hand); $("readF").open = false; if (rd && rd.hand) $("readT").textContent = rd.reading; }   // 手で譜を書いた行だけ、読みの一文を畳んで置く
   $("pNo").textContent = it.generated ? "生成した音" : "No. " + String(it.n).padStart(3, "0");
+  $("pTag").textContent = tagOf(it.tag)?.ja || ""; $("pTag").style.setProperty("--ml-label-c", css(TAGC[it.tag]));
   $("pLine").textContent = it.t;
+  $("pLaw").textContent = LAW[it.tag] ? "この群れの音の決まり：" + LAW[it.tag] : "";
   const wasOpen = !panel.hidden;
   panel.hidden = false; $("hint").hidden = true;
   sel.visible = stem.visible = ring.visible = !it.generated;
@@ -158,7 +168,7 @@ function select(it, { fly = true, audible = true } = {}) {
     fly = s.z > 1 || (sheetMQ.matches ? y > r.top - 40 || y < 90 : x > r.left - 40); }
   if (fly) { const p = new THREE.Vector3().fromArray(POS, it.i * 3); target = sheetMQ.matches ? p.clone() : p.clone().lerp(new THREE.Vector3(0, 3.1, 0), .25); controls.autoRotate = false; }
 }
-function clearSel() { cur = null; halt(); panel.hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
+function clearSel() { stopTour(); cur = null; halt(); panel.hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
 $("bClose").addEventListener("click", clearSel);
 addEventListener("keydown", e => { if (e.key !== "Escape" || document.querySelector("dialog[open]")) return; if (cur) clearSel(); });
 const step = k => { const i = cur ? order.indexOf(cur) : -1; select(order[(i + k + order.length) % order.length]); };
@@ -167,6 +177,34 @@ $("bPrev").addEventListener("click", () => step(-1)); $("bNext").addEventListene
 const HEAVY = /死|髑髏|悪魔|恐怖|恐ろし|滅|墓|痛|傷|邪|破壊|崩壊|戦/; let randN = 0;
 const rand = () => { const pool = randN++ < 3 ? ITEMS.filter(x => !HEAVY.test(x.t) && !x.quiet) : ITEMS; select(pool[Math.floor(Math.random() * pool.length)]); };
 $("bRand").addEventListener("click", rand); $("bRand2").addEventListener("click", rand);
+
+// ---- 九つの音の世界を、一行ずつ手渡す（群れの違いを耳で聴きくらべる入口）
+const LAW = {   // 群れの音の決まり（やさしい言い方。正は js/world.js の WORLDS）
+  uchu: "高い音だけ。ほとんど響かず、ほとんど動かない",
+  seimei: "低い音が、息のように 4 秒ごとにふくらむ",
+  toshi: "きっちりした高さの音が、拍の格子にそろう",
+  kokoro: "あいまいな音程が揺れ、内側にこもる",
+  kotoba: "一行の文字の長い短いが、そのまま拍になる",
+  toki: "音がだんだん遅くなり、長く消えていく",
+  mizu: "音が倍音のあいだをすべり、偶然に降る",
+  iro: "どの倍音を明るくするかが、色になる",
+  oto: "音が、自分の響きを聴く（遅れの中に遅れ）",
+};
+const REPS = TAGS.map(t=>[t.id,ITEMS.find(x=>x.tag===t.id&&!x.quiet)?.n]).filter(x=>x[1]!=null);
+{ const g = $("worldsG");
+  REPS.forEach(([tag, n]) => { const t = tagOf(tag), it = ITEMS.find(x => x.n === n); if (!t || !it) return;
+    const b = document.createElement("button"); b.type = "button"; b.style.setProperty("--c", css(TAGC[tag])); b.textContent = t.ja; b.title = LAW[tag]; b.setAttribute("aria-label", `${t.ja}の世界：${it.t}を鳴らす`);
+    b.addEventListener("click", () => { stopTour(); select(it); }); g.appendChild(b); }); }
+let tour = null;
+function stopTour() { if (!tour) return; clearTimeout(tour.timer); tour = null; $("tourCap").hidden = true; $("bTour").textContent = "九つを順に聴く（約 1 分半）"; }
+function tourStep(k) {
+  if (!tour) return; if (k >= REPS.length) { stopTour(); return; }
+  const [tag, n] = REPS[k], it = ITEMS.find(x => x.n === n), t = tagOf(tag);
+  select(it, { fromTour: true }); tour.k = k;
+  $("tourCap").innerHTML = ""; $("tourCap").append(`${k + 1}／9　${t.ja}の世界`); const sm = document.createElement("small"); sm.textContent = LAW[tag]; $("tourCap").append(sm); $("tourCap").hidden = false;
+  const d = synth.cur?.dur ?? 9; tour.timer = setTimeout(() => tourStep(k + 1), (d + .8) * 1000);
+}
+$("bTour").addEventListener("click", () => { synth.ensure(); if (tour) { stopTour(); halt(); return; } tour = { k: 0 }; $("bTour").textContent = "■ 止める"; tourStep(0); });
 
 // ---- 点にかざす・押す（画面の上で一番近い点。当たりは指 34px・マウス 22px）
 // かざす（マウス）＝点のそばに言葉。押す＝その場で鳴らし、音のかたちを出す。同じ点をもう一度押すと止まる。
@@ -179,11 +217,12 @@ const screenOf = i => { v3.fromArray(POS, i * 3).project(camera); return { x: (v
 const no3 = n => "No. " + String(n).padStart(3, "0");
 // 点のそばの札（言葉）。中身は変わったときだけ書きかえる
 function fillLabel(el, it, note) { const key = it.n + "|" + note; if (el._k === key) return; el._k = key; el.replaceChildren();
-  const n = document.createElement("span"); n.className = "n"; n.style.setProperty("--c", css(TAGC[it.tag])); n.textContent = no3(it.n);
+  const n = document.createElement("span"); n.className = "n"; n.style.setProperty("--c", css(TAGC[it.tag])); n.textContent = no3(it.n) + (tagOf(it.tag) ? " · " + tagOf(it.tag).ja : "");
   const t = document.createElement("span"); t.className = "t"; t.textContent = it.t;
   const h = document.createElement("span"); h.className = "h"; h.textContent = note; el.append(n, t, h); }
 // 置き場所：点の上（入らなければ下）。画面と、開いている面の外へはみ出さない
 function placeLabel(el, s) { const w = el.offsetWidth, h = el.offsetHeight; let L = 12, Rr = innerWidth - 12, T = 68, B = innerHeight - 12;
+  if (!$("tourCap").hidden) T = Math.max(T, $("tourCap").getBoundingClientRect().bottom + 6);   // 「順に聴く」の帯の下に置く
   if (!panel.hidden) { const r = panel.getBoundingClientRect(); if (sheetMQ.matches) B = r.top - 8; else Rr = r.left - 8; }
   if (!$("hint").hidden && sheetMQ.matches) B = Math.min(B, $("hint").getBoundingClientRect().top - 6);
   let x = s.x - w / 2, y = s.y - h - 16; if (y < T) y = s.y + 16;
@@ -235,9 +274,13 @@ function updateLabels() {
 }
 
 // ---- 一覧
-const dList = $("dList"), list = $("list"), q = $("q");
+const dList = $("dList"), list = $("list"), chips = $("chips"), q = $("q"); let fTag = null;
+{ const all = document.createElement("button"); all.type = "button"; all.dataset.t = ""; all.innerHTML = `すべて <small>${N}</small>`; chips.appendChild(all);
+  TAGS.forEach(t => { const b = document.createElement("button"); b.type = "button"; b.dataset.t = t.id; b.style.setProperty("--c", css(TAGC[t.id])); b.innerHTML = `${t.ja} <em>${t.en}</em> <small>${count[t.id] || 0}</small>`; chips.appendChild(b); });
+  chips.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; fTag = b.dataset.t || null; renderList(); }); }
 function renderList() {
-  const s = q.value.trim(), rows = order.filter(it => !s || it.t.includes(s));
+  chips.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.t || null) === fTag)));
+  const s = q.value.trim(), rows = order.filter(it => (!fTag || it.tag === fTag) && (!s || it.t.includes(s)));
   $("count").textContent = `${rows.length} の言葉`;
   const frag = document.createDocumentFragment();
   for (const it of rows) { const li = document.createElement("li"), b = document.createElement("button"); b.type = "button"; b.innerHTML = `<span>${String(it.n).padStart(3, "0")}</span>`; b.append(it.t);
@@ -245,14 +288,15 @@ function renderList() {
   list.replaceChildren(frag);
 }
 q.addEventListener("input", renderList);
-function openList() { q.value = ""; renderList(); dList.showModal(); list.scrollTop = 0; }
+function openList(tag = null) { fTag = tag; q.value = ""; renderList(); dList.showModal(); list.scrollTop = 0; }
 $("bList").addEventListener("click", () => openList()); $("bList2").addEventListener("click", () => openList());
 $("bAbout").addEventListener("click", () => $("dAbout").showModal());
 document.querySelectorAll("dialog").forEach(d => { d.querySelector("[data-close]").addEventListener("click", () => d.close()); d.addEventListener("click", e => { if (e.target === d) d.close(); }); });
 $("aShown").textContent = N;
 
 // ---- 入口
-const start = (fade = true) => { $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
+labs.style.visibility = "hidden";
+const start = (fade = true) => { labs.style.visibility = ""; $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
 $("bStart").addEventListener("click", () => { synth.ensure(); start(); });
 // 見本づくり用：?skip で入口を飛ばす、#8 でその番号の言葉をひらく（音は押すまで鳴らない）
 { const sp = new URLSearchParams(location.search), h = parseInt(location.hash.slice(1), 10);
@@ -303,6 +347,19 @@ function loop(now) {
   { const w = lensWant(), k = Math.min(1, dt * 3); lensX += (w.x - lensX) * k; lensY += (w.y - lensY) * k;
     if (lensX > .5 || lensY > .5) camera.setViewOffset(innerWidth, innerHeight, lensX, lensY, innerWidth, innerHeight); else if (camera.view && camera.view.enabled) camera.clearViewOffset(); }
   controls.update();
+  // 分類の札の置き場所（重なったら下の札を下へずらす。語は間引かない）。面を開いているあいだは出さない
+  { const L = [], hintTop = $("hint").hidden ? 1e9 : $("hint").getBoundingClientRect().top, capBottom = $("tourCap").hidden ? -1 : $("tourCap").getBoundingClientRect().bottom;
+    for (const id in labEls) { const c = centers[id]; v3.set(c.x, c.y + 1.75, c.z).project(camera); const el = labEls[id];
+      const show = v3.z < 1 && Math.abs(v3.x) < 1.05 && v3.y < .92 && !cur && !(byTouch && hoverI >= 0 && portrait());
+      if (!el._w) { el._w = el.offsetWidth || 120; el._h = el.offsetHeight || 44; }
+      L.push({ el, x: (v3.x * .5 + .5) * innerWidth, y: Math.max(70, (-v3.y * .5 + .5) * innerHeight), vis: show }); }
+    L.forEach(o => o.x = Math.max(o.el._w / 2 + 6, Math.min(innerWidth - o.el._w / 2 - 6, o.x)));
+    L.sort((a, b) => a.y - b.y);
+    for (let pass = 0; pass < 3; pass++) for (let i = 0; i < L.length; i++) for (let j = 0; j < i; j++) { const a = L[j], b = L[i]; if (!a.vis || !b.vis) continue;
+      if (Math.abs(a.x - b.x) < (a.el._w + b.el._w) / 2 + 2 && Math.abs(b.y - a.y) < (a.el._h + b.el._h) / 2) b.y = a.y + (a.el._h + b.el._h) / 2; }
+    for (const o of L) { let vis = o.vis;
+      if (vis && ((portrait() && o.y + o.el._h / 2 > hintTop - 4) || (tour && o.y - o.el._h / 2 < capBottom + 4))) vis = false;   // 案内の帯と「順に聴く」の帯に重なる札は隠す
+      o.el.style.transform = `translate(${o.x}px,${o.y}px) translate(-50%,-50%)`; o.el.style.opacity = vis ? 1 : 0; o.el.style.pointerEvents = vis ? "auto" : "none"; } }
   if (cur&&space) {if(!space.frozen)drawWave();space.update(now);}
   updateLabels();
   // 面を開いているあいだも森の点は押せるので描き続ける。スマホだけ、音の立体に描画を回すため森を 15fps に抑える。
