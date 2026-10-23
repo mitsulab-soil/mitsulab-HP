@@ -42,6 +42,28 @@ export async function boot(stage) {
   const SIZE = 5.2, GAP = .5, N = LAYERS.length;   // 2026-10-20 夜 本人「木（欅）は消さずに、その上に層を薄く重ねる」：板を薄く・間を詰める   // 第 0 層（いつもの風景）がいちばん下、その上へ層が積み重なる
   const H = SIZE / 2;
   const add = THREE.AdditiveBlending;
+  // 2026-10-23 採点の P1（層の板が碧の体を貫く）：碧の立つところだけ、どの板も丸く切り欠く（碧の体の半径は最大 1.03＝足もと〜腰。0.3 の余白）。
+  // 板の上の線と点も、切り欠きの中では描かない（ GPU で捨てる）。碧は重なりの中に立ったまま、板は碧のまわりを囲む
+  // 2 回目の採点（板の線が裾の上に描かれる）：丸い穴に加えて、見る人の側へ開いた切り欠き（幅は碧の体の幅）。板は碧の後ろと横を囲み、碧の前には線を引かない
+  const HX = 0, HZ = -.35, HR = 1.32, HS = 1.08, DX = -.573, DZ = .82;   // D＝碧から見る人（カメラ）への向き（カメラは固定）
+  function holed(m) {
+    m.onBeforeCompile = sh => {
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vHw;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvHw = (modelMatrix * vec4(transformed, 1.0)).xz;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vHw;').replace('void main() {', 'void main() {\n  vec2 hq = vHw - vec2(' + HX.toFixed(2) + ', ' + HZ.toFixed(2) + '); vec2 hd = vec2(' + DX.toFixed(3) + ', ' + DZ.toFixed(3) + ');\n  if (length(hq) < ' + HR.toFixed(2) + ' || (dot(hq, hd) > 0.0 && abs(hq.x * hd.y - hq.y * hd.x) < ' + HS.toFixed(2) + ')) discard;');
+    };
+    m.customProgramCacheKey = () => 'qlhole';
+    return m;
+  }
+  // 切り欠きの縁：碧の横の短い辺から、碧の後ろを半円でまわって、反対の横へ（U の字。手前の切り口の辺は引かない＝層の箱が左右に割れて見えない）
+  function rimPts() {
+    const nx = DZ, nz = -DX, pts = [], inSq = (x, z) => Math.abs(x) <= H && Math.abs(z) <= H;
+    const edge = sgn => { let t = 0; while (t < 8 && inSq(HX + nx * HS * sgn + DX * (t + .05), HZ + nz * HS * sgn + DZ * (t + .05))) t += .05; return t; };
+    const a0 = Math.asin(HS / HR), base = Math.atan2(DZ, DX);   // 穴の円と切り欠きの直線が交わる角
+    const t2 = Math.min(.55, edge(-1)); pts.push(new THREE.Vector3(HX - nx * HS + DX * t2, .016, HZ - nz * HS + DZ * t2));   // −n の側の端から
+    for (let a = 0; a <= 48; a++) { const th = base + a0 + (2 * Math.PI - 2 * a0) * a / 48; pts.push(new THREE.Vector3(HX + Math.cos(th) * HR, .016, HZ + Math.sin(th) * HR)); }   // 碧の後ろを回って
+    const t1 = Math.min(.55, edge(1)); pts.push(new THREE.Vector3(HX + nx * HS + DX * t1, .016, HZ + nz * HS + DZ * t1));   // ＋n の側の端へ
+    return pts;
+  }
 
   // 第 0 層：いつもの風景（参道の一区画＝石畳と欅一本）
   // 重なる：碧と主体は、いちばん新しい層の上に立つ。見る位置を保つため、層の世界のほうを下へ送る（碧の足の置き方〈AoiMotion〉を崩さないため）
@@ -87,15 +109,16 @@ export async function boot(stage) {
     world.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x8bccca, transparent: true, opacity: .32, depthWrite: false })));
   }
   // 重なりのいちばん上：Qualium の光（七枚が重なったとき）
-  const deep = new THREE.Mesh(new THREE.CircleGeometry(1.7, 48), new THREE.MeshBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  deep.rotation.x = -Math.PI / 2; deep.position.y = N * GAP + .16; world.add(deep);
+  const deep = new THREE.Mesh(new THREE.RingGeometry(HR + .05, HR + .75, 48, 1, .96 - Math.PI * .5, Math.PI),   // 見る人から見て碧の奥の半分だけ（手前の半分は碧の体の上に光の帯として重なった）   // 碧の体を貫かないよう、切り欠きのまわりの輪に
+    new THREE.MeshBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  deep.rotation.x = -Math.PI / 2; deep.position.set(HX, N * GAP + .16, HZ); world.add(deep);
   // 2026-10-20 夜 本人「碧の隣にある点群のマネキンを削除」：主体の点の人のかたちは外した
 
   function frame(color, op) {
     const g = new THREE.BufferGeometry().setFromPoints([[-H, -H], [H, -H], [H, H], [-H, H]].map(([x, z]) => new THREE.Vector3(x, 0, z)));
     return new THREE.LineLoop(g, new THREE.LineBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false }));
   }
-  function lineMat(color, op) { return new THREE.LineBasicMaterial({ color, transparent: true, opacity: op, blending: add, depthWrite: false }); }
+  function lineMat(color, op) { return holed(new THREE.LineBasicMaterial({ color, transparent: true, opacity: op, blending: add, depthWrite: false })); }
   function lines(color, op, list) {   // list: [[x,z],...][]
     const pos = [];
     for (const pts of list) for (let i = 0; i < pts.length - 1; i++) pos.push(pts[i][0], 0, pts[i][1], pts[i + 1][0], 0, pts[i + 1][1]);
@@ -127,7 +150,7 @@ export async function boot(stage) {
         col.push(tmp.r, tmp.g, tmp.b);
       }
       const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-      const m = new THREE.PointsMaterial({ size: mobile ? .06 : .05, vertexColors: true, transparent: true, opacity: .9, blending: add, depthWrite: false });
+      const m = holed(new THREE.PointsMaterial({ size: mobile ? .06 : .05, vertexColors: true, transparent: true, opacity: .9, blending: add, depthWrite: false }));
       const p = new THREE.Points(geo, m);
       return { g: p, tick(t) { m.size = (mobile ? .06 : .05) * (1 + .18 * Math.sin(t * 1.6)); } };
     },
@@ -186,11 +209,12 @@ export async function boot(stage) {
   const layers = LAYERS.map((L, i) => {
     const grp = new THREE.Group(); grp.position.y = (i + 1) * GAP;
     // 厚みのある板（横から見ると断面が見える）＋板の下の薄い陰（重なりの濃さ）
-    const slabG = new THREE.BoxGeometry(SIZE, .03, SIZE);
-    const fill = new THREE.Mesh(slabG, new THREE.MeshBasicMaterial({ color: L.c, transparent: true, opacity: .07, depthWrite: false }));
+    const slabG = new THREE.BoxGeometry(SIZE, .03, SIZE);   // 板（碧のまわりと前は GPU で切り欠く）
+    const fill = new THREE.Mesh(slabG, holed(new THREE.MeshBasicMaterial({ color: L.c, transparent: true, opacity: .07, depthWrite: false })));
     grp.add(fill);
-    grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(slabG), new THREE.LineBasicMaterial({ color: L.c, transparent: true, opacity: .7, depthWrite: false })));
-    const shade = new THREE.Mesh(new THREE.PlaneGeometry(SIZE * .98, SIZE * .98), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .06, depthWrite: false, side: THREE.DoubleSide }));
+    grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(slabG), holed(new THREE.LineBasicMaterial({ color: L.c, transparent: true, opacity: .7, depthWrite: false }))));   // 板の外の縁
+    grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(rimPts()), new THREE.LineBasicMaterial({ color: L.c, transparent: true, opacity: .34, depthWrite: false })));   // 切り欠きの縁（U の字）
+    const shade = new THREE.Mesh(new THREE.PlaneGeometry(SIZE * .98, SIZE * .98), holed(new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .06, depthWrite: false, side: THREE.DoubleSide })));
     shade.rotation.x = -Math.PI / 2; shade.position.y = -.03; grp.add(shade);
     const lift = new THREE.Group(); lift.position.y = .02; grp.add(lift);
     const info = (mobile && i >= 3) ? { g: new THREE.Group() } : builders[L.key](L.c); lift.add(info.g);
@@ -215,7 +239,12 @@ export async function boot(stage) {
       const s = 6.4 / h; pivot.scale.setScalar(s);    // 2026-10-20 夜 本人「碧は上へ上がっていかず、重なりに覆いかぶさるように」：重なりの奥に大きく立ち、層の上から見下ろす
       pivot.position.set(0, 0, -.35);   // 2026-10-22 本人「碧もレイヤーの中に入ってください。今はレイヤーの外に碧がいます」：重なりの真ん中、光の軸の上に立つ。層は碧の足もとから胸の高さまでを通り抜けていく（前へ傾けるのはやめた＝反り腰に見えた一因）
       const { AoiMotion } = await import('./aoi_motion.js?v=20261019-v59');
-      mot = new AoiMotion(vrm, { root: pivot, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
+      mot = new AoiMotion(vrm, { root: pivot, reducedMotion: reduce, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
+      mot.faceTo(-.3);   // 体は見る人へ少し向けたまま（毎こま向きを変えない＝足の踏みかえや体のゆらぎが続かない）。目と頭が、重なる層・見る人・欅を見る
+      // 2026-10-23 採点の P1（裾が半透明に見える）：この図の暗い地では、服の自分の光と水色の縁の光で、裾のグラデーションがガラスのように透けて見えた。
+      // 服だけ自分の光と縁の光を控え、光と陰で布の厚みが出るようにする（この図の中だけ。共通部品と .vrm は変えない）
+      vrm.scene.traverse(o => { if (!o.isMesh) return; [].concat(o.material).forEach(m => { if (!/CLOTH/.test(m.name || '') || /Outline/.test(m.name || '')) return;
+        if (m.emissive) m.emissive.multiplyScalar(.4); if (m.parametricRimColorFactor) m.parametricRimColorFactor.multiplyScalar(.35); if ('shadingToonyFactor' in m) m.shadingToonyFactor = Math.min(m.shadingToonyFactor, .3); }); });
       stage.classList.add('has-aoi'); window.__qlAoi = { vrm, pivot, mot };
       kick();
     } catch (e) { console.warn('qualia layer aoi', e); }
@@ -267,6 +296,22 @@ export async function boot(stage) {
     tagEl.classList.add('on');
   }
 
+  // 碧の視線（2026-10-23 採点の P1「碧が静止気味」）：新しい層が重なると、少しあとにその板の上を目で追い、また見る人へ戻る。ときどき欅の梢を見上げる。
+  // 体は揺らさない（息・重心の移し・まばたきは共通部品のまま）。動きを減らす設定では見る人だけを見る
+  const gz = { k: 0, until: 0, next: 6 + Math.random() * 4, p: new THREE.Vector3() };
+  function gaze(dt, t) {
+    if (reduce) return;
+    const k = Math.min(LAYERS.length, Math.round(target));
+    if (k > gz.k) { gz.k = k; gz.pend = t + .45; }   // 重なりはじめて少しあとに目が行く
+    else if (k < gz.k) gz.k = k;
+    if (gz.pend && t >= gz.pend) { gz.pend = 0; const y = k * GAP + .05, a = .4 + Math.random() * .7;
+      gz.p.set(HX + Math.sin(a) * (HR + 3.2), Math.max(y + 1.3, 4.5), HZ + Math.cos(a) * (HR + 3.2)); mot.lookAt(gz.p); mot.express('curious', .3, 1); gz.until = t + .9 + Math.random() * .4; gz.next = t + 7 + Math.random() * 5; }   // 2 回目の採点：うつむかない（遠くの、板の少し上を見る＝首は 15° ほど・目が残りを追う）・すぐ見る人へ戻る
+    if (gz.until && t >= gz.until) { gz.until = 0; mot.lookAt(null); mot.express('calm', 1, 0); }   // 3 回目：笑みの閉じ目を出さない
+    if (!gz.until && !gz.pend && t >= gz.next) {   // ふだんは見る人を見て、7〜12 秒にいちど、欅の梢か足もとの層へ目をやる
+      if (treeObj && Math.random() < .6) gz.p.set(2.2, 8.6, -7.2); else gz.p.set(HX + 4.2, 4.6, HZ + 2.4);   // 欅の梢か、横の遠く（下は見ない）
+      mot.lookAt(gz.p); gz.until = t + 1 + Math.random() * .6; gz.next = t + 8 + Math.random() * 6; }
+  }
+
   let W = 0, Hh = 0;
   const size = () => { W = cv.clientWidth; Hh = cv.clientHeight; if (!W || !Hh) return; R.setSize(W, Hh, false); cam.aspect = W / Hh; cam.updateProjectionMatrix(); };
   new ResizeObserver(() => { size(); render(performance.now()); }).observe(cv); size();
@@ -290,7 +335,7 @@ export async function boot(stage) {
       if (L.info.tick && L.grp.visible && !reduce) L.info.tick(t, e);
     });
     const k = layers.reduce((a, L) => a + L.t, 0);
-    deep.material.opacity += ((all ? .32 : 0) - deep.material.opacity) * Math.min(1, dt * 2);
+    deep.material.opacity += ((all ? .16 : 0) - deep.material.opacity) * Math.min(1, dt * 2);
     // k＝重なった枚数（動きを減らす設定では真ん中で止める）
     const d = reduce ? N / 2 : k;
     // 2026-10-20 夜：碧は上がらない・層の世界も動かさない（欅の上に層が重なっていく）
@@ -301,7 +346,7 @@ export async function boot(stage) {
     const ang = -.62, rad = mobile ? 17.5 : 19.5, br = reduce ? 0 : Math.sin(t * .5) * .06;
     cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 5.2 : 4.6) + br, Math.cos(ang) * rad);
     cam.lookAt(.9, lookY - (mobile ? .55 : 0), -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
-    if (mot) { mot.faceTo(Math.sin(t * .2) * .35); mot.update(dt, cam, { vrmUpdate: false }); stand(); vrm.update(dt); mot.afterVrmUpdate(dt); if (aoiPivot && !aoiPivot.visible && ++aoiFrames > 3) aoiPivot.visible = true; }
+    if (mot) { gaze(dt, t); mot.update(dt, cam, { vrmUpdate: false }); stand(); vrm.update(dt); mot.afterVrmUpdate(dt); if (aoiPivot && !aoiPivot.visible && ++aoiFrames > 3) aoiPivot.visible = true; }
     R.render(S, cam);
     placeTag();
     fps.n++; if (now - fps.t > 1000) { fps.v = Math.round(fps.n * 1000 / (now - fps.t)); fps.n = 0; fps.t = now; }
