@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel } from "./layers.js?v=k1";
+import { makeQMarks } from "./qmarks.js?v=q1";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k3";
 import { BellSynth } from "./bell.js?v=k1";
 
@@ -233,7 +234,8 @@ function buildObjs() {
   const add = (o, layer, kind) => {
     const L = GL[layer], m = makeMarker(layer, L.color, o.h || 1.8, MOBILE), y = o.bell ? groundY(o.x, o.z) : groundY(o.x, o.z);
     m.root.position.set(o.x, y, o.z); world.add(m.root);
-    const lb = makeLabel(layerNo(layer), L.name, o.title, L.color); lb.position.set(o.x + .25, y + (o.h || 1.8) + .35, o.z); world.add(lb);
+    const lb = makeLabel(layerNo(layer), L.name, o.title, L.color); lb.position.set(o.x + .45, y + (o.h || 1.8) + .75, o.z); world.add(lb);
+    for (const c of m.glyph.children) c.visible = false; m.beam.visible = false; m.base.visible = false;   // 2026-10-23 夜：線の印は描かず、かさねっこの形の結晶（qmarks.js）で描く
     LAYER.objs.push({ ...m, o, layer, kind, lb, show: 0 });
   };
   for (const o of C.objs) add(o, o.layer, "rec");
@@ -241,6 +243,7 @@ function buildObjs() {
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color);
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();
@@ -256,6 +259,7 @@ function stepLayer(dt) {
     for (const m of L.mats) m.opacity = (m === L.fm ? .1 : m === L.bm ? .55 : .9) * L.show;
     if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (34 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
   }
+  LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
   declutter();
 }
 /* 札どうしを重ねない：近い札から順に置き、先に置いた札と重なる遠い札は出さない（層の一覧の上にも出さない） */

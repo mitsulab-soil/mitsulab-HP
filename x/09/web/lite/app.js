@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
+import { makeQMarks } from "./qmarks.js?v=q1";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -1087,10 +1088,12 @@ function buildObjs() {
     const L0 = GL[o.layer]; if (!L0) continue;
     const m = makeMarker(o.sub || o.layer, L0.color, o.h, MOBILE);   // 形は細かい分類（樹木・鳥居と石…）、色はまとめた層の色
     m.root.position.set(o.x, o.y, o.z); m.root.visible = false; m.root.name = o.id;
+    for (const c of m.glyph.children) c.visible = false; m.root.remove(m.beam); m.root.remove(m.base); m.faces = [];   // 2026-10-23 夜：線の印は描かず、かさねっこの形の結晶（qmarks.js）で描く
     world.add(m.root); LAYER.objs.push({ o, ...m, k: 0, show: 0, open: 0, label: null });
   }
   // はじめから、すべての層を重ねておく（2026-10-22 本人「デフォルトで全て on に」）。外すのは見る人が選んだときだけ
   LAYER.worn = ALL.map(l => l.id); for (const L of LAYER.objs) { L.want = true; L.arr = true; }
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { skyK: .9, skyR: .9 }); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.o.layer].color);
   document.body.classList.add("wearing"); document.body.style.setProperty("--lc", ALL[ALL.length - 1].color); document.body.style.setProperty("--lc2", ALL[ALL.length - 1].color);
   const rg = new THREE.RingGeometry(.97, 1, 96); rg.rotateX(-Math.PI / 2);
   LAYER.ripple = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0, depthWrite: false })); LAYER.ripple.visible = false; world.add(LAYER.ripple);
@@ -1145,9 +1148,10 @@ function stepLayer(dt) {
     L.glow.material.opacity = (.42 + .14 * Math.sin(t * 1.6 + L.o.x)) * op; L.glow.scale.setScalar(.5 + L.open * .3);
     // 名札：近くに来たら（歩く・生きものの高さ）
     const near = !sky && !flyish && dist < LABEL_R;
-    if (near && !L.label) { L.label = makeLabel(layerNo(L.o.layer), GL[L.o.layer].name, L.o.title, GL[L.o.layer].color); L.label.position.set(.36, .05, 0); L.glyph.add(L.label); }
+    if (near && !L.label) { L.label = makeLabel(layerNo(L.o.layer), GL[L.o.layer].name, L.o.title, GL[L.o.layer].color); L.label.position.set(.5, .62, 0); L.glyph.add(L.label); }
     if (L.label) { L.label.visible = near; L.label.material.opacity = Math.min(1, (LABEL_R - dist) / 6) * op; const k = Math.max(.55, Math.min(2.2, dist / 9)) / s; L.label.scale.set(1.6 * k, .4 * k, 1); }
   }
+  LAYER.qm?.update(camera, { t, sky, focus: PANEL.cur || null });
 }
 function pickObj(x, y) {
   let best = null, bd = (MOBILE ? 40 : 30) ** 2;
