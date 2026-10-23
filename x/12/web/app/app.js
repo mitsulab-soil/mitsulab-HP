@@ -818,14 +818,14 @@ function frame() {
       if (under(card) || under(ls)) { l.style.display = "none"; continue; }   // 始める場所の欄・層の一覧の下には出さない
       l.style.display = ""; put.push(r); l.style.transform = `translate(${x}px,${y}px)`; }
     START.pins.forEach((p, i) => { const s = Math.max(1, SKY.dist / 300); p.ring.scale.setScalar((i === START.sel ? 1.5 : 1) * s); p.beam.scale.set(s, 1, s); }); }
-  for (const p of START.pins) p.g.visible = QW.mode === "sky" || QW.mode === "descend";
+  for (const p of START.pins) p.g.visible = QW.mode === "sky" || (QW.mode === "descend" && camera.position.y - groundY(camera.position.x, camera.position.z) > 90);   // 降りきる前に、大きくなった輪と柱を消す
   { const low = camera.position.y - groundY(camera.position.x, camera.position.z) < 160; if (QW.roads) QW.roads.visible = low; if (QW.pave) QW.pave.visible = low; if (BLD.foot) BLD.foot.visible = low; }   // 上空では写真の道を見せる（帯は地上の近くだけ）
   if ((GEO.t -= dt) < 0 && QW.mode !== "boot") { GEO.t = .25; const g = GEO.el || (GEO.el = $("#lsGeo")), cp = camera.position, la = G.origin[0] - cp.z / G.ky, lo = G.origin[1] + cp.x / G.kx, h = Math.max(0, cp.y - groundY(cp.x, cp.z));
     const txt = `POS <b>${la.toFixed(4)}N ${lo.toFixed(4)}E</b>\nALT ${Math.round(h)}m  ${QW.mode.toUpperCase()}`; if (g && txt !== GEO.last) { g.innerHTML = txt; GEO.last = txt; } }
   if (!RM) BLDU.t.value += dt;
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
-  { const m = QW.mode, want = m === "sky" || m === "boot" ? 1 : m === "descend" ? CYBER.v.value : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
+  { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? (camH > 90 ? 1 : 0) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
     const bg = CYBER.v.value > .5 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden });
   if (KURA.tags) stepTag();
