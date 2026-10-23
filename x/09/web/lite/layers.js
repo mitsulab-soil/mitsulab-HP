@@ -9,6 +9,7 @@ export const QLAYERS = [
   { id: "sound", name: "Qualia/sound", en: "SOUND", color: "#78b8ec", lead: "参道の音（葉ずれ・鳥と蟬の声・玉砂利・池の水）を、場所に重ねて形にする", q: true },
   { id: "sho", name: "Qualia/sho", en: "SHO", color: "#9aa3b8", lead: "上原光瑛の書が参道に浮かび、近づくと粒にほどけ、音が鳴る", q: true },
   { id: "touch", name: "Qualia/touch", en: "TOUCH", color: "#c2c7cc", lead: "樹皮・石・土・木に触れると、振動と音で手ざわりが返る", q: true },
+  { id: "rakugo", name: "Qualia/rakugo", en: "RAKUGO", color: "#e6a6bd", lead: "その場所にちなんだ噺を、碧が高座で一席。ケヤキ・犬の鼻・土の下の耳", q: true },
 ];
 
 let GLOW = null;
@@ -72,6 +73,11 @@ function headShape(id) {
   } else if (id === "touch") {   // 触れる：指の腹の渦（三つの弧）
     for (const r of [.1, .18, .26]) { const p = Array.from({ length: 29 }, (_, i) => { const a = Math.PI * (.15 + 1.7 * i / 28); return V(Math.cos(a) * r, Math.sin(a) * r * 1.2 - .04); }); for (let i = 0; i < 28; i++) L.push([p[i], p[i + 1]]); }
     F.push(new THREE.CircleGeometry(.07, 24));
+  } else if (id === "rakugo") {   // 噺：高座の扇（開いた扇の骨と、座布団の四角）
+    const n = 7; for (let i = 0; i <= n; i++) { const a = Math.PI * (.18 + .64 * i / n); L.push([V(0, -.1), V(Math.cos(a) * .3, Math.sin(a) * .3 - .1)]); }
+    const p = Array.from({ length: 25 }, (_, i) => { const a = Math.PI * (.18 + .64 * i / 24); return V(Math.cos(a) * .3, Math.sin(a) * .3 - .1); }); for (let i = 0; i < 24; i++) L.push([p[i], p[i + 1]]);
+    L.push([V(-.2, -.2), V(.2, -.2)], [V(.2, -.2), V(.2, -.14)], [V(.2, -.14), V(-.2, -.14)], [V(-.2, -.14), V(-.2, -.2)]);
+    F.push(new THREE.CircleGeometry(.03, 12));
   } else if (id === "nature" || id === "history" || id === "culture") { return headShape({ nature: "trees", history: "history", culture: "matsuri" }[id]);
   } else { const g = new THREE.SphereGeometry(.2, 12, 8); F.push(g); }
   return { L, F };

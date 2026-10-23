@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ja" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Qualia/walk 氷川</title>
-<meta name="description" content="いつもの参道を、より深く。氷川参道に、樹木・土と水・生きもの・歴史・鳥居と石・暮らし・祭礼・地名・災害の 9 つの記録の層と、Qualia/sight・Qualia/sound の層を重ねて歩く Qualia/walk。碧がとなりで、その場所の記録を話しつづけます。">
-<meta property="og:title" content="Qualia/walk 氷川"><meta property="og:description" content="いつもの参道を、より深く。氷川参道に Qualia の層を重ね、見回しながら歩き、鳥やコウモリの身体で飛ぶ。">
+<title>Qualium 氷川</title>
+<meta name="description" content="氷川参道と境内を、五感で歩く場。自然・歴史・文化の記録の層に、Qualia/sight・sound・touch・sho・rakugo の層を重ね、歩き、見て、聴き、触れ、書と噺に出会う。碧がとなりで、その場所の記録を典拠とともに語ります。">
+<meta property="og:title" content="Qualium 氷川"><meta property="og:description" content="氷川参道と境内を、五感で歩く場。記録の層と Qualia/sight・sound・touch・sho・rakugo の層を重ね、碧が典拠とともに語る。">
 <meta property="og:image" content="https://mitsulab-soil.github.io/aoi-walk-hikawa/web/poster_1600.webp">
 <meta name="theme-color" content="#03060f"><meta name="tdm-reservation" content="1">
 <meta name="aoiwalk-build" content="lite-20261022">
@@ -10,19 +10,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/lite/tokens.css">
+<!-- 2026-10-23：対応表（importmap）は modulepreload より前に置く（CPU が遅いと、先に読んだ本体が "three" を解けずに止まっていた） -->
+<script type="importmap">
+{"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/vendor/BufferGeometryUtils.js"}}
+</script>
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/lite/data.json?v=20261022q" as="fetch" crossorigin>
+<link rel="preload" href="web/lite/data.json?v=20261023q" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261023b">
-<link rel="modulepreload" href="web/lite/layers.js?v=4">
+<link rel="modulepreload" href="web/lite/app.js?v=20261023c">
+<link rel="modulepreload" href="web/lite/layers.js?v=5">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
 <link rel="preload" href="web/lite/tex/photo_2k.webp" as="image" crossorigin="anonymous" media="(min-width:820px) and (not (pointer:coarse))">
 <link rel="preload" href="web/lite/tex/photo_1k.webp" as="image" crossorigin="anonymous" media="(max-width:819.98px), (pointer:coarse)">
-<script type="importmap">
-{"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/vendor/BufferGeometryUtils.js"}}
-</script>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -49,6 +50,7 @@ button{font:inherit;color:inherit}
 #skyUI .sub{margin:0 0 12px;color:var(--ml-ink-2);font-size:12.5px;letter-spacing:.06em;line-height:1.6}
 #starts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;scroll-snap-type:x proximity;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);mask:linear-gradient(90deg,#000 88%,transparent);padding-right:28px}
 #starts::-webkit-scrollbar{display:none}
+@media (max-width:640px){#starts{flex-wrap:wrap;overflow:visible;-webkit-mask:none;mask:none;padding-right:0}#starts>*{flex:1 1 calc(33% - 6px);min-width:0}}   /* 2026-10-23 375px：出発地を折り返して全部見せる（右が切れていた） */
 .stBtn{appearance:none;flex:0 0 auto;scroll-snap-align:start;min-height:52px;display:grid;grid-template-rows:auto auto;align-content:center;gap:2px;text-align:left;padding:6px 12px;background:rgba(3,6,15,.35);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);cursor:pointer}
 .stBtn .no{font:400 10px/1 var(--ml-mono);letter-spacing:.2em;color:var(--ml-ink-3)}
 .stBtn .nm{font-family:var(--serif);font-size:14px;letter-spacing:.08em;white-space:nowrap}
@@ -197,6 +199,9 @@ body[data-mode="sight"] #dock #talkBtn{display:flex}
 .fig .t{font:400 10px var(--sans);fill:var(--ml-ink-3);letter-spacing:.08em}
 .fig .cu{fill:none;stroke-width:1.4}.fig .cu.h{stroke:#c3cce0}.fig .cu.b{stroke:#b4a2ff}.fig .dt{fill:#b4a2ff}
 .fig figcaption{font-size:13px;color:var(--ml-ink-3);line-height:1.6;margin-top:6px}
+@media (max-width:640px){body:has(#lstack:not(.closed)) #caption{opacity:0;pointer-events:none;transition:opacity .2s}}
+@media (max-width:640px){body.pOpen #lstack,body[data-mode="sky"] #lstack{visibility:hidden}body #panel{max-height:46vh!important;background:rgb(5,8,16)!important;backdrop-filter:none}}   /* 2026-10-23 スマホ：札を開くあいだは層の目盛りを隠し、札は下の 46vh まで（上に碧が見える） */   /* スマホ：層の一覧を開いているあいだは、字幕を重ねない */
+.fig video.rkV{width:100%;max-height:52vh;display:block;background:#05070a;border:1px solid var(--ml-line-weak);aspect-ratio:16/9;object-fit:contain}@media (max-width:640px){.fig video.rkV{aspect-ratio:9/16;max-height:46vh}}
 #pFold{margin-top:8px}
 #pFold .in{padding:0 0 10px;font-size:13px;line-height:1.75;color:var(--ml-ink-2)}
 #pFold li{margin:2px 0}
@@ -382,14 +387,14 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualia/walk 氷川" data-en="Qualia Dive" data-icon="favicon/icon.svg" data-max="15000"></script>
+<script src="loader/loader.js" data-title="Qualium 氷川" data-en="Qualia Dive" data-icon="favicon/icon.svg" data-max="15000"></script>
 <canvas id="gl" aria-label="氷川参道の 3D（実寸。地形は国土地理院、建物は PLATEAU）" tabindex="0"></canvas>
 <div id="mapLabels" hidden></div>
 <div id="pinLabels" hidden></div>
 
 <header id="hud">
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand">Qualia/walk 氷川<small>QUALIA DIVE</small></div>
+  <div class="brand">Qualium 氷川<small>QUALIA DIVE</small></div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -437,7 +442,7 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 
 <nav id="menu" class="ml-panel ml-panel--corner" hidden aria-label="メニュー">
   <button class="ib" id="menuX" aria-label="閉じる">×</button>
-  <h3>Qualia/walk 氷川</h3>
+  <h3>Qualium 氷川</h3>
   <div class="mrow"><button class="ml-btn" id="sndBtn" aria-pressed="true">声 オン</button><a class="ml-btn" href="field-ar.html">実景AR</a></div>
   <p id="about"></p>
   <p class="small" id="aoiNote"></p>
@@ -451,6 +456,6 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261023b").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261023c").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
-import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=4";
+import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -14,7 +14,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261022q";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261023q";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -122,7 +122,7 @@ function weather(m, o = {}) {   // o: moss・grime・lichen（0〜1）、scale�
   float wGrime = clamp(wLow * .85 + streak * .45, 0., 1.) * wP.y;
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.52, .5, .44), wGrime);
   float wMs = wn1 * .45 + wn2 * .3 + wUp * .2 + wLow * .25 + (1. - grain2) * .15 - .08 * wQ.x;
-  float wT = .97 - .3 * wP.x; float wMoss = smoothstep(wT, wT + .1, wMs) * .92;
+  float wT = .97 - .3 * wP.x; float wMoss = smoothstep(wT, wT + .1, wMs) * .92 * step(.001, wP.x);   // 苔なしの面（舗装）は苔を描かない
   vec3 mossC = mix(vec3(.10, .13, .055), vec3(.24, .28, .12), W2.a) * (.8 + .4 * wn4);
   diffuseColor.rgb = mix(diffuseColor.rgb, mossC, wMoss);
   float wLic = W.g * wP.z * smoothstep(.3, .65, wn2);
@@ -402,6 +402,7 @@ function buildTrees([g, kg]) {
     for (const o of [bark, leaves]) {
       o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); geo.scale(k, k, k);
       const mat = o.material; if (mat.map) mat.map.anisotropy = 2; mat.envMapIntensity = .45;
+      if (o === bark) barkUV(mat);
       if (o === leaves) { mat.alphaTest = Math.max(mat.alphaTest || 0, .45); mat.transparent = false; mat.side = THREE.DoubleSide; }
       const g2 = o === leaves && MOBILE && sp === "keyaki" ? thinLeaves(geo, 2, 1.3) : geo;   // スマホの近くのケヤキは、葉の札を半分に
       const im = new THREE.InstancedMesh(g2, mat, count[sp] || 1); im.count = 0; im.frustumCulled = false; world.add(im); parts.push(im);
@@ -411,6 +412,7 @@ function buildTrees([g, kg]) {
     const bgeo = toFloat(fb.geometry).applyMatrix4(fb.matrixWorld); bgeo.translate(0, -box.min.y, 0); bgeo.scale(k, k, k);
     const lgeo = thinLeaves(parts[1].geometry, MOBILE ? 5 : 4, MOBILE ? 1.85 : 1.7);
     const lm2 = parts[1].material.clone(); lm2.side = THREE.DoubleSide;
+    barkUV(fb.material);
     const mid = [new THREE.InstancedMesh(bgeo, fb.material, count[sp] || 1), new THREE.InstancedMesh(lgeo, lm2, count[sp] || 1)];
     for (const im of mid) { im.count = 0; im.frustumCulled = false; world.add(im); }
     const w = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) * k;
@@ -419,6 +421,27 @@ function buildTrees([g, kg]) {
   try { buildImpostors(); } catch (e) { console.warn("impostor", e); }
   { const lm = TREE.protos.keyaki?.parts[1]?.material; if (lm?.map && TREE.leafU) { lm.map.wrapS = lm.map.wrapT = THREE.RepeatWrapping; lm.map.needsUpdate = true; TREE.leafU.value = lm.map; } }
   TREE.lastPos.set(1e9, 0, 0); updateTrees(true);
+}
+/* 2026-10-23 幹の樹皮が縦に引き伸ばされて縞になっていた（採点の指摘）：絵の座標を、幹のまわりの角度と高さから作りなおす（どの太さ・高さでも同じ肌理の大きさ） */
+function barkUV(m) {
+  if (!m || m.userData.barkUV) return; m.userData.barkUV = true;
+  for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; }
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = (sh, r) => { prev?.call(m, sh, r);
+    sh.vertexShader = sh.vertexShader.replace("#include <uv_vertex>", `#include <uv_vertex>
+  { vec2 bu = vec2(atan(position.x, position.z) * .4775, position.y * .55);
+#ifdef USE_MAP
+    vMapUv = bu;
+#endif
+#ifdef USE_NORMALMAP
+    vNormalMapUv = bu;
+#endif
+#ifdef USE_ROUGHNESSMAP
+    vRoughnessMapUv = bu;
+#endif
+  }`); };
+  m.customProgramCacheKey = () => "barkUV" + (m.uuid);
+  m.needsUpdate = true;
 }
 /* 遠くの木：中くらいの形を一度だけ横から写した絵を、十字に組んだ 2 枚の板に貼る（1 本 4 三角形）。歩くときの遠景だけに使う */
 function buildImpostors() {
@@ -503,14 +526,43 @@ const ROAD_MATS = { asphalt_dark: ["Asphalt023S", [1, 1, 1], 1, .8], asphalt_lig
   granite_plaza: ["granite_tile_04", [1, 1, 1], 1, 1], granite_black: ["granite_tile", [1, 1, 1], .85, .7], washed: ["gravel_embedded_concrete", [1, 1, 1], 1, 1], granite_band: ["PavingStones133", [1, 1, 1], .95, 1],
   stone: ["japanese_stone_wall", [1, 1, 1], 1, 1], sand: ["gravelly_sand", [1, 1, 1], 1, .9], roots: ["roots", [.46, .42, .37], 1, 1.2], bed: ["Ground047", [.8, .74, .66], 1, 1], lawn: ["Ground047", [.78, 1.05, .62], 1, 1],
   gravel: ["Gravel023", [.8, .79, .76], 1, 1.2], concrete: ["asphalt_04", [1.25, 1.25, 1.22], .9, .5], paint: ["Asphalt023S", [2.3, 2.3, 2.25], .6, .4] };
-const ROAD_WEATHER = { stone: { moss: .5, grime: .5, lichen: .55, scale: 1.1, bump: .05 }, concrete: { moss: .32, grime: .6, lichen: .3, scale: 1.5, bump: .03 },
-  granite_light: { flat: 1, moss: .04, grime: .4, lichen: .14, scale: 1, bump: .022, rough: .82 }, granite_plaza: { flat: 1, moss: .04, grime: .38, lichen: .12, scale: 1, bump: .022, rough: .82 },
-  granite_black: { flat: 1, moss: .04, grime: .3, lichen: .1, scale: 1, bump: .02, rough: .8 }, granite_band: { flat: 1, moss: .04, grime: .4, lichen: .14, scale: 1, bump: .022, rough: .82 },
-  sidewalk: { flat: 1, moss: .04, grime: .35, lichen: .08, scale: 1.2, bump: .02 }, washed: { flat: 1, moss: .04, grime: .35, lichen: .1, scale: 1.2, bump: .025 } };
+const ROAD_WEATHER = { stone: { moss: 0, grime: .45, lichen: 0, scale: 1.1, bump: .05 }, concrete: { moss: 0, grime: .55, lichen: 0, scale: 1.5, bump: .03 },   // 2026-10-23 本人「石畳の舗装に苔を生やさない」＝舗装の面は苔・地衣（緑のしみ）なし。縁の外の土・植え込みはそのまま
+  granite_light: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .82 }, granite_plaza: { flat: 1, moss: 0, grime: .38, lichen: 0, scale: 1, bump: .022, rough: .82 },
+  granite_black: { flat: 1, moss: 0, grime: .3, lichen: 0, scale: 1, bump: .02, rough: .8 }, granite_band: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .82 },
+  sidewalk: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .02 }, washed: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .025 } };
 const STRUCT_WEATHER = { stone_new: { moss: .38, grime: .55, lichen: .45 }, granite: { moss: .32, grime: .5, lichen: .4 }, old_lantern: { moss: .55, grime: .65, lichen: .65 },
   old_komainu: { moss: .5, grime: .6, lichen: .6 }, old_hyoseki: { moss: .45, grime: .6, lichen: .55 }, old_shago: { moss: .45, grime: .6, lichen: .55 },
   inscr_hyoseki: { moss: .12, grime: .35, lichen: .18, bump: .02 }, inscr_shago: { moss: .12, grime: .35, lichen: .18, bump: .02 },
   stone_pier: { moss: .6, grime: .6, lichen: .45 }, stonewall: { moss: .6, grime: .55, lichen: .45 } };
+
+/* ---------- 通れない所（2026-10-23 本人「植え込みの中には入れないように」）：植え込み・芝・根もとの土・池・低木・幹・小さな石の物を、0.5 m の格子に塗る ---------- */
+let COLL = null; const collInit = () => COLL || (COLL = (() => { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of D.cl) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); z0 = Math.min(z0, p[2]); z1 = Math.max(z1, p[2]); }
+  x0 -= 90; x1 += 90; z0 -= 90; z1 += 90; const c = .5, nx = Math.ceil((x1 - x0) / c), nz = Math.ceil((z1 - z0) / c);
+  return QW.COLL = { x0, z0, c, nx, nz, g: new Uint8Array(nx * nz) }; })());
+function collMark(cx, cz) { collInit(); const i = Math.floor((cx - COLL.x0) / COLL.c), j = Math.floor((cz - COLL.z0) / COLL.c); if (i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz) COLL.g[j * COLL.nx + i] = 1; }
+function collDisc(x, z, r) { const c = collInit().c; for (let dz = -r; dz <= r; dz += c) for (let dx = -r; dx <= r; dx += c) if (dx * dx + dz * dz <= r * r) collMark(x + dx, z + dz); }
+function collPoly(poly) {   // [[x,z],…] の多角形の中を塗る
+  let a = 1e9, b = -1e9, e = 1e9, f = -1e9; for (const [x, z] of poly) { a = Math.min(a, x); b = Math.max(b, x); e = Math.min(e, z); f = Math.max(f, z); }
+  const c = collInit().c; for (let z = Math.floor(e / c) * c + c / 2; z < f; z += c) for (let x = Math.floor(a / c) * c + c / 2; x < b; x += c) { let ins = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, zi] = poly[i], [xj, zj] = poly[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) ins = !ins; } if (ins) collMark(x, z); }
+}
+function collMesh(o) {   // 面の三角形を真上から塗る（縁から 0.15 m 内側だけ＝縁石の上は歩ける）
+  const g = o.geometry, P = g.attributes.position, I = g.index, n = I ? I.count : P.count, v = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], c = collInit().c;
+  for (let t = 0; t < n; t += 3) {
+    for (let k = 0; k < 3; k++) v[k].fromBufferAttribute(P, I ? I.getX(t + k) : t + k).applyMatrix4(o.matrixWorld);
+    const [A, B, C] = v, ar = (B.x - A.x) * (C.z - A.z) - (C.x - A.x) * (B.z - A.z); if (Math.abs(ar) < 1e-6) continue;
+    const mnx = Math.min(A.x, B.x, C.x), mxx = Math.max(A.x, B.x, C.x), mnz = Math.min(A.z, B.z, C.z), mxz = Math.max(A.z, B.z, C.z);
+    for (let z = Math.floor(mnz / c) * c + c / 2; z < mxz; z += c) for (let x = Math.floor(mnx / c) * c + c / 2; x < mxx; x += c) {
+      const w0 = ((B.x - x) * (C.z - z) - (C.x - x) * (B.z - z)) / ar, w1 = ((C.x - x) * (A.z - z) - (A.x - x) * (C.z - z)) / ar, w2 = 1 - w0 - w1;
+      if (w0 >= 0 && w1 >= 0 && w2 >= 0) collMark(x, z);
+    }
+  }
+}
+function blocked(x, z) { if (!COLL) return false; const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz && COLL.g[j * COLL.nx + i] === 1; }
+function collShrink() {   // 塗った所の縁を 1 こまぶん削る（細い縁石の上・植え込みの角で引っかからない）。植え込みどうしの間の通り道は残る
+  collInit(); const { g, nx, nz } = COLL, h = g.slice();
+  for (let j = 1; j < nz - 1; j++) for (let i = 1; i < nx - 1; i++) { const k = j * nx + i; if (h[k] && (!h[k - 1] || !h[k + 1] || !h[k - nx] || !h[k + nx])) g[k] = 2; }
+  for (let k = 0; k < g.length; k++) if (g[k] === 2) g[k] = 0;
+}
 let lateP = null; const STONES = [];
 function loadLate() {
   if (lateP) return lateP;
@@ -521,6 +573,7 @@ function loadLate() {
     for (const m of Object.values(mats)) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }   // ROAD_STENCIL
     g.scene.traverse(o => { if (o.isMesh) { const k = o.name.split("|")[0]; if (mats[k]) o.material = mats[k]; o.renderOrder = -1; o.userData.stone = k === "stone"; pickables.push(o); } });
     roadGroup = g.scene; world.add(roadGroup); roadGroup.updateMatrixWorld(true);
+    roadGroup.traverse(o => { if (o.isMesh && /^(bed|lawn|roots)\|/.test(o.name)) collMesh(o); }); collShrink(); for (const p of D.ponds) collPoly(p.poly); for (const t of D.trees) collDisc(t[0], t[2], Math.max(.35, .32 * t[4]));
     roadGroup.traverse(o => { if (o.isMesh && o.userData.stone) { o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); STONES.push(o); } });
   });
   const WMAT = {};
@@ -533,6 +586,7 @@ function loadLate() {
         if (n.material.name === "black") { n.material = n.material.clone(); n.material.color.set("#1c1a19"); n.material.roughness = .38; n.material.metalness = .05; n.material.envMapIntensity = 1.25; }   // 根巻と笠木の黒：漆のような艶（平らな黒い箱に見えないように）
         else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; n.material = WMAT[nm] ||= weather(n.material.clone(), STRUCT_WEATHER[nm]); } } });
       o.name = s.id; structGroup.add(o);
+      if (/^(ishidoro|komainu|hyoseki|shagohi|choishi|mokutoro)/.test(s.id)) collDisc(s.p[0], s.p[2], /^ishidoro|^mokutoro/.test(s.id) ? 1.0 : .8);   // 燈籠・狛犬・碑・丁石は通れない（鳥居と楼門はくぐれる）
       if (QW.mode === "sky" && /^torii_|^romon$|^shinkyo$/.test(s.id)) o.visible = false;
     }
     try { buildBigStructs(g.scene); } catch (e) { console.warn("bigstructs", e); }
@@ -640,6 +694,7 @@ function loadVeg() {
       VEG.group.add(im);
       VEG.sp.push({ s, xs, m, R, cap, im, tint: tint[s] });
     }
+    for (const S of VEG.sp) if (S.s <= 2 || S.s === 7) for (let k = 0; k < S.m; k++) if (S.xs[k * 6 + 3] > .9) collDisc(S.xs[k * 6], S.xs[k * 6 + 2], S.xs[k * 6 + 3] * .3);   // 大きな株（低木）は通れない。下草は踏める
     VEG.last.set(1e9, 0, 0); updateVeg(true);
   }).catch(e => console.warn("veg", e));
 }
@@ -829,11 +884,11 @@ function stepWaitOrbit(dt) {   // 待つあいだも画は止めない
 QW.startAt = i => { if (QW.mode === "sky") descendTo(i ?? 0); };
 
 /* 歩く：体は道に沿って進み、目は自由に見回せる */
-const WALK = { goal: null, keys: new Set(), hold: false, auto: false, speed: 1.35, ring: null, moving: false };
+const WALK = { goal: null, keys: new Set(), hold: false, auto: false, speed: 1.35, ring: null, moving: false }; QW.WALK = WALK;
 function enterWalk() {
   setMode("walk"); showWalkUI();
   aoiArrive();
-  if (!sessionStorageGet("hk_tip2")) { toast(MOBILE ? "なぞると見回せます。「歩きつづける」で参道を進み、地面に触れるとそこへ歩きます。" : "ドラッグで見回し、W で見ている方へ、「歩きつづける」で参道に沿って進みます。地面を押すとそこへ歩きます。"); sessionStorageSet("hk_tip2", 1); }
+  if (!sessionStorageGet("hk_tip2")) { toast(MOBILE ? "なぞると見回せます。「歩きつづける」で参道を進み、地面に触れるとその向きへ数歩すすみます。" : "ドラッグで見回し、W で見ている方へ、「歩きつづける」で参道に沿って進みます。地面を押すとその向きへ数歩すすみます。"); sessionStorageSet("hk_tip2", 1); }
 }
 function corridorClamp(p) {
   const n = nearestOnLine(p.x, p.z), lim = n.d > 1878 ? 70 : n.d < -20 ? 30 : 13;
@@ -841,9 +896,9 @@ function corridorClamp(p) {
   if (n.d > 2010) { const a = atD(2010); p.x += (a.x - p.x) * .2; p.z += (a.z - p.z) * .2; }
 }
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
-const _f = new THREE.Vector3(), _r = new THREE.Vector3(), _eu = new THREE.Euler(0, 0, 0, "YXZ");
+const _pv = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3(), _eu = new THREE.Euler(0, 0, 0, "YXZ");
 function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
-  const K = WALK.keys;
+  const K = WALK.keys; _pv.copy(CAM.pos);
   const fwd = K.has("w") || K.has("arrowup") || WALK.hold, back = K.has("s") || K.has("arrowdown");
   if (K.has("a") || K.has("arrowleft")) CAM.yaw += dt * 1.5; if (K.has("d") || K.has("arrowright")) CAM.yaw -= dt * 1.5;
   const sp = speed * (K.has("shift") ? 2.2 : 1);
@@ -855,7 +910,8 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
   } else if (WALK.goal) {
     const dx = WALK.goal.x - CAM.pos.x, dz = WALK.goal.z - CAM.pos.z, l = Math.hypot(dx, dz);
     if (l < .25) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
-    else { const st = Math.min(l, sp * dt); CAM.pos.x += dx / l * st; CAM.pos.z += dz / l * st; moving = true;
+    else {   // 着く手前で、ゆっくり止まる
+      const st = Math.min(l, sp * dt * Math.min(1, .35 + l / 1.6)); CAM.pos.x += dx / l * st; CAM.pos.z += dz / l * st; moving = true;
       const want = Math.atan2(-dx, -dz), dy = wrap(want - CAM.yaw), k = Math.min(1, dt * 2.2); CAM.yaw += dy * k; CAM.look -= dy * k * (performance.now() - CAM.lastDrag < 2500 ? 1 : 0); }   // 見回している最中は、目の向きはそのまま
   } else if (WALK.auto) {   // 歩きつづける：参道の向き（いま進んでいる側）へ体をそろえて進む
     const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), ty = Math.atan2(-a.tx, -a.tz), dir = Math.cos(wrap(ty - CAM.yaw)) >= 0 ? ty : ty + Math.PI;
@@ -869,6 +925,10 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
   if (moving && !GYRO.on && QW.mode === "walk" && performance.now() - CAM.lastDrag > 3500) CAM.look -= wrap(CAM.look) * Math.min(1, dt * .5);
   CAM.look = wrap(CAM.look);
   corridorClamp(CAM.pos);
+  if (moving && blocked(CAM.pos.x, CAM.pos.z) && !blocked(_pv.x, _pv.z)) {   // 通れない所の手前で止まる。斜めに当たったときは、縁に沿ってすべる
+    if (!blocked(CAM.pos.x, _pv.z)) CAM.pos.z = _pv.z; else if (!blocked(_pv.x, CAM.pos.z)) CAM.pos.x = _pv.x; else { CAM.pos.x = _pv.x; CAM.pos.z = _pv.z; }
+    if (WALK.goal && Math.hypot(CAM.pos.x - _pv.x, CAM.pos.z - _pv.z) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
+  }
   const gy = groundY(CAM.pos.x, CAM.pos.z) + eye;
   CAM.pos.y += (gy - CAM.pos.y) * Math.min(1, dt * 8);
   camera.position.copy(CAM.pos); if (bob && moving) camera.position.y += bob;
@@ -970,6 +1030,7 @@ addEventListener("keydown", e => { if (e.target.closest?.("input,textarea")) ret
 addEventListener("keyup", e => WALK.keys.delete(e.key.toLowerCase()));
 addEventListener("blur", () => WALK.keys.clear());
 
+const STEP = 3.5;   // 押して進む一度の距離（m）
 const ray = new THREE.Raycaster(), _v2 = new THREE.Vector2(), _v3 = new THREE.Vector3();
 function tap(x, y) {
   if (QW.mode === "sky") {   // 地図の点を選ぶ
@@ -980,9 +1041,15 @@ function tap(x, y) {
   if (QW.mode !== "walk" && QW.mode !== "sight") return;
   const o = pickObj(x, y); if (o) { openObj(o); return; }
   if (QW.mode !== "walk") return;
+  // 2026-10-23 本人「押した位置からは方向だけを読み取り、一度に進む距離は一定の距離を超えないように」＝押した向きへ、最大 STEP m だけ進んで止まる
   _v2.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(_v2, camera); ray.far = 60;
   const hit = ray.intersectObjects(pickables.filter(m => m.visible !== false), false)[0];
-  if (hit) { WALK.goal = hit.point.clone(); corridorClamp(WALK.goal); showGoalRing(WALK.goal); }
+  let dx, dz; if (hit) { dx = hit.point.x - CAM.pos.x; dz = hit.point.z - CAM.pos.z; } else { dx = ray.ray.direction.x; dz = ray.ray.direction.z; }
+  const l = Math.hypot(dx, dz); if (l < 1e-3) return;
+  const step = Math.min(STEP, hit ? l : STEP), g = new THREE.Vector3(CAM.pos.x + dx / l * step, 0, CAM.pos.z + dz / l * step);
+  corridorClamp(g); for (let k = 0; k < 12 && blocked(g.x, g.z); k++) { g.x -= dx / l * .3; g.z -= dz / l * .3; }   // 植え込みの中を押したら、その手前まで
+  if (Math.hypot(g.x - CAM.pos.x, g.z - CAM.pos.z) < .3) { toast("その先は植え込みです。通れません。"); return; }
+  WALK.goal = g; showGoalRing(g);
 }
 function showGoalRing(p) {
   if (!WALK.ring) { const g = new THREE.RingGeometry(.28, .34, 40); g.rotateX(-Math.PI / 2); WALK.ring = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: "#9bdcf0", transparent: true, opacity: .85, depthWrite: false })); world.add(WALK.ring); }
@@ -995,10 +1062,11 @@ const LAYER = { worn: [], objs: [], ripple: null, rippleR: 0, wear: null, thumbs
 function layerNo(id) { return ALL.findIndex(l => l.id === id) + 1; }
 function buildObjs() {
   ALL = [...D.layers, ...QLAYERS]; GL = Object.fromEntries(ALL.map(l => [l.id, l]));
-  const list = [...D.objs, ...D.sound.map(s => ({ id: s.id, x: s.x, y: s.y, z: s.z, ll: s.ll, layer: "sound", title: s.title, h: 2.0, lines: [], snd: s })), ...D.touch.map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "touch", title: t.title, h: 1.25, lines: [], tch: t })), ...(D.sho || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "sho", title: t.title, h: .7, lines: [], sho: t }))];
+  const list = [...D.objs, ...D.sound.map(s => ({ id: s.id, x: s.x, y: s.y, z: s.z, ll: s.ll, layer: "sound", title: s.title, h: 2.0, lines: [], snd: s })), ...D.touch.map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "touch", title: t.title, h: 1.25, lines: [], tch: t })), ...(D.sho || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "sho", title: t.title, h: .7, lines: [], sho: t })), ...(D.rakugo || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "rakugo", title: t.title, h: 1.9, lines: [], rk: t }))];
   for (const o of list) {
     const L0 = GL[o.layer]; if (!L0) continue;
-    const m = makeMarker(o.sub || o.layer, L0.color, o.h, MOBILE);   // 形は細かい分類（樹木・鳥居と石…）、色はまとめた層の色 m.root.position.set(o.x, o.y, o.z); m.root.visible = false; m.root.name = o.id;
+    const m = makeMarker(o.sub || o.layer, L0.color, o.h, MOBILE);   // 形は細かい分類（樹木・鳥居と石…）、色はまとめた層の色
+    m.root.position.set(o.x, o.y, o.z); m.root.visible = false; m.root.name = o.id;
     world.add(m.root); LAYER.objs.push({ o, ...m, k: 0, show: 0, open: 0, label: null });
   }
   // はじめから、すべての層を重ねておく（2026-10-22 本人「デフォルトで全て on に」）。外すのは見る人が選んだときだけ
@@ -1078,8 +1146,9 @@ const PANEL = { cur: null };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const srcList = src => src.map(s => s.u ? `<li><a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t)}</a></li>` : `<li>${esc(s.t)}</li>`).join("");
 function openPanel({ color, layer, title, lines = [], more = [], how, note, src = [], ll, figs = "", buttons = [] }) {
-  closeTray(); const p = $("#panel"); p.hidden = false; p.style.setProperty("--pc", color); document.body.classList.add("pOpen");
-  if (innerWidth < 640 && AOI.root?.visible) { AOI.root.visible = false; AOI.hidP = true; }   // スマホ：説明を読むあいだ、碧は説明の後ろに透けないよう一歩さがる
+  closeTray(); if (innerWidth < 640) { $("#lstack").classList.add("closed"); $("#lsHead").setAttribute("aria-expanded", "false"); }   // スマホ：札を開くときは層の一覧をたたむ（札の後ろに透けない）
+  const p = $("#panel"); p.hidden = false; p.style.setProperty("--pc", color); document.body.classList.add("pOpen");
+  // 2026-10-23：スマホでも碧は消さない（札を下の 46vh にして、碧はその上に見える）
   $("#pLayer").textContent = layer; $("#pTitle").textContent = title;
   const body = $("#pBody"); body.innerHTML = "";
   lines.forEach((l, i) => { const e = document.createElement("p"); e.className = "line"; e.dataset.i = i; e.textContent = l.t; body.appendChild(e); });
@@ -1097,6 +1166,7 @@ function openObj(L) {
   if (o.snd) return openSound(L);
   if (o.tch) return openTouch(L);
   if (o.sho) return openSho(L);
+  if (o.rk) return openRakugo(L);
   const sp = o.sp ? D.sight.find(s => s.id === o.sp) : null;
   openPanel({ color: g.color, layer: `${String(layerNo(o.layer)).padStart(2, "0")}　${g.name}`, title: o.title, lines: o.lines, more: o.more, src: o.src, ll: o.ll, note: o.note,
     how: o.how === "研究の知見" ? "研究の知見（ほかの場所で調べられたこと）" : "記録（公的な資料・神社の由緒・樹木調査など）",
@@ -1104,7 +1174,7 @@ function openObj(L) {
   if (o.seg) TALK.spoken.add(o.seg);
   speakLines(o.lines, L);
 }
-function hidePanel() { if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); if (AOI.hidP) { AOI.hidP = false; if (AOI.root && QW.mode === "walk") AOI.root.visible = true; } PANEL.cur = null; TCH.cur = null; stopVoice(); stopSound(); }
+function hidePanel() { try { $("#pExp video")?.pause(); } catch { } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); if (AOI.hidP) { AOI.hidP = false; if (AOI.root && QW.mode === "walk") AOI.root.visible = true; } PANEL.cur = null; TCH.cur = null; stopVoice(); stopSound(); }
 $("#pClose").addEventListener("click", hidePanel);
 
 /* ---------- 声（碧） ---------- */
@@ -1114,7 +1184,10 @@ function sessionStorageSet(k, v) { try { sessionStorage.setItem(k, v); } catch {
 function stopVoice() { voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
 function speakLines(lines, L, opt = {}) {
   stopVoice(); const q = lines.filter(l => l.f || !soundOn); voiceQ = { q, i: 0, L, talk: opt.talk || null, done: opt.done || null };
-  if (L && AOI.m) { const p = L.glyph.getWorldPosition(new THREE.Vector3()); AOI.m.lookAt(p); AOI.focus = p; }   // 指さず、目と体を半分だけ物へ向ける
+  if (L && AOI.m) { const p = L.glyph.getWorldPosition(new THREE.Vector3()), P = AOI.root?.position;
+    // 物が碧から見て見る人と反対の側にあるときは、物へ振りむかず、見る人の方を向いて話す（背を向けて話さない）
+    if (P && Math.abs(wrap(Math.atan2(p.x - P.x, p.z - P.z) - Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z))) > 1.1) { AOI.m.lookAt(camera.position.clone()); AOI.focus = null; }
+    else { AOI.m.lookAt(p); AOI.focus = p; const f0 = p; setTimeout(() => { if (AOI.focus === f0) { AOI.focus = null; AOI.m?.lookAt(camera.position.clone()); } }, 1600); } }   // 指さず、目と体を半分だけ物へ向け、1.6 秒で見る人へ向きなおって話す
   playNext();
 }
 function playNext() {
@@ -1127,7 +1200,7 @@ function playNext() {
   if (!soundOn || !l.f) { next(Math.max(2200, (l.dur || l.t.length * .16) * 1000 + 600)); return; }
   audio.src = l.f; audio.currentTime = 0;
   if (AOI.m && v.i === 0) AOI.m.express(v.talk ? (Math.random() < .5 ? "warm" : "curious") : "warm", .55, Math.min(6, (l.dur || 3) + 1));
-  audio.play().then(() => { AOI.m?.speak({ timeline: D.lip[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }); }).catch(() => next(1500));
+  audio.play().then(() => { AOI.m?.speak({ timeline: D.lip[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime, ref: v.L && v.i === 0 && AOI.focus ? AOI.focus : null, autoGesture: !v.L || (v.i === 0 && !!AOI.focus) /* 2026-10-23 札の読み上げで指すのは、物が前にある最初の一行だけ */ }); }).catch(() => next(1500));
   audio.onended = () => { if (voiceQ !== v) return; AOI.m?.stopSpeaking(); next(420); };
 }
 let capT = 0;
@@ -1215,7 +1288,9 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
   const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .62 : 1.1;   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
-  out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side); out.y = groundY(out.x, out.z); return out;
+  out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
+  for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
+  out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
   loadAoi().then(() => {
@@ -1234,9 +1309,9 @@ function stepAoi(dt) {
   else {
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : 1.3);
     const want = go ? Math.min(1.6, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
-    AOI.v = (AOI.v || 0) + Math.max(-1.8 * dt, Math.min(1.0 * dt, want - (AOI.v || 0)));
+    AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.8) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
-    else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; AOI.m.faceTo(AOI.focus ? Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) * .4 + Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z) * .6 : Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z)); }
+    else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam); } }   // 2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
   }
   // 話していないときは、ときどき近くの物（層の目じるし・木）へ目をやり、また見る人へ戻す（ずっと正面で立ちつくさない）
   AOI.gT = (AOI.gT ?? 5) - dt;
@@ -1706,6 +1781,16 @@ function openSho(L) {
     buttons: [{ label: "ほどく・集める", primary: true, run: () => touchSho(it) }] });
   touchSho(it);
 }
+/* Qualia/rakugo：公開中の Qualia/rakugo の演目を、その場所で一席（動画は rakugo の公開ページのものを流す・押すまで読まない） */
+const RK_BASE = "https://mitsulab-soil.github.io/aoi-shizen-rakugo/";
+function openRakugo(L) {
+  const it = L.o.rk, g = GL.rakugo, v = MOBILE ? "_v540" : "_h720", mm = s => `${Math.floor(s / 60)} 分`;
+  const figs = `<video class="rkV" controls playsinline preload="none" poster="${RK_BASE}img/${esc(it.slug)}_poster${MOBILE ? "_v" : ""}.webp" src="${RK_BASE}video/${esc(it.slug)}${v}.mp4" aria-label="噺《${esc(it.title)}》の高座（約 ${mm(it.dur)}）"></video><figcaption>《${esc(it.title)}》（${esc(it.r)}）・約 ${mm(it.dur)}。高座の碧が演じます。音が出ます。</figcaption>`;
+  openPanel({ color: g.color, layer: `${String(layerNo("rakugo")).padStart(2, "0")}　Qualia/rakugo`, title: `《${it.title}》`, lines: [it.say], more: [it.lead, "置いた場所：" + it.why, "ためしてみる：" + it.invite],
+    note: it.fic + (it.warn ? "　" + it.warn : ""), src: [{ t: "高座：Qualia/rakugo（mitsulab）", u: RK_BASE + "?e=" + it.slug }, ...it.src], ll: it.ll, how: "作品（mitsulab）── 噺の中の人物と見立ては作り話。典拠は噺のもとになった記録", figs });
+  const vid = $("#pExp video"); if (vid) { let was = null; vid.addEventListener("play", () => { stopVoice(); stopSound(); if (was === null) was = TALK.on; TALK.on = false; syncTalkBtn(); }); const back = () => { if (was) { TALK.on = true; syncTalkBtn(); TALK.nextT = performance.now() + 4000; } was = null; }; vid.addEventListener("pause", back); vid.addEventListener("ended", back); }   // 噺のあいだは、碧の歩きながらの話を止める
+  speakLines([it.say], L);
+}
 function touchSho(it) {   // 触れる：書がほどけ、端末が震える（iPhone は震えない）
   const S = SHO.live[it.id]; sndCtx(); try { navigator.vibrate?.([18, 50, 30, 60, 14]); } catch { }
   if (S) S.hold = S.hold > 0 ? 0 : 4.5;
@@ -1772,7 +1857,7 @@ function fillMenu() {
 /* 左の層の板：一枚が一つの情報の層。触れると表示・非表示。板の色＝風景に重ねた物の色 */
 function buildTray() {
   const mk = (L, box, i) => {   // 目盛りの一段（下から 01・02…と上へ重なる）
-    const n = L.id === "sight" ? D.sight.filter(q => BODY_D[q.id]).length : L.id === "sound" ? D.sound.length : L.id === "touch" ? D.touch.length : L.id === "sho" ? (D.sho || []).length : D.objs.filter(o => o.layer === L.id).length;
+    const n = L.id === "sight" ? D.sight.filter(q => BODY_D[q.id]).length : L.id === "sound" ? D.sound.length : L.id === "touch" ? D.touch.length : L.id === "sho" ? (D.sho || []).length : L.id === "rakugo" ? (D.rakugo || []).length : D.objs.filter(o => o.layer === L.id).length;
     const li = document.createElement("li"); li.className = "ly";
     const b = document.createElement("button"); b.type = "button"; b.className = "lyBtn" + (L.q ? " q" : ""); b.dataset.id = L.id; b.setAttribute("aria-pressed", "false"); b.style.setProperty("--gc", L.color);
     b.title = L.lead; b.setAttribute("aria-label", `${L.name}（${L.lead}）`);
@@ -1783,7 +1868,7 @@ function buildTray() {
   };
   const a = $("#layersAll"); a.innerHTML = "";
   D.layers.forEach((L, i) => mk(L, a, i));
-  const sep = document.createElement("li"); sep.className = "lySep"; sep.setAttribute("aria-hidden", "true"); sep.textContent = "QUALIA"; a.appendChild(sep);
+  const sep = document.createElement("li"); sep.className = "lySep"; sep.setAttribute("aria-hidden", "true"); sep.textContent = "五感 · SENSES"; a.appendChild(sep);
   QLAYERS.forEach((L, i) => mk(L, a, D.layers.length + i));
   syncTray();
 }
