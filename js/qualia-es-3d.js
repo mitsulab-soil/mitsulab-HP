@@ -1,4 +1,4 @@
-// PHILOSOPHY の 3D「環境と主体のあいだに、Qualia がある。」
+// PHILOSOPHY の 3D「環境と主体のあいだに、Qualia がある。」（2026-10-24 TOP の一番上の図。式の札は既定で出さず、「図に式を出す」で出す）
 // 2026-10-23 三回目・本人「数式を追加してください。また、人間、碧、かさねっこを表示してください。環境エージェント、主体エージェント、Qualia、Qualium など関係性を 3D グラフィカル上で表現してください。」
 // 見せること：
 //   中央＝環境エージェント E（場所：石畳の一区画・等高線・記録の柱・宙に浮かぶ見取り図）。そのそばに碧（環境エージェント・q を人へ訳す）。
@@ -221,6 +221,7 @@ export function boot(fig) {
       else if (at === 'aoi') a = st.ph === 'tr' ? 1 : .6;
       else if (at === 'kasane') a = st.ph === 'slot' ? .5 + .5 * st.lift : .5;
       else if (at === 'xe') a = st.ph === 'slot' && st.a < 1.6 ? 1 : .32;
+      if (eqClosed() && el.classList.contains('qe-eqlab')) a = 0;   // 2026-10-24 図の式は既定で出さない（ボタンで出す）
       a *= st.out;
       v.copy(p).applyMatrix4(g.matrixWorld).project(cam);
       const hw = (el.offsetWidth || 0) / 2 + 4; let px = (v.x * .5 + .5) * W; if (hw * 2 < W) px = Math.max(hw, Math.min(W - hw, px));   // 画面の左右で切れない
@@ -249,6 +250,9 @@ export function boot(fig) {
     phLines.forEach(l => l.classList.toggle('on', l.dataset.phaseLine === ph));
   }
   btns.forEach((b, i) => b.addEventListener('click', () => { tc = i * SLOT; showSel(i, 'slot'); kick(); }));
+  const eqBtn = fig.querySelector('[data-eq-toggle]');
+  function eqClosed() { return fig.classList.contains('eq-closed'); }
+  if (eqBtn) eqBtn.addEventListener('click', () => { const open = eqClosed(); fig.classList.toggle('eq-closed', !open); eqBtn.setAttribute('aria-pressed', open ? 'true' : 'false'); if (reduce) render(performance.now(), true); else kick(); });
 
   let W = 0, Hh = 0;
   const size = () => {

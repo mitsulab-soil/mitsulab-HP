@@ -769,3 +769,57 @@ html[lang="en"] .qv-base{font-family:var(--latin);letter-spacing:.02em}
 }
 /* 2026-10-24 PHILOSOPHY のかさねっこの札：輪の外に置き、地を敷いて線が字を横切らないように */
 .qe-kas{background:rgba(3,6,15,.72)}
+
+/* ===== 2026-10-24 TOP 6（本人）：OVERVIEW を外し、PHILOSOPHY を一番上へ。VISION は短い見出し。式と定義は開閉（既定は閉じる） ===== */
+#top .qt-content>.qt-first .qp-head{margin-top:0;border-top:0;padding-top:clamp(96px,11vw,132px)}
+#top .qt-content>#appguide{border-top:1px solid #8bccca30;padding-top:64px;margin-top:64px}
+.qp-vision{margin:0 0 30px;padding:2px 0 2px 16px;border-left:1px solid #8bccca88;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.qp-vision-k{font:400 11px/1.6 var(--mono);letter-spacing:.24em;color:#8bccca}
+.qp-vision-name{font:400 italic clamp(22px,2.2vw,28px)/1.25 var(--latin);letter-spacing:.02em;color:var(--ink)}
+.qp-vision-line{font:400 clamp(16px,1.5vw,18px)/1.7 var(--serif);letter-spacing:.1em;color:#dff6f1}
+html[lang="en"] .qp-vision-line{font-family:var(--latin);font-style:italic;letter-spacing:.02em}
+.qt-first .qp-title{margin-top:6px}
+/* 図の中の式：既定は出さない（ボタンで出す） */
+.qp-es.eq-closed .qe-eqlab{visibility:hidden}
+.qp-es-eqbtn{justify-self:start;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid #8bccca55;background:transparent;color:#8bccca;font:400 14px/1 var(--sans);letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.qp-es-eqbtn::before{content:"+";font:400 16px/1 var(--mono)}
+.qp-es-eqbtn[aria-pressed="true"]{border-color:#a8f2f6;color:#e9fbff}
+.qp-es-eqbtn[aria-pressed="true"]::before{content:"−"}
+.qp-es-eqbtn:focus-visible{outline:2px solid #a8f2f6;outline-offset:2px}
+/* 十のことば：見出しと一行だけ。押すと式・説明・例 */
+.qp-words{margin:40px 0 0}
+.qp-words-h{margin:0 0 6px;font:400 clamp(20px,2vw,24px)/1.6 var(--serif);letter-spacing:.1em;color:var(--ink)}
+html[lang="en"] .qp-words-h{font-family:var(--latin);letter-spacing:.01em}
+.qp-words-hint{margin:0 0 14px;font-size:13.5px;color:#9fb8c4}
+.qp-defs-fold .qp-def{display:block;padding:0;border-top:1px solid #8bccca30}
+.qp-defs-fold .qp-def:last-child{border-bottom:1px solid #8bccca30}
+details.qp-fold>summary{list-style:none;cursor:pointer}
+details.qp-fold>summary::-webkit-details-marker{display:none}
+.qp-defs-fold summary{display:grid;grid-template-columns:3.2em minmax(0,15em) minmax(0,1fr) 22px;gap:4px 18px;align-items:baseline;min-height:44px;padding:16px 0}
+.qp-defs-fold summary::after{content:"+";font:400 18px/1 var(--mono);color:#8bccca;justify-self:end;align-self:center}
+.qp-defs-fold details[open]>summary::after{content:"−"}
+.qp-defs-fold summary:hover .qp-term,.qp-defs-fold summary:focus-visible .qp-term{color:#a8f2f6}
+.qp-defs-fold summary:focus-visible{outline:2px solid #a8f2f6;outline-offset:2px}
+.qp-defs-fold .qp-term{font-size:18px}
+html[lang="en"] .qp-defs-fold .qp-term{font-size:19px}
+.qp-one{font-size:14.5px;line-height:1.85;color:var(--ink-2)}
+.qp-defs-fold .qp-dd{padding:0 0 22px calc(3.2em + 18px);max-width:52em}
+.qp-defs-fold .qp-sym{margin:0 0 8px}
+.qp-struct{margin:18px 0 0}
+.qp-struct>summary{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid #8bccca55;border-radius:999px;color:#8bccca;font:400 14px/1 var(--sans);letter-spacing:.06em}
+.qp-struct>summary::before{content:"+";font:400 16px/1 var(--mono)}
+.qp-struct[open]>summary::before{content:"−"}
+.qp-struct>.qp-fig{margin:18px 0 10px}
+.qp-note-s{font-size:12.5px!important;line-height:1.85;color:#8f9bb4}
+@media(max-width:700px){
+  #top .qt-content>.qt-first .qp-head{padding-top:84px}
+  #top .qt-content>#appguide{padding-top:48px;margin-top:48px}
+  .qp-vision{margin-bottom:22px;padding-left:12px;gap:2px 12px}
+  .qp-defs-fold summary{grid-template-columns:2.4em minmax(0,1fr) 20px;gap:2px 12px;padding:14px 0}
+  .qp-defs-fold summary .qp-one{grid-column:2;grid-row:2}
+  .qp-defs-fold summary::after{grid-column:3;grid-row:1}
+  .qp-defs-fold .qp-dd{padding:0 0 18px calc(2.4em + 12px)}
+  .qp-one{font-size:14px}
+}
+/* 2026-10-24 採点の P1：開いた式の札の地を濃く（3D の物が透けない） */
+.qp-es .qe-eqlab{background:rgba(3,6,15,.86)}.qp-es .qe-eqlab.on{background:rgba(3,10,20,.92)}
