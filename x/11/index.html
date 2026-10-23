@@ -6,25 +6,29 @@
 <meta name="tdm-reservation" content="1">
 <meta name="robots" content="noai, noimageai">
 <title>Qualia/sho ／ mitsulab</title>
-<meta name="description" content="上原光瑛の書「〇〇の音」を、墨の彫刻として回廊に置いた。触れると、墨は粒にほどけて宙を漂い、音が鳴り、また一つの書に集まる。">
+<meta name="description" content="上原光瑛の書「〇〇の音」の連作から三作が、古寺の板の間の広間に墨の立体として浮かぶ。歩いて近づき、触れるとその書の音が鳴る。">
 <meta property="og:title" content="Qualia/sho ／ mitsulab">
-<meta property="og:description" content="上原光瑛の書を、墨の彫刻として回廊に置いた。触れると墨が粒にほどけ、音が鳴り、また書に集まる。">
+<meta property="og:description" content="墨の立体の書が浮かぶ広間を歩き、触れると、その書の音が鳴る。">
 <meta name="theme-color" content="#03060f">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261022">
+<link rel="stylesheet" href="style.css?v=20261023d">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js"}}</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261022">
-<link rel="modulepreload" href="kit/sho3d.js?v=20261022">
+<link rel="modulepreload" href="app.js?v=20261023d">
+<link rel="modulepreload" href="kit/sho3d.js?v=20261023d">
+<link rel="modulepreload" href="room.js?v=20261023d">
+<link rel="modulepreload" href="live.js?v=20261023d">
+<link rel="modulepreload" href="dof.js?v=20261023d">
 <link rel="preload" href="data/works.json" as="fetch" crossorigin>
 </head>
 <body class="ml-root">
 <script src="loader/loader.js" data-title="Qualia/sho" data-en="calligraphy, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>
 
-<canvas id="cv" aria-label="書の回廊の 3D。押すと、いまの書が粒にほどけて音が鳴る。左右に払うと、となりの書へ"></canvas>
+<canvas id="cv" aria-label="書の広間の 3D。床を押すとその向きへ歩き、書に触れるとその音が鳴って墨が揺れる。ドラッグで見回す"></canvas>
+<div id="veil" aria-hidden="true"></div>
 <div id="rings" aria-hidden="true"></div>
 
 <header class="top">
@@ -44,12 +48,13 @@
   <div class="cap" aria-live="polite">
     <span class="no" id="capNo"></span>
     <span class="ti" id="capTi"></span>
-    <span class="hint" id="hint">押すと、墨が粒にほどけて音が鳴る。押したままなら、離すまでほどけたまま。左右に払うと、となりの書へ。</span>
+    <span class="rd" id="capRd"></span>
+    <span class="hint" id="hint"></span>
   </div>
   <div class="nav">
-    <button class="ml-btn arrow" id="prev" type="button" aria-label="前の書">‹</button>
-    <span class="count" id="count"></span>
-    <button class="ml-btn arrow" id="next" type="button" aria-label="次の書">›</button>
+    <button class="ml-btn arrow" id="prev" type="button" aria-label="前の書の前へ歩く">‹</button>
+    <button class="ml-btn count" id="allBtn" type="button" aria-label="目録をひらく"><span id="count"></span></button>
+    <button class="ml-btn arrow" id="next" type="button" aria-label="次の書の前へ歩く">›</button>
   </div>
 </footer>
 
@@ -70,14 +75,16 @@
 <section class="sheet" id="info" hidden aria-label="この作品について">
   <div class="sheet-in">
     <div class="sheet-head"><span class="ml-kicker">解説</span><button class="ml-btn close" type="button" data-close aria-label="閉じる">×</button></div>
-    <h2>Qualia/sho ── 書の回廊</h2>
-    <p>上原光瑛が墨で書いた「〇〇の音」の連作から、十作と「音」の字を選び、回廊に置いた。紙の上の墨の形はそのままに、墨の太さから見立てた厚みを起伏にし、墨の流れから読みとった向きに沿って粒がほどけるようにした（厚みも向きも、画像から見立てたもので、測ったものではない）。</p>
-    <p>触れると、墨は左上から右下へ渡るように粒にほどけ、宙を漂い、また一つの書に集まる。集まりきったところで、一打が鳴る。「元の書」で、紙の上の書をそのまま見られる。</p>
-    <p>音は書ごとの型から、その場で合成している（録音は使っていない）。振動のある端末では、ほどける粒に合わせて震える。</p>
+    <h2>Qualia/sho ── 書の広間</h2>
+    <p>上原光瑛が墨で書いた「〇〇の音」の連作から三作が、古寺の板の間の広間に、墨の立体として浮かんでいる。西の壁には「蕾が春化粧をする音」を、立体にせず紙の原本のまま一枚掛けた。</p>
+    <p>紙の上の筆の跡を骨格にして、墨の太さから見立てた厚みと、前後へのふくらみを与えた立体にした。原本の墨のかすれ・擦れも、そのまま肌に写している。色は墨だけ。題の違いは、墨の状態（濡れ・乾き・にじみ・滴り）で表した。どう読んだかは、書に触れると出る一行に書いた（見立てで、題の正しい意味として示すものではない）。</p>
+    <p>床を押すと、その向きへ数歩ずつ歩く（矢印キー・WASD でも）。ドラッグで見回す。書に触れると、その書の音が鳴って題が出て、墨が揺れ、かけらが漂い、空間が震える。しばらくすると字の形に戻る。下の矢印と目録で、書の前へ歩いていける。</p>
+    <p>音は書ごとの型から、その場で合成している（録音は使っていない）。振動のある端末では、触れたときと湧く墨に合わせて震える。</p>
     <dl class="credit">
       <dt>書</dt><dd>上原光瑛（墨・紙）</dd>
       <dt>3D・音・プログラム</dt><dd>mitsulab</dd>
       <dt>使った部品</dt><dd>three.js（MIT License）</dd>
+      <dt>質感</dt><dd>板の間・柱と壁の木・漆喰・まわりの景色：Poly Haven（CC0）</dd>
     </dl>
     <p class="rights">© mitsulab. All rights reserved.<br>書・画像・音・3D・プログラムの無断の複製・転載・改変と、AI の学習・生成への利用はお断りします。</p>
     <p class="back"><a href="https://mitsulab.jp/" class="ml-btn">mitsulab.jp へ</a></p>
@@ -85,6 +92,6 @@
 </section>
 
 <noscript><p class="nojs">この作品は JavaScript と WebGL で動きます。</p></noscript>
-<script type="module" src="app.js?v=20261022"></script>
+<script type="module" src="app.js?v=20261023d"></script>
 </body>
 </html>

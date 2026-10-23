@@ -11,31 +11,37 @@
    "pitch": 1.0,
    "orig": "data/orig/oto.webp",
    "ow": 1000,
-   "oh": 667
+   "oh": 667,
+   "material": "ink",
+   "reading": "「音」の字。墨のまま。濃い所だけが少し濡れ、かすれは乾いてざらつく、と読んだ。"
   },
   {
    "id": "001",
    "src": "data/001.png",
    "title": "菌糸の胞子が惑星の心臓を蔽いつくす音",
-   "preset": "void",
+   "preset": "spore",
    "w": 384,
    "h": 310,
    "pitch": 1.35,
    "orig": "data/orig/001.webp",
    "ow": 1000,
-   "oh": 773
+   "oh": 773,
+   "material": "mycel",
+   "reading": "濃い墨の芯の上に、乾いた薄墨の毛羽がまだらに広がり、芯を蔽っていく、と読んだ。"
   },
   {
    "id": "007",
    "src": "data/007.png",
    "title": "鳥の雛が卵の殻を破壊し広大な環世界を創造する音",
-   "preset": "bloom",
+   "preset": "shell",
    "w": 384,
    "h": 350,
    "pitch": 1.25,
    "orig": "data/orig/007.webp",
    "ow": 1000,
-   "oh": 773
+   "oh": 773,
+   "material": "shell",
+   "reading": "乾いて固まった墨の殻に、ひびが走る。ひびの奥に、まだ濡れた黒がのぞく、と読んだ。"
   },
   {
    "id": "008",
@@ -47,19 +53,23 @@
    "pitch": 1.0,
    "orig": "data/orig/008.webp",
    "ow": 1000,
-   "oh": 773
+   "oh": 773,
+   "material": "dew",
+   "reading": "今にも滴りそうな、とろりと濡れた墨。触れると墨の滴が落ちる、と読んだ。"
   },
   {
    "id": "012",
    "src": "data/012.png",
    "title": "無自体の音",
-   "preset": "oto",
+   "preset": "mist",
    "w": 316,
    "h": 384,
    "pitch": 0.75,
    "orig": "data/orig/012.webp",
    "ow": 1000,
-   "oh": 854
+   "oh": 854,
+   "material": "mist",
+   "reading": "筆の芯は濃い墨のまま。ふちだけが墨の霧になって、形を保ちきれずにほどける、と読んだ。"
   },
   {
    "id": "020",
@@ -71,19 +81,23 @@
    "pitch": 1.0,
    "orig": "data/orig/020.webp",
    "ow": 1000,
-   "oh": 773
+   "oh": 773,
+   "material": "cosmos",
+   "reading": "磨いた墨の黒の奥に、雲母のような微かな光の粒が見える、と読んだ。"
   },
   {
    "id": "025",
    "src": "data/025.png",
    "title": "夜の森に漂う無数の眼の音",
-   "preset": "dew",
+   "preset": "eyes",
    "w": 296,
    "h": 384,
    "pitch": 0.62,
    "orig": "data/orig/025.webp",
    "ow": 814,
-   "oh": 1000
+   "oh": 1000,
+   "material": "eyes",
+   "reading": "夜の墨の奥で、二つ並んだ小さな照り返しが、灯っては消える、と読んだ。"
   },
   {
    "id": "027",
@@ -95,7 +109,9 @@
    "pitch": 1.0,
    "orig": "data/orig/027.webp",
    "ow": 1000,
-   "oh": 910
+   "oh": 910,
+   "material": "sap",
+   "reading": "墨が液として幹の中を巡る。ちぎれた墨は水のように離れて漂い、また本体へ戻っていく、と読んだ。"
   },
   {
    "id": "034",
@@ -107,7 +123,9 @@
    "pitch": 1.5,
    "orig": "data/orig/034.webp",
    "ow": 1000,
-   "oh": 619
+   "oh": 619,
+   "material": "bud",
+   "reading": "芯の濃墨から、ふちへ薄墨がにじんでほどける。墨の化粧、と読んだ。"
   },
   {
    "id": "035",
@@ -119,19 +137,23 @@
    "pitch": 1.0,
    "orig": "data/orig/035.webp",
    "ow": 1000,
-   "oh": 782
+   "oh": 782,
+   "material": "petal",
+   "reading": "うすく延ばした薄墨の膜が、光を背に受けて透ける。触れると薄墨の花びらが舞う、と読んだ。"
   },
   {
    "id": "038",
    "src": "data/038.png",
    "title": "いのちの最初に聴こえる音",
-   "preset": "water",
+   "preset": "pulse",
    "w": 322,
    "h": 384,
    "pitch": 0.7,
    "orig": "data/orig/038.webp",
    "ow": 1000,
-   "oh": 832
+   "oh": 832,
+   "material": "pulse",
+   "reading": "濡れた墨のつやが、拍のように満ち引きする、と読んだ。"
   }
  ]
 }
