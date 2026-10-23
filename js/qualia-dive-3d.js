@@ -6,7 +6,7 @@
 // ・点と線は模式（実測の値ではない）。石畳は CC0（ambientCG PavingStones133・CC 管理台帳 M-0822。層の図と同じ材）
 // ・画面の外とタブを隠したときは止める・動きを減らす設定では重なった一こまだけ・スマホは粒を減らし画素 1.5 まで
 import * as THREE from 'three';
-import { LAYER5 } from './kit/layer-colors.js';
+import { LAYER5 } from './kit/layer-colors.js?v=20261023k';
 
 const T_CYCLE = 16;
 

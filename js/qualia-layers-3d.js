@@ -6,7 +6,7 @@
 // ・線と点は創作の模式（実測の値ではない）。碧は kit v5.9（uprightWeight:.9）
 // ・2026-10-22 夜：碧を重なりの中（光の軸の上）へ。骨盤を起こして反り腰を直す（stand()）
 import * as THREE from 'three';
-import { LAYER5 } from './kit/layer-colors.js';
+import { LAYER5 } from './kit/layer-colors.js?v=20261023k';
 
 // 2026-10-23 本人「Qualia の層は 5 つに整理」：sight・touch・sound（sho を含む）・nature・culture（rakugo・history を含む）。色は js/kit/layer-colors.js の一か所から
 const LAYERS = LAYER5.map(L => ({ key: L.key, c: L.c }));
