@@ -280,6 +280,7 @@ const ptrs = new Map(); let drag = null, pinch = null;   // drag＝一本の指�
 const mm = p => [(p.x + .5) * SIZE_MM, (p.z + .5) * SIZE_MM];
 const two = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
 cv.addEventListener("pointerdown", e => {
+  if (!ptrs.size && !e.button && KASA.tap(e.clientX, e.clientY)) { e.preventDefault(); return; }   // かさねっこに触れた（面をなでる・回すより先）
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); cv.setPointerCapture(e.pointerId); e.preventDefault();
   if (ptrs.size === 2) {   // 二本目の指：なでるのをやめて、寄る・回す・ずらすへ
     if (touch) endStroke(); drag = null; pinch = { ...two(), lastX: 0, lastY: 0 }; pinch.lastX = pinch.x; pinch.lastY = pinch.y; return;
@@ -409,6 +410,36 @@ for (const b of document.querySelectorAll("[data-lang]")) b.addEventListener("cl
   fillSnd();
 });
 
+// ---- かさねっこ（touch の層の小さな環境エージェント・砥粉の群れ。2026-10-23 本人「Qualia以外にもかさねっこを登場させてください」「群れでわちゃわちゃ」）
+//   共通部品 kit/envAgents/kasane.js。面が出てから 1.2 秒あとに読む（起動に入れない）。台のまわりの床で跳ねる（面の上と、手前の字幕・10 cm の目盛りには来ない）。触れると跳ねて点の吹き出しと小さな音
+const _kv = new THREE.Vector3();
+const KASA = window.__kasa = { herd: null, loading: false, t0: performance.now(), floor: null,
+  // 台のまわりの床（台の底の高さ）のうち、左右と奥の角。スマホは右上に碧の窓があるので、右は手前だけ
+  okAt(x, z) { if (Math.abs(x) < .56 || Math.abs(x) > .86 || z < -.32 || z > .5) return false; if (MOBILE && x > 0 && z < .02) return false;
+    _kv.set(x, -.06, z).project(camera); const sx = (_kv.x * .5 + .5) * stage.clientWidth; return sx > 26 && sx < stage.clientWidth - 26; },   // 面の左右だけ（奥は吹き出しが面にかかる）。画面の端で体が切れる所には行かない
+  async load() {
+    this.loading = true;
+    try {
+      const M = await import("./kit/envAgents/kasane.js?v=20261023");
+      // 床：台の底の高さに、紺の円い床をうっすら（まわりは闇へ溶ける）。かさねっこの足もとの影が見えるように
+      const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"), gr = g.createRadialGradient(64, 64, 8, 64, 64, 64);
+      gr.addColorStop(0, "rgba(255,255,255,.75)"); gr.addColorStop(.5, "rgba(255,255,255,.45)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+      const fl = new THREE.Mesh(new THREE.CircleGeometry(1.25, 64), new THREE.MeshStandardMaterial({ color: 0x121b2b, roughness: 1, alphaMap: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+      fl.rotation.x = -Math.PI / 2; fl.position.y = -.106; fl.renderOrder = -1; scene.add(fl); this.floor = fl;
+      const h = new M.KasaneHerd({ scene, camera, groundAt: () => -.105, walkable: (x, z) => this.okAt(x, z), scale: .5, mobile: MOBILE, maxDist: 6, max: 16, shadow: true });
+      const S = n => Array.from({ length: n }, () => ({ layer: "touch" }));
+      const P = MOBILE ? [[-.62, -.1, 4], [-.62, .34, 4]] : [[-.7, -.12, 4], [.7, .06, 4], [-.7, -.3, 3], [.7, .4, 3]];
+      for (const [x, z, n] of P) h.addGroup(S(n), { x, z, radius: .1 });
+      h.setLayers(["touch"]); await h.load(); this.herd = h;
+    } catch (err) { console.warn("かさねっこ：", err?.message ?? err); }
+  },
+  tick(dt) {
+    if (!this.herd) { if (!this.loading && performance.now() - this.t0 > 1200) this.load(); return; }
+    this.herd.update(Math.min(dt, .05), { active: true, busy: !!document.querySelector("dialog[open]") });
+    for (const a of this.herd.agents) { const sg = a.pos.x < 0 ? -1 : 1; a.pos.x = sg * Math.min(MOBILE ? .7 : .86, Math.max(.56, Math.abs(a.pos.x))); a.pos.y = Math.min(sg < 0 ? .3 : .5, Math.max(-.32, a.pos.y)); }   // 群れが押し合っても、面の左右の床から出ない（面・字幕・画面の端にかからない）
+  },
+  tap(x, y) { const k = this.herd?.pick(x, y, MOBILE ? 34 : 30); if (!k) return false; this.herd.touch(k, () => setTimeout(() => this.herd.release(k), 1600)); return true; },
+};
 // ---- 毎こま
 let last = performance.now(), uiT = 0, frames = 0;
 function frame(now) {
@@ -435,7 +466,7 @@ function frame(now) {
   for (let i = 0; i < TR * 2; i++) { const a = trAge[i] += dt, o = Math.max(0, 1 - a / 2.4); trCol[i * 4] = .7; trCol[i * 4 + 1] = .92; trCol[i * 4 + 2] = 1; trCol[i * 4 + 3] = o; }
   trGeo.attributes.color.needsUpdate = true;
   // カメラ
-  placeCam(dt);
+  placeCam(dt); KASA.tick(dt);
   // 目盛りの字
   const sp = new THREE.Vector3(0, 0, .6).project(camera), sl = $("#scaleL");
   sl.style.left = ((sp.x + 1) / 2 * stage.clientWidth) + "px"; sl.style.top = ((1 - sp.y) / 2 * stage.clientHeight + 4) + "px"; const ctlTop = $("#ctl").offsetTop, sy = (1 - sp.y) / 2 * stage.clientHeight + 4; sl.style.visibility = Math.abs(sp.x) < .92 && sy > 40 && sy + 14 < ctlTop && sp.z < 1 ? "" : "hidden";

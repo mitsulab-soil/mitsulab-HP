@@ -547,9 +547,32 @@ const endPtr = e => {
   const tap = drag.moved <= (mobile ? 10 : 6) && !drag.multi; if (!ptrs.size) drag.multi = false;
   setTimeout(() => drag.recent = false, 400);
   if (drag.firstTap) { drag.firstTap = false; return; }
-  if (tap && e.type === "pointerup") onTap(e.clientX, e.clientY);
+  if (tap && e.type === "pointerup") { const k = KASA.pick(e.clientX, e.clientY); if (k) KASA.touch(k); else onTap(e.clientX, e.clientY); }
 };
 el.addEventListener("pointerup", endPtr); el.addEventListener("pointercancel", endPtr);
+// かさねっこ（sight の層の小さな環境エージェント・藤鼠の群れ。2026-10-23 本人「Qualium以外にもかさねっこを登場させてください」「群れでわちゃわちゃ」）
+//   共通部品 kit/envAgents/kasane.js。森が動きだしてから読む（起動の 5 秒には入れない）。触れると跳ねて点の吹き出しと小さな音。人のことばは話さない
+const KASA = window.__kasa = { herd: null, loading: false,
+  okAt(x, z) { return x > -26 && x < 28 && z > -24 && z < 25 && Math.hypot(x + 8, z + 7) > 5 && !FOREST.blocked(x, z, .3); },
+  on() { return chapter === "umwelt" && habitat === "forest" && !LENS[lens].under && !LENS[lens].night && !KUR.on; },
+  async load() {
+    this.loading = true;
+    try {
+      const M = await import("./kit/envAgents/kasane.js?v=20261023");
+      const h = new M.KasaneHerd({ scene, camera, groundAt: () => 0, walkable: (x, z) => this.okAt(x, z), scale: mobile ? 1.9 : 1.75, mobile, max: 14, shadow: true });
+      const S = n => Array.from({ length: n }, () => ({ layer: "sight" }));
+      for (const [x, z, n, role] of [[-1.6, -1.8, 4, ""], [3.0, -4.2, 3, "watch"], [5.8, -3.4, 3, ""], [.4, -8.0, 4, ""]])
+        if (this.okAt(x, z)) h.addGroup(S(n), { x, z, radius: 1.8, role });
+      h.setLayers(["sight"]); await h.load(); this.herd = h;
+    } catch (err) { console.warn("かさねっこ：", err?.message ?? err); }
+  },
+  tick(dt) {
+    if (!this.herd) { if (!this.loading && STARTUP.interactiveAt && performance.now() - STARTUP.interactiveAt > 1200) this.load(); return; }
+    this.herd.update(dt, { active: this.on(), busy: !$("menu").hidden || !$("why").hidden });
+  },
+  pick(x, y) { return this.herd && this.on() ? this.herd.pick(x, y) : null; },
+  touch(k) { this.herd.touch(k, () => setTimeout(() => this.herd.release(k), 1800)); },
+};
 function onTap(x, y) {
   ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
   if (chapter === "iro") {
@@ -1182,7 +1205,7 @@ function frame(now=0) {
     AUD.set(AUD.hum.g, lens === "hebi" && heat > .3 ? .18 * heat : 0); AUD.hum.o.frequency.value = 70 + heat * 60;
     if (AUD.wind) AUD.wind.gain.setTargetAtTime(chapter === "umwelt" && !LENS[lens].under && !LENS[lens].night ? .05 : 0, AUD.ctx.currentTime, .5);
   }
-  aoiTick(dt); kurMarks();
+  aoiTick(dt); kurMarks(); KASA.tick(dt);
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); }
   STARTUP.firstFrameAt ||= performance.now();
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
