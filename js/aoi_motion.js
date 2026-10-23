@@ -739,7 +739,8 @@ export class AoiMotion {
     // 重心：数秒〜十数秒ごとに、片足へ（体重の移し）。歩くときと、指す・礼のときは真ん中へ
     // v3.1：重心を移す量は v3 の 45%（左右の揺れを抑える）。upright ではさらに 3 割
     if (L) { S.wsHold -= dt; if (S.wsHold <= 0) { const r = this.rand(); S.wsLvl = (S.wsLvl > 0 ? -1 : 1) * (.6 + .4 * this.rand()) * .45;   /* v5.6：真ん中（両足に等しく）で長く止まらない（11 人「重心 0 で左右対称に戻る」） */ S.wsHold = this.posture === "upright" ? 7 + 8 * this.rand() : 4 + 8 * this.rand(); } }   // v5.5：4〜12 秒ごと（upright は 7〜15 秒＝揺れて見えない）
-    S.ws.t = (this.bowing || this.pointing) ? 0 : S.wsLvl * (1 - k) * this.pz.ws;
+    // v6.0（HP の採点「手をかざすとき重心が真ん中へ戻って固まる」）：指すあいだも重心を真ん中へ戻しきらず、的の側の足へ少し寄せる（手を伸ばす側へ体重がのる）
+    S.ws.t = this.bowing ? 0 : this.pointing ? (S.wsLvl * .45 + (this.pointing.side || 0) * .12) * (1 - k) * this.pz.ws : S.wsLvl * (1 - k) * this.pz.ws;
     { const tr = this._turn; if (tr && tr.n && tr.i < tr.n + 1) { const sw = this.feet.L.swing ? 1 : this.feet.R.swing ? -1 : tr.i < tr.n ? (tr.i % 2 === 0 ? 1 : -1) * tr.dir : 0; S.ws.t = -sw * .4; } }   // v5：向きかえで踏み出す前に、反対の足へ体重を移す
     S.ws.step(dt, this._turn ? 4 : undefined); const ws = S.ws.v;
     const swX = L ? .45 * this.pz.sway * wob(t * .9, sp) : 0, swZ = L ? this.pz.sway * wob(t * .7, sp + 5) : 0;   // 静かに立つときの小さな揺れ（前後に数 mm・左右はその半分以下）

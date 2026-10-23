@@ -255,7 +255,7 @@ export async function boot(stage) {
       const bb = new THREE.Box3().setFromObject(vrm.scene), h = bb.max.y - bb.min.y;
       const s = 6.4 / h; pivot.scale.setScalar(s);    // 2026-10-20 夜 本人「碧は上へ上がっていかず、重なりに覆いかぶさるように」：重なりの奥に大きく立ち、層の上から見下ろす
       pivot.position.set(0, 0, -.35);   // 2026-10-22 本人「碧もレイヤーの中に入ってください。今はレイヤーの外に碧がいます」：重なりの真ん中、光の軸の上に立つ。層は碧の足もとから胸の高さまでを通り抜けていく（前へ傾けるのはやめた＝反り腰に見えた一因）
-      const { AoiMotion } = await import('./aoi_motion.js?v=20261019-v59');
+      const { AoiMotion } = await import('./aoi_motion.js?v=20261023-v60');
       mot = new AoiMotion(vrm, { root: pivot, reducedMotion: reduce, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
       mot.faceTo(-.3);   // 体は見る人へ少し向けたまま（毎こま向きを変えない＝足の踏みかえや体のゆらぎが続かない）。目と頭が、重なる層・見る人・欅を見る
       // 2026-10-23 採点の P1（裾が半透明に見える）：この図の暗い地では、服の自分の光と水色の縁の光で、裾のグラデーションがガラスのように透けて見えた。

@@ -152,7 +152,7 @@ export function boot(fig) {
       const pivot = new THREE.Group(); pivot.add(vrm.scene); pivot.visible = false; aoiPivot = pivot; g.add(pivot);
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);
       const bb = new THREE.Box3().setFromObject(vrm.scene); pivot.scale.setScalar(A_H / (bb.max.y - bb.min.y)); pivot.position.copy(A_P);
-      const { AoiMotion } = await import('./aoi_motion.js?v=20261019-v59');
+      const { AoiMotion } = await import('./aoi_motion.js?v=20261023-v60');
       mot = new AoiMotion(vrm, { root: pivot, reducedMotion: reduce, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
       mot.faceTo(-.35);
       vrm.scene.traverse(o => { if (!o.isMesh) return; [].concat(o.material).forEach(m => { if (!/CLOTH/.test(m.name || '') || /Outline/.test(m.name || '')) return;
@@ -223,12 +223,21 @@ export function boot(fig) {
       else if (at === 'xe') a = st.ph === 'slot' && st.a < 1.6 ? 1 : .32;
       a *= st.out;
       v.copy(p).applyMatrix4(g.matrixWorld).project(cam);
-      el.style.opacity = a.toFixed(2);
-      el.classList.toggle('on', a > .9);
       const hw = (el.offsetWidth || 0) / 2 + 4; let px = (v.x * .5 + .5) * W; if (hw * 2 < W) px = Math.max(hw, Math.min(W - hw, px));   // 画面の左右で切れない
-      el.style.transform = 'translate(' + Math.round(px) + 'px,' + Math.round((-v.y * .5 + .5) * Hh) + 'px)';
+      todo.push({ el, a, px, py: (-v.y * .5 + .5) * Hh, w: el.offsetWidth || 0, h: el.offsetHeight || 0 });
     });
+    // 2026-10-23 夜（375px で式と札が重なる）：濃い札から順に置き、重なる札は上下に少しずらす。避けきれない薄い札は出さない
+    todo.sort((x, y) => y.a - x.a); const boxes = [];
+    for (const o of todo) {
+      let ok = o.a < .02, yy = o.py;
+      if (!ok) for (const d of [0, -1, 1, -2, 2]) { yy = o.py + d * (o.h * .6 + 3); o.el.style.transform = 'translate(' + Math.round(o.px) + 'px,' + Math.round(yy) + 'px)';
+        const r = o.el.getBoundingClientRect(), bx = [r.left - 2, r.top - 2, r.right + 2, r.bottom + 2]; if (!boxes.some(c => bx[0] < c[2] && bx[2] > c[0] && bx[1] < c[3] && bx[3] > c[1])) { boxes.push(bx); ok = true; break; } }
+      const a = ok ? o.a : 0; o.el.style.opacity = a.toFixed(2); o.el.classList.toggle('on', a > .9);
+      if (o.a < .02) o.el.style.transform = 'translate(' + Math.round(o.px) + 'px,' + Math.round(o.py) + 'px)';
+    }
+    todo.length = 0;
   }
+  const todo = [];
 
   // ── 主体を選ぶ（押すと、その主体の関係からもう一度。押さなければ順に巡る） ──
   const btns = [...fig.querySelectorAll('[data-subj]')], lines = [...fig.querySelectorAll('[data-subj-line]')], phLines = [...fig.querySelectorAll('[data-phase-line]')];
