@@ -4,7 +4,7 @@
 // v9（10-23 本人「音に触れてもバラバラにならないで、振動と音だけ発生させてください。また、それぞれの作品で、３d立体と合わせて、紙の作品を壁に飾ってください。また、碧も登場させてください。」）
 // 古寺の板の間の広間に、墨の立体の書が浮かぶ。床を押すとその向きへ歩き（一度に進むのは数歩まで）、書に触れるとその音が鳴って題が出て、墨が揺れる。動いたあとは字の形に戻る。
 import * as THREE from 'three';
-import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261023e';
+import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261024s';
 import { buildRoom, loadRoomTextures, setRoomHalf } from './room.js?v=20261023e';
 import { createLive } from './live.js?v=20261023e';
 import { createDOF } from './dof.js?v=20261023e';
@@ -505,7 +505,7 @@ function frame() {
     if (!it.pressed && it.hold > 0) { it.hold -= dt; if (it.hold <= 0) s.target = 0; }
     s.update(dt, t);
     s.points.visible = false; if (s.lightPoints) s.lightPoints.visible = false;   // 押したとき障子に散る点は出さない
-    if (it.snd) { it.snd.gain(THREE.MathUtils.clamp((11 - dist) / 7, 0, 1)); it.snd.update(s.state, dt); s.setLevel(it.snd.level); }
+    if (it.snd) { it.snd.gain(THREE.MathUtils.clamp((11 - dist) / 7, 0, 1)); it.snd.hold?.(it.pressed, it.vib || 0); it.snd.update(s.state, dt); s.setLevel(it.snd.level); }
     // 無重力：重力と浮力の釣り合いを探るように、周期のそろわない揺らぎ・ふとした沈みと戻り（書ごとに位相をずらす）
     if (!RM) {
       const kk = Math.min(1, s.kickT || 0), lv = it.snd ? it.snd.level : 0, Pp = Math.PI * 2, o = it.i * 2.3;

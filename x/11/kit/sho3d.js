@@ -592,11 +592,13 @@ export function createSho(THREE, map, opts = {}) {
    update(state, dt) に sho.state を渡すと、ほどける速さ |du| に合わせて粒の音を重ね、集まりきったところで一打。 */
 let SHARED = null, HALL = null;
 // 一打の型（触れたとき・集まりきったとき）：[周波数, 余韻 秒, 大きさ]
+// v10（10-24 本人「もっと音を伸ばして」）：触れたときの余韻を長く（短い型でも 5 秒・長い型は約 2.2 倍）。長く鳴るぶん響きが溜まるので、初めの大きさは少し下げる（大きさ×(元の長さ/新しい長さ)^0.25）
+const LONG = d => Math.max(5, d * 2.2);
 const STRIKES = { water: [[120, 0.5, 0.3], [240, 0.25, 0.08]], dew: [[2093, 1.6, 0.06], [2637, 1.4, 0.05], [3136, 1.2, 0.04]], void: [[41, 2.8, 0.35], [82, 2.0, 0.1]], bloom: [[523, 1.4, 0.1], [784, 1.1, 0.06], [1047, 0.9, 0.04]], oto: [[220, 3.2, 0.14], [594, 2.4, 0.07], [1122, 1.6, 0.04]], spore: [[73.4, 3.0, 0.2], [146.8, 2.2, 0.06]], shell: [[1760, 0.5, 0.06], [2960, 0.35, 0.04], [880, 0.6, 0.05]], mist: [[196, 3.6, 0.08], [293.7, 3.0, 0.05]], eyes: [[329.6, 2.4, 0.08], [987.8, 1.6, 0.03]], pulse: [[110, 1.4, 0.2], [220, 1.0, 0.06]] };
 // 回廊の響き：合成した残響（録音の素材を使わない）。書がいくつあっても一つを共有する
 function hall(ctx, dest) {
   if (HALL && HALL.ctx === ctx) return HALL;
-  const sr = ctx.sampleRate, len = Math.round(sr * 3.6), ir = ctx.createBuffer(2, len, sr);
+  const sr = ctx.sampleRate, len = Math.round(sr * 6.0), ir = ctx.createBuffer(2, len, sr);
   for (let ch = 0; ch < 2; ch++) {
     const d = ir.getChannelData(ch); let lp = 0;
     // 初めの反射：柱と床と天井のあいだ（左右で少しずらす）
@@ -604,16 +606,19 @@ function hall(ctx, dest) {
     for (let i = 0; i < len; i++) {
       const tt = i / sr, k = Math.min(1, tt / 0.6);           // 時間とともに高い音から消える
       lp += (Math.random() * 2 - 1 - lp) * (0.55 - 0.47 * k);
-      d[i] += lp * Math.exp(-tt * 1.9) * (tt < 0.012 ? tt / 0.012 : 1) * 0.6;
+      d[i] += lp * Math.exp(-tt * 1.15) * (tt < 0.012 ? tt / 0.012 : 1) * 0.6;
     }
   }
   const conv = ctx.createConvolver(); conv.buffer = ir;
-  const master = ctx.createGain(); master.gain.value = 1; master.connect(dest);
-  const wet = ctx.createGain(); wet.gain.value = 0.42; conv.connect(wet); wet.connect(master);
+  // v10 重ねて鳴らしても割れない・うるさくならない（大きい所だけやわらかく抑える）
+  const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -16; lim.knee.value = 12; lim.ratio.value = 5; lim.attack.value = 0.004; lim.release.value = 0.5; lim.connect(dest);
+  const master = ctx.createGain(); master.gain.value = 1; master.connect(lim);
+  const wet = ctx.createGain(); wet.gain.value = 0.34; conv.connect(wet); wet.connect(master);
   return (HALL = { ctx, conv, master });
 }
 export function createShoSound(preset = 'oto', opts = {}) {
-  let ctx = null, out = null, an = null, bedG = null, buf = null, on = false, acc = 0, wasOpen = false, swG = null, swF = null, WB = null;
+  let ctx = null, out = null, an = null, bedG = null, buf = null, on = false, acc = 0, wasOpen = false, swG = null, swF = null, WB = null, holdG = null, holdO = null, held = false, relAt = 0, atkEnd = 0, holdSeen = 0;
+  const hits = [];   // v10 続けて触れた回数（重ねるほど一打を小さく）
   const vol = opts.volume ?? 0.5;
   const P = opts.pitch ?? 1;   // 音の高さ（同じ型の書を聞き分けるため。1＝そのまま）
   const r = (a, b) => a + Math.random() * (b - a);
@@ -647,12 +652,24 @@ export function createShoSound(preset = 'oto', opts = {}) {
       if (!ctx || !on) return;
       const t = ctx.currentTime + 0.005, pitch = 0.82 + 0.4 * y, pan = (x - 0.5) * 1.4;
       const set = STRIKES[preset] || STRIKES.oto;
-      set.forEach(([f, d, a], i) => { voiceAt(t, 'sine', f * pitch, d * (0.6 + 0.4 * k), a * (0.5 + 0.8 * k), pan * (i % 2 ? 0.6 : 1)); voiceAt(t + 0.003, 'sine', f * pitch * 1.0035, d * 0.55, a * 0.4 * k, -pan * 0.5); });
-      for (let i = 0; i < 3 + Math.round(k * 4); i++) grain(ctx, out, preset, t + 0.02 + Math.random() * 0.25, 0.4 + 0.6 * k);
+      while (hits.length && hits[0] < t - 4) hits.shift(); hits.push(t);
+      const duck = 1 / Math.sqrt(1 + 0.7 * (hits.length - 1));   // v10 余韻が重なるぶん、続けて触れたら小さく
+      set.forEach(([f, d, a], i) => { const L = LONG(d) * (0.8 + 0.2 * k) * (i ? 0.85 : 1), eq = Math.pow(d * (0.6 + 0.4 * k) / L, 0.25); a *= eq; voiceAt(t, 'sine', f * pitch, L, a * (0.5 + 0.8 * k) * duck, pan * (i % 2 ? 0.6 : 1)); voiceAt(t + 0.003, 'sine', f * pitch * 1.0035, L * 0.75, a * 0.4 * k * duck, -pan * 0.5); });
+      for (let i = 0; i < 3 + Math.round(k * 4); i++) grain(ctx, out, preset, t + 0.02 + Math.random() * 0.25, (0.4 + 0.6 * k) * duck);
+      sustain(t, f0(set) * pitch, k, duck);
+    },
+    // v10 押しているあいだ（震えているあいだ）音も続き、離すと長い余韻（約 6 秒）で静まる。毎こま呼ぶ：pressed＝押している、vib＝震えの強さ 0..1
+    hold(pressed, vib = 0) {
+      if (!ctx || !holdG) return;
+      const now = ctx.currentTime; holdSeen = now;
+      if (!pressed && held) release(now);
+      if (held && holdO) holdO.tg.gain.setTargetAtTime(0.18 + 0.22 * vib, now, 0.1);
     },
     update(s, dt) {
       if (!ctx || !on) { api.level *= 0.9; return; }
       const now = ctx.currentTime;
+      if (held && now - holdSeen > 0.4 && now > atkEnd + 0.3) release(now);   // hold() を呼ばない使い方でも、叩いた音は長い余韻で静まる
+      if (!held && holdO && now - relAt > 10) { try { holdO.os.forEach(o => o.stop()); holdO.lf.stop(); } catch (e) { /* もう止まっている */ } holdO = null; }
       bedG.gain.setTargetAtTime(0.25 + 0.75 * Math.min(1, s.u), now, 0.3);
       const speed = Math.abs(s.du);
       swG.gain.setTargetAtTime(Math.min(0.16, speed * 0.2), now, 0.08);
@@ -708,11 +725,27 @@ export function createShoSound(preset = 'oto', opts = {}) {
     else if (p === 'pulse') { const f = r(400, 800); voice(c, dst, t, 'sine', f, 0, r(0.05, 0.12), r(0.4, 0.9), 0.035 * k, pan); }
     else { Math.random() < 0.5 ? voice(c, dst, t, 'sine', r(500, 1400), 0, 0.003, r(0.3, 0.7), 0.06 * k, pan) : voice(c, dst, t, 'sine', r(300, 700), r(600, 1300), 0.004, 0.1, 0.08 * k, pan); }
   }
+  function f0(set) { return set[0][0]; }
+  function release(now) { held = false; const t0 = Math.max(now, atkEnd); holdG.gain.cancelScheduledValues(t0); holdG.gain.setTargetAtTime(0, t0, 1.3); relAt = t0; }
+  // v10 続く音：一打の基の音と、その上の音を、少しずらした二つでうならせ、震えに合わせてゆらす（押すあいだ鳴り続け、hold(false) で長く静まる）
+  function sustain(t, f, k, duck) {
+    if (!holdG) { holdG = ctx.createGain(); holdG.gain.value = 0; holdG.connect(out); }
+    if (!holdO) {
+      const set = STRIKES[preset] || STRIKES.oto, tg = ctx.createGain(); tg.gain.value = 0.3; tg.connect(holdG);
+      const lf = ctx.createOscillator(), lg = ctx.createGain(); lf.frequency.value = 5.2; lg.gain.value = 0.12; lf.connect(lg); lg.connect(tg.gain); lf.start(t);
+      const os = [], ms = [1, 1.004, (set[1] ? set[1][0] : set[0][0] * 2) / set[0][0]];
+      [[ms[0], 1], [ms[1], 0.7], [ms[2], 0.35]].forEach(([m, a]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f * m; g.gain.value = a; o.connect(g); g.connect(tg); o.start(t); os.push(o); });
+      holdO = { os, lf, tg, ms };
+    } else holdO.os.forEach((o, i) => o.frequency.setTargetAtTime(f * holdO.ms[i], t, 0.05));
+    const A = (STRIKES[preset] || STRIKES.oto)[0][2] * 0.2 * (0.5 + 0.6 * k) * duck;
+    holdG.gain.cancelScheduledValues(t); holdG.gain.setValueAtTime(Math.max(0.0001, holdG.gain.value), t); holdG.gain.linearRampToValueAtTime(A, t + 0.06); atkEnd = t + 0.06;
+    held = true;   // 叩いただけ（すぐ離す）のときは、次の hold(false) から長い余韻で静まる
+  }
   function voiceAt(t, type, f, dec, peak, pan) { voice(ctx, out, t, type, f / P, 0, 0.004, dec, peak, Math.max(-1, Math.min(1, pan))); }
   function strike(c, dst, p, t) {
     const set = STRIKES[p] || STRIKES.oto; 
     // 一打は、少しずれた二つの音のうなり（鈴や鉢のように）と、左右のひろがり
-    set.forEach(([f, d, a], i) => { voice(c, dst, t, 'sine', f, 0, 0.006, d, a, i % 2 ? 0.25 : -0.25); voice(c, dst, t + 0.004, 'sine', f * 1.0035, 0, 0.008, d * 0.9, a * 0.6, i % 2 ? -0.3 : 0.3); });
+    set.forEach(([f, d, a], i) => { a *= Math.pow(d / LONG(d), 0.25); voice(c, dst, t, 'sine', f, 0, 0.006, LONG(d), a, i % 2 ? 0.25 : -0.25); voice(c, dst, t + 0.004, 'sine', f * 1.0035, 0, 0.008, LONG(d) * 0.8, a * 0.6, i % 2 ? -0.3 : 0.3); });
     // 墨が紙に触れたような、短い息（打つ前の空気）
     const nb = c.createBufferSource(); nb.buffer = (WB ||= noiseBuf(c, true)); const nf = c.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 900; nf.Q.value = 0.6;
     const ng = c.createGain(); ng.gain.setValueAtTime(0.0001, t - 0.01); ng.gain.exponentialRampToValueAtTime(0.09, t + 0.02); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);

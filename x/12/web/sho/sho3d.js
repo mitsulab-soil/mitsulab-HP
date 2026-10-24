@@ -276,6 +276,7 @@ export function createShoSound(preset = 'oto', opts = {}) {
   }
   function strike(c, dst, p, t) {
     const set = { water: [[120, 0.5, 0.3], [240, 0.25, 0.08]], dew: [[2093, 1.6, 0.06], [2637, 1.4, 0.05], [3136, 1.2, 0.04]], void: [[41, 2.8, 0.35], [82, 2.0, 0.1]], bloom: [[523, 1.4, 0.1], [784, 1.1, 0.06], [1047, 0.9, 0.04]], oto: [[220, 3.2, 0.14], [594, 2.4, 0.07], [1122, 1.6, 0.04]] }[p];
-    set.forEach(([f, d, a]) => voice(c, dst, t, 'sine', f, 0, 0.006, d, a, 0));
+    // 10-24 本人「もっと音を伸ばして」：Qualia/sho と同じ長さに（短い型でも 5 秒・長い型は約 2.2 倍。長く鳴るぶん初めの大きさは少し下げる）
+    set.forEach(([f, d, a]) => { const L = Math.max(5, d * 2.2); voice(c, dst, t, 'sine', f, 0, 0.006, L, a * Math.pow(d / L, 0.25), 0); });
   }
 }
