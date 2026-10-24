@@ -870,3 +870,12 @@ html[lang="en"] .qf-t{font-family:var(--latin);letter-spacing:0;font-size:14px;l
 
 /* 2026-10-24 本人「スマホ版の Qualia Dive について表示がされていないので削除。PC 版のみ残す」：スマホ（html.simple）では氷川参道の場面〈#why〉を出さない */
 html.simple #why{display:none}
+/* 2026-10-24 本人「文章をもっと工夫して」：流れの帯は、短い一句（qf-t）と補う一行（qf-s）の二段 */
+.qp-es-flow .qf-t{font-size:15px;letter-spacing:.06em}
+.qf-s{font:400 12.5px/1.75 var(--sans);color:var(--ink-2,#c3d3d6)}
+html[lang="en"] .qf-s{font-size:12.5px;line-height:1.6}
+@media(max-width:1000px){.qp-es-flow li .qf-s{grid-column:2}}
+.qp-lead{text-wrap:pretty}
+/* 2026-10-24 本人「スマホで、ページの下部に白い光が見える」：正体は body の背景の光（fixed の放射グラデーション。iPhone では fixed が効かず、ページ全体の長さに引き伸ばされて下の方に大きな光が出る）と、背景の光の粒（#bgRain）。スマホでは出さない（PC はそのまま） */
+html.simple body{background:var(--bg)}
+html.simple #bgRain{display:none}
