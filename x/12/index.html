@@ -427,6 +427,55 @@ body.ready #lstack .ly:nth-child(2){animation-delay:.08s}body.ready #lstack .ly:
 #skyUI h2{font-family:var(--hudmono)!important;font-weight:400;font-size:13px;letter-spacing:.24em}
 #starts .stBtn .nm{font-family:var(--serif)}
 #starts .stBtn .no{font-family:var(--hudmono)!important;font-weight:300}
+/* 2026-10-24 本人「Qualia に触れたときを、もっと直感的・感覚的に」＝カードをやめ、碧の字幕のような透過の表示（層の色の線・光・音・振動）。くわしい文と典拠は小さく畳む。写真は要るときだけ、写真だけを重ねる */
+body.pOpen #caption{display:none!important}
+body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shadow:none!important;border:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;left:50%!important;right:auto!important;top:auto!important;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 34px)!important;width:min(640px,calc(100% - 24px))!important;max-height:none!important;overflow:visible!important;padding:18px 10px 6px!important;text-align:center;pointer-events:none;isolation:isolate}
+#panel>*{pointer-events:auto}
+#panel.ml-panel--corner::before{content:"";display:block;position:absolute;inset:-8px -10% -14px;width:auto;height:auto;border:0!important;opacity:1;background:radial-gradient(50% 58% at 50% 62%,rgba(3,6,15,.56),rgba(3,6,15,.22) 62%,transparent 100%);z-index:-1;pointer-events:none}
+#panel.ml-panel--corner::after{content:"";display:block;position:absolute;left:50%;top:6px;width:min(560px,92%);height:120px;transform:translateX(-50%);border:0!important;opacity:0;background:radial-gradient(50% 40% at 50% 0,color-mix(in srgb,var(--pc) 60%,transparent),transparent 70%);z-index:-1;pointer-events:none}
+#panel.pulse::after{animation:qpulse 1.6s ease-out forwards}
+@keyframes qpulse{0%{opacity:0;transform:translateX(-50%) scaleX(.2)}22%{opacity:.95;transform:translateX(-50%) scaleX(1)}100%{opacity:.28;transform:translateX(-50%) scaleX(1)}}
+#panel .hd{justify-content:center;position:relative;margin:0 0 4px!important;gap:10px}
+#panel .hd::before,#panel .hd::after{content:"";flex:1 1 0;max-width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--pc));box-shadow:0 0 8px var(--pc)}
+#panel .hd::after{background:linear-gradient(270deg,transparent,var(--pc))}
+#panel.pulse .hd::before,#panel.pulse .hd::after{animation:qline 1.1s cubic-bezier(.2,.7,.2,1) both}
+@keyframes qline{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+#panel .hd::before{transform-origin:right}#panel .hd::after{transform-origin:left}
+#pLayer{font-size:9.5px!important;letter-spacing:.26em!important;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+#pLayer::before{display:none!important}
+#pClose{position:absolute!important;right:-4px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:none!important;border:0!important;color:rgba(230,246,250,.7)!important;font-size:18px;text-shadow:var(--hud-sh,0 1px 3px #000)}
+#pTitle{font-size:clamp(17px,4.6vw,21px)!important;letter-spacing:.14em!important;margin:2px 0 6px!important;color:#fff!important;text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 18px color-mix(in srgb,var(--pc) 45%,transparent)!important}
+#pBody p{display:none;margin:0!important}
+#pBody p.line.now,#pBody:not(:has(.now)) p.line:first-child{display:block;font-family:var(--serif);font-size:clamp(14px,3.9vw,16px)!important;line-height:1.85!important;letter-spacing:.05em;color:#eef9fc!important;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.5)!important;animation:qin .5s ease-out}
+#pBody p.line.now::before{display:none!important}
+@keyframes qin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+#pExp{justify-items:center;margin:8px 0 2px!important}
+#pExp .expBtn,#pExp>.ml-btn{min-height:44px}
+#pExp .fig{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(100% + 14px);width:min(420px,86vw);margin:0;padding:0;border:1px solid color-mix(in srgb,var(--pc) 60%,transparent);box-shadow:0 0 22px color-mix(in srgb,var(--pc) 30%,transparent),0 8px 30px rgba(0,0,0,.5);background:rgba(3,6,15,.4);animation:qin .6s ease-out}
+#pExp .fig img,#pExp .fig video{display:block;width:100%;max-height:34vh;object-fit:cover}
+#pExp .fig figcaption{font-size:10.5px;line-height:1.5;padding:4px 8px;color:rgba(230,246,250,.75);text-align:left;background:rgba(3,6,15,.55)}
+#pFold{margin:4px auto 0!important;display:inline-block;text-align:left;max-width:100%}
+#pFold>summary{font:300 10px/1 var(--mono,ui-monospace,monospace)!important;letter-spacing:.2em;color:rgba(220,240,246,.66)!important;padding:14px 10px!important;min-height:44px;box-sizing:border-box;list-style:none;text-align:center;cursor:pointer}
+#pFold>summary::-webkit-details-marker{display:none}
+#pFold>summary::after{display:none}
+#pFold[open]>.in{background:rgba(3,6,15,.82);padding:10px 14px!important;max-height:38vh;overflow:auto;border-top:1px solid color-mix(in srgb,var(--pc) 50%,transparent)}
+#pFold .in p.more{display:block;margin:0 0 .7em;font-size:13px;line-height:1.8;color:rgba(230,246,250,.86)}
+@media (max-width:640px){body #panel{bottom:max(10px,env(safe-area-inset-bottom))!important;width:calc(100% - 16px)!important;max-height:none!important}#panel .hd::before,#panel .hd::after{max-width:70px}#pExp .fig{width:min(340px,88vw)}#pExp .fig img,#pExp .fig video{max-height:28vh}}
+
+/* 2026-10-24 本人「レイヤーの層について、閉じているときも、sound、touch など省略した形で表示」＝閉じても短い名前・層の色・入切が分かり、押せば入切 */
+.lyBtn .sh{display:none}
+#lstack.closed{width:84px!important}
+#lstack.closed .lyBtn{grid-template-columns:26px minmax(0,1fr)!important;padding-right:2px}
+#lstack.closed .lyBtn .no{display:none}
+#lstack.closed .lyBtn .sh{display:block;font:300 10px/1 var(--mono,ui-monospace,monospace);letter-spacing:.04em;white-space:nowrap;color:color-mix(in srgb,var(--gc) 40%,#8d99ad);opacity:.6;text-shadow:var(--hud-sh,0 1px 2px #000);transition:opacity .25s,color .25s}
+#lstack.closed .lyBtn[aria-pressed="true"] .sh{color:var(--gc);opacity:1;text-shadow:var(--hud-sh,0 1px 2px #000),0 0 8px color-mix(in srgb,var(--gc) 60%,transparent)}
+#lstack.closed .lyBtn[aria-pressed="false"] .sh{text-decoration:line-through;text-decoration-color:rgba(160,175,195,.5)}
+#lstack.closed::before{width:104px!important}
+@media (max-width:640px){#lstack.closed{width:76px!important}#lstack.closed .lyBtn{grid-template-columns:22px minmax(0,1fr)!important}#lstack.closed .lyBtn .sh{font-size:9.5px;letter-spacing:.02em}}
+
+#sightUI .smodel{font-size:10.5px;opacity:.72;letter-spacing:.02em}
+
+@media (max-width:640px){body[data-mode="walk"] #caption{left:86px!important}}   /* 2026-10-24 閉じた層の一覧（短い名前つき）と碧の語りを重ねない */
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
@@ -475,7 +524,7 @@ body.ready #lstack .ly:nth-child(2){animation-delay:.08s}body.ready #lstack .ly:
   <h2 id="pTitle"></h2>
   <div id="pBody"></div>
   <div id="pExp" hidden></div>
-  <details class="ml-fold" id="pFold"><summary>出典と確かさ</summary><div class="in"><div id="pHow"></div><p id="pNote"></p><ul id="pSrc"></ul><div id="pPos"></div></div></details>
+  <details class="ml-fold" id="pFold"><summary>くわしく・出典</summary><div class="in"><div id="pMore"></div><div id="pHow"></div><p id="pNote"></p><ul id="pSrc"></ul><div id="pPos"></div></div></details>
 </article>
 
 <div id="kuraTag" hidden aria-hidden="true"><span class="c"></span><span class="n"></span><span class="m">模式・一棟ずつの姿ではない</span></div>
@@ -498,6 +547,6 @@ body.ready #lstack .ly:nth-child(2){animation-delay:.08s}body.ready #lstack .ly:
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261024g").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261024n").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

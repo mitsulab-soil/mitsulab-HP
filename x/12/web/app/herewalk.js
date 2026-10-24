@@ -13,7 +13,7 @@ export function makeHereWalk(o) {
   const H = { on: false, watch: null, fix: null, got: false, warnedAcc: false, last: null };
   const fmtKm = m => m >= 1000 ? `約 ${(m / 1000).toFixed(1)} km` : `約 ${Math.round(m)} m`;
   function err(e) {
-    const t = e && e.code === 1 ? "位置の使用が許可されませんでした。端末の設定（iPhone は 設定 › プライバシー › 位置情報サービス › Safari）と、ブラウザの「このサイトの位置情報」を「許可」にして、もう一度。"
+    const t = e && e.code === 1 ? "位置の使用が許可されませんでした。端末の設定（iPhone は 設定 › プライバシーとセキュリティ › 位置情報サービス › Safari Web サイト）と、ブラウザの「このサイトの位置情報」を「許可」にして、もう一度。"
       : e && e.code === 3 ? "位置を取れませんでした（時間切れ）。空の見える所で、もう一度。" : "位置を取れませんでした。少し待って、もう一度。";
     o.toast(t); if (!H.got) stop();
   }

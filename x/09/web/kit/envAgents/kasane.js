@@ -48,42 +48,92 @@ const lerp = (a, b, t) => a + (b - a) * t, clamp = (x, a, b) => Math.max(a, Math
 const angDiff = (a, b) => { let d = b - a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
 function rnd(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, "YXZ"), _p3 = new THREE.Vector3(), _s3 = new THREE.Vector3(), _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _c = new THREE.Color();
+const _g2 = new THREE.Vector2(), _o1 = new THREE.Vector3(), _o2 = new THREE.Vector3(), _o3 = new THREE.Vector3();
+// 結晶（qmarks.js の crystalGeo と同じ輪郭）の、下からその高さまでに回って届く最大の半径（形の単位・25 段）。碧の体の半径（m）
+const CRYSTAL_R = (() => { const sw = []; for (let i = 0; i <= 24; i++) { const a = i / 24, y = -.42 + a * .98, r = a < .38 ? Math.sin(Math.acos(1 - a / .38)) * .3 : .3 * Math.pow(1 - (a - .38) / .62, 1.25), k = Math.max(0, y + .05); sw.push(r + k * k * 1.05); } for (let i = 1; i <= 24; i++) sw[i] = Math.max(sw[i], sw[i - 1]); return sw; })();
+const AOI_R = .36;   // 碧の体と裾
 const _mR = new THREE.Matrix4(), _mP = new THREE.Matrix4(), _mS = new THREE.Matrix4(), _mX = new THREE.Matrix4().makeScale(-1, 1, 1), _mI = new THREE.Matrix4(), _mA = new THREE.Matrix4(), _mB = new THREE.Matrix4();
 
-// ---- 鳴き声（その場で作る・人のことばにならない短い声）
-let AC = null, lastVoice = 0;
+// ---- 鳴き声（その場で作る・人のことばにならない声）
+// 2026-10-24 本人「かさねっこの鳴き声をもっと長くして、何か喋っているようにして」→ 1〜3 秒の、音節の連なり。
+//   2〜4 音節の「語」のまとまり・語の頭を少し強く高く・語のあいだに短い間・気分で節回し（問いかけ＝終わりが上がる／うれしい＝高めで弾む／おどろき＝高く始まって下がる／はずかしい＝低く小さく消えていく）。
+//   母音らしい響き（二つの山）を音節ごとに選び、ときどき子音らしい短い息を頭に付ける。意味のある語は作らない（毎回でたらめに並べる・人の声より高い所に置く）。
+//   層ごとの音色と、個体ごとの高さは前のまま。音は一つのまとめ（圧縮と高い音を切る）を通し、新しい声が始まると前の声はすぐ消える（重ならない）。
+let AC = null, BUS = null, NOISE = null, PH = null;   // PH＝いま鳴っている一節
 const VOICE = {   // 層ごとの音色：基の高さ・倍音・息の混ざり
   sight: { f: 760, wave: "sine", h2: .35, noise: 0, q: 6 },
   touch: { f: 600, wave: "triangle", h2: .12, noise: .05, q: 3 },
-  sound: { f: 520, wave: "sine", h2: .5, noise: 0, q: 9, bell: true },
+  sound: { f: 520, wave: "sine", h2: .38, noise: 0, q: 6, bell: true },   // 2026-10-24：長い声でキンと響かないよう、山の鋭さと鐘の倍音を少し弱めた
   nature: { f: 680, wave: "triangle", h2: .2, noise: .12, q: 4 },
   culture: { f: 560, wave: "triangle", h2: .25, noise: .03, q: 5 },
 };
-function voice(layer = "sight", { pitch = 1, mood = "hi", vol = .06, muted = false } = {}) {
-  if (muted) return;
+const VOW = [[730, 1090], [270, 2290], [530, 1840], [570, 840], [300, 870], [440, 1400], [660, 1700]];   // 母音らしい二つの山（小さな体なので ×1.6 で使う）
+const CONTOUR = {   // u＝一節の中の位置（0〜1）・i＝音節の番・ph＝ゆらぎ
+  hi: (u) => 1 + .16 * Math.sin(u * Math.PI) + (u > .78 ? (u - .78) * .7 : 0),
+  wa: (u, i) => 1.08 + .12 * Math.sin(u * Math.PI * 1.2) + (i % 2 ? .09 : -.03),
+  oh: (u) => u < .2 ? 1.42 - u * .9 : 1.08 - (u - .2) * .24,
+  up: (u) => .98 - u * .1 + (u > .7 ? (u - .7) * 1.4 : 0),
+  ask: (u, i, ph) => 1 - u * .08 + .05 * Math.sin(u * 6 + ph) + (u > .75 ? (u - .75) * 1.2 : 0),
+  shy: (u) => .93 - u * .1 + .035 * Math.sin(u * 9),
+  talk: (u, i, ph) => 1.03 - u * .13 + .07 * Math.sin(u * 7.3 + ph),
+};
+const SPEC = {   // 長さ（秒）・音節の長さ・強さ・頭／終わりの音節
+  hi: { d: [1.1, 1.7], syl: [.085, .13], amp: 1, endG: 1.08 },
+  wa: { d: [1.6, 2.6], syl: [.07, .11], amp: 1, endG: 1.12 },
+  oh: { d: [.9, 1.4], syl: [.08, .12], amp: .95, first: .26, firstG: .8, endG: .9 },
+  up: { d: [1, 1.6], syl: [.09, .14], amp: .9, last: .26, endG: 1.3 },
+  ask: { d: [.9, 1.5], syl: [.085, .13], amp: .85, last: .22, endG: 1.24 },
+  shy: { d: [1, 1.6], syl: [.12, .18], amp: .55, fade: true, endG: .9 },
+  talk: { d: [.8, 1.6], syl: [.08, .13], amp: .8, endG: .92 },
+};
+function audioBus() {
+  if (BUS) return BUS;
+  const g = AC.createGain(), lp = AC.createBiquadFilter(), cp = AC.createDynamicsCompressor();
+  lp.type = "lowpass"; lp.frequency.value = 4200; cp.threshold.value = -22; cp.knee.value = 12; cp.ratio.value = 4; cp.attack.value = .004; cp.release.value = .2;
+  g.connect(lp).connect(cp).connect(AC.destination);
+  NOISE = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const ch = NOISE.getChannelData(0); for (let k = 0; k < ch.length; k++) ch[k] = Math.random() * 2 - 1;
+  return BUS = { g, duck: 1 };
+}
+function audioUnlock() { try { if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return; AC = new C(); } if (AC.state === "suspended") AC.resume(); audioBus(); } catch { } }
+/** 一節を鳴らす。返り値＝鳴らした長さ（秒・鳴らさなかったら 0）。soft＝ほかの声が鳴っている間は鳴らさない（まわりの話し声）。gesture＝指で触れたとき */
+function voice(layer = "sight", { pitch = 1, mood = "hi", vol = .05, muted = false, dur = null, soft = false, gesture = false } = {}) {
+  if (muted) return 0;
   try {
-    const now = performance.now(); if (now - lastVoice < 160) return; lastVoice = now;
-    if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return; AC = new C(); }
-    if (AC.state === "suspended") AC.resume();
-    const V = VOICE[layer] || VOICE.sight, t0 = AC.currentTime + .01, out = AC.createGain(), lp = AC.createBiquadFilter();
-    lp.type = "lowpass"; lp.frequency.value = 3200; out.gain.value = vol; lp.connect(out).connect(AC.destination);
-    // 音節の数と上がり下がり（mood）：hi＝上がる二、三音／oh＝下がって上がる一音／shy＝小さく下がる／wa＝弾む三、四音
-    const shape = { hi: [[1, 1.18], [1.22, 1.42], [1.1, 1.3]], oh: [[1.35, .95, 1.2]], shy: [[1.05, .82]], wa: [[1, 1.25], [1.15, .98], [1.3, 1.5], [1.05, 1.2]], up: [[.9, 1.4]] }[mood] || [[1, 1.2]];
-    const nSyl = mood === "hi" ? 2 + (Math.random() < .5 ? 1 : 0) : mood === "wa" ? 3 + (Math.random() < .5 ? 1 : 0) : shape.length;
-    let t = t0;
-    for (let i = 0; i < nSyl; i++) {
-      const c = shape[i % shape.length], f0 = V.f * pitch * (.94 + Math.random() * .12), d = mood === "shy" ? .16 : .085 + Math.random() * .05;
-      const o = AC.createOscillator(), g = AC.createGain(), bp = AC.createBiquadFilter();
-      o.type = V.wave; bp.type = "bandpass"; bp.Q.value = V.q; bp.frequency.setValueAtTime(f0 * 2.1, t); bp.frequency.linearRampToValueAtTime(f0 * (1.4 + Math.random()), t + d);
-      o.frequency.setValueAtTime(f0 * c[0], t); for (let k = 1; k < c.length; k++) o.frequency.exponentialRampToValueAtTime(f0 * c[k], t + d * k / (c.length - 1));
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(mood === "shy" ? .5 : 1, t + .012); g.gain.setValueAtTime(mood === "shy" ? .45 : .9, t + d * .6); g.gain.exponentialRampToValueAtTime(.001, t + d + .05);
-      const mix = AC.createGain(); mix.gain.value = .8; o.connect(mix); mix.connect(g); g.connect(lp);
-      const dry = AC.createGain(); dry.gain.value = .35; o.connect(dry).connect(bp).connect(g);
-      if (V.h2) { const o2 = AC.createOscillator(), g2 = AC.createGain(); o2.type = "sine"; o2.frequency.setValueAtTime(f0 * c[0] * (V.bell ? 2.76 : 2), t); o2.frequency.exponentialRampToValueAtTime(f0 * c[c.length - 1] * (V.bell ? 2.76 : 2), t + d); g2.gain.value = V.h2 * (V.bell ? .6 : .4); o2.connect(g2).connect(g); o2.start(t); o2.stop(t + d + .25); }
-      if (V.noise) { const nb = AC.createBuffer(1, Math.floor(AC.sampleRate * d), AC.sampleRate), ch = nb.getChannelData(0); for (let k = 0; k < ch.length; k++) ch[k] = (Math.random() * 2 - 1) * (1 - k / ch.length); const ns = AC.createBufferSource(), ng = AC.createGain(), nf = AC.createBiquadFilter(); nf.type = "bandpass"; nf.frequency.value = f0 * 3; nf.Q.value = 2; ns.buffer = nb; ng.gain.value = V.noise; ns.connect(nf).connect(ng).connect(g); ns.start(t); }
-      o.start(t); o.stop(t + d + .12); t += d + .03 + Math.random() * .04;
+    if (gesture) audioUnlock(); if (!AC) return 0;
+    if (AC.state === "suspended") { AC.resume(); if (!gesture) return 0; }
+    const B = audioBus(), now = AC.currentTime;
+    if (PH && PH.end > now) { if (soft || now - PH.start < .15) return 0; const g = PH.g.gain; g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(0, now + .07); }
+    const V = VOICE[layer] || VOICE.sight, S = SPEC[mood] || SPEC.hi, C = CONTOUR[mood] || CONTOUR.hi, rr = Math.random;
+    const D = dur ?? lerp(S.d[0], S.d[1], rr()), ph = rr() * 6.28, t0 = now + .02;
+    // 音節の並び：2〜4 音節の語・語のあいだに短い間
+    const list = []; let t = 0, wl = 0;
+    while (t < D - .06 && list.length < 32) {
+      let head = false; if (wl <= 0) { wl = 2 + Math.floor(rr() * 3); if (list.length) t += .06 + rr() * .08; head = true; }
+      const len = (!list.length && S.first) || lerp(S.syl[0], S.syl[1], rr());
+      list.push({ t, len, head }); t += len + .014 + rr() * .022; wl--;
     }
-  } catch { }
+    const Lz = list[list.length - 1]; if (S.last) { t += S.last - Lz.len; Lz.len = S.last; }
+    const pg = AC.createGain(); pg.gain.value = vol * S.amp; pg.connect(B.g);
+    list.forEach((s, j) => {
+      const u = s.t / Math.max(.3, t), last = j === list.length - 1, T = t0 + s.t, d = s.len;
+      const f = V.f * pitch * C(u, j, ph) * (s.head ? 1.04 : 1) * (.97 + rr() * .06);
+      const gEnd = last ? S.endG : j === 0 && S.firstG ? S.firstG : 1 + (rr() - .5) * .1;
+      const peak = (s.head ? 1 : .8) * (S.fade ? 1 - u * .55 : 1), att = s.head && rr() < .5 ? .006 : .018;
+      const env = AC.createGain(); env.gain.setValueAtTime(0, T); env.gain.linearRampToValueAtTime(peak, T + att); env.gain.setValueAtTime(peak * .88, T + d * .7); env.gain.exponentialRampToValueAtTime(.0008, T + d + .045); env.connect(pg);
+      const glide = o => { o.frequency.setValueAtTime(f * (s.head ? .96 : 1), T); o.frequency.exponentialRampToValueAtTime(f * gEnd, T + d); };
+      const o = AC.createOscillator(); o.type = V.wave; glide(o); const dg = AC.createGain(); dg.gain.value = .55; o.connect(dg).connect(env);
+      // 母音らしい響き：鋸の波を二つの山に通す
+      const vw = VOW[Math.floor(rr() * VOW.length)], sw = AC.createOscillator(); sw.type = "sawtooth"; glide(sw);
+      for (const [fq, q, gv] of [[vw[0] * 1.6, V.q * .7, .14], [vw[1] * 1.6, V.q, .08]]) { const bp = AC.createBiquadFilter(), gg = AC.createGain(); bp.type = "bandpass"; bp.frequency.value = fq; bp.Q.value = q; gg.gain.value = gv; sw.connect(bp).connect(gg).connect(env); }
+      if (V.h2) { const o2 = AC.createOscillator(), g2 = AC.createGain(), m = V.bell ? 2.76 : 2; o2.type = "sine"; o2.frequency.setValueAtTime(f * m, T); o2.frequency.exponentialRampToValueAtTime(f * gEnd * m, T + d); g2.gain.value = V.h2 * (V.bell ? .5 : .32); o2.connect(g2).connect(env); o2.start(T); o2.stop(T + d + .08); }
+      // 子音らしい短い息（語の頭と、ときどき）と、層の息の混ざり
+      if (s.head || rr() < .3) { const ns = AC.createBufferSource(), nf = AC.createBiquadFilter(), ng = AC.createGain(); ns.buffer = NOISE; nf.type = "bandpass"; nf.frequency.value = 2400 + rr() * 2600; nf.Q.value = 1.2; ng.gain.setValueAtTime(.16 + V.noise, T - .004); ng.gain.exponentialRampToValueAtTime(.001, T + .02); ns.connect(nf).connect(ng).connect(pg); ns.start(T - .004, rr() * .8, .03); }
+      if (V.noise) { const ns = AC.createBufferSource(), nf = AC.createBiquadFilter(), ng = AC.createGain(); ns.buffer = NOISE; nf.type = "bandpass"; nf.frequency.value = f * 3; nf.Q.value = 2; ng.gain.value = V.noise * .7; ns.connect(nf).connect(ng).connect(env); ns.start(T, rr() * .7, d + .05); }
+      o.start(T); o.stop(T + d + .08); sw.start(T); sw.stop(T + d + .08);
+    });
+    PH = { g: pg, start: now, end: t0 + t + .08 };
+    return t + .1;
+  } catch { return 0; }
 }
 
 // ---- 吹き出し（層の色の点・字はない）。形は 5 つ：dots（1〜3 つ）・one（大きい一つ＝びっくり）・up（大きくなる三つ＝うれしい）・wave（波＝ごきげん）・spark（四方の点＝きらきら）
@@ -209,6 +259,7 @@ class Kasane {
   stop(state = "idle", dur = null) { this.goal = null; this.state = state; this.t = 0; this.dur = (dur ?? (1.5 + this.R() * 3.5)) * (this.lazy ? 1.6 : 1); }
   step(dt, turnRate = 7, loose = false) {
     const g = this.goal; if (!g) return true;
+    this.herd._goalOut(this, g);   // 行き先が結晶や碧の体の中なら、縁の外へ
     const dx = g.x - this.pos.x, dz = g.y - this.pos.y, dist = Math.hypot(dx, dz);
     if (dist < .05) return true;
     let want = Math.atan2(dx, dz);
@@ -229,7 +280,7 @@ class Kasane {
 
 export class KasaneHerd {
   constructor({ scene, camera, groundAt = null, walkable = null, walkSurface = null, canSee = null, avoid = null, scale = 2, sizeK = KASANE_SIZE, hud = KASANE_HUD, body = KASANE_BODY, names = KASANE_NAME, mobile = Math.min(innerWidth, innerHeight) < 700, maxDist = null, max = 40, guideEvery = 100, shadow = true,
-    muted = null, minCamDist = null, upright = false, bubbleAvoid = null, screenMargin = 8, view = null, viewTitle = null, viewSafe = null, items = true } = {}) {
+    muted = null, minCamDist = null, upright = false, bubbleAvoid = null, screenMargin = 8, view = null, viewTitle = null, viewSafe = null, items = true, crystals = null } = {}) {
     Object.assign(this, { scene, camera, groundAt, walkable, mobile, max }); this.scale = scale * sizeK; this.walkSurface = walkSurface || walkable; this.canSee = canSee; this.avoid = avoid;
     this.hud = { ...KASANE_HUD, ...hud }; this.body = { ...KASANE_BODY, ...body }; this.names = { ...KASANE_NAME, ...names };
     this.muted = muted || (() => false); this.minCamDist = minCamDist; this.upright = upright; this.bubbleAvoid = bubbleAvoid; this.screenMargin = screenMargin; this.viewFn = view; this.viewTitle = viewTitle; this.viewSafe = viewSafe; this.itemsOn = items;   // viewSafe()＝{ left, right, top }：窓を出さない画面の端の幅（層の一覧など）
@@ -237,7 +288,9 @@ export class KasaneHerd {
     this.agents = []; this.group = new THREE.Group(); this.group.name = "kasane"; this.group.visible = false; scene.add(this.group);
     this._seed = 7; this.t = 0; this.ready = false; this.active = false; this.on = null; this.shadowOn = shadow;
     this.bubbles = []; this.P = new THREE.Vector2(); this.F = new THREE.Vector2(0, -1); this.prevP = null; this.pv = 0;
-    this.ring = null; this.tag = null; this.view = null;
+    this.ring = null; this.tag = null; this.view = null; this.crystals = crystals;
+    // 声は、指で画面に触れたときに音の器をひらく（ブラウザの決まり。ミュートのときはひらかない）
+    if (typeof addEventListener !== "undefined") { const un = () => { if (AC && AC.state === "running") { removeEventListener("pointerdown", un, true); return; } if (!this.muted()) audioUnlock(); }; addEventListener("pointerdown", un, true); }
   }
   add(layer, o) { const a = new Kasane(this, layer, o, (this._seed += 7919)); this.agents.push(a); return a; }
   pairUp(a, b) { a.pair = b; b.pair = a; a.role = b.role = "pair"; }
@@ -284,7 +337,7 @@ export class KasaneHerd {
     let m = r < watchP ? "watch" : ["move", "move", "circle", "circle", "jostle", "chase", "stumble", "idle"][Math.floor(R() * 8)];
     if (m === "chase" && M.length < 3) m = "jostle";
     if (m === "stumble" && this.upright) m = "jostle";
-    G.mode = m; G.t = 0; G.rot += (R() - .5) * 2;
+    G.mode = m; G.t = 0; G.rot += (R() - .5) * 2; G.spk = null; G.turnLeft = null; for (const a of M) a.speakT = 0;
     G.dur = { watch: 4 + R() * 4, circle: 4 + R() * 2.5, jostle: 2.5 + R() * 1.5, chase: 3 + R() * 2, stumble: 2.4, idle: 1.5 + R() * 2.5, move: 99 }[m];
     if (m === "move") { for (let k = 0; k < 6; k++) { const a = R() * 6.28, rr = Math.sqrt(R()) * G.radius, x = G.anchor.x + Math.cos(a) * rr, z = G.anchor.y + Math.sin(a) * rr; if (!this.walkable || this.walkable(x, z)) { G.goal = new THREE.Vector2(x, z); break; } } if (!G.goal) { G.mode = "idle"; } }
     if (m === "stumble") { G.vi = Math.floor(R() * M.length); const v = M[G.vi]; v.squash = .55; v.tiltGoal = (R() < .5 ? -1 : 1) * .35; v.tiltT = 3; v.tiltHold = .9; }
@@ -296,7 +349,11 @@ export class KasaneHerd {
     let tx = G.c.x + Math.cos(ang) * r0 + a.jx, tz = G.c.y + Math.sin(ang) * r0 + a.jz, face = null, spd = .24 * s * a.spdK;
     switch (G.mode) {
       case "circle": { const r = .45 * s * (1 + .12 * n); tx = G.c.x + Math.cos(ang) * r; tz = G.c.y + Math.sin(ang) * r; face = G.c;
-        if (Math.floor(G.t / 1.15) % n === i) { a.say = Math.max(a.say, .4); a.bub = "dots"; a.sayT = (a.sayT || 0) + dt; a.nod = 0; } else a.nod = Math.max(0, Math.sin(G.t * 5 + i)) * .1; break; }
+        // 2026-10-24：輪になって話す＝かけ合い。先頭が番を回し、話す子だけが一節を言う（近い一つの群れだけ聞こえる・言い終えてから次の子）
+        if (i === 0) { G.turnLeft = (G.turnLeft ?? .4) - dt;
+          if (G.turnLeft <= 0 && G.t < G.dur - .6) { const first = G.spk == null; G.spk = ((G.spk ?? -1) + 1 + (n > 2 && R() < .3 ? 1 : 0)) % n; const who = M[G.spk], d0 = .7 + R() * .7;
+            const d = (who.layerOn ? this._chat(who, G, R() < .28 ? "ask" : "talk", d0, first) : 0) || d0; who.speakT = d; G.turnLeft = d + .2 + R() * .3; } }
+        if ((a.speakT || 0) > 0) { a.speakT -= dt; a.say = Math.max(a.say, .4); a.bub = "dots"; a.sayT = (a.sayT || 0) + dt; a.nod = 0; } else a.nod = Math.max(0, Math.sin(G.t * 5 + i)) * .1; break; }
       case "chase": { if (i < 2) { const w = G.t * 1.9 + (i ? 0 : -.9), r = .75 * s; tx = G.c.x + Math.cos(w) * r; tz = G.c.y + Math.sin(w) * r; spd = .55 * s; } else face = M[0].pos; break; }
       case "stumble": { const v = M[G.vi]; if (a === v) { tx = a.pos.x; tz = a.pos.y; } else { const dx = a.pos.x - v.pos.x, dz = a.pos.y - v.pos.y, d = Math.hypot(dx, dz) || 1; tx = v.pos.x + dx / d * .36 * s; tz = v.pos.y + dz / d * .36 * s; face = v.pos; spd = .3 * s; } break; }
       case "follow": { const L = M[0], fy = L.yaw, k = Math.max(1, i), back = .42 * s * (1 + (k - 1) * .5), lat = (k % 2 ? 1 : -1) * .2 * s;
@@ -308,6 +365,7 @@ export class KasaneHerd {
     if (a.hideBehind) { const b = a.hideBehind, dx = b.pos.x - P.x, dz = b.pos.y - P.y, d = Math.hypot(dx, dz) || 1; tx = b.pos.x + dx / d * .22 * s; tz = b.pos.y + dz / d * .22 * s; face = P; spd = .5 * s; }
     if (G.mode !== "jostle") { a.jx *= .9; a.jz *= .9; }
     if (this.walkable && !this.walkable(tx, tz)) { tx = G.c.x; tz = G.c.y; }
+    { _g2.set(tx, tz); this._goalOut(a, _g2); tx = _g2.x; tz = _g2.y; }   // 結晶・碧の体の中には並ばない
     const d = Math.hypot(tx - a.pos.x, tz - a.pos.y);
     if (d > .06 * s) { a.goal = a.goal || new THREE.Vector2(); a.goal.set(tx, tz); a.spd = spd * (d > .8 * s ? 1.4 : 1); a.stuck = 0; a.step(dt, 9); }
     else if (face) a.faceTo(face.x, face.y, dt, 4);
@@ -377,9 +435,9 @@ export class KasaneHerd {
   touch(a, done) {
     if (!a) return; const wasGuide = this.guiding === a && a.state === "gWait"; if (this.guiding === a) this._endGuide(a);
     a.focusTo = new THREE.Vector2(this.camera.position.x, this.camera.position.z); a.goal = null; a.state = "focus"; a.raiseGoal = 0;
-    this._react(a, wasGuide ? "hop" : null);
+    const wait = this._react(a, wasGuide ? "hop" : null);
     this.openView(a);
-    if (done) setTimeout(done, 650);
+    if (done) setTimeout(done, wait * 1000);   // 2026-10-24：かさねっこが一節を言い終えるころに、碧が訳しはじめる（声が重ならない）
   }
   _react(a, force = null) {
     const R = a.R; let opts = ["hop", "startle", "spin", "shy", "dance", "together", "hop", "spin"];
@@ -393,12 +451,17 @@ export class KasaneHerd {
     a.react = { k, t: 0, dur, sgn: R() < .5 ? -1 : 1 };
     const mood = { hi: "hi", hop: "hi", startle: "oh", spin: "up", shy: "shy", dance: "wa", together: "wa", tumble: "oh", hide: "shy" }[k];
     a.bub = { hop: "up", startle: "one", spin: "spark", shy: "dots", dance: "wave", together: "up", tumble: "one", hide: "dots" }[k];
-    a.say = k === "shy" || k === "hide" ? .9 : 1.4; a.sayT = 0;
-    voice(a.layer, { pitch: a.pitchV, mood, vol: k === "shy" || k === "hide" ? .035 : .055, muted: this.muted() });
+    // 2026-10-24：声は 1〜3 秒の、何か喋っているような一節。続けて触れたときは少し短く小さく（何度触っても耳障りにしない）
+    let reply = 0; const nowS = performance.now() / 1000, rep = nowS - (this._touchAt || -9) < 2.5; this._touchAt = nowS;
+    const dr = { hop: [1.3, 1.8], startle: [1, 1.5], spin: [1.3, 1.9], shy: [1.3, 1.9], dance: [2, 2.8], together: [.9, 1.2], tumble: [1.1, 1.6], hide: [1.1, 1.6] }[k], dv = lerp(dr[0], dr[1], R()) * (rep ? .7 : 1);
+    const played = voice(a.layer, { pitch: a.pitchV, mood, dur: dv, vol: (k === "shy" || k === "hide" ? .034 : .05) * (rep ? .75 : 1), muted: this.muted(), gesture: true }), said = played || dv;
+    a.say = Math.max(k === "shy" || k === "hide" ? .9 : 1.4, said + .2); a.sayT = 0;
     if (k === "hop") a.happy = 1.02;
-    if (k === "together" && a.flock) { a.happy = .68; a.flock.members.forEach((b, i) => { if (b !== a && b.layerOn) { setTimeout(() => { b.happy = Math.max(b.happy, .68); }, 120 + i * 90); if (i === 1) setTimeout(() => voice(b.layer, { pitch: b.pitchV, mood: "hi", vol: .03, muted: this.muted() }), 260); } }); }
+    if (k === "together" && a.flock) { a.happy = .68; let first = true; a.flock.members.forEach((b, i) => { if (b !== a && b.layerOn) { setTimeout(() => { b.happy = Math.max(b.happy, .68); }, 120 + i * 90);
+      if (first) { first = false; reply = .6 + Math.random() * .25; setTimeout(() => { if (this.muted()) return; b.say = Math.max(b.say, reply + .2); b.bub = "up"; b.sayT = 0; voice(b.layer, { pitch: b.pitchV, mood: "hi", dur: reply, vol: .03, soft: true }); }, (said + .12) * 1000); } } }); }   // 仲間が、あとから答える（かけ合い）
     if (k === "hide" && a.flock) { const big = a.flock.members.filter(b => b !== a && b.sz > a.sz).sort((x, y) => y.sz - x.sz)[0]; a.hideBehind = big || null; setTimeout(() => { a.hideBehind = null; }, 2600); }
     if (k === "startle") a.squash = .5;
+    return played ? clamp(reply ? said + .12 + reply + .1 : said * .85, .65, 2) : .65;   // 碧が訳しはじめるまでの秒
   }
   release(a) { if (!a) return; a.focusTo = null; a.raiseGoal = 0; a.stop("idle", 2 + Math.random() * 2); a.lookAt = 2; if (this.view?.a === a) this.closeView(); }
   _endGuide(a) { if (this.guiding === a) { this.guiding = null; this.guideCool = this.guideEvery; } a.guided = true; if (this.ring) this.ring.visible = false; if (this.tag) this.tag.visible = false; this.tagRect = null; }
@@ -523,6 +586,7 @@ export class KasaneHerd {
     if (this.prevP) { const v = this.P.distanceTo(this.prevP) / Math.max(dt, 1e-3); this.pv = lerp(this.pv, v, 1 - Math.exp(-dt * 4)); this.prevP.copy(this.P); } else this.prevP = this.P.clone();
     this.guideCool -= dt; this._busy = busy;
     for (const G of this.flocks || []) if (Math.hypot(this.P.x - G.c.x, this.P.y - G.c.y) < this.maxDist + 12) this._flock(G, dt, busy);
+    this._flocksApart(dt);
     const live = [];
     for (const a of this.agents) {
       a.idx = -1; if (!a.layerOn) { if (this.guiding === a) this._endGuide(a); continue; }
@@ -535,6 +599,9 @@ export class KasaneHerd {
       }
       if (pd < this.maxDist && live.length < this.max) { live.push(a); this._keepInView(a, dt); }
     }
+    this._separate(live);
+    if (this.minCamDist) for (const a of live) { const dx = a.pos.x - this.P.x, dz = a.pos.y - this.P.y, d = Math.hypot(dx, dz) || 1e-3; if (d < this.minCamDist) { const k = this.minCamDist / d, x = this.P.x + dx * k, z = this.P.y + dz * k; if (!this.walkSurface || this.walkSurface(x, z)) a.pos.set(x, z); } }   // 押し離したあとも、見る人の目の前に入りすぎない（375 の下の帯の裏で切れない）
+    this._duck();
     // ---- 描く
     if (!this.iT) return;
     const cnt = [0, 0]; let bi = 0; for (const k in this.iI) this.iI[k].n = 0;
@@ -579,12 +646,12 @@ export class KasaneHerd {
     // 案内の行き先の輪と、層の名の札
     const G = this.guiding;
     if (this.ring && G && (G.state === "gLead" || G.state === "gWait") && G.tgt) {
-      const gy = this.groundAt ? this.groundAt(G.tgt.x, G.tgt.y) : 0, hex = this.hud[G.layer];
-      this.ring.visible = true; this.ring.material.color.set(hex); this.ring.position.set(G.tgt.x, gy + .03, G.tgt.y);
+      const TC = G.tgtC || G.tgt, gy = this.groundAt ? this.groundAt(TC.x, TC.y) : 0, hex = this.hud[G.layer];
+      this.ring.visible = true; this.ring.material.color.set(hex); this.ring.position.set(TC.x, gy + .03, TC.y);
       const k = .35 * s * (1 + .12 * Math.sin(t * 3.4)); this.ring.scale.setScalar(k); this.ring.material.opacity = .55 + .25 * Math.sin(t * 3.4);
       if (G.state === "gWait") {
         if (this.tagL !== G.layer) { this.tag.material.map = tagTex(hex, this.names[G.layer] || G.layer); this.tag.material.needsUpdate = true; this.tagL = G.layer; }
-        _v.set(G.tgt.x, gy + .5 * s + .25, G.tgt.y); const dist = _v.distanceTo(cam.position), th = Math.tan(cam.fov * Math.PI / 360), pxH = this.mobile ? 34 : 38, hW = pxH / innerHeight * 2 * dist * th, asp = this.tag.material.map.userData.aspect || 4.4;
+        _v.set(TC.x, gy + .5 * s + .25, TC.y); const dist = _v.distanceTo(cam.position), th = Math.tan(cam.fov * Math.PI / 360), pxH = this.mobile ? 34 : 38, hW = pxH / innerHeight * 2 * dist * th, asp = this.tag.material.map.userData.aspect || 4.4;
         this.tag.position.copy(_v); this.tag.scale.set(hW * asp, hW, 1); this.tag.visible = true; this.tag.material.opacity = clamp(G.t * 2.5, 0, 1);
         const sc = this._screen(_v); if (sc) { const pw = pxH * asp; this.tagRect = { x0: sc.x - pw / 2, x1: sc.x + pw / 2, y0: sc.y - pxH / 2, y1: sc.y + pxH / 2 }; } else this.tagRect = null;
       } else { this.tag.visible = false; this.tagRect = null; }
@@ -642,17 +709,19 @@ export class KasaneHerd {
       case "talk": {
         const b = a.pair; if (!b || b.state !== "talk") { a.stop("idle"); a.say = 0; break; }
         a.faceTo(b.pos.x, b.pos.y, dt, 4);
-        const turn = Math.floor(a.t / 1.25) % 2 === 0; const speak = a.speaker ? turn : !turn;
+        if (a.speaker) { a.turnLeft = (a.turnLeft ?? .2) - dt;   // 2026-10-24：かけ合い＝言い終えてから、もう一方が言う
+          if (a.turnLeft <= 0 && a.t < a.talkDur - .6) { const first = !a.turnWho, who = a.turnWho = a.turnWho === a ? b : a, d0 = .75 + R() * .8; const d = this._chat(who, a, R() < .3 ? "ask" : "talk", d0, first) || d0; who.speakT = d; a.turnLeft = d + .22 + R() * .25; } }
+        const speak = (a.speakT || 0) > 0; a.speakT = Math.max(0, (a.speakT || 0) - dt);
         if (speak) { a.say = Math.max(a.say, .4); a.bub = "dots"; a.sayT = (a.sayT || 0) + dt; } else a.sayT = 0;
         a.nod = speak ? 0 : Math.max(0, Math.sin(a.t * 5)) * .12;
-        if (a.t > a.talkDur) { a.say = 0; a.nod = 0; a.stop("idle", 2 + R() * 4); }
+        if (a.t > a.talkDur) { a.say = 0; a.nod = 0; a.speakT = 0; a.turnWho = null; a.turnLeft = null; a.stop("idle", 2 + R() * 4); }
         break;
       }
       case "gCome": {
         const rx = -F.y, rz = F.x, cd = Math.max(this.comeDist, (this.minCamDist || 0) + .6), sg = (a.pos.x - P.x) * rx + (a.pos.y - P.y) * rz >= 0 ? 1 : -1, gx = P.x + F.x * cd + rx * .7 * sg, gz = P.y + F.y * cd + rz * .7 * sg;
         if (!a.goal) a.goal = new THREE.Vector2(); a.goal.set(gx, gz); a.spd = .32 * s;
         const arrived = a.step(dt);
-        if (arrived || a.t > 7) { a.state = "gGreet"; a.t = 0; a.goal = null; a.happy = .7; a.raiseGoal = 1; a.bub = "up"; voice(a.layer, { pitch: a.pitchV, mood: "hi", vol: .045, muted: this.muted() }); }
+        if (arrived || a.t > 7) { a.state = "gGreet"; a.t = 0; a.goal = null; a.happy = .7; a.raiseGoal = 1; a.bub = "up"; if (!this._busy) voice(a.layer, { pitch: a.pitchV, mood: "hi", dur: 1 + R() * .4, vol: .042, muted: this.muted() }); }
         if (pd > 16) { this._endGuide(a); a.stop("idle"); }
         break;
       }
@@ -671,7 +740,7 @@ export class KasaneHerd {
         a.waitT = 0; a.raiseGoal = 0; a.lb = (a.lb || 0) + dt; if (a.lb > 2.2) { a.lb = 0; a.happy = .34; a.say = Math.max(a.say, .7); a.bub = "dots"; }
         if (!a.goal) a.goal = new THREE.Vector2(); a.goal.set(tg.x, tg.y); a.spd = clamp(.32 * s + this.pv * .45, .3, 1.1);
         const fin = a.step(dt);
-        if (fin || Math.hypot(tg.x - a.pos.x, tg.y - a.pos.y) < .35) { a.state = "gWait"; a.t = 0; a.goal = null; a.bub = "spark"; a.say = 1.2; voice(a.layer, { pitch: a.pitchV, mood: "up", vol: .04, muted: this.muted() }); }
+        if (fin || Math.hypot(tg.x - a.pos.x, tg.y - a.pos.y) < .35) { a.state = "gWait"; a.t = 0; a.goal = null; a.bub = "spark"; a.say = 1.4; if (!this._busy) voice(a.layer, { pitch: a.pitchV, mood: "up", dur: 1 + R() * .4, vol: .038, muted: this.muted() }); }
         if (a.t > 40) { this._endGuide(a); a.stop("idle"); }
         break;
       }
@@ -729,8 +798,96 @@ export class KasaneHerd {
     a.y = y; a.sq = sq + breath - a.squash * .6; a.stepL = stepL; a.stepR = stepR; a.swL = swL; a.swR = swR;
     a.gy = this.groundAt ? this.groundAt(a.pos.x, a.pos.y) : 0;
   }
+  // ---- 体の当たり（2026-10-24 本人「かさねっこの体のめり込みは…直してください」）
+  //   かさねっこどうし（体の幅は大きさに合わせる＝小さい子は小さく）・Qualia の結晶（qmarks の形：下が丸く先が傾いて回る）と光の柱・碧の体に、重ならない。
+  //   結晶と柱は、群れの子が話す地点（data.glyph・data.root）から毎こま読む。アプリが crystals: () => [L…] を渡せば、ほかの地点も避ける。
+  _bodyR(a) { return .092 * a.S * (1 + Math.max(0, a.round) * .6) * Math.max(1, a.leanK); }
+  _obstacles() {
+    if (this._obsT != null && this.t - this._obsT < .2) return this._obs; this._obsT = this.t;
+    const out = this._obs || (this._obs = []), seen = this._obsSeen || (this._obsSeen = new Set()), P = this.P, lim = this.maxDist + 8; out.length = 0; seen.clear();
+    const add = L => {
+      if (!L || seen.has(L)) return; seen.add(L); if (!L.glyph?.getWorldPosition || !L.root?.getWorldPosition || !L.root.visible || !(L.show > .01)) return;
+      L.root.getWorldPosition(_o1); if (Math.hypot(_o1.x - P.x, _o1.z - P.y) > lim) return; L.glyph.getWorldPosition(_o2); L.glyph.getWorldScale(_o3);
+      const sg = Math.abs(_o3.x) || 1; out.push({ x: _o1.x, z: _o1.z, cy: _o2.y, cs: 1.05 * sg * (1 + (L.open || 0) * .25), sg, rb: .1 * Math.max(1, sg * .6) });
+    };
+    try { for (const a of this.agents) add(a.data); for (const L of this.crystals?.() || []) add(L); } catch { }
+    return out;
+  }
+  _obsAt(x, z) { let best = null, bd = .6; for (const o of this._obstacles()) { const d = Math.hypot(o.x - x, o.z - z); if (d < bd) { bd = d; best = o; } } return best; }
+  /** 結晶と柱の、その子の背の高さまでの半径＋体の幅 */
+  _obsR(o, a) {
+    const top = (a.gy ?? (this.groundAt ? this.groundAt(a.pos.x, a.pos.y) : 0)) + (a.y || 0) + KASANE_H * a.S * 1.1, yk = (top + .07 * o.sg - o.cy) / o.cs;
+    const rc = yk > -.42 ? o.cs * CRYSTAL_R[clamp(Math.ceil((yk + .42) / .98 * 24), 0, 24)] : 0;
+    return Math.max(o.rb, rc) + this._bodyR(a) + .04;
+  }
+  _aoiR(a) { return AOI_R + this._bodyR(a); }
+  /** 行き先 g（Vector2）が結晶や碧の体の中なら、縁の外へ移す */
+  _goalOut(a, g) {
+    for (const o of this._obstacles()) { const dx = g.x - o.x, dz = g.y - o.z, d2 = dx * dx + dz * dz; if (d2 > 9) continue; const rr = this._obsR(o, a); if (d2 < rr * rr) { const d = Math.sqrt(d2); if (d < 1e-3) { g.x = o.x + (a.pos.x - o.x >= 0 ? rr : -rr); } else { g.x = o.x + dx / d * rr; g.y = o.z + dz / d * rr; } } }
+    const av = this.avoid?.(); if (av) { const dx = g.x - av.x, dz = g.y - av.z, d = Math.hypot(dx, dz), rr = this._aoiR(a); if (d < rr) { if (d < 1e-3) g.x = av.x + rr; else { g.x = av.x + dx / d * rr; g.y = av.z + dz / d * rr; } } }
+  }
+  _fixed(a) { return a.state === "focus" || a.state === "gWait" || a.state === "gGreet" || this.guiding === a; }
+  _nudge(a, dx, dz, hard) {
+    const ok = this.walkSurface, x = a.pos.x + dx, z = a.pos.y + dz;
+    if (!ok || ok(x, z)) { a.pos.set(x, z); return true; }
+    for (const r of [.8, -.8, 1.3, -1.3]) { const c = Math.cos(r), s = Math.sin(r), ux = (dx * c - dz * s) * 1.25, uz = (dx * s + dz * c) * 1.25; if (ok(a.pos.x + ux, a.pos.y + uz)) { a.pos.set(a.pos.x + ux, a.pos.y + uz); return true; } }   // 道の縁では、縁に沿ってずれる
+    if (hard) { a.pos.set(x, z); return true; }   // どこへも歩けないときも、結晶や碧の中には残さない
+    return false;
+  }
+  /** 群れどうしが同じ所に集まったら、群れの中心を少しずつ離す（子どもが押し合い続けない） */
+  _flocksApart(dt) {
+    const FL = (this.flocks || []).filter(G => G.mode !== "follow" && Math.hypot(this.P.x - G.c.x, this.P.y - G.c.y) < 20), s = this.scale, ok = this.walkable;
+    const rad = G => .3 * s * (1 + .22 * Math.sqrt(G.members.length)) + .3;
+    for (let i = 0; i < FL.length; i++) for (let j = i + 1; j < FL.length; j++) {
+      const A = FL[i], B = FL[j]; let dx = B.c.x - A.c.x, dz = B.c.y - A.c.y; const mn = rad(A) + rad(B), d = Math.hypot(dx, dz); if (d >= mn) continue;
+      if (d < 1e-3) { dx = 1; dz = 0; } else { dx /= d; dz /= d; } const k = Math.min(mn - d, .9 * dt) * .5;
+      for (const [G, sg] of [[A, -1], [B, 1]]) { const x = G.c.x + dx * k * sg, z = G.c.y + dz * k * sg; if (!ok || ok(x, z)) { G.c.set(x, z); G.anchor.x += dx * k * sg; G.anchor.y += dz * k * sg; if (G.goal) { G.goal.x += dx * k * sg; G.goal.y += dz * k * sg; } } }
+    }
+  }
+  _separate(live) {
+    const n = live.length; if (!n) return; const O = this._obstacles(), av = this.avoid?.();
+    for (const a of live) { a._r = this._bodyR(a); if (a.gy == null) a.gy = this.groundAt ? this.groundAt(a.pos.x, a.pos.y) : 0; }
+    for (let it = 0; it < 3; it++) {
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+        const a = live[i], b = live[j]; let dx = b.pos.x - a.pos.x, dz = b.pos.y - a.pos.y; const mn = a._r + b._r + .035, d2 = dx * dx + dz * dz; if (d2 >= mn * mn) continue;
+        let d = Math.sqrt(d2); if (d < 1e-4) { const an = (i * 2.399 + j * .7) % 6.283; dx = Math.cos(an); dz = Math.sin(an); d = 0; } else { dx /= d; dz /= d; }
+        const fa = this._fixed(a), fb = this._fixed(b), wa = fa === fb ? .5 : fa ? 0 : 1, ov = mn - d;
+        const ma = wa ? this._nudge(a, -dx * ov * wa, -dz * ov * wa) : true, mb = wa < 1 ? this._nudge(b, dx * ov * (1 - wa), dz * ov * (1 - wa)) : true;
+        if (!ma && !fb) this._nudge(b, dx * ov * wa, dz * ov * wa); if (!mb && !fa) this._nudge(a, -dx * ov * (1 - wa), -dz * ov * (1 - wa));   // 片方が動けないときは、もう片方が離れる
+      }
+      for (const a of live) {
+        for (const o of O) {
+          let dx = a.pos.x - o.x, dz = a.pos.y - o.z; const d2 = dx * dx + dz * dz; if (d2 > 9) continue; const rr = this._obsR(o, a); if (d2 >= rr * rr) continue;
+          let d = Math.sqrt(d2); if (d < 1e-4) { dx = Math.sin(a.yaw); dz = Math.cos(a.yaw); d = 0; } else { dx /= d; dz /= d; }
+          this._nudge(a, dx * (rr - d), dz * (rr - d), true); if (a.goal) this._goalOut(a, a.goal);
+        }
+        if (av) {
+          let dx = a.pos.x - av.x, dz = a.pos.y - av.z; const rr = this._aoiR(a), d2 = dx * dx + dz * dz; if (d2 >= rr * rr) continue;
+          let d = Math.sqrt(d2); if (d < 1e-4) { dx = -this.F.y; dz = this.F.x; d = 0; } else { dx /= d; dz /= d; }
+          this._nudge(a, dx * (rr - d), dz * (rr - d), true); if (a.goal) this._goalOut(a, a.goal);
+        }
+      }
+    }
+  }
+  /** まわりの話し声（かけ合い）：近い一つの話だけ・碧が話しているとき（札が開いているとき）と窓が出ているときは鳴らさない・一つの話が終わったら少し休む */
+  _chat(a, conv, mood, dur, first) {
+    if (this.muted() || this._busy || this.view || this.guiding || a.pd > (this.mobile ? 6.5 : 8)) return 0;
+    const now = performance.now() / 1000;
+    if (first ? now < (this._restUntil || 0) : this._conv !== conv) return 0;
+    const d = voice(a.layer, { pitch: a.pitchV, mood, dur, vol: .026 * clamp(1.25 - a.pd / 8, .35, 1), soft: true });
+    if (d) { this._conv = conv; this._restUntil = now + d + 6; }
+    return d;
+  }
+  /** 札が開いている（碧が訳している）あいだは声を小さく、ミュートなら消す */
+  _duck() {
+    if (!AC || !BUS) return; const m = this.muted(), want = m ? 0 : this._busy ? .35 : 1;
+    if (want !== BUS.duck) { BUS.duck = want; try { BUS.g.gain.setTargetAtTime(want, AC.currentTime, m ? .03 : .12); } catch { } }
+  }
   _targetFor(a) {
-    const tg = a.target; if (!tg) return null; const w = this.walkable;
+    const tg = a.target; if (!tg) return null; const w = this.walkable; a.tgtC = new THREE.Vector2(tg.x, tg.z);
+    { // 2026-10-24：結晶の真下には入らず、見る人の側の縁の外で待つ
+      const o = this._obsAt(tg.x, tg.z); if (o) { const rr = this._obsR(o, a) + .08, P = this.P, b0 = Math.atan2(P.y - tg.z, P.x - tg.x);
+        for (const off of [0, .5, -.5, 1, -1, 1.6, -1.6, 2.4, -2.4, 3.1]) { const x = tg.x + Math.cos(b0 + off) * rr, z = tg.z + Math.sin(b0 + off) * rr; if (!w || w(x, z)) return new THREE.Vector2(x, z); } } }
     if (!w || w(tg.x, tg.z)) return new THREE.Vector2(tg.x, tg.z);
     for (let r = .5; r < 6; r += .5) for (let k = 0; k < 12; k++) { const an = k / 12 * Math.PI * 2, x = tg.x + Math.cos(an) * r, z = tg.z + Math.sin(an) * r; if (w(x, z)) return new THREE.Vector2(x, z); }
     return null;

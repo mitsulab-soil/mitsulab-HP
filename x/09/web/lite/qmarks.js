@@ -125,7 +125,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         _e.set(0, t * .5 + it.ph, 0); _q.setFromEuler(_e); _s.set(cs, cs, cs);
         _m.compose(_p.set(_p.x, _p.y + Math.sin(t * 1.3 + it.ph) * .06 * sg, _p.z), _q, _s); crystal.setMatrixAt(n, _m);
         const nearK = sky || focus === L ? 1 : Math.min(1, Math.max(.12, (d - 1.4) / 2.6));   // 目の前（3 m より近く）では結晶をうすく（視野をふさがない）
-        CA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); CA.iP.setXYZW(n, show * nearK, crisp, em, far);
+        CA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); CA.iP.setXYZW(n, sky ? 0 : show * nearK, crisp, em, far);   // 2026-10-24 本人「3D 地図にかさねっこは出さない」＝上空ではかさねっこの形の結晶を出さず、輪と柱だけ
         if (!sky && show * nearK > .2) { _sp.copy(_p).project(cam); if (_sp.z < 1) { const k = ppk / Math.max(.5, d) * cs, x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }   // 札が避ける、結晶の画面の上の範囲
         // 輪：地面に。上空では大きく
         const rr = (sky ? SKYR * sg : Math.max(1.05, Math.min(3, sg)) * 1.25) * (1 + (L.open || 0) * .5);
