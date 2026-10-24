@@ -149,10 +149,12 @@ body[data-mode="boot"] #lstack{display:none}
 #sndTag::before{display:block;font:400 8.5px/1.4 var(--ml-mono);letter-spacing:.3em;color:#8fb6dc}
 #sndTag[data-k="poem"]{border-color:#e6d3ff}#sndTag[data-k="poem"]::before{content:"QUALIA/SOUND　POEM";color:#e6d3ff}
 #sndTag[data-k="re"]::before{content:"QUALIA/SOUND　RE-CREATION"}#sndTag[data-k="rec"]::before{content:"QUALIA/SOUND　RECORDING"}
+#sndTag[data-k="else"]::before{content:"QUALIA/SOUND　RECORDED ELSEWHERE"}#sndTag small{display:block;margin-top:3px;font-size:9.5px;line-height:1.5;letter-spacing:.03em;opacity:.78}
+#pBody p.sndSrc{display:block!important;margin:.5em 0 0!important;font-size:11px;line-height:1.6;color:#cfe3ec;opacity:.8;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 body[data-mode="sight"] #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 190px)}
 /* 2026-10-23 公開前：札が右上のパネル・スマホの字幕と重ならないように（パネルを開いているあいだはパネルの中に同じ札がある） */
 body.pOpen #sndTag{display:none!important}
-@media (max-width:640px){body[data-mode="walk"] #sndTag{top:auto;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 72px);max-width:calc(100% - 2 * var(--g))}}
+@media (max-width:640px){body[data-mode="walk"] #sndTag{top:auto;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 128px);max-width:calc(100% - 2 * var(--g))}}
 /* 3D 地図の名前 */
 #mapLabels{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}
 .mapLabel{position:absolute;left:0;top:0;transform-origin:0 0;white-space:nowrap;font:500 11.5px/1 var(--serif);letter-spacing:.1em;color:#f3f6fa;text-shadow:0 1px 3px rgba(3,6,15,.95),0 0 10px rgba(3,6,15,.7);margin:-6px 0 0 -6px;padding-left:10px}
@@ -547,6 +549,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261024n").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261024s").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

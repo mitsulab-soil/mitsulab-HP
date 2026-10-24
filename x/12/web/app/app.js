@@ -13,6 +13,8 @@ import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k3"
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
+import { makeAmbience } from "./ambience.js?v=1";
+import { SPOTS } from "./sounds.js?v=1";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -739,8 +741,15 @@ function openSound(L, no) {
     if (it.kind === "kokonotsu") b.sequence(Array.from({ length: 9 }, (_, i) => i * 5), { dist });
     else if (it.kind === "hayagane") b.sequence([0, 1.1, 2.2, 4.4, 5.5, 6.6, 8.8, 11, 11.6, 12.2, 12.8, 13.4, 14, 14.6, 15.2, 15.8], { dist, hard: true });
     else if (it.kind === "cars") { SW.play("cars"); showTag(it.label, 13); return; }
+    else if (it.kind === "amb") { AMB.play(it.spot); return; }
     else { b.sequence([0, 7, 14], { dist }); WAVE.start(); }
     showTag(it.label, it.kind === "kokonotsu" ? 44 : it.kind === "hayagane" ? 20 : 22); };
+  if (it.kind === "amb") {   // 町に置いた音：声では読まず、触れたらすぐ鳴らす。題と出どころを小さく添える
+    const sp = it.spot, ses = sp.amb && (sp.amb.months || sp.amb.hours) ? [`近づくと鳴る季節と時刻：${sp.amb.months ? sp.amb.months.join("・") + " 月" : "通年"}${sp.amb.hours ? `・${sp.amb.hours[0]} 時〜${sp.amb.hours[1]} 時` : ""}（それ以外は触れたときだけ）`] : [];
+    openPanel({ color: g.color, layer: no, title: it.title, lines: [{ t: sp.how }], more: [...ses], src: sp.src, ll: it.ll, how: sp.label.split("（")[0], buttons: [{ label: "鳴らす", primary: true, run }, { label: "止める", run: () => AMB.stop() }] });
+    const e = document.createElement("p"); e.className = "sndSrc"; e.textContent = `${sp.label}　音：${sp.who}`; $("#pBody").appendChild(e);
+    run(); return;
+  }
   openPanel({ color: g.color, layer: no, title: it.title, lines: it.lines, more: [it.label, it.how], src: it.src, ll: it.ll, how: it.label.split("（")[0], buttons: [{ label: "鳴らす", primary: true, run }, { label: "止める", run: () => { BELL?.stop(); WAVE.stop(); } }] });
   speakLines(it.lines, L, { done: run });
 }
@@ -754,6 +763,13 @@ function extraSounds() {
     C.sound.push({ id: "x_car" + (i + 1), kind: "cars", r: 0, ar: 46, every: 8, title: `${nm}の車`, x: p.x, z: p.z, ll: ll(p.x, p.z),
       label: "③ 再現音（通りを行き交う車を、風を切る音から組み立てた模式。台数とタイミングは模式）", how: `${nm}を通る車が、近づいて遠ざかる音を、その場で組み立てています。実際の台数ではありません。`, lines: [], src: [] }); });
   SW.zones = C.sound.filter(s => s.kind === "cars").map(s => ({ id: s.id, x: s.x, z: s.z, r: s.ar, every: s.every, label: s.label, it: s }));
+  // 2026-10-24 本人「歴史や文化、自然などに関連する音をたくさん配置してください」→ 町に置いた音（sounds.js）
+  const spots = SPOTS.map(s => { const a = s.at; let x, z;
+    if (a.ll) { x = (a.ll[1] - G.origin[1]) * G.kx + (a.dx || 0); z = -(a.ll[0] - G.origin[0]) * G.ky + (a.dz || 0); }
+    else if (a.d != null) ({ x, z } = side(a.d, a.s || 0)); else ({ x, z } = a);
+    return { ...s, x: +x.toFixed(2), z: +z.toFixed(2) }; });
+  for (const s of spots) C.sound.push({ id: s.id, kind: "amb", spot: s, title: s.title, x: s.x, z: s.z, ll: ll(s.x, s.z), label: s.label, how: s.how, lines: [], src: s.src });
+  AMB.setSpots(spots);
 }
 function surfAt(x, z) { return nearestOnLine(x, z).dist < 3.2 ? "asphalt" : "tile"; }   // 道の中ほどは車道のアスファルト、端は歩道の平板（模式）
 function inKura(x, z) { for (const k of [...G.kura, ...(G.machi || [])]) { if (Math.abs(k.x - x) > 14 || Math.abs(k.z - z) > 14) continue; const c = Math.cos(k.yaw), s = Math.sin(k.yaw), dx = x - k.x, dz = z - k.z; if (Math.abs(dx * c - dz * s) < k.w / 2 && Math.abs(dx * s + dz * c) < k.dp / 2) return true; } return false; }
@@ -765,12 +781,18 @@ function wallDist(x, z) {   // いちばん近い壁まで（1 m きざみ・7 m
 const SW = makeSoundWalk({ ctx: () => BELL?.ac || null, out: () => BELL.out, on: () => soundOn && LAYER.worn.includes("sound") && (QW.mode === "walk" || QW.mode === "sight"), duck: () => voiceQ ? .5 : 1,
   tag: (id, label, zn) => showTag(zn ? zn.label : `③ 再現音（${label}。その場で組み立てた音）`, 4) });
 QW.SW = SW; QW.surfAt = () => surfAt(CAM.pos.x, CAM.pos.z);
+const AMB = makeAmbience({ ctx: () => BELL?.ac || null, out: () => BELL.out, ver: VER, get bell() { return G?.bell; },
+  on: cat => soundOn && LAYER.worn.includes("sound") && LAYER.worn.includes(cat === "nature" ? "nature" : "culture"), duck: () => voiceQ ? .35 : 1,
+  tag: (sp, opt = {}) => showTag(opt.clock ? `${opt.clock} 時。時の鐘が鳴る時刻です` : sp.title, opt.clock ? 22 : 6, `${sp.label}　音：${sp.who}`) });
+QW.AMB = AMB;
 function stepSoundWalk(dt) {
   if ((WALDT.t -= dt) < 0 && QW.mode === "walk") { WALDT.t = .3; WALLD.v = wallDist(CAM.pos.x, CAM.pos.z); }
   const cp = camera.position; SW.update(dt, { x: cp.x, z: cp.z, yaw: CAM.yaw + CAM.look, moving: WALK.moving && QW.mode === "walk", surface: QW.mode === "walk" ? surfAt(CAM.pos.x, CAM.pos.z) : null, wall: WALLD.v });
+  AMB.update(dt, { x: cp.x, z: cp.z, h: QW.mode === "fly" ? Math.max(0, cp.y - groundY(cp.x, cp.z) - EYE) : 0, yaw: CAM.yaw + CAM.look, active: QW.mode === "walk" || QW.mode === "sight" || QW.mode === "fly" });   // 空を飛んでいるときは、川や杜の上を通ると聞こえる
 }
 const WALDT = { t: 0 };
-function showTag(t, sec) { const e = $("#sndTag"); e.textContent = t; e.dataset.k = t.startsWith("④") ? "poem" : t.startsWith("③") ? "re" : "rec"; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, sec * 1000); }
+function showTag(t, sec, sub) { const e = $("#sndTag"), k = sub || t; e.textContent = t; if (sub) { const s = document.createElement("small"); s.textContent = sub; e.appendChild(s); }
+  e.dataset.k = k.startsWith("④") ? "poem" : k.startsWith("③") ? "re" : k.startsWith("②") ? "else" : "rec"; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, sec * 1000); }
 const WAVE = { rings: [], on: false, t0: 0,
   start() { this.stop(); this.on = true; this.t0 = performance.now() / 1000; },
   stop() { this.on = false; for (const r of this.rings) world.remove(r); this.rings.length = 0; },
@@ -898,7 +920,7 @@ holdBtn($("#sFwd"), () => { SIGHT.fwd = true; }, () => { SIGHT.fwd = false; });
 $("#land").addEventListener("click", landFromFly);
 $("#menuBtn").addEventListener("click", () => { const m = $("#menu"); m.hidden = !m.hidden; $("#menuBtn").setAttribute("aria-expanded", String(!m.hidden)); });
 $("#menuX").addEventListener("click", () => { $("#menu").hidden = true; $("#menuBtn").setAttribute("aria-expanded", "false"); });
-$("#sndBtn").addEventListener("click", () => { soundOn = !soundOn; $("#sndBtn").setAttribute("aria-pressed", String(soundOn)); $("#sndBtn").textContent = soundOn ? "声と音 オン" : "声と音 オフ"; if (!soundOn) { try { audio.pause(); } catch { } BELL?.stop(); } });
+$("#sndBtn").addEventListener("click", () => { soundOn = !soundOn; $("#sndBtn").setAttribute("aria-pressed", String(soundOn)); $("#sndBtn").textContent = soundOn ? "声と音 オン" : "声と音 オフ"; if (!soundOn) { try { audio.pause(); } catch { } BELL?.stop(); AMB.stop(); } });
 function fillMenu() { $("#about").textContent = C.about; $("#credit").textContent = C.credit; }
 function buildTray() {
   const a = $("#layersAll"); a.innerHTML = "";
