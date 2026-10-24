@@ -335,8 +335,19 @@ export function boot(fig) {
       if (o.a < .02) o.el.style.transform = 'translate(' + Math.round(o.px) + 'px,' + Math.round(o.py) + 'px)';
     }
     todo.length = 0;
+    // 矢印（2026-10-24 TOP8）：図だけで流れが読めるように、点と点を細い矢印で結ぶ
+    if (arws.length) {
+      const sp = k => { const p = k === 'qJ' ? subj[J].qC : k === 'sTO' ? subj[TO].eye : AT[k]; if (!p) return null; v.copy(p).applyMatrix4(g.matrixWorld).project(cam); return [(v.x * .5 + .5) * W, (-v.y * .5 + .5) * Hh]; };
+      const tr = st.ph === 'tr', sl = st.ph === 'slot', al = st.ph === 'all', cw = Math.min(1, cur.w * 1.4);
+      const A = { 'xe-phi': ['xe', 'phi', sl ? cw * (1 - sstep(1.8, 2.4, st.a)) : 0], 'phi-q': ['phi', 'q', sl ? cw * sstep(1.4, 2.2, st.a) : 0], 'q-aoi': ['qJ', 'aoi', tr ? 1 - sstep(2.4, 3.2, st.trT) : 0], 'aoi-L': ['aoi', 'L', tr ? sstep(.6, 1.4, st.trT) : 0], 'L-s': ['L', 'sTO', tr ? sstep(1.6, 2.4, st.trT) : 0], 'u1-u2': ['u1', 'u2', tr ? sstep(2.6, 3.4, st.trT) : 0], 'l5-qm': ['l5', 'qm', al ? sstep(.4, .9, st.stack) : 0] };
+      arwSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + Hh);
+      for (const el of arws) { const d = A[el.dataset.arw], a0 = d && sp(d[0]), b0 = d && sp(d[1]); const op = d && a0 && b0 ? d[2] * st.out : 0; el.style.opacity = op.toFixed(2); if (op < .02) continue;
+        const dx = b0[0] - a0[0], dy = b0[1] - a0[1], L = Math.hypot(dx, dy) || 1, cut = Math.min(26, L * .2), ux = dx / L, uy = dy / L;
+        const x1 = a0[0] + ux * cut, y1 = a0[1] + uy * cut, x2 = b0[0] - ux * cut, y2 = b0[1] - uy * cut, bend = Math.min(40, L * .18);
+        el.setAttribute('d', 'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' Q' + ((x1 + x2) / 2 - uy * bend).toFixed(1) + ' ' + ((y1 + y2) / 2 + ux * bend).toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1)); }
+    }
   }
-  const todo = [];
+  const todo = [], arwSvg = stage.querySelector('.qe-arrows'), arws = arwSvg ? [...arwSvg.querySelectorAll('[data-arw]')] : [];
 
   // ── 主体は順にめぐる（選ぶボタンは置かない） ──
   const lines = [...fig.querySelectorAll('[data-subj-line]')], phLines = [...fig.querySelectorAll('[data-phase-line]')];
