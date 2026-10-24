@@ -1052,7 +1052,7 @@ html[lang="en"] .mikata-map .mw-wh-t{letter-spacing:0}
 .mission .mission-k{display:block;font-family:var(--mono);font-weight:400;font-size:.36em;letter-spacing:.3em;color:#9fe3d2;margin-bottom:.5em}
 html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 </style>
-<link rel="stylesheet" href="qualium-top.css?v=20261024t7c">
+<link rel="stylesheet" href="qualium-top.css?v=20261024t9">
 </head>
 <body>
 <a href="#main" class="skip-link" data-i18n-en="Skip to content">本文へスキップ</a>
@@ -2515,7 +2515,7 @@ async function boot(box){
 
 
 <script>/* 2026-10-19 Qualia Layer の 3D：層の図が画面に近づいてから読む（前の「3D の循環の図」〈js/qualium-top.js〉と入れ替え。TOP の 3D は二つまで） */
-(function(){var st=document.querySelector('[data-layers3d]');if(!st||!('IntersectionObserver' in window))return;var go=false,sp=document.documentElement.classList.contains('simple');var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();(sp?new Promise(function(r){var f=function(){setTimeout(r,900);};if(document.readyState==='complete')f();else addEventListener('load',f,{once:true});}):Promise.resolve()).then(function(){return import('./js/qualia-layers-3d.js?v=20261023k');}).then(function(m){return m.boot(st);}).catch(function(e){console.warn('qualia layer 3d',e);});}},{rootMargin:'600px 0px'});io.observe(st);})();</script>
+(function(){var st=document.querySelector('[data-layers3d]');if(!st||!('IntersectionObserver' in window))return;var go=false,sp=document.documentElement.classList.contains('simple');var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();(sp?new Promise(function(r){var f=function(){setTimeout(r,900);};if(document.readyState==='complete')f();else addEventListener('load',f,{once:true});}):Promise.resolve()).then(function(){return import('./js/qualia-layers-3d.js?v=20261024t9');}).then(function(m){return m.boot(st);}).catch(function(e){console.warn('qualia layer 3d',e);});}},{rootMargin:'600px 0px'});io.observe(st);})();</script>
 <script>/* 2026-10-23 PHILOSOPHY の 3D（E・S・Φ・q）：図が画面に近づいてから読む */
 (function(){var f=document.getElementById('qpES');if(!f)return;function c(){try{var x=document.createElement('canvas');return !!(x.getContext('webgl2')||x.getContext('webgl'));}catch(e){return false;}}if(!c()||!('IntersectionObserver' in window)){f.classList.add('no-3d');return;}var go=false;var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();import('./js/qualia-es-3d.js?v=20261024t7d').then(function(m){m.boot(f);}).catch(function(e){console.warn('qualia es 3d',e);f.classList.add('no-3d');});}},{rootMargin:'500px 0px'});io.observe(f);})();</script>
 <script type="module" src="js/app-previews.js?v=20261023t4"></script>

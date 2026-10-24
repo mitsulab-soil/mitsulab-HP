@@ -867,3 +867,6 @@ html[lang="en"] .qf-t{font-family:var(--latin);letter-spacing:0;font-size:14px;l
   .qe-arrows path{stroke-width:1.1}
   .qf-t{font-size:14px}.qf-eq{font-size:10.5px}
 }
+
+/* 2026-10-24 本人「スマホ版の Qualia Dive について表示がされていないので削除。PC 版のみ残す」：スマホ（html.simple）では氷川参道の場面〈#why〉を出さない */
+html.simple #why{display:none}

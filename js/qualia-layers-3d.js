@@ -25,6 +25,7 @@ export async function boot(stage) {
   R.outputColorSpace = THREE.SRGBColorSpace;
   stage.prepend(cv);
 
+  const MR = 17.5, MU = 3.4, MX = 1.2, ML = -.9;   // 2026-10-24 スマホ：碧と欅が欄いっぱいに入る距離と高さ
   const S = new THREE.Scene();
   const cam = new THREE.PerspectiveCamera(30, 1, .1, 60);
   S.add(new THREE.HemisphereLight(0xe6f6ff, 0x1a2a34, 1.3));
@@ -67,21 +68,21 @@ export async function boot(stage) {
     const tl = new THREE.TextureLoader();
     const tex = tl.load('img/hero/3d/ql_paving_c.webp'); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(4, 4);
     const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: .92, color: 0xb8b2a6, transparent: true });
-    if (!mobile) { const n = tl.load('img/hero/3d/ql_paving_n.webp'); n.wrapS = n.wrapT = THREE.RepeatWrapping; n.repeat.set(4, 4); mat.normalMap = n; mat.normalScale = new THREE.Vector2(.7, .7); }
+    { const n = tl.load('img/hero/3d/ql_paving_n.webp'); n.wrapS = n.wrapT = THREE.RepeatWrapping; n.repeat.set(4, 4); mat.normalMap = n; mat.normalScale = new THREE.Vector2(.7, .7); }
     const ac = document.createElement('canvas'); ac.width = ac.height = 256; const ax = ac.getContext('2d');
     const gr = ax.createRadialGradient(128, 128, 20, 128, 128, 126); gr.addColorStop(0, '#fff'); gr.addColorStop(.5, '#eee'); gr.addColorStop(.8, '#555'); gr.addColorStop(1, '#000'); ax.fillStyle = gr; ax.fillRect(0, 0, 256, 256);
     mat.alphaMap = new THREE.CanvasTexture(ac);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(SIZE * 1.25, SIZE * 1.25), mat);
     m.rotation.x = -Math.PI / 2; ground.add(m);
   }
-  if (!mobile) (async () => {   // 欅一本（冒頭の場と同じ欅の模型）。スマホでは葉の画像なしだと粗く見えるので、欅は置かず石畳と板だけにする
+  (async () => {   // 欅一本（冒頭の場と同じ欅の模型）。2026-10-24 本人「スマホ版も碧・木・レイヤーを入れて高精度に」：スマホでも葉の画像つきの欅を置く
     try {
       const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
       const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
       const g = await gl.loadAsync('img/hero/3d/keyaki_lod1_notex.glb');
       const bark = new THREE.MeshStandardMaterial({ color: 0x8a7560, roughness: .9 });
-      const leaf = new THREE.MeshStandardMaterial({ color: 0x6f8f5a, roughness: .8, side: THREE.DoubleSide, transparent: !mobile, opacity: mobile ? 1 : .92 });
-      if (!mobile) { const t = await new THREE.TextureLoader().loadAsync('img/hero/3d/keyaki_leaf_atlas.png'); t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; leaf.map = t; leaf.alphaTest = .45; leaf.transparent = false; leaf.color.set(0xb9cd97); }
+      const leaf = new THREE.MeshStandardMaterial({ color: 0x6f8f5a, roughness: .8, side: THREE.DoubleSide, transparent: true, opacity: .92 });
+      { const t = await new THREE.TextureLoader().loadAsync('img/hero/3d/keyaki_leaf_atlas.png'); t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; leaf.map = t; leaf.alphaTest = .45; leaf.transparent = false; leaf.color.set(0xb9cd97); }
       g.scene.updateMatrixWorld(true);
       const tree = new THREE.Group(); g.scene.traverse(o => { if (!o.isMesh) return; const mesh = new THREE.Mesh(o.geometry, /leaf|leaves/i.test(o.name) ? leaf : bark); mesh.applyMatrix4(o.matrixWorld); tree.add(mesh); });
       const TREE_H = 10.5;   // 2026-10-22 本人「碧より木が小さいのが気になります。木をもっと大きくして」：欅を碧（6.4）より明らかに高く（約 1.7 倍）。碧のさらに右奥に立ち、碧の顔に葉がかからない
@@ -360,9 +361,9 @@ export async function boot(stage) {
     // 欅はいつも見せる（層はその上に薄く重なる）
     const lookY = 3.7 + Math.min(1, d / N) * .15;   // 碧が重なりの中に立つので、重なりの全体と碧の頭、欅の梢が入る高さへ   // 2026-10-22：高くした欅の梢まで入るよう、見る高さと距離を少し上げた
     // 2026-10-23 本人「360度まわるのではなく、一定の角度から眺めるように」：カメラは回さず、積み重なりがいちばん分かる斜め上の一つの向きに置く（ゆるい呼吸の上下だけ）
-    const ang = -.62, rad = mobile ? 17.5 : 19.5, br = reduce ? 0 : Math.sin(t * .5) * .06;
-    cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? 5.2 : 4.6) + br, Math.cos(ang) * rad);
-    cam.lookAt(.9, lookY - (mobile ? .55 : 0), -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
+    const ang = -.62, rad = mobile ? MR : 19.5, br = reduce ? 0 : Math.sin(t * .5) * .06;
+    cam.position.set(Math.sin(ang) * rad, lookY + (mobile ? MU : 4.6) + br, Math.cos(ang) * rad);
+    cam.lookAt(mobile ? MX : .9, lookY - (mobile ? ML : 0), -2.2);   // 2026-10-22：碧と右奥の欅の両方が欄に収まるよう、見る点を少し右奥へ
     if (mot) { gaze(dt, t); mot.update(dt, cam, { vrmUpdate: false }); stand(); vrm.update(dt); mot.afterVrmUpdate(dt); if (aoiPivot && !aoiPivot.visible && ++aoiFrames > 3) aoiPivot.visible = true; }
     R.render(S, cam);
     placeTag();
