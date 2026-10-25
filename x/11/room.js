@@ -23,6 +23,7 @@ export const ROOMS = {
 
 let HALF = 7; const H0 = 6.2;
 export function setRoomHalf(h) { HALF = h; }   // v7（10-23 本人「一つの広間」）：広間は部屋より広く
+export function setHallNiches(n) { ROOMS.hall.niches = n; }   // v11（10-26）書が増えたので、紙の原本を掛ける漆喰の壁の位置はアプリから渡す
 let TEX = null;
 // 障子紙：楮の繊維・漉きむら・日焼けのむら（canvas で一度だけ作る。写真の素材は使わない）
 let WASHI = null;
@@ -121,7 +122,7 @@ export function buildRoom(id, { mobile, tex }) {
   floor.rotation.x = -Math.PI / 2; g.add(floor);
 
   // 格天井（暗い木の板と格子の桟）
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, HALF * 2), darkMat); ceil.rotation.x = Math.PI / 2; ceil.position.y = H; g.add(ceil);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, HALF * 2), cfg.tall ? new THREE.MeshStandardMaterial({ color: 0x8a7a68, emissive: 0x4a4038, roughness: 0.9 }) : darkMat);   /* v11b 広間の天井は、障子の照り返しで明るい板に（黒い面にしない） */ ceil.rotation.x = Math.PI / 2; ceil.position.y = H; g.add(ceil);
   const nC = 9, cg = new THREE.BoxGeometry(HALF * 2, 0.12, 0.12);
   const coffer = new THREE.InstancedMesh(cg, darkMat, nC * 2); const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(1, 1, 1);
   for (let i = 0; i < nC; i++) { const c = -HALF + (i + 0.5) * HALF * 2 / nC; coffer.setMatrixAt(i, m4.compose(p.set(0, H - 0.06, c), q.identity(), s)); coffer.setMatrixAt(nC + i, m4.compose(p.set(c, H - 0.06, 0), q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2), s)); }
@@ -202,7 +203,7 @@ export function buildRoom(id, { mobile, tex }) {
   motes.frustumCulled = false; g.add(motes);
 
   // 光（窓の向きから）。書のための光も同じ向き
-  const hemi = new THREE.HemisphereLight(0xe2e5e6, 0x6a6058, 1.25 * cfg.expo); g.add(hemi);
+  const hemi = new THREE.HemisphereLight(0xe2e5e6, 0x7a7068, (cfg.tall ? 1.45 : 1.25) * cfg.expo);   /* v11c 広間の床と壁を少し明るく（墨と紙の白の対比） */ g.add(hemi);
   const key = new THREE.DirectionalLight(0xf3efe8, 1.8 * cfg.sun); key.position.copy(SUN).multiplyScalar(12); g.add(key);
 
   return {

@@ -1,5 +1,6 @@
 // sho3d.js — 書を 3D の空間に「動的に」置く部品（Qualia/sho の層の下ごしらえ）
 // © mitsulab. All rights reserved.  書は上原光瑛の作品。
+// v3.4 2026-10-26 音：広間の五音の音階にそろえる（scaleQ）・touch(x, y, 強さ, 筆の所)＝起筆の息／はらいの擦れ／とめの「コツッ」・続けて触れると和音・near(近さ)＝近づくとかすかに鳴る・place(左右, 遠さ)
 // v3.3 2026-10-23 burst(uv, side)＝触れたとき、字が一度はっきり波打って崩れ、かけらが字の外へ散り、3 秒ほどで字の形へ戻る・縁の照りを濡れた暗い墨に抑える（金属の管に見えない）・影のぼかし opts.blur
 // v1 2026-10-22 ／ v1.1 2026-10-22 createShoSound に opts.pitch（Qualia/sho の 11 作で同じ型を聞き分ける）・法線を広くとってしわを減らす
 // v1.4 2026-10-22 色は全部墨（素材の違いは墨の状態で）・touch(x, y, 強さ)＝触れた所で鳴る音・ふちを両面で描き裂け目をなくす・面の向きを画素ごとに
@@ -591,6 +592,10 @@ export function createSho(THREE, map, opts = {}) {
    型：water（木の中の水と養分）・dew（クモの巣の水滴）・void（宇宙の虚空間）・bloom（花の産声）・oto（音）
    update(state, dt) に sho.state を渡すと、ほどける速さ |du| に合わせて粒の音を重ね、集まりきったところで一打。 */
 let SHARED = null, HALL = null;
+// v11（10-26 本人「音表現…さらに作り込んで」）：広間の音を一つの五音の音階（D の五音）にそろえる。二つの書を続けて触れると和音のように重なる
+const TON = 73.416, SCL = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2];
+export function scaleQ(f) { const o = Math.floor(Math.log2(f / TON)), b = TON * Math.pow(2, o); let best = b, bd = 1e9; for (const q of SCL) { const c = b * q, d = Math.abs(Math.log(f / c)); if (d < bd) { bd = d; best = c; } } return best; }
+const RECENT = [];   // 最近触れた書の音（時刻と基の音）
 // 一打の型（触れたとき・集まりきったとき）：[周波数, 余韻 秒, 大きさ]
 // v10（10-24 本人「もっと音を伸ばして」）：触れたときの余韻を長く（短い型でも 5 秒・長い型は約 2.2 倍）。長く鳴るぶん響きが溜まるので、初めの大きさは少し下げる（大きさ×(元の長さ/新しい長さ)^0.25）
 const LONG = d => Math.max(5, d * 2.2);
@@ -617,7 +622,7 @@ function hall(ctx, dest) {
   return (HALL = { ctx, conv, master });
 }
 export function createShoSound(preset = 'oto', opts = {}) {
-  let ctx = null, out = null, an = null, bedG = null, buf = null, on = false, acc = 0, wasOpen = false, swG = null, swF = null, WB = null, holdG = null, holdO = null, held = false, relAt = 0, atkEnd = 0, holdSeen = 0;
+  let ctx = null, out = null, pn = null, send = null, nAcc = 0, an = null, bedG = null, buf = null, on = false, acc = 0, wasOpen = false, swG = null, swF = null, WB = null, holdG = null, holdO = null, held = false, relAt = 0, atkEnd = 0, holdSeen = 0;
   const hits = [];   // v10 続けて触れた回数（重ねるほど一打を小さく）
   const vol = opts.volume ?? 0.5;
   const P = opts.pitch ?? 1;   // 音の高さ（同じ型の書を聞き分けるため。1＝そのまま）
@@ -632,8 +637,10 @@ export function createShoSound(preset = 'oto', opts = {}) {
         out = ctx.createGain(); out.gain.value = 0;
         an = ctx.createAnalyser(); an.fftSize = 512; buf = new Float32Array(an.fftSize);
         const H = hall(ctx, opts.destination || ctx.destination);
-        out.connect(an); an.connect(H.master);
-        const send = ctx.createGain(); send.gain.value = opts.reverb ?? 0.55; out.connect(send); send.connect(H.conv);
+        pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;   // v11 広間の中の位置（左右）
+        const o2 = pn || out; if (pn) out.connect(pn);
+        o2.connect(an); an.connect(H.master);
+        send = ctx.createGain(); send.gain.value = opts.reverb ?? 0.55; o2.connect(send); send.connect(H.conv);
         // ほどける音のさざめき（粒が散る速さで、紙や砂がこすれるような息）
         const ns = ctx.createBufferSource(); ns.buffer = (WB ||= noiseBuf(ctx, true)); ns.loop = true;
         swF = ctx.createBiquadFilter(); swF.type = 'bandpass'; swF.frequency.value = 2400; swF.Q.value = 0.8;
@@ -647,17 +654,37 @@ export function createShoSound(preset = 'oto', opts = {}) {
     stop() { if (!ctx) return; out.gain.setTargetAtTime(0, ctx.currentTime, 0.2); on = false; },
     toggle() { return on ? (api.stop(), false) : (api.start(), true); },
     gain(v) { if (ctx && on) out.gain.setTargetAtTime(vol * v, ctx.currentTime, 0.25); },   // 遠い書は小さく
-    // 触れた所で鳴る：x,y は書の上の位置（0..1・上が 1）、k は強さ（0..1）。上ほど高く、左右で定位、強いほど大きい
-    touch(x = 0.5, y = 0.5, k = 0.7) {
+    // v11 触れた所で鳴る：x,y は書の上の位置（0..1・上が 1）、k は強さ（0..1）、kind は筆の所（'kihitsu' 起筆・'harai' はらい・'tome' とめ・'mid' 送筆）。
+    // 上ほど高く（広間の五音の音階の上で）、左右で定位、強いほど大きい。とめ＝短く締まって「コツッ」、はらい＝長く下へ抜ける擦れ、起筆＝筆を置く息
+    touch(x = 0.5, y = 0.5, k = 0.7, kind = 'mid') {
       if (!ctx || !on) return;
-      const t = ctx.currentTime + 0.005, pitch = 0.82 + 0.4 * y, pan = (x - 0.5) * 1.4;
+      const t = ctx.currentTime + (kind === 'kihitsu' ? 0.07 : 0.005), pan = (x - 0.5) * 1.4;
       const set = STRIKES[preset] || STRIKES.oto;
       while (hits.length && hits[0] < t - 4) hits.shift(); hits.push(t);
       const duck = 1 / Math.sqrt(1 + 0.7 * (hits.length - 1));   // v10 余韻が重なるぶん、続けて触れたら小さく
-      set.forEach(([f, d, a], i) => { const L = LONG(d) * (0.8 + 0.2 * k) * (i ? 0.85 : 1), eq = Math.pow(d * (0.6 + 0.4 * k) / L, 0.25); a *= eq; voiceAt(t, 'sine', f * pitch, L, a * (0.5 + 0.8 * k) * duck, pan * (i % 2 ? 0.6 : 1)); voiceAt(t + 0.003, 'sine', f * pitch * 1.0035, L * 0.75, a * 0.4 * k * duck, -pan * 0.5); });
+      const Fq = scaleQ(set[0][0] * (0.82 + 0.4 * y)), mul = Fq / set[0][0];
+      const LK = kind === 'tome' ? 0.7 : kind === 'harai' ? 1.25 : 1, gl = kind === 'harai' ? 0.89 : 0, cl = v => Math.max(-1, Math.min(1, v));
+      set.forEach(([f, d, a], i) => {
+        const L = LONG(d) * (0.8 + 0.2 * k) * (i ? 0.85 : 1) * LK, eq = Math.pow(d * (0.6 + 0.4 * k) / L, 0.25), F = f * mul; a *= eq;
+        voice(ctx, out, t, 'sine', F / P, gl ? F * gl / P : 0, kind === 'harai' ? 0.03 : 0.004, L, a * (0.5 + 0.8 * k) * duck, cl(pan * (i % 2 ? 0.6 : 1)));
+        voice(ctx, out, t + 0.003, 'sine', F * 1.0035 / P, gl ? F * 1.0035 * gl / P : 0, 0.004, L * 0.75, a * 0.4 * k * duck, cl(-pan * 0.5));
+      });
+      if (kind === 'tome') knock(t, Fq, k, duck, pan);
+      else if (kind === 'harai') sweep(t, k, duck, pan);
+      else if (kind === 'kihitsu') breath(t - 0.07, k, duck, pan, Fq);
       for (let i = 0; i < 3 + Math.round(k * 4); i++) grain(ctx, out, preset, t + 0.02 + Math.random() * 0.25, (0.4 + 0.6 * k) * duck);
-      sustain(t, f0(set) * pitch, k, duck);
+      sustain(t, Fq, k, duck);
+      // 和：ほかの書を 4 秒のうちに触れていたら、二つの音を低い所で長く重ねる
+      const now = performance.now(); while (RECENT.length && now - RECENT[0].at > 4000) RECENT.shift();
+      const prev = [...RECENT].reverse().find(e => e.who !== api);
+      if (prev) chord(t, Fq, prev.f, duck);
+      RECENT.push({ at: now, f: Fq, who: api });
+      return { f: Fq, chord: !!prev };
     },
+    // v11 近づくと、かすかに鳴り始める（prox 0..1。1＝書の前）。触れる前の、書の息
+    near(prox, dt) { if (!ctx || !on || prox <= 0.02) return; nAcc += dt * (0.12 + 0.8 * prox * prox); if (nAcc > 1) { nAcc = -Math.random() * 0.6; grain(ctx, out, preset, ctx.currentTime + 0.02, 0.15 + 0.35 * prox); } },
+    // v11 広間の中の位置：pan＝左右（-1..1）、far＝遠さ（0..1・遠いほど響きが多い）
+    place(pan, far = 0) { if (!ctx) return; const t = ctx.currentTime; if (pn) pn.pan.setTargetAtTime(Math.max(-0.9, Math.min(0.9, pan)), t, 0.12); if (send) send.gain.setTargetAtTime((opts.reverb ?? 0.55) * (0.7 + 0.9 * far), t, 0.3); },
     // v10 押しているあいだ（震えているあいだ）音も続き、離すと長い余韻（約 6 秒）で静まる。毎こま呼ぶ：pressed＝押している、vib＝震えの強さ 0..1
     hold(pressed, vib = 0) {
       if (!ctx || !holdG) return;
@@ -703,7 +730,8 @@ export function createShoSound(preset = 'oto', opts = {}) {
     src.connect(f); f.connect(g); g.connect(dst); src.start(); lfo.start();
     const drone = { void: [55, 55.6, 82.4], oto: [98, 146.8, 196], water: [65.4], bloom: [261.6, 392], dew: [], spore: [49, 73.4], shell: [], mist: [130.8, 196.6], eyes: [61.7], pulse: [55] }[p] || [];
     if (p === 'pulse') { const beat = () => { if (!on) return setTimeout(beat, 1050); const t0 = c.currentTime + 0.02; voice(c, dst, t0, 'sine', 62, 44, 0.012, 0.22, 0.22, 0); voice(c, dst, t0 + 0.24, 'sine', 56, 40, 0.012, 0.2, 0.14, 0); setTimeout(beat, 1050); }; setTimeout(beat, 300); }
-    drone.forEach((hz, i) => { const o = c.createOscillator(), og = c.createGain(); o.frequency.value = hz * P; og.gain.value = (p === 'void' ? 0.09 : 0.035) / (1 + i * 0.6); o.connect(og); og.connect(dst); o.start(); });
+    const dm = drone.length ? scaleQ(drone[0] * P) / (drone[0] * P) : 1;   // v11 持続音も広間の音階に（書どうしで濁らない）
+    drone.forEach((hz, i) => { const o = c.createOscillator(), og = c.createGain(); o.frequency.value = hz * P * dm; og.gain.value = (p === 'void' ? 0.09 : 0.035) / (1 + i * 0.6); o.connect(og); og.connect(dst); o.start(); });
   }
   function voice(c, dst, t, type, f0, f1, att, dec, peak, pan) {
     const o = c.createOscillator(), g = c.createGain(), sp = c.createStereoPanner ? c.createStereoPanner() : null;
@@ -713,16 +741,17 @@ export function createShoSound(preset = 'oto', opts = {}) {
     o.start(t); o.stop(t + att + dec + 0.05);
   }
   function grain(c, dst, p, t, k) {
+    const qq = f => scaleQ(f * P) / P;   // v11 音のある粒は広間の音階に
     const pan = r(-0.7, 0.7);
     if (p === 'water') { const f = r(280, 900); voice(c, dst, t, 'sine', f, f * r(1.5, 2.2), 0.004, r(0.06, 0.14), 0.12 * k, pan); }
-    else if (p === 'dew') { const f = r(1700, 3400); voice(c, dst, t, 'sine', f, 0, 0.002, r(0.35, 0.9), 0.07 * k, pan); voice(c, dst, t, 'sine', f * 2.76, 0, 0.002, 0.2, 0.02 * k, pan); }
+    else if (p === 'dew') { const f = qq(r(1700, 3400)); voice(c, dst, t, 'sine', f, 0, 0.002, r(0.35, 0.9), 0.07 * k, pan); voice(c, dst, t, 'sine', f * 2.76, 0, 0.002, 0.2, 0.02 * k, pan); }
     else if (p === 'void') { const f = [110, 146.8, 164.8, 220, 293.7][Math.random() * 5 | 0]; voice(c, dst, t, 'sine', f, 0, r(0.25, 0.5), r(1.2, 2.2), 0.05 * k, pan); }
     else if (p === 'bloom') { const f = r(380, 620); voice(c, dst, t, 'triangle', f, f * r(1.8, 2.6), 0.01, r(0.08, 0.18), 0.06 * k, pan); }
     else if (p === 'spore') { voice(c, dst, t, 'triangle', r(160, 420), r(120, 300), r(0.08, 0.2), r(0.6, 1.4), 0.03 * k, pan); }
     else if (p === 'shell') { const f = r(2400, 5200); voice(c, dst, t, 'square', f, f * 0.7, 0.001, r(0.015, 0.04), 0.03 * k, pan); voice(c, dst, t, 'sine', f * 0.5, 0, 0.001, 0.08, 0.03 * k, pan); }
-    else if (p === 'mist') { voice(c, dst, t, 'sine', r(300, 900), 0, r(0.4, 0.9), r(1.4, 2.6), 0.022 * k, pan); }
+    else if (p === 'mist') { voice(c, dst, t, 'sine', qq(r(300, 900)), 0, r(0.4, 0.9), r(1.4, 2.6), 0.022 * k, pan); }
     else if (p === 'eyes') { const f = r(3000, 5400); voice(c, dst, t, 'sine', f, f * 1.04, 0.004, r(0.04, 0.09), 0.025 * k, pan); voice(c, dst, t + 0.11, 'sine', f, f * 1.04, 0.004, 0.06, 0.018 * k, pan); }
-    else if (p === 'pulse') { const f = r(400, 800); voice(c, dst, t, 'sine', f, 0, r(0.05, 0.12), r(0.4, 0.9), 0.035 * k, pan); }
+    else if (p === 'pulse') { const f = qq(r(400, 800)); voice(c, dst, t, 'sine', f, 0, r(0.05, 0.12), r(0.4, 0.9), 0.035 * k, pan); }
     else { Math.random() < 0.5 ? voice(c, dst, t, 'sine', r(500, 1400), 0, 0.003, r(0.3, 0.7), 0.06 * k, pan) : voice(c, dst, t, 'sine', r(300, 700), r(600, 1300), 0.004, 0.1, 0.08 * k, pan); }
   }
   function f0(set) { return set[0][0]; }
@@ -740,6 +769,30 @@ export function createShoSound(preset = 'oto', opts = {}) {
     const A = (STRIKES[preset] || STRIKES.oto)[0][2] * 0.2 * (0.5 + 0.6 * k) * duck;
     holdG.gain.cancelScheduledValues(t); holdG.gain.setValueAtTime(Math.max(0.0001, holdG.gain.value), t); holdG.gain.linearRampToValueAtTime(A, t + 0.06); atkEnd = t + 0.06;
     held = true;   // 叩いただけ（すぐ離す）のときは、次の hold(false) から長い余韻で静まる
+  }
+  function nz(t, dur, f0, f1, q, peak, pan) {   // 帯域の雑音（紙・筆・息）
+    const nb = ctx.createBufferSource(); nb.buffer = (WB ||= noiseBuf(ctx, true)); const nf = ctx.createBiquadFilter(); nf.type = 'bandpass'; nf.Q.value = q;
+    nf.frequency.setValueAtTime(f0, t); if (f1) nf.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const ng = ctx.createGain(); ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + Math.min(0.03, dur * 0.2)); ng.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const sp = ctx.createStereoPanner ? ctx.createStereoPanner() : null; nb.connect(nf); nf.connect(ng);
+    if (sp) { sp.pan.value = Math.max(-1, Math.min(1, pan)); ng.connect(sp); sp.connect(out); } else ng.connect(out);
+    nb.start(Math.max(ctx.currentTime, t), Math.random() * 1.5); nb.stop(t + dur + 0.05);
+  }
+  function knock(t, F, k, duck, pan) {   // v11 とめ：筆が止まる「コツッ」（短く硬い低い音と、紙を打つ乾いた音）
+    voice(ctx, out, t, 'sine', 190 / P, 120 / P, 0.002, 0.11, 0.17 * k * duck, pan * 0.5);
+    voice(ctx, out, t, 'triangle', F * 2 / P, 0, 0.001, 0.07, 0.04 * k * duck, pan);
+    nz(t, 0.05, 1400, 0, 2.2, 0.12 * k * duck, pan);
+  }
+  function sweep(t, k, duck, pan) {   // v11 はらい：筆が抜ける擦れ（高い所から低い所へ流れて消える）
+    nz(t, 0.95, 3400, 480, 1.1, 0.07 * k * duck, pan); nz(t + 0.05, 1.4, 1800, 260, 0.8, 0.035 * k * duck, -pan * 0.6);
+  }
+  function breath(t, k, duck, pan, F) {   // v11 起筆：筆を置く前の息と、穂先が紙に入るやわらかい当たり
+    nz(t, 0.16, 900, 1300, 0.7, 0.05 * k * duck, pan);
+    voice(ctx, out, t + 0.07, 'sine', F * 2 / P, 0, 0.002, 0.5, 0.025 * k * duck, pan);
+  }
+  function chord(t, Fa, Fb, duck) {   // v11 和：二つの書の音を、低い所で長く重ねる（どちらも五音の音階の上なので濁らない）
+    const fold = f => { while (f > 440) f /= 2; while (f < 110) f *= 2; return f; };
+    [fold(Fa), fold(Fb)].forEach((f, i) => { voice(ctx, out, t + 0.05 + i * 0.04, 'sine', f / P, 0, 0.6, 5.5, 0.032 * duck, i ? 0.35 : -0.35); voice(ctx, out, t + 0.1, 'sine', f * 2 / P, 0, 0.8, 4.0, 0.008 * duck, i ? -0.2 : 0.2); });
   }
   function voiceAt(t, type, f, dec, peak, pan) { voice(ctx, out, t, type, f / P, 0, 0.004, dec, peak, Math.max(-1, Math.min(1, pan))); }
   function strike(c, dst, p, t) {
