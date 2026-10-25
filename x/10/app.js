@@ -413,32 +413,46 @@ for (const b of document.querySelectorAll("[data-lang]")) b.addEventListener("cl
 // ---- かさねっこ（touch の層の小さな環境エージェント・砥粉の群れ。2026-10-23 本人「Qualia以外にもかさねっこを登場させてください」「群れでわちゃわちゃ」）
 //   共通部品 kit/envAgents/kasane.js。面が出てから 1.2 秒あとに読む（起動に入れない）。台のまわりの床で跳ねる（面の上と、手前の字幕・10 cm の目盛りには来ない）。触れると跳ねて点の吹き出しと小さな音
 const _kv = new THREE.Vector3();
+const inQuad = (q, x, y, m = 0) => { let sg = 0; for (let i = 0; i < 4; i++) { const [ax, ay] = q[i], [bx, by] = q[(i + 1) % 4], ex = bx - ax, ey = by - ay, L = Math.hypot(ex, ey) || 1, d = (ex * (y - ay) - ey * (x - ax)) / L; if (d < -m && sg > 0 || d > m && sg < 0) return false; if (Math.abs(d) > m) sg ||= Math.sign(d); } return true; };   // 点が四角の中（m px の余白つき）
 const KASA = window.__kasa = { herd: null, loading: false, t0: performance.now(), floor: null,
   // 台のまわりの床（台の底の高さ）のうち、左右と奥の角。スマホは右上に碧の窓があるので、右は手前だけ
-  okAt(x, z) { if (Math.abs(x) < .56 || Math.abs(x) > .86 || z < -.32 || z > .5) return false; if (MOBILE && x > 0 && z < .02) return false;
+  okAt(x, z) { if (Math.abs(x) < .56 || Math.abs(x) > .86 || z < -.32 || z > .5) return false; if (MOBILE && z > .24) return false;   /* スマホは字幕の帯の上だけ */ if (MOBILE && x > 0 && z < .02) return false; if (!MOBILE && x < 0 && z > .1) return false;   /* PC は左下に碧の窓（2026-10-25） */
     _kv.set(x, -.06, z).project(camera); const sx = (_kv.x * .5 + .5) * stage.clientWidth; return sx > 26 && sx < stage.clientWidth - 26; },   // 面の左右だけ（奥は吹き出しが面にかかる）。画面の端で体が切れる所には行かない
   async load() {
     this.loading = true;
     try {
-      const M = await import("./kit/envAgents/kasane.js?v=20261023");
+      const M = await import("./kit/envAgents/kasane.js?v=20261025");
       // 床：台の底の高さに、紺の円い床をうっすら（まわりは闇へ溶ける）。かさねっこの足もとの影が見えるように
       const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"), gr = g.createRadialGradient(64, 64, 8, 64, 64, 64);
       gr.addColorStop(0, "rgba(255,255,255,.75)"); gr.addColorStop(.5, "rgba(255,255,255,.45)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
       const fl = new THREE.Mesh(new THREE.CircleGeometry(1.25, 64), new THREE.MeshStandardMaterial({ color: 0x121b2b, roughness: 1, alphaMap: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
       fl.rotation.x = -Math.PI / 2; fl.position.y = -.106; fl.renderOrder = -1; scene.add(fl); this.floor = fl;
-      const h = new M.KasaneHerd({ scene, camera, groundAt: () => -.105, walkable: (x, z) => this.okAt(x, z), scale: .5, mobile: MOBILE, maxDist: 6, max: 16, shadow: true });
+      // 2026-10-25：最新の共通部品。体はいつも立てる（小さく映るので横倒しが「かけら」に見えた）・吹き出しは触れる面と字幕の上に出さない・画面の端から 14px 内側だけ・空中の 3D の窓は出さない（面の上に重ねない）
+      // 部品は画面の座標を「窓いっぱい」で数える（PC は右に札の列があり、3D の枠は窓より狭い）→ 枠の中の位置に読みかえてから比べる
+      const avoid = (kx, ky) => { const o = stage.getBoundingClientRect(), x = kx / innerWidth * o.width, y = ky / innerHeight * o.height, q = this.surfQuad(); if (q && inQuad(q, x, y, 6)) return true; const c = document.getElementById("cap"); if (c && c.textContent) { const rg = document.createRange(); rg.selectNodeContents(c); const b = rg.getBoundingClientRect();   /* 字幕の字そのものの箱（欄の幅いっぱいではなく） */ if (b.height && x + o.left > b.left - 10 && x + o.left < b.right + 10 && y + o.top > b.top - 30 && y + o.top < b.bottom + 6) return true; } return false; };
+      const h = new M.KasaneHerd({ scene, camera, groundAt: () => -.105, walkable: (x, z) => this.okAt(x, z), scale: MOBILE ? .78 : .68, mobile: MOBILE, maxDist: 6, max: 16, shadow: true, upright: true, screenMargin: 14, bubbleAvoid: avoid, view: () => false, items: false, muted: () => !(sonic && sonic.on) });   // 持ち物はこの大きさでは「ごみ」に見えたので出さない
       const S = n => Array.from({ length: n }, () => ({ layer: "touch" }));
-      const P = MOBILE ? [[-.62, -.1, 4], [-.62, .34, 4]] : [[-.7, -.12, 4], [.7, .06, 4], [-.7, -.3, 3], [.7, .4, 3]];
-      for (const [x, z, n] of P) h.addGroup(S(n), { x, z, radius: .1 });
+      const P = MOBILE ? [[-.64, -.2, 2], [-.66, .14, 2], [.7, .18, 2]] : [[-.7, -.12, 4], [.7, .06, 4], [-.7, -.3, 3], [.7, .4, 3]];   // 2026-10-25：スマホは 6 体（列に見えない数）・大きく（小さいと「かけら」に見えた）・こちらを見る群れ
+      for (const [x, z, n] of P) h.addGroup(S(n), { x, z, radius: .12, role: "watch" });
       h.setLayers(["touch"]); await h.load(); this.herd = h;
     } catch (err) { console.warn("かさねっこ：", err?.message ?? err); }
   },
   tick(dt) {
     if (!this.herd) { if (!this.loading && performance.now() - this.t0 > 1200) this.load(); return; }
     this.herd.update(Math.min(dt, .05), { active: true, busy: !!document.querySelector("dialog[open]") });
-    for (const a of this.herd.agents) { const sg = a.pos.x < 0 ? -1 : 1; a.pos.x = sg * Math.min(MOBILE ? .7 : .86, Math.max(.56, Math.abs(a.pos.x))); a.pos.y = Math.min(sg < 0 ? .3 : .5, Math.max(-.32, a.pos.y)); }   // 群れが押し合っても、面の左右の床から出ない（面・字幕・画面の端にかからない）
+    { const cx = camera.position.x, cz = camera.position.z, d = Math.min(dt, .05); for (const a of this.herd.agents) if (!a.react && a.state !== "focus" && a.state !== "walk") a.faceTo(cx, cz, d, 14); }   // 2026-10-25（採点「横や後ろを向いて種に見える」）：止まっている子は見る人のほうへ顔を向ける
+    for (const a of this.herd.agents) { const sg = a.pos.x < 0 ? -1 : 1; a.pos.x = sg * Math.min(MOBILE ? .7 : .86, Math.max(.56, Math.abs(a.pos.x))); a.pos.y = Math.min(MOBILE ? .24 : sg < 0 ? .1 : .5, Math.max(MOBILE && sg > 0 ? .04 : -.32, a.pos.y)); for (let k = 0; k < 6; k++) { _kv.set(a.pos.x, -.06, a.pos.y).project(camera); const sx = (_kv.x * .5 + .5) * stage.clientWidth; if (sx > 30 && sx < stage.clientWidth - (MOBILE ? 30 : 64)) break; a.pos.x -= sg * .03; if (Math.abs(a.pos.x) < .56) { a.pos.x = sg * .56; break; } } }   // 2026-10-25：画面の端で体が切れない（PC の右端で窓の外に出ていた）   // 群れが押し合っても、面の左右の床から出ない（面・字幕・画面の端にかからない）
   },
-  tap(x, y) { const k = this.herd?.pick(x, y, MOBILE ? 34 : 30); if (!k) return false; this.herd.touch(k, () => setTimeout(() => this.herd.release(k), 1600)); return true; },
+  // 触れる面（上の面と前の縁）の画面の上の四角（2026-10-25：箱でなく四角で見る。スマホでは箱だと群れの上がすべて「出さない」になっていた）
+  surfQuad() { const W = stage.clientWidth, H = stage.clientHeight; return [[-.54, -.36, .06], [.54, -.36, .06], [.54, .52, -.1], [-.54, .52, -.1]].map(([x, z, y]) => { _kv.set(x, y, z).project(camera); return [(_kv.x * .5 + .5) * W, (-_kv.y * .5 + .5) * H]; }); },
+  surfRect() { const W = stage.clientWidth, H = stage.clientHeight; let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const [x, z] of [[-.54, -.36], [.54, -.36], [-.54, .52], [.54, .52]]) for (const y of [-.1, .06]) { _kv.set(x, y, z).project(camera); const sx = (_kv.x * .5 + .5) * W, sy = (-_kv.y * .5 + .5) * H; x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); } return { x0, x1, y0, y1 }; },   // 触れる面の画面の上の箱（吹き出しを出さない）
+  tap(x, y) { if (!this.herd) return false; const o = stage.getBoundingClientRect(); if (x < o.left || x > o.right || y < o.top || y > o.bottom) return false; const k = this.herd.pick((x - o.left) / o.width * innerWidth, (y - o.top) / o.height * innerHeight, MOBILE ? 34 : 30); if (!k) return false; this.herd.touch(k, () => setTimeout(() => this.herd.release(k), 1600)); this.nameTag(k); return true; },
+  // 2026-10-25（採点「押しても点だけで何の子か分からない」）：触れた子の頭の上に、名前の札を 2.6 秒だけ出す（人のことばは話さない。名前＝層の名前）
+  nameTag(k) { let el = this.tagEl; if (!el) { el = this.tagEl = document.createElement("div"); el.className = "kasa-tag"; el.setAttribute("aria-hidden", "true"); el.innerHTML = MOBILE ? "つみっこ" : "つみっこ<small>Qualia/touch</small>"; document.body.appendChild(el); }
+    const o = stage.getBoundingClientRect(); _kv.set(k.pos.x, -.105 + .3 * .22 * (MOBILE ? .78 : .68) * 1.5, k.pos.y).project(camera); let x = o.left + (_kv.x * .5 + .5) * o.width, y = o.top + (-_kv.y * .5 + .5) * o.height - 14;
+    el.style.display = "block"; const w = el.offsetWidth, hh = el.offsetHeight, q = this.surfQuad(), side = k.pos.x < 0 ? -1 : 1;
+    x = Math.max(o.left + 8 + w / 2, Math.min(o.right - 8 - w / 2, x));
+    for (let i = 0; i < 40; i++) { const lx = x - o.left, ty = y - o.top; if (![[lx - w / 2, ty - hh], [lx + w / 2, ty - hh], [lx - w / 2, ty], [lx + w / 2, ty]].some(([px, py]) => inQuad(q, px, py, 4))) break; x += side * 4; if (x - w / 2 < o.left + 4 || x + w / 2 > o.right - 4) { x -= side * 4; y -= 4; } }   /* 触れる面にかからない所まで外へ（端に着いたら上へ） */ el.style.left = x + "px"; el.style.top = (y + scrollY) + "px"; el.classList.remove("off"); clearTimeout(this.tagT); this.tagT = setTimeout(() => el.classList.add("off"), 2600); },
 };
 // ---- 毎こま
 let last = performance.now(), uiT = 0, frames = 0;
