@@ -48,3 +48,18 @@ html.v2-no3d .v2-poster{opacity:.6}
 }
 @media (prefers-reduced-motion:reduce){.v2-stage canvas,.v2-poster,.v2-lab,.v2-veil{transition:none}}
 html[data-lang=en] .v2-s0 .v2-title{white-space:normal}
+/* 2026-10-26 環世界 1.0／2.0 を場面の主役の字に */
+.v2-umw{margin:6px 0 16px;display:flex;flex-direction:column;gap:2px}
+.v2-umw-ja{font:400 clamp(40px,5vw,72px)/1.2 var(--serif);letter-spacing:.06em;color:var(--ink);white-space:nowrap}
+.v2-umw-en{font:400 13px/1.6 var(--mono);letter-spacing:.32em;color:#a8f2f6}
+html[data-lang=en] .v2-umw-en{display:none}
+html[data-lang=en] .v2-umw-ja{font-family:var(--latin);letter-spacing:0}
+.v2-def{font:400 clamp(22px,2.2vw,30px)/1.6 var(--serif);color:var(--ink);margin:0 0 16px;padding-left:14px;border-left:3px solid #a8f2f6}
+.v2-ex{font-size:16px;line-height:1.9;color:#e6f4f4;margin:0 0 16px;padding:10px 14px;background:#a8f2f60f;border:1px solid #a8f2f62e}
+.v2-ex .k{display:block;font:400 11px/1.6 var(--mono);letter-spacing:.18em;color:#8bccca;margin-bottom:2px}
+.v2-vs{display:flex;align-items:stretch;gap:10px;margin:0 0 16px}
+.v2-vs>div{flex:1;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid #8bccca40;color:#c9dcdd}
+.v2-vs>div.on{border-color:#a8f2f6;background:#a8f2f614;color:var(--ink)}
+.v2-vs em{font-style:normal;font:400 22px/1.2 var(--latin);color:#a8f2f6}.v2-vs span{font:400 17px/1.5 var(--serif)}.v2-vs small{font-size:12px;color:#9fb6b8}
+.v2-vs>i{align-self:center;font-style:normal;font-size:22px;color:#a8f2f6}
+@media (max-width:700px){.v2-umw-ja{font-size:40px}.v2-def{font-size:21px;margin-bottom:12px}.v2-ex{font-size:15px;padding:8px 12px;margin-bottom:12px}.v2-vs{margin-bottom:12px}.v2-vs span{font-size:15px}}
