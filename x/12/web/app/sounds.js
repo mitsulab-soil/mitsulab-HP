@@ -10,6 +10,7 @@ const PAMPH = C("川越市教育委員会 文化財保護課「川越市指定�
 const DENKEN = C("川越市「伝建地区の概要」（PDF）", "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/004/111/denkentikugaiyour4.pdf");
 const KOHO = C("広報川越 No.1162（2007-11-10）「川越まつり」（山車行列が行われた一番街・札の辻の曳っかわせ）", "https://www.city.kawagoe.saitama.jp/_res/projects/default_project/_page_/001/010/192/1162p8p9.pdf");
 const HAYASHI = C("『改訂新版 世界大百科事典』「祭囃子」（コトバンク）：葛西囃子は太鼓 1・締太鼓 2・笛 1・鉦 1 の 5 人で編成", "https://kotobank.jp/word/%E7%A5%AD%E3%82%8A%E5%9B%83%E5%AD%90");
+const KSHO = C("川越市「国指定重要文化財 喜多院 鐘楼門 附銅鐘」", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003800/1014134/1003806.html");
 const KANE = { who: "滋賀県近江八幡市・長命寺の梵鐘（2006 年）／Jnn／Wikimedia Commons（CC BY 2.1 JP）", src: [C("Bonsyou5599.ogg / Jnn / Wikimedia Commons（CC BY 2.1 JP）", CM("Bonsyou5599.ogg"))] };
 export const SPOTS = [
   /* ---------- 歴史 ---------- */
@@ -34,10 +35,19 @@ export const SPOTS = [
     label: "③ 再現音（櫓のきしみと、舟べりの水の模式。舟唄は典拠が見つかるまで作りません）", who: "mitsulab がその場で組み立てた音",
     how: "江戸へ荷を運んだ新河岸川は、ここから東へおよそ 900 m、10 m ほど低いところを流れています。昭和 6 年に船を止める県令が出て、舟運は終わりました。",
     src: [C("財務省「ファイナンス」2025 年 8 月号（新河岸川の舟運）", "https://www.mof.go.jp/public_relations/finance/202508/202508g.html")] },
-  { id: "h_kitain", cat: "history", kind: "else", title: "喜多院の鐘楼門", at: { ll: [35.9178, 139.48899] }, f: "web/snd/tokinokane.m4a",
+  { id: "h_kitain", cat: "history", kind: "else", title: "喜多院の鐘楼門", at: { x: 618, z: 676 }, f: "web/snd/tokinokane.m4a",   // 2026-10-25 鐘楼門（OSM の平面）の前へ。歩いて近づける
     label: "② 別の鐘の音（滋賀県近江八幡市・長命寺の梵鐘。喜多院の鐘の録音ではありません）", ...KANE,
-    how: "喜多院には、本瓦葺きの鐘楼門があり、国の重要文化財とされています。ここでは喜多院の鐘ではなく、別の寺の梵鐘の音を鳴らします。",
-    src: [C("たびまにあ「喜多院 鐘楼門」（第三者の紹介）", "https://tabi-mag.jp/sa0025/"), ...KANE.src] },
+    how: "喜多院の鐘楼門は、入母屋造・本瓦葺きの門で、上の層に元禄 15 年（1702）の銘のある銅鐘を吊ります（国の重要文化財）。ここでは喜多院の鐘ではなく、別の寺の梵鐘の音を鳴らします。",
+    src: [KSHO, ...KANE.src] },
+  /* ---------- 2026-10-25 裏路地・並行する道（本人「裏路地に入っても体験が続くように」） ---------- */
+  { id: "h_rekei_kane", cat: "history", kind: "else", title: "蓮馨寺の鐘（大火を越えた鐘）", at: { x: -97, z: 449 }, f: "web/snd/tokinokane.m4a",
+    label: "② 別の鐘の音（滋賀県近江八幡市・長命寺の梵鐘。蓮馨寺の鐘の録音ではありません）", ...KANE,
+    how: "蓮馨寺の鐘楼の鐘は、元禄 8 年（1695）の鋳造。明治 26 年の大火でも鐘楼ごと焼けずに残り、川越で第一といわれる大きな鐘です。ここでは蓮馨寺の鐘ではなく、別の寺の梵鐘の音を鳴らします（触れたときだけ）。",
+    src: [C("川越市「市指定有形文化財 元禄の銅鐘」（蓮馨寺）", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003884/1003925/1003975.html"), ...KANE.src] },
+  { id: "h_yoju_kane", cat: "history", kind: "else", title: "養寿院の鎌倉時代の鐘", at: { x: -168, z: -56 }, f: "web/snd/tokinokane.m4a",
+    label: "② 別の鐘の音（滋賀県近江八幡市・長命寺の梵鐘。養寿院の鐘の録音ではありません）", ...KANE,
+    how: "西の養寿院には、文応元年（1260）の銘のある銅鐘が伝わります（国の重要文化財）。ここでは養寿院の鐘ではなく、別の寺の梵鐘の音を鳴らします（触れたときだけ）。",
+    src: [C("川越市「国指定重要文化財 銅鐘 文応元年」（養寿院）", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003800/1003818.html"), ...KANE.src] },
   /* ---------- 文化 ---------- */
   { id: "c_hayashi", cat: "culture", kind: "re", title: "山車の囃子の音色", at: { d: 1060, s: 7 }, syn: "hayashi", amb: { r: 30, every: 22 },
     label: "③ 再現音（大太鼓・締太鼓・笛・鉦の音色を組み立てた模式。川越の囃子の曲そのものではありません）", who: "mitsulab がその場で組み立てた音",
@@ -96,11 +106,11 @@ export const SPOTS = [
   { id: "n_konoha", cat: "nature", kind: "else", title: "境内の木の葉ずれ", at: { x: 4, z: 448 }, f: "web/snd/konoha.m4a", amb: { r: 30, bed: true },
     label: "② ほかの場所で録った同じ種類の音（風に鳴る木の葉。録音地の記載なし。この境内の録音ではありません）", who: "Gravity Sound／Wikimedia Commons（CC BY 4.0）",
     how: "通りから西へ、蓮馨寺の方へ入ると、風が木の葉を鳴らす音が重なります（境内の木の種類と数は、まだ確かめていません）。", src: [C("Leaves in the wind (Gravity Sound) / Wikimedia Commons（CC BY 4.0）", CM("Leaves_in_the_wind_(Gravity_Sound).wav"))] },
-  { id: "n_aburazemi", cat: "nature", kind: "else", title: "アブラゼミ（夏）", at: { ll: [35.9178, 139.48899], dx: -10, dz: -6 }, f: "web/snd/aburazemi.m4a", amb: { r: 40, bed: true, months: [7, 8, 9], hours: [6, 18] },
+  { id: "n_aburazemi", cat: "nature", kind: "else", title: "アブラゼミ（夏）", at: { x: 590, z: 640 }, f: "web/snd/aburazemi.m4a", amb: { r: 40, bed: true, months: [7, 8, 9], hours: [6, 18] },
     label: "② ほかの場所で録った同じ種類の音（アブラゼミ。日本で録音）", who: "Cory／Wikimedia Commons（CC BY 2.1 JP）",
     how: "このあたりにアブラゼミの記録が 2 件あります。喜多院の杜に置きました。近づくと鳴るのは 7 月から 9 月の昼だけ。",
     src: [INAT("Graptopsaltria nigrofuscata", "アブラゼミ 2 件"), C("Aburazemi 07z7315.ogg / Cory / Wikimedia Commons（CC BY 2.1 JP）", CM("Aburazemi_07z7315.ogg"))] },
-  { id: "n_kogera", cat: "nature", kind: "re", title: "杜のコゲラ", at: { ll: [35.9178, 139.48899], dx: 9, dz: 8 }, syn: "kogera", amb: { r: 26, every: 25, hours: [6, 17] },
+  { id: "n_kogera", cat: "nature", kind: "re", title: "杜のコゲラ", at: { x: 538, z: 690 }, syn: "kogera", amb: { r: 26, every: 25, hours: [6, 17] },
     label: "③ 再現音（小さなキツツキが木をつつく音の模式。コゲラの録音ではありません）", who: "mitsulab がその場で組み立てた音",
     how: "このあたりに、小さなキツツキ、コゲラの記録が 2 件あります。商用で使える録音が見つからないので、木をつつく音を模式として組み立てています。",
     src: [INAT("Yungipicus kizuki", "コゲラ 2 件")] },
@@ -116,4 +126,32 @@ export const SPOTS = [
     label: "② ほかの場所で録った同じ種類の音（瓦屋根に当たる雨。オランダで録音）", who: "Beeld en Geluid（オランダ映像音響研究所）／Wikimedia Commons（CC BY-SA 3.0）",
     how: "蔵の屋根は瓦葺き。雨の日に瓦を打つ雨音を、ほかの場所の瓦屋根の録音で。晴れの日も、触れれば鳴ります。",
     src: [C("Regen op een pannendak / Beeld en Geluid / Wikimedia Commons（CC BY-SA 3.0）", CM("Regen_op_een_pannendak_-_SoundCloud_-_Beeld_en_Geluid.ogg"))] },
+  /* ---------- 2026-10-25 裏路地・並行する道・寺社の杜（自然）。録音は上と同じもの（同じ種をほかの場所で録った声） ---------- */
+  { id: "n_hiyodori_ura", cat: "nature", kind: "else", title: "裏の寺の木のヒヨドリ", at: { x: -272, z: 99 }, f: "web/snd/hiyodori.m4a", amb: { r: 32, every: 20, hours: [5, 18] },
+    label: "② ほかの場所で録った同じ種類の音（ヒヨドリ。静岡県伊豆市で録音）", who: "karliatje／iNaturalist／Wikimedia Commons（CC BY 4.0）",
+    how: "一番街の西の裏の道。寺の木のあるあたりに、このあたりでいちばん記録の多いヒヨドリの声を置きました（ここにいたという記録ではありません）。",
+    src: [INAT("Hypsipetes amaurotis", "ヒヨドリ 9 件"), C("Hypsipetes-amaurotis-2025-05-20-282617142.ogg / karliatje / Wikimedia Commons（CC BY 4.0）", CM("Hypsipetes-amaurotis-2025-05-20-282617142.ogg"))] },
+  { id: "n_kijibato_ura", cat: "nature", kind: "else", title: "路地のキジバト", at: { x: -275, z: -124 }, f: "web/snd/kijibato.m4a", amb: { r: 30, every: 28, hours: [5, 18] },
+    label: "② ほかの場所で録った同じ種類の音（キジバト。録音地の記載なし）", who: "boppochan／Wikimedia Commons（CC BY-SA 3.0）",
+    how: "菓子屋横丁の西の路地に、キジバトの声を置きました（このあたりの記録は 7 件。ここにいたという記録ではありません）。",
+    src: [INAT("Streptopelia orientalis", "キジバト 7 件"), C("Streptopelia orientalis.ogg / boppochan / Wikimedia Commons（CC BY-SA 3.0）", CM("Streptopelia_orientalis.ogg"))] },
+  { id: "n_suzume_ura", cat: "nature", kind: "else", title: "裏の道のスズメ", at: { x: -87, z: 25 }, f: "web/snd/suzume.m4a", amb: { r: 24, every: 22, hours: [5, 18] },
+    label: "② ほかの場所で録った同じ種類の音（スズメ。フィリピン・ネグロス・オクシデンタル州で録音）", who: "Derek Paulo／xeno-canto／Wikimedia Commons（CC BY-SA 4.0）",
+    how: "一番街と並ぶ西の裏の道に、スズメの声を置きました。同じ種（Passer montanus）を、ほかの場所で録った声です。",
+    src: [INAT("Passer montanus", "スズメ 1 件"), C("Passer montanus - Eurasian Tree Sparrow XC347807 / Derek Paulo / Wikimedia Commons（CC BY-SA 4.0）", CM("Passer_montanus_-_Eurasian_Tree_Sparrow_XC347807.mp3"))] },
+  { id: "n_hiyodori_higashi", cat: "nature", kind: "else", title: "東の路地のヒヨドリ", at: { x: 86, z: -104 }, f: "web/snd/hiyodori.m4a", amb: { r: 30, every: 24, hours: [5, 18] },
+    label: "② ほかの場所で録った同じ種類の音（ヒヨドリ。静岡県伊豆市で録音）", who: "karliatje／iNaturalist／Wikimedia Commons（CC BY 4.0）",
+    how: "一番街の東の路地、小さな社の木のあたりに、ヒヨドリの声を置きました（ここにいたという記録ではありません）。",
+    src: [INAT("Hypsipetes amaurotis", "ヒヨドリ 9 件"), C("Hypsipetes-amaurotis-2025-05-20-282617142.ogg / karliatje / Wikimedia Commons（CC BY 4.0）", CM("Hypsipetes-amaurotis-2025-05-20-282617142.ogg"))] },
+  { id: "n_kijibato_michi", cat: "nature", kind: "else", title: "喜多院への道のキジバト", at: { x: 392, z: 350 }, f: "web/snd/kijibato.m4a", amb: { r: 30, every: 26, hours: [5, 18] },
+    label: "② ほかの場所で録った同じ種類の音（キジバト。録音地の記載なし）", who: "boppochan／Wikimedia Commons（CC BY-SA 3.0）",
+    how: "一番街から喜多院へ向かう、曲がりの多い道に、キジバトの声を置きました（ここにいたという記録ではありません）。",
+    src: [INAT("Streptopelia orientalis", "キジバト 7 件"), C("Streptopelia orientalis.ogg / boppochan / Wikimedia Commons（CC BY-SA 3.0）", CM("Streptopelia_orientalis.ogg"))] },
+  { id: "n_konoha_kitain", cat: "nature", kind: "else", title: "喜多院の杜の葉ずれ", at: { x: 605, z: 615 }, f: "web/snd/konoha.m4a", amb: { r: 30, bed: true },
+    label: "② ほかの場所で録った同じ種類の音（風に鳴る木の葉。録音地の記載なし。この境内の録音ではありません）", who: "Gravity Sound／Wikimedia Commons（CC BY 4.0）",
+    how: "喜多院の山門のあたりに、風が木の葉を鳴らす音を重ねます（境内の木の種類と数は、まだ確かめていません）。", src: [C("Leaves in the wind (Gravity Sound) / Wikimedia Commons（CC BY 4.0）", CM("Leaves_in_the_wind_(Gravity_Sound).wav"))] },
+  { id: "n_karasu_hikawa", cat: "nature", kind: "else", title: "神社の杜のハシブトガラス", at: { x: 440, z: -405 }, f: "web/snd/karasu.m4a", amb: { r: 40, every: 34, hours: [5, 18] },
+    label: "② ほかの場所で録った同じ種類の音（ハシブトガラス。記録の場所：Heirinji, Japan〈埼玉県新座市の平林寺とみられる〉）", who: "Zeimusu／Wikimedia Commons（CC BY-SA 2.5）",
+    how: "川越氷川神社の杜のそばに、ハシブトガラスの声を置きました（ここにいたという記録ではありません）。",
+    src: [INAT("Corvus macrorhynchos", "ハシブトガラス 1 件"), C("Corvus macrorhynchos 2005-07-10.ogg / Zeimusu / Wikimedia Commons（CC BY-SA 2.5）", CM("Corvus_macrorhynchos_2005-07-10.ogg"))] },
 ];

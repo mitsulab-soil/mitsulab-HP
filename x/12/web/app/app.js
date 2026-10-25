@@ -9,12 +9,13 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k1";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q3";
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k6";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k7";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
-import { SPOTS } from "./sounds.js?v=2";
+import { SPOTS } from "./sounds.js?v=3";
+import { makeEarWalk } from "./earwalk.js?v=1";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -22,7 +23,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261023k";
+const VER = "20261025u";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -73,6 +74,33 @@ function nearestOnLine(x, z) { const P = G.line, L = G.lineD; let best = 1e18, b
   for (let i = 0; i < P.length - 1; i++) { const a = P[i], b = P[i + 1], vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz || 1e-9; let t = ((x - a[0]) * vx + (z - a[1]) * vz) / l2; t = Math.max(0, Math.min(1, t));
     const px = a[0] + vx * t, pz = a[1] + vz * t, dd = (x - px) ** 2 + (z - pz) ** 2; if (dd < best) { best = dd; bd = L[i] + t * Math.sqrt(l2); bs = (vx * (z - a[1]) - vz * (x - a[0])) / Math.sqrt(l2); } }
   return { d: bd, s: bs, dist: Math.sqrt(best) }; }
+/* 歩ける道（2026-10-25 本人「裏路地に入っても体験が続くように範囲をもう少し広げて」）：一番街の両側の裏路地・並行する道・喜多院／川越氷川神社／新河岸川への道。
+   OSM の公道と一般に通れる道だけ（_dev/build_data.py の build_walk）。起動のあとに読む（読むまでは道筋 A のまわり 14 m だけ） */
+const NET = { segs: null, hash: new Map(), cell: 20, box: null, p: null };
+function loadNet() {
+  return NET.p ||= fetch("web/geo/walk.json?v=" + VER).then(r => r.json()).then(j => {
+    const S = []; for (const w of j.w) { const hw = w[0]; for (let i = 1; i + 3 < w.length; i += 2) S.push(w[i], w[i + 1], w[i + 2], w[i + 3], hw); }
+    const segs = new Float32Array(S), c = NET.cell;
+    for (let s = 0; s < segs.length; s += 5) { const x0 = Math.min(segs[s], segs[s + 2]) - 12, x1 = Math.max(segs[s], segs[s + 2]) + 12, z0 = Math.min(segs[s + 1], segs[s + 3]) - 12, z1 = Math.max(segs[s + 1], segs[s + 3]) + 12;
+      for (let i = Math.floor(x0 / c); i <= Math.floor(x1 / c); i++) for (let k = Math.floor(z0 / c); k <= Math.floor(z1 / c); k++) { const key = i * 4096 + k; let a = NET.hash.get(key); if (!a) NET.hash.set(key, a = []); a.push(s); } }
+    NET.segs = segs; NET.box = j.box; NET.pw = (j.pw || []).map(f => { const r = []; for (let i = 0; i + 1 < f.length; i += 2) r.push({ x: f[i], y: f[i + 1] }); let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of r) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); } return { r, x0, x1, z0, z1 }; }); QW.NET = NET; return NET;
+  }).catch(e => { console.warn("歩ける道を読み込めませんでした", e?.message ?? e); return null; });
+}
+const _nn = { dist: 1e9, x: 0, z: 0, hw: 0, tx: 0, tz: 1 };
+function netNear(x, z, R = 24, out = _nn) {   // いちばん近い歩ける道（中心の線までの距離と、その点・半幅・向き）
+  out.dist = 1e9; out.hw = 0; const S = NET.segs; if (!S) return out; const c = NET.cell, r = Math.ceil(R / c), ci = Math.floor(x / c), ck = Math.floor(z / c);
+  for (let i = ci - r; i <= ci + r; i++) for (let k = ck - r; k <= ck + r; k++) { const a = NET.hash.get(i * 4096 + k); if (!a) continue;
+    for (const s of a) { const ax = S[s], az = S[s + 1], vx = S[s + 2] - ax, vz = S[s + 3] - az, l2 = vx * vx + vz * vz || 1e-9; let t = ((x - ax) * vx + (z - az) * vz) / l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const px = ax + vx * t, pz = az + vz * t, d = Math.hypot(x - px, z - pz); if (d - S[s + 4] < out.dist - out.hw) { const l = Math.sqrt(l2); out.dist = d; out.x = px; out.z = pz; out.hw = S[s + 4]; out.tx = vx / l; out.tz = vz / l; } } }
+  return out;
+}
+function netFar(x, z) {   // 範囲の外から：いちばん近い歩ける道まで（全部を見る・現在地の判定にだけ使う）
+  const S = NET.segs; let best = 1e9, bx = 0, bz = 0; if (!S) return { dist: best };
+  for (let s = 0; s < S.length; s += 5) { const ax = S[s], az = S[s + 1], vx = S[s + 2] - ax, vz = S[s + 3] - az, l2 = vx * vx + vz * vz || 1e-9; let t = ((x - ax) * vx + (z - az) * vz) / l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+    const px = ax + vx * t, pz = az + vz * t, d = Math.hypot(x - px, z - pz); if (d < best) { best = d; bx = px; bz = pz; } }
+  return { dist: best, x: bx, z: bz };
+}
+const onNet = (x, z, m = 0) => { const n = netNear(x, z, 20); return n.dist <= n.hw + m; };
 const yawAlong = d => { const a = atD(d); return Math.atan2(-a.tx, -a.tz); };   // 道のりの増える向き（北へ）を向く
 
 const TL = new THREE.TextureLoader();
@@ -83,7 +111,7 @@ const DESAT = { value: 0 };   // 2026-10-23 公開前：鳥の高さで見ると
 const desat = m => { m.onBeforeCompile = (sh => { const prev = m._obc; return s => { prev && prev(s); s.uniforms.uDesat = DESAT; s.fragmentShader = s.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uDesat;").replace("#include <map_fragment>", "#include <map_fragment>\n { float lu=dot(diffuseColor.rgb,vec3(.299,.587,.114)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(lu*1.03,lu,lu*.95),uDesat); }"); }; })(); return m; };
 async function buildBase() {
   status("地形を読み込んでいます");
-  const [g, c, dem] = await Promise.all([fetch("web/geo/geo.json?v=" + VER).then(r => r.json()), fetch("web/app/content.json?v=" + VER).then(r => r.json()), fetch("web/geo/dem.bin?v=" + VER).then(r => r.arrayBuffer())]);
+  const [g, c, dem] = await Promise.all([fetch("web/geo/geo.json?v=" + VER).then(r => r.json()), fetch("web/app/content.json?v=" + VER).then(r => r.json()), fetch("web/geo/dem.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet()]);   // 歩ける道（30 KB）も一緒に
   G = g; C = c; DEM = new Int16Array(dem); QW.G = G; QW.C = C;
   const d = G.dem, st = MOBILE ? 2 : 1, nx = Math.floor((d.nx - 1) / st) + 1, nz = Math.floor((d.nz - 1) / st) + 1;
   const pos = new Float32Array(nx * nz * 3), uv = new Float32Array(nx * nz * 2), idx = [];
@@ -160,14 +188,17 @@ function buildRoute() {   // 道筋 A：上空では光る線、歩くときは�
 /* ---------- 建物：OSM の平面＋模式の高さ → 半透明の薄いグラフィック（面はごく薄く・輪郭の線・階の線・上へ抜ける走査の帯） ---------- */
 const BLDU = { t: { value: 0 } };
 async function buildBuildings() {
-  const buf = await fetch("web/geo/bld.bin?v=" + VER).then(r => r.arrayBuffer()), a = new Int16Array(buf);
+  const [buf] = await Promise.all([fetch("web/geo/bld.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet()]), a = new Int16Array(buf);
+  const B = NET.box || [0, 0, 0, 0], inBox = (x, z, m) => x > B[0] - m && x < B[2] + m && z > B[1] - m && z < B[3] + m;   // 歩ける道の範囲（とそのまわり）
   const P = [], Y0 = [], E = [], F = [], LIM = MOBILE ? 700 : 1600;
   let i = 0, nb = 0;
   while (i < a.length) {
     const n = a[i], hRaw = a[i + 1], low = (hRaw & 0x4000) !== 0, h = (hRaw & 0x3fff) / 10, y = a[i + 2] / 10; i += 3;
     const ring = []; for (let k = 0; k < n; k++) { ring.push(new THREE.Vector2(a[i] / 10, a[i + 1] / 10)); i += 2; }
-    const cx = ring[0].x, cz = ring[0].y; if (Math.hypot(cx, cz - 400) > LIM) continue; nb++;
-    const top = low ? y + .06 : y + h, far = Math.hypot(cx, cz - 400) > 600;   // 型を置いた所は、地面の地割の線だけ
+    const cx = ring[0].x, cz = ring[0].y, box = inBox(cx, cz, 60); if (Math.hypot(cx, cz - 400) > LIM && !inBox(cx, cz, MOBILE ? 120 : 300)) continue; nb++;
+    const top = low ? y + .06 : y + h, far = !box && Math.hypot(cx, cz - 400) > 600;   // 型を置いた所は、地面の地割の線だけ
+    if (!low && box && NET.pw) { let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= n; mz /= n; const A = Math.abs(THREE.ShapeUtils.area(ring));
+      if (A > 18 && A < 3000 && NET.pw.some(w => mx > w.x0 && mx < w.x1 && mz > w.z0 && mz < w.z1 && inRing(w.r, mx, mz)) && !netCrosses(ring)) { addTemple(ring, y, A); continue; } }   // 2026-10-25 寺社の境内の建物＝寺社の建物の型（模式）
     if (!low && !far && streetSide(ring)) { addSolid(ring, y, top); for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n]; E.push(p.x, top, p.y, q.x, top, q.y); } continue; }   // 2026-10-24 本人「人が歩くところは透明にしない」＝通りに面した建物は不透明の壁に（入れない）
     for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n];
       P.push(p.x, y, p.y, q.x, y, q.y, q.x, top, q.y, p.x, y, p.y, q.x, top, q.y, p.x, top, p.y); for (let m = 0; m < 6; m++) Y0.push(y);
@@ -194,22 +225,75 @@ async function buildBuildings() {
   const fg = new THREE.BufferGeometry(); fg.setAttribute("position", new THREE.Float32BufferAttribute(F, 3)); fg.computeVertexNormals();
   const foot = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ color: "#45474a", roughness: .96, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })); foot.renderOrder = 1; world.add(foot); BLD.foot = foot;
   BLD.mesh = m; BLD.lines = lines; BLD.mat = mat; QW.nBld = nb;
-  buildSolids();
+  buildSolids(); buildTemples();
 }
 /* 通りに面した建物（道筋から 24 m 以内に輪郭がかかるもの）：漆喰の不透明の壁と屋根。歩いて中に入らない（足もとの輪郭で止める）。
    道筋が建物の輪郭の中を通るもの（駅の建物など）は、通れなくならないよう、これまでどおり薄いグラフィックに残す */
 const SOLID = { P: [], U: [], W: [], C: [], polys: [], hash: new Map(), cell: 12 };
-const SOLID_TONES = [[.5, .47, .43], [.52, .45, .37], [.42, .41, .39], [.4, .34, .29], [.32, .3, .29], [.47, .44, .4]];   // 2026-10-25 採点「白い張りぼての板に見える」→ 白を抑え、雨に古びた漆喰・タイルの色へ   // 漆喰の白・タイルの砂色・灰・焦げ茶・濃い灰（模式）
+const SOLID_TONES = [[.24, .19, .14], [.28, .23, .17], [.17, .13, .1], [.11, .1, .09], [.32, .28, .23], [.07, .07, .07]];   // 2026-10-26 採点「白〜ベージュの箱」→ 土壁の茶・焼杉の黒・古い漆喰（色は線形の値）   // 2026-10-26「灰色の面が多い」→ 灰を減らし、土壁の茶と黒漆喰に近い黒を混ぜる   // 2026-10-25 採点「白い張りぼての板に見える」→ 白を抑え、雨に古びた漆喰・タイルの色へ   // 漆喰の白・タイルの砂色・灰・焦げ茶・濃い灰（模式）
 function inRing(r, x, z) { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a.y > z) !== (b.y > z) && x < (b.x - a.x) * (z - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 function streetSide(ring) {
-  if (nearestOnLine(ring[0].x, ring[0].y).dist > 70) return false;
+  const route = nearestOnLine(ring[0].x, ring[0].y).dist < 70;
+  if (!route && !NET.segs) return false;
   if (Math.abs(THREE.ShapeUtils.area(ring)) < 25) return false;   // 2026-10-25 採点「白い張りぼての板」＝角の 9 m² ほどの小さな建物（交番や塔のようなもの）は、不透明の箱にせず線のグラフィックのまま
-  let near = false; for (const p of ring) if (nearestOnLine(p.x, p.y).dist < 24) { near = true; break; }
+  let near = false; if (route) for (const p of ring) if (nearestOnLine(p.x, p.y).dist < 24) { near = true; break; }
+  if (!near && NET.segs) for (const p of ring) { const q = netNear(p.x, p.y, 20); if (q.dist < q.hw + 8) { near = true; break; } }   // 裏路地・並行する道に面した建物も（2026-10-25）
   if (!near) return false;
+  if (NET.segs && netCrosses(ring)) return false;   // 歩ける道がこの建物の輪郭の中を通る（境内の道・駅の通路など）＝通れなくならないよう、薄いグラフィックのまま
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of ring) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
   for (const q of G.line) if (q[0] > x0 && q[0] < x1 && q[1] > z0 && q[1] < z1 && inRing(ring, q[0], q[1])) return false;
   const n = nearestOnLine((x0 + x1) / 2, (z0 + z1) / 2), a = atD(n.d); if (inRing(ring, a.x, a.z)) return false;   // 道筋がこの建物の中を通る
   return true;
+}
+/* 寺社の建物の型（模式・2026-10-25）：境内の建物を、窓のある箱でなく、低い板壁と大きな瓦の寄棟の屋根に。
+   喜多院の山門＝切妻造・本瓦葺、鐘楼門＝入母屋造・本瓦葺、川越氷川神社の本殿＝入母屋造・銅瓦葺（川越市の文化財の説明）。ここでは一つの寄棟の形で近づけた模式で、一棟ずつの姿ではない */
+const TEMPLE = { wP: [], wU: [], rP: [], rU: [], tags: [] };
+function addTemple(ring, y, A) {
+  let best = 0, ang = 0; for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], l = Math.hypot(q.x - p.x, q.y - p.y); if (l > best) { best = l; ang = Math.atan2(q.y - p.y, q.x - p.x); } }
+  const ux = Math.cos(ang), uz = Math.sin(ang), vx = -uz, vz = ux; let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9;
+  for (const p of ring) { const a = p.x * ux + p.y * uz, b = p.x * vx + p.y * vz; a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b); }
+  let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= ring.length; mz /= ring.length;
+  const kind = Math.hypot(mx - 607, mz - 631) < 8 ? "sanmon" : Math.hypot(mx - 615, mz - 683) < 8 ? "shoro" : "";   // 喜多院の山門（切妻造・本瓦葺の四脚門）／鐘楼門（入母屋造・本瓦葺・下層は袴腰）＝川越市の文化財の説明
+  let wh = Math.min(5.2, 2.8 + Math.sqrt(A) * .07); if (kind === "sanmon") wh = 4.2; if (kind === "shoro") wh = 5.8;
+  const top = y + wh, ov = kind === "shoro" ? 1.6 : kind ? 1.2 : Math.min(1.4, .6 + Math.sqrt(A) * .03);
+  // 壁：OSM の輪郭のまま、板壁
+  let L = 0; for (let k = 0; k < ring.length; k++) { const p = ring[k], q = ring[(k + 1) % ring.length], len = Math.hypot(q.x - p.x, q.y - p.y);
+    if (kind === "shoro") { const k = .86, k2 = .66, k3 = 1.0, hy = y + 3.1, I = (t, c) => [mx + (t.x - mx) * c, mz + (t.y - mz) * c], [px2, pz2] = I(p, k), [qx2, qz2] = I(q, k), [px3, pz3] = I(p, k2), [qx3, qz3] = I(q, k2), [px4, pz4] = I(p, k3), [qx4, qz4] = I(q, k3);   // 下層は裾の広がる袴腰、その上に縁（腰組）、上層は一回り小さい鐘の間
+      TEMPLE.wP.push(p.x, y - .3, p.y, q.x, y - .3, q.y, qx2, hy, qz2, p.x, y - .3, p.y, qx2, hy, qz2, px2, hy, pz2);
+      TEMPLE.wP.push(px4, hy, pz4, qx4, hy, qz4, qx4, hy + .25, qz4, px4, hy, pz4, qx4, hy + .25, qz4, px4, hy + .25, pz4);   // 縁の板
+      TEMPLE.wP.push(px3, hy + .25, pz3, qx3, hy + .25, qz3, qx3, top, qz3, px3, hy + .25, pz3, qx3, top, qz3, px3, top, pz3);
+      for (const [u, v] of [[L, 0], [L + len, 0], [L + len, 3.1], [L, 0], [L + len, 3.1], [L, 3.1], [L, 0], [L + len, 0], [L + len, .25], [L, 0], [L + len, .25], [L, .25], [L, 3.4], [L + len * .66, 3.4], [L + len * .66, wh], [L, 3.4], [L + len * .66, wh], [L, wh]]) TEMPLE.wU.push(u / 2, v / 2);
+      TEMPLE.rP.push(px4, hy + .25, pz4, qx4, hy + .25, qz4, qx3, hy + .25, qz3, px4, hy + .25, pz4, qx3, hy + .25, qz3, px3, hy + .25, pz3); for (let m = 0; m < 6; m++) TEMPLE.rU.push(0, 0);   // 縁の床
+      L += len; continue; }
+    TEMPLE.wP.push(p.x, y - .3, p.y, q.x, y - .3, q.y, q.x, top, q.y, p.x, y - .3, p.y, q.x, top, q.y, p.x, top, p.y); for (const [u, v] of [[L, 0], [L + len, 0], [L + len, wh], [L, 0], [L + len, wh], [L, wh]]) TEMPLE.wU.push(u / 2, v / 2); L += len; }
+  // 屋根：外へ ov m 出した長方形に寄棟（長い辺の両側は台形、短い辺は三角）
+  a0 -= ov; a1 += ov; b0 -= ov; b1 += ov; const W = b1 - b0, Lg = a1 - a0, rise = kind === "sanmon" ? W * .45 : Math.min(7, W * .3), rr = kind === "sanmon" ? Lg / 2 : Math.max(0, (Lg - W) / 2), am = (a0 + a1) / 2, bm = (b0 + b1) / 2, ry = top + rise, ey = top - .15;
+  const P = (a, b, h) => [a * ux + b * vx, h, a * uz + b * vz], e1 = P(a0, b0, ey), e2 = P(a1, b0, ey), e3 = P(a1, b1, ey), e4 = P(a0, b1, ey), r1 = P(am - rr, bm, ry), r2 = P(am + rr, bm, ry), sl = Math.hypot(W / 2, rise);
+  const tri = (A_, B_, C_, ua, ub, uc) => { TEMPLE.rP.push(...A_, ...B_, ...C_); TEMPLE.rU.push(...ua, ...ub, ...uc); };
+  tri(e1, e2, r2, [0, 0], [Lg / 2, 0], [(Lg + 2 * rr) / 4, sl / 2]); tri(e1, r2, r1, [0, 0], [(Lg + 2 * rr) / 4, sl / 2], [(Lg - 2 * rr) / 4, sl / 2]);
+  tri(e3, e4, r1, [0, 0], [Lg / 2, 0], [(Lg + 2 * rr) / 4, sl / 2]); tri(e3, r1, r2, [0, 0], [(Lg + 2 * rr) / 4, sl / 2], [(Lg - 2 * rr) / 4, sl / 2]);
+  tri(e2, e3, r2, [0, 0], [W / 2, 0], [W / 4, sl / 2]); tri(e4, e1, r1, [0, 0], [W / 2, 0], [W / 4, sl / 2]);
+  regSolid(ring); TEMPLE.tags.push({ k: { x: am * ux + bm * vx, z: am * uz + bm * vz, yaw: Math.atan2(vx, vz), dp: W, y }, code: "TEMPLE FORM", name: "寺社の建物の型" });
+}
+function buildTemples() {
+  if (!TEMPLE.rP.length) return; const M = kuraMats(TL, MOBILE);
+  const g1 = new THREE.BufferGeometry(); g1.setAttribute("position", new THREE.Float32BufferAttribute(TEMPLE.wP, 3)); g1.setAttribute("uv", new THREE.Float32BufferAttribute(TEMPLE.wU, 2)); g1.computeVertexNormals();
+  const g2 = new THREE.BufferGeometry(); g2.setAttribute("position", new THREE.Float32BufferAttribute(TEMPLE.rP, 3)); g2.setAttribute("uv", new THREE.Float32BufferAttribute(TEMPLE.rU, 2)); g2.computeVertexNormals();
+  const wm = M.wood.clone(); wm.color.set("#8a6e52"); const w = new THREE.Mesh(g1, wm), r = new THREE.Mesh(g2, M.tile); w.name = "templeWall"; r.name = "templeRoof"; world.add(w, r); BLD.temple = [w, r]; QW.nTemple = TEMPLE.tags.length;
+  if (KURA.tags) KURA.tags.push(...TEMPLE.tags); else KURA.ttags = TEMPLE.tags;
+}
+function regSolid(ring) {
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of ring) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
+  const id = SOLID.polys.push({ ring, x0, x1, z0, z1 }) - 1, c = SOLID.cell;
+  for (let i = Math.floor(x0 / c); i <= Math.floor(x1 / c); i++) for (let j = Math.floor(z0 / c); j <= Math.floor(z1 / c); j++) { const k = i + "," + j; if (!SOLID.hash.has(k)) SOLID.hash.set(k, []); SOLID.hash.get(k).push(id); }
+}
+function netCrosses(ring) {   // 歩ける道の中心の線が、この輪郭の中を通るか（1.5 m ごとに見る）
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of ring) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
+  const S = NET.segs, c = NET.cell, seen = new Set();
+  for (let i = Math.floor(x0 / c); i <= Math.floor(x1 / c); i++) for (let k = Math.floor(z0 / c); k <= Math.floor(z1 / c); k++) { const a = NET.hash.get(i * 4096 + k); if (!a) continue;
+    for (const s of a) { if (seen.has(s)) continue; seen.add(s); const ax = S[s], az = S[s + 1], bx = S[s + 2], bz = S[s + 3], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 1.5));
+      for (let m = 0; m <= n; m++) { const x = ax + (bx - ax) * m / n, z = az + (bz - az) * m / n; if (x > x0 && x < x1 && z > z0 && z < z1 && inRing(ring, x, z)) return true; } } }
+  return false;
 }
 function addSolid(ring, y, top) {
   const P = SOLID.P, U = SOLID.U, W = SOLID.W, C = SOLID.C, n = ring.length, b = SOLID_TONES[Math.floor(Math.random() * SOLID_TONES.length)], j = (Math.random() - .5) * .05;
@@ -450,7 +534,9 @@ function aoiSpot(out) {
   const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .45 : 1.1, fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const side = !$("#panel").hidden && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
-  out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side); out.y = groundY(out.x, out.z); return out;
+  out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
+  if (offRoute(CAM.pos.x, CAM.pos.z)) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
+  out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
   loadAoi().then(() => {
@@ -535,7 +621,13 @@ function descendTo(i, at) {   // at＝現在地（GPS）の位置
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
   tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.6, () => { setMode("walk"); showWalkUI(); aoiArrive(); });
 }
-function corridorClamp(p) { const n = nearestOnLine(p.x, p.z); if (n.dist > 14) { const a = atD(n.d), k = 14 / n.dist; p.x = a.x + (p.x - a.x) * k; p.z = a.z + (p.z - a.z) * k; } solids(p); }
+function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
+  const n = nearestOnLine(p.x, p.z); if (n.dist <= 14) { solids(p); return; }
+  const a = atD(n.d), k = 14 / n.dist, rx = a.x + (p.x - a.x) * k, rz = a.z + (p.z - a.z) * k;
+  if (NET.segs) { const q = netNear(p.x, p.z, 40); if (q.dist <= q.hw) { solids(p); return; }
+    if (q.dist < 1e8) { const m = q.hw / (q.dist || 1), nx = q.x + (p.x - q.x) * m, nz = q.z + (p.z - q.z) * m; if (Math.hypot(nx - p.x, nz - p.z) < Math.hypot(rx - p.x, rz - p.z)) { p.x = nx; p.z = nz; solids(p); return; } } }
+  p.x = rx; p.z = rz; solids(p); }
+const offRoute = (x, z) => nearestOnLine(x, z).dist > 14;
 function solids(p, r = .35) {   // 店蔵の型と時の鐘には入らない（向きのある箱から押し出す）
   const push = (cx, cz, yaw, hw, hd) => { const c = Math.cos(yaw), s = Math.sin(yaw), dx = p.x - cx, dz = p.z - cz, lx = dx * c - dz * s, lz = dx * s + dz * c;
     if (Math.abs(lx) < hw + r && Math.abs(lz) < hd + r) { const ox = hw + r - Math.abs(lx), oz = hd + r - Math.abs(lz); let nx = lx, nz = lz; if (ox < oz) nx = Math.sign(lx || 1) * (hw + r); else nz = Math.sign(lz || 1) * (hd + r); p.x = cx + nx * c + nz * s; p.z = cz - nx * s + nz * c; } };
@@ -547,6 +639,9 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   const f = KEYS.has("w") || KEYS.has("arrowup") || WALK.auto || WALK.hold ? 1 : KEYS.has("s") || KEYS.has("arrowdown") ? -1 : 0;
   const turn = (KEYS.has("a") || KEYS.has("arrowleft") ? 1 : 0) - (KEYS.has("d") || KEYS.has("arrowright") ? 1 : 0);
   CAM.yaw += turn * dt * 1.3;
+  const off = offRoute(CAM.pos.x, CAM.pos.z);
+  if (off && WALK.auto && NET.segs) { const q = netNear(CAM.pos.x, CAM.pos.z, 12); if (q.dist < q.hw + 1) { const h = CAM.yaw + CAM.look, a1 = Math.atan2(-q.tx, -q.tz), a = Math.abs(wrap(a1 - h)) < Math.PI / 2 ? a1 : a1 + Math.PI; CAM.yaw += wrap(a - h) * Math.min(1, dt * 1.6); } }   // 歩きつづける：裏路地では道の向きに沿う
+  if (off && !WALK.offSeen && QW.mode === "walk") { WALK.offSeen = true; setTimeout(() => safetyNote(), 600); }
   let mx = 0, mz = 0;
   if (f) { const yaw = CAM.yaw + CAM.look; mx = -Math.sin(yaw) * f * speed * dt; mz = -Math.cos(yaw) * f * speed * dt; }
   else if (WALK.goal) { const dx = WALK.goal.x - CAM.pos.x, dz = WALK.goal.z - CAM.pos.z, dd = Math.hypot(dx, dz); if (dd < .4) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; } else { mx = dx / dd * Math.min(dd, speed * dt); mz = dz / dd * Math.min(dd, speed * dt); const ty = Math.atan2(-dx, -dz); CAM.yaw += wrap(ty - CAM.yaw - CAM.look) * Math.min(1, dt * 2.2); } }
@@ -562,6 +657,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, CAM.yaw + CAM.look, 0, "YXZ"));
 }
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
+function safetyNote() { if (WALK.safety) return; WALK.safety = true; toast("裏の道も歩けます。歩くときは、前と周りの人・車・自転車に気をつけて。画面は立ち止まって見てください。"); }   // 2026-10-25 本人「メインストリートは人が多いので危なく」＝一度だけ
 function startFly() {
   hidePanel(); stopVoice(); hideSkyUI(); hideWalkUI();
   const from = QW.mode === "walk" ? CAM.pos.clone() : (() => { const a = atD(C.starts[Math.max(0, START.sel)].d); return new THREE.Vector3(a.x, groundY(a.x, a.z), a.z); })();
@@ -584,7 +680,7 @@ function flyOver(c) {   // 遠くの音の場所へ、低く（地面から約 1
   CAM.pos.set(x, groundY(x, z) + 10, z); CAM.yaw = Math.atan2(-dx, -dz); CAM.look = 0; CAM.pitch = -.18;
   setMode("descend"); tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.4, () => { setMode("fly"); showFlyUI(); toast(`${c.nm}の上です。近くを飛ぶと、その場所の音が聞こえます`); });
 }
-function landFromFly() { const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d); hideFlyUI(); setMode("descend"); const y = CAM.yaw + CAM.look; CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = y; CAM.look = 0; CAM.pitch = -.04; tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.0, () => { setMode("walk"); showWalkUI(); aoiArrive(); }); }
+function landFromFly() { const n = nearestOnLine(CAM.pos.x, CAM.pos.z); let a = atD(n.d); if (NET.segs && n.dist > 14) { const q = netFar(CAM.pos.x, CAM.pos.z); if (q.dist < n.dist) a = { x: q.x, z: q.z }; }  /* 裏路地や喜多院の上からは、いちばん近い歩ける道へ */ hideFlyUI(); setMode("descend"); const y = CAM.yaw + CAM.look; CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = y; CAM.look = 0; CAM.pitch = -.04; tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.0, () => { setMode("walk"); showWalkUI(); aoiArrive(); }); }
 function toSky() { hidePanel(); stopVoice(); exitSight(true); hideWalkUI(); hideFlyUI(); setMode("descend");
   const tmp = new THREE.PerspectiveCamera(); const keep = camera.position.clone(); const kq = camera.quaternion.clone(); skyCam(); const p = camera.position.clone(), q = camera.quaternion.clone(); camera.position.copy(keep); camera.quaternion.copy(kq);
   TW = { p0: keep, q0: kq, p1: p, q1: q, t: 0, dur: 2.2, done: () => { setMode("sky"); showSkyUI(); } }; }
@@ -622,8 +718,8 @@ function kasaBox(x, z, r = .25) {   // 店蔵・町家・時の鐘の箱の中�
   if (KURA.tower && inb(KURA.tower.position.x, KURA.tower.position.z, KURA.tower.rotation.y, 2.4, 2.4)) return true;
   return false;
 }
-function kasaOk(x, z) { return nearestOnLine(x, z).dist < 5 && !kasaBox(x, z); }   // 通りの中ほど（両側の建物の前まで出ない）
-function kasaPeek(x, z) { return nearestOnLine(x, z).dist < 11 && !kasaBox(x, z, .02); }   // 覗く所：建物の角のすぐ脇
+function kasaOk(x, z) { return (nearestOnLine(x, z).dist < 5 || onNet(x, z, -.4)) && !kasaBox(x, z) && !inBld(x, z, .2); }   // 通りの中ほど（両側の建物の前まで出ない）
+function kasaPeek(x, z) { return (nearestOnLine(x, z).dist < 11 || onNet(x, z, 1.5)) && !kasaBox(x, z, .02); }   // 覗く所：建物の角のすぐ脇
 function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
@@ -656,6 +752,12 @@ function loadKasane() {
       const mem = [{ layer: "nature", data: daichi }, { layer: "nature", data: daichi }, { layer: "sight", data: { sightPick: true } }];
       const G2 = herd.addGroup(mem, { x: p[0], z: p[1], radius: 2.6, role: g % 3 === 0 ? "watch" : "" }); for (const a of G2.members) a.d = d;
     }
+    // 2026-10-25 裏路地・並行する道にも（本人「裏路地に入っても体験が続くように」）：道筋 A から 30 m より離れた歩ける道に、およそ 90 m に一つの群れ（近くの地点の層の子と、生きものへ誘う子）。多くしすぎない（22 群れまで）
+    if (NET.segs) { const S = NET.segs, pts = []; for (let s = 0; s < S.length; s += 5) { const L = Math.hypot(S[s + 2] - S[s], S[s + 3] - S[s + 1]); for (let t = 0; t < L; t += 30) { const x = S[s] + (S[s + 2] - S[s]) * t / L, z = S[s + 1] + (S[s + 3] - S[s + 1]) * t / L; if (x > -330 && x < 640 && z > -470 && z < 700 && nearestOnLine(x, z).dist > 30) pts.push([x, z]); } }
+      let ng = 0; for (const [x, z] of pts) { if (ng >= 22) break; if (herd.agents.some(a => Math.hypot(a.anchor.x - x, a.anchor.y - z) < 90)) continue; const p = near(x, z, 3); if (!p) continue;
+        let O = null, od = 160; for (const L of LAYER.objs) { const d = Math.hypot(L.o.x - p[0], L.o.z - p[1]); if (d < od && L.kind === "rec") { od = d; O = L; } }
+        const mem = [O ? { layer: top5(O.layer), data: O, target: { x: O.o.x, z: O.o.z } } : { layer: "nature", data: daichi }, { layer: "nature", data: daichi }, { layer: "sight", data: { sightPick: true } }];
+        const G3 = herd.addGroup(mem, { x: p[0], z: p[1], radius: 2.2, role: ng % 2 ? "watch" : "" }); ng++; } }
     KASA.n = herd.agents.length; QW.KASA = KASA; herd.setLayers(LAYER.worn);
     await herd.load();
   })().catch(e => console.warn("かさねっこ：", e?.message ?? e));
@@ -733,7 +835,7 @@ function stepSight(dt) {
     const f = SIGHT.fwd || KEYS.has("w") || KEYS.has("arrowup") ? 1 : 0, turn = (KEYS.has("a") || KEYS.has("arrowleft") ? 1 : 0) - (KEYS.has("d") || KEYS.has("arrowright") ? 1 : 0); CAM.yaw += turn * dt * 1.1;
     const yaw = CAM.yaw + CAM.look; CAM.pos.x += -Math.sin(yaw) * f * sp.speed * dt; CAM.pos.z += -Math.cos(yaw) * f * sp.speed * dt;
     const up = (FLY.up || KEYS.has("r") ? 1 : 0) - (FLY.down || KEYS.has("f") ? 1 : 0); const g = groundY(CAM.pos.x, CAM.pos.z); CAM.pos.y = Math.max(g + 3, Math.min(g + 40, CAM.pos.y + up * 4 * dt));
-    const n = nearestOnLine(CAM.pos.x, CAM.pos.z); if (n.dist > 90) { const a = atD(n.d), k = 90 / n.dist; CAM.pos.x = a.x + (CAM.pos.x - a.x) * k; CAM.pos.z = a.z + (CAM.pos.z - a.z) * k; }
+    const n = nearestOnLine(CAM.pos.x, CAM.pos.z); if (n.dist > 90 && !(NET.segs && netNear(CAM.pos.x, CAM.pos.z, 60).dist < 60)) { const a = atD(n.d), k = 90 / n.dist; CAM.pos.x = a.x + (CAM.pos.x - a.x) * k; CAM.pos.z = a.z + (CAM.pos.z - a.z) * k; }
     camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, yaw, 0, "YXZ"));
   } else { WALK.hold = SIGHT.fwd; stepWalk(dt, sp.eye, sp.speed); }
 }
@@ -785,14 +887,14 @@ function extraSounds() {
   AMB.setSpots(spots);
   // 2026-10-25 歩く道から遠い音（喜多院・川越氷川神社・新河岸川。約 500 m 先）：道のいちばん近い所に「その音へ」の札を置き、触れると空から近づける（遠すぎて歩く道からは聞こえない、をそのまま言う）
   const PLACE = { h_kitain: "喜多院", n_aburazemi: "喜多院", n_kogera: "喜多院", c_furin: "川越氷川神社", c_suzu: "川越氷川神社", n_sagi: "新河岸川", n_ogawa: "新河岸川" };
-  const far = spots.map(s => ({ s, n: nearestOnLine(s.x, s.z) })).filter(o => o.n.dist > 90), CL = [];
+  const far = spots.map(s => ({ s, n: nearestOnLine(s.x, s.z) })).filter(o => o.n.dist > 90 && !(NET.segs && netNear(o.s.x, o.s.z, 60).dist < 45)), CL = [];   // 2026-10-25 裏路地・喜多院への道を歩けるようにした＝歩いて近づける音には札を出さない
   for (const o of far) { const nm = PLACE[o.s.id] || o.s.title; let c = CL.find(c => c.nm === nm && Math.hypot(c.x - o.s.x, c.z - o.s.z) < 150); if (!c) CL.push(c = { nm, x: 0, z: 0, list: [] }); c.list.push(o.s); c.x = c.list.reduce((a, s) => a + s.x, 0) / c.list.length; c.z = c.list.reduce((a, s) => a + s.z, 0) / c.list.length; }
   const DIR = ["北", "北東", "東", "南東", "南", "南西", "西", "北西"];
   CL.forEach((c, i) => { const n = nearestOnLine(c.x, c.z), a = atD(n.d), dx = c.x - a.x, dz = c.z - a.z, L = Math.hypot(dx, dz), m = Math.round(L / 50) * 50;
     const dir = DIR[Math.round(((Math.atan2(dx, -dz) * 180 / Math.PI) + 360) % 360 / 45) % 8], px = a.x + dx / L * 5, pz = a.z + dz / L * 5;
     C.sound.push({ id: "x_far" + (i + 1), kind: "far", cl: c, title: `${c.nm}の音へ（${dir}へ約 ${m} m）`, x: px, z: pz, ll: ll(px, pz), dir, m, label: "道しるべ（遠くの音の場所）", how: "", lines: [], src: [] }); });
 }
-function surfAt(x, z) { return nearestOnLine(x, z).dist < 3.2 ? "asphalt" : "tile"; }   // 道の中ほどは車道のアスファルト、端は歩道の平板（模式）
+function surfAt(x, z) { const n = nearestOnLine(x, z).dist; if (n < 3.2) return "asphalt"; if (n > 14 && NET.segs) { const q = netNear(x, z, 20); return q.hw > 4 && q.dist > q.hw - 2.3 ? "tile" : "asphalt"; } return "tile"; }   // 道の中ほどは車道のアスファルト、端は歩道の平板（模式）
 function inKura(x, z) { for (const k of [...G.kura, ...(G.machi || [])]) { if (Math.abs(k.x - x) > 14 || Math.abs(k.z - z) > 14) continue; const c = Math.cos(k.yaw), s = Math.sin(k.yaw), dx = x - k.x, dz = z - k.z; if (Math.abs(dx * c - dz * s) < k.w / 2 && Math.abs(dx * s + dz * c) < k.dp / 2) return true; } return false; }
 const WALLD = { t: 0, v: null };
 function wallDist(x, z) {   // いちばん近い壁まで（1 m きざみ・7 m まで）
@@ -906,20 +1008,25 @@ $("#skyFly").addEventListener("click", () => { unlockAudio(); startFly(); });
 function hereMove(x, z, f, jump) {
   if (QW.mode !== "walk") return;
   WALK.auto = false; syncAutoBtn(); if (WALK.ring) WALK.ring.visible = false;
-  if (jump || Math.hypot(x - CAM.pos.x, z - CAM.pos.z) > 30) { CAM.pos.x = x; CAM.pos.z = z; WALK.goal = null; return; }   // 遠くへ跳んだときは、その場へ
+  let blocked = false; { const dx = x - CAM.pos.x, dz = z - CAM.pos.z, L = Math.hypot(dx, dz); for (let m = 1; m < L; m += 1) if (inBld(CAM.pos.x + dx * m / L, CAM.pos.z + dz * m / L, .2)) { blocked = true; break; } }   // 角を曲がった（あいだに建物がある）ときは、歩かずにその場へ
+  if (jump || blocked || Math.hypot(x - CAM.pos.x, z - CAM.pos.z) > 30) { CAM.pos.x = x; CAM.pos.z = z; WALK.goal = null; return; }   // 遠くへ跳んだときは、その場へ
   WALK.goal = new THREE.Vector3(x, 0, z);
 }
 const HERE = QW.HERE = makeHereWalk({
-  name: "川越の道筋",
+  name: "川越の町の道",
   toXZ: (lat, lon) => [(lon - G.origin[1]) * G.kx, -(lat - G.origin[0]) * G.ky],
   place(x, z) {
+    // 2026-10-25 本人「裏路地に入ったら範囲外になり残念」＝道筋 A から 250 m ではなく、歩ける道（裏路地・並行する道・喜多院への道ほか）から 60 m までを範囲に
     const g = G.dem, n = nearestOnLine(x, z), in_ = x > g.x0 && x < g.x0 + g.cell * (g.nx - 1) && z > g.z0 && z < g.z0 + g.cell * (g.nz - 1);
-    if (!in_ || n.dist > 250) return { ok: false, dist: n.dist };
-    const p = { x, z }; corridorClamp(p); if (inBld(p.x, p.z)) { const a = atD(n.d); p.x = a.x; p.z = a.z; }   // 建物の中なら、道の上へ
-    return { ok: true, dist: n.dist, d: n.d, x: p.x, z: p.z, off: n.dist > 16 };
+    const q = NET.segs ? netFar(x, z) : { dist: 1e9 }, dn = Math.min(q.dist, n.dist);
+    if (!in_ || (NET.segs ? q.dist > 60 && n.dist > 60 : n.dist > 250)) return { ok: false, dist: dn };
+    const p = { x, z }; corridorClamp(p);
+    if (inBld(p.x, p.z)) { if (q.dist < n.dist) { p.x = q.x; p.z = q.z; } else { const a = atD(n.d); p.x = a.x; p.z = a.z; } }   // 建物の中なら、道の上へ
+    return { ok: true, dist: dn, d: n.d, x: p.x, z: p.z, off: dn > 16 };
   },
   first(x, z, f) {
-    if (f.off) toast(`道筋から ${Math.round(f.dist)} m ほど離れています。いちばん近い道の上から歩きます。`);
+    if (f.off) toast(`道から ${Math.round(f.dist)} m ほど離れています。いちばん近い道の上から歩きます。`);
+    else setTimeout(() => safetyNote(), 4200);
     if (QW.mode === "walk") { hereMove(x, z, f, true); return; }
     const i = C.starts.reduce((b, t, k) => Math.abs(t.d - f.d) < Math.abs(C.starts[b].d - f.d) ? k : b, 0);
     descendTo(i, { x, z, d: f.d });
@@ -929,6 +1036,13 @@ const HERE = QW.HERE = makeHereWalk({
   sync(on) { for (const id of ["#hereBtn", "#skyHere"]) { const b = $(id); if (b) { b.setAttribute("aria-pressed", String(on)); b.textContent = on ? (id === "#hereBtn" ? "現在地で歩く：入" : "現在地を探しています…") : (id === "#hereBtn" ? "現在地で歩く" : "現在地から歩く"); } } }
 });
 $("#hereBtn").addEventListener("click", () => { unlockAudio(); HERE.toggle(); });
+/* 耳で歩く（2026-10-26 本人）：画面は暗く、次の地点の方からかさねっこの声。止まると窓がひらく（部品 earwalk.js） */
+const EAR = QW.EAR = makeEarWalk({ ctx: () => bell().ac, out: () => BELL.out, soundOn: () => soundOn, busy: () => false, toast: t => toast(t), colors: Object.values(COLOR5),
+  pos: () => ({ x: CAM.pos.x, z: CAM.pos.z, yaw: CAM.yaw + CAM.look }),
+  targets: () => LAYER.objs.filter(L => LAYER.worn.includes(top5(L.layer)) && L.kind !== "far" && !/^x_/.test(L.o.id || "")).map(L => ({ id: L.o.id || L.o.title, x: L.o.x, z: L.o.z, layer: top5(L.layer), L })),
+  arrive: T => { if (T.L.kind === "rec" || T.L.kind === "sound" || T.L.kind === "touch") openObj(T.L); },
+  sync: on => { const b = $("#earBtn"); if (b) { b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "耳で歩く：入" : "耳で歩く"; } } });
+$("#earBtn")?.addEventListener("click", () => { unlockAudio(); EAR.toggle(); if (EAR.on && !HERE.on && window.isSecureContext && "geolocation" in navigator && !QW.noGeo) HERE.start(); });
 $("#skyHere").addEventListener("click", () => { unlockAudio(); HERE.toggle(); });
 $("#skySight").addEventListener("click", () => { unlockAudio(); openSightChooser(); });
 $("#modeSky").addEventListener("click", () => { if (QW.mode !== "sky") toSky(); });
@@ -1017,7 +1131,7 @@ function frame() {
     const vt = m === "sky" || m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); stepSoundWalk(dt); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (KURA.tags) stepTag();
-  if (QW.mode === "walk") stepAoi(dt);
+  if (QW.mode === "walk") { stepAoi(dt); EAR.update(dt); } else if (EAR.on && QW.mode !== "descend") EAR.stop();
   if (QW.mode === "sight") stepBody(dt);
   if (SIGHT.post && QW.mode === "sight") { renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam); renderBody(); }
   else renderer.render(scene, camera);

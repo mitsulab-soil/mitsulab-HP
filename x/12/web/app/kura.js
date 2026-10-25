@@ -85,7 +85,7 @@ export function kuraMats(TL, mobile) {
     shikkui: new THREE.MeshPhysicalMaterial({ color: "#131417", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.42, .42), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .55, metalness: 0, clearcoat: mobile ? 0 : .3, clearcoatRoughness: .14, envMapIntensity: .45 }),
     // 町家の型の上壁：灰白の漆喰（白い漆喰の写真の色をそのまま、少し灰に）
     plaster: new THREE.MeshStandardMaterial({ color: "#c9c4ba", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
-    plasterg: new THREE.MeshStandardMaterial({ color: "#77736d", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
+    plasterg: new THREE.MeshStandardMaterial({ color: "#8a6f55",   /* 2026-10-26 本人「灰色の面が多い」→ 土壁（荒壁の土の色・模式）に */ map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
     glass: new THREE.MeshStandardMaterial({ color: "#6d7a84", roughness: .04, metalness: 0, envMapIntensity: .8, transparent: true, opacity: .16, depthWrite: false }),   // ガラス戸：透けて奥の土間が見え、空がうすく映る
     doma: new THREE.MeshStandardMaterial({ color: "#4a3a2c", roughness: .9, emissive: "#3a2814", emissiveIntensity: .5 }),   // 店の奥（土間と奥の壁）：暗いが真っ黒にしない
     // 町家の型の板壁・格子：杉板（焼いた色に寄せて暗く）
@@ -106,7 +106,7 @@ export function kuraMats(TL, mobile) {
         float dust = (1. - smoothstep(.15, 1.05, vLy)) * .85;
         float streak = smoothstep(.55, 1., h1(floor((vLxz.x + vLxz.y) * 7.))) * smoothstep(7.5, 3., vLy) * .25;
         diffuseColor.rgb = mix(diffuseColor.rgb, ${k === "shikkui" ? "vec3(.16,.15,.14)" : "vec3(.62,.61,.59)"}, dust * .3);
-        ${k === "shikkui" ? "" : "diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(.2126,.7152,.0722))) * vec3(1.,1.,1.02), .85);"}   // 漆喰の写真の黄みを抜き、灰白に
+        ${k !== "plaster" ? "" : "diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(.2126,.7152,.0722))) * vec3(1.,1.,1.02), .85);"}   // 漆喰の写真の黄みを抜き、灰白に
         diffuseColor.rgb *= 1. - streak * ${k === "shikkui" ? ".0" : ".1"} + streak * ${k === "shikkui" ? ".25" : ".0"};`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);");
   };
