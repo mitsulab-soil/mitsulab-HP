@@ -1,0 +1,47 @@
+/* © mitsulab. HP v2（2026-10-26）TOP：画面いっぱいの 3D（js/v2-world.js）の上を、場面のカードがスクロールで流れる。
+   電脳の空気＝意味のある線と、細い等幅の札（実の座標・層コード・記録の数）。飾りの格子は使わない。 */
+#top{position:relative}
+#top>.v2-stage{position:sticky;top:0;height:100vh;height:100svh;margin-bottom:-100vh;margin-bottom:-100svh;z-index:0;pointer-events:none;background:#03060f;overflow:hidden}
+
+.v2-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.2s}
+.v2-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+html.v2-3d .v2-stage canvas{opacity:1}html.v2-3d .v2-poster{opacity:0;transition:opacity 1.2s}
+.v2-veil{position:absolute;inset:0;background:linear-gradient(90deg,#03060fcc 0,#03060f66 38%,#03060f00 62%);transition:background .9s}
+#top[data-v2="4"] .v2-veil{background:#03060fd9}
+.v2-labs{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.v2-lab{position:absolute;left:0;top:0;opacity:0;transition:opacity .5s;font:400 10.5px/1.5 var(--mono);letter-spacing:.06em;color:#d7eef0;white-space:nowrap;padding:3px 7px 3px 10px;border-left:1px solid var(--c,#a8f2f6);background:#03060fa6;margin:-10px 0 0 6px}
+.v2-lab .k{display:block;font-weight:400;color:var(--c,#a8f2f6);font-size:9.5px;letter-spacing:.16em}
+.v2-lab::before{content:"";position:absolute;left:-7px;top:9px;width:5px;height:5px;border:1px solid var(--c,#a8f2f6);border-radius:50%}
+.v2-lab.on{opacity:1}
+.v2-content{position:relative;z-index:2}
+.v2-scene{min-height:100svh;display:flex;align-items:center;padding:96px max(16px,6vw) 72px}
+.v2-card{max-width:560px;padding:28px 30px 24px;background:#04091acc;border:1px solid #8bccca2e;border-left:2px solid #a8f2f6;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.v2-code,.v2-kicker{font:400 11px/1.8 var(--mono);letter-spacing:.2em;color:#8bccca;margin:0}
+.v2-kicker{color:#a8f2f6;margin:4px 0 14px}
+.v2-title{font:400 clamp(30px,4vw,54px)/1.5 var(--serif);letter-spacing:.06em;color:var(--ink);margin:0 0 18px}
+.v2-s0 .v2-title{font-size:clamp(38px,5vw,72px);line-height:1.3;white-space:nowrap}
+.v2-lead{font-size:16px;line-height:2.05;color:var(--ink-2);margin:0}
+.v2-note{font-size:12.5px;line-height:1.9;color:#9fb6b8;margin:16px 0 0;padding-top:12px;border-top:1px solid #8bccca26}
+.v2-hud{display:flex;flex-wrap:wrap;gap:6px 18px;margin:18px 0 0;padding:10px 0 0;border-top:1px dashed #8bccca40;font:400 10.5px/1.6 var(--mono);letter-spacing:.06em}
+.v2-hud div{display:flex;gap:7px}.v2-hud dt{color:#6fa6aa}.v2-hud dd{margin:0;color:#d7eef0}
+.v2-s2 .v2-hud dt{color:#a8f2f6}
+html[data-lang=en] .v2-title{font-family:var(--latin);letter-spacing:0;line-height:1.2}
+.v2-portfolio,.v2-originwrap{position:relative;padding:72px max(16px,4vw) 40px;background:#03060fe6}
+.v2-portfolio>.v2-code{max-width:1200px;margin:0 auto 18px}
+.v2-originwrap .qt-origin{margin:0 auto}
+.v2-end{justify-content:center;text-align:center;min-height:80svh}.v2-card-end{border-left:1px solid #8bccca2e;background:#04091a99}
+.v2-philo{margin:28px 0;border:1px solid #8bccca33;border-left:2px solid #a8f2f6;background:#04091a80}
+.v2-philo>summary{cursor:pointer;min-height:44px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;padding:10px 16px;color:var(--ink);font:400 16px/1.7 var(--serif)}
+.v2-philo[open]>summary{border-bottom:1px solid #8bccca26}
+.v2-philo>section{padding:8px 12px 18px}
+html.v2-no3d .v2-poster{opacity:.6}
+@media (max-width:700px){
+  .v2-scene{align-items:flex-end;padding:72px 16px 40px;min-height:165svh}
+  .v2-card{padding:20px 18px 16px;max-width:none;width:100%}
+  .v2-veil{background:linear-gradient(0deg,#03060fdd 0,#03060f55 45%,#03060f00 70%)}
+  .v2-lead{font-size:15px;line-height:1.95}
+  .v2-lab{font-size:9px}.v2-lab .k{font-size:8.5px}
+  .v2-portfolio,.v2-originwrap{padding:48px 16px 28px}
+}
+@media (prefers-reduced-motion:reduce){.v2-stage canvas,.v2-poster,.v2-lab,.v2-veil{transition:none}}
+html[data-lang=en] .v2-s0 .v2-title{white-space:normal}
