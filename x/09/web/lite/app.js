@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q4";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 
@@ -17,7 +17,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261023k";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261026p";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -595,7 +595,7 @@ function collMesh(o) {   // 面の三角形を真上から塗る（縁から 0.1
     }
   }
 }
-function blocked(x, z) { if (!COLL) return false; const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz && COLL.g[j * COLL.nx + i] === 1; }
+function blocked(x, z) { if (!COLL) return false; if (PARK.w && inPark(x, z)) return false; const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz && COLL.g[j * COLL.nx + i] === 1; }
 function collShrink() {   // 塗った所の縁を 1 こまぶん削る（細い縁石の上・植え込みの角で引っかからない）。植え込みどうしの間の通り道は残る
   collInit(); const { g, nx, nz } = COLL, h = g.slice();
   for (let j = 1; j < nz - 1; j++) for (let i = 1; i < nx - 1; i++) { const k = j * nx + i; if (h[k] && (!h[k - 1] || !h[k + 1] || !h[k - nx] || !h[k + nx])) g[k] = 2; }
@@ -962,10 +962,50 @@ QW.HERE = HERE;
 const WALK = { goal: null, keys: new Set(), hold: false, auto: false, speed: 1.35, ring: null, moving: false }; QW.WALK = WALK;
 function enterWalk() {
   setMode("walk"); showWalkUI();
-  aoiArrive(); loadKasane();
+  aoiArrive(); loadKasane(); setTimeout(loadPark, 1200);
   if (!sessionStorageGet("hk_tip2")) { toast(MOBILE ? "なぞると見回せます。地面に触れるとその向きへ数歩、「歩きつづける」で参道を進みます。" : "ドラッグで見回し、W で見ている方へ、「歩きつづける」で参道に沿って進みます。地面を押すとその向きへ数歩すすみます。"); sessionStorageSet("hk_tip2", 1); }
 }
+/* ---------- 大宮公園の歩ける道（2026-10-26 本人「大宮公園も Qualium に入れてください」）
+   park.json（_dev/20261026_omiya/build_park.py・OSM の園路）を起動のあとに読む。園路の帯の中は参道の帯の外でも歩ける。
+   地面は DEM の外（z < −1350）も、園の中だけ芝と土の模式の面でつなぐ。池＝舟遊池の輪郭（OSM）。 */
+const PARK = { w: null, p: null }; QW.PARK = PARK; QW.inPark = (x, z) => inPark(x, z);
+function inPark(x, z) {
+  const W = PARK.w; if (!W) return false;
+  for (const w of W) { const r = w[0] + .3, b = w.b; if (x < b[0] - r || x > b[2] + r || z < b[1] - r || z > b[3] + r) continue;
+    for (let i = 1; i + 3 < w.length; i += 2) { const ax = w[i], az = w[i + 1], dx = w[i + 2] - ax, dz = w[i + 3] - az, l2 = dx * dx + dz * dz || 1, t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / l2));
+      if ((ax + dx * t - x) ** 2 + (az + dz * t - z) ** 2 < r * r) return true; } }
+  return false;
+}
+function loadPark() {
+  if (PARK.p) return PARK.p;
+  return PARK.p = fetch(BASE + "park.json?v=20261026p").then(r => r.json()).then(J => {
+    for (const w of J.w) { let b = [1e9, 1e9, -1e9, -1e9]; for (let i = 1; i < w.length; i += 2) { b[0] = Math.min(b[0], w[i]); b[1] = Math.min(b[1], w[i + 1]); b[2] = Math.max(b[2], w[i]); b[3] = Math.max(b[3], w[i + 1]); } w.b = b; }
+    PARK.w = J.w;
+    const G = new THREE.Group(); G.name = "park";
+    // 園路の帯（土の面）
+    const pos = [], uv = [];
+    for (const w of J.w) { const hw = w[0];
+      for (let i = 1; i + 3 < w.length; i += 2) { const ax = w[i], az = w[i + 1], bx = w[i + 2], bz = w[i + 3], dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1, nx = -dz / l * hw, nz = dx / l * hw;
+        const P = [[ax + nx, az + nz], [ax - nx, az - nz], [bx - nx, bz - nz], [bx + nx, bz + nz]].map(([x, z]) => [x, groundY(x, z) + .12, z]);
+        for (const k of [0, 1, 2, 0, 2, 3]) { pos.push(...P[k]); uv.push(P[k][0] / 3, P[k][2] / 3); } } }
+    const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); rg.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); rg.computeVertexNormals();
+    const rm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/gravelly_sand_c5.webp"), color: 0xd9ccb2, roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    G.add(new THREE.Mesh(rg, rm));
+    // DEM の外の園の地面（芝の模式）。DEM の中は今の地形のまま
+    const [gx0, gz0, CS, GX, GZ, GM] = J.g, gp = [], gu = [], gi = [];   // 公園の輪郭の中の 10 m 区画だけ（本殿より北）
+    for (let j = 0; j <= GZ; j++) for (let i = 0; i <= GX; i++) { const x = gx0 + i * CS, z = gz0 + j * CS; gp.push(x, groundY(x, z) + (z > -1350 ? .06 : -.02), z); gu.push(x / 9, z / 9); }
+    for (let j = 0; j < GZ; j++) for (let i = 0; i < GX; i++) { if (GM[j * GX + i] !== "1") continue; const a = j * (GX + 1) + i; gi.push(a, a + GX + 1, a + 1, a + 1, a + GX + 1, a + GX + 2); }
+    const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.setIndex(gi); gg.computeVertexNormals();
+    G.add(new THREE.Mesh(gg, new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), color: 0xc9d4a4, roughness: 1, metalness: 0 })));
+    // 舟遊池（OSM の輪郭）
+    const pd = J.pond, sh = new THREE.Shape(); for (let i = 0; i < pd.length; i += 2) i ? sh.lineTo(pd[i], -pd[i + 1]) : sh.moveTo(pd[i], -pd[i + 1]);
+    const pg = new THREE.ShapeGeometry(sh); pg.rotateX(-Math.PI / 2); let py = 1e9; for (let i = 0; i < pd.length; i += 8) py = Math.min(py, groundY(pd[i], pd[i + 1])); pg.translate(0, py + .1, 0);
+    G.add(new THREE.Mesh(pg, new THREE.MeshStandardMaterial({ color: 0x3d4a44, roughness: .12, metalness: 0, envMapIntensity: 1.1, transparent: true, opacity: .92 })));
+    world.add(G); PARK.g = G; for (const m of G.children) pickables.push(m);
+  }).catch(e => console.warn("park", e));
+}
 function corridorClamp(p) {
+  if (PARK.w && inPark(p.x, p.z)) return;   // 大宮公園の園路の上は、参道の帯の外でも歩ける
   const n = nearestOnLine(p.x, p.z), lim = n.d > 1878 ? 70 : n.d < -20 ? 30 : 13;
   if (n.dist > lim) { const a = atD(n.d), dx = p.x - a.x, dz = p.z - a.z, l = Math.hypot(dx, dz) || 1; p.x = a.x + dx / l * lim; p.z = a.z + dz / l * lim; }
   if (n.d > 2010) { const a = atD(2010); p.x += (a.x - p.x) * .2; p.z += (a.z - p.z) * .2; }
