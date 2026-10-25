@@ -82,7 +82,7 @@ export function kuraMats(TL, mobile) {
   const tile = tileTex(mobile);
   MATS = {
     // 黒漆喰：磨いた漆喰の深い黒（つやは強め・映り込みは控えめ）。白い漆喰の写真の肌理を、色は黒にして使う
-    shikkui: new THREE.MeshPhysicalMaterial({ color: "#131417", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.42, .42), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .55, metalness: 0, clearcoat: mobile ? 0 : .3, clearcoatRoughness: .14, envMapIntensity: .45 }),
+    shikkui: new THREE.MeshPhysicalMaterial({ color: "#131417", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.22, .22), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .38, metalness: 0, clearcoat: mobile ? .35 : .65, clearcoatRoughness: .07, envMapIntensity: .9 }),   // 2026-10-26 黒漆喰の質感：磨いた面のつやと空の映り込みを強め、写真の肌理は浅く
     // 町家の型の上壁：灰白の漆喰（白い漆喰の写真の色をそのまま、少し灰に）
     plaster: new THREE.MeshStandardMaterial({ color: "#c9c4ba", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
     plasterg: new THREE.MeshStandardMaterial({ color: "#8a6f55",   /* 2026-10-26 本人「灰色の面が多い」→ 土壁（荒壁の土の色・模式）に */ map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
@@ -107,7 +107,8 @@ export function kuraMats(TL, mobile) {
         float streak = smoothstep(.55, 1., h1(floor((vLxz.x + vLxz.y) * 7.))) * smoothstep(7.5, 3., vLy) * .25;
         diffuseColor.rgb = mix(diffuseColor.rgb, ${k === "shikkui" ? "vec3(.16,.15,.14)" : "vec3(.62,.61,.59)"}, dust * .3);
         ${k !== "plaster" ? "" : "diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(.2126,.7152,.0722))) * vec3(1.,1.,1.02), .85);"}   // 漆喰の写真の黄みを抜き、灰白に
-        diffuseColor.rgb *= 1. - streak * ${k === "shikkui" ? ".0" : ".1"} + streak * ${k === "shikkui" ? ".25" : ".0"};`)
+        diffuseColor.rgb *= 1. - streak * ${k === "shikkui" ? ".0" : ".1"} + streak * ${k === "shikkui" ? ".25" : ".0"};
+        ${k !== "shikkui" ? "" : "float tw = sin(vLxz.x * 1.7 + vLy * .9) * sin((vLxz.y - vLy) * 1.3); diffuseColor.rgb *= 1. + tw * .06;"}`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);");
   };
   MATS.shikkui.customProgramCacheKey = () => "kura-shikkui"; MATS.plaster.customProgramCacheKey = () => "kura-plaster"; MATS.plasterg.customProgramCacheKey = () => "kura-plasterg";

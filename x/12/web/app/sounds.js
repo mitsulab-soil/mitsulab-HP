@@ -12,6 +12,11 @@ const KOHO = C("広報川越 No.1162（2007-11-10）「川越まつり」（山�
 const HAYASHI = C("『改訂新版 世界大百科事典』「祭囃子」（コトバンク）：葛西囃子は太鼓 1・締太鼓 2・笛 1・鉦 1 の 5 人で編成", "https://kotobank.jp/word/%E7%A5%AD%E3%82%8A%E5%9B%83%E5%AD%90");
 const KSHO = C("川越市「国指定重要文化財 喜多院 鐘楼門 附銅鐘」", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003800/1014134/1003806.html");
 const KANE = { who: "滋賀県近江八幡市・長命寺の梵鐘（2006 年）／Jnn／Wikimedia Commons（CC BY 2.1 JP）", src: [C("Bonsyou5599.ogg / Jnn / Wikimedia Commons（CC BY 2.1 JP）", CM("Bonsyou5599.ogg"))] };
+/* 2026-10-26 三つの寺の鐘を別々の音に（同じ音が三か所で鳴っていた）。どれも商用可。札は「② 別の鐘」のまま */
+const FS = id => `https://freesound.org/s/${id}/`;
+const K_RAIGO = { who: "京都・大原 来迎院の鐘（2018 年）／LG／Freesound（CC BY 4.0）", src: [C("20180528 - Raigo-in temple bell.wav / LG / Freesound（CC BY 4.0）", FS(462757))] };
+const K_SF = { who: "1532 年鋳造の日本の梵鐘（サンフランシスコ・2023 年の除夜の鐘）／tec_studio／Freesound（CC0）", src: [C("temple_bell_002.wav / tec_studio / Freesound（CC0）", FS(668647))] };
+const K_KOMORI = { who: "大きな仏教の鐘（効果音）／Taira Komori／Freesound（CC BY 4.0）", src: [C("Budda_large_bell.mp3 / Taira Komori / Freesound（CC BY 4.0）", FS(212057))] };
 export const SPOTS = [
   /* ---------- 歴史 ---------- */
   { id: "h_tokinokane", cat: "history", kind: "else", title: "時の鐘（いまの鐘が鳴る時刻）", at: { x: -12, z: -16 }, f: "web/snd/tokinokane.m4a",
@@ -35,19 +40,19 @@ export const SPOTS = [
     label: "③ 再現音（櫓のきしみと、舟べりの水の模式。舟唄は典拠が見つかるまで作りません）", who: "mitsulab がその場で組み立てた音",
     how: "江戸へ荷を運んだ新河岸川は、ここから東へおよそ 900 m、10 m ほど低いところを流れています。昭和 6 年に船を止める県令が出て、舟運は終わりました。",
     src: [C("財務省「ファイナンス」2025 年 8 月号（新河岸川の舟運）", "https://www.mof.go.jp/public_relations/finance/202508/202508g.html")] },
-  { id: "h_kitain", cat: "history", kind: "else", title: "喜多院の鐘楼門", at: { x: 618, z: 676 }, f: "web/snd/tokinokane.m4a",   // 2026-10-25 鐘楼門（OSM の平面）の前へ。歩いて近づける
-    label: "② 別の鐘の音（滋賀県近江八幡市・長命寺の梵鐘。喜多院の鐘の録音ではありません）", ...KANE,
+  { id: "h_kitain", cat: "history", kind: "else", title: "喜多院の鐘楼門", at: { x: 618, z: 676 }, f: "web/snd/kane_raigoin.m4a",   // 2026-10-25 鐘楼門（OSM の平面）の前へ。歩いて近づける
+    label: "② 別の鐘の音（京都・大原 来迎院の鐘。喜多院の鐘の録音ではありません）", ...K_RAIGO,
     how: "喜多院の鐘楼門は、入母屋造・本瓦葺きの門で、上の層に元禄 15 年（1702）の銘のある銅鐘を吊ります（国の重要文化財）。ここでは喜多院の鐘ではなく、別の寺の梵鐘の音を鳴らします。",
-    src: [KSHO, ...KANE.src] },
+    src: [KSHO, ...K_RAIGO.src] },
   /* ---------- 2026-10-25 裏路地・並行する道（本人「裏路地に入っても体験が続くように」） ---------- */
-  { id: "h_rekei_kane", cat: "history", kind: "else", title: "蓮馨寺の鐘（大火を越えた鐘）", at: { x: -97, z: 449 }, f: "web/snd/tokinokane.m4a",
-    label: "② 別の鐘の音（滋賀県近江八幡市・長命寺の梵鐘。蓮馨寺の鐘の録音ではありません）", ...KANE,
+  { id: "h_rekei_kane", cat: "history", kind: "else", title: "蓮馨寺の鐘（大火を越えた鐘）", at: { x: -97, z: 449 }, f: "web/snd/kane_sf1532.m4a",
+    label: "② 別の鐘の音（1532 年鋳造の日本の梵鐘・いまはサンフランシスコ。蓮馨寺の鐘の録音ではありません）", ...K_SF,
     how: "蓮馨寺の鐘楼の鐘は、元禄 8 年（1695）の鋳造。明治 26 年の大火でも鐘楼ごと焼けずに残り、川越で第一といわれる大きな鐘です。ここでは蓮馨寺の鐘ではなく、別の寺の梵鐘の音を鳴らします（触れたときだけ）。",
-    src: [C("川越市「市指定有形文化財 元禄の銅鐘」（蓮馨寺）", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003884/1003925/1003975.html"), ...KANE.src] },
-  { id: "h_yoju_kane", cat: "history", kind: "else", title: "養寿院の鎌倉時代の鐘", at: { x: -168, z: -56 }, f: "web/snd/tokinokane.m4a",
-    label: "② 別の鐘の音（滋賀県近江八幡市・長命寺の梵鐘。養寿院の鐘の録音ではありません）", ...KANE,
-    how: "西の養寿院には、文応元年（1260）の銘のある銅鐘が伝わります（国の重要文化財）。ここでは養寿院の鐘ではなく、別の寺の梵鐘の音を鳴らします（触れたときだけ）。",
-    src: [C("川越市「国指定重要文化財 銅鐘 文応元年」（養寿院）", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003800/1003818.html"), ...KANE.src] },
+    src: [C("川越市「市指定有形文化財 元禄の銅鐘」（蓮馨寺）", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003884/1003925/1003975.html"), ...K_SF.src] },
+  { id: "h_yoju_kane", cat: "history", kind: "else", title: "養寿院の鎌倉時代の鐘", at: { x: -168, z: -56 }, f: "web/snd/kane_komori.m4a",
+    label: "② 別の鐘の音（大きな仏教の鐘の効果音・Taira Komori。養寿院の鐘の録音ではありません）", ...K_KOMORI,
+    how: "西の養寿院には、文応元年（1260）の銘のある銅鐘が伝わります（国の重要文化財）。ここでは養寿院の鐘ではなく、別の大きな鐘の音を鳴らします（触れたときだけ）。",
+    src: [C("川越市「国指定重要文化財 銅鐘 文応元年」（養寿院）", "https://www.city.kawagoe.saitama.jp/kurashi/bunka/1003787/1003798/1003800/1003818.html"), ...K_KOMORI.src] },
   /* ---------- 文化 ---------- */
   { id: "c_hayashi", cat: "culture", kind: "re", title: "山車の囃子の音色", at: { d: 1060, s: 7 }, syn: "hayashi", amb: { r: 30, every: 22 },
     label: "③ 再現音（大太鼓・締太鼓・笛・鉦の音色を組み立てた模式。川越の囃子の曲そのものではありません）", who: "mitsulab がその場で組み立てた音",

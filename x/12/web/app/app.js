@@ -8,13 +8,13 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k1";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q3";
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k7";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q4";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
-import { SPOTS } from "./sounds.js?v=3";
+import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
 
 const $ = s => document.querySelector(s);
@@ -23,7 +23,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261025u";
+const VER = "20261026a";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -34,6 +34,33 @@ let pr = PR_MAX; renderer.setPixelRatio(pr);
 renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
 QW.renderer = renderer;
 const scene = new THREE.Scene(), world = new THREE.Group(); scene.add(world); QW.scene = scene;
+/* 2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ」（氷川と同じ）：層を重ねているあいだ、風景（トーンマップされる物）だけ一段控えめに。印・碧・かさねっこ・札は除く。層をすべて外すと元へ */
+const LANDG = { value: 0 }, LZERO = { value: 0 }; QW.LANDG = LANDG;
+THREE.ShaderChunk.tonemapping_pars_fragment = "uniform float uLandG;\n" + THREE.ShaderChunk.tonemapping_pars_fragment;
+THREE.ShaderChunk.tonemapping_fragment += `
+#if defined( TONE_MAPPING )
+{ float lu = dot(gl_FragColor.rgb, vec3(.2126, .7152, .0722)); vec3 lg = mix(vec3(lu), gl_FragColor.rgb, .34) * vec3(.64, .66, .71); gl_FragColor.rgb = mix(gl_FragColor.rgb, lg, uLandG); }
+#endif
+`;
+THREE.Material.prototype.onBeforeCompile = function (sh) { sh.uniforms.uLandG = this.userData.land ? LANDG : LZERO; };
+function landSweep() {
+  const skip = new Set(), ex = o => o?.traverse(c => skip.add(c)); ex(AOI.root); ex(KASA.herd?.group);
+  world.traverse(o => {
+    if (!o.isMesh || skip.has(o)) return;
+    for (const m of [].concat(o.material)) {
+      if (!m || m.userData.land !== undefined) continue;
+      if ((m.isShaderMaterial || m.isSpriteMaterial) && !m.toneMapped) { m.userData.land = false; continue; }
+      if (!m.toneMapped) { m.userData.land = false; continue; }
+      m.userData.land = true;
+      if (Object.prototype.hasOwnProperty.call(m, "onBeforeCompile")) {
+        const f = m.onBeforeCompile, ck = m.customProgramCacheKey, own = Object.prototype.hasOwnProperty.call(m, "customProgramCacheKey");
+        m.onBeforeCompile = function (sh, r) { f.call(this, sh, r); sh.uniforms.uLandG = LANDG; };
+        m.customProgramCacheKey = own ? () => ck.call(m) + "|land" : () => f.toString() + "|land";
+      }
+      m.needsUpdate = true;
+    }
+  });
+}
 const camera = new THREE.PerspectiveCamera(MOBILE ? 62 : 55, innerWidth / innerHeight, .08, 7000); scene.add(camera); QW.camera = camera;
 const FOG = new THREE.Color("#b9c8d6");   // walk 氷川と同じ空の色
 scene.fog = new THREE.Fog(FOG, 900, 3800);
@@ -281,6 +308,24 @@ function buildTemples() {
   const g2 = new THREE.BufferGeometry(); g2.setAttribute("position", new THREE.Float32BufferAttribute(TEMPLE.rP, 3)); g2.setAttribute("uv", new THREE.Float32BufferAttribute(TEMPLE.rU, 2)); g2.computeVertexNormals();
   const wm = M.wood.clone(); wm.color.set("#8a6e52"); const w = new THREE.Mesh(g1, wm), r = new THREE.Mesh(g2, M.tile); w.name = "templeWall"; r.name = "templeRoof"; world.add(w, r); BLD.temple = [w, r]; QW.nTemple = TEMPLE.tags.length;
   if (KURA.tags) KURA.tags.push(...TEMPLE.tags); else KURA.ttags = TEMPLE.tags;
+  buildPrecinct();
+}
+/* 2026-10-26 喜多院の一帯が「草原に建物が点在」して見えた：堂の並ぶ所の地面を、境内の玉砂利（明るい灰の砂利の模式）に。地形に沿わせる */
+function buildPrecinct() {
+  const K = { x: 590, z: 690 }, ts = TEMPLE.tags.filter(t => Math.hypot(t.k.x - K.x, t.k.z - K.z) < 230); if (ts.length < 2) return;
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const t of ts) { x0 = Math.min(x0, t.k.x); x1 = Math.max(x1, t.k.x); z0 = Math.min(z0, t.k.z); z1 = Math.max(z1, t.k.z); }
+  x0 -= 22; x1 += 22; z0 -= 22; z1 += 22; const st = 4, nx = Math.ceil((x1 - x0) / st) + 1, nz = Math.ceil((z1 - z0) / st) + 1;
+  const P = new Float32Array(nx * nz * 3), U = new Float32Array(nx * nz * 2), A = new Float32Array(nx * nz), I = [];
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const k = j * nx + i, x = x0 + i * st, z = z0 + j * st; P[k * 3] = x; P[k * 3 + 1] = groundY(x, z) + .05; P[k * 3 + 2] = z; U[k * 2] = x / 3; U[k * 2 + 1] = z / 3;
+    let dm = 1e9; for (const t of ts) dm = Math.min(dm, Math.hypot(t.k.x - x, t.k.z - z)); A[k] = 1 - Math.min(1, Math.max(0, (dm - 26) / 14)); }   // 堂から 26 m までが境内、40 m で地へ溶ける
+  for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i; I.push(a, a + nx, a + 1, a + 1, a + nx, a + nx + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.BufferAttribute(U, 2)); g.setAttribute("aA", new THREE.BufferAttribute(A, 1)); g.setIndex(I); g.computeVertexNormals();
+  const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
+  const m = new THREE.MeshStandardMaterial({ color: "#d6d0c4", map: ld("web/tex/granite_c.webp", true), normalMap: ld("web/tex/granite_n.webp"), normalScale: new THREE.Vector2(1.2, 1.2), roughness: .95, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float aA; varying float vA;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvA = aA;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vA;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\ngl_FragColor.a *= vA;"); };
+  m.customProgramCacheKey = () => "precinct";
+  const mesh = new THREE.Mesh(g, m); mesh.name = "precinct"; mesh.renderOrder = 1; world.add(mesh); BLD.precinct = mesh;
 }
 function regSolid(ring) {
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of ring) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
@@ -398,7 +443,7 @@ function buildObjs() {
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color);
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();
@@ -415,7 +460,36 @@ function stepLayer(dt) {
     if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (34 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
   }
   LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
+  if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
+  { const gT = LAYER.worn.length && QW.mode !== "boot" ? (sky ? .32 : .62) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
+  stepHere(cp, t, sky || QW.mode === "fly");
   declutter(dt);
+}
+/* 2026-10-26（氷川と同じ）：いまいる場所の重なり（半径 30 m の Qualia の数と層）と、画面の外のいちばん近い Qualia の方角 */
+const QH = { t: 0, el: null, dir: null };
+function stepHere(cp, t, off) {
+  if (!QH.el) { QH.el = $("#qHere"); QH.dir = $("#qDir"); if (!QH.el) return; }
+  const walk = !off && (QW.mode === "walk" || QW.mode === "sight") && $("#panel").hidden;
+  if (!walk || !LAYER.worn.length) { QH.el.hidden = true; QH.dir.hidden = true; return; }
+  const on = L => LAYER.worn.includes(top5(L.layer));
+  if (t - QH.t > .5) {
+    QH.t = t; const cnt = {}; let n = 0, best = null, bd = 1e9; const v = new THREE.Vector3();
+    for (const L of LAYER.objs) { if (!on(L)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
+      if (d < 30) { const k = top5(L.layer); cnt[k] = (cnt[k] || 0) + 1; n++; }
+      if (d > 4 && d < 70 && d < bd) { v.set(L.o.x, L.root.position.y + (L.o.h || 1.8), L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
+    const ks = ALL.filter(l => cnt[l.id]).reverse();
+    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">この 30 m に重なる Qualia</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : `<span class="t">この近くの Qualia は、少し先にあります</span>`;
+    QH.el.hidden = false; QH.best = best;
+  }
+  const L = QH.best;
+  if (!L || !on(L) || Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 8) { QH.dir.hidden = true; return; }
+  const v = new THREE.Vector3(L.o.x, L.root.position.y + (L.o.h || 1.8), L.o.z).applyMatrix4(camera.matrixWorldInverse);
+  if (v.z < 0 && Math.abs(v.x / -v.z) < 1 && Math.abs(v.y / -v.z) < .8) { QH.dir.hidden = true; return; }
+  const a = Math.atan2(v.x, -v.z), W = innerWidth, H = innerHeight, x = Math.max(MOBILE ? 30 : 270, Math.min(W - 30, W / 2 + Math.sin(a) * (W / 2 - 40))), y = Math.max(MOBILE ? 340 : 140, Math.min(H - (MOBILE ? 300 : 150), H * .55 - Math.cos(a) * (H * .55 - 150)));
+  let X = x, Y = y; { const cap = $("#caption"); if (cap && !cap.hidden) { const r = cap.getBoundingClientRect(); if (X > r.left - 50 && X < r.right + 50 && Y > r.top - 60) Y = r.top - 60; } }   // 2026-10-26 字幕・碧に重ねない
+  if (AOI.root?.visible) { const w = new THREE.Vector3(); AOI.root.getWorldPosition(w); w.project(camera); const ax = (w.x + 1) / 2 * innerWidth; if (w.z < 1 && Math.abs(X - ax) < 130 && Y > innerHeight * .35) X = ax + (X < ax ? -150 : 150); X = Math.max(30, Math.min(innerWidth - 30, X)); }
+  QH.dir.hidden = false; QH.dir.style.transform = `translate(${X - 18}px,${Y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
+  QH.dir.style.setProperty("--c", GL[L.layer].color); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
 }
 /* 札どうし・札と結晶を重ねない（2026-10-23 深夜）：近い札から置き、重なる札は上へ一段ずつ逃がす（3 段まで）。それでも重なる遠い札はうすく消す。層の一覧の上にも出さない */
 const DC = { t: 0, ls: null };
@@ -634,6 +708,19 @@ function solids(p, r = .35) {   // 店蔵の型と時の鐘には入らない（
   for (const k of G.kura) if (Math.abs(k.x - p.x) < 12 && Math.abs(k.z - p.z) < 12) push(k.x, k.z, k.yaw, k.w / 2, k.dp / 2 + .9);
   for (const k of G.machi || []) if (Math.abs(k.x - p.x) < 12 && Math.abs(k.z - p.z) < 12) push(k.x, k.z, k.yaw, k.w / 2, k.dp / 2 + .6);
   if (KURA.tower) push(KURA.tower.position.x, KURA.tower.position.z, KURA.tower.rotation.y, 2.4, 2.4);
+  solidRings(p);
+}
+/* 2026-10-26 壁に近づくと視点が壁に入っていた：通りの不透明の建物（SOLID）の壁から 0.6 m 手前で止める */
+function solidRings(p, r = 1.1) {
+  if (!SOLID.polys.length) return; const c = SOLID.cell, seen = new Set();
+  for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { const ids = SOLID.hash.get((Math.floor(p.x / c) + di) + "," + (Math.floor(p.z / c) + dj)); if (!ids) continue;
+    for (const id of ids) { if (seen.has(id)) continue; seen.add(id); const b = SOLID.polys[id]; if (p.x < b.x0 - r || p.x > b.x1 + r || p.z < b.z0 - r || p.z > b.z1 + r) continue;
+      const R = b.ring, n = R.length; let bd = 1e9, qx = 0, qz = 0;
+      for (let i = 0; i < n; i++) { const A = R[i], B = R[(i + 1) % n], ex = B.x - A.x, ez = B.y - A.y, L2 = ex * ex + ez * ez || 1e-9; let t = ((p.x - A.x) * ex + (p.z - A.y) * ez) / L2; t = Math.max(0, Math.min(1, t));
+        const x = A.x + ex * t, z = A.y + ez * t, d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; qx = x; qz = z; } }
+      const inside = inRing(R, p.x, p.z); if (!inside && bd >= r) continue;
+      let nx = p.x - qx, nz = p.z - qz; const l = Math.hypot(nx, nz) || 1e-9; nx /= l; nz /= l; if (inside) { nx = -nx; nz = -nz; }
+      p.x = qx + nx * r; p.z = qz + nz * r; } }
 }
 function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   const f = KEYS.has("w") || KEYS.has("arrowup") || WALK.auto || WALK.hold ? 1 : KEYS.has("s") || KEYS.has("arrowdown") ? -1 : 0;
