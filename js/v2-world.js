@@ -169,8 +169,9 @@ async function boot() {
     tieM.opacity = .18 * Math.min(1, lp / 5);
     obsM.opacity = cur >= 2 ? .55 : 0; treeM.opacity = cur === 2 ? .07 : cur === 1 ? .1 : .26;
     S.fog.density = cur >= 3 ? .00016 : cur === 0 ? .0008 : .0016;
-    if (vrm && g2.visible) { if (mot) mot.update(dt, cam); else vrm.update(dt); }
-    if (herd) herd.update(dt, { active: cur === 2, busy: false });
+    // 碧とかさねっこの毎こまは、読み込みの途中（中の配列がまだ空）でも絵の全体を止めない（2026-10-26 見回りで "reading '0'" が 1 回）
+    if (vrm && g2.visible) { try { if (mot) mot.update(dt, cam); else vrm.update(dt); } catch (e) { if (!frame.w1) { frame.w1 = 1; console.warn('aoi update', e); } } }
+    if (herd) { try { herd.update(dt, { active: cur === 2, busy: false }); } catch (e) { if (!frame.w2) { frame.w2 = 1; console.warn('kasane update', e); } } }
     if (cur >= 2 && !agentsAsked) { agentsAsked = true; loadAgents(); }
     R.render(S, cam);
     // 札
