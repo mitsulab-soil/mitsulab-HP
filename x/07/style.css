@@ -200,11 +200,11 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 /* 2026-10-23 夕方 本人「ジャンルの表示は残し、選択の GUI は削除」：森の群れの上の印は押せない表示だけ。印と名は点と同じ色 */
 #labs{position:fixed;inset:0;pointer-events:none;z-index:2}
 #labs .lab{position:absolute;left:0;top:0;pointer-events:none;display:inline-flex;align-items:center;gap:7px;padding:4px 10px;
-  background:radial-gradient(closest-side,rgba(3,6,15,.45),rgba(3,6,15,0));font:500 .84rem/1.2 var(--ml-serif);letter-spacing:.12em;color:var(--c);white-space:nowrap;transition:opacity .4s;
+  background:rgba(3,6,15,.58);border-radius:999px;font:500 .84rem/1.2 var(--ml-serif);letter-spacing:.12em;color:color-mix(in srgb,var(--c) 55%,#fff);white-space:nowrap;transition:opacity .4s;
   text-shadow:0 0 10px rgba(3,6,15,.9)}
 #labs .lab i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(3,6,15,.55),0 0 8px var(--c)}
 .p-law{flex-basis:100%;order:3;font-size:.78rem;color:var(--ml-ink-3);line-height:1.6}
-@media (max-width:720px){ #labs .lab{font-size:.76rem;padding:3px 6px;gap:5px;letter-spacing:.06em} #labs .lab i{width:7px;height:7px} }
+@media (max-width:720px){ #labs .lab{font-size:.84rem;padding:3px 8px;gap:5px;letter-spacing:.06em} #labs .lab i{width:8px;height:8px} }   /* 2026-10-25：375 の字を 13.4px に・字は色を白へ寄せて地を濃く（「時間と死」の灰色が読めなかった） */
 @media (prefers-reduced-motion:reduce){ #labs .lab{transition:none} }
 #panel .p-law{display:block;order:0;margin:0 0 12px;line-height:1.5;font-size:12px;color:#a2b8bf}
 @media(max-width:680px){ #panel .p-law{font-size:10px;margin-bottom:8px} }
