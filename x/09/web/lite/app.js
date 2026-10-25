@@ -1419,8 +1419,16 @@ function stepAoi(dt) {
 const KASA = { herd: null, p: null, cur: null, ok: null, n: 0, miss: 0, noCover: 0, bins: 0 };
 const KASA_SURF = /^(sidewalk|granite_light|granite_plaza|granite_black|granite_band|washed|sand|gravel)\|/;   // stone（縁石・石垣）の上には乗らない
 function kasaCell(x, z) { if (!COLL) return -1; const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz ? j * COLL.nx + i : -1; }
-function kasaSurf(x, z) { const k = kasaCell(x, z); return k >= 0 && KASA.ok[k] === 1; }
-function kasaPeek(x, z) { const k = kasaCell(x, z); return k >= 0 && KASA.ok[k] >= 1 && KASA.ok[k] <= 3; }   // 覗く所：歩ける面と、並木の根もと・植え込みの縁（低木の株のある所は除く。縁石の陰から体の半分が出る。そこを歩きまわりはしない）
+// 2026-10-25 採点「鳥居の石の台から体が突き出て、埋まって見える」→ 鳥居・楼門の柱と根もとの台（地面に立つ小さな部分）の足もと＋1 m には（台の向こうから先が生えて見えない）、かさねっこは立たない
+const KNO = { n: -1, b: [] };
+function kasaNo(x, z) {
+  const n = structGroup ? structGroup.children.length : 0;
+  if (n !== KNO.n) { KNO.n = n; KNO.b.length = 0; const bb = new THREE.Box3();
+    for (const o of structGroup?.children || []) if (/^torii_|^romon$/.test(o.name)) o.traverse(m => { if (!m.isMesh) return; bb.setFromObject(m); const sx = bb.max.x - bb.min.x, sz = bb.max.z - bb.min.z; if (sx < 3.2 && sz < 3.2 && bb.min.y < groundY((bb.min.x + bb.max.x) / 2, (bb.min.z + bb.max.z) / 2) + .6) KNO.b.push([bb.min.x - 1, bb.max.x + 1, bb.min.z - 1, bb.max.z + 1]); }); }
+  for (const b of KNO.b) if (x > b[0] && x < b[1] && z > b[2] && z < b[3]) return true; return false;
+}
+function kasaSurf(x, z) { const k = kasaCell(x, z); return k >= 0 && KASA.ok[k] === 1 && !kasaNo(x, z); }
+function kasaPeek(x, z) { const k = kasaCell(x, z); return k >= 0 && KASA.ok[k] >= 1 && KASA.ok[k] <= 3 && !kasaNo(x, z); }   // 覗く所：歩ける面と、並木の根もと・植え込みの縁（低木の株のある所は除く。縁石の陰から体の半分が出る。そこを歩きまわりはしない）
 function kasaSee(x, z) {   // その点から人の方へ 5 m、低木の株（4）がなければ見える
   const c = camera.position, dx = c.x - x, dz = c.z - z, L = Math.hypot(dx, dz) || 1; for (let u = .3; u < Math.min(5, L); u += .25) { const k = kasaCell(x + dx / L * u, z + dz / L * u); if (k >= 0 && KASA.ok[k] === 4) return false; } return true; }
 function kasaOk(x, z) { return kasaSurf(x, z) && !blocked(x, z); }
@@ -1439,7 +1447,7 @@ function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
     await loadLate(); if (!roadGroup || !COLL) return;
-    const M = await import("../kit/envAgents/kasane.js?v=20261024k");
+    const M = await import("../kit/envAgents/kasane.js?v=20261025b");
     KASA.ok = new Uint8Array(COLL.nx * COLL.nz); roadGroup.traverse(o => { if (o.isMesh && /^(roots|bed|lawn)\|/.test(o.name)) kasaRaster(o, 2); }); roadGroup.traverse(o => { if (o.isMesh && KASA_SURF.test(o.name)) kasaRaster(o, 1); });
     await VEG.p?.catch(() => { });
     for (const S of VEG.sp) if (S.s <= 2 || S.s === 7) for (let i = 0; i < S.m; i++) { const x = S.xs[i * 6], z = S.xs[i * 6 + 2], r = S.xs[i * 6 + 3] * .55 + .2, c = COLL.c; for (let dz = -r; dz <= r; dz += c) for (let dx = -r; dx <= r; dx += c) if (dx * dx + dz * dz <= r * r) { const k = kasaCell(x + dx, z + dz); if (k >= 0 && KASA.ok[k] === 2) KASA.ok[k] = 4; } }   // 低木の株のまわり
@@ -1595,16 +1603,19 @@ function setupSightLook(sp) {
           vec2 q=uv-.5; uv=.5+q*(1.-.14*dot(q,q)); c=texture2D(tDiffuse,uv).rgb; float l=dot(c,vec3(.2126,.7152,.0722)); c=max(vec3(0.),mix(vec3(l),c,1.45));   // 横に広い視野（目が頭の横）＝ふちをゆがめて寄せる
           float sk=smoothstep(.45,.9,uv.y)*smoothstep(.0,.18,c.b-c.r)*smoothstep(.25,.75,l); c+=vec3(.42,.1,.62)*sk*.45;   // 紫外の手がかり（模式）：空の散乱光は紫外を多くふくむ、を紫で重ねる。紫外は測っていない
         } else if(mode==3){   // 蝶：複眼の六角の並び（模式）と、人よりあらい像
-          vec2 p=uv*res/ (res.y/90.); vec2 r=vec2(1.,1.732), h=r*.5; vec2 a=mod(p,r)-h, b=mod(p-h,r)-h; vec2 g=dot(a,a)<dot(b,b)?a:b; vec2 cell=(p-g)*(res.y/90.)/res;
-          c=blur(cell, 3.); float e=smoothstep(.36,.5,length(g)); c*=1.-.35*e; c=mix(vec3(dot(c,vec3(.333))),c,1.25);
+          vec2 q0=uv-.5; float rq=length(q0*vec2(res.x/res.y,1.)); uv=.5+q0*(1.-.10*dot(q0,q0));   // 2026-10-25 画面のモザイクに見せない：真ん中は像がやわらかく、ふちほど小さな目（個眼）の並びが見える。広い視野＝ふちを少し寄せる
+          float cs=res.y/130.; vec2 p=uv*res/cs; vec2 r=vec2(1.,1.732), h=r*.5; vec2 a=mod(p,r)-h, b=mod(p-h,r)-h; vec2 g=dot(a,a)<dot(b,b)?a:b; vec2 cell=(p-g)*cs/res;
+          float edge=smoothstep(.3,.75,rq); c=mix(blur(uv, 2.2), blur(cell, 2.6), .55*edge);   // 真ん中には網をかけない（ふちだけ）
+          float lr=length(g); c*=1.+.06*edge*(1.-smoothstep(0.,.4,lr))-.16*edge*smoothstep(.36,.5,lr);   // 一つひとつの個眼のレンズ：真ん中が少し明るく、ふちが細く暗い（模式）
+          c=mix(vec3(dot(c,vec3(.333))),c,1.2);
           float l3=dot(c,vec3(.333)); float uk=smoothstep(.5,1.,uv.y)*smoothstep(0.,.16,c.b-c.r)*.7+smoothstep(.62,.95,l3)*.35; c=mix(c,c+vec3(.32,.04,.5),uk*.55);   // 紫外の手がかり（模式）を紫で重ねる。紫外は測っていない
           c+=vec3(.06,.1,.02)*smoothstep(.2,.6,c.g-c.r)*.8;   // 緑の葉（クスノキの若葉ほか）の手がかり
         } else if(mode==4){   // ミミズ：目はない。皮ふで受けとる明るさだけの模式（形はほとんど分からない）
           vec2 dq=(vUv-vec2(.5,-.15))*vec2(res.x/res.y,1.); float rr=length(dq), wv=sin(rr*38.-time*8.)*move; uv+=normalize(dq+1e-4)*wv*.006;   // 地面の振動（歩くたびに体へ伝わる・模式）で、明暗のむらがゆれる
           c=blur(uv, 22.); c=mix(c, blur(uv, 40.), .5); float l=dot(c,vec3(.2126,.7152,.0722)); l=smoothstep(.05,.9,l);   // 形は分からず、明暗のむらだけ c=vec3(l*l*1.1)*vec3(1.,.95,.88);
         } else if(mode==2){   // コウモリ：夕方の暗さでは目はあまり使わず、声の反響で形をとらえる（模式）。声を出すと、まわりへ輪がひろがる
-          c=texture2D(tDiffuse,uv).rgb; float l=dot(c,vec3(.2126,.7152,.0722)); c=vec3(l)*vec3(.5,.58,.95)*.75;
-          float rr=length((vUv-.5)*vec2(res.x/res.y,1.)); float fr=1.-pulse; c+=vec3(.55,.48,1.)*.32*pulse*smoothstep(.05,0.,abs(rr-fr*1.1));
+          c=texture2D(tDiffuse,uv).rgb; float l=dot(c,vec3(.2126,.7152,.0722)); l=pow(clamp(l,0.,1.),.74); c=vec3(l)*vec3(.6,.66,1.)*1.12+vec3(.01,.013,.035);   // 2026-10-25 375px で暗すぎた：夕方の暗さは残し、木と鳥居の形が読める明るさに
+          float rr=length((vUv-.5)*vec2(res.x/res.y,1.)); float fr=1.-pulse; c+=vec3(.62,.54,1.)*.62*pulse*smoothstep(.075,0.,abs(rr-fr*1.1));   // 声の輪
         } else if(mode==5){   // 犬：二種類の錐体（二色型）の模式。赤と緑の差がなくなる。像は人よりあらい
           c=blur(uv, 1.6); c=max(vec3(0.),vec3(dot(vec3(.367,.861,-.228),c),dot(vec3(.280,.673,.047),c),dot(vec3(-.012,.043,.969),c)));   // Machado ほか（2009）の二色型の置きかえ
         } else if(mode==6){   // カイツブリ：水面と水の中。もぐると、水の色と濁りと、ゆれる光（模式）
@@ -1694,7 +1705,7 @@ function emitEcho() {
   hits.sort((a, b) => a.d - b.d);
   const pos = new Float32Array(hits.length * 3); hits.forEach((h, i) => pos.set([h.p.x, h.p.y, h.p.z], i * 3));
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setDrawRange(0, 0);
-  const pts = new THREE.Points(g, new THREE.PointsMaterial({ map: glowTex(), color: "#b9aeff", opacity: .95, size: MOBILE ? .8 : .66, sizeAttenuation: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ map: glowTex(), color: "#d4ccff", opacity: 1, size: MOBILE ? 1.15 : .8, sizeAttenuation: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
   world.add(pts); SIGHT.echo.push({ pts, hits, t: 0, src: src.clone(), yaw: CAM.yaw + CAM.look }); chirp(); SIGHT.ring = 1;
 }
 function echoNow() { if (SIGHT.pulse > 0) return; SIGHT.pulse = .45; emitEcho(); }   // 本人が押したときだけ、超音波を出す（続けて押せるのは 0.45 秒ごと）
@@ -1714,10 +1725,12 @@ const RADAR = { cv: null, x: null, sweep: 0 };
 function drawRadar(dt) {
   if (!RADAR.cv) { const c = RADAR.cv = document.createElement("canvas"); c.id = "radar"; c.setAttribute("aria-hidden", "true"); document.body.appendChild(c); RADAR.x = c.getContext("2d"); }
   const c = RADAR.cv, S = MOBILE ? 132 : 172, pr = Math.min(2, devicePixelRatio || 1); if (c.width !== S * pr) { c.width = c.height = S * pr; c.style.width = c.style.height = S + "px"; }
-  c.hidden = !(QW.mode === "sight" && SIGHT.sp?.move === "echo"); if (c.hidden) return;
+  c.hidden = !(QW.mode === "sight" && SIGHT.sp?.move === "echo");
+  if (!RADAR.cap) { const e = RADAR.cap = document.createElement("p"); e.id = "radarCap"; e.textContent = "「超音波」で声を出す → 輪がひろがる → はね返った所が点で灯る（模式）"; document.body.appendChild(e); }   // 2026-10-25 何が起きているかを一行で
+  RADAR.cap.hidden = c.hidden; if (c.hidden) return;
   const x = RADAR.x, R = S / 2 - 6, K = R / 45, cx = S / 2, cy = S / 2; x.setTransform(pr, 0, 0, pr, 0, 0); x.clearRect(0, 0, S, S);
   x.fillStyle = "rgba(6,8,22,.72)"; x.beginPath(); x.arc(cx, cy, R + 4, 0, Math.PI * 2); x.fill();
-  x.strokeStyle = "rgba(169,156,255,.28)"; x.lineWidth = 1; for (const m of [10, 20, 30, 45]) { x.beginPath(); x.arc(cx, cy, m * K, 0, Math.PI * 2); x.stroke(); }
+  x.strokeStyle = "rgba(180,168,255,.5)"; x.lineWidth = 1; for (const m of [10, 20, 30, 45]) { x.beginPath(); x.arc(cx, cy, m * K, 0, Math.PI * 2); x.stroke(); }
   x.beginPath(); x.moveTo(cx - R, cy); x.lineTo(cx + R, cy); x.moveTo(cx, cy - R); x.lineTo(cx, cy + R); x.stroke();
   x.fillStyle = "rgba(200,190,255,.6)"; x.font = "300 8px ui-monospace,monospace"; x.fillText("45m", cx + 3, cy - R + 9); x.fillText("ECHO", 6, 11);
   const vy = CAM.yaw + CAM.look, cs = Math.cos(vy), sn = Math.sin(vy), cp = camera.position;
@@ -1725,11 +1738,11 @@ function drawRadar(dt) {
     const back = E.t * (343 / 16) / 2, out = E.t * (343 / 16), a = Math.max(0, 1 - Math.max(0, E.t - 3.2) / 1.6);
     if (out * K < R + 4) { x.strokeStyle = `rgba(190,180,255,${.75 * (1 - out / 50)})`; x.lineWidth = 1.5; x.beginPath(); x.arc(cx, cy, Math.min(R, out * K), -Math.PI / 2 - .9, -Math.PI / 2 + .9); x.stroke(); }   // 前へ出ていく声
     for (const h of E.hits) { if (h.d > back) break; const dx = h.p.x - cp.x, dz = h.p.z - cp.z, fx = -(dx * cs - dz * sn), fz = dx * sn + dz * cs; const px = cx - fx * K, py = cy - fz * K; if ((px - cx) ** 2 + (py - cy) ** 2 > R * R) continue;   // 前＝上
-      const fresh = Math.max(0, 1 - (back - h.d) / 6); x.fillStyle = `rgba(${200 + 55 * fresh | 0},${190 + 50 * fresh | 0},255,${a * (.35 + .65 * fresh)})`; x.fillRect(px - 1.2, py - 1.2, 2.4, 2.4); }
+      const fresh = Math.max(0, 1 - (back - h.d) / 6); x.fillStyle = `rgba(${200 + 55 * fresh | 0},${190 + 50 * fresh | 0},255,${a * (.35 + .65 * fresh)})`; x.fillRect(px - 1.6, py - 1.6, 3.2, 3.2); }
   }
   x.fillStyle = "#d8d0ff"; x.beginPath(); x.moveTo(cx, cy - 6); x.lineTo(cx - 4, cy + 4); x.lineTo(cx + 4, cy + 4); x.closePath(); x.fill();
 }
-function stopEcho() { if (RADAR.cv) RADAR.cv.hidden = true; for (const E of SIGHT.echo) { world.remove(E.pts); E.pts.geometry.dispose(); E.pts.material.dispose(); } SIGHT.echo.length = 0; }
+function stopEcho() { if (RADAR.cv) RADAR.cv.hidden = true; if (RADAR.cap) RADAR.cap.hidden = true; for (const E of SIGHT.echo) { world.remove(E.pts); E.pts.geometry.dispose(); E.pts.material.dispose(); } SIGHT.echo.length = 0; }
 let AC = null;
 function chirp() {   // 9〜11 ミリ秒の、高さがゆるやかに変わる音を、16 倍に引きのばして耳に届く高さにした模式の音
   if (!soundOn) return;

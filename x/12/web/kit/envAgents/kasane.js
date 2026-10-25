@@ -185,7 +185,7 @@ const ITEM_DEF = {
   pebble: { mount: "hand", make: () => merge([colorize(place(new THREE.IcosahedronGeometry(.0125, 0), { p: [0, .002, .008], s: [1.25, .72, 1] }), "#a8a397")]) },
   tenugui: { mount: "hand", make: () => merge([colorize(place(new THREE.BoxGeometry(.024, .04, .003), { p: [0, -.012, .006], r: [.12, 0, .05] }), "#e4dccb"), colorize(place(new THREE.BoxGeometry(.0245, .006, .0034), { p: [0, -.004, .006], r: [.12, 0, .05] }), "#34507a"), colorize(place(new THREE.BoxGeometry(.0245, .006, .0034), { p: [0, -.024, .0075], r: [.12, 0, .05] }), "#34507a")]) },
   // sound（sho を含む）：鈴（胸）・筆
-  bell: { mount: "chest", make: () => merge([colorize(place(new THREE.SphereGeometry(.0105, 8, 5), { p: [0, -.004, .009] }), "#c6a35c"), colorize(place(new THREE.TorusGeometry(.004, .0012, 3, 6), { p: [0, .008, .009] }), "#c6a35c"), colorize(place(new THREE.BoxGeometry(.0016, .0016, .0016), { p: [0, -.009, .019], s: [5, 1, 1] }), "#2a1f16"), colorize(place(new THREE.TorusGeometry(.03, .0012, 3, 10, Math.PI * .8), { p: [0, .02, -.004], r: [-.25, 0, Math.PI * 1.1] }), "#b34a3c")]) },
+  bell: { mount: "hand", make: () => merge([colorize(place(new THREE.SphereGeometry(.0105, 8, 5), { p: [0, -.012, .008] }), "#a48c58"), colorize(place(new THREE.CylinderGeometry(.0018, .0018, .014, 5), { p: [0, .004, .008] }), "#6b4e34"), colorize(place(new THREE.BoxGeometry(.0016, .0016, .0016), { p: [0, -.017, .018], s: [5, 1, 1] }), "#2a1f16")]) },   // 2026-10-25 採点「紺の子の胸の鈴がくちばしに見え、ペンギンに読める」→ 胸から手へ（手に持つ鈴）・色を落ち着いた真鍮に・首の紐は外す
   brush: { mount: "hand", make: () => merge([colorize(place(new THREE.CylinderGeometry(.0026, .0026, .046, 5), { p: [0, .01, .008], r: [.5, 0, -.35] }), "#b49a62"), colorize(place(new THREE.ConeGeometry(.0042, .013, 6), { p: [.0045, -.016, -.006], r: [.5 + Math.PI, 0, -.35] }), "#1d1a18")]) },
   // nature：若葉（頭）・どんぐり
   leaf: { mount: "head", make: () => { const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.quadraticCurveTo(.014, .016, 0, .04); sh.quadraticCurveTo(-.014, .016, 0, 0);
@@ -338,7 +338,7 @@ export class KasaneHerd {
     if (m === "chase" && M.length < 3) m = "jostle";
     if (m === "stumble" && this.upright) m = "jostle";
     G.mode = m; G.t = 0; G.rot += (R() - .5) * 2; G.spk = null; G.turnLeft = null; for (const a of M) a.speakT = 0;
-    G.dur = { watch: 4 + R() * 4, circle: 4 + R() * 2.5, jostle: 2.5 + R() * 1.5, chase: 3 + R() * 2, stumble: 2.4, idle: 1.5 + R() * 2.5, move: 99 }[m];
+    G.dur = { watch: 2.5 + R() * 2.5, circle: 4 + R() * 2.5, jostle: 2.5 + R() * 1.5, chase: 3 + R() * 2, stumble: 2.4, idle: 1 + R() * 1.5, move: 99 }[m];   // 2026-10-25 採点「ほとんど動かず置物に見える」→ 立ち止まる時間を短く
     if (m === "move") { for (let k = 0; k < 6; k++) { const a = R() * 6.28, rr = Math.sqrt(R()) * G.radius, x = G.anchor.x + Math.cos(a) * rr, z = G.anchor.y + Math.sin(a) * rr; if (!this.walkable || this.walkable(x, z)) { G.goal = new THREE.Vector2(x, z); break; } } if (!G.goal) { G.mode = "idle"; } }
     if (m === "stumble") { G.vi = Math.floor(R() * M.length); const v = M[G.vi]; v.squash = .55; v.tiltGoal = (R() < .5 ? -1 : 1) * .35; v.tiltT = 3; v.tiltHold = .9; }
     if (m === "jostle" || m === "watch") for (const a of M) a.happy = R() < .5 ? .34 : 0;
@@ -362,7 +362,7 @@ export class KasaneHerd {
       case "jostle": { if ((a.jt = (a.jt || 0) - dt) < 0) { a.jt = .45 + R() * .5; a.jx = (R() - .5) * .25 * s; a.jz = (R() - .5) * .25 * s; if (R() < .5) a.happy = .34; } face = R() < .5 ? null : G.c; break; }
       default: if (pd < 6 * s) face = P;
     }
-    if (a.hideBehind) { const b = a.hideBehind, dx = b.pos.x - P.x, dz = b.pos.y - P.y, d = Math.hypot(dx, dz) || 1; tx = b.pos.x + dx / d * .22 * s; tz = b.pos.y + dz / d * .22 * s; face = P; spd = .5 * s; }
+    if (a.hideBehind) { const b = a.hideBehind, dx = b.pos.x - P.x, dz = b.pos.y - P.y, d = Math.hypot(dx, dz) || 1; tx = b.pos.x + dx / d * .4 * s; tz = b.pos.y + dz / d * .4 * s; face = P; spd = .5 * s; }   // 2026-10-25 仲間の陰は体が重ならない距離で（重なって半分埋まって見えない）
     if (G.mode !== "jostle") { a.jx *= .9; a.jz *= .9; }
     if (this.walkable && !this.walkable(tx, tz)) { tx = G.c.x; tz = G.c.y; }
     { _g2.set(tx, tz); this._goalOut(a, _g2); tx = _g2.x; tz = _g2.y; }   // 結晶・碧の体の中には並ばない
@@ -386,8 +386,8 @@ export class KasaneHerd {
       sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vKP;").replace("#include <project_vertex>", "#include <project_vertex>\n  vKP = transformed;");
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vKP;").replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
   { float lum = dot(diffuseColor.rgb, vec3(.2126, .7152, .0722)); float dk = 1. - smoothstep(.06, .32, lum);
-    vec3 fd = (vKP - vec3(0., .088, .07)) / vec3(.075, .05, .06); float fw = exp(-dot(fd, fd));   // 顔のまわりを、丸くやわらかく
-    totalEmissiveRadiance += diffuseColor.rgb * dk * (.14 + .7 * fw); }`);
+    vec3 fd = (vKP - vec3(0., .088, .07)) / vec3(.11, .075, .09); float fw = exp(-dot(fd, fd));   // 顔のまわりを、丸くやわらかく
+    totalEmissiveRadiance += diffuseColor.rgb * dk * (.2 + .34 * fw); }   // 2026-10-25 採点「紺の子が腹の白い鳥（ペンギン）に見える」→ 顔の明るみを弱く広くし、体全体を少し持ち上げる（白い模様に見せない）`);
     };
     const mF = new THREE.MeshBasicMaterial({ vertexColors: true });
     // 左右の写し（先の傾きの向き）は、写しの組（物の行列を x で反転＝面の向きもそろう）で描く
@@ -779,8 +779,12 @@ export class KasaneHerd {
       if (X.t >= X.dur) { a.react = null; if (a.raiseGoal > 0 && X.k !== "hop") a.raiseGoal = 0; }
     }
     const breath = Math.sin(t * 1.9 + a.anchor.x) * .012;
+    if (!moving && !X && !RM) {   // 2026-10-25 採点「止まると置物に見える」→ 立っているあいだも、体重を左右へ移し、ときどき見回し、小さく跳ねる（個体ごとに位相と速さが違う）
+      const ws = 1.1 + (a.hopK || 1) * .5; rollAdd += Math.sin(t * ws + a.anchor.y * 3.1) * .04; yawOff += Math.sin(t * .55 * ws + a.anchor.x * 2.3) * (a.state === "focus" ? .06 : .2);
+      if (R() < dt * .1) a.happy = Math.max(a.happy, .34);
+    }
     a.tiltT -= dt;
-    if (a.tiltT < 0 && !moving) { a.tiltGoal = (R() < .5 ? -1 : 1) * (.18 + R() * .12); a.tiltT = (5 + R() * 10) * (1.4 - a.curious); a.tiltHold = 1 + R() * .9; }
+    if (a.tiltT < 0 && !moving) { a.tiltGoal = (R() < .5 ? -1 : 1) * (.18 + R() * .12); a.tiltT = (2.5 + R() * 4.5) * (1.4 - a.curious); a.tiltHold = 1 + R() * .9; }
     if (a.tiltHold > 0) { a.tiltHold -= dt; if (a.tiltHold <= 0) a.tiltGoal = 0; }
     if (moving) a.tiltGoal = 0;
     if (this.upright) a.tiltGoal = clamp(a.tiltGoal, -.16, .16);

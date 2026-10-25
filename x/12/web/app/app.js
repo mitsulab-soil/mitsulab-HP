@@ -9,12 +9,12 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k1";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q3";
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k3";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k6";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
-import { SPOTS } from "./sounds.js?v=1";
+import { SPOTS } from "./sounds.js?v=2";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -199,10 +199,11 @@ async function buildBuildings() {
 /* 通りに面した建物（道筋から 24 m 以内に輪郭がかかるもの）：漆喰の不透明の壁と屋根。歩いて中に入らない（足もとの輪郭で止める）。
    道筋が建物の輪郭の中を通るもの（駅の建物など）は、通れなくならないよう、これまでどおり薄いグラフィックに残す */
 const SOLID = { P: [], U: [], W: [], C: [], polys: [], hash: new Map(), cell: 12 };
-const SOLID_TONES = [[.62, .59, .54], [.6, .52, .42], [.5, .5, .48], [.44, .37, .31], [.36, .34, .32], [.66, .63, .58]];   // 漆喰の白・タイルの砂色・灰・焦げ茶・濃い灰（模式）
+const SOLID_TONES = [[.5, .47, .43], [.52, .45, .37], [.42, .41, .39], [.4, .34, .29], [.32, .3, .29], [.47, .44, .4]];   // 2026-10-25 採点「白い張りぼての板に見える」→ 白を抑え、雨に古びた漆喰・タイルの色へ   // 漆喰の白・タイルの砂色・灰・焦げ茶・濃い灰（模式）
 function inRing(r, x, z) { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a.y > z) !== (b.y > z) && x < (b.x - a.x) * (z - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 function streetSide(ring) {
   if (nearestOnLine(ring[0].x, ring[0].y).dist > 70) return false;
+  if (Math.abs(THREE.ShapeUtils.area(ring)) < 25) return false;   // 2026-10-25 採点「白い張りぼての板」＝角の 9 m² ほどの小さな建物（交番や塔のようなもの）は、不透明の箱にせず線のグラフィックのまま
   let near = false; for (const p of ring) if (nearestOnLine(p.x, p.y).dist < 24) { near = true; break; }
   if (!near) return false;
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of ring) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
@@ -241,7 +242,7 @@ function buildSolids() {
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec4 vW;").replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
       if (vW.y > -5.) {
         float u = vW.x, v = vW.y, H = vW.z, L = vW.w, gl = 0., fr = 0.;
-        float edge = step(1.2, u) * step(u, L - 1.2);                          // 壁の端は窓にしない
+        float edge = L < 3.4 ? step(.25, fract(u / 1.7)) * step(fract(u / 1.7), .75) : step(1.2, u) * step(u, L - 1.2);   // 壁の端は窓にしない（2026-10-25 短い面が続く輪郭も、窓のない板にしない）
         if (v < 3.4) { float b = fract(u / 3.2); gl = step(.07, b) * step(b, .93) * step(.25, v) * step(v, 2.7) * edge; fr = step(2.7, v) * step(v, 3.25); }   // 一階：店先のガラスと看板の帯
         else if (v < H - .9) { float fu = fract(u / 2.6), fv = fract((v - 3.4) / 3.1); gl = step(.28, fu) * step(fu, .72) * step(.28, fv) * step(fv, .82) * edge; }   // 二階から上：窓
         float joint = (v > 3.4 && v < H - .4) ? smoothstep(.03, 0., abs(fract((v - 3.4) / 3.1) - .0) ) * .0 + step(fract((v - 3.4) / 3.1), .025) : 0.;
@@ -446,7 +447,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .62 : 1.1, fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
+  const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .45 : 1.1, fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const side = !$("#panel").hidden && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side); out.y = groundY(out.x, out.z); return out;
@@ -459,12 +460,14 @@ function aoiArrive() {
   });
 }
 const _ap = new THREE.Vector3();
+const _ndc = new THREE.Vector3();
 function stepAoi(dt) {
   if (!AOI.m || !AOI.root.visible) return;
   aoiSpot(_ap); const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
   if (dist > 18) { AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
-    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : 1.3), want = go ? Math.min(1.6, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
+    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .55;   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
+    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(1.6, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v += Math.max(-1.8 * dt, Math.min(1.0 * dt, want - AOI.v));
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; AOI.m.faceTo(Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z)); }
@@ -575,6 +578,12 @@ function stepFly(dt) {
   const bx = G.dem, lim = 30; CAM.pos.x = Math.max(bx.x0 + lim, Math.min(bx.x0 + bx.cell * (bx.nx - 1) - lim, CAM.pos.x)); CAM.pos.z = Math.max(bx.z0 + lim, Math.min(bx.z0 + bx.cell * (bx.nz - 1) - lim, CAM.pos.z));
   camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, yaw, 0, "YXZ"));
 }
+function flyOver(c) {   // 遠くの音の場所へ、低く（地面から約 10 m）空から近づく。手前 30 m から、その場所へ向いて
+  hidePanel(); stopVoice(); hideSkyUI(); hideWalkUI(); unlockAudio();
+  const n = nearestOnLine(c.x, c.z), a = atD(n.d), dx = c.x - a.x, dz = c.z - a.z, L = Math.hypot(dx, dz) || 1, x = c.x - dx / L * 30, z = c.z - dz / L * 30;
+  CAM.pos.set(x, groundY(x, z) + 10, z); CAM.yaw = Math.atan2(-dx, -dz); CAM.look = 0; CAM.pitch = -.18;
+  setMode("descend"); tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.4, () => { setMode("fly"); showFlyUI(); toast(`${c.nm}の上です。近くを飛ぶと、その場所の音が聞こえます`); });
+}
 function landFromFly() { const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d); hideFlyUI(); setMode("descend"); const y = CAM.yaw + CAM.look; CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = y; CAM.look = 0; CAM.pitch = -.04; tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.0, () => { setMode("walk"); showWalkUI(); aoiArrive(); }); }
 function toSky() { hidePanel(); stopVoice(); exitSight(true); hideWalkUI(); hideFlyUI(); setMode("descend");
   const tmp = new THREE.PerspectiveCamera(); const keep = camera.position.clone(); const kq = camera.quaternion.clone(); skyCam(); const p = camera.position.clone(), q = camera.quaternion.clone(); camera.position.copy(keep); camera.quaternion.copy(kq);
@@ -618,7 +627,7 @@ function kasaPeek(x, z) { return nearestOnLine(x, z).dist < 11 && !kasaBox(x, z,
 function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
-    const M = await import("../kit/envAgents/kasane.js?v=20261024k");
+    const M = await import("../kit/envAgents/kasane.js?v=20261025b");
     const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
       muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || a.data?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない・窓は層の一覧にかけない
     const near = (x, z, Rm = 9) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
@@ -737,6 +746,10 @@ let BELL = null;
 function bell() { if (!BELL) BELL = new BellSynth(); BELL.resume(); return BELL; }
 function openSound(L, no) {
   const it = L.o, g = GL.sound;
+  if (it.kind === "far") {   // 遠くの音の道しるべ
+    const c = it.cl; openPanel({ color: g.color, layer: no, title: it.title, lines: [{ t: `${c.nm}の音は、ここから${it.dir}へ約 ${it.m} m。歩く道からは遠くて届かないので、空から近づくと聞こえます。` }], more: ["その場所の音：" + c.list.map(s => s.title).join("・")], how: "", buttons: [{ label: "空から近づく", primary: true, run: () => flyOver(c) }] });
+    return;
+  }
   const run = () => { if (!soundOn) { toast("声と音がオフです（メニュー）"); return; } stopVoice(); const b = bell(); const dist = KURA.tower ? Math.hypot(KURA.tower.position.x - camera.position.x, KURA.tower.position.z - camera.position.z) : 0;
     if (it.kind === "kokonotsu") b.sequence(Array.from({ length: 9 }, (_, i) => i * 5), { dist });
     else if (it.kind === "hayagane") b.sequence([0, 1.1, 2.2, 4.4, 5.5, 6.6, 8.8, 11, 11.6, 12.2, 12.8, 13.4, 14, 14.6, 15.2, 15.8], { dist, hard: true });
@@ -770,6 +783,14 @@ function extraSounds() {
     return { ...s, x: +x.toFixed(2), z: +z.toFixed(2) }; });
   for (const s of spots) C.sound.push({ id: s.id, kind: "amb", spot: s, title: s.title, x: s.x, z: s.z, ll: ll(s.x, s.z), label: s.label, how: s.how, lines: [], src: s.src });
   AMB.setSpots(spots);
+  // 2026-10-25 歩く道から遠い音（喜多院・川越氷川神社・新河岸川。約 500 m 先）：道のいちばん近い所に「その音へ」の札を置き、触れると空から近づける（遠すぎて歩く道からは聞こえない、をそのまま言う）
+  const PLACE = { h_kitain: "喜多院", n_aburazemi: "喜多院", n_kogera: "喜多院", c_furin: "川越氷川神社", c_suzu: "川越氷川神社", n_sagi: "新河岸川", n_ogawa: "新河岸川" };
+  const far = spots.map(s => ({ s, n: nearestOnLine(s.x, s.z) })).filter(o => o.n.dist > 90), CL = [];
+  for (const o of far) { const nm = PLACE[o.s.id] || o.s.title; let c = CL.find(c => c.nm === nm && Math.hypot(c.x - o.s.x, c.z - o.s.z) < 150); if (!c) CL.push(c = { nm, x: 0, z: 0, list: [] }); c.list.push(o.s); c.x = c.list.reduce((a, s) => a + s.x, 0) / c.list.length; c.z = c.list.reduce((a, s) => a + s.z, 0) / c.list.length; }
+  const DIR = ["北", "北東", "東", "南東", "南", "南西", "西", "北西"];
+  CL.forEach((c, i) => { const n = nearestOnLine(c.x, c.z), a = atD(n.d), dx = c.x - a.x, dz = c.z - a.z, L = Math.hypot(dx, dz), m = Math.round(L / 50) * 50;
+    const dir = DIR[Math.round(((Math.atan2(dx, -dz) * 180 / Math.PI) + 360) % 360 / 45) % 8], px = a.x + dx / L * 5, pz = a.z + dz / L * 5;
+    C.sound.push({ id: "x_far" + (i + 1), kind: "far", cl: c, title: `${c.nm}の音へ（${dir}へ約 ${m} m）`, x: px, z: pz, ll: ll(px, pz), dir, m, label: "道しるべ（遠くの音の場所）", how: "", lines: [], src: [] }); });
 }
 function surfAt(x, z) { return nearestOnLine(x, z).dist < 3.2 ? "asphalt" : "tile"; }   // 道の中ほどは車道のアスファルト、端は歩道の平板（模式）
 function inKura(x, z) { for (const k of [...G.kura, ...(G.machi || [])]) { if (Math.abs(k.x - x) > 14 || Math.abs(k.z - z) > 14) continue; const c = Math.cos(k.yaw), s = Math.sin(k.yaw), dx = x - k.x, dz = z - k.z; if (Math.abs(dx * c - dz * s) < k.w / 2 && Math.abs(dx * s + dz * c) < k.dp / 2) return true; } return false; }

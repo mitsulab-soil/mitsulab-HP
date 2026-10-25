@@ -84,8 +84,8 @@ export function kuraMats(TL, mobile) {
     // 黒漆喰：磨いた漆喰の深い黒（つやは強め・映り込みは控えめ）。白い漆喰の写真の肌理を、色は黒にして使う
     shikkui: new THREE.MeshPhysicalMaterial({ color: "#131417", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.42, .42), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .55, metalness: 0, clearcoat: mobile ? 0 : .3, clearcoatRoughness: .14, envMapIntensity: .45 }),
     // 町家の型の上壁：灰白の漆喰（白い漆喰の写真の色をそのまま、少し灰に）
-    plaster: new THREE.MeshStandardMaterial({ color: "#e2e0da", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
-    plasterg: new THREE.MeshStandardMaterial({ color: "#9a9894", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
+    plaster: new THREE.MeshStandardMaterial({ color: "#c9c4ba", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
+    plasterg: new THREE.MeshStandardMaterial({ color: "#77736d", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
     glass: new THREE.MeshStandardMaterial({ color: "#6d7a84", roughness: .04, metalness: 0, envMapIntensity: .8, transparent: true, opacity: .16, depthWrite: false }),   // ガラス戸：透けて奥の土間が見え、空がうすく映る
     doma: new THREE.MeshStandardMaterial({ color: "#4a3a2c", roughness: .9, emissive: "#3a2814", emissiveIntensity: .5 }),   // 店の奥（土間と奥の壁）：暗いが真っ黒にしない
     // 町家の型の板壁・格子：杉板（焼いた色に寄せて暗く）
@@ -173,6 +173,13 @@ export function kuraGeos(type) {
   A.tile.slab(-hw - .5, hw + .5, eave, ez, ridgeY, 0, .16);
   A.tile.slab(hw + .5, -hw - .5, eave, -ez, ridgeY, 0, .16);
   for (const sx of [-1, 1]) A.shikkui.tri([sx * hw, T.h2, -hd], [sx * hw, T.h2, hd - .25], [sx * hw, ridgeY - .2, 0].map((v, i) => v), 1);   // 妻の壁
+  for (const sx of [-1, 1]) {   // 2026-10-25 横の壁にも、2 階に小さな窓（暗がりと格子と土の枠の段・模式）。角に建つと通りから見える
+    const x = sx * (hw + .01), xo = sx * (hw + .14), xa = Math.min(x, xo), xb = Math.max(x, xo), zc = -hd * .2, w = .9, y0 = T.h1 + 1.1, y1 = y0 + 1.0;
+    A.dark.quad([x + sx * .004, y0, zc - w / 2], [x + sx * .004, y0, zc + w / 2], [x + sx * .004, y1, zc + w / 2], [x + sx * .004, y1, zc - w / 2]);
+    for (let z = zc - w / 2 + .1; z < zc + w / 2 - .04; z += .15) A.wood.box(Math.min(x, x + sx * .05), y0, z - .02, Math.max(x, x + sx * .05), y1, z + .02);
+    A.shikkui.box(xa, y0 - .14, zc - w / 2 - .14, xb, y0, zc + w / 2 + .14); A.shikkui.box(xa, y1, zc - w / 2 - .14, xb, y1 + .16, zc + w / 2 + .14);
+    A.shikkui.box(xa, y0, zc - w / 2 - .12, xb, y1, zc - w / 2); A.shikkui.box(xa, y0, zc + w / 2, xb, y1, zc + w / 2 + .12);
+  }
   // 箱棟：棟の上の大きな箱（側面は土、上は瓦）
   const rh = T.ridge, rw = .34;
   A.shikkui.box(-hw - .35, ridgeY - .1, -rw, hw + .35, ridgeY + rh, rw, 1, "zZ");
@@ -190,10 +197,10 @@ export function kuraGeos(type) {
 /* ---------- 町家の型（模式）：一番街と鐘つき通りの、型の蔵を置かなかった低い建物 ----------
    2 階建て・平入り・瓦屋根・1 階は格子と下屋。M＝上壁が灰白の漆喰／N＝上壁が杉の板。一棟ずつの姿ではない（瓦屋根の連なりと通りの狭さを出すための模式） */
 const MTYPES = {   // up＝2 階の正面・side＝横と奥・f1＝1 階の正面（lattice＝格子／glass＝ガラス戸の店の口）
-  M: { up: "plaster", side: "plaster", f1: "lattice", h1: 3.1, h2: 5.7, pitch: .42 },
+  M: { up: "plaster", side: "plasterg", f1: "lattice", h1: 3.1, h2: 5.7, pitch: .42 },
   N: { up: "cedar", side: "plaster", f1: "lattice", h1: 3.0, h2: 5.5, pitch: .46 },
-  G: { up: "plaster", side: "plasterg", f1: "glass", h1: 3.2, h2: 5.9, pitch: .42 },
-  K: { up: "shikkui", side: "plasterg", f1: "glass", h1: 3.2, h2: 6.0, pitch: .45 },   // 塗屋（2 階の正面を黒く塗った町家の模式）
+  G: { up: "shikkui", side: "shikkui", f1: "glass", h1: 3.2, h2: 5.9, pitch: .42 },
+  K: { up: "shikkui", side: "shikkui", f1: "glass", h1: 3.2, h2: 6.0, pitch: .45 },   // 塗屋（2 階の正面を黒く塗った町家の模式）
 };
 export function machiGeos(type) {
   const T = MTYPES[type], W = W0, D = D0, hw = W / 2, hd = D / 2;
@@ -232,6 +239,18 @@ export function machiGeos(type) {
   A.tile.slab(-hw - .45, hw + .45, eave, ez, ridgeY, 0, .12);
   A.tile.slab(hw + .45, -hw - .45, eave, -ez, ridgeY, 0, .12);
   for (const sx of [-1, 1]) A[T.side].tri([sx * hw, T.h2, -hd], [sx * hw, T.h2, z2], [sx * hw, ridgeY - .12, 0], 1);   // 妻の壁
+  // 2026-10-25 横の壁（角に建つと通りから見える）にも、杉の腰板と、1 階・2 階の小さな格子窓（模式）。窓のない平らな壁に見せない
+  for (const sx of [-1, 1]) {
+    const x = sx * (hw + .012), xo = sx * (hw + .07), xa = Math.min(x, xo), xb = Math.max(x, xo);
+    A.cedar.quad([x, .15, -hd + .15], [x, .15, z2 - .05], [x, 1.0, z2 - .05], [x, 1.0, -hd + .15]);   // 腰板
+    A.wood.box(xa, .98, -hd + .15, xb, 1.06, z2 - .05);   // 腰板の見切り
+    for (const [zc, y0, y1, w] of [[-hd * .4, T.h1 + .9, T.h1 + 1.7, 1.4], [hd * .25, 1.35, 2.25, 1.2]]) {
+      A.dark.quad([x + sx * .004, y0, zc - w / 2], [x + sx * .004, y0, zc + w / 2], [x + sx * .004, y1, zc + w / 2], [x + sx * .004, y1, zc - w / 2]);
+      for (let z = zc - w / 2 + .06; z < zc + w / 2 - .02; z += .12) A.cedar.box(xa, y0, z - .016, xb, y1, z + .016);   // 格子
+      A.wood.box(xa - .02, y0 - .08, zc - w / 2 - .08, xb + .02, y0, zc + w / 2 + .08); A.wood.box(xa - .02, y1, zc - w / 2 - .08, xb + .02, y1 + .08, zc + w / 2 + .08);
+      A.wood.box(xa, y0, zc - w / 2 - .08, xb, y1, zc - w / 2); A.wood.box(xa, y0, zc + w / 2, xb, y1, zc + w / 2 + .08);
+    }
+  }
   A.tile.box(-hw - .45, ridgeY - .06, -.2, hw + .45, ridgeY + .26, .2, 1, "xXzZY");   // 棟（低い）
   const geos = {}; for (const k in A) if (A[k].p.length) geos[k] = A[k].geo();
   return { geos, h: ridgeY + .26 };

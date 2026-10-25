@@ -15,7 +15,7 @@ export const SPOTS = [
   /* ---------- 歴史 ---------- */
   { id: "h_tokinokane", cat: "history", kind: "else", title: "時の鐘（いまの鐘が鳴る時刻）", at: { x: -12, z: -16 }, f: "web/snd/tokinokane.m4a",
     label: "② 別の鐘の音（滋賀県近江八幡市・長命寺の梵鐘。時の鐘の録音ではありません）", ...KANE, clock: [6, 12, 15, 18],
-    how: "いまの時の鐘は、午前 6 時・正午・午後 3 時・午後 6 時に鳴ります。この作品を開いているあいだに、その時刻になると、鐘つき堂からの遠さに合わせて、別の鐘の音を鳴らします。時の鐘そのものの音は、これから現地で録ります。",
+    how: "いまの時の鐘は、午前 6 時・正午・午後 3 時・午後 6 時に鳴ります。この作品を開いているあいだに、その時刻になると、鐘つき堂からの遠さに合わせて、別の鐘の音を鳴らします。",
     src: [PAMPH, ...KANE.src] },
   { id: "h_kaji", cat: "history", kind: "re", title: "鍛冶町の槌の音", at: { d: 990, s: 7 }, syn: "tsuchi", amb: { r: 22, every: 16 },
     label: "③ 再現音（町の名にちなむ、槌の音の模式。この町の鍛冶の録音ではありません）", who: "mitsulab がその場で組み立てた音",
@@ -110,7 +110,7 @@ export const SPOTS = [
     src: [INAT("Ardea alba", "ダイサギ 2 件"), C("Great Egret (Ardea alba alba) call / Stanislas Wroza / Wikimedia Commons（CC BY 4.0）", CM("Great_Egret_(Ardea_alba_alba)_call.ogg"))] },
   { id: "n_ogawa", cat: "nature", kind: "else", title: "川の水の音", at: { ll: [35.92845, 139.487], dx: 8, dz: -6 }, f: "web/snd/ogawa.m4a", amb: { r: 36, bed: true },
     label: "② ほかの場所で録った水の音（トルコ・ギョレメ近くの小川。新河岸川の録音ではありません）", who: "TwoWings／Wikimedia Commons（CC BY 3.0）",
-    how: "新河岸川の、いまの水の音は、これから現地で録ります。それまでは、ほかの場所の小川の水音を置いています。",
+    how: "ほかの場所の小川の水音を置いています（新河岸川で録った音ではありません）。",
     src: [C("Brook sound.ogg / TwoWings / Wikimedia Commons（CC BY 3.0）", CM("Brook_sound.ogg"))] },
   { id: "n_yane", cat: "nature", kind: "else", title: "雨の日の瓦屋根", at: { x: -47, z: 137 }, f: "web/snd/yane.m4a",
     label: "② ほかの場所で録った同じ種類の音（瓦屋根に当たる雨。オランダで録音）", who: "Beeld en Geluid（オランダ映像音響研究所）／Wikimedia Commons（CC BY-SA 3.0）",
