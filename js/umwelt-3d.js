@@ -582,26 +582,36 @@ function tileTex(kind) {
 // マダニ（成虫の雌の形の模式）：胴は楕円で背板は前半だけ、前に顎体部（触肢一対と口下片）、脚は 4 対＝8 本。
 //   第一脚を前へ広げて待つ（草の先で獲物を待つ姿勢）。向き：頭が +Z、背が +Y、体の長さ＝およそ 1
 export function makeTick() {
+  // 2026-10-26 写実寄りに：伸びる胴（細かな皺の凹凸）・前半だけの背板（点刻）・縁の溝・顎体部（基部・二節の触肢・歯のある口下片）・6 節の脚 4 対と爪
   const T = new THREE.Group();
-  const body = new THREE.MeshPhysicalMaterial({ color: 0x9a4426, roughness: .4, clearcoat: .6, clearcoatRoughness: .25 });
-  const shield = new THREE.MeshPhysicalMaterial({ color: 0x1c120d, roughness: .32, clearcoat: .7, clearcoatRoughness: .2 });
-  const leg = new THREE.MeshStandardMaterial({ color: 0x6a4028, roughness: .5 });
-  const b = new THREE.Mesh(new THREE.SphereGeometry(.5, 32, 20), body); b.scale.set(.78, .26, 1.0); b.position.z = -.12; T.add(b);
-  const s = new THREE.Mesh(new THREE.SphereGeometry(.5, 24, 14), shield); s.scale.set(.46, .2, .36); s.position.set(0, .05, .24); T.add(s);
-  const cap = new THREE.Mesh(new THREE.BoxGeometry(.14, .06, .1), shield); cap.position.set(0, .0, .39); T.add(cap);
-  for (const sx of [-1, 1]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(.022, .018, .14, 8), shield); p.rotation.x = Math.PI / 2; p.position.set(sx * .045, 0, .48); T.add(p); }
-  const hy = new THREE.Mesh(new THREE.ConeGeometry(.018, .13, 8), leg); hy.rotation.x = Math.PI / 2; hy.position.set(0, -.01, .5); T.add(hy);
-  const bone = (a, c, r, par) => { const d = c.clone().sub(a), m = new THREE.Mesh(new THREE.CylinderGeometry(r * .8, r, d.length(), 7), leg); m.position.copy(a).add(c).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); par.add(m); const j = new THREE.Mesh(new THREE.SphereGeometry(r, 7, 5), leg); j.position.copy(c); par.add(j); };
-  const Z = [.3, .2, .1, .0];
+  const bump = tickBump();
+  const body = new THREE.MeshPhysicalMaterial({ color: 0x3a1c12, roughness: .5, clearcoat: .45, clearcoatRoughness: .35, bumpMap: bump, bumpScale: 1.2 });
+  const shield = new THREE.MeshPhysicalMaterial({ color: 0x1b100b, roughness: .38, clearcoat: .6, clearcoatRoughness: .25, bumpMap: bump, bumpScale: .6 });
+  const leg = new THREE.MeshStandardMaterial({ color: 0x3b2116, roughness: .55 });
+  const legL = new THREE.MeshStandardMaterial({ color: 0x6b4630, roughness: .55 });
+  const bg = new THREE.SphereGeometry(.5, 48, 28); { const p = bg.attributes.position; for (let i = 0; i < p.count; i++) { const z = p.getZ(i); p.setX(i, p.getX(i) * (1 + z * .35)); } bg.computeVertexNormals(); }
+  const b = new THREE.Mesh(bg, body); b.scale.set(.74, .24, 1.0); b.position.z = -.12; b.rotation.y = Math.PI; T.add(b);
+  const groove = new THREE.Mesh(new THREE.TorusGeometry(.5, .008, 6, 64), shield); groove.rotation.x = Math.PI / 2; groove.scale.set(.66, .9, 1); groove.position.set(0, .075, -.14); T.add(groove);
+  const s = new THREE.Mesh(new THREE.SphereGeometry(.5, 32, 18), shield); s.scale.set(.44, .17, .34); s.position.set(0, .06, .22); T.add(s);
+  const bc = new THREE.Mesh(new THREE.CylinderGeometry(.07, .1, .09, 6), shield); bc.rotation.x = Math.PI / 2; bc.scale.set(1, 1, .45); bc.position.set(0, .01, .4); T.add(bc);
+  for (const sx of [-1, 1]) { const p1 = new THREE.Mesh(new THREE.CapsuleGeometry(.024, .07, 4, 8), shield); p1.rotation.x = Math.PI / 2; p1.rotation.z = sx * .12; p1.position.set(sx * .05, .0, .5); T.add(p1); const p2 = new THREE.Mesh(new THREE.CapsuleGeometry(.028, .05, 4, 8), shield); p2.rotation.x = Math.PI / 2; p2.position.set(sx * .056, .0, .58); T.add(p2); }
+  const hy = new THREE.Mesh(new THREE.ConeGeometry(.02, .16, 8), legL); hy.rotation.x = Math.PI / 2; hy.position.set(0, -.012, .56); T.add(hy);
+  const bone = (a, c, r, par, m) => { const d = c.clone().sub(a), mm = new THREE.Mesh(new THREE.CylinderGeometry(r * .78, r, d.length(), 8), m); mm.position.copy(a).add(c).multiplyScalar(.5); mm.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); par.add(mm); const j = new THREE.Mesh(new THREE.SphereGeometry(r * .9, 8, 6), legL); j.position.copy(c); par.add(j); };
+  const Z = [.28, .2, .11, .02];
   for (const sx of [-1, 1]) Z.forEach((z, i) => {
-    const root = new THREE.Group(); root.position.set(sx * .27, -.02, z); T.add(root);
+    const root = new THREE.Group(); root.position.set(sx * .2, -.03, z); T.add(root);
     let pts;
-    if (i === 0) { root.userData.quest = -.35; root.userData.side = sx; pts = [[0, 0, 0], [sx * .2, .14, .22], [sx * .26, .24, .48], [sx * .28, .3, .64]]; }   // 第一脚：前へ広げて待つ
-    else { const sp = (i - 1.5) * .22; pts = [[0, 0, 0], [sx * .3, .12, sp * .5], [sx * .5, -.06, sp], [sx * .56, -.2, sp * 1.2]]; }
-    const V = pts.map(p => new THREE.Vector3(...p).multiplyScalar(.72));
-    for (let k = 0; k < 3; k++) bone(V[k], V[k + 1], .042 - k * .008, root);
+    if (i === 0) { root.userData.quest = -.35; root.userData.side = sx; pts = [[0, 0, 0], [sx * .08, .02, .06], [sx * .2, .12, .18], [sx * .26, .2, .34], [sx * .28, .26, .48], [sx * .29, .3, .6], [sx * .3, .32, .68]]; }   // 第一脚：前へ広げて待つ（先にハラー氏器官）
+    else { const sp = (i - 1.6) * .26; pts = [[0, 0, 0], [sx * .1, .02, sp * .15], [sx * .26, .14, sp * .4], [sx * .44, .12, sp * .7], [sx * .58, -.02, sp * .9], [sx * .66, -.16, sp], [sx * .7, -.24, sp * 1.05]]; }
+    const V = pts.map(p => new THREE.Vector3(...p).multiplyScalar(.78));
+    for (let k = 0; k < 6; k++) bone(V[k], V[k + 1], .036 - k * .0045, root, k % 2 ? legL : leg);
   });
   return T;
+}
+function tickBump() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.fillStyle = '#808080'; x.fillRect(0, 0, 256, 256);
+  for (let k = 0; k < 2600; k++) { const v = 90 + Math.random() * 90 | 0; x.fillStyle = `rgb(${v},${v},${v})`; x.beginPath(); x.ellipse(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, .6 + Math.random(), Math.random() * 3, 0, 6.3); x.fill(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
 }
 // 人（形だけの模型）。ghost＝淡く透ける姿（ほかに来た人）
 export function makePerson(ghost = false) {

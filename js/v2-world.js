@@ -80,13 +80,19 @@ async function boot() {
   const qLn = [], qP = [];
   [[P_HITO, 0], [P_BEE, 2.2], [P_TICK, 4.1], [P_WORM, 5.3]].forEach(([p, a]) => { const e = new THREE.Vector3(BO.x + Math.cos(a) * ER, BO.y + .05, BO.z + Math.sin(a) * ER); let pr = e;
     for (let i = 1; i <= 24; i++) { const u = i / 24, v = e.clone().lerp(p, u); v.y += Math.sin(u * Math.PI) * 3.2; qLn.push(pr.x, pr.y, pr.z, v.x, v.y, v.z); pr = v; if (i === 12) qP.push(v.x, v.y, v.z); } });
-  const qM = lm(0xf6e2b0, .55); g1.add(new THREE.LineSegments(geo(qLn), qM)); g1.add(new THREE.Points(geo(qP), pm(0xf6e2b0, 1.2, 1)));
+  const qM = lm(0xf6e2b0, .55); g1.add(new THREE.LineSegments(geo(qLn), qM));
+  // 向き：E（地の輪）から主体へ。弧の終わりに矢じり、弧の上を流れる光の粒、地の輪の起点に印
+  const qArc = [], arrowM = new THREE.MeshBasicMaterial({ color: 0xf6e2b0, transparent: true, opacity: .95, toneMapped: false, depthWrite: false });
+  for (let j = 0; j < 4; j++) { const seg = qLn.slice(j * 144, j * 144 + 144), pts = []; for (let i = 0; i < 24; i++) pts.push(new THREE.Vector3(seg[i * 6], seg[i * 6 + 1], seg[i * 6 + 2])); pts.push(new THREE.Vector3(seg[138 + 3], seg[138 + 4], seg[138 + 5])); qArc.push(new THREE.CatmullRomCurve3(pts));
+    const end = pts[pts.length - 1], dir = end.clone().sub(pts[pts.length - 3]).normalize(), cone = new THREE.Mesh(new THREE.ConeGeometry(.32, .9, 10), arrowM); cone.position.copy(end).addScaledVector(dir, -.9); cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); g1.add(cone);
+    const st = new THREE.Mesh(new THREE.RingGeometry(.45, .7, 24), new THREE.MeshBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .9, side: THREE.DoubleSide, toneMapped: false, depthWrite: false })); st.position.copy(pts[0]).setY(BO.y + .1); st.rotation.x = -Math.PI / 2; g1.add(st); }
+  const NPU = 4 * 6, puP = new Float32Array(NPU * 3), puG = geo(puP); const pulses = new THREE.Points(puG, pm(0xfff2c8, 1.0, 1)); pulses.frustumCulled = false; g1.add(pulses); g1.add(new THREE.Points(geo(qP), pm(0xf6e2b0, 1.2, 1)));
   const Q_AT = new THREE.Vector3(qP[0], qP[1], qP[2]);
   // 写実の地と生き物は遅れて読む（場面 1 に近づいたとき）。スマホは草を減らす
-  let real1 = null;
+  let real1 = null, SM1 = null;
   const loadReal1 = async () => {
     try {
-      const [U, C] = await Promise.all([import('./umwelt-3d.js?v=20261026u'), import('./kit/creatures.js')]);
+      const [U, C] = await Promise.all([import('./umwelt-3d.js?v=20261026w'), import('./kit/creatures.js')]);
       const r = new THREE.Group(); r.position.copy(BO); const tl = new THREE.TextureLoader();
       r.add(new THREE.HemisphereLight(0xffe6c4, 0x2a2016, 1.3)); const sun = new THREE.DirectionalLight(0xffd6a0, 2.0); sun.position.set(-6, 8, 4); r.add(sun, sun.target);
       const RG = 12.5, fade = U.fadeMap();
@@ -105,9 +111,12 @@ async function boot() {
       const bee = C.makeBee(); bee.scale.setScalar(2.2); bee.position.copy(loc(P_BEE)); bee.rotation.y = 2.4; r.add(bee);
       const tick = U.makeTick(); tick.scale.setScalar(1.5); tick.position.copy(loc(P_TICK)).setY(.5); tick.rotation.set(-1.0, .5, 0); r.add(tick);
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(.012, .03, .5, 6), new THREE.MeshStandardMaterial({ color: 0x6f7a3e, roughness: .8 })); stem.position.copy(loc(P_TICK)).setY(.25); r.add(stem);
-      const worm = C.makeWorm(); worm.scale.setScalar(3); worm.position.copy(loc(P_WORM)).setY(.03); worm.rotation.y = .7; r.add(worm);
-      if (!mobile) { const bat = C.makeBat(); bat.scale.setScalar(1.1); bat.position.set(-14, 8, -9); bat.rotation.y = .9; r.add(bat); }
-      r.userData = { person, bee, tick, worm, BEE: bee.position.clone() };
+      // 写実の生き物（Qualium 氷川の sight で合格したモデル＝ヒヨドリ・コウモリ・ミミズ・アオスジアゲハ）。見やすく大きく描く（模式の注記どおり）
+      const SMod = await import('./kit/sight/sightModels.js'); const sp = [];
+      const put = async (name, s, pos, ry) => { try { const m = await SMod.loadSight(name, { shadow: false }); m.object.scale.setScalar(s); m.object.position.copy(pos); m.object.rotation.y = ry; r.add(m.object); sp.push(m); return m; } catch (e) { console.warn('sight', name, e); return null; } };
+      const [worm, bat, hiyo, ageha] = await Promise.all([put('mimizu', 20, loc(P_WORM).setY(.04), .7), put('koumori', 26, new THREE.Vector3(-11, 7.5, -8), .9), put('hiyo', 6, new THREE.Vector3(-6.5, 5.2, -5), 1.4), put('aosuji', 26, loc(P_BEE).add(new THREE.Vector3(2.4, 1.0, -1.4)), 2.2)]);
+      r.userData = { person, bee, tick, worm, bat, hiyo, ageha, sp, BEE: bee.position.clone() };
+      SM1 = SMod;
       g1.add(r); real1 = r;
     } catch (e) { console.warn('umwelt1 real', e); }
   };
@@ -146,7 +155,7 @@ async function boot() {
 
   // ---- 札（HTML）：3D の点に付く等幅の札
   const labs = [...labsBox.querySelectorAll('[data-at]')];
-  const AT = { aoi: AO.clone().add(new THREE.Vector3(0, 2.1, 0)), hito: P_HITO.clone().add(new THREE.Vector3(0, 4.9, 0)), bee: P_BEE.clone().add(new THREE.Vector3(0, 2.7, 0)), tick: P_TICK.clone().add(new THREE.Vector3(0, 1.1, 0)), worm: P_WORM.clone().add(new THREE.Vector3(0, 1.4, 0)), env: BO.clone().add(new THREE.Vector3(ER * .8, 3.2, ER * .55)), qualia: Q_AT, person2: P2.clone().add(new THREE.Vector3(0, 4, 0)), qualia2: AO.clone().lerp(P2, .5).add(new THREE.Vector3(0, 2.4, 0)), cue: BO.clone().add(new THREE.Vector3(-18, 9, -10)),
+  const AT = { aoi: AO.clone().add(new THREE.Vector3(0, 2.1, 0)), hito: P_HITO.clone().add(new THREE.Vector3(0, 4.9, 0)), bee: P_BEE.clone().add(new THREE.Vector3(0, 2.7, 0)), tick: P_TICK.clone().add(new THREE.Vector3(0, 1.1, 0)), worm: P_WORM.clone().add(new THREE.Vector3(0, 1.4, 0)), env: BO.clone().add(new THREE.Vector3(-ER * .3, .4, ER * .92)), bat: BO.clone().add(new THREE.Vector3(-11, 9.3, -8)), qualia: Q_AT, person2: P2.clone().add(new THREE.Vector3(0, 4, 0)), qualia2: AO.clone().lerp(P2, .5).add(new THREE.Vector3(0, 2.4, 0)), cue: BO.clone().add(new THREE.Vector3(-3, 10, -14)),
     hikawa: AO.clone().add(new THREE.Vector3(0, 60, 0)), kawagoe: KW.clone().add(new THREE.Vector3(0, 60, 0)), torii: new THREE.Vector3(...meta.marks[1].p).add(new THREE.Vector3(0, 9, 0)), coord: AO.clone().add(new THREE.Vector3(-12, 14, -60)) };
   LAYER5.forEach((l, i) => AT['l' + (i + 1)] = new THREE.Vector3(AO.x + (mobile ? 9 : 11), 0, AO.z));
   const _v = new THREE.Vector3();
@@ -173,15 +182,44 @@ async function boot() {
       for (let gI = 0; gI < 3; gI++) { const a = gI / 3 * 6.283 + .6, r = 5 + gI * 1.5, mem = []; for (let k = 0; k < n; k++) mem.push({ layer: keys[(k + gI) % 5] }); herd.addGroup(mem, { x: AO.x + Math.cos(a) * r, z: AO.z + Math.sin(a) * r, radius: 2.4, role: gI === 1 ? 'watch' : '' }); }
       for (let k = 0; k < (mobile ? 3 : 6); k++) herd.add(keys[k % 5], { x: AO.x + (Math.random() - .5) * 14, z: AO.z + (Math.random() - .5) * 14, radius: 3, role: k % 2 ? 'watch' : 'wander' });
       herd.load();
-      try { const U = await import('./umwelt-3d.js?v=20261026u'); person2 = U.makePerson(); person2.position.copy(P2); person2.rotation.y = -.6; g2.add(person2); } catch (e) { console.warn('person2', e); }
+      try { const U = await import('./umwelt-3d.js?v=20261026w'); person2 = U.makePerson(); person2.position.copy(P2); person2.rotation.y = -.6; g2.add(person2); } catch (e) { console.warn('person2', e); }
     } catch (e) { console.warn('kasane', e); }
   };
+
+  // ---- 寄りの挿し絵：一つの生き物に寄った 3D と、受けとる手がかりの一行（場面 1 だけ・同じ描画器の一角に描く）
+  const insEl = document.getElementById('v2inset'), IS = new THREE.Scene(), IC = new THREE.PerspectiveCamera(30, 1.3, .01, 50);
+  IS.add(new THREE.HemisphereLight(0xfff0dc, 0x5a4a3a, 2.6), new THREE.AmbientLight(0xffffff, .8)); { const d = new THREE.DirectionalLight(0xffe2b8, 2.4); d.position.set(-2, 3, 2); IS.add(d); const b = new THREE.DirectionalLight(0x9fc8ff, .8); b.position.set(2, 1, -3); IS.add(b); }
+  const INS = [['bee'], ['koumori', 'fly'], ['aosuji', 'fly'], ['mimizu', 'crawl']];   // 本文の順（ミツバチ → コウモリ → マダニ）
+  let insI = -1, insT = 99, insObj = null, insMix = null, insBusy = false;
+  async function nextInset() {
+    if (insBusy) return; insBusy = true; insI = (insI + 1) % INS.length; const [id, clip] = INS[insI];
+    try {
+      let o, m = null;
+      if (id === 'tick') o = (await import('./umwelt-3d.js?v=20261026w')).makeTick();
+      else if (id === 'bee') o = (await import('./kit/creatures.js')).makeBee();
+      else { m = await SM1.loadSight(id, { shadow: false, autoplay: false }); m.play(clip, 0); o = m.object; }
+      if (insObj) IS.remove(insObj); const w = new THREE.Group(); w.add(o); IS.add(w);
+      const bx = new THREE.Box3().setFromObject(o), c = bx.getCenter(new THREE.Vector3()), sz = bx.getSize(new THREE.Vector3()).length() || 1; o.position.sub(c); w.scale.setScalar(1 / sz);
+      insObj = w; insMix = m; insT = 0;
+      if (insEl) insEl.querySelectorAll('[data-ins]').forEach(e => e.classList.toggle('on', e.dataset.ins === id));
+    } catch (e) { console.warn('inset', e); }
+    insBusy = false;
+  }
+  function drawInset(dt, t) {
+    const on = cur === 1 && tIn > .75 && SM1; if (insEl) insEl.classList.toggle('on', !!(on && insObj)); if (!on || !insEl) return;
+    insT += dt; if (insT > 4.2) nextInset(); if (!insObj) return;
+    const r = insEl.getBoundingClientRect(), H = innerHeight; if (r.width < 10) return;
+    insMix && insMix.update(dt); insObj.rotation.y = reduce ? .6 : t * .35;
+    IC.aspect = r.width / r.height; IC.position.set(0, .32, 1.3); IC.lookAt(0, 0, 0); IC.updateProjectionMatrix();
+    R.setScissorTest(true); R.setViewport(r.left, H - r.bottom, r.width, r.height); R.setScissor(r.left, H - r.bottom, r.width, r.height);
+    R.setClearColor(0x070b14, 1); R.clear(); R.render(IS, IC); R.setScissorTest(false); R.setViewport(0, 0, innerWidth, innerHeight); R.setClearColor(0x03060f, 1);
+  }
 
   // ---- カメラの決まった角度（場面ごと）
   const KF = [
     { p: AO.clone().add(new THREE.Vector3(-40, mobile ? 190 : 85, mobile ? 300 : 330)), t: AO.clone().add(new THREE.Vector3(mobile ? 20 : -95, 0, -120)) },             // 0 VISION：参道を南の上から北へ見る
-    { p: BO.clone().add(new THREE.Vector3(mobile ? 2 : 6, mobile ? 20 : 15, mobile ? 44 : 36)), t: BO.clone().add(new THREE.Vector3(mobile ? 0 : -9, mobile ? 3 : 1, 0)) },   // 1 環世界 1.0
-    { p: AO.clone().add(new THREE.Vector3(mobile ? 3 : 9, mobile ? 11 : 10, mobile ? 25 : 27)), t: AO.clone().add(new THREE.Vector3(mobile ? 0 : -7, mobile ? 6 : 4.5, 0)) }, // 2 環世界 2.0
+    { p: BO.clone().add(new THREE.Vector3(mobile ? 2 : 6, mobile ? 30 : 15, mobile ? 46 : 36)), t: BO.clone().add(new THREE.Vector3(mobile ? 0 : -9, mobile ? -15 : 1, mobile ? 6 : 0)) },   // 1 環世界 1.0
+    { p: AO.clone().add(new THREE.Vector3(mobile ? 3 : 9, mobile ? 14 : 10, mobile ? 30 : 27)), t: AO.clone().add(new THREE.Vector3(mobile ? 0 : -7, mobile ? .5 : 4.5, 0)) }, // 2 環世界 2.0
     { p: new THREE.Vector3(mobile ? -760 : -1560, mobile ? 3000 : 2150, 1100), t: new THREE.Vector3(mobile ? -760 : -1560, 0, -720) },                         // 3 Qualium：場を見下ろす
     { p: new THREE.Vector3(60, 520, 900), t: new THREE.Vector3(0, 0, -300) },                                               // 4 以降
   ];
@@ -218,6 +256,9 @@ async function boot() {
     g3.visible = cur >= 3;
         const t = now / 1000;
     if (!real1 && !frame.r1 && (cur >= 1 || now > 2500)) { frame.r1 = 1; loadReal1(); }
+    if (g1.visible) { for (let j = 0; j < 4; j++) for (let k = 0; k < 6; k++) { const u = reduce ? k / 6 : (t * .22 + k / 6 + j * .13) % 1; qArc[j].getPoint(u, _v); puP.set([_v.x, _v.y, _v.z], (j * 6 + k) * 3); } puG.attributes.position.needsUpdate = true; }
+    if (real1 && g1.visible) { const u = real1.userData; u.sp.forEach(m => m.update(reduce ? 0 : dt));
+      if (!reduce) { if (u.bat) u.bat.object.position.set(-11 + Math.sin(t * .5) * 3, 7.5 + Math.sin(t * 1.1) * .5, -8 + Math.cos(t * .5) * 2), u.bat.object.rotation.y = .9 - t * .5; if (u.ageha) u.ageha.object.position.y = u.BEE.y + 1 + Math.sin(t * 1.7) * .3; } }
     if (real1 && g1.visible && !reduce) { const u = real1.userData; u.bee.position.copy(u.BEE).add(new THREE.Vector3(Math.sin(t * .9) * .25, Math.sin(t * 2.1) * .08, Math.cos(t * .7) * .2)); u.person.userData.animate && u.person.userData.animate(t, false); }
     qM.opacity = .55 + (reduce ? 0 : Math.sin(t * 2) * .15);
     if (g1.visible) { [bH, bB, bT, bW].forEach((b, i) => { b.scale.setScalar(1 + (reduce ? 0 : Math.sin(t * 1.3 + i) * .025)); }); cues.rotation.y = reduce ? 0 : t * .02; }
@@ -234,12 +275,16 @@ async function boot() {
     if (herd) { try { herd.update(dt, { active: cur === 2, busy: false }); } catch (e) { if (!frame.w2) { frame.w2 = 1; console.warn('kasane update', e); } } }
     if (cur >= 2 && !agentsAsked) { agentsAsked = true; loadAgents(); }
     R.render(S, cam);
+    drawInset(dt, t);
     // 札
-    const W = innerWidth, H = innerHeight;
+    const W = innerWidth, H = innerHeight, placed = [];
     labs.forEach(el => { const sc = el.dataset.sc.split(',').map(Number), on = sc.includes(cur) && tIn > .75; if (!on) { if (el.classList.contains('on')) el.classList.remove('on'); return; }
+      if (mobile && el.dataset.m === '0') { el.classList.remove('on'); return; }
       const id = el.dataset.at; let p = AT[id]; if (!p) return; if (/^l\d$/.test(id)) { const g = plates[+id[1] - 1]; _v.set(p.x, g.position.y, p.z); } else _v.copy(p);
       _v.project(cam); const vis = _v.z < 1 && Math.abs(_v.x) < 1.05 && Math.abs(_v.y) < 1.05; el.classList.toggle('on', vis);
-      if (vis) el.style.transform = `translate3d(${Math.min(W - (el.offsetWidth || 160) - 12, ((_v.x + 1) / 2 * W)) | 0}px,${((1 - _v.y) / 2 * H) | 0}px,0)`; });
+      if (vis) { const w = el.offsetWidth || 160, h = el.offsetHeight || 30, x = Math.min(W - w - 12, ((_v.x + 1) / 2 * W)) | 0; let y = ((1 - _v.y) / 2 * H) | 0;   // 札どうしが重ならないよう、下へずらす
+        for (let n = 0; n < 8 && placed.some(r => x < r[2] && x + w > r[0] && y < r[3] && y + h > r[1]); n++) y += h * .55 + 2;
+        placed.push([x, y, x + w, y + h]); el.style.transform = `translate3d(${x}px,${y}px,0)`; } });
   }
   requestAnimationFrame(frame);
   document.documentElement.classList.add('v2-3d');
