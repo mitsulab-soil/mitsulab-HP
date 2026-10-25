@@ -10,7 +10,7 @@ import { buildForest } from "./forest.js?v=20261023-boot";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
-import { AoiMotion } from "./kit/aoi_motion.js?v=20261013v31";   // v3.1（2026-10-13）：まっすぐ立ち、左右の揺れを小さく（posture:"upright"）   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
+import { AoiMotion, inferGestures } from "./kit/aoi_motion.js?v=20261013v31";   // v3.1（2026-10-13）：まっすぐ立ち、左右の揺れを小さく（posture:"upright"）   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
 
 const $ = id => document.getElementById(id);
 const S = window.SCRIPT, N = S.names, VOICE = window.VOICE || {}, P = window.PATHS || {};
@@ -483,7 +483,7 @@ function setFov() { const a = innerWidth / innerHeight; camera.fov = a < .8 ? 72
 setFov();
 addEventListener("resize", () => { renderer.setSize(innerWidth, innerHeight); setFov(); if (chapter === "iro") { frameWall(); iroLook.x = clamp(iroLook.x, -iroLook.pan, iroLook.pan); } layoutToki(); });
 function okGround(x, z) {   // 塀の内側と縁側。池・木・石組み・植え込みはよける
-  if(habitat==='forest'){if(x<-27||x>29||z<-25||z>26)return false;if(!FLIGHT.has(lens)&&Math.hypot(x+8,z+7)<4.6)return false;return !FOREST.blocked(x,z,FLIGHT.has(lens)?.15:.25);}   // 幹・藪・石・倒木はよける
+  if(habitat==='forest'){if(x<-27||x>29||z<-25||z>26)return false;if(!FLIGHT.has(lens)&&Math.hypot(x+8,z+7)<4.6)return false;return !FOREST.blocked(x,z,FLIGHT.has(lens)?.15:.6);}   // 幹・藪・石・倒木はよける（2026-10-25：歩く身体は幹から 0.6 m＝幹の樹皮が画面をふさがない）
   if(FLIGHT.has(lens)) return x>YARD.x0+.3&&x<YARD.x1-.3&&z>YARD.z0+.3&&z<ENGAWA.z1-.5;
   if (x < YARD.x0 + .4 || x > YARD.x1 - .4 || z < YARD.z0 + .4 || z > ENGAWA.z1 - .5) return false;
   if (Math.hypot(x - POND.x, z - POND.z) < POND.r + .3 || Math.hypot(x - TREE.x, z - TREE.z) < .7) return false;
@@ -558,8 +558,10 @@ const KASA = window.__kasa = { herd: null, loading: false,
   async load() {
     this.loading = true;
     try {
-      const M = await import("./kit/envAgents/kasane.js?v=20261023");
-      const h = new M.KasaneHerd({ scene, camera, groundAt: () => 0, walkable: (x, z) => this.okAt(x, z), scale: mobile ? 1.9 : 1.75, mobile, max: 14, shadow: true });
+      const M = await import("./kit/envAgents/kasane.js?v=20261025");
+      // 2026-10-25：最新の共通部品（めり込み・鳴き声・minCamDist・bubbleAvoid）。見る人の目の前に入りすぎない／下の帯と字幕の上に吹き出しを出さない／空中の 3D の窓は sight では出さない（sight の札と重ねない）。band＝下の帯（碧の案内）の上端
+      const band = () => { let y = innerHeight; for (const id of ["guide", "worm", "aoiWin"]) { const e = $(id); if (e && !e.hidden && e.offsetParent) { const r = e.getBoundingClientRect(); if (r.height && r.top < y && r.top > innerHeight * .45) y = r.top; } } return y; };
+      const h = new M.KasaneHerd({ scene, camera, groundAt: () => 0, walkable: (x, z) => this.okAt(x, z), scale: mobile ? 1.9 : 1.75, mobile, max: 14, shadow: true, minCamDist: 3.6, view: () => false, screenMargin: 12, bubbleAvoid: (x, y) => y > band() - 30 || x < (mobile ? 96 : 150) || x > innerWidth - (mobile ? 78 : 96), muted: () => !$("optSound").checked });
       const S = n => Array.from({ length: n }, () => ({ layer: "sight" }));
       for (const [x, z, n, role] of [[-1.6, -1.8, 4, ""], [3.0, -4.2, 3, "watch"], [5.8, -3.4, 3, ""], [.4, -8.0, 4, ""]])
         if (this.okAt(x, z)) h.addGroup(S(n), { x, z, radius: 1.8, role });
@@ -662,8 +664,8 @@ function speakLine(text) {
     if (v && voiceOn()) {
       const a = AUD.voice; a.onended = done; a.onerror = () => timed(est(text)); a.src = v.f; a.currentTime = 0; SP.playing = true; window.__voiceSrc = v.f;
       if (!SP.paused) a.play().catch(() => { SP.playing = false; timed(est(text)); });
-      AM?.speak({ kana: v.kana, text, dur: v.dur || est(text) / 1000, clock: () => a.currentTime, level: () => AUD.level() * 7 });   // 口は声の読み（かな）と再生位置に合わせる
-    } else { timed(est(text)); AM?.speak({ kana: v?.kana || "", text, dur: est(text) / 1000 }); }
+      AM?.speak({ kana: v.kana, text, dur: v.dur || est(text) / 1000, clock: () => a.currentTime, level: () => AUD.level() * 7, gesture: aoiGestures(text, v.kana, v.dur || est(text) / 1000) });   // 口は声の読み（かな）と再生位置に合わせる
+    } else { timed(est(text)); AM?.speak({ kana: v?.kana || "", text, dur: est(text) / 1000, gesture: aoiGestures(text, v?.kana || "", est(text) / 1000) }); }
   });
 }
 function pauseSpeech(on) {
@@ -687,6 +689,14 @@ let curActs = [];
 function setActs(list) {
   curActs = list; const box = $("acts"); box.innerHTML = "";
   for (const a of list) { const b = document.createElement("button"); b.className = "btn" + (a[2] ? " pri" : ""); b.textContent = typeof a[0] === "function" ? a[0]() : a[0]; if (a[3]) b.setAttribute("aria-label", a[3]); b.onclick = a[1]; box.appendChild(b); }
+}
+// 2026-10-25 碧の自然さ：「広がっています」などで両腕を左右対称に一瞬だけ大きく開く身ぶり（0.3 秒）が、操り人形のように見えた → 片手で、手のひらを上に差し出す身ぶりにゆっくり置きかえる
+function aoiGestures(text, kana, dur) {
+  let g = []; try { g = inferGestures({ text, kana, dur }); } catch (e) { return []; }
+  g = g.map(x => x.type === "iconic" && x.shape === "large" ? { t: x.t, type: "metaphoric", shape: "present", hand: "right", hold: .8, big: true } : x);
+  // 2026-10-25（採点「話すあいだの身ぶりが小さい」）：身ぶりの語がない 2.2 秒以上の行は、二行に一度、句の頭の少しあとで片手を小さく差し出す（左右を交互に）
+  if (!g.length && dur > 2.2 && (aoiGestures.n = (aoiGestures.n || 0) + 1) % 2) g.push({ t: Math.min(1.1, dur * .3), type: "metaphoric", shape: "present", hand: aoiGestures.n % 4 === 1 ? "right" : "left", hold: .7, big: true });
+  return g;
 }
 const talkActs = extra => [[() => SP.paused ? "▶ 続ける" : "⏸", () => pauseSpeech(!SP.paused), false, "碧の話を止める・続ける"], ["⏭", skipLine, false, "このことばをとばす"], ...extra];
 function talk(lines, extra = []) { if (SP.paused) SP.paused = false;   // 止めたまま切り替えたら、新しい話から始める（字幕が前の文のまま残らない）
@@ -712,6 +722,8 @@ async function loadAoi() {
     // 2026-10-13：体の動き・目・まばたき・口・表情・裾の布は共通部品 AoiMotion に任せる（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）
     aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
     AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", uprightWeight: .6, faceLight: .6 });   /* 2026-10-19：片足荷重 .6（kit v5.9。.38／.6／.9 を同じ場面で 11 人が比べ、.6 が自然さ 76） */ AM.place(A.pos.x, A.pos.z, A.yaw);
+    // 2026-10-25（採点「差し出す手が手首から先だけ」）：このアプリの差し出す身ぶり（big）だけ、手を肘から前へ・前腕を水平近くまで上げる（共通部品は変えない）
+    { const gp = AM._gPose.bind(AM); AM._gPose = (part, sd, out) => { const r = gp(part, sd, out); if (part.g.big && part.g.type === "metaphoric" && part.g.shape !== "contrast") { out.p.y += .09; out.p.z += .12; out.p.x += (sd === "left" ? 1 : -1) * .06; out.shape = "flat"; } return r; }; }
     opacity(0); window.__aoi = { vrm, aoi, A, M: AM }; STARTUP.aoiReadyAt = performance.now();
   } catch (e) { console.warn("碧の姿を読み込めませんでした（声と字幕で案内します）：", e?.message ?? e); }
 }
@@ -749,6 +761,20 @@ function renderAoiWindow() {
 }
 // 碧が立つ向き（ひとのとき）：画面の幅の割合で決める（2026-10-14：560px・320px の幅では右の端の操作ボタンの下に隠れていた）。PC は右寄り、縦長はまん中寄り
 function aoiSideAng(hf) { const asp = innerWidth / innerHeight, ndc = asp >= 1.2 ? .6 : asp >= .8 ? .36 : .3; return Math.atan(ndc * Math.tan(hf / 2)); }
+// 2026-10-25 碧の自然さ（採点「話していないあいだは棒立ち」）：黙って立っているとき、5〜9 秒に一度、近くのかさねっこへ目と顔を 1.5〜2.5 秒向けて、また見る人へ戻す（同じ環境エージェントどうし）
+const GL = { t: 4, tgt: null, until: 0, v: new THREE.Vector3() };
+function aoiGlance(dt) {
+  const quiet = !SP.playing && !SP.resolve && !me.path && !keys.size && A.sp < .15;
+  if (!quiet) { GL.tgt = null; GL.t = Math.max(GL.t, 2.5); return null; }
+  if (GL.tgt) { GL.until -= dt; if (GL.until <= 0 || !GL.tgt.layerOn) { GL.tgt = null; GL.t = 5 + Math.random() * 4; return null; } return GL.v.set(GL.tgt.pos.x, .18, GL.tgt.pos.y); }
+  GL.t -= dt; if (GL.t > 0) return null;
+  const h = KASA.herd; GL.t = 5 + Math.random() * 4;
+  if (!h || !KASA.on()) return null;
+  const near = h.agents.filter(a => a.layerOn && Math.hypot(a.pos.x - A.pos.x, a.pos.y - A.pos.z) < 6);
+  if (!near.length) return null;
+  GL.tgt = near[Math.floor(Math.random() * near.length)]; GL.until = 1.5 + Math.random();
+  return null;
+}
 function aoiTick(dt) {
   if (!vrm) return;
   if (A.hold) { aoi.visible = false; return; }
@@ -766,13 +792,16 @@ function aoiTick(dt) {
   else {
     // 2026-10-08：生きものに切り替えているあいだは、碧は視界の端の少し奥（景色を隠さない）。ひとのときはとなりの右前
     const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), creature = lens !== "hito";
-    const nar = innerWidth / innerHeight < .8, D = KUR.on ? (nar ? 6.2 : lens === "hebi" ? 6.4 : 4.6) : creature ? 4.6 : (innerWidth / innerHeight < .8 ? 3.6 : 2.6), ang = (creature || KUR.on) ? hf / 2 * (nar ? (KUR.on ? .56 : .4) : .62) : aoiSideAng(hf);   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-14）   // くらべる旅では、花を見下ろしても頭が切れないよう少し奥に   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-13）
+    const nar = innerWidth / innerHeight < .8, D = KUR.on ? (nar ? 6.2 : lens === "hebi" ? 6.4 : 4.6) : creature ? 4.6 : (innerWidth / innerHeight < .8 ? 4.0 : 2.6), ang = (creature || KUR.on) ? hf / 2 * (nar ? (KUR.on ? .56 : .4) : .62) : aoiSideAng(hf);   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-14）   // くらべる旅では、花を見下ろしても頭が切れないよう少し奥に   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-13）
     const F = D * Math.cos(ang), X = D * Math.sin(ang), fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw);
     // 2026-10-12：見る人が向きを変えるたびに追いかけない（森羅研究室と同じ）。歩いているとき・視野の外に出たとき・近すぎ／遠すぎのときだけ立つ所を決めなおす
     const walking = !!me.path || ["w", "s", "a", "d", "arrowup", "arrowdown"].some(k => keys.has(k));
     const dMe = Math.hypot(A.pos.x - me.pos.x, A.pos.z - me.pos.z), rel = wrapA(Math.atan2(A.pos.x - me.pos.x, A.pos.z - me.pos.z) - Math.atan2(fx, fz));
-    if (!A.spot || walking || A.spotLens !== lens || dMe > D + 2.2 || dMe < 1.2 || Math.abs(rel) > hf / 2 * .98) {
-      A.spot = new THREE.Vector3(me.pos.x + fx * F - fz * X, 0, me.pos.z + fz * F + fx * X);
+    // 2026-10-25（採点 P1）：向きを変えたあと、碧が画面の端で右の操作ボタン・下の帯の裏に切れて残っていた → 画面の端の帯（375 は外側 38%、PC は 20%）に入ったら、立つ所を決めなおす
+    const ndcX = Math.abs(rel) < 1.5 ? Math.tan(Math.abs(rel)) / Math.tan(hf / 2) : 9;
+    if (!A.spot || walking || A.spotLens !== lens || dMe > D + 2.2 || dMe < 1.8 || ndcX > (nar ? .62 : .8)) {
+      const lead = walking ? 1.4 : 0;   // 2026-10-25：歩いているあいだは少し先を歩く（追いかけて画面の右端・操作ボタンの裏に残らない）
+      A.spot = new THREE.Vector3(me.pos.x + fx * (F + lead) - fz * X, 0, me.pos.z + fz * (F + lead) + fx * X);
       for (let k = 0; k < 6 && !okGround(A.spot.x, A.spot.z); k++) A.spot.lerp(new THREE.Vector3(me.pos.x, 0, me.pos.z), .4);
       A.spotLens = lens;
     }
@@ -791,8 +820,8 @@ function aoiTick(dt) {
   if (Math.hypot(A.pos.x - me.pos.x, A.pos.z - me.pos.z) < .8) aoi.visible = false;
   A.talkT += dt;
   // 体・足・向き・目・まばたき・口・表情・裾は AoiMotion（位置だけこちらで決める。向きは歩く向き／止まると見る人へ、足を踏みかえて）
-  AM.faceTo(null); AM.lookAt(null); AM.drive(A.pos.x, A.pos.z); AM.update(dt, camera); A.yaw = AM.yaw;
-  if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / (A.intro ? (A.late ? 1 : .18) : 2.2)); opacity(A.fade * A.fade * (3 - 2 * A.fade)); }   // 初回は180msで表示。体験中の出現は従来の2.2秒を保つ（2026-10-17）
+  AM.faceTo(null); AM.lookAt(aoiGlance(dt)); AM.drive(A.pos.x, A.pos.z); AM.update(dt, camera); A.yaw = AM.yaw;
+  if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / (A.intro ? (A.late ? .55 : .18) : 2.2)); opacity(A.fade * A.fade * (3 - 2 * A.fade));  if (A.late && A.intro) { const sh = A.fade >= 1; if (A.shadowOn !== sh) { A.shadowOn = sh; aoi.traverse(o => { if (o.isMesh) o.castShadow = sh; }); renderer.shadowMap.needsUpdate = true; } } }   // 透けている間は影を落とさない（半透明の体に濃い影は不自然・影の材質の組み立てを現れ終わりのあとへ回す）   // 初回は180msで表示。体験中の出現は従来の2.2秒を保つ（2026-10-17）。幕のあとに届いたときは 0.55 秒（2026-10-25 起動 5 秒）
 }
 // 体の動き（以前の pose() ＝森羅研究室の式の写し）は、2026-10-13 に共通部品 AoiMotion へ置きかえた。元＝../旧ver/2026-10-13_碧の動きv3の前/umwelt.js
 
@@ -1238,12 +1267,13 @@ STARTUP.sceneBuiltAt = performance.now();
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
   const aoiReady = loadAoi().then(async () => {
-    if (aoi && renderer.compileAsync) { aoi.visible = true; await renderer.compileAsync(aoi, camera, scene).catch(() => {}); }   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
+    if (aoi && renderer.compileAsync) { aoi.visible = true; await renderer.compileAsync(aoi, camera, scene).catch(() => {}); }
+    STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
-    if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 3.6 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
+    if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.0 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
     A.loadDone = true;
     if (vrm && A.sayOnShow && !started) $("say").textContent = A.sayOnShow;   // 碧が現れてから「となりに立っているのが…」を出す
-    if (vrm) { A.late = !!$("boot").hidden; A.hold = false; A.appear = true; if (!started) A.intro = true; if (AM) AM.calm = 2.4; }   // 幕のあとに届いたときは、1 秒かけて静かに現れる
+    if (vrm) { STARTUP.aoiAppearAt = performance.now(); A.late = !!$("boot").hidden; if (A.late) { A.shadowOn = false; aoi.traverse(o => { if (o.isMesh) o.castShadow = false; }); } A.hold = false; A.appear = true; if (!started) A.intro = true; if (AM) AM.calm = 2.4; }   // 幕のあとに届いたときは、1 秒かけて静かに現れる
   });
   await preCompile; await Promise.race([aoiReady, sleep(mobile ? 0 : 800)]); prog(100);
   // 右の ↑ ↓ ↶ ↷（2026-10-13）：押しているあいだ進む・向きを変える。短く押したときは一歩（1.2 m）・一ふり（約 17°）
