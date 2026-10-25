@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q3";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q4";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 
@@ -28,6 +28,33 @@ const PR_MAX = MOBILE ? Math.min(devicePixelRatio, 1.6) : Math.min(devicePixelRa
 let pr = PR_MAX; renderer.setPixelRatio(pr);
 renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.02;
 const scene = new THREE.Scene();
+/* 2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ」：層を重ねているあいだ、風景（トーンマップされる物）だけを一段控えめに（彩度と明るさを下げ、写実は保つ）。
+   印（toneMapped:false）・碧・かさねっこ・札は除く。層をすべて外すと、ふつうの風景に戻る。 */
+const LANDG = { value: 0 }, LZERO = { value: 0 }; QW.LANDG = LANDG;
+THREE.ShaderChunk.tonemapping_pars_fragment = "uniform float uLandG;\n" + THREE.ShaderChunk.tonemapping_pars_fragment;
+THREE.ShaderChunk.tonemapping_fragment += `
+#if defined( TONE_MAPPING )
+{ float lu = dot(gl_FragColor.rgb, vec3(.2126, .7152, .0722)); vec3 lg = mix(vec3(lu), gl_FragColor.rgb, .34) * vec3(.64, .66, .71); gl_FragColor.rgb = mix(gl_FragColor.rgb, lg, uLandG); }
+#endif
+`;
+THREE.Material.prototype.onBeforeCompile = function (sh) { sh.uniforms.uLandG = this.userData.land ? LANDG : LZERO; };
+function landSweep() {
+  const skip = new Set(), ex = o => o?.traverse(c => skip.add(c)); ex(AOI.root); ex(KASA.herd?.group); ex(LAYER.ripple);
+  world.traverse(o => {
+    if (!o.isMesh || skip.has(o)) return;
+    for (const m of [].concat(o.material)) {
+      if (!m || m.userData.land !== undefined) continue;
+      if (m.isShaderMaterial && !m.toneMapped) { m.userData.land = false; continue; }
+      m.userData.land = true;
+      if (Object.prototype.hasOwnProperty.call(m, "onBeforeCompile")) {
+        const f = m.onBeforeCompile, ck = m.customProgramCacheKey, own = Object.prototype.hasOwnProperty.call(m, "customProgramCacheKey");
+        m.onBeforeCompile = function (sh, r) { f.call(this, sh, r); sh.uniforms.uLandG = LANDG; };
+        m.customProgramCacheKey = own ? () => ck.call(m) + "|land" : () => f.toString() + "|land";
+      }
+      m.needsUpdate = true;
+    }
+  });
+}
 const camera = new THREE.PerspectiveCamera(MOBILE ? 62 : 55, innerWidth / innerHeight, .08, 6000);
 scene.add(camera);
 const FOG_SKY = new THREE.Color("#b9c8d6"), NAVY = new THREE.Color("#03060f");
@@ -1148,7 +1175,7 @@ function buildObjs() {
   }
   // はじめから、すべての層を重ねておく（2026-10-22 本人「デフォルトで全て on に」）。外すのは見る人が選んだときだけ
   LAYER.worn = ALL.map(l => l.id); for (const L of LAYER.objs) { L.want = true; L.arr = true; }
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { skyK: .9, skyR: .9 }); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.o.layer].color);
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { skyK: .9, skyR: .9 }); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.o.layer].color, top5(L.o.layer));
   document.body.classList.add("wearing"); document.body.style.setProperty("--lc", ALL[ALL.length - 1].color); document.body.style.setProperty("--lc2", ALL[ALL.length - 1].color);
   const rg = new THREE.RingGeometry(.97, 1, 96); rg.rotateX(-Math.PI / 2);
   LAYER.ripple = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0, depthWrite: false })); LAYER.ripple.visible = false; world.add(LAYER.ripple);
@@ -1207,6 +1234,9 @@ function stepLayer(dt) {
     if (L.label) { L.label.visible = near; L.label.material.opacity = Math.min(1, (LABEL_R - dist) / 6) * op; const k = Math.max(.55, Math.min(2.2, dist / 9)) / s; L.label.scale.set(1.6 * k, .4 * k, 1); }
   }
   LAYER.qm?.update(camera, { t, sky, focus: PANEL.cur || null });
+  if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
+  { const gT = LAYER.worn.length && M !== "boot" ? (sky ? .32 : .62) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
+  stepHere(cp, t, sky || flyish || M === "boot");
   // 札どうし・札と結晶を重ねない（近い札から置き、重なる札は上へ逃がすか、うすく消す）
   const lbs = []; for (const L of LAYER.objs) if (L.label && L.label.visible && L.root.visible) lbs.push({ sp: L.label, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: PANEL.cur === L ? 1 : 0 });
   if (lbs.length) placeLabels(THREE, camera, lbs, LAYER.qm?.rects || [], dt);
@@ -1223,6 +1253,29 @@ function pickObj(x, y) {
   return best?.L || null;
 }
 function updateStack() { syncTray(); }
+/* 2026-10-26：いまいる場所の重なり（半径 30 m に重なる Qualia の数と層）と、画面の外にあるいちばん近い Qualia の方角 */
+const QH = { t: 0, el: null, dir: null };
+function stepHere(cp, t, off) {
+  if (!QH.el) { QH.el = $("#qHere"); QH.dir = $("#qDir"); if (!QH.el) return; }
+  const walk = !off && (QW.mode === "walk" || QW.mode === "sight") && $("#panel").hidden;
+  if (!walk || !LAYER.worn.length) { QH.el.hidden = true; QH.dir.hidden = true; return; }
+  if (t - QH.t > .5) {
+    QH.t = t; const cnt = {}; let n = 0, best = null, bd = 1e9; const v = new THREE.Vector3();
+    for (const L of LAYER.objs) { if (!L.want) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
+      if (d < 30) { const k = top5(L.o.layer); cnt[k] = (cnt[k] || 0) + 1; n++; }
+      if (d > 4 && d < 70 && d < bd) { v.set(L.o.x, L.o.y + L.o.h, L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
+    const ks = ALL.filter(l => cnt[l.id]).reverse();
+    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">この 30 m に重なる Qualia</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : `<span class="t">この近くの Qualia は、少し先にあります</span>`;
+    QH.el.hidden = false; QH.best = best;
+  }
+  const L = QH.best;
+  if (!L || !L.want || Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 8) { QH.dir.hidden = true; return; }
+  const v = new THREE.Vector3(L.o.x, L.o.y + L.o.h, L.o.z).applyMatrix4(camera.matrixWorldInverse);
+  if (v.z < 0 && Math.abs(v.x / -v.z) < 1 && Math.abs(v.y / -v.z) < .8) { QH.dir.hidden = true; return; }
+  const a = Math.atan2(v.x, -v.z), W = innerWidth, H = innerHeight, x = Math.max(MOBILE ? 30 : 270, Math.min(W - 30, W / 2 + Math.sin(a) * (W / 2 - 40))), y = Math.max(MOBILE ? 340 : 140, Math.min(H - (MOBILE ? 300 : 150), H * .55 - Math.cos(a) * (H * .55 - 150)));   // 前は上・うしろは下の、画面のふち
+  QH.dir.hidden = false; QH.dir.style.transform = `translate(${x - 18}px,${y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
+  QH.dir.style.setProperty("--c", GL[L.o.layer].color); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
+}
 
 /* ---------- 開いた中身 ---------- */
 const PANEL = { cur: null };
@@ -2073,6 +2126,7 @@ QW.dbg = () => ({ moving: WALK.moving, v: AOI.v, vis: AOI.root?.visible, cam: [C
 QW.wear = id => wearLayer(id);
 QW.sight = id => { const sp = D.sight.find(s => s.id === id); if (sp && BODY_D[sp.id]) enterSight(sp, null); };
 QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = yawAlong(d + 5); CAM.look = 0; if (AOI.m) { aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, CAM.yaw + Math.PI); } updateTrees(true); };
+QW.LAYER = LAYER; QW.CAM = CAM;
 QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) { L.show = 1; L.root.visible = true; openObj(L); } return !!L; };
 QW.talkNow = () => { TALK.nextT = 0; };
 QW.place = (x, z, tx, tz, p = -.12) => { CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = Math.atan2(-(tx - x), -(tz - z)); CAM.look = 0; CAM.pitch = p; };   // 確かめ用：その場所から、その点の方を見る
