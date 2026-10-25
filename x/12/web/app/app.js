@@ -787,6 +787,7 @@ function tap(x, y) {
   if (QW.mode === "sky") { let bi = -1, bd = 60; START.pins.forEach((p, i) => { p.head.getWorldPosition(_v); _v.project(camera); const sx = (_v.x + 1) / 2 * innerWidth, sy = (1 - _v.y) / 2 * innerHeight, d = Math.hypot(sx - x, sy - y); if (d < bd) { bd = d; bi = i; } }); if (bi >= 0) selectStart(bi); return; }
   if (QW.mode !== "walk") return;
   if (KASA.herd?.pickView(x, y)) return;   // 空中の 3D の窓に触れたら閉じる
+  if (MY.L?.pick(x, y)) return;   // 自分の層（手渡された層を含む）に触れる
   if (KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   const L = pickObj(x, y); if (L) { openObj(L); return; }
   const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
@@ -850,9 +851,18 @@ function loadKasane() {
   })().catch(e => console.warn("かさねっこ：", e?.message ?? e));
 }
 function touchKasane(a) {
-  KASA.cur = a; KASA.herd.touch(a, () => { if (KASA.cur !== a || QW.mode !== "walk") return; if (a.data?.sightPick) { KASA.herd.release(a); KASA.cur = null; openSightChooser(); return; } openObj(a.data); KASA.cur = a; a.state = "focus"; a.focusTo = new THREE.Vector2(camera.position.x, camera.position.z);
+  KASA.cur = a; KASA.herd.touch(a, () => { if (KASA.cur !== a || QW.mode !== "walk") return; if (a.data?.sightPick) { KASA.herd.release(a); KASA.cur = null; openSightChooser(); return; } openObj(a.data); inviteLayer(a); KASA.cur = a; a.state = "focus"; a.focusTo = new THREE.Vector2(camera.position.x, camera.position.z);
     if (AOI.m) { const p = a.center(new THREE.Vector3()); AOI.focus = p; AOI.m.lookAt(p); setTimeout(() => { if (AOI.focus === p) { AOI.focus = null; AOI.m?.lookAt(camera.position.clone()); } }, 1600); } });
 }
+
+/* ---------- 自分の層（環世界 2.0：訪れる人が自分の意思で層を置く・端末の中だけ・手渡し）。部品＝web/kit/mylayer.js（_共通3D/kit/mylayer.js の写し） ---------- */
+const MY = QW.MY = { L: null };
+function loadMyLayer() { if (MY.L || MY.p) return MY.p; return MY.p = import("../kit/mylayer.js?v=2").then(async M => { MY.L = new M.MyLayers({ THREE, scene: world, camera, place: "kawagoe", groundAt: (x, z) => groundY(x, z), here: () => { const y = CAM.yaw + CAM.look; return { x: CAM.pos.x - Math.sin(y) * 3.4, z: CAM.pos.z - Math.cos(y) * 3.4 }; }   /* 目の前 3.4 m に置く */, colors: COLOR5, toast }); await MY.L.load(); return MY.L; }).catch(e => { console.warn("自分の層：", e?.message ?? e); MY.p = null; }); }
+function inviteLayer(a) {   // 触れたかさねっこが「この場所に層を置く？」と誘う
+  const ex = $("#pExp"); if (!ex) return; ex.hidden = false; const b = document.createElement("button"); b.className = "ml-btn"; b.textContent = "この場所に、あなたの層を置く？"; b.style.borderColor = COLOR5[top5(a.layer)] || ""; 
+  b.addEventListener("click", async () => { const L = await loadMyLayer(); if (!L) return; const c = { center: v => a.center(v) }; hidePanel(); L.offer(c); }); ex.appendChild(b);
+}
+$("#myBtn")?.addEventListener("click", async () => { unlockAudio(); hidePanel(); const L = await loadMyLayer(); L?.openPlace(); });
 
 /* ---------- Qualia/sight：いまいる所で、生きものの身体に入れ替わる（動くのは見る人の操作だけ） ---------- */
 const SIGHT = { sp: null, post: null, fwd: false };
@@ -1216,7 +1226,7 @@ function frame() {
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
     const vt = m === "sky" || m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
-  stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); stepSoundWalk(dt); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); stepSoundWalk(dt); MY.L?.update(dt); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (KURA.tags) stepTag();
   if (QW.mode === "walk") { stepAoi(dt); EAR.update(dt); } else if (EAR.on && QW.mode !== "descend") EAR.stop();
   if (QW.mode === "sight") stepBody(dt);
@@ -1243,7 +1253,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);
-    setTimeout(loadKasane, 3000);
+    setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
     setTimeout(() => { loadAoi(); fetch("web/app/lip.json?v=" + VER).then(r => r.json()).then(j => { LIP = j; }).catch(() => { }); }, 500);
     const s0 = Q.get("start"); if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
   } catch (e) { console.error(e); status("読み込めませんでした。ページを開きなおしてください。"); }
