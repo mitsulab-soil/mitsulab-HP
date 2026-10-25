@@ -36,10 +36,13 @@ html[data-lang=en] .v2-title{font-family:var(--latin);letter-spacing:0;line-heig
 .v2-philo>section{padding:8px 12px 18px}
 html.v2-no3d .v2-poster{opacity:.6}
 @media (max-width:700px){
-  .v2-scene{align-items:flex-end;padding:72px 16px 40px;min-height:165svh}
+  .v2-scene{align-items:flex-end;padding:72px 12px 24px;min-height:190svh}
+  .v2-card{background:#04091a9e;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+  .v2-title{font-size:26px;margin:0 0 10px}.v2-kicker{margin:2px 0 8px}
+  .v2-note,.v2-hud{font-size:11px;margin-top:10px}
   .v2-card{padding:20px 18px 16px;max-width:none;width:100%}
   .v2-veil{background:linear-gradient(0deg,#03060fdd 0,#03060f55 45%,#03060f00 70%)}
-  .v2-lead{font-size:15px;line-height:1.95}
+  .v2-lead{font-size:14.5px;line-height:1.85}
   .v2-lab{font-size:9px}.v2-lab .k{font-size:8.5px}
   .v2-portfolio,.v2-originwrap{padding:48px 16px 28px}
 }

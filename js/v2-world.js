@@ -124,9 +124,9 @@ async function boot() {
 
   // ---- カメラの決まった角度（場面ごと）
   const KF = [
-    { p: AO.clone().add(new THREE.Vector3(-40, 85, 330)), t: AO.clone().add(new THREE.Vector3(mobile ? 20 : -95, 0, -120)) },             // 0 VISION：参道を南の上から北へ見る
+    { p: AO.clone().add(new THREE.Vector3(-40, mobile ? 190 : 85, mobile ? 300 : 330)), t: AO.clone().add(new THREE.Vector3(mobile ? 20 : -95, 0, -120)) },             // 0 VISION：参道を南の上から北へ見る
     { p: BO.clone().add(new THREE.Vector3(0, mobile ? 9 : 7, mobile ? 34 : 26)), t: BO.clone().add(new THREE.Vector3(mobile ? -1 : -8, mobile ? 4 : 2.5, 0)) },   // 1 環世界 1.0
-    { p: AO.clone().add(new THREE.Vector3(mobile ? 6 : 8, mobile ? 11 : 8, mobile ? 34 : 24)), t: AO.clone().add(new THREE.Vector3(mobile ? 0 : -6.5, mobile ? 6 : 4.5, 0)) }, // 2 環世界 2.0
+    { p: AO.clone().add(new THREE.Vector3(mobile ? 2 : 6, mobile ? 5.5 : 6.5, mobile ? 9 : 18)), t: AO.clone().add(new THREE.Vector3(mobile ? 0 : -5, mobile ? 1.1 : 3.4, 0)) }, // 2 環世界 2.0
     { p: new THREE.Vector3(mobile ? -760 : -1560, mobile ? 3000 : 2150, 1100), t: new THREE.Vector3(mobile ? -760 : -1560, 0, -720) },                         // 3 Qualium：場を見下ろす
     { p: new THREE.Vector3(60, 520, 900), t: new THREE.Vector3(0, 0, -300) },                                               // 4 以降
   ];
@@ -152,7 +152,11 @@ async function boot() {
     if (!visible || !running || !root.classList.contains('active')) return;
     tIn = Math.min(1, tIn + dt / 2.2); sceneT += dt; const e = ease(tIn);
     camP.lerpVectors(from.p, to.p, e); camT.lerpVectors(from.t, to.t, e);
-    cam.position.copy(camP); if (!reduce) { cam.position.x += mx * (cur === 3 ? 30 : 1.6); cam.position.y += -my * (cur === 3 ? 20 : .8); }
+    cam.position.copy(camP);
+    // VISION の場面：参道をゆっくり北へ進む（止まった俯瞰にしない・往復）
+    if (cur === 0 && !reduce) { const d = (1 - Math.cos(sceneT * .08)) * 90; cam.position.z -= d; cam.position.y -= d * .12; camT.z -= d * .8; }
+    if (cur === 2 && !reduce) cam.position.x += Math.sin(sceneT * .25) * 1.2;
+    if (!reduce) { cam.position.x += mx * (cur === 3 ? 30 : 1.6); cam.position.y += -my * (cur === 3 ? 20 : .8); }
     cam.lookAt(camT);
     g1.visible = cur === 1 || (cur === 0 && tIn < 1) || (cur === 2 && tIn < .6);
     g2.visible = cur >= 1 && cur <= 3;
