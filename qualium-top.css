@@ -206,7 +206,7 @@ html[lang="en"] #top .scene-current-statement{letter-spacing:.03em;line-height:1
 .qt-stack-end{grid-column:auto;max-width:720px;margin:24px 0 0 auto}
 @media(max-width:860px){.qt-stack-end{margin:24px 0 0}}
 #top .hero-mission .hm-t{word-break:keep-all;overflow-wrap:anywhere}
-/* ===== 2026-10-19 二回目：Qualia Dive・Qualia Layer の 3D（中央に碧） ===== */
+/* ===== 2026-10-19 二回目：Qualia Layer の 3D（中央に碧） ===== */
 #top .scene-current-statement .h1-sub{display:block;font-size:.5em;letter-spacing:.14em;line-height:1.9;margin-top:.2em;color:#dff6f1}
 #top .scene-current-statement{font-family:var(--latin)}
 #top .scene-current-statement .h1-sub{font-family:var(--serif)}
@@ -868,7 +868,7 @@ html[lang="en"] .qf-t{font-family:var(--latin);letter-spacing:0;font-size:14px;l
   .qf-t{font-size:14px}.qf-eq{font-size:10.5px}
 }
 
-/* 2026-10-24 本人「スマホ版の Qualia Dive について表示がされていないので削除。PC 版のみ残す」：スマホ（html.simple）では氷川参道の場面〈#why〉を出さない */
+/* 2026-10-24 本人「スマホ版の（旧ビジョン名の）場面について表示がされていないので削除。PC 版のみ残す」：スマホ（html.simple）では氷川参道の場面〈#why〉を出さない */
 html.simple #why{display:none}
 /* 2026-10-24 本人「文章をもっと工夫して」：流れの帯は、短い一句（qf-t）と補う一行（qf-s）の二段 */
 .qp-es-flow .qf-t{font-size:15px;letter-spacing:.06em}
@@ -879,3 +879,35 @@ html[lang="en"] .qf-s{font-size:12.5px;line-height:1.6}
 /* 2026-10-24 本人「スマホで、ページの下部に白い光が見える」：正体は body の背景の光（fixed の放射グラデーション。iPhone では fixed が効かず、ページ全体の長さに引き伸ばされて下の方に大きな光が出る）と、背景の光の粒（#bgRain）。スマホでは出さない（PC はそのまま） */
 html.simple body{background:var(--bg)}
 html.simple #bgRain{display:none}
+
+/* ===== 2026-10-25 TOP 10（本人）：VISION＝環世界の拡張・環世界 1.0／2.0 をそれぞれの 3D で ===== */
+.qt-vision .qp-head{padding-bottom:6px}
+.vis-title{font-size:clamp(34px,4.6vw,58px);letter-spacing:.14em;margin-bottom:16px}
+html[lang="en"] .vis-title{letter-spacing:.01em}
+.vis-lead{font:400 clamp(16px,1.5vw,18px)/2 var(--serif);letter-spacing:.06em;color:#dff6f1}
+html[lang="en"] .vis-lead{font-family:var(--latin);letter-spacing:0}
+#top .qt-content>.qt-umw .qp-head{margin-top:64px}
+/* 1.0：身体の感覚の泡だけの世界（電脳の枠・走査線・格子は使わない。土と夕方の光） */
+.um1 .qp-es-stage{background:radial-gradient(80% 70% at 45% 62%,#241c12,#0a0806 80%);border-color:#c9a27a33}
+.um1 .qp-es-stage::before,.um1 .qp-es-stage::after{display:none}
+.um-l{display:grid;justify-items:center;gap:1px;padding:2px 8px;border-radius:999px;background:rgba(10,8,6,.66);font-size:13px;color:#f1e6d6}
+.um2 .um-l{background:rgba(3,6,15,.72);color:#dff6f1}
+.um-l small{font-size:10.5px;color:#c9b8a4}.um2 .um-l small{color:#9fb8c4}
+.um-s{color:color-mix(in srgb,var(--c) 72%,#fff);border:1px solid color-mix(in srgb,var(--c) 55%,transparent);font-size:14px}
+.um-c{border-radius:4px;color:#ffe2b8;font-size:12px;border:1px solid #ffd6a033}
+.um-uv{color:#e2d0ff;border-color:#d6b4ff44}
+.um-m{border-radius:4px;border:1px dashed #e8dcc855;color:#e8dcc8;font-size:12px}
+.um2 .um-m{border-color:#a8f2f655;color:#cfe9ee}
+.um-rec{color:#f2c4c2;border-color:#e7959255}
+.um-put{color:#eaf6f6;border-color:#eaf6f666}
+.um-u{border-radius:4px}.um-u i{font:400 italic 1.15em/1 var(--latin);color:#ffe2b8;margin:0}.um2 .um-u i{color:#a8f2f6}
+.um-u sup{font-size:.68em;vertical-align:.5em;line-height:0}
+.um-now p{display:none}.um-now p.on{display:block}
+.um-fig.no-3d .um-now p{display:block;margin-bottom:6px}
+.um1 .um-now p{color:#f1e6d6}
+.um-note{font-size:13px!important;line-height:1.9!important;color:#8f9bb4!important}
+@media(max-width:700px){
+  #top .qt-content>.qt-umw .qp-head{margin-top:48px}
+  .vis-title{font-size:34px;letter-spacing:.1em}
+  .um-l{font-size:10.5px;padding:1px 6px}.um-l small{font-size:8.6px}.um-s{font-size:11px}.um-c,.um-m{font-size:9.8px}
+}
