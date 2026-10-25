@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="tdm-reservation" content="1">
+<meta name="robots" content="noai, noimageai">
+<title>Qualia/nature ／ mitsulab</title>
+<meta name="description" content="一本のケヤキと、その足もとの土と水。氷川参道で集めた典拠つきの自然の記録 116 件を、木・土・水・生きもの・季節の層として重ね、見て、触れて、碧の声で聴く。">
+<meta property="og:title" content="Qualia/nature ／ mitsulab">
+<meta property="og:description" content="一本のケヤキと、その足もとの土と水。典拠つきの自然の記録 116 件を、層として重ねて見る・触れる・聴く。">
+<meta name="theme-color" content="#03060f">
+<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css?v=20261026a">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
+<link rel="modulepreload" href="app.js?v=20261026a">
+<link rel="modulepreload" href="vendor/three/build/three.module.js">
+<link rel="preload" href="nature.json" as="fetch" crossorigin>
+</head>
+<body class="ml-root">
+<script src="loader/loader.js" data-title="Qualia/nature" data-en="nature, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>
+
+<div id="stage">
+  <canvas id="cv" aria-label="一本のケヤキと足もとの土と池の 3D。光る点に触れると、その場の自然の記録がひらく"></canvas>
+  <header class="top">
+    <div class="brand">
+      <span class="ml-kicker">mitsulab ／ 自然の記録</span>
+      <h1 class="ml-title">Qualia/nature</h1>
+    </div>
+    <nav class="tools" aria-label="道具">
+      <button class="ml-btn ml-btn--quiet" id="bSound" type="button" aria-pressed="true">声 入</button>
+      <button class="ml-btn ml-btn--quiet" id="bAbout" type="button">この作品</button>
+    </nav>
+  </header>
+  <div id="layers" class="layers" role="group" aria-label="重ねる層（触れて入・切）"></div>
+  <div id="aoiBox" aria-hidden="true"></div>
+  <p id="cap" class="ml-caption" aria-live="polite"></p>
+  <div class="season">
+    <label for="month"><span>季節</span><b id="monthT">10 月</b></label>
+    <input id="month" type="range" min="1" max="12" step="1" value="10" aria-describedby="seasonNote">
+    <button type="button" class="season-note ml-label" id="seasonNote">模式・典拠</button>
+  </div>
+</div>
+
+<main id="panel">
+  <p class="intro">一本のケヤキと、その足もとの土と水。武蔵一宮 氷川神社の参道で集めた自然の記録 116 件を、木・土・水・生きもの・季節の層として、この一本のまわりに重ねました。光る点に触れると、記録がひらき、碧が読みます。</p>
+  <p class="note">木の形・土の層の厚さ・点の位置は模式です。点の中身は、参道の並木の調査、県と市の報告書、図鑑や事典など、典拠のある記録だけから作っています。</p>
+  <div id="list"></div>
+  <footer class="foot"><p>© 2026 mitsulab. All rights reserved.<br>碧・かさねっこの姿＝mitsulab／木の形＝mitsulab（質感 CC0：Poly Haven・ambientCG）／落ち葉の質感＝Poly Haven dry_decay_leaves（CC0）／声＝VOICEVOX：冥鳴ひまり</p></footer>
+</main>
+
+<dialog id="card" class="dlg ml-panel" aria-labelledby="cardT">
+  <div class="dlg-in">
+    <p class="ml-kicker" id="cardK"></p>
+    <h2 class="ml-title" id="cardT" tabindex="-1"></h2>
+    <div id="cardB" class="card-b"></div>
+    <h3 class="src-h">典拠</h3>
+    <ul id="cardS" class="src"></ul>
+    <div class="row">
+      <button class="ml-btn ml-btn--primary" id="bListen" type="button">碧の声で聴く</button>
+      <button class="ml-btn" type="button" data-close>閉じる</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="about" class="dlg ml-panel" aria-labelledby="aboutT">
+  <div class="dlg-in">
+    <p class="ml-kicker">mitsulab</p>
+    <h2 class="ml-title" id="aboutT">Qualia/nature</h2>
+    <p>Qualium の五つの層（sight・touch・sound・nature・culture）のうち、自然の層を、一つの道具として取り出したものです。真ん中に一本のケヤキ、その下に土の断面、そばに小さな池を置き、氷川参道の自然の記録を層として重ねます。</p>
+    <h3>層</h3>
+    <p>木（並木の樹種・幹や芽や葉の見分け）／土（台地とローム層・黒い土・土の改良）／水（湧水と池の来歴）／生きもの（鳥・蝶・蟬・土の中の小さな生きもの）／季節（ケヤキの葉の一年の模式）。左の札に触れると、層を入・切できます。</p>
+    <h3>正しさについて</h3>
+    <p>記録の文は、武蔵一宮氷川神社・さいたま市・埼玉県の資料、氷川の杜まちづくり協議会の樹木調査、事典などの典拠のあるものだけから作り、札ごとに典拠を示しています。木の形、土の層の厚さ、点の位置、季節の色の移りは模式で、測った値ではありません。生きものの記録は、ある時に観察された記録で、いまそこにいることを示すものではありません。</p>
+    <h3>かさねっこ</h3>
+    <p>足もとで動く小さな者たちは、自然の層の環境エージェント「このは」です。碧と同じく、この場の記録をたどって、層へ案内します。触れると、記録を一つ運んできます。</p>
+    <p class="copy">お問い合わせ：<a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a><br>© 2026 mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p>
+    <button class="ml-btn" type="button" data-close>閉じる</button>
+  </div>
+</dialog>
+<script type="module" src="app.js?v=20261026a"></script>
+</body>
+</html>

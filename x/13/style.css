@@ -1,0 +1,90 @@
+/* Qualia/nature。© 2026 mitsulab. All rights reserved. 色と部品は tokens.css（共通）。層の色＝老竹 #6c8d71（線と字は #88b68f） */
+:root{--nat:#6c8d71;--nat-hud:#88b68f}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ml-bg);color:var(--ml-ink)}
+body{font-family:var(--ml-sans);line-height:1.7;overflow-x:hidden}
+#stage{position:sticky;top:0;height:62svh;min-height:360px;overflow:hidden;z-index:3;background:var(--ml-bg);border-bottom:1px solid var(--ml-line-weak)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#cv.grabbing{cursor:grabbing}
+#cv.hot{cursor:pointer}
+.top{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:10px var(--ml-gutter) 18px;pointer-events:none;background:linear-gradient(180deg,rgba(3,6,15,.92),rgba(3,6,15,.7) 70%,rgba(3,6,15,0))}
+.top > *{pointer-events:auto}
+.top .ml-kicker,.top .ml-title,.top button{text-shadow:0 0 6px rgba(3,6,15,.95)}
+.brand .ml-title{font-size:1.15rem;letter-spacing:.08em}
+.brand .ml-kicker{color:var(--nat-hud)}
+.tools{display:flex;gap:2px}
+.tools .ml-btn--quiet{font-size:.8rem;padding:0 8px}
+
+/* 層の札（PC は左に縦・スマホは上に横） */
+.layers{position:absolute;left:var(--ml-gutter);top:76px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.lay{appearance:none;display:flex;align-items:center;gap:10px;min-height:44px;min-width:132px;padding:0 14px 0 10px;border:1px solid var(--ml-line-2);border-left:3px solid var(--nat-hud);border-radius:var(--ml-radius);
+  background:rgba(3,6,15,.72);color:var(--ml-ink);font:500 .9rem/1.2 var(--ml-serif);letter-spacing:.08em;cursor:pointer;transition:opacity .3s,border-color .3s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.lay small{font:400 .66rem var(--ml-mono);color:var(--ml-ink-3);letter-spacing:.06em;margin-left:auto}
+.lay i{width:9px;height:9px;border-radius:50%;background:var(--nat-hud);box-shadow:0 0 8px var(--nat-hud);flex:none}
+.lay[aria-pressed="false"]{opacity:.45;border-left-color:var(--ml-line-2)}
+.lay[aria-pressed="false"] i{background:transparent;box-shadow:inset 0 0 0 1px var(--ml-ink-3)}
+.lay:focus-visible{outline:2px solid var(--nat-hud);outline-offset:2px}
+
+#aoiBox{position:absolute;right:var(--ml-gutter);top:70px;width:92px;height:124px;pointer-events:none}
+#cap{position:absolute;left:0;right:0;bottom:66px;margin:0;opacity:0;transition:opacity .6s var(--ml-ease);pointer-events:none;font-size:15px;padding:8px 18%;text-align:center;text-shadow:0 0 10px rgba(3,6,15,1),0 1px 3px rgba(3,6,15,1)}
+#cap.on{opacity:1}
+#cap{background:linear-gradient(180deg,rgba(3,6,15,0),rgba(3,6,15,.82) 30%,rgba(3,6,15,.82) 70%,rgba(3,6,15,0))}
+.dlg .ml-title:focus{outline:none}
+
+.season{position:absolute;left:var(--ml-gutter);right:var(--ml-gutter);bottom:10px;display:flex;align-items:center;gap:12px;z-index:2}
+.season label{display:flex;flex-direction:column;font:400 .66rem var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-3);min-width:52px}
+.season label b{font:600 1rem var(--ml-serif);color:var(--ml-ink);letter-spacing:.06em}
+#month{flex:1;height:44px;accent-color:var(--nat-hud);background:transparent;max-width:520px}
+.season-note{margin-left:auto}
+.season-note{appearance:none;border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);background:rgba(3,6,15,.6);min-height:44px;padding:0 12px;cursor:pointer;color:var(--ml-ink-2)}
+
+/* 記録の一覧 */
+#panel{max-width:860px;margin:0 auto;padding:22px var(--ml-gutter) 40px}
+.intro{font-family:var(--ml-serif);font-size:1.02rem;line-height:1.95;letter-spacing:.05em;margin:0 0 10px}
+.note{font-size:.78rem;color:var(--ml-ink-3);line-height:1.75;margin:0 0 18px}
+.grp{margin:26px 0 0}
+.grp h2{display:flex;align-items:baseline;gap:10px;font:600 1.02rem var(--ml-serif);letter-spacing:.1em;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--ml-line-weak)}
+.grp h2::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--nat-hud);align-self:center}
+.grp h2 small{font:400 .7rem var(--ml-mono);color:var(--ml-ink-3)}
+.grp[hidden]{display:none}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.it{appearance:none;text-align:left;min-height:48px;padding:9px 12px;border:1px solid var(--ml-line-weak);border-radius:var(--ml-radius);background:var(--ml-bg-2);color:var(--ml-ink);font:500 .9rem/1.45 var(--ml-serif);letter-spacing:.04em;cursor:pointer;transition:border-color .2s}
+.it:hover,.it:focus-visible{border-color:var(--nat-hud);outline:none}
+.it small{display:block;font:400 .66rem var(--ml-sans);color:var(--ml-ink-3);letter-spacing:.06em;margin-top:2px}
+.foot{margin-top:40px;font-size:.7rem;color:var(--ml-ink-3);line-height:1.8}
+
+/* 札 */
+.dlg{max-width:min(620px,calc(100vw - 24px));width:100%;max-height:86svh;padding:0;color:var(--ml-ink);background:var(--ml-panel-solid);border:1px solid var(--ml-line-2);border-top:2px solid var(--nat-hud)}
+.dlg::backdrop{background:rgba(3,6,15,.55)}
+.dlg-in{padding:20px 22px 18px;overflow:auto;max-height:86svh}
+.dlg .ml-kicker{color:var(--nat-hud)}
+.dlg .ml-title{font-size:1.25rem;margin:4px 0 12px}
+.dlg h3{font:600 .86rem var(--ml-serif);letter-spacing:.1em;margin:16px 0 4px}
+.dlg p{font-size:.92rem;line-height:1.9;margin:0 0 8px}
+.card-b p{font-family:var(--ml-serif);font-size:1rem;letter-spacing:.03em}
+.card-b p.more{font-family:var(--ml-sans);font-size:.85rem;color:var(--ml-ink-2)}
+.card-b p.now{color:var(--nat-hud)}
+.src{margin:0 0 12px;padding-left:1.1em;font-size:.76rem;line-height:1.7;color:var(--ml-ink-2)}
+.src a{color:var(--ml-aoi-2);word-break:break-all}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.copy{font-size:.76rem!important;color:var(--ml-ink-3)}
+.copy a{color:var(--ml-aoi-2)}
+
+.kasa-tag{position:absolute;display:none;transform:translate(-50%,-100%);padding:3px 10px;border:1px solid var(--nat-hud);border-radius:var(--ml-radius);background:rgba(3,6,15,.86);font:600 .82rem var(--ml-serif);letter-spacing:.08em;color:var(--ml-ink);pointer-events:none;z-index:5;transition:opacity .4s;white-space:nowrap}
+.kasa-tag small{display:block;font:400 .6rem var(--ml-mono);color:var(--nat-hud);letter-spacing:.06em}
+.kasa-tag.off{opacity:0}
+
+@media (max-width:700px){
+  #stage{height:64svh;min-height:420px}
+  .layers{top:64px;left:0;right:0;flex-direction:row;overflow-x:auto;padding:0 var(--ml-gutter) 4px;gap:6px;scrollbar-width:none}
+  .layers::-webkit-scrollbar{display:none}
+  .lay{min-width:auto;padding:0 8px 0 6px;font-size:.8rem;gap:5px;flex:none;border-left-width:2px}
+  .layers{gap:4px;padding-right:24px}
+  .lay small{display:inline;font-size:.58rem;margin-left:0}
+  .lay span{white-space:nowrap}
+  #aoiBox{top:118px;width:66px;height:90px}
+  #cap{font-size:14px;padding:10px 6%;bottom:60px;background:rgba(3,6,15,.86)}
+  .season-note{padding:0 8px;font-size:.66rem}
+  .dlg-in{padding:18px 16px 14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
