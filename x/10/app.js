@@ -6,6 +6,7 @@ import { T, setLang, lang } from "./i18n.js?v=20261021";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261021";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
+import { OBJECTS, baseGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027d";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 899px)").matches;
@@ -81,7 +82,7 @@ mat.onBeforeCompile = sh => {
 mat.fog = false; const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Math.PI / 2; scene.add(plate);
 // 台：上の面のない箱（へこみが台に隠れない深さ 10 mm の側面だけ）
 { const dark = new THREE.MeshStandardMaterial({ color: 0x0a0f1a, roughness: 1 }), none = new THREE.MeshBasicMaterial({ visible: false });
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; scene.add(base); }
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; base.userData.plate = true; scene.add(base); }
 // 四隅の印と、10 cm の目盛り（事実の線）
 {
   const L = [], c = .53, a = .06;
@@ -89,7 +90,7 @@ mat.fog = false; const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Mat
   const z = .58; L.push(-.5, 0, z, .5, 0, z, -.5, 0, z - .015, -.5, 0, z + .015, .5, 0, z - .015, .5, 0, z + .015);
   for (let i = 1; i < 10; i++) L.push(-.5 + i / 10, 0, z - .007, -.5 + i / 10, 0, z + .007);
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(L, 3));
-  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .55 })));
+  const ls = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .55 })); ls.userData.plate = true; scene.add(ls);
 }
 // 触れたところの輪（色＝温かさの感じ：ひんやり＝水の色、あたたか＝文化の色）
 const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 64 }, (_, i) => new THREE.Vector3(Math.cos(i / 64 * Math.PI * 2), 0, Math.sin(i / 64 * Math.PI * 2)))), new THREE.LineBasicMaterial({ color: 0x9bdcf0, transparent: true, opacity: 0 }));
@@ -99,7 +100,7 @@ const COLD = new THREE.Color(0x78d6ec), WARM = new THREE.Color(0xf2cf8c);
 const TR = 900, trPos = new Float32Array(TR * 2 * 3), trCol = new Float32Array(TR * 2 * 4), trAge = new Float32Array(TR * 2).fill(99);
 const trGeo = new THREE.BufferGeometry(); trGeo.setAttribute("position", new THREE.BufferAttribute(trPos, 3)); trGeo.setAttribute("color", new THREE.BufferAttribute(trCol, 4));
 const trail = new THREE.LineSegments(trGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
-trail.frustumCulled = false; scene.add(trail); let trW = 0;
+trail.frustumCulled = false; trail.userData.plate = true; scene.add(trail); let trW = 0;
 
 // ---- デジタルの層（2026-10-27 本人「デジタルとフィジカルの融合」）：写真の面の上に、点群・走査線・地の光のグリッドを薄く重ねる
 scene.fog = new THREE.FogExp2(0x03060f, .22);
@@ -115,10 +116,10 @@ const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position
   uniforms: cloudU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
   vertexShader: "uniform float uScan, uSize; varying float vA; void main(){ float d = position.z - uScan; vA = .2 + .75 * exp(-d * d / .0008); gl_PointSize = uSize * (.8 + .6 * vA); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
   fragmentShader: "varying float vA; void main(){ vec2 c = gl_PointCoord - .5; if (dot(c, c) > .25) discard; gl_FragColor = vec4(.66, .95, .97, vA * .45); }" }));
-cloud.frustumCulled = false; scene.add(cloud);
+cloud.frustumCulled = false; cloud.userData.plate = true; scene.add(cloud);
 const SCN = 128, scPos = new Float32Array(SCN * 3);
 const scan = new THREE.Line(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(scPos, 3)), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false }));
-scan.frustumCulled = false; scene.add(scan);
+scan.frustumCulled = false; scan.userData.plate = true; scene.add(scan);
 function updateCloud() {
   if (!params) return; const k = params.depth / SIZE_MM;
   for (let j = 0; j < CN; j++) for (let i = 0; i < CN; i++) { const x = (i + .5) / CN, y = (j + .5) / CN, n = (j * CN + i) * 3; cPos[n] = x - .5; cPos[n + 1] = heightAt(x * SIZE_MM, y * SIZE_MM) * k + .004; cPos[n + 2] = y - .5; }
@@ -199,6 +200,28 @@ function applySurface(v, keepParams = false) {
   $("#originT").textContent = T(v.origin === "photo" ? "origin.photo" : "origin.normal");
   for (const b of document.querySelectorAll(".chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
 }
+// ---- 形に貼る（触覚の mixed reality）
+let objMesh = null, objDef = null, objHit = null; const _nq = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+const objMat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, envMapIntensity: .55, side: THREE.DoubleSide });
+const cloneTex = (t, rep) => { if (!t) return null; const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(rep[0], rep[1]); c.needsUpdate = true; return c; };
+function relief() {
+  applyRelief(objMesh.geometry, objDef.rep, (u, v) => heightAt(u * SIZE_MM, (1 - v) * SIZE_MM), params.depth / SIZE_MM * .55, objDef.pole);
+  for (const k of ["map", "normalMap", "roughnessMap"]) objMat[k]?.dispose();
+  objMat.map = cloneTex(mat.map, objDef.rep); objMat.normalMap = cloneTex(mat.normalMap, objDef.rep); objMat.roughnessMap = cloneTex(mat.roughnessMap, objDef.rep);
+  objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.needsUpdate = true; dirty = 2;
+}
+function setObject(id) {
+  if (objMesh) { scene.remove(objMesh); objMesh.geometry.dispose(); objMesh = null; objHit = null; }
+  objDef = OBJECTS.find(o => o.id === id) || null;
+  for (const o of scene.children) if (o.userData.plate) o.visible = !objDef;
+  plate.visible = !objDef; $("#scaleL").hidden = !!objDef;
+  for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));
+  $("#bGlb").hidden = !objDef;
+  if (!objDef) { aoi?.motion.lookAt(null); return; }
+  objMesh = new THREE.Mesh(baseGeometry(id), objMat); objMesh.castShadow = true; scene.add(objMesh); relief();
+  const c = new THREE.Vector3(0, .15, 0); if (aoi) aoi.place(AOI_X, -.08, Math.atan2(-AOI_X, .08)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
+  say("aoi.obj", 6500);
+}
 function applyParams() {
   const p = params; mat.displacementScale = p.depth / SIZE_MM;
   const ns = (p.depth / Math.max(.3, surf.p0.depth)) ** .6 * (.55 + .9 * p.rough) / (.55 + .9 * surf.p0.rough) * surf.nBase;
@@ -207,7 +230,7 @@ function applyParams() {
   U.uDentR.value = (5 + 7 * (1 - p.hard)) / SIZE_MM;
   ring.material.color.copy(COLD).lerp(WARM, p.warm);
   model.setSurface(heightAt, p); sonic.setSurface(p, surf.p0);
-  updateCloud();
+  updateCloud(); if (objMesh) relief();
 }
 
 // ---- 触れた音の素材を選ぶ
@@ -334,7 +357,12 @@ addEventListener("resize", resize);
 
 // ---- 触れる・動かす
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), flat = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hitP = new THREE.Vector3();
-const toPlate = e => { const r = cv.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); return ray.ray.intersectPlane(flat, hitP) ? hitP.clone() : null; };
+const toPlate = e => { const r = cv.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera);
+  if (objMesh) {   // 形に貼ったとき：形の表面の触れた所を、触覚の地図の上の位置に読みかえる
+    const h = ray.intersectObject(objMesh)[0]; if (!h || !h.uv) return null; objHit = h;
+    const u = (h.uv.x * objDef.rep[0]) % 1, v = (h.uv.y * objDef.rep[1]) % 1; return new THREE.Vector3(u - .5, 0, .5 - v);
+  }
+  return ray.ray.intersectPlane(flat, hitP) ? hitP.clone() : null; };
 const inside = p => p && Math.abs(p.x) <= .5 && Math.abs(p.z) <= .5;
 let touch = null, force = 0, dentAt = new THREE.Vector2(), lastMove = 0, lastStroke = [], strokeMs = 0, said = {}, dirty = 2;
 const ptrs = new Map(); let drag = null, pinch = null;   // drag＝一本の指・マウスで回す／ずらす、pinch＝二本の指
@@ -414,7 +442,7 @@ const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "
 async function loadAoi() {
   try {
     const K = await import("./kit/aoi.js");
-    aoi = await K.loadAoi(AOI_URL, { scene, height: .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
+    aoi = await K.loadAoi(AOI_URL, { scene, height: MOBILE ? .6 : .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
     aoi.root.position.y = -.106; aoi.place(AOI_X, -.08, .35);
     { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, -.08); scene.add(sh);
@@ -449,6 +477,7 @@ function save() {
 $("#bSave").addEventListener("click", save); $("#bSave2").addEventListener("click", save);
 // 触覚の層の形を STL（3D プリント用・mm）で保存。この端末の中でつくるだけで、送信しない
 function saveSTL() {
+  if (objMesh) { const d = new Date(), pad = n => String(n).padStart(2, "0"); dl(new Blob([geometrySTL(objMesh.geometry)], { type: "model/stl" }), `qualia-touch_${objDef.id}_${surf.id}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.stl`); say("aoi.stl", 6000); return; }
   const r = buildSTL(heightAt, params), d = new Date(), pad = n => String(n).padStart(2, "0");
   const blob = new Blob([r.buf], { type: "model/stl" }), u = URL.createObjectURL(blob), a = document.createElement("a");
   a.href = u; a.download = `qualia-touch_${surf.id}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.stl`;
@@ -457,6 +486,16 @@ function saveSTL() {
   return r;
 }
 $("#bStl").addEventListener("click", saveSTL); $("#bStl2").addEventListener("click", saveSTL);
+function dl(blob, name) { const u = URL.createObjectURL(blob), a = document.createElement("a"); a.href = u; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
+// 形と質感をそのまま GLB に（three.js の GLTFExporter・MIT。押したときだけ読む）
+$("#bGlb").addEventListener("click", async () => {
+  if (!objMesh) return; const { GLTFExporter } = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/exporters/GLTFExporter.js");
+  const m = objMesh.clone(); m.scale.setScalar(.1);   // 1 単位＝10 cm → メートル
+  new GLTFExporter().parse(m, r => { dl(new Blob([r], { type: "model/gltf-binary" }), `qualia-touch_${objDef.id}_${surf.id}.glb`); say("aoi.glb", 6000); }, e => console.warn(e), { binary: true });
+});
+{ const box = $("#objChips");
+  const mk = (id, name, sub) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip objchip"; if (id) b.dataset.o = id; b.setAttribute("aria-pressed", String(!id)); b.innerHTML = `<span><b>${name}</b><small>${sub}</small></span>`; b.addEventListener("click", () => setObject(id)); box.append(b); };
+  mk(null, "板", "10 cm 四方の面"); for (const o of OBJECTS) mk(o.id, o.name, o.sub); }
 $("#bShow").addEventListener("click", () => {
   const L = layerNow(), short = JSON.stringify(L, (k, v) => typeof v === "string" && v.length > 80 ? v.slice(0, 48) + `…（${v.length}）` : v, 1);
   $("#layerPre").textContent = short; $("#dlgLayer").showModal();
@@ -496,6 +535,7 @@ function frame(now) {
   ring.material.opacity += ((touch ? .55 + .45 * r.amp : 0) - ring.material.opacity) * Math.min(1, dt * 8);
   ring.position.set(dentAt.x, heightAt((dentAt.x + .5) * SIZE_MM, (-dentAt.y + .5) * SIZE_MM) * params.depth / SIZE_MM - dent / SIZE_MM * .6 + .002, -dentAt.y);
   ring.scale.setScalar(U.uDentR.value * (.9 + (touch ? .35 * r.amp : 0)));
+  if (objMesh && objHit) { ring.position.copy(objHit.point); _nq.copy(objHit.face.normal).transformDirection(objMesh.matrixWorld); ring.quaternion.setFromUnitVectors(_up, _nq); ring.position.addScaledVector(_nq, .004); } else ring.quaternion.identity();
   // 通り道の色（2.4 秒で消える）
   for (let i = 0; i < TR * 2; i++) { const a = trAge[i] += dt, o = Math.max(0, 1 - a / 2.4); trCol[i * 4] = .7; trCol[i * 4 + 1] = .92; trCol[i * 4 + 2] = 1; trCol[i * 4 + 3] = o; }
   trGeo.attributes.color.needsUpdate = true;

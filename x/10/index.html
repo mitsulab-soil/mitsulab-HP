@@ -14,9 +14,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261027o">
+<link rel="stylesheet" href="style.css?v=20261027s">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="app.js?v=20261027o">
+<link rel="modulepreload" href="app.js?v=20261027s">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
 <link rel="modulepreload" href="i18n.js?v=20261021">
 <link rel="modulepreload" href="haptics.js?v=20261021">
@@ -99,12 +99,19 @@
     </div>
   </section>
 
+  <section aria-labelledby="hO">
+    <h2 id="hO" class="sec">形に貼る</h2>
+    <div class="chips" id="objChips" role="group" aria-labelledby="hO"></div>
+    <p class="note">選んだ触れ心地（凹凸・硬さ・音）を、石や器の形に沿わせて重ねます。形は mitsulab がつくった模型で、大きさは実寸の目安です。</p>
+  </section>
+
   <section aria-labelledby="hL">
     <h2 id="hL" class="sec" data-t="sec.layer">触覚の層（触れ心地のデータ）</h2>
     <p class="body" data-t="layer.desc"></p>
     <div class="row">
       <button class="ml-btn" id="bShow" type="button" data-t="btn.show">層を見る</button>
       <button class="ml-btn ml-btn--primary" id="bStl" type="button" data-t="btn.stl">形を保存（STL・3D プリント）</button>
+      <button class="ml-btn" id="bGlb" type="button" hidden>形と質感を保存（GLB）</button>
       <button class="ml-btn" id="bSave" type="button" data-t="btn.save">触れ心地を保存（JSON）</button>
     </div>
     <p class="note" data-t="stl.note"></p>
@@ -139,6 +146,6 @@
   </div>
 </dialog>
 
-<script type="module" src="app.js?v=20261027o"></script>
+<script type="module" src="app.js?v=20261027s"></script>
 </body>
 </html>
