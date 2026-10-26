@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=19";
+import { makeAreas } from "./areas.js?v=22";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -989,8 +989,8 @@ function parkMacro(m, amt, lawn) {
 { vec2 p=vPw.xz; vec3 big=texture2D(map,p*.031+.17).rgb; diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*big/max(dot(big,vec3(.333)),.05)*.5,.45);
   float n=pN(p*.045)*.6+pN(p*.13)*.4, n2=pN(p*.021+7.3);
   diffuseColor.rgb*=mix(1.,.72+n*.56,${amt.toFixed(2)});
-  vec3 lt=texture2D(uLit,p*.21).rgb; float lf=smoothstep(.55,.85,n2); diffuseColor.rgb=mix(diffuseColor.rgb,lt*vec3(.8,.72,.6),lf*.55*${amt.toFixed(2)});
-  ${soil ? "vec3 so=texture2D(uSoil,p*.18).rgb*vec3(.86,.8,.7); float worn=smoothstep(.62,.8,pN(p*.07+3.1)); diffuseColor.rgb=mix(diffuseColor.rgb,so,worn*.6); float dd=length(vPw-cameraPosition); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0)*vec3(1.02,1.,.9),smoothstep(40.,160.,dd)*.35);" : ""} }`);
+  vec3 lt=texture2D(uLit,p*.21).rgb; float lf=smoothstep(.55,.85,n2); diffuseColor.rgb=mix(diffuseColor.rgb,lt*vec3(.8,.72,.6),lf*${lawn ? ".3" : ".55"}*${amt.toFixed(2)});
+  ${soil ? "vec3 so=texture2D(uSoil,p*.18).rgb*vec3(.86,.8,.7); float worn=smoothstep(.7,.88,pN(p*.07+3.1)); diffuseColor.rgb=mix(diffuseColor.rgb,so,worn*.3); float dd=length(vPw-cameraPosition); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0)*vec3(1.02,1.,.9),smoothstep(40.,160.,dd)*.35);" : ""} }`);
   };
   m.customProgramCacheKey = () => "parkMacro" + (lawn ? "L" : "P");
 }
@@ -1009,18 +1009,29 @@ function loadPark() {
     const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); rg.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); rg.computeVertexNormals();
     const rm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/gravelly_sand_c5.webp"), normalMap: tex(BASE + "tex/gravelly_sand_n5.webp", false), normalScale: new THREE.Vector2(1.3, 1.3), color: 0xc9bca2, roughness: .96, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     parkMacro(rm, .55);   // 2026-10-26 2：園路の砂利も、くり返しの模様が見えないよう大きなむらを重ねる
-    G.add(new THREE.Mesh(rg, rm));
+    { const rmM = new THREE.Mesh(rg, rm); rmM.renderOrder = -1; G.add(rmM); }
     // DEM の外の園の地面（芝の模式）。DEM の中は今の地形のまま
     const [gx0, gz0, CS, GX, GZ, GM] = J.g, gp = [], gu = [], gi = [];   // 公園の輪郭の中の 10 m 区画だけ（本殿より北）
     for (let j = 0; j <= GZ; j++) for (let i = 0; i <= GX; i++) { const x = gx0 + i * CS, z = gz0 + j * CS; gp.push(x, groundY(x, z) + (z > -1350 ? .06 : -.02), z); gu.push(x / 9, z / 9); }
     for (let j = 0; j < GZ; j++) for (let i = 0; i < GX; i++) { if (GM[j * GX + i] !== "1") continue; const a = j * (GX + 1) + i; gi.push(a, a + GX + 1, a + 1, a + 1, a + GX + 1, a + GX + 2); }
     const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.setIndex(gi); gg.computeVertexNormals();
-    const lm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), normalMap: tex(BASE + "tex/Ground047_n5.webp", false), normalScale: new THREE.Vector2(.8, .8), color: 0xb9c79a, roughness: 1, metalness: 0 });
-    parkMacro(lm, 1, true); G.add(new THREE.Mesh(gg, lm));
+    const lm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), normalMap: tex(BASE + "tex/Ground047_n5.webp", false), normalScale: new THREE.Vector2(.8, .8), color: 0x92ba6c, roughness: 1, metalness: 0 });   // 2026-10-26 3：泥と草のまだら → 芝を主に（踏まれた土と落ち葉は控えめに）
+    parkMacro(lm, 1, true); { const lmM = new THREE.Mesh(gg, lm); lmM.renderOrder = -1; G.add(lmM); }
+    // 2026-10-26 3（採点「公園の灰色の板」＝地形の空中写真の池と広場が、芝の上に出ていた）：芝・園路・池を先に描いて印を付け、印のある画素には地形を描かない（参道の道と同じ）
+    for (const m of [lm, rm]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
     // 舟遊池（OSM の輪郭）
     const pd = J.pond, sh = new THREE.Shape(); for (let i = 0; i < pd.length; i += 2) i ? sh.lineTo(pd[i], -pd[i + 1]) : sh.moveTo(pd[i], -pd[i + 1]);
-    const pg = new THREE.ShapeGeometry(sh); pg.rotateX(-Math.PI / 2); let py = 1e9; for (let i = 0; i < pd.length; i += 8) py = Math.min(py, groundY(pd[i], pd[i + 1])); pg.translate(0, py + .1, 0);
-    G.add(new THREE.Mesh(pg, new THREE.MeshStandardMaterial({ color: 0x3d4a44, roughness: .12, metalness: 0, envMapIntensity: 1.1, transparent: true, opacity: .92 })));
+    const pg = new THREE.ShapeGeometry(sh); pg.rotateX(-Math.PI / 2); let py = 0, pn = 0; for (let i = 0; i < pd.length; i += 2) { py += groundY(pd[i], pd[i + 1]); pn++; } py /= pn; pg.translate(0, py + .18, 0);   // 2026-10-26 3：芝より上に水面（芝の下に隠れていた）
+    // 2026-10-26 3（採点「公園の灰色の板」＝池の面が空を白く映して板に見えた）：水を暗い緑の深みに・岸ぞいを浅く明るく・さざ波の細かな法線（シェーダ）
+    const wm = new THREE.MeshStandardMaterial({ color: 0x1c2a26, roughness: .32, metalness: 0, envMapIntensity: .12, transparent: true, opacity: .96, fog: false });
+    wm.onBeforeCompile = sh => { sh.uniforms.uT = PARK.uT = { value: 0 };
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWw=(modelMatrix*vec4(transformed,1.)).xyz;");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWw; uniform float uT;")
+        .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n{ vec2 p=vWw.xz; float a=sin(p.x*1.7+uT*1.3)*cos(p.y*1.3-uT*.9)+.5*sin(p.x*4.1-p.y*3.3+uT*2.1); vec3 pn=normalize(vec3(.06*cos(p.x*1.7+uT*1.3)+.04*cos(p.x*4.1-p.y*3.3),1.,.06*sin(p.y*1.3-uT*.9))); normal=normalize(normal+(viewMatrix*vec4(pn-vec3(0,1,0),0.)).xyz); }")
+        .replace("#include <map_fragment>", "#include <map_fragment>\n{ float d=length(vWw-cameraPosition); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.10,.15,.13),smoothstep(10.,80.,d)); }")
+        .replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ vec3 V=normalize(cameraPosition-vWw); float fr=pow(1.-max(V.y,0.),5.); vec3 deep=vec3(.05,.08,.075), sky=vec3(.42,.5,.56); float rp=.5+.5*sin(vWw.x*1.7+uT*1.3)*cos(vWw.z*1.3-uT*.9); gl_FragColor.rgb=mix(deep,sky,fr*.55+rp*.04); }"); };
+    wm.customProgramCacheKey = () => "pondWater1";
+    wm.stencilWrite = true; wm.stencilRef = 1; wm.stencilFunc = THREE.AlwaysStencilFunc; wm.stencilZPass = THREE.ReplaceStencilOp; wm.transparent = false; { const pm = new THREE.Mesh(pg, wm); pm.renderOrder = -1; G.add(pm); }
     world.add(G); PARK.g = G; for (const m of G.children) pickables.push(m);
   }).catch(e => console.warn("park", e));
 }
@@ -1537,6 +1548,8 @@ function stepAoi(dt) {
   }
   if (!AOI.focus) AOI.m.lookAt(AOI.glance || camera.position);   // 2026-10-26 3：目を見る人へ合わせる（焦点のない目にしない）
   // 2026-10-26 3（採点「待つ姿が固い・指が板のよう」）：共通部品は書き換えず、アプリの側で ①指に、指ごとに違う小さな曲がりと開き（ゆっくり変わる）を足し、②そのあとで vrm を進める
+  // 2026-10-26 3（採点 P1「腕をまっすぐ下げた硬い立ち姿」）：共通部品は書き換えず、待つあいだは手を前で組む時間を長く、下ろす時間を短く（共通部品の状態を、このアプリの中でだけ寄せる）
+  { const S2 = AOI.m.s; if (S2 && S2.claspHold != null) { if (!S2.claspOn && S2.claspHold > 2.5) S2.claspHold = 2.5; if (S2.claspOn && !S2.claspExt) { S2.claspHold += 6 + 4 * Math.random(); S2.claspExt = true; } if (!S2.claspOn) S2.claspExt = false; } }
   AOI.m.update(dt, camera, { vrmUpdate: false });
   aoiFingers(dt);
   AOI.m.vrm.update(dt); AOI.m.afterVrmUpdate(dt);
@@ -2349,6 +2362,7 @@ function frame() {
   if (STONES.length && QW.mode !== "sky") { const cp = camera.position; for (const r of STONES) { const s = r.userData.ws; r.visible = s.center.distanceTo(cp) - s.radius < 160; } }
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2);
     if (QW.skyTex && m !== "sight") { const vt = m === "sky" || m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp(NAVY, CYBER.v.value); } else VEIL.visible = false; CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
+  if (PARK.uT && !RM) PARK.uT.value += dt;
   stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);
   if (SIGHT.post && QW.mode === "sight") {
