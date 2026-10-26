@@ -7,10 +7,10 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=6";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q7";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q8";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=32";
+import { makeAreas } from "./areas.js?v=33";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -1295,8 +1295,11 @@ function stepLayer(dt) {
   if (LAYER.ripple?.visible) { LAYER.rippleR += dt * 55; const r = LAYER.rippleR; LAYER.ripple.scale.setScalar(Math.max(.01, r)); LAYER.ripple.material.opacity = Math.max(0, .7 * (1 - r / 260)); if (r > 260) LAYER.ripple.visible = false; }
   const cp = camera.position, t = performance.now() / 1000, M = QW.mode, sky = M === "sky", flyish = M === "fly" || (M === "sight" && SIGHT.sp && SIGHT.sp.eye > 3);
   const far = sky ? 1e9 : flyish ? (MOBILE ? 600 : 900) : M === "walk" || M === "sight" || M === "descend" ? (MOBILE ? 200 : 300) : 0, lod = sky || flyish ? 0 : MOBILE ? 50 : 70;
+  // 2026-10-26 17：碧の体の後ろに重なる目印の球は、碧の頭の上へ表示だけ持ち上げる（地点の位置は変えない）
+  let AB = null; if (MOBILE && M === "walk" && AOI.root?.visible) { const p = AOI.root.position, f = _pv3.set(p.x, p.y, p.z).project(camera).clone(), h = _pv3.set(p.x, p.y + 1.75, p.z).project(camera).clone(); AB = { x: h.x, y0: f.y, y1: h.y, hw: (h.y - f.y) * .3 * innerHeight / innerWidth, d: Math.hypot(p.x - cp.x, p.z - cp.z) }; } QW._AB = AB;
   for (const L of LAYER.objs) {
     const dx = L.o.x - cp.x, dz = L.o.z - cp.z, dist = Math.hypot(dx, dz);
+    { let tl = 0; if (AB && dist > AB.d + 1 && dist < 60) { const v = _pv3.set(L.o.x, L.o.y + L.o.h, L.o.z).project(camera); if (v.z < 1 && Math.abs(v.x - AB.x) < AB.hw + .12 && v.y < AB.y1 + .06 && v.y > AB.y0) tl = (AB.y1 + .1 - v.y) * dist * Math.tan(camera.fov * Math.PI / 360); } L.lift = (L.lift || 0) + (tl - (L.lift || 0)) * Math.min(1, dt * 3); }
     if (L.want && !L.arr && (!LAYER.ripple.visible || top5(L.o.layer) !== LAYER.rippleLayer || dist < LAYER.rippleR - 10)) L.arr = true;
     const target = L.want && L.arr && dist < far ? 1 : 0;
     L.show += (target - L.show) * Math.min(1, dt * (target ? 3 : 6));
@@ -1304,7 +1307,7 @@ function stepLayer(dt) {
     // 遠くでも見つけられるように、少しだけ大きく（位置は動かさない）
     const s = sky ? Math.min(46, Math.max(10, Math.hypot(cp.x - L.o.x, cp.y - L.o.y, cp.z - L.o.z) / 38)) : Math.min(flyish ? 26 : 3.2, Math.max(1, dist / (flyish ? 9 : 16))) * (1 + L.open * .35);
     L.glyph.scale.setScalar(s * (.6 + .4 * L.show));
-    L.glyph.position.y = sky ? Math.max(L.o.h, 2.2 * s) : flyish ? Math.max(L.o.h, 2.5 * s) : L.o.h;
+    L.glyph.position.y = sky ? Math.max(L.o.h, 2.2 * s) : flyish ? Math.max(L.o.h, 2.5 * s) : L.o.h + (L.lift || 0);
     L.beam.scale.y = Math.max(.05, L.glyph.position.y - .25 * s); L.base.scale.setScalar(sky ? s * .9 : 1 + L.open * 1.4);
     const detail = !sky && dist < lod; if (L.det !== detail) { L.det = detail; L.base.visible = detail; for (const f of L.faces) f.visible = detail; }   // 遠くは線と光だけ（描く数を減らす）
     L.open += ((PANEL.cur === L ? 1 : 0) - L.open) * Math.min(1, dt * 5);
@@ -1318,7 +1321,7 @@ function stepLayer(dt) {
     // 名札：近くに来たら（歩く・生きものの高さ）
     const near = !sky && !flyish && dist < LABEL_R;
     if (near && !L.label) { L.label = makeLabel(layerNo(L.o.layer), GL[L.o.layer].name, L.o.title, GL[L.o.layer].color); L.label.position.set(.5, .66, 0); L.label.userData.by = .66; L.label.material.depthTest = false; L.label.renderOrder = 9; L.glyph.add(L.label); }   // 札は木に隠さない（重なりは placeLabels で避ける）
-    if (L.label) { L.label.visible = near; L.label.material.opacity = Math.min(1, (LABEL_R - dist) / 6) * op; const gs = L.glyph.scale.x || 1, fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 66 : 84) * Math.max(1, dist) / fpx, k = wh / .4 / gs; L.label.scale.set(1.6 * k, .4 * k, 1); }   // 2026-10-26 15：札は画面の上でいつも同じ大きさ（名前の字が PC 約 25px・スマホ約 20px の明朝）
+    if (L.label) { L.label.visible = near; L.label.material.opacity = Math.min(1, (LABEL_R - dist) / 6) * op; const gs = L.glyph.scale.x || 1, fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 54 : 84) * Math.max(1, dist) / fpx, k = wh / .4 / gs; L.label.scale.set(1.6 * k, .4 * k, 1); }   // 2026-10-26 15：札は画面の上でいつも同じ大きさ（名前の字が PC 約 25px・スマホ約 20px の明朝）
   }
   LAYER.qm?.update(camera, { t, sky, focus: PANEL.cur || null });
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
@@ -1329,7 +1332,7 @@ function stepLayer(dt) {
   // 2026-10-26 16：町（東口・西口・新都心・公園）の典拠のある地点にも、近くに来たら名札（参道の札と同じ形・大きさ）
   if (!sky && !flyish) for (const L of AREA.marks || []) { const dA = Math.hypot(L.o.x - cp.x, L.o.z - cp.z), nearA = L.mark.visible && dA < LABEL_R;
     if (nearA && !L.label) { const k5 = top5(L.o.layer); L.label = makeLabel(layerNo(L.o.layer), GL[k5]?.name || ("Qualia/" + k5), L.o.title, COLOR5[k5] || "#e8eef2"); L.label.material.depthTest = false; L.label.renderOrder = 9; L.label.position.set(.9, .4, 0); L.label.userData.by = .4; L.glyph.add(L.label); }
-    if (L.label) { L.label.visible = nearA; if (nearA) { L.label.material.opacity = Math.min(1, (LABEL_R - dA) / 6); const fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 66 : 84) * Math.max(1, dA) / fpx, k = wh / .4; L.label.scale.set(1.6 * k, .4 * k, 1); lbs.push({ sp: L.label, L, d: dA, pri: 0 }); } } }
+    if (L.label) { L.label.visible = nearA; if (nearA) { L.label.material.opacity = Math.min(1, (LABEL_R - dA) / 6); const fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 54 : 84) * Math.max(1, dA) / fpx, k = wh / .4; L.label.scale.set(1.6 * k, .4 * k, 1); lbs.push({ sp: L.label, L, d: dA, pri: 0 }); } } }
   { lbs.sort((p, q) => q.pri - p.pri || p.d - q.d); const cap = MOBILE ? 3 : 4; for (const e of lbs.splice(cap)) e.sp.visible = false; }   // 2026-10-26 15：大きな札は近い順に PC 4・スマホ 3 まで
   if (lbs.length) { const av = (LAYER.qm?.rects || []).slice(); for (const id of ["qHere", "lstack", "caption", "qDir", "hud", "sndTag"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; { const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity < .05) continue; } const r = e.getBoundingClientRect(); if (r.width && r.height) av.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); } placeLabels(THREE, camera, lbs, av, dt); }   // 2026-10-26 15：札を大きくしたので、画面の板（重なりの数・層の一覧・字幕）にもかけない
 }
@@ -1352,20 +1355,21 @@ function stepHere(cp, t, off) {
   const walk = !off && (QW.mode === "walk" || QW.mode === "sight") && $("#panel").hidden;
   if (!walk || !LAYER.worn.length) { QH.el.hidden = true; QH.dir.hidden = true; return; }
   if (t - QH.t > .5) {
-    QH.t = t; const cnt = {}; let n = 0, best = null, bd = 1e9; const v = new THREE.Vector3();
+    QH.t = t; const cnt = {}; let n = 0, best = null, bd = 1e9, nd = 1e9, nL = null; const v = new THREE.Vector3();
     for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);   // 2026-10-26 16：町の典拠のある地点も数え、方角を出す
-      if (d < 30) { const k = top5(L.o.layer); cnt[k] = (cnt[k] || 0) + 1; n++; }
+      if (d < 30) { const k = top5(L.o.layer); cnt[k] = (cnt[k] || 0) + 1; n++; } if (d < nd && d > 4) { nd = d; nL = L; }
       if (d > 4 && d < 400 && d < bd) { v.set(L.o.x, L.o.y + (L.o.h ?? 2.1), L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
     const ks = ALL.filter(l => cnt[l.id]).reverse();
-    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">この 30 m に重なる Qualia</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : (best ? `<b>${Math.round(bd)} m</b><span class="t">先に、いちばん近い Qualia</span>` : "");
-    QH.el.hidden = !n && !best; QH.best = best;
+    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">この 30 m に重なる Qualia</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : (nd < 400 ? `<b>${Math.round(nd)} m</b><span class="t">先に、いちばん近い Qualia</span>` : "");
+    QH.el.hidden = !n && !(nd < 400); QH.best = nd < 400 ? nL : null;   /* 上の札と方角の丸は同じ球を指す */
   }
   const L = QH.best;
   if (!L || (L.mark ? !L.mark.visible : !L.want) || Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 8) { QH.dir.hidden = true; return; }
   const v = new THREE.Vector3(L.o.x, L.o.y + (L.o.h ?? 2.1), L.o.z).applyMatrix4(camera.matrixWorldInverse);
   if (v.z < 0 && Math.abs(v.x / -v.z) < 1 && Math.abs(v.y / -v.z) < .8) { QH.dir.hidden = true; return; }
   const a = Math.atan2(v.x, -v.z), W = innerWidth, H = innerHeight, x = Math.max(MOBILE ? 30 : 270, Math.min(W - 30, W / 2 + Math.sin(a) * (W / 2 - 40))), y = Math.max(MOBILE ? 340 : 140, Math.min(H - (MOBILE ? 300 : 150), H * .55 - Math.cos(a) * (H * .55 - 150)));   // 前は上・うしろは下の、画面のふち
-  QH.dir.hidden = false; QH.dir.style.transform = `translate(${x - 18}px,${y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
+  let X = x; if (AOI.root?.visible) { const p = AOI.root.position, f = _ap2.set(p.x, p.y, p.z).project(camera), fx = (f.x * .5 + .5) * W, fy = (-f.y * .5 + .5) * H, hy = (-_ap2.set(p.x, p.y + 1.75, p.z).project(camera).y * .5 + .5) * H, hw = (fy - hy) * .3 + 26; if (Math.abs(X - fx) < hw && y > hy - 30 && y < fy + 10) X = fx > W / 2 ? Math.max(30, fx - hw) : Math.min(W - 30, fx + hw); }   /* 2026-10-26 17：方角の丸を碧の顔と体に重ねない */
+  QH.dir.hidden = false; QH.dir.style.transform = `translate(${X - 18}px,${y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
   QH.dir.style.setProperty("--c", (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#e8eef2"); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
 }
 
@@ -1521,9 +1525,9 @@ function loadAoi() {
   })().catch(e => { console.warn("碧の姿を読み込めませんでした：", e?.message ?? e); });
 }
 /* 2026-10-26 3：碧の立ち位置を、画面の上のボタンと Qualia の球の領域から決める（候補を順に試し、重ならない最初のものを、0.6 秒ごとに選びなおす） */
-const AOIPK = { t: 0, i: 0, rects: [], rt: 0 }, _pv3 = new THREE.Vector3();
-function aoiPick(fx, fz, rx, rz, f) {
-  const C = MOBILE ? [[f, .1], [f, -.35], [f, .5], [f, -.7], [f, .85]] : [[f, .85], [f, -.85], [f, .5], [f, -.5], [f, 1.1]];   /* 距離は一定（画面の大きさをそろえる）、横だけずらす */
+const AOIPK = { t: 0, i: 0, rects: [], rt: 0 }, _pv3 = new THREE.Vector3(), _ap2 = new THREE.Vector3();
+function aoiPick(fx, fz, rx, rz, f, C0) {
+  const C = C0 || (MOBILE ? [[f, .1], [f, -.35], [f, .5], [f, -.7], [f, .85], [f, .68], [f, -.55], [f * .8, .6], [f * 1.35, .35], [f * 1.35, -.35], [f * 1.6, .2]] : [[f, .85], [f, -.85], [f, .5], [f, -.5], [f, 1.1]]);   /* 距離は一定（画面の大きさをそろえる）、横だけずらす */
   const now = performance.now(); if (now - AOIPK.t < 600) return C[Math.min(AOIPK.i, C.length - 1)]; AOIPK.t = now;
   if (now - AOIPK.rt > 1500) { AOIPK.rt = now; AOIPK.rects = [...document.querySelectorAll("button, a, [role=button]")].map(e => e.getBoundingClientRect()).filter(r => r.width > 20 && r.height > 14 && r.bottom > innerHeight * .55 && r.top < innerHeight); }
   const marks = []; for (const L of [...(LAYER.objs || []), ...(AREA.marks || [])]) { const o = L.o; if (!o || !(L.root?.visible ?? L.mark?.visible)) continue; if (Math.hypot(o.x - CAM.pos.x, o.z - CAM.pos.z) > 45) continue; /* 2026-10-26 16：池の向こうの球（30 m 先）も避ける */ if (L.glyph) { L.glyph.getWorldPosition(_pv3); marks.push(_pv3.clone().project(camera)); } else marks.push(_pv3.set(o.x, groundY(o.x, o.z) + 2.1, o.z).clone().project(camera)); }
@@ -1533,7 +1537,7 @@ function aoiPick(fx, fz, rx, rz, f) {
     const ft = _pv3.set(x, g, z).project(camera), fX = sx(ft), fY = sy(ft), hd = _pv3.set(x, g + 1.65, z).project(camera), hX = sx(hd), hY = sy(hd), hw = Math.abs(fY - hY) * .2;
     let pen = i * .01 + (AOI.m ? Math.hypot(x - AOI.m.pos.x, z - AOI.m.pos.z) * .08 : 0) + Math.abs(ff - f) * .5;   /* カメラとの距離をそろえる */   /* 今いる所に近い候補を選ぶ（大きく移らない） */
     if (fX - hw < 8 || fX + hw > W - 8 || fY > H - 6) pen += 10;
-    if (AOIPK.rects.some(r => fX + hw > r.left && fX - hw < r.right && fY > r.top && hY < r.bottom)) pen += 5;
+    if (AOIPK.rects.some(r => fX + hw > r.left && fX - hw < r.right && fY + 12 > r.top && hY < r.bottom)) pen += MOBILE ? 14 : 5;
     if (marks.some(m => m.z < 1 && Math.abs(sx(m) - hX) < hw * 2.6 && sy(m) > hY - Math.abs(fY - hY) * .3 && sy(m) < fY)) pen += 6;   /* 2026-10-26 16：頭だけでなく胴・裾とも重ねない */   /* 2026-10-26 15：頭と目印の球が重なる候補は強く避ける（球の実際の位置で） */
     if (pen < best) { best = pen; bi = i; } }
   AOIPK.i = bi; return C[bi];
@@ -1544,7 +1548,8 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
   if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); return out; }
-  out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
+  { const c = MOBILE ? aoiPick(fx, fz, rx, rz, f, [[f, s * side], [f, (s + .3) * side], [f, -.15 * side], [f, (s - .35) * side], [f * .85, (s + .15) * side]]) : [f, s * side];   /* 2026-10-26 17：スマホは参道の近くでも目印の球と重ならない立ち位置を選ぶ（池の球の列） */
+    out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); }
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
   out.y = groundY(out.x, out.z); return out;
 }
@@ -1756,7 +1761,8 @@ function stepAreas(dt) {
   // 2026-10-26 3：東口・西口・新都心では、参道まわりの半透明の建物（電脳の写し）を出さない（不透明の建物と二重になり、遠くに半透明の箱が残っていた）
   if (AREAS.ready && QW.bldGhost) { const Zc = AREAS.cur; QW.bldGhost.visible = !(Zc && Zc.ground); }
   const busy = !!PANEL.cur || !!voiceQ; for (const h of AREA.herds) h.update(dt, { active: QW.mode === "walk", busy });
-  for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on && !RM) L.glyph.position.y = 2.1 + Math.sin(performance.now() / 900 + L.o.x) * .08; }
+  for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on) { const AB = QW._AB, cp = camera.position, dist = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); let tl = 0; if (AB && dist > AB.d + 1 && dist < 60) { const v = _pv3.set(L.o.x, groundY(L.o.x, L.o.z) + 2.1, L.o.z).project(camera); if (v.z < 1 && Math.abs(v.x - AB.x) < AB.hw + .12 && v.y < AB.y1 + .08 && v.y > AB.y0) tl = (AB.y1 + .12 - v.y) * dist * Math.tan(camera.fov * Math.PI / 360); } L.lift = (L.lift || 0) + (tl - (L.lift || 0)) * .08;   /* 2026-10-26 17：町の球も碧の頭の後ろに来たら表示だけ上へ */
+    L.glyph.position.y = 2.1 + (RM ? 0 : Math.sin(performance.now() / 900 + L.o.x) * .08) + L.lift; } }
 }
 
 /* ---------- Qualia/sight：生きものを選んで、その身体へ ---------- */

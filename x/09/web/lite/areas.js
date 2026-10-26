@@ -368,7 +368,8 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
         else if (d > BLD_OUT && C.tiles[key]) { const T = C.tiles[key]; T.traverse(o => o.geometry?.dispose()); C.g.remove(T); delete C.tiles[key]; } } }
     // 境界に近づくと、向こうのエリアの名前が浮かぶ
     let best = null, bd = 28; if (Z) for (const Y of A.zones) { if (Y === Z || !Z.adj.includes(Y.id)) continue; const d = distTo(Y, cp.x, cp.z); if (d < bd) { bd = d; best = Y; } }
-    if (best && !tag.classList.contains("on")) { nearEl.style.setProperty("--ac", best.color); nearEl.textContent = `この先　${best.name}`; nearEl.classList.add("on"); } else nearEl.classList.remove("on");
+    const capOn = document.getElementById("caption") && !document.getElementById("caption").hidden;   /* 2026-10-26 17：字幕が出ているあいだは「この先」を出さない（重なって読めなかった） */
+    if (best && !capOn && !tag.classList.contains("on")) { nearEl.style.setProperty("--ac", best.color); nearEl.textContent = `この先　${best.name}`; nearEl.classList.add("on"); } else nearEl.classList.remove("on");
   };
   A.hideAll = () => { tag.classList.remove("on"); nearEl.classList.remove("on"); labBox.hidden = true; };
   return A;
