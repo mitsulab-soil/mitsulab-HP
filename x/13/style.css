@@ -3,7 +3,8 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--ml-bg);color:var(--ml-ink)}
 body{font-family:var(--ml-sans);line-height:1.7;overflow-x:hidden}
-#stage{position:sticky;top:0;height:62svh;min-height:360px;overflow:hidden;z-index:3;background:var(--ml-bg);border-bottom:1px solid var(--ml-line-weak)}
+#stage{position:fixed;inset:0;height:100svh;overflow:hidden;z-index:3;background:var(--ml-bg)}
+body{overflow:hidden}
 #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
 #cv.grabbing{cursor:grabbing}
 #cv.hot{cursor:pointer}
@@ -39,7 +40,13 @@ body{font-family:var(--ml-sans);line-height:1.7;overflow-x:hidden}
 .season-note{appearance:none;border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);background:rgba(3,6,15,.6);min-height:44px;padding:0 12px;cursor:pointer;color:var(--ml-ink-2)}
 
 /* 記録の一覧 */
-#panel{max-width:860px;margin:0 auto;padding:22px var(--ml-gutter) 40px}
+/* 目録＝3D の上に重なる透けた板（PC は右・スマホは下半分） */
+#panel{position:fixed;z-index:6;right:var(--ml-gutter);top:70px;bottom:72px;width:min(400px,calc(100vw - 32px));overflow:auto;overscroll-behavior:contain;
+  background:rgba(6,10,18,.66);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:14px 16px 20px}
+#panel[hidden]{display:none}
+/* 目録を開いているあいだ：碧は板の左へ、字幕は板にかからない幅へ（PC） */
+@media (min-width:701px){ body.list-open #aoiBox{right:calc(min(400px,100vw - 32px) + 32px)} body.list-open #cap{right:calc(min(400px,100vw - 32px) + 16px);padding:8px 6%} }
+.panel-head{position:sticky;top:-14px;z-index:1;display:flex;justify-content:space-between;align-items:center;margin:-14px -16px 8px;padding:6px 8px 6px 16px;background:rgba(6,10,18,.92);border-bottom:1px solid var(--ml-line-weak)}
 .intro{font-family:var(--ml-serif);font-size:1.02rem;line-height:1.95;letter-spacing:.05em;margin:0 0 10px}
 .note{font-size:.78rem;color:var(--ml-ink-3);line-height:1.75;margin:0 0 18px}
 .grp{margin:26px 0 0}
@@ -47,8 +54,8 @@ body{font-family:var(--ml-sans);line-height:1.7;overflow-x:hidden}
 .grp h2::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--nat-hud);align-self:center}
 .grp h2 small{font:400 .7rem var(--ml-mono);color:var(--ml-ink-3)}
 .grp[hidden]{display:none}
-.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
-.it{appearance:none;text-align:left;min-height:48px;padding:9px 12px;border:1px solid var(--ml-line-weak);border-radius:var(--ml-radius);background:var(--ml-bg-2);color:var(--ml-ink);font:500 .9rem/1.45 var(--ml-serif);letter-spacing:.04em;cursor:pointer;transition:border-color .2s}
+.items{display:grid;grid-template-columns:1fr;gap:6px}
+.it{appearance:none;text-align:left;min-height:48px;padding:9px 12px;border:1px solid var(--ml-line-weak);border-radius:var(--ml-radius);background:rgba(7,13,26,.55);color:var(--ml-ink);font:500 .9rem/1.45 var(--ml-serif);letter-spacing:.04em;cursor:pointer;transition:border-color .2s}
 .it:hover,.it:focus-visible{border-color:var(--nat-hud);outline:none}
 .it small{display:block;font:400 .66rem var(--ml-sans);color:var(--ml-ink-3);letter-spacing:.06em;margin-top:2px}
 .foot{margin-top:40px;font-size:.7rem;color:var(--ml-ink-3);line-height:1.8}
@@ -72,7 +79,11 @@ body{font-family:var(--ml-sans);line-height:1.7;overflow-x:hidden}
 
 
 @media (max-width:700px){
-  #stage{height:64svh;min-height:420px}
+  #panel{left:8px;right:8px;width:auto;top:46svh;bottom:64px}
+  .tools .ml-btn--quiet{white-space:nowrap;padding:0 6px;font-size:.76rem;min-width:44px}
+  .brand .ml-kicker{font-size:.58rem;letter-spacing:.16em}
+  .brand .ml-title{font-size:1.02rem}
+  #panel .intro{font-size:.92rem;line-height:1.8}
   .layers{top:64px;left:0;right:0;flex-direction:row;overflow-x:auto;padding:0 var(--ml-gutter) 4px;gap:6px;scrollbar-width:none}
   .layers::-webkit-scrollbar{display:none}
   .lay{min-width:auto;padding:0 8px 0 6px;font-size:.8rem;gap:5px;flex:none;border-left-width:2px}

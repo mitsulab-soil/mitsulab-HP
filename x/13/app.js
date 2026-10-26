@@ -185,6 +185,10 @@ $("#bListen").addEventListener("click", () => { if (audio) stopVoice(); else if 
 $("#card").addEventListener("close", () => { stopVoice(); reading = null; groups.halo && (groups.halo.visible = false); first = null; aoi?.motion.lookAt(null); });
 for (const d of document.querySelectorAll("dialog")) { d.addEventListener("click", e => { if (e.target === d || e.target.closest("[data-close]")) d.close(); }); }
 $("#bAbout").addEventListener("click", () => $("#about").showModal());
+// 目録：3D の上に重なる透けた板（2026-10-27 全アプリ 3D 化。一覧を下の平らなページから、3D の空間の上の板へ）
+const setList = open => { $("#panel").hidden = !open; document.body.classList.toggle("list-open", open); $("#bList").setAttribute("aria-expanded", open); };
+$("#bList").addEventListener("click", () => setList($("#panel").hidden));
+$("#bListX").addEventListener("click", () => setList(false));
 $("#bSound").addEventListener("click", e => { soundOn = !soundOn; e.target.setAttribute("aria-pressed", String(soundOn)); e.target.textContent = soundOn ? "声 入" : "声 切"; if (!soundOn) stopVoice(); });
 
 // ---- 字幕（碧の名乗りは字だけ）

@@ -32,6 +32,7 @@
     </div>
     <nav class="tools" aria-label="道具">
       <button class="ml-btn ml-btn--quiet" id="bSound" type="button" aria-pressed="true">声 入</button>
+      <button class="ml-btn ml-btn--quiet" id="bList" type="button" aria-expanded="false" aria-controls="panel">目録</button>
       <button class="ml-btn ml-btn--quiet" id="bAbout" type="button">この作品</button>
     </nav>
   </header>
@@ -45,7 +46,8 @@
   </div>
 </div>
 
-<main id="panel">
+<main id="panel" class="ml-panel ml-panel--corner" aria-label="記録の目録" hidden>
+  <div class="panel-head"><span class="ml-kicker">目録 ／ 116 件</span><button class="ml-btn ml-btn--quiet" id="bListX" type="button" aria-label="目録を閉じる">閉じる</button></div>
   <p class="intro">一本のケヤキと、その足もとの土と水。武蔵一宮 氷川神社の参道で集めた自然の記録 116 件を、木・土・水・生きもの・季節の層として、この一本のまわりに重ねました。光る点に触れると、記録がひらき、碧が読みます。</p>
   <p class="note">木の形・土の層の厚さ・点の位置は模式です。点の中身は、参道の並木の調査、県と市の報告書、図鑑や事典など、典拠のある記録だけから作っています。</p>
   <div id="list"></div>
