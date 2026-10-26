@@ -10,14 +10,14 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261026a" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261026a" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261026a" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261026z" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261026z" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261026z" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261026k3">
+<link rel="modulepreload" href="web/app/app.js?v=20261026k7">
 <link rel="modulepreload" href="web/app/layers.js?v=k2">
 <link rel="modulepreload" href="web/app/qmarks.js?v=q5k">
 <link rel="modulepreload" href="web/app/kura.js?v=k8">
@@ -27,7 +27,7 @@
 <link rel="modulepreload" href="web/app/ambience.js?v=1">
 <link rel="modulepreload" href="web/app/sounds.js?v=4">
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
-<link rel="preload" href="web/app/content.json?v=20261026a" as="fetch" crossorigin>
+<link rel="preload" href="web/app/content.json?v=20261026z" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -142,6 +142,7 @@ body[data-mode="boot"] #lstack{display:none}
   #lstack.closed{width:58px}
   .lsFoot{flex-direction:column;align-items:flex-start;padding-left:14px}
   body[data-mode="walk"] #toast,body[data-mode="fly"] #toast{left:66px;right:var(--g);transform:none;max-width:none}
+  body[data-mode="walk"] #toast,body[data-mode="fly"] #toast{left:100px;background:rgba(6,12,20,.78)}   /* 2026-10-26 層の一覧の字に重ねない */
 }
 #sightBox{position:fixed;z-index:8;left:50%;transform:translateX(-50%);top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:min(520px,calc(100% - 32px));max-height:calc(100% - 140px);overflow:auto}
 #sightBox .hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -383,7 +384,7 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 .lyBtn .nm b{text-shadow:0 0 1px #000,0 0 2px rgba(0,6,14,1),0 1px 3px rgba(0,6,14,.9),0 0 10px rgba(2,10,22,.6)}
 #lstack::before{background:linear-gradient(90deg,rgba(3,6,15,.6),rgba(3,6,15,.34) 60%,transparent)}
 .mapLabel.k-torii{background:linear-gradient(90deg,rgba(60,14,10,.6),rgba(3,6,15,.25) 80%,transparent)}
-/* 6 回目の採点（P2「小さな数・英字の符号・QUALIA DIVE が明るい所で薄い」）：数と符号は不透明に・一段明るく、縁を濃く */
+/* 6 回目の採点（P2「小さな数・英字の符号・題の下の英字が明るい所で薄い」）：数と符号は不透明に・一段明るく、縁を濃く */
 .lyBtn .ct{opacity:1;font-size:11.5px;color:color-mix(in srgb,var(--gc) 22%,#f7fbfd);text-shadow:0 0 1px #000,0 0 2px #000,0 1px 3px rgba(0,6,14,1),0 0 8px rgba(2,10,22,.8)}
 .lyBtn .ct::before{opacity:.8}
 .lyBtn .nm small{color:color-mix(in srgb,var(--gc) 45%,#d8e4ee);text-shadow:0 0 1px #000,0 0 2px #000,0 1px 3px rgba(0,6,14,1)}
@@ -515,13 +516,13 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualium 川越" data-en="Qualia Dive" data-icon="favicon/icon.svg" data-max="15000"></script>
+<script src="loader/loader.js" data-title="Qualium 川越" data-en="Qualium Kawagoe" data-icon="favicon/icon.svg" data-max="15000"></script>
 <canvas id="gl" aria-label="川越の蔵の町の 3D（地形は国土地理院、道と建物の平面は OpenStreetMap）" tabindex="0"></canvas>
 <div id="pinLabels" hidden></div>
 
 <header id="hud">
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand">Qualium 川越<small>QUALIA DIVE</small></div>
+  <div class="brand">Qualium 川越<small>QUALIUM KAWAGOE</small></div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -584,6 +585,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261026k3").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261026k7").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
