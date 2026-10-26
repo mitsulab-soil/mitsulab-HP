@@ -148,7 +148,10 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   float inset=tall>.5?0.:(1.-smoothstep(.70,.86,f.y))*0.+smoothstep(.70,.86,f.y)*.55+(1.-smoothstep(.18,.26,f.x))*.35; glass*=1.-inset*win*(1.-aa);
   diffuseColor.rgb=mix(diffuseColor.rgb, glass, win); wR=win;
   diffuseColor.rgb*=.62+.38*smoothstep(0.,7.,wv);
-  diffuseColor.rgb*=1.-.28*smoothstep(H-1.1,H-.9,wv)*(1.-tall);   // 屋上のふち（パラペット）の陰で、箱の上端を締める
+  diffuseColor.rgb*=1.-.28*smoothstep(H-1.1,H-.9,wv)*(1.-tall);
+  // 2026-10-26 3（採点「窓を貼った箱」）：窓の下の水切り（明るい細い線）と上の庇の陰、1 階の上の看板の帯（文字ではなく、色の面と細い線だけの模式）
+  if(tall<.5&&ground<.5){ float sill=step(.27,f.y)*step(f.y,.32)*step(.14,f.x)*step(f.x,.86); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.78,.77,.74),sill*.7*(1.-aa)); float lint=step(.86,f.y)*step(f.y,.93)*step(.16,f.x)*step(f.x,.84); diffuseColor.rgb*=1.-lint*.35*(1.-aa); }
+  if(tall<.5){ float sb=step(3.35,wv)*step(wv,4.15)*step(.08,fract(wu/8.4))*step(fract(wu/8.4),.92); float hc=wH(vec2(floor(wu/8.4),floor(H*7.))); vec3 sc=hc<.3?vec3(.48,.24,.2):hc<.55?vec3(.22,.28,.36):hc<.75?vec3(.78,.75,.68):vec3(.28,.33,.28);   /* 採点：彩度を落とし、模様をなくす */ diffuseColor.rgb=mix(diffuseColor.rgb,sc,sb*.92*(1.-aa*.5)); wR*=1.-sb; }   // 屋上のふち（パラペット）の陰で、箱の上端を締める
   diffuseColor.rgb*=.9+.2*wH(vec2(floor(H*3.1),floor(wu/37.)));   // 面ごとの汚れ・色の差   // 足もとの陰（地面との接するところを暗く）
   float band=tall<.5? (1.-step(.06,fract(wv/fl)))*.12 : 0.; diffuseColor.rgb*=1.-band;
   diffuseColor.rgb*=.82+.18*smoothstep(0.,6.,wv);`)

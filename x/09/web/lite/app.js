@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=22";
+import { makeAreas } from "./areas.js?v=24";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -989,8 +989,8 @@ function parkMacro(m, amt, lawn) {
 { vec2 p=vPw.xz; vec3 big=texture2D(map,p*.031+.17).rgb; diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*big/max(dot(big,vec3(.333)),.05)*.5,.45);
   float n=pN(p*.045)*.6+pN(p*.13)*.4, n2=pN(p*.021+7.3);
   diffuseColor.rgb*=mix(1.,.72+n*.56,${amt.toFixed(2)});
-  vec3 lt=texture2D(uLit,p*.21).rgb; float lf=smoothstep(.55,.85,n2); diffuseColor.rgb=mix(diffuseColor.rgb,lt*vec3(.8,.72,.6),lf*${lawn ? ".3" : ".55"}*${amt.toFixed(2)});
-  ${soil ? "vec3 so=texture2D(uSoil,p*.18).rgb*vec3(.86,.8,.7); float worn=smoothstep(.7,.88,pN(p*.07+3.1)); diffuseColor.rgb=mix(diffuseColor.rgb,so,worn*.3); float dd=length(vPw-cameraPosition); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0)*vec3(1.02,1.,.9),smoothstep(40.,160.,dd)*.35);" : ""} }`);
+  vec3 lt=texture2D(uLit,p*.21).rgb; float lf=smoothstep(.55,.85,n2); diffuseColor.rgb=mix(diffuseColor.rgb,lt*vec3(.8,.72,.6),lf*${lawn ? ".12" : ".55"}*${amt.toFixed(2)});
+  ${soil ? "vec3 so=texture2D(uSoil,p*.18).rgb*vec3(.86,.8,.7); float worn=smoothstep(.7,.88,pN(p*.07+3.1)); diffuseColor.rgb=mix(diffuseColor.rgb,so,worn*.12); float dd=length(vPw-cameraPosition); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0)*vec3(1.02,1.,.9),smoothstep(40.,160.,dd)*.35);" : ""} }`);
   };
   m.customProgramCacheKey = () => "parkMacro" + (lawn ? "L" : "P");
 }
@@ -1012,10 +1012,10 @@ function loadPark() {
     { const rmM = new THREE.Mesh(rg, rm); rmM.renderOrder = -1; G.add(rmM); }
     // DEM の外の園の地面（芝の模式）。DEM の中は今の地形のまま
     const [gx0, gz0, CS, GX, GZ, GM] = J.g, gp = [], gu = [], gi = [];   // 公園の輪郭の中の 10 m 区画だけ（本殿より北）
-    for (let j = 0; j <= GZ; j++) for (let i = 0; i <= GX; i++) { const x = gx0 + i * CS, z = gz0 + j * CS; gp.push(x, groundY(x, z) + (z > -1350 ? .06 : -.02), z); gu.push(x / 9, z / 9); }
+    for (let j = 0; j <= GZ; j++) for (let i = 0; i <= GX; i++) { const x = gx0 + i * CS, z = gz0 + j * CS; gp.push(x, groundY(x, z) + (z > -1350 ? .06 : -.02), z); gu.push(x / 2.4, z / 2.4); }
     for (let j = 0; j < GZ; j++) for (let i = 0; i < GX; i++) { if (GM[j * GX + i] !== "1") continue; const a = j * (GX + 1) + i; gi.push(a, a + GX + 1, a + 1, a + 1, a + GX + 1, a + GX + 2); }
     const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.setIndex(gi); gg.computeVertexNormals();
-    const lm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), normalMap: tex(BASE + "tex/Ground047_n5.webp", false), normalScale: new THREE.Vector2(.8, .8), color: 0x92ba6c, roughness: 1, metalness: 0 });   // 2026-10-26 3：泥と草のまだら → 芝を主に（踏まれた土と落ち葉は控えめに）
+    const lm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Grass004_c5.webp"), normalMap: tex(BASE + "tex/Grass004_n5.webp", false), normalScale: new THREE.Vector2(1, 1), color: 0xd6e2c2, roughness: 1, metalness: 0 });   // 2026-10-26 3：泥と草のまだら → 芝を主に（踏まれた土と落ち葉は控えめに）
     parkMacro(lm, 1, true); { const lmM = new THREE.Mesh(gg, lm); lmM.renderOrder = -1; G.add(lmM); }
     // 2026-10-26 3（採点「公園の灰色の板」＝地形の空中写真の池と広場が、芝の上に出ていた）：芝・園路・池を先に描いて印を付け、印のある画素には地形を描かない（参道の道と同じ）
     for (const m of [lm, rm]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
@@ -1551,13 +1551,27 @@ function stepAoi(dt) {
   // 2026-10-26 3（採点 P1「腕をまっすぐ下げた硬い立ち姿」）：共通部品は書き換えず、待つあいだは手を前で組む時間を長く、下ろす時間を短く（共通部品の状態を、このアプリの中でだけ寄せる）
   { const S2 = AOI.m.s; if (S2 && S2.claspHold != null) { if (!S2.claspOn && S2.claspHold > 2.5) S2.claspHold = 2.5; if (S2.claspOn && !S2.claspExt) { S2.claspHold += 6 + 4 * Math.random(); S2.claspExt = true; } if (!S2.claspOn) S2.claspExt = false; } }
   AOI.m.update(dt, camera, { vrmUpdate: false });
-  aoiFingers(dt);
+  aoiFingers(dt); aoiElbows(); aoiShadow();
   AOI.m.vrm.update(dt); AOI.m.afterVrmUpdate(dt);
 }
 const _fq = new THREE.Quaternion(), _fe = new THREE.Euler();
+// 2026-10-26 3（採点「腕を下ろしたとき手が体の横で硬い」）：腕を下ろしているあいだだけ、肘を少し曲げる（共通部品が一こまおきに休むこまは二重に足さない）
+function aoiElbows() {
+  const M = AOI.m, S2 = M.s, w = Math.max(0, 1 - (S2?.clasp?.v || 0) * 2.5) * (M.speaking ? .5 : 1); if (w < .02) return;
+  for (const sd of ["left", "right"]) { const b = M.bones?.[sd + "LowerArm"], h = M.bones?.[sd + "Hand"]; if (!b) continue; if (b.userData.qa && b.quaternion.equals(b.userData.qa)) continue;
+    const sg = sd === "left" ? 1 : -1; b.quaternion.multiply(_fq.setFromEuler(_fe.set(0, sg * -.22 * w, 0))); (b.userData.qa ||= new THREE.Quaternion()).copy(b.quaternion);
+    if (h && !(h.userData.qa && h.quaternion.equals(h.userData.qa))) { h.quaternion.multiply(_fq.setFromEuler(_fe.set(0, 0, sg * .1 * w))); (h.userData.qa ||= new THREE.Quaternion()).copy(h.quaternion); } }
+}
+// 足もとの接地の陰（スマホでも）：やわらかな丸い陰を碧の足もとに
+let AOISH = null;
+function aoiShadow() {
+  if (!AOISH) { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.55)"); gr.addColorStop(.55, "rgba(0,0,0,.22)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    AOISH = new THREE.Mesh(new THREE.PlaneGeometry(1.1, .8).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false, toneMapped: false })); AOISH.renderOrder = 1; world.add(AOISH); }
+  const p = AOI.root.position; AOISH.visible = AOI.root.visible; AOISH.position.set(p.x, groundY(p.x, p.z) + .03, p.z); AOISH.rotation.y = AOI.m.yaw || 0;
+}
 function aoiFingers(dt) {
   const M = AOI.m; if (!M.fingers || RM) return; const t = (AOI.ft = (AOI.ft || 0) + dt);
-  const SP = { Index: .07, Middle: .015, Ring: -.03, Little: -.08 }, CU = { Index: .03, Middle: .06, Ring: .09, Little: .12 };
+  const SP = { Index: .07, Middle: .015, Ring: -.03, Little: -.08 }, CU = { Index: .07, Middle: .11, Ring: .15, Little: .19 };   // 指を軽く丸める
   for (const [b, sd, f, j] of M.fingers) { if (f === "Thumb" || j === "Metacarpal") continue;
     if (b.userData.qa && b.quaternion.equals(b.userData.qa)) continue;   // 共通部品が一こまおきに指を休ませるこま（同じ値のまま）は、二重に足さない
     const sg = sd === "left" ? 1 : -1, ph = (sd === "left" ? 0 : 2.3) + f.length * 1.1, w = Math.sin(t * .31 + ph) * .5 + Math.sin(t * .13 + ph * 1.7) * .5;

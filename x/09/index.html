@@ -18,7 +18,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261023k" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261026zn">
+<link rel="modulepreload" href="web/lite/app.js?v=20261026zo">
 <link rel="modulepreload" href="web/lite/layers.js?v=5">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
@@ -569,6 +569,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261026zn").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261026zo").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
