@@ -54,7 +54,7 @@ function bubbleMat(hex) {
     fragmentShader: `uniform vec3 c; uniform float k; uniform vec4 oc[3]; uniform float ok; uniform float uT; varying vec3 n; varying vec3 v; varying vec3 w;
       void main(){ float nv = abs(dot(n, v)); float rim = pow(1. - nv, 11.) * 1.3 + pow(1. - nv, 2.4) * .04; float shimmer = .9 + .1 * sin(w.y * 9. + uT * .8);
         float lens = 0.; for (int i = 0; i < 3; i++){ float d = oc[i].w - distance(w, oc[i].xyz); lens = max(lens, smoothstep(0., .25, d)); }
-        vec3 col = c * rim * shimmer * k + vec3(1., .86, .52) * lens * ok * (.75 + pow(1. - nv, 2.) * .6);
+        vec3 col = c * rim * shimmer * k + vec3(1., .82, .45) * lens * ok * (1.1 + pow(1. - nv, 2.) * 1.2);
         gl_FragColor = vec4(col, 1.); }` });
 }
 function glowTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.5)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); }
@@ -121,7 +121,14 @@ async function boot(root, SC) {
   const P_BEE = new THREE.Vector3(1.15, 2.95, .55);
   { const [p, r] = dots(place(C.makeBee(), P_BEE, .5, -2.1), 1300, rnd); S.add(new THREE.Points(geo(p, r), pointMat(Uc, mobile ? 1.3 : 1.4))); }
   const P_TICK = new THREE.Vector3(1.55, .2, 1.45);
-  if (SC === 1) { { const Ut = regionUniforms(0xe9e2d6, .9); Ut.uTickHide.value = 0; const [p, r] = dots(place(M3.makeTick(), P_TICK.clone().add(new THREE.Vector3(0, .12, 0)), .22, .5, -.9), 420, rnd); S.add(new THREE.Points(geo(p, r), pointMat(Ut, mobile ? 1.8 : 2))); mats.push(Ut); Ut.__noRegion = 1; }  }
+  if (SC === 1) { { const Ut = regionUniforms(0xd6a888, .4); Ut.uTickHide.value = 0; // 模式のマダニ（線）：卵形の胴・前の口・左右 4 対の脚。カメラへ少し起こして形が読めるように
+      const L = [], P = [], Rr = [], k = .26, ell = (a, b, cy, n) => { for (let i = 0; i < n; i++) { const q0 = i / n * 6.283, q1 = (i + 1) / n * 6.283; L.push(Math.cos(q0) * a, Math.sin(q0) * b + cy, 0, Math.cos(q1) * a, Math.sin(q1) * b + cy, 0); } };
+      ell(.5, .62, -.1, 48); ell(.3, .26, .3, 32); ell(.11, .12, .64, 16);
+      for (const sx of [-1, 1]) [[.3, .55], [.15, .3], [-.05, -.05], [-.25, -.4]].forEach(([y, d], i) => { const x0 = sx * .42, kx = sx * (.82 + i * .02), ky = y + .22 - i * .02, ex = sx * (1.0 - i * .03), ey = y + d - .25 * (i > 1) ; L.push(x0, y, 0, kx, ky, 0, kx, ky, 0, ex, ey, 0); });
+      for (let i = 0; i < 260; i++) { const t = rnd() * 6.283, rr = Math.sqrt(rnd()); P.push(Math.cos(t) * rr * .48, Math.sin(t) * rr * .6 - .1, 0); Rr.push(rnd()); }
+      const g = new THREE.Group(); const Uw = regionUniforms(0xf3dcc2, .85); Uw.uTickHide.value = 0; Uw.__noRegion = 1; mats.push(Uw);
+      g.add(new THREE.LineSegments(geo(L), lineMat(Uw))); g.add(new THREE.Points(geo(P, Rr), pointMat(Ut, mobile ? 1.3 : 1.5)));
+      g.scale.setScalar(k); g.position.copy(P_TICK).add(new THREE.Vector3(0, .3, 0)); g.rotation.set(-.35, .55, 0); S.add(g); mats.push(Ut); Ut.__noRegion = 1; }  }
 
   Uc.uTickHide.value = 0;
   // マダニに届くもの：通りかかる人の熱の揺らぎ（橙の粒・模式）
@@ -133,8 +140,8 @@ async function boot(root, SC) {
   const bubs = [];
   const bubble = (c, r, hex, mode) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 72, 48), bubbleMat(hex)); m.position.copy(c); S.add(m); const b = { m, c, r, mode, s: 1 }; bubs.push(b); return b; };
   const bH = SC === 2 ? bubble(new THREE.Vector3(-1.95, 1.15, 1.25), 1.15, 0xf4c2b4, 1) : bubble(new THREE.Vector3(-.75, 1.45, .55), 1.9, 0xf4c2b4, 1);
-  const bB = bubble(new THREE.Vector3(1.0, 3.0, .3), 1.05, 0xc4b6ff, 2); if (SC === 2) bB.m.material.uniforms.k.value = .45;
-  let bM = null; if (SC === 1) bubble(new THREE.Vector3(1.5, .45, 1.4), .62, 0xffb27a, 3); else { bM = bubble(new THREE.Vector3(0, 1.4, 0), 1.25, 0xf2d8a0, 4); bM.m.material.uniforms.k.value = 2; }
+  const bB = bubble(SC === 2 ? new THREE.Vector3(.55, 2.55, .45) : new THREE.Vector3(1.0, 3.0, .3), 1.05, 0xc4b6ff, 2); if (SC === 2) bB.m.material.uniforms.k.value = .45;
+  let bM = null; if (SC === 1) bubble(new THREE.Vector3(1.5, .48, 1.4), .74, 0xffb27a, 3); else { bM = bubble(new THREE.Vector3(0, 1.4, 0), 1.25, 0xf2d8a0, 4); bM.m.material.uniforms.k.value = 1.1; }
   // 外側の縁（くっきりした輪郭）：カメラに向いた細い円
   const rims = bubs.map(b => { const pts = []; for (let i = 0; i <= 160; i++) { const q = i / 160 * 6.283; pts.push(new THREE.Vector3(Math.cos(q), Math.sin(q), 0)); } const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: b.m.material.uniforms.c.value, transparent: true, opacity: .28, blending: THREE.AdditiveBlending, depthWrite: false })); S.add(l); return l; });
 
@@ -150,7 +157,9 @@ async function boot(root, SC) {
       const v = g.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(g.scene); V.VRMUtils.rotateVRM0(v);
       const N = n => v.humanoid.getNormalizedBoneNode(n), set = (n, x, y, z) => { const o = N(n); if (o) o.rotation.set(x, y, z); };
       set('leftUpperArm', -.12, 0, -1.28); set('rightUpperArm', -.12, 0, 1.28); set('leftLowerArm', 0, -.28, 0); set('rightLowerArm', 0, .28, 0);
-      v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
+      const holo = m0 => { const m = new THREE.MeshStandardMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide });
+        m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', 'float fr = 1. - abs(dot(normalize(normal), normalize(vViewPosition))); gl_FragColor = vec4(vec3(.5, .95, 1.) * (pow(fr, 2.6) * 1.5 + .05) + vec3(.9, 1., 1.) * pow(fr, 9.) * .8, 1.);'); }; return m; };
+      v.scene.traverse(o => { if (o.isMesh) { o.frustumCulled = false; o.material = Array.isArray(o.material) ? o.material.map(holo) : holo(o.material); } });
       v.scene.scale.setScalar(.95); v.scene.position.copy(AO); v.scene.rotation.y = .25; S.add(v.scene); aoi = v; v.update(0);
       const hl = new THREE.HemisphereLight(0xcfe9f0, 0x0a1218, .7), kl = new THREE.DirectionalLight(0xe6f6ff, 1.4); kl.position.set(-3, 5, 6); const rl = new THREE.DirectionalLight(0x9ff4ff, 1.4); rl.position.set(2, 3, -6); S.add(hl, kl, rl);
       try { const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61'); mot = new AoiMotion(v, { root: v.scene, reducedMotion: reduce, wind: 0, faceViewer: false, startCalm: 0, posture: 'upright', uprightWeight: .9 }); } catch (e) { console.warn('aoi motion', e); }
@@ -158,6 +167,18 @@ async function boot(root, SC) {
     } catch (e) { console.warn('aoi', e); } })();
   }
 
+  // 2.0：重なり（Qualium）を灯す金の粒と、碧から三つの泡へ伸びる光の糸
+  let qPts = null, links = []; if (SC === 2) {
+    const N = mobile ? 900 : 1600, a = new Float32Array(N * 3), r = []; for (let i = 0; i < N; i++) r.push(rnd());
+    qPts = new THREE.Points(geo(Array.from(a), r), new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uPx: { value: 1 }, uE: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: 'uniform float uT; uniform float uPx; attribute float aR; varying float vA; void main(){ vA = .55 + .45 * sin(uT * 1.6 + aR * 30.); vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = (2.2 + aR * 3.5) * uPx * (10. / -mv.z); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'uniform float uE; varying float vA; void main(){ float r = length(gl_PointCoord - .5); if (r > .5) discard; float f = smoothstep(.5, 0., r); gl_FragColor = vec4(vec3(1., .82, .45) * f * f * vA * uE, 1.); }' }));
+    qPts.frustumCulled = false; qPts.userData.seed = Array.from({ length: N }, () => [rnd(), rnd(), rnd()]); S.add(qPts); mats.push(qPts.material.uniforms);
+    const A0 = AO.clone().add(new THREE.Vector3(0, 1.2, 0));
+    [[bH, 0xf4c2b4], [bB, 0xc4b6ff], [bM, 0xf2d8a0]].forEach(([b, c]) => { const crv = new THREE.QuadraticBezierCurve3(A0, A0.clone().lerp(b.c, .5).add(new THREE.Vector3(0, .7, 0)), b.c); const pts = crv.getPoints(60);
+      const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false })); S.add(ln);
+      const fp = new THREE.Points(geo(new Array(3 * 10).fill(0)), new THREE.PointsMaterial({ map: GL, color: c, size: .26, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); fp.frustumCulled = false; S.add(fp); links.push({ crv, fp, b }); });
+  }
   // 札（3 つまで）：PC は左右の余白に引き出し線、スマホは図の下に番号の凡例
   const AT = SC === 1 ? { hito: new THREE.Vector3(-1.6, 3.2, .55), bee: P_BEE.clone().add(new THREE.Vector3(.2, 1.0, 0)), tick: P_TICK.clone().add(new THREE.Vector3(0, .75, 0)) }
     : { aoi: AO.clone().add(new THREE.Vector3(0, 1.75, 0)), wide: new THREE.Vector3(-3.3, 2.6, 1.25), qualium: new THREE.Vector3(.55, 2.75, .2) };
@@ -187,7 +208,11 @@ async function boot(root, SC) {
       ghost.scale.setScalar(bH.r); ghost.position.copy(bH.c); ghost.quaternion.copy(cam.quaternion); ghost.material.opacity = .75 * e;
       const lt = [bB, bM]; bH.m.material.uniforms.ok.value = e; lt.forEach((b, i) => bH.m.material.uniforms.oc.value[i].set(b.c.x, b.c.y, b.c.z, b.r));
       { const d = bM.c.clone().sub(bH.c), L = d.length(), rh = bH.r * bH.s; d.normalize(); AT.qualium.copy(bH.c).addScaledVector(d, Math.min(rh, L) - Math.max(0, rh + bM.r - L) / 2); }
-      lt.forEach(b => { b.m.material.uniforms.ok.value = e * (b === bM ? .25 : .5); b.m.material.uniforms.oc.value[0].set(bH.c.x, bH.c.y, bH.c.z, bH.r * bH.s); });
+      if (qPts) { const pa = qPts.geometry.attributes.position, rh = bH.r * bH.s, sd = qPts.userData.seed; let k = 0;
+        for (let i = 0; i < sd.length; i++) { const [x, y, z] = sd[i], Bq = i % 3 ? bM : bB, th = x * 6.283, ph = Math.acos(2 * y - 1), rr = Math.cbrt(z) * Bq.r; _v.set(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiplyScalar(rr).add(Bq.c);
+          if (_v.distanceTo(bH.c) < rh) pa.setXYZ(i, _v.x, _v.y, _v.z); else pa.setXYZ(i, 0, -99, 0); } pa.needsUpdate = true; qPts.material.uniforms.uE.value = e; }
+      links.forEach(({ crv, fp }, j) => { const pa = fp.geometry.attributes.position; for (let i = 0; i < 10; i++) { const u = reduce ? i / 10 : ((t * .45 + i / 10 + j * .13) % 1); crv.getPoint(u, _v); pa.setXYZ(i, _v.x, _v.y, _v.z); } pa.needsUpdate = true; });
+      lt.forEach(b => { b.m.material.uniforms.ok.value = e * (b === bM ? .5 : .5); b.m.material.uniforms.oc.value[0].set(bH.c.x, bH.c.y, bH.c.z, bH.r * bH.s); });
     }
     bubs.forEach((b, i) => { b.m.scale.setScalar(b.s); b.m.material.uniforms.uT.value = t; rims[i].position.copy(b.c); rims[i].scale.setScalar(b.r * b.s); rims[i].quaternion.copy(cam.quaternion); });
     setRegions();
