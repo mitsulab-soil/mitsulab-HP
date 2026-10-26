@@ -18,7 +18,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261023k" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261026zz5">
+<link rel="modulepreload" href="web/lite/app.js?v=20261026zz9">
 <link rel="modulepreload" href="web/lite/layers.js?v=6">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
@@ -159,6 +159,7 @@ body[data-mode="boot"] #lstack{display:none}
 #sndTag[data-k="poem"]{border-color:#e6d3ff}#sndTag[data-k="poem"]::before{content:"QUALIA/SOUND　POEM";color:#e6d3ff}
 #sndTag[data-k="re"]::before{content:"QUALIA/SOUND　RE-CREATION"}#sndTag[data-k="rec"]::before{content:"QUALIA/SOUND　RECORDING"}
 body[data-mode="sight"] #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 190px)}
+@media (min-width:641px){body[data-mode="walk"] #toast{top:auto;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 172px)}}   /* 2026-10-26 16：PC の操作説明は字幕の上へ（上の札をふさがない） */
 @media (max-width:640px){body[data-mode="walk"]:has(#caption:not([hidden])) #sndTag{top:auto;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 128px);left:var(--g);right:auto;max-width:calc(100% - 210px);text-align:left;border-right:0;border-left:2px solid #8fb6dc}}   /* 2026-10-26 15：スマホで字幕と音の札が重なっていた → 字幕があるときは左下へ */
 /* 3D 地図の名前 */
 #mapLabels{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}
@@ -378,7 +379,7 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 .lyBtn .nm b{text-shadow:0 0 1px #000,0 0 2px rgba(0,6,14,1),0 1px 3px rgba(0,6,14,.9),0 0 10px rgba(2,10,22,.6)}
 #lstack::before{background:linear-gradient(90deg,rgba(3,6,15,.6),rgba(3,6,15,.34) 60%,transparent)}
 .mapLabel.k-torii{background:linear-gradient(90deg,rgba(60,14,10,.6),rgba(3,6,15,.25) 80%,transparent)}
-/* 6 回目の採点（P2「小さな数・英字の符号・QUALIA DIVE が明るい所で薄い」）：数と符号は不透明に・一段明るく、縁を濃く */
+/* 6 回目の採点（P2「小さな数・英字の符号・英字が明るい所で薄い」）：数と符号は不透明に・一段明るく、縁を濃く */
 .lyBtn .ct{opacity:1;font-size:11.5px;color:color-mix(in srgb,var(--gc) 22%,#f7fbfd);text-shadow:0 0 1px #000,0 0 2px #000,0 1px 3px rgba(0,6,14,1),0 0 8px rgba(2,10,22,.8)}
 .lyBtn .ct::before{opacity:.8}
 .lyBtn .nm small{color:color-mix(in srgb,var(--gc) 45%,#d8e4ee);text-shadow:0 0 1px #000,0 0 2px #000,0 1px 3px rgba(0,6,14,1)}
@@ -501,14 +502,14 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualia Dive" data-icon="favicon/icon.svg" data-max="15000"></script>
+<script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>
 <canvas id="gl" aria-label="氷川参道の 3D（実寸。地形は国土地理院、建物は PLATEAU）" tabindex="0"></canvas>
 <div id="mapLabels" hidden></div>
 <div id="pinLabels" hidden></div>
 
 <header id="hud">
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand">Qualium 大宮<small>QUALIA DIVE</small></div>
+  <div class="brand">Qualium 大宮</div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -571,6 +572,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261026zz5").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261026zz9").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

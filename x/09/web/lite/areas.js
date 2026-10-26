@@ -171,7 +171,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     float tall=step(40.,H); float fl=tall>.5?3.8:3.4, bay=tall>.5?3.0:2.6;
     float mist=exp(-wv/6.)*.20+.035;   /* 足もとに溜まる霧 */
     float fy=wv/fl; float ld=abs(fract(fy+.5)-.5); float line=(1.-smoothstep(0.,fwidth(fy)*1.1,ld))*step(.5,fy)*step(wv,H-.3);
-    vec2 c=vec2(wu/bay+.5, wv/fl); vec2 f=fract(c)-.5; f.x*=bay/fl; float dt=1.-smoothstep(.035,.06,length(f)); dt*=step(1.,wv)*step(wv,H-.6);
+    vec2 c=vec2(wu/bay+.5, wv/fl); vec2 f=fract(c)-.5; f.x*=bay/fl; float dt=1.-smoothstep(.035,.06,length(f)); dt*=step(1.,wv)*step(wv,H-.6); dt=0.;   /* 2026-10-26 16：窓の位置の点は、近くでは白いぼけた丸（汚れ）に見えた → 点はやめ、霧と線だけに */    /* 2026-10-26 16：遠くで点がにじんで白い丸に見えた → 画面で細かくなる点は描かない */
     float near=1.-smoothstep(40.,260.,dist);
     float top=1.-smoothstep(.0,.35,abs(wv-H));   /* 上端をわずかに締める */
     diffuseColor.rgb=mix(vec3(.46,.55,.61), vec3(.90,.95,.97), dt*.8+line*.4+top*.3);
@@ -247,27 +247,28 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     return new THREE.Mesh(g, mat);
   }
   const lmEdge = new THREE.LineBasicMaterial({ color: 0xe2eef3, transparent: true, opacity: .5, depthWrite: false }); lmEdge.userData.land = true;
+  const colGhost = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, opacity: .1, depthWrite: false, fog: true }); colGhost.userData.land = true;   // 柱はごく淡く
   function gEx(P, y0, h, shrink = 0) { const m = extrude(P, y0, h, ghostSolid, shrink); m.renderOrder = 2; const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 25), lmEdge); m.add(e); return m; }   // 2026-10-26 15：目印は霧の面に、はっきりした輪郭の線
   function buildLandmarks(Z, J, G) {
     const all = []; for (const k in J.b) for (const b of J.b[k]) { const L = lmAt(b); if (L) all.push([L, b]); }
     for (const [L, b] of all) { const P = polyOf(b); let y = 1e9; for (const p of P) y = Math.min(y, groundY(p.x, p.y));
       if (L.id === "arena") { ghostSolid.userData.b.value = y; G.add(gEx(P, y, 38), gEx(P, y + 38, 26, .42)); const ring = gEx(P, y + 37.4, .4, -.015); G.add(ring); }
       else if (L.id === "keyaki") { const top = y + 7;
-        const slab = extrude(P, top - 1.1, 1.1, slabMat); const deck = extrude(P, top, .02, deckMat); G.add(slab, deck);
+        ghostSolid.userData.b.value = y; const slab = gEx(P, top - 1.1, 1.1); const deck = extrude(P, top, .02, deckMat); G.add(slab, deck);   /* 2026-10-26 16：けやきひろばの土台も霧と線に（床だけ歩ける面） */
         let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
         const inP = (x, z) => inside(P.flatMap(p => [p.x, p.y]), x, z);
         const col = [], tr = []; for (let x = x0 + 6; x < x1 - 4; x += 12) for (let z = z0 + 6; z < z1 - 4; z += 12) if (inP(x, z)) col.push([x, z]);
         for (let x = x0 + 5; x < x1 - 3; x += 8) for (let z = z0 + 5; z < z1 - 3; z += 8) if (inP(x, z)) tr.push([x + (Math.sin(x * 3.1 + z) * 1.2), z + Math.cos(z * 2.3 + x) * 1.2]);
-        const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, slabMat, col.length); const M4 = new THREE.Matrix4();
+        const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, colGhost, col.length); cm.renderOrder = 2; const M4 = new THREE.Matrix4();
         col.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
         G.userData.lmTrees = tr.map(([x, z]) => [x, top, z]); }   // 木は app 側で参道と同じケヤキを植える（C.lmTrees）
       else if (L.id === "eki1" || L.id === "eki2") { const h = b[0]; G.add(gEx(P, y, h, .02)); }
     }
     // 西口のデッキ（模式）：駅から西へ、2 階の高さで歩く人を渡す床と柱と手すり
     if (Z.id === "nishi") { const y = groundY(-745, 110) + 6.5, P = [[-780, 80], [-712, 80], [-712, 140], [-780, 140]].map(([x, z]) => new THREE.Vector2(x, z));
-      G.add(extrude(P, y - .9, .9, slabMat), extrude(P, y, .02, deckMat));
+      G.add(gEx(P, y - .9, .9), extrude(P, y, .02, deckMat));
       const cg = new THREE.CylinderGeometry(.5, .5, 6.5, 8); cg.translate(0, 3.25, 0); const pts = []; for (let x = -774; x <= -718; x += 14) for (let z = 86; z <= 134; z += 16) pts.push([x, z]);
-      const cm = new THREE.InstancedMesh(cg, slabMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
+      const cm = new THREE.InstancedMesh(cg, colGhost, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
       const rl = []; for (let i = 0; i < 4; i++) { const a = P[i], c = P[(i + 1) % 4]; rl.push(a.x, y + 1.1, a.y, c.x, y + 1.1, c.y); } const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rl, 3)); G.add(new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xd8dde0 }))); }
     // 2026-10-26 3：広場の手がかり（車止め・植え込みの箱・ベンチ。模式）
     const props = (cx, cz, r, n, kind) => { const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3(1, 1, 1);
@@ -311,7 +312,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   function dropChunk(id) {
     const C = A.chunks[id]; if (!C || !C.g) { delete A.chunks[id]; return; }
     onUnchunk?.(C);
-    const keep = new Set([lmEdge, ghostWall, ghostRoof, ghostSolid, roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
+    const keep = new Set([colGhost, lmEdge, ghostWall, ghostRoof, ghostSolid, roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
   }
   function ensure(Z) {
     if (!Z.chunk) return Promise.resolve(null);

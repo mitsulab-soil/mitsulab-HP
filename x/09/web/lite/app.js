@@ -7,10 +7,10 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=6";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q7";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=31";
+import { makeAreas } from "./areas.js?v=32";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -1326,8 +1326,12 @@ function stepLayer(dt) {
   stepHere(cp, t, sky || flyish || M === "boot");
   // 札どうし・札と結晶を重ねない（近い札から置き、重なる札は上へ逃がすか、うすく消す）
   const lbs = []; for (const L of LAYER.objs) if (L.label && L.label.visible && L.root.visible) lbs.push({ sp: L.label, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: PANEL.cur === L ? 1 : 0 });
+  // 2026-10-26 16：町（東口・西口・新都心・公園）の典拠のある地点にも、近くに来たら名札（参道の札と同じ形・大きさ）
+  if (!sky && !flyish) for (const L of AREA.marks || []) { const dA = Math.hypot(L.o.x - cp.x, L.o.z - cp.z), nearA = L.mark.visible && dA < LABEL_R;
+    if (nearA && !L.label) { const k5 = top5(L.o.layer); L.label = makeLabel(layerNo(L.o.layer), GL[k5]?.name || ("Qualia/" + k5), L.o.title, COLOR5[k5] || "#e8eef2"); L.label.material.depthTest = false; L.label.renderOrder = 9; L.label.position.set(.9, .4, 0); L.label.userData.by = .4; L.glyph.add(L.label); }
+    if (L.label) { L.label.visible = nearA; if (nearA) { L.label.material.opacity = Math.min(1, (LABEL_R - dA) / 6); const fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 66 : 84) * Math.max(1, dA) / fpx, k = wh / .4; L.label.scale.set(1.6 * k, .4 * k, 1); lbs.push({ sp: L.label, L, d: dA, pri: 0 }); } } }
   { lbs.sort((p, q) => q.pri - p.pri || p.d - q.d); const cap = MOBILE ? 3 : 4; for (const e of lbs.splice(cap)) e.sp.visible = false; }   // 2026-10-26 15：大きな札は近い順に PC 4・スマホ 3 まで
-  if (lbs.length) { const av = (LAYER.qm?.rects || []).slice(); for (const id of ["qHere", "lstack", "caption", "qDir", "hud", "toast", "sndTag"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; { const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity < .05) continue; } const r = e.getBoundingClientRect(); if (r.width && r.height) av.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); } placeLabels(THREE, camera, lbs, av, dt); }   // 2026-10-26 15：札を大きくしたので、画面の板（重なりの数・層の一覧・字幕）にもかけない
+  if (lbs.length) { const av = (LAYER.qm?.rects || []).slice(); for (const id of ["qHere", "lstack", "caption", "qDir", "hud", "sndTag"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; { const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity < .05) continue; } const r = e.getBoundingClientRect(); if (r.width && r.height) av.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); } placeLabels(THREE, camera, lbs, av, dt); }   // 2026-10-26 15：札を大きくしたので、画面の板（重なりの数・層の一覧・字幕）にもかけない
 }
 function pickObj(x, y) {
   let best = null, bd = (MOBILE ? 40 : 30) ** 2;
@@ -1349,20 +1353,20 @@ function stepHere(cp, t, off) {
   if (!walk || !LAYER.worn.length) { QH.el.hidden = true; QH.dir.hidden = true; return; }
   if (t - QH.t > .5) {
     QH.t = t; const cnt = {}; let n = 0, best = null, bd = 1e9; const v = new THREE.Vector3();
-    for (const L of LAYER.objs) { if (!L.want) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
+    for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);   // 2026-10-26 16：町の典拠のある地点も数え、方角を出す
       if (d < 30) { const k = top5(L.o.layer); cnt[k] = (cnt[k] || 0) + 1; n++; }
-      if (d > 4 && d < 70 && d < bd) { v.set(L.o.x, L.o.y + L.o.h, L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
+      if (d > 4 && d < 400 && d < bd) { v.set(L.o.x, L.o.y + (L.o.h ?? 2.1), L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
     const ks = ALL.filter(l => cnt[l.id]).reverse();
-    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">この 30 m に重なる Qualia</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : `<span class="t">この近くの Qualia は、少し先にあります</span>`;
-    QH.el.hidden = false; QH.best = best;
+    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">この 30 m に重なる Qualia</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : (best ? `<b>${Math.round(bd)} m</b><span class="t">先に、いちばん近い Qualia</span>` : "");
+    QH.el.hidden = !n && !best; QH.best = best;
   }
   const L = QH.best;
-  if (!L || !L.want || Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 8) { QH.dir.hidden = true; return; }
-  const v = new THREE.Vector3(L.o.x, L.o.y + L.o.h, L.o.z).applyMatrix4(camera.matrixWorldInverse);
+  if (!L || (L.mark ? !L.mark.visible : !L.want) || Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 8) { QH.dir.hidden = true; return; }
+  const v = new THREE.Vector3(L.o.x, L.o.y + (L.o.h ?? 2.1), L.o.z).applyMatrix4(camera.matrixWorldInverse);
   if (v.z < 0 && Math.abs(v.x / -v.z) < 1 && Math.abs(v.y / -v.z) < .8) { QH.dir.hidden = true; return; }
   const a = Math.atan2(v.x, -v.z), W = innerWidth, H = innerHeight, x = Math.max(MOBILE ? 30 : 270, Math.min(W - 30, W / 2 + Math.sin(a) * (W / 2 - 40))), y = Math.max(MOBILE ? 340 : 140, Math.min(H - (MOBILE ? 300 : 150), H * .55 - Math.cos(a) * (H * .55 - 150)));   // 前は上・うしろは下の、画面のふち
   QH.dir.hidden = false; QH.dir.style.transform = `translate(${x - 18}px,${y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
-  QH.dir.style.setProperty("--c", GL[L.o.layer].color); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
+  QH.dir.style.setProperty("--c", (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#e8eef2"); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
 }
 
 /* ---------- 開いた中身 ---------- */
@@ -1502,7 +1506,7 @@ function loadAoi() {
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; });
     // 2026-10-26 3（採点「服がのっぺりした単色で陰影がない」）：衣の陰をやわらかく少し深く（顔・目・髪はそのまま）
-    v.scene.traverse(o => { for (const m of [].concat(o.material || [])) { if (!m?.isMToonMaterial || /face|eye|hair|brow|mouth|teeth/i.test(m.name + o.name)) continue; if (m.shadeColorFactor) m.shadeColorFactor.lerp(new THREE.Color(0x6f7c8c), .35); if ("shadingToonyFactor" in m) m.shadingToonyFactor = Math.min(m.shadingToonyFactor, .55); if ("shadingShiftFactor" in m) m.shadingShiftFactor = Math.max(m.shadingShiftFactor - .08, -.5); } });
+    v.scene.traverse(o => { for (const m of [].concat(o.material || [])) { if (!m?.isMToonMaterial || /face|eye|hair|brow|mouth|teeth/i.test(m.name + o.name)) continue; if (m.shadeColorFactor) m.shadeColorFactor.lerp(new THREE.Color(0x6f7c8c), .35); if ("shadingToonyFactor" in m) m.shadingToonyFactor = Math.min(m.shadingToonyFactor, .42); if ("shadingShiftFactor" in m) m.shadingShiftFactor = Math.max(m.shadingShiftFactor - .14, -.5); if (m.color && /cloth|body|tops|bottoms|onepiece|coat|skirt|dress/i.test(m.name + o.name)) m.color.multiplyScalar(.9); } });   // 2026-10-26 16：衣が光から浮く → 白を少し落とし、陰をやわらかく深く
     const root = new THREE.Group(); root.name = "aoi"; root.add(v.scene); root.visible = false; world.add(root);
     for (const j of v.springBoneManager?.joints ?? []) j.center = root;
     v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
@@ -1522,7 +1526,7 @@ function aoiPick(fx, fz, rx, rz, f) {
   const C = MOBILE ? [[f, .1], [f, -.35], [f, .5], [f, -.7], [f, .85]] : [[f, .85], [f, -.85], [f, .5], [f, -.5], [f, 1.1]];   /* 距離は一定（画面の大きさをそろえる）、横だけずらす */
   const now = performance.now(); if (now - AOIPK.t < 600) return C[Math.min(AOIPK.i, C.length - 1)]; AOIPK.t = now;
   if (now - AOIPK.rt > 1500) { AOIPK.rt = now; AOIPK.rects = [...document.querySelectorAll("button, a, [role=button]")].map(e => e.getBoundingClientRect()).filter(r => r.width > 20 && r.height > 14 && r.bottom > innerHeight * .55 && r.top < innerHeight); }
-  const marks = []; for (const L of [...(LAYER.objs || []), ...(AREA.marks || [])]) { const o = L.o; if (!o || !(L.root?.visible ?? L.mark?.visible)) continue; if (Math.hypot(o.x - CAM.pos.x, o.z - CAM.pos.z) > 25) continue; if (L.glyph) { L.glyph.getWorldPosition(_pv3); marks.push(_pv3.clone().project(camera)); } else marks.push(_pv3.set(o.x, groundY(o.x, o.z) + 2.1, o.z).clone().project(camera)); }
+  const marks = []; for (const L of [...(LAYER.objs || []), ...(AREA.marks || [])]) { const o = L.o; if (!o || !(L.root?.visible ?? L.mark?.visible)) continue; if (Math.hypot(o.x - CAM.pos.x, o.z - CAM.pos.z) > 45) continue; /* 2026-10-26 16：池の向こうの球（30 m 先）も避ける */ if (L.glyph) { L.glyph.getWorldPosition(_pv3); marks.push(_pv3.clone().project(camera)); } else marks.push(_pv3.set(o.x, groundY(o.x, o.z) + 2.1, o.z).clone().project(camera)); }
   const W = innerWidth, H = innerHeight, sx = v => (v.x * .5 + .5) * W, sy = v => (-v.y * .5 + .5) * H;
   let best = 1e9, bi = 0;
   for (let i = 0; i < C.length; i++) { const [ff, ss] = C[i], x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss, g = groundY(x, z);
@@ -1530,7 +1534,7 @@ function aoiPick(fx, fz, rx, rz, f) {
     let pen = i * .01 + (AOI.m ? Math.hypot(x - AOI.m.pos.x, z - AOI.m.pos.z) * .08 : 0) + Math.abs(ff - f) * .5;   /* カメラとの距離をそろえる */   /* 今いる所に近い候補を選ぶ（大きく移らない） */
     if (fX - hw < 8 || fX + hw > W - 8 || fY > H - 6) pen += 10;
     if (AOIPK.rects.some(r => fX + hw > r.left && fX - hw < r.right && fY > r.top && hY < r.bottom)) pen += 5;
-    if (marks.some(m => m.z < 1 && Math.abs(sx(m) - hX) < hw * 2.6 && sy(m) > hY - Math.abs(fY - hY) * .3 && sy(m) < hY + Math.abs(fY - hY) * .45)) pen += 3;   /* 2026-10-26 15：頭と目印の球が重なる候補は強く避ける（球の実際の位置で） */
+    if (marks.some(m => m.z < 1 && Math.abs(sx(m) - hX) < hw * 2.6 && sy(m) > hY - Math.abs(fY - hY) * .3 && sy(m) < fY)) pen += 6;   /* 2026-10-26 16：頭だけでなく胴・裾とも重ねない */   /* 2026-10-26 15：頭と目印の球が重なる候補は強く避ける（球の実際の位置で） */
     if (pen < best) { best = pen; bi = i; } }
   AOIPK.i = bi; return C[bi];
 }
@@ -1593,8 +1597,8 @@ function aoiElbows() {
 // 足もとの接地の陰（スマホでも）：やわらかな丸い陰を碧の足もとに
 let AOISH = null;
 function aoiShadow() {
-  if (!AOISH) { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.78)"); gr.addColorStop(.5, "rgba(0,0,0,.36)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-    AOISH = new THREE.Mesh(new THREE.PlaneGeometry(1.3, .95).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false, toneMapped: false })); AOISH.renderOrder = 1; world.add(AOISH); }
+  if (!AOISH) { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.86)"); gr.addColorStop(.28, "rgba(0,0,0,.6)"); gr.addColorStop(.6, "rgba(0,0,0,.24)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    AOISH = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false, toneMapped: false })); AOISH.renderOrder = 1; world.add(AOISH); }
   const p = AOI.root.position; AOISH.visible = AOI.root.visible; AOISH.position.set(p.x, groundY(p.x, p.z) + .03, p.z); AOISH.rotation.y = AOI.m.yaw || 0;
 }
 function plantKeyaki(C) {   // けやきひろばの木を、参道と同じケヤキの形・質で（大きさは少しずつ違う）

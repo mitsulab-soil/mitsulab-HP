@@ -218,10 +218,12 @@ export function placeLabels(THREE, cam, list, avoid = [], dt = .016) {
     b.copy(a); b.y += sc.y; a.project(cam); b.project(cam);
     let slot = -1;
     if (a.z < 1 && sp.visible) {
-      const x = (a.x + 1) / 2 * W, y = (1 - a.y) / 2 * H, h = Math.max(6, y - (1 - b.y) / 2 * H), w = h * (sc.x / sc.y) * .78, m = 3;
+      const x0 = (a.x + 1) / 2 * W, y = (1 - a.y) / 2 * H, h = Math.max(6, y - (1 - b.y) / 2 * H), w = h * (sc.x / sc.y) * .78, m = 3;
+      const x = Math.max(2 + m, Math.min(x0, W - 2 - m - w)); sp.center.x = (x0 - x) / Math.max(1, h * sc.x / sc.y);   // 2026-10-26 16：右の端で切れる札は、画面の中へ左に寄せる（スマホで町の名札が出なかった）
       const tryS = s => { const r = { x0: x - m, x1: x + w + m, y0: y - h * (s + 1) * 1.1 - m, y1: y - h * s * 1.1 + m, L: e.L }; if (r.y0 < 0 || r.x0 < 2 || r.x1 > W - 2) return false; /* 画面の端で切れる札は出さない */ if (hit(r)) return false; put.push(r); return true; };
       const pref = Math.round(u.sl);
       if (tryS(pref)) slot = pref; else for (let s = 0; s < 4; s++) if (s !== pref && tryS(s)) { slot = s; break; }
+      if (slot < 0) for (const s of [-1, -2, -3]) if (s !== pref && tryS(s)) { slot = s; break; }   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
     }
     const k = Math.min(1, dt * 7);
     if (slot >= 0) u.sl += (slot - u.sl) * k;
