@@ -84,7 +84,7 @@ async function boot() {
   // 向き：E（地の輪）から主体へ。弧の終わりに矢じり、弧の上を流れる光の粒、地の輪の起点に印
   const qArc = [], arrowM = new THREE.MeshBasicMaterial({ color: 0xf6e2b0, transparent: true, opacity: .95, toneMapped: false, depthWrite: false });
   for (let j = 0; j < 4; j++) { const seg = qLn.slice(j * 144, j * 144 + 144), pts = []; for (let i = 0; i < 24; i++) pts.push(new THREE.Vector3(seg[i * 6], seg[i * 6 + 1], seg[i * 6 + 2])); pts.push(new THREE.Vector3(seg[138 + 3], seg[138 + 4], seg[138 + 5])); qArc.push(new THREE.CatmullRomCurve3(pts));
-    const end = pts[pts.length - 1], dir = end.clone().sub(pts[pts.length - 3]).normalize(), cone = new THREE.Mesh(new THREE.ConeGeometry(.32, .9, 10), arrowM); cone.position.copy(end).addScaledVector(dir, -.9); cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); g1.add(cone);
+    const end = pts[pts.length - 1], dir = end.clone().sub(pts[pts.length - 3]).normalize(), cone = new THREE.Mesh(new THREE.ConeGeometry(.6, 1.6, 12), arrowM); cone.position.copy(end).addScaledVector(dir, -1.2); g1.add(new THREE.Mesh(new THREE.TubeGeometry(qArc[j], 48, .09, 6), arrowM)); cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); g1.add(cone);
     const st = new THREE.Mesh(new THREE.RingGeometry(.45, .7, 24), new THREE.MeshBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .9, side: THREE.DoubleSide, toneMapped: false, depthWrite: false })); st.position.copy(pts[0]).setY(BO.y + .1); st.rotation.x = -Math.PI / 2; g1.add(st); }
   const NPU = 4 * 6, puP = new Float32Array(NPU * 3), puG = geo(puP); const pulses = new THREE.Points(puG, pm(0xfff2c8, 1.0, 1)); pulses.frustumCulled = false; g1.add(pulses); g1.add(new THREE.Points(geo(qP), pm(0xf6e2b0, 1.2, 1)));
   const Q_AT = new THREE.Vector3(qP[0], qP[1], qP[2]);
@@ -109,12 +109,12 @@ async function boot() {
       const loc = p => p.clone().sub(BO);
       const person = U.makePerson(); person.scale.setScalar(1.05); person.position.copy(loc(P_HITO)).setY(0); person.rotation.y = -2.4; r.add(person);
       const bee = C.makeBee(); bee.scale.setScalar(2.2); bee.position.copy(loc(P_BEE)); bee.rotation.y = 2.4; r.add(bee);
-      const tick = U.makeTick(); tick.scale.setScalar(1.5); tick.position.copy(loc(P_TICK)).setY(.5); tick.rotation.set(-1.0, .5, 0); r.add(tick);
+      const tick = U.makeTick(); tick.scale.setScalar(2.8); tick.position.copy(loc(P_TICK)).setY(.5); tick.rotation.set(-1.0, .5, 0); r.add(tick);
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(.012, .03, .5, 6), new THREE.MeshStandardMaterial({ color: 0x6f7a3e, roughness: .8 })); stem.position.copy(loc(P_TICK)).setY(.25); r.add(stem);
       // 写実の生き物（Qualium 氷川の sight で合格したモデル＝ヒヨドリ・コウモリ・ミミズ・アオスジアゲハ）。見やすく大きく描く（模式の注記どおり）
       const SMod = await import('./kit/sight/sightModels.js'); const sp = [];
       const put = async (name, s, pos, ry) => { try { const m = await SMod.loadSight(name, { shadow: false }); m.object.scale.setScalar(s); m.object.position.copy(pos); m.object.rotation.y = ry; r.add(m.object); sp.push(m); return m; } catch (e) { console.warn('sight', name, e); return null; } };
-      const [worm, bat, hiyo, ageha] = await Promise.all([put('mimizu', 20, loc(P_WORM).setY(.04), .7), put('koumori', 26, new THREE.Vector3(-11, 7.5, -8), .9), put('hiyo', 6, new THREE.Vector3(-6.5, 5.2, -5), 1.4), put('aosuji', 26, loc(P_BEE).add(new THREE.Vector3(2.4, 1.0, -1.4)), 2.2)]);
+      const [worm, bat, hiyo, ageha] = await Promise.all([put('mimizu', 20, loc(P_WORM).setY(.04), .7), put('koumori', 44, new THREE.Vector3(-8, 6.2, -5), .9), put('hiyo', 6, new THREE.Vector3(-6.5, 5.2, -5), 1.4), put('aosuji', 26, loc(P_BEE).add(new THREE.Vector3(2.4, 1.0, -1.4)), 2.2)]);
       r.userData = { person, bee, tick, worm, bat, hiyo, ageha, sp, BEE: bee.position.clone() };
       SM1 = SMod;
       g1.add(r); real1 = r;
@@ -155,7 +155,7 @@ async function boot() {
 
   // ---- 札（HTML）：3D の点に付く等幅の札
   const labs = [...labsBox.querySelectorAll('[data-at]')];
-  const AT = { aoi: AO.clone().add(new THREE.Vector3(0, 2.1, 0)), hito: P_HITO.clone().add(new THREE.Vector3(0, 4.9, 0)), bee: P_BEE.clone().add(new THREE.Vector3(0, 2.7, 0)), tick: P_TICK.clone().add(new THREE.Vector3(0, 1.1, 0)), worm: P_WORM.clone().add(new THREE.Vector3(0, 1.4, 0)), env: BO.clone().add(new THREE.Vector3(-ER * .3, .4, ER * .92)), bat: BO.clone().add(new THREE.Vector3(-11, 9.3, -8)), qualia: Q_AT, person2: P2.clone().add(new THREE.Vector3(0, 4, 0)), qualia2: AO.clone().lerp(P2, .5).add(new THREE.Vector3(0, 2.4, 0)), cue: BO.clone().add(new THREE.Vector3(-3, 10, -14)),
+  const AT = { aoi: AO.clone().add(new THREE.Vector3(0, 2.1, 0)), hito: P_HITO.clone().add(new THREE.Vector3(0, 4.9, 0)), bee: P_BEE.clone().add(new THREE.Vector3(0, 2.7, 0)), tick: P_TICK.clone().add(new THREE.Vector3(0, 1.8, 0)), worm: P_WORM.clone().add(new THREE.Vector3(0, 1.4, 0)), env: BO.clone().add(new THREE.Vector3(-ER * .3, .4, ER * .92)), bat: BO.clone().add(new THREE.Vector3(-8, 8.4, -5)), qualia: Q_AT, person2: P2.clone().add(new THREE.Vector3(0, 4, 0)), qualia2: AO.clone().lerp(P2, .5).add(new THREE.Vector3(0, 2.4, 0)), cue: BO.clone().add(new THREE.Vector3(-3, 10, -14)),
     hikawa: AO.clone().add(new THREE.Vector3(0, 60, 0)), kawagoe: KW.clone().add(new THREE.Vector3(0, 60, 0)), torii: new THREE.Vector3(...meta.marks[1].p).add(new THREE.Vector3(0, 9, 0)), coord: AO.clone().add(new THREE.Vector3(-12, 14, -60)) };
   LAYER5.forEach((l, i) => AT['l' + (i + 1)] = new THREE.Vector3(AO.x + (mobile ? 9 : 11), 0, AO.z));
   const _v = new THREE.Vector3();
@@ -189,7 +189,7 @@ async function boot() {
   // ---- 寄りの挿し絵：一つの生き物に寄った 3D と、受けとる手がかりの一行（場面 1 だけ・同じ描画器の一角に描く）
   const insEl = document.getElementById('v2inset'), IS = new THREE.Scene(), IC = new THREE.PerspectiveCamera(30, 1.3, .01, 50);
   IS.add(new THREE.HemisphereLight(0xfff0dc, 0x5a4a3a, 2.6), new THREE.AmbientLight(0xffffff, .8)); { const d = new THREE.DirectionalLight(0xffe2b8, 2.4); d.position.set(-2, 3, 2); IS.add(d); const b = new THREE.DirectionalLight(0x9fc8ff, .8); b.position.set(2, 1, -3); IS.add(b); }
-  const INS = [['bee'], ['koumori', 'fly'], ['aosuji', 'fly'], ['mimizu', 'crawl']];   // 本文の順（ミツバチ → コウモリ → マダニ）
+  const INS = [['bee'], ['koumori', 'fly'], ['tick'], ['aosuji', 'fly'], ['mimizu', 'crawl']];   // 本文の順（ミツバチ → コウモリ → マダニ）
   let insI = -1, insT = 99, insObj = null, insMix = null, insBusy = false;
   async function nextInset() {
     if (insBusy) return; insBusy = true; insI = (insI + 1) % INS.length; const [id, clip] = INS[insI];
@@ -208,6 +208,7 @@ async function boot() {
   function drawInset(dt, t) {
     const on = cur === 1 && tIn > .75 && SM1; if (insEl) insEl.classList.toggle('on', !!(on && insObj)); if (!on || !insEl) return;
     insT += dt; if (insT > 4.2) nextInset(); if (!insObj) return;
+    if (mobile) { const cd = document.querySelector('#umwelt1 .v2-card'), ct = cd ? cd.getBoundingClientRect().top : innerHeight; const h = insEl.offsetHeight || 124; const room = ct - h - 10 >= innerHeight * .5; insEl.style.top = Math.min(innerHeight - h - 12, ct - h - 10) + 'px'; insEl.style.visibility = room ? '' : 'hidden'; if (!room) return; }
     const r = insEl.getBoundingClientRect(), H = innerHeight; if (r.width < 10) return;
     insMix && insMix.update(dt); insObj.rotation.y = reduce ? .6 : t * .35;
     IC.aspect = r.width / r.height; IC.position.set(0, .32, 1.3); IC.lookAt(0, 0, 0); IC.updateProjectionMatrix();
@@ -258,7 +259,7 @@ async function boot() {
     if (!real1 && !frame.r1 && (cur >= 1 || now > 2500)) { frame.r1 = 1; loadReal1(); }
     if (g1.visible) { for (let j = 0; j < 4; j++) for (let k = 0; k < 6; k++) { const u = reduce ? k / 6 : (t * .22 + k / 6 + j * .13) % 1; qArc[j].getPoint(u, _v); puP.set([_v.x, _v.y, _v.z], (j * 6 + k) * 3); } puG.attributes.position.needsUpdate = true; }
     if (real1 && g1.visible) { const u = real1.userData; u.sp.forEach(m => m.update(reduce ? 0 : dt));
-      if (!reduce) { if (u.bat) u.bat.object.position.set(-11 + Math.sin(t * .5) * 3, 7.5 + Math.sin(t * 1.1) * .5, -8 + Math.cos(t * .5) * 2), u.bat.object.rotation.y = .9 - t * .5; if (u.ageha) u.ageha.object.position.y = u.BEE.y + 1 + Math.sin(t * 1.7) * .3; } }
+      if (!reduce) { if (u.bat) u.bat.object.position.set(-8 + Math.sin(t * .5) * 2.5, 6.2 + Math.sin(t * 1.1) * .4, -5 + Math.cos(t * .5) * 1.6), u.bat.object.rotation.y = .9 - t * .5; if (u.ageha) u.ageha.object.position.y = u.BEE.y + 1 + Math.sin(t * 1.7) * .3; } }
     if (real1 && g1.visible && !reduce) { const u = real1.userData; u.bee.position.copy(u.BEE).add(new THREE.Vector3(Math.sin(t * .9) * .25, Math.sin(t * 2.1) * .08, Math.cos(t * .7) * .2)); u.person.userData.animate && u.person.userData.animate(t, false); }
     qM.opacity = .55 + (reduce ? 0 : Math.sin(t * 2) * .15);
     if (g1.visible) { [bH, bB, bT, bW].forEach((b, i) => { b.scale.setScalar(1 + (reduce ? 0 : Math.sin(t * 1.3 + i) * .025)); }); cues.rotation.y = reduce ? 0 : t * .02; }
@@ -282,7 +283,7 @@ async function boot() {
       if (mobile && el.dataset.m === '0') { el.classList.remove('on'); return; }
       const id = el.dataset.at; let p = AT[id]; if (!p) return; if (/^l\d$/.test(id)) { const g = plates[+id[1] - 1]; _v.set(p.x, g.position.y, p.z); } else _v.copy(p);
       _v.project(cam); const vis = _v.z < 1 && Math.abs(_v.x) < 1.05 && Math.abs(_v.y) < 1.05; el.classList.toggle('on', vis);
-      if (vis) { const w = el.offsetWidth || 160, h = el.offsetHeight || 30, x = Math.min(W - w - 12, ((_v.x + 1) / 2 * W)) | 0; let y = ((1 - _v.y) / 2 * H) | 0;   // 札どうしが重ならないよう、下へずらす
+      if (vis) { const w = el.offsetWidth || 160, h = el.offsetHeight || 30, x = Math.max(6, Math.min(W - w - 12, ((_v.x + 1) / 2 * W))) | 0; let y = ((1 - _v.y) / 2 * H) | 0;   // 札どうしが重ならないよう、下へずらす
         for (let n = 0; n < 8 && placed.some(r => x < r[2] && x + w > r[0] && y < r[3] && y + h > r[1]); n++) y += h * .55 + 2;
         placed.push([x, y, x + w, y + h]); el.style.transform = `translate3d(${x}px,${y}px,0)`; } });
   }
