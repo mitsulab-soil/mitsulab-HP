@@ -180,9 +180,9 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     // 地形（DEM）の外の地面：エリアの中の 20 m の区画だけ（模式の平らな地）
     const P = Z.poly; let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (let i = 0; i < P.length; i += 2) { x0 = Math.min(x0, P[i]); x1 = Math.max(x1, P[i]); z0 = Math.min(z0, P[i + 1]); z1 = Math.max(z1, P[i + 1]); }
     const CS = 20, gps = [[], [], []]; let gp;
-    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || (inDem(cx, cz) && !Z.groundAll)) continue; const y = groundY(cx, cz) - .02; const bh = Math.abs(Math.sin(Math.floor(cx / 40) * 12.9898 + Math.floor(cz / 40) * 78.233) * 43758.5453) % 1; gp = gps[0];   // 区画で舗装を切りかえると帯に見えた（採点）→ 一種に戻し、柄のむらはシェーダで
+    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || (inDem(cx, cz) && !Z.groundAll)) continue; const y = groundY(cx, cz) - .02; const bh = Math.abs(Math.sin(Math.floor(cx / 40) * 12.9898 + Math.floor(cz / 40) * 78.233) * 43758.5453) % 1; gp = gps[Z.id === "nishi" ? 1 : Z.id === "shintoshin" ? 2 : 0];   // 2026-10-26 3：エリアごとに舗装の材を変える（東口＝石の舗装・西口＝コンクリート平板・新都心＝御影石の板）。区画で舗装を切りかえると帯に見えた（採点）→ 一種に戻し、柄のむらはシェーダで
       gp.push(x, y, z, x, y, z + CS, x + CS, y, z, x + CS, y, z, x, y, z + CS, x + CS, y, z + CS); }
-    C.grounds = []; for (let k = 0; k < 3; k++) { gp = gps[k]; if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) gu.push(gp[i] / 6, gp[i + 2] / 6); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, GMATS[k]); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.grounds.push(gm); C.ground ||= gm; } }
+    C.grounds = []; for (let k = 0; k < 3; k++) { gp = gps[k]; if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) { const us = k === 0 ? 4.2 : k === 1 ? 5 : 7; gu.push(gp[i] / us, gp[i + 2] / us); } gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, GMATS[k]); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.grounds.push(gm); C.ground ||= gm; } }
     world.add(G);
     buildLandmarks(Z, J, G); if (G.userData.lmTrees) C.lmTrees = G.userData.lmTrees;
     onChunk?.(Z, J, C);
@@ -238,6 +238,14 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       const cg = new THREE.CylinderGeometry(.5, .5, 6.5, 8); cg.translate(0, 3.25, 0); const pts = []; for (let x = -774; x <= -718; x += 14) for (let z = 86; z <= 134; z += 16) pts.push([x, z]);
       const cm = new THREE.InstancedMesh(cg, slabMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
       const rl = []; for (let i = 0; i < 4; i++) { const a = P[i], c = P[(i + 1) % 4]; rl.push(a.x, y + 1.1, a.y, c.x, y + 1.1, c.y); } const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rl, 3)); G.add(new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xd8dde0 }))); }
+    // 2026-10-26 3：広場の手がかり（車止め・植え込みの箱・ベンチ。模式）
+    const props = (cx, cz, r, n, kind) => { const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3(1, 1, 1);
+      const geo = kind === "bollard" ? new THREE.CylinderGeometry(.11, .13, .85, 10).translate(0, .42, 0) : kind === "bench" ? new THREE.BoxGeometry(1.8, .45, .5).translate(0, .225, 0) : new THREE.BoxGeometry(2.2, .6, 1.1).translate(0, .3, 0);
+      const im = new THREE.InstancedMesh(geo, kind === "bollard" ? metalMat : slabMat, n); for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r; Q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -a); M4.compose(P.set(x, groundY(x, z), z), Q, S); im.setMatrixAt(i, M4); } G.add(im);
+      if (kind === "planter") { const g2 = new THREE.BoxGeometry(2.0, .25, .9).translate(0, .72, 0), im2 = new THREE.InstancedMesh(g2, grassMat, n); for (let i = 0; i < n; i++) { im.getMatrixAt(i, M4); im2.setMatrixAt(i, M4); } G.add(im2); } };
+    if (Z.id === "higashi") { props(-540, 70, 11.2, 22, "bollard"); }   /* 採点：灰色の箱のベンチ・植え込みは「ないほうがまし」→ 車止めだけ */
+    if (Z.id === "shintoshin") { props(140, 1330, 12, 18, "bollard"); }
+    
     // 東口のロータリー（模式）：まるい植え込みの島と、バスの待つ屋根
     if (Z.id === "higashi") { const cx = -540, cz = 70, y = groundY(cx, cz);
       const isl = new THREE.Mesh(new THREE.CylinderGeometry(9, 9.3, .35, 40), grassMat); { const sr = new THREE.Mesh(new THREE.RingGeometry(9.3, 10.6, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .28, depthWrite: false })); sr.position.set(cx, y + .03, cz); G.add(sr); /* 縁石の足もとの陰 */ }

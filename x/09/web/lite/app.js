@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=26";
+import { makeAreas } from "./areas.js?v=28";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -987,7 +987,7 @@ function parkMacro(m, amt, lawn) {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvPw=(modelMatrix*vec4(transformed,1.)).xyz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; uniform sampler2D uLit;" + (soil ? " uniform sampler2D uSoil;" : "") + "\nfloat pH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);} float pN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(pH(i),pH(i+vec2(1,0)),f.x),mix(pH(i+vec2(0,1)),pH(i+vec2(1,1)),f.x),f.y);}")
       .replace("#include <map_fragment>", `#include <map_fragment>
-{ vec2 p=vPw.xz; ${lawn ? "vec3 g2=texture2D(map,mat2(.8,-.6,.6,.8)*p*.29+.37).rgb; diffuseColor.rgb*=mix(vec3(1.),g2/max(dot(g2,vec3(.333)),.05),.45);" : ""} vec3 big=texture2D(map,p*.031+.17).rgb; diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*big/max(dot(big,vec3(.333)),.05)*.5,.45);
+{ vec2 p=vPw.xz; ${lawn ? "vec3 g2=texture2D(map,mat2(.8,-.6,.6,.8)*p*.29+.37).rgb; diffuseColor.rgb*=mix(vec3(1.),g2/max(dot(g2,vec3(.333)),.05),.45); float bp=pN(p*.009+2.7); diffuseColor.rgb*=mix(vec3(.86,.92,.78),vec3(1.08,1.04,.9),bp);" : ""} vec3 big=texture2D(map,p*.031+.17).rgb; diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*big/max(dot(big,vec3(.333)),.05)*.5,.45);
   float n=pN(p*.045)*.6+pN(p*.13)*.4, n2=pN(p*.021+7.3);
   diffuseColor.rgb*=mix(1.,.72+n*.56,${amt.toFixed(2)});
   vec3 lt=texture2D(uLit,p*.21).rgb; float lf=smoothstep(.55,.85,n2); diffuseColor.rgb=mix(diffuseColor.rgb,lt*vec3(.8,.72,.6),lf*${lawn ? ".12" : ".55"}*${amt.toFixed(2)});
@@ -1033,11 +1033,11 @@ function loadPark() {
         .replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ vec3 V=normalize(cameraPosition-vWw); float rp=.5+.5*sin(vWw.x*1.7+uT*1.3)*cos(vWw.z*1.3-uT*.9), rp2=.5+.5*sin(vWw.x*5.3-vWw.z*4.1+uT*2.3); float fr=pow(1.-max(V.y,0.),3.); vec3 deep=vec3(.05,.08,.075), sky=mix(vec3(.55,.62,.68),vec3(.36,.48,.62),clamp(V.y*3.,0.,1.)); vec3 refl=mix(sky,vec3(.12,.17,.13),smoothstep(.0,.06,V.y)*.0+.0); float m=clamp(fr*.75,0.,1.);   /* 採点：さざ波の縞が格子に見えた → 映り込みだけ */ gl_FragColor.rgb=mix(deep,refl,m); }"); };
     wm.customProgramCacheKey = () => "pondWater1";
     { // 岸（池のふちに 1.4 m の土の帯。芝と水面の継ぎ目を見せない・CC0 ambientCG Ground054）
-      const sp = [], su = []; const n = pd.length / 2; for (let i = 0; i < n; i++) { const j = (i + 1) % n, ax = pd[i * 2], az = pd[i * 2 + 1], bx = pd[j * 2], bz = pd[j * 2 + 1], dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1, nx = -dz / l * .9, nz = dx / l * .9;
-        const P = [[ax - nx, az - nz], [ax + nx, az + nz], [bx + nx, bz + nz], [bx - nx, bz - nz]].map(([x, z]) => [x, py + .16, z]); for (const k of [0, 1, 2, 0, 2, 3]) { sp.push(...P[k]); su.push(P[k][0] / 2.5, P[k][2] / 2.5); } }
-      const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3)); sg.setAttribute("uv", new THREE.Float32BufferAttribute(su, 2)); sg.computeVertexNormals();
+      const sp = [], su = [], se = []; const n = pd.length / 2; for (let i = 0; i < n; i++) { const j = (i + 1) % n, ax = pd[i * 2], az = pd[i * 2 + 1], bx = pd[j * 2], bz = pd[j * 2 + 1], dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1, wv = .5 + .9 * (.5 + .5 * Math.sin(i * .73) * Math.cos(i * .31)), nx = -dz / l * wv, nz = dx / l * wv;
+        const P = [[ax - nx, az - nz], [ax + nx * 1.6, az + nz * 1.6], [bx + nx * 1.6, bz + nz * 1.6], [bx - nx, bz - nz]].map(([x, z]) => [x, py + .16, z]); const E = [0, 1, 1, 0]; for (const k of [0, 1, 2, 0, 2, 3]) { sp.push(...P[k]); su.push(P[k][0] / 2.5, P[k][2] / 2.5); se.push(E[k]); } }
+      const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3)); sg.setAttribute("uv", new THREE.Float32BufferAttribute(su, 2)); sg.setAttribute("aE", new THREE.Float32BufferAttribute(se, 1)); sg.computeVertexNormals();
       const smt = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Ground054_c5.webp"), normalMap: tex(BASE + "tex/Ground054_n5.webp", false), color: 0x9a8f7c, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-      smt.stencilWrite = true; smt.stencilRef = 1; smt.stencilFunc = THREE.AlwaysStencilFunc; smt.stencilZPass = THREE.ReplaceStencilOp; const sm = new THREE.Mesh(sg, smt); sm.renderOrder = -1; G.add(sm); }
+      smt.transparent = true; smt.depthWrite = false; smt.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float aE; varying float vE; varying vec2 vSp;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvE=aE; vSp=(modelMatrix*vec4(position,1.)).xz;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vE; varying vec2 vSp;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ float n=fract(sin(dot(floor(vSp*2.),vec2(12.9,78.2)))*43758.5); gl_FragColor.a*=1.-smoothstep(.35,1.,vE+n*.25); }"); }; smt.customProgramCacheKey = () => "shoreFade"; /* 岸の外側を芝へ溶かす */ smt.stencilWrite = false; smt.stencilRef = 1; smt.stencilFunc = THREE.AlwaysStencilFunc; smt.stencilZPass = THREE.ReplaceStencilOp; const sm = new THREE.Mesh(sg, smt); sm.renderOrder = -1; G.add(sm); }
     wm.stencilWrite = true; wm.stencilRef = 1; wm.stencilFunc = THREE.AlwaysStencilFunc; wm.stencilZPass = THREE.ReplaceStencilOp; wm.transparent = false; { const pm = new THREE.Mesh(pg, wm); pm.renderOrder = -1; G.add(pm); }
     world.add(G); PARK.g = G; for (const m of G.children) pickables.push(m);
   }).catch(e => console.warn("park", e));
@@ -1518,7 +1518,7 @@ function loadAoi() {
 /* 2026-10-26 3：碧の立ち位置を、画面の上のボタンと Qualia の球の領域から決める（候補を順に試し、重ならない最初のものを、0.6 秒ごとに選びなおす） */
 const AOIPK = { t: 0, i: 0, rects: [], rt: 0 }, _pv3 = new THREE.Vector3();
 function aoiPick(fx, fz, rx, rz, f) {
-  const C = MOBILE ? [[f, -.3], [f + 2.2, -1.0], [f + 4, -.9], [f + 2.2, .9], [f - 1, -.8], [f + 5.5, -.3]] : [[f, 1.25], [f, -1.25], [f + 1, 1.6], [f + 1, -1.6], [f + 2, .6]];
+  const C = MOBILE ? [[f, -.3], [f + 1.6, -.9], [f - 1, -.8], [f + 1.6, .6], [f, .25], [f + 3, -.6]] : [[f, 1.25], [f, -1.25], [f + 1, 1.6], [f + 1, -1.6], [f + 2, .6]];
   const now = performance.now(); if (now - AOIPK.t < 600) return C[Math.min(AOIPK.i, C.length - 1)]; AOIPK.t = now;
   if (now - AOIPK.rt > 1500) { AOIPK.rt = now; AOIPK.rects = [...document.querySelectorAll("button, a, [role=button]")].map(e => e.getBoundingClientRect()).filter(r => r.width > 20 && r.height > 14 && r.bottom > innerHeight * .55 && r.top < innerHeight); }
   const marks = []; for (const L of [...(LAYER.objs || []), ...(AREA.marks || [])]) { const o = L.o; if (!o || !(L.root?.visible ?? L.mark?.visible)) continue; if (Math.hypot(o.x - CAM.pos.x, o.z - CAM.pos.z) > 25) continue; marks.push(_pv3.set(o.x, groundY(o.x, o.z) + 2.1, o.z).clone().project(camera)); }
@@ -1526,10 +1526,10 @@ function aoiPick(fx, fz, rx, rz, f) {
   let best = 1e9, bi = 0;
   for (let i = 0; i < C.length; i++) { const [ff, ss] = C[i], x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss, g = groundY(x, z);
     const ft = _pv3.set(x, g, z).project(camera), fX = sx(ft), fY = sy(ft), hd = _pv3.set(x, g + 1.65, z).project(camera), hX = sx(hd), hY = sy(hd), hw = Math.abs(fY - hY) * .2;
-    let pen = i * .01;
+    let pen = i * .01 + (AOI.m ? Math.hypot(x - AOI.m.pos.x, z - AOI.m.pos.z) * .08 : 0);   /* 今いる所に近い候補を選ぶ（大きく移らない） */
     if (fX - hw < 8 || fX + hw > W - 8 || fY > H - 6) pen += 10;
     if (AOIPK.rects.some(r => fX + hw > r.left && fX - hw < r.right && fY > r.top && hY < r.bottom)) pen += 5;
-    if (marks.some(m => Math.hypot(sx(m) - hX, sy(m) - hY) < Math.abs(fY - hY) * .35)) pen += 1;
+    if (marks.some(m => Math.hypot(sx(m) - hX, sy(m) - hY) < Math.abs(fY - hY) * .35)) pen += .3;
     if (pen < best) { best = pen; bi = i; } }
   AOIPK.i = bi; return C[bi];
 }
@@ -1562,14 +1562,14 @@ function stepAoi(dt) {
     const want = go ? Math.min(1.6, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.8) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
-    else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam + (voiceQ ? .05 : .14) * Math.sign(wrap(CAM.yaw + Math.PI - toCam) || 1)); } }   // 2026-10-26 3：待つあいだは真正面で立ちつくさず、行く先へ少し体をひらく（話すときは見る人へほぼ正面）。2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
+    else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam + 0 * Math.sign(wrap(CAM.yaw + Math.PI - toCam) || 1)); } }   // 2026-10-26 3：待つあいだは真正面で立ちつくさず、行く先へ少し体をひらく（話すときは見る人へほぼ正面）。2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
   }
   // 話していないときは、ときどき近くの物（層の目じるし・木）へ目をやり、また見る人へ戻す（ずっと正面で立ちつくさない）
   AOI.gT = (AOI.gT ?? 5) - dt;
   if (!AOI.focus && AOI.gT <= 0) {
-    if (AOI.glance) { AOI.glance = null; AOI.gT = 5 + Math.random() * 6; }
+    if (AOI.glance) { AOI.glance = null; AOI.gT = 10 + Math.random() * 8; }   /* 2026-10-26 3：よそ見は短く・まれに（横を向いたまま止まって見えた） */
     else { let best = null, bd = 1e9; for (const L of LAYER.objs) { if (!L.root.visible) continue; const d = Math.hypot(L.o.x - P.x, L.o.z - P.z); if (d > 3 && d < 22 && d < bd) { bd = d; best = L; } }
-      AOI.glance = best ? best.glyph.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(P.x - Math.sin(CAM.yaw) * 12, P.y + 6 + Math.random() * 4, P.z - Math.cos(CAM.yaw) * 12); AOI.gT = 1.6 + Math.random() * 1.4; }
+      AOI.glance = best ? best.glyph.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(P.x - Math.sin(CAM.yaw) * 12, P.y + 6 + Math.random() * 4, P.z - Math.cos(CAM.yaw) * 12); AOI.gT = .9 + Math.random() * .6; }
   }
   if (!AOI.focus) AOI.m.lookAt(AOI.glance || camera.position);   // 2026-10-26 3：目を見る人へ合わせる（焦点のない目にしない）
   // 2026-10-26 3（採点「待つ姿が固い・指が板のよう」）：共通部品は書き換えず、アプリの側で ①指に、指ごとに違う小さな曲がりと開き（ゆっくり変わる）を足し、②そのあとで vrm を進める
