@@ -161,6 +161,33 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     vec3 skyR=mix(vec3(.30,.33,.36),vec3(.42,.56,.72),smoothstep(-.05,.6,R.y)); skyR=mix(skyR,vec3(.16,.15,.14),smoothstep(.02,-.25,R.y));
     float cl=wH(floor(R.xz/(abs(R.y)+.2)*3.))*.12; totalEmissiveRadiance+=(skyR+cl)*wR*min(fr,.6)*(vF.z>=40.?.5:.3); }   /* 窓の白飛びを抑える */`); };
   bldMat.customProgramCacheKey = () => "areaFacade3";
+  // 2026-10-26 15（本人の方針①「Qualia を主役に、風景は地」）：町の建物は写実を追わず、霧と点と線の「地」に引く。
+  // 壁＝足もとに溜まり上へ薄れる霧・階の細い線・窓の位置の小さな点（点群のように）。屋根はほぼ透明、輪郭は細い線。形と高さは OSM（模式）
+  const ghostV = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec3 aF; varying vec3 vF; varying vec3 vGw;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvF=aF; vGw=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+  const ghostF = (body) => sh => { ghostV(sh); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vF; varying vec3 vGw;").replace("#include <color_fragment>", "#include <color_fragment>\n" + body)
+    .replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogFar, vFogDepth); gl_FragColor.a *= 1. - fgF * .85;\n#endif"); };
+  const ghostWall = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true });
+  ghostWall.onBeforeCompile = ghostF(`{ float wu=vF.x, wv=vF.y, H=max(vF.z,1.); float dist=distance(vGw,cameraPosition); if(dist<2.2) discard;
+    float tall=step(40.,H); float fl=tall>.5?3.8:3.4, bay=tall>.5?3.0:2.6;
+    float mist=exp(-wv/6.)*.20+.035;   /* 足もとに溜まる霧 */
+    float fy=wv/fl; float ld=abs(fract(fy+.5)-.5); float line=(1.-smoothstep(0.,fwidth(fy)*1.1,ld))*step(.5,fy)*step(wv,H-.3);
+    vec2 c=vec2(wu/bay+.5, wv/fl); vec2 f=fract(c)-.5; f.x*=bay/fl; float dt=1.-smoothstep(.035,.06,length(f)); dt*=step(1.,wv)*step(wv,H-.6);
+    float near=1.-smoothstep(40.,260.,dist);
+    float top=1.-smoothstep(.0,.35,abs(wv-H));   /* 上端をわずかに締める */
+    diffuseColor.rgb=mix(vec3(.46,.55,.61), vec3(.90,.95,.97), dt*.8+line*.4+top*.3);
+    diffuseColor.a=(mist + line*.16*near + dt*.42*near + top*.10) * mix(1.,.55,smoothstep(150.,700.,dist)); }`);
+  ghostWall.customProgramCacheKey = () => "areaGhost1";
+  const ghostRoof = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, opacity: .05, depthWrite: false, side: THREE.DoubleSide, fog: true });
+  const ghostSolid = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true });   // 目印（アリーナ・駅舎）も同じ地に
+  ghostSolid.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; uniform float uB;").replace("#include <color_fragment>", `#include <color_fragment>
+    { float dist=distance(vGw,cameraPosition); if(dist<2.2) discard; float wv=max(0.,vGw.y-uB); float fy=wv/4.; float ld=abs(fract(fy+.5)-.5); float line=(1.-smoothstep(0.,fwidth(fy)*1.1,ld))*step(.5,fy);
+      vec3 fn=normalize(cross(dFdx(vGw),dFdy(vGw))); float roof=step(.6,abs(fn.y)); float near=1.-smoothstep(40.,320.,dist);
+      diffuseColor.rgb=mix(vec3(.46,.55,.61),vec3(.90,.95,.97),line*.5); diffuseColor.a=(1.-roof)*(exp(-wv/8.)*.2+.075+line*.24*near)+roof*.05; }`)
+      .replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogFar, vFogDepth); gl_FragColor.a *= 1. - fgF * .85;\n#endif"); sh.uniforms.uB = ghostSolid.userData.b; };
+  ghostSolid.userData.b = { value: 8 }; ghostSolid.customProgramCacheKey = () => "areaGhostS1";
+  edgeMat.opacity = .30; edgeMat.color.set(0xd6e6ec);
+  for (const m of [ghostWall, ghostRoof, ghostSolid]) m.userData.land = true;
   const FAC = [[.78,.76,.72],[.86,.84,.80],[.70,.64,.56],[.60,.58,.56],[.74,.70,.62],[.55,.47,.42]], GLS = [[.42,.50,.58],[.38,.46,.52],[.50,.55,.58]];
   for (const m of [roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat]) m.userData.land = true;
   // 2026-10-26 2：駅前の地形の写真（屋根の写った空中写真）が道と地面の上に白くかぶっていた → 参道の道と同じく、道と地面の画素に印を付けて地形を描かない
@@ -219,10 +246,12 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     const g = new THREE.ExtrudeGeometry(new THREE.Shape(Q), { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); g.translate(0, y0, 0);
     return new THREE.Mesh(g, mat);
   }
+  const lmEdge = new THREE.LineBasicMaterial({ color: 0xe2eef3, transparent: true, opacity: .5, depthWrite: false }); lmEdge.userData.land = true;
+  function gEx(P, y0, h, shrink = 0) { const m = extrude(P, y0, h, ghostSolid, shrink); m.renderOrder = 2; const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 25), lmEdge); m.add(e); return m; }   // 2026-10-26 15：目印は霧の面に、はっきりした輪郭の線
   function buildLandmarks(Z, J, G) {
     const all = []; for (const k in J.b) for (const b of J.b[k]) { const L = lmAt(b); if (L) all.push([L, b]); }
     for (const [L, b] of all) { const P = polyOf(b); let y = 1e9; for (const p of P) y = Math.min(y, groundY(p.x, p.y));
-      if (L.id === "arena") { metalMat.userData.base.value = y; G.add(extrude(P, y, 38, metalMat), extrude(P, y + 38, 26, metalMat, .42)); const ring = extrude(P, y + 37.4, 1.2, slabMat, -.015); G.add(ring); }
+      if (L.id === "arena") { ghostSolid.userData.b.value = y; G.add(gEx(P, y, 38), gEx(P, y + 38, 26, .42)); const ring = gEx(P, y + 37.4, .4, -.015); G.add(ring); }
       else if (L.id === "keyaki") { const top = y + 7;
         const slab = extrude(P, top - 1.1, 1.1, slabMat); const deck = extrude(P, top, .02, deckMat); G.add(slab, deck);
         let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
@@ -232,7 +261,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
         const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, slabMat, col.length); const M4 = new THREE.Matrix4();
         col.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
         G.userData.lmTrees = tr.map(([x, z]) => [x, top, z]); }   // 木は app 側で参道と同じケヤキを植える（C.lmTrees）
-      else if (L.id === "eki1" || L.id === "eki2") { const h = b[0]; G.add(extrude(P, y, h * .72, glassMat, .02), extrude(P, y + h * .72, h * .28, slabMat)); }
+      else if (L.id === "eki1" || L.id === "eki2") { const h = b[0]; G.add(gEx(P, y, h, .02)); }
     }
     // 西口のデッキ（模式）：駅から西へ、2 階の高さで歩く人を渡す床と柱と手すり
     if (Z.id === "nishi") { const y = groundY(-745, 110) + 6.5, P = [[-780, 80], [-712, 80], [-712, 140], [-780, 140]].map(([x, z]) => new THREE.Vector2(x, z));
@@ -269,7 +298,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       for (let k = 0; k < n; k++) { const i = ar > 0 ? k : n - 1 - k, j = ar > 0 ? (k + 1) % n : (n - 2 - k + n) % n, ax = b[1 + i * 2], az = b[2 + i * 2], bx = b[1 + j * 2], bz = b[2 + j * 2], L = Math.hypot(bx - ax, bz - az);
         wp.push(ax, y, az, ax, y + h, az, bx, y + h, bz, ax, y, az, bx, y + h, bz, bx, y, bz);
         wf.push(u, 0, h, u, h, h, u + L, h, h, u, 0, h, u + L, h, h, u + L, 0, h); for (let q = 0; q < 6; q++) wc.push(...col);
-        ep.push(ax, y + h, az, bx, y + h, bz); u += L; }
+        ep.push(ax, y + h, az, bx, y + h, bz, ax, y, az, ax, y + h, az); u += L; }
       const pts = []; for (let i = 0; i < n; i++) pts.push(new THREE.Vector2(b[1 + i * 2], b[2 + i * 2]));
       const tri = THREE.ShapeUtils.triangulateShape(pts, []); for (const t of tri) for (const k of t) rp.push(pts[k].x, y + h, pts[k].y); }
     const T = new THREE.Group();
@@ -277,12 +306,12 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     const uv = []; for (let i = 0; i < wf.length; i += 3) uv.push(wf[i] / 2.6, wf[i + 1] / 2.6); wg.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); wg.computeVertexNormals();
     const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rp, 3)); const ru = []; for (let i = 0; i < rp.length; i += 3) ru.push(rp[i] / 6, rp[i + 2] / 6); rg.setAttribute("uv", new THREE.Float32BufferAttribute(ru, 2)); rg.computeVertexNormals();
     const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(ep, 3));
-    const wm = new THREE.Mesh(wg, bldMat), rm2 = new THREE.Mesh(rg, roofMat), el = new THREE.LineSegments(eg, edgeMat); rm2.material.side = THREE.DoubleSide; T.add(wm, rm2, el); C.g.add(T); return T;
+    const wm = new THREE.Mesh(wg, ghostWall), rm2 = new THREE.Mesh(rg, ghostRoof), el = new THREE.LineSegments(eg, edgeMat); wm.renderOrder = rm2.renderOrder = 2; T.add(wm, rm2, el); C.g.add(T); return T;
   }
   function dropChunk(id) {
     const C = A.chunks[id]; if (!C || !C.g) { delete A.chunks[id]; return; }
     onUnchunk?.(C);
-    const keep = new Set([roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
+    const keep = new Set([lmEdge, ghostWall, ghostRoof, ghostSolid, roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
   }
   function ensure(Z) {
     if (!Z.chunk) return Promise.resolve(null);
@@ -318,7 +347,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     A.fills.visible = sky; labBox.hidden = !sky; if (sky) stepLabels();
     A.curtains.visible = walk || mode === "descend";
     const cp = camera.position;
-    for (const m of A.curtains.children) { const u = m.material.uniforms; u.uT.value = rm ? 0 : A.t; u.uCam.value.copy(cp); u.uK.value = mode === "descend" ? .5 : 1; }
+    for (const m of A.curtains.children) { const u = m.material.uniforms; u.uT.value = rm ? 0 : A.t; u.uCam.value.copy(cp); u.uK.value = mode === "descend" ? .3 : .38; /* 2026-10-26 15：境界の幕も控えめに */ }
     if (tagT < 1e8 && (tagT -= dt) < 0) tag.classList.remove("on");
     if ((checkT -= dt) > 0) return; checkT = .3;
     if (!walk) { nearEl.classList.remove("on"); return; }

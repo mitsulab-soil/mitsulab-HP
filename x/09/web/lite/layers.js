@@ -117,7 +117,7 @@ const FONT = '"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif';
 const MONO = '"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace';
 function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")"; }
 export function makeLabel(no, layer, title, color) {
-  const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const x = cv.getContext("2d");
+  const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W * 2; cv.height = H * 2; const x = cv.getContext("2d"); x.scale(2, 2);   // 2026-10-26 15：札を大きく出すので、字の解像度を 2 倍に
   // 2026-10-22 箱をやめ、視野に重なる札に：左の細い線と角だけ。字の下だけ、横にうすく暗く（明るい空や地面でも読める）
   const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.6)"); gr.addColorStop(.7, "rgba(3,6,15,.3)"); gr.addColorStop(1, "rgba(3,6,15,0)");
   x.fillStyle = gr; x.fillRect(0, 22, W, 84);
