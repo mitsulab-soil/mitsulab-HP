@@ -247,3 +247,7 @@ html[data-lang=en] .v2-fig .v2-lab{font-family:var(--sans);font-style:normal;fon
 .v2-fig.nar .v2-lead-svg circle{opacity:1}
 .v2-fig.nar .v2-lab{padding-left:26px!important;border-left:0!important}
 .v2-fig.nar .v2-lab::before{display:flex!important;content:attr(data-n);position:absolute;left:0;top:3px;width:16px;height:16px;border:0;border-radius:50%;background:var(--c,#a8f2f6);color:#03060f;font:600 10px/16px var(--mono);justify-content:center}
+/* v5：札の字を一回り大きく */
+.v2-fig .v2-lab{font-size:15px}.v2-fig .v2-lab .k{font-size:10px}
+html[data-lang=en] .v2-fig .v2-lab{font-size:14px}
+@media (max-width:700px){#top .v2-fig .v2-lab{font-size:13px}html[data-lang=en] #top .v2-fig .v2-lab{font-size:12.5px}}
