@@ -547,34 +547,9 @@ const endPtr = e => {
   const tap = drag.moved <= (mobile ? 10 : 6) && !drag.multi; if (!ptrs.size) drag.multi = false;
   setTimeout(() => drag.recent = false, 400);
   if (drag.firstTap) { drag.firstTap = false; return; }
-  if (tap && e.type === "pointerup") { const k = KASA.pick(e.clientX, e.clientY); if (k) KASA.touch(k); else onTap(e.clientX, e.clientY); }
+  if (tap && e.type === "pointerup") onTap(e.clientX, e.clientY);
 };
 el.addEventListener("pointerup", endPtr); el.addEventListener("pointercancel", endPtr);
-// かさねっこ（sight の層の小さな環境エージェント・藤鼠の群れ。2026-10-23 本人「Qualium以外にもかさねっこを登場させてください」「群れでわちゃわちゃ」）
-//   共通部品 kit/envAgents/kasane.js。森が動きだしてから読む（起動の 5 秒には入れない）。触れると跳ねて点の吹き出しと小さな音。人のことばは話さない
-const KASA = window.__kasa = { herd: null, loading: false,
-  okAt(x, z) { return x > -26 && x < 28 && z > -24 && z < 25 && Math.hypot(x + 8, z + 7) > 5 && !FOREST.blocked(x, z, .3); },
-  on() { return chapter === "umwelt" && habitat === "forest" && !LENS[lens].under && !LENS[lens].night && !KUR.on; },
-  async load() {
-    this.loading = true;
-    try {
-      const M = await import("./kit/envAgents/kasane.js?v=20261025");
-      // 2026-10-25：最新の共通部品（めり込み・鳴き声・minCamDist・bubbleAvoid）。見る人の目の前に入りすぎない／下の帯と字幕の上に吹き出しを出さない／空中の 3D の窓は sight では出さない（sight の札と重ねない）。band＝下の帯（碧の案内）の上端
-      const band = () => { let y = innerHeight; for (const id of ["guide", "worm", "aoiWin"]) { const e = $(id); if (e && !e.hidden && e.offsetParent) { const r = e.getBoundingClientRect(); if (r.height && r.top < y && r.top > innerHeight * .45) y = r.top; } } return y; };
-      const h = new M.KasaneHerd({ scene, camera, groundAt: () => 0, walkable: (x, z) => this.okAt(x, z), scale: mobile ? 1.9 : 1.75, mobile, max: 14, shadow: true, minCamDist: 3.6, view: () => false, screenMargin: 12, bubbleAvoid: (x, y) => y > band() - 30 || x < (mobile ? 96 : 150) || x > innerWidth - (mobile ? 78 : 96), muted: () => !$("optSound").checked });
-      const S = n => Array.from({ length: n }, () => ({ layer: "sight" }));
-      for (const [x, z, n, role] of [[-1.6, -1.8, 4, ""], [3.0, -4.2, 3, "watch"], [5.8, -3.4, 3, ""], [.4, -8.0, 4, ""]])
-        if (this.okAt(x, z)) h.addGroup(S(n), { x, z, radius: 1.8, role });
-      h.setLayers(["sight"]); await h.load(); this.herd = h;
-    } catch (err) { console.warn("かさねっこ：", err?.message ?? err); }
-  },
-  tick(dt) {
-    if (!this.herd) { if (!this.loading && STARTUP.interactiveAt && performance.now() - STARTUP.interactiveAt > 1200) this.load(); return; }
-    this.herd.update(dt, { active: this.on(), busy: !$("menu").hidden || !$("why").hidden });
-  },
-  pick(x, y) { return this.herd && this.on() ? this.herd.pick(x, y) : null; },
-  touch(k) { this.herd.touch(k, () => setTimeout(() => this.herd.release(k), 1800)); },
-};
 function onTap(x, y) {
   ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
   if (chapter === "iro") {
@@ -761,18 +736,17 @@ function renderAoiWindow() {
 }
 // 碧が立つ向き（ひとのとき）：画面の幅の割合で決める（2026-10-14：560px・320px の幅では右の端の操作ボタンの下に隠れていた）。PC は右寄り、縦長はまん中寄り
 function aoiSideAng(hf) { const asp = innerWidth / innerHeight, ndc = asp >= 1.2 ? .6 : asp >= .8 ? .36 : .3; return Math.atan(ndc * Math.tan(hf / 2)); }
-// 2026-10-25 碧の自然さ（採点「話していないあいだは棒立ち」）：黙って立っているとき、5〜9 秒に一度、近くのかさねっこへ目と顔を 1.5〜2.5 秒向けて、また見る人へ戻す（同じ環境エージェントどうし）
-const GL = { t: 4, tgt: null, until: 0, v: new THREE.Vector3() };
+// 2026-10-25 碧の自然さ（採点「話していないあいだは棒立ち」）：黙って立っているとき、5〜9 秒に一度、近くの草や木の根もとへ目と顔を 1.5〜2.5 秒向けて、また見る人へ戻す
+//   2026-10-26 本人「Qualium 以外には、碧だけで、かさねっこは入れないでください」→ かさねっこを外し、目を向ける先は森の足もとにした
+const GL = { t: 4, on: false, until: 0, v: new THREE.Vector3() };
 function aoiGlance(dt) {
   const quiet = !SP.playing && !SP.resolve && !me.path && !keys.size && A.sp < .15;
-  if (!quiet) { GL.tgt = null; GL.t = Math.max(GL.t, 2.5); return null; }
-  if (GL.tgt) { GL.until -= dt; if (GL.until <= 0 || !GL.tgt.layerOn) { GL.tgt = null; GL.t = 5 + Math.random() * 4; return null; } return GL.v.set(GL.tgt.pos.x, .18, GL.tgt.pos.y); }
+  if (!quiet) { GL.on = false; GL.t = Math.max(GL.t, 2.5); return null; }
+  if (GL.on) { GL.until -= dt; if (GL.until <= 0) { GL.on = false; GL.t = 5 + Math.random() * 4; return null; } return GL.v; }
   GL.t -= dt; if (GL.t > 0) return null;
-  const h = KASA.herd; GL.t = 5 + Math.random() * 4;
-  if (!h || !KASA.on()) return null;
-  const near = h.agents.filter(a => a.layerOn && Math.hypot(a.pos.x - A.pos.x, a.pos.y - A.pos.z) < 6);
-  if (!near.length) return null;
-  GL.tgt = near[Math.floor(Math.random() * near.length)]; GL.until = 1.5 + Math.random();
+  GL.t = 5 + Math.random() * 4;
+  const ang = A.yaw + (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .7), d = 2 + Math.random() * 2;
+  GL.v.set(A.pos.x + Math.sin(ang) * d, .18, A.pos.z + Math.cos(ang) * d); GL.on = true; GL.until = 1.5 + Math.random();
   return null;
 }
 function aoiTick(dt) {
@@ -1234,7 +1208,7 @@ function frame(now=0) {
     AUD.set(AUD.hum.g, lens === "hebi" && heat > .3 ? .18 * heat : 0); AUD.hum.o.frequency.value = 70 + heat * 60;
     if (AUD.wind) AUD.wind.gain.setTargetAtTime(chapter === "umwelt" && !LENS[lens].under && !LENS[lens].night ? .05 : 0, AUD.ctx.currentTime, .5);
   }
-  aoiTick(dt); kurMarks(); KASA.tick(dt);
+  aoiTick(dt); kurMarks();
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); }
   STARTUP.firstFrameAt ||= performance.now();
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.

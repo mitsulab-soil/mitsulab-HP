@@ -70,9 +70,6 @@ body{font-family:var(--ml-sans);line-height:1.7;overflow-x:hidden}
 .copy{font-size:.76rem!important;color:var(--ml-ink-3)}
 .copy a{color:var(--ml-aoi-2)}
 
-.kasa-tag{position:absolute;display:none;transform:translate(-50%,-100%);padding:3px 10px;border:1px solid var(--nat-hud);border-radius:var(--ml-radius);background:rgba(3,6,15,.86);font:600 .82rem var(--ml-serif);letter-spacing:.08em;color:var(--ml-ink);pointer-events:none;z-index:5;transition:opacity .4s;white-space:nowrap}
-.kasa-tag small{display:block;font:400 .6rem var(--ml-mono);color:var(--nat-hud);letter-spacing:.06em}
-.kasa-tag.off{opacity:0}
 
 @media (max-width:700px){
   #stage{height:64svh;min-height:420px}

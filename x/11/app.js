@@ -78,7 +78,7 @@ const paperOf = it => PAPERS.find(p => p.id === it.w.id && !p.only);
 
 const FORM = {   // 形ごとの厚み・ふくらみ（幅に対する割合）
   relief: { th: 0.12, dp: 0.12 }, ribbon: { th: 0.045, dp: 0.04 }, layers: { th: 0.1, dp: 0.1 },
-  scroll: { th: 0.035, dp: 0.03 }, hang: { th: 0.1, dp: 0.1 }, floor: { th: 0.05, dp: 0.04 },
+  scroll: { th: 0.11, dp: 0.11 }, hang: { th: 0.1, dp: 0.1 }, floor: { th: 0.05, dp: 0.04 },
 };
 const REVERB = { void: 0.95, mist: 0.85, eyes: 0.75, dew: 0.6, oto: 0.6, water: 0.55, bloom: 0.55, spore: 0.5, pulse: 0.45, shell: 0.32 };   // 書ごとの響き（虚空と霧は深く、殻は乾いて短く）
 function shoOpts(it, width, x = {}) {
@@ -497,7 +497,6 @@ function endPtr(e) {
   if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
   if (ptrs.size) return;
   const g = gest; gest = null; if (!g || g.pinch) return;
-  if (!g.drag && herd) { const k = herd.pick(g.x0, g.y0, mobile ? 34 : 30); if (k) { herd.touch(k, () => setTimeout(() => herd.release(k), 1600)); return; } }
   if (!g.drag) {
     if (g.held) { const it = g.held; it.hold = 0; }
     else touchAt(g.x0, g.y0, 3.2, g.force);
@@ -527,18 +526,6 @@ scene.add(paperG);
 resize();
 paintHall();
 showHint('<span>床を押すと、その向きへ歩く。</span><span>ドラッグで見回す。</span><span>書に触れると、その音が鳴る。</span>');
-// v11b かさねっこ（藍鉄＝Qualia/sound がメインの小さな群れ）。広間のあちこちから、書と見る人を見ている
-let herd = null;
-async function loadKasane() {
-  if (herd || q.has('nokasane')) return;
-  try {
-    const M = await import('./kit/envAgents/kasane.js?v=20261026a');
-    const h = new M.KasaneHerd({ scene, camera: cam, groundAt: () => 0, walkable: (x, z) => { const [kx, kz] = keepOut(x, z); return Math.hypot(kx - x, kz - z) < 0.01; }, scale: mobile ? 3.1 : 2.9, mobile,   /* v11c 少し大きく */ max: mobile ? 10 : 14, shadow: true, upright: true, view: () => false, items: true, muted: () => !soundOn });
-    const G = [[-1.8, 6.6, 4], [-3.2, 2.6, 3], [5.6, -3.6, 3], [-6.0, -0.4, 3]].slice(0, mobile ? 3 : 4);
-    G.forEach(([x, z, n]) => h.addGroup(M.kasaneMix('sound', n, { mix: 0.25 }).map(layer => ({ layer })), { x, z, radius: 1.4, role: 'watch' }));
-    await h.load(); herd = h;
-  } catch (e) { console.warn('かさねっこ：', e?.message ?? e); }
-}
 const later = () => loadRoomTextures(R, mobile).then(t => {
   ENV = t.env; buildHall(t);
   works.forEach(it => { if (!it.sho) return; if (ENV) it.sho.setEnv(ENV, ENVG); it.sho.setLight(room.sun); });
@@ -729,7 +716,6 @@ function frame() {
   }
   if (room) room.update(t);
   aoiTick(dt);
-  if (herd) herd.update(Math.min(dt, 0.05), { active: true, busy: false });
   if (shake) {   /* v11 触れた所の形で、画面が震える（とめ＝縦に一度・はらい＝横へ流れて静まる・起筆／送筆＝小さく） */
     shake.t += dt; const T = shake.t, A = shake.a; let ox = 0, oy = 0;
     if (shake.kind === 'tome') oy = -A * Math.exp(-T * 22) * Math.sin(T * 95);
@@ -739,7 +725,7 @@ function frame() {
   }
   if (shakeAmp > 0) cam.position.add(tmpV.set(Math.sin(t * 71) * shakeAmp * 0.4, Math.cos(t * 67) * shakeAmp * 0.4, 0));
   dof.render(scene, cam, focusDist());
-  if (!started) { started = true; window.MLLoader?.done(); window.__shoReady = performance.now(); later().then(prepRest).then(() => { loadAoi(); loadKasane(); return hiAll(); }); }
+  if (!started) { started = true; window.MLLoader?.done(); window.__shoReady = performance.now(); later().then(prepRest).then(() => { loadAoi(); return hiAll(); }); }
 }
 function focusDist() {                                         // 画面の中央に見えている書の距離（無ければ近い書）
   rc.setFromCamera(ndc.set(0, 0), cam); let best = 1e9;

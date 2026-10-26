@@ -2,7 +2,8 @@
    2026-10-26 本人「Qualia/nature もアプリを作って公開してください。」
    中身＝Qualium 氷川の自然の層（116 件・nature.json）。文と声（VOICEVOX：冥鳴ひまり・読みは Qualium 氷川の公開時に確かめ済み）はそのまま使う。
    3D＝写実の地（木の形は mitsulab・質感 CC0）に、事実の線（層の色の細い線と点）。木の形・土の層の厚さ・点の位置・季節の色は模式。
-   起動：木と土を描いた時点で読み込み画面を閉じる。碧（1.2 秒後）とかさねっこ（2 秒後）はあとから。 */
+   起動：木と土を描いた時点で読み込み画面を閉じる。碧（1.2 秒後）はあとから。
+   2026-10-26 本人「Qualium 以外には、碧だけで、かさねっこは入れないでください」→ かさねっこ（このは）を外した。 */
 import * as THREE from "three";
 
 const $ = s => document.querySelector(s);
@@ -150,7 +151,7 @@ function nearest(cx, cy, maxPx) {
   return best;
 }
 function hover(e) { if (MOBILE) return; cv.classList.toggle("hot", !!nearest(e.clientX, e.clientY, 18)); }
-function tap(x, y) { if (KASA.tap(x, y)) return; const r = nearest(x, y, MOBILE ? 30 : 22); if (r) openCard(r); }
+function tap(x, y) { const r = nearest(x, y, MOBILE ? 30 : 22); if (r) openCard(r); }
 
 // ---- 札と声
 const NAME = { tree: "木", soil: "土", water: "水", life: "生きもの" };
@@ -181,7 +182,7 @@ function playLines(x, i) {
 }
 function stopVoice(clear = true) { if (audio) { audio.onended = null; audio.pause(); audio = null; } aoi?.motion.stopSpeaking(); $("#bListen").textContent = "碧の声で聴く"; document.querySelectorAll("#cardB p.now").forEach(p => p.classList.remove("now")); if (clear) reading = reading; }
 $("#bListen").addEventListener("click", () => { if (audio) stopVoice(); else if (reading) playLines(reading, 0); });
-$("#card").addEventListener("close", () => { stopVoice(); reading = null; groups.halo && (groups.halo.visible = false); first = null; aoi?.motion.lookAt(null); if (KASA.cur) { KASA.herd?.release(KASA.cur); KASA.cur = null; } });
+$("#card").addEventListener("close", () => { stopVoice(); reading = null; groups.halo && (groups.halo.visible = false); first = null; aoi?.motion.lookAt(null); });
 for (const d of document.querySelectorAll("dialog")) { d.addEventListener("click", e => { if (e.target === d || e.target.closest("[data-close]")) d.close(); }); }
 $("#bAbout").addEventListener("click", () => $("#about").showModal());
 $("#bSound").addEventListener("click", e => { soundOn = !soundOn; e.target.setAttribute("aria-pressed", String(soundOn)); e.target.textContent = soundOn ? "声 入" : "声 切"; if (!soundOn) stopVoice(); });
@@ -200,42 +201,6 @@ async function loadAoi() {
   try { const K = await import("./kit/aoi.js"); aoi = await K.loadAoi(AOI_URL, { scene: aoiScene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi.place(0, 0, 0); }
   catch (e) { console.warn("碧：", e?.message ?? e); }
 }
-
-// ---- かさねっこ「このは」（自然の層・老竹の群れ）。触れると記録を一つ運んでくる
-const KASA = { herd: null, loading: false, t0: performance.now(), cur: null,
-  okAt(x, z) { const r = Math.hypot(x, z); return r > 1.5 && r < R - .5 && Math.hypot(x - POND.x, z - POND.z) > POND.r + .45; },
-  async load() {
-    this.loading = true;
-    try {
-      const M = await import("./kit/envAgents/kasane.js?v=20261025");
-      const h = new M.KasaneHerd({ scene, camera, groundAt: () => 0, walkable: (x, z) => this.okAt(x, z), scale: MOBILE ? 6.5 : 6, mobile: MOBILE, maxDist: 60, max: MOBILE ? 9 : 14, shadow: true, upright: true, screenMargin: 14, view: () => false, items: true, muted: () => !soundOn });
-      const life = items.filter(x => x.cat === "life" || x.cat === "tree"), rnd = mulberry(11);
-      const mk = n => Array.from({ length: n }, () => ({ layer: "nature", data: life[Math.floor(rnd() * life.length)] }));
-      const P = MOBILE ? [[-3.4, 3.4, 3], [2.4, 4.6, 3], [-4, -1.5, 3]] : [[-3.6, 3.2, 4], [2.2, 4.8, 4], [-4.2, -1.6, 3], [4.6, -.8, 3]];
-      for (const [x, z, n] of P) h.addGroup(mk(n), { x, z, radius: 1.1, role: "watch" });
-      h.setLayers(["nature"]); await h.load(); this.herd = h;
-    } catch (err) { console.warn("かさねっこ：", err?.message ?? err); }
-  },
-  tick(dt) {
-    if (!this.herd) { if (!this.loading && performance.now() - this.t0 > 2000) this.load(); return; }
-    this.herd.update(Math.min(dt, .05), { active: true, busy: !!document.querySelector("dialog[open]") });
-    const cx = camera.position.x, cz = camera.position.z, d = Math.min(dt, .05);
-    for (const a of this.herd.agents) if (!a.react && a.state !== "focus" && a.state !== "walk") a.faceTo?.(cx, cz, d, 14);
-  },
-  tap(x, y) {
-    if (!this.herd) return false; const o = cv.getBoundingClientRect();
-    const k = this.herd.pick((x - o.left) / o.width * innerWidth, (y - o.top) / o.height * innerHeight, MOBILE ? 34 : 28); if (!k) return false;
-    this.nameTag(k); this.cur = k;
-    this.herd.touch(k, () => { if (k.data) setTimeout(() => openCard(k.data, "このはが運んできた記録"), 700); else setTimeout(() => this.herd.release(k), 1600); });
-    return true;
-  },
-  nameTag(k) {
-    let el = this.tagEl; if (!el) { el = this.tagEl = document.createElement("div"); el.className = "kasa-tag"; el.setAttribute("aria-hidden", "true"); el.innerHTML = "このは<small>Qualia/nature</small>"; stage.appendChild(el); }
-    _v.set(k.pos.x, .9, k.pos.y).project(camera); const W = stage.clientWidth, H = stage.clientHeight;
-    el.style.left = clamp((_v.x * .5 + .5) * W, 50, W - 50) + "px"; el.style.top = clamp((-_v.y * .5 + .5) * H - 10, 60, H - 40) + "px"; el.style.display = "block"; el.classList.remove("off");
-    clearTimeout(this.tagT); this.tagT = setTimeout(() => el.classList.add("off"), 2600);
-  },
-};
 
 // ---- 層の札と記録の一覧
 function buildUI() {
@@ -270,7 +235,6 @@ function frame(now) {
   if (first && groups.halo && !reading) { groups.halo.visible = true; groups.halo.position.copy(first.pos); groups.halo.material.opacity = .6 + Math.sin(t * 3) * .35; }
   if (groups.halo?.visible) { groups.halo.quaternion.copy(camera.quaternion); groups.halo.scale.setScalar(1 + Math.sin(t * 4) * .08); }
   for (const L of ["tree", "soil", "water", "life"]) { const g = groups[L]; if (g) g.line.material.opacity = .09 + Math.sin(t * 1.3 + L.length) * .04; }
-  KASA.tick(dt);
   const W = stage.clientWidth, H = stage.clientHeight;
   renderer.setViewport(0, 0, W, H); renderer.setScissorTest(false); renderer.clear(); renderer.render(scene, camera);
   if (aoi) {
@@ -283,7 +247,7 @@ function frame(now) {
 }
 
 // ---- 起動
-const QN = window.__qn = { frames: 0, ready: false, tree: () => !!tree, aoi: () => !!aoi, kasa: () => KASA.herd?.agents.length || 0, items: () => items.length, proj: id => { const x = items.find(x => x.id === id) || items[0]; _v.copy(x.pos).project(camera); const o = cv.getBoundingClientRect(); return { x: o.left + (_v.x * .5 + .5) * o.width, y: o.top + (-_v.y * .5 + .5) * o.height, id: x.id }; } };
+const QN = window.__qn = { frames: 0, ready: false, tree: () => !!tree, aoi: () => !!aoi, items: () => items.length, proj: id => { const x = items.find(x => x.id === id) || items[0]; _v.copy(x.pos).project(camera); const o = cv.getBoundingClientRect(); return { x: o.left + (_v.x * .5 + .5) * o.width, y: o.top + (-_v.y * .5 + .5) * o.height, id: x.id }; } };
 (async () => {
   resize(); placeCam(); requestAnimationFrame(frame);
   try {
