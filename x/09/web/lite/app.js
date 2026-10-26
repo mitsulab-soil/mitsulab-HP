@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=9";
+import { makeAreas } from "./areas.js?v=16";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -18,7 +18,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261026w";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261026x";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -912,10 +912,11 @@ function descendTo(i, at) {
   // まず斜め上空へ寄り、そこから目の高さへ（道と木が届くまでは、斜め上空でゆっくり回りながら待つ）
   const mid = new THREE.Vector3(a.x + Math.sin(yaw) * 140, y + 120, a.z + Math.cos(yaw) * 140);
   TWFOG = [FOGS.sky(), FOGS.mid()];
-  tweenTo(mid, yaw, -.62, 1.2, () => {
+  tweenTo(mid, yaw, -.62, .7, () => {   // 2026-10-26 3：降りる演出を短く（歩きはじめまで 5 秒以内）
+
     let ready = false; const wait = setTimeout(() => { if (!ready) toast("参道の道と木を読み込んでいます。"); }, 500);
     WAITORBIT = { c: new THREE.Vector3(a.x, y, a.z), r: 140 * Math.SQRT2 / Math.SQRT2, yaw, t: 0 };
-    lateP.then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.04, 1.4, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.04; enterWalk(); }); });
+    lateP.then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.04, .9, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.04; enterWalk(); }); });
   });
 }
 let WAITORBIT = null;
@@ -1232,6 +1233,7 @@ function buildObjs() {
   ALL = [{ ...rec.culture, lead: LEAD5.culture }, { ...rec.nature }, { ...q.sound, lead: LEAD5.sound }, q.touch, q.sight];
   ALL = ALL.map(l => ({ ...l, color: COLOR5[l.id] || l.color })); GL = Object.fromEntries(ALL.map(l => [l.id, l]));
   for (const [sub, par] of Object.entries(PARENT)) { const b = rec[sub] || q[sub] || { id: sub }; GL[sub] = { ...b, color: GL[par].color, name: `${GL[par].name} ／ ${SUBNAME[sub]}` }; }
+  for (const s of D.sound) if (s.y == null) s.y = groundY(s.x, s.z);   // 2026-10-26 3：エリアの音の地点は標高を持たない（地形から読む）
   const list = [...D.objs, ...D.sound.map(s => ({ id: s.id, x: s.x, y: s.y, z: s.z, ll: s.ll, layer: "sound", title: s.title, h: 2.0, lines: [], snd: s })), ...D.touch.map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "touch", title: t.title, h: 1.25, lines: [], tch: t })), ...(D.sho || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "sho", title: t.title, h: .7, lines: [], sho: t })), ...(D.rakugo || []).map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, ll: t.ll, layer: "rakugo", title: t.title, h: 1.9, lines: [], rk: t }))];
   for (const o of list) {
     const L0 = GL[o.layer]; if (!L0) continue;
@@ -1520,7 +1522,7 @@ function stepAoi(dt) {
     const want = go ? Math.min(1.6, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.8) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
-    else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam); } }   // 2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
+    else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam + (voiceQ ? .12 : .32) * Math.sign(wrap(CAM.yaw + Math.PI - toCam) || 1)); } }   // 2026-10-26 3：待つあいだは真正面で立ちつくさず、行く先へ少し体をひらく（話すときは見る人へほぼ正面）。2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
   }
   // 話していないときは、ときどき近くの物（層の目じるし・木）へ目をやり、また見る人へ戻す（ずっと正面で立ちつくさない）
   AOI.gT = (AOI.gT ?? 5) - dt;
@@ -1530,7 +1532,20 @@ function stepAoi(dt) {
       AOI.glance = best ? best.glyph.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(P.x - Math.sin(CAM.yaw) * 12, P.y + 6 + Math.random() * 4, P.z - Math.cos(CAM.yaw) * 12); AOI.gT = 1.6 + Math.random() * 1.4; }
   }
   if (!AOI.focus) AOI.m.lookAt(AOI.glance || null);
-  AOI.m.update(dt, camera);
+  // 2026-10-26 3（採点「待つ姿が固い・指が板のよう」）：共通部品は書き換えず、アプリの側で ①指に、指ごとに違う小さな曲がりと開き（ゆっくり変わる）を足し、②そのあとで vrm を進める
+  AOI.m.update(dt, camera, { vrmUpdate: false });
+  aoiFingers(dt);
+  AOI.m.vrm.update(dt); AOI.m.afterVrmUpdate(dt);
+}
+const _fq = new THREE.Quaternion(), _fe = new THREE.Euler();
+function aoiFingers(dt) {
+  const M = AOI.m; if (!M.fingers || RM) return; const t = (AOI.ft = (AOI.ft || 0) + dt);
+  const SP = { Index: .07, Middle: .015, Ring: -.03, Little: -.08 }, CU = { Index: .03, Middle: .06, Ring: .09, Little: .12 };
+  for (const [b, sd, f, j] of M.fingers) { if (f === "Thumb" || j === "Metacarpal") continue;
+    if (b.userData.qa && b.quaternion.equals(b.userData.qa)) continue;   // 共通部品が一こまおきに指を休ませるこま（同じ値のまま）は、二重に足さない
+    const sg = sd === "left" ? 1 : -1, ph = (sd === "left" ? 0 : 2.3) + f.length * 1.1, w = Math.sin(t * .31 + ph) * .5 + Math.sin(t * .13 + ph * 1.7) * .5;
+    const c = (CU[f] + .025 * w) * (j === "Proximal" ? 1 : j === "Intermediate" ? 1.25 : .9), y = j === "Proximal" ? SP[f] * (1 + .25 * w) : 0;
+    b.quaternion.multiply(_fq.setFromEuler(_fe.set(0, sg * y, -sg * c))); (b.userData.qa ||= new THREE.Quaternion()).copy(b.quaternion); }
 }
 
 /* ---------- かさねっこ（小さな環境エージェント）：層の地点のそばに、その層の色の子がいる（2026-10-23 本人「かさねっこを、川越と氷川にたくさん入れてください」）
@@ -1657,12 +1672,12 @@ async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群�
   if (!J.p.length) return;
   const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=20261025b"); if (C.dead) return;
   const ok = (x, z) => AREAS.walkable(x, z);
-  const herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: ok, walkSurface: ok, canSee: () => true, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 14,
+  const herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: ok, walkSurface: ok, canSee: () => true, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 36 : 46, max: 22,
     muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });
   let s = 0; for (const ch of Z.id) s = s * 31 + ch.charCodeAt(0); const R = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
   const spots = [];
   for (const L of C.places) { const q = AREAS.snap(L.o.x, L.o.z); if (q) spots.push({ q, L }); }
-  const W = J.w.filter(w => w.length > 5); for (let k = 0; k < 6 && W.length; k++) { const w = W[Math.floor(R() * W.length)], i = 1 + 2 * Math.floor(R() * ((w.length - 1) / 2)); const q = [w[i], w[i + 1]]; let L = null, bd = 1e9; for (const P of C.places) { const d = Math.hypot(P.o.x - q[0], P.o.z - q[1]); if (d < bd) { bd = d; L = P; } } spots.push({ q, L }); }
+  const W = J.w.filter(w => w.length > 5); for (let k = 0; k < 12 && W.length; k++) { const w = W[Math.floor(R() * W.length)], i = 1 + 2 * Math.floor(R() * ((w.length - 1) / 2)); const q = [w[i], w[i + 1]]; let L = null, bd = 1e9; for (const P of C.places) { const d = Math.hypot(P.o.x - q[0], P.o.z - q[1]); if (d < bd) { bd = d; L = P; } } spots.push({ q, L }); }
   spots.forEach(({ q, L }, k) => { const main = L.o.layer === "nature" ? "nature" : "culture", lays = M.kasaneMix(main, [3, 2, 3][k % 3], { mix: .3, rnd: R });
     herd.addGroup(lays.map(ly => ({ layer: ly, data: L, target: { x: L.o.x, z: L.o.z } })), { x: q[0], z: q[1], radius: 2.6, role: k % 3 === 2 ? "watch" : "" }); });
   herd.setLayers(LAYER.worn); await herd.load(); if (C.dead) { herd.dispose(); return; }
@@ -2058,6 +2073,16 @@ function playItem(it) {   // 物に触れたとき：その音を、はっきり
     for (let c = 0; c < 7; c++) for (let j = 0; j < 4; j++) hoof(t0 + .3 + c * 1.1 + j * .275 + (Math.random() - .5) * .02, bus, j % 2 ? .38 : .45);
     SND.seq.push(setInterval(() => { SND.pulse = 1; }, 275)); setTimeout(() => SND.seq.forEach(clearInterval), 8200); return;
   }
+  if (it.kind === "rail") {   // 2026-10-26 3 大宮：列車が通り過ぎる模式（低い走行の響き＋継ぎ目を越える車輪の二つずつの音。発車の曲・放送は鳴らさない）
+    const s = noise(), lp = ac.createBiquadFilter(), g = ac.createGain(); lp.type = "lowpass"; lp.frequency.setValueAtTime(160, t0); lp.frequency.linearRampToValueAtTime(700, t0 + 3.5); lp.frequency.linearRampToValueAtTime(180, t0 + 9);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.5, t0 + 3.5); g.gain.linearRampToValueAtTime(.35, t0 + 6); g.gain.linearRampToValueAtTime(0, t0 + 9.5); s.connect(lp).connect(g).connect(bus); s.start(t0); s.stop(t0 + 9.6);
+    for (let c = 0; c < 9; c++) for (const dd of [0, .16]) { const t = t0 + 1.4 + c * .78 + dd, k = Math.max(.15, 1 - Math.abs(c - 4) / 5), o = ac.createOscillator(), og = ac.createGain(); o.type = "triangle"; o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(48, t + .09); og.gain.setValueAtTime(.32 * k, t); og.gain.exponentialRampToValueAtTime(.001, t + .14); o.connect(og).connect(bus); o.start(t); o.stop(t + .16); }
+    SND.seq.push(setInterval(() => { SND.pulse = .8; }, 390)); setTimeout(() => SND.seq.forEach(clearInterval), 9500); return;
+  }
+  if (it.kind === "deck") {   // 2026-10-26 3 大宮：大勢の足音を少しずつずらして重ねた模式（話し声は入れない）
+    for (let p = 0; p < 7; p++) { const per = .48 + Math.random() * .16, ph = Math.random() * per; for (let k = 0; k < 16; k++) step(t0 + ph + k * per + (Math.random() - .5) * .03, bus, .1 + Math.random() * .08); }
+    SND.seq.push(setInterval(() => { SND.pulse = .5; }, 300)); setTimeout(() => SND.seq.forEach(clearInterval), 8500); return;
+  }
   if (it.kind === "kuruma") {   // およそ 19 秒に 1 台を、6 倍に縮めて（約 3.2 秒に 1 台）。近づいて遠ざかる音
     for (let k = 0; k < 4; k++) { const t = t0 + k * 3.2, s = noise(), lp = ac.createBiquadFilter(), g = ac.createGain(), o = ac.createOscillator(), og = ac.createGain();
       lp.type = "lowpass"; lp.frequency.setValueAtTime(500, t); lp.frequency.linearRampToValueAtTime(2200, t + 1.2); lp.frequency.linearRampToValueAtTime(400, t + 2.6);
@@ -2344,7 +2369,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready");
-    QW.ready = true; QW.tReady = performance.now() - T0;
+    QW.ready = true; QW.tReady = performance.now() - T0; setTimeout(() => loadLate(), 400);   // 2026-10-26 3：道と木は、操作できるようになったらすぐ先に読みはじめる（降りるときに待たない）
     // 歩く前に要るものを、上空で選んでいるあいだに読む（地図の線と名前 → 道・木・構造物 → 碧 → 話）
     setTimeout(() => { fetch(BASE + "map.json?v=" + VER).then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
     setTimeout(() => { loadAoi(); loadLate(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 300);

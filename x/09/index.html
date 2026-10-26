@@ -18,7 +18,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261023k" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261026w">
+<link rel="modulepreload" href="web/lite/app.js?v=20261026ze">
 <link rel="modulepreload" href="web/lite/layers.js?v=5">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
@@ -476,6 +476,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 
 @media (max-width:640px){body[data-mode="walk"] #caption{left:86px!important}}   /* 2026-10-24 閉じた層の一覧（短い名前つき）と碧の語りを重ねない */
 @media (max-width:640px){body[data-mode="walk"] #caption{padding:8px 10px;border-radius:4px;background:rgba(4,8,16,.66);-webkit-backdrop-filter:blur(8px) saturate(.7);backdrop-filter:blur(8px) saturate(.7);border:1px solid rgba(127,227,247,.18)}body[data-mode="walk"] #caption::before{display:none}}   /* 2026-10-26 2 スマホで碧の字幕が木の葉と重なって読みにくい → 曇りガラスの板にのせる */
+@media (max-width:640px){#capText{display:block;white-space:normal;text-wrap:pretty;line-break:strict;word-break:normal;overflow-wrap:anywhere}}   /* 2026-10-26 3 スマホの字幕の改行で一字だけ次の行へ落ちる → 行の長さをそろえて折る */
 /* 2026-10-25 触れたときの札のボタン（鳴らす・止める ほか）は、縦の枠に積まず、字幕の下の一行の透過の文字に（カードに見せない） */
 #pExp{display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 6px!important}
 #pExp>.ml-btn{flex:0 0 auto!important;width:auto!important;min-width:0!important;margin:0!important;padding:0 14px!important;min-height:44px;background:none!important;box-shadow:none!important;font-family:var(--serif);font-size:14px!important;letter-spacing:.18em!important;color:rgba(236,248,251,.88)!important;text-shadow:0 1px 3px rgba(0,0,0,.9)!important;position:relative}
@@ -568,6 +569,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261026w").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261026ze").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

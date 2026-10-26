@@ -115,18 +115,44 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   groundMat.onBeforeCompile = sh => { sh.uniforms.uLandG = window.__qw?.LANDG || { value: 0 };
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; float gH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);} float gN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gH(i),gH(i+vec2(1,0)),f.x),mix(gH(i+vec2(0,1)),gH(i+vec2(1,1)),f.x),f.y);}")
-      .replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 p=vGw.xz; float n=gN(p*.05)*.6+gN(p*.17)*.4; diffuseColor.rgb*=.74+n*.5; vec3 big=texture2D(map,p*.027+.31).rgb; diffuseColor.rgb*=.7+dot(big,vec3(.333))*.6; }"); };
+      .replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 p=vGw.xz; float n=gN(p*.05)*.6+gN(p*.17)*.4; diffuseColor.rgb*=.74+n*.5; vec3 big=texture2D(map,p*.027+.31).rgb; diffuseColor.rgb*=.7+dot(big,vec3(.333))*.6; vec3 t2=texture2D(map,mat2(.8,-.6,.6,.8)*p*.113+.17).rgb; diffuseColor.rgb*=mix(1.,dot(t2,vec3(.333))*2.1,.5*gN(p*.031)); }"); };
   groundMat.customProgramCacheKey = () => "areaGroundMacro";
-  const bldMat = new THREE.MeshStandardMaterial({ color: 0x9fa9b1, roughness: .8, metalness: 0, transparent: true, opacity: .34, depthWrite: false, side: THREE.DoubleSide });
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x8f99a2, roughness: .85, metalness: 0, transparent: true, opacity: .55, depthWrite: false });
-  const edgeMat = new THREE.LineBasicMaterial({ color: 0xdfe8ee, transparent: true, opacity: .45, depthWrite: false });
-  // 2026-10-26 2：駅前の大きな建物の中や間に立つと、半透明の壁が何枚も重なって画面が白く飛んでいた → 目の前（〜6 m）は消し、30 m までで少しずつ現す・色を暗めに
-  bldMat.color.set(0x7d8892); bldMat.opacity = .3; roofMat.color.set(0x737d87); roofMat.opacity = .45;
-  for (const m of [bldMat, roofMat, edgeMat]) { m.onBeforeCompile = sh => {
-    sh.uniforms.uLandG = window.__qw?.LANDG || { value: 0 };
-    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vBw;").replace("#include <project_vertex>", "#include <project_vertex>\nvBw=(modelMatrix*vec4(transformed,1.)).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vBw;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\ngl_FragColor.a*=smoothstep(6.,30.,distance(vBw,cameraPosition));"); };
-    m.customProgramCacheKey = () => "areaBldFade" + m.type; }
+  // 2026-10-26 3：灰色の半透明の箱 → 不透明の壁・窓・素材（川越の蔵と同じく、近寄っても破綻しない面に）。
+  // 壁＝コンクリートの質感（CC0・Poly Haven）に、階（3.4 m）と柱間（2.6 m）の窓をシェーダで刻む。色は建物ごとに 6 種の外装（模式）。
+  // 40 m を超える高い建物（新都心のビル群・駅前の高層）はガラスのカーテンウォール、低層の 1 階は店先のガラス。形は OSM の輪郭と高さ（模式）。
+  const bldMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), normalMap: tex(BASE + "tex/concrete_pavement_n5.webp", false), vertexColors: true, roughness: .82, metalness: 0, side: THREE.DoubleSide });
+  const roofMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/gravel_embedded_concrete_c5.webp"), color: 0x6c6a66, roughness: .95, metalness: 0 });
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xdfe8ee, transparent: true, opacity: .18, depthWrite: false });
+  bldMat.onBeforeCompile = sh => {
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec3 aF; varying vec3 vF; varying vec3 vBw; varying vec3 vWn;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvF=aF;").replace("#include <project_vertex>", "#include <project_vertex>\nvBw=(modelMatrix*vec4(transformed,1.)).xyz; vWn=normalize(mat3(modelMatrix)*objectNormal);");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vF; varying vec3 vBw; varying vec3 vWn; float wR; float wH(vec2 p){return fract(sin(dot(p,vec2(41.3,289.1)))*43758.5453);}")
+      .replace("#include <map_fragment>", `#include <map_fragment>
+  float wu=vF.x, wv=vF.y, H=vF.z; float tall=step(40.,H); float dist=distance(vBw,cameraPosition);
+  if(dist<2.2) discard;
+  float fl=tall>.5?3.8:3.4, bay=tall>.5?3.0:2.6;
+  vec2 c=vec2(wu/bay, wv/fl); vec2 f=fract(c); vec2 id=floor(c);
+  float ground=step(wv,4.2)*(1.-tall);
+  float win=tall>.5? step(.06,f.x)*step(f.x,.94)*step(.08,f.y)*step(f.y,.94) : step(.18,f.x)*step(f.x,.82)*step(.32,f.y)*step(f.y,.86);
+  if(ground>.5) win=step(.06,fract(wu/4.2))*step(fract(wu/4.2),.94)*step(.35,wv)*step(wv,3.3);
+  win*=step(wv,H-.9)*step(.3,wv);
+  float aa=clamp(dist/90.,0.,1.); win=mix(win,tall>.5?.8:.32,aa*aa);
+  float lit=step(.86,wH(id+floor(H)));
+  vec3 sky=mix(vec3(.05,.07,.10),vec3(.22,.28,.34),clamp(fract(wv/fl)*.6+.25*wH(id.yy),0.,1.));
+  float vr=mix(.5,.14,tall)*mix(1.,.3,aa); vec3 glass=sky*(1.-vr*.5+vr*wH(id))+lit*(1.-tall)*(1.-aa)*vec3(.5,.38,.22)*.35; glass=mix(glass,sky*1.1,tall*.4);
+  if(ground>.5) glass=vec3(.07,.08,.08)+vec3(.45,.36,.24)*.3*step(.4,wH(floor(vec2(wu/4.2,1.))));
+  // 窓の奥行き（模式）：上の枠と横の枠の落とす陰を、ガラスの面に
+  float inset=tall>.5?0.:(1.-smoothstep(.70,.86,f.y))*0.+smoothstep(.70,.86,f.y)*.55+(1.-smoothstep(.18,.26,f.x))*.35; glass*=1.-inset*win*(1.-aa);
+  diffuseColor.rgb=mix(diffuseColor.rgb, glass, win); wR=win;
+  diffuseColor.rgb*=.62+.38*smoothstep(0.,7.,wv);   // 足もとの陰（地面との接するところを暗く）
+  float band=tall<.5? (1.-step(.06,fract(wv/fl)))*.12 : 0.; diffuseColor.rgb*=1.-band;
+  diffuseColor.rgb*=.82+.18*smoothstep(0.,6.,wv);`)
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.12,wR);")
+      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+  { vec3 V=normalize(vBw-cameraPosition), R=reflect(V,normalize(vWn)); float fr=.08+.92*pow(1.-max(dot(-V,normalize(vWn)),0.),4.);
+    vec3 skyR=mix(vec3(.30,.33,.36),vec3(.42,.56,.72),smoothstep(-.05,.6,R.y)); skyR=mix(skyR,vec3(.16,.15,.14),smoothstep(.02,-.25,R.y));
+    float cl=wH(floor(R.xz/(abs(R.y)+.2)*3.))*.12; totalEmissiveRadiance+=(skyR+cl)*wR*fr*(vF.z>=40.?.9:.55); }`); };
+  bldMat.customProgramCacheKey = () => "areaFacade3";
+  const FAC = [[.78,.76,.72],[.86,.84,.80],[.70,.64,.56],[.60,.58,.56],[.74,.70,.62],[.55,.47,.42]], GLS = [[.42,.50,.58],[.38,.46,.52],[.50,.55,.58]];
   for (const m of [roadMat, groundMat, bldMat, roofMat, edgeMat]) m.userData.land = true;
   // 2026-10-26 2：駅前の地形の写真（屋根の写った空中写真）が道と地面の上に白くかぶっていた → 参道の道と同じく、道と地面の画素に印を付けて地形を描かない
   for (const m of [roadMat, groundMat]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
@@ -148,26 +174,89 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       gp.push(x, y, z, x, y, z + CS, x + CS, y, z, x + CS, y, z, x, y, z + CS, x + CS, y, z + CS); }
     if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) gu.push(gp[i] / 6, gp[i + 2] / 6); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, groundMat); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.ground = gm; }
     world.add(G);
+    buildLandmarks(Z, J, G);
     onChunk?.(Z, J, C);
     return C;
   }
+  /* ---------- 目印（2026-10-26 3・模式）：形は公開の地図の輪郭（OSM）と、公開の写真で見た特徴を手で模式にしたもの。写真は写していない ---------- */
+  const LM = [
+    { id: "arena", area: "shintoshin", c: [16, 1373] },      // さいたまスーパーアリーナ：低い大きな箱に、一段高い客席の棟
+    { id: "keyaki", area: "shintoshin", c: [30, 1566] },     // けやきひろば：空中の人工地盤（2 階の高さ）に、ケヤキの林
+    { id: "eki1", area: "nishi", c: [-649, 120] }, { id: "eki2", area: "nishi", c: [-625, 88] },   // 大宮駅：ガラスの駅舎
+  ];
+  const lmAt = b => { const n = (b.length - 1) / 2; let x = 0, z = 0; for (let i = 0; i < n; i++) { x += b[1 + i * 2]; z += b[2 + i * 2]; } x /= n; z /= n; for (const L of LM) if (Math.abs(L.c[0] - x) < 6 && Math.abs(L.c[1] - z) < 6) return L; return null; };
+  const metalMat = new THREE.MeshStandardMaterial({ color: 0x8f979e, roughness: .42, metalness: .35 });
+  metalMat.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vMw;").replace("#include <project_vertex>", "#include <project_vertex>\nvMw=(modelMatrix*vec4(transformed,1.)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vMw;").replace("#include <map_fragment>", "#include <map_fragment>\nfloat ly=fract(vMw.y/1.4); diffuseColor.rgb*=.78+.22*smoothstep(.0,.25,ly); float gb=step(vMw.y-uBase,9.); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.07,.09,.11),gb*step(.1,fract((vMw.x+vMw.z)/3.)));")
+      .replace("#include <common>", "#include <common>\nuniform float uBase;"); sh.uniforms.uBase = metalMat.userData.base; };
+  metalMat.userData.base = { value: 8 }; metalMat.customProgramCacheKey = () => "lmMetal";
+  const deckMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/granite_tile_c5.webp"), normalMap: tex(BASE + "tex/granite_tile_n5.webp", false), color: 0x9a968e, roughness: .85 });
+  const slabMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), color: 0x8a8883, roughness: .9 });
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x7d9a62, roughness: .95 }), barkMat = new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 1 });
+  const glassMat = new THREE.MeshStandardMaterial({ color: 0x26323c, roughness: .08, metalness: .7, transparent: true, opacity: .82 });
+  for (const m of [metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]) m.userData.land = true;
+  function polyOf(b) { const n = (b.length - 1) / 2, P = []; for (let i = 0; i < n; i++) P.push(new THREE.Vector2(b[1 + i * 2], b[2 + i * 2])); return P; }
+  function extrude(P, y0, h, mat, shrink = 0) {
+    let cx = 0, cz = 0; for (const p of P) { cx += p.x; cz += p.y; } cx /= P.length; cz /= P.length;
+    const Q = P.map(p => new THREE.Vector2(cx + (p.x - cx) * (1 - shrink), -(cz + (p.y - cz) * (1 - shrink))));
+    const g = new THREE.ExtrudeGeometry(new THREE.Shape(Q), { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); g.translate(0, y0, 0);
+    return new THREE.Mesh(g, mat);
+  }
+  function buildLandmarks(Z, J, G) {
+    const all = []; for (const k in J.b) for (const b of J.b[k]) { const L = lmAt(b); if (L) all.push([L, b]); }
+    for (const [L, b] of all) { const P = polyOf(b); let y = 1e9; for (const p of P) y = Math.min(y, groundY(p.x, p.y));
+      if (L.id === "arena") { metalMat.userData.base.value = y; G.add(extrude(P, y, 38, metalMat), extrude(P, y + 38, 26, metalMat, .42)); const ring = extrude(P, y + 37.4, 1.2, slabMat, -.015); G.add(ring); }
+      else if (L.id === "keyaki") { const top = y + 7;
+        const slab = extrude(P, top - 1.1, 1.1, slabMat); const deck = extrude(P, top, .02, deckMat); G.add(slab, deck);
+        let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
+        const inP = (x, z) => inside(P.flatMap(p => [p.x, p.y]), x, z);
+        const col = [], tr = []; for (let x = x0 + 6; x < x1 - 4; x += 12) for (let z = z0 + 6; z < z1 - 4; z += 12) if (inP(x, z)) col.push([x, z]);
+        for (let x = x0 + 5; x < x1 - 3; x += 8) for (let z = z0 + 5; z < z1 - 3; z += 8) if (inP(x, z)) tr.push([x + (Math.sin(x * 3.1 + z) * 1.2), z + Math.cos(z * 2.3 + x) * 1.2]);
+        const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, slabMat, col.length); const M4 = new THREE.Matrix4();
+        col.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
+        const tg = new THREE.CylinderGeometry(.18, .3, 4.2, 6); tg.translate(0, 2.1, 0); const lg = new THREE.SphereGeometry(1, 18, 12); lg.scale(3.6, 2.4, 3.6); { const pa = lg.attributes.position; for (let i = 0; i < pa.count; i++) { const x = pa.getX(i), y = pa.getY(i), z = pa.getZ(i), k = 1 + .16 * Math.sin(x * 2.1 + z * 1.7) * Math.cos(y * 2.6 + x); pa.setXYZ(i, x * k, y * k, z * k); } lg.computeVertexNormals(); } lg.translate(0, 6.2, 0);
+        const tm = new THREE.InstancedMesh(tg, barkMat, tr.length), lm = new THREE.InstancedMesh(lg, leafMat, tr.length), S = new THREE.Vector3(), Qt = new THREE.Quaternion(), Po = new THREE.Vector3(), Cl = new THREE.Color();
+        tr.forEach(([x, z], i) => { const s = .85 + .3 * ((Math.sin(x * 12.9 + z * 7.1) + 1) / 2); Po.set(x, top, z); S.set(s, s, s); Qt.setFromAxisAngle(new THREE.Vector3(0, 1, 0), x + z); M4.compose(Po, Qt, S); tm.setMatrixAt(i, M4); lm.setMatrixAt(i, M4); lm.setColorAt(i, Cl.setHSL(.26 + .03 * Math.sin(x), .32, .3 + .05 * Math.cos(z))); });
+        G.add(tm, lm); }
+      else if (L.id === "eki1" || L.id === "eki2") { const h = b[0]; G.add(extrude(P, y, h * .72, glassMat, .02), extrude(P, y + h * .72, h * .28, slabMat)); }
+    }
+    // 西口のデッキ（模式）：駅から西へ、2 階の高さで歩く人を渡す床と柱と手すり
+    if (Z.id === "nishi") { const y = groundY(-745, 110) + 6.5, P = [[-780, 80], [-712, 80], [-712, 140], [-780, 140]].map(([x, z]) => new THREE.Vector2(x, z));
+      G.add(extrude(P, y - .9, .9, slabMat), extrude(P, y, .02, deckMat));
+      const cg = new THREE.CylinderGeometry(.5, .5, 6.5, 8); cg.translate(0, 3.25, 0); const pts = []; for (let x = -774; x <= -718; x += 14) for (let z = 86; z <= 134; z += 16) pts.push([x, z]);
+      const cm = new THREE.InstancedMesh(cg, slabMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
+      const rl = []; for (let i = 0; i < 4; i++) { const a = P[i], c = P[(i + 1) % 4]; rl.push(a.x, y + 1.1, a.y, c.x, y + 1.1, c.y); } const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rl, 3)); G.add(new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xd8dde0 }))); }
+    // 東口のロータリー（模式）：まるい植え込みの島と、バスの待つ屋根
+    if (Z.id === "higashi") { const cx = -540, cz = 70, y = groundY(cx, cz);
+      const isl = new THREE.Mesh(new THREE.CylinderGeometry(9, 9.3, .35, 40), leafMat); isl.position.set(cx, y + .17, cz); const curb = new THREE.Mesh(new THREE.TorusGeometry(9.2, .18, 6, 48).rotateX(Math.PI / 2), slabMat); curb.position.set(cx, y + .3, cz); G.add(isl, curb);
+      for (let k = 0; k < 3; k++) { const a = -.6 + k * .6, x = cx + Math.cos(a) * 17, z = cz + Math.sin(a) * 17, sh = new THREE.Group();
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(8, .15, 2.4), glassMat); roof.position.y = 2.8; sh.add(roof); for (const dx of [-3.6, 3.6]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 2.8, 6), slabMat); p.position.set(dx, 1.4, -.9); sh.add(p); }
+        sh.position.set(x, groundY(x, z), z); sh.rotation.y = -a + Math.PI / 2; G.add(sh); } }
+  }
   function buildTile(C, key) {
-    const list = C.J.b[key]; const wp = [], rp = [], ep = [];
-    for (const b of list) { const h = b[0], n = (b.length - 1) / 2; let y = 1e9; for (let i = 0; i < n; i++) y = Math.min(y, groundY(b[1 + i * 2], b[2 + i * 2]));
-      for (let i = 0; i < n; i++) { const j = (i + 1) % n, ax = b[1 + i * 2], az = b[2 + i * 2], bx = b[1 + j * 2], bz = b[2 + j * 2];
-        wp.push(ax, y, az, bx, y, bz, bx, y + h, bz, ax, y, az, bx, y + h, bz, ax, y + h, az); ep.push(ax, y + h, az, bx, y + h, bz, ax, y, az, ax, y + h, az); }
+    const list = C.J.b[key]; const wp = [], wf = [], wc = [], rp = [], ep = [];
+    for (const b of list) { if (lmAt(b)) continue; const h = b[0], n = (b.length - 1) / 2; let y = 1e9; for (let i = 0; i < n; i++) y = Math.min(y, groundY(b[1 + i * 2], b[2 + i * 2]));
+      const sd = Math.abs(Math.sin(b[1] * 12.9898 + b[2] * 78.233)) % 1, col = h >= 40 ? GLS[(sd * 3) | 0] : FAC[(sd * 6) | 0];
+      // 輪郭の回りの向きをそろえる（外向きの面が表になるように）
+      let ar = 0; for (let i = 0; i < n; i++) { const j = (i + 1) % n; ar += b[1 + i * 2] * b[2 + j * 2] - b[1 + j * 2] * b[2 + i * 2]; }
+      let u = 0;
+      for (let k = 0; k < n; k++) { const i = ar > 0 ? k : n - 1 - k, j = ar > 0 ? (k + 1) % n : (n - 2 - k + n) % n, ax = b[1 + i * 2], az = b[2 + i * 2], bx = b[1 + j * 2], bz = b[2 + j * 2], L = Math.hypot(bx - ax, bz - az);
+        wp.push(ax, y, az, ax, y + h, az, bx, y + h, bz, ax, y, az, bx, y + h, bz, bx, y, bz);
+        wf.push(u, 0, h, u, h, h, u + L, h, h, u, 0, h, u + L, h, h, u + L, 0, h); for (let q = 0; q < 6; q++) wc.push(...col);
+        ep.push(ax, y + h, az, bx, y + h, bz); u += L; }
       const pts = []; for (let i = 0; i < n; i++) pts.push(new THREE.Vector2(b[1 + i * 2], b[2 + i * 2]));
       const tri = THREE.ShapeUtils.triangulateShape(pts, []); for (const t of tri) for (const k of t) rp.push(pts[k].x, y + h, pts[k].y); }
     const T = new THREE.Group();
-    const wg = new THREE.BufferGeometry(); wg.setAttribute("position", new THREE.Float32BufferAttribute(wp, 3)); wg.computeVertexNormals();
-    const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rp, 3)); rg.computeVertexNormals();
+    const wg = new THREE.BufferGeometry(); wg.setAttribute("position", new THREE.Float32BufferAttribute(wp, 3)); wg.setAttribute("aF", new THREE.Float32BufferAttribute(wf, 3)); wg.setAttribute("color", new THREE.Float32BufferAttribute(wc, 3));
+    const uv = []; for (let i = 0; i < wf.length; i += 3) uv.push(wf[i] / 2.6, wf[i + 1] / 2.6); wg.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); wg.computeVertexNormals();
+    const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rp, 3)); const ru = []; for (let i = 0; i < rp.length; i += 3) ru.push(rp[i] / 6, rp[i + 2] / 6); rg.setAttribute("uv", new THREE.Float32BufferAttribute(ru, 2)); rg.computeVertexNormals();
     const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(ep, 3));
-    const wm = new THREE.Mesh(wg, bldMat), rm2 = new THREE.Mesh(rg, roofMat), el = new THREE.LineSegments(eg, edgeMat); wm.renderOrder = rm2.renderOrder = 2; T.add(wm, rm2, el); C.g.add(T); return T;
+    const wm = new THREE.Mesh(wg, bldMat), rm2 = new THREE.Mesh(rg, roofMat), el = new THREE.LineSegments(eg, edgeMat); rm2.material.side = THREE.DoubleSide; T.add(wm, rm2, el); C.g.add(T); return T;
   }
   function dropChunk(id) {
     const C = A.chunks[id]; if (!C || !C.g) { delete A.chunks[id]; return; }
     onUnchunk?.(C);
-    const keep = new Set([roadMat, groundMat, bldMat, roofMat, edgeMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
+    const keep = new Set([roadMat, groundMat, bldMat, roofMat, edgeMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
   }
   function ensure(Z) {
     if (!Z.chunk) return Promise.resolve(null);
