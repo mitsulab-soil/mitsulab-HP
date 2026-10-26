@@ -6,17 +6,17 @@
 import * as THREE from 'three';
 import { LAYER5 } from './kit/layer-colors.js?v=20261023k';
 
-const root = document.getElementById('top');
-const cv = document.getElementById('v2cv');
-const labsBox = document.getElementById('v2labs');
+/* v4（2026-10-26 夜 本人「スクロールで動くグラフィックは廃止」）：節ごとの枠（.v2-fig）に、決まった場面を一つずつ描く。枠が近づいてから読み、見えないあいだは止める。 */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const mobile = Math.min(innerWidth, innerHeight) < 700;
-const scenes = [...document.querySelectorAll('[data-v2-scene]')];
 
 function hasGL() { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } }
-if (!cv || !hasGL()) { document.documentElement.classList.add('v2-no3d'); } else boot().catch(e => { console.warn('v2-world', e); document.documentElement.classList.add('v2-no3d'); });
+if (!hasGL()) document.documentElement.classList.add('v2-no3d');
+else document.querySelectorAll('.v2-fig').forEach(f => { const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); boot(f, +f.dataset.fig).catch(e => { console.warn('v2-world', e); f.classList.add('no3d'); }); } }, { rootMargin: '600px 0px' }); o.observe(f); });
 
-async function boot() {
+async function boot(root, SC) {
+  const cv = root.querySelector('canvas'), labsBox = root.querySelector('.v2-labs');
+  const BW = () => cv.clientWidth || 1, BH = () => cv.clientHeight || 1;
   const [meta, bin] = await (window.__sandoWire || (window.__sandoWire = Promise.all([fetch('img/hero/sando_wire.json').then(r => r.json()), fetch('img/hero/sando_wire.bin').then(r => r.arrayBuffer())])));
   const I = new Int16Array(bin), Q = meta.q, HG = meta.hgrid;
   const hAt = (x, z) => { const c = Math.max(0, Math.min(HG.cols - 1, Math.round((x - HG.x0) / HG.d))), r = Math.max(0, Math.min(HG.rows - 1, Math.round((z - HG.z0) / HG.d))); return HG.v[r * HG.cols + c] / 10; };
@@ -235,7 +235,7 @@ async function boot() {
   };
 
   // ---- 寄りの挿し絵：一つの生き物に寄った 3D と、受けとる手がかりの一行（場面 1 だけ・同じ描画器の一角に描く）
-  const insEl = document.getElementById('v2inset'), IS = new THREE.Scene(), IC = new THREE.PerspectiveCamera(30, 1.3, .01, 50);
+  const insEl = root.querySelector('.v2-inset'), IS = new THREE.Scene(), IC = new THREE.PerspectiveCamera(30, 1.3, .01, 50);
   IS.add(new THREE.HemisphereLight(0xe8eef6, 0x3a2e22, 1.1), new THREE.AmbientLight(0xffffff, .15)); { const d = new THREE.DirectionalLight(0xffe2b8, 3.2); d.position.set(-2.5, 2.2, 1.6); IS.add(d); const b = new THREE.DirectionalLight(0xbfe0ff, 2.2); b.position.set(1.5, 1.2, -3); IS.add(b); const f = new THREE.DirectionalLight(0xfff0e0, .5); f.position.set(2, .3, 2); IS.add(f); }
   const INS = [['bee'], ['koumori', 'fly'], ['tick'], ['aosuji', 'fly'], ['mimizu', 'crawl']];   // 本文の順（ミツバチ → コウモリ → マダニ）
   let insI = -1, insT = 99, insObj = null, insMix = null, insBusy = false;
@@ -256,12 +256,12 @@ async function boot() {
   function drawInset(dt, t) {
     const on = cur === 1 && tIn > .75 && SM1; if (insEl) insEl.classList.toggle('on', !!(on && insObj)); if (!on || !insEl) return;
     insT += dt; if (insT > 4.2) nextInset(); if (!insObj) return;
-    if (mobile) { const cd = document.querySelector('#umwelt1 .v2-card'), ct = cd ? cd.getBoundingClientRect().top : innerHeight; const h = insEl.offsetHeight || 124; const room = ct - h - 10 >= innerHeight * .5; insEl.style.top = Math.min(innerHeight - h - 12, ct - h - 10) + 'px'; insEl.style.visibility = room ? '' : 'hidden'; if (!room) return; }
-    const r = insEl.getBoundingClientRect(), H = innerHeight; if (r.width < 10) return;
+    if (false) { const cd = document.querySelector('#umwelt1 .v2-card'), ct = cd ? cd.getBoundingClientRect().top : innerHeight; const h = insEl.offsetHeight || 124; const room = ct - h - 10 >= innerHeight * .5; insEl.style.top = Math.min(innerHeight - h - 12, ct - h - 10) + 'px'; insEl.style.visibility = room ? '' : 'hidden'; if (!room) return; }
+    const cb = cv.getBoundingClientRect(), r0 = insEl.getBoundingClientRect(), H = BH(); const r = { left: r0.left - cb.left, bottom: r0.bottom - cb.top, width: r0.width, height: r0.height }; if (r.width < 10) return;
     insMix && insMix.update(dt); insObj.rotation.y = reduce ? .6 : t * .35;
     IC.aspect = r.width / r.height; IC.position.set(0, .32, 1.3); IC.lookAt(0, 0, 0); IC.updateProjectionMatrix();
     R.setScissorTest(true); R.setViewport(r.left, H - r.bottom, r.width, r.height); R.setScissor(r.left, H - r.bottom, r.width, r.height);
-    R.setClearColor(0x15130f, 1); R.clear(); R.render(IS, IC); R.setScissorTest(false); R.setViewport(0, 0, innerWidth, innerHeight); R.setClearColor(0x03060f, 1);
+    R.setClearColor(0x15130f, 1); R.clear(); R.render(IS, IC); R.setScissorTest(false); R.setViewport(0, 0, BW(), BH()); R.setClearColor(0x03060f, 1);
   }
 
   // ---- カメラの決まった角度（場面ごと）
@@ -272,26 +272,25 @@ async function boot() {
     { p: new THREE.Vector3(mobile ? -760 : -1560, mobile ? 3000 : 2150, 1100), t: new THREE.Vector3(mobile ? -760 : -1560, 0, -720) },                         // 3 Qualium：場を見下ろす
     { p: new THREE.Vector3(60, 520, 900), t: new THREE.Vector3(0, 0, -300) },                                               // 4 以降
   ];
-  let cur = 0, k = 0, from = { p: KF[0].p.clone(), t: KF[0].t.clone() }, to = KF[0], tIn = 1, sceneT = 0;
-  const camP = KF[0].p.clone(), camT = KF[0].t.clone();
-  const go = i => { i = Math.max(0, Math.min(KF.length - 1, i)); if (i === cur) return; from = { p: camP.clone(), t: camT.clone() }; to = KF[i]; cur = i; tIn = reduce ? 1 : 0; sceneT = 0; root.dataset.v2 = i; };
-  root.dataset.v2 = 0;
-  const io = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) go(+e.target.dataset.v2Scene); }); }, { rootMargin: '-45% 0px -45% 0px' });
-  scenes.forEach(s => io.observe(s));
+  KF[1] = { p: BO.clone().add(new THREE.Vector3(mobile ? 3 : 5, mobile ? 20 : 15, mobile ? 38 : 34)), t: BO.clone().add(new THREE.Vector3(-1, mobile ? 1 : 1.5, 0)) };
+  KF[2] = { p: AO.clone().add(new THREE.Vector3(mobile ? 2 : 6, mobile ? 26 : 17, mobile ? 30 : 27)), t: AO.clone().add(new THREE.Vector3(0, 2, 0)) };
+  let cur = SC, k = 0, from = { p: KF[SC].p.clone(), t: KF[SC].t.clone() }, to = KF[SC], tIn = 1, sceneT = 0;
+  const camP = KF[SC].p.clone(), camT = KF[SC].t.clone();
+  const go0 = i => { i = Math.max(0, Math.min(KF.length - 1, i)); if (i === cur) return; from = { p: camP.clone(), t: camT.clone() }; to = KF[i]; cur = i; tIn = reduce ? 1 : 0; sceneT = 0; root.dataset.v2 = i; };
 
-  const size = () => { const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? 62 : 48; cam.updateProjectionMatrix(); };
-  size(); addEventListener('resize', size);
+  const size = () => { const w = BW(), h = BH(); R.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? 62 : 48; cam.updateProjectionMatrix(); };
+  size(); new ResizeObserver(size).observe(cv);
   const ease = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   let last = performance.now(), visible = true, running = true, mx = 0, my = 0;
-  if (!reduce && !mobile) addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; }, { passive: true });
-  new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(root);
+  if (!reduce && !mobile) addEventListener('pointermove', e => { const b = cv.getBoundingClientRect(); mx = Math.max(-.5, Math.min(.5, (e.clientX - b.left) / b.width - .5)); my = Math.max(-.5, Math.min(.5, (e.clientY - b.top) / b.height - .5)); }, { passive: true });
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible && !frame.seen) { frame.seen = 1; sceneT = 0; } }).observe(root);
   document.addEventListener('visibilitychange', () => { running = !document.hidden; });
   let agentsAsked = false;
 
   function frame(now) {
     requestAnimationFrame(frame);
     const dt = Math.min(.05, (now - last) / 1000); last = now;
-    if (!visible || !running || !root.classList.contains('active')) return;
+    if (!visible || !running || !document.getElementById('top').classList.contains('active')) return;
     tIn = Math.min(1, tIn + dt / 2.2); sceneT += dt; const e = ease(tIn);
     camP.lerpVectors(from.p, to.p, e); camT.lerpVectors(from.t, to.t, e);
     cam.position.copy(camP);
@@ -304,7 +303,7 @@ async function boot() {
     g2.visible = cur >= 1 && cur <= 3;
     g3.visible = cur >= 3;
         const t = now / 1000;
-    if (!real1 && !frame.r1 && (cur >= 1 || now > 2500)) { frame.r1 = 1; loadReal1(); }
+    if (!real1 && !frame.r1 && cur === 1) { frame.r1 = 1; loadReal1(); }
     if (g1.visible) { for (let j = 0; j < 4; j++) for (let k = 0; k < 6; k++) { const u = reduce ? k / 6 : (t * .22 + k / 6 + j * .13) % 1; qArc[j].getPoint(u, _v); puP.set([_v.x, _v.y, _v.z], (j * 6 + k) * 3); } puG.attributes.position.needsUpdate = true; }
     if (real1 && g1.visible) { const u = real1.userData; u.sp.forEach(m => m.update(reduce ? 0 : dt));
       if (!reduce) { if (u.bat) u.bat.object.position.set(-6 + Math.sin(t * .5) * 2.5, 6.2 + Math.sin(t * 1.1) * .4, -2 + Math.cos(t * .5) * 1.6), u.bat.object.rotation.y = .9 - t * .5; if (u.ageha) u.ageha.object.position.y = u.BEE.y + 1 + Math.sin(t * 1.7) * .3; } }
@@ -332,14 +331,14 @@ async function boot() {
     R.render(S, cam);
     drawInset(dt, t);
     // 札
-    const W = innerWidth, H = innerHeight, placed = []; const cardEl = scenes[cur] && scenes[cur].querySelector('.v2-card'); let cardR = cardEl ? cardEl.getBoundingClientRect() : null; if (cardR && (cardR.bottom < 0 || cardR.top > H)) cardR = null;
+    const W = BW(), H = BH(), placed = []; const cardR = null;
     labs.forEach(el => { const sc = el.dataset.sc.split(',').map(Number), on = sc.includes(cur) && tIn > .75; if (!on) { if (el.classList.contains('on')) el.classList.remove('on'); el._ld.style.display = 'none'; return; }
       if (mobile && el.dataset.m === '0') { el.classList.remove('on'); return; }
       const id = el.dataset.at; let p = AT[id]; if (!p) return; _v.copy(p);
       _v.project(cam); const vis = _v.z < 1 && Math.abs(_v.x) < 1.05 && Math.abs(_v.y) < 1.05; el.classList.toggle('on', vis); if (!vis) el._ld.style.display = 'none';
       if (vis) { const w = el.offsetWidth || 160, h = el.offsetHeight || 30, px = (_v.x + 1) / 2 * W, py = (1 - _v.y) / 2 * H;
         // 札どうし・本文のカードと重ならない置き場を探す（右 → 左 → 上下へ少しずつ）。v3b：スマホ 2.0 で札が重なっていた
-        const cl = (x, y) => [Math.max(6, Math.min(W - w - 8, x)) | 0, Math.max(74, Math.min(H - h - 6, y)) | 0];
+        const cl = (x, y) => [Math.max(6, Math.min(W - w - 8, x)) | 0, Math.max(6, Math.min(H - h - 6, y)) | 0];
         const ov = (x, y, r) => Math.max(0, Math.min(x + w + 4, r[2]) - Math.max(x, r[0])) * Math.max(0, Math.min(y + h + 3, r[3]) - Math.max(y, r[1]));
         const cost = (x, y) => placed.reduce((a, r) => a + ov(x, y, r), 0) + (cardR ? ov(x, y, [cardR.left, cardR.top, cardR.right, cardR.bottom]) * 6 : 0);
         let best = null, bc = 1e18; const st = h * .5 + 3;
@@ -349,6 +348,6 @@ async function boot() {
         el.style.transform = `translate3d(${best[0]}px,${best[1]}px,0)`; } });
   }
   requestAnimationFrame(frame);
-  document.documentElement.classList.add('v2-3d');
-  window.__v2 = 'ok'; if (/[?&]dbg/.test(location.search)) window.__v2d = { cam, S, R, AO, BO, KF, go };
+  root.classList.add('on3d');
+  window.__v2 = 'ok'; if (/[?&]dbg/.test(location.search)) window.__v2d = { cam, S, R, AO, BO, KF, go: go0 };
 }

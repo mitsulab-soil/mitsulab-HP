@@ -155,3 +155,48 @@ body:has(#top.active) footer{margin-top:0}
 @media (max-width:700px){#top .v2-lab{font-size:8px;line-height:1.4;max-width:44vw;background:#03060fe6;padding:2px 5px 2px 8px}#top .v2-lab .k{font-size:7.5px;letter-spacing:.1em}}
 @media (max-width:700px){html[data-lang=en] #top .v2-lab{font-family:var(--sans);letter-spacing:0;max-width:40vw}}
 .v2-nw{white-space:nowrap}
+/* v4（2026-10-26 夜 本人「スクロールで動くグラフィックは廃止」）：TOP は 6 節を上から順に。1.0・2.0 の 3D は節の中の枠に */
+#top{background:#03060f}
+.v2-scene{min-height:0;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:28px 36px;align-items:start;padding:72px max(16px,4vw) 40px;max-width:1440px;margin:0 auto;position:relative}
+.v2-scene>.v2-card{grid-column:1}
+.v2-fig{grid-column:2;grid-row:1 / span 2;margin:0;position:sticky;top:84px}
+.v2-figbox{position:relative;aspect-ratio:4/3;background:#03060f;border:1px solid #8bccca2e;overflow:hidden}
+.v2-figbox canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1s}
+.v2-fig.on3d canvas{opacity:1}
+.v2-fig figcaption{font-size:12px;line-height:1.7;color:#9fb6b8;margin-top:8px}
+.v2-fig .v2-labs{position:absolute;inset:0}
+.v2-fig .v2-inset{right:12px;top:12px;width:200px;height:160px}
+.v2-qualium,.v2-loopfold{grid-column:1;max-width:560px}
+.v2-qualium .v2-card{margin-top:0}
+.v2-loopfold{border:1px solid #8bccca33;background:#07101cb0}
+.v2-loopfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;min-height:48px;padding:6px 16px}
+.v2-loopfold>summary::-webkit-details-marker{display:none}
+.v2-loopfold>summary::after{content:"+";margin-left:auto;color:#a8f2f6;font-size:20px}.v2-loopfold[open]>summary::after{content:"−"}
+.v2-loopfold>.lp-sec{padding:4px 16px 16px}
+.v2-loopfold .lp-figs{flex-direction:column}
+#vision{display:block;min-height:76svh;overflow:hidden;max-width:none;padding-top:120px}
+#vision .v2-vbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;z-index:0}
+#vision::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#03060fcc 0,#03060f66 45%,#03060f00 75%);z-index:0}
+#vision .v2-card{position:relative;z-index:1;max-width:640px;margin-left:max(0px,calc((100vw - 1440px)/2))}
+.v2-umw-ja{white-space:normal}
+@media (max-width:860px){
+  .v2-scene{grid-template-columns:1fr;padding:48px 16px 24px;gap:16px}
+  .v2-fig{grid-column:1;grid-row:auto;position:relative;top:0}
+  .v2-figbox{aspect-ratio:4/5}
+  .v2-qualium,.v2-loopfold{max-width:none}
+  .v2-fig .v2-inset{width:120px;height:110px;right:8px;top:8px}
+  #vision{min-height:70svh;padding-top:96px;display:flex;align-items:flex-end}
+  #vision::after{background:linear-gradient(0deg,#03060fee 0,#03060f66 55%,#03060f22 100%)}
+}
+/* フッターの SNS と記録（2026-10-26 夜。アイコンは自作の線） */
+.f-sns{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.f-sns a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px;border:1px solid #8bccca40;color:var(--ink);text-decoration:none;font-size:13.5px}
+.f-sns a:hover,.f-sns a:focus-visible{border-color:#a8f2f6;background:#a8f2f60f}
+.f-sns svg{width:18px;height:18px;fill:none;stroke:#a8f2f6;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.f-sns small{font:400 10.5px/1 var(--mono);letter-spacing:.06em;color:#9fb6b8}
+@media (max-width:700px){.f-sns a{flex:1 1 100%}}
+#vision .v2-code{display:none}
+.v2-fig .v2-inset{width:240px;height:170px}
+.si-grid{align-items:stretch}.si-card{display:flex;flex-direction:column}
+.v2-portfolio{padding-top:48px}
+@media (max-width:860px){.v2-fig .v2-inset{width:132px;height:118px}}
