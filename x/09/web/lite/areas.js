@@ -111,7 +111,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   // 道＝アスファルト（CC0・ambientCG Asphalt023S）、地面＝コンクリートの舗装（CC0・Poly Haven）。建物は半透明の薄い面（参道の建物と同じ考え）
   const roadMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Asphalt023S_c5.webp"), normalMap: tex(BASE + "tex/Asphalt023S_n5.webp", false), color: 0x56544f, roughness: .9, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const sandMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/gravelly_sand_c5.webp"), normalMap: tex(BASE + "tex/gravelly_sand_n5.webp", false), color: 0xb9ad94, roughness: .97, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  const groundMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), normalMap: tex(BASE + "tex/concrete_pavement_n5.webp", false), color: 0x625f58, roughness: .95, metalness: 0 });
+  const groundMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/PavingStones130_c5.webp"), normalMap: tex(BASE + "tex/PavingStones130_n5.webp", false), color: 0x8a8780, roughness: .95, metalness: 0 });
   // 2026-10-26 2：道と地面が白く飛んで一面の灰色に見えた → 色を下げ、地面には数十 m のむら（目地の汚れ・雨じみ）を重ねる
   groundMat.onBeforeCompile = sh => { sh.uniforms.uLandG = window.__qw?.LANDG || { value: 0 };
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz;");
@@ -124,7 +124,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   // 2026-10-26 3：灰色の半透明の箱 → 不透明の壁・窓・素材（川越の蔵と同じく、近寄っても破綻しない面に）。
   // 壁＝コンクリートの質感（CC0・Poly Haven）に、階（3.4 m）と柱間（2.6 m）の窓をシェーダで刻む。色は建物ごとに 6 種の外装（模式）。
   // 40 m を超える高い建物（新都心のビル群・駅前の高層）はガラスのカーテンウォール、低層の 1 階は店先のガラス。形は OSM の輪郭と高さ（模式）。
-  const bldMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), normalMap: tex(BASE + "tex/concrete_pavement_n5.webp", false), vertexColors: true, roughness: .82, metalness: 0, side: THREE.DoubleSide });
+  const bldMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Concrete034_c5.webp"), normalMap: tex(BASE + "tex/Concrete034_n5.webp", false), vertexColors: true, roughness: .82, metalness: 0, side: THREE.DoubleSide });
   const roofMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/gravel_embedded_concrete_c5.webp"), color: 0x6c6a66, roughness: .95, metalness: 0 });
   const edgeMat = new THREE.LineBasicMaterial({ color: 0xdfe8ee, transparent: true, opacity: .18, depthWrite: false });
   bldMat.onBeforeCompile = sh => {
@@ -205,7 +205,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       .replace("#include <common>", "#include <common>\nuniform float uBase;"); sh.uniforms.uBase = metalMat.userData.base; };
   metalMat.userData.base = { value: 8 }; metalMat.customProgramCacheKey = () => "lmMetal";
   const deckMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/granite_tile_c5.webp"), normalMap: tex(BASE + "tex/granite_tile_n5.webp", false), color: 0x9a968e, roughness: .85 });
-  const slabMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), color: 0x8a8883, roughness: .9 });
+  const slabMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Concrete034_c5.webp"), color: 0x9a9893, roughness: .9, emissive: 0x3a3a38 });   // デッキの下が暗く沈まないよう、裏面に弱い明るさ
   const grassMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), color: 0xbdd39a, roughness: 1 }); grassMat.map.repeat?.set(9, 9);
   const leafMat = new THREE.MeshStandardMaterial({ color: 0x7d9a62, roughness: .95 }), barkMat = new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 1 });
   const glassMat = new THREE.MeshStandardMaterial({ color: 0x26323c, roughness: .08, metalness: .7, transparent: true, opacity: .82 });
