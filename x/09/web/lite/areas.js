@@ -117,6 +117,9 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; float gH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);} float gN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gH(i),gH(i+vec2(1,0)),f.x),mix(gH(i+vec2(0,1)),gH(i+vec2(1,1)),f.x),f.y);}")
       .replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 p=vGw.xz; float n=gN(p*.05)*.6+gN(p*.17)*.4; diffuseColor.rgb*=.74+n*.5; vec3 big=texture2D(map,p*.027+.31).rgb; diffuseColor.rgb*=.7+dot(big,vec3(.333))*.6; vec3 t2=texture2D(map,mat2(.8,-.6,.6,.8)*p*.113+.17).rgb; diffuseColor.rgb*=mix(1.,dot(t2,vec3(.333))*2.1,.5*gN(p*.031)); }"); };
   groundMat.customProgramCacheKey = () => "areaGroundMacro";
+  // 2026-10-26 3（採点「地面が一面同じ石の板」）：40 m の区画ごとに 3 種の舗装（CC0・Poly Haven）を混ぜる
+  const mkG = (c, n, col) => { const m = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/" + c), normalMap: tex(BASE + "tex/" + n, false), color: col, roughness: .93, metalness: 0 }); m.onBeforeCompile = groundMat.onBeforeCompile; m.customProgramCacheKey = () => "areaGroundMacro"; return m; };
+  const GMATS = [groundMat, mkG("concrete_pavers_02_c5.webp", "concrete_pavers_02_n5.webp", 0x6a665e), mkG("granite_tile_04_c5.webp", "granite_tile_04_n5.webp", 0x5d5b57)];
   // 2026-10-26 3：灰色の半透明の箱 → 不透明の壁・窓・素材（川越の蔵と同じく、近寄っても破綻しない面に）。
   // 壁＝コンクリートの質感（CC0・Poly Haven）に、階（3.4 m）と柱間（2.6 m）の窓をシェーダで刻む。色は建物ごとに 6 種の外装（模式）。
   // 40 m を超える高い建物（新都心のビル群・駅前の高層）はガラスのカーテンウォール、低層の 1 階は店先のガラス。形は OSM の輪郭と高さ（模式）。
@@ -153,9 +156,9 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     float cl=wH(floor(R.xz/(abs(R.y)+.2)*3.))*.12; totalEmissiveRadiance+=(skyR+cl)*wR*fr*(vF.z>=40.?.9:.55); }`); };
   bldMat.customProgramCacheKey = () => "areaFacade3";
   const FAC = [[.78,.76,.72],[.86,.84,.80],[.70,.64,.56],[.60,.58,.56],[.74,.70,.62],[.55,.47,.42]], GLS = [[.42,.50,.58],[.38,.46,.52],[.50,.55,.58]];
-  for (const m of [roadMat, groundMat, bldMat, roofMat, edgeMat]) m.userData.land = true;
+  for (const m of [roadMat, ...GMATS, bldMat, roofMat, edgeMat]) m.userData.land = true;
   // 2026-10-26 2：駅前の地形の写真（屋根の写った空中写真）が道と地面の上に白くかぶっていた → 参道の道と同じく、道と地面の画素に印を付けて地形を描かない
-  for (const m of [roadMat, groundMat]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
+  for (const m of [roadMat, ...GMATS]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
   function buildChunk(Z, J) {
     const G = new THREE.Group(); G.name = "area_" + Z.id; const C = { Z, J, g: G, w: J.w, tiles: {}, places: [] };
     for (const w of J.w) { let b = [1e9, 1e9, -1e9, -1e9]; for (let i = 1; i < w.length; i += 2) { b[0] = Math.min(b[0], w[i]); b[1] = Math.min(b[1], w[i + 1]); b[2] = Math.max(b[2], w[i]); b[3] = Math.max(b[3], w[i + 1]); } w.b = b; }
@@ -169,10 +172,10 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     const road = new THREE.Mesh(rg, roadMat); road.renderOrder = -3; road.name = "areaRoad"; G.add(road); C.road = road;
     // 地形（DEM）の外の地面：エリアの中の 20 m の区画だけ（模式の平らな地）
     const P = Z.poly; let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (let i = 0; i < P.length; i += 2) { x0 = Math.min(x0, P[i]); x1 = Math.max(x1, P[i]); z0 = Math.min(z0, P[i + 1]); z1 = Math.max(z1, P[i + 1]); }
-    const CS = 20, gp = [];
-    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || (inDem(cx, cz) && !Z.groundAll)) continue; const y = groundY(cx, cz) - .02;
+    const CS = 20, gps = [[], [], []]; let gp;
+    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || (inDem(cx, cz) && !Z.groundAll)) continue; const y = groundY(cx, cz) - .02; const bh = Math.abs(Math.sin(Math.floor(cx / 40) * 12.9898 + Math.floor(cz / 40) * 78.233) * 43758.5453) % 1; gp = gps[0];   // 区画で舗装を切りかえると帯に見えた（採点）→ 一種に戻し、柄のむらはシェーダで
       gp.push(x, y, z, x, y, z + CS, x + CS, y, z, x + CS, y, z, x, y, z + CS, x + CS, y, z + CS); }
-    if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) gu.push(gp[i] / 6, gp[i + 2] / 6); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, groundMat); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.ground = gm; }
+    C.grounds = []; for (let k = 0; k < 3; k++) { gp = gps[k]; if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) gu.push(gp[i] / 6, gp[i + 2] / 6); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, GMATS[k]); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.grounds.push(gm); C.ground ||= gm; } }
     world.add(G);
     buildLandmarks(Z, J, G);
     onChunk?.(Z, J, C);
@@ -184,6 +187,10 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     { id: "keyaki", area: "shintoshin", c: [30, 1566] },     // けやきひろば：空中の人工地盤（2 階の高さ）に、ケヤキの林
     { id: "eki1", area: "nishi", c: [-649, 120] }, { id: "eki2", area: "nishi", c: [-625, 88] },   // 大宮駅：ガラスの駅舎
   ];
+  // 2026-10-26 3（採点「公園なのに正面にビル」）：大宮公園の園地の中（park.json の格子）にかかる建物は描かない（木立と池を主役に）
+  let PK = null; fetch(BASE + "park.json?v=20261026p").then(r => r.json()).then(J => { const [x0, z0, cs, nx, nz] = J.g, m = J.g[5]; PK = { x0, z0, cs, nx, nz, m, box: J.box }; }).catch(() => { });
+  const inPark = b => { if (!PK) return false; const n = (b.length - 1) / 2; { const B = PK.box; let cx = 0, cz = 0; for (let i = 0; i < n; i++) { cx += b[1 + i * 2]; cz += b[2 + i * 2]; } cx /= n; cz /= n; if (cx > B[0] && cx < B[2] && cz > B[1] && cz < B[3]) return true; } for (let i = 0; i <= n; i++) { const x = i < n ? b[1 + i * 2] : b.slice(1).filter((_, k) => k % 2 === 0).reduce((a, v) => a + v, 0) / n, z = i < n ? b[2 + i * 2] : b.slice(1).filter((_, k) => k % 2 === 1).reduce((a, v) => a + v, 0) / n;
+      for (const [dx, dz] of [[0, 0], [12, 0], [-12, 0], [0, 12], [0, -12]]) { const gi = Math.floor((x + dx - PK.x0) / PK.cs), gj = Math.floor((z + dz - PK.z0) / PK.cs); if (gi >= 0 && gj >= 0 && gi < PK.nx && gj < PK.nz && PK.m[gj * PK.nx + gi] === "1") return true; } } return false; };
   const lmAt = b => { const n = (b.length - 1) / 2; let x = 0, z = 0; for (let i = 0; i < n; i++) { x += b[1 + i * 2]; z += b[2 + i * 2]; } x /= n; z /= n; for (const L of LM) if (Math.abs(L.c[0] - x) < 6 && Math.abs(L.c[1] - z) < 6) return L; return null; };
   const metalMat = new THREE.MeshStandardMaterial({ color: 0x8f979e, roughness: .42, metalness: .35 });
   metalMat.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vMw;").replace("#include <project_vertex>", "#include <project_vertex>\nvMw=(modelMatrix*vec4(transformed,1.)).xyz;");
@@ -192,9 +199,10 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   metalMat.userData.base = { value: 8 }; metalMat.customProgramCacheKey = () => "lmMetal";
   const deckMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/granite_tile_c5.webp"), normalMap: tex(BASE + "tex/granite_tile_n5.webp", false), color: 0x9a968e, roughness: .85 });
   const slabMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), color: 0x8a8883, roughness: .9 });
+  const grassMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), color: 0x8a9a70, roughness: 1 }); grassMat.map.repeat?.set(4, 4);
   const leafMat = new THREE.MeshStandardMaterial({ color: 0x7d9a62, roughness: .95 }), barkMat = new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 1 });
   const glassMat = new THREE.MeshStandardMaterial({ color: 0x26323c, roughness: .08, metalness: .7, transparent: true, opacity: .82 });
-  for (const m of [metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]) m.userData.land = true;
+  for (const m of [grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]) m.userData.land = true;
   function polyOf(b) { const n = (b.length - 1) / 2, P = []; for (let i = 0; i < n; i++) P.push(new THREE.Vector2(b[1 + i * 2], b[2 + i * 2])); return P; }
   function extrude(P, y0, h, mat, shrink = 0) {
     let cx = 0, cz = 0; for (const p of P) { cx += p.x; cz += p.y; } cx /= P.length; cz /= P.length;
@@ -228,14 +236,14 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       const rl = []; for (let i = 0; i < 4; i++) { const a = P[i], c = P[(i + 1) % 4]; rl.push(a.x, y + 1.1, a.y, c.x, y + 1.1, c.y); } const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rl, 3)); G.add(new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xd8dde0 }))); }
     // 東口のロータリー（模式）：まるい植え込みの島と、バスの待つ屋根
     if (Z.id === "higashi") { const cx = -540, cz = 70, y = groundY(cx, cz);
-      const isl = new THREE.Mesh(new THREE.CylinderGeometry(9, 9.3, .35, 40), leafMat); isl.position.set(cx, y + .17, cz); const curb = new THREE.Mesh(new THREE.TorusGeometry(9.2, .18, 6, 48).rotateX(Math.PI / 2), slabMat); curb.position.set(cx, y + .3, cz); G.add(isl, curb);
+      const isl = new THREE.Mesh(new THREE.CylinderGeometry(9, 9.3, .35, 40), grassMat); isl.position.set(cx, y + .17, cz); const curb = new THREE.Mesh(new THREE.TorusGeometry(9.2, .18, 6, 48).rotateX(Math.PI / 2), slabMat); curb.position.set(cx, y + .3, cz); G.add(isl, curb);
       for (let k = 0; k < 3; k++) { const a = -.6 + k * .6, x = cx + Math.cos(a) * 17, z = cz + Math.sin(a) * 17, sh = new THREE.Group();
         const roof = new THREE.Mesh(new THREE.BoxGeometry(8, .15, 2.4), glassMat); roof.position.y = 2.8; sh.add(roof); for (const dx of [-3.6, 3.6]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 2.8, 6), slabMat); p.position.set(dx, 1.4, -.9); sh.add(p); }
         sh.position.set(x, groundY(x, z), z); sh.rotation.y = -a + Math.PI / 2; G.add(sh); } }
   }
   function buildTile(C, key) {
     const list = C.J.b[key]; const wp = [], wf = [], wc = [], rp = [], ep = [];
-    for (const b of list) { if (lmAt(b)) continue; const h = b[0], n = (b.length - 1) / 2; let y = 1e9; for (let i = 0; i < n; i++) y = Math.min(y, groundY(b[1 + i * 2], b[2 + i * 2]));
+    for (const b of list) { if (lmAt(b) || inPark(b)) continue; const h = b[0], n = (b.length - 1) / 2; let y = 1e9; for (let i = 0; i < n; i++) y = Math.min(y, groundY(b[1 + i * 2], b[2 + i * 2]));
       const sd = Math.abs(Math.sin(b[1] * 12.9898 + b[2] * 78.233)) % 1, col = h >= 40 ? GLS[(sd * 3) | 0] : FAC[(sd * 6) | 0];
       // 輪郭の回りの向きをそろえる（外向きの面が表になるように）
       let ar = 0; for (let i = 0; i < n; i++) { const j = (i + 1) % n; ar += b[1 + i * 2] * b[2 + j * 2] - b[1 + j * 2] * b[2 + i * 2]; }
@@ -256,7 +264,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   function dropChunk(id) {
     const C = A.chunks[id]; if (!C || !C.g) { delete A.chunks[id]; return; }
     onUnchunk?.(C);
-    const keep = new Set([roadMat, groundMat, bldMat, roofMat, edgeMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
+    const keep = new Set([roadMat, ...GMATS, bldMat, roofMat, edgeMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
   }
   function ensure(Z) {
     if (!Z.chunk) return Promise.resolve(null);
@@ -277,7 +285,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     for (const id in A.chunks) { const C = A.chunks[id]; if (!C.ok) continue;
       for (const w of C.w) for (let i = 1; i + 3 < w.length; i += 2) { const ax = w[i], az = w[i + 1], dx = w[i + 2] - ax, dz = w[i + 3] - az, l2 = dx * dx + dz * dz || 1, t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / l2)), px = ax + dx * t, pz = az + dz * t, d = (px - x) ** 2 + (pz - z) ** 2; if (d < bd) { bd = d; best = [px, pz]; } } }
     return best; };
-  A.pickables = () => { const o = []; for (const id in A.chunks) { const C = A.chunks[id]; if (C.road) o.push(C.road); if (C.ground) o.push(C.ground); } return o; };
+  A.pickables = () => { const o = []; for (const id in A.chunks) { const C = A.chunks[id]; if (C.road) o.push(C.road); for (const g of C.grounds || []) o.push(g); } return o; };
   A.info = () => { let tiles = 0, roads = 0; for (const id in A.chunks) { const C = A.chunks[id]; if (!C.ok) continue; tiles += Object.keys(C.tiles).length; roads += C.w.length; } return { loaded: Object.keys(A.chunks), tiles, roads, cur: A.cur?.id || null }; };
 
   A.load = () => A.p ||= fetch(BASE + "zones.json?v=" + VER).then(r => r.json()).then(J => {

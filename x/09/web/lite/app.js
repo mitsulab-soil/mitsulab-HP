@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=16";
+import { makeAreas } from "./areas.js?v=19";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -18,7 +18,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261026x";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261026y";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -387,7 +387,7 @@ function buildBuildings(g) {
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86,.99,1.), band * .7); }`);
   };
   lm.customProgramCacheKey = () => "bldGhostL1";
-  QW.bldMat = m; QW.bldLine = lm;
+  QW.bldMat = m; QW.bldLine = lm; QW.bldGhost = g.scene;
   g.scene.updateMatrixWorld(true);
   g.scene.traverse(o => { if (o.isMesh) { o.material = m; o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); } });
   bldGroup = g.scene; world.add(bldGroup); BLD.length = 0; bldGroup.traverse(o => { if (o.isMesh) BLD.push(o); });
@@ -1482,6 +1482,8 @@ function loadAoi() {
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; });
+    // 2026-10-26 3（採点「服がのっぺりした単色で陰影がない」）：衣の陰をやわらかく少し深く（顔・目・髪はそのまま）
+    v.scene.traverse(o => { for (const m of [].concat(o.material || [])) { if (!m?.isMToonMaterial || /face|eye|hair|brow|mouth|teeth/i.test(m.name + o.name)) continue; if (m.shadeColorFactor) m.shadeColorFactor.lerp(new THREE.Color(0x6f7c8c), .35); if ("shadingToonyFactor" in m) m.shadingToonyFactor = Math.min(m.shadingToonyFactor, .55); if ("shadingShiftFactor" in m) m.shadingShiftFactor = Math.max(m.shadingShiftFactor - .08, -.5); } });
     const root = new THREE.Group(); root.name = "aoi"; root.add(v.scene); root.visible = false; world.add(root);
     for (const j of v.springBoneManager?.joints ?? []) j.center = root;
     v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
@@ -1499,6 +1501,8 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
   const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .62 : 1.1;   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
+  // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
+  if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const s2 = MOBILE ? .12 : 1.0; out.set(CAM.pos.x + fx * f + rx * s2, 0, CAM.pos.z + fz * f + rz * s2); out.y = groundY(out.x, out.z); return out; }
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
   out.y = groundY(out.x, out.z); return out;
@@ -1531,7 +1535,7 @@ function stepAoi(dt) {
     else { let best = null, bd = 1e9; for (const L of LAYER.objs) { if (!L.root.visible) continue; const d = Math.hypot(L.o.x - P.x, L.o.z - P.z); if (d > 3 && d < 22 && d < bd) { bd = d; best = L; } }
       AOI.glance = best ? best.glyph.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(P.x - Math.sin(CAM.yaw) * 12, P.y + 6 + Math.random() * 4, P.z - Math.cos(CAM.yaw) * 12); AOI.gT = 1.6 + Math.random() * 1.4; }
   }
-  if (!AOI.focus) AOI.m.lookAt(AOI.glance || null);
+  if (!AOI.focus) AOI.m.lookAt(AOI.glance || camera.position);   // 2026-10-26 3：目を見る人へ合わせる（焦点のない目にしない）
   // 2026-10-26 3（採点「待つ姿が固い・指が板のよう」）：共通部品は書き換えず、アプリの側で ①指に、指ごとに違う小さな曲がりと開き（ゆっくり変わる）を足し、②そのあとで vrm を進める
   AOI.m.update(dt, camera, { vrmUpdate: false });
   aoiFingers(dt);
@@ -1634,8 +1638,8 @@ function initAreas() {
   if (AREAS) return;
   const g = D.dem, inDem = (x, z) => x > g.x0 && z > g.z0 && x < g.x0 + g.cell * (g.nx - 1) && z < g.z0 + g.cell * (g.nz - 1);
   QW.AREA = AREA; AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile: MOBILE, rm: RM, inDem, tex,
-    onChunk: (Z, J, C) => { for (const m of [C.road, C.ground]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); },
-    onUnchunk: C => { for (const m of [C.road, C.ground]) { const i = pickables.indexOf(m); if (i >= 0) pickables.splice(i, 1); }
+    onChunk: (Z, J, C) => { for (const m of [C.road, ...(C.grounds || [])]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); },
+    onUnchunk: C => { for (const m of [C.road, ...(C.grounds || [])]) { const i = pickables.indexOf(m); if (i >= 0) pickables.splice(i, 1); }
       AREA.marks = AREA.marks.filter(L => L.chunk !== C); if (C.herd) { C.herd.dispose(); AREA.herds = AREA.herds.filter(h => h !== C.herd); if (KASA.cur?.herd === C.herd) KASA.cur = null; } C.dead = true; },
     onPick: Z => areaDescend(Z) });
   AREAS.load();
@@ -1685,6 +1689,8 @@ async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群�
 }
 function stepAreas(dt) {
   if (!AREAS) return; AREAS.update(dt, QW.mode);
+  // 2026-10-26 3：東口・西口・新都心では、参道まわりの半透明の建物（電脳の写し）を出さない（不透明の建物と二重になり、遠くに半透明の箱が残っていた）
+  if (AREAS.ready && QW.bldGhost) { const Zc = AREAS.cur; QW.bldGhost.visible = !(Zc && Zc.ground); }
   const busy = !!PANEL.cur || !!voiceQ; for (const h of AREA.herds) h.update(dt, { active: QW.mode === "walk", busy });
   for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on && !RM) L.glyph.position.y = 2.1 + Math.sin(performance.now() / 900 + L.o.x) * .08; }
 }
