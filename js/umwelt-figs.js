@@ -119,7 +119,7 @@ async function boot(root, SC) {
   const P_PERSON = SC === 2 ? new THREE.Vector3(-1.9, 0, 1.2) : new THREE.Vector3(-1.85, 0, .95);
   const PMc = pointMat(Uc, mobile ? 2.0 : 2.3); { const [p, r] = figureDots(P_PERSON, .7, mobile ? 1800 : 3000, rnd); S.add(new THREE.Points(geo(p, r), PMc)); }
   const P_BEE = new THREE.Vector3(1.15, 2.95, .55);
-  { const [p, r] = dots(place(C.makeBee(), P_BEE, .5, -2.1), 1300, rnd); S.add(new THREE.Points(geo(p, r), pointMat(Uc, mobile ? 1.3 : 1.4))); }
+  { const [p, r] = dots(place(C.makeBee(), P_BEE, SC === 1 ? .8 : .5, -2.1), 1600, rnd); S.add(new THREE.Points(geo(p, r), pointMat(Uc, mobile ? 1.3 : 1.4))); }
   const P_TICK = new THREE.Vector3(1.55, .2, 1.45);
   if (SC === 1) { { const Ut = regionUniforms(0xd6a888, .4); Ut.uTickHide.value = 0; // 模式のマダニ（線）：卵形の胴・前の口・左右 4 対の脚。カメラへ少し起こして形が読めるように
       const L = [], P = [], Rr = [], k = .26, ell = (a, b, cy, n) => { for (let i = 0; i < n; i++) { const q0 = i / n * 6.283, q1 = (i + 1) / n * 6.283; L.push(Math.cos(q0) * a, Math.sin(q0) * b + cy, 0, Math.cos(q1) * a, Math.sin(q1) * b + cy, 0); } };
@@ -178,6 +178,19 @@ async function boot(root, SC) {
     [[bH, 0xf4c2b4], [bB, 0xc4b6ff], [bM, 0xf2d8a0]].forEach(([b, c]) => { const crv = new THREE.QuadraticBezierCurve3(A0, A0.clone().lerp(b.c, .5).add(new THREE.Vector3(0, .7, 0)), b.c); const pts = crv.getPoints(60);
       const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false })); S.add(ln);
       const fp = new THREE.Points(geo(new Array(3 * 10).fill(0)), new THREE.PointsMaterial({ map: GL, color: c, size: .26, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); fp.frustumCulled = false; S.add(fp); links.push({ crv, fp, b }); });
+  }
+  // 1.0：泡ごとの「見え方の画」（模式）。人＝可視光の花の色／ミツバチ＝紫外線で見える花の的の模様／マダニ＝花は届かず、熱と酪酸の気配だけ
+  if (SC === 1) {
+    const card = draw => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.translate(128, 128);
+      const g = x.createRadialGradient(0, 0, 60, 0, 0, 128); g.addColorStop(0, 'rgba(0,0,0,0)'); x.save(); x.beginPath(); x.arc(0, 0, 122, 0, 6.283); x.clip(); draw(x); x.restore();
+      x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = 2; x.beginPath(); x.arc(0, 0, 122, 0, 6.283); x.stroke(); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+    const petals = (x, fill, inner) => { for (let k = 0; k < 8; k++) { x.save(); x.rotate(k / 8 * 6.283); const g = x.createLinearGradient(0, 0, 0, -92); g.addColorStop(0, inner || fill); g.addColorStop(1, fill); x.fillStyle = g; x.beginPath(); x.ellipse(0, -52, 20, 44, 0, 0, 6.283); x.fill(); x.restore(); } };
+    const human = card(x => { x.fillStyle = '#16301e'; x.fillRect(-128, -128, 256, 256); petals(x, '#f2c531', '#f2c531'); x.fillStyle = '#9a5f1a'; x.beginPath(); x.arc(0, 0, 20, 0, 6.283); x.fill(); });
+    const bee = card(x => { x.fillStyle = '#100a24'; x.fillRect(-128, -128, 256, 256); petals(x, '#e6dcff', '#140b30'); x.strokeStyle = 'rgba(20,10,48,.9)'; x.lineWidth = 3; for (let k = 0; k < 24; k++) { const a = k / 24 * 6.283; x.beginPath(); x.moveTo(Math.cos(a) * 22, Math.sin(a) * 22); x.lineTo(Math.cos(a) * 62, Math.sin(a) * 62); x.stroke(); } x.fillStyle = '#0c0620'; x.beginPath(); x.arc(0, 0, 24, 0, 6.283); x.fill(); });
+    const tick = card(x => { x.fillStyle = '#0b0705'; x.fillRect(-128, -128, 256, 256); const g = x.createRadialGradient(-90, 0, 0, -90, 0, 170); g.addColorStop(0, 'rgba(255,150,70,.95)'); g.addColorStop(.5, 'rgba(230,90,40,.45)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(-128, -128, 256, 256);
+      let sd = 5; const r = () => (sd = sd * 16807 % 2147483647) / 2147483647; x.fillStyle = 'rgba(255,220,170,.8)'; for (let i = 0; i < 70; i++) { const a = r() * 6.283, d = 30 + r() * 80; x.beginPath(); x.arc(Math.cos(a) * d - 50, Math.sin(a) * d * .6, 1.5 + r() * 2.5, 0, 6.283); x.fill(); } });
+    [[human, new THREE.Vector3(-2.15, 2.55, .9), .95], [bee, new THREE.Vector3(.55, 3.5, .65), .62], [tick, new THREE.Vector3(2.05, 1.05, 1.95), .4]].forEach(([tx, p, sz]) => {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, opacity: .92, depthWrite: false })); sp.position.copy(p); sp.scale.setScalar(sz); S.add(sp); });
   }
   // 札（3 つまで）：PC は左右の余白に引き出し線、スマホは図の下に番号の凡例
   const AT = SC === 1 ? { hito: new THREE.Vector3(-1.6, 3.2, .55), bee: P_BEE.clone().add(new THREE.Vector3(.2, 1.0, 0)), tick: P_TICK.clone().add(new THREE.Vector3(0, .75, 0)) }

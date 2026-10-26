@@ -251,3 +251,15 @@ html[data-lang=en] .v2-fig .v2-lab{font-family:var(--sans);font-style:normal;fon
 .v2-fig .v2-lab{font-size:15px}.v2-fig .v2-lab .k{font-size:10px}
 html[data-lang=en] .v2-fig .v2-lab{font-size:14px}
 @media (max-width:700px){#top .v2-fig .v2-lab{font-size:13px}html[data-lang=en] #top .v2-fig .v2-lab{font-size:12.5px}}
+/* 2026-10-27 v7：2.0 の節を一つの流れに */
+.v2-sub{margin:22px 0 6px;font:500 11px/1.6 var(--mono);letter-spacing:.14em;color:#a8f2f6}
+.v2-qblk{margin-top:6px;padding-top:4px;border-top:1px dashed #8bccca40}
+.lp-blk{padding:14px 0;border-top:1px solid #8bccca26}.lp-blk:first-child{border-top:0}
+.lp-bh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 8px}
+.v2-loopfold .lp-fb{padding:0}
+.v2-abc li{grid-template-columns:9.2em 1fr}html[data-lang=en] .v2-abc li{grid-template-columns:11em 1fr}@media (max-width:700px){.v2-abc li,html[data-lang=en] .v2-abc li{grid-template-columns:1fr}}
+/* 2026-10-27 v7：リンクとアイコンの規則（線のアイコン 20px・線 1.4・押せる高さ 48px・中央にそろえる） */
+.f-sns{display:grid;grid-template-columns:repeat(4,auto);justify-content:center;margin:18px auto 10px;gap:10px}@media (max-width:1280px){.f-sns{grid-template-columns:repeat(2,auto)}}.f-sns a{padding-right:16px}
+.f-sns a{min-height:48px;padding:6px 16px 6px 14px;gap:10px;font-family:var(--serif);letter-spacing:.04em;border-color:#8bccca38;background:#07101c80}
+.f-sns svg{width:20px;height:20px;stroke-width:1.4}
+@media (max-width:700px){.f-sns{display:grid;grid-template-columns:1fr;gap:8px;padding:0 16px}.f-sns a{flex:none;font-size:13.5px;text-align:left;letter-spacing:0}.f-sns a span{white-space:nowrap}.f-sns small{margin-left:auto;font-size:10px}}
