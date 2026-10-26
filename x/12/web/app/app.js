@@ -24,7 +24,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261027a";
+const VER = "20261027b";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -295,7 +295,7 @@ function forestAt(cx, cz, r0, r1, N, sd, axis) {
   /* 2026-10-27 木を作り直した（採点「玩具のような薄緑の塊」）：幹は樹皮の質感と二股の枝、葉は自作の葉の房の切り抜き（canvas で描いた模式・外の素材なし）を
      球の殻に重ね、常緑の暗い緑に。法線は樹冠の中心から外へ向け、柔らかく光を受ける。風で梢ほど揺れる（動きを減らす設定では止まる） */
   const bark = TL.load("web/tex/bplank_c.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 3); });
-  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.22, .46, 1, 9, 1, true), new THREE.MeshStandardMaterial({ color: "#9a8a78", map: bark, roughness: .96 }), pts.length * 3);
+  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.22, .46, 1, 9, 1, true), new THREE.MeshStandardMaterial({ color: "#6e5d4d", roughness: .97 }), pts.length * 3);
   const crown = new THREE.InstancedMesh(leafClusterGeo(), leafMat(), pts.length * 5);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), col = new THREE.Color(), e = new THREE.Euler(); let ci = 0, ti = 0;
   pts.forEach(([x, z, k]) => { const y = groundY(x, z), h = 6.5 * k;
@@ -620,7 +620,7 @@ function buildArea(Z, J) {
   for (const b of J.b) {
     const kind = b[0], h = b[1], y = b[2], ring = []; for (let i = 3; i + 1 < b.length; i += 2) ring.push(new THREE.Vector2(b[i], b[i + 1]));
     if (ring.length < 3) continue; let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= ring.length; mz /= ring.length;
-    if (Z.id === "clea" && h < 13 && ((mx > 33 && mx < 74 && mz > 1606 && mz < 1736) || (mx > -30 && mx < 74 && mz > 1606 && mz < 1641))) continue;   // 2026-10-27 駅前の広場とデッキの下（模式の場面）にかかる小さな建物は置かない
+    if (Z.id === "clea" && h < 13 && ((mx > 33 && mx < 122 && mz > 1606 && mz < 1736) || (mx > -30 && mx < 122 && mz > 1606 && mz < 1641))) continue;   // 2026-10-27 駅前の広場とデッキの下（模式の場面）にかかる小さな建物は置かない
     if (netCrosses(ring)) { for (let k = 0; k < ring.length; k++) { const p = ring[k], q = ring[(k + 1) % ring.length]; E2.push(p.x, y + .05, p.y, q.x, y + .05, q.y); } continue; }   // 道が中を通る建物（駅の通路など）は地割の線だけ
     const temple = kind > 0 || pw.some(r => inRing(r, mx, mz));
     addSolid(ring, y, y + h, acc, temple ? 5 : eraAt(ring));
@@ -854,9 +854,9 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.0 : 3.5, s = MOBILE ? .45 : 1.25,   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
+  const f = MOBILE ? 4.9 : 3.5, s = MOBILE ? .3 : 1.25,   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
-  const side = !$("#panel").hidden && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
+  const side = MOBILE ? -1 : !$("#panel").hidden ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   if (offRoute(CAM.pos.x, CAM.pos.z)) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
   out.y = groundY(out.x, out.z); return out;
@@ -1525,26 +1525,28 @@ function flatPatch(x0, z0, x1, z1, mat, lift = .06, st = 3) {   // 地形に沿�
 function buildScenes() {
   // JR 川越駅（東口）：駅ビルの輪郭（OSM の最も大きい建物・x −79〜32／z 1635〜1737）の東の面に、ガラスの正面と庇、駅前の石の広場と、歩行者デッキの模式
   { const g = new THREE.Group(); g.name = "station"; const gx = 32, z0 = 1640, z1 = 1730, y0 = groundY(gx + 4, 1680);
-    const glass = new THREE.MeshStandardMaterial({ color: "#5d6f7a", roughness: .12, metalness: .55, transparent: true, opacity: .92 }), white = stdMat("#d9d6cf", "web/tex/plaster_c.webp", 2, .7), steel = new THREE.MeshStandardMaterial({ color: "#8b9096", roughness: .4, metalness: .7 });
+    const glass = new THREE.MeshStandardMaterial({ color: "#6f8794", roughness: .06, metalness: .8, envMapIntensity: 1.4 }), white = stdMat("#d9d6cf", "web/tex/plaster_c.webp", 2, .7), steel = new THREE.MeshStandardMaterial({ color: "#8b9096", roughness: .4, metalness: .7 });
     const face = new THREE.Mesh(new THREE.BoxGeometry(1.2, 15, z1 - z0), glass); face.position.set(gx, y0 + 7.5, (z0 + z1) / 2); g.add(face);
     for (let z = z0; z <= z1; z += 3) { const mu = new THREE.Mesh(new THREE.BoxGeometry(.5, 15, .16), steel); mu.position.set(gx + .7, y0 + 7.5, z); g.add(mu); }   // ガラスの方立
     for (const h of [5, 10]) { const tr = new THREE.Mesh(new THREE.BoxGeometry(.6, .35, z1 - z0), steel); tr.position.set(gx + .7, y0 + h, (z0 + z1) / 2); g.add(tr); }
     const fas = new THREE.Mesh(new THREE.BoxGeometry(2, 3.2, z1 - z0 + 2), white); fas.position.set(gx + .2, y0 + 16.4, (z0 + z1) / 2); g.add(fas);
     // 歩行者デッキ（駅の二階から東へ張り出す床・柱・ガラスの手すり。広さは模式）
-    const dk = { x0: gx + 1, x1: gx + 34, z0: 1652, z1: 1700, y: y0 + 6.4 }, slab = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0, .7, dk.z1 - dk.z0), white); slab.position.set((dk.x0 + dk.x1) / 2, dk.y, (dk.z0 + dk.z1) / 2); g.add(slab);
+    const dk = { x0: gx + 1, x1: gx + 34, z0: 1652, z1: 1700, y: y0 + 6.4 }, slab = null; for (const [za, zb] of [[dk.z0, dk.z0 + 14], [dk.z1 - 14, dk.z1]]) { const sl = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0, .38, zb - za), white); sl.position.set((dk.x0 + dk.x1) / 2, dk.y, (za + zb) / 2); g.add(sl); const bm = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0, .55, .4), steel); bm.position.set((dk.x0 + dk.x1) / 2, dk.y - .45, (za + zb) / 2); g.add(bm); }   // 二本の床のあいだを空け、光が落ちる（天井で画面が覆われない）
+    { const br = new THREE.Mesh(new THREE.BoxGeometry(6, .38, dk.z1 - dk.z0 - 28), white); br.position.set(dk.x0 + 3, dk.y, (dk.z0 + dk.z1) / 2); g.add(br); }
     for (let x = dk.x0 + 6; x < dk.x1; x += 9) for (const z of [dk.z0 + 3, dk.z1 - 3]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, 6.1, 16), white); c.position.set(x, groundY(x, z) + 3.05, z); g.add(c); }
     const rail = new THREE.MeshStandardMaterial({ color: "#a9c4cc", roughness: .1, metalness: .2, transparent: true, opacity: .35, depthWrite: false });
     for (const [x, z, w, d] of [[(dk.x0 + dk.x1) / 2, dk.z0, dk.x1 - dk.x0, .08], [(dk.x0 + dk.x1) / 2, dk.z1, dk.x1 - dk.x0, .08], [dk.x1, (dk.z0 + dk.z1) / 2, .08, dk.z1 - dk.z0]]) { const r = new THREE.Mesh(new THREE.BoxGeometry(w, 1.1, d), rail); r.position.set(x, dk.y + .9, z); g.add(r); }
-    const can = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0 - 6, .25, 7), steel); can.position.set((dk.x0 + dk.x1) / 2 + 2, dk.y + 4.2, (dk.z0 + dk.z1) / 2); g.add(can);   // デッキの屋根
+       // デッキの屋根
     const plaza = stdMat("#b8b2a8", "web/tex/stile_c.webp", 1, .85); plaza.normalMap = TL.load("web/tex/stile_n.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; });
-    g.add(flatPatch(-30, 1608, gx + 40, 1640, plaza, .07), flatPatch(gx + .6, 1640, gx + 40, 1734, plaza, .07));
+    g.add(flatPatch(-30, 1608, gx + 40, 1640, plaza, .07), flatPatch(gx + .6, 1640, gx + 88, 1734, plaza, .07));
     world.add(g); QW.station = g; }
   // 喜多院：山門から本堂（慈恵堂）の正面までの石畳の参道・石灯籠・本堂の向拝（張り出した屋根と四本の柱・石段）。位置は境内の建物の輪郭から（模式）
   const L = TEMPLE.list || [], sm = L.find(t => t.kind === "sanmon"); const hd = L.filter(t => t !== sm && Math.hypot(t.x - 590, t.z - 680) < 160 && !t.kind).sort((a, b) => b.W * b.Lg - a.W * a.Lg)[0];
   if (sm && hd) { const g = new THREE.Group(); g.name = "kitainSando";
     // 本堂の正面＝山門を向く長い辺
-    let nx = hd.vx, nz = hd.vz; if ((sm.x - hd.x) * nx + (sm.z - hd.z) * nz < 0) { nx = -nx; nz = -nz; }
-    const fx = hd.x + nx * (hd.W / 2), fz = hd.z + nz * (hd.W / 2), ex = sm.x, ez = sm.z, Lp = Math.hypot(ex - fx, ez - fz), dx = (ex - fx) / Lp, dz = (ez - fz) / Lp, px = -dz, pz = dx;
+    const tsx = sm.x - hd.x, tsz = sm.z - hd.z, cand = [[hd.vx, hd.vz, hd.W, hd.Lg], [-hd.vx, -hd.vz, hd.W, hd.Lg], [hd.ux, hd.uz, hd.Lg, hd.W], [-hd.ux, -hd.uz, hd.Lg, hd.W]].sort((p, q) => (q[0] * tsx + q[1] * tsz) - (p[0] * tsx + p[1] * tsz))[0];   // 山門を向く面を正面に
+    const nx = cand[0], nz = cand[1], FW = cand[3] - 2.4; hd.FW = FW;
+    const fx = hd.x + nx * (cand[2] / 2 - 1.2), fz = hd.z + nz * (cand[2] / 2 - 1.2), ex = sm.x, ez = sm.z, Lp = Math.hypot(ex - fx, ez - fz), dx = (ex - fx) / Lp, dz = (ez - fz) / Lp, px = -dz, pz = dx;
     const stone = stdMat("#a9a39a", "web/tex/granite_c.webp", 1, .9); stone.normalMap = TL.load("web/tex/granite_n.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; });
     const P = [], U = [], I = [], w = 2.6, n = Math.ceil(Lp / 1.2);
     for (let i = 0; i <= n; i++) { const t = i / n, cx = fx + (ex - fx) * t, cz = fz + (ez - fz) * t; for (const s of [-1, 1]) { const x = cx + px * w * s, z = cz + pz * w * s; P.push(x, groundY(x, z) + .1, z); U.push((s + 1) * 1.3, t * Lp / 1.2); } }   // 石の継ぎ目＝1.2 m ごと（テクスチャの一枚）
@@ -1555,7 +1557,7 @@ function buildScenes() {
       const parts = [[new THREE.CylinderGeometry(.5, .6, .35, 6), .17], [new THREE.CylinderGeometry(.16, .2, 1.1, 8), .9], [new THREE.BoxGeometry(.8, .25, .8), 1.55], [new THREE.BoxGeometry(.62, .55, .62), 1.95], [new THREE.ConeGeometry(.66, .45, 6), 2.45], [new THREE.SphereGeometry(.12, 8, 6), 2.75]];
       for (const [gg, hy] of parts) { const m = new THREE.Mesh(gg, lan); m.position.y = hy; T.add(m); } const fire = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, .64), new THREE.MeshBasicMaterial({ color: "#2b2620" })); fire.position.y = 1.95; T.add(fire); g.add(T); }   // 石灯籠（春日形の模式）
     // 向拝：本堂の正面中央に張り出す屋根（銅板の模式）・四本の柱・三段の石段
-    const wood = stdMat("#6e5440", "web/tex/wood_c.webp", 1, .8), roofM = stdMat("#4b4f4d", null, 1, .55, { metalness: .35 }), ang = Math.atan2(px, pz), V = new THREE.Group(); V.position.set(fx, hd.y, fz); V.rotation.y = ang;
+    const wood = stdMat("#6e5440", "web/tex/wood_c.webp", 1, .8), roofM = stdMat("#4b4f4d", null, 1, .55, { metalness: .35 }), ang = Math.atan2(nx, nz), V = new THREE.Group(); V.position.set(fx, hd.y, fz); V.rotation.y = ang;
     const H = Math.max(4.5, hd.top - hd.y - .2), sp = 6;
     for (const sx of [-1, 1]) for (const d of [.4, 3.4]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(.24, .26, H, 12), wood); c.position.set(sx * sp / 2, H / 2, d); V.add(c); }   // 向きの軸：+z＝本堂の外
     const beam = new THREE.Mesh(new THREE.BoxGeometry(sp + 1.4, .5, .45), wood); beam.position.set(0, H - .2, 3.4); V.add(beam);
@@ -1563,7 +1565,17 @@ function buildScenes() {
     const rf = new THREE.Mesh(rg, roofM); rf.material.side = THREE.DoubleSide; V.add(rf);
     const tile = new THREE.Mesh(new THREE.BoxGeometry(sp + 3.4, .3, .5), roofM); tile.position.set(0, H + .25, 4.9); V.add(tile);
     for (let i = 0; i < 3; i++) { const st = new THREE.Mesh(new THREE.BoxGeometry(sp + .6 - i * .3, .22, 1.2), lan); st.position.set(0, .11 + i * .22, 4.6 + 1.1 - i * .4); V.add(st); }
-    g.add(V); world.add(g); QW.kitain = { Lp: Math.round(Lp), fx, fz }; }
+    // 本堂の正面の柱間：木の柱・白い漆喰の小壁・格子の建具・縁（えん）と石の基壇（模式。茶色の箱の正面を覆う）
+    { const FL = Math.max(10, hd.FW - 1), n = Math.max(4, Math.round(FL / 2.6)), bay = FL / n, Hh = Math.max(3.8, hd.top - hd.y - .3), lat = new THREE.MeshStandardMaterial({ color: "#2f2a25", roughness: .8 }), plas = stdMat("#e4ded2", "web/tex/plaster_c.webp", 1, .9), F = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.BoxGeometry(FL + 3, .7, 2.6), lan); base.position.set(0, .35, .6); F.add(base);
+      const en = new THREE.Mesh(new THREE.BoxGeometry(FL + 1, .16, 1.6), wood); en.position.set(0, .95, 1); F.add(en);
+      for (let i = 0; i <= n; i++) { const x = -FL / 2 + i * bay, c = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, Hh, 10), wood); c.position.set(x, Hh / 2 + .5, .12); F.add(c); }
+      for (let i = 0; i < n; i++) { const x = -FL / 2 + (i + .5) * bay, d = new THREE.Mesh(new THREE.BoxGeometry(bay - .5, Hh * .62, .1), lat); d.position.set(x, .9 + Hh * .31, .08); F.add(d);
+        for (let k = 1; k < 6; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(.05, Hh * .62, .14), wood); b.position.set(x - (bay - .5) / 2 + k * (bay - .5) / 6, .9 + Hh * .31, .12); F.add(b); }
+        const kw = new THREE.Mesh(new THREE.BoxGeometry(bay - .4, Hh * .25, .1), plas); kw.position.set(x, .9 + Hh * .62 + Hh * .14, .08); F.add(kw); }
+      const nk = new THREE.Mesh(new THREE.BoxGeometry(FL + .6, .35, .3), wood); nk.position.set(0, .9 + Hh * .62, .16); F.add(nk);
+      F.position.set(fx + nx * .08, hd.y, fz + nz * .08); F.rotation.y = ang; g.add(F); }
+    g.add(V); world.add(g); QW.kitain = { Lp: Math.round(Lp), fx, fz, nx, nz, hx: hd.x, hz: hd.z, W: hd.W, Lg: hd.Lg, sm: [sm.x, sm.z], n: L.length }; }
 }
 /* ---------- 2026-10-27 本人「デジタルとフィジカルが融合した空間に」：写実の地の上に、光の等高線・地面のグリッド・走査の輪・データの粒を薄く重ねる（上品に・やりすぎない） ---------- */
 var DIGI = { u: null };
