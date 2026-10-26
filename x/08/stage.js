@@ -54,8 +54,8 @@ const trunkMat = new THREE.MeshBasicMaterial({ color: LAYER.nature, transparent:
 const treeLines = [], tips = [];
 const branch = (p, dir, len, r, depth, group) => {
   const q = p.clone().addScaledVector(dir, len);
-  const cyl = new THREE.Mesh(new THREE.CylinderGeometry(r * .7, r, len, 8, 1, true), trunkMat);
-  cyl.position.copy(p).lerp(q, .5); cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); group.add(cyl);
+  // 筒は一つの InstancedMesh にまとめる（描く回数を 1 回に＝起動を軽く）
+  const o = new THREE.Object3D(); o.position.copy(p).lerp(q, .5); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); o.scale.set(r, len, r); o.updateMatrix(); tubeM.push(o.matrix.clone());
   treeLines.push(p.x, p.y, p.z, q.x, q.y, q.z);
   if (depth >= (mobile ? 3 : 4)) { tips.push(q.x, q.y, q.z); return; }
   for (let k = 0; k < 2 + (rnd() < .4); k++) {
@@ -63,9 +63,11 @@ const branch = (p, dir, len, r, depth, group) => {
     branch(q, d, len * (.62 + rnd() * .12), r * .62, depth + 1, group);
   }
 };
-const trees = new THREE.Group(); scene.add(trees);
+const trees = new THREE.Group(); const tubeM = [];
 const spots = [[-8.2, -3.2], [8.4, -3.8], [-9.6, -6.5], [9.2, -7.4], [-3.8, -9], [3.2, -11], [-13, -12], [13.5, -13], [0, -16], [-7, -18], [8, -20]];
 for (const [x, z] of spots.slice(0, mobile ? 7 : spots.length)) branch(new THREE.Vector3(x, heightAt(x, z), z), new THREE.Vector3((rnd() - .5) * .15, 1, (rnd() - .5) * .15).normalize(), 2.2 + rnd() * 1.2, .16, 0, trees);
+const tubes = new THREE.InstancedMesh(new THREE.CylinderGeometry(.7, 1, 1, 8, 1, true), trunkMat, tubeM.length);
+tubeM.forEach((m, i) => tubes.setMatrixAt(i, m)); scene.add(tubes);
 scene.add(new THREE.LineSegments(geo(treeLines), lineMaterial(LAYER.nature, .5)));
 scene.add(new THREE.Points(geo(tips), pointMaterial(LAYER.nature, .1, .8)));
 
@@ -74,10 +76,10 @@ const ringGeo = (() => { const a = []; for (let k = 0; k < 96; k++) { const t = 
 const rings = []; for (let i = 0; i < 5; i++) { const m = new THREE.LineSegments(ringGeo, lineMaterial(LAYER.aoi, 0)); m.position.set(0, .06, -.2); scene.add(m); rings.push({ m, t: i / 5 }); }
 
 // 宙の 0 と 1：機械のことば。ゆっくり上る
+const BIT = ["0", "1"].map(c => { const t = textSprite(c, { color: LAYER.info, height: .22, font: '500 44px "JetBrains Mono",ui-monospace,monospace' }); t.material.opacity = .55; return t; });
 const bits = []; const n01 = mobile ? 18 : 36;
 for (let i = 0; i < n01; i++) {
-  const s = textSprite(rnd() < .5 ? "0" : "1", { color: LAYER.info, height: .22, font: '500 44px "JetBrains Mono",ui-monospace,monospace' });
-  s.material.opacity = .55; s.position.set((rnd() - .5) * 22, rnd() * 7, -2 - rnd() * 14); scene.add(s); bits.push({ s, sp: .08 + rnd() * .14 });
+  const s = BIT[rnd() < .5 ? 0 : 1].clone(); s.position.set((rnd() - .5) * 22, rnd() * 7, -2 - rnd() * 14); scene.add(s); bits.push({ s, sp: .08 + rnd() * .14 });
 }
 const dust = drift({ count: mobile ? 260 : 600, box: [[-16, 0, -22], [16, 8, 6]], color: LAYER.aoi, size: .04, speed: [.03, .12], opacity: .45 }); scene.add(dust);
 
