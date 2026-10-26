@@ -263,3 +263,5 @@ html[data-lang=en] .v2-fig .v2-lab{font-size:14px}
 .f-sns a{min-height:48px;padding:6px 16px 6px 14px;gap:10px;font-family:var(--serif);letter-spacing:.04em;border-color:#8bccca38;background:#07101c80}
 .f-sns svg{width:20px;height:20px;stroke-width:1.4}
 @media (max-width:700px){.f-sns{display:grid;grid-template-columns:1fr;gap:8px;padding:0 16px}.f-sns a{flex:none;font-size:13.5px;text-align:left;letter-spacing:0}.f-sns a span{white-space:nowrap}.f-sns small{margin-left:auto;font-size:10px}}
+@media (max-width:700px){footer .f-links{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;justify-items:center;padding:0 16px}footer .f-links>*{justify-content:center;text-align:center;white-space:nowrap;font-size:14px}}
+@media (max-width:700px){footer .f-links>:last-child:nth-child(odd){grid-column:1/-1}}
