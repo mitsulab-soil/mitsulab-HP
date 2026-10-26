@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=28";
+import { makeAreas } from "./areas.js?v=30";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -987,7 +987,7 @@ function parkMacro(m, amt, lawn) {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvPw=(modelMatrix*vec4(transformed,1.)).xyz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; uniform sampler2D uLit;" + (soil ? " uniform sampler2D uSoil;" : "") + "\nfloat pH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);} float pN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(pH(i),pH(i+vec2(1,0)),f.x),mix(pH(i+vec2(0,1)),pH(i+vec2(1,1)),f.x),f.y);}")
       .replace("#include <map_fragment>", `#include <map_fragment>
-{ vec2 p=vPw.xz; ${lawn ? "vec3 g2=texture2D(map,mat2(.8,-.6,.6,.8)*p*.29+.37).rgb; diffuseColor.rgb*=mix(vec3(1.),g2/max(dot(g2,vec3(.333)),.05),.45); float bp=pN(p*.009+2.7); diffuseColor.rgb*=mix(vec3(.86,.92,.78),vec3(1.08,1.04,.9),bp);" : ""} vec3 big=texture2D(map,p*.031+.17).rgb; diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*big/max(dot(big,vec3(.333)),.05)*.5,.45);
+{ vec2 p=vPw.xz; ${lawn ? "vec3 g2=texture2D(map,mat2(.8,-.6,.6,.8)*p*.29+.37).rgb; diffuseColor.rgb*=mix(vec3(1.),g2/max(dot(g2,vec3(.333)),.05),.45); float bp=pN(p*.009+2.7); diffuseColor.rgb*=mix(vec3(.74,.86,.62),vec3(1.16,1.08,.86),bp);" : ""} vec3 big=texture2D(map,p*.031+.17).rgb; diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*big/max(dot(big,vec3(.333)),.05)*.5,.45);
   float n=pN(p*.045)*.6+pN(p*.13)*.4, n2=pN(p*.021+7.3);
   diffuseColor.rgb*=mix(1.,.72+n*.56,${amt.toFixed(2)});
   vec3 lt=texture2D(uLit,p*.21).rgb; float lf=smoothstep(.55,.85,n2); diffuseColor.rgb=mix(diffuseColor.rgb,lt*vec3(.8,.72,.6),lf*${lawn ? ".12" : ".55"}*${amt.toFixed(2)});
@@ -1036,8 +1036,8 @@ function loadPark() {
       const sp = [], su = [], se = []; const n = pd.length / 2; for (let i = 0; i < n; i++) { const j = (i + 1) % n, ax = pd[i * 2], az = pd[i * 2 + 1], bx = pd[j * 2], bz = pd[j * 2 + 1], dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1, wv = .5 + .9 * (.5 + .5 * Math.sin(i * .73) * Math.cos(i * .31)), nx = -dz / l * wv, nz = dx / l * wv;
         const P = [[ax - nx, az - nz], [ax + nx * 1.6, az + nz * 1.6], [bx + nx * 1.6, bz + nz * 1.6], [bx - nx, bz - nz]].map(([x, z]) => [x, py + .16, z]); const E = [0, 1, 1, 0]; for (const k of [0, 1, 2, 0, 2, 3]) { sp.push(...P[k]); su.push(P[k][0] / 2.5, P[k][2] / 2.5); se.push(E[k]); } }
       const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3)); sg.setAttribute("uv", new THREE.Float32BufferAttribute(su, 2)); sg.setAttribute("aE", new THREE.Float32BufferAttribute(se, 1)); sg.computeVertexNormals();
-      const smt = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Ground054_c5.webp"), normalMap: tex(BASE + "tex/Ground054_n5.webp", false), color: 0x9a8f7c, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-      smt.transparent = true; smt.depthWrite = false; smt.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float aE; varying float vE; varying vec2 vSp;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvE=aE; vSp=(modelMatrix*vec4(position,1.)).xz;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vE; varying vec2 vSp;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ float n=fract(sin(dot(floor(vSp*2.),vec2(12.9,78.2)))*43758.5); gl_FragColor.a*=1.-smoothstep(.35,1.,vE+n*.25); }"); }; smt.customProgramCacheKey = () => "shoreFade"; /* 岸の外側を芝へ溶かす */ smt.stencilWrite = false; smt.stencilRef = 1; smt.stencilFunc = THREE.AlwaysStencilFunc; smt.stencilZPass = THREE.ReplaceStencilOp; const sm = new THREE.Mesh(sg, smt); sm.renderOrder = -1; G.add(sm); }
+      const smt = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Ground054_c5.webp"), normalMap: tex(BASE + "tex/Ground054_n5.webp", false), color: 0x7d6e58, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+      smt.transparent = true; smt.depthWrite = false; smt.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float aE; varying float vE; varying vec2 vSp;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvE=aE; vSp=(modelMatrix*vec4(position,1.)).xz;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vE; varying vec2 vSp;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ float n=fract(sin(dot(floor(vSp*2.),vec2(12.9,78.2)))*43758.5); gl_FragColor.a*=1.-smoothstep(.6,1.05,vE+n*.25); }"); }; smt.customProgramCacheKey = () => "shoreFade"; /* 岸の外側を芝へ溶かす */ smt.stencilWrite = false; smt.stencilRef = 1; smt.stencilFunc = THREE.AlwaysStencilFunc; smt.stencilZPass = THREE.ReplaceStencilOp; const sm = new THREE.Mesh(sg, smt); sm.renderOrder = -1; G.add(sm); }
     wm.stencilWrite = true; wm.stencilRef = 1; wm.stencilFunc = THREE.AlwaysStencilFunc; wm.stencilZPass = THREE.ReplaceStencilOp; wm.transparent = false; { const pm = new THREE.Mesh(pg, wm); pm.renderOrder = -1; G.add(pm); }
     world.add(G); PARK.g = G; for (const m of G.children) pickables.push(m);
   }).catch(e => console.warn("park", e));
@@ -1518,7 +1518,7 @@ function loadAoi() {
 /* 2026-10-26 3：碧の立ち位置を、画面の上のボタンと Qualia の球の領域から決める（候補を順に試し、重ならない最初のものを、0.6 秒ごとに選びなおす） */
 const AOIPK = { t: 0, i: 0, rects: [], rt: 0 }, _pv3 = new THREE.Vector3();
 function aoiPick(fx, fz, rx, rz, f) {
-  const C = MOBILE ? [[f, -.3], [f + 1.6, -.9], [f - 1, -.8], [f + 1.6, .6], [f, .25], [f + 3, -.6]] : [[f, 1.25], [f, -1.25], [f + 1, 1.6], [f + 1, -1.6], [f + 2, .6]];
+  const C = MOBILE ? [[f, .1], [f, -.35], [f, .5], [f, -.7], [f, .85]] : [[f, .85], [f, -.85], [f, .5], [f, -.5], [f, 1.1]];   /* 距離は一定（画面の大きさをそろえる）、横だけずらす */
   const now = performance.now(); if (now - AOIPK.t < 600) return C[Math.min(AOIPK.i, C.length - 1)]; AOIPK.t = now;
   if (now - AOIPK.rt > 1500) { AOIPK.rt = now; AOIPK.rects = [...document.querySelectorAll("button, a, [role=button]")].map(e => e.getBoundingClientRect()).filter(r => r.width > 20 && r.height > 14 && r.bottom > innerHeight * .55 && r.top < innerHeight); }
   const marks = []; for (const L of [...(LAYER.objs || []), ...(AREA.marks || [])]) { const o = L.o; if (!o || !(L.root?.visible ?? L.mark?.visible)) continue; if (Math.hypot(o.x - CAM.pos.x, o.z - CAM.pos.z) > 25) continue; marks.push(_pv3.set(o.x, groundY(o.x, o.z) + 2.1, o.z).clone().project(camera)); }
@@ -1526,7 +1526,7 @@ function aoiPick(fx, fz, rx, rz, f) {
   let best = 1e9, bi = 0;
   for (let i = 0; i < C.length; i++) { const [ff, ss] = C[i], x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss, g = groundY(x, z);
     const ft = _pv3.set(x, g, z).project(camera), fX = sx(ft), fY = sy(ft), hd = _pv3.set(x, g + 1.65, z).project(camera), hX = sx(hd), hY = sy(hd), hw = Math.abs(fY - hY) * .2;
-    let pen = i * .01 + (AOI.m ? Math.hypot(x - AOI.m.pos.x, z - AOI.m.pos.z) * .08 : 0);   /* 今いる所に近い候補を選ぶ（大きく移らない） */
+    let pen = i * .01 + (AOI.m ? Math.hypot(x - AOI.m.pos.x, z - AOI.m.pos.z) * .08 : 0) + Math.abs(ff - f) * .5;   /* カメラとの距離をそろえる */   /* 今いる所に近い候補を選ぶ（大きく移らない） */
     if (fX - hw < 8 || fX + hw > W - 8 || fY > H - 6) pen += 10;
     if (AOIPK.rects.some(r => fX + hw > r.left && fX - hw < r.right && fY > r.top && hY < r.bottom)) pen += 5;
     if (marks.some(m => Math.hypot(sx(m) - hX, sy(m) - hY) < Math.abs(fY - hY) * .35)) pen += .3;
@@ -1538,7 +1538,7 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
-  if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, f); out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); return out; }
+  if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); return out; }
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
   out.y = groundY(out.x, out.z); return out;
@@ -1571,7 +1571,9 @@ function stepAoi(dt) {
     else { let best = null, bd = 1e9; for (const L of LAYER.objs) { if (!L.root.visible) continue; const d = Math.hypot(L.o.x - P.x, L.o.z - P.z); if (d > 3 && d < 22 && d < bd) { bd = d; best = L; } }
       AOI.glance = best ? best.glyph.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(P.x - Math.sin(CAM.yaw) * 12, P.y + 6 + Math.random() * 4, P.z - Math.cos(CAM.yaw) * 12); AOI.gT = .9 + Math.random() * .6; }
   }
-  if (!AOI.focus) AOI.m.lookAt(AOI.glance || camera.position);   // 2026-10-26 3：目を見る人へ合わせる（焦点のない目にしない）
+  if (!AOI.focus) AOI.m.lookAt(AOI.glance || camera.position);
+  // 2026-10-26 3（採点「目を閉じかけたまま止まる」）：待つあいだは、ときどき目をひらいた表情へ寄せる（話すあいだはしない）
+  AOI.eT = (AOI.eT ?? 2) - dt; if (AOI.eT <= 0) { AOI.eT = 5 + Math.random() * 3; if (!voiceQ && (AOI.v || 0) < .05) AOI.m.express("curious", .35, 4); }   // 2026-10-26 3：目を見る人へ合わせる（焦点のない目にしない）
   // 2026-10-26 3（採点「待つ姿が固い・指が板のよう」）：共通部品は書き換えず、アプリの側で ①指に、指ごとに違う小さな曲がりと開き（ゆっくり変わる）を足し、②そのあとで vrm を進める
   // 2026-10-26 3（採点 P1「腕をまっすぐ下げた硬い立ち姿」）：共通部品は書き換えず、待つあいだは手を前で組む時間を長く、下ろす時間を短く（共通部品の状態を、このアプリの中でだけ寄せる）
   { const S2 = AOI.m.s; if (S2 && S2.claspHold != null) { if (!S2.claspOn && S2.claspHold > 2.5) S2.claspHold = 2.5; if (S2.claspOn && !S2.claspExt) { S2.claspHold += 6 + 4 * Math.random(); S2.claspExt = true; } if (!S2.claspOn) S2.claspExt = false; } }
