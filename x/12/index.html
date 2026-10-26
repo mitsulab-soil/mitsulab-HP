@@ -17,7 +17,7 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261026k7">
+<link rel="modulepreload" href="web/app/app.js?v=20261026kC">
 <link rel="modulepreload" href="web/app/layers.js?v=k2">
 <link rel="modulepreload" href="web/app/qmarks.js?v=q5k">
 <link rel="modulepreload" href="web/app/kura.js?v=k8">
@@ -493,7 +493,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 
 #sightUI .smodel{font-size:10.5px;opacity:.72;letter-spacing:.02em}
 
-@media (max-width:640px){body[data-mode="walk"] #caption{left:var(--g)!important;right:var(--g)!important;top:auto!important;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 236px)!important}body[data-mode="walk"] #capText{font-size:13px;letter-spacing:0}}   /* 2026-10-26 採点「スマホで字幕の帯が層の一覧にかかる」→ 字幕は左下（右のボタンの列と碧の話のボタンの上）へ。層の一覧と離す */   /* 2026-10-24 閉じた層の一覧（短い名前つき）と碧の語りを重ねない */
+@media (max-width:640px){body[data-mode="walk"] #caption{left:100px!important;right:var(--g)!important;top:calc(max(12px,env(safe-area-inset-top)) + 64px)!important;bottom:auto!important;text-align:left!important}body[data-mode="walk"] #capText{white-space:normal!important;word-break:keep-all;overflow-wrap:anywhere}body[data-mode="walk"] #capText br{display:none}body[data-mode="walk"] #capText{font-size:13px;letter-spacing:0}}   /* 2026-10-26 採点「スマホで字幕の帯が層の一覧にかかる」→ 字幕は左下（右のボタンの列と碧の話のボタンの上）へ。層の一覧と離す */   /* 2026-10-24 閉じた層の一覧（短い名前つき）と碧の語りを重ねない */
 /* 2026-10-25 触れたときの札のボタン（鳴らす・止める ほか）は、縦の枠に積まず、字幕の下の一行の透過の文字に（カードに見せない） */
 #pExp{display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 6px!important}
 #pExp>.ml-btn{flex:0 0 auto!important;width:auto!important;min-width:0!important;margin:0!important;padding:0 14px!important;min-height:44px;background:none!important;box-shadow:none!important;font-family:var(--serif);font-size:14px!important;letter-spacing:.18em!important;color:rgba(236,248,251,.88)!important;text-shadow:0 1px 3px rgba(0,0,0,.9)!important;position:relative}
@@ -585,6 +585,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261026k7").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261026kC").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

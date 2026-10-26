@@ -60,7 +60,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   });
   function buildCurtains() {
     const G = new THREE.Group(); G.name = "areaCurtains"; G.visible = false;
-    const HGT = mobile ? 11 : 14, STEP = 6;
+    const HGT = mobile ? 5 : 6.5, STEP = 6;   // 川越：壁に映りこまない低い幕
     for (const Z of A.zones) {
       const P = Z.poly, pos = [], aS = [], aH = [], idx = []; let s = 0;
       // 内側へ 1.2 m ずらす（隣のエリアの幕と重ならず、両側に二色の幕が立つ）
@@ -133,20 +133,22 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     A.fills.visible = sky; labBox.hidden = !sky; if (sky) stepLabels();
     A.curtains.visible = mode === "walk" || mode === "descend";
     const cp = camera.position;
-    for (const m of A.curtains.children) { const u = m.material.uniforms; u.uT.value = rm ? 0 : A.t; u.uCam.value.copy(cp); u.uK.value = mode === "descend" ? .5 : 1; }
+    for (const m of A.curtains.children) { const u = m.material.uniforms; u.uT.value = rm ? 0 : A.t; u.uCam.value.copy(cp); u.uK.value = mode === "descend" ? .25 : .32; }
     if (tagT < 1e8 && (tagT -= dt) < 0) tag.classList.remove("on");
     if ((checkT -= dt) > 0) return; checkT = .3;
+    const cap = document.querySelector("#caption"), capOn = cap && !cap.hidden;   // 川越：碧の語りの字幕が出ているあいだは、地名の札を出さない（重ねない）
+    if (capOn) { nearEl.classList.remove("on"); if (tagT < 1e8) tag.classList.remove("on"); }
     if (!walk) { nearEl.classList.remove("on"); return; }
     const Z = A.zoneAt(cp.x, cp.z);
     if (Z !== A.cur) {
       const prev = A.cur; A.cur = Z;
-      if (Z && prev && mode === "walk") { const loading = Z.chunk && !A.chunks[Z.id]?.ok; showTag(Z, loading); if (loading) ensure(Z).then(() => { if (A.cur === Z) { tag.querySelector(".ld").classList.remove("on"); tagT = 2.4; } }); onEnter?.(Z, prev); }
+      if (Z && prev && mode === "walk" && !capOn) { const loading = Z.chunk && !A.chunks[Z.id]?.ok; showTag(Z, loading); if (loading) ensure(Z).then(() => { if (A.cur === Z) { tag.querySelector(".ld").classList.remove("on"); tagT = 2.4; } }); onEnter?.(Z, prev); }
       else if (Z) ensure(Z);
     }
     for (const Y of A.zones) { if (!Y.chunk) continue; const d = distTo(Y, cp.x, cp.z);
       if (Y === Z || d < NEAR) ensure(Y); else if (d > DROP && A.chunks[Y.id]) dropChunk(Y.id); }
     let best = null, bd = 28; if (Z && mode === "walk") for (const Y of A.zones) { if (Y === Z || !Z.adj.includes(Y.id)) continue; const d = distTo(Y, cp.x, cp.z); if (d < bd) { bd = d; best = Y; } }
-    if (best && !tag.classList.contains("on")) { nearEl.style.setProperty("--ac", best.color); nearEl.textContent = `この先　${best.name}`; nearEl.classList.add("on"); } else nearEl.classList.remove("on");
+    if (best && !capOn && !tag.classList.contains("on")) { nearEl.style.setProperty("--ac", best.color); nearEl.textContent = `この先　${best.name}`; nearEl.classList.add("on"); } else nearEl.classList.remove("on");
   };
   A.hideAll = () => { tag.classList.remove("on"); nearEl.classList.remove("on"); labBox.hidden = true; };
   return A;
