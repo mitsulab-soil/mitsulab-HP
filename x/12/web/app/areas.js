@@ -51,8 +51,8 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
         float y=vH/top; if(y>1.) discard;
         float edge=exp(-y*y*900.)*.9;                          // 根もとの光の線（境界がはっきり読めるように）
         float a=smoothstep(0.,.05,y)*pow(1.-y,1.25)*(.35+.65*band)*(.35+.65*rays);
-        float near=1.-smoothstep(80.,170.,vD); float close=smoothstep(1.,5.,vD);   // 遠くは消す・目の前は薄く
-        a=min(.9,(a*1.7+edge)*near*(.35+.65*close)*uK*1.25);
+        float near=1.-smoothstep(80.,170.,vD); float close=smoothstep(8.,22.,vD);   // 遠くは消す・目の前は薄く
+        a=min(.9,(a*1.7+edge)*near*close*uK*1.25);
         vec3 c=mix(uC*1.15,vec3(1.),pow(1.-y,8.)*.45);         // 根もとは白みを帯びる
         gl_FragColor=vec4(c,a);
       }`,

@@ -184,7 +184,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         const os = cs * (.5 + op * .12); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * .7 + it.ph, .35); _q.setFromEuler(_e); _s.set(os, os, os);
         _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); orbit.setMatrixAt(n, _m);
         OA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); OA.iP.setXYZW(n, cv * big, crisp, em, far); OA.iQ.setXY(n, it.k, op);
-        if (!sky && cv > .2) { _sp.set(_p.x, cy, _p.z).project(cam); if (_sp.z < 1) { const k = ppk / Math.max(.5, d) * cs, x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }
+        if (!sky && cv > .2) { _sp.set(_p.x, cy, _p.z).project(cam); if (_sp.z < 1) { const k = Math.max(46, ppk / Math.max(.5, d) * cs), x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }
         // 足もとの輪
         L.root.getWorldPosition(_r);
         const rr = (sky ? SKYR * sg : Math.max(1.05, Math.min(3, sg)) * 1.25) * (1 + (L.open || 0) * .5 + op * .25);

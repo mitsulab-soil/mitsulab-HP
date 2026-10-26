@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q5k";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q6";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
@@ -16,7 +16,7 @@ import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=4";
+import { makeAreas } from "./areas.js?v=5";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -24,7 +24,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261026z";
+const VER = "20261027a";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -152,7 +152,7 @@ async function buildBase() {
   const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
   const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
   mat._obc = cyberize; desat(mat);   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
-  setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain;
+  setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain; buildDigi(geo);
   buildRoute(); buildRoads(); buildWater();
   if (G.near) setTimeout(() => texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
     const n = G.near, d2 = G.dem, i0 = Math.max(0, Math.floor((n.x0 - d2.x0) / d2.cell)), i1 = Math.min(d2.nx - 1, Math.ceil((n.x1 - d2.x0) / d2.cell)), j0 = Math.max(0, Math.floor((n.z0 - d2.z0) / d2.cell)), j1 = Math.min(d2.nz - 1, Math.ceil((n.z1 - d2.z0) / d2.cell));
@@ -284,6 +284,7 @@ function buildShrine() {
     g.add(T); for (const sx of [-1, 1]) { const cx = tx + sx * sp / 2 * .975, cz = tz + sx * sp / 2 * .22; regSolidTo([new THREE.Vector2(cx - .7, cz - .7), new THREE.Vector2(cx + .7, cz - .7), new THREE.Vector2(cx + .7, cz + .7), new THREE.Vector2(cx - .7, cz + .7)], { ids: [] }); } }
   world.add(g); forestAt(C0.x, C0.z, 22, 80, MOBILE ? 70 : 130, 7, { x: 457.8, z: -399.5, ax: .22, az: -.975 });
   forestAt(530, 660, 45, 125, MOBILE ? 45 : 80, 11, null);   // 喜多院の境内のまわりの木々（模式）
+  try { buildScenes(); } catch (e) { console.info("scenes", e); }
   QW.shrine = { ok: true }; landSweep();
 }
 function forestAt(cx, cz, r0, r1, N, sd, axis) {
@@ -291,13 +292,50 @@ function forestAt(cx, cz, r0, r1, N, sd, axis) {
   const pts = []; let seed = sd; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 900 && pts.length < N; i++) { const a = rnd() * Math.PI * 2, r = r0 + rnd() * (r1 - r0), x = C0.x + Math.cos(a) * r, z = C0.z + Math.sin(a) * r;
     if (axis) { const dx = x - axis.x, dz = z - axis.z, along = dx * axis.ax + dz * axis.az, off = Math.abs(dx * -axis.az + dz * axis.ax); if (along > -10 && along < 60 && off < 9) continue; }   /* 参道の軸は空ける */ if ((NET.segs && onNet(x, z, 2.5)) || inBld(x, z, 2.5) || pts.some(p => Math.hypot(p[0] - x, p[1] - z) < 5.2) || (C.starts || []).some(t => t.x != null && Math.hypot(t.x - x, t.z - z) < 22)) continue; pts.push([x, z, .8 + rnd() * .6]); }
-  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.28, .42, 1, 7), new THREE.MeshStandardMaterial({ color: "#4a3d31", roughness: .95 }), pts.length);
-  const cg = new THREE.IcosahedronGeometry(1, 3); { const p = cg.attributes.position; for (let i = 0; i < p.count; i++) { const k = 1 + (Math.sin(p.getX(i) * 7.1 + p.getZ(i) * 5.3) * .5 + .5) * .22; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k * .85, p.getZ(i) * k); } cg.computeVertexNormals(); }
-  const crown = new THREE.InstancedMesh(cg, new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: .92 }), pts.length * 3);
-  const M = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), col = new THREE.Color(); let ci = 0;
-  pts.forEach(([x, z, k], i) => { const y = groundY(x, z), h = 7 * k; M.compose(ps.set(x, y + h / 2, z), q, sc.set(k, h, k)); trunk.setMatrixAt(i, M);
-    for (let j = 0; j < 3; j++) { const r = (3 + j * .6) * k * (j ? .75 : 1); M.compose(ps.set(x + (j ? (rnd() - .5) * 3 : 0), y + h + (j ? -1.5 + rnd() * 2 : 1.2) * k, z + (j ? (rnd() - .5) * 3 : 0)), q.setFromAxisAngle(sc.set(0, 1, 0), rnd() * 6), sc.set(r, r, r)); crown.setMatrixAt(ci, M); crown.setColorAt(ci, col.setHSL(.27 + rnd() * .1, .3 + rnd() * .15, .2 + rnd() * .1)); ci++; } });
+  /* 2026-10-27 木を作り直した（採点「玩具のような薄緑の塊」）：幹は樹皮の質感と二股の枝、葉は自作の葉の房の切り抜き（canvas で描いた模式・外の素材なし）を
+     球の殻に重ね、常緑の暗い緑に。法線は樹冠の中心から外へ向け、柔らかく光を受ける。風で梢ほど揺れる（動きを減らす設定では止まる） */
+  const bark = TL.load("web/tex/bplank_c.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 3); });
+  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.22, .46, 1, 9, 1, true), new THREE.MeshStandardMaterial({ color: "#9a8a78", map: bark, roughness: .96 }), pts.length * 3);
+  const crown = new THREE.InstancedMesh(leafClusterGeo(), leafMat(), pts.length * 5);
+  const M = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), col = new THREE.Color(), e = new THREE.Euler(); let ci = 0, ti = 0;
+  pts.forEach(([x, z, k]) => { const y = groundY(x, z), h = 6.5 * k;
+    M.compose(ps.set(x, y + h / 2, z), q.identity(), sc.set(k, h, k)); trunk.setMatrixAt(ti++, M);
+    for (let b = 0; b < 2; b++) { const a = rnd() * 6.28, L = 3.2 * k; e.set(Math.cos(a) * .7, 0, Math.sin(a) * .7); q.setFromEuler(e); M.compose(ps.set(x - Math.sin(a) * .9 * k, y + h * .72 + L * .4, z + Math.cos(a) * .9 * k), q, sc.set(k * .45, L, k * .45)); trunk.setMatrixAt(ti++, M); }
+    const hue = .25 + rnd() * .06, nC = 5;
+    for (let j = 0; j < nC; j++) { const a = rnd() * 6.28, rr = j ? 1.6 + rnd() * 1.4 : 0, r = (j ? 2.2 + rnd() * .9 : 3.1) * k;
+      M.compose(ps.set(x + Math.cos(a) * rr * k, y + h + (j ? -1.2 + rnd() * 2.2 : .9) * k, z + Math.sin(a) * rr * k), q.setFromAxisAngle(sc.set(0, 1, 0), rnd() * 6.28), sc.set(r, r * .82, r)); crown.setMatrixAt(ci, M);
+      crown.setColorAt(ci, col.setHSL(hue + rnd() * .03, .28 + rnd() * .12, .13 + rnd() * .07 + (j ? 0 : .02))); ci++; } });
+  trunk.count = ti; crown.count = ci; trunk.castShadow = crown.castShadow = false;
   g.add(trunk, crown); world.add(g); return pts.length;
+}
+let LEAF_GEO = null, LEAF_MAT = null;
+function leafTex() {   // 葉の房（自作の模式）：小さな楕円の葉を明暗をつけて重ねる。白に近い灰で描き、木ごとの色で染める
+  const N = 256, cv = document.createElement("canvas"); cv.width = cv.height = N; const c = cv.getContext("2d"); let sd = 3; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 260; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * N * .42, x = N / 2 + Math.cos(a) * d, y = N / 2 + Math.sin(a) * d, L = 9 + r() * 9, l = 120 + r() * 135 - d * .25;
+    c.save(); c.translate(x, y); c.rotate(r() * 6.28); c.fillStyle = `rgb(${l * .92 | 0},${l | 0},${l * .86 | 0})`; c.beginPath(); c.ellipse(0, 0, L, L * .42, 0, 0, 6.28); c.fill();
+    c.strokeStyle = `rgba(40,50,35,.35)`; c.lineWidth = .8; c.beginPath(); c.moveTo(-L, 0); c.lineTo(L, 0); c.stroke(); c.restore(); }
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function leafClusterGeo() {
+  if (LEAF_GEO) return LEAF_GEO; const P = [], N = [], U = [], I = []; let sd = 11; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const n = MOBILE ? 16 : 26, v = new THREE.Vector3(), a1 = new THREE.Vector3(), a2 = new THREE.Vector3();
+  for (let i = 0; i < n; i++) { v.set(r() * 2 - 1, r() * 1.6 - .6, r() * 2 - 1).normalize().multiplyScalar(.55 + r() * .4); a1.set(r() - .5, r() - .5, r() - .5).normalize(); a2.crossVectors(v.clone().normalize(), a1).normalize(); a1.crossVectors(a2, v.clone().normalize()).normalize();
+    const s = .55 + r() * .25, b = P.length / 3;
+    for (const [du, dv] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const px = v.x + (a1.x * du + a2.x * dv) * s, py = v.y + (a1.y * du + a2.y * dv) * s, pz = v.z + (a1.z * du + a2.z * dv) * s; P.push(px, py, pz); const l = Math.hypot(px, py + .2, pz) || 1; N.push(px / l, (py + .2) / l, pz / l); U.push((du + 1) / 2, (dv + 1) / 2); }
+    I.push(b, b + 1, b + 2, b, b + 2, b + 3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(N, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); g.setIndex(I);
+  const core = new THREE.IcosahedronGeometry(.62, 1); core.deleteAttribute("uv"); const cu = new Float32Array(core.attributes.position.count * 2).fill(.5); core.setAttribute("uv", new THREE.BufferAttribute(cu, 2));   // 透けて空が見えすぎないよう、中に暗い芯
+  const cn = core;
+  const all = new THREE.BufferGeometry(), cp = cn.attributes.position.array, cnn = cn.attributes.normal.array, cuv = new Float32Array(cp.length / 3 * 2).fill(.5), base = P.length / 3, I2 = I.slice(); for (let i = 0; i < cp.length / 3; i++) I2.push(base + i);
+  all.setAttribute("position", new THREE.Float32BufferAttribute([...P, ...cp], 3)); all.setAttribute("normal", new THREE.Float32BufferAttribute([...N, ...cnn], 3)); all.setAttribute("uv", new THREE.Float32BufferAttribute([...U, ...cuv], 2)); all.setIndex(I2);
+  return LEAF_GEO = all;
+}
+function leafMat() {
+  if (LEAF_MAT) return LEAF_MAT; const m = new THREE.MeshStandardMaterial({ color: "#ffffff", map: leafTex(), alphaTest: .42, side: THREE.DoubleSide, roughness: .88 });
+  m.onBeforeCompile = sh => { sh.uniforms.uT = BLDU.t; sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float uT;").replace("#include <begin_vertex>", `#include <begin_vertex>
+      vec4 wq = instanceMatrix * vec4(0.,0.,0.,1.); float sw = sin(uT*1.4 + wq.x*.21 + wq.z*.17) + .5*sin(uT*2.3 + wq.z*.4); float up = clamp(position.y + .6, 0., 1.6);
+      transformed.x += sw * .035 * up; transformed.z += cos(uT*1.1 + wq.x*.13) * .03 * up;`); };
+  m.customProgramCacheKey = () => "leaf85"; return LEAF_MAT = m;
 }
 /* 通りに面した建物（道筋から 24 m 以内に輪郭がかかるもの）：漆喰の不透明の壁と屋根。歩いて中に入らない（足もとの輪郭で止める）。
    道筋が建物の輪郭の中を通るもの（駅の建物など）は、通れなくならないよう、これまでどおり薄いグラフィックに残す */
@@ -345,6 +383,7 @@ function addTemple(ring, y, A) {
   tri(e1, e2, r2, [0, 0], [Lg / 2, 0], [(Lg + 2 * rr) / 4, sl / 2]); tri(e1, r2, r1, [0, 0], [(Lg + 2 * rr) / 4, sl / 2], [(Lg - 2 * rr) / 4, sl / 2]);
   tri(e3, e4, r1, [0, 0], [Lg / 2, 0], [(Lg + 2 * rr) / 4, sl / 2]); tri(e3, r1, r2, [0, 0], [(Lg + 2 * rr) / 4, sl / 2], [(Lg - 2 * rr) / 4, sl / 2]);
   tri(e2, e3, r2, [0, 0], [W / 2, 0], [W / 4, sl / 2]); tri(e4, e1, r1, [0, 0], [W / 2, 0], [W / 4, sl / 2]);
+  (TEMPLE.list || (TEMPLE.list = [])).push({ x: am * ux + bm * vx, z: am * uz + bm * vz, ux, uz, vx, vz, W, Lg, y, top, kind });
   regSolid(ring); TEMPLE.tags.push({ k: { x: am * ux + bm * vx, z: am * uz + bm * vz, yaw: Math.atan2(vx, vz), dp: W, y }, code: "TEMPLE FORM", name: "寺社の建物の型" });
 }
 function buildTemples() {
@@ -581,6 +620,7 @@ function buildArea(Z, J) {
   for (const b of J.b) {
     const kind = b[0], h = b[1], y = b[2], ring = []; for (let i = 3; i + 1 < b.length; i += 2) ring.push(new THREE.Vector2(b[i], b[i + 1]));
     if (ring.length < 3) continue; let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= ring.length; mz /= ring.length;
+    if (Z.id === "clea" && h < 13 && ((mx > 33 && mx < 74 && mz > 1606 && mz < 1736) || (mx > -30 && mx < 74 && mz > 1606 && mz < 1641))) continue;   // 2026-10-27 駅前の広場とデッキの下（模式の場面）にかかる小さな建物は置かない
     if (netCrosses(ring)) { for (let k = 0; k < ring.length; k++) { const p = ring[k], q = ring[(k + 1) % ring.length]; E2.push(p.x, y + .05, p.y, q.x, y + .05, q.y); } continue; }   // 道が中を通る建物（駅の通路など）は地割の線だけ
     const temple = kind > 0 || pw.some(r => inRing(r, mx, mz));
     addSolid(ring, y, y + h, acc, temple ? 5 : eraAt(ring));
@@ -652,7 +692,7 @@ function buildObjs() {
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .4, skyK: 1.15 });   // 2026-10-27 本人「球が大きすぎる」＝今の 4 割ほどに for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();
@@ -1062,6 +1102,7 @@ function loadKasane() {
   })().catch(e => console.warn("かさねっこ：", e?.message ?? e));
 }
 function touchKasane(a) {
+  KASA.herd.openView = () => { };   // 2026-10-27 本人「依代に触れたときの 3D の表示はやめる」＝字幕と碧の声・短い音と小さな動きだけで応える
   KASA.cur = a; KASA.herd.touch(a, () => { if (KASA.cur !== a || QW.mode !== "walk") return; if (a.data?.sightPick) { KASA.herd.release(a); KASA.cur = null; openSightChooser(); return; } openObj(a.data); inviteLayer(a); KASA.cur = a; a.state = "focus"; a.focusTo = new THREE.Vector2(camera.position.x, camera.position.z);
     if (AOI.m) { const p = a.center(new THREE.Vector3()); AOI.focus = p; AOI.m.lookAt(p); setTimeout(() => { if (AOI.focus === p) { AOI.focus = null; AOI.m?.lookAt(camera.position.clone()); } }, 1600); } });
 }
@@ -1433,7 +1474,7 @@ function frame() {
   { const low = camera.position.y - groundY(camera.position.x, camera.position.z) < 160; if (QW.roads) QW.roads.visible = low; if (QW.pave) QW.pave.visible = low; if (BLD.foot) BLD.foot.visible = low; if (BLD.solid) BLD.solid.visible = low; AREA_G.visible = low; for (const m of QW.paveSt || []) m.visible = low; }   // 上空では写真の道を見せる（帯は地上の近くだけ）
   if ((GEO.t -= dt) < 0 && QW.mode !== "boot") { GEO.t = .25; const g = GEO.el || (GEO.el = $("#lsGeo")), cp = camera.position, la = G.origin[0] - cp.z / G.ky, lo = G.origin[1] + cp.x / G.kx, h = Math.max(0, cp.y - groundY(cp.x, cp.z));
     const txt = `POS <b>${la.toFixed(4)}N ${lo.toFixed(4)}E</b>\nALT ${Math.round(h)}m  ${QW.mode.toUpperCase()}`; if (g && txt !== GEO.last) { g.innerHTML = txt; GEO.last = txt; } }
-  if (!RM) BLDU.t.value += dt;
+  if (!RM) BLDU.t.value += dt; digiTick(dt);
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
@@ -1471,3 +1512,83 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     const s0 = Q.get("start"); if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
   } catch (e) { console.error(e); status("読み込めませんでした。ページを開きなおしてください。"); }
 })();
+
+/* ---------- 2026-10-27 場面の作り込み（地図の輪郭をもとにした模式。写真は写さない） ---------- */
+function stdMat(c, tex, rep = 1, rough = .9, extra = {}) { const m = new THREE.MeshStandardMaterial({ color: c, roughness: rough, ...extra }); if (tex) { m.map = TL.load(tex, t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); }); } return m; }
+function flatPatch(x0, z0, x1, z1, mat, lift = .06, st = 3) {   // 地形に沿う長方形の舗装
+  const nx = Math.max(2, Math.ceil((x1 - x0) / st) + 1), nz = Math.max(2, Math.ceil((z1 - z0) / st) + 1), P = [], U = [], I = [];
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const x = x0 + (x1 - x0) * i / (nx - 1), z = z0 + (z1 - z0) * j / (nz - 1); P.push(x, groundY(x, z) + lift, z); U.push(x / 3, z / 3); }
+  for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i; I.push(a, a + nx, a + 1, a + 1, a + nx, a + nx + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); g.setIndex(I); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, mat); m.renderOrder = 1; return m;
+}
+function buildScenes() {
+  // JR 川越駅（東口）：駅ビルの輪郭（OSM の最も大きい建物・x −79〜32／z 1635〜1737）の東の面に、ガラスの正面と庇、駅前の石の広場と、歩行者デッキの模式
+  { const g = new THREE.Group(); g.name = "station"; const gx = 32, z0 = 1640, z1 = 1730, y0 = groundY(gx + 4, 1680);
+    const glass = new THREE.MeshStandardMaterial({ color: "#5d6f7a", roughness: .12, metalness: .55, transparent: true, opacity: .92 }), white = stdMat("#d9d6cf", "web/tex/plaster_c.webp", 2, .7), steel = new THREE.MeshStandardMaterial({ color: "#8b9096", roughness: .4, metalness: .7 });
+    const face = new THREE.Mesh(new THREE.BoxGeometry(1.2, 15, z1 - z0), glass); face.position.set(gx, y0 + 7.5, (z0 + z1) / 2); g.add(face);
+    for (let z = z0; z <= z1; z += 3) { const mu = new THREE.Mesh(new THREE.BoxGeometry(.5, 15, .16), steel); mu.position.set(gx + .7, y0 + 7.5, z); g.add(mu); }   // ガラスの方立
+    for (const h of [5, 10]) { const tr = new THREE.Mesh(new THREE.BoxGeometry(.6, .35, z1 - z0), steel); tr.position.set(gx + .7, y0 + h, (z0 + z1) / 2); g.add(tr); }
+    const fas = new THREE.Mesh(new THREE.BoxGeometry(2, 3.2, z1 - z0 + 2), white); fas.position.set(gx + .2, y0 + 16.4, (z0 + z1) / 2); g.add(fas);
+    // 歩行者デッキ（駅の二階から東へ張り出す床・柱・ガラスの手すり。広さは模式）
+    const dk = { x0: gx + 1, x1: gx + 34, z0: 1652, z1: 1700, y: y0 + 6.4 }, slab = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0, .7, dk.z1 - dk.z0), white); slab.position.set((dk.x0 + dk.x1) / 2, dk.y, (dk.z0 + dk.z1) / 2); g.add(slab);
+    for (let x = dk.x0 + 6; x < dk.x1; x += 9) for (const z of [dk.z0 + 3, dk.z1 - 3]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, 6.1, 16), white); c.position.set(x, groundY(x, z) + 3.05, z); g.add(c); }
+    const rail = new THREE.MeshStandardMaterial({ color: "#a9c4cc", roughness: .1, metalness: .2, transparent: true, opacity: .35, depthWrite: false });
+    for (const [x, z, w, d] of [[(dk.x0 + dk.x1) / 2, dk.z0, dk.x1 - dk.x0, .08], [(dk.x0 + dk.x1) / 2, dk.z1, dk.x1 - dk.x0, .08], [dk.x1, (dk.z0 + dk.z1) / 2, .08, dk.z1 - dk.z0]]) { const r = new THREE.Mesh(new THREE.BoxGeometry(w, 1.1, d), rail); r.position.set(x, dk.y + .9, z); g.add(r); }
+    const can = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0 - 6, .25, 7), steel); can.position.set((dk.x0 + dk.x1) / 2 + 2, dk.y + 4.2, (dk.z0 + dk.z1) / 2); g.add(can);   // デッキの屋根
+    const plaza = stdMat("#b8b2a8", "web/tex/stile_c.webp", 1, .85); plaza.normalMap = TL.load("web/tex/stile_n.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; });
+    g.add(flatPatch(-30, 1608, gx + 40, 1640, plaza, .07), flatPatch(gx + .6, 1640, gx + 40, 1734, plaza, .07));
+    world.add(g); QW.station = g; }
+  // 喜多院：山門から本堂（慈恵堂）の正面までの石畳の参道・石灯籠・本堂の向拝（張り出した屋根と四本の柱・石段）。位置は境内の建物の輪郭から（模式）
+  const L = TEMPLE.list || [], sm = L.find(t => t.kind === "sanmon"); const hd = L.filter(t => t !== sm && Math.hypot(t.x - 590, t.z - 680) < 160 && !t.kind).sort((a, b) => b.W * b.Lg - a.W * a.Lg)[0];
+  if (sm && hd) { const g = new THREE.Group(); g.name = "kitainSando";
+    // 本堂の正面＝山門を向く長い辺
+    let nx = hd.vx, nz = hd.vz; if ((sm.x - hd.x) * nx + (sm.z - hd.z) * nz < 0) { nx = -nx; nz = -nz; }
+    const fx = hd.x + nx * (hd.W / 2), fz = hd.z + nz * (hd.W / 2), ex = sm.x, ez = sm.z, Lp = Math.hypot(ex - fx, ez - fz), dx = (ex - fx) / Lp, dz = (ez - fz) / Lp, px = -dz, pz = dx;
+    const stone = stdMat("#a9a39a", "web/tex/granite_c.webp", 1, .9); stone.normalMap = TL.load("web/tex/granite_n.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; });
+    const P = [], U = [], I = [], w = 2.6, n = Math.ceil(Lp / 1.2);
+    for (let i = 0; i <= n; i++) { const t = i / n, cx = fx + (ex - fx) * t, cz = fz + (ez - fz) * t; for (const s of [-1, 1]) { const x = cx + px * w * s, z = cz + pz * w * s; P.push(x, groundY(x, z) + .1, z); U.push((s + 1) * 1.3, t * Lp / 1.2); } }   // 石の継ぎ目＝1.2 m ごと（テクスチャの一枚）
+    for (let i = 0; i < n; i++) { const a = i * 2; I.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); pg.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); pg.setIndex(I); pg.computeVertexNormals(); const path = new THREE.Mesh(pg, stone); path.renderOrder = 2; g.add(path);
+    const lan = stdMat("#8f8a80", "web/tex/granite_c.webp", 1, .95);
+    for (let d = 10; d < Lp - 8; d += 16) for (const s of [-1, 1]) { const x = fx + dx * d + px * 4.2 * s, z = fz + dz * d + pz * 4.2 * s, y = groundY(x, z), T = new THREE.Group(); T.position.set(x, y, z);
+      const parts = [[new THREE.CylinderGeometry(.5, .6, .35, 6), .17], [new THREE.CylinderGeometry(.16, .2, 1.1, 8), .9], [new THREE.BoxGeometry(.8, .25, .8), 1.55], [new THREE.BoxGeometry(.62, .55, .62), 1.95], [new THREE.ConeGeometry(.66, .45, 6), 2.45], [new THREE.SphereGeometry(.12, 8, 6), 2.75]];
+      for (const [gg, hy] of parts) { const m = new THREE.Mesh(gg, lan); m.position.y = hy; T.add(m); } const fire = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, .64), new THREE.MeshBasicMaterial({ color: "#2b2620" })); fire.position.y = 1.95; T.add(fire); g.add(T); }   // 石灯籠（春日形の模式）
+    // 向拝：本堂の正面中央に張り出す屋根（銅板の模式）・四本の柱・三段の石段
+    const wood = stdMat("#6e5440", "web/tex/wood_c.webp", 1, .8), roofM = stdMat("#4b4f4d", null, 1, .55, { metalness: .35 }), ang = Math.atan2(px, pz), V = new THREE.Group(); V.position.set(fx, hd.y, fz); V.rotation.y = ang;
+    const H = Math.max(4.5, hd.top - hd.y - .2), sp = 6;
+    for (const sx of [-1, 1]) for (const d of [.4, 3.4]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(.24, .26, H, 12), wood); c.position.set(sx * sp / 2, H / 2, d); V.add(c); }   // 向きの軸：+z＝本堂の外
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(sp + 1.4, .5, .45), wood); beam.position.set(0, H - .2, 3.4); V.add(beam);
+    const rg = new THREE.BufferGeometry(); { const W2 = sp / 2 + 1.6, y1 = H + .25, y2 = H + 2.2; const v = [-W2, y1, 4.8, W2, y1, 4.8, W2, y2, -.2, -W2, y1, 4.8, W2, y2, -.2, -W2, y2, -.2]; rg.setAttribute("position", new THREE.Float32BufferAttribute(v, 3)); rg.computeVertexNormals(); }
+    const rf = new THREE.Mesh(rg, roofM); rf.material.side = THREE.DoubleSide; V.add(rf);
+    const tile = new THREE.Mesh(new THREE.BoxGeometry(sp + 3.4, .3, .5), roofM); tile.position.set(0, H + .25, 4.9); V.add(tile);
+    for (let i = 0; i < 3; i++) { const st = new THREE.Mesh(new THREE.BoxGeometry(sp + .6 - i * .3, .22, 1.2), lan); st.position.set(0, .11 + i * .22, 4.6 + 1.1 - i * .4); V.add(st); }
+    g.add(V); world.add(g); QW.kitain = { Lp: Math.round(Lp), fx, fz }; }
+}
+/* ---------- 2026-10-27 本人「デジタルとフィジカルが融合した空間に」：写実の地の上に、光の等高線・地面のグリッド・走査の輪・データの粒を薄く重ねる（上品に・やりすぎない） ---------- */
+var DIGI = { u: null };
+function buildDigi(geo) {
+  const u = DIGI.u = { uT: BLDU.t, uCam: { value: new THREE.Vector3() }, uK: { value: 0 } };
+  const m = new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
+    vertexShader: `varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform float uT; uniform vec3 uCam; uniform float uK; varying vec3 vW;
+      float ln(float v,float w){ float f=fwidth(v); return 1.-smoothstep(w*.5,w*.5+f*1.2,abs(fract(v)-.5)*1.); }
+      void main(){ float d=distance(vW.xz,uCam.xz); if(d>90.) discard;
+        float fade=smoothstep(2.5,8.,d)*(1.-smoothstep(45.,88.,d));
+        float g=max(ln(vW.x/8.+.5,.035),ln(vW.z/8.+.5,.035))*.55;                 // 8 m の光のグリッド
+        float c=ln(vW.y/.5+.5,.06)*.9;                                             // 0.5 m ごとの光の等高線（地形の起伏）
+        float r=fract(d/34.-uT*.12); float ring=exp(-pow((r-.98)*60.,2.))*1.4;     // 見る人から広がる走査の輪
+        float dots=step(.93,fract(vW.x*.5))*step(.93,fract(vW.z*.5))*.6;           // 2 m ごとの点（点群のような格子）
+        vec3 col=vec3(.42,.86,.96); float a=(g+c+dots)*.11+ring*.12*(1.-smoothstep(20.,80.,d));
+        gl_FragColor=vec4(col*a*fade*uK,1.); }` });
+  const mesh = new THREE.Mesh(geo, m); mesh.renderOrder = 3; mesh.name = "digiGround"; mesh.frustumCulled = false; world.add(mesh); DIGI.mesh = mesh;
+  // データの粒：見る人のまわり 60 m を巡る小さな光の粒が、地面からゆっくり昇る
+  const N = MOBILE ? 500 : 1100, P = new Float32Array(N * 3); let sd = 5; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647; for (let i = 0; i < N; i++) { P[i * 3] = r() * 120 - 60; P[i * 3 + 1] = r(); P[i * 3 + 2] = r() * 120 - 60; }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.BufferAttribute(P, 3));
+  const pm = new THREE.ShaderMaterial({ uniforms: u, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    vertexShader: `uniform float uT; uniform vec3 uCam; varying float vA; void main(){ vec3 p=position; p.xz=mod(p.xz-uCam.xz+60.,120.)-60.+uCam.xz; float ph=fract(p.y+uT*.035); p.y=uCam.y-1.6+ph*9.;
+        float d=distance(p.xz,uCam.xz); vA=sin(ph*3.1416)*(1.-smoothstep(25.,58.,d))*smoothstep(3.,8.,d); vec4 mv=viewMatrix*vec4(p,1.); gl_Position=projectionMatrix*mv; gl_PointSize=clamp(90./-mv.z,1.,3.5); }`,
+    fragmentShader: `uniform float uK; varying float vA; void main(){ vec2 q=gl_PointCoord-.5; float a=1.-smoothstep(.2,.5,length(q)); gl_FragColor=vec4(vec3(.55,.92,1.)*a*vA*.55*uK,1.); }` });
+  const pts = new THREE.Points(pg, pm); pts.frustumCulled = false; pts.renderOrder = 9; world.add(pts); DIGI.pts = pts;
+}
+function digiTick(dt) { if (!DIGI.u) return; DIGI.u.uCam.value.copy(camera.position); const want = QW.mode === "walk" || QW.mode === "descend" ? 1 : QW.mode === "fly" ? .5 : 0; DIGI.u.uK.value += (want - DIGI.u.uK.value) * Math.min(1, dt * 2); const on = DIGI.u.uK.value > .01; DIGI.mesh.visible = DIGI.pts.visible = on; }
