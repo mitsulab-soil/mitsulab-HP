@@ -6,26 +6,14 @@
    ・足もとの輪にも同じ紋。近づくと（約 10 m→4 m）輪と紋がひらき、触れると層の中身へ広がる。
    ・遠くは柱と輪だけを強め、紋は描かない（見つけやすさ）。描くのは 5 回だけ（すべて InstancedMesh）。
    使い方：const QM = makeQMarks(THREE, parent, n); QM.add(L, color, kind) … 毎こま QM.update(camera, { t, focus, sky })
+   2026-10-26 夜 v5：結晶を球に（本人「目印を球体に」）。屈折風の縁・流れる層の膜・球の中に光る紋。
    kind＝0 sight・1 touch・2 sound・3 nature・4 culture。 */
 
 const KIND = { sight: 0, touch: 1, sound: 2, nature: 3, culture: 4 };
 
 function crystalGeo(THREE) {
-  const pr = [];
-  const N = 24;
-  for (let i = 0; i <= N; i++) {
-    const a = i / N;
-    const y = -.42 + a * .98;
-    const r = a < .38 ? Math.sin(Math.acos(1 - a / .38 * 1.0)) * .30 + .0001 : .30 * Math.pow(1 - (a - .38) / .62, 1.25) + .0001;
-    pr.push(new THREE.Vector2(Math.max(.0001, r), y));
-  }
-  const SEG = 32, g = new THREE.LatheGeometry(pr, SEG);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) { const y = p.getY(i), k = Math.max(0, y + .05); p.setX(i, p.getX(i) + k * k * 1.05); }
-  g.computeVertexNormals();
-  const nr = g.attributes.normal, P = pr.length, _a = new THREE.Vector3(), _b = new THREE.Vector3();
-  for (let j = 0; j < P; j++) { const i0 = j, i1 = SEG * P + j; _a.fromBufferAttribute(nr, i0); _b.fromBufferAttribute(nr, i1); _a.add(_b).normalize(); nr.setXYZ(i0, _a.x, _a.y, _a.z); nr.setXYZ(i1, _a.x, _a.y, _a.z); }
-  return g;
+  // 2026-10-26 本人「Qualium は目印を球体にしてください」→ v5：滑らかな球（半径 .34・中心 0.07）
+  const g = new THREE.SphereGeometry(.34, 40, 24); g.translate(0, .07, 0); return g;
 }
 
 const VS_COMMON = /* glsl */`
@@ -65,9 +53,11 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
   };
   // 結晶：屈折風の虹の縁・切子のきらめき・芯の灯り
   const crystal = mk(crystalGeo(THREE), VS_COMMON + /* glsl */`
-    void main(){ vCol=iCol; vP=iP; vQ=iQ; mat4 mw=modelMatrix*instanceMatrix; vec4 w=mw*vec4(position,1.); vW=w.xyz; vL=position; vN=normalize(mat3(mw)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`,
-  /* glsl */`uniform float uT; varying vec3 vCol; varying vec4 vP; varying vec2 vQ; varying vec3 vW; varying vec3 vL; varying vec3 vN;
-    vec3 film(float x){ return .5+.5*cos(6.2832*(x+vec3(0.,.33,.67))); }
+    varying vec3 vC; varying float vR;
+    void main(){ vCol=iCol; vP=iP; vQ=iQ; mat4 mw=modelMatrix*instanceMatrix; vec4 w=mw*vec4(position,1.); vW=w.xyz; vL=position; vN=normalize(mat3(mw)*normal);
+      vC=(mw*vec4(0.,.07,0.,1.)).xyz; vR=length(mw[0].xyz)*.34; gl_Position=projectionMatrix*viewMatrix*w; }`,
+  /* glsl */`uniform float uT; varying vec3 vCol; varying vec4 vP; varying vec2 vQ; varying vec3 vW; varying vec3 vL; varying vec3 vN; varying vec3 vC; varying float vR;
+    vec3 film(float x){ return .5+.5*cos(6.2832*(x+vec3(0.,.33,.67))); }` + EMB + /* glsl */`
     void main(){
       vec3 n=normalize(vN); vec3 v=normalize(cameraPosition-vW); if(!gl_FrontFacing) n=-n; float nv=clamp(abs(dot(n,v)),0.,1.);
       float fr=pow(1.-nv,2.4);
@@ -83,6 +73,12 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
       vec3 rim=mix(sat, sat*film(fr*1.4+vL.y*.6+uT*.05)*1.6, .42*crisp);       // 縁の薄膜の色ずれ（層の色を芯に）
       vec3 c=sat*(.2+.32*dif)+sat*core*(.6+op*.5)+rim*fr*(1.6+crisp*.9)+vec3(1.)*pow(fr,4.)*(.3+crisp*.4)+vec3(1.)*(spec*(.6+crisp*.5)+glint*crisp);
       float a=(.14+.08*crisp+core*.16+fr*.8+spec*.45+glint*.5)*(.66+.34*em);
+      // 球の中に光る層の紋（見る向きの平面に写す）と、ゆっくり流れる層の膜
+      vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]), U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
+      vec2 q=vec2(dot(vW-vC,R),dot(vW-vC,U))/max(1e-4,vR);
+      float inner=emb(q*.95, vQ.x, uT)*smoothstep(.2,.7,nv)*crisp*(.35+.65*op);
+      float memb=ln(fract(vL.y*5.-uT*.12+.3*sin(atan(vL.z,vL.x)*2.+uT*.2))-.5,.05)*fr*.5*crisp;
+      c+=sat*1.5*inner+rim*memb; a+=inner*.55+memb*.3;
       gl_FragColor=vec4(c*(1.+em*.4+op*.25),clamp(a,0.,.94)*vP.x);
       #include <colorspace_fragment>
     }`, 7, THREE.NormalBlending);
@@ -211,14 +207,16 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
    近い札（選んだ札が先）から順に置く。重なるときは上へ一段ずつ逃がし（3 段まで）、それでも重なる遠い札はうすく消す。
    list: [{ sp, d, pri }]  sp＝makeLabel の札（center 0,0）。sp.userData.by に、ずらす前の高さ（親の中での y）を入れておく。
    avoid: 画面の上の範囲 [{x0,x1,y0,y1}]（結晶＝QM.rects、層の一覧など）。札の不透明度は呼ぶ前に決めておく（ここで掛ける）。 */
-export function placeLabels(THREE, cam, list, avoid = [], dt = .016) {
+export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) {   // 2026-10-26 川越：minPx＝遠くの札も読める字の高さまで大きくする
   const W = innerWidth, H = innerHeight, put = [], V = THREE.Vector3;
   const a = placeLabels._a || (placeLabels._a = new V()), b = placeLabels._b || (placeLabels._b = new V()), sc = placeLabels._s || (placeLabels._s = new V()), ps = placeLabels._p || (placeLabels._p = new V());
   list.sort((p, q) => (q.pri || 0) - (p.pri || 0) || p.d - q.d);
   const hit = r => { for (const q of put) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; for (const q of avoid) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; return false; };
   for (const e of list) {
     const sp = e.sp, u = sp.userData; if (u.by == null) u.by = sp.position.y; u.sl ??= 0; u.f ??= 0;
+    if (minPx) { u.bs = sp.scale.clone(); sp.scale.copy(u.bs); }
     sp.position.y = u.by; sp.getWorldPosition(a); sp.getWorldScale(sc); sp.parent?.getWorldScale(ps);
+    if (minPx && a.z !== undefined) { const t = a.clone(), t2 = a.clone(); t2.y += sc.y; t.project(cam); t2.project(cam); const hp = Math.abs(t2.y - t.y) / 2 * H; if (t.z < 1 && hp > .5 && hp < minPx) { const f = Math.min(3.2, minPx / hp); sp.scale.copy(u.bs).multiplyScalar(f); sp.getWorldScale(sc); } }
     b.copy(a); b.y += sc.y; a.project(cam); b.project(cam);
     let slot = -1;
     if (a.z < 1 && sp.visible) {

@@ -7,8 +7,8 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
-import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k1";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q4";
+import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q5k";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
@@ -364,11 +364,13 @@ function buildSolids() {
   if (!SOLID.P.length) return;
   const TL = new THREE.TextureLoader(), ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(SOLID.P, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(SOLID.U, 2)); g.setAttribute("wuv", new THREE.Float32BufferAttribute(SOLID.W, 4)); g.setAttribute("color", new THREE.Float32BufferAttribute(SOLID.C, 3)); g.computeVertexNormals();
-  const m = new THREE.MeshStandardMaterial({ normalMap: ld("web/tex/plaster_n.webp"), normalScale: new THREE.Vector2(.6, .6), roughnessMap: ld("web/tex/plaster_r.webp"), vertexColors: true, roughness: .92, metalness: 0 });
+  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/plaster_c.webp", true), normalMap: ld("web/tex/plaster_n.webp"), normalScale: new THREE.Vector2(.6, .6), roughnessMap: ld("web/tex/plaster_r.webp"), vertexColors: true, roughness: .92, metalness: 0 });   // 2026-10-26 採点「近寄ると単色の箱」→ 漆喰の写真の肌理（Poly Haven CC0）を色にも
+  const tPlank = ld("web/tex/bplank_c.webp", true);
   // 壁の面に、模式の窓・店先のガラス・階の目地・足もとの汚れを描く（一棟ずつの実際の窓の位置ではない）
   m.onBeforeCompile = sh => {
+    sh.uniforms.tPlank = { value: tPlank };
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec4 wuv; varying vec4 vW;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvW = wuv;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec4 vW;").replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec4 vW; uniform sampler2D tPlank;\nfloat hS(float x){return fract(sin(x*127.1)*43758.5);}\nfloat nS(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(hS(i),hS(i+1.),f);}").replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
       if (vW.y > -5.) {
         float u = vW.x, v = vW.y, H = vW.z, L = vW.w, gl = 0., fr = 0.;
         float edge = L < 3.4 ? step(.25, fract(u / 1.7)) * step(fract(u / 1.7), .75) : step(1.2, u) * step(u, L - 1.2);   // 壁の端は窓にしない（2026-10-25 短い面が続く輪郭も、窓のない板にしない）
@@ -379,6 +381,14 @@ function buildSolids() {
         float cap = step(H - .35, v);                                           // 屋上の縁
         vec3 glass = mix(vec3(.10, .13, .16), vec3(.36, .44, .52), clamp((v - .3) / max(1., H), 0., 1.) * .6 + .15);
         diffuseColor.rgb *= 1. - base * .35 - joint * .18 - cap * .12;
+        // 2026-10-26 近寄っても箱に見えないように：腰板（焼杉の板・模式）・雨だれの筋・軒下の陰
+        float koshi = step(v, .95) * step(-.2, v);
+        vec3 pk = texture2D(tPlank, vec2(u / 1.4, v / 1.4)).rgb * vec3(.42, .36, .31);
+        diffuseColor.rgb = mix(diffuseColor.rgb, pk, koshi * (1. - gl) * (1. - fr));
+        float streak = nS(u * 2.3) * nS(u * .61 + 7.) ; float drip = smoothstep(.35, .9, streak) * smoothstep(H, H - 2.6, v) * step(.95, v);
+        diffuseColor.rgb *= 1. - drip * .28 * (1. - gl);
+        diffuseColor.rgb *= 1. - smoothstep(H - 1.2, H - .1, v) * .22 * (1. - cap);
+        diffuseColor.rgb *= .9 + .2 * nS(u * .35 + v * .2 + 3.);
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.16, .15, .14), fr * .75);
         diffuseColor.rgb = mix(diffuseColor.rgb, glass, gl);
         roughnessFactor = mix(roughnessFactor, .18, gl);
@@ -452,12 +462,12 @@ function stepLayer(dt) {
   for (const L of LAYER.objs) {
     const on = LAYER.worn.includes(top5(L.layer)) && QW.mode !== "sight", d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
     const want = on ? (sky ? 1 : d < 140 ? 1 : 0) : 0; L.show += (want - L.show) * Math.min(1, dt * 4);
-    const vis = L.show > .02; L.root.visible = vis; L.lb.visible = vis && (sky ? false : d < 34);
+    const vis = L.show > .02; L.root.visible = vis; L.lb.visible = vis && (sky ? false : d < 58);   // 2026-10-26 遠くの目印も名を読めるように 34→58 m
     if (!vis) continue;
     const k = sky ? Math.min(14, Math.max(2.5, camera.position.distanceTo(L.root.position) / 60)) : 1;
     L.root.scale.setScalar(k * (.4 + .6 * L.show)); L.glyph.rotation.y = t * .6; L.glyph.position.y = (L.o.h || 1.8) + Math.sin(t * 1.4 + L.o.x) * .05;
     for (const m of L.mats) m.opacity = (m === L.fm ? .1 : m === L.bm ? .55 : .9) * L.show;
-    if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (34 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
+    if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (58 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
   }
   LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
@@ -486,7 +496,7 @@ function stepHere(cp, t, off) {
   const v = new THREE.Vector3(L.o.x, L.root.position.y + (L.o.h || 1.8), L.o.z).applyMatrix4(camera.matrixWorldInverse);
   if (v.z < 0 && Math.abs(v.x / -v.z) < 1 && Math.abs(v.y / -v.z) < .8) { QH.dir.hidden = true; return; }
   const a = Math.atan2(v.x, -v.z), W = innerWidth, H = innerHeight, x = Math.max(MOBILE ? 30 : 270, Math.min(W - 30, W / 2 + Math.sin(a) * (W / 2 - 40))), y = Math.max(MOBILE ? 340 : 140, Math.min(H - (MOBILE ? 300 : 150), H * .55 - Math.cos(a) * (H * .55 - 150)));
-  let X = x, Y = y; { const cap = $("#caption"); if (cap && !cap.hidden) { const r = cap.getBoundingClientRect(); if (X > r.left - 50 && X < r.right + 50 && Y > r.top - 60) Y = r.top - 60; } }   // 2026-10-26 字幕・碧に重ねない
+  let X = x, Y = y; { const cap = $("#caption"); if (cap && !cap.hidden) { const r = cap.getBoundingClientRect(); if (X > r.left - 50 && X < r.right + 50 && Y > r.top - 60 && Y < r.bottom + 60) Y = r.top - 60; } Y = Math.max(MOBILE ? 150 : 120, Y); }   // 上のタブに重ねない   // 2026-10-26 字幕・碧に重ねない
   if (AOI.root?.visible) { const w = new THREE.Vector3(); AOI.root.getWorldPosition(w); w.project(camera); const ax = (w.x + 1) / 2 * innerWidth; if (w.z < 1 && Math.abs(X - ax) < 130 && Y > innerHeight * .35) X = ax + (X < ax ? -150 : 150); X = Math.max(30, Math.min(innerWidth - 30, X)); }
   QH.dir.hidden = false; QH.dir.style.transform = `translate(${X - 18}px,${Y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
   QH.dir.style.setProperty("--c", GL[L.layer].color); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
@@ -497,7 +507,7 @@ function declutter(dt) {
   const now = performance.now(); if (!DC.ls || now - DC.t > 500) { DC.t = now; DC.ls = $("#lstack").getBoundingClientRect(); }   // 画面の部品の位置は 0.5 秒ごとに読む（毎こま読むと重い）
   const ls = DC.ls, avoid = [...(LAYER.qm?.rects || [])]; if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 });
   const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
-  if (list.length) placeLabels(THREE, camera, list, avoid, dt);
+  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 16 : 22);   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
 function pickObj(x, y) {
   const r = new THREE.Raycaster(), p = new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); r.setFromCamera(p, camera);
@@ -605,7 +615,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .45 : 1.1, fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
+  const f = MOBILE ? 4.0 : 3.5, s = MOBILE ? .45 : 1.25,   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const side = !$("#panel").hidden && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
@@ -705,7 +715,7 @@ const offRoute = (x, z) => nearestOnLine(x, z).dist > 14;
 function solids(p, r = .35) {   // 店蔵の型と時の鐘には入らない（向きのある箱から押し出す）
   const push = (cx, cz, yaw, hw, hd) => { const c = Math.cos(yaw), s = Math.sin(yaw), dx = p.x - cx, dz = p.z - cz, lx = dx * c - dz * s, lz = dx * s + dz * c;
     if (Math.abs(lx) < hw + r && Math.abs(lz) < hd + r) { const ox = hw + r - Math.abs(lx), oz = hd + r - Math.abs(lz); let nx = lx, nz = lz; if (ox < oz) nx = Math.sign(lx || 1) * (hw + r); else nz = Math.sign(lz || 1) * (hd + r); p.x = cx + nx * c + nz * s; p.z = cz - nx * s + nz * c; } };
-  for (const k of G.kura) if (Math.abs(k.x - p.x) < 12 && Math.abs(k.z - p.z) < 12) push(k.x, k.z, k.yaw, k.w / 2, k.dp / 2 + .9);
+  for (const k of G.kura) if (Math.abs(k.x - p.x) < 12 && Math.abs(k.z - p.z) < 12) push(k.x, k.z, k.yaw, k.w / 2, k.dp / 2 + 1.8);   // 2026-10-26 採点「壁の手前で画面いっぱいが縦じま」→ 蔵の正面から約 2.2 m で止める
   for (const k of G.machi || []) if (Math.abs(k.x - p.x) < 12 && Math.abs(k.z - p.z) < 12) push(k.x, k.z, k.yaw, k.w / 2, k.dp / 2 + .6);
   if (KURA.tower) push(KURA.tower.position.x, KURA.tower.position.z, KURA.tower.rotation.y, 2.4, 2.4);
   solidRings(p);

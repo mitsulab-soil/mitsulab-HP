@@ -113,7 +113,7 @@ function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i,
 export function makeLabel(no, layer, title, color) {
   const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const x = cv.getContext("2d");
   // 2026-10-22 箱をやめ、視野に重なる札に：左の細い線と角だけ。字の下だけ、横にうすく暗く（明るい空や地面でも読める）
-  const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.6)"); gr.addColorStop(.7, "rgba(3,6,15,.3)"); gr.addColorStop(1, "rgba(3,6,15,0)");
+  const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.72)"); gr.addColorStop(.7, "rgba(3,6,15,.4)"); gr.addColorStop(1, "rgba(3,6,15,0)");
   x.fillStyle = gr; x.fillRect(0, 22, W, 84);
   x.fillStyle = color; x.fillRect(0, 18, 3, 92); x.fillRect(0, 18, 22, 2); x.fillRect(0, 108, 22, 2);
   // 2026-10-22 夜 電脳の HUD の字：番号と層は細いモノスペースで層の色に光り、名前は層の色を帯びた明朝。暗い影の上に、色のにじむ光を重ねる
@@ -125,7 +125,7 @@ export function makeLabel(no, layer, title, color) {
   glow(title, 22, 94, mixHex(color, "#f2fbff", .7), 14);
   x.shadowBlur = 0; x.shadowColor = "transparent";
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, depthTest: true, fog: true }));
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, depthTest: true, fog: false }));   // 2026-10-26 遠くの札が霧で淡くならないように
   s.center.set(0, 0); s.scale.set(1.6, .4, 1); s.renderOrder = 6; return s;
 }
 
