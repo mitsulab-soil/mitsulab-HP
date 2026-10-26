@@ -103,7 +103,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     // 2026-10-26 2：場所選びの板（#skyUI .card）に札が重ならないよう、板の上端より下には出さない
     const card = document.querySelector("#skyUI .card"), cr = card && card.offsetParent ? card.getBoundingClientRect() : null, bottom = cr && cr.width ? cr.top - 30 : H - 30;
     for (const L of A.labels) { _v.copy(L.p).project(camera); const sx = (_v.x + 1) / 2 * W, sy = (1 - _v.y) / 2 * H, hw = (L.w ||= L.e.offsetWidth || 110) / 2 + 6;   // 画面の端で切れる札は出さない
-      if (_v.z > 1 || sx < hw || sx > W - hw || sy < 60 || sy > bottom) { L.e.style.display = "none"; continue; } L.e.style.display = ""; L.e.style.transform = `translate(${sx}px,${sy}px) translate(-50%,-50%)`; }
+      const SR = window.__qw?.startRects || []; if ((L.Z.id === "higashi" || L.Z.id === "nishi") && SR.length) { L.e.style.display = "none"; continue; } if (_v.z > 1 || sx < hw || sx > W - hw || sy < 60 || sy > bottom || SR.some(r => Math.abs(r[0] - sx) < hw + 60 && Math.abs(r[1] - sy) < 46)) {   /* 2026-10-27：始める場所の名札と重なる地区の札は出さない */ L.e.style.display = "none"; continue; } L.e.style.display = ""; L.e.style.transform = `translate(${sx}px,${sy}px) translate(-50%,-50%)`; }
   }
   A.highlight = id => { for (const Z of A.zones) if (Z.fill) Z.fill.material.opacity = id && Z.id === id ? .5 : .3; };
 

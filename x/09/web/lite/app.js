@@ -8,9 +8,10 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=6";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q11";
+import { makeStartPins } from "./startpins.js?v=13";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=38";
+import { makeAreas } from "./areas.js?v=40";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -769,34 +770,21 @@ const START = { pins: [], sel: -1, labels: [] };
 const MAP = { group: null, labels: [], big: [], here: null, data: null };
 const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）
 function buildStarts() {
-  const g = new THREE.Group(); world.add(g); START.group = g;
-  const colG = new THREE.CylinderGeometry(.6, .6, 1, 8, 1, true); colG.translate(0, .5, 0);
-  const ringG = new THREE.RingGeometry(9, 10.5, 48); ringG.rotateX(-Math.PI / 2);
-  D.starts.forEach((s, i) => {
-    const y = groundY(s.x, s.z);
-    const m = new THREE.MeshBasicMaterial({ color: "#9bdcf0", transparent: true, opacity: .55, depthWrite: false, fog: false, toneMapped: false });   // しるしは地図を暗くしても明るいまま
-    const col = new THREE.Mesh(colG, m); col.position.set(s.x, y, s.z); col.scale.y = 46;
-    const ring = new THREE.Mesh(ringG, m.clone()); ring.position.set(s.x, y + .8, s.z); ring.material.opacity = .8;
-    const head = new THREE.Mesh(new THREE.OctahedronGeometry(3.2), new THREE.MeshBasicMaterial({ color: "#e8fbff", fog: false, toneMapped: false }));
-    head.position.set(s.x, y + 50, s.z); head.scale.y = 1.5;
-    g.add(col, ring, head); START.pins.push({ s, col, ring, head, y });
-  });
-  const box = $("#starts"); box.innerHTML = "";
-  D.starts.forEach((s, i) => {
-    const b = document.createElement("button"); b.type = "button"; b.className = "stBtn"; b.dataset.i = i;
-    b.innerHTML = `<span class="no">${String(i + 1).padStart(2, "0")}</span><span class="nm">${s.name}</span>`;
-    b.addEventListener("click", () => selectStart(i)); box.appendChild(b);
-    const lb = document.createElement("div"); lb.className = "pinLabel"; lb.textContent = s.short; lb.dataset.i = i; $("#pinLabels").appendChild(lb); START.labels.push(lb);
-    lb.addEventListener("click", () => selectStart(i));
-  });
+  /* 2026-10-27 本人：始める場所は GUI の一覧でなく、地図の上の 3D の印と明朝の名札（共通部品 startpins.js）。名前は省略しない。
+     東口・西口（町の地図の層）と「現在地から歩く」も地図の上の印に。位置の許可は押したときだけ */
+  const items = D.starts.map(s => ({ name: s.name, x: s.x, z: s.z, kind: s.icon || "" }));
+  START.extra = [{ name: "大宮駅 東口", x: -420, z: 30, kind: "area", zone: "higashi" }, { name: "大宮駅 西口", x: -700, z: 110, kind: "area", zone: "nishi" }, { name: "現在地から歩く", x: MOBILE ? 300 : 520, z: MOBILE ? 960 : 900, kind: "here" }];   // 現在地は地図の端の印（自分の位置の形）。押したときだけ位置を使い、位置が出たらその場所へ印が移る   // 「現在地から歩く」は地図の場所に置かず、地図の縁の方位の印（#skyHere）に（その場所にいると読ませない）   // 東口・西口は、地図の上の町の札（大宮駅（東口）・（西口））から選ぶ
+  START.sp = makeStartPins({ THREE, parent: world, camera, groundY, mobile: MOBILE, items: [...items, ...START.extra],
+    note: { text: "氷川参道は、一の鳥居から神社まで、およそ 2 km。", x: 260, z: 560 }, goBtn: $("#goDown"),
+    onSelect: i => { if (i < D.starts.length) { START.sel = i; return; } const e = START.extra[i - D.starts.length]; if (e.kind === "here" && $("#skyHere")?.getAttribute("aria-pressed") !== "true") { unlockAudio(); HERE.toggle(); } },
+    onGo: i => { unlockAudio(); if (i < D.starts.length) return descendTo(i); const e = START.extra[i - D.starts.length]; if (e.zone) { const Z = AREAS?.byId?.[e.zone]; if (Z) areaDescend(Z); } else if ($("#skyHere")?.getAttribute("aria-pressed") !== "true") HERE.toggle(); } });
+  START.sp.show(QW.mode === "sky"); { const h = $("#skyHere"); if (h) h.style.display = "none"; }
 }
 function selectStart(i) {
-  START.sel = i;
+  START.sel = i; if (START.sp && START.sp.sel !== i) START.sp.select(i);
   START.pins.forEach((p, k) => { const on = k === i; p.col.material.color.set(on ? PICK : "#9bdcf0"); p.col.material.opacity = on ? 1 : .2; p.ring.material.color.set(on ? PICK : "#9bdcf0"); p.ring.material.opacity = on ? 1 : .35; p.ring.scale.setScalar(on ? 1.8 : .8); p.head.material.color.set(on ? PICK : "#7f9aa6"); p.head.scale.set(on ? 1.3 : .75, on ? 1.95 : 1.1, on ? 1.3 : .75); });   // 選んでいる所は濃く、ほかは薄く
   document.querySelectorAll(".stBtn").forEach((b, k) => b.setAttribute("aria-pressed", k === i ? "true" : "false"));
   START.labels.forEach((l, k) => l.classList.toggle("on", k === i));
-  $("#goDown").disabled = false; $("#goDown").setAttribute("aria-label", D.starts[i].name + "から歩く");
-  $("#starts").querySelectorAll(".stBtn")[i]?.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 /* 地図の線と名前（map.json は上空にいるあいだに後から読む） */
 function buildMap(M) {
@@ -851,6 +839,7 @@ function stepMapLabels() {
   for (const L of all) {
     _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W; let y = (1 - _v3.y) / 2 * H; if (L === MAP.hereLabel && _v3.z < 1) { y = Math.max(130, Math.min(H - 60, y)); }   // 「いま」の札は上の端で切らない
     let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x < W - 20 && y > 70 && y < H - 40 && y < MAP.av.cy && !(x < MAP.av.lx && y < MAP.av.ly + 10);
+    if (ok && START.rects) for (const r of START.rects) if (Math.abs(r[0] - x) < (MOBILE ? 100 : 110) && Math.abs(r[1] - y) < 40) { ok = false; break; }   // 始める場所の名札を優先（地区の札は重ねない）
     if (ok && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < (MOBILE ? 96 : 70) && Math.abs(q[1] - y) < (MOBILE ? 22 : 18)) { ok = false; break; }   // 重なる名札は出さない（大きな鳥居の名札も）
     if (!ok) { if (L.vis !== false) { L.e.style.display = "none"; L.vis = false; } continue; }
     placed.push([x, y]); if (L.vis !== true) { L.e.style.display = ""; L.vis = true; }
@@ -861,7 +850,7 @@ function stepMapLabels() {
 /* ---------- カメラと動き ---------- */
 // CAM.yaw＝体（歩く）の向き、CAM.look＝見回す向き（体からの差）、CAM.pitch＝上下。カメラの向き＝yaw＋look
 const CAM = { yaw: 0, look: 0, pitch: 0, pos: new THREE.Vector3(), vy: 0, lastDrag: 0 };
-const SKY = { az: .3, el: .98, dist: MOBILE ? 1750 : 1550, tx: -20, tz: MOBILE ? 120 : 40, tAz: .3, tEl: .98, tDist: MOBILE ? 1750 : 1550 };
+const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -160, tz: MOBILE ? -10 : 150, tAz: .3, tEl: .98, tDist: MOBILE ? 2550 : 2150 };   // 2026-10-27：一の鳥居から楼門まで・西口まで、始めの一画面に収める
 const EYE = 1.55;
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
@@ -937,6 +926,7 @@ const HERE = makeHereWalk({
   name: "氷川参道",
   toXZ: (lat, lon) => [(lon - D.origin[0]) * 111320 * Math.cos(D.origin[1] * Math.PI / 180), -(lat - D.origin[1]) * 110574],
   place(x, z) {
+    { const k = START.sp?.pins.findIndex(p => p.it.kind === "here"); if (k >= 0) START.sp.movePin(k, x, z); }   // 位置が出たら、現在地の印をその場所へ
     const [x0, x1, z0, z1] = D.extent, n = nearestOnLine(x, z);
     if (x < x0 || x > x1 || z < z0 || z > z1 || n.dist > 250) return { ok: false, dist: n.dist };
     const p = { x, z }; corridorClamp(p);
@@ -962,7 +952,7 @@ function hereMove(x, z, f, jump) {
 QW.HERE = HERE;
 
 /* 歩く：体は道に沿って進み、目は自由に見回せる */
-const WALK = { goal: null, keys: new Set(), hold: false, auto: false, speed: 1.35, ring: null, moving: false }; QW.WALK = WALK;
+const WALK = { goal: null, keys: new Set(), hold: false, auto: false, speed: 2.4, vk: .35, ring: null, moving: false }; QW.WALK = WALK;
 function enterWalk() {
   setMode("walk"); showWalkUI();
   aoiArrive(); loadKasane(); setTimeout(loadPark, 1200);
@@ -1060,7 +1050,8 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
   const K = WALK.keys; _pv.copy(CAM.pos);
   const fwd = K.has("w") || K.has("arrowup") || WALK.hold, back = K.has("s") || K.has("arrowdown");
   if (K.has("a") || K.has("arrowleft")) CAM.yaw += dt * 1.5; if (K.has("d") || K.has("arrowright")) CAM.yaw -= dt * 1.5;
-  const sp = speed * (K.has("shift") ? 2.2 : 1);
+  const intent = (K.has("w") || K.has("arrowup") || WALK.hold || K.has("s") || K.has("arrowdown") || WALK.goal || WALK.auto); WALK.vk = intent ? Math.min(1, (WALK.vk || .35) + dt * 1.6) : .35;   /* 2026-10-27 本人「移動を速く」→ 1.35→2.4 m/s（約 1.8 倍）。歩きはじめは約 0.4 秒でなめらかに上げる（酔わない） */
+  const sp = speed * WALK.vk * (K.has("shift") ? 1.6 : 1);
   let moving = false;
   if (fwd || back) {   // 見ている方へ：体が目の向きへ回りこむ
     WALK.goal = null; if (WALK.ring) WALK.ring.visible = false;
@@ -1193,6 +1184,7 @@ const STEP = 3.5;   // 押して進む一度の距離（m）
 const ray = new THREE.Raycaster(), _v2 = new THREE.Vector2(), _v3 = new THREE.Vector3();
 function tap(x, y) {
   if (QW.mode === "sky") {   // 地図の点を選ぶ
+    if (START.sp) { const k = START.sp.pick(x, y); if (k >= 0) START.sp.select(k); return; }
     let best = -1, bd = 46 * 46;
     START.pins.forEach((p, i) => { for (const h of [p.head.position, p.ring.position]) { _v3.copy(h).project(camera); const sx = (_v3.x + 1) / 2 * innerWidth, sy = (1 - _v3.y) / 2 * innerHeight, d = (sx - x) ** 2 + (sy - y) ** 2; if (_v3.z < 1 && d < bd) { bd = d; best = i; } } });
     if (best >= 0) selectStart(best); return;
@@ -1569,7 +1561,7 @@ function stepAoi(dt) {
   if (dist > 18) { AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : 1.3);
-    const want = go ? Math.min(1.6, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
+    const want = go ? Math.min(2.9, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.8) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam + 0 * Math.sign(wrap(CAM.yaw + Math.PI - toCam) || 1)); } }   // 2026-10-26 3：待つあいだは真正面で立ちつくさず、行く先へ少し体をひらく（話すときは見る人へほぼ正面）。2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
@@ -2317,8 +2309,8 @@ addEventListener("resize", () => { for (const k in SHO.live) SHO.live[k]?.sho.se
 
 /* ---------- 画面の部品 ---------- */
 function toast(t) { const e = $("#toast"); e.textContent = t; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, 5200); }
-const showSkyUI = () => { $("#skyUI").hidden = false; $("#pinLabels").hidden = false; };
-const hideSkyUI = () => { $("#skyUI").hidden = true; $("#pinLabels").hidden = true; };
+const showSkyUI = () => { $("#skyUI").hidden = false; $("#pinLabels").hidden = false; START.sp?.show(true); };
+const hideSkyUI = () => { $("#skyUI").hidden = true; $("#pinLabels").hidden = true; START.sp?.show(false); };
 const showWalkUI = () => { $("#walkUI").hidden = false; $("#hud").hidden = false; syncAutoBtn(); };
 const hideWalkUI = () => { $("#walkUI").hidden = true; };
 const showFlyUI = () => { $("#flyUI").hidden = false; $("#hud").hidden = false; };
@@ -2335,7 +2327,7 @@ function unlockAudio() {   // スマホのブラウザは、押した操作の�
   try { audio.muted = true; audio.src = D.intro.f; const p = audio.play(); p?.then(() => { audio.pause(); audio.currentTime = 0; audio.muted = false; }).catch(() => { audio.muted = false; unlocked = false; }); } catch { audio.muted = false; }
 }
 addEventListener("pointerup", () => unlockAudio(), true);
-$("#goDown").addEventListener("click", () => { unlockAudio(); descendTo(Math.max(0, START.sel)); });
+
 $("#skyFly").addEventListener("click", () => { unlockAudio(); startFly(); });
 $("#skySight").addEventListener("click", () => { unlockAudio(); openSightChooser(); });
 $("#modeSky").addEventListener("click", () => { if (QW.mode !== "sky") toSky(); });
@@ -2412,7 +2404,7 @@ function frame() {
   }
   if (QW.mode === "sky") {   // 地図の点の名前（7 つ）と、道・地名の名前
     START.pins.forEach((p, i) => { _v3.copy(p.head.position).project(camera); const l = START.labels[i]; if (_v3.z > 1) { l.style.display = "none"; return; } l.style.display = ""; l.style.transform = `translate(${(_v3.x + 1) / 2 * innerWidth}px,${(1 - _v3.y) / 2 * innerHeight}px)`; });
-    stepMapLabels();
+    { const l = $("#lstack")?.getBoundingClientRect(); START.rects = QW.startRects = START.sp?.update(performance.now() / 1000, l && l.width ? { x: l.right + 8, y: l.bottom } : null) || []; } stepMapLabels();
     if (MAP.here?.visible) MAP.here.scale.setScalar(1 + .15 * Math.sin(performance.now() / 300));
   }
   if (WALK.ring?.visible) { WALK.ringT = (WALK.ringT || 0) + dt; WALK.ring.material.opacity = .85 * (.6 + .4 * Math.cos(WALK.ringT * 4)); }

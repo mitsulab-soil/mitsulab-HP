@@ -18,7 +18,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261023k" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261027f">
+<link rel="modulepreload" href="web/lite/app.js?v=20261027v">
 <link rel="modulepreload" href="web/lite/layers.js?v=6">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
@@ -506,6 +506,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
   body[data-mode="walk"] #caption{top:auto!important;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 60px)!important;left:var(--g)!important;right:auto!important;width:calc(100% - 196px)!important;font-size:12.5px!important;text-align:left!important;background:rgba(6,10,18,.62);border-radius:6px;padding:8px 10px}
   body[data-mode="walk"]:has(#caption:not([hidden])) #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 62px)!important;bottom:auto!important;right:var(--g)!important;left:auto!important}}
 @media (max-width:640px){body[data-mode="walk"]:has(#caption:not([hidden])) #toast{display:none!important}#lstack::before{width:96px!important;background:linear-gradient(90deg,rgba(3,6,15,.5),rgba(3,6,15,0))!important;-webkit-mask:none!important;mask:none!important}#lstack{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}   /* 2026-10-27 夜：スマホの層の一覧の左を白く濁らせない（暗く細い帯だけ） */   /* 字幕の間は操作説明を出さない（碧と札の重なりを避けて字幕を左下へ） */
+#skyUI .card{display:none!important}   /* 2026-10-27 本人：始める場所は地図の上の 3D の印と名札に（startpins.js）。鳥になって飛ぶ・生きものの身体は、歩く中の「飛ぶ」と層の一覧の Qualia/sight から */
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
@@ -579,6 +580,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261027f").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261027v").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
