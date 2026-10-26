@@ -88,3 +88,58 @@ html[data-lang=en] .v2-umw-ja{font-family:var(--latin);letter-spacing:0}
 .si-body{margin:0;padding:0 12px 12px;font-size:12.5px;line-height:1.7;color:var(--ink-2);border-top:1px dashed #8bccca26;padding-top:12px}
 @media (max-width:1100px){.si-grid{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:700px){.si-grid{grid-template-columns:1fr;gap:6px}.si-fold>summary{grid-template-columns:1fr auto;column-gap:10px;padding:8px 12px}.si-k{grid-column:1/-1}.si-what{grid-column:1}.si-more{grid-column:2;grid-row:2/4;align-self:center}.si-name{font-size:15px}}
+/* v3（2026-10-26）知覚と認知の輪（1.0 → 2.0）と開閉の節 */
+.lp-sec{max-width:1200px;margin:0 auto}
+.lp-figs{display:flex;align-items:center;gap:12px;margin:22px 0 8px}
+.lp-svg{flex:1;min-width:0;width:100%;height:auto;display:block}
+.lp-to{font-style:normal;font-size:28px;color:#a8f2f6}
+.lp-env{fill:#a8f2f60a;stroke:#a8f2f640;stroke-width:1}
+.lp-envt,.lp-o,.lp-ot{font:400 14px var(--sans,sans-serif);fill:#9fb6b8}
+.lp-h{font:400 22px var(--serif);fill:#e9f4f4;letter-spacing:.06em}
+.lp-arc{fill:none;stroke:#a8f2f6;stroke-width:2.2;opacity:.85}
+.lp-arc.lp-q{stroke:#f6e2b0;stroke-width:6;opacity:.9}
+.lp-node{fill:#03060f;stroke:#a8f2f6;stroke-width:2}
+.lp-t{font:400 15px var(--serif);fill:#e9f4f4}
+.lp-qt{font:400 16px var(--latin,serif);fill:#f6e2b0}
+.lp-s{fill:none;stroke:#f4aa96;stroke-width:2}
+.lp-st{font:400 13px var(--serif);fill:#f4aa96}
+.lp-out{fill:none;stroke:#b7a8ff66;stroke-width:1.2;stroke-dasharray:3 6}
+.lp-in{fill:none;stroke:var(--c);stroke-width:2.4;stroke-dasharray:6 5;opacity:.95}
+.lp-ret{fill:none;stroke:#d6c09b;stroke-width:2}
+.lp-b{fill:#03060f;stroke:var(--c);stroke-width:2.4}
+.lp-bl{font:400 15px var(--latin,sans-serif);fill:#fff}
+.lp-bt{font:400 15px var(--serif);fill:#fff}
+.lp-aoi{fill:#a8f2f6;opacity:.9}
+.lp-cap{font-size:12px;color:#9fb6b8;margin:4px 0 18px}
+.lp-folds{display:grid;gap:8px}
+.lp-fold{border:1px solid #8bccca33;background:#07101cb0}
+.lp-fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;min-height:48px;padding:6px 16px}
+.lp-fold>summary::-webkit-details-marker{display:none}
+.lp-fold>summary::after{content:"+";margin-left:auto;color:#a8f2f6;font-size:20px}
+.lp-fold[open]>summary::after{content:"−"}
+.lp-fk{font:400 11px/1 var(--latin,monospace);letter-spacing:.14em;color:#a8f2f6;min-width:86px}
+.lp-ft{font:400 16px/1.5 var(--serif);color:var(--ink)}
+.lp-fb{padding:0 16px 14px;color:#c9dcdd;font-size:14.5px;line-height:1.9}
+.lp-fb p{margin:.5em 0}
+.lp-lab{color:#a8f2f6;margin-right:.4em}
+.lp-abc{margin:.4em 0;padding-left:1.2em}.lp-abc li{margin:.35em 0}
+.lp-hist{list-style:none;margin:.6em 0;padding:0;display:grid;gap:4px}
+.lp-hist li{display:grid;grid-template-columns:11em 9em 1fr 6em;gap:10px;padding:6px 0;border-bottom:1px solid #8bccca22}
+.lp-hy{color:#9fb6b8;font-size:13px}.lp-hn{color:var(--ink)}.lp-hr{color:#f6e2b0;font-size:13px;text-align:right}
+.v2-abc dt{color:#f6e2b0}
+@media (max-width:700px){
+  .lp-figs{flex-direction:column;gap:4px}.lp-to{transform:rotate(90deg)}
+  .lp-hist li{grid-template-columns:1fr auto;gap:2px 10px}.lp-hy{grid-column:1/-1}.lp-hw{grid-column:1/2;font-size:13px;color:#9fb6b8}
+  .lp-fk{min-width:64px}.lp-ft{font-size:15px}
+}
+/* 寄りの挿し絵：写真の空気（周辺減光と粒） */
+.v2-inset{overflow:hidden}
+.v2-inset::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 45%,#000a 100%),repeating-radial-gradient(circle at 30% 40%,#ffffff05 0 1px,transparent 1px 3px);mix-blend-mode:normal}
+.v2-inset .k,.v2-inset [data-ins]{z-index:1}
+.lp-svg text{paint-order:stroke;stroke:#060b14;stroke-width:4px;stroke-linejoin:round}
+/* v3 VISION：字を大きく・節をコンパクトに */
+#vision .v2-vlead{font:400 clamp(19px,1.7vw,24px)/1.85 var(--serif);color:var(--ink)}
+#vision .v2-title{font-size:clamp(46px,5.4vw,84px)}
+#vision .v2-hud{display:none}
+#vision .v2-card{padding-top:28px;padding-bottom:28px}
+@media (max-width:700px){#vision .v2-vlead{font-size:18px}}
