@@ -10,6 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
+import { makeAreas } from "./areas.js?v=5";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -17,7 +18,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261026p";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261026t";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -595,7 +596,7 @@ function collMesh(o) {   // 面の三角形を真上から塗る（縁から 0.1
     }
   }
 }
-function blocked(x, z) { if (!COLL) return false; if (PARK.w && inPark(x, z)) return false; const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz && COLL.g[j * COLL.nx + i] === 1; }
+function blocked(x, z) { if (!COLL) return false; if (PARK.w && inPark(x, z)) return false; if (AREAS?.walkable(x, z) && nearestOnLine(x, z).dist > 40) return false;   /* エリアの公道（参道から 40 m より外）は、参道の植え込みの格子にかけない */ const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz && COLL.g[j * COLL.nx + i] === 1; }
 function collShrink() {   // 塗った所の縁を 1 こまぶん削る（細い縁石の上・植え込みの角で引っかからない）。植え込みどうしの間の通り道は残る
   collInit(); const { g, nx, nz } = COLL, h = g.slice();
   for (let j = 1; j < nz - 1; j++) for (let i = 1; i < nx - 1; i++) { const k = j * nx + i; if (h[k] && (!h[k - 1] || !h[k + 1] || !h[k - nx] || !h[k + nx])) g[k] = 2; }
@@ -1004,9 +1005,15 @@ function loadPark() {
     world.add(G); PARK.g = G; for (const m of G.children) pickables.push(m);
   }).catch(e => console.warn("park", e));
 }
-function corridorClamp(p) {
+function corridorClamp(p, prev = _pv) {
   if (PARK.w && inPark(p.x, p.z)) return;   // 大宮公園の園路の上は、参道の帯の外でも歩ける
+  if (AREAS?.walkable(p.x, p.z)) return;   // 2026-10-26：7 つのエリアの公道の上も歩ける（区画ごとにあとから読む・areas.js）
   const n = nearestOnLine(p.x, p.z), lim = n.d > 1878 ? 70 : n.d < -20 ? 30 : 13;
+  if (n.dist > lim && AREAS && prev && AREAS.walkable(prev.x, prev.z)) {   // 道の外へは出ない：道の縁に沿ってすべる
+    if (AREAS.walkable(p.x, prev.z)) p.z = prev.z; else if (AREAS.walkable(prev.x, p.z)) p.x = prev.x; else { p.x = prev.x; p.z = prev.z; }
+    return;
+  }
+  if (AREAS && n.dist > 120 && prev) { p.x = prev.x; p.z = prev.z; return; }   // 参道から遠い所では、参道へ引き戻さない（区画の読み込み中・失敗のときは、その場にとどまる）
   if (n.dist > lim) { const a = atD(n.d), dx = p.x - a.x, dz = p.z - a.z, l = Math.hypot(dx, dz) || 1; p.x = a.x + dx / l * lim; p.z = a.z + dz / l * lim; }
   if (n.d > 2010) { const a = atD(2010); p.x += (a.x - p.x) * .2; p.z += (a.z - p.z) * .2; }
 }
@@ -1127,7 +1134,7 @@ canvas.addEventListener("pointerdown", e => {
 });
 canvas.addEventListener("pointermove", e => {
   if (ptr.pts.has(e.pointerId)) ptr.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (ptr.pinch && ptr.pts.size === 2) { const [a, b] = [...ptr.pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y); SKY.tDist = Math.min(2800, Math.max(380, ptr.pinch.dist * ptr.pinch.d / d)); return; }
+  if (ptr.pinch && ptr.pts.size === 2) { const [a, b] = [...ptr.pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y); SKY.tDist = Math.min(4400, Math.max(380, ptr.pinch.dist * ptr.pinch.d / d)); return; }
   if (!ptr.down || e.pointerId !== ptr.id) return;
   const dx = e.clientX - ptr.x, dy = e.clientY - ptr.y; ptr.x = e.clientX; ptr.y = e.clientY; ptr.moved += Math.abs(dx) + Math.abs(dy);
   if (QW.mode === "walk" || (QW.mode === "sight" && !FLY.drag)) { const k = MOBILE ? .0042 : .0032; if (GYRO.on) GYRO.base += dx * k; else { CAM.look += dx * k; CAM.pitch = Math.max(-1.1, Math.min(.9, CAM.pitch + dy * k)); } CAM.lastDrag = performance.now(); }
@@ -1140,7 +1147,7 @@ const endPtr = e => {
   if (ptr.moved < 10 && performance.now() - ptr.t < 600) tap(e.clientX, e.clientY);
 };
 canvas.addEventListener("pointerup", endPtr); canvas.addEventListener("pointercancel", endPtr);
-canvas.addEventListener("wheel", e => { if (QW.mode === "sky") { SKY.tDist = Math.min(2800, Math.max(380, SKY.tDist * (1 + e.deltaY * .0012))); e.preventDefault(); } }, { passive: false });
+canvas.addEventListener("wheel", e => { if (QW.mode === "sky") { SKY.tDist = Math.min(4400, Math.max(380, SKY.tDist * (1 + e.deltaY * .0012))); e.preventDefault(); } }, { passive: false });
 addEventListener("keydown", e => { if (e.target.closest?.("input,textarea")) return; const k = e.key.toLowerCase(); WALK.keys.add(k); if (k === "escape") { if (!$("#panel").hidden) hidePanel(); } if (k === " " && QW.mode === "walk") { WALK.auto = !WALK.auto; syncAutoBtn(); e.preventDefault(); } if (k === " " && QW.mode === "sight" && SIGHT.sp?.move === "echo") { echoNow(); e.preventDefault(); } });
 addEventListener("keyup", e => WALK.keys.delete(e.key.toLowerCase()));
 addEventListener("blur", () => WALK.keys.clear());
@@ -1156,6 +1163,7 @@ function tap(x, y) {
   if (QW.mode !== "walk" && QW.mode !== "sight") return;
   if (QW.mode === "walk" && KASA.herd?.pickView(x, y)) return;   // 空中の 3D の窓に触れたら閉じる
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
+  if (QW.mode === "walk") { for (const h of AREA.herds) { if (h.pickView(x, y)) return; const k = h.pick(x, y); if (k) { touchKasane(k); return; } } const L = pickAreaMark(x, y); if (L) { openObj(L); return; } }   // エリアのかさねっこと地点
   const o = pickObj(x, y); if (o) { openObj(o); return; }
   if (QW.mode !== "walk") return;
   // 2026-10-23 本人「押した位置からは方向だけを読み取り、一度に進む距離は一定の距離を超えないように」＝押した向きへ、最大 STEP m だけ進んで止まる
@@ -1164,7 +1172,8 @@ function tap(x, y) {
   let dx, dz; if (hit) { dx = hit.point.x - CAM.pos.x; dz = hit.point.z - CAM.pos.z; } else { dx = ray.ray.direction.x; dz = ray.ray.direction.z; }
   const l = Math.hypot(dx, dz); if (l < 1e-3) return;
   const step = Math.min(STEP, hit ? l : STEP), g = new THREE.Vector3(CAM.pos.x + dx / l * step, 0, CAM.pos.z + dz / l * step);
-  corridorClamp(g); for (let k = 0; k < 12 && blocked(g.x, g.z); k++) { g.x -= dx / l * .3; g.z -= dz / l * .3; }   // 植え込みの中を押したら、その手前まで
+  if (AREAS?.walkable(CAM.pos.x, CAM.pos.z)) for (let k = 0; k < 14 && !AREAS.walkable(g.x, g.z) && !(PARK.w && inPark(g.x, g.z)) && nearestOnLine(g.x, g.z).dist > 13; k++) { g.x -= dx / l * .25; g.z -= dz / l * .25; }   // エリアの道の外を押したら、道の縁まで
+  corridorClamp(g, CAM.pos); for (let k = 0; k < 12 && blocked(g.x, g.z); k++) { g.x -= dx / l * .3; g.z -= dz / l * .3; }   // 植え込みの中を押したら、その手前まで
   if (Math.hypot(g.x - CAM.pos.x, g.z - CAM.pos.z) < .3) { toast("その先は植え込みです。通れません。"); return; }
   WALK.goal = g; showGoalRing(g);
 }
@@ -1233,7 +1242,7 @@ function wearLayer(id, opts = {}) {   // 層は重ねられる（重ねた順に
   for (const L of LAYER.objs) { L.want = W.includes(top5(L.o.layer)); if (!L.want) L.arr = false; if (L.label) { L.glyph.remove(L.label); L.label.material.map.dispose(); L.label.material.dispose(); L.label = null; } }
   if (g) putOnAnim(g);
   if (!W.includes("sight") && SIGHT.sp) exitSight();
-  KASA.herd?.setLayers(W);
+  KASA.herd?.setLayers(W); for (const h of AREA.herds) h.setLayers(W);
   updateStack();
 }
 function putOnAnim() { }   // 2026-10-22 本人「グラスで分ける案はやめて」→ 層は左の板で切りかえる
@@ -1356,7 +1365,7 @@ function openObj(L) {
   if (o.seg) TALK.spoken.add(o.seg);
   speakLines(o.lines, L);
 }
-function hidePanel() { if (KASA.cur) { KASA.herd?.release(KASA.cur); KASA.cur = null; } try { $("#pExp video")?.pause(); } catch { } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); if (AOI.hidP) { AOI.hidP = false; if (AOI.root && QW.mode === "walk") AOI.root.visible = true; } PANEL.cur = null; TCH.cur = null; stopVoice(); stopSound(); }
+function hidePanel() { if (KASA.cur) { KASA.cur.herd?.release(KASA.cur); KASA.cur = null; } try { $("#pExp video")?.pause(); } catch { } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); if (AOI.hidP) { AOI.hidP = false; if (AOI.root && QW.mode === "walk") AOI.root.visible = true; } PANEL.cur = null; TCH.cur = null; stopVoice(); stopSound(); }
 $("#pClose").addEventListener("click", hidePanel);
 
 /* ---------- 声（碧） ---------- */
@@ -1578,8 +1587,66 @@ function loadKasane() {
   })().catch(e => console.warn("かさねっこ：", e?.message ?? e));
 }
 function touchKasane(a) {
-  KASA.cur = a; KASA.herd.touch(a, () => { if (KASA.cur !== a || QW.mode !== "walk") return; openObj(a.data); KASA.cur = a; a.state = "focus"; a.focusTo = new THREE.Vector2(camera.position.x, camera.position.z);
+  KASA.cur = a; a.herd.touch(a, () => { if (KASA.cur !== a || QW.mode !== "walk") return; openObj(a.data); KASA.cur = a; a.state = "focus"; a.focusTo = new THREE.Vector2(camera.position.x, camera.position.z);
     if (AOI.m) { const p = a.center(new THREE.Vector3()); AOI.focus = p; AOI.m.lookAt(p); setTimeout(() => { if (AOI.focus === p) { AOI.focus = null; AOI.m?.lookAt(camera.position.clone()); } }, 1600); } });   // 碧は、触れた子へ目をやってから、見る人へ向きなおって訳す
+}
+
+/* ---------- 7 つのエリア（2026-10-26 本人「大宮公園、氷川神社、氷川参道、さいたま新都心周辺、盆栽村、大宮駅（東口）、大宮駅（西口）」）
+   輪郭と色＝zones.json、中身＝areas/<id>.json（areas.js が近いエリアだけ読み、離れたら捨てる）。ここでは地点の印・かさねっこ・降りる先をつなぐ */
+let AREAS = null; const AREA = { herds: [], marks: [], M: null };
+function initAreas() {
+  if (AREAS) return;
+  const g = D.dem, inDem = (x, z) => x > g.x0 && z > g.z0 && x < g.x0 + g.cell * (g.nx - 1) && z < g.z0 + g.cell * (g.nz - 1);
+  QW.AREA = AREA; AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile: MOBILE, rm: RM, inDem, tex,
+    onChunk: (Z, J, C) => { for (const m of [C.road, C.ground]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); },
+    onUnchunk: C => { for (const m of [C.road, C.ground]) { const i = pickables.indexOf(m); if (i >= 0) pickables.splice(i, 1); }
+      AREA.marks = AREA.marks.filter(L => L.chunk !== C); if (C.herd) { C.herd.dispose(); AREA.herds = AREA.herds.filter(h => h !== C.herd); if (KASA.cur?.herd === C.herd) KASA.cur = null; } C.dead = true; },
+    onPick: Z => areaDescend(Z) });
+  AREAS.load();
+}
+function areaDescend(Z) {
+  if (QW.mode !== "sky") return; AREAS.highlight(Z.id); unlockAudio();
+  AREAS.ensure(Z.id).then(() => {
+    let [x, z] = Z.start; if (Z.ground || Z.id === "koen") { const p = AREAS.snap(x, z); if (p) [x, z] = p; }
+    const n = nearestOnLine(x, z), d = Math.max(-20, Math.min(1985, n.d)), i = D.starts.reduce((b, t, k) => Math.abs(t.d - d) < Math.abs(D.starts[b].d - d) ? k : b, 0);
+    if (START.sel < 0) selectStart(i); descendTo(i, { x, z, d }); AREAS.highlight(null);
+  });
+}
+function areaPlaces(Z, J, C) {   // 典拠のある地点：層の色の小さな球と、細い光の柱（触れると札と出典）
+  for (const p of J.p) {
+    const y = groundY(p.x, p.z), c = COLOR5[p.layer] || "#e8eef2", G = new THREE.Group(); G.position.set(p.x, y, p.z);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(.42, 20, 14), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .9, fog: false, toneMapped: false })); ball.position.y = 1.7;
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 9, 6, 1, true).translate(0, 4.5, 0), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .35, depthWrite: false, fog: false, toneMapped: false }));
+    G.add(ball, col); C.g.add(G);
+    const L = { o: { id: p.id, layer: p.layer, title: p.title, x: p.x, z: p.z, y, ll: p.ll, lines: p.lines.map(t => ({ t })), more: [], src: p.src, how: "記録", note: null, exp: null }, glyph: ball, mark: G, chunk: C };
+    AREA.marks.push(L); C.places.push(L);
+  }
+}
+const _am = new THREE.Vector3();
+function pickAreaMark(x, y) {
+  let best = null, bd = 48 * 48;
+  for (const L of AREA.marks) { if (!L.mark.visible) continue; L.glyph.getWorldPosition(_am); if (_am.distanceTo(camera.position) > 60) continue; _am.project(camera); if (_am.z > 1) continue; const sx = (_am.x + 1) / 2 * innerWidth, sy = (1 - _am.y) / 2 * innerHeight, d = (sx - x) ** 2 + (sy - y) ** 2; if (d < bd) { bd = d; best = L; } }
+  return best;
+}
+async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群れ（地点のそばと、道ぞいの数か所）。近くだけ描く
+  if (!J.p.length) return;
+  const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=20261025b"); if (C.dead) return;
+  const ok = (x, z) => AREAS.walkable(x, z);
+  const herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: ok, walkSurface: ok, canSee: () => true, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 14,
+    muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });
+  let s = 0; for (const ch of Z.id) s = s * 31 + ch.charCodeAt(0); const R = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const spots = [];
+  for (const L of C.places) { const q = AREAS.snap(L.o.x, L.o.z); if (q) spots.push({ q, L }); }
+  const W = J.w.filter(w => w.length > 5); for (let k = 0; k < 6 && W.length; k++) { const w = W[Math.floor(R() * W.length)], i = 1 + 2 * Math.floor(R() * ((w.length - 1) / 2)); const q = [w[i], w[i + 1]]; let L = null, bd = 1e9; for (const P of C.places) { const d = Math.hypot(P.o.x - q[0], P.o.z - q[1]); if (d < bd) { bd = d; L = P; } } spots.push({ q, L }); }
+  spots.forEach(({ q, L }, k) => { const main = L.o.layer === "nature" ? "nature" : "culture", lays = M.kasaneMix(main, [3, 2, 3][k % 3], { mix: .3, rnd: R });
+    herd.addGroup(lays.map(ly => ({ layer: ly, data: L, target: { x: L.o.x, z: L.o.z } })), { x: q[0], z: q[1], radius: 2.6, role: k % 3 === 2 ? "watch" : "" }); });
+  herd.setLayers(LAYER.worn); await herd.load(); if (C.dead) { herd.dispose(); return; }
+  C.herd = herd; AREA.herds.push(herd);
+}
+function stepAreas(dt) {
+  if (!AREAS) return; AREAS.update(dt, QW.mode);
+  const busy = !!PANEL.cur || !!voiceQ; for (const h of AREA.herds) h.update(dt, { active: QW.mode === "walk", busy });
+  for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on && !RM) L.glyph.position.y = 1.7 + Math.sin(performance.now() / 900 + L.o.x) * .08; }
 }
 
 /* ---------- Qualia/sight：生きものを選んで、その身体へ ---------- */
@@ -2203,6 +2270,7 @@ function syncTray() {
 /* ---------- まわす ---------- */
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0;
 function frame() {
+  if (!D) return;   // タブが隠れていたあいだに描画が始まったとき（データの前）は描かない
   const dt = Math.min(.05, clock.getDelta());
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); skyCam(); }
@@ -2225,7 +2293,7 @@ function frame() {
   if (STONES.length && QW.mode !== "sky") { const cp = camera.position; for (const r of STONES) { const s = r.userData.ws; r.visible = s.center.distanceTo(cp) - s.radius < 160; } }
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2);
     if (QW.skyTex && m !== "sight") { const vt = m === "sky" || m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp(NAVY, CYBER.v.value); } else VEIL.visible = false; CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
-  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);
   if (SIGHT.post && QW.mode === "sight") {
     const PU = SIGHT.post.mat.uniforms; PU.time.value += dt; SIGHT.ring = Math.max(0, (SIGHT.ring || 0) - dt / 1.1); PU.pulse.value = SIGHT.ring; PU.move.value += ((SIGHT.sp ? Math.min(1, Math.abs(SIGHT.v) / Math.max(.2, SIGHT.sp.speed || 1)) : 0) - PU.move.value) * Math.min(1, dt * 4);
@@ -2254,7 +2322,8 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     QW.ready = true; QW.tReady = performance.now() - T0;
     // 歩く前に要るものを、上空で選んでいるあいだに読む（地図の線と名前 → 道・木・構造物 → 碧 → 話）
     setTimeout(() => { fetch(BASE + "map.json?v=" + VER).then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
-    setTimeout(() => { loadAoi(); loadLate(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 300);   // 2026-10-23：碧を道・木・構造物と同時に読みはじめる（前は 0.4 秒あと）
+    setTimeout(() => { loadAoi(); loadLate(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 300);
+    setTimeout(initAreas, 700);   // 7 つのエリアの輪郭（2 KB）。中身は近づいたときに読む   // 2026-10-23：碧を道・木・構造物と同時に読みはじめる（前は 0.4 秒あと）
     const s0 = Q.get("start"); if (s0 != null && D.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
     if (Q.get("layer")) setTimeout(() => wearLayer(Q.get("layer")), 200);
     if (Q.get("sight")) setTimeout(() => QW.sight(Q.get("sight")), 300);
