@@ -9,6 +9,8 @@
    2026-10-26 夜 v5：結晶を球に（本人「目印を球体に」）。屈折風の縁・流れる層の膜・球の中に光る紋。
    kind＝0 sight・1 touch・2 sound・3 nature・4 culture。 */
 
+/* 2026-10-27 夜 本人「目印の球が大きすぎる。コンパクトで強い印に」→ v6：球を約 0.35 倍に。小さな芯が強く光り、細い輪・層の色の欠片・脈打つ光の輪で遠くから目を引く（当たりは画面で 44px 以上のまま）。 */
+const MK = .36;
 const KIND = { sight: 0, touch: 1, sound: 2, nature: 3, culture: 4 };
 
 function crystalGeo(THREE) {
@@ -67,12 +69,12 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
       // 切子のきらめき：法線を細かな面に量子化して、ときどき光る
       vec3 fq=floor(n*7.+.5); float h=fract(sin(dot(fq,vec3(12.9,78.2,37.7)))*43758.5);
       float glint=pow(max(0.,sin(uT*.9+h*40.)),90.)*step(.86,h)*smoothstep(.25,.75,nv)*.7;
-      float core=pow(nv,3.)*(.6+.4*sin(uT*1.4+vL.y*3.));
+      float core=pow(nv,2.2)*(.85+.35*sin(uT*2.2+vL.y*3.))*1.6;
       float crisp=vP.y, em=vP.z, op=vQ.y;
       vec3 sat=mix(vec3(dot(vCol,vec3(.333))),vCol,1.35);
       vec3 rim=mix(sat, sat*film(fr*1.4+vL.y*.6+uT*.05)*1.6, .42*crisp);       // 縁の薄膜の色ずれ（層の色を芯に）
       vec3 c=sat*(.2+.32*dif)+sat*core*(.6+op*.5)+rim*fr*(1.6+crisp*.9)+vec3(1.)*pow(fr,4.)*(.3+crisp*.4)+vec3(1.)*(spec*(.6+crisp*.5)+glint*crisp);
-      float a=(.14+.08*crisp+core*.16+fr*.8+spec*.45+glint*.5)*(.66+.34*em);
+      float a=(.3+.1*crisp+core*.3+fr*.8+spec*.45+glint*.5)*(.66+.34*em);
       // 球の中に光る層の紋（見る向きの平面に写す）と、ゆっくり流れる層の膜
       vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]), U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
       vec2 q=vec2(dot(vW-vC,R),dot(vW-vC,U))/max(1e-4,vR);
@@ -96,8 +98,10 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
       float tick=ln(r-R1-.07,.03)*step(.82,fract(ang*12./6.2832-uT*.04));
       float arc=ln(r-.94,.008)*step(fract(ang/6.2832+uT*.05),.28+.2*op);
       float e=emb(p/(.62+.18*op)*.74, vQ.x, uT);
-      float glow=exp(-pow((r-R1)*9.,2.))*.25;
-      float a=(ring*.85+tick*.6+arc*.55+glow)*(.35+.65*crisp) + e*(.16+.6*op)*crisp*(.55+.45*smoothstep(.3,.75,r));   // 紋は結晶の外側の帯で読めるように
+      float glow=exp(-pow((r-R1)*9.,2.))*.25+exp(-r*r*7.)*.55;
+      float pp=fract(uT*.55+vQ.x*.13); float pulse=ln(r-(.3+.68*pp),.03)*(1.-pp)*.9;
+      float frag=step(.93,fract(ang*9./6.2832+uT*.08))*ln(r-.62,.07)*.9;
+      float a=(ring*.85+tick*.6+arc*.55+glow+pulse+frag)*(.5+.5*crisp) + e*(.16+.6*op)*crisp*(.55+.45*smoothstep(.3,.75,r));   // 紋は結晶の外側の帯で読めるように
       gl_FragColor=vec4(vCol*(1.2+.5*vP.z),clamp(a,0.,1.)*vP.x*(.5+.5*vP.z));
       #include <colorspace_fragment>
     }`, 6, THREE.NormalBlending);
@@ -151,6 +155,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
     get count() { return items.length; },
     get rects() { return rects; },
     get items() { return items; },
+    remove(pred) { for (let i = items.length - 1; i >= 0; i--) if (pred(items[i].L)) items.splice(i, 1); },
     update(cam, o = {}) {
       const t = o.t ?? performance.now() / 1000, sky = !!o.sky, focus = o.focus || null, dt = Math.min(.1, Math.max(0, t - (this._t ?? t))); this._t = t;
       for (const im of ALLM) im.material.uniforms.uT.value = t;
@@ -168,7 +173,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         // 近づくとひらく（10 m→4 m）。触れると（L.open）いっぱいに
         const nt = sky ? 0 : Math.max(Math.min(1, Math.max(0, (10 - dh) / 6)), L.open || 0);
         it.no += (nt - it.no) * Math.min(1, dt * 3.5); const op = it.no; L.qOpen = op;
-        const cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .25);
+        const cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .25) * MK;
         _e.set(0, t * (.5 - op * .3) + it.ph, 0); _q.setFromEuler(_e); _s.set(cs, cs, cs);
         const cy = _p.y + Math.sin(t * 1.3 + it.ph) * .06 * sg + op * .12 * sg;
         _m.compose(_p.set(_p.x, cy, _p.z), _q, _s); crystal.setMatrixAt(n, _m);
@@ -177,17 +182,17 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         const scr = ppk / Math.max(.5, d) * cs / innerHeight, big = Math.min(1, Math.max(0, 1 - (scr - .28) / .14));   // 画面の高さの 3 割を超える近さでは、輪と紋をうすく（左の一覧や字を覆わない）
         CA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); CA.iP.setXYZW(n, cv * Math.max(.18, big), crisp, em, far); CA.iQ.setXY(n, it.k, op);
         // 紋の円盤（結晶の芯の高さ・見る人へ向く）。遠くでは描かない
-        const hs = cs * (.62 + op * .38);
+        const hs = cs * (.95 + op * .3);
         _q.identity(); _s.set(hs, hs, hs); _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); halo.setMatrixAt(n, _m);
-        HA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); HA.iP.setXYZW(n, cv * big * (sky ? 0 : Math.min(1, crisp * 1.6)), crisp, em, far); HA.iQ.setXY(n, it.k, op);
+        HA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); HA.iP.setXYZW(n, cv * Math.max(.35, big) * (sky ? 0 : 1), Math.max(.45, crisp), em, far); HA.iQ.setXY(n, it.k, op);
         // まわる輪
-        const os = cs * (.5 + op * .12); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * .7 + it.ph, .35); _q.setFromEuler(_e); _s.set(os, os, os);
+        const os = cs * (.72 + op * .12); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * .7 + it.ph, .35); _q.setFromEuler(_e); _s.set(os, os, os);
         _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); orbit.setMatrixAt(n, _m);
         OA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); OA.iP.setXYZW(n, cv * big, crisp, em, far); OA.iQ.setXY(n, it.k, op);
-        if (!sky && cv > .2) { _sp.set(_p.x, cy, _p.z).project(cam); if (_sp.z < 1) { const k = ppk / Math.max(.5, d) * cs, x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }
+        if (!sky && cv > .2) { _sp.set(_p.x, cy, _p.z).project(cam); if (_sp.z < 1) { const k = ppk / Math.max(.5, d) * cs * 1.4, x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }
         // 足もとの輪
         L.root.getWorldPosition(_r);
-        const rr = (sky ? SKYR * sg : Math.max(1.05, Math.min(3, sg)) * 1.25) * (1 + (L.open || 0) * .5 + op * .25);
+        const rr = (sky ? SKYR * sg : Math.max(1.05, Math.min(3, sg)) * 1.25) * (1 + (L.open || 0) * .5 + op * .25) * .34;
         _e.set(0, it.ph, 0); _q.setFromEuler(_e); _s.set(rr, 1, rr); _m.compose(_r.set(_r.x, _r.y + .05, _r.z), _q, _s); ring.setMatrixAt(n, _m);
         RA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); RA.iP.setXYZW(n, show * (sky ? .9 : 1), crisp, em, far); RA.iQ.setXY(n, it.k, op);
         // 柱

@@ -7,10 +7,10 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=6";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q8";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q11";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=33";
+import { makeAreas } from "./areas.js?v=38";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -202,7 +202,7 @@ async function buildBase() {
   tm.onBeforeCompile = sh => {   // 近くだけ、草と土の細かい絵を重ねる（遠くは写真のまま）
     sh.uniforms.detail = { value: grass }; sh.uniforms.litter = { value: litter }; sh.uniforms.uCy = CYBER.v; sh.uniforms.uScan = CYBER.scan;
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uCy; uniform float uScan;\nfloat gridL(vec2 p, float s){ vec2 q=abs(fract(p/s+.5)-.5)*s; vec2 w=fwidth(p)*1.3; vec2 l=1.-smoothstep(vec2(0.),w,q); return max(l.x,l.y); }")
-      .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\nif(uCy>.001){ vec2 p=vWp.xz; float fw=length(fwidth(p)); float g1=gridL(p,100.), g2=gridL(p,20.)*(1.-smoothstep(1.5,5.,fw)); float hh=vWp.y; float cq=abs(fract(hh+.5)-.5); float cl=1.-smoothstep(0.,fwidth(hh)*1.3,cq); float sc=exp(-pow((p.y-uScan)/60.,2.)); vec3 ln=vec3(.32,.78,.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.01,.025,.045),uCy); totalEmissiveRadiance+=uCy*(ln*(g1*.32+g2*.1+cl*.18)+ln*sc*(.05+g1*.4+cl*.3)); }");
+      .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\nif(uCy>.001){ vec2 p=vWp.xz; float fw=length(fwidth(p)); float g1=gridL(p,100.), g2=gridL(p,20.)*(1.-smoothstep(1.5,5.,fw)); float hh=vWp.y; float cq=abs(fract(hh+.5)-.5); float cl=1.-smoothstep(0.,fwidth(hh)*1.3,cq); float sc=exp(-pow((p.y-uScan)/60.,2.)); vec3 ln=vec3(.32,.78,.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.01,.025,.045),uCy); totalEmissiveRadiance+=uCy*(ln*(g1*.32+g2*.1+cl*.18)+ln*sc*(.05+g1*.4+cl*.3)); }\n/* 2026-10-27 夜 融合：歩くときも、地面に細い光の格子（5 m）と高さ 50 cm ごとの光の等高線を、近くは控えめに・10〜100 m で薄く重ねる */ { float dc=length(vWp.xz-cameraPosition.xz); float fz=smoothstep(5.,16.,dc)*(1.-smoothstep(60.,140.,dc))*(1.-uCy); vec2 gq=abs(fract(vWp.xz/5.+.5)-.5)/max(fwidth(vWp.xz/5.),vec2(1e-4)); float gl=1.-min(min(gq.x,gq.y)/1.1,1.); float hq=abs(fract(vWp.y*2.+.5)-.5)/max(fwidth(vWp.y*2.),1e-4); float cl2=1.-min(hq/1.2,1.); totalEmissiveRadiance+=vec3(.5,.86,.92)*fz*(gl*.07+cl2*.12); }");
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D detail; uniform sampler2D litter; varying vec3 vWp;")
       .replace("#include <map_fragment>", "#include <map_fragment>\n{ float dist=length(vWp-cameraPosition); float k=1.-smoothstep(25.,140.,dist); vec3 dt=texture2D(detail,vWp.xz*.33).rgb; float l=dot(dt,vec3(.333)); diffuseColor.rgb*=mix(1.,.55+l*1.1,k*.85); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0),.45)*vec3(.86,.83,.76); float lu=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.37,.36,.34)*(.8+lu*.25),smoothstep(.28,.52,lu)*.92);"
@@ -865,7 +865,7 @@ const SKY = { az: .3, el: .98, dist: MOBILE ? 1750 : 1550, tx: -20, tz: MOBILE ?
 const EYE = 1.55;
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
-const FOGS = { sky: () => ({ c: FOG_SKY, n: 2600, f: 9000 }), walk: () => ({ c: FOG_SKY, n: 70, f: MOBILE ? 340 : 480 }), fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
+const FOGS = { sky: () => ({ c: FOG_SKY, n: 2600, f: 9000 }), walk: () => ({ c: FOG_SKY, n: 140, f: MOBILE ? 700 : 980 }), fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m;
@@ -1323,7 +1323,7 @@ function stepLayer(dt) {
     if (near && !L.label) { L.label = makeLabel(layerNo(L.o.layer), GL[L.o.layer].name, L.o.title, GL[L.o.layer].color); L.label.position.set(.5, .66, 0); L.label.userData.by = .66; L.label.material.depthTest = false; L.label.renderOrder = 9; L.glyph.add(L.label); }   // 札は木に隠さない（重なりは placeLabels で避ける）
     if (L.label) { L.label.visible = near; L.label.material.opacity = Math.min(1, (LABEL_R - dist) / 6) * op; const gs = L.glyph.scale.x || 1, fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 54 : 84) * Math.max(1, dist) / fpx, k = wh / .4 / gs; L.label.scale.set(1.6 * k, .4 * k, 1); }   // 2026-10-26 15：札は画面の上でいつも同じ大きさ（名前の字が PC 約 25px・スマホ約 20px の明朝）
   }
-  LAYER.qm?.update(camera, { t, sky, focus: PANEL.cur || null });
+  LAYER.qm?.update(camera, { t, sky, focus: PANEL.cur || null }); AREA.qm?.update(camera, { t, sky, focus: PANEL.cur || null });
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
   { const gT = LAYER.worn.length && M !== "boot" ? (sky ? .32 : .62) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
   stepHere(cp, t, sky || flyish || M === "boot");
@@ -1333,8 +1333,8 @@ function stepLayer(dt) {
   if (!sky && !flyish) for (const L of AREA.marks || []) { const dA = Math.hypot(L.o.x - cp.x, L.o.z - cp.z), nearA = L.mark.visible && dA < LABEL_R;
     if (nearA && !L.label) { const k5 = top5(L.o.layer); L.label = makeLabel(layerNo(L.o.layer), GL[k5]?.name || ("Qualia/" + k5), L.o.title, COLOR5[k5] || "#e8eef2"); L.label.material.depthTest = false; L.label.renderOrder = 9; L.label.position.set(.9, .4, 0); L.label.userData.by = .4; L.glyph.add(L.label); }
     if (L.label) { L.label.visible = nearA; if (nearA) { L.label.material.opacity = Math.min(1, (LABEL_R - dA) / 6); const fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 54 : 84) * Math.max(1, dA) / fpx, k = wh / .4; L.label.scale.set(1.6 * k, .4 * k, 1); lbs.push({ sp: L.label, L, d: dA, pri: 0 }); } } }
-  { lbs.sort((p, q) => q.pri - p.pri || p.d - q.d); const cap = MOBILE ? 3 : 4; for (const e of lbs.splice(cap)) e.sp.visible = false; }   // 2026-10-26 15：大きな札は近い順に PC 4・スマホ 3 まで
-  if (lbs.length) { const av = (LAYER.qm?.rects || []).slice(); for (const id of ["qHere", "lstack", "caption", "qDir", "hud", "sndTag"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; { const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity < .05) continue; } const r = e.getBoundingClientRect(); if (r.width && r.height) av.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); } placeLabels(THREE, camera, lbs, av, dt); }   // 2026-10-26 15：札を大きくしたので、画面の板（重なりの数・層の一覧・字幕）にもかけない
+  { lbs.sort((p, q) => q.pri - p.pri || p.d - q.d); const cap = MOBILE ? 3 : 4; for (const e of lbs.splice(cap)) e.sp.visible = false; if (MOBILE) for (let i = lbs.length - 1; i >= 0; i--) if (lbs[i].d > 12 && !lbs[i].pri) { lbs[i].sp.visible = false; lbs.splice(i, 1); } }   /* 2026-10-27 夜：スマホは遠い札（鳥居や並木に透けて重なる）を出さず、近い札だけ */   // 2026-10-26 15：大きな札は近い順に PC 4・スマホ 3 まで
+  if (lbs.length) { const av = [...(LAYER.qm?.rects || []), ...(AREA.qm?.rects || [])]; for (const id of ["qHere", "lstack", "caption", "qDir", "hud", "sndTag"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; { const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity < .05) continue; } const r = e.getBoundingClientRect(); if (r.width && r.height) av.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); } placeLabels(THREE, camera, lbs, av, dt); }   // 2026-10-26 15：札を大きくしたので、画面の板（重なりの数・層の一覧・字幕）にもかけない
 }
 function pickObj(x, y) {
   let best = null, bd = (MOBILE ? 40 : 30) ** 2;
@@ -1588,10 +1588,17 @@ function stepAoi(dt) {
   // 2026-10-26 3（採点 P1「腕をまっすぐ下げた硬い立ち姿」）：共通部品は書き換えず、待つあいだは手を前で組む時間を長く、下ろす時間を短く（共通部品の状態を、このアプリの中でだけ寄せる）
   { const S2 = AOI.m.s; if (S2 && S2.claspHold != null) { if (!S2.claspOn && S2.claspHold > 2.5) S2.claspHold = 2.5; if (S2.claspOn && !S2.claspExt) { S2.claspHold += 6 + 4 * Math.random(); S2.claspExt = true; } if (!S2.claspOn) S2.claspExt = false; } }
   AOI.m.update(dt, camera, { vrmUpdate: false });
-  aoiFingers(dt); aoiElbows(); aoiShadow();
+  aoiFingers(dt); aoiElbows(); aoiShadow(); aoiEyes();
   AOI.m.vrm.update(dt); AOI.m.afterVrmUpdate(dt);
 }
 const _fq = new THREE.Quaternion(), _fe = new THREE.Euler();
+/* 2026-10-27 夜（採点「目を閉じた顔で止まる」）：共通部品は書き換えず、アプリの側で ①まばたきの途中で止まったら（0.45 秒を超えたら）ひらく、②まばたきの外では、まぶたの閉じを 2 割までに抑える（視線で下がるまぶた・下まぶたの形と重なって目が線にならない） */
+function aoiEyes() {
+  const M = AOI.m, em = M?.vrm?.expressionManager; if (!em) return; const B = M.blink;
+  if (B && B.t >= 0 && B.t > .45) { B.t = -1; B.v = 0; B.next = 2 + Math.random() * 2; }
+  if (B && B.t < 0 && !(M.eyesClosed > 0)) { const v = em.getValue("blink") || 0; if (v > .2) em.setValue("blink", .2); }
+  for (const ch of ["lidLow", "cheek"]) { if (em.getExpression?.(ch)) { const v = em.getValue(ch) || 0; if (v > .35) em.setValue(ch, .35); } }
+}
 // 2026-10-26 3（採点「腕を下ろしたとき手が体の横で硬い」）：腕を下ろしているあいだだけ、肘を少し曲げる（共通部品が一こまおきに休むこまは二重に足さない）
 function aoiElbows() {
   const M = AOI.m, S2 = M.s, w = Math.max(0, 1 - (S2?.clasp?.v || 0) * 2.5) * (M.speaking ? .5 : 1); if (w < .02) return;
@@ -1661,7 +1668,7 @@ function loadKasane() {
     for (const S of VEG.sp) if (S.s <= 2 || S.s === 7) for (let i = 0; i < S.m; i++) { const x = S.xs[i * 6], z = S.xs[i * 6 + 2], r = S.xs[i * 6 + 3] * .55 + .2, c = COLL.c; for (let dz = -r; dz <= r; dz += c) for (let dx = -r; dx <= r; dx += c) if (dx * dx + dz * dz <= r * r) { const k = kasaCell(x + dx, z + dz); if (k >= 0 && KASA.ok[k] === 2) KASA.ok[k] = 4; } }   // 低木の株のまわり
     for (let pass = 0; pass < 2; pass++) { const g = KASA.ok, nx = COLL.nx, h = g.slice(); for (let k = nx; k < g.length - nx; k++) if (h[k] === 1 && (h[k - 1] !== 1 || h[k + 1] !== 1 || h[k - nx] !== 1 || h[k + nx] !== 1)) g[k] = [h[k - 1], h[k + 1], h[k - nx], h[k + nx]].some(v => v >= 2) ? 3 : 0; }   // 縁から 2 こま（約 1 m）は歩かない（縁石の上や陰に入らない）   // 縁は 1 こま削る（縁石の外へはみ出さない）
     const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: kasaOk, walkSurface: kasaPeek, canSee: kasaSee, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
-      muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // 窓は層の一覧にかけない   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない
+      muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, view: () => false, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // 窓は層の一覧にかけない   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない
     const R = (() => { let s = 20261023; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); })();
     const near = (x, z, Rm = 7) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
     // 物陰：並木の幹と、石・木の燈籠（見かけの太さ）
@@ -1709,7 +1716,7 @@ function initAreas() {
   QW.AREA = AREA; AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile: MOBILE, rm: RM, inDem, tex,
     onChunk: (Z, J, C) => { if (C.lmTrees) plantKeyaki(C); for (const m of [C.road, ...(C.grounds || [])]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); },
     onUnchunk: C => { for (const m of [C.road, ...(C.grounds || [])]) { const i = pickables.indexOf(m); if (i >= 0) pickables.splice(i, 1); }
-      AREA.marks = AREA.marks.filter(L => L.chunk !== C); if (C.herd) { C.herd.dispose(); AREA.herds = AREA.herds.filter(h => h !== C.herd); if (KASA.cur?.herd === C.herd) KASA.cur = null; } C.dead = true; },
+      AREA.marks = AREA.marks.filter(L => L.chunk !== C); AREA.qm?.remove(L => L.chunk === C); if (C.herd) { C.herd.dispose(); AREA.herds = AREA.herds.filter(h => h !== C.herd); if (KASA.cur?.herd === C.herd) KASA.cur = null; } C.dead = true; },
     onPick: Z => areaDescend(Z) });
   AREAS.load();
 }
@@ -1726,13 +1733,11 @@ function areaPlaces(Z, J, C) {   // 典拠のある地点：層の色の小さ�
   for (const p of J.p) {
     const y = groundY(p.x, p.z), c = COLOR5[p.layer] || "#e8eef2", G = new THREE.Group(); G.position.set(p.x, y, p.z);
     // 2026-10-26 2：球が画面で小さく見えた → 球を大きく・まわりに光の暈（いつも見る人を向く）・足もとに輪。遠くでも見つけられる
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(.7, 24, 16), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .92, fog: false, toneMapped: false })); ball.position.y = 2.1;
-    const halo = new THREE.Sprite(AREA.haloMat(c)); halo.scale.set(4.2, 4.2, 1); halo.renderOrder = 20; ball.renderOrder = 21; ball.add(halo);
-    const col = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 14, 6, 1, true).translate(0, 7, 0), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .4, depthWrite: false, fog: false, toneMapped: false }));
-    const ring = new THREE.Mesh(new THREE.RingGeometry(1.1, 1.3, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .55, depthWrite: false, fog: false, toneMapped: false })); ring.position.y = .06;
-    G.add(ball, col, ring); C.g.add(G);
+    // 2026-10-27 夜 本人：町の地点も参道と同じ小さく強い Qualia の印に（平たい円盤・大きな球をやめる）
+    const ball = new THREE.Object3D(); ball.position.y = 2.1; ball.scale.setScalar(1.6); G.add(ball); C.g.add(G);
     const L = { o: { id: p.id, layer: p.layer, title: p.title, x: p.x, z: p.z, y, ll: p.ll, lines: p.lines.map(l => typeof l === "string" ? { t: l } : l), more: [], src: p.src, how: "記録", note: null, exp: null }, glyph: ball, mark: G, chunk: C };
-    AREA.marks.push(L); C.places.push(L);
+    L.root = G; L.show = 1; AREA.marks.push(L); C.places.push(L);
+    if (!AREA.qm) AREA.qm = makeQMarks(THREE, world, 160, MOBILE); AREA.qm.add(L, c, top5(p.layer));
   }
 }
 const _am = new THREE.Vector3();
@@ -1746,7 +1751,7 @@ async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群�
   const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=20261025b"); if (C.dead) return;
   const ok = (x, z) => AREAS.walkable(x, z);
   const herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: ok, walkSurface: ok, canSee: () => true, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 36 : 46, max: 22,
-    muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });
+    muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, view: () => false, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });
   let s = 0; for (const ch of Z.id) s = s * 31 + ch.charCodeAt(0); const R = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
   const spots = [];
   for (const L of C.places) { const q = AREAS.snap(L.o.x, L.o.z); if (q) spots.push({ q, L }); }
@@ -1761,7 +1766,7 @@ function stepAreas(dt) {
   // 2026-10-26 3：東口・西口・新都心では、参道まわりの半透明の建物（電脳の写し）を出さない（不透明の建物と二重になり、遠くに半透明の箱が残っていた）
   if (AREAS.ready && QW.bldGhost) { const Zc = AREAS.cur; QW.bldGhost.visible = !(Zc && Zc.ground); }
   const busy = !!PANEL.cur || !!voiceQ; for (const h of AREA.herds) h.update(dt, { active: QW.mode === "walk", busy });
-  for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on) { const AB = QW._AB, cp = camera.position, dist = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); let tl = 0; if (AB && dist > AB.d + 1 && dist < 60) { const v = _pv3.set(L.o.x, groundY(L.o.x, L.o.z) + 2.1, L.o.z).project(camera); if (v.z < 1 && Math.abs(v.x - AB.x) < AB.hw + .12 && v.y < AB.y1 + .08 && v.y > AB.y0) tl = (AB.y1 + .12 - v.y) * dist * Math.tan(camera.fov * Math.PI / 360); } L.lift = (L.lift || 0) + (tl - (L.lift || 0)) * .08;   /* 2026-10-26 17：町の球も碧の頭の後ろに来たら表示だけ上へ */
+  for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on) { const AB = QW._AB, cp = camera.position, dist = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); let tl = 0; if (AB && dist > AB.d + 1 && dist < 60) { const v = _pv3.set(L.o.x, groundY(L.o.x, L.o.z) + 2.1, L.o.z).project(camera); if (v.z < 1 && Math.abs(v.x - AB.x) < AB.hw + .12 && v.y < AB.y1 + .08 && v.y > AB.y0) tl = (AB.y1 + .12 - v.y) * dist * Math.tan(camera.fov * Math.PI / 360); } L.lift = (L.lift || 0) + (tl - (L.lift || 0)) * .08; L.show += ((tl > 0 ? .1 : 1) - L.show) * .15;   /* 2026-10-27 夜：碧の頭の後ろでは、上げるだけでなく薄く */   /* 2026-10-26 17：町の球も碧の頭の後ろに来たら表示だけ上へ */
     L.glyph.position.y = 2.1 + (RM ? 0 : Math.sin(performance.now() / 900 + L.o.x) * .08) + L.lift; } }
 }
 

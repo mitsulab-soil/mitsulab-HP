@@ -156,11 +156,20 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   float band=tall<.5? (1.-step(.06,fract(wv/fl)))*.12 : 0.; diffuseColor.rgb*=1.-band;
   diffuseColor.rgb*=.82+.18*smoothstep(0.,6.,wv);`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.12,wR);")
+      .replace("#include <common>", "#include <common>\nuniform float uDig;")
+      .replace("#include <lights_fragment_end>", `#include <lights_fragment_end>
+  { /* 2026-10-27 夜 融合：写実の外壁の上に、薄いデジタルの層（点群・下から上へ走る走査の線・上端の光の輪郭）。近くは消し、15〜200 m で読める */
+    float wu=vF.x, wv=vF.y, H=max(vF.z,1.); float dist=distance(vBw,cameraPosition); float fz=smoothstep(14.,30.,dist)*(1.-smoothstep(200.,500.,dist));
+    vec2 pc=vec2(wu/1.4, wv/1.4); vec2 pf=fract(pc)-.5; float pw=max(fwidth(pc.x),fwidth(pc.y)); float pr=min(.05,pw*.7); float ph=fract(sin(dot(floor(pc),vec2(27.1,61.7)))*43758.5);
+    float pcd=(1.-smoothstep(pr,pr+pw*.8,length(pf)))*(1.-smoothstep(.12,.25,pw))*step(.6,ph);
+    float sy=fract(uDig*.05+fract(wu*.0007)); float scn=exp(-pow((wv/H-sy)*H/.7,2.));
+    float top=1.-smoothstep(0.,.25,H-wv);
+    totalEmissiveRadiance+=vec3(.36,.8,.9)*fz*(pcd*.25+scn*.22+top*.9); }`)
       .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
   { vec3 V=normalize(vBw-cameraPosition), R=reflect(V,normalize(vWn)); float fr=.08+.92*pow(1.-max(dot(-V,normalize(vWn)),0.),4.);
     vec3 skyR=mix(vec3(.30,.33,.36),vec3(.42,.56,.72),smoothstep(-.05,.6,R.y)); skyR=mix(skyR,vec3(.16,.15,.14),smoothstep(.02,-.25,R.y));
     float cl=wH(floor(R.xz/(abs(R.y)+.2)*3.))*.12; totalEmissiveRadiance+=(skyR+cl)*wR*min(fr,.6)*(vF.z>=40.?.5:.3); }   /* 窓の白飛びを抑える */`); };
-  bldMat.customProgramCacheKey = () => "areaFacade3";
+  bldMat.customProgramCacheKey = () => "areaFacade4"; { const f0 = bldMat.onBeforeCompile; bldMat.onBeforeCompile = sh => { f0(sh); sh.uniforms.uDig = A.dig; }; }
   // 2026-10-26 15（本人の方針①「Qualia を主役に、風景は地」）：町の建物は写実を追わず、霧と点と線の「地」に引く。
   // 壁＝足もとに溜まり上へ薄れる霧・階の細い線・窓の位置の小さな点（点群のように）。屋根はほぼ透明、輪郭は細い線。形と高さは OSM（模式）
   const ghostV = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec3 aF; varying vec3 vF; varying vec3 vGw;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvF=aF; vGw=(modelMatrix*vec4(transformed,1.)).xyz;"); };
@@ -169,27 +178,52 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   const ghostWall = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true });
   ghostWall.onBeforeCompile = ghostF(`{ float wu=vF.x, wv=vF.y, H=max(vF.z,1.); float dist=distance(vGw,cameraPosition); if(dist<2.2) discard;
     float tall=step(40.,H); float fl=tall>.5?3.8:3.4, bay=tall>.5?3.0:2.6;
-    float mist=exp(-wv/6.)*.20+.035;   /* 足もとに溜まる霧 */
+    float mist=exp(-wv/6.)*.11+.02;   /* 足もとに溜まる霧（2026-10-27：箱に見えないよう薄く） */
     float fy=wv/fl; float ld=abs(fract(fy+.5)-.5); float line=(1.-smoothstep(0.,fwidth(fy)*1.1,ld))*step(.5,fy)*step(wv,H-.3);
     vec2 c=vec2(wu/bay+.5, wv/fl); vec2 f=fract(c)-.5; f.x*=bay/fl; float dt=1.-smoothstep(.035,.06,length(f)); dt*=step(1.,wv)*step(wv,H-.6); dt=0.;   /* 2026-10-26 16：窓の位置の点は、近くでは白いぼけた丸（汚れ）に見えた → 点はやめ、霧と線だけに */    /* 2026-10-26 16：遠くで点がにじんで白い丸に見えた → 画面で細かくなる点は描かない */
     float near=1.-smoothstep(40.,260.,dist);
+    /* 2026-10-27 夜 融合：壁は点群（1.1 m の格子の点。画面で細かくなりすぎる所は描かない）と、下から上へ走る走査の線、上端の光の輪郭 */
+    vec2 pc=vec2(wu/1.1, wv/1.1); vec2 pf=fract(pc)-.5; float pw=max(fwidth(pc.x),fwidth(pc.y)); float ph=fract(sin(dot(floor(pc),vec2(27.1,61.7)))*43758.5);
+    float pr=min(.05,pw*.7); float pcd=(1.-smoothstep(pr,pr+pw*.8,length(pf)))*(1.-smoothstep(.10,.22,pw))*step(.45,ph)*step(.5,wv)*step(wv,H-.2)*smoothstep(10.,24.,dist);
+    float sy=fract(uDig*.06+fract(wu*.0007)); float scn=exp(-pow((wv/H-sy)*H/.9,2.));
     float top=1.-smoothstep(.0,.35,abs(wv-H));   /* 上端をわずかに締める */
-    diffuseColor.rgb=mix(vec3(.46,.55,.61), vec3(.90,.95,.97), dt*.8+line*.4+top*.3);
-    diffuseColor.a=(mist + line*.16*near + dt*.42*near + top*.10) * mix(1.,.55,smoothstep(150.,700.,dist)); }`);
-  ghostWall.customProgramCacheKey = () => "areaGhost1";
+    float body=mix(.30,.16,smoothstep(0.,max(H,8.),wv));   /* 2026-10-27 夜：空が透けて白く飛ばないよう、暗い硝子の体積に（輪郭と点が光る） */
+    diffuseColor.rgb=mix(vec3(.13,.18,.22), vec3(.62,.92,.98), clamp(line*.6+top*.8+pcd+scn*.8,0.,1.));
+    diffuseColor.a=(body + mist*.5 + line*.22*near + pcd*.55*near + scn*.25*near + top*.35) * mix(1.,.45,smoothstep(150.,700.,dist)); }`);
+  { const f0 = ghostWall.onBeforeCompile; ghostWall.onBeforeCompile = sh => { f0(sh); sh.uniforms.uDig = DIG; sh.fragmentShader = sh.fragmentShader.replace("varying vec3 vF; varying vec3 vGw;", "varying vec3 vF; varying vec3 vGw; uniform float uDig;"); }; }
+  ghostWall.customProgramCacheKey = () => "areaGhost2";
   const ghostRoof = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, opacity: .05, depthWrite: false, side: THREE.DoubleSide, fog: true });
   const ghostSolid = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true });   // 目印（アリーナ・駅舎）も同じ地に
   ghostSolid.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; uniform float uB;").replace("#include <color_fragment>", `#include <color_fragment>
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; uniform float uB; uniform float uDig;").replace("#include <color_fragment>", `#include <color_fragment>
     { float dist=distance(vGw,cameraPosition); if(dist<2.2) discard; float wv=max(0.,vGw.y-uB); float fy=wv/4.; float ld=abs(fract(fy+.5)-.5); float line=(1.-smoothstep(0.,fwidth(fy)*1.1,ld))*step(.5,fy);
       vec3 fn=normalize(cross(dFdx(vGw),dFdy(vGw))); float roof=step(.6,abs(fn.y)); float near=1.-smoothstep(40.,320.,dist);
-      diffuseColor.rgb=mix(vec3(.46,.55,.61),vec3(.90,.95,.97),line*.5); diffuseColor.a=(1.-roof)*(exp(-wv/8.)*.2+.075+line*.24*near)+roof*.05; }`)
-      .replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogFar, vFogDepth); gl_FragColor.a *= 1. - fgF * .85;\n#endif"); sh.uniforms.uB = ghostSolid.userData.b; };
-  ghostSolid.userData.b = { value: 8 }; ghostSolid.customProgramCacheKey = () => "areaGhostS1";
-  edgeMat.opacity = .30; edgeMat.color.set(0xd6e6ec);
+      vec2 pc=vec2((vGw.x+vGw.z)/1.1, wv/1.1); vec2 pf=fract(pc)-.5; float pw=max(fwidth(pc.x),fwidth(pc.y)); float pr=min(.05,pw*.7); float ph=fract(sin(dot(floor(pc),vec2(27.1,61.7)))*43758.5);
+      float pcd=(1.-smoothstep(pr,pr+pw*.8,length(pf)))*(1.-smoothstep(.10,.22,pw))*step(.45,ph)*(1.-roof)*smoothstep(10.,24.,dist);
+      float scn=exp(-pow((wv-fract(uDig*.05)*40.)/.8,2.))*(1.-roof);   /* 2026-10-27 夜 融合：点群と、下から上へ走る走査の線 */
+      diffuseColor.rgb=mix(vec3(.13,.18,.22),vec3(.62,.92,.98),clamp(line*.6+pcd+scn,0.,1.)); diffuseColor.a=(1.-roof)*(.24+exp(-wv/8.)*.06+line*.3*near+pcd*.5*near+scn*.25*near)+roof*.12; }`)
+      .replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogFar, vFogDepth); gl_FragColor.a *= 1. - fgF * .85;\n#endif"); sh.uniforms.uB = ghostSolid.userData.b; sh.uniforms.uDig = A.dig; };
+  ghostSolid.userData.b = { value: 8 }; ghostSolid.customProgramCacheKey = () => "areaGhostS2";
+  edgeMat.opacity = .5; edgeMat.color.set(0xa8e4ee);   // 2026-10-27：輪郭を光の線に
   for (const m of [ghostWall, ghostRoof, ghostSolid]) m.userData.land = true;
   const FAC = [[.78,.76,.72],[.86,.84,.80],[.70,.64,.56],[.60,.58,.56],[.74,.70,.62],[.55,.47,.42]], GLS = [[.42,.50,.58],[.38,.46,.52],[.50,.55,.58]];
   for (const m of [roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat]) m.userData.land = true;
+  /* 2026-10-27 夜 本人「デジタルとフィジカルが融合した空間に」：写実の舗装（CC0）の上に、デジタルの層を重ねる。
+     地面＝足もとから広がる光のグリッド（5 m の細い線・25 m の太い線）と、見る人から広がる走査の輪・データの粒。近くは控えめ、10〜80 m で読め、遠くで消える。上品に、やりすぎない */
+  const DIG = { value: 0 }; A.dig = DIG;
+  const DIGI = `{ vec2 gp=vGw.xz; float dc=distance(vGw.xz,cameraPosition.xz);
+    vec2 g1=abs(fract(gp/5.+.5)-.5)/max(fwidth(gp/5.),1e-4); float l1=1.-min(min(g1.x,g1.y)/1.1,1.);
+    vec2 g2=abs(fract(gp/25.+.5)-.5)/max(fwidth(gp/25.),1e-4); float l2=1.-min(min(g2.x,g2.y)/1.4,1.);
+    float fz=smoothstep(4.,14.,dc)*(1.-smoothstep(70.,150.,dc));
+    float ph=fract(uDig*.11); float scan=exp(-pow((dc-ph*110.)/2.2,2.))*(1.-ph);
+    vec2 cid=floor(gp/2.5); float hh=fract(sin(dot(cid,vec2(12.9898,78.233)))*43758.5453); vec2 cf=fract(gp/2.5)-.5;
+    float dot1=(1.-smoothstep(.03,.05,length(cf)))*step(.9,hh)*(.5+.5*sin(uDig*1.7+hh*40.))*(1.-smoothstep(25.,60.,dc))*step(fwidth(gp.x/2.5),.12);
+    vec3 dcol=vec3(.50,.86,.92);
+    totalEmissiveRadiance+=dcol*(l1*.2*fz+l2*.5*fz+scan*(.3+l1*.7)+dot1*.3); }`;
+  const digiG = og => sh => { og(sh); sh.uniforms.uDig = DIG; sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uDig;").replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n" + DIGI); };
+  for (const m of GMATS) { m.onBeforeCompile = digiG(m.onBeforeCompile); m.customProgramCacheKey = () => "areaGroundDig1"; }
+  roadMat.onBeforeCompile = digiG(sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;"); });
+  roadMat.customProgramCacheKey = () => "areaRoadDig1";
   // 2026-10-26 2：駅前の地形の写真（屋根の写った空中写真）が道と地面の上に白くかぶっていた → 参道の道と同じく、道と地面の画素に印を付けて地形を描かない
   for (const m of [roadMat, ...GMATS]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
   function buildChunk(Z, J) {
@@ -228,13 +262,15 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   const lmAt = b => { const n = (b.length - 1) / 2; let x = 0, z = 0; for (let i = 0; i < n; i++) { x += b[1 + i * 2]; z += b[2 + i * 2]; } x /= n; z /= n; for (const L of LM) if (Math.abs(L.c[0] - x) < 6 && Math.abs(L.c[1] - z) < 6) return L; return null; };
   const metalMat = new THREE.MeshStandardMaterial({ color: 0x8f979e, roughness: .42, metalness: .35 });
   metalMat.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vMw;").replace("#include <project_vertex>", "#include <project_vertex>\nvMw=(modelMatrix*vec4(transformed,1.)).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vMw;").replace("#include <map_fragment>", "#include <map_fragment>\nfloat ly=fract(vMw.y/1.4); diffuseColor.rgb*=.78+.22*smoothstep(.0,.25,ly); float gb=step(vMw.y-uBase,9.); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.07,.09,.11),gb*step(.1,fract((vMw.x+vMw.z)/3.)));")
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vMw;").replace("#include <map_fragment>", "#include <map_fragment>\nfloat ly=fract(vMw.y/1.4); diffuseColor.rgb*=.78+.22*smoothstep(.0,.25,ly); float gb=step(vMw.y-uBase,9.); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.07,.09,.11),gb*step(.1,fract((vMw.x+vMw.z)/3.))); float sm=fract((vMw.x+vMw.z)/4.5); diffuseColor.rgb*=.86+.14*smoothstep(.0,.04,sm)*(1.-smoothstep(.96,1.,sm)); diffuseColor.rgb*=.92+.08*fract(sin(floor((vMw.x+vMw.z)/4.5)*12.9)*437.5);   /* 2026-10-27 夜：外装の板の継ぎ目と板ごとの色の差 */")
       .replace("#include <common>", "#include <common>\nuniform float uBase;"); sh.uniforms.uBase = metalMat.userData.base; };
   metalMat.userData.base = { value: 8 }; metalMat.customProgramCacheKey = () => "lmMetal";
   const woodMat = new THREE.MeshStandardMaterial({ color: 0x7a5b3e, roughness: .72, metalness: 0 });
   const shadowMat = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.55)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }); })();   // 置き物の接地の陰
   const deckMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/granite_tile_c5.webp"), normalMap: tex(BASE + "tex/granite_tile_n5.webp", false), color: 0x9a968e, roughness: .85 });
-  const slabMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Concrete034_c5.webp"), color: 0x9a9893, roughness: .9, emissive: 0x3a3a38 });   // デッキの下が暗く沈まないよう、裏面に弱い明るさ
+  const slabMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Concrete034_c5.webp"), color: 0x9a9893, roughness: .9, emissive: 0x3a3a38 });
+  slabMat.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vSw; varying vec3 vSn;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvSw=(modelMatrix*vec4(transformed,1.)).xyz; vSn=normalize(mat3(modelMatrix)*objectNormal);"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vSw; varying vec3 vSn;").replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n{ float dn=step(.6,-vSn.y); vec2 q=abs(fract(vSw.xz/6.+.5)-.5); float lt=(1.-smoothstep(.03,.05,q.x))*step(q.y,.3); totalEmissiveRadiance+=dn*(vec3(.95,.92,.85)*lt*.9+vec3(.5,.86,.92)*(1.-smoothstep(.0,.02,min(q.x,q.y)))*.12); }"); };   /* 2026-10-27 夜：デッキの下の天井に、照明の帯と細い光の格子 */
+  slabMat.customProgramCacheKey = () => "slabLit1";   // デッキの下が暗く沈まないよう、裏面に弱い明るさ
   const grassMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), color: 0xbdd39a, roughness: 1 }); grassMat.map.repeat?.set(9, 9);
   const leafMat = new THREE.MeshStandardMaterial({ color: 0x7d9a62, roughness: .95 }), barkMat = new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 1 });
   const glassMat = new THREE.MeshStandardMaterial({ color: 0x26323c, roughness: .08, metalness: .7, transparent: true, opacity: .82 });
@@ -246,29 +282,33 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     const g = new THREE.ExtrudeGeometry(new THREE.Shape(Q), { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); g.translate(0, y0, 0);
     return new THREE.Mesh(g, mat);
   }
-  const lmEdge = new THREE.LineBasicMaterial({ color: 0xe2eef3, transparent: true, opacity: .5, depthWrite: false }); lmEdge.userData.land = true;
+  const lmEdge = new THREE.LineBasicMaterial({ color: 0xb4ecf4, transparent: true, opacity: .62, depthWrite: false }); lmEdge.userData.land = true;
   const colGhost = new THREE.MeshBasicMaterial({ color: 0xc9d8de, transparent: true, opacity: .1, depthWrite: false, fog: true }); colGhost.userData.land = true;   // 柱はごく淡く
-  function gEx(P, y0, h, shrink = 0) { const m = extrude(P, y0, h, ghostSolid, shrink); m.renderOrder = 2; const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 25), lmEdge); m.add(e); return m; }   // 2026-10-26 15：目印は霧の面に、はっきりした輪郭の線
+  function gEx(P, y0, h, shrink = 0, mat = ghostSolid) { const m = extrude(P, y0, h, mat, shrink); m.renderOrder = 2; const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 25), lmEdge); m.add(e); return m; }   // 2026-10-26 15：目印は霧の面に、はっきりした輪郭の線
+  function colShadows(G, pts) {   /* 2026-10-27 夜：柱の足もとに接地の陰（デッキが浮いて見えないように） */
+    const g = new THREE.PlaneGeometry(2.6, 2.6).rotateX(-Math.PI / 2), im = new THREE.InstancedMesh(g, shadowMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => im.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) + .04, z))); im.renderOrder = -1; G.add(im);
+    const sh = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2); return sh; }
   function buildLandmarks(Z, J, G) {
     const all = []; for (const k in J.b) for (const b of J.b[k]) { const L = lmAt(b); if (L) all.push([L, b]); }
     for (const [L, b] of all) { const P = polyOf(b); let y = 1e9; for (const p of P) y = Math.min(y, groundY(p.x, p.y));
-      if (L.id === "arena") { ghostSolid.userData.b.value = y; G.add(gEx(P, y, 38), gEx(P, y + 38, 26, .42)); const ring = gEx(P, y + 37.4, .4, -.015); G.add(ring); }
+      if (L.id === "arena") { ghostSolid.userData.b.value = y; G.add(gEx(P, y, 38, 0, metalMat), gEx(P, y + 38, 26, .42, metalMat), gEx(P, y + 9, 4.5, -.012, glassMat), gEx(P, y + 22, 3, -.012, glassMat), gEx(P, y + 6.2, .5, -.05, slabMat));   /* 2026-10-27 夜：アリーナにガラスの帯と大きな庇（壁一枚の塊にしない・模式） */ const ring = gEx(P, y + 37.4, .4, -.015, slabMat);   /* 2026-10-27 夜：写実の外装に、輪郭の光の線を重ねる */ G.add(ring); }
       else if (L.id === "keyaki") { const top = y + 7;
-        ghostSolid.userData.b.value = y; const slab = gEx(P, top - 1.1, 1.1); const deck = extrude(P, top, .02, deckMat); G.add(slab, deck);   /* 2026-10-26 16：けやきひろばの土台も霧と線に（床だけ歩ける面） */
+        ghostSolid.userData.b.value = y; const slab = gEx(P, top - 1.1, 1.1, 0, slabMat); const deck = extrude(P, top, .02, deckMat); G.add(slab, deck);   /* 2026-10-26 16：けやきひろばの土台も霧と線に（床だけ歩ける面） */
         let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
         const inP = (x, z) => inside(P.flatMap(p => [p.x, p.y]), x, z);
         const col = [], tr = []; for (let x = x0 + 6; x < x1 - 4; x += 12) for (let z = z0 + 6; z < z1 - 4; z += 12) if (inP(x, z)) col.push([x, z]);
         for (let x = x0 + 5; x < x1 - 3; x += 8) for (let z = z0 + 5; z < z1 - 3; z += 8) if (inP(x, z)) tr.push([x + (Math.sin(x * 3.1 + z) * 1.2), z + Math.cos(z * 2.3 + x) * 1.2]);
-        const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, colGhost, col.length); cm.renderOrder = 2; const M4 = new THREE.Matrix4();
-        col.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
+        const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, slabMat, col.length); cm.renderOrder = 2; const M4 = new THREE.Matrix4();
+        col.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm); colShadows(G, col);
         G.userData.lmTrees = tr.map(([x, z]) => [x, top, z]); }   // 木は app 側で参道と同じケヤキを植える（C.lmTrees）
-      else if (L.id === "eki1" || L.id === "eki2") { const h = b[0]; G.add(gEx(P, y, h, .02)); }
+      else if (L.id === "eki1" || L.id === "eki2") { const h = b[0]; G.add(gEx(P, y, h, .02, glassMat)); }
     }
     // 西口のデッキ（模式）：駅から西へ、2 階の高さで歩く人を渡す床と柱と手すり
     if (Z.id === "nishi") { const y = groundY(-745, 110) + 6.5, P = [[-780, 80], [-712, 80], [-712, 140], [-780, 140]].map(([x, z]) => new THREE.Vector2(x, z));
-      G.add(gEx(P, y - .9, .9), extrude(P, y, .02, deckMat));
+      G.add(gEx(P, y - 1.5, 1.5, 0, slabMat), extrude(P, y, .02, deckMat), gEx(P, y - 1.62, .12, -.01, metalMat));   /* 2026-10-27 夜：デッキに厚みと縁の梁 */
+      { const gy = groundY(-745, 110) + .05, sm = extrude(P, gy, .01, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .32, depthWrite: false }), .04); sm.renderOrder = -1; G.add(sm); }   /* デッキの下の地面の陰 */
       const cg = new THREE.CylinderGeometry(.5, .5, 6.5, 8); cg.translate(0, 3.25, 0); const pts = []; for (let x = -774; x <= -718; x += 14) for (let z = 86; z <= 134; z += 16) pts.push([x, z]);
-      const cm = new THREE.InstancedMesh(cg, colGhost, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
+      const cm = new THREE.InstancedMesh(cg, slabMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm); colShadows(G, pts);
       const rl = []; for (let i = 0; i < 4; i++) { const a = P[i], c = P[(i + 1) % 4]; rl.push(a.x, y + 1.1, a.y, c.x, y + 1.1, c.y); } const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rl, 3)); G.add(new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xd8dde0 }))); }
     // 2026-10-26 3：広場の手がかり（車止め・植え込みの箱・ベンチ。模式）
     const props = (cx, cz, r, n, kind) => { const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3(1, 1, 1);
@@ -307,7 +347,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     const uv = []; for (let i = 0; i < wf.length; i += 3) uv.push(wf[i] / 2.6, wf[i + 1] / 2.6); wg.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); wg.computeVertexNormals();
     const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rp, 3)); const ru = []; for (let i = 0; i < rp.length; i += 3) ru.push(rp[i] / 6, rp[i + 2] / 6); rg.setAttribute("uv", new THREE.Float32BufferAttribute(ru, 2)); rg.computeVertexNormals();
     const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(ep, 3));
-    const wm = new THREE.Mesh(wg, ghostWall), rm2 = new THREE.Mesh(rg, ghostRoof), el = new THREE.LineSegments(eg, edgeMat); wm.renderOrder = rm2.renderOrder = 2; T.add(wm, rm2, el); C.g.add(T); return T;
+    const wm = new THREE.Mesh(wg, bldMat), rm2 = new THREE.Mesh(rg, roofMat), el = new THREE.LineSegments(eg, edgeMat); wm.renderOrder = rm2.renderOrder = 2; T.add(wm, rm2, el); C.g.add(T); return T;
   }
   function dropChunk(id) {
     const C = A.chunks[id]; if (!C || !C.g) { delete A.chunks[id]; return; }
@@ -342,7 +382,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   }).catch(e => console.warn("zones", e));
 
   let checkT = 0;
-  A.update = (dt, mode) => {
+  A.update = (dt, mode) => { DIG.value += Math.min(.1, dt || 0);
     if (!A.ready) return;
     A.t += dt; const sky = mode === "sky", walk = mode === "walk" || mode === "sight";
     A.fills.visible = sky; labBox.hidden = !sky; if (sky) stepLabels();
