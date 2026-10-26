@@ -78,7 +78,7 @@ mat.onBeforeCompile = sh => {
   // へこんだところは光が入りにくく、少し暗い
   sh.fragmentShader = "varying float vDentG;\n" + sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= 1.0 - clamp(vDentG * 7.0, 0.0, 0.5);");
 };
-const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Math.PI / 2; scene.add(plate);
+mat.fog = false; const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Math.PI / 2; scene.add(plate);
 // 台：上の面のない箱（へこみが台に隠れない深さ 10 mm の側面だけ）
 { const dark = new THREE.MeshStandardMaterial({ color: 0x0a0f1a, roughness: 1 }), none = new THREE.MeshBasicMaterial({ visible: false });
   const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; scene.add(base); }
@@ -100,6 +100,61 @@ const TR = 900, trPos = new Float32Array(TR * 2 * 3), trCol = new Float32Array(T
 const trGeo = new THREE.BufferGeometry(); trGeo.setAttribute("position", new THREE.BufferAttribute(trPos, 3)); trGeo.setAttribute("color", new THREE.BufferAttribute(trCol, 4));
 const trail = new THREE.LineSegments(trGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
 trail.frustumCulled = false; scene.add(trail); let trW = 0;
+
+// ---- デジタルの層（2026-10-27 本人「デジタルとフィジカルの融合」）：写真の面の上に、点群・走査線・地の光のグリッドを薄く重ねる
+scene.fog = new THREE.FogExp2(0x03060f, .22);
+{ const L = [], C = [], E = 1.6, S = .1;
+  const n = Math.round(2 * E / S);   // 線を短い区間に分けて、中心から遠いほど薄くする
+  for (let a = 0; a <= n; a++) for (let k = 0; k < n; k++) { const v = -E + a * S, u0 = -E + k * S, u1 = u0 + S; L.push(u0, -.106, v, u1, -.106, v, v, -.106, u0, v, -.106, u1); }
+  for (let i = 0; i < L.length; i += 3) { const r = Math.hypot(L[i], L[i + 2]), o = Math.pow(Math.max(0, 1 - r / E), 1.6) * (r < .56 ? .3 : 1); C.push(o * .5, o * .9, 1 * o); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(L, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(C, 3));
+  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false }))); }
+const CN = MOBILE ? 64 : 96, cPos = new Float32Array(CN * CN * 3);
+const cloudU = { uScan: { value: 0 }, uSize: { value: (MOBILE ? 2.2 : 2.4) * Math.min(devicePixelRatio, 2) } };
+const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(cPos, 3)), new THREE.ShaderMaterial({
+  uniforms: cloudU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: "uniform float uScan, uSize; varying float vA; void main(){ float d = position.z - uScan; vA = .2 + .75 * exp(-d * d / .0008); gl_PointSize = uSize * (.8 + .6 * vA); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader: "varying float vA; void main(){ vec2 c = gl_PointCoord - .5; if (dot(c, c) > .25) discard; gl_FragColor = vec4(.66, .95, .97, vA * .45); }" }));
+cloud.frustumCulled = false; scene.add(cloud);
+const SCN = 128, scPos = new Float32Array(SCN * 3);
+const scan = new THREE.Line(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(scPos, 3)), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false }));
+scan.frustumCulled = false; scene.add(scan);
+function updateCloud() {
+  if (!params) return; const k = params.depth / SIZE_MM;
+  for (let j = 0; j < CN; j++) for (let i = 0; i < CN; i++) { const x = (i + .5) / CN, y = (j + .5) / CN, n = (j * CN + i) * 3; cPos[n] = x - .5; cPos[n + 1] = heightAt(x * SIZE_MM, y * SIZE_MM) * k + .004; cPos[n + 2] = y - .5; }
+  cloud.geometry.attributes.position.needsUpdate = true;
+}
+// ---- 触れ心地の計器（3D）：右に 4 本の光の柱＝速さ・振動・強さ・へこみ、その奥に硬さ・あたたかさの目盛り。数値と連動する
+const GX = .8, GAUGE = [], UNIT = ["mm/s", "Hz", "", "mm"];
+const gLab = (t) => { const c = document.createElement("canvas"); c.width = 320; c.height = 64; const x = c.getContext("2d");
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false })); s.scale.set(.4, .08, 1);
+  s.userData.draw = v => { x.clearRect(0, 0, 320, 64); x.textAlign = "center"; x.font = '600 32px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.fillStyle = "#eef5fb"; x.fillText(t + "  " + v, 160, 44); tx.needsUpdate = true; };
+  s.userData.draw("0"); return s; };
+let gT = 0;
+["速さ", "振動", "強さ", "へこみ"].forEach((name, i) => {
+  const z = -.36 + i * .24, g = new THREE.Group(); if (MOBILE) g.position.set(-.36 + i * .24, -.1, -.68); else g.position.set(GX, -.1, z);   // スマホは面の奥に横一列
+  const frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.05, .32, .05)), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .35 })); frame.position.y = .16; g.add(frame);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(.036, 1, .036), new THREE.MeshBasicMaterial({ color: [0x78d6ec, 0xb4a2ff, 0xf2cf8c, 0x7fe0b4][i], transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false }));
+  bar.scale.y = .001; g.add(bar); const lab = gLab(name); lab.position.set(0, MOBILE ? .4 : -.06, .02); if (MOBILE) lab.visible = false;   // スマホの値は下の欄に任せる g.add(lab);
+  scene.add(g); GAUGE.push({ bar, v: 0, lab });
+});
+// 振動の波：計器の上に 3D の線で（強さで振れ幅、振動数で山の数）
+const WN = 96, wPos = new Float32Array(WN * 3); const wave3 = new THREE.Line(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(wPos, 3)), new THREE.LineBasicMaterial({ color: 0xb4a2ff, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false }));
+wave3.frustumCulled = false; scene.add(wave3); let wPh = 0;
+function gauges(r, dent, dt) {
+  const tgt = [Math.min(1, r.speed / 200), Math.min(1, r.freq / 300), Math.min(1, r.amp), Math.min(1, Math.max(0, dent) / 4)];
+  GAUGE.forEach((g, i) => { g.v += (tgt[i] - g.v) * Math.min(1, dt * 8); const h = Math.max(.002, g.v * .32); g.bar.scale.y = h; g.bar.position.y = h / 2; });
+  gT += dt; if (gT > .25) { gT = 0; const v = [Math.round(r.speed) + " mm/s", Math.round(r.freq) + " Hz", r.amp.toFixed(2), Math.max(0, dent).toFixed(1) + " mm"]; GAUGE.forEach((g, i) => { if (g.last !== v[i]) { g.last = v[i]; g.lab.userData.draw(v[i]); } }); }
+  wPh += dt * (2 + r.freq / 30); const A = .02 + .09 * r.amp, k = 2 + r.freq / 40;
+  for (let i = 0; i < WN; i++) { const u = i / (WN - 1), y = (MOBILE ? .42 : .36) + Math.sin(u * Math.PI * 2 * k - wPh) * A * Math.sin(u * Math.PI); if (MOBILE) { wPos[i * 3] = -.45 + u * .9; wPos[i * 3 + 1] = y; wPos[i * 3 + 2] = -.82; } else { wPos[i * 3] = GX; wPos[i * 3 + 1] = y; wPos[i * 3 + 2] = -.4 + u * .8; } }
+  wave3.geometry.attributes.position.needsUpdate = true;
+}
+function updateScan(t) {
+  if (!params) return; const z = ((t * .09) % 1.3) - .65; cloudU.uScan.value = z; const k = params.depth / SIZE_MM, inside = Math.abs(z) < .5;
+  scan.visible = inside; if (!inside) return; const y = (z + .5) * SIZE_MM;
+  for (let i = 0; i < SCN; i++) { const x = i / (SCN - 1); scPos[i * 3] = x - .5; scPos[i * 3 + 1] = heightAt(x * SIZE_MM, y) * k + .005; scPos[i * 3 + 2] = z; }
+  scan.geometry.attributes.position.needsUpdate = true;
+}
 
 // ---- 表面の中身
 let H = new Float32Array(EN * EN), HN = EN;          // 凹凸（0..1）
@@ -152,6 +207,7 @@ function applyParams() {
   U.uDentR.value = (5 + 7 * (1 - p.hard)) / SIZE_MM;
   ring.material.color.copy(COLD).lerp(WARM, p.warm);
   model.setSurface(heightAt, p); sonic.setSurface(p, surf.p0);
+  updateCloud();
 }
 
 // ---- 触れた音の素材を選ぶ
@@ -202,13 +258,14 @@ function busy(on) { $("#busy").hidden = !on; }
 
 // ---- 見る向き（回す・傾ける・寄る・ずらす）。V＝いま、G＝向かう先
 const VIEWS = [{ el: .9, d: 1 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 斜め・真上・低く
-const Z_MIN = .5, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .19 : .1;   // 下の帯（波・字幕）のぶん、面を少し上へ
+const Z_MIN = .5, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .3 : .1;   // 下の帯（波・字幕）のぶん、面を少し上へ
 let view = 0, baseD = 2;
 const V = { az: 0, el: VIEWS[0].el, zoom: 1, tx: 0, tz: T0 }, G = { ...V };
 const look = new THREE.Vector3();
+let fitAspect = 1;
 function fitDist() {
-  const a = camera.aspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
-  baseD = Math.max(.66 / Math.tan(hf / 2), .7 / Math.tan(vf / 2)) * (MOBILE ? 1.22 : 1.08);
+  const a = fitAspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
+  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? 1.22 : 1.08);
 }
 const markFree = () => { const n = $("#viewName"); if (n.dataset.t !== "view.free") { n.dataset.t = "view.free"; n.textContent = T("view.free"); } };
 const clampG = () => { G.zoom = Math.min(Z_MAX, Math.max(Z_MIN, G.zoom)); G.el = Math.min(EL_MAX, Math.max(EL_MIN, G.el)); G.tx = Math.min(.55, Math.max(-.55, G.tx)); G.tz = Math.min(.6, Math.max(-.55, G.tz)); dirty = 2; };
@@ -265,7 +322,11 @@ addEventListener("keydown", e => {
 // ---- 大きさ
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false);
-  camera.aspect = w / h; camera.updateProjectionMatrix(); fitDist();
+  // PC：3D は画面いっぱい、右の板の下まで続く。面の中心は板の左の真ん中へ（2026-10-27 全アプリ 3D 化）
+  const PO = innerWidth >= 900 ? Math.min(380, w * .3) : 0;
+  camera.aspect = (w + PO) / h; fitAspect = (w - PO) / h;
+  if (PO) camera.setViewOffset(w + PO, h, PO, 0, w, h); else camera.clearViewOffset();
+  camera.updateProjectionMatrix(); fitDist();
   const wv = $("#wv"), dp = Math.min(devicePixelRatio, 2); wv.width = wv.clientWidth * dp; wv.height = wv.clientHeight * dp;
   dirty = 2;
 }
@@ -353,12 +414,16 @@ const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "
 async function loadAoi() {
   try {
     const K = await import("./kit/aoi.js");
-    aoi = await K.loadAoi(AOI_URL, { scene: aoiScene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" });
-    aoi.place(0, 0, 0);
+    aoi = await K.loadAoi(AOI_URL, { scene, height: .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
+    aoi.root.position.y = -.106; aoi.place(AOI_X, -.08, .35);
+    { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+      const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, -.08); scene.add(sh);
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 48 }, (_, i) => new THREE.Vector3(Math.cos(i / 48 * Math.PI * 2) * .12, 0, Math.sin(i / 48 * Math.PI * 2) * .12))), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .5 })); ring.position.set(AOI_X, -.103, -.08); scene.add(ring); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：触覚の板の左に、小さく立つ
     if (!said.hello) hello();
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
-const LOOK = new THREE.Vector3(MOBILE ? -.9 : .9, .75, .9);
+const AOI_X = -.78;
+const LOOK = new THREE.Vector3(0, .02, 0);
 function aoiWatch(on) { aoi?.motion.lookAt(on ? LOOK : null); }
 function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 
@@ -434,8 +499,10 @@ function frame(now) {
   // 通り道の色（2.4 秒で消える）
   for (let i = 0; i < TR * 2; i++) { const a = trAge[i] += dt, o = Math.max(0, 1 - a / 2.4); trCol[i * 4] = .7; trCol[i * 4 + 1] = .92; trCol[i * 4 + 2] = 1; trCol[i * 4 + 3] = o; }
   trGeo.attributes.color.needsUpdate = true;
+  gauges(r, dent, dt);
   // カメラ
   placeCam(dt);
+  updateScan(now / 1000);
   // 目盛りの字
   const sp = new THREE.Vector3(0, 0, .6).project(camera), sl = $("#scaleL");
   sl.style.left = ((sp.x + 1) / 2 * stage.clientWidth) + "px"; sl.style.top = ((1 - sp.y) / 2 * stage.clientHeight + 4) + "px"; const ctlTop = $("#ctl").offsetTop, sy = (1 - sp.y) / 2 * stage.clientHeight + 4; sl.style.visibility = Math.abs(sp.x) < .92 && sy > 40 && sy + 14 < ctlTop && sp.z < 1 ? "" : "hidden";
@@ -446,11 +513,7 @@ function frame(now) {
   renderer.setScissorTest(false); renderer.setViewport(0, 0, stage.clientWidth, stage.clientHeight);
   renderer.setClearColor(0x03060f, 1); renderer.clear(); renderer.render(scene, camera);
   if (aoi) {
-    aoi.tick(dt, aoiCam);
-    const b = $("#aoiBox").getBoundingClientRect(), s = cv.getBoundingClientRect(), x = b.left - s.left, y = s.bottom - b.bottom;
-    renderer.setScissorTest(true); renderer.setViewport(x, y, b.width, b.height); renderer.setScissor(x, y, b.width, b.height);
-    aoiCam.aspect = b.width / b.height; aoiCam.updateProjectionMatrix();
-    renderer.setClearColor(0x070d1a, 1); renderer.clear(); renderer.render(aoiScene, aoiCam); renderer.setScissorTest(false);
+    aoi.tick(dt, camera);   // 碧は同じ 3D 空間の中（別の枠では描かない）
   }
   if (dirty > 0) dirty--;
 }
