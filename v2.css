@@ -143,3 +143,15 @@ html[data-lang=en] .v2-umw-ja{font-family:var(--latin);letter-spacing:0}
 #vision .v2-hud{display:none}
 #vision .v2-card{padding-top:28px;padding-bottom:28px}
 @media (max-width:700px){#vision .v2-vlead{font-size:18px}}
+/* v3b（2026-10-26）層の 3D（碧だけ・カメラ固定）を「一枚ずつ、ひらける層」の右の欄に。スマホは一覧の上に貼りつく */
+@media (min-width:861px){.qt-stack>.qt-stack-stage{grid-column:2;grid-row:1 / span 2}.qt-stack>.qt-layer-list{grid-column:1;grid-row:1}}
+.qt-meter i{background:linear-gradient(90deg,#c9abe0,#f0d19d,#8fb6dc,#88b68f,#e79592)}
+@media (max-width:860px){.qt-stack-stage .qt-stack-count{bottom:16px}.qt-stack-stage .qt-meter{bottom:6px}}
+/* 創業の詩の下：TOP の 3D の舞台が節の外へはみ出して、空の帯と札だけが残らないように */
+#top{overflow:clip}
+body:has(#top.active) footer{margin-top:0}
+.v2-lead-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.v2-lead-svg line{stroke:currentColor;stroke-width:.8;opacity:.55}.v2-lead-svg circle{fill:none;stroke:currentColor;stroke-width:1;opacity:.85}
+@media (max-width:700px){#top .v2-lab{font-size:8px;line-height:1.4;max-width:44vw;background:#03060fe6;padding:2px 5px 2px 8px}#top .v2-lab .k{font-size:7.5px;letter-spacing:.1em}}
+@media (max-width:700px){html[data-lang=en] #top .v2-lab{font-family:var(--sans);letter-spacing:0;max-width:40vw}}
+.v2-nw{white-space:nowrap}
