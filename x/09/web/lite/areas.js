@@ -53,7 +53,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
         float edge=exp(-y*y*900.)*.9;                          // 根もとの光の線（境界がはっきり読めるように）
         float a=smoothstep(0.,.05,y)*pow(1.-y,1.25)*(.35+.65*band)*(.35+.65*rays);
         float near=1.-smoothstep(80.,170.,vD); float close=smoothstep(1.,5.,vD);   // 遠くは消す・目の前は薄く
-        a=min(.85,(a+edge)*near*(.35+.65*close)*uK*1.25);
+        a=min(.9,(a*1.7+edge)*near*(.35+.65*close)*uK*1.25);
         vec3 c=mix(uC*1.15,vec3(1.),pow(1.-y,8.)*.45);         // 根もとは白みを帯びる
         gl_FragColor=vec4(c,a);
       }`,
@@ -100,19 +100,36 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   const _v = new THREE.Vector3();
   function stepLabels() {
     const W = innerWidth, H = innerHeight;
+    // 2026-10-26 2：場所選びの板（#skyUI .card）に札が重ならないよう、板の上端より下には出さない
+    const card = document.querySelector("#skyUI .card"), cr = card && card.offsetParent ? card.getBoundingClientRect() : null, bottom = cr && cr.width ? cr.top - 30 : H - 30;
     for (const L of A.labels) { _v.copy(L.p).project(camera); const sx = (_v.x + 1) / 2 * W, sy = (1 - _v.y) / 2 * H, hw = (L.w ||= L.e.offsetWidth || 110) / 2 + 6;   // 画面の端で切れる札は出さない
-      if (_v.z > 1 || sx < hw || sx > W - hw || sy < 60 || sy > H - 30) { L.e.style.display = "none"; continue; } L.e.style.display = ""; L.e.style.transform = `translate(${sx}px,${sy}px) translate(-50%,-50%)`; }
+      if (_v.z > 1 || sx < hw || sx > W - hw || sy < 60 || sy > bottom) { L.e.style.display = "none"; continue; } L.e.style.display = ""; L.e.style.transform = `translate(${sx}px,${sy}px) translate(-50%,-50%)`; }
   }
   A.highlight = id => { for (const Z of A.zones) if (Z.fill) Z.fill.material.opacity = id && Z.id === id ? .5 : .3; };
 
   /* ---------- エリアの中身（道・地面・建物・地点） ---------- */
   // 道＝アスファルト（CC0・ambientCG Asphalt023S）、地面＝コンクリートの舗装（CC0・Poly Haven）。建物は半透明の薄い面（参道の建物と同じ考え）
-  const roadMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Asphalt023S_c5.webp"), normalMap: tex(BASE + "tex/Asphalt023S_n5.webp", false), color: 0x8a8782, roughness: .92, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  const groundMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), color: 0x7d7a72, roughness: 1, metalness: 0 });
+  const roadMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Asphalt023S_c5.webp"), normalMap: tex(BASE + "tex/Asphalt023S_n5.webp", false), color: 0x56544f, roughness: .9, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const groundMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/concrete_pavement_c5.webp"), normalMap: tex(BASE + "tex/concrete_pavement_n5.webp", false), color: 0x625f58, roughness: .95, metalness: 0 });
+  // 2026-10-26 2：道と地面が白く飛んで一面の灰色に見えた → 色を下げ、地面には数十 m のむら（目地の汚れ・雨じみ）を重ねる
+  groundMat.onBeforeCompile = sh => { sh.uniforms.uLandG = window.__qw?.LANDG || { value: 0 };
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; float gH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);} float gN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gH(i),gH(i+vec2(1,0)),f.x),mix(gH(i+vec2(0,1)),gH(i+vec2(1,1)),f.x),f.y);}")
+      .replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 p=vGw.xz; float n=gN(p*.05)*.6+gN(p*.17)*.4; diffuseColor.rgb*=.74+n*.5; vec3 big=texture2D(map,p*.027+.31).rgb; diffuseColor.rgb*=.7+dot(big,vec3(.333))*.6; }"); };
+  groundMat.customProgramCacheKey = () => "areaGroundMacro";
   const bldMat = new THREE.MeshStandardMaterial({ color: 0x9fa9b1, roughness: .8, metalness: 0, transparent: true, opacity: .34, depthWrite: false, side: THREE.DoubleSide });
   const roofMat = new THREE.MeshStandardMaterial({ color: 0x8f99a2, roughness: .85, metalness: 0, transparent: true, opacity: .55, depthWrite: false });
   const edgeMat = new THREE.LineBasicMaterial({ color: 0xdfe8ee, transparent: true, opacity: .45, depthWrite: false });
+  // 2026-10-26 2：駅前の大きな建物の中や間に立つと、半透明の壁が何枚も重なって画面が白く飛んでいた → 目の前（〜6 m）は消し、30 m までで少しずつ現す・色を暗めに
+  bldMat.color.set(0x7d8892); bldMat.opacity = .3; roofMat.color.set(0x737d87); roofMat.opacity = .45;
+  for (const m of [bldMat, roofMat, edgeMat]) { m.onBeforeCompile = sh => {
+    sh.uniforms.uLandG = window.__qw?.LANDG || { value: 0 };
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vBw;").replace("#include <project_vertex>", "#include <project_vertex>\nvBw=(modelMatrix*vec4(transformed,1.)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vBw;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\ngl_FragColor.a*=smoothstep(6.,30.,distance(vBw,cameraPosition));"); };
+    m.customProgramCacheKey = () => "areaBldFade" + m.type; }
   for (const m of [roadMat, groundMat, bldMat, roofMat, edgeMat]) m.userData.land = true;
+  // 2026-10-26 2：駅前の地形の写真（屋根の写った空中写真）が道と地面の上に白くかぶっていた → 参道の道と同じく、道と地面の画素に印を付けて地形を描かない
+  for (const m of [roadMat, groundMat]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
   function buildChunk(Z, J) {
     const G = new THREE.Group(); G.name = "area_" + Z.id; const C = { Z, J, g: G, w: J.w, tiles: {}, places: [] };
     for (const w of J.w) { let b = [1e9, 1e9, -1e9, -1e9]; for (let i = 1; i < w.length; i += 2) { b[0] = Math.min(b[0], w[i]); b[1] = Math.min(b[1], w[i + 1]); b[2] = Math.max(b[2], w[i]); b[3] = Math.max(b[3], w[i + 1]); } w.b = b; }
@@ -123,13 +140,13 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
         const P = [[ax + nx, az + nz], [ax - nx, az - nz], [bx - nx, bz - nz], [bx + nx, bz + nz]].map(([x, z]) => [x, groundY(x, z) + .1, z]);
         for (const k of [0, 1, 2, 0, 2, 3]) { pos.push(...P[k]); ruv.push(P[k][0] / 4, P[k][2] / 4); } } }
     const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); rg.setAttribute("uv", new THREE.Float32BufferAttribute(ruv, 2)); rg.computeVertexNormals();
-    const road = new THREE.Mesh(rg, roadMat); road.name = "areaRoad"; G.add(road); C.road = road;
+    const road = new THREE.Mesh(rg, roadMat); road.renderOrder = -3; road.name = "areaRoad"; G.add(road); C.road = road;
     // 地形（DEM）の外の地面：エリアの中の 20 m の区画だけ（模式の平らな地）
     const P = Z.poly; let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (let i = 0; i < P.length; i += 2) { x0 = Math.min(x0, P[i]); x1 = Math.max(x1, P[i]); z0 = Math.min(z0, P[i + 1]); z1 = Math.max(z1, P[i + 1]); }
     const CS = 20, gp = [];
-    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || inDem(cx, cz)) continue; const y = groundY(cx, cz) - .02;
+    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || (inDem(cx, cz) && !Z.groundAll)) continue; const y = groundY(cx, cz) - .02;
       gp.push(x, y, z, x, y, z + CS, x + CS, y, z, x + CS, y, z, x, y, z + CS, x + CS, y, z + CS); }
-    if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) gu.push(gp[i] / 6, gp[i + 2] / 6); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, groundMat); gm.name = "areaGround"; G.add(gm); C.ground = gm; }
+    if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) gu.push(gp[i] / 6, gp[i + 2] / 6); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, groundMat); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.ground = gm; }
     world.add(G);
     onChunk?.(Z, J, C);
     return C;

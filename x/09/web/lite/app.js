@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=5";
+import { makeAreas } from "./areas.js?v=9";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -18,7 +18,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261026t";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261026w";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -977,6 +977,22 @@ function inPark(x, z) {
       if ((ax + dx * t - x) ** 2 + (az + dz * t - z) ** 2 < r * r) return true; } }
   return false;
 }
+/* 2026-10-26 2（本人「公園の景色が模式的」）：芝と園路に、①大小二つの縮尺で同じ絵を混ぜて、くり返しの模様を消す ②数十 m の明るさと色のむら（日なた・踏まれて薄い所・落ち葉）③芝は遠くで少し青みを抜く */
+function parkMacro(m, amt, lawn) {
+  const lit = tex(BASE + "tex/litter.webp?v=" + VER), soil = lawn ? tex(BASE + "tex/Ground047_c5.webp") : null;
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uLit = { value: lit }; if (soil) sh.uniforms.uSoil = { value: soil };
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvPw=(modelMatrix*vec4(transformed,1.)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; uniform sampler2D uLit;" + (soil ? " uniform sampler2D uSoil;" : "") + "\nfloat pH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);} float pN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(pH(i),pH(i+vec2(1,0)),f.x),mix(pH(i+vec2(0,1)),pH(i+vec2(1,1)),f.x),f.y);}")
+      .replace("#include <map_fragment>", `#include <map_fragment>
+{ vec2 p=vPw.xz; vec3 big=texture2D(map,p*.031+.17).rgb; diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*big/max(dot(big,vec3(.333)),.05)*.5,.45);
+  float n=pN(p*.045)*.6+pN(p*.13)*.4, n2=pN(p*.021+7.3);
+  diffuseColor.rgb*=mix(1.,.72+n*.56,${amt.toFixed(2)});
+  vec3 lt=texture2D(uLit,p*.21).rgb; float lf=smoothstep(.55,.85,n2); diffuseColor.rgb=mix(diffuseColor.rgb,lt*vec3(.8,.72,.6),lf*.55*${amt.toFixed(2)});
+  ${soil ? "vec3 so=texture2D(uSoil,p*.18).rgb*vec3(.86,.8,.7); float worn=smoothstep(.62,.8,pN(p*.07+3.1)); diffuseColor.rgb=mix(diffuseColor.rgb,so,worn*.6); float dd=length(vPw-cameraPosition); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0)*vec3(1.02,1.,.9),smoothstep(40.,160.,dd)*.35);" : ""} }`);
+  };
+  m.customProgramCacheKey = () => "parkMacro" + (lawn ? "L" : "P");
+}
 function loadPark() {
   if (PARK.p) return PARK.p;
   return PARK.p = fetch(BASE + "park.json?v=20261026p").then(r => r.json()).then(J => {
@@ -990,14 +1006,16 @@ function loadPark() {
         const P = [[ax + nx, az + nz], [ax - nx, az - nz], [bx - nx, bz - nz], [bx + nx, bz + nz]].map(([x, z]) => [x, groundY(x, z) + .12, z]);
         for (const k of [0, 1, 2, 0, 2, 3]) { pos.push(...P[k]); uv.push(P[k][0] / 3, P[k][2] / 3); } } }
     const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); rg.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); rg.computeVertexNormals();
-    const rm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/gravelly_sand_c5.webp"), color: 0xd9ccb2, roughness: 1, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const rm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/gravelly_sand_c5.webp"), normalMap: tex(BASE + "tex/gravelly_sand_n5.webp", false), normalScale: new THREE.Vector2(1.3, 1.3), color: 0xc9bca2, roughness: .96, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    parkMacro(rm, .55);   // 2026-10-26 2：園路の砂利も、くり返しの模様が見えないよう大きなむらを重ねる
     G.add(new THREE.Mesh(rg, rm));
     // DEM の外の園の地面（芝の模式）。DEM の中は今の地形のまま
     const [gx0, gz0, CS, GX, GZ, GM] = J.g, gp = [], gu = [], gi = [];   // 公園の輪郭の中の 10 m 区画だけ（本殿より北）
     for (let j = 0; j <= GZ; j++) for (let i = 0; i <= GX; i++) { const x = gx0 + i * CS, z = gz0 + j * CS; gp.push(x, groundY(x, z) + (z > -1350 ? .06 : -.02), z); gu.push(x / 9, z / 9); }
     for (let j = 0; j < GZ; j++) for (let i = 0; i < GX; i++) { if (GM[j * GX + i] !== "1") continue; const a = j * (GX + 1) + i; gi.push(a, a + GX + 1, a + 1, a + 1, a + GX + 1, a + GX + 2); }
     const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.setIndex(gi); gg.computeVertexNormals();
-    G.add(new THREE.Mesh(gg, new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), color: 0xc9d4a4, roughness: 1, metalness: 0 })));
+    const lm = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), normalMap: tex(BASE + "tex/Ground047_n5.webp", false), normalScale: new THREE.Vector2(.8, .8), color: 0xb9c79a, roughness: 1, metalness: 0 });
+    parkMacro(lm, 1, true); G.add(new THREE.Mesh(gg, lm));
     // 舟遊池（OSM の輪郭）
     const pd = J.pond, sh = new THREE.Shape(); for (let i = 0; i < pd.length; i += 2) i ? sh.lineTo(pd[i], -pd[i + 1]) : sh.moveTo(pd[i], -pd[i + 1]);
     const pg = new THREE.ShapeGeometry(sh); pg.rotateX(-Math.PI / 2); let py = 1e9; for (let i = 0; i < pd.length; i += 8) py = Math.min(py, groundY(pd[i], pd[i + 1])); pg.translate(0, py + .1, 0);
@@ -1593,7 +1611,10 @@ function touchKasane(a) {
 
 /* ---------- 7 つのエリア（2026-10-26 本人「大宮公園、氷川神社、氷川参道、さいたま新都心周辺、盆栽村、大宮駅（東口）、大宮駅（西口）」）
    輪郭と色＝zones.json、中身＝areas/<id>.json（areas.js が近いエリアだけ読み、離れたら捨てる）。ここでは地点の印・かさねっこ・降りる先をつなぐ */
-let AREAS = null; const AREA = { herds: [], marks: [], M: null };
+let AREAS = null; const AREA = { herds: [], marks: [], M: null, halos: {} };
+AREA.haloTex = null;
+AREA.haloMat = c => AREA.halos[c] ||= (() => { if (!AREA.haloTex) { const cv = document.createElement("canvas"); cv.width = cv.height = 64; const x = cv.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, "rgba(255,255,255,.55)"); g.addColorStop(.3, "rgba(255,255,255,.3)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 64, 64); AREA.haloTex = new THREE.CanvasTexture(cv); }
+  return new THREE.SpriteMaterial({ map: AREA.haloTex, color: c, transparent: true, opacity: .7, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false }); })();
 function initAreas() {
   if (AREAS) return;
   const g = D.dem, inDem = (x, z) => x > g.x0 && z > g.z0 && x < g.x0 + g.cell * (g.nx - 1) && z < g.z0 + g.cell * (g.nz - 1);
@@ -1613,18 +1634,22 @@ function areaDescend(Z) {
   });
 }
 function areaPlaces(Z, J, C) {   // 典拠のある地点：層の色の小さな球と、細い光の柱（触れると札と出典）
+  if (J.lip) Object.assign(D.lip ||= {}, J.lip);   // 2026-10-26 地点の碧の声の口の動き
   for (const p of J.p) {
     const y = groundY(p.x, p.z), c = COLOR5[p.layer] || "#e8eef2", G = new THREE.Group(); G.position.set(p.x, y, p.z);
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(.42, 20, 14), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .9, fog: false, toneMapped: false })); ball.position.y = 1.7;
-    const col = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 9, 6, 1, true).translate(0, 4.5, 0), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .35, depthWrite: false, fog: false, toneMapped: false }));
-    G.add(ball, col); C.g.add(G);
-    const L = { o: { id: p.id, layer: p.layer, title: p.title, x: p.x, z: p.z, y, ll: p.ll, lines: p.lines.map(t => ({ t })), more: [], src: p.src, how: "記録", note: null, exp: null }, glyph: ball, mark: G, chunk: C };
+    // 2026-10-26 2：球が画面で小さく見えた → 球を大きく・まわりに光の暈（いつも見る人を向く）・足もとに輪。遠くでも見つけられる
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(.7, 24, 16), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .92, fog: false, toneMapped: false })); ball.position.y = 2.1;
+    const halo = new THREE.Sprite(AREA.haloMat(c)); halo.scale.set(4.2, 4.2, 1); halo.renderOrder = 20; ball.renderOrder = 21; ball.add(halo);
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 14, 6, 1, true).translate(0, 7, 0), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .4, depthWrite: false, fog: false, toneMapped: false }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1.1, 1.3, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .55, depthWrite: false, fog: false, toneMapped: false })); ring.position.y = .06;
+    G.add(ball, col, ring); C.g.add(G);
+    const L = { o: { id: p.id, layer: p.layer, title: p.title, x: p.x, z: p.z, y, ll: p.ll, lines: p.lines.map(l => typeof l === "string" ? { t: l } : l), more: [], src: p.src, how: "記録", note: null, exp: null }, glyph: ball, mark: G, chunk: C };
     AREA.marks.push(L); C.places.push(L);
   }
 }
 const _am = new THREE.Vector3();
 function pickAreaMark(x, y) {
-  let best = null, bd = 48 * 48;
+  let best = null, bd = 60 * 60;
   for (const L of AREA.marks) { if (!L.mark.visible) continue; L.glyph.getWorldPosition(_am); if (_am.distanceTo(camera.position) > 60) continue; _am.project(camera); if (_am.z > 1) continue; const sx = (_am.x + 1) / 2 * innerWidth, sy = (1 - _am.y) / 2 * innerHeight, d = (sx - x) ** 2 + (sy - y) ** 2; if (d < bd) { bd = d; best = L; } }
   return best;
 }
@@ -1646,7 +1671,7 @@ async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群�
 function stepAreas(dt) {
   if (!AREAS) return; AREAS.update(dt, QW.mode);
   const busy = !!PANEL.cur || !!voiceQ; for (const h of AREA.herds) h.update(dt, { active: QW.mode === "walk", busy });
-  for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on && !RM) L.glyph.position.y = 1.7 + Math.sin(performance.now() / 900 + L.o.x) * .08; }
+  for (const L of AREA.marks) { const on = LAYER.worn.includes(top5(L.o.layer)); L.mark.visible = on && QW.mode !== "sky"; if (on && !RM) L.glyph.position.y = 2.1 + Math.sin(performance.now() / 900 + L.o.x) * .08; }
 }
 
 /* ---------- Qualia/sight：生きものを選んで、その身体へ ---------- */
