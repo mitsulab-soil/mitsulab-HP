@@ -10,7 +10,7 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=5";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q5";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=24";
+import { makeAreas } from "./areas.js?v=25";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -452,6 +452,7 @@ function buildTrees([g, kg]) {
     const lm2 = parts[1].material.clone(); lm2.side = THREE.DoubleSide;
     barkUV(fb.material);
     const mid = [new THREE.InstancedMesh(bgeo, fb.material, count[sp] || 1), new THREE.InstancedMesh(lgeo, lm2, count[sp] || 1)];
+    if (sp === "keyaki") TREE.kMid = { bgeo, lgeo, bm: fb.material, lm: lm2, h: SPH[sp] };   // 2026-10-26 3：けやきひろばにも参道と同じケヤキを
     for (const im of mid) { im.count = 0; im.frustumCulled = false; world.add(im); }
     const w = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) * k;
     TREE.protos[sp] = { parts, mid, w, h: SPH[sp] };
@@ -1027,9 +1028,9 @@ function loadPark() {
     wm.onBeforeCompile = sh => { sh.uniforms.uT = PARK.uT = { value: 0 };
       sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWw=(modelMatrix*vec4(transformed,1.)).xyz;");
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWw; uniform float uT;")
-        .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n{ vec2 p=vWw.xz; float a=sin(p.x*1.7+uT*1.3)*cos(p.y*1.3-uT*.9)+.5*sin(p.x*4.1-p.y*3.3+uT*2.1); vec3 pn=normalize(vec3(.06*cos(p.x*1.7+uT*1.3)+.04*cos(p.x*4.1-p.y*3.3),1.,.06*sin(p.y*1.3-uT*.9))); normal=normalize(normal+(viewMatrix*vec4(pn-vec3(0,1,0),0.)).xyz); }")
+        .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n{ vec2 p=vWw.xz; float a=sin(p.x*1.7+uT*1.3)*cos(p.y*1.3-uT*.9)+.5*sin(p.x*4.1-p.y*3.3+uT*2.1); vec3 pn=normalize(vec3(.06*cos(p.x*1.7+uT*1.3)+.04*cos(p.x*4.1-p.y*3.3),1.,.06*sin(p.y*1.3-uT*.9))); normal=normalize(normal+(viewMatrix*vec4(pn-vec3(0,1,0),0.)).xyz*.3); }")
         .replace("#include <map_fragment>", "#include <map_fragment>\n{ float d=length(vWw-cameraPosition); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.10,.15,.13),smoothstep(10.,80.,d)); }")
-        .replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ vec3 V=normalize(cameraPosition-vWw); float fr=pow(1.-max(V.y,0.),5.); vec3 deep=vec3(.05,.08,.075), sky=vec3(.42,.5,.56); float rp=.5+.5*sin(vWw.x*1.7+uT*1.3)*cos(vWw.z*1.3-uT*.9); gl_FragColor.rgb=mix(deep,sky,fr*.55+rp*.04); }"); };
+        .replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ vec3 V=normalize(cameraPosition-vWw); float rp=.5+.5*sin(vWw.x*1.7+uT*1.3)*cos(vWw.z*1.3-uT*.9), rp2=.5+.5*sin(vWw.x*5.3-vWw.z*4.1+uT*2.3); float fr=pow(1.-max(V.y,0.),3.); vec3 deep=vec3(.05,.08,.075), sky=mix(vec3(.55,.62,.68),vec3(.36,.48,.62),clamp(V.y*3.,0.,1.)); vec3 refl=mix(sky,vec3(.12,.17,.13),smoothstep(.0,.06,V.y)*.0+.0); float m=clamp(fr*.75,0.,1.);   /* 採点：さざ波の縞が格子に見えた → 映り込みだけ */ gl_FragColor.rgb=mix(deep,refl,m); }"); };
     wm.customProgramCacheKey = () => "pondWater1";
     wm.stencilWrite = true; wm.stencilRef = 1; wm.stencilFunc = THREE.AlwaysStencilFunc; wm.stencilZPass = THREE.ReplaceStencilOp; wm.transparent = false; { const pm = new THREE.Mesh(pg, wm); pm.renderOrder = -1; G.add(pm); }
     world.add(G); PARK.g = G; for (const m of G.children) pickables.push(m);
@@ -1509,11 +1510,11 @@ function loadAoi() {
   })().catch(e => { console.warn("碧の姿を読み込めませんでした：", e?.message ?? e); });
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 4.0 : 2.4, s = MOBILE ? .62 : 1.1;   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 5.0 : 3.3, s = MOBILE ? .62 : 1.3;   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
-  if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const s2 = MOBILE ? .12 : 1.0; out.set(CAM.pos.x + fx * f + rx * s2, 0, CAM.pos.z + fz * f + rz * s2); out.y = groundY(out.x, out.z); return out; }
+  if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const s2 = MOBILE ? -.3 : 1.25; /* スマホは画面のまんなかより少し左（右下のボタンに重ねない） */ out.set(CAM.pos.x + fx * f + rx * s2, 0, CAM.pos.z + fz * f + rz * s2); out.y = groundY(out.x, out.z); return out; }
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
   out.y = groundY(out.x, out.z); return out;
@@ -1568,6 +1569,11 @@ function aoiShadow() {
   if (!AOISH) { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.55)"); gr.addColorStop(.55, "rgba(0,0,0,.22)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
     AOISH = new THREE.Mesh(new THREE.PlaneGeometry(1.1, .8).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false, toneMapped: false })); AOISH.renderOrder = 1; world.add(AOISH); }
   const p = AOI.root.position; AOISH.visible = AOI.root.visible; AOISH.position.set(p.x, groundY(p.x, p.z) + .03, p.z); AOISH.rotation.y = AOI.m.yaw || 0;
+}
+function plantKeyaki(C) {   // けやきひろばの木を、参道と同じケヤキの形・質で（大きさは少しずつ違う）
+  const go = () => { const K = TREE.kMid; if (!K || C.dead) return !!C.dead; const L = C.lmTrees, M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3();
+    for (const [geo, mat] of [[K.bgeo, K.bm], [K.lgeo, K.lm]]) { const im = new THREE.InstancedMesh(geo, mat, L.length); L.forEach(([x, y, z], i) => { const k = (.55 + .2 * ((Math.sin(x * 12.9 + z * 7.1) + 1) / 2)); Q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), x * 1.7 + z); M4.compose(P.set(x, y, z), Q, S.set(k, k, k)); im.setMatrixAt(i, M4); }); im.frustumCulled = false; C.g.add(im); } return true; };
+  if (!go()) { const t = setInterval(() => { if (go()) clearInterval(t); }, 500); }
 }
 function aoiFingers(dt) {
   const M = AOI.m; if (!M.fingers || RM) return; const t = (AOI.ft = (AOI.ft || 0) + dt);
@@ -1665,7 +1671,7 @@ function initAreas() {
   if (AREAS) return;
   const g = D.dem, inDem = (x, z) => x > g.x0 && z > g.z0 && x < g.x0 + g.cell * (g.nx - 1) && z < g.z0 + g.cell * (g.nz - 1);
   QW.AREA = AREA; AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile: MOBILE, rm: RM, inDem, tex,
-    onChunk: (Z, J, C) => { for (const m of [C.road, ...(C.grounds || [])]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); },
+    onChunk: (Z, J, C) => { if (C.lmTrees) plantKeyaki(C); for (const m of [C.road, ...(C.grounds || [])]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); },
     onUnchunk: C => { for (const m of [C.road, ...(C.grounds || [])]) { const i = pickables.indexOf(m); if (i >= 0) pickables.splice(i, 1); }
       AREA.marks = AREA.marks.filter(L => L.chunk !== C); if (C.herd) { C.herd.dispose(); AREA.herds = AREA.herds.filter(h => h !== C.herd); if (KASA.cur?.herd === C.herd) KASA.cur = null; } C.dead = true; },
     onPick: Z => areaDescend(Z) });

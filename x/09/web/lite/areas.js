@@ -184,7 +184,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       gp.push(x, y, z, x, y, z + CS, x + CS, y, z, x + CS, y, z, x, y, z + CS, x + CS, y, z + CS); }
     C.grounds = []; for (let k = 0; k < 3; k++) { gp = gps[k]; if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) gu.push(gp[i] / 6, gp[i + 2] / 6); gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, GMATS[k]); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.grounds.push(gm); C.ground ||= gm; } }
     world.add(G);
-    buildLandmarks(Z, J, G);
+    buildLandmarks(Z, J, G); if (G.userData.lmTrees) C.lmTrees = G.userData.lmTrees;
     onChunk?.(Z, J, C);
     return C;
   }
@@ -229,10 +229,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
         for (let x = x0 + 5; x < x1 - 3; x += 8) for (let z = z0 + 5; z < z1 - 3; z += 8) if (inP(x, z)) tr.push([x + (Math.sin(x * 3.1 + z) * 1.2), z + Math.cos(z * 2.3 + x) * 1.2]);
         const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, slabMat, col.length); const M4 = new THREE.Matrix4();
         col.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm);
-        const tg = new THREE.CylinderGeometry(.18, .3, 4.2, 6); tg.translate(0, 2.1, 0); const lg = new THREE.SphereGeometry(1, 18, 12); lg.scale(3.6, 2.4, 3.6); { const pa = lg.attributes.position; for (let i = 0; i < pa.count; i++) { const x = pa.getX(i), y = pa.getY(i), z = pa.getZ(i), k = 1 + .16 * Math.sin(x * 2.1 + z * 1.7) * Math.cos(y * 2.6 + x); pa.setXYZ(i, x * k, y * k, z * k); } lg.computeVertexNormals(); } lg.translate(0, 6.2, 0);
-        const tm = new THREE.InstancedMesh(tg, barkMat, tr.length), lm = new THREE.InstancedMesh(lg, leafMat, tr.length), S = new THREE.Vector3(), Qt = new THREE.Quaternion(), Po = new THREE.Vector3(), Cl = new THREE.Color();
-        tr.forEach(([x, z], i) => { const s = .85 + .3 * ((Math.sin(x * 12.9 + z * 7.1) + 1) / 2); Po.set(x, top, z); S.set(s, s, s); Qt.setFromAxisAngle(new THREE.Vector3(0, 1, 0), x + z); M4.compose(Po, Qt, S); tm.setMatrixAt(i, M4); lm.setMatrixAt(i, M4); lm.setColorAt(i, Cl.setHSL(.26 + .03 * Math.sin(x), .32, .3 + .05 * Math.cos(z))); });
-        G.add(tm, lm); }
+        G.userData.lmTrees = tr.map(([x, z]) => [x, top, z]); }   // 木は app 側で参道と同じケヤキを植える（C.lmTrees）
       else if (L.id === "eki1" || L.id === "eki2") { const h = b[0]; G.add(extrude(P, y, h * .72, glassMat, .02), extrude(P, y + h * .72, h * .28, slabMat)); }
     }
     // 西口のデッキ（模式）：駅から西へ、2 階の高さで歩く人を渡す床と柱と手すり
