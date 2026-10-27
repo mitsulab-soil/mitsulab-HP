@@ -6,7 +6,7 @@ for(const img of document.querySelectorAll('#appguide .pf-media img')){
  const key=Object.keys(clips).find(k=>img.getAttribute('src')?.split('/').pop().startsWith(k+'_'));if(!key)continue;
  const holder=document.createElement('span');holder.className='app-preview-media';img.before(holder);holder.append(img);
  const video=document.createElement('video');video.muted=true;video.loop=true;video.playsInline=true;video.preload='none';video.setAttribute('aria-hidden','true');video.tabIndex=-1;video.dataset.preview=clips[key];holder.append(video);
- const item={holder,video,url:new URL('../img/apps/vid/'+clips[key]+'-preview.mp4?v=20261026v4d',import.meta.url).href};items.push(item);
+ const item={holder,video,url:new URL('../img/apps/vid/'+clips[key]+'-preview.mp4?v=20261027vid',import.meta.url).href};items.push(item);
  holder.addEventListener('pointerenter',()=>{preferred=item;select();});holder.closest('a')?.addEventListener('focusin',()=>{preferred=item;select();});
  video.addEventListener('playing',()=>holder.classList.add('preview-playing'));video.addEventListener('error',()=>holder.classList.remove('preview-playing'));
 }
