@@ -26,7 +26,7 @@ vec4 regionColor(vec3 p){
   if (hum > 0.) { c = mix(c, vec3(1., .93, .82), hum); al = mix(al, .95, hum); }
   if (bee > 0.) { float band = .5 + .5 * sin(length(p.xz - vec2(1., .3)) * 22. - uT * 2.2); vec3 uv = mix(vec3(.55, .45, 1.), vec3(.95, .9, 1.), band * band);
     c = mix(c, uv, bee); al = mix(al, .55 + .45 * band, bee); }
-  if (mem > 0.) { c = mix(c, vec3(.96, .84, .58), mem * .8); al = mix(al, .8, mem); }
+  if (mem > 0.) { c = mix(c, vec3(.66, .95, .97), mem * .6); al = mix(al, .8, mem); }
   if (tic > 0.) { if (uTickHide > .5) al *= 1. - tic; else { c = mix(c, vec3(1., .55, .28), tic); al = mix(al, .9, tic); } }
   float fog = clamp(1. - (vD - 7.) / uFog, .15, 1.);
   return vec4(c, al * fog);
@@ -52,7 +52,7 @@ function bubbleMat(hex) {
     uniforms: { c: { value: new THREE.Color(hex) }, k: { value: 1 }, oc: { value: Array.from({ length: 3 }, () => new THREE.Vector4(0, -99, 0, 0)) }, ok: { value: 0 }, uT: { value: 0 } },
     vertexShader: 'varying vec3 n; varying vec3 v; varying vec3 w; void main(){ vec4 p = modelViewMatrix * vec4(position,1.); w = (modelMatrix * vec4(position,1.)).xyz; n = normalize(normalMatrix * normal); v = normalize(-p.xyz); gl_Position = projectionMatrix * p; }',
     fragmentShader: `uniform vec3 c; uniform float k; uniform vec4 oc[3]; uniform float ok; uniform float uT; varying vec3 n; varying vec3 v; varying vec3 w;
-      void main(){ float nv = abs(dot(n, v)); float rim = pow(1. - nv, 11.) * 1.3 + pow(1. - nv, 2.4) * .04; float shimmer = .9 + .1 * sin(w.y * 9. + uT * .8);
+      void main(){ float nv = abs(dot(n, v)); float rim = pow(1. - nv, 11.) * 1.3 + pow(1. - nv, 4.) * .22 + pow(1. - nv, 2.4) * .04; float shimmer = .9 + .1 * sin(w.y * 9. + uT * .8);
         float lens = 0.; for (int i = 0; i < 3; i++){ float d = oc[i].w - distance(w, oc[i].xyz); lens = max(lens, smoothstep(0., .25, d)); }
         vec3 col = c * rim * shimmer * k + vec3(1., .82, .45) * lens * ok * (1.1 + pow(1. - nv, 2.) * 1.2);
         gl_FragColor = vec4(col, 1.); }` });
@@ -141,7 +141,7 @@ async function boot(root, SC) {
   const bubble = (c, r, hex, mode) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 72, 48), bubbleMat(hex)); m.position.copy(c); S.add(m); const b = { m, c, r, mode, s: 1 }; bubs.push(b); return b; };
   const bH = SC === 2 ? bubble(new THREE.Vector3(-1.95, 1.15, 1.25), 1.15, 0xf4c2b4, 1) : bubble(new THREE.Vector3(-.75, 1.45, .55), 1.9, 0xf4c2b4, 1);
   const bB = bubble(SC === 2 ? new THREE.Vector3(.15, 2.45, .35) : new THREE.Vector3(1.0, 3.0, .3), 1.05, 0xc4b6ff, 2); if (SC === 2) bB.m.material.uniforms.k.value = .8;
-  let bM = null; if (SC === 1) bubble(new THREE.Vector3(1.5, .48, 1.4), .74, 0xffb27a, 3); else { bM = bubble(new THREE.Vector3(0, 1.4, 0), 1.25, 0xf2d8a0, 4); bM.m.material.uniforms.k.value = 1.1; }
+  let bM = null; if (SC === 1) bubble(new THREE.Vector3(1.5, .48, 1.4), .74, 0xffb27a, 3); else { bM = bubble(new THREE.Vector3(0, 1.4, 0), 1.25, 0xa8f2f6, 4); bM.m.material.uniforms.k.value = 1.3; }
   // 外側の縁（くっきりした輪郭）：カメラに向いた細い円
   const rims = bubs.map(b => { const pts = []; for (let i = 0; i <= 160; i++) { const q = i / 160 * 6.283; pts.push(new THREE.Vector3(Math.cos(q), Math.sin(q), 0)); } const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: b.m.material.uniforms.c.value, transparent: true, opacity: .28, blending: THREE.AdditiveBlending, depthWrite: false })); S.add(l); return l; }); if (SC === 2) rims.forEach((l, i) => { if (i) l.visible = false; });
 
@@ -176,7 +176,7 @@ async function boot(root, SC) {
       fragmentShader: 'uniform float uE; varying float vA; void main(){ float r = length(gl_PointCoord - .5); if (r > .5) discard; float f = smoothstep(.5, 0., r); gl_FragColor = vec4(vec3(1., .82, .45) * f * f * vA * uE, 1.); }' }));
     qPts.geometry.setAttribute('aK', new THREE.Float32BufferAttribute(new Float32Array(N).fill(1), 1)); qPts.frustumCulled = false; qPts.userData.seed = Array.from({ length: N }, () => [rnd(), rnd(), rnd()]); S.add(qPts); mats.push(qPts.material.uniforms);
     const A0 = AO.clone().add(new THREE.Vector3(0, 1.2, 0));
-    [[bH, 0xf4c2b4], [bB, 0xc4b6ff], [bM, 0xf2d8a0]].forEach(([b, c]) => { const crv = new THREE.QuadraticBezierCurve3(A0, A0.clone().lerp(b.c, .5).add(new THREE.Vector3(0, .7, 0)), b.c); const pts = crv.getPoints(60);
+    [[bH, 0xf4c2b4], [bB, 0xc4b6ff], [bM, 0xa8f2f6]].forEach(([b, c]) => { const crv = new THREE.QuadraticBezierCurve3(A0, A0.clone().lerp(b.c, .5).add(new THREE.Vector3(0, .7, 0)), b.c); const pts = crv.getPoints(60);
       const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false })); S.add(ln); ln.userData.crv = crv;
       const fp = new THREE.Points(geo(new Array(3 * 10).fill(0)), new THREE.PointsMaterial({ map: GL, color: c, size: .26, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); fp.frustumCulled = false; S.add(fp); links.push({ crv, fp, b, ln }); });
   }
