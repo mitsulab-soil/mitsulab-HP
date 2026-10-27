@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k7";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k8";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "./startpins.js?v=14";

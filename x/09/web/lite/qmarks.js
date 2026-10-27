@@ -248,8 +248,9 @@ export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) 
   const a = placeLabels._a || (placeLabels._a = new V()), b = placeLabels._b || (placeLabels._b = new V()), sc = placeLabels._s || (placeLabels._s = new V()), ps = placeLabels._p || (placeLabels._p = new V());
   list.sort((p, q) => (q.pri || 0) - (p.pri || 0) || p.d - q.d); const LP = [], LA = [];   // 近い順に置く（近い印ほど札が付きやすい）
   const hit = r => { for (const q of put) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; for (const q of avoid) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; return false; };
+  let idx = -1;
   for (const e of list) {
-    const sp = e.sp, u = sp.userData; if (u.by == null) u.by = sp.position.y; u.sl ??= 0; u.f ??= 0;
+    idx++; const sp = e.sp, u = sp.userData; if (u.by == null) u.by = sp.position.y; u.sl ??= 0; u.f ??= 0;
     if (minPx) { u.bs ??= sp.scale.clone(); sp.scale.copy(u.bs); }
     sp.position.y = u.by; sp.getWorldPosition(a); sp.getWorldScale(sc); sp.parent?.getWorldScale(ps);
     if (minPx) { const t = a.clone(), t2 = a.clone(); t2.y += sc.y; t.project(cam); t2.project(cam); const hp = Math.abs(t2.y - t.y) / 2 * H; if (t.z < 1 && hp > .5 && hp < minPx) { const f = Math.min(3.2, minPx / hp); sp.scale.copy(u.bs).multiplyScalar(f); sp.getWorldScale(sc); } }
@@ -261,14 +262,15 @@ export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) 
       const tryS = s => { const r = { x0: x - m, x1: x + w + m, y0: y - h * (s + 1) * 1.1 - m, y1: y - h * s * 1.1 + m, L: e.L }; if (r.y0 < 0 || r.x0 < 2 || r.x1 > W - 2) return false; /* 画面の端で切れる札は出さない */ if (hit(r)) return false; put.push(r); return true; };
       const pref = Math.round(u.sl);
       if (tryS(pref)) slot = pref; else for (let s = 0; s < 4; s++) if (s !== pref && tryS(s)) { slot = s; break; }
-      if (slot < 0) for (const s of [-1, -2, -3]) if (s !== pref && tryS(s)) { slot = s; break; }   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
+      if (slot < 0) for (const s of [-1, -2, -3]) if (s !== pref && tryS(s)) { slot = s; break; }
+      if (slot < 0 && idx < 2 && x + w < W - 2 && y - h * 1.1 > 0 && !put.some(q => x - 3 < q.x1 && x + w + 3 > q.x0 && y - h * 1.1 - 3 < q.y1 && y + 3 > q.y0)) { put.push({ x0: x - 3, x1: x + w + 3, y0: y - h * 1.1 - 3, y1: y + 3, L: e.L }); slot = 0; }   // 10-28：いちばん近い 2 つは、操作の部品に少しかかっても札を出す（スマホで札が出なかった）   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
     }
     const k = Math.min(1, dt * 7);
     if (slot >= 0) u.sl += (slot - u.sl) * k;
     u.f += ((slot >= 0 ? 1 : 0) - u.f) * Math.min(1, dt * 9);
     sp.position.y = u.by + u.sl * sc.y * 1.1 / Math.max(1e-4, ps.y || 1);
     sp.material.opacity *= u.f; if (u.f < .02) sp.visible = false;
-    if (sp.visible && u.f > .05 && e.L?.glyph) { e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); LA.push(u.f * .55, u.f * .55); }
+    if (slot >= 0 && sp.visible && u.f > .05 && e.L?.glyph) {   /* 札が画面に置けた印だけ線を引く */ e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); LA.push(u.f * .8, u.f * .8); }
   }
   // 2026-10-28 Qualium 共通：札と印を細い線で結ぶ（どの札がどの印のものかを分かるように）
   if (!placeLabels._ln && list[0]) { let root = list[0].sp; while (root.parent) root = root.parent;
