@@ -739,7 +739,7 @@ function renderAoiWindow() {
   renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight);
 }
 // 碧が立つ向き（ひとのとき）：画面の幅の割合で決める（2026-10-14：560px・320px の幅では右の端の操作ボタンの下に隠れていた）。PC は右寄り、縦長はまん中寄り
-function aoiSideAng(hf) { const asp = innerWidth / innerHeight, ndc = asp >= 1.2 ? .6 : asp >= .8 ? .36 : .3; return Math.atan(ndc * Math.tan(hf / 2)); }
+function aoiSideAng(hf) { const asp = innerWidth / innerHeight, ndc = asp >= 1.2 ? .44 : asp >= .8 ? .36 : .3; /* 2026-10-27 PC は右の操作ボタンから少し離す */ return Math.atan(ndc * Math.tan(hf / 2)); }
 // 2026-10-25 碧の自然さ（採点「話していないあいだは棒立ち」）：黙って立っているとき、5〜9 秒に一度、近くの草や木の根もとへ目と顔を 1.5〜2.5 秒向けて、また見る人へ戻す
 //   2026-10-26 本人「Qualium 以外には、碧だけで、かさねっこは入れないでください」→ かさねっこを外し、目を向ける先は森の足もとにした
 const GL = { t: 4, on: false, until: 0, v: new THREE.Vector3() };
@@ -750,7 +750,7 @@ function aoiGlance(dt) {
   GL.t -= dt; if (GL.t > 0) return null;
   GL.t = 5 + Math.random() * 4;
   const ang = A.yaw + (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .7), d = 2 + Math.random() * 2;
-  GL.v.set(A.pos.x + Math.sin(ang) * d, .18, A.pos.z + Math.cos(ang) * d); GL.on = true; GL.until = 1.5 + Math.random();
+  GL.v.set(A.pos.x + Math.sin(ang) * d, .18, A.pos.z + Math.cos(ang) * d); GL.on = true; GL.until = 1.5 + Math.random(); if (Math.random() < .45) AM.point(GL.v, 1.4 + Math.random());   /* 2026-10-27 待つあいだの手：ときどき見ている足もとを軽く指す（同じ握り手のままにしない） */
   return null;
 }
 function aoiTick(dt) {
@@ -770,14 +770,14 @@ function aoiTick(dt) {
   else {
     // 2026-10-08：生きものに切り替えているあいだは、碧は視界の端の少し奥（景色を隠さない）。ひとのときはとなりの右前
     const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), creature = lens !== "hito";
-    const nar = innerWidth / innerHeight < .8, D = KUR.on ? (nar ? 6.2 : lens === "hebi" ? 6.4 : 4.6) : creature ? (lens === "koumori" ? 2.8 : 4.6) : (innerWidth / innerHeight < .8 ? 4.0 : 2.6), ang = (creature || KUR.on) ? hf / 2 * (nar ? (KUR.on ? .56 : .4) : .62) : aoiSideAng(hf);   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-14）   // くらべる旅では、花を見下ろしても頭が切れないよう少し奥に   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-13）
+    const nar = innerWidth / innerHeight < .8, D = KUR.on ? (nar ? 6.2 : lens === "hebi" ? 6.4 : 4.6) : creature ? (lens === "koumori" ? 2.8 : 4.6) : (innerWidth / innerHeight < .8 ? 4.0 : 2.6), ang = (creature || KUR.on) ? hf / 2 * (nar ? (KUR.on ? .56 : .4) : .46) : aoiSideAng(hf);   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-14）   // くらべる旅では、花を見下ろしても頭が切れないよう少し奥に   // 縦長では右の操作ボタンに隠れないよう、まん中寄り（2026-10-13）
     const angL = lens === "koumori" ? ang * .25 : ang, F = D * Math.cos(angL), X = D * Math.sin(angL), fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw);
     // 2026-10-12：見る人が向きを変えるたびに追いかけない（森羅研究室と同じ）。歩いているとき・視野の外に出たとき・近すぎ／遠すぎのときだけ立つ所を決めなおす
     const walking = !!me.path || ["w", "s", "a", "d", "arrowup", "arrowdown"].some(k => keys.has(k));
     const dMe = Math.hypot(A.pos.x - me.pos.x, A.pos.z - me.pos.z), rel = wrapA(Math.atan2(A.pos.x - me.pos.x, A.pos.z - me.pos.z) - Math.atan2(fx, fz));
     // 2026-10-25（採点 P1）：向きを変えたあと、碧が画面の端で右の操作ボタン・下の帯の裏に切れて残っていた → 画面の端の帯（375 は外側 38%、PC は 20%）に入ったら、立つ所を決めなおす
     const ndcX = Math.abs(rel) < 1.5 ? Math.tan(Math.abs(rel)) / Math.tan(hf / 2) : 9;
-    if (!A.spot || walking || A.spotLens !== lens || dMe > D + 2.2 || dMe < 1.8 || ndcX > (nar ? .62 : .8)) {
+    if (!A.spot || walking || A.spotLens !== lens || dMe > D + 2.2 || dMe < 1.8 || ndcX > (nar ? .62 : .58)) {
       const lead = walking ? 1.4 : 0;   // 2026-10-25：歩いているあいだは少し先を歩く（追いかけて画面の右端・操作ボタンの裏に残らない）
       A.spot = new THREE.Vector3(me.pos.x + fx * (F + lead) - fz * X, 0, me.pos.z + fz * (F + lead) + fx * X);
       for (let k = 0; k < 6 && !okGround(A.spot.x, A.spot.z); k++) A.spot.lerp(new THREE.Vector3(me.pos.x, 0, me.pos.z), .4);
