@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=q11";
 import { makeStartPins } from "./startpins.js?v=14";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=49";
+import { makeAreas } from "./areas.js?v=56";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -854,7 +854,7 @@ const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -
 const EYE = 1.55;
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
-const FOGS = { sky: () => ({ c: FOG_SKY, n: 2600, f: 9000 }), walk: () => ({ c: FOG_SKY, n: 140, f: MOBILE ? 700 : 980 }), fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
+const FOGS = { sky: () => ({ c: FOG_SKY, n: 2600, f: 9000 }), walk: () => ({ c: FOG_SKY, n: 220, f: MOBILE ? 1000 : 1500 }), fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m;
@@ -1519,7 +1519,7 @@ function loadAoi() {
 /* 2026-10-26 3：碧の立ち位置を、画面の上のボタンと Qualia の球の領域から決める（候補を順に試し、重ならない最初のものを、0.6 秒ごとに選びなおす） */
 const AOIPK = { t: 0, i: 0, rects: [], rt: 0 }, _pv3 = new THREE.Vector3(), _ap2 = new THREE.Vector3();
 function aoiPick(fx, fz, rx, rz, f, C0) {
-  const C = C0 || (MOBILE ? [[f, .1], [f, -.35], [f, .5], [f, -.7], [f, .85], [f, .68], [f, -.55], [f * .8, .6], [f * 1.35, .35], [f * 1.35, -.35], [f * 1.6, .2]] : [[f, .85], [f, -.85], [f, .5], [f, -.5], [f, 1.1]]);   /* 距離は一定（画面の大きさをそろえる）、横だけずらす */
+  const C = C0 || (MOBILE ? [[f, .1], [f, -.35], [f, .5], [f, -.7], [f, .85], [f, .68], [f, -.55], [f * .8, .6], [f * 1.35, .35], [f * 1.35, -.35], [f * 1.6, .2], [f * 1.5, 1.6], [f * 1.5, -1.6], [f * 1.9, 2.4], [f * 1.9, -2.4], [f * 2.4, 3.4], [f * 2.4, -3.4], [f * 3, 4.4], [f * 3, -4.4]] : [[f, .85], [f, -.85], [f, .5], [f, -.5], [f, 1.1], [f * 1.3, 2.2], [f * 1.3, -2.2], [f * 1.7, 3.4], [f * 1.7, -3.4], [f * 2.2, 4.6], [f * 2.2, -4.6]]);   /* 2026-10-27：町では車道を避けて、歩道の側の遠めの候補も */   /* 距離は一定（画面の大きさをそろえる）、横だけずらす */
   const now = performance.now(); if (now - AOIPK.t < 600) return C[Math.min(AOIPK.i, C.length - 1)]; AOIPK.t = now;
   if (now - AOIPK.rt > 1500) { AOIPK.rt = now; AOIPK.rects = [...document.querySelectorAll("button, a, [role=button]")].map(e => e.getBoundingClientRect()).filter(r => r.width > 20 && r.height > 14 && r.bottom > innerHeight * .55 && r.top < innerHeight); }
   const marks = []; for (const L of [...(LAYER.objs || []), ...(AREA.marks || [])]) { const o = L.o; if (!o || !(L.root?.visible ?? L.mark?.visible)) continue; if (Math.hypot(o.x - CAM.pos.x, o.z - CAM.pos.z) > 45) continue; /* 2026-10-26 16：池の向こうの球（30 m 先）も避ける */ if (L.glyph) { L.glyph.getWorldPosition(_pv3); marks.push(_pv3.clone().project(camera)); } else marks.push(_pv3.set(o.x, groundY(o.x, o.z) + 2.1, o.z).clone().project(camera)); }
@@ -1528,20 +1528,35 @@ function aoiPick(fx, fz, rx, rz, f, C0) {
   for (let i = 0; i < C.length; i++) { const [ff, ss] = C[i], x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss, g = groundY(x, z);
     const ft = _pv3.set(x, g, z).project(camera), fX = sx(ft), fY = sy(ft), hd = _pv3.set(x, g + 1.65, z).project(camera), hX = sx(hd), hY = sy(hd), hw = Math.abs(fY - hY) * .2;
     let pen = i * .01 + (AOI.m ? Math.hypot(x - AOI.m.pos.x, z - AOI.m.pos.z) * .08 : 0) + Math.abs(ff - f) * .5;   /* カメラとの距離をそろえる */   /* 今いる所に近い候補を選ぶ（大きく移らない） */
-    if (fX - hw < 8 || fX + hw > W - 8 || fY > H - 6) pen += 10;
+    if (fX - hw < 8 || fX + hw > W - 8 || fY > H - 6) pen += MOBILE ? 30 : 10;
+    if (AREAS?.onCarriage?.(x, z)) pen += MOBILE ? 8 : 25;   /* 2026-10-27：碧は町の車道の上に立たない（歩道・横断歩道の手前へ） */
     if (AOIPK.rects.some(r => fX + hw > r.left && fX - hw < r.right && fY + 12 > r.top && hY < r.bottom)) pen += MOBILE ? 14 : 5;
     if (marks.some(m => m.z < 1 && Math.abs(sx(m) - hX) < hw * 2.6 && sy(m) > hY - Math.abs(fY - hY) * .3 && sy(m) < fY)) pen += 6;   /* 2026-10-26 16：頭だけでなく胴・裾とも重ねない */   /* 2026-10-26 15：頭と目印の球が重なる候補は強く避ける（球の実際の位置で） */
     if (pen < best) { best = pen; bi = i; } }
   AOIPK.i = bi; return C[bi];
+}
+function camOffRoad(x, z, yaw) {   // 2026-10-27（スマホの町）：見る人の位置が車道の上なら、横のいちばん近い歩道へ（碧も歩道に並んで画面に入る）
+  if (!AREAS?.onCarriage?.(x, z)) return [x, z]; const rx = Math.cos(yaw), rz = -Math.sin(yaw);
+  for (let d = .5; d <= 10; d += .5) for (const sg of [1, -1]) { const X = x + rx * d * sg, Z = z + rz * d * sg; if (!AREAS.onCarriage(X, Z)) return [X + rx * .8 * sg, Z + rz * .8 * sg]; }
+  return [x, z];
+}
+function aoiOffRoad(out, rx, rz) {   // 2026-10-27：町の車道の上なら、横のいちばん近い歩道へ寄せる（碧を車道に立たせない）
+  if (!AREAS?.onCarriage?.(out.x, out.z)) return; const ox = out.x, oz = out.z, oy = out.y;
+  if (MOBILE) { const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw); for (const [ff, ss] of [[5, .5], [5, -.5], [5, 0], [6.5, .8], [6.5, -.8], [4, .3]]) { const x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss; if (!AREAS.onCarriage(x, z)) { out.x = x; out.z = z; out.y = groundY(x, z); return; } } }   // スマホ：見る人が歩道にいるので、その歩道の少し前に立つ for (let d = .5; d <= 10; d += .5) for (const sg of [1, -1]) { const x = out.x + rx * d * sg, z = out.z + rz * d * sg; if (!AREAS.onCarriage(x, z)) { out.x = x + rx * 1.1 * sg; out.z = z + rz * 1.1 * sg; out.y = groundY(out.x, out.z); if (!aoiOnScreen(out)) { out.x = ox; out.z = oz; out.y = oy; } return; } }   /* 歩道の上で画面に入らなければ、元の位置のまま（見えない碧にしない） */
+}
+function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、歩道の上を前へずらして画面の内へ（スマホの細い画面）
+  const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
+  for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
   const f = MOBILE ? 5.0 : 3.3, s = MOBILE ? .62 : 1.3;   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
-  if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); return out; }
+  if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); aoiOffRoad(out, rx, rz); return out; }
   { const c = MOBILE ? aoiPick(fx, fz, rx, rz, f, [[f, s * side], [f, (s + .3) * side], [f, -.15 * side], [f, (s - .35) * side], [f * .85, (s + .15) * side]]) : [f, s * side];   /* 2026-10-26 17：スマホは参道の近くでも目印の球と重ならない立ち位置を選ぶ（池の球の列） */
     out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); }
+  aoiOffRoad(out, rx, rz);
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
   out.y = groundY(out.x, out.z); return out;
 }
@@ -1715,7 +1730,7 @@ function initAreas() {
 function areaDescend(Z) {
   if (QW.mode !== "sky") return; AREAS.highlight(Z.id); unlockAudio();
   AREAS.ensure(Z.id).then(() => {
-    let [x, z] = Z.start; if (Z.ground || Z.id === "koen") { const p = AREAS.snap(x, z); if (p) [x, z] = p; }
+    let [x, z] = Z.start; if (Z.ground || Z.id === "koen") { const p = AREAS.snap(x, z); if (p) [x, z] = p; } [x, z] = camOffRoad(x, z, 0);
     const n = nearestOnLine(x, z), d = Math.max(-20, Math.min(1985, n.d)), i = D.starts.reduce((b, t, k) => Math.abs(t.d - d) < Math.abs(D.starts[b].d - d) ? k : b, 0);
     if (START.sel < 0) selectStart(i); descendTo(i, { x, z, d }); AREAS.highlight(null);
   });
@@ -2359,7 +2374,7 @@ QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z
 QW.LAYER = LAYER; QW.CAM = CAM;
 QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) { L.show = 1; L.root.visible = true; openObj(L); } return !!L; };
 QW.talkNow = () => { TALK.nextT = 0; };
-QW.place = (x, z, tx, tz, p = -.12) => { CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = Math.atan2(-(tx - x), -(tz - z)); CAM.look = 0; CAM.pitch = p; };   // 確かめ用：その場所から、その点の方を見る
+QW.place = (x, z, tx, tz, p = -.12) => { const yw = Math.atan2(-(tx - x), -(tz - z)); [x, z] = camOffRoad(x, z, yw); CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = yw; CAM.look = 0; CAM.pitch = p; };   // 確かめ用：その場所から、その点の方を見る
 QW.sky = SKY;
 
 function fillMenu() {

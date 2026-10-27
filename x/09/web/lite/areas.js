@@ -151,8 +151,10 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   diffuseColor.rgb*=1.-.28*smoothstep(H-1.1,H-.9,wv)*(1.-tall);
   // 2026-10-26 3（採点「窓を貼った箱」）：窓の下の水切り（明るい細い線）と上の庇の陰、1 階の上の看板の帯（文字ではなく、色の面と細い線だけの模式）
   if(tall<.5&&ground<.5){ float sill=step(.27,f.y)*step(f.y,.32)*step(.14,f.x)*step(f.x,.86); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.78,.77,.74),sill*.7*(1.-aa)); float lint=step(.86,f.y)*step(f.y,.93)*step(.16,f.x)*step(f.x,.84); diffuseColor.rgb*=1.-lint*.35*(1.-aa); }
-  if(tall<.5){ float sb=step(3.35,wv)*step(wv,4.15)*step(.08,fract(wu/8.4))*step(fract(wu/8.4),.92); float hc=wH(vec2(floor(wu/8.4),floor(H*7.))); vec3 sc=hc<.3?vec3(.48,.24,.2):hc<.55?vec3(.22,.28,.36):hc<.75?vec3(.78,.75,.68):vec3(.28,.33,.28);   /* 採点：彩度を落とし、模様をなくす */ diffuseColor.rgb=mix(diffuseColor.rgb,sc,sb*.92*(1.-aa*.5)); wR*=1.-sb; }   // 屋上のふち（パラペット）の陰で、箱の上端を締める
-  diffuseColor.rgb*=.9+.2*wH(vec2(floor(H*3.1),floor(wu/37.)));   // 面ごとの汚れ・色の差   // 足もとの陰（地面との接するところを暗く）
+  if(tall<.5){ float so=.5*wH(vec2(floor(H*2.7),3.)); float sb=step(3.35+so,wv)*step(wv,4.15+so)*step(.08,fract(wu/8.4))*step(fract(wu/8.4),.92); float hc=wH(vec2(floor(wu/8.4),floor(H*7.))); vec3 sc=hc<.3?vec3(.48,.24,.2):hc<.55?vec3(.22,.28,.36):hc<.75?vec3(.78,.75,.68):vec3(.28,.33,.28);   /* 採点：彩度を落とし、模様をなくす */ diffuseColor.rgb=mix(diffuseColor.rgb,sc,sb*.92*(1.-aa*.5)); wR*=1.-sb; }   // 屋上のふち（パラペット）の陰で、箱の上端を締める
+  diffuseColor.rgb*=.9+.2*wH(vec2(floor(H*3.1),floor(wu/37.)));
+  { /* 2026-10-27 写実：建物ごとの色味のずれ・雨だれの筋（上から下へ薄れる）・足もとの汚れ（模式） */ float bt=wH(vec2(floor(H*5.3),7.)); diffuseColor.rgb*=mix(vec3(1.),vec3(1.03,1.,.96),bt*(1.-wR)); diffuseColor.rgb*=mix(vec3(1.),vec3(.97,.99,1.02),(1.-bt)*.6*(1.-wR));
+    float st=wH(vec2(floor(wu/.7),floor(H))); float streak=smoothstep(.72,1.,st)*smoothstep(H*.2,H,wv)*(1.-wR); diffuseColor.rgb*=1.-.16*streak; diffuseColor.rgb*=1.-.12*(1.-smoothstep(0.,1.2,wv)); }   // 面ごとの汚れ・色の差   // 足もとの陰（地面との接するところを暗く）
   float band=tall<.5? (1.-step(.06,fract(wv/fl)))*.12 : 0.; diffuseColor.rgb*=1.-band;
   diffuseColor.rgb*=.82+.18*smoothstep(0.,6.,wv);`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.12,wR);")
@@ -220,7 +222,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     vec2 cid=floor(gp/2.5); float hh=fract(sin(dot(cid,vec2(12.9898,78.233)))*43758.5453); vec2 cf=fract(gp/2.5)-.5;
     float dot1=(1.-smoothstep(.03,.05,length(cf)))*step(.9,hh)*(.5+.5*sin(uDig*1.7+hh*40.))*(1.-smoothstep(25.,60.,dc))*step(fwidth(gp.x/2.5),.12);
     vec3 dcol=vec3(.50,.86,.92);
-    totalEmissiveRadiance+=dcol*(l1*.2*fz+l2*.5*fz+scan*(.3+l1*.7)+dot1*.3); }`;
+    totalEmissiveRadiance+=dcol*(l1*.1*fz+l2*.36*fz+scan*(.3+l1*.7)+dot1*.3); }`;
   const digiG = og => sh => { og(sh); sh.uniforms.uDig = DIG; sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uDig;").replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n" + DIGI); };
   for (const m of GMATS) { m.onBeforeCompile = digiG(m.onBeforeCompile); m.customProgramCacheKey = () => "areaGroundDig1"; }
   /* 2026-10-27 本人「道路もリアルに」：アスファルト（CC0）の上に、実寸の路面の標示（模式）。道の端の白線（幅 15 cm）・中央の白い破線（6 m 引き 9 m 空け）・道の両端の横断歩道（幅 45 cm の白線を 45 cm おき・長さ 4 m）と停止線（幅 45 cm）・端の側溝の暗い帯（50 cm）・ときどきマンホール（直径 60 cm）。標示の位置は OSM の道の線からの模式で、実際の車線数は反映していない */
@@ -287,7 +289,8 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   const grassMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), color: 0xbdd39a, roughness: 1 }); grassMat.map.repeat?.set(9, 9);
   const leafMat = new THREE.MeshStandardMaterial({ color: 0x7d9a62, roughness: .95 }), barkMat = new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 1 });
   const glassMat = new THREE.MeshStandardMaterial({ color: 0x7d93a1, roughness: .1, metalness: .35, transparent: true, opacity: .86, emissive: 0x1c2a33 });   // 2026-10-27：駅舎のガラスが黒い塊に見えた → 空を映す明るい硝子に
-  for (const m of [woodMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]) m.userData.land = true;
+  const bandGlass = new THREE.MeshStandardMaterial({ color: 0x2a3a46, roughness: .08, metalness: .6, emissive: 0x0d161d });   // アリーナのガラスの帯（濃い色で階の帯が読めるように）
+  for (const m of [woodMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat, bandGlass]) m.userData.land = true;
   function polyOf(b) { const n = (b.length - 1) / 2, P = []; for (let i = 0; i < n; i++) P.push(new THREE.Vector2(b[1 + i * 2], b[2 + i * 2])); return P; }
   function extrude(P, y0, h, mat, shrink = 0) {
     let cx = 0, cz = 0; for (const p of P) { cx += p.x; cz += p.y; } cx /= P.length; cz /= P.length;
@@ -331,7 +334,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       const cx = P0.reduce((a, p) => a + p[0], 0) / P0.length, cz = P0.reduce((a, p) => a + p[1], 0) / P0.length; if (!inside(Z.poly, cx, cz)) continue; const P = densify(P0, 3);
       let TL = 0; for (let i = 1; i < P.length; i++) TL += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
       ribbon(P, hw * 2, .05, B[4].pos, B[4].uv, B[4].idx);   // 車道のアスファルト
-      for (const sg of [-1, 1]) ribbon(offsetLine(P, sg * (hw + .12)), .24, .16, B[3].pos, B[3].uv, B[3].idx);   // 縁石
+      if (hw >= 3.5) for (const sg of [-1, 1]) ribbon(offsetLine(P, sg * (hw + .12)), .3, .2, B[3].pos, B[3].uv, B[3].idx);   // 縁石（広い道だけ。商店街の細い道には付けない）
       if (hw >= 3.5) { ribbon(P, .15, .07, B[1].pos, B[1].uv, B[1].idx); for (const sg of [-1, 1]) ribbon(offsetLine(P, sg * (hw - .5)), .15, .07, B[0].pos, B[0].uv, B[0].idx); }
       if (TL > 30) for (const end of [0, 1]) { const Q = end ? P.slice().reverse() : P; const seg = []; let acc = 0; for (let i = 0; i < Q.length; i++) { if (i) acc += Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]); if (acc >= 1.5) seg.push(Q[i]); if (acc > 5.5) break; }
         if (seg.length > 1) { ribbon(seg, Math.max(2, hw * 2 - 1.4), .075, B[2].pos, B[2].uv, B[2].idx); for (const sg of [-1, 1]) { const T2 = offsetLine(seg.slice(0, 2), sg * (hw + .75)); ribbon(T2, .6, .17, B[5].pos, B[5].uv, B[5].idx); } } } }   // 横断歩道の両端の歩道に点字ブロック
@@ -360,7 +363,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
         ghostSolid.userData.b.value = y; const slab = gEx(P, top - 1.1, 1.1, 0, slabMat); const deck = extrude(P, top, .02, deckMat); G.add(slab, deck);   /* 2026-10-26 16：けやきひろばの土台も霧と線に（床だけ歩ける面） */
         let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
         const inP = (x, z) => inside(P.flatMap(p => [p.x, p.y]), x, z);
-        const col = [], tr = []; for (let x = x0 + 6; x < x1 - 4; x += 12) for (let z = z0 + 6; z < z1 - 4; z += 12) if (inP(x, z)) col.push([x, z]);
+        const col = [], tr = []; for (let x = x0 + 8; x < x1 - 4; x += 18) for (let z = z0 + 8; z < z1 - 4; z += 18) if (inP(x, z)) col.push([x, z]);   // 2026-10-27：柱を間引く（模型のように見えた）
         for (let x = x0 + 5; x < x1 - 3; x += 8) for (let z = z0 + 5; z < z1 - 3; z += 8) if (inP(x, z)) tr.push([x + (Math.sin(x * 3.1 + z) * 1.2), z + Math.cos(z * 2.3 + x) * 1.2]);
         const cg = new THREE.CylinderGeometry(.45, .45, 6, 8); cg.translate(0, 3, 0); const cm = new THREE.InstancedMesh(cg, slabMat, col.length); cm.renderOrder = 2; const M4 = new THREE.Matrix4();
         col.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm); colShadows(G, col);
@@ -370,8 +373,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     // 西口のデッキ（模式）：駅から西へ、2 階の高さで歩く人を渡す床と柱と手すり
     if (Z.id === "nishi") { const y = groundY(-745, 110) + 6.5, P = [[-780, 80], [-712, 80], [-712, 140], [-780, 140]].map(([x, z]) => new THREE.Vector2(x, z));
       G.add(gEx(P, y - 1.5, 1.5, 0, slabMat), extrude(P, y, .02, deckMat), gEx(P, y - 1.62, .12, -.01, metalMat));   /* 2026-10-27 夜：デッキに厚みと縁の梁 */
-      G.userData.lmTrees = (G.userData.lmTrees || []).concat([[-772, y, 88], [-772, y, 132], [-745, y, 88], [-745, y, 132], [-718, y, 88], [-718, y, 132]].map(([x, yy, z]) => [x, yy, z, .4]));   /* デッキの上の植栽（模式） */
-      { const gy = groundY(-745, 110) + .05, sm = extrude(P, gy, .01, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .32, depthWrite: false }), .04); sm.renderOrder = -1; G.add(sm); }   /* デッキの下の地面の陰 */
+            { const gy = groundY(-745, 110) + .05, sm = extrude(P, gy, .01, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .32, depthWrite: false }), .04); sm.renderOrder = -1; G.add(sm); }   /* デッキの下の地面の陰 */
       const cg = new THREE.CylinderGeometry(.5, .5, 6.5, 8); cg.translate(0, 3.25, 0); const pts = []; for (let x = -774; x <= -718; x += 14) for (let z = 86; z <= 134; z += 16) pts.push([x, z]);
       const cm = new THREE.InstancedMesh(cg, slabMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm); colShadows(G, pts);
       const rl = []; for (let i = 0; i < 4; i++) { const a = P[i], c = P[(i + 1) % 4]; rl.push(a.x, y + 1.1, a.y, c.x, y + 1.1, c.y); } const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rl, 3)); G.add(new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xd8dde0 }))); }
@@ -396,7 +398,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   }
   function buildTile(C, key) {
     const list = C.J.b[key]; const wp = [], wf = [], wc = [], rp = [], ep = [];
-    for (const b of list) { if (lmAt(b) || inPark(b)) continue; const h = b[0], n = (b.length - 1) / 2; let y = 1e9; for (let i = 0; i < n; i++) y = Math.min(y, groundY(b[1 + i * 2], b[2 + i * 2]));
+    for (const b of list) { if (lmAt(b) || inPark(b)) continue; const hr = Math.abs(Math.sin(b[1] * 12.99 + b[2] * 78.23) * 43758.5) % 1, h = Math.abs(b[0] - 7) < .01 ? 3.2 * (2 + Math.floor(hr * hr * 5)) : b[0],   /* 2026-10-27：高さの分からない建物（OSM で 7 m の仮の値）は、2〜6 階の低めの雑居ビルにばらす（大宮東口の町並みの密度に寄せる・模式） */ n = (b.length - 1) / 2; let y = 1e9; for (let i = 0; i < n; i++) y = Math.min(y, groundY(b[1 + i * 2], b[2 + i * 2]));
       const sd = Math.abs(Math.sin(b[1] * 12.9898 + b[2] * 78.233)) % 1, col = h >= 40 ? GLS[(sd * 3) | 0] : FAC[(sd * 6) | 0];
       // 輪郭の回りの向きをそろえる（外向きの面が表になるように）
       let ar = 0; for (let i = 0; i < n; i++) { const j = (i + 1) % n; ar += b[1 + i * 2] * b[2 + j * 2] - b[1 + j * 2] * b[2 + i * 2]; }
@@ -417,7 +419,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   function dropChunk(id) {
     const C = A.chunks[id]; if (!C || !C.g) { delete A.chunks[id]; return; }
     onUnchunk?.(C);
-    const keep = new Set([...MARK, colGhost, lmEdge, ghostWall, ghostRoof, ghostSolid, roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
+    const keep = new Set([...MARK, bandGlass, colGhost, lmEdge, ghostWall, ghostRoof, ghostSolid, roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
   }
   function ensure(Z) {
     if (!Z.chunk) return Promise.resolve(null);
@@ -427,6 +429,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     return e.p;
   }
   A.ensure = id => ensure(A.byId[id]);
+  A.onCarriage = (x, z) => { for (const id in A.chunks) { const C = A.chunks[id]; if (!C.ok || !C.Z.ground) continue; for (const w of C.w) { const r = w[0]; if (r < 2.5) continue; const b = w.b; if (x < b[0] - r || x > b[2] + r || z < b[1] - r || z > b[3] + r) continue; for (let i = 1; i + 3 < w.length; i += 2) if (segD(x, z, w[i], w[i + 1], w[i + 2], w[i + 3]) < r) return true; } } return false; };   // 町の車道の上か（碧を立たせない）
   A.walkable = (x, z) => {
     for (const id in A.chunks) { const C = A.chunks[id]; if (!C.ok) continue;
       for (const w of C.w) { const r = w[0] + .3, b = w.b; if (x < b[0] - r || x > b[2] + r || z < b[1] - r || z > b[3] + r) continue;
