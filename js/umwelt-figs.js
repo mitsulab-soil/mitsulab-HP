@@ -168,7 +168,8 @@ async function boot(root, SC) {
   }
 
   // 2.0：重なり（Qualium）を灯す金の粒と、碧から三つの泡へ伸びる光の糸
-  let qPts = null, links = []; if (SC === 2) {
+  let qPts = null, links = [], qCore = null; const qC = new THREE.Vector3(); if (SC === 2) {
+    qCore = new THREE.Sprite(new THREE.SpriteMaterial({ map: GL, color: 0xffd994, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 })); qCore.scale.setScalar(1.3); S.add(qCore);
     const N = mobile ? 900 : 1600, a = new Float32Array(N * 3), r = []; for (let i = 0; i < N; i++) r.push(rnd());
     qPts = new THREE.Points(geo(Array.from(a), r), new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uPx: { value: 1 }, uE: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
       vertexShader: 'uniform float uT; uniform float uPx; attribute float aR; attribute float aK; varying float vA; void main(){ vA = (.55 + .45 * sin(uT * 1.6 + aR * 30.)) * aK; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = (2.2 + aR * 3.5) * (.7 + aK * .45) * uPx * (10. / -mv.z); gl_Position = projectionMatrix * mv; }',
@@ -219,13 +220,13 @@ async function boot(root, SC) {
       for (let i = 0; i < 24; i++) { const u = reduce ? i / 24 : ((t * .7 + i / 24) % 1); _v.copy(A).lerp(B, u); _v.y += Math.sin(u * Math.PI) * .18; pa.setXYZ(i, _v.x, _v.y, _v.z); } pa.needsUpdate = true;
       flow.material.opacity = reduce ? .8 : (cy < 3.6 ? 1 : .7);
       ghost.scale.setScalar(bH.r); ghost.position.copy(bH.c); ghost.quaternion.copy(cam.quaternion); ghost.material.opacity = .75 * e;
-      const lt = [bB, bM]; bH.m.material.uniforms.ok.value = e * .3; lt.forEach((b, i) => bH.m.material.uniforms.oc.value[i].set(b.c.x, b.c.y, b.c.z, b.r));
+      const lt = [bB, bM]; bH.m.material.uniforms.ok.value = e * .06; lt.forEach((b, i) => bH.m.material.uniforms.oc.value[i].set(b.c.x, b.c.y, b.c.z, b.r));
       { const d = bM.c.clone().sub(bH.c), L = d.length(), rh = bH.r * bH.s; d.normalize(); AT.qualium.copy(bH.c).addScaledVector(d, Math.min(rh, L) - Math.max(0, rh + bM.r - L) / 2); }
       if (qPts) { const pa = qPts.geometry.attributes.position, rh = bH.r * bH.s, sd = qPts.userData.seed; let k = 0;
         for (let i = 0; i < sd.length; i++) { const [x, y, z] = sd[i], Bq = i % 3 ? bM : bB, th = x * 6.283, ph = Math.acos(2 * y - 1), rr = Math.cbrt(z) * Bq.r; _v.set(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiplyScalar(rr).add(Bq.c);
-          const ka = qPts.geometry.attributes.aK, inB = _v.distanceTo(bB.c) < bB.r, inM = _v.distanceTo(bM.c) < bM.r; if (_v.distanceTo(bH.c) < rh) { pa.setXYZ(i, _v.x, _v.y, _v.z); ka.setX(i, inB && inM ? 1.6 : .3); } else pa.setXYZ(i, 0, -99, 0); } pa.needsUpdate = true; qPts.geometry.attributes.aK.needsUpdate = true; qPts.material.uniforms.uE.value = e; }
+          const ka = qPts.geometry.attributes.aK; if (i === 0) { qC.set(0, 0, 0); qC.n = 0; } const inB = _v.distanceTo(bB.c) < bB.r, inM = _v.distanceTo(bM.c) < bM.r; if (_v.distanceTo(bH.c) < rh) { pa.setXYZ(i, _v.x, _v.y, _v.z); ka.setX(i, inB && inM ? 1.8 : .18); if (inB && inM) { qC.add(_v); qC.n++; } } else pa.setXYZ(i, 0, -99, 0); } pa.needsUpdate = true; qPts.geometry.attributes.aK.needsUpdate = true; if (qC.n) { qC.multiplyScalar(1 / qC.n); qCore.position.copy(qC); AT.qualium.copy(qC); } qCore.material.opacity = e * .9; qPts.material.uniforms.uE.value = e; }
       links.forEach(({ crv, fp }, j) => { const pa = fp.geometry.attributes.position; for (let i = 0; i < 10; i++) { const u = reduce ? i / 10 : ((t * .45 + i / 10 + j * .13) % 1); crv.getPoint(u, _v); pa.setXYZ(i, _v.x, _v.y, _v.z); } pa.needsUpdate = true; });
-      lt.forEach(b => { b.m.material.uniforms.ok.value = e * .25; b.m.material.uniforms.oc.value[0].set(bH.c.x, bH.c.y, bH.c.z, bH.r * bH.s); });
+      lt.forEach(b => { b.m.material.uniforms.ok.value = e * .05; b.m.material.uniforms.oc.value[0].set(bH.c.x, bH.c.y, bH.c.z, bH.r * bH.s); });
     }
     bubs.forEach((b, i) => { b.m.scale.setScalar(b.s); b.m.material.uniforms.uT.value = t; rims[i].position.copy(b.c); rims[i].scale.setScalar(b.r * b.s); rims[i].quaternion.copy(cam.quaternion); });
     setRegions();
