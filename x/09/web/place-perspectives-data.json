@@ -468,7 +468,6 @@
       ],
       "place": {
         "segmentIds": [
-          "tr7_keyaki1",
           "tr7_tunnel"
         ],
         "structureIds": [],
@@ -582,10 +581,7 @@
         "ecology"
       ],
       "place": {
-        "segmentIds": [
-          "tr8_enoki_ne",
-          "tr8_fushoku"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           245,
@@ -1263,9 +1259,7 @@
         "history"
       ],
       "place": {
-        "segmentIds": [
-          "tk_k1"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           1897,
@@ -1341,9 +1335,7 @@
         "history"
       ],
       "place": {
-        "segmentIds": [
-          "t1_tourou"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           1685,
@@ -1681,9 +1673,7 @@
         "ecology"
       ],
       "place": {
-        "segmentIds": [
-          "lf_z_hiyo"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           480,
@@ -1720,9 +1710,7 @@
         "ecology"
       ],
       "place": {
-        "segmentIds": [
-          "lf_z_mukudori"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           440,
@@ -1759,9 +1747,7 @@
         "ecology"
       ],
       "place": {
-        "segmentIds": [
-          "life_aosuji"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           120,
@@ -1799,9 +1785,7 @@
         "environment"
       ],
       "place": {
-        "segmentIds": [
-          "lf_z_mimizu"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           600,
@@ -1837,9 +1821,7 @@
         "ecology"
       ],
       "place": {
-        "segmentIds": [
-          "lf_z_koumori"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           890,
@@ -1877,9 +1859,7 @@
         "social"
       ],
       "place": {
-        "segmentIds": [
-          "life_suzume"
-        ],
+        "segmentIds": [],
         "structureIds": [],
         "dRange": [
           45,
