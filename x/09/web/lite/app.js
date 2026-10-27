@@ -1109,7 +1109,7 @@ async function toggleGyro() {
   GYRO.base = null; GYRO.q = null; GYRO.on = true; addEventListener("deviceorientation", onOrient); syncGyroBtn();
   setTimeout(() => { if (GYRO.on && !GYRO.have) { GYRO.on = false; removeEventListener("deviceorientation", onOrient); syncGyroBtn(); toast("この端末では、向きの知らせが届きませんでした。なぞって見回せます。"); } }, 1500);
 }
-function syncGyroBtn() { const b = $("#gyroBtn"); if (b) { b.setAttribute("aria-pressed", String(GYRO.on)); b.textContent = GYRO.on ? "向きで見回す：入" : "端末の向きで見回す"; } }
+function syncGyroBtn() { const b = $("#gyroBtn"); if (b) { b.setAttribute("aria-pressed", String(GYRO.on)); b.textContent = GYRO.on ? "見回す：入" : "見回す"; b.title = "端末の向きで見回す"; } }
 function syncAutoBtn() { const b = $("#autoBtn"); if (b) { b.setAttribute("aria-pressed", String(WALK.auto)); b.querySelector("span").textContent = WALK.auto ? "止まる" : "歩きつづける"; } }
 
 /* 鳥になって飛ぶ（ゆっくり・高さは控えめ・地面と木にもぐらない） */
