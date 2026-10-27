@@ -273,12 +273,12 @@ export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) 
     u.f += ((slot >= 0 ? 1 : 0) - u.f) * Math.min(1, dt * 9);
     sp.position.y = u.by + u.sl * sc.y * 1.1 / Math.max(1e-4, ps.y || 1);
     sp.material.opacity *= u.f; if (u.f < .02) sp.visible = false;
-    if (slot >= 0 && sp.visible && u.f > .05 && e.L?.glyph) {   /* 札が画面に置けた印だけ線を引く */ e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); LA.push(u.f * .8, u.f * .8); }
+    if (slot >= 0 && sp.visible && u.f > .05 && e.L?.glyph) {   /* 札が画面に置けた印だけ線を引く */ e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); const la = Math.min(1, sp.material.opacity * 1.2) * .8; if (la > .05) LA.push(la, la); else LP.length -= 6;   /* 札が見えないほど薄いときは線も出さない */ }
   }
-  // 2026-10-28 Qualium 共通：札と印を細い線で結ぶ（どの札がどの印のものかを分かるように）
+  // 2026-10-28 Qualium 共通：札と印を細い線で結ぶ（どの札がどの印のものかを分かるように）。札と同じく壁の向こうでは隠れる（札が壁に隠れて線だけが空に刺さって見えていた）
   if (!placeLabels._ln && list[0]) { let root = list[0].sp; while (root.parent) root = root.parent;
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(64 * 6), 3)); g.setAttribute("alpha", new THREE.BufferAttribute(new Float32Array(64 * 2), 1));
-    const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, depthTest: false, toneMapped: false, vertexShader: "attribute float alpha; varying float vA; void main(){ vA=alpha; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }", fragmentShader: "varying float vA; void main(){ gl_FragColor=vec4(.86,.95,1.,vA); }" });
+    const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, depthTest: true, toneMapped: false, vertexShader: "attribute float alpha; varying float vA; void main(){ vA=alpha; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }", fragmentShader: "varying float vA; void main(){ gl_FragColor=vec4(.86,.95,1.,vA); }" });
     const ln = new THREE.LineSegments(g, m); ln.frustumCulled = false; ln.renderOrder = 5; root.add(ln); placeLabels._ln = ln; }
   const ln = placeLabels._ln; if (ln) { const P = ln.geometry.attributes.position, A = ln.geometry.attributes.alpha, n = Math.min(64, LP.length / 6);
     for (let i = 0; i < n * 6; i++) P.array[i] = LP[i]; for (let i = 0; i < n * 2; i++) A.array[i] = LA[i]; P.needsUpdate = A.needsUpdate = true; ln.geometry.setDrawRange(0, n * 2); }

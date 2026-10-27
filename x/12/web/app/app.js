@@ -1155,7 +1155,7 @@ function kasaPeek(x, z) { return (nearestOnLine(x, z).dist < 11 || onNet(x, z, 1
 function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
-    const M = await import("../kit/envAgents/kasane.js?v=20261025b");
+    const M = await import("../kit/envAgents/kasane.js?v=b1");
     const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
       muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || a.data?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない・窓は層の一覧にかけない
     const near = (x, z, Rm = 9) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };

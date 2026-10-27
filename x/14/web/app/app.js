@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k12";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k13";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
@@ -302,9 +302,9 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
         vec3 stone = texture2D(tG, fu / 3.).rgb * mix(vec3(.85, .8, .74), vec3(.6, .6, .62), r2);
         vec3 metal = vec3(.62, .64, .66) * (.85 + .15 * texture2D(tP, fu / 2.).r) * (1. - .25 * max(step(.97, fract(fu.x / 1.5)), step(.96, fract(fu.y / 1.2))));
         vec3 glass = mix(vec3(.12, .16, .2), vec3(.5, .6, .7), smoothstep(.0, 1., c.y) * .5) * (.85 + .3 * fract(sin(dot(floor(fu / vec2(bw, fh)), vec2(12.9, 78.2))) * 43758.5));
-        float win = step(.2, c.x) * step(c.x, .8) * step(.38, c.y) * step(c.y, .84);
+        vec2 aw = fwidth(c) * 1.2 + 1e-4; float win = smoothstep(.2 - aw.x, .2 + aw.x, c.x) * (1. - smoothstep(.8 - aw.x, .8 + aw.x, c.x)) * smoothstep(.38 - aw.y, .38 + aw.y, c.y) * (1. - smoothstep(.84 - aw.y, .84 + aw.y, c.y)); win *= 1. - smoothstep(.25, .6, max(aw.x, aw.y));   // 10-28：窓のふちをなめらかに（遠くの段々・ちらつきを消す。遠くでは窓の格子を薄く）
         vec3 wall = kind == 1. ? stone : kind == 3. ? metal : plaster;
-        float mull = max(step(.95, c.x), step(.96, c.y));
+        float mull = max(smoothstep(.95 - aw.x, .95 + aw.x, c.x), smoothstep(.96 - aw.y, .96 + aw.y, c.y)) * (1. - smoothstep(.25, .6, max(aw.x, aw.y)));
         float spand = step(c.y, .22); vec3 col = kind == 2. ? mix(mix(glass, vec3(.32, .34, .36), mull), vec3(.2, .21, .22), spand * .85) : mix(wall, glass, win * (kind == 3. ? .8 : 1.));
         isW = kind == 2. ? (1. - mull) * (1. - spand) : win;   // ガラスのビルも階ごとに腰の帯（奥行きと階のリズム）
         if (isW > .01) {   // ガラス：空と向かいの暗がりを映す。板ごとにわずかに傾き（映り込みが一枚ごとにずれる）・室内の明るさは階と区画で違う
@@ -336,7 +336,7 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
           float sunF = dot(Nn, normalize(vec3(.55, 0., .35)));   // 日の当たる面と陰の面の差（面ごとの明るさの違いで、箱に見せない）
           col *= ao * (1. - rec) * (1. - streak) * (.88 + .24 * big) * mix(.66, 1.14, smoothstep(-.6, .7, sunF)); float dd = length(vPw - cameraPosition); col = mix(col, vec3(.62, .68, .76), smoothstep(90., 520., dd) * .42); }   // 遠いほど青く薄く（大気の遠近）
         diffuseColor.rgb = col; }`).replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance += emi;").replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = isW < 0. ? .55 : mix(roughnessFactor, .1, isW);"); };
-  m.customProgramCacheKey = () => "plateauCC0c"; return PFM.m = m;
+  m.customProgramCacheKey = () => "plateauCC0d"; return PFM.m = m;
 }
 function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・LOD2）を mitsulab が加工した建物（外壁は航空写真からの質感）。_dev/plateau/build_plateau.py
   const g0 = new THREE.Group(); g0.name = "plateau"; world.add(g0);
@@ -896,6 +896,7 @@ const DC = { t: 0, ls: null };
 function declutter(dt) {
   const now = performance.now(); if (!DC.ls || now - DC.t > 500) { DC.t = now; DC.ls = $("#lstack").getBoundingClientRect(); }   // 画面の部品の位置は 0.5 秒ごとに読む（毎こま読むと重い）
   const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 });
+  if (AOI.root?.visible) { const p0 = AOI.root.getWorldPosition(new THREE.Vector3()), p1 = p0.clone(); p1.y += 1.75; p0.project(camera); p1.project(camera); if (p0.z < 1) { const y0 = (1 - p1.y) / 2 * innerHeight, y1 = (1 - p0.y) / 2 * innerHeight, cx = (p0.x + 1) / 2 * innerWidth, hw = (y1 - y0) * .2; avoid.push({ x0: cx - hw, x1: cx + hw, y0: y0 - 6, y1 }); } }   // 10-28：札を碧に重ねない
   const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
   if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 16 : 22);   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
@@ -1214,7 +1215,7 @@ function kasaPeek(x, z) { return (nearestOnLine(x, z).dist < 11 || onNet(x, z, 1
 function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
-    const M = await import("../kit/envAgents/kasane.js?v=s1");
+    const M = await import("../kit/envAgents/kasane.js?v=b1");
     const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
       muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || a.data?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない・窓は層の一覧にかけない
     const near = (x, z, Rm = 9) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };

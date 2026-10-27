@@ -631,7 +631,7 @@ export class KasaneHerd {
       }
       if (this.iS) { const k = S * .2 * (1 - clamp(a.y / (.12 * S), 0, .5)); _q.identity(); _p3.set(a.pos.x, gy + .015, a.pos.y); _s3.set(k, 1, k * .9); _m.compose(_p3, _q, _s3); this.iS.setMatrixAt(a.idx, _m); }
       // 吹き出し（話している子だけ・近くだけ・画面の端と避けたい所には出さない）
-      if (a.say > 0 && bi < this.bubbles.length && a.pd < 22) {
+      if (a.say > 0 && a.state === "focus" && bi < this.bubbles.length && a.pd < 22) {   // 10-28：点の吹き出しは、触れた子が応えるときだけ（ひとりでに出ると意味が伝わらなかった）
         _v.set(a.pos.x, gy + a.y + KASANE_H * S * 1.18, a.pos.y); const sc = this._screen(_v), m = this.screenMargin, bw = this.mobile ? 34 : 40;
         if (sc && sc.x > m + bw && sc.x < innerWidth - m - bw && sc.y > m + 20 && sc.y < innerHeight - m && !(this.bubbleAvoid && this.bubbleAvoid(sc.x, sc.y))) {
           const sp = this.bubbles[bi++], nDots = 1 + Math.floor((a.sayT || 0) * 3.2) % 3; sp.material.map = bubbleTex(this.hud[a.layer] || "#ffffff", a.bub || "dots", nDots); sp.material.opacity = clamp(a.say * 3, 0, 1);

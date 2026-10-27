@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k11";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k13";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "./startpins.js?v=14";
@@ -1675,7 +1675,7 @@ function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
     await loadLate(); if (!roadGroup || !COLL) return;
-    const M = await import("../kit/envAgents/kasane.js?v=20261025b");
+    const M = await import("../kit/envAgents/kasane.js?v=b1");
     KASA.ok = new Uint8Array(COLL.nx * COLL.nz); roadGroup.traverse(o => { if (o.isMesh && /^(roots|bed|lawn)\|/.test(o.name)) kasaRaster(o, 2); }); roadGroup.traverse(o => { if (o.isMesh && KASA_SURF.test(o.name)) kasaRaster(o, 1); });
     await VEG.p?.catch(() => { });
     for (const S of VEG.sp) if (S.s <= 2 || S.s === 7) for (let i = 0; i < S.m; i++) { const x = S.xs[i * 6], z = S.xs[i * 6 + 2], r = S.xs[i * 6 + 3] * .55 + .2, c = COLL.c; for (let dz = -r; dz <= r; dz += c) for (let dx = -r; dx <= r; dx += c) if (dx * dx + dz * dz <= r * r) { const k = kasaCell(x + dx, z + dz); if (k >= 0 && KASA.ok[k] === 2) KASA.ok[k] = 4; } }   // 低木の株のまわり
@@ -1761,7 +1761,7 @@ function pickAreaMark(x, y) {
 }
 async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群れ（地点のそばと、道ぞいの数か所）。近くだけ描く
   if (!J.p.length) return;
-  const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=20261025b"); if (C.dead) return;
+  const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=b1"); if (C.dead) return;
   const ok = (x, z) => AREAS.walkable(x, z);
   const herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: ok, walkSurface: ok, canSee: () => true, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 36 : 46, max: 22,
     muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, view: () => false, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });
