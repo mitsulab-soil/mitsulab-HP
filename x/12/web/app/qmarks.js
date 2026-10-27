@@ -63,23 +63,39 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
       float fr=pow(1.-nv,2.4);
       vec3 Ld=normalize(vec3(sin(uT*.5),.95,cos(uT*.5)));
       float dif=.45+.55*max(0.,dot(n,Ld));
-      float spec=pow(max(0.,dot(reflect(-v,n),Ld)),48.);
+      float spec=pow(max(0.,dot(reflect(-v,n),Ld)),140.)*2.2+pow(max(0.,dot(reflect(-v,n),normalize(vec3(-.6,.4,.7)))),60.)*.5;   // v7：鋭い映り込み二つ
       // 切子のきらめき：法線を細かな面に量子化して、ときどき光る
       vec3 fq=floor(n*7.+.5); float h=fract(sin(dot(fq,vec3(12.9,78.2,37.7)))*43758.5);
       float glint=pow(max(0.,sin(uT*.9+h*40.)),90.)*step(.86,h)*smoothstep(.25,.75,nv)*.7;
-      float core=pow(nv,3.)*(.6+.4*sin(uT*1.4+vL.y*3.));
+      float core=pow(nv,7.)*(.85+.35*sin(uT*2.2+vL.y*3.))*.9;   // v7：芯は小さく
       float crisp=vP.y, em=vP.z, op=vQ.y;
       vec3 sat=mix(vec3(dot(vCol,vec3(.333))),vCol,1.35);
       vec3 rim=mix(sat, sat*film(fr*1.4+vL.y*.6+uT*.05)*1.6, .42*crisp);       // 縁の薄膜の色ずれ（層の色を芯に）
-      vec3 c=sat*(.2+.32*dif)+sat*core*(.6+op*.5)+rim*fr*(1.6+crisp*.9)+vec3(1.)*pow(fr,4.)*(.3+crisp*.4)+vec3(1.)*(spec*(.6+crisp*.5)+glint*crisp);
-      float a=(.14+.08*crisp+core*.16+fr*.8+spec*.45+glint*.5)*(.66+.34*em);
+      vec3 deep=sat*sat*.07;   // v7：明るい空でも沈まない、深い色の硝子の地
+      vec3 c=deep*(.6+.4*dif)+sat*core*(.35+op*.3)+rim*fr*(.8+crisp*.5)+vec3(1.)*pow(fr,5.)*(.25+crisp*.35)+vec3(1.)*(spec*(.7+crisp*.5)+glint*crisp);
+      float a=(.78+.1*crisp+core*.2+fr*.6+spec*.45+glint*.5)*(.7+.3*em);
       // 球の中に光る層の紋（見る向きの平面に写す）と、ゆっくり流れる層の膜
       vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]), U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
       vec2 q=vec2(dot(vW-vC,R),dot(vW-vC,U))/max(1e-4,vR);
       float inner=emb(q*.95, vQ.x, uT)*smoothstep(.2,.7,nv)*crisp*(.35+.65*op);
       float memb=ln(fract(vL.y*5.-uT*.12+.3*sin(atan(vL.z,vL.x)*2.+uT*.2))-.5,.05)*fr*.5*crisp;
-      c+=sat*1.5*inner+rim*memb; a+=inner*.55+memb*.3;
-      gl_FragColor=vec4(c*(1.+em*.4+op*.25),clamp(a,0.,.94)*vP.x);
+      c+=sat*.8*inner+rim*memb*.6; a+=inner*.3+memb*.2;
+      // 2026-10-27 v7（宝石・精密な機器の質感）：屈折した視線で球の中を辿り、細い格子（ジャイロイド）と二重の殻を描く。縁は波長ごとに色がずれる
+      if(gl_FrontFacing && crisp>.05){
+        vec3 rd=refract(-v,n,.69), ro=(vW-vC)/max(1e-4,vR); float bb=dot(ro,rd), hh=bb*bb-(dot(ro,ro)-1.); float tx=max(0.,-bb+sqrt(max(hh,0.)));
+        float st=tx/10., ki=6.2+vQ.x*.7, inT=0., shT=0.;
+        for(int i=0;i<10;i++){ vec3 p=ro+rd*(st*(float(i)+.5)); float rr=length(p);
+          vec3 pr=p*ki+vec3(0.,uT*.22,uT*.1);
+          float g=sin(pr.x)*cos(pr.y)+sin(pr.y)*cos(pr.z)+sin(pr.z)*cos(pr.x);
+          inT+=exp(-abs(g)*26.)*(1.-smoothstep(.5,.9,rr))*st;
+          shT+=(exp(-pow((rr-.48)*30.,2.))+exp(-pow((rr-.2)*40.,2.))*.7)*st; }
+        vec3 fc=pow(vec3(1.-nv),vec3(2.,2.5,3.1));
+        c+=mix(sat,vec3(1.),.55)*(inT*3.2+shT*1.1)*crisp*(.7+.5*op)+fc*vec3(.9,1.,1.15)*.55*crisp;
+        a+=(inT*.7+shT*.45)*crisp;
+      }
+      c+=mix(rim,vec3(1.),.35)*pow(fr,2.6)*(1.25+.5*em);   // v8：暗い緑の地でも輪郭が切れない明るい縁
+      a+=pow(fr,2.6)*.35;
+      gl_FragColor=vec4(c*(1.+em*.2+op*.1),clamp(a,0.,.96)*vP.x);
       #include <colorspace_fragment>
     }`, 7, THREE.NormalBlending);
   // 紋の円盤：結晶の後ろで見る人へ向く。細い輪と層の紋（近いときだけ）
@@ -92,22 +108,22 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
     void main(){
       vec2 p=vL.xy; float r=length(p); if(r>1.) discard; float ang=atan(p.y,p.x), op=vQ.y, crisp=vP.y;
       float R1=.78+.12*op;
-      float ring=ln(r-R1,.012)*(.75+.25*sin(ang*3.+uT*.6));
+      float ring=ln(r-R1,.006)*(.75+.25*sin(ang*3.+uT*.6));
       float tick=ln(r-R1-.07,.03)*step(.82,fract(ang*12./6.2832-uT*.04));
       float arc=ln(r-.94,.008)*step(fract(ang/6.2832+uT*.05),.28+.2*op);
       float e=emb(p/(.62+.18*op)*.74, vQ.x, uT);
-      float glow=exp(-pow((r-R1)*9.,2.))*.25;
+      float glow=exp(-pow((r-R1)*9.,2.))*.12+exp(-r*r*7.)*.08;   // v7：中の霞を消して、硝子の深い色を見せる
       float a=(ring*.85+tick*.6+arc*.55+glow)*(.35+.65*crisp) + e*(.16+.6*op)*crisp*(.55+.45*smoothstep(.3,.75,r));   // 紋は結晶の外側の帯で読めるように
       gl_FragColor=vec4(vCol*(1.2+.5*vP.z),clamp(a,0.,1.)*vP.x*(.5+.5*vP.z));
       #include <colorspace_fragment>
     }`, 6, THREE.NormalBlending);
   // まわる輪：結晶を斜めに巡る細い輪
-  const tg = new THREE.TorusGeometry(1, .011, 4, 72);
+  const tg = new THREE.TorusGeometry(1, .006, 4, 96);
   const orbit = mk(tg, VS_COMMON + /* glsl */`
     void main(){ vCol=iCol; vP=iP; vQ=iQ; vL=position; vec4 w=modelMatrix*instanceMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
   /* glsl */`uniform float uT; varying vec3 vCol; varying vec4 vP; varying vec2 vQ; varying vec3 vW; varying vec3 vL;
     void main(){ float ang=atan(vL.y,vL.x); float dash=.55+.45*smoothstep(.2,.8,fract(ang*2./6.2832-uT*.15));
-      gl_FragColor=vec4(vCol*1.4,dash*.8*vP.x*vP.y*(.55+.45*vP.z));
+      gl_FragColor=vec4(vCol*.9,dash*.38*vP.x*vP.y*(.55+.45*vP.z));   // v7：輪は細く控えめに
       #include <colorspace_fragment>
     }`, 6, THREE.AdditiveBlending);
   // 足もとの輪：細い輪・回る刻み・外の破線・HUD の線・中に層の紋（近づくとひらく）
@@ -168,7 +184,8 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         // 近づくとひらく（10 m→4 m）。触れると（L.open）いっぱいに
         const nt = sky ? 0 : Math.max(Math.min(1, Math.max(0, (10 - dh) / 6)), L.open || 0);
         it.no += (nt - it.no) * Math.min(1, dt * 3.5); const op = it.no; L.qOpen = op;
-        const cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .25);
+        let cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .25);
+        if (!sky) cs = Math.max(cs, Math.min(cs * 3, 11 * d / (ppk * .34)));   // 2026-10-27 v8：画面で直径 22px より小さくしない
         _e.set(0, t * (.5 - op * .3) + it.ph, 0); _q.setFromEuler(_e); _s.set(cs, cs, cs);
         const cy = _p.y + Math.sin(t * 1.3 + it.ph) * .06 * sg + op * .12 * sg;
         _m.compose(_p.set(_p.x, cy, _p.z), _q, _s); crystal.setMatrixAt(n, _m);

@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q6";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=q8";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k11";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
@@ -25,7 +25,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261027d";
+const VER = "20261027e";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -664,7 +664,7 @@ const AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY: (x, z) => gr
   onPick: Z => { const i = C.starts.findIndex(s => s.zone === Z.id); if (i >= 0) { selectStart(i); return; } const [x, z] = Z.label; let bi = 0, bd = 1e9; C.starts.forEach((s, k) => { const a = stAt(s), d = Math.hypot(a.x - x, a.z - z); if (d < bd) { bd = d; bi = k; } }); selectStart(bi); } });
 
 /* ---------- 写実の 3D：店蔵の型（模式）と時の鐘 ---------- */
-const KURA = { meshes: [] };
+const KURA = { meshes: [] }; QW.KURA = KURA;
 /* 2026-10-27 一番街の店蔵は、Blender で 1 棟作り込んだ型（_dev/blender/kura_master.py → web/app/kura_master.glb・本瓦の丸瓦を一枚ずつ・箱棟の熨斗瓦・三重の鬼瓦と経の巻・観音扉の三段・袖壁・置き屋根）を町に広げる。読めなければ従来の型 */
 let KURA_GLB = null;
 function loadKuraMaster() {
@@ -675,13 +675,37 @@ function loadKuraMaster() {
 function buildKura() {
   loadKuraMaster().then(gm => buildKura2(gm));
 }
+/* 2026-10-27 蔵の陰影（AO）：型の店蔵（kura_master.glb・下屋 3.5 m・軒 6.6 m・原点＝地面）の形から、
+   地面との際・下屋と軒の下の壁・下を向いた面（軒裏・庇の裏）・屋根の谷と窓のくぼみをかげらせる。光の当たり方を真似た近似で、焼き込みではない */
+const KAO = {};
+function kuraAO(m0, mk, full = true) {
+  const ck = mk + (full ? "" : "-m"); if (KAO[ck]) return KAO[ck];
+  const m = m0.clone(), prev = m0.onBeforeCompile, key = "kura-" + mk + (full ? "-ao" : "-aom") + (m0.isMeshPhysicalMaterial ? "p" : "");
+  m.onBeforeCompile = (sh, r) => { if (prev && prev !== THREE.Material.prototype.onBeforeCompile) prev(sh, r);
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vAoP; varying vec3 vAoN;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvAoP = position; vAoN = normal;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vAoP; varying vec3 vAoN;")
+      .replace("#include <aomap_fragment>", `#include <aomap_fragment>
+        { float y = vAoP.y, ny = vAoN.y, wall = 1. - smoothstep(.35, .7, abs(ny));
+          float ao = 1.;
+          ao *= mix(.3, 1., smoothstep(0., 1.5, y));                                  // 地面との際
+          ${full ? "" : "/*"} ao *= 1. - .55 * wall * smoothstep(2.1, 3.42, y) * (1. - smoothstep(3.42, 3.6, y));   // 下屋の下の壁
+          ao *= 1. - .5 * wall * smoothstep(5.3, 6.5, y) * (1. - smoothstep(6.5, 6.7, y));     // 軒の下の壁
+          ao *= mix(1., .3, smoothstep(.3, .8, -ny));                                  // 軒裏・庇の裏
+          ao *= 1. - .18 * smoothstep(.55, .95, ny) * smoothstep(6.4, 6.9, y) * (1. - smoothstep(7.4, 8.4, y));   // 屋根の谷（下の方）
+          ${full ? "" : "*/"}
+          reflectedLight.indirectDiffuse *= ao; reflectedLight.indirectSpecular *= mix(1., ao, .8);
+          reflectedLight.directDiffuse *= mix(1., ao, .85); reflectedLight.directSpecular *= mix(1., ao, .6); }`);
+  };
+  m.customProgramCacheKey = () => key;
+  return KAO[ck] = m;
+}
 function buildKura2(GM) {
   const M = kuraMats(TL, MOBILE), byType = {};
   for (const k of G.kura) (byType[k.type] ||= []).push(k);
   for (const t in byType) {
     const geos = GM || kuraGeos(t).geos, list = byType[t];
     for (const mk in geos) {
-      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .22; m.clearcoat = MOBILE ? 0 : .6; if (MOBILE) { m.roughness = .6; m.envMapIntensity = 1.1; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f747b", roughness: .48, metalness: .25, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, envMapIntensity: 1.0, side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], mat, list.length);
+      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .22; m.clearcoat = MOBILE ? 0 : .6; if (MOBILE) { m.roughness = .6; m.envMapIntensity = 1.1; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f747b", roughness: .48, metalness: .25, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, envMapIntensity: 1.0, side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
       const o = new THREE.Object3D();
       const tint = new THREE.Color();
       list.forEach((k, i) => { const r1 = (Math.sin(k.x * 12.9898 + k.z * 78.233) * 43758.5) % 1, r = Math.abs(r1);   // 棟ごとの違い（高さ・瓦の焼きむら・漆喰の黒の深さ）：同じ型の繰り返しに見せない
@@ -694,7 +718,7 @@ function buildKura2(GM) {
   // 町家の型（模式）：型の蔵を置かなかった沿道の低い建物。瓦屋根の連なりと通りの狭さ
   const byM = {}; (G.machi || []).filter(k => !(G.bell && Math.hypot(k.x - G.bell.x, k.z - G.bell.z) < Math.hypot(k.w, k.dp) / 2 + 3.5)).forEach((k, i) => { k.type = "MNGK"[(i * 3 + Math.floor(k.w)) % 4]; (byM[k.type] ||= []).push(k); });   // 4 つの型を混ぜ、同じ並びが続かないように
   for (const t in byM) { const { geos } = machiGeos(t), list = byM[t];
-    for (const mk in geos) { const im = new THREE.InstancedMesh(geos[mk], M[mk], list.length), o = new THREE.Object3D();
+    for (const mk in geos) { const im = new THREE.InstancedMesh(geos[mk], M[mk] === M.glass ? M[mk] : kuraAO(M[mk], mk, false), list.length), o = new THREE.Object3D();
       list.forEach((k, i) => { o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
       im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im); } }
   // 型の札（HUD の流儀・画面の部品）：近づくと「KURA TYPE A ／店蔵の型・模式」。どの建物が蔵造りかを写したものではないことを、画面の中で示す。層の一覧には重ねない
@@ -732,7 +756,7 @@ function buildObjs() {
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .4, skyK: 1.15 });   // 2026-10-27 本人「球が大きすぎる」＝今の 4 割ほどに for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .4, skyK: 1.15 });   /* 2026-10-27 本人「球が大きすぎる」＝今の 4 割ほどに（同日 夜：この注記が行の終わりまで続き、印を一つも足していなかったのを直す） */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();
@@ -1475,7 +1499,7 @@ function syncTray() { document.querySelectorAll(".lyBtn").forEach(b => b.setAttr
 QW.dbg = () => ({ areas: AREAS.info(), nArea: QW.nArea || 0, mode: QW.mode, cam: [CAM.pos.x, CAM.pos.y, CAM.pos.z], worn: [...LAYER.worn], aoi: !!AOI.root?.visible, talk: voiceQ?.talk?.o?.id || null, spoken: TALK.spoken.size, nBld: QW.nBld, sight: SIGHT.sp?.id || null });
 QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = yawAlong(d + 5); CAM.look = 0; if (AOI.m) { aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, CAM.yaw + Math.PI); } };
 QW.place = (x, z, tx, tz, p = -.08) => { CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = Math.atan2(-(tx - x), -(tz - z)); CAM.look = 0; CAM.pitch = p; };
-QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) openObj(L); return !!L; };
+QW.LAYER = LAYER; QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) openObj(L); return !!L; };
 QW.sight = id => { const sp = C.sight.find(s => s.id === id); if (sp) enterSight(sp); };
 QW.wear = wearLayer; QW.sky = SKY; QW.descend = i => descendTo(i); QW.fly = () => startFly();
 QW.autoWalk = on => { WALK.auto = !!on; syncAutoBtn(); };
