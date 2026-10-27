@@ -1177,19 +1177,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 <link rel="stylesheet" href="v2.css?v=20261027v23">
 </head>
 <body>
-<div id="ml-ld" role="status" aria-label="読み込み中" aria-live="polite"><style>
-#ml-ld{position:fixed;inset:0;z-index:2147483000;background:radial-gradient(110% 80% at 50% 46%,#071321 0%,#03060f 64%);display:grid;place-items:center;transition:opacity .6s ease,visibility .6s;overflow:hidden;animation:ldOut .5s 3.4s forwards}
-#ml-ld.out{opacity:0;visibility:hidden;pointer-events:none}@keyframes ldOut{to{opacity:0;visibility:hidden;pointer-events:none}}
-#ml-ld .wrap{display:grid;justify-items:center;gap:clamp(18px,4vmin,30px)}
-#ml-ld .mk{box-sizing:content-box;width:min(36vmin,230px);height:auto;opacity:0;padding:24px;margin:-24px;transform:scale(.92);animation:ldRev .7s cubic-bezier(.3,.7,.2,1) forwards,ldGlow 1s .6s ease-in-out forwards}
-#ml-ld .wd{width:min(46vmin,300px);height:auto;opacity:0;transform:translateY(6px);animation:ldW .45s .6s ease-out forwards}
-@property --r{syntax:'<percentage>';inherits:false;initial-value:0%}
-@keyframes ldRev{to{opacity:1;transform:none}}
-@keyframes ldGlow{0%{filter:none}45%{filter:drop-shadow(0 0 10px #ffe2a6) drop-shadow(0 0 24px #f2c56e)}100%{filter:drop-shadow(0 0 6px #a8f2f688)}}
-@keyframes ldW{to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){#ml-ld *{animation:none!important}#ml-ld .mk,#ml-ld .wd{opacity:1;transform:none;--r:90%}}
-</style><div class="wrap"><img class="mk" src="img/brand/qualium_mark.webp?v=2" width="397" height="532" alt="" decoding="async" fetchpriority="high"><img class="wd" src="img/brand/mitsulab_word.webp?v=2" width="840" height="200" alt="mitsulab" decoding="async"></div>
-<script>(function(){var el=document.getElementById('ml-ld'),t0=performance.now(),g=0;function done(){if(g)return;g=1;setTimeout(function(){el.classList.add('out');el.setAttribute('aria-label','読み込みました');setTimeout(function(){el.remove()},700)},Math.max(0,1900-(performance.now()-t0)))}if(document.readyState!=='loading')done();else document.addEventListener('DOMContentLoaded',done);setTimeout(done,4300)})();</script></div>
+<script src="js/loader_qualium.js?v=20261027q" data-auto="dom"></script>
 <a href="#main" class="skip-link" data-i18n-en="Skip to content">本文へスキップ</a>
 <canvas id="bgRain" aria-hidden="true"></canvas>
 <div class="aurora" aria-hidden="true"></div>
