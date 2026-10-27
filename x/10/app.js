@@ -6,7 +6,7 @@ import { T, setLang, lang } from "./i18n.js?v=20261021";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261021";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
-import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027i";
+import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027j";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 899px)").matches;
@@ -201,6 +201,9 @@ function applySurface(v, keepParams = false) {
   for (const b of document.querySelectorAll(".chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
 }
 // ---- 形に貼る（触覚の mixed reality）
+// 形のための光：後ろからの縁の光と、斜め上からの締まった主光（形を選んだときだけ点ける）
+const objRim = new THREE.DirectionalLight(0xbfe6ff, 2.4); objRim.position.set(.6, .9, -1.2); objRim.visible = false; scene.add(objRim);
+const objKey = new THREE.SpotLight(0xfff1e2, 6, 4, .5, .6); objKey.position.set(-.9, 1.4, .8); objKey.visible = false; scene.add(objKey, objKey.target);
 let objMesh = null, objDef = null, objHit = null; const _nq = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 const objMat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, envMapIntensity: .55, side: THREE.DoubleSide });
 const cloneTex = (t, rep) => { if (!t) return null; const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(rep[0], rep[1]); c.needsUpdate = true; return c; };
@@ -214,6 +217,7 @@ async function setObject(id) {
   if (objMesh) { scene.remove(objMesh); objMesh.geometry.dispose(); objMesh = null; objHit = null; }
   objDef = OBJECTS.find(o => o.id === id) || null;
   for (const o of scene.children) if (o.userData.plate) o.visible = !objDef;
+  objRim.visible = objKey.visible = !!objDef; fill.intensity = objDef ? .12 : .28;
   plate.visible = !objDef; $("#scaleL").hidden = !!objDef;
   for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));
   $("#bGlb").hidden = !objDef;

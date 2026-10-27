@@ -17,12 +17,12 @@ export const OBJECTS = [
   { id: "vase", name: "陶の器", sub: "実物を測った花瓶", src: "models/ceramic_vase_01.gltf", rep: [2, 2], size: .55, tint: [1.7, 1.6, 1.45] },
   { id: "pot", name: "素焼きの鉢", sub: "実物を測った鉢", src: "models/planter_pot_clay.gltf", rep: [2, 2], size: .5, tint: [1.15, .78, .55] },
   { id: "branch", name: "枯れ枝", sub: "実物を測った枝", src: "models/dead_quiver_branch_01.gltf", rep: [1, 1] },
-  { id: "tile", name: "瓦", sub: "反りのある瓦（模型）", rep: [1.6, 2] },
+  { id: "tile", name: "瓦", sub: "反りのある瓦（模型）", rep: [1.6, 2], scale: .8 },
 ];
 let _loader = null;
 // 測った形を読み、いちばん大きな部分の形を、0.8 単位（8 cm）に収めて床に置く
 export async function loadGeometry(o) {
-  if (!o.src) return baseGeometry(o.id);
+  if (!o.src) { const g = baseGeometry(o.id); if (o.scale) { g.scale(o.scale, o.scale, o.scale); g.userData.base = g.attributes.position.array.slice(); } return g; }
   if (!_loader) { const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js"); _loader = new GLTFLoader(); }
   const gl = await _loader.loadAsync(o.src); gl.scene.updateMatrixWorld(true); let best = null;
   gl.scene.traverse(m => { if (m.isMesh && m.geometry.attributes.uv && (!best || m.geometry.attributes.position.count > best.geometry.attributes.position.count)) best = m; });
