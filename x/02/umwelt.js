@@ -699,7 +699,7 @@ async function loadAoi() {
     A.mats = []; aoi.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) A.mats.push([mt, mt.transparent, mt.depthWrite]); });
     // 2026-10-13：体の動き・目・まばたき・口・表情・裾の布は共通部品 AoiMotion に任せる（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）
     aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
-    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", uprightWeight: .6, faceLight: .6 });   /* 2026-10-19：片足荷重 .6（kit v5.9。.38／.6／.9 を同じ場面で 11 人が比べ、.6 が自然さ 76） */ AM.place(A.pos.x, A.pos.z, A.yaw);
+    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "natural", uprightWeight: .25, faceLight: .6 });   /* 2026-10-19：片足荷重 .6（kit v5.9。.38／.6／.9 を同じ場面で 11 人が比べ、.6 が自然さ 76） */ AM.place(A.pos.x, A.pos.z, A.yaw);
     // 2026-10-25（採点「差し出す手が手首から先だけ」）：このアプリの差し出す身ぶり（big）だけ、手を肘から前へ・前腕を水平近くまで上げる（共通部品は変えない）
     { const gp = AM._gPose.bind(AM); AM._gPose = (part, sd, out) => { const r = gp(part, sd, out); if (part.g.big && part.g.type === "metaphoric" && part.g.shape !== "contrast") { out.p.y += .09; out.p.z += .12; out.p.x += (sd === "left" ? 1 : -1) * .06; out.shape = "flat"; } return r; }; }
     opacity(0); window.__aoi = { vrm, aoi, A, M: AM }; STARTUP.aoiReadyAt = performance.now();
