@@ -124,3 +124,9 @@ html{scroll-padding-top:80px}
 .qx-s2>.v2-loopfold{border:0;border-top:1px dashed #8bccca33;background:none}
 .qx-s2>.v2-loopfold>summary{padding:6px 0;min-height:44px;font-size:14px}
 .qx-s2>.v2-loopfold>summary .lp-ft{font:inherit;letter-spacing:0;color:#a8f2f6}
+.qx-s2 .qx-cap{font-size:15px;line-height:1.6}
+.qx-fig2{aspect-ratio:16/9}
+@media (max-width:700px){.qx-fig2{aspect-ratio:5/4;margin-top:-8px}.qx-fig2 .qx-labs{bottom:2.9em}}
+@media (max-width:700px){.qx-fig2 .qx-labs{bottom:-.4em}.qx-fig2{margin-bottom:72px}}
+@media (max-width:700px){.qx-fig2 .qx-cap{margin-top:2.8em!important}.qx-fig2{margin-bottom:110px}}
+@media (max-width:700px){.qx-fig2 .qx-labs{top:100%;bottom:auto;margin-top:-6px}.qx-fig2 .qx-cap{margin-top:5.2em!important}.qx-fig2{margin-bottom:150px}html[data-lang=ja] .qx-fig2 .qx-cap,html:not([data-lang=en]) .qx-fig2 .qx-cap{margin-top:3.4em!important}html:not([data-lang=en]) .qx-fig2{margin-bottom:120px}}

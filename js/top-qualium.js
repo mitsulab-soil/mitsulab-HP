@@ -134,9 +134,9 @@ async function boot(fig, kind) {
       const an = new THREE.Object3D(); an.position.set(BW / 2 - .2 - i * .05, BH / 2, 0); g.add(an); anchors.push(an);
       return g; });
     G.rotation.set(-.08, -.42, 0);
-    fitW = mobile ? 7.2 : 8.2; fitH = mobile ? 5.0 : 6.2;
+    fitW = mobile ? 6.8 : 8.2; fitH = mobile ? 4.4 : 6.2;
     cam.position.set(0, .2, 6);
-    const per = 2.2, cyc = per * L.length + 3;
+    const per = 1.6, cyc = per * L.length + 9;
     tick = t => {
       const tt = reduce ? cyc - 1 : t % cyc;
       panes.forEach((g, i) => { const k = Math.min(1, Math.max(0, (tt - i * per) / 1.1)); const e = k * k * (3 - 2 * k); const out = tt > cyc - .8 ? (cyc - tt) / .8 : 1;
