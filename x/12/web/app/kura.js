@@ -161,6 +161,14 @@ export function kuraGeos(type) {
   // 2 階：厚い土壁（手前を 0.25 m 引っこめる）
   const z2 = hd - .25;
   A.shikkui.box(-hw, T.h1, -hd, hw, T.h2, z2, 1, "xXzZ");
+  // 2026-10-27 壁を平らな箱にしない：2 階の両端に袖壁（防火の厚い土の壁を通りへ突き出し、上に瓦の笠）・床の高さの水切り（瓦の段）・2 階の腰の段
+  for (const sx of [-1, 1]) { const xo = sx * hw, xi = sx * (hw - .42), x0 = Math.min(xo, xi), x1 = Math.max(xo, xi);
+    A.shikkui.box(x0, T.h1, z2, x1, T.h2 - .7, hd + .55);   // 袖壁
+    A.tile.box(x0 - .06, T.h2 - .7, z2, x1 + .06, T.h2 - .55, hd + .7, 1, "xXZY");   // 袖壁の笠
+    A.shikkui.box(x0 - .03, T.h1, hd + .3, x1 + .03, T.h1 + .45, hd + .6); }   // 袖壁の足もとの段
+  A.tile.box(-hw + .42, T.h1 + .38, z2, hw - .42, T.h1 + .48, z2 + .22, 1, "ZYy");   // 水切り（2 階の床の高さの瓦の段）
+  A.shikkui.box(-hw + .42, T.h1 + .48, z2, hw - .42, T.h1 + .78, z2 + .1, 1, "ZY");   // 2 階の腰の段
+  A.shikkui.box(-hw + .42, T.h2 - 1.0, z2, hw - .42, T.h2 - .7, z2 + .12, 1, "ZYy");   // 鉢巻の下の段
   // 観音開きの窓：壁の穴の暗がり＋両側へ開いた厚い扉（土扉の模式）
   for (let i = 0; i < T.win; i++) {
     const cx = -hw + W * (i + .5) / T.win, ww = T.win === 1 ? 1.6 : 1.05, wy0 = T.h1 + 1.0, wy1 = wy0 + 1.15;

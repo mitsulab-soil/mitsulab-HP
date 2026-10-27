@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q6";
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k10";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k11";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
@@ -25,7 +25,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261027b";
+const VER = "20261027c";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -227,7 +227,7 @@ function buildMarkings() {   // 川越：渋谷・大宮と同じ作り（2026-1
     // 2026-10-27 本人「道路もリアルに」：横断歩道（OSM の crossing）・車道の中央の破線と外側線・縁石（模式・実寸）。店名や字は描かない
   const solid = [], dash = [], zebra = [], curb = [];
   for (const r of G.roads) { if (!/^(trunk|primary|secondary|tertiary|unclassified|residential)$/.test(r.k) || r.p.length < 2 || /大正浪漫|クレアモール|菓子屋/.test(r.nm || "")) continue;   /* 川越：歩行者の通りには線も縁石も引かない */ const P = densify(r.p, 3);
-    if (r.w >= 7) { dash.push(ribbon(P, .15, .07, 1)); for (const sg of [-1, 1]) { const E = offsetLine(P, sg * (r.w / 2 - .35)); solid.push(ribbon(E, .15, .07, 1)); curb.push(ribbon(offsetLine(P, sg * (r.w / 2 + .12)), .24, .16, 1)); } }
+    if (r.w >= 7) { if (!/中央通り|一番街/.test(r.nm || "")) dash.push(ribbon(P, .15, .07, 1));   /* 2026-10-27 一番街（中央通り）は中央線の有無を典拠で確かめられないので引かない（控えめに） */ for (const sg of [-1, 1]) { const E = offsetLine(P, sg * (r.w / 2 - .35)); solid.push(ribbon(E, .15, .07, 1)); curb.push(ribbon(offsetLine(P, sg * (r.w / 2 + .12)), .24, .16, 1)); } }
     else if (r.w >= 5) { for (const sg of [-1, 1]) curb.push(ribbon(offsetLine(P, sg * (r.w / 2 + .1)), .2, .14, 1)); } }
   for (const x of G.xing || []) { const P = []; for (let i = 1; i + 1 < x.length; i += 2) P.push([x[i], x[i + 1]]); if (P.length > 1) zebra.push(ribbon(densify(P, 2), x[0], .075, 1)); }
   const add = (gs, mat, nm) => { if (!gs.length) return; const m = new THREE.Mesh(mergeIdx(gs), mat); m.name = nm; m.renderOrder = 1; world.add(m); };
@@ -472,7 +472,7 @@ function eraAt(ring) {
   return 0;
 }
 const ERA_TONES = { 1: [[.07, .26, .19], [.09, .3, .23], [.34, .31, .26], [.22, .14, .1]], 2: [[.3, .26, .21], [.2, .2, .2], [.33, .3, .26], [.24, .2, .17]], 3: [[.34, .34, .33], [.24, .25, .26], [.4, .37, .33]], 5: [[.42, .4, .36]] };   // 1＝緑青の銅板・モルタル・洗い出し・焦げ茶のタイル／2＝タイル・灰・砂色／3＝明るい灰／5＝漆喰（線形の値・模式）
-const AWN = [[.1, .17, .12], [.24, .07, .06], [.07, .09, .16], [.3, .26, .18], [.16, .16, .15]];   // 日よけ：深緑・えんじ・紺・生成り・灰（字は入れない）
+const AWN = [[.1, .17, .12], [.24, .07, .06], [.07, .09, .16], [.3, .26, .18], [.16, .16, .15]];   // 日よけ：深緑・えんじ・紺・生成り・灰（字は入れない）   // 日よけ：深緑・えんじ・紺・生成り・灰（字は入れない）
 function frontOf(p, q, ring) {   // この壁が、歩ける道か道筋に面しているか（外向きの法線の先 3 m）
   const ex = q.x - p.x, ez = q.y - p.y, L = Math.hypot(ex, ez) || 1; let nx = ez / L, nz = -ex / L; const mx = (p.x + q.x) / 2, mz = (p.y + q.y) / 2;
   if (inRing(ring, mx + nx * .3, mz + nz * .3)) { nx = -nx; nz = -nz; }
@@ -665,13 +665,23 @@ const AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY: (x, z) => gr
 
 /* ---------- 写実の 3D：店蔵の型（模式）と時の鐘 ---------- */
 const KURA = { meshes: [] };
+/* 2026-10-27 一番街の店蔵は、Blender で 1 棟作り込んだ型（_dev/blender/kura_master.py → web/app/kura_master.glb・本瓦の丸瓦を一枚ずつ・箱棟の熨斗瓦・三重の鬼瓦と経の巻・観音扉の三段・袖壁・置き屋根）を町に広げる。読めなければ従来の型 */
+let KURA_GLB = null;
+function loadKuraMaster() {
+  return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
+    ld.load("web/app/kura_master.glb?v=6", g => { g.scene.updateMatrixWorld(true); const out = {};
+      g.scene.traverse(o => { if (o.isMesh) { const k = o.name.replace(/[._]\d+$/, ""); const geo = o.geometry.clone(); geo.applyMatrix4(o.matrixWorld); for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); out[k] = geo; } });
+      res(out); }, undefined, () => res(null)); }); }
 function buildKura() {
+  loadKuraMaster().then(gm => buildKura2(gm));
+}
+function buildKura2(GM) {
   const M = kuraMats(TL, MOBILE), byType = {};
   for (const k of G.kura) (byType[k.type] ||= []).push(k);
   for (const t in byType) {
-    const { geos } = kuraGeos(t), list = byType[t];
+    const geos = GM || kuraGeos(t).geos, list = byType[t];
     for (const mk in geos) {
-      const mat = mk === "oni" ? M.tile : M[mk]; const im = new THREE.InstancedMesh(geos[mk], mat, list.length);
+      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .22; m.clearcoat = MOBILE ? 0 : .6; if (MOBILE) { m.roughness = .6; m.envMapIntensity = 1.1; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : M[mk];   /* 型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], mat, list.length);
       const o = new THREE.Object3D();
       list.forEach((k, i) => { o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
       im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im);

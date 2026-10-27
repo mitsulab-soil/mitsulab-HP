@@ -10,17 +10,17 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261027b" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261027b" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261027b" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261027c" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261027c" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261027c" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261027b">
+<link rel="modulepreload" href="web/app/app.js?v=20261027c">
 <link rel="modulepreload" href="web/app/layers.js?v=k2">
 <link rel="modulepreload" href="web/app/qmarks.js?v=q6">
-<link rel="modulepreload" href="web/app/kura.js?v=k10">
+<link rel="modulepreload" href="web/app/kura.js?v=k11">
 <link rel="modulepreload" href="web/app/bell.js?v=k1">
 <link rel="modulepreload" href="web/app/herewalk.js?v=2">
 <link rel="modulepreload" href="web/app/soundwalk.js?v=1">
@@ -29,7 +29,7 @@
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
 <link rel="modulepreload" href="web/app/areas.js?v=5">
 <link rel="modulepreload" href="web/lite/startpins.js?v=1">
-<link rel="preload" href="web/app/content.json?v=20261027b" as="fetch" crossorigin>
+<link rel="preload" href="web/app/content.json?v=20261027c" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -591,6 +591,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261027b").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261027c").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
