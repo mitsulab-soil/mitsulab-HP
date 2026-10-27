@@ -113,7 +113,7 @@ function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i,
 export function makeLabel(no, layer, title, color) {
   const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const x = cv.getContext("2d");
   // 2026-10-22 箱をやめ、視野に重なる札に：左の細い線と角だけ。字の下だけ、横にうすく暗く（明るい空や地面でも読める）
-  const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.72)"); gr.addColorStop(.7, "rgba(3,6,15,.4)"); gr.addColorStop(1, "rgba(3,6,15,0)");
+  const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.84)"); gr.addColorStop(.75, "rgba(3,6,15,.6)");   /* 10-28：空の前でも読めるよう地を濃く */ gr.addColorStop(1, "rgba(3,6,15,0)");
   x.fillStyle = gr; x.fillRect(0, 22, W, 84);
   x.fillStyle = color; x.fillRect(0, 18, 3, 92); x.fillRect(0, 18, 22, 2); x.fillRect(0, 108, 22, 2);
   // 2026-10-22 夜 電脳の HUD の字：番号と層は細いモノスペースで層の色に光り、名前は層の色を帯びた明朝。暗い影の上に、色のにじむ光を重ねる
@@ -122,7 +122,8 @@ export function makeLabel(no, layer, title, color) {
   const w0 = x.measureText(`L${String(no).padStart(2, "0")} ⁄ `).width; x.font = `500 21px ${FONT}`; glow(layer, 22 + w0, 50, color, 10);
   x.fillStyle = color; for (let i = 0; i < 6; i++) x.fillRect(W - 120 + i * 9, 40, 5, 2);   // 右の小さな刻み
   let fs = 38; x.font = `600 ${fs}px ${FONT}`; while (x.measureText(title).width > W - 44 && fs > 22) { fs -= 2; x.font = `600 ${fs}px ${FONT}`; }
-  glow(title, 22, 94, mixHex(color, "#f2fbff", .7), 14);
+  x.lineJoin = "round"; x.lineWidth = 6; x.strokeStyle = "rgba(2,5,12,.9)"; x.strokeText(title, 22, 94);   // 10-28：字のふちを暗く（細い明朝が空に溶けないように）
+  glow(title, 22, 94, mixHex(color, "#ffffff", .82), 8);
   x.shadowBlur = 0; x.shadowColor = "transparent";
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, depthTest: true, fog: false }));   // 2026-10-26 遠くの札が霧で淡くならないように
