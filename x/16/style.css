@@ -105,3 +105,10 @@ html,body{margin:0;height:100%;background:var(--ml-bg);color:var(--ml-ink);font-
   .panel{max-height:34vh}
   .panel.open{max-height:70vh}
 }
+
+/* v8：小さな字を読みやすく（14px 以上・濃さを上げる） */
+.src .g,.series .ml-label,.panel .grp,.vol,.tag{font-size:13px}
+.tag,.vol,.foot,.detail .note{color:var(--ml-ink-2)}
+.foot{font-size:12.5px;opacity:.75}
+.cap .who,.cap2 span{font-size:12px}
+@media (min-width:760px){.src .t{font-size:16px}.panel .sub{font-size:14px}.tag{font-size:13.5px}}

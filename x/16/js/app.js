@@ -13,12 +13,12 @@ const mobile = () => innerWidth < 760;
 const cv = $("#stage");
 const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: "high-performance" });
 renderer.setPixelRatio(Math.min(devicePixelRatio, mobile() ? 1.25 : 1.5));
-renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.35;
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.75;
 renderer.shadowMap.enabled = false;   // 起動 5 秒のため影の地図は使わない（光と霧で形を出す） renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
-const BG = new THREE.Color(0x060b14); scene.background = BG; scene.fog = new THREE.FogExp2(0x070d18, .04);
+const BG = new THREE.Color(0x13202e); scene.background = BG; scene.fog = new THREE.FogExp2(0x16222f, .035);
 const camera = new THREE.PerspectiveCamera(42, 1, .05, 200);
-const hemi = new THREE.HemisphereLight(0xa8c8dc, 0x2a2014, 1.0); scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0xb8d4e4, 0x3a2c1c, 1.6); scene.add(hemi);
 const key = new THREE.DirectionalLight(0xffe2c0, 1.6); key.position.set(4, 7, 5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
 Object.assign(key.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: .5, far: 30 }); scene.add(key);
 const rim = new THREE.DirectionalLight(0x5cc8e0, .9); rim.position.set(-5, 3, -4); scene.add(rim);
@@ -192,16 +192,16 @@ V.vib = (() => {
   const G = new THREE.Group(); G.position.set(-6, 0, -16); scene.add(G);
   const pts = []; for (let i = 0; i <= 10; i++) pts.push(new THREE.Vector3(Math.sin(i * .5) * .12, i * .2, Math.cos(i * .4) * .06));
   const curve = new THREE.CatmullRomCurve3(pts), stemM = new THREE.MeshStandardMaterial({ color: 0x6e8a4a, roughness: .6 });
-  G.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 80, .025, 10), stemM));
+  { const tg = new THREE.TubeGeometry(curve, 80, .025, 12), tp = tg.attributes.position, nrm = tg.attributes.normal; for (let i = 0; i < tp.count; i++) { const seg = Math.floor(i / 13) / 80, k = .55 - .5 * seg; tp.setXYZ(i, tp.getX(i) - nrm.getX(i) * .025 * (1 - k - .45) , tp.getY(i) - nrm.getY(i) * .025 * (1 - k - .45), tp.getZ(i) - nrm.getZ(i) * .025 * (1 - k - .45)); } tg.computeVertexNormals(); G.add(new THREE.Mesh(tg, stemM)); }
   const leafShape = new THREE.Shape(); leafShape.moveTo(0, 0); leafShape.quadraticCurveTo(.16, .22, 0, .55); leafShape.quadraticCurveTo(-.16, .22, 0, 0);
   const leafM = new THREE.MeshStandardMaterial({ color: 0x55743c, roughness: .55, side: THREE.DoubleSide });
-  for (let i = 2; i < 10; i += 1.3) { const p = curve.getPoint(i / 10), l = new THREE.Mesh(new THREE.ShapeGeometry(leafShape, 12), leafM); l.position.copy(p); l.rotation.set(-.6, i * 2.1, (i % 2 ? 1 : -1) * .9); G.add(l); }
-  const bugAt = curve.getPoint(.62), bug = new THREE.Mesh(new THREE.SphereGeometry(.05, 16, 10), new THREE.MeshStandardMaterial({ color: 0x5a4a2a, roughness: .4 })); bug.scale.set(1, .7, 1.6); bug.position.copy(bugAt).add(new THREE.Vector3(.05, 0, .03)); G.add(bug);
+  for (let i = 2; i < 10; i += 1.3) { const p = curve.getPoint(i / 10), lg = new THREE.ShapeGeometry(leafShape, 16), lp = lg.attributes.position; for (let j = 0; j < lp.count; j++) { const x = lp.getX(j), y = lp.getY(j); lp.setZ(j, x * x * 3.2 + Math.sin(y / .55 * Math.PI) * .03); } lg.computeVertexNormals(); const l = new THREE.Mesh(lg, leafM); l.position.copy(p); l.rotation.set(-.6, i * 2.1, (i % 2 ? 1 : -1) * .9); G.add(l); }
+  const bugAt = curve.getPoint(.62), bug = new THREE.Group(); { const cm = new THREE.MeshPhysicalMaterial({ color: 0x4a3c22, roughness: .35, clearcoat: .8, clearcoatRoughness: .3 }); const ab = new THREE.Mesh(new THREE.SphereGeometry(.03, 20, 14), cm); ab.scale.set(1, .75, 1.7); ab.position.z = -.03; bug.add(ab); const th = new THREE.Mesh(new THREE.SphereGeometry(.022, 16, 12), cm); th.position.z = .025; bug.add(th); const hd = new THREE.Mesh(new THREE.SphereGeometry(.014, 14, 10), cm); hd.position.z = .05; bug.add(hd); const lm2 = new THREE.MeshStandardMaterial({ color: 0x2a2014, roughness: .6 }); for (const sx of [-1, 1]) for (const zz of [-.01, .015, .035]) { const lgm = new THREE.Mesh(new THREE.CylinderGeometry(.0025, .002, .05, 5), lm2); lgm.position.set(sx * .028, -.012, zz); lgm.rotation.set(0, 0, sx * 1.1); bug.add(lgm); } for (const sx of [-1, 1]) { const an = new THREE.Mesh(new THREE.CylinderGeometry(.0012, .0012, .05, 4), lm2); an.position.set(sx * .008, .01, .075); an.rotation.set(1.1, 0, sx * .3); bug.add(an); } } bug.position.copy(bugAt).add(new THREE.Vector3(.05, 0, .03)); G.add(bug);
   const beads = []; for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(.02, 8, 6), additive(0xd8f09a, 0)); G.add(m); beads.push({ m, u: 0, dir: 1, life: 0 }); }
   const L = label("振動は茎をつたう（空気へはほとんど出ない）", "#d8f09a", 760); L.position.set(.3, 2.25, 0); L.scale.multiplyScalar(.8); G.add(L);
   let bi = 0;
   return { group: G, cam: [[-6 + 1.6, 1.5, -16 + 2.4], [-6, 1.1, -16]], camM: [[-6 + 1.3, 1.7, -16 + 3.6], [-6, 1.15, -16]], aoi: [-7.4, -14.6], focus: bug.getWorldPosition(new THREE.Vector3()),
-    on(k, v) { for (const d of [1, -1]) { const b = beads[bi = (bi + 1) % beads.length]; b.u = .62; b.dir = d; b.life = 1; } bug.scale.set(1.08, .74, 1.66); setTimeout(() => bug.scale.set(1, .7, 1.6), 40); },
+    on(k, v) { for (const d of [1, -1]) { const b = beads[bi = (bi + 1) % beads.length]; b.u = .62; b.dir = d; b.life = 1; } bug.scale.setScalar(1.08); setTimeout(() => bug.scale.setScalar(1), 40); },
     tick(t, dt) { for (const b of beads) { if (b.life <= 0) { b.m.material.opacity = 0; continue; } b.u += b.dir * dt * .9; b.life -= dt * 1.1; if (b.u < 0 || b.u > 1) b.life = 0; else { b.m.position.copy(curve.getPoint(b.u)); b.m.material.opacity = b.life; b.m.scale.setScalar(1 + (1 - b.life) * 1.2); } } } };
 })();
 
@@ -211,14 +211,14 @@ V.bat = (() => {
   // 家の屋根（漆喰ではなく、岩の質感の重い屋根の影）
   // 家は置かず、夜の木立の上を飛ぶ（展示の余白）
   const bat = new THREE.Group(); bat.scale.setScalar(5.5); const batLight = new THREE.PointLight(0xc8bcff, 3, 4, 1.5); bat.add(batLight); G.add(bat); const lamp = new THREE.PointLight(0xffc98a, 6, 8, 1.6); lamp.position.set(.6, 1.6, 2.6); G.add(lamp);
-  const wm = new THREE.MeshStandardMaterial({ color: 0x5a4840, emissive: 0x1c1512, roughness: .6, side: THREE.DoubleSide, transparent: true, opacity: .9 });
+  const wm = new THREE.MeshStandardMaterial({ color: 0x5a4840, emissive: 0x2a201a, roughness: .55, side: THREE.DoubleSide });
   // 翼：腕と指の骨のあいだに膜。左右対称（右を作って鏡に写す）。座標は翼の面（x＝外へ・y＝前へ）
   const SH = [.02, .03], WR = [.15, .07], TIPS = [[.33, .02], [.29, -.08], [.19, -.115]], FOOT = [.045, -.075];
   const ws = new THREE.Shape(); ws.moveTo(SH[0], SH[1]); ws.lineTo(WR[0], WR[1]); ws.lineTo(TIPS[0][0], TIPS[0][1]);
   ws.quadraticCurveTo(.28, -.02, TIPS[1][0], TIPS[1][1]); ws.quadraticCurveTo(.22, -.06, TIPS[2][0], TIPS[2][1]); ws.quadraticCurveTo(.1, -.06, FOOT[0], FOOT[1]); ws.lineTo(.02, -.05); ws.lineTo(SH[0], SH[1]);
   const bm = new THREE.MeshStandardMaterial({ color: 0x241a16, roughness: .6 }), up = new THREE.Vector3(0, 1, 0);
   const bone = (a, b, r) => { const A = new THREE.Vector3(a[0], a[1], .002), B = new THREE.Vector3(b[0], b[1], .002), d = B.clone().sub(A), m = new THREE.Mesh(new THREE.CylinderGeometry(r * .7, r, 1, 6), bm); m.scale.y = d.length(); m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromUnitVectors(up, d.normalize()); return m; };
-  const wing = () => { const w = new THREE.Group(), f = new THREE.Group(); f.rotation.x = -Math.PI / 2; w.add(f); f.add(new THREE.Mesh(new THREE.ShapeGeometry(ws, 24), wm)); f.add(bone(SH, WR, .005)); for (const tp of TIPS) f.add(bone(WR, tp, .0028)); f.add(bone(WR, [.17, .1], .003)); return w; };
+  const wing = () => { const w = new THREE.Group(), f = new THREE.Group(); f.rotation.x = -Math.PI / 2; w.add(f); { const mg2 = new THREE.ShapeGeometry(ws, 32), mp2 = mg2.attributes.position; for (let j = 0; j < mp2.count; j++) { const x = mp2.getX(j), y = mp2.getY(j); mp2.setZ(j, -.022 * Math.sin(Math.min(1, x / .33) * Math.PI) * Math.max(0, .1 - Math.abs(y - .0)) * 10); } mg2.computeVertexNormals(); f.add(new THREE.Mesh(mg2, wm)); } f.add(bone(SH, WR, .005)); for (const tp of TIPS) f.add(bone(WR, tp, .0028)); f.add(bone(WR, [.17, .1], .003)); return w; };
   const wrg = wing(), wlg = wing(); wlg.scale.x = -1; bat.add(wrg, wlg);
   { const fur = new THREE.MeshStandardMaterial({ map: soilT, color: 0x8a6a52, roughness: 1 }); const body = new THREE.Mesh(new THREE.SphereGeometry(.035, 14, 10), fur); body.scale.set(1.1, 1, 1.7); bat.add(body);
     const hd = new THREE.Mesh(new THREE.SphereGeometry(.022, 14, 10), fur); hd.position.set(0, .005, .058); bat.add(hd);
