@@ -687,8 +687,8 @@ const KURA = { meshes: [] }; QW.KURA = KURA;
 let KURA_GLB = null;
 function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
-    ld.load("web/app/kura_master.glb?v=6", g => { g.scene.updateMatrixWorld(true); const out = {};
-      g.scene.traverse(o => { if (o.isMesh) { const k = o.name.replace(/[._]\d+$/, ""); const geo = o.geometry.clone(); geo.applyMatrix4(o.matrixWorld); for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); out[k] = geo; } });
+    ld.load("web/app/kura_master.glb?v=7", g => { g.scene.updateMatrixWorld(true); const out = {};
+      g.scene.traverse(o => { if (o.isMesh) { const k = o.name.replace(/[._]\d+$/, ""); const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); out[k] = geo; } });
       res(out); }, undefined, () => res(null)); }); }
 function buildKura() {
   loadKuraMaster().then(gm => buildKura2(gm));
