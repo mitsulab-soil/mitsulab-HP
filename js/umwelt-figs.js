@@ -241,11 +241,11 @@ async function boot(root, SC) {
     const mk = lb => { if (!lb._g) { lb._g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); lb._g.innerHTML = '<polyline fill="none"/><circle r="2.4"/><text text-anchor="middle"></text>'; lb._g.style.color = lb.style.getPropertyValue('--c') || '#a8f2f6'; svg.appendChild(lb._g); } lb._g.style.display = ''; return lb._g; };
     const all = [...side.L, ...side.R];
     if (W < 520) {
-      all.sort((p, q) => p.px - q.px); let rowH = 0;
-      all.forEach((o, i) => { o.lb.style.width = ((W - 12) / 2 - 8) + 'px'; o.lb.dataset.n = i + 1; rowH = Math.max(rowH, o.lb.offsetHeight + 8); });
-      all.forEach((o, i) => { const x = 4 + (i % 2) * (W - 12) / 2, y = H + 10 + Math.floor(i / 2) * rowH; o.lb.style.transform = `translate3d(${x | 0}px,${y | 0}px,0)`;
-        const g = mk(o.lb); g.children[0].setAttribute('points', ''); g.children[1].setAttribute('r', 8); let mx = o.px, my = o.py; if (o.lb.dataset.at === 'qualium') { mx += 20; my -= 24; g.children[0].setAttribute('points', `${mx},${my} ${o.px},${o.py}`); } all.slice(0, i).forEach(q => { if (Math.hypot(q.mx - mx, q.my - my) < 20) my = q.my + (my >= q.my ? 20 : -20); }); o.mx = mx; o.my = my; g.children[1].setAttribute('cx', mx); g.children[1].setAttribute('cy', my); g.children[2].textContent = i + 1; g.children[2].setAttribute('x', mx); g.children[2].setAttribute('y', my + 3.5); });
-      cv.parentElement.style.marginBottom = (Math.ceil(all.length / 2) * rowH + 10) + 'px'; root.classList.add('nar');
+      all.sort((p, q) => p.px - q.px); let rowH = 0; const NC = document.documentElement.lang === 'en' || document.documentElement.dataset.lang === 'en' ? 1 : 2;
+      all.forEach((o, i) => { o.lb.style.width = ((W - 12) / NC - 8) + 'px'; o.lb.dataset.n = i + 1; rowH = Math.max(rowH, o.lb.offsetHeight + 8); });
+      all.forEach((o, i) => { const x = 4 + (i % NC) * (W - 12) / NC, y = H + 10 + Math.floor(i / NC) * rowH; o.lb.style.transform = `translate3d(${x | 0}px,${y | 0}px,0)`;
+        const g = mk(o.lb); g.children[0].setAttribute('points', ''); g.children[1].setAttribute('r', 8); let mx = o.px, my = o.py; const isQ = o.lb.dataset.at === 'qualium'; if (isQ) { mx -= 26; my -= 26; } all.slice(0, i).forEach(q => { if (Math.hypot(q.mx - mx, q.my - my) < 20) my = q.my + (my >= q.my ? 20 : -20); }); o.mx = mx; o.my = my; if (isQ) { const pl = g.children[0]; pl.setAttribute('points', `${mx},${my} ${o.px},${o.py}`); pl.setAttribute('stroke', 'currentColor'); pl.setAttribute('stroke-width', '1.2'); } g.children[1].setAttribute('cx', mx); g.children[1].setAttribute('cy', my); g.children[2].textContent = i + 1; g.children[2].setAttribute('x', mx); g.children[2].setAttribute('y', my + 3.5); });
+      cv.parentElement.style.marginBottom = (Math.ceil(all.length / NC) * rowH + 10) + 'px'; root.classList.add('nar');
       return;
     }
     root.classList.remove('nar'); cv.parentElement.style.marginBottom = '';
