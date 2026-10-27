@@ -151,7 +151,7 @@ function nearest(cx, cy, maxPx) {
   return best;
 }
 function hover(e) { if (MOBILE) return; cv.classList.toggle("hot", !!nearest(e.clientX, e.clientY, 18)); }
-function tap(x, y) { const r = nearest(x, y, MOBILE ? 30 : 22); if (r) openCard(r); }
+function tap(x, y) { const h = nearestActor(x, y, MOBILE ? 36 : 28); if (h) { pickActor(h); return; } const r = nearest(x, y, MOBILE ? 30 : 22); if (r) openCard(r); }
 
 // ---- 札と声
 const NAME = { tree: "木", soil: "土", water: "水", life: "生きもの" };
@@ -191,9 +191,92 @@ $("#bList").addEventListener("click", () => setList($("#panel").hidden));
 $("#bListX").addEventListener("click", () => setList(false));
 $("#bSound").addEventListener("click", e => { soundOn = !soundOn; e.target.setAttribute("aria-pressed", String(soundOn)); e.target.textContent = soundOn ? "声 入" : "声 切"; if (!soundOn) stopVoice(); });
 
+// ---- 自然のアクターとつながり（2026-10-27 本人「自然のアクターを増やし、関係性を体感できるように」）
+// どのつながりも、nature.json の典拠つきの記録（rec）から。記録に書いてあることだけを線にする。風は典拠のある記録がまだ無いので置かない。
+const ACTORS = [
+  { id: "tree", name: "木", p: [0, 4.2, 0] },
+  { id: "bird", name: "鳥", p: [3.2, 8.6, 1.6] },
+  { id: "insect", name: "虫", p: [-3.1, 5.2, 1.8] },
+  { id: "fungi", name: "菌", p: [1.2, .7, 1.3] },
+  { id: "soilife", name: "土の生きもの", p: [-2.2, -.3, 6.95] },
+  { id: "soil", name: "土", p: [5.2, -.5, 5.0] },
+  { id: "water", name: "水", p: [4.1, .5, 2.9] },
+];
+const RELS = [
+  { a: "insect", b: "tree", t: "チョウの幼虫が、エノキの葉や、スダジイなどブナ科の常緑の木の葉を食べる（とされる）", rec: ["s_lf_z_enoki", "s_lf_z_shii"] },
+  { a: "insect", b: "tree", t: "ニイニイゼミが、サクラなどの木に集まる", rec: ["s_lf_z_niinii"], bend: -1 },
+  { a: "bird", b: "tree", t: "鳥が実を食べ、木の種を別の場所へ運ぶ", rec: ["s_lf_z_seed", "s_lf_z_muku"] },
+  { a: "bird", b: "tree", t: "サクラが咲くと、メジロやヒヨドリが花に集まる", rec: ["s_lf_z_sakura"], bend: -1 },
+  { a: "tree", b: "soilife", t: "落ち葉が、土の中の小さな生きものの食べものになる", rec: ["s_tr9_ochiba", "s_lf_z_dojou"] },
+  { a: "soilife", b: "fungi", t: "ササラダニが落ち葉をかみくだくことで、菌による分解も進むと考えられている", rec: ["s_lf_z_bunkai"] },
+  { a: "soil", b: "tree", t: "分解で放たれた養分を、木がまた吸い上げる", rec: ["s_tr9_ochiba"] },
+  { a: "soilife", b: "soil", t: "ミミズが穴を掘り、昆虫やダニが土のすき間にすむ", rec: ["s_lf_z_root", "s_lf_z_sasara"] },
+  { a: "fungi", b: "tree", t: "菌が藻と共生した地衣類が、幹に付く", rec: ["n_chii"] },
+  { a: "fungi", b: "tree", t: "林の木に、キノコが生える（伐られた木との関係は分かっていない）", rec: ["x_kinoko"], bend: -1 },
+  { a: "soil", b: "water", t: "台地から低地へ移る所に水が湧き、池になる", rec: ["x_yusui_ikegike"] },
+  { a: "water", b: "bird", t: "冬から春の池で、水鳥が記録されている", rec: ["x_mizutori"] },
+];
+const WEB_C = { tree: 0x88b68f, bird: 0xa8d8f0, insect: 0xf2cf8c, fungi: 0xe0c8f0, soilife: 0xd8a888, soil: 0xc89870, water: 0x78d6ec };
+const web = { hubs: [], rels: [], sel: null };
+function webSprite(text) {
+  const c = document.createElement("canvas"), g = c.getContext("2d"), f = '600 44px "Shippori Mincho","Hiragino Mincho ProN",serif'; g.font = f; const w = Math.ceil(g.measureText(text).width) + 36; c.width = w; c.height = 64;
+  g.font = f; g.fillStyle = "rgba(3,6,15,.62)"; g.fillRect(0, 6, w, 52); g.fillStyle = "#eef5fb"; g.textBaseline = "middle"; g.fillText(text, 18, 33);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false, toneMapped: false })); s.scale.set(.56 * w / 64, .56, 1); s.renderOrder = 5; return s;
+}
+function buildWeb() {
+  const byId = Object.fromEntries(items.map(x => [x.id, x]));
+  for (const A of ACTORS) {
+    const g = new THREE.Group(); g.position.set(...A.p); const col = WEB_C[A.id];
+    const core = new THREE.Mesh(new THREE.SphereGeometry(.16, 16, 12), new THREE.MeshBasicMaterial({ color: col, toneMapped: false }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(.3, .345, 40), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .7, side: THREE.DoubleSide, toneMapped: false, depthWrite: false }));
+    const lab = webSprite(A.name); lab.position.y = .62; g.add(core, ring, lab); scene.add(g);
+    web.hubs.push({ ...A, g, ring, v: new THREE.Vector3(...A.p) });
+  }
+  const H = Object.fromEntries(web.hubs.map(h => [h.id, h]));
+  for (const R0 of RELS) {
+    const a = H[R0.a].v, b = H[R0.b].v, mid = a.clone().lerp(b, .5), off = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3(0, 1, 0)).normalize().multiplyScalar((R0.bend || 1) * a.distanceTo(b) * .18);
+    mid.add(off).y += a.distanceTo(b) * .15;
+    const cur = new THREE.QuadraticBezierCurve3(a.clone(), mid, b.clone()), pts = cur.getPoints(40);
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: WEB_C[R0.a], transparent: true, opacity: .16, depthWrite: false, toneMapped: false }));
+    const NF = 10, fp = new Float32Array(NF * 3), flow = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(fp, 3)), new THREE.PointsMaterial({ color: WEB_C[R0.a], size: .12, transparent: true, opacity: .35, depthWrite: false, toneMapped: false }));
+    flow.frustumCulled = false; scene.add(line, flow);
+    web.rels.push({ ...R0, cur, line, flow, fp, NF, ph: Math.random(), recs: R0.rec.map(id => byId[id]).filter(Boolean) });
+  }
+  // 目録に「つながり」の節（それぞれの典拠の記録をひらく）
+  const list = $("#list"), sec = document.createElement("section"); sec.className = "grp"; sec.dataset.cat = "web";
+  sec.innerHTML = `<h2>つながり<small>${RELS.length} 本 ／ 木・鳥・虫・菌・土の生きもの・土・水</small></h2>`; const w = document.createElement("div"); w.className = "items";
+  for (const r of web.rels) for (const x of r.recs.slice(0, 1)) { const b = document.createElement("button"); b.type = "button"; b.className = "it"; b.innerHTML = `${esc(r.t)}<small>${H[r.a].name} ─ ${H[r.b].name} ・ 典拠の記録：${esc(x.title)}</small>`; b.addEventListener("click", () => { pickActor(H[r.a]); openCard(x, "つながり"); }); w.appendChild(b); }
+  sec.appendChild(w); list.prepend(sec);
+}
+window.__qnWeb = id => { const h = web.hubs.find(x => x.id === id); if (!h) return null; _v.copy(h.v).project(camera); const o = cv.getBoundingClientRect(); return [o.left + (_v.x * .5 + .5) * o.width, o.top + (-_v.y * .5 + .5) * o.height]; };
+function nearestActor(cx, cy, maxPx) {
+  const o = cv.getBoundingClientRect(); let best = null, bd = maxPx;
+  for (const h of web.hubs) { _v.copy(h.v).project(camera); if (_v.z > 1) continue; const d = Math.hypot(o.left + (_v.x * .5 + .5) * o.width - cx, o.top + (-_v.y * .5 + .5) * o.height - cy); if (d < bd) { bd = d; best = h; } }
+  return best;
+}
+function pickActor(h) {
+  web.sel = web.sel === h ? null : h;
+  if (!web.sel) { say("つながりの表示を戻しました。", 2500); return; }
+  const mine = web.rels.filter(r => r.a === h.id || r.b === h.id);
+  say(MOBILE ? `${h.name} ── ${mine[0].t}。ほか ${mine.length - 1} 本（目録の「つながり」に典拠）` : `${h.name} ── ` + mine.map(r => r.t).join("。 ") + "。（目録の「つながり」から、それぞれの典拠をひらけます）", 9000 + mine.length * 1500);
+  aoi?.motion.point?.(h.v, 2.6); aoi?.motion.lookAt(h.v); aoi?.motion.express("curious", .5, 2);
+}
+function webTick(dt) {
+  const s = web.sel;
+  for (const h of web.hubs) { h.ring.quaternion.copy(camera.quaternion); const k = s ? (s === h ? 1.35 : .85) : 1; h.g.scale.setScalar(k + Math.sin(performance.now() / 600 + h.v.x) * .04); }
+  for (const r of web.rels) {
+    const hot = s && (r.a === s.id || r.b === s.id), dim = s && !hot;
+    r.line.material.opacity = hot ? .8 : dim ? .06 : .3; r.flow.material.opacity = hot ? 1 : dim ? .08 : .55;
+    r.ph = (r.ph + dt * (hot ? .35 : .12)) % 1;
+    for (let i = 0; i < r.NF; i++) { const p = r.cur.getPoint((r.ph + i / r.NF) % 1); r.fp[i * 3] = p.x; r.fp[i * 3 + 1] = p.y; r.fp[i * 3 + 2] = p.z; }
+    r.flow.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
 // ---- 字幕（碧の名乗りは字だけ）
 let capT = 0;
-function say(t, ms) { const c = $("#cap"); c.textContent = t; c.classList.add("on"); clearTimeout(capT); capT = setTimeout(() => c.classList.remove("on"), ms); }
+function say(t, ms, force = true) { if (!force && web.sel) return; const c = $("#cap"); c.textContent = t; c.classList.add("on"); clearTimeout(capT); capT = setTimeout(() => c.classList.remove("on"), ms); }
 
 // ---- 碧（右上の小さな窓）
 const aoiScene = new THREE.Scene();
@@ -202,7 +285,7 @@ const aoiCam = new THREE.PerspectiveCamera(26, .74, .1, 20); aoiCam.position.set
 let aoi = null;
 const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "aoi.vrm";
 async function loadAoi() {
-  try { const K = await import("./kit/aoi.js"); aoi = await K.loadAoi(AOI_URL, { scene: aoiScene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi.place(0, 0, 0); }
+  try { const K = await import("./kit/aoi.js"); aoi = await K.loadAoi(AOI_URL, { scene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi.place(-2.6, 4.3, .5); aoi.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：木の手前の地面に立つ
   catch (e) { console.warn("碧：", e?.message ?? e); }
 }
 
@@ -239,14 +322,11 @@ function frame(now) {
   if (first && groups.halo && !reading) { groups.halo.visible = true; groups.halo.position.copy(first.pos); groups.halo.material.opacity = .6 + Math.sin(t * 3) * .35; }
   if (groups.halo?.visible) { groups.halo.quaternion.copy(camera.quaternion); groups.halo.scale.setScalar(1 + Math.sin(t * 4) * .08); }
   for (const L of ["tree", "soil", "water", "life"]) { const g = groups[L]; if (g) g.line.material.opacity = .09 + Math.sin(t * 1.3 + L.length) * .04; }
+  webTick(dt);
   const W = stage.clientWidth, H = stage.clientHeight;
   renderer.setViewport(0, 0, W, H); renderer.setScissorTest(false); renderer.clear(); renderer.render(scene, camera);
   if (aoi) {
-    aoi.tick(dt, aoiCam);
-    const b = $("#aoiBox").getBoundingClientRect(), s = cv.getBoundingClientRect(), x = b.left - s.left, y = s.bottom - b.bottom;
-    renderer.setScissorTest(true); renderer.setScissor(x, y, b.width, b.height); renderer.setViewport(x, y, b.width, b.height);
-    aoiCam.aspect = b.width / b.height; aoiCam.updateProjectionMatrix(); renderer.setClearColor(0x070d1a, 1); renderer.clear(); renderer.render(aoiScene, aoiCam);
-    renderer.setScissorTest(false); renderer.setClearColor(0x03060f, 1);
+    aoi.tick(dt, camera);
   }
 }
 
@@ -258,7 +338,7 @@ const QN = window.__qn = { frames: 0, ready: false, tree: () => !!tree, aoi: () 
     const d = await (await fetch("nature.json")).json();
     items = d.items.map(x => ({ ...x, cat: cat(x) }));
     const rnd = mulberry(2026); items.forEach((x, i) => x.pos = place(x, i, rnd));
-    buildMarks(); buildUI(); applySeason(); first = items.find(x => x.id === "n_keyaki");
+    buildMarks(); buildWeb(); buildUI(); applySeason(); first = items.find(x => x.id === "n_keyaki");
   } catch (e) { console.error("記録を読めませんでした", e); }
   const tr = loadTree().catch(e => console.warn("木：", e?.message ?? e));
   await Promise.race([tr, new Promise(r => setTimeout(r, 2500))]);
@@ -266,5 +346,5 @@ const QN = window.__qn = { frames: 0, ready: false, tree: () => !!tree, aoi: () 
   QN.ready = true;
   setTimeout(loadAoi, 1200);
   setTimeout(() => say("わたしは碧。ビットとアトムのあわいに立ち、この場所の記憶をたどり、五感をひらいて、目の前の風景に層を重ねます。", 8600), 900);
-  setTimeout(() => say(MOBILE ? "まず、白い輪の点に触れてみてください。記録がひらきます。" : "まず、白い輪の点に触れてみてください。記録がひらき、碧が読みます。ドラッグで回り、ホイールで寄れます。", 7000), 9800);
+  setTimeout(() => say(MOBILE ? "まず、白い輪の点に触れてみてください。記録がひらきます。" : "まず、白い輪の点に触れてみてください。記録がひらき、碧が読みます。ドラッグで回り、ホイールで寄れます。", 7000, false), 9800);
 })();

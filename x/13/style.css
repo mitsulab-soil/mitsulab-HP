@@ -26,7 +26,7 @@ body{overflow:hidden}
 .lay[aria-pressed="false"] i{background:transparent;box-shadow:inset 0 0 0 1px var(--ml-ink-3)}
 .lay:focus-visible{outline:2px solid var(--nat-hud);outline-offset:2px}
 
-#aoiBox{position:absolute;right:var(--ml-gutter);top:70px;width:92px;height:124px;pointer-events:none}
+#aoiBox{display:none}
 #cap{position:absolute;left:0;right:0;bottom:66px;margin:0;opacity:0;transition:opacity .6s var(--ml-ease);pointer-events:none;font-size:15px;padding:8px 18%;text-align:center;text-shadow:0 0 10px rgba(3,6,15,1),0 1px 3px rgba(3,6,15,1)}
 #cap.on{opacity:1}
 #cap{background:linear-gradient(180deg,rgba(3,6,15,0),rgba(3,6,15,.82) 30%,rgba(3,6,15,.82) 70%,rgba(3,6,15,0))}
