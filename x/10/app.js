@@ -6,7 +6,7 @@ import { T, setLang, lang } from "./i18n.js?v=20261021";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261021";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
-import { OBJECTS, baseGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027d";
+import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027i";
 
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 899px)").matches;
@@ -151,7 +151,7 @@ function gauges(r, dent, dt) {
   wave3.geometry.attributes.position.needsUpdate = true;
 }
 function updateScan(t) {
-  if (!params) return; const z = ((t * .09) % 1.3) - .65; cloudU.uScan.value = z; const k = params.depth / SIZE_MM, inside = Math.abs(z) < .5;
+  if (!params || objMesh) { scan.visible = false; return; } const z = ((t * .09) % 1.3) - .65; cloudU.uScan.value = z; const k = params.depth / SIZE_MM, inside = Math.abs(z) < .5;
   scan.visible = inside; if (!inside) return; const y = (z + .5) * SIZE_MM;
   for (let i = 0; i < SCN; i++) { const x = i / (SCN - 1); scPos[i * 3] = x - .5; scPos[i * 3 + 1] = heightAt(x * SIZE_MM, y) * k + .005; scPos[i * 3 + 2] = z; }
   scan.geometry.attributes.position.needsUpdate = true;
@@ -208,9 +208,9 @@ function relief() {
   applyRelief(objMesh.geometry, objDef.rep, (u, v) => heightAt(u * SIZE_MM, (1 - v) * SIZE_MM), params.depth / SIZE_MM * .55, objDef.pole);
   for (const k of ["map", "normalMap", "roughnessMap"]) objMat[k]?.dispose();
   objMat.map = cloneTex(mat.map, objDef.rep); objMat.normalMap = cloneTex(mat.normalMap, objDef.rep); objMat.roughnessMap = cloneTex(mat.roughnessMap, objDef.rep);
-  objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.needsUpdate = true; dirty = 2;
+  objMat.color.setRGB(...(objDef.tint || [1, 1, 1])); objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.needsUpdate = true; dirty = 2;
 }
-function setObject(id) {
+async function setObject(id) {
   if (objMesh) { scene.remove(objMesh); objMesh.geometry.dispose(); objMesh = null; objHit = null; }
   objDef = OBJECTS.find(o => o.id === id) || null;
   for (const o of scene.children) if (o.userData.plate) o.visible = !objDef;
@@ -218,7 +218,8 @@ function setObject(id) {
   for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));
   $("#bGlb").hidden = !objDef;
   if (!objDef) { aoi?.motion.lookAt(null); return; }
-  objMesh = new THREE.Mesh(baseGeometry(id), objMat); objMesh.castShadow = true; scene.add(objMesh); relief();
+  const want = objDef; let g; try { busy(true); g = await loadGeometry(objDef); } finally { busy(false); } if (objDef !== want) { g.dispose(); return; }
+  objMesh = new THREE.Mesh(g, objMat); objMesh.castShadow = true; scene.add(objMesh); relief();
   const c = new THREE.Vector3(0, .15, 0); if (aoi) aoi.place(AOI_X, -.08, Math.atan2(-AOI_X, .08)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
   say("aoi.obj", 6500);
 }

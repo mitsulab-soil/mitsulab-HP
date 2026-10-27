@@ -10,12 +10,28 @@ function noise3(seed) {
   return (x, y, z) => { let s = 0; for (const [a, b, c, ph, f] of P) s += Math.sin((a * x + b * y + c * z) * f * 3 + ph) / f; return s / 6; };
 }
 
+// 実物を測った形（Poly Haven・CC0。形だけを使い、質感の画像は使わない＝触れ心地を貼るため）。台帳 M-0900
 export const OBJECTS = [
-  { id: "stone", name: "石", sub: "川原の丸い石", rep: [3, 1.5], pole: true },
-  { id: "branch", name: "枝", sub: "落ちていた枝", rep: [1, 5] },
-  { id: "bowl", name: "器", sub: "手びねりの碗", rep: [4, 1] },
-  { id: "tile", name: "瓦", sub: "反りのある瓦", rep: [1.6, 2] },
+  { id: "boulder", name: "岩", sub: "実物を測った岩", src: "models/boulder_01.gltf", rep: [1, 1] },
+  { id: "shell", name: "貝", sub: "実物を測った貝", src: "models/lambis_shell.gltf", rep: [1, 1], tint: [1.6, 1.5, 1.35] },
+  { id: "vase", name: "陶の器", sub: "実物を測った花瓶", src: "models/ceramic_vase_01.gltf", rep: [2, 2], size: .55, tint: [1.7, 1.6, 1.45] },
+  { id: "pot", name: "素焼きの鉢", sub: "実物を測った鉢", src: "models/planter_pot_clay.gltf", rep: [2, 2], size: .5, tint: [1.15, .78, .55] },
+  { id: "branch", name: "枯れ枝", sub: "実物を測った枝", src: "models/dead_quiver_branch_01.gltf", rep: [1, 1] },
+  { id: "tile", name: "瓦", sub: "反りのある瓦（模型）", rep: [1.6, 2] },
 ];
+let _loader = null;
+// 測った形を読み、いちばん大きな部分の形を、0.8 単位（8 cm）に収めて床に置く
+export async function loadGeometry(o) {
+  if (!o.src) return baseGeometry(o.id);
+  if (!_loader) { const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js"); _loader = new GLTFLoader(); }
+  const gl = await _loader.loadAsync(o.src); gl.scene.updateMatrixWorld(true); let best = null;
+  gl.scene.traverse(m => { if (m.isMesh && m.geometry.attributes.uv && (!best || m.geometry.attributes.position.count > best.geometry.attributes.position.count)) best = m; });
+  const g = best.geometry.clone(); g.applyMatrix4(best.matrixWorld); for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k);
+  g.computeBoundingBox(); const b = g.boundingBox, s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3()), k = (o.size || .62) / Math.max(s.x, s.y, s.z);
+  g.translate(-c.x, -b.min.y, -c.z); g.scale(k, k, k); g.translate(0, -.1, 0);
+  if (!g.attributes.normal) g.computeVertexNormals();
+  g.userData.base = g.attributes.position.array.slice(); g.userData.n0 = g.attributes.normal.array.slice(); return g;
+}
 
 export function baseGeometry(id) {
   let g;
