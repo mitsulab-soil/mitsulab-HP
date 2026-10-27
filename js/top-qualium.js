@@ -127,10 +127,10 @@ async function boot(fig, kind) {
     fB.traverse(o => { if (o.isMesh && o.material !== uvMat && o.material.type === 'MeshStandardMaterial') o.material = new THREE.MeshStandardMaterial({ color: 0x3f6a7a, roughness: .7 }); });
     // マダニ：目で花を見ない。体温（あたたかい色の広がり）と、汗のにおい（酪酸など）の粒だけ
     const warm = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,170,110,.9)'); gr.addColorStop(.5, 'rgba(255,120,70,.25)'); gr.addColorStop(1, 'rgba(255,120,70,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
-    const heat = new THREE.Sprite(new THREE.SpriteMaterial({ map: warm, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); heat.scale.setScalar(1.6); sTick.add(heat);
+    const heat = new THREE.Sprite(new THREE.SpriteMaterial({ map: warm, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); heat.scale.setScalar(1.9); sTick.add(heat);
     const nS = 70, sp = new Float32Array(nS * 3), sd = []; for (let i = 0; i < nS; i++) sd.push([Math.random() * 6.28, Math.random(), .3 + Math.random() * .7]);
     const smell = points(sp, null, .05, .8); smell.material.color.setHex(0xffd2a6); smell.geometry.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sTick.add(smell);
-    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) o.material = new THREE.MeshBasicMaterial({ color: 0x141b24 }); }); sTick.add(ghost);
+    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x2a3442, transparent: true, opacity: .9 }); const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), new THREE.LineBasicMaterial({ color: 0x8a9bb0, transparent: true, opacity: .55 })); o.add(e); } }); sTick.add(ghost);
     const pc = new THREE.PerspectiveCamera(30, 1, .05, 50); pc.position.set(0, .15, 3.6); pc.lookAt(0, -.25, 0);
     const scenes = [sHum, sBee, sTick];
     tick = t => { [fH, fB, ghost].forEach((f, i) => { f.rotation.y = Math.sin(t * .35 + i) * .35; f.rotation.z = Math.sin(t * .8 + i) * .03; });
@@ -140,7 +140,7 @@ async function boot(fig, kind) {
       const cw = row ? (w - gap * 2) / 3 : w, ch = row ? h - 44 : (h - 44 - gap * 2) / 3;
       R.setScissorTest(true); R.setClearColor(0x000000, 0); R.clear();
       for (let i = 0; i < n; i++) { const x = row ? i * (cw + gap) : 0, yTop = row ? 0 : i * (ch + gap); const y = h - yTop - ch;
-        R.setViewport(x, y, cw, ch); R.setScissor(x, y, cw, ch); R.setClearColor(i === 2 ? 0x07090d : 0x0a1220, 1); R.clear();
+        R.setViewport(x, y, cw, ch); R.setScissor(x, y, cw, ch); R.setClearColor(i === 2 ? 0x0d1219 : 0x0a1220, 1); R.clear();
         pc.aspect = cw / ch; pc.position.z = cw / ch < 1 ? 3.0 / (cw / ch) : 3.6; pc.updateProjectionMatrix(); R.render(scenes[i], pc);
         const lab = labs[i]; if (lab) { lab.style.width = cw + 'px'; lab.style.whiteSpace = 'normal'; lab.style.transform = `translate(${x + cw / 2}px,${yTop + ch + 4}px) translate(-50%,0)`; } }
       R.setScissorTest(false); };
