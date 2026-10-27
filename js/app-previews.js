@@ -1,5 +1,5 @@
 // Decorative clips: no initial video requests, one visible clip, still-image fallback.
-const clips={walk:'walk',kawagoe:'kawagoe',sight:'sight',sound:'sound',touch:'touch',sho:'sho',rakugo:'rakugo',song:'song',museum:'museum',lab:'lab',nature:'nature'};  /* 2026-10-22 夜：TOP のポートフォリオの札（.pf-card）。公開中の画面で撮り直した動画 */  /* 2026-10-19：walk・museum・butterfly は新しい名前で撮り直した動画に差し替えたので戻した */
+const clips={walk:'walk',kawagoe:'kawagoe',shibuya:'shibuya',sight:'sight',sound:'sound',touch:'touch',sho:'sho',rakugo:'rakugo',song:'song',museum:'museum',lab:'lab',nature:'nature'};  /* 2026-10-22 夜：TOP のポートフォリオの札（.pf-card）。公開中の画面で撮り直した動画 */  /* 2026-10-19：walk・museum・butterfly は新しい名前で撮り直した動画に差し替えたので戻した */
 const reduced=matchMedia('(prefers-reduced-motion: reduce)'),items=[],ratios=new Map();let active=null,preferred=null;
 const enabled=()=>!document.documentElement.classList.contains('simple')&&!reduced.matches&&!navigator.connection?.saveData&&!['slow-2g','2g'].includes(navigator.connection?.effectiveType)&&!document.hidden;
 for(const img of document.querySelectorAll('#appguide .pf-media img')){
