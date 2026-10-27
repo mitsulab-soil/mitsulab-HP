@@ -19,14 +19,16 @@
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
 <link rel="modulepreload" href="web/app/app.js?v=20261027b">
 <link rel="modulepreload" href="web/app/layers.js?v=k2">
-<link rel="modulepreload" href="web/app/qmarks.js?v=q5k">
-<link rel="modulepreload" href="web/app/kura.js?v=k8">
+<link rel="modulepreload" href="web/app/qmarks.js?v=q6">
+<link rel="modulepreload" href="web/app/kura.js?v=k10">
 <link rel="modulepreload" href="web/app/bell.js?v=k1">
 <link rel="modulepreload" href="web/app/herewalk.js?v=2">
 <link rel="modulepreload" href="web/app/soundwalk.js?v=1">
 <link rel="modulepreload" href="web/app/ambience.js?v=1">
 <link rel="modulepreload" href="web/app/sounds.js?v=4">
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
+<link rel="modulepreload" href="web/app/areas.js?v=5">
+<link rel="modulepreload" href="web/lite/startpins.js?v=1">
 <link rel="preload" href="web/app/content.json?v=20261027b" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
@@ -91,7 +93,8 @@ body[data-mode="boot"] #lstack{display:none}
 #lsHead i{width:6px;height:6px;border-right:1px solid var(--hud-2);border-bottom:1px solid var(--hud-2);transform:rotate(45deg) translate(-1px,-1px);transition:transform .3s}
 #lstack.closed #lsHead i{transform:rotate(-45deg)}
 #lsBody{position:relative;padding-bottom:2px}
-#skyUI .card{display:none!important}body[data-mode="sky"] .arLabels{display:none!important}#pinLabels{display:none!important}   /* 2026-10-27 始める場所は地図の上の印（startpins.js） */
+#skyUI .card{display:none!important}body[data-mode="sky"] .arLabels{display:none!important}
+@media (max-width:640px){html body[data-mode="walk"] #caption{top:auto!important;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 64px)!important;left:var(--g)!important;right:136px!important}html body[data-mode="walk"] #capText{font-size:12.5px!important;line-height:1.6!important}}   /* 2026-10-27 スマホの名乗りを下へ（上半分の風景を空ける）。右のボタンの列にはかけない */#pinLabels{display:none!important}   /* 2026-10-27 始める場所は地図の上の印（startpins.js） */
 #lsBody::before{content:"";position:absolute;left:10px;top:4px;bottom:57px;width:1px;background:linear-gradient(transparent,rgba(200,232,244,.62) 5%,rgba(200,232,244,.62) 95%,rgba(200,232,244,.3));box-shadow:0 0 3px rgba(3,6,15,.7)}
 #layersAll{list-style:none;margin:0;padding:0;display:flex;flex-direction:column-reverse}
 .ly{position:relative;display:flex;align-items:center}
