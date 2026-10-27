@@ -22,6 +22,6 @@
   function close() { const v = vid.querySelector('video'); if (v) { v.pause(); v.removeAttribute('src'); v.load(); } if (d.open) d.close(); }
   d.addEventListener('close', () => { document.documentElement.classList.remove('mp-open'); vid.innerHTML = ''; if (back) back.focus({ preventScroll: true }); });
   x.addEventListener('click', close); d.addEventListener('click', e => { if (e.target === d) close(); });
-  document.addEventListener('click', e => { const c = e.target.closest('.pf-card,.si-card'); if (!c || d.contains(c) || e.target.closest('a,button:not(summary *)')) return; e.preventDefault(); open(c); }, true);
-  document.querySelectorAll('.pf-card,.si-card').forEach(c => { if (!c.hasAttribute('tabindex')) c.tabIndex = 0; c.setAttribute('role', 'button'); c.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === c) { e.preventDefault(); open(c); } }); });
+  document.addEventListener('click', e => { const c = e.target.closest('.pf-card,.si-card'); if (!c || c.closest('.ws-grid') || d.contains(c) || e.target.closest('a,button:not(summary *)')) return; e.preventDefault(); open(c); }, true);
+  document.querySelectorAll('.pf-card,.si-card').forEach(c => { if (c.closest('.ws-grid')) return; if (!c.hasAttribute('tabindex')) c.tabIndex = 0; c.setAttribute('role', 'button'); c.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === c) { e.preventDefault(); open(c); } }); });
 })();
