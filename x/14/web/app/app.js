@@ -312,7 +312,11 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
           vec3 Np = normalize(Nn + vec3(0., (pr - .5) * .05, 0.) + (abs(Nn.x) > abs(Nn.z) ? vec3(0., 0., 1.) : vec3(1., 0., 0.)) * (fract(pr * 13.1) - .5) * .06);
           vec3 V = normalize(vPw - cameraPosition); vec3 R = reflect(V, Np); float fr = .35 + .6 * pow(1. - abs(dot(V, Np)), 3.);
           vec3 inner = col * (.6 + .5 * step(.7, fract(pr * 5.3))) + vec3(.06, .055, .045) * step(.8, fract(pr * 3.1));
-          col = mix(inner, skyR(R) * (kind == 2. ? 1. : .8), isW * fr * (kind == 2. ? 1. : .7)); }
+          col = mix(inner, skyR(R) * (kind == 2. ? 1. : .8), isW * fr * (kind == 2. ? 1. : .7));
+          col *= mix(1., .72 + .56 * fract(pr * 7.7) + .12 * sin(fl * 1.7 + br * 9.), isW * .8);
+          { float wr = fract(pr * 31.7); vec3 blind = mix(vec3(.78, .74, .66), vec3(.62, .66, .7), fract(pr * 3.3)) * (.9 + .1 * step(.5, fract(c.y * 14.)));   // ブラインドの下りた窓・暗い窓・映り込む窓を混ぜる
+            col = mix(col, blind, isW * step(.62, wr) * step(wr, .86)); col = mix(col, col * .35, isW * step(.86, wr)); }   // 10-28：窓ごと・階ごとの明るさのばらつき（繰り返しに見せない）
+          col += vec3(.9, .78, .55) * step(.93, fract(pr * 17.3)) * .08 * isW; }
         if (hb0 < 4.4 && br > 0.) {   // 一階の店先：区画ごとにガラスの店先・シャッター・石の入口。上に字のない日よけの帯。内の明かり（店名・ロゴは描かない）
           float bay = mix(3.6, 6.2, fract(br * 5.1)); float bx = fract(hz / bay); float bi = floor(hz / bay); float rb = fract(sin(bi * 12.7 + br * 91.) * 43758.5);
           float typ = rb < .62 ? 0. : rb < .82 ? 1. : 2.;
@@ -336,7 +340,7 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
           float sunF = dot(Nn, normalize(vec3(.55, 0., .35)));   // 日の当たる面と陰の面の差（面ごとの明るさの違いで、箱に見せない）
           col *= ao * (1. - rec) * (1. - streak) * (.88 + .24 * big) * mix(.66, 1.14, smoothstep(-.6, .7, sunF)); float dd = length(vPw - cameraPosition); col = mix(col, vec3(.62, .68, .76), smoothstep(90., 520., dd) * .42); }   // 遠いほど青く薄く（大気の遠近）
         diffuseColor.rgb = col; }`).replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance += emi;").replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = isW < 0. ? .55 : mix(roughnessFactor, .1, isW);"); };
-  m.customProgramCacheKey = () => "plateauCC0d"; return PFM.m = m;
+  m.customProgramCacheKey = () => "plateauCC0f"; return PFM.m = m;
 }
 function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・LOD2）を mitsulab が加工した建物（外壁は航空写真からの質感）。_dev/plateau/build_plateau.py
   const g0 = new THREE.Group(); g0.name = "plateau"; world.add(g0);
