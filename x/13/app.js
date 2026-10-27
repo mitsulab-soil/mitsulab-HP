@@ -261,8 +261,8 @@ function pickActor(h) {
   web.sel = web.sel === h ? null : h;
   if (!web.sel) { say("つながりの表示を戻しました。", 2500); return; }
   const mine = web.rels.filter(r => r.a === h.id || r.b === h.id);
-  say(MOBILE ? `${h.name} ── ${mine[0].t}。ほか ${mine.length - 1} 本（目録の「つながり」に典拠）` : `${h.name} ── ` + mine.map(r => r.t).join("。 ") + "。（目録の「つながり」から、それぞれの典拠をひらけます）", 9000 + mine.length * 1500);
-  if (aoi) { const g = new THREE.Vector3(h.v.x, 0, h.v.z), d = g.length(); if (d > 1.5) g.multiplyScalar(Math.min(R - 1, d) / d); g.multiplyScalar(.72); g.x += .6; aoi.walkTo(g); } /* アクターと中心のあいだ（札の手前に立たない） */   // 触れたアクターのそばへ歩いて、指す
+  say(MOBILE || mine.length > 2 ? `${h.name} ── ${mine.slice(0, MOBILE ? 1 : 2).map(r => r.t).join("。 ")}。ほか ${mine.length - (MOBILE ? 1 : 2)} 本（目録の「つながり」に典拠）` : `${h.name} ── ` + mine.map(r => r.t).join("。 ") + "。（目録の「つながり」から典拠をひらけます）", 9000 + mine.length * 1500);   /* 字幕は 2 行までに */
+  if (aoi) { const g = new THREE.Vector3(h.v.x, 0, h.v.z), d = g.length(); if (d > 1.5) g.multiplyScalar(Math.min(R - 1, d) / d); g.multiplyScalar(.72); g.x += MOBILE ? 1.0 : .6; aoi.walkTo(g); } /* アクターと中心のあいだ（札の手前に立たない） */   // 触れたアクターのそばへ歩いて、指す
   aoi?.motion.point?.(h.v, 3.2); aoi?.motion.lookAt(h.v); aoi?.motion.express("curious", .5, 2);
 }
 function webTick(dt) {
