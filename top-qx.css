@@ -198,3 +198,8 @@ html{scroll-padding-top:80px}
 .qx-fig2 .qx-lab .k::before{width:28px;height:5px}
 .qx-fig2 .qx-lab .k{font-size:17px}
 @media (max-width:700px){.qx-fig2 .qx-lab .k{font-size:14px!important}.qx-s2 .qx-fig2{margin-top:-8px!important}}
+@media (min-width:701px){.qx-fig2 .qx-lab .k{font-size:18px}.qx-fig2 .qx-lab span:not(.k){font-size:14px;color:#c9d2de}}
+@media (max-width:700px){.qx-fig1{margin-bottom:72px!important}.qx-fig1 .qx-cap{margin-top:3.2em!important}html[data-lang=en] .qx-fig1{margin-bottom:88px!important}html[data-lang=en] .qx-fig1 .qx-cap{margin-top:4.2em!important}.qx-fig2 .qx-lab span:not(.k){color:#c9d2de}}
+@media (max-width:700px){.qx-fig1 .qx-lab{min-height:3.3em}}
+@media (min-width:701px){.qx-fig2 .qx-labs{grid-template-columns:repeat(4,minmax(0,1fr));justify-items:center;left:6%;right:6%}.qx-fig2{margin-top:16px}}
+@media (max-width:700px){.qx-fig1 .qx-lab>span:not(.k){font-size:12.5px;line-height:1.35}}

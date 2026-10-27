@@ -1175,7 +1175,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 </style>
 <link rel="stylesheet" href="qualium-top.css?v=20261025a">
 <link rel="stylesheet" href="v2.css?v=20261027t23">
-<link rel="stylesheet" href="top-qx.css?v=20261028s">
+<link rel="stylesheet" href="top-qx.css?v=20261028v">
 </head>
 <body>
 <script src="js/loader_qualium.js?v=20261028b" data-auto="dom"></script>
@@ -1246,7 +1246,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
       <figure class="qx-fig qx-fig1" data-qx="1" aria-hidden="true"><canvas></canvas><div class="qx-labs">
   <span class="qx-lab" data-at="0" style="--c:#ffe6c4"><span class="k" data-i18n-en="PERSON">人</span><span data-i18n-en="visible light, red to violet">可視光（赤〜紫）</span></span>
   <span class="qx-lab" data-at="1" style="--c:#c9b8ff"><span class="k" data-i18n-en="HONEYBEE">ミツバチ</span><span data-i18n-en="ultraviolet, blue, green">紫外線・青・緑</span></span>
-  <span class="qx-lab" data-at="2" style="--c:#ffab73"><span class="k" data-i18n-en="TICK">マダニ</span><span data-i18n-en="no flower; heat and smell">花は見えない。<span class="v2-nw">体温とにおい</span></span></span>
+  <span class="qx-lab" data-at="2" style="--c:#ffab73"><span class="k" data-i18n-en="TICK">マダニ</span><span data-i18n-en="no flower; heat, smell">花は見えず、<span class="v2-nw">体温とにおい</span></span></span>
 </div><p class="qx-cap" data-i18n-en="The same flower, as each one receives it (schematic)."><span class="v2-nw">同じ一輪の花も、</span><span class="v2-nw">受けとるものがちがう（模式）。</span></p></figure>
       <details class="v2-more qx-more qx-m1"><summary data-i18n-en="More detail">もっと詳しく</summary><ul class="v2-ex2"><li><span class="k" data-i18n-en="Honeybee">ミツバチ</span><span data-i18n-en="sees patterns on flowers that human eyes cannot see (ultraviolet).">花に、人の目には見えない模様（紫外線）が見えている。</span></li><li><span class="k" data-i18n-en="Bat">コウモリ</span><span data-i18n-en="finds insects in the dark by the echoes of its own high-pitched calls.">自分の出す高い声のはね返りで、暗やみの虫を見つける。</span></li><li><span class="k" data-i18n-en="Tick">マダニ</span><span data-i18n-en="notices a passing animal by its smell and warmth.">においと温かさで、下を通る動物に気づく。</span></li><li><span class="k" data-i18n-en="People">人</span><span data-i18n-en="walk the same path, yet that pattern and those calls never reach us.">同じ参道を歩いても、その模様も声も届かない。</span></li></ul><p data-i18n-en="The idea comes from the biologist Jakob von Uexküll (1934).">考え方のもとは、生物学者ユクスキュル（1934 年）。</p><p data-i18n-en="There is an Umwelt at every scale, from the micro to the macro. Bacteria in the soil follow differences in the strength of chemicals; insects live in a world a few centimetres across; birds take in a wide sweep from the air. A fly’s eye is said to tell apart flicker far faster than ours, and elephants to call to one another over distance with sounds too low for us to hear. The size of the world each takes in, and the pace of its time, differ. Outside the human Umwelt, too, drift ultraviolet, ultrasound and faint vibration in the ground.">環世界は、ミクロからマクロまで、スケールごとにある。土の中の細菌は化学物質の濃さの差をたどり、虫は数センチの世界を、鳥は空から広く見渡す。ハエの目は人より速いちらつきを見分け、ゾウは人には聞こえない低い音で遠くと呼びかわすとされる。受けとる世界の大きさも、時間の速さも、それぞれにちがう。人の環世界の外にも、紫外線・超音波・地中のかすかな振動が漂っている。</p></details>
     </section>
@@ -2413,7 +2413,7 @@ async function boot(box){
 <script>/* 2026-10-23 PHILOSOPHY の 3D（E・S・Φ・q）：図が画面に近づいてから読む */
 (function(){var f=document.getElementById('qpES');if(!f)return;function c(){try{var x=document.createElement('canvas');return !!(x.getContext('webgl2')||x.getContext('webgl'));}catch(e){return false;}}if(!c()||!('IntersectionObserver' in window)){f.classList.add('no-3d');return;}var go=false;var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();import('./js/qualia-es-3d.js?v=20261024t7d').then(function(m){m.boot(f);}).catch(function(e){console.warn('qualia es 3d',e);f.classList.add('no-3d');});}},{rootMargin:'500px 0px'});io.observe(f);})();</script>
 
-<script type="module" src="./js/top-qualium.js?v=20261028y"></script>
+<script type="module" src="./js/top-qualium.js?v=20261028z3"></script>
 <script type="module" src="js/app-previews.js?v=20261027tid"></script>
 <script>/* 2026-10-22 スマホだけ「続きを読む」で畳む。701px 以上は開いておく */(function(){function f(){var pc=innerWidth>700;[].forEach.call(document.querySelectorAll('details.q-more'),function(d){if(pc)d.open=true;});}f();addEventListener('resize',f);})();</script>
 <script>/* 2026-10-22 スマホの定式化：記号ごとに開閉（記号と名前だけ並べ、押すと説明が開く）。701px 以上は表のまま */(function(){var t=document.querySelector('.qt-sym');if(!t)return;[].forEach.call(t.querySelectorAll('tbody tr'),function(tr,i){var th=tr.querySelector('th[scope=row]');if(!th)return;var b=document.createElement('button');b.type='button';b.className='qs-tog';b.setAttribute('aria-expanded','false');var id='qs-d'+i;tr.querySelectorAll('td').forEach(function(td,k){td.id=id+'-'+k;});b.setAttribute('aria-controls',[].map.call(tr.querySelectorAll('td'),function(td){return td.id;}).join(' '));while(th.firstChild)b.appendChild(th.firstChild);var mk=document.createElement('span');mk.className='qs-mk';mk.setAttribute('aria-hidden','true');b.appendChild(mk);th.appendChild(b);b.addEventListener('click',function(){var o=tr.classList.toggle('qs-open');b.setAttribute('aria-expanded',o?'true':'false');});});})();</script>

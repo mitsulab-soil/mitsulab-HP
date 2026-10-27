@@ -122,15 +122,15 @@ async function boot(fig, kind) {
     const fH = mkFlower(new THREE.MeshStandardMaterial({ color: 0xf4cf3a, roughness: .55 }), new THREE.MeshStandardMaterial({ color: 0xc8731c, roughness: .8 })); sHum.add(fH);
     // ミツバチ：紫外線の模様（中心が濃く、外が明るい「的」）を、見える色に置きかえた模式
     const uvMat = new THREE.ShaderMaterial({ vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
-      fragmentShader: 'varying vec3 vP; void main(){ float r = clamp((vP.x-.02)/.7, 0., 1.); vec3 inner = vec3(.16,.08,.36), outer = vec3(.62,.72,1.); vec3 c = mix(inner, outer, smoothstep(.25,.55,r)); gl_FragColor = vec4(c, 1.); }' });
-    const fB = mkFlower(uvMat, new THREE.MeshBasicMaterial({ color: 0x241046 })); sBee.add(fB);
+      fragmentShader: 'varying vec3 vP; void main(){ float r = clamp((vP.x-.02)/.7, 0., 1.); vec3 inner = vec3(.42,.24,.78), outer = vec3(.62,.72,1.); vec3 c = mix(inner, outer, smoothstep(.2,.6,r)); gl_FragColor = vec4(c, 1.); }' });
+    const fB = mkFlower(uvMat, new THREE.MeshBasicMaterial({ color: 0x6a44c0 })); sBee.add(fB);
     fB.traverse(o => { if (o.isMesh && o.material !== uvMat && o.material.type === 'MeshStandardMaterial') o.material = new THREE.MeshStandardMaterial({ color: 0x3f6a7a, roughness: .7 }); });
     // マダニ：目で花を見ない。体温（あたたかい色の広がり）と、汗のにおい（酪酸など）の粒だけ
     const warm = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,140,60,.95)'); gr.addColorStop(.45, 'rgba(235,95,40,.45)'); gr.addColorStop(1, 'rgba(255,120,70,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
     const heat = new THREE.Sprite(new THREE.SpriteMaterial({ map: warm, transparent: true, depthWrite: false })); heat.scale.setScalar(1.9); sTick.add(heat);
     const nS = 70, sp = new Float32Array(nS * 3), sd = []; for (let i = 0; i < nS; i++) sd.push([Math.random() * 6.28, Math.random(), .3 + Math.random() * .7]);
     const smell = points(sp, null, .05, .8); smell.material.color.setHex(0xffa860); smell.geometry.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sTick.add(smell);
-    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x26303e, transparent: true, opacity: .9 }); const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), new THREE.LineBasicMaterial({ color: 0x8a9bb0, transparent: true, opacity: .3 })); o.add(e); } }); sTick.add(ghost);
+    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x3a4658, transparent: true, opacity: .9 }); const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), new THREE.LineBasicMaterial({ color: 0x8a9bb0, transparent: true, opacity: .3 })); o.add(e); } }); sTick.add(ghost);
     const pc = new THREE.PerspectiveCamera(30, 1, .05, 50); pc.position.set(0, .15, 3.6); pc.lookAt(0, -.25, 0);
     const scenes = [sHum, sBee, sTick];
     tick = t => { [fH, fB, ghost].forEach((f, i) => { f.rotation.y = Math.sin(t * .35 + i) * .35; f.rotation.z = Math.sin(t * .8 + i) * .03; });
@@ -178,12 +178,12 @@ async function boot(fig, kind) {
     // 目の高さの道すじ
     const path = new THREE.CatmullRomCurve3(C.map(([x, y, z]) => new THREE.Vector3(x - o[0], y - o[1] + 1.6, z - o[2])));
     cam.fov = 58; cam.near = 7; cam.far = 900; cam.updateProjectionMatrix(); fitW = 0; fitH = 0;
-    const per = 2.2, hold = 9, cyc = per * 4 + hold; const P0 = new THREE.Vector3(), P1 = new THREE.Vector3();
+    const per = 1.1, hold = 11, cyc = per * 4 + hold; const P0 = new THREE.Vector3(), P1 = new THREE.Vector3();
     tick = t => { const u = .5 + ((t * .0016) % .12) - .06; path.getPointAt(Math.min(.99, Math.max(0, u)), P0); path.getPointAt(Math.min(1, u + .02), P1); cam.position.copy(P0); P1.y += 2.2; cam.lookAt(P1);
-      const tt = reduce ? cyc - 1 : t % cyc;
+      const tt = reduce ? cyc - 1 : (t + per * 4) % cyc;
       layers.forEach((g, i) => { const k = Math.min(1, Math.max(0, (tt - i * per) / 1.2)), e = k * k * (3 - 2 * k), out = tt > cyc - 1 ? cyc - tt : 1, v = e * out;
-        g.traverse(m => { if (m.material) { m.material.opacity = m.userData.a * v; if (m.material.uniforms && m.material.uniforms.uO) m.material.uniforms.uO.value = v; } }); const lab = labs[i]; if (lab) lab.style.opacity = v.toFixed(2); });
-      rings.forEach(r => { const s = ((t * .35 + r.userData.ph) % 1); r.scale.setScalar(1 + s * 5); r.material.opacity = .95 * (1 - s) * (L4.children[0] ? 1 : 0) * Math.min(1, (labs[3] ? +labs[3].style.opacity : 1)); }); };
+        g.userData.v = v; g.traverse(m => { if (m.material) { m.material.opacity = m.userData.a * v; if (m.material.uniforms && m.material.uniforms.uO) m.material.uniforms.uO.value = v; } }); const lab = labs[i]; if (lab) lab.style.opacity = "1"; });
+      rings.forEach(r => { const s = ((t * .35 + r.userData.ph) % 1); r.scale.setScalar(1 + s * 5); r.material.opacity = .95 * (1 - s) * (L4.children[0] ? 1 : 0) * (L4.userData.v == null ? 1 : L4.userData.v); }); };
   }
 
   // 大きさ合わせ：fitW×fitH が必ず入る距離
