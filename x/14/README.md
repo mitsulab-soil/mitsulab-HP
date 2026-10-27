@@ -25,7 +25,7 @@ mitsulab の作品《Qualium 渋谷》です。Qualium は、ひとつの場所�
 ## 出典とライセンス
 
 - 記録の典拠：国土交通省 関東地方整備局 川崎国道事務所「大山街道見どころマップ 赤坂～三軒茶屋 1B」・東京都建設局「渋谷川・古川流域とは」・渋谷区「通りの名前」・渋谷区 土木部道路課「オオヤマカイドーニュース」・金王八幡宮 公式「由緒」・明治神宮 公式「明治神宮とは」・東京都公園協会「代々木公園」・GO TOKYO「渋谷ストリーム」。数値と事実を出典つきで話しています（図や表は写していません）。URL は画面の「出典と確かさ」に。
-- 鳥の形と色の確かめ：日本語版 Wikipedia「イソヒヨドリ」「ハクセキレイ」（CC BY-SA 4.0）。鳥の錐体：Hart 2001。生きものの記録の数：[iNaturalist](https://www.inaturalist.org/) の投稿者のみなさん。
+- 鳥の錐体：Hart 2001。生きものの記録の数：[iNaturalist](https://www.inaturalist.org/) の投稿者のみなさん。
 - 建物（駅のまわり約 330 m）：国土交通省 Project PLATEAU「3D都市モデル（Project PLATEAU）東京都23区」（2020 年度・LOD2・[G 空間情報センター](https://www.geospatial.jp/ckan/dataset/plateau-tokyo23ku)・[PLATEAU Site Policy](https://www.mlit.go.jp/plateau/site-policy/)）をもとに mitsulab が加工して作成（形の間引き・外壁の写真を縮めて細部をつぶし、窓の筋を足した）。
 - 地形：国土地理院 標高タイル（DEM5A）・全国最新写真（シームレス）を mitsulab が加工して作成（[地理院タイル一覧](https://maps.gsi.go.jp/development/ichiran.html)）
 - 道・建物の平面・川・公園：© [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors（ODbL）

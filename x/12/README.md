@@ -24,7 +24,7 @@ mitsulab の作品《Qualium 川越》です。Qualium は、ひとつの場所�
 ## 出典とライセンス
 
 - 記録の典拠：川越市 文化財保護課「時の鐘」・文化庁「保存地区の概要 川越市川越」・川越市「伝建地区の概要」「歴史的風致維持向上計画」「景観計画」・川越氷川神社 公式「神社紹介」・文化遺産オンライン。数値と事実を出典つきで話しています（図や表は写していません）。URL は画面の「出典と確かさ」に。
-- 鳥の形と色の確かめ：日本語版 Wikipedia「イソヒヨドリ」「ハクセキレイ」（CC BY-SA 4.0）。鳥の錐体：Hart 2001。生きものの記録の数：[iNaturalist](https://www.inaturalist.org/) の投稿者のみなさん。
+- 鳥の錐体：Hart 2001。生きものの記録の数：[iNaturalist](https://www.inaturalist.org/) の投稿者のみなさん。
 - 地形：国土地理院 標高タイル（DEM5A）・全国最新写真（シームレス）を mitsulab が加工して作成（[地理院タイル一覧](https://maps.gsi.go.jp/development/ichiran.html)）
 - 道・建物の平面・川：© [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors（ODbL）
 - 質感：[Poly Haven](https://polyhaven.com/)（White Plaster 02・Dark Wooden Planks・Black Painted Planks・Granite Tile・Japanese Cedar Planks・Asphalt 04・Concrete Pavement・空 Kloofendal 48d Partly Cloudy (Pure Sky)）・[ambientCG](https://ambientcg.com/)（Metal058B）、いずれも CC0。瓦の質感は mitsulab の自作。
