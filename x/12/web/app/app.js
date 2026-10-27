@@ -8,7 +8,8 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q8";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k2";
+const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k11";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
@@ -757,7 +758,7 @@ function buildObjs() {
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .4, skyK: 1.15 });   /* 2026-10-27 本人「球が大きすぎる」＝今の 4 割ほどに（同日 夜：この注記が行の終わりまで続き、印を一つも足していなかったのを直す） */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, QM_OPT);   /* 2026-10-27 本人「球が大きすぎる」＝今の 4 割ほどに（同日 夜：この注記が行の終わりまで続き、印を一つも足していなかったのを直す） */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();

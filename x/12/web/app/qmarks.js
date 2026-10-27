@@ -1,3 +1,6 @@
+/* Qualium 共通の Qualia の目印（kit/qmarks.js・2026-10-27 夜 本人「Qualium は全ての版で同じ基準、GUI など統一して」）。
+   大宮・川越・渋谷はこのファイルを写して使う（場所ごとに直さない）。基準＝_共通3D/資料/Qualium_共通の基準.md
+   opt：mk（球の倍率・既定 .36）・walkK・skyK・skyR・minPx（画面での最小の半径・既定 12＝直径 24px）・capK（最小に広げる上限の倍率・既定 5）・overWalls（壁の向こうの印も見せる）。 */
 /* Qualia の印（2026-10-23 夜 本人「Qualia をもっと目立つように・美しいグラフィックで・かさねっこの形に似たデザインに」）
    2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ。目印の 3D をより洗練されたデザインに」→ v4：
    ・結晶＝かさねっこの形の滑らかな滴。中は透け、縁に薄膜のような虹の色ずれ（屈折風）、細かな切子のきらめき、芯がほのかに灯る。
@@ -9,6 +12,9 @@
    2026-10-26 夜 v5：結晶を球に（本人「目印を球体に」）。屈折風の縁・流れる層の膜・球の中に光る紋。
    kind＝0 sight・1 touch・2 sound・3 nature・4 culture。 */
 
+/* 2026-10-27 夜 本人「目印の球が大きすぎる。コンパクトで強い印に」→ v6：球を約 0.35 倍に。小さな芯が強く光り、細い輪・層の色の欠片・脈打つ光の輪で遠くから目を引く（当たりは画面で 44px 以上のまま）。 */
+/* 2026-10-27 v7：屈折した視線で中の細い格子と二重の殻・波長ごとの縁の色ずれ（宝石／精密機器の質感） */
+let MK = .36;
 const KIND = { sight: 0, touch: 1, sound: 2, nature: 3, culture: 4 };
 
 function crystalGeo(THREE) {
@@ -40,14 +46,14 @@ const EMB = /* glsl */`
 `;
 
 export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
-  const SKYK = opt.skyK ?? 2.6, SKYR = opt.skyR ?? 2.4, WALKK = opt.walkK ?? 1.05;
+  const SKYK = opt.skyK ?? 2.6, SKYR = opt.skyR ?? 2.4, WALKK = opt.walkK ?? 1.05, MINPX = opt.minPx ?? 12, CAPK = opt.capK ?? 5; MK = opt.mk ?? .36;
   cap = Math.max(1, cap);
   const mk = (geo, vs, fs, order, blend, side = THREE.DoubleSide) => {
     const g = geo.clone();
     g.setAttribute("iCol", new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3));
     g.setAttribute("iP", new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4));
     g.setAttribute("iQ", new THREE.InstancedBufferAttribute(new Float32Array(cap * 2), 2));
-    const m = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 } }, vertexShader: vs, fragmentShader: fs, transparent: true, depthWrite: false, blending: blend, side, toneMapped: false });
+    const m = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 } }, vertexShader: vs, fragmentShader: fs, transparent: true, depthWrite: false, depthTest: !opt.overWalls, blending: blend, side, toneMapped: false });
     const im = new THREE.InstancedMesh(g, m, cap); im.count = 0; im.frustumCulled = false; im.renderOrder = order; parent.add(im);
     return im;
   };
@@ -113,7 +119,9 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
       float arc=ln(r-.94,.008)*step(fract(ang/6.2832+uT*.05),.28+.2*op);
       float e=emb(p/(.62+.18*op)*.74, vQ.x, uT);
       float glow=exp(-pow((r-R1)*9.,2.))*.12+exp(-r*r*7.)*.08;   // v7：中の霞を消して、硝子の深い色を見せる
-      float a=(ring*.85+tick*.6+arc*.55+glow)*(.35+.65*crisp) + e*(.16+.6*op)*crisp*(.55+.45*smoothstep(.3,.75,r));   // 紋は結晶の外側の帯で読めるように
+      float pp=fract(uT*.55+vQ.x*.13); float pulse=ln(r-(.3+.68*pp),.03)*(1.-pp)*.9;
+      float frag=step(.93,fract(ang*9./6.2832+uT*.08))*ln(r-.62,.07)*.9;
+      float a=(ring*.85+tick*.6+arc*.55+glow+pulse+frag)*(.5+.5*crisp) + e*(.16+.6*op)*crisp*(.55+.45*smoothstep(.3,.75,r));   // 紋は結晶の外側の帯で読めるように
       gl_FragColor=vec4(vCol*(1.2+.5*vP.z),clamp(a,0.,1.)*vP.x*(.5+.5*vP.z));
       #include <colorspace_fragment>
     }`, 6, THREE.NormalBlending);
@@ -167,6 +175,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
     get count() { return items.length; },
     get rects() { return rects; },
     get items() { return items; },
+    remove(pred) { for (let i = items.length - 1; i >= 0; i--) if (pred(items[i].L)) items.splice(i, 1); },
     update(cam, o = {}) {
       const t = o.t ?? performance.now() / 1000, sky = !!o.sky, focus = o.focus || null, dt = Math.min(.1, Math.max(0, t - (this._t ?? t))); this._t = t;
       for (const im of ALLM) im.material.uniforms.uT.value = t;
@@ -184,27 +193,27 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         // 近づくとひらく（10 m→4 m）。触れると（L.open）いっぱいに
         const nt = sky ? 0 : Math.max(Math.min(1, Math.max(0, (10 - dh) / 6)), L.open || 0);
         it.no += (nt - it.no) * Math.min(1, dt * 3.5); const op = it.no; L.qOpen = op;
-        let cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .25);
-        if (!sky) cs = Math.max(cs, Math.min(cs * 3, 11 * d / (ppk * .34)));   // 2026-10-27 v8：画面で直径 22px より小さくしない
+        let cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .25) * MK;
+        if (!sky) { const nearMin = 1 - Math.min(1, Math.max(0, (d - 45) / 40)); cs = Math.max(cs, Math.min(cs * CAPK, MINPX * d / (ppk * .34)) * nearMin); }   // 最小の大きさは近い範囲（〜45 m、85 m で消える）だけ。遠い印は小さく、通りの奥で団子にしない   // 2026-10-27 v8：画面で直径 22px より小さくしない（遠くでも見つかる・近くは本来の大きさ）
         _e.set(0, t * (.5 - op * .3) + it.ph, 0); _q.setFromEuler(_e); _s.set(cs, cs, cs);
         const cy = _p.y + Math.sin(t * 1.3 + it.ph) * .06 * sg + op * .12 * sg;
         _m.compose(_p.set(_p.x, cy, _p.z), _q, _s); crystal.setMatrixAt(n, _m);
         const nearK = sky || focus === L ? 1 : Math.min(1, Math.max(.12, (d - 1.4) / 2.6));
-        const cv = sky ? 0 : show * nearK;
+        const cv = sky ? 0 : show * nearK * (1 - .55 * Math.min(1, Math.max(0, (d - 35) / 70)));   // 遠い印（並木や壁の向こうを含む）は薄く、手前の印を主役に
         const scr = ppk / Math.max(.5, d) * cs / innerHeight, big = Math.min(1, Math.max(0, 1 - (scr - .28) / .14));   // 画面の高さの 3 割を超える近さでは、輪と紋をうすく（左の一覧や字を覆わない）
         CA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); CA.iP.setXYZW(n, cv * Math.max(.18, big), crisp, em, far); CA.iQ.setXY(n, it.k, op);
         // 紋の円盤（結晶の芯の高さ・見る人へ向く）。遠くでは描かない
-        const hs = cs * (.62 + op * .38);
+        const hs = cs * (.95 + op * .3);
         _q.identity(); _s.set(hs, hs, hs); _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); halo.setMatrixAt(n, _m);
-        HA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); HA.iP.setXYZW(n, cv * big * (sky ? 0 : Math.min(1, crisp * 1.6)), crisp, em, far); HA.iQ.setXY(n, it.k, op);
+        HA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); HA.iP.setXYZW(n, cv * Math.max(.35, big) * (sky ? 0 : 1), Math.max(.45, crisp), em, far); HA.iQ.setXY(n, it.k, op);
         // まわる輪
-        const os = cs * (.5 + op * .12); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * .7 + it.ph, .35); _q.setFromEuler(_e); _s.set(os, os, os);
+        const os = cs * (.72 + op * .12); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * .7 + it.ph, .35); _q.setFromEuler(_e); _s.set(os, os, os);
         _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); orbit.setMatrixAt(n, _m);
         OA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); OA.iP.setXYZW(n, cv * big, crisp, em, far); OA.iQ.setXY(n, it.k, op);
-        if (!sky && cv > .2) { _sp.set(_p.x, cy, _p.z).project(cam); if (_sp.z < 1) { const k = Math.max(46, ppk / Math.max(.5, d) * cs), x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }
+        if (!sky && cv > .2) { _sp.set(_p.x, cy, _p.z).project(cam); if (_sp.z < 1) { const k = Math.max(46, ppk / Math.max(.5, d) * cs * 1.4), x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }
         // 足もとの輪
         L.root.getWorldPosition(_r);
-        const rr = (sky ? SKYR * sg : Math.max(1.05, Math.min(3, sg)) * 1.25) * (1 + (L.open || 0) * .5 + op * .25);
+        const rr = (sky ? SKYR * sg : Math.max(1.05, Math.min(3, sg)) * 1.25) * (1 + (L.open || 0) * .5 + op * .25) * .34;
         _e.set(0, it.ph, 0); _q.setFromEuler(_e); _s.set(rr, 1, rr); _m.compose(_r.set(_r.x, _r.y + .05, _r.z), _q, _s); ring.setMatrixAt(n, _m);
         RA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); RA.iP.setXYZW(n, show * (sky ? .9 : 1), crisp, em, far); RA.iQ.setXY(n, it.k, op);
         // 柱
@@ -224,23 +233,25 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
    近い札（選んだ札が先）から順に置く。重なるときは上へ一段ずつ逃がし（3 段まで）、それでも重なる遠い札はうすく消す。
    list: [{ sp, d, pri }]  sp＝makeLabel の札（center 0,0）。sp.userData.by に、ずらす前の高さ（親の中での y）を入れておく。
    avoid: 画面の上の範囲 [{x0,x1,y0,y1}]（結晶＝QM.rects、層の一覧など）。札の不透明度は呼ぶ前に決めておく（ここで掛ける）。 */
-export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) {   // 2026-10-26 川越：minPx＝遠くの札も読める字の高さまで大きくする
+export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) {   // minPx＝遠くの札も読める字の高さまで大きくする（川越から）
   const W = innerWidth, H = innerHeight, put = [], V = THREE.Vector3;
   const a = placeLabels._a || (placeLabels._a = new V()), b = placeLabels._b || (placeLabels._b = new V()), sc = placeLabels._s || (placeLabels._s = new V()), ps = placeLabels._p || (placeLabels._p = new V());
   list.sort((p, q) => (q.pri || 0) - (p.pri || 0) || p.d - q.d);
   const hit = r => { for (const q of put) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; for (const q of avoid) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; return false; };
   for (const e of list) {
     const sp = e.sp, u = sp.userData; if (u.by == null) u.by = sp.position.y; u.sl ??= 0; u.f ??= 0;
-    if (minPx) { u.bs = sp.scale.clone(); sp.scale.copy(u.bs); }
+    if (minPx) { u.bs ??= sp.scale.clone(); sp.scale.copy(u.bs); }
     sp.position.y = u.by; sp.getWorldPosition(a); sp.getWorldScale(sc); sp.parent?.getWorldScale(ps);
-    if (minPx && a.z !== undefined) { const t = a.clone(), t2 = a.clone(); t2.y += sc.y; t.project(cam); t2.project(cam); const hp = Math.abs(t2.y - t.y) / 2 * H; if (t.z < 1 && hp > .5 && hp < minPx) { const f = Math.min(3.2, minPx / hp); sp.scale.copy(u.bs).multiplyScalar(f); sp.getWorldScale(sc); } }
+    if (minPx) { const t = a.clone(), t2 = a.clone(); t2.y += sc.y; t.project(cam); t2.project(cam); const hp = Math.abs(t2.y - t.y) / 2 * H; if (t.z < 1 && hp > .5 && hp < minPx) { const f = Math.min(3.2, minPx / hp); sp.scale.copy(u.bs).multiplyScalar(f); sp.getWorldScale(sc); } }
     b.copy(a); b.y += sc.y; a.project(cam); b.project(cam);
     let slot = -1;
     if (a.z < 1 && sp.visible) {
-      const x = (a.x + 1) / 2 * W, y = (1 - a.y) / 2 * H, h = Math.max(6, y - (1 - b.y) / 2 * H), w = h * (sc.x / sc.y) * .78, m = 3;
+      const x0 = (a.x + 1) / 2 * W, y = (1 - a.y) / 2 * H, h = Math.max(6, y - (1 - b.y) / 2 * H), w = h * (sc.x / sc.y) * .78, m = 3;
+      const x = Math.max(2 + m, Math.min(x0, W - 2 - m - h * sc.x / sc.y * .92));   /* 板の右端も画面に収める */ sp.center.x = (x0 - x) / Math.max(1, h * sc.x / sc.y);   // 2026-10-26 16：右の端で切れる札は、画面の中へ左に寄せる（スマホで町の名札が出なかった）
       const tryS = s => { const r = { x0: x - m, x1: x + w + m, y0: y - h * (s + 1) * 1.1 - m, y1: y - h * s * 1.1 + m, L: e.L }; if (r.y0 < 0 || r.x0 < 2 || r.x1 > W - 2) return false; /* 画面の端で切れる札は出さない */ if (hit(r)) return false; put.push(r); return true; };
       const pref = Math.round(u.sl);
       if (tryS(pref)) slot = pref; else for (let s = 0; s < 4; s++) if (s !== pref && tryS(s)) { slot = s; break; }
+      if (slot < 0) for (const s of [-1, -2, -3]) if (s !== pref && tryS(s)) { slot = s; break; }   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
     }
     const k = Math.min(1, dt * 7);
     if (slot >= 0) u.sl += (slot - u.sl) * k;

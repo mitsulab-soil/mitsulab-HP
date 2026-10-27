@@ -10,7 +10,8 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=s4";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k2";
+const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
@@ -819,7 +820,7 @@ function buildObjs() {
     for (let i = 0; i < P.length; i++) for (let k = 0; k < 8; k++) { let hit = false;
       for (let j = 0; j < i; j++) { const dx = P[i].x - P[j].x, dz = P[i].z - P[j].z; if (dx * dx + dz * dz < 49) { hit = true; break; } }
       if (!hit) break; const a = i * 2.39 + k * 1.3; P[i].x += Math.cos(a) * 7; P[i].z += Math.sin(a) * 7; P[i].y = groundY(P[i].x, P[i].z) + (P[i].y - groundY(P[i].x - Math.cos(a) * 7, P[i].z - Math.sin(a) * 7)); } }
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .42, skyK: 1.0, skyR: 1.0, overWalls: true }); /* 2026-10-27 本人「球が大きすぎる」＝今の 3〜4 割 */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, QM_OPT); /* 2026-10-27 本人「球が大きすぎる」＝今の 3〜4 割 */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();

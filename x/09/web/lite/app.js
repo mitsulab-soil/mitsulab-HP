@@ -7,7 +7,8 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=6";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=q13";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k2";
+const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "./startpins.js?v=14";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
@@ -1254,7 +1255,7 @@ function buildObjs() {
   }
   // はじめから、すべての層を重ねておく（2026-10-22 本人「デフォルトで全て on に」）。外すのは見る人が選んだときだけ
   LAYER.worn = ALL.map(l => l.id); for (const L of LAYER.objs) { L.want = true; L.arr = true; }
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { skyK: .9, skyR: .9 }); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.o.layer].color, top5(L.o.layer));
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, QM_OPT); for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.o.layer].color, top5(L.o.layer));
   document.body.classList.add("wearing"); document.body.style.setProperty("--lc", ALL[ALL.length - 1].color); document.body.style.setProperty("--lc2", ALL[ALL.length - 1].color);
   const rg = new THREE.RingGeometry(.97, 1, 96); rg.rotateX(-Math.PI / 2);
   LAYER.ripple = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0, depthWrite: false })); LAYER.ripple.visible = false; world.add(LAYER.ripple);
@@ -1744,7 +1745,7 @@ function areaPlaces(Z, J, C) {   // 典拠のある地点：層の色の小さ�
     const ball = new THREE.Object3D(); ball.position.y = 2.1; ball.scale.setScalar(1.6); G.add(ball); C.g.add(G);
     const L = { o: { id: p.id, layer: p.layer, title: p.title, x: p.x, z: p.z, y, ll: p.ll, lines: p.lines.map(l => typeof l === "string" ? { t: l } : l), more: [], src: p.src, how: "記録", note: null, exp: null }, glyph: ball, mark: G, chunk: C };
     L.root = G; L.show = 1; AREA.marks.push(L); C.places.push(L);
-    if (!AREA.qm) AREA.qm = makeQMarks(THREE, world, 160, MOBILE); AREA.qm.add(L, c, top5(p.layer));
+    if (!AREA.qm) AREA.qm = makeQMarks(THREE, world, 160, MOBILE, QM_OPT); AREA.qm.add(L, c, top5(p.layer));
   }
 }
 const _am = new THREE.Vector3();
