@@ -119,7 +119,7 @@ async function boot(root, SC) {
   const P_PERSON = SC === 2 ? new THREE.Vector3(-1.9, 0, 1.2) : new THREE.Vector3(-1.85, 0, .95);
   const PMc = pointMat(Uc, mobile ? 2.0 : 2.3); { const [p, r] = figureDots(P_PERSON, .7, mobile ? 1800 : 3000, rnd); S.add(new THREE.Points(geo(p, r), PMc)); }
   const P_BEE = SC === 2 ? new THREE.Vector3(.55, 2.85, .4) : new THREE.Vector3(1.15, 2.95, .55);
-  { const [p, r] = dots(place(C.makeBee(), P_BEE, SC === 1 ? .8 : .5, -2.1), 1600, rnd); S.add(new THREE.Points(geo(p, r), pointMat(Uc, mobile ? 1.3 : 1.4))); }
+  { const [p, r] = dots(place(C.makeBee(), P_BEE, SC === 1 ? .8 : .5, -2.1), 1600, rnd); let Ub = Uc; if (SC === 2) { Ub = regionUniforms(0xc4b6ff, .55); Ub.__noRegion = 1; mats.push(Ub); } S.add(new THREE.Points(geo(p, r), pointMat(Ub, mobile ? 1.3 : 1.4))); }
   const P_TICK = new THREE.Vector3(1.55, .2, 1.45);
   if (SC === 1) { { const Ut = regionUniforms(0xd6a888, .4); Ut.uTickHide.value = 0; // 模式のマダニ（線）：卵形の胴・前の口・左右 4 対の脚。カメラへ少し起こして形が読めるように
       const L = [], P = [], Rr = [], k = .26, ell = (a, b, cy, n) => { for (let i = 0; i < n; i++) { const q0 = i / n * 6.283, q1 = (i + 1) / n * 6.283; L.push(Math.cos(q0) * a, Math.sin(q0) * b + cy, 0, Math.cos(q1) * a, Math.sin(q1) * b + cy, 0); } };
@@ -199,7 +199,7 @@ async function boot(root, SC) {
   const labs = [...labsBox.querySelectorAll('[data-at]')], _v = new THREE.Vector3();
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'v2-lead-svg'); svg.setAttribute('aria-hidden', 'true'); labsBox.prepend(svg);
   const BW = () => cv.clientWidth || 1, BH = () => cv.clientHeight || 1;
-  const size = () => { R.setSize(BW(), BH(), false); cam.aspect = BW() / BH(); cam.fov = cam.aspect < 1 ? 46 : 34; cam.updateProjectionMatrix(); mats.forEach(u => { if (u.uPx) u.uPx.value = PR * BH() / 600; }); };
+  const size = () => { R.setSize(BW(), BH(), false); cam.aspect = BW() / BH(); cam.fov = cam.aspect < 1.1 ? 46 : 34; cam.updateProjectionMatrix(); mats.forEach(u => { if (u.uPx) u.uPx.value = PR * BH() / 600; }); };
   size(); new ResizeObserver(size).observe(cv);
   const CT = new THREE.Vector3(SC === 2 ? -1.1 : -.1, 1.75, .4);
   let last = performance.now(), t0 = null;
@@ -210,8 +210,8 @@ async function boot(root, SC) {
     { const r = root.getBoundingClientRect(); if (!(r.bottom > 0 && r.top < innerHeight) || document.hidden) return; } if (t0 === null) t0 = now;
     const t = now / 1000, el = (now - t0) / 1000;
     // カメラ：ゆっくり回り込む
-    const a = reduce ? 0 : Math.sin(el * .06) * .32 + el * .012, D = cam.aspect < 1 ? (SC === 2 ? 12.6 : 9.6) : (SC === 2 ? 10.6 : 8.6);
-    const cxo = cam.aspect < 1 && SC === 2 ? -.4 : 0; cam.position.set(cxo + CT.x + Math.sin(.35 + a) * D, CT.y + 1.1, CT.z + Math.cos(.35 + a) * D); cam.lookAt(CT.x + cxo, CT.y, CT.z);
+    const a = reduce ? 0 : Math.sin(el * .06) * .32 + el * .012, D = cam.aspect < 1.1 ? (SC === 2 ? 8.4 : 9.6) : (SC === 2 ? 10.6 : 8.6);
+    const cxo = cam.aspect < 1.1 && SC === 2 ? -.4 : 0; cam.position.set(cxo + CT.x + Math.sin(.35 + a) * D, CT.y + 1.1, CT.z + Math.cos(.35 + a) * D); cam.lookAt(CT.x + cxo, CT.y, CT.z);
     mats.forEach(u => { u.uT.value = reduce ? 0 : t; });
     if (SC === 2) {
       const cy = reduce ? 6 : ((el + 2.6) % 11), g = reduce ? 1 : (cy < 1.2 ? 0 : cy < 3.4 ? (cy - 1.2) / 2.2 : cy < 10 ? 1 : Math.max(0, 1 - (cy - 10))), e = g * g * (3 - 2 * g);
@@ -224,7 +224,7 @@ async function boot(root, SC) {
       { const d = bM.c.clone().sub(bH.c), L = d.length(), rh = bH.r * bH.s; d.normalize(); AT.qualium.copy(bH.c).addScaledVector(d, Math.min(rh, L) - Math.max(0, rh + bM.r - L) / 2); }
       if (qPts) { const pa = qPts.geometry.attributes.position, rh = bH.r * bH.s, sd = qPts.userData.seed; let k = 0;
         for (let i = 0; i < sd.length; i++) { const [x, y, z] = sd[i], Bq = i % 3 ? bM : bB, th = x * 6.283, ph = Math.acos(2 * y - 1), rr = Math.cbrt(z) * Bq.r; _v.set(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiplyScalar(rr).add(Bq.c);
-          const ka = qPts.geometry.attributes.aK; if (i === 0) { qC.set(0, 0, 0); qC.n = 0; } const inB = _v.distanceTo(bB.c) < bB.r, inM = _v.distanceTo(bM.c) < bM.r * .92 && _v.distanceTo(bB.c) < bB.r * .92; if (_v.distanceTo(bH.c) < rh) { pa.setXYZ(i, _v.x, _v.y, _v.z); ka.setX(i, inB && inM ? 1.8 : 0); if (inB && inM) { qC.add(_v); qC.n++; } } else pa.setXYZ(i, 0, -99, 0); } pa.needsUpdate = true; qPts.geometry.attributes.aK.needsUpdate = true; if (qC.n) { qC.multiplyScalar(1 / qC.n); qCore.position.copy(qC); AT.qualium.copy(qC); } qCore.material.opacity = e * .9; qPts.material.uniforms.uE.value = e; }
+          const ka = qPts.geometry.attributes.aK; if (i === 0) { qC.set(0, 0, 0); qC.n = 0; } const inB = _v.distanceTo(bB.c) < bB.r, inM = _v.distanceTo(bM.c) < bM.r * .85 && _v.distanceTo(bB.c) < bB.r * .85 && _v.distanceTo(bH.c) < rh * .9; if (_v.distanceTo(bH.c) < rh) { pa.setXYZ(i, _v.x, _v.y, _v.z); ka.setX(i, inB && inM ? 1.8 : 0); if (inB && inM) { qC.add(_v); qC.n++; } } else pa.setXYZ(i, 0, -99, 0); } pa.needsUpdate = true; qPts.geometry.attributes.aK.needsUpdate = true; if (qC.n) { qC.multiplyScalar(1 / qC.n); qCore.position.copy(qC); AT.qualium.copy(qC); } qCore.material.opacity = e * .9; qPts.material.uniforms.uE.value = e; }
       links.forEach(({ crv, fp, ln }, j) => { if (j === 2 && qC.n) { crv.v2.copy(qC); crv.v1.copy(crv.v0).lerp(qC, .5).y += .7; const lp = ln.geometry.attributes.position; crv.getPoints(60).forEach((q, k) => lp.setXYZ(k, q.x, q.y, q.z)); lp.needsUpdate = true; } const pa = fp.geometry.attributes.position; for (let i = 0; i < 10; i++) { const u = reduce ? i / 10 : ((t * .45 + i / 10 + j * .13) % 1); crv.getPoint(u, _v); pa.setXYZ(i, _v.x, _v.y, _v.z); } pa.needsUpdate = true; });
       lt.forEach(b => { b.m.material.uniforms.ok.value = e * .05; b.m.material.uniforms.oc.value[0].set(bH.c.x, bH.c.y, bH.c.z, bH.r * bH.s); });
     }
@@ -244,7 +244,7 @@ async function boot(root, SC) {
       all.sort((p, q) => p.px - q.px); let rowH = 0;
       all.forEach((o, i) => { o.lb.style.width = ((W - 12) / 2 - 8) + 'px'; o.lb.dataset.n = i + 1; rowH = Math.max(rowH, o.lb.offsetHeight + 8); });
       all.forEach((o, i) => { const x = 4 + (i % 2) * (W - 12) / 2, y = H + 10 + Math.floor(i / 2) * rowH; o.lb.style.transform = `translate3d(${x | 0}px,${y | 0}px,0)`;
-        const g = mk(o.lb); g.children[0].setAttribute('points', ''); g.children[1].setAttribute('r', 8); let mx = o.px, my = o.py; all.slice(0, i).forEach(q => { if (Math.hypot(q.mx - mx, q.my - my) < 20) my = q.my + (my >= q.my ? 20 : -20); }); o.mx = mx; o.my = my; g.children[1].setAttribute('cx', mx); g.children[1].setAttribute('cy', my); g.children[2].textContent = i + 1; g.children[2].setAttribute('x', mx); g.children[2].setAttribute('y', my + 3.5); });
+        const g = mk(o.lb); g.children[0].setAttribute('points', ''); g.children[1].setAttribute('r', 8); let mx = o.px, my = o.py; if (o.lb.dataset.at === 'qualium') { mx += 20; my -= 24; g.children[0].setAttribute('points', `${mx},${my} ${o.px},${o.py}`); } all.slice(0, i).forEach(q => { if (Math.hypot(q.mx - mx, q.my - my) < 20) my = q.my + (my >= q.my ? 20 : -20); }); o.mx = mx; o.my = my; g.children[1].setAttribute('cx', mx); g.children[1].setAttribute('cy', my); g.children[2].textContent = i + 1; g.children[2].setAttribute('x', mx); g.children[2].setAttribute('y', my + 3.5); });
       cv.parentElement.style.marginBottom = (Math.ceil(all.length / 2) * rowH + 10) + 'px'; root.classList.add('nar');
       return;
     }
