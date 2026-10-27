@@ -218,6 +218,7 @@ const RELS = [
 ];
 const WEB_C = { tree: 0x88b68f, bird: 0xa8d8f0, insect: 0xf2cf8c, fungi: 0xe0c8f0, soilife: 0xd8a888, soil: 0xc89870, water: 0x78d6ec };
 const web = { hubs: [], rels: [], sel: null };
+const CYC = new Set(["tree", "soilife", "fungi", "soil"]);   // 落ち葉 → 土の生きもの → 菌 → 土 → 木（ひとまわりの循環として一緒に光らせる）
 function webSprite(text) {
   const c = document.createElement("canvas"), g = c.getContext("2d"), f = '600 44px "Shippori Mincho","Hiragino Mincho ProN",serif'; g.font = f; const w = Math.ceil(g.measureText(text).width) + 36; c.width = w; c.height = 64;
   g.font = f; g.fillStyle = "rgba(3,6,15,.62)"; g.fillRect(0, 6, w, 52); g.fillStyle = "#eef5fb"; g.textBaseline = "middle"; g.fillText(text, 18, 33);
@@ -260,13 +261,14 @@ function pickActor(h) {
   if (!web.sel) { say("つながりの表示を戻しました。", 2500); return; }
   const mine = web.rels.filter(r => r.a === h.id || r.b === h.id);
   say(MOBILE ? `${h.name} ── ${mine[0].t}。ほか ${mine.length - 1} 本（目録の「つながり」に典拠）` : `${h.name} ── ` + mine.map(r => r.t).join("。 ") + "。（目録の「つながり」から、それぞれの典拠をひらけます）", 9000 + mine.length * 1500);
-  aoi?.motion.point?.(h.v, 2.6); aoi?.motion.lookAt(h.v); aoi?.motion.express("curious", .5, 2);
+  if (aoi) { const g = new THREE.Vector3(h.v.x, 0, h.v.z), d = g.length(); if (d > 1.5) g.multiplyScalar(Math.min(R - 1, d) / d); g.add(new THREE.Vector3(1.2, 0, 1.2)); aoi.walkTo(g); }   // 触れたアクターのそばへ歩いて、指す
+  aoi?.motion.point?.(h.v, 3.2); aoi?.motion.lookAt(h.v); aoi?.motion.express("curious", .5, 2);
 }
 function webTick(dt) {
   const s = web.sel;
-  for (const h of web.hubs) { h.ring.quaternion.copy(camera.quaternion); const k = s ? (s === h ? 1.35 : .85) : 1; h.g.scale.setScalar(k + Math.sin(performance.now() / 600 + h.v.x) * .04); }
+  for (const h of web.hubs) { h.ring.quaternion.copy(camera.quaternion); const k = s ? (s === h ? 1.15 : .85) : 1; h.g.scale.setScalar(k + Math.sin(performance.now() / 600 + h.v.x) * .04); }
   for (const r of web.rels) {
-    const hot = s && (r.a === s.id || r.b === s.id), dim = s && !hot;
+    const hot = s && (r.a === s.id || r.b === s.id || (CYC.has(s.id) && CYC.has(r.a) && CYC.has(r.b))), dim = s && !hot;
     r.line.material.opacity = hot ? .8 : dim ? .06 : .3; r.flow.material.opacity = hot ? 1 : dim ? .08 : .55;
     r.ph = (r.ph + dt * (hot ? .35 : .12)) % 1;
     for (let i = 0; i < r.NF; i++) { const p = r.cur.getPoint((r.ph + i / r.NF) % 1); r.fp[i * 3] = p.x; r.fp[i * 3 + 1] = p.y; r.fp[i * 3 + 2] = p.z; }
