@@ -110,7 +110,7 @@ if (uMode == 1) {            // マムシ：目の像を暗く、温かいもの
   vec3 vis = vec3(dot(gl_FragColor.rgb, vec3(.3, .55, .15))) * .28;
   float lum = dot(gl_FragColor.rgb, vec3(.3, .55, .15));
   // 2026-10-27 熱の像にも、わずかな温度のむら（目のくぼみ・鼻先はやや低い）を元の明暗から写す＝顔が「目鼻のない平らな面」にならない
-  vec3 hc = mix(vec3(.55, .06, .32), vec3(1., .9, .55), clamp(heat * 1.3 - (.5 - clamp(lum, 0., 1.)) * .35, 0., 1.));
+  vec3 hc = mix(vec3(.55, .06, .32), vec3(1., .9, .55), clamp(heat * 1.3 - (.5 - clamp(lum, 0., 1.)) * .5, 0., 1.));
   gl_FragColor.rgb = mix(vis, hc, smoothstep(.22, .6, heat));
 } else if (uMode == 2) {     // コウモリ：声の波面がとどいたところだけ光る
   float d = distance(vWP, uEcho.xyz);
@@ -695,7 +695,7 @@ async function loadAoi() {
     v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 ? AOI_H / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
-    aoi.traverse(o=>{if(o.isMesh){o.material=[].concat(o.material).map(m=>{const n=new THREE.MeshStandardMaterial({map:m.map||null,color:m.color?.clone()||new THREE.Color(0xffffff),side:m.side,transparent:m.transparent,alphaTest:m.alphaTest||0,roughness:.85});n.name=m.name;if(/SKIN/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.24,.2,.19);n.roughness=.7;}else if(/EYE|FACE/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.45,.45,.45);}else if(/HAIR/i.test(m.name)){n.roughness=.62;}/* 2026-10-15：肌は光の当たらない側も少し透けて明るく（MToon から写すと顔が暗く沈んでいた）・目は暗くしない *//* 2026-10-27 熱の見え方（マムシ）：肌は温かく、衣は体温をさえぎって表面がぬるく、髪はさらに低い（人の赤外線の像で、顔と手が明るく衣が暗いのと同じ）。目は肌と同じ温度にして、光る点にしない */prep(n,{uv:.04,temp:/SKIN|FACE|EYE|MOUTH|BROW/i.test(m.name)?.62:/HAIR/i.test(m.name)?.3:.5,echo:1});return n;});if(o.material.length===1)o.material=o.material[0];}});
+    aoi.traverse(o=>{if(o.isMesh){o.material=[].concat(o.material).map(m=>{const n=new THREE.MeshStandardMaterial({map:m.map||null,color:m.color?.clone()||new THREE.Color(0xffffff),side:m.side,transparent:m.transparent,alphaTest:m.alphaTest||0,roughness:.85});n.name=m.name;if(/SKIN/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.24,.2,.19);n.roughness=.7;}else if(/EYE|FACE/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.45,.45,.45);}else if(/HAIR/i.test(m.name)){n.roughness=.62;}/* 2026-10-15：肌は光の当たらない側も少し透けて明るく（MToon から写すと顔が暗く沈んでいた）・目は暗くしない *//* 2026-10-27 熱の見え方（マムシ）：肌は温かく、衣は体温をさえぎって表面がぬるく、髪はさらに低い（人の赤外線の像で、顔と手が明るく衣が暗いのと同じ）。目は肌と同じ温度にして、光る点にしない */prep(n,{uv:.04,temp:/SKIN|FACE|EYE|MOUTH|BROW/i.test(m.name)?.55:/HAIR/i.test(m.name)?.3:.5,echo:1});return n;});if(o.material.length===1)o.material=o.material[0];}});
     A.mats = []; aoi.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) A.mats.push([mt, mt.transparent, mt.depthWrite]); });
     // 2026-10-13：体の動き・目・まばたき・口・表情・裾の布は共通部品 AoiMotion に任せる（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）
     aoi.position.copy(A.pos); aoi.updateMatrixWorld(true);
