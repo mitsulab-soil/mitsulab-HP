@@ -186,3 +186,4 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-s2 .qx-fig2{margin-top:-36px}}
 .qx-fig2 canvas{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 9%,#000 91%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 8%,#000 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0,#000 9%,#000 91%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 8%,#000 90%,transparent 100%);mask-composite:intersect}
 @media (min-width:701px){.qx-fig2 .qx-labs{display:grid;grid-template-columns:repeat(4,1fr);left:10%;right:10%;text-align:center}}
+.qx-fig2 .qx-lab .k::before{content:"";display:inline-block;width:18px;height:3px;border-radius:2px;background:var(--c);vertical-align:middle;margin-right:7px;box-shadow:0 0 8px var(--c)}

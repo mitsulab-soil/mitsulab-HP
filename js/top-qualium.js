@@ -130,7 +130,7 @@ async function boot(fig, kind) {
     const heat = new THREE.Sprite(new THREE.SpriteMaterial({ map: warm, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); heat.scale.setScalar(1.9); sTick.add(heat);
     const nS = 70, sp = new Float32Array(nS * 3), sd = []; for (let i = 0; i < nS; i++) sd.push([Math.random() * 6.28, Math.random(), .3 + Math.random() * .7]);
     const smell = points(sp, null, .05, .8); smell.material.color.setHex(0xffd2a6); smell.geometry.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sTick.add(smell);
-    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x1c2430, transparent: true, opacity: .9 }); const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), new THREE.LineBasicMaterial({ color: 0x7d8da0, transparent: true, opacity: .2 })); o.add(e); } }); sTick.add(ghost);
+    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x26303e, transparent: true, opacity: .9 }); const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), new THREE.LineBasicMaterial({ color: 0x8a9bb0, transparent: true, opacity: .3 })); o.add(e); } }); sTick.add(ghost);
     const pc = new THREE.PerspectiveCamera(30, 1, .05, 50); pc.position.set(0, .15, 3.6); pc.lookAt(0, -.25, 0);
     const scenes = [sHum, sBee, sTick];
     tick = t => { [fH, fB, ghost].forEach((f, i) => { f.rotation.y = Math.sin(t * .35 + i) * .35; f.rotation.z = Math.sin(t * .8 + i) * .03; });
