@@ -246,7 +246,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
 export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) {   // minPx＝遠くの札も読める字の高さまで大きくする（川越から）
   const W = innerWidth, H = innerHeight, put = [], V = THREE.Vector3;
   const a = placeLabels._a || (placeLabels._a = new V()), b = placeLabels._b || (placeLabels._b = new V()), sc = placeLabels._s || (placeLabels._s = new V()), ps = placeLabels._p || (placeLabels._p = new V());
-  list.sort((p, q) => (q.pri || 0) - (p.pri || 0) || p.d - q.d);
+  list.sort((p, q) => (q.pri || 0) - (p.pri || 0) || p.d - q.d); const LP = [], LA = [];   // 近い順に置く（近い印ほど札が付きやすい）
   const hit = r => { for (const q of put) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; for (const q of avoid) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; return false; };
   for (const e of list) {
     const sp = e.sp, u = sp.userData; if (u.by == null) u.by = sp.position.y; u.sl ??= 0; u.f ??= 0;
@@ -268,5 +268,13 @@ export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) 
     u.f += ((slot >= 0 ? 1 : 0) - u.f) * Math.min(1, dt * 9);
     sp.position.y = u.by + u.sl * sc.y * 1.1 / Math.max(1e-4, ps.y || 1);
     sp.material.opacity *= u.f; if (u.f < .02) sp.visible = false;
+    if (sp.visible && u.f > .05 && e.L?.glyph) { e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); LA.push(u.f * .55, u.f * .55); }
   }
+  // 2026-10-28 Qualium 共通：札と印を細い線で結ぶ（どの札がどの印のものかを分かるように）
+  if (!placeLabels._ln && list[0]) { let root = list[0].sp; while (root.parent) root = root.parent;
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(64 * 6), 3)); g.setAttribute("alpha", new THREE.BufferAttribute(new Float32Array(64 * 2), 1));
+    const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, depthTest: false, toneMapped: false, vertexShader: "attribute float alpha; varying float vA; void main(){ vA=alpha; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }", fragmentShader: "varying float vA; void main(){ gl_FragColor=vec4(.86,.95,1.,vA); }" });
+    const ln = new THREE.LineSegments(g, m); ln.frustumCulled = false; ln.renderOrder = 5; root.add(ln); placeLabels._ln = ln; }
+  const ln = placeLabels._ln; if (ln) { const P = ln.geometry.attributes.position, A = ln.geometry.attributes.alpha, n = Math.min(64, LP.length / 6);
+    for (let i = 0; i < n * 6; i++) P.array[i] = LP[i]; for (let i = 0; i < n * 2; i++) A.array[i] = LA[i]; P.needsUpdate = A.needsUpdate = true; ln.geometry.setDrawRange(0, n * 2); }
 }
