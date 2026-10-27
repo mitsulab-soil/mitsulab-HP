@@ -89,7 +89,7 @@ export function kuraMats(TL, mobile) {
   const tile = tileTex(mobile);
   MATS = {
     // 黒漆喰：磨いた漆喰の深い黒（つやは強め・映り込みは控えめ）。白い漆喰の写真の肌理を、色は黒にして使う
-    shikkui: new THREE.MeshPhysicalMaterial({ color: "#07080a", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.12, .12), roughness: .82, metalness: 0, clearcoat: 1, clearcoatRoughness: .05, envMapIntensity: .75 }),   // 2026-10-26 黒漆喰の質感：磨いた面のつやと空の映り込みを強め、写真の肌理は浅く
+    shikkui: new THREE.MeshPhysicalMaterial({ color: "#1a1b1e", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.4, .4),   /* 10-28：CC0 の漆喰の写真（Poly Haven）の肌理が見えるよう、黒を少し浅く・凹凸を強く（黒い一枚の板に見せない） */ roughness: .82, metalness: 0, clearcoat: 1, clearcoatRoughness: .05, envMapIntensity: 1.5 }),   // 2026-10-26 黒漆喰の質感：磨いた面のつやと空の映り込みを強め、写真の肌理は浅く
     // 町家の型の上壁：灰白の漆喰（白い漆喰の写真の色をそのまま、少し灰に）
     plaster: new THREE.MeshStandardMaterial({ color: "#c9c4ba", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
     plasterg: new THREE.MeshStandardMaterial({ color: "#8a6f55",   /* 2026-10-26 本人「灰色の面が多い」→ 土壁（荒壁の土の色・模式）に */ map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),

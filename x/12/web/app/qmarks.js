@@ -46,7 +46,7 @@ const EMB = /* glsl */`
 `;
 
 export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
-  const SKYK = opt.skyK ?? 2.6, SKYR = opt.skyR ?? 2.4, WALKK = opt.walkK ?? 1.05, MINPX = opt.minPx ?? 12, CAPK = opt.capK ?? 5; MK = opt.mk ?? .36;
+  const SKYK = opt.skyK ?? 2.6, SKYR = opt.skyR ?? 2.4, WALKK = opt.walkK ?? 1.05, MINPX = opt.minPx ?? 12, CAPK = opt.capK ?? 5, MAXN = opt.maxShow ?? 7, _f = new THREE.Vector3(); MK = opt.mk ?? .36;
   cap = Math.max(1, cap);
   const mk = (geo, vs, fs, order, blend, side = THREE.DoubleSide) => {
     const g = geo.clone();
@@ -182,8 +182,13 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
       const CA = crystal.geometry.attributes, HA = halo.geometry.attributes, OA = orbit.geometry.attributes, RA = ring.geometry.attributes, BA = beam.geometry.attributes;
       let n = 0; rects.length = 0;
       const ppk = innerHeight / (2 * Math.tan((cam.fov || 50) * Math.PI / 360));
+      if (!sky) {   // 2026-10-28 Qualium 共通の基準：歩くときに見せる印は、視野の中の近い順に MAXN 個まで（印の壁にしない）
+        const fw = _f.set(0, 0, -1).applyQuaternion(cam.quaternion), cand = [];
+        for (const it of items) { const L = it.L; L.qHide = false; if (!L.root.visible || !(L.show > .01)) continue; L.root.getWorldPosition(_r); const dx = _r.x - cam.position.x, dz = _r.z - cam.position.z, dd = Math.hypot(dx, dz); if ((dx * fw.x + dz * fw.z) / Math.max(1e-3, dd) > .35 || dd < 12) cand.push([dd, L]); else L.qHide = true; }
+        cand.sort((p, q) => p[0] - q[0]); cand.forEach(([, L], i) => { if (i >= MAXN && !(L.open > 0)) L.qHide = true; });
+      } else for (const it of items) it.L.qHide = false;
       for (const it of items) {
-        const L = it.L; if (!L.root.visible || !(L.show > .01) || n >= cap) continue;
+        const L = it.L; if (!L.root.visible || !(L.show > .01) || n >= cap || L.qHide) continue;
         L.glyph.getWorldPosition(_p); L.root.getWorldPosition(_r); L.glyph.getWorldScale(_s);
         const sg = _s.x, d = _p.distanceTo(cam.position), dh = Math.hypot(_p.x - cam.position.x, _p.z - cam.position.z);
         const crisp = sky ? .2 : 1 - Math.min(1, Math.max(0, (dh - 8) / 40));
