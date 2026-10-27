@@ -521,6 +521,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 @media (max-width:640px){body[data-mode="walk"] #capText{font-size:12.5px;line-height:1.62;letter-spacing:.01em}body[data-mode="walk"] #caption{left:92px;padding:4px 0}}   /* 2026-10-27 375px で名乗りの板が始める所の建物を隠さないように小さく */
 @media (max-width:640px){body[data-mode="walk"] #caption:not(.full) #capText{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}body[data-mode="walk"] #caption:not(.full)::after{content:"…ひらく";position:absolute;right:0;bottom:-14px;font-size:10px;opacity:.6;letter-spacing:.1em}}   /* 2026-10-27 1 画面の GUI：スマホは字幕を 2 行に畳み、触れるとひらく（風景を広く） */
 </style>
+<style id="qualium-375">/* 2026-10-28 Qualium 共通の基準：375px で右下のボタンを小さく 2 列に、字幕と重ねない（風景と印を広く） */@media (max-width:640px){body[data-mode="walk"] #walkUI{display:grid;grid-template-columns:repeat(2,auto);gap:6px;align-items:end;justify-items:end}body[data-mode="walk"] #walkUI .ib{min-height:44px;padding:0 10px;font-size:12.5px;letter-spacing:.06em}html body[data-mode="walk"] #caption{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 112px)!important;right:var(--g)!important}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 川越" data-en="Qualium Kawagoe" data-icon="favicon/icon.svg" data-max="15000"></script>
