@@ -230,7 +230,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         L.root.getWorldPosition(_r);
         const h = Math.max(.05, cy - _r.y - .3 * sg), bw = (sky ? .9 : .12 + far * .25) * Math.max(1, sg * .6), near = sky ? 1 : Math.min(1, Math.max(0, (dh - 2) / 5));
         _q.identity(); _s.set(bw, h, bw); _m.compose(_r, _q, _s); beam.setMatrixAt(n, _m);
-        BA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); BA.iP.setXYZW(n, show * near, crisp, em, far); BA.iQ.setXY(n, it.k, op);
+        BA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); BA.iP.setXYZW(n, show * near * (1 - .75 * far), crisp, em, far);   // 遠い印の光の柱は薄く（空に刺さって見えないように） BA.iQ.setXY(n, it.k, op);
         n++;
       }
       for (const im of ALLM) { im.count = n; im.instanceMatrix.needsUpdate = true; const A = im.geometry.attributes; A.iCol.needsUpdate = A.iP.needsUpdate = A.iQ.needsUpdate = true; }
@@ -246,27 +246,40 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
 export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) {   // minPx＝遠くの札も読める字の高さまで大きくする（川越から）
   const W = innerWidth, H = innerHeight, put = [], V = THREE.Vector3;
   const a = placeLabels._a || (placeLabels._a = new V()), b = placeLabels._b || (placeLabels._b = new V()), sc = placeLabels._s || (placeLabels._s = new V()), ps = placeLabels._p || (placeLabels._p = new V());
-  list.sort((p, q) => (q.pri || 0) - (p.pri || 0) || p.d - q.d);
+  placeLabels._fr = (placeLabels._fr || 0) + 1;
+  list.sort((p, q) => (q.pri || 0) - (p.pri || 0) || p.d - q.d); const LP = [], LA = [];   // 近い順に置く（近い印ほど札が付きやすい）
   const hit = r => { for (const q of put) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; for (const q of avoid) if (r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) return true; return false; };
+  let idx = -1;
   for (const e of list) {
-    const sp = e.sp, u = sp.userData; if (u.by == null) u.by = sp.position.y; u.sl ??= 0; u.f ??= 0;
-    if (minPx) { u.bs ??= sp.scale.clone(); sp.scale.copy(u.bs); }
+    idx++; const sp = e.sp, u = sp.userData; if (u.by == null) u.by = sp.position.y; u.sl ??= 0; u.f ??= 0;
+    if (minPx) { if (!u.bs || u.bsF !== placeLabels._fr) u.bs = (u.bs || new THREE.Vector3()).copy(sp.scale); }   // 札の大きさはアプリが毎こま決める。その大きさを元にする（古い大きさを使い続けて、札が大きくなりすぎていた）
     sp.position.y = u.by; sp.getWorldPosition(a); sp.getWorldScale(sc); sp.parent?.getWorldScale(ps);
     if (minPx) { const t = a.clone(), t2 = a.clone(); t2.y += sc.y; t.project(cam); t2.project(cam); const hp = Math.abs(t2.y - t.y) / 2 * H; if (t.z < 1 && hp > .5 && hp < minPx) { const f = Math.min(3.2, minPx / hp); sp.scale.copy(u.bs).multiplyScalar(f); sp.getWorldScale(sc); } }
     b.copy(a); b.y += sc.y; a.project(cam); b.project(cam);
     let slot = -1;
-    if (a.z < 1 && sp.visible) {
+    if (a.z < 1 && sp.visible && Math.abs(a.x) < 1.02 && Math.abs(a.y) < 1.05) {   // 10-28：画面の外の印の札は、画面の内へ寄せて出さない（印の見えない札・近い印の札が置けない原因だった）
       const x0 = (a.x + 1) / 2 * W, y = (1 - a.y) / 2 * H, h = Math.max(6, y - (1 - b.y) / 2 * H), w = h * (sc.x / sc.y) * .78, m = 3;
       const x = Math.max(2 + m, Math.min(x0, W - 2 - m - h * sc.x / sc.y * .92));   /* 板の右端も画面に収める */ sp.center.x = (x0 - x) / Math.max(1, h * sc.x / sc.y);   // 2026-10-26 16：右の端で切れる札は、画面の中へ左に寄せる（スマホで町の名札が出なかった）
       const tryS = s => { const r = { x0: x - m, x1: x + w + m, y0: y - h * (s + 1) * 1.1 - m, y1: y - h * s * 1.1 + m, L: e.L }; if (r.y0 < 0 || r.x0 < 2 || r.x1 > W - 2) return false; /* 画面の端で切れる札は出さない */ if (hit(r)) return false; put.push(r); return true; };
       const pref = Math.round(u.sl);
       if (tryS(pref)) slot = pref; else for (let s = 0; s < 4; s++) if (s !== pref && tryS(s)) { slot = s; break; }
-      if (slot < 0) for (const s of [-1, -2, -3]) if (s !== pref && tryS(s)) { slot = s; break; }   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
+      if (slot < 0) for (const s of [-1, -2, -3]) if (s !== pref && tryS(s)) { slot = s; break; }
+      if (slot < 0) { const xl = x0 - w - 8, r = { x0: xl - 3, x1: xl + w + 3, y0: y - h * 1.1 - 3, y1: y + 3, L: e.L };   // 右に置けなければ、印の左に置く
+        if (xl > 2 && r.y0 > 0 && !hit(r)) { put.push(r); slot = 0; sp.center.x = (w + 8) / Math.max(1, h * sc.x / sc.y); } }
+      if (slot < 0 && idx < 3 && x + w < W - 2 && y - h * 1.1 > 0 && ![...put, ...avoid.filter(q => !q.L)].some(q => x - 3 < q.x1 && x + w + 3 > q.x0 && y - h * 1.1 - 3 < q.y1 && y + 3 > q.y0)) { put.push({ x0: x - 3, x1: x + w + 3, y0: y - h * 1.1 - 3, y1: y + 3, L: e.L }); slot = 0; }   // 10-28：いちばん近い 2 つは、操作の部品に少しかかっても札を出す（スマホで札が出なかった）   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
     }
     const k = Math.min(1, dt * 7);
     if (slot >= 0) u.sl += (slot - u.sl) * k;
     u.f += ((slot >= 0 ? 1 : 0) - u.f) * Math.min(1, dt * 9);
     sp.position.y = u.by + u.sl * sc.y * 1.1 / Math.max(1e-4, ps.y || 1);
     sp.material.opacity *= u.f; if (u.f < .02) sp.visible = false;
+    if (slot >= 0 && sp.visible && u.f > .05 && e.L?.glyph) {   /* 札が画面に置けた印だけ線を引く */ e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); LA.push(u.f * .8, u.f * .8); }
   }
+  // 2026-10-28 Qualium 共通：札と印を細い線で結ぶ（どの札がどの印のものかを分かるように）
+  if (!placeLabels._ln && list[0]) { let root = list[0].sp; while (root.parent) root = root.parent;
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(64 * 6), 3)); g.setAttribute("alpha", new THREE.BufferAttribute(new Float32Array(64 * 2), 1));
+    const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, depthTest: false, toneMapped: false, vertexShader: "attribute float alpha; varying float vA; void main(){ vA=alpha; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }", fragmentShader: "varying float vA; void main(){ gl_FragColor=vec4(.86,.95,1.,vA); }" });
+    const ln = new THREE.LineSegments(g, m); ln.frustumCulled = false; ln.renderOrder = 5; root.add(ln); placeLabels._ln = ln; }
+  const ln = placeLabels._ln; if (ln) { const P = ln.geometry.attributes.position, A = ln.geometry.attributes.alpha, n = Math.min(64, LP.length / 6);
+    for (let i = 0; i < n * 6; i++) P.array[i] = LP[i]; for (let i = 0; i < n * 2; i++) A.array[i] = LA[i]; P.needsUpdate = A.needsUpdate = true; ln.geometry.setDrawRange(0, n * 2); }
 }

@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k6";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k11";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -782,7 +782,7 @@ function stepLayer(dt) {
   for (const L of LAYER.objs) {
     const on = LAYER.worn.includes(top5(L.layer)) && QW.mode !== "sight", d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
     const want = on ? (sky ? 1 : d < 140 ? 1 : 0) : 0; L.show += (want - L.show) * Math.min(1, dt * 4);
-    const vis = L.show > .02; L.root.visible = vis; L.lb.visible = vis && !L.qHide && (sky ? false : d < 58);   /* 10-28：札は見せている印と同じものだけ */   // 2026-10-26 遠くの目印も名を読めるように 34→58 m
+    const vis = L.show > .02; L.root.visible = vis; L.lb.visible = vis && !L.qHide && (sky ? false : d < 90);   /* 10-28：札は見せている印と同じものだけ */   // 2026-10-26 遠くの目印も名を読めるように 34→58 m
     if (!vis) continue;
     const k = sky ? Math.min(14, Math.max(2.5, camera.position.distanceTo(L.root.position) / 60)) : 1;
     L.root.scale.setScalar(k * (.4 + .6 * L.show)); L.glyph.rotation.y = t * .6; L.glyph.position.y = (L.o.h || 1.8) + Math.sin(t * 1.4 + L.o.x) * .05;
@@ -825,7 +825,7 @@ function stepHere(cp, t, off) {
 const DC = { t: 0, ls: null };
 function declutter(dt) {
   const now = performance.now(); if (!DC.ls || now - DC.t > 500) { DC.t = now; DC.ls = $("#lstack").getBoundingClientRect(); }   // 画面の部品の位置は 0.5 秒ごとに読む（毎こま読むと重い）
-  const ls = DC.ls, avoid = [...(LAYER.qm?.rects || [])]; if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 });
+  const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 });
   const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
   if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 16 : 22);   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
