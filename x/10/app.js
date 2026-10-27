@@ -2,12 +2,23 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261021";
+import { T, setLang, lang } from "./i18n.js?v=20261027g";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261021";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
-import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027j";
+import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027g";
 
+// 形の札の絵（細い線の輪郭）
+const SV = d => `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
+const SHAPE = {
+  plate: SV("M6 24l14-7 14 7-14 7z M6 24v3l14 7 14-7v-3"),
+  boulder: SV("M7 28c-1-6 3-12 9-14 4-3 10-2 13 2 4 3 5 8 3 12z M7 28h25"),
+  shell: SV("M8 26c2-9 9-15 18-14 4 1 6 4 5 8-1 6-8 10-15 9z M14 22c3-3 7-4 11-3 M17 26c2-2 5-3 8-2"),
+  vase: SV("M16 6h8 M17 6c0 4-6 7-6 15s4 13 9 13 9-5 9-13-6-11-6-15"),
+  pot: SV("M8 12h24 M10 12l3 20h14l3-20 M9 16h22"),
+  branch: SV("M6 32C14 26 20 20 34 8 M18 22c-2-4-1-8 1-11 M24 16c4 0 7 2 9 5 M12 27c-3-1-5-3-6-6"),
+  tile: SV("M8 30C8 18 12 10 20 10s12 8 12 20 M12 30c0-10 3-16 8-16s8 6 8 16"),
+};
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 899px)").matches;
 const $ = s => document.querySelector(s);
@@ -99,9 +110,18 @@ const COLD = new THREE.Color(0x78d6ec), WARM = new THREE.Color(0xf2cf8c);
 // 指の通り道（細い線。2.4 秒で消える）
 const TR = 900, trPos = new Float32Array(TR * 2 * 3), trCol = new Float32Array(TR * 2 * 4), trAge = new Float32Array(TR * 2).fill(99);
 const trGeo = new THREE.BufferGeometry(); trGeo.setAttribute("position", new THREE.BufferAttribute(trPos, 3)); trGeo.setAttribute("color", new THREE.BufferAttribute(trCol, 4));
-const trail = new THREE.LineSegments(trGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
+const trail = new THREE.LineSegments(trGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
 trail.frustumCulled = false; trail.userData.plate = true; scene.add(trail); let trW = 0;
+// 光る跡（線に沿った光の粒。なぞった所が数秒光って消える）
+const glow = new THREE.Points(trGeo, new THREE.PointsMaterial({ size: MOBILE ? 7 : 6, sizeAttenuation: false, vertexColors: true, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, fog: false, map: (() => { const c = document.createElement("canvas"); c.width = c.height = 32; const g = c.getContext("2d"), r = g.createRadialGradient(16, 16, 0, 16, 16, 16); r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.4, "rgba(170,240,255,.55)"); r.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = r; g.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); })() }));
+glow.frustumCulled = false; glow.renderOrder = 4; glow.userData.plate = true; scene.add(glow);
 
+// 波紋（触れた所から短く広がって消える光の輪。数値の代わりに返す）
+const ripGeo = new THREE.RingGeometry(.93, 1, 72).rotateX(-Math.PI / 2);
+const RIP = Array.from({ length: 10 }, () => { const m = new THREE.Mesh(ripGeo, new THREE.MeshBasicMaterial({ color: 0x9bdcf0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, side: THREE.DoubleSide, fog: false })); m.renderOrder = 5; m.userData.age = 9; m.frustumCulled = false; scene.add(m); return m; });
+let ripW = 0, ripT = 0;
+function ripple(pos, quat, amp = .6) { const m = RIP[ripW++ % RIP.length]; m.position.copy(pos); m.quaternion.copy(quat); m.userData.age = 0; m.userData.amp = amp; m.material.color.copy(ring.material.color); }
+function tickRipples(dt) { for (const m of RIP) { const a = m.userData.age += dt; if (a > 1) { m.material.opacity = 0; continue; } m.scale.setScalar(.03 + a * .16 * (.6 + m.userData.amp)); m.material.opacity = Math.pow(1 - a, 1.5) * (.5 + .5 * m.userData.amp); } }
 // ---- デジタルの層（2026-10-27 本人「デジタルとフィジカルの融合」）：写真の面の上に、点群・走査線・地の光のグリッドを薄く重ねる
 scene.fog = new THREE.FogExp2(0x03060f, .22);
 { const L = [], C = [], E = 1.6, S = .1;
@@ -137,11 +157,11 @@ let gT = 0;
   const frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.05, .32, .05)), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .35 })); frame.position.y = .16; g.add(frame);
   const bar = new THREE.Mesh(new THREE.BoxGeometry(.036, 1, .036), new THREE.MeshBasicMaterial({ color: [0x78d6ec, 0xb4a2ff, 0xf2cf8c, 0x7fe0b4][i], transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false }));
   bar.scale.y = .001; g.add(bar); const lab = gLab(name); lab.position.set(0, MOBILE ? .4 : -.06, .02); if (MOBILE) lab.visible = false;   // スマホの値は下の欄に任せる g.add(lab);
-  scene.add(g); GAUGE.push({ bar, v: 0, lab });
+  g.visible = false; scene.add(g); GAUGE.push({ bar, v: 0, lab });   // 2026-10-27 本人「詳しいパラメータなどは不要」：計器は出さない
 });
 // 振動の波：計器の上に 3D の線で（強さで振れ幅、振動数で山の数）
 const WN = 96, wPos = new Float32Array(WN * 3); const wave3 = new THREE.Line(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(wPos, 3)), new THREE.LineBasicMaterial({ color: 0xb4a2ff, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false }));
-wave3.frustumCulled = false; scene.add(wave3); let wPh = 0;
+wave3.frustumCulled = false; wave3.visible = false; scene.add(wave3); let wPh = 0;
 function gauges(r, dent, dt) {
   const tgt = [Math.min(1, r.speed / 200), Math.min(1, r.freq / 300), Math.min(1, r.amp), Math.min(1, Math.max(0, dent) / 4)];
   GAUGE.forEach((g, i) => { g.v += (tgt[i] - g.v) * Math.min(1, dt * 8); const h = Math.max(.002, g.v * .32); g.bar.scale.y = h; g.bar.position.y = h / 2; });
@@ -198,7 +218,9 @@ function applySurface(v, keepParams = false) {
   if (!keepParams) params = { ...v.p0 };
   applyParams(); buildSliders(); setSnd(v.snd);
   $("#originT").textContent = T(v.origin === "photo" ? "origin.photo" : "origin.normal");
-  for (const b of document.querySelectorAll(".chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
+  for (const b of document.querySelectorAll("#chips .chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
+  const fi = $("#faceS"); if (v.id === "photo") fi.src = $("#photoThumb").toDataURL(); else fi.src = `tex/${v.id}_t.webp?v=20261021`;
+  const fn = $("#faceSN"); fn.dataset.t = "s." + v.id; fn.textContent = T("s." + v.id);
 }
 // ---- 形に貼る（触覚の mixed reality）
 // 形のための光：後ろからの縁の光と、斜め上からの締まった主光（形を選んだときだけ点ける）
@@ -221,10 +243,12 @@ async function setObject(id) {
   plate.visible = !objDef; $("#scaleL").hidden = !!objDef;
   for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));
   $("#bGlb").hidden = !objDef;
-  if (!objDef) { aoi?.motion.lookAt(null); return; }
+  const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "板"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
+  if (!objDef) { aoi?.motion.lookAt(null); aoi?.place(AOI_X, AOI_Z, .35); setView(0); return; }
+  Object.assign(G, { zoom: MOBILE ? .62 : .8, tx: 0, tz: MOBILE ? .12 : .05 }); clampG();   // 形は小さいので寄る
   const want = objDef; let g; try { busy(true); g = await loadGeometry(objDef); } finally { busy(false); } if (objDef !== want) { g.dispose(); return; }
   objMesh = new THREE.Mesh(g, objMat); objMesh.castShadow = true; scene.add(objMesh); relief();
-  const c = new THREE.Vector3(0, .15, 0); if (aoi) aoi.place(AOI_X, -.08, Math.atan2(-AOI_X, .08)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
+  const c = new THREE.Vector3(0, .15, 0); const ox = MOBILE ? -.34 : AOI_X, oz = MOBILE ? .08 : AOI_Z; if (aoi) aoi.place(ox, oz, Math.atan2(-ox, -oz)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
   say("aoi.obj", 6500);
 }
 function applyParams() {
@@ -263,10 +287,21 @@ function buildSliders() {
 const chips = $("#chips"), photoChip = chips.querySelector('[data-s="photo"]');
 for (const s of SAMPLES) {
   const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.s = s.id; b.setAttribute("aria-pressed", "false");
-  b.innerHTML = `<img src="tex/${s.id}_t.webp?v=20261021" alt="" width="48" height="48" loading="lazy"><span><b data-t="s.${s.id}">${T("s." + s.id)}</b><small data-t="s.${s.id}.sub">${T("s." + s.id + ".sub")}</small></span>`;
+  b.innerHTML = `<img src="tex/${s.id}_t.webp?v=20261021" alt="" width="52" height="52" loading="lazy"><b data-t="s.${s.id}">${T("s." + s.id)}</b>`; b.title = T("s." + s.id + ".sub");
   b.addEventListener("click", async () => { if (surf?.id === s.id) return; busy(true); try { applySurface(await loadSample(s)); say("aoi." + s.id, 6500); aoiReact(); } finally { busy(false); } });
   chips.insertBefore(b, photoChip);
 }
+// ---- 下の三つの印：押すと選択肢が重なって開く。選ぶと閉じる（画面は遷移しない）
+function openTray(id) {
+  const tray = $("#tray"), cur = tray.hidden ? null : [...tray.children].find(t => !t.hidden)?.id, next = cur === id ? null : id;
+  for (const t of tray.children) t.hidden = t.id !== next; tray.hidden = !next;
+  for (const d of document.querySelectorAll(".dk")) d.setAttribute("aria-expanded", String(d.dataset.tray === next));
+  stage.classList.toggle("open", !!next);
+}
+const closeTray = () => { if (!$("#tray").hidden) openTray(null); };
+for (const d of document.querySelectorAll(".dk")) d.addEventListener("click", () => openTray(d.dataset.tray));
+$("#tray").addEventListener("click", e => { if (e.target.closest("button.chip") && !e.target.closest("#trayK")) setTimeout(closeTray, 180); });
+addEventListener("keydown", e => { if (e.key === "Escape") closeTray(); });
 let photoSurf = null;
 photoChip.addEventListener("click", () => { if (photoSurf && surf !== photoSurf) { applySurface(photoSurf, false); say("aoi.photo", 7000); } });
 async function onFile(e) {
@@ -277,7 +312,7 @@ async function onFile(e) {
     if (photoSurf) for (const k of ["map", "normalMap", "roughMap", "dispMap"]) photoSurf[k].dispose();
     photoSurf = { id: "photo", origin: "photo", material: null, map: tex(r.color, true), normalMap: tex(r.normalCanvas), roughMap: tex(r.roughCanvas), dispMap: tex(softDisp(r.height)), H: r.height, p0: r.params, metal: 0, nBase: 1, snd: nearestSnd(r.params) };
     const tc = $("#photoThumb").getContext("2d"); tc.drawImage(r.color, 0, 0, 48, 48);
-    photoChip.hidden = false; applySurface(photoSurf); say("aoi.photo", 7500); aoiReact();
+    photoChip.hidden = false; closeTray(); applySurface(photoSurf); say("aoi.photo", 7500); aoiReact();
   } catch (err) { console.warn(err); $("#err").textContent = T("err.photo"); $("#err").hidden = false; }
   finally { busy(false); }
 }
@@ -293,7 +328,7 @@ const look = new THREE.Vector3();
 let fitAspect = 1;
 function fitDist() {
   const a = fitAspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
-  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? 1.22 : 1.08);
+  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? 1.02 : 1.34);
 }
 const markFree = () => { const n = $("#viewName"); if (n.dataset.t !== "view.free") { n.dataset.t = "view.free"; n.textContent = T("view.free"); } };
 const clampG = () => { G.zoom = Math.min(Z_MAX, Math.max(Z_MIN, G.zoom)); G.el = Math.min(EL_MAX, Math.max(EL_MIN, G.el)); G.tx = Math.min(.55, Math.max(-.55, G.tx)); G.tz = Math.min(.6, Math.max(-.55, G.tz)); dirty = 2; };
@@ -351,7 +386,7 @@ addEventListener("keydown", e => {
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false);
   // PC：3D は画面いっぱい、右の板の下まで続く。面の中心は板の左の真ん中へ（2026-10-27 全アプリ 3D 化）
-  const PO = innerWidth >= 900 ? Math.min(380, w * .3) : 0;
+  const PO = 0;   // 2026-10-27 1 画面：板は無く、面は画面の真ん中
   camera.aspect = (w + PO) / h; fitAspect = (w - PO) / h;
   if (PO) camera.setViewOffset(w + PO, h, PO, 0, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix(); fitDist();
@@ -374,7 +409,7 @@ const ptrs = new Map(); let drag = null, pinch = null;   // drag＝一本の指�
 const mm = p => [(p.x + .5) * SIZE_MM, (p.z + .5) * SIZE_MM];
 const two = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
 cv.addEventListener("pointerdown", e => {
-  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); cv.setPointerCapture(e.pointerId); e.preventDefault();
+  closeTray(); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); cv.setPointerCapture(e.pointerId); e.preventDefault();
   if (ptrs.size === 2) {   // 二本目の指：なでるのをやめて、寄る・回す・ずらすへ
     if (touch) endStroke(); drag = null; pinch = { ...two(), lastX: 0, lastY: 0 }; pinch.lastX = pinch.x; pinch.lastY = pinch.y; return;
   }
@@ -384,7 +419,7 @@ cv.addEventListener("pointerdown", e => {
   if (mode === "move" || !inside(p)) { drag = { kind: "orbit", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
   dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.tap(); sonic.tap(); addTrail(p, p, true);
-  $("#waveHint").style.opacity = 0; aoiWatch(true);
+  $("#waveHint").style.opacity = 0; $("#fhint").classList.add("off"); aoiWatch(true);
   if (capKey === "aoi.name") { clearTimeout(capTimer); $("#cap").classList.remove("on"); capKey = null; }   // 2026-10-22 なではじめたら名乗りの字幕をたたむ（面を覆わない）
 });
 cv.addEventListener("pointermove", e => {
@@ -448,14 +483,14 @@ async function loadAoi() {
   try {
     const K = await import("./kit/aoi.js");
     aoi = await K.loadAoi(AOI_URL, { scene, height: MOBILE ? .6 : .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
-    aoi.root.position.y = -.106; aoi.place(AOI_X, -.08, .35);
+    aoi.root.position.y = -.106; aoi.place(AOI_X, AOI_Z, .35);
     { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-      const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, -.08); scene.add(sh);
-      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 48 }, (_, i) => new THREE.Vector3(Math.cos(i / 48 * Math.PI * 2) * .12, 0, Math.sin(i / 48 * Math.PI * 2) * .12))), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .5 })); ring.position.set(AOI_X, -.103, -.08); scene.add(ring); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：触覚の板の左に、小さく立つ
+      const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, AOI_Z); scene.add(sh);
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 48 }, (_, i) => new THREE.Vector3(Math.cos(i / 48 * Math.PI * 2) * .12, 0, Math.sin(i / 48 * Math.PI * 2) * .12))), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .5 })); ring.position.set(AOI_X, -.103, AOI_Z); scene.add(ring); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：触覚の板の左に、小さく立つ
     if (!said.hello) hello();
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
-const AOI_X = -.78;
+const AOI_X = MOBILE ? -.64 : -.78, AOI_Z = MOBILE ? .22 : -.08;
 const LOOK = new THREE.Vector3(0, .02, 0);
 function aoiWatch(on) { aoi?.motion.lookAt(on ? LOOK : null); }
 function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
@@ -499,8 +534,8 @@ $("#bGlb").addEventListener("click", async () => {
   new GLTFExporter().parse(m, r => { dl(new Blob([r], { type: "model/gltf-binary" }), `qualia-touch_${objDef.id}_${surf.id}.glb`); say("aoi.glb", 6000); }, e => console.warn(e), { binary: true });
 });
 { const box = $("#objChips");
-  const mk = (id, name, sub) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip objchip"; if (id) b.dataset.o = id; b.setAttribute("aria-pressed", String(!id)); b.innerHTML = `<span><b>${name}</b><small>${sub}</small></span>`; b.addEventListener("click", () => setObject(id)); box.append(b); };
-  mk(null, "板", "10 cm 四方の面"); for (const o of OBJECTS) mk(o.id, o.name, o.sub); }
+  const mk = (id, name, sub) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip objchip"; if (id) b.dataset.o = id; b.setAttribute("aria-pressed", String(!id)); b.innerHTML = `${SHAPE[id || "plate"] || SHAPE.plate}<b>${name}</b>`; b.title = sub; b.addEventListener("click", () => setObject(id)); box.append(b); };
+  mk(null, "板", "10 cm 四方の面"); for (const o of OBJECTS) mk(o.id, o.name, o.sub); $("#faceO").innerHTML = SHAPE.plate; }
 $("#bShow").addEventListener("click", () => {
   const L = layerNow(), short = JSON.stringify(L, (k, v) => typeof v === "string" && v.length > 80 ? v.slice(0, 48) + `…（${v.length}）` : v, 1);
   $("#layerPre").textContent = short; $("#dlgLayer").showModal();
@@ -542,9 +577,10 @@ function frame(now) {
   ring.scale.setScalar(U.uDentR.value * (.9 + (touch ? .35 * r.amp : 0)));
   if (objMesh && objHit) { ring.position.copy(objHit.point); _nq.copy(objHit.face.normal).transformDirection(objMesh.matrixWorld); ring.quaternion.setFromUnitVectors(_up, _nq); ring.position.addScaledVector(_nq, .004); } else ring.quaternion.identity();
   // 通り道の色（2.4 秒で消える）
-  for (let i = 0; i < TR * 2; i++) { const a = trAge[i] += dt, o = Math.max(0, 1 - a / 2.4); trCol[i * 4] = .7; trCol[i * 4 + 1] = .92; trCol[i * 4 + 2] = 1; trCol[i * 4 + 3] = o; }
+  for (let i = 0; i < TR * 2; i++) { const a = trAge[i] += dt, o = Math.max(0, 1 - a / 2.4); trCol[i * 4] = .75 + .25 * o; trCol[i * 4 + 1] = .95; trCol[i * 4 + 2] = 1; trCol[i * 4 + 3] = o; }
   trGeo.attributes.color.needsUpdate = true;
-  gauges(r, dent, dt);
+  if (touch && now - ripT > (RM ? 400 : 150) && (r.amp > .05 || now - ripT > 600)) { ripT = now; ripple(ring.position, ring.quaternion, Math.min(1, .3 + r.amp)); }
+  tickRipples(dt); if (RIP.some(m => m.userData.age < 1)) dirty = 2;
   // カメラ
   placeCam(dt);
   updateScan(now / 1000);

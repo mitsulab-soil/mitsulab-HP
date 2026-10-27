@@ -14,8 +14,8 @@ function noise3(seed) {
 export const OBJECTS = [
   { id: "boulder", name: "岩", sub: "実物を測った岩", src: "models/boulder_01.gltf", rep: [1, 1] },
   { id: "shell", name: "貝", sub: "実物を測った貝", src: "models/lambis_shell.gltf", rep: [1, 1], tint: [1.6, 1.5, 1.35] },
-  { id: "vase", name: "陶の器", sub: "実物を測った花瓶", src: "models/ceramic_vase_01.gltf", rep: [2, 2], size: .55, tint: [1.7, 1.6, 1.45] },
-  { id: "pot", name: "素焼きの鉢", sub: "実物を測った鉢", src: "models/planter_pot_clay.gltf", rep: [2, 2], size: .5, tint: [1.15, .78, .55] },
+  { id: "vase", name: "器", sub: "実物を測った花瓶", src: "models/ceramic_vase_01.gltf", rep: [2, 2], size: .55, tint: [1.7, 1.6, 1.45] },
+  { id: "pot", name: "鉢", sub: "実物を測った素焼きの鉢", src: "models/planter_pot_clay.gltf", rep: [2, 2], size: .5, tint: [1.15, .78, .55] },
   { id: "branch", name: "枯れ枝", sub: "実物を測った枝", src: "models/dead_quiver_branch_01.gltf", rep: [1, 1] },
   { id: "tile", name: "瓦", sub: "反りのある瓦（模型）", rep: [1.6, 2], scale: .8 },
 ];
