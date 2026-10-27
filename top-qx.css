@@ -203,3 +203,7 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-fig1 .qx-lab{min-height:3.3em}}
 @media (min-width:701px){.qx-fig2 .qx-labs{grid-template-columns:repeat(4,minmax(0,1fr));justify-items:center;left:6%;right:6%}.qx-fig2{margin-top:16px}}
 @media (max-width:700px){.qx-fig1 .qx-lab>span:not(.k){font-size:12.5px;line-height:1.35}}
+/* 2026-10-28 写実の地：札は図の下へ（写真の上に字を載せない） */
+@media (min-width:701px){.qx-fig2 .qx-labs{top:100%!important;bottom:auto!important;margin-top:10px}.qx-fig2 .qx-cap{margin-top:5.2em!important}.qx-fig2{margin-bottom:110px!important}}
+.qx-fig2 canvas{border-radius:6px}
+@media (max-width:700px){.qx-fig2 .qx-labs{top:100%!important;bottom:auto!important;margin-top:6px!important}html:not([data-lang=en]) .qx-fig2 .qx-cap{margin-top:7.4em!important}html[data-lang=en] .qx-fig2 .qx-cap{margin-top:8.2em!important}html:not([data-lang=en]) .qx-fig2{margin-bottom:180px!important}html[data-lang=en] .qx-fig2{margin-bottom:200px!important}}

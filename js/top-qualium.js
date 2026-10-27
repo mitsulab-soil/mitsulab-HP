@@ -78,7 +78,7 @@ async function boot(fig, kind) {
   S.add(new THREE.HemisphereLight(0xcfe8ff, 0x20140c, 1.6)); { const d = new THREE.DirectionalLight(0xfff0dd, 2.2); d.position.set(2, 4, 3); S.add(d); const d2 = new THREE.DirectionalLight(0x9fe8ff, 1.2); d2.position.set(-3, 1, -2); S.add(d2); }
 
   // 遠いちり（奥行き）
-  if (kind !== 0) { const p = [], n = mobile ? 260 : 520; for (let i = 0; i < n; i++) p.push((Math.random() - .5) * 18, (Math.random() - .5) * 10, -3 - Math.random() * 8); S.add(points(p, null, .035, .45)); }
+  if (kind === 1) { const p = [], n = mobile ? 260 : 520; for (let i = 0; i < n; i++) p.push((Math.random() - .5) * 18, (Math.random() - .5) * 10, -3 - Math.random() * 8); S.add(points(p, null, .035, .45)); }
 
   if (kind === 0) {
     const [tl, tr] = await Promise.all([loadTex('img/brand/qualium_glyph_l.webp'), loadTex('img/brand/qualium_glyph_r.webp')]);
@@ -107,30 +107,45 @@ async function boot(fig, kind) {
 
   if (kind === 1) {
     // 環世界 1.0（2026-10-28 作り直し）：同じ一輪の花を、三つの窓（人・ミツバチ・マダニ）で見る。窓ごとに届くものだけを描く（模式）。
+    // 写実の花（2026-10-28 本人「3D のフォトリアルに」）：花びらは反りと筋のある面、中心は筒状花の粒、茎と葉は筋のある面。AI 画像は使わない（質感は手で描いた canvas）。
+    const cvTex = (draw, w = 512, h = 128, srgb = true) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const tx = new THREE.CanvasTexture(c); if (srgb) tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 8; return tx; };
+    const petalTex = (base, tip, deep) => cvTex((x, w, h) => { const g = x.createLinearGradient(0, 0, w, 0); g.addColorStop(0, deep); g.addColorStop(.35, base); g.addColorStop(1, tip); x.fillStyle = g; x.fillRect(0, 0, w, h);
+      x.globalAlpha = .18; x.strokeStyle = '#000'; for (let i = 0; i < 26; i++) { const y0 = h * (.08 + i / 26 * .84); x.lineWidth = .8 + Math.random(); x.beginPath(); x.moveTo(0, h / 2 + (y0 - h / 2) * .2); x.quadraticCurveTo(w * .5, y0, w, y0 + (Math.random() - .5) * 6); x.stroke(); }
+      x.globalAlpha = .08; for (let i = 0; i < 1400; i++) { x.fillStyle = Math.random() < .5 ? '#fff' : '#000'; x.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5); } });
+    const veinBump = cvTex((x, w, h) => { x.fillStyle = '#808080'; x.fillRect(0, 0, w, h); x.strokeStyle = '#5a5a5a'; for (let i = 0; i < 26; i++) { const y0 = h * (.08 + i / 26 * .84); x.lineWidth = 1.2; x.beginPath(); x.moveTo(0, h / 2 + (y0 - h / 2) * .2); x.quadraticCurveTo(w * .5, y0, w, y0); x.stroke(); } }, 512, 128, false);
+    const petalGeo = (() => { const g = new THREE.PlaneGeometry(1, 1, 24, 8); const p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) { const u = p.getX(i) + .5, v = p.getY(i); const width = Math.sqrt(Math.max(0, Math.sin(Math.PI * Math.pow(u, .62)))) * .2 * (1 - .1 * u) + .012; const x = u * .6, z = v * width; const y = -.07 * u * u + .035 * Math.cos(v * Math.PI) * u;
+        p.setXYZ(i, x + .1, y, z); } g.computeVertexNormals(); return g; })();
+    const mkPetalMat = (map, color = 0xffffff) => new THREE.MeshPhysicalMaterial({ map, color, bumpMap: veinBump, bumpScale: 1.2, roughness: .55, sheen: .6, sheenRoughness: .5, sheenColor: new THREE.Color(0xffffff), side: THREE.DoubleSide });
     const mkFlower = (petalMat, centerMat) => { const g = new THREE.Group();
-      const stem = new THREE.Mesh(new THREE.CylinderGeometry(.025, .035, 1.6, 10), new THREE.MeshStandardMaterial({ color: 0x5f8a5a, roughness: .7 })); stem.position.y = -.8; g.add(stem);
-      const leafG = new THREE.SphereGeometry(.22, 16, 8); leafG.scale(1, .12, .45);
-      [[-.18, -.9, .5], [.2, -1.2, -.6]].forEach(([x, y, r]) => { const l = new THREE.Mesh(leafG, stem.material); l.position.set(x, y, 0); l.rotation.z = r; g.add(l); });
-      const head = new THREE.Group(); head.position.y = .02; g.add(head);
-      const pg = new THREE.SphereGeometry(.34, 24, 12); pg.scale(1, .1, .42); pg.translate(.36, 0, 0);
-      for (let i = 0; i < 8; i++) { const p = new THREE.Mesh(pg, petalMat); p.rotation.y = i / 8 * Math.PI * 2; p.rotation.z = .12; head.add(p); }
-      const c = new THREE.Mesh(new THREE.SphereGeometry(.17, 24, 16), centerMat); c.scale.y = .55; c.position.y = .03; head.add(c);
-      head.rotation.x = .85; g.userData.head = head; return g; };
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x5c7f45, roughness: .62, bumpMap: veinBump, bumpScale: .4 });
+      const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(.04, -1.75, 0), new THREE.Vector3(-.02, -1.1, .02), new THREE.Vector3(.03, -.5, -.01), new THREE.Vector3(0, -.02, 0)]);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 40, .028, 10, false), stemMat));
+      const leafMat = new THREE.MeshPhysicalMaterial({ map: cvTex((x, w, h) => { const gg = x.createLinearGradient(0, 0, 0, h); gg.addColorStop(0, '#41622f'); gg.addColorStop(.5, '#6a8f48'); gg.addColorStop(1, '#41622f'); x.fillStyle = gg; x.fillRect(0, 0, w, h); x.strokeStyle = 'rgba(220,240,180,.55)'; x.lineWidth = 3; x.beginPath(); x.moveTo(0, h / 2); x.lineTo(w, h / 2); x.stroke(); x.lineWidth = 1; for (let i = 1; i < 12; i++) { x.beginPath(); x.moveTo(w * i / 12, h / 2); x.lineTo(w * i / 12 + 40, 6); x.moveTo(w * i / 12, h / 2); x.lineTo(w * i / 12 + 40, h - 6); x.stroke(); } }), roughness: .5, sheen: .3, side: THREE.DoubleSide });
+      const leafGeo = (() => { const lg = new THREE.PlaneGeometry(1, 1, 20, 6); const p = lg.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) + .5, v = p.getY(i); const wd = Math.sin(Math.PI * u) * .14; p.setXYZ(i, u * .62, -.12 * u * u + .03 * Math.abs(v) * 4 * wd, v * wd * 2); } lg.computeVertexNormals(); return lg; })();
+      [[-1.05, 2.6, .35], [-1.35, -.4, .5]].forEach(([y, ry, rz]) => { const l = new THREE.Mesh(leafGeo, leafMat); l.position.set(0, y, 0); l.rotation.set(0, ry, rz); g.add(l); });
+      const head = new THREE.Group(); g.add(head);
+      for (let ring = 0; ring < 2; ring++) for (let i = 0; i < 11; i++) { const p = new THREE.Mesh(petalGeo, petalMat); p.rotation.y = (i + ring * .5) / 11 * Math.PI * 2; p.rotation.z = -.12 - ring * .1; p.position.y = -ring * .01; head.add(p); }
+      const disk = new THREE.Mesh(new THREE.SphereGeometry(.13, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), centerMat); disk.scale.y = .45; head.add(disk);
+      { const n = 260, fl = new THREE.InstancedMesh(new THREE.SphereGeometry(.011, 6, 4), centerMat, n), M = new THREE.Matrix4(); for (let i = 0; i < n; i++) { const r = .125 * Math.sqrt(i / n), a = i * 2.39996; const y = .055 * Math.sqrt(Math.max(0, 1 - (r / .13) ** 2)) + .004; M.makeTranslation(Math.cos(a) * r, y, Math.sin(a) * r); fl.setMatrixAt(i, M); } head.add(fl); }
+      head.rotation.x = .78; g.userData.head = head; g.scale.setScalar(1.05); return g; };
+    const bokeh = (s, cols) => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(.75, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); const tx = new THREE.CanvasTexture(c);
+      for (let i = 0; i < 26; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, color: cols[i % cols.length], transparent: true, opacity: .25 + Math.random() * .25, depthWrite: false })); sp.position.set((Math.random() - .5) * 4, (Math.random() - .5) * 4, -2.5 - Math.random() * 2); sp.scale.setScalar(.3 + Math.random() * .6); s.add(sp); } };
     // 人：黄色の花
     const sHum = new THREE.Scene(), sBee = new THREE.Scene(), sTick = new THREE.Scene();
-    [sHum, sBee].forEach(s => { s.add(new THREE.HemisphereLight(0xfff6e8, 0x1a2230, 1.7)); const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(2, 3, 3); s.add(d); });
-    const fH = mkFlower(new THREE.MeshStandardMaterial({ color: 0xf4cf3a, roughness: .55 }), new THREE.MeshStandardMaterial({ color: 0xc8731c, roughness: .8 })); sHum.add(fH);
+    [sHum, sBee].forEach(s => { s.add(new THREE.HemisphereLight(0xfff6e8, 0x2a3424, 1.5)); const d = new THREE.DirectionalLight(0xfff2de, 2.6); d.position.set(2, 3, 3); s.add(d); const r = new THREE.DirectionalLight(0xcfe2ff, 1.1); r.position.set(-2, 1, -3); s.add(r); }); if (S.environment) { sHum.environment = S.environment; sBee.environment = S.environment; }
+    const fH = mkFlower(mkPetalMat(petalTex('#f2c11c', '#ffe58a', '#d99a10')), new THREE.MeshStandardMaterial({ color: 0x8a4a12, roughness: .85 })); sHum.add(fH); bokeh(sHum, [0x9cc078, 0x6f9b58, 0xe8d79a]); bokeh(sBee, [0x6f7fd8, 0x9db0ff, 0x5a62b8]);
     // ミツバチ：紫外線の模様（中心が濃く、外が明るい「的」）を、見える色に置きかえた模式
     const uvMat = new THREE.ShaderMaterial({ vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
       fragmentShader: 'varying vec3 vP; void main(){ float r = clamp((vP.x-.02)/.7, 0., 1.); vec3 inner = vec3(.42,.24,.78), outer = vec3(.62,.72,1.); vec3 c = mix(inner, outer, smoothstep(.2,.6,r)); gl_FragColor = vec4(c, 1.); }' });
-    const fB = mkFlower(uvMat, new THREE.MeshBasicMaterial({ color: 0x6a44c0 })); sBee.add(fB);
-    fB.traverse(o => { if (o.isMesh && o.material !== uvMat && o.material.type === 'MeshStandardMaterial') o.material = new THREE.MeshStandardMaterial({ color: 0x3f6a7a, roughness: .7 }); });
+    const fB = mkFlower(mkPetalMat(petalTex('#7f8fff', '#c9d6ff', '#4a2a9e')), new THREE.MeshStandardMaterial({ color: 0x3d2276, roughness: .8 })); sBee.add(fB);
+    
     // マダニ：目で花を見ない。体温（あたたかい色の広がり）と、汗のにおい（酪酸など）の粒だけ
     const warm = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,140,60,.95)'); gr.addColorStop(.45, 'rgba(235,95,40,.45)'); gr.addColorStop(1, 'rgba(255,120,70,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
     const heat = new THREE.Sprite(new THREE.SpriteMaterial({ map: warm, transparent: true, depthWrite: false })); heat.scale.setScalar(1.9); sTick.add(heat);
     const nS = 70, sp = new Float32Array(nS * 3), sd = []; for (let i = 0; i < nS; i++) sd.push([Math.random() * 6.28, Math.random(), .3 + Math.random() * .7]);
     const smell = points(sp, null, .05, .8); smell.material.color.setHex(0xffa860); smell.geometry.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sTick.add(smell);
-    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x3a4658, transparent: true, opacity: .9 }); const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), new THREE.LineBasicMaterial({ color: 0x8a9bb0, transparent: true, opacity: .3 })); o.add(e); } }); sTick.add(ghost);
+    const ghost = mkFlower(new THREE.MeshBasicMaterial({ color: 0x1a222c }), new THREE.MeshBasicMaterial({ color: 0x1a222c })); ghost.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: 0x3a4658, transparent: true, opacity: .9 }); const e = o.isInstancedMesh ? new THREE.Group() : new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 60), new THREE.LineBasicMaterial({ color: 0x8a9bb0, transparent: true, opacity: .3 })); o.add(e); } }); sTick.add(ghost);
     const pc = new THREE.PerspectiveCamera(30, 1, .05, 50); pc.position.set(0, .15, 3.6); pc.lookAt(0, -.25, 0);
     const scenes = [sHum, sBee, sTick];
     tick = t => { [fH, fB, ghost].forEach((f, i) => { f.rotation.y = Math.sin(t * .35 + i) * .35; f.rotation.z = Math.sin(t * .8 + i) * .03; });
@@ -156,10 +171,36 @@ async function boot(fig, kind) {
       V.push(ax - nx, ay - ny, az - nz, bx - nx, by - ny, bz - nz, bx + nx, by + ny, bz + nz, ax - nx, ay - ny, az - nz, bx + nx, by + ny, bz + nz, ax + nx, ay + ny, az + nz); }
       return new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(V, 3)), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: a, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })); };
     const base = new THREE.Group(); S.add(base);
-    for (const [key, col, a] of [['road', 0x8f9ca4, .24], ['buildings', 0x5c6870, .08], ['structures', 0xb0b8bd, .26]]) { const [off, count] = meta.groups[key], P = [];
-      for (let i = 0; i < count; i += 2) { const n = (off + i) * 3; const x = ints[n] * meta.q, z = ints[n + 2] * meta.q; if (!near(x, z)) continue; for (let j = 0; j < 2; j++) { const m = n + j * 3; P.push(ints[m] * meta.q - o[0], ints[m + 1] * meta.q - o[1], ints[m + 2] * meta.q - o[2]); } }
-      base.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P, 3)), lm(col, a))); }
-    { const P = []; C.forEach(([x, y, z], i) => { if (i) { const [a, b, c] = C[i - 1]; for (const dx of [-3, 3]) P.push(a - o[0] + dx, b - o[1] + .15, c - o[2], x - o[0] + dx, y - o[1] + .15, z - o[2]); } }); base.add(ribbon(P, .22, 0xeaf4f8, .75)); }
+    // 写実の地（2026-10-28 本人「3D のフォトリアルに」）：路面・地形・鳥居＝Qualium 大宮と同じ PLATEAU／国土地理院の 3D、石畳＝ambientCG PavingStones133（CC0）、
+    // 並木敷き＝落ち葉の質感（CC0）、欅＝同じ欅の模型と葉の画像（CC0）。AI 画像は使わない。
+    S.background = new THREE.Color(0x9fb0b8); S.fog = new THREE.FogExp2(0xa9b6ba, mobile ? .0095 : .0075);
+    S.children.filter(o => o.isLight).forEach(o => S.remove(o));
+    S.add(new THREE.HemisphereLight(0xdfeaf0, 0x4a4434, 1.5)); { const d = new THREE.DirectionalLight(0xfff1dc, 2.4); d.position.set(-30, 60, 20); S.add(d); }
+    R.toneMappingExposure = 1.0;
+    const TL = new THREE.TextureLoader(), wtex = (u, rep, srgb) => { const x = TL.load(u); x.wrapS = x.wrapT = THREE.RepeatWrapping; if (srgb) x.colorSpace = THREE.SRGBColorSpace; x.anisotropy = 8; x.userData.rep = rep; return x; };
+    const worldUV = (m, rep) => { m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\n vec4 wp_ = modelMatrix * vec4(position, 1.); \n#if defined(USE_MAP)\n vMapUv = wp_.xz * ' + rep.toFixed(3) + ';\n#endif\n#if defined(USE_NORMALMAP)\n vNormalMapUv = wp_.xz * ' + rep.toFixed(3) + ';\n#endif'); }; return m; };
+    { const sky = TL.load('img/hero/3d/sando_sky.webp'); sky.colorSpace = THREE.SRGBColorSpace; sky.mapping = THREE.EquirectangularReflectionMapping; S.background = sky; S.backgroundIntensity = .9; }
+    (async () => { try {
+      const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
+      const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
+      const toLocal = g => { g.position.set(-o[0], -o[1], -o[2]); base.add(g); return g; };
+      const pave = worldUV(new THREE.MeshStandardMaterial({ map: wtex('img/hero/3d/ql_paving_c.webp', 1, true), normalMap: wtex('img/hero/3d/ql_paving_n.webp', 1), roughness: .88, color: 0xc9c2b4 }), .45);
+      const leaves = worldUV(new THREE.MeshStandardMaterial({ map: wtex('img/hero/3d/sando_leaves.jpg', 1, true), roughness: .95, color: 0xb8ae94 }), .25);
+      { const gp = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), leaves); gp.rotation.x = -Math.PI / 2; gp.position.y = -.12; base.add(gp); window.__sandoGP = gp; }
+      const road = await gl.loadAsync('img/hero/3d/road.glb');
+      road.scene.traverse(m => { if (m.isMesh) { m.material = pave; m.position.y += .02; } }); toLocal(road.scene);
+      
+      const tg = await gl.loadAsync('img/hero/3d/sando_keyaki.glb');
+      tg.scene.updateMatrixWorld(true); const parts = []; tg.scene.traverse(m => { if (m.isMesh) { if (m.material) { m.material.side = THREE.DoubleSide; if (/leaves/.test(m.name)) { m.material.alphaTest = .45; m.material.transparent = false; } } parts.push(m); } });
+      const bb = new THREE.Box3().setFromObject(tg.scene), sz = bb.getSize(new THREE.Vector3());
+      const dC = (x, z) => { let m = 1e9; for (const c of C) { const d = Math.hypot(c[0] - x, c[2] - z); if (d < m) m = d; } return m; };
+      const lim = mobile ? 130 : 180, sorted = treesNear.filter(([x, , z]) => dC(x, z) > 4).sort((a, b) => Math.hypot(a[0] - o[0], a[2] - o[2]) - Math.hypot(b[0] - o[0], b[2] - o[2])).slice(0, lim);
+      const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3();
+      parts.forEach(m => { const im = new THREE.InstancedMesh(m.geometry, m.material, sorted.length); sorted.forEach(([x, y, z], i) => { const h = 16 + (Math.sin(x * 12.9 + z * 3.1) * .5 + .5) * 6, sc = h / sz.y; Q.setFromAxisAngle(V.set(0, 1, 0), (x * 7.3 + z) % 6.283); SC.set(sc, sc, sc);
+        M4.compose(V.set(x - o[0], y - o[1] - bb.min.y * sc - .2, z - o[2]), Q, SC).multiply(m.matrixWorld); im.setMatrixAt(i, M4); }); im.frustumCulled = false; base.add(im); });
+      const sg = await gl.loadAsync('img/hero/3d/structures.glb'); const P = await fetch('img/hero/3d/place.json').then(r => r.json());
+      P.struct.filter(s => /torii/.test(s.m) && near(s.p[0], s.p[2])).forEach(s => { const src = sg.scene.getObjectByName(s.m); if (!src) return; const c = src.clone(); c.position.set(s.p[0] - o[0], s.p[1] - o[1], s.p[2] - o[2]); c.rotation.set(0, s.r || 0, 0); c.scale.setScalar(s.s || 1); base.add(c); });
+    } catch (err) { console.warn('sando photo', err); } })();
     const layer = () => { const g = new THREE.Group(); S.add(g); return g; };
     // 地形：等高線
     const L1 = layer(); { const P = []; for (const [e, xs] of meta.contours) { for (let i = 0; i + 3 < xs.length; i += 2) { const x1 = xs[i], z1 = xs[i + 1], x2 = xs[i + 2], z2 = xs[i + 3]; if (!near(x1, z1)) continue; P.push(x1 - o[0], e - o[1] + .25, z1 - o[2], x2 - o[0], e - o[1] + .25, z2 - o[2]); } }
@@ -168,18 +209,18 @@ async function boot(fig, kind) {
         L1.add(new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: { uO: { value: 1 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, vertexShader: 'varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }', fragmentShader: 'uniform float uO; varying vec2 vU; void main(){ gl_FragColor = vec4(vec3(.49,1.,.77), (1.-vU.y)*1.*uO); }' }))); } }
     // 歴史：鳥居と丁石の位置に立つ光の柱
     const L2 = layer(); { const P = []; [...meta.marks.map(m => m.p), ...meta.choishi].forEach(([x, y, z], k) => { if (!near(x, z)) return; const h = k < meta.marks.length ? 22 : 7; P.push(x - o[0], y - o[1], z - o[2], x - o[0], y - o[1] + h, z - o[2]); for (let j = 0; j < 16; j++) { const a = j / 16 * 6.283, b = (j + 1) / 16 * 6.283, r = k < meta.marks.length ? 2.4 : .9; P.push(x - o[0] + Math.cos(a) * r, y - o[1] + .1, z - o[2] + Math.sin(a) * r, x - o[0] + Math.cos(b) * r, y - o[1] + .1, z - o[2] + Math.sin(b) * r); } });
-      L2.add(ribbon(P, 1.1, 0xf2c56e, 1)); }
+      L2.add(ribbon(P, .28, 0xf2c56e, .95)); }
     // 生き物：欅の位置（樹冠の輪）
-    const L3 = layer(); const treesNear = meta.trees.filter(([x, , z]) => near(x, z)); { const P = []; treesNear.forEach(([x, y, z]) => { for (const [r, hh] of [[1.2, .3], [1.6, 5.2]]) for (let j = 0; j < 20; j++) { const a = j / 20 * 6.283, b = (j + 1) / 20 * 6.283; P.push(x - o[0] + Math.cos(a) * r, y - o[1] + hh, z - o[2] + Math.sin(a) * r, x - o[0] + Math.cos(b) * r, y - o[1] + hh, z - o[2] + Math.sin(b) * r); } P.push(x - o[0], y - o[1], z - o[2], x - o[0], y - o[1] + 7.5, z - o[2]); });
-      L3.add(ribbon(P, .3, 0xc9b8ff, 1)); }
+    const L3 = layer(); const treesNear = meta.trees.filter(([x, , z]) => near(x, z)); { const P = []; treesNear.forEach(([x, y, z]) => { for (const [r, hh] of [[1.6, .25]]) for (let j = 0; j < 20; j++) { const a = j / 20 * 6.283, b = (j + 1) / 20 * 6.283; P.push(x - o[0] + Math.cos(a) * r, y - o[1] + hh, z - o[2] + Math.sin(a) * r, x - o[0] + Math.cos(b) * r, y - o[1] + hh, z - o[2] + Math.sin(b) * r); } P.push(x - o[0], y - o[1], z - o[2], x - o[0], y - o[1] + 7.5, z - o[2]); });
+      L3.add(ribbon(P, .12, 0xc9b8ff, .95)); }
     // 音：いくつかの樹冠から、鳥の声の輪が広がる（模式）
-    const L4 = layer(); const rings = []; treesNear.filter((_, i) => i % 9 === 0).slice(0, 14).forEach(([x, y, z], i) => { for (let k = 0; k < 3; k++) { const r = ring(1, 0xa8f2f6, .95, 64); r.position.set(x - o[0], y - o[1] + 5, z - o[2]); r.userData = { ph: k / 3 + i * .17 }; L4.add(r); rings.push(r); } });
-    const layers = [L1, L2, L3, L4]; layers.forEach(g => g.traverse(m => { if (m.material) m.userData.a = m.material.opacity; }));
+    const L4 = layer(); const rings = []; treesNear.filter((_, i) => i % 9 === 0).slice(0, 14).forEach(([x, y, z], i) => { for (let k = 0; k < 3; k++) { const r = ring(1, 0xa8f2f6, .95, 64); r.position.set(x - o[0], y - o[1] + 12, z - o[2]); r.userData = { ph: k / 3 + i * .17 }; L4.add(r); rings.push(r); } });
+    const layers = [L1, L2, L3, L4]; layers.forEach(g => g.traverse(m => { if (m.material) { m.userData.a = m.material.opacity; m.material.blending = THREE.NormalBlending; m.material.needsUpdate = true; } }));
     // 目の高さの道すじ
     const path = new THREE.CatmullRomCurve3(C.map(([x, y, z]) => new THREE.Vector3(x - o[0], y - o[1] + 1.6, z - o[2])));
-    cam.fov = 58; cam.near = 7; cam.far = 900; cam.updateProjectionMatrix(); fitW = 0; fitH = 0;
+    cam.fov = 56; cam.near = .3; cam.far = 900; cam.updateProjectionMatrix(); fitW = 0; fitH = 0;
     const per = 1.1, hold = 11, cyc = per * 4 + hold; const P0 = new THREE.Vector3(), P1 = new THREE.Vector3();
-    tick = t => { const u = .5 + ((t * .0016) % .12) - .06; path.getPointAt(Math.min(.99, Math.max(0, u)), P0); path.getPointAt(Math.min(1, u + .02), P1); cam.position.copy(P0); P1.y += 2.2; cam.lookAt(P1);
+    tick = t => { const u = .5 + ((t * .0016) % .12) - .06; path.getPointAt(Math.min(.99, Math.max(0, u)), P0); path.getPointAt(Math.min(1, u + .02), P1); cam.position.copy(P0); P1.y += .6; cam.lookAt(P1); if (window.__sandoGP) window.__sandoGP.position.y = P0.y - 1.6 - .1;
       const tt = reduce ? cyc - 1 : (t + per * 4) % cyc;
       layers.forEach((g, i) => { const k = Math.min(1, Math.max(0, (tt - i * per) / 1.2)), e = k * k * (3 - 2 * k), out = tt > cyc - 1 ? cyc - tt : 1, v = e * out;
         g.userData.v = v; g.traverse(m => { if (m.material) { m.material.opacity = m.userData.a * v; if (m.material.uniforms && m.material.uniforms.uO) m.material.uniforms.uO.value = v; } }); const lab = labs[i]; if (lab) lab.style.opacity = "1"; });
