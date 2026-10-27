@@ -143,7 +143,7 @@ async function boot(root, SC) {
   const bB = bubble(SC === 2 ? new THREE.Vector3(.15, 2.45, .35) : new THREE.Vector3(1.0, 3.0, .3), 1.05, 0xc4b6ff, 2); if (SC === 2) bB.m.material.uniforms.k.value = .8;
   let bM = null; if (SC === 1) bubble(new THREE.Vector3(1.5, .48, 1.4), .74, 0xffb27a, 3); else { bM = bubble(new THREE.Vector3(0, 1.4, 0), 1.25, 0xf2d8a0, 4); bM.m.material.uniforms.k.value = 1.1; }
   // 外側の縁（くっきりした輪郭）：カメラに向いた細い円
-  const rims = bubs.map(b => { const pts = []; for (let i = 0; i <= 160; i++) { const q = i / 160 * 6.283; pts.push(new THREE.Vector3(Math.cos(q), Math.sin(q), 0)); } const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: b.m.material.uniforms.c.value, transparent: true, opacity: .28, blending: THREE.AdditiveBlending, depthWrite: false })); S.add(l); return l; });
+  const rims = bubs.map(b => { const pts = []; for (let i = 0; i <= 160; i++) { const q = i / 160 * 6.283; pts.push(new THREE.Vector3(Math.cos(q), Math.sin(q), 0)); } const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: b.m.material.uniforms.c.value, transparent: true, opacity: .28, blending: THREE.AdditiveBlending, depthWrite: false })); S.add(l); return l; }); if (SC === 2) rims.forEach((l, i) => { if (i) l.visible = false; });
 
   // 2.0：碧（共通の aoi.vrm・中央）、碧から人へ流れる光、広がる前の点線
   let aoi = null, mot = null, flow = null, ghost = null; const AO = new THREE.Vector3(-.75, 0, 1.5), GL = glowTex();
