@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noai, noimageai">
+<meta name="tdm-reservation" content="1">
+<title>音と触覚の Qualium｜mitsulab</title>
+<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tokens.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ml-bg);color:var(--ml-ink);font-family:var(--ml-sans);font-size:18px;line-height:1.7}
+body{min-height:100vh;padding:max(12px,env(safe-area-inset-top)) var(--ml-gutter) max(16px,env(safe-area-inset-bottom))}
+h1{font-family:var(--ml-serif);font-weight:500;font-size:1.35rem;margin:.3em 0 .2em;letter-spacing:.04em}
+h2{font-family:var(--ml-serif);font-weight:500;font-size:1.1rem;margin:1.2em 0 .4em}
+p{margin:.4em 0}
+.sub{color:var(--ml-ink-2);font-size:.95rem}
+button,.btn{font:inherit;color:var(--ml-ink);background:var(--ml-bg-2);border:1px solid var(--ml-line);border-radius:var(--ml-radius);min-height:64px;padding:12px 16px;width:100%;text-align:left;cursor:pointer;display:block}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ml-aoi-2);outline-offset:2px}
+.big{min-height:96px;font-size:1.15rem;font-family:var(--ml-serif)}
+.big small{display:block;font-family:var(--ml-sans);font-size:.85rem;color:var(--ml-ink-2)}
+.stack>*+*{margin-top:12px}
+#stop{position:sticky;top:0;z-index:5;background:#2a0f12;border-color:#f4aa96;color:#fff;text-align:center;font-size:1.15rem;min-height:72px;margin-bottom:12px}
+#pad{min-height:46vh;text-align:center;font-family:var(--ml-serif);font-size:1.3rem;border:1px solid var(--ml-aoi);background:radial-gradient(circle at 50% 45%,rgba(92,200,224,.14),transparent 62%),var(--ml-bg-2)}
+#pad .k{display:block;font-family:var(--ml-sans);font-size:.85rem;color:var(--ml-ink-3);margin-top:.6em}
+#pad.on{border-color:var(--ml-aoi-2);box-shadow:0 0 0 2px rgba(155,220,240,.35) inset}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.row button{text-align:center}
+#cap{margin-top:14px;padding:12px;border-left:2px solid var(--ml-aoi-3);color:var(--ml-ink-2);font-family:var(--ml-serif);min-height:4em}
+#where{color:var(--ml-aoi-2);font-size:.95rem;margin:0}
+fieldset{border:1px solid var(--ml-line-weak);border-radius:var(--ml-radius);padding:10px 14px;margin:12px 0}
+legend{padding:0 6px;color:var(--ml-ink-2)}
+label{display:flex;align-items:center;gap:12px;min-height:48px}
+input[type=checkbox],input[type=radio]{width:26px;height:26px;accent-color:var(--ml-aoi)}
+details{margin-top:18px;color:var(--ml-ink-2);font-size:.9rem}
+summary{min-height:48px;display:flex;align-items:center;cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+footer{margin-top:24px;color:var(--ml-ink-3);font-size:.8rem}
+</style>
+</head>
+<body>
+<script src="loader/loader.js" data-auto="load"></script>
+<button id="stop" type="button" hidden>止める</button>
+<p id="live" class="sr" aria-live="polite" role="status"></p>
+
+<main id="start" class="stack">
+  <h1>音と触覚の Qualium</h1>
+  <p class="sub">大宮の氷川参道と大宮公園の層を、碧の声と、音と、震えで手渡します。画面を見なくても使えます。</p>
+  <button id="goHome" class="big" type="button">家で聴く<small>イヤホンで両耳。音の左右と遠さを聴く</small></button>
+  <button id="goWalk" class="big" type="button">歩く・止まって聴く<small>現地で。立ち止まってから押す。片耳・短い音</small></button>
+  <fieldset>
+    <legend>設定</legend>
+    <label><input type="checkbox" id="optVoice" checked> 碧の声で読む（切ると、画面読み上げに任せます）</label>
+    <label><input type="checkbox" id="optShake"> 端末を振って止める</label>
+  </fieldset>
+  <fieldset>
+    <legend>歩くときに鳴らす耳</legend>
+    <label><input type="radio" name="ear" value="1" checked> 右の耳</label>
+    <label><input type="radio" name="ear" value="-1"> 左の耳</label>
+  </fieldset>
+  <details>
+    <summary>操作のしかた</summary>
+    <p>大きな面をひと押しで次の層へ。長く押す（約 1 秒）と、いまの層をもう一度。止めるときは、いちばん上の「止める」。キーボードでは、Tab でボタンを選び、Enter かスペースで押す。Esc で止める。時間の制限はありません。</p>
+  </details>
+  <details>
+    <summary>素材と声</summary>
+    <p>声：VOICEVOX:冥鳴ひまり</p>
+    <p>スズメの声：Pikkuvarpunen / Yle Arkisto（Freesound・CC BY 4.0）。ウグイスのさえずり：nnn（Wikimedia Commons・CC BY 2.1 JP）。樹皮：NikoletB、落ち葉：whalesofjupiter・Elandre01、土：NeoSpica、水：nmscher（いずれも Freesound・CC0）。改変＝切り出し・音量。</p>
+    <p>木の高さ・鐘・水の流れ・コウモリ・ミツバチの音は、この作品の中で計算してつくった模式です。録音ではありません。</p>
+  </details>
+  <footer>© mitsulab. All rights reserved.</footer>
+</main>
+
+<main id="play" hidden>
+  <h1 class="sr">音と触覚の Qualium</h1>
+  <p id="where" aria-hidden="true"></p>
+  <button id="pad" type="button" aria-describedby="padhelp">次の層へ<span class="k" id="padhelp">ひと押しで次へ・長く押すともう一度</span></button>
+  <button id="stop2" type="button" style="margin-top:12px;text-align:center">止める</button>
+  <div class="row">
+    <button id="prev" type="button">前の層</button>
+    <button id="again" type="button">もう一度</button>
+  </div>
+  <div class="row">
+    <button id="next" type="button">次へ</button>
+    <button id="back" type="button">はじめに戻る</button>
+  </div>
+  <p id="cap"></p>
+</main>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
