@@ -195,7 +195,7 @@ async function boot(root, SC) {
   }
   // 札（3 つまで）：PC は左右の余白に引き出し線、スマホは図の下に番号の凡例
   const AT = SC === 1 ? { hito: new THREE.Vector3(-1.6, 3.2, .55), bee: P_BEE.clone().add(new THREE.Vector3(.2, 1.0, 0)), tick: P_TICK.clone().add(new THREE.Vector3(0, .75, 0)) }
-    : { aoi: AO.clone().add(new THREE.Vector3(0, 1.75, 0)), wide: new THREE.Vector3(-3.3, 2.6, 1.25), qualium: new THREE.Vector3(.55, 2.75, .2) };
+    : { bee2: new THREE.Vector3(.15, 3.5, .35), mem: new THREE.Vector3(1.2, .6, 0), aoi: AO.clone().add(new THREE.Vector3(0, 1.75, 0)), wide: new THREE.Vector3(-3.3, 2.6, 1.25), qualium: new THREE.Vector3(.55, 2.75, .2) };
   const labs = [...labsBox.querySelectorAll('[data-at]')], _v = new THREE.Vector3();
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'v2-lead-svg'); svg.setAttribute('aria-hidden', 'true'); labsBox.prepend(svg);
   const BW = () => cv.clientWidth || 1, BH = () => cv.clientHeight || 1;
@@ -224,7 +224,7 @@ async function boot(root, SC) {
       { const d = bM.c.clone().sub(bH.c), L = d.length(), rh = bH.r * bH.s; d.normalize(); AT.qualium.copy(bH.c).addScaledVector(d, Math.min(rh, L) - Math.max(0, rh + bM.r - L) / 2); }
       if (qPts) { const pa = qPts.geometry.attributes.position, rh = bH.r * bH.s, sd = qPts.userData.seed; let k = 0;
         for (let i = 0; i < sd.length; i++) { const [x, y, z] = sd[i], Bq = i % 3 ? bM : bB, th = x * 6.283, ph = Math.acos(2 * y - 1), rr = Math.cbrt(z) * Bq.r; _v.set(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)).multiplyScalar(rr).add(Bq.c);
-          const ka = qPts.geometry.attributes.aK; if (i === 0) { qC.set(0, 0, 0); qC.n = 0; } const inB = _v.distanceTo(bB.c) < bB.r, inM = _v.distanceTo(bM.c) < bM.r; if (_v.distanceTo(bH.c) < rh) { pa.setXYZ(i, _v.x, _v.y, _v.z); ka.setX(i, inB && inM ? 1.8 : .18); if (inB && inM) { qC.add(_v); qC.n++; } } else pa.setXYZ(i, 0, -99, 0); } pa.needsUpdate = true; qPts.geometry.attributes.aK.needsUpdate = true; if (qC.n) { qC.multiplyScalar(1 / qC.n); qCore.position.copy(qC); AT.qualium.copy(qC); } qCore.material.opacity = e * .9; qPts.material.uniforms.uE.value = e; }
+          const ka = qPts.geometry.attributes.aK; if (i === 0) { qC.set(0, 0, 0); qC.n = 0; } const inB = _v.distanceTo(bB.c) < bB.r, inM = _v.distanceTo(bM.c) < bM.r; if (_v.distanceTo(bH.c) < rh) { pa.setXYZ(i, _v.x, _v.y, _v.z); ka.setX(i, inB && inM ? 1.8 : 0); if (inB && inM) { qC.add(_v); qC.n++; } } else pa.setXYZ(i, 0, -99, 0); } pa.needsUpdate = true; qPts.geometry.attributes.aK.needsUpdate = true; if (qC.n) { qC.multiplyScalar(1 / qC.n); qCore.position.copy(qC); AT.qualium.copy(qC); } qCore.material.opacity = e * .9; qPts.material.uniforms.uE.value = e; }
       links.forEach(({ crv, fp, ln }, j) => { if (j === 2 && qC.n) { crv.v2.copy(qC); crv.v1.copy(crv.v0).lerp(qC, .5).y += .7; const lp = ln.geometry.attributes.position; crv.getPoints(60).forEach((q, k) => lp.setXYZ(k, q.x, q.y, q.z)); lp.needsUpdate = true; } const pa = fp.geometry.attributes.position; for (let i = 0; i < 10; i++) { const u = reduce ? i / 10 : ((t * .45 + i / 10 + j * .13) % 1); crv.getPoint(u, _v); pa.setXYZ(i, _v.x, _v.y, _v.z); } pa.needsUpdate = true; });
       lt.forEach(b => { b.m.material.uniforms.ok.value = e * .05; b.m.material.uniforms.oc.value[0].set(bH.c.x, bH.c.y, bH.c.z, bH.r * bH.s); });
     }
