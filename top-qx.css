@@ -183,3 +183,6 @@ html{scroll-padding-top:80px}
 @media (min-width:701px){.qx-fig2{aspect-ratio:21/10}.qx-fig2 .qx-labs{bottom:.2em}.qx-fig2 .qx-cap{margin-top:10px!important}.qx-fig2{margin-bottom:56px}}
 @media (max-width:700px){html:not([data-lang=en]) .qx-fig2 .qx-cap{margin-top:6.6em!important}html:not([data-lang=en]) .qx-fig2{margin-bottom:170px}html[data-lang=en] .qx-fig2 .qx-cap{margin-top:8.4em!important}html[data-lang=en] .qx-fig2{margin-bottom:210px}.qx-fig2 .qx-labs{margin-top:-28px}}
 @media (max-width:700px){.qx-fig2 .qx-lab{white-space:normal!important;min-width:0}.qx-fig2 .qx-lab .k{font-size:14px}.qx-fig2 .qx-lab span:not(.k){font-size:12.5px}.qx-fig2 .qx-labs{padding:0 4px}}
+@media (max-width:700px){.qx-s2 .qx-fig2{margin-top:-36px}}
+.qx-fig2 canvas{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 9%,#000 91%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 8%,#000 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0,#000 9%,#000 91%,transparent 100%),linear-gradient(to bottom,transparent 0,#000 8%,#000 90%,transparent 100%);mask-composite:intersect}
+@media (min-width:701px){.qx-fig2 .qx-labs{display:grid;grid-template-columns:repeat(4,1fr);left:10%;right:10%;text-align:center}}

@@ -78,7 +78,7 @@ async function boot(fig, kind) {
   S.add(new THREE.HemisphereLight(0xcfe8ff, 0x20140c, 1.6)); { const d = new THREE.DirectionalLight(0xfff0dd, 2.2); d.position.set(2, 4, 3); S.add(d); const d2 = new THREE.DirectionalLight(0x9fe8ff, 1.2); d2.position.set(-3, 1, -2); S.add(d2); }
 
   // 遠いちり（奥行き）
-  { const p = [], n = mobile ? 260 : 520; for (let i = 0; i < n; i++) p.push((Math.random() - .5) * 18, (Math.random() - .5) * 10, -3 - Math.random() * 8); S.add(points(p, null, .035, .45)); }
+  if (kind !== 0) { const p = [], n = mobile ? 260 : 520; for (let i = 0; i < n; i++) p.push((Math.random() - .5) * 18, (Math.random() - .5) * 10, -3 - Math.random() * 8); S.add(points(p, null, .035, .45)); }
 
   if (kind === 0) {
     const [tl, tr] = await Promise.all([loadTex('img/brand/qualium_glyph_l.webp'), loadTex('img/brand/qualium_glyph_r.webp')]);
@@ -91,9 +91,9 @@ async function boot(fig, kind) {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('aB', new THREE.Float32BufferAttribute(base, 3)); g.setAttribute('aS', new THREE.Float32BufferAttribute(sp, 1));
     const pm = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uMap: { value: DOT }, uPx: { value: R.getPixelRatio() } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
       vertexShader: `attribute vec3 aB; attribute float aS; uniform float uT; uniform float uPx; varying vec3 vC; varying float vA;
-        void main(){ float a = aB.z; float x = 1.0 - mod(aB.z*.41 + uT*(.12 + aS*.25), 2.0); float lim = sqrt(max(0., 1.0 - x*x)); vec3 p = vec3(x, aB.y/1.3*lim*.95, sin(a)*aB.x*.3*lim);
+        void main(){ float a = aB.z; float x = 1.06 - mod(aB.z*.41 + uT*(.12 + aS*.25), 2.12); float lim = sqrt(max(0., 1.1236 - x*x)); vec3 p = vec3(x, aB.y/1.3*lim*.95, sin(a)*aB.x*.3*lim);
           vC = vec3(.913,.945,.937);
-          vA = .35 + .65*smoothstep(-.6,.6,p.z) ; vA *= .55 + .45*sin(uT*1.3 + aB.z*7.); vA *= 1. - smoothstep(.82, .98, length(p.xy));
+          vA = .35 + .65*smoothstep(-.6,.6,p.z) ; vA *= .55 + .45*sin(uT*1.3 + aB.z*7.); vA *= 1. - smoothstep(.96, 1.05, length(p.xy));
           vec4 mv = modelViewMatrix*vec4(p,1.); gl_PointSize = (2.2 + 3.5*fract(aB.z*13.))*uPx*(4./-mv.z); gl_Position = projectionMatrix*mv; }`,
       fragmentShader: `uniform sampler2D uMap; varying vec3 vC; varying float vA; void main(){ vec4 t = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(vC, t.a*vA*.8); }` });
     const P = new THREE.Points(g, pm); P.frustumCulled = false; G.add(P);
@@ -159,7 +159,7 @@ async function boot(fig, kind) {
     for (const [key, col, a] of [['road', 0x8aa6b4, .22], ['buildings', 0x5f7a88, .12], ['structures', 0xb9c6cc, .3]]) { const [off, count] = meta.groups[key], P = [];
       for (let i = 0; i < count; i += 2) { const n = (off + i) * 3; const x = ints[n] * meta.q, z = ints[n + 2] * meta.q; if (!near(x, z)) continue; for (let j = 0; j < 2; j++) { const m = n + j * 3; P.push(ints[m] * meta.q - o[0], ints[m + 1] * meta.q - o[1], ints[m + 2] * meta.q - o[2]); } }
       base.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P, 3)), lm(col, a))); }
-    { const P = []; C.forEach(([x, y, z], i) => { if (i) { const [a, b, c] = C[i - 1]; for (const dx of [-3, 3]) P.push(a - o[0] + dx, b - o[1] + .15, c - o[2], x - o[0] + dx, y - o[1] + .15, z - o[2]); } }); base.add(ribbon(P, .16, 0xeaf4f8, .55)); }
+    { const P = []; C.forEach(([x, y, z], i) => { if (i) { const [a, b, c] = C[i - 1]; for (const dx of [-3, 3]) P.push(a - o[0] + dx, b - o[1] + .15, c - o[2], x - o[0] + dx, y - o[1] + .15, z - o[2]); } }); base.add(ribbon(P, .22, 0xeaf4f8, .75)); }
     const layer = () => { const g = new THREE.Group(); S.add(g); return g; };
     // 地形：等高線
     const L1 = layer(); { const P = []; for (const [e, xs] of meta.contours) { for (let i = 0; i + 3 < xs.length; i += 2) { const x1 = xs[i], z1 = xs[i + 1], x2 = xs[i + 2], z2 = xs[i + 3]; if (!near(x1, z1)) continue; P.push(x1 - o[0], e - o[1] + .25, z1 - o[2], x2 - o[0], e - o[1] + .25, z2 - o[2]); } }
