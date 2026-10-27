@@ -10,14 +10,14 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261027a" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261027a" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261027a" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261027b" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261027b" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261027b" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261027a">
+<link rel="modulepreload" href="web/app/app.js?v=20261027b">
 <link rel="modulepreload" href="web/app/layers.js?v=k2">
 <link rel="modulepreload" href="web/app/qmarks.js?v=q5k">
 <link rel="modulepreload" href="web/app/kura.js?v=k8">
@@ -27,7 +27,7 @@
 <link rel="modulepreload" href="web/app/ambience.js?v=1">
 <link rel="modulepreload" href="web/app/sounds.js?v=4">
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
-<link rel="preload" href="web/app/content.json?v=20261027a" as="fetch" crossorigin>
+<link rel="preload" href="web/app/content.json?v=20261027b" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -91,6 +91,7 @@ body[data-mode="boot"] #lstack{display:none}
 #lsHead i{width:6px;height:6px;border-right:1px solid var(--hud-2);border-bottom:1px solid var(--hud-2);transform:rotate(45deg) translate(-1px,-1px);transition:transform .3s}
 #lstack.closed #lsHead i{transform:rotate(-45deg)}
 #lsBody{position:relative;padding-bottom:2px}
+#skyUI .card{display:none!important}body[data-mode="sky"] .arLabels{display:none!important}#pinLabels{display:none!important}   /* 2026-10-27 始める場所は地図の上の印（startpins.js） */
 #lsBody::before{content:"";position:absolute;left:10px;top:4px;bottom:57px;width:1px;background:linear-gradient(transparent,rgba(200,232,244,.62) 5%,rgba(200,232,244,.62) 95%,rgba(200,232,244,.3));box-shadow:0 0 3px rgba(3,6,15,.7)}
 #layersAll{list-style:none;margin:0;padding:0;display:flex;flex-direction:column-reverse}
 .ly{position:relative;display:flex;align-items:center}
@@ -513,6 +514,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 #qDir span::after{content:"";position:absolute;left:50%;top:3px;width:0;height:0;margin-left:-5px;border:5px solid transparent;border-bottom:8px solid #fff;border-top:0}
 #qDir small{position:absolute;top:38px;left:50%;transform:translateX(-50%);font:600 10px/1 var(--mono,ui-monospace,monospace);color:#fff;text-shadow:0 1px 3px #000}
 @media (max-width:820px){#qHere{left:10px;right:auto;transform:none;top:calc(max(12px,env(safe-area-inset-top)) + 372px);padding:4px 9px;gap:4px}#qHere .t{display:none}#qHere b{font-size:14px}#qHere i{font-size:0;padding:0;width:7px;height:7px;border-radius:50%;background:var(--c)}}
+@media (max-width:640px){body[data-mode="walk"] #capText{font-size:12.5px;line-height:1.62;letter-spacing:.01em}body[data-mode="walk"] #caption{left:92px;padding:4px 0}}   /* 2026-10-27 375px で名乗りの板が始める所の建物を隠さないように小さく */
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
@@ -534,8 +536,8 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
     <p class="sub">本川越駅から一番街・時の鐘・札の辻を通って菓子屋横丁まで、およそ 1.65 km。地図の光る点か、下の名前を選んでください。</p>
     <div id="starts" role="group" aria-label="始める場所"></div>
     <div id="stMeter" aria-hidden="true"><span class="tr"><i></i></span><span id="stHint"></span></div>
-    <div class="row"><button class="ml-btn ml-btn--primary" id="goDown" disabled>ここから歩く</button><button class="ml-btn" id="skyFly">鳥になって飛ぶ</button></div>
-    <div class="row r2"><button class="ml-btn ml-btn--quiet" id="skyHere" aria-pressed="false">現在地から歩く</button><button class="ml-btn ml-btn--quiet" id="skySight">生きものの身体に入る<br>（Qualia/sight）</button></div>
+    <div class="row"><button class="ml-btn ml-btn--primary" id="goDown" disabled>ここから歩く</button></div>
+    <div class="row r2"><button class="ml-btn ml-btn--quiet" id="skyHere" aria-pressed="false">現在地から歩く</button></div>
   </div>
 </section>
 
@@ -547,6 +549,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
     <ol id="layersAll"></ol>
     <div class="lsBase" aria-hidden="true"><span class="tk"></span><span class="no">00</span><span class="nm">風景</span></div>
     <div class="lsFoot"><button id="lsAll">すべて重ねる</button><button id="lsNone">すべて外す</button></div>
+    <div class="lsFoot lsEnter" aria-label="層に入る"><button id="skyFly" aria-label="鳥になって飛ぶ">鳥になる</button><button id="skySight" aria-label="生きものの身体に入る（Qualia/sight）">生きもの</button></div>
   </div>
 </aside>
 <div id="qHere" hidden aria-hidden="true"></div><div id="qDir" hidden aria-hidden="true"><span></span><small></small></div>
@@ -585,6 +588,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261027a").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261027b").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

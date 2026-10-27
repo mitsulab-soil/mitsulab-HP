@@ -41,6 +41,13 @@ class Acc {
     this.quad([x0, ya - t, za], [x0, ya, za], [x0, yb, zb], [x0, yb - t, zb], us, us);
     this.quad([x1, ya, za], [x1, ya - t, za], [x1, yb - t, zb], [x1, yb, zb], us, us);
   }
+  // 本瓦の筋（丸瓦の列の模式）：屋根の板の上に、棟へ向かって細い山を等間隔に。瓦の筋が遠目にも読めるように
+  ribs(x0, x1, ya, za, yb, zb, step = .3, w = .07, h = .07) {
+    for (let x = Math.min(x0, x1) + step / 2; x < Math.max(x0, x1); x += step) {
+      this.quad([x - w, ya, za], [x, ya + h, za], [x, yb + h, zb], [x - w, yb, zb]); this.quad([x, ya + h, za], [x + w, ya, za], [x + w, yb, zb], [x, yb + h, zb]);
+      this.quad([x - w, ya - .02, za], [x + w, ya - .02, za], [x, ya + h, za], [x - w, ya, za]);   // 軒先の瓦の口（巴の模式）
+    }
+  }
   geo() {
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.Float32BufferAttribute(this.p, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(this.n, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(this.u, 2));
@@ -82,7 +89,7 @@ export function kuraMats(TL, mobile) {
   const tile = tileTex(mobile);
   MATS = {
     // 黒漆喰：磨いた漆喰の深い黒（つやは強め・映り込みは控えめ）。白い漆喰の写真の肌理を、色は黒にして使う
-    shikkui: new THREE.MeshPhysicalMaterial({ color: "#131417", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.22, .22), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .38, metalness: 0, clearcoat: mobile ? .35 : .65, clearcoatRoughness: .07, envMapIntensity: .9 }),   // 2026-10-26 黒漆喰の質感：磨いた面のつやと空の映り込みを強め、写真の肌理は浅く
+    shikkui: new THREE.MeshPhysicalMaterial({ color: "#07080a", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.12, .12), roughness: .82, metalness: 0, clearcoat: 1, clearcoatRoughness: .05, envMapIntensity: .75 }),   // 2026-10-26 黒漆喰の質感：磨いた面のつやと空の映り込みを強め、写真の肌理は浅く
     // 町家の型の上壁：灰白の漆喰（白い漆喰の写真の色をそのまま、少し灰に）
     plaster: new THREE.MeshStandardMaterial({ color: "#c9c4ba", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
     plasterg: new THREE.MeshStandardMaterial({ color: "#8a6f55",   /* 2026-10-26 本人「灰色の面が多い」→ 土壁（荒壁の土の色・模式）に */ map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
@@ -147,7 +154,7 @@ export function kuraGeos(type) {
   if (T.lattice) for (let x = -hw + .65; x < hw - .6; x += .11) A.wood.box(x - .018, .4, fz + .25, x + .018, T.h1 - .6, fz + .29, 1, "xXZ");   // 格子（模式）
   // 下屋（ひさし）：1 階の上、手前へ突き出す
   const hy = T.h1 + .35, hz = hd + T.hisashi;
-  A.tile.slab(-hw - .15, hw + .15, hy - .45, hz, hy, hd, .14);
+  A.tile.slab(-hw - .15, hw + .15, hy - .45, hz, hy, hd, .14); A.tile.ribs(-hw - .15, hw + .15, hy - .45, hz, hy, hd, .3, .06, .06);
   A.wood.box(-hw - .17, hy - .45 - .2, hz - .03, hw + .17, hy - .45 + .03, hz + .03);   // 鼻隠しの板（2026-10-23 公開前：下屋の瓦の切り口に白い光の縞が出たので板で隠す）
   A.wood.quad([hw + .15, hy - .45 - .15, hz], [-hw - .15, hy - .45 - .15, hz], [-hw - .15, hy - .15, hd], [hw + .15, hy - .15, hd]);   // 下屋の軒裏は板（見上げたとき瓦の照りが見えない）
   for (let x = -hw; x <= hw; x += .9) A.wood.box(x - .04, hy - .62, hd, x + .04, hy - .5, hz - .1, 1, "xXy");   // 垂木
@@ -166,6 +173,9 @@ export function kuraGeos(type) {
       const x0 = cx + sd * ww / 2, x1 = x0 + sd * ww / 2;
       A.shikkui.box(Math.min(x0, x1), wy0 - .04, z2 + .05, Math.max(x0, x1), wy1 + .04, z2 + .3);   // 厚い土扉
       A.shikkui.box(Math.min(x0, x1) + .06, wy0 + .06, z2 + .3, Math.max(x0, x1) - .06, wy1 - .06, z2 + .36);   // 扉の段（掛子の模式）
+      A.shikkui.box(Math.min(x0, x1) + .12, wy0 + .12, z2 + .36, Math.max(x0, x1) - .12, wy1 - .12, z2 + .41);   // 掛子の三段目（厚い土扉の段の重なり）
+      A.wood.box(sd > 0 ? x0 + .02 : x0 - .05, wy0 + .2, z2 + .3, sd > 0 ? x0 + .05 : x0 - .02, wy1 - .2, z2 + .34, 1, "xXZ");   // 扉の吊り元の金具の帯（模式）
+      A.dark.quad([Math.min(x0, x1), wy0 - .05, z2 + .049], [Math.max(x0, x1), wy0 - .05, z2 + .049], [Math.max(x0, x1), wy1 + .05, z2 + .049], [Math.min(x0, x1), wy1 + .05, z2 + .049]);   // 扉の裏の影
     }
   }
   // 大屋根：平入り（棟は通りと平行）。軒は手前と奥へ 0.9 m、横へ 0.5 m 出す。鉢巻（軒下の厚い土の帯）
@@ -173,6 +183,12 @@ export function kuraGeos(type) {
   A.shikkui.box(-hw - .2, T.h2 - .7, -hd - .35, hw + .2, T.h2 + .05, z2 + .35, 1, "xXzZy");   // 鉢巻
   A.tile.slab(-hw - .5, hw + .5, eave, ez, ridgeY, 0, .16);
   A.tile.slab(hw + .5, -hw - .5, eave, -ez, ridgeY, 0, .16);
+  A.tile.ribs(-hw - .5, hw + .5, eave, ez, ridgeY, 0); A.tile.ribs(hw + .5, -hw - .5, eave, -ez, ridgeY, 0);
+  // 置き屋根：土の箱（鉢巻）の上に、木の小屋で浮かせて屋根を置く。軒の下に影の隙間と、垂木と、桁を見せる
+  for (const sz of [-1, 1]) { const zi = sz * (z2 + .35), zo = sz * ez, y0 = T.h2 + .05;
+    A.dark.quad([-hw - .5, y0, zi], [hw + .5, y0, zi], [hw + .5, eave - .17, zi], [-hw - .5, eave - .17, zi]);
+    A.wood.box(-hw - .5, eave - .34, Math.min(zi, zi + sz * .2), hw + .5, eave - .16, Math.max(zi, zi + sz * .2), 1, "zZy");   // 出桁
+    for (let x = -hw - .4; x <= hw + .4; x += .45) { const za = Math.min(zi, zo - sz * .05), zb = Math.max(zi, zo - sz * .05); A.wood.box(x - .045, eave - .3, za, x + .045, eave - .17, zb, 1, "xXy"); } }   // 垂木
   for (const sx of [-1, 1]) A.shikkui.tri([sx * hw, T.h2, -hd], [sx * hw, T.h2, hd - .25], [sx * hw, ridgeY - .2, 0].map((v, i) => v), 1);   // 妻の壁
   for (const sx of [-1, 1]) {   // 2026-10-25 横の壁にも、2 階に小さな窓（暗がりと格子と土の枠の段・模式）。角に建つと通りから見える
     const x = sx * (hw + .01), xo = sx * (hw + .14), xa = Math.min(x, xo), xb = Math.max(x, xo), zc = -hd * .2, w = .9, y0 = T.h1 + 1.1, y1 = y0 + 1.0;
@@ -191,7 +207,16 @@ export function kuraGeos(type) {
   const og = new THREE.ExtrudeGeometry(oniShape(T.oni), { depth: .3, bevelEnabled: true, bevelThickness: .05, bevelSize: .05, bevelSegments: 1, curveSegments: 6 });
   og.translate(0, 0, -.15); og.rotateY(Math.PI / 2);
   const o1 = og.clone().translate(-hw - .5, ridgeY + rh * .2, 0), o2 = og.clone().translate(hw + .5, ridgeY + rh * .2, 0);
-  geos.oni = mergeAll([o1, o2]);
+  // 鬼瓦の彫り（一回り小さい面を外へ重ねて段に）・経の巻（上の丸い巻物）・鰭（棟の横へはねる板）
+  const og2 = new THREE.ExtrudeGeometry(oniShape(T.oni * .72), { depth: .14, bevelEnabled: true, bevelThickness: .03, bevelSize: .03, bevelSegments: 1, curveSegments: 6 }); og2.rotateY(Math.PI / 2);
+  const kyo = new THREE.CylinderGeometry(.13, .13, .62, 12).rotateX(Math.PI / 2);
+  const hire = new THREE.ExtrudeGeometry((() => { const f = new THREE.Shape(); f.moveTo(0, 0); f.quadraticCurveTo(.5, .1, .75, .55); f.lineTo(.62, .6); f.quadraticCurveTo(.4, .25, 0, .22); f.closePath(); return f; })(), { depth: .08, bevelEnabled: false }); hire.translate(0, 0, -.04);
+  const parts = [o1, o2];
+  for (const sx of [-1, 1]) { const x = sx * (hw + .5);
+    parts.push(og2.clone().translate(x + sx * .2, ridgeY + rh * .2 + T.oni * .1, 0));
+    parts.push(kyo.clone().translate(x + sx * .05, ridgeY + rh * .2 + T.oni * 1.05, 0));
+    parts.push(hire.clone().rotateY(sx > 0 ? 0 : Math.PI).translate(x - sx * .25, ridgeY + rh + .1, 0)); }
+  geos.oni = mergeAll(parts);
   return { geos, h: ridgeY + rh + T.oni * .8 };
 }
 

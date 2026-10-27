@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q6";
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k10";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
@@ -17,6 +17,7 @@ import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=5";
+import { makeStartPins } from "../lite/startpins.js?v=1";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -24,7 +25,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261027a";
+const VER = "20261027b";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -153,7 +154,7 @@ async function buildBase() {
   const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
   mat._obc = cyberize; desat(mat);   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
   setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain; buildDigi(geo);
-  buildRoute(); buildRoads(); buildWater();
+  buildRoute(); buildRoads(); buildMarkings(); buildWater();
   if (G.near) setTimeout(() => texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
     const n = G.near, d2 = G.dem, i0 = Math.max(0, Math.floor((n.x0 - d2.x0) / d2.cell)), i1 = Math.min(d2.nx - 1, Math.ceil((n.x1 - d2.x0) / d2.cell)), j0 = Math.max(0, Math.floor((n.z0 - d2.z0) / d2.cell)), j1 = Math.min(d2.nz - 1, Math.ceil((n.z1 - d2.z0) / d2.cell));
     const w = i1 - i0 + 1, h = j1 - j0 + 1, P = new Float32Array(w * h * 3), U = new Float32Array(w * h * 2), I = [];
@@ -215,6 +216,24 @@ function paveMat(k) {
 function paveStreets(list, parent) {   // list＝[{k, P, w}]
   const by = { T: [], M: [] }; for (const r of list) if (by[r.k] && r.P.length > 1) by[r.k].push(ribbon(densify(r.P, 3), r.w, .07 + r.w * .002, r.k === "T" ? 2.4 : 1.6));
   for (const k in by) if (by[k].length) { const m = new THREE.Mesh(mergeIdx(by[k]), paveMat(k)); m.renderOrder = 1; m.name = "pave_" + k; (parent || world).add(m); if (!parent) (QW.paveSt ||= []).push(m); }
+}
+function offsetLine(P, d) { const out = []; for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; out.push([P[i][0] - tz / l * d, P[i][1] + tx / l * d]); } return out; }
+function markMat(kind) {   // 路面標示（白・実寸の模式）：0＝実線、1＝破線（5 m 引いて 5 m あける）、2＝横断歩道の縞（幅 45 cm・間 45 cm）
+  const m = new THREE.MeshStandardMaterial({ color: "#d9d8d2", roughness: .7, metalness: 0, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10 });
+  m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n" + (kind === 1 ? "if (fract(vUv.y / 10.) > .5) discard;" : kind === 2 ? "if (fract(vUv.x / .9) > .5) discard;" : "") + "\nfloat wear = fract(sin(dot(floor(vUv * vec2(9., 3.)), vec2(12.9898, 78.233))) * 43758.5); diffuseColor.rgb *= .86 + .14 * wear;"); };
+  m.defines = { USE_UV: "" }; m.customProgramCacheKey = () => "mark" + kind; return m;
+}
+function buildMarkings() {   // 川越：渋谷・大宮と同じ作り（2026-10-27）
+    // 2026-10-27 本人「道路もリアルに」：横断歩道（OSM の crossing）・車道の中央の破線と外側線・縁石（模式・実寸）。店名や字は描かない
+  const solid = [], dash = [], zebra = [], curb = [];
+  for (const r of G.roads) { if (!/^(trunk|primary|secondary|tertiary|unclassified|residential)$/.test(r.k) || r.p.length < 2 || /大正浪漫|クレアモール|菓子屋/.test(r.nm || "")) continue;   /* 川越：歩行者の通りには線も縁石も引かない */ const P = densify(r.p, 3);
+    if (r.w >= 7) { dash.push(ribbon(P, .15, .07, 1)); for (const sg of [-1, 1]) { const E = offsetLine(P, sg * (r.w / 2 - .35)); solid.push(ribbon(E, .15, .07, 1)); curb.push(ribbon(offsetLine(P, sg * (r.w / 2 + .12)), .24, .16, 1)); } }
+    else if (r.w >= 5) { for (const sg of [-1, 1]) curb.push(ribbon(offsetLine(P, sg * (r.w / 2 + .1)), .2, .14, 1)); } }
+  for (const x of G.xing || []) { const P = []; for (let i = 1; i + 1 < x.length; i += 2) P.push([x[i], x[i + 1]]); if (P.length > 1) zebra.push(ribbon(densify(P, 2), x[0], .075, 1)); }
+  const add = (gs, mat, nm) => { if (!gs.length) return; const m = new THREE.Mesh(mergeIdx(gs), mat); m.name = nm; m.renderOrder = 1; world.add(m); };
+  add(solid, markMat(0), "markSolid"); add(dash, markMat(1), "markDash"); add(zebra, markMat(2), "zebra");
+  add(curb, new THREE.MeshStandardMaterial({ color: "#a9a6a0", roughness: .9, map: TL.load("web/tex/pave_c.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; }), polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -9 }), "curb");
+  QW.marks = { solid: solid.length, dash: dash.length, zebra: zebra.length, curb: curb.length };
 }
 function mergeIdx(gs) { let n = 0; const P = [], U = [], N = [], I = []; for (const g of gs) { const p = g.attributes.position.array, u = g.attributes.uv.array, nn = g.attributes.normal.array, ix = g.index.array; for (let i = 0; i < p.length; i++) P.push(p[i]); for (let i = 0; i < u.length; i++) U.push(u[i]); for (let i = 0; i < nn.length; i++) N.push(nn[i]); for (let i = 0; i < ix.length; i++) I.push(ix[i] + n); n += p.length / 3; g.dispose(); }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); g.setAttribute("normal", new THREE.Float32BufferAttribute(N, 3)); g.setIndex(n > 65535 ? new THREE.Uint32BufferAttribute(I, 1) : new THREE.Uint16BufferAttribute(I, 1)); return g; }
@@ -287,15 +306,21 @@ function buildShrine() {
   try { buildScenes(); } catch (e) { console.info("scenes", e); }
   QW.shrine = { ok: true }; landSweep();
 }
+function kitainClear(x, z) {   // 2026-10-27 喜多院の本堂の前と参道（山門まで）には木を置かない（主題が見えるように）
+  if (Math.hypot(x - 493, z - 612) < 34 || Math.hypot(x - 549, z - 585.6) < 16) return true;   // 本堂のまわりと、始める所（参道の上）のまわり
+  { const ax = 549, az = 585.6, bx = 506, bz = 607, L = Math.hypot(bx - ax, bz - az), t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / (L * L))); if (Math.hypot(x - (ax + (bx - ax) * t), z - (az + (bz - az) * t)) < 10) return true; }   // 始める所から本堂の正面への見通し const ax = 493, az = 612, bx = 606, bz = 624, L = Math.hypot(bx - ax, bz - az), t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / (L * L)));
+  const ax = 493, az = 612, bx = 606, bz = 624, L = Math.hypot(bx - ax, bz - az), t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / (L * L)));   // 参道（本堂〜山門）
+  return Math.hypot(x - (ax + (bx - ax) * t), z - (az + (bz - az) * t)) < 14;
+}
 function forestAt(cx, cz, r0, r1, N, sd, axis) {
   const C0 = { x: cx, z: cz }, g = new THREE.Group(); g.name = "forest";
   const pts = []; let seed = sd; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 900 && pts.length < N; i++) { const a = rnd() * Math.PI * 2, r = r0 + rnd() * (r1 - r0), x = C0.x + Math.cos(a) * r, z = C0.z + Math.sin(a) * r;
-    if (axis) { const dx = x - axis.x, dz = z - axis.z, along = dx * axis.ax + dz * axis.az, off = Math.abs(dx * -axis.az + dz * axis.ax); if (along > -10 && along < 60 && off < 9) continue; }   /* 参道の軸は空ける */ if ((NET.segs && onNet(x, z, 2.5)) || inBld(x, z, 2.5) || pts.some(p => Math.hypot(p[0] - x, p[1] - z) < 5.2) || (C.starts || []).some(t => t.x != null && Math.hypot(t.x - x, t.z - z) < 22)) continue; pts.push([x, z, .8 + rnd() * .6]); }
+    if (axis) { const dx = x - axis.x, dz = z - axis.z, along = dx * axis.ax + dz * axis.az, off = Math.abs(dx * -axis.az + dz * axis.ax); if (along > -10 && along < 60 && off < 9) continue; }   /* 参道の軸は空ける */ if ((NET.segs && onNet(x, z, 2.5)) || inBld(x, z, 2.5) || pts.some(p => Math.hypot(p[0] - x, p[1] - z) < 5.2) || kitainClear(x, z) || (C.starts || []).some(t => t.x != null && Math.hypot(t.x - x, t.z - z) < 22)) continue; pts.push([x, z, .8 + rnd() * .6]); }
   /* 2026-10-27 木を作り直した（採点「玩具のような薄緑の塊」）：幹は樹皮の質感と二股の枝、葉は自作の葉の房の切り抜き（canvas で描いた模式・外の素材なし）を
      球の殻に重ね、常緑の暗い緑に。法線は樹冠の中心から外へ向け、柔らかく光を受ける。風で梢ほど揺れる（動きを減らす設定では止まる） */
   const bark = TL.load("web/tex/bplank_c.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 3); });
-  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.22, .46, 1, 9, 1, true), new THREE.MeshStandardMaterial({ color: "#9a8a78", map: bark, roughness: .96 }), pts.length * 3);
+  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.22, .46, 1, 9, 1, true), new THREE.MeshStandardMaterial({ color: "#6e5d4d", roughness: .97 }), pts.length * 3);
   const crown = new THREE.InstancedMesh(leafClusterGeo(), leafMat(), pts.length * 5);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), col = new THREE.Color(), e = new THREE.Euler(); let ci = 0, ti = 0;
   pts.forEach(([x, z, k]) => { const y = groundY(x, z), h = 6.5 * k;
@@ -359,12 +384,13 @@ function streetSide(ring) {
    喜多院の山門＝切妻造・本瓦葺、鐘楼門＝入母屋造・本瓦葺、川越氷川神社の本殿＝入母屋造・銅瓦葺（川越市の文化財の説明）。ここでは一つの寄棟の形で近づけた模式で、一棟ずつの姿ではない */
 const TEMPLE = { wP: [], wU: [], rP: [], rU: [], tags: [] };
 function addTemple(ring, y, A) {
+  { let cx = 0, cz = 0; for (const p of ring) { cx += p.x; cz += p.y; } cx /= ring.length; cz /= ring.length; if (Math.hypot(cx - 549, cz - 585.6) < 22 && Math.hypot(cx - 493, cz - 609) > 25) return; }   // 2026-10-27 喜多院の始める所のすぐ脇の小さな棟は、本堂への見通しのため置かない（模式）
   let best = 0, ang = 0; for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], l = Math.hypot(q.x - p.x, q.y - p.y); if (l > best) { best = l; ang = Math.atan2(q.y - p.y, q.x - p.x); } }
   const ux = Math.cos(ang), uz = Math.sin(ang), vx = -uz, vz = ux; let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9;
   for (const p of ring) { const a = p.x * ux + p.y * uz, b = p.x * vx + p.y * vz; a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b); }
   let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= ring.length; mz /= ring.length;
   const kind = Math.hypot(mx - 607, mz - 631) < 8 ? "sanmon" : Math.hypot(mx - 615, mz - 683) < 8 ? "shoro" : "";   // 喜多院の山門（切妻造・本瓦葺の四脚門）／鐘楼門（入母屋造・本瓦葺・下層は袴腰）＝川越市の文化財の説明
-  let wh = Math.min(5.2, 2.8 + Math.sqrt(A) * .07); if (kind === "sanmon") wh = 4.2; if (kind === "shoro") wh = 5.8;
+  let wh = Math.min(5.2, 2.8 + Math.sqrt(A) * .07); if (kind === "sanmon") wh = 4.2; if (kind === "shoro") wh = 5.8; if (!kind && A > 500 && Math.hypot(mx - 493, mz - 609) < 25) wh = 7.6;   // 喜多院の本堂（慈恵堂）は背を高く（模式）
   const top = y + wh, ov = kind === "shoro" ? 1.6 : kind ? 1.2 : Math.min(1.4, .6 + Math.sqrt(A) * .03);
   // 壁：OSM の輪郭のまま、板壁
   let L = 0; for (let k = 0; k < ring.length; k++) { const p = ring[k], q = ring[(k + 1) % ring.length], len = Math.hypot(q.x - p.x, q.y - p.y);
@@ -620,7 +646,7 @@ function buildArea(Z, J) {
   for (const b of J.b) {
     const kind = b[0], h = b[1], y = b[2], ring = []; for (let i = 3; i + 1 < b.length; i += 2) ring.push(new THREE.Vector2(b[i], b[i + 1]));
     if (ring.length < 3) continue; let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= ring.length; mz /= ring.length;
-    if (Z.id === "clea" && h < 13 && ((mx > 33 && mx < 74 && mz > 1606 && mz < 1736) || (mx > -30 && mx < 74 && mz > 1606 && mz < 1641))) continue;   // 2026-10-27 駅前の広場とデッキの下（模式の場面）にかかる小さな建物は置かない
+    if (Z.id === "clea" && h < 13 && ((mx > -70 && mx < -6 && mz > 1583 && mz < 1621) || (mx > 33 && mx < 122 && mz > 1606 && mz < 1736) || (mx > -30 && mx < 122 && mz > 1606 && mz < 1641))) continue;   // 2026-10-27 駅前の広場とデッキの下（模式の場面）にかかる小さな建物は置かない
     if (netCrosses(ring)) { for (let k = 0; k < ring.length; k++) { const p = ring[k], q = ring[(k + 1) % ring.length]; E2.push(p.x, y + .05, p.y, q.x, y + .05, q.y); } continue; }   // 道が中を通る建物（駅の通路など）は地割の線だけ
     const temple = kind > 0 || pw.some(r => inRing(r, mx, mz));
     addSolid(ring, y, y + h, acc, temple ? 5 : eraAt(ring));
@@ -854,17 +880,19 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.0 : 3.5, s = MOBILE ? .45 : 1.25,   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
+  const f = MOBILE ? 4.9 : 3.5, s = MOBILE ? 0 : 1.25,   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
-  const side = !$("#panel").hidden && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
+  const side = MOBILE ? -1 : !$("#panel").hidden ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
-  if (offRoute(CAM.pos.x, CAM.pos.z)) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
+  if (offRoute(CAM.pos.x, CAM.pos.z) && n.dist < 40) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
   out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
   loadAoi().then(() => {
     if (!AOI.m || QW.mode !== "walk") return;
     aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, Math.atan2(CAM.pos.x - AOI.pos.x, CAM.pos.z - AOI.pos.z)); AOI.root.visible = true;
+    { const tg = [QW.kitain && { x: QW.kitain.fx, z: QW.kitain.fz, y: 3 }, QW.station && { x: 32, z: 1685, y: 8 }].filter(Boolean).find(t => Math.hypot(t.x - CAM.pos.x, t.z - CAM.pos.z) < 90);   // 2026-10-27 始める所では、碧が本堂・駅舎を指して見せる
+      if (tg) setTimeout(() => { if (QW.mode === "walk" && AOI.m) { const p = new THREE.Vector3(tg.x, groundY(tg.x, tg.z) + tg.y, tg.z); const yw = Math.atan2(p.x - AOI.m.pos.x, p.z - AOI.m.pos.z); AOI.m.faceTo(yw); AOI.m.lookAt(p); setTimeout(() => { AOI.m?.point(p, 2.4); }, 700); setTimeout(() => { AOI.m?.faceTo(Math.atan2(CAM.pos.x - AOI.m.pos.x, CAM.pos.z - AOI.m.pos.z)); AOI.m?.lookAt(null); }, 3600); } }, 1800); }   // 対象へ体を向けてから指す
     if (!AOI.greeted) { setTimeout(() => { if (QW.mode === "walk") speakLines([C.intro], null, { done: () => { AOI.greeted = true; TALK.nextT = performance.now() + 2500; } }); else AOI.greeted = true; }, 900); }
   });
 }
@@ -876,7 +904,7 @@ function stepAoi(dt) {
   if (dist > 18) { AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
     const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .55;   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
-    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(1.6, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
+    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(2.8, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v += Math.max(-1.8 * dt, Math.min(1.0 * dt, want - AOI.v));
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; AOI.m.faceTo(Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z)); }
@@ -891,7 +919,7 @@ function stepAoi(dt) {
 const EYE = 1.55;
 const CAM = { pos: new THREE.Vector3(), yaw: 0, look: 0, pitch: -.05, lastDrag: 0 };
 const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c: new THREE.Vector3(-40, 20, 420) };
-const WALK = { speed: 1.35, moving: false, auto: false, hold: false, goal: null, ring: null };
+const WALK = { speed: 2.43, moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 12 };
 const KEYS = new Set();
 const FOGS = { sky: { n: 1200, f: 5200 }, walk: { n: 160, f: 1100 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
@@ -913,6 +941,14 @@ function stepTween(dt) { if (!TW) return false; TW.t += dt / TW.dur; const k = M
 const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）
 const START = { sel: 4, pins: [], labels: [] };   // 2026-10-23 はじめは蔵造りの一番街（仲町交差点）から
 function buildStarts() {
+  /* 2026-10-27 本人：始める場所は GUI の一覧でなく、地図の上の 3D の印と明朝の名札（共通部品 startpins.js・大宮と同じ） */
+  const items = C.starts.map(s => { const a = stAt(s); return { name: s.name, x: a.x, z: a.z, kind: /寺|院|神社|宮/.test(s.name) ? "shrine" : /駅/.test(s.name) ? "area" : "" }; });
+  START.sp = makeStartPins({ THREE, parent: world, camera, groundY, mobile: MOBILE, items: [...items, { name: "現在地から歩く", x: 600, z: 1500, kind: "here" }], goBtn: $("#goDown"),
+    onSelect: i => { if (i < 0) return; if (i < C.starts.length) { selectStart(i); } else if ($("#skyHere")?.getAttribute("aria-pressed") !== "true") { unlockAudio(); HERE.toggle(); } },
+    onGo: i => { unlockAudio(); if (i < C.starts.length) descendTo(i); else if ($("#skyHere")?.getAttribute("aria-pressed") !== "true") HERE.toggle(); } });
+  START.sp.show(false);
+}
+function buildStartsOld() {
   const box = $("#starts"); box.innerHTML = ""; const pl = $("#pinLabels");
   C.starts.forEach((s, i) => {
     const b = document.createElement("button"); b.className = "stBtn"; b.type = "button"; b.setAttribute("aria-pressed", "false"); b.innerHTML = `<span class="no">${String(i + 1).padStart(2, "0")}</span><span class="nm">${s.name}</span>`;
@@ -933,7 +969,7 @@ function syncStMeter() {
   let hid = 0; const r = box.getBoundingClientRect(); box.querySelectorAll(".stBtn").forEach(b => { const q = b.getBoundingClientRect(); if (q.right > r.right - 20 || q.left < r.left - 4) hid++; });
   $("#stHint").textContent = hid ? `横にずらすと、ほかに ${hid} 地点` : `全 ${C.starts.length} 地点`;
 }
-function selectStart(i) { START.sel = i; document.querySelectorAll(".stBtn").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i))); START.labels.forEach((l, k) => { l.classList.toggle("on", k === i); if (MOBILE) l.textContent = k === i ? l.dataset.full.replace(/（.*）/, "") : l.dataset.short; }); $("#goDown").disabled = false;
+function selectStart(i) { START.sel = i; if (START.sp && START.sp.sel !== i) START.sp.select(i); document.querySelectorAll(".stBtn").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i))); START.labels.forEach((l, k) => { l.classList.toggle("on", k === i); if (MOBILE) l.textContent = k === i ? l.dataset.full.replace(/（.*）/, "") : l.dataset.short; }); $("#goDown").disabled = false;
   START.pins.forEach((p, k) => { const on = k === i; p.ring.material.color.set(on ? PICK : "#7fe3f7"); p.ring.material.opacity = on ? 1 : .4; p.ring.scale.setScalar(on ? 1.8 : .8); p.beam.material.color.set(on ? PICK : "#7fe3f7"); p.beam.material.opacity = on ? .9 : .18; p.beam.scale.set(on ? 1.8 : 1, 1, on ? 1.8 : 1); });   // 選んでいる所は濃く、ほかは薄く
   setTimeout(() => { const box = $("#starts"), bb = box?.querySelectorAll(".stBtn")[i]; if (bb && START.sel === i) { box.scrollLeft = Math.max(0, bb.offsetLeft - box.offsetLeft - 8); syncStMeter(); } }, 400);   // 選んだ場所のボタンを列の中に見せる
   const a = stAt(C.starts[i]); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
@@ -1335,8 +1371,8 @@ function openSho(L, no) {
 
 /* ---------- 画面の部品 ---------- */
 function toast(t) { const e = $("#toast"); e.textContent = t; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, 5200); }
-const showSkyUI = () => { $("#skyUI").hidden = false; $("#pinLabels").hidden = false; requestAnimationFrame(syncStMeter); };
-const hideSkyUI = () => { $("#skyUI").hidden = true; $("#pinLabels").hidden = true; };
+const showSkyUI = () => { $("#skyUI").hidden = false; $("#pinLabels").hidden = false; START.sp?.show(true); requestAnimationFrame(syncStMeter); };
+const hideSkyUI = () => { $("#skyUI").hidden = true; $("#pinLabels").hidden = true; START.sp?.show(false); };
 const showWalkUI = () => { $("#walkUI").hidden = false; syncAutoBtn(); };
 const hideWalkUI = () => { $("#walkUI").hidden = true; };
 const showFlyUI = () => { $("#flyUI").hidden = false; };
@@ -1460,6 +1496,7 @@ function frame() {
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
   }
+  if (START.sp) { if (QW.mode === "sky") { if (!START.sp.group.visible && !TW) START.sp.show(true); const r = $("#lstack").getBoundingClientRect(); START.sp.update(performance.now() / 1000, r.width ? { x: r.right, y: r.bottom } : null); } else if (START.sp.group.visible && QW.mode !== "descend") START.sp.show(false); }
   if (QW.mode === "sky") { const nw = performance.now(); if (!DC.sk || nw - DC.skT > 500) { DC.skT = nw; DC.sk = [$("#skyUI .card").getBoundingClientRect(), $("#lstack").getBoundingClientRect()]; } const [card, ls] = DC.sk, put = [];
     const order = START.pins.map((p, i) => i).sort((a, b) => (b === START.sel) - (a === START.sel));   // 選んだ点の札を先に置く
     for (const i of order) { const p = START.pins[i]; p.head.getWorldPosition(_v); _v.project(camera); const l = START.labels[i]; if (_v.z > 1) { l.style.display = "none"; continue; }
@@ -1502,7 +1539,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await buildBase();
     buildObjs(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn();
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
-    setMode("sky"); selectStart(START.sel); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 2100 : 1550; SKY.c.set(140, 20, 540);   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
+    setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter);   /* はじめは何も選ばず、「ここから歩く」は押した印のそばに出す */ SKY.dist = SKY.tDist = MOBILE ? 2100 : 1550; SKY.c.set(140, 20, 540);   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;
@@ -1515,9 +1552,9 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
 
 /* ---------- 2026-10-27 場面の作り込み（地図の輪郭をもとにした模式。写真は写さない） ---------- */
 function stdMat(c, tex, rep = 1, rough = .9, extra = {}) { const m = new THREE.MeshStandardMaterial({ color: c, roughness: rough, ...extra }); if (tex) { m.map = TL.load(tex, t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); }); } return m; }
-function flatPatch(x0, z0, x1, z1, mat, lift = .06, st = 3) {   // 地形に沿う長方形の舗装
+function flatPatch(x0, z0, x1, z1, mat, lift = .06, st = 3, uk = 3) {   // 地形に沿う長方形の舗装
   const nx = Math.max(2, Math.ceil((x1 - x0) / st) + 1), nz = Math.max(2, Math.ceil((z1 - z0) / st) + 1), P = [], U = [], I = [];
-  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const x = x0 + (x1 - x0) * i / (nx - 1), z = z0 + (z1 - z0) * j / (nz - 1); P.push(x, groundY(x, z) + lift, z); U.push(x / 3, z / 3); }
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const x = x0 + (x1 - x0) * i / (nx - 1), z = z0 + (z1 - z0) * j / (nz - 1); P.push(x, groundY(x, z) + lift, z); U.push(x / uk, z / uk); }
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i; I.push(a, a + nx, a + 1, a + 1, a + nx, a + nx + 1); }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); g.setIndex(I); g.computeVertexNormals();
   const m = new THREE.Mesh(g, mat); m.renderOrder = 1; return m;
@@ -1525,26 +1562,30 @@ function flatPatch(x0, z0, x1, z1, mat, lift = .06, st = 3) {   // 地形に沿�
 function buildScenes() {
   // JR 川越駅（東口）：駅ビルの輪郭（OSM の最も大きい建物・x −79〜32／z 1635〜1737）の東の面に、ガラスの正面と庇、駅前の石の広場と、歩行者デッキの模式
   { const g = new THREE.Group(); g.name = "station"; const gx = 32, z0 = 1640, z1 = 1730, y0 = groundY(gx + 4, 1680);
-    const glass = new THREE.MeshStandardMaterial({ color: "#5d6f7a", roughness: .12, metalness: .55, transparent: true, opacity: .92 }), white = stdMat("#d9d6cf", "web/tex/plaster_c.webp", 2, .7), steel = new THREE.MeshStandardMaterial({ color: "#8b9096", roughness: .4, metalness: .7 });
+    const glass = new THREE.MeshStandardMaterial({ color: "#6f8794", roughness: .06, metalness: .8, envMapIntensity: 1.4 }), white = stdMat("#d9d6cf", "web/tex/plaster_c.webp", 2, .7), steel = new THREE.MeshStandardMaterial({ color: "#8b9096", roughness: .4, metalness: .7 });
     const face = new THREE.Mesh(new THREE.BoxGeometry(1.2, 15, z1 - z0), glass); face.position.set(gx, y0 + 7.5, (z0 + z1) / 2); g.add(face);
     for (let z = z0; z <= z1; z += 3) { const mu = new THREE.Mesh(new THREE.BoxGeometry(.5, 15, .16), steel); mu.position.set(gx + .7, y0 + 7.5, z); g.add(mu); }   // ガラスの方立
+    { const cv = document.createElement("canvas"); cv.width = 1024; cv.height = 160; const c = cv.getContext("2d"); c.fillStyle = "#1d2a33"; c.fillRect(0, 0, 1024, 160); c.fillStyle = "#f2f4f5"; c.font = "600 92px 'Shippori Mincho', serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("川越駅", 512, 84);
+      const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; const sg = new THREE.Mesh(new THREE.PlaneGeometry(16, 2.5), new THREE.MeshBasicMaterial({ map: tx })); sg.position.set(gx + 1.3, y0 + 12.6, 1685); sg.rotation.y = Math.PI / 2; g.add(sg); }   // 駅名の札（字は駅名だけ・形は模式）
     for (const h of [5, 10]) { const tr = new THREE.Mesh(new THREE.BoxGeometry(.6, .35, z1 - z0), steel); tr.position.set(gx + .7, y0 + h, (z0 + z1) / 2); g.add(tr); }
-    const fas = new THREE.Mesh(new THREE.BoxGeometry(2, 3.2, z1 - z0 + 2), white); fas.position.set(gx + .2, y0 + 16.4, (z0 + z1) / 2); g.add(fas);
+    
     // 歩行者デッキ（駅の二階から東へ張り出す床・柱・ガラスの手すり。広さは模式）
-    const dk = { x0: gx + 1, x1: gx + 34, z0: 1652, z1: 1700, y: y0 + 6.4 }, slab = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0, .7, dk.z1 - dk.z0), white); slab.position.set((dk.x0 + dk.x1) / 2, dk.y, (dk.z0 + dk.z1) / 2); g.add(slab);
+    const dk = { x0: gx + 1, x1: gx + 34, z0: 1652, z1: 1700, y: y0 + 6.4 }, slab = null; for (const [za, zb] of [[dk.z0, dk.z1]]) { const sl = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0, .38, zb - za), white); sl.position.set((dk.x0 + dk.x1) / 2, dk.y, (za + zb) / 2); g.add(sl); const bm = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0, .55, .4), steel); bm.position.set((dk.x0 + dk.x1) / 2, dk.y - .45, (za + zb) / 2); g.add(bm); }   // 二本の床のあいだを空け、光が落ちる（天井で画面が覆われない）
+
     for (let x = dk.x0 + 6; x < dk.x1; x += 9) for (const z of [dk.z0 + 3, dk.z1 - 3]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, 6.1, 16), white); c.position.set(x, groundY(x, z) + 3.05, z); g.add(c); }
     const rail = new THREE.MeshStandardMaterial({ color: "#a9c4cc", roughness: .1, metalness: .2, transparent: true, opacity: .35, depthWrite: false });
     for (const [x, z, w, d] of [[(dk.x0 + dk.x1) / 2, dk.z0, dk.x1 - dk.x0, .08], [(dk.x0 + dk.x1) / 2, dk.z1, dk.x1 - dk.x0, .08], [dk.x1, (dk.z0 + dk.z1) / 2, .08, dk.z1 - dk.z0]]) { const r = new THREE.Mesh(new THREE.BoxGeometry(w, 1.1, d), rail); r.position.set(x, dk.y + .9, z); g.add(r); }
-    const can = new THREE.Mesh(new THREE.BoxGeometry(dk.x1 - dk.x0 - 6, .25, 7), steel); can.position.set((dk.x0 + dk.x1) / 2 + 2, dk.y + 4.2, (dk.z0 + dk.z1) / 2); g.add(can);   // デッキの屋根
+       // デッキの屋根
     const plaza = stdMat("#b8b2a8", "web/tex/stile_c.webp", 1, .85); plaza.normalMap = TL.load("web/tex/stile_n.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; });
-    g.add(flatPatch(-30, 1608, gx + 40, 1640, plaza, .07), flatPatch(gx + .6, 1640, gx + 40, 1734, plaza, .07));
+    g.add(flatPatch(-30, 1608, gx + 40, 1640, plaza, .07, 3, 1.1), flatPatch(gx + .6, 1640, gx + 88, 1734, plaza, .07, 3, 1.1));   // 細かい平板（1.1 m で一枚）
     world.add(g); QW.station = g; }
   // 喜多院：山門から本堂（慈恵堂）の正面までの石畳の参道・石灯籠・本堂の向拝（張り出した屋根と四本の柱・石段）。位置は境内の建物の輪郭から（模式）
   const L = TEMPLE.list || [], sm = L.find(t => t.kind === "sanmon"); const hd = L.filter(t => t !== sm && Math.hypot(t.x - 590, t.z - 680) < 160 && !t.kind).sort((a, b) => b.W * b.Lg - a.W * a.Lg)[0];
   if (sm && hd) { const g = new THREE.Group(); g.name = "kitainSando";
     // 本堂の正面＝山門を向く長い辺
-    let nx = hd.vx, nz = hd.vz; if ((sm.x - hd.x) * nx + (sm.z - hd.z) * nz < 0) { nx = -nx; nz = -nz; }
-    const fx = hd.x + nx * (hd.W / 2), fz = hd.z + nz * (hd.W / 2), ex = sm.x, ez = sm.z, Lp = Math.hypot(ex - fx, ez - fz), dx = (ex - fx) / Lp, dz = (ez - fz) / Lp, px = -dz, pz = dx;
+    const tsx = sm.x - hd.x, tsz = sm.z - hd.z, cand = [[hd.vx, hd.vz, hd.W, hd.Lg], [-hd.vx, -hd.vz, hd.W, hd.Lg], [hd.ux, hd.uz, hd.Lg, hd.W], [-hd.ux, -hd.uz, hd.Lg, hd.W]].sort((p, q) => (q[0] * tsx + q[1] * tsz) - (p[0] * tsx + p[1] * tsz))[0];   // 山門を向く面を正面に
+    const nx = cand[0], nz = cand[1], FW = cand[3] - 2.4; hd.FW = FW;
+    const fx = hd.x + nx * (cand[2] / 2 - 1.2), fz = hd.z + nz * (cand[2] / 2 - 1.2), ex = sm.x, ez = sm.z, Lp = Math.hypot(ex - fx, ez - fz), dx = (ex - fx) / Lp, dz = (ez - fz) / Lp, px = -dz, pz = dx;
     const stone = stdMat("#a9a39a", "web/tex/granite_c.webp", 1, .9); stone.normalMap = TL.load("web/tex/granite_n.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; });
     const P = [], U = [], I = [], w = 2.6, n = Math.ceil(Lp / 1.2);
     for (let i = 0; i <= n; i++) { const t = i / n, cx = fx + (ex - fx) * t, cz = fz + (ez - fz) * t; for (const s of [-1, 1]) { const x = cx + px * w * s, z = cz + pz * w * s; P.push(x, groundY(x, z) + .1, z); U.push((s + 1) * 1.3, t * Lp / 1.2); } }   // 石の継ぎ目＝1.2 m ごと（テクスチャの一枚）
@@ -1555,7 +1596,7 @@ function buildScenes() {
       const parts = [[new THREE.CylinderGeometry(.5, .6, .35, 6), .17], [new THREE.CylinderGeometry(.16, .2, 1.1, 8), .9], [new THREE.BoxGeometry(.8, .25, .8), 1.55], [new THREE.BoxGeometry(.62, .55, .62), 1.95], [new THREE.ConeGeometry(.66, .45, 6), 2.45], [new THREE.SphereGeometry(.12, 8, 6), 2.75]];
       for (const [gg, hy] of parts) { const m = new THREE.Mesh(gg, lan); m.position.y = hy; T.add(m); } const fire = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, .64), new THREE.MeshBasicMaterial({ color: "#2b2620" })); fire.position.y = 1.95; T.add(fire); g.add(T); }   // 石灯籠（春日形の模式）
     // 向拝：本堂の正面中央に張り出す屋根（銅板の模式）・四本の柱・三段の石段
-    const wood = stdMat("#6e5440", "web/tex/wood_c.webp", 1, .8), roofM = stdMat("#4b4f4d", null, 1, .55, { metalness: .35 }), ang = Math.atan2(px, pz), V = new THREE.Group(); V.position.set(fx, hd.y, fz); V.rotation.y = ang;
+    const wood = stdMat("#6e5440", "web/tex/wood_c.webp", 1, .8), roofM = stdMat("#4b4f4d", null, 1, .55, { metalness: .35 }), ang = Math.atan2(nx, nz), V = new THREE.Group(); V.position.set(fx, hd.y, fz); V.rotation.y = ang;
     const H = Math.max(4.5, hd.top - hd.y - .2), sp = 6;
     for (const sx of [-1, 1]) for (const d of [.4, 3.4]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(.24, .26, H, 12), wood); c.position.set(sx * sp / 2, H / 2, d); V.add(c); }   // 向きの軸：+z＝本堂の外
     const beam = new THREE.Mesh(new THREE.BoxGeometry(sp + 1.4, .5, .45), wood); beam.position.set(0, H - .2, 3.4); V.add(beam);
@@ -1563,7 +1604,17 @@ function buildScenes() {
     const rf = new THREE.Mesh(rg, roofM); rf.material.side = THREE.DoubleSide; V.add(rf);
     const tile = new THREE.Mesh(new THREE.BoxGeometry(sp + 3.4, .3, .5), roofM); tile.position.set(0, H + .25, 4.9); V.add(tile);
     for (let i = 0; i < 3; i++) { const st = new THREE.Mesh(new THREE.BoxGeometry(sp + .6 - i * .3, .22, 1.2), lan); st.position.set(0, .11 + i * .22, 4.6 + 1.1 - i * .4); V.add(st); }
-    g.add(V); world.add(g); QW.kitain = { Lp: Math.round(Lp), fx, fz }; }
+    // 本堂の正面の柱間：木の柱・白い漆喰の小壁・格子の建具・縁（えん）と石の基壇（模式。茶色の箱の正面を覆う）
+    { const FL = Math.max(10, hd.FW - 1), n = Math.max(4, Math.round(FL / 2.6)), bay = FL / n, Hh = Math.max(3.8, hd.top - hd.y - .3), lat = new THREE.MeshStandardMaterial({ color: "#2f2a25", roughness: .8 }), plas = stdMat("#e4ded2", "web/tex/plaster_c.webp", 1, .9), F = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.BoxGeometry(FL + 3, .7, 2.6), lan); base.position.set(0, .35, .6); F.add(base);
+      const en = new THREE.Mesh(new THREE.BoxGeometry(FL + 1, .16, 1.6), wood); en.position.set(0, .95, 1); F.add(en);
+      for (let i = 0; i <= n; i++) { const x = -FL / 2 + i * bay, c = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, Hh, 10), wood); c.position.set(x, Hh / 2 + .5, .12); F.add(c); }
+      for (let i = 0; i < n; i++) { const x = -FL / 2 + (i + .5) * bay, d = new THREE.Mesh(new THREE.BoxGeometry(bay - .5, Hh * .62, .1), lat); d.position.set(x, .9 + Hh * .31, .08); F.add(d);
+        for (let k = 1; k < 6; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(.05, Hh * .62, .14), wood); b.position.set(x - (bay - .5) / 2 + k * (bay - .5) / 6, .9 + Hh * .31, .12); F.add(b); }
+        const kw = new THREE.Mesh(new THREE.BoxGeometry(bay - .4, Hh * .25, .1), plas); kw.position.set(x, .9 + Hh * .62 + Hh * .14, .08); F.add(kw); }
+      const nk = new THREE.Mesh(new THREE.BoxGeometry(FL + .6, .35, .3), wood); nk.position.set(0, .9 + Hh * .62, .16); F.add(nk);
+      F.position.set(fx + nx * .08, hd.y, fz + nz * .08); F.rotation.y = ang; g.add(F); }
+        g.add(V); world.add(g); QW.kitain = { Lp: Math.round(Lp), fx, fz, nx, nz, hx: hd.x, hz: hd.z, W: hd.W, Lg: hd.Lg, sm: [sm.x, sm.z], n: L.length }; }
 }
 /* ---------- 2026-10-27 本人「デジタルとフィジカルが融合した空間に」：写実の地の上に、光の等高線・地面のグリッド・走査の輪・データの粒を薄く重ねる（上品に・やりすぎない） ---------- */
 var DIGI = { u: null };
