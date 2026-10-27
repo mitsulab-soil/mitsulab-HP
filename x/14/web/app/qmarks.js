@@ -273,7 +273,7 @@ export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) 
     u.f += ((slot >= 0 ? 1 : 0) - u.f) * Math.min(1, dt * 9);
     sp.position.y = u.by + u.sl * sc.y * 1.1 / Math.max(1e-4, ps.y || 1);
     sp.material.opacity *= u.f; if (u.f < .02) sp.visible = false;
-    if (slot >= 0 && sp.visible && u.f > .05 && e.L?.glyph) {   /* 札が画面に置けた印だけ線を引く */ e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); LA.push(u.f * .8, u.f * .8); }
+    if (slot >= 0 && sp.visible && u.f > .05 && e.L?.glyph) {   /* 札が画面に置けた印だけ線を引く */ e.L.glyph.getWorldPosition(a); sp.getWorldPosition(b); LP.push(a.x, a.y, a.z, b.x, b.y, b.z); const la = Math.min(1, sp.material.opacity * 1.2) * .8; if (la > .05) LA.push(la, la); else LP.length -= 6;   /* 札が見えないほど薄いときは線も出さない */ }
   }
   // 2026-10-28 Qualium 共通：札と印を細い線で結ぶ（どの札がどの印のものかを分かるように）
   if (!placeLabels._ln && list[0]) { let root = list[0].sp; while (root.parent) root = root.parent;

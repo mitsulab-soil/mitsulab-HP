@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k11";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k12";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
@@ -327,8 +327,16 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
           vec3 bandc = mix(vec3(.18, .19, .2), mix(vec3(.45, .2, .16), vec3(.22, .3, .33), fract(rb * 3.3)), step(.5, fract(rb * 11.)));
           vec3 sh = mix(g1, vec3(.16, .16, .17), fr2); sh = mix(sh, bandc, band); sh = mix(sh, vec3(.25, .25, .24), step(hb0, .3));
           col = sh; isW = typ == 0. ? glz * (1. - fr2) * .9 : 0.; emi = typ == 0. ? lit * glz * (1. - fr2) * .5 * (1. - fz) : vec3(0.); }
+        { // 10-28 写実の陰影：足もとの陰（地面との際）・窓の奥行き（上と左の影）・窓の下の雨だれ・壁の大きなむら
+          float ao = mix(.42, 1., smoothstep(0., 4.2, hb0));
+          float rec = (kind == 2. ? 0. : win) * (smoothstep(.72, .84, c.y) * .45 + (1. - smoothstep(.2, .27, c.x)) * .3);
+          float sx = fract(sin(floor(hz * 1.9) * 12.9 + br * 7.1) * 43758.5);
+          float streak = (kind == 2. ? .35 : 1.) * step(.7, sx) * (1. - isW) * smoothstep(.38, 0., c.y) * .22;
+          float big = texture2D(tP, vPw.xz / 40. + vPw.y / 55.).r;
+          float sunF = dot(Nn, normalize(vec3(.55, 0., .35)));   // 日の当たる面と陰の面の差（面ごとの明るさの違いで、箱に見せない）
+          col *= ao * (1. - rec) * (1. - streak) * (.88 + .24 * big) * mix(.66, 1.14, smoothstep(-.6, .7, sunF)); float dd = length(vPw - cameraPosition); col = mix(col, vec3(.62, .68, .76), smoothstep(90., 520., dd) * .42); }   // 遠いほど青く薄く（大気の遠近）
         diffuseColor.rgb = col; }`).replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance += emi;").replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = isW < 0. ? .55 : mix(roughnessFactor, .1, isW);"); };
-  m.customProgramCacheKey = () => "plateauCC0b"; return PFM.m = m;
+  m.customProgramCacheKey = () => "plateauCC0c"; return PFM.m = m;
 }
 function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・LOD2）を mitsulab が加工した建物（外壁は航空写真からの質感）。_dev/plateau/build_plateau.py
   const g0 = new THREE.Group(); g0.name = "plateau"; world.add(g0);
@@ -849,7 +857,7 @@ function stepLayer(dt) {
     const k = sky ? Math.min(14, Math.max(2.5, camera.position.distanceTo(L.root.position) / 60)) : 1;
     L.root.scale.setScalar(k * (.4 + .6 * L.show)); L.glyph.rotation.y = t * .6; L.glyph.position.y = (L.o.h || 1.8) + Math.sin(t * 1.4 + L.o.x) * .05;
     for (const m of L.mats) m.opacity = (m === L.fm ? .1 : m === L.bm ? .55 : .9) * L.show;
-    if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (58 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
+    if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (90 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
   }
   LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
