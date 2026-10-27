@@ -8,7 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=6";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=q11";
-import { makeStartPins } from "./startpins.js?v=13";
+import { makeStartPins } from "./startpins.js?v=14";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=40";
@@ -838,7 +838,7 @@ function stepMapLabels() {
   const now = performance.now(); if (!MAP.av || now - MAP.avT > 500) { MAP.avT = now; const c = $("#skyUI .card")?.getBoundingClientRect(), l = $("#lstack")?.getBoundingClientRect(); MAP.av = { cy: c && c.height ? c.top - 6 : H, lx: l && l.width ? l.right + 4 : 0, ly: l && l.height ? l.bottom : 0 }; }   // 視野の札（始める場所・層の目盛り）の下に、地図の名前を重ねない
   for (const L of all) {
     _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W; let y = (1 - _v3.y) / 2 * H; if (L === MAP.hereLabel && _v3.z < 1) { y = Math.max(130, Math.min(H - 60, y)); }   // 「いま」の札は上の端で切らない
-    let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x < W - 20 && y > 70 && y < H - 40 && y < MAP.av.cy && !(x < MAP.av.lx && y < MAP.av.ly + 10);
+    const lw = (L.w ||= L.e.offsetWidth || 80) / 2; let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x + lw * 2 + 14 < W && x > 4 &&   /* 2026-10-27：画面の端で切れる地名は出さない */ y > 70 && y < H - 40 && y < MAP.av.cy && !(x < MAP.av.lx && y < MAP.av.ly + 10);
     if (ok && START.rects) for (const r of START.rects) if (Math.abs(r[0] - x) < (MOBILE ? 100 : 110) && Math.abs(r[1] - y) < 40) { ok = false; break; }   // 始める場所の名札を優先（地区の札は重ねない）
     if (ok && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < (MOBILE ? 96 : 70) && Math.abs(q[1] - y) < (MOBILE ? 22 : 18)) { ok = false; break; }   // 重なる名札は出さない（大きな鳥居の名札も）
     if (!ok) { if (L.vis !== false) { L.e.style.display = "none"; L.vis = false; } continue; }
