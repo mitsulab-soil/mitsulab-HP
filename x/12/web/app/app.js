@@ -177,7 +177,8 @@ function roadMat() {   // 道の面：Poly Haven「Asphalt 04」（CC0）の色�
   m.onBeforeCompile = sh => {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWxz=(modelMatrix*vec4(transformed,1.)).xz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;\nfloat n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);float a=fract(sin(dot(i,vec2(127.1,311.7)))*43758.5),b=fract(sin(dot(i+vec2(1,0),vec2(127.1,311.7)))*43758.5),c=fract(sin(dot(i+vec2(0,1),vec2(127.1,311.7)))*43758.5),d=fract(sin(dot(i+vec2(1,1),vec2(127.1,311.7)))*43758.5);return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}")
-      .replace("#include <map_fragment>", "#include <map_fragment>\n float big=n2(vWxz*.07)*.6+n2(vWxz*.23)*.4; float pch=smoothstep(.62,.66,n2(vWxz*.045+3.1)); diffuseColor.rgb*=mix(.86,1.1,big); diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.78,pch*.8);");
+      .replace("#include <map_fragment>", "#include <map_fragment>\n float big=n2(vWxz*.07)*.6+n2(vWxz*.23)*.4; float pch=smoothstep(.62,.66,n2(vWxz*.045+3.1)); diffuseColor.rgb*=mix(.86,1.1,big); diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.78,pch*.8);\n float trk=n2(vec2(vMapUv.x*7.,vMapUv.y*.35)); float lane=smoothstep(.55,.8,trk); diffuseColor.rgb*=1.-lane*.12; float fine=n2(vWxz*1.7)*.5+n2(vWxz*4.3)*.5; diffuseColor.rgb*=.93+fine*.14; float crk=1.-smoothstep(.0,.025,abs(n2(vWxz*.5+7.3)-.5)); diffuseColor.rgb*=1.-crk*.35*step(.5,n2(vWxz*.11));")
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = clamp(roughnessFactor - lane*.18 - pch*.1, .45, 1.);");   // 10-27 夜：踏まれた轍の筋（少し暗くつやが出る）・細かな粒のむら・細いひびと補修跡
   };
   return ASPH = m;
 }
@@ -276,14 +277,14 @@ async function buildBuildings() {
     vertexShader: `attribute float y0; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN;
       void main(){ vec4 mv=modelViewMatrix*vec4(position,1.); vY=position.y; vH=position.y-y0; vN=normal; vFogDepth=-mv.z; gl_Position=projectionMatrix*mv; }`,
     fragmentShader: `uniform float t; uniform float amul; uniform vec3 c; uniform vec3 fogColor; uniform float fogNear, fogFar; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN;
-      void main(){ float side=1.-abs(normalize(vN).y); float a=.022+.05*side; float near=smoothstep(6.,40.,vFogDepth); a*=mix(.35,1.,near);
-        float fl=smoothstep(.06,0.,abs(fract(vH/3.2)-.5)*2.-.94); a+=fl*.08*side*near;             // 階の線（3.2 m ごと・模式）
-        float sc=exp(-pow((fract(vH*.05-t*.12)-.5)*9.,2.)); a+=sc*.05*side;                     // 上へ抜ける走査の帯
+      void main(){ float side=1.-abs(normalize(vN).y); float a=.012+.028*side; float near=smoothstep(10.,60.,vFogDepth); a*=mix(.15,1.,near);   // 10-27 夜：箱を控えめに（印より目立たない）
+        float fl=smoothstep(.06,0.,abs(fract(vH/3.2)-.5)*2.-.94); a+=fl*.045*side*near;             // 階の線（3.2 m ごと・模式）
+        float sc=exp(-pow((fract(vH*.05-t*.12)-.5)*9.,2.)); a+=sc*.025*side*near;                     // 上へ抜ける走査の帯
         float f=smoothstep(fogNear,fogFar,vFogDepth); gl_FragColor=vec4(c,a*amul*(1.-f*.9)); }`,
     transparent: true, depthWrite: false, side: THREE.DoubleSide });
   const m = new THREE.Mesh(g, mat); m.renderOrder = 2; m.name = "bld"; world.add(m);
   const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(E, 3));
-  const em = new THREE.LineBasicMaterial({ color: "#9fe6f8", transparent: true, opacity: .42, depthWrite: false });
+  const em = new THREE.LineBasicMaterial({ color: "#9fe6f8", transparent: true, opacity: .22, depthWrite: false });
   const lines = new THREE.LineSegments(eg, em); lines.renderOrder = 3; world.add(lines);
   const fg = new THREE.BufferGeometry(); fg.setAttribute("position", new THREE.Float32BufferAttribute(F, 3)); fg.computeVertexNormals();
   const foot = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ color: "#45474a", roughness: .96, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })); foot.renderOrder = 1; world.add(foot); BLD.foot = foot;
