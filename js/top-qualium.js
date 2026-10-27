@@ -142,7 +142,7 @@ async function boot(fig, kind) {
       for (let i = 0; i < n; i++) { const x = row ? i * (cw + gap) : 0, yTop = row ? 0 : i * (ch + gap); const y = h - yTop - ch;
         R.setViewport(x, y, cw, ch); R.setScissor(x, y, cw, ch); R.setClearColor(i === 2 ? 0x07090d : 0x0a1220, 1); R.clear();
         pc.aspect = cw / ch; pc.position.z = cw / ch < 1 ? 3.0 / (cw / ch) : 3.6; pc.updateProjectionMatrix(); R.render(scenes[i], pc);
-        const lab = labs[i]; if (lab) { lab.style.transform = `translate(${x + cw / 2}px,${yTop + ch + 4}px) translate(-50%,0)`; } }
+        const lab = labs[i]; if (lab) { lab.style.width = cw + 'px'; lab.style.whiteSpace = 'normal'; lab.style.transform = `translate(${x + cw / 2}px,${yTop + ch + 4}px) translate(-50%,0)`; } }
       R.setScissorTest(false); };
   }
   if (kind === 2) {
@@ -152,20 +152,26 @@ async function boot(fig, kind) {
     const ints = new Int16Array(buffer), C = meta.center, o = C[Math.floor(C.length * .55)];
     const lm = (c, a) => new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: a, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
     const near = (x, z) => Math.abs(x - o[0]) < 260 && Math.abs(z - o[2]) < 420;
+    const ribbon = (P, w, col, a) => { const V = []; for (let i = 0; i < P.length; i += 6) { const ax = P[i], ay = P[i + 1], az = P[i + 2], bx = P[i + 3], by = P[i + 4], bz = P[i + 5]; let nx, ny, nz; if (Math.abs(by - ay) > Math.hypot(bx - ax, bz - az)) { nx = w / 2; ny = 0; nz = 0; } else { const dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz) || 1; nx = -dz / L * w / 2; ny = 0; nz = dx / L * w / 2; }
+      V.push(ax - nx, ay - ny, az - nz, bx - nx, by - ny, bz - nz, bx + nx, by + ny, bz + nz, ax - nx, ay - ny, az - nz, bx + nx, by + ny, bz + nz, ax + nx, ay + ny, az + nz); }
+      return new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(V, 3)), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: a, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })); };
     const base = new THREE.Group(); S.add(base);
     for (const [key, col, a] of [['road', 0x8aa6b4, .22], ['buildings', 0x5f7a88, .12], ['structures', 0xb9c6cc, .3]]) { const [off, count] = meta.groups[key], P = [];
       for (let i = 0; i < count; i += 2) { const n = (off + i) * 3; const x = ints[n] * meta.q, z = ints[n + 2] * meta.q; if (!near(x, z)) continue; for (let j = 0; j < 2; j++) { const m = n + j * 3; P.push(ints[m] * meta.q - o[0], ints[m + 1] * meta.q - o[1], ints[m + 2] * meta.q - o[2]); } }
       base.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P, 3)), lm(col, a))); }
+    { const P = []; C.forEach(([x, y, z], i) => { if (i) { const [a, b, c] = C[i - 1]; for (const dx of [-3, 3]) P.push(a - o[0] + dx, b - o[1] + .15, c - o[2], x - o[0] + dx, y - o[1] + .15, z - o[2]); } }); base.add(ribbon(P, .16, 0xeaf4f8, .55)); }
     const layer = () => { const g = new THREE.Group(); S.add(g); return g; };
     // 地形：等高線
-    const L1 = layer(); { const P = []; for (const [e, xs] of meta.contours) { for (let i = 0; i + 3 < xs.length; i += 2) { const x1 = xs[i], z1 = xs[i + 1], x2 = xs[i + 2], z2 = xs[i + 3]; if (!near(x1, z1)) continue; P.push(x1 - o[0], e - o[1] + .05, z1 - o[2], x2 - o[0], e - o[1] + .05, z2 - o[2]); } }
-      L1.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P, 3)), lm(0x7dffc4, 1))); }
+    const L1 = layer(); { const P = []; for (const [e, xs] of meta.contours) { for (let i = 0; i + 3 < xs.length; i += 2) { const x1 = xs[i], z1 = xs[i + 1], x2 = xs[i + 2], z2 = xs[i + 3]; if (!near(x1, z1)) continue; P.push(x1 - o[0], e - o[1] + .25, z1 - o[2], x2 - o[0], e - o[1] + .25, z2 - o[2]); } }
+      { const V = [], h = .9; for (let i = 0; i < P.length; i += 6) { const [ax, ay, az, bx, by, bz] = P.slice(i, i + 6); V.push(ax, ay, az, bx, by, bz, bx, by + h, bz, ax, ay, az, bx, by + h, bz, ax, ay + h, az); }
+        const g = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(V, 3)); const uv = []; for (let i = 0; i < V.length / 18; i++) uv.push(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+        L1.add(new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: { uO: { value: 1 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, vertexShader: 'varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }', fragmentShader: 'uniform float uO; varying vec2 vU; void main(){ gl_FragColor = vec4(vec3(.49,1.,.77), (1.-vU.y)*.8*uO); }' }))); } }
     // 歴史：鳥居と丁石の位置に立つ光の柱
     const L2 = layer(); { const P = []; [...meta.marks.map(m => m.p), ...meta.choishi].forEach(([x, y, z], k) => { if (!near(x, z)) return; const h = k < meta.marks.length ? 14 : 4; P.push(x - o[0], y - o[1], z - o[2], x - o[0], y - o[1] + h, z - o[2]); for (let j = 0; j < 16; j++) { const a = j / 16 * 6.283, b = (j + 1) / 16 * 6.283, r = k < meta.marks.length ? 2.4 : .9; P.push(x - o[0] + Math.cos(a) * r, y - o[1] + .1, z - o[2] + Math.sin(a) * r, x - o[0] + Math.cos(b) * r, y - o[1] + .1, z - o[2] + Math.sin(b) * r); } });
-      L2.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P, 3)), lm(0xf2c56e, .9))); }
+      L2.add(ribbon(P, .45, 0xf2c56e, .9)); }
     // 生き物：欅の位置（樹冠の輪）
     const L3 = layer(); const treesNear = meta.trees.filter(([x, , z]) => near(x, z)); { const P = []; treesNear.forEach(([x, y, z]) => { for (const [r, hh] of [[1.2, .3], [.8, 2.2]]) for (let j = 0; j < 20; j++) { const a = j / 20 * 6.283, b = (j + 1) / 20 * 6.283; P.push(x - o[0] + Math.cos(a) * r, y - o[1] + hh, z - o[2] + Math.sin(a) * r, x - o[0] + Math.cos(b) * r, y - o[1] + hh, z - o[2] + Math.sin(b) * r); } P.push(x - o[0], y - o[1], z - o[2], x - o[0], y - o[1] + 6, z - o[2]); });
-      L3.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P, 3)), lm(0xc9b8ff, .6))); }
+      L3.add(ribbon(P, .14, 0xc9b8ff, .8)); }
     // 音：いくつかの樹冠から、鳥の声の輪が広がる（模式）
     const L4 = layer(); const rings = []; treesNear.filter((_, i) => i % 9 === 0).slice(0, 14).forEach(([x, y, z], i) => { for (let k = 0; k < 3; k++) { const r = ring(1, 0xa8f2f6, .6, 64); r.position.set(x - o[0], y - o[1] + 5, z - o[2]); r.userData = { ph: k / 3 + i * .17 }; L4.add(r); rings.push(r); } });
     const layers = [L1, L2, L3, L4]; layers.forEach(g => g.traverse(m => { if (m.material) m.userData.a = m.material.opacity; }));
@@ -173,10 +179,10 @@ async function boot(fig, kind) {
     const path = new THREE.CatmullRomCurve3(C.map(([x, y, z]) => new THREE.Vector3(x - o[0], y - o[1] + 1.6, z - o[2])));
     cam.fov = 58; cam.near = .3; cam.far = 900; cam.updateProjectionMatrix(); fitW = 0; fitH = 0;
     const per = 2.2, hold = 9, cyc = per * 4 + hold; const P0 = new THREE.Vector3(), P1 = new THREE.Vector3();
-    tick = t => { const u = .5 + ((t * .0016) % .12) - .06; path.getPointAt(Math.min(.99, Math.max(0, u)), P0); path.getPointAt(Math.min(1, u + .02), P1); cam.position.copy(P0); P1.y -= .5; cam.lookAt(P1);
+    tick = t => { const u = .5 + ((t * .0016) % .12) - .06; path.getPointAt(Math.min(.99, Math.max(0, u)), P0); path.getPointAt(Math.min(1, u + .02), P1); cam.position.copy(P0); P1.y -= 3.2; cam.lookAt(P1);
       const tt = reduce ? cyc - 1 : t % cyc;
       layers.forEach((g, i) => { const k = Math.min(1, Math.max(0, (tt - i * per) / 1.2)), e = k * k * (3 - 2 * k), out = tt > cyc - 1 ? cyc - tt : 1, v = e * out;
-        g.traverse(m => { if (m.material) m.material.opacity = m.userData.a * v; }); const lab = labs[i]; if (lab) lab.style.opacity = v.toFixed(2); });
+        g.traverse(m => { if (m.material) { m.material.opacity = m.userData.a * v; if (m.material.uniforms && m.material.uniforms.uO) m.material.uniforms.uO.value = v; } }); const lab = labs[i]; if (lab) lab.style.opacity = v.toFixed(2); });
       rings.forEach(r => { const s = ((t * .35 + r.userData.ph) % 1); r.scale.setScalar(1 + s * 5); r.material.opacity = .6 * (1 - s) * (L4.children[0] ? 1 : 0) * Math.min(1, (labs[3] ? +labs[3].style.opacity : 1)); }); };
   }
 

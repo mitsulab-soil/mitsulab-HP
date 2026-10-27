@@ -149,3 +149,30 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-fig1{aspect-ratio:3/5}}
 @media (max-width:700px){.qx-fig1{aspect-ratio:1/1.05}.qx-fig1 .qx-lab .k{font-size:12px}.qx-fig1 .qx-lab span:not(.k){font-size:10px}}
 .ws-grid .si-card:has(details[open]){grid-column:1/-1}.ws-grid .si-card:has(details[open]) .ws-body{columns:2 320px;column-gap:32px}.ws-row{break-inside:avoid}
+.qx-scene .v2-note,.qx-all .v2-note{font-size:14px;line-height:1.75}
+.qx-all .v2-ex2 li,.qx-all .lp-fb{font-size:14.5px}
+.qx-fig .qx-lab span:not(.k){font-size:12.5px}
+.qx-fig1 .qx-lab{text-align:center}
+.qx-fig1 .qx-lab>span{display:block}
+@media (max-width:700px){
+  .qx-fig2 .qx-labs{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+  .qx-fig2 .qx-lab{text-align:center}
+  .qx-fig2 .qx-cap{margin-top:5.6em!important}
+  html[data-lang=en] .qx-fig2 .qx-cap{margin-top:7.4em!important}
+  .qx-fig2{margin-bottom:150px}
+  html[data-lang=en] .qx-fig2{margin-bottom:190px}
+  .qx-fig1{margin-bottom:92px}
+  html[data-lang=en] .qx-fig1{margin-bottom:120px}
+}
+@media (max-width:700px){
+  html:not([data-lang=en]) .qx-fig2 .qx-cap{margin-top:5.6em!important}
+  html:not([data-lang=en]) .qx-fig2{margin-bottom:150px}
+  .qx-fig1 .qx-cap{margin-top:4.2em!important}
+  html[data-lang=en] .qx-fig1 .qx-cap{margin-top:5.4em!important}
+  .qx-fig1{margin-bottom:120px}
+  html[data-lang=en] .qx-fig1{margin-bottom:140px}
+}
+@media (min-width:701px){.ws-grid{align-items:stretch}.ws-grid:has(details[open]){grid-template-columns:repeat(3,minmax(0,1fr))}
+  .ws-grid .si-card>.si-fold{height:100%}.ws-grid .si-fold>summary{height:100%;align-content:start;grid-template-rows:auto auto 1fr auto}.ws-grid .si-fold[open]>summary{height:auto}
+  .ws-grid .si-more{align-self:end}}
+.qx-fig2 .qx-labs{bottom:3.2em}
