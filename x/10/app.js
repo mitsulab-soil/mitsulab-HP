@@ -328,7 +328,7 @@ const look = new THREE.Vector3();
 let fitAspect = 1;
 function fitDist() {
   const a = fitAspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
-  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? 1.02 : 1.34);
+  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? .9 : 1.34);
 }
 const markFree = () => { const n = $("#viewName"); if (n.dataset.t !== "view.free") { n.dataset.t = "view.free"; n.textContent = T("view.free"); } };
 const clampG = () => { G.zoom = Math.min(Z_MAX, Math.max(Z_MIN, G.zoom)); G.el = Math.min(EL_MAX, Math.max(EL_MIN, G.el)); G.tx = Math.min(.55, Math.max(-.55, G.tx)); G.tz = Math.min(.6, Math.max(-.55, G.tz)); dirty = 2; };
@@ -490,7 +490,7 @@ async function loadAoi() {
     if (!said.hello) hello();
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
-const AOI_X = MOBILE ? -.64 : -.78, AOI_Z = MOBILE ? .22 : -.08;
+const AOI_X = MOBILE ? -.46 : -.78, AOI_Z = MOBILE ? -.62 : -.08;
 const LOOK = new THREE.Vector3(0, .02, 0);
 function aoiWatch(on) { aoi?.motion.lookAt(on ? LOOK : null); }
 function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
