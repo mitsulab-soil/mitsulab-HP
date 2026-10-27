@@ -176,3 +176,10 @@ html{scroll-padding-top:80px}
   .ws-grid .si-card>.si-fold{height:100%}.ws-grid .si-fold>summary{height:100%;align-content:start;grid-template-rows:auto auto 1fr auto}.ws-grid .si-fold[open]>summary{height:auto}
   .ws-grid .si-more{align-self:end}}
 .qx-fig2 .qx-labs{bottom:3.2em}
+.qx-fig2 .qx-lab .k{font-size:16px;letter-spacing:.08em}
+.qx-fig2 .qx-lab span:not(.k){font-size:13.5px}
+@media (max-width:700px){.qx-fig1{aspect-ratio:4/3}html[data-lang=en] .qx-fig1{aspect-ratio:4/3}}
+@media (max-width:700px){.qx-fig1 .qx-cap{margin-top:3.6em!important}html[data-lang=en] .qx-fig1 .qx-cap{margin-top:4.6em!important}.qx-fig1{margin-bottom:96px}html[data-lang=en] .qx-fig1{margin-bottom:110px}}
+@media (min-width:701px){.qx-fig2{aspect-ratio:21/10}.qx-fig2 .qx-labs{bottom:.2em}.qx-fig2 .qx-cap{margin-top:10px!important}.qx-fig2{margin-bottom:56px}}
+@media (max-width:700px){html:not([data-lang=en]) .qx-fig2 .qx-cap{margin-top:6.6em!important}html:not([data-lang=en]) .qx-fig2{margin-bottom:170px}html[data-lang=en] .qx-fig2 .qx-cap{margin-top:8.4em!important}html[data-lang=en] .qx-fig2{margin-bottom:210px}.qx-fig2 .qx-labs{margin-top:-28px}}
+@media (max-width:700px){.qx-fig2 .qx-lab{white-space:normal!important;min-width:0}.qx-fig2 .qx-lab .k{font-size:14px}.qx-fig2 .qx-lab span:not(.k){font-size:12.5px}.qx-fig2 .qx-labs{padding:0 4px}}
