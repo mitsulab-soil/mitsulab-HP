@@ -114,3 +114,13 @@ html[data-lang=en] .qx-fan-lim{font-size:13px;letter-spacing:.04em}
 .qx-logo-img{filter:grayscale(1) brightness(1.15)}
 .qx-fig2 .qx-labs{position:absolute;left:0;right:0;bottom:2.6em;top:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;pointer-events:none}
 .qx-fig2 .qx-lab{position:static!important;transform:none!important;transition:opacity .4s}
+/* 2026-10-27 P2：2.0 は上ぞろえ・下の開閉二つは全幅で詰める */
+@media (min-width:701px){.qx-s2{align-items:start}.qx-s2 .qx-fig{margin-bottom:8px}}
+.qx-scene>.qx-think{grid-column:1/-1;max-width:760px;margin:0}
+.qx-scene>.qx-think+.v2-loopfold{margin-top:0}
+html{scroll-padding-top:80px}
+@media (min-width:701px){.qx-s2{row-gap:10px}.qx-s2 .qx-fig{grid-row:1 / span 3}.qx-s2>.qx-think,.qx-s2>.v2-loopfold{grid-column:1;max-width:none}
+  .qx-s2>.qx-think[open],.qx-s2>.v2-loopfold[open]{grid-column:1/-1;max-width:900px}}
+.qx-s2>.v2-loopfold{border:0;border-top:1px dashed #8bccca33;background:none}
+.qx-s2>.v2-loopfold>summary{padding:6px 0;min-height:44px;font-size:14px}
+.qx-s2>.v2-loopfold>summary .lp-ft{font:inherit;letter-spacing:0;color:#a8f2f6}

@@ -134,7 +134,7 @@ async function boot(fig, kind) {
       const an = new THREE.Object3D(); an.position.set(BW / 2 - .2 - i * .05, BH / 2, 0); g.add(an); anchors.push(an);
       return g; });
     G.rotation.set(-.08, -.42, 0);
-    fitW = mobile ? 7.2 : 7.8; fitH = mobile ? 5.0 : 5.4;
+    fitW = mobile ? 7.2 : 8.2; fitH = mobile ? 5.0 : 6.2;
     cam.position.set(0, .2, 6);
     const per = 2.2, cyc = per * L.length + 3;
     tick = t => {
