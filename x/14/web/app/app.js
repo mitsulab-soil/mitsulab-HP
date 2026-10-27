@@ -89,7 +89,7 @@ const cyberize = sh => { sh.uniforms.uCy = CYBER.v; sh.uniforms.uScan = CYBER.sc
   sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uCy; uniform float uScan; uniform sampler2D uDet; uniform float uDetK; varying vec3 vCw;\nfloat gridL(vec2 p, float s){ vec2 q=abs(fract(p/s+.5)-.5)*s; vec2 w=fwidth(p)*1.3; vec2 l=1.-smoothstep(vec2(0.),w,q); return max(l.x,l.y); }")
     .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\nif(uCy>.001){ vec2 p=vCw.xz; float fw=length(fwidth(p)); float g1=gridL(p,100.), g2=gridL(p,20.)*(1.-smoothstep(1.5,5.,fw)); float hh=vCw.y; float cq=abs(fract(hh+.5)-.5); float cl=1.-smoothstep(0.,fwidth(hh)*1.3,cq); float sc=exp(-pow((p.y-uScan)/60.,2.)); vec3 ln=vec3(.32,.78,.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.01,.025,.045),uCy); totalEmissiveRadiance+=uCy*(ln*(g1*.32+g2*.1+cl*.18)+ln*sc*(.05+g1*.4+cl*.3)); }"); };
 TL0().load("web/tex/pave_c.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; DET.t.value = t; });
-new THREE.TextureLoader().load("web/tex/sky.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.mapping = THREE.EquirectangularReflectionMapping; QW.skyBg = t; if (CYBER.v.value < .5) scene.background = t; const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); });
+new THREE.TextureLoader().load("web/tex/sky.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.mapping = THREE.EquirectangularReflectionMapping; QW.skyBg = t; if (PFM.sky) PFM.sky.value = t; if (CYBER.v.value < .5) scene.background = t; const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(t).texture; pm.dispose(); });
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 
@@ -260,11 +260,20 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
   const ld = u => TL.load(u, t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 8; });
   const tP = ld("web/tex/plaster_c.webp"), tG = ld("web/tex/granite_c.webp");
   const m = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: .85, metalness: 0, side: THREE.DoubleSide });
-  m.onBeforeCompile = sh => { sh.uniforms.tP = { value: tP }; sh.uniforms.tG = { value: tG };
-    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; varying vec3 vNw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvPw = (modelMatrix * vec4(transformed, 1.)).xyz; vNw = normalize(mat3(modelMatrix) * objectNormal);");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D tP, tG; varying vec3 vPw; varying vec3 vNw; float isW = 0.;").replace("#include <map_fragment>", `#include <map_fragment>
-      vec3 Nn = normalize(vNw);
-      if (abs(Nn.y) > .6) { diffuseColor.rgb = vec3(.24, .245, .25) * (.85 + .3 * texture2D(tG, vPw.xz / 6.).r); }
+  const SKYU = PFM.sky = { value: QW.skyBg || null };   // 10-27 P2：ガラスに空を映す（空の写真〔web/tex/sky.webp〕を反射の向きで引く）
+  m.onBeforeCompile = sh => { sh.uniforms.tP = { value: tP }; sh.uniforms.tG = { value: tG }; sh.uniforms.tSky = SKYU;
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec2 hb; varying vec2 vHb; varying vec3 vPw; varying vec3 vNw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvHb = hb; vPw = (modelMatrix * vec4(transformed, 1.)).xyz; vNw = normalize(mat3(modelMatrix) * objectNormal);");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D tP, tG, tSky; varying vec2 vHb; varying vec3 vPw; varying vec3 vNw; float isW = 0.; vec3 emi = vec3(0.);\nvec3 skyR(vec3 R) { vec2 q = vec2(atan(R.z, R.x) / 6.2832 + .5, asin(clamp(R.y, -1., 1.)) / 3.1416 + .5); vec3 c = texture2D(tSky, q).rgb; return R.y < 0. ? mix(c, vec3(.05, .055, .06), smoothstep(0., -.25, R.y)) : c; }").replace("#include <map_fragment>", `#include <map_fragment>
+      vec3 Nn = normalize(vNw); float hb0 = vHb.x, br = vHb.y;
+      if (abs(Nn.y) > .6) {   // 屋上：防水の面（灰・緑灰・砂利）・1 m の継ぎ目・設備の台と影・雨の染み
+        vec2 rq = vPw.xz; float g = texture2D(tG, rq / 6.).r, g2 = texture2D(tP, rq / 9.).r;
+        float rt = fract(br * 3.7); vec3 base = rt < .45 ? vec3(.15, .155, .16) : rt < .75 ? vec3(.12, .16, .14) : vec3(.19, .18, .165);
+        vec2 sm = fract(rq / vec2(1., 1.8)); float seam = max(step(.97, sm.x), step(.985, sm.y)) * (rt < .75 ? 1. : 0.);
+        vec2 eq = floor(rq / 5.5); float er = fract(sin(dot(eq + br * 17., vec2(41.3, 289.1))) * 43758.5); vec2 ef = fract(rq / 5.5);
+        float unit = step(.78, er) * step(.12, ef.x) * step(ef.x, .78) * step(.15, ef.y) * step(ef.y, .7); float ush = step(.78, er) * step(.78, ef.x) * step(ef.x, .95) * step(.15, ef.y) * step(ef.y, .8);
+        vec3 col = base * (.7 + .6 * g) * (1. - .3 * smoothstep(.5, .75, g2)); col *= 1. - seam * .35; col *= .8 + .2 * smoothstep(0., 2., min(fract(rq.x / 23.) , fract(rq.y / 23.)) * 23.);
+        col = mix(col, vec3(.3, .31, .31) * (.9 + .15 * g), unit); col *= 1. - ush * .5;
+        diffuseColor.rgb = col; isW = -unit * .5; }
       else {
         float hz = abs(Nn.x) > abs(Nn.z) ? vPw.z : vPw.x; vec2 fu = vec2(hz, vPw.y);
         vec2 cell = floor(vPw.xz / 30.); float r = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5); float r2 = fract(r * 7.31);
@@ -282,14 +291,35 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
         float mull = max(step(.95, c.x), step(.96, c.y));
         float spand = step(c.y, .22); vec3 col = kind == 2. ? mix(mix(glass, vec3(.32, .34, .36), mull), vec3(.2, .21, .22), spand * .85) : mix(wall, glass, win * (kind == 3. ? .8 : 1.));
         isW = kind == 2. ? (1. - mull) * (1. - spand) : win;   // ガラスのビルも階ごとに腰の帯（奥行きと階のリズム）
-        diffuseColor.rgb = col; }`).replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, .1, isW);"); };
-  m.customProgramCacheKey = () => "plateauCC0"; return PFM.m = m;
+        if (isW > .01) {   // ガラス：空と向かいの暗がりを映す。板ごとにわずかに傾き（映り込みが一枚ごとにずれる）・室内の明るさは階と区画で違う
+          vec2 pid = floor(fu / vec2(bw, fh)); float pr = fract(sin(dot(pid, vec2(91.7, 13.3))) * 43758.5);
+          vec3 Np = normalize(Nn + vec3(0., (pr - .5) * .05, 0.) + (abs(Nn.x) > abs(Nn.z) ? vec3(0., 0., 1.) : vec3(1., 0., 0.)) * (fract(pr * 13.1) - .5) * .06);
+          vec3 V = normalize(vPw - cameraPosition); vec3 R = reflect(V, Np); float fr = .35 + .6 * pow(1. - abs(dot(V, Np)), 3.);
+          vec3 inner = col * (.6 + .5 * step(.7, fract(pr * 5.3))) + vec3(.06, .055, .045) * step(.8, fract(pr * 3.1));
+          col = mix(inner, skyR(R) * (kind == 2. ? 1. : .8), isW * fr * (kind == 2. ? 1. : .7)); }
+        if (hb0 < 4.4 && br > 0.) {   // 一階の店先：区画ごとにガラスの店先・シャッター・石の入口。上に字のない日よけの帯。内の明かり（店名・ロゴは描かない）
+          float bay = mix(3.6, 6.2, fract(br * 5.1)); float bx = fract(hz / bay); float bi = floor(hz / bay); float rb = fract(sin(bi * 12.7 + br * 91.) * 43758.5);
+          float typ = rb < .62 ? 0. : rb < .82 ? 1. : 2.;
+          float fr2 = max(step(bx, .04), step(.96, bx)); float glz = step(.3, hb0) * step(hb0, 3.); float band = step(3.05, hb0) * step(hb0, 3.75);
+          vec3 lit = mix(vec3(.95, .78, .52), vec3(.82, .88, .95), step(.5, fract(rb * 7.7))) * (.14 + .2 * smoothstep(.3, 2.4, hb0) + .55 * step(2.55, hb0) * step(hb0, 2.75) * step(.5, fract(hz / 1.2)));
+          float shelf = step(.88, fract(hb0 / .55)) * step(.5, hb0) * step(hb0, 2.2) * .35;
+          vec3 V2 = normalize(vPw - cameraPosition); vec3 Rr = reflect(V2, Nn); float fz = .08 + .45 * pow(1. - abs(dot(V2, Nn)), 4.);
+          vec3 shopG = mix(lit * (.75 + .25 * fract(bx * 3.)) * (1. - shelf) + vec3(.03, .028, .025) * step(hb0, 1.1) * step(.5, fract(bx * 4.)), skyR(Rr) * .55, fz);
+          vec3 shut = vec3(.4, .41, .41) * (.85 + .15 * step(.5, fract(hb0 / .09)));
+          vec3 entry = stone * .8 * mix(1., .25, step(.3, bx) * step(bx, .7) * step(hb0, 2.6));
+          vec3 g1 = typ == 0. ? shopG : typ == 1. ? shut : entry;
+          vec3 bandc = mix(vec3(.18, .19, .2), mix(vec3(.45, .2, .16), vec3(.22, .3, .33), fract(rb * 3.3)), step(.5, fract(rb * 11.)));
+          vec3 sh = mix(g1, vec3(.16, .16, .17), fr2); sh = mix(sh, bandc, band); sh = mix(sh, vec3(.25, .25, .24), step(hb0, .3));
+          col = sh; isW = typ == 0. ? glz * (1. - fr2) * .9 : 0.; emi = typ == 0. ? lit * glz * (1. - fr2) * .5 * (1. - fz) : vec3(0.); }
+        diffuseColor.rgb = col; }`).replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance += emi;").replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = isW < 0. ? .55 : mix(roughnessFactor, .1, isW);"); };
+  m.customProgramCacheKey = () => "plateauCC0b"; return PFM.m = m;
 }
 function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・LOD2）を mitsulab が加工した建物（外壁は航空写真からの質感）。_dev/plateau/build_plateau.py
   const g0 = new THREE.Group(); g0.name = "plateau"; world.add(g0);
   for (const gr of PL.groups) fetch("web/geo/" + gr.f + "?v=" + VER).then(r => r.arrayBuffer()).then(buf => {
     const P = new Float32Array(buf, 0, gr.nv * 3), U = new Float32Array(buf, gr.nv * 12, gr.nv * 2), I = new Uint32Array(buf, gr.nv * 20, gr.ni);
     const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(P, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(U, 2)); geo.setIndex(new THREE.BufferAttribute(I, 1)); geo.computeVertexNormals();
+    if (gr.k === "plain") geo.setAttribute("hb", new THREE.BufferAttribute(U, 2));   // 足もとからの高さ・建物ごとの乱数（build_plateau.py）
     const mat = gr.k === "plain" ? plateauFacadeMat()
       : new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: .82, side: THREE.DoubleSide, map: TL.load("web/geo/plateau_" + gr.k + (MOBILE ? "_s" : "") + ".webp?v=" + VER, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 8; }) });
     if (gr.k !== "plain") { mat.onBeforeCompile = sh => {   // 細部をつぶした写真の上に、階（3.6 m）の帯と柱間（2.4 m）の窓の筋を足す（写真の色・明るさはそのまま）
@@ -947,7 +977,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.0 : 3.5, s = MOBILE ? .45 : 1.25,   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
+  const f = MOBILE ? 6.8 : 3.5, s = MOBILE ? .75 : 1.25,   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const side = !$("#panel").hidden && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
