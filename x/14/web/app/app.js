@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=s3";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=s4";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
@@ -815,6 +815,10 @@ function buildObjs() {
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
+  { const P = LAYER.objs.map(L => L.root.position);   // 2026-10-27 夜：同じ点に二つの印が重なり、二重の玉に見えるのを避ける（7 m より近い印を、横へずらす）
+    for (let i = 0; i < P.length; i++) for (let k = 0; k < 8; k++) { let hit = false;
+      for (let j = 0; j < i; j++) { const dx = P[i].x - P[j].x, dz = P[i].z - P[j].z; if (dx * dx + dz * dz < 49) { hit = true; break; } }
+      if (!hit) break; const a = i * 2.39 + k * 1.3; P[i].x += Math.cos(a) * 7; P[i].z += Math.sin(a) * 7; P[i].y = groundY(P[i].x, P[i].z) + (P[i].y - groundY(P[i].x - Math.cos(a) * 7, P[i].z - Math.sin(a) * 7)); } }
   LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .42, skyK: 1.0, skyR: 1.0, overWalls: true }); /* 2026-10-27 本人「球が大きすぎる」＝今の 3〜4 割 */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
@@ -1551,7 +1555,7 @@ QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z
 QW.place = (x, z, tx, tz, p = -.08) => { CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = Math.atan2(-(tx - x), -(tz - z)); CAM.look = 0; CAM.pitch = p; };
 QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) openObj(L); return !!L; };
 QW.sight = id => { const sp = C.sight.find(s => s.id === id); if (sp) enterSight(sp); };
-QW.wear = wearLayer; QW.sky = SKY; QW.descend = i => descendTo(i); QW.fly = () => startFly();
+QW.LAYER = LAYER; QW.wear = wearLayer; QW.sky = SKY; QW.descend = i => descendTo(i); QW.fly = () => startFly();
 QW.autoWalk = on => { WALK.auto = !!on; syncAutoBtn(); };
 
 /* 型の札：いちばん近い一棟の正面の上に、画面の部品として。層の一覧・字幕・右の札の上には出さない */
