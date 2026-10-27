@@ -508,6 +508,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 @media (max-width:640px){body[data-mode="walk"]:has(#caption:not([hidden])) #toast{display:none!important}#lstack::before{width:96px!important;background:linear-gradient(90deg,rgba(3,6,15,.5),rgba(3,6,15,0))!important;-webkit-mask:none!important;mask:none!important}#lstack{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}   /* 2026-10-27 夜：スマホの層の一覧の左を白く濁らせない（暗く細い帯だけ） */   /* 字幕の間は操作説明を出さない（碧と札の重なりを避けて字幕を左下へ） */
 #skyUI .card{display:none!important}   /* 2026-10-27 本人：始める場所は地図の上の 3D の印と名札に（startpins.js）。鳥になって飛ぶ・生きものの身体は、歩く中の「飛ぶ」と層の一覧の Qualia/sight から */
 </style>
+<style id="qualium-375">/* 2026-10-28 Qualium 共通の基準：375px で右下のボタンを小さく 2 列に、字幕と重ねない（風景と印を広く） */@media (max-width:640px){body[data-mode="walk"] #walkUI{display:grid;grid-template-columns:repeat(2,auto);gap:6px;align-items:end;justify-items:end;direction:rtl}body[data-mode="walk"] #walkUI .ib{direction:ltr;min-height:44px;padding:0 10px;font-size:12.5px;letter-spacing:.06em}html body[data-mode="walk"] #caption{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 112px)!important;right:var(--g)!important}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>
