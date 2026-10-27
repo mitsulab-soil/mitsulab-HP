@@ -25,7 +25,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261027e";
+const VER = "20261027g";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -287,7 +287,7 @@ async function buildBuildings() {
   const em = new THREE.LineBasicMaterial({ color: "#9fe6f8", transparent: true, opacity: .22, depthWrite: false });
   const lines = new THREE.LineSegments(eg, em); lines.renderOrder = 3; world.add(lines);
   const fg = new THREE.BufferGeometry(); fg.setAttribute("position", new THREE.Float32BufferAttribute(F, 3)); fg.computeVertexNormals();
-  const foot = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ color: "#45474a", roughness: .96, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })); foot.renderOrder = 1; world.add(foot); BLD.foot = foot;
+  const foot = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ color: "#45474a", roughness: .96, transparent: true, opacity: .28, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })   /* 10-27 夜：足もとの暗い影を薄く */); foot.renderOrder = 1; world.add(foot); BLD.foot = foot;
   BLD.mesh = m; BLD.lines = lines; BLD.mat = mat; QW.nBld = nb;
   buildSolids(); buildTemples(); buildShrine();
 }
