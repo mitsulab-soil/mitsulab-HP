@@ -1175,7 +1175,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 </style>
 <link rel="stylesheet" href="qualium-top.css?v=20261025a">
 <link rel="stylesheet" href="v2.css?v=20261027t23">
-<link rel="stylesheet" href="top-qx.css?v=20261028p">
+<link rel="stylesheet" href="top-qx.css?v=20261028q">
 </head>
 <body>
 <script src="js/loader_qualium.js?v=20261028b" data-auto="dom"></script>
@@ -1260,7 +1260,7 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
       <figure class="qx-fig qx-fig2" data-qx="2" aria-hidden="true"><canvas></canvas><div class="qx-labs">
   <span class="qx-lab" data-at="0" style="--c:#8fe3c8"><span class="k" data-i18n-en="TERRAIN">地形</span><span data-i18n-en="contour lines">等高線</span></span>
   <span class="qx-lab" data-at="1" style="--c:#f2c56e"><span class="k" data-i18n-en="HISTORY">歴史</span><span data-i18n-en="torii and old stone markers">鳥居と丁石の位置</span></span>
-  <span class="qx-lab" data-at="2" style="--c:#c9b8ff"><span class="k" data-i18n-en="LIVING THINGS">生き物</span><span data-i18n-en="the trees along the approach">参道の木</span></span>
+  <span class="qx-lab" data-at="2" style="--c:#c9b8ff"><span class="k" data-i18n-en="LIVING THINGS">生き物</span><span data-i18n-en="trees on the approach">参道の木</span></span>
   <span class="qx-lab" data-at="3" style="--c:#a8f2f6"><span class="k" data-i18n-en="SOUND">音</span><span data-i18n-en="birdsong spreading (schematic)">鳥の声の広がり（模式）</span></span>
 </div><p class="qx-cap" data-i18n-en="Walking the shrine approach at eye level, layers of information overlap one by one (schematic)."><span class="v2-nw">目の高さで参道を歩くと、</span><span class="v2-nw">情報の層が一枚ずつ重なる（模式）。</span></p></figure>
       <details class="v2-loopfold qx-all"><summary><span class="lp-ft" data-i18n-en="More detail">もっと詳しく</span></summary><div class="qx-all-in"><section class="qx-msec"><p class="qx-mh" data-i18n-en="The place, and why 3D">その場と、なぜ 3D か</p><div class="v2-plat"><p class="v2-sub" data-i18n-en="Three ways the world widens">世界の広がり方の、三つの例</p><ul class="v2-ex2"><li><span class="k" data-i18n-en="Size">大きさ</span><span data-i18n-en="from a grain of soil to a whole river basin">土の粒から、川の流れる土地の広がりまで</span></li><li><span class="k" data-i18n-en="Time">時間</span><span data-i18n-en="back to how the place looked long ago, from records">記録をたどって、その場所の昔へ</span></li><li><span class="k" data-i18n-en="Other creatures">ほかの生き物</span><span data-i18n-en="how a bee or a bird takes in the same place">ミツバチや鳥が、同じ場所をどう受けとるか</span></li></ul>
@@ -2412,7 +2412,7 @@ async function boot(box){
 <script>/* 2026-10-23 PHILOSOPHY の 3D（E・S・Φ・q）：図が画面に近づいてから読む */
 (function(){var f=document.getElementById('qpES');if(!f)return;function c(){try{var x=document.createElement('canvas');return !!(x.getContext('webgl2')||x.getContext('webgl'));}catch(e){return false;}}if(!c()||!('IntersectionObserver' in window)){f.classList.add('no-3d');return;}var go=false;var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();import('./js/qualia-es-3d.js?v=20261024t7d').then(function(m){m.boot(f);}).catch(function(e){console.warn('qualia es 3d',e);f.classList.add('no-3d');});}},{rootMargin:'500px 0px'});io.observe(f);})();</script>
 
-<script type="module" src="./js/top-qualium.js?v=20261028u"></script>
+<script type="module" src="./js/top-qualium.js?v=20261028v"></script>
 <script type="module" src="js/app-previews.js?v=20261027tid"></script>
 <script>/* 2026-10-22 スマホだけ「続きを読む」で畳む。701px 以上は開いておく */(function(){function f(){var pc=innerWidth>700;[].forEach.call(document.querySelectorAll('details.q-more'),function(d){if(pc)d.open=true;});}f();addEventListener('resize',f);})();</script>
 <script>/* 2026-10-22 スマホの定式化：記号ごとに開閉（記号と名前だけ並べ、押すと説明が開く）。701px 以上は表のまま */(function(){var t=document.querySelector('.qt-sym');if(!t)return;[].forEach.call(t.querySelectorAll('tbody tr'),function(tr,i){var th=tr.querySelector('th[scope=row]');if(!th)return;var b=document.createElement('button');b.type='button';b.className='qs-tog';b.setAttribute('aria-expanded','false');var id='qs-d'+i;tr.querySelectorAll('td').forEach(function(td,k){td.id=id+'-'+k;});b.setAttribute('aria-controls',[].map.call(tr.querySelectorAll('td'),function(td){return td.id;}).join(' '));while(th.firstChild)b.appendChild(th.firstChild);var mk=document.createElement('span');mk.className='qs-mk';mk.setAttribute('aria-hidden','true');b.appendChild(mk);th.appendChild(b);b.addEventListener('click',function(){var o=tr.classList.toggle('qs-open');b.setAttribute('aria-expanded',o?'true':'false');});});})();</script>

@@ -156,7 +156,7 @@ async function boot(fig, kind) {
       V.push(ax - nx, ay - ny, az - nz, bx - nx, by - ny, bz - nz, bx + nx, by + ny, bz + nz, ax - nx, ay - ny, az - nz, bx + nx, by + ny, bz + nz, ax + nx, ay + ny, az + nz); }
       return new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(V, 3)), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: a, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })); };
     const base = new THREE.Group(); S.add(base);
-    for (const [key, col, a] of [['road', 0x8aa6b4, .22], ['buildings', 0x5f7a88, .12], ['structures', 0xb9c6cc, .3]]) { const [off, count] = meta.groups[key], P = [];
+    for (const [key, col, a] of [['road', 0x9fbccb, .32], ['buildings', 0x7a98a8, .2], ['structures', 0xc9d6dc, .4]]) { const [off, count] = meta.groups[key], P = [];
       for (let i = 0; i < count; i += 2) { const n = (off + i) * 3; const x = ints[n] * meta.q, z = ints[n + 2] * meta.q; if (!near(x, z)) continue; for (let j = 0; j < 2; j++) { const m = n + j * 3; P.push(ints[m] * meta.q - o[0], ints[m + 1] * meta.q - o[1], ints[m + 2] * meta.q - o[2]); } }
       base.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P, 3)), lm(col, a))); }
     { const P = []; C.forEach(([x, y, z], i) => { if (i) { const [a, b, c] = C[i - 1]; for (const dx of [-3, 3]) P.push(a - o[0] + dx, b - o[1] + .15, c - o[2], x - o[0] + dx, y - o[1] + .15, z - o[2]); } }); base.add(ribbon(P, .22, 0xeaf4f8, .75)); }
