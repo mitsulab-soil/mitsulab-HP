@@ -25,7 +25,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261027c";
+const VER = "20261027d";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -681,9 +681,13 @@ function buildKura2(GM) {
   for (const t in byType) {
     const geos = GM || kuraGeos(t).geos, list = byType[t];
     for (const mk in geos) {
-      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .22; m.clearcoat = MOBILE ? 0 : .6; if (MOBILE) { m.roughness = .6; m.envMapIntensity = 1.1; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : M[mk];   /* 型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], mat, list.length);
+      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .22; m.clearcoat = MOBILE ? 0 : .6; if (MOBILE) { m.roughness = .6; m.envMapIntensity = 1.1; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f747b", roughness: .48, metalness: .25, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, envMapIntensity: 1.0, side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], mat, list.length);
       const o = new THREE.Object3D();
-      list.forEach((k, i) => { o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
+      const tint = new THREE.Color();
+      list.forEach((k, i) => { const r1 = (Math.sin(k.x * 12.9898 + k.z * 78.233) * 43758.5) % 1, r = Math.abs(r1);   // 棟ごとの違い（高さ・瓦の焼きむら・漆喰の黒の深さ）：同じ型の繰り返しに見せない
+        o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, GM ? .9 + r * .22 : 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix);
+        if (GM) { const v = mk === "tile" ? .86 + r * .26 : mk === "wood" ? .8 + ((r * 7) % 1) * .4 : mk === "shikkui" ? .9 + ((r * 13) % 1) * .2 : 1; tint.setRGB(v, v * (mk === "wood" ? .97 : 1), v * (mk === "tile" ? 1.03 : 1)); im.setColorAt(i, tint); } });
+      if (im.instanceColor) im.instanceColor.needsUpdate = true;
       im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im);
     }
   }

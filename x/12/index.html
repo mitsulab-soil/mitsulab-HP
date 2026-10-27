@@ -10,14 +10,14 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261027c" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261027c" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261027c" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261027d" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261027d" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261027d" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261027c">
+<link rel="modulepreload" href="web/app/app.js?v=20261027d">
 <link rel="modulepreload" href="web/app/layers.js?v=k2">
 <link rel="modulepreload" href="web/app/qmarks.js?v=q6">
 <link rel="modulepreload" href="web/app/kura.js?v=k11">
@@ -29,7 +29,7 @@
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
 <link rel="modulepreload" href="web/app/areas.js?v=5">
 <link rel="modulepreload" href="web/lite/startpins.js?v=1">
-<link rel="preload" href="web/app/content.json?v=20261027c" as="fetch" crossorigin>
+<link rel="preload" href="web/app/content.json?v=20261027d" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -518,6 +518,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 #qDir small{position:absolute;top:38px;left:50%;transform:translateX(-50%);font:600 10px/1 var(--mono,ui-monospace,monospace);color:#fff;text-shadow:0 1px 3px #000}
 @media (max-width:820px){#qHere{left:10px;right:auto;transform:none;top:calc(max(12px,env(safe-area-inset-top)) + 372px);padding:4px 9px;gap:4px}#qHere .t{display:none}#qHere b{font-size:14px}#qHere i{font-size:0;padding:0;width:7px;height:7px;border-radius:50%;background:var(--c)}}
 @media (max-width:640px){body[data-mode="walk"] #capText{font-size:12.5px;line-height:1.62;letter-spacing:.01em}body[data-mode="walk"] #caption{left:92px;padding:4px 0}}   /* 2026-10-27 375px で名乗りの板が始める所の建物を隠さないように小さく */
+@media (max-width:640px){body[data-mode="walk"] #caption:not(.full) #capText{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}body[data-mode="walk"] #caption:not(.full)::after{content:"…ひらく";position:absolute;right:0;bottom:-14px;font-size:10px;opacity:.6;letter-spacing:.1em}}   /* 2026-10-27 1 画面の GUI：スマホは字幕を 2 行に畳み、触れるとひらく（風景を広く） */
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
@@ -572,7 +573,8 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 </article>
 
 <div id="kuraTag" hidden aria-hidden="true"><span class="c"></span><span class="n"></span><span class="m">模式・一棟ずつの姿ではない</span></div>
-<div id="caption" hidden><span id="capTag" hidden></span><span id="capText"></span></div>
+<div id="caption" hidden><span id="capTag" hidden></span><span id="capText"></span></div><script>document.getElementById("caption").addEventListener("click",function(e){if(innerWidth<=640&&!this.classList.contains("full")){this.classList.add("full");e.stopImmediatePropagation();}},true);new MutationObserver(function(){var c=document.getElementById("caption");if(c.hidden)c.classList.remove("full")}).observe(document.getElementById("caption"),{attributes:true,attributeFilter:["hidden"]});</script>
+
 <div id="toast" hidden role="status"></div>
 <div id="sndTag" hidden aria-live="polite"></div>
 
@@ -591,6 +593,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261027c").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261027d").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>
