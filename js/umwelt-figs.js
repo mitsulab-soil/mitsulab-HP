@@ -219,7 +219,7 @@ async function boot(root, SC) {
       const A = AO.clone().add(new THREE.Vector3(0, 1.15, 0)), B = P_PERSON.clone().add(new THREE.Vector3(0, 1.15, 0)), pa = flow.geometry.attributes.position;
       for (let i = 0; i < 24; i++) { const u = reduce ? i / 24 : ((t * .7 + i / 24) % 1); _v.copy(A).lerp(B, u); _v.y += Math.sin(u * Math.PI) * .18; pa.setXYZ(i, _v.x, _v.y, _v.z); } pa.needsUpdate = true;
       flow.material.opacity = reduce ? .8 : (cy < 3.6 ? 1 : .7);
-      ghost.scale.setScalar(bH.r); ghost.position.copy(bH.c); ghost.quaternion.copy(cam.quaternion); ghost.material.opacity = .75 * e;
+      ghost.scale.setScalar(bH.r); ghost.position.copy(bH.c); ghost.quaternion.copy(cam.quaternion); ghost.material.opacity = 0;
       const lt = [bB, bM]; bH.m.material.uniforms.ok.value = e * .06; lt.forEach((b, i) => bH.m.material.uniforms.oc.value[i].set(b.c.x, b.c.y, b.c.z, b.r));
       { const d = bM.c.clone().sub(bH.c), L = d.length(), rh = bH.r * bH.s; d.normalize(); AT.qualium.copy(bH.c).addScaledVector(d, Math.min(rh, L) - Math.max(0, rh + bM.r - L) / 2); }
       if (qPts) { const pa = qPts.geometry.attributes.position, rh = bH.r * bH.s, sd = qPts.userData.seed; let k = 0;
