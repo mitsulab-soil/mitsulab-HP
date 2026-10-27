@@ -1,5 +1,5 @@
 /* © mitsulab. 2026-10-27 TOP の 3D（本人「ロゴを大きく」「環世界 1.0・2.0 をゼロベースで、美しく洗練されたグラフィックで」）
-   0：Qualium のロゴ。左半分（脳）と右半分（宇宙から新芽まで）を奥行きのある二枚にし、粒が二つの側を行き来しながら色を変える＝混ざり合う。
+   0：Qualium のロゴ。mitsulab の印の画像を奥行きのある二枚にし、粒が行き来しながら色を変える。
    1：環世界 1.0。三つの泡が離れて浮かぶ。泡＝その生き物の感覚が届く範囲（模式）。
       人＝可視光（およそ 400〜700nm、赤〜紫）／ミツバチ＝紫外線・青・緑（赤は感じにくい。花の紫外線の模様＝蜜標を見える色に置きかえた模式）／
       マダニ＝目で探さず、体温と酪酸（汗のにおい）で動物に気づく（ユクスキュル 1934）。
@@ -84,30 +84,68 @@ async function boot(fig, kind) {
     const [tl, tr] = await Promise.all([loadTex('img/brand/qualium_glyph_l.webp'), loadTex('img/brand/qualium_glyph_r.webp')]);
     const G = new THREE.Group(); S.add(G); const H = 2.6, W = H * 512 / 1028;
     const pl = (t, col, x) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: t, color: col, transparent: true, depthWrite: false, toneMapped: false })); m.position.x = x; G.add(m); return m; };
-    const L = pl(tl, 0xd9fbff, -W / 2), Rr = pl(tr, 0xfff2da, W / 2);
-    // 粒：球の中をまわり、左（脳）では碧の色、右（宇宙）では金の色に変わる＝二つの側が混ざる
+    const L = pl(tl, 0xe9f1ef, -W / 2), Rr = pl(tr, 0xe9f1ef, W / 2);
+    // 粒：球の中をまわり、左では碧の色、右では金の色に変わる＝二つの側が混ざる
     const n = mobile ? 650 : 1300, base = new Float32Array(n * 3), sp = new Float32Array(n);
     for (let i = 0; i < n; i++) { const r = Math.pow(Math.random(), .55) * 1.28, a = Math.random() * Math.PI * 2, y = (Math.random() * 2 - 1) * Math.sqrt(Math.max(0, 1.3 * 1.3 - r * r)) * .95; base[i * 3] = r; base[i * 3 + 1] = y; base[i * 3 + 2] = a; sp[i] = .08 + Math.random() * .22; }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('aB', new THREE.Float32BufferAttribute(base, 3)); g.setAttribute('aS', new THREE.Float32BufferAttribute(sp, 1));
     const pm = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uMap: { value: DOT }, uPx: { value: R.getPixelRatio() } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
       vertexShader: `attribute vec3 aB; attribute float aS; uniform float uT; uniform float uPx; varying vec3 vC; varying float vA;
-        void main(){ float a = aB.z + uT*aS; vec3 p = vec3(cos(a)*aB.x, aB.y, sin(a)*aB.x*.55);
-          float side = smoothstep(.35,-.35,p.x); vC = mix(vec3(1.,.82,.45), vec3(.55,.97,1.), side);
+        void main(){ float a = aB.z; float x = 1.35 - mod(aB.z*.41 + uT*(.12 + aS*.25), 2.7); vec3 p = vec3(x, aB.y, sin(a)*aB.x*.55);
+          vC = vec3(.913,.945,.937);
           vA = .35 + .65*smoothstep(-.6,.6,p.z) ; vA *= .55 + .45*sin(uT*1.3 + aB.z*7.);
           vec4 mv = modelViewMatrix*vec4(p,1.); gl_PointSize = (2.2 + 3.5*fract(aB.z*13.))*uPx*(4./-mv.z); gl_Position = projectionMatrix*mv; }`,
       fragmentShader: `uniform sampler2D uMap; varying vec3 vC; varying float vA; void main(){ vec4 t = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(vC, t.a*vA*.8); }` });
     const P = new THREE.Points(g, pm); P.frustumCulled = false; G.add(P);
-    const halo = ring(1.36, 0xbfefff, .22, 220); halo.rotation.x = Math.PI / 2; G.add(halo);
-    const halo2 = ring(1.46, 0xf2c56e, .12, 220); halo2.rotation.x = Math.PI / 2; G.add(halo2);
+    const halo = ring(1.36, 0xe9f1ef, .22, 220); halo.rotation.x = Math.PI / 2; G.add(halo);
+    const halo2 = ring(1.46, 0xe9f1ef, .12, 220); halo2.rotation.x = Math.PI / 2; G.add(halo2);
     fitW = 3.3; fitH = 3.3; cam.position.set(0, 0, 6);
     let mx = 0, my = 0; addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; }, { passive: true });
     tick = t => { const s = .5 + .5 * Math.sin(t * .45);
-      G.rotation.y = Math.sin(t * .22) * .28 + mx * .25; G.rotation.x = Math.sin(t * .17) * .07 + my * .12;
-      L.position.z = .1 + s * .18; Rr.position.z = -.1 - s * .18; L.position.x = -W / 2 - s * .03; Rr.position.x = W / 2 + s * .03;
       pm.uniforms.uT.value = t; halo.rotation.z = t * .05; halo2.rotation.z = -t * .03; };
   }
 
-  if (kind === 1 || kind === 2) {
+  if (kind === 2) {
+    // 環世界 2.0（2026-10-27 本人「人間の環世界から」「情報レイヤーが重なり合うイメージ」）
+    // 一人の人の視界＝いつもの参道の風景（氷川参道の実データの線の絵）に、半透明の情報の層が一枚ずつ重なる。層の中身は模式。
+    const G = new THREE.Group(); S.add(G);
+    const base = await loadTex(mobile ? 'img/hero/vision_sando_800.webp' : 'img/hero/vision_sando_1600.webp');
+    const BW = 6.4, BH = 3.6;
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(BW, BH), new THREE.MeshBasicMaterial({ map: base, toneMapped: false })); ground.position.z = -1.6; G.add(ground);
+    const L = [
+      { c: '#8fe3c8', draw: (x, w, h) => { // 地形：等高線
+        for (let k = 0; k < 9; k++) { x.beginPath(); for (let i = 0; i <= 80; i++) { const u = i / 80; const y = h * (.32 + k * .075) + Math.sin(u * 6.3 + k * .8) * h * .025 + Math.sin(u * 15 + k) * h * .008; i ? x.lineTo(u * w, y) : x.moveTo(0, y); } x.stroke(); } } },
+      { c: '#f2c56e', draw: (x, w, h) => { // 歴史：昔の道の線と区画
+        x.setLineDash([10, 8]); x.beginPath(); x.moveTo(w * .62, h * .44); x.lineTo(w * .95, h * .98); x.stroke(); x.beginPath(); x.moveTo(w * .1, h * .62); x.lineTo(w * .7, h * .52); x.stroke(); x.setLineDash([]);
+        for (let i = 0; i < 6; i++) x.strokeRect(w * (.15 + i * .07), h * (.66 + (i % 2) * .08), w * .05, h * .06); } },
+      { c: '#c9b8ff', draw: (x, w, h) => { // 生き物：記録の点
+        for (let i = 0; i < 46; i++) { const px = (Math.sin(i * 12.9898) * 43758.5453 % 1 + 1) % 1, py = (Math.sin(i * 78.233) * 12345.678 % 1 + 1) % 1; const X = px * w, Y = h * (.4 + py * .55); x.beginPath(); x.arc(X, Y, 4, 0, 6.283); x.fill(); x.beginPath(); x.arc(X, Y, 11, 0, 6.283); x.stroke(); } } },
+      { c: '#a8f2f6', draw: (x, w, h) => { // 音：鳴き声の広がり
+        [[.3, .5], [.72, .58], [.5, .78]].forEach(([u, v]) => { for (let k = 1; k <= 5; k++) { x.globalAlpha = 1 - k * .16; x.beginPath(); x.arc(u * w, v * h, k * h * .045, 0, 6.283); x.stroke(); } x.globalAlpha = 1; }); } },
+    ];
+    const panes = L.map((o, i) => {
+      const c = document.createElement('canvas'); c.width = 1024; c.height = 576; const x = c.getContext('2d');
+      x.strokeStyle = o.c; x.fillStyle = o.c; x.lineWidth = 2.2; o.draw(x, c.width, c.height);
+      x.globalAlpha = .9; x.lineWidth = 3; x.strokeRect(2, 2, c.width - 4, c.height - 4);
+      const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(BW, BH), new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide }));
+      const tint = new THREE.Mesh(new THREE.PlaneGeometry(BW, BH), new THREE.MeshBasicMaterial({ color: o.c, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+      const g = new THREE.Group(); g.add(tint, m); G.add(g); g.userData = { m, tint, z: -1.6 + (i + 1) * .55 };
+      const an = new THREE.Object3D(); an.position.set(BW / 2 - .2 - i * .05, BH / 2, 0); g.add(an); anchors.push(an);
+      return g; });
+    G.rotation.set(-.08, -.42, 0);
+    fitW = mobile ? 7.2 : 7.8; fitH = mobile ? 5.0 : 5.4;
+    cam.position.set(0, .2, 6);
+    const per = 2.2, cyc = per * L.length + 3;
+    tick = t => {
+      const tt = reduce ? cyc - 1 : t % cyc;
+      panes.forEach((g, i) => { const k = Math.min(1, Math.max(0, (tt - i * per) / 1.1)); const e = k * k * (3 - 2 * k); const out = tt > cyc - .8 ? (cyc - tt) / .8 : 1;
+        g.position.z = -1.6 + (g.userData.z + 1.6) * e; g.userData.m.material.opacity = .95 * e * out; g.userData.tint.material.opacity = .05 * e * out;
+        const lab = labs[i]; if (lab) lab.style.opacity = (e * out).toFixed(2); });
+      G.rotation.y = -.42 + Math.sin(t * .15) * .06;
+    };
+  }
+  if (kind === 1) {
     if (!window.__aoiBuf) window.__aoiBuf = fetch('img/hero/aoi.vrm').then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); });
     const two = kind === 2; const G = new THREE.Group(); S.add(G);
     const cols = [0xffe6c4, 0xb9a6ff, 0xff9a5a];
@@ -202,7 +240,7 @@ async function boot(fig, kind) {
   size(); new ResizeObserver(size).observe(fig);
   function place() { if (!labs.length) return; const w = fig.clientWidth, h = fig.clientHeight;
     labs.forEach((el, i) => { const o = anchors[+el.dataset.at]; if (!o) return; let y = 0;
-      if (o.qs) v3.set(0, 2.05, 0); else if (o.userData && o.userData.b) v3.set(0, o.userData.b.geometry.parameters.radius + .08, 0); else if (o === anchors[2] && kind === 2) v3.set(0, 2.0, 0); else if (o === anchors[3] && kind === 2) v3.set(1.75, 0, 0); else v3.set(-1.15, -1.55, .6);
+      if (o.qs) v3.set(0, 2.05, 0); else if (o.userData && o.userData.b) v3.set(0, o.userData.b.geometry.parameters.radius + .08, 0); else if (o === anchors[2] && kind === 9) v3.set(0, 2.0, 0); else if (o === anchors[3] && kind === 9) v3.set(0, 0, 1.95); else v3.set(-.05, .5, .6);
       v3.applyMatrix4(o.matrixWorld || new THREE.Matrix4()); v3.project(cam);
       let x = (v3.x * .5 + .5) * w, yy = (-v3.y * .5 + .5) * h; x = Math.max(56, Math.min(w - 56, x)); yy = Math.max(30, Math.min(h - 4, yy)); el.style.transform = `translate(${x}px,${yy}px) translate(-50%,${el.dataset.below ? '0' : '-100%'})`; }); }
   let vis = true, t0 = performance.now(), last = t0, raf = 0;
