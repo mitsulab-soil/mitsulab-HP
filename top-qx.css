@@ -1,0 +1,56 @@
+/* © mitsulab. 2026-10-27 TOP：Qualium のロゴと VISION・環世界 1.0 / 2.0（本人「ロゴを大きく・ビジョンをカッコよく・文字は本質だけ」） */
+.brand{display:inline-flex;align-items:center;gap:9px}
+.brand-mark{width:26px;height:26px;flex:none;opacity:.95;filter:drop-shadow(0 0 6px #a8f2f655)}
+
+.qx-hero{position:relative;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:84px 16px 48px;text-align:center;overflow:hidden;
+  background:radial-gradient(ellipse 60% 50% at 50% 42%,#0b1a2e 0,#050b18 55%,#03060f 100%)}
+.qx-logo{position:relative;width:min(78vw,56svh,560px);aspect-ratio:1;margin-bottom:clamp(12px,3svh,36px)}
+.qx-logo>*{position:absolute;inset:0;width:100%;height:100%}
+.qx-logo-img{object-fit:contain;padding:11%;opacity:.92;transition:opacity .8s}
+.qx-logo.on .qx-logo-img{opacity:0}
+.qx-logo canvas{opacity:0;transition:opacity 1s}
+.qx-logo.on canvas{opacity:1}
+.qx-logo canvas{filter:drop-shadow(0 0 14px #a8f2f640) drop-shadow(0 0 30px #f2c56e22)}
+.qx-kick{font:500 12px/1 var(--latin,serif);letter-spacing:.42em;color:#a8f2f6;margin:0 0 14px;padding-left:.42em}
+.qx-title{font:500 clamp(44px,6.4vw,96px)/1.15 var(--serif,serif);letter-spacing:.12em;margin:0;color:#f4f6fb;padding-left:.12em;
+  background:linear-gradient(90deg,#bff4f7 0,#f6f7fb 48%,#f6dca2 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none}
+html[data-lang=en] .qx-title{letter-spacing:.02em;padding-left:0;font-size:clamp(36px,5.2vw,80px)}
+.qx-sub{font:400 clamp(15px,1.4vw,19px)/1.9 var(--serif,serif);color:#cfd6e6;margin:18px auto 0;max-width:34em}
+.qx-name{font:500 11px/1 var(--latin,serif);letter-spacing:.36em;color:#f2c56e;margin:26px 0 0}
+.qx-name span{color:#8d97ad}
+
+.qx-scene{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:24px 48px;align-items:center;max-width:1440px;margin:0 auto;padding:72px max(16px,5vw) 56px;position:relative}
+.qx-tx{grid-column:1}
+.qx-code{font:500 11px/1 var(--latin,serif);letter-spacing:.34em;color:#a8f2f6;margin:0 0 14px}
+.qx-s2 .qx-code{color:#f2c56e}
+.qx-h{font:500 clamp(34px,3.6vw,54px)/1.2 var(--serif,serif);letter-spacing:.06em;margin:0 0 18px;color:#f4f6fb}
+.qx-one{font:400 clamp(18px,1.55vw,22px)/1.85 var(--serif,serif);color:#e6eaf3;margin:0 0 20px}
+.qx-axes{list-style:none;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qx-axes li{border:1px solid #f2c56e44;border-radius:4px;padding:10px 10px 9px;display:flex;flex-direction:column;gap:4px;min-height:44px}
+.qx-axes .k{font:500 15px/1.3 var(--serif,serif);color:#f6dca2}
+.qx-axes li>span:last-child{font-size:12px;color:#aab3c7;line-height:1.4}
+.qx-plat{font-size:14px;color:#aab3c7;margin:0 0 16px}
+.qx-more{margin-top:8px}
+.qx-more summary{min-height:44px;display:flex;align-items:center}
+.qx-fig{grid-column:2;margin:0;position:relative;aspect-ratio:16/10;width:100%;min-height:300px}
+.qx-fig canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.qx-labs{position:absolute;inset:0;pointer-events:none}
+.qx-lab{position:absolute;left:0;top:0;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;font-size:12px;line-height:1.3;color:#c3cad9;opacity:0;transition:opacity .6s;text-shadow:0 0 6px #03060f,0 0 2px #03060f}
+.qx-lab .k{font:500 13px/1.2 var(--serif,serif);color:var(--c);letter-spacing:.06em}
+.qx-fig.on .qx-lab{opacity:1}
+html.v2-no3d .qx-fig{display:none}
+
+@media (max-width:860px){
+  .qx-scene{grid-template-columns:1fr;padding:56px 16px 32px;gap:12px}
+  .qx-fig{grid-column:1;grid-row:2;aspect-ratio:1/1.02;min-height:0}
+  .qx-tx{grid-row:1}
+  .qx-lab{font-size:10.5px}.qx-lab .k{font-size:12px}
+}
+@media (max-width:700px){
+  .qx-hero{min-height:92svh;padding:76px 16px 36px}
+  .qx-logo{width:min(84vw,48svh)}
+  .qx-sub{font-size:15px}
+  .qx-axes .k{font-size:14px}
+}
+.qx-scene>.v2-loopfold{grid-column:1/-1;max-width:760px}
+.qx-scene+.qx-scene{padding-top:24px}
