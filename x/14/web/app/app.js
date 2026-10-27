@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k4";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k6";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
@@ -28,7 +28,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261028c";
+const VER = "20261028d";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -870,7 +870,7 @@ function stepHere(cp, t, off) {
       if (d < 30) { const k = top5(L.layer); cnt[k] = (cnt[k] || 0) + 1; n++; }
       if (d > 4 && d < 70 && d < bd) { v.set(L.o.x, L.root.position.y + (L.o.h || 1.8), L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
     const ks = ALL.filter(l => cnt[l.id]).reverse();
-    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">この 30 m に重なる Qualia</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : `<span class="t">この近くの Qualia は、少し先にあります</span>`;
+    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">まわり半径 30 m の Qualia（前後左右すべて）</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : `<span class="t">この近くの Qualia は、少し先にあります</span>`;
     QH.el.hidden = false; QH.best = best;
   }
   const L = QH.best;

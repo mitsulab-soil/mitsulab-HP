@@ -185,7 +185,12 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
       if (!sky) {   // 2026-10-28 Qualium 共通の基準：歩くときに見せる印は、視野の中の近い順に MAXN 個まで（印の壁にしない）
         const fw = _f.set(0, 0, -1).applyQuaternion(cam.quaternion), cand = [];
         for (const it of items) { const L = it.L; L.qHide = false; if (!L.root.visible || !(L.show > .01)) continue; L.root.getWorldPosition(_r); const dx = _r.x - cam.position.x, dz = _r.z - cam.position.z, dd = Math.hypot(dx, dz); if ((dx * fw.x + dz * fw.z) / Math.max(1e-3, dd) > .35 || dd < 12) cand.push([dd, L]); else L.qHide = true; }
-        cand.sort((p, q) => p[0] - q[0]); cand.forEach(([, L], i) => { if (i >= MAXN && !(L.open > 0)) L.qHide = true; });
+        cand.sort((p, q) => p[0] - q[0]); const near5 = cand.filter(c => c[0] < 40).length, lim = near5 < 5 ? MAXN + 3 : MAXN;   // 近くの印が 5 個を下回る所では、少し先の印まで出す（視野に 5〜10 個）
+        const scr = []; let shown = 0;   // 画面の上で重なる印（奥の印が手前の印の視線上にある）は、奥のほうを出さない
+        for (const [, L] of cand) { if (L.open > 0) { shown++; continue; } if (shown >= lim) { L.qHide = true; continue; }
+          L.root.getWorldPosition(_r); _r.project(cam); const sx = (_r.x + 1) * innerWidth / 2, sy = (1 - _r.y) * innerHeight / 2;
+          if (_r.z < 1 && scr.some(([x, y]) => Math.abs(x - sx) < 40 && Math.abs(y - sy) < 52)) { L.qHide = true; continue; }
+          scr.push([sx, sy]); shown++; }
       } else for (const it of items) it.L.qHide = false;
       for (const it of items) {
         const L = it.L; if (!L.root.visible || !(L.show > .01) || n >= cap || L.qHide) continue;
