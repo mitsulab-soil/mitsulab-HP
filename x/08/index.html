@@ -14,7 +14,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#03060f">
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" crossorigin>
-<link rel="modulepreload" href="stage.js?v=20261027b">
+<link rel="modulepreload" href="stage.js?v=20261027f">
 <link rel="modulepreload" href="kit/atmosphere.js">
 <link rel="modulepreload" href="kit/layers.js">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
@@ -145,14 +145,16 @@
   body.ready::before{opacity:0;pointer-events:none}
   #stage{z-index:1}
   #mv{position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
-  #mv.flat{position:static;width:100%;height:auto;aspect-ratio:16/9;opacity:1;pointer-events:auto}
+  /* MV は補助の小さな窓（「MV」で出し入れ）。3D が使えない端末では普通の映像として出す */
+  body.mvwin #mv,body.no3d #mv{left:16px;top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 96px);width:min(300px,46vw);height:auto;aspect-ratio:16/9;opacity:1;z-index:4;border:1px solid var(--ml-line-2);background:#000}
+  .hint{position:absolute;left:50%;transform:translateX(-50%);top:72px;white-space:nowrap;font:400 .78rem var(--ml-sans);letter-spacing:.08em;color:var(--ml-ink-2);background:rgba(3,6,15,.5);padding:6px 12px;pointer-events:none}
   .top{position:fixed;top:0;left:0;right:0;z-index:5;height:60px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 max(16px,env(safe-area-inset-left));
     background:var(--ml-nav);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--ml-line-weak)}
   .brand .ml-title{font-size:clamp(18px,2.2vw,22px)}
   .home{font-size:.84rem;letter-spacing:.08em;color:var(--ml-ink-2);text-decoration:none;min-height:44px;display:inline-flex;align-items:center;white-space:nowrap}
   .home:hover,.home:focus-visible{color:#fff}
   .hero{position:relative;z-index:2;height:100svh;pointer-events:none}
-  .play{pointer-events:auto;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:none;border:0;cursor:pointer;padding:0}
+  .play{pointer-events:auto;position:absolute;left:50%;top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 104px);transform:translateX(-50%);background:none;border:0;cursor:pointer;padding:0}
   .play[hidden]{display:none!important}
   .play span{white-space:nowrap;display:inline-flex;align-items:center;gap:.7em;min-height:48px;padding:0 22px;border:1px solid var(--ml-aoi);background:rgba(3,6,15,.55);color:var(--ml-aoi-2);
     font:500 .92rem var(--ml-sans);letter-spacing:.14em;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -181,10 +183,10 @@
   .folds{margin-top:clamp(16px,3vw,28px)}
   .folds p{margin:0 0 12px;font-size:.88rem;color:var(--ml-ink-2);line-height:1.8}
   .copy{margin:20px 0 0;font-size:.78rem;line-height:1.8;color:var(--ml-ink-3)}
-  @media (max-width:760px){ .meta{grid-template-columns:1fr} .bar .t{display:none} }
+  @media (max-width:760px){ .meta{grid-template-columns:1fr} .bar .t{display:none} .hint{font-size:.66rem;letter-spacing:.02em;padding:5px 8px} }
   @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 </head>
 <body class="ml-root">
 <canvas id="stage" aria-hidden="true"></canvas>
@@ -210,8 +212,10 @@
     <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生の位置">
     <span class="t" id="tm">0:00 / 1:45</span>
     <button class="ml-btn" id="mute" type="button" aria-label="音を消す" aria-pressed="false">音</button>
-    <button class="ml-btn" id="full" type="button" aria-label="全画面で見る">全画面</button>
+    <button class="ml-btn" id="mvBtn" type="button" aria-pressed="false" aria-label="MV の映像を小さな窓で見る">MV</button>
+    <button class="ml-btn" id="full" type="button" aria-label="MV を全画面で見る">全画面</button>
   </div>
+  <span class="hint" id="hint">ドラッグで回る ・ 地面を押すと歩く ・ 再生すると碧が歌う</span>
   <span class="scroll" aria-hidden="true">SCROLL ／ 曲のこと</span>
 </section>
 <main>
@@ -227,7 +231,7 @@
         <dt>広がる輪</dt><dd>碧の声とともに、足もとから広がる波。音で土を聴き、杜が息をする。</dd>
         <dt>宙の 0 と 1</dt><dd>機械のことば。歌詞の「0 と 1 のあいだに緑」から。</dd>
       </dl>
-      <p>幕のまわりの線・光の木・輪・0 と 1 は、映像の中の杜を、この頁の空間へ広げたものです。聴き終えたら、足もとの土に、すこし耳をすませてみてください。</p>
+      <p>線・光の木・輪・0 と 1 は、映像の中の杜を、あなたのまわりの空間へ広げたものです。碧のそばへ歩いて、杜の中で聴いてください。MV の映像は「MV」で小さな窓に出せます。聴き終えたら、足もとの土に、すこし耳をすませてみてください。</p>
     </section>
     <dl class="cred ml-panel" aria-label="クレジット">
       <dt>歌</dt><dd>碧</dd>
@@ -261,6 +265,8 @@
   v.addEventListener('timeupdate', () => { if (!v.duration) return; if (!dragging) seek.value = Math.round(v.currentTime / v.duration * 1000); tm.textContent = fmt(v.currentTime) + ' / ' + fmt(v.duration); });
   const mute = document.getElementById('mute');
   mute.addEventListener('click', () => { v.muted = !v.muted; mute.setAttribute('aria-pressed', v.muted); mute.textContent = v.muted ? '消音' : '音'; mute.setAttribute('aria-label', v.muted ? '音を出す' : '音を消す'); });
+  const mvBtn = document.getElementById('mvBtn');
+  mvBtn.addEventListener('click', () => { const on = document.body.classList.toggle('mvwin'); mvBtn.setAttribute('aria-pressed', on); });
   document.getElementById('full').addEventListener('click', () => {
     if (v.requestFullscreen) v.requestFullscreen().catch(() => {}); else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
     if (v.paused) { b.hidden = true; v.play().catch(() => {}); }
@@ -282,6 +288,6 @@
   });
   v.addEventListener('playing', () => clearTimeout(waitT));
 </script>
-<script type="module" src="stage.js?v=20261027b"></script>
+<script type="module" src="stage.js?v=20261027f"></script>
 </body>
 </html>
