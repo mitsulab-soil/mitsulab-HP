@@ -9,6 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k2";
+import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k11";
 import { BellSynth } from "./bell.js?v=k1";
@@ -26,7 +27,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261027g";
+const VER = "20261028a";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -141,6 +142,20 @@ const texP = (u, srgb = true) => new Promise((res, rej) => TL.load(u, t => { if 
 /* ---------- 地形（標高 5 m 格子・空中写真） ---------- */
 const DESAT = { value: 0 };   // 2026-10-23 公開前：鳥の高さで見ると、空中写真の粗い所が青緑の水面のように見えたので、sight では写真の色みを抜いて灰にする
 const desat = m => { m.onBeforeCompile = (sh => { const prev = m._obc; return s => { prev && prev(s); s.uniforms.uDesat = DESAT; s.fragmentShader = s.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uDesat;").replace("#include <map_fragment>", "#include <map_fragment>\n { float lu=dot(diffuseColor.rgb,vec3(.299,.587,.114)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(lu*1.03,lu,lu*.95),uDesat); }"); }; })(); return m; };
+/* 2026-10-27 夜：地形の外の地面に、国土地理院 シームレス空中写真 z14（tex/far_photo.webp）を貼る（共通部品 kit/ground_far.js。灰色の無地にしない・作った模様は描かない） */
+function buildFarGround() {
+  const d = G.dem, x0 = d.x0, z0 = d.z0, x1 = d.x0 + (d.nx - 1) * d.cell, z1 = d.z0 + (d.nz - 1) * d.cell, R = 26000;
+  const ll2 = (lon, lat) => [(lon - G.origin[1]) * G.kx, -(lat - G.origin[0]) * G.ky];
+  const [rx0, rz0] = ll2(139.41650390625, 35.978006180855665), [rx1, rz1] = ll2(139.54833984375, 35.87124685002796);
+  const sh = new THREE.Shape([new THREE.Vector2(-R, -R), new THREE.Vector2(R, -R), new THREE.Vector2(R, R), new THREE.Vector2(-R, R)]);
+  sh.holes.push(new THREE.Path([new THREE.Vector2(x0 + 2, -z0 - 2), new THREE.Vector2(x0 + 2, -z1 + 2), new THREE.Vector2(x1 - 2, -z1 + 2), new THREE.Vector2(x1 - 2, -z0 - 2)]));
+  const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2);
+  const gm = groundFarMat(THREE, { base: "#7d7a74", rect: [rx0, rz0, rx1, rz1] });
+  setTimeout(() => TL.load("web/tex/far_photo.webp?v=1", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);
+  const m = new THREE.Mesh(g, gm); m.name = "farPhoto"; m.position.y = d.min - .6; m.renderOrder = -2; world.add(m); QW.farPhoto = m;
+  setTimeout(() => { const o = world.getObjectByName("farGround"); if (o) o.visible = false; }, 0);   // 前からある無地の遠い地面は隠す（重なってちらつくため）
+}
+
 async function buildBase() {
   status("地形を読み込んでいます");
   const [g, c, dem] = await Promise.all([fetch("web/geo/geo.json?v=" + VER).then(r => r.json()), fetch("web/app/content.json?v=" + VER).then(r => r.json()), fetch("web/geo/dem.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet()]);   // 歩ける道（30 KB）も一緒に
@@ -155,7 +170,7 @@ async function buildBase() {
   const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
   mat._obc = cyberize; desat(mat);   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
   setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain; buildDigi(geo);
-  buildRoute(); buildRoads(); buildMarkings(); buildWater();
+  buildRoute(); buildRoads(); buildMarkings(); buildWater(); buildFarGround();
   if (G.near) setTimeout(() => texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
     const n = G.near, d2 = G.dem, i0 = Math.max(0, Math.floor((n.x0 - d2.x0) / d2.cell)), i1 = Math.min(d2.nx - 1, Math.ceil((n.x1 - d2.x0) / d2.cell)), j0 = Math.max(0, Math.floor((n.z0 - d2.z0) / d2.cell)), j1 = Math.min(d2.nz - 1, Math.ceil((n.z1 - d2.z0) / d2.cell));
     const w = i1 - i0 + 1, h = j1 - j0 + 1, P = new Float32Array(w * h * 3), U = new Float32Array(w * h * 2), I = [];
