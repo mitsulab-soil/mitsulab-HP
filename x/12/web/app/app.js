@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k11";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k13";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -568,8 +568,8 @@ function solidMat() {
   // 壁の面に、模式の窓・店先のガラス・階の目地・足もとの汚れを描く（一棟ずつの実際の窓の位置ではない）
   m.onBeforeCompile = sh => {
     sh.uniforms.tPlank = { value: tPlank };
-    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec4 wuv; varying vec4 vW; attribute vec2 era; varying vec2 vE;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvW = wuv; vE = era;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec4 vW; varying vec2 vE; uniform sampler2D tPlank;\nfloat hS(float x){return fract(sin(x*127.1)*43758.5);}\nfloat nS(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(hS(i),hS(i+1.),f);}").replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec4 wuv; varying vec4 vW; attribute vec2 era; varying vec2 vE; varying vec3 vWp;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvW = wuv; vE = era;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec4 vW; varying vec2 vE; varying vec3 vWp; uniform sampler2D tPlank;\nfloat hS(float x){return fract(sin(x*127.1)*43758.5);}\nfloat nS(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(hS(i),hS(i+1.),f);}").replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
       if (vW.y > -5.) {
         float u = vW.x, v = vW.y, H = vW.z, L = vW.w, gl = 0., fr = 0.;
         float edge = L < 3.4 ? step(.25, fract(u / 1.7)) * step(fract(u / 1.7), .75) : step(1.2, u) * step(u, L - 1.2);   // 壁の端は窓にしない（2026-10-25 短い面が続く輪郭も、窓のない板にしない）
@@ -588,6 +588,7 @@ function solidMat() {
         diffuseColor.rgb *= 1. - drip * .28 * (1. - gl);
         diffuseColor.rgb *= 1. - smoothstep(H - 1.2, H - .1, v) * .22 * (1. - cap);
         diffuseColor.rgb *= .9 + .2 * nS(u * .35 + v * .2 + 3.);
+        { vec3 Nw = normalize(cross(dFdx(vWp), dFdy(vWp))); float sunF = dot(Nw, normalize(vec3(.55, 0., .35))); diffuseColor.rgb *= mix(.74, 1.1, smoothstep(-.6, .7, sunF)); float dd = length(vWp - cameraPosition); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.6, .66, .74), smoothstep(90., 520., dd) * .4); }   // 遠いほど青く薄く（大気の遠近）   // 10-28：日の当たる面と陰の面の差（箱に見せない）
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.16, .15, .14), fr * .75);
         diffuseColor.rgb = mix(diffuseColor.rgb, glass, gl);
         roughnessFactor = mix(roughnessFactor, .18, gl);
@@ -787,7 +788,7 @@ function stepLayer(dt) {
     const k = sky ? Math.min(14, Math.max(2.5, camera.position.distanceTo(L.root.position) / 60)) : 1;
     L.root.scale.setScalar(k * (.4 + .6 * L.show)); L.glyph.rotation.y = t * .6; L.glyph.position.y = (L.o.h || 1.8) + Math.sin(t * 1.4 + L.o.x) * .05;
     for (const m of L.mats) m.opacity = (m === L.fm ? .1 : m === L.bm ? .55 : .9) * L.show;
-    if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (58 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
+    if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (90 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
   }
   LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
@@ -826,6 +827,7 @@ const DC = { t: 0, ls: null };
 function declutter(dt) {
   const now = performance.now(); if (!DC.ls || now - DC.t > 500) { DC.t = now; DC.ls = $("#lstack").getBoundingClientRect(); }   // 画面の部品の位置は 0.5 秒ごとに読む（毎こま読むと重い）
   const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 });
+  if (AOI.root?.visible) { const p0 = AOI.root.getWorldPosition(new THREE.Vector3()), p1 = p0.clone(); p1.y += 1.75; p0.project(camera); p1.project(camera); if (p0.z < 1) { const y0 = (1 - p1.y) / 2 * innerHeight, y1 = (1 - p0.y) / 2 * innerHeight, cx = (p0.x + 1) / 2 * innerWidth, hw = (y1 - y0) * .2; avoid.push({ x0: cx - hw, x1: cx + hw, y0: y0 - 6, y1 }); } }   // 10-28：札を碧に重ねない
   const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
   if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 16 : 22);   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
