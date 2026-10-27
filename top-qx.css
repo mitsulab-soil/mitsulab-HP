@@ -190,3 +190,11 @@ html{scroll-padding-top:80px}
 @media (min-width:701px){.qx-s2{grid-template-columns:minmax(0,400px) minmax(0,1fr)}.qx-fig2{margin-right:-2vw}}
 .qx-fig2 .qx-lab .k::before{width:22px;height:4px}
 @media (max-width:700px){.qx-s2 .qx-fig2{margin-top:-56px}.qx-fig2 .qx-labs{align-items:start}html:not([data-lang=en]) .qx-fig2{margin-bottom:140px}html[data-lang=en] .qx-fig2{margin-bottom:170px}html[data-lang=en] .qx-fig2 .qx-cap{margin-top:7.2em!important}.qx-fig2 .qx-lab .k{letter-spacing:.04em}}
+/* 2026-10-28 P2：1.0 の「もっと詳しく」を図の下（PC は文の下）にそろえ、縦の位置を合わせる */
+#umwelt1 .qx-m1{grid-column:1;margin:0;border-top:1px dashed #8bccca33;padding-top:6px}
+@media (min-width:701px){#umwelt1{align-items:center;grid-template-rows:auto auto;row-gap:12px}#umwelt1 .qx-tx{align-self:end}#umwelt1 .qx-m1{align-self:start;grid-row:2}#umwelt1 .qx-fig1{grid-row:1 / span 2;align-self:center}
+  .qx-fig2{aspect-ratio:2/1;margin-bottom:28px}.qx-s2{padding-top:48px;padding-bottom:36px}}
+@media (max-width:700px){#umwelt1 .qx-m1{grid-row:3}}
+.qx-fig2 .qx-lab .k::before{width:28px;height:5px}
+.qx-fig2 .qx-lab .k{font-size:17px}
+@media (max-width:700px){.qx-fig2 .qx-lab .k{font-size:14px!important}.qx-s2 .qx-fig2{margin-top:-8px!important}}
