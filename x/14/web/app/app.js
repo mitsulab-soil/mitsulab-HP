@@ -159,6 +159,7 @@ async function buildBase() {
   const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
   mat._obc = cyberize; desat(mat);   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
   setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain;
+  { const far = new THREE.Mesh(new THREE.CircleGeometry(12000, 48), new THREE.MeshBasicMaterial({ color: FOG })); far.rotation.x = -Math.PI / 2; far.position.set(0, (DEM ? Math.min(...[d.x0].map(() => 8)) : 8), -500); far.renderOrder = -5; far.name = "farGround"; world.add(far); }   // 地形の外（地平線の下）を霧の色で埋める（空の画像の下半分の黄土色を出さない）
   /* 2026-10-27 本人「デジタルとフィジカルの融合」：写実の地の上に、情報の層を薄く重ねる＝光の等高線（1 m ごと・谷の形が足もとで読める）・地面の光のグリッド（10 m）・
      見る人から広がる走査の輪・データの粒。地形（国土地理院の標高）に沿う。上品に、やりすぎない（歩く・飛ぶ・生きもののときだけ） */
   { const om = new THREE.ShaderMaterial({ uniforms: { t: BLDU.t, k: FUSE.k, cp: { value: camera.position } }, transparent: true, depthWrite: false, toneMapped: false, fog: false, blending: THREE.AdditiveBlending,
@@ -253,6 +254,55 @@ function buildMarkings() {   // 2026-10-27 本人「道路もリアルに」：�
   add(curb, new THREE.MeshStandardMaterial({ color: "#a9a6a0", roughness: .9, map: TL.load("web/tex/pave_c.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; }), polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -9 }), "curb");
   QW.marks = { solid: solid.length, dash: dash.length, zebra: zebra.length, curb: curb.length };
 }
+const PFM = {};
+function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 の写実の質感をビルごとに振り分ける。外壁＝漆喰（Poly Haven White Plaster）・石（Granite Tile）・ガラスのカーテンウォール・金属パネル。
+  if (PFM.m) return PFM.m;   // ビルごとの振り分けは、位置（30 m の区画）の乱数と高さ（高いほどガラス）。屋根は灰の防水面。店名・看板・広告は描かない
+  const ld = u => TL.load(u, t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 8; });
+  const tP = ld("web/tex/plaster_c.webp"), tG = ld("web/tex/granite_c.webp");
+  const m = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: .85, metalness: 0, side: THREE.DoubleSide });
+  m.onBeforeCompile = sh => { sh.uniforms.tP = { value: tP }; sh.uniforms.tG = { value: tG };
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; varying vec3 vNw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvPw = (modelMatrix * vec4(transformed, 1.)).xyz; vNw = normalize(mat3(modelMatrix) * objectNormal);");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D tP, tG; varying vec3 vPw; varying vec3 vNw; float isW = 0.;").replace("#include <map_fragment>", `#include <map_fragment>
+      vec3 Nn = normalize(vNw);
+      if (abs(Nn.y) > .6) { diffuseColor.rgb = vec3(.24, .245, .25) * (.85 + .3 * texture2D(tG, vPw.xz / 6.).r); }
+      else {
+        float hz = abs(Nn.x) > abs(Nn.z) ? vPw.z : vPw.x; vec2 fu = vec2(hz, vPw.y);
+        vec2 cell = floor(vPw.xz / 30.); float r = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5); float r2 = fract(r * 7.31);
+        float tall = smoothstep(55., 90., vPw.y + 0.);
+        float kind = r < .5 + tall * .35 ? 2. : r < .78 ? 1. : 3.;   // 2 ガラス・1 石・0 漆喰・3 金属パネル
+        float fh = kind == 2. ? 3.9 : 3.5, bw = kind == 2. ? 1.5 : kind == 1. ? 1.2 : 3.0;
+        vec2 c = vec2(fract(fu.x / bw), fract(fu.y / fh)); float fl = floor(fu.y / fh);
+        vec3 tint = mix(vec3(.86, .84, .8), vec3(.7, .72, .74), r2);
+        vec3 plaster = texture2D(tP, fu / 7.).rgb * tint;
+        vec3 stone = texture2D(tG, fu / 3.).rgb * mix(vec3(.85, .8, .74), vec3(.6, .6, .62), r2);
+        vec3 metal = vec3(.62, .64, .66) * (.85 + .15 * texture2D(tP, fu / 2.).r) * (1. - .25 * max(step(.97, fract(fu.x / 1.5)), step(.96, fract(fu.y / 1.2))));
+        vec3 glass = mix(vec3(.12, .16, .2), vec3(.5, .6, .7), smoothstep(.0, 1., c.y) * .5) * (.85 + .3 * fract(sin(dot(floor(fu / vec2(bw, fh)), vec2(12.9, 78.2))) * 43758.5));
+        float win = step(.2, c.x) * step(c.x, .8) * step(.38, c.y) * step(c.y, .84);
+        vec3 wall = kind == 1. ? stone : kind == 3. ? metal : plaster;
+        float mull = max(step(.95, c.x), step(.96, c.y));
+        float spand = step(c.y, .22); vec3 col = kind == 2. ? mix(mix(glass, vec3(.32, .34, .36), mull), vec3(.2, .21, .22), spand * .85) : mix(wall, glass, win * (kind == 3. ? .8 : 1.));
+        isW = kind == 2. ? (1. - mull) * (1. - spand) : win;   // ガラスのビルも階ごとに腰の帯（奥行きと階のリズム）
+        diffuseColor.rgb = col; }`).replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, .1, isW);"); };
+  m.customProgramCacheKey = () => "plateauCC0"; return PFM.m = m;
+}
+function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・LOD2）を mitsulab が加工した建物（外壁は航空写真からの質感）。_dev/plateau/build_plateau.py
+  const g0 = new THREE.Group(); g0.name = "plateau"; world.add(g0);
+  for (const gr of PL.groups) fetch("web/geo/" + gr.f + "?v=" + VER).then(r => r.arrayBuffer()).then(buf => {
+    const P = new Float32Array(buf, 0, gr.nv * 3), U = new Float32Array(buf, gr.nv * 12, gr.nv * 2), I = new Uint32Array(buf, gr.nv * 20, gr.ni);
+    const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(P, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(U, 2)); geo.setIndex(new THREE.BufferAttribute(I, 1)); geo.computeVertexNormals();
+    const mat = gr.k === "plain" ? plateauFacadeMat()
+      : new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: .82, side: THREE.DoubleSide, map: TL.load("web/geo/plateau_" + gr.k + (MOBILE ? "_s" : "") + ".webp?v=" + VER, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 8; }) });
+    if (gr.k !== "plain") { mat.onBeforeCompile = sh => {   // 細部をつぶした写真の上に、階（3.6 m）の帯と柱間（2.4 m）の窓の筋を足す（写真の色・明るさはそのまま）
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; varying vec3 vNw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvPw = (modelMatrix * vec4(transformed, 1.)).xyz; vNw = normalize(mat3(modelMatrix) * objectNormal);");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; varying vec3 vNw;").replace("#include <map_fragment>", `#include <map_fragment>
+        if (abs(vNw.y) < .5) { float hz = abs(vNw.x) > abs(vNw.z) ? vPw.z : vPw.x; float fy = fract(vPw.y / 3.6), fx = fract(hz / 2.4);
+          float win = step(.32, fy) * step(fy, .88) * step(.1, fx) * step(fx, .9); float lu = dot(diffuseColor.rgb, vec3(.333));
+          diffuseColor.rgb = mix(diffuseColor.rgb, mix(diffuseColor.rgb, vec3(.12, .15, .18) + lu * .35, .3), win); }`); };
+      mat.customProgramCacheKey = () => "plateauWall"; }
+    const m = new THREE.Mesh(geo, mat); m.name = "plateau_" + gr.k; g0.add(m); landSweep();
+  }).catch(e => console.warn("plateau", e?.message ?? e));
+  QW.plateau = PL.groups.length;
+}
 const FAC = [];
 function buildFacades() {   // 駅前の建物：外壁＝Poly Haven「White Plaster」（CC0）の肌理に、階（3.6 m）と柱間（2.4 m）ごとの窓（暗いガラス・空の映り込み）、腰の帯、屋上の縁。店名・看板・ロゴは描かない（模式）
   if (!FAC.length) return; const P = [], U = [], N = [], I = [], RP = [], RI = []; let n = 0, rn = 0;
@@ -316,7 +366,7 @@ function buildRoute() {   // 道筋 A：上空では光る線、歩くときは�
 const BLDU = { t: { value: 0 } };
 const FUSE = { k: { value: 0 } };   // デジタルの層の強さ（歩く・飛ぶ・生きもので 1）
 async function buildBuildings() {
-  const [buf] = await Promise.all([fetch("web/geo/bld.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet(), AREAS.load()]), a = new Int16Array(buf);
+  const [buf, PL] = await Promise.all([fetch("web/geo/bld.bin?v=" + VER).then(r => r.arrayBuffer()), fetch("web/geo/plateau.json?v=" + VER).then(r => r.ok ? r.json() : null).catch(() => null), loadNet(), AREAS.load()]), a = new Int16Array(buf); QW.PL = PL;
   const B = NET.box || [0, 0, 0, 0], inBox = (x, z, m) => x > B[0] - m && x < B[2] + m && z > B[1] - m && z < B[3] + m;   // 歩ける道の範囲（とそのまわり）
   const P = [], Y0 = [], E = [], F = [], LIM = MOBILE ? 700 : 1600;
   let i = 0, nb = 0;
@@ -327,6 +377,7 @@ async function buildBuildings() {
     const top = low ? y + .06 : y + h, far = !box && Math.hypot(cx, cz + 300) > 900;   // 型を置いた所は、地面の地割の線だけ
     if (!low && box && NET.pw) { let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= n; mz /= n; const A = Math.abs(THREE.ShapeUtils.area(ring));
       if (A > 18 && A < 3000 && (false && NET.pw.some(w => mx > w.x0 && mx < w.x1 && mz > w.z0 && mz < w.z1 && inRing(w.r, mx, mz))) && !netCrosses(ring)) { addTemple(ring, y, A); continue; } }   // 2026-10-26 川越氷川神社の境内（OSM では点だけ）も寺社の型に   // 2026-10-25 寺社の境内の建物＝寺社の建物の型（模式）
+    if (PL && !low && Math.hypot(cx, cz) < PL.r - 12) { regSolidTo(ring, SOLID); continue; }   // PLATEAU の建物がある所は、OSM の箱を描かない（歩いて入らないための輪郭だけ）
     if (!low && Math.hypot(cx, cz) < 240 && h > 4 && Math.abs(THREE.ShapeUtils.area(ring)) > 60 && !(NET.segs && netCrosses(ring))) { FAC.push({ ring, y, top }); continue; }   // 2026-10-27 本人「建物をフォトリアルに」：駅前の建物は写実の外壁（窓の割り付け・CC0 の質感の模式）
     if (false && !low && !far && streetSide(ring)) {   // 渋谷：町並みは霧と線の地（不透明の壁にしない）
      addSolid(ring, y, top, SOLID, eraAt(ring)); for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n]; E.push(p.x, top, p.y, q.x, top, q.y); } continue; }   // 2026-10-24 本人「人が歩くところは透明にしない」＝通りに面した建物は不透明の壁に（入れない）
@@ -355,7 +406,7 @@ async function buildBuildings() {
   const fg = new THREE.BufferGeometry(); fg.setAttribute("position", new THREE.Float32BufferAttribute(F, 3)); fg.computeVertexNormals();
   const foot = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ color: "#45474a", roughness: .96, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })); foot.renderOrder = 1; world.add(foot); BLD.foot = foot;
   BLD.mesh = m; BLD.lines = lines; BLD.mat = mat; QW.nBld = nb;
-  buildFacades();
+  buildFacades(); if (PL) loadPlateau(PL);
   buildSolids(); buildTemples(); buildShrine();
 }
 /* 2026-10-26 川越氷川神社の大鳥居と杜（模式）：鳥居は木の明神鳥居の形（二本の柱・貫・笠木と島木）、杜は境内のまわりの木々。位置は OSM の神社の点と参道の向きから。一本ずつの木や、実物の寸法を写したものではない */
@@ -937,7 +988,7 @@ const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 �
   moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 21 };   // 10-27 1.75 倍
 const KEYS = new Set();
-const FOGS = { sky: { n: 1200, f: 5200 }, walk: { n: 160, f: 1100 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: { n: 1200, f: 5200 }, walk: { n: 160, f: 1100 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { QW.mode = m; document.body.dataset.mode = m;
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
@@ -1043,7 +1094,7 @@ function startFly() {
   hidePanel(); stopVoice(); hideSkyUI(); hideWalkUI();
   const from = QW.mode === "walk" ? CAM.pos.clone() : (() => { const a = stAt(C.starts[Math.max(0, START.sel)]); return new THREE.Vector3(a.x, groundY(a.x, a.z), a.z); })();
   const yaw = QW.mode === "walk" ? CAM.yaw + CAM.look : stYaw(C.starts[Math.max(0, START.sel)]);
-  CAM.pos.set(from.x, groundY(from.x, from.z) + 38, from.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.22;
+  CAM.pos.set(from.x, groundY(from.x, from.z) + 260, from.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.62;   // 渋谷：高いビルより上から（ビルの壁で画面が埋まらない）
   setMode("descend"); tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 1.8, () => { setMode("fly"); showFlyUI(); });
 }
 function stepFly(dt) {
