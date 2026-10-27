@@ -47,7 +47,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
     g.setAttribute("iCol", new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3));
     g.setAttribute("iP", new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4));
     g.setAttribute("iQ", new THREE.InstancedBufferAttribute(new Float32Array(cap * 2), 2));
-    const m = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 } }, vertexShader: vs, fragmentShader: fs, transparent: true, depthWrite: false, blending: blend, side, toneMapped: false });
+    const m = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 } }, vertexShader: vs, fragmentShader: fs, transparent: true, depthWrite: false, depthTest: !opt.overWalls, blending: blend, side, toneMapped: false });   // 渋谷：建物の陰でも目印が見える（Qualia が主役）
     const im = new THREE.InstancedMesh(g, m, cap); im.count = 0; im.frustumCulled = false; im.renderOrder = order; parent.add(im);
     return im;
   };

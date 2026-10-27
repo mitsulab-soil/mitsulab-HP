@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k2";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=s2";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=s3";
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
@@ -327,7 +327,7 @@ async function buildBuildings() {
     const top = low ? y + .06 : y + h, far = !box && Math.hypot(cx, cz + 300) > 900;   // 型を置いた所は、地面の地割の線だけ
     if (!low && box && NET.pw) { let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= n; mz /= n; const A = Math.abs(THREE.ShapeUtils.area(ring));
       if (A > 18 && A < 3000 && (false && NET.pw.some(w => mx > w.x0 && mx < w.x1 && mz > w.z0 && mz < w.z1 && inRing(w.r, mx, mz))) && !netCrosses(ring)) { addTemple(ring, y, A); continue; } }   // 2026-10-26 川越氷川神社の境内（OSM では点だけ）も寺社の型に   // 2026-10-25 寺社の境内の建物＝寺社の建物の型（模式）
-    if (!low && Math.hypot(cx, cz) < 240 && h > 4 && !(NET.segs && netCrosses(ring))) { FAC.push({ ring, y, top }); continue; }   // 2026-10-27 本人「建物をフォトリアルに」：駅前の建物は写実の外壁（窓の割り付け・CC0 の質感の模式）
+    if (!low && Math.hypot(cx, cz) < 240 && h > 4 && Math.abs(THREE.ShapeUtils.area(ring)) > 60 && !(NET.segs && netCrosses(ring))) { FAC.push({ ring, y, top }); continue; }   // 2026-10-27 本人「建物をフォトリアルに」：駅前の建物は写実の外壁（窓の割り付け・CC0 の質感の模式）
     if (false && !low && !far && streetSide(ring)) {   // 渋谷：町並みは霧と線の地（不透明の壁にしない）
      addSolid(ring, y, top, SOLID, eraAt(ring)); for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n]; E.push(p.x, top, p.y, q.x, top, q.y); } continue; }   // 2026-10-24 本人「人が歩くところは透明にしない」＝通りに面した建物は不透明の壁に（入れない）
     for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n];
@@ -734,7 +734,7 @@ function buildObjs() {
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
   for (const s of C.sho) add({ ...s, h: .7, title: "《" + s.title + "》" }, "sho", "sho");
   LAYER.worn = ALL.map(l => l.id);   // 既定は全部重ねる
-  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .42, skyK: 1.0, skyR: 1.0 }); /* 2026-10-27 本人「球が大きすぎる」＝今の 3〜4 割 */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
+  LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, { walkK: .42, skyK: 1.0, skyR: 1.0, overWalls: true }); /* 2026-10-27 本人「球が大きすぎる」＝今の 3〜4 割 */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();
@@ -1348,6 +1348,7 @@ function paperTex() {   // 書の後ろの、和紙のような淡い光（中�
 const SHO = { mod: null, loading: null, live: {} }, SHO_W = 5.2;   // 書の幅 m（2026-10-24 本人「sho をもっと大きく、目立つように」2.2 → 5.2）
 function loadShoMod() { return SHO.loading ||= import("../sho/sho3d.js").then(m => { SHO.mod = m; return m; }).catch(e => console.warn("sho", e)); }
 function stepSho(dt) {
+  if (!C) return;   // 起動直後（中身を読む前）のこまでは何もしない
   const on = LAYER.worn.includes("sound") && (QW.mode === "walk" || QW.mode === "fly"), cp = camera.position, t = performance.now() / 1000;
   for (const it of C.sho) {
     const dist = Math.hypot(it.x - cp.x, it.z - cp.z), want = on && dist < 120, S = SHO.live[it.id];
