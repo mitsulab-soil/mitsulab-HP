@@ -453,8 +453,8 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   A.update = (dt, mode) => { DIG.value += Math.min(.1, dt || 0);
     if (!A.ready) return;
     A.t += dt; const sky = mode === "sky", walk = mode === "walk" || mode === "sight";
-    A.fills.visible = sky; labBox.hidden = !sky; if (sky) stepLabels();
-    A.curtains.visible = walk || mode === "descend";
+    A.fills.visible = false; labBox.hidden = true;   /* 2026-10-28 本人「エリア分けは不要」＝色の面・輪郭・エリアの札を描かない */
+    A.curtains.visible = false;
     const cp = camera.position;
     for (const m of A.curtains.children) { const u = m.material.uniforms; u.uT.value = rm ? 0 : A.t; u.uCam.value.copy(cp); u.uK.value = mode === "descend" ? .3 : .38; /* 2026-10-26 15：境界の幕も控えめに */ }
     if (tagT < 1e8 && (tagT -= dt) < 0) tag.classList.remove("on");

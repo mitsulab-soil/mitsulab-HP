@@ -10,10 +10,11 @@ import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k13";
 import { groundFarMat } from "../kit/ground_far.js?v=3";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { makeStartPins } from "./startpins.js?v=14";
+import { makeStartPins } from "../kit/startpins.js?v=mg1";
+import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=56h";
+import { makeAreas } from "./areas.js?v=56m";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -21,7 +22,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261028w";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261028m";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -775,15 +776,42 @@ QW.veg = () => VEG.sp.map(S => [S.s, S.im.count, S.m]); QW.VEG = VEG;
 const START = { pins: [], sel: -1, labels: [] };
 const MAP = { group: null, labels: [], big: [], here: null, data: null };
 const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）
+/* 2026-10-28 本人：3D 地図の案内（共通部品 kit/mapguide.js）＝透けた細い線と淡い面で道筋と主な場所を示す。エリア分けは描かない。
+   始める場所は、1 回目に押す＝その場所の説明と、アプリ自身の 3D を目の高さで描いた眺め／同じ所をもう 1 回＝そこから歩く */
+let MGUIDE = null, EYEV = null;
+const escH = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function startInfo(x, z, name) {   /* その場所の説明＝いちばん近い Qualia の語り（典拠つき）の初めの 2 文 */
+  const nm = String(name).replace(/（.*?）|\s/g, ""); let b = null, bd = 1e9;
+  for (const L of LAYER.objs) { const o = L.o; if (!o || o.x == null || !(o.lines || []).length) continue; const s0 = (o.src || []).find(q => !/OpenStreetMap/i.test(q.t || "")); if (!s0) continue;   /* 地図の点（OSM）だけを典拠にした語りは、説明に使わない */ let d = Math.hypot(o.x - x, o.z - z); const t = String(o.title || "").replace(/（.*?）|\s/g, ""); if (t && (nm.includes(t) || t.includes(nm))) d -= 150; if (d < bd) { bd = d; b = o; } }
+  if (!b || bd > 110) return {};
+  const text = b.lines.slice(0, 2).map(l => l.t).join(""), ss = (b.src || []).filter((q, k, A) => !/OpenStreetMap/i.test(q.t || "") && A.findIndex(r => r.t === q.t) === k);
+  return { text, src: ss.map(q => q.u ? `<a href="${escH(q.u)}" target="_blank" rel="noopener">${escH(q.t)}</a>` : escH(q.t)).join("／") };
+}
+function startPreview(eyeAt) {
+  return { info: i => { const p = START.sp?.pins[i]; return p ? startInfo(p.it.x, p.it.z, p.it.name) : {}; },
+    draw: (cv, i) => { const e = eyeAt(i); if (!e) return; EYEV ||= makeEyeView({ THREE, renderer, scene, camera, hide: eyeHide, prep: eyePrep }); EYEV.draw(cv, e);
+      eyeLoad?.(); for (const ms of [1200, 3500]) setTimeout(() => { if (START.sp?.sel === i && cv.isConnected) EYEV.draw(cv, e); }, ms); } };   /* 近くの木や道が届いたら描き直す */
+}
+const yawTo = (x, z, tx, tz) => Math.atan2(-(tx - x), -(tz - z));
+function eyeHide() { return [MGUIDE?.group, START.sp?.group, MAP.group, pathLine, ...world.children.filter(o => o.isInstancedMesh && o.material?.isShaderMaterial && o.material.uniforms?.uT)]; }   /* 地図の大きさの Qualia の印は、目の高さの眺めには描かない */
+const eyeLoad = () => loadLate();
+function eyePrep(cam) {   /* 歩くときと同じ見え方に：空・霧・木の細かさ（目の位置で）・地図の層は隠す */
+  const bg = scene.background, f = { c: scene.fog.color.clone(), n: scene.fog.near, f: scene.fog.far }, m = QW.mode, cp = camera.position.clone();
+  applyFog(FOGS.walk()); if (QW.skyTex) scene.background = QW.skyTex; showMapLayer(false);
+  QW.mode = "walk"; camera.position.copy(cam.position); updateTrees(true);
+  return () => { QW.mode = m; camera.position.copy(cp); updateTrees(true); showMapLayer(m === "sky"); scene.background = bg; scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }; }
+function eyeAt(i) { const n = D.starts.length; if (i < n) { const s = D.starts[i], a = atD(s.d); return { x: a.x, y: groundY(a.x, a.z) + EYE, z: a.z, yaw: yawAlong(Math.min(s.d + 6, 1985)) }; }
+  const e = START.extra[i - n]; if (!e || e.kind === "here") return null; return { x: e.x, y: groundY(e.x, e.z) + EYE, z: e.z, yaw: yawTo(e.x, e.z, 0, e.z) }; }
 function buildStarts() {
   /* 2026-10-27 本人：始める場所は GUI の一覧でなく、地図の上の 3D の印と明朝の名札（共通部品 startpins.js）。名前は省略しない。
      東口・西口（町の地図の層）と「現在地から歩く」も地図の上の印に。位置の許可は押したときだけ */
   const items = D.starts.map(s => ({ name: s.name, x: s.x, z: s.z, kind: s.icon || "" }));
   START.extra = [{ name: "大宮駅 東口", x: -420, z: 30, kind: "area", zone: "higashi" }, { name: "大宮駅 西口", x: -700, z: 110, kind: "area", zone: "nishi" }, { name: "現在地から歩く", x: MOBILE ? 300 : 520, z: MOBILE ? 960 : 900, kind: "here" }];   // 現在地は地図の端の印（自分の位置の形）。押したときだけ位置を使い、位置が出たらその場所へ印が移る   // 「現在地から歩く」は地図の場所に置かず、地図の縁の方位の印（#skyHere）に（その場所にいると読ませない）   // 東口・西口は、地図の上の町の札（大宮駅（東口）・（西口））から選ぶ
   START.sp = makeStartPins({ THREE, parent: world, camera, groundY, mobile: MOBILE, items: [...items, ...START.extra],
-    note: { text: "氷川参道は、一の鳥居から神社まで、およそ 2 km。", x: 260, z: 560 }, goBtn: $("#goDown"),
+    note: { text: "氷川参道は、一の鳥居から神社まで、およそ 2 km。", x: 260, z: 560 }, goBtn: $("#goDown"), preview: startPreview(eyeAt),
     onSelect: i => { if (i < D.starts.length) { START.sel = i; return; } const e = START.extra[i - D.starts.length]; if (e.kind === "here" && $("#skyHere")?.getAttribute("aria-pressed") !== "true") { unlockAudio(); HERE.toggle(); } },
     onGo: i => { unlockAudio(); if (i < D.starts.length) return descendTo(i); const e = START.extra[i - D.starts.length]; if (e.zone) { const Z = AREAS?.byId?.[e.zone]; if (Z) areaDescend(Z); } else if ($("#skyHere")?.getAttribute("aria-pressed") !== "true") HERE.toggle(); } });
+  MGUIDE = makeMapGuide({ THREE, parent: world, groundY, routes: [D.cl.map(p => [p[0], p[2]])], places: D.starts.map(s => ({ x: s.x, z: s.z, r: 22 })) }); MGUIDE.show(QW.mode === "sky");
   START.sp.show(QW.mode === "sky"); { const h = $("#skyHere"); if (h) h.style.display = "none"; }
 }
 function selectStart(i) {
@@ -868,8 +896,9 @@ function setMode(m) {
   const walk = m === "walk", fly = m === "fly", sky = m === "sky", sight = m === "sight";
   if (m !== "descend" && !sight) applyFog(walk ? FOGS.walk() : fly ? FOGS.fly() : FOGS.sky());
   camera.near = walk || sight ? .03 : 1; camera.far = walk ? 700 : sight ? 1400 : 9000; camera.updateProjectionMatrix();
-  if (pathLine) { pathLine.visible = sky || fly; pathLine.material.depthTest = !sky; }
+  if (pathLine) { pathLine.visible = fly;   /* 3D 地図では共通の案内（MGUIDE）が道筋を示す */ pathLine.material.depthTest = !sky; }
   if (START.group) START.group.visible = sky;
+  MGUIDE?.show(sky);   /* 地図の案内は 3D 地図のときだけ（歩くときに淡い面が視界を覆わない） */
   showMapLayer(sky);
   if (QW.skyTex && !sight) scene.background = sky ? NAVY : QW.skyTex;   // 3D 地図は暗い地（電脳の地図）
   if (sky && scene.fog) scene.fog.color.copy(NAVY);
@@ -2425,7 +2454,7 @@ function frame() {
   }
   if (QW.mode === "sky") {   // 地図の点の名前（7 つ）と、道・地名の名前
     START.pins.forEach((p, i) => { _v3.copy(p.head.position).project(camera); const l = START.labels[i]; if (_v3.z > 1) { l.style.display = "none"; return; } l.style.display = ""; l.style.transform = `translate(${(_v3.x + 1) / 2 * innerWidth}px,${(1 - _v3.y) / 2 * innerHeight}px)`; });
-    { const l = $("#lstack")?.getBoundingClientRect(); START.rects = QW.startRects = START.sp?.update(performance.now() / 1000, l && l.width ? { x: l.right + 8, y: l.bottom } : null) || []; } stepMapLabels();
+    { const l = $("#lstack")?.getBoundingClientRect(); MGUIDE?.show(QW.mode === "sky"); MGUIDE?.update(performance.now() / 1000, camera); START.rects = QW.startRects = START.sp?.update(performance.now() / 1000, l && l.width ? { x: l.right + 8, y: l.bottom } : null) || []; } stepMapLabels();
     if (MAP.here?.visible) MAP.here.scale.setScalar(1 + .15 * Math.sin(performance.now() / 300));
   }
   if (WALK.ring?.visible) { WALK.ringT = (WALK.ringT || 0) + dt; WALK.ring.material.opacity = .85 * (.6 + .4 * Math.cos(WALK.ringT * 4)); }
