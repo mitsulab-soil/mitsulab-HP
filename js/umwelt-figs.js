@@ -107,7 +107,11 @@ async function boot(root, SC) {
   { const ln = []; for (let k = 1; k <= 9; k++) { const r = k * .75; for (let i = 0; i < 180; i++) { const a = i / 180 * 6.283, b = (i + 1) / 180 * 6.283, w = q => r + Math.sin(q * 3 + k * .7) * .1 * k * .3 + Math.sin(q * 7 - k) * .03 * k; ln.push(Math.cos(a) * w(a), 0, Math.sin(a) * w(a), Math.cos(b) * w(b), 0, Math.sin(b) * w(b)); } }
     const U2 = regionUniforms(0x5aa6b8, .07); mats.push(U2); S.add(new THREE.LineSegments(geo(ln), lineMat(U2))); }
   // 木
-  const T = treeGeo(rnd); S.add(new THREE.LineSegments(geo(T.L), LM)); S.add(new THREE.Points(geo(T.P, T.R), PM)); U.uBaseA.value = .14;
+  const T = treeGeo(rnd); { const Ul = regionUniforms(0x8bccca, .05); mats.push(Ul); S.add(new THREE.Points(geo(T.P, T.R), pointMat(Ul, mobile ? 2.4 : 2.8))); } U.uBaseA.value = .14;
+  // 写実の立体（面と質感）＋ その上にデジタルの層（泡・線・粒）。光は暗い地に沈む夜の光
+  S.add(new THREE.HemisphereLight(0xbfdde6, 0x0a1016, .9)); { const k = new THREE.DirectionalLight(0xfff1de, 2.2); k.position.set(-4, 7, 6); S.add(k); const r = new THREE.DirectionalLight(0x8fe8f4, 1.6); r.position.set(4, 3, -6); S.add(r); }
+  const glb = (() => { let P = null; return url => (P || (P = Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]))).then(([{ GLTFLoader }, { MeshoptDecoder }]) => { const l = new GLTFLoader(); l.setMeshoptDecoder(MeshoptDecoder); return l.loadAsync(url); }); })();
+  glb('x/09/web/keyaki.glb').then(g => { const o = g.scene, b = new THREE.Box3().setFromObject(o), sz = b.getSize(new THREE.Vector3()), k = 3.7 / sz.y; o.scale.setScalar(k); o.position.set(-(b.min.x + sz.x / 2) * k, -b.min.y * k, -(b.min.z + sz.z / 2) * k); if (SC === 2) { o.position.x += .6; o.position.z -= 2.4; } o.traverse(m => { if (m.isMesh) { m.frustumCulled = false; if (m.material) { m.material.envMapIntensity = 0; } } }); S.add(o); }).catch(e => console.warn('keyaki', e));
   // ちりの粒（空間の奥行き）
   { const N = mobile ? 380 : 900, a = [], r = []; for (let i = 0; i < N; i++) { a.push((rnd() - .5) * 16, rnd() * 7, (rnd() - .5) * 16); r.push(rnd()); }
     const U3 = regionUniforms(0x9fd8e6, .32); mats.push(U3); S.add(new THREE.Points(geo(a, r), pointMat(U3, mobile ? 1.6 : 1.8))); }
@@ -117,18 +121,18 @@ async function boot(root, SC) {
   const Uc = regionUniforms(0xcfe8ea, .5); mats.push(Uc); const CM = lineMat(Uc);
   const place = (o, p, s, ry, rx = 0) => { o.scale.setScalar(s); o.position.copy(p); o.rotation.set(rx, ry, 0); return o; };
   const P_PERSON = SC === 2 ? new THREE.Vector3(-1.9, 0, 1.2) : new THREE.Vector3(-1.85, 0, .95);
-  const PMc = pointMat(Uc, mobile ? 2.0 : 2.3); { const [p, r] = figureDots(P_PERSON, .7, mobile ? 1800 : 3000, rnd); S.add(new THREE.Points(geo(p, r), PMc)); }
+  const PMc = pointMat(Uc, mobile ? 2.0 : 2.3);
+  // 人：碧とは別の姿（短い髪・上着とズボン）の立体。肌と衣はマットな質感
+  glb('img/hero/3d/man.glb').then(g => { const o = g.scene, b = new THREE.Box3().setFromObject(o), sz = b.getSize(new THREE.Vector3()), k = 1.72 / sz.y; o.scale.setScalar(k); o.position.copy(P_PERSON); o.position.y -= b.min.y * k; o.rotation.y = SC === 2 ? .9 : .7;
+    o.traverse(m => { if (m.isMesh) { m.frustumCulled = false; if (m.material) { m.material = m.material.clone(); m.material.roughness = .8; m.material.metalness = 0; } } }); S.add(o); }).catch(e => console.warn('man', e));
   const P_BEE = SC === 2 ? new THREE.Vector3(.55, 2.85, .4) : new THREE.Vector3(1.15, 2.95, .55);
-  { const [p, r] = dots(place(C.makeBee(), P_BEE, SC === 1 ? .8 : .5, -2.1), 1600, rnd); let Ub = Uc; if (SC === 2) { Ub = regionUniforms(0xc4b6ff, .55); Ub.__noRegion = 1; mats.push(Ub); } S.add(new THREE.Points(geo(p, r), pointMat(Ub, mobile ? 1.3 : 1.4))); }
+  { const bee = place(C.makeBee(), P_BEE, SC === 1 ? .8 : .55, -2.1); S.add(bee); }
   const P_TICK = new THREE.Vector3(1.55, .2, 1.45);
-  if (SC === 1) { { const Ut = regionUniforms(0xd6a888, .4); Ut.uTickHide.value = 0; // 模式のマダニ（線）：卵形の胴・前の口・左右 4 対の脚。カメラへ少し起こして形が読めるように
-      const L = [], P = [], Rr = [], k = .26, ell = (a, b, cy, n) => { for (let i = 0; i < n; i++) { const q0 = i / n * 6.283, q1 = (i + 1) / n * 6.283; L.push(Math.cos(q0) * a, Math.sin(q0) * b + cy, 0, Math.cos(q1) * a, Math.sin(q1) * b + cy, 0); } };
-      ell(.5, .62, -.1, 48); ell(.3, .26, .3, 32); ell(.11, .12, .64, 16);
-      for (const sx of [-1, 1]) [[.3, .55], [.15, .3], [-.05, -.05], [-.25, -.4]].forEach(([y, d], i) => { const x0 = sx * .42, kx = sx * (.82 + i * .02), ky = y + .22 - i * .02, ex = sx * (1.0 - i * .03), ey = y + d - .25 * (i > 1) ; L.push(x0, y, 0, kx, ky, 0, kx, ky, 0, ex, ey, 0); });
-      for (let i = 0; i < 260; i++) { const t = rnd() * 6.283, rr = Math.sqrt(rnd()); P.push(Math.cos(t) * rr * .48, Math.sin(t) * rr * .6 - .1, 0); Rr.push(rnd()); }
-      const g = new THREE.Group(); const Uw = regionUniforms(0xf3dcc2, .85); Uw.uTickHide.value = 0; Uw.__noRegion = 1; mats.push(Uw);
-      g.add(new THREE.LineSegments(geo(L), lineMat(Uw))); g.add(new THREE.Points(geo(P, Rr), pointMat(Ut, mobile ? 1.3 : 1.5)));
-      g.scale.setScalar(k); g.position.copy(P_TICK).add(new THREE.Vector3(0, .3, 0)); g.rotation.set(-.35, .55, 0); S.add(g); mats.push(Ut); Ut.__noRegion = 1; }  }
+  if (SC === 1) { const tk = M3.makeTick(); tk.scale.setScalar(.42); tk.position.copy(P_TICK).add(new THREE.Vector3(0, .45, .15)); tk.rotation.set(.85, .35, 0); tk.traverse(o => { if (o.isMesh && o.material && o.material.color) { o.material = o.material.clone(); o.material.color.multiplyScalar(1.9); } }); S.add(tk);
+    { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); x.strokeStyle = 'rgba(255,214,170,.9)'; x.lineWidth = 5; x.beginPath(); x.arc(128, 128, 118, 0, 6.283); x.stroke(); x.lineWidth = 2; x.strokeStyle = 'rgba(255,214,170,.45)'; x.beginPath(); x.arc(128, 128, 108, 0, 6.283); x.stroke();
+      x.fillStyle = 'rgba(255,224,190,.95)'; x.font = '600 26px sans-serif'; x.textAlign = 'center'; x.fillText('×100', 128, 238); const t = new THREE.CanvasTexture(c);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false })); sp.position.copy(tk.position).add(new THREE.Vector3(0, .05, 0)); sp.scale.setScalar(1.05); S.add(sp); }
+    { const pl = new THREE.PointLight(0xffc49a, 2, 1.6, 1.5); pl.position.copy(P_TICK).add(new THREE.Vector3(.3, .6, .5)); S.add(pl); } }
 
   Uc.uTickHide.value = 0;
   // マダニに届くもの：通りかかる人の熱の揺らぎ（橙の粒・模式）
