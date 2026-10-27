@@ -118,9 +118,10 @@ export function makeLabel(no, layer, title, color) {
   x.fillStyle = color; x.fillRect(0, 18, 3, 92); x.fillRect(0, 18, 22, 2); x.fillRect(0, 108, 22, 2);
   // 2026-10-22 夜 電脳の HUD の字：番号と層は細いモノスペースで層の色に光り、名前は層の色を帯びた明朝。暗い影の上に、色のにじむ光を重ねる
   const glow = (txt, px, py, fill, blur) => { x.shadowOffsetY = 1; x.shadowColor = "rgba(0,6,14,.95)"; x.shadowBlur = 6; x.fillStyle = fill; x.fillText(txt, px, py); x.shadowOffsetY = 0; x.shadowColor = color; x.shadowBlur = blur; x.fillText(txt, px, py); };
-  x.font = `300 20px ${MONO}`; glow(`L${String(no).padStart(2, "0")} ⁄ `, 22, 50, color, 10);
-  const w0 = x.measureText(`L${String(no).padStart(2, "0")} ⁄ `).width; x.font = `500 21px ${FONT}`; glow(layer, 22 + w0, 50, color, 10);
-  x.fillStyle = color; for (let i = 0; i < 6; i++) x.fillRect(W - 120 + i * 9, 40, 5, 2);   // 右の小さな刻み
+  const top = mixHex(color, "#ffffff", .55); x.lineJoin = "round"; x.lineWidth = 5; x.strokeStyle = "rgba(2,5,12,.9)";   // 10-28：上の行も読めるように（白寄りの色・暗いふち・少し大きく）
+  x.font = `500 24px ${MONO}`; x.strokeText(`L${String(no).padStart(2, "0")} ⁄ `, 22, 52); glow(`L${String(no).padStart(2, "0")} ⁄ `, 22, 52, top, 6);
+  const w0 = x.measureText(`L${String(no).padStart(2, "0")} ⁄ `).width; x.font = `600 24px ${FONT}`; x.strokeText(layer, 22 + w0, 52); glow(layer, 22 + w0, 52, top, 6);
+  
   let fs = 38; x.font = `600 ${fs}px ${FONT}`; while (x.measureText(title).width > W - 44 && fs > 22) { fs -= 2; x.font = `600 ${fs}px ${FONT}`; }
   x.lineJoin = "round"; x.lineWidth = 6; x.strokeStyle = "rgba(2,5,12,.9)"; x.strokeText(title, 22, 94);   // 10-28：字のふちを暗く（細い明朝が空に溶けないように）
   glow(title, 22, 94, mixHex(color, "#ffffff", .82), 8);
