@@ -714,7 +714,8 @@ const WIN = {
   mimizu: { c: "#ffffff", bg: 0x101010, cap: "碧も、光の明るさだけを感じています" },
 };
 let winSig = 0, lastHeat = 0, lastTick = 0;
-const winMode = () => !!vrm && chapter === "umwelt" && !!LENS[lens].under;
+// 2026-10-27 本人「碧はどのアプリでも、3D 空間の中に 3D で入れる。2D の画や枠では入れない」→ 小さな窓をやめ、碧は同じ森の中に立ったまま（受けとり方の見え方で一緒に描く）
+const winMode = () => false;
 function aoiWindowTick(dt) {
   const w = WIN[lens]; $("aoiWin").hidden = false; $("aoiWinCap").textContent = w.cap; $("aoiWin").style.setProperty("--ac", w.c);
   if (aoi.parent !== aoiScene) { aoiScene.add(aoi); A.vel.set(0, 0, 0); A.sp = 0; AM.calm = 1.2; AM.place(0, 0, 0); }
@@ -819,7 +820,7 @@ function schedulePortraits() {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) schedulePortraits(); });
 for (const [i, l] of S.lens.entries()) {
   const b = document.createElement("button"); b.className = "pill"; b.dataset.id = l.id; b.setAttribute("aria-pressed", String(l.id === lens)); b.setAttribute("aria-keyshortcuts", String(i + 1));
-  b.innerHTML = `<img class="creaturePortrait" alt="" ${l.id === 'hito' ? `src="${P.face}"` : 'style="visibility:hidden"'}><span>${l.name}</span><i>${i + 1}</i>`; b.setAttribute("aria-label",`${l.name}の身体と受けとり方`); b.onclick = () => { first(false); setLens(l.id); }; dial.appendChild(b);
+  b.innerHTML = `<img class="creaturePortrait" alt="" style="visibility:hidden"><span>${l.name}</span><i>${i + 1}</i>`; b.setAttribute("aria-label",`${l.name}の身体と受けとり方`); b.onclick = () => { first(false); setLens(l.id); }; dial.appendChild(b);
 }
 function layoutBodyWheel(){const selected=LENS_IDS.indexOf(lensRequest);[...dial.children].forEach((b,i)=>{const NL=LENS_IDS.length;let d=(i-selected+NL)%NL;if(d>NL/2)d-=NL;b.hidden=Math.abs(d)>2;const mobile=innerWidth<700,y=d*(mobile?57:67),x=(mobile?6:16)*(1-Math.abs(d)*.5);b.style.transform=`translate(${x}px,${y-34}px) scale(${1-Math.abs(d)*.06})`;b.style.opacity=String(1-Math.abs(d)*.16);});}
 $('bodyPrev').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+LENS_IDS.length-1)%LENS_IDS.length]);$('bodyNext').onclick=()=>setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+1)%LENS_IDS.length]);$('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:LENS_IDS.length-1))%LENS_IDS.length]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
