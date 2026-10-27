@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=q11";
 import { makeStartPins } from "./startpins.js?v=14";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=56";
+import { makeAreas } from "./areas.js?v=56h";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);

@@ -260,7 +260,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     C.grounds = []; for (let k = 0; k < 3; k++) { gp = gps[k]; if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) { const us = k === 0 ? 4.2 : k === 1 ? 2.4 : 7; gu.push(gp[i] / us, gp[i + 2] / us); } gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, GMATS[k]); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.grounds.push(gm); C.ground ||= gm; } }
     world.add(G);
     buildLandmarks(Z, J, G); if (G.userData.lmTrees) C.lmTrees = G.userData.lmTrees;
-    if (Z.ground) { buildStreet(Z, J, G, C); buildMarks(Z, J, G); }   // 2026-10-27：町の街路樹・街灯（OSM の道の線に沿った模式）
+    if (Z.ground && /^(higashi|nishi|shintoshin)$/.test(Z.id)) { buildStreet(Z, J, G, C); buildMarks(Z, J, G); }   // 参道の区画には置かない   // 2026-10-27：町の街路樹・街灯（OSM の道の線に沿った模式）
     onChunk?.(Z, J, C);
     return C;
   }
