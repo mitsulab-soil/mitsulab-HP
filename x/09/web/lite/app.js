@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=q11";
 import { makeStartPins } from "./startpins.js?v=14";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=40";
+import { makeAreas } from "./areas.js?v=49";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -1607,7 +1607,7 @@ function aoiShadow() {
 }
 function plantKeyaki(C) {   // けやきひろばの木を、参道と同じケヤキの形・質で（大きさは少しずつ違う）
   const go = () => { const K = TREE.kMid; if (!K || C.dead) return !!C.dead; const L = C.lmTrees, M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3();
-    for (const [geo, mat] of [[K.bgeo, K.bm], [K.lgeo, K.lm]]) { const im = new THREE.InstancedMesh(geo, mat, L.length); L.forEach(([x, y, z], i) => { const k = (.55 + .2 * ((Math.sin(x * 12.9 + z * 7.1) + 1) / 2)); Q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), x * 1.7 + z); M4.compose(P.set(x, y, z), Q, S.set(k, k, k)); im.setMatrixAt(i, M4); }); im.frustumCulled = false; C.g.add(im); } return true; };
+    for (const [geo, mat] of [[K.bgeo, K.bm], [K.lgeo, K.lm]]) { const im = new THREE.InstancedMesh(geo, mat, L.length); L.forEach(([x, y, z, ks], i) => { const k = ks ?? (.55 + .2 * ((Math.sin(x * 12.9 + z * 7.1) + 1) / 2)); Q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), x * 1.7 + z); M4.compose(P.set(x, y, z), Q, S.set(k, k, k)); im.setMatrixAt(i, M4); }); im.frustumCulled = false; C.g.add(im); } return true; };
   if (!go()) { const t = setInterval(() => { if (go()) clearInterval(t); }, 500); }
 }
 function aoiFingers(dt) {

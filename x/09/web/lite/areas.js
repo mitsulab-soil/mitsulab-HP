@@ -133,7 +133,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
       .replace("#include <map_fragment>", `#include <map_fragment>
   float wu=vF.x, wv=vF.y, H=vF.z; float tall=step(40.,H); float dist=distance(vBw,cameraPosition);
   if(dist<2.2) discard;
-  float fl=tall>.5?3.8:3.4, bay=tall>.5?3.0:2.6;
+  float bh=wH(vec2(floor(H*7.13),floor(H*3.7))); float fl=tall>.5?3.6+.5*bh:3.1+.6*bh, bay=tall>.5?2.6+.9*fract(bh*7.):2.0+1.4*fract(bh*5.);   /* 2026-10-27：建物ごとに階高と窓の割り付けを変える（同じ箱の繰り返しにしない） */
   vec2 c=vec2(wu/bay, wv/fl); vec2 f=fract(c); vec2 id=floor(c);
   float ground=step(wv,4.2)*(1.-tall);
   float win=tall>.5? step(.06,f.x)*step(f.x,.94)*step(.08,f.y)*step(f.y,.94) : step(.18,f.x)*step(f.x,.82)*step(.32,f.y)*step(f.y,.86);
@@ -164,7 +164,8 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     float pcd=(1.-smoothstep(pr,pr+pw*.8,length(pf)))*(1.-smoothstep(.12,.25,pw))*step(.6,ph);
     float sy=fract(uDig*.05+fract(wu*.0007)); float scn=exp(-pow((wv/H-sy)*H/.7,2.));
     float top=1.-smoothstep(0.,.25,H-wv);
-    totalEmissiveRadiance+=vec3(.36,.8,.9)*fz*(pcd*.25+scn*.22+top*.9); }`)
+    totalEmissiveRadiance+=vec3(.36,.8,.9)*fz*(pcd*.25+scn*.22+top*.9);
+    float gf=step(wv,3.3)*step(.35,wv)*(1.-step(40.,H))*step(.06,fract(wu/4.2))*step(fract(wu/4.2),.94); float lit2=step(.35,fract(sin(floor(wu/4.2)*91.7+H)*437.5)); totalEmissiveRadiance+=vec3(1.,.78,.5)*gf*lit2*.07*smoothstep(25.,45.,dist)*(1.-smoothstep(90.,200.,dist)); }`)   /* 1 階の店先に、暖かい灯り（店ごとに点く・点かない） */
       .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
   { vec3 V=normalize(vBw-cameraPosition), R=reflect(V,normalize(vWn)); float fr=.08+.92*pow(1.-max(dot(-V,normalize(vWn)),0.),4.);
     vec3 skyR=mix(vec3(.30,.33,.36),vec3(.42,.56,.72),smoothstep(-.05,.6,R.y)); skyR=mix(skyR,vec3(.16,.15,.14),smoothstep(.02,-.25,R.y));
@@ -222,30 +223,42 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     totalEmissiveRadiance+=dcol*(l1*.2*fz+l2*.5*fz+scan*(.3+l1*.7)+dot1*.3); }`;
   const digiG = og => sh => { og(sh); sh.uniforms.uDig = DIG; sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uDig;").replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n" + DIGI); };
   for (const m of GMATS) { m.onBeforeCompile = digiG(m.onBeforeCompile); m.customProgramCacheKey = () => "areaGroundDig1"; }
-  roadMat.onBeforeCompile = digiG(sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;"); });
-  roadMat.customProgramCacheKey = () => "areaRoadDig1";
+  /* 2026-10-27 本人「道路もリアルに」：アスファルト（CC0）の上に、実寸の路面の標示（模式）。道の端の白線（幅 15 cm）・中央の白い破線（6 m 引き 9 m 空け）・道の両端の横断歩道（幅 45 cm の白線を 45 cm おき・長さ 4 m）と停止線（幅 45 cm）・端の側溝の暗い帯（50 cm）・ときどきマンホール（直径 60 cm）。標示の位置は OSM の道の線からの模式で、実際の車線数は反映していない */
+  const ROADMK = `{ float t=vRL.x, sv=vRL.y, hw=max(vRL.z,1.), TL=vRL.w; float as=abs(sv); float aa=fwidth(sv)*1.2+.01, at=fwidth(t)*1.2+.01;
+    float gut=1.-smoothstep(hw-.5-aa,hw-.5,as); diffuseColor.rgb*=mix(.62,1.,gut);
+    float edge=(1.-smoothstep(.075-aa,.075,abs(as-(hw-.75))))*step(2.6,hw);
+    float cen=(1.-smoothstep(.075-aa,.075,as))*step(.4,fract(t/15.))*step(4.5,hw);
+    float te=min(t,TL-t); float cw=step(1.2,te)*step(te,5.2)*step(.5,fract(sv/.9))*step(as,hw-.9)*step(28.,TL);
+    float stp=(1.-smoothstep(.225-at,.225,abs(te-6.2)))*step(as,hw-.9)*step(sv,0.)*step(28.,TL);
+    vec2 mh=vec2(fract(t/37.)*37.-18.,sv-hw*.45); float man=1.-smoothstep(.29,.3+aa,length(mh)); float manr=man*(1.-smoothstep(.24,.25,length(mh))); vec2 gq=abs(fract(mh*8.)-.5); man*=.8+.2*step(.42,max(gq.x,gq.y)); /* マンホールは無地の格子（市の柄は写さない） */
+    float wl=clamp(edge+cen+cw+stp,0.,1.)*(.86+.14*fract(sin(dot(floor(vGw.xz*3.),vec2(12.9,78.2)))*4375.));
+    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.86,.86,.82),wl*.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.16,.16,.17),man*.85); diffuseColor.rgb+=manr*.05; }`;
+  roadMat.onBeforeCompile = digiG(sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; attribute vec4 aRL; varying vec4 vRL;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGw=(modelMatrix*vec4(transformed,1.)).xyz; vRL=aRL;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw; varying vec4 vRL;").replace("#include <map_fragment>", "#include <map_fragment>\n" + ROADMK); });
+  roadMat.customProgramCacheKey = () => "areaRoadDig2";
   // 2026-10-26 2：駅前の地形の写真（屋根の写った空中写真）が道と地面の上に白くかぶっていた → 参道の道と同じく、道と地面の画素に印を付けて地形を描かない
   for (const m of [roadMat, ...GMATS]) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }
   function buildChunk(Z, J) {
     const G = new THREE.Group(); G.name = "area_" + Z.id; const C = { Z, J, g: G, w: J.w, tiles: {}, places: [] };
     for (const w of J.w) { let b = [1e9, 1e9, -1e9, -1e9]; for (let i = 1; i < w.length; i += 2) { b[0] = Math.min(b[0], w[i]); b[1] = Math.min(b[1], w[i + 1]); b[2] = Math.max(b[2], w[i]); b[3] = Math.max(b[3], w[i + 1]); } w.b = b; }
     // 道の帯
-    const pos = [], ruv = [], spos = [], suv = [];
-    for (const w of J.w) { const hw = w[0]; const cx0 = (w.b[0] + w.b[2]) / 2, cz0 = (w.b[1] + w.b[3]) / 2, inPk = !!(PK && PK.box && cx0 > PK.box[0] && cx0 < PK.box[2] && cz0 > PK.box[1] && cz0 < PK.box[3]); const pa = inPk ? spos : pos, ua = inPk ? suv : ruv;
+    const pos = [], ruv = [], spos = [], suv = [], rln = [];   // rln＝道の中の座標（進む向きの距離・横の位置・半幅・道の全長）＝白線と横断歩道を描く
+    for (const w of J.w) { const hw = w[0]; const cx0 = (w.b[0] + w.b[2]) / 2, cz0 = (w.b[1] + w.b[3]) / 2, inPk = !!(PK && PK.box && cx0 > PK.box[0] && cx0 < PK.box[2] && cz0 > PK.box[1] && cz0 < PK.box[3]); const pa = inPk ? spos : pos, ua = inPk ? suv : ruv; let TL = 0; for (let i = 1; i + 3 < w.length; i += 2) TL += Math.hypot(w[i + 2] - w[i], w[i + 3] - w[i + 1]); let T0 = 0;
       for (let i = 1; i + 3 < w.length; i += 2) { const ax = w[i], az = w[i + 1], bx = w[i + 2], bz = w[i + 3], dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1, nx = -dz / l * hw, nz = dx / l * hw;
         const P = [[ax + nx, az + nz], [ax - nx, az - nz], [bx - nx, bz - nz], [bx + nx, bz + nz]].map(([x, z]) => [x, groundY(x, z) + .1, z]);
-        for (const k of [0, 1, 2, 0, 2, 3]) { pa.push(...P[k]); ua.push(P[k][0] / 4, P[k][2] / 4); } } }
+        const RL = [[T0, hw], [T0, -hw], [T0 + l, -hw], [T0 + l, hw]];
+        for (const k of [0, 1, 2, 0, 2, 3]) { pa.push(...P[k]); ua.push(P[k][0] / 4, P[k][2] / 4); if (!inPk) rln.push(RL[k][0], RL[k][1], hw, TL); } T0 += l; } }
     if (spos.length) { const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.Float32BufferAttribute(spos, 3)); sg.setAttribute("uv", new THREE.Float32BufferAttribute(suv, 2)); sg.computeVertexNormals(); const sm = new THREE.Mesh(sg, sandMat); sm.renderOrder = -3; G.add(sm); }   // 公園の中の道は、アスファルトでなく砂利と土（CC0）
-    const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); rg.setAttribute("uv", new THREE.Float32BufferAttribute(ruv, 2)); rg.computeVertexNormals();
+    const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); rg.setAttribute("aRL", new THREE.Float32BufferAttribute(rln, 4)); rg.setAttribute("uv", new THREE.Float32BufferAttribute(ruv, 2)); rg.computeVertexNormals();
     const road = new THREE.Mesh(rg, roadMat); road.renderOrder = -3; road.name = "areaRoad"; G.add(road); C.road = road;
     // 地形（DEM）の外の地面：エリアの中の 20 m の区画だけ（模式の平らな地）
     const P = Z.poly; let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (let i = 0; i < P.length; i += 2) { x0 = Math.min(x0, P[i]); x1 = Math.max(x1, P[i]); z0 = Math.min(z0, P[i + 1]); z1 = Math.max(z1, P[i + 1]); }
     const CS = 20, gps = [[], [], []]; let gp;
-    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || (inDem(cx, cz) && !Z.groundAll)) continue; const y = groundY(cx, cz) - .02; const bh = Math.abs(Math.sin(Math.floor(cx / 40) * 12.9898 + Math.floor(cz / 40) * 78.233) * 43758.5453) % 1; gp = gps[Z.id === "nishi" ? 1 : Z.id === "shintoshin" ? 2 : 0];   // 2026-10-26 3：エリアごとに舗装の材を変える（東口＝石の舗装・西口＝コンクリート平板・新都心＝御影石の板）。区画で舗装を切りかえると帯に見えた（採点）→ 一種に戻し、柄のむらはシェーダで
+    if (Z.ground) for (let z = z0; z < z1; z += CS) for (let x = x0; x < x1; x += CS) { const cx = x + CS / 2, cz = z + CS / 2; if (!inside(P, cx, cz) || (inDem(cx, cz) && !Z.groundAll)) continue; const y = Math.min(groundY(x, z), groundY(x + CS, z), groundY(x, z + CS), groundY(x + CS, z + CS), groundY(cx, cz)) - .06;   /* 2026-10-27：地面の板が道より高くなって、道（アスファルトと白線）を覆っていた → 四隅でいちばん低い高さに */ const bh = Math.abs(Math.sin(Math.floor(cx / 40) * 12.9898 + Math.floor(cz / 40) * 78.233) * 43758.5453) % 1; gp = gps[Z.id === "nishi" ? 1 : Z.id === "shintoshin" ? 2 : 0];   // 2026-10-26 3：エリアごとに舗装の材を変える（東口＝石の舗装・西口＝コンクリート平板・新都心＝御影石の板）。区画で舗装を切りかえると帯に見えた（採点）→ 一種に戻し、柄のむらはシェーダで
       gp.push(x, y, z, x, y, z + CS, x + CS, y, z, x + CS, y, z, x, y, z + CS, x + CS, y, z + CS); }
     C.grounds = []; for (let k = 0; k < 3; k++) { gp = gps[k]; if (gp.length) { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(gp, 3)); const gu = []; for (let i = 0; i < gp.length; i += 3) { const us = k === 0 ? 4.2 : k === 1 ? 2.4 : 7; gu.push(gp[i] / us, gp[i + 2] / us); } gg.setAttribute("uv", new THREE.Float32BufferAttribute(gu, 2)); gg.computeVertexNormals(); const gm = new THREE.Mesh(gg, GMATS[k]); gm.renderOrder = -3; gm.name = "areaGround"; G.add(gm); C.grounds.push(gm); C.ground ||= gm; } }
     world.add(G);
     buildLandmarks(Z, J, G); if (G.userData.lmTrees) C.lmTrees = G.userData.lmTrees;
+    if (Z.ground) { buildStreet(Z, J, G, C); buildMarks(Z, J, G); }   // 2026-10-27：町の街路樹・街灯（OSM の道の線に沿った模式）
     onChunk?.(Z, J, C);
     return C;
   }
@@ -273,7 +286,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   slabMat.customProgramCacheKey = () => "slabLit1";   // デッキの下が暗く沈まないよう、裏面に弱い明るさ
   const grassMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/grass5.webp"), color: 0xbdd39a, roughness: 1 }); grassMat.map.repeat?.set(9, 9);
   const leafMat = new THREE.MeshStandardMaterial({ color: 0x7d9a62, roughness: .95 }), barkMat = new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 1 });
-  const glassMat = new THREE.MeshStandardMaterial({ color: 0x26323c, roughness: .08, metalness: .7, transparent: true, opacity: .82 });
+  const glassMat = new THREE.MeshStandardMaterial({ color: 0x7d93a1, roughness: .1, metalness: .35, transparent: true, opacity: .86, emissive: 0x1c2a33 });   // 2026-10-27：駅舎のガラスが黒い塊に見えた → 空を映す明るい硝子に
   for (const m of [woodMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]) m.userData.land = true;
   function polyOf(b) { const n = (b.length - 1) / 2, P = []; for (let i = 0; i < n; i++) P.push(new THREE.Vector2(b[1 + i * 2], b[2 + i * 2])); return P; }
   function extrude(P, y0, h, mat, shrink = 0) {
@@ -288,6 +301,57 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   function colShadows(G, pts) {   /* 2026-10-27 夜：柱の足もとに接地の陰（デッキが浮いて見えないように） */
     const g = new THREE.PlaneGeometry(2.6, 2.6).rotateX(-Math.PI / 2), im = new THREE.InstancedMesh(g, shadowMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => im.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) + .04, z))); im.renderOrder = -1; G.add(im);
     const sh = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2); return sh; }
+  /* 2026-10-27 町の作り直し：広い道（片側 4 m 以上）の両側に、街路樹（参道と同じケヤキの形・小さめ）と街灯を、道の線に沿って模式で置く。建物の中・公園の中には置かない。
+     位置は OSM の道の線から作った模式で、実在の一本ずつではない */
+  const lampG = (() => { const p = new THREE.CylinderGeometry(.07, .09, 6, 6).translate(0, 3, 0), a = new THREE.BoxGeometry(1.1, .08, .08).translate(.5, 5.95, 0); return { p, a, h: new THREE.BoxGeometry(.5, .12, .28).translate(1.0, 5.86, 0) }; })();
+  const lampMat = new THREE.MeshStandardMaterial({ color: 0x3e4247, roughness: .5, metalness: .6 }), lampHead = new THREE.MeshBasicMaterial({ color: 0xfff2d6, toneMapped: false });
+  for (const m of [lampMat]) m.userData.land = true;
+  /* 2026-10-27 本人「道路もリアルに」：渋谷（aoi-walk-shibuya 3aaa31b）と同じ作り＝路面の標示を、地面より少し上に浮かせた細い帯の形で描く（どの舗装の上でも見える）。
+     片側 4 m 以上の道＝中央の白い破線（5 m 引いて 5 m 空け）と外側線（幅 15 cm）・縁石（幅 24 cm・高さ 16 cm）・道の両端に横断歩道（幅 45 cm の縞・長さ 4 m）。実寸の模式で、実際の車線数・横断歩道の位置は反映していない */
+  const densify = (P, step) => { const o = [P[0]]; for (let i = 1; i < P.length; i++) { const a = P[i - 1], b = P[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / step)); for (let k = 1; k <= n; k++) o.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return o; };
+  const offsetLine = (P, d) => P.map((p, i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], tx = b[0] - a[0], tz = b[1] - a[1], l = Math.hypot(tx, tz) || 1; return [p[0] - tz / l * d, p[1] + tx / l * d]; });
+  const ribbon = (P, w, lift, pos, uv, idx) => { const b = pos.length / 3; let acc = 0;
+    for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], c = P[Math.min(P.length - 1, i + 1)], tx = c[0] - a[0], tz = c[1] - a[1], l = Math.hypot(tx, tz) || 1, nx = -tz / l * w / 2, nz = tx / l * w / 2; if (i) acc += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+      for (const sg of [1, -1]) { const x = P[i][0] + nx * sg, z = P[i][1] + nz * sg; pos.push(x, groundY(x, z) + lift, z); uv.push(sg > 0 ? 0 : w, acc); } }
+    for (let i = 0; i + 1 < P.length; i++) { const k = b + i * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); } };
+  const markMat = kind => { const m = new THREE.MeshStandardMaterial({ color: kind === 3 ? "#a9a6a0" : "#d9d8d2", roughness: .75, metalness: 0, polygonOffset: true, polygonOffsetFactor: kind === 3 ? -9 : -10, polygonOffsetUnits: kind === 3 ? -9 : -10 });
+    m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n" + (kind === 1 ? "if (fract(vUv.y / 10.) > .5) discard;" : kind === 2 ? "if (fract(vUv.x / .9) > .5) discard;" : "") + "\nfloat wear = fract(sin(dot(floor(vUv * vec2(9., 3.)), vec2(12.9898, 78.233))) * 43758.5); diffuseColor.rgb *= .84 + .16 * wear;"); };
+    m.defines = { USE_UV: "" }; m.customProgramCacheKey = () => "omMark" + kind; m.userData.land = true; return m; };
+  const asphMat = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/Asphalt023S_c5.webp"), normalMap: mobile ? null : tex(BASE + "tex/Asphalt023S_n5.webp", false), color: 0x6b6862, roughness: .92, metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });   // 車道のアスファルト（CC0・ambientCG Asphalt023S）
+  asphMat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ float n = fract(sin(dot(floor(vMapUv * vec2(.5, .08)), vec2(12.9, 78.2))) * 4375.); diffuseColor.rgb *= .9 + .14 * n; }"); };
+  asphMat.map.repeat?.set(.25, .25); if (asphMat.normalMap) asphMat.normalMap.repeat.set(.25, .25);
+  asphMat.customProgramCacheKey = () => "omAsph2"; asphMat.userData.land = true;
+  const tactMat = new THREE.MeshStandardMaterial({ color: "#d9b43a", roughness: .8, polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -9 });   // 点字ブロック（警告の点状・30 cm 角の模式）
+  tactMat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 c = fract(vUv / .3); float g = step(.03, c.x) * step(.03, c.y); vec2 d = fract(vUv / .075) - .5; float dot2 = 1. - smoothstep(.16, .26, length(d)); diffuseColor.rgb *= mix(.5, 1., g) * mix(.72, 1.08, dot2); }"); };
+  tactMat.defines = { USE_UV: "" }; tactMat.customProgramCacheKey = () => "omTact1"; tactMat.userData.land = true;
+  const MARK = [markMat(0), markMat(1), markMat(2), markMat(3), asphMat, tactMat];
+  function buildMarks(Z, J, G) {
+    const B = [0, 1, 2, 3, 4, 5].map(() => ({ pos: [], uv: [], idx: [] }));
+    for (const w of J.w) { const hw = w[0]; if (hw < 2.5) continue; const P0 = []; for (let i = 1; i + 1 < w.length; i += 2) P0.push([w[i], w[i + 1]]); if (P0.length < 2) continue;
+      const cx = P0.reduce((a, p) => a + p[0], 0) / P0.length, cz = P0.reduce((a, p) => a + p[1], 0) / P0.length; if (!inside(Z.poly, cx, cz)) continue; const P = densify(P0, 3);
+      let TL = 0; for (let i = 1; i < P.length; i++) TL += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+      ribbon(P, hw * 2, .05, B[4].pos, B[4].uv, B[4].idx);   // 車道のアスファルト
+      for (const sg of [-1, 1]) ribbon(offsetLine(P, sg * (hw + .12)), .24, .16, B[3].pos, B[3].uv, B[3].idx);   // 縁石
+      if (hw >= 3.5) { ribbon(P, .15, .07, B[1].pos, B[1].uv, B[1].idx); for (const sg of [-1, 1]) ribbon(offsetLine(P, sg * (hw - .5)), .15, .07, B[0].pos, B[0].uv, B[0].idx); }
+      if (TL > 30) for (const end of [0, 1]) { const Q = end ? P.slice().reverse() : P; const seg = []; let acc = 0; for (let i = 0; i < Q.length; i++) { if (i) acc += Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]); if (acc >= 1.5) seg.push(Q[i]); if (acc > 5.5) break; }
+        if (seg.length > 1) { ribbon(seg, Math.max(2, hw * 2 - 1.4), .075, B[2].pos, B[2].uv, B[2].idx); for (const sg of [-1, 1]) { const T2 = offsetLine(seg.slice(0, 2), sg * (hw + .75)); ribbon(T2, .6, .17, B[5].pos, B[5].uv, B[5].idx); } } } }   // 横断歩道の両端の歩道に点字ブロック
+    B.forEach((b, k) => { if (!b.idx.length) return; const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(b.pos, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(b.uv, 2)); g.setIndex(b.idx); g.computeVertexNormals(); const m = new THREE.Mesh(g, MARK[k]); m.renderOrder = 1; m.name = "mark" + k; G.add(m); });
+  }
+  function buildStreet(Z, J, G, C) {
+    const blds = []; for (const k in J.b) for (const b of J.b[k]) { let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (let i = 1; i < b.length; i += 2) { x0 = Math.min(x0, b[i]); x1 = Math.max(x1, b[i]); z0 = Math.min(z0, b[i + 1]); z1 = Math.max(z1, b[i + 1]); } blds.push({ P: b.slice(1), x0, z0, x1, z1 }); }
+    const inB = (x, z) => blds.some(B => x > B.x0 - 1 && x < B.x1 + 1 && z > B.z0 - 1 && z < B.z1 + 1 && inside(B.P, x, z));
+    const trees = [], lamps = [], cap = mobile ? 60 : 160;
+    for (const w of J.w) { const hw = w[0]; if (hw < 4) continue; let acc = 7;
+      for (let i = 1; i + 3 < w.length; i += 2) { const ax = w[i], az = w[i + 1], bx = w[i + 2], bz = w[i + 3], dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz); if (L < 1) continue; const nx = -dz / L, nz = dx / L;
+        for (let t = acc; t < L; t += 13) { const px = ax + dx * t / L, pz = az + dz * t / L, n = Math.round(t / 13);
+          for (const sd of [1, -1]) { const x = px + nx * (hw + 1.6) * sd, z = pz + nz * (hw + 1.6) * sd; if (!inside(Z.poly, x, z) || inB(x, z) || (PK && inPark([0, x, z, x + .1, z, x, z + .1]))) continue;
+            if (n % 2 === 0 && trees.length < cap) trees.push([x, groundY(x, z), z, .34 + .08 * ((Math.sin(x * 3.1 + z) + 1) / 2)]); else if (lamps.length < cap / 2) lamps.push([x, groundY(x, z), z, Math.atan2(-nx * sd, -nz * sd)]); } }
+        acc = ((acc - L) % 13 + 13) % 13; } }
+    if (trees.length) C.lmTrees = (C.lmTrees || []).concat(trees);
+    if (lamps.length) { const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), P = new THREE.Vector3(), S = new THREE.Vector3(1, 1, 1);
+      for (const [geo, mat] of [[lampG.p, lampMat], [lampG.a, lampMat], [lampG.h, lampHead]]) { const im = new THREE.InstancedMesh(geo, mat, lamps.length); lamps.forEach(([x, y, z, r], i) => im.setMatrixAt(i, M4.compose(P.set(x, y, z), Q.setFromAxisAngle(Y, r - Math.PI / 2), S))); G.add(im); }
+      const sg = new THREE.PlaneGeometry(1.4, 1.4).rotateX(-Math.PI / 2), si = new THREE.InstancedMesh(sg, shadowMat, lamps.length); lamps.forEach(([x, y, z], i) => si.setMatrixAt(i, M4.makeTranslation(x, y + .04, z))); si.renderOrder = -1; G.add(si); }
+  }
   function buildLandmarks(Z, J, G) {
     const all = []; for (const k in J.b) for (const b of J.b[k]) { const L = lmAt(b); if (L) all.push([L, b]); }
     for (const [L, b] of all) { const P = polyOf(b); let y = 1e9; for (const p of P) y = Math.min(y, groundY(p.x, p.y));
@@ -306,6 +370,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     // 西口のデッキ（模式）：駅から西へ、2 階の高さで歩く人を渡す床と柱と手すり
     if (Z.id === "nishi") { const y = groundY(-745, 110) + 6.5, P = [[-780, 80], [-712, 80], [-712, 140], [-780, 140]].map(([x, z]) => new THREE.Vector2(x, z));
       G.add(gEx(P, y - 1.5, 1.5, 0, slabMat), extrude(P, y, .02, deckMat), gEx(P, y - 1.62, .12, -.01, metalMat));   /* 2026-10-27 夜：デッキに厚みと縁の梁 */
+      G.userData.lmTrees = (G.userData.lmTrees || []).concat([[-772, y, 88], [-772, y, 132], [-745, y, 88], [-745, y, 132], [-718, y, 88], [-718, y, 132]].map(([x, yy, z]) => [x, yy, z, .4]));   /* デッキの上の植栽（模式） */
       { const gy = groundY(-745, 110) + .05, sm = extrude(P, gy, .01, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .32, depthWrite: false }), .04); sm.renderOrder = -1; G.add(sm); }   /* デッキの下の地面の陰 */
       const cg = new THREE.CylinderGeometry(.5, .5, 6.5, 8); cg.translate(0, 3.25, 0); const pts = []; for (let x = -774; x <= -718; x += 14) for (let z = 86; z <= 134; z += 16) pts.push([x, z]);
       const cm = new THREE.InstancedMesh(cg, slabMat, pts.length), M4 = new THREE.Matrix4(); pts.forEach(([x, z], i) => cm.setMatrixAt(i, M4.makeTranslation(x, groundY(x, z) - .1, z))); G.add(cm); colShadows(G, pts);
@@ -352,7 +417,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   function dropChunk(id) {
     const C = A.chunks[id]; if (!C || !C.g) { delete A.chunks[id]; return; }
     onUnchunk?.(C);
-    const keep = new Set([colGhost, lmEdge, ghostWall, ghostRoof, ghostSolid, roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
+    const keep = new Set([...MARK, colGhost, lmEdge, ghostWall, ghostRoof, ghostSolid, roadMat, sandMat, ...GMATS, bldMat, roofMat, edgeMat, woodMat, shadowMat, grassMat, metalMat, deckMat, slabMat, leafMat, barkMat, glassMat]); C.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && !keep.has(o.material)) o.material.dispose(); }); world.remove(C.g); delete A.chunks[id];
   }
   function ensure(Z) {
     if (!Z.chunk) return Promise.resolve(null);
