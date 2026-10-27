@@ -138,7 +138,7 @@ async function boot(fig, kind) {
     cam.position.set(0, .2, 6);
     const per = 1.6, cyc = per * L.length + 9;
     tick = t => {
-      const tt = reduce ? cyc - 1 : t % cyc;
+      const tt = reduce ? cyc - 1 : ((t % cyc) + cyc) % cyc;
       panes.forEach((g, i) => { const k = Math.min(1, Math.max(0, (tt - i * per) / 1.1)); const e = k * k * (3 - 2 * k); const out = tt > cyc - .8 ? (cyc - tt) / .8 : 1;
         g.position.z = -1.6 + (g.userData.z + 1.6) * e; g.userData.m.material.opacity = .95 * e * out; g.userData.tint.material.opacity = .05 * e * out;
         const lab = labs[i]; if (lab) lab.style.opacity = (e * out).toFixed(2); });
@@ -244,8 +244,8 @@ async function boot(fig, kind) {
       v3.applyMatrix4(o.matrixWorld || new THREE.Matrix4()); v3.project(cam);
       let x = (v3.x * .5 + .5) * w, yy = (-v3.y * .5 + .5) * h; x = Math.max(56, Math.min(w - 56, x)); yy = Math.max(30, Math.min(h - 4, yy)); el.style.transform = `translate(${x}px,${yy}px) translate(-50%,${el.dataset.below ? '0' : '-100%'})`; }); }
   let vis = true, t0 = performance.now(), last = t0, raf = 0;
-  new IntersectionObserver(es => { vis = es[0].isIntersecting; if (vis && !raf && !reduce) raf = requestAnimationFrame(loop); }).observe(fig);
-  function frame(now) { const t = (now - t0) / 1000; tick(t, (now - last) / 1000); last = now; S.updateMatrixWorld(); place(); R.render(S, cam); }
+  new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; if (vis && !raf && !reduce) raf = requestAnimationFrame(loop); }).observe(fig);
+  function frame(now) { now = Math.max(now, performance.now()); const t = Math.max(0, (now - t0) / 1000); tick(t, (now - last) / 1000); last = now; S.updateMatrixWorld(); place(); R.render(S, cam); }
   function loop(now) { raf = 0; if (!vis || document.hidden) return; frame(now); raf = requestAnimationFrame(loop); }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && vis && !raf && !reduce) raf = requestAnimationFrame(loop); });
   frame(performance.now() + 4000); fig.classList.add('on');
