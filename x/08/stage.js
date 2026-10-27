@@ -98,7 +98,7 @@ setTimeout(async () => {
   try { const K = await import("./kit/aoi.js"); aoi = await K.loadAoi(AOI_URL, { scene, wind: .3, posture: "natural", quality: mobile ? "mid" : "auto" }); aoi.place(0, 0, 0); }
   catch (e) { console.warn("碧：", e?.message ?? e); }
 }, 400);
-let singing = false, gT = 1.5, gi = 0;
+let singing = false, gT = 1.5, gi = 0, lT = 0;
 const sing = on => { if (!aoi || on === singing) return; singing = on;
   if (on) aoi.motion.speak({ dur: Math.max(5, (v.duration || 105) - v.currentTime), level: () => level, autoGesture: true });
   else aoi.motion.stopSpeaking(); };
@@ -153,6 +153,11 @@ const loop = now => {
   if (aoi && playing) { gT -= dt; if (gT <= 0 && L > .35) { gT = 4 + rnd() * 3; const k = gi++ % 4, a = view.az + (k - 1.5) * .7;
       const tgt = k === 1 ? new THREE.Vector3(0, 4.5, 2) : new THREE.Vector3(Math.sin(a) * 4, k === 3 ? .3 : 1.7, Math.cos(a) * 4);
       aoi.motion.point(tgt, 2.2); aoi.motion.express(L > .6 ? "smile" : "warm", .7, 2.5); } }
+  // しぐさの合間も止まらない：1.2〜2.2 秒ごとに目線の先（聴く人・空・杜の奥）を移し、体の向きを少し揺らす
+  if (aoi && playing) { lT -= dt; if (lT <= 0) { lT = 1.2 + rnd(); const k = rnd(), a = view.az + (rnd() - .5) * 1.2;
+      aoi.motion.lookAt(k < .45 ? null : new THREE.Vector3(Math.sin(a) * 6, k < .75 ? 3.5 + rnd() * 2 : 1.4, Math.cos(a) * 6));
+      aoi.motion.faceTo(view.az + (rnd() - .5) * .5); } }
+  else if (aoi && lT !== 0) { lT = 0; aoi.motion.lookAt(null); aoi.motion.faceTo(null); }
   if (aoi) aoi.tick(dt, camera);
   fit.frame(ms);
   renderer.render(scene, camera);
