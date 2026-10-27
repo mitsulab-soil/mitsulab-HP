@@ -19,7 +19,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261026y";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261027r";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -1398,8 +1398,8 @@ function openObj(L) {
   if (o.sho) return openSho(L);
   if (o.rk) return openRakugo(L);
   const sp = o.sp ? D.sight.find(s => s.id === o.sp) : null;
-  openPanel({ color: g.color, layer: `${String(layerNo(o.layer)).padStart(2, "0")}　${g.name}`, title: o.title, lines: o.lines, more: o.more, src: o.src, ll: o.ll, note: o.note,
-    how: o.how === "研究の知見" ? "研究の知見（ほかの場所で調べられたこと）" : "記録（公的な資料・神社の由緒・樹木調査など）",
+  openPanel({ color: g.color, layer: `${String(layerNo(o.layer)).padStart(2, "0")}　${g.name}${o.how && o.how !== "記録" ? "　·　" + o.how : ""}`, title: o.title, lines: o.lines, more: o.more, src: o.src, ll: o.ll, note: o.note,
+    how: o.how === "研究の知見" ? "研究の知見（ほかの場所で調べられたこと）" : o.how === "計算" ? "計算（国土地理院の標高データから求めた値）" : o.how === "伝え" ? "伝え（神社などが伝える由来。史実と確かめられたものではない）" : o.how === "仮説" ? "仮説（測った値からの見方。確かめていない）" : "記録（公的な資料・神社の由緒・樹木調査など）",
     figs: sp ? EXP_FIG[sp.fig] || "" : "", buttons: sp && BODY_D[sp.id] ? [{ label: `${sp.name}になる`, primary: true, run: () => enterSight(sp, L) }] : [] });
   if (o.seg) TALK.spoken.add(o.seg);
   speakLines(o.lines, L);
@@ -1413,7 +1413,7 @@ function sessionStorageGet(k) { try { return sessionStorage.getItem(k); } catch 
 function sessionStorageSet(k, v) { try { sessionStorage.setItem(k, v); } catch { } }
 function stopVoice() { voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
 function speakLines(lines, L, opt = {}) {
-  stopVoice(); const q = lines.filter(l => l.f || !soundOn); voiceQ = { q, i: 0, L, talk: opt.talk || null, done: opt.done || null };
+  stopVoice(); const q = lines.slice();   // 2026-10-27 声のない典拠つきの一行も字幕で出す voiceQ = { q, i: 0, L, talk: opt.talk || null, done: opt.done || null };
   if (L && AOI.m) { const p = L.glyph.getWorldPosition(new THREE.Vector3()), P = AOI.root?.position;
     // 物が碧から見て見る人と反対の側にあるときは、物へ振りむかず、見る人の方を向いて話す（背を向けて話さない）
     if (P && Math.abs(wrap(Math.atan2(p.x - P.x, p.z - P.z) - Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z))) > 1.1) { AOI.m.lookAt(camera.position.clone()); AOI.focus = null; }
