@@ -150,10 +150,11 @@ const loop = now => {
   dust.userData.update(dt * m);
   trunkMat.opacity = .05 + L * .12; treeLineMat.opacity = .3 + L * .45; tipMat.opacity = .5 + L * .5;
   // 歌のしぐさ：声の強いところで、空・杜・聴く人へ手をひらく（4〜7 秒ごと）。表情も声に合わせて
-  if (aoi && playing) { gT -= dt; if (gT <= 0 && L > .2) { gT = 2.6 + rnd() * 1.6; const k = gi++ % 4, a = view.az + (k - 1.5) * .7;
+  if (aoi && playing) { gT -= dt; if (gT <= 0 && L > .2) { gT = L > .5 ? 2.6 + rnd() * 1.6 : 4.5 + rnd() * 2.5;   /* 静かなところはゆっくり、強いところは多く */ const k = gi++ % 4, a = view.az + (k - 1.5) * .7;
       // 腕を真横へ伸ばさない：聴く人のいる前の斜め下・前の斜め上へ（肘がゆるむ近さ）
       const a2 = view.az + (k - 1.5) * .35, tgt = k === 1 ? new THREE.Vector3(Math.sin(view.az) * 2.2, 3.2, Math.cos(view.az) * 2.2) : new THREE.Vector3(Math.sin(a2) * 2.2, k === 3 ? .5 : 1.05, Math.cos(a2) * 2.2);
-      aoi.motion.point(tgt, 2.2); aoi.motion.express(L > .6 ? "smile" : "warm", .7, 2.5); } }
+      if (L < .4) tgt.set(Math.sin(view.az) * 1.1, 1.15 + rnd() * .2, Math.cos(view.az) * 1.1);   /* 静かなところは胸の前で小さく */
+      aoi.motion.point(tgt, L < .4 ? 1.6 : 2.2); aoi.motion.express(L > .6 ? "smile" : "warm", .7, 2.5); } }
   // しぐさの合間も止まらない：1.2〜2.2 秒ごとに目線の先（聴く人・空・杜の奥）を移し、体の向きを少し揺らす
   if (aoi && playing) { lT -= dt; if (lT <= 0) { lT = 1.2 + rnd(); const k = rnd(), a = view.az + (rnd() - .5) * 1.2;
       aoi.motion.lookAt(k < .45 ? null : new THREE.Vector3(Math.sin(a) * 6, k < .75 ? 3.5 + rnd() * 2 : 1.4, Math.cos(a) * 6));

@@ -228,7 +228,7 @@ function webSprite(text) {
 function buildWeb() {
   const byId = Object.fromEntries(items.map(x => [x.id, x]));
   for (const A of ACTORS) {
-    if (MOBILE) A.p = [A.p[0] * .55, A.p[1], A.p[2] * .8];   /* スマホは印を内側へ（画面の端で札が切れない） */
+    if (MOBILE && A.id !== "water") A.p = [A.p[0] * .55, A.p[1], A.p[2] * .8];   /* 水は池の上のまま */   /* スマホは印を内側へ（画面の端で札が切れない） */
     const g = new THREE.Group(); g.position.set(...A.p); const col = WEB_C[A.id];
     const core = new THREE.Mesh(new THREE.SphereGeometry(.16, 16, 12), new THREE.MeshBasicMaterial({ color: col, toneMapped: false }));
     const ring = new THREE.Mesh(new THREE.RingGeometry(.3, .345, 40), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .7, side: THREE.DoubleSide, toneMapped: false, depthWrite: false }));
@@ -262,7 +262,7 @@ function pickActor(h) {
   if (!web.sel) { say("つながりの表示を戻しました。", 2500); return; }
   const mine = web.rels.filter(r => r.a === h.id || r.b === h.id);
   say(MOBILE ? `${h.name} ── ${mine[0].t}。ほか ${mine.length - 1} 本（目録の「つながり」に典拠）` : `${h.name} ── ` + mine.map(r => r.t).join("。 ") + "。（目録の「つながり」から、それぞれの典拠をひらけます）", 9000 + mine.length * 1500);
-  if (aoi) { const g = new THREE.Vector3(h.v.x, 0, h.v.z), d = g.length(); if (d > 1.5) g.multiplyScalar(Math.min(R - 1, d) / d); g.multiplyScalar(.72); aoi.walkTo(g); } /* アクターと中心のあいだ（札の手前に立たない） */   // 触れたアクターのそばへ歩いて、指す
+  if (aoi) { const g = new THREE.Vector3(h.v.x, 0, h.v.z), d = g.length(); if (d > 1.5) g.multiplyScalar(Math.min(R - 1, d) / d); g.multiplyScalar(.72); g.x += .6; aoi.walkTo(g); } /* アクターと中心のあいだ（札の手前に立たない） */   // 触れたアクターのそばへ歩いて、指す
   aoi?.motion.point?.(h.v, 3.2); aoi?.motion.lookAt(h.v); aoi?.motion.express("curious", .5, 2);
 }
 function webTick(dt) {
