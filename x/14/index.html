@@ -10,9 +10,9 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261028d" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261028d" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261028d" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261028w" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261028w" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261028w" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
@@ -27,7 +27,7 @@
 <link rel="modulepreload" href="web/app/ambience.js?v=1">
 <link rel="modulepreload" href="web/app/sounds.js?v=4">
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
-<link rel="preload" href="web/app/content.json?v=20261028d" as="fetch" crossorigin>
+<link rel="preload" href="web/app/content.json?v=20261028w" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -589,7 +589,7 @@ body[data-mode="walk"] #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 62p
   <details class="ml-fold"><summary>出典・クレジット</summary>
   <p class="small" id="credit"></p>
   <p class="small">3D の表示：three.js（MIT）／碧の 3D の表示：@pixiv/three-vrm（MIT）／碧の 3D：© mitsulab（VRoid Studio。アバターとして使えるのは作者のみ・再配布不可・改変不可）／声：VOICEVOX:冥鳴ひまり／碧の動き：CMU Graphics Lab Motion Capture Database をもとにした共通部品。</p></details>
-  <p class="small">© 2026 mitsulab. All rights reserved. 無断の複製・転載・改変と、AI の学習・生成への利用はお断りします。日本語版 Wikipedia をもとにした文（CC BY-SA 4.0）は、その条件に従います。</p>
+  <p class="small">© 2026 mitsulab. All rights reserved. 無断の複製・転載・改変と、AI の学習・生成への利用はお断りします。</p>
 </nav>
 <audio id="voice" preload="none" playsinline></audio>
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>

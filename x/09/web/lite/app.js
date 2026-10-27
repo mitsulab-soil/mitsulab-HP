@@ -21,7 +21,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261028b";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261028w";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -2385,7 +2385,7 @@ QW.sky = SKY;
 
 function fillMenu() {
   $("#about").textContent = D.about; $("#aoiNote").textContent = "碧（あおい）は、この作品の案内役です。歩くあいだ、いまいる所に結びついた記録を話しつづけます（字幕の「出典」から典拠を開けます）。碧の姿：mitsulab（VRoid）／声：VOICEVOX:冥鳴ひまり。";
-  $("#credit").textContent = "地形：国土地理院 標高タイル（DEM5A）・全国最新写真（シームレス）を mitsulab が加工／建物：国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工（形と高さ。窓と階の並びは模式）／道・木・鳥居・池の位置と、地図の道・公園・社寺の名前：© OpenStreetMap contributors（ODbL）／等高線：国土地理院 DEM5A から mitsulab が計算／舗装・樹皮・葉の質感：Poly Haven・ambientCG（CC0）／樹木の話：さいたま市・氷川の杜まちづくり協議会『氷川参道の樹木調査』・環境省 巨樹・巨木林データベース・日本語版 Wikipedia（CC BY-SA 4.0）／歴史と文化の話：武蔵一宮氷川神社「由緒・歴史」「境内のご案内」「年間の祭典」・さいたま市・さいたま市立博物館・埼玉県立歴史と民俗の博物館・与野郷土資料館・埼玉県・国土地理院（それぞれの物と碧の話の「出典」に）／生きものの話：日本語版 Wikipedia（CC BY-SA 4.0）・iNaturalist の投稿者のみなさん（種の名前）・研究論文（それぞれの「出典」に）／Qualia/sound の音：［ほかの場所で録った同じ種類の音］風に鳴る葉（Gravity Sound・CC BY 4.0・録音地の記載なし）・スズメ（Derek Paulo・CC BY-SA 4.0・フィリピン）・アブラゼミ（Cory・CC BY 2.1 JP・日本）・ハシブトガラス（Zeimusu・CC BY-SA 2.5・日本）＝いずれも Wikimedia Commons／［再現音］元往還の人と馬・中の区間の車・玉砂利・神池のしずく＝記録にもとづいて端末の中で組み立てた音／［詩の音］mitsulab のことばから組み立てた音／Qualia/touch：面＝この作品の路面と同じ Poly Haven・ambientCG の写真（CC0）、手ざわりと音は端末の中で組み立てた模式／層の物とグラスの形：mitsulab（three.js の基本形で作成）";
+  $("#credit").textContent = "地形：国土地理院 標高タイル（DEM5A）・全国最新写真（シームレス）を mitsulab が加工／建物：国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工（形と高さ。窓と階の並びは模式）／道・木・鳥居・池の位置と、地図の道・公園・社寺の名前：© OpenStreetMap contributors（ODbL）／等高線：国土地理院 DEM5A から mitsulab が計算／舗装・樹皮・葉の質感：Poly Haven・ambientCG（CC0）／樹木の話：さいたま市・氷川の杜まちづくり協議会『氷川参道の樹木調査』・環境省 巨樹・巨木林データベース／歴史と文化の話：武蔵一宮氷川神社「由緒・歴史」「境内のご案内」「年間の祭典」・さいたま市・さいたま市立博物館・埼玉県立歴史と民俗の博物館・与野郷土資料館・埼玉県・国土地理院（それぞれの物と碧の話の「出典」に）／生きものの話：iNaturalist の投稿者のみなさん（種の名前）・研究論文（それぞれの「出典」に）／Qualia/sound の音：［ほかの場所で録った同じ種類の音］風に鳴る葉（Gravity Sound・CC BY 4.0・録音地の記載なし）・スズメ（Derek Paulo・CC BY-SA 4.0・フィリピン）・アブラゼミ（Cory・CC BY 2.1 JP・日本）・ハシブトガラス（Zeimusu・CC BY-SA 2.5・日本）＝いずれも Wikimedia Commons／［再現音］元往還の人と馬・中の区間の車・玉砂利・神池のしずく＝記録にもとづいて端末の中で組み立てた音／［詩の音］mitsulab のことばから組み立てた音／Qualia/touch：面＝この作品の路面と同じ Poly Haven・ambientCG の写真（CC0）、手ざわりと音は端末の中で組み立てた模式／層の物とグラスの形：mitsulab（three.js の基本形で作成）";
   $("#music").textContent = "";
 }
 /* 左の層の板：一枚が一つの情報の層。触れると表示・非表示。板の色＝風景に重ねた物の色 */
