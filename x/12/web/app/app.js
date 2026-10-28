@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
-import { makeWorldLayers } from "./worldlayers.js?v=w8";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w9";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -902,16 +902,18 @@ function openObj(L) {
    語りの終わりに、答えでなく次の印への問いを置く（歩くと分かる）。表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。大宮と同じ（共通の基準）。 */
 /* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
 let WL = null;
-function startWL() { if (WL) return; QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); }, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
-const WL_HINT = { done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
+function startWL() { if (WL) return; QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h }], null); return; } const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
+let ASKN = -1;
 function nextMarkAsk(L) {
   const cp = camera.position, fw = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); let best = null, bd = 1e9;
   for (const M of LAYER.objs) { if (M === L || M.qHide || !M.root?.visible) continue; const dx = M.o.x - cp.x, dz = M.o.z - cp.z, d = Math.hypot(dx, dz); if (!(d >= 12 && d <= 120)) continue; const fr = (dx * fw.x + dz * fw.z) / d, sc = d - fr * 25; if (sc < bd) { bd = sc; best = { d, dx, dz, fr }; } }
   if (!best) return null; const side = best.dx * -fw.z + best.dz * fw.x;
   const dir = best.fr > .7 ? "この先" : best.fr < -.5 ? "うしろ" : side > 0 ? "右手" : "左手";
-  return `${dir}、${Math.round(best.d / 5) * 5} m ほどの所には、何が重なっているでしょう。`;
+  const m = Math.round(best.d / 5) * 5, Q = [`${dir}、${m} m ほどの所には、何が重なっているでしょう。`, `${dir} ${m} m ほど。そこでは、何が見えてくるでしょう。`, `${dir}の、${m} m ほど先。足を止めてみたくなる所があります。`, `${dir}、${m} m ほど。そこに、何が残っているでしょう。`];
+  ASKN = (ASKN + 1) % Q.length; return Q[ASKN];   // 10-28 晩：同じ言い方が続かないように（答えは言わない）
 }
 /* 10-28 午後 本人承認「歩きながら時間が重なる」：昔の姿を語るあいだ（年号・時代の語がある記録だけ）、景色の色をゆっくり古い写真の色へ寄せ、語り終えると戻す。形は足さない（典拠のない昔の形を作らない） */
 const PAST_RE = /江戸|明治|大正|昭和|享保|元禄|宝暦|寛永|天保|慶長|中世|縄文|弥生|古墳|[0-9０-９]+\s*年(前|ごろ|に)|かつて|昔は|むかし/;
@@ -938,8 +940,9 @@ function narrate(L, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
   startWL(); const rel = how === "cont" ? null : WL?.related(L); WL?.focus(L); WL?.follow(L, rel?.M || null);   // 線の先へ歩くと、続きを語る
   if (how === "micro" || how === "micro-far") { const t0 = how === "micro" ? "足もとの、小さなものの話です。" : "少し先の、小さなものの話です。"; lines.unshift({ t: t0, tc: t0 }); } else if (how === "cont" && from) { const t0 = `さっきの「${from.o.title}」と、同じ資料に書かれた話です。`; lines.unshift({ t: t0, tc: t0 }); } else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
   let tail = sp ? `${sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
-  if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } tail = (tail ? tail + "\n" : "") + "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; }
+
   if (tail) lines.push({ t: tail, tc: tail });
+  if (!WL_HINT.done && ++WL_HINT.n >= 1) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; lines.push({ t: h, tc: h }); }   /* 静かな間を待たず、最初の語りの終わりに知らせる（静かな間が来れば、そこで） */
   pastTint(lines);
   speakLines(lines, L, { narr: true, done: () => { WL?.focus(null); if (NARR.L === L) { NARR.L = null; if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } } });
 }
