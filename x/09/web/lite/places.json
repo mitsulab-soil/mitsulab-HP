@@ -6797,40 +6797,6 @@
    ]
   },
   {
-   "id": "s_tr7_hinoki",
-   "layer": "nature",
-   "sub": "trees",
-   "title": "並木の一本（ヒノキの見分け）",
-   "ll": [
-    139.6311842,
-    35.9061355
-   ],
-   "x": 16.61,
-   "z": 123.23,
-   "d": 905.3,
-   "lines": [
-    {
-     "t": "ヒノキの葉は、小さなうろこが重なったような形で、枝から平らにつきます。触っても痛くありません。"
-    },
-    {
-     "t": "よく似たスギの葉は、枝から立体的につき、とげのようにとがっていて、触ると痛いのです。"
-    }
-   ],
-   "more": [],
-   "note": null,
-   "how": "記録",
-   "src": [
-    {
-     "t": "国土交通省 六甲砂防事務所『樹木ハンドブック』（2014年12月 第2版）常緑広葉樹・針葉樹（PDF）",
-     "u": "https://www-1.kkr.mlit.go.jp/rokko/pr_media/plant/group/info/pdf/syoku-65.pdf"
-    },
-    {
-     "t": "さいたま市・氷川の杜まちづくり協議会『氷川参道の樹木調査』（令和4年3月改訂）PDF",
-     "u": "https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf"
-    }
-   ]
-  },
-  {
    "id": "s_tr9_enoki_me",
    "layer": "nature",
    "sub": "trees",
