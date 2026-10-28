@@ -939,7 +939,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.9 : 3.5, s = MOBILE ? 0 : 1.25,   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
+  const f = MOBILE ? 4.9 : 3.5, s = MOBILE ? 0 : 1.25,   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const side = MOBILE ? -1 : !$("#panel").hidden ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
@@ -962,7 +962,7 @@ function stepAoi(dt) {
   aoiSpot(_ap); const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
   if (dist > 18) { AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
-    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .55;   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
+    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(2.8, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v += Math.max(-1.8 * dt, Math.min(1.0 * dt, want - AOI.v));
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }

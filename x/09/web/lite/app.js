@@ -384,9 +384,12 @@ function buildBuildings(g) {
         float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.1, 2.)) * (1. - roof);
         float fade = mix(mix(1., .18, smoothstep(80., 380., dist)), mix(1., .6, smoothstep(140., 760., dist)), uSky);   /* 10-28 夜 5：歩くとき遠くの建物を早めに消す（遠くが白く浮いていた） */
         diffuseColor.rgb = mix(vec3(.25,.35,.43), vec3(.36,.66,.78), fr * .7 + band * .7 + fl * nr * .6) * (roof > .5 ? 1.1 : 1.);
-        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.62, .4, uSky); }`);   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
+        { float sh = roof > .5 ? 1. : .62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))));   // 10-28 夜 8：歩くときは、データの層を「沈んだ青灰の面＋細い走査線」に描き直す（白く浮かない・面の向きで明暗）
+          vec3 wc = vec3(.13, .18, .22) * sh + vec3(.2, .45, .55) * (fl * nr * .7 + band * .5) + vec3(.1, .2, .24) * fr * .5;
+          diffuseColor.rgb = mix(wc, diffuseColor.rgb, uSky); }
+        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(2.3, .4, uSky); }`);   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };
-  m.customProgramCacheKey = () => "bldGhost2";
+  m.customProgramCacheKey = () => "bldGhost3";
   const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
   lm.onBeforeCompile = sh => { vs(sh);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
@@ -922,7 +925,7 @@ function tweenTo(pos, yaw, pitch, dur, done, arc = 0) {
 }
 const _fa = { c: new THREE.Color(), n: 0, f: 0 };
 function stepTween(dt) {
-  if (!tween) return false; tween.t += dt / tween.dur; const k = ease(Math.min(1, tween.t));
+  if (!tween) return false; tween.t = Math.max(tween.t + Math.min(dt, .05) / tween.dur, (performance.now() - (tween.s ??= performance.now())) / 1000 / tween.dur);   /* 10-28 夜 8：こまが遅い端末でも、動く時間を実時間で決める */ const k = ease(Math.min(1, tween.t));
   if (tween.fog) { const [a, b] = tween.fog; _fa.c.copy(a.c).lerp(b.c, k); _fa.n = a.n + (b.n - a.n) * k; _fa.f = a.f + (b.f - a.f) * k; applyFog(_fa); }
   camera.position.lerpVectors(tween.p0, tween.p1, k); camera.position.y += Math.sin(k * Math.PI) * tween.arc;   // 弧を描いて動く（まっすぐ落ちない）
   camera.quaternion.slerpQuaternions(tween.q0, tween.q1, Math.min(1, k * 1.1));
@@ -1347,7 +1350,7 @@ function stepLayer(dt) {
     L.lm.opacity = .95 * op; L.fm.opacity = .12 * op; L.bm.opacity = .5 * op * (sky ? 1 : Math.min(1, Math.max(0, (dist - 1.5) / 4))); L.tm.opacity = .75 * op;   // すぐそばでは光の柱を消す（目の前をふさがない）
     L.glow.material.opacity = (.42 + .14 * Math.sin(t * 1.6 + L.o.x)) * op; L.glow.scale.setScalar(.5 + L.open * .3);
     // 名札：近くに来たら（歩く・生きものの高さ）
-    const near = !sky && !flyish && dist < LABEL_R;
+    const near = !sky && !flyish && M !== "descend" && dist < LABEL_R;   /* 10-28 夜 8：降りているあいだは札を出さない（着く直前に札が重なって見えた） */
     if (near && !L.label) { L.label = makeLabel(layerNo(L.o.layer), GL[L.o.layer].name, L.o.title, GL[L.o.layer].color); L.label.position.set(.5, .66, 0); L.label.userData.by = .66; L.label.material.depthTest = false; L.label.renderOrder = 9; L.glyph.add(L.label); }   // 札は木に隠さない（重なりは placeLabels で避ける）
     if (L.label) { L.label.visible = near && !L.qHide; L.label.material.opacity = Math.min(1, (LABEL_R - dist) / 6) * op; const gs = L.glyph.scale.x || 1, fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 54 : 84) * Math.max(1, dist) / fpx, k = wh / .4 / gs; L.label.scale.set(1.6 * k, .4 * k, 1); }   // 2026-10-26 15：札は画面の上でいつも同じ大きさ（名前の字が PC 約 25px・スマホ約 20px の明朝）
   }
@@ -1586,8 +1589,8 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
   for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 5.0 : 3.3, s = MOBILE ? .62 : 1.3;   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
-  const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);
+  const f = MOBILE ? 5.0 : 3.3, s = MOBILE ? .32 : 1.3;   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
   if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); aoiOffRoad(out, rx, rz); return out; }
@@ -1606,13 +1609,15 @@ function aoiArrive() {
 }
 function hintQ() { }
 const _ap = new THREE.Vector3();
+const _ndc = new THREE.Vector3();
 function stepAoi(dt) {
   if (!AOI.m || !AOI.root.visible) return;
   aoiSpot(_ap);
   const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
   if (dist > 18) { AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
-    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : 1.3);
+    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;   /* 10-28 夜 8：375px で碧が画面の端に寄ったら、立ち位置へ戻る（川越・渋谷と同じ） */
+    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3);
     const want = go ? Math.min(2.9, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.8) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
