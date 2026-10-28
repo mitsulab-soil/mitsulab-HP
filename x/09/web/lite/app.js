@@ -22,7 +22,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261028m";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261028n";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -183,6 +183,7 @@ let pPhoto = null; const photoP = () => pPhoto || (pPhoto = texP(BASE + "tex/" +
 const VEIL = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.ShaderMaterial({ uniforms: { opacity: { value: 0 }, uC: { value: NAVY } }, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false,
   vertexShader: "varying float vY; void main(){ vY = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
   fragmentShader: "uniform float opacity; uniform vec3 uC; varying float vY; void main(){ gl_FragColor = vec4(uC, opacity * mix(1., .22, smoothstep(-.16, .05, vY))); \n#include <colorspace_fragment>\n}" })); VEIL.renderOrder = -10; VEIL.visible = false; VEIL.frustumCulled = false; scene.add(VEIL);
+const MAPV = .32;   /* 2026-10-28 本人：3D 地図は航空写真の地に、淡い線と面を重ねる（暗い電脳の地にしない） */
 const CYBER = { v: { value: 1 }, scan: { value: 0 } };   // 3D 地図の地面：暗い地に細い格子・等高線・ゆっくり流れる光の走査（1＝地図・0＝歩く）
 const pSky = texP(BASE + "tex/sky.webp");
 const pBld = glb(BASE + "buildings.glb");
@@ -815,7 +816,7 @@ function buildStarts() {
   START.sp.show(QW.mode === "sky"); { const h = $("#skyHere"); if (h) h.style.display = "none"; }
 }
 function selectStart(i) {
-  START.sel = i; if (START.sp && START.sp.sel !== i) START.sp.select(i);
+  START.sel = i; /* 印の選択（札と 2 回目で歩く）は、人が印を押したときだけ（startpins）。ここでは動かさない */
   START.pins.forEach((p, k) => { const on = k === i; p.col.material.color.set(on ? PICK : "#9bdcf0"); p.col.material.opacity = on ? 1 : .2; p.ring.material.color.set(on ? PICK : "#9bdcf0"); p.ring.material.opacity = on ? 1 : .35; p.ring.scale.setScalar(on ? 1.8 : .8); p.head.material.color.set(on ? PICK : "#7f9aa6"); p.head.scale.set(on ? 1.3 : .75, on ? 1.95 : 1.1, on ? 1.3 : .75); });   // 選んでいる所は濃く、ほかは薄く
   document.querySelectorAll(".stBtn").forEach((b, k) => b.setAttribute("aria-pressed", k === i ? "true" : "false"));
   START.labels.forEach((l, k) => l.classList.toggle("on", k === i));
@@ -900,8 +901,8 @@ function setMode(m) {
   if (START.group) START.group.visible = sky;
   MGUIDE?.show(sky);   /* 地図の案内は 3D 地図のときだけ（歩くときに淡い面が視界を覆わない） */
   showMapLayer(sky);
-  if (QW.skyTex && !sight) scene.background = sky ? NAVY : QW.skyTex;   // 3D 地図は暗い地（電脳の地図）
-  if (sky && scene.fog) scene.fog.color.copy(NAVY);
+  if (QW.skyTex && !sight) scene.background = QW.skyTex;   // 3D 地図は暗い地（電脳の地図）
+  
   updateTrees(true);
   $("#modeWalk").setAttribute("aria-pressed", walk || sight); $("#modeFly").setAttribute("aria-pressed", fly); $("#modeSky").setAttribute("aria-pressed", sky);
   if (AOI.root) AOI.root.visible = walk && AOI.ready;
@@ -2464,8 +2465,8 @@ function frame() {
   updateTrees(); VEG.time.value += dt; updateVeg(); if (!RM) BLDU.t.value += dt; BLDU.g.value = QW.mode === "walk" || QW.mode === "sight" ? groundY(camera.position.x, camera.position.z) : -1e4; stepEdges(); stepHiyo(dt); stepMimi(dt); stepBats(dt); stepBody(dt);
   if (BLD.length) { const cp = camera.position, far = QW.mode === "walk" || QW.mode === "sight" ? (MOBILE ? 320 : 430) : 1e9; for (const b of BLD) { const s = b.userData.ws; b.visible = Math.hypot(s.center.x - cp.x, s.center.z - cp.z) - s.radius < far; } }
   if (STONES.length && QW.mode !== "sky") { const cp = camera.position; for (const r of STONES) { const s = r.userData.ws; r.visible = s.center.distanceTo(cp) - s.radius < 160; } }
-  { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? 1 : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2);
-    if (QW.skyTex && m !== "sight") { const vt = m === "sky" || m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp(NAVY, CYBER.v.value); } else VEIL.visible = false; CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
+  { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2);
+    if (QW.skyTex && m !== "sight") { const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp(NAVY, CYBER.v.value); } else VEIL.visible = false; CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
   if (PARK.uT && !RM) PARK.uT.value += dt;
   stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);

@@ -130,8 +130,8 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   A.update = (dt, mode) => {
     if (!A.ready) return;
     A.t += dt; const sky = mode === "sky", walk = mode === "walk" || mode === "sight" || mode === "fly";
-    A.fills.visible = sky; labBox.hidden = !sky; if (sky) stepLabels();
-    A.curtains.visible = mode === "walk" || mode === "descend";
+    A.fills.visible = false; labBox.hidden = true;   /* 2026-10-28 本人「エリア分けは不要」 */
+    A.curtains.visible = false;
     const cp = camera.position;
     for (const m of A.curtains.children) { const u = m.material.uniforms; u.uT.value = rm ? 0 : A.t; u.uCam.value.copy(cp); u.uK.value = mode === "descend" ? .25 : .32; }
     if (tagT < 1e8 && (tagT -= dt) < 0) tag.classList.remove("on");

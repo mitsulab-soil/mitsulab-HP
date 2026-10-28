@@ -10,9 +10,9 @@
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261028w" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261028w" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261028w" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261028m" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261028m" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261028m" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
@@ -27,7 +27,7 @@
 <link rel="modulepreload" href="web/app/ambience.js?v=1">
 <link rel="modulepreload" href="web/app/sounds.js?v=4">
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
-<link rel="preload" href="web/app/content.json?v=20261028w" as="fetch" crossorigin>
+<link rel="preload" href="web/app/content.json?v=20261028m" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -266,6 +266,7 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 /* 上空：始める場所。箱をやめ、下の端からうすく暗くした上に、角の枠と線 */
 #skyUI{padding-bottom:max(12px,env(safe-area-inset-bottom))}
 #skyUI::before{content:"";position:fixed;left:0;right:0;bottom:0;height:min(330px,52vh);background:linear-gradient(to top,rgba(3,6,15,.62),rgba(3,6,15,.34) 55%,transparent);pointer-events:none;z-index:-1}
+#starts,#stMeter,#goDown,#skyUI h2,#skyUI .sub,#pinLabels{display:none!important}   /* 2026-10-28：始める場所は地図の上の印（共通部品）で選ぶ */
 #skyUI .card{background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;padding:14px 16px 10px;position:relative}
 #skyUI .card::before,#skyUI .card::after{border-color:var(--ml-aoi-2);opacity:.75;width:12px;height:12px}
 #skyUI h2,#skyUI .sub{text-shadow:var(--hud-sh)}

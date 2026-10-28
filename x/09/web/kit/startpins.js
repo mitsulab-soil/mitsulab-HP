@@ -70,7 +70,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
       if (goBtn) { goBtn.hidden = i < 0; goBtn.disabled = i < 0; if (i >= 0) goBtn.setAttribute("aria-label", pins[i].it.name + "から歩く"); }
       onSelect?.(i); },
     movePin(i, x, z) { const p = pins[i]; if (!p) return; p.it.x = x; p.it.z = z; p.P.position.set(x, groundY(x, z), z); },
-    show(on) { g.visible = on; layer.hidden = !on; if (!on) showCard(-1); },
+    show(on) { g.visible = on; layer.hidden = !on; if (!on) { showCard(-1); if (api.sel >= 0) api.select(-1); } },   /* 地図を離れたら選択も戻す（戻ったとき 1 回目でいきなり歩かない） */
     card() { return card && !card.hidden ? card.getBoundingClientRect() : null; },
     pick(x, y) { let b = -1, bd = (mobile ? 34 : 28) ** 2; pins.forEach((p, k) => { p.head.getWorldPosition(_v).project(camera); if (_v.z > 1) return; const sx = (_v.x + 1) / 2 * innerWidth, sy = (1 - _v.y) / 2 * innerHeight, d = (sx - x) ** 2 + (sy - y) ** 2; if (d < bd) { bd = d; b = k; } }); return b; },
     update(t = performance.now() / 1000, avoid = null) {
