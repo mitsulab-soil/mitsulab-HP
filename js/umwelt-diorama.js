@@ -41,7 +41,7 @@ export async function bootDiorama(fig, kind, labs) {
   const P = new THREE.Vector3(-.9, 0, .7), EYE = new THREE.Vector3(-.9, 1.58, .74), EAR = new THREE.Vector3(-.98, 1.52, .7), FOOT = new THREE.Vector3(-.9, .04, .8);
   // 届くもの・届かないもの の位置
   const TREE = new THREE.Vector3(1.6, 0, -.9), TRUNK = new THREE.Vector3(1.6, 1.1, -.9), BIRD = new THREE.Vector3(1.2, 3.1, -.6), FLOWER = new THREE.Vector3(.2, .42, 1.1);
-  const ROOTS = new THREE.Vector3(1.6, -.6, -.9), OLD = new THREE.Vector3(-1.4, -.32, 1.95), BAT = new THREE.Vector3(-.2, 2.9, -1.5), TORII = new THREE.Vector3(-2.1, 0, -1.4);
+  const ROOTS = new THREE.Vector3(1.6, -.6, -.9), OLD = new THREE.Vector3(-1.4, -.32, 1.95), BAT = new THREE.Vector3(-2.3, 1.7, 1.3), TORII = new THREE.Vector3(-2.1, 0, -1.4);
   const reached = new THREE.Group(), hidden = new THREE.Group(); stage.add(reached, hidden);
 
   // 花：色（届く）と、紫外線の模様（届かない＝花の上に淡い的として）
@@ -73,7 +73,12 @@ export async function bootDiorama(fig, kind, labs) {
     for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.BoxGeometry(.14, .01, .16), m); w.position.set(-.02, .03, s * .09); w.rotation.x = s * .5; bird.add(w); } }
   // 高すぎて聞こえない音（コウモリの超音波の模式・届かない）：細かい弧
   const ultra = new THREE.Group(); ultra.position.copy(BAT); stage.add(ultra);
-  for (let k = 1; k <= 5; k++) { const a = new THREE.Mesh(new THREE.TorusGeometry(k * .09, .006, 4, 32, 1.4), FAINT(new THREE.MeshBasicMaterial({ color: 0xa8f2f6 }), two)); a.rotation.z = -.7; ultra.add(a); }
+  { // 音の出どころ：小さなコウモリ（模式）。体と、膜の張った二枚の翼
+    const bm = new THREE.MeshStandardMaterial({ color: 0x8a8088, roughness: .85, side: THREE.DoubleSide }); const bat = new THREE.Group(); bat.position.set(-.3, -.02, 0); bat.scale.setScalar(2.2); ultra.add(bat);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(.05, 12, 8), bm); body.scale.set(1.5, .8, .8); bat.add(body);
+    const ws = new THREE.Shape(); ws.moveTo(0, 0); ws.lineTo(.26, .1); ws.lineTo(.24, .02); ws.lineTo(.18, -.03); ws.lineTo(.12, -.01); ws.lineTo(.06, -.05); ws.lineTo(0, -.03);
+    for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.ShapeGeometry(ws), bm); w.rotation.x = -Math.PI / 2 + .3 * s; w.rotation.y = s > 0 ? 0 : Math.PI; w.position.z = 0; w.scale.set(1, 1, 1); w.rotation.z = s * .2; bat.add(w); } }
+  for (let k = 1; k <= 5; k++) { const a = new THREE.Mesh(new THREE.TorusGeometry(k * .12, .009, 4, 32, 1.4), FAINT(new THREE.MeshBasicMaterial({ color: 0xa8f2f6 }), two)); a.rotation.z = -.7; a.rotation.y = .8; ultra.add(a); }
 
   // 人と欅（模型）
   (async () => { try {
@@ -104,21 +109,23 @@ export async function bootDiorama(fig, kind, labs) {
   if (two) {
     // 情報の層（地図のレイヤーのような、平らで透けた板）。下から 地形・歴史・生き物・音
     const L = [
-      [0x8fe3c8, (x, w, h) => { x.strokeStyle = '#8fe3c8'; x.lineWidth = 2; for (let k = 1; k < 10; k++) { x.beginPath(); for (let i = 0; i <= 100; i++) { const u = i / 100; const y = h * (k / 10) + Math.sin(u * 7 + k) * h * .03; i ? x.lineTo(u * w, y) : x.moveTo(0, y); } x.stroke(); } }],
-      [0xf2c56e, (x, w, h) => { x.strokeStyle = '#f2c56e'; x.lineWidth = 4; x.setLineDash([22, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .45, h * .1); x.stroke(); x.setLineDash([]); x.lineWidth = 3; x.strokeRect(w * .18, h * .05, w * .2, h * .12); }],
-      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 2; [[.78, .3], [.6, .78]].forEach(([u, v]) => { x.beginPath(); x.arc(u * w, v * h, 14, 0, 6.283); x.fill(); for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283; x.beginPath(); x.moveTo(u * w, v * h); x.lineTo(u * w + Math.cos(a) * 70, v * h + Math.sin(a) * 50); x.stroke(); } }); }],
-      [0xa8f2f6, (x, w, h) => { x.strokeStyle = '#a8f2f6'; x.lineWidth = 2.5; [[.12, .25], [.7, .2]].forEach(([u, v]) => { for (let k = 1; k <= 6; k++) { x.globalAlpha = 1 - k * .13; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1; }]];
+      [0x8fe3c8, (x, w, h) => { x.strokeStyle = '#8fe3c8'; x.lineWidth = 4; for (let k = 1; k < 10; k++) { x.beginPath(); for (let i = 0; i <= 100; i++) { const u = i / 100; const y = h * (k / 10) + Math.sin(u * 7 + k) * h * .03; i ? x.lineTo(u * w, y) : x.moveTo(0, y); } x.stroke(); } }],
+      [0xf2c56e, (x, w, h) => { x.strokeStyle = '#f2c56e'; x.lineWidth = 7; x.setLineDash([26, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .45, h * .1); x.stroke(); x.setLineDash([]); x.lineWidth = 5; x.strokeRect(w * .18, h * .05, w * .2, h * .12); }],
+      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3], [.6, .78]].forEach(([u, v]) => { x.beginPath(); x.arc(u * w, v * h, 14, 0, 6.283); x.fill(); for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283; x.beginPath(); x.moveTo(u * w, v * h); x.lineTo(u * w + Math.cos(a) * 70, v * h + Math.sin(a) * 50); x.stroke(); } }); }],
+      [0xa8f2f6, (x, w, h) => { x.strokeStyle = '#a8f2f6'; x.lineWidth = 5; [[.12, .25], [.7, .2]].forEach(([u, v]) => { for (let k = 1; k <= 6; k++) { x.globalAlpha = 1 - k * .13; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1; }]];
     L.forEach(([col, draw], i) => {
       const g = new THREE.Group(); g.position.y = layerYs[i]; stage.add(g);
-      const fill = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .1, depthWrite: false, side: THREE.DoubleSide })); fill.rotation.x = -Math.PI / 2; g.add(fill);
+      const fill = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .16, depthWrite: false, side: THREE.DoubleSide })); fill.rotation.x = -Math.PI / 2; g.add(fill);
       const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ map: canvasTex((x, w, h) => { draw(x, w, h); }, 768, 512), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide })); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
       const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W, .001, D)), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .9 })); g.add(e);
       layers.push(g);
     });
     // 層を通してつながる：人→層→（届かなかったもの）。縦の線は層への出入り
+    // 人の頭から一本の幹で層へ上がり、各層の上を水平に進んで、届かなかったものの真上から降りる
+    const top = new THREE.Vector3(EYE.x, layerYs[layerYs.length - 1], EYE.z); lineTo(EYE, top, 0xffffff, false); dot(top, 0xffffff);
     const via = (layerI, target, col) => { const y = layerYs[layerI]; const up = new THREE.Vector3(EYE.x, y, EYE.z), dn = new THREE.Vector3(target.x, y, target.z);
-      lineTo(EYE, up, col, true); lineTo(up, dn, col, true); lineTo(dn, target, col, true); dot(up, col); dot(dn, col); dot(target, col); };
-    via(0, ROOTS, 0x8fe3c8); via(1, OLD, 0xf2c56e); via(2, FLOWER.clone().setY(.46), 0xc9b8ff); via(3, BAT, 0xa8f2f6);
+      lineTo(up, dn, col, false); lineTo(dn, target, col, true); dot(up, col); dot(dn, col); dot(target, col); };
+    via(0, ROOTS, 0x8fe3c8); via(1, OLD, 0xf2c56e); via(2, FLOWER.clone().setY(.46), 0xc9b8ff); via(3, BAT.clone().add(new THREE.Vector3(-.75, .12, 0)), 0xa8f2f6);
   }
 
   // 札の置き場（図の下に並べるので、ここでは使わない）
