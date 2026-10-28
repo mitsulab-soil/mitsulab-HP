@@ -69,7 +69,7 @@ export function makeWorldLayers(THREE, scene, opt) {
       const gy = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6;
       micro.visible = mk > .02; if (micro.visible) { micro.position.set(cam.position.x, gy, cam.position.z); micro.material.opacity = .7 * mk; micro.rotation.y += dt * .05; }
       skyR.visible = Mk > .02; if (skyR.visible) { skyR.position.set(cam.position.x, gy + 40, cam.position.z); skyR.children.forEach((m, i) => { m.material.opacity = .16 * Mk * (1 - i * .3); }); }
-      clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; if (quiet > (asked < 0 ? 8 : 14) && clock - asked > 45) {   /* 最初の静かな間は 8 秒で（見下ろす／見上げるの知らせ） */ asked = clock; quiet = 0; opt.ask(); } }
+      clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; const qf = asked < 0 ? 8 : (opt.quietFor ? opt.quietFor() : 14); if (quiet > qf && clock - asked > Math.max(25, qf * 2.2)) {   /* 次の印までの距離と歩く速さで、問いを置くまでの間を変える */   /* 最初の静かな間は 8 秒で（見下ろす／見上げるの知らせ） */ asked = clock; quiet = 0; opt.ask(); } }
       if (pending && !opt.busy()) { const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
       macro.visible = Mk > .02; if (macro.visible) { macro.position.set(cam.position.x, gy + .1, cam.position.z); macro.children.forEach((m, i) => { m.material.opacity = .22 * Mk * (1 - i * .18); m.scale.setScalar(.92 + .08 * Mk); }); }
     },
