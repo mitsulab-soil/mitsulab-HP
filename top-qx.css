@@ -228,3 +228,25 @@ html{scroll-padding-top:80px}
 .qx-sl span{display:block;font:400 12px/1.4 var(--sans,sans-serif);color:#dfe6ee}
 @media (max-width:700px){.qx-sl{max-width:120px;padding-left:5px}.qx-sl b{font-size:11.5px}.qx-sl span{font-size:10px}}
 @media (max-width:700px){.qx-sl span{display:none}.qx-sl b{font-size:12px}}
+.qx-figd .qx-lab-off .k{color:#c6ced8}
+.qx-figd .qx-lab-off .k::before{background:repeating-linear-gradient(90deg,#b7c0ca 0 5px,transparent 5px 9px)}
+/* 2026-10-28 TOP の見出しを一つの型に（環世界 1.0／2.0 と同じ：英字の札＋明朝の大見出し） */
+.qx-sec-code{margin:0 0 14px}
+.qx-sec-h{margin:0 0 18px}
+.v2-social .qx-sec-h,.v2-ws .qx-sec-h,.ql-tier-head .qx-sec-h,.qt-origin .qx-sec-h{text-align:left}
+.qx-sec-sub{margin-top:-6px}
+.q-howto{margin:18px 0 24px;padding:16px 18px}.q-steps{margin:6px 0 0;padding-left:1.4em;line-height:1.9}
+.y-fig{margin:22px 0 8px}.y-fig img{display:block;width:100%;height:auto;border-radius:6px;border:1px solid rgba(139,204,202,.18)}.y-fig figcaption{font-size:13px;color:#b9c1d3;margin-top:6px}
+.y-roles{margin-top:14px}
+/* 六つの見出しを同じ型に（字・大きさ・字間・寄せ） */
+#top .qx-code,#top .qx-sec-code{font:500 11px/1 var(--latin,serif)!important;letter-spacing:.34em!important;color:#a8f2f6!important;font-style:normal!important;text-transform:uppercase;margin:0 0 14px!important;text-align:left!important}
+#top .qx-s2 .qx-code{color:#f2c56e!important}
+#top .qx-h,#top .qx-sec-h{font:500 clamp(34px,3.6vw,54px)/1.2 var(--serif,serif)!important;letter-spacing:.06em!important;margin:0 0 18px!important;color:#f4f6fb!important;text-align:left!important}
+.ws-grid .si-more,.si-grid .si-more{opacity:1!important;filter:brightness(1.35)}
+#yorishiro .block>.lead,#yorishiro .y-roles,#yorishiro .y-fig{max-width:760px;margin-left:auto;margin-right:auto}
+.qx-tag{font:500 clamp(17px,1.6vw,22px)/1.6 var(--serif,serif);letter-spacing:.12em;color:#f2c56e;margin:-6px 0 18px}
+/* 見出しの左端を社会実装・ワークショップとそろえる・二重の罫線を外す */
+#top .ql-tier-head{border-top:0!important;padding-top:0!important}
+@media (min-width:1000px){#top #appguide,#top .v2-originwrap{max-width:1200px;margin-left:auto!important;margin-right:auto!important}}
+@media (min-width:1000px){#top .v2-originwrap{padding-left:0!important;padding-right:0!important}#top .v2-originwrap .qt-origin{padding-left:0!important;padding-right:0!important;margin-left:0!important}}
+@media (min-width:1000px){#top .qx-scene{max-width:1200px;padding-left:0;padding-right:0}}
