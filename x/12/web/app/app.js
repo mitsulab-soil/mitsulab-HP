@@ -868,7 +868,7 @@ function panelAsNarr({ title, lines = [], more = [], src = [], buttons = [] }) {
   speakLines(ls, L, { narr: true, done: () => { if (play && PANEL.cur === L) { try { play.run(); } catch (e) { console.warn(e); } } if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } });   // 語り終えてから音を鳴らす（鳴らす操作は語りを止めるため）
 }
 function openPanel({ color, layer, title, lines = [], more = [], how, note, src = [], ll, buttons = [], pad = null }) {
-  if (QW.mode === "walk" && !NARR_FORCE.on) { panelAsNarr({ title, lines, more, src, buttons }); return; }   // 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように」＝歩いているあいだは重ね窓を出さず、碧の語りと下の小さな字幕に
+  if ((QW.mode === "walk" || QW.mode === "sight") && !NARR_FORCE.on) { panelAsNarr({ title, lines, more, src, buttons }); return; }   // 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように」＝歩いているあいだは重ね窓を出さず、碧の語りと下の小さな字幕に
   const p = $("#panel"); p.style.setProperty("--lc", color); $("#pLayer").textContent = layer; $("#pTitle").textContent = title;
   const b = $("#pBody"); b.innerHTML = "";
   lines.forEach((l, i) => { const e = document.createElement("p"); e.className = "line"; e.dataset.i = i; e.textContent = l.t; b.appendChild(e); });
@@ -891,7 +891,7 @@ function qChime(color) {   // 触れたときの短い音（その場で組み�
 function hidePanel() { if (KASA.cur) { KASA.herd?.release(KASA.cur); KASA.cur = null; } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); PANEL.cur = null; stopVoice(); TOUCH.stop?.(); }
 $("#pClose").addEventListener("click", hidePanel);
 function openObj(L) {
-  if (NARR.L === L && NARR.sp) { const sp = NARR.sp; NARR.L = null; NARR.sp = null; PANEL.cur = null; stopVoice(); return enterSight(sp); }   // 語りの最中にもう一度触れる＝その生きものの受けとり方へ
+  if (NARR.L === L && NARR.sp) { const sp = NARR.sp; NARR.L = null; NARR.sp = null; PANEL.cur = null; stopVoice(); SIGHT.from = L; return enterSight(sp); }   // 語りの最中にもう一度触れる＝その生きものの受けとり方へ
   PANEL.cur = L; const g = GL[L.layer], no = `${String(layerNo(L.layer)).padStart(2, "0")}　${g.name}`;
   if (L.kind === "sound") return openSound(L, no);
   if (L.kind === "touch") return openTouch(L, no);
@@ -1384,7 +1384,7 @@ function renderBody() { if (!BODY.m || !BODY.scene || QW.mode !== "sight") retur
 function exitSight(quiet = false) {
   if (!SIGHT.sp) return; teardownSightLook(); hideBody(); SIGHT.sp = null; camera.fov = MOBILE ? 62 : 55; camera.updateProjectionMatrix(); $("#sightUI").hidden = true; $("#sUpDn").hidden = true;
   if (quiet) return; stopVoice(); setMode("descend"); const p = CAM.pos.clone(); p.y = groundY(p.x, p.z) + EYE; corridorClamp(p);
-  tweenTo(p, CAM.yaw + CAM.look, -.04, 1.4, () => { CAM.pos.copy(p); CAM.yaw += CAM.look; CAM.look = 0; CAM.pitch = -.04; setMode("walk"); showWalkUI(); aoiArrive(); speakLines([C.back], null); });
+  tweenTo(p, CAM.yaw + CAM.look, -.04, 1.4, () => { CAM.pos.copy(p); CAM.yaw += CAM.look; CAM.look = 0; CAM.pitch = -.04; setMode("walk"); showWalkUI(); aoiArrive(); const fr = SIGHT.from; SIGHT.from = null; const t2 = fr ? `いま見た「${fr.o.title}」のあたりを、人の目でもう一度見てみましょう。` : null; speakLines(t2 ? [C.back, { t: t2, tc: t2 }] : [C.back], null); });   /* 10-29：生きものの目から戻ったら、同じ場所を人の目で見なおす一言 */
 }
 function setupSightLook(sp) {
   const s = renderer.getDrawingBufferSize(new THREE.Vector2()), rt = new THREE.WebGLRenderTarget(s.x, s.y, { type: THREE.HalfFloatType, samples: MOBILE ? 0 : 4 });
@@ -1414,7 +1414,7 @@ function stepSight(dt) {
   } else { WALK.hold = SIGHT.fwd; stepWalk(dt, sp.eye, sp.speed); }
 }
 function showSightUI(sp) { $("#sEn").textContent = sp.en; $("#sName").textContent = sp.name; $("#sLead").textContent = sp.lead; if (sp.mode === 1) $("#sLead").insertAdjacentHTML("beforeend", '<br><span class="smodel">紫は紫外の手がかりの模式（紫外は測っていません）</span>'); $("#sightUI").hidden = false; $("#sUpDn").hidden = false; $("#sUp").hidden = $("#sDown").hidden = sp.move !== "fly"; }
-$("#sWhy").addEventListener("click", () => { const sp = SIGHT.sp; if (!sp) return; openPanel({ color: GL.sight.color, layer: `${String(layerNo("sight")).padStart(2, "0")}　Qualia/sight`, title: sp.name + "の手がかり", lines: sp.lines, more: sp.body, note: sp.note, src: sp.src, how: "研究の一般論と記録（模式）" }); });
+$("#sWhy").addEventListener("click", () => { const sp = SIGHT.sp; if (!sp) return; openPanel({ color: GL.sight.color, layer: `${String(layerNo("sight")).padStart(2, "0")}　Qualia/sight`, title: sp.name + "の手がかり", lines: (sp.body || []).map(t => ({ t: String(t) })), more: sp.body,   /* 10-29：「手がかりと出典」は、入るときの一言でなく手がかりの本文を碧が語る */ note: sp.note, src: sp.src, how: "研究の一般論と記録（模式）" }); });
 $("#sBack").addEventListener("click", () => exitSight());
 
 /* ---------- Qualia/sound：記録から組み立てた時の鐘（③ 再現音・④ 詩の音） ---------- */
