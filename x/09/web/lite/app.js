@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k15";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k16";
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=mg3";
@@ -384,7 +384,7 @@ function buildBuildings(g) {
         float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.1, 2.)) * (1. - roof);
         float fade = mix(1., .6, smoothstep(140., 760., dist));
         diffuseColor.rgb = mix(vec3(.25,.35,.43), vec3(.36,.66,.78), fr * .7 + band * .7 + fl * nr * .6) * (roof > .5 ? 1.1 : 1.);
-        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1., .4, uSky); }`);   /* 3D 地図では面をさらに淡く */
+        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.62, .4, uSky); }`);   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };
   m.customProgramCacheKey = () => "bldGhost2";
   const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
@@ -1312,7 +1312,7 @@ function wearLayer(id, opts = {}) {   // 層は重ねられる（重ねた順に
   updateStack();
 }
 function putOnAnim() { }   // 2026-10-22 本人「グラスで分ける案はやめて」→ 層は左の板で切りかえる
-const LABEL_R = MOBILE ? 30 : 28;   // 10-28：スマホでも近い 3 つの印に札（12 m より先の札を消していた）
+const LABEL_R = MOBILE ? 34 : 36;   /* 10-28 夜 4：20〜26 m の印の札が薄すぎて 1 枚しか読めなかった */   // 10-28：スマホでも近い 3 つの印に札（12 m より先の札を消していた）
 function stepLayer(dt) {
   if (LAYER.wear) {
     const w = LAYER.wear; w.t += dt / .9; const k = ease(Math.min(1, w.t));

@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k15";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k16";
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -995,7 +995,7 @@ function skyCam() { const c = SKY.c, x = c.x + Math.sin(SKY.az) * Math.cos(SKY.e
 let TW = null;
 function tweenTo(pos, yaw, pitch, dur, done) { TW = { p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: pos.clone(), q1: new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ")), t: 0, dur, done }; }
 function stepTween(dt) { if (!TW) return false; TW.t += dt / TW.dur; const k = Math.min(1, TW.t), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  camera.position.lerpVectors(TW.p0, TW.p1, e); const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; if (TW.p0.y - TW.p1.y > 60) {   /* 10-28 夜 3：上空から降りるときは、降りる先を見つめたまま下り、最後に前を向く（途中で地平線と地図の外を向いていた） */
+  if (TW.p0.y - TW.p1.y > 60) { const eh = Math.min(1, e * 1.35); camera.position.set(TW.p0.x + (TW.p1.x - TW.p0.x) * eh, TW.p0.y + (TW.p1.y - TW.p0.y) * e, TW.p0.z + (TW.p1.z - TW.p0.z) * eh); } else camera.position.lerpVectors(TW.p0, TW.p1, e);   /* 10-28 夜 4：先に真上へ寄せ、最後は道へまっすぐ降りる（高い建物の中を通り抜けていた） */ const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; if (TW.p0.y - TW.p1.y > 60) {   /* 10-28 夜 3：上空から降りるときは、降りる先を見つめたまま下り、最後に前を向く（途中で地平線と地図の外を向いていた） */
     const f = new THREE.Vector3(0, 0, -1).applyQuaternion(TW.q1); f.y = 0; f.normalize(); const tg = TW.p1.clone().addScaledVector(f, 25);
     TW._m ||= new THREE.Matrix4(); TW._q ||= new THREE.Quaternion(); TW._m.lookAt(camera.position, tg, camera.up); TW._q.setFromRotationMatrix(TW._m);
     const qa = TW.q0.clone().slerp(TW._q, Math.min(1, e * 2.5)); camera.quaternion.copy(qa).slerp(TW.q1, Math.max(0, Math.min(1, (e - .72) / .28)));
