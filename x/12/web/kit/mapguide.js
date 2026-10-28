@@ -66,7 +66,7 @@ export function makeMapGuide({ THREE, parent, groundY, routes = [], places = [],
 /* 目の高さの眺め：アプリ自身の 3D を、その地点に立ったカメラで描く。
    画面と同じ色の仕上げ（トーンと色空間）にするため、画面の左下の小さな枠へ一度だけ描いて写し取り、すぐ元の画を描き直す */
 export function makeEyeView({ THREE, renderer, scene, camera, hide = () => [], fov = 62, prep = null }) {
-  const W = 480, H = 270, cam = new THREE.PerspectiveCamera(fov, W / H, .3, 2400), sz = new THREE.Vector2(), vp = new THREE.Vector4();
+  const W = 720, H = 405, cam = new THREE.PerspectiveCamera(fov, W / H, .3, 2400), sz = new THREE.Vector2(), vp = new THREE.Vector4();
   return {
     draw(canvas, { x, y, z, yaw, pitch = -.03 }) {
       cam.position.set(x, y, z); cam.rotation.set(pitch, yaw, 0, "YXZ"); cam.updateMatrixWorld();

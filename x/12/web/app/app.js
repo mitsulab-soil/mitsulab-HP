@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k13";
-import { groundFarMat } from "../kit/ground_far.js?v=3";
+import { groundFarMat } from "../kit/ground_far.js?v=4";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
 import { BellSynth } from "./bell.js?v=k1";
@@ -19,8 +19,8 @@ import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=5m";
-import { makeStartPins } from "../kit/startpins.js?v=mg1";
-import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg1";
+import { makeStartPins } from "../kit/startpins.js?v=mg2";
+import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -28,7 +28,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261028m";
+const VER = "20261028t";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -82,7 +82,7 @@ const NAVY = new THREE.Color("#03060f"); QW.skyBg = scene.background;   // 2026-
 const VEIL = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.ShaderMaterial({ uniforms: { opacity: { value: 0 }, uC: { value: NAVY } }, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false,
   vertexShader: "varying float vY; void main(){ vY = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
   fragmentShader: "uniform float opacity; uniform vec3 uC; varying float vY; void main(){ gl_FragColor = vec4(uC, opacity * mix(1., .22, smoothstep(-.16, .05, vY))); \n#include <colorspace_fragment>\n}" })); VEIL.renderOrder = -10; VEIL.visible = false; VEIL.frustumCulled = false; scene.add(VEIL);
-const MAPV = .32;   /* 2026-10-28 本人：3D 地図は航空写真の地に、淡い線と面を重ねる（暗い電脳の地にしない） */
+const MAPV = .2;   /* 2026-10-28 本人：3D 地図は航空写真の地に、淡い線と面を重ねる（暗い電脳の地にしない） */
 const CYBER = { v: { value: 1 }, scan: { value: 0 } };   // 3D 地図の地面：暗い地に細い格子・等高線・ゆっくり流れる光の走査（1＝地図・0＝歩く）
 const cyberize = sh => { sh.uniforms.uCy = CYBER.v; sh.uniforms.uScan = CYBER.scan;
   sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vCw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvCw=(modelMatrix*vec4(transformed,1.)).xyz;");
@@ -152,7 +152,7 @@ function buildFarGround() {
   const sh = new THREE.Shape([new THREE.Vector2(-R, -R), new THREE.Vector2(R, -R), new THREE.Vector2(R, R), new THREE.Vector2(-R, R)]);
   sh.holes.push(new THREE.Path([new THREE.Vector2(x0 + 2, -z0 - 2), new THREE.Vector2(x0 + 2, -z1 + 2), new THREE.Vector2(x1 - 2, -z1 + 2), new THREE.Vector2(x1 - 2, -z0 - 2)]));
   const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2);
-  const gm = groundFarMat(THREE, { base: "#7d7a74", rect: [rx0, rz0, rx1, rz1] });
+  const gm = groundFarMat(THREE, { base: "#7d7a74", rect: [rx0, rz0, rx1, rz1] }); QW.farGM = gm;
   setTimeout(() => TL.load("web/tex/far_photo.webp?v=1", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);
   const m = new THREE.Mesh(g, gm); m.name = "farPhoto"; m.position.y = d.min - .6; m.renderOrder = -2; world.add(m); QW.farPhoto = m;
   setTimeout(() => { const o = world.getObjectByName("farGround"); if (o) o.visible = false; }, 0);   // 前からある無地の遠い地面は隠す（重なってちらつくため）
@@ -501,8 +501,8 @@ function frontOf(p, q, ring) {   // この壁が、歩ける道か道筋に面�
   return { f, nx, nz };
 }
 function addSolid(ring, y, top, acc = SOLID, era = 0) {
-  const P = acc.P, U = acc.U, W = acc.W, C = acc.C, E = acc.E, n = ring.length, rnd = Math.random();
-  const T = ERA_TONES[era], b = T ? T[Math.floor(rnd * T.length)] : SOLID_TONES[Math.floor(rnd * SOLID_TONES.length)], j = (Math.random() - .5) * .05;
+  const P = acc.P, U = acc.U, W = acc.W, C = acc.C, E = acc.E, n = ring.length, hs = k => { const v = Math.sin(ring[0].x * 12.9898 + ring[0].y * 78.233 + k * 37.719) * 43758.5453; return v - Math.floor(v); }, rnd = hs(0);   /* 色と高さの揺らぎは場所で決める（開くたびに変わらない） */
+  const T = ERA_TONES[era], b = T ? T[Math.floor(rnd * T.length)] : SOLID_TONES[Math.floor(rnd * SOLID_TONES.length)], j = (hs(1) - .5) * .05;
   if (era === 1) top = y + 7.2 + rnd * 1.6; else if (era === 2) top = y + Math.min(Math.max(top - y, 6.6), 10.4); else if (era === 3) top = y + Math.min(Math.max(top - y, 9.5), 22); else if (era === 5) top = y + Math.min(top - y, 5.8);
   const col = [b[0] + j, b[1] + j, b[2] + j], roofc = era === 5 ? [.15, .16, .18] : [.3, .3, .31];
   let L = 0; const y0 = y - .3, awn = AWN[Math.floor(rnd * 997) % AWN.length];
@@ -921,7 +921,7 @@ QW.AOI = AOI;
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261025a"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261028t"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
@@ -981,13 +981,13 @@ const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c
 const WALK = { speed: 2.43, moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 12 };
 const KEYS = new Set();
-const FOGS = { sky: { n: 1200, f: 5200 }, walk: { n: 160, f: 1100 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 160, f: 1100 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { QW.mode = m; document.body.dataset.mode = m;
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
   $("#modeSky").setAttribute("aria-pressed", String(m === "sky" || m === "descend")); $("#modeWalk").setAttribute("aria-pressed", String(m === "walk" || m === "sight")); $("#modeFly").setAttribute("aria-pressed", String(m === "fly"));
   applyFog(FOGS[m === "descend" ? "sky" : m] || FOGS.walk);
-  MGUIDE?.show(m === "sky");   /* 地図の案内は 3D 地図のときだけ */
+  MGUIDE?.show(m === "sky"); if (QW.farGM) QW.farGM.userData.gf.gfDim.value = m === "sky" ? 1 : 0;   /* 地図の案内は 3D 地図のときだけ */
   if (ROUTE) { ROUTE.material.opacity = m === "fly" ? .7 : .0; ROUTE.visible = ROUTE.material.opacity > 0; }
   if (AOI.root) AOI.root.visible = m === "walk";
 }
@@ -1012,7 +1012,7 @@ function startInfo(x, z, name) {   /* その場所の説明＝いちばん近い
   return { text, src: ss.map(q => q.u ? `<a href="${escH(q.u)}" target="_blank" rel="noopener">${escH(q.t)}</a>` : escH(q.t)).join("／") };
 }
 function startPreview(eyeAt) {
-  return { info: i => { const p = START.sp?.pins[i]; return p ? startInfo(p.it.x, p.it.z, p.it.name) : {}; },
+  return { info: i => { const p = START.sp?.pins[i]; if (!p) return {}; return startInfo(p.it.x, p.it.z, p.it.name); },   /* 典拠つきの語りが近くにないときは、名前と眺めだけ（作った説明は出さない） */
     draw: (cv, i) => { const e = eyeAt(i); if (!e) return; EYEV ||= makeEyeView({ THREE, renderer, scene, camera, hide: eyeHide, prep: eyePrep }); EYEV.draw(cv, e);
       eyeLoad?.(e); for (const ms of [1200, 3500]) setTimeout(() => { if (START.sp?.sel === i && cv.isConnected) EYEV.draw(cv, e); }, ms); } };   /* 近くの木や道が届いたら描き直す */
 }
@@ -1582,7 +1582,7 @@ function frame() {
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
   }
-  if (START.sp) { if (QW.mode === "sky") { if (!START.sp.group.visible && !TW) START.sp.show(true); const r = $("#lstack").getBoundingClientRect(); MGUIDE?.update(performance.now() / 1000, camera); START.sp.update(performance.now() / 1000, r.width ? { x: r.right, y: r.bottom } : null); } else if (START.sp.group.visible && QW.mode !== "descend") START.sp.show(false); }
+  if (START.sp) { if (QW.mode === "sky") { if (!START.sp.group.visible && !TW) START.sp.show(true); const r = $("#lstack").getBoundingClientRect(); MGUIDE?.update(performance.now() / 1000, camera); { const sk = QW.mode === "sky" ? 1 : 0, gd = QW.farGM?.userData.gf.gfDim; if (gd) gd.value += (sk - gd.value) * .08; } START.sp.update(performance.now() / 1000, r.width ? { x: r.right, y: r.bottom } : null); } else if (START.sp.group.visible && QW.mode !== "descend") START.sp.show(false); }
   if (QW.mode === "sky") { const nw = performance.now(); if (!DC.sk || nw - DC.skT > 500) { DC.skT = nw; DC.sk = [$("#skyUI .card").getBoundingClientRect(), $("#lstack").getBoundingClientRect()]; } const [card, ls] = DC.sk, put = [];
     const order = START.pins.map((p, i) => i).sort((a, b) => (b === START.sel) - (a === START.sel));   // 選んだ点の札を先に置く
     for (const i of order) { const p = START.pins[i]; p.head.getWorldPosition(_v); _v.project(camera); const l = START.labels[i]; if (_v.z > 1) { l.style.display = "none"; continue; }
@@ -1599,7 +1599,7 @@ function frame() {
     const txt = `POS <b>${la.toFixed(4)}N ${lo.toFixed(4)}E</b>\nALT ${Math.round(h)}m  ${QW.mode.toUpperCase()}`; if (g && txt !== GEO.last) { g.innerHTML = txt; GEO.last = txt; } }
   if (!RM) BLDU.t.value += dt; digiTick(dt);
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
-  if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
+  if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : QW.mode === "sky" ? .45 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
     const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   AREAS.update(dt, QW.mode);

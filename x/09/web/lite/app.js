@@ -8,10 +8,10 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k13";
-import { groundFarMat } from "../kit/ground_far.js?v=3";
+import { groundFarMat } from "../kit/ground_far.js?v=4";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { makeStartPins } from "../kit/startpins.js?v=mg1";
-import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg1";
+import { makeStartPins } from "../kit/startpins.js?v=mg2";
+import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=56m";
@@ -22,7 +22,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261028s";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261028t";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -233,7 +233,7 @@ function buildSkirt() {
   const [rx0, rz0] = ll2(139.54833984375, 35.978006180855665), [rx1, rz1] = ll2(139.68017578125, 35.87124685002796);   // 国土地理院 シームレス空中写真 z14（tex/far_photo.webp）の範囲
   const gm = groundFarMat(THREE, { base: "#8d8a83", rect: [rx0, rz0, rx1, rz1] });
   setTimeout(() => TL.load(BASE + "tex/far_photo.webp?v=1", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);   // 起動のあとで読む
-  const m = new THREE.Mesh(g, gm);   // 2026-10-27 夜：遠くの地面を灰色の無地にしない（共通部品 kit/ground_far.js・実在の空中写真）
+  QW.farGM = gm; const m = new THREE.Mesh(g, gm);   // 2026-10-27 夜：遠くの地面を灰色の無地にしない（共通部品 kit/ground_far.js・実在の空中写真）
   m.position.y = 9.2; m.renderOrder = -2; world.add(m); QW.skirt = m;
 }
 /* 参道の線（上空からの地図で、歩ける道を示す） */
@@ -262,7 +262,7 @@ function buildPonds(env) {
 }
 
 /* 建物：区画ごと（見えない区画は描かない） */
-const BLDU = { t: { value: 0 }, g: { value: -1e4 } }, GEO = { t: 0, el: null, last: "" }, EDGEQ = [];
+const BLDU = { t: { value: 0 }, g: { value: -1e4 }, sky: { value: 0 } }, GEO = { t: 0, el: null, last: "" }, EDGEQ = [];
 /* 建物の輪郭の線：面の向きが 28° 以上変わる辺と、縁の辺だけ（three の EdgesGeometry より速い、数の鍵の版） */
 function bldEdges(geo, cosT = Math.cos(28 * Math.PI / 180)) {
   const P = geo.attributes.position; if (!geo.boundingBox) geo.computeBoundingBox();
@@ -372,11 +372,11 @@ function buildBuildings(g) {
   // 2026-10-22 本人「建物がキューブ系でよくないので、半透明にして、薄いグラフィックに」→ PLATEAU の形と高さはそのまま、写実の箱をやめて「データの層」として描く：
   // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
   const U = BLDU;
-  const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
+  const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
     sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * .25); gl_FragColor.a *= 1. - fgF * .82;\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
   m.onBeforeCompile = sh => { vs(sh);
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG;")
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { vec3 fn = normalize(cross(dFdx(vWp), dFdy(vWp))); float dist = length(vWp - cameraPosition); vec3 vd = (cameraPosition - vWp) / max(dist, 1e-3);
         float fr = pow(1. - abs(dot(fn, vd)), 2.); float roof = step(.6, abs(fn.y)); float nr = 1. - smoothstep(80., 420., dist);
@@ -384,18 +384,18 @@ function buildBuildings(g) {
         float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.1, 2.)) * (1. - roof);
         float fade = mix(1., .6, smoothstep(140., 760., dist));
         diffuseColor.rgb = mix(vec3(.25,.35,.43), vec3(.36,.66,.78), fr * .7 + band * .7 + fl * nr * .6) * (roof > .5 ? 1.1 : 1.);
-        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y); }`);
+        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1., .4, uSky); }`);   /* 3D 地図では面をさらに淡く */
   };
-  m.customProgramCacheKey = () => "bldGhost1";
+  m.customProgramCacheKey = () => "bldGhost2";
   const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
   lm.onBeforeCompile = sh => { vs(sh);
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG;")
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { float dist = length(vWp - cameraPosition); float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.6, 2.));
-        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y);
+        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1., .5, uSky);
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86,.99,1.), band * .7); }`);
   };
-  lm.customProgramCacheKey = () => "bldGhostL1";
+  lm.customProgramCacheKey = () => "bldGhostL2";
   QW.bldMat = m; QW.bldLine = lm; QW.bldGhost = g.scene;
   g.scene.updateMatrixWorld(true);
   g.scene.traverse(o => { if (o.isMesh) { o.material = m; o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); } });
@@ -889,7 +889,7 @@ const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -
 const EYE = 1.55;
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
-const FOGS = { sky: () => ({ c: FOG_SKY, n: 2600, f: 9000 }), walk: () => ({ c: FOG_SKY, n: 220, f: MOBILE ? 1000 : 1500 }), fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
+const FOGS = { sky: () => ({ c: FOG_SKY, n: 1700, f: 4200 }), walk: () => ({ c: FOG_SKY, n: 220, f: MOBILE ? 1000 : 1500 }), fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m;
@@ -899,7 +899,7 @@ function setMode(m) {
   camera.near = walk || sight ? .03 : 1; camera.far = walk ? 700 : sight ? 1400 : 9000; camera.updateProjectionMatrix();
   if (pathLine) { pathLine.visible = fly;   /* 3D 地図では共通の案内（MGUIDE）が道筋を示す */ pathLine.material.depthTest = !sky; }
   if (START.group) START.group.visible = sky;
-  MGUIDE?.show(sky);   /* 地図の案内は 3D 地図のときだけ（歩くときに淡い面が視界を覆わない） */
+  MGUIDE?.show(sky); BLDU.sky.value = sky ? 1 : 0; if (QW.farGM) QW.farGM.userData.gf.gfDim.value = sky ? 1 : 0;   /* 地図の案内は 3D 地図のときだけ（歩くときに淡い面が視界を覆わない） */
   showMapLayer(sky);
   if (QW.skyTex && !sight) scene.background = QW.skyTex;   // 3D 地図は暗い地（電脳の地図）
   
@@ -1023,7 +1023,7 @@ function parkMacro(m, amt, lawn) {
 }
 function loadPark() {
   if (PARK.p) return PARK.p;
-  return PARK.p = fetch(BASE + "park.json?v=20261026p").then(r => r.json()).then(J => {
+  return PARK.p = fetch(BASE + "park.json?v=20261028t").then(r => r.json()).then(J => {
     for (const w of J.w) { let b = [1e9, 1e9, -1e9, -1e9]; for (let i = 1; i < w.length; i += 2) { b[0] = Math.min(b[0], w[i]); b[1] = Math.min(b[1], w[i + 1]); b[2] = Math.max(b[2], w[i]); b[3] = Math.max(b[3], w[i + 1]); } w.b = b; }
     PARK.w = J.w;
     const G = new THREE.Group(); G.name = "park";
@@ -1532,7 +1532,7 @@ QW.AOI = AOI;
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261025a"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261028t"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
@@ -2455,7 +2455,7 @@ function frame() {
   }
   if (QW.mode === "sky") {   // 地図の点の名前（7 つ）と、道・地名の名前
     START.pins.forEach((p, i) => { _v3.copy(p.head.position).project(camera); const l = START.labels[i]; if (_v3.z > 1) { l.style.display = "none"; return; } l.style.display = ""; l.style.transform = `translate(${(_v3.x + 1) / 2 * innerWidth}px,${(1 - _v3.y) / 2 * innerHeight}px)`; });
-    { const l = $("#lstack")?.getBoundingClientRect(); MGUIDE?.show(QW.mode === "sky"); MGUIDE?.update(performance.now() / 1000, camera); START.rects = QW.startRects = START.sp?.update(performance.now() / 1000, l && l.width ? { x: l.right + 8, y: l.bottom } : null) || []; } stepMapLabels();
+    { const l = $("#lstack")?.getBoundingClientRect(); MGUIDE?.show(QW.mode === "sky"); MGUIDE?.update(performance.now() / 1000, camera); { const sk = QW.mode === "sky" ? 1 : 0, gd = QW.farGM?.userData.gf.gfDim; if (gd) gd.value += (sk - gd.value) * .08; BLDU.sky.value += (sk - BLDU.sky.value) * .08; } START.rects = QW.startRects = START.sp?.update(performance.now() / 1000, l && l.width ? { x: l.right + 8, y: l.bottom } : null) || []; } stepMapLabels();
     if (MAP.here?.visible) MAP.here.scale.setScalar(1 + .15 * Math.sin(performance.now() / 300));
   }
   if (WALK.ring?.visible) { WALK.ringT = (WALK.ringT || 0) + dt; WALK.ring.material.opacity = .85 * (.6 + .4 * Math.cos(WALK.ringT * 4)); }

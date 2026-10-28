@@ -4,12 +4,12 @@
    使い方：mesh.material = groundFarMat(THREE, { base: "#8d8a83", map: tex, rect: [x0, z0, x1, z1] })   rect＝写真の西・北・東・南の端をローカル座標（x 東・z 南）で */
 export function groundFarMat(THREE, opt = {}) {
   const m = new THREE.MeshStandardMaterial({ color: opt.base || "#8d8a83", roughness: 1, metalness: 0, envMapIntensity: .3 });
-  const U = { gfMap: { value: opt.map || null }, gfRect: { value: new THREE.Vector4(...(opt.rect || [0, 0, 1, 1])) }, gfOn: { value: opt.map ? 1 : 0 } };
+  const U = { gfMap: { value: opt.map || null }, gfRect: { value: new THREE.Vector4(...(opt.rect || [0, 0, 1, 1])) }, gfOn: { value: opt.map ? 1 : 0 }, gfDim: { value: 0 } };   /* gfDim：3D 地図のとき、地図の外の粗い写真を落ち着いた暗さへ沈め、細かい地図に目を集める */
   m.userData.gf = U;
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vGf;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGf=(modelMatrix*vec4(transformed,1.)).xz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vGf; uniform sampler2D gfMap; uniform vec4 gfRect; uniform float gfOn;")
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vGf; uniform sampler2D gfMap; uniform vec4 gfRect; uniform float gfOn; uniform float gfDim;")
       .replace("#include <map_fragment>", `#include <map_fragment>
         if (gfOn > .5) {
           vec2 uv = (vGf - gfRect.xy) / (gfRect.zw - gfRect.xy);
@@ -17,8 +17,9 @@ export function groundFarMat(THREE, opt = {}) {
           vec3 ph = texture2D(gfMap, clamp(uv, .002, .998)).rgb;
           float l = dot(ph, vec3(.333)); ph = mix(ph, vec3(l), .25) * vec3(.95, .95, .92);   // 写真の色を少し落ち着かせる
           diffuseColor.rgb = mix(diffuseColor.rgb, ph, inside);
-        }`);
+        }
+        { float l2 = dot(diffuseColor.rgb, vec3(.333)); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l2) * vec3(.42, .46, .5), gfDim * .8); }`);
   };
-  m.customProgramCacheKey = () => "qualium-ground-far-photo";
+  m.customProgramCacheKey = () => "qualium-ground-far-photo2";
   return m;
 }
