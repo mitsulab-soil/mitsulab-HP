@@ -27,7 +27,8 @@ export function makeWorldLayers(THREE, scene, opt) {
   // 見上げたときの手がかり：頭の上 40 m に、半径 60・120 m の淡い輪（地面の大きな輪と同じ中心）
   const skyR = new THREE.Group(); skyR.visible = false; scene.add(skyR);
   for (const r of [60, 120]) { const g = new THREE.RingGeometry(r - .25, r + .25, 160); g.rotateX(Math.PI / 2); skyR.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: "#d6eef6", transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }))); }
-  let pending = null;   // 関係の線の先：歩いて近づくと、碧が「さっきの話の続き」として語る
+  let pending = null, quiet = 0, asked = -1e9, clock = 0;   // 無音が続いたら、碧が次の印への問いを短く置く（opt.ask・opt.speaking）
+  // pending＝関係の線の先：歩いて近づくと、碧が「さっきの話の続き」として語る
   let pairs = [], built = 0, focusL = null, hold = 0, mode = 0, mk = 0, Mk = 0;
   const key = L => (L.o.src || [])[0]?.t || null;   // 同じ資料（出典の一つ目）に書かれた印どうしだけを結ぶ（話題が近いだけでは結ばない）
   function rebuild(cam) {
@@ -60,7 +61,7 @@ export function makeWorldLayers(THREE, scene, opt) {
       const p = opt.pitch(), want = p < -.6 ? -1 : p > .48 ? 1 : 0;
       if (want !== mode) { mode = want; hold = 0; document.body.dataset.wl = mode < 0 ? "micro" : mode > 0 ? "macro" : "eye"; } else hold += dt;   // 体の向き（見下ろす・見上げる）を body に書く（画面の部品の出し分けと確かめに使う）
       if (mode && hold > 1.3 && !opt.busy()) { hold = -8;   // 一度語ったら、続けて見ていても 8 秒は次を語らない
-        const re = mode < 0 ? MICRO : MACRO, lim = mode < 0 ? 90 : 200;   // 小さなものは 90 m まで探す（25 m より先なら「少し先の」と言う） let best = null, bd = 1e9;
+        const re = mode < 0 ? MICRO : MACRO, lim = mode < 0 ? 90 : 200; let best = null, bd = 1e9;   // 小さなものは 90 m まで探す（25 m より先なら「少し先の」と言う）
         for (const L of opt.marks()) { if (said.has(L)) continue; const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!re.test(t)) continue; const d = Math.hypot(L.o.x - cam.position.x, L.o.z - cam.position.z); if (d < lim && d < bd) { bd = d; best = L; } }
         if (best) { said.add(best); opt.narrate(best, mode < 0 ? (bd > 25 ? "micro-far" : "micro") : "macro"); } }
       mk += ((mode < 0 && hold > .4 ? 1 : 0) - mk) * Math.min(1, dt * 2.2); { const w = mode > 0 && hold > .4 ? 1 : 0; Mk += (w - Mk) * Math.min(1, dt * (w > Mk ? 1.6 : .22)); }   // 見下ろしたあとも、しばらく大きな輪が残る
@@ -68,6 +69,7 @@ export function makeWorldLayers(THREE, scene, opt) {
       const gy = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6;
       micro.visible = mk > .02; if (micro.visible) { micro.position.set(cam.position.x, gy, cam.position.z); micro.material.opacity = .7 * mk; micro.rotation.y += dt * .05; }
       skyR.visible = Mk > .02; if (skyR.visible) { skyR.position.set(cam.position.x, gy + 40, cam.position.z); skyR.children.forEach((m, i) => { m.material.opacity = .16 * Mk * (1 - i * .3); }); }
+      clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; if (quiet > 14 && clock - asked > 45) { asked = clock; quiet = 0; opt.ask(); } }
       if (pending && !opt.busy()) { const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
       macro.visible = Mk > .02; if (macro.visible) { macro.position.set(cam.position.x, gy + .1, cam.position.z); macro.children.forEach((m, i) => { m.material.opacity = .22 * Mk * (1 - i * .18); m.scale.setScalar(.92 + .08 * Mk); }); }
     },

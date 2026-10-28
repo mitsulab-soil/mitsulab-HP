@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
-import { makeWorldLayers } from "./worldlayers.js?v=w7";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w8";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -68,7 +68,7 @@ function landSweep() {
   });
 }
 const camera = new THREE.PerspectiveCamera(MOBILE ? 62 : 55, innerWidth / innerHeight, .08, 7000); scene.add(camera); QW.camera = camera;
-const FOG = new THREE.Color("#b9c8d6");   // walk 氷川と同じ空の色
+const FOG = new THREE.Color("#d2d8df");   // 2026-10-29 遠景：空の写真の地平の色（#dddfe4 付近）に合わせ、地面の果てと空の継ぎ目を消す（旧 #b9c8d6）
 scene.fog = new THREE.Fog(FOG, 900, 3800);
 const hemi = new THREE.HemisphereLight("#dbe6f4", "#5a5246", 1.1); scene.add(hemi);
 const sun = new THREE.DirectionalLight("#ffeedd", 2.4); sun.position.set(-420, 380, 160); scene.add(sun, sun.target);   // 午後の西日（一番街の東側の店蔵の正面を照らす向き）
@@ -78,7 +78,11 @@ function skyTex() { const c = document.createElement("canvas"); c.width = 4; c.h
 scene.background = skyTex();
 { const pm = new THREE.PMREMGenerator(renderer); const e = new THREE.Scene(); e.background = scene.background; scene.environment = pm.fromScene(e, .04).texture; pm.dispose(); }
 // 雲のある空（walk 氷川と同じ写し：Poly Haven「Kloofendal 48d Partly Cloudy (Pure Sky)」CC0）。読めたら差し替える
-const NAVY = new THREE.Color("#03060f"); QW.skyBg = scene.background;   // 2026-10-23 夜：3D 地図は暗い地（電脳の地図・氷川と同じ）
+const NAVY = new THREE.Color("#03060f"); QW.skyBg = scene.background;
+// 2026-10-29 遠景：地平の霞。地面の果てから空へ、霧の色で薄くつなぐ帯（カメラについて回る・地面より遠くに置くので手前は隠さない）
+const HAZE = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24), new THREE.ShaderMaterial({ uniforms: { uC: { value: FOG } }, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false,
+  vertexShader: "varying float vY; void main(){ vY = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  fragmentShader: "uniform vec3 uC; varying float vY; void main(){ float a = (1. - smoothstep(-.01, .13, vY)) * .92; gl_FragColor = vec4(uC, a); \n#include <colorspace_fragment>\n}" })); HAZE.renderOrder = -9; HAZE.frustumCulled = false; scene.add(HAZE); QW.haze = HAZE;   // 2026-10-23 夜：3D 地図は暗い地（電脳の地図・氷川と同じ）
 // 2026-10-23 深夜：降りる途中の空を途切れなく。暗い地（電脳の地図）から写真の空へ、高さに合わせて少しずつ（空を一度に切りかえると、真っ黒な空のこまが出た）
 const VEIL = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.ShaderMaterial({ uniforms: { opacity: { value: 0 }, uC: { value: NAVY } }, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false,
   vertexShader: "varying float vY; void main(){ vY = normalize(position).y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
@@ -171,7 +175,9 @@ async function buildBase() {
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c2 = a + nx, e = c2 + 1; idx.push(a, c2, b, b, c2, e); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
   const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
-  mat._obc = cyberize; desat(mat);   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
+  mat._obc = cyberize; desat(mat);
+  { const o = mat.onBeforeCompile, E = { value: new THREE.Vector4(d.x0, d.z0, d.x0 + (d.nx - 1) * d.cell, d.z0 + (d.nz - 1) * d.cell) };   // 2026-10-29 遠景：地形の縁（外の地面より高い所で切れて、地平に濃い段が出ていた）を、縁の 260 m で霞の色へ溶かす。歩くときだけ（3D 地図は変えない）
+    mat.onBeforeCompile = sh => { o(sh); sh.uniforms.uEdgeB = E; sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform vec4 uEdgeB;").replace("#include <fog_fragment>", "#include <fog_fragment>\n#ifdef USE_FOG\n{ vec2 ed = min(vCw.xz - uEdgeB.xy, uEdgeB.zw - vCw.xz); float ek = (1. - smoothstep(0., 260., min(ed.x, ed.y))) * (1. - uCy); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, ek); }\n#endif"); }; }   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
   setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain; buildDigi(geo);
   buildRoute(); buildRoads(); buildMarkings(); buildWater(); buildFarGround();
   if (G.near) setTimeout(() => texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
@@ -896,7 +902,7 @@ function openObj(L) {
    語りの終わりに、答えでなく次の印への問いを置く（歩くと分かる）。表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。大宮と同じ（共通の基準）。 */
 /* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
 let WL = null;
-function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+function startWL() { if (WL) return; QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); }, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
@@ -1682,7 +1688,7 @@ function frame() {
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : QW.mode === "sky" ? .45 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
-    const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
+    const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); HAZE.visible = CYBER.v.value < .5 && !VEIL.visible; if (HAZE.visible) { HAZE.position.copy(camera.position); HAZE.position.y = Math.min(camera.position.y, 60); HAZE.scale.setScalar(camera.far * .8); } if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   AREAS.update(dt, QW.mode);
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); stepSoundWalk(dt); MY.L?.update(dt); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (KURA.tags) stepTag();

@@ -8,7 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
-import { makeWorldLayers } from "./worldlayers.js?v=w7";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w8";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
@@ -1463,7 +1463,7 @@ function openObj(L) {
    表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。 */
 /* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
 let WL = null;
-function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !!PANEL.cur, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); }, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null, sp: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
