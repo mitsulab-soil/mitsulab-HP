@@ -102,19 +102,10 @@ export async function bootDiorama(fig, kind, labs) {
     const wm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .5, side: THREE.DoubleSide }); for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.CircleGeometry(.03, 10), wm); w.position.set(0, .03, s * .03); w.rotation.x = -Math.PI / 2 + s * .5; bee.add(w); } }
   // 人と欅（模型）
   (async () => { try {
-    const [man, tg] = await Promise.all([gltf('img/hero/3d/man.glb'), gltf('img/hero/3d/keyaki_lod1_notex.glb')]);
-    const skin = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .62, sheen: .4, sheenColor: new THREE.Color(0x8899aa) });
-    skin.onBeforeCompile = sh => { sh.vertexShader = 'varying float vH_;\n' + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>\n vH_ = (modelMatrix * vec4(transformed, 1.)).y;'); sh.fragmentShader = 'varying float vH_; uniform float uTop; uniform float uBot;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
-      float hN = clamp((vH_ - uBot) / (uTop - uBot), 0., 1.);
-      vec3 sk = vec3(.86, .69, .58), coat = vec3(.18, .22, .28), pants = vec3(.24, .25, .27), shoe = vec3(.12, .1, .09), hair = vec3(.1, .08, .07);
-      vec3 c = hN < .05 ? shoe : hN < .47 ? pants : hN < .82 ? coat : hN < .93 ? sk : hair;
-      diffuseColor.rgb = c;`); sh.uniforms.uTop = skin.userData.uTop; sh.uniforms.uBot = skin.userData.uBot; };
-    skin.userData.uTop = { value: 1 }; skin.userData.uBot = { value: 0 };
-    // 2026-10-28 P2：角ばりを抑える＝面ごとの法線を、頂点をまとめて滑らかな法線に作り直す（形は手元の man.glb のまま）
-    const { mergeVertices } = await import('three/addons/utils/BufferGeometryUtils.js');
-    man.scene.traverse(m => { if (m.isMesh) { try { let g = m.geometry.clone(); g.deleteAttribute('normal'); if (g.attributes.uv) g.deleteAttribute('uv'); g = mergeVertices(g, 1e-3); g.computeVertexNormals(); m.geometry = g; } catch (e) {} m.material = skin; m.frustumCulled = false; } });
+    // 2026-10-28 人の 3D を写実に近い姿へ（MakeHuman の CC0 の資産から作った human.glb。肌と服は写真の質感、つやを抑えたマットな材質）
+    const [man, tg] = await Promise.all([gltf('img/hero/3d/human.glb'), gltf('img/hero/3d/keyaki_lod1_notex.glb')]);
+    man.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt) { mt.metalness = 0; mt.roughness = /eye/i.test(m.name) ? .35 : .82; if (mt.map) mt.map.anisotropy = 4; if (/suit/i.test(m.name)) mt.color.setRGB(.86, .86, .88); if (/short|hair|brow/i.test(m.name)) { mt.alphaTest = .5; mt.transparent = false; mt.side = THREE.DoubleSide; } } } });
     const bb = new THREE.Box3().setFromObject(man.scene), sz = bb.getSize(new THREE.Vector3()), sc = 1.7 / sz.y;
-    { let lo = 1e9, hi = -1e9; man.scene.traverse(o => { if (o.isMesh) { o.geometry.computeBoundingBox(); lo = Math.min(lo, o.geometry.boundingBox.min.y); hi = Math.max(hi, o.geometry.boundingBox.max.y); } }); skin.userData.uTop.value = 1.7; skin.userData.uBot.value = 0.; }
     man.scene.scale.setScalar(sc); man.scene.position.set(P.x - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, P.z - (bb.min.z + sz.z / 2) * sc); man.scene.rotation.y = 1.0; stage.add(man.scene);
     const bark = new THREE.MeshStandardMaterial({ color: 0x6d5d4c, roughness: .95 });
     const leaf = new THREE.MeshStandardMaterial({ color: 0xb9cd97, roughness: .8, side: THREE.DoubleSide, alphaTest: .45 });
