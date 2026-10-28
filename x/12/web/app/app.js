@@ -9,6 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
+import { makeWorldLayers } from "./worldlayers.js?v=w5";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -796,7 +797,7 @@ function stepLayer(dt) {
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
   { const gT = LAYER.worn.length && QW.mode !== "boot" ? (sky ? .32 : .62) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
   stepHere(cp, t, sky || QW.mode === "fly");
-  declutter(dt);
+  declutter(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera);
 }
 /* 2026-10-26（氷川と同じ）：いまいる場所の重なり（半径 30 m の Qualia の数と層）と、画面の外のいちばん近い Qualia の方角 */
 const QH = { t: 0, el: null, dir: null };
@@ -849,7 +850,7 @@ function panelAsNarr({ title, lines = [], more = [], src = [], buttons = [] }) {
   let ls = (lines || []).filter(l => l && l.t).slice(0, 2).map(l => ({ ...l }));
   if (!ls.length && more && more[0]) ls = [{ t: String(more[0]) }];
   if (!ls.length) ls = [{ t: title }];
-  const s0 = (src || [])[0]; if (s0) ls[ls.length - 1].src = s0.t || String(s0);
+  const s0 = (src || [])[0]; if (s0) for (const l of ls) l.src = s0.t || String(s0);
   const L = PANEL.cur || null; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); }
   const play = (buttons || []).find(b => /鳴らす|聴く|再生|流す/.test(b.label || ""));
   pastTint(ls);
@@ -879,6 +880,7 @@ function qChime(color) {   // 触れたときの短い音（その場で組み�
 function hidePanel() { if (KASA.cur) { KASA.herd?.release(KASA.cur); KASA.cur = null; } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); PANEL.cur = null; stopVoice(); TOUCH.stop?.(); }
 $("#pClose").addEventListener("click", hidePanel);
 function openObj(L) {
+  if (NARR.L === L && NARR.sp) { const sp = NARR.sp; NARR.L = null; NARR.sp = null; PANEL.cur = null; stopVoice(); return enterSight(sp); }   // 語りの最中にもう一度触れる＝その生きものの受けとり方へ
   PANEL.cur = L; const g = GL[L.layer], no = `${String(layerNo(L.layer)).padStart(2, "0")}　${g.name}`;
   if (L.kind === "sound") return openSound(L, no);
   if (L.kind === "touch") return openTouch(L, no);
@@ -888,6 +890,10 @@ function openObj(L) {
 /* 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように。オーバーレイ中は移動できず操作感が悪い。下に小さくナレーションで文字を」
    → 印に触れても重ね窓を出さない。碧がその場で語り、画面の下に小さな字幕（出典は字幕の端に小さく）。語っているあいだも歩く・見回す・ほかの印に触れるがそのまま効く。
    語りの終わりに、答えでなく次の印への問いを置く（歩くと分かる）。表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。大宮と同じ（共通の基準）。 */
+/* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
+let WL = null;
+function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k) => narrate(L, k), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+const WL_HINT = { done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車/;
 function nextMarkAsk(L) {
@@ -900,15 +906,31 @@ function nextMarkAsk(L) {
 /* 10-28 午後 本人承認「歩きながら時間が重なる」：昔の姿を語るあいだ（年号・時代の語がある記録だけ）、景色の色をゆっくり古い写真の色へ寄せ、語り終えると戻す。形は足さない（典拠のない昔の形を作らない） */
 const PAST_RE = /江戸|明治|大正|昭和|享保|元禄|宝暦|寛永|天保|慶長|中世|縄文|弥生|古墳|[0-9０-９]+\s*年(前|ごろ|に)|かつて|昔は|むかし/;
 function pastTint(lines) { const on = lines.some(l => PAST_RE.test(l.t || "")); queueMicrotask(() => document.body.classList.toggle("pastOn", on)); }   // 語りを始める処理（stopVoice が色を戻す）のあとで付ける
-function narrate(L) {
+/* 10-28 晩：触覚の印は、歩いたまま触れる小さな板を画面の左下に出す（重ね窓にしない・ほかの操作をふさがない）。12 m 離れるか、ほかの印に触れると消える */
+const TFL = { el: null, L: null, iv: 0 };
+function floatPad(pad, L) {
+  clearInterval(TFL.iv); if (!pad) return; let box = document.getElementById("tfloat"); if (!box) { box = document.createElement("div"); box.id = "tfloat"; document.body.appendChild(box); }
+  box.innerHTML = ""; pad.style.height = "100%"; pad.style.margin = "0"; box.appendChild(pad); box.hidden = false; TFL.el = box; TFL.L = L;
+  TFL.iv = setInterval(() => { const o = TFL.L?.o; if (!o || QW.mode !== "walk" || Math.hypot(o.x - camera.position.x, o.z - camera.position.z) > 12) clearFloatPad(); }, 500);
+}
+function clearFloatPad() { clearInterval(TFL.iv); if (TFL.el) { TFL.el.hidden = true; TFL.el.innerHTML = ""; } TFL.L = null; try { TOUCH?.stop?.(); } catch { } }
+/* 10-28 晩 本人承認①：自然の印では、出典のある生きもの（content.json の sight＝イソヒヨドリ・ハクセキレイ）の受けとり方へ誘う。高い所・屋根・空の話はイソヒヨドリ、地面・道の話はハクセキレイ */
+function sightFor(L) { const S = (C && C.sight) || []; if (!S.length || !/nature|sight/.test(L.layer || "")) return null; const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t).join("");
+  const id = /屋根|上空|空を|飛ぶ|飛ん|鳥/.test(t) ? "isohiyo" : /道|地面|土|水|川|石/.test(t) ? "hakusekirei" : null; return id ? S.find(x => x.id === id) || null : null; }
+function narrate(L, how) { if (TFL.L && TFL.L !== L) clearFloatPad();
   const o = L.o; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); TOUCH.stop?.(); } PANEL.cur = L; NARR.L = L;
   let lines = (o.lines || []).filter(l => l && l.t); const thin = THIN.test(o.title + " " + lines.map(l => l.t).join(""));
   lines = thin ? lines.slice(0, 1) : lines.slice(0, 3); if (!lines.length) lines = [{ t: o.title }];
   lines = lines.map(l => ({ ...l }));
-  const s0 = (o.src || [])[0]; if (s0) lines[lines.length - 1].src = s0.t || String(s0);
-  const tail = nextMarkAsk(L); if (tail) lines.push({ t: tail, tc: tail });
+  const s0 = (o.src || [])[0]; if (s0) for (const l of lines) l.src = s0.t || String(s0);   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
+  const sp = sightFor(L); NARR.sp = sp;
+  startWL(); const rel = WL?.related(L); WL?.focus(L);
+  if (how === "micro") lines.unshift({ t: "足もとの、小さなものの話です。", tc: "足もとの、小さなものの話です。" }); else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
+  let tail = sp ? `${sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
+  if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } tail = (tail ? tail + "\n" : "") + "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; }
+  if (tail) lines.push({ t: tail, tc: tail });
   pastTint(lines);
-  speakLines(lines, L, { narr: true, done: () => { if (NARR.L === L) { NARR.L = null; if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } } });
+  speakLines(lines, L, { narr: true, done: () => { WL?.focus(null); if (NARR.L === L) { NARR.L = null; if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } } });
 }
 
 /* ---------- 声（碧） ---------- */
@@ -923,9 +945,9 @@ function playNext() {
   const v = voiceQ; if (!v) return; const l = v.q[v.i];
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === v.i && !!v.L));
-  if (!v.L || v.narr || $("#panel").hidden) caption(MOBILE ? l.t : (l.tc || l.t), v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .15) : Math.max(2.4, l.t.length * .15 + .6)));
+  if (!v.L || v.narr || $("#panel").hidden) caption(MOBILE ? l.t : (l.tc || l.t), v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .15) : Math.max(3.2, l.t.length * .2 + 1.2)));
   const next = gap => setTimeout(() => { if (voiceQ === v) { v.i++; playNext(); } }, gap);
-  if (!soundOn || !l.f) { next(Math.max(2400, l.t.length * 150 + 600)); return; }
+  if (!soundOn || !l.f) { next(Math.max(3200, l.t.length * 200 + 1200))   /* 10-28 晩：読める長さ */; return; }
   audio.src = l.f; audio.currentTime = 0;
   if (AOI.m && v.i === 0) AOI.m.express?.("warm", .5, Math.min(6, (l.dur || 3) + 1));
   audio.play().then(() => { AOI.m?.speak({ timeline: LIP[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }); }).catch(() => next(1500));
@@ -940,7 +962,7 @@ function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は�
   if (cur) out.push(cur); return out;
 }
 function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0]; const tag = $("#capTag");
-  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(1400, (dur || tot * .15) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(1400, (dur || tot * .15) * 1000 * ch[0].length / tot)); }
+  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
   if (s0) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", g?.color || "#9bdcf0"); tag.textContent = "出典：" + s0; } else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   delete c.dataset.talk;
@@ -1465,7 +1487,8 @@ function openTouch(L, no) {
   pad.addEventListener("pointerdown", e => { pad.setPointerCapture(e.pointerId); move(e); }); pad.addEventListener("pointermove", e => { if (e.buttons || e.pointerType === "touch") move(e); }); pad.addEventListener("pointerup", up); pad.addEventListener("pointercancel", up);
   TOUCH.stop = () => { try { src?.stop(); ac?.close(); } catch { } src = null; TOUCH.stop = null; };
   openPanel({ color: g.color, layer: no, title: it.title, lines: it.lines, more: (it.more || []).concat(it.tex === "bronze" ? ["指を離すと、組み立てた鐘の音が一つ鳴ります（③ 再現音。録音ではありません）。"] : []), src: it.src, ll: it.ll, how: "記録と模式（手ざわりと音は、その場で組み立てたもの）", pad });
-  speakLines(it.lines, L);
+  if (QW.mode === "walk") floatPad(pad, L);   // 10-28 晩：歩いたまま触れる板
+  speakLines(it.lines, L, { narr: true });
 }
 
 /* ---------- Qualia/sho：上原光瑛の書を通りに浮かべる（共通部品 sho3d.js）。近づくと粒にほどけ、音が鳴る ---------- */

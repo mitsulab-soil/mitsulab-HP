@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
+import { makeWorldLayers } from "./worldlayers.js?v=w5";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
@@ -1415,7 +1416,7 @@ function panelAsNarr({ title, lines = [], more = [], src = [], buttons = [] }) {
   let ls = (lines || []).filter(l => l && l.t).slice(0, 2).map(l => ({ ...l }));
   if (!ls.length && more && more[0]) ls = [{ t: String(more[0]) }];
   if (!ls.length) ls = [{ t: title }];
-  const s0 = (src || [])[0]; if (s0) ls[ls.length - 1].src = s0.t || String(s0);
+  const s0 = (src || [])[0]; if (s0) for (const l of ls) l.src = s0.t || String(s0);
   const L = PANEL.cur || null; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); }
   const play = (buttons || []).find(b => /鳴らす|聴く|再生|流す/.test(b.label || ""));
   pastTint(ls);
@@ -1459,6 +1460,10 @@ function openObj(L) {
    → 印に触れても重ね窓は出さない。碧がその場で語り（声と身ぶり）、画面の下に小さな字幕。語っているあいだも歩く・見回す・ほかの印に触れるがそのまま効く（ほかに触れたら語りは切りかわる）。
    体験の芯＝「受けとり方が変わる」：生きものの手がかりのある印は、もう一度触れるとその生きものの受けとり方へ（Qualia/sight）。語りの終わりに、答えでなく次の印への問いを置く（歩くと分かる）。
    表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。 */
+/* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
+let WL = null;
+function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k) => narrate(L, null, k), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !!PANEL.cur, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+const WL_HINT = { done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null, sp: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車/;
 function nextMarkAsk(L) {
@@ -1471,18 +1476,29 @@ function nextMarkAsk(L) {
 /* 10-28 午後 本人承認「歩きながら時間が重なる」：昔の姿を語るあいだ（年号・時代の語がある記録だけ）、景色の色をゆっくり古い写真の色へ寄せ、語り終えると戻す。形は足さない（典拠のない昔の形を作らない） */
 const PAST_RE = /江戸|明治|大正|昭和|享保|元禄|宝暦|寛永|天保|慶長|中世|縄文|弥生|古墳|[0-9０-９]+\s*年(前|ごろ|に)|かつて|昔は|むかし/;
 function pastTint(lines) { const on = lines.some(l => PAST_RE.test(l.t || "")); queueMicrotask(() => document.body.classList.toggle("pastOn", on)); }   // 語りを始める処理（stopVoice が色を戻す）のあとで付ける
-function narrate(L, sp) {
+/* 10-28 晩：触覚の印は、歩いたまま触れる小さな板を画面の左下に出す（重ね窓にしない・ほかの操作をふさがない）。12 m 離れるか、ほかの印に触れると消える */
+const TFL = { el: null, L: null, iv: 0 };
+function floatPad(pad, L) {
+  clearInterval(TFL.iv); if (!pad) return; let box = document.getElementById("tfloat"); if (!box) { box = document.createElement("div"); box.id = "tfloat"; document.body.appendChild(box); }
+  box.innerHTML = ""; pad.style.height = "100%"; pad.style.margin = "0"; box.appendChild(pad); box.hidden = false; TFL.el = box; TFL.L = L;
+  TFL.iv = setInterval(() => { const o = TFL.L?.o; if (!o || QW.mode !== "walk" || Math.hypot(o.x - camera.position.x, o.z - camera.position.z) > 12) clearFloatPad(); }, 500);
+}
+function clearFloatPad() { clearInterval(TFL.iv); if (TFL.el) { TFL.el.hidden = true; TFL.el.innerHTML = ""; } TFL.L = null;  }
+function narrate(L, sp, how) { if (TFL.L && TFL.L !== L) clearFloatPad();
   const o = L.o; hidePanel(); PANEL.cur = L; NARR.L = L; NARR.sp = sp && BODY_D[sp.id] ? sp : null;
   let lines = (o.lines || []).filter(l => l && l.t); const thin = THIN.test(o.title + " " + lines.map(l => l.t).join(""));
   lines = thin ? lines.slice(0, 1) : lines.slice(0, 3); if (!lines.length) lines = [{ t: o.title }];
   lines = lines.map(l => ({ ...l, tc: l.tc || l.t }));
-  const s0 = (o.src || [])[0]; if (s0) { const last = lines[lines.length - 1]; last.src = s0.t; }
-  const tail = NARR.sp ? `${NARR.sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : nextMarkAsk(L);
+  const s0 = (o.src || [])[0]; if (s0) for (const l of lines) l.src = s0.t || String(s0);   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
+  startWL(); const rel = WL?.related(L); WL?.focus(L);
+  if (how === "micro") lines.unshift({ t: "足もとの、小さなものの話です。", tc: "足もとの、小さなものの話です。" }); else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
+  let tail = NARR.sp ? `${NARR.sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
+  if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } tail = (tail ? tail + "\n" : "") + "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; }
   if (tail) lines.push({ t: tail, tc: tail, ask: true });
   if (o.seg) TALK.spoken.add(o.seg);
   qChime((GL[o.layer] || GL[top5(o.layer)])?.color);
   pastTint(lines);
-  speakLines(lines, L, { narr: true, done: () => { if (NARR.L === L) { NARR.L = null; NARR.sp = null; if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } } });
+  speakLines(lines, L, { narr: true, done: () => { WL?.focus(null); if (NARR.L === L) { NARR.L = null; NARR.sp = null; if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } } });
 }
 function hidePanel() { if (KASA.cur) { KASA.cur.herd?.release(KASA.cur); KASA.cur = null; } try { $("#pExp video")?.pause(); } catch { } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); if (AOI.hidP) { AOI.hidP = false; if (AOI.root && QW.mode === "walk") AOI.root.visible = true; } PANEL.cur = null; TCH.cur = null; stopVoice(); stopSound(); }
 $("#pClose").addEventListener("click", hidePanel);
@@ -1505,9 +1521,9 @@ function playNext() {
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   const idx = v.L && !v.narr ? v.L.o.lines.indexOf(l) : -1;
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === idx));
-  if (!v.L || v.narr) caption(l.tc || l.t, v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .16) : Math.max(2.2, (l.dur || l.t.length * .16) + .6)));
+  if (!v.L || v.narr || $("#panel").hidden) caption(l.tc || l.t, v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .16) : Math.max(3.2, (l.dur || l.t.length * .2) + 1.2)));
   const next = gap => setTimeout(() => { if (voiceQ === v) { v.i++; playNext(); } }, gap);
-  if (!soundOn || !l.f) { next(Math.max(2200, (l.dur || l.t.length * .16) * 1000 + 600)); return; }
+  if (!soundOn || !l.f) { next(Math.max(3200, (l.dur || l.t.length * .2) * 1000 + 1200))   /* 10-28 晩：声のない行も読める長さ（1 字 0.2 秒＋1.2 秒・最低 3.2 秒） */; return; }
   audio.src = l.f; audio.currentTime = 0;
   if (AOI.m && v.i === 0) AOI.m.express(v.talk ? (Math.random() < .5 ? "warm" : "curious") : "warm", .55, Math.min(6, (l.dur || 3) + 1));
   audio.play().then(() => { AOI.m?.speak({ timeline: D.lip[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime, ref: v.L && v.i === 0 && AOI.focus ? AOI.focus : null, autoGesture: !v.L || (v.i === 0 && !!AOI.focus) /* 2026-10-23 札の読み上げで指すのは、物が前にある最初の一行だけ */ }); }).catch(() => next(1500));
@@ -1523,7 +1539,7 @@ function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は�
 }
 function caption(t, talk, src, dur = 0) {
   const c = $("#caption"); clearInterval(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0];
-  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0, acc = ch[0].length; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; acc += ch[i].length; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(1400, (dur || tot * .16) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(1400, (dur || tot * .16) * 1000 * ch[0].length / tot)); }
+  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0, acc = ch[0].length; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; acc += ch[i].length; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const tag = $("#capTag"); const s0 = src || (talk && talk.src && talk.src[0] && talk.src[0].t) || "";
   if (s0) { const g = talk ? GL[talk.k] : null; tag.hidden = false; tag.style.setProperty("--c", g?.color || "#9bdcf0"); tag.textContent = "出典：" + s0; }   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   else tag.hidden = true;
@@ -2326,7 +2342,8 @@ function openTouch(L) {
     how: "手ざわり（硬さ・凹凸・粒）と音は、面の写真の凹凸から、この作品の中で組み立てた模式です" });
   const ex = $("#pExp"); ex.hidden = false;
   ex.insertAdjacentHTML("afterbegin", `<div class="tpad" id="tpad" style="background-image:url(${BASE}touch/${it.tex}_c.webp)"><span>指（マウス）でなでる・押す</span><i id="tring"></i></div>`);
-  TCH.cur = it; speakLines(it.lines, L); loadNormal(it).then(m => { if (TCH.cur === it) { TCH.map = m; bindPad(it); } });
+  if (QW.mode === "walk") floatPad($("#tpad"), L);   // 10-28 晩：歩いたまま触れる板
+  TCH.cur = it; speakLines(it.lines, L, { narr: true }); loadNormal(it).then(m => { if (TCH.cur === it) { TCH.map = m; bindPad(it); } });
 }
 function bindPad(it) {
   const pad = $("#tpad"), M = TMAT[it.m] || TMAT.stone; if (!pad) return; let last = null, down = false, prevH = 0, lastPulse = 0;
@@ -2524,7 +2541,7 @@ function frame() {
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2);
     if (QW.skyTex && m !== "sight") { const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp(NAVY, CYBER.v.value); } else VEIL.visible = false; CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
   if (PARK.uT && !RM) PARK.uT.value += dt;
-  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);
   if (SIGHT.post && QW.mode === "sight") {
     const PU = SIGHT.post.mat.uniforms; PU.time.value += dt; SIGHT.ring = Math.max(0, (SIGHT.ring || 0) - dt / 1.1); PU.pulse.value = SIGHT.ring; PU.move.value += ((SIGHT.sp ? Math.min(1, Math.abs(SIGHT.v) / Math.max(.2, SIGHT.sp.speed || 1)) : 0) - PU.move.value) * Math.min(1, dt * 4);
