@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
 import { makeWorldLayers } from "./worldlayers.js?v=w9";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
@@ -1463,7 +1463,7 @@ function openObj(L) {
    表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。 */
 /* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
 let WL = null;
-function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h }], null); return; } const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+function startWL() { if (WL) return; for (const L of LAYER.objs) { const sp = L.o.sp ? D.sight.find(x => x.id === L.o.sp) : null; L.qSight = !!(sp && BODY_D[sp.id]); }   /* 生きものの受けとり方へ入れる印の目印 */ WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null, sp: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
@@ -1499,7 +1499,7 @@ function narrate(L, sp, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
   let tail = NARR.sp ? `${NARR.sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
 
   if (tail) lines.push({ t: tail, tc: tail, ask: true });
-  if (!WL_HINT.done && ++WL_HINT.n >= 1) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; lines.push({ t: h, tc: h }); }   /* 静かな間を待たず、最初の語りの終わりに知らせる（静かな間が来れば、そこで） */
+  if (!WL_HINT.done && ++WL_HINT.n === 1) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; lines.push({ t: h, tc: h, hint: true }); }   /* 静かな間を待たず、最初の語りの終わりに知らせる（静かな間が来れば、そこで） */
   if (o.seg) TALK.spoken.add(o.seg);
   qChime((GL[o.layer] || GL[top5(o.layer)])?.color);
   pastTint(lines);
@@ -1523,6 +1523,7 @@ function speakLines(lines, L, opt = {}) {
 }
 function playNext() {
   const v = voiceQ; if (!v) return; const l = v.q[v.i];
+  if (l && l.hint) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } }   // 知らせは、実際に出たときにだけ済みにする（触れて切りかわったら、次の静かな間に一言）
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   const idx = v.L && !v.narr ? v.L.o.lines.indexOf(l) : -1;
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === idx));
@@ -1622,7 +1623,7 @@ function loadAoi() {
     const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 && Math.abs(h - 1.67) / 1.67 > .02 ? 1.67 / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
     try { Robe?.hideCoveredLegs?.(v, { keep: .12 }); } catch { }
-    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => groundY(x, z), quality: MOBILE ? "mid" : "auto" });
+    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => { const k = Math.round(x * 2) + "," + Math.round(z * 2); if (AOI.gk !== k) { AOI.gk = k; AOI.gy = surfaceY(x, z); } return AOI.gy; }, quality: MOBILE ? "mid" : "auto" });
     if (AOI.m.robe) AOI.m.robe.wind = .25;
     AOI.root = root; AOI.vrm = v; AOI.ready = true;
     try { root.visible = true; await renderer.compileAsync(root, camera, scene); } catch { } root.visible = QW.mode === "walk";

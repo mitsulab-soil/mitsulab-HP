@@ -223,7 +223,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         _q.identity(); _s.set(hs, hs, hs); _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); halo.setMatrixAt(n, _m);
         HA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); HA.iP.setXYZW(n, cv * Math.max(.35, big) * (sky ? 0 : .55), Math.max(.45, crisp), em, far); HA.iQ.setXY(n, it.k, op);
         // まわる輪
-        const os = cs * (.72 + op * .12); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * .7 + it.ph, .35); _q.setFromEuler(_e); _s.set(os, os, os);
+        const os = cs * (.72 + op * .12) * (L.qSight ? 1.2 : 1); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * (L.qSight ? 1.7 : .7) + it.ph, .35);   /* v10：生きものの受けとり方へ入れる印は、まわる輪が少し大きく速い（さりげない見分け） */ _q.setFromEuler(_e); _s.set(os, os, os);
         _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); orbit.setMatrixAt(n, _m);
         OA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); OA.iP.setXYZW(n, cv * big, crisp, em, far); OA.iQ.setXY(n, it.k, op);
         if (!sky && cv > .2) { _sp.set(_p.x, cy, _p.z).project(cam); if (_sp.z < 1) { const k = Math.max(46, ppk / Math.max(.5, d) * cs * 1.4), x = (_sp.x + 1) / 2 * innerWidth, y = (1 - _sp.y) / 2 * innerHeight; rects.push({ x0: x - .5 * k, x1: x + .62 * k, y0: y - .58 * k, y1: y + .4 * k, L }); } }

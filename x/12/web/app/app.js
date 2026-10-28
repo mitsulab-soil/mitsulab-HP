@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
 import { makeWorldLayers } from "./worldlayers.js?v=w9";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
@@ -902,8 +902,20 @@ function openObj(L) {
    → 印に触れても重ね窓を出さない。碧がその場で語り、画面の下に小さな字幕（出典は字幕の端に小さく）。語っているあいだも歩く・見回す・ほかの印に触れるがそのまま効く。
    語りの終わりに、答えでなく次の印への問いを置く（歩くと分かる）。表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。大宮と同じ（共通の基準）。 */
 /* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
+/* 10-28 晩：碧の足もとは、地形の高さでなく、実際に描いている舗装・縁石・石段などの面に合わせる（川越の始める地点 4 で裾から下が舗装に埋まっていた）。
+   地形の 1 m 上から下へ 1.6 m だけ光線を当て、いちばん上の面に立つ。0.5 m 四方ごとに覚えて、毎こまは当てない。 */
+const _sr = new THREE.Raycaster(), _sd = new THREE.Vector3(0, -1, 0), _so = new THREE.Vector3(), SURF = { k: "", y: 0, list: null, t: 0 };
+function surfaceY(x, z) {
+  const g = groundY(x, z), k = Math.round(x * 2) + "," + Math.round(z * 2); if (k === SURF.k) return SURF.y;
+  const now = performance.now();
+  if (!SURF.list || now - SURF.t > 4000) { SURF.t = now; SURF.list = []; const skip = AOI.root || null;
+    (function walk(o) { if (o === skip || o.visible === false) return; if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !(o.material && (o.material.transparent || o.material.depthWrite === false))) SURF.list.push(o); for (const c of o.children) walk(c); })(world); }
+  _so.set(x, g + 1, z); _sr.set(_so, _sd); _sr.far = 1.6;
+  let y = g; for (const h of _sr.intersectObjects(SURF.list, false)) { if (h.point.y > g - .3 && h.point.y < g + .9) { y = Math.max(g, h.point.y); break; } }
+  SURF.k = k; SURF.y = y; return y;
+}
 let WL = null;
-function startWL() { if (WL) return; QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h }], null); return; } const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!sightFor(L);   /* 生きものの受けとり方へ入れる印の目印 */ QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
@@ -943,7 +955,7 @@ function narrate(L, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
   let tail = sp ? `${sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
 
   if (tail) lines.push({ t: tail, tc: tail });
-  if (!WL_HINT.done && ++WL_HINT.n >= 1) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; lines.push({ t: h, tc: h }); }   /* 静かな間を待たず、最初の語りの終わりに知らせる（静かな間が来れば、そこで） */
+  if (!WL_HINT.done && ++WL_HINT.n === 1) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; lines.push({ t: h, tc: h, hint: true }); }   /* 静かな間を待たず、最初の語りの終わりに知らせる（静かな間が来れば、そこで） */
   pastTint(lines);
   speakLines(lines, L, { narr: true, done: () => { WL?.focus(null); if (NARR.L === L) { NARR.L = null; if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } } });
 }
@@ -958,6 +970,7 @@ function speakLines(lines, L, opt = {}) {
 }
 function playNext() {
   const v = voiceQ; if (!v) return; const l = v.q[v.i];
+  if (l && l.hint) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } }   // 知らせは、実際に出たときにだけ済みにする（触れて切りかわったら、次の静かな間に一言）
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === v.i && !!v.L));
   if (!v.L || v.narr || $("#panel").hidden) CAP_LAY = l.lay ? { n: l.lay, c: l.lc } : null; caption(MOBILE ? l.t : (l.tc || l.t), v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .15) : Math.max(3.2, l.t.length * .16 + 1.2)));
@@ -1016,7 +1029,7 @@ function loadAoi() {
     const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 && Math.abs(h - 1.67) / 1.67 > .02 ? 1.67 / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
     try { Robe?.hideCoveredLegs?.(v, { keep: .12 }); } catch { }
-    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => groundY(x, z), quality: MOBILE ? "mid" : "auto" });
+    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => surfaceY(x, z), quality: MOBILE ? "mid" : "auto" });
     if (AOI.m.robe) AOI.m.robe.wind = .2;
     AOI.root = root; AOI.ready = true;
     try { root.visible = true; await renderer.compileAsync(root, camera, scene); } catch { } root.visible = QW.mode === "walk";
