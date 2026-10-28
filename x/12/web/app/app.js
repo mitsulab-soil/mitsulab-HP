@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
-import { makeWorldLayers } from "./worldlayers.js?v=w5";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w6";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -906,12 +906,13 @@ function nextMarkAsk(L) {
 /* 10-28 午後 本人承認「歩きながら時間が重なる」：昔の姿を語るあいだ（年号・時代の語がある記録だけ）、景色の色をゆっくり古い写真の色へ寄せ、語り終えると戻す。形は足さない（典拠のない昔の形を作らない） */
 const PAST_RE = /江戸|明治|大正|昭和|享保|元禄|宝暦|寛永|天保|慶長|中世|縄文|弥生|古墳|[0-9０-９]+\s*年(前|ごろ|に)|かつて|昔は|むかし/;
 function pastTint(lines) { const on = lines.some(l => PAST_RE.test(l.t || "")); queueMicrotask(() => document.body.classList.toggle("pastOn", on)); }   // 語りを始める処理（stopVoice が色を戻す）のあとで付ける
-/* 10-28 晩：触覚の印は、歩いたまま触れる小さな板を画面の左下に出す（重ね窓にしない・ほかの操作をふさがない）。12 m 離れるか、ほかの印に触れると消える */
+/* 10-28 晩：触覚の印は、歩いたまま触れる小さな板を画面の左下に出す（重ね窓にしない・ほかの操作をふさがない）。触れた所から 8 m 離れるか、ほかの印に触れると消える */
 const TFL = { el: null, L: null, iv: 0 };
 function floatPad(pad, L) {
-  clearInterval(TFL.iv); if (!pad) return; let box = document.getElementById("tfloat"); if (!box) { box = document.createElement("div"); box.id = "tfloat"; document.body.appendChild(box); }
+  clearInterval(TFL.iv); if (!pad) return; let box = document.getElementById("tfloat"); if (!box) { box = document.createElement("div"); box.id = "tfloat"; document.body.appendChild(box); for (const ev of ["pointerdown", "pointermove", "pointerup", "mousedown", "mousemove", "touchstart", "touchmove", "click", "wheel"]) box.addEventListener(ev, e => e.stopPropagation()); }   // なでても景色が回らない・歩き出さない
   box.innerHTML = ""; pad.style.height = "100%"; pad.style.margin = "0"; box.appendChild(pad); box.hidden = false; TFL.el = box; TFL.L = L;
-  TFL.iv = setInterval(() => { const o = TFL.L?.o; if (!o || QW.mode !== "walk" || Math.hypot(o.x - camera.position.x, o.z - camera.position.z) > 12) clearFloatPad(); }, 500);
+  const o0 = L?.o, lim = o0 ? Math.max(18, Math.hypot(o0.x - camera.position.x, o0.z - camera.position.z) + 8) : 18;   // 触れた所から 8 m 以上離れたら消す（遠くの印に触れてもすぐ消えない）
+  TFL.iv = setInterval(() => { const o = TFL.L?.o; if (!o || QW.mode !== "walk" || Math.hypot(o.x - camera.position.x, o.z - camera.position.z) > lim) clearFloatPad(); }, 500);
 }
 function clearFloatPad() { clearInterval(TFL.iv); if (TFL.el) { TFL.el.hidden = true; TFL.el.innerHTML = ""; } TFL.L = null; try { TOUCH?.stop?.(); } catch { } }
 /* 10-28 晩 本人承認①：自然の印では、出典のある生きもの（content.json の sight＝イソヒヨドリ・ハクセキレイ）の受けとり方へ誘う。高い所・屋根・空の話はイソヒヨドリ、地面・道の話はハクセキレイ */
@@ -925,7 +926,7 @@ function narrate(L, how) { if (TFL.L && TFL.L !== L) clearFloatPad();
   const s0 = (o.src || [])[0]; if (s0) for (const l of lines) l.src = s0.t || String(s0);   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
   const sp = sightFor(L); NARR.sp = sp;
   startWL(); const rel = WL?.related(L); WL?.focus(L);
-  if (how === "micro") lines.unshift({ t: "足もとの、小さなものの話です。", tc: "足もとの、小さなものの話です。" }); else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
+  if (how === "micro" || how === "micro-far") { const t0 = how === "micro" ? "足もとの、小さなものの話です。" : "少し先の、小さなものの話です。"; lines.unshift({ t: t0, tc: t0 }); } else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
   let tail = sp ? `${sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
   if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } tail = (tail ? tail + "\n" : "") + "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; }
   if (tail) lines.push({ t: tail, tc: tail });

@@ -55,9 +55,9 @@ export function makeWorldLayers(THREE, scene, opt) {
       const p = opt.pitch(), want = p < -.6 ? -1 : p > .48 ? 1 : 0;
       if (want !== mode) { mode = want; hold = 0; document.body.dataset.wl = mode < 0 ? "micro" : mode > 0 ? "macro" : "eye"; } else hold += dt;   // 体の向き（見下ろす・見上げる）を body に書く（画面の部品の出し分けと確かめに使う）
       if (mode && hold > 1.3 && !opt.busy()) { hold = -8;   // 一度語ったら、続けて見ていても 8 秒は次を語らない
-        const re = mode < 0 ? MICRO : MACRO, lim = mode < 0 ? 40 : 200; let best = null, bd = 1e9;
+        const re = mode < 0 ? MICRO : MACRO, lim = mode < 0 ? 90 : 200;   // 小さなものは 90 m まで探す（25 m より先なら「少し先の」と言う） let best = null, bd = 1e9;
         for (const L of opt.marks()) { if (said.has(L)) continue; const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!re.test(t)) continue; const d = Math.hypot(L.o.x - cam.position.x, L.o.z - cam.position.z); if (d < lim && d < bd) { bd = d; best = L; } }
-        if (best) { said.add(best); opt.narrate(best, mode < 0 ? "micro" : "macro"); } }
+        if (best) { said.add(best); opt.narrate(best, mode < 0 ? (bd > 25 ? "micro-far" : "micro") : "macro"); } }
       mk += ((mode < 0 && hold > .4 ? 1 : 0) - mk) * Math.min(1, dt * 2.2); { const w = mode > 0 && hold > .4 ? 1 : 0; Mk += (w - Mk) * Math.min(1, dt * (w > Mk ? 1.6 : .22)); }   // 見下ろしたあとも、しばらく大きな輪が残る
       if (hold < 0 && mode) { if (mode < 0) mk = Math.max(mk, .9); else Mk = Math.max(Mk, .9); }
       const gy = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6;

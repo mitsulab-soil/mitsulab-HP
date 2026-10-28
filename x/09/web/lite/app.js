@@ -8,7 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
-import { makeWorldLayers } from "./worldlayers.js?v=w5";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w6";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
@@ -575,13 +575,14 @@ function updateTrees(force = false) {
 
 /* 道（舗装の材ごと）と構造物は、歩きはじめる前に後から読む */
 /* 2026-10-23 本人「舗装が白くて眩しいので、もっと自然な色に」→ 写真の質感（CC0）はそのまま、色を少し暖かい灰・使い込まれた石へ寄せて明度を下げ、照り返しを抑える */
-const ROAD_MATS = { asphalt_dark: ["Asphalt023S", [.95, .93, .9], 1, .8], asphalt_light: ["asphalt_04", [.84, .82, .78], 1, .8], sidewalk: ["concrete_pavers_02", [.72, .68, .62], 1, 1], granite_light: ["concrete_pavement", [.74, .7, .64], 1, 1],
+const ROAD_MATS = { asphalt_dark: ["Asphalt023S", [.95, .93, .9], 1, .8], asphalt_light: ["asphalt_04", [.82, .8, .76], 1, 1.5], sidewalk: ["concrete_pavers_02", [.72, .68, .62], 1, 1], granite_light: ["concrete_pavement", [.74, .7, .64], 1, 1],
   granite_plaza: ["granite_tile_04", [.72, .68, .62], 1, 1], granite_black: ["granite_tile", [1, 1, 1], .92, .7], washed: ["gravel_embedded_concrete", [.78, .74, .68], 1, 1], granite_band: ["PavingStones133", [.76, .72, .66], 1, 1],
   stone: ["japanese_stone_wall", [.84, .8, .74], 1, 1], sand: ["gravelly_sand", [1, 1, 1], 1, .9], roots: ["roots", [.46, .42, .37], 1, 1.2], bed: ["Ground047", [.8, .74, .66], 1, 1], lawn: ["Ground047", [.78, 1.05, .62], 1, 1],
   gravel: ["Gravel023", [.8, .79, .76], 1, 1.2], concrete: ["asphalt_04", [.9, .87, .82], 1, .5], paint: ["Asphalt023S", [1.55, 1.52, 1.45], .8, .4] };
 const ROAD_WEATHER = { stone: { moss: 0, grime: .45, lichen: 0, scale: 1.1, bump: .05 }, concrete: { moss: 0, grime: .55, lichen: 0, scale: 1.5, bump: .03 },   // 2026-10-23 本人「石畳の舗装に苔を生やさない」＝舗装の面は苔・地衣（緑のしみ）なし。縁の外の土・植え込みはそのまま
   granite_light: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .93 }, granite_plaza: { flat: 1, moss: 0, grime: .38, lichen: 0, scale: 1, bump: .022, rough: .93 },
   granite_black: { flat: 1, moss: 0, grime: .3, lichen: 0, scale: 1, bump: .02, rough: .9 }, granite_band: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .93 },
+  asphalt_light: { flat: 1, moss: 0, grime: .6, lichen: 0, scale: .9, bump: .03, rough: .9 },   // 2026-10-28 深夜 3D：参道の中央の舗装が無地の灰に見えないよう、使い込まれた濃淡・細かな凹凸（苔なし）
   sidewalk: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .02 }, washed: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .025 } };
 const STRUCT_WEATHER = { stone_new: { moss: .38, grime: .55, lichen: .45 }, granite: { moss: .32, grime: .5, lichen: .4 }, old_lantern: { moss: .55, grime: .65, lichen: .65 },
   old_komainu: { moss: .5, grime: .6, lichen: .6 }, old_hyoseki: { moss: .45, grime: .6, lichen: .55 }, old_shago: { moss: .45, grime: .6, lichen: .55 },
@@ -1476,12 +1477,13 @@ function nextMarkAsk(L) {
 /* 10-28 午後 本人承認「歩きながら時間が重なる」：昔の姿を語るあいだ（年号・時代の語がある記録だけ）、景色の色をゆっくり古い写真の色へ寄せ、語り終えると戻す。形は足さない（典拠のない昔の形を作らない） */
 const PAST_RE = /江戸|明治|大正|昭和|享保|元禄|宝暦|寛永|天保|慶長|中世|縄文|弥生|古墳|[0-9０-９]+\s*年(前|ごろ|に)|かつて|昔は|むかし/;
 function pastTint(lines) { const on = lines.some(l => PAST_RE.test(l.t || "")); queueMicrotask(() => document.body.classList.toggle("pastOn", on)); }   // 語りを始める処理（stopVoice が色を戻す）のあとで付ける
-/* 10-28 晩：触覚の印は、歩いたまま触れる小さな板を画面の左下に出す（重ね窓にしない・ほかの操作をふさがない）。12 m 離れるか、ほかの印に触れると消える */
+/* 10-28 晩：触覚の印は、歩いたまま触れる小さな板を画面の左下に出す（重ね窓にしない・ほかの操作をふさがない）。触れた所から 8 m 離れるか、ほかの印に触れると消える */
 const TFL = { el: null, L: null, iv: 0 };
 function floatPad(pad, L) {
-  clearInterval(TFL.iv); if (!pad) return; let box = document.getElementById("tfloat"); if (!box) { box = document.createElement("div"); box.id = "tfloat"; document.body.appendChild(box); }
+  clearInterval(TFL.iv); if (!pad) return; let box = document.getElementById("tfloat"); if (!box) { box = document.createElement("div"); box.id = "tfloat"; document.body.appendChild(box); for (const ev of ["pointerdown", "pointermove", "pointerup", "mousedown", "mousemove", "touchstart", "touchmove", "click", "wheel"]) box.addEventListener(ev, e => e.stopPropagation()); }   // なでても景色が回らない・歩き出さない
   box.innerHTML = ""; pad.style.height = "100%"; pad.style.margin = "0"; box.appendChild(pad); box.hidden = false; TFL.el = box; TFL.L = L;
-  TFL.iv = setInterval(() => { const o = TFL.L?.o; if (!o || QW.mode !== "walk" || Math.hypot(o.x - camera.position.x, o.z - camera.position.z) > 12) clearFloatPad(); }, 500);
+  const o0 = L?.o, lim = o0 ? Math.max(18, Math.hypot(o0.x - camera.position.x, o0.z - camera.position.z) + 8) : 18;   // 触れた所から 8 m 以上離れたら消す（遠くの印に触れてもすぐ消えない）
+  TFL.iv = setInterval(() => { const o = TFL.L?.o; if (!o || QW.mode !== "walk" || Math.hypot(o.x - camera.position.x, o.z - camera.position.z) > lim) clearFloatPad(); }, 500);
 }
 function clearFloatPad() { clearInterval(TFL.iv); if (TFL.el) { TFL.el.hidden = true; TFL.el.innerHTML = ""; } TFL.L = null;  }
 function narrate(L, sp, how) { if (TFL.L && TFL.L !== L) clearFloatPad();
@@ -1491,7 +1493,7 @@ function narrate(L, sp, how) { if (TFL.L && TFL.L !== L) clearFloatPad();
   lines = lines.map(l => ({ ...l, tc: l.tc || l.t }));
   const s0 = (o.src || [])[0]; if (s0) for (const l of lines) l.src = s0.t || String(s0);   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
   startWL(); const rel = WL?.related(L); WL?.focus(L);
-  if (how === "micro") lines.unshift({ t: "足もとの、小さなものの話です。", tc: "足もとの、小さなものの話です。" }); else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
+  if (how === "micro" || how === "micro-far") { const t0 = how === "micro" ? "足もとの、小さなものの話です。" : "少し先の、小さなものの話です。"; lines.unshift({ t: t0, tc: t0 }); } else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
   let tail = NARR.sp ? `${NARR.sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
   if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } tail = (tail ? tail + "\n" : "") + "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; }
   if (tail) lines.push({ t: tail, tc: tail, ask: true });
