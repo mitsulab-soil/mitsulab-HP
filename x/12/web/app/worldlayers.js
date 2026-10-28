@@ -48,7 +48,7 @@ export function makeWorldLayers(THREE, scene, opt) {
     focus(L) { focusL = L; },
     follow(L, M) { pending = M ? { L, M } : null; },
     related(L) { const k = key(L); if (!k) return null; let best = null, bd = 1e9;
-      for (const M of opt.marks()) { if (M === L || key(M) !== k) continue; const d = Math.hypot(M.o.x - L.o.x, M.o.z - L.o.z); if (d > 8 && d < 160 && d < bd) { bd = d; best = M; } }
+      for (const M of opt.marks()) { if (M === L || key(M) !== k || (opt.skip && opt.skip(M))) continue;   /* 数や割合の豆知識の印へは誘わない */ const d = Math.hypot(M.o.x - L.o.x, M.o.z - L.o.z); if (d > 8 && d < 160 && d < bd) { bd = d; best = M; } }
       return best ? { M: best, d: bd } : null; },
     update(dt, cam) {
       { const n = performance.now(); dt = Math.min(1, this._n ? (n - this._n) / 1000 : dt); this._n = n; }   // 10-29：静けさ・見下ろす時間は実時間で数える（こまが重いと数がゆっくり進み、問いが 20 秒以上出なかった）
@@ -73,7 +73,7 @@ export function makeWorldLayers(THREE, scene, opt) {
       micro.visible = mk > .02; if (micro.visible) { micro.position.set(cam.position.x, gy, cam.position.z); micro.material.opacity = .7 * mk; micro.rotation.y += dt * .05; }
       skyR.visible = Mk > .02; if (skyR.visible) { skyR.position.set(cam.position.x, gy + 40, cam.position.z); skyR.children.forEach((m, i) => { m.material.opacity = .16 * Mk * (1 - i * .3); }); }
       clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; if (QA && (clock * 2 | 0) !== (((clock - dt) * 2) | 0)) document.body.dataset.wlq = (opt.speaking() ? "s" : opt.busy() ? "b" : "q") + (quiet | 0) + "/" + (asked < 0 ? 0 : (clock - asked) | 0);   /* 確かめ用：いまの静けさ（?qa=1 のときだけ） */ const qf = asked < 0 ? 8 : (opt.quietFor ? opt.quietFor() : 14); if (quiet > qf && clock - asked > Math.max(18, qf * 1.6)) {   /* 次の印までの距離と歩く速さで、問いを置くまでの間を変える */   /* 最初の静かな間は 8 秒で（見下ろす／見上げるの知らせ） */ asked = clock; quiet = 0; opt.ask(); } }
-      if (pending && !opt.busy()) { const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
+      if (pending && !opt.busy() && quiet > 4 && clock - (this._contT || -99) > 40) { this._contT = clock;   /* 10-29：続きは、ほかの語りが終わってから */ const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
       macro.visible = Mk > .02; if (macro.visible) { macro.position.set(cam.position.x, gy + .1, cam.position.z); macro.children.forEach((m, i) => { m.material.opacity = .22 * Mk * (1 - i * .18); m.scale.setScalar(.92 + .08 * Mk); }); }
     },
   };
