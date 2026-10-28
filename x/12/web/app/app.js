@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
-import { makeWorldLayers } from "./worldlayers.js?v=w6";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w7";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -892,7 +892,7 @@ function openObj(L) {
    語りの終わりに、答えでなく次の印への問いを置く（歩くと分かる）。表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。大宮と同じ（共通の基準）。 */
 /* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」→ 共通部品 kit/worldlayers.js（左の層の一覧は歩くときに出さない） */
 let WL = null;
-function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k) => narrate(L, k), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車/;
@@ -918,15 +918,15 @@ function clearFloatPad() { clearInterval(TFL.iv); if (TFL.el) { TFL.el.hidden = 
 /* 10-28 晩 本人承認①：自然の印では、出典のある生きもの（content.json の sight＝イソヒヨドリ・ハクセキレイ）の受けとり方へ誘う。高い所・屋根・空の話はイソヒヨドリ、地面・道の話はハクセキレイ */
 function sightFor(L) { const S = (C && C.sight) || []; if (!S.length || !/nature|sight/.test(L.layer || "")) return null; const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t).join("");
   const id = /屋根|上空|空を|飛ぶ|飛ん|鳥/.test(t) ? "isohiyo" : /道|地面|土|水|川|石/.test(t) ? "hakusekirei" : null; return id ? S.find(x => x.id === id) || null : null; }
-function narrate(L, how) { if (TFL.L && TFL.L !== L) clearFloatPad();
+function narrate(L, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
   const o = L.o; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); TOUCH.stop?.(); } PANEL.cur = L; NARR.L = L;
   let lines = (o.lines || []).filter(l => l && l.t); const thin = THIN.test(o.title + " " + lines.map(l => l.t).join(""));
   lines = thin ? lines.slice(0, 1) : lines.slice(0, 3); if (!lines.length) lines = [{ t: o.title }];
   lines = lines.map(l => ({ ...l }));
   const s0 = (o.src || [])[0]; if (s0) for (const l of lines) l.src = s0.t || String(s0);   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
   const sp = sightFor(L); NARR.sp = sp;
-  startWL(); const rel = WL?.related(L); WL?.focus(L);
-  if (how === "micro" || how === "micro-far") { const t0 = how === "micro" ? "足もとの、小さなものの話です。" : "少し先の、小さなものの話です。"; lines.unshift({ t: t0, tc: t0 }); } else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
+  startWL(); const rel = how === "cont" ? null : WL?.related(L); WL?.focus(L); WL?.follow(L, rel?.M || null);   // 線の先へ歩くと、続きを語る
+  if (how === "micro" || how === "micro-far") { const t0 = how === "micro" ? "足もとの、小さなものの話です。" : "少し先の、小さなものの話です。"; lines.unshift({ t: t0, tc: t0 }); } else if (how === "cont" && from) { const t0 = `さっきの「${from.o.title}」と、同じ資料に書かれた話です。`; lines.unshift({ t: t0, tc: t0 }); } else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
   let tail = sp ? `${sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
   if (!WL_HINT.done) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } tail = (tail ? tail + "\n" : "") + "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; }
   if (tail) lines.push({ t: tail, tc: tail });
@@ -946,9 +946,9 @@ function playNext() {
   const v = voiceQ; if (!v) return; const l = v.q[v.i];
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === v.i && !!v.L));
-  if (!v.L || v.narr || $("#panel").hidden) caption(MOBILE ? l.t : (l.tc || l.t), v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .15) : Math.max(3.2, l.t.length * .2 + 1.2)));
+  if (!v.L || v.narr || $("#panel").hidden) caption(MOBILE ? l.t : (l.tc || l.t), v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .15) : Math.max(3.2, l.t.length * .16 + 1.2)));
   const next = gap => setTimeout(() => { if (voiceQ === v) { v.i++; playNext(); } }, gap);
-  if (!soundOn || !l.f) { next(Math.max(3200, l.t.length * 200 + 1200))   /* 10-28 晩：読める長さ */; return; }
+  if (!soundOn || !l.f) { next(Math.max(3200, l.t.length * 160 + 1200))   /* 10-28 晩：読める長さ */; return; }
   audio.src = l.f; audio.currentTime = 0;
   if (AOI.m && v.i === 0) AOI.m.express?.("warm", .5, Math.min(6, (l.dur || 3) + 1));
   audio.play().then(() => { AOI.m?.speak({ timeline: LIP[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }); }).catch(() => next(1500));
@@ -957,10 +957,10 @@ function playNext() {
 let capT = 0;
 let capChunkT = 0;
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
-  const max = innerWidth < 640 ? 44 : 70; if (t.length <= max) return [t];
+  const max = innerWidth < 640 ? 44 : 70; t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
-  if (cur) out.push(cur); return out;
+  if (cur) out.push(cur); return out.map(x => x.trim()).filter(Boolean);   // 改行だけの区切りを出さない
 }
 function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0]; const tag = $("#capTag");
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }

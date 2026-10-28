@@ -24,6 +24,10 @@ export function makeWorldLayers(THREE, scene, opt) {
   micro.visible = false; micro.renderOrder = 4; micro.frustumCulled = false; scene.add(micro);
   const macro = new THREE.Group(); macro.visible = false; scene.add(macro);
   for (const r of [30, 60, 100, 150]) { const g = new THREE.RingGeometry(r - .08, r + .08, 160); g.rotateX(-Math.PI / 2); macro.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: "#bfe3ee", transparent: true, opacity: 0, depthWrite: false, depthTest: false, side: THREE.DoubleSide, toneMapped: false }))); }
+  // 見上げたときの手がかり：頭の上 40 m に、半径 60・120 m の淡い輪（地面の大きな輪と同じ中心）
+  const skyR = new THREE.Group(); skyR.visible = false; scene.add(skyR);
+  for (const r of [60, 120]) { const g = new THREE.RingGeometry(r - .25, r + .25, 160); g.rotateX(Math.PI / 2); skyR.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: "#d6eef6", transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }))); }
+  let pending = null;   // 関係の線の先：歩いて近づくと、碧が「さっきの話の続き」として語る
   let pairs = [], built = 0, focusL = null, hold = 0, mode = 0, mk = 0, Mk = 0;
   const key = L => (L.o.src || [])[0]?.t || null;   // 同じ資料（出典の一つ目）に書かれた印どうしだけを結ぶ（話題が近いだけでは結ばない）
   function rebuild(cam) {
@@ -39,6 +43,7 @@ export function makeWorldLayers(THREE, scene, opt) {
   return {
     get lines() { return lines; },
     focus(L) { focusL = L; },
+    follow(L, M) { pending = M ? { L, M } : null; },
     related(L) { const k = key(L); if (!k) return null; let best = null, bd = 1e9;
       for (const M of opt.marks()) { if (M === L || key(M) !== k) continue; const d = Math.hypot(M.o.x - L.o.x, M.o.z - L.o.z); if (d > 8 && d < 160 && d < bd) { bd = d; best = M; } }
       return best ? { M: best, d: bd } : null; },
@@ -62,6 +67,8 @@ export function makeWorldLayers(THREE, scene, opt) {
       if (hold < 0 && mode) { if (mode < 0) mk = Math.max(mk, .9); else Mk = Math.max(Mk, .9); }
       const gy = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6;
       micro.visible = mk > .02; if (micro.visible) { micro.position.set(cam.position.x, gy, cam.position.z); micro.material.opacity = .7 * mk; micro.rotation.y += dt * .05; }
+      skyR.visible = Mk > .02; if (skyR.visible) { skyR.position.set(cam.position.x, gy + 40, cam.position.z); skyR.children.forEach((m, i) => { m.material.opacity = .16 * Mk * (1 - i * .3); }); }
+      if (pending && !opt.busy()) { const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
       macro.visible = Mk > .02; if (macro.visible) { macro.position.set(cam.position.x, gy + .1, cam.position.z); macro.children.forEach((m, i) => { m.material.opacity = .22 * Mk * (1 - i * .18); m.scale.setScalar(.92 + .08 * Mk); }); }
     },
   };
