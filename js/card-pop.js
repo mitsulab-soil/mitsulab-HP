@@ -13,7 +13,7 @@
     c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
     body.innerHTML = ''; body.appendChild(c);
     vid.innerHTML = ''; const img = card.querySelector('.pf-media img'); const p = img && img.getAttribute('src');
-    if (p && /_poster\.webp/.test(p)) { const v = document.createElement('video'); v.src = p.replace(/_poster\.webp.*/, '-preview.mp4'); v.poster = p; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = !matchMedia('(prefers-reduced-motion: reduce)').matches; v.controls = true; v.preload = 'metadata'; v.onerror = () => { vid.innerHTML = ''; }; vid.appendChild(v); }
+    if (p && /_poster\.webp/.test(p)) { const v = document.createElement('video'); v.src = p.replace(/_poster\.webp(\?[^#]*)?.*/, '-preview.mp4$1');   /* 10-28：ポスターと同じ ?v= を動画にも付ける（撮り直した動画が古い控えのまま出ないように） */ v.poster = p; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = !matchMedia('(prefers-reduced-motion: reduce)').matches; v.controls = true; v.preload = 'metadata'; v.onerror = () => { vid.innerHTML = ''; }; vid.appendChild(v); }
     else if (p) { const i = document.createElement('img'); i.src = p; i.alt = ''; vid.appendChild(i); }
     x.setAttribute('aria-label', en() ? 'Close' : '閉じる');
     const h = c.querySelector('.pf-name,.si-name'); if (h) { h.id = 'mp-h'; d.setAttribute('aria-labelledby', 'mp-h'); }
