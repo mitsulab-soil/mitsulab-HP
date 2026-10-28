@@ -256,7 +256,7 @@ function buildMarkings() {   // 川越：渋谷・大宮と同じ作り（2026-1
   for (const x of G.xing || []) { const P = []; for (let i = 1; i + 1 < x.length; i += 2) P.push([x[i], x[i + 1]]); if (P.length > 1) zebra.push(ribbon(densify(P, 2), x[0], .075, 1)); }
   const add = (gs, mat, nm) => { if (!gs.length) return; const m = new THREE.Mesh(mergeIdx(gs), mat); m.name = nm; m.renderOrder = 1; world.add(m); };
   add(solid, markMat(0), "markSolid"); add(dash, markMat(1), "markDash"); add(zebra, markMat(2), "zebra");
-  add(curb, new THREE.MeshStandardMaterial({ color: "#a9a6a0", roughness: .9, map: TL.load("web/tex/pave_c.webp", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; }), polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -9 }), "curb");
+  add(curb, new THREE.MeshStandardMaterial({ color: "#a9a6a0", roughness: .9, map: (t => (t.wrapS = t.wrapT = THREE.RepeatWrapping, t.colorSpace = THREE.SRGBColorSpace, t))(texLate("web/tex/pave_c.webp")), polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -9 }), "curb");
   QW.marks = { solid: solid.length, dash: dash.length, zebra: zebra.length, curb: curb.length };
 }
 function mergeIdx(gs) { let n = 0; const P = [], U = [], N = [], I = []; for (const g of gs) { const p = g.attributes.position.array, u = g.attributes.uv.array, nn = g.attributes.normal.array, ix = g.index.array; for (let i = 0; i < p.length; i++) P.push(p[i]); for (let i = 0; i < u.length; i++) U.push(u[i]); for (let i = 0; i < nn.length; i++) N.push(nn[i]); for (let i = 0; i < ix.length; i++) I.push(ix[i] + n); n += p.length / 3; g.dispose(); }
