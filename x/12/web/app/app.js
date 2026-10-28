@@ -831,7 +831,7 @@ function declutter(dt) {
   const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 }); for (const id of ["sndTag", "caption", "qHere"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); if (r.width && r.height) avoid.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); }   /* 10-28 夜 3：右上の音の説明・字幕・まわりの数の板に札を重ねない（渋谷で札が音の説明に隠れていた） */
   if (AOI.root?.visible) { const p0 = AOI.root.getWorldPosition(new THREE.Vector3()), p1 = p0.clone(); p1.y += 1.75; p0.project(camera); p1.project(camera); if (p0.z < 1) { const y0 = (1 - p1.y) / 2 * innerHeight, y1 = (1 - p0.y) / 2 * innerHeight, cx = (p0.x + 1) / 2 * innerWidth, hw = (y1 - y0) * .2; avoid.push({ x0: cx - hw, x1: cx + hw, y0: y0 - 6, y1 }); } }   // 10-28：札を碧に重ねない
   const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
-  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 36 : 56);   /* 10-28 夜 3：札が小さく読みにくかった（大宮の札の大きさに近づける） */   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
+  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 30 : 56);   /* 10-28 夜 3：札が小さく読みにくかった（大宮の札の大きさに近づける） */   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
 function pickObj(x, y) {
   const r = new THREE.Raycaster(), p = new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); r.setFromCamera(p, camera);
@@ -994,7 +994,7 @@ function setMode(m) { QW.mode = m; document.body.dataset.mode = m;
 function skyCam() { const c = SKY.c, x = c.x + Math.sin(SKY.az) * Math.cos(SKY.el) * SKY.dist, z = c.z + Math.cos(SKY.az) * Math.cos(SKY.el) * SKY.dist, y = c.y + Math.sin(SKY.el) * SKY.dist; camera.position.set(x, y, z); camera.lookAt(c); }
 let TW = null;
 function tweenTo(pos, yaw, pitch, dur, done) { TW = { p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: pos.clone(), q1: new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ")), t: 0, dur, done }; }
-function stepTween(dt) { if (!TW) return false; TW.t += dt / TW.dur; const k = Math.min(1, TW.t), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+function stepTween(dt) { if (!TW) return false; TW.t = Math.max(TW.t + Math.min(dt, .05) / TW.dur, (performance.now() - (TW.s ??= performance.now())) / 1000 / TW.dur);   /* 10-28 夜 7：こまが遅い端末でも、降りる時間を実時間で決める（スマホでなかなか着かなかった） */ const k = Math.min(1, TW.t), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
   if (TW.p0.y - TW.p1.y > 60) { const eh = Math.min(1, e * 1.35); camera.position.set(TW.p0.x + (TW.p1.x - TW.p0.x) * eh, TW.p0.y + (TW.p1.y - TW.p0.y) * e, TW.p0.z + (TW.p1.z - TW.p0.z) * eh); } else camera.position.lerpVectors(TW.p0, TW.p1, e);   /* 10-28 夜 4：先に真上へ寄せ、最後は道へまっすぐ降りる（高い建物の中を通り抜けていた） */ const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; if (TW.p0.y - TW.p1.y > 60) {   /* 10-28 夜 3：上空から降りるときは、降りる先を見つめたまま下り、最後に前を向く（途中で地平線と地図の外を向いていた） */
     const f = new THREE.Vector3(0, 0, -1).applyQuaternion(TW.q1); f.y = 0; f.normalize(); const tg = TW.p1.clone().addScaledVector(f, 25);
     TW._m ||= new THREE.Matrix4(); TW._q ||= new THREE.Quaternion(); TW._m.lookAt(camera.position, tg, camera.up); TW._q.setFromRotationMatrix(TW._m);
