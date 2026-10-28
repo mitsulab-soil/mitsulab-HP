@@ -70,7 +70,7 @@ function landSweep() {
 const camera = new THREE.PerspectiveCamera(MOBILE ? 62 : 55, innerWidth / innerHeight, .08, 7000); scene.add(camera); QW.camera = camera;
 const FOG = new THREE.Color("#d2d8df");   // 2026-10-29 遠景：空の写真の地平の色（#dddfe4 付近）に合わせ、地面の果てと空の継ぎ目を消す（旧 #b9c8d6）
 scene.fog = new THREE.Fog(FOG, 900, 3800);
-const hemi = new THREE.HemisphereLight("#dbe6f4", "#5a5246", 1.1); scene.add(hemi);
+const hemi = new THREE.HemisphereLight("#dbe6f4", "#857c6e", 1.45);   /* 2026-10-29：日の当たらない側の壁が黒く沈み、空との差で浮いていた→空と地面の照り返しを少し強く（旧 #5a5246・1.1） */ scene.add(hemi);
 const sun = new THREE.DirectionalLight("#ffeedd", 2.4); sun.position.set(-420, 380, 160); scene.add(sun, sun.target);   // 午後の西日（一番街の東側の店蔵の正面を照らす向き）
 function skyTex() { const c = document.createElement("canvas"); c.width = 4; c.height = 256; const x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, 256);
   g.addColorStop(0, "#6f8fb4"); g.addColorStop(.42, "#a9bfd4"); g.addColorStop(.5, "#c3cdd6"); g.addColorStop(1, "#c8ccc9"); x.fillStyle = g; x.fillRect(0, 0, 4, 256);
@@ -395,7 +395,7 @@ function leafMat() {
 /* 通りに面した建物（道筋から 24 m 以内に輪郭がかかるもの）：漆喰の不透明の壁と屋根。歩いて中に入らない（足もとの輪郭で止める）。
    道筋が建物の輪郭の中を通るもの（駅の建物など）は、通れなくならないよう、これまでどおり薄いグラフィックに残す */
 const SOLID = { P: [], U: [], W: [], C: [], E: [], polys: [], hash: new Map(), cell: 12 };
-const SOLID_TONES = [[.24, .19, .14], [.28, .23, .17], [.17, .13, .1], [.11, .1, .09], [.32, .28, .23], [.07, .07, .07]];   // 2026-10-26 採点「白〜ベージュの箱」→ 土壁の茶・焼杉の黒・古い漆喰（色は線形の値）   // 2026-10-26「灰色の面が多い」→ 灰を減らし、土壁の茶と黒漆喰に近い黒を混ぜる   // 2026-10-25 採点「白い張りぼての板に見える」→ 白を抑え、雨に古びた漆喰・タイルの色へ   // 漆喰の白・タイルの砂色・灰・焦げ茶・濃い灰（模式）
+const SOLID_TONES = [[.35, .29, .22], [.4, .34, .26], [.27, .22, .17], [.19, .17, .15], [.45, .4, .33], [.13, .13, .13]];   // 2026-10-29 遠景：土壁の茶と黒の並びはそのまま、明るさだけ約 1.5 倍（暗い茶の箱が空との差で浮いていた）   // 2026-10-26 採点「白〜ベージュの箱」→ 土壁の茶・焼杉の黒・古い漆喰（色は線形の値）   // 2026-10-26「灰色の面が多い」→ 灰を減らし、土壁の茶と黒漆喰に近い黒を混ぜる   // 2026-10-25 採点「白い張りぼての板に見える」→ 白を抑え、雨に古びた漆喰・タイルの色へ   // 漆喰の白・タイルの砂色・灰・焦げ茶・濃い灰（模式）
 function inRing(r, x, z) { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a.y > z) !== (b.y > z) && x < (b.x - a.x) * (z - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 function streetSide(ring) {
   const route = nearestOnLine(ring[0].x, ring[0].y).dist < 70;
