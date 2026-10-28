@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
-import { makeWorldLayers } from "./worldlayers.js?v=w10";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w12";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -915,14 +915,14 @@ function surfaceY(x, z) {
   SURF.k = k; SURF.y = y; return y;
 }
 let WL = null;
-function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!sightFor(L);   /* 生きものの受けとり方へ入れる印の目印 */ QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !!PANEL.cur, speaking: () => !!voiceQ, quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of LAYER.objs) { if (!M.root?.visible || M.qHide) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } const v = WALK.moving ? (WALK.speed || 1.3) : 1.3; return Math.max(8, Math.min(16, nd / v * .45)); },   /* 近くに印があれば早めに、遠ければゆっくり問う */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!sightFor(L);   /* 生きものの受けとり方へ入れる印の目印 */ QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ,   /* 10-29：語りが途中で切りかわると PANEL.cur が残り、問い・ミクロ⇄マクロが止まっていた */ quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of LAYER.objs) { if (!M.root?.visible || M.qHide) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } const v = WALK.moving ? (WALK.speed || 1.3) : 1.3; return Math.max(8, Math.min(16, nd / v * .45)); },   /* 近くに印があれば早めに、遠ければゆっくり問う */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 視野の外の印も含めて探す */   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
-function nextMarkAsk(L) {
+function nextMarkAsk(L, wide) {
   const cp = camera.position, fw = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); let best = null, bd = 1e9;
-  for (const M of LAYER.objs) { if (M === L || M.qHide || !M.root?.visible) continue; const dx = M.o.x - cp.x, dz = M.o.z - cp.z, d = Math.hypot(dx, dz); if (!(d >= 12 && d <= 120)) continue; const fr = (dx * fw.x + dz * fw.z) / d, sc = d - fr * 25; if (sc < bd) { bd = sc; best = { d, dx, dz, fr }; } }
+  for (const M of LAYER.objs) { if (M === L || (!wide && M.qHide) || !M.root?.visible) continue; const dx = M.o.x - cp.x, dz = M.o.z - cp.z, d = Math.hypot(dx, dz); if (!(d >= 12 && d <= (wide ? 220 : 120))) continue; const fr = (dx * fw.x + dz * fw.z) / d, sc = d - fr * 25; if (sc < bd) { bd = sc; best = { d, dx, dz, fr }; } }
   if (!best) return null; const side = best.dx * -fw.z + best.dz * fw.x;
   const dir = best.fr > .7 ? "この先" : best.fr < -.5 ? "うしろ" : side > 0 ? "右手" : "左手";
   const m = Math.round(best.d / 5) * 5, Q = [`${dir}、${m} m ほどの所には、何が重なっているでしょう。`, `${dir} ${m} m ほど。そこでは、何が見えてくるでしょう。`, `${dir}の、${m} m ほど先。足を止めてみたくなる所があります。`, `${dir}、${m} m ほど。そこに、何が残っているでしょう。`];
@@ -980,6 +980,7 @@ function playNext() {
   if (AOI.m && v.i === 0) AOI.m.express?.("warm", .5, Math.min(6, (l.dur || 3) + 1));
   audio.play().then(() => { AOI.m?.speak({ timeline: LIP[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }); }).catch(() => next(1500));
   audio.onended = () => { if (voiceQ !== v) return; AOI.m?.stopSpeaking(); next(420); };
+  { const i0 = v.i; setTimeout(() => { if (voiceQ === v && v.i === i0 && !audio.ended && (audio.paused || audio.currentTime < .05)) { AOI.m?.stopSpeaking(); v.i++; playNext(); } }, ((l.dur || 3) + 4) * 1000); }   // 10-29：声の読み込みが止まっても、語りが黙ったまま止まらない
 }
 let capT = 0;
 let capChunkT = 0;
@@ -1007,7 +1008,7 @@ function stepTalk() {
   const cp = camera.position; let best = null, bd = 30;
   for (const L of LAYER.objs) { if (L.kind !== "rec" || TALK.spoken.has(L.o.id) || !LAYER.worn.includes(L.layer)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d < bd) { bd = d; best = L; } }
   if (!best) return; TALK.spoken.add(best.o.id); TALK.nextT = performance.now() + 2500;
-  speakLines(best.o.lines, null, { talk: best, done: () => { TALK.nextT = performance.now() + 3500; } });
+  speakLines(best.o.lines, null, { talk: best, done: () => { TALK.nextT = performance.now() + 4500 + Math.random() * 2500; }   /* 10-29：語りと語りのあいだに息つぎ（4.5〜7 秒） */ });
 }
 function syncTalkBtn() { const b = $("#talkBtn"); b.setAttribute("aria-pressed", String(TALK.on)); b.querySelector("span").textContent = TALK.on ? "碧の話：止める" : "碧の話：続ける"; }
 $("#talkBtn").addEventListener("click", () => { TALK.on = !TALK.on; if (!TALK.on) stopVoice(); syncTalkBtn(); });
