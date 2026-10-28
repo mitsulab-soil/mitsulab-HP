@@ -8555,6 +8555,240 @@
     35.6592308
    ],
    "new": true
+  },
+  {
+   "id": "s2_131",
+   "layer": "culture",
+   "title": "広場の電車モニュメント",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成18年（2006）10月、ハチ公前広場に電車のモニュメントができあがりました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -16.52,
+   "z": -3.44,
+   "ll": [
+    139.7004474,
+    35.659091
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_125",
+   "layer": "culture",
+   "title": "駅前広場の整備",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成元年（1989）9月、渋谷駅前広場の整備が終わりました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -18.65,
+   "z": -38.23,
+   "ll": [
+    139.7004238,
+    35.6594045
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_122",
+   "layer": "culture",
+   "title": "渋谷地下街",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和32年（1957）11月、渋谷地下街ができました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -180.95,
+   "z": -103.33,
+   "ll": [
+    139.6986294,
+    35.6599911
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_087",
+   "layer": "culture",
+   "title": "宮益坂の11階建て",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和28年（1953）5月、宮益坂に、店舗をあわせもつ11階建てのアパートが建てられました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 274.64,
+   "z": -145.8,
+   "ll": [
+    139.7036665,
+    35.6603737
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_161",
+   "layer": "culture",
+   "title": "文化総合センター大和田",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成22年（2010）11月、文化総合センター大和田が開設され、こもれび大和田図書館が再び開館しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -207.47,
+   "z": 409.29,
+   "ll": [
+    139.6983362,
+    35.655372
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_133",
+   "layer": "culture",
+   "title": "鍋島松濤公園",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和8年（1933）12月、鍋島松濤公園が開園しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -557.29,
+   "z": -202.25,
+   "ll": [
+    139.6944686,
+    35.6608824
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_160",
+   "layer": "nature",
+   "title": "桜丘の医師会館",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和42年（1967）9月、渋谷区医師会が、桜丘の新しい会館に移りました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -108.09,
+   "z": 350.76,
+   "ll": [
+    139.6994349,
+    35.6558994
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_162",
+   "layer": "culture",
+   "title": "桜丘保育園",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和53年（1978）9月、区立桜丘保育園が開園しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -94.12,
+   "z": 353.77,
+   "ll": [
+    139.6995894,
+    35.6558723
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_150",
+   "layer": "culture",
+   "title": "駅周辺の基盤整備",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成22年（2010）10月、渋谷駅周辺の都市基盤整備事業が始まりました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 84.81,
+   "z": 242.6,
+   "ll": [
+    139.7015677,
+    35.656874
+   ],
+   "new": true
   }
  ],
  "sight": [
