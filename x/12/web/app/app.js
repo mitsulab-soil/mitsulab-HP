@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k16";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k17";
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -830,20 +830,33 @@ function declutter(dt) {
   const now = performance.now(); if (!DC.ls || now - DC.t > 500) { DC.t = now; DC.ls = $("#lstack").getBoundingClientRect(); }   // 画面の部品の位置は 0.5 秒ごとに読む（毎こま読むと重い）
   const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 }); for (const id of ["sndTag", "caption", "qHere"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); if (r.width && r.height) avoid.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); }   /* 10-28 夜 3：右上の音の説明・字幕・まわりの数の板に札を重ねない（渋谷で札が音の説明に隠れていた） */
   if (AOI.root?.visible) { const p0 = AOI.root.getWorldPosition(new THREE.Vector3()), p1 = p0.clone(); p1.y += 1.75; p0.project(camera); p1.project(camera); if (p0.z < 1) { const y0 = (1 - p1.y) / 2 * innerHeight, y1 = (1 - p0.y) / 2 * innerHeight, cx = (p0.x + 1) / 2 * innerWidth, hw = (y1 - y0) * .2; avoid.push({ x0: cx - hw, x1: cx + hw, y0: y0 - 6, y1 }); } }   // 10-28：札を碧に重ねない
-  const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
-  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 30 : 56);   /* 10-28 夜 3：札が小さく読みにくかった（大宮の札の大きさに近づける） */   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
+  const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide && (Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 20 || PANEL.cur === L || (L.lb.visible = false))) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
+  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 18 : 26);   /* 10-28 午後 本人「印が目立ちすぎ」：札は 20 m 以内の近い印だけ・小さく */   /* 10-28 夜 3：札が小さく読みにくかった（大宮の札の大きさに近づける） */   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
 function pickObj(x, y) {
   const r = new THREE.Raycaster(), p = new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); r.setFromCamera(p, camera);
-  let best = null, bd = 1e9; const tol = MOBILE ? 46 : 32;
-  for (const L of LAYER.objs) { if (!L.root.visible) continue; L.glyph.getWorldPosition(_v); const s = _v.clone().project(camera); if (s.z > 1) continue;
+  let best = null, bd = 1e9; const tol = MOBILE ? 50 : 42;   // 10-28 午後：印を小さくしたので当たりは広めに
+  for (const L of LAYER.objs) { if (!L.root.visible || L.qHide) continue; L.glyph.getWorldPosition(_v); const s = _v.clone().project(camera); if (s.z > 1) continue;
     const sx = (s.x + 1) / 2 * innerWidth, sy = (1 - s.y) / 2 * innerHeight, dpx = Math.hypot(sx - x, sy - y); if (dpx < tol && dpx < bd) { bd = dpx; best = L; } }
   return best;
 }
 
 /* ---------- 開いた中身 ---------- */
 const PANEL = { cur: null };
+/* 10-28 午後：音・触覚・書などの印も、歩いているあいだは重ね窓を出さない。碧が一行で語り、音は自動で鳴らす（「鳴らす」「聴く」の操作だけ自動で行う。空へ飛ぶ・身体に入るなどの大きな切りかえは自動ではしない） */
+const NARR_FORCE = { on: false };
+function panelAsNarr({ title, lines = [], more = [], src = [], buttons = [] }) {
+  let ls = (lines || []).filter(l => l && l.t).slice(0, 2).map(l => ({ ...l }));
+  if (!ls.length && more && more[0]) ls = [{ t: String(more[0]) }];
+  if (!ls.length) ls = [{ t: title }];
+  const s0 = (src || [])[0]; if (s0) ls[ls.length - 1].src = s0.t || String(s0);
+  const L = PANEL.cur || null; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); }
+  const play = (buttons || []).find(b => /鳴らす|聴く|再生|流す/.test(b.label || ""));
+  pastTint(ls);
+  speakLines(ls, L, { narr: true, done: () => { if (play && PANEL.cur === L) { try { play.run(); } catch (e) { console.warn(e); } } if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } });   // 語り終えてから音を鳴らす（鳴らす操作は語りを止めるため）
+}
 function openPanel({ color, layer, title, lines = [], more = [], how, note, src = [], ll, buttons = [], pad = null }) {
+  if (QW.mode === "walk" && !NARR_FORCE.on) { panelAsNarr({ title, lines, more, src, buttons }); return; }   // 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように」＝歩いているあいだは重ね窓を出さず、碧の語りと下の小さな字幕に
   const p = $("#panel"); p.style.setProperty("--lc", color); $("#pLayer").textContent = layer; $("#pTitle").textContent = title;
   const b = $("#pBody"); b.innerHTML = "";
   lines.forEach((l, i) => { const e = document.createElement("p"); e.className = "line"; e.dataset.i = i; e.textContent = l.t; b.appendChild(e); });
@@ -870,15 +883,39 @@ function openObj(L) {
   if (L.kind === "sound") return openSound(L, no);
   if (L.kind === "touch") return openTouch(L, no);
   if (L.kind === "sho") return openSho(L, no);
-  openPanel({ color: g.color, layer: no, title: L.o.title, lines: L.o.lines, more: L.o.more || [], how: L.o.how, src: L.o.src, ll: L.o.ll });
-  speakLines(L.o.lines, L);
+  narrate(L);
+}
+/* 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように。オーバーレイ中は移動できず操作感が悪い。下に小さくナレーションで文字を」
+   → 印に触れても重ね窓を出さない。碧がその場で語り、画面の下に小さな字幕（出典は字幕の端に小さく）。語っているあいだも歩く・見回す・ほかの印に触れるがそのまま効く。
+   語りの終わりに、答えでなく次の印への問いを置く（歩くと分かる）。表面的な話（舗装・割合・催しなど）は一言に縮める（データは消さず、出し方で）。大宮と同じ（共通の基準）。 */
+const NARR = { L: null };
+const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車/;
+function nextMarkAsk(L) {
+  const cp = camera.position, fw = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); let best = null, bd = 1e9;
+  for (const M of LAYER.objs) { if (M === L || M.qHide || !M.root?.visible) continue; const dx = M.o.x - cp.x, dz = M.o.z - cp.z, d = Math.hypot(dx, dz); if (!(d >= 12 && d <= 120)) continue; const fr = (dx * fw.x + dz * fw.z) / d, sc = d - fr * 25; if (sc < bd) { bd = sc; best = { d, dx, dz, fr }; } }
+  if (!best) return null; const side = best.dx * -fw.z + best.dz * fw.x;
+  const dir = best.fr > .7 ? "この先" : best.fr < -.5 ? "うしろ" : side > 0 ? "右手" : "左手";
+  return `${dir}、${Math.round(best.d / 5) * 5} m ほどの所には、何が重なっているでしょう。`;
+}
+/* 10-28 午後 本人承認「歩きながら時間が重なる」：昔の姿を語るあいだ（年号・時代の語がある記録だけ）、景色の色をゆっくり古い写真の色へ寄せ、語り終えると戻す。形は足さない（典拠のない昔の形を作らない） */
+const PAST_RE = /江戸|明治|大正|昭和|享保|元禄|宝暦|寛永|天保|慶長|中世|縄文|弥生|古墳|[0-9０-９]+\s*年(前|ごろ|に)|かつて|昔は|むかし/;
+function pastTint(lines) { const on = lines.some(l => PAST_RE.test(l.t || "")); queueMicrotask(() => document.body.classList.toggle("pastOn", on)); }   // 語りを始める処理（stopVoice が色を戻す）のあとで付ける
+function narrate(L) {
+  const o = L.o; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); TOUCH.stop?.(); } PANEL.cur = L; NARR.L = L;
+  let lines = (o.lines || []).filter(l => l && l.t); const thin = THIN.test(o.title + " " + lines.map(l => l.t).join(""));
+  lines = thin ? lines.slice(0, 1) : lines.slice(0, 3); if (!lines.length) lines = [{ t: o.title }];
+  lines = lines.map(l => ({ ...l }));
+  const s0 = (o.src || [])[0]; if (s0) lines[lines.length - 1].src = s0.t || String(s0);
+  const tail = nextMarkAsk(L); if (tail) lines.push({ t: tail, tc: tail });
+  pastTint(lines);
+  speakLines(lines, L, { narr: true, done: () => { if (NARR.L === L) { NARR.L = null; if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } } });
 }
 
 /* ---------- 声（碧） ---------- */
 const audio = $("#voice"); let soundOn = true, voiceQ = null, LIP = {};
-function stopVoice() { voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
+function stopVoice() { document.body.classList.remove("pastOn"); voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
 function speakLines(lines, L, opt = {}) {
-  stopVoice(); voiceQ = { q: lines, i: 0, L, talk: opt.talk || null, done: opt.done || null };
+  stopVoice(); voiceQ = { q: lines, i: 0, L, talk: opt.talk || null, done: opt.done || null, narr: !!opt.narr };
   if (L && AOI.m) { const p = L.glyph.getWorldPosition(new THREE.Vector3()); AOI.m.lookAt(p); AOI.focus = p; }
   playNext();
 }
@@ -886,7 +923,7 @@ function playNext() {
   const v = voiceQ; if (!v) return; const l = v.q[v.i];
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === v.i && !!v.L));
-  if (!v.L || $("#panel").hidden) caption(MOBILE ? l.t : (l.tc || l.t), v.talk);
+  if (!v.L || v.narr || $("#panel").hidden) caption(MOBILE ? l.t : (l.tc || l.t), v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .15) : Math.max(2.4, l.t.length * .15 + .6)));
   const next = gap => setTimeout(() => { if (voiceQ === v) { v.i++; playNext(); } }, gap);
   if (!soundOn || !l.f) { next(Math.max(2400, l.t.length * 150 + 600)); return; }
   audio.src = l.f; audio.currentTime = 0;
@@ -895,12 +932,21 @@ function playNext() {
   audio.onended = () => { if (voiceQ !== v) return; AOI.m?.stopSpeaking(); next(420); };
 }
 let capT = 0;
-function caption(t, talk) { const c = $("#caption"); $("#capText").textContent = t; const tag = $("#capTag");
-  if (talk) { const g = GL[talk.layer]; tag.hidden = false; tag.style.setProperty("--c", g?.color || "#9bdcf0"); tag.textContent = `${String(layerNo(talk.layer)).padStart(2, "0")}　${g?.name || ""}　出典`; c.dataset.talk = talk.o.id; }
-  else { tag.hidden = true; delete c.dataset.talk; }
+let capChunkT = 0;
+function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
+  const max = innerWidth < 640 ? 44 : 70; if (t.length <= max) return [t];
+  const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
+  for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
+  if (cur) out.push(cur); return out;
+}
+function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0]; const tag = $("#capTag");
+  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(1400, (dur || tot * .15) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(1400, (dur || tot * .15) * 1000 * ch[0].length / tot)); }
+  const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
+  if (s0) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", g?.color || "#9bdcf0"); tag.textContent = "出典：" + s0; } else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
+  delete c.dataset.talk;
   c.hidden = false; clearTimeout(capT); }
 function hideCaption(after = 0) { clearTimeout(capT); capT = setTimeout(() => { $("#caption").hidden = true; }, after); }
-$("#caption").addEventListener("click", () => { const id = $("#caption").dataset.talk, L = LAYER.objs.find(x => x.o.id === id); if (!L) return; const keep = voiceQ; const g = GL[L.layer];
+$("#caption").addEventListener("click", () => { return; /* 10-28 午後：重ね窓は出さない */ const id = $("#caption").dataset.talk, L = LAYER.objs.find(x => x.o.id === id); if (!L) return; const keep = voiceQ; const g = GL[L.layer];
   openPanel({ color: g.color, layer: `${String(layerNo(L.layer)).padStart(2, "0")}　${g.name}`, title: L.o.title, lines: L.o.lines, more: L.o.more || [], how: L.o.how, src: L.o.src, ll: L.o.ll }); voiceQ = keep; });
 
 /* ---------- 碧の語り：いまいる所の近くの記録を、とぎれずに（同じ話はくり返さない） ---------- */

@@ -361,6 +361,13 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 #capText{color:#eef9fc;text-shadow:var(--hud-sh),0 0 14px rgba(127,227,247,.16)}
 @media (max-width:640px){#capTag{max-width:100%;width:auto!important;white-space:normal;line-height:1.5!important;letter-spacing:.08em!important}}   /* 2026-10-26 15：スマホで見出しの右端「出典」が切れていた → 折り返す */
 #capTag{font-size:9.5px;letter-spacing:.24em;text-shadow:var(--hud-sh),0 0 7px color-mix(in srgb,var(--c,#9bdcf0) 60%,transparent)}
+/* 2026-10-28 午後 本人「下に小さくナレーションで文字を」：碧の語りの字幕は画面の下に小さく 1〜2 行。押しても何も開かない（歩く・見回すの邪魔をしない）。出典は字幕の端に小さく */
+body[data-mode="walk"] #caption,body[data-mode="sight"] #caption{top:auto!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 58px)!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(560px,calc(100% - 32px))!important;text-align:center!important;pointer-events:none!important;cursor:default;display:flex!important;flex-direction:column-reverse;align-items:center}
+body[data-mode="walk"] #caption[hidden],body[data-mode="sight"] #caption[hidden]{display:none!important}
+body[data-mode="walk"] #capText,body[data-mode="sight"] #capText{font-size:13px!important;line-height:1.7!important;letter-spacing:.03em!important;background:rgba(3,6,15,.38)!important;padding:2px 8px}
+#caption #capTag{margin:3px auto 0!important;padding:0!important;opacity:.66;font-size:9px!important;max-width:100%;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em!important;font-family:var(--serif)!important}
+#caption #capTag::before{display:none}
+@media (max-width:640px){body:has(#lstack:not(.closed)) #caption{opacity:1!important}}
 #toast{color:#e6f7fc}
 #toast::before{background:var(--cy)}
 #pLayer{text-shadow:var(--hud-sh),0 0 7px color-mix(in srgb,var(--pc) 60%,transparent)}
@@ -509,6 +516,10 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 #skyUI .card{display:none!important}   /* 2026-10-27 本人：始める場所は地図の上の 3D の印と名札に（startpins.js）。鳥になって飛ぶ・生きものの身体は、歩く中の「飛ぶ」と層の一覧の Qualia/sight から */
 </style>
 <style id="qualium-375">/* 2026-10-28 Qualium 共通の基準：375px で右下のボタンを小さく 2 列に、字幕と重ねない（風景と印を広く） */@media (max-width:640px){body[data-mode="walk"] #walkUI{display:grid;grid-template-columns:repeat(2,auto);gap:6px;align-items:end;justify-items:end;direction:rtl}body[data-mode="walk"] #walkUI .ib{direction:ltr;min-height:44px;padding:0 10px;font-size:12.5px;letter-spacing:.06em}body[data-mode="walk"] #walkUI #autoBtn{grid-row:2;grid-column:1}body[data-mode="walk"] #walkUI #hereBtn{grid-row:2;grid-column:2}body[data-mode="walk"] #walkUI #earBtn,body[data-mode="walk"] #walkUI #gyroBtn{grid-row:1;grid-column:1}body[data-mode="walk"] #walkUI #myBtn{grid-row:1;grid-column:2}body[data-mode="walk"] #walkUI .ib{min-width:96px}html body[data-mode="walk"] #caption{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 112px)!important;right:var(--g)!important}}</style>
+<style id="qualium-narr">/* 2026-10-28 午後 本人「下に小さくナレーションで文字を」：375px でも字幕は画面の下の中央に 1〜2 行（ボタンの上）・押しても何も開かない */
+@media (max-width:640px){html body[data-mode="walk"] #caption,html body[data-mode="sight"] #caption{left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:calc(100% - 24px)!important;text-align:center!important;background:none!important;padding:0!important;border-radius:0;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 118px)!important}
+html body[data-mode="walk"] #capText,html body[data-mode="sight"] #capText{font-size:12.5px!important;line-height:1.65!important}}</style>
+<style id="qualium-past">/* 10-28 午後：昔の姿を語るあいだ、景色の色だけを古い写真の色へ（ゆっくり） */canvas{transition:filter 2.4s ease}body.pastOn canvas{filter:sepia(.42) saturate(.78) brightness(.96) contrast(.97)}@media (prefers-reduced-motion:reduce){canvas{transition:none}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>

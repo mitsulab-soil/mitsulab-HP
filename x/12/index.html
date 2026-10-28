@@ -19,7 +19,7 @@
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
 <link rel="modulepreload" href="web/app/app.js?v=20261029b">
 <link rel="modulepreload" href="web/app/layers.js?v=k4">
-<link rel="modulepreload" href="web/app/qmarks.js?v=k16">
+<link rel="modulepreload" href="web/app/qmarks.js?v=k17">
 <link rel="modulepreload" href="web/app/kura.js?v=k13">
 <link rel="preload" href="web/app/kura_master.glb?v=7" as="fetch" crossorigin>
 <link rel="modulepreload" href="web/app/bell.js?v=k1">
@@ -527,6 +527,14 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 </style>
 <style id="qualium-375">/* 2026-10-28 Qualium 共通の基準：375px で右下のボタンを小さく 2 列に、字幕と重ねない（風景と印を広く） */@media (max-width:640px){body[data-mode="walk"] #walkUI{display:grid;grid-template-columns:repeat(2,auto);gap:6px;align-items:end;justify-items:end;direction:rtl}body[data-mode="walk"] #walkUI .ib{direction:ltr;min-height:44px;padding:0 10px;font-size:12.5px;letter-spacing:.06em}body[data-mode="walk"] #walkUI #autoBtn{grid-row:2;grid-column:1}body[data-mode="walk"] #walkUI #hereBtn{grid-row:2;grid-column:2}body[data-mode="walk"] #walkUI #earBtn,body[data-mode="walk"] #walkUI #gyroBtn{grid-row:1;grid-column:1}body[data-mode="walk"] #walkUI #myBtn{grid-row:1;grid-column:2}body[data-mode="walk"] #walkUI .ib{min-width:96px}html body[data-mode="walk"] #caption{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 112px)!important;right:var(--g)!important}}@media (max-width:640px){#sndTag{max-width:60vw;padding:5px 8px 5px 10px;font-size:10.5px;line-height:1.45}#sndTag small{font-size:8.5px;line-height:1.4}}   /* 10-28 夜 7：375px で右上の音の説明の板を小さく（出典は残す） */
 </style>
+<style id="qualium-narr">/* 2026-10-28 午後 本人「下に小さくナレーションで文字を」：碧の語りの字幕は画面の下の中央に小さく 1〜2 行。押しても何も開かない。出典は字幕の端に小さく（大宮と同じ） */
+html body[data-mode="walk"] #caption{top:auto!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 58px)!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(560px,calc(100% - 32px))!important;text-align:center!important;pointer-events:none!important;cursor:default;display:flex!important;flex-direction:column-reverse;align-items:center;background:none!important;padding:0!important;border-radius:0}
+html body[data-mode="walk"] #caption[hidden]{display:none!important}
+html body[data-mode="walk"] #capText{font-size:13px!important;line-height:1.7!important;letter-spacing:.03em!important;background:rgba(3,6,15,.38)!important;padding:2px 8px}
+html body #caption #capTag{margin:3px auto 0!important;padding:0!important;opacity:.66;font-size:9px!important;max-width:100%;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em!important;font-family:var(--serif)!important;border:0!important;background:none!important}
+html body #caption #capTag::before{display:none}
+@media (max-width:640px){html body[data-mode="walk"] #caption{width:calc(100% - 24px)!important;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 118px)!important;opacity:1!important}html body[data-mode="walk"] #capText{font-size:12.5px!important;line-height:1.65!important}}</style>
+<style id="qualium-past">/* 10-28 午後：昔の姿を語るあいだ、景色の色だけを古い写真の色へ（ゆっくり） */canvas{transition:filter 2.4s ease}body.pastOn canvas{filter:sepia(.42) saturate(.78) brightness(.96) contrast(.97)}@media (prefers-reduced-motion:reduce){canvas{transition:none}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 川越" data-en="Qualium Kawagoe" data-icon="favicon/icon.svg" data-max="15000"></script>

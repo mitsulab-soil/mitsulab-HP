@@ -14,7 +14,7 @@
 
 /* 2026-10-27 夜 本人「目印の球が大きすぎる。コンパクトで強い印に」→ v6：球を約 0.35 倍に。小さな芯が強く光り、細い輪・層の色の欠片・脈打つ光の輪で遠くから目を引く（当たりは画面で 44px 以上のまま）。 */
 /* 2026-10-27 v7：屈折した視線で中の細い格子と二重の殻・波長ごとの縁の色ずれ（宝石／精密機器の質感） */
-let MK = .36;
+let MK = .24;   /* 2026-10-28 午後 本人「印が大きくて目立ちすぎ。もっとさりげなく」→ v9：球を 2/3 に・遠くは淡い点・近づくと少し強まる */
 const KIND = { sight: 0, touch: 1, sound: 2, nature: 3, culture: 4 };
 
 function crystalGeo(THREE) {
@@ -46,7 +46,7 @@ const EMB = /* glsl */`
 `;
 
 export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
-  const SKYK = opt.skyK ?? 2.6, SKYR = opt.skyR ?? 2.4, WALKK = opt.walkK ?? 1.05, MINPX = opt.minPx ?? 12, CAPK = opt.capK ?? 5, MAXN = opt.maxShow ?? 7, _f = new THREE.Vector3(); MK = opt.mk ?? .36;
+  const SKYK = opt.skyK ?? 2.6, SKYR = opt.skyR ?? 2.4, WALKK = opt.walkK ?? 1.05, MINPX = opt.minPx ?? 5, CAPK = opt.capK ?? 2.5, MAXN = opt.maxShow ?? 7, _f = new THREE.Vector3(); MK = opt.mk ?? .24;
   cap = Math.max(1, cap);
   const mk = (geo, vs, fs, order, blend, side = THREE.DoubleSide) => {
     const g = geo.clone();
@@ -209,19 +209,19 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         // 近づくとひらく（10 m→4 m）。触れると（L.open）いっぱいに
         const nt = sky ? 0 : Math.max(Math.min(1, Math.max(0, (10 - dh) / 6)), L.open || 0);
         it.no += (nt - it.no) * Math.min(1, dt * 3.5); const op = it.no; L.qOpen = op;
-        let cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .25) * MK;
+        let cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .12) * MK;
         if (!sky) { const nearMin = 1 - Math.min(1, Math.max(0, (d - 45) / 40)); cs = Math.max(cs, Math.min(cs * CAPK, MINPX * d / (ppk * .34)) * nearMin); }   // 最小の大きさは近い範囲（〜45 m、85 m で消える）だけ。遠い印は小さく、通りの奥で団子にしない   // 2026-10-27 v8：画面で直径 22px より小さくしない（遠くでも見つかる・近くは本来の大きさ）
         _e.set(0, t * (.5 - op * .3) + it.ph, 0); _q.setFromEuler(_e); _s.set(cs, cs, cs);
         const cy = _p.y + Math.sin(t * 1.3 + it.ph) * .06 * sg + op * .12 * sg;
         _m.compose(_p.set(_p.x, cy, _p.z), _q, _s); crystal.setMatrixAt(n, _m);
         const nearK = sky || focus === L ? 1 : Math.min(1, Math.max(.12, (d - 1.4) / 2.6));
-        const cv = sky ? 0 : show * nearK * (1 - .55 * Math.min(1, Math.max(0, (d - 35) / 70)));   // 遠い印（並木や壁の向こうを含む）は薄く、手前の印を主役に
+        const cv = sky ? 0 : show * nearK * (1 - .55 * Math.min(1, Math.max(0, (d - 35) / 70))) * (.38 + .5 * Math.min(1, Math.max(0, (22 - dh) / 14)));   /* v9：遠くは淡い点（.38）・近づく（22 m→8 m）と少し強まる */   // 遠い印（並木や壁の向こうを含む）は薄く、手前の印を主役に
         const scr = ppk / Math.max(.5, d) * cs / innerHeight, big = Math.min(1, Math.max(0, 1 - (scr - .28) / .14));   // 画面の高さの 3 割を超える近さでは、輪と紋をうすく（左の一覧や字を覆わない）
         CA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); CA.iP.setXYZW(n, cv * Math.max(.18, big), crisp, em, far); CA.iQ.setXY(n, it.k, op);
         // 紋の円盤（結晶の芯の高さ・見る人へ向く）。遠くでは描かない
-        const hs = cs * (.95 + op * .3);
+        const hs = cs * (.95 + op * .12);   /* v9：近づいてもひらきは控えめ */
         _q.identity(); _s.set(hs, hs, hs); _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); halo.setMatrixAt(n, _m);
-        HA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); HA.iP.setXYZW(n, cv * Math.max(.35, big) * (sky ? 0 : 1), Math.max(.45, crisp), em, far); HA.iQ.setXY(n, it.k, op);
+        HA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); HA.iP.setXYZW(n, cv * Math.max(.35, big) * (sky ? 0 : .55), Math.max(.45, crisp), em, far); HA.iQ.setXY(n, it.k, op);
         // まわる輪
         const os = cs * (.72 + op * .12); _e.set(1.1 + Math.sin(t * .4 + it.ph) * .15, t * .7 + it.ph, .35); _q.setFromEuler(_e); _s.set(os, os, os);
         _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); orbit.setMatrixAt(n, _m);
@@ -231,12 +231,12 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         L.root.getWorldPosition(_r);
         const rr = (sky ? SKYR * sg : Math.max(1.05, Math.min(3, sg)) * 1.25) * (1 + (L.open || 0) * .5 + op * .25) * .34;
         _e.set(0, it.ph, 0); _q.setFromEuler(_e); _s.set(rr, 1, rr); _m.compose(_r.set(_r.x, _r.y + .05, _r.z), _q, _s); ring.setMatrixAt(n, _m);
-        RA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); RA.iP.setXYZW(n, show * (sky ? .9 : 1), crisp, em, far); RA.iQ.setXY(n, it.k, op);
+        RA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); RA.iP.setXYZW(n, show * (sky ? .9 : .4 * (.3 + .7 * op)), crisp, em, far);   /* v9：足もとの輪はうすく、近づいたときだけ */ RA.iQ.setXY(n, it.k, op);
         // 柱
         L.root.getWorldPosition(_r);
         const h = Math.max(.05, cy - _r.y - .3 * sg), bw = (sky ? .9 : .12 + far * .25) * Math.max(1, sg * .6), near = sky ? 1 : Math.min(1, Math.max(0, (dh - 2) / 5));
         _q.identity(); _s.set(bw, h, bw); _m.compose(_r, _q, _s); beam.setMatrixAt(n, _m);
-        BA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); BA.iP.setXYZW(n, show * near * (1 - .75 * far), crisp, em, far);   // 遠い印の光の柱は薄く（空に刺さって見えないように） BA.iQ.setXY(n, it.k, op);
+        BA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); BA.iP.setXYZW(n, show * near * (1 - .75 * far) * (sky ? 1 : .18), crisp, em, far);   /* v9：歩くときの光の柱はほぼ消す（景色が主役） */   // 遠い印の光の柱は薄く（空に刺さって見えないように） BA.iQ.setXY(n, it.k, op);
         n++;
       }
       for (const im of ALLM) { im.count = n; im.instanceMatrix.needsUpdate = true; const A = im.geometry.attributes; A.iCol.needsUpdate = A.iP.needsUpdate = A.iQ.needsUpdate = true; }
