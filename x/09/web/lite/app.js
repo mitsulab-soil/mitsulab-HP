@@ -1417,7 +1417,7 @@ function panelAsNarr({ title, lines = [], more = [], src = [], buttons = [] }) {
   let ls = (lines || []).filter(l => l && l.t).slice(0, 2).map(l => ({ ...l }));
   if (!ls.length && more && more[0]) ls = [{ t: String(more[0]) }];
   if (!ls.length) ls = [{ t: title }];
-  const s0 = (src || [])[0]; if (s0) for (const l of ls) l.src = s0.t || String(s0);
+  const s0 = (src || [])[0], s0t = s0 ? (typeof s0 === "string" ? s0 : (s0.t || "")).trim() : ""; if (s0t) for (const l of ls) l.src = s0t;
   const L = PANEL.cur || null; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); }
   const play = (buttons || []).find(b => /鳴らす|聴く|再生|流す/.test(b.label || ""));
   pastTint(ls);
@@ -1466,7 +1466,7 @@ let WL = null;
 function startWL() { if (WL) return; WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !!PANEL.cur, active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null, sp: null };
-const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車/;
+const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 function nextMarkAsk(L) {
   const cp = camera.position, fw = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); let best = null, bd = 1e9;
   for (const M of [...LAYER.objs, ...(AREA.marks || [])]) { if (M === L || M.qHide || (M.mark ? !M.mark.visible : !M.root?.visible)) continue; const dx = M.o.x - cp.x, dz = M.o.z - cp.z, d = Math.hypot(dx, dz); if (d < 12 || d > 120) continue; const fr = (dx * fw.x + dz * fw.z) / d, sc = d - fr * 25; if (sc < bd) { bd = sc; best = { M, d, dx, dz, fr }; } }
@@ -1491,7 +1491,7 @@ function narrate(L, sp, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
   let lines = (o.lines || []).filter(l => l && l.t); const thin = THIN.test(o.title + " " + lines.map(l => l.t).join(""));
   lines = thin ? lines.slice(0, 1) : lines.slice(0, 3); if (!lines.length) lines = [{ t: o.title }];
   lines = lines.map(l => ({ ...l, tc: l.tc || l.t }));
-  const s0 = (o.src || [])[0]; if (s0) for (const l of lines) l.src = s0.t || String(s0);   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
+  const s0 = (o.src || [])[0], s0t = s0 ? (typeof s0 === "string" ? s0 : (s0.t || "")).trim() : ""; if (s0t) for (const l of lines) l.src = s0t; { const G0 = (GL[o.layer] || GL[top5(o.layer)]); if (G0) for (const l of lines) { l.lay = G0.name; l.lc = G0.color; } }   // 10-28 晩：字幕の端に層の名と色（左の一覧をなくしたので、どの層の話かをここで示す）   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
   startWL(); const rel = how === "cont" ? null : WL?.related(L); WL?.focus(L); WL?.follow(L, rel?.M || null);   // 線の先へ歩くと、続きを語る
   if (how === "micro" || how === "micro-far") { const t0 = how === "micro" ? "足もとの、小さなものの話です。" : "少し先の、小さなものの話です。"; lines.unshift({ t: t0, tc: t0 }); } else if (how === "cont" && from) { const t0 = `さっきの「${from.o.title}」と、同じ資料に書かれた話です。`; lines.unshift({ t: t0, tc: t0 }); } else if (how === "macro") lines.unshift({ t: "見上げた先の、土地の大きな形の話です。", tc: "見上げた先の、土地の大きな形の話です。" });
   let tail = NARR.sp ? `${NARR.sp.name}は、ここをどう受けとっているでしょう。もう一度触れると、その受けとり方へ。` : rel ? `この話は、${Math.round(rel.d / 5) * 5} m ほど先の「${rel.M.o.title}」と、同じ資料でつながっています。景色の中の細い線が、その道すじです。` : nextMarkAsk(L);
@@ -1523,7 +1523,7 @@ function playNext() {
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   const idx = v.L && !v.narr ? v.L.o.lines.indexOf(l) : -1;
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === idx));
-  if (!v.L || v.narr || $("#panel").hidden) caption(l.tc || l.t, v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .16) : Math.max(3.2, (l.dur || l.t.length * .16) + 1.2)));
+  if (!v.L || v.narr || $("#panel").hidden) CAP_LAY = l.lay ? { n: l.lay, c: l.lc } : null; caption(l.tc || l.t, v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .16) : Math.max(3.2, (l.dur || l.t.length * .16) + 1.2)));
   const next = gap => setTimeout(() => { if (voiceQ === v) { v.i++; playNext(); } }, gap);
   if (!soundOn || !l.f) { next(Math.max(3200, (l.dur || l.t.length * .16) * 1000 + 1200))   /* 10-28 晩：声のない行も読める長さ（1 字 0.2 秒＋1.2 秒・最低 3.2 秒） */; return; }
   audio.src = l.f; audio.currentTime = 0;
@@ -1539,11 +1539,12 @@ function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は�
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); return out.map(x => x.trim()).filter(Boolean);   // 改行だけの区切りを出さない
 }
+let CAP_LAY = null;
 function caption(t, talk, src, dur = 0) {
   const c = $("#caption"); clearInterval(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0];
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0, acc = ch[0].length; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; acc += ch[i].length; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const tag = $("#capTag"); const s0 = src || (talk && talk.src && talk.src[0] && talk.src[0].t) || "";
-  if (s0) { const g = talk ? GL[talk.k] : null; tag.hidden = false; tag.style.setProperty("--c", g?.color || "#9bdcf0"); tag.textContent = "出典：" + s0; }   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
+  if (s0 || CAP_LAY) { const g = talk ? GL[talk.k] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); tag.textContent = (CAP_LAY ? "● " + CAP_LAY.n + (s0 ? "　" : "") : (g ? "● " + g.name + "　" : "")) + (s0 ? "出典：" + s0 : ""); }   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   else tag.hidden = true;
   delete c.dataset.talk;
   c.hidden = false; clearTimeout(capT);
@@ -1572,6 +1573,7 @@ function pickTalk() {
   let best = null, bs = -1e9;
   for (const s of TALK.segs) {
     if (TALK.spoken.has(s.id)) continue;
+    if (THIN.test(s.lines.map(l => l.t).join(""))) continue;   // 10-28 晩：数や割合の豆知識は、ひとりでには語らない（触れたときだけ一言）
     let ok;
     if (s.a && !air) { const rel = (s.d0 + 24 - d) * dir; ok = rel > -8 && rel < 34; }   // 地点の話：歩く先 34 m から、すぐうしろ 8 m まで
     else ok = d >= s.d0 - pad && d <= s.d1 + pad;
