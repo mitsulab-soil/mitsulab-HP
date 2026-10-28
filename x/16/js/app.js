@@ -150,8 +150,15 @@ V.sway = (() => {
   // 枝ぶり（簡単な枝と葉の塊は、写実を損なわない暗い影として）
   const leafM = new THREE.MeshStandardMaterial({ color: 0x31402c, roughness: 1, transparent: true, opacity: .92 });
   const crown = new THREE.Group(); crown.position.y = h; pivot.add(crown);
-  for (let i = 0; i < 6; i++) { const a = i * 1.05, br = new THREE.Mesh(new THREE.CylinderGeometry(.03, .08, 1.8, 8), barkMat); br.position.set(Math.cos(a) * .6, -.4 + i * .12, Math.sin(a) * .6); br.rotation.set(Math.sin(a) * .9, 0, -Math.cos(a) * .9); crown.add(br); }
-  crown.add(leafCloud(mobile() ? 700 : 1400, 2.1, 1.3, 2.1));
+  // 樹冠（v9）：一つの塊でなく、枝の先ごとに葉の房を置き、房のあいだに空と光が抜ける
+  { const rr = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(11), tints = [0xffffff, 0xd8e6c0, 0xbfcfa8, 0xe8e0c0];
+    const limb = (A, B, r0, r1) => { const d = B.clone().sub(A), m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, d.length(), 7), barkMat); m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); crown.add(m); };
+    const per = mobile() ? 60 : 120;
+    for (let i = 0; i < 7; i++) { const a = i * 0.9 + rr() * .4, y0 = -2.6 + i * .32, A = new THREE.Vector3(0, y0, 0), len = 1.5 + rr() * .9, B = new THREE.Vector3(Math.cos(a) * len, y0 + .9 + rr() * .7, Math.sin(a) * len);
+      limb(A, B, .09, .045);
+      for (let j = 0; j < 2; j++) { const b2 = a + (j ? .5 : -.5), C = B.clone().add(new THREE.Vector3(Math.cos(b2) * .7, .45 + rr() * .4, Math.sin(b2) * .7)); limb(B, C, .045, .018);
+        const cl = leafCloud(per, .55 + rr() * .2, .35 + rr() * .12, .55 + rr() * .2, tints[(i + j) % 4]); cl.position.copy(C).add(new THREE.Vector3(0, .1, 0)); crown.add(cl); } }
+    const top = leafCloud(per, .6, .45, .6); top.position.set(.1, .6, 0); crown.add(top); limb(new THREE.Vector3(0, -.1, 0), new THREE.Vector3(.1, .5, 0), .06, .03); }
   const N = 160, tp = new Float32Array(N * 3), tline = new THREE.BufferGeometry(); tline.setAttribute("position", new THREE.BufferAttribute(tp, 3));
   const trace = new THREE.Line(tline, new THREE.LineBasicMaterial({ color: 0x9fd6a8, transparent: true, opacity: .8 })); trace.position.set(-3.2, 4.2, 0); G.add(trace);
   const L = label("ゆれ（樹冠の左右）0.3 Hz 前後", "#bfe8c4"); L.position.set(-3.2, 5.1, 0); G.add(L);
@@ -166,7 +173,7 @@ V.sway = (() => {
 V.soil = (() => {
   const G = new THREE.Group(); G.position.set(-14, 0, -5); scene.add(G);
   const layers = [[.25, 0x6a5038, "A0 落ち葉の層"], [.75, 0x8a6a4c, "A 黒い土"], [1.0, 0xc09a70, "B 下の土"]]; let y = 0;
-  for (const [hh, col, nm] of layers) { const m = new THREE.Mesh(new THREE.BoxGeometry(3, hh, 2.2), new THREE.MeshStandardMaterial({ map: (hh < .3 ? leafG : fsT).clone(), normalMap: (hh < .3 ? leafGN : fsN).clone(), normalScale: new THREE.Vector2(1.4, 1.4), color: col, roughness: 1 })); for (const t of [m.material.map, m.material.normalMap]) { t.repeat.set(3, hh * 2.2); t.needsUpdate = true; } y -= hh; m.position.set(0, 1.7 + y + hh / 2, 0); m.castShadow = true; m.receiveShadow = true; G.add(m);
+  for (const [hh, col, nm] of layers) { const bg = new THREE.BoxGeometry(3, hh, 2.2, 48, Math.max(4, hh * 16 | 0), 2), bp = bg.attributes.position; for (let i = 0; i < bp.count; i++) { const x = bp.getX(i), yy = bp.getY(i), z = bp.getZ(i); let dy = 0; if (Math.abs(yy - hh / 2) < 1e-4 && y < 0) dy = Math.sin(x * 3.1 + hh * 7) * .035 + Math.sin(x * 7.3) * .015; if (Math.abs(yy + hh / 2) < 1e-4 && hh < 1) dy = Math.sin(x * 2.6 + hh * 5) * .04 + Math.sin(x * 6.1 + 1) * .015; const dz = z > 1.09 ? (Math.sin(x * 9.1 + yy * 13) * .006 + Math.sin(x * 23 - yy * 17) * .003) : 0; bp.setY(i, yy + dy); bp.setZ(i, z + dz); } bg.computeVertexNormals(); const m = new THREE.Mesh(bg, new THREE.MeshStandardMaterial({ map: (hh < .3 ? leafG : fsT).clone(), normalMap: (hh < .3 ? leafGN : fsN).clone(), normalScale: new THREE.Vector2(1.4, 1.4), color: col, roughness: 1 })); for (const t of [m.material.map, m.material.normalMap]) { t.repeat.set(3, hh * 2.2); t.needsUpdate = true; } y -= hh; m.position.set(0, 1.7 + y + hh / 2, 0); m.castShadow = true; m.receiveShadow = true; G.add(m);
     const L = label(nm, "#e8cfa8", 384); L.position.set(1.62, 1.7 + y + hh / 2, 1.12); L.scale.multiplyScalar(.75); G.add(L); }
   // 石（岩の質感）
   const rm = new THREE.MeshStandardMaterial({ map: rockT, normalMap: rockN, roughnessMap: rockR, roughness: 1, color: 0x9a948a });
@@ -174,8 +181,18 @@ V.soil = (() => {
   // 根（前の面から見える細い管）
   const rootM = new THREE.MeshStandardMaterial({ color: 0xd8c3a0, roughness: .7 });
   const rootPts = [];
-  for (let k = 0; k < 6; k++) { let p = new THREE.Vector3((k - 2.5) * .45, 1.72, 1.11); const arr = [p.clone()]; for (let i = 0; i < 7; i++) { p = p.clone().add(new THREE.Vector3((Math.random() - .5) * .25, -.2 - Math.random() * .08, 0)); p.z = 1.11; arr.push(p); } rootPts.push(arr);
-    G.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arr), 40, .012 + Math.random() * .01, 6), rootM)); }
+  // 根（v9）：主根が細りながら分かれ、細い側根が横へ・下へ伸びる（同じ波線を並べない）
+  { const rr = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(23), fineM = new THREE.MeshStandardMaterial({ color: 0xe6d6b8, roughness: .8 });
+    const grow = (p, dir, r, depth) => { const arr = [p.clone()]; let q = p.clone(), d = dir.clone(); const n = 4 + (rr() * 4 | 0);
+      for (let i = 0; i < n; i++) { d.x += (rr() - .5) * .5; d.y += (rr() - .5) * .25 - .05; d.normalize(); q = q.clone().addScaledVector(d, .08 + rr() * .1 * (r * 40)); q.x = THREE.MathUtils.clamp(q.x, -1.45, 1.45); q.y = Math.max(.08, q.y); q.z = 1.12; arr.push(q); }
+      G.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arr), 8 * n, r, 6), r < .006 ? fineM : rootM)); rootPts.push(arr);
+      if (depth < 3) { const k = 1 + (rr() * 2 | 0); for (let j = 0; j < k; j++) { const at = arr[1 + (rr() * (arr.length - 2) | 0)], s = rr() < .5 ? -1 : 1; grow(at, new THREE.Vector3(s, -.3 - rr() * .6, 0).normalize(), r * .55, depth + 1); } } };
+    for (const [x, r] of [[-1.0, .022], [.15, .03], [1.05, .016]]) grow(new THREE.Vector3(x, 1.74, 1.12), new THREE.Vector3((rr() - .5) * .3, -1, 0).normalize(), r, 0);
+    // 地表：落ち葉と若い草（根の主）
+    const lm = new THREE.MeshStandardMaterial({ map: leafTex, alphaTest: .5, side: THREE.DoubleSide, roughness: .9, color: 0xa08460 });
+    for (let i = 0; i < 40; i++) { const l = new THREE.Mesh(new THREE.PlaneGeometry(.16, .16), lm); l.position.set((rr() - .5) * 2.9, 1.71 + rr() * .02, (rr() - .5) * 2.1); l.rotation.set(-Math.PI / 2 + (rr() - .5) * .6, 0, rr() * 6); G.add(l); }
+    const gm = new THREE.MeshStandardMaterial({ color: 0x6f8a4c, roughness: .7, side: THREE.DoubleSide });
+    for (const x of [-1.0, .15, 1.05]) for (let i = 0; i < 7; i++) { const bl = new THREE.Mesh(new THREE.PlaneGeometry(.02, .22 + rr() * .2), gm); bl.position.set(x + (rr() - .5) * .12, 1.82, .95 + (rr() - .5) * .15); bl.rotation.set((rr() - .5) * .5, rr() * 3, (rr() - .5) * .6); G.add(bl); } }
   // はう生き物（小さな光る楕円・前の面の少し奥）
   const bugs = []; for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.CapsuleGeometry(.012, .05, 4, 8), new THREE.MeshStandardMaterial({ color: 0xc89a7a, emissive: 0x6a3a20, roughness: .5 })); m.rotation.z = Math.PI / 2; const b = { m, x: (Math.random() - .5) * 2.6, y: .2 + Math.random() * 1.4, a: Math.random() * 6.3, v: .05 + Math.random() * .1 }; G.add(m); bugs.push(b); }
   { const lg = label("輪＝音の出た所（模式）", "#c3cce0", 520); lg.position.set(-1.5, 2.0, 1.1); lg.scale.multiplyScalar(.7); G.add(lg); }
@@ -228,13 +245,24 @@ V.bat = (() => {
     const snout = new THREE.Mesh(new THREE.SphereGeometry(.011, 10, 8), fur); snout.position.set(0, .004, .078); snout.scale.set(1, .8, 1.1); bat.add(snout);
     const moon = new THREE.PointLight(0xdfe6ff, 5, 3, 1.4); moon.position.set(0, -.4, 0); bat.add(moon); }
   const L = label("87→43 kHz の一声（数ミリ秒）", "#cbbfff", 560); L.position.set(-1.8, 5.6, 0); L.scale.multiplyScalar(.85); G.add(L);
+  // まわり（v9）：夜の木立の梢・月・飛ぶ蛾（コウモリは自分の声のこだまで虫の位置を知る）
+  { const rr = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(31);
+    for (const [x, z, h] of [[-3.2, -3, 6.2], [3.4, -4, 7], [-1, -6, 7.6], [4.6, 1, 5.4], [-4.4, .5, 5]]) { const t = new THREE.Mesh(trunkGeo(.1, .2, h, 12, 8, x), barkMat); t.position.set(x, h / 2, z); G.add(t);
+      for (let k = 0; k < 4; k++) { const c = leafCloud(mobile() ? 45 : 90, .85, .5, .85, 0x6a7a68); c.position.set(x + (rr() - .5) * .9, h - .9 + k * .45, z + (rr() - .5) * .9); G.add(c); } }
+    const moonD = new THREE.Mesh(new THREE.CircleGeometry(.45, 40), new THREE.MeshBasicMaterial({ color: 0xf2eedc, fog: false })); moonD.position.set(-4.5, 8.2, -9); G.add(moonD);
+    const halo = new THREE.Mesh(new THREE.CircleGeometry(1.4, 40), additive(0xbcc8e8, .05)); halo.position.copy(moonD.position).add(new THREE.Vector3(0, 0, -.01)); G.add(halo); }
+  const moths = [], mothM = new THREE.MeshStandardMaterial({ color: 0xcdbf9e, emissive: 0x3a3428, roughness: .8, side: THREE.DoubleSide });
+  for (let i = 0; i < 5; i++) { const g = new THREE.Group(), sh = new THREE.Shape(); sh.moveTo(0, 0); sh.quadraticCurveTo(.06, .07, .13, .05); sh.quadraticCurveTo(.12, -.01, .07, -.03); sh.quadraticCurveTo(.06, -.09, .02, -.08); sh.lineTo(0, 0); const wg = new THREE.ShapeGeometry(sh, 10), wl = new THREE.Mesh(wg, mothM), wr = wl.clone(); wr.scale.x = 1; wl.scale.x = -1; const bd = new THREE.Mesh(new THREE.CapsuleGeometry(.012, .07, 4, 8), mothM); bd.position.y = -.02; g.add(wl, wr, bd); G.add(g); moths.push({ g, wl, wr, c: new THREE.Vector3((Math.random() - .5) * 4, 3.6 + Math.random() * 2.2, (Math.random() - .5) * 2 + .5), ph: Math.random() * 6 }); }
   let a = 0;
   return { group: G, cam: [[7 + 2.5, 3.6, -18 + 8.5], [7, 4.6, -18]], camM: [[7 + 3, 3.6, -18 + 10], [7, 4.3, -18]], aoi: [5.0, -14], focus: new THREE.Vector3(7, 4.8, -18),
     on() { const fw = new THREE.Vector3(0, 0, 1).applyQuaternion(bat.quaternion), q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), fw), p = bat.getWorldPosition(new THREE.Vector3());
-      for (let i = 0; i < 1; i++) setTimeout(() => { const m = ring(p.clone().addScaledVector(fw, .9), 0xb4a2ff, { r0: .1, r1: .7, life: .6, axis: q, width: .01, op: .35 }); m.userData.vel = fw.clone().multiplyScalar(2.4); }, i * 25); },
+      for (let i = 0; i < 1; i++) setTimeout(() => { const m = ring(p.clone().addScaledVector(fw, .9), 0xb4a2ff, { r0: .1, r1: .7, life: .6, axis: q, width: .01, op: .35 }); m.userData.vel = fw.clone().multiplyScalar(2.4); }, i * 25);
+      const mo = moths.reduce((x, y) => x.g.position.distanceTo(p) < y.g.position.distanceTo(p) ? x : y), mp = mo.g.getWorldPosition(new THREE.Vector3());   // こだま（模式）：近い蛾から細い輪が返る
+      setTimeout(() => { const back = p.clone().sub(mp).normalize(), q2 = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), back); const m = ring(mp, 0xb4a2ff, { r0: .03, r1: .35, life: .5, axis: q2, width: .006, op: .3 }); m.userData.vel = back.multiplyScalar(2); }, 220); },
     tick(t, dt) { a += dt * .5; bat.position.set(Math.sin(a) * 1.3, 4.8 + Math.sin(a * 2) * .25, Math.cos(a) * .4);   // 前でゆっくり八の字に舞う
       bat.lookAt(camera.position); bat.rotateX(-1.05); bat.rotateZ(Math.sin(a) * .18);   // 正面寄り：翼を広げた形がこちらへ向く
-      const f = Math.sin(t * 14) * .42; wlg.rotation.z = f; wrg.rotation.z = -f; } };
+      const f = Math.sin(t * 14) * .42; wlg.rotation.z = f; wrg.rotation.z = -f;
+      for (const m of moths) { m.ph += dt; m.g.position.set(m.c.x + Math.sin(m.ph * 1.3) * .5, m.c.y + Math.sin(m.ph * 2.1) * .25, m.c.z + Math.cos(m.ph * .9) * .4); const w = Math.sin(t * 30 + m.ph) * .9; m.wl.rotation.y = w; m.wr.rotation.y = -w; m.g.lookAt(camera.position); } } };
 })();
 
 // 6. ゾウの低い声：遠い林の向こうから、地面と空気を大きな輪がゆっくり渡る
