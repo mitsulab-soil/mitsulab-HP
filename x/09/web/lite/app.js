@@ -491,8 +491,12 @@ function barkUV(m) {
 #ifdef USE_ROUGHNESSMAP
     vRoughnessMapUv = bu;
 #endif
-  }`); };
-  m.customProgramCacheKey = () => "barkUV" + (m.uuid);
+  }`).replace("#include <common>", "#include <common>\nvarying vec3 vBp; varying vec3 vBn;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvBp = position; vBn = normal;");
+    /* 2026-10-29 近景：横へ張る枝で樹皮の絵が筒の向きに引き伸ばされていた→ 色と粗さは枝の面の向きに合わせて三方から貼る（Poly Haven「Japanese Zelkova Bark」CC0 のまま）。欅の肌の灰みを少し戻す */
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vBp; varying vec3 vBn;\nvec4 bTri(sampler2D t){ vec3 w = pow(abs(normalize(vBn)), vec3(4.)); w /= w.x + w.y + w.z + 1e-5; return texture2D(t, vBp.zy * .55) * w.x + texture2D(t, vBp.xz * .55) * w.y + texture2D(t, vBp.xy * .55) * w.z; }")
+      .replace("#include <map_fragment>", "#ifdef USE_MAP\n{ vec4 bc = bTri(map); float bl = dot(bc.rgb, vec3(.2126, .7152, .0722)); bc.rgb = mix(bc.rgb, vec3(bl) * vec3(1., .98, .95), .35); diffuseColor *= bc; }\n#endif")
+      .replace("#include <roughnessmap_fragment>", "float roughnessFactor = roughness;\n#ifdef USE_ROUGHNESSMAP\nroughnessFactor *= bTri(roughnessMap).g;\n#endif"); };
+  m.customProgramCacheKey = () => "barkUV3" + (m.uuid);
   m.needsUpdate = true;
 }
 /* 遠くの木：中くらいの形を一度だけ横から写した絵を、十字に組んだ 2 枚の板に貼る（1 本 4 三角形）。歩くときの遠景だけに使う */
