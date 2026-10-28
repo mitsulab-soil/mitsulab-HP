@@ -189,9 +189,13 @@ async function buildBase() {
 }
 /* 道：OSM の道を地面に沿った帯に（道筋 A は HUD の光る線を重ねる） */
 let ASPH = null;
+function texLate(u) {   // 2026-10-28 深夜 3D：道・建物の質感は、操作できるようになってから読む（起動 5 秒の決まり。それまでは色だけ）
+  const t = new THREE.Texture(); const go = () => TL.load(u, im => { t.image = im.image; t.needsUpdate = true; });
+  if (QW.ready) go(); else { const w = () => QW.ready ? setTimeout(go, 300) : setTimeout(w, 200); w(); } return t;
+}
 function roadMat() {   // 道の面：Poly Haven「Asphalt 04」（CC0）の色・法線・粗さ。3 m ごとに繰り返し、大きなむら（補修跡・踏まれた筋）を重ねて繰り返しを目立たせない
   if (ASPH) return ASPH;
-  const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 12; return t; };
+  const ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 12; return t; };
   const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#7d7a76", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
   m.onBeforeCompile = sh => {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWxz=(modelMatrix*vec4(transformed,1.)).xz;");
@@ -220,7 +224,7 @@ function buildRoads() {
   paveStreets(G.roads.filter(r => /大正浪漫|クレアモール/.test(r.nm)).map(r => ({ k: /大正浪漫/.test(r.nm) ? "T" : "M", P: r.p, w: r.w + .4 })));
   // 歩道（模式）：車の通る道の両わきに、コンクリートの舗装の帯を道の下に敷く（Poly Haven「Concrete Pavement」CC0）
   const sw = []; for (const r of G.roads) { if (r.w < 7) continue; if (!r.p.some(p => Math.hypot(p[0], p[1] - 400) < 900)) continue; sw.push(ribbon(densify(r.p, 4), r.w + 4.6, .03, 1.2)); }
-  if (sw.length) { const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
+  if (sw.length) { const ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
     const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#8e8981", roughness: 1, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
     const pv = new THREE.Mesh(mergeIdx(sw), pm); pv.name = "walkway"; world.add(pv); QW.pave = pv; }
 }
@@ -228,7 +232,7 @@ function buildRoads() {
 const PAVE = {};
 function paveMat(k) {
   if (PAVE[k]) return PAVE[k];
-  const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
+  const ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
   const m = k === "T" ? new THREE.MeshStandardMaterial({ map: ld("web/tex/stile_c.webp", true), normalMap: ld("web/tex/stile_n.webp"), color: "#8c8579", roughness: .95, polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 })
     : new THREE.MeshStandardMaterial({ map: ld("web/tex/granite_c.webp", true), normalMap: ld("web/tex/granite_n.webp"), color: "#8a8784", roughness: .9, polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 });
   return PAVE[k] = m;
@@ -450,7 +454,7 @@ function buildPrecinct() {
     let dm = 1e9; for (const t of ts) dm = Math.min(dm, Math.hypot(t.k.x - x, t.k.z - z)); A[k] = 1 - Math.min(1, Math.max(0, (dm - 26) / 14)); }   // 堂から 26 m までが境内、40 m で地へ溶ける
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i; I.push(a, a + nx, a + 1, a + 1, a + nx, a + nx + 1); }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.BufferAttribute(U, 2)); g.setAttribute("aA", new THREE.BufferAttribute(A, 1)); g.setIndex(I); g.computeVertexNormals();
-  const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
+  const ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
   const m = new THREE.MeshStandardMaterial({ color: "#d6d0c4", map: ld("web/tex/granite_c.webp", true), normalMap: ld("web/tex/granite_n.webp"), normalScale: new THREE.Vector2(1.2, 1.2), roughness: .95, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float aA; varying float vA;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvA = aA;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vA;").replace("#include <dithering_fragment>", "#include <dithering_fragment>\ngl_FragColor.a *= vA;"); };
@@ -565,7 +569,7 @@ function makeSolidMesh(acc) {
   return new THREE.Mesh(g, SOLID_MAT ||= solidMat());
 }
 function solidMat() {
-  const TL = new THREE.TextureLoader(), ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
+  const TL = new THREE.TextureLoader(), ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
   const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/plaster_c.webp", true), normalMap: ld("web/tex/plaster_n.webp"), normalScale: new THREE.Vector2(.6, .6), roughnessMap: ld("web/tex/plaster_r.webp"), vertexColors: true, roughness: .92, metalness: 0 });   // 2026-10-26 採点「近寄ると単色の箱」→ 漆喰の写真の肌理（Poly Haven CC0）を色にも
   const tPlank = ld("web/tex/bplank_c.webp", true);
   // 壁の面に、模式の窓・店先のガラス・階の目地・足もとの汚れを描く（一棟ずつの実際の窓の位置ではない）
