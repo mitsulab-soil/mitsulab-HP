@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k15";
-import { groundFarMat } from "../kit/ground_far.js?v=6";
+import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
 import { BellSynth } from "./bell.js?v=k1";
@@ -828,10 +828,10 @@ function stepHere(cp, t, off) {
 const DC = { t: 0, ls: null };
 function declutter(dt) {
   const now = performance.now(); if (!DC.ls || now - DC.t > 500) { DC.t = now; DC.ls = $("#lstack").getBoundingClientRect(); }   // 画面の部品の位置は 0.5 秒ごとに読む（毎こま読むと重い）
-  const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 });
+  const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 }); for (const id of ["sndTag", "caption", "qHere"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); if (r.width && r.height) avoid.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); }   /* 10-28 夜 3：右上の音の説明・字幕・まわりの数の板に札を重ねない（渋谷で札が音の説明に隠れていた） */
   if (AOI.root?.visible) { const p0 = AOI.root.getWorldPosition(new THREE.Vector3()), p1 = p0.clone(); p1.y += 1.75; p0.project(camera); p1.project(camera); if (p0.z < 1) { const y0 = (1 - p1.y) / 2 * innerHeight, y1 = (1 - p0.y) / 2 * innerHeight, cx = (p0.x + 1) / 2 * innerWidth, hw = (y1 - y0) * .2; avoid.push({ x0: cx - hw, x1: cx + hw, y0: y0 - 6, y1 }); } }   // 10-28：札を碧に重ねない
   const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
-  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 16 : 22);   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
+  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 36 : 56);   /* 10-28 夜 3：札が小さく読みにくかった（大宮の札の大きさに近づける） */   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
 function pickObj(x, y) {
   const r = new THREE.Raycaster(), p = new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); r.setFromCamera(p, camera);
@@ -995,7 +995,11 @@ function skyCam() { const c = SKY.c, x = c.x + Math.sin(SKY.az) * Math.cos(SKY.e
 let TW = null;
 function tweenTo(pos, yaw, pitch, dur, done) { TW = { p0: camera.position.clone(), q0: camera.quaternion.clone(), p1: pos.clone(), q1: new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ")), t: 0, dur, done }; }
 function stepTween(dt) { if (!TW) return false; TW.t += dt / TW.dur; const k = Math.min(1, TW.t), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  camera.position.lerpVectors(TW.p0, TW.p1, e); const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; camera.quaternion.slerpQuaternions(TW.q0, TW.q1, e);
+  camera.position.lerpVectors(TW.p0, TW.p1, e); const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; if (TW.p0.y - TW.p1.y > 60) {   /* 10-28 夜 3：上空から降りるときは、降りる先を見つめたまま下り、最後に前を向く（途中で地平線と地図の外を向いていた） */
+    const f = new THREE.Vector3(0, 0, -1).applyQuaternion(TW.q1); f.y = 0; f.normalize(); const tg = TW.p1.clone().addScaledVector(f, 25);
+    TW._m ||= new THREE.Matrix4(); TW._q ||= new THREE.Quaternion(); TW._m.lookAt(camera.position, tg, camera.up); TW._q.setFromRotationMatrix(TW._m);
+    const qa = TW.q0.clone().slerp(TW._q, Math.min(1, e * 2.5)); camera.quaternion.copy(qa).slerp(TW.q1, Math.max(0, Math.min(1, (e - .72) / .28)));
+  } else camera.quaternion.slerpQuaternions(TW.q0, TW.q1, e);
   if (k >= 1) { const d = TW.done; TW = null; d?.(); } return true; }
 /* 始める場所（道筋 A の 7 地点） */
 const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）

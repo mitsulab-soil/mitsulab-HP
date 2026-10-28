@@ -9,7 +9,7 @@ export function groundFarMat(THREE, opt = {}) {
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vGf;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGf=(modelMatrix*vec4(transformed,1.)).xz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vGf; uniform sampler2D gfMap; uniform vec4 gfRect; uniform float gfOn; uniform float gfDim; uniform vec4 gfHole; uniform float gfEdge;")
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vGf; uniform sampler2D gfMap; uniform vec4 gfRect; uniform float gfOn; uniform float gfDim; uniform vec4 gfHole; uniform float gfEdge; float gfN = 0., gfE = 0.;")
       .replace("#include <map_fragment>", `#include <map_fragment>
         if (gfOn > .5) {
           vec2 uv = (vGf - gfRect.xy) / (gfRect.zw - gfRect.xy);
@@ -19,8 +19,16 @@ export function groundFarMat(THREE, opt = {}) {
           diffuseColor.rgb = mix(mix(diffuseColor.rgb, phB * vec3(.9), .75), ph, inside);
         }
         { float l2 = dot(diffuseColor.rgb, vec3(.333)); vec2 hd = max(max(gfHole.xy - vGf, vGf - gfHole.zw), 0.); float hk = gfHole.z > gfHole.x ? mix(gfEdge, 1., smoothstep(0., 420., length(hd))) : 1.;
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l2) * vec3(.42, .46, .5), gfDim * .8 * hk); }`);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l2) * vec3(.42, .46, .5), gfDim * .8 * hk);
+          if (gfOn > .5 && gfHole.z > gfHole.x && gfDim > .01) {   // 10-28 夜 3：3D 地図のとき、地図の縁の外にも内側と同じ青みと細い線を薄く重ね、境目をなじませる。線は航空写真の明るさの境（実在の建物・道の輪郭）から取り、作った形は描かない
+            vec2 uv2 = clamp((vGf - gfRect.xy) / (gfRect.zw - gfRect.xy), .002, .998); vec2 tx = 1. / vec2(textureSize(gfMap, 0));
+            float lx = dot(texture2D(gfMap, uv2 + vec2(tx.x, 0.)).rgb - texture2D(gfMap, uv2 - vec2(tx.x, 0.)).rgb, vec3(.333));
+            float lz = dot(texture2D(gfMap, uv2 + vec2(0., tx.y)).rgb - texture2D(gfMap, uv2 - vec2(0., tx.y)).rgb, vec3(.333));
+            float edg = smoothstep(.13, .3, length(vec2(lx, lz))), nearH = 1. - smoothstep(60., 900., length(hd));
+            gfN = gfDim * nearH; gfE = edg;   // 色は光と霞を当てたあとに重ねる（下の opaque_fragment の前）
+          } }`).replace("#include <opaque_fragment>", `{ float lo = dot(outgoingLight, vec3(.333)); outgoingLight = mix(outgoingLight, vec3(.2, .27, .33) * (.5 + lo * .55), .85 * gfN) + vec3(.36, .66, .78) * gfE * .1 * gfN; }
+#include <opaque_fragment>`);
   };
-  m.customProgramCacheKey = () => "qualium-ground-far-photo4";
+  m.customProgramCacheKey = () => "qualium-ground-far-photo6";
   return m;
 }
