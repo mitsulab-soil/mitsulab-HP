@@ -8035,6 +8035,266 @@
     35.6640045
    ],
    "new": true
+  },
+  {
+   "id": "s2_117",
+   "layer": "culture",
+   "title": "夢二の住まい",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "竹久夢二は、大正10年8月から大正13年12月まで、宇田川町31番地のあたりに住み、「どんたく図案社」「一草居」の表札を出して画業にはげみました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区「文化人の碑」",
+     "u": "https://www.city.shibuya.tokyo.jp/bunka/bunkazai/bunkazai/bunkajin.html"
+    }
+   ],
+   "how": "記録",
+   "x": -302.35,
+   "z": -207.06,
+   "ll": [
+    139.6972872,
+    35.6609257
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_165",
+   "layer": "culture",
+   "title": "恋文の代筆",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和23年、道玄坂のこの一角に、進駐軍の兵士へのラブレターを翻訳し代筆する店ができました。小説に取り上げられて、有名になりました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区「名所・旧跡」",
+     "u": "https://www.city.shibuya.tokyo.jp/bunka/bunkazai/bunkazai/meisho.html"
+    }
+   ],
+   "how": "記録",
+   "x": -216.83,
+   "z": -11.83,
+   "ll": [
+    139.6982327,
+    35.6591666
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_105",
+   "layer": "nature",
+   "title": "東横百貨店の開業",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和9年（1934）11月、東横百貨店が開業しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 212.2,
+   "z": 37.47,
+   "ll": [
+    139.7029761,
+    35.6587224
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_144",
+   "layer": "culture",
+   "title": "渋谷まで来た地下鉄",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和13年（1938）12月、地下鉄線の渋谷〜虎ノ門のあいだが開通しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 276.81,
+   "z": -34.29,
+   "ll": [
+    139.7036904,
+    35.659369
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_143",
+   "layer": "culture",
+   "title": "市電が渋谷駅前へ",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "明治44年（1911）、東京市電の渋谷駅前〜須田町のあいだが開通しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（石器時代以前から大正まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline01/"
+    }
+   ],
+   "how": "記録",
+   "x": 159.96,
+   "z": -44.28,
+   "ll": [
+    139.7023985,
+    35.659459
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_153",
+   "layer": "culture",
+   "title": "帝都電鉄の開通",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和9年（1934）4月、帝都電鉄の渋谷〜吉祥寺のあいだが開通しました。いまの井の頭線です。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -320.31,
+   "z": 67.38,
+   "ll": [
+    139.6970886,
+    35.6584529
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_169",
+   "layer": "culture",
+   "title": "百軒店のはじまり",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "大正13年（1924）のころ、百軒店ができはじめました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（石器時代以前から大正まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline01/"
+    }
+   ],
+   "how": "記録",
+   "x": -367.81,
+   "z": 18.13,
+   "ll": [
+    139.6965635,
+    35.6588966
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_112",
+   "layer": "culture",
+   "title": "区内でいちばん古い小学校",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "明治8年（1875）3月、中渋谷村に公立渋谷小学校ができました。区立の小学校で、区内でいちばん古い学校です。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（石器時代以前から大正まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline01/"
+    }
+   ],
+   "how": "記録",
+   "x": 220.89,
+   "z": 167.75,
+   "ll": [
+    139.7030722,
+    35.6575485
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_170",
+   "layer": "culture",
+   "title": "常設された壁画",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成20年（2008）11月、渋谷駅に岡本太郎の壁画『明日の神話』が常設されました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -331.58,
+   "z": 81.87,
+   "ll": [
+    139.696964,
+    35.6583223
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_145",
+   "layer": "culture",
+   "title": "焦土になった区",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和20年（1945）5月24日・25日の大空襲で、区内の大半が焦土になりました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 171.86,
+   "z": 88.22,
+   "ll": [
+    139.7025301,
+    35.6582651
+   ],
+   "new": true
   }
  ],
  "sight": [
