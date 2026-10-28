@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k15";
-import { groundFarMat } from "../kit/ground_far.js?v=5";
+import { groundFarMat } from "../kit/ground_far.js?v=6";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
 import { BellSynth } from "./bell.js?v=k1";
@@ -152,7 +152,7 @@ function buildFarGround() {
   const sh = new THREE.Shape([new THREE.Vector2(-R, -R), new THREE.Vector2(R, -R), new THREE.Vector2(R, R), new THREE.Vector2(-R, R)]);
   sh.holes.push(new THREE.Path([new THREE.Vector2(x0 + 2, -z0 - 2), new THREE.Vector2(x0 + 2, -z1 + 2), new THREE.Vector2(x1 - 2, -z1 + 2), new THREE.Vector2(x1 - 2, -z0 - 2)]));
   const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2);
-  const gm = groundFarMat(THREE, { base: "#7d7a74", rect: [rx0, rz0, rx1, rz1] }); QW.farGM = gm;
+  const gm = groundFarMat(THREE, { hole: [x0, z0, x1, z1], base: "#7d7a74", rect: [rx0, rz0, rx1, rz1] }); QW.farGM = gm;
   setTimeout(() => TL.load("web/tex/far_photo.webp?v=1", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);
   const m = new THREE.Mesh(g, gm); m.name = "farPhoto"; m.position.y = d.min - .6; m.renderOrder = -2; world.add(m); QW.farPhoto = m;
   setTimeout(() => { const o = world.getObjectByName("farGround"); if (o) o.visible = false; }, 0);   // 前からある無地の遠い地面は隠す（重なってちらつくため）

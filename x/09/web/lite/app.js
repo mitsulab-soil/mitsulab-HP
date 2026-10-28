@@ -8,7 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k15";
-import { groundFarMat } from "../kit/ground_far.js?v=5";
+import { groundFarMat } from "../kit/ground_far.js?v=6";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=mg3";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
@@ -231,7 +231,7 @@ function buildSkirt() {
   const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2);
   const ll2 = (lon, lat) => [(lon - D.origin[0]) * 111320 * Math.cos(D.origin[1] * Math.PI / 180), -(lat - D.origin[1]) * 110574];
   const [rx0, rz0] = ll2(139.54833984375, 35.978006180855665), [rx1, rz1] = ll2(139.68017578125, 35.87124685002796);   // 国土地理院 シームレス空中写真 z14（tex/far_photo.webp）の範囲
-  const gm = groundFarMat(THREE, { base: "#8d8a83", rect: [rx0, rz0, rx1, rz1] });
+  const gm = groundFarMat(THREE, { hole: [x0, z0, x1, z1], base: "#8d8a83", rect: [rx0, rz0, rx1, rz1] });
   setTimeout(() => TL.load(BASE + "tex/far_photo.webp?v=1", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);   // 起動のあとで読む
   QW.farGM = gm; const m = new THREE.Mesh(g, gm);   // 2026-10-27 夜：遠くの地面を灰色の無地にしない（共通部品 kit/ground_far.js・実在の空中写真）
   m.position.y = 9.2; m.renderOrder = -2; world.add(m); QW.skirt = m;
@@ -1356,9 +1356,10 @@ function stepLayer(dt) {
   { const gT = LAYER.worn.length && M !== "boot" ? (sky ? .32 : .62) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
   stepHere(cp, t, sky || flyish || M === "boot");
   // 札どうし・札と結晶を重ねない（近い札から置き、重なる札は上へ逃がすか、うすく消す）
-  const lbs = []; for (const L of LAYER.objs) if (L.label && L.label.visible && L.root.visible && !L.qHide) lbs.push({ sp: L.label, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: PANEL.cur === L ? 1 : 0 });
+  const lbs = [], onScr = L => { L.glyph.getWorldPosition(_pv3).project(camera); return _pv3.z < 1 && Math.abs(_pv3.x) < 1 && Math.abs(_pv3.y) < 1; };   /* 10-28 夜：画面の外（横・後ろ）の印は札の数に数えない。近い順の上限 4 を画面の外の印が使い切り、目の前の印に札が付かなかった */
+  for (const L of LAYER.objs) if (L.label && L.label.visible && L.root.visible && !L.qHide) { if (!onScr(L)) { L.label.visible = false; continue; } lbs.push({ sp: L.label, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: PANEL.cur === L ? 1 : 0 }); }
   // 2026-10-26 16：町（東口・西口・新都心・公園）の典拠のある地点にも、近くに来たら名札（参道の札と同じ形・大きさ）
-  if (!sky && !flyish) for (const L of AREA.marks || []) { const dA = Math.hypot(L.o.x - cp.x, L.o.z - cp.z), nearA = L.mark.visible && dA < LABEL_R;
+  if (!sky && !flyish) for (const L of AREA.marks || []) { const dA = Math.hypot(L.o.x - cp.x, L.o.z - cp.z), nearA = L.mark.visible && dA < LABEL_R && !L.qHide && onScr(L);
     if (nearA && !L.label) { const k5 = top5(L.o.layer); L.label = makeLabel(layerNo(L.o.layer), GL[k5]?.name || ("Qualia/" + k5), L.o.title, COLOR5[k5] || "#e8eef2"); L.label.material.depthTest = false; L.label.renderOrder = 9; L.label.position.set(.9, .4, 0); L.label.userData.by = .4; L.glyph.add(L.label); }
     if (L.label) { L.label.visible = nearA && !L.qHide;   /* 10-28：札は見せている印と同じものだけ */ if (nearA) { L.label.material.opacity = Math.min(1, (LABEL_R - dA) / 6); const fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 54 : 84) * Math.max(1, dA) / fpx, k = wh / .4; L.label.scale.set(1.6 * k, .4 * k, 1); lbs.push({ sp: L.label, L, d: dA, pri: 0 }); } } }
   { lbs.sort((p, q) => q.pri - p.pri || p.d - q.d); const cap = MOBILE ? 3 : 4; for (const e of lbs.splice(cap)) e.sp.visible = false; if (MOBILE) for (let i = lbs.length - 1; i >= 0; i--) if (lbs[i].d > 30 && !lbs[i].pri) { lbs[i].sp.visible = false; lbs.splice(i, 1); } }   /* 2026-10-27 夜：スマホは遠い札（鳥居や並木に透けて重なる）を出さず、近い札だけ */   // 2026-10-26 15：大きな札は近い順に PC 4・スマホ 3 まで
@@ -2460,7 +2461,7 @@ function frame() {
   }
   if (WALK.ring?.visible) { WALK.ringT = (WALK.ringT || 0) + dt; WALK.ring.material.opacity = .85 * (.6 + .4 * Math.cos(WALK.ringT * 4)); }
   if ((GEO.t -= dt) < 0 && QW.mode !== "boot") { GEO.t = .25; const g = GEO.el || (GEO.el = document.getElementById("lsGeo")); const cp = camera.position;   // 視野の左上：いまいる所（緯度・経度・地面からの高さ）
-    const la = 35.90725 - cp.z / 110980, lo = 139.631 + cp.x / (111320 * Math.cos(la * Math.PI / 180)), h = Math.max(0, cp.y - groundY(cp.x, cp.z));
+    const la = 35.90725 - cp.z / 110980, lo = 139.631 + cp.x / (111320 * Math.cos(la * Math.PI / 180)), gy0 = groundY(cp.x, cp.z), h = Math.max(0, cp.y - (Number.isFinite(gy0) ? gy0 : 8));   /* 10-28 夜：地形の外（3D 地図の高い所）では地面の高さが NaN になり ALT NaNm と出ていた。外は大宮の台地の高さ およそ 8 m で数える */
     const txt = `POS <b>${la.toFixed(4)}N ${lo.toFixed(4)}E</b>\nALT ${Math.round(h)}m  ${QW.mode.toUpperCase()}`; if (g && txt !== GEO.last) { g.innerHTML = txt; GEO.last = txt; } }
   updateTrees(); VEG.time.value += dt; updateVeg(); if (!RM) BLDU.t.value += dt; BLDU.g.value = QW.mode === "walk" || QW.mode === "sight" ? groundY(camera.position.x, camera.position.z) : -1e4; stepEdges(); stepHiyo(dt); stepMimi(dt); stepBats(dt); stepBody(dt);
   if (BLD.length) { const cp = camera.position, far = QW.mode === "walk" || QW.mode === "sight" ? (MOBILE ? 320 : 430) : 1e9; for (const b of BLD) { const s = b.userData.ws; b.visible = Math.hypot(s.center.x - cp.x, s.center.z - cp.z) - s.radius < far; } }
