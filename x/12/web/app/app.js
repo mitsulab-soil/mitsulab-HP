@@ -942,8 +942,10 @@ function floatPad(pad, L) {
 }
 function clearFloatPad() { clearInterval(TFL.iv); if (TFL.el) { TFL.el.hidden = true; TFL.el.innerHTML = ""; } TFL.L = null; try { TOUCH?.stop?.(); } catch { } }
 /* 10-28 晩 本人承認①：自然の印では、出典のある生きもの（content.json の sight＝イソヒヨドリ・ハクセキレイ）の受けとり方へ誘う。高い所・屋根・空の話はイソヒヨドリ、地面・道の話はハクセキレイ */
-function sightFor(L) { const S = (C && C.sight) || []; if (!S.length || !/nature|sight/.test(L.layer || "")) return null; const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t).join("");
-  const id = /屋根|上空|空を|飛ぶ|飛ん|鳥/.test(t) ? "isohiyo" : /道|地面|土|水|川|石/.test(t) ? "hakusekirei" : null; return id ? S.find(x => x.id === id) || null : null; }
+function sightFor(L) {   // 10-29：出典の中身がその生きものの受けとり方に関わる印だけ（名前が出てくる・鳥の記録の印）。地面や高さの話からは誘わない
+  const S = (C && C.sight) || []; if (!S.length) return null; const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t).join("");
+  for (const sp of S) if (t.includes(sp.name)) return sp;
+  return null; }
 function narrate(L, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
   const o = L.o; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); TOUCH.stop?.(); } PANEL.cur = L; NARR.L = L;
   let lines = (o.lines || []).filter(l => l && l.t); const thin = THIN.test(o.title + " " + lines.map(l => l.t).join(""));
@@ -972,6 +974,7 @@ function speakLines(lines, L, opt = {}) {
 }
 function playNext() {
   const v = voiceQ; if (!v) return; const l = v.q[v.i];
+  if (l && l.hint && WL_HINT.done) { v.i++; return playNext(); }   // 10-29：知らせがすでに出ていたら、並んでいたもう一つは飛ばす
   if (l && l.hint) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } }   // 知らせは、実際に出たときにだけ済みにする（触れて切りかわったら、次の静かな間に一言）
   if (!l) { voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === v.i && !!v.L));
@@ -990,7 +993,8 @@ function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は�
   const max = innerWidth < 640 ? 44 : 70; t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
-  if (cur) out.push(cur); return out.map(x => x.trim()).filter(Boolean);   // 改行だけの区切りを出さない
+  if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
+  return o2;
 }
 let CAP_LAY = null;
 function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0]; const tag = $("#capTag");
