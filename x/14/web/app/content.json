@@ -8295,6 +8295,266 @@
     35.6582651
    ],
    "new": true
+  },
+  {
+   "id": "s2_090",
+   "layer": "culture",
+   "title": "妙祐寺の門前の町",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "寛永5年（1628）のころ、宮益坂の妙祐寺（そのころは学恩寺）の門前に、町屋ができたとされます。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（石器時代以前から大正まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline01/"
+    }
+   ],
+   "how": "記録",
+   "x": 288.75,
+   "z": -79.56,
+   "ll": [
+    139.7038224,
+    35.6597769
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_088",
+   "layer": "culture",
+   "title": "御嶽神社の芭蕉の句",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "宮益坂の御嶽神社には、芭蕉の句碑があります。刻まれた句は「眼にかかる　時や殊更　さ月不二」です。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区「文化人の碑」",
+     "u": "https://www.city.shibuya.tokyo.jp/bunka/bunkazai/bunkazai/bunkajin.html"
+    }
+   ],
+   "how": "記録",
+   "x": 290.57,
+   "z": -169.28,
+   "ll": [
+    139.7038426,
+    35.6605853
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_092",
+   "layer": "culture",
+   "title": "渋谷マークシティ",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成12年（2000）4月、渋谷マークシティが開きました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -304.47,
+   "z": 134.9,
+   "ll": [
+    139.6972637,
+    35.6578445
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_167",
+   "layer": "culture",
+   "title": "「109」の開館",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和54年（1979）4月、「109」が開館しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -207.89,
+   "z": -14.87,
+   "ll": [
+    139.6983316,
+    35.659194
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_114",
+   "layer": "nature",
+   "title": "西武パルコの開店",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和48年（1973）6月、西武パルコが開店しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -160.45,
+   "z": -279.78,
+   "ll": [
+    139.698856,
+    35.661581
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_126",
+   "layer": "culture",
+   "title": "西武百貨店の開店",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和43年（1968）4月、西武百貨店渋谷店が開店しました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": -8.05,
+   "z": -68.51,
+   "ll": [
+    139.700541,
+    35.6596773
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_152",
+   "layer": "culture",
+   "title": "渋谷ヒカリエ",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成24年（2012）4月、渋谷ヒカリエが開きました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 195.3,
+   "z": 21.41,
+   "ll": [
+    139.7027892,
+    35.6588671
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_155",
+   "layer": "culture",
+   "title": "公園のフットサル場",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "平成18年（2006）、宮下公園にフットサル場が開設されました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 144.92,
+   "z": -330.75,
+   "ll": [
+    139.7022323,
+    35.6620403
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_140",
+   "layer": "culture",
+   "title": "駅の開業百年",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "昭和60年（1985）3月、渋谷駅は開業から百年を迎えました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（昭和から平成まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline02/"
+    }
+   ],
+   "how": "記録",
+   "x": 68.98,
+   "z": 248.1,
+   "ll": [
+    139.7013926,
+    35.6568245
+   ],
+   "new": true
+  },
+  {
+   "id": "s2_141",
+   "layer": "culture",
+   "title": "山手線の電車",
+   "h": 1.8,
+   "lines": [
+    {
+     "t": "明治42年（1909）12月、山手線で電車の運転が始まりました。"
+    }
+   ],
+   "more": [],
+   "src": [
+    {
+     "t": "渋谷区立図書館「渋谷区史年表（石器時代以前から大正まで）」",
+     "u": "https://www.lib.city.shibuya.tokyo.jp/shibuya/shibuya-history/timeline01/"
+    }
+   ],
+   "how": "記録",
+   "x": 25.11,
+   "z": -18.96,
+   "ll": [
+    139.7009076,
+    35.6592308
+   ],
+   "new": true
   }
  ],
  "sight": [

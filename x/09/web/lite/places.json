@@ -6805,6 +6805,96 @@
      "u": "https://www-1.kkr.mlit.go.jp/rokko/pr_media/plant/group/info/pdf/syoku-65.pdf"
     }
    ]
+  },
+  {
+   "id": "s_tr9_enoki_me",
+   "layer": "nature",
+   "sub": "trees",
+   "title": "エノキの名と実",
+   "ll": [
+    139.6312442,
+    35.901884
+   ],
+   "x": 22.02,
+   "z": 593.34,
+   "d": 437.4,
+   "lines": [
+    {
+     "t": "エノキの実は、多くの鳥に好まれます。"
+    },
+    {
+     "t": "名前の由来には、器具の柄に使う「柄の木」、よく燃える「燃え木」など、多くの説があります。"
+    }
+   ],
+   "more": [],
+   "note": null,
+   "how": "記録",
+   "src": [
+    {
+     "t": "国土交通省 六甲砂防事務所『樹木ハンドブック』（2014年12月 第2版）落葉広葉樹（PDF）",
+     "u": "https://www-1.kkr.mlit.go.jp/rokko/pr_media/plant/group/info/pdf/syoku-63.pdf"
+    }
+   ]
+  },
+  {
+   "id": "s_tr9_kusu_me",
+   "layer": "nature",
+   "sub": "trees",
+   "title": "クスノキの花と実",
+   "ll": [
+    139.6304655,
+    35.9143802
+   ],
+   "x": -48.19,
+   "z": -788.42,
+   "d": 1823.3,
+   "lines": [
+    {
+     "t": "クスノキは初夏に、少し黄ばんだ白い花を咲かせます。花の直径は3mmほどです。"
+    },
+    {
+     "t": "実は秋から冬にかけて、黒っぽい紫色に熟します。"
+    }
+   ],
+   "more": [],
+   "note": null,
+   "how": "記録",
+   "src": [
+    {
+     "t": "野田市「クスノキ」（市内の植物の紹介・PDF）",
+     "u": "https://www.city.noda.chiba.jp/_res/projects/default_project/_page_/001/017/068/ippan.pdf"
+    }
+   ]
+  },
+  {
+   "id": "s_tr8_muku_ha",
+   "layer": "nature",
+   "sub": "trees",
+   "title": "ざらつく葉",
+   "ll": [
+    139.6312122,
+    35.9026667
+   ],
+   "x": 19.13,
+   "z": 506.79,
+   "d": 521.3,
+   "lines": [
+    {
+     "t": "ムクノキもエノキも、葉の表面はざらつきます。"
+    },
+    {
+     "t": "エノキの葉は、ぎざぎざが先の方にしかなく、つけ根が左右で非対称です。"
+    }
+   ],
+   "more": [],
+   "note": null,
+   "how": "記録",
+   "src": [
+    {
+     "t": "国土交通省 六甲砂防事務所『樹木ハンドブック』（2014年12月 第2版）落葉広葉樹（PDF）",
+     "u": "https://www-1.kkr.mlit.go.jp/rokko/pr_media/plant/group/info/pdf/syoku-63.pdf"
+    }
+   ]
   }
  ]
 }
