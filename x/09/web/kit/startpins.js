@@ -15,7 +15,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
 .spTag.on{border-color:${pick};background:rgba(30,20,6,.72);box-shadow:0 0 0 1px ${pick}55,0 0 18px ${pick}44}.spTag.on .no{color:${pick}}
 .spTag.k-here{border-style:dashed}.spTag.k-area{border-color:rgba(232,201,143,.6)}
 .spTag:focus-visible{outline:1px solid #fff;outline-offset:2px}
-.spTitle{position:fixed;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 62px);transform:translateX(-50%);pointer-events:none;text-align:center;color:#f2f7f9;font:600 16px/1.5 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.14em;text-shadow:0 0 12px rgba(6,12,22,.95),0 1px 2px #000;white-space:nowrap}.spTitle small{display:block;font-size:11.5px;letter-spacing:.08em;font-weight:500;opacity:.9}
+.spTitle{position:fixed;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 62px);transform:translateX(-50%);pointer-events:none;text-align:center;color:#f2f7f9;font:600 16px/1.5 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.14em;text-shadow:0 0 12px rgba(6,12,22,.95),0 1px 2px #000;white-space:nowrap}.spBr{display:none}.spNote{visibility:hidden}.spTitle small{display:block;font-size:11.5px;letter-spacing:.08em;font-weight:500;opacity:.9}
 .spTag.k-here{border-color:rgba(255,255,255,.7)}
 .spNote{position:absolute;left:0;top:0;transform:translate(-50%,0);pointer-events:none;padding:6px 12px;border-radius:3px;background:rgba(6,12,22,.62);color:#eaf3f6;font:500 13px/1.6 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.12em;text-shadow:0 0 10px rgba(6,12,22,.95),0 1px 2px rgba(0,0,0,.9);white-space:nowrap}
 .spGo{position:absolute!important;left:0;top:0;transform:translate(-50%,10px);pointer-events:auto;z-index:7;white-space:nowrap}
@@ -29,7 +29,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
 .spCard .hint{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.12);font:500 12px/1.5 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.06em;color:#ffcf86}
 .spCard .x{position:absolute;right:4px;top:4px;width:44px;height:44px;border:0;background:none;color:#fff;font:300 22px/1 system-ui;text-shadow:0 1px 3px #000;cursor:pointer}
 @media (min-width:900px){.spCard{left:auto;right:24px;bottom:96px;transform:translateY(8px)}.spCard.on{transform:none}}
-@media (max-width:640px){.spCard p{font-size:12.5px;line-height:1.65}.spCard canvas{aspect-ratio:2/1}.spTag{font-size:13px;padding:5px 10px 6px 8px;letter-spacing:.06em}.spNote{font-size:11px;letter-spacing:.04em}}`;
+@media (max-width:640px){.spTitle{left:calc(50% + 34px);font-size:15px;letter-spacing:.1em}.spTitle small{margin:3px auto 0;line-height:1.55}.spBr{display:inline}.spNote{white-space:normal;max-width:calc(100vw - 40px);text-align:center}   /* 10-28 夜 6：375px で説明の一行が両端で切れていた。左の層の一覧を避けて折り返す */.spCard p{font-size:12.5px;line-height:1.65}.spCard canvas{aspect-ratio:2/1}.spTag{font-size:13px;padding:5px 10px 6px 8px;letter-spacing:.06em}.spNote{font-size:11px;letter-spacing:.04em}}`;
   document.head.appendChild(css);
   const layer = document.createElement("div"); layer.className = "spLayer"; document.body.appendChild(layer);
   // 印：小さく凝った 3D（光る芯の八面体・細い二重の輪・脈打つ光・細い柱）。大きさは画面で一定に近づける
@@ -46,7 +46,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
     const lead = document.createElement("i"); lead.className = "spLead"; layer.appendChild(lead); tag.setAttribute("aria-label", it.name + "を選ぶ"); tag.addEventListener("click", e => { e.stopPropagation(); api.select(i); }); layer.appendChild(tag);
     return { it, P, head, core, ring, ring2, pulse, beam, foot, tag, lead, y, c };
   });
-  const title = document.createElement("div"); title.className = "spTitle"; title.innerHTML = "どこから歩きはじめますか<small>印を押すと、その場所の眺め。もう一度押すと、歩きはじめます</small>"; layer.appendChild(title);
+  const title = document.createElement("div"); title.className = "spTitle"; title.innerHTML = "どこから歩きはじめますか<small>印を押すと、その場所の眺め。<br class=spBr>もう一度押すと、歩きはじめます</small>"; layer.appendChild(title);
   let noteEl = null; if (note) { noteEl = document.createElement("div"); noteEl.className = "spNote"; noteEl.textContent = note.text; layer.appendChild(noteEl); }
   /* 2026-10-28 本人：「ここから歩く」のボタンは外す。1 回目に押す＝説明と目の高さの眺め、同じ所をもう 1 回＝そこから歩く */
   if (goBtn) { goBtn.hidden = true; goBtn.style.display = "none"; goBtn = null; }
@@ -89,7 +89,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
         if (on && goBtn) { goBtn.style.display = ""; _v.set(p.P.position.x, p.P.position.y, p.P.position.z).project(camera); const vis = _v.z < 1 && Math.abs(_v.x) < .95 && Math.abs(_v.y) < .9; const gx = vis ? Math.max(90, Math.min(W - 90, (_v.x + 1) / 2 * W)) : W / 2, gy = vis ? Math.min(H - 70, (1 - _v.y) / 2 * H) : H - 96;   /* 選んだ印が画面の外のときは、下の真ん中に（いつでも押せる） */ goBtn.style.transform = `translate(${gx | 0}px,${gy | 0}px) translate(-50%,12px)`; }
       }
       const out = placed.slice();
-      if (noteEl) { _v.set(note.x, groundY(note.x, note.z) + 4, note.z).project(camera); const ok = _v.z < 1; noteEl.style.display = ok ? "" : "none"; if (ok) { const nx = Math.max(140, Math.min(W - 140, (_v.x + 1) / 2 * W)), ny = Math.min(H - 60, (1 - _v.y) / 2 * H) + 30; out.push([nx - 120, ny], [nx, ny], [nx + 120, ny]); } if (ok) noteEl.style.transform = `translate(${Math.max(140, Math.min(W - 140, (_v.x + 1) / 2 * W)) | 0}px,${Math.min(H - 60, (1 - _v.y) / 2 * H) | 0}px) translate(-50%,0)`; }
+      if (noteEl) { _v.set(note.x, groundY(note.x, note.z) + 4, note.z).project(camera); const ok = _v.z < 1; noteEl.style.display = ok ? "" : "none"; if (ok) { const NH = (W < 640 ? W / 2 : 140), nx = Math.max(NH, Math.min(W - NH, (_v.x + 1) / 2 * W)), ny = Math.min(H - 60, (1 - _v.y) / 2 * H) + 30; out.push([nx - 120, ny], [nx, ny], [nx + 120, ny]); } if (ok) { noteEl.style.visibility = "visible"; } if (ok) noteEl.style.transform = `translate(${Math.max((W < 640 ? W / 2 : 140), Math.min(W - (W < 640 ? W / 2 : 140), (_v.x + 1) / 2 * W)) | 0}px,${Math.min(H - 60, (1 - _v.y) / 2 * H) | 0}px) translate(-50%,0)`; }
       return out;
     },
   };

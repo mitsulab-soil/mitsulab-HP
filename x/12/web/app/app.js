@@ -19,7 +19,7 @@ import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=5m";
-import { makeStartPins } from "../kit/startpins.js?v=mg3";
+import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 
 const $ = s => document.querySelector(s);
@@ -1629,7 +1629,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await buildBase();
     buildObjs(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn();
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
-    setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter);   /* はじめは何も選ばず、「ここから歩く」は押した印のそばに出す */ SKY.dist = SKY.tDist = MOBILE ? 2100 : 1550; SKY.c.set(140, 20, 540); { const P = (START.sp?.pins || []).filter(p => p.it.kind !== "here"); if (P.length > 1) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.it.x); x1 = Math.max(x1, p.it.x); z0 = Math.min(z0, p.it.z); z1 = Math.max(z1, p.it.z); } SKY.c.set((x0 + x1) / 2 - (innerWidth < 640 ? 170 : 40), 20, z0 + (z1 - z0) * .36);   /* 左の層の一覧にかからないよう、印を少し右へ */ SKY.dist = SKY.tDist = Math.min(MOBILE ? 2100 : 1550, Math.max(900, Math.max(x1 - x0, z1 - z0) * (innerWidth < innerHeight ? 1.3 : 1.08))); } }   /* 10-28 夜：始める印が全部、見出しの下・画面の中ほどに入る高さへ（北の印の名札が下へずれ、長い線が地図を横切っていた） */   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
+    setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter);   /* はじめは何も選ばず、「ここから歩く」は押した印のそばに出す */ SKY.dist = SKY.tDist = MOBILE ? 1750 : 1550; SKY.c.set(140, 20, 540); { const P = (START.sp?.pins || []).filter(p => p.it.kind !== "here"); if (P.length > 1) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.it.x); x1 = Math.max(x1, p.it.x); z0 = Math.min(z0, p.it.z); z1 = Math.max(z1, p.it.z); } SKY.c.set((x0 + x1) / 2 - (innerWidth < 640 ? 170 : 40), 20, z0 + (z1 - z0) * .36);   /* 左の層の一覧にかからないよう、印を少し右へ */ SKY.dist = SKY.tDist = Math.min(MOBILE ? 1750 : 1550, Math.max(900, Math.max(x1 - x0, z1 - z0) * (innerWidth < innerHeight ? 1.3 : 1.08))); } }   /* 10-28 夜：始める印が全部、見出しの下・画面の中ほどに入る高さへ（北の印の名札が下へずれ、長い線が地図を横切っていた） */   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;

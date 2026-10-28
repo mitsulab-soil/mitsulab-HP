@@ -21,7 +21,7 @@ import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=s1";
 import { makeEarWalk } from "./earwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=2m";
-import { makeStartPins } from "../kit/startpins.js?v=mg3";
+import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 
 const $ = s => document.querySelector(s);
@@ -1705,7 +1705,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await buildBase();
     buildObjs(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn();
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
-    setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 2100 : 1550; SKY.c.set(20, 20, -480);   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
+    setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 1750 : 1550; SKY.c.set(20, 20, -480);   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;
