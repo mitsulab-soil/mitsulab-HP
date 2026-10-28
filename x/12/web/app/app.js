@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
-import { makeWorldLayers } from "./worldlayers.js?v=w12";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w13";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
@@ -891,6 +891,7 @@ function qChime(color) {   // 触れたときの短い音（その場で組み�
 function hidePanel() { if (KASA.cur) { KASA.herd?.release(KASA.cur); KASA.cur = null; } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); PANEL.cur = null; stopVoice(); TOUCH.stop?.(); }
 $("#pClose").addEventListener("click", hidePanel);
 function openObj(L) {
+  if (NARR.L === L && !NARR.sp && voiceQ && L.kind !== "touch" && L.kind !== "sound") return;   // 10-29：語っている印にもう一度触れても、はじめから言いなおさない
   if (NARR.L === L && NARR.sp) { const sp = NARR.sp; NARR.L = null; NARR.sp = null; PANEL.cur = null; stopVoice(); SIGHT.from = L; return enterSight(sp); }   // 語りの最中にもう一度触れる＝その生きものの受けとり方へ
   PANEL.cur = L; const g = GL[L.layer], no = `${String(layerNo(L.layer)).padStart(2, "0")}　${g.name}`;
   if (L.kind === "sound") return openSound(L, no);
@@ -917,7 +918,7 @@ function surfaceY(x, z) {
 let WL = null;
 function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!sightFor(L);   /* 生きものの受けとり方へ入れる印の目印 */ QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ,   /* 10-29：語りが途中で切りかわると PANEL.cur が残り、問い・ミクロ⇄マクロが止まっていた */ quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of LAYER.objs) { if (!M.root?.visible || M.qHide) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } const v = WALK.moving ? (WALK.speed || 1.3) : 1.3; return Math.max(8, Math.min(16, nd / v * .45)); },   /* 近くに印があれば早めに、遠ければゆっくり問う */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 視野の外の印も含めて探す */   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
-const NARR = { L: null };
+const NARR = { L: null, heard: new Set() };
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
 function nextMarkAsk(L, wide) {
@@ -946,7 +947,8 @@ function sightFor(L) { const S = (C && C.sight) || []; if (!S.length || !/nature
 function narrate(L, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
   const o = L.o; if (!$("#panel").hidden) { $("#panel").hidden = true; document.body.classList.remove("pOpen"); TOUCH.stop?.(); } PANEL.cur = L; NARR.L = L;
   let lines = (o.lines || []).filter(l => l && l.t); const thin = THIN.test(o.title + " " + lines.map(l => l.t).join(""));
-  lines = thin ? lines.slice(0, 1) : lines.slice(0, 3); if (!lines.length) lines = [{ t: o.title }];
+  const again = NARR.heard.has(o.id); NARR.heard.add(o.id);
+  lines = thin || again ? lines.slice(0, 1) : lines.slice(0, 3); if (!lines.length) lines = [{ t: o.title }];   // 一度聞いた印は一言だけ
   lines = lines.map(l => ({ ...l }));
   const s0 = (o.src || [])[0], s0t = s0 ? (typeof s0 === "string" ? s0 : (s0.t || "")).trim() : ""; if (s0t) for (const l of lines) l.src = s0t; { const G0 = GL[L.layer]; if (G0) for (const l of lines) { l.lay = G0.name; l.lc = G0.color; } }   // 10-28 晩：字幕の端に層の名と色（左の一覧をなくしたので、どの層の話かをここで示す）   /* 10-28 晩：出典はどの行にも（data の出典の欄から） */
   const sp = sightFor(L); NARR.sp = sp;

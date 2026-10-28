@@ -6,6 +6,7 @@
    中身は各アプリの印のデータ（出典つき）だけを使う。新しい事実は作らない。
    使い方：const WL = makeWorldLayers(THREE, scene, { marks: () => [...], pitch: () => CAM.pitch, narrate: L => ..., color: L => "#hex", busy: () => bool, active: () => bool, ground: (x,z) => y });
            毎こま WL.update(dt, camera)／語るとき WL.focus(L)・WL.related(L) → { M, d } か null */
+const QA = typeof location !== "undefined" && /[?&]qa=1/.test(location.search);
 const MICRO = /土|苔|コケ|葉|根|樹皮|幹の肌|菌|粒|砂|小石|虫|種子|実|花|芽|細胞|団粒|落ち葉|石の肌|瓦|漆喰|木目|石畳|敷石|舗石|苔むし/;
 const MACRO = /台地|低地|流域|地形|標高|谷|尾根|川の流れ|水系|扇状地|段丘|メートル高|海抜|地質|関東平野|武蔵野|荒川|入間川|新河岸川|渋谷川|古川|宇田川/;
 export function makeWorldLayers(THREE, scene, opt) {
@@ -70,7 +71,7 @@ export function makeWorldLayers(THREE, scene, opt) {
       const gy = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6;
       micro.visible = mk > .02; if (micro.visible) { micro.position.set(cam.position.x, gy, cam.position.z); micro.material.opacity = .7 * mk; micro.rotation.y += dt * .05; }
       skyR.visible = Mk > .02; if (skyR.visible) { skyR.position.set(cam.position.x, gy + 40, cam.position.z); skyR.children.forEach((m, i) => { m.material.opacity = .16 * Mk * (1 - i * .3); }); }
-      clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; if ((clock * 2 | 0) !== (((clock - dt) * 2) | 0)) document.body.dataset.wlq = (opt.speaking() ? "s" : opt.busy() ? "b" : "q") + (quiet | 0) + "/" + (asked < 0 ? 0 : (clock - asked) | 0);   /* 確かめ用：いまの静けさ */ const qf = asked < 0 ? 8 : (opt.quietFor ? opt.quietFor() : 14); if (quiet > qf && clock - asked > Math.max(18, qf * 1.6)) {   /* 次の印までの距離と歩く速さで、問いを置くまでの間を変える */   /* 最初の静かな間は 8 秒で（見下ろす／見上げるの知らせ） */ asked = clock; quiet = 0; opt.ask(); } }
+      clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; if (QA && (clock * 2 | 0) !== (((clock - dt) * 2) | 0)) document.body.dataset.wlq = (opt.speaking() ? "s" : opt.busy() ? "b" : "q") + (quiet | 0) + "/" + (asked < 0 ? 0 : (clock - asked) | 0);   /* 確かめ用：いまの静けさ（?qa=1 のときだけ） */ const qf = asked < 0 ? 8 : (opt.quietFor ? opt.quietFor() : 14); if (quiet > qf && clock - asked > Math.max(18, qf * 1.6)) {   /* 次の印までの距離と歩く速さで、問いを置くまでの間を変える */   /* 最初の静かな間は 8 秒で（見下ろす／見上げるの知らせ） */ asked = clock; quiet = 0; opt.ask(); } }
       if (pending && !opt.busy()) { const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
       macro.visible = Mk > .02; if (macro.visible) { macro.position.set(cam.position.x, gy + .1, cam.position.z); macro.children.forEach((m, i) => { m.material.opacity = .22 * Mk * (1 - i * .18); m.scale.setScalar(.92 + .08 * Mk); }); }
     },
