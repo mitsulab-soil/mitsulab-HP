@@ -31,7 +31,8 @@ export function makeWorldLayers(THREE, scene, opt) {
   let pending = null, quiet = 0, asked = -1e9, clock = 0;   // 無音が続いたら、碧が次の印への問いを短く置く（opt.ask・opt.speaking）
   // pending＝関係の線の先：歩いて近づくと、碧が「さっきの話の続き」として語る
   let pairs = [], built = 0, focusL = null, hold = 0, mode = 0, mk = 0, Mk = 0;
-  const key = L => (L.o.src || [])[0]?.t || null;   // 同じ資料（出典の一つ目）に書かれた印どうしだけを結ぶ（話題が近いだけでは結ばない）
+  const GENERIC = /国土地理院|標高タイル|OpenStreetMap|iNaturalist|GBIF|PLATEAU|地理院地図|mitsulab が組んだ/;   // 10-29：多くの印が共有する一般の資料（標高・地図・生きものの記録の集まり）では結ばない
+  const key = L => { const t = (typeof (L.o.src || [])[0] === "string" ? L.o.src[0] : (L.o.src || [])[0]?.t) || null; return t && !GENERIC.test(t) ? t : null; };   // 同じ資料（出典の一つ目）に書かれた印どうしだけを結ぶ（話題が近いだけでは結ばない）
   function rebuild(cam) {
     const ms = opt.marks().filter(L => L.o && Math.hypot(L.o.x - cam.position.x, L.o.z - cam.position.z) < R + 25), by = new Map();
     for (const L of ms) { const k = key(L); if (!k) continue; (by.get(k) || by.set(k, []).get(k)).push(L); }
