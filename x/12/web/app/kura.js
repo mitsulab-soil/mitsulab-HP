@@ -73,9 +73,9 @@ function tileTex(mobile) {   // 桟瓦の波（自作の模式）：横に波打
     const k = (py * S + px) * 4, r = rnd(iu, iv + 13 * Math.floor(py / S));
     const r2 = rnd(iu * 3.1 + 7, iv * 5.3 + 1), sh = Math.pow(Math.max(0, (fv - .78) / .22), 1.6);   // 瓦ごとの焼きむらと、上の段の瓦が落とす陰
     const base = 62 + r * 34 + r2 * 10 + h * 22 - sh * 34 - (fv > .965 ? 26 : 0) - (Math.abs(fu - .5) > .47 ? 10 : 0);
-    id.data[k] = base; id.data[k + 1] = base + 2 + r2 * 3; id.data[k + 2] = base + 7; id.data[k + 3] = 255;
+    id.data[k] = base; id.data[k + 1] = base + 2 + r2 * 3; id.data[k + 2] = base + 3;   /* 10-29 青みを少し抜く（旧 +7） */ id.data[k + 3] = 255;
     const rg = Math.min(255, (.5 + r * .25 + sh * .3 + (fv > .965 ? .2 : 0)) * 255); rd.data[k] = rd.data[k + 1] = rd.data[k + 2] = rg; rd.data[k + 3] = 255;
-    const nx = -dhu * .25, ny = -dhv * .25, nz = 1, L = Math.hypot(nx, ny, nz);
+    const nx = -dhu * .32, ny = -dhv * .32, nz = 1, L = Math.hypot(nx, ny, nz);
     nd.data[k] = (nx / L * .5 + .5) * 255; nd.data[k + 1] = (ny / L * .5 + .5) * 255; nd.data[k + 2] = (nz / L * .5 + .5) * 255; nd.data[k + 3] = 255;
   }
   x.putImageData(id, 0, 0); y.putImageData(nd, 0, 0); z.putImageData(rd, 0, 0);
@@ -97,7 +97,7 @@ export function kuraMats(TL, mobile) {
     doma: new THREE.MeshStandardMaterial({ color: "#4a3a2c", roughness: .9, emissive: "#3a2814", emissiveIntensity: .5 }),   // 店の奥（土間と奥の壁）：暗いが真っ黒にしない
     // 町家の型の板壁・格子：杉板（焼いた色に寄せて暗く）
     cedar: new THREE.MeshStandardMaterial({ color: "#4a3d32", map: ld("web/tex/cedar_c.webp", true, .5), normalMap: ld("web/tex/cedar_n.webp", false, .5), normalScale: new THREE.Vector2(.8, .8), roughness: .78 }),
-    tile: new THREE.MeshStandardMaterial({ color: "#b4b7bd", map: tile.T, normalMap: tile.N, normalScale: new THREE.Vector2(1.0, 1.0), roughnessMap: tile.R, roughness: 1, metalness: 0, envMapIntensity: .35 }),   // いぶし瓦：金属の照りにしない（粗さは瓦ごとにむら）
+    tile: new THREE.MeshStandardMaterial({ color: "#b1b2b3", map: tile.T, normalMap: tile.N, normalScale: new THREE.Vector2(2.4, 2.4),   /* 10-29 近景：桟の山と段差が斜めからも読めるよう凹凸を 2.4 倍・色の青みを抜く（旧 #b4b7bd・1.0） */ roughnessMap: tile.R, roughness: 1, metalness: 0, envMapIntensity: .35 }),   // いぶし瓦：金属の照りにしない（粗さは瓦ごとにむら）
     wood: new THREE.MeshStandardMaterial({ color: "#6d5a48", map: ld("web/tex/wood_c.webp", true, .6), normalMap: ld("web/tex/wood_n.webp", false, .6), roughness: .72 }),
     bwood: new THREE.MeshStandardMaterial({ color: "#5a5048", map: ld("web/tex/bplank_c.webp", true, .5), normalMap: ld("web/tex/bplank_n.webp", false, .5), roughness: .66 }),
     stone: new THREE.MeshStandardMaterial({ color: "#a39f97", map: ld("web/tex/granite_c.webp", true, .5), normalMap: ld("web/tex/granite_n.webp", false, .5), roughness: .8 }),
