@@ -802,7 +802,7 @@ function stepLayer(dt) {
     const k = sky ? Math.min(14, Math.max(2.5, camera.position.distanceTo(L.root.position) / 60)) : 1;
     L.root.scale.setScalar(k * (.4 + .6 * L.show)); L.glyph.rotation.y = t * .6; L.glyph.position.y = (L.o.h || 1.8) + Math.sin(t * 1.4 + L.o.x) * .05;
     for (const m of L.mats) m.opacity = (m === L.fm ? .1 : m === L.bm ? .55 : .9) * L.show;
-    if (L.lb.visible) { L.lb.material.depthTest = d > 60; L.lb.material.opacity = Math.min(1, (90 - d) / 8) * L.show;   /* 10-28 夜 5：60 m より近い札は屋根や庇に欠けないよう手前に描く */ const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
+    if (L.lb.visible) { L.lb.material.depthTest = d > 60; L.lb.material.opacity = Math.min(1, (90 - d) / 8) * L.show;   /* 10-28 夜 5：60 m より近い札は屋根や庇に欠けないよう手前に描く */ const ls = Math.max(1, d / 9) * (MOBILE ? 1 : .75); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   /* 10-29 本人「印が目立ちすぎ」：PC の札を 3/4 に */   // 遠くても字が小さくなりすぎない
   }
   LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
@@ -843,7 +843,7 @@ function declutter(dt) {
   const ls = DC.ls, avoid = MOBILE ? [] : [...(LAYER.qm?.rects || [])];   /* 10-28：スマホでは印の当たりの四角を札の邪魔にしない（札が一枚も出なかった） */ if (ls.width) avoid.push({ x0: 0, x1: ls.right + 14, y0: 0, y1: ls.bottom + 14 }); for (const id of ["sndTag", "caption", "qHere"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; const r = e.getBoundingClientRect(); if (r.width && r.height) avoid.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); }   /* 10-28 夜 3：右上の音の説明・字幕・まわりの数の板に札を重ねない（渋谷で札が音の説明に隠れていた） */
   if (AOI.root?.visible) { const p0 = AOI.root.getWorldPosition(new THREE.Vector3()), p1 = p0.clone(); p1.y += 1.75; p0.project(camera); p1.project(camera); if (p0.z < 1) { const y0 = (1 - p1.y) / 2 * innerHeight, y1 = (1 - p0.y) / 2 * innerHeight, cx = (p0.x + 1) / 2 * innerWidth, hw = (y1 - y0) * .2; avoid.push({ x0: cx - hw, x1: cx + hw, y0: y0 - 6, y1 }); } }   // 10-28：札を碧に重ねない
   const cp = camera.position, list = []; for (const L of LAYER.objs) if (L.lb.visible && !L.qHide && (Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 20 || PANEL.cur === L || (L.lb.visible = false))) list.push({ sp: L.lb, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: !$("#panel").hidden && PANEL.cur === L ? 1 : 0 });
-  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 18 : 26);   /* 10-28 午後 本人「印が目立ちすぎ」：札は 20 m 以内の近い印だけ・小さく */   /* 10-28 夜 3：札が小さく読みにくかった（大宮の札の大きさに近づける） */   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
+  if (list.length) placeLabels(THREE, camera, list, avoid, dt, MOBILE ? 18 : 20);   /* 10-28 午後 本人「印が目立ちすぎ」：札は 20 m 以内の近い印だけ・小さく */   /* 10-28 夜 3：札が小さく読みにくかった（大宮の札の大きさに近づける） */   // 2026-10-26 採点「遠くの目印が読み取れない」→ 札の字の高さに下限
 }
 function pickObj(x, y) {
   const r = new THREE.Raycaster(), p = new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); r.setFromCamera(p, camera);
