@@ -244,7 +244,7 @@ export function boot(fig) {
       const pivot = new THREE.Group(); pivot.add(vrm.scene); pivot.visible = false; aoiPivot = pivot; g.add(pivot);
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);
       const bb = new THREE.Box3().setFromObject(vrm.scene); pivot.scale.setScalar(A_H / (bb.max.y - bb.min.y)); pivot.position.copy(A_P);
-      const { AoiMotion } = await import('./aoi_motion.js?v=20261023-v60');
+      const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61');
       mot = new AoiMotion(vrm, { root: pivot, reducedMotion: reduce, wind: .25, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 });
       mot.faceTo(-.35);
       vrm.scene.traverse(o => { if (!o.isMesh) return; [].concat(o.material).forEach(m => { if (!/CLOTH/.test(m.name || '') || /Outline/.test(m.name || '')) return;

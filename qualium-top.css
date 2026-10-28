@@ -640,6 +640,8 @@ html[lang="en"] .qp-es-now p{font-family:var(--latin);letter-spacing:0}
 html[lang="en"] .qm-title{font-family:var(--latin);letter-spacing:.01em}
 .qm-lead{max-width:760px;margin:0 0 30px;font-size:15.5px;line-height:2;color:var(--ink-2)}
 .qm-grid{gap:48px 40px}
+@media(min-width:1101px){.qm-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 32px}}
+@media(min-width:861px) and (max-width:1100px){.qm-grid>li:last-child:nth-child(odd){grid-column:1/-1;max-width:calc(50% - 20px);justify-self:center}}
 .qm-card .pf-name a{font-size:inherit}
 .qm-more{border-top:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-bottom:1px solid color-mix(in srgb,var(--c) 25%,transparent)}
 .qm-more>summary{min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font:400 15px/1.5 var(--serif);letter-spacing:.06em;color:#dff6f1}

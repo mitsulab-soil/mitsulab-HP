@@ -13,7 +13,7 @@ const mobile = Math.min(innerWidth, innerHeight) < 700;
 function hasGL() { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } }
 if (!hasGL()) document.documentElement.classList.add('v2-no3d');
 else document.querySelectorAll('[data-qx]').forEach(f => {
-  const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); const k = +f.dataset.qx; (k === 0 ? boot(f, 0) : import('./umwelt-diorama.js?v=20261028f6').then(m => m.bootDiorama(f, k, []))).catch(e => console.warn('top-qualium', e)); } }, { rootMargin: '300px 0px' });
+  const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); const k = +f.dataset.qx; (k === 0 ? boot(f, 0) : import('./umwelt-diorama.js?v=20261028p2').then(m => m.bootDiorama(f, k, []))).catch(e => console.warn('top-qualium', e)); } }, { rootMargin: '300px 0px' });
   o.observe(f);
 });
 

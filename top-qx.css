@@ -250,3 +250,5 @@ html{scroll-padding-top:80px}
 @media (min-width:1000px){#top #appguide,#top .v2-originwrap{max-width:1200px;margin-left:auto!important;margin-right:auto!important}}
 @media (min-width:1000px){#top .v2-originwrap{padding-left:0!important;padding-right:0!important}#top .v2-originwrap .qt-origin{padding-left:0!important;padding-right:0!important;margin-left:0!important}}
 @media (min-width:1000px){#top .qx-scene{max-width:1200px;padding-left:0;padding-right:0}}
+/* 2026-10-28 P2：1.0 の左の列の下が空く＝図を 2 行にまたがせ、文と「もっと詳しく」を図の中央に寄せて続けて置く */
+@media (min-width:701px){#umwelt1 .qx-figd{grid-column:2;grid-row:1 / span 2;align-self:center}#umwelt1 .qx-tx{align-self:end!important;padding-bottom:4px}#umwelt1 .qx-m1{align-self:start;grid-row:2}}

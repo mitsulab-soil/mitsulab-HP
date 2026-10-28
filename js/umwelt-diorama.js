@@ -110,7 +110,9 @@ export async function bootDiorama(fig, kind, labs) {
       vec3 c = hN < .05 ? shoe : hN < .47 ? pants : hN < .82 ? coat : hN < .93 ? sk : hair;
       diffuseColor.rgb = c;`); sh.uniforms.uTop = skin.userData.uTop; sh.uniforms.uBot = skin.userData.uBot; };
     skin.userData.uTop = { value: 1 }; skin.userData.uBot = { value: 0 };
-    man.scene.traverse(m => { if (m.isMesh) { m.material = skin; m.frustumCulled = false; } });
+    // 2026-10-28 P2：角ばりを抑える＝面ごとの法線を、頂点をまとめて滑らかな法線に作り直す（形は手元の man.glb のまま）
+    const { mergeVertices } = await import('three/addons/utils/BufferGeometryUtils.js');
+    man.scene.traverse(m => { if (m.isMesh) { try { let g = m.geometry.clone(); g.deleteAttribute('normal'); if (g.attributes.uv) g.deleteAttribute('uv'); g = mergeVertices(g, 1e-3); g.computeVertexNormals(); m.geometry = g; } catch (e) {} m.material = skin; m.frustumCulled = false; } });
     const bb = new THREE.Box3().setFromObject(man.scene), sz = bb.getSize(new THREE.Vector3()), sc = 1.7 / sz.y;
     { let lo = 1e9, hi = -1e9; man.scene.traverse(o => { if (o.isMesh) { o.geometry.computeBoundingBox(); lo = Math.min(lo, o.geometry.boundingBox.min.y); hi = Math.max(hi, o.geometry.boundingBox.max.y); } }); skin.userData.uTop.value = 1.7; skin.userData.uBot.value = 0.; }
     man.scene.scale.setScalar(sc); man.scene.position.set(P.x - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, P.z - (bb.min.z + sz.z / 2) * sc); man.scene.rotation.y = 1.0; stage.add(man.scene);
@@ -128,8 +130,10 @@ export async function bootDiorama(fig, kind, labs) {
   const dot = (p, col) => { const d = new THREE.Mesh(new THREE.SphereGeometry(.035, 12, 8), new THREE.MeshBasicMaterial({ color: col })); d.position.copy(p); stage.add(d); return d; };
   const BODY = 0xffffff;
   // 1.0・2.0 共通：身体で届くもの
-  [[EYE, TRUNK], [EAR, BIRD], [FOOT, new THREE.Vector3(-.3, .02, 1.3)], [EYE, FLOWER.clone().setY(.45)]].forEach(([a, b]) => { lineTo(a, b, BODY, false); dot(b, BODY); });
-  dot(EYE, BODY);
+  // 2026-10-28 P2：線が人の頭の上で細かく重ならないよう、線は顔から少し離れた所から出す（2.0 では身体の線を一段淡く）
+  const off = (a, b, r) => a.clone().add(b.clone().sub(a).normalize().multiplyScalar(r));
+  [[EYE, TRUNK], [EAR, BIRD], [FOOT, new THREE.Vector3(-.3, .02, 1.3)], [EYE, FLOWER.clone().setY(.45)]].forEach(([a, b], i) => { const l = lineTo(i === 2 ? a : off(a, b, .26), b, BODY, false); if (two) l.material.opacity = .5; dot(b, BODY); });
+  if (!two) dot(EYE, BODY);
 
   if (two && !window.__sandoMeta) { try { window.__sandoMeta = await fetch('img/hero/sando_wire.json').then(r => r.json()); } catch (e) { window.__sandoMeta = null; } }
   let aoiTick = null; const sideLabs = [];
@@ -178,7 +182,7 @@ export async function bootDiorama(fig, kind, labs) {
     // 層を通してつながる：人→層→（届かなかったもの）。縦の線は層への出入り
     // 依代＝環境エージェント（2026-10-28 本人）：碧が人のそばに立ち、主体と情報の層のあいだをつなぐ。層のそばに小さな依代（Qualium の共通部品の現行版）を置く
     const AOI = new THREE.Vector3(.45, 0, -.1), AOIH = new THREE.Vector3(.45, 1.55, -.1);
-    lineTo(EYE, AOIH, 0xa8f2f6, false); dot(AOIH, 0xa8f2f6);
+    lineTo(off(EYE, AOIH, .26), AOIH, 0xa8f2f6, false); dot(AOIH, 0xa8f2f6);
     const top = new THREE.Vector3(AOIH.x, layerYs[layerYs.length - 1], AOIH.z); lineTo(AOIH, top, 0xa8f2f6, false); dot(top, 0xa8f2f6);
     { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const gr = x.createRadialGradient(128, 128, 30, 128, 128, 128); gr.addColorStop(0, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 256, 256);
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.1, D * 1.1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .015; stage.add(sh); }
