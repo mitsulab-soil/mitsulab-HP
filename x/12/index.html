@@ -17,7 +17,7 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261028t">
+<link rel="modulepreload" href="web/app/app.js?v=20261028u">
 <link rel="modulepreload" href="web/app/layers.js?v=k4">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k13">
 <link rel="modulepreload" href="web/app/kura.js?v=k13">
@@ -412,6 +412,9 @@ body[data-mode="boot"] #hud,body[data-mode="boot"] #skyUI{opacity:0}
 .lsFoot button{min-height:44px;min-width:44px;padding:0 12px;font-size:12px;text-decoration:none;border:1px solid rgba(127,227,247,.38);background:rgba(3,6,15,.42);color:var(--hud)}
 .lsFoot button:active{background:rgba(13,135,163,.3)}
 @media (max-width:640px){.lyGo{min-width:44px}.lsFoot{flex-direction:column;gap:6px}.lsFoot button{width:132px;text-align:left}}
+/* 10-28 夜：「鳥になる／生きもの」を「すべて重ねる／外す」と同じ並び・同じ幅に（高さがずれ、右へはみ出していた） */
+.lsFoot button:first-child{min-width:106px}.lsFoot button:last-child{min-width:92px}.lsEnter #skySight{width:auto;margin-top:0}
+@media (max-width:640px){.lsFoot button:first-child,.lsFoot button:last-child{min-width:0}}
 @media (min-width:641px){#starts{flex-wrap:wrap;overflow:visible;-webkit-mask:none;mask:none;padding-right:0}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}#lstack .scan{display:none}}
 /* 2026-10-23 本人「3D 地図が白すぎる・選ぶ場所を濃く、ほかは薄く・場所のボタンが背景に溶ける」→ 地図は暗めに、選んでいる所は琥珀（地図のしるしと同じ色）、ボタンは暗い板に明るい字 */
@@ -595,6 +598,6 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261028t").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261028u").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

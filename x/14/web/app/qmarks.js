@@ -168,7 +168,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
 
   const items = [];
   const _p = new THREE.Vector3(), _r = new THREE.Vector3(), _s = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _e = new THREE.Euler(), _c = new THREE.Color();
-  const rects = [], _sp = new THREE.Vector3();
+  const rects = [], _sp = new THREE.Vector3(), _r2 = new THREE.Vector3(), SPACE = opt.space ?? 7;
   const ALLM = [crystal, halo, orbit, ring, beam];
   return {
     add(L, color, kind) { _c.set(color); items.push({ L, c: [_c.r, _c.g, _c.b], ph: items.length * 1.7, k: typeof kind === "number" ? kind : (KIND[kind] ?? 0), no: 0 }); },
@@ -186,12 +186,18 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         const fw = _f.set(0, 0, -1).applyQuaternion(cam.quaternion), cand = [];
         for (const it of items) { const L = it.L; L.qHide = false; if (!L.root.visible || !(L.show > .01)) continue; L.root.getWorldPosition(_r); const dx = _r.x - cam.position.x, dz = _r.z - cam.position.z, dd = Math.hypot(dx, dz); if ((dx * fw.x + dz * fw.z) / Math.max(1e-3, dd) > .35 || dd < 12) cand.push([dd, L]); else L.qHide = true; }
         cand.sort((p, q) => p[0] - q[0]); const near5 = cand.filter(c => c[0] < 40).length, lim = near5 < 5 ? MAXN + 3 : MAXN;   // 近くの印が 5 個を下回る所では、少し先の印まで出す（視野に 5〜10 個）
-        const scr = []; let shown = 0;   // 画面の上で重なる印（奥の印が手前の印の視線上にある）は、奥のほうを出さない
+        const scr = [], wp = []; let shown = 0;   // 画面の上で重なる印（奥の印が手前の印の視線上にある）は、奥のほうを出さない
         for (const [, L] of cand) { if (L.open > 0) { shown++; continue; } if (shown >= lim) { L.qHide = true; continue; }
-          L.root.getWorldPosition(_r); _r.project(cam); const sx = (_r.x + 1) * innerWidth / 2, sy = (1 - _r.y) * innerHeight / 2;
+          L.root.getWorldPosition(_r); _r2.copy(_r); _r.project(cam); const sx = (_r.x + 1) * innerWidth / 2, sy = (1 - _r.y) * innerHeight / 2;
           if (_r.z < 1 && scr.some(([x, y]) => Math.abs(x - sx) < 40 && Math.abs(y - sy) < 52)) { L.qHide = true; continue; }
-          scr.push([sx, sy]); shown++; }
-      } else for (const it of items) it.L.qHide = false;
+          if (wp.some(([x, z]) => Math.hypot(x - _r2.x, z - _r2.z) < SPACE)) { L.qHide = true; continue; }   // 10-28 夜：地面で 7 m より近い印どうしは、近いほう一つだけ（印のかたまりを作らない。密度の基準＝印どうし 7〜10 m）
+          scr.push([sx, sy]); wp.push([_r2.x, _r2.z]); shown++; }
+      } else {   // 10-28 夜：3D 地図では、画面の上で近すぎる印（参道に沿った団子）を間引く。開いた印・選んだ印が先
+        const scr = [], gap = innerWidth < 640 ? 14 : 18, ord = items.slice().sort((p, q) => ((q.L.open > 0 || q.L === focus) ? 1 : 0) - ((p.L.open > 0 || p.L === focus) ? 1 : 0));
+        for (const it of ord) { const L = it.L; L.qHide = false; if (!L.root.visible || !(L.show > .01)) continue; if (L.open > 0 || L === focus) { L.root.getWorldPosition(_r); _r.project(cam); scr.push([(_r.x + 1) * innerWidth / 2, (1 - _r.y) * innerHeight / 2]); continue; }
+          L.root.getWorldPosition(_r); _r.project(cam); if (_r.z >= 1) continue; const sx = (_r.x + 1) * innerWidth / 2, sy = (1 - _r.y) * innerHeight / 2; if (sy < (innerWidth < 640 ? 130 : 96)) { L.qHide = true; continue; }   /* 見出しの字の上に印を重ねない */
+          if (scr.some(([x, y]) => Math.abs(x - sx) < gap && Math.abs(y - sy) < gap)) { L.qHide = true; continue; } scr.push([sx, sy]); }
+      }
       for (const it of items) {
         const L = it.L; if (!L.root.visible || !(L.show > .01) || n >= cap || L.qHide) continue;
         L.glyph.getWorldPosition(_p); L.root.getWorldPosition(_r); L.glyph.getWorldScale(_s);
