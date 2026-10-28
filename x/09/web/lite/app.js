@@ -382,7 +382,7 @@ function buildBuildings(g) {
         float fr = pow(1. - abs(dot(fn, vd)), 2.); float roof = step(.6, abs(fn.y)); float nr = 1. - smoothstep(80., 420., dist);
         float fy = (vWp.y - 13.2) / 3.15; float d = abs(fract(fy + .5) - .5); float fl = (1. - roof) * step(.5, fy) * (1. - smoothstep(0., fwidth(fy) * 1.2, d));
         float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.1, 2.)) * (1. - roof);
-        float fade = mix(1., .6, smoothstep(140., 760., dist));
+        float fade = mix(mix(1., .18, smoothstep(80., 380., dist)), mix(1., .6, smoothstep(140., 760., dist)), uSky);   /* 10-28 夜 5：歩くとき遠くの建物を早めに消す（遠くが白く浮いていた） */
         diffuseColor.rgb = mix(vec3(.25,.35,.43), vec3(.36,.66,.78), fr * .7 + band * .7 + fl * nr * .6) * (roof > .5 ? 1.1 : 1.);
         diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.62, .4, uSky); }`);   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };

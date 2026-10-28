@@ -790,7 +790,7 @@ function stepLayer(dt) {
     const k = sky ? Math.min(14, Math.max(2.5, camera.position.distanceTo(L.root.position) / 60)) : 1;
     L.root.scale.setScalar(k * (.4 + .6 * L.show)); L.glyph.rotation.y = t * .6; L.glyph.position.y = (L.o.h || 1.8) + Math.sin(t * 1.4 + L.o.x) * .05;
     for (const m of L.mats) m.opacity = (m === L.fm ? .1 : m === L.bm ? .55 : .9) * L.show;
-    if (L.lb.visible) { L.lb.material.opacity = Math.min(1, (90 - d) / 8) * L.show; const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
+    if (L.lb.visible) { L.lb.material.depthTest = d > 60; L.lb.material.opacity = Math.min(1, (90 - d) / 8) * L.show;   /* 10-28 夜 5：60 m より近い札は屋根や庇に欠けないよう手前に描く */ const ls = Math.max(1, d / 9); L.lb.scale.set(1.6 * ls, .4 * ls, 1); }   // 遠くても字が小さくなりすぎない
   }
   LAYER.qm?.update(camera, { t, sky, focus: !$("#panel").hidden ? PANEL.cur : null });
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
@@ -998,7 +998,7 @@ function stepTween(dt) { if (!TW) return false; TW.t += dt / TW.dur; const k = M
   if (TW.p0.y - TW.p1.y > 60) { const eh = Math.min(1, e * 1.35); camera.position.set(TW.p0.x + (TW.p1.x - TW.p0.x) * eh, TW.p0.y + (TW.p1.y - TW.p0.y) * e, TW.p0.z + (TW.p1.z - TW.p0.z) * eh); } else camera.position.lerpVectors(TW.p0, TW.p1, e);   /* 10-28 夜 4：先に真上へ寄せ、最後は道へまっすぐ降りる（高い建物の中を通り抜けていた） */ const arc = Math.sin(e * Math.PI) * TW.p0.distanceTo(TW.p1) * .12; camera.position.y += arc; if (TW.p0.y - TW.p1.y > 60) {   /* 10-28 夜 3：上空から降りるときは、降りる先を見つめたまま下り、最後に前を向く（途中で地平線と地図の外を向いていた） */
     const f = new THREE.Vector3(0, 0, -1).applyQuaternion(TW.q1); f.y = 0; f.normalize(); const tg = TW.p1.clone().addScaledVector(f, 25);
     TW._m ||= new THREE.Matrix4(); TW._q ||= new THREE.Quaternion(); TW._m.lookAt(camera.position, tg, camera.up); TW._q.setFromRotationMatrix(TW._m);
-    const qa = TW.q0.clone().slerp(TW._q, Math.min(1, e * 2.5)); camera.quaternion.copy(qa).slerp(TW.q1, Math.max(0, Math.min(1, (e - .72) / .28)));
+    const qa = TW.q0.clone().slerp(TW._q, Math.min(1, e * 2.5)); camera.quaternion.copy(qa).slerp(TW.q1, Math.max(0, Math.min(1, (e - .86) / .14)));
   } else camera.quaternion.slerpQuaternions(TW.q0, TW.q1, e);
   if (k >= 1) { const d = TW.done; TW = null; d?.(); } return true; }
 /* 始める場所（道筋 A の 7 地点） */
