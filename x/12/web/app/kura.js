@@ -48,6 +48,14 @@ class Acc {
       this.quad([x - w, ya - .02, za], [x + w, ya - .02, za], [x, ya + h, za], [x - w, ya, za]);   // 軒先の瓦の口（巴の模式）
     }
   }
+  // 10-29 桟瓦の丸い山：x0 から step ごと（瓦の絵の山の位置＝UV の 0.26 m ごとにそろえる）に、半円に近い断面の低い山を棟へ向かって。軒先の口は扇で閉じる
+  roundRibs(x0, x1, ya, za, yb, zb, step = .26, r = .1, h = .05, seg = 5) {
+    const sg = Math.sign(x1 - x0) || 1, L = Math.abs(x1 - x0);
+    for (let k = 1; k * step < L - r; k++) { const xc = x0 + sg * k * step, pr = [];
+      for (let i = 0; i <= seg; i++) { const a = Math.PI * i / seg; pr.push([xc - Math.cos(a) * r * sg, Math.sin(a) * h]); }
+      for (let i = 0; i < seg; i++) { const [p, ph] = pr[i], [q, qh] = pr[i + 1]; this.quad([p, ya + ph, za], [q, ya + qh, za], [q, yb + qh, zb], [p, yb + ph, zb]); }
+      for (let i = 0; i < seg; i++) { const [p, ph] = pr[i], [q, qh] = pr[i + 1]; this.tri([q, ya + qh, za], [p, ya + ph, za], [xc, ya, za]); } }
+  }
   geo() {
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.Float32BufferAttribute(this.p, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(this.n, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(this.u, 2));
@@ -257,7 +265,7 @@ export function machiGeos(type) {
     for (let x = -hw + .2; x < hw - .15; x += .14) A.cedar.box(x - .015, T.h1 - .9, hd - .28, x + .015, T.h1 - .38, hd - .25, 1, "xXZ");
   }
   const hy = T.h1 + .3, hz = hd + .85;
-  A.tile.slab(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .1); A.tile.ribs(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .26, .05, .035);   // 下屋（10-29 近景：桟瓦の働き幅 約 0.26 m ごとに低い山を立て、軒先の輪郭を波打たせる）
+  A.tile.slab(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .1); A.tile.roundRibs(-hw - .05, hw + .05, hy - .38, hz, hy, hd);   // 下屋（10-29 近景：桟瓦の働き幅 約 0.26 m ごとに丸い低い山を瓦の絵の山にそろえて立て、軒先の輪郭を波打たせる）
   A.wood.quad([hw + .05, hy - .38 - .11, hz], [-hw - .05, hy - .38 - .11, hz], [-hw - .05, hy - .11, hd], [hw + .05, hy - .11, hd]);   // 軒裏
   for (let x = -hw; x <= hw; x += .75) A.wood.box(x - .035, hy - .5, hd, x + .035, hy - .42, hz - .08, 1, "xXy");
   const z2 = hd - .15;
@@ -272,7 +280,7 @@ export function machiGeos(type) {
   A.wood.box(-hw - .1, T.h2 - .25, -hd - .1, hw + .1, T.h2 + .03, z2 + .1, 1, "xXzZy");   // 軒の桁
   A.tile.slab(-hw - .45, hw + .45, eave, ez, ridgeY, 0, .12);
   A.tile.slab(hw + .45, -hw - .45, eave, -ez, ridgeY, 0, .12);
-  A.tile.ribs(-hw - .45, hw + .45, eave, ez, ridgeY, 0, .26, .05, .035); A.tile.ribs(hw + .45, -hw - .45, eave, -ez, ridgeY, 0, .26, .05, .035);   // 10-29 近景：桟瓦の山（町家の大屋根）
+  A.tile.roundRibs(-hw - .45, hw + .45, eave, ez, ridgeY, 0); A.tile.roundRibs(hw + .45, -hw - .45, eave, -ez, ridgeY, 0);   // 10-29 近景：桟瓦の山（町家の大屋根）
   for (const sx of [-1, 1]) A[T.side].tri([sx * hw, T.h2, -hd], [sx * hw, T.h2, z2], [sx * hw, ridgeY - .12, 0], 1);   // 妻の壁
   // 2026-10-25 横の壁（角に建つと通りから見える）にも、杉の腰板と、1 階・2 階の小さな格子窓（模式）。窓のない平らな壁に見せない
   for (const sx of [-1, 1]) {
