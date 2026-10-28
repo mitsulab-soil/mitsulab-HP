@@ -232,6 +232,7 @@ function buildRoads() {
   const sw = []; for (const r of G.roads) { if (r.w < 7) continue; if (!r.p.some(p => Math.hypot(p[0], p[1] - 400) < 900)) continue; sw.push(ribbon(densify(r.p, 4), r.w + 4.6, .03, 1.2)); }
   if (sw.length) { const ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
     const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#8e8981", roughness: 1, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
+    pm.normalScale.set(1.6, 1.6); pm.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 tq = vMapUv * vec2(3., 6.); float tr = floor(tq.y); float tc = floor(tq.x + mod(tr, 2.) * .5); float th = fract(sin(dot(vec2(tc, tr), vec2(12.9898, 78.233))) * 43758.5); float th2 = fract(th * 17.31); diffuseColor.rgb *= .9 + th * .2; diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.04, 1., .95), step(.7, th2) * .6); }"); }; pm.customProgramCacheKey = () => "walkTile";   // 2026-10-29 足もと：平板（pave_c は 1 枚に 3 列×6 段の馬目地）を一枚ずつ明るさ ±10％・わずかな黄み（3 割の板）で揺らし、法線を 1.6 倍に。近寄っても同じ板が並ぶ一枚の模様に見えないように
     const pv = new THREE.Mesh(mergeIdx(sw), pm); pv.name = "walkway"; world.add(pv); QW.pave = pv; }
 }
 /* 2026-10-26 通りごとの舗装（模式）：大正浪漫夢通り＝石の平板（Poly Haven「Stone Tiles 02」CC0）、クレアモール＝御影石の平板（Poly Haven「Granite Tile」CC0）。中央通りはアスファルトのまま */
