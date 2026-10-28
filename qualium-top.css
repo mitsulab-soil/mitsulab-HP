@@ -913,3 +913,6 @@ html[lang="en"] .vis-lead{font-family:var(--latin);letter-spacing:0}
   .vis-title{font-size:34px;letter-spacing:.1em}
   .um-l{font-size:10.5px;padding:1px 6px}.um-l small{font-size:8.6px}.um-s{font-size:11px}.um-c,.um-m{font-size:9.8px}
 }
+
+/* 2026-10-28 ポートフォリオの Qualium の出典（公開版で見えるように） */
+.qm-pf-src{margin:20px 0 0;font-size:12.5px;line-height:1.6;color:#c9d2de;opacity:1}
