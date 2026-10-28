@@ -13,7 +13,7 @@ const mobile = Math.min(innerWidth, innerHeight) < 700;
 function hasGL() { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; } }
 if (!hasGL()) document.documentElement.classList.add('v2-no3d');
 else document.querySelectorAll('[data-qx]').forEach(f => {
-  const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); const k = +f.dataset.qx; (k === 0 ? boot(f, 0) : import('./umwelt-diorama.js?v=20261028dc').then(m => m.bootDiorama(f, k, []))).catch(e => console.warn('top-qualium', e)); } }, { rootMargin: '300px 0px' });
+  const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); const k = +f.dataset.qx; (k === 0 ? boot(f, 0) : import('./umwelt-diorama.js?v=20261028e8').then(m => m.bootDiorama(f, k, []))).catch(e => console.warn('top-qualium', e)); } }, { rootMargin: '300px 0px' });
   o.observe(f);
 });
 
@@ -96,7 +96,7 @@ async function boot(fig, kind) {
           vA = .35 + .65*smoothstep(-.6,.6,p.z) ; vA *= .55 + .45*sin(uT*1.3 + aB.z*7.); vA *= 1. - smoothstep(.96, 1.05, length(p.xy));
           vec4 mv = modelViewMatrix*vec4(p,1.); gl_PointSize = (2.2 + 3.5*fract(aB.z*13.))*uPx*(4./-mv.z); gl_Position = projectionMatrix*mv; }`,
       fragmentShader: `uniform sampler2D uMap; varying vec3 vC; varying float vA; void main(){ vec4 t = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(vC, t.a*vA*.8); }` });
-    const P = new THREE.Points(g, pm); P.frustumCulled = false; G.add(P);
+    // 2026-10-28 本人「ロゴの背景の粒子を無くす」：粒は置かない（ロゴの絵だけ）
     const halo = ring(1.36, 0xe9f1ef, .22, 220); halo.rotation.x = Math.PI / 2; 
     const halo2 = ring(1.46, 0xe9f1ef, .12, 220); halo2.rotation.x = Math.PI / 2; 
     fitW = 3.3; fitH = 3.3; cam.position.set(0, 0, 6);

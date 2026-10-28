@@ -80,6 +80,21 @@ export async function bootDiorama(fig, kind, labs) {
     for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.ShapeGeometry(ws), bm); w.rotation.x = -Math.PI / 2 + .3 * s; w.rotation.y = s > 0 ? 0 : Math.PI; w.position.z = 0; w.scale.set(1, 1, 1); w.rotation.z = s * .2; bat.add(w); } }
   for (let k = 1; k <= 5; k++) { const a = new THREE.Mesh(new THREE.TorusGeometry(k * .12, .009, 4, 32, 1.4), FAINT(new THREE.MeshBasicMaterial({ color: 0xa8f2f6 }), two)); a.rotation.z = -.7; a.rotation.y = .8; ultra.add(a); }
 
+  // 作り込み：土の層位の帯と札・ミミズ・小さな土の生き物・段差（縁石）・丁石・ミツバチ
+  { const hz = [[-.08, -.3, 0x3a2a1a, 'A'], [-.3, -.85, 0x5a4430, 'B'], [-.85, -1.48, 0x7a6448, 'C']];
+    hz.forEach(([y0, y1, c, n]) => { const b = new THREE.Mesh(new THREE.PlaneGeometry(W, y0 - y1), new THREE.MeshStandardMaterial({ color: c, roughness: 1, transparent: true, opacity: .55 })); b.position.set(0, (y0 + y1) / 2, D / 2 + .003); stage.add(b);
+      const l = new THREE.Mesh(new THREE.PlaneGeometry(W, .006), new THREE.MeshBasicMaterial({ color: 0xd8c8a8, transparent: true, opacity: .5 })); l.position.set(0, y1, D / 2 + .004); stage.add(l); }); }
+  { const wm = FAINT(new THREE.MeshStandardMaterial({ color: 0xc08070, roughness: .6 }), two);
+    [[.6, -.5, 1.98, 0], [1.9, -.95, 1.98, 1.4], [-.4, -1.1, 1.98, .6]].forEach(([x, y, z, r]) => { const c = new THREE.CatmullRomCurve3([new THREE.Vector3(-.18, 0, 0), new THREE.Vector3(-.06, .05, 0), new THREE.Vector3(.06, -.04, 0), new THREE.Vector3(.18, .02, 0)]); const m = new THREE.Mesh(new THREE.TubeGeometry(c, 20, .018, 6), wm); m.position.set(x, y, z); m.rotation.z = r; stage.add(m); });
+    const mm = FAINT(new THREE.MeshStandardMaterial({ color: 0xe8dcc0 }), two); for (let i = 0; i < 24; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(.012, 6, 4), mm); s.position.set((Math.random() - .5) * W * .9, -.12 - Math.random() * .5, D / 2 + .01); stage.add(s); } }
+  { const kerb = new THREE.Mesh(new THREE.BoxGeometry(W, .12, .22), new THREE.MeshStandardMaterial({ color: 0x8c8780, roughness: .9 })); kerb.position.set(0, .02, -D / 2 + .11); stage.add(kerb);
+    const step = new THREE.Mesh(new THREE.BoxGeometry(W, .1, .5), new THREE.MeshStandardMaterial({ color: 0x6f6a62, roughness: .95 })); step.position.set(0, .1, -D / 2 + .25); step.scale.x = .999; stage.add(step);
+    const ch = new THREE.Mesh(new THREE.BoxGeometry(.12, .5, .12), new THREE.MeshStandardMaterial({ color: 0x9a948a, roughness: .9 })); ch.position.set(-2.6, .25, .6); stage.add(ch);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(.09, .08, 4), ch.material); cap.position.set(-2.6, .54, .6); cap.rotation.y = Math.PI / 4; stage.add(cap); }
+  const bee = new THREE.Group(); bee.position.set(FLOWER.x + .18, .62, FLOWER.z - .05); stage.add(bee);
+  { const bm = new THREE.MeshStandardMaterial({ color: 0xd8a02a, roughness: .6 }); const b = new THREE.Mesh(new THREE.SphereGeometry(.03, 10, 8), bm); b.scale.set(1.6, 1, 1); bee.add(b);
+    const st = new THREE.Mesh(new THREE.TorusGeometry(.026, .006, 4, 16), new THREE.MeshStandardMaterial({ color: 0x2a2018 })); st.rotation.y = Math.PI / 2; bee.add(st);
+    const wm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .5, side: THREE.DoubleSide }); for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.CircleGeometry(.03, 10), wm); w.position.set(0, .03, s * .03); w.rotation.x = -Math.PI / 2 + s * .5; bee.add(w); } }
   // 人と欅（模型）
   (async () => { try {
     const [man, tg] = await Promise.all([gltf('img/hero/3d/man.glb'), gltf('img/hero/3d/keyaki_lod1_notex.glb')]);
@@ -104,37 +119,73 @@ export async function bootDiorama(fig, kind, labs) {
   [[EYE, TRUNK], [EAR, BIRD], [FOOT, new THREE.Vector3(-.3, .02, 1.3)], [EYE, FLOWER.clone().setY(.45)]].forEach(([a, b]) => { lineTo(a, b, BODY, false); dot(b, BODY); });
   dot(EYE, BODY);
 
-  const layerYs = [3.9, 4.35, 4.8, 5.25];
+  let aoiTick = null; const sideLabs = [];
+  const layerYs = [3.7, 4.5, 5.3, 6.1];
   let layers = [];
   if (two) {
     // 情報の層（地図のレイヤーのような、平らで透けた板）。下から 地形・歴史・生き物・音
+    const EN = { '地形 ── 等高線（標高・国土地理院の数値地図より・模式）': 'Terrain: contour lines (elevation, GSI data; schematic)', '昔の道（古い地図に残る道筋）': 'Old path (as on old maps)', '鳥居': 'Torii', '丁石（道のりの石）': 'Distance stone', '歴史 ── 記録と古い地図（模式）': 'History: records and old maps (schematic)', 'ケヤキ': 'Zelkova', 'ミツバチ（紫外線で花を見る）': 'Honeybee (sees UV on flowers)', 'シジュウカラ': 'Japanese tit', 'ミミズ・菌糸（土の中）': 'Earthworms, fungi (in soil)', '生き物 ── 記録された生き物（模式）': 'Living things: recorded species (schematic)', '人に聞こえる音': 'Human hearing', 'コウモリの声': 'Bat calls', '音 ── 周波数（対数・模式）': 'Sound: frequency (log scale; schematic)' };
+    const tr = s => (document.documentElement.dataset.lang === 'en' && EN[s]) || s;
+    const lab = (x, s, px, py, col, size = 22) => { s = tr(s); size = Math.round(size * 1.6); x.font = `600 ${size}px "Noto Sans JP", sans-serif`; x.fillStyle = col; x.fillText(s, px, py); };
     const L = [
-      [0x8fe3c8, (x, w, h) => { x.strokeStyle = '#8fe3c8'; x.lineWidth = 4; for (let k = 1; k < 10; k++) { x.beginPath(); for (let i = 0; i <= 100; i++) { const u = i / 100; const y = h * (k / 10) + Math.sin(u * 7 + k) * h * .03; i ? x.lineTo(u * w, y) : x.moveTo(0, y); } x.stroke(); } }],
-      [0xf2c56e, (x, w, h) => { x.strokeStyle = '#f2c56e'; x.lineWidth = 7; x.setLineDash([26, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .45, h * .1); x.stroke(); x.setLineDash([]); x.lineWidth = 5; x.strokeRect(w * .18, h * .05, w * .2, h * .12); }],
-      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3], [.6, .78]].forEach(([u, v]) => { x.beginPath(); x.arc(u * w, v * h, 14, 0, 6.283); x.fill(); for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283; x.beginPath(); x.moveTo(u * w, v * h); x.lineTo(u * w + Math.cos(a) * 70, v * h + Math.sin(a) * 50); x.stroke(); } }); }],
-      [0xa8f2f6, (x, w, h) => { x.strokeStyle = '#a8f2f6'; x.lineWidth = 5; [[.12, .25], [.7, .2]].forEach(([u, v]) => { for (let k = 1; k <= 6; k++) { x.globalAlpha = 1 - k * .13; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1; }]];
+      [0x8fe3c8, (x, w, h) => { x.strokeStyle = '#8fe3c8'; for (let k = 1; k < 10; k++) { x.lineWidth = k % 2 ? 2 : 4; x.beginPath(); for (let i = 0; i <= 100; i++) { const u = i / 100; const y = h * (k / 10) + Math.sin(u * 7 + k) * h * .03; i ? x.lineTo(u * w, y) : x.moveTo(0, y); } x.stroke(); if (k % 2 === 0) lab(x, (12 + k * .25).toFixed(1) + ' m', w * .82, h * (k / 10) - 8, '#bff5e2'); }
+ }],
+      [0xf2c56e, (x, w, h) => { x.strokeStyle = '#f2c56e'; x.lineWidth = 7; x.setLineDash([26, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .45, h * .1); x.stroke(); x.setLineDash([]); x.lineWidth = 5; x.strokeRect(w * .18, h * .05, w * .2, h * .12);
+        x.beginPath(); x.arc(w * .5, h * .86, 7, 0, 6.283); x.fillStyle = '#f2c56e'; x.fill(); }],
+      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3, 'ケヤキ'], [.6, .78, 'ミツバチ（紫外線で花を見る）'], [.3, .55, 'シジュウカラ'], [.84, .82, 'ミミズ・菌糸（土の中）']].forEach(([u, v, n]) => { x.beginPath(); x.arc(u * w, v * h, 12, 0, 6.283); x.fill(); for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283; x.beginPath(); x.moveTo(u * w, v * h); x.lineTo(u * w + Math.cos(a) * 46, v * h + Math.sin(a) * 34); x.stroke(); } }); }],
+      [0xa8f2f6, (x, w, h) => { x.strokeStyle = '#a8f2f6'; x.lineWidth = 5; [[.12, .3], [.7, .26]].forEach(([u, v]) => { for (let k = 1; k <= 6; k++) { x.globalAlpha = 1 - k * .13; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1;
+        // 周波数の目盛り（対数）：人に聞こえるのはおよそ 20 Hz〜20 kHz、コウモリの声は 20 kHz より高い（模式）
+        const y0 = h * .82, x0 = w * .08, x1 = w * .92, f = v => x0 + (Math.log10(v) - 1) / 4 * (x1 - x0); x.lineWidth = 3; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y0); x.stroke();
+        [[10, '10 Hz'], [1000, '1 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { x.beginPath(); x.moveTo(f(v), y0 - 10); x.lineTo(f(v), y0 + 10); x.stroke(); lab(x, s, f(v) - 20, y0 + 36, '#d4fbfd', 18); });
+        x.fillStyle = 'rgba(168,242,246,.28)'; x.fillRect(f(20), y0 - 26, f(20000) - f(20), 14);
+        x.fillStyle = 'rgba(242,197,110,.4)'; x.fillRect(f(20000), y0 - 26, f(100000) - f(20000), 14); }]];
+    const texs = [];
+    new MutationObserver(() => texs.forEach(([tx, draw]) => { const c = tx.image, x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); draw(x, c.width, c.height); tx.needsUpdate = true; })).observe(document.documentElement, { attributes: true, attributeFilter: ['data-lang'] });
     L.forEach(([col, draw], i) => {
       const g = new THREE.Group(); g.position.y = layerYs[i]; stage.add(g);
       const fill = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .16, depthWrite: false, side: THREE.DoubleSide })); fill.rotation.x = -Math.PI / 2; g.add(fill);
-      const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ map: canvasTex((x, w, h) => { draw(x, w, h); }, 768, 512), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide })); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
+      const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ map: (() => { const tx = canvasTex((x, w, h) => { draw(x, w, h); }, 1024, 680); texs.push([tx, draw]); return tx; })(), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide })); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
       const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W, .001, D)), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .9 })); g.add(e);
+      { const SL = [['地形', '標高 12.5〜14.0 m', 'Terrain', 'elevation 12.5–14.0 m'], ['歴史', '昔の道・鳥居・丁石', 'History', 'old path, torii, stones'], ['生き物', 'ケヤキ・ミツバチ・シジュウカラ', 'Living things', 'zelkova, honeybee, tit'], ['音', '人 〜20 kHz・コウモリ 20 kHz〜', 'Sound', 'human ≤20 kHz, bats 20 kHz+']][i];
+        const el = document.createElement('div'); el.className = 'qx-sl'; el.style.setProperty('--c', '#' + new THREE.Color(col).getHexString()); fig.appendChild(el);
+        const fill = () => { const en = document.documentElement.dataset.lang === 'en'; el.innerHTML = '<b>' + (en ? SL[2] : SL[0]) + '</b><span>' + (en ? SL[3] : SL[1]) + '</span>'; }; fill(); texs.push([{ image: document.createElement('canvas') }, () => fill()]);
+        const an = new THREE.Object3D(); an.position.set(W / 2 + .1, 0, -D / 2 + .3); g.add(an); sideLabs.push([el, an]); }
       layers.push(g);
     });
     // 層を通してつながる：人→層→（届かなかったもの）。縦の線は層への出入り
-    // 人の頭から一本の幹で層へ上がり、各層の上を水平に進んで、届かなかったものの真上から降りる
-    const top = new THREE.Vector3(EYE.x, layerYs[layerYs.length - 1], EYE.z); lineTo(EYE, top, 0xffffff, false); dot(top, 0xffffff);
-    const via = (layerI, target, col) => { const y = layerYs[layerI]; const up = new THREE.Vector3(EYE.x, y, EYE.z), dn = new THREE.Vector3(target.x, y, target.z);
+    // 依代＝環境エージェント（2026-10-28 本人）：碧が人のそばに立ち、主体と情報の層のあいだをつなぐ。層のそばに小さな依代（Qualium の共通部品の現行版）を置く
+    const AOI = new THREE.Vector3(.45, 0, -.1), AOIH = new THREE.Vector3(.45, 1.55, -.1);
+    lineTo(EYE, AOIH, 0xa8f2f6, false); dot(AOIH, 0xa8f2f6);
+    const top = new THREE.Vector3(AOIH.x, layerYs[layerYs.length - 1], AOIH.z); lineTo(AOIH, top, 0xa8f2f6, false); dot(top, 0xa8f2f6);
+    const via = (layerI, target, col) => { const y = layerYs[layerI]; const up = new THREE.Vector3(AOIH.x, y, AOIH.z), dn = new THREE.Vector3(target.x, y, target.z);
       lineTo(up, dn, col, false); lineTo(dn, target, col, true); dot(up, col); dot(dn, col); dot(target, col); };
     via(0, ROOTS, 0x8fe3c8); via(1, OLD, 0xf2c56e); via(2, FLOWER.clone().setY(.46), 0xc9b8ff); via(3, BAT.clone().add(new THREE.Vector3(-.75, .12, 0)), 0xa8f2f6);
+    (async () => { try {
+      const g = await gltf('js/kit/envAgents/kasane.glb'); const proto = g.scene; const bb = new THREE.Box3().setFromObject(proto), h = bb.max.y - bb.min.y;
+      [[ROOTS.x - .5, 0, ROOTS.z + .9, '#6c8d71'], [OLD.x + .4, 0, 1.6, '#864e4c'], [FLOWER.x - .25, 0, FLOWER.z + .35, '#a59fc3'], [-2.0, 0, .2, '#3a4360']].forEach(([x, y, z, c], i) => {
+        const k = proto.clone(true); k.traverse(o => { if (o.isMesh && o.material && !/eye|cheek|目|頬/i.test(o.name + (o.material.name || ''))) { o.material = o.material.clone(); o.material.color && o.material.color.set(c); } });
+        k.scale.setScalar(.5 / h); k.position.set(x, y - bb.min.y * .5 / h, z); k.rotation.y = .6 + i * .5; stage.add(k); }); } catch (e) { console.warn('kasane', e); } })();
+    (async () => { try {
+      const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm')]);
+      const Ld = new GLTFLoader(); Ld.setMeshoptDecoder(MeshoptDecoder); Ld.register(p => new V.VRMLoaderPlugin(p));
+      const buf = await (window.__aoiBuf || (window.__aoiBuf = fetch('img/hero/aoi.vrm').then(r => r.arrayBuffer())));
+      const gg = await Ld.parseAsync(buf.slice(0), ''); const vrm = gg.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(gg.scene); V.VRMUtils.rotateVRM0(vrm);
+      vrm.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
+      const pivot = new THREE.Group(); pivot.add(vrm.scene); pivot.visible = false; stage.add(pivot);
+      vrm.humanoid.resetNormalizedPose(); vrm.update(0); const b2 = new THREE.Box3().setFromObject(vrm.scene), hh = b2.max.y - b2.min.y; pivot.scale.setScalar(1.62 / hh); pivot.position.copy(AOI);
+      const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61');
+      const mot = new AoiMotion(vrm, { root: pivot, reducedMotion: reduce, wind: .2, faceViewer: false, startCalm: 1, posture: 'upright', uprightWeight: .9 }); mot.faceTo(.6);
+      let n = 0; aoiTick = dt => { mot.update(dt, cam, { vrmUpdate: false }); vrm.update(dt); mot.afterVrmUpdate(dt); if (!pivot.visible && ++n > 3) pivot.visible = true; };
+    } catch (e) { console.warn('aoi', e); } })();
   }
 
   // 札の置き場（図の下に並べるので、ここでは使わない）
-  const fitW = 7.4, fitH = two ? 7.4 : 5.4;
-  const look = new THREE.Vector3(0, two ? 2.0 : .6, 0);
-  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * 1.02; const dir = new THREE.Vector3(.75, .42, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
+  const fitW = two ? (mobile ? 11.6 : 10.6) : 7.4, fitH = two ? 9.0 : 6.6;
+  const look = new THREE.Vector3(two ? 1.4 : 0, two ? 2.6 : .6, 0);
+  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * 1.02; const dir = new THREE.Vector3(.75, .62, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
   size(); new ResizeObserver(size).observe(fig);
-  let vis = true, raf = 0; const t0 = performance.now();
-  function frame() { const t = (performance.now() - t0) / 1000; stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
+  let vis = true, raf = 0; const t0 = performance.now(); let lastT = t0;
+  function frame() { const now = performance.now(), t = (now - t0) / 1000, dt = Math.min(.05, (now - lastT) / 1000); lastT = now; if (aoiTick) aoiTick(dt); if (sideLabs.length) { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); sideLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.min(w - 8, (v.x * .5 + .5) * w + 6)}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } bee.position.y = .62 + (reduce ? 0 : Math.sin(t * 7) * .015); stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
   function loop() { raf = 0; if (!vis || document.hidden) return; frame(); raf = requestAnimationFrame(loop); }
   new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; if (vis && !raf) raf = requestAnimationFrame(loop); }).observe(fig);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && vis && !raf) raf = requestAnimationFrame(loop); });
