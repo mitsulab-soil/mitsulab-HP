@@ -7,7 +7,8 @@
      一歩の間隔（約 0.56 秒＝毎分約 107 歩）は、成人のふつうの歩行の目安「毎分 100 歩以上」（Tudor-Locke ほか 2018, Br J Sports Med, PMID 29858465）の範囲。
    ・応える（鳴き交わし）は、出典で間を確かめてから足す（v1 には入れない）。
    決まり：確かめられない周期（風の息・瀬音のうねりの周期など）は使わない＝うねりは周期をもたない、ゆらぎだけの音にする。擬人化しない。語りのあいだは全体を下げる。
-   使い方：const SS = makeSession({ ctx: () => AudioContext, out: () => GainNode, on: () => bool, duck: () => 0..1 });
+   触覚（v2・10-29 本人「音体験、触覚体験を主軸に」）：opt.haptic(pattern, kind) を、一歩・水のうねり・鳥の旋律に合わせて呼ぶ（振動の刻みはアプリが端末に渡す。振動がない端末では画の小さな動きで代える）。
+   使い方：const SS = makeSession({ ctx: () => AudioContext, out: () => GainNode, on: () => bool, duck: () => 0..1, haptic: (ms[], kind) => {} });
            毎こま SS.update(dt, { soil, water, tree, bird, life })（それぞれ 0〜1）／一歩ごとに SS.step() */
 const PENTA = [0, 2, 4, 7, 9];   // 和音と旋律の音の並び（五音）。音色・高さは作品として作る
 export function makeSession(o) {
@@ -42,12 +43,14 @@ export function makeSession(o) {
       S.parts.waterG.gain.setTargetAtTime(.16 * S.w.water * (.35 + .65 * Math.min(1, S.moving * 2)), t, .8);
       S.parts.lp.frequency.setTargetAtTime(420 + 520 * S.w.water, t, 1);
     },
-    step() {   // 歩く人の一歩（アプリの足音と同じ時刻）
+    step(surface) {   // 歩く人の一歩（アプリの足音と同じ時刻）
       const ac = S.ac; if (!ac || ac.state !== "running" || !o.on()) return; S.n++; S.moving = 1;
+      const H = o.haptic; if (H) { const FOOT = { stone: [9], tile: [7], soil: [14], wood: [11], asphalt: [6], gravel: [4, 18, 4] };   // 足もとの面ごとの一歩の刻み（硬い面は短く、土は長く）
+        if (S.w.water > .3 && S.n % 4 === 1) H([18, 70, 26, 90, 14], "water"); else H(FOOT[surface] || FOOT.asphalt, "step"); }
       const t = ac.currentTime + .01, d = o.duck ? o.duck() : 1, w = S.w;
       if (w.life > .1) tone(t, 98, .05 * w.life * d, .18, "sine");                                    // 暮らし＝拍：一歩ごとに小さく
       if (w.tree > .1 && S.n % 4 === 0) { const r = 196, b = (S.n / 4) % 5 | 0; for (const k of [b, b + 2, b + 4]) tone(t, note(r, k), .035 * w.tree * d, 1.6); }   // 木＝和音：四歩に一度
-      if (w.bird > .1 && S.n % 8 === 2) { const r = 784; [0, 2, 1].forEach((k, i) => tone(t + i * .14, note(r, (S.n / 8 | 0) + k), .03 * w.bird * d, .22, "sine")); }   // 鳥＝旋律：八歩に一度、短く
+      if (w.bird > .1 && S.n % 8 === 2) { const r = 784; [0, 2, 1].forEach((k, i) => tone(t + i * .14, note(r, (S.n / 8 | 0) + k), .03 * w.bird * d, .22, "sine")); o.haptic?.([6, 134, 6, 134, 6], "bird"); }   // 旋律の三つの音に合わせた短い刻み   // 鳥＝旋律：八歩に一度、短く
     },
   };
 }

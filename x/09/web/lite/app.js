@@ -8,7 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
-import { makeSession } from "./session.js?v=s1";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
+import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w16";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
@@ -2253,14 +2253,20 @@ function surfAt(x, z) {
 }
 const SESS = { on: (() => { try { return localStorage.getItem("qs_sess") !== "0"; } catch { return true; } })() };
 { const b = document.getElementById("sessBtn"); if (b) { const sync = () => { b.setAttribute("aria-pressed", String(SESS.on)); b.title = SESS.on ? "自然とのセッションの音を消す" : "自然とのセッションの音を鳴らす"; }; sync(); b.addEventListener("click", e => { e.stopPropagation(); SESS.on = !SESS.on; try { localStorage.setItem("qs_sess", SESS.on ? "1" : "0"); } catch { } sync(); sndCtx(); }); } }
-const SS = QW.SS = makeSession({ ctx: () => SND.ac, out: () => SND.out, on: () => sndOn() && SESS.on, duck: () => voiceQ ? .45 : 1 });
+const HAPT = { el: null, canV: typeof navigator !== "undefined" && typeof navigator.vibrate === "function" };
+function haptic(ms, kind) {   // 10-29 本人「触覚体験を主軸に」：振動できる端末は振動、できない端末（iPhone など）は画面の下の小さな輪で代える
+  if (QW.mode !== "walk") return;
+  if (HAPT.canV && MOBILE) { try { navigator.vibrate(ms); } catch { } return; }
+  const e = HAPT.el ||= document.getElementById("hapt"); if (!e) return; e.dataset.k = kind; e.classList.remove("on"); void e.offsetWidth; e.classList.add("on");
+}
+const SS = QW.SS = makeSession({ ctx: () => SND.ac, out: () => SND.out, on: () => sndOn() && SESS.on, duck: () => voiceQ ? .45 : 1, haptic });
 const SS_RE = { water: /湧水|湧き|神池|池の水|用水|清水|見沼|水路/, tree: /ケヤキ|欅|クス|スギ|杉|並木|樹|木の|幹|葉/, bird: /鳥|カワセミ|ヒヨドリ|キジバト|セキレイ|カラス|メジロ|シジュウカラ|バン|サギ/ };
 function sessionWeights() {   // 近くの印（半径 30 m）の中身で、どのパートが加わるか。見下ろすと土の低音
   const cp = camera.position, w = { soil: document.body.dataset.wl === "micro" ? 1 : .25, water: 0, tree: 0, bird: 0, life: 0 };
   for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.root?.visible) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d > 30) continue; const k = 1 - d / 30, t = ((L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join("")).replace(/鳥居/g, "");   /* 鳥居を鳥と読まない */
     if (SS_RE.water.test(t)) w.water = Math.max(w.water, k); if (SS_RE.bird.test(t)) w.bird = Math.max(w.bird, k); else if (SS_RE.tree.test(t)) w.tree = Math.max(w.tree, k); if (/culture|history/.test(L.o.layer || "")) w.life = Math.max(w.life, k * .8); }
   return w; }
-const SW = makeSoundWalk({ ctx: () => SND.ac, out: () => SND.out, on: () => sndOn(), duck: () => voiceQ ? .5 : 1, pulse: v => { SND.pulse = Math.max(SND.pulse || 0, v); if (v === .35) SS.step(); },   /* 一歩ごとにセッションの拍 */
+const SW = makeSoundWalk({ ctx: () => SND.ac, out: () => SND.out, on: () => sndOn(), duck: () => voiceQ ? .5 : 1, pulse: v => { SND.pulse = Math.max(SND.pulse || 0, v); if (v === .35) SS.step(QW.mode === "walk" ? (surfAt(CAM.pos.x, CAM.pos.z) || "gravel") : null); },   /* 一歩ごとにセッションの拍 */
   tag: (id, label, zn) => { if (!SND.tag || performance.now() > SND.tagUntil) showTag(zn ? zn.it : { id: "sw_" + id, kind: "re", label: `再現音（${label}。その場で組み立てた音）`, x: CAM.pos.x, y: groundY(CAM.pos.x, CAM.pos.z), z: CAM.pos.z }, 4); } });
 QW.SW = SW; QW.surfAt = (x, z) => surfAt(x ?? CAM.pos.x, z ?? CAM.pos.z);
 function sndOn() { return soundOn && LAYER.worn.includes("sound") && (QW.mode === "walk" || QW.mode === "sight"); }

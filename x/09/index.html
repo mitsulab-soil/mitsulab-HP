@@ -524,6 +524,7 @@ html body[data-mode="walk"] #capText,html body[data-mode="sight"] #capText{font-
 <style id="qualium-worldlayers">/* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」：歩くときは左の層の一覧を出さない */#lstack{display:none!important}   /* 10-29 本人「画面左のレイヤーの層は表示しない」＝3D 地図を含むどの場面でも出さない */</style>
 <style id="qualium-sndtag">@media (max-width:640px){html body[data-mode="walk"]:has(#caption:not([hidden])) #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 62px)!important;bottom:auto!important}}</style>
 <style id="qualium-sess">/* 10-29：自然とのセッションの音を消す小さなボタン（44px・さりげなく・歩くときだけ） */#sessBtn{display:none;position:fixed;right:max(16px,env(safe-area-inset-right));top:calc(max(12px,env(safe-area-inset-top)) + 54px);z-index:6;width:44px;height:44px;border-radius:50%;border:1px solid rgba(155,220,240,.28);background:rgba(3,6,15,.32);color:#d6eef6;font:400 16px/1 var(--serif);cursor:pointer;opacity:.72}body[data-mode="walk"] #sessBtn{display:block}#sessBtn[aria-pressed="false"]{opacity:.4;text-decoration:line-through}</style>
+<style id="qualium-hapt">/* 10-29：振動のない端末で、触覚の刻みを画面の下の小さな輪で代える（さりげなく） */#hapt{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 30px);width:10px;height:10px;margin-left:-5px;border-radius:50%;border:1px solid rgba(214,238,246,.55);opacity:0;pointer-events:none;z-index:4}#hapt.on{animation:hapt .5s ease-out}#hapt.on[data-k="water"]{animation:hapt 1.2s ease-out;border-color:rgba(140,200,230,.6)}#hapt.on[data-k="bird"]{border-color:rgba(230,220,160,.6)}@keyframes hapt{0%{opacity:.7;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}@media (prefers-reduced-motion:reduce){#hapt{display:none}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>
@@ -576,6 +577,7 @@ html body[data-mode="walk"] #capText,html body[data-mode="sight"] #capText{font-
   <details class="ml-fold" id="pFold"><summary>くわしく・出典</summary><div class="in"><div id="pMore"></div><div id="pHow"></div><p id="pNote"></p><ul id="pSrc"></ul><div id="pPos"></div></div></details>
 </article>
 
+<div id="hapt" aria-hidden="true"></div>
 <button id="sessBtn" type="button" aria-pressed="true" aria-label="自然とのセッションの音"><span aria-hidden="true">♪</span></button>
 <div id="caption" hidden><span id="capTag" hidden></span><span id="capText"></span></div>
 <div id="toast" hidden role="status"></div>
