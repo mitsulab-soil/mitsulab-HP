@@ -938,6 +938,17 @@ async function startYorishiro() {
     }
   } catch (e) { console.warn("yorishiro", e); }
 }
+function aoiFootY(x, z) {   // 10-29：碧の足もと＝描いている面の高さ。重さの原因だった光線の当て方を軽く（1 m 四方で覚える・0.3 秒に一度だけ当てる・その点の上にある面だけに当てる）
+  const g = groundY(x, z), k = Math.round(x) + "," + Math.round(z), c = FOOT.m.get(k); if (c !== undefined) return g + c;
+  const now = performance.now();
+  if (!FOOT.list || now - FOOT.t > 5000) { FOOT.t = now; FOOT.list = []; const skip = AOI.root || null, bb = new THREE.Box3();
+    (function walk(o) { if (o === skip || o.visible === false) return; if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !(o.material && (o.material.transparent || o.material.depthWrite === false))) { const ge = o.geometry; if (!ge.boundingBox) ge.computeBoundingBox(); bb.copy(ge.boundingBox).applyMatrix4(o.matrixWorld); FOOT.list.push({ o, x0: bb.min.x, x1: bb.max.x, z0: bb.min.z, z1: bb.max.z, y1: bb.max.y }); } for (const ch of o.children) walk(ch); })(world); }
+  if (now - FOOT.last < 300) return g + FOOT.off;   // 当てない間は、さっきの差のまま
+  FOOT.last = now; const cand = []; for (const e of FOOT.list) if (x >= e.x0 && x <= e.x1 && z >= e.z0 && z <= e.z1 && e.y1 > g - .3) cand.push(e.o);
+  _fr.set(_fo.set(x, g + 1, z), _fd); _fr.far = 1.6; let y = g; for (const h of _fr.intersectObjects(cand, false)) { if (h.point.y > g - .3 && h.point.y < g + .9) { y = Math.max(g, h.point.y); break; } }
+  const off = Math.min(.9, y - g); FOOT.off = off; if (FOOT.m.size > 6000) FOOT.m.clear(); FOOT.m.set(k, off); return y;
+}
+const FOOT = { m: new Map(), list: null, t: 0, last: 0, off: 0 }, _fr = new THREE.Raycaster(), _fd = new THREE.Vector3(0, -1, 0), _fo = new THREE.Vector3();
 let WL = null;
 function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!sightFor(L);   /* 生きものの受けとり方へ入れる印の目印 */ QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ, skip: M => THIN.test((M.o.title || "") + (M.o.lines || []).map(l => l.t || "").join("")),   /* 10-29：語りが途中で切りかわると PANEL.cur が残り、問い・ミクロ⇄マクロが止まっていた */ quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of LAYER.objs) { if (!M.root?.visible || M.qHide) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } const v = WALK.moving ? (WALK.speed || 1.3) : 1.3; return Math.max(8, Math.min(16, nd / v * .45)); },   /* 近くに印があれば早めに、遠ければゆっくり問う */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 視野の外の印も含めて探す */   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
@@ -1061,7 +1072,7 @@ function loadAoi() {
     const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 && Math.abs(h - 1.67) / 1.67 > .02 ? 1.67 / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
     try { Robe?.hideCoveredLegs?.(v, { keep: .12 }); } catch { }
-    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => surfaceY(x, z), quality: MOBILE ? "mid" : "auto" });
+    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" });
     if (AOI.m.robe) AOI.m.robe.wind = .2;
     AOI.root = root; AOI.ready = true;
     try { root.visible = true; await renderer.compileAsync(root, camera, scene); } catch { } root.visible = QW.mode === "walk";
