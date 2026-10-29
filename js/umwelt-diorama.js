@@ -49,14 +49,14 @@ export async function bootDiorama(fig, kind, labs) {
   // 主体：人（区画の中に立つ）
   const P = new THREE.Vector3(-.9, 0, .7), EYE = new THREE.Vector3(-.9, 1.58, .74), EAR = new THREE.Vector3(-.98, 1.52, .7), FOOT = new THREE.Vector3(-.9, .04, .8);
   // 届くもの・届かないもの の位置
-  const TREE = new THREE.Vector3(1.6, 0, -.9), TRUNK = new THREE.Vector3(1.6, 1.1, -.9), BIRD = two ? new THREE.Vector3(-.25, 2.3, -1.55) : new THREE.Vector3(1.2, 3.1, -.6), FLOWER = new THREE.Vector3(.2, .42, 1.1);
+  const TREE = new THREE.Vector3(1.6, 0, -.9), TRUNK = new THREE.Vector3(1.6, 1.1, -.9), BIRD = two ? new THREE.Vector3(-1.45, 1.6, -1.4) : new THREE.Vector3(1.2, 3.1, -.6), FLOWER = new THREE.Vector3(.2, .42, 1.1);
   const ROOTS = new THREE.Vector3(1.6, -.6, -.9), OLD = new THREE.Vector3(-1.4, -.32, 1.95), BAT = new THREE.Vector3(-2.3, 1.7, 1.3), TORII = new THREE.Vector3(-2.1, 0, -1.4);
   const reached = new THREE.Group(), hidden = new THREE.Group(); stage.add(reached, hidden);
   // 身体の感覚が届く範囲（1.0＝元々の環世界）。足もとに淡い光の輪と、薄い半球。2.0 では層とともに広がる
   const reach = new THREE.Group(); reach.position.set(P.x, .01, P.z); stage.add(reach);
-  { const rt = canvasTex((x, w, h) => { const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(220,240,255,.0)'); g.addColorStop(.72, 'rgba(220,240,255,.035)'); g.addColorStop(.95, 'rgba(230,245,255,.34)'); g.addColorStop(1, 'rgba(230,245,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }, 512, 512);
+  { const rt = canvasTex((x, w, h) => { const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(220,240,255,.0)'); g.addColorStop(.45, 'rgba(220,240,255,.015)'); g.addColorStop(.8, 'rgba(225,242,255,.09)'); g.addColorStop(.93, 'rgba(230,245,255,.2)'); g.addColorStop(1, 'rgba(230,245,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }, 512, 512);
     const disc = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: rt, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); disc.rotation.x = -Math.PI / 2; reach.add(disc);
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24, 0, 6.283, 0, Math.PI / 2), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { uA: { value: two ? .07 : .1 } },
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24, 0, 6.283, 0, Math.PI / 2), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { uA: { value: two ? .035 : .1 } },
       vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 w = modelViewMatrix*vec4(position,1.); vN = normalize(normalMatrix*normal); vV = normalize(-w.xyz); gl_Position = projectionMatrix*w; }',
       fragmentShader: 'uniform float uA; varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1. - abs(dot(normalize(vN), normalize(vV))), 3.4); gl_FragColor = vec4(vec3(.82,.92,1.), f * uA); }' })); reach.add(dome); }
   const R0 = 1.75; reach.scale.set(R0, 1.25, R0);
@@ -120,7 +120,7 @@ export async function bootDiorama(fig, kind, labs) {
   // 2026-10-29 生き物を写実に：シジュウカラ・コウモリ・ミツバチ・ミミズを、図鑑の形態（脚・翅・指・体節）で組んだ共通部品に替える
   (async () => { try { const C = await import('./kit/creatures.js');
     const swap = (grp, make, sc, rot, pos) => { const o = make(); o.scale.setScalar(sc); if (rot) o.rotation.set(rot[0], rot[1], rot[2]); if (pos) o.position.set(pos[0], pos[1], pos[2]); return o; };
-    while (bird.children.length) bird.remove(bird.children[0]); { const o = swap(bird, C.makeTit, .6, [0, Math.PI / 2, 0], [0, -.08, 0]); o.traverse(m => { if (m.isMesh && m.material && !Array.isArray(m.material)) { m.material = m.material.clone(); if (m.material.color) m.material.color.multiplyScalar(.72); if ('sheen' in m.material) m.material.sheen *= .5; if (m.material.emissive) m.material.emissive.setScalar(0); } }); bird.add(o); animals.push(o); }
+    while (bird.children.length) bird.remove(bird.children[0]); { const o = swap(bird, C.makeTit, two ? 1.25 : .6, [0, two ? 2.21 : Math.PI / 2, 0], [0, -.08, 0]); o.traverse(m => { if (m.isMesh && m.material && !Array.isArray(m.material)) { m.material = m.material.clone(); if (m.material.color) m.material.color.multiplyScalar(.85); m.material.roughness = Math.max(m.material.roughness || 0, .75); if ('sheen' in m.material) m.material.sheen *= .5; if (m.material.emissive) m.material.emissive.setScalar(0); } }); bird.add(o); if (two) o.userData.state = 'perch'; animals.push(o); }
     const bp = ultra.getObjectByName('batPrim'); if (bp) { ultra.remove(bp); { const o = swap(ultra, C.makeBat, .55, [.45, Math.PI / 2 + .3, 0], [-.3, -.05, 0]); o.traverse(m => { if (m.isMesh && m.material && !Array.isArray(m.material) && m.material.side === THREE.DoubleSide) { m.material = m.material.clone(); m.material.transparent = true; m.material.opacity = .82; m.material.depthWrite = false; } }); ultra.add(o); animals.push(o); } }
     while (bee.children.length) bee.remove(bee.children[0]); { const o = swap(bee, C.makeBee, .12, [0, -Math.PI / 2, 0]); bee.add(o); animals.push(o); }
     stage.children.filter(m => m.userData.worm).forEach(m => { const w = C.makeWorm(); w.scale.setScalar(.36); w.position.copy(m.position); w.rotation.set(0, Math.PI / 2, m.rotation.z); w.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); FAINT(o.material, two); } }); stage.remove(m); stage.add(w); });
@@ -137,7 +137,8 @@ export async function bootDiorama(fig, kind, labs) {
       else if (/eye|low-poly/.test(n)) { mt.roughness = .25; mt.clearcoat = .6; }
       else { mt.roughness = .55; mt.sheen = .35; mt.sheenColor = new THREE.Color(0xffd8c4); mt.sheenRoughness = .5; mt.color.setScalar(1.06); }
       m.material = mt; } });
-    { const fl = new THREE.PointLight(0xffe8d8, 1.4, 2.6, 1.6); fl.position.set(P.x + .55, 1.75, P.z + .8); stage.add(fl); const rim = new THREE.PointLight(0xbfe0ff, 1.1, 2.4, 1.6); rim.position.set(P.x - .5, 1.9, P.z - .7); stage.add(rim); }
+    { const fl = new THREE.PointLight(0xffe8d8, .9, 2.6, 1.6); fl.position.set(P.x + .75, 1.95, P.z + .35);   // 斜め上から＝目と口のまわりにうすい陰
+    stage.add(fl); const rim = new THREE.PointLight(0xbfe0ff, 1.1, 2.4, 1.6); rim.position.set(P.x - .5, 1.9, P.z - .7); stage.add(rim); }
     const bb = new THREE.Box3().setFromObject(man.scene), sz = bb.getSize(new THREE.Vector3()), sc = 1.7 / sz.y;
     man.scene.scale.setScalar(sc); man.scene.position.set(P.x - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, P.z - (bb.min.z + sz.z / 2) * sc); man.scene.rotation.y = 1.0; stage.add(man.scene);
     const bark = new THREE.MeshStandardMaterial({ color: 0xb8aa98, roughness: .95, map: tex('img/hero/3d/dio/bark_c.webp', [2, 4], true), normalMap: tex('img/hero/3d/dio/bark_n.webp', [2, 4]) });   // 樹皮＝Poly Haven japanese_zelkova_bark（CC0）
@@ -195,7 +196,7 @@ export async function bootDiorama(fig, kind, labs) {
     waveU = { uT: { value: 0 } };
     const wavy = (mat, ph, amp = .16, edge = true, rb = true) => { mat.fog = false; mat.onBeforeCompile = sh => { sh.uniforms.uT = waveU.uT; sh.uniforms.uPh = { value: ph }; sh.uniforms.uAmp = { value: amp };
         sh.uniforms.uRib = { value: rb ? 1 : 0 }; sh.vertexShader = 'uniform float uT; uniform float uPh; uniform float uAmp; varying vec2 vUv2;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-          vUv2 = uv; float w = sin(position.x * 1.1 + uT * .35 + uPh) * .55 + sin(position.y * 1.7 - uT * .27 + uPh * 2.) * .35 + sin((position.x + position.y) * 2.6 + uT * .5) * .12;
+          vUv2 = uv; float w = sin(position.x * 1.1 + uT * .5 + uPh) * .55 + sin(position.y * 1.7 - uT * .27 + uPh * 2.) * .35 + sin((position.x + position.y) * 2.6 + uT * .5) * .12;
           transformed.z += w * uAmp;`);
         if (edge) sh.fragmentShader = 'varying vec2 vUv2; uniform float uT; uniform float uRib;\n' + sh.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>
           vec2 q = abs(vUv2 - .5) * 2.; float e = (1. - smoothstep(.55, 1., q.x)) * (1. - smoothstep(.45, 1., q.y));
@@ -205,7 +206,7 @@ export async function bootDiorama(fig, kind, labs) {
     new MutationObserver(() => texs.forEach(([tx, draw]) => { const c = tx.image, x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); draw(x, c.width, c.height); tx.needsUpdate = true; })).observe(document.documentElement, { attributes: true, attributeFilter: ['data-lang'] });
     L.forEach(([col, draw], i) => {
       const g = new THREE.Group(); g.position.y = layerYs[i]; stage.add(g);
-      for (let k = 0; k < 2; k++) { const veil = new THREE.Mesh(new THREE.PlaneGeometry(W * (1.2 - k * .15), D * (.85 - k * .2), 56, 30), wavy(new THREE.MeshBasicMaterial({ color: new THREE.Color(col).offsetHSL(0, .45, -.2), transparent: true, opacity: .24 - k * .08, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }), i * 1.7 + k * 2.3, .28 + k * .1));
+      for (let k = 0; k < 2; k++) { const veil = new THREE.Mesh(new THREE.PlaneGeometry(W * (1.2 - k * .15), D * (.85 - k * .2), 56, 30), wavy(new THREE.MeshBasicMaterial({ color: new THREE.Color(col).offsetHSL(0, .45, -.2), transparent: true, opacity: .24 - k * .08, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }), i * 1.7 + k * 2.3, .42 + k * .14));
         veil.rotation.x = -Math.PI / 2; veil.rotation.z = (i % 2 ? .06 : -.06); veil.position.y = (k ? .1 : -.03); veil.position.z = (k ? .35 : -.25); veil.position.x = (k ? .3 : -.1) * (i % 2 ? 1 : -1); g.add(veil); }
       const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D, 48, 32), wavy(new THREE.MeshBasicMaterial({ map: (() => { const tx = canvasTex((x, w, h) => { draw(x, w, h); }, 1024, 680); texs.push([tx, draw]); return tx; })(), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide }), i * 1.7, .16, true, false)); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
       
@@ -260,7 +261,7 @@ export async function bootDiorama(fig, kind, labs) {
     waveU && (waveU.uT.value = reduce ? 0 : t); const lineK = two && !reduce ? Math.min(1, Math.max(0, zoomT / 3.2 * 1.6 - .5)) : 1; if (two) dots.forEach(d => d.material.opacity = lineK);
     animals.forEach(a => a.userData.animate && a.userData.animate(reduce ? 0 : t));
     if (!reduce) flows.forEach(f => { if (f.base === null) f.base = f.line.material.opacity; f.line.material.opacity = lineK * f.base * (.72 + .28 * Math.sin(t * 1.3 + f.ph * 6.283)); const n = f.ms.length;
-      f.ms.forEach((m, k) => { const u = (t * f.sp + f.ph + k / n) % 1; f.cv ? f.cv.getPoint(1 - u, m.position) : m.position.lerpVectors(f.b, f.a, u); m.material.opacity = lineK * Math.sin(u * Math.PI) * .85 * (f.base / .95); m.scale.setScalar(1 + .4 * Math.sin(u * Math.PI)); }); }); if (aoiTick) aoiTick(dt); if (sideLabs.length) { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); sideLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.min(w - 8, (v.x * .5 + .5) * w + 6)}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } bee.position.y = .62 + (reduce ? 0 : Math.sin(t * 7) * .015); stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
+      f.ms.forEach((m, k) => { const u = (t * f.sp + f.ph + k / n) % 1; f.cv ? f.cv.getPoint(1 - u, m.position) : m.position.lerpVectors(f.b, f.a, u); m.material.opacity = lineK * Math.sin(u * Math.PI) * .85 * (f.base / .95); m.scale.setScalar(1 + .4 * Math.sin(u * Math.PI)); }); }); if (aoiTick) aoiTick(dt); if (sideLabs.length) { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); sideLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.min(w - 8, (v.x * .5 + .5) * w + 6)}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } bee.position.y = .62 + (reduce ? 0 : Math.sin(t * 7) * .015); stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce || two ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
   function loop() { raf = 0; if (!vis || document.hidden) return; frame(); raf = requestAnimationFrame(loop); }
   new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; if (vis && !raf) raf = requestAnimationFrame(loop); }).observe(fig);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && vis && !raf) raf = requestAnimationFrame(loop); });
