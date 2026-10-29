@@ -56,7 +56,7 @@ export class Yorishiro {
   }
   async add(kind, { x = 0, z = 0, y = null, yaw = 0, scale = .5, onTouch = null } = {}) {
     if (!YORISHIRO_KINDS[kind]) throw new Error("unknown yorishiro: " + kind);
-    const g = await this.loader.loadAsync(new URL(`./${kind}.glb`, import.meta.url).href);
+    const g = await this.loader.loadAsync(new URL(`./${kind}.glb${new URL(import.meta.url).search || ""}`, import.meta.url).href);
     const M = KIND_MOTION[kind] || KIND_MOTION._, ph = Math.random() * 6.28;
     const U = { t: { value: 0 }, ph: { value: ph }, body: { value: RM ? 0 : M.ripple }, leaf: { value: RM ? 0 : M.leaf }, float: { value: RM ? 0 : M.float } };
     const root = new THREE.Group(), sway = new THREE.Group(), body = g.scene; sway.add(body); root.add(sway);
