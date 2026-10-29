@@ -848,7 +848,7 @@ function declutter(dt) {
 function pickObj(x, y) {
   const r = new THREE.Raycaster(), p = new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); r.setFromCamera(p, camera);
   let best = null, bd = 1e9; const tol = MOBILE ? 50 : 42;   // 10-28 午後：印を小さくしたので当たりは広めに
-  for (const L of LAYER.objs) { if (!L.root.visible || L.qHide) continue; L.glyph.getWorldPosition(_v); const s = _v.clone().project(camera); if (s.z > 1) continue;
+  for (const L of LAYER.objs) { if (!L.root.visible || L.qHide) continue; L.glyph.getWorldPosition(_v); if (_v.distanceTo(camera.position) > (MOBILE ? 45 : 55)) continue; const s = _v.clone().project(camera); if (s.z > 1) continue;   // 10-29 本人「遠くの印に触れてしまう」：遠い印には触れない
     const sx = (s.x + 1) / 2 * innerWidth, sy = (1 - s.y) / 2 * innerHeight, dpx = Math.hypot(sx - x, sy - y); if (dpx < tol && dpx < bd) { bd = dpx; best = L; } }
   return best;
 }

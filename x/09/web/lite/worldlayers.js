@@ -29,6 +29,15 @@ export function makeWorldLayers(THREE, scene, opt) {
   const skyR = new THREE.Group(); skyR.visible = false; scene.add(skyR);
   for (const r of [60, 120]) { const g = new THREE.RingGeometry(r - .25, r + .25, 160); g.rotateX(Math.PI / 2); skyR.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: "#d6eef6", transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }))); }
   let pending = null, quiet = 0, asked = -1e9, clock = 0;   // 無音が続いたら、碧が次の印への問いを短く置く（opt.ask・opt.speaking）
+  // 五感＋X 感の層（10-29 本人「五感＋X 感のレイヤーを重ねるイメージ」）：空の低いところに、感覚ごとの薄いオーロラ状の帯を重ねる。
+  // opt.senses() → { see, hear, touch, x }（0〜1・近くの印の層の濃さ）。帯は見る人のまわりを巡り、景色の邪魔をしないごく淡い色。
+  const AUR = [];
+  if (opt.senses) { const SC = opt.senseColors || { see: "#a59fc3", hear: "#7d8fc4", touch: "#d6c09b", x: "#c9a8ff" }; let i = 0;
+    for (const k of ["see", "hear", "touch", "x"]) { const R0 = 52 + i * 9, H0 = 16 + i * 4, g = new THREE.CylinderGeometry(R0, R0, H0, 128, 1, true);
+      const m = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uC: { value: new THREE.Color(SC[k]) }, uA: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false,
+        vertexShader: "varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
+        fragmentShader: "uniform float uT; uniform vec3 uC; uniform float uA; varying vec2 vU; void main(){ float v = smoothstep(0.,.35,vU.y)*(1.-smoothstep(.55,1.,vU.y)); float w = .55+.45*sin(vU.x*18.+uT*.35+sin(vU.x*7.-uT*.2)*1.6); float e = .35+.65*pow(.5+.5*sin(vU.x*6.2832*2.+uT*.05),2.); gl_FragColor = vec4(uC, uA*v*w*e); }" });
+      const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = 2; scene.add(mesh); AUR.push({ k, mesh, m, a: 0, H0 }); i++; } }
   // pending＝関係の線の先：歩いて近づくと、碧が「さっきの話の続き」として語る
   let pairs = [], built = 0, focusL = null, hold = 0, mode = 0, mk = 0, Mk = 0;
   const GENERIC = /国土地理院|標高タイル|OpenStreetMap|iNaturalist|GBIF|PLATEAU|地理院地図|mitsulab が組んだ/;   // 10-29：多くの印が共有する一般の資料（標高・地図・生きものの記録の集まり）では結ばない
@@ -45,6 +54,7 @@ export function makeWorldLayers(THREE, scene, opt) {
   const yOf = L => (L.glyph ? L.glyph.getWorldPosition(_p).y : (opt.ground ? opt.ground(L.o.x, L.o.z) + 2 : (L.o.y || 0) + 2)) - .6;
   return {
     get lines() { return lines; },
+    get aurora() { return AUR.map(A => [A.k, +A.a.toFixed(2), A.mesh.visible]); },
     focus(L) { focusL = L; },
     follow(L, M) { pending = M ? { L, M } : null; },
     related(L) { const k = key(L); if (!k) return null; let best = null, bd = 1e9;
@@ -74,6 +84,8 @@ export function makeWorldLayers(THREE, scene, opt) {
       skyR.visible = Mk > .02; if (skyR.visible) { skyR.position.set(cam.position.x, gy + 40, cam.position.z); skyR.children.forEach((m, i) => { m.material.opacity = .16 * Mk * (1 - i * .3); }); }
       clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; if (QA && (clock * 2 | 0) !== (((clock - dt) * 2) | 0)) document.body.dataset.wlq = (opt.speaking() ? "s" : opt.busy() ? "b" : "q") + (quiet | 0) + "/" + (asked < 0 ? 0 : (clock - asked) | 0);   /* 確かめ用：いまの静けさ（?qa=1 のときだけ） */ const qf = asked < 0 ? 8 : (opt.quietFor ? opt.quietFor() : 14); if (quiet > qf && clock - asked > Math.max(18, qf * 1.6)) {   /* 次の印までの距離と歩く速さで、問いを置くまでの間を変える */   /* 最初の静かな間は 8 秒で（見下ろす／見上げるの知らせ） */ asked = clock; quiet = 0; opt.ask(); } }
       if (pending && !opt.busy() && quiet > 4 && clock - (this._contT || -99) > 40) { this._contT = clock;   /* 10-29：続きは、ほかの語りが終わってから */ const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
+      if (AUR.length) { const sv = opt.senses(), gy0 = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6;
+        for (const A of AUR) { A.a += ((sv[A.k] || 0) - A.a) * Math.min(1, dt * .6); A.m.uniforms.uA.value = .62 * A.a * (1 + Math.max(0, opt.pitch()) * 1.4);   /* 見上げると濃く */ A.m.uniforms.uT.value = clock; A.mesh.visible = A.a > .02; A.mesh.position.set(cam.position.x, gy0 + 18 + A.H0 / 2, cam.position.z); A.mesh.rotation.y += dt * .01; } }
       macro.visible = Mk > .02; if (macro.visible) { macro.position.set(cam.position.x, gy + .1, cam.position.z); macro.children.forEach((m, i) => { m.material.opacity = .22 * Mk * (1 - i * .18); m.scale.setScalar(.92 + .08 * Mk); }); }
     },
   };
