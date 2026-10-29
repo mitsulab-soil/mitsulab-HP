@@ -252,12 +252,12 @@ export async function bootDiorama(fig, kind, labs) {
   }
 
   // 札の置き場（図の下に並べるので、ここでは使わない）
-  const fitW = two ? (mobile ? 11.6 : 10.6) : 7.4, fitH = two ? (mobile ? 8.0 : 8.6) : 6.6;
+  const fitW = two ? (mobile ? 11.0 : 10.6) : (mobile ? 6.2 : 7.4), fitH = two ? (mobile ? 7.6 : 8.6) : (mobile ? 5.6 : 6.6);
   const look = new THREE.Vector3(two ? 1.2 : 0, two ? 2.2 : 1.0, 0);   /* 2026-10-29 夜 本人：人の目の高さに近い視点で、少し引いて全体を見渡す */
   // 2.0 は見えはじめに、少し寄った所から引いて世界が広がる（1.0 は身体の届く範囲に寄ったまま）
   let zoomK = two && !reduce ? .84 : 1, zoomT = 0;
   if (two && reduce) reach.scale.set(2.35, 2.85, 2.35);
-  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * 1.16 * zoomK; const dir = new THREE.Vector3(.72, .24, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
+  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * (mobile ? 1.06 : 1.16) * zoomK; const dir = new THREE.Vector3(.72, .24, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
   size(); new ResizeObserver(size).observe(fig);
   let vis = true, raf = 0; const t0 = performance.now(); let lastT = t0;
   function frame() { const now = performance.now(), t = (now - t0) / 1000, dt = Math.min(.05, (now - lastT) / 1000); lastT = now;

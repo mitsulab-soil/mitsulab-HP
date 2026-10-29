@@ -273,3 +273,5 @@ html{scroll-padding-top:80px}
 .qx-bdl li>span:last-child{font:400 14px/1.85 var(--serif,serif);color:#cfd6e6}
 .qx-bdn{font:400 12.5px/1.7 var(--serif,serif);color:#8d97ad;margin:0}
 @media (max-width:700px){.qx-bdl{grid-template-columns:1fr}.qx-eqf{font-size:19px;white-space:normal}.qx-eql li{font-size:13px}}
+.qx-scene{scroll-margin-top:76px}
+.qx-bdm{margin:0 0 16px}.qx-bdm>summary{font:500 15px/1.5 var(--serif,serif);color:#f6dca2}.qx-bdm[open]>summary{margin-bottom:10px}
