@@ -932,7 +932,7 @@ async function startYorishiro() {
       if (!best) continue; used.push(best);
       const a = (best.o.x * 7.1 + best.o.z * 3.3) % 6.28, x = best.o.x + Math.cos(a) * 1.4, z = best.o.z + Math.sin(a) * 1.4, L = best;
       await YO.y.add(kind, { x, z, yaw: a, scale: .42, onTouch: () => {
-        const nm = kind === "shizuku" ? "しずく" : "石", l0 = (L.o.lines || []).find(l => l && l.t && YO_RE[kind].test(l.t)) || (L.o.lines || []).find(l => l && l.t),   /* 水・石の話の一行を選ぶ */ s0 = (L.o.src || [])[0], st = s0 ? (typeof s0 === "string" ? s0 : s0.t || "") : "";
+        const nm = kind === "shizuku" ? "しずく" : "石", l0 = (kind === "shizuku" && (L.o.lines || []).find(l => l && l.t && /舟が通|水量|流れ|川面|湧き水|湧水|水の道|清水/.test(l.t))) || (L.o.lines || []).find(l => l && l.t && YO_RE[kind].test(l.t)) ||   /* しずくは水そのもの（流れ・川面・湧き水・舟が通れた水の道）の一行を先に */ (L.o.lines || []).find(l => l && l.t),   /* 水・石の話の一行を選ぶ */ s0 = (L.o.src || [])[0], st = s0 ? (typeof s0 === "string" ? s0 : s0.t || "") : "";
         const a1 = `${nm}の姿の碧です。`, ls = [{ t: a1, tc: a1 }]; if (l0) ls.push({ t: l0.t, tc: l0.tc || l0.t, src: st || undefined });
         speakLines(ls, null, { narr: true }); } });
     }
