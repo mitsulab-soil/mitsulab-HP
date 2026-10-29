@@ -1666,14 +1666,14 @@ html[lang="en"] .mission .mission-k{letter-spacing:.24em}
 .yo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;list-style:none;margin:0;padding:0}
 .yo-grid figure{margin:0;border:1px solid rgba(168,242,246,.22);border-radius:14px;background:radial-gradient(ellipse at 50% 70%,#f6f2ea 0,#ece6da 70%);overflow:hidden}
 .yo-stage{position:relative;aspect-ratio:3/4}.yo-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:4%;box-sizing:border-box}
-.yo-grid figcaption{padding:.6rem .9rem .8rem;color:#2b2b2b;font-size:.92rem;line-height:1.6}.yo-grid figcaption b{font-weight:600;margin-right:.4em}
+.yo-grid figcaption{padding:.6rem .9rem .8rem;color:#2b2b2b;font-size:.92rem;line-height:1.6}.yo-grid figcaption .yo-k{font-weight:600;margin-right:.4em;font-family:var(--serif,serif)}
 @media (max-width:560px){.yo-grid{gap:.6rem}.yo-grid figcaption{font-size:.82rem;padding:.5rem .6rem .6rem}}
 </style>
       <h3 id="yoFormsH" data-i18n-en="Aoi in other forms">姿を変えた碧</h3>
       <p data-i18n-en="Aoi can also take other forms. The first two, a drop of water and a stone, appear in Qualium. Every form has the same dot eyes as Aoi. Touch one there, and it answers with a caption, a voice and a small movement.">碧は、ほかの姿にもなります。最初の二つは、しずくと石。Qualium の中に現れます。どの姿にも、碧と同じ点の目。触れると、字幕と声と小さな動きで応えます。</p>
       <ul class="yo-grid">
-        <li><figure><div class="yo-stage"><img src="img/yorishiro/shizuku_480.webp" width="480" height="640" loading="lazy" decoding="async" alt="しずくの姿の碧：先が右へ巻く水のしずく。先は黄緑、水たまりと泡" data-i18n-alt="Aoi as a drop: a drop of water whose tip curls to the right, yellow-green at the tip, with a puddle and bubbles"></div><figcaption><b data-i18n-en="Drop">しずく</b><span data-i18n-en="Water that has just fallen.">落ちたばかりの水。</span></figcaption></figure></li>
-        <li><figure><div class="yo-stage"><img src="img/yorishiro/ishi_480.webp" width="480" height="640" loading="lazy" decoding="async" alt="石の姿の碧：割れた面のある石が三つ寄り、苔と小さな葉をのせる" data-i18n-alt="Aoi as a stone: three stones with broken faces leaning together, with moss and small leaves"></div><figcaption><b data-i18n-en="Stone">石</b><span data-i18n-en="Stones with moss on them.">苔をのせた石。</span></figcaption></figure></li>
+        <li><figure><div class="yo-stage"><img src="img/yorishiro/shizuku_480.webp" width="480" height="640" loading="lazy" decoding="async" alt="しずくの姿の碧：先が右へ巻く水のしずく。先は黄緑、水たまりと泡" data-i18n-alt="Aoi as a drop: a drop of water whose tip curls to the right, yellow-green at the tip, with a puddle and bubbles"></div><figcaption><span class="yo-k" data-i18n-en="Drop">しずく</span><span data-i18n-en="Water that has just fallen.">落ちたばかりの水。</span></figcaption></figure></li>
+        <li><figure><div class="yo-stage"><img src="img/yorishiro/ishi_480.webp" width="480" height="640" loading="lazy" decoding="async" alt="石の姿の碧：割れた面のある石が三つ寄り、苔と小さな葉をのせる" data-i18n-alt="Aoi as a stone: three stones with broken faces leaning together, with moss and small leaves"></div><figcaption><span class="yo-k" data-i18n-en="Stone">石</span><span data-i18n-en="Stones with moss on them.">苔をのせた石。</span></figcaption></figure></li>
       </ul>
     </div>
   </section>
@@ -2465,7 +2465,7 @@ async function boot(box){
 <script>/* 2026-10-23 PHILOSOPHY の 3D（E・S・Φ・q）：図が画面に近づいてから読む */
 (function(){var f=document.getElementById('qpES');if(!f)return;function c(){try{var x=document.createElement('canvas');return !!(x.getContext('webgl2')||x.getContext('webgl'));}catch(e){return false;}}if(!c()||!('IntersectionObserver' in window)){f.classList.add('no-3d');return;}var go=false;var io=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;io.disconnect();import('./js/qualia-es-3d.js?v=20261024t7d').then(function(m){m.boot(f);}).catch(function(e){console.warn('qualia es 3d',e);f.classList.add('no-3d');});}},{rootMargin:'500px 0px'});io.observe(f);})();</script>
 
-<script type="module" src="./js/top-qualium.js?v=20261029r"></script>
+<script type="module" src="./js/top-qualium.js?v=20261029s"></script>
 <script type="module" src="js/app-previews.js?v=20261029aoi2"></script>
 <script>/* 2026-10-22 スマホだけ「続きを読む」で畳む。701px 以上は開いておく */(function(){function f(){var pc=innerWidth>700;[].forEach.call(document.querySelectorAll('details.q-more'),function(d){if(pc)d.open=true;});}f();addEventListener('resize',f);})();</script>
 <script>/* 2026-10-22 スマホの定式化：記号ごとに開閉（記号と名前だけ並べ、押すと説明が開く）。701px 以上は表のまま */(function(){var t=document.querySelector('.qt-sym');if(!t)return;[].forEach.call(t.querySelectorAll('tbody tr'),function(tr,i){var th=tr.querySelector('th[scope=row]');if(!th)return;var b=document.createElement('button');b.type='button';b.className='qs-tog';b.setAttribute('aria-expanded','false');var id='qs-d'+i;tr.querySelectorAll('td').forEach(function(td,k){td.id=id+'-'+k;});b.setAttribute('aria-controls',[].map.call(tr.querySelectorAll('td'),function(td){return td.id;}).join(' '));while(th.firstChild)b.appendChild(th.firstChild);var mk=document.createElement('span');mk.className='qs-mk';mk.setAttribute('aria-hidden','true');b.appendChild(mk);th.appendChild(b);b.addEventListener('click',function(){var o=tr.classList.toggle('qs-open');b.setAttribute('aria-expanded',o?'true':'false');});});})();</script>

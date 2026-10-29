@@ -49,7 +49,7 @@ export async function bootDiorama(fig, kind, labs) {
   // 主体：人（区画の中に立つ）
   const P = new THREE.Vector3(-.9, 0, .7), EYE = new THREE.Vector3(-.9, 1.58, .74), EAR = new THREE.Vector3(-.98, 1.52, .7), FOOT = new THREE.Vector3(-.9, .04, .8);
   // 届くもの・届かないもの の位置
-  const TREE = new THREE.Vector3(1.6, 0, -.9), TRUNK = new THREE.Vector3(1.6, 1.1, -.9), BIRD = new THREE.Vector3(1.2, 3.1, -.6), FLOWER = new THREE.Vector3(.2, .42, 1.1);
+  const TREE = new THREE.Vector3(1.6, 0, -.9), TRUNK = new THREE.Vector3(1.6, 1.1, -.9), BIRD = two ? new THREE.Vector3(-.25, 2.3, -1.55) : new THREE.Vector3(1.2, 3.1, -.6), FLOWER = new THREE.Vector3(.2, .42, 1.1);
   const ROOTS = new THREE.Vector3(1.6, -.6, -.9), OLD = new THREE.Vector3(-1.4, -.32, 1.95), BAT = new THREE.Vector3(-2.3, 1.7, 1.3), TORII = new THREE.Vector3(-2.1, 0, -1.4);
   const reached = new THREE.Group(), hidden = new THREE.Group(); stage.add(reached, hidden);
   // 身体の感覚が届く範囲（1.0＝元々の環世界）。足もとに淡い光の輪と、薄い半球。2.0 では層とともに広がる
@@ -120,8 +120,8 @@ export async function bootDiorama(fig, kind, labs) {
   // 2026-10-29 生き物を写実に：シジュウカラ・コウモリ・ミツバチ・ミミズを、図鑑の形態（脚・翅・指・体節）で組んだ共通部品に替える
   (async () => { try { const C = await import('./kit/creatures.js');
     const swap = (grp, make, sc, rot, pos) => { const o = make(); o.scale.setScalar(sc); if (rot) o.rotation.set(rot[0], rot[1], rot[2]); if (pos) o.position.set(pos[0], pos[1], pos[2]); return o; };
-    while (bird.children.length) bird.remove(bird.children[0]); { const o = swap(bird, C.makeTit, .6, [0, Math.PI / 2, 0], [0, -.08, 0]); bird.add(o); animals.push(o); }
-    const bp = ultra.getObjectByName('batPrim'); if (bp) { ultra.remove(bp); { const o = swap(ultra, C.makeBat, .55, [.45, Math.PI / 2 + .3, 0], [-.3, -.05, 0]); ultra.add(o); animals.push(o); } }
+    while (bird.children.length) bird.remove(bird.children[0]); { const o = swap(bird, C.makeTit, .6, [0, Math.PI / 2, 0], [0, -.08, 0]); o.traverse(m => { if (m.isMesh && m.material && !Array.isArray(m.material)) { m.material = m.material.clone(); if (m.material.color) m.material.color.multiplyScalar(.72); if ('sheen' in m.material) m.material.sheen *= .5; if (m.material.emissive) m.material.emissive.setScalar(0); } }); bird.add(o); animals.push(o); }
+    const bp = ultra.getObjectByName('batPrim'); if (bp) { ultra.remove(bp); { const o = swap(ultra, C.makeBat, .55, [.45, Math.PI / 2 + .3, 0], [-.3, -.05, 0]); o.traverse(m => { if (m.isMesh && m.material && !Array.isArray(m.material) && m.material.side === THREE.DoubleSide) { m.material = m.material.clone(); m.material.transparent = true; m.material.opacity = .82; m.material.depthWrite = false; } }); ultra.add(o); animals.push(o); } }
     while (bee.children.length) bee.remove(bee.children[0]); { const o = swap(bee, C.makeBee, .12, [0, -Math.PI / 2, 0]); bee.add(o); animals.push(o); }
     stage.children.filter(m => m.userData.worm).forEach(m => { const w = C.makeWorm(); w.scale.setScalar(.36); w.position.copy(m.position); w.rotation.set(0, Math.PI / 2, m.rotation.z); w.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); FAINT(o.material, two); } }); stage.remove(m); stage.add(w); });
   } catch (e) { console.warn('creatures', e); } })();
@@ -129,7 +129,15 @@ export async function bootDiorama(fig, kind, labs) {
   (async () => { try {
     // 2026-10-28 人の 3D を写実に近い姿へ（MakeHuman の CC0 の資産から作った human.glb。肌と服は写真の質感、つやを抑えたマットな材質）
     const [man, tg] = await Promise.all([gltf('img/hero/3d/human.glb'), gltf('img/hero/3d/keyaki_lod1_notex.glb')]);
-    man.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt) { mt.metalness = 0; mt.roughness = /eye/i.test(m.name) ? .35 : .82; if (mt.map) mt.map.anisotropy = 4; if (/suit/i.test(m.name)) mt.color.setRGB(.86, .86, .88); if (/short|hair|brow/i.test(m.name)) { mt.alphaTest = .5; mt.transparent = false; mt.side = THREE.DoubleSide; } } } });
+    // 2026-10-29 光と材質を碧にそろえる：布はやわらかな照り（sheen）、肌はうすい透け感、髪はつやを抑える。顔の前に弱い補い光
+    man.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const o = m.material; if (!o) return; const n = m.name.toLowerCase();
+      const mt = new THREE.MeshPhysicalMaterial({ map: o.map || null, color: o.color ? o.color.clone() : new THREE.Color(1, 1, 1), metalness: 0, roughness: .8 }); if (mt.map) mt.map.anisotropy = 4;
+      if (/suit|shoe/.test(n)) { mt.sheen = .6; mt.sheenRoughness = .7; mt.sheenColor = new THREE.Color(0x9aa6b4); mt.color.setScalar(/suit/.test(n) ? 1.08 : 1); mt.roughness = .86; }
+      else if (/short|hair|brow/.test(n)) { mt.alphaTest = .5; mt.side = THREE.DoubleSide; mt.roughness = .7; mt.sheen = .4; mt.sheenColor = new THREE.Color(0x6b5a4c); }
+      else if (/eye|low-poly/.test(n)) { mt.roughness = .25; mt.clearcoat = .6; }
+      else { mt.roughness = .55; mt.sheen = .35; mt.sheenColor = new THREE.Color(0xffd8c4); mt.sheenRoughness = .5; mt.color.setScalar(1.06); }
+      m.material = mt; } });
+    { const fl = new THREE.PointLight(0xffe8d8, 1.4, 2.6, 1.6); fl.position.set(P.x + .55, 1.75, P.z + .8); stage.add(fl); const rim = new THREE.PointLight(0xbfe0ff, 1.1, 2.4, 1.6); rim.position.set(P.x - .5, 1.9, P.z - .7); stage.add(rim); }
     const bb = new THREE.Box3().setFromObject(man.scene), sz = bb.getSize(new THREE.Vector3()), sc = 1.7 / sz.y;
     man.scene.scale.setScalar(sc); man.scene.position.set(P.x - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, P.z - (bb.min.z + sz.z / 2) * sc); man.scene.rotation.y = 1.0; stage.add(man.scene);
     const bark = new THREE.MeshStandardMaterial({ color: 0xb8aa98, roughness: .95, map: tex('img/hero/3d/dio/bark_c.webp', [2, 4], true), normalMap: tex('img/hero/3d/dio/bark_n.webp', [2, 4]) });   // 樹皮＝Poly Haven japanese_zelkova_bark（CC0）
@@ -152,7 +160,7 @@ export async function bootDiorama(fig, kind, labs) {
   // 1.0・2.0 共通：身体で届くもの
   // 2026-10-28 P2：線が人の頭の上で細かく重ならないよう、線は顔から少し離れた所から出す（2.0 では身体の線を一段淡く）
   const off = (a, b, r) => a.clone().add(b.clone().sub(a).normalize().multiplyScalar(r));
-  [[EYE, TRUNK], [EAR, BIRD], [FOOT, new THREE.Vector3(-.3, .02, 1.3)], [EYE, FLOWER.clone().setY(.45)]].forEach(([a, b], i) => { const l = lineTo(i === 2 ? a : off(a, b, .26), b, BODY, false); if (two) l.material.opacity = .5; dot(b, BODY); });
+  [[EYE, TRUNK], [EAR, BIRD], [FOOT, new THREE.Vector3(-.3, .02, 1.3)], [EYE, FLOWER.clone().setY(.45)]].forEach(([a, b], i) => { const l = lineTo(i === 2 ? a : off(a, b, .26), b, BODY, false); if (two) l.material.opacity = .5; if (i !== 1) dot(b, BODY); });
   if (!two) dot(EYE, BODY);
 
   if (two && !window.__sandoMeta) { try { window.__sandoMeta = await fetch('img/hero/sando_wire.json').then(r => r.json()); } catch (e) { window.__sandoMeta = null; } }
@@ -172,14 +180,14 @@ export async function bootDiorama(fig, kind, labs) {
           for (let i = 0; i + 1 < xs.length; i += 2) { const px = (xs[i] - o[0] + HW) / (2 * HW) * w, py = (xs[i + 1] - o[2] + HD) / (2 * HD) * h; const inside = px > -20 && px < w + 20 && py > -20 && py < h + 20;
             if (inside) { on ? x.lineTo(px, py) : x.moveTo(px, py); on = true; if (!seen[e] && px > w * .1 && px < w * .9 && py > h * .1 && py < h * .9) seen[e] = [px, py]; } else on = false; }
           x.stroke(); }
-        Object.entries(seen).forEach(([e, [px, py]]) => { lab(x, (+e).toFixed(0) + ' m', px + 4, py - 6, 'rgba(210,250,236,.8)', 22); }); }],
+        Object.entries(seen).forEach(([e, [px, py]]) => { lab(x, (+e).toFixed(0) + ' m', px + 4, py - 6, 'rgba(210,250,236,.42)', 22); }); }],
       [0xf2c56e, (x, w, h) => { x.strokeStyle = '#f2c56e'; x.lineWidth = 7; x.setLineDash([26, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .45, h * .1); x.stroke(); x.setLineDash([]); x.lineWidth = 5; x.strokeRect(w * .18, h * .05, w * .2, h * .12);
         x.beginPath(); x.arc(w * .5, h * .86, 7, 0, 6.283); x.fillStyle = '#f2c56e'; x.fill(); }],
-      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3, 'ケヤキ'], [.6, .78, 'ミツバチ（紫外線で花を見る）'], [.3, .55, 'シジュウカラ'], [.84, .82, 'ミミズ・菌糸（土の中）']].forEach(([u, v, n]) => { x.globalAlpha = .75; x.beginPath(); x.arc(u * w, v * h, 6, 0, 6.283); x.fill(); x.globalAlpha = .35; x.beginPath(); x.arc(u * w, v * h, 16, 0, 6.283); x.stroke(); x.globalAlpha = 1; lab(x, n, u * w + 14, v * h - 10, 'rgba(225,215,255,.85)', 16); }); }],
+      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3, 'ケヤキ'], [.6, .78, 'ミツバチ（紫外線で花を見る）'], [.3, .55, 'シジュウカラ'], [.84, .82, 'ミミズ・菌糸（土の中）']].forEach(([u, v, n]) => { x.globalAlpha = .75; x.beginPath(); x.arc(u * w, v * h, 6, 0, 6.283); x.fill(); x.globalAlpha = .35; x.beginPath(); x.arc(u * w, v * h, 16, 0, 6.283); x.stroke(); x.globalAlpha = 1; lab(x, n, u * w + 14, v * h - 10, 'rgba(225,215,255,.42)', 16); }); }],
       [0xa8f2f6, (x, w, h) => { x.strokeStyle = 'rgba(168,242,246,.6)'; x.lineWidth = 3; [[.12, .3], [.7, .26]].forEach(([u, v]) => { for (let k = 1; k <= 3; k++) { x.globalAlpha = .4 - k * .1; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1;
         // 周波数の目盛り（対数）：人に聞こえるのはおよそ 20 Hz〜20 kHz、コウモリの声は 20 kHz より高い（模式）
         const y0 = h * .82, x0 = w * .08, x1 = w * .92, f = v => x0 + (Math.log10(v) - 1) / 4 * (x1 - x0); x.lineWidth = 3; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y0); x.stroke();
-        [[10, '10 Hz'], [1000, '1 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { x.beginPath(); x.moveTo(f(v), y0 - 10); x.lineTo(f(v), y0 + 10); x.stroke(); lab(x, s, f(v) - 20, y0 + 40, 'rgba(212,251,253,.8)', 18); });
+        [[10, '10 Hz'], [1000, '1 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { x.beginPath(); x.moveTo(f(v), y0 - 10); x.lineTo(f(v), y0 + 10); x.stroke(); lab(x, s, f(v) - 20, y0 + 40, 'rgba(212,251,253,.42)', 18); });
         x.fillStyle = 'rgba(168,242,246,.28)'; x.fillRect(f(20), y0 - 26, f(20000) - f(20), 14);
         x.fillStyle = 'rgba(242,197,110,.4)'; x.fillRect(f(20000), y0 - 26, f(100000) - f(20000), 14); }]];
     const texs = [];
@@ -222,8 +230,8 @@ export async function bootDiorama(fig, kind, labs) {
     (async () => { try {
       const g = await gltf('js/kit/envAgents/kasane.glb'); const proto = g.scene; const bb = new THREE.Box3().setFromObject(proto), h = bb.max.y - bb.min.y;
       [[ROOTS.x - .5, 0, ROOTS.z + .9, '#6c8d71'], [OLD.x + .4, 0, 1.6, '#864e4c'], [FLOWER.x - .25, 0, FLOWER.z + .35, '#a59fc3'], [-2.0, 0, .2, '#3a4360']].forEach(([x, y, z, c], i) => {
-        const k = proto.clone(true); k.traverse(o => { if (o.isMesh && o.material && !/eye|cheek|目|頬/i.test(o.name + (o.material.name || ''))) { o.material = o.material.clone(); o.material.color && o.material.color.set(c); } });
-        k.scale.setScalar(.5 / h); k.position.set(x, y - bb.min.y * .5 / h, z); k.rotation.y = .6 + i * .5; stage.add(k); }); } catch (e) { console.warn('kasane', e); } })();
+        const k = proto.clone(true); k.traverse(o => { if (o.isMesh && o.material && !/eye|cheek|目|頬/i.test(o.name + (o.material.name || ''))) { o.material = o.material.clone(); o.material.color && o.material.color.set(c); o.material.roughness = 1; o.material.metalness = 0; if ('clearcoat' in o.material) o.material.clearcoat = 0; if ('specularIntensity' in o.material) o.material.specularIntensity = .2; } });
+        k.scale.setScalar(.36 / h); k.position.set(x, y - bb.min.y * .36 / h, z); k.rotation.y = .6 + i * .5; stage.add(k); }); } catch (e) { console.warn('kasane', e); } })();
     (async () => { try {
       const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm')]);
       const Ld = new GLTFLoader(); Ld.setMeshoptDecoder(MeshoptDecoder); Ld.register(p => new V.VRMLoaderPlugin(p));
