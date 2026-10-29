@@ -29,15 +29,32 @@ export function makeWorldLayers(THREE, scene, opt) {
   const skyR = new THREE.Group(); skyR.visible = false; scene.add(skyR);
   for (const r of [60, 120]) { const g = new THREE.RingGeometry(r - .25, r + .25, 160); g.rotateX(Math.PI / 2); skyR.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: "#d6eef6", transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }))); }
   let pending = null, quiet = 0, asked = -1e9, clock = 0;   // 無音が続いたら、碧が次の印への問いを短く置く（opt.ask・opt.speaking）
-  // 五感＋X 感の層（10-29 本人「五感＋X 感のレイヤーを重ねるイメージ」）：空の低いところに、感覚ごとの薄いオーロラ状の帯を重ねる。
-  // opt.senses() → { see, hear, touch, x }（0〜1・近くの印の層の濃さ）。帯は見る人のまわりを巡り、景色の邪魔をしないごく淡い色。
+  // 五感＋X 感の帯（10-29 夜 本人「空高くではなく、身体スケールの高さで。互いに重なり合って、絡まり合って、それぞれの感覚が共感覚的に存在するイメージ」）
+  // 地面から 0.3〜3 m、歩く人のまわりを巡る薄い布の帯。斜め・ねじれ・うねりで互いにくぐり、重なる所は色が足し合わさって混ざる。
+  // opt.senses() → { see, hear, touch, x }（0〜1）。近い印の層の帯ほど濃く、少し寄ってくる。pulse(k) で、音のセッションの旋律・一歩の刻みに帯が光り波打つ。
   const AUR = [];
-  if (opt.senses) { const SC = opt.senseColors || { see: "#a59fc3", hear: "#7d8fc4", touch: "#d6c09b", x: "#c9a8ff" }; let i = 0;
-    for (const k of ["see", "hear", "touch", "x"]) { const R0 = 52 + i * 9, H0 = 16 + i * 4, g = new THREE.CylinderGeometry(R0, R0, H0, 128, 1, true);
-      const m = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uC: { value: new THREE.Color(SC[k]) }, uA: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false,
-        vertexShader: "varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
-        fragmentShader: "uniform float uT; uniform vec3 uC; uniform float uA; varying vec2 vU; void main(){ float v = smoothstep(0.,.35,vU.y)*(1.-smoothstep(.55,1.,vU.y)); float w = .55+.45*sin(vU.x*18.+uT*.35+sin(vU.x*7.-uT*.2)*1.6); float e = .35+.65*pow(.5+.5*sin(vU.x*6.2832*2.+uT*.05),2.); gl_FragColor = vec4(uC, uA*v*w*e); }" });
-      const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = 2; scene.add(mesh); AUR.push({ k, mesh, m, a: 0, H0 }); i++; } }
+  if (opt.senses) { const SC = opt.senseColors || { see: "#a59fc3", hear: "#7d8fc4", touch: "#d6c09b", x: "#c9a8ff" };
+    const P = { see: [3.6, 1.9, .55, 2, 0, 1.5, .0], hear: [4.2, 1.5, .7, 3, 1.7, -1, 1.3], touch: [3.2, .75, .4, 2, 3.4, 2, 2.6], x: [4.8, 2.3, .8, 1, 4.9, -1.5, 3.9] };   // 半径・高さ・上下のうねり・うねりの数・位相・ねじれの数・傾き
+    const NS = 220;
+    for (const k of ["see", "hear", "touch", "x"]) { const [R0, H0, A0, KM, PH, TW, TL] = P[k];
+      const pos = new Float32Array((NS + 1) * 2 * 3), uv = new Float32Array((NS + 1) * 2 * 2), idx = [];
+      for (let i = 0; i <= NS; i++) { for (let j = 0; j < 2; j++) { uv[(i * 2 + j) * 2] = i / NS; uv[(i * 2 + j) * 2 + 1] = j; } if (i < NS) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } }
+      const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.setIndex(idx);
+      const m = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uC: { value: new THREE.Color(SC[k]) }, uA: { value: 0 }, uP: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false, blending: THREE.AdditiveBlending,
+        vertexShader: "varying vec2 vU; varying float vD; void main(){ vU = uv; vec4 mv = modelViewMatrix * vec4(position,1.); vD = -mv.z; gl_Position = projectionMatrix * mv; }",
+        fragmentShader: "uniform float uT; uniform vec3 uC; uniform float uA; uniform float uP; varying vec2 vU; varying float vD; void main(){ float edge = smoothstep(0.,.5,vU.y)*(1.-smoothstep(.5,1.,vU.y)); float fib = .85+.15*sin(vU.y*9.+vU.x*40.+uT*.6); float w = .55+.45*sin(vU.x*6.2832*3.+uT*.4); float near = smoothstep(1.4,3.2,vD); float pul = uP*exp(-pow(fract(vU.x*2.-uT*.25)-.5,2.)*18.); gl_FragColor = vec4(uC*(1.+pul*1.6), uA*edge*fib*w*near*(1.+pul*1.2)); }" });
+      const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = 2; mesh.visible = false; scene.add(mesh);
+      AUR.push({ k, mesh, m, pos, a: 0, p: 0, R0, H0, A0, KM, PH, TW, TL, rot: PH }); } }
+  function ribbon(A, t) {   // 帯の形を毎こま少しずつ動かす（ゆっくり巡る・うねる・ねじれる）
+    const { pos, R0, H0, A0, KM, PH, TW, TL } = A, R = R0 * (1 - .22 * A.a), W = .45 + .2 * A.a, wob = A.p * .25;
+    for (let i = 0; i <= NS_; i++) { const s = i / NS_, th = s * Math.PI * 2;
+      const r = R + .55 * Math.sin(th * 2 + PH + t * .07), y = H0 + A0 * Math.sin(th * KM + PH + t * .11) + .35 * Math.sin(th + TL) + wob * Math.sin(th * 9 - t * 6),
+        cx = Math.sin(th) * r, cz = Math.cos(th) * r, tau = th * TW * .5 + t * .05 + PH,   // 帯の幅の向き：上下と外向きのあいだでねじれる
+        ux = Math.sin(th) * Math.sin(tau), uy = Math.cos(tau), uz = Math.cos(th) * Math.sin(tau);
+      for (let j = 0; j < 2; j++) { const h = (j - .5) * W, q = (i * 2 + j) * 3; pos[q] = cx + ux * h; pos[q + 1] = Math.max(.25, y + uy * h); pos[q + 2] = cz + uz * h; } }
+    A.mesh.geometry.attributes.position.needsUpdate = true;
+  }
+  const NS_ = 220;
   // pending＝関係の線の先：歩いて近づくと、碧が「さっきの話の続き」として語る
   let pairs = [], built = 0, focusL = null, hold = 0, mode = 0, mk = 0, Mk = 0;
   const GENERIC = /国土地理院|標高タイル|OpenStreetMap|iNaturalist|GBIF|PLATEAU|地理院地図|mitsulab が組んだ/;   // 10-29：多くの印が共有する一般の資料（標高・地図・生きものの記録の集まり）では結ばない
@@ -54,6 +71,7 @@ export function makeWorldLayers(THREE, scene, opt) {
   const yOf = L => (L.glyph ? L.glyph.getWorldPosition(_p).y : (opt.ground ? opt.ground(L.o.x, L.o.z) + 2 : (L.o.y || 0) + 2)) - .6;
   return {
     get lines() { return lines; },
+    pulse(k, v = 1) { for (const A of AUR) if (A.k === k) A.p = Math.min(1.2, A.p + v); },
     get aurora() { return AUR.map(A => [A.k, +A.a.toFixed(2), A.mesh.visible]); },
     focus(L) { focusL = L; },
     follow(L, M) { pending = M ? { L, M } : null; },
@@ -84,8 +102,11 @@ export function makeWorldLayers(THREE, scene, opt) {
       skyR.visible = Mk > .02; if (skyR.visible) { skyR.position.set(cam.position.x, gy + 40, cam.position.z); skyR.children.forEach((m, i) => { m.material.opacity = .16 * Mk * (1 - i * .3); }); }
       clock += dt; if (opt.speaking && opt.ask) { if (opt.speaking() || opt.busy()) quiet = 0; else quiet += dt; if (QA && (clock * 2 | 0) !== (((clock - dt) * 2) | 0)) document.body.dataset.wlq = (opt.speaking() ? "s" : opt.busy() ? "b" : "q") + (quiet | 0) + "/" + (asked < 0 ? 0 : (clock - asked) | 0);   /* 確かめ用：いまの静けさ（?qa=1 のときだけ） */ const qf = asked < 0 ? 8 : (opt.quietFor ? opt.quietFor() : 14); if (quiet > qf && clock - asked > Math.max(18, qf * 1.6)) {   /* 次の印までの距離と歩く速さで、問いを置くまでの間を変える */   /* 最初の静かな間は 8 秒で（見下ろす／見上げるの知らせ） */ asked = clock; quiet = 0; opt.ask(); } }
       if (pending && !opt.busy() && quiet > 4 && clock - (this._contT || -99) > 40) { this._contT = clock;   /* 10-29：続きは、ほかの語りが終わってから */ const M = pending.M, d = Math.hypot(M.o.x - cam.position.x, M.o.z - cam.position.z); if (d < 10) { const L = pending.L; pending = null; said.add(M); opt.narrate(M, "cont", L); } }
-      if (AUR.length) { const sv = opt.senses(), gy0 = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6;
-        for (const A of AUR) { A.a += ((sv[A.k] || 0) - A.a) * Math.min(1, dt * .6); A.m.uniforms.uA.value = .62 * A.a * (1 + Math.max(0, opt.pitch()) * 1.4);   /* 見上げると濃く */ A.m.uniforms.uT.value = clock; A.mesh.visible = A.a > .02; A.mesh.position.set(cam.position.x, gy0 + 18 + A.H0 / 2, cam.position.z); A.mesh.rotation.y += dt * .01; } }
+      if (AUR.length) { const sv = opt.senses(), gy0 = opt.ground ? opt.ground(cam.position.x, cam.position.z) : cam.position.y - 1.6; this._bt = (this._bt || 0) + dt;
+        for (const A of AUR) { A.a += ((A.k === "x" ? 0 : .28) + .72 * Math.min(1, (sv[A.k] || 0) * 2.2) - A.a) * Math.min(1, dt * .6); A.p *= Math.pow(.18, dt); A.m.uniforms.uA.value = .6 * A.a;   /* 視・聴・触はいつも淡く身のまわりに・X 感は印が近いときだけ */ A.m.uniforms.uP.value = A.p; A.m.uniforms.uT.value = clock; A.mesh.visible = A.a > .03;
+          if (A.mesh.visible && (this._bt > .033 || A.p > .05)) ribbon(A, clock);   // 形は 30 こま/秒で動かせば足りる（重くしない）
+          A.rot += dt * (.035 + .02 * A.a); A.mesh.rotation.y = A.rot; A.mesh.position.set(cam.position.x, gy0, cam.position.z); }
+        if (this._bt > .033) this._bt = 0; }
       macro.visible = Mk > .02; if (macro.visible) { macro.position.set(cam.position.x, gy + .1, cam.position.z); macro.children.forEach((m, i) => { m.material.opacity = .22 * Mk * (1 - i * .18); m.scale.setScalar(.92 + .08 * Mk); }); }
     },
   };

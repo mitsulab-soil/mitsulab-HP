@@ -9,7 +9,7 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
-import { makeWorldLayers } from "./worldlayers.js?v=w18";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w19";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
@@ -2298,6 +2298,7 @@ const SESS = { on: (() => { try { return localStorage.getItem("qs_sess") !== "0"
 const HAPT = { el: null, canV: typeof navigator !== "undefined" && typeof navigator.vibrate === "function" };
 function haptic(ms, kind) {   // 10-29 本人「触覚体験を主軸に」：振動できる端末は振動、できない端末（iPhone など）は画面の下の小さな輪で代える
   if (QW.mode !== "walk") return;
+  if (WL?.pulse) { if (kind === "bird") WL.pulse("hear", .9); else if (kind === "water") { WL.pulse("touch", .5); WL.pulse("hear", .4); } else WL.pulse("touch", .35); }   // 10-29 夜：鳥の旋律で聴の帯が光り、一歩で触の帯が波打つ（共感覚）
   if (HAPT.canV && MOBILE) { try { navigator.vibrate(ms); } catch { } return; }
   const e = HAPT.el ||= document.getElementById("hapt"); if (!e) return; e.dataset.k = kind; e.classList.remove("on"); void e.offsetWidth; e.classList.add("on");
 }
