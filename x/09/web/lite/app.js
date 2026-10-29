@@ -644,6 +644,7 @@ function loadLate() {
       const o = src.clone(true); o.position.set(s.p[0], s.p[1], s.p[2]); o.rotation.set(0, s.r, 0); o.scale.setScalar(1);
       o.traverse(n => { if (n.isMesh && n.material) { n.material.envMapIntensity = .6;
         if (n.material.name === "black") { n.material = n.material.clone(); n.material.color.set("#1c1a19"); n.material.roughness = .38; n.material.metalness = .05; n.material.envMapIntensity = 1.25; }   // 根巻と笠木の黒：漆のような艶（平らな黒い箱に見えないように）
+        else if (/^shu_/.test(n.material.name)) { const nm = n.material.name; n.material = WMAT[nm] ||= (m => { m.color.multiply(new THREE.Color().setRGB(1.05, .5, .42)); m.envMapIntensity = .45; return m; })(n.material.clone()); }   // 2026-10-29 本人「鳥居をもっと赤く」：朱の塗りの写真に赤みを掛け、霞と空の照り返しで桃色に浅くならないように
         else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; n.material = WMAT[nm] ||= weather(n.material.clone(), STRUCT_WEATHER[nm]); } } });
       o.name = s.id; structGroup.add(o);
       if (/^(ishidoro|komainu|hyoseki|shagohi|choishi|mokutoro)/.test(s.id)) collDisc(s.p[0], s.p[2], /^ishidoro|^mokutoro/.test(s.id) ? 1.0 : .8);   // 燈籠・狛犬・碑・丁石は通れない（鳥居と楼門はくぐれる）
@@ -900,7 +901,7 @@ const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -
 const EYE = 1.55;
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
-const FOGS = { sky: () => ({ c: FOG_SKY, n: 1700, f: 4200 }), walk: () => ({ c: FOG_SKY, n: 180, f: 690 })   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
+const FOGS = { sky: () => ({ c: FOG_SKY, n: 1700, f: 4200 }), walk: () => ({ c: FOG_SKY, n: 320, f: 695 })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && prev !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
