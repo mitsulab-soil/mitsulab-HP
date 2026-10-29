@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
+import { makeSession } from "./session.js?v=s1";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w16";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
@@ -2239,7 +2240,16 @@ function surfAt(x, z) {
     default: return "asphalt";
   }
 }
-const SW = makeSoundWalk({ ctx: () => SND.ac, out: () => SND.out, on: () => sndOn(), duck: () => voiceQ ? .5 : 1, pulse: v => { SND.pulse = Math.max(SND.pulse || 0, v); },
+const SESS = { on: (() => { try { return localStorage.getItem("qs_sess") !== "0"; } catch { return true; } })() };
+{ const b = document.getElementById("sessBtn"); if (b) { const sync = () => { b.setAttribute("aria-pressed", String(SESS.on)); b.title = SESS.on ? "自然とのセッションの音を消す" : "自然とのセッションの音を鳴らす"; }; sync(); b.addEventListener("click", e => { e.stopPropagation(); SESS.on = !SESS.on; try { localStorage.setItem("qs_sess", SESS.on ? "1" : "0"); } catch { } sync(); sndCtx(); }); } }
+const SS = QW.SS = makeSession({ ctx: () => SND.ac, out: () => SND.out, on: () => sndOn() && SESS.on, duck: () => voiceQ ? .45 : 1 });
+const SS_RE = { water: /湧水|湧き|神池|池の水|用水|清水|見沼|水路/, tree: /ケヤキ|欅|クス|スギ|杉|並木|樹|木の|幹|葉/, bird: /鳥|カワセミ|ヒヨドリ|キジバト|セキレイ|カラス|メジロ|シジュウカラ|バン|サギ/ };
+function sessionWeights() {   // 近くの印（半径 30 m）の中身で、どのパートが加わるか。見下ろすと土の低音
+  const cp = camera.position, w = { soil: document.body.dataset.wl === "micro" ? 1 : .25, water: 0, tree: 0, bird: 0, life: 0 };
+  for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.root?.visible) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d > 30) continue; const k = 1 - d / 30, t = ((L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join("")).replace(/鳥居/g, "");   /* 鳥居を鳥と読まない */
+    if (SS_RE.water.test(t)) w.water = Math.max(w.water, k); if (SS_RE.bird.test(t)) w.bird = Math.max(w.bird, k); else if (SS_RE.tree.test(t)) w.tree = Math.max(w.tree, k); if (/culture|history/.test(L.o.layer || "")) w.life = Math.max(w.life, k * .8); }
+  return w; }
+const SW = makeSoundWalk({ ctx: () => SND.ac, out: () => SND.out, on: () => sndOn(), duck: () => voiceQ ? .5 : 1, pulse: v => { SND.pulse = Math.max(SND.pulse || 0, v); if (v === .35) SS.step(); },   /* 一歩ごとにセッションの拍 */
   tag: (id, label, zn) => { if (!SND.tag || performance.now() > SND.tagUntil) showTag(zn ? zn.it : { id: "sw_" + id, kind: "re", label: `再現音（${label}。その場で組み立てた音）`, x: CAM.pos.x, y: groundY(CAM.pos.x, CAM.pos.z), z: CAM.pos.z }, 4); } });
 QW.SW = SW; QW.surfAt = (x, z) => surfAt(x ?? CAM.pos.x, z ?? CAM.pos.z);
 function sndOn() { return soundOn && LAYER.worn.includes("sound") && (QW.mode === "walk" || QW.mode === "sight"); }
@@ -2264,6 +2274,7 @@ function stepSoundscape(dt) {
     if (it.kind === "water") { L2.next -= dt; if (L2.next <= 0) { drop(L2.g); L2.next = .12 + Math.random() * .7; } }
     if (it.kind === "leaves") { L2.next -= dt; if (L2.next <= 0) { L2.gust = .25 + Math.random() * .75; L2.next = 1.5 + Math.random() * 3.5; } L2.am.gain.setTargetAtTime(.05 + .32 * L2.gust, t, .9); L2.gust *= Math.exp(-dt * .5); SND.pulse = Math.max(SND.pulse || 0, L2.gust * .5); }
   }
+  SS.update(dt, sessionWeights());
   SW.update(dt, { x: cp.x, z: cp.z, yaw: vy, moving: WALK.moving && QW.mode === "walk", surface: QW.mode === "walk" ? surfAt(CAM.pos.x, CAM.pos.z) : null });
   if (on && WALK.moving && QW.mode === "walk") { const n = nearestOnLine(cp.x, cp.z); if (n.d > 1897) { SND.step += dt; if (SND.step > .56) { SND.step = 0; gravelStep(); SND.stepRing = { x: CAM.pos.x, z: CAM.pos.z, t: 0 }; } } }
   stepViz(dt);
