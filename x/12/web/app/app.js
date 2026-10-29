@@ -923,7 +923,7 @@ const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y1");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y2");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     const cp = camera.position, used = [];
     for (const kind of ["shizuku", "ishi"]) {
