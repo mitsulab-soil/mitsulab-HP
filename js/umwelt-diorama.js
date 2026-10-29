@@ -24,17 +24,26 @@ export async function bootDiorama(fig, kind, labs) {
   { const d = new THREE.DirectionalLight(0xfff0d8, 2.5); d.position.set(-5, 9, 6); S.add(d); const r = new THREE.DirectionalLight(0xbfdcff, .7); r.position.set(6, 3, -5); S.add(r); }
   const W = 6, D = 4, SOIL = 1.4;    // 区画の幅・奥行き・土の深さ
   const stage = new THREE.Group(); S.add(stage);
+  S.fog = new THREE.Fog(0x070b12, two ? 30 : 22, two ? 70 : 48);   // 奥ほど霞む（没入の奥行き）
   const FAINT = (m, on) => { m.transparent = true; m.opacity = on ? 1 : .55; m.depthWrite = on; return m; };
 
   // 石畳の上面
   const TL = new THREE.TextureLoader();
   const pc = TL.load('img/hero/3d/ql_paving_c.webp'); pc.colorSpace = THREE.SRGBColorSpace; pc.wrapS = pc.wrapT = THREE.RepeatWrapping; pc.repeat.set(3, 2); pc.anisotropy = 8;
   const pn = TL.load('img/hero/3d/ql_paving_n.webp'); pn.wrapS = pn.wrapT = THREE.RepeatWrapping; pn.repeat.set(3, 2);
-  const top = new THREE.Mesh(new THREE.BoxGeometry(W, .08, D), new THREE.MeshStandardMaterial({ map: pc, normalMap: pn, roughness: .9, color: 0xd6cebf })); top.position.y = -.04; stage.add(top);
+  const tex = (u, rep, srgb) => { const t = TL.load(u); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.anisotropy = 8; return t; };
+  // 2026-10-29 地面をフォトリアルに：石畳（ambientCG PavingStones133・CC0）に粗さと陰の地図、欅の側は落ち葉の林床（Poly Haven forest_leaves_02・CC0）、断面は畑の土の写真（Poly Haven farm_soil・CC0）
+  const top = new THREE.Mesh(new THREE.BoxGeometry(W, .08, D), new THREE.MeshStandardMaterial({ map: pc, normalMap: pn, roughnessMap: tex('img/hero/3d/dio/paving_r.webp', [3, 2]), aoMap: tex('img/hero/3d/dio/paving_ao.webp', [3, 2]), aoMapIntensity: .9, roughness: 1, color: 0xd6cebf })); top.position.y = -.04; stage.add(top);
+  { const am = canvasTex((x, w, h) => { x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); const g = x.createLinearGradient(0, 0, w * .42, 0); g.addColorStop(0, '#000'); g.addColorStop(1, '#fff'); x.fillStyle = g; x.fillRect(0, 0, w * .42, h);
+      for (let i = 0; i < 420; i++) { const yy = Math.random() * h, xx = Math.pow(Math.random(), 1.6) * w * .5, v = Math.floor(Math.random() * 120); x.fillStyle = `rgba(${v},${v},${v},.55)`; x.beginPath(); x.ellipse(xx, yy, 3 + Math.random() * 14, 2 + Math.random() * 8, Math.random() * 3, 0, 6.283); x.fill(); }
+      for (let i = 0; i < 260; i++) { const yy = Math.random() * h, xx = w * .05 + Math.random() * w * .35; x.fillStyle = 'rgba(255,255,255,.5)'; x.beginPath(); x.ellipse(xx, yy, 2 + Math.random() * 7, 1.5 + Math.random() * 5, Math.random() * 3, 0, 6.283); x.fill(); } }, 512, 512, false);
+    const FW = W / 2 + .1 - .15, fl = new THREE.Mesh(new THREE.PlaneGeometry(FW, D), new THREE.MeshStandardMaterial({ map: tex('img/hero/3d/dio/leaves_c.webp', [1.3, 1.3], true), normalMap: tex('img/hero/3d/dio/leaves_n.webp', [1.3, 1.3]), normalScale: new THREE.Vector2(1.2, 1.2), roughnessMap: tex('img/hero/3d/dio/leaves_r.webp', [1.3, 1.3]), alphaMap: am, transparent: true, depthWrite: false, roughness: 1, color: 0xa8a493 }));
+    fl.rotation.x = -Math.PI / 2; fl.position.set(W / 2 - FW / 2, .002, 0); stage.add(fl); }
   // 土の断面（層位の帯：表土・心土）
   const soilTex = canvasTex((x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#4a3826'); g.addColorStop(.35, '#5e4630'); g.addColorStop(.36, '#7a6040'); g.addColorStop(1, '#8a7050'); x.fillStyle = g; x.fillRect(0, 0, w, h);
     for (let i = 0; i < 2600; i++) { const v = Math.random(); x.fillStyle = v < .5 ? 'rgba(30,20,10,.35)' : 'rgba(200,180,140,.18)'; const r = Math.random() * 2.4; x.beginPath(); x.arc(Math.random() * w, Math.random() * h, r, 0, 6.283); x.fill(); } }, 1024, 256);
-  const soil = new THREE.Mesh(new THREE.BoxGeometry(W, SOIL, D), [0, 1, 2, 3, 4, 5].map(i => new THREE.MeshStandardMaterial({ map: i === 2 || i === 3 ? null : soilTex, color: i === 2 || i === 3 ? 0x3c2e20 : 0xffffff, roughness: 1 })));
+  const soilPh = tex('img/hero/3d/dio/soil_c.webp', [2.4, .6], true), soilN = tex('img/hero/3d/dio/soil_n.webp', [2.4, .6]);
+  const soil = new THREE.Mesh(new THREE.BoxGeometry(W, SOIL, D), [0, 1, 2, 3, 4, 5].map(i => new THREE.MeshStandardMaterial({ map: i === 2 || i === 3 ? null : soilPh, normalMap: i === 2 || i === 3 ? null : soilN, color: i === 2 || i === 3 ? 0x3c2e20 : 0xffffff, roughness: 1 })));
   soil.position.y = -.08 - SOIL / 2; stage.add(soil);
 
   // 主体：人（区画の中に立つ）
@@ -43,6 +52,14 @@ export async function bootDiorama(fig, kind, labs) {
   const TREE = new THREE.Vector3(1.6, 0, -.9), TRUNK = new THREE.Vector3(1.6, 1.1, -.9), BIRD = new THREE.Vector3(1.2, 3.1, -.6), FLOWER = new THREE.Vector3(.2, .42, 1.1);
   const ROOTS = new THREE.Vector3(1.6, -.6, -.9), OLD = new THREE.Vector3(-1.4, -.32, 1.95), BAT = new THREE.Vector3(-2.3, 1.7, 1.3), TORII = new THREE.Vector3(-2.1, 0, -1.4);
   const reached = new THREE.Group(), hidden = new THREE.Group(); stage.add(reached, hidden);
+  // 身体の感覚が届く範囲（1.0＝元々の環世界）。足もとに淡い光の輪と、薄い半球。2.0 では層とともに広がる
+  const reach = new THREE.Group(); reach.position.set(P.x, .01, P.z); stage.add(reach);
+  { const rt = canvasTex((x, w, h) => { const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(220,240,255,.0)'); g.addColorStop(.72, 'rgba(220,240,255,.035)'); g.addColorStop(.95, 'rgba(230,245,255,.34)'); g.addColorStop(1, 'rgba(230,245,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }, 512, 512);
+    const disc = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: rt, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); disc.rotation.x = -Math.PI / 2; reach.add(disc);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24, 0, 6.283, 0, Math.PI / 2), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { uA: { value: two ? .07 : .1 } },
+      vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 w = modelViewMatrix*vec4(position,1.); vN = normalize(normalMatrix*normal); vV = normalize(-w.xyz); gl_Position = projectionMatrix*w; }',
+      fragmentShader: 'uniform float uA; varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1. - abs(dot(normalize(vN), normalize(vV))), 3.4); gl_FragColor = vec4(vec3(.82,.92,1.), f * uA); }' })); reach.add(dome); }
+  const R0 = 1.75; reach.scale.set(R0, 1.25, R0);
 
   // 花：色（届く）と、紫外線の模様（届かない＝花の上に淡い的として）
   { const f = new THREE.Group(); f.position.copy(FLOWER).setY(0); stage.add(f);
@@ -64,7 +81,7 @@ export async function bootDiorama(fig, kind, labs) {
     for (let i = 0; i < 120; i++) { const a = rnd() * 6.283, r = .3 + rnd() * 1.4, y = -.15 - rnd() * .9; const x = TREE.x + Math.cos(a) * r, z = TREE.z + Math.sin(a) * r; P2.push(x, y, z, x + (rnd() - .5) * .25, y + (rnd() - .5) * .15, z + (rnd() - .5) * .25); }
     const roots = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P2, 3)), FAINT(new THREE.LineBasicMaterial({ color: 0xf2e6cc }), two)); stage.add(roots);
     // 断面の手前に見えるよう、土の箱を少し透かす
-    soil.material.forEach((m, i) => { m.transparent = true; m.opacity = (i === 4 || i === 0) ? .34 : .9; m.depthWrite = false; }); }
+    soil.material.forEach((m, i) => { if (m.map) m.color.setScalar(1.45); m.transparent = true; m.opacity = (i === 4 || i === 0) ? .34 : .9; m.depthWrite = false; }); }
   // 古い参道の礫（断面に見える、昔の道の跡）
   { const m = FAINT(new THREE.MeshStandardMaterial({ color: 0xb8a582, roughness: .9 }), two); for (let i = 0; i < 40; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(.035 + Math.random() * .03, 6, 4), m); s.position.set(OLD.x + (Math.random() - .5) * 1.6, OLD.y + (Math.random() - .5) * .1, 1.96); s.scale.z = .4; stage.add(s); } }
   // 鳥（届く：鳴き声）
@@ -79,7 +96,7 @@ export async function bootDiorama(fig, kind, labs) {
   // 高すぎて聞こえない音（コウモリの超音波の模式・届かない）：細かい弧
   const ultra = new THREE.Group(); ultra.position.copy(BAT); stage.add(ultra);
   { // 音の出どころ：小さなコウモリ（模式）。体と、膜の張った二枚の翼
-    const bm = new THREE.MeshStandardMaterial({ color: 0x8a8088, roughness: .85, side: THREE.DoubleSide }); const bat = new THREE.Group(); bat.position.set(-.3, -.02, 0); bat.scale.setScalar(2.2); ultra.add(bat);
+    const bm = new THREE.MeshStandardMaterial({ color: 0x8a8088, roughness: .85, side: THREE.DoubleSide }); const bat = new THREE.Group(); bat.name = 'batPrim'; bat.position.set(-.3, -.02, 0); bat.scale.setScalar(2.2); ultra.add(bat);
     const body = new THREE.Mesh(new THREE.SphereGeometry(.05, 12, 8), bm); body.scale.set(1.5, .8, .8); bat.add(body);
     const ws = new THREE.Shape(); ws.moveTo(0, 0); ws.lineTo(.26, .1); ws.lineTo(.24, .02); ws.lineTo(.18, -.03); ws.lineTo(.12, -.01); ws.lineTo(.06, -.05); ws.lineTo(0, -.03);
     for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.ShapeGeometry(ws), bm); w.rotation.x = -Math.PI / 2 + .3 * s; w.rotation.y = s > 0 ? 0 : Math.PI; w.position.z = 0; w.scale.set(1, 1, 1); w.rotation.z = s * .2; bat.add(w); } }
@@ -87,10 +104,10 @@ export async function bootDiorama(fig, kind, labs) {
 
   // 作り込み：土の層位の帯と札・ミミズ・小さな土の生き物・段差（縁石）・丁石・ミツバチ
   { const hz = [[-.08, -.3, 0x3a2a1a, 'A'], [-.3, -.85, 0x5a4430, 'B'], [-.85, -1.48, 0x7a6448, 'C']];
-    hz.forEach(([y0, y1, c, n]) => { const b = new THREE.Mesh(new THREE.PlaneGeometry(W, y0 - y1), new THREE.MeshStandardMaterial({ color: c, roughness: 1, transparent: true, opacity: .55 })); b.position.set(0, (y0 + y1) / 2, D / 2 + .003); stage.add(b);
+    hz.forEach(([y0, y1, c, n]) => { const b = new THREE.Mesh(new THREE.PlaneGeometry(W, y0 - y1), new THREE.MeshStandardMaterial({ color: c, roughness: 1, transparent: true, opacity: .3 })); b.position.set(0, (y0 + y1) / 2, D / 2 + .003); stage.add(b);
       const l = new THREE.Mesh(new THREE.PlaneGeometry(W, .006), new THREE.MeshBasicMaterial({ color: 0xd8c8a8, transparent: true, opacity: .5 })); l.position.set(0, y1, D / 2 + .004); stage.add(l); }); }
   { const wm = FAINT(new THREE.MeshStandardMaterial({ color: 0xc08070, roughness: .6 }), two);
-    [[.6, -.5, 1.98, 0], [1.9, -.95, 1.98, 1.4], [-.4, -1.1, 1.98, .6]].forEach(([x, y, z, r]) => { const c = new THREE.CatmullRomCurve3([new THREE.Vector3(-.18, 0, 0), new THREE.Vector3(-.06, .05, 0), new THREE.Vector3(.06, -.04, 0), new THREE.Vector3(.18, .02, 0)]); const m = new THREE.Mesh(new THREE.TubeGeometry(c, 20, .018, 6), wm); m.position.set(x, y, z); m.rotation.z = r; stage.add(m); });
+    [[.6, -.5, 1.98, 0], [1.9, -.95, 1.98, 1.4], [-.4, -1.1, 1.98, .6]].forEach(([x, y, z, r]) => { const c = new THREE.CatmullRomCurve3([new THREE.Vector3(-.18, 0, 0), new THREE.Vector3(-.06, .05, 0), new THREE.Vector3(.06, -.04, 0), new THREE.Vector3(.18, .02, 0)]); const m = new THREE.Mesh(new THREE.TubeGeometry(c, 20, .018, 6), wm); m.position.set(x, y, z); m.rotation.z = r; m.userData.worm = 1; stage.add(m); });
     const mm = FAINT(new THREE.MeshStandardMaterial({ color: 0xe8dcc0 }), two); for (let i = 0; i < 24; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(.012, 6, 4), mm); s.position.set((Math.random() - .5) * W * .9, -.12 - Math.random() * .5, D / 2 + .01); stage.add(s); } }
   { const kerb = new THREE.Mesh(new THREE.BoxGeometry(W, .12, .22), new THREE.MeshStandardMaterial({ color: 0x8c8780, roughness: .9 })); kerb.position.set(0, .02, -D / 2 + .11); stage.add(kerb);
     const step = new THREE.Mesh(new THREE.BoxGeometry(W, .1, .5), new THREE.MeshStandardMaterial({ color: 0x6f6a62, roughness: .95 })); step.position.set(0, .1, -D / 2 + .25); step.scale.x = .999; stage.add(step);
@@ -100,6 +117,14 @@ export async function bootDiorama(fig, kind, labs) {
   { const bm = new THREE.MeshStandardMaterial({ color: 0xd8a02a, roughness: .6 }); const b = new THREE.Mesh(new THREE.SphereGeometry(.03, 10, 8), bm); b.scale.set(1.6, 1, 1); bee.add(b);
     const st = new THREE.Mesh(new THREE.TorusGeometry(.026, .006, 4, 16), new THREE.MeshStandardMaterial({ color: 0x2a2018 })); st.rotation.y = Math.PI / 2; bee.add(st);
     const wm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .5, side: THREE.DoubleSide }); for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.CircleGeometry(.03, 10), wm); w.position.set(0, .03, s * .03); w.rotation.x = -Math.PI / 2 + s * .5; bee.add(w); } }
+  // 2026-10-29 生き物を写実に：シジュウカラ・コウモリ・ミツバチ・ミミズを、図鑑の形態（脚・翅・指・体節）で組んだ共通部品に替える
+  (async () => { try { const C = await import('./kit/creatures.js');
+    const swap = (grp, make, sc, rot, pos) => { const o = make(); o.scale.setScalar(sc); if (rot) o.rotation.set(rot[0], rot[1], rot[2]); if (pos) o.position.set(pos[0], pos[1], pos[2]); return o; };
+    while (bird.children.length) bird.remove(bird.children[0]); { const o = swap(bird, C.makeTit, .6, [0, Math.PI / 2, 0], [0, -.08, 0]); bird.add(o); animals.push(o); }
+    const bp = ultra.getObjectByName('batPrim'); if (bp) { ultra.remove(bp); { const o = swap(ultra, C.makeBat, .55, [.45, Math.PI / 2 + .3, 0], [-.3, -.05, 0]); ultra.add(o); animals.push(o); } }
+    while (bee.children.length) bee.remove(bee.children[0]); { const o = swap(bee, C.makeBee, .12, [0, -Math.PI / 2, 0]); bee.add(o); animals.push(o); }
+    stage.children.filter(m => m.userData.worm).forEach(m => { const w = C.makeWorm(); w.scale.setScalar(.36); w.position.copy(m.position); w.rotation.set(0, Math.PI / 2, m.rotation.z); w.traverse(o => { if (o.isMesh && o.material) { o.material = o.material.clone(); FAINT(o.material, two); } }); stage.remove(m); stage.add(w); });
+  } catch (e) { console.warn('creatures', e); } })();
   // 人と欅（模型）
   (async () => { try {
     // 2026-10-28 人の 3D を写実に近い姿へ（MakeHuman の CC0 の資産から作った human.glb。肌と服は写真の質感、つやを抑えたマットな材質）
@@ -107,7 +132,7 @@ export async function bootDiorama(fig, kind, labs) {
     man.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt) { mt.metalness = 0; mt.roughness = /eye/i.test(m.name) ? .35 : .82; if (mt.map) mt.map.anisotropy = 4; if (/suit/i.test(m.name)) mt.color.setRGB(.86, .86, .88); if (/short|hair|brow/i.test(m.name)) { mt.alphaTest = .5; mt.transparent = false; mt.side = THREE.DoubleSide; } } } });
     const bb = new THREE.Box3().setFromObject(man.scene), sz = bb.getSize(new THREE.Vector3()), sc = 1.7 / sz.y;
     man.scene.scale.setScalar(sc); man.scene.position.set(P.x - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, P.z - (bb.min.z + sz.z / 2) * sc); man.scene.rotation.y = 1.0; stage.add(man.scene);
-    const bark = new THREE.MeshStandardMaterial({ color: 0x6d5d4c, roughness: .95 });
+    const bark = new THREE.MeshStandardMaterial({ color: 0xb8aa98, roughness: .95, map: tex('img/hero/3d/dio/bark_c.webp', [2, 4], true), normalMap: tex('img/hero/3d/dio/bark_n.webp', [2, 4]) });   // 樹皮＝Poly Haven japanese_zelkova_bark（CC0）
     const leaf = new THREE.MeshStandardMaterial({ color: 0xb9cd97, roughness: .8, side: THREE.DoubleSide, alphaTest: .45 });
     try { const lt = await TL.loadAsync('img/hero/3d/keyaki_leaf_atlas.png'); lt.flipY = false; lt.colorSpace = THREE.SRGBColorSpace; leaf.map = lt; } catch (e) {}
     const tree = new THREE.Group(); tg.scene.updateMatrixWorld(true);
@@ -117,8 +142,12 @@ export async function bootDiorama(fig, kind, labs) {
   } catch (e) { console.warn('diorama', e); } })();
 
   // 手がかりの線（人→もの）
-  const lineTo = (a, b, col, dash) => { const g = new THREE.BufferGeometry().setFromPoints([a, b]); const m = dash ? new THREE.LineDashedMaterial({ color: col, dashSize: .08, gapSize: .06, transparent: true, opacity: .95 }) : new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .95 }); const l = new THREE.Line(g, m); if (dash) l.computeLineDistances(); stage.add(l); return l; };
-  const dot = (p, col) => { const d = new THREE.Mesh(new THREE.SphereGeometry(.035, 12, 8), new THREE.MeshBasicMaterial({ color: col })); d.position.copy(p); stage.add(d); return d; };
+  const flows = [], animals = []; let waveU = null; const flowGeo = new THREE.SphereGeometry(.021, 10, 8);
+  const lineTo = (a, b, col, dash, mid) => { const cv = mid ? new THREE.QuadraticBezierCurve3(a.clone(), mid.clone(), b.clone()) : null; const L0 = lineTo0(a, b, col, dash, cv); const n = Math.max(1, Math.round(a.distanceTo(b) / 1.8)); const ms = [];
+    for (let k = 0; k < n; k++) { const m = new THREE.Mesh(flowGeo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); stage.add(m); ms.push(m); }
+    flows.push({ a: a.clone(), b: b.clone(), cv, ms, line: L0, base: null, ph: Math.random(), sp: .22 / Math.max(.6, a.distanceTo(b)) * 1.6 }); return L0; };
+  const lineTo0 = (a, b, col, dash, cv) => { const g = new THREE.BufferGeometry().setFromPoints(cv ? cv.getPoints(32) : [a, b]); const m = dash ? new THREE.LineDashedMaterial({ color: col, dashSize: .08, gapSize: .06, transparent: true, opacity: .95 }) : new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .95 }); m.fog = false; const l = new THREE.Line(g, m); if (dash) l.computeLineDistances(); stage.add(l); return l; };
+  const dots = []; const dot = (p, col) => { const d = new THREE.Mesh(new THREE.SphereGeometry(.035, 12, 8), new THREE.MeshBasicMaterial({ color: col, transparent: true, fog: false })); d.position.copy(p); stage.add(d); dots.push(d); return d; };
   const BODY = 0xffffff;
   // 1.0・2.0 共通：身体で届くもの
   // 2026-10-28 P2：線が人の頭の上で細かく重ならないよう、線は顔から少し離れた所から出す（2.0 では身体の線を一段淡く）
@@ -128,57 +157,67 @@ export async function bootDiorama(fig, kind, labs) {
 
   if (two && !window.__sandoMeta) { try { window.__sandoMeta = await fetch('img/hero/sando_wire.json').then(r => r.json()); } catch (e) { window.__sandoMeta = null; } }
   let aoiTick = null; const sideLabs = [];
-  const layerYs = [3.7, 4.5, 5.3, 6.1];
+  const layerYs = mobile ? [3.2, 3.75, 4.3, 4.85] : [3.5, 4.2, 4.9, 5.6];
   let layers = [];
   if (two) {
     // 情報の層（地図のレイヤーのような、平らで透けた板）。下から 地形・歴史・生き物・音
     const EN = { '地形 ── 等高線（標高・国土地理院の数値地図より・模式）': 'Terrain: contour lines (elevation, GSI data; schematic)', '昔の道（古い地図に残る道筋）': 'Old path (as on old maps)', '鳥居': 'Torii', '丁石（道のりの石）': 'Distance stone', '歴史 ── 記録と古い地図（模式）': 'History: records and old maps (schematic)', 'ケヤキ': 'Zelkova', 'ミツバチ（紫外線で花を見る）': 'Honeybee (sees UV on flowers)', 'シジュウカラ': 'Japanese tit', 'ミミズ・菌糸（土の中）': 'Earthworms, fungi (in soil)', '生き物 ── 記録された生き物（模式）': 'Living things: recorded species (schematic)', '人に聞こえる音': 'Human hearing', 'コウモリの声': 'Bat calls', '音 ── 周波数（対数・模式）': 'Sound: frequency (log scale; schematic)' };
     const tr = s => (document.documentElement.dataset.lang === 'en' && EN[s]) || s;
-    const lab = (x, s, px, py, col, size = 22) => { s = tr(s); size = Math.round(size * 1.6); x.font = `600 ${size}px "Noto Sans JP", sans-serif`; x.fillStyle = col; x.fillText(s, px, py); };
+    const lab = (x, s, px, py, col, size = 22) => { s = tr(s); size = Math.round(size * 1.6); x.font = `500 ${Math.round(size * .78)}px "Shippori Mincho", "Noto Serif JP", serif`; x.fillStyle = col; x.fillText(s, px, py); };
     const L = [
       [0x8fe3c8, (x, w, h) => { // 実データ：国土地理院 DEM5A から作った 1 m 間隔の等高線（氷川参道のまわり 240 m × 160 m を、この板に縮めて描く）
         const M = window.__sandoMeta; if (!M) return; const C = M.center, o = C[Math.floor(C.length * .55)], HW = 260, HD = 175;
         x.lineCap = 'round'; const seen = {};
-        for (const [e, xs] of M.contours) { x.strokeStyle = '#b4ffe0'; x.lineWidth = e % 5 === 0 ? 8 : 5; x.beginPath(); let on = false;
+        for (const [e, xs] of M.contours) { x.strokeStyle = 'rgba(180,255,224,' + (e % 5 === 0 ? .62 : .44) + ')'; x.lineWidth = e % 5 === 0 ? 3.6 : 2.6; x.beginPath(); let on = false;
           for (let i = 0; i + 1 < xs.length; i += 2) { const px = (xs[i] - o[0] + HW) / (2 * HW) * w, py = (xs[i + 1] - o[2] + HD) / (2 * HD) * h; const inside = px > -20 && px < w + 20 && py > -20 && py < h + 20;
             if (inside) { on ? x.lineTo(px, py) : x.moveTo(px, py); on = true; if (!seen[e] && px > w * .1 && px < w * .9 && py > h * .1 && py < h * .9) seen[e] = [px, py]; } else on = false; }
           x.stroke(); }
-        Object.entries(seen).forEach(([e, [px, py]]) => { x.fillStyle = 'rgba(8,16,24,.75)'; x.fillRect(px - 4, py - 34, 96, 40); lab(x, (+e).toFixed(0) + ' m', px + 2, py - 6, '#bff5e2', 26); }); }],
+        Object.entries(seen).forEach(([e, [px, py]]) => { lab(x, (+e).toFixed(0) + ' m', px + 4, py - 6, 'rgba(210,250,236,.8)', 22); }); }],
       [0xf2c56e, (x, w, h) => { x.strokeStyle = '#f2c56e'; x.lineWidth = 7; x.setLineDash([26, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .45, h * .1); x.stroke(); x.setLineDash([]); x.lineWidth = 5; x.strokeRect(w * .18, h * .05, w * .2, h * .12);
         x.beginPath(); x.arc(w * .5, h * .86, 7, 0, 6.283); x.fillStyle = '#f2c56e'; x.fill(); }],
-      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3, 'ケヤキ'], [.6, .78, 'ミツバチ（紫外線で花を見る）'], [.3, .55, 'シジュウカラ'], [.84, .82, 'ミミズ・菌糸（土の中）']].forEach(([u, v, n]) => { x.beginPath(); x.arc(u * w, v * h, 12, 0, 6.283); x.fill(); for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283; x.beginPath(); x.moveTo(u * w, v * h); x.lineTo(u * w + Math.cos(a) * 46, v * h + Math.sin(a) * 34); x.stroke(); } }); }],
-      [0xa8f2f6, (x, w, h) => { x.strokeStyle = '#a8f2f6'; x.lineWidth = 5; [[.12, .3], [.7, .26]].forEach(([u, v]) => { for (let k = 1; k <= 6; k++) { x.globalAlpha = 1 - k * .13; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1;
+      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3, 'ケヤキ'], [.6, .78, 'ミツバチ（紫外線で花を見る）'], [.3, .55, 'シジュウカラ'], [.84, .82, 'ミミズ・菌糸（土の中）']].forEach(([u, v, n]) => { x.globalAlpha = .75; x.beginPath(); x.arc(u * w, v * h, 6, 0, 6.283); x.fill(); x.globalAlpha = .35; x.beginPath(); x.arc(u * w, v * h, 16, 0, 6.283); x.stroke(); x.globalAlpha = 1; lab(x, n, u * w + 14, v * h - 10, 'rgba(225,215,255,.85)', 16); }); }],
+      [0xa8f2f6, (x, w, h) => { x.strokeStyle = 'rgba(168,242,246,.6)'; x.lineWidth = 3; [[.12, .3], [.7, .26]].forEach(([u, v]) => { for (let k = 1; k <= 3; k++) { x.globalAlpha = .4 - k * .1; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1;
         // 周波数の目盛り（対数）：人に聞こえるのはおよそ 20 Hz〜20 kHz、コウモリの声は 20 kHz より高い（模式）
         const y0 = h * .82, x0 = w * .08, x1 = w * .92, f = v => x0 + (Math.log10(v) - 1) / 4 * (x1 - x0); x.lineWidth = 3; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y0); x.stroke();
-        [[10, '10 Hz'], [1000, '1 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { x.beginPath(); x.moveTo(f(v), y0 - 10); x.lineTo(f(v), y0 + 10); x.stroke(); x.fillStyle = 'rgba(8,16,24,.75)'; x.fillRect(f(v) - 30, y0 + 14, 150, 40); lab(x, s, f(v) - 26, y0 + 46, '#d4fbfd', 20); });
+        [[10, '10 Hz'], [1000, '1 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { x.beginPath(); x.moveTo(f(v), y0 - 10); x.lineTo(f(v), y0 + 10); x.stroke(); lab(x, s, f(v) - 20, y0 + 40, 'rgba(212,251,253,.8)', 18); });
         x.fillStyle = 'rgba(168,242,246,.28)'; x.fillRect(f(20), y0 - 26, f(20000) - f(20), 14);
         x.fillStyle = 'rgba(242,197,110,.4)'; x.fillRect(f(20000), y0 - 26, f(100000) - f(20000), 14); }]];
     const texs = [];
+    // 2026-10-29 本人「薄い布状のオーロラのような層が混ざり合う」：直方体の板をやめ、ノイズで波打つ薄い面に。縁は溶かし、色は加算で混ざる
+    waveU = { uT: { value: 0 } };
+    const wavy = (mat, ph, amp = .16, edge = true, rb = true) => { mat.fog = false; mat.onBeforeCompile = sh => { sh.uniforms.uT = waveU.uT; sh.uniforms.uPh = { value: ph }; sh.uniforms.uAmp = { value: amp };
+        sh.uniforms.uRib = { value: rb ? 1 : 0 }; sh.vertexShader = 'uniform float uT; uniform float uPh; uniform float uAmp; varying vec2 vUv2;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+          vUv2 = uv; float w = sin(position.x * 1.1 + uT * .35 + uPh) * .55 + sin(position.y * 1.7 - uT * .27 + uPh * 2.) * .35 + sin((position.x + position.y) * 2.6 + uT * .5) * .12;
+          transformed.z += w * uAmp;`);
+        if (edge) sh.fragmentShader = 'varying vec2 vUv2; uniform float uT; uniform float uRib;\n' + sh.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>
+          vec2 q = abs(vUv2 - .5) * 2.; float e = (1. - smoothstep(.55, 1., q.x)) * (1. - smoothstep(.45, 1., q.y));
+          float rib = pow(.5 + .5 * sin(vUv2.x * 7.3 + uT * .25 + sin(vUv2.y * 4. + uT * .2) * 1.4), 2.2) * .85 + .15;
+          float rim = smoothstep(.35, .8, q.y) * (1. - smoothstep(.8, 1., q.y)); gl_FragColor.rgb += gl_FragColor.rgb * rim * .35;
+          gl_FragColor.a *= e * (uRib > .5 ? rib : 1.);`); }; return mat; };
     new MutationObserver(() => texs.forEach(([tx, draw]) => { const c = tx.image, x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); draw(x, c.width, c.height); tx.needsUpdate = true; })).observe(document.documentElement, { attributes: true, attributeFilter: ['data-lang'] });
     L.forEach(([col, draw], i) => {
       const g = new THREE.Group(); g.position.y = layerYs[i]; stage.add(g);
-      const fill = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .16, depthWrite: false, side: THREE.DoubleSide })); fill.rotation.x = -Math.PI / 2; g.add(fill);
-      const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ map: (() => { const tx = canvasTex((x, w, h) => { draw(x, w, h); }, 1024, 680); texs.push([tx, draw]); return tx; })(), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide })); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
-      const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W, .001, D)), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .9 })); g.add(e);
+      for (let k = 0; k < 2; k++) { const veil = new THREE.Mesh(new THREE.PlaneGeometry(W * (1.2 - k * .15), D * (.85 - k * .2), 56, 30), wavy(new THREE.MeshBasicMaterial({ color: new THREE.Color(col).offsetHSL(0, .45, -.2), transparent: true, opacity: .24 - k * .08, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }), i * 1.7 + k * 2.3, .28 + k * .1));
+        veil.rotation.x = -Math.PI / 2; veil.rotation.z = (i % 2 ? .06 : -.06); veil.position.y = (k ? .1 : -.03); veil.position.z = (k ? .35 : -.25); veil.position.x = (k ? .3 : -.1) * (i % 2 ? 1 : -1); g.add(veil); }
+      const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D, 48, 32), wavy(new THREE.MeshBasicMaterial({ map: (() => { const tx = canvasTex((x, w, h) => { draw(x, w, h); }, 1024, 680); texs.push([tx, draw]); return tx; })(), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide }), i * 1.7, .16, true, false)); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
+      
       { const SL = [['地形', '等高線 1 m ごと（国土地理院 DEM5A）', 'Terrain', '1 m contours (GSI DEM5A)'], ['歴史', '昔の道・鳥居・丁石', 'History', 'old path, torii, stones'], ['生き物', 'ケヤキ・ミツバチ・シジュウカラ', 'Living things', 'zelkova, honeybee, tit'], ['音', '人 〜20 kHz・コウモリ 20 kHz〜', 'Sound', 'human ≤20 kHz, bats 20 kHz+']][i];
         const el = document.createElement('div'); el.className = 'qx-sl'; el.style.setProperty('--c', '#' + new THREE.Color(col).getHexString()); fig.appendChild(el);
         const fill = () => { const en = document.documentElement.dataset.lang === 'en'; el.innerHTML = '<b>' + (en ? SL[2] : SL[0]) + '</b><span>' + (en ? SL[3] : SL[1]) + '</span>'; }; fill(); texs.push([{ image: document.createElement('canvas') }, () => fill()]);
         const an = new THREE.Object3D(); an.position.set(W / 2 + .1, 0, -D / 2 + .3); g.add(an); sideLabs.push([el, an]); }
-      { const slab = new THREE.Mesh(new THREE.BoxGeometry(W, .09, D), new THREE.MeshStandardMaterial({ color: col, transparent: true, opacity: i === 0 ? .2 : .09, roughness: .3, metalness: 0, depthWrite: false })); slab.position.y = -.05; g.add(slab);
-        const ed = new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .7 })); ed.position.y = -.05; g.add(ed); }
-      if (i < 3) for (let k = 1; k <= 3; k++) { const sh = new THREE.Mesh(new THREE.PlaneGeometry(W * .995, D * .995), new THREE.MeshBasicMaterial({ color: 0xcfe6ee, transparent: true, opacity: .045, depthWrite: false, side: THREE.DoubleSide })); sh.rotation.x = -Math.PI / 2; sh.position.y = (layerYs[i + 1] - layerYs[i]) * k / 4; g.add(sh);
-        const e2 = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(W * .995, D * .995)), new THREE.LineBasicMaterial({ color: 0xcfe6ee, transparent: true, opacity: .25 })); e2.rotation.x = -Math.PI / 2; e2.position.y = sh.position.y; g.add(e2); }
+      // 直方体の板・枠・あいだの薄板は使わない（2026-10-29）
       layers.push(g);
     });
     // 層を通してつながる：人→層→（届かなかったもの）。縦の線は層への出入り
     // 依代＝環境エージェント（2026-10-28 本人）：碧が人のそばに立ち、主体と情報の層のあいだをつなぐ。層のそばに小さな依代（Qualium の共通部品の現行版）を置く
     const AOI = new THREE.Vector3(.45, 0, -.1), AOIH = new THREE.Vector3(.45, 1.55, -.1);
     lineTo(off(EYE, AOIH, .26), AOIH, 0xa8f2f6, false); dot(AOIH, 0xa8f2f6);
-    const top = new THREE.Vector3(AOIH.x, layerYs[layerYs.length - 1], AOIH.z); lineTo(AOIH, top, 0xa8f2f6, false); dot(top, 0xa8f2f6);
+    const top = new THREE.Vector3(AOIH.x, layerYs[layerYs.length - 1], AOIH.z); lineTo(AOIH, top, 0xa8f2f6, false, new THREE.Vector3(AOIH.x - .9, (AOIH.y + top.y) / 2, AOIH.z + .5)); dot(top, 0xa8f2f6);
     { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const gr = x.createRadialGradient(128, 128, 30, 128, 128, 128); gr.addColorStop(0, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 256, 256);
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.1, D * 1.1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .015; stage.add(sh); }
-    const via = (layerI, target, col) => { const y = layerYs[layerI]; const up = new THREE.Vector3(AOIH.x, y, AOIH.z), dn = new THREE.Vector3(target.x, y, target.z);
-      lineTo(up, dn, col, false); lineTo(dn, target, col, true); dot(up, col); dot(dn, col); dot(target, col); };
+    const via = (layerI, target, col) => { const y = layerYs[layerI]; const out = new THREE.Vector3(target.x - P.x, 0, target.z - P.z).normalize();
+      const up = new THREE.Vector3(target.x + out.x * .5, y - .05, target.z + out.z * .5), mid = new THREE.Vector3(target.x + out.x * .9, (y + target.y) / 2, target.z + out.z * .9);
+      lineTo(up, target, col, true, mid); dot(up, col); dot(target, col); };
     via(0, ROOTS, 0x8fe3c8); via(1, OLD, 0xf2c56e); via(2, FLOWER.clone().setY(.46), 0xc9b8ff); via(3, BAT.clone().add(new THREE.Vector3(-.75, .12, 0)), 0xa8f2f6);
     (async () => { try {
       const g = await gltf('js/kit/envAgents/kasane.glb'); const proto = g.scene; const bb = new THREE.Box3().setFromObject(proto), h = bb.max.y - bb.min.y;
@@ -200,12 +239,20 @@ export async function bootDiorama(fig, kind, labs) {
   }
 
   // 札の置き場（図の下に並べるので、ここでは使わない）
-  const fitW = two ? (mobile ? 11.6 : 10.6) : 7.4, fitH = two ? 9.0 : 6.6;
+  const fitW = two ? (mobile ? 11.6 : 10.6) : 7.4, fitH = two ? (mobile ? 8.0 : 8.6) : 6.6;
   const look = new THREE.Vector3(two ? 1.4 : 0, two ? 2.6 : .6, 0);
-  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * 1.02; const dir = new THREE.Vector3(.75, .62, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
+  // 2.0 は見えはじめに、少し寄った所から引いて世界が広がる（1.0 は身体の届く範囲に寄ったまま）
+  let zoomK = two && !reduce ? .84 : 1, zoomT = 0;
+  if (two && reduce) reach.scale.set(2.35, 2.85, 2.35);
+  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * 1.02 * zoomK; const dir = new THREE.Vector3(.75, .62, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
   size(); new ResizeObserver(size).observe(fig);
   let vis = true, raf = 0; const t0 = performance.now(); let lastT = t0;
-  function frame() { const now = performance.now(), t = (now - t0) / 1000, dt = Math.min(.05, (now - lastT) / 1000); lastT = now; if (aoiTick) aoiTick(dt); if (sideLabs.length) { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); sideLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.min(w - 8, (v.x * .5 + .5) * w + 6)}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } bee.position.y = .62 + (reduce ? 0 : Math.sin(t * 7) * .015); stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
+  function frame() { const now = performance.now(), t = (now - t0) / 1000, dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
+    if (two && zoomK < 1) { zoomT += dt; const u = Math.min(1, zoomT / 3.2); zoomK = .84 + .16 * (1 - Math.pow(1 - u, 3)); size(); { const r = R0 + (2.35 - R0) * (1 - Math.pow(1 - u, 3)); reach.scale.set(r, 1.25 + 1.6 * u, r); } layers.forEach((g, i) => g.children.forEach(o => { if (o.material) { o.material.userData.o0 ??= o.material.opacity; o.material.opacity = o.material.userData.o0 * Math.min(1, Math.max(0, u * 4 - i * .7)); } })); }
+    waveU && (waveU.uT.value = reduce ? 0 : t); const lineK = two && !reduce ? Math.min(1, Math.max(0, zoomT / 3.2 * 1.6 - .5)) : 1; if (two) dots.forEach(d => d.material.opacity = lineK);
+    animals.forEach(a => a.userData.animate && a.userData.animate(reduce ? 0 : t));
+    if (!reduce) flows.forEach(f => { if (f.base === null) f.base = f.line.material.opacity; f.line.material.opacity = lineK * f.base * (.72 + .28 * Math.sin(t * 1.3 + f.ph * 6.283)); const n = f.ms.length;
+      f.ms.forEach((m, k) => { const u = (t * f.sp + f.ph + k / n) % 1; f.cv ? f.cv.getPoint(1 - u, m.position) : m.position.lerpVectors(f.b, f.a, u); m.material.opacity = lineK * Math.sin(u * Math.PI) * .85 * (f.base / .95); m.scale.setScalar(1 + .4 * Math.sin(u * Math.PI)); }); }); if (aoiTick) aoiTick(dt); if (sideLabs.length) { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); sideLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.min(w - 8, (v.x * .5 + .5) * w + 6)}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } bee.position.y = .62 + (reduce ? 0 : Math.sin(t * 7) * .015); stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
   function loop() { raf = 0; if (!vis || document.hidden) return; frame(); raf = requestAnimationFrame(loop); }
   new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; if (vis && !raf) raf = requestAnimationFrame(loop); }).observe(fig);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && vis && !raf) raf = requestAnimationFrame(loop); });

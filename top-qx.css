@@ -252,3 +252,4 @@ html{scroll-padding-top:80px}
 @media (min-width:1000px){#top .qx-scene{max-width:1200px;padding-left:0;padding-right:0}}
 /* 2026-10-28 P2：1.0 の左の列の下が空く＝図を 2 行にまたがせ、文と「もっと詳しく」を図の中央に寄せて続けて置く */
 @media (min-width:701px){#umwelt1 .qx-figd{grid-column:2;grid-row:1 / span 2;align-self:center}#umwelt1 .qx-tx{align-self:end!important;padding-bottom:4px}#umwelt1 .qx-m1{align-self:start;grid-row:2}}
+@media (max-width:700px){.qx-sl{display:none}}   /* 2026-10-29 スマホは図の下の札（qx-labs）に層の名と説明があるので、図の上の凡例は出さない（層と重なるため） */
