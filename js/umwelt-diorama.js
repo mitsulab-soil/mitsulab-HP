@@ -214,7 +214,7 @@ export async function bootDiorama(fig, kind, labs) {
         veil.rotation.x = -Math.PI / 2; veil.rotation.z = (i % 2 ? .06 : -.06); veil.position.y = (k ? .1 : -.03); veil.position.z = (k ? .35 : -.25); veil.position.x = (k ? .3 : -.1) * (i % 2 ? 1 : -1); g.add(veil); }
       const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D, 48, 32), wavy(new THREE.MeshBasicMaterial({ map: (() => { const tx = canvasTex((x, w, h) => { draw(x, w, h); }, 1024, 680); texs.push([tx, draw]); return tx; })(), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide }), i * 1.7, .16, true, false)); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
       
-      { const SL = [['地形', '等高線 1 m ごと（国土地理院 DEM5A）', 'Terrain', '1 m contours (GSI DEM5A)'], ['歴史', '昔の道・鳥居・丁石', 'History', 'old path, torii, stones'], ['生き物', 'ケヤキ・ミツバチ・シジュウカラ', 'Living things', 'zelkova, honeybee, tit'], ['音', '人 〜20 kHz・コウモリ 20 kHz〜', 'Sound', 'human ≤20 kHz, bats 20 kHz+']][i];
+      { const SL = [['地形', '等高線 1 m（国土地理院）', 'Terrain', '1 m contours (GSI DEM5A)'], ['歴史', '昔の道・鳥居・丁石', 'History', 'old path, torii, stones'], ['生き物', 'ケヤキ・ミツバチ・シジュウカラ', 'Living things', 'zelkova, honeybee, tit'], ['音', '人 〜20 kHz・コウモリ 20 kHz〜', 'Sound', 'human ≤20 kHz, bats 20 kHz+']][i];
         const el = document.createElement('div'); el.className = 'qx-sl'; el.style.setProperty('--c', '#' + new THREE.Color(col).getHexString()); fig.appendChild(el);
         const fill = () => { const en = document.documentElement.dataset.lang === 'en'; el.innerHTML = '<b>' + (en ? SL[2] : SL[0]) + '</b><span>' + (en ? SL[3] : SL[1]) + '</span>'; }; fill(); texs.push([{ image: document.createElement('canvas') }, () => fill()]);
         const an = new THREE.Object3D(); an.position.set(W / 2 + .1, 0, -D / 2 + .3); g.add(an); sideLabs.push([el, an]); }
@@ -253,16 +253,16 @@ export async function bootDiorama(fig, kind, labs) {
 
   // 札の置き場（図の下に並べるので、ここでは使わない）
   const fitW = two ? (mobile ? 11.0 : 10.6) : (mobile ? 6.2 : 7.4), fitH = two ? (mobile ? 7.6 : 8.6) : (mobile ? 5.6 : 6.6);
-  const look = new THREE.Vector3(two ? 1.2 : 0, two ? 2.2 : 1.0, 0);   /* 2026-10-29 夜 本人：人の目の高さに近い視点で、少し引いて全体を見渡す */
+  const look = new THREE.Vector3(two ? 1.2 : 0, two ? 2.0 : 1.1, 0);   /* 2026-10-29 夜 本人：人の目の高さに近い視点で、少し引いて全体を見渡す */
   // 2.0 は見えはじめに、少し寄った所から引いて世界が広がる（1.0 は身体の届く範囲に寄ったまま）
   let zoomK = two && !reduce ? .84 : 1, zoomT = 0;
   if (two && reduce) reach.scale.set(2.35, 2.85, 2.35);
-  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * (mobile ? 1.06 : 1.16) * zoomK; const dir = new THREE.Vector3(.72, .24, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
+  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * (mobile ? 1.06 : 1.16) * zoomK; const dir = new THREE.Vector3(.72, .14, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
   size(); new ResizeObserver(size).observe(fig);
   let vis = true, raf = 0; const t0 = performance.now(); let lastT = t0;
   function frame() { const now = performance.now(), t = (now - t0) / 1000, dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
-    if (two && zoomK < 1) { zoomT += dt; const u = Math.min(1, zoomT / 3.2); zoomK = .84 + .16 * (1 - Math.pow(1 - u, 3)); size(); { const r = R0 + (2.35 - R0) * (1 - Math.pow(1 - u, 3)); reach.scale.set(r, 1.25 + 1.6 * u, r); } layers.forEach((g, i) => g.children.forEach(o => { if (o.material) { o.material.userData.o0 ??= o.material.opacity; o.material.opacity = o.material.userData.o0 * Math.min(1, Math.max(0, u * 4 - i * .7)); } })); }
-    waveU && (waveU.uT.value = reduce ? 0 : t); const lineK = two && !reduce ? Math.min(1, Math.max(0, zoomT / 3.2 * 1.6 - .5)) : 1; if (two) dots.forEach(d => d.material.opacity = lineK);
+    if (two && zoomK < 1) { zoomT += dt; const u = Math.min(1, zoomT / 3.0); zoomK = .84 + .16 * (1 - Math.pow(1 - u, 3)); size(); { const r = R0 + (2.35 - R0) * (1 - Math.pow(1 - u, 3)); reach.scale.set(r, 1.25 + 1.6 * u, r); } layers.forEach((g, i) => g.children.forEach(o => { if (o.material) { o.material.userData.o0 ??= o.material.opacity; o.material.opacity = o.material.userData.o0 * Math.min(1, Math.max(0, u * 4 - i * .7)); } })); }
+    waveU && (waveU.uT.value = reduce ? 0 : t); const lineK = two && !reduce ? Math.min(1, Math.max(0, zoomT / 3.0 * 1.6 - .5)) : 1; if (two) dots.forEach(d => d.material.opacity = lineK);
     animals.forEach(a => { a.userData.animate && a.userData.animate(reduce ? 0 : t); if (a.userData.state === 'perch' && a.userData.body) { a.userData.body.rotation.y = 0; if (a.userData.legs) a.userData.legs.visible = false; } });   /* 止まった鳥は横向きのまま（見回すのは頭だけ） */
     if (motes) { const P2 = motes.geometry.attributes.position; for (let i = 0; i < P2.count; i++) { let y = P2.getY(i) - dt * (.12 + (i % 5) * .03); if (y < .02) y = 3.2; P2.setY(i, y); P2.setX(i, P2.getX(i) + Math.sin(t * .8 + i) * dt * .08); } P2.needsUpdate = true; }
     if (!reduce) flows.forEach(f => { if (f.base === null) f.base = f.line.material.opacity; f.line.material.opacity = lineK * f.base * (.72 + .28 * Math.sin(t * 1.3 + f.ph * 6.283)); const n = f.ms.length;
