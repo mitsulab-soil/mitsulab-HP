@@ -253,3 +253,23 @@ html{scroll-padding-top:80px}
 /* 2026-10-28 P2：1.0 の左の列の下が空く＝図を 2 行にまたがせ、文と「もっと詳しく」を図の中央に寄せて続けて置く */
 @media (min-width:701px){#umwelt1 .qx-figd{grid-column:2;grid-row:1 / span 2;align-self:center}#umwelt1 .qx-tx{align-self:end!important;padding-bottom:4px}#umwelt1 .qx-m1{align-self:start;grid-row:2}}
 @media (max-width:700px){.qx-sl{display:none}}   /* 2026-10-29 スマホは図の下の札（qx-labs）に層の名と説明があるので、図の上の凡例は出さない（層と重なるため） */
+/* 2026-10-29 夜：環世界の式と、境界での試み */
+.qx-eq{margin:6px 0 18px;padding:14px 16px 12px;border:1px solid #a8f2f633;border-radius:4px;background:#0a1222aa}
+.qx-eq2{border-color:#f2c56e44}
+.qx-eqf{font:400 clamp(20px,1.9vw,26px)/1.4 "Shippori Mincho",var(--serif,serif);color:#f4f6fb;letter-spacing:.06em;margin:0 0 10px;text-align:center;white-space:nowrap}
+.qx-eqf i,.qx-eql i,.qx-eqn i,.qx-bd i{font-family:"Times New Roman",var(--latin,serif);font-style:italic}
+.qx-eqf sub{font-size:.6em}
+.qx-eql{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
+.qx-eql li{display:grid;grid-template-columns:3.2em 1fr;gap:8px;font:400 13.5px/1.65 var(--serif,serif);color:#cfd6e6}
+.qx-eql .k{font:italic 400 16px/1.5 "Times New Roman",var(--latin,serif);color:#a8f2f6}
+.qx-eq2 .qx-eql .k{color:#f6dca2}
+.qx-eqn{font:400 13.5px/1.75 var(--serif,serif);color:#c3cad9;margin:6px 0 0}
+.qx-scene>.qx-bd{grid-column:1/-1;max-width:760px;margin:8px 0 0}
+.qx-bdh{font:500 clamp(20px,1.9vw,26px)/1.4 var(--serif,serif);color:#f4f6fb;letter-spacing:.06em;margin:0 0 12px}
+.qx-bdp{font:400 15px/1.95 var(--serif,serif);color:#cfd6e6;margin:0 0 14px}
+.qx-bdl{list-style:none;margin:0 0 16px;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.qx-bdl li{border-left:2px solid #f2c56e66;padding:4px 0 4px 14px;display:flex;flex-direction:column;gap:4px}
+.qx-bdl .k{font:500 16px/1.4 var(--serif,serif);color:#f6dca2;letter-spacing:.06em}
+.qx-bdl li>span:last-child{font:400 14px/1.85 var(--serif,serif);color:#cfd6e6}
+.qx-bdn{font:400 12.5px/1.7 var(--serif,serif);color:#8d97ad;margin:0}
+@media (max-width:700px){.qx-bdl{grid-template-columns:1fr}.qx-eqf{font-size:19px;white-space:normal}.qx-eql li{font-size:13px}}
