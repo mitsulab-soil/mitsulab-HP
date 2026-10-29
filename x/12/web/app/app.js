@@ -919,7 +919,7 @@ function surfaceY(x, z) {
    しずく＝水に関わる印のそば、石＝石に関わる印のそば。歩く道すじから見える所に 1 体ずつ、さりげなく。
    触れると碧の声で短く一言、その印の出典つきの一行につなぐ（大きな演出は出さない・擬人の断定はしない）。 */
 const YO = { y: null, busy: false };
-const YO_RE = { shizuku: /神池|池の|湧水|湧き水|泉|用水|渋谷川|新河岸川|入間川|見沼|水路|せせらぎ|川の水|水が流れ/, ishi: /石畳|標石|石垣|石段|石碑|敷石|石の鳥居|道標/ };
+const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水|渋谷川|新河岸川|水が流れ|川の水/, ishi: /石畳|標石|石垣|石段|石碑|敷石|石の鳥居|道標/ };
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
@@ -928,7 +928,7 @@ async function startYorishiro() {
     const cp = camera.position, used = [];
     for (const kind of ["shizuku", "ishi"]) {
       let best = null, bd = 1e9;
-      for (const L of LAYER.objs) { const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!YO_RE[kind].test(t) || THIN.test(t) || /標高/.test(t) || used.includes(L)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d < bd) { bd = d; best = L; } }
+      for (const L of LAYER.objs) { const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!YO_RE[kind].test(t) || THIN.test(t) || /標高|地質|堆積/.test(t) || !(L.o.lines || []).some(l => l && l.t && YO_RE[kind].test(l.t)) || used.includes(L)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z) - (/湧水|湧き|神池|清水|池の水/.test(t) ? 5000 : 0); if (d < bd) { bd = d; best = L; } }   /* 水そのものの話（湧水・池の水）を先に */
       if (!best) continue; used.push(best);
       const a = (best.o.x * 7.1 + best.o.z * 3.3) % 6.28, x = best.o.x + Math.cos(a) * 1.4, z = best.o.z + Math.sin(a) * 1.4, L = best;
       await YO.y.add(kind, { x, z, yaw: a, scale: .42, onTouch: () => {
