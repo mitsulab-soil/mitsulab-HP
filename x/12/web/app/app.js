@@ -15,6 +15,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
+import { installNav } from "../kit/nav.js?v=n1";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
@@ -938,6 +939,24 @@ async function startYorishiro() {
     }
   } catch (e) { console.warn("yorishiro", e); }
 }
+const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
+function footHit(m, x, z, y0, y1) {
+  let ix = FOOTIX.get(m);
+  if (!ix) { if (FOOTIX.building) return null; FOOTIX.building = true; try { ix = footIndex(m); } finally { FOOTIX.building = false; } FOOTIX.set(m, ix); return null; }
+  const L = ix.c.get(Math.floor(x / 4) * 100003 + Math.floor(z / 4)); if (!L) return null; const P = ix.p; let best = null;
+  for (const t of L) { const i = t * 9, ax = P[i], az = P[i + 2], bx = P[i + 3], bz = P[i + 5], cx = P[i + 6], cz = P[i + 8];
+    const d = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz); if (Math.abs(d) < 1e-9) continue;
+    const u = ((bz - cz) * (x - cx) + (cx - bx) * (z - cz)) / d, v = ((cz - az) * (x - cx) + (ax - cx) * (z - cz)) / d, w = 1 - u - v; if (u < -1e-4 || v < -1e-4 || w < -1e-4) continue;
+    const yy = u * P[i + 1] + v * P[i + 4] + w * P[i + 7]; if (yy > y0 && yy < y1 && (best == null || yy > best)) best = yy; }
+  return best;
+}
+function footIndex(m) {
+  const g = m.geometry, pos = g.attributes.position, idx = g.index, n = idx ? idx.count / 3 : pos.count / 3, P = new Float32Array(n * 9), c = new Map(), v = new THREE.Vector3(); m.updateWorldMatrix(true, false);
+  for (let t = 0; t < n; t++) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = 0; k < 3; k++) { const vi = idx ? idx.getX(t * 3 + k) : t * 3 + k; v.fromBufferAttribute(pos, vi).applyMatrix4(m.matrixWorld); P[t * 9 + k * 3] = v.x; P[t * 9 + k * 3 + 1] = v.y; P[t * 9 + k * 3 + 2] = v.z; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); z0 = Math.min(z0, v.z); z1 = Math.max(z1, v.z); }
+    if (x1 - x0 > 60 || z1 - z0 > 60) continue;   // 立った壁・大きすぎる面は足もとにしない
+    for (let cx = Math.floor(x0 / 4); cx <= Math.floor(x1 / 4); cx++) for (let cz = Math.floor(z0 / 4); cz <= Math.floor(z1 / 4); cz++) { const k = cx * 100003 + cz; let L = c.get(k); if (!L) c.set(k, L = []); L.push(t); } }
+  return { p: P, c };
+}
 function aoiFootY(x, z) {   // 10-29：碧の足もと＝描いている面の高さ。重さの原因だった光線の当て方を軽く（1 m 四方で覚える・0.3 秒に一度だけ当てる・その点の上にある面だけに当てる）
   const g = groundY(x, z), k = Math.round(x) + "," + Math.round(z), c = FOOT.m.get(k); if (c !== undefined) return g + c;
   const now = performance.now();
@@ -945,7 +964,7 @@ function aoiFootY(x, z) {   // 10-29：碧の足もと＝描いている面の�
     (function walk(o) { if (o === skip || o.visible === false) return; if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !(o.material && (o.material.transparent || o.material.depthWrite === false))) { const ge = o.geometry; if (!ge.boundingBox) ge.computeBoundingBox(); bb.copy(ge.boundingBox).applyMatrix4(o.matrixWorld); FOOT.list.push({ o, x0: bb.min.x, x1: bb.max.x, z0: bb.min.z, z1: bb.max.z, y1: bb.max.y }); } for (const ch of o.children) walk(ch); })(world); }
   if (now - FOOT.last < 300) return g + FOOT.off;   // 当てない間は、さっきの差のまま
   FOOT.last = now; const cand = []; for (const e of FOOT.list) if (x >= e.x0 && x <= e.x1 && z >= e.z0 && z <= e.z1 && e.y1 > g - .3) cand.push(e.o);
-  _fr.set(_fo.set(x, g + 1, z), _fd); _fr.far = 1.6; let y = g; for (const h of _fr.intersectObjects(cand, false)) { if (h.point.y > g - .3 && h.point.y < g + .9) { y = Math.max(g, h.point.y); break; } }
+  let y = g; for (const m of cand) { if (m === QW.terrain || m.name === "terrain" || m.name === "digiGround") continue; const h = footHit(m, x, z, g - .3, g + .9); if (h != null) y = Math.max(y, h); }   // 10-29 晩：地形（63 万面）に光線を当てていたのが PC の重さの元。地形は groundY で足り、ほかの面は 4 m の升目で引く
   const off = Math.min(.9, y - g); FOOT.off = off; if (FOOT.m.size > 6000) FOOT.m.clear(); FOOT.m.set(k, off); return y;
 }
 const FOOT = { m: new Map(), list: null, t: 0, last: 0, off: 0 }, _fr = new THREE.Raycaster(), _fd = new THREE.Vector3(0, -1, 0), _fo = new THREE.Vector3();
@@ -1123,7 +1142,7 @@ const FLY = { up: false, down: false, v: 12 };
 const KEYS = new Set();
 const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 160, f: 1100 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
-function setMode(m) { QW.mode = m; document.body.dataset.mode = m;
+function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
   $("#modeSky").setAttribute("aria-pressed", String(m === "sky" || m === "descend")); $("#modeWalk").setAttribute("aria-pressed", String(m === "walk" || m === "sight")); $("#modeFly").setAttribute("aria-pressed", String(m === "fly"));
   applyFog(FOGS[m === "descend" ? "sky" : m] || FOGS.walk);
@@ -1239,14 +1258,16 @@ function solidRings(p, r = 1.1) {
       p.x = qx + nx * r; p.z = qz + nz * r; } }
 }
 function stepWalk(dt, eye = EYE, speed = WALK.speed) {
-  const f = KEYS.has("w") || KEYS.has("arrowup") || WALK.auto || WALK.hold ? 1 : KEYS.has("s") || KEYS.has("arrowdown") ? -1 : 0;
-  const turn = (KEYS.has("a") || KEYS.has("arrowleft") ? 1 : 0) - (KEYS.has("d") || KEYS.has("arrowright") ? 1 : 0);
-  CAM.yaw += turn * dt * 1.3;
+  const ST = window.__qnav?.stick || { f: 0, s: 0 };
+  const f = KEYS.has("w") || KEYS.has("arrowup") || WALK.auto || WALK.hold ? 1 : KEYS.has("s") || KEYS.has("arrowdown") ? -1 : Math.abs(ST.f) > .15 ? ST.f : 0;
+  const side = (KEYS.has("d") ? 1 : 0) - (KEYS.has("a") ? 1 : 0) + (Math.abs(ST.s) > .15 ? ST.s * .7 : 0);   // 10-29：A・D は横歩き
+  const turn = (KEYS.has("arrowleft") || KEYS.has("q") ? 1 : 0) - (KEYS.has("arrowright") || KEYS.has("e") ? 1 : 0);   // ←→（Q・E）で向きを変える
+  CAM.yaw += turn * dt * 1.3; if (KEYS.has("shift")) speed *= 1.5; if (f || side) { if (WALK.goal) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; } }
   const off = offRoute(CAM.pos.x, CAM.pos.z);
   if (off && WALK.auto && NET.segs) { const q = netNear(CAM.pos.x, CAM.pos.z, 12); if (q.dist < q.hw + 1) { const h = CAM.yaw + CAM.look, a1 = Math.atan2(-q.tx, -q.tz), a = Math.abs(wrap(a1 - h)) < Math.PI / 2 ? a1 : a1 + Math.PI; CAM.yaw += wrap(a - h) * Math.min(1, dt * 1.6); } }   // 歩きつづける：裏路地では道の向きに沿う
   if (off && !WALK.offSeen && QW.mode === "walk") { WALK.offSeen = true; setTimeout(() => safetyNote(), 600); }
   let mx = 0, mz = 0;
-  if (f) { const yaw = CAM.yaw + CAM.look; mx = -Math.sin(yaw) * f * speed * dt; mz = -Math.cos(yaw) * f * speed * dt; }
+  if (f || side) { const yaw = CAM.yaw + CAM.look; mx = (-Math.sin(yaw) * f + Math.cos(yaw) * side) * speed * dt; mz = (-Math.cos(yaw) * f - Math.sin(yaw) * side) * speed * dt; }
   else if (WALK.goal) { const dx = WALK.goal.x - CAM.pos.x, dz = WALK.goal.z - CAM.pos.z, dd = Math.hypot(dx, dz); if (dd < .4) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; } else { mx = dx / dd * Math.min(dd, speed * dt); mz = dz / dd * Math.min(dd, speed * dt); const ty = Math.atan2(-dx, -dz); CAM.yaw += wrap(ty - CAM.yaw - CAM.look) * Math.min(1, dt * 2.2); } }
   WALK.moving = Math.abs(mx) + Math.abs(mz) > 1e-5;
   const px0 = CAM.pos.x, pz0 = CAM.pos.z; CAM.pos.x += mx; CAM.pos.z += mz; corridorClamp(CAM.pos);
@@ -1291,14 +1312,33 @@ function toSky() { hidePanel(); stopVoice(); exitSight(true); hideWalkUI(); hide
   const tmp = new THREE.PerspectiveCamera(); const keep = camera.position.clone(); const kq = camera.quaternion.clone(); skyCam(); const p = camera.position.clone(), q = camera.quaternion.clone(); camera.position.copy(keep); camera.quaternion.copy(kq);
   TW = { p0: keep, q0: kq, p1: p, q1: q, t: 0, dur: 2.2, done: () => { setMode("sky"); showSkyUI(); } }; }
 
-/* ---------- 入力 ---------- */
+/* ---------- 入力（10-29：kit/nav.js に一つに。押す 1 回の意味・行き先の円・見回しの速さと慣性・ホイール/ピンチ・札 4 つ・AR） ---------- */
 let drag = null;
-canvas.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: performance.now(), id: e.pointerId }; canvas.setPointerCapture(e.pointerId); });
-canvas.addEventListener("pointermove", e => { if (!drag || drag.id !== e.pointerId) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
-  if (QW.mode === "sky") { SKY.tAz -= dx * .005; SKY.tEl = Math.max(.25, Math.min(1.45, SKY.tEl + dy * .004)); }
-  else if (QW.mode === "walk" || QW.mode === "fly" || QW.mode === "sight") { CAM.look += dx * .0042; CAM.pitch = Math.max(-1.2, Math.min(1.1, CAM.pitch + dy * .0032)); CAM.lastDrag = performance.now(); } });
-canvas.addEventListener("pointerup", e => { if (!drag) return; const moved = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0), dt = performance.now() - drag.t; drag = null; if (moved < 8 && dt < 500) tap(e.clientX, e.clientY); });
-canvas.addEventListener("wheel", e => { if (QW.mode === "sky") { SKY.tDist = Math.max(160, Math.min(2600, SKY.tDist * (1 + e.deltaY * .001))); e.preventDefault(); } }, { passive: false });
+const MAXGO = 45;   // 一度に歩く上限（m）。超えた所を押したら、その方向の上限まで
+function goalAt(x, y) {
+  if (QW.mode !== "walk") return null;
+  const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); r.far = 900;
+  const hit = r.intersectObject(QW.terrain, false)[0];
+  let dx, dz; if (hit) { dx = hit.point.x - CAM.pos.x; dz = hit.point.z - CAM.pos.z; } else { dx = r.ray.direction.x; dz = r.ray.direction.z; }
+  const l = Math.hypot(dx, dz); if (l < .3) return null; const d = Math.min(MAXGO, hit ? l : MAXGO);
+  const g = new THREE.Vector3(CAM.pos.x + dx / l * d, 0, CAM.pos.z + dz / l * d); corridorClamp(g);
+  for (let k = 0; k < 40 && inBld(g.x, g.z); k++) { g.x -= dx / l * .8; g.z -= dz / l * .8; }
+  if (Math.hypot(g.x - CAM.pos.x, g.z - CAM.pos.z) < .3) return null; g.y = groundY(g.x, g.z); return g;
+}
+function navStop() { const was = WALK.auto || !!WALK.goal; WALK.auto = false; WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; syncAutoBtn(); return was; }
+function nearMarks() { const out = []; for (const L of LAYER.objs) { if (!L.root.visible || L.qHide) continue; L.glyph.getWorldPosition(_v); const d = _v.distanceTo(camera.position); if (d > (MOBILE ? 45 : 55)) continue; const s = _v.clone().project(camera); if (s.z > 1 || Math.abs(s.x) > 1 || Math.abs(s.y) > 1) continue; out.push({ L, d }); } return out.sort((a, b) => a.d - b.d).map(a => a.L); }
+const TABM = { i: -1, L: null };
+const NAV = installNav({ THREE, canvas, camera, cam: CAM, mobile: MOBILE, mode: () => QW.mode,
+  isMoving: () => QW.mode === "walk" && (WALK.auto || !!WALK.goal || !!(window.__qnav?.stick.f || window.__qnav?.stick.s)), isStuck: () => WALK.auto && (WALK.stuckT || 0) > .3,
+  stop: navStop, tap: (x, y) => tap(x, y), goalAt, markAt: (x, y) => pickObj(x, y),
+  ring: p => { if (p) { showGoal(p); WALK.ring.material.opacity = .45; } else if (WALK.ring && !WALK.goal) WALK.ring.visible = false; },
+  skyDrag: (dx, dy) => { SKY.tAz -= dx * .005; SKY.tEl = Math.max(.25, Math.min(1.45, SKY.tEl + dy * .004)); }, skyZoom: f => { SKY.tDist = Math.max(160, Math.min(2600, SKY.tDist * f)); },
+  hush: () => { stopVoice(); hidePanel(); }, say: t => toast(t),
+  tabMark: k => { const M = nearMarks(); if (!M.length) return; TABM.i = (Math.max(-1, M.indexOf(TABM.L)) + k + M.length) % M.length; TABM.L = M[TABM.i]; TABM.L.glyph.getWorldPosition(_v); toast(TABM.L.o?.title || TABM.L.title || TABM.L.data?.title || "印"); },
+  enterMark: () => { if (!TABM.L) return false; LASTM.L = TABM.L; LASTM.t = performance.now(); openObj(TABM.L); return true; },
+  here: () => ({ on: $("#hereBtn")?.getAttribute("aria-pressed") === "true" }), hereToggle: () => $("#hereBtn")?.click() });
+const LASTM = { L: null, t: 0 };
+function walkToward(p) { const dx = p.x - CAM.pos.x, dz = p.z - CAM.pos.z, l = Math.hypot(dx, dz); if (l < 2) return; const d = Math.min(MAXGO, l - 1.5), g = new THREE.Vector3(CAM.pos.x + dx / l * d, 0, CAM.pos.z + dz / l * d); corridorClamp(g); for (let k = 0; k < 40 && inBld(g.x, g.z); k++) { g.x -= dx / l * .8; g.z -= dz / l * .8; } WALK.goal = g; showGoal(g); }
 addEventListener("keydown", e => { if (e.target.closest?.("input,textarea")) return; const k = e.key.toLowerCase(); KEYS.add(k); if (k === "escape") hidePanel(); });
 addEventListener("keyup", e => KEYS.delete(e.key.toLowerCase()));
 addEventListener("blur", () => KEYS.clear());
@@ -1309,11 +1349,12 @@ function tap(x, y) {
   if (MY.L?.pick(x, y)) return;   // 自分の層（手渡された層を含む）に触れる
   if (KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
-  const L = pickObj(x, y); if (L) { openObj(L); return; }
-  const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
-  const hit = r.intersectObject(QW.terrain, false)[0]; if (hit && hit.distance < 60) { WALK.goal = hit.point.clone(); corridorClamp(WALK.goal); showGoal(WALK.goal); }
+  const L = pickObj(x, y);
+  if (L) { const again = LASTM.L === L && performance.now() - LASTM.t < 25000 && !(NARR.L === L && NARR.sp) && L.kind !== "touch" && L.kind !== "sound";   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
+    LASTM.L = L; LASTM.t = performance.now(); if (again) { L.glyph.getWorldPosition(_v); walkToward(_v); return; } openObj(L); return; }
+  const g = goalAt(x, y); if (g) { WALK.goal = g; showGoal(g); }
 }
-function showGoal(p) { if (!WALK.ring) { WALK.ring = new THREE.Mesh(new THREE.RingGeometry(.28, .36, 40), new THREE.MeshBasicMaterial({ color: "#7fe3f7", transparent: true, opacity: .85, depthWrite: false })); WALK.ring.rotation.x = -Math.PI / 2; world.add(WALK.ring); } WALK.ring.position.set(p.x, groundY(p.x, p.z) + .06, p.z); WALK.ring.visible = true; }
+function showGoal(p) { if (!WALK.ring) { WALK.ring = new THREE.Mesh(new THREE.RingGeometry(.28, .36, 40), new THREE.MeshBasicMaterial({ color: "#7fe3f7", transparent: true, opacity: .85, depthWrite: false })); WALK.ring.rotation.x = -Math.PI / 2; world.add(WALK.ring); } WALK.ring.material.opacity = .85; WALK.ring.position.set(p.x, groundY(p.x, p.z) + .06, p.z); WALK.ring.visible = true; }
 
 /* ---------- かさねっこ（小さな環境エージェント）：層の地点のそばに、その層の色の子がいる（2026-10-23 本人「かさねっこを、川越と氷川にたくさん入れてください」）
    触れると、点の吹き出しで応え、碧がその地点の典拠つきの記録を訳して読む（いまの札と声の仕組み）。蔵や町家の角から覗く・層の地点へ案内する（一度したら、しばらく来ない）。
@@ -1725,8 +1766,8 @@ const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0; const GEO = 
 function frame() {
   const dt = Math.min(.05, clock.getDelta());
   if (!stepTween(dt)) {
-    if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); if (!drag && !RM) SKY.tAz += dt * .02; skyCam(); }
-    else if (QW.mode === "walk") stepWalk(dt);
+    if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); if (!NAV.drag && !RM) SKY.tAz += dt * .02; skyCam(); }
+    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); }
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
   }
