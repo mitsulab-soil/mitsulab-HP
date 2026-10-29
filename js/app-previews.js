@@ -2,11 +2,11 @@
 const clips={walk:'walk',kawagoe:'kawagoe',shibuya:'shibuya',sight:'sight',sound:'sound',touch:'touch',sho:'sho',rakugo:'rakugo',song:'song',museum:'museum',lab:'lab',nature:'nature',beyond:'beyond'};  /* 2026-10-22 夜：TOP のポートフォリオの札（.pf-card）。公開中の画面で撮り直した動画 */  /* 2026-10-19：walk・museum・butterfly は新しい名前で撮り直した動画に差し替えたので戻した */
 const reduced=matchMedia('(prefers-reduced-motion: reduce)'),items=[],ratios=new Map();let active=null,preferred=null;
 const enabled=()=>!document.documentElement.classList.contains('simple')&&!reduced.matches&&!navigator.connection?.saveData&&!['slow-2g','2g'].includes(navigator.connection?.effectiveType)&&!document.hidden;
-for(const img of document.querySelectorAll('#appguide .pf-media img')){
+for(const img of document.querySelectorAll('#appguide .pf-media img, #qualium-places-tab .pf-media img')){
  const key=Object.keys(clips).find(k=>img.getAttribute('src')?.split('/').pop().startsWith(k+'_'));if(!key)continue;
  const holder=document.createElement('span');holder.className='app-preview-media';img.before(holder);holder.append(img);
  const video=document.createElement('video');video.muted=true;video.loop=true;video.playsInline=true;video.preload='none';video.setAttribute('aria-hidden','true');video.tabIndex=-1;video.dataset.preview=clips[key];holder.append(video);
- const item={holder,video,url:new URL('../img/apps/vid/'+clips[key]+'-preview.mp4?v=20261028vid2',import.meta.url).href};items.push(item);
+ const item={holder,video,url:new URL('../img/apps/vid/'+clips[key]+'-preview.mp4?v=20261029aoi',import.meta.url).href};items.push(item);
  holder.addEventListener('pointerenter',()=>{preferred=item;select();});holder.closest('a')?.addEventListener('focusin',()=>{preferred=item;select();});
  video.addEventListener('playing',()=>holder.classList.add('preview-playing'));video.addEventListener('error',()=>holder.classList.remove('preview-playing'));
 }
