@@ -275,3 +275,9 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-bdl{grid-template-columns:1fr}.qx-eqf{font-size:19px;white-space:normal}.qx-eql li{font-size:13px}}
 .qx-scene{scroll-margin-top:76px}
 .qx-bdm{margin:0 0 16px}.qx-bdm>summary{font:500 15px/1.5 var(--serif,serif);color:#f6dca2}.qx-bdm[open]>summary{margin-bottom:10px}
+/* 2026-10-30 本人「読み込み画面のロゴがそのまま TOP のロゴになるように」：TOP のロゴの位置を、下の文字の高さ（書体の読み込み・日英）に左右されない固定の位置にする。
+   読み込み画面（js/loader_qualium.js の data-match）はこのロゴの位置を測って重ねる。 */
+.qx-hero{justify-content:flex-start;padding-top:max(84px,calc(50svh - min(78vw,56svh,560px)*.5 - 107px))}
+@media (max-width:700px){.qx-hero{padding-top:max(76px,calc(46svh - min(84vw,48svh)*.5 - 86px))}}
+/* 同上：TOP の板は入りのずらし（panelIn の 8px）をしない＝読み込みのあとにページが 8px 上へ動いていた原因 */
+#top.tab-panel.active{animation:none}

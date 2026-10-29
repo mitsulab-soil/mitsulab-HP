@@ -24,6 +24,7 @@
     '.mlq .a{' + m(B) + '}.mlq .b{' + m(C) + '}' +
     '@keyframes mlqIn{from{opacity:.55}to{opacity:1}}' +
     '@keyframes mlqHue{0%{opacity:1}50%{opacity:.86}100%{opacity:1}}' +
+    '.mlq.mt{transition:opacity .7s ease,visibility .7s}.mlq.mt .g{position:fixed;margin:0;aspect-ratio:auto;visibility:hidden}.mlq.mt .g.at{visibility:visible}.mlq.mt .h{-webkit-mask-size:100% 100%;mask-size:100% 100%}.mlq.mt.out .g{transform:none}.mlq.mt.out .g,.mlq.mt.out .h{animation:none;opacity:1}' +
     '@media (prefers-reduced-motion:reduce){.mlq .h,.mlq .g{animation:none!important;opacity:1}.mlq{transition:none}}';
   var st = document.createElement('style'); st.textContent = css; (document.head || document.documentElement).appendChild(st);
   function make(first) {
@@ -36,12 +37,21 @@
       if (!first) requestAnimationFrame(function () { el.style.opacity = ''; });
     };
     if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+    /* HP（2026-10-30 本人）：data-match のロゴと同じ画面上の位置・大きさに重ね、消えるときはロゴを動かさず地だけを溶かす */
+    if (first && D.match) { el.classList.add('mt'); var g = el.firstChild, fb = setTimeout(function () { g.style.cssText = ''; el.classList.remove('mt'); }, 700);
+      var fit = function () { if (!el.isConnected && gone) return; var t = document.querySelector(D.match), r = t && t.getBoundingClientRect();
+        if (r && r.width > 20) { clearTimeout(fb); var c = r.width * .78, cx = r.left + r.width * .11, cy = r.top + r.height * .11, w = c * 1024 / 1028,
+            ax = cx + (c - w) / 2 + w * 11 / 1024, aw = w * 1000 / 1024, ay = cy + c * 11 / 1028, ah = c * 1005 / 1028,
+            gw = aw * 500 / 493, gh = ah * 520 / 500;
+          g.style.left = (ax - gw * 6 / 500) + 'px'; g.style.top = (ay - gh * 11 / 520) + 'px'; g.style.width = gw + 'px'; g.style.height = gh + 'px'; g.classList.add('at'); }
+        if (el.isConnected || !gone) requestAnimationFrame(fit); };
+      requestAnimationFrame(fit); }
     var t0 = performance.now(), gone = false;
     function hide(now) {
       if (gone) return; gone = true;
       setTimeout(function () {
         el.classList.add('out'); el.setAttribute('aria-label', '読み込みました'); if (first && document.body) document.body.removeAttribute('aria-busy');
-        setTimeout(function () { el.remove(); }, 500);
+        setTimeout(function () { el.remove(); }, el.classList.contains('mt') ? 900 : 500);
       }, now ? 0 : Math.max(0, (first ? MIN : 0) - (performance.now() - t0)));
     }
     setTimeout(function () { hide(true); }, MAX);
