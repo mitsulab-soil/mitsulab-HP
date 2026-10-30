@@ -24,7 +24,7 @@
     '.mlq .a{' + m(B) + '}.mlq .b{' + m(C) + '}' +
     '@keyframes mlqIn{from{opacity:.55}to{opacity:1}}' +
     '@keyframes mlqHue{0%{opacity:1}50%{opacity:.86}100%{opacity:1}}' +
-    '.mlq.mt{transition:opacity .7s ease,visibility .7s}.mlq.mt .g{position:fixed;margin:0;aspect-ratio:auto;visibility:hidden}.mlq.mt .g.at{visibility:visible}.mlq.mt .h{-webkit-mask-size:100% 100%;mask-size:100% 100%}.mlq.mt.out .g{transform:none}.mlq.mt.out .g,.mlq.mt.out .h{animation:none;opacity:1}' +
+    '.mlq.mt{transition:opacity .7s ease,visibility .7s}.mlq.mt .g{position:fixed;margin:0;aspect-ratio:auto;visibility:hidden}.mlq.mt .g.at{visibility:visible}.mlq.mt .h{-webkit-mask-size:100% 100%;mask-size:100% 100%}.mlq.mt.out .g{transform:none}.mlq.mt .g,.mlq.mt .h{animation:none;opacity:1}' +
     '@media (prefers-reduced-motion:reduce){.mlq .h,.mlq .g{animation:none!important;opacity:1}.mlq{transition:none}}';
   var st = document.createElement('style'); st.textContent = css; (document.head || document.documentElement).appendChild(st);
   function make(first) {

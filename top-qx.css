@@ -281,3 +281,6 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-hero{padding-top:max(76px,calc(46svh - min(84vw,48svh)*.5 - 86px))}}
 /* 同上：TOP の板は入りのずらし（panelIn の 8px）をしない＝読み込みのあとにページが 8px 上へ動いていた原因 */
 #top.tab-panel.active{animation:none}
+/* 同上：静止画のロゴも読み込み画面・3D と同じ白に（灰色を挟まない）。3D が出そろってから静止画を外す */
+.qx-logo-img{filter:brightness(0) invert(1);opacity:1}
+.qx-logo.on .qx-logo-img{transition:opacity .4s 1.1s}

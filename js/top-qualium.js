@@ -84,7 +84,7 @@ async function boot(fig, kind) {
     const [tl, tr] = await Promise.all([loadTex('img/brand/qualium_glyph_l.webp'), loadTex('img/brand/qualium_glyph_r.webp')]);
     const G = new THREE.Group(); S.add(G); const H = 2.6, W = H * 512 / 1028;
     const pl = (t, col, x) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: t, color: col, transparent: true, depthWrite: false, toneMapped: false })); m.position.x = x; G.add(m); return m; };
-    const L = pl(tl, 0xe9f1ef, -W / 2), Rr = pl(tr, 0xe9f1ef, W / 2);
+    const L = pl(tl, 0xffffff, -W / 2), Rr = pl(tr, 0xffffff, W / 2); /* 2026-10-30 本人「連続的に」：読み込み画面・静止画と同じ白 */
     // 粒：球の中をまわり、左では碧の色、右では金の色に変わる＝二つの側が混ざる
     const n = mobile ? 650 : 1300, base = new Float32Array(n * 3), sp = new Float32Array(n);
     for (let i = 0; i < n; i++) { const r = Math.pow(Math.random(), .55) * 1.28, a = Math.random() * Math.PI * 2, y = (Math.random() * 2 - 1) * Math.sqrt(Math.max(0, 1.3 * 1.3 - r * r)) * .95; base[i * 3] = r; base[i * 3 + 1] = y; base[i * 3 + 2] = a; sp[i] = .08 + Math.random() * .22; }
