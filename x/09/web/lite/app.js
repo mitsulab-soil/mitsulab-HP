@@ -1769,12 +1769,12 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
   for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 5.0 : 3.3, s = MOBILE ? .5 : 1.3;   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 5.0 : 3.3, s = MOBILE ? .7 : 1.3;   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
   if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); aoiOffRoad(out, rx, rz); return out; }
-  { const c = MOBILE ? aoiPick(fx, fz, rx, rz, f, [[f, s * side], [f, (s + .3) * side], [f, -.15 * side], [f, (s - .35) * side], [f * .85, (s + .15) * side]]) : [f, s * side];   /* 2026-10-26 17：スマホは参道の近くでも目印の球と重ならない立ち位置を選ぶ（池の球の列） */
+  { const c = MOBILE ? aoiPick(fx, fz, rx, rz, f, [[f, s * side], [f, (s + .25) * side], [f * .85, (s + .15) * side], [f, -s * side], [f, -(s + .25) * side]]   /* 10-30 パネル：真ん中（-.15）の候補を外し、反対側の寄せを代わりに */) : [f, s * side];   /* 2026-10-26 17：スマホは参道の近くでも目印の球と重ならない立ち位置を選ぶ（池の球の列） */
     out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); }
   aoiOffRoad(out, rx, rz);
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
