@@ -118,7 +118,7 @@ body[data-mode="walk"] #walkUI #qSnd,body[data-mode="walk"] #walkUI #autoBtn{gri
 body #walkUI[hidden],body[data-mode="walk"] #walkUI[hidden]{display:none!important}
 body.qLeft #walkUI{right:auto!important;left:var(--g,16px)}
 #caption{cursor:pointer}
-#capTag{white-space:normal!important;width:auto!important;max-width:min(92vw,720px);display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5!important;text-overflow:clip}
+html body #caption #capTag{white-space:normal!important;width:auto!important;max-width:min(92vw,720px);display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5!important;text-overflow:clip}
 #qStick{position:fixed;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;border:1px solid rgba(220,240,248,.5);background:rgba(10,20,28,.18);z-index:7;pointer-events:none;display:none}
 #qStick i{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;background:rgba(220,240,248,.55)}
 #qStickZone{position:fixed;left:0;bottom:0;width:46vw;height:38vh;z-index:4;display:none;touch-action:none}
