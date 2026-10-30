@@ -307,3 +307,5 @@ html{scroll-padding-top:80px}
 @media (min-width:701px){.qx-eq2 .qx-eqf{font-size:clamp(17px,1.55vw,22px)}}
 @media (max-width:700px){#umwelt2 .qx-figd{width:calc(100% + 32px);margin-left:-16px}}   /* 採点 P2：スマホの 2.0 の図を幅いっぱいに */
 .qx-pl{text-shadow:0 0 4px #070b12,0 0 8px #070b12,0 0 2px #000,1px 1px 0 #000,-1px -1px 0 #000}   /* 採点 P2：石畳の上でも読めるよう暗い縁取り */
+.qx-pl{background:#070b12b3;padding:1px 6px;border-radius:3px}   /* 採点 P2：札に地の色の下敷き */
+@media (max-width:700px){#umwelt2 .qx-figd{margin-top:-24px;margin-bottom:270px!important}}
