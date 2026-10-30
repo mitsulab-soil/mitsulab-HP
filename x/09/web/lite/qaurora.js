@@ -77,3 +77,14 @@ export function makeQAurora(THREE, scene, opt) {
   };
   return api;
 }
+
+/* リズム（Qualia/sound の中の、その場所の周期）：日の出・日の入りの時刻を、その場所の緯度経度と今日の日付から計算する。
+   式＝NOAA の太陽位置の近似式（大気差 0.833° を含む・国立天文台 暦計算室の値と数分以内で一致）。日本時（UTC+9）で返す。 */
+export function sunTimes(lat, lon, d = new Date()) {
+  const rad = Math.PI / 180, start = Date.UTC(d.getFullYear(), 0, 0), N = Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - start) / 864e5);
+  const g = 2 * Math.PI / 365 * (N - 1), eq = 229.18 * (.000075 + .001868 * Math.cos(g) - .032077 * Math.sin(g) - .014615 * Math.cos(2 * g) - .040849 * Math.sin(2 * g)),
+    de = .006918 - .399912 * Math.cos(g) + .070257 * Math.sin(g) - .006758 * Math.cos(2 * g) + .000907 * Math.sin(2 * g) - .002697 * Math.cos(3 * g) + .00148 * Math.sin(3 * g),
+    ha = Math.acos(Math.cos(90.833 * rad) / (Math.cos(lat * rad) * Math.cos(de)) - Math.tan(lat * rad) * Math.tan(de)) / rad;
+  const f = m => { m = ((m % 1440) + 1440) % 1440; return `${Math.floor(m / 60)}:${String(Math.round(m % 60)).padStart(2, "0")}`; };
+  return { rise: f(720 - 4 * (lon + ha) - eq + 540), set: f(720 - 4 * (lon - ha) - eq + 540) };
+}
