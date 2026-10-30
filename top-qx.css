@@ -309,3 +309,7 @@ html{scroll-padding-top:80px}
 .qx-pl{text-shadow:0 0 4px #070b12,0 0 8px #070b12,0 0 2px #000,1px 1px 0 #000,-1px -1px 0 #000}   /* 採点 P2：石畳の上でも読めるよう暗い縁取り */
 .qx-pl{background:#070b12b3;padding:1px 6px;border-radius:3px}   /* 採点 P2：札に地の色の下敷き */
 @media (max-width:700px){#umwelt2 .qx-figd{margin-top:-24px;margin-bottom:270px!important}}
+/* 2026-10-30 本人：式は Q = の 1 本に。下に g・h の添え */
+.qx-eqs{font:400 12.5px/1.6 var(--serif,serif);color:#9aa4b8;text-align:center;margin:-4px 0 12px}
+.qx-eqs i{font-family:"Times New Roman",var(--latin,serif);font-style:italic}
+@media (max-width:700px){.qx-eqf{white-space:nowrap!important;font-size:17px!important;letter-spacing:.02em}}
