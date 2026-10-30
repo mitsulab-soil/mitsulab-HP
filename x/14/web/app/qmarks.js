@@ -211,6 +211,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         it.no += (nt - it.no) * Math.min(1, dt * 3.5); const op = it.no; L.qOpen = op;
         let cs = (sky ? SKYK : WALKK) * sg * (1 + (L.open || 0) * .12) * MK;
         if (!sky) { const nearMin = 1 - Math.min(1, Math.max(0, (d - 45) / 40)); cs = Math.max(cs, Math.min(cs * CAPK, MINPX * d / (ppk * .34)) * nearMin); }   // 最小の大きさは近い範囲（〜45 m、85 m で消える）だけ。遠い印は小さく、通りの奥で団子にしない   // 2026-10-27 v8：画面で直径 22px より小さくしない（遠くでも見つかる・近くは本来の大きさ）
+        if (!sky) cs *= 1 - .55 * (L.qaIn || 0);   // 10-30：層が漂っている印は、球を小さくして層の中に溶かす
         _e.set(0, t * (.5 - op * .3) + it.ph, 0); _q.setFromEuler(_e); _s.set(cs, cs, cs);
         const cy = _p.y + Math.sin(t * 1.3 + it.ph) * .06 * sg + op * .12 * sg;
         _m.compose(_p.set(_p.x, cy, _p.z), _q, _s); crystal.setMatrixAt(n, _m);
