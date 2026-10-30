@@ -41,7 +41,7 @@ export function makeQAurora(THREE, scene, opt) {
     const nx = -tz, nz = tx, P = s.pos, wob = s.p * .35;
     for (let k = 0; k <= NS; k++) { const u = k / NS, a = (u - .3) * len, sw = Math.sin(u * Math.PI * 2 + s.ph + t * .23) * 1.4 + Math.sin(u * 9 - t * 3) * wob * .3,
       x = o.x + tx * a + nx * sw, z = o.z + tz * a + nz * sw, gy = opt.ground(x, z) || g0, y = gy + 1.5 + .9 * Math.sin(u * Math.PI * 1.5 + s.ph + t * .17) + wob * Math.sin(u * 14 - t * 5),
-      tau = u * 4.2 + s.ph + t * .12, W = 1.0 + .6 * s.a + .4 * s.hov, ux = nx * Math.sin(tau), uy = Math.cos(tau), uz = nz * Math.sin(tau);
+      tau = u * 4.2 + s.ph + t * .12, W = (1.0 + .6 * s.a + .4 * s.hov) * (opt.mobile && s.amb ? 1.35 : 1), ux = nx * Math.sin(tau), uy = Math.cos(tau), uz = nz * Math.sin(tau);
       for (let j = 0; j < 2; j++) { const h = (j - .5) * W, q = (k * 2 + j) * 3; P[q] = x + ux * h; const cdx = P[q] - opt.camera.position.x, cdz = P[q + 2] - opt.camera.position.z; P[q + 1] = Math.min(gy + Math.min(s.amb ? 2.0 : 2.6, 1.0 + Math.hypot(cdx, cdz) * .18), Math.max(gy + .35, y + uy * h));   /* 10-30 パネル：見る人に近い所ほど低く（近い帯が空へ弧を描いて見えない） */   /* 見る人の前の一本は近いので、腰から肩の高さまでに（空へ弧を描かない） */   /* 10-30 パネル：身体スケール（地面から 3.2 m まで） */ P[q + 2] = z + uz * h; } }
     s.mesh.geometry.attributes.position.needsUpdate = true;
   }
@@ -75,7 +75,7 @@ export function makeQAurora(THREE, scene, opt) {
       // 10-30 パネル「押してよいのか分からない」：視野の中ほどに入った帯は縁が明るくなり、最初の一度だけ碧が触れるよう誘う
       for (const s of S) { if (!s.L || !s.mesh.visible) continue; const q = (NS >> 1) * 6, P = s.pos; _v.set((P[q] + P[q + 3]) / 2, (P[q + 1] + P[q + 4]) / 2, (P[q + 2] + P[q + 5]) / 2).project(opt.camera); s.ctr = _v.z < 1 && Math.abs(_v.x) < .45 && Math.abs(_v.y) < .55 ? 1 : 0;
         if (s.ctr) { s.hov = Math.max(s.hov, .45); } }
-      if (!api._hinted && t > 6.2 && ((document.getElementById("toast")?.hidden !== false && document.getElementById("caption")?.hidden !== false) || t > 10.5) && S.some(s => s.L && s.mesh.visible && s.a > .5)) { api._hinted = true; let seen = false; try { seen = !!sessionStorage.getItem("q.h.band"); sessionStorage.setItem("q.h.band", "1"); } catch { } if (!seen) hint("目の前の色の帯に、触れてみてください。その感覚がひらきます。"); }   /* 10-30：帯が視野の真ん中になくても、見えていれば出す（川越 375px で出ないことがあった） */
+      if (!api._hinted && t > 6.2 && ((document.getElementById("toast")?.hidden !== false && document.getElementById("caption")?.hidden !== false) || t > 12.5) && S.some(s => s.L && s.mesh.visible && s.a > .5)) { api._hinted = true; let seen = false; try { seen = !!sessionStorage.getItem("q.h.band"); sessionStorage.setItem("q.h.band", "1"); } catch { } if (!seen) hint("目の前の色の帯に、触れてみてください。その感覚がひらきます。"); }   /* 10-30：帯が視野の真ん中になくても、見えていれば出す（川越 375px で出ないことがあった） */
       for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt); s.L.qaIn = s.a;
         const d = s.amb ? 4 : Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z), nearK = d < 6 ? 1 - d / 6 : 0;   // 近づくと濃く
         s.m.uniforms.uA.value = (opt.mobile ? 1.3 : 1) * s.a * (.6 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1); s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;   /* 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） */
