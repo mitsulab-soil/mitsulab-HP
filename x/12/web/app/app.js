@@ -984,7 +984,7 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
 let QA = null, QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=a2").then(({ makeQAurora }) => { QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=a3").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } if (QW.mode === "walk") toast("漂う色の層に触れると、その感覚がひらきます。離れると、もとの景色に戻ります。"); }, 9000); }
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
@@ -1364,7 +1364,7 @@ function tap(x, y) {
   if (KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
   const L = pickObj(x, y) || QA?.pick(x, y);
-  if (L) { QA?.touch(L); { const k = QAK(L); if (k) { toast(k === "x.soil" ? QAN(k) + "：足もとの下（根と菌糸の模式）" : QAN(k)); if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === L && performance.now() - LASTM.t < 25000 && !(NARR.L === L && NARR.sp) && L.kind !== "touch" && L.kind !== "sound";   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
+  if (L) { QA?.touch(L); { const k = QAK(L); if (k) { toast(k === "x.soil" ? QAN(k) + "：足もとの下（根と菌糸の模式）" : k === "sound" && QW.sunTimes ? (r => `${QAN(k)} ── この場所のきょうの日の出 ${r.rise}・日の入り ${r.set}（計算）`)(QW.sunTimes(35.918, 139.483)) : QAN(k));   /* 10-30：リズム＝その場所の周期（日の出・日の入り）を sound の中に */ if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === L && performance.now() - LASTM.t < 25000 && !(NARR.L === L && NARR.sp) && L.kind !== "touch" && L.kind !== "sound";   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
     LASTM.L = L; LASTM.t = performance.now(); if (again) { L.glyph.getWorldPosition(_v); walkToward(_v); return; } openObj(L); return; }
   const g = goalAt(x, y); if (g) { WALK.goal = g; showGoal(g); }
 }
