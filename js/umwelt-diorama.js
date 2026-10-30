@@ -1,4 +1,4 @@
-/* © mitsulab. 環世界 1.0・2.0 の概念図（2026-10-28 本人「概念が分かるように、3D グラフィックを」）
+/* © mitsulab. 環世界 1.0・2.0 の概念図（2026-10-30 認知のプロセス 環境→知覚→認知 で作り直し：揺らぐ界面・菌糸の網と土中の音・五つの感覚の層を身体の高さに・環境→層→知覚→認知の流れ・依代）（2026-10-28 本人「概念が分かるように、3D グラフィックを」）
    同じ一区画を、模型のような断面で見せる（石畳・土の断面・欅と根・鳥居・鳥・花）。主体（人）はその中に立つ。
    1.0：人の目・耳・足から、届く手がかり（木の幹・鳥の声・足もとの石畳・花の色）にだけ細い線が伸びる。
         届かないもの（土の中の根と菌糸・花の紫外線の模様・昔の参道の跡・高すぎて聞こえない音）は、そこにあっても淡いまま。
@@ -25,6 +25,7 @@ export async function bootDiorama(fig, kind, labs) {
   const W = 6, D = 4, SOIL = 1.4;    // 区画の幅・奥行き・土の深さ
   const stage = new THREE.Group(); S.add(stage);
   S.fog = new THREE.Fog(0x070b12, two ? 30 : 22, two ? 70 : 48);   // 奥ほど霞む（没入の奥行き）
+  const domeU = { uT: { value: 0 } };
   const FAINT = (m, on) => { m.transparent = true; m.opacity = on ? 1 : .55; m.depthWrite = on; return m; };
 
   // 石畳の上面
@@ -56,10 +57,11 @@ export async function bootDiorama(fig, kind, labs) {
   const reach = new THREE.Group(); reach.position.set(P.x, .01, P.z); stage.add(reach);
   { const rt = canvasTex((x, w, h) => { const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(220,240,255,.0)'); g.addColorStop(.45, 'rgba(220,240,255,.015)'); g.addColorStop(.8, 'rgba(225,242,255,.09)'); g.addColorStop(.93, 'rgba(230,245,255,.2)'); g.addColorStop(1, 'rgba(230,245,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }, 512, 512);
     const disc = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: rt, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); disc.rotation.x = -Math.PI / 2; reach.add(disc);
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24, 0, 6.283, 0, Math.PI / 2), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { uA: { value: two ? .035 : .1 } },
-      vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 w = modelViewMatrix*vec4(position,1.); vN = normalize(normalMatrix*normal); vV = normalize(-w.xyz); gl_Position = projectionMatrix*w; }',
-      fragmentShader: 'uniform float uA; varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1. - abs(dot(normalize(vN), normalize(vV))), 3.4); gl_FragColor = vec4(vec3(.82,.92,1.), f * uA); }' })); reach.add(dome); }
-  const R0 = 1.75; reach.scale.set(R0, 1.25, R0);
+    // 2026-10-30 本人「環世界が人を包み込む感じに。きれいな半球ではなく、揺らいでいる界面」：ノイズで波打つ半透明の膜（頂点を GPU でずらす）
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 72, 40, 0, 6.283, 0, Math.PI * .56), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { uA: { value: two ? .07 : .2 }, uT: domeU.uT },
+      vertexShader: 'uniform float uT; varying vec3 vN; varying vec3 vV; varying float vY; void main(){ vec3 p = position; float n = sin(p.x*3.1+uT*.55)*sin(p.y*2.6-uT*.4)*.5 + sin(p.z*4.3+p.y*1.9+uT*.75)*.32 + sin((p.x+p.z)*7.+uT*1.05)*.1; float lo = sin(atan(p.z, p.x)*3. + uT*.3)*.5 + sin(atan(p.z, p.x)*5. - uT*.22 + p.y*2.)*.3; float k = 1. - smoothstep(.55, .95, p.y); float rim = 1. - smoothstep(.0, .5, p.y); p += normal*(n*.2 + lo*(.16 + .22*rim))*k; p.y *= 1. + lo*.1*k; vY = p.y; vec4 w = modelViewMatrix*vec4(p,1.); vN = normalize(normalMatrix*normal); vV = normalize(-w.xyz); gl_Position = projectionMatrix*w; }',
+      fragmentShader: 'uniform float uA; uniform float uT; varying vec3 vN; varying vec3 vV; varying float vY; void main(){ float f = pow(1. - abs(dot(normalize(vN), normalize(vV))), 2.6); float b = .72 + .28*sin(vY*18. - uT*.9); float g = smoothstep(-.05, .12, vY) * (.55 + .45*sin(vY*7. + uT*.5)); gl_FragColor = vec4(vec3(.8,.92,1.), (f*.9+.06) * b * g * uA); }' })); reach.add(dome); }
+  const R0 = 1.75; reach.scale.set(two ? R0 : 1.45, 2.05, two ? R0 : 1.2);
 
   // 花：色（届く）と、紫外線の模様（届かない＝花の上に淡い的として）
   { const f = new THREE.Group(); f.position.copy(FLOWER).setY(0); stage.add(f);
@@ -78,10 +80,18 @@ export async function bootDiorama(fig, kind, labs) {
   { const P2 = []; const rnd = (s => () => (s = (s * 9301 + 49297) % 233280) / 233280)(7);
     const grow = (p, dir, len, depth) => { if (depth > 4 || p.y < -SOIL + .05) return; const q = p.clone().add(dir.clone().multiplyScalar(len)); q.y = Math.max(q.y, -SOIL + .05); P2.push(p.x, p.y, p.z, q.x, q.y, q.z); for (let k = 0; k < 2; k++) { const nd = dir.clone().add(new THREE.Vector3((rnd() - .5) * 1.2, -rnd() * .5, (rnd() - .5) * 1.2)).normalize(); grow(q, nd, len * .65, depth + 1); } };
     for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283; grow(new THREE.Vector3(TREE.x, -.1, TREE.z), new THREE.Vector3(Math.cos(a), -.6, Math.sin(a)).normalize(), .55, 0); }
-    for (let i = 0; i < 120; i++) { const a = rnd() * 6.283, r = .3 + rnd() * 1.4, y = -.15 - rnd() * .9; const x = TREE.x + Math.cos(a) * r, z = TREE.z + Math.sin(a) * r; P2.push(x, y, z, x + (rnd() - .5) * .25, y + (rnd() - .5) * .15, z + (rnd() - .5) * .25); }
+    for (let i = 0; i < 0; i++) { const a = rnd() * 6.283, r = .3 + rnd() * 1.4, y = -.15 - rnd() * .9; const x = TREE.x + Math.cos(a) * r, z = TREE.z + Math.sin(a) * r; P2.push(x, y, z, x + (rnd() - .5) * .25, y + (rnd() - .5) * .15, z + (rnd() - .5) * .25); }
     const roots = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(P2, 3)), FAINT(new THREE.LineBasicMaterial({ color: 0xf2e6cc }), two)); stage.add(roots);
     // 断面の手前に見えるよう、土の箱を少し透かす
-    soil.material.forEach((m, i) => { if (m.map) m.color.setScalar(1.45); m.transparent = true; m.opacity = (i === 4 || i === 0) ? .34 : .9; m.depthWrite = false; }); }
+    soil.material.forEach((m, i) => { if (m.map) m.color.setScalar(1.45); m.transparent = true; m.opacity = (i === 4 || i === 0) ? .34 : .9; m.depthWrite = false; });
+    // 2026-10-30 本人「土中の菌糸ネットワーク」：根の先どうしを細い白い糸の網がつなぐ（菌根菌の菌糸は根とつながり、土の中に網を広げる・形は模式）
+    const tips = []; for (let i = 0; i + 5 < P2.length; i += 6) if (P2[i + 4] < -.3) tips.push(new THREE.Vector3(P2[i + 3], P2[i + 4], P2[i + 5]));
+    const H = []; const hyph = (p, d, n) => { if (n <= 0) return; const q = p.clone().add(d.clone().multiplyScalar(.06 + rnd() * .05)); q.y = Math.min(-.12, Math.max(-SOIL + .05, q.y)); H.push(p.x, p.y, p.z, q.x, q.y, q.z); const nd2 = d.clone().add(new THREE.Vector3((rnd() - .5) * .9, (rnd() - .5) * .5, (rnd() - .5) * .9)).normalize(); hyph(q, nd2, n - 1); if (rnd() < .22) hyph(q, new THREE.Vector3(rnd() - .5, rnd() - .6, rnd() - .5).normalize(), Math.floor(n / 2)); };
+    tips.forEach(t => { for (let k = 0; k < 2; k++) hyph(t, new THREE.Vector3(rnd() - .5, rnd() - .55, rnd() - .5).normalize(), 9); });   // 菌糸は根の先から枝分かれして伸びる（模式）
+    const hy = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(H, 3)), new THREE.LineBasicMaterial({ color: 0xf3e3a0, transparent: true, opacity: two ? .5 : .24, depthWrite: false, fog: false })); stage.add(hy); }
+  // 土中の音（根の水の流れ・土の生き物の動きなど。人の耳には届かない／聴こえる高さに移した模式）：断面に広がる波紋
+  const soilRings = []; { const SC = new THREE.Vector3(ROOTS.x - .35, -.62, D / 2 + .012);
+    for (let k = 0; k < 2; k++) { const r = new THREE.Mesh(new THREE.RingGeometry(.96, 1, 64), new THREE.MeshBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); r.position.copy(SC); r.userData.k = k; stage.add(r); soilRings.push(r); } }
   // 古い参道の礫（断面に見える、昔の道の跡）
   { const m = FAINT(new THREE.MeshStandardMaterial({ color: 0xb8a582, roughness: .9 }), two); for (let i = 0; i < 40; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(.035 + Math.random() * .03, 6, 4), m); s.position.set(OLD.x + (Math.random() - .5) * 1.6, OLD.y + (Math.random() - .5) * .1, 1.96); s.scale.z = .4; stage.add(s); } }
   // 鳥（届く：鳴き声）
@@ -155,8 +165,8 @@ export async function bootDiorama(fig, kind, labs) {
   } catch (e) { console.warn('diorama', e); } })();
 
   // 手がかりの線（人→もの）
-  const flows = [], animals = []; let waveU = null; const flowGeo = new THREE.SphereGeometry(.021, 10, 8);
-  const lineTo = (a, b, col, dash, mid) => { const cv = mid ? new THREE.QuadraticBezierCurve3(a.clone(), mid.clone(), b.clone()) : null; const L0 = lineTo0(a, b, col, dash, cv); const n = Math.max(1, Math.round(a.distanceTo(b) / 1.8)); const ms = [];
+  const flows = [], animals = []; let waveU = null; const flowGeo = new THREE.SphereGeometry(two ? .04 : .024, 10, 8);
+  const lineTo = (a, b, col, dash, mid) => { const cv = mid ? new THREE.QuadraticBezierCurve3(a.clone(), mid.clone(), b.clone()) : null; const L0 = lineTo0(a, b, col, dash, cv); const n = Math.max(1, Math.round(a.distanceTo(b) / (two ? .7 : 1.8))); const ms = [];
     for (let k = 0; k < n; k++) { const m = new THREE.Mesh(flowGeo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); stage.add(m); ms.push(m); }
     flows.push({ a: a.clone(), b: b.clone(), cv, ms, line: L0, base: null, ph: Math.random(), sp: .22 / Math.max(.6, a.distanceTo(b)) * 1.6 }); return L0; };
   const lineTo0 = (a, b, col, dash, cv) => { const g = new THREE.BufferGeometry().setFromPoints(cv ? cv.getPoints(32) : [a, b]); const m = dash ? new THREE.LineDashedMaterial({ color: col, dashSize: .08, gapSize: .06, transparent: true, opacity: .95 }) : new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .95 }); m.fog = false; const l = new THREE.Line(g, m); if (dash) l.computeLineDistances(); stage.add(l); return l; };
@@ -165,40 +175,52 @@ export async function bootDiorama(fig, kind, labs) {
   // 1.0・2.0 共通：身体で届くもの
   // 2026-10-28 P2：線が人の頭の上で細かく重ならないよう、線は顔から少し離れた所から出す（2.0 では身体の線を一段淡く）
   const off = (a, b, r) => a.clone().add(b.clone().sub(a).normalize().multiplyScalar(r));
-  [[EYE, TRUNK], [EAR, BIRD], [FOOT, new THREE.Vector3(-.3, .02, 1.3)], [EYE, FLOWER.clone().setY(.45)]].forEach(([a, b], i) => { const l = lineTo(i === 2 ? a : off(a, b, .26), b, BODY, false); if (two) l.material.opacity = .5; if (i !== 1) dot(b, BODY); });
+  [[EYE, TRUNK], [EAR, BIRD], [FOOT, new THREE.Vector3(-.3, .02, 1.3)], [EYE, FLOWER.clone().setY(.45)]].forEach(([a, b], i) => { const l = lineTo(i === 2 ? a : off(a, b, .26), b, BODY, false); if (two) l.material.opacity = .28; if (i !== 1) dot(b, BODY); });
   if (!two) dot(EYE, BODY);
+  // 2026-10-30 本人「世界とその関係をより複雑に」：人だけでなく、もの・生きもののあいだにも関係がある（欅と鳥・花とミツバチ・根と幹・土の生き物と根）
+  [[TRUNK.clone().setY(2.6), BIRD, new THREE.Vector3((TRUNK.x + BIRD.x) / 2, 3.2, (TRUNK.z + BIRD.z) / 2)], [FLOWER.clone().setY(.46), new THREE.Vector3(FLOWER.x + .18, .62, FLOWER.z - .05)], [new THREE.Vector3(TREE.x, .05, TREE.z), new THREE.Vector3(ROOTS.x, -.35, ROOTS.z)], ].forEach(([a, b, m]) => { const l = lineTo(a, b, 0xbfd8cc, true, m); l.material.opacity = two ? .32 : .4; });
+  // 認知：頭のまわりの淡い輪（知覚した手がかりが、概念と経験で意味づけられるところ・模式）
+  const cog = new THREE.Mesh(new THREE.TorusGeometry(.2, .014, 8, 64), new THREE.MeshBasicMaterial({ color: two ? 0xf6dca2 : 0xffffff, transparent: true, opacity: .7, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); cog.position.set(EYE.x + .02, EYE.y + .2, EYE.z - .04); cog.rotation.x = Math.PI / 2; stage.add(cog);
+  // 認知のプロセスの札（環境→知覚→認知。2.0 は Qualia layer を経由）
+  const procLabs = []; const plab = (txtJa, txtEn, pos, col) => { const el = document.createElement('div'); el.className = 'qx-pl'; el.style.setProperty('--c', col); fig.appendChild(el); const an = new THREE.Object3D(); an.position.copy(pos); stage.add(an);
+    const fill = () => { el.innerHTML = document.documentElement.dataset.lang === 'en' ? txtEn : txtJa; }; fill(); new MutationObserver(fill).observe(document.documentElement, { attributes: true, attributeFilter: ['data-lang'] }); procLabs.push([el, an]); };
+  plab('土中の音（模式）', 'sound in the soil (schematic)', new THREE.Vector3(ROOTS.x - .95, -.95, D / 2 + .02), '#a8f2f6');
+  plab('環境 <i>E</i>', 'environment <i>E</i>', new THREE.Vector3(TREE.x + .9, .15, TREE.z + 1.4), '#dfe6ee');
+  const LP = new THREE.Vector3(-2.75, 1.0, 1.6), LC = new THREE.Vector3(-2.75, 2.55, 1.6);   // 札は人の外（左の空いた所）に出し、細い引き出し線で目と頭の輪へ
+  for (const [a, b] of [[LP, EYE.clone().add(new THREE.Vector3(-.06, -.04, .05))], [LC, new THREE.Vector3(EYE.x - .16, EYE.y + .2, EYE.z)]]) stage.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), new THREE.LineBasicMaterial({ color: 0xcfd6e6, transparent: true, opacity: .45, fog: false })));
+  plab(two ? '知覚 <i>P</i>′' : '知覚 <i>P</i>', two ? 'perception <i>P</i>′' : 'perception <i>P</i>', LP, '#ffffff');
+  plab(two ? '認知 <i>C</i>′' : '認知 <i>C</i>', two ? 'cognition <i>C</i>′' : 'cognition <i>C</i>', LC, two ? '#f6dca2' : '#ffffff');
 
-  if (two && !window.__sandoMeta) { try { window.__sandoMeta = await fetch('img/hero/sando_wire.json').then(r => r.json()); } catch (e) { window.__sandoMeta = null; } }
-  let aoiTick = null; const sideLabs = [];
-  const layerYs = mobile ? [3.2, 3.75, 4.3, 4.85] : [3.5, 4.2, 4.9, 5.6];
+  let aoiTick = null, yoTick = null; const sideLabs = [];
+  const layerYs = [.34, .72, 1.1, 1.48, 1.86, 2.24];   // 2026-10-30 本人「Qualia の波は地上付近へ」：身体の高さに、五つの感覚の層
   let layers = [];
-  if (two) {
+  if (two) { // Q′−Q の手がかり：1.0 の届く範囲を点線で残す
+    { const pts = []; for (let i = 0; i <= 96; i++) { const a = i / 96 * 6.283; pts.push(new THREE.Vector3(P.x + Math.cos(a) * 1.75, .025, P.z + Math.sin(a) * 1.75)); } const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: .09, gapSize: .07, transparent: true, opacity: .55, fog: false })); l.computeLineDistances(); stage.add(l); } plab('1.0 の範囲（点線）', 'Umwelt 1.0 reach (dotted)', new THREE.Vector3(P.x - .5, .42, P.z + 1.85), '#cfd6e6'); stage.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(P.x - .35, .36, P.z + 1.8), new THREE.Vector3(P.x - .3, .03, P.z + 1.74)]), new THREE.LineBasicMaterial({ color: 0xcfd6e6, transparent: true, opacity: .5, fog: false })));
     // 情報の層（地図のレイヤーのような、平らで透けた板）。下から 地形・歴史・生き物・音
     const EN = { '地形 ── 等高線（標高・国土地理院の数値地図より・模式）': 'Terrain: contour lines (elevation, GSI data; schematic)', '昔の道（古い地図に残る道筋）': 'Old path (as on old maps)', '鳥居': 'Torii', '丁石（道のりの石）': 'Distance stone', '歴史 ── 記録と古い地図（模式）': 'History: records and old maps (schematic)', 'ケヤキ': 'Zelkova', 'ミツバチ（紫外線で花を見る）': 'Honeybee (sees UV on flowers)', 'シジュウカラ': 'Japanese tit', 'ミミズ・菌糸（土の中）': 'Earthworms, fungi (in soil)', '生き物 ── 記録された生き物（模式）': 'Living things: recorded species (schematic)', '人に聞こえる音': 'Human hearing', 'コウモリの声': 'Bat calls', '音 ── 周波数（対数・模式）': 'Sound: frequency (log scale; schematic)' };
     const tr = s => (document.documentElement.dataset.lang === 'en' && EN[s]) || s;
     const lab = (x, s, px, py, col, size = 22) => { s = tr(s); size = Math.round(size * 1.6); x.font = `500 ${Math.round(size * .78)}px "Shippori Mincho", "Noto Serif JP", serif`; x.fillStyle = col; x.fillText(s, px, py); };
+    Object.assign(EN, { 'Qualia/x ── 五感を超えた感覚：地中・記憶・つながり・ほかの環世界・スケール': 'Qualia/x — beyond the five senses: soil, memory, links, other Umwelten, scale', 'Qualia/sound ── 人に聴こえるのは およそ 20 Hz〜20 kHz（模式）': 'Qualia/sound — humans hear about 20 Hz–20 kHz (schematic)', '土の中の音': 'sound in the soil', 'コウモリの声': 'bat calls', 'Qualia/touch ── 石畳と樹皮の手ざわりを振動に': 'Qualia/touch — paving and bark as vibration', 'Qualia/sight ── ミツバチの見る紫外線の模様': 'Qualia/sight — the ultraviolet pattern a bee sees', 'Qualia/taste ── 湧き水や葉の味の手がかり（模式）': 'Qualia/taste — cues of taste in spring water and leaves (schematic)', 'Qualia/smell ── 雨のあとの土のにおい（ゲオスミン）・花の香り': 'Qualia/smell — the smell of soil after rain (geosmin), flower scent' });
     const L = [
-      [0x8fe3c8, (x, w, h) => { // 実データ：国土地理院 DEM5A から作った 1 m 間隔の等高線（氷川参道のまわり 240 m × 160 m を、この板に縮めて描く）
-        const M = window.__sandoMeta; if (!M) return; const C = M.center, o = C[Math.floor(C.length * .55)], HW = 260, HD = 175;
-        x.lineCap = 'round'; const seen = {};
-        for (const [e, xs] of M.contours) { x.strokeStyle = 'rgba(180,255,224,' + (e % 5 === 0 ? .62 : .44) + ')'; x.lineWidth = e % 5 === 0 ? 3.6 : 2.6; x.beginPath(); let on = false;
-          for (let i = 0; i + 1 < xs.length; i += 2) { const px = (xs[i] - o[0] + HW) / (2 * HW) * w, py = (xs[i + 1] - o[2] + HD) / (2 * HD) * h; const inside = px > -20 && px < w + 20 && py > -20 && py < h + 20;
-            if (inside) { on ? x.lineTo(px, py) : x.moveTo(px, py); on = true; if (!seen[e] && px > w * .1 && px < w * .9 && py > h * .1 && py < h * .9) seen[e] = [px, py]; } else on = false; }
-          x.stroke(); }
-        Object.entries(seen).forEach(([e, [px, py]]) => { lab(x, (+e).toFixed(0) + ' m', px + 4, py - 6, 'rgba(210,250,236,.42)', 22); }); }],
-      [0xf2c56e, (x, w, h) => { x.strokeStyle = '#f2c56e'; x.lineWidth = 7; x.setLineDash([26, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .45, h * .1); x.stroke(); x.setLineDash([]); x.lineWidth = 5; x.strokeRect(w * .18, h * .05, w * .2, h * .12);
-        x.beginPath(); x.arc(w * .5, h * .86, 7, 0, 6.283); x.fillStyle = '#f2c56e'; x.fill(); }],
-      [0xc9b8ff, (x, w, h) => { x.fillStyle = '#c9b8ff'; x.strokeStyle = '#c9b8ff'; x.lineWidth = 4; [[.78, .3, 'ケヤキ'], [.6, .78, 'ミツバチ（紫外線で花を見る）'], [.3, .55, 'シジュウカラ'], [.84, .82, 'ミミズ・菌糸（土の中）']].forEach(([u, v, n]) => { x.globalAlpha = .75; x.beginPath(); x.arc(u * w, v * h, 6, 0, 6.283); x.fill(); x.globalAlpha = .35; x.beginPath(); x.arc(u * w, v * h, 16, 0, 6.283); x.stroke(); x.globalAlpha = 1; lab(x, n, u * w + 14, v * h - 10, 'rgba(225,215,255,.42)', 16); }); }],
-      [0xa8f2f6, (x, w, h) => { x.strokeStyle = 'rgba(168,242,246,.6)'; x.lineWidth = 3; [[.12, .3], [.7, .26]].forEach(([u, v]) => { for (let k = 1; k <= 3; k++) { x.globalAlpha = .4 - k * .1; x.beginPath(); x.arc(u * w, v * h, k * 18, 0, 6.283); x.stroke(); } }); x.globalAlpha = 1;
-        // 周波数の目盛り（対数）：人に聞こえるのはおよそ 20 Hz〜20 kHz、コウモリの声は 20 kHz より高い（模式）
-        const y0 = h * .82, x0 = w * .08, x1 = w * .92, f = v => x0 + (Math.log10(v) - 1) / 4 * (x1 - x0); x.lineWidth = 3; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y0); x.stroke();
-        [[10, '10 Hz'], [1000, '1 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { x.beginPath(); x.moveTo(f(v), y0 - 10); x.lineTo(f(v), y0 + 10); x.stroke(); lab(x, s, f(v) - 20, y0 + 40, 'rgba(212,251,253,.42)', 18); });
-        x.fillStyle = 'rgba(168,242,246,.28)'; x.fillRect(f(20), y0 - 26, f(20000) - f(20), 14);
-        x.fillStyle = 'rgba(242,197,110,.4)'; x.fillRect(f(20000), y0 - 26, f(100000) - f(20000), 14); }]];
+      [0x8fe3c8, (x, w, h) => { lab(x, 'Qualia/x ── 五感を超えた感覚：地中・記憶・つながり・ほかの環世界・スケール', w * .06, h * .14, 'rgba(210,250,236,.5)', 26); const r = (k => () => (k = (k * 9301 + 49297) % 233280) / 233280)(11); const p = []; for (let i = 0; i < 46; i++) p.push([w * (.06 + r() * .88), h * (.26 + r() * .68)]);
+        x.strokeStyle = 'rgba(180,255,224,.42)'; x.lineWidth = 4; p.forEach((a, i) => p.map((b, j) => [Math.hypot(a[0] - b[0], a[1] - b[1]), j]).filter(([d, j]) => j > i && d < 150).slice(0, 3).forEach(([d, j]) => { x.beginPath(); x.moveTo(a[0], a[1]); x.quadraticCurveTo((a[0] + p[j][0]) / 2 + 12, (a[1] + p[j][1]) / 2 - 10, p[j][0], p[j][1]); x.stroke(); }));
+        x.strokeStyle = 'rgba(233,166,196,.55)'; x.lineWidth = 5; x.setLineDash([24, 14]); x.beginPath(); x.moveTo(w * .05, h * .95); x.lineTo(w * .42, h * .3); x.stroke(); x.setLineDash([]); x.fillStyle = 'rgba(220,255,240,.7)'; p.forEach(([u, v]) => { x.beginPath(); x.arc(u, v, 3, 0, 6.283); x.fill(); }); }],
+      [0xa8f2f6, (x, w, h) => { lab(x, 'Qualia/sound ── 人に聴こえるのは およそ 20 Hz〜20 kHz（模式）', w * .06, h * .14, 'rgba(212,251,253,.5)', 26); x.strokeStyle = 'rgba(168,242,246,.6)'; x.lineWidth = 5; [[.2, .45, '土の中の音'], [.72, .4, 'コウモリの声']].forEach(([u, v, n]) => { for (let k = 1; k <= 3; k++) { x.globalAlpha = .45 - k * .1; x.beginPath(); x.arc(u * w, v * h, k * 22, 0, 6.283); x.stroke(); } x.globalAlpha = 1; lab(x, n, u * w + 30, v * h + 6, 'rgba(212,251,253,.5)', 16); });
+        const y0 = h * .8, x0 = w * .08, x1 = w * .92, f = v => x0 + (Math.log10(v) - 1) / 4 * (x1 - x0); x.lineWidth = 5; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y0); x.stroke();
+        [[10, '10 Hz'], [1000, '1 kHz'], [100000, '100 kHz']].forEach(([v, s]) => { x.beginPath(); x.moveTo(f(v), y0 - 10); x.lineTo(f(v), y0 + 10); x.stroke(); lab(x, s, f(v) - 20, y0 + 40, 'rgba(212,251,253,.42)', 16); });
+        x.fillStyle = 'rgba(168,242,246,.28)'; x.fillRect(f(20), y0 - 26, f(20000) - f(20), 14); x.fillStyle = 'rgba(242,197,110,.4)'; x.fillRect(f(20000), y0 - 26, f(100000) - f(20000), 14); }],
+      [0xf2c56e, (x, w, h) => { lab(x, 'Qualia/touch ── 石畳と樹皮の手ざわりを振動に', w * .06, h * .14, 'rgba(250,228,180,.5)', 26); x.strokeStyle = 'rgba(242,197,110,.55)'; x.lineWidth = 5;
+        for (let r = 0; r < 7; r++) { x.beginPath(); for (let i = 0; i <= 120; i++) { const u = i / 120, y = h * (.3 + r * .09) + Math.sin(u * 40 + r * 1.3) * (6 + 5 * Math.sin(u * 6 + r)) * (r % 2 ? 1 : .6); i ? x.lineTo(u * w, y) : x.moveTo(u * w, y); } x.stroke(); } }],
+      [0xc9b8ff, (x, w, h) => { lab(x, 'Qualia/sight ── ミツバチの見る紫外線の模様', w * .06, h * .14, 'rgba(228,220,255,.5)', 26); const cx = w * .62, cy = h * .58; x.strokeStyle = 'rgba(201,184,255,.6)'; x.lineWidth = 5;
+        for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; x.beginPath(); x.ellipse(cx + Math.cos(a) * 70, cy + Math.sin(a) * 70, 52, 20, a, 0, 6.283); x.stroke(); } x.fillStyle = 'rgba(122,92,255,.5)'; x.beginPath(); x.arc(cx, cy, 46, 0, 6.283); x.fill(); }],
+      [0xe9a6c4, (x, w, h) => { lab(x, 'Qualia/taste ── 湧き水や葉の味の手がかり（模式）', w * .06, h * .14, 'rgba(246,214,228,.55)', 26); x.fillStyle = 'rgba(233,166,196,.5)';
+        [[.3, .55], [.5, .7], [.7, .5], [.42, .42], [.62, .78]].forEach(([u, v], k) => { const cx = u * w, cy = v * h, r = 16 + k * 4; x.beginPath(); x.moveTo(cx, cy - r * 1.6); x.quadraticCurveTo(cx + r, cy - r * .2, cx, cy + r); x.quadraticCurveTo(cx - r, cy - r * .2, cx, cy - r * 1.6); x.fill(); }); }],
+      [0xb8e07a, (x, w, h) => { lab(x, 'Qualia/smell ── 雨のあとの土のにおい（ゲオスミン）・花の香り', w * .06, h * .14, 'rgba(225,245,200,.55)', 26); x.strokeStyle = 'rgba(184,224,122,.55)'; x.lineWidth = 5;
+        for (let k = 0; k < 9; k++) { const x0 = w * (.12 + k * .09); x.beginPath(); for (let i = 0; i <= 60; i++) { const v = i / 60, px = x0 + Math.sin(v * 9 + k) * 18 * v, py = h * (.92 - v * .62); i ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke(); } }]];
     const texs = [];
     // 2026-10-29 本人「薄い布状のオーロラのような層が混ざり合う」：直方体の板をやめ、ノイズで波打つ薄い面に。縁は溶かし、色は加算で混ざる
     waveU = { uT: { value: 0 } };
-    const wavy = (mat, ph, amp = .16, edge = true, rb = true) => { mat.fog = false; mat.onBeforeCompile = sh => { sh.uniforms.uT = waveU.uT; sh.uniforms.uPh = { value: ph }; sh.uniforms.uAmp = { value: amp };
+    const wavy = (mat, ph, amp = .16, edge = true, rb = true) => { mat.fog = false; mat.onBeforeCompile = sh => { sh.uniforms.uT = waveU.uT; sh.uniforms.uPh = { value: ph }; sh.uniforms.uAmp = { value: amp * 1.5 };
         sh.uniforms.uRib = { value: rb ? 1 : 0 }; sh.vertexShader = 'uniform float uT; uniform float uPh; uniform float uAmp; varying vec2 vUv2;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
           vUv2 = uv; float w = sin(position.x * 1.1 + uT * .5 + uPh) * .55 + sin(position.y * 1.7 - uT * .27 + uPh * 2.) * .35 + sin((position.x + position.y) * 2.6 + uT * .5) * .12;
           transformed.z += w * uAmp;`);
@@ -209,34 +231,39 @@ export async function bootDiorama(fig, kind, labs) {
           gl_FragColor.a *= e * (uRib > .5 ? rib : 1.);`); }; return mat; };
     new MutationObserver(() => texs.forEach(([tx, draw]) => { const c = tx.image, x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); draw(x, c.width, c.height); tx.needsUpdate = true; })).observe(document.documentElement, { attributes: true, attributeFilter: ['data-lang'] });
     L.forEach(([col, draw], i) => {
-      const g = new THREE.Group(); g.position.y = layerYs[i]; stage.add(g);
-      for (let k = 0; k < 2; k++) { const veil = new THREE.Mesh(new THREE.PlaneGeometry(W * (1.2 - k * .15), D * (.85 - k * .2), 56, 30), wavy(new THREE.MeshBasicMaterial({ color: new THREE.Color(col).offsetHSL(0, .45, -.2), transparent: true, opacity: .24 - k * .08, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }), i * 1.7 + k * 2.3, .42 + k * .14));
-        veil.rotation.x = -Math.PI / 2; veil.rotation.z = (i % 2 ? .06 : -.06); veil.position.y = (k ? .1 : -.03); veil.position.z = (k ? .35 : -.25); veil.position.x = (k ? .3 : -.1) * (i % 2 ? 1 : -1); g.add(veil); }
-      const ln = new THREE.Mesh(new THREE.PlaneGeometry(W, D, 48, 32), wavy(new THREE.MeshBasicMaterial({ map: (() => { const tx = canvasTex((x, w, h) => { draw(x, w, h); }, 1024, 680); texs.push([tx, draw]); return tx; })(), transparent: true, opacity: .95, depthWrite: false, side: THREE.DoubleSide }), i * 1.7, .16, true, false)); ln.rotation.x = -Math.PI / 2; ln.position.y = .003; g.add(ln);
+      const g = new THREE.Group(); g.position.y = layerYs[i]; g.position.set(.25 + (i % 3 - 1) * .75, layerYs[i], .55 + (i % 2 ? .55 : -.35)); g.rotation.set(0, -1.05 + i * .42, (i % 2 ? .3 : -.3)); stage.add(g);   /* 2026-10-30 本人：薄い布状のオーロラが互いにくぐり・絡まり合う（段に並べない）。向きは流れる粒で示す */
+      for (let k = 0; k < 2; k++) { const veil = new THREE.Mesh(new THREE.PlaneGeometry(W * (1.0 - k * .15), .8 - k * .3, 72, 10), wavy(new THREE.MeshBasicMaterial({ color: new THREE.Color(col), transparent: true, opacity: .42 - k * .15, depthWrite: false, side: THREE.DoubleSide, blending: THREE.NormalBlending }), i * 1.7 + k * 2.3, .42 + k * .14));
+        veil.rotation.x = -Math.PI / 2 + (i % 2 ? .07 : -.07); veil.rotation.z = (i % 2 ? .1 : -.1); veil.position.y = (k ? .1 : -.03); veil.position.z = (k ? .12 : -.08); veil.position.x = (k ? .3 : -.1) * (i % 2 ? 1 : -1); g.add(veil); }
+      const ln = new THREE.Mesh(new THREE.PlaneGeometry(W * .95, .6, 64, 8), wavy(new THREE.MeshBasicMaterial({ map: (() => { const tx = canvasTex((x, w, h) => { draw(x, w, h); }, 1024, 320); texs.push([tx, draw]); return tx; })(), transparent: true, opacity: .85, depthWrite: false, side: THREE.DoubleSide }), i * 1.7, .16, true, false)); ln.rotation.x = -Math.PI / 2 + (i % 2 ? .07 : -.07); ln.rotation.z = (i % 2 ? .1 : -.1); ln.position.y = .003; g.add(ln);
       
-      { const SL = [['地形', '等高線 1 m（国土地理院）', 'Terrain', '1 m contours (GSI DEM5A)'], ['歴史', '昔の道・鳥居・丁石', 'History', 'old path, torii, stones'], ['生き物', 'ケヤキ・ミツバチ・シジュウカラ', 'Living things', 'zelkova, honeybee, tit'], ['音', '人 〜20 kHz・コウモリ 20 kHz〜', 'Sound', 'human ≤20 kHz, bats 20 kHz+']][i];
+      { const SL = [['Qualia/x', '地中・記憶・つながり', 'Qualia/x', 'soil, memory, links, other Umwelten'], ['Qualia/sound', '土中の音・超音波', 'Qualia/sound', 'soil sound, ultrasound'], ['Qualia/touch', '手ざわりを振動へ', 'Qualia/touch', 'texture → vibration'], ['Qualia/sight', '紫外線の模様', 'Qualia/sight', 'ultraviolet pattern'], ['Qualia/taste', '湧き水や葉の味', 'Qualia/taste', 'water and leaves'], ['Qualia/smell', '土のにおい・花の香り', 'Qualia/smell', 'soil after rain, flowers']][i];
         const el = document.createElement('div'); el.className = 'qx-sl'; el.style.setProperty('--c', '#' + new THREE.Color(col).getHexString()); fig.appendChild(el);
         const fill = () => { const en = document.documentElement.dataset.lang === 'en'; el.innerHTML = '<b>' + (en ? SL[2] : SL[0]) + '</b><span>' + (en ? SL[3] : SL[1]) + '</span>'; }; fill(); texs.push([{ image: document.createElement('canvas') }, () => fill()]);
-        const an = new THREE.Object3D(); an.position.set(W / 2 + .1, 0, -D / 2 + .3); g.add(an); sideLabs.push([el, an]); }
+        el.style.left = '72%'; el.style.right = 'auto'; el.style.top = (14 + (5 - i) * 54) + 'px'; }   // 凡例は図の右上に縦に並べる（上の層ほど上）
       // 直方体の板・枠・あいだの薄板は使わない（2026-10-29）
       layers.push(g);
     });
     // 層を通してつながる：人→層→（届かなかったもの）。縦の線は層への出入り
     // 依代＝環境エージェント（2026-10-28 本人）：碧が人のそばに立ち、主体と情報の層のあいだをつなぐ。層のそばに小さな依代（Qualium の共通部品の現行版）を置く
     const AOI = new THREE.Vector3(.45, 0, -.1), AOIH = new THREE.Vector3(.45, 1.55, -.1);
-    lineTo(off(EYE, AOIH, .26), AOIH, 0xa8f2f6, false); dot(AOIH, 0xa8f2f6);
-    const top = new THREE.Vector3(AOIH.x, layerYs[layerYs.length - 1], AOIH.z); lineTo(AOIH, top, 0xa8f2f6, false, new THREE.Vector3(AOIH.x - .9, (AOIH.y + top.y) / 2, AOIH.z + .5)); dot(top, 0xa8f2f6);
+    lineTo(off(EYE, AOIH, .26), AOIH, 0xa8f2f6, false).material.opacity = .35; dot(AOIH, 0xa8f2f6);
+    const top = new THREE.Vector3(AOIH.x, layerYs[layerYs.length - 1], AOIH.z); lineTo(AOIH, top, 0xa8f2f6, false, new THREE.Vector3(AOIH.x - .9, (AOIH.y + top.y) / 2, AOIH.z + .5)).material.opacity = .3; dot(top, 0xa8f2f6);
     { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const gr = x.createRadialGradient(128, 128, 30, 128, 128, 128); gr.addColorStop(0, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 256, 256);
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.1, D * 1.1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .015; stage.add(sh); }
     const via = (layerI, target, col) => { const y = layerYs[layerI]; const out = new THREE.Vector3(target.x - P.x, 0, target.z - P.z).normalize();
       const up = new THREE.Vector3(target.x + out.x * .5, y - .05, target.z + out.z * .5), mid = new THREE.Vector3(target.x + out.x * .9, (y + target.y) / 2, target.z + out.z * .9);
-      lineTo(up, target, col, true, mid); dot(up, col); dot(target, col); };
-    via(0, ROOTS, 0x8fe3c8); via(1, OLD, 0xf2c56e); via(2, FLOWER.clone().setY(.46), 0xc9b8ff); via(3, BAT.clone().add(new THREE.Vector3(-.75, .12, 0)), 0xa8f2f6);
-    (async () => { try {
-      const g = await gltf('js/kit/envAgents/kasane.glb'); const proto = g.scene; const bb = new THREE.Box3().setFromObject(proto), h = bb.max.y - bb.min.y;
-      [[ROOTS.x - .5, 0, ROOTS.z + .9, '#6c8d71'], [OLD.x + .4, 0, 1.6, '#864e4c'], [FLOWER.x - .25, 0, FLOWER.z + .35, '#a59fc3'], [-2.0, 0, .2, '#3a4360']].forEach(([x, y, z, c], i) => {
-        const k = proto.clone(true); k.traverse(o => { if (o.isMesh && o.material && !/eye|cheek|目|頬/i.test(o.name + (o.material.name || ''))) { o.material = o.material.clone(); o.material.color && o.material.color.set(c); o.material.roughness = 1; o.material.metalness = 0; if ('clearcoat' in o.material) o.material.clearcoat = 0; if ('specularIntensity' in o.material) o.material.specularIntensity = .2; } });
-        k.scale.setScalar(.36 / h); k.position.set(x, y - bb.min.y * .36 / h, z); k.rotation.y = .6 + i * .5; stage.add(k); }); } catch (e) { console.warn('kasane', e); } })();
+      lineTo(up, target, col, true, mid); dot(up, col); dot(target, col);
+      // 層から人へ：Qualia layer を経由して知覚（目・耳）へ、そこから認知（頭の輪）へ
+      const head = layerI === 1 ? EAR : EYE; lineTo(off(head, up, .3), up, col, false, new THREE.Vector3((up.x + head.x) / 2, Math.max(up.y, head.y) + .25, (up.z + head.z) / 2)); };
+    via(0, ROOTS, 0x8fe3c8); via(1, new THREE.Vector3(ROOTS.x - .35, -.62, D / 2), 0xa8f2f6); via(2, new THREE.Vector3(-.3, .02, 1.3), 0xf2c56e); via(3, FLOWER.clone().setY(.46), 0xc9b8ff); via(4, TRUNK.clone().setY(1.6), 0xe9a6c4); via(5, new THREE.Vector3(.9, .03, 1.2), 0xb8e07a);
+    plab('Qualia layer <i>L</i>', 'Qualia layer <i>L</i>', new THREE.Vector3(W / 2 - .1, layerYs[5] + .35, 1.2), '#f6dca2');
+    (async () => { try {   // 2026-10-30 本人「ほかの依代も配置する」：碧が姿を変えた依代（しずく・石は 3D、ほかの 6 体はいちばん良い版の画）。碧の髪の色・マット・小さく。図が出たあとに読む
+      await new Promise(r => setTimeout(r, 1200));
+      const Y = await import('./kit/envAgents/yorishiro/yorishiro.js'); const yo = new Y.Yorishiro({ scene: stage, camera: cam, groundAt: () => 0 });
+      await yo.add('shizuku', { x: ROOTS.x - .2, z: 1.5, yaw: -.4, scale: .28 }); await yo.add('ishi', { x: -2.55, z: 1.25, yaw: .5, scale: .26 }); yoTick = dt => yo.update(dt);
+      [['kitsune', -1.7, 0, -.6, .34], ['hitsuji', 2.6, 0, .9, .3], ['tori', TRUNK.x - .3, 2.35, TRUNK.z + .3, .26], ['cho', FLOWER.x + .5, .8, FLOWER.z + .2, .22], ['ki', 2.55, 0, -1.6, .34], ['tsuchi', 1.0, 0, 1.75, .26]].forEach(([n, x, y, z, hgt]) => {
+        const t = TL.load('img/hero/3d/yori/' + n + '.webp'); t.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, alphaTest: .08, fog: false })); sp.center.set(.5, 0); sp.scale.set(hgt * .98, hgt * 1.3, 1); sp.position.set(x, y, z); stage.add(sp); });
+    } catch (e) { console.warn('yorishiro', e); } })();
     (async () => { try {
       const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm')]);
       const Ld = new GLTFLoader(); Ld.setMeshoptDecoder(MeshoptDecoder); Ld.register(p => new V.VRMLoaderPlugin(p));
@@ -252,21 +279,22 @@ export async function bootDiorama(fig, kind, labs) {
   }
 
   // 札の置き場（図の下に並べるので、ここでは使わない）
-  const fitW = two ? (mobile ? 11.0 : 10.6) : (mobile ? 6.2 : 7.4), fitH = two ? (mobile ? 7.6 : 8.6) : (mobile ? 5.6 : 6.6);
-  const look = new THREE.Vector3(two ? 1.2 : 0, two ? 2.0 : 1.1, 0);   /* 2026-10-29 夜 本人：人の目の高さに近い視点で、少し引いて全体を見渡す */
+  const fitW = two ? (mobile ? 8.6 : 8.4) : (mobile ? 6.2 : 7.4), fitH = two ? (mobile ? 6.0 : 6.0) : (mobile ? 5.6 : 6.6);
+  const look = new THREE.Vector3(two ? .7 : 0, two ? .55 : 1.0, 0);   /* 2026-10-29 夜 本人：人の目の高さに近い視点で、少し引いて全体を見渡す */
   // 2.0 は見えはじめに、少し寄った所から引いて世界が広がる（1.0 は身体の届く範囲に寄ったまま）
   let zoomK = two && !reduce ? .84 : 1, zoomT = 0;
   if (two && reduce) reach.scale.set(2.35, 2.85, 2.35);
-  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * (mobile ? 1.06 : 1.16) * zoomK; const dir = new THREE.Vector3(.72, .14, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
+  function size() { const w = fig.clientWidth || 300, h = fig.clientHeight || 300; R.setSize(w, h, false); cam.aspect = w / h; const th = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)); const d = Math.max(fitH / 2 / th, fitW / 2 / th / cam.aspect) * (mobile ? 1.06 : 1.16) * zoomK; const dir = new THREE.Vector3(.72, two ? .4 : .26, 1).normalize(); cam.position.copy(look).add(dir.multiplyScalar(d)); cam.lookAt(look); cam.updateProjectionMatrix(); }
   size(); new ResizeObserver(size).observe(fig);
   let vis = true, raf = 0; const t0 = performance.now(); let lastT = t0;
   function frame() { const now = performance.now(), t = (now - t0) / 1000, dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
-    if (two && zoomK < 1) { zoomT += dt; const u = Math.min(1, zoomT / 3.0); zoomK = .84 + .16 * (1 - Math.pow(1 - u, 3)); size(); { const r = R0 + (2.35 - R0) * (1 - Math.pow(1 - u, 3)); reach.scale.set(r, 1.25 + 1.6 * u, r); } layers.forEach((g, i) => g.children.forEach(o => { if (o.material) { o.material.userData.o0 ??= o.material.opacity; o.material.opacity = o.material.userData.o0 * Math.min(1, Math.max(0, u * 4 - i * .7)); } })); }
-    waveU && (waveU.uT.value = reduce ? 0 : t); const lineK = two && !reduce ? Math.min(1, Math.max(0, zoomT / 3.0 * 1.6 - .5)) : 1; if (two) dots.forEach(d => d.material.opacity = lineK);
+    if (two && zoomK < 1) { zoomT = Math.max(zoomT + dt, (now - t0) / 1000 - .3); const u = Math.min(1, zoomT / 3.0); zoomK = .84 + .16 * (1 - Math.pow(1 - u, 3)); size(); { const r = R0 + (2.35 - R0) * (1 - Math.pow(1 - u, 3)); reach.scale.set(r, 1.25 + 1.6 * u, r); } layers.forEach((g, i) => g.children.forEach(o => { if (o.material) { o.material.userData.o0 ??= o.material.opacity; o.material.opacity = o.material.userData.o0 * Math.min(1, Math.max(0, u * 4 - i * .7)); } })); }
+    waveU && (waveU.uT.value = reduce ? 0 : t); domeU.uT.value = reduce ? 0 : t; if (yoTick) yoTick(dt); cog.material.opacity = .8 + (reduce ? 0 : .2 * Math.sin(t * 1.6)); cog.scale.setScalar(1 + (reduce ? 0 : .06 * Math.sin(t * 1.6)));
+    soilRings.forEach(r => { const u = reduce ? .5 : (t * .22 + r.userData.k / 2) % 1; r.scale.setScalar(.08 + u * .55); r.material.opacity = (two ? .55 : .22) * Math.sin(u * Math.PI); }); const lineK = two && !reduce ? Math.min(1, Math.max(0, zoomT / 3.0 * 1.6 - .5)) : 1; if (two) dots.forEach(d => d.material.opacity = lineK);
     animals.forEach(a => { a.userData.animate && a.userData.animate(reduce ? 0 : t); if (a.userData.state === 'perch' && a.userData.body) { a.userData.body.rotation.y = 0; if (a.userData.legs) a.userData.legs.visible = false; } });   /* 止まった鳥は横向きのまま（見回すのは頭だけ） */
     if (motes) { const P2 = motes.geometry.attributes.position; for (let i = 0; i < P2.count; i++) { let y = P2.getY(i) - dt * (.12 + (i % 5) * .03); if (y < .02) y = 3.2; P2.setY(i, y); P2.setX(i, P2.getX(i) + Math.sin(t * .8 + i) * dt * .08); } P2.needsUpdate = true; }
     if (!reduce) flows.forEach(f => { if (f.base === null) f.base = f.line.material.opacity; f.line.material.opacity = lineK * f.base * (.72 + .28 * Math.sin(t * 1.3 + f.ph * 6.283)); const n = f.ms.length;
-      f.ms.forEach((m, k) => { const u = (t * f.sp + f.ph + k / n) % 1; f.cv ? f.cv.getPoint(1 - u, m.position) : m.position.lerpVectors(f.b, f.a, u); m.material.opacity = lineK * Math.sin(u * Math.PI) * .85 * (f.base / .95); m.scale.setScalar(1 + .4 * Math.sin(u * Math.PI)); }); }); if (aoiTick) aoiTick(dt); if (sideLabs.length) { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); sideLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.min(w - 8, (v.x * .5 + .5) * w + 6)}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } bee.position.y = .62 + (reduce ? 0 : Math.sin(t * 7) * .015); stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce || two ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
+      f.ms.forEach((m, k) => { const u = (t * f.sp + f.ph + k / n) % 1; f.cv ? f.cv.getPoint(1 - u, m.position) : m.position.lerpVectors(f.b, f.a, u); m.material.opacity = lineK * Math.sin(u * Math.PI) * .85 * (f.base / .95); m.scale.setScalar(1 + .4 * Math.sin(u * Math.PI)); }); }); if (aoiTick) aoiTick(dt); { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); procLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.max(4, Math.min(w - 90, (v.x * .5 + .5) * w))}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } if (sideLabs.length) { S.updateMatrixWorld(); const w = fig.clientWidth, h = fig.clientHeight, v = new THREE.Vector3(); sideLabs.forEach(([el, an]) => { an.getWorldPosition(v); v.project(cam); el.style.transform = `translate(${Math.min(w - 8, (v.x * .5 + .5) * w + 6)}px,${(-v.y * .5 + .5) * h}px) translate(0,-50%)`; }); } bee.position.y = .62 + (reduce ? 0 : Math.sin(t * 7) * .015); stage.rotation.y = reduce ? 0 : Math.sin(t * .15) * .08; bird.position.y = BIRD.y + (reduce || two ? 0 : Math.sin(t * 2) * .03); R.render(S, cam); }
   function loop() { raf = 0; if (!vis || document.hidden) return; frame(); raf = requestAnimationFrame(loop); }
   new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; if (vis && !raf) raf = requestAnimationFrame(loop); }).observe(fig);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && vis && !raf) raf = requestAnimationFrame(loop); });
