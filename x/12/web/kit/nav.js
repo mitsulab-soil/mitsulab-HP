@@ -25,7 +25,7 @@ export function installNav(o) {
     if (N.pts.size === 2) { const [a, b] = [...N.pts.values()]; N.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) }; N.drag = null; o.ring(null); return; }
     N.drag = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: performance.now(), id: e.pointerId, moved: 0, stop: o.mode() === "walk" && o.isMoving(), look: false, lt: performance.now() };
     N.vx = N.vy = 0; try { canvas.setPointerCapture(e.pointerId); } catch { }
-    if (!N.drag.stop && o.mode() === "walk") o.ring(o.goalAt(e.clientX, e.clientY));
+    if (o.mode() === "walk") o.ring(o.goalAt(e.clientX, e.clientY));
   });
   canvas.addEventListener("pointermove", e => {
     if (N.pts.has(e.pointerId)) N.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -47,7 +47,7 @@ export function installNav(o) {
     if (D.look) { N.relT = performance.now(); return; }
     if (e.type === "pointercancel") { o.ring(null); return; }
     if (performance.now() - D.t > 650) { o.ring(null); return; }
-    if (D.stop) { o.stop(); o.ring(null); return; }   // 歩いている間は、どこを押しても止まる（碧は喋り出さない）
+    if (D.stop) { if (!o.markAt(e.clientX, e.clientY) && o.goalAt(e.clientX, e.clientY)) o.stop(); o.tap(e.clientX, e.clientY); o.ring(null); return; }   // 10-30 本人「A：押した所へ行き先を変える」：歩いている間に地面を押すと、そこへ行き先を付け替える（層や印はこれまでどおりひらく）。止まるのは右下の「止まる」の札と Space
     o.tap(e.clientX, e.clientY); o.ring(null);   // 層や印に触れたときは、行き先の円を残さない（歩くときは goal があるので消えない）
   };
   canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
@@ -82,6 +82,7 @@ export function installNav(o) {
     }
     if (N.ar && N.ori && m === "walk") { if (N.oriBase == null) N.oriBase = (o.cam.yaw + o.cam.look) - N.ori.yaw; const H = N.oriBase + N.ori.yaw; o.cam.look = H - o.cam.yaw; o.cam.pitch = Math.max(-1.2, Math.min(1.2, N.ori.pitch)); }
     if (m === "walk" && o.isStuck?.()) N.stats.stuckMs += dt * 1000;
+    { const ab = document.getElementById("autoBtn"), sp = ab?.querySelector("span"); if (sp) { const goalMove = m === "walk" && o.isMoving() && ab.getAttribute("aria-pressed") !== "true"; if (goalMove && !N.goalLbl) { N.goalLbl = sp.textContent; sp.textContent = "止まる"; ab.dataset.qstop = "1"; } else if (!goalMove && N.goalLbl != null) { if (ab.dataset.qstop) sp.textContent = N.goalLbl; N.goalLbl = null; delete ab.dataset.qstop; } } }   // 押した所へ歩いている間も、右下の札は「止まる」
   };
 
   /* ---------- キーボード ---------- */
@@ -194,7 +195,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
   /* ---------- 最初の一言（1 回だけ） ---------- */
   function once(k, t) { if (ss.get(k)) return; ss.set(k, "1"); o.say(t); }
   N.firstWalk = () => setTimeout(() => once("q.h.walk", mobile ? "行きたい所を、指でさしてください。なぞると見回せます。" : "行きたい所をクリック。ドラッグで見回し、W A S D でも歩けます。"), 400);
-  N.firstWalk = ((f0) => () => { f0(); setTimeout(() => { if (document.querySelector("#qHere:not([hidden])")) once("q.h.cnt", "左の数字は、まわり 30 m に重なっている層の数です。"); }, 6200); })(N.firstWalk);   // 10-30 パネル：数字の札の意味を最初の一度だけ
-  const ab = $("#autoBtn"); if (ab) ab.addEventListener("click", () => { if (ab.getAttribute("aria-pressed") === "true") once("q.h.auto", "どこかに触れると、止まります。"); });
+  N.firstWalk = ((f0) => () => { f0(); setTimeout(() => { if (document.querySelector("#qHere:not([hidden])")) once("q.h.cnt", "左の数字は、まわり 30 m に重なっている層の数です。"); }, 16000); })(N.firstWalk);   // 10-30 パネル：数字の札の意味を最初の一度だけ
+  const ab = $("#autoBtn"); if (ab) ab.addEventListener("click", e => { if (ab.dataset.qstop) { e.stopImmediatePropagation(); o.stop(); delete ab.dataset.qstop; return; }   /* 押した所へ歩いている間の「止まる」 */ if (ab.getAttribute("aria-pressed") === "true") once("q.h.auto", "行きたい所を押すと、そちらへ向きを変えます。止まるときは右下の「止まる」。"); });
   return N;
 }
