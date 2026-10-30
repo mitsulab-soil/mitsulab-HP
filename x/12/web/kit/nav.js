@@ -48,7 +48,7 @@ export function installNav(o) {
     if (e.type === "pointercancel") { o.ring(null); return; }
     if (performance.now() - D.t > 650) { o.ring(null); return; }
     if (D.stop) { o.stop(); o.ring(null); return; }   // 歩いている間は、どこを押しても止まる（碧は喋り出さない）
-    o.tap(e.clientX, e.clientY);
+    o.tap(e.clientX, e.clientY); o.ring(null);   // 層や印に触れたときは、行き先の円を残さない（歩くときは goal があるので消えない）
   };
   canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
   canvas.addEventListener("wheel", e => { if (!mine()) return; e.preventDefault(); zoom(1 + Math.max(-.5, Math.min(.5, e.deltaY * .0012))); }, { passive: false });
