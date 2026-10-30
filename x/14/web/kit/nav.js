@@ -111,7 +111,7 @@ export function installNav(o) {
 @keyframes qtick{0%{transform:translateY(2px);opacity:.6}100%{transform:none;opacity:1}}
 #qSnd{order:-1;flex:0 0 auto!important;min-width:44px!important;width:44px!important;max-width:44px!important;min-height:44px;padding:0!important;display:inline-flex!important;align-items:center;justify-content:center}
 #qSnd svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.3}
-#autoBtn{order:0}
+#autoBtn{order:2!important}#walkUI #qSnd{order:1!important}#walkUI>*:not(#qSnd):not(#autoBtn){order:3}
 #qSnd[aria-pressed="false"]{opacity:.55}
 body #walkUI,body[data-mode="walk"] #walkUI{flex-direction:row!important;align-items:flex-end!important;display:flex!important;direction:ltr!important;gap:8px!important}
 body[data-mode="walk"] #walkUI #qSnd,body[data-mode="walk"] #walkUI #autoBtn{grid-row:auto;grid-column:auto}
