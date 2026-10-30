@@ -42,7 +42,7 @@ export function makeQAurora(THREE, scene, opt) {
     for (let k = 0; k <= NS; k++) { const u = k / NS, a = (u - .3) * len, sw = Math.sin(u * Math.PI * 2 + s.ph + t * .23) * 1.4 + Math.sin(u * 9 - t * 3) * wob * .3,
       x = o.x + tx * a + nx * sw, z = o.z + tz * a + nz * sw, gy = opt.ground(x, z) || g0, y = gy + 1.5 + .9 * Math.sin(u * Math.PI * 1.5 + s.ph + t * .17) + wob * Math.sin(u * 14 - t * 5),
       tau = u * 4.2 + s.ph + t * .12, W = 1.0 + .6 * s.a + .4 * s.hov, ux = nx * Math.sin(tau), uy = Math.cos(tau), uz = nz * Math.sin(tau);
-      for (let j = 0; j < 2; j++) { const h = (j - .5) * W, q = (k * 2 + j) * 3; P[q] = x + ux * h; P[q + 1] = Math.min(gy + 3.2, Math.max(gy + .35, y + uy * h));   /* 10-30 パネル：身体スケール（地面から 3.2 m まで） */ P[q + 2] = z + uz * h; } }
+      for (let j = 0; j < 2; j++) { const h = (j - .5) * W, q = (k * 2 + j) * 3; P[q] = x + ux * h; P[q + 1] = Math.min(gy + (s.amb ? 2.1 : 3.2), Math.max(gy + .35, y + uy * h));   /* 見る人の前の一本は近いので、腰から肩の高さまでに（空へ弧を描かない） */   /* 10-30 パネル：身体スケール（地面から 3.2 m まで） */ P[q + 2] = z + uz * h; } }
     s.mesh.geometry.attributes.position.needsUpdate = true;
   }
   // x/soil：足もとの下がひらく（地中の模式：円く透けた地面の下に、根と菌糸のような細い線が伸びる。8 秒で閉じる）
