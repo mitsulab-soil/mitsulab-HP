@@ -15,7 +15,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { installNav } from "../kit/nav.js?v=n4";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n5";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
@@ -1115,7 +1115,7 @@ function loadAoi() {
 function aoiSpot(out) {
   const f = MOBILE ? 4.9 : 3.5, s = MOBILE ? .5 : 1.25,   /* 10-30 パネル：375px で碧を真ん中から外す */   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
-  const side = MOBILE ? -1 : !$("#panel").hidden ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
+  const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = MOBILE ? -1 : !$("#panel").hidden ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：左右がこまごとに入れかわらない */
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   if (offRoute(CAM.pos.x, CAM.pos.z) && n.dist < 40) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
   out.y = groundY(out.x, out.z); return out;
@@ -1390,7 +1390,7 @@ function loadKasane() {
   return KASA.p = (async () => {
     const M = await import("../kit/envAgents/kasane.js?v=b1");
     const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: (x, z) => groundY(x, z) + .06, walkable: kasaOk, walkSurface: kasaPeek, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
-      muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, viewTitle: a => a.data?.o?.title || a.data?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない・窓は層の一覧にかけない
+      muted: () => !soundOn, minCamDist: MOBILE ? 2.4 : 2.6, viewTitle: a => a.data?.o?.title || a.data?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない・窓は層の一覧にかけない
     const near = (x, z, Rm = 9) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
     // 物陰：通りに面した店蔵・町家の角（角から 0.35 m 内側を物陰の中心とみなす）
     const covers = [];

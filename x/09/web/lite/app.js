@@ -16,7 +16,7 @@ import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { makeFliers } from "../kit/fliers.js?v=1";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
-import { installNav } from "../kit/nav.js?v=n4";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n5";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=56m";
 
@@ -1769,9 +1769,9 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
   for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 5.0 : 3.6, s = MOBILE ? .7 : 1.9;   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 5.0 : 4.2, s = MOBILE ? .7 : 1.2;   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
-  const rx = -fz, rz = fx, side = PANEL.cur && !MOBILE ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
+  const rx = -fz, rz = fx, sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = PANEL.cur && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：道の中心を歩くと左右がこまごとに入れかわり、碧が真ん中に留まっていた。0.8 m の幅でしか入れかえない */   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
   if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); aoiOffRoad(out, rx, rz); return out; }
   { const c = MOBILE ? aoiPick(fx, fz, rx, rz, f, [[f, s * side], [f, (s + .25) * side], [f * .85, (s + .15) * side], [f, -s * side], [f, -(s + .25) * side]]   /* 10-30 パネル：真ん中（-.15）の候補を外し、反対側の寄せを代わりに */) : (() => { for (const k of [s, s * .8, s * .62, -s * .8, -s * .62]) { const x = CAM.pos.x + fx * f + rx * k * side, z = CAM.pos.z + fz * f + rz * k * side; if (!blocked(x, z)) return [f, k * side]; } return [f, s * side]; })();   /* 10-30 パネル：PC は植え込みに入らない一番外側の寄せ（植え込みに当たって道の真ん中へ戻されていた） */   /* 2026-10-26 17：スマホは参道の近くでも目印の球と重ならない立ち位置を選ぶ（池の球の列） */
@@ -1898,7 +1898,7 @@ function loadKasane() {
     for (const S of VEG.sp) if (S.s <= 2 || S.s === 7) for (let i = 0; i < S.m; i++) { const x = S.xs[i * 6], z = S.xs[i * 6 + 2], r = S.xs[i * 6 + 3] * .55 + .2, c = COLL.c; for (let dz = -r; dz <= r; dz += c) for (let dx = -r; dx <= r; dx += c) if (dx * dx + dz * dz <= r * r) { const k = kasaCell(x + dx, z + dz); if (k >= 0 && KASA.ok[k] === 2) KASA.ok[k] = 4; } }   // 低木の株のまわり
     for (let pass = 0; pass < 2; pass++) { const g = KASA.ok, nx = COLL.nx, h = g.slice(); for (let k = nx; k < g.length - nx; k++) if (h[k] === 1 && (h[k - 1] !== 1 || h[k + 1] !== 1 || h[k - nx] !== 1 || h[k + nx] !== 1)) g[k] = [h[k - 1], h[k + 1], h[k - nx], h[k + nx]].some(v => v >= 2) ? 3 : 0; }   // 縁から 2 こま（約 1 m）は歩かない（縁石の上や陰に入らない）   // 縁は 1 こま削る（縁石の外へはみ出さない）
     const herd = KASA.herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: kasaOk, walkSurface: kasaPeek, canSee: kasaSee, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 32 : 40, max: 24,
-      muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, view: () => false, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // 窓は層の一覧にかけない   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない
+      muted: () => !soundOn, minCamDist: MOBILE ? 2.4 : 2.6, view: () => false, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });   // 窓は層の一覧にかけない   // v3（2026-10-23 夜）：大きさは部品で前の 0.75 倍・鳴き声は「声と音」に従う・目の前に入りすぎない
     const R = (() => { let s = 20261023; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); })();
     const near = (x, z, Rm = 7) => { if (kasaOk(x, z)) return [x, z]; for (let r = .5; r <= Rm; r += .5) for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2 + r, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (kasaOk(px, pz)) return [px, pz]; } return null; };
     // 物陰：並木の幹と、石・木の燈籠（見かけの太さ）
@@ -1981,7 +1981,7 @@ async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群�
   const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=b1"); if (C.dead) return;
   const ok = (x, z) => AREAS.walkable(x, z);
   const herd = new M.KasaneHerd({ scene: world, camera, groundAt: groundY, walkable: ok, walkSurface: ok, canSee: () => true, hud: COLOR5, avoid: () => AOI.root?.visible ? AOI.root.position : null, scale: MOBILE ? 3.2 : 2.9, mobile: MOBILE, maxDist: MOBILE ? 36 : 46, max: 22,
-    muted: () => !soundOn, minCamDist: MOBILE ? 1.7 : 1.5, view: () => false, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });
+    muted: () => !soundOn, minCamDist: MOBILE ? 2.4 : 2.6, view: () => false, viewTitle: a => a.data?.o?.title || "", viewSafe: () => ({ left: MOBILE ? 118 : 250, top: MOBILE ? 176 : 80 }) });
   let s = 0; for (const ch of Z.id) s = s * 31 + ch.charCodeAt(0); const R = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
   const spots = [];
   for (const L of C.places) { const q = AREAS.snap(L.o.x, L.o.z); if (q) spots.push({ q, L }); }
