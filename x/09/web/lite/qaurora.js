@@ -67,6 +67,9 @@ export function makeQAurora(THREE, scene, opt) {
       if (reT > 1) { reT = 0; assign(); }
       if (SOIL.g && SOIL.g.visible) { SOIL.t -= dt; const k = Math.max(0, Math.min(1, SOIL.t > 7 ? 8 - SOIL.t : SOIL.t / 1.5)); SOIL.disc.material.uniforms.uA.value = k; SOIL.lines.material.opacity = .75 * k; SOIL.lines.scale.y = .4 + .6 * Math.min(1, 8 - SOIL.t); if (SOIL.t <= 0) SOIL.g.visible = false; }
       const doGeo = geoT > .045; if (doGeo) geoT = 0;
+      // 10-30 パネル「押してよいのか分からない」：視野の中ほどに入った帯は縁が明るくなり、最初の一度だけ碧が触れるよう誘う
+      for (const s of S) { if (!s.L || !s.mesh.visible) continue; const q = (NS >> 1) * 6, P = s.pos; _v.set((P[q] + P[q + 3]) / 2, (P[q + 1] + P[q + 4]) / 2, (P[q + 2] + P[q + 5]) / 2).project(opt.camera); s.ctr = _v.z < 1 && Math.abs(_v.x) < .45 && Math.abs(_v.y) < .55 ? 1 : 0;
+        if (s.ctr) { s.hov = Math.max(s.hov, .45); if (!api._hinted && t > 6 && opt.say) { api._hinted = true; try { if (!sessionStorage.getItem("q.h.band")) { sessionStorage.setItem("q.h.band", "1"); opt.say("目の前の色の帯に、触れてみてください。その感覚がひらきます。"); } } catch { } } } }
       for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt); s.L.qaIn = s.a;
         const d = s.amb ? 4 : Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z), nearK = d < 6 ? 1 - d / 6 : 0;   // 近づくと濃く
         s.m.uniforms.uA.value = s.a * (.6 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1); s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;   /* 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） */
@@ -77,7 +80,7 @@ export function makeQAurora(THREE, scene, opt) {
       const cam = opt.camera, W = innerWidth, H = innerHeight, lim = (opt.mobile ? 52 : 40) ** 2; let best = null, bd = lim;
       for (const s of S) { if (!s.L || !s.mesh.visible || s.a < .3) continue; if (!s.amb && Math.hypot(s.L.o.x - cam.position.x, s.L.o.z - cam.position.z) > (opt.mobile ? 45 : 55)) continue; const P = s.pos;
         for (let k = 0; k <= NS; k += 3) { const q = k * 6; _v.set((P[q] + P[q + 3]) / 2, (P[q + 1] + P[q + 4]) / 2, (P[q + 2] + P[q + 5]) / 2).project(cam); if (_v.z > 1 || _v.z < -1) continue; const sx = (_v.x + 1) / 2 * W, sy = (1 - _v.y) / 2 * H, dd = (sx - x) ** 2 + (sy - y) ** 2; if (dd < bd) { bd = dd; best = s; } } }
-      if (best && hover) best.hov = Math.min(1, best.hov + .6);
+      if (best && hover) { best.hov = Math.min(1, best.hov + .6); best.p = Math.max(best.p, .35); }   // PC：カーソルを重ねると帯が波打つ
       return best ? best.L : null;
     },
     get sheets() { return S.filter(s => s.L).map(s => [s.k, s.L.o.title, +s.a.toFixed(2)]); },
