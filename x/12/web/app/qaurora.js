@@ -34,7 +34,7 @@ export function makeQAurora(THREE, scene, opt) {
     const nx = -tz, nz = tx, P = s.pos, wob = s.p * .35;
     for (let k = 0; k <= NS; k++) { const u = k / NS, a = (u - .3) * len, sw = Math.sin(u * Math.PI * 2 + s.ph + t * .23) * 1.4 + Math.sin(u * 9 - t * 3) * wob * .3,
       x = o.x + tx * a + nx * sw, z = o.z + tz * a + nz * sw, gy = opt.ground(x, z) || g0, y = gy + 1.5 + .9 * Math.sin(u * Math.PI * 1.5 + s.ph + t * .17) + wob * Math.sin(u * 14 - t * 5),
-      tau = u * 4.2 + s.ph + t * .12, W = .7 + .5 * s.a + .4 * s.hov, ux = nx * Math.sin(tau), uy = Math.cos(tau), uz = nz * Math.sin(tau);
+      tau = u * 4.2 + s.ph + t * .12, W = 1.0 + .6 * s.a + .4 * s.hov, ux = nx * Math.sin(tau), uy = Math.cos(tau), uz = nz * Math.sin(tau);
       for (let j = 0; j < 2; j++) { const h = (j - .5) * W, q = (k * 2 + j) * 3; P[q] = x + ux * h; P[q + 1] = Math.max(gy + .35, y + uy * h); P[q + 2] = z + uz * h; } }
     s.mesh.geometry.attributes.position.needsUpdate = true;
   }
@@ -62,7 +62,7 @@ export function makeQAurora(THREE, scene, opt) {
       const doGeo = geoT > .045; if (doGeo) geoT = 0;
       for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt); s.L.qaIn = s.a;
         const d = Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z), nearK = d < 6 ? 1 - d / 6 : 0;   // 近づくと濃く
-        s.m.uniforms.uA.value = s.a * (.5 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1);   // 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;
+        s.m.uniforms.uA.value = s.a * (.68 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1);   // 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;
         if (s.mesh.visible && (doGeo || s.p > .1)) shape(s); }
     },
     touch(L, v = 1) { const s = S.find(s => s.L === L); if (!s) return; s.p = Math.min(1.2, s.p + v); for (const o of s.links) o.p = Math.min(1.2, o.p + v * .35); },   // 触れた層と、絡んでいる層がわずかに応える

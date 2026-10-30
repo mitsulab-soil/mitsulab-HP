@@ -77,7 +77,7 @@ export function installNav(o) {
     if (lookable(m) && !N.drag) {
       const t = (now - N.relT) / 200;
       if (t < 1) { const k = (1 - t) * dt; look(N.vx * k, N.vy * k); }
-      if (m === "walk" && !N.ar && now - N.lookT > 2000 && now - N.relT > 2000 && Math.abs(o.cam.pitch) > .002) o.cam.pitch *= Math.pow(.35, dt);   // 2 秒で水平へゆっくり戻る
+      if (m === "walk" && !N.ar && now - N.lookT > 3500 && now - N.relT > 3500 && Math.abs(o.cam.pitch) > .002) o.cam.pitch *= Math.pow(.35, dt);   // 3.5 秒で水平へゆっくり戻る（10-30 パネル）
       if (Math.abs(o.cam.pitch) > PMAX && m === "walk") o.cam.pitch = Math.sign(o.cam.pitch) * PMAX;
     }
     if (N.ar && N.ori && m === "walk") { if (N.oriBase == null) N.oriBase = (o.cam.yaw + o.cam.look) - N.ori.yaw; const H = N.oriBase + N.ori.yaw; o.cam.look = H - o.cam.yaw; o.cam.pitch = Math.max(-1.2, Math.min(1.2, N.ori.pitch)); }
@@ -118,6 +118,7 @@ body[data-mode="walk"] #walkUI #qSnd,body[data-mode="walk"] #walkUI #autoBtn{gri
 body #walkUI[hidden],body[data-mode="walk"] #walkUI[hidden]{display:none!important}
 body.qLeft #walkUI{right:auto!important;left:var(--g,16px)}
 #caption{cursor:pointer}
+#capTag{white-space:normal!important;width:auto!important;max-width:min(92vw,720px);display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5!important;text-overflow:clip}
 #qStick{position:fixed;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;border:1px solid rgba(220,240,248,.5);background:rgba(10,20,28,.18);z-index:7;pointer-events:none;display:none}
 #qStick i{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;background:rgba(220,240,248,.55)}
 #qStickZone{position:fixed;left:0;bottom:0;width:46vw;height:38vh;z-index:4;display:none;touch-action:none}
@@ -192,6 +193,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
   /* ---------- 最初の一言（1 回だけ） ---------- */
   function once(k, t) { if (ss.get(k)) return; ss.set(k, "1"); o.say(t); }
   N.firstWalk = () => setTimeout(() => once("q.h.walk", mobile ? "行きたい所を、指でさしてください。なぞると見回せます。" : "行きたい所をクリック。ドラッグで見回し、W A S D でも歩けます。"), 400);
+  N.firstWalk = ((f0) => () => { f0(); setTimeout(() => { if (document.querySelector("#qHere:not([hidden])")) once("q.h.cnt", "左の数字は、まわり 30 m に重なっている層の数です。"); }, 6200); })(N.firstWalk);   // 10-30 パネル：数字の札の意味を最初の一度だけ
   const ab = $("#autoBtn"); if (ab) ab.addEventListener("click", () => { if (ab.getAttribute("aria-pressed") === "true") once("q.h.auto", "どこかに触れると、止まります。"); });
   return N;
 }

@@ -15,7 +15,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { installNav } from "../kit/nav.js?v=n1";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n3";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
@@ -985,7 +985,7 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
 let QA = null, QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=a4").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=a5").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } if (QW.mode === "walk") toast("漂う色の層に触れると、その感覚がひらきます。離れると、もとの景色に戻ります。"); }, 9000); }
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
@@ -1113,7 +1113,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.9 : 3.5, s = MOBILE ? 0 : 1.25,   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
+  const f = MOBILE ? 4.9 : 3.5, s = MOBILE ? .5 : 1.25,   /* 10-30 パネル：375px で碧を真ん中から外す */   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const side = MOBILE ? -1 : !$("#panel").hidden ? -1 : ((a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz) >= 0 ? 1 : -1;
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
