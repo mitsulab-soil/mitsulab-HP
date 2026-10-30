@@ -146,7 +146,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
     const h = document.createElement("h4"); h.className = "qh"; h.textContent = "層";
     const row = document.createElement("div"); row.className = "mrow qlay";
     const proxy = (id, label) => { const t = document.getElementById(id); if (!t) return; const b = document.createElement("button"); b.className = "ml-btn"; b.textContent = label; b.addEventListener("click", () => { closeMenu(); setTimeout(() => t.click(), 30); }); row.appendChild(b); };
-    proxy("myBtn", "層を置く"); proxy("earBtn", "耳で歩く"); proxy("sessBtn", "自然とのセッション"); proxy("skyFly", "鳥になって飛ぶ"); proxy("skySight", "生きものの身体に入る");
+    proxy("myBtn", "層を置く"); if (!o.noSenseMenu) { proxy("earBtn", "耳で歩く"); proxy("skySight", "生きものの身体に入る"); } proxy("sessBtn", "自然とのセッション"); proxy("skyFly", "鳥になって飛ぶ");   // 10-30：五感＋X 感は空間の層に触れて入る（メニューから選ばない）
     const h2 = document.createElement("h4"); h2.className = "qh"; h2.textContent = "操作";
     const row2 = document.createElement("div"); row2.className = "mrow qlay";
     const stB = document.createElement("button"); stB.className = "ml-btn"; const syncSt = () => { stB.setAttribute("aria-pressed", String(N.stick.on)); stB.textContent = N.stick.on ? "スティックで歩く：入" : "スティックで歩く"; document.body.classList.toggle("qStick", N.stick.on); }; syncSt();
