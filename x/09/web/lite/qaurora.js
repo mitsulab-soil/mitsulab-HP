@@ -23,7 +23,7 @@ export function makeQAurora(THREE, scene, opt) {
     const cam = opt.camera.position, M = opt.marks().map(L => ({ L, d: Math.hypot(L.o.x - cam.x, L.o.z - cam.z) })).filter(e => e.d < R && opt.kind(e.L)).sort((a, b) => a.d - b.d).slice(0, MAX).map(e => e.L);
     for (const s of S) if (s.L && !M.includes(s.L)) s.want = 0;   // 遠くなった層は、ゆっくり溶ける
     for (const L of M) { if (S.some(s => s.L === L)) continue; const s = S.find(s => !s.L || (s.want === 0 && s.a < .02)); if (!s) break; s.L = L; s.a = 0; s.want = 1; s.k = opt.kind(L); s.m.uniforms.uC.value.set(opt.color(s.k)); }
-    for (const s of S) if (s.L && s.a < .02 && s.want === 0) { s.L = null; s.mesh.visible = false; }
+    for (const s of S) if (s.L && s.a < .02 && s.want === 0) { s.L.qaIn = 0; s.L = null; s.mesh.visible = false; }
     // 絡まり：近い層どうし（25 m 以内）を結ぶ。帯はその方へ伸びて、相手の帯とくぐり合う
     const act = S.filter(s => s.L && s.want);
     for (const s of act) { let best = null, bd = 25; for (const o of act) { if (o === s) continue; const d = Math.hypot(o.L.o.x - s.L.o.x, o.L.o.z - s.L.o.z); if (d < bd) { bd = d; best = o; } } s.links = act.filter(o => o !== s && Math.hypot(o.L.o.x - s.L.o.x, o.L.o.z - s.L.o.z) < 25); s.to = best; }
@@ -38,12 +38,29 @@ export function makeQAurora(THREE, scene, opt) {
       for (let j = 0; j < 2; j++) { const h = (j - .5) * W, q = (k * 2 + j) * 3; P[q] = x + ux * h; P[q + 1] = Math.max(gy + .35, y + uy * h); P[q + 2] = z + uz * h; } }
     s.mesh.geometry.attributes.position.needsUpdate = true;
   }
+  // x/soil：足もとの下がひらく（地中の模式：円く透けた地面の下に、根と菌糸のような細い線が伸びる。8 秒で閉じる）
+  const SOIL = { g: null, t: 0 };
+  function soilOpen(x, z) {
+    if (!SOIL.g) { const g = new THREE.Group(), gy = 0;
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(2.6, 48).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 } }, transparent: true, depthWrite: false, toneMapped: false, fog: false,
+        vertexShader: "varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
+        fragmentShader: "uniform float uA; varying vec2 vP; void main(){ float r = length(vP)/2.6; float a = (1.-smoothstep(.55,1.,r)); gl_FragColor = vec4(vec3(.09,.07,.06), uA*.78*a); }" }));
+      disc.renderOrder = 4; g.add(disc);
+      const pts = [], rnd = (k) => { const v = Math.sin(k * 127.1) * 43758.5453; return v - Math.floor(v); };
+      for (let i = 0; i < 34; i++) { let px = (rnd(i) - .5) * 2.4, py = -.05, pz = (rnd(i + 9) - .5) * 2.4; for (let k = 0; k < 7; k++) { const nx = px + (rnd(i * 7 + k) - .5) * .5, ny = py - .12 - rnd(i * 3 + k) * .25, nz = pz + (rnd(i * 5 + k + 2) - .5) * .5; pts.push(px, py, pz, nx, ny, nz); px = nx; py = ny; pz = nz; } }
+      const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+      const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: "#c9b08a", transparent: true, opacity: 0, depthTest: false, toneMapped: false, fog: false })); lines.renderOrder = 5; g.add(lines);
+      SOIL.g = g; SOIL.disc = disc; SOIL.lines = lines; scene.add(g); }
+    SOIL.g.position.set(x, opt.ground(x, z) + .03, z); SOIL.t = 8; SOIL.g.visible = true;
+  }
   const api = {
+    soilOpen,
     update(dt) {
       t += dt; reT += dt; geoT += dt; const cam = opt.camera.position;
       if (reT > 1) { reT = 0; assign(); }
+      if (SOIL.g && SOIL.g.visible) { SOIL.t -= dt; const k = Math.max(0, Math.min(1, SOIL.t > 7 ? 8 - SOIL.t : SOIL.t / 1.5)); SOIL.disc.material.uniforms.uA.value = k; SOIL.lines.material.opacity = .75 * k; SOIL.lines.scale.y = .4 + .6 * Math.min(1, 8 - SOIL.t); if (SOIL.t <= 0) SOIL.g.visible = false; }
       const doGeo = geoT > .045; if (doGeo) geoT = 0;
-      for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt);
+      for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt); s.L.qaIn = s.a;
         const d = Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z), nearK = d < 6 ? 1 - d / 6 : 0;   // 近づくと濃く
         s.m.uniforms.uA.value = s.a * (.34 + .3 * nearK + .3 * s.hov); s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;
         if (s.mesh.visible && (doGeo || s.p > .1)) shape(s); }

@@ -1246,7 +1246,7 @@ function tap(x, y) {
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk") { for (const h of AREA.herds) { if (h.pickView(x, y)) return; const k = h.pick(x, y); if (k) { touchKasane(k); return; } } const L = pickAreaMark(x, y); if (L) { openObj(L); return; } }   // エリアのかさねっこと地点
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
-  const o = pickObj(x, y) || (QW.mode === "walk" ? QA?.pick(x, y) : null); if (o) { QA?.touch(o); { const k = QAK(o); if (k && QW.mode === "walk") toast(QAN(k)); } const again = LASTM.L === o && performance.now() - LASTM.t < 25000 && !(NARR.L === o && NARR.sp) && !o.o.tch && !o.o.snd;   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
+  const o = pickObj(x, y) || (QW.mode === "walk" ? QA?.pick(x, y) : null); if (o) { QA?.touch(o); { const k = QAK(o); if (k && QW.mode === "walk") { toast(k === "x.soil" ? QAN(k) + "：足もとの下（根と菌糸の模式）" : QAN(k)); if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === o && performance.now() - LASTM.t < 25000 && !(NARR.L === o && NARR.sp) && !o.o.tch && !o.o.snd;   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
     LASTM.L = o; LASTM.t = performance.now(); if (again && QW.mode === "walk") { o.glyph.getWorldPosition(_v3); const dx = _v3.x - CAM.pos.x, dz = _v3.z - CAM.pos.z, l = Math.hypot(dx, dz); if (l > 2) { const sx = (_v3.clone().project(camera).x + 1) / 2 * innerWidth; const g = goalAt(sx, innerHeight * .8); if (g) { WALK.goal = g; showGoalRing(g); } } return; } openObj(o); return; }
   if (QW.mode !== "walk") return;
   const g = goalAt(x, y, true); if (g) { WALK.goal = g; showGoalRing(g); }
@@ -1369,7 +1369,7 @@ function stepLayer(dt) {
     const vis = L.show > .01; L.root.visible = vis; if (!vis) continue;
     // 遠くでも見つけられるように、少しだけ大きく（位置は動かさない）
     const s = sky ? Math.min(46, Math.max(10, Math.hypot(cp.x - L.o.x, cp.y - L.o.y, cp.z - L.o.z) / 38)) : Math.min(flyish ? 26 : 3.2, Math.max(1, dist / (flyish ? 9 : 16))) * (1 + L.open * .35);
-    L.glyph.scale.setScalar(s * (.6 + .4 * L.show));
+    L.glyph.scale.setScalar(s * (.6 + .4 * L.show) * (1 - .55 * (L.qaIn || 0)));   // 10-30：層が漂っている印は、球を小さくして層の中に溶かす
     L.glyph.position.y = sky ? Math.max(L.o.h, 2.2 * s) : flyish ? Math.max(L.o.h, 2.5 * s) : L.o.h + (L.lift || 0);
     L.beam.scale.y = Math.max(.05, L.glyph.position.y - .25 * s); L.base.scale.setScalar(sky ? s * .9 : 1 + L.open * 1.4);
     const detail = !sky && dist < lod; if (L.det !== detail) { L.det = detail; L.base.visible = detail; for (const f of L.faces) f.visible = detail; }   // 遠くは線と光だけ（描く数を減らす）
@@ -1421,9 +1421,9 @@ function stepHere(cp, t, off) {
   if (t - QH.t > .5) {
     QH.t = t; const cnt = {}; let n = 0, best = null, bd = 1e9, nd = 1e9, nL = null; const v = new THREE.Vector3();
     for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);   // 2026-10-26 16：町の典拠のある地点も数え、方角を出す
-      if (d < 30) { const k = top5(L.o.layer); cnt[k] = (cnt[k] || 0) + 1; n++; } if (d < nd && d > 4) { nd = d; nL = L; }
+      if (d < 30) { const k = (QAK(L) || "x").split(".")[0]; cnt[k] = (cnt[k] || 0) + 1; n++; } if (d < nd && d > 4) { nd = d; nL = L; }
       if (d > 4 && d < 400 && d < bd) { v.set(L.o.x, L.o.y + (L.o.h ?? 2.1), L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
-    const ks = ALL.filter(l => cnt[l.id]).reverse();
+    const ks = ["x", "sound", "touch", "sight", "taste", "smell"].filter(k => cnt[k]).map(k => ({ id: k, name: "Qualia/" + k, color: QAC[k === "x" ? "x.memory" : k] }));   // 10-30：6 層の名前と色
     QH.el.innerHTML = n ? `<b>${n}</b><span class="t">まわり半径 30 m の Qualia（前後左右すべて）</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : (nd < 400 ? `<b>${Math.round(nd)} m</b><span class="t">先に、いちばん近い Qualia</span>` : "");
     QH.el.hidden = !n && !(nd < 400); QH.best = nd < 400 ? nL : null;   /* 上の札と方角の丸は同じ球を指す */
   }
@@ -1554,12 +1554,14 @@ const QAK = L => { const o = L.o; if (!o) return null; const t = top5(o.layer), 
   if (o.snd || o.rk || t === "sound") return "sound"; if (o.tch || t === "touch") return "touch";
   if (/匂い|におい|香り|香る/.test(tx)) return "smell"; if (/団子|菓子|酒|料理|名物|茶屋|米を|醤油|食べ/.test(tx)) return "taste";
   if (o.sho || t === "sight") return "sight";
-  if (/土壌|地中|根が|根は|菌|ミミズ|土の中|腐葉土/.test(tx)) return "x.soil"; if (/水路|流れ|街道|運ば|行き来|つなが/.test(tx)) return "x.link";
+  if (/土壌|地中|根が|根は|菌|ミミズ|土の中|腐葉土/.test(tx)) return "x.soil";
+  const T = o.title || "";   // 10-30：参道が紫（x）だけに偏らないよう、出典つきの本文の語で五感の層へ振り分ける（題を先に見る）
+  for (const q of [T, tx]) { if (/鳥(?!居)|鳴き|鳴く|さえず|鳴き声|水音|せせらぎ|風の音|足音|鐘の音|太鼓|響き/.test(q)) return "sound"; if (/石畳|砂利|玉砂利|樹皮|舗装|苔|木肌|石の|石を|御影|手ざわり|コンクリート|アスファルト/.test(q)) return "touch"; if (/色|光|影|朱|紅葉|黄葉|夕日|木漏れ|緑|白い|赤い/.test(q)) return "sight"; } if (/水路|流れ|街道|運ば|行き来|つなが/.test(tx)) return "x.link";
   return t === "culture" || t === "nature" ? "x.memory" : null; };
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 const QAN = k => k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k;
 let QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=a1").then(({ makeQAurora }) => { QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=a2").then(({ makeQAurora }) => { QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } if (QW.mode === "walk") toast("漂う色の層に触れると、その感覚がひらきます。離れると、もとの景色に戻ります。"); }, 9000); }
 function startWL() { if (WL) return; for (const L of LAYER.objs) { const sp = L.o.sp ? D.sight.find(x => x.id === L.o.sp) : null; L.qSight = !!(sp && BODY_D[sp.id]); }   /* 生きものの受けとり方へ入れる印の目印 */ WL = QW.WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ, senses: () => { const cp = camera.position, v = { see: 0, hear: 0, touch: 0, x: 0 }; for (const L of LAYER.objs) { if (!L.root?.visible) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d > 120) continue; const k = 1 - d / 120, t = top5(L.o.layer); if (t === "sight" || L.o.sho) v.see = Math.max(v.see, k); if (t === "sound" || L.o.snd || L.o.rk) v.hear = Math.max(v.hear, k); if (t === "touch" || L.o.tch) v.touch = Math.max(v.touch, k); if (L.o.sp) v.x = Math.max(v.x, k); } return v; }, senseColors: { see: COLOR5.sight, hear: COLOR5.sound, touch: COLOR5.touch, x: "#c9a8ff" },   /* 五感＋X 感の帯：視・聴・触と、人にない感覚（紫外など、出典のある生きものの受けとり方の印） */ skip: M => THIN.test((M.o.title || "") + (M.o.lines || []).map(l => l.t || "").join("")), quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of [...LAYER.objs, ...(AREA.marks || [])]) { if (M.qHide || (M.mark ? !M.mark.visible : !M.root?.visible)) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } return Math.max(8, Math.min(16, nd / 1.4 * .45)); },   /* 10-29：間合いを次の印までの距離で（川越・渋谷と同じ） */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
@@ -1650,7 +1652,7 @@ function caption(t, talk, src, dur = 0) {
   const c = $("#caption"); clearInterval(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0];
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0, acc = ch[0].length; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; acc += ch[i].length; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const tag = $("#capTag"); const s0 = src || (talk && talk.src && talk.src[0] && talk.src[0].t) || "";
-  if (s0 || CAP_LAY) { const g = talk ? GL[talk.k] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); tag.textContent = (CAP_LAY ? "● " + CAP_LAY.n + (s0 ? "　" : "") : (g ? "● " + g.name + "　" : "")) + (s0 ? "出典：" + s0 : ""); }   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
+  if (s0 || CAP_LAY) { const g = talk ? GL[talk.k] : null; const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null; if (ck) { tag.hidden = false; tag.style.setProperty("--c", QAC[ck]); tag.textContent = "● " + QAN(ck) + (s0 ? "　出典：" + s0 : ""); delete c.dataset.talk; c.hidden = false; clearTimeout(capT); return; }   /* 10-30：字幕の端も 6 層の名前 */ tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const lk = CAP_LAY?.n || talk?.k || "", t5 = top5(lk) || lk, k6 = /sound/.test(t5) ? "sound" : /touch/.test(t5) ? "touch" : /sight/.test(t5) ? "sight" : "x.memory"; tag.style.setProperty("--c", QAC[k6]); tag.textContent = "● " + QAN(k6) + (s0 ? "　出典：" + s0 : ""); } }   /* 10-30：旧い層の名前（culture・nature）は出さず 6 層で */   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   else tag.hidden = true;
   delete c.dataset.talk;
   c.hidden = false; clearTimeout(capT);
