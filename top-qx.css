@@ -313,3 +313,19 @@ html{scroll-padding-top:80px}
 .qx-eqs{font:400 12.5px/1.6 var(--serif,serif);color:#9aa4b8;text-align:center;margin:-4px 0 12px}
 .qx-eqs i{font-family:"Times New Roman",var(--latin,serif);font-style:italic}
 @media (max-width:700px){.qx-eqf{white-space:nowrap!important;font-size:17px!important;letter-spacing:.02em}}
+/* 2026-10-30 本人「説明の後に 3D グラフィックがあります。順番を入れ替えて」「スマホでは情報量を落として」：
+   環世界 1.0・2.0 は 見出し → 図 → 一行と式 → 詳しく（スマホは畳む・PC は開いたまま）の一列に */
+#umwelt1.qx-scene,#umwelt2.qx-scene{display:block;max-width:1100px}
+#umwelt1 .qx-tx,#umwelt2 .qx-tx{max-width:760px}
+#umwelt1 .qx-head,#umwelt2 .qx-head{margin-bottom:8px}
+#umwelt1 .qx-figd,#umwelt2 .qx-figd{width:100%;max-width:1100px;margin-top:0}
+@media (min-width:701px){#umwelt1 .qx-figd,#umwelt2 .qx-figd{aspect-ratio:16/9!important;min-height:0}}
+.qx-eqmain{margin-bottom:10px}
+.qx-eqx{margin-top:10px}
+.qx-spm>summary{cursor:pointer;list-style:none;font:500 15px/1.5 var(--serif,serif);color:#a8f2f6;padding:10px 0;border-top:1px dashed #8bccca33}
+.qx-spm>summary::-webkit-details-marker{display:none}
+@media (min-width:701px){.qx-spm>summary{display:none}}
+#umwelt1>.qx-m1,#umwelt2>.qx-all{max-width:760px}
+#top #umwelt1.qx-scene,#top #umwelt2.qx-scene,#umwelt1.qx-scene,#umwelt2.qx-scene{margin-left:auto;margin-right:auto;padding-left:max(16px,4vw);padding-right:max(16px,4vw)}
+@media (min-width:1000px){#top #umwelt1.qx-scene,#top #umwelt2.qx-scene{padding-left:40px;padding-right:40px}}
+@media (max-width:700px){#umwelt1 .qx-figd,#umwelt2 .qx-figd{margin-top:-56px!important}.qx-figd .qx-lab span{word-break:keep-all;overflow-wrap:anywhere}}

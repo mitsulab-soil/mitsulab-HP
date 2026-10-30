@@ -17,7 +17,7 @@ export async function bootDiorama(fig, kind, labs) {
   const two = kind === 2;
   const cv = fig.querySelector('canvas');
   const R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
-  R.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.5 : 2)); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; R.setClearColor(0, 0);
+  R.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.25 : 2));   // 2026-10-30 本人「スマホで表示が遅い」：スマホは画素比を抑える R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05; R.setClearColor(0, 0);
   const S = new THREE.Scene();
   const cam = new THREE.PerspectiveCamera(26, 1, .1, 200);
   S.add(new THREE.HemisphereLight(0xeef4f8, 0x40382c, 1.7));
@@ -157,7 +157,7 @@ export async function bootDiorama(fig, kind, labs) {
     man.scene.scale.setScalar(sc); man.scene.position.set(P.x - (bb.min.x + sz.x / 2) * sc, -bb.min.y * sc, P.z - (bb.min.z + sz.z / 2) * sc); man.scene.rotation.y = 1.0; stage.add(man.scene);
     const bark = new THREE.MeshStandardMaterial({ color: 0xb8aa98, roughness: .95, map: tex('img/hero/3d/dio/bark_c.webp', [2, 4], true), normalMap: tex('img/hero/3d/dio/bark_n.webp', [2, 4]) });   // 樹皮＝Poly Haven japanese_zelkova_bark（CC0）
     const leaf = new THREE.MeshStandardMaterial({ color: 0xb9cd97, roughness: .8, side: THREE.DoubleSide, alphaTest: .45 });
-    try { const lt = await TL.loadAsync('img/hero/3d/keyaki_leaf_atlas.png'); lt.flipY = false; lt.colorSpace = THREE.SRGBColorSpace; leaf.map = lt; } catch (e) {}
+    try { const lt = await TL.loadAsync(mobile ? 'img/hero/3d/keyaki_leaf_atlas_512.webp' : 'img/hero/3d/keyaki_leaf_atlas.png'); lt.flipY = false; lt.colorSpace = THREE.SRGBColorSpace; leaf.map = lt; } catch (e) {}
     const tree = new THREE.Group(); tg.scene.updateMatrixWorld(true);
     tg.scene.traverse(m => { if (m.isMesh) { const mm = new THREE.Mesh(m.geometry, /leaf|leaves/i.test(m.name) ? leaf : bark); mm.applyMatrix4(m.matrixWorld); tree.add(mm); } });
     const tb = new THREE.Box3().setFromObject(tree), ts = tb.getSize(new THREE.Vector3()), tsc = 3.4 / ts.y;
@@ -166,7 +166,7 @@ export async function bootDiorama(fig, kind, labs) {
 
   // 手がかりの線（人→もの）
   const flows = [], animals = []; let waveU = null; const flowGeo = new THREE.SphereGeometry(two ? .021 : .024, 10, 8);
-  const lineTo = (a, b, col, dash, mid) => { const cv = mid ? new THREE.QuadraticBezierCurve3(a.clone(), mid.clone(), b.clone()) : null; const L0 = lineTo0(a, b, col, dash, cv); const n = Math.max(1, Math.round(a.distanceTo(b) / (two ? 1.15 : 1.8))); const ms = [];
+  const lineTo = (a, b, col, dash, mid) => { const cv = mid ? new THREE.QuadraticBezierCurve3(a.clone(), mid.clone(), b.clone()) : null; const L0 = lineTo0(a, b, col, dash, cv); const n = Math.max(1, Math.round(a.distanceTo(b) / (two ? (mobile ? 1.6 : 1.15) : 1.8))); const ms = [];
     for (let k = 0; k < n; k++) { const m = new THREE.Mesh(flowGeo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); stage.add(m); ms.push(m); }
     flows.push({ a: a.clone(), b: b.clone(), cv, ms, line: L0, base: null, ph: Math.random(), sp: .22 / Math.max(.6, a.distanceTo(b)) * 1.6 }); return L0; };
   const lineTo0 = (a, b, col, dash, cv) => { const g = new THREE.BufferGeometry().setFromPoints(cv ? cv.getPoints(32) : [a, b]); const m = dash ? new THREE.LineDashedMaterial({ color: col, dashSize: .08, gapSize: .06, transparent: true, opacity: .95 }) : new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: .95 }); m.fog = false; const l = new THREE.Line(g, m); if (dash) l.computeLineDistances(); stage.add(l); return l; };
@@ -262,9 +262,11 @@ export async function bootDiorama(fig, kind, labs) {
     plab('Qualia layer <i>L</i>', 'Qualia layer <i>L</i>', new THREE.Vector3(W / 2 - .1, layerYs[5] + .35, 1.2), '#f6dca2');
     (async () => { try {   // 2026-10-30 本人「ほかの依代も配置する」：碧が姿を変えた依代（しずく・石は 3D、ほかの 6 体はいちばん良い版の画）。碧の髪の色・マット・小さく。図が出たあとに読む
       await new Promise(r => setTimeout(r, 1200));
-      const Y = await import('./kit/envAgents/yorishiro/yorishiro.js'); const yo = new Y.Yorishiro({ scene: stage, camera: cam, groundAt: () => 0 });
-      await yo.add('shizuku', { x: ROOTS.x - .2, z: 1.5, yaw: -.4, scale: .28 }); await yo.add('ishi', { x: -2.55, z: 1.25, yaw: .5, scale: .26 }); yoTick = dt => yo.update(dt);
-      [['kitsune', -1.7, 0, -.6, .34], ['hitsuji', 2.6, 0, .9, .3], ['tori', TRUNK.x - .3, 2.35, TRUNK.z + .3, .26], ['cho', FLOWER.x + .5, .8, FLOWER.z + .2, .22], ['ki', 2.55, 0, -1.6, .34], ['tsuchi', 1.0, 0, 1.75, .26]].forEach(([n, x, y, z, hgt]) => {
+      const SPR = [['kitsune', -1.7, 0, -.6, .34], ['hitsuji', 2.6, 0, .9, .3], ['tori', TRUNK.x - .3, 2.35, TRUNK.z + .3, .26], ['cho', FLOWER.x + .5, .8, FLOWER.z + .2, .22], ['ki', 2.55, 0, -1.6, .34], ['tsuchi', 1.0, 0, 1.75, .26]];
+      if (mobile) SPR.push(['shizuku', ROOTS.x - .2, 0, 1.5, .3], ['ishi', -2.55, 0, 1.25, .28]);   // スマホはしずく・石も画で（3D の 2.8 MB を読まない）
+      else { const Y = await import('./kit/envAgents/yorishiro/yorishiro.js'); const yo = new Y.Yorishiro({ scene: stage, camera: cam, groundAt: () => 0 });
+      await yo.add('shizuku', { x: ROOTS.x - .2, z: 1.5, yaw: -.4, scale: .28 }); await yo.add('ishi', { x: -2.55, z: 1.25, yaw: .5, scale: .26 }); yoTick = dt => yo.update(dt); }
+      SPR.forEach(([n, x, y, z, hgt]) => {
         const t = TL.load('img/hero/3d/yori/' + n + '.webp'); t.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, alphaTest: .08, fog: false })); sp.center.set(.5, 0); sp.scale.set(hgt * .98, hgt * 1.3, 1); sp.position.set(x, y, z); stage.add(sp); });
     } catch (e) { console.warn('yorishiro', e); } })();
     (async () => { try {
