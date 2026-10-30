@@ -1246,7 +1246,7 @@ function tap(x, y) {
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk") { for (const h of AREA.herds) { if (h.pickView(x, y)) return; const k = h.pick(x, y); if (k) { touchKasane(k); return; } } const L = pickAreaMark(x, y); if (L) { openObj(L); return; } }   // エリアのかさねっこと地点
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
-  const o = pickObj(x, y) || (QW.mode === "walk" ? QA?.pick(x, y) : null); if (o) { QA?.touch(o); const again = LASTM.L === o && performance.now() - LASTM.t < 25000 && !(NARR.L === o && NARR.sp) && !o.o.tch && !o.o.snd;   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
+  const o = pickObj(x, y) || (QW.mode === "walk" ? QA?.pick(x, y) : null); if (o) { QA?.touch(o); { const k = QAK(o); if (k && QW.mode === "walk") toast(QAN(k)); } const again = LASTM.L === o && performance.now() - LASTM.t < 25000 && !(NARR.L === o && NARR.sp) && !o.o.tch && !o.o.snd;   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
     LASTM.L = o; LASTM.t = performance.now(); if (again && QW.mode === "walk") { o.glyph.getWorldPosition(_v3); const dx = _v3.x - CAM.pos.x, dz = _v3.z - CAM.pos.z, l = Math.hypot(dx, dz); if (l > 2) { const sx = (_v3.clone().project(camera).x + 1) / 2 * innerWidth; const g = goalAt(sx, innerHeight * .8); if (g) { WALK.goal = g; showGoalRing(g); } } return; } openObj(o); return; }
   if (QW.mode !== "walk") return;
   const g = goalAt(x, y, true); if (g) { WALK.goal = g; showGoalRing(g); }
@@ -1546,15 +1546,18 @@ function aoiFootY(x, z) {   // 10-29：碧の足もと＝描いている面の�
 }
 const FOOT = { m: new Map(), list: null, t: 0, last: 0, off: 0 }, _fr = new THREE.Raycaster(), _fd = new THREE.Vector3(0, -1, 0), _fo = new THREE.Vector3();
 let WL = null, QA = null;
-// 10-30 本人：層の名前は Qualia/〇〇（sight・sound〔リズムを含む〕・touch・memory・umwelt・x・taste・link・soil）。どの層かは印のデータ（出典つき）の種類と語から決める
+// 10-30 本人（確定）：層は 6 つ＝Qualia/x・sound（リズムを含む）・touch・sight・taste・smell。五感を超えるものはすべて x に入れ、x の中を小分類する（名前は下の XSUB で差し替える）
+const XSUB = { umwelt: "umwelt", beyond: "beyond", memory: "memory", link: "link", soil: "soil", scale: "scale" };
 const QA_TXT = L => (L.o.title || "") + " " + (L.o.lines || []).map(l => l.t || "").join(" ");
 const QAK = L => { const o = L.o; if (!o) return null; const t = top5(o.layer), tx = QA_TXT(L);
-  if (o.sp) { const sp = D.sight.find(x => x.id === o.sp); return /紫外|超音波|偏光|赤外|磁気|電気/.test((sp?.name || "") + JSON.stringify(sp?.lines || "") + tx) ? "x" : "umwelt"; }
-  if (o.snd || o.rk || t === "sound") return "sound"; if (o.tch || t === "touch") return "touch"; if (o.sho || t === "sight") return "sight";
-  if (/土壌|地中|根が|根は|菌|ミミズ|土の中|腐葉土/.test(tx)) return "soil"; if (/団子|菓子|酒|料理|名物|茶屋|米を|醤油|食べ/.test(tx)) return "taste"; if (/水路|流れ|街道|運ば|行き来|つなが/.test(tx)) return "link";
-  return t === "culture" || t === "nature" ? "memory" : null; };
-const QAC = { sight: COLOR5.sight, sound: COLOR5.sound, touch: COLOR5.touch, memory: COLOR5.culture, umwelt: COLOR5.nature, x: "#a68cff", taste: "#e3a76c", link: "#7fd8ec", soil: "#a5805a" };
-const QAN = k => "Qualia/" + k;
+  if (o.sp) { const sp = D.sight.find(x => x.id === o.sp); return /紫外|超音波|偏光|赤外|磁気|電気/.test((sp?.name || "") + JSON.stringify(sp?.lines || "") + tx) ? "x.beyond" : "x.umwelt"; }
+  if (o.snd || o.rk || t === "sound") return "sound"; if (o.tch || t === "touch") return "touch";
+  if (/匂い|におい|香り|香る/.test(tx)) return "smell"; if (/団子|菓子|酒|料理|名物|茶屋|米を|醤油|食べ/.test(tx)) return "taste";
+  if (o.sho || t === "sight") return "sight";
+  if (/土壌|地中|根が|根は|菌|ミミズ|土の中|腐葉土/.test(tx)) return "x.soil"; if (/水路|流れ|街道|運ば|行き来|つなが/.test(tx)) return "x.link";
+  return t === "culture" || t === "nature" ? "x.memory" : null; };
+const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
+const QAN = k => k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k;
 let QAP = null;
 function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=a1").then(({ makeQAurora }) => { QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } if (QW.mode === "walk") toast("漂う色の層に触れると、その感覚がひらきます。離れると、もとの景色に戻ります。"); }, 9000); }
