@@ -68,7 +68,7 @@ export function makeQAurora(THREE, scene, opt) {
     document.body.appendChild(e); requestAnimationFrame(() => { e.style.opacity = "1"; }); setTimeout(() => { e.style.opacity = "0"; setTimeout(() => e.remove(), 700); }, 4500);
   }
   const api = {
-    soilOpen,
+    soilOpen, get top() { return curK; }, get still() { return still; },
     update(dt) {
       t += dt; reT += dt; geoT += dt; const cam = opt.camera.position;
       { const v = lastP && dt > 0 ? Math.hypot(cam.x - lastP.x, cam.z - lastP.z) / dt : 0; lastP = { x: cam.x, z: cam.z }; still += ((v < .4 ? 1 : .35) - still) * Math.min(1, dt * (v < .4 ? .5 : 1.5)); }

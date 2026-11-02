@@ -18,7 +18,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261102b">
+<link rel="modulepreload" href="web/lite/app.js?v=20261102c">
 <link rel="modulepreload" href="web/lite/layers.js?v=6">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
@@ -521,7 +521,7 @@ body #panel{--pc:var(--lc,var(--pc0,#9bdcf0));background:none!important;box-shad
 html body[data-mode="walk"] #capText,html body[data-mode="sight"] #capText{font-size:12.5px!important;line-height:1.65!important}}</style>
 <style id="qualium-past">/* 10-28 午後：昔の姿を語るあいだ、景色の色だけを古い写真の色へ（ゆっくり） */canvas{transition:filter 2.4s ease}body.pastOn canvas{filter:sepia(.26) saturate(.86) brightness(.98)}@media (prefers-reduced-motion:reduce){canvas{transition:none}}</style>
 <style id="qualium-walk2">/* 10-28 晩：「歩きつづける」は文字が変わっても幅を変えない（押し間違え）・方角の丸の距離を 1 行に・歩いたまま触れる板 */#autoBtn{min-width:132px!important;justify-content:center;text-align:center}@media (max-width:640px){#autoBtn{min-width:112px!important}}#qDir small{white-space:nowrap}#tfloat{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:calc(max(16px,env(safe-area-inset-bottom)) + 64px);width:150px;height:104px;z-index:5;border:1px solid rgba(155,220,240,.35);border-radius:6px;overflow:hidden;touch-action:none;box-shadow:0 4px 18px rgba(0,0,0,.4)}#tfloat[hidden]{display:none}#tfloat .tpad{width:100%;height:100%;background-size:cover}#tfloat .tpad span{font-size:11px!important}@media (max-width:640px){#tfloat{width:124px;height:88px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 170px)}}</style>
-<style id="qualium-quiet-gui">/* 11-02 本人「GUI は洗練＝少なく・小さく・静かに。風景が主」：歩くあいだは画面の部品を一段静かに（触れると戻る） */html body[data-mode="walk"] #hud,html body[data-mode="walk"] #walkUI,html body[data-mode="walk"] #qHere,html body[data-mode="walk"] #qDir{opacity:.66;transition:opacity .3s}html body[data-mode="walk"] #hud:hover,html body[data-mode="walk"] #hud:focus-within,html body[data-mode="walk"] #walkUI:hover,html body[data-mode="walk"] #walkUI:focus-within{opacity:1}</style>
+<style id="qualium-quiet-gui">/* 11-02 本人「GUI は洗練＝少なく・小さく・静かに。風景が主」：歩くあいだは画面の部品を一段静かに（触れると戻る） */html body[data-mode="walk"] #hud,html body[data-mode="walk"] #walkUI,html body[data-mode="walk"] #qHere,html body[data-mode="walk"] #qDir{opacity:.66;transition:opacity .3s}html body[data-mode="walk"] #hud:hover,html body[data-mode="walk"] #hud:focus-within,html body[data-mode="walk"] #walkUI:hover,html body[data-mode="walk"] #walkUI:focus-within{opacity:1}/* 11-02 GUI の洗練：飾りの角の枠を外し、薄い丸い札に（押せる大きさ 44px は保つ）・層の数の札を小さく */html body #walkUI .ib,html body #menuBtn,html body #sndQuick,html body #talkBtn{background-image:none!important;background-color:rgba(8,12,20,.30)!important;border:1px solid rgba(255,255,255,.14)!important;border-radius:22px!important;box-shadow:none!important;outline-offset:2px}html body #walkUI .ib::before,html body #walkUI .ib::after,html body #menuBtn::before,html body #menuBtn::after{display:none!important}#qHere{padding:3px 10px 3px 8px!important;font-size:10.5px!important;background:rgba(8,12,20,.26)!important;border-color:rgba(255,255,255,.07)!important}#qHere b{font-size:14px!important}</style>
 <style id="qualium-worldlayers">/* 10-28 晩 本人「Qualia のレイヤーを画面左に配置するのではなく、世界自体にレイヤーとして重ね合わせて」：歩くときは左の層の一覧を出さない */#lstack{display:none!important}   /* 10-29 本人「画面左のレイヤーの層は表示しない」＝3D 地図を含むどの場面でも出さない */</style>
 <style id="qualium-sndtag">@media (max-width:640px){html body[data-mode="walk"]:has(#caption:not([hidden])) #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 62px)!important;bottom:auto!important}}</style>
 <style id="qualium-sess">/* 10-29：自然とのセッションの音を消す小さなボタン（44px・さりげなく・歩くときだけ） */#sessBtn{display:none;position:fixed;right:max(16px,env(safe-area-inset-right));top:calc(max(12px,env(safe-area-inset-top)) + 54px);z-index:6;width:44px;height:44px;border-radius:50%;border:1px solid rgba(155,220,240,.28);background:rgba(3,6,15,.32);color:#d6eef6;font:400 16px/1 var(--serif);cursor:pointer;opacity:.72}body[data-mode="walk"] #sessBtn{display:block}#sessBtn[aria-pressed="false"]{opacity:.4;text-decoration:line-through}</style>
@@ -600,6 +600,6 @@ html body[data-mode="walk"] #capText,html body[data-mode="sight"] #capText{font-
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261102b").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261102c").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 </script>
 </body></html>

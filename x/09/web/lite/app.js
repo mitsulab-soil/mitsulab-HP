@@ -1565,7 +1565,7 @@ const QAK = L => { const o = L.o; if (!o) return null; const t = top5(o.layer), 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 const QAN = k => k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k;
 let QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b11").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b12").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
 function startWL() { if (WL) return; for (const L of LAYER.objs) { const sp = L.o.sp ? D.sight.find(x => x.id === L.o.sp) : null; L.qSight = !!(sp && BODY_D[sp.id]); }   /* 生きものの受けとり方へ入れる印の目印 */ WL = QW.WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ, senses: () => { const cp = camera.position, v = { see: 0, hear: 0, touch: 0, x: 0 }; for (const L of LAYER.objs) { if (!L.root?.visible) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d > 120) continue; const k = 1 - d / 120, t = top5(L.o.layer); if (t === "sight" || L.o.sho) v.see = Math.max(v.see, k); if (t === "sound" || L.o.snd || L.o.rk) v.hear = Math.max(v.hear, k); if (t === "touch" || L.o.tch) v.touch = Math.max(v.touch, k); if (L.o.sp) v.x = Math.max(v.x, k); } return v; }, senseColors: { see: COLOR5.sight, hear: COLOR5.sound, touch: COLOR5.touch, x: "#c9a8ff" },   /* 五感＋X 感の帯：視・聴・触と、人にない感覚（紫外など、出典のある生きものの受けとり方の印） */ skip: M => THIN.test((M.o.title || "") + (M.o.lines || []).map(l => l.t || "").join("")), quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of [...LAYER.objs, ...(AREA.marks || [])]) { if (M.qHide || (M.mark ? !M.mark.visible : !M.root?.visible)) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } return Math.max(8, Math.min(16, nd / 1.4 * .45)); },   /* 10-29：間合いを次の印までの距離で（川越・渋谷と同じ） */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
@@ -1617,6 +1617,7 @@ $("#pClose").addEventListener("click", hidePanel);
 const BIRD_SRC = "Suzuki, Wheatcroft & Griesser (2016) Nature Communications 7:10986";
 const BIRD_LINES = [{ t: "いま目の前を横切ったのは、シジュウカラです。", f: "web/voice/9618e77411e5.m4a", dur: 2.93, id: "9618e77411e5" },
   { t: "シジュウカラは、二つの鳴き声を決まった順につなげて使います。順を入れかえると、聞いた仲間の反応が弱まることが、野外の実験で確かめられています。", f: "web/voice/bc242fd4536f.m4a", dur: 10.71, id: "bc242fd4536f", src: BIRD_SRC }];
+let U2 = null, U2P = null;   // 11-02：環世界 2.0 の重なり（大宮だけ）
 const UVV = { k: 0, el: null, o: "", said: false };
 let BIRD_T = -1e9;
 function touchBird() { const n = performance.now(); if (n - BIRD_T < 20000 && voiceQ) return; BIRD_T = n; NARR.L = null; speakLines(BIRD_LINES.map(l => ({ ...l, tc: l.t, lay: "sound" })), null, { narr: true }); }
@@ -2669,7 +2670,7 @@ const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0;
 function frame() {
   if (!D) return;   // タブが隠れていたあいだに描画が始まったとき（データの前）は描かない
   const dt = Math.min(.05, clock.getDelta());
-  (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt, QW.mode === "walk");
+  (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt * (1 - .65 * (U2?.slow || 0)), QW.mode === "walk"); U2?.update(dt, QW.mode === "walk", QA?.top, QA?.still ?? 1);   // 11-02：環世界 2.0 の重なり（umwelt2.js）
   { const F = QW.fliers; let dmin = 99; if (QW.mode === "walk") for (const g of F.group.children) dmin = Math.min(dmin, g.position.distanceTo(camera.position));   // 11-02 本人「鳥に近づくと画面がその生き物の受けとり方に寄る（鳥＝紫外の色）。離れると環世界 1.0 に戻る」＝模式（色の寄せだけ・実際の見え方の再現ではない）
     const w = dmin < 3.2 ? Math.min(1, (3.2 - dmin) / 1.6) : 0; UVV.k += (w - UVV.k) * Math.min(1, dt * 1.2);
     if (!UVV.el && UVV.k > .01) { UVV.el = document.createElement("div"); UVV.el.id = "uvVeil"; UVV.el.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;mix-blend-mode:screen;background:radial-gradient(ellipse at 50% 45%,rgba(150,120,255,.0) 30%,rgba(150,120,255,.55) 100%);opacity:0;transition:none"; document.body.appendChild(UVV.el); }
@@ -2677,7 +2678,7 @@ function frame() {
     if (UVV.k > .6 && !UVV.said) { UVV.said = true; toast("鳥の目に寄せた模式：シジュウカラなど多くの鳥は、紫外にも感じる錐体をもちます（Hart 2001, Prog. Retin. Eye Res. 20:675）"); } }
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); skyCam(); }
-    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt); }
+    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=1").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t) }); }).catch(e => console.warn("u2", e)); }
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
     else if (QW.mode === "descend") stepWaitOrbit(dt);
