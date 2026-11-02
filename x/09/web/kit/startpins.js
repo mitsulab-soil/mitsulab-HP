@@ -5,14 +5,14 @@
      const SP = makeStartPins({ THREE, parent, camera, groundY, mobile, items: [{ name, x, z, kind }], note: { text, x, z }, goBtn, onSelect(i), onGo(i) });
      毎こま SP.update(t) ／ 見せる SP.show(true|false) ／ 選ぶ SP.select(i) ／ 画面で押した所 SP.pick(x, y) → i か -1
    kind：'torii'・'shrine'・'here'（現在地）・'area'（町）・''。goBtn は既存のボタン（押すと onGo）。 */
-export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, items, note = null, goBtn = null, preview = null, onSelect, onGo, color = "#9bdcf0", pick = "#ffb648" }) {
+export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, items, note = null, goBtn = null, preview = null, onSelect, onGo, color = "#c4e2ea", pick = "#f3c27c" }) {
   const g = new THREE.Group(); g.name = "startPins"; parent.add(g);
   const css = document.createElement("style"); css.textContent = `
 .spLayer{position:fixed;inset:0;pointer-events:none;z-index:6}
-.spTag{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;min-height:44px;min-width:44px;display:flex;align-items:center;gap:8px;padding:6px 14px 7px 10px;border:1px solid rgba(155,220,240,.55);border-radius:3px;background:rgba(6,12,22,.62);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);color:#eef5f8;font:600 14px/1.25 "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.1em;white-space:nowrap;transition:border-color .25s,background .25s,box-shadow .25s}
-.spLead{position:absolute;left:0;top:0;height:1px;background:rgba(155,220,240,.7);transform-origin:0 0;pointer-events:none}
-.spTag .no{font:300 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.18em;color:#9bdcf0}
-.spTag.on{border-color:${pick};background:rgba(30,20,6,.72);box-shadow:0 0 0 1px ${pick}55,0 0 18px ${pick}44}.spTag.on .no{color:${pick}}
+.spTag{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;min-height:44px;min-width:44px;display:flex;align-items:center;gap:8px;padding:6px 14px 7px 12px;border:1px solid rgba(214,232,238,.26);border-radius:2px;background:rgba(6,12,22,.46);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);color:#eef5f8;font:500 13.5px/1.25 "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.1em;white-space:nowrap;transition:border-color .25s,background .25s,box-shadow .25s}
+.spLead{position:absolute;left:0;top:0;height:1px;background:rgba(214,232,238,.4);transform-origin:0 0;pointer-events:none}
+.spTag .no{font:300 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.2em;color:rgba(196,226,234,.75)}
+.spTag.on{border-color:${pick};background:rgba(30,20,6,.72);box-shadow:0 0 0 1px ${pick}33}.spTag.on .no{color:${pick}}
 .spTag.k-here{border-style:dashed}.spTag.k-area{border-color:rgba(232,201,143,.6)}
 .spTag:focus-visible{outline:1px solid #fff;outline-offset:2px}
 .spTitle{position:fixed;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 62px);transform:translateX(-50%);pointer-events:none;text-align:center;color:#f2f7f9;font:600 16px/1.5 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.14em;text-shadow:0 0 12px rgba(6,12,22,.95),0 1px 2px #000;white-space:nowrap}.spBr{display:none}.spNote{visibility:hidden}.spTitle small{display:block;font-size:11.5px;letter-spacing:.08em;font-weight:500;opacity:.9}
@@ -32,15 +32,16 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
 @media (max-width:640px){.spTitle{left:calc(50% + 34px);font-size:15px;letter-spacing:.1em}.spTitle small{margin:3px auto 0;line-height:1.55}.spBr{display:inline}.spNote{white-space:normal;max-width:calc(100vw - 40px);text-align:center}   /* 10-28 夜 6：375px で説明の一行が両端で切れていた。左の層の一覧を避けて折り返す */.spCard p{font-size:12.5px;line-height:1.65}.spCard canvas{aspect-ratio:2/1}.spTag{font-size:13px;padding:5px 10px 6px 8px;letter-spacing:.06em}.spNote{font-size:11px;letter-spacing:.04em}}`;
   document.head.appendChild(css);
   const layer = document.createElement("div"); layer.className = "spLayer"; document.body.appendChild(layer);
-  // 印：小さく凝った 3D（光る芯の八面体・細い二重の輪・脈打つ光・細い柱）。大きさは画面で一定に近づける
-  const coreG = new THREE.OctahedronGeometry(1, 0), hereG = new THREE.ConeGeometry(.8, 2, 3).rotateX(Math.PI), ringG = new THREE.TorusGeometry(2.2, .07, 6, 64), ring2G = new THREE.RingGeometry(2.9, 3.05, 64), beamG = new THREE.CylinderGeometry(.12, .12, 1, 6, 1, true).translate(0, .5, 0);
+  // 2026-11-02 本人「スタートポイントをもっと美しいグラフィックで」→ 地面に置く細い光の同心円（芯の点・細い輪・切れ目のある外の輪と目盛り・ゆっくり広がる輪・ごく細い糸）。立体の八面体と太い柱はやめた。大きさは画面で一定に近づける
+  const flat = geo => geo.rotateX(-Math.PI / 2);
+  const tickG = (() => { const N = 24, pos = []; for (let j = 0; j < N; j++) { const a = j / N * Math.PI * 2, w = .012, r0 = 3.05, r1 = j % 6 ? 3.25 : 3.5; const c = Math.cos, sn = Math.sin; const p = (r, da) => [c(a + da) * r, 0, sn(a + da) * r]; const A = p(r0, -w), B = p(r1, -w * r0 / r1), C = p(r1, w * r0 / r1), D = p(r0, w); pos.push(...A, ...B, ...C, ...A, ...C, ...D); } const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); return g; })();
+  const coreG = flat(new THREE.CircleGeometry(.55, 32)), hereG = flat(new THREE.RingGeometry(.42, .62, 32)), ringG = flat(new THREE.RingGeometry(1.7, 1.78, 96)), ring2G = flat(new THREE.RingGeometry(2.92, 2.97, 128, 1, .35, Math.PI * 2 - .7)), pulseG = flat(new THREE.RingGeometry(1.95, 2.02, 96)), beamG = new THREE.CylinderGeometry(.035, .035, 1, 4, 1, true).translate(0, .5, 0);
   const pins = items.map((it, i) => {
     const y = groundY(it.x, it.z), c = new THREE.Color(it.kind === "area" ? "#e8c98f" : it.kind === "here" ? "#ffffff" : color);
-    const mk = (geo, op) => new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c.clone(), transparent: true, opacity: op, depthWrite: false, fog: false, toneMapped: false, side: THREE.DoubleSide }));
+    const mk = (geo, op) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: c.clone(), transparent: true, opacity: op, depthWrite: false, depthTest: false, fog: false, toneMapped: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); m.userData.op = op; return m; };
     const P = new THREE.Group(); P.position.set(it.x, y, it.z);
-    const core = mk(it.kind === "here" ? hereG : coreG, 1), ring = mk(ringG, .9), ring2 = mk(ring2G, .5), pulse = mk(ring2G, .6), beam = mk(beamG, .45), foot = mk(ring2G, .55);
-    foot.rotation.x = -Math.PI / 2; foot.position.y = .5; pulse.rotation.x = -Math.PI / 2; pulse.position.y = .5;
-    const head = new THREE.Group(); head.add(core, ring, ring2); P.add(beam, foot, pulse, head); g.add(P);
+    const core = mk(it.kind === "here" ? hereG : coreG, .95), ring = mk(ringG, .7), ring2 = mk(ring2G, .38), pulse = mk(pulseG, .5), beam = mk(beamG, .22), foot = mk(tickG, .3);
+    const head = new THREE.Group(); head.add(core, ring, ring2, foot, pulse); P.add(beam, head); g.add(P);
     for (const m of [core, ring, ring2, pulse, beam, foot]) m.renderOrder = 30;
     const tag = document.createElement("button"); tag.type = "button"; tag.className = "spTag k-" + (it.kind || "pt"); tag.innerHTML = (it.no ? `<span class="no">${it.no}</span>` : "") + `<span class="nm">${it.name}</span>`;
     const lead = document.createElement("i"); lead.className = "spLead"; layer.appendChild(lead); tag.setAttribute("aria-label", it.name + "を選ぶ"); tag.addEventListener("click", e => { e.stopPropagation(); api.select(i); }); layer.appendChild(tag);
@@ -77,10 +78,10 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
       if (!g.visible) return []; const W = innerWidth, H = innerHeight, F = fpx(), placed = [];
       const rank = k => (k === api.sel ? 4 : 0) + (pins[k].it.kind === "area" ? 2 : 0) + (pins[k].it.kind === "here" ? 1 : 0); const order = pins.map((p, k) => k).sort((a, b) => rank(b) - rank(a));
       for (const k of order) { const p = pins[k], on = k === api.sel, d = camera.position.distanceTo(p.P.position);
-        const s = d * (mobile ? 9 : 8) / F * (on ? 1.35 : 1) * (p.it.kind === "area" ? .7 : 1);   // 画面でおよそ 8〜9px の芯
-        const hy = s * 9; p.head.position.y = hy; p.head.scale.setScalar(s); p.core.rotation.y = t * .8 + k; p.core.scale.set(1, 1.5, 1);
-        p.ring.rotation.set(Math.PI / 2 + Math.sin(t * .6 + k) * .35, t * .5 + k, 0); p.ring2.lookAt(camera.position);
-        p.beam.scale.set(s, hy, s); p.foot.scale.setScalar(s * .9); p.ring2.scale.setScalar(.75); const ph = (t * .6 + k * .17) % 1; p.pulse.scale.setScalar(s * (1 + ph * 1.6)); p.pulse.material.opacity = (1 - ph) * (on ? .8 : .45);
+        const s = d * (mobile ? 6.4 : 5.8) / F * (on ? 1.3 : 1) * (p.it.kind === "area" ? .8 : p.it.kind === "here" ? 1.5 : 1);   // 地面の同心円（現在地は大きめに）（外の輪で画面およそ直径 28〜32px）
+        const hy = s * 7; p.head.position.y = .3; p.head.scale.setScalar(s); p.ring2.rotation.y = t * .12 + k; p.foot.rotation.y = -t * .05 + k * .3;
+        p.beam.scale.set(s, hy, s); const ph = (t * .32 + k * .23) % 1, e = 1 - (1 - ph) ** 2; p.pulse.scale.setScalar(1 + e * 1.1); p.pulse.material.opacity = (1 - ph) ** 1.5 * (on ? .7 : .38);
+        p.core.material.opacity = (on ? 1 : .8) * (.85 + .15 * Math.sin(t * 1.6 + k)); p.ring.material.opacity = on ? .9 : .6; p.ring2.material.opacity = on ? .6 : .32; p.foot.material.opacity = on ? .5 : .24; p.beam.material.opacity = on ? .45 : .18;
         // 名札（印の上）。重なれば、選んだ札を残して小さく逃がす
         _v.set(p.P.position.x, p.P.position.y + hy + s * 4, p.P.position.z).project(camera); let x = (_v.x + 1) / 2 * W, y = (1 - _v.y) / 2 * H; const x0 = x, y0 = y;
         x = Math.max(84, Math.min(W - 84, x)); const okAt = (xx, yy) => yy > 176 && yy < H - 30 && !(avoid && xx - 60 < avoid.x && yy - 44 < avoid.y); let ok = _v.z < 1 && (_v.x + 1) / 2 * W > 8 && (_v.x + 1) / 2 * W < W - 8;   /* 置けない所（上の見出し・層の一覧）は、下の候補へずらす */

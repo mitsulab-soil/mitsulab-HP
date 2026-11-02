@@ -7,12 +7,12 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k19";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k22";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w19";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { makeStartPins } from "../kit/startpins.js?v=mg5";
+import { makeStartPins } from "../kit/startpins.js?v=mg7";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
@@ -888,9 +888,9 @@ function stepMapLabels() {
   const now = performance.now(); if (!MAP.av || now - MAP.avT > 500) { MAP.avT = now; const c = $("#skyUI .card")?.getBoundingClientRect(), l = $("#lstack")?.getBoundingClientRect(); MAP.av = { cy: c && c.height ? c.top - 6 : H, lx: l && l.width ? l.right + 4 : 0, ly: l && l.height ? l.bottom : 0 }; }   // 視野の札（始める場所・層の目盛り）の下に、地図の名前を重ねない
   for (const L of all) {
     _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W; let y = (1 - _v3.y) / 2 * H; if (L === MAP.hereLabel && _v3.z < 1) { y = Math.max(130, Math.min(H - 60, y)); }   // 「いま」の札は上の端で切らない
-    const lw = (L.w ||= L.e.offsetWidth || 80) / 2; let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x + lw * 2 + 14 < W && x > 4 &&   /* 2026-10-27：画面の端で切れる地名は出さない */ y > 70 && y < H - 40 && y < MAP.av.cy && !(x < MAP.av.lx && y < MAP.av.ly + 10);
+    const lw = (L.w ||= L.e.offsetWidth || 80) / 2; let ok = _v3.z < 1 && x > (MOBILE ? 72 : -40) && x + lw * 2 + 14 < W && x > 4 &&   /* 2026-10-27：画面の端で切れる地名は出さない */ y > (MOBILE ? 150 : H * .2) && y < H - 40 && (MOBILE || (x > W * .1 && x < W * .86)) && y < MAP.av.cy && !(x < MAP.av.lx && y < MAP.av.ly + 10);
     if (ok && START.rects) for (const r of START.rects) if (Math.abs(r[0] - x) < (MOBILE ? 100 : 110) && Math.abs(r[1] - y) < 40) { ok = false; break; }   // 始める場所の名札を優先（地区の札は重ねない）
-    if (ok && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < (MOBILE ? 96 : 70) && Math.abs(q[1] - y) < (MOBILE ? 22 : 18)) { ok = false; break; }   // 重なる名札は出さない（大きな鳥居の名札も）
+    if (ok && L !== MAP.hereLabel) for (const q of placed) if (Math.abs(q[0] - x) < (MOBILE ? 104 : 120) && Math.abs(q[1] - y) < (MOBILE ? 26 : 28)) { ok = false; break; }   // 重なる名札は出さない（大きな鳥居の名札も）
     if (!ok) { if (L.vis !== false) { L.e.style.display = "none"; L.vis = false; } continue; }
     placed.push([x, y]); if (L.vis !== true) { L.e.style.display = ""; L.vis = true; }
     L.e.style.transform = `translate(${x | 0}px,${y | 0}px)`;
@@ -904,7 +904,7 @@ const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -
 const EYE = 1.55;
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
-const FOGS = { sky: () => ({ c: FOG_SKY, n: 1700, f: 4200 }), walk: () => ({ c: FOG_SKY, n: 320, f: 695 })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
+const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: FOG_SKY, n: 320, f: 695 })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && prev !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
@@ -1539,23 +1539,32 @@ function openObj(L) {
    しずく＝水に関わる印のそば、石＝石に関わる印のそば。歩く道すじから見える所に 1 体ずつ、さりげなく。
    触れると碧の声で短く一言、その印の出典つきの一行につなぐ（大きな演出は出さない・擬人の断定はしない）。 */
 const YO = { y: null, busy: false };
-const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水|渋谷川|新河岸川|水が流れ|川の水/, ishi: /石畳|標石|石垣|石段|石碑|敷石|石の鳥居|道標/ };
+const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水|渋谷川|新河岸川|水が流れ|川の水/, ishi: /石畳|標石|石垣|石段|石碑|敷石|石の鳥居|道標/,
+  ki: /欅|ケヤキ|巨木|大木|樹齢|神木/, tsuchi: /関東ローム|ローム層|赤土|黒土|土壌|腐葉土/, tori: /シジュウカラ|野鳥|カワセミ|メジロ|ヒヨドリ|鳥の声/, hitsuji: /芝生|広場|草地|原っぱ/ };
+/* 11-02 本人「碧以外の依代を Qualium に自然な動作で導入してください。碧と仲良くしてください。」
+   置く姿＝しずく・石・木・土・鳥・羊（話の印のそば）、碧のそばにいる姿＝狐（横を歩く）・蝶（肩の高さを回る）。
+   碧が近づくと依代は碧へ向いて小さく弾み、碧はそちらへ目をやる。碧が話すと近くの依代は碧へ向き、問いの一行では小さく傾く。 */
+const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tori: "鳥", hitsuji: "羊", kitsune: "狐", cho: "蝶" }, YO_H = { ki: .8, tsuchi: .42, tori: .36, hitsuji: .5, kitsune: .46, cho: .26 };
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y4");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y5");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
+    YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position,
+      onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
     const cp = camera.position, used = [];
-    for (const kind of ["shizuku", "ishi"]) {
+    for (const kind of ["shizuku", "ishi", "ki", "tsuchi", "tori", "hitsuji"]) {
       let best = null, bd = 1e9;
-      for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!YO_RE[kind].test(t) || THIN.test(t) || /標高|地質|堆積/.test(t) || !(L.o.lines || []).some(l => l && l.t && YO_RE[kind].test(l.t)) || used.includes(L)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z) - (/湧水|湧き|神池|清水|池の水/.test(t) ? 5000 : 0); if (d < bd) { bd = d; best = L; } }   /* 水そのものの話（湧水・池の水）を先に */
+      for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!YO_RE[kind].test(t) || THIN.test(t) || (kind !== "tsuchi" && /標高|地質|堆積/.test(t)) || !(L.o.lines || []).some(l => l && l.t && YO_RE[kind].test(l.t)) || used.includes(L) || used.some(u => Math.hypot(u.o.x - L.o.x, u.o.z - L.o.z) < 12)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z) - (kind === "shizuku" && /湧水|湧き|神池|清水|池の水/.test(t) ? 5000 : 0); if (d < bd) { bd = d; best = L; } }   /* 水そのものの話（湧水・池の水）を先に・依代どうしは 12 m 以上はなす */
       if (!best) continue; used.push(best);
       const a = (best.o.x * 7.1 + best.o.z * 3.3) % 6.28, x = best.o.x + Math.cos(a) * 1.4, z = best.o.z + Math.sin(a) * 1.4, L = best;
-      await YO.y.add(kind, { x, z, yaw: a, scale: .42, onTouch: () => {
-        const nm = kind === "shizuku" ? "しずく" : "石", l0 = (kind === "shizuku" && (L.o.lines || []).find(l => l && l.t && /舟が通|水量|流れ|川面|湧き水|湧水|水の道|清水/.test(l.t))) || (L.o.lines || []).find(l => l && l.t && YO_RE[kind].test(l.t)) ||   /* しずくは水そのもの（流れ・川面・湧き水・舟が通れた水の道）の一行を先に */ (L.o.lines || []).find(l => l && l.t),   /* 水・石の話の一行を選ぶ */ s0 = (L.o.src || [])[0], st = s0 ? (typeof s0 === "string" ? s0 : s0.t || "") : "";
+      await YO.y.add(kind, { x, z, yaw: a, scale: .42, height: YO_H[kind] || 0, onTouch: () => {
+        const nm = YO_NM[kind], l0 = (kind === "shizuku" && (L.o.lines || []).find(l => l && l.t && /舟が通|水量|流れ|川面|湧き水|湧水|水の道|清水/.test(l.t))) || (L.o.lines || []).find(l => l && l.t && YO_RE[kind].test(l.t)) ||   /* しずくは水そのもの（流れ・川面・湧き水・舟が通れた水の道）の一行を先に */ (L.o.lines || []).find(l => l && l.t),   /* 水・石の話の一行を選ぶ */ s0 = (L.o.src || [])[0], st = s0 ? (typeof s0 === "string" ? s0 : s0.t || "") : "";
         const a1 = `${nm}の姿の碧です。`, ls = [{ t: a1, tc: a1 }]; if (l0) ls.push({ t: l0.t, tc: l0.tc || l0.t, src: st || undefined });
         speakLines(ls, null, { narr: true }); } });
     }
+    if (AOI.m) for (const kind of MOBILE ? ["kitsune"] : ["kitsune", "cho"]) { const P = AOI.m.pos;   // 碧のそばにいる姿（スマホは狐だけ＝画面を混ませない）
+      await YO.y.add(kind, { x: P.x + .9, z: P.z - .4, height: YO_H[kind], follow: true, onTouch: () => { const a1 = `${YO_NM[kind]}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); }
   } catch (e) { console.warn("yorishiro", e); }
 }
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
@@ -1683,6 +1692,7 @@ function playNext() {
   if (l && l.hint && WL_HINT.done) { v.i++; return playNext(); }   // 知らせが出ていたら、もう一つは飛ばす
   if (l && l.hint) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } }   // 知らせは、実際に出たときにだけ済みにする（触れて切りかわったら、次の静かな間に一言）
   if (!l) { VOICE_END = performance.now(); voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
+  if (/[？?]\s*$/.test(l.t || "")) YO.y?.react("ask");   // 碧の問いの一行：そばの依代が小さく傾く
   const idx = v.L && !v.narr ? v.L.o.lines.indexOf(l) : -1;
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === idx));
   if (!v.L || v.narr || $("#panel").hidden) CAP_LAY = l.lay ? { n: l.lay, c: l.lc } : null; caption(l.tc || l.t, v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .16) : Math.max(3.2, (l.dur || l.t.length * .16) + 1.2)));
