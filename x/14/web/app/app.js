@@ -17,7 +17,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { installNav } from "../kit/nav.js?v=n8n";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n8o";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=s1";
@@ -203,7 +203,7 @@ async function buildBase() {
           float cell = step(.82, fract(sin(dot(floor(p / 2.5), vec2(12.9898, 78.233))) * 43758.5)); vec2 cq = fract(p / 2.5) - .5; float grain = cell * (1. - smoothstep(.04, .07, length(cq))) * (.5 + .5 * sin(t * 1.7 + p.x * .3));
           float ring = exp(-pow((d - mod(t * 14., 160.)) / 2.2, 2.)) * (1. - smoothstep(60., 160., d));
           vec3 cA = vec3(.42, .86, .78), cB = vec3(.45, .74, .95);
-          vec3 c = cA * con * 1.05 + cB * grid * .3 + vec3(.8, .95, 1.) * grain * .55 + cB * ring * (.6 + con * 1.2 + grid * .9);
+          vec3 c = cA * con * 1.05 + cB * grid * .1 * smoothstep(15., 45., d) +   /* 11-02 採点 P1：足もとの 10 m の格子は通りを横切る細い線に見える＝近くでは消し、遠くも淡く */  vec3(.8, .95, 1.) * grain * .55 + cB * ring * (.6 + con * 1.2 + grid * .9);
           gl_FragColor = vec4(c * k * near * feet, 1.); }` });
     const ov = new THREE.Mesh(geo, om); ov.position.y = .32; ov.renderOrder = 3; ov.name = "fusion"; ov.frustumCulled = false; world.add(ov); QW.fusion = ov; }
   buildRoute(); buildRoads(); buildMarkings(); buildWater(); buildFarGround();   // 広場の石の面は、地面の舗装の細部とつなぎ目ができたのでやめた（10-27）
@@ -476,7 +476,7 @@ async function buildBuildings() {
   const m = new THREE.Mesh(g, mat); m.renderOrder = 2; m.name = "bld"; world.add(m);
   const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(E, 3));
   const em = new THREE.LineBasicMaterial({ color: "#b8dbe6", transparent: true, opacity: .24, depthWrite: false });
-  const lines = new THREE.LineSegments(eg, em); lines.renderOrder = 3; world.add(lines);
+  const lines = new THREE.LineSegments(eg, em); lines.renderOrder = 3; world.add(lines); QW.bldLines = lines;
   const fg = new THREE.BufferGeometry(); fg.setAttribute("position", new THREE.Float32BufferAttribute(F, 3)); fg.computeVertexNormals();
   const foot = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ color: "#45474a", roughness: .96, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })); foot.renderOrder = 1; world.add(foot); BLD.foot = foot;
   BLD.mesh = m; BLD.lines = lines; BLD.mat = mat; QW.nBld = nb;
@@ -787,7 +787,7 @@ function buildArea(Z, J) {
   for (const b of J.b) {
     const kind = b[0], h = b[1], y = b[2], ring = []; for (let i = 3; i + 1 < b.length; i += 2) ring.push(new THREE.Vector2(b[i], b[i + 1]));
     if (ring.length < 3) continue; let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= ring.length; mz /= ring.length;
-    if (netCrosses(ring)) { for (let k = 0; k < ring.length; k++) { const p = ring[k], q = ring[(k + 1) % ring.length]; E2.push(p.x, y + .05, p.y, q.x, y + .05, q.y); } continue; }   // 道が中を通る建物（駅の通路など）は地割の線だけ
+    if (netCrosses(ring)) continue;   /* 11-02 採点 P1：道が中を通る建物の地割の線は、通りを横切る細い線に見えるので描かない */   // 道が中を通る建物（駅の通路など）は地割の線だけ
     const temple = kind > 0 || pw.some(r => inRing(r, mx, mz));
     if (!temple) { for (let k = 0; k < ring.length; k++) { const p = ring[k], q = ring[(k + 1) % ring.length]; E2.push(p.x, y + h, p.y, q.x, y + h, q.y); } continue; }   // 渋谷：線の地
     addSolid(ring, y, y + h, acc, 5);
@@ -1058,7 +1058,7 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
 let QA = null, QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b11").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b12").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
@@ -1868,6 +1868,7 @@ function stepTag() {
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0; const GEO = { t: 0, last: "" };
 function frame() {
   const dt = Math.min(.05, clock.getDelta());
+  if (QW.bldLines) QW.bldLines.visible = QW.mode !== "walk";   // 11-02 採点 P1：歩くときは建物の輪郭の線（地面を横切る細い線に見える）を出さない
   if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); }   // 降りる動きのあいだに組む（歩きだしてからは組まない）   // 11-02：歩きはじめに影絵を前もって組み立てる（歩く途中の 100〜300 ms の 1 コマをなくす）
   (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt, QW.mode === "walk");
   if (!stepTween(dt)) {

@@ -8,7 +8,7 @@
 export function makeQAurora(THREE, scene, opt) {
   const MAX = opt.mobile ? 6 : 7, NS = 96, R = 55;
   const vs = "varying vec2 vU; varying float vD; void main(){ vU = uv; vec4 mv = modelViewMatrix * vec4(position,1.); vD = -mv.z; gl_Position = projectionMatrix * mv; }";
-  const fs = "uniform float uT; uniform vec3 uC; uniform float uA; uniform float uP; varying vec2 vU; varying float vD; void main(){ float edge = smoothstep(0.,.5,vU.y)*(1.-smoothstep(.5,1.,vU.y)); float ends = smoothstep(0.,.18,vU.x)*(1.-smoothstep(.82,1.,vU.x)); float veil = .62+.38*sin(vU.x*19.+uT*.5+sin(vU.x*7.-uT*.3)*1.4); float near = smoothstep(1.2,3.0,vD); float pul = uP*exp(-pow(fract(vU.x*1.5-uT*.4)-.5,2.)*14.); float rim = (smoothstep(.0,.08,vU.y)*(1.-smoothstep(.08,.16,vU.y)) + smoothstep(.84,.92,vU.y)*(1.-smoothstep(.92,1.,vU.y)))*ends*near*uA*.45; gl_FragColor = vec4(uC*(1.+pul*1.4)+vec3(rim*.35), uA*edge*ends*veil*near*(1.+pul) + rim); }";
+  const fs = "uniform float uT; uniform vec3 uC; uniform float uA; uniform float uP; varying vec2 vU; varying float vD; void main(){ float edge = smoothstep(0.,.5,vU.y)*(1.-smoothstep(.5,1.,vU.y)); float ends = smoothstep(0.,.18,vU.x)*(1.-smoothstep(.82,1.,vU.x)); float veil = .62+.38*sin(vU.x*19.+uT*.5+sin(vU.x*7.-uT*.3)*1.4); float near = smoothstep(1.2,3.0,vD); float pul = uP*exp(-pow(fract(vU.x*1.5-uT*.4)-.5,2.)*14.); float rim = (smoothstep(.0,.08,vU.y)*(1.-smoothstep(.08,.16,vU.y)) + smoothstep(.84,.92,vU.y)*(1.-smoothstep(.92,1.,vU.y)))*ends*near*uA*.45*(1.-smoothstep(10.,30.,vD)); gl_FragColor = vec4(uC*(1.+pul*1.4)+vec3(rim*.35), uA*edge*ends*veil*near*(1.+pul) + rim); }";
   const S = [];
   for (let i = 0; i < MAX; i++) {
     const pos = new Float32Array((NS + 1) * 6), uv = new Float32Array((NS + 1) * 4), idx = [];
