@@ -61,7 +61,7 @@ export function makeQAurora(THREE, scene, opt) {
       SOIL.g = g; SOIL.disc = disc; SOIL.lines = lines; scene.add(g); }
     SOIL.g.position.set(x, opt.ground(x, z) + .03, z); SOIL.t = 8; SOIL.g.visible = true;
   }
-  function hint(text) {   // 画面の上の方に、明朝の小さな一行（4.5 秒で消える）
+  function hint(text) { { const st = document.getElementById("sndTag"); if (st && !st.hidden && st.style.visibility !== "hidden") return; }   // 11-02 採点 P1：再現音の札と重ねない   // 画面の上の方に、明朝の小さな一行（4.5 秒で消える）
     const e = document.createElement("div"); e.textContent = text; e.setAttribute("role", "status");
     e.style.cssText = "position:fixed;left:16px;top:max(72px,9vh);z-index:8;max-width:min(62vw,300px);padding:8px 14px;font:400 13px/1.6 var(--ml-serif,'Shippori Mincho','Hiragino Mincho ProN',serif);letter-spacing:.06em;color:#eef6f8;background:rgba(6,12,20,.5);border-left:2px solid rgba(160,140,255,.8);pointer-events:none;opacity:0;transition:opacity .6s ease;text-align:left";   /* 10-30 パネル：名所の景（鳥居など）を隠さないよう、左上の空いた所に */
     document.body.appendChild(e); requestAnimationFrame(() => { e.style.opacity = "1"; }); setTimeout(() => { e.style.opacity = "0"; setTimeout(() => e.remove(), 700); }, 4500);
