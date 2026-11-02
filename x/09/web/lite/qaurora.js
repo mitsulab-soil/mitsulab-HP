@@ -70,7 +70,7 @@ export function makeQAurora(THREE, scene, opt) {
   const api = {
     soilOpen, get top() { return curK; }, get still() { return still; },
     update(dt) {
-      t += dt; reT += dt; geoT += dt; const cam = opt.camera.position;
+      t += dt; reT += dt; geoT += dt; const cam = opt.camera.position; const HID = !!opt.hidden?.(); if (HID) api._hinted = true;   /* 11-03 本人「色の層はやめる」（大宮 opt.hidden）：帯は描かず、触れられず、誘いも出さない。curK（近くの層）の計算だけ残す */
       { const v = lastP && dt > 0 ? Math.hypot(cam.x - lastP.x, cam.z - lastP.z) / dt : 0; lastP = { x: cam.x, z: cam.z }; still += ((v < .4 ? 1 : .35) - still) * Math.min(1, dt * (v < .4 ? .5 : 1.5)); }
       if (reT > 1) { reT = 0; assign(); }
       if (SOIL.g && SOIL.g.visible) { SOIL.t -= dt; const k = Math.max(0, Math.min(1, SOIL.t > 7 ? 8 - SOIL.t : SOIL.t / 1.5)); SOIL.disc.material.uniforms.uA.value = k; SOIL.lines.material.opacity = .75 * k; SOIL.lines.scale.y = .4 + .6 * Math.min(1, 8 - SOIL.t); if (SOIL.t <= 0) SOIL.g.visible = false; }
@@ -79,15 +79,15 @@ export function makeQAurora(THREE, scene, opt) {
       for (const s of S) { if (!s.L || !s.mesh.visible) continue; const q = (NS >> 1) * 6, P = s.pos; _v.set((P[q] + P[q + 3]) / 2, (P[q + 1] + P[q + 4]) / 2, (P[q + 2] + P[q + 5]) / 2).project(opt.camera); s.ctr = _v.z < 1 && Math.abs(_v.x) < .45 && Math.abs(_v.y) < .55 ? 1 : 0;
         if (s.ctr) { s.hov = Math.max(s.hov, .45); } }
       if (!api._hinted && t > 6.2 && ((document.getElementById("toast")?.hidden !== false && document.getElementById("caption")?.hidden !== false) || t > 12.5) && S.some(s => s.L && s.mesh.visible && s.a > .5)) { api._hinted = true; let seen = false; try { seen = !!sessionStorage.getItem("q.h.band"); sessionStorage.setItem("q.h.band", "1"); } catch { } }
-      { let top = null; for (const s of S) if (s.L && !s.amb && s.a > .6 && (!top || s.a > top.a)) top = s; const k = top && top.k; if (k && k !== curK && t > 14 && t - askT > 25 && document.getElementById("caption")?.hidden !== false) { askT = t; const Qs = { sight: "この木を、鳥はどんな色で見ているでしょう。", sound: "この音は、どこから届いているでしょう。", touch: "この足もとの下は、どんな手ざわりでしょう。", "x.soil": "足もとの下に、何が広がっているでしょう。", "x.umwelt": "ここを、ほかの生きものはどう感じているでしょう。", "x.memory": "この道は、前はどんな姿だったでしょう。", smell: "この風の匂いは、どこから来ているでしょう。", taste: "この土地の食べ物は、どこから来たでしょう。" }; hint(Qs[k] || "この先で、何が重なっているでしょう。"); } if (k) curK = k; }   /* 11-02 本人「碧は案内の声だけ：層が変わったとき小さな字幕で問いを一つ。答えは歩いた先で」 */   /* 10-30：帯が視野の真ん中になくても、見えていれば出す（川越 375px で出ないことがあった） */
+      { let top = null; for (const s of S) if (s.L && !s.amb && s.a > .6 && (!top || s.a > top.a)) top = s; const k = top && top.k; if (!HID && k && k !== curK && t > 14 && t - askT > 25 && document.getElementById("caption")?.hidden !== false) { askT = t; const Qs = { sight: "この木を、鳥はどんな色で見ているでしょう。", sound: "この音は、どこから届いているでしょう。", touch: "この足もとの下は、どんな手ざわりでしょう。", "x.soil": "足もとの下に、何が広がっているでしょう。", "x.umwelt": "ここを、ほかの生きものはどう感じているでしょう。", "x.memory": "この道は、前はどんな姿だったでしょう。", smell: "この風の匂いは、どこから来ているでしょう。", taste: "この土地の食べ物は、どこから来たでしょう。" }; hint(Qs[k] || "この先で、何が重なっているでしょう。"); } if (k) curK = k; }   /* 11-02 本人「碧は案内の声だけ：層が変わったとき小さな字幕で問いを一つ。答えは歩いた先で」 */   /* 10-30：帯が視野の真ん中になくても、見えていれば出す（川越 375px で出ないことがあった） */
       for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt); s.L.qaIn = s.a;
         const d = s.amb ? 4 : Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z), nearK = d < 6 ? 1 - d / 6 : 0;   // 近づくと濃く
         s.m.uniforms.uA.value = .7 * still * (opt.mobile ? 1.2 : 1) * s.a * (.6 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1); s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;   /* 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） */
-        if (s.mesh.visible && (doGeo || s.p > .1)) shape(s); }
+        if (HID) s.mesh.visible = false; if (s.mesh.visible && (doGeo || s.p > .1)) shape(s); }
     },
     touch(L, v = 1) { const st = document.getElementById("sndTag"); if (st) { st.hidden = true; st.style.visibility = "hidden"; clearTimeout(api._stT); api._stT = setTimeout(() => { st.style.visibility = ""; }, 7000); }   // 10-30 パネル：触れた層の箱だけを出す（近くの再現音の説明を、しばらく隠す）
  const s = S.find(s => s.L === L); if (!s) return; s.p = Math.min(1.2, s.p + v); for (const o of s.links) o.p = Math.min(1.2, o.p + v * .35); },   // 触れた層と、絡んでいる層がわずかに応える
-    pick(x, y, hover) {   // 画面の点から、いちばん近い帯（中心線から 36px 以内・遠い帯は除く）
+    pick(x, y, hover) { if (opt.hidden?.()) return null;   // 画面の点から、いちばん近い帯（中心線から 36px 以内・遠い帯は除く）
       const cam = opt.camera, W = innerWidth, H = innerHeight, lim = (opt.mobile ? 52 : 40) ** 2; let best = null, bd = lim;
       for (const s of S) { if (!s.L || !s.mesh.visible || s.a < .3) continue; if (!s.amb && Math.hypot(s.L.o.x - cam.position.x, s.L.o.z - cam.position.z) > (opt.mobile ? 45 : 55)) continue; const P = s.pos;
         for (let k = 0; k <= NS; k += 3) { const q = k * 6; _v.set((P[q] + P[q + 3]) / 2, (P[q + 1] + P[q + 4]) / 2, (P[q + 2] + P[q + 5]) / 2).project(cam); if (_v.z > 1 || _v.z < -1) continue; const sx = (_v.x + 1) / 2 * W, sy = (1 - _v.y) / 2 * H, dd = (sx - x) ** 2 + (sy - y) ** 2; if (dd < bd) { bd = dd; best = s; } } }

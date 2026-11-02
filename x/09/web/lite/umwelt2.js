@@ -28,16 +28,21 @@ export function makeUmwelt2(THREE, scene, o) {
       if (!active || off) { disc.visible = false; scan.visible = false; num.visible = false; if (bee) bee.visible = false; slow = 0; return; }
       const gy = o.ground(cam.x, cam.z);
       // 足もとの質感
-      const want = top === "sight" || top === "x.umwelt" ? 0 : top === "sound" ? 1 : -1; if (want !== cur && k < .02) cur = want; const kw = want === cur && cur >= 0 ? .55 * (.4 + .6 * still) : 0;
+      const want = o.noLayer ? -1 : top === "sight" || top === "x.umwelt" ? 0 : top === "sound" ? 1 : -1; if (want !== cur && k < .02) cur = want; const kw = want === cur && cur >= 0 ? .55 * (.4 + .6 * still) : 0;
       k += (kw - k) * Math.min(1, dt * .6); disc.visible = k > .01; if (disc.visible) { disc.position.set(cam.x, gy + .04, cam.z); disc.material.uniforms.uA.value = k; disc.material.uniforms.uM.value = cur; disc.material.uniforms.uT.value = t; disc.material.uniforms.uC.value.set(cur ? "#a9b7d8" : "#b9a8ff"); }
       if (top === "x.soil" && still > .9 && o.soilOpen && !this._soilT) { this._soilT = t; o.soilOpen(cam.x, cam.z); } if (this._soilT && t - this._soilT > 20) this._soilT = 0;
       // GIS の走査線
-      scanT += dt; const ph = (scanT % 10) / 10, rr = 2 + ph * 26; scan.visible = ph < .9; if (scan.visible) { for (let i = 0; i <= NP; i++) { const a = i / NP * 6.2832, x = cam.x + Math.cos(a) * rr, z = cam.z + Math.sin(a) * rr; lp[i * 3] = x; lp[i * 3 + 1] = o.ground(x, z) + .06; lp[i * 3 + 2] = z; } lg.attributes.position.needsUpdate = true; scan.material.opacity = .22 * Math.sin(ph / .9 * Math.PI); }
+      scanT += dt; const ph = (scanT % 10) / 10, rr = 2 + ph * 26; scan.visible = ph < .9 && !o.noLayer; if (scan.visible) { for (let i = 0; i <= NP; i++) { const a = i / NP * 6.2832, x = cam.x + Math.cos(a) * rr, z = cam.z + Math.sin(a) * rr; lp[i * 3] = x; lp[i * 3 + 1] = o.ground(x, z) + .06; lp[i * 3 + 2] = z; } lg.attributes.position.needsUpdate = true; scan.material.opacity = .22 * Math.sin(ph / .9 * Math.PI); }
       if (ph < .05 && t - numT > 9) { numT = t; const f = o.camera.getWorldDirection(new THREE.Vector3()), x = cam.x + f.x * 3.6, z = cam.z + f.z * 3.6, e = o.ground(x, z); nx.clearRect(0, 0, 256, 64); nx.fillStyle = "rgba(220,236,242,.95)"; nx.font = "500 22px ui-monospace,monospace"; nx.fillText(`標高 ${e.toFixed(1)} m` + (o.sun ? `  日 ${o.sun()}°` : ""), 8, 40); ntex.needsUpdate = true; num.position.set(x, e + .35, z); }
       { const a = t - numT < 6 ? Math.sin(Math.min(1, (t - numT) / 6) * Math.PI) * .7 : 0; num.material.opacity = a; num.visible = false; }
       // ミツバチ：見る人の前 3〜5 m の腰の高さをゆっくり行き来
-      if (bee) { if (!B.c || Math.hypot(B.c.x - cam.x, B.c.z - cam.z) > 30) { const f = o.camera.getWorldDirection(new THREE.Vector3()); B.c = { x: cam.x + f.x * 4.5, z: cam.z + f.z * 4.5 }; }
-        B.a += dt * .5; const x = B.c.x + Math.cos(B.a) * 1.2, z = B.c.z + Math.sin(B.a * 1.3) * .9; bee.position.set(x, o.ground(x, z) + .7 + Math.sin(t * 1.7) * .15, z); bee.rotation.y = B.a + Math.PI / 2; bee.userData.animate?.(t, true); bee.visible = true;
+      if (bee) { if (!B.c || Math.hypot(B.c.x - cam.x, B.c.z - cam.z) > 30) { const f = o.camera.getWorldDirection(new THREE.Vector3()); B.c = { x: cam.x + f.x * 4.5, z: cam.z + f.z * 4.5 }; B.p = null; }
+        if (o.wander) {   /* 11-03 本人「虫はふらふらと低く」：花から花へ寄るように、膝から腰の高さ（0.3〜0.8 m）をゆっくり、ときどき止まりかけて向きを変える */
+          if (!B.p) { B.p = { x: B.c.x, z: B.c.z, y: .5 }; B.g = null; B.w = 0; }
+          if (!B.g || Math.hypot(B.g.x - B.p.x, B.g.z - B.p.z) < .08) { if ((B.w -= dt) > 0) { } else { B.g = { x: B.c.x + (Math.random() - .5) * 3, z: B.c.z + (Math.random() - .5) * 2.4, y: .3 + Math.random() * .5 }; B.w = .6 + Math.random() * 1.8; } }
+          if (B.g) { const dx = B.g.x - B.p.x, dz = B.g.z - B.p.z, dd = Math.hypot(dx, dz) || 1, v = Math.min(dd, dt * .6); B.p.x += dx / dd * v + Math.sin(t * 5.3) * .004; B.p.z += dz / dd * v + Math.cos(t * 4.1) * .004; B.p.y += (B.g.y - B.p.y) * dt * .8; B.a = Math.atan2(dx, dz); }
+          bee.position.set(B.p.x, o.ground(B.p.x, B.p.z) + B.p.y + Math.sin(t * 2.9) * .05, B.p.z); bee.rotation.y = B.a; }
+        else { B.a += dt * .5; const x = B.c.x + Math.cos(B.a) * 1.2, z = B.c.z + Math.sin(B.a * 1.3) * .9; bee.position.set(x, o.ground(x, z) + .7 + Math.sin(t * 1.7) * .15, z); bee.rotation.y = B.a + Math.PI / 2; } bee.userData.animate?.(t, true); bee.visible = true;
         const d = bee.position.distanceTo(cam), w = d < 2.6 ? Math.min(1, (2.6 - d) / 1.2) : 0; slow += (w - slow) * Math.min(1, dt * 1.5);
         if (slow > .6 && !said) { said = true; o.say?.("虫の時間に寄せた模式：ハエやハチなど多くの虫は、人より速い光の変化を見分けます（Healy et al. 2013, Animal Behaviour 86:685）"); } }
     },

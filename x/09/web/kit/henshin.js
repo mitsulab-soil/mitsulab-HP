@@ -143,7 +143,7 @@ export function attachHenshin(QW, opt = {}) {
   for (const ev of ["pointerup", "click"]) addEventListener(ev, e => { if (swallow) { e.stopImmediatePropagation(); e.preventDefault(); if (ev === "pointerup") setTimeout(() => swallow = false, 80); } }, true);
   async function go(id) {
     if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(10);
-    if (id === "hito") { if (S.yb) S.yb.visible = true; nextYori(); document.body.classList.remove("hen"); S.target = 0; tag.style.opacity = 0; S.ts = null; tsBox.style.opacity = 0; QW.stopSpeak?.(); return; }
+    if (id === "hito") { if (S.yb) S.yb.visible = true; if (!opt.xOnly) nextYori(); document.body.classList.remove("hen"); S.target = 0; tag.style.opacity = 0; S.ts = null; tsBox.style.opacity = 0; QW.stopSpeak?.(); return; }
     const P = PROFILES[id];
     S.cur = P; S.pose = null; S.body = await worldBody(P).catch(() => null);
     const a = aoiPos(); if (a) { const home = new THREE.Vector3(camera.position.x, a.y + (P.body?.eye || .3), camera.position.z); const yb = QW.YO?.y?.items?.find(i => i.kind === P.yori)?.root; const from = yb ? yb.getWorldPosition(new THREE.Vector3()).setY(yb.getWorldPosition(new THREE.Vector3()).y + (P.body?.eye || .3) * .6) : home.clone(); if (yb) yb.visible = false; S.yb = yb; S.pose = { home, pos: from, goal: null, wait: 0, look: camera.position.clone(), yawJ: 0 }; }
@@ -216,7 +216,7 @@ export function attachHenshin(QW, opt = {}) {
   /* ---- まいこま ---- */
   let lastK = -1, t = 0, t0 = performance.now();
   function update(dt) {
-    t += dt; const walk = QW.mode === "walk", a = aoiPos(); if (walk && a && YSHOWN && S.target === 0 && S.offer && (t - (S.reT || 0)) > 2) { S.reT = t; const yb = QW.YO?.y?.items?.[0]?.root; if (yb && yb.position.distanceTo(a) > 6) QW.yoShow?.(PROFILES[S.offer].yori); }   /* 碧が歩いて離れたら、その一体を碧のそばへ置き直す（ついて来る動きはしない） */ if (walk && a && !YSHOWN && QW.yoShow && QW.YO?.y) { YSHOWN = true; nextYori(); if (!sessionStorage.getItem?.('hs_inv')) { try { sessionStorage.setItem('hs_inv', '1'); } catch { } setTimeout(() => QW.speak?.([{ t: 'そばにいる生き物にふれると、その目で、この道を見られます。' }]), 9000); } } if (!ROBE && walk) robeOnce(); 
+    t += dt; const walk = QW.mode === "walk", a = aoiPos(); if (walk && a && YSHOWN && S.target === 0 && S.offer && (t - (S.reT || 0)) > 2) { S.reT = t; const yb = QW.YO?.y?.items?.[0]?.root; if (yb && yb.position.distanceTo(a) > 6) QW.yoShow?.(PROFILES[S.offer].yori); }   /* 碧が歩いて離れたら、その一体を碧のそばへ置き直す（ついて来る動きはしない） */ if (walk && a && !YSHOWN && !opt.xOnly && QW.yoShow && QW.YO?.y) { YSHOWN = true; nextYori(); if (!sessionStorage.getItem?.('hs_inv')) { try { sessionStorage.setItem('hs_inv', '1'); } catch { } setTimeout(() => QW.speak?.([{ t: 'そばにいる生き物にふれると、その目で、この道を見られます。' }]), 9000); } } if (!ROBE && walk) robeOnce(); 
     gui.visible = false;   // 11-02 本人「もっと直感的なインターフェイスで」：輪は使わず、風景の中の依代に触れる
     if (gui.visible) {
       camera.getWorldDirection(V2); gui.position.set(a.x + V2.z * .55 - V2.x * .35, a.y + 1.0, a.z - V2.x * .55 - V2.z * .35);   /* 碧の腰の高さ・左横の少し手前（目の高さに置くと遠くの並木と重なって見えた） */   /* 碧の手もとの高さ・碧の体の横（画面の空いた側）に。体と重ならない */   /* 碧の手もとの高さ（下の楕円 GUI・字幕と重ならない） */
@@ -228,7 +228,7 @@ export function attachHenshin(QW, opt = {}) {
     } else for (const it of [back, ...icons]) { it.label.style.display = "none"; it.sc = null; }
     S.k += (S.target - S.k) * Math.min(1, dt * 1.5);   // 約 2 秒でなめらかに移る（光らせない）
     if (S.target === 1 || S.k > .01) stepPose(dt, t); stepCycle(dt);
-    if (S.body && S.pose) { const own = false;   /* 自分の体の先は、リアルな部分の 3D（別の担当が用意中）が届くまで出さない（依代の形では何の生き物か分からなかった） */ S.body.visible = own;
+    if (S.body && S.pose) { const own = !!opt.ownBody && !!S.cur.body3d && opt.ownBody(S.cur.id) !== false;   /* 11-03 大宮 opt.ownBody：X 感で入った生き物の体の先（写実の 3D）を視野の下端に */   /* 自分の体の先は、リアルな部分の 3D（別の担当が用意中）が届くまで出さない（依代の形では何の生き物か分からなかった） */ S.body.visible = own;
       if (own) { D3.subVectors(S.pose.look, S.pose.pos).normalize(); const sz = S.cur.body3d.size || .2; const dd = Math.max(.08, (S.body.userData.len || sz) * .35), tip = S.pose.pos.y - dd * .95 - (S.body.userData.top || sz); S.body.position.set(S.pose.pos.x + D3.x * dd, tip, S.pose.pos.z + D3.z * dd); /* 頭の先だけが視野の下端にのぞく（体の後ろ姿で画面を塞がない） */ S.body.lookAt(S.pose.look.x, S.body.position.y, S.pose.look.z); S.body.userData.animate?.(t, true); } }   /* 自分の体の前の端（頭・嘴・鼻先）が視野の下端に入る位置。体の内側が見えないよう、目より前・下に置く */
     { const on = S.target === 1 && S.k > .6 && S.pose && walk; back.g.visible = on;   /* 戻る印＝髪の色の細い光の輪と葉の房（11 回目の採点：小さな碧の人形は安っぽい→やめた） */
       if (on) { const P0 = S.pose.pos; D3.subVectors(S.pose.look, P0).normalize(); const rx = -D3.z, rz = D3.x, rl = Math.hypot(rx, rz) || 1;
