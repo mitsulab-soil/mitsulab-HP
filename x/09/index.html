@@ -18,7 +18,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261102yo3">
+<link rel="modulepreload" href="web/lite/app.js?v=20261102h7">
 <link rel="modulepreload" href="web/lite/layers.js?v=6">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
@@ -582,6 +582,16 @@ html body #qSense.sv-ring em{text-indent:.12em}
 <style id="qualium-sess">/* 10-29：自然とのセッションの音を消す小さなボタン（44px・さりげなく・歩くときだけ） */#sessBtn{display:none;position:fixed;right:max(16px,env(safe-area-inset-right));top:calc(max(12px,env(safe-area-inset-top)) + 54px);z-index:6;width:44px;height:44px;border-radius:50%;border:1px solid rgba(155,220,240,.28);background:rgba(3,6,15,.32);color:#d6eef6;font:400 16px/1 var(--serif);cursor:pointer;opacity:.72}body[data-mode="walk"] #sessBtn{display:block}#sessBtn[aria-pressed="false"]{opacity:.4;text-decoration:line-through}</style>
 <style id="qualium-hapt">/* 10-29：振動のない端末で、触覚の刻みを画面の下の小さな輪で代える（さりげなく） */#hapt{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 30px);width:10px;height:10px;margin-left:-5px;border-radius:50%;border:1px solid rgba(214,238,246,.55);opacity:0;pointer-events:none;z-index:4}#hapt.on{animation:hapt .5s ease-out}#hapt.on[data-k="water"]{animation:hapt 1.2s ease-out;border-color:rgba(140,200,230,.6)}#hapt.on[data-k="bird"]{border-color:rgba(230,220,160,.6)}@keyframes hapt{0%{opacity:.7;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}@media (prefers-reduced-motion:reduce){#hapt{display:none}}</style>
 <style id="qualium-cap-quiet">/* 11-02 採点 P2：字幕の外の淡い横長の枠を外す（字幕の帯だけを残す） */html body #caption{background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;outline:0!important}html body #caption::before,html body #caption::after{display:none!important}</style>
+<style id="no-plates">/* 2026-11-02 本人「灰色の背景の文字や説明書きは無くしてください」：文字の下の暗い板をすべて外し、細い影で読ませる。説明の一文は出さない（中身は碧の声と下の小さな字幕） */
+html body #capText,html body[data-mode] #capText,html body #capTag,#capText,#capTag,#caption,#caption::before,#toast::after,#toast,#panel,#panel::before,#panel.ml-panel--corner::before,#sndTag,#sightUI,#qHere,#pFold[open]>.in,#pExp .fig figcaption,#menu,#sightBox,#lstack::before,#lstack.closed::before,#skyUI,#skyUI::before,#skyUI .card,#hud .brand{background:none!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:transparent!important}
+#capText,#capTag,#caption,#toast,#skyUI,#sndTag,#sightUI,#qHere,#hud .brand,#lstack{text-shadow:0 0 2px #000,0 0 5px rgba(0,0,0,.95),0 1px 12px rgba(0,0,0,.8),0 0 22px rgba(0,0,0,.55)!important}
+body[data-mode="walk"] #caption{margin-bottom:22px}
+html body.hen #caption #capTag,html body.hen #capTag[id]{display:none!important;visibility:hidden!important}
+html body.hen #caption{margin-bottom:96px!important}
+html body.hen #capText{font-size:13.5px!important}
+#skyUI .sub,#spNote{display:none!important}
+#capText{font-size:12.5px!important}
+</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>
@@ -656,6 +666,8 @@ html body #qSense.sv-ring em{text-indent:.12em}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261102yo3").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261102h7").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+/* 11-02 変身＝碧の足もとの小さな依代を押すと、その視点へ入る（kit/henshin.js） */
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); Promise.all([import("./web/kit/henshin.js?v=23"), fetch("web/lite/data.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { lookup: (id, re) => { const o = D?.objs?.find(x => x.id === id); return o && (o.lines || []).find(l => l.t && (!re || new RegExp(re).test(l.t))); }, trees: () => q.D?.trees || D?.trees || [], say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).catch(e => console.warn("henshin", e)); } }, 300); }
 </script>
 </body></html>

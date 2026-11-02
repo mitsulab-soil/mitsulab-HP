@@ -901,7 +901,7 @@ function stepMapLabels() {
 // CAM.yaw＝体（歩く）の向き、CAM.look＝見回す向き（体からの差）、CAM.pitch＝上下。カメラの向き＝yaw＋look
 const CAM = { yaw: 0, look: 0, pitch: 0, pos: new THREE.Vector3(), vy: 0, lastDrag: 0 };
 const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -160, tz: MOBILE ? -10 : 150, tAz: .3, tEl: .98, tDist: MOBILE ? 2550 : 2150 };   // 2026-10-27：一の鳥居から楼門まで・西口まで、始めの一画面に収める
-const EYE = 1.55;
+const EYE = 1.42;   // 11-02 本人「碧ともっと近づいて、ドラマティックに」：やや低めの目線
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
 const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: FOG_SKY, n: 320, f: 695 })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
@@ -957,7 +957,7 @@ function descendTo(i, at) {
 
     let ready = false; const wait = setTimeout(() => { if (!ready) toast("参道の道と木を読み込んでいます。"); }, 500);
     WAITORBIT = { c: new THREE.Vector3(a.x, y, a.z), r: 140 * Math.SQRT2 / Math.SQRT2, yaw, t: 0 };
-    lateP.then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.04, .9, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.04; enterWalk(); }); });
+    lateP.then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.15, .9, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.15; enterWalk(); }); });
   });
 }
 let WAITORBIT = null;
@@ -1195,7 +1195,7 @@ function landFromFly() {
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), d = Math.min(1985, Math.max(-20, n.d)), a = atD(d), y = groundY(a.x, a.z) + EYE, ya = yawAlong(d), yb = ya + Math.PI;
   const yaw = Math.abs(wrap(ya - CAM.yaw)) < Math.PI / 2 ? ya : yb;
   setMode("descend"); hideFlyUI();
-  lateP.then(() => (TWFOG = [FOGS.fly(), FOGS.walk()], tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.04, 2.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.04; enterWalk(); }, 10)));
+  lateP.then(() => (TWFOG = [FOGS.fly(), FOGS.walk()], tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.15, 2.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.15; enterWalk(); }, 10)));
 }
 function toSky() {
   hidePanel(); hideWalkUI(); hideFlyUI(); stopVoice(); if (QW.mode === "sight") exitSight(true);
@@ -1496,7 +1496,7 @@ function panelAsNarr({ title, lines = [], more = [], src = [], buttons = [] }) {
   speakLines(ls, L, { narr: true, done: () => { if (play && PANEL.cur === L) { try { play.run(); } catch (e) { console.warn(e); } } if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } });   // 語り終えてから音を鳴らす（鳴らす操作は語りを止めるため）
 }
 function openPanel({ color, layer, title, lines = [], more = [], how, note, src = [], ll, figs = "", buttons = [] }) {
-  if ((QW.mode === "walk" || QW.mode === "sight") && !NARR_FORCE.on) { panelAsNarr({ title, lines, more, src, buttons }); return; }   // 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように」＝歩いているあいだは重ね窓を出さず、碧の語りと下の小さな字幕に
+  if (!NARR_FORCE.on) { panelAsNarr({ title, lines, more, src, buttons }); return; }   // 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように」＝歩いているあいだは重ね窓を出さず、碧の語りと下の小さな字幕に
   closeTray(); if (innerWidth < 640) { $("#lstack").classList.add("closed"); $("#lsHead").setAttribute("aria-expanded", "false"); }   // スマホ：札を開くときは層の一覧をたたむ（札の後ろに透けない）
   const p = $("#panel"); p.hidden = false; p.style.setProperty("--pc", color); document.body.classList.add("pOpen");
   // 2026-10-23：スマホでも碧は消さない（札を下の 46vh にして、碧はその上に見える）
@@ -1553,19 +1553,9 @@ async function startYorishiro() {
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
-    const cp = camera.position, used = [];
-    for (const kind of ["shizuku", "ishi", "ki", "tsuchi", "tori", "hitsuji", "tanuki", "suzume", "mitsubachi"]) {
-      let best = null, bd = 1e9;
-      for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!YO_RE[kind].test(t) || THIN.test(t) || (kind !== "tsuchi" && /標高|地質|堆積/.test(t)) || !(L.o.lines || []).some(l => l && l.t && YO_RE[kind].test(l.t)) || used.includes(L) || used.some(u => Math.hypot(u.o.x - L.o.x, u.o.z - L.o.z) < 12)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z) - (kind === "shizuku" && /湧水|湧き|神池|清水|池の水/.test(t) ? 5000 : 0); if (d < bd) { bd = d; best = L; } }   /* 水そのものの話（湧水・池の水）を先に・依代どうしは 12 m 以上はなす */
-      if (!best) { const nb = { suzume: "ki", mitsubachi: "tsuchi" }[kind], it0 = nb && YO.y.items.find(i => i.kind === nb); if (it0) { const p0 = it0.root.position, a0 = kind === "suzume" ? 2.2 : 4.1; await YO.y.add(kind, { x: p0.x + Math.cos(a0) * 2.4, z: p0.z + Math.sin(a0) * 2.4, yaw: a0, height: YO_H[kind], onTouch: () => { const a1 = `${YO_NM[kind]}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); } continue; }   /* 話の印が無い姿（スズメ＝木のそば・ミツバチ＝土の芽のそば） */ used.push(best);
-      const a = (best.o.x * 7.1 + best.o.z * 3.3) % 6.28, x = best.o.x + Math.cos(a) * 1.4, z = best.o.z + Math.sin(a) * 1.4, L = best;
-      await YO.y.add(kind, { x, z, yaw: a, scale: .42, height: YO_H[kind] || 0, onTouch: () => {
-        const nm = YO_NM[kind], l0 = (kind === "shizuku" && (L.o.lines || []).find(l => l && l.t && /舟が通|水量|流れ|川面|湧き水|湧水|水の道|清水/.test(l.t))) || (L.o.lines || []).find(l => l && l.t && YO_RE[kind].test(l.t)) ||   /* しずくは水そのもの（流れ・川面・湧き水・舟が通れた水の道）の一行を先に */ (L.o.lines || []).find(l => l && l.t),   /* 水・石の話の一行を選ぶ */ s0 = (L.o.src || [])[0], st = s0 ? (typeof s0 === "string" ? s0 : s0.t || "") : "";
-        const a1 = `${nm}の姿の碧です。`, ls = [{ t: a1, tc: a1 }]; if (l0) ls.push({ t: l0.t, tc: l0.tc || l0.t, src: st || undefined });
-        speakLines(ls, null, { narr: true }); } });
-    }
-    if (AOI.m) for (const kind of MOBILE ? ["kitsune"] : ["kitsune", "cho"]) { const P = AOI.m.pos;   // 碧のそばにいる姿（スマホは狐だけ＝画面を混ませない）
-      await YO.y.add(kind, { x: P.x + .9, z: P.z - .4, height: YO_H[kind], follow: true, onTouch: () => { const a1 = `${YO_NM[kind]}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); }
+    QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
+      YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
+      await YO.y.add(kind, { x: P.x + fz * .75 + fx * .35, z: P.z - fx * .75 + fz * .35, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
   } catch (e) { console.warn("yorishiro", e); }
 }
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
@@ -1778,6 +1768,7 @@ $("#talkBtn").addEventListener("click", () => { TALK.on = !TALK.on; syncTalkBtn(
 /* ---------- 碧（共通部品 AoiMotion） ---------- */
 const AOI = { root: null, m: null, ready: false, vrm: null, pos: new THREE.Vector3(), focus: null, low: false, greeted: false, loading: null };
 QW.AOI = AOI;
+QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.stopSpeak = () => stopVoice();   // 11-02 変身（kit/henshin.js）の碧の語り
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
@@ -1834,7 +1825,7 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
   for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 5.0 : 4.2, s = MOBILE ? .7 : 1.2;   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 2.8 : 2.7, s = MOBILE ? .34 : .9;   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = PANEL.cur && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：道の中心を歩くと左右がこまごとに入れかわり、碧が真ん中に留まっていた。0.8 m の幅でしか入れかえない */   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
@@ -2116,7 +2107,7 @@ function exitSight(quiet = false) {
   if (quiet) return;
   const a = CAM.pos.clone(); corridorClamp(a); const y = groundY(a.x, a.z) + EYE, yaw = CAM.yaw + CAM.look;   // 戻るのも、いまいる所（歩ける所の中）・いまの向きのまま
   TWFOG = [FOGS.walk(), FOGS.walk()]; setMode("descend");
-  tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.04, 1.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.04; enterWalk(); const fr = SIGHT.from; SIGHT.from = null; const t2 = fr ? `いま見た「${fr.o.title}」のあたりを、人の目でもう一度見てみましょう。` : null; const bl = [D.say?.back, t2 ? { t: t2, tc: t2 } : null].filter(Boolean); if (bl.length) speakLines(bl, null); }, 0);   /* 10-29：戻ったら同じ場所を人の目で見なおす一言 */
+  tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.15, 1.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.15; enterWalk(); const fr = SIGHT.from; SIGHT.from = null; const t2 = fr ? `いま見た「${fr.o.title}」のあたりを、人の目でもう一度見てみましょう。` : null; const bl = [D.say?.back, t2 ? { t: t2, tc: t2 } : null].filter(Boolean); if (bl.length) speakLines(bl, null); }, 0);   /* 10-29：戻ったら同じ場所を人の目で見なおす一言 */
 }
 /* 生きものの後ろ姿（2026-10-22 本人「画面上にその生き物の後ろ姿が見えるように」）：肩越しの視点で、画面の下のほうに、少し上の後ろから。
    ヒヨドリ・アブラコウモリは合格した 3D（コウモリは遠く用の形を、画面で小さく）、ほかの種もいまの 3D。寄りすぎない（体の長さの 5 倍ほど離す） */
