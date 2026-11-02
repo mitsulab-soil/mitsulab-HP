@@ -95,7 +95,7 @@ export const PROFILES = {
     sight: { fov: 70, lens: "hito", uv: 0, edge: .45 },
     motion: { kind: "still", r: [1.1, 1.1], h: [.22, .22] },
     timescale: { kind: "deep", step: 3.6, entries: [
-      { when: "大正 12・昭和 9・昭和 30", id: "d_quake", re: "関東大震災" },
+      { when: "大正 12・昭和 9", id: "d_quake", re: "関東大震災" },
       { when: "1885", id: "x_hikawakoen", re: "明治18" },
       { when: "1871", id: "x_kanpei", re: "明治4" },
       { when: "1629", id: "x_minumatamei", re: "寛永6" },

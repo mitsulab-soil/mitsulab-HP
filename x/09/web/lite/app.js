@@ -1555,7 +1555,7 @@ async function startYorishiro() {
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
-      await YO.y.add(kind, { x: P.x + fz * .85 + fx * 1.1, z: P.z - fx * .85 + fz * 1.1, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
+      await YO.y.add(kind, { x: P.x + fz * .95 + fx * 1.8, z: P.z - fx * .95 + fz * 1.8, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
   } catch (e) { console.warn("yorishiro", e); }
 }
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
@@ -1825,7 +1825,7 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
   for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 2.8 : 2.7, s = MOBILE ? .34 : .9;   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 3.15 : 2.9, s = MOBILE ? .34 : .9;   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = PANEL.cur && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：道の中心を歩くと左右がこまごとに入れかわり、碧が真ん中に留まっていた。0.8 m の幅でしか入れかえない */   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
