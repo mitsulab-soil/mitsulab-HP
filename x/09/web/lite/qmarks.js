@@ -266,13 +266,13 @@ export function placeLabels(THREE, cam, list, avoid = [], dt = .016, minPx = 0) 
     if (a.z < 1 && sp.visible && Math.abs(a.x) < 1.02 && Math.abs(a.y) < 1.05) {   // 10-28：画面の外の印の札は、画面の内へ寄せて出さない（印の見えない札・近い印の札が置けない原因だった）
       const x0 = (a.x + 1) / 2 * W, y = (1 - a.y) / 2 * H, h = Math.max(6, y - (1 - b.y) / 2 * H), w = h * (sc.x / sc.y) * .96, m = 3;   /* 10-28 夜 4：札の幅を実際に近く（右端で切れる札を出していた） */
       const x = Math.max(2 + m, Math.min(x0, W - 2 - m - h * sc.x / sc.y * .92));   /* 板の右端も画面に収める */ sp.center.x = (x0 - x) / Math.max(1, h * sc.x / sc.y);   // 2026-10-26 16：右の端で切れる札は、画面の中へ左に寄せる（スマホで町の名札が出なかった）
-      const tryS = s => { const r = { x0: x - m, x1: x + w + m, y0: y - h * (s + 1) * 1.1 - m, y1: y - h * s * 1.1 + m, L: e.L }; if (r.y0 < 0 || r.x0 < 2 || r.x1 > W - 2) return false; /* 画面の端で切れる札は出さない */ if (hit(r)) return false; put.push(r); return true; };
+      const tryS = s => { if (h < 10) return false; const r = { x0: x - m, x1: x + w + m, y0: y - h * (s + 1) * 1.1 - m, y1: y - h * s * 1.1 + m, L: e.L }; if (r.y0 < 0 || r.x0 < 2 || r.x1 > W - 2) return false; /* 画面の端で切れる札は出さない */ if (hit(r)) return false; put.push(r); return true; };
       const pref = Math.round(u.sl);
       if (tryS(pref)) slot = pref; else for (let s = 0; s < 4; s++) if (s !== pref && tryS(s)) { slot = s; break; }
       if (slot < 0) for (const s of [-1, -2, -3]) if (s !== pref && tryS(s)) { slot = s; break; }
       if (slot < 0) { const xl = x0 - w - 8, r = { x0: xl - 3, x1: xl + w + 3, y0: y - h * 1.1 - 3, y1: y + 3, L: e.L };   // 右に置けなければ、印の左に置く
-        if (xl > 2 && r.y0 > 0 && !hit(r)) { put.push(r); slot = 0; sp.center.x = (w + 8) / Math.max(1, h * sc.x / sc.y); } }
-      if (slot < 0 && idx < 3 && x + w < W - 2 && y - h * 1.1 > 0 && ![...put, ...avoid.filter(q => !q.L)].some(q => x - 3 < q.x1 && x + w + 3 > q.x0 && y - h * 1.1 - 3 < q.y1 && y + 3 > q.y0)) { put.push({ x0: x - 3, x1: x + w + 3, y0: y - h * 1.1 - 3, y1: y + 3, L: e.L }); slot = 0; }   // 10-28：いちばん近い 2 つは、操作の部品に少しかかっても札を出す（スマホで札が出なかった）   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
+        if (h >= 10 && xl > 2 && r.y0 > 0 && !hit(r)) { put.push(r); slot = 0; sp.center.x = (w + 8) / Math.max(1, h * sc.x / sc.y); } }
+      if (slot < 0 && h >= 10 && idx < 3 && x + w < W - 2 && y - h * 1.1 > 0 && ![...put, ...avoid.filter(q => !q.L)].some(q => x - 3 < q.x1 && x + w + 3 > q.x0 && y - h * 1.1 - 3 < q.y1 && y + 3 > q.y0)) { put.push({ x0: x - 3, x1: x + w + 3, y0: y - h * 1.1 - 3, y1: y + 3, L: e.L }); slot = 0; }   // 10-28：いちばん近い 2 つは、操作の部品に少しかかっても札を出す（スマホで札が出なかった）   // 2026-10-26 16：上がふさがっていたら下へ（操作説明が出ているあいだも札を出す）
     }
     const k = Math.min(1, dt * 7);
     if (slot >= 0) u.sl += (slot - u.sl) * k;

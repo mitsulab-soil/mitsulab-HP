@@ -1,5 +1,5 @@
 // sho3d.js — 書を 3D の空間に「動的に」置く部品（Qualia/sho の層の下ごしらえ）
-// © mitsulab. All rights reserved.  書は上原光瑛の作品（04_データ/01_本人の素材）。
+// © mitsulab. All rights reserved.  書は上原光瑛の作品（05_本人の素材）。
 // v1 2026-10-22
 //
 // 入力は prep_sho.py（_dev/sho3d/）が作る小さな地図 PNG：

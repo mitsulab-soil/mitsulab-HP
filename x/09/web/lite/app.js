@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k18";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k19";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w19";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
@@ -884,7 +884,7 @@ function showMapLayer(on) {
 }
 function stepMapLabels() {
   if (QW.mode !== "sky" || !MAP.labels.length) return;
-  const placed = [], W = innerWidth, H = innerHeight, all = MAP.here?.visible ? [...MAP.labels, MAP.hereLabel] : MAP.labels;
+  const placed = [], W = innerWidth, H = innerHeight, all = MAP.here?.visible ? [...MAP.labels, MAP.hereLabel] : MAP.labels; if (MAP.hereLabel && !MAP.here?.visible && MAP.hereLabel.e.style.display !== "none") MAP.hereLabel.e.style.display = "none";   // 11-02 夜：歩く前は「いま」の札を左上に残さない
   const now = performance.now(); if (!MAP.av || now - MAP.avT > 500) { MAP.avT = now; const c = $("#skyUI .card")?.getBoundingClientRect(), l = $("#lstack")?.getBoundingClientRect(); MAP.av = { cy: c && c.height ? c.top - 6 : H, lx: l && l.width ? l.right + 4 : 0, ly: l && l.height ? l.bottom : 0 }; }   // 視野の札（始める場所・層の目盛り）の下に、地図の名前を重ねない
   for (const L of all) {
     _v3.copy(L.p).project(camera); const x = (_v3.x + 1) / 2 * W; let y = (1 - _v3.y) / 2 * H; if (L === MAP.hereLabel && _v3.z < 1) { y = Math.max(130, Math.min(H - 60, y)); }   // 「いま」の札は上の端で切らない
@@ -1418,10 +1418,43 @@ function pickObj(x, y) {
 function updateStack() { syncTray(); }
 /* 2026-10-26：いまいる場所の重なり（半径 30 m に重なる Qualia の数と層）と、画面の外にあるいちばん近い Qualia の方角 */
 const QH = { t: 0, el: null, dir: null };
+/* 11-02 夜 本人「五感＋X 感が表現できるよう GUI を工夫（メニューから選ばず直感的に・小さく静か・風景が主）」：
+   6 つの層（X・聴・触・視・味・嗅）を、選ぶ札でなく、灯りとして見せる。3 案を ?sv=edge|ring|dot で比べられる（既定＝下の SV0）。
+   ・edge＝画面の左の縁に 6 つの淡い光の筋。近くにある層が灯り、いまの層は長く明るく、字を一つ添える。
+   ・ring＝足もとの円。近くにある層の灯りが、その層の印のある向き（前＝上）に点る。いまの層は字を添える。
+   ・dot ＝字幕の下の 6 つの小さな点。 */
+const SV0 = "ring", SV = (new URLSearchParams(location.search).get("sv") || SV0);
+const SKEYS = ["x", "sound", "touch", "sight", "taste", "smell"], SJ = { x: "X", sound: "聴", touch: "触", sight: "視", taste: "味", smell: "嗅" };
+function senseDraw(cnt, top, xn) {
+  if (!QH.sv) { const e = document.createElement("div"); e.id = "qSense"; e.className = "sv-" + SV; e.setAttribute("aria-hidden", "true");
+    e.innerHTML = SKEYS.map(k => `<i data-k="${k}" style="--c:${QAC[k === "x" ? "x.memory" : k]}"><b>${SJ[k]}</b></i>`).join("") + `<em></em>`; document.body.appendChild(e); QH.sv = e; QH.svi = {}; for (const i of e.querySelectorAll("i")) QH.svi[i.dataset.k] = i; QH.sve = e.lastChild; }
+  QH.sv.hidden = false;
+  for (const k of SKEYS) { const i = QH.svi[k], on = !!cnt[k], cur = top === k && on, c = (on ? "on" : "") + (cur ? " cur" : "");
+    if (i.className !== c) i.className = c;
+    if ((SV === "ring" || SV === "pts") && !i.style.transform) { const a = SKEYS.indexOf(k) / 6 * Math.PI * 2; i.style.transform = `translate(${(Math.sin(a) * 50).toFixed(1)}px,${(-Math.cos(a) * 19).toFixed(1)}px)`; } }   // 6 つの感覚はいつも同じ場所（上＝X から時計回り）
+  const t = cnt.x && xn ? "X：" + xn : ""; if (QH.sve.textContent !== t) QH.sve.textContent = t;
+  QH.cnt = cnt; QH.top = cnt[top] ? top : "";
+  if (SV === "ground" && QH.top !== QH.lastTop) { QH.lastTop = QH.top; if (QH.top) { const nm = (QH.top === "x" && xn ? "X 感：" + xn : { x: "X 感", sound: "聴く", touch: "触れる", sight: "視る", taste: "味わう", smell: "嗅ぐ" }[QH.top]); QH.sve.textContent = nm; QH.sv.classList.add("flash"); clearTimeout(QH.ft); QH.ft = setTimeout(() => QH.sv.classList.remove("flash"), 3200); } }   // 字は層が変わったときだけ 3 秒   // X 感のときだけ、近い種類（記憶・地中…）を小さく
+}
+/* 11-02 夜：足もとの地面に灯る 6 つの感覚（画面の飾りでなく風景の中に）。碧の足もとを囲む半径 0.9 m の輪に、前＝X から時計回りで 6 つの小さな光。近くにある層が灯り、いまの層は大きく息づく */
+const SG = { g: null, m: [] };
+function senseFrame(t, on) {
+  if (SV !== "ground") return;
+  if (!SG.g) { SG.g = new THREE.Group(); SG.g.renderOrder = 5; const cg = new THREE.CircleGeometry(.05, 20).rotateX(-Math.PI / 2);
+    for (const k of SKEYS) { const m = new THREE.Mesh(cg, new THREE.MeshBasicMaterial({ color: k === "x" ? QAC["x.memory"] : QAC[k], transparent: true, opacity: 0, depthWrite: false, toneMapped: false, fog: false })); m.userData.k = k; SG.g.add(m); SG.m.push(m); }
+    const rg = new THREE.RingGeometry(.88, .9, 64).rotateX(-Math.PI / 2); SG.ring = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: "#dfefff", transparent: true, opacity: .1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false })); SG.g.add(SG.ring); world.add(SG.g); }
+  SG.g.visible = !!on && !!QH.cnt; if (!SG.g.visible) return;
+  const R = AOI.root?.visible ? AOI.root.position : null, cp = camera.position; let x, z;
+  if (R) { x = R.x; z = R.z; } else { camera.getWorldDirection(_v3); x = cp.x + _v3.x * 2.6; z = cp.z + _v3.z * 2.6; }
+  SG.g.position.set(x, groundY(x, z) + .04, z); camera.getWorldDirection(_v3); const yaw = Math.atan2(_v3.x, _v3.z);
+  SG.m.forEach((m, i) => { const a = yaw + i / 6 * Math.PI * 2, k = m.userData.k, lit = !!QH.cnt[k], cur = QH.top === k; m.position.set(Math.sin(a) * .89, 0, Math.cos(a) * .89);
+    const tg = cur ? .92 : lit ? .75 : .16; m.material.opacity += (tg - m.material.opacity) * .08; const sc = cur ? 1.5 + .2 * Math.sin(t * 2.2) : lit ? 1 : .7; m.scale.setScalar(sc); if (!lit) m.material.color.set("#9aa6b0"); else m.material.color.set(k === "x" ? QAC["x.memory"] : QAC[k]); });
+}
 function stepHere(cp, t, off) {
   if (!QH.el) { QH.el = $("#qHere"); QH.dir = $("#qDir"); if (!QH.el) return; }
   const walk = !off && (QW.mode === "walk" || QW.mode === "sight") && $("#panel").hidden;
-  if (!walk || !LAYER.worn.length) { QH.el.hidden = true; QH.dir.hidden = true; return; }
+  senseFrame(t, walk && LAYER.worn.length);
+  if (!walk || !LAYER.worn.length) { QH.el.hidden = true; QH.dir.hidden = true; if (QH.sv) QH.sv.hidden = true; return; }
   if (t - QH.t > .5) {
     QH.t = t; const cnt = {}; let n = 0, best = null, bd = 1e9, nd = 1e9, nL = null; const v = new THREE.Vector3();
     for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);   // 2026-10-26 16：町の典拠のある地点も数え、方角を出す
@@ -1431,8 +1464,10 @@ function stepHere(cp, t, off) {
     const SJ = { x: "X", sound: "聴", touch: "触", sight: "視", taste: "味", smell: "嗅" }, top = (QW.QA?.top || "").split(".")[0], xs = {};
     for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const k = QAK(L) || ""; if (k.startsWith("x.") && Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 30) xs[k.slice(2)] = 1; }
     const XJ = { umwelt: "ほかの環世界", beyond: "人にない感覚", memory: "記憶", link: "つながり", soil: "地中", scale: "スケール" }, xn = Object.keys(xs).map(k => XJ[k]).filter(Boolean)[0] || "";
-    { const h = `<span class="sn">` + ["x", "sound", "touch", "sight", "taste", "smell"].map(k => `<i class="${cnt[k] ? "on" : ""}${top === k ? " cur" : ""}" style="--c:${QAC[k === "x" ? "x.memory" : k]}" title="Qualia/${k}">${SJ[k]}</i>`).join("") + `</span>` + (xn && cnt.x ? `<span class="xn">${xn}</span>` : ""); if (h !== QH.h) { QH.h = h; QH.el.innerHTML = h; } }   // 変わったときだけ書きかえる（重くしない）
-    QH.el.hidden = false; QH.best = nd < 400 ? nL : null;   /* 上の札と方角の丸は同じ球を指す */
+    QH.ang = {}; { const mi = camera.matrixWorldInverse, v2 = new THREE.Vector3(), nb = {};   // 11-02 夜：層ごとにいちばん近い印の向き（足もとの円で使う）
+      for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const k = (QAK(L) || "x").split(".")[0], d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d > 30 || d >= (nb[k] ?? 1e9)) continue; nb[k] = d; v2.set(L.o.x, cp.y, L.o.z).applyMatrix4(mi); QH.ang[k] = Math.atan2(v2.x, -v2.z); } }
+    senseDraw(cnt, top, xn);
+    QH.el.hidden = true; QH.best = nd < 400 ? nL : null;   /* 上の札と方角の丸は同じ球を指す */
   }
   const L = QH.best;
   if (!L || (L.mark ? !L.mark.visible : !L.want) || Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 8) { QH.dir.hidden = true; return; }
@@ -1622,6 +1657,8 @@ const BIRD_LINES = [{ t: "いま目の前を横切ったのは、シジュウカ
   { t: "シジュウカラは、二つの鳴き声を決まった順につなげて使います。順を入れかえると、聞いた仲間の反応が弱まることが、野外の実験で確かめられています。", f: "web/voice/bc242fd4536f.m4a", dur: 10.71, id: "bc242fd4536f", src: BIRD_SRC }];
 /* 11-02：歩くときの 100〜300 ms の 1 コマ＝初めて見えた物の影絵（シェーダー）をその場で組み立てていた（getProgramInfoLog）。
    歩きはじめに、隠れている物も含めて一度だけ前もって組み立てる（compileAsync・並列に組める端末では待たない）。 */
+/* 11-02 夜 P2：区画が入ったとき、その区画の物の影絵を次のこまで描く前に並列で組み立てておく（初めて見えたときの 100 ms 前後の引っかかりをなくす） */
+function preChunk(C) { try { const G = C.group || C.G || C.root; const tgt = G || C.road?.parent; if (!tgt || !renderer.compileAsync) return; const hid = []; tgt.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } }); const p = renderer.compileAsync(tgt, camera, scene); for (const o of hid) o.visible = false; p?.catch?.(() => { }); } catch { } }
 function preShaders() { try { const hid = []; scene.traverse(o => { if (!o.visible && !o.isLight) { hid.push(o); o.visible = true; } }); const p = renderer.compileAsync ? renderer.compileAsync(scene, camera) : (renderer.compile(scene, camera), null); for (const o of hid) o.visible = false; p?.catch?.(() => { }); } catch (e) { console.warn("pre", e); } }
 let U2 = null, U2P = null;   // 11-02：環世界 2.0 の重なり（大宮だけ）
 const UVV = { k: 0, el: null, o: "", said: false };
@@ -1961,7 +1998,7 @@ function initAreas() {
   if (AREAS) return;
   const g = D.dem, inDem = (x, z) => x > g.x0 && z > g.z0 && x < g.x0 + g.cell * (g.nx - 1) && z < g.z0 + g.cell * (g.nz - 1);
   QW.AREA = AREA; AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile: MOBILE, rm: RM, inDem, tex,
-    onChunk: (Z, J, C) => { if (C.lmTrees) plantKeyaki(C); for (const m of [C.road, ...(C.grounds || [])]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); },
+    onChunk: (Z, J, C) => { if (C.lmTrees) plantKeyaki(C); for (const m of [C.road, ...(C.grounds || [])]) if (m) pickables.push(m); areaPlaces(Z, J, C); areaKasane(Z, J, C); preChunk(C); },
     onUnchunk: C => { for (const m of [C.road, ...(C.grounds || [])]) { const i = pickables.indexOf(m); if (i >= 0) pickables.splice(i, 1); }
       AREA.marks = AREA.marks.filter(L => L.chunk !== C); AREA.qm?.remove(L => L.chunk === C); if (C.herd) { C.herd.dispose(); AREA.herds = AREA.herds.filter(h => h !== C.herd); if (KASA.cur?.herd === C.herd) KASA.cur = null; } C.dead = true; },
     onPick: Z => areaDescend(Z) });
