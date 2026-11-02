@@ -240,6 +240,7 @@ export function attachHenshin(QW, opt = {}) {
       for (const it of its) { const r = it.root; if (!r) continue; let hide = false;
         if (opt.yoHideR && S.target === 1 && S.pose) { r.getWorldPosition(P3); if (Math.hypot(P3.x - S.pose.pos.x, P3.z - S.pose.pos.z) < opt.yoHideR) hide = true; }   /* 11-03 opt.yoHideR（川越・渋谷）：依代の視点の近くの依代は映さない（タヌキの目に鳥の依代が映り込んだ） */
         if (sc) for (const hh of [.15, .6, 1.1, 1.6]) { r.getWorldPosition(P3); P3.y += hh; P3.project(camera); const x = (P3.x + 1) / 2 * innerWidth, y = (1 - P3.y) / 2 * innerHeight; if (P3.z < 1 && Math.abs(x - sc[0]) < 110 && y > sc[1] - 70 && y < sc[1] + 110) { hide = true; break; } }
+        if (opt.yoHideR) { r.userData.hsOff = hide || (r === S.yb && S.target === 1); if (r.userData.hsOff) r.visible = false; continue; }   /* 11-03 川越・渋谷：依代の毎コマの見え方（yorishiro.js）に隠すことを伝える。変身した依代そのものも映さない */
         if (hide) { if (r.visible) { r.visible = false; r.userData.hsHid = 1; } } else if (r.userData.hsHid) { r.visible = true; r.userData.hsHid = 0; } } }
     if (Math.abs(S.k - lastK) < .004) return; lastK = S.k;
     const k = S.k, P = S.cur;

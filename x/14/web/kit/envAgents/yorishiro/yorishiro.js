@@ -129,7 +129,7 @@ export class Yorishiro {
       const M = it.M, p = it.ph, R = it.root; it.U.t.value = t;
       if (it.follow && A) this.follow(it, A, V, dt, speaking);
       const cd = V ? Math.hypot(R.position.x - V.x, R.position.z - V.z) : 0;
-      R.visible = cd < 70; if (!R.visible) continue;
+      R.visible = cd < 70 && !R.userData.hsOff; if (!R.visible) continue;   // 11-03 hsOff：変身の視点で隠す依代（kit/henshin.js の opt.yoHideR）
       this.sp.center.copy(R.position); this.sp.radius = 1.2; if (cd > 60 || (this.camera && !this.fr.intersectsSphere(this.sp))) continue;   // 遠い・画面の外は動かさない
       // 碧へ・見る人へ向く（置いた姿）
       let want = null;
