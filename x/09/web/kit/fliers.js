@@ -14,8 +14,8 @@ export function makeFliers(scene, camera, o = {}) {
   return {
     group: G,
     // 11-02 本人「鳥に触れたとき、碧が出典つきで一言」：画面の点（clientX/Y）の近く（指 40px・カーソル 28px）に鳥がいれば o.onTouch(種) を呼ぶ
-    pick(x, y, el) { if (!on || !o.onTouch) return false; const r = (el || document.body).getBoundingClientRect(), lim = mobile ? 40 : 28; let hit = null, hd = lim;
-      for (const b of B) { _v.copy(b.g.position).project(camera); if (_v.z > 1) continue; const sx = r.left + (_v.x + 1) / 2 * r.width, sy = r.top + (1 - _v.y) / 2 * r.height, d = Math.hypot(sx - x, sy - y); if (d < hd && b.g.position.distanceTo(camera.position) < 12) { hd = d; hit = b; } }
+    pick(x, y, el) { if (!on || !o.onTouch) return false; const r = (el || document.body).getBoundingClientRect(), lim = mobile ? 56 : 40; let hit = null, hd = lim;
+      for (const b of B) { _v.copy(b.g.position).project(camera); if (_v.z > 1) continue; const sx = r.left + (_v.x + 1) / 2 * r.width, sy = r.top + (1 - _v.y) / 2 * r.height, d = Math.hypot(sx - x, sy - y); if (d < hd && b.g.position.distanceTo(camera.position) < 15) { hd = d; hit = b; } }
       if (!hit) return false; hit.w *= -1; o.onTouch("tit"); return true; },   // 触れた鳥は向きを変えて飛び去る（追いかけない）
     update(dt, active) {
       on = !!active; G.visible = on; if (!on) return; t += dt;

@@ -18,18 +18,19 @@ export function makeQAurora(THREE, scene, opt) {
     const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = 3; mesh.visible = false; scene.add(mesh);
     S.push({ mesh, m, pos, L: null, a: 0, want: 0, p: 0, hov: 0, c: [], ph: i * 1.7, links: [] });
   }
+  const HAZE = new THREE.Color("#b9bdc2"); let still = 1, lastP = null, curK = null, askT = -1e9;   // 11-02：立ち止まると濃く、歩くと薄く（操作はいらない）
   let t = 0, reT = 0, geoT = 0; const cp = new THREE.Vector3(), _v = new THREE.Vector3();
   function assign() {
     const cam = opt.camera.position, M = opt.marks().map(L => ({ L, d: Math.hypot(L.o.x - cam.x, L.o.z - cam.z) })).filter(e => e.d < R && opt.kind(e.L)).sort((a, b) => a.d - b.d).slice(0, MAX).map(e => e.L);
     for (const s of S) if (s.L && !s.amb && !M.includes(s.L)) s.want = 0;   // 遠くなった層は、ゆっくり溶ける
-    for (const L of M) { if (S.some(s => s.L === L && !s.amb)) continue; const s = S.find(s => !s.L || (s.want === 0 && s.a < .02)); if (!s) break; s.L = L; s.a = 0; s.want = 1; s.k = opt.kind(L); s.m.uniforms.uC.value.set(opt.color(s.k)); }
+    for (const L of M) { if (S.some(s => s.L === L && !s.amb)) continue; const s = S.find(s => !s.L || (s.want === 0 && s.a < .02)); if (!s) break; s.L = L; s.a = 0; s.want = 1; s.k = opt.kind(L); s.m.uniforms.uC.value.set(opt.color(s.k)).lerp(HAZE, .45); }
     for (const s of S) if (s.L && s.a < .02 && s.want === 0) { s.L.qaIn = 0; s.L = null; s.amb = false; s.mesh.visible = false; }
     // 10-30：印から遠い所でも、いちばん近い印の層が一本、見る人の少し前に漂う（触れるとその印の感覚がひらく）
     const near = false && S.some(s => s.L && s.want && !s.amb && Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z) < 18),   /* 10-30：見る人の前の一本はいつも漂わせる（印が通りの脇にあると、帯が画面に入らなかった） */ fw = opt.camera.getWorldDirection(_v), fl = Math.hypot(fw.x, fw.z) || 1;
     let am = S.find(s => s.amb && s.L);
     if (near) { if (am) am.want = 0; }
     else { const all = opt.marks().filter(L => opt.kind(L) && !S.some(q => q.L === L && !q.amb)).map(L => ({ L, d: Math.hypot(L.o.x - cam.x, L.o.z - cam.z) })).filter(e => e.d < 160).sort((a, b) => a.d - b.d);
-      if (all.length) { if (!am) { am = S.find(s => !s.L); if (am) { am.L = all[0].L; am.amb = true; am.a = 0; am.k = opt.kind(am.L); am.m.uniforms.uC.value.set(opt.color(am.k)); am.links = []; am.to = null; } }
+      if (all.length) { if (!am) { am = S.find(s => !s.L); if (am) { am.L = all[0].L; am.amb = true; am.a = 0; am.k = opt.kind(am.L); am.m.uniforms.uC.value.set(opt.color(am.k)).lerp(HAZE, .45); am.links = []; am.to = null; } }
         if (am) { am.want = 1; am.ax = cam.x + fw.x / fl * 7; am.az = cam.z + fw.z / fl * 7; am.ph = Math.atan2(fw.x, fw.z) + 1.2; } } }
     // 絡まり：近い層どうし（25 m 以内）を結ぶ。帯はその方へ伸びて、相手の帯とくぐり合う
     const act = S.filter(s => s.L && s.want);
@@ -40,9 +41,9 @@ export function makeQAurora(THREE, scene, opt) {
     if (s.to && !s.amb) { const dx = s.to.L.o.x - o.x, dz = s.to.L.o.z - o.z, l = Math.hypot(dx, dz) || 1; tx = dx / l; tz = dz / l; len = Math.min(16, l * .9 + 3); } else { tx = Math.sin(s.ph); tz = Math.cos(s.ph); len = 8; }
     const nx = -tz, nz = tx, P = s.pos, wob = s.p * .35;
     for (let k = 0; k <= NS; k++) { const u = k / NS, a = (u - .3) * len, sw = Math.sin(u * Math.PI * 2 + s.ph + t * .23) * 1.4 + Math.sin(u * 9 - t * 3) * wob * .3,
-      x = o.x + tx * a + nx * sw, z = o.z + tz * a + nz * sw, gy = opt.ground(x, z) || g0, y = gy + 1.5 + .9 * Math.sin(u * Math.PI * 1.5 + s.ph + t * .17) + wob * Math.sin(u * 14 - t * 5),
-      tau = u * 4.2 + s.ph + t * .12, W = (1.0 + .6 * s.a + .4 * s.hov) * (opt.mobile ? (s.amb ? 1.4 : 1.15) : 1), cu = Math.cos(tau), uy = (cu < 0 ? -1 : 1) * (.35 + .65 * Math.abs(cu)), sh = Math.sqrt(1 - uy * uy), ux = nx * sh * (Math.sin(tau) < 0 ? -1 : 1), uz = nz * sh * (Math.sin(tau) < 0 ? -1 : 1),   /* 11-02 本人「参道を横切る細い線」：ねじれで真横を向き、高さの上限で両縁が同じ高さにつぶれて一本の線になっていた → 縦の幅を半分より細くしない */
-      hh = Math.abs(uy) * W * .5, cap = gy + Math.min(s.amb ? 2.0 : 2.6, 1.0 + Math.hypot(x - opt.camera.position.x, z - opt.camera.position.z) * .18), yc = Math.max(gy + .12 + hh, Math.min(cap - hh, Math.max(gy + .35 + hh, y)));   /* 上限・下限は帯の中心で守り、縁どうしをつぶさない */
+      x = o.x + tx * a + nx * sw, z = o.z + tz * a + nz * sw, gy = opt.ground(x, z) || g0, y = gy + .95 + .3 * Math.sin(u * Math.PI * 1.5 + s.ph + t * .17) + wob * Math.sin(u * 14 - t * 5),   /* 11-02 本人「波は地面〜胸の高さ、地形に沿って風や水のように」 */
+      tau = u * 4.2 + s.ph + t * .12, W = (.7 + .35 * s.a + .3 * s.hov) * (opt.mobile ? 1.15 : 1), cu = Math.cos(tau), uy = (cu < 0 ? -1 : 1) * (.35 + .65 * Math.abs(cu)), sh = Math.sqrt(1 - uy * uy), ux = nx * sh * (Math.sin(tau) < 0 ? -1 : 1), uz = nz * sh * (Math.sin(tau) < 0 ? -1 : 1),   /* 11-02 本人「参道を横切る細い線」：ねじれで真横を向き、高さの上限で両縁が同じ高さにつぶれて一本の線になっていた → 縦の幅を半分より細くしない */
+      hh = Math.abs(uy) * W * .5, cap = gy + Math.min(1.5, .9 + Math.hypot(x - opt.camera.position.x, z - opt.camera.position.z) * .12), yc = Math.max(gy + .12 + hh, Math.min(cap - hh, Math.max(gy + .35 + hh, y)));   /* 上限・下限は帯の中心で守り、縁どうしをつぶさない */
       for (let j = 0; j < 2; j++) { const h = (j - .5) * W, q = (k * 2 + j) * 3; P[q] = x + ux * h; P[q + 1] = yc + uy * h;   /* 10-30 パネル：見る人に近い所ほど低く（近い帯が空へ弧を描いて見えない） */   /* 見る人の前の一本は近いので、腰から肩の高さまでに（空へ弧を描かない） */   /* 10-30 パネル：身体スケール（地面から 3.2 m まで） */ P[q + 2] = z + uz * h; } }
     s.mesh.geometry.attributes.position.needsUpdate = true;
   }
@@ -70,16 +71,18 @@ export function makeQAurora(THREE, scene, opt) {
     soilOpen,
     update(dt) {
       t += dt; reT += dt; geoT += dt; const cam = opt.camera.position;
+      { const v = lastP && dt > 0 ? Math.hypot(cam.x - lastP.x, cam.z - lastP.z) / dt : 0; lastP = { x: cam.x, z: cam.z }; still += ((v < .4 ? 1 : .35) - still) * Math.min(1, dt * (v < .4 ? .5 : 1.5)); }
       if (reT > 1) { reT = 0; assign(); }
       if (SOIL.g && SOIL.g.visible) { SOIL.t -= dt; const k = Math.max(0, Math.min(1, SOIL.t > 7 ? 8 - SOIL.t : SOIL.t / 1.5)); SOIL.disc.material.uniforms.uA.value = k; SOIL.lines.material.opacity = .75 * k; SOIL.lines.scale.y = .4 + .6 * Math.min(1, 8 - SOIL.t); if (SOIL.t <= 0) SOIL.g.visible = false; }
       const doGeo = geoT > .045; if (doGeo) geoT = 0;
       // 10-30 パネル「押してよいのか分からない」：視野の中ほどに入った帯は縁が明るくなり、最初の一度だけ碧が触れるよう誘う
       for (const s of S) { if (!s.L || !s.mesh.visible) continue; const q = (NS >> 1) * 6, P = s.pos; _v.set((P[q] + P[q + 3]) / 2, (P[q + 1] + P[q + 4]) / 2, (P[q + 2] + P[q + 5]) / 2).project(opt.camera); s.ctr = _v.z < 1 && Math.abs(_v.x) < .45 && Math.abs(_v.y) < .55 ? 1 : 0;
         if (s.ctr) { s.hov = Math.max(s.hov, .45); } }
-      if (!api._hinted && t > 6.2 && ((document.getElementById("toast")?.hidden !== false && document.getElementById("caption")?.hidden !== false) || t > 12.5) && S.some(s => s.L && s.mesh.visible && s.a > .5)) { api._hinted = true; let seen = false; try { seen = !!sessionStorage.getItem("q.h.band"); sessionStorage.setItem("q.h.band", "1"); } catch { } if (!seen) hint("目の前の色の帯に、触れてみてください。その感覚がひらきます。"); }   /* 10-30：帯が視野の真ん中になくても、見えていれば出す（川越 375px で出ないことがあった） */
+      if (!api._hinted && t > 6.2 && ((document.getElementById("toast")?.hidden !== false && document.getElementById("caption")?.hidden !== false) || t > 12.5) && S.some(s => s.L && s.mesh.visible && s.a > .5)) { api._hinted = true; let seen = false; try { seen = !!sessionStorage.getItem("q.h.band"); sessionStorage.setItem("q.h.band", "1"); } catch { } }
+      { let top = null; for (const s of S) if (s.L && !s.amb && s.a > .6 && (!top || s.a > top.a)) top = s; const k = top && top.k; if (k && k !== curK && t > 14 && t - askT > 25 && document.getElementById("caption")?.hidden !== false) { askT = t; const Qs = { sight: "この木を、鳥はどんな色で見ているでしょう。", sound: "この音は、どこから届いているでしょう。", touch: "この足もとの下は、どんな手ざわりでしょう。", "x.soil": "足もとの下に、何が広がっているでしょう。", "x.umwelt": "ここを、ほかの生きものはどう感じているでしょう。", "x.memory": "この道は、前はどんな姿だったでしょう。", smell: "この風の匂いは、どこから来ているでしょう。", taste: "この土地の食べ物は、どこから来たでしょう。" }; hint(Qs[k] || "この先で、何が重なっているでしょう。"); } if (k) curK = k; }   /* 11-02 本人「碧は案内の声だけ：層が変わったとき小さな字幕で問いを一つ。答えは歩いた先で」 */   /* 10-30：帯が視野の真ん中になくても、見えていれば出す（川越 375px で出ないことがあった） */
       for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt); s.L.qaIn = s.a;
         const d = s.amb ? 4 : Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z), nearK = d < 6 ? 1 - d / 6 : 0;   // 近づくと濃く
-        s.m.uniforms.uA.value = (opt.mobile ? 1.3 : 1) * s.a * (.6 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1); s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;   /* 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） */
+        s.m.uniforms.uA.value = .7 * still * (opt.mobile ? 1.2 : 1) * s.a * (.6 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1); s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;   /* 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） */
         if (s.mesh.visible && (doGeo || s.p > .1)) shape(s); }
     },
     touch(L, v = 1) { const st = document.getElementById("sndTag"); if (st) { st.hidden = true; st.style.visibility = "hidden"; clearTimeout(api._stT); api._stT = setTimeout(() => { st.style.visibility = ""; }, 7000); }   // 10-30 パネル：触れた層の箱だけを出す（近くの再現音の説明を、しばらく隠す）
