@@ -57,7 +57,7 @@ export function makeWorldLayers(THREE, scene, opt) {
       if ((built -= dt) <= 0) { built = .6; rebuild(cam); }
       let n = 0;
       for (const [a, b] of pairs) { if (n >= MAXS) break; const f = a === focusL || b === focusL, da = Math.hypot(a.o.x - cam.position.x, a.o.z - cam.position.z), fade = Math.max(0, 1 - da / R);
-        if (!f && fade <= 0) continue; const k = f ? .9 : .16 * fade; _c.set(opt.color(a)).multiplyScalar(k);
+        if (!f && fade <= 0) continue; const k = f ? .9 : .07 * fade;   /* 11-02：関係の線は語っている印のときだけはっきり（ふだんは地面を横切る線に見えない淡さ） */ _c.set(opt.color(a)).multiplyScalar(k);
         pos.set([a.o.x, yOf(a), a.o.z, b.o.x, yOf(b), b.o.z], n * 6); col.set([_c.r, _c.g, _c.b, _c.r, _c.g, _c.b], n * 6); n++; }
       geo.setDrawRange(0, n * 2); geo.attributes.position.needsUpdate = geo.attributes.color.needsUpdate = true;
       // 見下ろす・見上げる
