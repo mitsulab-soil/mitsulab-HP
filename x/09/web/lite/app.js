@@ -15,7 +15,8 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { makeFliers } from "../kit/fliers.js?v=1";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
+import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
+import { makeFliers } from "../kit/fliers.js?v=2";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
 import { installNav } from "../kit/nav.js?v=n8";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=56m";
@@ -71,6 +72,7 @@ scene.fog = new THREE.Fog(FOG_SKY, 900, 3600);
 scene.background = FOG_SKY.clone();
 const hemi = new THREE.HemisphereLight("#d6e6ff", "#4d4636", 1.15); scene.add(hemi);
 const sun = new THREE.DirectionalLight("#fff1dc", 2.3); sun.position.set(320, 520, 260); scene.add(sun); scene.add(sun.target);
+{ const setSun = () => { const d = sunDir(35.90725, 139.631); sun.position.set(d.x * 600, d.y * 600, d.z * 600); QW.sunAE = [Math.round(d.az), Math.round(d.el)]; }; setSun(); setInterval(setSun, 300000); }   // 11-02 本人決定：太陽の向きは、いまの日時とこの場所から計算（kit/sunpos.js・夜は光の高さだけ 12 度で止める）
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 
@@ -1246,6 +1248,7 @@ function tap(x, y) {
   if (QW.mode === "walk" && KASA.herd?.pickView(x, y)) return;   // 空中の 3D の窓に触れたら閉じる
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk") { for (const h of AREA.herds) { if (h.pickView(x, y)) return; const k = h.pick(x, y); if (k) { touchKasane(k); return; } } const L = pickAreaMark(x, y); if (L) { openObj(L); return; } }   // エリアのかさねっこと地点
+  if (QW.mode === "walk" && QW.fliers?.pick(x, y, renderer.domElement)) return;   // 11-02：鳥に触れる
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
   const o = pickObj(x, y) || (QW.mode === "walk" ? QA?.pick(x, y) : null); if (o) { QA?.touch(o); { const k = QAK(o); if (k && QW.mode === "walk") { toast(k === "x.soil" ? QAN(k) + "：足もとの下（根と菌糸の模式）" : k === "sound" && QW.sunTimes ? (r => `${QAN(k)} ── この場所のきょうの日の出 ${r.rise}・日の入り ${r.set}（計算）`)(QW.sunTimes(35.916, 139.632)) : QAN(k));   /* 10-30：リズム＝その場所の周期（日の出・日の入り）を sound の中に */ if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === o && performance.now() - LASTM.t < 25000 && !(NARR.L === o && NARR.sp) && !o.o.tch && !o.o.snd;   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
     LASTM.L = o; LASTM.t = performance.now(); if (again && QW.mode === "walk") { o.glyph.getWorldPosition(_v3); const dx = _v3.x - CAM.pos.x, dz = _v3.z - CAM.pos.z, l = Math.hypot(dx, dz); if (l > 2) { const sx = (_v3.clone().project(camera).x + 1) / 2 * innerWidth; const g = goalAt(sx, innerHeight * .8); if (g) { WALK.goal = g; showGoalRing(g); } } return; } openObj(o); return; }
@@ -1562,7 +1565,7 @@ const QAK = L => { const o = L.o; if (!o) return null; const t = top5(o.layer), 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 const QAN = k => k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k;
 let QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b9").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b10").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
 function startWL() { if (WL) return; for (const L of LAYER.objs) { const sp = L.o.sp ? D.sight.find(x => x.id === L.o.sp) : null; L.qSight = !!(sp && BODY_D[sp.id]); }   /* 生きものの受けとり方へ入れる印の目印 */ WL = QW.WL = makeWorldLayers(THREE, world, { marks: () => [...LAYER.objs.filter(L => L.root?.visible && L.show > .5), ...(AREA.marks || []).filter(L => L.mark?.visible)], pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, null, k, from), color: L => (GL[L.o.layer] || GL[top5(L.o.layer)])?.color || COLOR5[top5(L.o.layer)] || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ, senses: () => { const cp = camera.position, v = { see: 0, hear: 0, touch: 0, x: 0 }; for (const L of LAYER.objs) { if (!L.root?.visible) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d > 120) continue; const k = 1 - d / 120, t = top5(L.o.layer); if (t === "sight" || L.o.sho) v.see = Math.max(v.see, k); if (t === "sound" || L.o.snd || L.o.rk) v.hear = Math.max(v.hear, k); if (t === "touch" || L.o.tch) v.touch = Math.max(v.touch, k); if (L.o.sp) v.x = Math.max(v.x, k); } return v; }, senseColors: { see: COLOR5.sight, hear: COLOR5.sound, touch: COLOR5.touch, x: "#c9a8ff" },   /* 五感＋X 感の帯：視・聴・触と、人にない感覚（紫外など、出典のある生きものの受けとり方の印） */ skip: M => THIN.test((M.o.title || "") + (M.o.lines || []).map(l => l.t || "").join("")), quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of [...LAYER.objs, ...(AREA.marks || [])]) { if (M.qHide || (M.mark ? !M.mark.visible : !M.root?.visible)) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } return Math.max(8, Math.min(16, nd / 1.4 * .45)); },   /* 10-29：間合いを次の印までの距離で（川越・渋谷と同じ） */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
@@ -1610,6 +1613,12 @@ function narrate(L, sp, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
 function hidePanel() { if (KASA.cur) { KASA.cur.herd?.release(KASA.cur); KASA.cur = null; } try { $("#pExp video")?.pause(); } catch { } if ($("#panel").hidden) return; $("#panel").hidden = true; document.body.classList.remove("pOpen"); if (AOI.hidP) { AOI.hidP = false; if (AOI.root && QW.mode === "walk") AOI.root.visible = true; } PANEL.cur = null; TCH.cur = null; stopVoice(); stopSound(); }
 $("#pClose").addEventListener("click", hidePanel);
 
+/* 11-02 本人「鳥（シジュウカラ）に触れたとき、碧が一次出典つきで一言」：声は VOICEVOX:冥鳴ひまり で前もって作った 2 行（かなは全行確かめた）。擬人の断定はしない。 */
+const BIRD_SRC = "Suzuki, Wheatcroft & Griesser (2016) Nature Communications 7:10986";
+const BIRD_LINES = [{ t: "いま目の前を横切ったのは、シジュウカラです。", f: "web/voice/9618e77411e5.m4a", dur: 2.93, id: "9618e77411e5" },
+  { t: "シジュウカラは、二つの鳴き声を決まった順につなげて使います。順を入れかえると、聞いた仲間の反応が弱まることが、野外の実験で確かめられています。", f: "web/voice/bc242fd4536f.m4a", dur: 10.71, id: "bc242fd4536f", src: BIRD_SRC }];
+let BIRD_T = -1e9;
+function touchBird() { const n = performance.now(); if (n - BIRD_T < 20000 && voiceQ) return; BIRD_T = n; NARR.L = null; speakLines(BIRD_LINES.map(l => ({ ...l, tc: l.t, lay: "sound" })), null, { narr: true }); }
 /* ---------- 声（碧） ---------- */
 const audio = $("#voice"); let soundOn = true, voiceQ = null;
 function sessionStorageGet(k) { try { return sessionStorage.getItem(k); } catch { return null; } }
@@ -2605,6 +2614,13 @@ if (!MOBILE || typeof DeviceOrientationEvent === "undefined") $("#gyroBtn").hidd
 $("#land").addEventListener("click", landFromFly);
 $("#menuBtn").addEventListener("click", () => { const m = $("#menu"); m.hidden = !m.hidden; $("#menuBtn").setAttribute("aria-expanded", String(!m.hidden)); });
 $("#menuX").addEventListener("click", () => { $("#menu").hidden = true; $("#menuBtn").setAttribute("aria-expanded", "false"); });
+/* 11-02 本人決定「鳥の声の認識を本番に入れる」：メニューの「鳥の声を聞く」を押し、端末のマイクの許可を出したあとだけ聞く（kit/birdear・音は端末の中で聞き分けて残さない） */
+let EAR = null;
+$("#earBtn")?.addEventListener("click", async () => { const b = $("#earBtn");
+  if (!EAR) { const { makeBirdEar } = await import("../kit/birdear/birdear.js?v=1"); EAR = QW.BIRDEAR = makeBirdEar({ base: "web/kit/birdear/", model: (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? "web/kit/birdear/model/" : "https://mitsulab-soil.github.io/aoi-walk-hikawa/web/kit/birdear/model/"), busy: () => !!voiceQ,
+    say: v => speakLines([{ t: v.t, tc: v.t, f: v.f, dur: v.dur, id: v.id }], null, { narr: true }),
+    onState: s => { b.setAttribute("aria-pressed", String(s === "on" || s === "load")); b.textContent = s === "load" ? "鳥の声 準備中…" : s === "on" ? "鳥の声を聞いています" : s === "denied" ? "マイクが許可されていません" : s === "error" ? "鳥の声を聞けませんでした" : "鳥の声を聞く"; } }); }
+  EAR.toggle(); });
 $("#sndBtn").addEventListener("click", () => { soundOn = !soundOn; $("#sndBtn").setAttribute("aria-pressed", String(soundOn)); $("#sndBtn").textContent = soundOn ? "声 オン" : "声 オフ"; if (!soundOn) { try { audio.pause(); } catch { } } });
 QW.autoWalk = on => { WALK.auto = !!on; syncAutoBtn(); };
 QW.hold = on => { WALK.hold = on; };
@@ -2652,7 +2668,7 @@ const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0;
 function frame() {
   if (!D) return;   // タブが隠れていたあいだに描画が始まったとき（データの前）は描かない
   const dt = Math.min(.05, clock.getDelta());
-  (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY })).update(dt, QW.mode === "walk");
+  (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt, QW.mode === "walk");
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); skyCam(); }
     else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt); }
