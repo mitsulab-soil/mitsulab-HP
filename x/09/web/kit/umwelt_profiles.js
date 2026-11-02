@@ -40,7 +40,7 @@ export const PROFILES = {
     motion: { kind: "perch", r: [3, 6], h: [3.2, 5], dwell: [2.2, 4.5], dart: .55 } },
   hachi: { id: "hachi", version: 1, kind: "creature", name: "ミツバチ", call: "Qualia",
     body: { eye: 1.0, scale: .01 },
-    sight: { fov: 104, lens: "hachi", mix: .35, uv: .8, edge: .35 },   // mix：色の置きかえは半分ほど（全部では画面が黄一色になり景色が読めない）
+    sight: { fov: 104, lens: "hachi", mix: 0, uv: .8, edge: .35 },   // mix：色の置きかえは半分ほど（全部では画面が黄一色になり景色が読めない）
     tempo: { cff: 200, move: 1 },
     hearing: { lo: 0, hi: 0, map: "空気の音より、ふるえ（振動）として受けとる模式" },
     salient: ["花の紫外の模様（蜜のありか）", "動くもの・明暗のちらつき", "太陽の向きと空の偏光"],
@@ -59,7 +59,7 @@ export const PROFILES = {
     motion: { kind: "hover", r: [1.8, 3.2], h: [.6, 1.6], speed: 1.6 } },
   suzume: { id: "suzume", version: 1, kind: "creature", name: "スズメ", call: "Qualia",
     body: { eye: .12, scale: .14 },
-    sight: { fov: 96, lens: "tori", uv: .5, edge: .5 },
+    sight: { fov: 96, lens: "tori", uv: .25, edge: .5 },
     tempo: { cff: 100, move: 1 },
     hearing: { lo: 200, hi: 8000, map: "そのまま" },
     salient: ["地面の種や虫", "上から来る影"], ignored: ["人の文字・看板の意味"],
@@ -95,7 +95,7 @@ export const PROFILES = {
     sight: { fov: 70, lens: "hito", uv: 0, edge: .45 },
     motion: { kind: "still", r: [1.1, 1.1], h: [.22, .22] },
     timescale: { kind: "deep", step: 3.6, entries: [
-      { when: "1923・1934・1955", id: "d_quake", re: "関東大震災" },
+      { when: "大正 12・昭和 9・昭和 30", id: "d_quake", re: "関東大震災" },
       { when: "1885", id: "x_hikawakoen", re: "明治18" },
       { when: "1871", id: "x_kanpei", re: "明治4" },
       { when: "1629", id: "x_minumatamei", re: "寛永6" },

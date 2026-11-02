@@ -34,7 +34,7 @@ export function makeUmwelt2(THREE, scene, o) {
       // GIS の走査線
       scanT += dt; const ph = (scanT % 10) / 10, rr = 2 + ph * 26; scan.visible = ph < .9; if (scan.visible) { for (let i = 0; i <= NP; i++) { const a = i / NP * 6.2832, x = cam.x + Math.cos(a) * rr, z = cam.z + Math.sin(a) * rr; lp[i * 3] = x; lp[i * 3 + 1] = o.ground(x, z) + .06; lp[i * 3 + 2] = z; } lg.attributes.position.needsUpdate = true; scan.material.opacity = .22 * Math.sin(ph / .9 * Math.PI); }
       if (ph < .05 && t - numT > 9) { numT = t; const f = o.camera.getWorldDirection(new THREE.Vector3()), x = cam.x + f.x * 3.6, z = cam.z + f.z * 3.6, e = o.ground(x, z); nx.clearRect(0, 0, 256, 64); nx.fillStyle = "rgba(220,236,242,.95)"; nx.font = "500 22px ui-monospace,monospace"; nx.fillText(`標高 ${e.toFixed(1)} m` + (o.sun ? `  日 ${o.sun()}°` : ""), 8, 40); ntex.needsUpdate = true; num.position.set(x, e + .35, z); }
-      { const a = t - numT < 6 ? Math.sin(Math.min(1, (t - numT) / 6) * Math.PI) * .7 : 0; num.material.opacity = a; num.visible = a > .01; }
+      { const a = t - numT < 6 ? Math.sin(Math.min(1, (t - numT) / 6) * Math.PI) * .7 : 0; num.material.opacity = a; num.visible = false; }
       // ミツバチ：見る人の前 3〜5 m の腰の高さをゆっくり行き来
       if (bee) { if (!B.c || Math.hypot(B.c.x - cam.x, B.c.z - cam.z) > 30) { const f = o.camera.getWorldDirection(new THREE.Vector3()); B.c = { x: cam.x + f.x * 4.5, z: cam.z + f.z * 4.5 }; }
         B.a += dt * .5; const x = B.c.x + Math.cos(B.a) * 1.2, z = B.c.z + Math.sin(B.a * 1.3) * .9; bee.position.set(x, o.ground(x, z) + .7 + Math.sin(t * 1.7) * .15, z); bee.rotation.y = B.a + Math.PI / 2; bee.userData.animate?.(t, true); bee.visible = true;

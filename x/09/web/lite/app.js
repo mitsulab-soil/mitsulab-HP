@@ -957,7 +957,7 @@ function descendTo(i, at) {
 
     let ready = false; const wait = setTimeout(() => { if (!ready) toast("参道の道と木を読み込んでいます。"); }, 500);
     WAITORBIT = { c: new THREE.Vector3(a.x, y, a.z), r: 140 * Math.SQRT2 / Math.SQRT2, yaw, t: 0 };
-    lateP.then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.15, .9, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.15; enterWalk(); }); });
+    lateP.then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.2, .9, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.2; enterWalk(); }); });
   });
 }
 let WAITORBIT = null;
@@ -1195,7 +1195,7 @@ function landFromFly() {
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), d = Math.min(1985, Math.max(-20, n.d)), a = atD(d), y = groundY(a.x, a.z) + EYE, ya = yawAlong(d), yb = ya + Math.PI;
   const yaw = Math.abs(wrap(ya - CAM.yaw)) < Math.PI / 2 ? ya : yb;
   setMode("descend"); hideFlyUI();
-  lateP.then(() => (TWFOG = [FOGS.fly(), FOGS.walk()], tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.15, 2.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.15; enterWalk(); }, 10)));
+  lateP.then(() => (TWFOG = [FOGS.fly(), FOGS.walk()], tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.2, 2.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.2; enterWalk(); }, 10)));
 }
 function toSky() {
   hidePanel(); hideWalkUI(); hideFlyUI(); stopVoice(); if (QW.mode === "sight") exitSight(true);
@@ -1555,7 +1555,7 @@ async function startYorishiro() {
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
-      await YO.y.add(kind, { x: P.x + fz * .75 + fx * .35, z: P.z - fx * .75 + fz * .35, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
+      await YO.y.add(kind, { x: P.x + fz * .85 + fx * 1.1, z: P.z - fx * .85 + fz * 1.1, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
   } catch (e) { console.warn("yorishiro", e); }
 }
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
@@ -2107,7 +2107,7 @@ function exitSight(quiet = false) {
   if (quiet) return;
   const a = CAM.pos.clone(); corridorClamp(a); const y = groundY(a.x, a.z) + EYE, yaw = CAM.yaw + CAM.look;   // 戻るのも、いまいる所（歩ける所の中）・いまの向きのまま
   TWFOG = [FOGS.walk(), FOGS.walk()]; setMode("descend");
-  tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.15, 1.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.15; enterWalk(); const fr = SIGHT.from; SIGHT.from = null; const t2 = fr ? `いま見た「${fr.o.title}」のあたりを、人の目でもう一度見てみましょう。` : null; const bl = [D.say?.back, t2 ? { t: t2, tc: t2 } : null].filter(Boolean); if (bl.length) speakLines(bl, null); }, 0);   /* 10-29：戻ったら同じ場所を人の目で見なおす一言 */
+  tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.2, 1.2, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.2; enterWalk(); const fr = SIGHT.from; SIGHT.from = null; const t2 = fr ? `いま見た「${fr.o.title}」のあたりを、人の目でもう一度見てみましょう。` : null; const bl = [D.say?.back, t2 ? { t: t2, tc: t2 } : null].filter(Boolean); if (bl.length) speakLines(bl, null); }, 0);   /* 10-29：戻ったら同じ場所を人の目で見なおす一言 */
 }
 /* 生きものの後ろ姿（2026-10-22 本人「画面上にその生き物の後ろ姿が見えるように」）：肩越しの視点で、画面の下のほうに、少し上の後ろから。
    ヒヨドリ・アブラコウモリは合格した 3D（コウモリは遠く用の形を、画面で小さく）、ほかの種もいまの 3D。寄りすぎない（体の長さの 5 倍ほど離す） */
@@ -2724,7 +2724,7 @@ function frame() {
     if (UVV.k > .6 && !UVV.said) { UVV.said = true; toast("鳥の目に寄せた模式：シジュウカラなど多くの鳥は、紫外にも感じる錐体をもちます（Hart 2001, Prog. Retin. Eye Res. 20:675）"); } }
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); skyCam(); }
-    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=4").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t), sun: () => QW.sunAE ? QW.sunAE[1] : null }); setTimeout(preShaders, 400); }).catch(e => console.warn("u2", e)); }
+    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=5").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t), sun: () => QW.sunAE ? QW.sunAE[1] : null }); setTimeout(preShaders, 400); }).catch(e => console.warn("u2", e)); }
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
     else if (QW.mode === "descend") stepWaitOrbit(dt);

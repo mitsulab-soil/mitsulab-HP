@@ -229,7 +229,7 @@ export function attachHenshin(QW, opt = {}) {
         PC.position.copy(P0); PC.fov = S.cur.sight?.fov || camera.fov; PC.aspect = camera.aspect; PC.updateProjectionMatrix(); PC.lookAt(S.pose.look); PC.updateMatrixWorld(); back.g.getWorldPosition(P3); P3.y += .12; P3.project(PC); back.sc = P3.z < 1 ? [(P3.x + 1) / 2 * innerWidth, (1 - P3.y) / 2 * innerHeight] : null;   /* 依代の視点のカメラで画面の位置を出す */ const L = back.label; if (back.sc) { L.style.display = ""; L.style.transform = `translate(${Math.max(8, Math.min(innerWidth - L.offsetWidth - 8, back.sc[0] - L.offsetWidth / 2)) | 0}px,${(back.sc[1] + 30) | 0}px)`; } } else if (!gui.visible || S.target !== 1) back.label.style.display = back.g.visible ? "" : "none"; }
     if (Math.abs(S.k - lastK) < .004) return; lastK = S.k;
     const k = S.k, P = S.cur;
-    if (k < .01) { canvas.style.filter = ""; veil.style.opacity = 0; if (S.target === 0) S.pose = null; return; }
+    if (k < .01 || !(P.sight?.mix ?? 1)) { canvas.style.filter = ""; veil.style.opacity = 0; if (S.target === 0) S.pose = null; return; }
     let m = LENS[P.sight?.lens || "hito"]?.m || LENS.hito.m; if (S.ts?.old) { const o = S.ts.old * .7, w = [.2126, .7152, .0722], sep = [1.07, 1, .82]; m = [0, 1, 2].flatMap(i => [0, 1, 2].map(j => ((i === j ? 1 - o : 0) + o * w[j]) * (1 - o * .3 + o * .3 * sep[i]))); }   // さかのぼるほど色が褪せる（模式）
     const I = [1, 0, 0, 0, 1, 0, 0, 0, 1], km = k * (P.sight?.mix ?? 1), r = m.map((v, i) => I[i] + (v - I[i]) * km);
     fm.setAttribute("values", `${r[0]} ${r[1]} ${r[2]} 0 0 ${r[3]} ${r[4]} ${r[5]} 0 0 ${r[6]} ${r[7]} ${r[8]} 0 0 0 0 0 1 0`); canvas.style.filter = "url(#hsF)";
