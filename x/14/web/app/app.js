@@ -26,7 +26,7 @@ import { makeAreas } from "./areas.js?v=2m";
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
-import { makeFliers } from "../kit/fliers.js?v=3";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
+import { makeFliers } from "../kit/fliers.js?v=4";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);

@@ -4,7 +4,7 @@
    ・ミツバチ（暖かい季節の昼だけ・1 匹）に近づくと、まわりの動きがゆっくりになる＝虫の速い時間の模式（Healy et al. 2013）。
    ・機械の受けとり方（地理院の標高を読む GIS）は、細い等高の走査線が 10 秒に一度、地形に沿って広がるだけ（Qualia とは呼ばない）。
    ・端末が遅い（平均 50 fps を下回る）ときは、自動でこの効果を止める。 */
-import { makeBee } from "../kit/creatures.js?v=1";
+import { makeBee, FUR } from "../kit/creatures.js?v=1";
 export function makeUmwelt2(THREE, scene, o) {
   const R = 7, disc = new THREE.Mesh(new THREE.CircleGeometry(R, 40).rotateX(-Math.PI / 2), new THREE.ShaderMaterial({
     uniforms: { uT: { value: 0 }, uA: { value: 0 }, uM: { value: 0 }, uC: { value: new THREE.Color("#b9a8ff") } }, transparent: true, depthWrite: false, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2,
@@ -15,7 +15,7 @@ export function makeUmwelt2(THREE, scene, o) {
   const NP = 64, lp = new Float32Array((NP + 1) * 3), lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.BufferAttribute(lp, 3));
   const scan = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: "#cfe3ea", transparent: true, opacity: 0, depthWrite: false, toneMapped: false, fog: false })); scan.frustumCulled = false; scan.renderOrder = 4; scene.add(scan);
   // ミツバチ（3〜11 月・9〜16 時だけ）
-  const now = new Date(), bee = (now.getMonth() >= 2 && now.getMonth() <= 10 && now.getHours() >= 9 && now.getHours() < 16) ? makeBee(undefined, {}) : null;
+  const now = new Date(), bee = (now.getMonth() >= 2 && now.getMonth() <= 10 && now.getHours() >= 9 && now.getHours() < 16) ? (() => { const n0 = FUR.shells; FUR.shells = 0; const g = makeBee(undefined, {}); FUR.shells = n0; return g; })() : null;   // 毛の重ねは描かない（4 m 先の小さな虫には見えず、重いだけ）
   if (bee) { bee.scale.setScalar(.014); bee.traverse(m => { if (m.isMesh) { m.castShadow = false; m.frustumCulled = false; } }); scene.add(bee); }
   const B = { c: null, a: 0 }; let t = 0, k = 0, cur = null, scanT = 0, fpsA = 60, off = false, slow = 0, said = false;
   return {
