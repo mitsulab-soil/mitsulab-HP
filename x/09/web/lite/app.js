@@ -16,7 +16,7 @@ import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
-import { makeFliers } from "../kit/fliers.js?v=5";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
+import { makeFliers } from "../kit/fliers.js?v=6";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
 import { installNav } from "../kit/nav.js?v=n8o";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=56m";
@@ -1427,9 +1427,12 @@ function stepHere(cp, t, off) {
     for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);   // 2026-10-26 16：町の典拠のある地点も数え、方角を出す
       if (d < 30) { const k = (QAK(L) || "x").split(".")[0]; cnt[k] = (cnt[k] || 0) + 1; n++; } if (d < nd && d > 4) { nd = d; nL = L; }
       if (d > 4 && d < 400 && d < bd) { v.set(L.o.x, L.o.y + (L.o.h ?? 2.1), L.o.z).project(camera); if (v.z > 1 || Math.abs(v.x) > .92 || Math.abs(v.y) > .92) { bd = d; best = L; } } }
-    const ks = ["x", "sound", "touch", "sight", "taste", "smell"].filter(k => cnt[k]).map(k => ({ id: k, name: "Qualia/" + k, color: QAC[k === "x" ? "x.memory" : k] }));   // 10-30：6 層の名前と色
-    QH.el.innerHTML = n ? `<b>${n}</b><span class="t">まわり半径 30 m の Qualia（前後左右すべて）</span>` + ks.map(l => `<i style="--c:${l.color}" title="${l.name}">${l.id}<em>${cnt[l.id]}</em></i>`).join("") : (nd < 400 ? `<b>${Math.round(nd)} m</b><span class="t">先に、いちばん近い Qualia</span>` : "");
-    QH.el.hidden = !n && !(nd < 400); QH.best = nd < 400 ? nL : null;   /* 上の札と方角の丸は同じ球を指す */
+    /* 11-02 本人「五感＋X 感が表現できるように GUI を工夫」：6 つの層をいつも同じ順の小さな字で並べ、近くにある層だけ色が灯る（いま入っている層は輪で囲む）。X 感は近い印の種類（超音波・紫外・記憶…）を小さく添える。選ぶ操作はない。 */
+    const SJ = { x: "X", sound: "聴", touch: "触", sight: "視", taste: "味", smell: "嗅" }, top = (QW.QA?.top || "").split(".")[0], xs = {};
+    for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const k = QAK(L) || ""; if (k.startsWith("x.") && Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 30) xs[k.slice(2)] = 1; }
+    const XJ = { umwelt: "ほかの環世界", beyond: "人にない感覚", memory: "記憶", link: "つながり", soil: "地中", scale: "スケール" }, xn = Object.keys(xs).map(k => XJ[k]).filter(Boolean)[0] || "";
+    QH.el.innerHTML = `<span class="sn">` + ["x", "sound", "touch", "sight", "taste", "smell"].map(k => `<i class="${cnt[k] ? "on" : ""}${top === k ? " cur" : ""}" style="--c:${QAC[k === "x" ? "x.memory" : k]}" title="Qualia/${k}">${SJ[k]}</i>`).join("") + `</span>` + (xn && cnt.x ? `<span class="xn">${xn}</span>` : "");
+    QH.el.hidden = false; QH.best = nd < 400 ? nL : null;   /* 上の札と方角の丸は同じ球を指す */
   }
   const L = QH.best;
   if (!L || (L.mark ? !L.mark.visible : !L.want) || Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 8) { QH.dir.hidden = true; return; }
@@ -2674,15 +2677,15 @@ function frame() {
   if (!D) return;   // タブが隠れていたあいだに描画が始まったとき（データの前）は描かない
   const dt = Math.min(.05, clock.getDelta());
   if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); }   // 11-02：降りる動きのあいだに影絵を組む
-  (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt * (1 - .65 * (U2?.slow || 0)), QW.mode === "walk"); U2?.update(dt, QW.mode === "walk", QA?.top, QA?.still ?? 1);   // 11-02：環世界 2.0 の重なり（umwelt2.js）
-  { const F = QW.fliers; let dmin = 99; if (QW.mode === "walk") for (const g of F.group.children) dmin = Math.min(dmin, g.position.distanceTo(camera.position));   // 11-02 本人「鳥に近づくと画面がその生き物の受けとり方に寄る（鳥＝紫外の色）。離れると環世界 1.0 に戻る」＝模式（色の寄せだけ・実際の見え方の再現ではない）
+  (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird, natural: true })).update(dt * (1 - .65 * (U2?.slow || 0)), QW.mode === "walk"); U2?.update(dt, QW.mode === "walk", QA?.top, QA?.still ?? 1);   // 11-02：環世界 2.0 の重なり（umwelt2.js）
+  { const F = QW.fliers; let dmin = 99; if (QW.mode === "walk") for (const g of F.group.children) if (g.visible) dmin = Math.min(dmin, g.position.distanceTo(camera.position));   // 11-02 本人「鳥に近づくと画面がその生き物の受けとり方に寄る（鳥＝紫外の色）。離れると環世界 1.0 に戻る」＝模式（色の寄せだけ・実際の見え方の再現ではない）
     const w = dmin < 3.2 ? Math.min(1, (3.2 - dmin) / 1.6) : 0; UVV.k += (w - UVV.k) * Math.min(1, dt * 1.2);
     if (!UVV.el && UVV.k > .01) { UVV.el = document.createElement("div"); UVV.el.id = "uvVeil"; UVV.el.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;mix-blend-mode:screen;background:radial-gradient(ellipse at 50% 45%,rgba(150,120,255,.0) 30%,rgba(150,120,255,.55) 100%);opacity:0;transition:none"; document.body.appendChild(UVV.el); }
     if (UVV.el) { const o = (UVV.k * .32).toFixed(3); if (o !== UVV.o) { UVV.el.style.opacity = o; UVV.o = o; } }
     if (UVV.k > .6 && !UVV.said) { UVV.said = true; toast("鳥の目に寄せた模式：シジュウカラなど多くの鳥は、紫外にも感じる錐体をもちます（Hart 2001, Prog. Retin. Eye Res. 20:675）"); } }
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); skyCam(); }
-    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=3").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t), sun: () => QW.sunAE ? QW.sunAE[1] : null }); setTimeout(preShaders, 400); }).catch(e => console.warn("u2", e)); }
+    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=4").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t), sun: () => QW.sunAE ? QW.sunAE[1] : null }); setTimeout(preShaders, 400); }).catch(e => console.warn("u2", e)); }
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
     else if (QW.mode === "descend") stepWaitOrbit(dt);

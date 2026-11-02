@@ -16,7 +16,7 @@ export function makeUmwelt2(THREE, scene, o) {
   const scan = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: "#cfe3ea", transparent: true, opacity: 0, depthWrite: false, toneMapped: false, fog: false })); scan.frustumCulled = false; scan.renderOrder = 4; scene.add(scan);
   // 機械の受けとり方（数の粒）：走査線が足もとを通るとき、地理院の標高を読んだ値と太陽の高さを、足もと 2 m 先に小さな数で一度だけ置く（Qualia とは呼ばない）
   const nc = document.createElement("canvas"); nc.width = 256; nc.height = 64; const nx = nc.getContext("2d"), ntex = new THREE.CanvasTexture(nc);
-  const num = new THREE.Sprite(new THREE.SpriteMaterial({ map: ntex, transparent: true, opacity: 0, depthWrite: false, depthTest: false, toneMapped: false, fog: false })); num.scale.set(.9, .225, 1); num.renderOrder = 5; scene.add(num); let numT = 0;
+  const num = new THREE.Sprite(new THREE.SpriteMaterial({ map: ntex, transparent: true, opacity: 0, depthWrite: false, depthTest: false, toneMapped: false, fog: false })); num.scale.set(.5, .125, 1); num.renderOrder = 5; scene.add(num); let numT = 0;
   // ミツバチ（3〜11 月・9〜16 時だけ）
   const now = new Date(), bee = (now.getMonth() >= 2 && now.getMonth() <= 10 && now.getHours() >= 9 && now.getHours() < 16) ? (() => { const n0 = FUR.shells; FUR.shells = 0; const g = makeBee(undefined, {}); FUR.shells = n0; return g; })() : null;   // 毛の重ねは描かない（4 m 先の小さな虫には見えず、重いだけ）
   if (bee) { bee.scale.setScalar(.014); bee.traverse(m => { if (m.isMesh) { m.castShadow = false; m.frustumCulled = false; } }); scene.add(bee); }
@@ -33,7 +33,7 @@ export function makeUmwelt2(THREE, scene, o) {
       if (top === "x.soil" && still > .9 && o.soilOpen && !this._soilT) { this._soilT = t; o.soilOpen(cam.x, cam.z); } if (this._soilT && t - this._soilT > 20) this._soilT = 0;
       // GIS の走査線
       scanT += dt; const ph = (scanT % 10) / 10, rr = 2 + ph * 26; scan.visible = ph < .9; if (scan.visible) { for (let i = 0; i <= NP; i++) { const a = i / NP * 6.2832, x = cam.x + Math.cos(a) * rr, z = cam.z + Math.sin(a) * rr; lp[i * 3] = x; lp[i * 3 + 1] = o.ground(x, z) + .06; lp[i * 3 + 2] = z; } lg.attributes.position.needsUpdate = true; scan.material.opacity = .22 * Math.sin(ph / .9 * Math.PI); }
-      if (ph < .05 && t - numT > 9) { numT = t; const f = o.camera.getWorldDirection(new THREE.Vector3()), x = cam.x + f.x * 2.4, z = cam.z + f.z * 2.4, e = o.ground(x, z); nx.clearRect(0, 0, 256, 64); nx.fillStyle = "rgba(220,236,242,.95)"; nx.font = "500 22px ui-monospace,monospace"; nx.fillText(`標高 ${e.toFixed(1)} m` + (o.sun ? `  日 ${o.sun()}°` : ""), 8, 40); ntex.needsUpdate = true; num.position.set(x, e + .35, z); }
+      if (ph < .05 && t - numT > 9) { numT = t; const f = o.camera.getWorldDirection(new THREE.Vector3()), x = cam.x + f.x * 3.6, z = cam.z + f.z * 3.6, e = o.ground(x, z); nx.clearRect(0, 0, 256, 64); nx.fillStyle = "rgba(220,236,242,.95)"; nx.font = "500 22px ui-monospace,monospace"; nx.fillText(`標高 ${e.toFixed(1)} m` + (o.sun ? `  日 ${o.sun()}°` : ""), 8, 40); ntex.needsUpdate = true; num.position.set(x, e + .35, z); }
       { const a = t - numT < 6 ? Math.sin(Math.min(1, (t - numT) / 6) * Math.PI) * .7 : 0; num.material.opacity = a; num.visible = a > .01; }
       // ミツバチ：見る人の前 3〜5 m の腰の高さをゆっくり行き来
       if (bee) { if (!B.c || Math.hypot(B.c.x - cam.x, B.c.z - cam.z) > 30) { const f = o.camera.getWorldDirection(new THREE.Vector3()); B.c = { x: cam.x + f.x * 4.5, z: cam.z + f.z * 4.5 }; }
