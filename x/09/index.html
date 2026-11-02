@@ -588,6 +588,8 @@ html body #capText,html body[data-mode] #capText,html body #capTag,#capText,#cap
 body[data-mode="walk"] #caption{margin-bottom:22px}
 html body.hen #caption #capTag,html body.hen #capTag[id]{display:none!important;visibility:hidden!important}
 html body.hen #caption{margin-bottom:96px!important}
+html body.hen #hud .brand,html body.hen #hud .seg button{text-shadow:0 0 2px rgba(0,0,0,.95),0 0 9px rgba(0,0,0,.8),0 0 18px rgba(0,0,0,.5)}
+@media (max-width:640px){html body.hen #caption{margin-bottom:8px!important}html body.hen #capText{text-shadow:0 0 3px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.6)}}
 html body.hen #capText{font-size:13.5px!important}
 html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0 3px #000,0 0 8px rgba(0,0,0,.9),0 0 18px rgba(0,0,0,.6)!important}
 #skyUI .sub,#spNote{display:none!important}
@@ -670,6 +672,6 @@ if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
 import("./web/lite/app.js?v=20261102p3").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-02 変身＝碧の足もとの小さな依代を押すと、その視点へ入る（kit/henshin.js） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); Promise.all([import("./web/kit/henshin.js?v=30"), fetch("web/lite/data.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { lookup: (id, re) => { const o = D?.objs?.find(x => x.id === id); return o && (o.lines || []).find(l => l.t && (!re || new RegExp(re).test(l.t))); }, trees: () => q.D?.trees || D?.trees || [], say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).catch(e => console.warn("henshin", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); Promise.all([import("./web/kit/henshin.js?v=34"), fetch("web/lite/data.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { lookup: (id, re) => { const o = D?.objs?.find(x => x.id === id); return o && (o.lines || []).find(l => l.t && (!re || new RegExp(re).test(l.t))); }, trees: () => q.D?.trees || D?.trees || [], say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).catch(e => console.warn("henshin", e)); } }, 300); }
 </script>
 </body></html>
