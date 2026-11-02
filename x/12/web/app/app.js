@@ -986,7 +986,8 @@ async function startYorishiro() {
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
-      await YO.y.add(kind, { x: P.x + fz * .95 + fx * 1.8, z: P.z - fx * .95 + fz * 1.8, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
+      const sd = (() => { const v = new THREE.Vector3(), sx = g => { v.set(P.x + fz * .95 * g + fx * 1.8, P.y + .3, P.z - fx * .95 * g + fz * 1.8).project(camera); return Math.abs(v.x); }; return sx(1) <= .8 || sx(-1) > sx(1) ? 1 : -1; })();   /* 11-03 375 でタヌキが画面の端で切れた：左が画面の外へはみ出すときは碧の右（画面の内側）へ */
+      await YO.y.add(kind, { x: P.x + fz * .95 * sd + fx * 1.8, z: P.z - fx * .95 * sd + fz * 1.8, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
   } catch (e) { console.warn("yorishiro", e); }
 }
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）

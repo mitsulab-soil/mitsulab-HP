@@ -25,7 +25,7 @@ export function attachHenshin(QW, opt = {}) {
   const veil = document.createElement("div"); veil.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0";
   document.body.appendChild(veil);
   const tag = document.createElement("div");
-  tag.style.cssText = "position:fixed;left:max(16px,env(safe-area-inset-left));top:calc(max(16px,env(safe-area-inset-top)) + 46px);z-index:5;pointer-events:none;font:10px/1 var(--ml-serif,serif);letter-spacing:.2em;text-shadow:0 0 4px rgba(0,0,0,.6);color:rgba(235,240,255,.72);max-width:min(260px,70vw);opacity:0;transition:opacity .6s";
+  tag.style.cssText = "position:fixed;left:max(16px,env(safe-area-inset-left));top:calc(max(16px,env(safe-area-inset-top)) + 46px);z-index:5;pointer-events:none;font:11px/1 var(--ml-serif,serif);letter-spacing:.2em;text-shadow:0 0 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.75),0 0 16px rgba(0,0,0,.5);color:rgba(245,248,255,.95);max-width:min(260px,70vw);opacity:0;transition:opacity .6s";
   document.body.appendChild(tag);
   /* ---- 3D の GUI：碧の足もとの細い光の輪と、小さな姿 ---- */
   const gui = new THREE.Group(); gui.name = "henshinGUI"; scene.add(gui);
@@ -55,7 +55,7 @@ export function attachHenshin(QW, opt = {}) {
     const tuft = new THREE.Mesh(new THREE.ConeGeometry(.018, .09, 8), matH); tuft.position.set(.03, .2, .035); tuft.rotation.z = .5; g.add(tuft);
     return g;
   }
-  const back = { id: "hito", g: markAoi(), label: mkLabel("碧へ戻る"), profile: PROFILES.hito }; back.g.visible = false;  back.label.style.cssText += ";font-size:13px;padding:13px 16px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px;background:rgba(95,167,160,.28);min-height:44px;box-sizing:border-box;display:none";   /* 押せると分かる細い縁（板は敷かない） */ scene.add(back.g); back.g.traverse(o => { o.frustumCulled = false; o.renderOrder = 10; });   /* 戻る台は、依代の視点のカメラの右下に置く（碧や幹に重ねない） */
+  const back = { id: "hito", g: markAoi(), label: mkLabel("碧へ戻る"), profile: PROFILES.hito }; back.g.visible = false;  back.label.style.cssText += ";font-size:13px;padding:13px 16px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px;background:rgba(22,48,52,.5);text-shadow:0 0 4px rgba(0,0,0,.7);min-height:44px;box-sizing:border-box;display:none";   /* 押せると分かる細い縁（板は敷かない） */ scene.add(back.g); back.g.traverse(o => { o.frustumCulled = false; o.renderOrder = 10; });   /* 戻る台は、依代の視点のカメラの右下に置く（碧や幹に重ねない） */
   ORDER.forEach(async (id, i) => {
     const P = PROFILES[id]; if (!P) return; const it = { id, g: new THREE.Group(), label: mkLabel(P.name), profile: P, i };
     icons.push(it); gui.add(it.g);
@@ -154,7 +154,7 @@ export function attachHenshin(QW, opt = {}) {
   }
   /* ---- 時間の尺度（石）：札を一枚ずつ、時代をさかのぼる。中身は opt.lookup(id) で、アプリのデータ（出典つき）から引く ---- */
   const tsBox = document.createElement("div");
-  tsBox.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 200px);z-index:5;pointer-events:none;font:300 11px/1 var(--ml-mono,monospace);letter-spacing:.18em;color:rgba(238,242,248,.9);text-shadow:0 0 6px rgba(0,0,0,.6);opacity:0;transition:opacity 1.2s";
+  tsBox.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + " + (innerWidth <= 640 ? 104 : 200) + "px);z-index:5;pointer-events:none;font:300 11px/1 var(--ml-mono,monospace);letter-spacing:.18em;color:rgba(238,242,248,.9);text-shadow:0 0 6px rgba(0,0,0,.6);opacity:0;transition:opacity 1.2s";
   document.body.appendChild(tsBox);
   const esc = x => String(x || "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
   /* 碧の語り：声＋下の小さな字幕（アプリの speak）。中身の文は henshin_voice.json（_dev/build_voice_henshin.py で作る・読みは確かめ済み） */
@@ -233,9 +233,14 @@ export function attachHenshin(QW, opt = {}) {
       if (own) { D3.subVectors(S.pose.look, S.pose.pos).normalize(); const sz = S.cur.body3d.size || .2; const dd = Math.max(.08, (S.body.userData.len || sz) * .35), tip = S.pose.pos.y - dd * .95 - (S.body.userData.top || sz); S.body.position.set(S.pose.pos.x + D3.x * dd, tip, S.pose.pos.z + D3.z * dd); /* 頭の先だけが視野の下端にのぞく（体の後ろ姿で画面を塞がない） */ S.body.lookAt(S.pose.look.x, S.body.position.y, S.pose.look.z); S.body.userData.animate?.(t, true); } }   /* 自分の体の前の端（頭・嘴・鼻先）が視野の下端に入る位置。体の内側が見えないよう、目より前・下に置く */
     { const on = S.target === 1 && S.k > .6 && S.pose && walk; back.g.visible = on;   /* 戻る印＝髪の色の細い光の輪と葉の房（11 回目の採点：小さな碧の人形は安っぽい→やめた） */
       if (on) { const P0 = S.pose.pos; D3.subVectors(S.pose.look, P0).normalize(); const rx = -D3.z, rz = D3.x, rl = Math.hypot(rx, rz) || 1;
-        PC.position.copy(P0); PC.fov = S.cur.sight?.fov || camera.fov; PC.aspect = camera.aspect; PC.updateProjectionMatrix(); PC.lookAt(S.pose.look); PC.updateMatrixWorld();
-        { const nx = innerWidth < 560 ? .55 : .7, ny = .02; P3.set(nx, ny, .5).unproject(PC).sub(P0).normalize(); back.g.position.copy(P0).addScaledVector(P3, .7); back.g.lookAt(P0); back.g.scale.setScalar(64 * 2 * .7 * Math.tan(PC.fov * Math.PI / 360) / (innerHeight * .116));   /* 画面の上でいつも直径およそ 64pt */ back.g.userData.spin.rotation.z = t * .5; for (const [i, l] of back.g.userData.leaf.entries()) l.rotation.y = Math.sin(t * .8 + i) * .5;   /* 葉の房はゆっくり揺れて立体に見える */   /* 印は画面の同じ所（右の中ほど）にいつも全部入る：画面の点から逆に置く */
+        PC.position.copy(P0); PC.fov = S.cur.sight?.fov || camera.fov; PC.aspect = camera.aspect; PC.updateProjectionMatrix(); PC.lookAt(S.pose.look); PC.quaternion.multiply(Q0.setFromAxisAngle(UP, S.pose.yawJ * .4)); PC.updateMatrixWorld();   /* 描くときと同じ首の振れを入れる（スズメで印がボタンより右にずれた） */
+        { const nx = innerWidth < 560 ? .55 : .7, ny = .16;   /* 少し上へ（石の視点で、ボタンの後ろに地面の依代が隠れた） */ P3.set(nx, ny, .5).unproject(PC).sub(P0).normalize(); back.g.position.copy(P0).addScaledVector(P3, .7); back.g.lookAt(P0); back.g.scale.setScalar(64 * 2 * .7 * Math.tan(PC.fov * Math.PI / 360) / (innerHeight * .116));   /* 画面の上でいつも直径およそ 64pt */ back.g.userData.spin.rotation.z = t * .5; for (const [i, l] of back.g.userData.leaf.entries()) l.rotation.y = Math.sin(t * .8 + i) * .5;   /* 葉の房はゆっくり揺れて立体に見える */   /* 印は画面の同じ所（右の中ほど）にいつも全部入る：画面の点から逆に置く */
           back.sc = [(nx + 1) / 2 * innerWidth, (1 - ny) / 2 * innerHeight]; }   /* 依代の視点のカメラで画面の位置を出す */ const L = back.label; if (back.sc) { L.style.display = ""; L.style.transform = `translate(${Math.max(8, Math.min(innerWidth - L.offsetWidth - 8, back.sc[0] - L.offsetWidth / 2)) | 0}px,${(back.sc[1] + 40) | 0}px)`; } } else if (!gui.visible || S.target !== 1) back.label.style.display = back.g.visible ? "" : "none"; }
+    { const its = QW.YO?.y?.items || [], sc = back.g.visible && back.sc;   /* 11-02 依代の視点で、地面の依代が「碧へ戻る」の後ろに隠れない：重なる間だけ見えなくする */
+      for (const it of its) { const r = it.root; if (!r) continue; let hide = false;
+        if (opt.yoHideR && S.target === 1 && S.pose) { r.getWorldPosition(P3); if (Math.hypot(P3.x - S.pose.pos.x, P3.z - S.pose.pos.z) < opt.yoHideR) hide = true; }   /* 11-03 opt.yoHideR（川越・渋谷）：依代の視点の近くの依代は映さない（タヌキの目に鳥の依代が映り込んだ） */
+        if (sc) for (const hh of [.15, .6, 1.1, 1.6]) { r.getWorldPosition(P3); P3.y += hh; P3.project(camera); const x = (P3.x + 1) / 2 * innerWidth, y = (1 - P3.y) / 2 * innerHeight; if (P3.z < 1 && Math.abs(x - sc[0]) < 110 && y > sc[1] - 70 && y < sc[1] + 110) { hide = true; break; } }
+        if (hide) { if (r.visible) { r.visible = false; r.userData.hsHid = 1; } } else if (r.userData.hsHid) { r.visible = true; r.userData.hsHid = 0; } } }
     if (Math.abs(S.k - lastK) < .004) return; lastK = S.k;
     const k = S.k, P = S.cur;
     if (k < .01 || !(P.sight?.mix ?? 1)) { canvas.style.filter = ""; veil.style.opacity = 0; if (S.target === 0) S.pose = null; return; }
