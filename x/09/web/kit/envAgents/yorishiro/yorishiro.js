@@ -43,15 +43,18 @@ const KIND_MOTION = {
 };
 /* 11-02 本人「依代について、必ずしも白にしなくてもいいです。木のみきは白でなく、リアルな茶色系にしてください。ほかも同様に自然な色合いに」
    → 姿ごとに素材らしい落ち着いた色（材質の名で塗る）。葉の房（tuft・lf・lv）と点の目（eye）はそのまま＝碧と並んで浮かないチャーム。 */
+/* 11-02 本人（改め）「依代はもっと依代の色と合わせて雰囲気を似せてください。白と水色など碧の色に合わせてください。」
+   → 碧の衣と髪の色（白・水色・碧の髪の青緑）を基調に。素材の手がかりは、白にごく淡い色みを差すだけ（茶・灰褐色は使わない）。葉の房と点の目はそのまま。マット。 */
+const W = "#f3f5f3", W2 = "#e8efee", AQ = "#bfe0e0", AQ2 = "#9fcfd0", TE = "#4f9c94", TE2 = "#3c7f78";
 const NATURAL = {
-  ki:      [[/^trunk/, "#6e5643", .95], [/^pb/, "#8c8478", .9]],
-  tsuchi:  [[/^s0/, "#5b4532", .95], [/^s1/, "#7a5b3d", .95], [/^s2/, "#4c3a2a", .95], [/^s3/, "#86664a", .95], [/^s4/, "#5f4a36", .95], [/^s5/, "#3f3124", .95], [/^sl/, "#6b5440", .95], [/^root/, "#cdbb9c", .9], [/^sprout/, "#7c9f4c", .8], [/^pb/, "#8c8478", .9]],
-  kitsune: [[/^body/, "#a8805e", .9], [/^tail/, "#b08b68", .9], [/^paw/, "#4a3a30", .9], [/^ear/, "#8a5a38", .9], [/^nose/, "#2b2420", .7]],
-  hitsuji: [[/^w\d/, "#e6ddcc", .95], [/^m\d/, "#d9cfbc", .95], [/^face/, "#4a423b", .9], [/^legm/, "#4a423b", .9], [/^hoof/, "#2f2925", .85], [/^(horn|hg)/, "#b3a283", .85]],
-  tori:    [[/^body/, "#8e7c64", .9], [/^ch/, "#ddd3bf", .9], [/^fe/, "#6c5c48", .9], [/^bl/, "#5a4c3c", .9], [/^branch/, "#6a5240", .95]],
-  cho:     [[/^w-?1/, "#5f9a8e", .8], [/^wl/, "#2f3a36", .85], [/^pan/, "#e9e4d6", .85], [/^vn/, "#3a3a34", .85], [/^bfly/, "#2a2a26", .85]],
-  ishi:    [[/^Icosphere/, "#8b8578", .95], [/^peb/, "#9a9284", .95]],
-  shizuku: [[/^(drop|body|water)/, "#cfe6ea", .2]],
+  ki:      [[/^trunk/, "#eef1ec", .95], [/^pb/, W2, .9], [/^mo/, AQ, .95]],
+  tsuchi:  [[/^s0/, W, .95], [/^s1/, "#dfeceb", .95], [/^s2/, W, .95], [/^s3/, "#d3e7e6", .95], [/^s4/, W2, .95], [/^s5/, "#c9e2e2", .95], [/^sl/, W2, .95], [/^root/, W, .9], [/^sprout/, TE, .8], [/^pb/, W2, .9]],
+  kitsune: [[/^body/, W, .9], [/^tail/, AQ, .9], [/^paw/, TE2, .9], [/^ear/, AQ2, .9], [/^nose/, "#2b3433", .7]],
+  hitsuji: [[/^w\d/, W, .95], [/^m\d/, W2, .95], [/^face/, TE2, .9], [/^legm/, TE2, .9], [/^hoof/, "#2f4a47", .85], [/^(horn|hg)/, TE, .85]],
+  tori:    [[/^body/, W, .9], [/^ch/, W2, .9], [/^fe/, AQ, .9], [/^bl/, TE, .9], [/^branch/, "#dfe8e6", .95]],
+  cho:     [[/^w-?1/, AQ2, .8], [/^wl/, TE2, .85], [/^pan/, W, .85], [/^vn/, TE2, .85], [/^bfly/, TE2, .85]],
+  ishi:    [[/^Icosphere/, "#e9eeed", .95], [/^peb/, W2, .95]],
+  shizuku: [[/^(drop|body|water)/, AQ, .2]],
 };
 const RM = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const role = (name, kind) => /^(eye|ey|hl)/.test(name) ? "eye" : (kind === "cho" && /^(w|wl|pan|bfly)/.test(name)) || (kind === "tori" && /^fe/.test(name)) ? "wing" : /^(lf|leaf|tuft|mo|lv|sprout|tail|berry)/.test(name) ? "leaf" : /^(water|bub)/.test(name) ? "float" : "body";
