@@ -20,7 +20,10 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
-export const YORISHIRO_KINDS = { shizuku: "しずく", ishi: "石", kitsune: "狐", cho: "蝶", hitsuji: "羊", tori: "鳥", ki: "木", tsuchi: "土" };
+export const YORISHIRO_KINDS = { shizuku: "しずく", ishi: "石", kitsune: "狐", cho: "蝶", hitsuji: "羊", tori: "鳥", ki: "木", tsuchi: "土", tanuki: "タヌキ", suzume: "スズメ", mitsubachi: "ミツバチ" };
+/* 11-02 本人「大宮にもミツバチいます。あとタヌキもいます。あと小鳥（すずめ）も入れてください。」（本人の観察 2026-11-02）→ 形＝_dev/envAgents/sugata_ref/最良/new3_タヌキ_スズメ_ミツバチ.py（自作）。
+   本人「木が歩くのはおかしいです。」→ 動かない物（木・石・土・しずく）は向きも変えず跳ねもしない。碧が来たら葉がわずかにそよぐだけ。歩く＝狐・タヌキ・羊、飛ぶ＝鳥・スズメ・蝶・ミツバチ。 */
+export const YORISHIRO_STILL = new Set(["ki", "ishi", "tsuchi", "shizuku"]);
 /* 11-02 本人「碧以外の依代を Qualium に自然な動作で導入してください。碧と仲良くしてください。」→ v3：8 体すべて。
    形＝_dev/envAgents/sugata_ref/最良/{羊,鳥,蝶,狐,木,土}.py（自作）→ gltfpack（-cc -si 0.2）。
    仲良く（setCompanion で碧の位置・向き・話しているかを渡す）：
@@ -31,7 +34,7 @@ export const YORISHIRO_KINDS = { shizuku: "しずく", ishi: "石", kitsune: "�
    重さ：60 m より遠い・画面の外の依代は動かさない（70 m より遠いものは描かない）。毎こまの仕事は数の更新だけ。 */
 // 姿ごとの動きの強さ（m は形の単位＝scale を掛ける前）。ripple＝表面のゆらぎ、sway＝体の揺れ（rad）、turn＝向きの変化（rad）、leaf＝葉の揺れ、float＝泡のただよい、blink＝瞬きの間（秒）
 const KIND_MOTION = {
-  shizuku: { ripple: .006, sway: .045, turn: .22, leaf: 0, float: .02, blink: [2.8, 6.5], breathe: .012 },
+  shizuku: { ripple: .006, sway: .045, turn: 0, leaf: 0, float: .02, blink: [2.8, 6.5], breathe: .012 },
   ishi:    { ripple: 0,    sway: .004, turn: 0,   leaf: .012, float: 0, blink: [6, 13], breathe: .002 },
   kitsune: { ripple: 0,   sway: .012, turn: .05, leaf: .02,  float: 0, blink: [3, 7], breathe: .01, h: .46 },
   cho:     { ripple: 0,   sway: .03,  turn: 0,   leaf: .01,  float: 0, blink: [4, 9], breathe: 0, wing: .9, h: .3 },
@@ -39,25 +42,27 @@ const KIND_MOTION = {
   tori:    { ripple: 0,   sway: .01,  turn: .35, leaf: .008, float: 0, blink: [2.5, 6], breathe: .015, wing: .08, h: .4 },
   ki:      { ripple: 0,   sway: .006, turn: 0,   leaf: .02,  float: 0, blink: [4, 10], breathe: .004, h: .8 },
   tsuchi:  { ripple: 0,   sway: .002, turn: 0,   leaf: .015, float: 0, blink: [5, 11], breathe: .004, h: .42 },
+  tanuki:  { ripple: 0,   sway: .01,  turn: .15, leaf: .015, float: 0, blink: [3, 7], breathe: .012, h: .4 },
+  suzume:  { ripple: 0,   sway: .012, turn: .5,  leaf: .01,  float: 0, blink: [2, 5], breathe: .018, wing: .1, h: .2 },
+  mitsubachi: { ripple: 0, sway: .04, turn: 0,  leaf: .008, float: 0, blink: [4, 9], breathe: 0, wing: .7, h: .11, hover: .9 },
   _:       { ripple: 0,    sway: .02,  turn: .1,  leaf: .012, float: .015, blink: [3.5, 8], breathe: .008 },
 };
 /* 11-02 本人「依代について、必ずしも白にしなくてもいいです。木のみきは白でなく、リアルな茶色系にしてください。ほかも同様に自然な色合いに」
    → 姿ごとに素材らしい落ち着いた色（材質の名で塗る）。葉の房（tuft・lf・lv）と点の目（eye）はそのまま＝碧と並んで浮かないチャーム。 */
-/* 11-02 本人（改め）「依代はもっと依代の色と合わせて雰囲気を似せてください。白と水色など碧の色に合わせてください。」
-   → 碧の衣と髪の色（白・水色・碧の髪の青緑）を基調に。素材の手がかりは、白にごく淡い色みを差すだけ（茶・灰褐色は使わない）。葉の房と点の目はそのまま。マット。 */
-const W = "#f3f5f3", W2 = "#e8efee", AQ = "#bfe0e0", AQ2 = "#9fcfd0", TE = "#4f9c94", TE2 = "#3c7f78";
+/* 11-02 本人（改め 2）「色は自然の色にしつつ、何か依代の目印のものをつけるイメージにしたいです。」
+   → 体は素材らしい自然な色。依代の目印＝碧の髪の色の葉の房（tuft）・点の目・碧の衣の色の小さな印（mark＝首元の細い帯。無い形は葉の房と目）。目印の材質は塗りかえない。 */
 const NATURAL = {
-  ki:      [[/^trunk/, "#eef1ec", .95], [/^pb/, W2, .9], [/^mo/, AQ, .95]],
-  tsuchi:  [[/^s0/, W, .95], [/^s1/, "#dfeceb", .95], [/^s2/, W, .95], [/^s3/, "#d3e7e6", .95], [/^s4/, W2, .95], [/^s5/, "#c9e2e2", .95], [/^sl/, W2, .95], [/^root/, W, .9], [/^sprout/, TE, .8], [/^pb/, W2, .9]],
-  kitsune: [[/^body/, W, .9], [/^tail/, AQ, .9], [/^paw/, TE2, .9], [/^ear/, AQ2, .9], [/^nose/, "#2b3433", .7]],
-  hitsuji: [[/^w\d/, W, .95], [/^m\d/, W2, .95], [/^face/, TE2, .9], [/^legm/, TE2, .9], [/^hoof/, "#2f4a47", .85], [/^(horn|hg)/, TE, .85]],
-  tori:    [[/^body/, W, .9], [/^ch/, W2, .9], [/^fe/, AQ, .9], [/^bl/, TE, .9], [/^branch/, "#dfe8e6", .95]],
-  cho:     [[/^w-?1/, AQ2, .8], [/^wl/, TE2, .85], [/^pan/, W, .85], [/^vn/, TE2, .85], [/^bfly/, TE2, .85]],
-  ishi:    [[/^Icosphere/, "#e9eeed", .95], [/^peb/, W2, .95]],
-  shizuku: [[/^(drop|body|water)/, AQ, .2]],
+  ki:      [[/^trunk/, "#6e5643", .95], [/^pb/, "#8c8478", .9], [/^mo/, "#6f8a52", .95]],
+  tsuchi:  [[/^s0/, "#5b4532", .95], [/^s1/, "#7a5b3d", .95], [/^s2/, "#4c3a2a", .95], [/^s3/, "#86664a", .95], [/^s4/, "#5f4a36", .95], [/^s5/, "#3f3124", .95], [/^sl/, "#6b5440", .95], [/^root/, "#cdbb9c", .9], [/^sprout/, "#7c9f4c", .8], [/^pb/, "#8c8478", .9]],
+  kitsune: [[/^body/, "#a8805e", .9], [/^tail/, "#b08b68", .9], [/^paw/, "#4a3a30", .9], [/^ear/, "#8a5a38", .9], [/^nose/, "#2b2420", .7]],
+  hitsuji: [[/^w\d/, "#e6ddcc", .95], [/^m\d/, "#d9cfbc", .95], [/^face/, "#4a423b", .9], [/^legm/, "#4a423b", .9], [/^hoof/, "#2f2925", .85], [/^(horn|hg)/, "#b3a283", .85]],
+  tori:    [[/^body/, "#8e7c64", .9], [/^ch/, "#ddd3bf", .9], [/^fe/, "#6c5c48", .9], [/^bl/, "#5a4c3c", .9], [/^branch/, "#6a5240", .95]],
+  cho:     [[/^w-?1/, "#5f9a8e", .8], [/^wl/, "#2f3a36", .85], [/^pan/, "#e9e4d6", .85], [/^vn/, "#3a3a34", .85], [/^bfly/, "#2a2a26", .85]],
+  ishi:    [[/^Icosphere/, "#8b8578", .95], [/^peb/, "#9a9284", .95]],
+  shizuku: [[/^(drop|body|water)/, "#cfe6ea", .2]],
 };
 const RM = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-const role = (name, kind) => /^(eye|ey|hl)/.test(name) ? "eye" : (kind === "cho" && /^(w|wl|pan|bfly)/.test(name)) || (kind === "tori" && /^fe/.test(name)) ? "wing" : /^(lf|leaf|tuft|mo|lv|sprout|tail|berry)/.test(name) ? "leaf" : /^(water|bub)/.test(name) ? "float" : "body";
+const role = (name, kind) => /^(eye|ey|hl)/.test(name) ? "eye" : (kind === "cho" && /^(w|wl|pan|bfly)/.test(name)) || (kind === "tori" && /^fe/.test(name)) || (kind === "suzume" && /^fe/.test(name)) || (kind === "mitsubachi" && /^w1/.test(name)) ? "wing" : /^(lf|leaf|tuft|mo|lv|sprout|tail|berry)/.test(name) ? "leaf" : /^(water|bub)/.test(name) ? "float" : "body";
 
 // 材質に、時間で頂点を小さくずらす処理を足す（形の単位の座標で。地面に近い所ほど動かない）
 function patch(mat, U, kind) {
@@ -130,11 +135,15 @@ export class Yorishiro {
       let want = null;
       if (!it.follow && A) {
         const da = Math.hypot(A.x - R.position.x, A.z - R.position.z), near = da < 9;
-        if (near && !it.near && t - it.greetT > 25) { it.greetT = t; it.hop = 1; it.blinkAt = .3; co?.onGreet?.(it); }   // 碧が来た：一度だけ小さく弾む
+        if (near && !it.near && t - it.greetT > 25) { it.greetT = t; if (YORISHIRO_STILL.has(it.kind)) it.rustle = 1.6; else it.hop = 1; it.blinkAt = .3; co?.onGreet?.(it); }   // 動かない物は葉がそよぐだけ   // 碧が来た：一度だけ小さく弾む
         it.near = near;
         if (near || (speaking && da < 15)) want = Math.atan2(A.x - R.position.x, A.z - R.position.z);
         else if (V && cd < 4) want = Math.atan2(V.x - R.position.x, V.z - R.position.z);
       }
+      if (YORISHIRO_STILL.has(it.kind)) want = null;
+      it.rustle = Math.max(0, (it.rustle || 0) - dt); it.U.leaf.value = RM ? 0 : M.leaf * (1 + 1.5 * Math.min(1, it.rustle));   // 碧が来た・触れた：葉がわずかにそよぐ
+      if (M.hover && !RM) R.position.y = (it.gy ?? (it.gy = R.position.y)) + M.hover + .06 * Math.sin(t * 1.3 + p) + .03 * Math.sin(t * 3.1);   // ミツバチ：花の高さでただよう
+      if (it.kind === "suzume" && !RM && Math.sin(t * .9 + p * 3) > .985) it.hop = Math.max(it.hop, .6);   // スズメ：ときどき小さく跳ねる
       if (want !== null && M.turn > 0) { const d = Math.atan2(Math.sin(want - it.yaw0), Math.cos(want - it.yaw0)); it.yaw0 += d * Math.min(1, dt * 1.6); }
       if (!RM) {
         // 体：ゆっくりした揺れ（周期をそろえない二つの波を重ねる）と、向きのゆっくりした変化
@@ -193,7 +202,7 @@ export class Yorishiro {
     const hit = this.ray.intersectObjects(this.items.map(i => i.root), true)[0]; if (!hit) return false;
     let o = hit.object; while (o && !o.userData.yorishiro) o = o.parent;
     const it = this.items.find(i => i.root === o); if (!it) return false;
-    it.hop = 1; it.blinkAt = .25; it.onTouch?.(it); return true;
+    if (YORISHIRO_STILL.has(it.kind)) it.rustle = 1.6; else it.hop = 1; it.blinkAt = .25; it.onTouch?.(it); return true;
   }
   dispose() { for (const it of this.items) this.scene.remove(it.root); this.items.length = 0; }
 }

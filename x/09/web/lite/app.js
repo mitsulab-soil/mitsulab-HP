@@ -1540,23 +1540,24 @@ function openObj(L) {
    触れると碧の声で短く一言、その印の出典つきの一行につなぐ（大きな演出は出さない・擬人の断定はしない）。 */
 const YO = { y: null, busy: false };
 const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水|渋谷川|新河岸川|水が流れ|川の水/, ishi: /石畳|標石|石垣|石段|石碑|敷石|石の鳥居|道標/,
-  ki: /欅|ケヤキ|巨木|大木|樹齢|神木/, tsuchi: /関東ローム|ローム層|赤土|黒土|土壌|腐葉土/, tori: /シジュウカラ|野鳥|カワセミ|メジロ|ヒヨドリ|鳥の声/, hitsuji: /芝生|広場|草地|原っぱ/ };
+  ki: /欅|ケヤキ|巨木|大木|樹齢|神木/, tsuchi: /関東ローム|ローム層|赤土|黒土|土壌|腐葉土/, tori: /シジュウカラ|野鳥|カワセミ|メジロ|ヒヨドリ|鳥の声/, hitsuji: /芝生|広場|草地|原っぱ/,
+  tanuki: /大宮公園|雑木林|林の中|森の中|社叢|夜行性/, suzume: /スズメ|雀|小鳥|ムクドリ/, mitsubachi: /ミツバチ|蜂|花粉|蜜|花が咲/ };   /* 11-02 本人「大宮にもミツバチいます。あとタヌキもいます。あと小鳥（すずめ）も」（本人の観察） */
 /* 11-02 本人「碧以外の依代を Qualium に自然な動作で導入してください。碧と仲良くしてください。」
    置く姿＝しずく・石・木・土・鳥・羊（話の印のそば）、碧のそばにいる姿＝狐（横を歩く）・蝶（肩の高さを回る）。
    碧が近づくと依代は碧へ向いて小さく弾み、碧はそちらへ目をやる。碧が話すと近くの依代は碧へ向き、問いの一行では小さく傾く。 */
-const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tori: "鳥", hitsuji: "羊", kitsune: "狐", cho: "蝶" }, YO_H = { ki: .8, tsuchi: .42, tori: .36, hitsuji: .5, kitsune: .46, cho: .26 };
+const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tori: "鳥", hitsuji: "羊", kitsune: "狐", cho: "蝶", tanuki: "タヌキ", suzume: "スズメ", mitsubachi: "ミツバチ" }, YO_H = { tanuki: .4, suzume: .2, mitsubachi: .16, ki: .8, tsuchi: .42, tori: .36, hitsuji: .5, kitsune: .46, cho: .26 };
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y11");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y12");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
     const cp = camera.position, used = [];
-    for (const kind of ["shizuku", "ishi", "ki", "tsuchi", "tori", "hitsuji"]) {
+    for (const kind of ["shizuku", "ishi", "ki", "tsuchi", "tori", "hitsuji", "tanuki", "suzume", "mitsubachi"]) {
       let best = null, bd = 1e9;
       for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!YO_RE[kind].test(t) || THIN.test(t) || (kind !== "tsuchi" && /標高|地質|堆積/.test(t)) || !(L.o.lines || []).some(l => l && l.t && YO_RE[kind].test(l.t)) || used.includes(L) || used.some(u => Math.hypot(u.o.x - L.o.x, u.o.z - L.o.z) < 12)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z) - (kind === "shizuku" && /湧水|湧き|神池|清水|池の水/.test(t) ? 5000 : 0); if (d < bd) { bd = d; best = L; } }   /* 水そのものの話（湧水・池の水）を先に・依代どうしは 12 m 以上はなす */
-      if (!best) continue; used.push(best);
+      if (!best) { const nb = { suzume: "ki", mitsubachi: "tsuchi" }[kind], it0 = nb && YO.y.items.find(i => i.kind === nb); if (it0) { const p0 = it0.root.position, a0 = kind === "suzume" ? 2.2 : 4.1; await YO.y.add(kind, { x: p0.x + Math.cos(a0) * 2.4, z: p0.z + Math.sin(a0) * 2.4, yaw: a0, height: YO_H[kind], onTouch: () => { const a1 = `${YO_NM[kind]}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); } continue; }   /* 話の印が無い姿（スズメ＝木のそば・ミツバチ＝土の芽のそば） */ used.push(best);
       const a = (best.o.x * 7.1 + best.o.z * 3.3) % 6.28, x = best.o.x + Math.cos(a) * 1.4, z = best.o.z + Math.sin(a) * 1.4, L = best;
       await YO.y.add(kind, { x, z, yaw: a, scale: .42, height: YO_H[kind] || 0, onTouch: () => {
         const nm = YO_NM[kind], l0 = (kind === "shizuku" && (L.o.lines || []).find(l => l && l.t && /舟が通|水量|流れ|川面|湧き水|湧水|水の道|清水/.test(l.t))) || (L.o.lines || []).find(l => l && l.t && YO_RE[kind].test(l.t)) ||   /* しずくは水そのもの（流れ・川面・湧き水・舟が通れた水の道）の一行を先に */ (L.o.lines || []).find(l => l && l.t),   /* 水・石の話の一行を選ぶ */ s0 = (L.o.src || [])[0], st = s0 ? (typeof s0 === "string" ? s0 : s0.t || "") : "";
