@@ -501,6 +501,7 @@ function buildShrine() {   // 渋谷：金王八幡宮の鳥居（木の明神�
   const cg = new THREE.IcosahedronGeometry(1, 1); { const p = cg.attributes.position; for (let i = 0; i < p.count; i++) { const k = 1 + (Math.sin(p.getX(i) * 7.1 + p.getZ(i) * 5.3) * .5 + .5) * .22; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k * .85, p.getZ(i) * k); } cg.computeVertexNormals(); }
   const crown = new THREE.InstancedMesh(cg, new THREE.MeshStandardMaterial({ color: "#2f4a33", roughness: .92, flatShading: true }), pts.length * 3);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), col = new THREE.Color(); let ci = 0;
+  (QW.treePts ||= []).push(...pts.map(p => [p[0], groundY(p[0], p[1]), p[1], ""]));   // 11-02 変身（木）：近くの木の幹のそばへ
   pts.forEach(([x, z, k], i) => { const y = groundY(x, z), h = 7 * k; M.compose(ps.set(x, y + h / 2, z), q, sc.set(k, h, k)); trunk.setMatrixAt(i, M);
     for (let j = 0; j < 3; j++) { const r = (3 + j * .6) * k * (j ? .75 : 1); M.compose(ps.set(x + (j ? (rnd() - .5) * 3 : 0), y + h + (j ? -1.5 + rnd() * 2 : 1.2) * k, z + (j ? (rnd() - .5) * 3 : 0)), q.setFromAxisAngle(sc.set(0, 1, 0), rnd() * 6), sc.set(r, r, r)); crown.setMatrixAt(ci, M); crown.setColorAt(ci, col.setHSL(.33 + rnd() * .06, .28 + rnd() * .12, .16 + rnd() * .07)); ci++; } });
   g.add(trunk, crown); world.add(g); QW.shrine = { trees: pts.length }; landSweep();
@@ -943,7 +944,7 @@ function panelAsNarr({ title, lines = [], more = [], src = [], buttons = [] }) {
   speakLines(ls, L, { narr: true, done: () => { if (play && PANEL.cur === L) { try { play.run(); } catch (e) { console.warn(e); } } if (PANEL.cur === L && $("#panel").hidden) PANEL.cur = null; } });   // 語り終えてから音を鳴らす（鳴らす操作は語りを止めるため）
 }
 function openPanel({ color, layer, title, lines = [], more = [], how, note, src = [], ll, buttons = [], pad = null }) {
-  if ((QW.mode === "walk" || QW.mode === "sight") && !NARR_FORCE.on) { panelAsNarr({ title, lines, more, src, buttons }); return; }   // 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように」＝歩いているあいだは重ね窓を出さず、碧の語りと下の小さな字幕に
+  if (!NARR_FORCE.on) { panelAsNarr({ title, lines, more, src, buttons }); return; }   // 2026-10-28 午後 本人「オーバーレイで説明が出るのではなく、碧が解説するように」＝歩いているあいだは重ね窓を出さず、碧の語りと下の小さな字幕に
   const p = $("#panel"); p.style.setProperty("--lc", color); $("#pLayer").textContent = layer; $("#pTitle").textContent = title;
   const b = $("#pBody"); b.innerHTML = "";
   lines.forEach((l, i) => { const e = document.createElement("p"); e.className = "line"; e.dataset.i = i; e.textContent = l.t; b.appendChild(e); });
@@ -994,23 +995,23 @@ function surfaceY(x, z) {
    しずく＝水に関わる印のそば、石＝石に関わる印のそば。歩く道すじから見える所に 1 体ずつ、さりげなく。
    触れると碧の声で短く一言、その印の出典つきの一行につなぐ（大きな演出は出さない・擬人の断定はしない）。 */
 const YO = { y: null, busy: false };
-const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水|渋谷川|新河岸川|水が流れ|川の水/, ishi: /石畳|標石|石垣|石段|石碑|敷石|石の鳥居|道標/ };
+const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水|渋谷川|新河岸川|水が流れ|川の水/, ishi: /石畳|標石|石垣|石段|石碑|敷石|石の鳥居|道標/,
+  ki: /欅|ケヤキ|巨木|大木|樹齢|神木/, tsuchi: /関東ローム|ローム層|赤土|黒土|土壌|腐葉土/, tori: /シジュウカラ|野鳥|カワセミ|メジロ|ヒヨドリ|鳥の声/, hitsuji: /芝生|広場|草地|原っぱ/,
+  tanuki: /雑木林|林の中|森の中|社叢|夜行性/, suzume: /スズメ|雀|小鳥|ムクドリ/, mitsubachi: /ミツバチ|蜂|花粉|蜜|花が咲/ };   /* 11-02 本人「大宮にもミツバチいます。あとタヌキもいます。あと小鳥（すずめ）も」（本人の観察） */
+/* 11-02 本人「碧以外の依代を Qualium に自然な動作で導入してください。碧と仲良くしてください。」
+   置く姿＝しずく・石・木・土・鳥・羊（話の印のそば）、碧のそばにいる姿＝狐（横を歩く）・蝶（肩の高さを回る）。
+   碧が近づくと依代は碧へ向いて小さく弾み、碧はそちらへ目をやる。碧が話すと近くの依代は碧へ向き、問いの一行では小さく傾く。 */
+const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tori: "鳥", hitsuji: "羊", kitsune: "狐", cho: "蝶", tanuki: "タヌキ", suzume: "スズメ", mitsubachi: "ミツバチ" }, YO_H = { tanuki: .4, suzume: .2, mitsubachi: .16, ki: .8, tsuchi: .42, tori: .36, hitsuji: .5, kitsune: .46, cho: .26 };
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y4");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y13");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
-    const cp = camera.position, used = [];
-    for (const kind of ["shizuku", "ishi"]) {
-      let best = null, bd = 1e9;
-      for (const L of LAYER.objs) { const t = (L.o.title || "") + (L.o.lines || []).map(l => l.t || "").join(""); if (!YO_RE[kind].test(t) || THIN.test(t) || /標高|地質|堆積/.test(t) || !(L.o.lines || []).some(l => l && l.t && YO_RE[kind].test(l.t)) || used.includes(L)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z) - (/湧水|湧き|神池|清水|池の水/.test(t) ? 5000 : 0); if (d < bd) { bd = d; best = L; } }   /* 水そのものの話（湧水・池の水）を先に */
-      if (!best) continue; used.push(best);
-      const a = (best.o.x * 7.1 + best.o.z * 3.3) % 6.28, x = best.o.x + Math.cos(a) * 1.4, z = best.o.z + Math.sin(a) * 1.4, L = best;
-      await YO.y.add(kind, { x, z, yaw: a, scale: .42, onTouch: () => {
-        const nm = kind === "shizuku" ? "しずく" : "石", l0 = (kind === "shizuku" && (L.o.lines || []).find(l => l && l.t && /舟が通|水量|流れ|川面|湧き水|湧水|水の道|清水/.test(l.t))) || (L.o.lines || []).find(l => l && l.t && YO_RE[kind].test(l.t)) ||   /* しずくは水そのもの（流れ・川面・湧き水・舟が通れた水の道）の一行を先に */ (L.o.lines || []).find(l => l && l.t),   /* 水・石の話の一行を選ぶ */ s0 = (L.o.src || [])[0], st = s0 ? (typeof s0 === "string" ? s0 : s0.t || "") : "";
-        const a1 = `${nm}の姿の碧です。`, ls = [{ t: a1, tc: a1 }]; if (l0) ls.push({ t: l0.t, tc: l0.tc || l0.t, src: st || undefined });
-        speakLines(ls, null, { narr: true }); } });
-    }
+    YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
+      onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
+    QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
+      YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
+      await YO.y.add(kind, { x: P.x + fz * .95 + fx * 1.8, z: P.z - fx * .95 + fz * 1.8, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
   } catch (e) { console.warn("yorishiro", e); }
 }
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
@@ -1058,7 +1059,7 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
 let QA = null, QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b14").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b14h").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
@@ -1172,6 +1173,7 @@ $("#talkBtn").addEventListener("click", () => { TALK.on = !TALK.on; if (!TALK.on
 /* ---------- 碧（共通部品 AoiMotion） ---------- */
 const AOI = { root: null, m: null, ready: false, pos: new THREE.Vector3(), focus: null, greeted: false, loading: null, v: 0 };
 QW.AOI = AOI;
+QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.stopSpeak = () => stopVoice();   // 11-02 変身（kit/henshin.js）の碧の語り
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
@@ -1193,7 +1195,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 8.2 : 3.5, s = MOBILE ? .55 : 1.25,   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
+  const f = MOBILE ? 3.6 : 3.0, s = MOBILE ? .55 : 1.25,   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = !$("#panel").hidden && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：左右がこまごとに入れかわらない */
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
@@ -1228,7 +1230,7 @@ function stepAoi(dt) {
 }
 
 /* ---------- カメラと動き ---------- */
-const EYE = 1.55;
+const EYE = 1.42;   // 11-02 大宮と同じ：やや低めの目線
 const CAM = { pos: new THREE.Vector3(), yaw: 0, look: 0, pitch: -.05, lastDrag: 0 };
 const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c: new THREE.Vector3(-40, 20, 420) };
 const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 倍に」（1.35→2.4）
