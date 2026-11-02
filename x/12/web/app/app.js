@@ -24,7 +24,7 @@ import { makeAreas } from "./areas.js?v=5m";
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
-import { makeFliers } from "../kit/fliers.js?v=4";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
+import { makeFliers } from "../kit/fliers.js?v=5";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -1038,6 +1038,7 @@ function narrate(L, how, from) { if (TFL.L && TFL.L !== L) clearFloatPad();
 const BIRD_SRC = "Suzuki, Wheatcroft & Griesser (2016) Nature Communications 7:10986";
 const BIRD_LINES = [{ t: "いま目の前を横切ったのは、シジュウカラです。", f: "web/voice/9618e77411e5.m4a", dur: 2.93, id: "9618e77411e5" },
   { t: "シジュウカラは、二つの鳴き声を決まった順につなげて使います。順を入れかえると、聞いた仲間の反応が弱まることが、野外の実験で確かめられています。", f: "web/voice/bc242fd4536f.m4a", dur: 10.71, id: "bc242fd4536f", src: BIRD_SRC }];
+function preShaders() { try { const hid = []; scene.traverse(o => { if (!o.visible && !o.isLight) { hid.push(o); o.visible = true; } }); const p = renderer.compileAsync ? renderer.compileAsync(scene, camera) : (renderer.compile(scene, camera), null); for (const o of hid) o.visible = false; p?.catch?.(() => { }); } catch (e) { console.warn("pre", e); } }
 let BIRD_T = -1e9;
 function touchBird() { const n = performance.now(); if (n - BIRD_T < 20000 && voiceQ) return; BIRD_T = n; NARR.L = null; speakLines(BIRD_LINES.map(l => ({ ...l, tc: l.t, lay: "sound" })), null, { narr: true }); }
 /* ---------- 声（碧） ---------- */
@@ -1354,7 +1355,7 @@ function nearMarks() { const out = []; for (const L of LAYER.objs) { if (!L.root
 const TABM = { i: -1, L: null };
 const NAV = installNav({ THREE, canvas, camera, cam: CAM, mobile: MOBILE, mode: () => QW.mode,
   isMoving: () => QW.mode === "walk" && (WALK.auto || !!WALK.goal || !!(window.__qnav?.stick.f || window.__qnav?.stick.s)), isStuck: () => WALK.auto && (WALK.stuckT || 0) > .3,
-  stop: navStop, tap: (x, y) => tap(x, y), goalAt, markAt: (x, y) => pickObj(x, y) || QA?.pick(x, y, true), noSenseMenu: true,
+  stop: navStop, tap: (x, y) => tap(x, y), goalAt, markAt: (x, y) => QW.fliers?.pick(x, y, renderer.domElement, true) ? null : (pickObj(x, y) || QA?.pick(x, y, true))   /* 11-02：鳥が重なるときは鳥を先に（札より） */, noSenseMenu: true,
   ring: p => { if (p) { showGoal(p); WALK.ring.material.opacity = .45; } else if (WALK.ring && !WALK.goal) WALK.ring.visible = false; },
   skyDrag: (dx, dy) => { SKY.tAz -= dx * .005; SKY.tEl = Math.max(.25, Math.min(1.45, SKY.tEl + dy * .004)); }, skyZoom: f => { SKY.tDist = Math.max(160, Math.min(2600, SKY.tDist * f)); },
   hush: () => { stopVoice(); hidePanel(); }, say: t => toast(t),
@@ -1797,6 +1798,7 @@ function stepTag() {
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0; const GEO = { t: 0, last: "" };
 function frame() {
   const dt = Math.min(.05, clock.getDelta());
+  if (QW.mode === "walk" && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 1500); }   // 11-02：歩きはじめに影絵を前もって組み立てる（歩く途中の 100〜300 ms の 1 コマをなくす）
   (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt, QW.mode === "walk");
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); if (!NAV.drag && !RM) SKY.tAz += dt * .02; skyCam(); }

@@ -16,7 +16,7 @@ import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
-import { makeFliers } from "../kit/fliers.js?v=4";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
+import { makeFliers } from "../kit/fliers.js?v=5";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
 import { installNav } from "../kit/nav.js?v=n8";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=56m";
@@ -1246,9 +1246,9 @@ function tap(x, y) {
   }
   if (QW.mode !== "walk" && QW.mode !== "sight") return;
   if (QW.mode === "walk" && KASA.herd?.pickView(x, y)) return;   // 空中の 3D の窓に触れたら閉じる
+  if (QW.mode === "walk" && QW.fliers?.pick(x, y, renderer.domElement)) return;   // 11-02：鳥に触れる
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk") { for (const h of AREA.herds) { if (h.pickView(x, y)) return; const k = h.pick(x, y); if (k) { touchKasane(k); return; } } const L = pickAreaMark(x, y); if (L) { openObj(L); return; } }   // エリアのかさねっこと地点
-  if (QW.mode === "walk" && QW.fliers?.pick(x, y, renderer.domElement)) return;   // 11-02：鳥に触れる
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
   const o = pickObj(x, y) || (QW.mode === "walk" ? QA?.pick(x, y) : null); if (o) { QA?.touch(o); { const k = QAK(o); if (k && QW.mode === "walk") { toast(k === "x.soil" ? QAN(k) + "：足もとの下（根と菌糸の模式）" : k === "sound" && QW.sunTimes ? (r => `${QAN(k)} ── この場所のきょうの日の出 ${r.rise}・日の入り ${r.set}（計算）`)(QW.sunTimes(35.916, 139.632)) : QAN(k));   /* 10-30：リズム＝その場所の周期（日の出・日の入り）を sound の中に */ if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === o && performance.now() - LASTM.t < 25000 && !(NARR.L === o && NARR.sp) && !o.o.tch && !o.o.snd;   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
     LASTM.L = o; LASTM.t = performance.now(); if (again && QW.mode === "walk") { o.glyph.getWorldPosition(_v3); const dx = _v3.x - CAM.pos.x, dz = _v3.z - CAM.pos.z, l = Math.hypot(dx, dz); if (l > 2) { const sx = (_v3.clone().project(camera).x + 1) / 2 * innerWidth; const g = goalAt(sx, innerHeight * .8); if (g) { WALK.goal = g; showGoalRing(g); } } return; } openObj(o); return; }
@@ -1274,7 +1274,7 @@ const TABM = { L: null };
 function navStop() { const was = WALK.auto || !!WALK.goal; WALK.auto = false; WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; syncAutoBtn(); return was; }
 const NAV = installNav({ THREE, canvas, camera, cam: CAM, mobile: MOBILE, mode: () => QW.mode, modes: ["walk", "sky", "descend"],
   isMoving: () => QW.mode === "walk" && (WALK.auto || !!WALK.goal || !!(window.__qnav?.stick.f || window.__qnav?.stick.s)),
-  stop: navStop, tap: (x, y) => tap(x, y), goalAt: (x, y) => goalAt(x, y, false), markAt: (x, y) => pickObj(x, y) || QA?.pick(x, y, true), noSenseMenu: true,
+  stop: navStop, tap: (x, y) => tap(x, y), goalAt: (x, y) => goalAt(x, y, false), markAt: (x, y) => QW.fliers?.pick(x, y, renderer.domElement, true) ? null : (pickObj(x, y) || QA?.pick(x, y, true))   /* 11-02：鳥が重なるときは鳥を先に（札より） */, noSenseMenu: true,
   ring: p => { if (p) { showGoalRing(p); WALK.ring.material.opacity = .45; } else if (WALK.ring && !WALK.goal) WALK.ring.visible = false; },
   skyDrag: (dx, dy) => { SKY.tAz -= dx * .0042; SKY.tEl = Math.max(.42, Math.min(1.42, SKY.tEl + dy * .003)); }, skyZoom: f => { SKY.tDist = Math.min(4400, Math.max(380, SKY.tDist * f)); },
   hush: () => { stopVoice(); hidePanel(); }, say: t => toast(t),
@@ -1617,6 +1617,9 @@ $("#pClose").addEventListener("click", hidePanel);
 const BIRD_SRC = "Suzuki, Wheatcroft & Griesser (2016) Nature Communications 7:10986";
 const BIRD_LINES = [{ t: "いま目の前を横切ったのは、シジュウカラです。", f: "web/voice/9618e77411e5.m4a", dur: 2.93, id: "9618e77411e5" },
   { t: "シジュウカラは、二つの鳴き声を決まった順につなげて使います。順を入れかえると、聞いた仲間の反応が弱まることが、野外の実験で確かめられています。", f: "web/voice/bc242fd4536f.m4a", dur: 10.71, id: "bc242fd4536f", src: BIRD_SRC }];
+/* 11-02：歩くときの 100〜300 ms の 1 コマ＝初めて見えた物の影絵（シェーダー）をその場で組み立てていた（getProgramInfoLog）。
+   歩きはじめに、隠れている物も含めて一度だけ前もって組み立てる（compileAsync・並列に組める端末では待たない）。 */
+function preShaders() { try { const hid = []; scene.traverse(o => { if (!o.visible && !o.isLight) { hid.push(o); o.visible = true; } }); const p = renderer.compileAsync ? renderer.compileAsync(scene, camera) : (renderer.compile(scene, camera), null); for (const o of hid) o.visible = false; p?.catch?.(() => { }); } catch (e) { console.warn("pre", e); } }
 let U2 = null, U2P = null;   // 11-02：環世界 2.0 の重なり（大宮だけ）
 const UVV = { k: 0, el: null, o: "", said: false };
 let BIRD_T = -1e9;
@@ -2678,7 +2681,7 @@ function frame() {
     if (UVV.k > .6 && !UVV.said) { UVV.said = true; toast("鳥の目に寄せた模式：シジュウカラなど多くの鳥は、紫外にも感じる錐体をもちます（Hart 2001, Prog. Retin. Eye Res. 20:675）"); } }
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); skyCam(); }
-    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=2").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t) }); }).catch(e => console.warn("u2", e)); }
+    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=2").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t) }); setTimeout(preShaders, 400); }).catch(e => console.warn("u2", e)); }
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
     else if (QW.mode === "descend") stepWaitOrbit(dt);
