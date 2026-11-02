@@ -2681,7 +2681,7 @@ function frame() {
     if (UVV.k > .6 && !UVV.said) { UVV.said = true; toast("鳥の目に寄せた模式：シジュウカラなど多くの鳥は、紫外にも感じる錐体をもちます（Hart 2001, Prog. Retin. Eye Res. 20:675）"); } }
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); skyCam(); }
-    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=2").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t) }); setTimeout(preShaders, 400); }).catch(e => console.warn("u2", e)); }
+    else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt * (1 - .65 * (U2?.slow || 0))); if (QA && !U2 && !U2P) U2P = import("./umwelt2.js?v=3").then(({ makeUmwelt2 }) => { U2 = QW.U2 = makeUmwelt2(THREE, world, { camera, ground: (x, z) => groundY(x, z), soilOpen: (x, z) => QA.soilOpen(x, z), say: t => toast(t), sun: () => QW.sunAE ? QW.sunAE[1] : null }); setTimeout(preShaders, 400); }).catch(e => console.warn("u2", e)); }
     else if (QW.mode === "fly") stepFly(dt);
     else if (QW.mode === "sight") stepSight(dt);
     else if (QW.mode === "descend") stepWaitOrbit(dt);
