@@ -1431,7 +1431,7 @@ function stepHere(cp, t, off) {
     const SJ = { x: "X", sound: "聴", touch: "触", sight: "視", taste: "味", smell: "嗅" }, top = (QW.QA?.top || "").split(".")[0], xs = {};
     for (const L of [...LAYER.objs, ...(AREA.marks || [])]) { if (L.mark ? !L.mark.visible : !L.want) continue; const k = QAK(L) || ""; if (k.startsWith("x.") && Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 30) xs[k.slice(2)] = 1; }
     const XJ = { umwelt: "ほかの環世界", beyond: "人にない感覚", memory: "記憶", link: "つながり", soil: "地中", scale: "スケール" }, xn = Object.keys(xs).map(k => XJ[k]).filter(Boolean)[0] || "";
-    QH.el.innerHTML = `<span class="sn">` + ["x", "sound", "touch", "sight", "taste", "smell"].map(k => `<i class="${cnt[k] ? "on" : ""}${top === k ? " cur" : ""}" style="--c:${QAC[k === "x" ? "x.memory" : k]}" title="Qualia/${k}">${SJ[k]}</i>`).join("") + `</span>` + (xn && cnt.x ? `<span class="xn">${xn}</span>` : "");
+    { const h = `<span class="sn">` + ["x", "sound", "touch", "sight", "taste", "smell"].map(k => `<i class="${cnt[k] ? "on" : ""}${top === k ? " cur" : ""}" style="--c:${QAC[k === "x" ? "x.memory" : k]}" title="Qualia/${k}">${SJ[k]}</i>`).join("") + `</span>` + (xn && cnt.x ? `<span class="xn">${xn}</span>` : ""); if (h !== QH.h) { QH.h = h; QH.el.innerHTML = h; } }   // 変わったときだけ書きかえる（重くしない）
     QH.el.hidden = false; QH.best = nd < 400 ? nL : null;   /* 上の札と方角の丸は同じ球を指す */
   }
   const L = QH.best;
