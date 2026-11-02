@@ -40,6 +40,13 @@ export function attachHenshin(QW, opt = {}) {
     if (b.make === "bee") { const { makeBee } = await import("./creatures.js"); const g = makeBee(undefined, { state: "fly" }); g.scale.setScalar(.16); const w = new THREE.Group(); w.add(g); g.position.y = .1; w.userData.anim = t => g.userData.animate?.(t, true); return w; }
     return new THREE.Mesh(new THREE.SphereGeometry(.07, 12, 8), matW);
   }
+  function markAoi() {   // 碧へ戻る印：碧の髪の色の細い光の輪と、葉の房（碧の髪の一房と同じ意匠）。小さく、ゆっくり回る
+    const g = new THREE.Group(), mh = new THREE.MeshBasicMaterial({ color: HAIR, transparent: true, opacity: .95 }), mw = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .85 });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.05, .0028, 8, 64), mh); g.add(ring);
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(.058, .0012, 6, 64), mw); g.add(ring2);
+    const ml = new THREE.MeshStandardMaterial({ color: HAIR, roughness: .45, metalness: 0, emissive: HAIR, emissiveIntensity: .35 });   // 葉の房は陰影のある材質（平らな絵に見えない）
+    for (let i = 0; i < 3; i++) { const l = new THREE.Mesh(new THREE.SphereGeometry(.012, 16, 12), ml); l.scale.set(.55, 1.6, .3); l.position.set((i - 1) * .011, .004 + (i === 1 ? .004 : 0), 0); l.rotation.z = (1 - i) * .38; g.add(l); }
+    g.userData.spin = ring; g.userData.leaf = g.children.slice(2); return g; }
   function miniAoi() {   // 碧の小さな姿（低ポリ・白い体に髪の色の房）
     const g = new THREE.Group(), body = new THREE.Mesh(new THREE.CapsuleGeometry(.045, .12, 3, 10), matW); body.position.y = .105; g.add(body);
     const head = new THREE.Mesh(new THREE.SphereGeometry(.045, 14, 10), matW); head.position.y = .235; g.add(head);
@@ -47,7 +54,7 @@ export function attachHenshin(QW, opt = {}) {
     const tuft = new THREE.Mesh(new THREE.ConeGeometry(.018, .09, 8), matH); tuft.position.set(.03, .2, .035); tuft.rotation.z = .5; g.add(tuft);
     return g;
   }
-  const back = { id: "hito", g: miniAoi(), label: mkLabel("碧へ戻る"), profile: PROFILES.hito }; back.g.visible = false; back.g.scale.setScalar(.5); { const pad = new THREE.Mesh(new THREE.CircleGeometry(.11, 32), new THREE.MeshBasicMaterial({ color: HAIR, transparent: true, opacity: .35, depthWrite: false })); pad.rotation.x = -Math.PI / 2; pad.position.y = .004; back.g.add(pad); const rim = new THREE.Mesh(new THREE.RingGeometry(.11, .118, 40), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .8, depthWrite: false })); rim.rotation.x = -Math.PI / 2; rim.position.y = .006; back.g.add(rim); }   /* 押せる物と分かる台（髪の色の円と白い縁） */ back.label.style.cssText += ";font-size:13px;padding:13px 16px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px;background:rgba(95,167,160,.28);min-height:44px;box-sizing:border-box;display:none";   /* 押せると分かる細い縁（板は敷かない） */ scene.add(back.g); back.g.traverse(o => { o.frustumCulled = false; o.renderOrder = 10; });   /* 戻る台は、依代の視点のカメラの右下に置く（碧や幹に重ねない） */
+  const back = { id: "hito", g: markAoi(), label: mkLabel("碧へ戻る"), profile: PROFILES.hito }; back.g.visible = false;  back.label.style.cssText += ";font-size:13px;padding:13px 16px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px;background:rgba(95,167,160,.28);min-height:44px;box-sizing:border-box;display:none";   /* 押せると分かる細い縁（板は敷かない） */ scene.add(back.g); back.g.traverse(o => { o.frustumCulled = false; o.renderOrder = 10; });   /* 戻る台は、依代の視点のカメラの右下に置く（碧や幹に重ねない） */
   ORDER.forEach(async (id, i) => {
     const P = PROFILES[id]; if (!P) return; const it = { id, g: new THREE.Group(), label: mkLabel(P.name), profile: P, i };
     icons.push(it); gui.add(it.g);
@@ -223,10 +230,11 @@ export function attachHenshin(QW, opt = {}) {
     if (S.target === 1 || S.k > .01) stepPose(dt, t); stepCycle(dt);
     if (S.body && S.pose) { const own = false;   /* 自分の体の先は、リアルな部分の 3D（別の担当が用意中）が届くまで出さない（依代の形では何の生き物か分からなかった） */ S.body.visible = own;
       if (own) { D3.subVectors(S.pose.look, S.pose.pos).normalize(); const sz = S.cur.body3d.size || .2; const dd = Math.max(.08, (S.body.userData.len || sz) * .35), tip = S.pose.pos.y - dd * .95 - (S.body.userData.top || sz); S.body.position.set(S.pose.pos.x + D3.x * dd, tip, S.pose.pos.z + D3.z * dd); /* 頭の先だけが視野の下端にのぞく（体の後ろ姿で画面を塞がない） */ S.body.lookAt(S.pose.look.x, S.body.position.y, S.pose.look.z); S.body.userData.animate?.(t, true); } }   /* 自分の体の前の端（頭・嘴・鼻先）が視野の下端に入る位置。体の内側が見えないよう、目より前・下に置く */
-    { const on = S.target === 1 && S.k > .6 && S.pose && walk; back.g.visible = false;   /* 小さな碧の 3D は本体の碧と釣り合わず不自然＝出さない。押せる形の「碧へ戻る」だけを置く（碧に触れても戻る） */
+    { const on = S.target === 1 && S.k > .6 && S.pose && walk; back.g.visible = on;   /* 戻る印＝髪の色の細い光の輪と葉の房（11 回目の採点：小さな碧の人形は安っぽい→やめた） */
       if (on) { const P0 = S.pose.pos; D3.subVectors(S.pose.look, P0).normalize(); const rx = -D3.z, rz = D3.x, rl = Math.hypot(rx, rz) || 1;
-        back.g.position.set(P0.x + D3.x * .8 + rx / rl * .2, P0.y + D3.y * .8 - .16, P0.z + D3.z * .8 + rz / rl * .2); back.g.rotation.y = t * .4;
-        PC.position.copy(P0); PC.fov = S.cur.sight?.fov || camera.fov; PC.aspect = camera.aspect; PC.updateProjectionMatrix(); PC.lookAt(S.pose.look); PC.updateMatrixWorld(); back.g.getWorldPosition(P3); P3.y += .12; P3.project(PC); back.sc = P3.z < 1 ? [(P3.x + 1) / 2 * innerWidth, (1 - P3.y) / 2 * innerHeight] : null;   /* 依代の視点のカメラで画面の位置を出す */ const L = back.label; if (back.sc) { L.style.display = ""; L.style.transform = `translate(${Math.max(8, Math.min(innerWidth - L.offsetWidth - 8, back.sc[0] - L.offsetWidth / 2)) | 0}px,${(back.sc[1] + 30) | 0}px)`; } } else if (!gui.visible || S.target !== 1) back.label.style.display = back.g.visible ? "" : "none"; }
+        PC.position.copy(P0); PC.fov = S.cur.sight?.fov || camera.fov; PC.aspect = camera.aspect; PC.updateProjectionMatrix(); PC.lookAt(S.pose.look); PC.updateMatrixWorld();
+        { const nx = innerWidth < 560 ? .55 : .7, ny = .02; P3.set(nx, ny, .5).unproject(PC).sub(P0).normalize(); back.g.position.copy(P0).addScaledVector(P3, .7); back.g.lookAt(P0); back.g.scale.setScalar(64 * 2 * .7 * Math.tan(PC.fov * Math.PI / 360) / (innerHeight * .116));   /* 画面の上でいつも直径およそ 64pt */ back.g.userData.spin.rotation.z = t * .5; for (const [i, l] of back.g.userData.leaf.entries()) l.rotation.y = Math.sin(t * .8 + i) * .5;   /* 葉の房はゆっくり揺れて立体に見える */   /* 印は画面の同じ所（右の中ほど）にいつも全部入る：画面の点から逆に置く */
+          back.sc = [(nx + 1) / 2 * innerWidth, (1 - ny) / 2 * innerHeight]; }   /* 依代の視点のカメラで画面の位置を出す */ const L = back.label; if (back.sc) { L.style.display = ""; L.style.transform = `translate(${Math.max(8, Math.min(innerWidth - L.offsetWidth - 8, back.sc[0] - L.offsetWidth / 2)) | 0}px,${(back.sc[1] + 40) | 0}px)`; } } else if (!gui.visible || S.target !== 1) back.label.style.display = back.g.visible ? "" : "none"; }
     if (Math.abs(S.k - lastK) < .004) return; lastK = S.k;
     const k = S.k, P = S.cur;
     if (k < .01 || !(P.sight?.mix ?? 1)) { canvas.style.filter = ""; veil.style.opacity = 0; if (S.target === 0) S.pose = null; return; }
