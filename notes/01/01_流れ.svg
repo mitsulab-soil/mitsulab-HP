@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-label="景色を数え、人に感じてもらい、両者をつないで、造る前の景色の感じ方を予測する流れ" font-family="Hiragino Sans, Noto Sans JP, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5cc8e0"/></marker></defs>
+<g fill="none" stroke="#5cc8e0" stroke-width="1.2">
+<rect x="12" y="40" width="150" height="90" rx="3"/><rect x="12" y="170" width="150" height="90" rx="3"/>
+<rect x="290" y="105" width="150" height="90" rx="3"/><rect x="558" y="105" width="150" height="90" rx="3"/>
+<path d="M162 85L288 140" marker-end="url(#a)"/><path d="M162 215L288 160" marker-end="url(#a)"/><path d="M440 150L556 150" marker-end="url(#a)"/>
+</g>
+<g fill="#eef5fb" font-size="15" text-anchor="middle">
+<text x="87" y="72">① 景色を数える</text><text x="87" y="202">② 人に感じてもらう</text>
+<text x="365" y="137">③ 数と感じ方を</text><text x="365" y="158">つなぐ</text>
+<text x="633" y="137">④ 造る前に</text><text x="633" y="158">予測する</text>
+</g>
+<g fill="#8f9bb4" font-size="10.5" text-anchor="middle">
+<text x="87" y="96">360°の写真を塗り分け</text><text x="87" y="114">緑・舗装・建物・空の割合</text>
+<text x="87" y="226">VR で 120 人</text><text x="87" y="244">6 つの感じ方を 7 段階で</text>
+<text x="365" y="180">予測の仕組みを学ばせる</text>
+<text x="633" y="180">木を増やした CG など</text>
+</g>
+<text x="12" y="22" fill="#8f9bb4" font-size="11">図 1　mitsulab 作図（Luo ほか 2025 の手順をもとに）</text>
+</svg>

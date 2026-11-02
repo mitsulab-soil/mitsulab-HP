@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" role="img" aria-label="視界の緑が多いほど、美しい・安全は上がり、にぎやか・豊か・退屈・気が沈むは下がる向きだった" font-family="Hiragino Sans, Noto Sans JP, sans-serif">
+<text x="12" y="22" fill="#8f9bb4" font-size="11">図 2　mitsulab 作図（Luo ほか 2025 の相関の向きをもとに。矢印の太さは強さの目安）</text>
+<circle cx="150" cy="180" r="64" fill="none" stroke="#7fbf8a" stroke-width="1.4"/>
+<text x="150" y="176" fill="#eef5fb" font-size="15" text-anchor="middle">視界の緑が</text>
+<text x="150" y="198" fill="#eef5fb" font-size="15" text-anchor="middle">多いほど</text>
+<g font-size="15" fill="#eef5fb">
+<text x="300" y="72" fill="#9bdcf0">上がる向き</text>
+<text x="330" y="108">美しい（強い）</text><text x="330" y="140">安全（中くらい）</text>
+<text x="300" y="200" fill="#c3a0a0">下がる向き</text>
+<text x="330" y="236">にぎやか</text><text x="330" y="262">豊か（裕福そう）</text><text x="330" y="288">退屈</text><text x="330" y="314">気が沈む</text>
+</g>
+<g fill="none" stroke-linecap="round">
+<path d="M214 168L320 104" stroke="#9bdcf0" stroke-width="4"/><path d="M214 176L320 136" stroke="#9bdcf0" stroke-width="2.4"/>
+<path d="M214 196L320 232" stroke="#c3a0a0" stroke-width="1.4" stroke-dasharray="5 4"/><path d="M212 200L320 258" stroke="#c3a0a0" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M208 206L320 284" stroke="#c3a0a0" stroke-width="1.4" stroke-dasharray="5 4"/><path d="M204 212L320 310" stroke="#c3a0a0" stroke-width="1.4" stroke-dasharray="5 4"/>
+</g>
+<text x="520" y="120" fill="#8f9bb4" font-size="12">良い景色は、</text><text x="520" y="138" fill="#8f9bb4" font-size="12">一つの物差しでは</text><text x="520" y="156" fill="#8f9bb4" font-size="12">測れない</text>
+</svg>

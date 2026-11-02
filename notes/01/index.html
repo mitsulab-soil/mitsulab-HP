@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>街のデジタルコピーに、人の感じ方を重ねたら？ — 環世界ノート｜mitsulab</title><meta name="description" content="街を丸ごと写した 3D の模型（デジタルツイン）に、「人がその景色をどう感じるか」を足し、まだ造っていない景色の感じ方まで予測してみた研究です。">
+<meta name="robots" content="index, follow"><meta name="tdm-reservation" content="1"><meta name="theme-color" content="#03060f">
+<link rel="canonical" href="https://mitsulab.jp/notes/01/"><link rel="icon" href="/favicon.ico" type="image/x-icon"><link rel="stylesheet" href="/legal.css">
+<style>.em{color:var(--aoi-2)}figure{margin:18px 0}figure img{width:100%;height:auto;display:block;background:rgba(0,0,0,.25);border:1px solid var(--line-2)}
+figcaption{font-size:.8rem;color:var(--ink-3);margin-top:6px}.list a{display:block;padding:14px 0;border-bottom:1px solid var(--line-2);min-height:44px}.list small{display:block;color:var(--ink-3);font-size:.8rem}</style>
+</head><body>
+<header class="top"><div class="top-in"><a class="brand" href="/">mitsulab</a><a href="/notes/" style="font-size:.86rem">環世界ノート</a></div></header>
+<main><div class="head"><span class="eyebrow">Umwelt Notes 01</span><h1>街のデジタルコピーに、人の感じ方を重ねたら？</h1><p class="dates">環世界ノート　mitsulab</p></div><div class="card"><h2>1. 身近な問い</h2>
+<p>同じ川沿いの道でも、「気持ちいい」と感じる区間と、なんとなく早く抜けたくなる区間があります。</p>
+<p>その違いを、道を造る前に知ることはできるでしょうか。</p>
+</div><div class="card"><h2>2. この研究を一言で</h2>
+<p><span class="em">街を丸ごと写した 3D の模型（デジタルツイン）に、「人がその景色をどう感じるか」を足し、まだ造っていない景色の感じ方まで予測してみた研究</span>です。</p>
+</div><div class="card"><h2>3. 何をして、何が分かったか　【研究で分かったこと】</h2>
+<p><span class="em">場所</span>：シンガポール中心部、シンガポール川沿いの長さ約 3 km の緑道。</p>
+<p><span class="em">① 景色を数える</span></p>
+<p>道沿いの 360° の写真を AI（画像の各画素を「植物」「道路」「建物」「空」「車」などに塗り分ける DeepLabV3 という仕組み）にかけ、視界のうち緑・地面・建物・空・乗り物が何割を占めるかを数えました。視野の広さや、道の幅と建物の高さの比も測っています。</p>
+<p><span class="em">② 人に感じてもらう</span></p>
+<p>120 人が VR のゴーグルでその景色の中に立ち、「美しい」「安全」「にぎやか」「退屈」「気が沈む」「豊か（裕福そう）」の 6 つを 7 段階で答えました。2 組（各 60 人）に分けて同じ手順を繰り返し、答えが安定していることを確かめています。写真の代わりに精細な CG（レンダリング）を見せても通用するかも尋ねています。</p>
+<p><span class="em">③ 数と感じ方をつなぐ</span></p>
+<ul>
+<li>視界の<span class="em">緑の割合</span>は、6 つの感じ方すべてと関係していました。「美しい」とは強く、「安全」とは中くらいに、同じ向きに動きます。一方で「にぎやか」「豊か」とは<span class="em">逆の向き</span>でした。</li>
+<li><span class="em">建物の割合</span>は「豊か」「にぎやか」と中くらいに同じ向き、「美しい」とは弱く逆向き。</li>
+<li><span class="em">舗装の割合</span>は「退屈」と中くらいに同じ向きでした。</li>
+</ul>
+<p><span class="em">④ 造る前に予測する</span></p>
+<p>この関係を学ばせた予測の仕組み（ランダムフォレスト）は、感じ方のばらつきのおよそ 4〜6 割を説明できました（R² 0.44〜0.62。いちばん高いのは「美しい」）。そのうえで、CG で「木を増やす」「スカイラインに新しい建物を足す」などの案を作り、建てる前にその景色がどう感じられるかを予測して見せています。</p>
+<figure><img src="01_流れ.svg" alt="図 1　景色を数え、人に感じてもらい、つないで、造る前に予測する" loading="lazy"><figcaption>図 1　景色を数え、人に感じてもらい、つないで、造る前に予測する</figcaption></figure>
+<figure><img src="02_緑と感じ方.svg" alt="図 2　視界の緑と 6 つの感じ方の向き" loading="lazy"><figcaption>図 2　視界の緑と 6 つの感じ方の向き</figcaption></figure>
+</div><div class="card"><h2>4. まだ分からないこと　【研究で分かったこと】</h2>
+<ul>
+<li><span class="em">答えた人の多く（約 8 割、94 人）は造園・都市計画の学生や研究者</span>です。平均年齢は 20 代後半。街を使うさまざまな人の感じ方とは違うかもしれません。</li>
+<li><span class="em">見るだけの体験</span>です。著者たち自身が、VR には音・匂い・肌ざわりなどがなく、その場にいるときの感じ方とは違いうると書いています。</li>
+<li>予測が説明できるのは 4〜6 割。残りは、この数え方では捉えきれていません。</li>
+<li>場所は一つの緑道。ほかの街や気候でも同じ関係になるかは、この研究だけでは言えません。</li>
+<li>3D の模型づくりは手作業が多く、写真の更新にも時間がかかる、と著者たちは書いています。</li>
+</ul>
+</div><div class="card"><h2>5. mitsulab ならどう考えるか　【ここからは研究ではなく、mitsulab の考え】</h2>
+<ul>
+<li><span class="em">見方が変わる</span>：緑が増えると「美しい」「安全」は上がる一方、「にぎやか」とは逆向きでした。良い景色は一つの物差しでは測れない、ということです。造る仕事では「木を植えれば良くなる」と言いがちですが、その道に求められているのが静けさなのか、にぎわいなのかで答えは変わります。</li>
+<li><span class="em">試せる</span>：いつもの道を歩き、区間ごとに「緑・舗装・建物・空」のおよその割合と、自分の感じ方（6 つのどれが強いか）をメモしてみる。スマホの写真を後で見返すだけでも、自分の感じ方の癖が見えてきます。</li>
+<li><span class="em">作品への着想</span>：この研究が扱ったのは「目で見る」層だけでした。mitsulab の Qualium は、音・触覚・ほかの生き物の受けとり方の層を重ねる試みです。景色の数と感じ方を結ぶ考え方を、視覚の外の層へ広げられるかを、作品の側から試していきたいと考えています。</li>
+</ul>
+</div><div class="card"><h2>6. 原論文への入口</h2>
+<p>Luo, J., Liu, P., Xu, W., Zhao, T., Biljecki, F. (2025). A perception-powered urban digital twin to support human-centered urban planning and sustainable city development. <i>Cities</i>, 156, 105473. <a href="https://doi.org/10.1016/j.cities.2024.105473" rel="noopener">https://doi.org/10.1016/j.cities.2024.105473</a> （査読：あり。著者による公開版：<a href="https://ual.sg/publication/2025-cities-perception-dt/" rel="noopener">https://ual.sg/publication/2025-cities-perception-dt/</a>）</p></div></div></main>
+<footer><p class="f-brand">mitsulab</p><nav class="f-links"><a href="/">トップ</a><a href="/notes/">環世界ノート</a><a href="/terms/">利用規約</a><a href="mailto:official@mitsulab.jp">official@mitsulab.jp</a></nav>
+<p class="f-copy">© 2026 mitsulab / Uehara Mitsuaki. All rights reserved.</p></footer>
+</body></html>
