@@ -12,7 +12,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k13";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k17";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n8o";   // 10-29 操作の設計（3 版共通）
@@ -20,7 +20,7 @@ import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=5m";
+import { makeAreas } from "./areas.js?v=5n";
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
@@ -37,7 +37,7 @@ const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
 const canvas = $("#gl");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: !MOBILE, powerPreference: "high-performance" });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !/[?&]aa=0/.test(location.search),   /* 2026-11-02 スマホの輪郭のギザギザ：375・CPU 4 倍の前後比較で fps の差は測れる幅に出なかった（無 11〜34／有 26〜33）ので、スマホも有りに。重い端末は画素の比を自動で下げる */ powerPreference: "high-performance" });
 const PR_MAX = MOBILE ? Math.min(devicePixelRatio, 1.6) : Math.min(devicePixelRatio, 1.5);
 let pr = PR_MAX; renderer.setPixelRatio(pr);
 renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
@@ -192,7 +192,10 @@ async function buildBase() {
     const g2 = new THREE.BufferGeometry(); g2.setAttribute("position", new THREE.BufferAttribute(P, 3)); g2.setAttribute("uv", new THREE.BufferAttribute(U, 2)); g2.setIndex(I); g2.computeVertexNormals();
     t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
     const m2 = new THREE.MeshStandardMaterial({ map: t, roughness: 1, color: "#8f8a82", polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-    m2.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n float eg=min(min(vMapUv.x,1.-vMapUv.x),min(vMapUv.y,1.-vMapUv.y)); if(eg<0.) discard;"); };
+    const det = texLate("web/tex/pave_c.webp"); det.wrapS = det.wrapT = THREE.RepeatWrapping; det.colorSpace = THREE.SRGBColorSpace; det.anisotropy = MOBILE ? 4 : 8;
+    m2.onBeforeCompile = sh => { sh.uniforms.uDet = { value: det };   /* 11-02 採点 P1「右手の地面が水面のよう」：空中写真（約 0.5 m）は目の高さでは流れて見えるので、近くは CC0 の石と土の地肌（pave_c）に置きかえ、遠くだけ写真の色に */
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D uDet; varying vec3 vWp;").replace("#include <map_fragment>", "#include <map_fragment>\n float eg=min(min(vMapUv.x,1.-vMapUv.x),min(vMapUv.y,1.-vMapUv.y)); if(eg<0.) discard;\n { vec3 dc=texture2D(uDet, vWp.xz/2.4).rgb; float lum=dot(diffuseColor.rgb,vec3(.3,.59,.11)); float k=1.-smoothstep(60.,150.,distance(vWp,cameraPosition)); diffuseColor.rgb=mix(diffuseColor.rgb, dc*vec3(.78,.76,.73)*(.75+lum*.6), k*.85); }"); };
     m2._obc = m2.onBeforeCompile; desat(m2);
     const near = new THREE.Mesh(g2, m2); near.renderOrder = 1; world.add(near); QW.near = near;
   }).catch(() => { }), 2200);
@@ -206,12 +209,12 @@ function texLate(u) {   // 2026-10-28 深夜 3D：道・建物の質感は、操
 function roadMat() {   // 道の面：Poly Haven「Asphalt 04」（CC0）の色・法線・粗さ。3 m ごとに繰り返し、大きなむら（補修跡・踏まれた筋）を重ねて繰り返しを目立たせない
   if (ASPH) return ASPH;
   const ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 12; return t; };
-  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#7d7a76", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
+  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#7d7a76", metalness: 0, envMapIntensity: .35, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
   m.onBeforeCompile = sh => {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWxz=(modelMatrix*vec4(transformed,1.)).xz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;\nfloat n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);float a=fract(sin(dot(i,vec2(127.1,311.7)))*43758.5),b=fract(sin(dot(i+vec2(1,0),vec2(127.1,311.7)))*43758.5),c=fract(sin(dot(i+vec2(0,1),vec2(127.1,311.7)))*43758.5),d=fract(sin(dot(i+vec2(1,1),vec2(127.1,311.7)))*43758.5);return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}")
-      .replace("#include <map_fragment>", "#include <map_fragment>\n float big=n2(vWxz*.07)*.6+n2(vWxz*.23)*.4; float pch=smoothstep(.62,.66,n2(vWxz*.045+3.1)); diffuseColor.rgb*=mix(.86,1.1,big); diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.78,pch*.8);\n float trk=n2(vec2(vMapUv.x*7.,vMapUv.y*.35)); float lane=smoothstep(.55,.8,trk); diffuseColor.rgb*=1.-lane*.12; float fine=n2(vWxz*1.7)*.5+n2(vWxz*4.3)*.5; diffuseColor.rgb*=.93+fine*.14; float crk=1.-smoothstep(.0,.025,abs(n2(vWxz*.5+7.3)-.5)); diffuseColor.rgb*=1.-crk*.35*step(.5,n2(vWxz*.11));")
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = clamp(roughnessFactor - lane*.18 - pch*.1, .45, 1.);");   // 10-27 夜：踏まれた轍の筋（少し暗くつやが出る）・細かな粒のむら・細いひびと補修跡
+      .replace("#include <map_fragment>", "#include <map_fragment>\n float big=n2(vWxz*.07)*.6+n2(vWxz*.23)*.4; float pch=smoothstep(.62,.66,n2(vWxz*.045+3.1)); diffuseColor.rgb*=mix(.86,1.1,big); diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.78,pch*.8);\n float trk=n2(vec2(vMapUv.x*7.,vMapUv.y*.35)); float lane=smoothstep(.55,.8,trk); diffuseColor.rgb*=1.-lane*.12; float fine=n2(vWxz*1.7)*.5+n2(vWxz*4.3)*.5; diffuseColor.rgb*=.93+fine*.14; float crk=1.-smoothstep(.0,.025,abs(n2(vWxz*.5+7.3)-.5)); diffuseColor.rgb*=1.-crk*.08*step(.5,n2(vWxz*.11));   /* 11-02 採点「舗装の黒い曲線」→ 補修跡はごく淡く */")
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = clamp(roughnessFactor - lane*.06 - pch*.04, .78, 1.);   /* 11-02 採点 P1「右手の地面が水面のよう」→ 照りを抑える */");   // 10-27 夜：踏まれた轍の筋（少し暗くつやが出る）・細かな粒のむら・細いひびと補修跡
   };
   return ASPH = m;
 }
@@ -260,15 +263,18 @@ function markMat(kind) {   // 路面標示（白・実寸の模式）：0＝実�
 }
 function buildMarkings() {   // 川越：渋谷・大宮と同じ作り（2026-10-27）
     // 2026-10-27 本人「道路もリアルに」：横断歩道（OSM の crossing）・車道の中央の破線と外側線・縁石（模式・実寸）。店名や字は描かない
-  const solid = [], dash = [], zebra = [], curb = [];
+  const solid = [], dash = [], zebra = [], curb = [], side = [];
+  const ICH = G.roads.filter(r => /中央通り|一番街/.test(r.nm || "")).flatMap(r => densify(r.p, 6));
   for (const r of G.roads) { if (!/^(trunk|primary|secondary|tertiary|unclassified|residential)$/.test(r.k) || r.p.length < 2 || /大正浪漫|クレアモール|菓子屋/.test(r.nm || "")) continue;   /* 川越：歩行者の通りには線も縁石も引かない */ const P = densify(r.p, 3);
+    if (r.w >= 7 && (/中央通り|一番街/.test(r.nm || "") || r.p.some(p => ICH.some(q => Math.abs(p[0] - q[0]) < 8 && Math.abs(p[1] - q[1]) < 8)))) {   /* 名のない同じ通りの切れ端も */ for (const sg of [-1, 1]) side.push(ribbon(offsetLine(P, sg * (r.w / 2 - 1.05)), 2.1, .1, 1)); continue; }   /* 2026-11-02 採点「白線入りの広い車道」→ 一番街は白線も縁石も引かず、両脇を石の色の歩く帯（約 2 m）にして、歩く道の幅に見せる（模式） */
     if (r.w >= 7) { if (!/中央通り|一番街/.test(r.nm || "")) dash.push(ribbon(P, .15, .07, 1));   /* 2026-10-27 一番街（中央通り）は中央線の有無を典拠で確かめられないので引かない（控えめに） */ for (const sg of [-1, 1]) { const E = offsetLine(P, sg * (r.w / 2 - .35)); solid.push(ribbon(E, .15, .07, 1)); curb.push(ribbon(offsetLine(P, sg * (r.w / 2 + .12)), .24, .16, 1)); } }
     else if (r.w >= 5) { for (const sg of [-1, 1]) curb.push(ribbon(offsetLine(P, sg * (r.w / 2 + .1)), .2, .14, 1)); } }
   for (const x of G.xing || []) { const P = []; for (let i = 1; i + 1 < x.length; i += 2) P.push([x[i], x[i + 1]]); if (P.length > 1) zebra.push(ribbon(densify(P, 2), x[0], .075, 1)); }
   const add = (gs, mat, nm) => { if (!gs.length) return; const m = new THREE.Mesh(mergeIdx(gs), mat); m.name = nm; m.renderOrder = 1; world.add(m); };
   add(solid, markMat(0), "markSolid"); add(dash, markMat(1), "markDash"); add(zebra, markMat(2), "zebra");
   add(curb, new THREE.MeshStandardMaterial({ color: "#a9a6a0", roughness: .9, map: (t => (t.wrapS = t.wrapT = THREE.RepeatWrapping, t.colorSpace = THREE.SRGBColorSpace, t))(texLate("web/tex/pave_c.webp")), polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -9 }), "curb");
-  QW.marks = { solid: solid.length, dash: dash.length, zebra: zebra.length, curb: curb.length };
+  add(side, new THREE.MeshStandardMaterial({ color: "#b3aa9c", roughness: .88, map: (t => (t.wrapS = t.wrapT = THREE.RepeatWrapping, t.colorSpace = THREE.SRGBColorSpace, t.anisotropy = MOBILE ? 4 : 8, t))(texLate("web/tex/pave_c.webp")), polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 }), "sideWalk");
+  QW.marks = { side: side.length, solid: solid.length, dash: dash.length, zebra: zebra.length, curb: curb.length };
 }
 function mergeIdx(gs) { let n = 0; const P = [], U = [], N = [], I = []; for (const g of gs) { const p = g.attributes.position.array, u = g.attributes.uv.array, nn = g.attributes.normal.array, ix = g.index.array; for (let i = 0; i < p.length; i++) P.push(p[i]); for (let i = 0; i < u.length; i++) U.push(u[i]); for (let i = 0; i < nn.length; i++) N.push(nn[i]); for (let i = 0; i < ix.length; i++) I.push(ix[i] + n); n += p.length / 3; g.dispose(); }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); g.setAttribute("normal", new THREE.Float32BufferAttribute(N, 3)); g.setIndex(n > 65535 ? new THREE.Uint32BufferAttribute(I, 1) : new THREE.Uint16BufferAttribute(I, 1)); return g; }
@@ -288,7 +294,7 @@ const BLDU = { t: { value: 0 } };
 async function buildBuildings() {
   const [buf] = await Promise.all([fetch("web/geo/bld.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet(), AREAS.load()]), a = new Int16Array(buf);
   const B = NET.box || [0, 0, 0, 0], inBox = (x, z, m) => x > B[0] - m && x < B[2] + m && z > B[1] - m && z < B[3] + m;   // 歩ける道の範囲（とそのまわり）
-  const P = [], Y0 = [], E = [], F = [], LIM = MOBILE ? 700 : 1600;
+  const P = [], Y0 = [], E = [], F = [], MC = [], LIM = MOBILE ? 700 : 1600;   // MC＝上空と歩くときの不透明の町並みの色（11-02 P1「上から透けた箱」）
   let i = 0, nb = 0;
   while (i < a.length) {
     const n = a[i], hRaw = a[i + 1], low = (hRaw & 0x4000) !== 0, h = (hRaw & 0x3fff) / 10, y = a[i + 2] / 10; i += 3;
@@ -298,11 +304,12 @@ async function buildBuildings() {
     if (!low && box && NET.pw) { let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= n; mz /= n; const A = Math.abs(THREE.ShapeUtils.area(ring));
       if (A > 18 && A < 3000 && (Math.hypot(mx - 465, mz + 440) < 62 || NET.pw.some(w => mx > w.x0 && mx < w.x1 && mz > w.z0 && mz < w.z1 && inRing(w.r, mx, mz))) && !netCrosses(ring)) { addTemple(ring, y, A); continue; } }   // 2026-10-26 川越氷川神社の境内（OSM では点だけ）も寺社の型に   // 2026-10-25 寺社の境内の建物＝寺社の建物の型（模式）
     if (!low && !far && streetSide(ring)) { addSolid(ring, y, top, SOLID, eraAt(ring)); for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n]; E.push(p.x, top, p.y, q.x, top, q.y); } continue; }   // 2026-10-24 本人「人が歩くところは透明にしない」＝通りに面した建物は不透明の壁に（入れない）
-    for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n];
+    const hr = Math.abs(Math.sin(cx * 12.9898 + cz * 78.233) * 43758.5453) % 1, wc = MASS_WALL[Math.floor(hr * MASS_WALL.length)], rc0 = (h < 9 ? TILE_ROOF : FLAT_ROOF)[Math.floor(((hr * 7) % 1) * (h < 9 ? TILE_ROOF.length : FLAT_ROOF.length))];
+    for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n]; if (!low) for (let m = 0; m < 6; m++) MC.push(...(m === 2 || m === 4 || m === 5 ? wc : [wc[0] * .8, wc[1] * .8, wc[2] * .8]));
       P.push(p.x, y, p.y, q.x, y, q.y, q.x, top, q.y, p.x, y, p.y, q.x, top, q.y, p.x, top, p.y); for (let m = 0; m < 6; m++) Y0.push(y);
       if (!far || low) { E.push(p.x, top, p.y, q.x, top, q.y); if (!low) E.push(p.x, y, p.y, p.x, top, p.y); } }
     if (low) { P.length -= n * 18; Y0.length -= n * 6; }   // 店蔵の型を置いた所は、面を描かず地割の線だけ
-    { const tri = THREE.ShapeUtils.triangulateShape(ring, []); for (const [u, v, w] of tri) for (const t of [u, w, v]) { if (!low) { P.push(ring[t].x, top, ring[t].y); Y0.push(y); } if (!far) F.push(ring[t].x, groundY(ring[t].x, ring[t].y) + .05, ring[t].y); } }   // 屋根の面と、足もとの覆い（空中写真の屋根が地面に写るのを隠す）
+    { const tri = THREE.ShapeUtils.triangulateShape(ring, []); for (const [u, v, w] of tri) for (const t of [u, w, v]) { if (!low) { P.push(ring[t].x, top, ring[t].y); Y0.push(y); MC.push(...rc0); } if (!far) F.push(ring[t].x, groundY(ring[t].x, ring[t].y) + .05, ring[t].y); } }   // 屋根の面と、足もとの覆い（空中写真の屋根が地面に写るのを隠す）
     if (nb % 600 === 0) await new Promise(r => setTimeout(r, 0));   // 区切って作る（読み込みのあいだも画を止めない）
   }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("y0", new THREE.Float32BufferAttribute(Y0, 1)); g.computeVertexNormals();
@@ -317,8 +324,10 @@ async function buildBuildings() {
         float f=smoothstep(fogNear,fogFar,vFogDepth); gl_FragColor=vec4(c,a*amul*(1.-f*.9)); }`,
     transparent: true, depthWrite: false, side: THREE.DoubleSide });
   const m = new THREE.Mesh(g, mat); m.renderOrder = 2; m.name = "bld"; world.add(m);
+  { const mg = new THREE.BufferGeometry(); mg.setAttribute("position", g.attributes.position); mg.setAttribute("normal", g.attributes.normal); mg.setAttribute("color", new THREE.Float32BufferAttribute(MC, 3));   /* 11-02 P1「上空から屋根が同じ・透けた箱」→ 歩く・飛ぶときは、通りから外れた建物も不透明の壁と屋根（色は棟ごと・模式）。地図のときは今までの HUD の箱 */
+    const mm = new THREE.Mesh(mg, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); mm.name = "bldMass"; mm.visible = false; world.add(mm); BLD.mass = mm; }
   const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(E, 3));
-  const em = new THREE.LineBasicMaterial({ color: "#9fe6f8", transparent: true, opacity: .22, depthWrite: false });
+  const em = new THREE.LineBasicMaterial({ color: "#9fe6f8", transparent: true, opacity: .12, depthWrite: false });   /* 11-02 採点「上空で水色の透けた箱が目立つ」→ 輪郭の線を淡く */
   const lines = new THREE.LineSegments(eg, em); lines.renderOrder = 3; world.add(lines); QW.bldLines = lines;
   const fg = new THREE.BufferGeometry(); fg.setAttribute("position", new THREE.Float32BufferAttribute(F, 3)); fg.computeVertexNormals();
   const foot = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ color: "#45474a", roughness: .96, transparent: true, opacity: .28, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })   /* 10-27 夜：足もとの暗い影を薄く */); foot.renderOrder = 1; world.add(foot); BLD.foot = foot;
@@ -406,7 +415,7 @@ function streetSide(ring) {
   const route = nearestOnLine(ring[0].x, ring[0].y).dist < 70;
   if (!route && !NET.segs) return false;
   if (Math.abs(THREE.ShapeUtils.area(ring)) < 25) return false;   // 2026-10-25 採点「白い張りぼての板」＝角の 9 m² ほどの小さな建物（交番や塔のようなもの）は、不透明の箱にせず線のグラフィックのまま
-  let near = false; if (route) for (const p of ring) if (nearestOnLine(p.x, p.y).dist < 24) { near = true; break; }
+  let near = false; if (route) for (const p of ring) if (nearestOnLine(p.x, p.y).dist < 40) { near = true; break; }   /* 11-02 採点 P1「一番街の右手で建物が浮く・水色の透けた箱」→ 道筋から 40 m までの建物は不透明に */
   if (!near && NET.segs) for (const p of ring) { const q = netNear(p.x, p.y, 20); if (q.dist < q.hw + 8) { near = true; break; } }   // 裏路地・並行する道に面した建物も（2026-10-25）
   if (!near) return false;
   if (NET.segs && netCrosses(ring)) return false;   // 歩ける道がこの建物の輪郭の中を通る（境内の道・駅の通路など）＝通れなくならないよう、薄いグラフィックのまま
@@ -506,7 +515,7 @@ function eraAt(ring) {
   if (best === "M") return h < .7 ? 3 : 2;
   return 0;
 }
-const ERA_TONES = { 1: [[.07, .26, .19], [.09, .3, .23], [.34, .31, .26], [.22, .14, .1]], 2: [[.3, .26, .21], [.2, .2, .2], [.33, .3, .26], [.24, .2, .17]], 3: [[.34, .34, .33], [.24, .25, .26], [.4, .37, .33]], 5: [[.42, .4, .36]] };   // 1＝緑青の銅板・モルタル・洗い出し・焦げ茶のタイル／2＝タイル・灰・砂色／3＝明るい灰／5＝漆喰（線形の値・模式）
+const ERA_TONES = { 4: [[.6, .58, .53], [.07, .07, .08], [.44, .35, .26], [.55, .52, .46], [.09, .085, .09]], 1: [[.07, .26, .19], [.09, .3, .23], [.34, .31, .26], [.22, .14, .1]], 2: [[.3, .26, .21], [.2, .2, .2], [.33, .3, .26], [.24, .2, .17]], 3: [[.34, .34, .33], [.24, .25, .26], [.4, .37, .33]], 5: [[.42, .4, .36]] };   // 1＝緑青の銅板・モルタル・洗い出し・焦げ茶のタイル／2＝タイル・灰・砂色／3＝明るい灰／5＝漆喰（線形の値・模式）
 const AWN = [[.1, .17, .12], [.24, .07, .06], [.07, .09, .16], [.3, .26, .18], [.16, .16, .15]];   // 日よけ：深緑・えんじ・紺・生成り・灰（字は入れない）   // 日よけ：深緑・えんじ・紺・生成り・灰（字は入れない）
 function frontOf(p, q, ring) {   // この壁が、歩ける道か道筋に面しているか（外向きの法線の先 3 m）
   const ex = q.x - p.x, ez = q.y - p.y, L = Math.hypot(ex, ez) || 1; let nx = ez / L, nz = -ex / L; const mx = (p.x + q.x) / 2, mz = (p.y + q.y) / 2;
@@ -518,9 +527,12 @@ function frontOf(p, q, ring) {   // この壁が、歩ける道か道筋に面�
 }
 function addSolid(ring, y, top, acc = SOLID, era = 0) {
   const P = acc.P, U = acc.U, W = acc.W, C = acc.C, E = acc.E, n = ring.length, hs = k => { const v = Math.sin(ring[0].x * 12.9898 + ring[0].y * 78.233 + k * 37.719) * 43758.5453; return v - Math.floor(v); }, rnd = hs(0);   /* 色と高さの揺らぎは場所で決める（開くたびに変わらない） */
-  const T = ERA_TONES[era], b = T ? T[Math.floor(rnd * T.length)] : SOLID_TONES[Math.floor(rnd * SOLID_TONES.length)], j = (hs(1) - .5) * .05;
+  let T = ERA_TONES[era], b = T ? T[Math.floor(rnd * T.length)] : SOLID_TONES[Math.floor(rnd * SOLID_TONES.length)], j = (hs(1) - .5) * .05;
   if (era === 1) top = y + 7.2 + rnd * 1.6; else if (era === 2) top = y + Math.min(Math.max(top - y, 6.6), 10.4); else if (era === 3) top = y + Math.min(Math.max(top - y, 9.5), 22); else if (era === 5) top = y + Math.min(top - y, 5.8);
-  const col = [b[0] + j, b[1] + j, b[2] + j], roofc = era === 5 ? [.15, .16, .18] : [.3, .3, .31];
+  if (era === 0 && top - y < 12.5 && top - y > 2.5) { const A0 = Math.abs(THREE.ShapeUtils.area(ring)); if (A0 > 16 && A0 < 520) { era = 4; top = y + 5.4 + rnd * 1.6; } }   /* 11-02 町並みの作り直し：低い建物は町家・蔵の外観（格子・出し桁・漆喰・瓦の寄棟）。一棟ずつの姿ではない模式 */
+  const T4 = era === 4 ? ERA_TONES[4] : null;
+  if (T4) b = T4[Math.floor(rnd * T4.length)];
+  const col = [b[0] + j, b[1] + j, b[2] + j], roofc = era === 5 ? [.15, .16, .18] : FLAT_ROOF[Math.floor(hs(3) * FLAT_ROOF.length)];   /* 11-02 P1「上から屋根が同じ色」→ 陸屋根は打ち放し・防水の灰・明るい砂色を棟ごとに */
   let L = 0; const y0 = y - .3, awn = AWN[Math.floor(rnd * 997) % AWN.length];
   for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n], len = Math.hypot(q.x - p.x, q.y - p.y), u0 = L, u1 = L + len; L += len;
     const fr = era ? frontOf(p, q, ring) : { f: false }, ff = fr.f && len > 2.2 ? 1 : 0, tp = era === 1 && ff ? top + 1.3 : top, H = tp - y;   // 看板建築の正面は、屋根より 1.3 m 高く立ち上げる
@@ -534,14 +546,17 @@ function addSolid(ring, y, top, acc = SOLID, era = 0) {
       const t = Math.min(.8, 1.2 / len), sx = p.x + (q.x - p.x) * t, sz = p.y + (q.y - p.y) * t, ex = sx + fr.nx * .9, ez = sz + fr.nz * .9, b0 = y + 3.6, b1 = Math.min(tp - .4, y + 3.6 + 5.5), sc = [.3, .29, .27];
       for (const [X, Y, Z] of [[sx, b0, sz], [ex, b0, ez], [ex, b1, ez], [sx, b0, sz], [ex, b1, ez], [sx, b1, sz], [sx, b0, sz], [ex, b1, ez], [ex, b0, ez], [sx, b0, sz], [sx, b1, sz], [ex, b1, ez]]) { P.push(X, Y, Z); U.push(0, 0); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...sc); } } }
   if (era === 5) { const segs = segRoof(ring, top, acc, roofc); if (!segs) hipRoof(ring, top, acc, roofc); }
+  else if (era === 4) { const rt = TILE_ROOF[Math.floor(hs(2) * TILE_ROOF.length)], d = (hs(4) - .5) * .05; hipRoof(ring, top, acc, [rt[0] + d, rt[1] + d, rt[2] + d], .24 + hs(5) * .18, hs(6) < .45); }   /* 11-02 P1「上から屋根が同じ形と色」→ 瓦の色（いぶし銀・黒・茶・青み）と勾配を棟ごとに、切妻と寄棟を混ぜる */
   else for (const [a, b2, c] of THREE.ShapeUtils.triangulateShape(ring, [])) for (const t of [a, c, b2]) { P.push(ring[t].x, top, ring[t].y); U.push(ring[t].x / 2.5, ring[t].y / 2.5); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...roofc); }
   return regSolidTo(ring, acc);
 }
-function hipRoof(ring, top, acc, rc, pitch = .32) {   // 寄棟の屋根（長い辺に沿って・外へ 0.9 m 出す。模式）
+const TILE_ROOF = [[.27, .28, .31], [.15, .16, .18], [.29, .23, .19], [.21, .25, .3], [.34, .34, .35], [.2, .19, .18]], FLAT_ROOF = [[.42, .41, .39], [.3, .31, .32], [.5, .47, .42], [.36, .34, .31], [.24, .25, .27]];
+const MASS_WALL = [[.78, .76, .72], [.66, .65, .63], [.72, .68, .6], [.58, .6, .62], [.84, .82, .78], [.62, .56, .5]];
+function hipRoof(ring, top, acc, rc, pitch = .32, gable = false) {   // 寄棟の屋根（長い辺に沿って・外へ 0.9 m 出す。模式）
   let best = 0, ang = 0; for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], l = Math.hypot(q.x - p.x, q.y - p.y); if (l > best) { best = l; ang = Math.atan2(q.y - p.y, q.x - p.x); } }
   const ux = Math.cos(ang), uz = Math.sin(ang), vx = -uz, vz = ux; let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9;
   for (const p of ring) { const a = p.x * ux + p.y * uz, b = p.x * vx + p.y * vz; a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b); }
-  a0 -= .9; a1 += .9; b0 -= .9; b1 += .9; const Wd = b1 - b0, Lg = a1 - a0, rise = Math.min(7.5, Wd * pitch), rr = Math.max(0, (Lg - Wd) / 2), am = (a0 + a1) / 2, bm = (b0 + b1) / 2, ry = top + rise, ey = top - .2;
+  a0 -= .9; a1 += .9; b0 -= .9; b1 += .9; const Wd = b1 - b0, Lg = a1 - a0, rise = Math.min(7.5, Wd * pitch), rr = gable ? Lg / 2 - .9 : Math.max(0, (Lg - Wd) / 2), am = (a0 + a1) / 2, bm = (b0 + b1) / 2, ry = top + rise, ey = top - .2;
   const Pt = (a, b, h) => [a * ux + b * vx, h, a * uz + b * vz], e1 = Pt(a0, b0, ey), e2 = Pt(a1, b0, ey), e3 = Pt(a1, b1, ey), e4 = Pt(a0, b1, ey), r1 = Pt(am - rr, bm, ry), r2 = Pt(am + rr, bm, ry);
   const tri = (A_, B_, C_) => { for (const V of [A_, B_, C_]) { acc.P.push(...V); acc.U.push(V[0] / 2.5, V[2] / 2.5); acc.W.push(0, -9, 0, 0); acc.E.push(6, 0); acc.C.push(...rc); } };
   for (const [A_, B_, C_] of [[e1, r2, e2], [e1, r1, r2], [e3, r1, e4], [e3, r2, r1], [e2, r2, e3], [e4, r1, e1]]) { tri(A_, B_, C_); tri(A_, C_, B_); }   // 両面（下からも見える軒）
@@ -582,12 +597,12 @@ function makeSolidMesh(acc) {
 function solidMat() {
   const TL = new THREE.TextureLoader(), ld = (u, srgb) => { const t = texLate(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
   const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/plaster_c.webp", true), normalMap: ld("web/tex/plaster_n.webp"), normalScale: new THREE.Vector2(.6, .6), roughnessMap: ld("web/tex/plaster_r.webp"), vertexColors: true, roughness: .92, metalness: 0 });   // 2026-10-26 採点「近寄ると単色の箱」→ 漆喰の写真の肌理（Poly Haven CC0）を色にも
-  const tPlank = ld("web/tex/bplank_c.webp", true);
+  const tPlank = ld("web/tex/bplank_c.webp", true), tRoof = ld("web/tex/roof_c.webp", true);   // 11-02 瓦の写真の肌理（Poly Haven CC0 grey_roof_tiles_02）
   // 壁の面に、模式の窓・店先のガラス・階の目地・足もとの汚れを描く（一棟ずつの実際の窓の位置ではない）
   m.onBeforeCompile = sh => {
-    sh.uniforms.tPlank = { value: tPlank };
+    sh.uniforms.tPlank = { value: tPlank }; sh.uniforms.tRoof = { value: tRoof };
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec4 wuv; varying vec4 vW; attribute vec2 era; varying vec2 vE; varying vec3 vWp;").replace("#include <uv_vertex>", "#include <uv_vertex>\nvW = wuv; vE = era;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.)).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec4 vW; varying vec2 vE; varying vec3 vWp; uniform sampler2D tPlank;\nfloat hS(float x){return fract(sin(x*127.1)*43758.5);}\nfloat nS(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(hS(i),hS(i+1.),f);}").replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec4 vW; varying vec2 vE; varying vec3 vWp; uniform sampler2D tPlank; uniform sampler2D tRoof;\nfloat hS(float x){return fract(sin(x*127.1)*43758.5);}\nfloat nS(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(hS(i),hS(i+1.),f);}").replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
       if (vW.y > -5.) {
         float u = vW.x, v = vW.y, H = vW.z, L = vW.w, gl = 0., fr = 0.;
         float edge = L < 3.4 ? step(.25, fract(u / 1.7)) * step(fract(u / 1.7), .75) : step(1.2, u) * step(u, L - 1.2);   // 壁の端は窓にしない（2026-10-25 短い面が続く輪郭も、窓のない板にしない）
@@ -612,7 +627,7 @@ function solidMat() {
         roughnessFactor = mix(roughnessFactor, .18, gl);
         // 時代の型（模式）：通りに面した壁（vE.y＝1）だけ、正面の作りを描きかえる
         float era = floor(vE.x + .5), fw = vE.y;
-        if (era > .5 && (fw > .5 || era > 4.5)) {
+        if (era > .5 && (fw > .5 || era > 3.5)) {
           vec3 base = vColor.rgb * texture2D(map, vMapUv).rgb * 1.6; float g2 = 0., dark = 0., lite = 0.;
           if (era < 1.5) {   // 1 大正〜昭和初めの看板建築：平らな正面・軒の蛇腹・縦長の窓・付け柱
             float cop = step(vColor.g, vColor.r) < .5 ? 1. : 0.;                       // 緑青の銅板の面は、細かい板の目地
@@ -643,6 +658,35 @@ function solidMat() {
             float fv = fract((v - 3.6) / 3.1), w2 = step(3.6, v) * step(v, H - .8) * step(.25, fv) * step(fv, .8) * step(.6, u) * step(u, L - .6);
             float jn = step(fract(u / 1.2), .03) * step(3.6, v);
             diffuseColor.rgb = base * (1. - jn * .15); g2 = max(g1, w2);
+          } else if (era < 4.5) {   // 4 町家・蔵の外観（模式）：一階＝木の格子と柱・出し桁、二階＝漆喰か黒漆喰に虫籠窓、腰は焼杉の板。側面は漆喰と腰板だけ
+            vec3 pk = texture2D(tPlank, vec2(u / 1.4, v / 1.4)).rgb;
+            vec3 wd = pk * vec3(.36, .27, .2);
+            float g1 = step(v, 2.75);
+            float ken = fract(u / 1.82), pil = step(ken, .06) + step(.94, ken);
+            float lat = smoothstep(.38, .46, abs(fract(u / .11) - .5) * 2.);          // 格子の桟（幅 4〜5 cm・間 6 cm）
+            float beam = step(2.75, v) * step(v, 3.1);                                // 出し桁・一階の軒の帯
+            float kos = step(v, .9);
+            vec3 up = base * 1.1;
+            if (fw > .5) {
+              vec3 low = mix(wd * .35, wd, lat);                                     // 格子の奥は暗い
+              low = mix(low, wd * .8, pil);
+              float door = step(.4, fract(u / 5.46)) * step(fract(u / 5.46), .6) * step(v, 2.3);   // 間口ごとの出入りの口（暗い土間）
+              low = mix(low, vec3(.05, .04, .035), door * (1. - lat * .3));
+              float mu = fract(u / 3.64), mv = (v - 3.5) / max(.6, H - 4.4);
+              float mw = step(.22, mu) * step(mu, .78) * step(0., mv) * step(mv, 1.) * step(4.8, H);
+              float bars = smoothstep(.3, .5, abs(fract(u / .16) - .5) * 2.);
+              vec3 upc = mix(up, mix(up * .25, up * .9, bars), mw);
+              float sign = step(3.15, v) * step(v, 3.5) * step(.3, fract(u / 7.28)) * step(fract(u / 7.28), .7);   // 字のない看板の板
+              diffuseColor.rgb = mix(upc, low, g1);
+              diffuseColor.rgb = mix(diffuseColor.rgb, wd * .7, beam);
+              diffuseColor.rgb = mix(diffuseColor.rgb, wd * 1.15, sign);
+              roughnessFactor = mix(.9, .6, g1 * (1. - lat));
+            } else {
+              diffuseColor.rgb = mix(up, wd, kos);
+              roughnessFactor = .9;
+            }
+            if (base.r < .1) roughnessFactor = mix(roughnessFactor, .35, 1. - g1);     // 黒漆喰は磨かれてつやがある
+            diffuseColor.rgb *= 1. - smoothstep(H - .9, H - .05, v) * .35;           // 軒下の陰
           } else {   // 5 寺社・御殿：腰の板と、漆喰の壁に柱の真壁
             float ks = step(v, 1.1);
             float pst = step(fract(u / 1.8), .1) + step(H - .45, v);
@@ -654,7 +698,7 @@ function solidMat() {
           diffuseColor.rgb *= 1. - (1. - smoothstep(0., .9, v)) * .3;
         }
       } else if (vE.x > 5.5) {   // 寺社・御殿の屋根：いぶし瓦の列（模式）
-        vec2 wp = vMapUv * 2.5; float ln = abs(fract((wp.x + wp.y) / .3) - .5); diffuseColor.rgb *= .62 + .38 * smoothstep(.02, .14, ln); diffuseColor.rgb *= .9 + .2 * fract(sin(floor((wp.x + wp.y) / .3) * 12.7) * 437.5); roughnessFactor = .7;
+        vec2 wp = vMapUv * 2.5; diffuseColor.rgb = vColor.rgb * mix(vec3(1.), texture2D(tRoof, wp / 1.8).rgb * 2.3, .75); float ln = abs(fract((wp.x + wp.y) / .3) - .5); diffuseColor.rgb *= .62 + .38 * smoothstep(.02, .14, ln); diffuseColor.rgb *= .9 + .2 * fract(sin(floor((wp.x + wp.y) / .3) * 12.7) * 437.5); roughnessFactor = .7;
       }`);
   };
   return m;
@@ -689,11 +733,11 @@ function buildArea(Z, J) {
   }
   if (acc.P.length) { const m = makeSolidMesh(acc); m.name = "areaSolid"; g.add(m); }
   if (E2.length) { const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(E2, 3)); g.add(new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ color: "#9fe6f8", transparent: true, opacity: .4, depthWrite: false }))); }
-  AREA_G.add(g); landSweep(); QW.nArea = (QW.nArea || 0) + J.b.length;
+  /* 11-02 町並み：区画の影絵を場面に入れる前に組み立てる（歩く途中のつかえをなくす） */ const addG = () => { if (!g.userData.dropped) AREA_G.add(g); }; if (renderer.compileAsync) renderer.compileAsync(g, camera, scene).then(addG, addG); else addG(); landSweep(); QW.nArea = (QW.nArea || 0) + J.b.length;
   return { g, ids: acc.ids };
 }
 function dropArea(h) {
-  AREA_G.remove(h.g); h.g.traverse(o => { o.geometry?.dispose(); if (o.material && o.material !== SOLID_MAT && o.material !== ASPH) o.material.dispose?.(); });
+  h.g.userData.dropped = true; AREA_G.remove(h.g); h.g.traverse(o => { o.geometry?.dispose(); if (o.material && o.material !== SOLID_MAT && o.material !== ASPH) o.material.dispose?.(); });
   for (const id of h.ids) { const p = SOLID.polys[id]; if (p) { p.x0 = p.z0 = 1e9; p.x1 = p.z1 = -1e9; } }   // ぶつかる判定から外す
 }
 const AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY: (x, z) => groundY(x, z), BASE: "web/", VER, mobile: MOBILE, rm: RM, build: buildArea, drop: dropArea,
@@ -705,8 +749,8 @@ const KURA = { meshes: [] }; QW.KURA = KURA;
 let KURA_GLB = null;
 function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
-    ld.load("web/app/kura_master.glb?v=7", g => { g.scene.updateMatrixWorld(true); const out = {};
-      g.scene.traverse(o => { if (o.isMesh) { const k = o.name.replace(/[._]\d+$/, ""); const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); out[k] = geo; } });
+    ld.load("web/app/kura_master.glb?v=9", g => { g.scene.updateMatrixWorld(true); const out = {};
+      g.scene.traverse(o => { if (o.isMesh) { const k = o.name.replace(/[._]\d+$/, ""); const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
       res(out); }, undefined, () => res(null)); }); }
 function buildKura() {
   loadKuraMaster().then(gm => buildKura2(gm));
@@ -715,6 +759,7 @@ function buildKura() {
    地面との際・下屋と軒の下の壁・下を向いた面（軒裏・庇の裏）・屋根の谷と窓のくぼみをかげらせる。光の当たり方を真似た近似で、焼き込みではない */
 const KAO = {};
 function kuraAO(m0, mk, full = true) {
+  if (!m0) { console.warn("kuraAO: no material " + mk); m0 = kuraMats(TL, MOBILE).dark; }
   const ck = mk + (full ? "" : "-m"); if (KAO[ck]) return KAO[ck];
   const m = m0.clone(), prev = m0.onBeforeCompile, key = "kura-" + mk + (full ? "-ao" : "-aom") + (m0.isMeshPhysicalMaterial ? "p" : "");
   m.onBeforeCompile = (sh, r) => { if (prev && prev !== THREE.Material.prototype.onBeforeCompile) prev(sh, r);
@@ -723,9 +768,9 @@ function kuraAO(m0, mk, full = true) {
       .replace("#include <aomap_fragment>", `#include <aomap_fragment>
         { float y = vAoP.y, ny = vAoN.y, wall = 1. - smoothstep(.35, .7, abs(ny));
           float ao = 1.;
-          ao *= mix(.3, 1., smoothstep(0., 1.5, y));                                  // 地面との際
-          ${full ? "" : "/*"} ao *= 1. - .55 * wall * smoothstep(2.1, 3.42, y) * (1. - smoothstep(3.42, 3.6, y));   // 下屋の下の壁
-          ao *= 1. - .5 * wall * smoothstep(5.3, 6.5, y) * (1. - smoothstep(6.5, 6.7, y));     // 軒の下の壁
+          ao *= mix(.55, 1., smoothstep(0., 1.5, y));                                  // 地面との際
+          ${full ? "" : "/*"} ao *= 1. - .32 * wall * smoothstep(2.1, 3.42, y) * (1. - smoothstep(3.42, 3.6, y));   // 下屋の下の壁
+          ao *= 1. - .3 * wall * smoothstep(5.3, 6.5, y) * (1. - smoothstep(6.5, 6.7, y));     // 軒の下の壁
           ao *= mix(1., .3, smoothstep(.3, .8, -ny));                                  // 軒裏・庇の裏
           ao *= 1. - .18 * smoothstep(.55, .95, ny) * smoothstep(6.4, 6.9, y) * (1. - smoothstep(7.4, 8.4, y));   // 屋根の谷（下の方）
           ${full ? "" : "*/"}
@@ -735,18 +780,19 @@ function kuraAO(m0, mk, full = true) {
   m.customProgramCacheKey = () => key;
   return KAO[ck] = m;
 }
+const KVAR = t => "ABC"[(String(t).charCodeAt(0) || 0) % 3];
 function buildKura2(GM) {
   const M = kuraMats(TL, MOBILE), byType = {};
   for (const k of G.kura) (byType[k.type] ||= []).push(k);
   for (const t in byType) {
-    const geos = GM || kuraGeos(t).geos, list = byType[t];
+    const geos = GM ? (GM[KVAR(t)] || GM.A) : kuraGeos(t).geos, list = byType[t];   /* 2026-11-02 型 3 通り（A 二つ窓・B 大きな一つ窓と高い箱棟・C 袖壁なし）を型の記号で振り分け */
     for (const mk in geos) {
-      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .14; m.clearcoat = MOBILE ? .4 : .85;   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .6; m.envMapIntensity = 1.1; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f747b", roughness: .48, metalness: .25, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, envMapIntensity: 1.0, side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
+      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .08; m.clearcoat = MOBILE ? .7 : .8; m.envMapIntensity = 1.1; m.color.set("#141518");   /* 11-02 P1「壁・柱・屋根が一様な暗い灰」→ 黒漆喰は磨いた面に空が映る黒（木の茶・瓦の銀鼠・石の灰と分かれる） */   /* 2026-11-02 採点「蔵造りに見えない（灰の壁）」→ 空の映りを一面に広げず、黒漆喰の深い黒に細い照りだけ */   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .5; m.envMapIntensity = 1.0; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#8a8f97", roughness: .48, metalness: .25, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, envMapIntensity: 1.0, side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
       const o = new THREE.Object3D();
       const tint = new THREE.Color();
       list.forEach((k, i) => { const r1 = (Math.sin(k.x * 12.9898 + k.z * 78.233) * 43758.5) % 1, r = Math.abs(r1);   // 棟ごとの違い（高さ・瓦の焼きむら・漆喰の黒の深さ）：同じ型の繰り返しに見せない
         o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, GM ? .9 + r * .22 : 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix);
-        if (GM) { const v = mk === "tile" ? .86 + r * .26 : mk === "wood" ? .8 + ((r * 7) % 1) * .4 : mk === "shikkui" ? .9 + ((r * 13) % 1) * .2 : 1; tint.setRGB(v, v * (mk === "wood" ? .97 : 1), v * (mk === "tile" ? 1.03 : 1)); im.setColorAt(i, tint); } });
+        if (GM) { const v = mk === "tile" || mk === "hon" ? .72 + r * .5 : mk === "wood" ? .8 + ((r * 7) % 1) * .4 : mk === "shikkui" ? .9 + ((r * 13) % 1) * .2 : 1; const hb = mk === "tile" || mk === "hon" ? ((r * 29) % 1 - .5) * .12 : 0; tint.setRGB(v * (1 + hb), v * (mk === "wood" ? .97 : 1), v * (mk === "tile" || mk === "hon" ? 1.03 - hb : 1));   /* 11-02 P1「上から屋根が同じ色」→ 棟ごとに瓦の焼きの濃さと、青み・茶みを振る */ im.setColorAt(i, tint); } });
       if (im.instanceColor) im.instanceColor.needsUpdate = true;
       im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im);
     }
@@ -987,7 +1033,7 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
 let QA = null, QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b14").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b16").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
@@ -1823,6 +1869,7 @@ function frame() {
   if ((GEO.t -= dt) < 0 && QW.mode !== "boot") { GEO.t = .25; const g = GEO.el || (GEO.el = $("#lsGeo")), cp = camera.position, la = G.origin[0] - cp.z / G.ky, lo = G.origin[1] + cp.x / G.kx, h = Math.max(0, cp.y - groundY(cp.x, cp.z));
     const txt = `POS <b>${la.toFixed(4)}N ${lo.toFixed(4)}E</b>\nALT ${Math.round(h)}m  ${QW.mode.toUpperCase()}`; if (g && txt !== GEO.last) { g.innerHTML = txt; GEO.last = txt; } }
   if (!RM) BLDU.t.value += dt; digiTick(dt);
+  { const hud = !(QW.mode === "walk" || QW.mode === "fly"); if (BLD.mass) BLD.mass.visible = !hud; if (BLD.mesh) BLD.mesh.visible = hud; if (BLD.lines) BLD.lines.visible = hud; }   // 11-02：歩く・飛ぶときは不透明の町並み、地図のときは HUD の箱と線
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : QW.mode === "sky" ? .45 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;

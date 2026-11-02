@@ -48,14 +48,6 @@ class Acc {
       this.quad([x - w, ya - .02, za], [x + w, ya - .02, za], [x, ya + h, za], [x - w, ya, za]);   // 軒先の瓦の口（巴の模式）
     }
   }
-  // 10-29 桟瓦の丸い山：x0 から step ごと（瓦の絵の山の位置＝UV の 0.26 m ごとにそろえる）に、半円に近い断面の低い山を棟へ向かって。軒先の口は扇で閉じる
-  roundRibs(x0, x1, ya, za, yb, zb, step = .26, r = .1, h = .05, seg = 5) {
-    const sg = Math.sign(x1 - x0) || 1, L = Math.abs(x1 - x0);
-    for (let k = 1; k * step < L - r; k++) { const xc = x0 + sg * k * step, pr = [];
-      for (let i = 0; i <= seg; i++) { const a = Math.PI * i / seg; pr.push([xc - Math.cos(a) * r * sg, Math.sin(a) * h]); }
-      for (let i = 0; i < seg; i++) { const [p, ph] = pr[i], [q, qh] = pr[i + 1]; this.quad([p, ya + ph, za], [q, ya + qh, za], [q, yb + qh, zb], [p, yb + ph, zb]); }
-      for (let i = 0; i < seg; i++) { const [p, ph] = pr[i], [q, qh] = pr[i + 1]; this.tri([q, ya + qh, za], [p, ya + ph, za], [xc, ya, za]); } }
-  }
   geo() {
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.Float32BufferAttribute(this.p, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(this.n, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(this.u, 2));
@@ -81,9 +73,9 @@ function tileTex(mobile) {   // 桟瓦の波（自作の模式）：横に波打
     const k = (py * S + px) * 4, r = rnd(iu, iv + 13 * Math.floor(py / S));
     const r2 = rnd(iu * 3.1 + 7, iv * 5.3 + 1), sh = Math.pow(Math.max(0, (fv - .78) / .22), 1.6);   // 瓦ごとの焼きむらと、上の段の瓦が落とす陰
     const base = 62 + r * 34 + r2 * 10 + h * 22 - sh * 34 - (fv > .965 ? 26 : 0) - (Math.abs(fu - .5) > .47 ? 10 : 0);
-    id.data[k] = base; id.data[k + 1] = base + 2 + r2 * 3; id.data[k + 2] = base + 3;   /* 10-29 青みを少し抜く（旧 +7） */ id.data[k + 3] = 255;
+    id.data[k] = base; id.data[k + 1] = base + 2 + r2 * 3; id.data[k + 2] = base + 7; id.data[k + 3] = 255;
     const rg = Math.min(255, (.5 + r * .25 + sh * .3 + (fv > .965 ? .2 : 0)) * 255); rd.data[k] = rd.data[k + 1] = rd.data[k + 2] = rg; rd.data[k + 3] = 255;
-    const nx = -dhu * .32, ny = -dhv * .32, nz = 1, L = Math.hypot(nx, ny, nz);
+    const nx = -dhu * .25, ny = -dhv * .25, nz = 1, L = Math.hypot(nx, ny, nz);
     nd.data[k] = (nx / L * .5 + .5) * 255; nd.data[k + 1] = (ny / L * .5 + .5) * 255; nd.data[k + 2] = (nz / L * .5 + .5) * 255; nd.data[k + 3] = 255;
   }
   x.putImageData(id, 0, 0); y.putImageData(nd, 0, 0); z.putImageData(rd, 0, 0);
@@ -91,11 +83,72 @@ function tileTex(mobile) {   // 桟瓦の波（自作の模式）：横に波打
   for (const t of [T, N, R]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 1.04, 1 / .92); t.anisotropy = mobile ? 2 : 8; }
   T.colorSpace = THREE.SRGBColorSpace; return { T, N, R, canvas: c };
 }
+function honTex(mobile) {   // 2026-11-02 本瓦（自作の模式）：丸瓦（半円の筒）と平瓦（浅い谷）の列を、色・法線・粗さの絵で。形で一枚ずつ作ると遠目に縞がちらついたので、ミップマップと異方性で遠くはなめらかに均す
+  const S = mobile ? 256 : 512, mk = () => { const c = document.createElement("canvas"); c.width = c.height = S; return c; };
+  const c = mk(), n = mk(), rc = mk(), x = c.getContext("2d"), y = n.getContext("2d"), z = rc.getContext("2d");
+  const id = x.createImageData(S, S), nd = y.createImageData(S, S), rd = z.createImageData(S, S);
+  const cols = 4, rows = 4, rnd = (i, j) => { const s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return s - Math.floor(s); };   // 絵 1 枚＝横 4 列（働き 0.29 m）・縦 4 段（0.32 m）
+  for (let py = 0; py < S; py++) for (let px = 0; px < S; px++) {
+    const u = px / S * cols, v = py / S * rows, iu = Math.floor(u), iv = Math.floor(v), fu = u - iu, fv = v - iv;
+    const d = (fu - .5) / .2, onM = Math.abs(d) < 1;   // 丸瓦は列の中央 4 割
+    let h, dh;
+    if (onM) { h = .55 + .45 * Math.sqrt(1 - d * d); dh = -.45 * d / Math.sqrt(Math.max(.04, 1 - d * d)) / .2; }
+    else { const e = (Math.abs(d) - 1) / 1.5; h = .1 * (1 - Math.cos(e * Math.PI)) * .5; dh = Math.sign(d) * .1 * Math.PI * Math.sin(e * Math.PI) * .5 / .3; }
+    const lap = fv > .93 ? 1 : 0, sh = Math.pow(Math.max(0, (fv - .72) / .28), 2) * (onM ? .5 : 1);
+    const k = (py * S + px) * 4, r = rnd(iu, iv), r2 = rnd(iu * 3.1 + 7, iv * 5.3 + 1);
+    const base = 70 + r * 26 + r2 * 8 + h * 30 - sh * 26 - lap * 22 - (onM ? 0 : 10);
+    id.data[k] = base; id.data[k + 1] = base + 2; id.data[k + 2] = base + 7; id.data[k + 3] = 255;
+    const rg = Math.min(255, (.45 + r * .2 + (onM ? 0 : .2) + lap * .2) * 255); rd.data[k] = rd.data[k + 1] = rd.data[k + 2] = rg; rd.data[k + 3] = 255;
+    const nx = -Math.max(-3, Math.min(3, dh)) * .3, ny = lap ? .5 : -sh * .3, L = Math.hypot(nx, ny, 1);
+    nd.data[k] = (nx / L * .5 + .5) * 255; nd.data[k + 1] = (ny / L * .5 + .5) * 255; nd.data[k + 2] = (1 / L * .5 + .5) * 255; nd.data[k + 3] = 255;
+  }
+  x.putImageData(id, 0, 0); y.putImageData(nd, 0, 0); z.putImageData(rd, 0, 0);
+  const T = new THREE.CanvasTexture(c), N = new THREE.CanvasTexture(n), R = new THREE.CanvasTexture(rc);
+  for (const t of [T, N, R]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 1.16, 1 / 1.28); t.anisotropy = mobile ? 4 : 8; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; }
+  T.colorSpace = THREE.SRGBColorSpace; return { T, N, R };
+}
+function koshiTex(mobile) {   // 2026-11-02 格子（自作の模式）：縦の桟（10 cm ごと・幅 3.5 cm）と奥の暗がり。面に法線の絵で描き、遠くはミップマップで灰に均す（ちらつかない）
+  const W = mobile ? 128 : 256, H = 8, mk = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; return c; };
+  const c = mk(), n = mk(), x = c.getContext("2d"), y = n.getContext("2d"), id = x.createImageData(W, H), nd = y.createImageData(W, H);
+  const bars = 10;
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const fu = (px / W * bars) % 1, d = (fu - .5) / .175, on = Math.abs(d) < 1, k = (py * W + px) * 4;
+    const v = on ? 92 + 34 * Math.sqrt(1 - d * d) : 24;   // 11-02 P1「蔵が一様な暗い灰」→ 古色の栗色の桟が、奥の暗がりと分かれて読める明るさに
+    id.data[k] = v; id.data[k + 1] = v * .86; id.data[k + 2] = v * .72; id.data[k + 3] = 255;
+    const nx = on ? d * .8 : 0, L = Math.hypot(nx, 1);
+    nd.data[k] = (nx / L * .5 + .5) * 255; nd.data[k + 1] = 128; nd.data[k + 2] = (1 / L * .5 + .5) * 255; nd.data[k + 3] = 255;
+  }
+  x.putImageData(id, 0, 0); y.putImageData(nd, 0, 0);
+  const T = new THREE.CanvasTexture(c), N = new THREE.CanvasTexture(n);
+  for (const t of [T, N]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = mobile ? 4 : 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; }
+  T.colorSpace = THREE.SRGBColorSpace; return { T, N };
+}
+function namakoTex(mobile) {   // 2026-11-02 海鼠壁（自作の模式）：灰黒の平瓦（約 20 cm 角）を 45 度に貼り、白い漆喰の目地を半円に盛る
+  const S = mobile ? 256 : 512, mk = () => { const c = document.createElement("canvas"); c.width = c.height = S; return c; };
+  const c = mk(), n = mk(), x = c.getContext("2d"), y = n.getContext("2d"), id = x.createImageData(S, S), nd = y.createImageData(S, S);
+  const cells = 4, rnd = (i, j) => { const q = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return q - Math.floor(q); };   // 絵 1 枚＝約 0.8 m
+  for (let py = 0; py < S; py++) for (let px = 0; px < S; px++) {
+    const u = px / S * cells, v = py / S * cells, a = u + v, b = u - v;
+    const fa = a - Math.floor(a), fb = b - Math.floor(b), da = Math.abs(fa - .5), db = Math.abs(fb - .5), j = Math.max(da, db);
+    const on = j > .42, h = on ? Math.cos((.5 - j) / .08 * Math.PI / 2) : 0, k = (py * S + px) * 4, r = rnd(Math.floor(a), Math.floor(b));
+    const t = on ? 196 - (1 - h) * 40 : 48 + r * 22;
+    id.data[k] = t; id.data[k + 1] = t; id.data[k + 2] = t + (on ? -6 : 4); id.data[k + 3] = 255;
+    let nx = 0, ny = 0; if (on) { const s2 = (da > db ? Math.sign(fa - .5) : Math.sign(fb - .5)) * .7, dir = da > db ? [1, 1] : [1, -1]; nx = s2 * dir[0] * .7; ny = s2 * dir[1] * .7; }
+    const L = Math.hypot(nx, ny, 1); nd.data[k] = (nx / L * .5 + .5) * 255; nd.data[k + 1] = (ny / L * .5 + .5) * 255; nd.data[k + 2] = (1 / L * .5 + .5) * 255; nd.data[k + 3] = 255;
+  }
+  x.putImageData(id, 0, 0); y.putImageData(nd, 0, 0);
+  const T = new THREE.CanvasTexture(c), N = new THREE.CanvasTexture(n);
+  for (const t of [T, N]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / .8, 1 / .8); t.anisotropy = mobile ? 4 : 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; }
+  T.colorSpace = THREE.SRGBColorSpace; return { T, N };
+}
 export function kuraMats(TL, mobile) {
   if (MATS) return MATS;
   const ld = (u, srgb, rep = 1) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = mobile ? 2 : 8; return t; };
-  const tile = tileTex(mobile);
+  const tile = tileTex(mobile), hon = honTex(mobile), kos = koshiTex(mobile), nam = namakoTex(mobile);
   MATS = {
+    namako: new THREE.MeshStandardMaterial({ color: "#ffffff", map: nam.T, normalMap: nam.N, normalScale: new THREE.Vector2(1.4, 1.4), roughness: .55, metalness: 0, envMapIntensity: .6 }),   // 海鼠壁
+    hon: new THREE.MeshStandardMaterial({ color: "#a9adb4", map: hon.T, normalMap: hon.N, normalScale: new THREE.Vector2(1.6, 1.6), roughnessMap: hon.R, roughness: .85, metalness: .12, envMapIntensity: .7 }),   // 2026-11-02 いぶしの本瓦：銀鼠の鈍い照り
+    koshi: new THREE.MeshStandardMaterial({ color: "#ffffff", map: kos.T, normalMap: kos.N, normalScale: new THREE.Vector2(1.2, 1.2), roughness: .7 }),
     // 黒漆喰：磨いた漆喰の深い黒（つやは強め・映り込みは控えめ）。白い漆喰の写真の肌理を、色は黒にして使う
     shikkui: new THREE.MeshPhysicalMaterial({ color: "#1a1b1e", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.4, .4),   /* 10-28：CC0 の漆喰の写真（Poly Haven）の肌理が見えるよう、黒を少し浅く・凹凸を強く（黒い一枚の板に見せない） */ roughness: .82, metalness: 0, clearcoat: 1, clearcoatRoughness: .05, envMapIntensity: 1.5 }),   // 2026-10-26 黒漆喰の質感：磨いた面のつやと空の映り込みを強め、写真の肌理は浅く
     // 町家の型の上壁：灰白の漆喰（白い漆喰の写真の色をそのまま、少し灰に）
@@ -105,10 +158,10 @@ export function kuraMats(TL, mobile) {
     doma: new THREE.MeshStandardMaterial({ color: "#4a3a2c", roughness: .9, emissive: "#3a2814", emissiveIntensity: .5 }),   // 店の奥（土間と奥の壁）：暗いが真っ黒にしない
     // 町家の型の板壁・格子：杉板（焼いた色に寄せて暗く）
     cedar: new THREE.MeshStandardMaterial({ color: "#4a3d32", map: ld("web/tex/cedar_c.webp", true, .5), normalMap: ld("web/tex/cedar_n.webp", false, .5), normalScale: new THREE.Vector2(.8, .8), roughness: .78 }),
-    tile: new THREE.MeshStandardMaterial({ color: "#b1b2b3", map: tile.T, normalMap: tile.N, normalScale: new THREE.Vector2(2.4, 2.4),   /* 10-29 近景：桟の山と段差が斜めからも読めるよう凹凸を 2.4 倍・色の青みを抜く（旧 #b4b7bd・1.0） */ roughnessMap: tile.R, roughness: 1, metalness: 0, envMapIntensity: .35 }),   // いぶし瓦：金属の照りにしない（粗さは瓦ごとにむら）
-    wood: new THREE.MeshStandardMaterial({ color: "#6d5a48", map: ld("web/tex/wood_c.webp", true, .6), normalMap: ld("web/tex/wood_n.webp", false, .6), roughness: .72 }),
+    tile: new THREE.MeshStandardMaterial({ color: "#c4c7cc", map: tile.T, normalMap: tile.N, normalScale: new THREE.Vector2(1.0, 1.0), roughnessMap: tile.R, roughness: 1, metalness: 0, envMapIntensity: .35 }),   // いぶし瓦：金属の照りにしない（粗さは瓦ごとにむら）
+    wood: new THREE.MeshStandardMaterial({ color: "#8c7d70", map: ld("web/tex/cedar_c.webp", true, .6), normalMap: ld("web/tex/cedar_n.webp", false, .6), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/cedar_r.webp", false, .6), roughness: .9 }),   // 11-02 P1：柱・扉の枠・下屋の木を、杉板の写真（Poly Haven CC0）の古色の茶に（黒漆喰・瓦と分かれる）
     bwood: new THREE.MeshStandardMaterial({ color: "#5a5048", map: ld("web/tex/bplank_c.webp", true, .5), normalMap: ld("web/tex/bplank_n.webp", false, .5), roughness: .66 }),
-    stone: new THREE.MeshStandardMaterial({ color: "#a39f97", map: ld("web/tex/granite_c.webp", true, .5), normalMap: ld("web/tex/granite_n.webp", false, .5), roughness: .8 }),
+    stone: new THREE.MeshStandardMaterial({ color: "#d2cdc4", map: ld("web/tex/stonew_c.webp", true, .5), normalMap: ld("web/tex/stonew_n.webp", false, .5), normalScale: new THREE.Vector2(1.2, 1.2), roughness: .88 }),   // 11-02 P1：石の腰を、石積みの写真（Poly Haven CC0 japanese_stone_wall）の明るい灰に
     dark: new THREE.MeshStandardMaterial({ color: "#07080a", roughness: .95 }),
     bronze: new THREE.MeshStandardMaterial({ color: "#4a4a3c", map: ld("web/tex/bronze_c.webp", true, 1), normalMap: ld("web/tex/bronze_n.webp", false, 1), roughness: .42, metalness: .85 }),
   };
@@ -265,7 +318,7 @@ export function machiGeos(type) {
     for (let x = -hw + .2; x < hw - .15; x += .14) A.cedar.box(x - .015, T.h1 - .9, hd - .28, x + .015, T.h1 - .38, hd - .25, 1, "xXZ");
   }
   const hy = T.h1 + .3, hz = hd + .85;
-  A.tile.slab(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .1); A.tile.roundRibs(-hw - .05, hw + .05, hy - .38, hz, hy, hd);   // 下屋（10-29 近景：桟瓦の働き幅 約 0.26 m ごとに丸い低い山を瓦の絵の山にそろえて立て、軒先の輪郭を波打たせる）
+  A.tile.slab(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .1);   // 下屋
   A.wood.quad([hw + .05, hy - .38 - .11, hz], [-hw - .05, hy - .38 - .11, hz], [-hw - .05, hy - .11, hd], [hw + .05, hy - .11, hd]);   // 軒裏
   for (let x = -hw; x <= hw; x += .75) A.wood.box(x - .035, hy - .5, hd, x + .035, hy - .42, hz - .08, 1, "xXy");
   const z2 = hd - .15;
@@ -280,7 +333,6 @@ export function machiGeos(type) {
   A.wood.box(-hw - .1, T.h2 - .25, -hd - .1, hw + .1, T.h2 + .03, z2 + .1, 1, "xXzZy");   // 軒の桁
   A.tile.slab(-hw - .45, hw + .45, eave, ez, ridgeY, 0, .12);
   A.tile.slab(hw + .45, -hw - .45, eave, -ez, ridgeY, 0, .12);
-  A.tile.roundRibs(-hw - .45, hw + .45, eave, ez, ridgeY, 0); A.tile.roundRibs(hw + .45, -hw - .45, eave, -ez, ridgeY, 0);   // 10-29 近景：桟瓦の山（町家の大屋根）
   for (const sx of [-1, 1]) A[T.side].tri([sx * hw, T.h2, -hd], [sx * hw, T.h2, z2], [sx * hw, ridgeY - .12, 0], 1);   // 妻の壁
   // 2026-10-25 横の壁（角に建つと通りから見える）にも、杉の腰板と、1 階・2 階の小さな格子窓（模式）。窓のない平らな壁に見せない
   for (const sx of [-1, 1]) {

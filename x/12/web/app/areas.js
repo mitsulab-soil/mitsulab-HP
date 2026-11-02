@@ -137,7 +137,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
     if (tagT < 1e8 && (tagT -= dt) < 0) tag.classList.remove("on");
     if ((checkT -= dt) > 0) return; checkT = .3;
     const cap = document.querySelector("#caption"), capOn = cap && !cap.hidden;   // 川越：碧の語りの字幕が出ているあいだは、地名の札を出さない（重ねない）
-    if (capOn) { nearEl.classList.remove("on"); if (tagT < 1e8) tag.classList.remove("on"); }
+    nearEl.style.transition = capOn ? "none" : ""; if (capOn) { nearEl.classList.remove("on");   /* 11-02：字幕が出たら、地名の札はその場で消す（薄れながら字幕と重ならない） */ if (tagT < 1e8) tag.classList.remove("on"); }
     if (!walk) { nearEl.classList.remove("on"); return; }
     const Z = A.zoneAt(cp.x, cp.z);
     if (Z !== A.cur) {
