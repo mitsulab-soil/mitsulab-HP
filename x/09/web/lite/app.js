@@ -1505,7 +1505,7 @@ const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y3");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y4");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     const cp = camera.position, used = [];
     for (const kind of ["shizuku", "ishi"]) {
@@ -2673,6 +2673,7 @@ const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0;
 function frame() {
   if (!D) return;   // タブが隠れていたあいだに描画が始まったとき（データの前）は描かない
   const dt = Math.min(.05, clock.getDelta());
+  if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); }   // 11-02：降りる動きのあいだに影絵を組む
   (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt * (1 - .65 * (U2?.slow || 0)), QW.mode === "walk"); U2?.update(dt, QW.mode === "walk", QA?.top, QA?.still ?? 1);   // 11-02：環世界 2.0 の重なり（umwelt2.js）
   { const F = QW.fliers; let dmin = 99; if (QW.mode === "walk") for (const g of F.group.children) dmin = Math.min(dmin, g.position.distanceTo(camera.position));   // 11-02 本人「鳥に近づくと画面がその生き物の受けとり方に寄る（鳥＝紫外の色）。離れると環世界 1.0 に戻る」＝模式（色の寄せだけ・実際の見え方の再現ではない）
     const w = dmin < 3.2 ? Math.min(1, (3.2 - dmin) / 1.6) : 0; UVV.k += (w - UVV.k) * Math.min(1, dt * 1.2);

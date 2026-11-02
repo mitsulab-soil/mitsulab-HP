@@ -64,6 +64,7 @@ export class Yorishiro {
     body.traverse(o => {
       if (!o.isMesh) return; o.castShadow = true; o.receiveShadow = true;
       const m = o.material, r = role(m?.name || "");
+      if (m && m.transmission > 0) { m.transmission = 0; m.transparent = true; m.opacity = Math.min(m.opacity ?? 1, .62); m.depthWrite = false; m.needsUpdate = true; }   // 11-02：透過（transmission）は画面全体をもう一度描く（初めて見えたとき全部の影絵を組み直して 350 ms 止まり、以後も毎コマ重い）＝半透明に置きかえる
       if (m && m.roughness !== undefined && !(m.transmission > 0)) m.roughness = Math.max(m.roughness, .65);   // マットに
       if (r === "eye") {   // 瞬き：目の中心を軸に縦につぶす
         o.geometry.computeBoundingBox(); const c = o.geometry.boundingBox.getCenter(new THREE.Vector3());
