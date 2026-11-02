@@ -1549,7 +1549,7 @@ const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tor
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y12");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y13");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
