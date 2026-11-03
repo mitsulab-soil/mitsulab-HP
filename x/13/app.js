@@ -288,7 +288,7 @@ const aoiCam = new THREE.PerspectiveCamera(26, .74, .1, 20); aoiCam.position.set
 let aoi = null;
 const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "aoi.vrm";
 async function loadAoi() {
-  try { const K = await import("./kit/aoi.js"); aoi = await K.loadAoi(AOI_URL, { scene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi.place(-2.6, 4.3, .5); aoi.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：木の手前の地面に立つ
+  try { const K = await import("./kit/aoi.js"); aoi = await K.loadAoi(AOI_URL, { scene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi.place(-4.6, 2.0, .7);   /* 2026-11-03：「土の生きもの」の札と重ならない位置へ */ aoi.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：木の手前の地面に立つ
   catch (e) { console.warn("碧：", e?.message ?? e); }
 }
 
