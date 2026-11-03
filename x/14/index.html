@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/app/tokens.css">
+<link rel="stylesheet" href="web/kit/ui.css?v=1">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
 <link rel="preload" href="web/geo/geo.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/geo/dem.bin?v=20261028t" as="fetch" crossorigin>
@@ -17,15 +18,15 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261103p2a">
-<link rel="modulepreload" href="web/app/layers.js?v=k4">
-<link rel="modulepreload" href="web/app/qmarks.js?v=k18">
+<link rel="modulepreload" href="web/app/app.js?v=20261103sb1">
+<link rel="modulepreload" href="web/app/layers.js?v=k5">
+<link rel="modulepreload" href="web/app/qmarks.js?v=k19s6">
 <link rel="modulepreload" href="web/app/kura.js?v=k8">
 <link rel="modulepreload" href="web/app/bell.js?v=k1">
 <link rel="modulepreload" href="web/app/herewalk.js?v=2">
 <link rel="modulepreload" href="web/app/soundwalk.js?v=1">
 <link rel="modulepreload" href="web/app/ambience.js?v=1">
-<link rel="modulepreload" href="web/app/sounds.js?v=4">
+<link rel="modulepreload" href="web/app/sounds.js?v=s1">
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
 <link rel="preload" href="web/app/content.json?v=20261028t" as="fetch" crossorigin>
 <style>
@@ -561,7 +562,7 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 
 <header id="hud">
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand">Qualium 渋谷<small>QUALIUM SHIBUYA</small></div>
+  <div class="brand mu-logo">Qualium 渋谷</div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -573,8 +574,8 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
     <p class="sub">宮益坂上から谷の底のハチ公前・スクランブル交差点を通って道玄坂上まで、大山道の坂およそ 1.4 km。人の多い所では、立ち止まって見てください。</p>
     <div id="starts" role="group" aria-label="始める場所"></div>
     <div id="stMeter" aria-hidden="true"><span class="tr"><i></i></span><span id="stHint"></span></div>
-    <div class="row"><button class="ml-btn ml-btn--primary" id="goDown" disabled>ここから歩く</button><button class="ml-btn" id="skyFly">鳥になって飛ぶ</button></div>
-    <div class="row r2"><button class="ml-btn ml-btn--quiet" id="skyHere" aria-pressed="false">現在地から歩く</button><button class="ml-btn ml-btn--quiet" id="skySight">生きものの身体に入る<br>（Qualia/sight）</button></div>
+    <div class="row"><button class="mu-btn ml-btn ml-btn--primary" id="goDown" disabled>ここから歩く</button><button class="mu-btn ml-btn" id="skyFly">鳥になって飛ぶ</button></div>
+    <div class="row r2"><button class="mu-btn ml-btn ml-btn--quiet" id="skyHere" aria-pressed="false">現在地から歩く</button><button class="mu-btn ml-btn ml-btn--quiet" id="skySight">生きものの身体に入る<br>（Qualia/sight）</button></div>
   </div>
 </section>
 
@@ -612,7 +613,7 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 <nav id="menu" class="ml-panel ml-panel--corner" hidden aria-label="メニュー">
   <button class="ib" id="menuX" aria-label="閉じる">×</button>
   <h3>Qualium 渋谷</h3>
-  <div class="mrow"><button class="ml-btn" id="sndBtn" aria-pressed="true">声と音 オン</button><button class="ml-btn" id="earBtn" aria-pressed="false">鳥の声を聞く</button></div>
+  <div class="mrow"><button class="mu-btn ml-btn" id="sndBtn" aria-pressed="true">声と音 オン</button><button class="mu-btn ml-btn" id="earBtn" aria-pressed="false">鳥の声を聞く</button></div>
   <p id="about"></p>
   <p class="small">碧（あおい）は、この作品の案内役です。歩くあいだ、いまいる所に結びついた記録を話しつづけます（字幕の「出典」から典拠を開けます）。碧の姿：mitsulab（VRoid）／声：VOICEVOX:冥鳴ひまり。</p>
   <details class="ml-fold"><summary>出典・クレジット</summary>
@@ -624,7 +625,7 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261103p2a").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261103sb1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-02 変身＝風景の依代に触れると、その視点へ入る（kit/henshin.js・大宮と同じ一式。石の年代はこの町のデータの一次の出典の行） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); const X = {}; const near = () => { const a = q.AOI?.m?.pos; return a ? (q.treePts || []).filter(t => Math.hypot(t[0] - a.x, t[2] - a.z) < 22) : []; }; Promise.all([import("./web/kit/henshin.js?v=42"), fetch("web/app/content.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { xOnly: true, yoHideR: 8, over: {"ishi": {"timescale": {"kind": "deep", "step": 3.6, "entries": [{"when": "昭和 42", "id": "h_renpei", "re": "昭和 42"}, {"when": "昭和 30", "id": "h_ekimae", "re": "昭和 30"}, {"when": "昭和 9", "id": "c_hachi", "re": "昭和 9"}, {"when": "大正 9", "id": "n_jingu", "re": "大正 9"}, {"when": "明治 33", "id": "h_kakuho", "re": "明治 33"}, {"when": "江戸", "id": "h_machiya", "re": "170"}, {"when": "江戸", "id": "h_oyama", "re": "大山詣り"}, {"when": "鎌倉（伝）", "id": "c_kinnozakura", "re": "頼朝"}]}, "sources": [{"claim": "各年代の中身", "cite": "東京都公園協会「代々木公園」・渋谷区 土木部道路課「オオヤマカイドーニュース」・国土交通省 川崎国道事務所「大山街道見どころマップ」・明治神宮「明治神宮とは」・金王八幡宮「由緒」"}]}, "ki": {"motion": {"kind": "tree", "species": null}, "sources": [{"claim": "流れごとの数と仕組み", "cite": "Taiz L, Zeiger E, Møller IM, Murphy A (2015) Plant Physiology and Development 6th ed., Sinauer"}]}, "hiyodori": {"sources": [{"claim": "日本に一般的に生息する種として依代に使う（本人 2026-11-02 の決定）", "cite": "受けとり方の数の出典は大宮と同じ（kit/umwelt_profiles.js）"}]}, "suzume": {"sources": [{"claim": "日本に一般的に生息する種として依代に使う（本人 2026-11-02 の決定）", "cite": "受けとり方の数の出典は大宮と同じ（kit/umwelt_profiles.js）"}]}, "hachi": {"sources": [{"claim": "日本に一般的に生息する種として依代に使う（本人 2026-11-02 の決定）", "cite": "受けとり方の数の出典は大宮と同じ（kit/umwelt_profiles.js）"}]}, "tanuki": {"sources": [{"claim": "日本に一般的に生息する種として依代に使う（本人 2026-11-02 の決定）", "cite": "受けとり方の数の出典は大宮と同じ（kit/umwelt_profiles.js）"}]}}, voice: {"ki": [{"t": "木の幹のそばに移ります。流れは、時間をおよそ六百倍に縮めた模式です。", "f": "web/voice/hs_aff2a50d77ad.m4a", "dur": 7.61}, {"t": "根から吸った水は幹の中を上がり、その大部分が、葉の気孔から水蒸気になって出ていくとされます。", "f": "web/voice/hs_3565b990e0ee.m4a", "dur": 8.19}, {"t": "日が当たるあいだ、葉は二酸化炭素を取りこみ、酸素を出します。", "f": "web/voice/hs_51875204f7bd.m4a", "dur": 4.93}, {"t": "葉でつくられた糖は、幹や根へ下っていきます。", "f": "web/voice/hs_c992d7abe1ea.m4a", "dur": 4.09}, {"t": "この葉から出ていった水は、次に、どこへ行くのでしょう。", "f": "web/voice/hs_fe6903a799ba.m4a", "dur": 3.95}], "tanuki": [{"t": "タヌキの目の高さに、移ります。色の見分けは、二色型に寄せた模式です。", "f": "web/voice/hs_f0fcb9793c45.m4a", "dur": 6.24}, {"t": "まわりの暗さは、夜に動く生き物を思い浮かべるための模式です。", "f": "web/voice/hs_78dcc563265e.m4a", "dur": 5.3}, {"t": "夜の通りは、低いところから、どんなふうに見えるでしょう。", "f": "web/voice/hs_a8b2962626d5.m4a", "dur": 4.0}]}, lookup: (id, re) => { if (X[id]) return X[id]; const o = D?.objs?.find(x => x.id === id), A = q.AOI?.m?.pos; if (o && A && o.x != null && Math.hypot(o.x - A.x, o.z - A.z) > 700) return null; return o && (o.lines || []).find(l => l.t && l.f && (!re || new RegExp(re).test(l.t))); }, can: id => id !== "ki", trees: near, say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).then(() => import("./web/app/senses6.js?v=11")).then(s6 => { q.S6 = s6.mountSenses(q, { can: id => id !== "ki" }); }).catch(e => console.warn("henshin", e)); } }, 300); }
 </script>

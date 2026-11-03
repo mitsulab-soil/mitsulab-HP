@@ -111,7 +111,8 @@ const FONT = '"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif';
 const MONO = '"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace';
 function mixHex(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")"; }
 export function makeLabel(no, layer, title, color) {
-  const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const x = cv.getContext("2d");
+  const W = 512, H = 128, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const draw = () => { const x = cv.getContext("2d");   // 11-03 起動を軽く：札の字は、はじめて画面に出るときに描く（数百枚を起動時に描かない）
   // 2026-10-22 箱をやめ、視野に重なる札に：左の細い線と角だけ。字の下だけ、横にうすく暗く（明るい空や地面でも読める）
   const gr = x.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(3,6,15,.84)"); gr.addColorStop(.75, "rgba(3,6,15,.6)");   /* 10-28：空の前でも読めるよう地を濃く */ gr.addColorStop(1, "rgba(3,6,15,0)");
   x.fillStyle = gr; x.fillRect(0, 22, W, 84);
@@ -125,10 +126,10 @@ export function makeLabel(no, layer, title, color) {
   let fs = 38; x.font = `600 ${fs}px ${FONT}`; while (x.measureText(title).width > W - 44 && fs > 22) { fs -= 2; x.font = `600 ${fs}px ${FONT}`; }
   x.lineJoin = "round"; x.lineWidth = 6; x.strokeStyle = "rgba(2,5,12,.9)"; x.strokeText(title, 22, 94);   // 10-28：字のふちを暗く（細い明朝が空に溶けないように）
   glow(title, 22, 94, mixHex(color, "#ffffff", .82), 8);
-  x.shadowBlur = 0; x.shadowColor = "transparent";
+  x.shadowBlur = 0; x.shadowColor = "transparent"; };
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, depthTest: true, fog: false }));   // 2026-10-26 遠くの札が霧で淡くならないように
-  s.center.set(0, 0); s.scale.set(1.6, .4, 1); s.renderOrder = 6; return s;
+  s.center.set(0, 0); s.scale.set(1.6, .4, 1); s.renderOrder = 6; t.needsUpdate = false; s.onBeforeRender = () => { s.onBeforeRender = () => { }; draw(); t.needsUpdate = true; }; return s;
 }
 
 /* 層の欄の絵：うすいガラスの板の上に、その層の頭の形（同じ描画の中で一枚ずつ写す） */
