@@ -265,6 +265,13 @@ body{word-break:auto-phrase;line-break:strict}
 .btn{border-radius:var(--mu-r);font:600 13.5px/1 var(--mu-serif);letter-spacing:.1em;min-height:var(--mu-hit);background:var(--mu-panel);border:1px solid var(--mu-line);color:var(--mu-ink);backdrop-filter:var(--mu-blur);-webkit-backdrop-filter:var(--mu-blur);transition:border-color var(--mu-t) var(--mu-ease),color var(--mu-t) var(--mu-ease)}.btn:hover{border-color:var(--mu-line-on)}.btn.pri{border-color:var(--mu-aoi);color:var(--mu-aoi-2)}.ico.x{width:var(--mu-hit);height:var(--mu-hit);min-width:var(--mu-hit);padding:0;border-radius:var(--mu-r-round)!important;display:inline-grid;place-items:center}.ico.x,#menuBtn{background:var(--mu-panel);border:1px solid var(--mu-line);color:var(--mu-ink)}#say{font-family:var(--mu-serif);letter-spacing:.04em;color:var(--mu-ink);text-shadow:0 0 2px rgba(3,6,15,.95),0 1px 10px rgba(3,6,15,.85);background:none!important;border:0!important;box-shadow:none!important;word-break:auto-phrase;text-wrap:balance}
 #guide{background:none!important}
 @media (max-width:420px){.dream-title{font-size:12px;letter-spacing:.02em;padding:0 2px}#top .topR{gap:4px}#top .btn.why{padding:0 7px;font-size:11.5px;letter-spacing:.02em}#top{left:0;right:0;padding-left:8px;padding-right:8px;box-sizing:border-box}#bodyControls{width:96px}#bodyControls>div{gap:6px}}
+/* 2026-11-04 左の層の一覧を外す：いまの身体の一枚だけを左下に。押すと次へ */
+#bodyWheel{position:fixed!important;left:10px!important;top:auto!important;transform:none!important;bottom:calc(max(8px,env(safe-area-inset-bottom)) + var(--gh,64px) + 10px)!important;width:auto!important;height:auto!important}
+#bodyWheel:before{display:none!important}
+#dial{position:static!important;width:auto!important;height:auto!important;display:block!important;overflow:visible!important;padding:0!important}
+#dial .pill{position:relative!important;left:0!important;width:84px!important;height:66px!important;transform:none!important;opacity:1!important}
+#dial .pill::after{content:'⟳';position:absolute;right:4px;top:2px;font-size:12px;opacity:.7}
+#dial .creaturePortrait{width:64px!important;height:40px!important}#dial .pill span{font-size:13px!important}
 </style>
 </head>
 <body>
@@ -291,7 +298,7 @@ body{word-break:auto-phrase;line-break:strict}
 </div></div>
 <div id="panHint" hidden>↔ 左右になぞると、壁が動きます</div>
 
-<aside id="bodyWheel" aria-label="生きもののダイヤル"><button id="bodyPrev" aria-label="前の生きもの">⌃</button><nav id="dial" aria-label="受けとり方"></nav><button id="bodyNext" aria-label="次の生きもの">⌄</button></aside>
+<aside id="bodyWheel" aria-label="いまの身体（押すと次の身体へ）"><nav id="dial" aria-label="受けとり方"></nav></aside>
 <nav id="langs" hidden aria-label="言葉"></nav>
 <!-- 碧の小さな窓（声だけになる受けとり方のときも、碧がとなりで一緒に感じている）2026-10-08 -->
 <div id="aoiWin" hidden aria-hidden="true"><i></i><small id="aoiWinCap"></small></div>
