@@ -6,7 +6,7 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
-import { buildForest } from "./forest.js?v=20261103";
+import { buildForest, shoreWob } from "./forest.js?v=20261103b";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -353,8 +353,8 @@ const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35
 const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='forest',flightHeight=1.5;
 // Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
 const waterMaterial=M(0x426e70,{std:true,rough:.13,metal:0,env:1,uv:.12,temp:.1,echo:.08});
-const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);pool.userData.noCast=true;forest.add(pool);
-const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;river.userData.noCast=true;forest.add(river);
+const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);{const g=pool.geometry,p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),r=Math.hypot(x,y);if(r<1e-3)continue;const wx=-8+x,wz=-7-y,k=(4.8+shoreWob(wx,wz))/4.8*(r/4.8)+(1-r/4.8);p.setXY(i,x*(r>4.79?(4.8+shoreWob(wx,wz))/4.8:1+(k-1)*0),y*(r>4.79?(4.8+shoreWob(wx,wz))/4.8:1));}p.needsUpdate=true;g.computeBoundingSphere();}pool.userData.noCast=true;forest.add(pool);
+const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;{const g=river.geometry,p=g.attributes.position,c=new THREE.Vector3(),v=new THREE.Vector3(),seg=141,rad=13;for(let i=0;i<seg;i++){riverCurve.getPointAt(i/(seg-1),c);for(let j=0;j<rad;j++){const k=i*rad+j;v.fromBufferAttribute(p,k);const dx=v.x-c.x,dz=v.z-c.z,f=Math.max(.35,(.75+shoreWob(v.x,v.z)*.7)/.75);p.setXYZ(k,c.x+dx*f,v.y,c.z+dz*f);}}p.needsUpdate=true;g.computeVertexNormals();g.computeBoundingSphere();}river.userData.noCast=true;forest.add(river);
 STARTUP.forestBuildStartedAt = performance.now();
 const FOREST=buildForest({M,tx,canvasTex,photoTex,forest,pick,sonic,mobile,riverCurve});
 STARTUP.forestBuiltAt = performance.now();
@@ -421,6 +421,18 @@ function ensureBody(id) {
   bodyMats[id]=list; b.visible=false; bodyRoot.add(b); bodies[id]=b; return b;
 }
 const bodyA = {};
+// 2026-11-03 動いている間も 1 秒：生きものの体と、隠れている物（夜の蛾・土の中など）の材質を、起動のあとに裏で組んでおく（切り替えの一こまで組み直して 1〜4 秒止まっていた）
+let warmed = false;
+async function warmAll() {
+  if (warmed) return; warmed = true; const nx = () => new Promise(r => setTimeout(r, 0));
+  for (const id of LENS_IDS) { if (id !== 'hito') { ensureBody(id); await nx(); } }
+  // 一つずつ、別の時間に組む（まとめて組むと 1 秒を超えて止まった）
+  const comp = async (o, prep, undo) => { const hid = []; let q = o; o.traverse(c => { if (!c.visible) { hid.push(c); c.visible = true; } }); prep && prep(); let p; try { p = renderer.compileAsync(o, camera, scene); } catch (e) {} for (const c of hid) c.visible = false; undo && undo(); if (p) await p.catch(() => {}); await nx(); };
+  for (const id in bodyMats) { const b = bodies[id]; if (!b) continue; await comp(b); const pa = bodyA[id] ?? 1; await comp(b, () => setBodyAlpha(id, .5), () => setBodyAlpha(id, pa)); }
+  const roots = []; scene.traverse(o => { if (!o.visible && o !== bodyRoot && !Object.values(bodies).includes(o)) { let p = o.parent, top = true; while (p) { if (roots.includes(p)) { top = false; break; } p = p.parent; } if (top) roots.push(o); } });
+  for (const o of roots) await comp(o);
+  STARTUP.warmedAt = performance.now();
+}
 function setBodyAlpha(id, a) { if (Math.abs(a - (bodyA[id] ?? 1)) < .01) return; bodyA[id] = a; for (const [mt, o0, tr0] of bodyMats[id] || []) { const t = a < .999 || tr0; if (mt.transparent !== t) { mt.transparent = t; mt.needsUpdate = true; } mt.opacity = o0 * a; } }
 function initLegacyGarden() {
   if (STARTUP.legacyGardenBuilt) return;
@@ -814,11 +826,11 @@ function schedulePortraits() {
     portraitTask = null; if (document.hidden) return;
     const id = [...pendingPortraits].find(id => !dial.querySelector(`[data-id="${id}"]`).hidden) || pendingPortraits.values().next().value;
     pendingPortraits.delete(id);
-    try { const img = dial.querySelector(`[data-id="${id}"] img`); img.src = id === 'hito' && vrm ? humanPortrait(aoi,vrm) : creaturePortrait(id); img.style.visibility = ''; if(id === 'hito')img.alt='人の身体を表す碧の3D'; }
+    try { const img = dial.querySelector(`[data-id="${id}"] img`); img.src = `assets/portraits/${id}.webp`; /* 2026-11-03 起動 1 秒：肖像は焼いた絵（別の描き手で材質を組み直し 1 秒以上止まっていた） */ img.style.visibility = ''; if(id === 'hito')img.alt='人の身体を表す碧の3D'; }
     catch (e) { console.warn('生きものの肖像', id, e); }
     schedulePortraits();
   };
-  portraitTask = window.requestIdleCallback ? requestIdleCallback(renderOne, { timeout: 1200 }) : setTimeout(renderOne, 80);
+  portraitTask = setTimeout(renderOne, 0);
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) schedulePortraits(); });
 for (const [i, l] of S.lens.entries()) {
@@ -1217,10 +1229,10 @@ function frame(now=0) {
   if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
-    STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits();
+    STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);
   }
   if (!STARTUP.fallbackAt && ((!vrm && A.loadDone) || STARTUP.assetErrors.length) && !STARTUP.assetsLoading && $("boot").hidden) {
-    STARTUP.fallbackAt = performance.now(); $("stage").dataset.ready = 'fallback'; schedulePortraits();
+    STARTUP.fallbackAt = performance.now(); $("stage").dataset.ready = 'fallback'; schedulePortraits(); setTimeout(warmAll, 0);
   }
   requestAnimationFrame(frame);
 }
@@ -1245,7 +1257,7 @@ STARTUP.sceneBuiltAt = performance.now();
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
   const aoiReady = loadAoi().then(async () => {
-    if (aoi && renderer.compileAsync) { aoi.visible = true; await renderer.compileAsync(aoi, camera, scene).catch(() => {}); }
+    if (aoi && renderer.compileAsync) { aoi.visible = true; await renderer.compileAsync(aoi, camera, scene).catch(() => {}); opacity(1); await renderer.compileAsync(aoi, camera, scene).catch(() => {}); opacity(0); /* 透けた材質と透けない材質の両方を先に組む（現れ終わりの一こまで組み直して 1 秒止まっていた） */ /* 2026-11-03 動いている間も 1 秒：碧の絵（テクスチャ）は一枚ずつ別のこまで GPU へ送る（映った一こまで 1 秒止まっていた） */ const TX = new Set(); aoi.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) for (const v of Object.values(m)) if (v && v.isTexture) TX.add(v); if (o.isMesh) for (const m of [].concat(o.material)) if (m.uniforms) for (const u of Object.values(m.uniforms)) if (u && u.value && u.value.isTexture) TX.add(u.value); }); for (const t of TX) { renderer.initTexture(t); await new Promise(r => requestAnimationFrame(() => r())); } }
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
     if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.0 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }

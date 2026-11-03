@@ -51,8 +51,10 @@ function polyDistC(P, C, x, z) {
   }
   return best;
 }
-const dRiver = (x, z) => polyDistC(RIVER_PTS, RIVER_C, x, z);
-const dPond = (x, z) => Math.hypot(x - POND.x, z - POND.z) - POND.r;
+// 2026-11-03 本人「水辺だけ直線で自然でない」：岸を入り組ませる（池・川の水面の縁と、草・石・ヨシの並びを同じ揺らぎで）
+export const shoreWob = (x, z) => .3 * Math.sin(x * 1.1 + z * .6) + .2 * Math.sin(x * .37 - z * 1.7 + 1.3) + .1 * Math.sin(x * 2.9 + z * 2.3);
+const dRiver = (x, z) => polyDistC(RIVER_PTS, RIVER_C, x, z) - shoreWob(x, z) * .7;
+const dPond = (x, z) => Math.hypot(x - POND.x, z - POND.z) - POND.r - shoreWob(x, z);
 const dPath = (x, z) => polyDist(PATH, x, z);
 const gapK = (x, z) => GAPS.reduce((m, g) => Math.max(m, sstep(g.r + 2.6, g.r - .8, Math.hypot(x - g.x, z - g.z))), 0);
 // 明るさ（0＝樹冠の下・1＝空がひらけている）
