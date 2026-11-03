@@ -27,9 +27,8 @@ function lens(k, d) { // d: ImageData.data
   if (k === "hito") return;
   for (let i = 0; i < d.length; i += 4) {
     const r = d[i], g = d[i + 1], b = d[i + 2];
-    if (k === "hachi") { const m = .5; d[i] = r * (1 - m) + g * .9 * m; d[i + 1] = g * (1 - m) + b * .95 * m; d[i + 2] = b * (1 - m) + Math.min(255, b * .5 + (r + g + b) / 6) * m; continue; } // 2026-11-03：写真が見える強さに（半分だけ寄せる模式）
-    if (k === "hachi") { d[i] = g * .9; d[i + 1] = b * .95; d[i + 2] = Math.min(255, b * .5 + (r + g + b) / 6); }
-    else if (k === "suzume") { const m = (r + g + b) / 3; d[i] = Math.max(0, Math.min(255, m + (r - m) * 1.5)); d[i + 1] = Math.max(0, Math.min(255, m + (g - m) * 1.5)); d[i + 2] = Math.max(0, Math.min(255, m + (b - m) * 1.5 + 6)); }
+    if (k === "hachi") { const m = .72; d[i] = r * (1 - m) + g * .9 * m; d[i + 1] = g * (1 - m) + b * .95 * m; d[i + 2] = b * (1 - m) + Math.min(255, b * .5 + (r + g + b) / 6) * m; continue; } // 2026-11-04：写真が見えつつ、ミツバチの色と分かる強さ（7 割寄せる模式）
+    if (k === "suzume") { const m = (r + g + b) / 3; d[i] = Math.max(0, Math.min(255, m + (r - m) * 1.5)); d[i + 1] = Math.max(0, Math.min(255, m + (g - m) * 1.5)); d[i + 2] = Math.max(0, Math.min(255, m + (b - m) * 1.5 + 6)); }
     else if (k === "tanuki") { const y = (r + g) / 2; d[i] = y * .85; d[i + 1] = y * .85; d[i + 2] = b * .9; }
   }
 }
@@ -116,12 +115,12 @@ function makeObj(it, layer) {
 }
 let tagG = null;
 function tagTex(t, c) { const cv = document.createElement("canvas"); cv.width = 256; cv.height = 96; const x = cv.getContext("2d");
-  x.font = '600 66px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = c; x.fillText(t, 128, 48); if (c === "#ffffff") { x.fillStyle = "#5cc8e0"; x.fillRect(48, 86, 160, 5); }
+  x.font = '700 76px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.lineJoin = "round"; x.lineWidth = 10; x.strokeStyle = "rgba(6,14,22,.85)"; x.strokeText(t, 128, 48); x.fillStyle = c; x.fillText(t, 128, 48); if (c === "#ffffff") { x.fillStyle = "#5cc8e0"; x.fillRect(48, 86, 160, 5); }
   const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; return tx; }
 function tags(Ls) { if (!THREE) return; if (!tagG) { tagG = new THREE.Group(); S.add(tagG); }
   tagG.clear(); tagG.visible = view === "side"; if (view !== "side") return;
   const n = Ls.length; Ls.forEach((L, li) => { const me = L === mine, sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex(me ? "あなた" : String(li + 1), me ? "#ffffff" : L.color), transparent: true, fog: false, depthTest: false }));
-    sp.scale.set(me ? .86 : .6, me ? .32 : .225, 1); sp.position.set((li - (n - 1) / 2) * .62, -.1, .2); tagG.add(sp); }); }
+    sp.scale.set(me ? .86 : .8, me ? .32 : .3, 1); sp.position.set((li - (n - 1) / 2) * .62, -.1, .2); tagG.add(sp); }); }
 function allLayers() { return [mine, ...others]; }
 let focusSense = null;
 function layout() {
