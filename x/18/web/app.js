@@ -90,7 +90,7 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPl
   v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
   v.scene.position.set(0, 0, -1.4); S.add(v.scene);
 }).catch(() => { });
-requestAnimationFrame(() => requestAnimationFrame(() => { $("ld").style.opacity = 0; setTimeout(() => $("ld").remove(), 500); })); // 操作は碧を待たずに始められる
+requestAnimationFrame(() => requestAnimationFrame(() => window.MLLoader?.done())); // 操作は碧を待たずに始められる
 
 const items = new THREE.Group(); S.add(items);
 const meshes = new Map(); // item.id -> {obj, item, layer}
@@ -123,7 +123,7 @@ function layout() {
   Ls.forEach((L, li) => L.items.forEach((it, ii) => {
     const m = meshes.get(L.id + ":" + it.id);
     if (view === "stack") { // 重ねる：感覚ごとに方角、人ごとに高さ。同じ感覚がみんなで一つの帯になる
-      const si = SENSES.findIndex(s => s.k === it.sense), a = Math.PI * (.88 - .76 * si / 5) + (ii % 3 - 1) * .1 + (li % 4 - 1.5) * .05; // 手前の弧に、感覚ごとの方角
+      const si = SENSES.findIndex(s => s.k === it.sense), a = Math.PI * (si < 3 ? .97 - .1 * si : .23 - .1 * (si - 3)) + (ii % 3 - 1) * .08 + (li % 4 - 1.5) * .04; // 碧の左右に分ける（まん中は碧のために空ける）
       const r = 1.25 + (li % 3) * .3; m.target.set(Math.cos(a) * r, .55 + (li % 6) * .2 + (ii % 2) * .1, Math.sin(a) * r * .55 - .2);
     } else { // 並べる：一人一列（下から上へ。並びは置いた順）
       const n = Ls.length, x = (li - (n - 1) / 2) * .62, y = .35 + ii * .56;
@@ -139,7 +139,8 @@ let yaw = 0, pitch = .12, dist = 4.6, look = new THREE.Vector3(0, 1.05, 0);
 function aimC() { // 画面の縦横に合わせて、全部が入る距離へ
   const Ls = allLayers(), tf = Math.tan(C.fov * Math.PI / 360);
   if (view === "side") { const W = Ls.length * .62 + .4, H = Math.max(...Ls.map(L => L.items.length), 1) * .56 + .4; look.set(0, .35 + H / 2 - .3, 0); dist = Math.max(W / 2 / (tf * C.aspect), H / 2 / tf * 1.25) + 1; }
-  else { look.set(0, 1.05, 0); dist = Math.max(4.6, 2.2 / (tf * C.aspect) + 1.6); } }
+  else { look.set(0, 1.05, 0); dist = Math.max(4.6, 2.2 / (tf * C.aspect) + 1.6); }
+  S.fog.near = dist + 1; S.fog.far = dist + 11; } // 縦長で遠く引いても、碧と層がかすまない
 function place() { C.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * dist, look.y + Math.sin(pitch) * dist, look.z + Math.cos(yaw) * Math.cos(pitch) * dist); C.lookAt(look); }
 const ptr = new Map(); let downAt = null, pinch0 = 0;
 cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); downAt = [e.clientX, e.clientY, performance.now()]; if (ptr.size === 2) { const [a, b] = [...ptr.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); } });
