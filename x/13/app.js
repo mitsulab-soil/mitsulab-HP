@@ -1,6 +1,6 @@
 /* Qualia/nature ── 一本のケヤキと足もとの土と水に、自然の記録を層として重ねる。© 2026 mitsulab. All rights reserved.
    2026-10-26 本人「Qualia/nature もアプリを作って公開してください。」
-   中身＝Qualium 氷川の自然の層（116 件・nature.json）。文と声（VOICEVOX：冥鳴ひまり・読みは Qualium 氷川の公開時に確かめ済み）はそのまま使う。
+   中身＝Qualium 氷川の自然の層（98 件・nature.json）。文と声（VOICEVOX：冥鳴ひまり・読みは Qualium 氷川の公開時に確かめ済み）はそのまま使う。
    3D＝写実の地（木の形は mitsulab・質感 CC0）に、事実の線（層の色の細い線と点）。木の形・土の層の厚さ・点の位置・季節の色は模式。
    起動：木と土を描いた時点で読み込み画面を閉じる。碧（1.2 秒後）はあとから。
    2026-10-26 本人「Qualium 以外には、碧だけで、かさねっこは入れないでください」→ かさねっこ（このは）を外した。 */
@@ -67,6 +67,7 @@ async function loadTree() {
   const bx = new THREE.Box3().setFromObject(tree), h = bx.max.y - bx.min.y, s = TREE_H / h; tree.scale.setScalar(s);
   const c = bx.getCenter(new THREE.Vector3()); tree.position.set(-c.x * s, -bx.min.y * s - .05, -c.z * s);
   tree.traverse(o => { if (!o.isMesh) return; o.castShadow = true; o.receiveShadow = true; if (/leaf|leaves/i.test(o.material.name + o.name)) { leafMat = o.material; leaves = o; leafMat.userData.base = leafMat.color.clone(); } });
+  try { await renderer.compileAsync(tree, camera, scene); } catch {}   // 2026-11-03：影の計算を止めずに先に準備（コマ落ちを出さない）
   scene.add(tree); applySeason();
 }
 
