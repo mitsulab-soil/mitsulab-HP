@@ -124,7 +124,7 @@ export function attachHenshin(QW, opt = {}) {
      視野の端に控えめに出す。低ポリの手づくりの形を、描く直前に視点のカメラへ貼る（形は画面の高さを 1 とした単位で作る＝画角や縦横が変わっても同じ所に見える）。
      奥行きの判定はしない（地面にめりこまない）。重さ＝メッシュ 2〜5 個だけ。石は目も体の先もないので出さない。 */
   /* 11-03 P2d：字幕を文節で折る（語の途中で改行しない）／スズメの視点の 375px は、字幕を嘴の先より上へ */
-  { const st = document.createElement("style"); st.textContent = '#capText{word-break:normal!important;line-break:strict;overflow-wrap:anywhere}#capText .ph{display:inline-block;max-width:100%}@media (max-width:640px){body.hs-beak[data-mode] #caption#caption{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 168px)!important;top:auto!important}}'; document.head.appendChild(st);
+  { const st = document.createElement("style"); st.textContent = '#capText{word-break:normal!important;line-break:strict;overflow-wrap:anywhere}#capText .ph{display:inline-block;max-width:100%}body.hs-beak[data-mode] #caption#caption{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 230px)!important;top:auto!important}@media (max-width:640px){body.hs-beak[data-mode] #caption#caption{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 250px)!important;top:auto!important}}'; document.head.appendChild(st);
     { const ct = document.getElementById("capText"); let busy = false;   // どのブラウザでも（ページの keep-all で語の途中が折れていた）：句読点と、漢字・カタカナの前の助詞の後ろで区切り、文節を折れない塊にする
       if (ct) new MutationObserver(() => { if (busy) return; const tx = ct.textContent; if (!tx || ct.querySelector("span.ph")) return; busy = true; const parts = tx.split(/(?<=[、。！？」）])|(?<=[をにがはでとへものや](?=[一-龥々ァ-ヶー]))|(\n)/).filter(x => x);
         ct.textContent = ""; for (const p of parts) { if (p === "\n") ct.append("\n"); else { const e = document.createElement("span"); e.className = "ph"; e.style.display = "inline-block"; e.textContent = p; ct.append(e); } } busy = false; }).observe(ct, { childList: true, characterData: true, subtree: true }); } }
@@ -142,8 +142,8 @@ export function attachHenshin(QW, opt = {}) {
       const lo = shade(seg(dummy, at(0, -1.18, .14), at(0, -.72, .215), .024, .0015, 28), 0x6e5440); lo.scale.x = 1.0; g.add(lo);   // 下嘴（少し短く淡い・上嘴の下からのぞく）
       const up = shade(seg(dummy, at(0, -1.12, .14), at(0, -.66, .23), .026, .001, 32), 0x3a2a1e); up.scale.x = 1.08; g.add(up);   // 上嘴（嘴峰が上を向く）
       lo.scale.x = 1.22; lo.renderOrder = 11; up.renderOrder = 12;   /* 11-03 P2e：口の線＝下嘴を上嘴より少し幅広く淡くし、左右の縁に下嘴がのぞく。その境に暗い合わせ目の線を引き、上下の分かれ目を見せる */
-      { const V = (x, y, z) => new THREE.Vector3(x, y, z); for (const sx of [-1, 1]) { const gape = shade(seg(dummy, V(sx * .0262, -.1640, -.14), V(sx * .0016, -.1530, -.218), .0026, .0006, 8), 0x0b0705); gape.renderOrder = 13; g.add(gape); } }
-      g.userData.anim = t => { g.rotation.x = Math.sin(t * 1.7) * .01; };
+      { const V = (x, y, z) => new THREE.Vector3(x, y, z); for (const sx of [-1, 1]) { const gape = new THREE.Mesh(new THREE.CylinderGeometry(.0011, .0042, 1, 8, 1), new THREE.MeshBasicMaterial({ color: 0x030201, transparent: true, opacity: 0, depthTest: false, depthWrite: false })); mats.push(gape.material); gape.material.userData.op = 1; const a0 = V(sx * .0300, -.1625, -.14), a1 = V(sx * .0020, -.1528, -.222), d = new THREE.Vector3().subVectors(a1, a0); gape.scale.y = d.length(); gape.position.copy(a0).addScaledVector(d, .5); gape.quaternion.setFromUnitVectors(UP, d.normalize()); gape.renderOrder = 13; g.add(gape); } }   /* 11-03 P2g：口の線＝上嘴と下嘴の合わせ目を、付け根から先へ横に走る黒い線として太く・はっきり（陰をつけず一色） */
+      g.userData.anim = t => { const nar = innerWidth < 640 && innerHeight > innerWidth; g.rotation.x = (nar ? .17 : .1) + Math.sin(t * 1.7) * .01; };   /* 11-03 P2g：PC もスマホも、嘴を下の 6 つのボタンより上へ持ち上げて全体を見せる */
     } else if (id === "hachi" || id === "mitsubachi") {   // ミツバチの触角（膝のように曲がる柄と鞭）と、前脚の先
       g = new THREE.Group(); const dark = mat(0x2a2118, .55);   // 前脚は画面の下の 6 つのボタンに隠れるので出さない（触角だけ）
       const jm = mat(0x3b2f24, .5);   /* 11-03 P2：柄節（まっすぐ上へ）→ ひじで折れる → 鞭節（外へ下がり、先へ少し太る） */
