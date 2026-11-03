@@ -12,7 +12,7 @@ import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に
 import { makeWorldLayers } from "./worldlayers.js?v=w20";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { makeStartPins } from "../kit/startpins.js?v=mg7";
+import { makeStartPins } from "../kit/startpins.js?v=sp11";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
@@ -830,10 +830,11 @@ function startInfo(x, z, name) {   /* その場所の説明＝いちばん近い
   for (const L of LAYER.objs) { const o = L.o; if (!o || o.x == null || !(o.lines || []).length) continue; const s0 = (o.src || []).find(q => !/OpenStreetMap/i.test(q.t || "")); if (!s0) continue;   /* 地図の点（OSM）だけを典拠にした語りは、説明に使わない */ let d = Math.hypot(o.x - x, o.z - z); const t = String(o.title || "").replace(/（.*?）|\s/g, ""); if (t && (nm.includes(t) || t.includes(nm))) d -= 150; if (d < bd) { bd = d; b = o; } }
   if (!b || bd > 110) return {};
   const text = b.lines.slice(0, 2).map(l => l.t).join(""), ss = (b.src || []).filter((q, k, A) => !/OpenStreetMap/i.test(q.t || "") && A.findIndex(r => r.t === q.t) === k);
-  return { text, src: ss.map(q => q.u ? `<a href="${escH(q.u)}" target="_blank" rel="noopener">${escH(q.t)}</a>` : escH(q.t)).join("／") };
+  return { text, lines: b.lines.slice(0, 2), src: ss.map(q => q.u ? `<a href="${escH(q.u)}" target="_blank" rel="noopener">${escH(q.t)}</a>` : escH(q.t)).join("／") };
 }
 function startPreview(eyeAt) {
   return { info: i => { const p = START.sp?.pins[i]; return p ? startInfo(p.it.x, p.it.z, p.it.name) : {}; },
+    say: (i, inf, name) => speakLines(inf.lines?.length ? inf.lines.map(l => ({ ...l, tc: l.tc || l.t })) : [{ t: name, tc: name }], null, { narr: true }),
     draw: (cv, i) => { const e = eyeAt(i); if (!e) return; EYEV ||= makeEyeView({ THREE, renderer, scene, camera, hide: eyeHide, prep: eyePrep }); EYEV.draw(cv, e);
       eyeLoad?.(); for (const ms of [1200, 3500]) setTimeout(() => { if (START.sp?.sel === i && cv.isConnected) EYEV.draw(cv, e); }, ms); } };   /* 近くの木や道が届いたら描き直す */
 }

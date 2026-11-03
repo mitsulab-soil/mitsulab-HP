@@ -27,8 +27,8 @@ body{overflow:hidden}
 .lay:focus-visible{outline:2px solid var(--nat-hud);outline-offset:2px}
 
 #aoiBox{display:none}
-#cap{position:absolute;left:0;right:0;bottom:66px;margin:0;opacity:0;transition:opacity .6s var(--ml-ease);pointer-events:none;font-size:15px;padding:8px 18%;text-align:center;text-shadow:0 0 10px rgba(3,6,15,1),0 1px 3px rgba(3,6,15,1)}
-#cap.on{opacity:1}
+#cap{position:absolute;left:0;right:0;bottom:66px;margin:0;opacity:0;transition:opacity .6s var(--ml-ease);pointer-events:none;cursor:pointer;font-size:15px;padding:8px 18%;text-align:center;text-shadow:0 0 10px rgba(3,6,15,1),0 1px 3px rgba(3,6,15,1)}
+#cap.on{opacity:1;pointer-events:auto}
 #cap{background:linear-gradient(180deg,rgba(3,6,15,0),rgba(3,6,15,.82) 30%,rgba(3,6,15,.82) 70%,rgba(3,6,15,0))}
 .dlg .ml-title:focus{outline:none}
 
@@ -91,7 +91,7 @@ body{overflow:hidden}
   .lay small{display:inline;font-size:.58rem;margin-left:0}
   .lay span{white-space:nowrap}
   #aoiBox{top:118px;width:66px;height:90px}
-  #cap{font-size:14px;padding:10px 6%;bottom:60px;background:rgba(3,6,15,.86)}
+  #cap{font-size:13px;line-height:1.6;padding:8px 6%;bottom:60px}   /* 11-02 本人：灰色の背景の板にしない＝小さな字幕に */
   .season-note{padding:0 8px;font-size:.66rem}
   .dlg-in{padding:18px 16px 14px}
 }

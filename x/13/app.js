@@ -153,7 +153,7 @@ function nearest(cx, cy, maxPx) {
   return best;
 }
 function hover(e) { if (MOBILE) return; cv.classList.toggle("hot", !!nearest(e.clientX, e.clientY, 18)); }
-function tap(x, y) { const h = nearestActor(x, y, MOBILE ? 36 : 28); if (h) { pickActor(h); return; } const r = nearest(x, y, MOBILE ? 30 : 22); if (r) openCard(r); }
+function tap(x, y) { const h = nearestActor(x, y, MOBILE ? 36 : 28); if (h) { pickActor(h); return; } const r = nearest(x, y, MOBILE ? 30 : 22); if (r) speakRec(r); }
 
 // ---- 札と声
 const NAME = { tree: "木", soil: "土", water: "水", life: "生きもの" };
@@ -174,6 +174,24 @@ function openCard(x, kick) {
   $("#card").showModal(); $("#cardT").focus();
   if (soundOn && x.lines.length) playLines(x, 0);
 }
+/* 11-02 本人「説明書きでなく碧が話し、画面下に小さく字幕。灰色の背景の札は無くす」：景色の点に触れたら、札を開かず碧が話す。字幕を押すと典拠（札）がひらく */
+let capRec = null, recT = 0, sayRec = null;
+function speakRec(x) {
+  stopVoice(); clearTimeout(recT); reading = x; capRec = x;
+  const g = groups.halo; g.visible = true; g.position.copy(x.pos);
+  aoi?.motion.lookAt(x.pos); aoi?.motion.express("curious", .5, 2);
+  if (!x.lines.length) { sayRec = x; say(x.title + "　›典拠", 4200); recT = setTimeout(() => endRec(x), 4200); return; }
+  sayLine(x, 0);
+}
+function endRec(x) { if (reading !== x) return; reading = null; capRec = null; groups.halo && (groups.halo.visible = false); aoi?.motion.lookAt(null); }
+function sayLine(x, i) {
+  if (reading !== x) return; if (i >= x.lines.length) { recT = setTimeout(() => endRec(x), 3000); return; }
+  const l = x.lines[i], t = l.t + (i === x.lines.length - 1 ? "　›典拠" : ""), ms = Math.max(3200, l.t.length * 200 + 1200);
+  sayRec = x; if (soundOn && l.f) { say(t, 60000); audio = new Audio(l.f); audio.play().catch(() => {}); aoi?.speak({ kana: l.kana || "", text: l.t, dur: l.dur, clock: () => audio ? audio.currentTime : 99 });
+    audio.onended = () => { if (reading !== x) return; sayRec = x; say(t, i === x.lines.length - 1 ? 3000 : 1600); recT = setTimeout(() => sayLine(x, i + 1), 260); }; }
+  else { sayRec = x; say(t, ms); recT = setTimeout(() => sayLine(x, i + 1), ms); }
+}
+$("#cap").addEventListener("click", () => { if (capRec) { const x = capRec; stopVoice(); clearTimeout(recT); openCard(x); } });
 function playLines(x, i) {
   if (reading !== x || i >= x.lines.length) { stopVoice(false); return; }
   const l = x.lines[i]; document.querySelectorAll("#cardB p").forEach(p => p.classList.toggle("now", p.dataset.i == i));
@@ -281,7 +299,7 @@ function webTick(dt) {
 
 // ---- 字幕（碧の名乗りは字だけ）
 let capT = 0;
-function say(t, ms, force = true) { if (!force && web.sel) return; const c = $("#cap"); c.textContent = t; c.classList.add("on"); clearTimeout(capT); capT = setTimeout(() => c.classList.remove("on"), ms); }
+function say(t, ms, force = true) { if (!force && web.sel) return; capRec = sayRec; sayRec = null; const c = $("#cap"); c.textContent = t; c.classList.add("on"); clearTimeout(capT); capT = setTimeout(() => c.classList.remove("on"), ms); }
 
 // ---- 碧（右上の小さな窓）
 const aoiScene = new THREE.Scene();

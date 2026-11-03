@@ -47,7 +47,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
     const lead = document.createElement("i"); lead.className = "spLead"; layer.appendChild(lead); tag.setAttribute("aria-label", it.name + "を選ぶ"); tag.addEventListener("click", e => { e.stopPropagation(); api.select(i); }); layer.appendChild(tag);
     return { it, P, head, core, ring, ring2, pulse, beam, foot, tag, lead, y, c };
   });
-  const title = document.createElement("div"); title.className = "spTitle"; title.innerHTML = "どこから歩きはじめますか<small>印を押すと、その場所の眺め。<br class=spBr>もう一度押すと、歩きはじめます</small>"; layer.appendChild(title);
+  const title = document.createElement("div"); title.className = "spTitle"; title.innerHTML = "どこから歩きはじめますか<small>印を押すと、碧がその場所を話します。<br class=spBr>もう一度押すと、歩きはじめます</small>"; layer.appendChild(title);
   let noteEl = null; if (note) { noteEl = document.createElement("div"); noteEl.className = "spNote"; noteEl.textContent = note.text; layer.appendChild(noteEl); }
   /* 2026-10-28 本人：「ここから歩く」のボタンは外す。1 回目に押す＝説明と目の高さの眺め、同じ所をもう 1 回＝そこから歩く */
   if (goBtn) { goBtn.hidden = true; goBtn.style.display = "none"; goBtn = null; }
@@ -59,7 +59,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
     card.querySelector("canvas").addEventListener("click", e => { e.stopPropagation(); if (api.sel >= 0) api.select(api.sel); });   // 眺めを押しても歩きはじめる
   }
   const showCard = i => { if (!card) return; const p = pins[i]; if (i < 0 || !p || p.it.kind === "here") { card.classList.remove("on"); card.hidden = true; return; }
-    const inf = preview.info?.(i) || {}; card.querySelector("h3").textContent = p.it.name; card.querySelector("p").textContent = inf.text || ""; card.querySelector(".src").innerHTML = inf.src ? "典拠：" + inf.src : "";
+    const inf = preview.info?.(i) || {}; if (preview.say) { preview.say(i, inf, p.it.name); return; }   /* 11-02 本人「灰色の背景の説明書きは無くし、碧が話して画面下に小さく字幕」：説明の札（眺めの絵つき）は出さず、碧の声と字幕で */ card.querySelector("h3").textContent = p.it.name; card.querySelector("p").textContent = inf.text || ""; card.querySelector(".src").innerHTML = inf.src ? "典拠：" + inf.src : "";
     card.querySelector(".hint").textContent = "同じ印をもう一度押すと、" + p.it.name + "から歩きます";
     card.hidden = false; try { preview.draw?.(card.querySelector("canvas"), i); } catch (e) { console.warn("eyeview", e); } requestAnimationFrame(() => card.classList.add("on")); };
   const _v = new THREE.Vector3(), PK = new THREE.Color(pick);
