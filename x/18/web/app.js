@@ -89,6 +89,7 @@ S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); sun = new THREE.Dir
 }
 new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPlugin(p)).loadAsync("web/aoi.vrm").then(g => {
   const v = g.userData.vrm; VRMUtils.rotateVRM0?.(v); aoi = v;
+  trimMorphs(v);   // 2026-11-04：使う「まばたき」の形だけ残す（はじめの一枚で形の表を全部組むと、スマホで 0.3 秒ほど止まるため）
   const N = n => v.humanoid.getNormalizedBoneNode(n);
   for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1; N(sd + "UpperArm")?.rotation.set(-.06, sg * .06, sg * -1.3); N(sd + "LowerArm")?.rotation.set(0, sg * -.3, 0); }
   v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
@@ -96,6 +97,22 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPl
 }).catch(() => { });
 items = new THREE.Group(); S.add(items); texL = new THREE.TextureLoader(); ray = new THREE.Raycaster(); look = new THREE.Vector3(0, 1.05, 0); clk = new THREE.Clock();
 resize(); R.compileAsync(S, C).catch(() => { }).then(() => R.setAnimationLoop(frame));   // はじめの一枚で止まらない
+}
+/* 碧の顔の形（morph）は「まばたき」に使うものだけ残す。ほかの表情の結びは外す（このアプリは表情を使わない） */
+function trimMorphs(v) {
+  const em = v.expressionManager; if (!em) return;
+  const keep = new Map(); // geometry -> Set(index)
+  const binds = []; for (const ex of em.expressions) for (const b of ex._binds || []) if (b.primitives && b.index != null) binds.push([ex, b]);
+  for (const [ex, b] of binds) if (/^blink/i.test(ex.expressionName)) for (const m of b.primitives) { if (!keep.has(m.geometry)) keep.set(m.geometry, new Set()); keep.get(m.geometry).add(b.index); }
+  const remap = new Map();
+  v.scene.traverse(o => { const g = o.geometry; if (!o.isMesh || !g || !g.morphAttributes.position) return;
+    if (!remap.has(g)) { const ks = [...(keep.get(g) || [])].sort((a, b) => a - b), mp = new Map(ks.map((k, i) => [k, i]));
+      for (const a of ["position", "normal", "color"]) if (g.morphAttributes[a]) g.morphAttributes[a] = ks.map(k => g.morphAttributes[a][k]);
+      if (!ks.length) g.morphAttributes = {};
+      remap.set(g, mp); }
+    const mp = remap.get(g); o.morphTargetInfluences = mp.size ? new Array(mp.size).fill(0) : undefined; o.morphTargetDictionary = undefined; o.updateMorphTargets?.(); });
+  for (const [ex, b] of binds) { const mps = b.primitives.map(m => remap.get(m.geometry)); const ni = mps[0]?.get(b.index);
+    b.index = ni != null && mps.every(mp => mp?.get(b.index) === ni) && /^blink/i.test(ex.expressionName) ? ni : -1; }
 }
 function frameMat(c) { return new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: .9 }); }
 function makeObj(it, layer) {
