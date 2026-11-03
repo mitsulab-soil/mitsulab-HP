@@ -59,7 +59,7 @@ function setQ(t, v) { $("qt").textContent = t; mine.q = t; if (v) speak(t); }
 /* ---------- 下の並び ---------- */
 function buildRows() {
   $("sense").innerHTML = SENSES.map(s => `<button data-k="${s.k}" style="--c:${s.c}" aria-pressed="${s.k === sense}"><svg viewBox="0 0 24 24">${s.d}</svg>${s.n}</button>`).join("");
-  $("who").innerHTML = WHO.map(w => `<button data-k="${w.k}" style="--c:#9bdcf0" aria-pressed="${w.k === who}">${w.n}</button>`).join("");
+  $("who").innerHTML = WHO.map(w => `<button class="mu-chip" data-k="${w.k}" aria-pressed="${w.k === who}">${w.n}</button>`).join("");
 }
 $("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
 $("who").onclick = e => { const b = e.target.closest("button"); if (!b) return; who = b.dataset.k; buildRows(); const w = WHO.find(x => x.k === who); if (w.say) say(w.say); };
@@ -128,7 +128,7 @@ function layout() {
       const n = Ls.length, x = (li - (n - 1) / 2) * .62, y = .35 + ii * .56;
       m.target.set(x, y, .2);
     }
-    m.op = !focusSense || it.sense === focusSense ? 1 : .12;
+    m.op = view === "side" || !focusSense || it.sense === focusSense ? 1 : .5; // 選んだ感覚を少し前に。ほかも見える明るさに残す
   }));
   $("bView").setAttribute("aria-pressed", view === "side");
   aimC();
@@ -137,7 +137,7 @@ function layout() {
 let yaw = 0, pitch = .12, dist = 4.6;
 function aimC() { // 画面の縦横に合わせて、全部が入る距離へ
   const Ls = allLayers(), tf = Math.tan(C.fov * Math.PI / 360);
-  if (view === "side") { const W = Ls.length * .62 + .4, H = Math.max(...Ls.map(L => L.items.length), 1) * .56 + .4; look.set(0, .35 + H / 2 - .3, 0); dist = Math.max(W / 2 / (tf * C.aspect), H / 2 / tf * 1.25) + 1; }
+  if (view === "side") { const W = Ls.length * .62 + .4, H = Math.max(...Ls.map(L => L.items.length), 1) * .56 + .4; look.set(0, .35 + H / 2 - .3 - H * .18, 0); dist = Math.max(W / 2 / (tf * C.aspect), H / 2 / tf * 1.6) + 1; /* 下の操作の並びにかからない高さへ */ }
   else { look.set(0, 1.05, 0); dist = Math.max(4.6, 2.2 / (tf * C.aspect) + 1.6); }
   S.fog.near = dist + 1; S.fog.far = dist + 11; } // 縦長で遠く引いても、碧と層がかすまない
 function place() { C.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * dist, look.y + Math.sin(pitch) * dist, look.z + Math.cos(yaw) * Math.cos(pitch) * dist); C.lookAt(look); }
@@ -163,7 +163,7 @@ function tap(e) {
 }
 /* 自分の一つを選んで外せる（渡すのは残したものだけ） */
 function pick(id) { let b = $("bDel"); if (!id) { b?.remove(); return; }
-  if (!b) { b = document.createElement("button"); b.className = "tb"; b.id = "bDel"; b.textContent = "外す"; $("top").appendChild(b); }
+  if (!b) { b = document.createElement("button"); b.className = "mu-btn"; b.id = "bDel"; b.textContent = "外す"; $("topr").appendChild(b); }
   b.onclick = async () => { mine.items = mine.items.filter(i => i.id !== id); near = null; await put("mine", mine); count(); layout(); pick(null); say("外しました。渡すときにも入りません。", 2400); }; }
 function resize() { if (!R) return; R.setSize(innerWidth, innerHeight, false); C.aspect = innerWidth / innerHeight; C.updateProjectionMatrix(); aimC(); }
 addEventListener("resize", resize);
@@ -256,7 +256,7 @@ addEventListener("dragleave", e => { if (!e.relatedTarget) $("drop").classList.r
 addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("on"); takeFiles([...e.dataTransfer.files]); });
 function reset() { // ほかの人の層があるときだけ「空にする」を出す（運営が次の回の前に使う）
   let b = $("bClear"); if (!others.length) { b?.remove(); return; }
-  if (!b) { b = document.createElement("button"); b.className = "tb"; b.id = "bClear"; b.textContent = "空にする"; $("top").appendChild(b);
+  if (!b) { b = document.createElement("button"); b.className = "mu-btn"; b.id = "bClear"; b.textContent = "空にする"; $("topr").appendChild(b);
     b.onclick = async () => { if (!confirm("受けとった層を、この端末から消します。")) return; others = []; await put("others", others); layout(); reset(); }; }
 }
 
