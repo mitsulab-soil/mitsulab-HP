@@ -1,4 +1,6 @@
-/* 碧（依代）の読み込みと、標準の動き。v3・2026-10-14
+/* 碧（依代）の読み込みと、標準の動き。v4・2026-11-03
+   v4（本人「全て 1 秒以内に。動いている時も」）：重い手順のあいだで一こま譲る。renderer（と camera）を渡すと、見せる前に warmAoi で
+   テクスチャ・シェーダー・影を少しずつ組む（碧が出る瞬間の 200〜600 ms の止まりを無くす）。見た目と動きは変えない。
    v3：シーンに置くのを、AoiMotion が腕を下ろした休めの形にしたあとにした（T ポーズを見せない）。relaxPose も書き出す。
    v2：動きと表情は aoi_motion.js（AoiMotion）に移した（本人「碧の動きを極限まで人間の自然な動作に近づけて」「表情も大事です」）。
    ここは読み込み・大きさ・現れ方だけ。v1（森羅研究室の aoiPose・aoiTick の写し）は ../旧ver/2026-10-12_碧の動き_自然化の前/。
@@ -6,13 +8,15 @@
    - 動きを減らす設定：揺れ・身ぶりを止め、まばたき・口・視線だけ残す */
 import * as THREE from "three";
 import { AoiMotion } from "./aoi_motion.js";
-export { AoiMotion, EMOTIONS, timelineFromKana, timelineFromText, inferGestures, relaxPose } from "./aoi_motion.js";
+export { AoiMotion, EMOTIONS, timelineFromKana, timelineFromText, inferGestures, relaxPose, warmAoi, aoiYield } from "./aoi_motion.js";
+import { warmAoi, aoiYield } from "./aoi_motion.js";
 
-export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0, reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches, wind = .6, posture = "natural", quality = "auto" } = {}) {
+export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0, reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches, wind = .6, posture = "natural", quality = "auto", renderer = null, camera = null } = {}) {
   const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
   const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
   const g = await ld.loadAsync(url, e => { if (e.total && onProgress) onProgress(e.loaded / e.total); });
   const vrm = g.userData.vrm; if (!vrm) throw new Error("VRM ではありません");
+  await aoiYield();
   V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(vrm);
   vrm.scene.traverse(o => { o.frustumCulled = false; if (o.isMesh) o.castShadow = true; });
   const root = new THREE.Group(); root.add(vrm.scene);   // シーンに置くのは、動きの部品が休めの形にしてから（v3・2026-10-14：T ポーズを一こまも見せない）
@@ -20,7 +24,9 @@ export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0,
   vrm.humanoid.resetNormalizedPose(); vrm.update(0); vrm.scene.updateMatrixWorld(true);
   { const bx = new THREE.Box3().setFromObject(vrm.scene), h = bx.max.y - bx.min.y, sc = h > .5 ? height / h : 1; vrm.scene.scale.setScalar(sc); vrm.scene.position.y = -bx.min.y * sc; }
   root.updateMatrixWorld(true);
+  await aoiYield();
   const motion = new AoiMotion(vrm, { root, seed, reducedMotion, wind, posture, quality });   // quality（v5）＝"auto"|"high"|"mid"|"low"
+  if (renderer) { await aoiYield(); await warmAoi(renderer, root, camera || new THREE.PerspectiveCamera(), scene); }
   scene.add(root);
   // 透けさせて現れる
   const live = !reducedMotion; let fade = live ? 0 : 1;

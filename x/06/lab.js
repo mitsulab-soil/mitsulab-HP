@@ -15,7 +15,7 @@ import * as PHONO from "./exp/phono.js";
 import { buildRoom } from "./exp/room.js?v=20261020";
 import { label, canvasTex, tex } from "./exp/util.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { AoiMotion } from "./kit/aoi_motion.js";   // 碧の自然な動きと表情（mitsulab の共通部品の写し。2026-10-12）
+import { AoiMotion, warmAoi } from "./kit/aoi_motion.js?v=62";   // 碧の自然な動きと表情（mitsulab の共通部品の写し。2026-10-12）
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -665,7 +665,7 @@ async function loadAoi() {
     M = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", faceLight: .5 });   // まっすぐ立ち、揺れを小さく（2026-10-13）
     M.place(A.pos.x, A.pos.z, Math.atan2(me.pos.x - A.pos.x, me.pos.z - A.pos.z));
     A.fade = 0; aoiOpacity(0);
-    try { for (const op of [1, 0]) { aoiOpacity(op); await compileWithFace(aoi); await new Promise(r => setTimeout(r, 0)); } } catch {}   // 碧の顔の灯りも含めて（群ごと）   // 不透明・半透明の両方   // 2026-11-03：碧の影の計算を先に並列で（出るときのコマ落ちをなくす）
+    try { for (const op of [1, 0]) { aoiOpacity(op); await warmAoi(renderer, aoi, camera, scene); await new Promise(r => setTimeout(r, 0)); } } catch {}   // 碧の顔の灯りも含めて（群ごと）   // 不透明・半透明の両方   // 2026-11-03：碧の影の計算を先に並列で（出るときのコマ落ちをなくす）
     { const tx = new Set(); aoi.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) for (const k in mt) { const t = mt[k]; if (t && t.isTexture) tx.add(t); } }); for (const t of tx) { renderer.initTexture(t); await new Promise(r => setTimeout(r, 0)); } }   // 絵の転送も 1 枚ずつ先に
     scene.remove(faceStub); scene.add(aoi);
     window.__aoi = { vrm, aoi, A, M };

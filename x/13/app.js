@@ -290,9 +290,9 @@ const aoiCam = new THREE.PerspectiveCamera(26, .74, .1, 20); aoiCam.position.set
 let aoi = null;
 const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "aoi.vrm";
 async function loadAoi() {
-  try { const K = await import("./kit/aoi.js"); let held = null; const a0 = await K.loadAoi(AOI_URL, { scene: { add: o => { held = o; } }, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi = a0;   // 2026-11-03：シーンに入れる前に、碧の材質を並列で組み立てる（出るときに止まらない）
+  try { const K = await import("./kit/aoi.js?v=62"); let held = null; const a0 = await K.loadAoi(AOI_URL, { scene: { add: o => { held = o; } }, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi = a0;   // 2026-11-03：シーンに入れる前に、碧の材質を並列で組み立てる（出るときに止まらない）
     if (held) { const ms = []; held.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) ms.push([mt, mt.transparent]); });
-      try { for (const [mt] of ms) { mt.transparent = false; mt.needsUpdate = true; } await renderer.compileAsync(held, camera, scene); for (const [mt] of ms) { mt.transparent = true; mt.needsUpdate = true; } await renderer.compileAsync(held, camera, scene); } catch {}
+      try { for (const [mt] of ms) { mt.transparent = false; mt.needsUpdate = true; } await K.warmAoi(renderer, held, camera, scene); for (const [mt] of ms) { mt.transparent = true; mt.needsUpdate = true; } await K.warmAoi(renderer, held, camera, scene); }   /* 11-03：テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */ catch {}
       scene.add(held); }
     aoi.place(-4.6, 2.0, .7);   /* 2026-11-03：「土の生きもの」の札と重ならない位置へ */ aoi.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：木の手前の地面に立つ
   catch (e) { console.warn("碧：", e?.message ?? e); }
