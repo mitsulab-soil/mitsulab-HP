@@ -40,16 +40,13 @@ function polyDist(P, x, z) {
 let RIVER_PTS = null, RIVER_C = null;
 // 2026-10-23 起動 5 秒：川までの距離は数万回測るので、16 区間ごとの外枠より遠い区間は測らない（結果は同じ最小値）
 function polyChunks(P, n = 16) { const C = []; for (let i = 0; i < P.length - 1; i += n) { const j = Math.min(P.length - 1, i + n); let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = i; k <= j; k++) { const [px, pz] = P[k]; if (px < x0) x0 = px; if (px > x1) x1 = px; if (pz < z0) z0 = pz; if (pz > z1) z1 = pz; } C.push([i, j, x0, x1, z0, z1]); } return C; }
-function polyDistC(P, C, x, z) {
-  let best = 1e9; const n = C.length, dd = polyDistC.dd || (polyDistC.dd = new Float64Array(64)), ord = polyDistC.ord || (polyDistC.ord = []);
-  for (let c = 0; c < n; c++) { const [, , x0, x1, z0, z1] = C[c], bx = x < x0 ? x0 - x : x > x1 ? x - x1 : 0, bz = z < z0 ? z0 - z : z > z1 ? z - z1 : 0; dd[c] = Math.hypot(bx, bz); ord[c] = c; }
-  ord.length = n; ord.sort((p, q) => dd[p] - dd[q]);   // 近い外枠から測る
-  for (const c of ord) {
-    const [i0, i1] = C[c];
-    if (dd[c] > best + 1e-9) break;
-    for (let i = i0; i < i1; i++) { const [ax, az] = P[i], [bx2, bz2] = P[i + 1], dx = bx2 - ax, dz = bz2 - az, t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1); best = Math.min(best, Math.hypot(x - ax - dx * t, z - az - dz * t)); }
-  }
-  return best;
+function polyDistC(P, C, x, z) {   // 2026-11-03 起動 1 秒：並べ替えをやめ、二乗の距離で比べる（結果は同じ）
+  const n = C.length, dd = polyDistC.dd || (polyDistC.dd = new Float64Array(64)); let m = 0;
+  for (let c = 0; c < n; c++) { const k = C[c], bx = x < k[2] ? k[2] - x : x > k[3] ? x - k[3] : 0, bz = z < k[4] ? k[4] - z : z > k[5] ? z - k[5] : 0; dd[c] = bx * bx + bz * bz; if (dd[c] < dd[m]) m = c; }
+  let best = 1e18;
+  const seg = c => { const i0 = C[c][0], i1 = C[c][1]; for (let i = i0; i < i1; i++) { const A = P[i], B = P[i + 1], ax = A[0], az = A[1], dx = B[0] - ax, dz = B[1] - az, t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1), ex = x - ax - dx * t, ez = z - az - dz * t, d = ex * ex + ez * ez; if (d < best) best = d; } };
+  seg(m); for (let c = 0; c < n; c++) if (c !== m && dd[c] < best) seg(c);
+  return Math.sqrt(best);
 }
 // 2026-11-03 本人「水辺だけ直線で自然でない」：岸を入り組ませる（池・川の水面の縁と、草・石・ヨシの並びを同じ揺らぎで）
 export const shoreWob = (x, z) => .3 * Math.sin(x * 1.1 + z * .6) + .2 * Math.sin(x * .37 - z * 1.7 + 1.3) + .1 * Math.sin(x * 2.9 + z * 2.3);
@@ -64,9 +61,11 @@ const near = (x, z, pad = 8) => x > WALK.x0 - pad && x < WALK.x1 + pad && z > WA
 
 // ---------------------------------------------------------------- 形の部品
 function taperTube(pts, r0, r1, radial, seg, uvK = 1) {
-  const c = new THREE.CatmullRomCurve3(pts), g = new THREE.TubeGeometry(c, seg, 1, radial, false), p = g.attributes.position, uv = g.attributes.uv, q = new V3(), v = new V3();
+  const c = new THREE.CatmullRomCurve3(pts); c.arcLengthDivisions = seg * 6;   /* 長さの刻みを 200→枝の節の 6 倍に（形の差は 1 mm 未満） */
+  const g = new THREE.TubeGeometry(c, seg, 1, radial, false), p = g.attributes.position, uv = g.attributes.uv, q = new V3(), v = new V3();
   const L = c.getLength(), circ = TAU * (r0 + r1) / 2;
-  for (let i = 0; i < p.count; i++) { const t = uv.getX(i); c.getPointAt(t, q); v.set(p.getX(i), p.getY(i), p.getZ(i)).sub(q).multiplyScalar(lerp(r0, r1, t)); p.setXYZ(i, q.x + v.x, q.y + v.y, q.z + v.z);
+  const PT = new Map();   /* 2026-11-03 起動 1 秒：同じ t の点は一度だけ求める（結果は同じ） */
+  for (let i = 0; i < p.count; i++) { const t = uv.getX(i); let qq = PT.get(t); if (!qq) { qq = c.getPointAt(t, new V3()); PT.set(t, qq); } q.copy(qq); v.set(p.getX(i), p.getY(i), p.getZ(i)).sub(q).multiplyScalar(lerp(r0, r1, t)); p.setXYZ(i, q.x + v.x, q.y + v.y, q.z + v.z);
     uv.setXY(i, uv.getY(i), t * L / Math.max(circ, .05) * uvK * .5); }   // 樹皮の縦の筋が幹にそうように（周り＝u・長さ＝v）
   g.computeVertexNormals(); return g;
 }

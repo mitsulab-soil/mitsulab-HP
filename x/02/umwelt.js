@@ -6,7 +6,7 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
-import { buildForest, shoreWob } from "./forest.js?v=20261103b";
+import { buildForest, shoreWob } from "./forest.js?v=20261103c";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -355,6 +355,15 @@ const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='for
 const waterMaterial=M(0x426e70,{std:true,rough:.13,metal:0,env:1,uv:.12,temp:.1,echo:.08});
 const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);{const g=pool.geometry,p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),r=Math.hypot(x,y);if(r<1e-3)continue;const wx=-8+x,wz=-7-y,k=(4.8+shoreWob(wx,wz))/4.8*(r/4.8)+(1-r/4.8);p.setXY(i,x*(r>4.79?(4.8+shoreWob(wx,wz))/4.8:1+(k-1)*0),y*(r>4.79?(4.8+shoreWob(wx,wz))/4.8:1));}p.needsUpdate=true;g.computeBoundingSphere();}pool.userData.noCast=true;forest.add(pool);
 const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;{const g=river.geometry,p=g.attributes.position,c=new THREE.Vector3(),v=new THREE.Vector3(),seg=141,rad=13;for(let i=0;i<seg;i++){riverCurve.getPointAt(i/(seg-1),c);for(let j=0;j<rad;j++){const k=i*rad+j;v.fromBufferAttribute(p,k);const dx=v.x-c.x,dz=v.z-c.z,f=Math.max(.35,(.75+shoreWob(v.x,v.z)*.7)/.75);p.setXYZ(k,c.x+dx*f,v.y,c.z+dz*f);}}p.needsUpdate=true;g.computeVertexNormals();g.computeBoundingSphere();}river.userData.noCast=true;forest.add(river);
+// 2026-11-03 本人「水辺だけ直線で自然でない」：水面と地面の境目に、濡れた土の帯（内は水にかかり、外へ消える）を置いてなじませる
+{ const P = [], C = [], I = [];
+  const band = (rows) => { const b = P.length / 3; for (const [ex, ez, nx, nz, w] of rows) { const wi = .28, wo = .55 + w * .5; P.push(ex - nx * wi, .03, ez - nz * wi, ex, .031, ez, ex + nx * wo, .032, ez + nz * wo); C.push(.16, .13, .09, .0, .14, .11, .08, .62, .2, .16, .11, 0); }
+    for (let i = 0; i < rows.length - 1; i++) for (let j = 0; j < 2; j++) { const a = b + i * 3 + j, c = a + 3; I.push(a, c, a + 1, a + 1, c, c + 1); } };
+  { const R = []; for (let i = 0; i <= 120; i++) { const a = i / 120 * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), wx = -8 + ca * 4.8, wz = -7 + sa * 4.8, r = 4.8 + shoreWob(wx, wz); R.push([-8 + ca * r, -7 + sa * r, ca, sa, (Math.sin(a * 5) + 1) / 2]); } band(R); }
+  for (const side of [1, -1]) { const R = [], c = new THREE.Vector3(), t = new THREE.Vector3(); for (let i = 0; i <= 140; i++) { const u = i / 140; riverCurve.getPointAt(u, c); riverCurve.getTangentAt(u, t); const nx = -t.z * side, nz = t.x * side, l = Math.hypot(nx, nz) || 1, ex0 = c.x + nx / l * .75, ez0 = c.z + nz / l * .75, f = Math.max(.35, (.75 + shoreWob(ex0, ez0) * .7) / .75); R.push([c.x + nx / l * .75 * f, c.z + nz / l * .75 * f, nx / l, nz / l, (Math.sin(u * 37 + side) + 1) / 2]); } band(R); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 4)); g.setIndex(I); g.computeVertexNormals();
+  const wetM = M(0xffffff, { std: true, vc: true, transparent: true, rough: .38, env: .5, uv: .04, temp: .12, echo: .15 }); wetM.depthWrite = false; wetM.polygonOffset = true; wetM.polygonOffsetFactor = -2; wetM.side = THREE.DoubleSide;
+  const shore = new THREE.Mesh(g, wetM); shore.userData.noCast = true; shore.receiveShadow = true; shore.renderOrder = 1; forest.add(shore); }
 STARTUP.forestBuildStartedAt = performance.now();
 const FOREST=buildForest({M,tx,canvasTex,photoTex,forest,pick,sonic,mobile,riverCurve});
 STARTUP.forestBuiltAt = performance.now();
@@ -440,7 +449,7 @@ function initLegacyGarden() {
   garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return; o.receiveShadow = true; o.castShadow = !o.userData.noCast && !(mobile && o.userData.smallCast); });
   STARTUP.legacyGardenBuilt = true; renderer.shadowMap.needsUpdate = true;
 }
-function setHabitat(place){if(place==='garden')initLegacyGarden();habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
+function setHabitat(place){window.__echoList=null;if(place==='garden')initLegacyGarden();habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
 let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
 // 見え方だけを切りかえる（色の写し方・ぼかし・夜）。「人の目とくらべる」を押しているあいだは、ひとの見え方を一時的に重ねる（2026-10-13）
@@ -845,6 +854,12 @@ function setWhere() {
   else if (chapter === "iro") { $("whereName").textContent = N.ch_iro; $("whereSub").textContent = IRO.lang ? LANGS[IRO.lang].name : "あなたの線を引く"; }
   else { $("whereName").textContent = N.ch_toki; $("whereSub").textContent = "同じ庭を、四つの速さで"; }
 }
+function echoHit(d) {
+  let best = null; const o = camera.position;
+  if (habitat === 'forest') for (const [tx, tz, tr] of FOREST.trunks) { const fx = o.x - tx, fz = o.z - tz, a = d.x * d.x + d.z * d.z; if (a < 1e-6) continue; const b = fx * d.x + fz * d.z, c = fx * fx + fz * fz - tr * tr, D = b * b - a * c; if (D < 0) continue; const t = (-b - Math.sqrt(D)) / a; if (t > 0 && t < 16 && o.y + d.y * t < 14 && (!best || t < best.distance)) best = { distance: t }; }
+  const h = ray.intersectObjects(window.__echoList.filter(m => m.visible), false)[0]; if (h && (!best || h.distance < best.distance)) best = h;
+  return best;
+}
 async function setLens(id, silent = false, opt = {}) {
   if (!LENS[id]) return;
   first(false);
@@ -1198,6 +1213,8 @@ function frame(now=0) {
   $('stage').dataset.flightHeight=flightHeight.toFixed(3);$('stage').dataset.lens=lens;$('stage').dataset.habitat=habitat;$('stage').dataset.position=camera.position.toArray().map(v=>v.toFixed(3)).join(',');$('stage').dataset.depth=me.depth.toFixed(3);
   G.uCam.value.copy(camera.position);
   // コウモリ：声を出し、波面をひろげる。獲物に近づくと間隔が短くなる
+  // 2026-11-03 動いている間も 1 秒：はね返りは、大きな形（幹をまとめた形・地面）は幹の円柱で測り、小さな物だけ光線で測る（森全体へ光線を当てて 0.9 秒止まっていた）
+  if (!window.__echoList) { const L = []; (habitat==='forest'?forest:garden).traverse(o => { if (o.isMesh && o.material?.userData?.u?.uEchoK?.value > .3) { const n = o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3; if ((o.isInstancedMesh ? n * o.count : n) < 4000) L.push(o); } }); window.__echoList = L; }
   if (chapter === "umwelt" && lens === "koumori") {
     echo.t += dt; let nearMoth = 99; const f = new THREE.Vector3(); camera.getWorldDirection(f);
     for (const m of moths) { const v = m.position.clone().sub(camera.position), d = v.length(); if (v.normalize().dot(f) > .8) nearMoth = Math.min(nearMoth, d); }
@@ -1206,7 +1223,7 @@ function frame(now=0) {
       echo.t = 0; echo.o = camera.position.clone(); chirp(0, 3200, 1400, .06, .16);
       // はね返り：まわりの物までの距離から、ゆっくりにした時間でかえす（距離 d → 2d/ECHO_V 秒）
       const dirs = [[0, 0], [.5, 0], [-.5, 0], [0, -.35], [.25, -.2], [-.25, -.2]];
-      for (const [yx, px] of dirs) { const d = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(me.pitch + px, me.yaw + yx, 0, "YXZ")); ray.set(camera.position, d); ray.far = 16; const h = ray.intersectObjects((habitat==='forest'?forest:garden).children, true).find(x => x.object.visible && x.object.material?.userData?.u?.uEchoK?.value > .3); if (h) chirp(2 * h.distance / ECHO_V, 2600, 1300, .05, .07 * (1 - h.distance / 17)); }
+      for (const [yx, px] of dirs) { const d = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(me.pitch + px, me.yaw + yx, 0, "YXZ")); ray.set(camera.position, d); ray.far = 16; const h = echoHit(d); if (h) chirp(2 * h.distance / ECHO_V, 2600, 1300, .05, .07 * (1 - h.distance / 17)); }
     }
     if (echo.o) G.uEcho.value.set(echo.o.x, echo.o.y, echo.o.z, echo.t * ECHO_V);
   }
