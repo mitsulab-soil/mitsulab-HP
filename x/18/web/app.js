@@ -70,7 +70,7 @@ const cv = $("c");
 let R, S, C, sun, items, texL, ray, clk, look; const meshes = new Map(); let aoi = null;
 function init3D() {
 R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
-R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputColorSpace = THREE.SRGBColorSpace;
+R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputColorSpace = THREE.SRGBColorSpace; R.debug.checkShaderErrors = false;   // 2026-11-03：確かめで止まらない
 S = new THREE.Scene(); S.background = new THREE.Color("#03060f"); S.fog = new THREE.Fog("#03060f", 6, 16);
 C = new THREE.PerspectiveCamera(45, 1, .05, 60);
 S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); sun = new THREE.DirectionalLight("#fff4e6", 1.6); sun.position.set(2, 4, 3); S.add(sun);
@@ -88,10 +88,10 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPl
   const N = n => v.humanoid.getNormalizedBoneNode(n);
   for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1; N(sd + "UpperArm")?.rotation.set(-.06, sg * .06, sg * -1.3); N(sd + "LowerArm")?.rotation.set(0, sg * -.3, 0); }
   v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  v.scene.position.set(0, 0, -1.4); S.add(v.scene);
+  v.scene.position.set(0, 0, -1.4); return R.compileAsync(v.scene, C, S).catch(() => { }).then(() => S.add(v.scene));   // 2026-11-03：材質を並列で組んでから出す（止まらない）
 }).catch(() => { });
 items = new THREE.Group(); S.add(items); texL = new THREE.TextureLoader(); ray = new THREE.Raycaster(); look = new THREE.Vector3(0, 1.05, 0); clk = new THREE.Clock();
-resize(); R.setAnimationLoop(frame);
+resize(); R.compileAsync(S, C).catch(() => { }).then(() => R.setAnimationLoop(frame));   // はじめの一枚で止まらない
 }
 function frameMat(c) { return new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: .9 }); }
 function makeObj(it, layer) {
