@@ -139,8 +139,10 @@ export function attachHenshin(QW, opt = {}) {
         for (let v = 0; v < nm.count; v++) { N.fromBufferAttribute(nm, v).applyQuaternion(me.quaternion); const l = .42 + .5 * Math.max(0, N.y * .8 - N.x * .35 + N.z * .2) + .08 * Math.max(0, -N.y); col.push(C.r * l, C.g * l, C.b * l); }
         gm.setAttribute("color", new THREE.Float32BufferAttribute(col, 3)); me.material = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, depthTest: false, depthWrite: false }); mats.push(me.material); return me; };
       g = new THREE.Group(); const dummy = new THREE.MeshBasicMaterial();
-      const lo = shade(seg(dummy, at(0, -1.18, .14), at(0, -.72, .215), .024, .0015, 28), 0x4d3a2b); lo.scale.x = 1.0; g.add(lo);   // 下嘴（少し短く淡い・上嘴の下からのぞく）
+      const lo = shade(seg(dummy, at(0, -1.18, .14), at(0, -.72, .215), .024, .0015, 28), 0x6e5440); lo.scale.x = 1.0; g.add(lo);   // 下嘴（少し短く淡い・上嘴の下からのぞく）
       const up = shade(seg(dummy, at(0, -1.12, .14), at(0, -.66, .23), .026, .001, 32), 0x3a2a1e); up.scale.x = 1.08; g.add(up);   // 上嘴（嘴峰が上を向く）
+      lo.scale.x = 1.22; lo.renderOrder = 11; up.renderOrder = 12;   /* 11-03 P2e：口の線＝下嘴を上嘴より少し幅広く淡くし、左右の縁に下嘴がのぞく。その境に暗い合わせ目の線を引き、上下の分かれ目を見せる */
+      { const V = (x, y, z) => new THREE.Vector3(x, y, z); for (const sx of [-1, 1]) { const gape = shade(seg(dummy, V(sx * .0262, -.1640, -.14), V(sx * .0016, -.1530, -.218), .0026, .0006, 8), 0x0b0705); gape.renderOrder = 13; g.add(gape); } }
       g.userData.anim = t => { g.rotation.x = Math.sin(t * 1.7) * .01; };
     } else if (id === "hachi" || id === "mitsubachi") {   // ミツバチの触角（膝のように曲がる柄と鞭）と、前脚の先
       g = new THREE.Group(); const dark = mat(0x2a2118, .55);   // 前脚は画面の下の 6 つのボタンに隠れるので出さない（触角だけ）
@@ -157,7 +159,7 @@ export function attachHenshin(QW, opt = {}) {
 
       g.userData.anim = t => { const k = 1 + Math.max(0, Math.sin(t * 5.2)) * Math.max(0, Math.sin(t * .9)) * .05; nose.scale.set(k, 1, k); };   // ときどき匂いをかぐ小さな動き
     }
-    if (g) { g.userData.mats = mats; g.traverse(o => { if (o.isMesh) { o.renderOrder = 30; o.frustumCulled = false; } }); g.visible = false; OWN.add(g); }
+    if (g) { g.userData.mats = mats; g.traverse(o => { if (o.isMesh) { o.renderOrder = 30 + (o.renderOrder || 0); o.frustumCulled = false; } }); g.visible = false; OWN.add(g); }
     return (OWNS[id] = g);
   }
   scene.onBeforeRender = function (...a) {
@@ -307,9 +309,9 @@ export function attachHenshin(QW, opt = {}) {
     const k = S.k, P = S.cur;
     if (k < .01 || !(P.sight?.mix ?? 1)) { canvas.style.filter = ""; veil.style.opacity = 0; if (S.target === 0) S.pose = null; return; }
     let m = LENS[P.sight?.lens || "hito"]?.m || LENS.hito.m; if (S.ts?.old) { const o = S.ts.old * .7, w = [.2126, .7152, .0722], sep = [1.07, 1, .82]; m = [0, 1, 2].flatMap(i => [0, 1, 2].map(j => ((i === j ? 1 - o : 0) + o * w[j]) * (1 - o * .3 + o * .3 * sep[i]))); }   // さかのぼるほど色が褪せる（模式）
-    const I = [1, 0, 0, 0, 1, 0, 0, 0, 1], km = k * (P.sight?.mix ?? 1) * .55, r =   /* 11-03 P2：碧の色を保つ（色の寄せは半分。周辺の暗さ・紫外の重ねはそのまま） */ m.map((v, i) => I[i] + (v - I[i]) * km);
+    const I = [1, 0, 0, 0, 1, 0, 0, 0, 1], km = k * (P.sight?.mix ?? 1) * .55 * (P.sight?.lens === "hachi" ? .55 : 1),   /* 11-03 P2e：ミツバチは色の寄せを控えめに（白く褪せない） */ r =   /* 11-03 P2：碧の色を保つ（色の寄せは半分。周辺の暗さ・紫外の重ねはそのまま） */ m.map((v, i) => I[i] + (v - I[i]) * km);
     if (P.sight?.lens === "hachi") for (let i = 0; i < 9; i += 3) { const sm = r[i] + r[i + 1] + r[i + 2] || 1; r[i] /= sm; r[i + 1] /= sm; r[i + 2] /= sm; }   /* 11-03 P2d：ミツバチ＝白を白のまま保つ（各行の和を 1 に。碧の白と水色が紫や黄にかぶらない） */
-    fm.setAttribute("values", `${r[0]} ${r[1]} ${r[2]} 0 0 ${r[3]} ${r[4]} ${r[5]} 0 0 ${r[6]} ${r[7]} ${r[8]} 0 0 0 0 0 1 0`); canvas.style.filter = "url(#hsF)";
+    fm.setAttribute("values", `${r[0]} ${r[1]} ${r[2]} 0 0 ${r[3]} ${r[4]} ${r[5]} 0 0 ${r[6]} ${r[7]} ${r[8]} 0 0 0 0 0 1 0`); canvas.style.filter = P.sight?.lens === "hachi" ? "url(#hsF) saturate(1.18)" : "url(#hsF)";
     const uv = P.sight?.uv || 0, ed = P.sight?.edge || 0;
     veil.style.background = `radial-gradient(ellipse 70% 60% at 50% 45%, rgba(150,120,255,0) 0%, rgba(150,120,255,0) 42%, rgba(150,120,255,${(.16 * uv).toFixed(3)}) 78%, rgba(10,12,24,${(.5 * ed).toFixed(3)}) 100%)` + (S.ts?.sea ? ",linear-gradient(rgba(90,150,170,.28),rgba(60,120,150,.34))" : "") + (P.sight?.dark ? `,linear-gradient(rgba(4,6,14,${P.sight.dark}),rgba(4,6,14,${P.sight.dark}))` : "");   // 夜に動く生き物：暗さの模式   // 浅い海の底だったころ（模式）
     veil.style.opacity = k.toFixed(3);   /* 11-03 P2：この一行が前の注釈の中に入り、周辺の暗さ・紫外の重ねが出ていなかった */
