@@ -79,7 +79,9 @@ function bake(group) {
 const Mesh = (geo, mat, o = {}) => { const m = new THREE.Mesh(geo, mat); if (o.p) m.position.set(...o.p); if (o.r) m.rotation.set(...o.r, o.order || "XYZ"); return m; };
 
 export function buildForest(ctx) {
-  const { M, tx, canvasTex, photoTex, forest, pick, sonic, mobile, riverCurve } = ctx;
+  const { M, tx, canvasTex, photoTex, pick, sonic, mobile, riverCurve } = ctx; let forest = ctx.forest;
+  /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉は起動のあとに一つずつ組む（out.later）。乱数を使う順はそのまま（配置は同じ） */
+  const later = [], defer = fn => later.push(() => { const g = new THREE.Group(), f0 = forest; forest = g; try { fn(); } finally { forest = f0; } return g; });
   RIVER_PTS = riverCurve.getSpacedPoints(160).map(v => [v.x, v.z]); RIVER_C = polyChunks(RIVER_PTS);
   const out = { trunks: [], shafts: null, sunflower: null, meadow: MEADOW };
   const Q = mobile ? .5 : 1;                                  // スマホは数を半分ほどに
@@ -255,7 +257,8 @@ export function buildForest(ctx) {
   let nM = 0;
   for (let i = 0; i < 3000 && nM < (mobile ? 26 : 44); i++) { const x = rr(-34, 36), z = rr(-32, 34); if (!canopyOK(x, z) || inSugi(x, z) || lightAt(x, z) > .55 || !farEnough(x, z, 3)) continue; put(x, z, "momiji"); tree("momiji", x, z, near(x, z, 2), rr(.8, 1.2)); nM++; }
   // 幹（材ごと・24 m 四方ごとに一つ）
-  for (const [key, gs] of woodChunks) { const mesh = new THREE.Mesh(mergeGeometries(gs), barkM[key.split(":")[0]]); mesh.castShadow = true; forest.add(mesh); sonic.push(mesh); }
+  const wood = (key, gs) => { const mesh = new THREE.Mesh(mergeGeometries(gs), barkM[key.split(":")[0]]); mesh.castShadow = true; forest.add(mesh); sonic.push(mesh); };
+  for (const [key, gs] of woodChunks) if (key.split(":")[1] === "20") wood(key, gs); else defer(() => wood(key, gs));   // 近く（20 m 升）の幹は先に、遠く（48 m 升）はあとで
   // 葉の房
   const cardGeo = L => { const g = new THREE.PlaneGeometry(L, L); g.translate(0, L / 2, 0); return g; };
   const xA = new V3(), yA = new V3(), zA = new V3(), rv = new V3();
@@ -474,28 +477,28 @@ export function buildForest(ctx) {
   field([lilyProto(1), lilyProto(2)], lists.lily);
   field([kanzouProto(), kanzouProto()], lists.kanzou);
   field([toraProto(), toraProto()], thin(lists.tora));
-  field([hotaruProto(), hotaruProto()], thin(lists.hotaru));
-  field([dokuProto(), dokuProto()], thin(lists.doku), { noCast: true });
-  field([hangeProto()], lists.hange);
-  field([irisProto(), irisProto()], lists.iris);
-  field([ajiProto()], lists.aji);
-  field([fernProto(), fernProto()], lists.fern, { noCast: mobile, noRay: true });
-  field([bushProto()], lists.bush, { noRay: true });
+  defer(() => field([hotaruProto(), hotaruProto()], thin(lists.hotaru)));
+  defer(() => field([dokuProto(), dokuProto()], thin(lists.doku), { noCast: true }));
+  defer(() => field([hangeProto()], lists.hange));
+  defer(() => field([irisProto(), irisProto()], lists.iris));
+  defer(() => field([ajiProto()], lists.aji));
+  defer(() => field([fernProto(), fernProto()], lists.fern, { noCast: mobile, noRay: true }));
+  defer(() => field([bushProto()], lists.bush, { noRay: true }));
   { const it = lists.tora[0]; out.whiteFlower = { pos: new V3(it.x, .78, it.z) }; }   // 蜂の話の「草地の白い花」（オカトラノオの群れ）
   for (const l of [lists.aji, lists.bush]) for (const it of l) addTrunk([it.x, it.z, .45 * it.s]);
   out.lists = lists; out.counts = Object.fromEntries(Object.entries(lists).map(([k, l]) => [k, l.length]));  out.counts.trees = placed.length;
 
   // ---------------------------------------------------------------- 水辺のヨシ（池の奥の岸と、川の曲がり）
-  {
+  defer(() => {
     const reedM = M(0x7f9a54, { side: THREE.DoubleSide, uv: .05, temp: .1, wind: .06, windH: 2 }), plumeM = M(0xa8957e, { uv: .08, temp: .1, wind: .06, windH: 2 }), rg = [], pg = [];
     const reed = (x, z) => { const h = rr(1.3, 2.1); rg.push(strip(geoAt(bladeGeo(h, .016, { cup: .1, curl: rr(.05, .18), shape: t => 1 - t * .9 }), { ry: R() * 6, x, z }))); if (R() < .35) pg.push(strip(geoAt(new THREE.ConeGeometry(.035, .32, 5), { rz: Math.PI + rr(-.5, .5), sx: .7, x, y: h - .05, z }))); };   // 穂は淡い紫褐色で、ゆるく垂れる
     for (let i = 0; i < (mobile ? 110 : 200); i++) { const a = Math.PI * (1.0 + R() * .9), r = POND.r + rr(-.3, .9); reed(POND.x + Math.cos(a) * r, POND.z + Math.sin(a) * r); }
     for (const [cx, cz] of [[4, -15.4], [14, -10.4]]) for (let i = 0; i < (mobile ? 30 : 55); i++) { const x = cx + gauss() * .9, z = cz + gauss() * .5; if (dRiver(x, z) < 1.3) reed(x, z); }
     const a = new THREE.Mesh(mergeGeometries(rg), reedM), b = new THREE.Mesh(mergeGeometries(pg), plumeM); a.userData.noCast = b.userData.noCast = mobile; forest.add(a, b);
-  }
+  });
 
   // ---------------------------------------------------------------- 草（草地は密に、林の中はまばら）と落ち葉
-  {
+  defer(() => {
     const n = mobile ? 2600 : 5200, bl = new THREE.PlaneGeometry(.016, .32, 1, 3); bl.translate(0, .16, 0);
     const p = bl.attributes.position, cs = []; for (let i = 0; i < p.count; i++) { const t = p.getY(i) / .32; if (t > .99) p.setX(i, 0); p.setZ(i, .07 * t * t); const c = .45 + .65 * t; cs.push(c, c, c); }
     bl.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3)); bl.computeVertexNormals();
@@ -512,7 +515,7 @@ export function buildForest(ctx) {
       eul.set(rr(-.25, .25), R() * TAU, rr(-.25, .25)); quat.setFromEuler(eul); const s = rr(.7, 1.5); m4.compose(new V3(x, .006 + R() * .01, z), quat, new V3(s, 1, s * rr(.8, 1.4))); lim.setMatrixAt(j, m4);
       lim.setColorAt(j, col.setHSL(rr(.05, .1), rr(.35, .6), rr(.22, .42))); j++; }
     lim.count = j; lim.userData.noCast = true; lim.raycast = () => {}; forest.add(lim);
-  }
+  });
 
   // ---------------------------------------------------------------- 木もれ日の光の筋（すき間に。人・犬の受けとり方の昼だけ）
   {
@@ -529,6 +532,6 @@ export function buildForest(ctx) {
   // ---------------------------------------------------------------- 歩けるところ（幹・藪・石・倒木はよける）
   out.blocked = (x, z, pad = .25) => { if (hitTrunk(x, z, pad)) return true;
     for (const [a, b, r] of out.logs || []) { const dx = b.x - a.x, dz = b.z - a.z, u = clamp(((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz), 0, 1); if (Math.hypot(x - a.x - dx * u, z - a.z - dz * u) < r + pad) return true; } return false; };
-  out.lightAt = lightAt; out.dRiver = dRiver;
+  out.lightAt = lightAt; out.dRiver = dRiver; out.later = later;
   return out;
 }

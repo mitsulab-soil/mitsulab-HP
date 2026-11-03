@@ -6,7 +6,7 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
-import { buildForest, shoreWob } from "./forest.js?v=20261103c";
+import { buildForest, shoreWob } from "./forest.js?v=20261103d";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -1297,6 +1297,13 @@ STARTUP.sceneBuiltAt = performance.now();
   document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();setHabitat(b.dataset.habitat);});
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   STARTUP.controlsReadyAt = performance.now();
+  /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉を、一こまに一つずつ組み、材質を場面の外で組んでから森へ入れる（見た目・配置は前と同じ） */
+  (async () => { const nf = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+    for (const job of FOREST.later || []) { await nf(); const g = job();
+      g.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; for (const mt of [].concat(o.material)) worldMats.add(mt); let nc = !!o.userData.noCast; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; });
+      if (renderer.compileAsync) { try { await renderer.compileAsync(g, camera, scene); } catch (e) {} }
+      for (const c of [...g.children]) forest.add(c); }
+    STARTUP.forestRestAt = performance.now(); })();
   window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
