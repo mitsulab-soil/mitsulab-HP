@@ -10,7 +10,7 @@ import { buildForest, shoreWob } from "./forest.js?v=20261103c";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
-import { AoiMotion, inferGestures } from "./kit/aoi_motion.js?v=20261013v31";   // v3.1（2026-10-13）：まっすぐ立ち、左右の揺れを小さく（posture:"upright"）   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
+import { AoiMotion, inferGestures, warmAoi } from "./kit/aoi_motion.js?v=20261103w";   // v3.1（2026-10-13）：まっすぐ立ち、左右の揺れを小さく（posture:"upright"）   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
 
 const $ = id => document.getElementById(id);
 const S = window.SCRIPT, N = S.names, VOICE = window.VOICE || {}, P = window.PATHS || {};
@@ -53,6 +53,7 @@ renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; if (mobile) renderer.shadowMap.autoUpdate = false;
 $("stage").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
+const aoiFaceStub = new THREE.PointLight(0xffffff, 0, 2.4, 2); scene.add(aoiFaceStub);   /* 2026-11-03：碧の顔の補助光の代わり（はじめから光の数をそろえる。碧が入った一こまで場面じゅうの材質を組み直して 0.5〜0.7 秒止まっていた） */
 const camera = new THREE.PerspectiveCamera(66, innerWidth / innerHeight, .02, 400);
 const LIT = { hemi: .95, sun: 3.1, base: 15.2 };    // 庭のいつもの時刻＝午後 3 時すぎ（低い日ざしで砂紋と石の影が立つ）
 const hemi = new THREE.HemisphereLight(0xdfefff, 0x6b6450, LIT.hemi); scene.add(hemi);
@@ -1274,7 +1275,7 @@ STARTUP.sceneBuiltAt = performance.now();
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
   const aoiReady = loadAoi().then(async () => {
-    if (aoi && renderer.compileAsync) { aoi.visible = true; await renderer.compileAsync(aoi, camera, scene).catch(() => {}); opacity(1); await renderer.compileAsync(aoi, camera, scene).catch(() => {}); opacity(0); /* 透けた材質と透けない材質の両方を先に組む（現れ終わりの一こまで組み直して 1 秒止まっていた） */ /* 2026-11-03 動いている間も 1 秒：碧の絵（テクスチャ）は一枚ずつ別のこまで GPU へ送る（映った一こまで 1 秒止まっていた） */ const TX = new Set(); aoi.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) for (const v of Object.values(m)) if (v && v.isTexture) TX.add(v); if (o.isMesh) for (const m of [].concat(o.material)) if (m.uniforms) for (const u of Object.values(m.uniforms)) if (u && u.value && u.value.isTexture) TX.add(u.value); }); for (const t of TX) { renderer.initTexture(t); await new Promise(r => requestAnimationFrame(() => r())); } }
+    if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); for (const op of [1, 0]) { opacity(op); await warmAoi(renderer, aoi, camera, scene); } scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
     if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.0 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }

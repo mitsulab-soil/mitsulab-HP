@@ -1,5 +1,6 @@
 // sho3d.js — 書を 3D の空間に「動的に」置く部品（Qualia/sho の層の下ごしらえ）
 // © mitsulab. All rights reserved.  書は上原光瑛の作品。
+// v3.5 2026-11-03 止まらない：loadShoMap を分けて並べかえ・読めないときは 3 回まで読み直す（それでも駄目なら呼ぶ側がその書だけ外す）
 // v3.4 2026-10-26 音：広間の五音の音階にそろえる（scaleQ）・touch(x, y, 強さ, 筆の所)＝起筆の息／はらいの擦れ／とめの「コツッ」・続けて触れると和音・near(近さ)＝近づくとかすかに鳴る・place(左右, 遠さ)
 // v3.3 2026-10-23 burst(uv, side)＝触れたとき、字が一度はっきり波打って崩れ、かけらが字の外へ散り、3 秒ほどで字の形へ戻る・縁の照りを濡れた暗い墨に抑える（金属の管に見えない）・影のぼかし opts.blur
 // v1 2026-10-22 ／ v1.1 2026-10-22 createShoSound に opts.pitch（Qualia/sho の 11 作で同じ型を聞き分ける）・法線を広くとってしわを減らす
@@ -25,21 +26,33 @@
 //   // 近づいたらほどく： sho.target = 1（離れたら 0）。auto:true なら自分で息をするように繰り返す
 
 /* ───────── 地図の読み込み ───────── */
-export async function loadShoMap(url) {
-  const img = new Image(); img.decoding = 'async'; img.crossOrigin = 'anonymous';
-  await new Promise((ok, ng) => { img.onload = ok; img.onerror = () => ng(new Error('sho3d: 読めない ' + url)); img.src = url; });   // decode() は隠れたタブで待たされるので onload
+export async function loadShoMap(url, { tries = 3, budget = 6 } = {}) {
+  // v3.5（2026-11-03 本人「全て 1 秒以内に。動いている時も」）：読めないときは間をおいて読み直す（3 回）。並べかえは 1 こまに budget ms までに分ける（2048 の画で止まらない）
+  let img = null, err = null;
+  for (let k = 0; k < tries && !img; k++) {
+    if (k) await new Promise(r => setTimeout(r, 400 * k));
+    const u = k ? url + (url.includes('?') ? '&' : '?') + 'r=' + k : url;
+    try { img = await new Promise((ok, ng) => { const im = new Image(); im.decoding = 'async'; im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = () => ng(new Error('sho3d: 読めない ' + url)); im.src = u; }); }   // decode() は隠れたタブで待たされるので onload
+    catch (e) { err = e; }
+  }
+  if (!img) throw err || new Error('sho3d: 読めない ' + url);
   const w = img.naturalWidth, h = img.naturalHeight;
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0);
-  const src = cx.getImageData(0, 0, w, h).data;
-  // 下から上へ並べかえ（three の uv は左下が原点）。A に「ほどける順」を入れる
-  const data = new Uint8Array(w * h * 4);
-  for (let y = 0; y < h; y++) {
-    const sy = h - 1 - y;
-    for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4, j = (sy * w + x) * 4;
-      data[i] = src[j]; data[i + 1] = src[j + 1]; data[i + 2] = src[j + 2];
-      data[i + 3] = Math.round(255 * orderAt(x / w, y / h));
+  const now = () => performance.now(), idle = () => new Promise(r => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => setTimeout(r, 0)) : setTimeout(r, 0)));
+  // 下から上へ並べかえ（three の uv は左下が原点）。A に「ほどける順」を入れる。帯ごとに読んで、こまを譲る
+  const data = new Uint8Array(w * h * 4), band = Math.max(1, Math.floor(262144 / w));
+  let t0 = now();
+  for (let y0 = 0; y0 < h; y0 += band) {
+    const y1 = Math.min(h, y0 + band), src = cx.getImageData(0, h - y1, w, y1 - y0).data;   // 画の上から (h - y1) 行め＝並べかえ後の y1-1 行め
+    for (let y = y0; y < y1; y++) {
+      const sy = (y1 - 1) - y;   // 帯の中の行
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4, j = (sy * w + x) * 4;
+        data[i] = src[j]; data[i + 1] = src[j + 1]; data[i + 2] = src[j + 2];
+        data[i + 3] = Math.round(255 * orderAt(x / w, y / h));
+      }
+      if (now() - t0 > budget) { await idle(); t0 = now(); }
     }
   }
   return { w, h, data, url };
@@ -558,8 +571,15 @@ export function createSho(THREE, map, opts = {}) {
     // 部屋に入ったとき：原本から作った高い解像度の地図と墨の濃さを差しこむ（形と網はそのまま）
     setIslands(t) { U.uIsl.value = t; U.uHasIsl.value = t ? 1 : 0; },   // ちぎれた墨の地図（{id}_f512.png。最近傍で読む）
     setFloat(v) { U.uFloat.value = v; },
-    setHiRes(hiMap, detTex) {
-      if (hiMap) { const t = new THREE.DataTexture(hiMap.data, hiMap.w, hiMap.h, THREE.RGBAFormat); t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; U.uMap.value = t; U.uTexel.value.set(1 / hiMap.w, 1 / hiMap.h); }
+    setHiRes(hiMap, detTex, renderer) {
+      // v3.5：renderer を渡すと、差しかえる前に GPU へ 1 こまに 1 枚ずつ送る（差しかえた一こまで止まらない）。戻り値は Promise
+      if (renderer) { const fr = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+        return (async () => { let t = null; if (hiMap) { t = new THREE.DataTexture(hiMap.data, hiMap.w, hiMap.h, THREE.RGBAFormat); t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; await fr(); try { renderer.initTexture(t); } catch { } }
+          if (detTex) { await fr(); try { renderer.initTexture(detTex); } catch { } } await fr(); api._setHi(hiMap, detTex, t); })(); }
+      api._setHi(hiMap, detTex, null);
+    },
+    _setHi(hiMap, detTex, pre) {
+      if (hiMap) { const t = pre || new THREE.DataTexture(hiMap.data, hiMap.w, hiMap.h, THREE.RGBAFormat); if (!pre) { t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; } U.uMap.value = t; U.uTexel.value.set(1 / hiMap.w, 1 / hiMap.h); }
       if (detTex) { U.uDet.value = detTex; U.uHasDet.value = 1; U.uDetTexel.value.set(1 / detTex.image.width, 1 / detTex.image.height); }
     },
     pull: 0, pullV: 0, pullTarget: 0,

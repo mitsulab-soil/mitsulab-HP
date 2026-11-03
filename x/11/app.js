@@ -5,7 +5,7 @@
 // v9（10-23 本人「音に触れてもバラバラにならないで、振動と音だけ発生させてください。また、それぞれの作品で、３d立体と合わせて、紙の作品を壁に飾ってください。また、碧も登場させてください。」）
 // 古寺の板の間の広間に、墨の立体の書が浮かぶ。床を押すとその向きへ歩き（一度に進むのは数歩まで）、書に触れるとその音が鳴って題が出て、墨が揺れる。動いたあとは字の形に戻る。
 import * as THREE from 'three';
-import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261026a';
+import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261103a';
 import { buildRoom, loadRoomTextures, setRoomHalf, setHallNiches } from './room.js?v=20261026a';
 import { createLive } from './live.js?v=20261023e';
 import { createDOF } from './dof.js?v=20261023e';
@@ -25,6 +25,7 @@ R.setPixelRatio(Math.min(devicePixelRatio, SHOT ? 2 : mobile ? 1.5 : 1.6));
 R.toneMapping = THREE.NeutralToneMapping; R.toneMappingExposure = 1.0;
 const dof = createDOF(R, { mobile }); if (q.has('nodof')) dof.on = false;   // 奥を自然に弱くぼかして、見ている書を読みやすく
 const scene = new THREE.Scene();
+const aoiFaceStub = new THREE.PointLight(0xffffff, 0, 2.4, 2); scene.add(aoiFaceStub);   /* 2026-11-03：碧の顔の補助光の代わり（はじめから光の数をそろえる。碧が入った一こまで場面じゅうの材質を組み直して 0.5〜0.7 秒止まっていた） */
 const FOG = new THREE.Color(0x9aa0a4);
 scene.background = FOG.clone();
 scene.fog = new THREE.FogExp2(FOG, 0.03);
@@ -188,12 +189,12 @@ function hiRes(it) {                                           // 原本から�
     const N = mobile ? 1024 : 2048;
     try {
       const tl = u => new Promise(ok => new THREE.TextureLoader().load(u, t => { t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; ok(t); }, undefined, () => ok(null)));
-      if (it.sho.subs) { await Promise.all(it.sho.subs.map(async s => { const [m, d] = await Promise.all([loadShoMap(`data/hi/${it.w.id}s${s.k}_m${N}.webp`), tl(`data/hi/${it.w.id}s${s.k}_d${N}.webp`)]); s.setHiRes(m, d); })); return; }   /* v11 一画ずつ浮く書は、枚ごとに */
+      if (it.sho.subs) { await Promise.all(it.sho.subs.map(async s => { const [m, d] = await Promise.all([loadShoMap(`data/hi/${it.w.id}s${s.k}_m${N}.webp`), tl(`data/hi/${it.w.id}s${s.k}_d${N}.webp`)]); await s.setHiRes(m, d, R); })); return; }   /* v11 一画ずつ浮く書は、枚ごとに */
       const [m, d] = await Promise.all([
         loadShoMap(`data/hi/${it.w.id}_m${N}.webp`),
         new Promise(ok => new THREE.TextureLoader().load(`data/hi/${it.w.id}_d${N}.webp`, t => { t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; ok(t); }, undefined, () => ok(null))),
       ]);
-      it.sho.setHiRes(m, d);
+      await it.sho.setHiRes(m, d, R);   /* 11-03：GPU へ 1 こまに 1 枚ずつ送ってから差しかえる */
       /* v9 ちぎれたかけらの地図（f512）は読まない：かけらは本体から離れて漂わず、字の一部のまま（本人「バラバラにならないで」） */
     } catch (e) { console.warn('hi', e); }
   })(); return it.hiP;
@@ -519,7 +520,7 @@ addEventListener('resize', resize);
 const nearest = () => { let b = null, bd = 1e9; for (const it of works) { const d = Math.hypot(it.x - P.x, it.z - P.z); if (d < bd) { bd = d; b = it; } } return b; };
 // v11 起動は近い書から：入口から近い数作だけ先に組んで、残りは動き出してから一つずつ
 const byNear = [...works].sort((a, b) => Math.hypot(a.x - SPAWN.x, a.z - SPAWN.z) - Math.hypot(b.x - SPAWN.x, b.z - SPAWN.z));
-await Promise.all(byNear.slice(0, SHOT ? works.length : 3).map(prepare));
+await Promise.all(byNear.slice(0, SHOT ? works.length : 3).map(it => prepare(it).catch(e => { console.warn('prep', it.w?.id, e?.message ?? e); it.prep = null; })));   /* 11-03：書の画が読めなくても（3 回読み直したあと）、その書だけ外して起動を続ける */
 buildHall(null);
 works.filter(it => it.sho).forEach(placeInRoom);
 scene.add(paperG);
@@ -553,7 +554,7 @@ let aoiLoading = null;
 function loadAoi() {
   if (aoiLoading || q.has('noaoi')) return aoiLoading; aoiLoading = (async () => {
     try {
-      const [{ GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm'), import('./kit/aoi_motion.js?v=20261026a')]);
+      const [{ GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion, warmAoi }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm'), import('./kit/aoi_motion.js?v=20261103w')]);
       const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
       const g = await ld.loadAsync('data/aoi.vrm');
       const v = g.userData.vrm; if (!v) throw new Error('VRM ではない');
@@ -565,10 +566,12 @@ function loadAoi() {
       v.scene.scale.setScalar(sc); v.scene.position.y = -bx.min.y * sc;
       { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 2, 32, 32, 31); gr.addColorStop(0, 'rgba(0,0,0,.42)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
         const sh = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.62), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.012; sh.userData.noFade = true; sh.renderOrder = -1; root.add(sh); AO.shadow = sh; }   /* 足もとのやわらかい影 */
-      root.position.copy(AO.pos); scene.add(root); root.updateMatrixWorld(true);
+      root.position.copy(AO.pos); root.updateMatrixWorld(true);   /* 11-03：場面に入れるのは組み立てのあと */
       AO.M = new AoiMotion(v, { root, reducedMotion: RM, wind: .3, startCalm: 2.2, posture: 'upright', uprightWeight: .5, faceLight: .5 });   /* v11b 片足に少し重心をのせて自然に立つ */   /* まっすぐ立つ（反り腰にしない）・自然な息とまばたき */
       AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z));
-      AO.root = root; AO.vrm = v; AO.fade = 0; aoiOpacity(0); AO.ready = true;
+      AO.root = root; AO.vrm = v; AO.fade = 0; aoiOpacity(0);
+      try { if (warmAoi) for (const op of [1, 0]) { aoiOpacity(op); await warmAoi(R, root, cam, scene, { offscreen: dof.on }); } } catch { }   /* 11-03：見せる前に、テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */
+      scene.remove(aoiFaceStub); scene.add(root); AO.ready = true;
       window.__aoi = AO;
     } catch (e) { console.warn('碧の姿を読み込めませんでした：', e?.message ?? e); }
   })(); return aoiLoading;
