@@ -43,10 +43,12 @@ body.qRingOpen #caption{opacity:0!important}
   function frame(tt) { if (!open) { raf = 0; return; } raf = requestAnimationFrame(frame); const dt = Math.min(.05, (tt - (t0 || tt)) / 1000); t0 = tt;
     rot += (rotT - rot) * Math.min(1, dt * 7);
     G.pods.forEach((g, i) => { const a = i * STEP - rot, f = (Math.cos(a) + 1) / 2; g.position.set(Math.sin(a) * R, 0, Math.cos(a) * R); g.scale.setScalar(.72 + .68 * f * f); g.rotation.y = a + (i === cur ? Math.sin(tt / 1400) * .5 : 0); });
-    G.r.render(G.sc, G.cam); }
+    G.r.render(G.sc, G.cam); lift(dt); }
+  let vo = 0;   /* 11-03：スマホは輪が碧の裾に重なるので、輪をひらく間だけ風景を上へずらす（カメラの描く窓をずらすだけ・重さは増えない） */
+  function lift(dt) { const c = window.__qw?.camera; if (!c) return; const want = open && innerWidth < 600 ? Math.min(230, innerHeight * .27) : 0; vo += (want - vo) * Math.min(1, dt * 6); if (Math.abs(vo) < .5 && !want) { vo = 0; c.clearViewOffset(); return; } c.setViewOffset(innerWidth, innerHeight, 0, vo, innerWidth, innerHeight); }
   function go(d) { cur = (cur + d + N) % N; rotT += d * STEP; label(); navigator.vibrate?.(5); }
   function show(i) { if (!G) build(); if (i != null && i >= 0) { const d = i - cur; cur = i; rotT += d * STEP; rot = rotT; } open = true; el.classList.add("open"); document.body.classList.add("qRingOpen"); label(); requestAnimationFrame(() => { size(); if (!raf) raf = requestAnimationFrame(frame); }); }
-  function hide() { open = false; el.classList.remove("open"); document.body.classList.remove("qRingOpen"); }
+  function hide() { open = false; el.classList.remove("open"); document.body.classList.remove("qRingOpen"); vo = 0; window.__qw?.camera?.clearViewOffset(); }
   el.querySelector(".ar.l").addEventListener("click", () => go(-1)); el.querySelector(".ar.r").addEventListener("click", () => go(1));
   let dn = null;
   cv.addEventListener("pointerdown", e => { dn = { x: e.clientX, y: e.clientY, r: rotT, mv: 0 }; cv.setPointerCapture?.(e.pointerId); });

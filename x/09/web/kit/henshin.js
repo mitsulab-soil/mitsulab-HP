@@ -24,7 +24,7 @@ export function attachHenshin(QW, opt = {}) {
   const veil = document.createElement("div"); veil.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0";
   document.body.appendChild(veil);
   const tag = document.createElement("div");
-  tag.style.cssText = "position:fixed;left:max(16px,env(safe-area-inset-left));top:calc(max(16px,env(safe-area-inset-top)) + 46px);z-index:5;pointer-events:none;font:11px/1 var(--ml-serif,serif);letter-spacing:.2em;text-shadow:0 0 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.75),0 0 16px rgba(0,0,0,.5);color:rgba(245,248,255,.95);max-width:min(260px,70vw);opacity:0;transition:opacity .6s";
+  tag.style.cssText = "position:fixed;left:max(16px,env(safe-area-inset-left));top:calc(max(16px,env(safe-area-inset-top)) + 46px);z-index:5;pointer-events:none;font:11px/1 var(--ml-serif,serif);letter-spacing:.12em;line-height:1.5;text-shadow:0 0 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.75),0 0 16px rgba(0,0,0,.5);color:rgba(245,248,255,.95);max-width:min(260px,70vw);opacity:0;transition:opacity .6s";
   document.body.appendChild(tag);
   /* ---- 3D の GUI：碧の足もとの細い光の輪と、小さな姿 ---- */
   const gui = new THREE.Group(); gui.name = "henshinGUI"; scene.add(gui);
@@ -149,7 +149,7 @@ export function attachHenshin(QW, opt = {}) {
     const a = aoiPos(); if (a) { const home = new THREE.Vector3(camera.position.x, a.y + (P.body?.eye || .3), camera.position.z); const yb = QW.YO?.y?.items?.find(i => i.kind === P.yori)?.root; const from = yb ? yb.getWorldPosition(new THREE.Vector3()).setY(yb.getWorldPosition(new THREE.Vector3()).y + (P.body?.eye || .3) * .6) : home.clone(); if (yb) yb.visible = false; S.yb = yb; S.pose = { home, pos: from, goal: null, wait: 0, look: camera.position.clone(), yawJ: 0 }; }
     S.ts = P.timescale ? { i: -1, t: 0 } : null; if (S.ts) tsBox.style.opacity = 0;
     if (P.cycle) setTimeout(() => S.pose?.tree && S.cur === P && !CY && buildCycle(P, S.pose.tree), 60);
-    document.body.classList.add("hen"); S.target = 1; tag.textContent = "模式"; tag.title = P.label; tag.style.opacity = 1; narrate(P);
+    document.body.classList.add("hen"); S.target = 1; tag.textContent = (P.label || "").split("（")[0] || "模式";   /* 11-03 何の模式か分かる言い方（例：スズメの受けとり方に寄せた模式）。詳しい置きかえは title に */ tag.title = P.label; tag.style.opacity = 1; narrate(P);
   }
   /* ---- 時間の尺度（石）：札を一枚ずつ、時代をさかのぼる。中身は opt.lookup(id) で、アプリのデータ（出典つき）から引く ---- */
   const tsBox = document.createElement("div");

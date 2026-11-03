@@ -83,7 +83,7 @@ export function makeQAurora(THREE, scene, opt) {
       for (const s of S) { if (!s.L) continue; s.a += (s.want - s.a) * Math.min(1, dt * .8); s.p *= Math.pow(.25, dt); s.hov *= Math.pow(.1, dt); s.L.qaIn = s.a;
         const d = s.amb ? 4 : Math.hypot(s.L.o.x - cam.x, s.L.o.z - cam.z), nearK = d < 6 ? 1 - d / 6 : 0;   // 近づくと濃く
         s.m.uniforms.uA.value = .7 * still * (opt.mobile ? 1.2 : 1) * s.a * (.6 + .3 * nearK + .35 * s.hov) * (t < 12 ? 1 + .5 * Math.max(0, Math.sin(t * 1.6)) : 1); s.m.uniforms.uP.value = Math.min(1.2, s.p + nearK * .15); s.m.uniforms.uT.value = t; s.mesh.visible = s.a > .02;   /* 10-30 パネル：触れる層が見えるように（下限を上げ、歩き始めの 12 秒は呼吸のようにゆらぐ） */
-        if (HID) s.mesh.visible = false; if (s.mesh.visible && (doGeo || s.p > .1)) shape(s); }
+        if (HID) { s.mesh.visible = false; s.mesh.layers.disable(0); }   /* 11-03：ほかの部品が visible を戻しても描かない（依代の目で空に紫と水色の帯が出ていた） */ if (s.mesh.visible && (doGeo || s.p > .1)) shape(s); }
     },
     touch(L, v = 1) { const st = document.getElementById("sndTag"); if (st) { st.hidden = true; st.style.visibility = "hidden"; clearTimeout(api._stT); api._stT = setTimeout(() => { st.style.visibility = ""; }, 7000); }   // 10-30 パネル：触れた層の箱だけを出す（近くの再現音の説明を、しばらく隠す）
  const s = S.find(s => s.L === L); if (!s) return; s.p = Math.min(1.2, s.p + v); for (const o of s.links) o.p = Math.min(1.2, o.p + v * .35); },   // 触れた層と、絡んでいる層がわずかに応える

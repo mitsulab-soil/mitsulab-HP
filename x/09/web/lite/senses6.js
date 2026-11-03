@@ -3,7 +3,8 @@
    ・画面の下に 6 つ：見る・聴く・触れる・嗅ぐ・味わう・X 感。押すと、その感覚の印だけが風景に残る（もう一度押すと全部に戻る）。
    ・X 感を押すと依代の輪（yoring.js）がひらき、回して手前の一体を押すと、その感覚を持つ生き物の目へ入る（kit/henshin.js）。下の 5 つの点が、いまどの生き物かを示す。
    ・二段の選択・隠れた操作はない。説明は碧の字幕だけ。軽さ：DOM の 6 つのボタンだけ（3D の効果は足さない）。 */
-import { makeYoRing } from "./yoring.js?v=2";
+import { makeYoRing } from "./yoring.js?v=3";
+let VO6 = null; fetch(new URL("./senses6_voice.json?v=1", import.meta.url)).then(r => r.json()).then(j => VO6 = j).catch(() => { });
 const SENSES = [
   { k: "sight", n: "見る", d: '<circle cx="12" cy="12" r="3.2"/><path d="M2.5 12c2.6-4.4 5.8-6.6 9.5-6.6s6.9 2.2 9.5 6.6c-2.6 4.4-5.8 6.6-9.5 6.6S5.1 16.4 2.5 12z"/>', say: "見えるものに、しぼります。" },
   { k: "sound", n: "聴く", d: '<path d="M6 9.5v5M10 6.5v11M14 8.5v7M18 10.5v3"/>', say: "耳をすませる印だけ、残します。" },
@@ -60,9 +61,10 @@ body:not([data-mode="walk"]) #qS6{opacity:0;pointer-events:none}
     RING.hide(); B.x.setAttribute("aria-expanded", "false");
     const was = st.k; if (was === "x") H.go("hito");
     st.k = was === k ? null : k; setFilter(st.k); paint();
-    if (st.k) { const s = SENSES.find(x => x.k === k), n = near(k); QW.speak?.([{ t: s.say + (n ? "" : "この近くにはまだありません。歩くと、見つかります。") }]); }
-    else QW.speak?.([{ t: "すべての感覚に、もどします。" }]);
-    for (const ms of [30, 200, 600, 1200]) setTimeout(() => { const g = document.getElementById("capTag"); if (g) g.hidden = true; }, ms);   // 前の話の出典の札を残さない
+    const vo = id => VO6?.[id]?.[0] || null;   /* 11-03 碧の一言に声（_dev/build_voice_senses.py・読みは確かめ済み） */
+    if (st.k) { const s = SENSES.find(x => x.k === k), n = near(k); QW.speak?.([vo(k) || { t: s.say }, ...(n ? [] : [vo("none") || { t: "この近くにはまだありません。歩くと、見つかります。" }])]); }
+    else QW.speak?.([vo("all") || { t: "すべての感覚に、もどします。" }]);
+    for (const ms of [30, 200, 600, 1200, 2400, 3600, 5200]) setTimeout(() => { const g = document.getElementById("capTag"); if (g) g.hidden = true; }, ms);   // 前の話の出典の札を残さない
   }
   bar.addEventListener("click", e => { const b = e.target.closest("button"); if (b) pick(b.dataset.k); });
   // 「碧へ戻る」や碧に触れて人の目へ戻ったら、X 感のしるしも外す
