@@ -620,6 +620,31 @@ function collMesh(o) {   // 面の三角形を真上から塗る（縁から 0.1
     }
   }
 }
+/* 11-03 本人「建物・鳥居・木・柵・石灯籠を通り抜けない」：構造物の三角形のうち、足もとから 1.8 m までの部分を真上から格子に塗る（鳥居・楼門は柱だけが当たり、くぐれる）。少しずつ塗って描画を止めない */
+const CSQ = []; QW.CSQ = CSQ; QW.blocked = (x, z) => blocked(x, z);
+function collStructsIdle() {
+  const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _p = new THREE.Vector3(); const meshes = [];
+  for (const o of CSQ) { o.updateMatrixWorld(true); o.traverse(n => { if (n.isMesh) meshes.push(n); }); }
+  let k = 0, ti = 0, tris = 0;
+  const mark = (x, z) => { collMark(x, z); collMark(x + .3, z); collMark(x - .3, z); collMark(x, z + .3); collMark(x, z - .3); };
+  const step = () => { const t = performance.now();
+    while (k < meshes.length && performance.now() - t < 4) { const m = meshes[k], g = m.geometry, P = g.attributes.position, I = g.index, n = I ? I.count : P.count, W = m.matrixWorld;
+      for (let e = 0; ti + 2 < n && ((e & 7) || performance.now() - t < 4); e++, ti += 3) { const i = ti; tris++;
+        _a.fromBufferAttribute(P, I ? I.getX(i) : i).applyMatrix4(W); _b.fromBufferAttribute(P, I ? I.getX(i + 1) : i + 1).applyMatrix4(W); _c.fromBufferAttribute(P, I ? I.getX(i + 2) : i + 2).applyMatrix4(W);
+        const gy = groundY((_a.x + _b.x + _c.x) / 3, (_a.z + _b.z + _c.z) / 3), lo = gy + .2, hi = gy + 1.8;
+        if (Math.max(_a.y, _b.y, _c.y) < lo || Math.min(_a.y, _b.y, _c.y) > hi) continue;
+        const L = Math.max(_a.distanceTo(_b), _b.distanceTo(_c), _c.distanceTo(_a)), N = Math.min(16, Math.ceil(L / .35));
+        for (let u = 0; u <= N; u++) for (let v = 0; u + v <= N; v++) { const w = N ? 1 / N : 0; _p.set(0, 0, 0).addScaledVector(_a, 1 - (u + v) * w).addScaledVector(_b, u * w).addScaledVector(_c, v * w); if (_p.y >= lo && _p.y <= hi) mark(_p.x, _p.z); }
+      }
+      if (ti + 2 >= n) { k++; ti = 0; } }
+    if (k < meshes.length) setTimeout(step, 16); else { gateOpen(); QW.collStructs = tris; } };
+  /* 楼門の真ん中の通り道は、扉の板があっても通れるように空ける（向きは、空いている方の軸を選ぶ） */
+  const gateOpen = () => { for (const o of CSQ) { if (!/^romon/.test(o.name)) continue; const cx = o.position.x, cz = o.position.z, r = o.rotation.y;
+      const ax = [[Math.cos(r), -Math.sin(r)], [Math.sin(r), Math.cos(r)]], cnt = d => { let n = 0; for (let t = -5; t <= 5; t += .5) if (blocked(cx + d[0] * t, cz + d[1] * t)) n++; return n; };
+      const d = cnt(ax[0]) <= cnt(ax[1]) ? ax[0] : ax[1], px = -d[1], pz = d[0];
+      for (let t = -6; t <= 6; t += .25) for (let w = -1.3; w <= 1.3; w += .25) { const x = cx + d[0] * t + px * w, z = cz + d[1] * t + pz * w, i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); if (i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz) COLL.g[j * COLL.nx + i] = 0; } } };
+  setTimeout(step, 50);
+}
 function blocked(x, z) { if (!COLL) return false; if (PARK.w && inPark(x, z)) return false; if (AREAS?.walkable(x, z) && nearestOnLine(x, z).dist > 40) return false;   /* エリアの公道（参道から 40 m より外）は、参道の植え込みの格子にかけない */ const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz && COLL.g[j * COLL.nx + i] === 1; }
 function collShrink() {   // 塗った所の縁を 1 こまぶん削る（細い縁石の上・植え込みの角で引っかからない）。植え込みどうしの間の通り道は残る
   collInit(); const { g, nx, nz } = COLL, h = g.slice();
@@ -640,7 +665,8 @@ function loadLate() {
     roadGroup.traverse(o => { if (o.isMesh && o.userData.stone) { o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); STONES.push(o); } });
   });
   const WMAT = {};
-  const st = glb(BASE + "structures.glb").then(g => {
+  const after = new Promise(r => { road.finally(r); setTimeout(r, 500); });
+  const st = after.then(() => glb(BASE + "structures.glb")).then(g => {
     structGroup = new THREE.Group(); world.add(structGroup);
     for (const s of D.structs) {
       const src = g.scene.getObjectByName(s.m); if (!src) continue;
@@ -650,12 +676,14 @@ function loadLate() {
         else if (/^shu_/.test(n.material.name)) { const nm = n.material.name; n.material = WMAT[nm] ||= (m => { m.color.multiply(new THREE.Color().setRGB(1.05, .5, .42)); m.envMapIntensity = .45; return m; })(n.material.clone()); }   // 2026-10-29 本人「鳥居をもっと赤く」：朱の塗りの写真に赤みを掛け、霞と空の照り返しで桃色に浅くならないように
         else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; n.material = WMAT[nm] ||= weather(n.material.clone(), STRUCT_WEATHER[nm]); } } });
       o.name = s.id; structGroup.add(o);
+      if (!/^shinkyo/.test(s.id)) CSQ.push(o);   // 11-03：足もとの高さの柱・壁・柵を通れない所に（神橋の床は歩く）
       if (/^(ishidoro|komainu|hyoseki|shagohi|choishi|mokutoro)/.test(s.id)) collDisc(s.p[0], s.p[2], /^ishidoro|^mokutoro/.test(s.id) ? 1.0 : .8);   // 燈籠・狛犬・碑・丁石は通れない（鳥居と楼門はくぐれる）
       if (QW.mode === "sky" && /^torii_|^romon$|^shinkyo$/.test(s.id)) o.visible = false;
     }
     try { buildBigStructs(g.scene); } catch (e) { console.warn("bigstructs", e); }
+    collStructsIdle();
   });
-  const tr = Promise.all([glb(BASE + "trees.glb"), glb(BASE + "keyaki.glb").catch(() => null)]).then(buildTrees);
+  const tr = after.then(() => Promise.all([glb(BASE + "trees.glb"), glb(BASE + "keyaki.glb").catch(() => null)])).then(buildTrees); QW.roadP = road;
   loadVeg();
   lateP = Promise.allSettled([road, st, tr]).then(r => { try { renderer.compileAsync(scene, camera).catch(() => { }); } catch { } return r; });   // 降りる前に、道・木・構造物の描き方を用意しておく（初めて見えたときに止まらない）
   return lateP;
@@ -947,17 +975,17 @@ function stepTween(dt) {
 function yawAlong(d) { const a = atD(d); return Math.atan2(-a.tx, -a.tz); }   // 道のりの増える向き（北の社へ）を向く
 function descendTo(i, at) {
   const s = D.starts[i]; if (!s) return;
-  hideSkyUI(); loadLate();
+  hideSkyUI(); loadLate(); loadAoi();
   const a = at ? { x: at.x, z: at.z } : atD(s.d), yaw = yawAlong(Math.min((at ? at.d : s.d) + 6, 1985)), y = groundY(a.x, a.z) + EYE;   // at＝現在地（GPS）の位置
   setMode("descend");
   // まず斜め上空へ寄り、そこから目の高さへ（道と木が届くまでは、斜め上空でゆっくり回りながら待つ）
   const mid = new THREE.Vector3(a.x + Math.sin(yaw) * 140, y + 120, a.z + Math.cos(yaw) * 140);
   TWFOG = [FOGS.sky(), FOGS.mid()];
-  tweenTo(mid, yaw, -.62, .7, () => {   // 2026-10-26 3：降りる演出を短く（歩きはじめまで 5 秒以内）
+  tweenTo(mid, yaw, -.62, .45, () => {   // 2026-10-26 3：降りる演出を短く（歩きはじめまで 5 秒以内）
 
     let ready = false; const wait = setTimeout(() => { if (!ready) toast("参道の道と木を読み込んでいます。"); }, 500);
     WAITORBIT = { c: new THREE.Vector3(a.x, y, a.z), r: 140 * Math.SQRT2 / Math.SQRT2, yaw, t: 0 };
-    lateP.then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.2, .9, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.2; enterWalk(); }); });
+    (QW.roadP || lateP).then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.2, .6, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.2; enterWalk(); }); });
   });
 }
 let WAITORBIT = null;

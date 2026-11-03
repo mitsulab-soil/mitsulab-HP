@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="web/lite/tokens.css">
+<link rel="stylesheet" href="web/kit/ui.css?v=1">
 <!-- 2026-10-23：対応表（importmap）は modulepreload より前に置く（CPU が遅いと、先に読んだ本体が "three" を解けずに止まっていた） -->
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/vendor/BufferGeometryUtils.js"}}
@@ -18,10 +19,11 @@
 <link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261103p2a">
+<link rel="modulepreload" href="web/lite/app.js?v=20261103c1">
 <link rel="modulepreload" href="web/lite/layers.js?v=6">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
+<link rel="preload" href="web/aoi.vrm" as="fetch" crossorigin fetchpriority="low">
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -606,7 +608,7 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 
 <header id="hud">
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand">Qualium 大宮</div>
+  <div class="brand mu-logo">Qualium 大宮</div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -617,8 +619,8 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
     <h2>どこから歩きはじめますか</h2>
     <p class="sub">氷川参道は、一の鳥居から神社まで、およそ 2 km。地図の光る点か、下の名前を選んでください。</p>
     <div id="starts" role="group" aria-label="始める場所"></div>
-    <div class="row"><button class="ml-btn ml-btn--primary" id="goDown" disabled>ここから歩く</button><button class="ml-btn" id="skyFly">鳥になって飛ぶ</button></div>
-    <div class="row r2"><button class="ml-btn ml-btn--quiet" id="skyHere" aria-pressed="false">現在地から歩く</button><button class="ml-btn ml-btn--quiet" id="skySight">生きものの身体に入る<br>（Qualia/sight）</button></div>
+    <div class="row"><button class="mu-btn ml-btn ml-btn--primary" id="goDown" disabled>ここから歩く</button><button class="mu-btn ml-btn" id="skyFly">鳥になって飛ぶ</button></div>
+    <div class="row r2"><button class="mu-btn ml-btn ml-btn--quiet" id="skyHere" aria-pressed="false">現在地から歩く</button><button class="mu-btn ml-btn ml-btn--quiet" id="skySight">生きものの身体に入る<br>（Qualia/sight）</button></div>
   </div>
 </section>
 
@@ -658,7 +660,7 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 <nav id="menu" class="ml-panel ml-panel--corner" hidden aria-label="メニュー">
   <button class="ib" id="menuX" aria-label="閉じる">×</button>
   <h3>Qualium 大宮</h3>
-  <div class="mrow"><button class="ml-btn" id="sndBtn" aria-pressed="true">声 オン</button><button class="ml-btn" id="earBtn" aria-pressed="false">鳥の声を聞く</button><a class="ml-btn" href="field-ar.html">実景AR</a></div>
+  <div class="mrow"><button class="mu-btn ml-btn" id="sndBtn" aria-pressed="true">声 オン</button><button class="mu-btn ml-btn" id="earBtn" aria-pressed="false">鳥の声を聞く</button><a class="mu-btn ml-btn" href="field-ar.html">実景AR</a></div>
   <p id="about"></p>
   <p class="small" id="aoiNote"></p>
   <details class="ml-fold"><summary>出典・クレジット</summary>
@@ -671,7 +673,7 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261103p2a").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261103c1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-02 変身＝碧の足もとの小さな依代を押すと、その視点へ入る（kit/henshin.js） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); Promise.all([import("./web/kit/henshin.js?v=42"), fetch("web/lite/data.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { xOnly: true, lookup: (id, re) => { const o = D?.objs?.find(x => x.id === id); return o && (o.lines || []).find(l => l.t && (!re || new RegExp(re).test(l.t))); }, trees: () => q.D?.trees || D?.trees || [], say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).then(() => import("./web/lite/senses6.js?v=11")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("henshin", e));   /* 11-03 本人：五感＋X 感をえらぶ（色の層の代わり）・依代は X 感で */ } }, 300); }
 </script>
