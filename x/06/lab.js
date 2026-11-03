@@ -39,12 +39,16 @@ prog(10);
 
 // ---------------------------------------------------------------- 描画の土台
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+renderer.debug.checkShaderErrors = false;   // 2026-11-03：影の計算の確かめで止まらない（公開版。コマ落ちをなくす）
 renderer.setPixelRatio(Math.min(devicePixelRatio, isTouch ? 1.6 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;   // 世界観と見た目 v1：ACES の黄ばみを避ける（2026-10-13）
 $("stage").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
+// 2026-11-03：碧の顔の補助光（点の光 1 つ）の代わりを、はじめから置いておく（碧が入っても光の数が変わらず、館の材質を組み直さない＝止まらない）
+const faceStub = new THREE.PointLight(0xffffff, 0, 2.4, 2); scene.add(faceStub);
+const compileWithFace = async o => { scene.remove(faceStub); const p = renderer.compileAsync(o, camera, scene); scene.add(faceStub); try { await p; } catch (e) {} };
 scene.background = new THREE.Color(0x1b1612);
 scene.fog = new THREE.Fog(0x1b1612, 24, 52);
 const pm = new THREE.PMREMGenerator(renderer);
@@ -651,7 +655,7 @@ async function loadAoi() {
     const v = g.userData.vrm; if (!v) throw new Error("VRM ではない");
     V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; });
-    aoi = new THREE.Group(); aoi.add(v.scene); scene.add(aoi); vrm = v;
+    aoi = new THREE.Group(); aoi.add(v.scene); vrm = v;
     v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
     const bx = new THREE.Box3().setFromObject(v.scene), h = bx.max.y - bx.min.y, sc = h > .5 ? AOI_H / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -bx.min.y * sc;
@@ -661,6 +665,9 @@ async function loadAoi() {
     M = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", faceLight: .5 });   // まっすぐ立ち、揺れを小さく（2026-10-13）
     M.place(A.pos.x, A.pos.z, Math.atan2(me.pos.x - A.pos.x, me.pos.z - A.pos.z));
     A.fade = 0; aoiOpacity(0);
+    try { for (const op of [1, 0]) { aoiOpacity(op); await compileWithFace(aoi); await new Promise(r => setTimeout(r, 0)); } } catch {}   // 碧の顔の灯りも含めて（群ごと）   // 不透明・半透明の両方   // 2026-11-03：碧の影の計算を先に並列で（出るときのコマ落ちをなくす）
+    { const tx = new Set(); aoi.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) for (const k in mt) { const t = mt[k]; if (t && t.isTexture) tx.add(t); } }); for (const t of tx) { renderer.initTexture(t); await new Promise(r => setTimeout(r, 0)); } }   // 絵の転送も 1 枚ずつ先に
+    scene.remove(faceStub); scene.add(aoi);
     window.__aoi = { vrm, aoi, A, M };
   } catch (e) { console.warn("碧の姿を読み込めませんでした（声と字幕で案内します）：", e?.message ?? e); }
 }
@@ -788,9 +795,10 @@ function loop() {
 prog(60);
 camera.position.copy(me.pos); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
 // 2026-10-13：碧の姿（約 2 MB）を待たずに部屋を見せる。碧はあとから静かに現れる（もともと 1.4 秒かけて出る作り）
-renderer.compile(scene, camera); renderer.render(scene, camera);
+// 2026-11-03：影の計算を止めずに（compileAsync・並列）。1 秒以内に操作できるように
+try { await renderer.compileAsync(scene, camera); } catch {} renderer.render(scene, camera);
 prog(100);
-setTimeout(() => $("load").classList.add("off"), 150);
+$("load").classList.add("off");
 requestAnimationFrame(loop);
 loadAoi();
 setTimeout(() => loadLater("data/lipsync.js", () => { LIPSYNC = window.LIPSYNC || {}; }), 1200);

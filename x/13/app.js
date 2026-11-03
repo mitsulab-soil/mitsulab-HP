@@ -23,6 +23,7 @@ const POND = { x: 4.1, z: 2.9, r: 1.55 }, R = 7.2, DEPTH = 2.6, TREE_H = 10.5;
 // ---- 描く土台
 const cv = $("#cv"), stage = $("#stage");
 const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: !MOBILE || devicePixelRatio < 2.5, powerPreference: "high-performance" });
+renderer.debug.checkShaderErrors = false;   // 2026-11-03：影の計算の確かめで止まらない（コマ落ちをなくす）
 renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.75 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.autoClear = false;
@@ -289,7 +290,11 @@ const aoiCam = new THREE.PerspectiveCamera(26, .74, .1, 20); aoiCam.position.set
 let aoi = null;
 const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "aoi.vrm";
 async function loadAoi() {
-  try { const K = await import("./kit/aoi.js"); aoi = await K.loadAoi(AOI_URL, { scene, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi.place(-4.6, 2.0, .7);   /* 2026-11-03：「土の生きもの」の札と重ならない位置へ */ aoi.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：木の手前の地面に立つ
+  try { const K = await import("./kit/aoi.js"); let held = null; const a0 = await K.loadAoi(AOI_URL, { scene: { add: o => { held = o; } }, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi = a0;   // 2026-11-03：シーンに入れる前に、碧の材質を並列で組み立てる（出るときに止まらない）
+    if (held) { const ms = []; held.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) ms.push([mt, mt.transparent]); });
+      try { for (const [mt] of ms) { mt.transparent = false; mt.needsUpdate = true; } await renderer.compileAsync(held, camera, scene); for (const [mt] of ms) { mt.transparent = true; mt.needsUpdate = true; } await renderer.compileAsync(held, camera, scene); } catch {}
+      scene.add(held); }
+    aoi.place(-4.6, 2.0, .7);   /* 2026-11-03：「土の生きもの」の札と重ならない位置へ */ aoi.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：木の手前の地面に立つ
   catch (e) { console.warn("碧：", e?.message ?? e); }
 }
 
