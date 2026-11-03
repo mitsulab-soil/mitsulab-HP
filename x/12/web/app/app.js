@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k19";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s6";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
@@ -1035,7 +1035,7 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
 function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
 let QA = null, QAP = null;
-function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b16h").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t) }); }).catch(e => console.warn("qaurora", e));
+function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b16hs6").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t), hidden: () => true }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
 const THIN = /舗装|アスファルト|割合|本数|樹種の内訳|観察会|見る会|催し|イベント|募集|駐車|約\s*[0-9０-９]+\s*割|[0-9０-９]+\s*本、|[0-9０-９]+\s*種の|樹種|調査では/;   // 10-28 晩：数や割合の豆知識は一言に
 let ASKN = -1;
@@ -1818,7 +1818,7 @@ function syncTray() { document.querySelectorAll(".lyBtn").forEach(b => b.setAttr
 QW.dbg = () => ({ areas: AREAS.info(), nArea: QW.nArea || 0, mode: QW.mode, cam: [CAM.pos.x, CAM.pos.y, CAM.pos.z], worn: [...LAYER.worn], aoi: !!AOI.root?.visible, talk: voiceQ?.talk?.o?.id || null, spoken: TALK.spoken.size, nBld: QW.nBld, sight: SIGHT.sp?.id || null });
 QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = yawAlong(d + 5); CAM.look = 0; if (AOI.m) { aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, CAM.yaw + Math.PI); } };
 QW.place = (x, z, tx, tz, p = -.08) => { CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = Math.atan2(-(tx - x), -(tz - z)); CAM.look = 0; CAM.pitch = p; };
-QW.LAYER = LAYER; QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) openObj(L); return !!L; };
+QW.LAYER = LAYER; QW.QAK = QAK; QW.QAC = QAC; QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) openObj(L); return !!L; };
 QW.sight = id => { const sp = C.sight.find(s => s.id === id); if (sp) enterSight(sp); };
 QW.wear = wearLayer; QW.sky = SKY; QW.descend = i => descendTo(i); QW.fly = () => startFly();
 QW.autoWalk = on => { WALK.auto = !!on; syncAutoBtn(); };

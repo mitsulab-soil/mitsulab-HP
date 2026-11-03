@@ -13,6 +13,7 @@ import { LENS } from "./umwelt_lens.js";
 const BASE = new URL("./", import.meta.url).href;
 const HAIR = 0x5fa7a0;   // 碧の髪の色（依代の差し色）
 export function attachHenshin(QW, opt = {}) {
+  if (opt.over) for (const [k, v] of Object.entries(opt.over)) if (PROFILES[k]) PROFILES[k] = { ...PROFILES[k], ...v };   // 11-02 場所ごとの差し替え（石の年代・出典など。川越・渋谷）
   const { camera, scene } = QW, canvas = opt.canvas || document.getElementById("gl"), say = opt.say || (() => { });
   const ORDER = (opt.order || ["hiyodori", "suzume", "hachi", "tanuki", "ishi", "ki"]).filter(id => PROFILES[id] && (PROFILES[id].field?.ok !== false || opt.dev));   // 場所の出典のない種は出さない
   const S = { cur: PROFILES.hito, k: 0, target: 0, pose: null, saved: null };
@@ -157,7 +158,7 @@ export function attachHenshin(QW, opt = {}) {
   document.body.appendChild(tsBox);
   const esc = x => String(x || "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
   /* 碧の語り：声＋下の小さな字幕（アプリの speak）。中身の文は henshin_voice.json（_dev/build_voice_henshin.py で作る・読みは確かめ済み） */
-  let VO = null; fetch(BASE + "henshin_voice.json?v=2").then(r => r.json()).then(j => VO = j).catch(() => { });
+  let VO = null; fetch(BASE + "henshin_voice.json?v=2").then(r => r.json()).then(j => VO = Object.assign(j, opt.voice || {})).catch(() => { });
   const speak = (lines, done) => QW.speak ? QW.speak(lines, done) : (say(lines.map(l => l.t).join(" ")), done?.());
   function narrate(P) {
     const v = VO?.[P.id] || []; if (!v.length) return;
@@ -210,7 +211,7 @@ export function attachHenshin(QW, opt = {}) {
     } }); }
   /* ---- 風景に現れる一体（本人「選択式で一体だけ」）：時刻で一体を選び、人の目へ戻るたびに次の一体へ入れ替わる。触れるとそのまま入る ---- */
   let YI = -1, YSHOWN = false;
-  function nextYori() { const day = (QW.sunAE ? QW.sunAE[1] : 30) > 0, list = ORDER.filter(id => PROFILES[id]?.yori && (id !== "tanuki" || !day || YI >= 0));
+  function nextYori() { const day = (QW.sunAE ? QW.sunAE[1] : 30) > 0, list = ORDER.filter(id => PROFILES[id]?.yori && (id !== "tanuki" || !day || YI >= 0) && (!opt.can || opt.can(id)));   // opt.can：その場で出せるか（川越・渋谷＝木は近くに本当の木があるときだけ）
     if (!list.length) return; YI = YI < 0 ? (day ? 0 : Math.max(0, list.indexOf("tanuki"))) : (YI + 1) % list.length; const id = list[YI]; S.offer = id; QW.yoShow?.(PROFILES[id].yori); }
   QW.onYoTouch = kind => { const id = Object.keys(PROFILES).find(k => PROFILES[k].yori === kind); if (id && S.target === 0) { go(id); return true; } return false; };
   /* ---- まいこま ---- */
@@ -237,7 +238,9 @@ export function attachHenshin(QW, opt = {}) {
           back.sc = [(nx + 1) / 2 * innerWidth, (1 - ny) / 2 * innerHeight]; }   /* 依代の視点のカメラで画面の位置を出す */ const L = back.label; if (back.sc) { L.style.display = ""; L.style.transform = `translate(${Math.max(8, Math.min(innerWidth - L.offsetWidth - 8, back.sc[0] - L.offsetWidth / 2)) | 0}px,${(back.sc[1] + 40) | 0}px)`; } } else if (!gui.visible || S.target !== 1) back.label.style.display = back.g.visible ? "" : "none"; }
     { const its = QW.YO?.y?.items || [], sc = back.g.visible && back.sc;   /* 11-02 依代の視点で、地面の依代が「碧へ戻る」の後ろに隠れない：重なる間だけ見えなくする */
       for (const it of its) { const r = it.root; if (!r) continue; let hide = false;
+        if (opt.yoHideR && S.target === 1 && S.pose) { r.getWorldPosition(P3); if (Math.hypot(P3.x - S.pose.pos.x, P3.z - S.pose.pos.z) < opt.yoHideR) hide = true; }   /* 11-03 opt.yoHideR（川越・渋谷）：依代の視点の近くの依代は映さない（タヌキの目に鳥の依代が映り込んだ） */
         if (sc) for (const hh of [.15, .6, 1.1, 1.6]) { r.getWorldPosition(P3); P3.y += hh; P3.project(camera); const x = (P3.x + 1) / 2 * innerWidth, y = (1 - P3.y) / 2 * innerHeight; if (P3.z < 1 && Math.abs(x - sc[0]) < 110 && y > sc[1] - 70 && y < sc[1] + 110) { hide = true; break; } }
+        if (opt.yoHideR) { r.userData.hsOff = hide || (r === S.yb && S.target === 1); if (r.userData.hsOff) r.visible = false; continue; }   /* 11-03 川越・渋谷：依代の毎コマの見え方（yorishiro.js）に隠すことを伝える。変身した依代そのものも映さない */
         if (hide) { if (r.visible) { r.visible = false; r.userData.hsHid = 1; } } else if (r.userData.hsHid) { r.visible = true; r.userData.hsHid = 0; } } }
     if (Math.abs(S.k - lastK) < .004) return; lastK = S.k;
     const k = S.k, P = S.cur;

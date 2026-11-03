@@ -1,9 +1,9 @@
 /* © mitsulab. 五感＋X 感をえらぶ（2026-11-03 本人「色の層はやめる。五感＋X 感を選択できるインターフェイスを、自然に操作できてかつ理解できるデザインに」
-   「碧以外の依代は、元から碧の隣にいるのではなく、X 感で生き物の視点として表示」）。いまは大宮だけ。
+   「碧以外の依代は、元から碧の隣にいるのではなく、X 感で生き物の視点として表示」）。大宮・川越・渋谷で共通（共通部品 _共通3D/kit/senses6.js）。o.can(id)＝その町で出せる生き物だけ輪に並べる。
    ・画面の下に 6 つ：見る・聴く・触れる・嗅ぐ・味わう・X 感。押すと、その感覚の印だけが風景に残る（もう一度押すと全部に戻る）。
    ・X 感を押すと依代の輪（yoring.js）がひらき、回して手前の一体を押すと、その感覚を持つ生き物の目へ入る（kit/henshin.js）。下の 5 つの点が、いまどの生き物かを示す。
    ・二段の選択・隠れた操作はない。説明は碧の字幕だけ。軽さ：DOM の 6 つのボタンだけ（3D の効果は足さない）。 */
-import { makeYoRing } from "./yoring.js?v=3";
+import { makeYoRing } from "./yoring.js?v=4";
 let VO6 = null; fetch(new URL("./senses6_voice.json?v=1", import.meta.url)).then(r => r.json()).then(j => VO6 = j).catch(() => { });
 const SENSES = [
   { k: "sight", n: "見る", d: '<circle cx="12" cy="12" r="3.2"/><path d="M2.5 12c2.6-4.4 5.8-6.6 9.5-6.6s6.9 2.2 9.5 6.6c-2.6 4.4-5.8 6.6-9.5 6.6S5.1 16.4 2.5 12z"/>', say: "見えるものに、しぼります。" },
@@ -21,8 +21,8 @@ const XS = [
   { id: "ishi", n: "石の時間", s: "さかのぼる" },
   { id: "ki", n: "木の循環", s: "水と光" },
 ];
-export function mountSenses(QW) {
-  const H = QW.henshin, xs = XS.filter(x => H?.profiles?.[x.id]);
+export function mountSenses(QW, o = {}) {
+  const H = QW.henshin, xs = XS.filter(x => H?.profiles?.[x.id] && (!o.can || o.can(x.id)));
   const css = document.createElement("style"); css.id = "qualium-senses6";
   css.textContent = `#qSense{display:none!important}
 #qS6{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(12px,env(safe-area-inset-bottom)) + 6px);z-index:7;display:flex;gap:2px;padding:4px;border-radius:30px;
@@ -39,6 +39,7 @@ body:not([data-mode="walk"]) #qS6{opacity:0;pointer-events:none}
 #qS6 button.x[aria-pressed="true"] .dots{opacity:1}#qS6 .dots i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.3}#qS6 .dots i.on{opacity:1}
 #qS6 button.x[aria-pressed="true"] span{font-size:9.5px;letter-spacing:.02em}
 @media (max-width:400px){#qS6 button{width:52px}#qS6 button.x{width:62px}}
+body.hen #sndTag,body.qRingOpen #sndTag{visibility:hidden!important}
 @media (prefers-reduced-motion:reduce){#qS6,#qS6 button{transition:none}}`;
   document.head.appendChild(css);
   const col = k => (k === "x" ? "#c7b8f0" : (QW.QAC?.[k] || "#cfe3ea"));

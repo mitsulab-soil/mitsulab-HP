@@ -18,7 +18,7 @@ export function makeYoRing(items, onEnter) {
 #qRing .ar{all:unset;position:absolute;top:50%;margin-top:-34px;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(238,243,246,.85);-webkit-tap-highlight-color:transparent}
 #qRing .ar:hover{color:#fff}#qRing .ar svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 #qRing .ar.l{left:4px}#qRing .ar.r{right:4px}#qRing .ar:focus-visible{outline:1px solid rgba(255,255,255,.7)}
-body.qRingOpen #caption{opacity:0!important}
+body.qRingOpen #caption{opacity:0!important;visibility:hidden!important}
 @media (prefers-reduced-motion:reduce){#qRing{transition:none}}`;
   document.head.appendChild(css);
   const el = document.createElement("div"); el.id = "qRing"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "依代をえらぶ");
