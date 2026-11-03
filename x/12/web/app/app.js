@@ -41,7 +41,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: !/[?&]aa=0/.test(l
 const PR_MAX = MOBILE ? Math.min(devicePixelRatio, 1.6) : Math.min(devicePixelRatio, 1.5);
 let pr = PR_MAX; renderer.setPixelRatio(pr);
 renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
-QW.renderer = renderer;
+QW.renderer = renderer; renderer.debug.checkShaderErrors = /[?&]dbg/.test(location.search);   /* 11-03 起動 2 秒：影の検査（シェーダの都度の同期待ち）を本番では外す */
 const scene = new THREE.Scene(), world = new THREE.Group(); scene.add(world); QW.scene = scene;
 /* 2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ」（氷川と同じ）：層を重ねているあいだ、風景（トーンマップされる物）だけ一段控えめに。印・碧・かさねっこ・札は除く。層をすべて外すと元へ */
 const LANDG = { value: 0 }, LZERO = { value: 0 }; QW.LANDG = LANDG;
@@ -170,7 +170,7 @@ function buildFarGround() {
 async function buildBase() {
   status("地形を読み込んでいます");
   const [g, c, dem] = await Promise.all([fetch("web/geo/geo.json?v=" + VER).then(r => r.json()), fetch("web/app/content.json?v=" + VER).then(r => r.json()), fetch("web/geo/dem.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet()]);   // 歩ける道（30 KB）も一緒に
-  G = g; C = c; DEM = new Int16Array(dem); QW.G = G; QW.C = C;
+  QW.tFetch = performance.now() - T0; G = g; C = c; DEM = new Int16Array(dem); QW.G = G; QW.C = C;
   const d = G.dem, st = MOBILE ? 2 : 1, nx = Math.floor((d.nx - 1) / st) + 1, nz = Math.floor((d.nz - 1) / st) + 1;
   const pos = new Float32Array(nx * nz * 3), uv = new Float32Array(nx * nz * 2), idx = [];
   const ph = G.photo;
@@ -987,7 +987,8 @@ async function startYorishiro() {
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
       const sd = (() => { const v = new THREE.Vector3(), sx = g => { v.set(P.x + fz * .95 * g + fx * 1.8, P.y + .3, P.z - fx * .95 * g + fz * 1.8).project(camera); return Math.abs(v.x); }; return sx(1) <= .8 || sx(-1) > sx(1) ? 1 : -1; })();   /* 11-03 375 でタヌキが画面の端で切れた：左が画面の外へはみ出すときは碧の右（画面の内側）へ */
-      await YO.y.add(kind, { x: P.x + fz * .95 * sd + fx * 1.8, z: P.z - fx * .95 * sd + fz * 1.8, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
+      let yx = P.x + fz * .95 * sd + fx * 1.8, yz = P.z - fx * .95 * sd + fz * 1.8; if (solidAt(yx, yz, .3)) { const ox = P.x - fz * .95 * sd + fx * 1.8, oz = P.z + fx * .95 * sd + fz * 1.8; if (!solidAt(ox, oz, .3)) { yx = ox; yz = oz; } else { yx = (P.x + CAM.pos.x) / 2; yz = (P.z + CAM.pos.z) / 2; } }   /* 11-03 依代を壁の中に出さない */
+      await YO.y.add(kind, { x: yx, z: yz, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
   } catch (e) { console.warn("yorishiro", e); }
 }
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
@@ -1176,6 +1177,7 @@ function aoiSpot(out) {
   const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = MOBILE ? -1 : !$("#panel").hidden ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：左右がこまごとに入れかわらない */
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   if (offRoute(CAM.pos.x, CAM.pos.z) && n.dist < 40) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
+  if (solidAt(out.x, out.z, .3)) { for (const [a, b] of [[f, 0], [f * .6, 0], [f, -s * side], [1.4, 0]]) { const x = CAM.pos.x + fx * a + rx * b, z = CAM.pos.z + fz * a + rz * b; if (!solidAt(x, z, .3)) { out.x = x; out.z = z; break; } } }   /* 11-03 立ち位置が壁の中なら、通りの側へ */
   out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
@@ -1189,6 +1191,7 @@ function aoiArrive() {
 }
 const _ap = new THREE.Vector3();
 const _ndc = new THREE.Vector3();
+const _aq = new THREE.Vector3();
 function stepAoi(dt) {
   if (!AOI.m || !AOI.root.visible) return;
   aoiSpot(_ap); const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
@@ -1198,7 +1201,7 @@ function stepAoi(dt) {
     const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(2.8, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v += Math.max(-1.8 * dt, Math.min(1.0 * dt, want - AOI.v));
-    if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
+    if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt), q = _aq.set(P.x + dx / dist * st, 0, P.z + dz / dist * st); if (slideOut(q, P.x, P.z, .28) && Math.hypot(q.x - P.x, q.z - P.z) < 1e-4) { AOI.v = 0; if ((AOI.blk = (AOI.blk || 0) + dt) > 1.2) { AOI.blk = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); } } else { AOI.blk = 0; AOI.m.drive(q.x, q.z); } }   /* 11-03 碧も壁を抜けない（沿ってすべる） */
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; AOI.m.faceTo(Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z)); }
   }
   AOI.gT = (AOI.gT ?? 5) - dt;
@@ -1345,8 +1348,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   else if (WALK.goal) { const dx = WALK.goal.x - CAM.pos.x, dz = WALK.goal.z - CAM.pos.z, dd = Math.hypot(dx, dz); if (dd < .4) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; } else { mx = dx / dd * Math.min(dd, speed * dt); mz = dz / dd * Math.min(dd, speed * dt); const ty = Math.atan2(-dx, -dz); CAM.yaw += wrap(ty - CAM.yaw - CAM.look) * Math.min(1, dt * 2.2); } }
   WALK.moving = Math.abs(mx) + Math.abs(mz) > 1e-5;
   const px0 = CAM.pos.x, pz0 = CAM.pos.z; CAM.pos.x += mx; CAM.pos.z += mz; corridorClamp(CAM.pos);
-  if (inBld(CAM.pos.x, CAM.pos.z) && !inBld(px0, pz0)) {   // 建物の壁の手前で止まる。斜めに当たったときは、壁に沿ってすべる
-    if (!inBld(CAM.pos.x, pz0)) CAM.pos.z = pz0; else if (!inBld(px0, CAM.pos.z)) CAM.pos.x = px0; else { CAM.pos.x = px0; CAM.pos.z = pz0; }
+  if (slideOut(CAM.pos, px0, pz0, .35)) {   // 建物・蔵・時の鐘の壁の手前で止まる。斜めに当たったときは、壁に沿ってすべる
     if (WALK.goal && Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
     if (performance.now() - (WALK.wallT || 0) > 8000) { WALK.wallT = performance.now(); toast("建物の中には入れません。通りを歩けます。"); } }
   if (WALK.auto && f) { const mv = Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0); WALK.stuckT = mv < speed * dt * .25 ? (WALK.stuckT || 0) + dt : 0;   // 10-28 晩：歩きつづけるで壁や道の端に当たって止まったままにならない
@@ -1630,6 +1632,15 @@ function extraSounds() {
 }
 function surfAt(x, z) { const n = nearestOnLine(x, z).dist; if (n < 3.2) return "asphalt"; if (n > 14 && NET.segs) { const q = netNear(x, z, 20); return q.hw > 4 && q.dist > q.hw - 2.3 ? "tile" : "asphalt"; } return "tile"; }   // 道の中ほどは車道のアスファルト、端は歩道の平板（模式）
 function inKura(x, z) { for (const k of [...G.kura, ...(G.machi || [])]) { if (Math.abs(k.x - x) > 14 || Math.abs(k.z - z) > 14) continue; const c = Math.cos(k.yaw), s = Math.sin(k.yaw), dx = x - k.x, dz = z - k.z; if (Math.abs(dx * c - dz * s) < k.w / 2 && Math.abs(dx * s + dz * c) < k.dp / 2) return true; } return false; }
+function inPolyA(R, x, z) { let c = false; for (let i = 0, j = R.length - 1; i < R.length; j = i++) { const a = R[i], b = R[j]; if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
+function inKuraR(x, z, r) { for (const k of [...G.kura, ...(G.machi || [])]) { if (Math.abs(k.x - x) > 14 || Math.abs(k.z - z) > 14) continue; const c = Math.cos(k.yaw), s = Math.sin(k.yaw), dx = x - k.x, dz = z - k.z; if (Math.abs(dx * c - dz * s) < k.w / 2 + r && Math.abs(dx * s + dz * c) < k.dp / 2 + r) return true; } return false; }
+function solidAt(x, z, r = .35) {   /* 11-03 当たり判定（軽い簡易コライダー）：建物の輪郭・蔵と町家の箱・時の鐘の足もと。碧・依代・見る人（カメラ）が通り抜けない */
+  if (inBld(x, z, r)) return true; if (G?.kura && inKuraR(x, z, r)) return true;
+  const b = G?.bell; if (b?.ring && Math.abs(b.x - x) < 12 && Math.abs(b.z - z) < 12) { if (inPolyA(b.ring, x, z) || inPolyA(b.ring, x + r, z) || inPolyA(b.ring, x - r, z) || inPolyA(b.ring, x, z + r) || inPolyA(b.ring, x, z - r)) return true; }
+  return false;
+}
+QW.solidAt = solidAt;
+function slideOut(p, px, pz, r) { if (!solidAt(p.x, p.z, r) || solidAt(px, pz, r)) return false; if (!solidAt(p.x, pz, r)) p.z = pz; else if (!solidAt(px, p.z, r)) p.x = px; else { p.x = px; p.z = pz; } return true; }   // 壁に当たったら、壁に沿ってすべる
 const WALLD = { t: 0, v: null };
 function wallDist(x, z) {   // いちばん近い壁まで（1 m きざみ・7 m まで）
   for (let r = 1; r <= 7; r++) for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (inBld(px, pz, 0) || inKura(px, pz)) return r; }
@@ -1846,7 +1857,7 @@ function stepTag() {
 /* ---------- まわす ---------- */
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0; const GEO = { t: 0, last: "" };
 function frame() {
-  const dt = Math.min(.05, clock.getDelta());
+  const _f0 = performance.now(), dt = Math.min(.05, clock.getDelta());
   if (QW.bldLines) QW.bldLines.visible = QW.mode !== "walk";   // 11-02 採点 P1：歩くときは建物の輪郭の線（地面を横切る細い線に見える）を出さない
   if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); }   // 降りる動きのあいだに組む（歩きだしてからは組まない）   // 11-02：歩きはじめに影絵を前もって組み立てる（歩く途中の 100〜300 ms の 1 コマをなくす）
   (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt, QW.mode === "walk");
@@ -1883,13 +1894,13 @@ function frame() {
   if (QW.mode === "walk") { stepAoi(dt); EAR.update(dt); } else if (EAR.on && QW.mode !== "descend") EAR.stop();
   if (QW.mode === "sight") stepBody(dt);
   if (SIGHT.post && QW.mode === "sight") { renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam); renderBody(); }
-  else renderer.render(scene, camera);
+  else { const _r0 = performance.now(); renderer.render(scene, camera); if ((QW.tm?.fr?.length ?? 9) < 4) QW.tm.fr.push(Math.round(performance.now() - _r0)); }
   if (QW.mode === "sky" || QW.mode === "descend" || QW.mode === "walk" || QW.mode === "fly") renderer.toneMappingExposure += ((QW.mode === "sky" ? .55 : 1) - renderer.toneMappingExposure) * Math.min(1, dt * 3);   // 3D 地図は暗めに（白すぎないように）
   fpsAcc += dt; fpsN++; prT += dt;
   if (prT > 1.5) { const avg = fpsAcc / fpsN; fpsAcc = 0; fpsN = 0; prT = 0; const lim = MOBILE ? 1 / 32 : 1 / 52;
     if (avg > lim && pr > .9) { pr = Math.max(.9, pr - .15); renderer.setPixelRatio(pr); resize(); resizePost(); }
     else if (avg < lim * .62 && pr < PR_MAX) { pr = Math.min(PR_MAX, pr + .1); renderer.setPixelRatio(pr); resize(); resizePost(); } }
-  QW.fps = 1 / dt;
+  QW.fps = 1 / dt; if ((QW.tm?.ff?.length ?? 9) < 4) QW.tm.ff.push(Math.round(performance.now() - _f0));
 }
 addEventListener("resize", resizePost);
 addEventListener("resize", () => { for (const k in SHO.live) SHO.live[k]?.sho.setScale(innerHeight * renderer.getPixelRatio() * .9); });
@@ -1897,13 +1908,16 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
 
 (async () => {
   try {
-    await buildBase();
-    buildObjs(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn();
+    await buildBase(); QW.tm = { base: performance.now() - T0 }; const PRE = (() => { try { return Promise.all([QW.terrain, ...scene.children.filter(o => o !== world)].map(o => renderer.compileAsync(o, camera, scene))).catch(() => { }); } catch { return null; } })();   /* 地面と空の影の組み立てを、印を作るあいだに裏で進める */
+    buildObjs(); QW.tm.objs = performance.now() - T0; fillMenu(); buildTray(); buildStarts(); syncTalkBtn(); QW.tm.ui = performance.now() - T0;
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
     setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter);   /* はじめは何も選ばず、「ここから歩く」は押した印のそばに出す */ SKY.dist = SKY.tDist = MOBILE ? 1750 : 1550; SKY.c.set(140, 20, 540); { const P = (START.sp?.pins || []).filter(p => p.it.kind !== "here"); if (P.length > 1) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.it.x); x1 = Math.max(x1, p.it.x); z0 = Math.min(z0, p.it.z); z1 = Math.max(z1, p.it.z); } SKY.c.set((x0 + x1) / 2 - (innerWidth < 640 ? 170 : 40), 20, z0 + (z1 - z0) * .36);   /* 左の層の一覧にかからないよう、印を少し右へ */ SKY.dist = SKY.tDist = Math.min(MOBILE ? 1750 : 1550, Math.max(900, Math.max(x1 - x0, z1 - z0) * (innerWidth < innerHeight ? 1.3 : 1.08))); } }   /* 10-28 夜：始める印が全部、見出しの下・画面の中ほどに入る高さへ（北の印の名札が下へずれ、長い線が地図を横切っていた） */   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
-    renderer.setAnimationLoop(frame);
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    if (PRE) await Promise.race([PRE, new Promise(r => setTimeout(r, 1500))]); QW.tm.pre = performance.now() - T0;
+    const LATE = []; for (const o of world.children) if (o !== QW.terrain) o.traverse(c => { if (c.layers.mask === 1) { c.layers.set(5); LATE.push(c); } });   /* 11-03 起動 2 秒：はじめの 1 こまは地面と GUI だけ描き（影の組み立てを待たない）、ほかは操作できるようになってから裏で組み立てて出す */
+    renderer.setAnimationLoop(frame); QW.tm.loop = performance.now() - T0; QW.tm.fr = []; QW.tm.ff = [];
+    await new Promise(r => requestAnimationFrame(() => { QW.tm.f1 = performance.now() - T0; QW.tm.np = renderer.info.programs.length; QW.tm.sc = scene.children.length; requestAnimationFrame(r); }));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;
+    { const show = () => { for (const c of LATE) c.layers.set(0); QW.tLate = performance.now() - T0; }; try { renderer.compileAsync(world, camera, scene).then(show, show); } catch { show(); } setTimeout(show, 2500); }
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
     setTimeout(() => { loadAoi(); fetch("web/app/lip.json?v=" + VER).then(r => r.json()).then(j => { LIP = j; }).catch(() => { }); }, 500);
