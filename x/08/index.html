@@ -170,6 +170,8 @@
   .folds{margin-top:clamp(16px,3vw,28px)}
   .folds p{margin:0 0 12px;font-size:.88rem;color:var(--ml-ink-2);line-height:1.8}
   .copy{margin:20px 0 0;font-size:.78rem;line-height:1.8;color:var(--ml-ink-3)}
+  .ver{margin-left:auto;gap:16px}.ver button{min-height:44px;font-size:.9rem;padding:0 2px}
+  @media (max-width:420px){ .brand .ml-title{font-size:16px} .home{font-size:.76rem} .ver{gap:12px} }
   @media (max-width:760px){ .meta{grid-template-columns:1fr} .bar .t{display:none} .bar .ml-btn{padding:0 8px} }
   @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
@@ -188,11 +190,15 @@
     v.dataset.lv = lv; v.preload = 'metadata';
     // 2026-11-03：起動を軽く。映像の先読みは画面が操作できるようになってから
     if (!c.saveData) addEventListener('load', function () { setTimeout(function () { v.preload = 'auto'; }, 800); });
-    v.src = ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'][lv] + '?v=20261019';
+    // 2026-11-04：MV とライブ版（?v=live）。上の「MV／ライブ」で切りかえる
+    var live = new URLSearchParams(location.search).get('v') === 'live'; v.dataset.set = live ? 'live' : 'mv';
+    if (live) v.poster = 'live_poster.webp?v=20261104';
+    v.src = (live ? ['live.mp4', 'live_720.mp4', 'live_540.mp4'] : ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'])[lv] + (live ? '?v=20261104' : '?v=20261019');
   })();
 </script>
 <header class="top mu-top">
   <div class="brand mu-logo"><span class="ml-title">Qualia/song</span></div>
+  <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true">MV</button><button type="button" id="vLive" aria-pressed="false">ライブ</button></div>
   <a class="home" href="https://mitsulab.jp/">mitsulab.jp ↗</a>
 </header>
 <section class="hero" aria-label="映像">
@@ -220,11 +226,13 @@
         <dt>宙の 0 と 1</dt><dd>機械のことば。歌詞の「0 と 1 のあいだに緑」から。</dd>
       </dl>
       <p>聴き終えたら、足もとの土に、すこし耳をすませてみてください。</p>
+      <p><b>ライブ版</b>：大きな会場の舞台で、碧がひとりで歌う同じ曲。舞台・照明・客席の光は、すべて mitsulab が 3D で作ったものです（実在の公演や人ではありません）。</p>
     </section>
     <dl class="cred ml-panel" aria-label="クレジット">
       <dt>歌</dt><dd>碧</dd>
       <dt>楽曲</dt><dd>Suno（Pro Plan）</dd>
       <dt>映像</dt><dd>mitsulab</dd>
+      <dt>ライブ版</dt><dd>3D　mitsulab（碧・VRoid Studio）／舞台・照明・客席　mitsulab（自作）</dd>
     </dl>
   </div>
   <div class="folds ml-panel">
@@ -258,12 +266,19 @@
     if (v.requestFullscreen) v.requestFullscreen().catch(() => {}); else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
     if (v.paused) { b.hidden = true; v.play().catch(() => {}); }
   });
-  const SRC = ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'];
+  const SETS = { mv: ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'], live: ['live.mp4', 'live_720.mp4', 'live_540.mp4'] }, VER = { mv: '?v=20261019', live: '?v=20261104' };
+  const vMV = document.getElementById('vMV'), vLive = document.getElementById('vLive');
+  const mark = () => { const l = v.dataset.set === 'live'; vMV.setAttribute('aria-pressed', !l); vLive.setAttribute('aria-pressed', l); document.getElementById('ttl').textContent = l ? '《Breathing OS》ライブ版' : '《Breathing OS》'; };
+  const pickSet = k => { if (v.dataset.set === k) return; const lv = Math.min(+v.dataset.lv || 0, 2), playing = !v.paused; v.dataset.set = k;
+    v.poster = k === 'live' ? 'live_poster.webp?v=20261104' : 'poster.webp?v=20261020-title'; v.src = SETS[k][lv] + VER[k]; waits = []; lastSwitch = performance.now(); seek.value = 0; mark();
+    try { history.replaceState(null, '', k === 'live' ? '?v=live' : location.pathname); } catch (e) {}
+    if (playing) { b.hidden = true; v.play().catch(() => { b.hidden = false; }); } else b.hidden = false; };
+  vMV.addEventListener('click', () => pickSet('mv')); vLive.addEventListener('click', () => pickSet('live')); mark();
   let waits = [], waitT = 0, lastSwitch = -1e9;
   const down = () => {
     const lv = +v.dataset.lv || 0; if (lv >= 2) return;
     const t = v.currentTime, playing = !v.paused;
-    clearTimeout(waitT); v.dataset.lv = lv + 1; v.src = SRC[lv + 1] + '?v=20261019'; waits = []; lastSwitch = performance.now();
+    clearTimeout(waitT); v.dataset.lv = lv + 1; const k = v.dataset.set || 'mv'; v.src = SETS[k][lv + 1] + VER[k]; waits = []; lastSwitch = performance.now();
     v.addEventListener('loadedmetadata', () => { v.currentTime = t; if (playing) v.play().catch(() => {}); }, { once: true });
   };
   v.addEventListener('waiting', () => {
