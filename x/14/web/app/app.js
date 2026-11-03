@@ -14,7 +14,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s6";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k8";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k9";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n8o";   // 10-29 操作の設計（3 版共通）
@@ -42,7 +42,7 @@ const canvas = $("#gl");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !MOBILE, powerPreference: "high-performance" });
 const PR_MAX = MOBILE ? Math.min(devicePixelRatio, 1.6) : Math.min(devicePixelRatio, 1.5);
 let pr = PR_MAX; renderer.setPixelRatio(pr);
-renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;   /* 11-03 sight と同じ色の出し方 */
 QW.renderer = renderer;
 const scene = new THREE.Scene(), world = new THREE.Group(); scene.add(world); QW.scene = scene;
 /* 2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ」（氷川と同じ）：層を重ねているあいだ、風景（トーンマップされる物）だけ一段控えめに。印・碧・かさねっこ・札は除く。層をすべて外すと元へ */
@@ -72,7 +72,7 @@ function landSweep() {
     }
   });
 }
-const camera = new THREE.PerspectiveCamera(MOBILE ? 62 : 55, innerWidth / innerHeight, .08, 7000); scene.add(camera); QW.camera = camera;
+const camera = new THREE.PerspectiveCamera(66 /* 11-03 sight と同じ画角 */, innerWidth / innerHeight, .08, 7000); scene.add(camera); QW.camera = camera;
 const FOG = new THREE.Color("#c6ced8");   // 2026-10-29 夜 本人「淡くなりすぎ」→ 少し濃く（#d2d8df→#c6ced8）・歩くときの霞は 300 m から。以前の注記：空の写真の地平の色（#dddfe4 付近）に合わせ、地面の果てと空の継ぎ目を消す（旧 #b9c8d6）
 scene.fog = new THREE.Fog(FOG, 900, 3800);
 const hemi = new THREE.HemisphereLight("#dbe6f4", "#5a5246", 1.1); scene.add(hemi);
@@ -118,7 +118,19 @@ const groundY = (x, z) => {
 function atD(d) { const L = G.lineD, P = G.line; d = Math.max(0, Math.min(L[L.length - 1], d)); let lo = 0, hi = L.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (L[m] <= d) lo = m; else hi = m; }
   const t = (d - L[lo]) / Math.max(1e-6, L[hi] - L[lo]), a = P[lo], b = P[hi], len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
   return { x: a[0] + (b[0] - a[0]) * t, z: a[1] + (b[1] - a[1]) * t, tx: (b[0] - a[0]) / len, tz: (b[1] - a[1]) / len }; }
+const _NL = { P: null, h: null, C: 25 };   // 2026-11-03 速さ：道筋の線を格子に分けて、近い区間だけ調べる（起動直後の建物の選り分けで 0.2 秒かかっていた）
+function _nlGrid(P) { const C = _NL.C, h = new Map(); for (let i = 0; i < P.length - 1; i++) { const a = P[i], b = P[i + 1];
+    for (let gx = Math.floor(Math.min(a[0], b[0]) / C); gx <= Math.floor(Math.max(a[0], b[0]) / C); gx++) for (let gz = Math.floor(Math.min(a[1], b[1]) / C); gz <= Math.floor(Math.max(a[1], b[1]) / C); gz++) { const k = gx * 65536 + gz; let l = h.get(k); if (!l) h.set(k, l = []); l.push(i); } }
+  _NL.P = P; _NL.h = h; }
 function nearestOnLine(x, z) { const P = G.line, L = G.lineD; let best = 1e18, bd = 0, bs = 0;
+  if (_NL.P !== P) _nlGrid(P);
+  const C = _NL.C, cx = Math.floor(x / C), cz = Math.floor(z / C), seen = new Set();
+  const seg = i => { const a = P[i], b = P[i + 1], vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz || 1e-9; let t = ((x - a[0]) * vx + (z - a[1]) * vz) / l2; t = Math.max(0, Math.min(1, t));
+    const px = a[0] + vx * t, pz = a[1] + vz * t, dd = (x - px) ** 2 + (z - pz) ** 2; if (dd < best || (dd === best && i < bi)) { best = dd; bi = i; bd = L[i] + t * Math.sqrt(l2); bs = (vx * (z - a[1]) - vz * (x - a[0])) / Math.sqrt(l2); } };
+  let bi = 1e9;
+  for (let r = 0; r <= 24; r++) { for (let gx = cx - r; gx <= cx + r; gx++) for (let gz = cz - r; gz <= cz + r; gz++) { if (Math.max(Math.abs(gx - cx), Math.abs(gz - cz)) !== r) continue; const l = _NL.h.get(gx * 65536 + gz); if (l) for (const i of l) if (!seen.has(i)) { seen.add(i); seg(i); } }
+    if (best < 1e18 && Math.sqrt(best) <= r * C) return { d: bd, s: bs, dist: Math.sqrt(best) }; }
+  best = 1e18;
   for (let i = 0; i < P.length - 1; i++) { const a = P[i], b = P[i + 1], vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz || 1e-9; let t = ((x - a[0]) * vx + (z - a[1]) * vz) / l2; t = Math.max(0, Math.min(1, t));
     const px = a[0] + vx * t, pz = a[1] + vz * t, dd = (x - px) ** 2 + (z - pz) ** 2; if (dd < best) { best = dd; bd = L[i] + t * Math.sqrt(l2); bs = (vx * (z - a[1]) - vz * (x - a[0])) / Math.sqrt(l2); } }
   return { d: bd, s: bs, dist: Math.sqrt(best) }; }
@@ -1246,7 +1258,7 @@ function stepAoi(dt) {
 }
 
 /* ---------- カメラと動き ---------- */
-const EYE = 1.42;   // 11-02 大宮と同じ：やや低めの目線
+const EYE = 1.55;   // 11-03 本人「視点は sight の方がリアリティ」＝sight の人の目の高さ   // 11-02 大宮と同じ：やや低めの目線
 const CAM = { pos: new THREE.Vector3(), yaw: 0, look: 0, pitch: -.05, lastDrag: 0 };
 const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c: new THREE.Vector3(-40, 20, 420) };
 const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 倍に」（1.35→2.4）
@@ -1580,7 +1592,7 @@ function stepBody(dt) {
 }
 function renderBody() { if (!BODY.m || !BODY.scene || QW.mode !== "sight") return; const ac = renderer.autoClear; renderer.autoClear = false; renderer.clearDepth(); renderer.render(BODY.scene, camera); renderer.autoClear = ac; }
 function exitSight(quiet = false) {
-  if (!SIGHT.sp) return; teardownSightLook(); hideBody(); SIGHT.sp = null; camera.fov = MOBILE ? 62 : 55; camera.updateProjectionMatrix(); $("#sightUI").hidden = true; $("#sUpDn").hidden = true;
+  if (!SIGHT.sp) return; teardownSightLook(); hideBody(); SIGHT.sp = null; camera.fov = 66 /* 11-03 sight と同じ画角 */; camera.updateProjectionMatrix(); $("#sightUI").hidden = true; $("#sUpDn").hidden = true;
   if (quiet) return; stopVoice(); setMode("descend"); const p = CAM.pos.clone(); p.y = groundY(p.x, p.z) + EYE; corridorClamp(p);
   tweenTo(p, CAM.yaw + CAM.look, -.04, 1.4, () => { CAM.pos.copy(p); CAM.yaw += CAM.look; CAM.look = 0; CAM.pitch = -.04; setMode("walk"); showWalkUI(); aoiArrive(); const fr = SIGHT.from; SIGHT.from = null; const t2 = fr ? `いま見た「${fr.o.title}」のあたりを、人の目でもう一度見てみましょう。` : null; speakLines(t2 ? [C.back, { t: t2, tc: t2 }] : [C.back], null); });   /* 10-29：生きものの目から戻ったら、同じ場所を人の目で見なおす一言 */
 }
@@ -1946,7 +1958,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     const STAGE = []; for (const o of [...world.children, ...scene.children]) { if (o === world || o === camera || o.isLight || o === QW.terrain || o.name === "farGround") continue; const L = []; o.traverse(c => { L.push([c, c.layers.mask]); c.layers.set(31); }); STAGE.push(L); }
     renderer.setAnimationLoop(frame); QW.tm.l = performance.now() - T0;
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0;
+    document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
     setTimeout(() => QW.late?.(), 30);
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む

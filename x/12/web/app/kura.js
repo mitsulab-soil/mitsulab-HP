@@ -58,7 +58,7 @@ class Acc {
 /* ---------- 質感 ---------- */
 let MATS = null;
 function tileTex(mobile) {   // 桟瓦の波（自作の模式）：横に波打つ山と、縦の重なりの段。色と法線を canvas で
-  const S = mobile ? 256 : 512, c = document.createElement("canvas"); c.width = c.height = S; const x = c.getContext("2d");
+  const S = 256, c = document.createElement("canvas"); c.width = c.height = S; const x = c.getContext("2d");
   const n = document.createElement("canvas"); n.width = n.height = S; const y = n.getContext("2d");
   const rc = document.createElement("canvas"); rc.width = rc.height = S; const z = rc.getContext("2d");
   const id = x.createImageData(S, S), nd = y.createImageData(S, S), rd = z.createImageData(S, S);

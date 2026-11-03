@@ -36,7 +36,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: !MOBILE, powerPref
 QW.renderer = renderer;
 const PR_MAX = MOBILE ? Math.min(devicePixelRatio, 1.6) : Math.min(devicePixelRatio, 1.5);
 let pr = PR_MAX; renderer.setPixelRatio(pr);
-renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.02;
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;   /* 11-03 sight と同じ色の出し方 */
 const scene = new THREE.Scene();
 /* 2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ」：層を重ねているあいだ、風景（トーンマップされる物）だけを一段控えめに（彩度と明るさを下げ、写実は保つ）。
    印（toneMapped:false）・碧・かさねっこ・札は除く。層をすべて外すと、ふつうの風景に戻る。 */
@@ -65,7 +65,7 @@ function landSweep() {
     }
   });
 }
-const camera = new THREE.PerspectiveCamera(MOBILE ? 62 : 55, innerWidth / innerHeight, .08, 6000);
+const camera = new THREE.PerspectiveCamera(66 /* 11-03 sight と同じ画角 */, innerWidth / innerHeight, .08, 6000);
 scene.add(camera);
 const FOG_SKY = new THREE.Color("#d2d8df"), NAVY = new THREE.Color("#03060f");
 scene.fog = new THREE.Fog(FOG_SKY, 900, 3600);
@@ -929,7 +929,7 @@ function stepMapLabels() {
 // CAM.yaw＝体（歩く）の向き、CAM.look＝見回す向き（体からの差）、CAM.pitch＝上下。カメラの向き＝yaw＋look
 const CAM = { yaw: 0, look: 0, pitch: 0, pos: new THREE.Vector3(), vy: 0, lastDrag: 0 };
 const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -160, tz: MOBILE ? -10 : 150, tAz: .3, tEl: .98, tDist: MOBILE ? 2550 : 2150 };   // 2026-10-27：一の鳥居から楼門まで・西口まで、始めの一画面に収める
-const EYE = 1.42;   // 11-02 本人「碧ともっと近づいて、ドラマティックに」：やや低めの目線
+const EYE = 1.55;   // 11-03 本人「視点は sight の方がリアリティ」＝sight の人の目の高さ   // 11-02 本人「碧ともっと近づいて、ドラマティックに」：やや低めの目線
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
 const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: FOG_SKY, n: 320, f: 695 })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
@@ -2131,7 +2131,7 @@ function enterSight(sp, L) {
 }
 function exitSight(quiet = false) {
   const sp = SIGHT.sp; if (!sp) return; SIGHT.sp = null; SIGHT.surf = null; delete document.body.dataset.sp; hideSightUI(); stopEcho(); hideBody();
-  teardownSightLook(); camera.fov = MOBILE ? 62 : 55; camera.updateProjectionMatrix();
+  teardownSightLook(); camera.fov = 66 /* 11-03 sight と同じ画角 */; camera.updateProjectionMatrix();
   if (quiet) return;
   const a = CAM.pos.clone(); corridorClamp(a); const y = groundY(a.x, a.z) + EYE, yaw = CAM.yaw + CAM.look;   // 戻るのも、いまいる所（歩ける所の中）・いまの向きのまま
   TWFOG = [FOGS.walk(), FOGS.walk()]; setMode("descend");
@@ -2229,7 +2229,7 @@ function setupSightLook(sp) {
 }
 function teardownSightLook() {
   if (SIGHT.post) { SIGHT.post.rt.dispose(); SIGHT.post.mat.dispose(); SIGHT.post = null; }
-  renderer.toneMappingExposure = 1.02; if (QW.skyTex) scene.background = QW.skyTex; applyFog(FOGS.walk()); showKusu(false);
+  renderer.toneMappingExposure = 1.0; if (QW.skyTex) scene.background = QW.skyTex; applyFog(FOGS.walk()); showKusu(false);
 }
 function resizePost() { if (!SIGHT.post) return; const s = renderer.getDrawingBufferSize(new THREE.Vector2()); SIGHT.post.rt.setSize(s.x, s.y); SIGHT.post.mat.uniforms.res.value.copy(s); }
 /* アオスジアゲハ：幼虫が葉を食べるクスノキに、目じるし（記録の事実＝食べる木。光って見えるのは模式） */
@@ -2798,7 +2798,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready");
-    QW.ready = true; QW.tReady = performance.now() - T0; setTimeout(() => loadLate(), 400);   // 2026-10-26 3：道と木は、操作できるようになったらすぐ先に読みはじめる（降りるときに待たない）
+    QW.ready = true; QW.tReady = performance.now() - T0; setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方） setTimeout(() => loadLate(), 400);   // 2026-10-26 3：道と木は、操作できるようになったらすぐ先に読みはじめる（降りるときに待たない）
     // 歩く前に要るものを、上空で選んでいるあいだに読む（地図の線と名前 → 道・木・構造物 → 碧 → 話）
     setTimeout(() => { fetch(BASE + "map.json?v=" + VER).then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
     setTimeout(() => { loadAoi(); loadLate(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 300);
