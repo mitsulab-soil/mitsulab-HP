@@ -47,6 +47,9 @@ body.ending #dock,body.ending #topr{opacity:0;pointer-events:none;transition:opa
 .big[hidden]{display:none}
 #drop{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;font-size:20px;background:rgba(3,6,15,.8);border:2px dashed var(--ml-aoi-2)}
 #drop.on{display:flex}
+body.solo #bGive,body.solo #bTake,body.solo #bView,body.solo #drop{display:none}
+#q #note{margin-top:4px;font-size:10.5px;letter-spacing:.08em}
+body:not(.solo) #note{display:none}
 @media (max-width:440px){#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}
 @media (min-width:900px){#q{font-size:24px}#sub{font-size:15px}}
 </style>
@@ -63,7 +66,7 @@ body.ending #dock,body.ending #topr{opacity:0;pointer-events:none;transition:opa
   <button class="mu-btn" id="bEnd">おわる</button>
   </div>
 </div>
-<div id="q"><span id="qt"></span></div>
+<div id="q"><span id="qt"></span><small id="note">この版は、写真と録音を共有しません（端末の中だけ）</small></div>
 <div id="sub" class="mu-cap is-on"></div>
 <div id="cr">© mitsulab ・ 声 VOICEVOX:冥鳴ひまり</div>
 <div id="dock">

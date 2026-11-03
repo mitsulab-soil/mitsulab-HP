@@ -54,6 +54,9 @@ function hush() { if (voice) { voice.pause(); voice = null; } }
 function speak(t) { hush(); const f = VOICE[t]; if (!f) return; try { const a = new Audio(f); voice = a; a.onended = () => { if (voice === a) voice = null; }; a.play().catch(() => { }); } catch { } }
 function say(s, ms = 5200, v) { const el = $("sub"); el.innerHTML = s; el.style.opacity = 1; clearTimeout(subT); if (ms) subT = setTimeout(() => el.style.opacity = 0, ms); speak(v || s.replace(/<br>/g, "").replace(/<[^>]+>/g, "")); }
 const params = new URLSearchParams(location.search);
+/* 2026-11-04 本人：公開の版は共有しない（端末の中だけ）。ワークショップの会場では ?ws=1 の入口で「渡す・受けとる」を出す。 */
+const SHARE = params.get("ws") === "1";
+document.body.classList.toggle("solo", !SHARE);
 function setQ(t, v) { $("qt").textContent = t; mine.q = t; if (v) speak(t); }
 
 /* ---------- 下の並び ---------- */
@@ -173,7 +176,7 @@ function tap(e) {
 /* 自分の一つを選んで外せる（渡すのは残したものだけ） */
 function pick(id) { let b = $("bDel"); if (!id) { b?.remove(); return; }
   if (!b) { b = document.createElement("button"); b.className = "mu-btn"; b.id = "bDel"; b.textContent = "外す"; $("act").appendChild(b); }
-  b.onclick = async () => { mine.items = mine.items.filter(i => i.id !== id); near = null; await put("mine", mine); count(); layout(); pick(null); say("外しました。渡すときにも入りません。", 2400); }; }
+  b.onclick = async () => { mine.items = mine.items.filter(i => i.id !== id); near = null; await put("mine", mine); count(); layout(); pick(null); say(SHARE ? "外しました。渡すときにも入りません。" : "外しました。", 2400); }; }
 function resize() { if (!R) return; R.setSize(innerWidth, innerHeight, false); C.aspect = innerWidth / innerHeight; C.updateProjectionMatrix(); aimC(); }
 addEventListener("resize", resize);
 $("c").addEventListener("pointerdown", hush);
@@ -239,6 +242,7 @@ async function add(o) {
 
 /* ---------- 渡す（ファイル一つ。共有の画面か保存） ---------- */
 $("bGive").onclick = async () => {
+  if (!SHARE) return;
   if (!mine.items.length) { say("まだ層が空です。撮るか録ってから渡せます。"); return; }
   const name = `まなざし_${mine.id}.json`, blob = new Blob([JSON.stringify(mine)], { type: "application/json" });
   const file = new File([blob], name, { type: "application/json" });
@@ -250,6 +254,7 @@ $("bGive").onclick = async () => {
 /* ---------- 受けとる（運営の端末・大画面）。押すかファイルを置く ---------- */
 function valid(L) { return L && L.v === 1 && typeof L.id === "string" && Array.isArray(L.items) && L.items.length <= MAX && L.items.every(i => (i.kind === "photo" && /^data:image\/(jpeg|png|webp);base64,/.test(i.data)) || (i.kind === "sound" && /^data:audio\/[\w.+-]+(;[\w=]+)*;base64,/.test(i.data))); }
 async function takeFiles(fs) {
+  if (!SHARE) return;
   let n = 0;
   for (const f of fs) { try { const L = JSON.parse(await f.text()); if (!valid(L) || L.id === mine.id) continue;
     const i = others.findIndex(x => x.id === L.id); L.items.forEach(it => { it.sense = SENSES.some(s => s.k === it.sense) ? it.sense : "sight"; it.who = WHO.some(w => w.k === it.who) ? it.who : "hito"; });
@@ -260,9 +265,9 @@ async function takeFiles(fs) {
 }
 $("bTake").onclick = () => $("file").click();
 $("file").onchange = e => { takeFiles([...e.target.files]); e.target.value = ""; };
-addEventListener("dragover", e => { e.preventDefault(); $("drop").classList.add("on"); });
+addEventListener("dragover", e => { if (!SHARE) return; e.preventDefault(); $("drop").classList.add("on"); });
 addEventListener("dragleave", e => { if (!e.relatedTarget) $("drop").classList.remove("on"); });
-addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("on"); takeFiles([...e.dataTransfer.files]); });
+addEventListener("drop", e => { if (!SHARE) return; e.preventDefault(); $("drop").classList.remove("on"); takeFiles([...e.dataTransfer.files]); });
 function reset() { } // 2026-11-03：「空にする」は「おわる」の「消す」にまとめた（上の並びが狭い画面で問いに重なったため）
 
 /* ---------- おわる：みんなの層を一つの場に重ね、ゆっくり回して閉じる。持ち帰る（ファイル）か、この端末から消す ---------- */
@@ -270,7 +275,10 @@ function endOn(on) { if (typeof wipeMode === "function" && wipeAsk) wipeMode(fal
   if (on) { closeCam(); if (rec) rec.stop(); near = null; pick(null); view = "stack"; focusSense = null; $("bView").textContent = "並べる"; layout(); say("今日の層は、ここまで。<br>帰り道で、あなたの足を止めるものは？", 0, "今日の層は、ここまで。帰り道で、あなたの足を止めるものは？"); }
   else $("sub").style.opacity = 0; }
 $("bEnd").onclick = () => endOn(true);
-$("bKeep").onclick = () => $("bGive").click();
+$("bKeep").onclick = () => { if (SHARE) return $("bGive").click(); /* 共有しない版：この端末にファイルで保存するだけ（どこへも送らない） */
+  if (!mine.items.length) { say("まだ層が空です。"); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(mine)], { type: "application/json" })); a.download = `まなざし_${mine.id}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  say("この端末に、層をファイルで保存しました。", 0); };
 let wipeAsk = false;
 function wipeMode(on) { wipeAsk = on; $("bKeep").hidden = on; $("bBack").textContent = on ? "やめる" : "もどる"; $("bWipe").classList.toggle("rec", on); }
 $("bBack").onclick = () => { if (wipeAsk) { wipeMode(false); say("今日の層は、ここまで。<br>帰り道で、あなたの足を止めるものは？", 0, "今日の層は、ここまで。帰り道で、あなたの足を止めるものは？"); return; } endOn(false); };
