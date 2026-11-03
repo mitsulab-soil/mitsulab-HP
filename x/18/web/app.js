@@ -19,9 +19,9 @@ const SENSES = [
    ミツバチ＝紫外・青・緑の三色で赤は暗い／スズメ＝紫外を含む四色で色の差が大きい／タヌキ＝二色の目。 */
 const WHO = [
   { k: "hito", n: "わたし", say: "" },
-  { k: "hachi", n: "ミツバチ", say: "ミツバチは、赤が暗く、人に見えない紫外が見える。色は模式です。" },
+  { k: "hachi", n: "ミツバチ", say: "ミツバチは、赤が暗く、紫外が見える。カメラに紫外は写らないので、色は模式です。" },
   { k: "suzume", n: "スズメ", say: "鳥は四つの色で見る。色の差を強めた模式です。" },
-  { k: "tanuki", n: "タヌキ", say: "タヌキは二つの色で見る。赤と緑が近づく模式です。" },
+  { k: "tanuki", n: "タヌキ", say: "タヌキは二つの色で見るとされる。赤と緑が近づく模式です。" },
 ];
 function lens(k, d) { // d: ImageData.data
   if (k === "hito") return;
@@ -134,7 +134,7 @@ function layout() {
   aimC();
 }
 /* カメラ（ドラッグで回す・ピンチ／ホイールで寄る） */
-let yaw = 0, pitch = .12, dist = 4.6;
+let yaw = 0, pitch = .12, dist = 4.6, ending = false;
 function aimC() { // 画面の縦横に合わせて、全部が入る距離へ
   const Ls = allLayers(), tf = Math.tan(C.fov * Math.PI / 360);
   if (view === "side") { const W = Ls.length * .62 + .4, H = Math.max(...Ls.map(L => L.items.length), 1) * .56 + .4; look.set(0, .35 + H / 2 - .3 - H * .18, 0); dist = Math.max(W / 2 / (tf * C.aspect), H / 2 / tf * 1.6) + 1; /* 下の操作の並びにかからない高さへ */ }
@@ -163,14 +163,14 @@ function tap(e) {
 }
 /* 自分の一つを選んで外せる（渡すのは残したものだけ） */
 function pick(id) { let b = $("bDel"); if (!id) { b?.remove(); return; }
-  if (!b) { b = document.createElement("button"); b.className = "mu-btn"; b.id = "bDel"; b.textContent = "外す"; $("topr").appendChild(b); }
+  if (!b) { b = document.createElement("button"); b.className = "mu-btn"; b.id = "bDel"; b.textContent = "外す"; $("act").appendChild(b); }
   b.onclick = async () => { mine.items = mine.items.filter(i => i.id !== id); near = null; await put("mine", mine); count(); layout(); pick(null); say("外しました。渡すときにも入りません。", 2400); }; }
 function resize() { if (!R) return; R.setSize(innerWidth, innerHeight, false); C.aspect = innerWidth / innerHeight; C.updateProjectionMatrix(); aimC(); }
 addEventListener("resize", resize);
 $("c").addEventListener("pointerdown", hush);
 let blink = 2;
 function frame() {
-  const dt = Math.min(clk.getDelta(), .05), t = clk.elapsedTime; place();
+  const dt = Math.min(clk.getDelta(), .05), t = clk.elapsedTime; if (ending && !ptr.size) yaw += dt * .12; place();
   if (aoi) aoi.scene.visible = view === "stack";
   if (aoi) { const sp = aoi.humanoid.getNormalizedBoneNode("spine"); if (sp) sp.rotation.x = Math.sin(t * 1.6) * .012; const hd = aoi.humanoid.getNormalizedBoneNode("head"); if (hd) hd.rotation.y = Math.sin(t * .3) * .08;
     blink -= dt; const em = aoi.expressionManager; if (em) { em.setValue("blink", blink < .12 ? 1 : 0); if (blink < 0) blink = 2 + Math.random() * 3; } aoi.update(dt); }
@@ -194,10 +194,10 @@ async function openCam() {
   try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 } }, audio: false }); }
   catch { say("カメラを使わずに、写真を選んで参加できます。"); $("pic").click(); return; }
   vid = document.createElement("video"); vid.playsInline = true; vid.muted = true; vid.srcObject = stream; await vid.play().catch(() => { });
-  $("win").classList.add("on"); const w = WHO.find(x => x.k === who); $("vlab").textContent = who === "hito" ? "" : w.n + "（模式）";
+  $("win").classList.add("on"); document.body.classList.add("cam"); const w = WHO.find(x => x.k === who); $("vlab").textContent = who === "hito" ? "" : w.n + "（模式）";
   const loop = () => { if (vid.videoWidth) drawLens(vid, vid.videoWidth, vid.videoHeight, 360); vraf = requestAnimationFrame(loop); }; loop();
 }
-function closeCam() { cancelAnimationFrame(vraf); stream?.getTracks().forEach(t => t.stop()); stream = null; $("win").classList.remove("on"); $("sub").style.opacity = 0; }
+function closeCam() { cancelAnimationFrame(vraf); stream?.getTracks().forEach(t => t.stop()); stream = null; $("win").classList.remove("on"); document.body.classList.remove("cam"); $("sub").style.opacity = 0; }
 function addPhoto(src, w, h) { drawLens(src, w, h, 640); add({ kind: "photo", data: vc.toDataURL("image/jpeg", .82) }); }
 $("bShot").onclick = openCam;
 $("bSnap").onclick = () => { if (vid) addPhoto(vid, vid.videoWidth, vid.videoHeight); closeCam(); };
@@ -235,7 +235,7 @@ $("bGive").onclick = async () => {
   const file = new File([blob], name, { type: "application/json" });
   if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: "まなざしの層" }); say("渡しました。このファイルは手元の保存にもなります。"); return; } catch (e) { if (e.name === "AbortError") return; } }
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  say("層をファイルに保存しました。運営の端末で「受けとる」と、みんなの層に重なります。");
+  say("層をファイルに保存しました。AirDrop などで運営の端末へ送ってください。");
 };
 
 /* ---------- 受けとる（運営の端末・大画面）。押すかファイルを置く ---------- */
@@ -254,11 +254,18 @@ $("file").onchange = e => { takeFiles([...e.target.files]); e.target.value = "";
 addEventListener("dragover", e => { e.preventDefault(); $("drop").classList.add("on"); });
 addEventListener("dragleave", e => { if (!e.relatedTarget) $("drop").classList.remove("on"); });
 addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("on"); takeFiles([...e.dataTransfer.files]); });
-function reset() { // ほかの人の層があるときだけ「空にする」を出す（運営が次の回の前に使う）
-  let b = $("bClear"); if (!others.length) { b?.remove(); return; }
-  if (!b) { b = document.createElement("button"); b.className = "mu-btn"; b.id = "bClear"; b.textContent = "空にする"; $("topr").appendChild(b);
-    b.onclick = async () => { if (!confirm("受けとった層を、この端末から消します。")) return; others = []; await put("others", others); layout(); reset(); }; }
-}
+function reset() { } // 2026-11-03：「空にする」は「おわる」の「消す」にまとめた（上の並びが狭い画面で問いに重なったため）
+
+/* ---------- おわる：みんなの層を一つの場に重ね、ゆっくり回して閉じる。持ち帰る（ファイル）か、この端末から消す ---------- */
+function endOn(on) { ending = on; document.body.classList.toggle("ending", on); $("end").classList.toggle("on", on);
+  if (on) { closeCam(); if (rec) rec.stop(); near = null; pick(null); view = "stack"; focusSense = null; $("bView").textContent = "並べる"; layout(); say("今日の層は、ここまで。<br>帰り道で、あなたの足を止めるものは？", 0, "今日の層は、ここまで。帰り道で、あなたの足を止めるものは？"); }
+  else $("sub").style.opacity = 0; }
+$("bEnd").onclick = () => endOn(true);
+$("bBack").onclick = () => endOn(false);
+$("bKeep").onclick = () => $("bGive").click();
+$("bWipe").onclick = async () => { if (!confirm("自分の層と受けとった層を、この端末から消します。")) return;
+  mine = { v: 1, id: uid(), color: PALETTE[0], q: mine.q, items: [] }; others = []; await put("mine", mine); await put("others", others); count(); layout(); reset();
+  say("この端末から、層を消しました。", 0); };
 
 /* ---------- 重ねる ⇄ 並べる ---------- */
 $("bView").onclick = () => { view = view === "stack" ? "side" : "stack"; $("bView").textContent = view === "stack" ? "並べる" : "重ねる"; layout();
