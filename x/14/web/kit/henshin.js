@@ -8,8 +8,8 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
-import { PROFILES } from "./umwelt_profiles.js?v=3";
-import { LENS } from "./umwelt_lens.js";
+import { PROFILES } from "./umwelt_profiles.js?v=4";
+import { LENS } from "./umwelt_lens.js?v=2";
 const BASE = new URL("./", import.meta.url).href;
 const HAIR = 0x5fa7a0;   // 碧の髪の色（依代の差し色）
 export function attachHenshin(QW, opt = {}) {
@@ -55,7 +55,7 @@ export function attachHenshin(QW, opt = {}) {
     const tuft = new THREE.Mesh(new THREE.ConeGeometry(.018, .09, 8), matH); tuft.position.set(.03, .2, .035); tuft.rotation.z = .5; g.add(tuft);
     return g;
   }
-  const back = { id: "hito", g: markAoi(), label: mkLabel("碧へ戻る"), profile: PROFILES.hito }; back.g.visible = false;  back.label.style.cssText += ";font-size:13px;padding:13px 16px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px;background:rgba(22,48,52,.5);text-shadow:0 0 4px rgba(0,0,0,.7);min-height:44px;box-sizing:border-box;display:none";   /* 押せると分かる細い縁（板は敷かない） */ scene.add(back.g); back.g.traverse(o => { o.frustumCulled = false; o.renderOrder = 10; });   /* 戻る台は、依代の視点のカメラの右下に置く（碧や幹に重ねない） */
+  const back = { id: "hito", g: markAoi(), label: mkLabel("碧へ戻る"), profile: PROFILES.hito }; back.g.visible = false;  back.label.style.cssText += ";font-size:13px;padding:13px 16px;border:1.5px solid rgba(255,255,255,.9);border-radius:22px;background:rgba(8,22,26,.66);-webkit-backdrop-filter:blur(8px) saturate(1.1);backdrop-filter:blur(8px) saturate(1.1);box-shadow:0 2px 16px rgba(0,0,0,.35),inset 0 0 0 1px rgba(150,220,212,.25);letter-spacing:.18em;text-shadow:0 0 4px rgba(0,0,0,.7);min-height:44px;box-sizing:border-box;display:none";   /* 押せると分かる細い縁（板は敷かない） */ scene.add(back.g); back.g.traverse(o => { o.frustumCulled = false; o.renderOrder = 10; });   /* 戻る台は、依代の視点のカメラの右下に置く（碧や幹に重ねない） */
   ORDER.forEach(async (id, i) => {
     const P = PROFILES[id]; if (!P) return; const it = { id, g: new THREE.Group(), label: mkLabel(P.name), profile: P, i };
     icons.push(it); gui.add(it.g);
@@ -106,6 +106,7 @@ export function attachHenshin(QW, opt = {}) {
       p.pos.lerp(p.goal, Math.min(1, dt * .9 * M.speed)); p.pos.y += Math.sin(t * 9.1) * .004; p.pos.x += Math.sin(t * 6.3) * .006;
       if (p.pos.distanceTo(p.goal) < .25) p.goal = newGoal(M, a); p.yawJ = Math.sin(t * 2.3) * .25;
     }
+    if (M.kind !== "tree") for (const q of [p.pos, p.goal]) { if (!q) continue; const dx = q.x - a.x, dz = q.z - a.z, dd = Math.hypot(dx, dz); if (dd < 1.4) { const k = 1.4 / Math.max(dd, .01); q.x = a.x + (dd < .01 ? 1.4 : dx * k); q.z = a.z + dz * k; } }   /* 11-03 P2：碧の足もとへ入りこまない（スズメの目が碧の裾の中に入った） */
     if (M.kind === "tree" && p.tree) V2.set(a.x * .3 + p.tree.x * .7, a.y + 2.4, a.z * .3 + p.tree.z * .7);   /* 幹の流れと碧が、どちらも視野に入る向き */   /* 碧の方を、少し見上げる（枝先の粒が視野の上に入る） */ else V2.set(a.x, a.y + (M.kind === "still" || P.body.eye < .6 ? 1.0 : 1.1), a.z); p.look.lerp(V2, Math.min(1, dt * 3));   // 碧の方を見る
   }
   /* ---- 描く直前：視点を依代へ（k で人の視点と混ぜる）・描いたあと戻す ---- */
@@ -119,6 +120,32 @@ export function attachHenshin(QW, opt = {}) {
       const b = h.getNormalizedBoneNode?.(n); if (!b) continue; ARM.saved.push([b, b.quaternion.clone()]); b.quaternion.multiply(QA.setFromAxisAngle(ax, ang)); }
     if (ARM.saved.length) { h.update?.(); QW.AOI.vrm.scene.updateMatrixWorld(true); } }
   function armsOff() { if (!ARM.saved.length) return; for (const [b, q] of ARM.saved) b.quaternion.copy(q); ARM.saved.length = 0; QW.AOI.vrm.humanoid.update?.(); }
+  /* 11-03 P2 自分の体の先（本人「自分の体の一部〔嘴・前足・翅など〕が視野の端に見える」）：スズメの嘴・ミツバチの触角と前脚・タヌキの鼻先を、
+     視野の端に控えめに出す。低ポリの手づくりの形を、描く直前に視点のカメラへ貼る（形は画面の高さを 1 とした単位で作る＝画角や縦横が変わっても同じ所に見える）。
+     奥行きの判定はしない（地面にめりこまない）。重さ＝メッシュ 2〜5 個だけ。石は目も体の先もないので出さない。 */
+  const OWN = new THREE.Group(); OWN.name = "henshinOwn"; OWN.visible = false; scene.add(OWN); const OWNS = {};
+  function ownOf(id) {
+    if (id in OWNS) return OWNS[id]; let g = null;
+    const mats = [], mat = (c, r = .6) => { const m = new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: 0, transparent: true, opacity: 0, depthTest: false, depthWrite: false }); mats.push(m); return m; };
+    const at = (x, y, z) => new THREE.Vector3(x * z, y * z, -z);   // 画面の高さの単位（中央 0・下端 -1）と奥行き z m から、カメラの中の点へ
+    const seg = (m, a, b, r0, r1, n = 10) => { const d = new THREE.Vector3().subVectors(b, a), L = d.length(), me = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, L, n, 1), m); me.position.copy(a).addScaledVector(d, .5); me.quaternion.setFromUnitVectors(UP, d.normalize()); return me; };
+    if (id === "suzume") {   // スズメの嘴：太く短い円錐（種子を割る形）。上は濃い角色、下はやや淡い
+      g = new THREE.Group(); const up = seg(mat(0x2b2520, .42), at(0, -1.2, .14), at(0, -.66, .3), .012, .001, 14); up.scale.x = 1.25; g.add(up);
+      const lo = seg(mat(0x4a3f35, .5), at(0, -1.28, .14), at(0, -.73, .27), .009, .0008, 12); lo.scale.x = 1.15; g.add(lo);
+      g.userData.anim = t => { g.rotation.x = Math.sin(t * 1.7) * .012; };
+    } else if (id === "hachi" || id === "mitsubachi") {   // ミツバチの触角（膝のように曲がる柄と鞭）と、前脚の先
+      g = new THREE.Group(); const dark = mat(0x2a2118, .55);   // 前脚は画面の下の 6 つのボタンに隠れるので出さない（触角だけ）
+      for (const s of [-1, 1]) { const a = new THREE.Group(); const b0 = at(s * .09, 1.5, .1), e = at(s * .2, 1.02, .18), tip = at(s * .13, .74, .28);
+        a.add(seg(dark, b0, e, .0017, .0015, 8)); a.add(seg(dark, e, tip, .0015, .0022, 8)); a.userData.s = s; g.add(a); }
+      g.userData.anim = t => { for (const a of g.children) if (a.isGroup) a.rotation.z = Math.sin(t * 2.3 + a.userData.s) * .03 * a.userData.s; };
+    } else if (id === "tanuki") {   // タヌキの鼻先：灰褐色の口吻の上と、ぬれた黒い鼻
+      g = new THREE.Group(); const mz = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), mat(0x4b3f34, .95)); mz.scale.set(.07, .05, .2); mz.position.set(0, -.3125, -.25); g.add(mz);   // 口吻の背（毛の灰褐色）
+      const nose = new THREE.Mesh(new THREE.SphereGeometry(.021, 16, 12), mat(0x121010, .25)); nose.position.set(0, -.302, -.452); nose.scale.set(1.35, .8, 1); g.add(nose);
+      g.userData.anim = t => { const k = 1 + Math.max(0, Math.sin(t * 5.2)) * Math.max(0, Math.sin(t * .9)) * .05; nose.scale.set(1.35 * k, .8, k); };   // ときどき匂いをかぐ小さな動き
+    }
+    if (g) { g.userData.mats = mats; g.traverse(o => { if (o.isMesh) { o.renderOrder = 30; o.frustumCulled = false; } }); g.visible = false; OWN.add(g); }
+    return (OWNS[id] = g);
+  }
   scene.onBeforeRender = function (...a) {
     pb && pb.apply(this, a); armsOn(); if (S.k < .002 || !S.pose) return;
     const k = S.k * S.k * (3 - 2 * S.k), P = S.cur;
@@ -127,6 +154,7 @@ export function attachHenshin(QW, opt = {}) {
     camera.position.lerp(S.pose.pos, k); camera.quaternion.slerp(Q1, k);
     if (P.sight?.fov) camera.fov += (P.sight.fov - camera.fov) * k;
     camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
+    if (OWN.visible) { const tf = Math.tan(camera.fov * Math.PI / 360); OWN.position.copy(camera.position); OWN.quaternion.copy(camera.quaternion); OWN.scale.set(tf, tf, 1); OWN.updateMatrixWorld(true); }
   };
   scene.onAfterRender = function (...a) { pa && pa.apply(this, a); armsOff(); const s = S.saved; if (s) { camera.position.copy(s.p); camera.quaternion.copy(s.q); camera.fov = s.fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true); S.saved = null; } };
   /* ---- 押す（画面で 44px 以上の範囲） ---- */
@@ -139,14 +167,14 @@ export function attachHenshin(QW, opt = {}) {
   }, true);
   canvas.addEventListener("pointerdown", e => {
     if (QW.mode !== "walk" || !gui.visible) return; const R = 26;
-    for (const it of [back, ...icons]) { if (!it.g.visible) continue; const s = it.sc; if (s && Math.hypot(e.clientX - s[0], e.clientY - s[1]) < R) { e.stopImmediatePropagation(); e.preventDefault(); swallow = true; go(it.id); return; } }
+    for (const it of [back, ...icons]) { if (!it.g.visible) continue; const s = it.sc; let hit = s && Math.hypot(e.clientX - s[0], e.clientY - s[1]) < R; if (!hit && it === back && it.label.style.display !== "none") { const r = it.label.getBoundingClientRect(); hit = r.width > 0 && e.clientX > r.left - 6 && e.clientX < r.right + 6 && e.clientY > r.top - 6 && e.clientY < r.bottom + 6; }   /* 11-03：札そのものを押しても戻れる */ if (hit) { e.stopImmediatePropagation(); e.preventDefault(); swallow = true; go(it.id); return; } }
   }, true);
   for (const ev of ["pointerup", "click"]) addEventListener(ev, e => { if (swallow) { e.stopImmediatePropagation(); e.preventDefault(); if (ev === "pointerup") setTimeout(() => swallow = false, 80); } }, true);
   async function go(id) {
     if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(10);
     if (id === "hito") { if (S.yb) S.yb.visible = true; if (!opt.xOnly) nextYori(); document.body.classList.remove("hen"); S.target = 0; tag.style.opacity = 0; S.ts = null; tsBox.style.opacity = 0; QW.stopSpeak?.(); return; }
     const P = PROFILES[id];
-    S.cur = P; S.pose = null; S.body = await worldBody(P).catch(() => null);
+    S.cur = P; S.pose = null; lastK = -1;   /* 11-03 P2：生き物から生き物へ移ったときも色を入れ替える（前は最初の生き物の色のままだった） */ S.body = await worldBody(P).catch(() => null);
     const a = aoiPos(); if (a) { const home = new THREE.Vector3(camera.position.x, a.y + (P.body?.eye || .3), camera.position.z); const yb = QW.YO?.y?.items?.find(i => i.kind === P.yori)?.root; const from = yb ? yb.getWorldPosition(new THREE.Vector3()).setY(yb.getWorldPosition(new THREE.Vector3()).y + (P.body?.eye || .3) * .6) : home.clone(); if (yb) yb.visible = false; S.yb = yb; S.pose = { home, pos: from, goal: null, wait: 0, look: camera.position.clone(), yawJ: 0 }; }
     S.ts = P.timescale ? { i: -1, t: 0 } : null; if (S.ts) tsBox.style.opacity = 0;
     if (P.cycle) setTimeout(() => S.pose?.tree && S.cur === P && !CY && buildCycle(P, S.pose.tree), 60);
@@ -231,6 +259,8 @@ export function attachHenshin(QW, opt = {}) {
     if (S.target === 1 || S.k > .01) stepPose(dt, t); stepCycle(dt);
     if (S.body && S.pose) { const own = !!opt.ownBody && !!S.cur.body3d && opt.ownBody(S.cur.id) !== false;   /* 11-03 大宮 opt.ownBody：X 感で入った生き物の体の先（写実の 3D）を視野の下端に */   /* 自分の体の先は、リアルな部分の 3D（別の担当が用意中）が届くまで出さない（依代の形では何の生き物か分からなかった） */ S.body.visible = own;
       if (own) { D3.subVectors(S.pose.look, S.pose.pos).normalize(); const sz = S.cur.body3d.size || .2; const dd = Math.max(.08, (S.body.userData.len || sz) * .35), tip = S.pose.pos.y - dd * .95 - (S.body.userData.top || sz); S.body.position.set(S.pose.pos.x + D3.x * dd, tip, S.pose.pos.z + D3.z * dd); /* 頭の先だけが視野の下端にのぞく（体の後ろ姿で画面を塞がない） */ S.body.lookAt(S.pose.look.x, S.body.position.y, S.pose.look.z); S.body.userData.animate?.(t, true); } }   /* 自分の体の前の端（頭・嘴・鼻先）が視野の下端に入る位置。体の内側が見えないよう、目より前・下に置く */
+    { const g = S.target === 1 && S.pose && walk ? ownOf(S.cur.id) : null, a = g ? Math.min(1, Math.max(0, (S.k - .55) / .4)) : 0;   /* 11-03 P2 自分の体の先：入りきる少し前から淡く出す */
+      for (const c of OWN.children) c.visible = c === g && a > 0; OWN.visible = a > 0; if (a > 0) { for (const m of g.userData.mats) m.opacity = a * .96; g.userData.anim?.(t); } }
     { const on = S.target === 1 && S.k > .6 && S.pose && walk; back.g.visible = on;   /* 戻る印＝髪の色の細い光の輪と葉の房（11 回目の採点：小さな碧の人形は安っぽい→やめた） */
       if (on) { const P0 = S.pose.pos; D3.subVectors(S.pose.look, P0).normalize(); const rx = -D3.z, rz = D3.x, rl = Math.hypot(rx, rz) || 1;
         PC.position.copy(P0); PC.fov = S.cur.sight?.fov || camera.fov; PC.aspect = camera.aspect; PC.updateProjectionMatrix(); PC.lookAt(S.pose.look); PC.quaternion.multiply(Q0.setFromAxisAngle(UP, S.pose.yawJ * .4)); PC.updateMatrixWorld();   /* 描くときと同じ首の振れを入れる（スズメで印がボタンより右にずれた） */
@@ -249,7 +279,8 @@ export function attachHenshin(QW, opt = {}) {
     const I = [1, 0, 0, 0, 1, 0, 0, 0, 1], km = k * (P.sight?.mix ?? 1), r = m.map((v, i) => I[i] + (v - I[i]) * km);
     fm.setAttribute("values", `${r[0]} ${r[1]} ${r[2]} 0 0 ${r[3]} ${r[4]} ${r[5]} 0 0 ${r[6]} ${r[7]} ${r[8]} 0 0 0 0 0 1 0`); canvas.style.filter = "url(#hsF)";
     const uv = P.sight?.uv || 0, ed = P.sight?.edge || 0;
-    veil.style.background = `radial-gradient(ellipse 70% 60% at 50% 45%, rgba(150,120,255,${(.08 * uv).toFixed(3)}) 0%, rgba(150,120,255,${(.18 * uv).toFixed(3)}) 60%, rgba(10,12,24,${(.5 * ed).toFixed(3)}) 100%)` + (S.ts?.sea ? ",linear-gradient(rgba(90,150,170,.28),rgba(60,120,150,.34))" : "") + (P.sight?.dark ? `,linear-gradient(rgba(4,6,14,${P.sight.dark}),rgba(4,6,14,${P.sight.dark}))` : "");   // 夜に動く生き物：暗さの模式   // 浅い海の底だったころ（模式） veil.style.opacity = k.toFixed(3);
+    veil.style.background = `radial-gradient(ellipse 70% 60% at 50% 45%, rgba(150,120,255,${(.08 * uv).toFixed(3)}) 0%, rgba(150,120,255,${(.18 * uv).toFixed(3)}) 60%, rgba(10,12,24,${(.5 * ed).toFixed(3)}) 100%)` + (S.ts?.sea ? ",linear-gradient(rgba(90,150,170,.28),rgba(60,120,150,.34))" : "") + (P.sight?.dark ? `,linear-gradient(rgba(4,6,14,${P.sight.dark}),rgba(4,6,14,${P.sight.dark}))` : "");   // 夜に動く生き物：暗さの模式   // 浅い海の底だったころ（模式）
+    veil.style.opacity = k.toFixed(3);   /* 11-03 P2：この一行が前の注釈の中に入り、周辺の暗さ・紫外の重ねが出ていなかった */
   }
   (function loop(tt) { try { update(Math.min(.05, (tt - t0) / 1000)); } catch (e) { if (!loop.w) { loop.w = 1; console.warn("henshin", e); } } t0 = tt; requestAnimationFrame(loop); })(t0);
   QW.henshin = { go, state: S, profiles: PROFILES, gui, back };

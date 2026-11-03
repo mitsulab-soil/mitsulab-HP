@@ -35,12 +35,12 @@ export const PROFILES = {
       { claim: "ヒヨドリは大宮公園で記録がある（2012〜2024 年に 26 件・商用可の条件の記録）", cite: "GBIF.org 出現記録 Hypsipetes amaurotis（大宮公園の範囲・主に eBird）＝アプリのデータ r_nat_01" } ],
     field: { ok: true },
     confidence: "中",
-    label: "鳥の受けとり方に寄せた模式（紫外は紫の光に置きかえ・画角は人の画面に入る幅まで）",
+    label: "鳥の受けとり方に寄せた模式（人に見えない光〔紫外〕は紫の光に置きかえ・画角は人の画面に入る幅まで）",
     body3d: { glb: "envAgents/yorishiro/tori.glb", size: .36 }, yori: "tori",
     motion: { kind: "perch", r: [3, 6], h: [3.2, 5], dwell: [2.2, 4.5], dart: .55 } },
   hachi: { id: "hachi", version: 1, kind: "creature", name: "ミツバチ", call: "Qualia",
     body: { eye: 1.0, scale: .01 },
-    sight: { fov: 104, lens: "hachi", mix: 0, uv: .8, edge: .35 },   // mix：色の置きかえは半分ほど（全部では画面が黄一色になり景色が読めない）
+    sight: { fov: 104, lens: "hachi", mix: .55, uv: .8, edge: .4 },   // mix：色の置きかえは半分ほど（全部では画面が黄一色になり景色が読めない）。11-03 P2：0 では人の目と見分けがつかなかった
     tempo: { cff: 200, move: 1 },
     hearing: { lo: 0, hi: 0, map: "空気の音より、ふるえ（振動）として受けとる模式" },
     salient: ["花の紫外の模様（蜜のありか）", "動くもの・明暗のちらつき", "太陽の向きと空の偏光"],
@@ -54,12 +54,12 @@ export const PROFILES = {
       { claim: "大宮で見られる", cite: "上原光瑛（mitsulab）の現地での観察（2026-11-02 本人の記録）。GBIF の大宮公園の範囲の商用可の記録は 0 件" } ],
     field: { ok: true },
     confidence: "中",
-    label: "ミツバチの受けとり方に寄せた模式（紫外→青・青→緑・緑→赤に置きかえ・画角は人の画面に入る幅まで）",
+    label: "ミツバチの受けとり方に寄せた模式（人に見えない光〔紫外〕→青・青→緑・緑→赤に置きかえ・画角は人の画面に入る幅まで）",
     body3d: { glb: "envAgents/yorishiro/mitsubachi.glb", size: .2 }, yori: "mitsubachi",
     motion: { kind: "hover", r: [1.8, 3.2], h: [.6, 1.6], speed: 1.6 } },
   suzume: { id: "suzume", version: 1, kind: "creature", name: "スズメ", call: "Qualia",
     body: { eye: .12, scale: .14 },
-    sight: { fov: 96, lens: "tori", uv: .25, edge: .5 },
+    sight: { fov: 96, lens: "tori", uv: .5, edge: .55 },
     tempo: { cff: 100, move: 1 },
     hearing: { lo: 200, hi: 8000, map: "そのまま" },
     salient: ["地面の種や虫", "上から来る影"], ignored: ["人の文字・看板の意味"],
@@ -69,11 +69,11 @@ export const PROFILES = {
       { claim: "多くの鳥は紫外に感じる錐体を含む四色型", cite: "Hart NS (2001) Prog. Retin. Eye Res. 20:675–703" },
       { claim: "スズメは大宮公園で記録がある（商用可 CC BY 4.0 の記録 25 件）", cite: "GBIF.org 出現記録 Passer montanus（北緯 35.915〜35.923・東経 139.630〜139.640）2026-11-02 に確かめた" } ],
     confidence: "中", field: { ok: true },
-    label: "スズメの受けとり方に寄せた模式（紫外は紫の光に置きかえ）",
+    label: "スズメの受けとり方に寄せた模式（人に見えない光〔紫外〕は紫の光に置きかえ）",
     body3d: { glb: "envAgents/yorishiro/suzume.glb", size: .14 }, yori: "suzume" },
   tanuki: { id: "tanuki", version: 1, kind: "creature", name: "タヌキ", call: "Qualia",
     body: { eye: .32, scale: .5 },
-    sight: { fov: 80, lens: "inu", uv: 0, edge: .85, mix: .6 },   // 夜の暗さは周辺だけ（碧に重ねない）
+    sight: { fov: 80, lens: "inu", uv: 0, edge: .9, mix: .95 },   // 夜の暗さは周辺だけ（碧に重ねない）
     tempo: { cff: 60, move: 1 },
     hearing: { lo: 0, hi: 0, map: "未確認（数を出さない）" },
     smell: { trails: false, note: "嗅覚が中心とされるが、匂いの道筋は出典がそろうまで描かない" },
@@ -92,7 +92,7 @@ export const PROFILES = {
      確かめられない時代は入れない。昔の姿の 3D はまだ出さない（札と色の模式だけ）。 */
   ishi: { id: "ishi", version: 1, kind: "matter", name: "石", call: "時間の尺度",
     body: { eye: .22, scale: .2 },
-    sight: { fov: 70, lens: "hito", uv: 0, edge: .45 },
+    sight: { fov: 70, lens: "ishi", uv: 0, edge: .6 },   // 11-03 P2：石は目を持たない＝色を淡くした時間の模式
     motion: { kind: "still", r: [1.1, 1.1], h: [.22, .22] },
     timescale: { kind: "deep", step: 3.6, entries: [
       { when: "大正 12・昭和 9", id: "d_quake", re: "関東大震災" },

@@ -3,23 +3,23 @@
    ・画面の下に 6 つ：見る・聴く・触れる・嗅ぐ・味わう・X 感。押すと、その感覚の印だけが風景に残る（もう一度押すと全部に戻る）。
    ・X 感を押すと依代の輪（yoring.js）がひらき、回して手前の一体を押すと、その感覚を持つ生き物の目へ入る（kit/henshin.js）。下の 5 つの点が、いまどの生き物かを示す。
    ・二段の選択・隠れた操作はない。説明は碧の字幕だけ。軽さ：DOM の 6 つのボタンだけ（3D の効果は足さない）。 */
-import { makeYoRing } from "./yoring.js?v=4";
+import { makeYoRing } from "./yoring.js?v=5";
 let VO6 = null; fetch(new URL("./senses6_voice.json?v=1", import.meta.url)).then(r => r.json()).then(j => VO6 = j).catch(() => { });
 const SENSES = [
-  { k: "sight", n: "見る", d: '<circle cx="12" cy="12" r="3.2"/><path d="M2.5 12c2.6-4.4 5.8-6.6 9.5-6.6s6.9 2.2 9.5 6.6c-2.6 4.4-5.8 6.6-9.5 6.6S5.1 16.4 2.5 12z"/>', say: "見えるものに、しぼります。" },
-  { k: "sound", n: "聴く", d: '<path d="M6 9.5v5M10 6.5v11M14 8.5v7M18 10.5v3"/>', say: "耳をすませる印だけ、残します。" },
-  { k: "touch", n: "触れる", d: '<path d="M8.5 13V5.8a1.6 1.6 0 0 1 3.2 0V11m0-1.2a1.6 1.6 0 0 1 3.2 0V11m0-.4a1.6 1.6 0 0 1 3.2 0v4.2c0 3.4-2.4 5.9-5.8 5.9-2.6 0-4-1.2-5.4-3.4L4.6 14a1.5 1.5 0 0 1 2.4-1.8l1.5 1.8"/>', say: "手で確かめられるものに、しぼります。" },
-  { k: "smell", n: "嗅ぐ", d: '<path d="M7 19c-1.6-2.2.9-3.6-.6-6S8 9 7 6.5M12 19c-1.6-2.2.9-3.6-.6-6S13 9 12 6.5M17 19c-1.6-2.2.9-3.6-.6-6S18 9 17 6.5"/>', say: "匂いの手がかりだけ、残します。" },
-  { k: "taste", n: "味わう", d: '<path d="M5.5 10.5h13c0 4.2-2.9 7.5-6.5 7.5s-6.5-3.3-6.5-7.5zM9 6.5c0-1 .8-1.4.8-2.4M12.5 6.5c0-1 .8-1.4.8-2.4"/>', say: "この土地の食べ物の記録に、しぼります。" },
-  { k: "x", n: "X 感", d: '<path d="M12 3.5c.7 4.6 3.9 7.8 8.5 8.5-4.6.7-7.8 3.9-8.5 8.5-.7-4.6-3.9-7.8-8.5-8.5 4.6-.7 7.8-3.9 8.5-8.5z"/>' },   /* 閉じる印に見えないよう、ひらく光の形 */
+  { k: "sight", n: "見る", d: '<path d="M3 12c2.4-3.9 5.5-5.9 9-5.9s6.6 2 9 5.9c-2.4 3.9-5.5 5.9-9 5.9S5.4 15.9 3 12z"/><circle cx="12" cy="12" r="2.7"/><circle cx="13.1" cy="10.9" r=".55" class="f"/>', say: "見えるものに、しぼります。" },
+  { k: "sound", n: "聴く", d: '<circle cx="6.6" cy="12" r="1.25" class="f"/><path d="M10.4 8.7a4.7 4.7 0 0 1 0 6.6M13.6 6.2a8.2 8.2 0 0 1 0 11.6"/><path d="M16.8 3.9a11.6 11.6 0 0 1 0 16.2" opacity=".55"/>', say: "耳をすませる印だけ、残します。" },
+  { k: "touch", n: "触れる", d: '<path d="M5.6 16.4V11a6.4 6.4 0 0 1 12.8 0v5.4" opacity=".55"/><path d="M8.3 19.6V11a3.7 3.7 0 0 1 7.4 0v8.6"/><path d="M11 18.4v-7.2a1 1 0 0 1 2 0v7.2"/>', say: "手で確かめられるものに、しぼります。" },
+  { k: "smell", n: "嗅ぐ", d: '<path d="M7.6 20c-1.6-1.9-1.6-3.6 0-5.4s1.6-3.5 0-5.4M12 19.4c-1.6-1.9-1.6-3.6 0-5.4s1.6-3.5 0-5.4-1.6-3.3 0-4.9M16.4 20c-1.6-1.9-1.6-3.6 0-5.4s1.6-3.5 0-5.4"/>', say: "匂いの手がかりだけ、残します。" },
+  { k: "taste", n: "味わう", d: '<path d="M4.2 11.6h15.6a7.8 7 0 0 1-15.6 0z"/><path d="M9.6 19.6h4.8"/><path d="M10.2 8.4c-.9-1 .9-1.9 0-3M13.8 8.4c-.9-1 .9-1.9 0-3" opacity=".6"/>', say: "この土地の食べ物の記録に、しぼります。" },
+  { k: "x", n: "X 感", d: '<path d="M11.4 3.8c.6 4.3 3.6 7.4 8 8-4.4.6-7.4 3.7-8 8-.6-4.3-3.6-7.4-8-8 4.4-.6 7.4-3.7 8-8z"/><circle cx="18.6" cy="5.4" r="1"/>' },   /* 閉じる印に見えないよう、ひらく光の形 */
 ];
-// X 感の生き物（その感覚を持つもの）。順に切りかわる。名前は画面に出す短い言い方
+// X 感の生き物（その感覚を持つもの）。n＝名前だけ（ボタンと輪で同じ型。11-03 P2「〜の夜」「〜の目」の混在をなくした）、s＝何が変わるかの短い言い方
 const XS = [
-  { id: "suzume", n: "スズメの目", s: "紫外" },
-  { id: "hachi", n: "ミツバチの目", s: "速い時間" },
-  { id: "tanuki", n: "タヌキの夜", s: "二色の目" },
-  { id: "ishi", n: "石の時間", s: "さかのぼる" },
-  { id: "ki", n: "木の循環", s: "水と光" },
+  { id: "suzume", n: "スズメ", s: "人に見えない光（紫外）も見る" },
+  { id: "hachi", n: "ミツバチ", s: "人に見えない光（紫外）・青・緑で見る" },
+  { id: "tanuki", n: "タヌキ", s: "二色の目で、夜を歩く" },
+  { id: "ishi", n: "石", s: "この場所の時間をさかのぼる" },
+  { id: "ki", n: "木", s: "水と光の循環" },
 ];
 export function mountSenses(QW, o = {}) {
   const H = QW.henshin, xs = XS.filter(x => H?.profiles?.[x.id] && (!o.can || o.can(x.id)));
@@ -31,14 +31,15 @@ export function mountSenses(QW, o = {}) {
 body:not([data-mode="walk"]) #qS6{opacity:0;pointer-events:none}
 #qS6 button{all:unset;box-sizing:border-box;position:relative;width:56px;min-height:52px;padding:6px 0 5px;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;
  color:rgba(232,239,244,.78);-webkit-tap-highlight-color:transparent;transition:background .35s,color .35s}
-#qS6 button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+#qS6 button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;overflow:visible;transition:transform .35s}#qS6 button svg .f{fill:currentColor;stroke:none}   /* 11-03 本人「アイコンをもっと美しく」：同じ 24 の格子・線 1.2・丸い端で 6 つを描き直した一品もの */
+#qS6 button:active svg{transform:scale(.92)}
 #qS6 button span{font-size:10.5px;letter-spacing:.08em;line-height:1;white-space:nowrap}
 #qS6 button:hover{color:#fff}#qS6 button:focus-visible{outline:1px solid rgba(255,255,255,.7);outline-offset:-2px}
-#qS6 button[aria-pressed="true"]{color:#0b1119;background:color-mix(in oklab,var(--c) 42%,#f4f7f9)}
-#qS6 button.x{width:64px}#qS6 .dots{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);display:flex;gap:3px;opacity:0;transition:opacity .3s}
+#qS6 button[aria-pressed="true"]{color:#0b1119;background:radial-gradient(120% 100% at 50% 20%,#fbfcfd,color-mix(in oklab,var(--c) 38%,#eef3f5));box-shadow:inset 0 0 0 1px rgba(255,255,255,.75),0 0 14px color-mix(in oklab,var(--c) 45%,transparent)}
+#qS6 button[aria-pressed="true"] svg{stroke-width:1.35}
+#qS6 button.x{width:64px;min-width:64px;max-width:64px;flex:0 0 64px;overflow:hidden}#qS6 .dots{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);display:flex;gap:3px;opacity:0;transition:opacity .3s}
 #qS6 button.x[aria-pressed="true"] .dots{opacity:1}#qS6 .dots i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.3}#qS6 .dots i.on{opacity:1}
-#qS6 button.x[aria-pressed="true"] span{font-size:9.5px;letter-spacing:.02em}
-@media (max-width:400px){#qS6 button{width:52px}#qS6 button.x{width:62px}}
+@media (max-width:400px){#qS6 button{width:52px}#qS6 button.x{width:62px;min-width:62px;max-width:62px;flex-basis:62px}}
 body.hen #sndTag,body.qRingOpen #sndTag{visibility:hidden!important}
 @media (prefers-reduced-motion:reduce){#qS6,#qS6 button{transition:none}}`;
   document.head.appendChild(css);
@@ -53,7 +54,7 @@ body.hen #sndTag,body.qRingOpen #sndTag{visibility:hidden!important}
   const kindOf = L => (QW.QAK?.(L) || "x").split(".")[0];
   const near = k => { const cp = QW.camera.position; let n = 0; for (const L of QW.LAYER?.objs || []) if (L.root?.visible && kindOf(L) === k && Math.hypot(L.o.x - cp.x, L.o.z - cp.z) < 40) n++; return n; };
   function paint() { for (const s of SENSES) B[s.k].setAttribute("aria-pressed", String(st.k === s.k));
-    if (st.k === "x" && xs[st.xi]) { xLabel.textContent = xs[st.xi].n; dots.forEach((d, i) => d.classList.toggle("on", i === st.xi)); B.x.setAttribute("aria-label", `X 感：${xs[st.xi].n}（${xs[st.xi].s}）。押すと依代の輪をひらく`); }
+    if (st.k === "x" && xs[st.xi]) { xLabel.textContent = xs[st.xi].n; dots.forEach((d, i) => d.classList.toggle("on", i === st.xi)); B.x.setAttribute("aria-label", `X 感：${xs[st.xi].n}の受けとり方（${xs[st.xi].s}）。押すと依代の輪をひらく`); }
     else { xLabel.textContent = "X 感"; B.x.setAttribute("aria-label", "X 感：ほかの生き物の受けとり方へ"); } }
   function setFilter(k) { globalThis.__qsF = k && k !== "x" ? (L => kindOf(L) === k) : null; }
   function pick(k) {

@@ -464,14 +464,14 @@ async function buildBuildings() {
   }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("y0", new THREE.Float32BufferAttribute(Y0, 1)); g.computeVertexNormals();
   const mat = new THREE.ShaderMaterial({
-    uniforms: { t: BLDU.t, amul: { value: 1 }, c: { value: new THREE.Color("#b4c9d4") }, fogColor: { value: scene.fog.color }, fogNear: { value: 0 }, fogFar: { value: 0 } },
-    vertexShader: `attribute float y0; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN;
-      void main(){ vec4 mv=modelViewMatrix*vec4(position,1.); vY=position.y; vH=position.y-y0; vN=normal; vFogDepth=-mv.z; gl_Position=projectionMatrix*mv; }`,
-    fragmentShader: `uniform float t; uniform float amul; uniform vec3 c; uniform vec3 fogColor; uniform float fogNear, fogFar; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN;
+    uniforms: { t: BLDU.t, amul: { value: 1 }, farCut: { value: 0 }, c: { value: new THREE.Color("#b4c9d4") }, fogColor: { value: scene.fog.color }, fogNear: { value: 0 }, fogFar: { value: 0 } },
+    vertexShader: `attribute float y0; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN, vV;
+      void main(){ vec4 mv=modelViewMatrix*vec4(position,1.); vV=mv.xyz; vY=position.y; vH=position.y-y0; vN=normal; vFogDepth=-mv.z; gl_Position=projectionMatrix*mv; }`,
+    fragmentShader: `uniform float t; uniform float amul, farCut; uniform vec3 c; uniform vec3 fogColor; uniform float fogNear, fogFar; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN, vV;
       void main(){ float side=1.-abs(normalize(vN).y); float a=.011+.026*side; float near=smoothstep(6.,40.,vFogDepth); a*=mix(.35,1.,near); a*=mix(1.,.3,smoothstep(14.,90.,vH));   // 渋谷：高いビルは上ほど霧へ（町並みは控えめな地）
         float fl=smoothstep(.06,0.,abs(fract(vH/3.2)-.5)*2.-.94); a+=fl*.045*side*near*mix(1.,.4,smoothstep(14.,90.,vH));             // 階の線（3.2 m ごと・模式）
         float sc=exp(-pow((fract(vH*.05-t*.12)-.5)*9.,2.)); a+=sc*.025*side;                     // 上へ抜ける走査の帯
-        float f=smoothstep(fogNear,fogFar,vFogDepth); gl_FragColor=vec4(c,a*amul*(1.-f*.9)); }`,
+        float f=smoothstep(fogNear,fogFar,vFogDepth); a*=mix(1.,1.-smoothstep(20.,50.,length(vV)),farCut);   /* 11-03 P2：歩く目では遠いビルと高い所の半透明の殻を消す（空と遠景の縦の筋） */ gl_FragColor=vec4(c,a*amul*(1.-f*.9)); }`,
     transparent: true, depthWrite: false, side: THREE.DoubleSide });
   const m = new THREE.Mesh(g, mat); m.renderOrder = 2; m.name = "bld"; world.add(m);
   const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(E, 3));
@@ -1195,7 +1195,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 3.6 : 3.0, s = MOBILE ? .55 : 1.25,   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
+  const f = MOBILE ? 3.0 : 2.3, s = MOBILE ? .55 : 1.1,   /* 11-03 本人「碧との距離をもっと近く」：前 3.6/3.0 m・横 1.25 */   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = !$("#panel").hidden && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：左右がこまごとに入れかわらない */
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
@@ -1898,7 +1898,7 @@ function frame() {
   DET.k.value = DET.t.value ? Math.max(0, 1 - CYBER.v.value * 3) : 0;
   FUSE.k.value += ((QW.mode === "walk" || QW.mode === "fly" ? 1 : QW.mode === "sight" ? .5 : 0) - FUSE.k.value) * Math.min(1, dt * 2);
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .1 : .24;
-  if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : QW.mode === "walk" ? .55 : QW.mode === "sky" ? .45 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
+  if (BLD.mat) BLD.mat.uniforms.farCut.value = QW.mode === "walk" || QW.mode === "sight" ? 1 : 0; if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : QW.mode === "walk" ? .55 : QW.mode === "sky" ? .45 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
     const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); HAZE.visible = CYBER.v.value < .5 && !VEIL.visible; if (HAZE.visible) { HAZE.position.copy(camera.position); HAZE.position.y = Math.min(camera.position.y, 60); HAZE.scale.setScalar(camera.far * .8); } if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   AREAS.update(dt, QW.mode);
