@@ -107,7 +107,7 @@ export function attachHenshin(QW, opt = {}) {
       if (p.pos.distanceTo(p.goal) < .25) p.goal = newGoal(M, a); p.yawJ = Math.sin(t * 2.3) * .25;
     }
     if (M.kind !== "tree") for (const q of [p.pos, p.goal]) { if (!q) continue; const dx = q.x - a.x, dz = q.z - a.z, dd = Math.hypot(dx, dz); if (dd < 1.4) { const k = 1.4 / Math.max(dd, .01); q.x = a.x + (dd < .01 ? 1.4 : dx * k); q.z = a.z + dz * k; } }   /* 11-03 P2：碧の足もとへ入りこまない（スズメの目が碧の裾の中に入った） */
-    if (M.kind === "tree" && p.tree) V2.set(a.x * .3 + p.tree.x * .7, a.y + 2.4, a.z * .3 + p.tree.z * .7);   /* 幹の流れと碧が、どちらも視野に入る向き */   /* 碧の方を、少し見上げる（枝先の粒が視野の上に入る） */ else V2.set(a.x, a.y + (M.kind === "still" || P.body.eye < .6 ? 1.0 : 1.1), a.z); p.look.lerp(V2, Math.min(1, dt * 3));   // 碧の方を見る
+    if (M.kind === "tree" && p.tree) V2.set(a.x * .3 + p.tree.x * .7, a.y + 2.4, a.z * .3 + p.tree.z * .7);   /* 幹の流れと碧が、どちらも視野に入る向き */   /* 碧の方を、少し見上げる（枝先の粒が視野の上に入る） */ else { V2.set(a.x, a.y + (M.kind === "still" || P.body.eye < .6 ? 1.0 : 1.1), a.z); const hz = Math.hypot(V2.x - p.pos.x, V2.z - p.pos.z), mx = p.pos.y + hz * .16; if (V2.y > mx) V2.y = mx; }   /* 11-03 P2：見上げすぎない（仰角は 9° まで＝地平線が画面の中ほどに残る） */ p.look.lerp(V2, Math.min(1, dt * 3));   // 碧の方を見る
   }
   /* ---- 描く直前：視点を依代へ（k で人の視点と混ぜる）・描いたあと戻す ---- */
   const Q0 = new THREE.Quaternion(), Q1 = new THREE.Quaternion(), M4 = new THREE.Matrix4(), UP = new THREE.Vector3(0, 1, 0);
@@ -130,18 +130,23 @@ export function attachHenshin(QW, opt = {}) {
     const at = (x, y, z) => new THREE.Vector3(x * z, y * z, -z);   // 画面の高さの単位（中央 0・下端 -1）と奥行き z m から、カメラの中の点へ
     const seg = (m, a, b, r0, r1, n = 10) => { const d = new THREE.Vector3().subVectors(b, a), L = d.length(), me = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, L, n, 1), m); me.position.copy(a).addScaledVector(d, .5); me.quaternion.setFromUnitVectors(UP, d.normalize()); return me; };
     if (id === "suzume") {   // スズメの嘴：太く短い円錐（種子を割る形）。上は濃い角色、下はやや淡い
-      g = new THREE.Group(); const up = seg(mat(0x2b2520, .42), at(0, -1.2, .14), at(0, -.66, .3), .012, .001, 14); up.scale.x = 1.25; g.add(up);
-      const lo = seg(mat(0x4a3f35, .5), at(0, -1.28, .14), at(0, -.73, .27), .009, .0008, 12); lo.scale.x = 1.15; g.add(lo);
+      g = new THREE.Group(); const up = seg(mat(0x231e1a, .38), at(0, -1.22, .13), at(0, -.56, .25), .046, .002, 18); up.scale.x = 1.12; g.add(up);   /* 11-03 P2：実物の比（付け根の太さ≒長さの 6 割の円錐） */
+      const lo = seg(mat(0x3a322b, .48), at(0, -1.32, .13), at(0, -.63, .235), .038, .002, 16); lo.scale.x = 1.05; g.add(lo);
       g.userData.anim = t => { g.rotation.x = Math.sin(t * 1.7) * .012; };
     } else if (id === "hachi" || id === "mitsubachi") {   // ミツバチの触角（膝のように曲がる柄と鞭）と、前脚の先
       g = new THREE.Group(); const dark = mat(0x2a2118, .55);   // 前脚は画面の下の 6 つのボタンに隠れるので出さない（触角だけ）
-      for (const s of [-1, 1]) { const a = new THREE.Group(); const b0 = at(s * .09, 1.5, .1), e = at(s * .2, 1.02, .18), tip = at(s * .13, .74, .28);
-        a.add(seg(dark, b0, e, .0017, .0015, 8)); a.add(seg(dark, e, tip, .0015, .0022, 8)); a.userData.s = s; g.add(a); }
+      const jm = mat(0x3b2f24, .5);   /* 11-03 P2：柄節（まっすぐ上へ）→ ひじで折れる → 鞭節（外へ下がり、先へ少し太る） */
+      for (const s of [-1, 1]) { const a = new THREE.Group(); const b0 = at(s * .05, 1.3, .1), e = at(s * .15, .7, .17), m = at(s * .3, .56, .22), tip = at(s * .4, .36, .27);
+        a.add(seg(dark, b0, e, .002, .0017, 8)); const j = new THREE.Mesh(new THREE.SphereGeometry(.0023, 8, 6), jm); j.position.copy(e); a.add(j);
+        a.add(seg(dark, e, m, .0015, .0016, 8)); a.add(seg(dark, m, tip, .0016, .002, 8)); a.userData.s = s; g.add(a); }
       g.userData.anim = t => { for (const a of g.children) if (a.isGroup) a.rotation.z = Math.sin(t * 2.3 + a.userData.s) * .03 * a.userData.s; };
     } else if (id === "tanuki") {   // タヌキの鼻先：灰褐色の口吻の上と、ぬれた黒い鼻
-      g = new THREE.Group(); const mz = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), mat(0x4b3f34, .95)); mz.scale.set(.07, .05, .2); mz.position.set(0, -.3125, -.25); g.add(mz);   // 口吻の背（毛の灰褐色）
-      const nose = new THREE.Mesh(new THREE.SphereGeometry(.021, 16, 12), mat(0x121010, .25)); nose.position.set(0, -.302, -.452); nose.scale.set(1.35, .8, 1); g.add(nose);
-      g.userData.anim = t => { const k = 1 + Math.max(0, Math.sin(t * 5.2)) * Math.max(0, Math.sin(t * .9)) * .05; nose.scale.set(1.35 * k, .8, k); };   // ときどき匂いをかぐ小さな動き
+      g = new THREE.Group(); const mz = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), mat(0x2b2621, .95)); mz.scale.set(.05, .04, .2); mz.position.set(0, -.33, -.25); g.add(mz);   // 口吻の背（鼻のまわりは黒みの濃い毛）
+      const nose = new THREE.Group(); nose.position.set(0, -.312, -.44); g.add(nose);   /* 11-03 P2：黒く湿った鼻先（つやの照り・左右の鼻の穴） */
+      const nb = new THREE.Mesh(new THREE.SphereGeometry(.026, 18, 12), mat(0x0a0909, .12)); nb.scale.set(1.25, .7, 1.05);   /* 鼻の穴は前下を向くので、自分の目からは見えない */ nose.add(nb);
+      const hl = new THREE.Mesh(new THREE.SphereGeometry(.009, 10, 8), new THREE.MeshBasicMaterial({ color: 0xd8dde0, transparent: true, opacity: 0, depthTest: false, depthWrite: false })); mats.push(hl.material); hl.material.userData.op = .4; hl.scale.set(1.8, .35, .9); hl.position.set(-.006, .015, -.004); nose.add(hl);
+
+      g.userData.anim = t => { const k = 1 + Math.max(0, Math.sin(t * 5.2)) * Math.max(0, Math.sin(t * .9)) * .05; nose.scale.set(k, 1, k); };   // ときどき匂いをかぐ小さな動き
     }
     if (g) { g.userData.mats = mats; g.traverse(o => { if (o.isMesh) { o.renderOrder = 30; o.frustumCulled = false; } }); g.visible = false; OWN.add(g); }
     return (OWNS[id] = g);
@@ -242,9 +247,26 @@ export function attachHenshin(QW, opt = {}) {
   function nextYori() { const day = (QW.sunAE ? QW.sunAE[1] : 30) > 0, list = ORDER.filter(id => PROFILES[id]?.yori && (id !== "tanuki" || !day || YI >= 0) && (!opt.can || opt.can(id)));   // opt.can：その場で出せるか（川越・渋谷＝木は近くに本当の木があるときだけ）
     if (!list.length) return; YI = YI < 0 ? (day ? 0 : Math.max(0, list.indexOf("tanuki"))) : (YI + 1) % list.length; const id = list[YI]; S.offer = id; QW.yoShow?.(PROFILES[id].yori); }
   QW.onYoTouch = kind => { const id = Object.keys(PROFILES).find(k => PROFILES[k].yori === kind); if (id && S.target === 0) { go(id); return true; } return false; };
+  /* 11-03 P2：375px で字幕が碧に重ならない（碧の画面の上の幅を毎 0.25 秒だけ測り、重なるときは字幕を碧の反対側の余白へ寄せる。距離は変えない） */
+  const CV = new THREE.Vector3(), CR = new THREE.Vector3(); let capAt = 0, capSide = 0;
+  function capAvoid(now) {
+    if (now - capAt < 250) return; capAt = now; const c = document.getElementById("caption"); if (!c) return;
+    const off = () => { if (!capSide) return; capSide = 0; for (const k of ["left", "right", "transform", "width", "text-align", "align-items", "top", "bottom"]) c.style.removeProperty(k); c.querySelector("#capText")?.style.removeProperty("-webkit-line-clamp"); };
+    const r = QW.AOI?.root, cam = QW.camera, W = innerWidth, H = innerHeight;
+    if (W > 640 || c.hidden || QW.mode !== "walk" || S.k > .3 || !r || !cam) return off();
+    r.getWorldPosition(CV); CR.set(1, 0, 0).applyQuaternion(cam.quaternion).setY(0).normalize(); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (const [dx, dy] of [[-.28, 0], [.28, 0], [-.28, 1.62], [.28, 1.62]]) { const q = new THREE.Vector3(CV.x + CR.x * dx, CV.y + dy, CV.z + CR.z * dx).project(cam); if (q.z > 1) return off(); const sx = (q.x + 1) / 2 * W, sy = (1 - q.y) / 2 * H; x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy); }
+    const g = 14, prev = capSide; if (prev) off(); const b = c.getBoundingClientRect();
+    if (x1 < b.left || x0 > b.right || y1 < b.top || y0 > b.bottom) return;   // 重ならない
+    const left = (x0 + x1) / 2 < W / 2, room = left ? W - g - (x1 + 6) : (x0 - 6) - g; const set = (k, v) => c.style.setProperty(k, v, "important");
+    if (room < 150) { if (y0 - b.height - 10 < 110) return; capSide = 2; set("top", "auto"); set("bottom", Math.round(H - y0 + 10) + "px"); return; }   // 横に余白がないときは、碧の頭の上へ
+    capSide = left ? 1 : -1;
+    set("transform", "none"); set("width", "auto"); c.querySelector("#capText")?.style.setProperty("-webkit-line-clamp", "4", "important");   /* 幅が狭くなる分、4 行まで */ if (left) { set("left", Math.round(x1 + 6) + "px"); set("right", g + "px"); set("text-align", "left"); set("align-items", "flex-start"); } else { set("left", g + "px"); set("right", Math.round(W - x0 + 6) + "px"); set("text-align", "right"); set("align-items", "flex-end"); }
+  }
   /* ---- まいこま ---- */
   let lastK = -1, t = 0, t0 = performance.now();
   function update(dt) {
+    capAvoid(performance.now());
     t += dt; const walk = QW.mode === "walk", a = aoiPos(); if (walk && a && YSHOWN && S.target === 0 && S.offer && (t - (S.reT || 0)) > 2) { S.reT = t; const yb = QW.YO?.y?.items?.[0]?.root; if (yb && yb.position.distanceTo(a) > 6) QW.yoShow?.(PROFILES[S.offer].yori); }   /* 碧が歩いて離れたら、その一体を碧のそばへ置き直す（ついて来る動きはしない） */ if (walk && a && !YSHOWN && !opt.xOnly && QW.yoShow && QW.YO?.y) { YSHOWN = true; nextYori(); if (!sessionStorage.getItem?.('hs_inv')) { try { sessionStorage.setItem('hs_inv', '1'); } catch { } setTimeout(() => QW.speak?.([{ t: 'そばにいる生き物にふれると、その目で、この道を見られます。' }]), 9000); } } if (!ROBE && walk) robeOnce(); 
     gui.visible = false;   // 11-02 本人「もっと直感的なインターフェイスで」：輪は使わず、風景の中の依代に触れる
     if (gui.visible) {
@@ -260,7 +282,7 @@ export function attachHenshin(QW, opt = {}) {
     if (S.body && S.pose) { const own = !!opt.ownBody && !!S.cur.body3d && opt.ownBody(S.cur.id) !== false;   /* 11-03 大宮 opt.ownBody：X 感で入った生き物の体の先（写実の 3D）を視野の下端に */   /* 自分の体の先は、リアルな部分の 3D（別の担当が用意中）が届くまで出さない（依代の形では何の生き物か分からなかった） */ S.body.visible = own;
       if (own) { D3.subVectors(S.pose.look, S.pose.pos).normalize(); const sz = S.cur.body3d.size || .2; const dd = Math.max(.08, (S.body.userData.len || sz) * .35), tip = S.pose.pos.y - dd * .95 - (S.body.userData.top || sz); S.body.position.set(S.pose.pos.x + D3.x * dd, tip, S.pose.pos.z + D3.z * dd); /* 頭の先だけが視野の下端にのぞく（体の後ろ姿で画面を塞がない） */ S.body.lookAt(S.pose.look.x, S.body.position.y, S.pose.look.z); S.body.userData.animate?.(t, true); } }   /* 自分の体の前の端（頭・嘴・鼻先）が視野の下端に入る位置。体の内側が見えないよう、目より前・下に置く */
     { const g = S.target === 1 && S.pose && walk ? ownOf(S.cur.id) : null, a = g ? Math.min(1, Math.max(0, (S.k - .55) / .4)) : 0;   /* 11-03 P2 自分の体の先：入りきる少し前から淡く出す */
-      for (const c of OWN.children) c.visible = c === g && a > 0; OWN.visible = a > 0; if (a > 0) { for (const m of g.userData.mats) m.opacity = a * .96; g.userData.anim?.(t); } }
+      for (const c of OWN.children) c.visible = c === g && a > 0; OWN.visible = a > 0; if (a > 0) { for (const m of g.userData.mats) m.opacity = a * (m.userData?.op ?? .96); g.userData.anim?.(t); } }
     { const on = S.target === 1 && S.k > .6 && S.pose && walk; back.g.visible = on;   /* 戻る印＝髪の色の細い光の輪と葉の房（11 回目の採点：小さな碧の人形は安っぽい→やめた） */
       if (on) { const P0 = S.pose.pos; D3.subVectors(S.pose.look, P0).normalize(); const rx = -D3.z, rz = D3.x, rl = Math.hypot(rx, rz) || 1;
         PC.position.copy(P0); PC.fov = S.cur.sight?.fov || camera.fov; PC.aspect = camera.aspect; PC.updateProjectionMatrix(); PC.lookAt(S.pose.look); PC.quaternion.multiply(Q0.setFromAxisAngle(UP, S.pose.yawJ * .4)); PC.updateMatrixWorld();   /* 描くときと同じ首の振れを入れる（スズメで印がボタンより右にずれた） */
