@@ -2,8 +2,7 @@
    流れ：碧が問いを置く → 自分のスマホで撮る・録る（感覚と「だれの受けとり方で」を選ぶ）→ 3D に層として重ねる → 渡す／受けとる → みんなの層を重ねて・並べて見比べる。
    集めない：サーバーなし。データはこの端末（IndexedDB）にだけ。渡すのは本人が「渡す」を押したファイルだけ。
    写真は canvas で描き直す（EXIF＝位置・機種は残らない）。位置情報・端末情報は取らない。 */
-import * as THREE from "three";
-import { GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder } from "three";
+let THREE, GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder; // 3D は操作できるようになってから読む
 
 const $ = id => document.getElementById(id);
 const MAX = 9, REC_MAX = 15;
@@ -68,11 +67,13 @@ function count() { $("cnt").textContent = `${mine.items.length}/${MAX}`; }
 
 /* ---------- 3D ---------- */
 const cv = $("c");
-const R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
+let R, S, C, sun, items, texL, ray, clk, look; const meshes = new Map(); let aoi = null;
+function init3D() {
+R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
 R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputColorSpace = THREE.SRGBColorSpace;
-const S = new THREE.Scene(); S.background = new THREE.Color("#03060f"); S.fog = new THREE.Fog("#03060f", 6, 16);
-const C = new THREE.PerspectiveCamera(45, 1, .05, 60);
-S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); const sun = new THREE.DirectionalLight("#fff4e6", 1.6); sun.position.set(2, 4, 3); S.add(sun);
+S = new THREE.Scene(); S.background = new THREE.Color("#03060f"); S.fog = new THREE.Fog("#03060f", 6, 16);
+C = new THREE.PerspectiveCamera(45, 1, .05, 60);
+S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); sun = new THREE.DirectionalLight("#fff4e6", 1.6); sun.position.set(2, 4, 3); S.add(sun);
 { // 地：光の等高線（線と点だけ）
   const g = new THREE.Group();
   for (let i = 1; i <= 9; i++) { const pts = []; for (let a = 0; a <= 96; a++) { const t = a / 96 * Math.PI * 2, r = i * .55 + Math.sin(t * 3 + i) * .04; pts.push(new THREE.Vector3(Math.cos(t) * r, 0, Math.sin(t) * r)); }
@@ -82,7 +83,6 @@ S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); const sun = new THR
   g.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: "#9bdcf0", size: .015, transparent: true, opacity: .5 })));
   S.add(g);
 }
-let aoi = null;
 new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPlugin(p)).loadAsync("web/aoi.vrm").then(g => {
   const v = g.userData.vrm; VRMUtils.rotateVRM0?.(v); aoi = v;
   const N = n => v.humanoid.getNormalizedBoneNode(n);
@@ -90,18 +90,16 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPl
   v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
   v.scene.position.set(0, 0, -1.4); S.add(v.scene);
 }).catch(() => { });
-requestAnimationFrame(() => requestAnimationFrame(() => window.MLLoader?.done())); // 操作は碧を待たずに始められる
-
-const items = new THREE.Group(); S.add(items);
-const meshes = new Map(); // item.id -> {obj, item, layer}
-const texL = new THREE.TextureLoader();
+items = new THREE.Group(); S.add(items); texL = new THREE.TextureLoader(); ray = new THREE.Raycaster(); look = new THREE.Vector3(0, 1.05, 0); clk = new THREE.Clock();
+resize(); R.setAnimationLoop(frame);
+}
 function frameMat(c) { return new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: .9 }); }
 function makeObj(it, layer) {
   const g = new THREE.Group(); g.userData = { id: layer.id + ":" + it.id };
   const col = layer.color, sc = SENSES.find(s => s.k === it.sense)?.c || col;
   if (it.kind === "photo") {
     const tex = texL.load(it.data); tex.colorSpace = THREE.SRGBColorSpace;
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(.5, .5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(.5, .5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, fog: false, toneMapped: false }));
     g.add(m);
     const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(.52, .52)), frameMat(col)); g.add(e);
   } else {
@@ -117,13 +115,14 @@ function makeObj(it, layer) {
 function allLayers() { return [mine, ...others]; }
 let focusSense = null;
 function layout() {
+  $("bView").setAttribute("aria-pressed", view === "side"); if (!THREE) return;
   const Ls = allLayers();
   for (const [id, m] of meshes) if (!Ls.some(L => L.items.some(i => L.id + ":" + i.id === id))) { items.remove(m.obj); meshes.delete(id); }
   Ls.forEach((L, li) => L.items.forEach(it => { if (!meshes.has(L.id + ":" + it.id)) makeObj(it, L); }));
   Ls.forEach((L, li) => L.items.forEach((it, ii) => {
     const m = meshes.get(L.id + ":" + it.id);
     if (view === "stack") { // 重ねる：感覚ごとに方角、人ごとに高さ。同じ感覚がみんなで一つの帯になる
-      const si = SENSES.findIndex(s => s.k === it.sense), a = Math.PI * (si < 3 ? .97 - .1 * si : .23 - .1 * (si - 3)) + (ii % 3 - 1) * .08 + (li % 4 - 1.5) * .04; // 碧の左右に分ける（まん中は碧のために空ける）
+      const si = SENSES.findIndex(s => s.k === it.sense), a = Math.PI * (si % 2 === 0 ? .97 - .12 * (si >> 1) : .03 + .12 * (si >> 1)) + (ii % 3 - 1) * .08 + (li % 4 - 1.5) * .04; // 写真の感覚（見る・触れる…）と音を碧の左右に分け、輪と写真を重ねない（まん中は碧のために空ける）
       const r = 1.25 + (li % 3) * .3; m.target.set(Math.cos(a) * r, .55 + (li % 6) * .2 + (ii % 2) * .1, Math.sin(a) * r * .55 - .2);
     } else { // 並べる：一人一列（下から上へ。並びは置いた順）
       const n = Ls.length, x = (li - (n - 1) / 2) * .62, y = .35 + ii * .56;
@@ -135,7 +134,7 @@ function layout() {
   aimC();
 }
 /* カメラ（ドラッグで回す・ピンチ／ホイールで寄る） */
-let yaw = 0, pitch = .12, dist = 4.6, look = new THREE.Vector3(0, 1.05, 0);
+let yaw = 0, pitch = .12, dist = 4.6;
 function aimC() { // 画面の縦横に合わせて、全部が入る距離へ
   const Ls = allLayers(), tf = Math.tan(C.fov * Math.PI / 360);
   if (view === "side") { const W = Ls.length * .62 + .4, H = Math.max(...Ls.map(L => L.items.length), 1) * .56 + .4; look.set(0, .35 + H / 2 - .3, 0); dist = Math.max(W / 2 / (tf * C.aspect), H / 2 / tf * 1.25) + 1; }
@@ -150,9 +149,9 @@ cv.addEventListener("pointermove", e => { const p = ptr.get(e.pointerId); if (!p
 cv.addEventListener("pointerup", e => { ptr.delete(e.pointerId); if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 8 && performance.now() - downAt[2] < 400) tap(e); downAt = null; });
 cv.addEventListener("pointercancel", e => ptr.delete(e.pointerId));
 cv.addEventListener("wheel", e => { e.preventDefault(); dist = Math.min(14, Math.max(2.2, dist * (1 + e.deltaY * .001))); }, { passive: false });
-const ray = new THREE.Raycaster();
 let near = null, playing = null;
 function tap(e) {
+  if (!R) return;
   ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), C);
   const h = ray.intersectObjects(items.children, true)[0]; if (!h) { near = null; pick(null); return; }
   let o = h.object; while (o.parent !== items) o = o.parent; const m = meshes.get(o.userData.id);
@@ -166,11 +165,11 @@ function tap(e) {
 function pick(id) { let b = $("bDel"); if (!id) { b?.remove(); return; }
   if (!b) { b = document.createElement("button"); b.className = "tb"; b.id = "bDel"; b.textContent = "外す"; $("top").appendChild(b); }
   b.onclick = async () => { mine.items = mine.items.filter(i => i.id !== id); near = null; await put("mine", mine); count(); layout(); pick(null); say("外しました。渡すときにも入りません。", 2400); }; }
-function resize() { R.setSize(innerWidth, innerHeight, false); C.aspect = innerWidth / innerHeight; C.updateProjectionMatrix(); aimC(); }
-addEventListener("resize", resize); resize();
+function resize() { if (!R) return; R.setSize(innerWidth, innerHeight, false); C.aspect = innerWidth / innerHeight; C.updateProjectionMatrix(); aimC(); }
+addEventListener("resize", resize);
 $("c").addEventListener("pointerdown", hush);
-const clk = new THREE.Clock(); let blink = 2;
-R.setAnimationLoop(() => {
+let blink = 2;
+function frame() {
   const dt = Math.min(clk.getDelta(), .05), t = clk.elapsedTime; place();
   if (aoi) aoi.scene.visible = view === "stack";
   if (aoi) { const sp = aoi.humanoid.getNormalizedBoneNode("spine"); if (sp) sp.rotation.x = Math.sin(t * 1.6) * .012; const hd = aoi.humanoid.getNormalizedBoneNode("head"); if (hd) hd.rotation.y = Math.sin(t * .3) * .08;
@@ -182,7 +181,7 @@ R.setAnimationLoop(() => {
     o.traverse(c => { if (c.material && c.material.visible !== false) { c.material.transparent = true; c.material.opacity += ((m.op) - c.material.opacity) * (1 - Math.exp(-dt * 6)); } });
     if (o.userData.ring) o.userData.ring.rotation.z = t * .6; }
   R.render(S, C);
-});
+}
 
 /* ---------- 撮る（窓の中だけ。許さなくても写真を選んで参加できる） ---------- */
 let stream = null, vid = null, vraf = 0;
@@ -267,10 +266,12 @@ $("bView").onclick = () => { view = view === "stack" ? "side" : "stack"; $("bVie
 $("q").onclick = () => { if (params.get("q")) return; qi = (qi + 1) % QS.length; setQ(QS[qi], 1); };
 
 /* ---------- はじめ ---------- */
+buildRows(); count(); setQ(params.get("q")?.slice(0, 60) || QS[0]); window.MLLoader?.done(); // 押せる画面を先に出す（3D と保存の読み出しはあと）
 (async () => {
   const m = await get("mine"); if (m && valid(m)) mine = m; const o = await get("others"); if (Array.isArray(o)) others = o.filter(valid);
   setQ(params.get("q")?.slice(0, 60) || mine.q || QS[0]); qi = Math.max(0, QS.indexOf($("qt").textContent));
   buildRows(); count(); layout(); reset();
+  requestAnimationFrame(() => setTimeout(() => import("three").then(m => { ({ GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder } = m); THREE = m; init3D(); layout(); }).catch(() => { }), 420)); // 読み込みの幕が消えきってから 3D を組む（幕の消えるのを重い処理で遅らせない）
   setTimeout(() => say(mine.items.length ? "続きから。" : "わたしは碧。問いを一つ、置きました。<br>感じたものを、<b>撮る</b>か<b>録る</b>で集めてください。", 6500), 600);
 })();
 window.__mz = { get mine() { return mine; }, get others() { return others; }, takeFiles, layout };
