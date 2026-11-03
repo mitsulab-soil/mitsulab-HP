@@ -1201,21 +1201,24 @@ QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.st
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261028t"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261103w"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
+    const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; });
     const root = new THREE.Group(); root.add(v.scene); root.visible = false; world.add(root);
     for (const j of v.springBoneManager?.joints ?? []) j.center = root;
+    await Y();
     v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 && Math.abs(h - 1.67) / 1.67 > .02 ? 1.67 / h : 1;
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
     try { Robe?.hideCoveredLegs?.(v, { keep: .12 }); } catch { }
+    await Y();
     AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" });
     if (AOI.m.robe) AOI.m.robe.wind = .2;
     AOI.root = root; AOI.ready = true;
-    try { root.visible = true; await renderer.compileAsync(root, camera, scene); } catch { } root.visible = QW.mode === "walk";
+    try { if (Mot.warmAoi) await Mot.warmAoi(renderer, root, camera, scene); else { root.visible = true; await renderer.compileAsync(root, camera, scene); } } catch { } root.visible = QW.mode === "walk";   /* 11-03：見せないまま、テクスチャ・シェーダー・影を少しずつ組む（碧が出る瞬間に止まらない） */
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
