@@ -519,7 +519,7 @@ addEventListener('resize', resize);
 const nearest = () => { let b = null, bd = 1e9; for (const it of works) { const d = Math.hypot(it.x - P.x, it.z - P.z); if (d < bd) { bd = d; b = it; } } return b; };
 // v11 起動は近い書から：入口から近い数作だけ先に組んで、残りは動き出してから一つずつ
 const byNear = [...works].sort((a, b) => Math.hypot(a.x - SPAWN.x, a.z - SPAWN.z) - Math.hypot(b.x - SPAWN.x, b.z - SPAWN.z));
-await Promise.all(byNear.slice(0, SHOT ? works.length : (mobile ? 3 : 4)).map(prepare));
+await Promise.all(byNear.slice(0, SHOT ? works.length : 3).map(prepare));
 buildHall(null);
 works.filter(it => it.sho).forEach(placeInRoom);
 scene.add(paperG);

@@ -226,7 +226,6 @@ body{word-break:auto-phrase;line-break:strict}
 /* スマホ：飛ぶ体の「上昇・下降」が右の端で切れていた → 二つを細く */
 @media(max-width:700px){#flightControls button{min-width:32px!important;width:32px;padding:2px!important;font-size:17px!important}#flightControls small{font-size:12px}#bodyControls{gap:7px}}
 </style>
-<link rel="preload" href="assets/aoi/aoi.vrm" as="fetch" crossorigin>
 <script type="importmap">
 {"imports":{"three":"./vendor/three/build/three.module.js",
 "three/addons/":"./vendor/three/examples/jsm/",
@@ -261,6 +260,11 @@ body{word-break:auto-phrase;line-break:strict}
 <link rel="preload" href="tex/bark_camphor_orm.webp" as="image" crossorigin>
 <link rel="preload" href="tex/bark_camphor_n.webp" as="image" crossorigin>
 
+<link rel="stylesheet" href="kit/ui.css?v=20261103">
+<style id="mu-align">/* 共通 GUI（kit/ui.css）に合わせる＝左上の名前・押せる大きさを全アプリでそろえる（2026-11-03） */
+.dream-title{font:600 15px/1 var(--mu-serif);letter-spacing:.12em;color:#eaf8fc;text-shadow:var(--mu-shadow);padding:0 4px}#top .btn.why,#top .ico{min-height:44px}#bodyControls button{min-width:44px;min-height:44px}
+@media (max-width:420px){.dream-title{font-size:12.5px;letter-spacing:.06em}#bodyControls{width:96px}#bodyControls>div{gap:6px}}
+</style>
 </head>
 <body>
 <script src="loader/loader.js" data-auto="load"></script>
