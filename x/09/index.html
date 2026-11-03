@@ -222,6 +222,7 @@ body[data-mode="sight"] #dock #talkBtn{display:flex}
   body:not([data-mode="walk"]) #toast{left:76px;right:var(--g);transform:none;max-width:none;top:calc(max(12px,env(safe-area-inset-top)) + 62px);text-align:left}}
 @media (min-width:900px){#caption{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 40px)}}
 @media (max-width:899px){body[data-mode="fly"] #caption,body[data-mode="sight"] #caption{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 168px)}}
+@media (max-width:899px){body[data-mode="sky"] #caption{bottom:calc(max(10px,env(safe-area-inset-bottom)) + 8px)}}
 #toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(12px,env(safe-area-inset-top)) + 112px);z-index:9;max-width:min(460px,calc(100% - 32px));padding:10px 14px;font-size:12.5px;line-height:1.7;letter-spacing:.05em;color:var(--ml-ink-2);background:var(--ml-panel);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);text-align:center;pointer-events:none}
 /* メニュー */
 #menu{position:fixed;z-index:10;left:var(--g);top:calc(max(12px,env(safe-area-inset-top)) + 58px);width:min(420px,calc(100% - 32px));max-height:calc(100% - 90px);overflow:auto}
@@ -594,7 +595,7 @@ html body.hen #hud .brand,html body.hen #hud .seg button{text-shadow:0 0 2px rgb
 @media (max-width:640px){html body.hen #caption{margin-bottom:8px!important}html body.hen #capText{text-shadow:0 0 3px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.6)}}
 html body.hen #capText{font-size:13.5px!important}
 html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0 3px #000,0 0 8px rgba(0,0,0,.9),0 0 18px rgba(0,0,0,.6)!important}
-#skyUI .sub,#spNote{display:none!important}
+#skyUI .sub,#spNote,.spNote{display:none!important}
 #capText{font-size:12.5px!important}
 </style>
 <style id="hud-veil">/* 11-02：上の札が枝に溶ける＝上の端だけ、ごく淡く暗くする（板ではなく、空気の陰り） */html body #hud::before{content:"";position:fixed;left:0;right:0;top:0;height:calc(max(12px,env(safe-area-inset-top)) + 96px);background:linear-gradient(rgba(3,6,15,.46),rgba(3,6,15,.18) 55%,rgba(3,6,15,0));pointer-events:none;z-index:-1}</style>
