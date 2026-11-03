@@ -63,7 +63,7 @@ function buildRows() {
   $("who").innerHTML = WHO.map(w => `<button class="mu-chip" data-k="${w.k}" aria-pressed="${w.k === who}">${w.n}</button>`).join("");
 }
 const HINT = {"touch": "触れて感じた所を撮ってください。触れるの印が付きます。", "smell": "においのもとを撮るか、そこの音を録ってください。嗅ぐの印が付きます。", "taste": "味わったものを撮ってください。味わうの印が付きます。", "x": "人にない感覚で感じそうな所を撮ってください。X 感の印が付きます。"};
-$("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.k !== sense && HINT[b.dataset.k]) say(HINT[b.dataset.k], 4200); sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
+$("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.k !== sense && HINT[b.dataset.k]) say(HINT[b.dataset.k], 0); /* 次の一言まで残す（聞き逃しても読める） */ sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
 $("who").onclick = e => { const b = e.target.closest("button"); if (!b) return; who = b.dataset.k; buildRows(); const w = WHO.find(x => x.k === who); if (w.say) say(w.say); };
 function count() { $("cnt").textContent = `${mine.items.length}/${MAX}`; }
 
@@ -116,12 +116,12 @@ function makeObj(it, layer) {
 }
 let tagG = null;
 function tagTex(t, c) { const cv = document.createElement("canvas"); cv.width = 256; cv.height = 96; const x = cv.getContext("2d");
-  x.font = '600 66px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = c; x.fillText(t, 128, 48);
+  x.font = '600 66px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = c; x.fillText(t, 128, 48); if (c === "#ffffff") { x.fillStyle = "#5cc8e0"; x.fillRect(48, 86, 160, 5); }
   const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; return tx; }
 function tags(Ls) { if (!THREE) return; if (!tagG) { tagG = new THREE.Group(); S.add(tagG); }
   tagG.clear(); tagG.visible = view === "side"; if (view !== "side") return;
-  const n = Ls.length; Ls.forEach((L, li) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex(L === mine ? "あなた" : String(li + 1), L.color), transparent: true, fog: false, depthTest: false }));
-    sp.scale.set(.6, .225, 1); sp.position.set((li - (n - 1) / 2) * .62, -.1, .2); tagG.add(sp); }); }
+  const n = Ls.length; Ls.forEach((L, li) => { const me = L === mine, sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex(me ? "あなた" : String(li + 1), me ? "#ffffff" : L.color), transparent: true, fog: false, depthTest: false }));
+    sp.scale.set(me ? .86 : .6, me ? .32 : .225, 1); sp.position.set((li - (n - 1) / 2) * .62, -.1, .2); tagG.add(sp); }); }
 function allLayers() { return [mine, ...others]; }
 let focusSense = null;
 function layout() {
@@ -245,7 +245,7 @@ $("bGive").onclick = async () => {
   const file = new File([blob], name, { type: "application/json" });
   if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: "まなざしの層" }); say("渡しました。このファイルは手元の保存にもなります。"); return; } catch (e) { if (e.name === "AbortError") return; } }
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  say("層をファイルに保存しました。AirDrop などで運営の端末へ送ってください。");
+  say("層をファイルに保存しました。AirDrop・ニアバイシェア・LINE・メールなどで、運営へ送ってください。");
 };
 
 /* ---------- 受けとる（運営の端末・大画面）。押すかファイルを置く ---------- */
