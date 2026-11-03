@@ -90,6 +90,9 @@ body{overflow:hidden}
   .layers{gap:4px;padding-right:24px}
   .lay small{display:inline;font-size:.58rem;margin-left:0}
   .lay span{white-space:nowrap}
+  /* 11-04：375px で「季節」が右端で切れ、「声 入」が折り返していた＝五つの札を一画面に収め、声の札は一行に */
+  .layers{gap:3px;padding:0 10px 4px}.lay{padding:0 6px 0 5px;gap:4px;font-size:.76rem;letter-spacing:.02em}.lay small{font-size:.54rem}
+  #bSound{white-space:nowrap!important;word-break:keep-all;min-width:52px;flex:none}
   #aoiBox{top:118px;width:66px;height:90px}
   #cap{font-size:13px;line-height:1.6;padding:8px 6%;bottom:60px}   /* 11-02 本人：灰色の背景の板にしない＝小さな字幕に */
   .season-note{padding:0 8px;font-size:.66rem}

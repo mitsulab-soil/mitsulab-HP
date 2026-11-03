@@ -7,17 +7,17 @@
    kind：'torii'・'shrine'・'here'（現在地）・'area'（町）・''。goBtn は既存のボタン（押すと onGo）。 */
 export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, items, note = null, goBtn = null, preview = null, onSelect, onGo, color = "#c4e2ea", pick = "#f3c27c" }) {
   const g = new THREE.Group(); g.name = "startPins"; parent.add(g);
+  /* 2026-11-04 本人の決まり（11-02）：灰色の背景の札はなくす＝名札は背景なしの控えめな文字（影で読ませる） */
   const css = document.createElement("style"); css.textContent = `
 .spLayer{position:fixed;inset:0;pointer-events:none;z-index:6}
-.spTag{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;min-height:44px;min-width:44px;display:flex;align-items:center;gap:8px;padding:6px 14px 7px 12px;border:1px solid rgba(214,232,238,.26);border-radius:2px;background:rgba(6,12,22,.46);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);color:#eef5f8;font:500 13.5px/1.25 "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.1em;white-space:nowrap;transition:border-color .25s,background .25s,box-shadow .25s}
+.spTag{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;min-height:44px;min-width:44px;display:flex;align-items:center;gap:8px;padding:6px 14px 7px 12px;border:0;border-radius:2px;background:none;color:#eef5f8;text-shadow:0 0 8px rgba(3,6,15,.95),0 1px 2px rgba(0,0,0,.9);font:500 13.5px/1.25 "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.1em;white-space:nowrap;transition:border-color .25s,background .25s,box-shadow .25s}
 .spLead{position:absolute;left:0;top:0;height:1px;background:rgba(214,232,238,.4);transform-origin:0 0;pointer-events:none}
 .spTag .no{font:300 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.2em;color:rgba(196,226,234,.75)}
-.spTag.on{border-color:${pick};background:rgba(30,20,6,.72);box-shadow:0 0 0 1px ${pick}33}.spTag.on .no{color:${pick}}
-.spTag.k-here{border-style:dashed}.spTag.k-area{border-color:rgba(232,201,143,.6)}
+.spTag.on{color:${pick}}.spTag.on .no{color:${pick}}
+.spTag.k-area{color:#f0dcb4}
 .spTag:focus-visible{outline:1px solid #fff;outline-offset:2px}
 .spTitle{position:fixed;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 62px);transform:translateX(-50%);pointer-events:none;text-align:center;color:#f2f7f9;font:600 16px/1.5 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.14em;text-shadow:0 0 12px rgba(6,12,22,.95),0 1px 2px #000;white-space:nowrap}.spBr{display:none}.spNote{visibility:hidden}.spTitle small{display:block;font-size:11.5px;letter-spacing:.08em;font-weight:500;opacity:.9}
-.spTag.k-here{border-color:rgba(255,255,255,.7)}
-.spNote{position:absolute;left:0;top:0;transform:translate(-50%,0);pointer-events:none;padding:6px 12px;border-radius:3px;background:rgba(6,12,22,.62);color:#eaf3f6;font:500 13px/1.6 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.12em;text-shadow:0 0 10px rgba(6,12,22,.95),0 1px 2px rgba(0,0,0,.9);white-space:nowrap}
+.spNote{position:absolute;left:0;top:0;transform:translate(-50%,0);pointer-events:none;padding:6px 12px;background:none;color:#eaf3f6;font:500 13px/1.6 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.12em;text-shadow:0 0 10px rgba(6,12,22,.95),0 1px 2px rgba(0,0,0,.9);white-space:nowrap}
 .spGo{position:absolute!important;left:0;top:0;transform:translate(-50%,10px);pointer-events:auto;z-index:7;white-space:nowrap}
 .spCard{position:fixed;left:50%;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 8px);transform:translate(-50%,8px);width:min(420px,calc(100vw - 32px));z-index:9;pointer-events:auto;opacity:0;transition:opacity .25s,transform .25s;border:1px solid rgba(255,182,72,.55);border-radius:4px;background:rgba(6,12,22,.86);box-shadow:0 10px 40px rgba(0,0,0,.45);color:#eef3f6;overflow:hidden;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .spCard.on{opacity:1;transform:translate(-50%,0)}.spCard[hidden]{display:none}
