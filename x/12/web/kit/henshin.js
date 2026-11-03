@@ -94,8 +94,8 @@ export function attachHenshin(QW, opt = {}) {
     const head = new THREE.Vector3(a.x, a.y + 1.4, a.z), base = Math.atan2(a.z - T.z, a.x - T.x);
     for (const r of [1.1, 1.6, 2.4]) for (let k = 0; k < 12; k++) { const ang = base + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 6;
       O3.set(T.x + Math.cos(ang) * r, T.y + eye, T.z + Math.sin(ang) * r);
-      let bad = false; for (const d of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]]) { await yieldIf(); HBfree = true; const h = hitWithin(O3, D3.set(...d), .6); HBfree = false; if (h) { bad = true; break; } }
-      if (bad) continue; D3.subVectors(head, O3); const L = D3.length(); await yieldIf(); HBfree = true; const hb = hitWithin(O3, D3.normalize(), L - .5); HBfree = false; if (hb) continue; return O3.clone(); }
+      let bad = false; for (const d of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]]) { await yieldIf(); HBfree = true; const h = hitWithin(O3, D3.set(...d), 1.0); HBfree = false; if (h) { bad = true; break; } }
+      if (bad) continue; D3.subVectors(head, O3); const L = D3.length(); if (L > 5.5) continue;   /* 11-03 P2：碧から遠い幹のそば（鳥居の柱の脇など）には行かない＝碧が視野に入る所だけ */ await yieldIf(); HBfree = true; const hb = hitWithin(O3, D3.normalize(), L - .5); HBfree = false; if (hb) continue; return O3.clone(); }
     return camera.position.clone();
   }
   function newGoal(M, a) { if (!M.r) return new THREE.Vector3(a.x, a.y + (P_EYE() || 1.5), a.z);
