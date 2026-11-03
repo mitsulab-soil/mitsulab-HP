@@ -438,7 +438,7 @@ export function addCheekTint(vrm) {
   const G2 = new THREE.BufferGeometry(); for (const k of ["position", "normal", "uv", "skinIndex", "skinWeight"]) if (G.attributes[k]) G2.setAttribute(k, G.attributes[k]);
   G2.setAttribute("aG", new THREE.Float32BufferAttribute(g, 1)); G2.setIndex(tri); G2.morphAttributes = G.morphAttributes; G2.morphTargetsRelative = G.morphTargetsRelative;
   G2.boundingSphere = G.boundingSphere?.clone() || null;
-  const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .78, .74), transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4,
+  const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .91, .89), transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4,
     blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.ZeroFactor, blendDst: THREE.SrcColorFactor, fog: false, toneMapped: false });
   mat.name = "AoiCheekTint"; const uAmt = { value: 0 };   // 濃さは自前の値で持つ（アプリの「現れ方」が材質の opacity を書きかえても影響されない）
   mat.onBeforeCompile = sh => { sh.uniforms.uAmt = uAmt; sh.vertexShader = "attribute float aG;\nvarying float vG;\n" + sh.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\n vG = aG;");

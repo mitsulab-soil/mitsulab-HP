@@ -24,7 +24,7 @@ import { makeAreas } from "./areas.js?v=5n";
 import { makeStartPins } from "../kit/startpins.js?v=mg5";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
-import { makeFliers } from "../kit/fliers.js?v=5";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
+import { makeFliers } from "../kit/fliers.js?v=6";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -1167,7 +1167,7 @@ QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.st
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261103w"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261103x"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */

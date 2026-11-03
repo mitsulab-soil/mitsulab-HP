@@ -23,10 +23,10 @@ import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=s1";
 import { makeEarWalk } from "./earwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=2m";
-import { makeStartPins } from "../kit/startpins.js?v=mg5";
+import { makeStartPins } from "../kit/startpins.js?v=mg6";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
-import { makeFliers } from "../kit/fliers.js?v=5";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
+import { makeFliers } from "../kit/fliers.js?v=6";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -1202,7 +1202,7 @@ QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.st
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261103w"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261103x"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */
@@ -1269,7 +1269,7 @@ const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 �
   moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 21 };   // 10-27 1.75 倍
 const KEYS = new Set();
-const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 300, f: 1100 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 300, f: 1100 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
@@ -1957,7 +1957,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await buildBase();
     QW.tm.b = performance.now() - T0; buildObjs(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn(); QW.tm.o = performance.now() - T0;
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
-    setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 1750 : 1550; SKY.c.set(MOBILE ? 150 : 20, 20, -480);   /* 10-28 夜 7：スマホでは始める印を左の層の一覧から右へ */   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
+    setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 2700 : 1550; SKY.c.set(MOBILE ? 110 : 20, 20, -430);   /* 11-03 P2：スマホの縦の画面でも 8 つの出発点の札がすべて入る（前は 5 つ） */   /* 10-28 夜 7：スマホでは始める印を左の層の一覧から右へ */   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
     /* 11-03 本人「起動 2 秒以内」：最初の 1 こまは地面だけ描いて操作できるようにし、ほかの 3D は 1 つずつ形の準備（シェーダー）を済ませてから順に出す */
     const STAGE = []; for (const o of [...world.children, ...scene.children]) { if (o === world || o === camera || o.isLight || o === QW.terrain || o.name === "farGround") continue; const L = []; o.traverse(c => { L.push([c, c.layers.mask]); c.layers.set(31); }); STAGE.push(L); }
     renderer.setAnimationLoop(frame); QW.tm.l = performance.now() - T0;

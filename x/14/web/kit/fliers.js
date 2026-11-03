@@ -26,7 +26,8 @@ export function makeFliers(scene, camera, o = {}) {
           b.g.visible = !!b.on; if (!b.on) continue; }
         b.a += b.w * dt; const x = b.c.x + Math.cos(b.a) * b.r, z = b.c.z + Math.sin(b.a) * b.r, y = (o.groundY ? o.groundY(x, z) : 0) + b.h + Math.sin(t * .7 + b.ph) * .8;
         const nx = b.c.x + Math.cos(b.a + .05 * Math.sign(b.w)) * b.r, nz = b.c.z + Math.sin(b.a + .05 * Math.sign(b.w)) * b.r;
-        b.g.position.set(x, y, z); b.g.rotation.set(0, Math.atan2(nx - x, nz - z), 0);
+        const gy0 = o.groundY ? o.groundY(x, z) : 0, dc = Math.hypot(x - camera.position.x, z - camera.position.z); const yy = dc < 6 ? Math.max(y, gy0 + 2.8) : y;   // 11-03 P2：見る人の 6 m 以内では碧の頭より上を飛ぶ（胴の前を横切らない）
+        b.g.position.set(x, yy, z); b.g.rotation.set(0, Math.atan2(nx - x, nz - z), 0);
         const bob = b.g.userData.animate(t + b.ph, true); b.g.position.y += (bob || 0) * .04;
       }
     },
