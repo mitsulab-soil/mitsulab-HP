@@ -122,14 +122,15 @@ const _NL = { P: null, h: null, C: 25 };   // 2026-11-03 速さ：道筋の線�
 function _nlGrid(P) { const C = _NL.C, h = new Map(); for (let i = 0; i < P.length - 1; i++) { const a = P[i], b = P[i + 1];
     for (let gx = Math.floor(Math.min(a[0], b[0]) / C); gx <= Math.floor(Math.max(a[0], b[0]) / C); gx++) for (let gz = Math.floor(Math.min(a[1], b[1]) / C); gz <= Math.floor(Math.max(a[1], b[1]) / C); gz++) { const k = gx * 65536 + gz; let l = h.get(k); if (!l) h.set(k, l = []); l.push(i); } }
   _NL.P = P; _NL.h = h; }
-function nearestOnLine(x, z) { const P = G.line, L = G.lineD; let best = 1e18, bd = 0, bs = 0;
-  if (_NL.P !== P) _nlGrid(P);
-  const C = _NL.C, cx = Math.floor(x / C), cz = Math.floor(z / C), seen = new Set();
-  const seg = i => { const a = P[i], b = P[i + 1], vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz || 1e-9; let t = ((x - a[0]) * vx + (z - a[1]) * vz) / l2; t = Math.max(0, Math.min(1, t));
-    const px = a[0] + vx * t, pz = a[1] + vz * t, dd = (x - px) ** 2 + (z - pz) ** 2; if (dd < best || (dd === best && i < bi)) { best = dd; bi = i; bd = L[i] + t * Math.sqrt(l2); bs = (vx * (z - a[1]) - vz * (x - a[0])) / Math.sqrt(l2); } };
-  let bi = 1e9;
-  for (let r = 0; r <= 24; r++) { for (let gx = cx - r; gx <= cx + r; gx++) for (let gz = cz - r; gz <= cz + r; gz++) { if (Math.max(Math.abs(gx - cx), Math.abs(gz - cz)) !== r) continue; const l = _NL.h.get(gx * 65536 + gz); if (l) for (const i of l) if (!seen.has(i)) { seen.add(i); seg(i); } }
-    if (best < 1e18 && Math.sqrt(best) <= r * C) return { d: bd, s: bs, dist: Math.sqrt(best) }; }
+function nearestOnLine(x, z, maxR = 1e9) { const P = G.line, L = G.lineD; let best = 1e18, bd = 0, bs = 0, bi = 1e9;   // 2026-11-03 速さ：maxR より遠い点は全部を見ずに「遠い」と返す（起動後の群れの配置で 1 秒を超えて止まっていた）・Set を使わない
+  if (_NL.P !== P) { _nlGrid(P); _NL.st = new Uint32Array(P.length); _NL.k = 0; }
+  const C = _NL.C, cx = Math.floor(x / C), cz = Math.floor(z / C), st = _NL.st, tag = ++_NL.k;
+  const R = Math.min(24, Math.ceil(maxR / C) + 1);
+  for (let r = 0; r <= R; r++) { for (let gx = cx - r; gx <= cx + r; gx++) { const edge = gx === cx - r || gx === cx + r; for (let gz = cz - r; gz <= cz + r; gz += (edge ? 1 : 2 * r || 1)) { const l = _NL.h.get(gx * 65536 + gz); if (l) for (const i of l) if (st[i] !== tag) { st[i] = tag;
+      const a = P[i], b = P[i + 1], vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz || 1e-9; let t = ((x - a[0]) * vx + (z - a[1]) * vz) / l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const px = a[0] + vx * t, pz = a[1] + vz * t, dd = (x - px) ** 2 + (z - pz) ** 2; if (dd < best || (dd === best && i < bi)) { best = dd; bi = i; bd = L[i] + t * Math.sqrt(l2); bs = (vx * (z - a[1]) - vz * (x - a[0])) / Math.sqrt(l2); } } } }
+    if (best < 1e18 && Math.sqrt(best) <= r * C) return { d: bd, s: bs, dist: Math.sqrt(best) };
+    if (r * C > maxR) return best < 1e18 ? { d: bd, s: bs, dist: Math.sqrt(best) } : { d: 0, s: 0, dist: 1e9 }; }
   best = 1e18;
   for (let i = 0; i < P.length - 1; i++) { const a = P[i], b = P[i + 1], vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz || 1e-9; let t = ((x - a[0]) * vx + (z - a[1]) * vz) / l2; t = Math.max(0, Math.min(1, t));
     const px = a[0] + vx * t, pz = a[1] + vz * t, dd = (x - px) ** 2 + (z - pz) ** 2; if (dd < best) { best = dd; bd = L[i] + t * Math.sqrt(l2); bs = (vx * (z - a[1]) - vz * (x - a[0])) / Math.sqrt(l2); } }
@@ -525,7 +526,7 @@ const SOLID = { P: [], U: [], W: [], C: [], E: [], polys: [], hash: new Map(), c
 const SOLID_TONES = [[.24, .19, .14], [.28, .23, .17], [.17, .13, .1], [.11, .1, .09], [.32, .28, .23], [.07, .07, .07]];   // 2026-10-26 採点「白〜ベージュの箱」→ 土壁の茶・焼杉の黒・古い漆喰（色は線形の値）   // 2026-10-26「灰色の面が多い」→ 灰を減らし、土壁の茶と黒漆喰に近い黒を混ぜる   // 2026-10-25 採点「白い張りぼての板に見える」→ 白を抑え、雨に古びた漆喰・タイルの色へ   // 漆喰の白・タイルの砂色・灰・焦げ茶・濃い灰（模式）
 function inRing(r, x, z) { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a.y > z) !== (b.y > z) && x < (b.x - a.x) * (z - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 function streetSide(ring) {
-  const route = nearestOnLine(ring[0].x, ring[0].y).dist < 70;
+  const route = nearestOnLine(ring[0].x, ring[0].y, 71).dist < 70;
   if (!route && !NET.segs) return false;
   if (Math.abs(THREE.ShapeUtils.area(ring)) < 25) return false;   // 2026-10-25 採点「白い張りぼての板」＝角の 9 m² ほどの小さな建物（交番や塔のようなもの）は、不透明の箱にせず線のグラフィックのまま
   let near = false; if (route) for (const p of ring) if (nearestOnLine(p.x, p.y).dist < 24) { near = true; break; }
@@ -643,7 +644,7 @@ function frontOf(p, q, ring) {   // この壁が、歩ける道か道筋に面�
   if (inRing(ring, mx + nx * .3, mz + nz * .3)) { nx = -nx; nz = -nz; }
   const x = mx + nx * 3, z = mz + nz * 3; let f = false;
   if (NET.segs) { const n = netNear(x, z, 12); f = n.dist < n.hw + 3.2; }
-  if (!f && G) f = nearestOnLine(x, z).dist < 9;
+  if (!f && G) f = nearestOnLine(x, z, 10).dist < 9;
   return { f, nx, nz };
 }
 function addSolid(ring, y, top, acc = SOLID, era = 0) {
@@ -1364,7 +1365,7 @@ function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道�
   if (NET.segs) { const q = netNear(p.x, p.z, 40); if (q.dist <= q.hw) { solids(p); return; }
     if (q.dist < 1e8) { const m = q.hw / (q.dist || 1), nx = q.x + (p.x - q.x) * m, nz = q.z + (p.z - q.z) * m; if (Math.hypot(nx - p.x, nz - p.z) < Math.hypot(rx - p.x, rz - p.z)) { p.x = nx; p.z = nz; solids(p); return; } } }
   p.x = rx; p.z = rz; solids(p); }
-const offRoute = (x, z) => nearestOnLine(x, z).dist > 14;
+const offRoute = (x, z) => nearestOnLine(x, z, 15).dist > 14;
 function solids(p, r = .35) {   // 店蔵の型と時の鐘には入らない（向きのある箱から押し出す）
   const push = (cx, cz, yaw, hw, hd) => { const c = Math.cos(yaw), s = Math.sin(yaw), dx = p.x - cx, dz = p.z - cz, lx = dx * c - dz * s, lz = dx * s + dz * c;
     if (Math.abs(lx) < hw + r && Math.abs(lz) < hd + r) { const ox = hw + r - Math.abs(lx), oz = hd + r - Math.abs(lz); let nx = lx, nz = lz; if (ox < oz) nx = Math.sign(lx || 1) * (hw + r); else nz = Math.sign(lz || 1) * (hd + r); p.x = cx + nx * c + nz * s; p.z = cz - nx * s + nz * c; } };
@@ -1496,8 +1497,8 @@ function kasaBox(x, z, r = .25) {   // 店蔵・町家・時の鐘の箱の中�
   if (KURA.tower && inb(KURA.tower.position.x, KURA.tower.position.z, KURA.tower.rotation.y, 2.4, 2.4)) return true;
   return false;
 }
-function kasaOk(x, z) { return (nearestOnLine(x, z).dist < 5 || onNet(x, z, -.4)) && !kasaBox(x, z) && !inBld(x, z, .2); }   // 通りの中ほど（両側の建物の前まで出ない）
-function kasaPeek(x, z) { return (nearestOnLine(x, z).dist < 11 || onNet(x, z, 1.5)) && !kasaBox(x, z, .02); }   // 覗く所：建物の角のすぐ脇
+function kasaOk(x, z) { return (nearestOnLine(x, z, 6).dist < 5 || onNet(x, z, -.4)) && !kasaBox(x, z) && !inBld(x, z, .2); }   // 通りの中ほど（両側の建物の前まで出ない）
+function kasaPeek(x, z) { return (nearestOnLine(x, z, 12).dist < 11 || onNet(x, z, 1.5)) && !kasaBox(x, z, .02); }   // 覗く所：建物の角のすぐ脇
 function loadKasane() {
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
@@ -1508,7 +1509,7 @@ function loadKasane() {
     // 物陰：通りに面した店蔵・町家の角（角から 0.35 m 内側を物陰の中心とみなす）
     const covers = [];
     for (const k of [...G.kura, ...(G.machi || [])]) { const c = Math.cos(k.yaw), s = Math.sin(k.yaw), hw = k.w / 2 - .35, hd = k.dp / 2 - .35;
-      for (const [lx, lz] of [[hw, hd], [-hw, hd], [hw, -hd], [-hw, -hd]]) { const x = k.x + lx * c + lz * s, z = k.z - lx * s + lz * c; if (nearestOnLine(x, z).dist < 10) covers.push({ x, z, r: .38 }); } }
+      for (const [lx, lz] of [[hw, hd], [-hw, hd], [hw, -hd], [-hw, -hd]]) { const x = k.x + lx * c + lz * s, z = k.z - lx * s + lz * c; if (nearestOnLine(x, z, 11).dist < 10) covers.push({ x, z, r: .38 }); } }
     const coverNear = (x, z) => { let best = null, bd = 16; for (const c of covers) { const d = Math.hypot(c.x - x, c.z - z); if (d < bd && d > 2 && [0, 1, 2, 3, 4, 5, 6, 7].filter(i => kasaPeek(c.x + Math.cos(i * .785) * (c.r + .1), c.z + Math.sin(i * .785) * (c.r + .1))).length >= 2) { bd = d; best = c; } } return best; };
     const usedC = new Set(); let k = 0; const crowd = (x, z) => herd.agents.filter(a => Math.hypot(a.anchor.x - x, a.anchor.y - z) < 11).length >= 5;   // 時の鐘のまわりのように地点が集まる所は、5 体まで
     const objs = LAYER.objs.filter(L => L.kind !== "sho" || true).map(L => ({ L, d: nearestOnLine(L.o.x, L.o.z).d })).sort((a, b) => a.d - b.d);
@@ -1531,7 +1532,7 @@ function loadKasane() {
       const G2 = herd.addGroup(mem, { x: p[0], z: p[1], radius: 2.6, role: g % 3 === 0 ? "watch" : "" }); for (const a of G2.members) a.d = d;
     }
     // 2026-10-25 裏路地・並行する道にも（本人「裏路地に入っても体験が続くように」）：道筋 A から 30 m より離れた歩ける道に、およそ 90 m に一つの群れ（近くの地点の層の子と、生きものへ誘う子）。多くしすぎない（22 群れまで）
-    if (NET.segs) { const S = NET.segs, pts = []; for (let s = 0; s < S.length; s += 5) { const L = Math.hypot(S[s + 2] - S[s], S[s + 3] - S[s + 1]); for (let t = 0; t < L; t += 30) { const x = S[s] + (S[s + 2] - S[s]) * t / L, z = S[s + 1] + (S[s + 3] - S[s + 1]) * t / L; if (x > -590 && x < 660 && z > -540 && z < 500 && nearestOnLine(x, z).dist > 30) pts.push([x, z]); } }
+    if (NET.segs) { const S = NET.segs, pts = []; for (let s = 0; s < S.length; s += 5) { const L = Math.hypot(S[s + 2] - S[s], S[s + 3] - S[s + 1]); for (let t = 0; t < L; t += 30) { const x = S[s] + (S[s + 2] - S[s]) * t / L, z = S[s + 1] + (S[s + 3] - S[s + 1]) * t / L; if (x > -590 && x < 660 && z > -540 && z < 500 && nearestOnLine(x, z, 31).dist > 30) pts.push([x, z]); } }
       let ng = 0; for (const [x, z] of pts) { if (ng >= 22) break; if (herd.agents.some(a => Math.hypot(a.anchor.x - x, a.anchor.y - z) < 90)) continue; const p = near(x, z, 3); if (!p) continue;
         let O = null, od = 160; for (const L of LAYER.objs) { const d = Math.hypot(L.o.x - p[0], L.o.z - p[1]); if (d < od && L.kind === "rec") { od = d; O = L; } }
         const mem = [O ? { layer: top5(O.layer), data: O, target: { x: O.o.x, z: O.o.z } } : { layer: "nature", data: daichi }, { layer: "nature", data: daichi }, { layer: "sight", data: { sightPick: true } }];
@@ -1681,7 +1682,7 @@ function extraSounds() {
     const dir = DIR[Math.round(((Math.atan2(dx, -dz) * 180 / Math.PI) + 360) % 360 / 45) % 8], px = a.x + dx / L * 5, pz = a.z + dz / L * 5;
     C.sound.push({ id: "x_far" + (i + 1), kind: "far", cl: c, title: `${c.nm}の音へ（${dir}へ約 ${m} m）`, x: px, z: pz, ll: ll(px, pz), dir, m, label: "道しるべ（遠くの音の場所）", how: "", lines: [], src: [] }); });
 }
-function surfAt(x, z) { const n = nearestOnLine(x, z).dist; if (n < 3.2) return "asphalt"; if (n > 14 && NET.segs) { const q = netNear(x, z, 20); return q.hw > 4 && q.dist > q.hw - 2.3 ? "tile" : "asphalt"; } return "tile"; }   // 道の中ほどは車道のアスファルト、端は歩道の平板（模式）
+function surfAt(x, z) { const n = nearestOnLine(x, z, 15).dist; if (n < 3.2) return "asphalt"; if (n > 14 && NET.segs) { const q = netNear(x, z, 20); return q.hw > 4 && q.dist > q.hw - 2.3 ? "tile" : "asphalt"; } return "tile"; }   // 道の中ほどは車道のアスファルト、端は歩道の平板（模式）
 function inKura(x, z) { for (const k of [...G.kura, ...(G.machi || [])]) { if (Math.abs(k.x - x) > 14 || Math.abs(k.z - z) > 14) continue; const c = Math.cos(k.yaw), s = Math.sin(k.yaw), dx = x - k.x, dz = z - k.z; if (Math.abs(dx * c - dz * s) < k.w / 2 && Math.abs(dx * s + dz * c) < k.dp / 2) return true; } return false; }
 const WALLD = { t: 0, v: null };
 function wallDist(x, z) {   // いちばん近い壁まで（1 m きざみ・7 m まで）
