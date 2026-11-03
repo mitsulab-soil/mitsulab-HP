@@ -19,18 +19,20 @@
 <link rel="modulepreload" href="app.js?v=20261027ze">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
 <link rel="preload" href="nature.json" as="fetch" crossorigin>
+<link rel="stylesheet" href="ui.css?v=20261103">
+<style>.top .brand.mu-logo{gap:12px;align-items:baseline}</style>
 </head>
 <body class="ml-root">
 <script src="loader/loader.js" data-title="Qualia/nature" data-en="nature, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>
 
 <div id="stage">
   <canvas id="cv" aria-label="一本のケヤキと足もとの土と池の 3D。光る点に触れると、その場の自然の記録がひらく"></canvas>
-  <header class="top">
-    <div class="brand">
+  <header class="top mu-top">
+    <div class="brand mu-logo">
       <span class="ml-kicker">mitsulab ／ 自然の記録</span>
       <h1 class="ml-title">Qualia/nature</h1>
     </div>
-    <nav class="tools" aria-label="道具">
+    <nav class="tools mu-top-r" aria-label="道具">
       <button class="ml-btn ml-btn--quiet" id="bSound" type="button" aria-pressed="true">声 入</button>
       <button class="ml-btn ml-btn--quiet" id="bList" type="button" aria-expanded="false" aria-controls="panel">目録</button>
       <button class="ml-btn ml-btn--quiet" id="bAbout" type="button">この作品</button>

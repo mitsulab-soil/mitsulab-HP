@@ -13,8 +13,6 @@
 <meta property="og:type" content="video.other">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#03060f">
-<link rel="modulepreload" href="kit/atmosphere.js">
-<link rel="modulepreload" href="kit/layers.js">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -175,6 +173,7 @@
   @media (max-width:760px){ .meta{grid-template-columns:1fr} .bar .t{display:none} .bar .ml-btn{padding:0 8px} }
   @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
+<link rel="stylesheet" href="ui.css?v=20261103">
 </head>
 <body class="ml-root">
 <script src="loader/loader.js" data-auto="dom"></script>
@@ -185,12 +184,14 @@
     var v = document.getElementById('mv'), w = window.innerWidth || 1280, c = navigator.connection || {};
     var lv = w <= 600 ? 2 : (w <= 1100 ? 1 : 0), et = c.effectiveType || '';
     if (c.saveData || /(^|-)2g/.test(et)) lv = 2; else if (et === '3g') lv = Math.max(lv, 1);
-    v.dataset.lv = lv; v.preload = c.saveData ? 'metadata' : 'auto';
+    v.dataset.lv = lv; v.preload = 'metadata';
+    // 2026-11-03：起動を軽く。映像の先読みは画面が操作できるようになってから
+    if (!c.saveData) addEventListener('load', function () { setTimeout(function () { v.preload = 'auto'; }, 800); });
     v.src = ['mv.mp4', 'mv_720.mp4', 'mv_540.mp4'][lv] + '?v=20261019';
   })();
 </script>
-<header class="top">
-  <div class="brand"><span class="ml-title">Qualia/song</span></div>
+<header class="top mu-top">
+  <div class="brand mu-logo"><span class="ml-title">Qualia/song</span></div>
   <a class="home" href="https://mitsulab.jp/">mitsulab.jp ↗</a>
 </header>
 <section class="hero" aria-label="映像">

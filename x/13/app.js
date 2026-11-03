@@ -344,7 +344,7 @@ const QN = window.__qn = { frames: 0, ready: false, tree: () => !!tree, aoi: () 
     buildMarks(); buildWeb(); buildUI(); applySeason(); first = items.find(x => x.id === "n_keyaki");
   } catch (e) { console.error("記録を読めませんでした", e); }
   const tr = loadTree().catch(e => console.warn("木：", e?.message ?? e));
-  await Promise.race([tr, new Promise(r => setTimeout(r, 2500))]);
+  // 2026-11-03：起動 2 秒以内のため、木の 3D は読み込み画面のあとで現れる（待たない）
   window.MLLoader?.done();
   QN.ready = true;
   setTimeout(loadAoi, 1200);

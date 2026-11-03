@@ -5,7 +5,7 @@
      MLLoader.progress(p) は前の版と同じ名前で受ける（輪は出さないので何もしない）。data-theme="light" で明るい地。data-replace="id" はその要素を隠す。
      アプリの中の待ち（エリアの切り替え・3D の読み込み）：var end = MLLoader.show(); …; end()。250ms より短い待ちでは出さない。これも 5 秒で必ず消える。
    軽さ：CSS と、この JS に埋めた小さな画像 2 枚だけ（three.js・書体・外の画像を読まない）。動きを減らす設定では静止画。
-   元＝kit/_src/loader_qualium.tpl.js → python3 kit/_src/build_loader_qualium.py で kit/loader_qualium.js を作る。 */
+   元＝kit/_src/loader_qualium.tpl.js → python3 kit/_src/ で kit/loader_qualium.js を作る。 */
 (function () {
   if (window.MLLoader) return;
   var s = document.currentScript || {}, D = s.dataset || {};

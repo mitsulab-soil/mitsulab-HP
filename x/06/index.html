@@ -132,6 +132,9 @@ a{color:var(--acc)}
 #ctrls .markQ b{display:block;font-family:var(--goth);font-size:14px;color:var(--aoi2);font-weight:600;margin-top:2px}
 @media (max-width:520px){#exp header{background:#070d1a}}
 </style>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" crossorigin>
+<link rel="modulepreload" href="lab.js?v=20261020">
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
 "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
@@ -140,14 +143,15 @@ a{color:var(--acc)}
 <script src="data/script.js"></script>
 <script src="data/qualia/cards.js"></script>
 <script src="data/voice.js" onerror="window.VOICE={}"></script>
+<link rel="stylesheet" href="ui.css?v=20261103">
 </head>
 <body>
-<script src="loader/loader.js" data-auto="load"></script>
+<script src="loader/loader.js" data-auto="dom"></script>
 <div id="stage" tabindex="0" aria-label="3D の研究室。床を押すと歩き、実験台を押すと近づいて実験に入る。ドラッグで見回す。キーボードでは W A S D と矢印で動く"></div>
 <div id="fade"></div>
-<div id="top">
+<div id="top" class="mu-top">
   <div id="where"><b id="whereT">Qualia Lab</b><small id="whereS">床を押すと歩く・実験台を押すと実験に入る</small></div>
-  <div id="tools">
+  <div id="tools" class="mu-top-r">
     <button class="ico" id="listBtn" aria-label="実験台の一覧">☰</button>
     <button class="ico" id="muteBtn" aria-label="音を消す" aria-pressed="false">🔊</button>
     <button class="ico" id="helpBtn" aria-label="使い方と出典">?</button>
