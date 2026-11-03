@@ -27,6 +27,7 @@ function lens(k, d) { // d: ImageData.data
   if (k === "hito") return;
   for (let i = 0; i < d.length; i += 4) {
     const r = d[i], g = d[i + 1], b = d[i + 2];
+    if (k === "hachi") { const m = .5; d[i] = r * (1 - m) + g * .9 * m; d[i + 1] = g * (1 - m) + b * .95 * m; d[i + 2] = b * (1 - m) + Math.min(255, b * .5 + (r + g + b) / 6) * m; continue; } // 2026-11-03：写真が見える強さに（半分だけ寄せる模式）
     if (k === "hachi") { d[i] = g * .9; d[i + 1] = b * .95; d[i + 2] = Math.min(255, b * .5 + (r + g + b) / 6); }
     else if (k === "suzume") { const m = (r + g + b) / 3; d[i] = Math.max(0, Math.min(255, m + (r - m) * 1.5)); d[i + 1] = Math.max(0, Math.min(255, m + (g - m) * 1.5)); d[i + 2] = Math.max(0, Math.min(255, m + (b - m) * 1.5 + 6)); }
     else if (k === "tanuki") { const y = (r + g) / 2; d[i] = y * .85; d[i + 1] = y * .85; d[i + 2] = b * .9; }
@@ -61,7 +62,8 @@ function buildRows() {
   $("sense").innerHTML = SENSES.map(s => `<button data-k="${s.k}" style="--c:${s.c}" aria-pressed="${s.k === sense}"><svg viewBox="0 0 24 24">${s.d}</svg>${s.n}</button>`).join("");
   $("who").innerHTML = WHO.map(w => `<button class="mu-chip" data-k="${w.k}" aria-pressed="${w.k === who}">${w.n}</button>`).join("");
 }
-$("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
+const HINT = {"touch": "触れて感じた所を撮ってください。触れるの印が付きます。", "smell": "においのもとを撮るか、そこの音を録ってください。嗅ぐの印が付きます。", "taste": "味わったものを撮ってください。味わうの印が付きます。", "x": "人にない感覚で感じそうな所を撮ってください。X 感の印が付きます。"};
+$("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.k !== sense && HINT[b.dataset.k]) say(HINT[b.dataset.k], 4200); sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
 $("who").onclick = e => { const b = e.target.closest("button"); if (!b) return; who = b.dataset.k; buildRows(); const w = WHO.find(x => x.k === who); if (w.say) say(w.say); };
 function count() { $("cnt").textContent = `${mine.items.length}/${MAX}`; }
 
@@ -112,6 +114,14 @@ function makeObj(it, layer) {
   g.scale.setScalar(.001); g.userData.s = 1;
   items.add(g); meshes.set(layer.id + ":" + it.id, { obj: g, it, layer, target: new THREE.Vector3(), op: 1 });
 }
+let tagG = null;
+function tagTex(t, c) { const cv = document.createElement("canvas"); cv.width = 256; cv.height = 96; const x = cv.getContext("2d");
+  x.font = '600 66px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = c; x.fillText(t, 128, 48);
+  const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; return tx; }
+function tags(Ls) { if (!THREE) return; if (!tagG) { tagG = new THREE.Group(); S.add(tagG); }
+  tagG.clear(); tagG.visible = view === "side"; if (view !== "side") return;
+  const n = Ls.length; Ls.forEach((L, li) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex(L === mine ? "あなた" : String(li + 1), L.color), transparent: true, fog: false, depthTest: false }));
+    sp.scale.set(.6, .225, 1); sp.position.set((li - (n - 1) / 2) * .62, -.1, .2); tagG.add(sp); }); }
 function allLayers() { return [mine, ...others]; }
 let focusSense = null;
 function layout() {
@@ -124,14 +134,14 @@ function layout() {
     if (view === "stack") { // 重ねる：感覚ごとに方角、人ごとに高さ。同じ感覚がみんなで一つの帯になる
       const si = SENSES.findIndex(s => s.k === it.sense), a = Math.PI * (si % 2 === 0 ? .97 - .12 * (si >> 1) : .03 + .12 * (si >> 1)) + (ii % 3 - 1) * .08 + (li % 4 - 1.5) * .04; // 写真の感覚（見る・触れる…）と音を碧の左右に分け、輪と写真を重ねない（まん中は碧のために空ける）
       const r = 1.25 + (li % 3) * .3; m.target.set(Math.cos(a) * r, .55 + (li % 6) * .2 + (ii % 2) * .1, Math.sin(a) * r * .55 - .2);
-    } else { // 並べる：一人一列（下から上へ。並びは置いた順）
+    } else { // 並べる：一人一列（下から上へ。並びは置いた順）。列の下に名札（あなた／2・3…）
       const n = Ls.length, x = (li - (n - 1) / 2) * .62, y = .35 + ii * .56;
       m.target.set(x, y, .2);
     }
     m.op = view === "side" || !focusSense || it.sense === focusSense ? 1 : .5; // 選んだ感覚を少し前に。ほかも見える明るさに残す
   }));
   $("bView").setAttribute("aria-pressed", view === "side");
-  aimC();
+  tags(Ls); aimC();
 }
 /* カメラ（ドラッグで回す・ピンチ／ホイールで寄る） */
 let yaw = 0, pitch = .12, dist = 4.6, ending = false;
@@ -218,7 +228,7 @@ $("bRec").onclick = async () => {
   rec.onstop = () => { s.getTracks().forEach(t => t.stop()); clearInterval(recTimer); $("bRec").classList.remove("rec"); $("cnt2").textContent = ""; const dur = Math.round((performance.now() - recT) / 100) / 10;
     const fr = new FileReader(); fr.onload = () => add({ kind: "sound", data: fr.result, dur }); fr.readAsDataURL(new Blob(ch, { type: rec.mimeType || mt })); rec = null; };
   rec.start(); recT = performance.now(); $("bRec").classList.add("rec");
-  say("人の話し声は入れないでください。もう一度押すと止まります。", 0);
+  say("人の話し声は入れないでください。入ったら、押して「外す」で消せます。", 0);
   recTimer = setInterval(() => { const left = REC_MAX - Math.floor((performance.now() - recT) / 1000); $("cnt2").textContent = left + "秒"; if (left <= 0) rec?.stop(); }, 200);
 };
 
@@ -257,13 +267,16 @@ addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("
 function reset() { } // 2026-11-03：「空にする」は「おわる」の「消す」にまとめた（上の並びが狭い画面で問いに重なったため）
 
 /* ---------- おわる：みんなの層を一つの場に重ね、ゆっくり回して閉じる。持ち帰る（ファイル）か、この端末から消す ---------- */
-function endOn(on) { ending = on; document.body.classList.toggle("ending", on); $("end").classList.toggle("on", on);
+function endOn(on) { if (typeof wipeMode === "function" && wipeAsk) wipeMode(false); ending = on; document.body.classList.toggle("ending", on); $("end").classList.toggle("on", on);
   if (on) { closeCam(); if (rec) rec.stop(); near = null; pick(null); view = "stack"; focusSense = null; $("bView").textContent = "並べる"; layout(); say("今日の層は、ここまで。<br>帰り道で、あなたの足を止めるものは？", 0, "今日の層は、ここまで。帰り道で、あなたの足を止めるものは？"); }
   else $("sub").style.opacity = 0; }
 $("bEnd").onclick = () => endOn(true);
-$("bBack").onclick = () => endOn(false);
 $("bKeep").onclick = () => $("bGive").click();
-$("bWipe").onclick = async () => { if (!confirm("自分の層と受けとった層を、この端末から消します。")) return;
+let wipeAsk = false;
+function wipeMode(on) { wipeAsk = on; $("bKeep").hidden = on; $("bBack").textContent = on ? "やめる" : "もどる"; $("bWipe").classList.toggle("rec", on); }
+$("bBack").onclick = () => { if (wipeAsk) { wipeMode(false); say("今日の層は、ここまで。<br>帰り道で、あなたの足を止めるものは？", 0, "今日の層は、ここまで。帰り道で、あなたの足を止めるものは？"); return; } endOn(false); };
+$("bWipe").onclick = async () => { if (!wipeAsk) { wipeMode(true); say("自分の層と受けとった層を、この端末から消します。<br>よければ、もう一度「消す」。", 0, "自分の層と受けとった層を、この端末から消します。"); return; }
+  wipeMode(false);
   mine = { v: 1, id: uid(), color: PALETTE[0], q: mine.q, items: [] }; others = []; await put("mine", mine); await put("others", others); count(); layout(); reset();
   say("この端末から、層を消しました。", 0); };
 
