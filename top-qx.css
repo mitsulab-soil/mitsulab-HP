@@ -329,3 +329,4 @@ html{scroll-padding-top:80px}
 #top #umwelt1.qx-scene,#top #umwelt2.qx-scene,#umwelt1.qx-scene,#umwelt2.qx-scene{margin-left:auto;margin-right:auto;padding-left:max(16px,4vw);padding-right:max(16px,4vw)}
 @media (min-width:1000px){#top #umwelt1.qx-scene,#top #umwelt2.qx-scene{padding-left:40px;padding-right:40px}}
 @media (max-width:700px){#umwelt1 .qx-figd,#umwelt2 .qx-figd{margin-top:-56px!important}.qx-figd .qx-lab span{word-break:keep-all;overflow-wrap:anywhere}}
+@media (max-width:700px){.qx-figd .qx-lab .k{font-size:15.5px}.qx-figd .qx-lab span:not(.k){font-size:13.5px;line-height:1.5;color:#dbe2ec;word-break:keep-all;overflow-wrap:normal}.qx-figd .qx-labs{gap:12px 10px}.qx-figd{margin-bottom:190px}.qx-pl{font-size:13px}.qx-pl i{font-size:14.5px}}   /* 2026-11-03 P2d：スマホで環世界 2.0 の図の字が小さかった → 読める大きさへ */
