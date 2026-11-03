@@ -1,0 +1,109 @@
+/* mitsulab 世界観の共通トークン（v1・2026-10-12）
+   正＝01_経営/03_対外書類/12_ブランド/世界観と見た目_v1_2026-10-12.md
+   色と書体は HP（03_発信/01_HP/index.html の :root）と同じ値。HP の値を変えたら、ここも直す。
+   書体ファイルは読まない（各アプリが HP と同じく字をしぼって配るか、Google Fonts を読む）。 */
+:root{
+  /* 地と文字 */
+  --ml-bg:#03060f;            /* 夜の紺（HP の地） */
+  --ml-bg-2:#070d1a;          /* 一段明るい紺（パネルの奥） */
+  --ml-ink:#eef5fb;           /* 地の文 */
+  --ml-ink-2:#c3cce0;         /* 二番目の文字 */
+  --ml-ink-3:#8f9bb4;         /* 注・キャプション */
+  /* 碧（依代の色）。光るのは線と点だけ、面は塗らない */
+  --ml-aoi:#5cc8e0;
+  --ml-aoi-2:#9bdcf0;
+  --ml-aoi-3:#3f9fc0;
+  --ml-aoi-deep:#0d87a3;
+  /* 層の色（HP の 3D と同じ。線と点にだけ使う。面のグラデーションにしない） */
+  --ml-l-nature:#7fe0b4;      /* 自然 */
+  --ml-l-water:#78d6ec;       /* 水 */
+  --ml-l-culture:#f2cf8c;     /* 文化・歴史 */
+  --ml-l-people:#f4aa96;      /* 人 */
+  --ml-l-info:#b4a2ff;        /* 情報・機械（線と点だけ。紫の面・紫のにじみは禁止） */
+  --ml-l-aoi:#a8f2f6;         /* 碧 */
+  /* 線・面 */
+  --ml-line:rgba(92,200,224,.32);
+  --ml-line-2:rgba(150,170,240,.18);
+  --ml-line-weak:rgba(195,204,224,.14);
+  --ml-panel:rgba(6,10,18,.72);
+  --ml-panel-solid:#080e1a;
+  --ml-nav:rgba(6,8,15,.42);
+  /* 書体（HP と同じ並び） */
+  --ml-serif:"Shippori Mincho","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;
+  --ml-sans:"Inter","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Noto Sans JP",sans-serif;
+  --ml-latin:"Cormorant Garamond","Times New Roman",serif;
+  --ml-mono:"JetBrains Mono",ui-monospace,monospace;
+  /* 形と動き */
+  --ml-radius:2px;            /* 角はほぼ立てる（丸い錠剤形・大きい角丸は使わない） */
+  --ml-gutter:16px;           /* スマホの左右の余白 */
+  --ml-ease:cubic-bezier(.22,.61,.36,1);
+  --ml-t-fast:.18s; --ml-t:.42s; --ml-t-slow:1.2s;
+}
+
+/* ---- 部品（.ml- の頭をつけたものだけ。アプリの既存の class とぶつけない） ---- */
+.ml-root{background:var(--ml-bg);color:var(--ml-ink);font-family:var(--ml-sans);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.ml-title{font-family:var(--ml-serif);font-weight:600;letter-spacing:.12em;line-height:1.35;margin:0}
+.ml-en{font-family:var(--ml-latin);font-style:italic;letter-spacing:.24em;text-transform:uppercase;color:var(--ml-aoi-deep);font-size:.75rem}
+.ml-kicker{font-family:var(--ml-mono);font-size:.68rem;letter-spacing:.28em;color:var(--ml-ink-3);text-transform:uppercase;white-space:nowrap}
+
+/* パネル：にじむ光の影は付けない。細い線一本と、ほんの少しのくもりガラス */
+.ml-panel{background:var(--ml-panel);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:16px 18px;color:var(--ml-ink-2)}
+.ml-panel > .ml-panel-head{display:flex;align-items:baseline;gap:10px;margin:0 0 8px;color:var(--ml-ink)}
+.ml-panel--corner{position:relative;border-color:transparent}
+.ml-panel--corner::before,.ml-panel--corner::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--ml-aoi);opacity:.7;pointer-events:none}
+.ml-panel--corner::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.ml-panel--corner::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+
+/* ボタン：主＝細い枠と字。押すと線が左から伸びる。塗りつぶしの光るボタンは使わない */
+.ml-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.6em;min-height:44px;padding:0 20px;
+  font:500 .95rem/1 var(--ml-sans);letter-spacing:.08em;color:var(--ml-ink);background:rgba(3,6,15,.35);
+  border:1px solid var(--ml-line);border-radius:var(--ml-radius);cursor:pointer;position:relative;overflow:hidden;text-decoration:none;
+  transition:border-color var(--ml-t-fast) var(--ml-ease),color var(--ml-t-fast)}
+.ml-btn::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:100%;background:var(--ml-aoi);transform:scaleX(0);transform-origin:left;transition:transform var(--ml-t) var(--ml-ease)}
+.ml-btn:hover,.ml-btn:focus-visible{border-color:var(--ml-aoi);color:#fff}
+.ml-btn:hover::after,.ml-btn:focus-visible::after{transform:scaleX(1)}
+.ml-btn:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset:3px}
+.ml-btn--primary{border-color:var(--ml-aoi);color:var(--ml-aoi-2)}
+.ml-btn--quiet{border-color:transparent;background:none;color:var(--ml-ink-2);padding:0 8px}
+.ml-btn[aria-pressed="true"]{color:var(--ml-aoi-2);border-color:var(--ml-aoi)}
+
+/* 字幕・キャプション：碧が話す字は明朝、下の真ん中、縁取りではなく薄い帯 */
+.ml-caption{font-family:var(--ml-serif);font-size:clamp(15px,2.1vw,19px);line-height:1.75;letter-spacing:.06em;color:var(--ml-ink);
+  background:linear-gradient(90deg,transparent,rgba(3,6,15,.62) 12%,rgba(3,6,15,.62) 88%,transparent);padding:10px 8%;text-align:center}
+.ml-caption small{display:block;font-family:var(--ml-sans);font-size:.72em;color:var(--ml-ink-3);letter-spacing:.04em}
+
+/* 層の札（3D の中の語。HP の data-lab と同じ形：小さな点＋細い線＋字） */
+.ml-label{display:inline-flex;align-items:center;gap:6px;font:400 .72rem/1.2 var(--ml-sans);letter-spacing:.1em;color:var(--ml-ink-2);white-space:nowrap}
+.ml-label::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ml-label-c,var(--ml-aoi))}
+.ml-label[data-layer="nature"]{--ml-label-c:var(--ml-l-nature)}
+.ml-label[data-layer="water"]{--ml-label-c:var(--ml-l-water)}
+.ml-label[data-layer="culture"]{--ml-label-c:var(--ml-l-culture)}
+.ml-label[data-layer="people"]{--ml-label-c:var(--ml-l-people)}
+.ml-label[data-layer="info"]{--ml-label-c:var(--ml-l-info)}
+
+/* ダイヤル（層の濃さ・時代・受けとり方の切りかえ）：目盛りの円と一本の針 */
+.ml-dial{--v:.5;position:relative;width:88px;height:88px;border-radius:50%;border:1px solid var(--ml-line-2);touch-action:none;cursor:grab}
+.ml-dial::before{content:"";position:absolute;inset:6px;border-radius:50%;
+  background:repeating-conic-gradient(from -135deg,var(--ml-line) 0 .6deg,transparent .6deg 13.5deg);
+  -webkit-mask:radial-gradient(circle,transparent 60%,#000 61%);mask:radial-gradient(circle,transparent 60%,#000 61%)}
+.ml-dial::after{content:"";position:absolute;left:50%;top:50%;width:1px;height:38%;background:var(--ml-aoi);transform-origin:50% 0;
+  transform:rotate(calc(180deg + (-135deg + var(--v) * 270deg)))}
+.ml-dial-wrap{display:inline-grid;justify-items:center;gap:6px;font:400 .7rem var(--ml-sans);letter-spacing:.14em;color:var(--ml-ink-3)}
+
+/* 切りかえ（日本語／EN など）：字だけ、選んだ方に下線 */
+.ml-seg{display:inline-flex;gap:14px;font:400 .82rem var(--ml-sans);letter-spacing:.08em}
+.ml-seg button{appearance:none;background:none;border:0;color:var(--ml-ink-3);padding:6px 0;cursor:pointer;border-bottom:1px solid transparent}
+.ml-seg button[aria-pressed="true"]{color:var(--ml-ink);border-bottom-color:var(--ml-aoi)}
+
+/* 折りたたみ（典拠・つくり）：本文の余韻を壊さない場所に、細い線で */
+.ml-fold{border-top:1px solid var(--ml-line-weak)}
+.ml-fold > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px 0;font:400 .88rem var(--ml-sans);letter-spacing:.1em;color:var(--ml-ink-2)}
+.ml-fold > summary::-webkit-details-marker{display:none}
+.ml-fold > summary::after{content:"＋";color:var(--ml-aoi);font-size:.9rem}
+.ml-fold[open] > summary::after{content:"－"}
+
+@media (max-width:420px){ .ml-panel{padding:14px var(--ml-gutter)} .ml-btn{padding:0 16px} }
+@media (prefers-reduced-motion:reduce){
+  .ml-btn,.ml-btn::after{transition:none}
+}
