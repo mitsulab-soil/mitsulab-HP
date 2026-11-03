@@ -19,7 +19,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261103f1">
+<link rel="modulepreload" href="web/lite/app.js?v=20261103n1">
 <link rel="modulepreload" href="web/lite/layers.js?v=6">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
@@ -673,8 +673,8 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261103f1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261103n1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-02 変身＝碧の足もとの小さな依代を押すと、その視点へ入る（kit/henshin.js） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); Promise.all([import("./web/kit/henshin.js?v=42"), fetch("web/lite/data.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { xOnly: true, lookup: (id, re) => { const o = D?.objs?.find(x => x.id === id); return o && (o.lines || []).find(l => l.t && (!re || new RegExp(re).test(l.t))); }, trees: () => q.D?.trees || D?.trees || [], say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).then(() => import("./web/lite/senses6.js?v=11")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("henshin", e));   /* 11-03 本人：五感＋X 感をえらぶ（色の層の代わり）・依代は X 感で */ } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); Promise.all([import("./web/kit/henshin.js?v=45"), fetch("web/lite/data.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { xOnly: true, lookup: (id, re) => { const o = D?.objs?.find(x => x.id === id); return o && (o.lines || []).find(l => l.t && (!re || new RegExp(re).test(l.t))); }, trees: () => q.D?.trees || D?.trees || [], say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).then(() => import("./web/lite/senses6.js?v=11")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("henshin", e));   /* 11-03 本人：五感＋X 感をえらぶ（色の層の代わり）・依代は X 感で */ } }, 300); }
 </script>
 </body></html>

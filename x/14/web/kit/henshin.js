@@ -69,7 +69,7 @@ export function attachHenshin(QW, opt = {}) {
     else if (b.make === "bee") { const { makeBee } = await import("./creatures.js"); g = makeBee(undefined, { state: "fly" }); g.scale.setScalar(b.size * 4); }   // 4 倍＝見つけられる大きさの模式
     else return null;
     { const bx = new THREE.Box3().setFromObject(g); g.userData.top = bx.max.y; g.userData.len = Math.max(bx.max.z - bx.min.z, bx.max.x - bx.min.x); }
-    g.visible = false; scene.add(g); g.traverse(o => { o.frustumCulled = false; }); return (bodies[P.id] = g);
+    g.traverse(o => { o.frustumCulled = false; }); scene.add(g); try { if (QW.renderer?.compileAsync) await QW.renderer.compileAsync(g, camera, scene); } catch { } g.visible = false; return (bodies[P.id] = g);   // 11-03 見せる前に描き方を組む
   }
   /* ---- 依代の動き（碧のそばで、その生き物の動き方） ---- */
   const V = new THREE.Vector3(), V2 = new THREE.Vector3(), rnd = (a, b) => a + Math.random() * (b - a);
@@ -78,13 +78,24 @@ export function attachHenshin(QW, opt = {}) {
   /* 木の視点の置き場所：幹のまわり 12 方向 × 距離 1.1〜2.4 m を試し、①その点のまわり 0.6 m に物がない ②その点から碧の頭まで遮るものがない、の両方を満たす所。
      光線は変身のときに一度だけ。見つからなければ人の目の位置のまま（樹冠や柱の中には入らない）。 */
   const RC = new THREE.Raycaster(), D3 = new THREE.Vector3(), O3 = new THREE.Vector3();
-  function hitWithin(o, d, far) { RC.set(o, d); RC.far = far; RC.camera = camera; const hs = RC.intersectObjects(scene.children, true); return hs.some(h => h.object.visible && !gui.getObjectById(h.object.id) && h.object.type !== "Points" && h.object.type !== "Sprite" && !(h.object.material && h.object.material.transparent && h.object.material.opacity < .3)); }
-  function clearSpot(T, a, eye) {
+  /* 11-03 速さ：当てる物を、近く（40 m）の見えている面だけに絞って 1.5 秒持ち回す（場面全体・骨つきの体まで毎回当てていて、木への変身で 1.6 秒止まっていた） */
+  const GROUNDISH = /^(terrain|digiGround|fusion|roads|curb|地形)$/;   // 地面・道・縁石は当てない（60 万の三角形で 1 本 0.3 秒かかる。地面の高さは別に見ている）
+  let HL = null, HLt = 0; const HLc = new THREE.Vector3(), _bs = new THREE.Sphere();
+  function hitList(o) { const now = performance.now(); if (HL && now - HLt < 1500 && HLc.distanceToSquared(o) < 25) return HL;
+    const gid = new Set(); gui.traverse(m => gid.add(m.id)); HL = []; HLt = now; HLc.copy(o);
+    scene.traverseVisible(m => { if (!m.isMesh || m.isSkinnedMesh || gid.has(m.id) || GROUNDISH.test(m.name)) return; const mt = m.material; if (mt && mt.transparent && mt.opacity < .3) return;
+      if (!m.isInstancedMesh) { const g = m.geometry; if (!g) return; if (!g.boundingSphere) g.computeBoundingSphere(); _bs.copy(g.boundingSphere).applyMatrix4(m.matrixWorld); if (_bs.distanceToPoint(o) > 40) return; }
+      HL.push(m); }); return HL; }
+  let HB = 0, HBt = 0, HBfree = false;   // 11-03 速さ：1 コマで当てに使う時間は 8 ms まで。超えたら「塞がっている」と見なして次のコマへ（鳥の飛び先さがしで止まらない）
+  function hitWithin(o, d, far) { const t0 = performance.now(); if (t0 - HBt > 12) { HBt = t0; HB = 0; } if (!HBfree && HB > 8) return true;
+    RC.set(o, d); RC.far = far; RC.camera = camera; const r = RC.intersectObjects(hitList(o), false).length > 0; HB += performance.now() - t0; return r; }
+  async function clearSpot(T, a, eye) {   // 11-03 コマをまたいで少しずつ調べる（木への変身で 1 秒止まっていた）
+    let tf = performance.now(); const yieldIf = async () => { if (performance.now() - tf > 8) { await new Promise(r => requestAnimationFrame(r)); tf = performance.now(); } };
     const head = new THREE.Vector3(a.x, a.y + 1.4, a.z), base = Math.atan2(a.z - T.z, a.x - T.x);
     for (const r of [1.1, 1.6, 2.4]) for (let k = 0; k < 12; k++) { const ang = base + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 6;
       O3.set(T.x + Math.cos(ang) * r, T.y + eye, T.z + Math.sin(ang) * r);
-      let bad = false; for (const d of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]]) if (hitWithin(O3, D3.set(...d), .6)) { bad = true; break; }
-      if (bad) continue; D3.subVectors(head, O3); const L = D3.length(); if (hitWithin(O3, D3.normalize(), L - .5)) continue; return O3.clone(); }
+      let bad = false; for (const d of [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]]) { await yieldIf(); HBfree = true; const h = hitWithin(O3, D3.set(...d), .6); HBfree = false; if (h) { bad = true; break; } }
+      if (bad) continue; D3.subVectors(head, O3); const L = D3.length(); await yieldIf(); HBfree = true; const hb = hitWithin(O3, D3.normalize(), L - .5); HBfree = false; if (hb) continue; return O3.clone(); }
     return camera.position.clone();
   }
   function newGoal(M, a) { if (!M.r) return new THREE.Vector3(a.x, a.y + (P_EYE() || 1.5), a.z);
@@ -100,7 +111,7 @@ export function attachHenshin(QW, opt = {}) {
       if (d > .05) { const sp = Math.max(d / M.dart, 3); p.pos.lerp(p.goal, Math.min(1, sp * dt / Math.max(d, .001))); }
       else if ((p.wait += dt) > (p.dw ||= rnd(...M.dwell))) { p.goal = newGoal(M, a); p.wait = 0; p.dw = 0; }
       if (Math.random() < dt * 1.4) p.yawJ = rnd(-.35, .35);
-    } else if (M.kind === "tree") { if (!p.set) { const T = nearTree(a, M.species); p.tree = T; p.goal.copy(clearSpot(T, a, P.body.eye));   /* 幹に寄りそう位置（幹の中に入らない） */ p.set = 1; } p.pos.lerp(p.goal, Math.min(1, dt * 2)); p.yawJ = 0;   // 木：幹のそば・枝の下の高さ
+    } else if (M.kind === "tree") { if (!p.set) { const T = nearTree(a, M.species); p.tree = T; clearSpot(T, a, P.body.eye).then(v => { if (S.pose === p) p.goal.copy(v); });   /* 幹に寄りそう位置（幹の中に入らない） */ p.set = 1; } p.pos.lerp(p.goal, Math.min(1, dt * 2)); p.yawJ = 0;   // 木：幹のそば・枝の下の高さ
     } else if (M.kind === "still") { if (!p.set) { camera.getWorldDirection(V2); V2.y = 0; V2.normalize(); p.goal.set(a.x + V2.x * 4.5 + V2.z * 1.2, a.y + M.h[0], a.z + V2.z * 4.5 - V2.x * 1.2); p.set = 1;   /* 碧の 4.5 m 先・道の脇。碧がこちらへ歩いて来て通り過ぎる */ } p.pos.lerp(p.goal, Math.min(1, dt * 2)); p.yawJ = 0;   // 石：動かない（碧が歩いて離れていく）
     } else {   // ホバリング：ゆれながら、花から花のように小さく移る
       p.pos.lerp(p.goal, Math.min(1, dt * .9 * M.speed)); p.pos.y += Math.sin(t * 9.1) * .004; p.pos.x += Math.sin(t * 6.3) * .006;

@@ -306,6 +306,7 @@ function clearSpot(d) { let best = -1, x = 0, z = 0;
   return { x, z }; }
 /* ミミズ（2026-10-22 合格・自作の 3D）：近く＝土の上をはう横の姿（真横寄りだけ。4 倍で見せ、札に書く）。1.8〜7 m のときだけ */
 const MIMI = { m: null, loading: false, yaw: null, lb: null }; QW.MIMI = MIMI;
+const preC = async o => { o.visible = true;   /* 場面の外で組む（場面には入れずに＝見えない） */ try { if (renderer.compileAsync) await renderer.compileAsync(o, camera, scene); } catch { } };   // 11-03 見せる前に描き方を組む（歩きだしてから初めて見えて止まらない）
 function loadMimi() {
   if (MIMI.loading || !D) return; MIMI.loading = true;
   import("./sight/sightModels.js?v=1").then(async ({ loadSight }) => {
@@ -314,7 +315,7 @@ function loadMimi() {
     const gy = surfaceY(x, z);
     m.object.position.set(x, gy + .012, z); m.object.scale.setScalar(4); m.play("crawl", 0, .8);
     const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ミミズ（4 倍で見せています）", GL.sight?.color || "#c9abe0"); lb.position.set(0, .06, 0); lb.scale.set(.16, .04, 1); lb.material.depthTest = false; lb.renderOrder = 9; m.object.add(lb); MIMI.lb = lb;
-    m.object.visible = false; world.add(m.object); MIMI.m = m;
+    await preC(m.object); m.object.visible = false; world.add(m.object); MIMI.m = m;
   }).catch(e => console.warn("mimizu", e));
 }
 function stepMimi(dt) {
@@ -330,8 +331,8 @@ function loadHiyo() {
     let x = p.x - p.tz * side, z = p.z + p.tx * side, top = groundY(x, z) + 1.0; HIYO.c = { x, z, y: groundY(x, z) };
     await (VEG.p || Promise.resolve()); ({ x, z } = clearSpot(d)); top = surfaceY(x, z) + .02;   // とまる所＝参道の縁の植え込みの地面（落ち葉の上で餌をさがす横の姿）
     n.object.position.set(x, top, z); n.object.scale.setScalar(2.5); n.play("perch", 0);   // 見つけやすいよう 2.5 倍（札に書く）
-    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ヒヨドリ（2.5 倍で見せています）", GL.sight?.color || "#c9abe0"); lb.position.set(0, .22, 0); lb.scale.set(.44, .11, 1); lb.material.depthTest = false; lb.renderOrder = 9; n.object.add(lb); HIYO.lb = lb; n.object.visible = false; world.add(n.object);
-    f.play("fly", 0, .7); f.object.visible = false; world.add(f.object);
+    const lb = makeLabel(layerNo("sight"), "Qualia/sight", "ヒヨドリ（2.5 倍で見せています）", GL.sight?.color || "#c9abe0"); lb.position.set(0, .22, 0); lb.scale.set(.44, .11, 1); lb.material.depthTest = false; lb.renderOrder = 9; n.object.add(lb); HIYO.lb = lb; await preC(n.object); await preC(f.object); n.object.visible = false; world.add(n.object); world.add(f.object);
+    f.play("fly", 0, .7); f.object.visible = false;
     n.object.traverse(o => { if (o.isMesh) o.renderOrder = 3; }); HIYO.near = n; HIYO.far = f;
   }).catch(e => console.warn("hiyo", e));
 }
