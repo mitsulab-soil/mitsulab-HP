@@ -6,7 +6,7 @@
    ・軽さ：色は canvas の CSS フィルタ（色の行列）1 つ。体は一体だけ（切り替えのとき作り、描き方を先に組む）。視点は描く直前にだけ差しかえ、描いたあと戻す。
    ・見え方は受けとる細胞の感度からの模式（主観の再現ではない）。数は出典で確かめた幅だけ。Wikipedia は出典にしない。 */
 import * as THREE from "three";
-import { LENS } from "./umwelt_lens.js?v=2";
+import { LENS } from "./umwelt_lens.js?v=3";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 /* 2026-11-04 写実の 3D（Sketchfab・CC BY・Objaverse 経由）。読み込むまではコードの体を出し、読めたら差しかえる。
@@ -17,18 +17,18 @@ export const CREDITS = [
 const GLB = { inu: { f: "shiba.glb", clip: "standing", rx: 0, ry: 0, foot: true }, chou: { f: "ageha.glb", rx: -Math.PI / 2 + .12, ry: Math.PI, flap: true } };
 const M_CHOU_RX = GLB.chou.rx;
 export const IKIMONO = {
-  hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: .55, eye: 1.0, fov: 62, back: .5, up: .16, size: .16, bob: .03, fly: true,
-    say: "ミツバチの目に寄せました。人に見えない光〔紫外〕を青に、青を緑に置きかえた模式です。音は低いふるえだけに絞りました。花は、どこが光って見えますか。", band: [20, 500],
-    sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
-  chou: { name: "アゲハチョウ科", make: "chou", lens: "chou", mix: .8, eye: 1.3, fov: 62, back: .5, up: .3, size: .12, bob: .06, fly: true,
-    say: "アゲハチョウ科の目に寄せました。色の見え方は、アゲハ属のナミアゲハで測られた、紫外から赤までを見分ける目の模式です。体は北米のジャイアントスワローテイルです。葉の色の違いは、どう見えますか。",
-    sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H et al. (2008) J. Exp. Biol. 211:1223–1230" }] },
-  tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: .8, eye: 1.1, fov: 60, back: .44, up: .12, size: .3, bob: .02, fly: true,
-    say: "小鳥の目に寄せました。多くの鳥は紫外も見るとされ、ここでは紫の光に置きかえています。音は鳥のよく聴こえる帯に寄せています。枝の高さから、道はどう見えますか。", band: [300, 8000],
-    sources: [{ claim: "多くの鳥は紫外に感じる錐体を含む四色型", cite: "Hart NS (2001) Prog. Retin. Eye Res. 20:675–703" }, { claim: "鳥のよく聴こえる帯はおよそ 1〜4 kHz", cite: "Dooling RJ (1982) Acoustic Communication in Birds, Academic Press" }] },
-  inu: { name: "イヌ", make: "inu", lens: "inu", mix: 1, eye: 0, fov: 60, back: 1.05, up: .62, size: .55, bob: .015, fly: false,
-    say: "イヌの目の高さと色に寄せました。青と黄緑あたりの二色で見る模式です。赤い色のものは、どんな色に見えますか。", band: [67, 20000],
-    sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE & Heffner RS (2007) Lab Animal 36(9):33–37" }] },
+  hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 3.2, eye: 1.0, fov: 80, back: .5, up: .16, size: .16, bob: .03, fly: true,
+    say: "ミツバチの目の模式。赤は暗く、紫外は青に移し、像は粗く、視野は広く。", band: [20, 500],
+    sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
+  chou: { name: "アゲハチョウ科", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .12, bob: .06, fly: true,
+    say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。",
+    sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H et al. (2008) J. Exp. Biol. 211:1223–1230" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
+  tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
+    say: "シジュウカラの目の模式。四色で色の差は細かく、紫外は紫に移し、視野は広く。", band: [300, 8000],
+    sources: [{ claim: "多くの鳥は紫外に感じる錐体を含む四色型", cite: "Hart NS (2001) Prog. Retin. Eye Res. 20:675–703" }, { claim: "小鳥の視力は人より低いとされる（猛禽とは異なる）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "鳥のよく聴こえる帯はおよそ 1〜4 kHz", cite: "Dooling RJ (1982) Acoustic Communication in Birds, Academic Press" }] },
+  inu: { name: "イヌ", make: "inu", lens: "inu", mix: 1, blur: 1.3, eye: 0, fov: 74, back: 1.05, up: .62, size: .55, bob: .015, fly: false,
+    say: "イヌの目の模式。青と黄の二色で赤と緑は似て、像はやや粗く、視野は広く。", band: [67, 20000],
+    sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの視力は人の数分の一、視野は人より広い", cite: "Miller PE & Murphy CJ (1995) J. Am. Vet. Med. Assoc. 207:1623–1634" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE & Heffner RS (2007) Lab Animal 36(9):33–37" }] },
 };
 export function attachIkimono(QW, opt = {}) {
   const { camera, scene } = QW, canvas = opt.canvas || document.getElementById("gl") || QW.renderer?.domElement, speak = opt.speak || (() => { });
@@ -72,13 +72,13 @@ export function attachIkimono(QW, opt = {}) {
     const m = LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], I = [1, 0, 0, 0, 1, 0, 0, 0, 1], a = (P.mix ?? 1) * k, r = i => I[i] + (m[i] - I[i]) * a;
     return `${r(0)} ${r(1)} ${r(2)} 0 0 ${r(3)} ${r(4)} ${r(5)} 0 0 ${r(6)} ${r(7)} ${r(8)} 0 0 0 0 0 1 0`;
   }
-  function paint() { if (!canvas) return; if (S.k < .01) { canvas.style.filter = ""; return; } const P = IKIMONO[S.id || S.last]; if (!P) return; fm.setAttribute("values", lensMatrix(P, S.k)); canvas.style.filter = "url(#ikF)"; }
+  function paint() { if (!canvas) return; if (S.k < .01) { canvas.style.filter = ""; return; } const P = IKIMONO[S.id || S.last]; if (!P) return; fm.setAttribute("values", lensMatrix(P, S.k)); const bl = (P.blur || 0) * S.k * Math.min(innerWidth, 1600) / 1000; canvas.style.filter = bl > .05 ? `url(#ikF) blur(${bl.toFixed(2)}px)` : "url(#ikF)"; }   /* 11-04 夜 本人「見え方が変わらない」：色は混ぜずに全部かけ、視力の低さを軽いぼかしで（CSS の blur は GPU で軽い） */
   async function go(id) {   // id＝生き物（同じものをもう一度＝人の目へ戻る）
     if (!id || id === S.id) { S.id = null; document.body.classList.remove("iki"); QW.sndBand?.(); opt.onChange?.(null); return null; }
     const P = IKIMONO[id]; if (!P) return null; const t0 = performance.now();
     { const cr = document.getElementById("credit"); if (cr && !cr.textContent.includes("quander")) cr.textContent += "／" + CREDITS.join("／"); }   // 写実の 3D の出典（CC BY）をクレジットに足す
     const b = await bodyOf(id); for (const k in cache) cache[k].visible = false;
-    S.id = id; S.last = id; S.body = b; document.body.classList.add("iki"); opt.onChange?.(id);
+    S.id = id; S.last = id; S.body = b; document.body.classList.add("iki"); opt.onChange?.(id); paint();   /* 11-04 夜 P1：生き物から生き物へ替えたとき、前の生き物の見え方のまま残っていた */
     QW.sndBand?.(...(P.band || [20, 20000])); navigator.userActivation?.hasBeenActive !== false && navigator.vibrate?.(P.fly ? [6, 40, 6] : 14);   // 音の帯と、体の入れかわりの小さな振動（模式）
     speak([{ t: P.say, tc: P.say }]); QW.ikiT = performance.now() - t0; return id;
   }
