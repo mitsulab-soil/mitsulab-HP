@@ -880,6 +880,7 @@ function buildObjs() {
     for (const c of m.glyph.children) c.visible = false; m.beam.visible = false; m.base.visible = false;   // 2026-10-23 夜：線の印は描かず、かさねっこの形の結晶（qmarks.js）で描く
     LAYER.objs.push({ ...m, o, layer, kind, lb, show: 0 });
   };
+  LAYER.add = add;   // 11-04 夜：あとから読む地点（loadMore）も同じ形で足す
   for (const o of C.objs) add(o, o.layer, "rec");
   extraSounds(); for (const s of C.sound) add({ ...s, h: 2.2 }, "sound", "sound");
   for (const t of C.touch) add({ ...t, h: 1.3 }, "touch", "touch");
@@ -890,6 +891,15 @@ function buildObjs() {
       for (let j = 0; j < i; j++) { const dx = P[i].x - P[j].x, dz = P[i].z - P[j].z; if (dx * dx + dz * dz < 49) { hit = true; break; } }
       if (!hit) break; const a = i * 2.39 + k * 1.3; P[i].x += Math.cos(a) * 7; P[i].z += Math.sin(a) * 7; P[i].y = groundY(P[i].x, P[i].z) + (P[i].y - groundY(P[i].x - Math.cos(a) * 7, P[i].z - Math.sin(a) * 7)); } }
   LAYER.qm = makeQMarks(THREE, world, LAYER.objs.length, MOBILE, QM_OPT); /* 2026-10-27 本人「球が大きすぎる」＝今の 3〜4 割 */ for (const L of LAYER.objs) LAYER.qm.add(L, GL[L.layer].color, top5(L.layer));
+}
+/* 2026-11-04 夜 本人「情報量を格段に増やして」：content_more.json（典拠つきの地点・声なし）を起動のあとに読み、近づいた所（220 m 以内）だけ印を作る。起動と毎こまを重くしない */
+const MORE = { q: null };
+function loadMore() {
+  const go = () => fetch("web/app/content_more.json?v=" + VER + "m1").then(r => r.ok ? r.json() : null).then(M => { if (!M || !LAYER.add) return; MORE.q = M.objs.filter(o => o && o.x != null && GL[o.layer]); C.objs.push(...MORE.q);
+    setInterval(() => { if (!MORE.q.length) return; const cp = camera.position; let n = 0;
+      for (let i = MORE.q.length - 1; i >= 0 && n < 12; i--) { const o = MORE.q[i]; if (Math.hypot(o.x - cp.x, o.z - cp.z) > 220) continue; MORE.q.splice(i, 1); n++;
+        LAYER.add(o, o.layer, "rec"); const L = LAYER.objs[LAYER.objs.length - 1]; L.root.visible = false; LAYER.qm?.add(L, GL[L.layer].color, top5(L.layer)); } }, 900); }).catch(e => console.warn("more", e));
+  (window.requestIdleCallback || (f => setTimeout(f, 1500)))(go, { timeout: 4000 });
 }
 function wearLayer(id) { if (id === null) LAYER.worn = []; else if (LAYER.worn.includes(id)) LAYER.worn = LAYER.worn.filter(x => x !== id); else LAYER.worn.push(id); syncTray(); KASA.herd?.setLayers(LAYER.worn); }
 const _v = new THREE.Vector3();
@@ -1968,7 +1978,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
 (async () => {
   try {
     await buildBase();
-    QW.tm.b = performance.now() - T0; buildObjs(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn(); QW.tm.o = performance.now() - T0;
+    QW.tm.b = performance.now() - T0; buildObjs(); loadMore(); fillMenu(); buildTray(); buildStarts(); syncTalkBtn(); QW.tm.o = performance.now() - T0;
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
     setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter); SKY.dist = SKY.tDist = MOBILE ? 2700 : 1550; SKY.c.set(MOBILE ? 110 : 20, 20, -430);   /* 11-03 P2：スマホの縦の画面でも 8 つの出発点の札がすべて入る（前は 5 つ） */   /* 10-28 夜 7：スマホでは始める印を左の層の一覧から右へ */   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
     /* 11-03 本人「起動 2 秒以内」：最初の 1 こまは地面だけ描いて操作できるようにし、ほかの 3D は 1 つずつ形の準備（シェーダー）を済ませてから順に出す */

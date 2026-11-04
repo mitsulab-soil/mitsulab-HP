@@ -1373,6 +1373,17 @@ function buildObjs() {
   const rg = new THREE.RingGeometry(.97, 1, 96); rg.rotateX(-Math.PI / 2);
   LAYER.ripple = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0, depthWrite: false })); LAYER.ripple.visible = false; world.add(LAYER.ripple);
 }
+/* 2026-11-04 夜 本人「情報量を格段に増やして」：content_more.json（典拠つきの地点・声なし）を起動のあとに読み、近づいた所（220 m 以内）だけ印を作る。起動と毎こまを重くしない */
+const MORE = { q: null };
+function loadMore() {
+  const go = () => fetch(BASE + "content_more.json?v=" + VER + "m1").then(r => r.ok ? r.json() : null).then(M => { if (!M) return; MORE.q = M.objs.filter(o => o && o.x != null && GL[o.layer]); D.objs.push(...MORE.q);
+    setInterval(() => { if (!MORE.q.length || !LAYER.qm) return; const cp = camera.position; let n = 0;
+      for (let i = MORE.q.length - 1; i >= 0 && n < 12; i--) { const o = MORE.q[i]; if (Math.hypot(o.x - cp.x, o.z - cp.z) > 220) continue; MORE.q.splice(i, 1); n++; o.y = groundY(o.x, o.z);
+        const m = makeMarker(o.sub || o.layer, GL[o.layer].color, o.h || 1.6, MOBILE); m.root.position.set(o.x, o.y, o.z); m.root.visible = false; m.root.name = o.id;
+        for (const ch of m.glyph.children) ch.visible = false; m.root.remove(m.beam); m.root.remove(m.base); m.faces = []; world.add(m.root);
+        const L = { o, ...m, k: 0, show: 0, open: 0, label: null, want: LAYER.worn.includes(top5(o.layer)), arr: true }; LAYER.objs.push(L); LAYER.qm.add(L, GL[o.layer].color, top5(o.layer)); } }, 900); }).catch(e => console.warn("more", e));
+  (window.requestIdleCallback || (g => setTimeout(g, 1500)))(go, { timeout: 4000 });
+}
 function wearLayer(id, opts = {}) {   // 層は重ねられる（重ねた順に 1 層目・2 層目…）。同じ層をもう一度選ぶと外れる
   const W = LAYER.worn; let g = null;
   if (!id) W.length = 0; else if (W.includes(id)) W.splice(W.indexOf(id), 1); else { W.push(id); g = GL[id]; }
@@ -2823,7 +2834,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
 (async () => {
   try {
     await buildBase();
-    buildObjs(); fillMenu(); buildTray();
+    buildObjs(); loadMore(); fillMenu(); buildTray();
     setMode("sky"); skyCam(); showSkyUI(); selectStart(0);
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
