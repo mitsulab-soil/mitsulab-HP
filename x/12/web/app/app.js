@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s6";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
@@ -22,6 +22,7 @@ import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=5n";
 import { makeStartPins } from "../kit/startpins.js?v=sp12";
+import { makeMapVeil } from "../kit/mapveil.js?v=mv1";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
 import { makeFliers } from "../kit/fliers.js?v=6";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
@@ -872,7 +873,7 @@ function stepLayer(dt) {
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
   { const gT = LAYER.worn.length && QW.mode !== "boot" ? (sky ? .32 : .62) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
   stepHere(cp, t, sky || QW.mode === "fly");
-  declutter(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);
+  declutter(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.my?.update(dt); YO.y?.update(dt);
 }
 /* 2026-10-26（氷川と同じ）：いまいる場所の重なり（半径 30 m の Qualia の数と層）と、画面の外のいちばん近い Qualia の方角 */
 const QH = { t: 0, el: null, dir: null };
@@ -997,6 +998,15 @@ async function startYorishiro() {
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
+    /* 11-04 本人：碧のデザインを受けつぐ町の依代（変身の対象ではない）。大宮と同じ kit/machiyori.js。近づいて触れると碧が、その印の出典つきの一行を感じ方の入口として話す */
+    { const TOWN = { shizuku: "しずくのそばで、水の音に耳をすませてみます。", ishi: "石のそばで、石の肌に触れてみます。", ki: "木のそばで、幹を見上げてみます。", tsuchi: "土のそばで、足もとを確かめてみます。" };
+      const MY = YO.my = new (await import("../kit/machiyori.js?v=3")).MachiYori({ scene: world, camera, dom: renderer.domElement, groundAt: (x, z) => aoiFootY(x, z), active: () => QW.mode === "walk" });
+      const used = new Set(), TX = L => (L.o.title || "") + " " + (L.o.lines || []).map(l => l.t || "").join(" "), ANC = [...C.starts.filter(s => /時の鐘|菓子屋|川越氷川|喜多院|札の辻/.test(s.name || "")), C.starts[0]].map(stAt);
+      for (const kind of Object.keys(TOWN)) { let n = 0;
+        for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o && L.o.x != null).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 160).sort((p, q) => p[1] - q[1]).slice(0, 40).map(e => e[0]))) { if (n >= 2) break; if (used.has(L) || !YO_RE[kind].test(TX(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
+          let ok = null; for (let k = 0; k < 8 && !ok; k++) { const a = k * .785, x = L.o.x + Math.cos(a) * 1.3, z = L.o.z + Math.sin(a) * 1.3; if (!solidAt(x, z, .3)) ok = [x, z]; } if (!ok) continue;
+          used.add(L); n++; const pre = TOWN[kind];
+          MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } } }
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
       const sd = (() => { const v = new THREE.Vector3(), sx = g => { v.set(P.x + fz * .95 * g + fx * 1.8, P.y + .3, P.z - fx * .95 * g + fz * 1.8).project(camera); return Math.abs(v.x); }; return sx(1) <= .8 || sx(-1) > sx(1) ? 1 : -1; })();   /* 11-03 375 でタヌキが画面の端で切れた：左が画面の外へはみ出すときは碧の右（画面の内側）へ */
@@ -1426,7 +1436,7 @@ const NAV = installNav({ THREE, canvas, camera, cam: CAM, mobile: MOBILE, mode: 
   stop: navStop, tap: (x, y) => tap(x, y), goalAt, markAt: (x, y) => QW.fliers?.pick(x, y, renderer.domElement, true) ? { bird: true } : (pickObj(x, y) || QA?.pick(x, y, true))   /* 11-02：鳥が重なるときは鳥を先に（札より） */, noSenseMenu: true,
   ring: p => { if (p) { showGoal(p); WALK.ring.material.opacity = .45; } else if (WALK.ring && !WALK.goal) WALK.ring.visible = false; },
   skyDrag: (dx, dy) => { SKY.tAz -= dx * .005; SKY.tEl = Math.max(.25, Math.min(1.45, SKY.tEl + dy * .004)); }, skyZoom: f => { SKY.tDist = Math.max(160, Math.min(2600, SKY.tDist * f)); },
-  hush: () => { stopVoice(); hidePanel(); }, say: t => toast(t),
+  hush: () => { stopVoice(); hidePanel(); }, say: t => { if (document.body.classList.contains("iki")) return; speakLines([{ t, tc: t }], null, { narr: true }); },   /* 11-04：操作の知らせは碧の短い字幕に */
   tabMark: k => { const M = nearMarks(); if (!M.length) return; TABM.i = (Math.max(-1, M.indexOf(TABM.L)) + k + M.length) % M.length; TABM.L = M[TABM.i]; TABM.L.glyph.getWorldPosition(_v); toast(TABM.L.o?.title || TABM.L.title || TABM.L.data?.title || "印"); },
   enterMark: () => { if (!TABM.L) return false; LASTM.L = TABM.L; LASTM.t = performance.now(); openObj(TABM.L); return true; },
   here: () => ({ on: $("#hereBtn")?.getAttribute("aria-pressed") === "true" }), hereToggle: () => $("#hereBtn")?.click() });
@@ -1846,7 +1856,9 @@ function syncTray() { document.querySelectorAll(".lyBtn").forEach(b => b.setAttr
 QW.dbg = () => ({ areas: AREAS.info(), nArea: QW.nArea || 0, mode: QW.mode, cam: [CAM.pos.x, CAM.pos.y, CAM.pos.z], worn: [...LAYER.worn], aoi: !!AOI.root?.visible, talk: voiceQ?.talk?.o?.id || null, spoken: TALK.spoken.size, nBld: QW.nBld, sight: SIGHT.sp?.id || null });
 QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = yawAlong(d + 5); CAM.look = 0; if (AOI.m) { aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, CAM.yaw + Math.PI); } };
 QW.place = (x, z, tx, tz, p = -.08) => { CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = Math.atan2(-(tx - x), -(tz - z)); CAM.look = 0; CAM.pitch = p; };
-QW.LAYER = LAYER; QW.QAK = QAK; QW.QAC = QAC; QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) openObj(L); return !!L; };
+QW.LAYER = LAYER; QW.QAK = QAK; QW.QAC = QAC; QW.groundAt = (x, z) => aoiFootY(x, z);
+QW.sndBand = (lo = 20, hi = 20000) => { if (!BELL && lo === 20 && hi === 20000) return; const b = bell(), ac = b.ac; if (!b.hp) { b.hp = ac.createBiquadFilter(); b.hp.type = "highpass"; b.hp.frequency.value = 20; b.lp = ac.createBiquadFilter(); b.lp.type = "lowpass"; b.lp.frequency.value = 20000; const cp = ac.createDynamicsCompressor(); cp.threshold.value = -14; b.out.disconnect(); b.out.connect(b.hp); b.hp.connect(b.lp); b.lp.connect(cp); cp.connect(ac.destination); } const t = ac.currentTime; b.hp.frequency.setTargetAtTime(lo, t, .25); b.lp.frequency.setTargetAtTime(hi, t, .25); };   // 11-04 生き物の目のときの聞こえる帯の模式（kit/ikimono.js）
+ QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) openObj(L); return !!L; };
 QW.sight = id => { const sp = C.sight.find(s => s.id === id); if (sp) enterSight(sp); };
 QW.wear = wearLayer; QW.sky = SKY; QW.descend = i => descendTo(i); QW.fly = () => startFly();
 QW.autoWalk = on => { WALK.auto = !!on; syncAutoBtn(); };
@@ -1903,7 +1915,7 @@ function frame() {
   { const hud = !(QW.mode === "walk" || QW.mode === "fly"); if (BLD.mass) BLD.mass.visible = !hud; if (BLD.mesh) BLD.mesh.visible = hud; if (BLD.lines) BLD.lines.visible = hud; }   // 11-02：歩く・飛ぶときは不透明の町並み、地図のときは HUD の箱と線
   if (BLD.lines) BLD.lines.material.opacity = QW.mode === "sight" ? .16 : .42;
   if (BLD.mat) BLD.mat.uniforms.amul.value += ((QW.mode === "fly" ? .7 : QW.mode === "sight" ? .06 : QW.mode === "sky" ? .45 : 1) - BLD.mat.uniforms.amul.value) * Math.min(1, dt * 3); DESAT.value += ((QW.mode === "sight" ? .8 : 0) - DESAT.value) * Math.min(1, dt * 3); if (BLD.lines) BLD.lines.material.opacity += ((QW.mode === "sight" ? .2 : .42) - BLD.lines.material.opacity) * Math.min(1, dt * 3);   // 2026-10-23 公開前：鳥の高さから見ると半透明の面が重なって町の外が水面に見えたので、sight では面をほとんど消し線を薄く   // 上から見ると面が重なって濃くなるので、面を薄く（線は残す）
-  { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
+  { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 220)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); if (!QW.mveil && START.sp && QW.farGM && QW.farGM.userData.gf.gfHole.value.z > QW.farGM.userData.gf.gfHole.value.x) { const h = QW.farGM.userData.gf.gfHole.value; QW.mveil = makeMapVeil({ THREE, parent: world, rect: [h.x, h.y, h.z, h.w], y0: groundY((h.x + h.z) / 2, (h.y + h.w) / 2), focus: START.sp.pins.filter(p => p.it.kind !== "here").map(p => [p.it.x, p.it.z]), fog: scene.fog }); } if (QW.mveil) { if (!QW.mveilLift && START.sp) { QW.mveil.lift(START.sp.group); QW.mveilLift = 1; } QW.mveil.update(dt, m === "sky" || m === "boot" || (m === "descend" && camH > 160)); }   /* 11-04 本人「四角い枠が見える＝境界を無くして」：地図の縁を楕円の霞で溶かす（kit/mapveil.js） */ CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 900;
     const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); HAZE.visible = CYBER.v.value < .5 && !VEIL.visible; if (HAZE.visible) { HAZE.position.copy(camera.position); HAZE.position.y = Math.min(camera.position.y, 60); HAZE.scale.setScalar(camera.far * .8); } if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   AREAS.update(dt, QW.mode);
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); stepSoundWalk(dt); MY.L?.update(dt); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
