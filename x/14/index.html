@@ -631,6 +631,6 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
 import("./web/app/app.js?v=20261104iki1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=5").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=14")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=6").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=15")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 </body></html>

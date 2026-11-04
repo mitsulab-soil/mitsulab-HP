@@ -21,13 +21,13 @@ export const IKIMONO = {
     say: "ミツバチの目に寄せました。人に見えない光〔紫外〕を青に、青を緑に置きかえた模式です。音は低いふるえだけに絞りました。花は、どこが光って見えますか。", band: [20, 500],
     sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
   chou: { name: "アゲハチョウ科", make: "chou", lens: "chou", mix: .8, eye: 1.3, fov: 62, back: .5, up: .3, size: .12, bob: .06, fly: true,
-    say: "アゲハチョウ科の目に寄せました。紫外から赤までを見分ける目の模式です。体は北米のジャイアントスワローテイル、目の数は日本のナミアゲハで測られたものです。葉の色の違いは、どう見えますか。",
+    say: "アゲハチョウ科の目に寄せました。色の見え方は、アゲハ属のナミアゲハで測られた、紫外から赤までを見分ける目の模式です。体は北米のジャイアントスワローテイルです。葉の色の違いは、どう見えますか。",
     sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H et al. (2008) J. Exp. Biol. 211:1223–1230" }] },
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: .8, eye: 1.1, fov: 60, back: .44, up: .12, size: .3, bob: .02, fly: true,
     say: "小鳥の目に寄せました。多くの鳥は紫外も見るとされ、ここでは紫の光に置きかえています。音は鳥のよく聴こえる帯に寄せています。枝の高さから、道はどう見えますか。", band: [300, 8000],
     sources: [{ claim: "多くの鳥は紫外に感じる錐体を含む四色型", cite: "Hart NS (2001) Prog. Retin. Eye Res. 20:675–703" }, { claim: "鳥のよく聴こえる帯はおよそ 1〜4 kHz", cite: "Dooling RJ (1982) Acoustic Communication in Birds, Academic Press" }] },
   inu: { name: "イヌ", make: "inu", lens: "inu", mix: 1, eye: 0, fov: 60, back: 1.05, up: .62, size: .55, bob: .015, fly: false,
-    say: "イヌの目の高さと色に寄せました。青と黄緑あたりの二色で見る模式です。赤い鳥居は、どんな色に見えますか。", band: [67, 20000],
+    say: "イヌの目の高さと色に寄せました。青と黄緑あたりの二色で見る模式です。赤い色のものは、どんな色に見えますか。", band: [67, 20000],
     sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE & Heffner RS (2007) Lab Animal 36(9):33–37" }] },
 };
 export function attachIkimono(QW, opt = {}) {
@@ -105,7 +105,7 @@ export function attachIkimono(QW, opt = {}) {
     { const gc = QW.groundAt ? QW.groundAt(C.x, C.z) : gy; if (C.y < gc + .12) C.y = gc + .12; }
     S.cam = S.cam ? S.cam.lerp(C, Math.min(1, dt * 7)) : C.clone();
     const k = S.k; camera.position.copy(S.cam);   // 11-04 P1：位置は混ぜない（混ぜている間、体がカメラの真下に隠れて碧だけが見えた）
-    L.copy(B).addScaledVector(F, back * .9); L.y += up * .25;   // 少し先を見る＝体は画面の中央の少し下
+    L.copy(B).addScaledVector(F, back * .9); L.y += up * .25 - (camera.aspect < 1 && !P.fly ? .3 : 0);   // 11-04 P2：縦長の画面では、地を歩く体を少し上に見せて下の字幕にかけない   // 少し先を見る＝体は画面の中央の少し下
     camera.lookAt(L);
     camera.fov = S.saved.fov + (P.fov - S.saved.fov) * k; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
     { const A = QW.AOI?.root; if (A && S.id && A.visible) { A.visible = false; S.aoiHid = true; } if (QW.AOISH?.visible && S.id) { QW.AOISH.visible = false; S.shHid = true; } }   // 11-04 P1：生き物の目のあいだ、碧は中央に立たない（描くときだけ外す）

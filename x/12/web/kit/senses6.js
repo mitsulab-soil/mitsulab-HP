@@ -44,6 +44,7 @@ body.hen #sndTag,body.qRingOpen #sndTag{visibility:hidden!important}
 #qIK{position:fixed;right:max(12px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;gap:6px;transition:opacity .4s}
 body:not([data-mode="walk"]) #qIK{opacity:0;pointer-events:none}
 #qIK button{all:unset;box-sizing:border-box;width:52px;min-height:52px;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:rgba(236,242,246,.86);background:rgba(8,13,22,.36);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(225,235,242,.18);-webkit-tap-highlight-color:transparent;transition:background .3s,color .3s;font-family:var(--mincho,"Shippori Mincho",serif)}
+#qIK{align-items:flex-end}#qIK button.long{width:auto;padding:0 8px}#qIK button.long span{max-width:none}
 #qIK button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}#qIK button svg .f{fill:currentColor;stroke:none}
 #qIK button span{font-size:9.5px;letter-spacing:.02em;line-height:1.15;white-space:nowrap;text-align:center;max-width:48px}
 #qIK button[aria-pressed="true"]{color:#0b1119;background:radial-gradient(120% 100% at 50% 20%,#fbfcfd,#d8e6ec);box-shadow:0 0 14px rgba(200,225,235,.45)}`;
@@ -52,7 +53,7 @@ body:not([data-mode="walk"]) #qIK{opacity:0;pointer-events:none}
   bar.innerHTML = SENSES.map(s => `<button type="button" data-k="${s.k}" aria-pressed="false" style="--c:${col(s.k)}"><svg viewBox="0 0 24 24" aria-hidden="true">${s.d}</svg><span>${s.n}</span></button>`).join("");
   document.body.appendChild(bar);
   const ik = document.createElement("nav"); ik.id = "qIK"; ik.setAttribute("aria-label", "生き物の目で歩く");
-  ik.innerHTML = xs.map(x => `<button type="button" data-id="${x.id}" aria-pressed="false" aria-label="${x.n}の目で歩く（もう一度押すと人の目へ）"><svg viewBox="0 0 24 24" aria-hidden="true">${x.d}</svg><span>${x.n.length > 4 ? x.n.replace(/^(.{3})(.+)$/, "$1<br>$2") : x.n}</span></button>`).join("");   /* 11-04：長い名（アゲハチョウ科）は 2 行に＝丸の幅に収める */
+  ik.innerHTML = xs.map(x => `<button type="button" data-id="${x.id}" aria-pressed="false" class="${x.n.length > 4 ? "long" : ""}" aria-label="${x.n}の目で歩く（もう一度押すと人の目へ）"><svg viewBox="0 0 24 24" aria-hidden="true">${x.d}</svg><span>${x.n}</span></button>`).join("");   /* 11-04：長い名（アゲハチョウ科）は 2 行に＝丸の幅に収める */
   document.body.appendChild(ik);
   const B = {}; for (const b of bar.querySelectorAll("button")) B[b.dataset.k] = b;
   const st = { k: null, id: null };
