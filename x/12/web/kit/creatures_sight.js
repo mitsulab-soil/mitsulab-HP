@@ -412,9 +412,12 @@ export function makeButterfly(kind = 'ageha', mat = stdMat, o = {}) {
 //   飛び方：数回はばたいては翼をたたむ、波形の飛び方。
 const FEATHER = (len, wid, asym = 0) => { const p = []; for (const [u, v] of [[0, -.28], [.25, -.5], [.6, -.48], [.85, -.34], [.97, -.12], [1, 0], [.97, .14], [.85, .36], [.6, .5], [.25, .5], [0, .28]]) p.push([v * wid * (v < 0 ? 1 - asym : 1 + asym), u * len]); return p; };
 function featherGeo(len, wid, asym) { const pts = FEATHER(len, wid, asym), s = new T.Shape(); s.moveTo(...pts[0]); for (const p of pts.slice(1)) s.lineTo(...p); s.closePath(); const g = new T.ShapeGeometry(s); const P = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < P.count; i++) uv.setXY(i, P.getX(i) / wid * .5 + .5, P.getY(i) / len); g.rotateX(-Math.PI / 2); return g; }   // 根もとが原点、羽の先が -Z
-const featherTex = (key, base, edge, tip, tipW) => ctex(key, 64, 128, (c, w, h) => { const gr = c.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, edge); gr.addColorStop(.42, base); gr.addColorStop(.5, '#2a2c30'); gr.addColorStop(.58, base); gr.addColorStop(1, base); c.fillStyle = gr; c.fillRect(0, 0, w, h);
-  for (let y = 0; y < h; y += 3) { c.strokeStyle = 'rgba(0,0,0,.08)'; c.beginPath(); c.moveTo(0, y + 6); c.lineTo(w / 2, y); c.lineTo(w, y + 6); c.stroke(); }
-  if (tip) { c.fillStyle = tip; c.fillRect(0, 0, w, h * tipW); } }, [1, 1]);
+/* 11-04 夜：羽を写実に寄せる＝外弁（外側の細い縁）は明るい青灰、内弁は暗い・細く白っぽい羽軸・羽枝の斜めの筋（明暗の二重）・先へ向けて一段暗く・縁にうすい淡色の縁どり。画面の上＝羽の先 */
+const featherTex = (key, base, edge, tip, tipW, fringe = 'rgba(206,212,218,.3)', soft = 0, edgeW = .22) => ctex(key + '3', 64, 128, (c, w, h) => { const gr = c.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, edge); gr.addColorStop(edgeW, edge); gr.addColorStop(.44, base); gr.addColorStop(.49, '#7c8086'); gr.addColorStop(.51, '#5a5e64'); gr.addColorStop(.56, base); gr.addColorStop(1, base); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+  for (let y = -8; y < h; y += 2) { c.strokeStyle = (y / 2 & 1) ? `rgba(0,0,0,${.13 * (1 - soft)})` : `rgba(255,255,255,${.06 * (1 - soft)})`; c.lineWidth = 1; c.beginPath(); c.moveTo(0, y + 9); c.lineTo(w * .48, y); c.moveTo(w * .52, y); c.lineTo(w, y + 9); c.stroke(); }
+  const sh = c.createLinearGradient(0, 0, 0, h); sh.addColorStop(0, 'rgba(10,12,16,.32)'); sh.addColorStop(.45, 'rgba(10,12,16,.08)'); sh.addColorStop(.85, 'rgba(0,0,0,0)'); c.fillStyle = sh; c.fillRect(0, 0, w, h);
+  if (tip) { const tg = c.createLinearGradient(0, 0, 0, h * tipW); tg.addColorStop(0, tip); tg.addColorStop(.75, tip); tg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = tg; c.fillRect(0, 0, w, h * tipW); }
+  c.strokeStyle = fringe; c.lineWidth = 2; c.beginPath(); c.moveTo(1, h * .2); c.quadraticCurveTo(w * .5, -h * .05, w - 1, h * .2); c.stroke(); }, [1, 1]);
 export function makeTit(mat = stdMat, o = {}) {
   const g = new T.Group(), body = new T.Group(); g.add(body);
   const K = 0x141518, Wt = 0xeceee8, GRN = 0x96a05a, BG = 0x74818f, BEL = 0xdfe1db, FL = 0xc6c9c0;
@@ -440,7 +443,7 @@ export function makeTit(mat = stdMat, o = {}) {
   addFur(bm, mat, { len: (u, v) => { const cy = Math.cos(v * TAU), env = sstep(.12, .28, u) * (1 - sstep(.56, .66, u)); return cy < -.15 ? .018 * env : cy < .3 ? .009 * env * sstep(.3, -.15, cy) : 0; }, dens: 150, thick: .58, root: .82, droop: .12, comb: [0, -.2, -1.4], temp: .95, sheen: 0xf8f8f0 });
   const headG = new T.Group(), HP = new T.Vector3(0, .07, .2); headG.position.copy(HP); body.add(headG);   // 首の軸
   const bill = new T.Mesh(sweep([[0, .074, .33], [0, .07, .37], [0, .064, .392]], tab([[0, .02], [1, .002]]), tab([[0, .018], [1, .002]]), () => 0x1d1e21, { n: 6, r: 8 }), mk(mat, 0xffffff, { vc: true, rough: .32, temp: .6, uv: .04, phys: { clearcoat: .5, clearcoatRoughness: .25 } })); bill.position.sub(HP); headG.add(bill);
-  const eyeM = wetEye(mat, 0x050506, { temp: .9 }); for (const s of [-1, 1]) { const e = ell(eyeM, s * .057, .1, .287, .014, .016, .015, 14); e.position.sub(HP); headG.add(e); }
+  const eyeM = wetEye(mat, 0x050506, { temp: .9 }); for (const s of [-1, 1]) { const e = ell(eyeM, s * .05, .1, .287, .012, .014, .013, 14); /* 11-05：目が頭の輪郭から球のように突き出て見えた＝少し内へ・小さく */ e.position.sub(HP); headG.add(e); }
   const P0 = Float32Array.from(bodyG.attributes.position.array), hW = new Float32Array(P0.length / 3); for (let i = 0; i < hW.length; i++) hW[i] = sstep(.15, .225, P0[i * 3 + 2]);
   let hy0 = 0, hp0 = 0; const _q = new T.Quaternion(), _e = new T.Euler(), _v = new T.Vector3();
   function poseHead(yaw, pitch) {   // 首から上の頂点を、重みつきで回す（くちばしと目は一緒に回る）
@@ -449,7 +452,7 @@ export function makeTit(mat = stdMat, o = {}) {
     P.needsUpdate = true; bodyG.computeVertexNormals(); seam(bodyG, 44, 24); }
   // 尾：12 枚の扇（外側ほど白い）
   const tailGeos = [];
-  for (let i = 0; i < 12; i++) { const u = i / 11 - .5, fg = featherGeo(.35, .055, 0); fg.rotateY(-u * .5); fg.translate(u * .05, -.004 + Math.abs(u) * -.006, -.15 - .002 * Math.abs(u)); const w = Math.abs(u) > .44 ? 1 : 0; const n = fg.attributes.position.count; fg.setAttribute('color', new T.BufferAttribute(new Float32Array(n * 3).fill(0), 3)); const cA = fg.attributes.color, cc = new T.Color(w ? 0xe8e8e2 : 0x56606e); for (let k = 0; k < n; k++) cA.setXYZ(k, cc.r, cc.g, cc.b); tailGeos.push(fg); }
+  for (let i = 0; i < 12; i++) { const u = i / 11 - .5, fg = featherGeo(.35, .066, 0); fg.rotateY(-u * .46); fg.translate(u * .05, -.004 + Math.abs(u) * -.006, -.15 - .002 * Math.abs(u)); const w = Math.abs(u) > .44 ? 1 : 0; const n = fg.attributes.position.count; fg.setAttribute('color', new T.BufferAttribute(new Float32Array(n * 3).fill(0), 3)); const cA = fg.attributes.color, cc = new T.Color(w ? 0xe8e8e2 : 0x56606e); for (let k = 0; k < n; k++) cA.setXYZ(k, cc.r, cc.g, cc.b); tailGeos.push(fg); }
   const tail = new T.Mesh(mergeGeometries(tailGeos), mk(mat, 0xffffff, { vc: true, map: featherTex('tf', '#c9cdd4', '#e8ebee', null), side: T.DoubleSide, rough: .8, temp: .8, uv: .2 }));
   const tailPiv = new T.Group(); tailPiv.position.set(0, -.005, -.15); tail.position.set(0, .005, .15); tailPiv.add(tail); body.add(tailPiv);
   // 脚と足指（前 3・後 1）
@@ -459,16 +462,20 @@ export function makeTit(mat = stdMat, o = {}) {
     legs.add(tube(legM, [[s * .032, -.155, .05], [s * .032, -.165, .005]], .005, .003, null, 3, 4)); }
   // 翼：はばたき・たたみを、羽一枚ずつの位置から毎こま組み直す（一枚の形にまとめて描く）
   const F = []; // { seg, x, ang0, angF, len, wid, asym, layer, tex }
-  for (let i = 0; i < 3; i++) F.push({ seg: 0, x: .05 + i * .045, a0: .12 - i * .05, aF: -1.15, len: .2, wid: .07, layer: .006, m: 1 });            // 三列風切
-  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .25, wid: .065, layer: .004 - i * .0002, m: 0 });       // 次列風切
-  for (let i = 0; i < 9; i++) F.push({ seg: 2, x: i * .006, a0: -.4 - i * .13, aF: -1.45 + i * .01, len: .25 + .12 * Math.sin(Math.min(1, i / 7) * Math.PI / 2), wid: .06, asym: .3, layer: -.002 * i, m: 0 });   // 初列風切
+  // 11-04 夜：羽の幅を広げて隣どうしを重ねる（細い刃が並ぶ櫛のように見えていた）。初列は先がとがり外弁が細い（asym）、三列は丸く広い
+  for (let i = 0; i < 3; i++) F.push({ seg: 0, x: .05 + i * .045, a0: .12 - i * .05, aF: -1.15, len: .2, wid: .105, layer: .006, m: 1 });            // 三列風切
+  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .25, wid: .1, layer: .004 - i * .0002, m: 0 });       // 次列風切
+  for (let i = 0; i < 9; i++) F.push({ seg: 2, x: i * .006, a0: -.4 - i * .13, aF: -1.45 + i * .01, len: .25 + .12 * Math.sin(Math.min(1, i / 7) * Math.PI / 2), wid: .085, asym: .45, layer: -.002 * i, m: 0 });   // 初列風切
   // 雨覆は、重なる羽どうしの高さを一枚ずつずらす（2026-10-13：同じ高さの羽が重なり、寄りで面に縞のちらつきが出ていた）
-  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .11, wid: .06, layer: .012 + i * .0009, m: 2 });                      // 大雨覆（先が白い＝翼の帯）
-  for (let i = 0; i < 5; i++) F.push({ seg: 2, x: i * .008, a0: -.5 - i * .2, aF: -1.45, len: .1, wid: .05, layer: .01 + i * .0009, m: 1 });                          // 初列雨覆
+  // 11-05 未明：雨覆を「管」でなく段に＝大・中・小の三段を、根もとから短い順に重ね、枚数を減らして一枚を広く（細い羽の並びが筒の畝に見えていた）
+  for (let i = 0; i < 7; i++) F.push({ seg: 1, x: .006 + i * .023, a0: -.05 - i * .03, aF: 1.35, len: .12, wid: .082, layer: .012 + i * .0009, m: 2 });                      // 大雨覆（先が白い＝翼の帯）
+  for (let i = 0; i < 5; i++) F.push({ seg: 2, x: i * .008, a0: -.5 - i * .2, aF: -1.45, len: .1, wid: .07, layer: .01 + i * .0009, m: 1 });                          // 初列雨覆
   // 小・中雨覆（前縁）：2026-10-13 大きな丸い板 2 枚をやめ、細い羽を並べて重ねた（たたんだ翼が板の重なりに見えたため）
-  for (let i = 0; i < 6; i++) F.push({ seg: 0, x: .01 + i * .024, a0: -.2 - i * .03, aF: -1.1, len: .11, wid: .055, layer: .02 + i * .0009, m: 3 });
-  for (let i = 0; i < 7; i++) F.push({ seg: 1, x: .005 + i * .02, a0: -.15 - i * .03, aF: 1.32, len: .085, wid: .05, layer: .026 + i * .0009, m: 3 });
-  const texs = [featherTex('wf', '#5c6878', '#9fb0c2', null), featherTex('wt', '#3c4450', '#eef0ea', null), featherTex('wc', '#6c7a8c', '#8394a8', '#f0f0ea', .32), featherTex('wl', '#7a8898', '#8696a8', null)];
+  for (let i = 0; i < 4; i++) F.push({ seg: 0, x: .02 + i * .033, a0: -.2 - i * .03, aF: -1.1, len: .08, wid: .075, layer: .016 + i * .0008, m: 3 });          // 小雨覆（上腕）
+  for (let i = 0; i < 6; i++) F.push({ seg: 1, x: .01 + i * .026, a0: -.12 - i * .03, aF: 1.32, len: .075, wid: .072, layer: .016 + i * .0008, m: 3 });          // 中雨覆（大雨覆の根もとを覆う一段）
+  for (let i = 0; i < 4; i++) F.push({ seg: 1, x: .015 + i * .036, a0: -.2 - i * .03, aF: 1.3, len: .045, wid: .068, layer: .02 + i * .0008, m: 3 });          // 小雨覆（前縁のいちばん上の段）
+  // 色の段（シジュウカラ）：風切は黒みの灰で外弁が青灰／三列風切は黒く白い縁／大雨覆は青灰で先が白（翼帯）／小・中雨覆は青灰
+  const texs = [featherTex('wf', '#353a42', '#a3b8cc', null, 0, undefined, 0, .3), featherTex('wt', '#222529', '#c9cdd0', null, 0, 'rgba(244,245,240,.75)', 0, .26), featherTex('wc', '#56616f', '#8091a5', '#f7f7f3', .24, undefined, .6), featherTex('wl', '#6c7a8b', '#8797aa', null, 0, 'rgba(160,176,192,.35)', .7)];   // 11-05：風切の外弁の青灰を太く明るく・翼帯の白を太く・雨覆の筋は弱く
   const wingMats = texs.map((tx, m) => { const wm = mk(mat, 0xffffff, { map: tx, side: T.DoubleSide, rough: .8, temp: .85, uv: .18 }); if (m >= 2) { wm.polygonOffset = true; wm.polygonOffsetFactor = -(m - 1); wm.polygonOffsetUnits = -(m - 1) * 2; } return wm; });   // 雨覆は風切より手前に描く（深さの取りあいで縞にならない）
   function wingMesh(side) {
     const geos = [], base = [];
@@ -485,16 +492,17 @@ export function makeTit(mat = stdMat, o = {}) {
     const s = mesh.userData.side, P = mesh.geometry.attributes.position, N = mesh.geometry.attributes.normal;
     const a1 = lerp(-.05 + sweepK, 1.25, fold), a2 = lerp(.05, -2.7, fold), a3 = lerp(-.02, 2.9, fold);
     const E = [LH * Math.cos(a1), -LH * Math.sin(a1)], W2 = [E[0] + LF * Math.cos(a1 + a2), E[1] - LF * Math.sin(a1 + a2)];
-    const ce = Math.cos(elev), se = Math.sin(elev), nx = -se, ny = ce;
+    const ce = Math.cos(elev), se = Math.sin(elev), nx = -se, ny = ce, sx0 = SH[0] + .03 * clamp(-elev - .6, 0, 1);   // 11-05：とまって翼を体の脇へ立てるとき、肩を少し外へ（体に埋もれない）
     let k = 0;
     for (const { f, b } of mesh.userData.F) {
       const segA = f.seg === 0 ? a1 : f.seg === 1 ? a1 + a2 : a1 + a2 + a3, root = f.seg === 0 ? [0, 0] : f.seg === 1 ? E : W2;
       const rx = root[0] + f.x * Math.cos(segA), rz = root[1] - f.x * Math.sin(segA), ang = segA + lerp(f.a0, f.aF, fold), ca = Math.cos(ang), sa = Math.sin(ang);
       for (let q = 0; q < b.length; q += 3, k++) {
         const fx = b[q], fy = b[q + 1] + f.layer + fold * (f.layer * 1.5), fz = b[q + 2];
-        const lx = rx + fx * ca + fz * sa, lz = rz - fx * sa + fz * ca;   // 羽を回して、根もとへ
+        let lx = rx + fx * ca + fz * sa; if (lx < 0) lx *= 1 - .9 * fold;   // 11-05：たたんだ翼の羽が背の内側へ越えると、肩の傾きで背から上へ針のように突き出ていた＝内へは越えさせない
+        const lz = rz - fx * sa + fz * ca;   // 羽を回して、根もとへ
         const wx = lx * ce - fy * se, wy = lx * se + fy * ce;             // はばたき（肩を軸に上下）
-        P.setXYZ(k, s * (SH[0] + wx), SH[1] + wy, SH[2] + lz); N.setXYZ(k, nx, s * ny, 0);
+        P.setXYZ(k, s * (sx0 + wx), SH[1] + wy, SH[2] + lz); N.setXYZ(k, nx, s * ny, 0);
       }
     }
     P.needsUpdate = true; N.needsUpdate = true;
@@ -502,6 +510,7 @@ export function makeTit(mat = stdMat, o = {}) {
   g.userData = { kind: 'tori', body, wings, tailPiv, legs, head: headG, cap: bm, state: o.state || 'fly', ph: o.ph || 0 };
   // とまっているとき（2026-10-13）：頭はすばやく向きを変えては止める（見回す）・尾をときどき上へはね上げる・数秒ごとに枝の上で跳ねて向きを変える・
   //   胸がふくらんでは戻る（息）・ときどき翼を小さくふるわせる。くわしくは 資料/調べたこと/生き物の動き_典拠.md
+  const PERCH_EL = +(o.perchEl ?? -1.0);   // とまったときの翼の傾き（11-05：-.32 では向こう側の翼の初列が背の上へ黒い針のように見えた＝体の脇へ沿わせる）
   let heading = 0, hopFrom = 0, hopTo = 0, hopK = -1, lastPose = -1;
   const perch = t => {
     const ph = g.userData.ph * 7, tt = t + ph;
@@ -519,7 +528,7 @@ export function makeTit(mat = stdMat, o = {}) {
     // 息（1 秒に 1 回ほど）・尾のはね上げ・翼のふるえ
     const br = 1 + .018 * Math.sin(tt * TAU * 1.1); body.scale.set(br, br, 1);
     tailPiv.rotation.x = -.1 + .05 * Math.sin(t * 1.7) - .45 * bout(t, 3.3, .35, ph) - .3 * (hu > .8 && hu < 1 ? 1 : 0);
-    const fl = bout(t, 7.5, .5, ph + 2); if (fl > .01 || lastPose !== 0) { for (const w of wings) poseWing(w, -.32 + .15 * fl * Math.abs(Math.sin(t * 40)), 1 - .15 * fl); lastPose = fl > .01 ? 1 : 0; }
+    const fl = bout(t, 7.5, .5, ph + 2); if (fl > .01 || lastPose !== 0) { for (const w of wings) poseWing(w, PERCH_EL + .15 * fl * Math.abs(Math.sin(t * 40)), 1 - .15 * fl); lastPose = fl > .01 ? 1 : 0; }
   };
   // はばたき（見やすさのため 1 秒に約 9 回にゆっくりしてある）と、たたんで弾む「波形の飛び方」
   g.userData.animate = (t, moving = true) => {

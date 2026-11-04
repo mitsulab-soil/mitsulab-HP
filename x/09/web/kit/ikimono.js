@@ -42,7 +42,7 @@ export function attachIkimono(QW, opt = {}) {
   function bodyOf(id) { return cache[id] ? Promise.resolve(cache[id]) : (pend[id] ||= build(id)); }
   async function build(id) {
     const P = IKIMONO[id];
-    mod ||= await import("./creatures_sight.js?v=3");
+    mod ||= await import("./creatures_sight.js?v=5");
     const c = P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : mod.makeDog();
     const g = new THREE.Group(); c.scale.setScalar(P.size); g.add(c); g.userData.c = c;
     g.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
