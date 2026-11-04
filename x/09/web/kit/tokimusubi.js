@@ -30,7 +30,7 @@ export function attachTokimusubi(q, { speak } = {}) {
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
   const grp = new THREE.Group(); grp.visible = false; grp.name = "tokimusubi";
   for (const s of SPOTS) {
-    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .6, fog: false, toneMapped: false }));
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .85, fog: false, toneMapped: false }));
     m.center.set(.5, 0); m.scale.set(s.w, s.h * 1.15, 1); m.position.set(s.p[0], s.p[1] - .2, s.p[2]); m.renderOrder = 3; grp.add(m);
   }
   (q.world || q.scene).add(grp);

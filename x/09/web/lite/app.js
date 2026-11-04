@@ -2819,7 +2819,7 @@ function frame() {
     const PU = SIGHT.post.mat.uniforms; PU.time.value += dt; SIGHT.ring = Math.max(0, (SIGHT.ring || 0) - dt / 1.1); PU.pulse.value = SIGHT.ring; PU.move.value += ((SIGHT.sp ? Math.min(1, Math.abs(SIGHT.v) / Math.max(.2, SIGHT.sp.speed || 1)) : 0) - PU.move.value) * Math.min(1, dt * 4);
     renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam);
   } else renderer.render(scene, camera);
-  if (QW.mode === "sky" || QW.mode === "descend" || QW.mode === "walk" || QW.mode === "fly") renderer.toneMappingExposure += ((QW.mode === "sky" ? .5 : 1.02) - renderer.toneMappingExposure) * Math.min(1, dt * 3);   // 3D 地図は暗めに（白すぎないように）
+  if (QW.mode === "sky" || QW.mode === "descend" || QW.mode === "walk" || QW.mode === "fly") renderer.toneMappingExposure += ((QW.mode === "sky" ? .5 : 1.02 * (QW.mode === "walk" ? (QW.nightExp ?? 1) : 1)) - renderer.toneMappingExposure) * Math.min(1, dt * 3);   /* 11-05 夜の暗さ（kit/yoru.js が QW.nightExp を決める） */   // 3D 地図は暗めに（白すぎないように）
   renderBody();
   // こまの速さを見て、画面の細かさを上げ下げする（落ち込みを止める）
   fpsAcc += dt; fpsN++; prT += dt;
