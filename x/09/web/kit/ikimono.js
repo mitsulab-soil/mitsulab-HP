@@ -10,17 +10,17 @@ import { LENS } from "./umwelt_lens.js?v=3";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 /* 2026-11-04 写実の 3D（Sketchfab・CC BY・Objaverse 経由）。読み込むまではコードの体を出し、読めたら差しかえる。
-   柴犬＝"Animated Dog, Shiba Inu" by quander／ジャイアントスワローテイル＝"Papilio cresphontes - Giant Swallowtail" by frankmcmains（出典は CREDITS） */
+   柴犬＝"Animated Dog, Shiba Inu" by quander（出典は CREDITS）。
+   蝶は 2026-11-05 本人の指示で北米の種（Papilio cresphontes）の写実モデルをやめ、日本の種＝ナミアゲハ（Papilio xuthus）を mitsulab が自作した体に（creatures_sight.js makeButterfly "ageha"。翅 4・脚 6・こん棒状の触角・尾状突起・後翅の青と橙の斑）。 */
 export const CREDITS = [
-  "柴犬の 3D：\"Animated Dog, Shiba Inu\" by quander（https://sketchfab.com/3d-models/animated-dog-shiba-inu-9abfce885a834399b2c3ccaed51cd474）CC BY 4.0・mitsulab が軽量化",
-  "蝶の 3D：\"Papilio cresphontes - Giant Swallowtail\" by frankmcmains（https://sketchfab.com/3d-models/papilio-cresphontes-giant-swallowtail-2671fc15b02642bfb20507c6e5f14d6b）CC BY 4.0・mitsulab が軽量化"];
-const GLB = { inu: { f: "shiba.glb", clip: "standing", rx: 0, ry: 0, foot: true }, chou: { f: "ageha.glb", rx: -Math.PI / 2 + .12, ry: Math.PI, flap: true } };
-const M_CHOU_RX = GLB.chou.rx;
+  "柴犬の 3D：\"Animated Dog, Shiba Inu\" by quander（https://sketchfab.com/3d-models/animated-dog-shiba-inu-9abfce885a834399b2c3ccaed51cd474）CC BY 4.0・mitsulab が軽量化"];
+const GLB = { inu: { f: "shiba.glb", clip: "standing", rx: 0, ry: 0, foot: true } };
+const M_CHOU_RX = 0;
 export const IKIMONO = {
   hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 3.2, eye: 1.0, fov: 80, back: .5, up: .16, size: .16, bob: .03, fly: true,
     say: "ミツバチの目の模式。赤は暗く、紫外は青に移し、像は粗く、視野は広く。", band: [20, 500],
     sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
-  chou: { name: "アゲハチョウ科", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .12, bob: .06, fly: true,
+  chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .12, bob: .06, fly: true,
     say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。",
     sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H et al. (2008) J. Exp. Biol. 211:1223–1230" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
