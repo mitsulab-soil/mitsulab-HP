@@ -6,7 +6,7 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
-import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261104b";
+import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261104c";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -433,9 +433,10 @@ function ensureBody(id) {
 const bodyA = {};
 // 2026-11-03 動いている間も 1 秒：生きものの体と、隠れている物（夜の蛾・土の中など）の材質を、起動のあとに裏で組んでおく（切り替えの一こまで組み直して 1〜4 秒止まっていた）
 let warmed = false;
+const slow = (k, t0) => { const d = performance.now() - t0; if (d > 30) (STARTUP.slow ||= []).push([k, Math.round(d), Math.round(t0)]); };   // 30ms を超えた裏の仕事を記録（コマ落ちの手がかり）
 async function warmAll() {
   if (warmed) return; warmed = true; const nx = () => new Promise(r => setTimeout(r, 0));
-  for (const id of LENS_IDS) { if (id !== 'hito') { ensureBody(id); await nx(); } }
+  for (const id of LENS_IDS) { if (id !== 'hito') { const t0 = performance.now(); ensureBody(id); slow('body:' + id, t0); await nx(); } }
   // 一つずつ、別の時間に組む（まとめて組むと 1 秒を超えて止まった）
   const comp = async (o, prep, undo) => { const hid = []; let q = o; o.traverse(c => { if (!c.visible) { hid.push(c); c.visible = true; } }); prep && prep(); let p; try { p = renderer.compileAsync(o, camera, scene); } catch (e) {} for (const c of hid) c.visible = false; undo && undo(); if (p) await p.catch(() => {}); await nx(); };
   for (const id in bodyMats) { const b = bodies[id]; if (!b) continue; await comp(b); const pa = bodyA[id] ?? 1; await comp(b, () => setBodyAlpha(id, .5), () => setBodyAlpha(id, pa)); }
@@ -1299,7 +1300,7 @@ STARTUP.sceneBuiltAt = performance.now();
   STARTUP.controlsReadyAt = performance.now();
   /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉を、一こまに一つずつ組み、材質を場面の外で組んでから森へ入れる（見た目・配置は前と同じ） */
   (async () => { const nf = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
-    for (const job of FOREST.later || []) { await nf(); const g = job();
+    for (const [ji, job] of (FOREST.later || []).entries()) { await nf(); const t0 = performance.now(); const g = job(); slow('later:' + ji, t0);
       g.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; for (const mt of [].concat(o.material)) worldMats.add(mt); let nc = !!o.userData.noCast; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; });
       if (renderer.compileAsync) { try { await renderer.compileAsync(g, camera, scene); } catch (e) {} }
       for (const c of [...g.children]) forest.add(c); }

@@ -502,24 +502,30 @@ export function buildForest(ctx) {
   });
 
   // ---------------------------------------------------------------- 草（草地は密に、林の中はまばら）と落ち葉
+  /* 2026-11-04 動いている間のコマ落ち：草と落ち葉を一つの仕事で組むと 0.1〜0.2 秒止まった → 4 つに分ける（乱数の順・配置は同じ） */
+  const GL = {};
   defer(() => {
     const n = mobile ? 2600 : 5200, bl = new THREE.PlaneGeometry(.016, .32, 1, 3); bl.translate(0, .16, 0);
     const p = bl.attributes.position, cs = []; for (let i = 0; i < p.count; i++) { const t = p.getY(i) / .32; if (t > .99) p.setX(i, 0); p.setZ(i, .07 * t * t); const c = .45 + .65 * t; cs.push(c, c, c); }
     bl.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3)); bl.computeVertexNormals();
-    const im = new THREE.InstancedMesh(bl, M(0xffffff, { side: THREE.DoubleSide, uv: .04, temp: .13, vc: true, wind: .04, windH: .4 }), n);
-    let k = 0;
-    for (let t = 0; k < n && t < n * 30; t++) { const x = rr(-28, 30), z = rr(-26, 27), L = lightAt(x, z); if (R() > .05 + L * .95 || !free(x, z, .05) || dPath(x, z) < .35) continue;
-      eul.set(rr(-.25, .25), R() * TAU, rr(-.25, .25)); quat.setFromEuler(eul); const s = (.6 + R() * .8) * (.6 + L * .7); m4.compose(new V3(x, 0, z), quat, new V3(s, s * (.8 + R() * .6), s)); im.setMatrixAt(k, m4);
-      im.setColorAt(k, col.setHSL(.2 + R() * .08 + L * .02, .38 + R() * .15, .26 + R() * .12 + L * .05)); k++; }
-    im.count = k; im.userData.noCast = true; im.raycast = () => {}; forest.add(im);
-    const ln = mobile ? 2600 : 6000, lg = new THREE.PlaneGeometry(.075, .075); lg.rotateX(-Math.PI / 2);
-    const lim = new THREE.InstancedMesh(lg, M(0xffffff, { map: litterTex, alphaTest: .5, side: THREE.DoubleSide, uv: .05, temp: .12 }), ln);
-    let j = 0;
-    for (let t = 0; j < ln && t < ln * 20; t++) { const x = rr(-26, 28), z = rr(-24, 26), L = lightAt(x, z); if (R() < L * .9 || !free(x, z, .02) || dPath(x, z) < .5) continue;
-      eul.set(rr(-.25, .25), R() * TAU, rr(-.25, .25)); quat.setFromEuler(eul); const s = rr(.7, 1.5); m4.compose(new V3(x, .006 + R() * .01, z), quat, new V3(s, 1, s * rr(.8, 1.4))); lim.setMatrixAt(j, m4);
-      lim.setColorAt(j, col.setHSL(rr(.05, .1), rr(.35, .6), rr(.22, .42))); j++; }
-    lim.count = j; lim.userData.noCast = true; lim.raycast = () => {}; forest.add(lim);
+    GL.g = { n, k: 0, t: 0, im: new THREE.InstancedMesh(bl, M(0xffffff, { side: THREE.DoubleSide, uv: .04, temp: .13, vc: true, wind: .04, windH: .4 }), n) };
+    grassTo(GL.g, n >> 1);
   });
+  const grassTo = (G, upto) => { const { n, im } = G;
+    for (; G.k < upto && G.t < n * 30; G.t++) { const x = rr(-28, 30), z = rr(-26, 27), L = lightAt(x, z); if (R() > .05 + L * .95 || !free(x, z, .05) || dPath(x, z) < .35) continue;
+      eul.set(rr(-.25, .25), R() * TAU, rr(-.25, .25)); quat.setFromEuler(eul); const s = (.6 + R() * .8) * (.6 + L * .7); m4.compose(new V3(x, 0, z), quat, new V3(s, s * (.8 + R() * .6), s)); im.setMatrixAt(G.k, m4);
+      im.setColorAt(G.k, col.setHSL(.2 + R() * .08 + L * .02, .38 + R() * .15, .26 + R() * .12 + L * .05)); G.k++; } };
+  defer(() => { const G = GL.g; grassTo(G, G.n); G.im.count = G.k; G.im.userData.noCast = true; G.im.raycast = () => {}; forest.add(G.im); });
+  const litterTo = (G, upto) => { const { n, im } = G;
+    for (; G.k < upto && G.t < n * 20; G.t++) { const x = rr(-26, 28), z = rr(-24, 26), L = lightAt(x, z); if (R() < L * .9 || !free(x, z, .02) || dPath(x, z) < .5) continue;
+      eul.set(rr(-.25, .25), R() * TAU, rr(-.25, .25)); quat.setFromEuler(eul); const s = rr(.7, 1.5); m4.compose(new V3(x, .006 + R() * .01, z), quat, new V3(s, 1, s * rr(.8, 1.4))); im.setMatrixAt(G.k, m4);
+      im.setColorAt(G.k, col.setHSL(rr(.05, .1), rr(.35, .6), rr(.22, .42))); G.k++; } };
+  defer(() => {
+    const ln = mobile ? 2600 : 6000, lg = new THREE.PlaneGeometry(.075, .075); lg.rotateX(-Math.PI / 2);
+    GL.l = { n: ln, k: 0, t: 0, im: new THREE.InstancedMesh(lg, M(0xffffff, { map: litterTex, alphaTest: .5, side: THREE.DoubleSide, uv: .05, temp: .12 }), ln) };
+    litterTo(GL.l, ln >> 1);
+  });
+  defer(() => { const G = GL.l; litterTo(G, G.n); G.im.count = G.k; G.im.userData.noCast = true; G.im.raycast = () => {}; forest.add(G.im); });
 
   // ---------------------------------------------------------------- 木もれ日の光の筋（すき間に。人・犬の受けとり方の昼だけ）
   {
