@@ -482,7 +482,8 @@ const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "
 async function loadAoi() {
   try {
     const K = await import("./kit/aoi.js");
-    aoi = await K.loadAoi(AOI_URL, { scene, height: MOBILE ? .6 : .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
+    const a = await K.loadAoi(AOI_URL, { scene, height: MOBILE ? .6 : .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
+    a.root.visible = false; try { const W = await import("./kit/warm.js"); await W.warmAoi(renderer, a.root, camera, scene, { batch: 2 }); } catch { } a.root.visible = true; aoi = a;   // 2026-11-05：碧が出る瞬間の止まりを分ける
     aoi.root.position.y = -.106; aoi.place(AOI_X, AOI_Z, .35);
     { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, AOI_Z); scene.add(sh);
@@ -605,6 +606,7 @@ resize();
 (async () => {
   try { applySurface(await loadSample(SAMPLES[0])); }
   catch (e) { console.error(e); }
+  try { const W = await import("./kit/warm.js"); await W.warmScene(renderer, scene, camera); } catch (e) { console.warn(e); }   // 2026-11-05：見せる前に材質を組み・絵を送る（最初のこまの止まりを分ける）
   window.MLLoader?.done();
   requestAnimationFrame(frame);
   setTimeout(() => { if (!said.hello) hello(); }, 1600);

@@ -665,7 +665,10 @@ async function loadAoi() {
     M = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .35, startCalm: 2.2, posture: "upright", faceLight: .5 });   // まっすぐ立ち、揺れを小さく（2026-10-13）
     M.place(A.pos.x, A.pos.z, Math.atan2(me.pos.x - A.pos.x, me.pos.z - A.pos.z));
     A.fade = 0; aoiOpacity(0);
-    try { for (const op of [1, 0]) { aoiOpacity(op); await warmAoi(renderer, aoi, camera, scene); await new Promise(r => setTimeout(r, 0)); } } catch {}   // 碧の顔の灯りも含めて（群ごと）   // 不透明・半透明の両方   // 2026-11-03：碧の影の計算を先に並列で（出るときのコマ落ちをなくす）
+    try {   /* 2026-11-05：現れ終わったあとの不透明の形は、写しの材質で先に組んで持っておく（同じ材質で組み直すと前の形が捨てられ、出たあと 1〜2 秒止まっていた）。見た目は変えない */
+      const { keepVariant } = await import("./kit/warm.js"); await keepVariant(renderer, aoi, camera, scene, k => { k.transparent = false; });
+      aoiOpacity(0); await warmAoi(renderer, aoi, camera, scene);
+    } catch {}   // 碧の顔の灯りも含めて（群ごと）   // 不透明・半透明の両方   // 2026-11-03：碧の影の計算を先に並列で（出るときのコマ落ちをなくす）
     { const tx = new Set(); aoi.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) for (const k in mt) { const t = mt[k]; if (t && t.isTexture) tx.add(t); } }); for (const t of tx) { renderer.initTexture(t); await new Promise(r => setTimeout(r, 0)); } }   // 絵の転送も 1 枚ずつ先に
     scene.remove(faceStub); scene.add(aoi);
     window.__aoi = { vrm, aoi, A, M };

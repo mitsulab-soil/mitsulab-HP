@@ -209,6 +209,7 @@ if (wantList) {
 async function start3D() {
   const THREE = await import("three");
   const K = await import("./kit/index.js");
+  const WM = await import("./kit/warm.js");   // 2026-11-05：見せる前に材質を組み・絵を送る（起動直後の止まりを分ける）
   const stage = $("#stage");
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   stage.append(renderer.domElement); renderer.domElement.tabIndex = -1;
@@ -383,7 +384,8 @@ async function start3D() {
   const aoiPos = compactView.matches ? at(aoiYaw0 + .14, 0, 3.3) : at(aoiYaw0 + .4, 0, 3.9); aoiPos.y = H(aoiPos.x, aoiPos.z);   // 最初の向きの右三分の一・カードの手前
   const ring = K.aoiRing({ r: .62 }); ring.position.copy(aoiPos).y += .02; scene.add(ring);
   // 碧はまっすぐ静かに立つ（2026-10-13）：共通部品の姿勢 upright（揺れ・重心の移しを小さく、息・まばたき・視線だけ）。風の裾も弱く
-  K.loadAoi(HP + "img/hero/aoi.vrm", { scene, onProgress: f => window.MLLoader?.progress(.55 + f * .4), wind: .2, posture: "upright" }).then(a => {
+  K.loadAoi(HP + "img/hero/aoi.vrm", { scene, onProgress: f => window.MLLoader?.progress(.55 + f * .4), wind: .2, posture: "upright" }).then(async a => {
+    a.root.visible = false; await WM.warmAoi(renderer, a.root, camera, scene, { batch: 2 }); a.root.visible = true;   // 2026-11-05：碧が出る瞬間の止まりを分ける
     aoi = a; a.root.position.copy(aoiPos);
     const m = a.motion;
     if (m.posture !== "upright" && m.pz) {   // 共通部品の loadAoi が posture をまだ渡さないとき：同じ upright の値をここで入れる
@@ -550,11 +552,11 @@ async function start3D() {
     aoi?.tick(dt, camera);
     if (aoi && aoi.motion.pos) { const q = aoi.motion.pos; ring.position.set(q.x, H(q.x, q.z) + .02, q.z); aoiHit?.position.set(q.x, H(q.x, q.z) + .85, q.z); }
     if (!(frameN++ % 12)) placeSubjLabels();
-    renderer.render(scene, camera);
+    if (texDone) renderer.render(scene, camera);   // 2026-11-05：材質を組み終えるまでは描かない（読み込み画面のうち）
     if (texDone && !shown) { shown = true; window.MLLoader?.done(); }
   }
   let texDone = false, shown = false;
-  Promise.race([Promise.all(texWait), new Promise(r => setTimeout(r, 1500))]).then(() => texDone = true);
+  Promise.race([Promise.all(texWait), new Promise(r => setTimeout(r, 1500))]).then(async () => { await WM.warmScene(renderer, scene, camera); texDone = true; });
   requestAnimationFrame(frame);
   window.MLLoader?.progress(.55);
 }

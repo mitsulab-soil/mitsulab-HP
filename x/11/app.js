@@ -213,9 +213,11 @@ function placeInRoom(it) {
   it.sho.setLight(room.sun);
   it.sho.setScale(innerHeight * R.getPixelRatio() * 0.9);
   if (!it.live && it.form !== 'layers' && it.form !== 'floor') { it.live = createLive(scene, it.sho, { mobile, RM, drops: false }); it.live.grid.position.x = it.x; it.live.grid.position.z = it.z; }
-}function buildHall(tex) {
+}async function buildHall(tex, warm = false) {
+  const nr = buildRoom('hall', { mobile, tex });
+  if (warm) try { const W = await WARM; await W.warmScene(R, scene, cam, { root: nr.group, batch: 2, offscreen: dof.on }); } catch { }   // 2026-11-05：新しい部屋は、組み終えてから古い部屋と入れかえる（見た目は同じ）
   if (room) { scene.remove(room.group); room.dispose(); }
-  room = buildRoom('hall', { mobile, tex });
+  room = nr;
   scene.add(room.group);
   scene.fog.density = room.fog * (dof.on ? 0.55 : 1); R.toneMappingExposure = room.expo * (+(q.get('ex') || 1.32));
 }
@@ -527,11 +529,13 @@ scene.add(paperG);
 resize();
 paintHall();
 showHint('<span>床を押すと、その向きへ歩く。</span><span>ドラッグで見回す。</span><span>書に触れると、その音が鳴る。</span>');
-const later = () => loadRoomTextures(R, mobile).then(t => {
-  ENV = t.env; buildHall(t);
+const WARM = import('./kit/warm.js');   // 2026-11-05：あとから足す物は、隠したまま材質を組んでから見せる（起動直後の止まりを分ける）
+const warmIn = async (objs) => { try { const W = await WARM; const vs = objs.map(o => o.visible); objs.forEach(o => o.visible = false); for (const o of objs) await W.warmScene(R, scene, cam, { root: o, batch: 2, offscreen: dof.on }); objs.forEach((o, i) => o.visible = vs[i]); } catch (e) { console.warn('warm', e); } };
+const later = () => loadRoomTextures(R, mobile).then(async t => {
+  ENV = t.env; await buildHall(t, true);
   works.forEach(it => { if (!it.sho) return; if (ENV) it.sho.setEnv(ENV, ENVG); it.sho.setLight(room.sun); });
 }).catch(e => console.warn('tex', e));
-const prepRest = async () => { for (const it of byNear) if (!it.sho) { try { await prepare(it); placeInRoom(it); HUBQ = null; } catch (e) { console.warn('prep', e); } await new Promise(r => setTimeout(r, 40)); } };
+const prepRest = async () => { for (const it of byNear) if (!it.sho) { try { await prepare(it); const n0 = scene.children.length; placeInRoom(it); await warmIn(scene.children.slice(n0)); HUBQ = null; } catch (e) { console.warn('prep', e); } await new Promise(r => setTimeout(r, 40)); } };
 const hiAll = async () => { const s = [...works].sort((a, b) => Math.hypot(a.x - P.x, a.z - P.z) - Math.hypot(b.x - P.x, b.z - P.z)); for (const it of s) await hiRes(it); };
 
 /* ── 碧（v9・本人「碧も登場させてください」）：広間に立ち、人が書に近づくと、その書の脇へ歩いて書に目を向け、短く語る（字幕だけ・声は作っていない）。書と紙の原本の前はふさがない ── */

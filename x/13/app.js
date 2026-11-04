@@ -49,6 +49,7 @@ const side = new THREE.Mesh(new THREE.CylinderGeometry(R, R * .97, DEPTH, 128, 1
 side.position.y = -DEPTH / 2; side.receiveShadow = true; scene.add(side);
 const bottom = new THREE.Mesh(new THREE.CircleGeometry(R * .97, 96), new THREE.MeshStandardMaterial({ color: 0x3c3a36, roughness: 1 })); bottom.rotation.x = Math.PI / 2; bottom.position.y = -DEPTH; scene.add(bottom);
 const groundMat = new THREE.MeshStandardMaterial({ color: 0x8a8070, roughness: .96 });
+{ const t0 = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); t0.colorSpace = THREE.SRGBColorSpace; t0.needsUpdate = true; groundMat.map = t0; }   // 2026-11-05：白い 1 点の仮の絵（見た目は同じ）。落ち葉の絵が届いたときに材質を組み直して止まらないように
 const ground = new THREE.Mesh(new THREE.CircleGeometry(R, 128), groundMat); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 new THREE.TextureLoader().load("tex/leaves.jpg", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3.2, 3.2); t.anisotropy = 8; groundMat.map = t; groundMat.color.set(0x9c9a90); groundMat.needsUpdate = true; });
 // 断面の縁の細い線（事実の線：層の境）
@@ -68,6 +69,7 @@ async function loadTree() {
   const bx = new THREE.Box3().setFromObject(tree), h = bx.max.y - bx.min.y, s = TREE_H / h; tree.scale.setScalar(s);
   const c = bx.getCenter(new THREE.Vector3()); tree.position.set(-c.x * s, -bx.min.y * s - .05, -c.z * s);
   tree.traverse(o => { if (!o.isMesh) return; o.castShadow = true; o.receiveShadow = true; if (/leaf|leaves/i.test(o.material.name + o.name)) { leafMat = o.material; leaves = o; leafMat.userData.base = leafMat.color.clone(); } });
+  try { const W = await import("./kit/warm.js"); await W.warmScene(renderer, scene, camera, { root: tree }); } catch {}   // 2026-11-05：絵を一こまずつ送り、材質を数個ずつ組む
   try { await renderer.compileAsync(tree, camera, scene); } catch {}   // 2026-11-03：影の計算を止めずに先に準備（コマ落ちを出さない）
   scene.add(tree); applySeason();
 }
@@ -310,7 +312,7 @@ const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "
 async function loadAoi() {
   try { const K = await import("./kit/aoi.js?v=62"); let held = null; const a0 = await K.loadAoi(AOI_URL, { scene: { add: o => { held = o; } }, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "auto" }); aoi = a0;   // 2026-11-03：シーンに入れる前に、碧の材質を並列で組み立てる（出るときに止まらない）
     if (held) { const ms = []; held.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) ms.push([mt, mt.transparent]); });
-      try { for (const [mt] of ms) { mt.transparent = false; mt.needsUpdate = true; } await K.warmAoi(renderer, held, camera, scene); for (const [mt] of ms) { mt.transparent = true; mt.needsUpdate = true; } await K.warmAoi(renderer, held, camera, scene); }   /* 11-03：テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */ catch {}
+      try { held.traverse(o => { if (o.isMesh) o.castShadow = true; }); const W = await import("./kit/warm.js"); await W.keepVariant(renderer, held, camera, scene, k => { k.transparent = false; }); for (const [mt] of ms) { mt.transparent = true; mt.needsUpdate = true; } await K.warmAoi(renderer, held, camera, scene); }   /* 2026-11-05：不透明の形は写しで組んで持っておく（同じ材質で続けて組むと前の形が捨てられ、出たあと 1 秒止まっていた） */   /* 11-03：テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */ catch {}
       scene.add(held); }
     aoi.place(-4.6, 2.0, .7);   /* 2026-11-03：「土の生きもの」の札と重ならない位置へ */ aoi.root.traverse(o => { if (o.isMesh) o.castShadow = true; }); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：木の手前の地面に立つ
   catch (e) { console.warn("碧：", e?.message ?? e); }
@@ -360,13 +362,15 @@ function frame(now) {
 // ---- 起動
 const QN = window.__qn = { frames: 0, ready: false, tree: () => !!tree, aoi: () => !!aoi, items: () => items.length, proj: id => { const x = items.find(x => x.id === id) || items[0]; _v.copy(x.pos).project(camera); const o = cv.getBoundingClientRect(); return { x: o.left + (_v.x * .5 + .5) * o.width, y: o.top + (-_v.y * .5 + .5) * o.height, id: x.id }; } };
 (async () => {
-  resize(); placeCam(); requestAnimationFrame(frame);
+  resize(); placeCam();
   try {
     const d = await (await fetch("nature.json")).json();
     items = d.items.map(x => ({ ...x, cat: cat(x) }));
     const rnd = mulberry(2026); items.forEach((x, i) => x.pos = place(x, i, rnd));
     buildMarks(); buildWeb(); buildUI(); applySeason(); first = items.find(x => x.id === "n_keyaki");
   } catch (e) { console.error("記録を読めませんでした", e); }
+  try { const W = await import("./kit/warm.js"); await W.warmScene(renderer, scene, camera); } catch (e) { console.warn(e); }   // 2026-11-05：最初のこまの前に材質を組む（読み込み画面のうち）
+  requestAnimationFrame(frame);
   const tr = loadTree().catch(e => console.warn("木：", e?.message ?? e));
   // 2026-11-03：起動 2 秒以内のため、木の 3D は読み込み画面のあとで現れる（待たない）
   window.MLLoader?.done();

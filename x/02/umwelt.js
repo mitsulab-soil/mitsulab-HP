@@ -440,7 +440,8 @@ async function warmAll() {
   for (const id of LENS_IDS) { if (id !== 'hito') { const t0 = performance.now(); ensureBody(id); slow('body:' + id, t0); await nx(); } }
   // 一つずつ、別の時間に組む（まとめて組むと 1 秒を超えて止まった）
   const comp = async (o, prep, undo) => { const hid = []; let q = o; o.traverse(c => { if (!c.visible) { hid.push(c); c.visible = true; } }); prep && prep(); let p; try { p = renderer.compileAsync(o, camera, scene); } catch (e) {} for (const c of hid) c.visible = false; undo && undo(); if (p) await p.catch(() => {}); await nx(); };
-  for (const id in bodyMats) { const b = bodies[id]; if (!b) continue; await comp(b); const pa = bodyA[id] ?? 1; await comp(b, () => setBodyAlpha(id, .5), () => setBodyAlpha(id, pa)); }
+  const KV = (await import("./kit/warm.js")).keepVariant;   // 2026-11-05：半透明の形は写しの材質で組んで持っておく（同じ材質で続けて組むと、前に組んだ不透明の形が捨てられ、体を入れかえたこまで 0.1〜0.2 秒止まっていた）
+  for (const id in bodyMats) { const b = bodies[id]; if (!b) continue; try { await KV(renderer, b, camera, scene, k => { k.transparent = true; }, { batch: 3 }); } catch (e) {} await comp(b); }
   const roots = []; scene.traverse(o => { if (!o.visible && o !== bodyRoot && !Object.values(bodies).includes(o)) { let p = o.parent, top = true; while (p) { if (roots.includes(p)) { top = false; break; } p = p.parent; } if (top) roots.push(o); } });
   for (const o of roots) await comp(o);
   STARTUP.warmedAt = performance.now();
@@ -873,6 +874,7 @@ async function setLens(id, silent = false, opt = {}) {
   for(const b of dial.children)b.setAttribute('aria-pressed',String(b.dataset.id===id));layoutBodyWheel();
   const was = LENS[lens];
   if (chapter !== "umwelt") { setChapter("umwelt", true); }
+  if (!STARTUP.warmedAt && renderer.compileAsync && id !== 'hito') { try { const b = ensureBody(id); if (b) { const hid = []; b.traverse(c => { if (!c.visible) { hid.push(c); c.visible = true; } }); const p = renderer.compileAsync(b, camera, scene); for (const c of hid) c.visible = false; const kv = import("./kit/warm.js").then(W => W.keepVariant(renderer, b, camera, scene, k => { k.transparent = true; }, { batch: 6 })); await Promise.race([Promise.all([p, kv]), new Promise(r => setTimeout(r, 450))]); } } catch (e) {} if (token !== lensToken) return; }   // 2026-11-05：まだ温め終わる前に体を入れかえたら、その体の材質だけ先に組む（入れかえたこまの 0.1〜0.2 秒の止まりを無くす）
   const applied=await veil(() => {
     if (!was.under) { gardenSave.pos.copy(me.pos); gardenSave.yaw = me.yaw; }
     lens = id; const L = LENS[id];
@@ -1277,7 +1279,7 @@ STARTUP.sceneBuiltAt = performance.now();
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
   const aoiReady = loadAoi().then(async () => {
-    if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); for (const op of [1, 0]) { opacity(op); await warmAoi(renderer, aoi, camera, scene, { batch: 1 }); } scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
+    if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); try { await (await import("./kit/warm.js")).keepVariant(renderer, aoi, camera, scene, k => { k.transparent = false; }); } catch (e) {} for (const op of [1, 0]) { opacity(op); await warmAoi(renderer, aoi, camera, scene, { batch: 1 }); }   /* 2026-11-05：不透明の形も写しで持っておく */ scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
     if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.0 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
