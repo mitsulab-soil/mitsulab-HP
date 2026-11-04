@@ -10,6 +10,7 @@ export function start(box){
   const S=new THREE.Scene(); S.fog=new THREE.Fog(0x05080f,11,22);
   const C=new THREE.PerspectiveCamera(32,1,.1,60);
   const W=new THREE.Group(); S.add(W);   // 回す世界
+  const Q=[];   // 3D の読み込みは一つずつ、間をあけて（読み込み中のこま落ちを抑える）
   let vis=true, raf=0, dirty=1, last=performance.now(), T0=last, auto=0;
   // 光：上の斜めから主の光、奥から水色の縁の光、地からの返し
   S.add(new THREE.HemisphereLight(0xcfe4ff,0x1a1408,.9));
@@ -97,33 +98,33 @@ export function start(box){
     const st=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.9,6),new THREE.MeshBasicMaterial({color:0xc9b8ff,transparent:true,opacity:.5,toneMapped:false})); st.position.set(.1,.55,.05); g.add(st);
     at(s,g); anim.push(t=>{pin.position.y=1.1+Math.sin(t*1.4)*.04;pinB.position.y=pin.position.y+.12;}); }
   // ミツバチ（形態は creatures.js の写実の造形＝頭・胸・腹、4 枚の翅、6 本の脚）。花の上でホバリング
-  (async()=>{try{const {makeBee}=await import('./kit/creatures.js');const s=SUB[1],b=makeBee();b.scale.setScalar(.5);const g=new THREE.Group();g.add(b);
+  Q.push(async()=>{try{const {makeBee}=await import('./kit/creatures.js');const s=SUB[1],b=makeBee();b.scale.setScalar(.5);const g=new THREE.Group();g.add(b);
     const fl=new THREE.Group();const stem=new THREE.Mesh(new THREE.CylinderGeometry(.012,.018,.6,6),std(0x5f7a3a,{r:.8,m:0}));stem.position.y=.3;fl.add(stem);
     for(let i=0;i<6;i++){const pt=new THREE.Mesh(new THREE.SphereGeometry(.07,10,6),std(0xf2efe6,{r:.7,m:0}));pt.scale.set(1,.25,.55);const a=i/6*Math.PI*2;pt.position.set(Math.cos(a)*.08,.6,Math.sin(a)*.08);pt.rotation.y=-a;fl.add(pt);}
     const ce=new THREE.Mesh(new THREE.SphereGeometry(.04,10,8),std(0xe0b030,{r:.8,m:0}));ce.position.y=.62;fl.add(ce);fl.position.set(.15,0,.12);g.add(fl);
-    at(s,g);b.position.y=.95;anim.push(t=>{b.position.set(Math.sin(t*.9)*.05,.95+Math.sin(t*2.1)*.03,Math.cos(t*.7)*.04);b.userData.animate&&b.userData.animate(t,true);});dirty=1;}catch(e){console.warn('cg bee',e);}})();
+    at(s,g);b.position.y=.95;anim.push(t=>{b.position.set(Math.sin(t*.9)*.05,.95+Math.sin(t*2.1)*.03,Math.cos(t*.7)*.04);b.userData.animate&&b.userData.animate(t,true);});dirty=1;}catch(e){console.warn('cg bee',e);}});
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
-  (async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false});const s=SUB[0],g=new THREE.Group();
+  Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(3.4);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xfff0dd,2.2,2.6,1.5);pl.position.set(.3,1.2,.6);g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}})();
+    m.object.scale.setScalar(3.4);m.object.position.y=.24;g.add(m.object);m.play(m.clips.includes('perch')?'perch':m.info.main);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
-  (async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
+  Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
     const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3()),k=1.72/sz.y;o.scale.setScalar(k);o.position.set(-(bb.min.x+sz.x/2)*k,-bb.min.y*k,-(bb.min.z+sz.z/2)*k);
-    const p=new THREE.Group();p.add(o);const s=SUB[2];at(s,p);p.rotation.y=s.ry+Math.PI*.82;dirty=1;}catch(e){console.warn('cg human',e);}})();
+    const p=new THREE.Group();p.add(o);const s=SUB[2];at(s,p);p.rotation.y=s.ry+Math.PI*.82;dirty=1;}catch(e){console.warn('cg human',e);}});
   // 依代（碧）：重なりの真ん中に立つ（ほかの図と同じ VRM のバイト列を使い回す）
   let mot=null,vrm=null,aoiP=null,aoiN=0;
-  (async()=>{try{const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
+  Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);L.register(p=>new V.VRMLoaderPlugin(p));
     const buf=await(window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())));const g=await L.parseAsync(buf.slice(0),'');
     vrm=g.userData.vrm;V.VRMUtils.removeUnnecessaryVertices(g.scene);V.VRMUtils.rotateVRM0(vrm);vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
     const p=new THREE.Group();p.add(vrm.scene);p.visible=false;aoiP=p;W.add(p);vrm.humanoid.resetNormalizedPose();vrm.update(0);
     const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.62/(bb.max.y-bb.min.y));blob(new THREE.Vector3(),.5);
     const {AoiMotion}=await import('./aoi_motion.js?v=20261026-v61');mot=new AoiMotion(vrm,{root:p,reducedMotion:reduce,wind:.2,faceViewer:false,startCalm:1,posture:'upright',uprightWeight:.9});mot.faceTo(0);dirty=1;
-  }catch(e){console.warn('cg aoi',e);}})();
+  }catch(e){console.warn('cg aoi',e);}});
   // ---- 札（index.html の .cg-lb）を 3D の位置へ写す
   const st=box.querySelector('.cg-st'); const LB={};st.querySelectorAll('.cg-lb').forEach(d=>LB[d.dataset.k]=d);
-  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().setY(s.h+.15)})).concat([{k:'aoi',p:new THREE.Vector3(0,1.9,0)},{k:'core',p:new THREE.Vector3(0,.02,2.3)},{k:'phys',p:new THREE.Vector3(-4.9,.45,2.2)},{k:'digi',p:new THREE.Vector3(4.6,2.85,-2.4)}]);
+  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().multiplyScalar(mob?1.32:1.2).setY(s.h+.15)})).concat([{k:'aoi',p:new THREE.Vector3(0,1.9,0)},{k:'core',p:new THREE.Vector3(0,.02,2.3)},{k:'phys',p:new THREE.Vector3(-4.9,.45,2.2)},{k:'digi',p:new THREE.Vector3(4.6,2.85,-2.4)}]);
   const v=new THREE.Vector3(), vc=new THREE.Vector3();
   // 視点：ゆっくり左右にめぐる。横になぞると回せる（縦のスクロールは止めない）
   let yaw=0, drag=null, user=0;
@@ -146,18 +147,24 @@ export function start(box){
     const box_=[];
     for(const a of anchors){const d=LB[a.k];if(!d)continue;v.copy(a.p).applyMatrix4(W.matrixWorld);const dz=v.clone().applyMatrix4(C.matrixWorldInverse).z;v.project(C);
       let x=(v.x*.5+.5)*wpx,y=(-v.y*.5+.5)*hpx;
-      if(a.k==='aoi'||a.k==='core'){d.style.transform=`translate(${x}px,${y}px) translate(-50%,${a.k==='aoi'?'-100%':'0'})`;continue;}
-      if(a.k==='phys'||a.k==='digi'){const dw=d.offsetWidth;let lx=a.k==='phys'?x:x-dw;lx=Math.max(2,Math.min(wpx-dw-2,lx));d.style.transform=`translate(${lx}px,${y}px) translate(0,-50%)`;continue;}
+      if(a.k==='aoi'||a.k==='core'){const dw=d.offsetWidth,dh=d.offsetHeight;box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y,dw,dh,fix:1});continue;}
+      if(a.k==='phys'||a.k==='digi'){const dw=d.offsetWidth,dh=d.offsetHeight;let lx=a.k==='phys'?x:x-dw;lx=Math.max(2,Math.min(wpx-dw-2,lx));box_.push({d,lx,ly:y-dh/2,dw,dh});continue;}
       const left=x<cx, up=y<cy, dw=d.offsetWidth, dh=d.offsetHeight; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(2,Math.min(wpx-dw-2,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
 }
     // 札どうしが重なったら、上下へ押し分ける（数回）
-    for(let it=0;it<4;it++)for(let i=0;i<box_.length;i++)for(let j=i+1;j<box_.length;j++){const A=box_[i],B=box_[j];
-      if(A.lx<B.lx+B.dw&&B.lx<A.lx+A.dw&&A.ly<B.ly+B.dh&&B.ly<A.ly+A.dh){const o=(Math.min(A.ly+A.dh,B.ly+B.dh)-Math.max(A.ly,B.ly))/2+2;if(A.ly<B.ly){A.ly-=o;B.ly+=o;}else{A.ly+=o;B.ly-=o;}}}
+    for(let it=0;it<6;it++)for(let i=0;i<box_.length;i++)for(let j=i+1;j<box_.length;j++){const A=box_[i],B=box_[j];
+      if(A.lx<B.lx+B.dw&&B.lx<A.lx+A.dw&&A.ly<B.ly+B.dh&&B.ly<A.ly+A.dh){const o=(Math.min(A.ly+A.dh,B.ly+B.dh)-Math.max(A.ly,B.ly))/2+2;const fa=A.fix?0:B.fix?2:1,fb=2-fa;if(A.ly<B.ly){A.ly-=o*fa;B.ly+=o*fb;}else{A.ly+=o*fa;B.ly-=o*fb;}}}
     for(const q of box_){q.ly=Math.max(2,Math.min(hpx-q.dh-2,q.ly));q.d.style.transform=`translate(${q.lx}px,${q.ly}px)`;}
     if(!st.classList.contains('on'))st.classList.add('on');
   }
   function loop(n){raf=0;if(!vis)return;const dt=Math.min(.05,(n-last)/1000);last=n;
     if(reduce&&!dirty&&!drag)return; dirty=0; frame((n-T0)/1000,dt); raf=requestAnimationFrame(loop);}
-  raf=requestAnimationFrame(loop);
+  const idle=()=>new Promise(r=>window.requestIdleCallback?requestIdleCallback(r,{timeout:600}):setTimeout(r,60));
+  const comp=async o=>{try{if(R.compileAsync)await R.compileAsync(o,C,S);}catch(e){}};
+  (async()=>{ await comp(S); raf=requestAnimationFrame(loop);
+    for(const f of Q){ await idle(); const n0=W.children.length; const hold=[];
+      // 足した物は、絵の具（シェーダー）を裏で作り終えてから場に出す
+      const add0=W.add.bind(W); W.add=(...o)=>{hold.push(...o);return W;}; try{await f();}finally{W.add=add0;}
+      for(const o of hold){const v=o.visible;o.visible=true;await comp(o);o.visible=v;W.add(o);} dirty=1; } })();
   if(reduce){const tick=()=>{if(dirty&&vis&&!raf)raf=requestAnimationFrame(loop);};setInterval(tick,400);}
 }
