@@ -202,11 +202,13 @@ export function buildForest(ctx) {
     sugi: M(0xffffff, { std: true, map: sugiBark, rough: 1, env: .25, uv: .05, temp: .1 }),
   };
   const woodChunks = new Map(), leafCards = { konara: [], keyaki: [], momiji: [], sugi: [] };
-  const addWood = (kind, x, z, geo) => { const C = near(x, z, 0) ? 20 : 48, key = kind + ":" + C + ":" + Math.floor(x / C) + ":" + Math.floor(z / C); (woodChunks.get(key) || woodChunks.set(key, []).get(key)).push(strip(geo)); };
+  const addWood = (kind, x, z, geo) => { const C = near(x, z, 0) ? 20 : 48, key = kind + ":" + C + ":" + Math.floor(x / C) + ":" + Math.floor(z / C); (woodChunks.get(key) || woodChunks.set(key, []).get(key)).push(C === 20 ? strip(geo()) : geo); };
+  /* 2026-11-04 起動 1 秒へ：遠くの幹の形（管の計算）は、乱数を使い終えた引数だけ先に決め、形はあとで作る（形・配置は同じ） */
+  const lazy = (f, ...a) => () => f(...a);
   function limb(from, dir, len, r0, depth, sp, acc, det) {
     const pts = [from.clone()]; let p = from.clone(); const d = dir.clone(), n = det ? 4 : 3;
     for (let i = 1; i <= n; i++) { d.add(new V3((R() - .5) * sp.wig, .04, (R() - .5) * sp.wig)).normalize(); p = p.clone().addScaledVector(d, len / n); pts.push(p); }
-    const r1 = r0 * .55; acc.geos.push(taperTube(pts, r0, r1, det ? 6 : 4, det ? 6 : 3));
+    const r1 = r0 * .55; acc.geos.push(lazy(taperTube, pts, r0, r1, det ? 6 : 4, det ? 6 : 3));
     if (depth > 0) acc.mids.push(p.clone());
     if (depth > 0) for (let j = 0; j < sp.fork; j++) { const a = j / sp.fork * TAU + R() * 2.2; limb(pts[n - (j % 2)], new V3(d.x + Math.cos(a) * sp.sub, d.y + sp.up, d.z + Math.sin(a) * sp.sub).normalize(), len * sp.decay, r1, depth - 1, sp, acc, det); }
     else acc.tips.push(p);
@@ -215,8 +217,8 @@ export function buildForest(ctx) {
     const sp = SP[kind], acc = { geos: [], tips: [], mids: [] }, base = new V3(x, 0, z);
     if (kind === "sugi") {
       const H = rr(17, 24) * scale, r0 = rr(.24, .34) * scale;
-      acc.geos.push(taperTube([base, new V3(x + rr(-.15, .15), H * .5, z + rr(-.15, .15)), new V3(x, H, z)], r0, .03, det ? 8 : 5, det ? 6 : 3, 1));
-      acc.geos.push(geoAt(new THREE.CylinderGeometry(r0 * 1.05, r0 * 1.5, .4, det ? 8 : 5), { x, y: .2, z }));
+      acc.geos.push(lazy(taperTube, [base, new V3(x + rr(-.15, .15), H * .5, z + rr(-.15, .15)), new V3(x, H, z)], r0, .03, det ? 8 : 5, det ? 6 : 3, 1));
+      acc.geos.push(() => geoAt(new THREE.CylinderGeometry(r0 * 1.05, r0 * 1.5, .4, det ? 8 : 5), { x, y: .2, z }));
       const y0 = H * rr(.32, .42), step = det ? .55 : 1.1, cards = [];
       for (let y = y0; y < H; y += step) { const k = (H - y) / (H - y0), cr = .35 + k * rr(2, 2.6) * scale, n = Math.round((det ? 6 : 4) * (.5 + k));
         for (let i = 0; i < n; i++) { const a = R() * TAU, rd = cr * (.35 + R() * .65), pos = new V3(x + Math.cos(a) * rd, y + rr(-.2, .2), z + Math.sin(a) * rd), o = new V3(Math.cos(a), -.25 - R() * .3, Math.sin(a)).normalize();
@@ -228,8 +230,8 @@ export function buildForest(ctx) {
     }
     const tH = rr(...sp.trunkH) * scale, r0 = rr(...sp.r) * scale, lean = new V3(rr(-.12, .12), 1, rr(-.12, .12)).normalize();
     const top = base.clone().addScaledVector(lean, tH);
-    acc.geos.push(taperTube([base, base.clone().lerp(top, .5).add(new V3(rr(-.1, .1), 0, rr(-.1, .1))), top], r0, r0 * .78, det ? 10 : 6, det ? 6 : 3));
-    if (det) acc.geos.push(geoAt(new THREE.CylinderGeometry(r0, r0 * 1.45, .45, 10, 1, true), { x, y: .2, z }));   // 根張り
+    acc.geos.push(lazy(taperTube, [base, base.clone().lerp(top, .5).add(new V3(rr(-.1, .1), 0, rr(-.1, .1))), top], r0, r0 * .78, det ? 10 : 6, det ? 6 : 3));
+    if (det) acc.geos.push(() => geoAt(new THREE.CylinderGeometry(r0, r0 * 1.45, .45, 10, 1, true), { x, y: .2, z }));   // 根張り
     const nL = Math.round(rr(...sp.limbs)), a0 = R() * TAU;
     for (let k = 0; k < nL; k++) { const a = a0 + k / nL * TAU + rr(-.3, .3); limb(top.clone().add(new V3(0, -rr(0, .5), 0)), new V3(Math.cos(a) * sp.spread, 1, Math.sin(a) * sp.spread).normalize(), rr(...sp.len) * scale, r0 * .62, det ? 1 : 0, sp, acc, det); }
     // 葉：枝先のまわりに、外と上へ向けて房を散らす
@@ -259,7 +261,7 @@ export function buildForest(ctx) {
   let nM = 0;
   for (let i = 0; i < 3000 && nM < (mobile ? 26 : 44); i++) { const x = rr(-34, 36), z = rr(-32, 34); if (!canopyOK(x, z) || inSugi(x, z) || lightAt(x, z) > .55 || !farEnough(x, z, 3)) continue; put(x, z, "momiji"); tree("momiji", x, z, near(x, z, 2), rr(.8, 1.2)); nM++; }
   // 幹（材ごと・24 m 四方ごとに一つ）
-  const wood = (key, gs) => { const mesh = new THREE.Mesh(mergeGeometries(gs), barkM[key.split(":")[0]]); mesh.castShadow = true; forest.add(mesh); sonic.push(mesh); };
+  const wood = (key, gs) => { const mesh = new THREE.Mesh(mergeGeometries(gs.map(g => typeof g === 'function' ? strip(g()) : g)), barkM[key.split(":")[0]]); mesh.castShadow = true; forest.add(mesh); sonic.push(mesh); };
   for (const [key, gs] of woodChunks) if (key.split(":")[1] === "20") wood(key, gs); else defer(() => wood(key, gs));   // 近く（20 m 升）の幹は先に、遠く（48 m 升）はあとで
   // 葉の房
   const cardGeo = L => { const g = new THREE.PlaneGeometry(L, L); g.translate(0, L / 2, 0); return g; };
