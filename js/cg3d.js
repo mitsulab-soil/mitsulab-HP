@@ -10,6 +10,7 @@ export function start(box){
   const S=new THREE.Scene(); S.fog=new THREE.Fog(0x05080f,11,22);
   const C=new THREE.PerspectiveCamera(32,1,.1,60);
   const W=new THREE.Group(); S.add(W);   // 回す世界
+  const WQ=[];   // 裏で一つずつ GPU へ送る（毎こま一つだけ、本番の描画の前に）
   const Q=[];   // 3D の読み込みは一つずつ、間をあけて（読み込み中のこま落ちを抑える）
   let vis=true, raf=0, dirty=1, last=performance.now(), T0=last, auto=0;
   // 光：上の斜めから主の光、奥から水色の縁の光、地からの返し
@@ -142,6 +143,7 @@ export function start(box){
     sheets.forEach(m=>m.uniforms.t.value=t); lineM.uniforms.t.value=t; shells.forEach((o,i)=>o.material.uniforms.t.value=t+i); W.userData.pts.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     anim.forEach(f=>f(t,dt));
     if(mot){mot.update(dt,C,{vrmUpdate:false});vrm.update(dt);mot.afterVrmUpdate(dt);if(!aoiP.visible&&++aoiN>3)aoiP.visible=true;}
+    if(WQ.length)WQ.shift()();
     R.render(S,C);
     vc.set(0,1,0).applyMatrix4(W.matrixWorld).project(C); const cx=(vc.x*.5+.5)*wpx, cy=(-vc.y*.5+.5)*hpx;
     const box_=[];
@@ -159,8 +161,18 @@ export function start(box){
   }
   function loop(n){raf=0;if(!vis)return;const dt=Math.min(.05,(n-last)/1000);last=n;
     if(reduce&&!dirty&&!drag)return; dirty=0; frame((n-T0)/1000,dt); raf=requestAnimationFrame(loop);}
+  const S2=new THREE.Scene(); S2.fog=S.fog; S.children.filter(o=>o.isLight).forEach(l=>S2.add(l.clone()));
   const idle=()=>new Promise(r=>window.requestIdleCallback?requestIdleCallback(r,{timeout:600}):setTimeout(r,60));
-  const comp=async o=>{try{if(R.compileAsync)await R.compileAsync(o,C,S);}catch(e){}};
+  const comp=async o=>{try{if(R.compileAsync)await R.compileAsync(o,C,S);
+    // 絵（テクスチャ）も一枚ずつ、空いた時間に GPU へ送っておく（最初に描くときのつかえを無くす）
+    const tx=new Set();o.traverse(m=>{[].concat(m.material||[]).forEach(mt=>{for(const k in mt){const v=mt[k];if(v&&v.isTexture)tx.add(v);}if(mt.uniforms)for(const k in mt.uniforms){const v=mt.uniforms[k].value;if(v&&v.isTexture)tx.add(v);}});});
+    for(const t of tx){await idle();R.initTexture(t);}
+    // 形（頂点の束）も一つずつ、1×1 の裏の画面へ一度描いて GPU に送っておく
+    const ms=[];o.traverse(m=>{if(m.isMesh||m.isPoints||m.isLine)ms.push(m);});
+    for(const m of ms){await idle();let p;if(m.isSkinnedMesh){p=new THREE.SkinnedMesh(m.geometry,m.material);p.bind(m.skeleton,m.bindMatrix);}else p=new (m.isInstancedMesh?THREE.InstancedMesh:m.isPoints?THREE.Points:m.isLineSegments?THREE.LineSegments:m.isLine?THREE.Line:THREE.Mesh)(m.geometry,m.material,m.count);
+      if(m.isInstancedMesh){p.instanceMatrix=m.instanceMatrix;}if(m.morphTargetInfluences){p.morphTargetInfluences=m.morphTargetInfluences;p.morphTargetDictionary=m.morphTargetDictionary;}
+      p.frustumCulled=false;p.onBeforeRender=m.onBeforeRender;dirty=1;await new Promise(r=>WQ.push(()=>{S2.add(p);R.setScissorTest(true);R.setScissor(0,0,1,1);R.render(S2,C);R.setScissorTest(false);S2.remove(p);r();}));} }catch(e){console.warn('cg warm',e);}};
+  
   (async()=>{ await comp(S); raf=requestAnimationFrame(loop);
     for(const f of Q){ await idle(); const n0=W.children.length; const hold=[];
       // 足した物は、絵の具（シェーダー）を裏で作り終えてから場に出す
