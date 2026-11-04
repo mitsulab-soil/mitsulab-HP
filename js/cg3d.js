@@ -24,7 +24,7 @@ export function start(box){
   const labs=subs.map(s=>{const d=document.createElement('span');d.className='cg-lb';d.textContent=s.n;d.setAttribute('data-i18n-en',s.e);box.appendChild(d);return d;});
   const mid=document.createElement('span');mid.className='cg-lb cg-mid';mid.textContent='共有の場';mid.setAttribute('data-i18n-en','Shared place');box.appendChild(mid);
   if(document.documentElement.getAttribute('data-lang')==='en'){labs.concat(mid).forEach(d=>d.textContent=d.getAttribute('data-i18n-en'));}
-  function size(){const w=box.clientWidth,h=box.clientHeight;R.setSize(w,h,false);C.aspect=w/h;C.position.z=w<500?10:9;C.updateProjectionMatrix();}
+  function size(){const w=box.clientWidth,h=box.clientHeight;R.setSize(w,h,false);C.aspect=w/h;C.position.z=w<500?8.6:9;C.updateProjectionMatrix();}
   size(); addEventListener('resize',size);
   let vis=true, raf=0, t0=performance.now(), v=new THREE.Vector3();
   new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf&&!reduce)raf=requestAnimationFrame(loop);}).observe(box);
