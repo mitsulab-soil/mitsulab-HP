@@ -447,6 +447,13 @@ function thinLeaves(geo, every = 3, grow = 1.5) {   // 葉の札を 3 枚に 1 �
   }
   const g = new THREE.BufferGeometry(); for (const [k, o] of Object.entries(attrs)) g.setAttribute(k, new THREE.Float32BufferAttribute(o.v, o.a.itemSize)); g.setIndex(outIdx); return g;
 }
+/* 11-04 夜：エノキ（ほか）の太枝が樹冠の外へ 5 m ほど斜めに伸び、並木の上に宙に浮いた斜めの幹に見えた→根もと 1.5 m までは元のまま、上ほど水平の張り出しを幹の芯へ寄せる（枝先は樹冠の中に収まる） */
+const LEAN = { enoki: .5, shii: .7, kashi: .7, sakura: .75, kusu: .75 };
+function leanIn(geo, sp) {
+  const f = LEAN[sp]; if (!f) return; const P = geo.attributes.position;
+  for (let i = 0; i < P.count; i++) { const y = P.getY(i), t = Math.min(1, Math.max(0, (y - 1.5) / 4)), s = 1 - (1 - f) * t * t * (3 - 2 * t); P.setX(i, P.getX(i) * s); P.setZ(i, P.getZ(i) * s); }
+  P.needsUpdate = true; geo.computeBoundingBox();
+}
 function buildTrees([g, kg]) {
   const get = n => (n.startsWith("keyaki_") && kg ? kg.scene.getObjectByName(n === "keyaki_s8_far_bark" ? "keyaki_bark" : n === "keyaki_s8_near_leaves" ? "keyaki_leaves" : n) : null) || g.scene.getObjectByName(n);
   if (!TREE.crown) buildCrowns();
@@ -458,7 +465,7 @@ function buildTrees([g, kg]) {
     const h = box.max.y - box.min.y, k = SPH[sp] / h;
     const parts = [];
     for (const o of [bark, leaves]) {
-      o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); geo.scale(k, k, k);
+      o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); geo.scale(k, k, k); if (o === bark) leanIn(geo, sp);
       const mat = o.material; if (mat.map) mat.map.anisotropy = 2; mat.envMapIntensity = .45;
       if (o === bark) barkUV(mat);
       if (o === leaves) { mat.alphaTest = Math.max(mat.alphaTest || 0, .45); mat.transparent = false; mat.side = THREE.DoubleSide; }
@@ -467,7 +474,7 @@ function buildTrees([g, kg]) {
     }
     // 中くらいの距離：幹は遠景の形、葉は札を減らした形
     const fb = g.scene.getObjectByName(base + "_bark") || bark; fb.updateWorldMatrix(true, false);
-    const bgeo = toFloat(fb.geometry).applyMatrix4(fb.matrixWorld); bgeo.translate(0, -box.min.y, 0); bgeo.scale(k, k, k);
+    const bgeo = toFloat(fb.geometry).applyMatrix4(fb.matrixWorld); bgeo.translate(0, -box.min.y, 0); bgeo.scale(k, k, k); leanIn(bgeo, sp);
     const lgeo = thinLeaves(parts[1].geometry, MOBILE ? 5 : 4, MOBILE ? 1.85 : 1.7);
     const lm2 = parts[1].material.clone(); lm2.side = THREE.DoubleSide;
     barkUV(fb.material);
@@ -596,6 +603,7 @@ const ROAD_WEATHER = { stone: { moss: 0, grime: .45, lichen: 0, scale: 1.1, bump
   asphalt_light: { flat: 1, moss: 0, grime: .6, lichen: 0, scale: .9, bump: .03, rough: .9 },   // 2026-10-28 深夜 3D：参道の中央の舗装が無地の灰に見えないよう、使い込まれた濃淡・細かな凹凸（苔なし）
   sidewalk: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .02 }, washed: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .025 } };
 const STRUCT_WEATHER = { stone_new: { moss: .38, grime: .55, lichen: .45 }, granite: { moss: .32, grime: .5, lichen: .4 }, old_lantern: { moss: .45, grime: .42, lichen: .55 },   /* 11-04 灯籠の石（元の色 0.18 前後）が近くで黒く沈む→汚れを弱め、下の lift で明るさの下限を上げる */
+  copper: { moss: 0, grime: .3, lichen: .12, scale: 1.6, bump: .02, rough: .55, env: .5 },   /* 11-04 夜：楼門・燈籠の銅板の屋根に、緑青のむらと雨筋 */
   old_komainu: { moss: .5, grime: .6, lichen: .6 }, old_hyoseki: { moss: .45, grime: .6, lichen: .55 }, old_shago: { moss: .45, grime: .6, lichen: .55 },
   inscr_hyoseki: { moss: .12, grime: .35, lichen: .18, bump: .02 }, inscr_shago: { moss: .12, grime: .35, lichen: .18, bump: .02 },
   stone_pier: { moss: .6, grime: .6, lichen: .45 }, stonewall: { moss: .6, grime: .55, lichen: .45 } };

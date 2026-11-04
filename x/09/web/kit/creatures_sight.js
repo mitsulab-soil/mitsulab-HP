@@ -412,9 +412,12 @@ export function makeButterfly(kind = 'ageha', mat = stdMat, o = {}) {
 //   飛び方：数回はばたいては翼をたたむ、波形の飛び方。
 const FEATHER = (len, wid, asym = 0) => { const p = []; for (const [u, v] of [[0, -.28], [.25, -.5], [.6, -.48], [.85, -.34], [.97, -.12], [1, 0], [.97, .14], [.85, .36], [.6, .5], [.25, .5], [0, .28]]) p.push([v * wid * (v < 0 ? 1 - asym : 1 + asym), u * len]); return p; };
 function featherGeo(len, wid, asym) { const pts = FEATHER(len, wid, asym), s = new T.Shape(); s.moveTo(...pts[0]); for (const p of pts.slice(1)) s.lineTo(...p); s.closePath(); const g = new T.ShapeGeometry(s); const P = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < P.count; i++) uv.setXY(i, P.getX(i) / wid * .5 + .5, P.getY(i) / len); g.rotateX(-Math.PI / 2); return g; }   // 根もとが原点、羽の先が -Z
-const featherTex = (key, base, edge, tip, tipW) => ctex(key, 64, 128, (c, w, h) => { const gr = c.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, edge); gr.addColorStop(.42, base); gr.addColorStop(.5, '#2a2c30'); gr.addColorStop(.58, base); gr.addColorStop(1, base); c.fillStyle = gr; c.fillRect(0, 0, w, h);
-  for (let y = 0; y < h; y += 3) { c.strokeStyle = 'rgba(0,0,0,.08)'; c.beginPath(); c.moveTo(0, y + 6); c.lineTo(w / 2, y); c.lineTo(w, y + 6); c.stroke(); }
-  if (tip) { c.fillStyle = tip; c.fillRect(0, 0, w, h * tipW); } }, [1, 1]);
+/* 11-04 夜：羽を写実に寄せる＝外弁（外側の細い縁）は明るい青灰、内弁は暗い・細く白っぽい羽軸・羽枝の斜めの筋（明暗の二重）・先へ向けて一段暗く・縁にうすい淡色の縁どり。画面の上＝羽の先 */
+const featherTex = (key, base, edge, tip, tipW, fringe = 'rgba(206,212,218,.3)') => ctex(key + '2', 64, 128, (c, w, h) => { const gr = c.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, edge); gr.addColorStop(.22, edge); gr.addColorStop(.44, base); gr.addColorStop(.49, '#7c8086'); gr.addColorStop(.51, '#5a5e64'); gr.addColorStop(.56, base); gr.addColorStop(1, base); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+  for (let y = -8; y < h; y += 2) { c.strokeStyle = (y / 2 & 1) ? 'rgba(0,0,0,.13)' : 'rgba(255,255,255,.06)'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, y + 9); c.lineTo(w * .48, y); c.moveTo(w * .52, y); c.lineTo(w, y + 9); c.stroke(); }
+  const sh = c.createLinearGradient(0, 0, 0, h); sh.addColorStop(0, 'rgba(10,12,16,.32)'); sh.addColorStop(.45, 'rgba(10,12,16,.08)'); sh.addColorStop(.85, 'rgba(0,0,0,0)'); c.fillStyle = sh; c.fillRect(0, 0, w, h);
+  if (tip) { const tg = c.createLinearGradient(0, 0, 0, h * tipW); tg.addColorStop(0, tip); tg.addColorStop(.75, tip); tg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = tg; c.fillRect(0, 0, w, h * tipW); }
+  c.strokeStyle = fringe; c.lineWidth = 2; c.beginPath(); c.moveTo(1, h * .2); c.quadraticCurveTo(w * .5, -h * .05, w - 1, h * .2); c.stroke(); }, [1, 1]);
 export function makeTit(mat = stdMat, o = {}) {
   const g = new T.Group(), body = new T.Group(); g.add(body);
   const K = 0x141518, Wt = 0xeceee8, GRN = 0x96a05a, BG = 0x74818f, BEL = 0xdfe1db, FL = 0xc6c9c0;
@@ -449,7 +452,7 @@ export function makeTit(mat = stdMat, o = {}) {
     P.needsUpdate = true; bodyG.computeVertexNormals(); seam(bodyG, 44, 24); }
   // 尾：12 枚の扇（外側ほど白い）
   const tailGeos = [];
-  for (let i = 0; i < 12; i++) { const u = i / 11 - .5, fg = featherGeo(.35, .055, 0); fg.rotateY(-u * .5); fg.translate(u * .05, -.004 + Math.abs(u) * -.006, -.15 - .002 * Math.abs(u)); const w = Math.abs(u) > .44 ? 1 : 0; const n = fg.attributes.position.count; fg.setAttribute('color', new T.BufferAttribute(new Float32Array(n * 3).fill(0), 3)); const cA = fg.attributes.color, cc = new T.Color(w ? 0xe8e8e2 : 0x56606e); for (let k = 0; k < n; k++) cA.setXYZ(k, cc.r, cc.g, cc.b); tailGeos.push(fg); }
+  for (let i = 0; i < 12; i++) { const u = i / 11 - .5, fg = featherGeo(.35, .066, 0); fg.rotateY(-u * .46); fg.translate(u * .05, -.004 + Math.abs(u) * -.006, -.15 - .002 * Math.abs(u)); const w = Math.abs(u) > .44 ? 1 : 0; const n = fg.attributes.position.count; fg.setAttribute('color', new T.BufferAttribute(new Float32Array(n * 3).fill(0), 3)); const cA = fg.attributes.color, cc = new T.Color(w ? 0xe8e8e2 : 0x56606e); for (let k = 0; k < n; k++) cA.setXYZ(k, cc.r, cc.g, cc.b); tailGeos.push(fg); }
   const tail = new T.Mesh(mergeGeometries(tailGeos), mk(mat, 0xffffff, { vc: true, map: featherTex('tf', '#c9cdd4', '#e8ebee', null), side: T.DoubleSide, rough: .8, temp: .8, uv: .2 }));
   const tailPiv = new T.Group(); tailPiv.position.set(0, -.005, -.15); tail.position.set(0, .005, .15); tailPiv.add(tail); body.add(tailPiv);
   // 脚と足指（前 3・後 1）
@@ -459,16 +462,18 @@ export function makeTit(mat = stdMat, o = {}) {
     legs.add(tube(legM, [[s * .032, -.155, .05], [s * .032, -.165, .005]], .005, .003, null, 3, 4)); }
   // 翼：はばたき・たたみを、羽一枚ずつの位置から毎こま組み直す（一枚の形にまとめて描く）
   const F = []; // { seg, x, ang0, angF, len, wid, asym, layer, tex }
-  for (let i = 0; i < 3; i++) F.push({ seg: 0, x: .05 + i * .045, a0: .12 - i * .05, aF: -1.15, len: .2, wid: .07, layer: .006, m: 1 });            // 三列風切
-  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .25, wid: .065, layer: .004 - i * .0002, m: 0 });       // 次列風切
-  for (let i = 0; i < 9; i++) F.push({ seg: 2, x: i * .006, a0: -.4 - i * .13, aF: -1.45 + i * .01, len: .25 + .12 * Math.sin(Math.min(1, i / 7) * Math.PI / 2), wid: .06, asym: .3, layer: -.002 * i, m: 0 });   // 初列風切
+  // 11-04 夜：羽の幅を広げて隣どうしを重ねる（細い刃が並ぶ櫛のように見えていた）。初列は先がとがり外弁が細い（asym）、三列は丸く広い
+  for (let i = 0; i < 3; i++) F.push({ seg: 0, x: .05 + i * .045, a0: .12 - i * .05, aF: -1.15, len: .2, wid: .105, layer: .006, m: 1 });            // 三列風切
+  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .25, wid: .1, layer: .004 - i * .0002, m: 0 });       // 次列風切
+  for (let i = 0; i < 9; i++) F.push({ seg: 2, x: i * .006, a0: -.4 - i * .13, aF: -1.45 + i * .01, len: .25 + .12 * Math.sin(Math.min(1, i / 7) * Math.PI / 2), wid: .085, asym: .45, layer: -.002 * i, m: 0 });   // 初列風切
   // 雨覆は、重なる羽どうしの高さを一枚ずつずらす（2026-10-13：同じ高さの羽が重なり、寄りで面に縞のちらつきが出ていた）
-  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .11, wid: .06, layer: .012 + i * .0009, m: 2 });                      // 大雨覆（先が白い＝翼の帯）
-  for (let i = 0; i < 5; i++) F.push({ seg: 2, x: i * .008, a0: -.5 - i * .2, aF: -1.45, len: .1, wid: .05, layer: .01 + i * .0009, m: 1 });                          // 初列雨覆
+  for (let i = 0; i < 8; i++) F.push({ seg: 1, x: i * .02, a0: -.05 - i * .03, aF: 1.35, len: .115, wid: .085, layer: .012 + i * .0009, m: 2 });                      // 大雨覆（先が白い＝翼の帯）
+  for (let i = 0; i < 5; i++) F.push({ seg: 2, x: i * .008, a0: -.5 - i * .2, aF: -1.45, len: .1, wid: .07, layer: .01 + i * .0009, m: 1 });                          // 初列雨覆
   // 小・中雨覆（前縁）：2026-10-13 大きな丸い板 2 枚をやめ、細い羽を並べて重ねた（たたんだ翼が板の重なりに見えたため）
-  for (let i = 0; i < 6; i++) F.push({ seg: 0, x: .01 + i * .024, a0: -.2 - i * .03, aF: -1.1, len: .11, wid: .055, layer: .02 + i * .0009, m: 3 });
-  for (let i = 0; i < 7; i++) F.push({ seg: 1, x: .005 + i * .02, a0: -.15 - i * .03, aF: 1.32, len: .085, wid: .05, layer: .026 + i * .0009, m: 3 });
-  const texs = [featherTex('wf', '#5c6878', '#9fb0c2', null), featherTex('wt', '#3c4450', '#eef0ea', null), featherTex('wc', '#6c7a8c', '#8394a8', '#f0f0ea', .32), featherTex('wl', '#7a8898', '#8696a8', null)];
+  for (let i = 0; i < 6; i++) F.push({ seg: 0, x: .01 + i * .024, a0: -.2 - i * .03, aF: -1.1, len: .11, wid: .075, layer: .02 + i * .0009, m: 3 });
+  for (let i = 0; i < 7; i++) F.push({ seg: 1, x: .005 + i * .02, a0: -.15 - i * .03, aF: 1.32, len: .085, wid: .07, layer: .026 + i * .0009, m: 3 });
+  // 色の段（シジュウカラ）：風切は黒みの灰で外弁が青灰／三列風切は黒く白い縁／大雨覆は青灰で先が白（翼帯）／小・中雨覆は青灰
+  const texs = [featherTex('wf', '#3b4048', '#8a9db1', null), featherTex('wt', '#25282d', '#a9aeb2', null, 0, 'rgba(236,238,232,.5)'), featherTex('wc', '#56616f', '#8091a5', '#f1f1ec', .3), featherTex('wl', '#6c7a8b', '#8797aa', null)];
   const wingMats = texs.map((tx, m) => { const wm = mk(mat, 0xffffff, { map: tx, side: T.DoubleSide, rough: .8, temp: .85, uv: .18 }); if (m >= 2) { wm.polygonOffset = true; wm.polygonOffsetFactor = -(m - 1); wm.polygonOffsetUnits = -(m - 1) * 2; } return wm; });   // 雨覆は風切より手前に描く（深さの取りあいで縞にならない）
   function wingMesh(side) {
     const geos = [], base = [];
