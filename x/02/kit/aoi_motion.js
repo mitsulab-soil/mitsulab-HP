@@ -240,7 +240,7 @@ export const EMOTIONS = {
    warmAoi(renderer, root, camera, scene)＝見せる前に、テクスチャを 1 こま 1〜2 枚ずつ GPU へ送り、材質のシェーダーを 1 こまに数個ずつ組み、
    影（奥行きの材質）も小さな的に一度だけ描いて組ませる。碧の見た目と動きは変えない（何も描き足さない・材質も変えない）。 */
 export const aoiYield = () => new Promise(r => (typeof requestAnimationFrame === "function" ? requestAnimationFrame(() => setTimeout(r, 0)) : setTimeout(r, 16)));
-export async function warmAoi(renderer, root, camera, scene, { budget = 8, whole = false, offscreen = false } = {}) {   // whole＝root がまだ場面の外で、root の中の光（顔の補助光）も数えて組むとき／offscreen＝アプリが描き先（ぼかしなど）へ描くとき、その形で組む
+export async function warmAoi(renderer, root, camera, scene, { budget = 8, whole = false, offscreen = false, batch = 4 } = {}) {   // whole＝root がまだ場面の外で、root の中の光（顔の補助光）も数えて組むとき／offscreen＝アプリが描き先（ぼかしなど）へ描くとき、その形で組む
   if (!renderer || !root) return;
   const now = () => performance.now(), meshes = [], tex = new Set();
   root.traverse(o => { if (!o.isMesh) return; meshes.push(o); for (const m of [].concat(o.material)) { if (!m) continue; for (const k in m) { const v = m[k]; if (v && v.isTexture) tex.add(v); } if (m.uniforms) for (const k in m.uniforms) { const v = m.uniforms[k]?.value; if (v && v.isTexture) tex.add(v); } } });
@@ -252,8 +252,8 @@ export async function warmAoi(renderer, root, camera, scene, { budget = 8, whole
   const vis = root.visible, offRT = offscreen ? new THREE.WebGLRenderTarget(1, 1) : null, rt0 = renderer.getRenderTarget(); if (offRT) renderer.setRenderTarget(offRT);
   if (whole && !root.parent) { root.visible = true; const LT = []; root.traverse(o => { if (o.isLight) { LT.push([o, o.visible]); o.visible = true; } });   // 顔の補助光は碧が見えないあいだ消えている＝見えたときの光の数で組む
     try { await renderer.compileAsync(root, camera, scene); } catch { } for (const [o, v] of LT) o.visible = v; root.visible = vis; await aoiYield(); }
-  else for (let i = 0; i < meshes.length; i += 4) {
-    try { await Promise.all(meshes.slice(i, i + 4).map(o => renderer.compileAsync ? renderer.compileAsync(o, camera, scene) : renderer.compile(o, camera, scene))); } catch { }
+  else for (let i = 0; i < meshes.length; i += batch) {   // batch＝一こまに組む網の数（2026-11-04 sight：4 つまとめると 0.13〜0.3 秒止まった）
+    try { await Promise.all(meshes.slice(i, i + batch).map(o => renderer.compileAsync ? renderer.compileAsync(o, camera, scene) : renderer.compile(o, camera, scene))); } catch { }
     await aoiYield();
   }
   if (offRT) { renderer.setRenderTarget(rt0); offRT.dispose(); }

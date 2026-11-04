@@ -10,7 +10,7 @@ import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261104c";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261016-startup1";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
-import { AoiMotion, inferGestures, warmAoi } from "./kit/aoi_motion.js?v=20261103w";   // v3.1（2026-10-13）：まっすぐ立ち、左右の揺れを小さく（posture:"upright"）   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
+import { AoiMotion, inferGestures, warmAoi } from "./kit/aoi_motion.js?v=20261104a";   // v3.1（2026-10-13）：まっすぐ立ち、左右の揺れを小さく（posture:"upright"）   // 碧の動きと表情（共通部品 01_経営/03_対外書類/12_ブランド/_共通3D/kit/ の写し。人の動きの記録・裾の布・表情。2026-10-13）
 
 const $ = id => document.getElementById(id);
 const S = window.SCRIPT, N = S.names, VOICE = window.VOICE || {}, P = window.PATHS || {};
@@ -50,6 +50,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 // 自然な露出（2026-10-09 よりリアルに）：色をなるべく変えないトーンマッピング（Khronos PBR Neutral）。言葉と色の壁だけは色をそのまま出す
 renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;
 // 太陽の向きのある影（影の地図）。スマホは地図を小さく、描き直しを間引く
+renderer.debug.checkShaderErrors = false;   // 2026-11-04 コマ落ち：はじめて使う材質ごとに組み上がりを待って確かめていた（公開版では使わない）
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; if (mobile) renderer.shadowMap.autoUpdate = false;
 $("stage").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
@@ -1276,7 +1277,7 @@ STARTUP.sceneBuiltAt = performance.now();
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
   const aoiReady = loadAoi().then(async () => {
-    if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); for (const op of [1, 0]) { opacity(op); await warmAoi(renderer, aoi, camera, scene); } scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
+    if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); for (const op of [1, 0]) { opacity(op); await warmAoi(renderer, aoi, camera, scene, { batch: 1 }); } scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
     if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.0 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
@@ -1302,13 +1303,14 @@ STARTUP.sceneBuiltAt = performance.now();
   (async () => { const nf = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
     for (const [ji, job] of (FOREST.later || []).entries()) { await nf(); const t0 = performance.now(); const g = job(); slow('later:' + ji, t0);
       g.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true; for (const mt of [].concat(o.material)) worldMats.add(mt); let nc = !!o.userData.noCast; if (!nc && o.castShadow !== true) o.castShadow = !(mobile && o.isInstancedMesh && o.count > 300); if (nc) o.castShadow = false; });
-      if (renderer.compileAsync) { try { await renderer.compileAsync(g, camera, scene); } catch (e) {} }
+      if (renderer.compileAsync) { for (const c of g.children) { try { await renderer.compileAsync(c, camera, scene); } catch (e) {} await nf(); } }   // 2026-11-04 一つの仕事で材質を 7〜10 まとめて組むと 0.12〜0.3 秒止まった → 一こまに一つずつ
       for (const c of [...g.children]) forest.add(c); }
     STARTUP.forestRestAt = performance.now(); })();
+  /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ try { renderer.render(scene, camera); } catch (e) {}
+  requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 3 && dt < 50) || t - t0 > 700) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
   window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
-  requestAnimationFrame(frame);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
   if (!A.hold) { A.appear = true; A.intro = true; if (AM) AM.calm = 2.4; }   // 2026-10-14：待たずに、最初のこまから現れはじめる
 })();
