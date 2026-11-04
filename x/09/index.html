@@ -8,7 +8,8 @@
 <meta name="aoiwalk-build" content="lite-20261022">
 <link rel="icon" href="favicon/favicon.ico" sizes="any"><link rel="icon" href="favicon/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="favicon/apple-touch-icon.png"><link rel="manifest" href="favicon/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<!-- 2026-11-05 起動 2 秒：書体（約 120 KB の CSS と書体のファイル）は、操作できるようになってから読む（起動の回線を地形と本体に回す） -->
+<script>{ const f = () => { if (f.d) return; f.d = 1; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap"; document.head.appendChild(l); }; const h = setInterval(() => { if (window.__qw?.ready) { clearInterval(h); setTimeout(f, 200); } }, 100); setTimeout(f, 6000); }</script>
 <link rel="stylesheet" href="web/lite/tokens.css">
 <link rel="stylesheet" href="web/kit/ui.css?v=1">
 <!-- 2026-10-23：対応表（importmap）は modulepreload より前に置く（CPU が遅いと、先に読んだ本体が "three" を解けずに止まっていた） -->
@@ -20,7 +21,23 @@
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
 <link rel="modulepreload" href="web/lite/app.js?v=20261104mikimo">
-<link rel="modulepreload" href="web/lite/layers.js?v=6">
+<!-- 2026-11-05 起動 2 秒：本体が読む部品も HTML と同時に（app.js → 部品 → creatures → BufferGeometryUtils の三段の待ちをなくす。layers は本体と同じ v=8 に） -->
+<link rel="modulepreload" href="web/lite/layers.js?v=8">
+<link rel="modulepreload" href="web/lite/qmarks.js?v=k24">
+<link rel="modulepreload" href="web/lite/session.js?v=s2">
+<link rel="modulepreload" href="web/lite/worldlayers.js?v=w20">
+<link rel="modulepreload" href="web/kit/ground_far.js?v=7">
+<link rel="modulepreload" href="web/kit/startpins.js?v=sp11">
+<link rel="modulepreload" href="web/kit/mapveil.js?v=mv2">
+<link rel="modulepreload" href="web/kit/mapguide.js?v=mg2">
+<link rel="modulepreload" href="web/lite/herewalk.js?v=2">
+<link rel="modulepreload" href="web/kit/sunpos.js?v=1">
+<link rel="modulepreload" href="web/kit/fliers.js?v=9">
+<link rel="modulepreload" href="web/kit/nav.js?v=n8p">
+<link rel="modulepreload" href="web/lite/soundwalk.js?v=1">
+<link rel="modulepreload" href="web/lite/areas.js?v=56m">
+<link rel="modulepreload" href="web/kit/creatures.js?v=1">
+<link rel="modulepreload" href="web/vendor/BufferGeometryUtils.js">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
 <style>
