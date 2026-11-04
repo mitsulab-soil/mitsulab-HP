@@ -194,7 +194,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
 
   /* ---------- 最初の一言（1 回だけ） ---------- */
   function once(k, t, n = 0) { if (ss.get(k)) return; if (n < 8 && document.getElementById("caption")?.hidden === false) return setTimeout(() => once(k, t, n + 1), 3000); ss.set(k, "1"); o.say(t); }   // 11-02：碧の字幕が出ているあいだは、知らせを重ねない
-  N.firstWalk = () => setTimeout(() => once("q.h.walk", mobile ? "行きたい所を、指でさしてください。なぞると見回せます。" : "行きたい所をクリック。ドラッグで見回し、W A S D でも歩けます。"), 400);
+  N.firstWalk = () => setTimeout(() => once("q.h.walk", mobile ? "行きたい所に触れると、歩きます。" : "行きたい所を押すと、歩きます。"), 400);
   N.firstWalk = ((f0) => () => { f0(); { const tc = () => { if (!document.querySelector("#qHere:not([hidden])")) return; if (document.getElementById("caption")?.hidden === false) return setTimeout(tc, 4000); once("q.h.cnt", "左の数字は、まわり 30 m に重なっている層の数です。"); }; setTimeout(tc, 16000); }   /* 11-02 採点 P2：字幕と重ねて出さない */ })(N.firstWalk);   // 10-30 パネル：数字の札の意味を最初の一度だけ
   const ab = $("#autoBtn"); if (ab) ab.addEventListener("click", e => { if (ab.dataset.qstop) { e.stopImmediatePropagation(); o.stop(); delete ab.dataset.qstop; return; }   /* 押した所へ歩いている間の「止まる」 */ if (ab.getAttribute("aria-pressed") === "true") once("q.h.auto", "行きたい所を押すと、そちらへ向きを変えます。止まるときは右下の「止まる」。"); });
   return N;

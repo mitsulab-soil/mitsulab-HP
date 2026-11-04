@@ -19,11 +19,10 @@
 <link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261103n4">
+<link rel="modulepreload" href="web/lite/app.js?v=20261104boot2">
 <link rel="modulepreload" href="web/lite/layers.js?v=6">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/tex/sky.webp" as="image" crossorigin="anonymous">
-<link rel="preload" href="web/aoi.vrm" as="fetch" crossorigin fetchpriority="low">
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -600,6 +599,8 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 </style>
 <style id="hud-veil">/* 11-02：上の札が枝に溶ける＝上の端だけ、ごく淡く暗くする（板ではなく、空気の陰り） */html body #hud::before{content:"";position:fixed;left:0;right:0;top:0;height:calc(max(12px,env(safe-area-inset-top)) + 96px);background:linear-gradient(rgba(3,6,15,.46),rgba(3,6,15,.18) 55%,rgba(3,6,15,0));pointer-events:none;z-index:-1}</style>
 <style id="qualium-p2-1103">#qHere{display:none!important}</style>
+<style id="qualium-375-1104">/* 11-04：スマホの地図では、録音の札を上の案内（どこから歩きはじめますか）の下へ＝字が重ならない */@media (max-width:640px){body:is([data-mode="sky"],[data-mode="descend"],[data-mode="boot"]) #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 140px)!important;bottom:auto!important}body[data-mode="walk"]:has(#qS6) #toast{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 134px)!important;top:auto!important}}</style>
+<style id="qualium-sndtag-small">/* 11-04 採点 P2：右上の音の札を小さく控えめに（375px で空をふさがない） */html body #sndTag{font-size:10px!important;line-height:1.45!important;max-width:min(240px,calc(100% - 120px))!important;padding:3px 8px!important;opacity:.8}html body #sndTag::before{font-size:7px!important;letter-spacing:.2em!important}@media (max-width:640px){html body #sndTag{max-width:148px!important;font-size:9.5px!important}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>
@@ -674,8 +675,8 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261103n4").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
-/* 11-02 変身＝碧の足もとの小さな依代を押すと、その視点へ入る（kit/henshin.js） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); Promise.all([import("./web/kit/henshin.js?v=47"), fetch("web/lite/data.json?v=20261028t").then(r => r.json()).catch(() => null)]).then(([m, D]) => m.attachHenshin(q, { xOnly: true, lookup: (id, re) => { const o = D?.objs?.find(x => x.id === id); return o && (o.lines || []).find(l => l.t && (!re || new RegExp(re).test(l.t))); }, trees: () => q.D?.trees || D?.trees || [], say: t => { const e = document.getElementById("toast"); if (e) { e.textContent = t; e.hidden = false; clearTimeout(e._h); e._h = setTimeout(() => e.hidden = true, 5200); } } })).then(() => import("./web/lite/senses6.js?v=11")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("henshin", e));   /* 11-03 本人：五感＋X 感をえらぶ（色の層の代わり）・依代は X 感で */ } }, 300); }
+import("./web/lite/app.js?v=20261104boot2").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+/* 11-04 本人：環世界に入るのはリアルな生き物だけ（木・石の環世界と依代への変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js） */
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=5").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=14")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 </body></html>

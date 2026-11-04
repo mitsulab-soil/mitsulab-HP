@@ -194,7 +194,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
           scr.push([sx, sy]); wp.push([_r2.x, _r2.z]); shown++; }
       } else {   // 10-28 夜：3D 地図では、画面の上で近すぎる印（参道に沿った団子）を間引く。開いた印・選んだ印が先
         const scr = [], gap = innerWidth < 640 ? 14 : 18, ord = items.slice().sort((p, q) => ((q.L.open > 0 || q.L === focus) ? 1 : 0) - ((p.L.open > 0 || p.L === focus) ? 1 : 0));
-        for (const it of ord) { const L = it.L; L.qHide = false; if (!L.root.visible || !(L.show > .01)) continue; if (L.open > 0 || L === focus) { L.root.getWorldPosition(_r); _r.project(cam); scr.push([(_r.x + 1) * innerWidth / 2, (1 - _r.y) * innerHeight / 2]); continue; }
+        for (const it of ord) { const L = it.L; L.qHide = true; if (!o.mapMarks) continue;   /* 11-04 本人「qualia の印は地図上には載せない」 */ if (!L.root.visible || !(L.show > .01)) continue; if (L.open > 0 || L === focus) { L.root.getWorldPosition(_r); _r.project(cam); scr.push([(_r.x + 1) * innerWidth / 2, (1 - _r.y) * innerHeight / 2]); continue; }
           L.root.getWorldPosition(_r); _r.project(cam); if (_r.z >= 1) continue; const sx = (_r.x + 1) * innerWidth / 2, sy = (1 - _r.y) * innerHeight / 2; if (sy < (innerWidth < 640 ? 130 : 96)) { L.qHide = true; continue; }   /* 見出しの字の上に印を重ねない */
           if (scr.some(([x, y]) => Math.abs(x - sx) < gap && Math.abs(y - sy) < gap)) { L.qHide = true; continue; } scr.push([sx, sy]); }
       }
