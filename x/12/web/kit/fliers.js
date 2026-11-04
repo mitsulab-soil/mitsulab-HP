@@ -3,7 +3,7 @@
    出す種は、その場所に一年じゅういる鳥だけ（季節・時刻に合わない種は出さない）。数は少なく（PC 4・スマホ 2）、見る人のまわり 1.6〜4.2 m を
    低い枝から樹冠の下（目の高さのあたり 1.3〜2.8 m）で、波形にはばたいて行き来する。遠すぎるもの・後ろのものは描かない。 */
 import * as THREE from "three";
-import { makeTit } from "./creatures.js?v=1";
+import { makeTit } from "./creatures.js";
 export function makeFliers(scene, camera, o = {}) {
   const mobile = o.mobile, n = o.natural ? 2 : mobile ? 3 : 4, S = o.size || .145, G = new THREE.Group(); G.name = "fliers"; scene.add(G);
   const B = [];
