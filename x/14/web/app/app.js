@@ -1052,7 +1052,11 @@ async function startYorishiro() {
         for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o && L.o.x != null).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 160).sort((p, q) => p[1] - q[1]).slice(0, 40).map(e => e[0]))) { if (n >= 2) break; if (used.has(L) || !YO_RE[kind].test(TX(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
           let ok = null; for (let k = 0; k < 8 && !ok; k++) { const a = k * .785, x = L.o.x + Math.cos(a) * 1.3, z = L.o.z + Math.sin(a) * 1.3; if (!inBld(x, z, .3)) ok = [x, z]; } if (!ok) continue;
           used.add(L); n++; const pre = TOWN[kind];
-          MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } } }
+          MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } }
+      /* 11-05 本人：調べた候補の場所に町の依代を置く（出典＝資料/町の依代の候補_2026-11-05.md）。木・石・土はその場で揺れるだけ。話すのは碧（下に小さく字幕） */
+      for (const P of [{"k": "ki", "ll": [35.6576, 139.7062], "t": "区の文化財の桜。一つの枝に一重と八重が咲く。"}, {"k": "tsuchi", "ll": [35.6593, 139.7006], "t": "ここは谷の底。東も西も、坂の上は 20 メートル高い。"}, {"k": "ki", "ll": [35.6696, 139.7023], "t": "人がつくった森。全国から集まった木は約 10 万本。"}]) { const [bx, bz] = [(P.ll[1] - G.origin[1]) * G.kx, -(P.ll[0] - G.origin[0]) * G.ky]; let ok = null;
+        for (let k = 0; k < 8; k++) { const a = k * .785, x = bx + Math.cos(a) * 1.4, z = bz + Math.sin(a) * 1.4; if (typeof solidAt !== "function" || !solidAt(x, z, .3)) { ok = [x, z]; break; } }
+        if (!ok) continue; const ln = { t: P.t, tc: P.t }; MY.add(P.k, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => speakLines([ln], null, { narr: true }) }); } }
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
       let yx = P.x + fz * .95 + fx * 1.8, yz = P.z - fx * .95 + fz * 1.8; if (inBld(yx, yz, .4)) { yx = P.x - fz * .95 + fx * 1.8; yz = P.z + fx * .95 + fz * 1.8; } if (inBld(yx, yz, .4)) { yx = (P.x + CAM.pos.x) / 2 + fz * .9; yz = (P.z + CAM.pos.z) / 2 - fx * .9; }   // 11-03：依代を建物の中に置かない（反対側か、碧と見る人のあいだへ）

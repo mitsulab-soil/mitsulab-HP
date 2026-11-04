@@ -1016,7 +1016,11 @@ async function startYorishiro() {
         for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o && L.o.x != null).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 160).sort((p, q) => p[1] - q[1]).slice(0, 40).map(e => e[0]))) { if (n >= 2) break; if (used.has(L) || !YO_RE[kind].test(TX(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
           let ok = null; for (let k = 0; k < 8 && !ok; k++) { const a = k * .785, x = L.o.x + Math.cos(a) * 1.3, z = L.o.z + Math.sin(a) * 1.3; if (!solidAt(x, z, .3)) ok = [x, z]; } if (!ok) continue;
           used.add(L); n++; const pre = TOWN[kind];
-          MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } } }
+          MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } }
+      /* 11-05 本人：調べた候補の場所に町の依代を置く（出典＝資料/町の依代の候補_2026-11-05.md）。木・石・土はその場で揺れるだけ。話すのは碧（下に小さく字幕） */
+      for (const P of [{"k": "ki", "ll": [35.9196, 139.4856], "t": "市の天然記念物のイチョウ。見上げると、枝が町の空に広がる。"}, {"k": "tsuchi", "ll": [35.9251, 139.4831], "t": "台地はここで下がる。川面は 10 メートルほど下。"}, {"k": "tsuchi", "ll": [35.9237, 139.483], "t": "蔵の壁は土と漆喰。大火のあと、蔵造りの家が並んだ。"}]) { const [bx, bz] = [(P.ll[1] - G.origin[1]) * G.kx, -(P.ll[0] - G.origin[0]) * G.ky]; let ok = null;
+        for (let k = 0; k < 8; k++) { const a = k * .785, x = bx + Math.cos(a) * 1.4, z = bz + Math.sin(a) * 1.4; if (typeof solidAt !== "function" || !solidAt(x, z, .3)) { ok = [x, z]; break; } }
+        if (!ok) continue; const ln = { t: P.t, tc: P.t }; MY.add(P.k, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => speakLines([ln], null, { narr: true }) }); } }
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
       const sd = (() => { const v = new THREE.Vector3(), sx = g => { v.set(P.x + fz * .95 * g + fx * 1.8, P.y + .3, P.z - fx * .95 * g + fz * 1.8).project(camera); return Math.abs(v.x); }; return sx(1) <= .8 || sx(-1) > sx(1) ? 1 : -1; })();   /* 11-03 375 でタヌキが画面の端で切れた：左が画面の外へはみ出すときは碧の右（画面の内側）へ */
