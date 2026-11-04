@@ -1046,10 +1046,10 @@ async function startYorishiro() {
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
     /* 11-04 本人：碧のデザインを受けつぐ町の依代（変身の対象ではない）。大宮と同じ kit/machiyori.js。近づいて触れると碧が、その印の出典つきの一行を感じ方の入口として話す */
     { const TOWN = { shizuku: "しずくのそばで、水の音に耳をすませてみます。", ishi: "石のそばで、石の肌に触れてみます。", ki: "木のそばで、幹を見上げてみます。", tsuchi: "土のそばで、足もとを確かめてみます。" };
-      const MY = YO.my = new (await import("../kit/machiyori.js?v=3")).MachiYori({ scene: world, camera, dom: renderer.domElement, groundAt: (x, z) => aoiFootY(x, z), active: () => QW.mode === "walk" });
+      const MY = YO.my = new (await import("../kit/machiyori.js?v=4")).MachiYori({ scene: world, camera, dom: renderer.domElement, groundAt: (x, z) => aoiFootY(x, z), active: () => QW.mode === "walk", aoi: () => AOI.m && AOI.root?.visible ? AOI.m.pos : null });
       const used = new Set(), TX = L => (L.o.title || "") + " " + (L.o.lines || []).map(l => l.t || "").join(" "), ANC = [...C.starts.filter(s => /ハチ公|金王|稲荷橋|神宮橋|代々木/.test(s.name || "")), C.starts[0]].map(stAt);
       for (const kind of Object.keys(TOWN)) { let n = 0;
-        for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o && L.o.x != null).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 160).sort((p, q) => p[1] - q[1]).slice(0, 40).map(e => e[0]))) { if (n >= 2) break; if (used.has(L) || !YO_RE[kind].test(TX(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
+        for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o && L.o.x != null).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 300).sort((p, q) => p[1] - q[1]).slice(0, 60).map(e => e[0]))) { if (n >= 3) break; if (used.has(L) || !YO_RE[kind].test(TX(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
           let ok = null; for (let k = 0; k < 8 && !ok; k++) { const a = k * .785, x = L.o.x + Math.cos(a) * 1.3, z = L.o.z + Math.sin(a) * 1.3; if (!inBld(x, z, .3)) ok = [x, z]; } if (!ok) continue;
           used.add(L); n++; const pre = TOWN[kind];
           MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } }
