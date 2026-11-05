@@ -3,6 +3,7 @@
    素材はすべてこの画面の中で描く（外から取りこんだ 3D・テクスチャなし）。形態の根拠＝調べたこと/形態の確かめ.md
    大きさ：草木は実物大。生きものは見やすさのため、小鳥・ネズミ 1.5 倍、蝶 2 倍、蜂 3 倍（README に明記）。 */
 import * as THREE from "three";
+import { bitmapTex } from "./kit/warm.js";   // 2026-11-05 夕：写真の質感は別の糸でほどいてから GPU へ（はじめのこまの止まりを減らす。見た目は同じ）
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { crownHook } from "./zen.js";
 import { makeTit as makeTitR, makeBee as makeBeeR, makeButterfly as makeButterflyR } from "./creatures.js?v=20261013k80";   // 2026-10-12 生きものを写実の造形に
@@ -10,7 +11,7 @@ import { makeTit as makeTitR, makeBee as makeBeeR, makeButterfly as makeButterfl
 let M, canvasTex, tx;
 // CC0 の写真の質感（Poly Haven・台帳 M-0793〜0796）。読めないときは、この画面で描いた質感のまま
 export function photoTex(file, rx = 1, ry = 1) {
-  const t = new THREE.TextureLoader().load("tex/" + file); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = 4; return t;
+  const t = bitmapTex("tex/" + file, { opaque: true }); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = 4; return t;
 }
 const TAU = Math.PI * 2;
 const rnd = (() => { let s = 11; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();

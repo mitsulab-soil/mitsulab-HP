@@ -6,7 +6,7 @@
 // 古寺の板の間の広間に、墨の立体の書が浮かぶ。床を押すとその向きへ歩き（一度に進むのは数歩まで）、書に触れるとその音が鳴って題が出て、墨が揺れる。動いたあとは字の形に戻る。
 import * as THREE from 'three';
 import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261103a';
-import { buildRoom, loadRoomTextures, setRoomHalf, setHallNiches } from './room.js?v=20261026a';
+import { buildRoom, loadRoomTextures, setRoomHalf, setHallNiches } from './room.js?v=20261105s';
 import { createLive } from './live.js?v=20261023e';
 import { createDOF } from './dof.js?v=20261023e';
 
@@ -21,6 +21,7 @@ try { soundOn = localStorage.getItem('qsho-sound') !== 'off'; } catch (e) { /* �
 /* ── 描く ── */
 const cv = $('cv');
 const R = new THREE.WebGLRenderer({ canvas: cv, antialias: !mobile, preserveDrawingBuffer: SHOT, powerPreference: 'high-performance' });
+R.debug.checkShaderErrors = false;   // 2026-11-05 夕：はじめて使う材質ごとに組み上がりを同期で待って確かめていた（HP の three-fast.js と同じ）
 R.setPixelRatio(Math.min(devicePixelRatio, SHOT ? 2 : mobile ? 1.5 : 1.6));
 R.toneMapping = THREE.NeutralToneMapping; R.toneMappingExposure = 1.0;
 const dof = createDOF(R, { mobile }); if (q.has('nodof')) dof.on = false;   // 奥を自然に弱くぼかして、見ている書を読みやすく
@@ -574,7 +575,8 @@ function loadAoi() {
       AO.M = new AoiMotion(v, { root, reducedMotion: RM, wind: .3, startCalm: 2.2, posture: 'upright', uprightWeight: .5, faceLight: .5 });   /* v11b 片足に少し重心をのせて自然に立つ */   /* まっすぐ立つ（反り腰にしない）・自然な息とまばたき */
       AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z));
       AO.root = root; AO.vrm = v; AO.fade = 0; aoiOpacity(0);
-      try { if (warmAoi) for (const op of [1, 0]) { aoiOpacity(op); await warmAoi(R, root, cam, scene, { offscreen: dof.on }); } } catch { }   /* 11-03：見せる前に、テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */
+      try { aoiOpacity(1); const W = await WARM; await W.keepVariant(R, root, cam, scene, () => { }, { offscreen: dof.on }); } catch { }   /* 2026-11-05 夕：現れ終わって透けない材質に戻るこまで 6〜10 個組み直して 0.15〜0.28 秒止まっていた → 透けない形を写しで先に組んで持っておく（kit/warm.js keepVariant） */
+      try { const W = await WARM; for (const op of [1, 0]) { aoiOpacity(op); await W.warmAoi(R, root, cam, scene, { offscreen: dof.on }); } } catch { }   /* 2026-11-05 夕：kit/warm.js の warmAoi（ぼかしの描き先で組む形）に。aoi_motion.js の warmAoi は画面へ描く形で組み、ぼかしへ描く本番の形は碧が出たこまで組み直していた */   /* 11-03：見せる前に、テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */
       scene.remove(aoiFaceStub); scene.add(root); AO.ready = true;
       window.__aoi = AO;
     } catch (e) { console.warn('碧の姿を読み込めませんでした：', e?.message ?? e); }

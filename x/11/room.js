@@ -4,6 +4,7 @@
 // 古寺の一室：年月を経た板の間（Poly Haven「Dark Wooden Planks」CC0）・柱と長押・格天井・障子の格子窓。
 // 光は格子窓から差す柔らかい光（縞にしない）。霞と塵。部屋ごとに、窓の向き・光の強さ・霞・壁が題に応じて変わる（色は墨と木と紙だけ）。
 import * as THREE from 'three';
+import { loadTex } from './kit/warm.js';   // 2026-11-05 夕：床の 2048 px の絵を、GPU へ送る前に別の糸でほどく（はじめて描くこまの約 0.1 秒の止まりを無くす）
 
 // 部屋の型（題の読みで、光と空気を変える）
 export const ROOMS = {
@@ -41,8 +42,7 @@ function washi() {
 
 export async function loadRoomTextures(R, mobile) {
   if (TEX) return TEX;
-  const tl = new THREE.TextureLoader();
-  const ld = (u, srgb, rep) => new Promise(ok => tl.load(u, t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(...rep); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = Math.min(12, R.capabilities.getMaxAnisotropy()); ok(t); }, undefined, () => ok(null)));
+  const ld = (u, srgb, rep) => loadTex(u, { opaque: true }).then(t => { if (!t) return null;  t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(...rep); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = Math.min(12, R.capabilities.getMaxAnisotropy()); return t; });
   const fr = [HALF * 2 / 2.2, HALF * 2 / 2.2];
   const sfx = mobile ? '1k' : '';
   const [fc, fn, fro, wc, wn, pc, env] = await Promise.all([
