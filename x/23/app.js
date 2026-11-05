@@ -324,7 +324,7 @@ function swapMode() {
   mode = mode === 'outer' ? 'inner' : 'outer';
   outer.visible = mode === 'outer'; inner.visible = mode === 'inner';
   go.textContent = mode === 'outer' ? '内へ' : '外へ';
-  if (mode === 'inner') { view.tgt.set(0, camera.aspect < .7 ? -.25 : -.15, 0); inner.scale.setScalar(Math.min(1, camera.aspect * 1.15)); view.dist = camera.aspect < .7 ? 8.8 : 9.5; view.pitch = .12; say(rel > .6 ? '露はみな同じ一粒。\nどの粒にも、ほかの粒が映る。' : '体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
+  if (mode === 'inner') { view.tgt.set(0, camera.aspect < .7 ? -.25 : -.15, 0); inner.scale.setScalar(camera.aspect < .7 ? camera.aspect * 1.05 : .92); view.dist = camera.aspect < .7 ? 8.8 : 9.5; view.pitch = .12; say(rel > .6 ? '露はみな同じ一粒。\nどの粒にも、ほかの粒が映る。' : '体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
   else { view.tgt.set(0, 1.3, -2); view.dist = MOBILE ? 9.5 : 8; say(rel > .6 ? 'どれも中心ではない。映し合い、場を変え、変わった場がまた受けとられる。その全体が、ひとつの網。' : '露を体へ戻す。同じ参道が、重なって見える。', 9000); }
 }
 
