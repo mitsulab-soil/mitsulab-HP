@@ -30,7 +30,7 @@ scene.add(new THREE.HemisphereLight(0xdce8ee, 0x5a5040, 1.0));
 { // 空の光（環境）：空の色から小さく作る
   const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene(), sm = new THREE.ShaderMaterial({ side: THREE.BackSide, uniforms: {}, vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }", fragmentShader: "varying vec3 vP; void main(){ float t = vP.y; vec3 c = t > 0. ? mix(vec3(.78,.84,.86), vec3(.42,.58,.74), t) : mix(vec3(.5,.46,.38), vec3(.22,.2,.16), -t); gl_FragColor = vec4(c, 1.); }" });
   es.add(new THREE.Mesh(new THREE.SphereGeometry(10, 16, 8), sm)); scene.environment = pm.fromScene(es, 0, .1, 50).texture; pm.dispose(); }
-const sun = new THREE.DirectionalLight(0xffe3bc, 3.3);   // 秋の午後三時ごろの、低めの暖かい日差し sun.position.copy(SUN).multiplyScalar(60); scene.add(sun);
+const sun = new THREE.DirectionalLight(0xffdcae, 3.6);   // 秋の午後三時ごろの、低めの暖かい日差し sun.position.copy(SUN).multiplyScalar(60); scene.add(sun);
 
 // 機械のための記述：種類（R）・日の当たり（G）・距離（B）を書き出す。同じ材質で、uMach のときだけ出す色を変える
 function mpatch(m, kind) {
@@ -123,7 +123,7 @@ const rtDat = new THREE.WebGLRenderTarget(2, 2, { minFilter: THREE.NearestFilter
 const post = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
   uniforms: { tCol: { value: rtCol.texture }, tDat: { value: rtDat.texture }, uRes: { value: new THREE.Vector2() }, uDRes: { value: new THREE.Vector2() }, uSeam: { value: mobile ? .58 : .64 }, uSeam2: { value: 1 },
     uCh: { value: 0 }, uT: { value: 0 }, uGust: { value: .5 }, uDpr: { value: 1 }, uInvProj: { value: new THREE.Matrix4() }, uCamW: { value: new THREE.Matrix4() },
-    uSrc: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] }, uExp: { value: 1.08 } },
+    uSrc: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] }, uExp: { value: 1.18 } },
   vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }",
   fragmentShader: /* glsl */`
 uniform sampler2D tCol, tDat; uniform vec2 uRes, uDRes; uniform float uSeam, uSeam2, uCh, uT, uGust, uDpr, uExp; uniform mat4 uInvProj, uCamW; uniform vec4 uSrc[3]; varying vec2 vUv;
@@ -141,7 +141,7 @@ void main(){
   float sx2 = uSeam2 * uRes.x;
   if (fc.x >= sx2) {   // 鳥（模式）：紫外を含む四つの錐体。人に見えない紫外の明るさを青紫に写し、赤・緑・青を一段ずつ下へずらして見せる
     vec4 d = texture2D(tDat, vUv); float k = kOf(d); vec3 c = human(vUv);
-    float uvr = k < .5 ? .85 - .3 * vUv.y : k == 4. ? .05 : k == 5. ? .06 : k == 3. ? .08 : k == 2. ? .14 : k == 1. ? .16 : k == 7. ? .1 : .2;
+    float uvr = k < .5 ? .55 - .2 * vUv.y : k == 4. ? .05 : k == 5. ? .06 : k == 3. ? .08 : k == 2. ? .14 : k == 1. ? .16 : k == 7. ? .1 : .2;
     col = c * vec3(.82, .92, .86) + vec3(.42, .3, .95) * uvr * 1.25;   // 色はそのまま少し沈め、紫外の明るさだけを青紫で重ねる
   } else if (fc.x < sx) col = human(vUv);
   else {
@@ -362,7 +362,7 @@ function show(k) { const s = SAY[k]; if (!s) return; const el = $("#cap"); el.te
 let seamKeep = .6, ch = 0, outK = 0, outOn = false, seam = post.uniforms.uSeam.value; const seen = new Set();
 const chId = () => CH[ch].id;
 const music = new Music();
-const SPOTS = mobile ? [[-.55, 2.9], [-.25, 2.3], [-.8, 3.5]] : [[-1.35, 3.4], [-.7, 2.5], [-1.9, 2.1]];
+const SPOTS = mobile ? [[-.55, 2.9], [-.25, 2.3], [-.35, 3.6]] : [[-1.35, 3.4], [-.7, 2.5], [-1.9, 2.1]];
 function setCh(i) {
   if (aoi && i) { const [x, z] = SPOTS[i % 3]; aoi.walkTo(new V3(x, 0, z)); AIP.aoi.set(x, 1.45, z); }   // 受けとり方を替えるたびに、碧は少し場所を変える
   ch = i; post.uniforms.uCh.value = i; seen.add(CH[i].id);
@@ -534,7 +534,7 @@ function frame() {
   attP.material.opacity = .15 + .75 * outK;
   if (attN) { const j = ((attN - 1) % 900) * 3; attLab.pos.set(ATT[j], ATT[j + 1] + .4, ATT[j + 2]); }
   // 合わせ
-  { const want = ended && !outOn ? (mobile ? .8 : .78) : 1; post.uniforms.uSeam2.value += (want - post.uniforms.uSeam2.value) * Math.min(1, dt * 3); if (seam > post.uniforms.uSeam2.value - .02 && want < 1) seam = post.uniforms.uSeam2.value - .14; $("#birdT").classList.toggle("on", want < 1); $("#birdT").style.transform = `translate(${(post.uniforms.uSeam2.value * innerWidth + 10) | 0}px,${(innerHeight * .2) | 0}px)`; }
+  { const want = ended && !outOn ? (mobile ? .7 : .78) : 1; post.uniforms.uSeam2.value += (want - post.uniforms.uSeam2.value) * Math.min(1, dt * 3); if (seam > post.uniforms.uSeam2.value - .02 && want < 1) seam = post.uniforms.uSeam2.value - .14; $("#birdT").classList.toggle("on", want < 1); $("#birdT").style.transform = `translate(${(post.uniforms.uSeam2.value * innerWidth + 8) | 0}px,${(innerHeight * .2) | 0}px)`; $("#birdT").style.maxWidth = ((1 - post.uniforms.uSeam2.value) * innerWidth - 14 | 0) + "px"; }
   seamShown += (seam - seamShown) * Math.min(1, dt * 14); post.uniforms.uSeam.value = seamShown; post.uniforms.uT.value = t;
   post.uniforms.uInvProj.value.copy(cam.projectionMatrixInverse); post.uniforms.uCamW.value.copy(cam.matrixWorld);
   { let i = 0; for (const s of SRC) { tmp.copy(s.p).project(cam); post.uniforms.uSrc.value[i++].set(tmp.x * .5 + .5, tmp.y * .5 + .5, 0, tmp.z < 1 ? s.w : 0); } }
@@ -552,8 +552,8 @@ function frame() {
   for (const L of LABS) { let ok = L.show(); if (ok) { L.w.copy(L.pos); if (L.obj) L.obj.localToWorld(L.w); L.w.project(cam); ok = L.w.z < 1 && Math.abs(L.w.x) < 1.1 && Math.abs(L.w.y) < 1.1; }
     const x = (L.w.x * .5 + .5) * W, y = (-L.w.y * .5 + .5) * H; if (ok && L.side === "machine" && x < seamShown * W) ok = false;
     if (ok !== L.on) { L.on = ok; L.el.classList.toggle("on", ok); } if (ok) L.el.style.transform = `translate(${x | 0}px,${y | 0}px)`; }
-  { const on = chId() === "cam" && outK < .3 && seamShown < .9, a = $("#camA"), b = $("#camB"); a.classList.toggle("on", on); b.classList.toggle("on", on);
-    if (on) { const rw = W - seamShown * W; a.style.transform = `translate(${(seamShown * W + 10) | 0}px,${(H * .66) | 0}px)`; b.style.transform = `translate(${(W - 16) | 0}px,${(H * (mobile ? .72 : .66)) | 0}px)`; } }
+  { const on = chId() === "cam" && outK < .3 && seamShown < .9, a = $("#camA"), b = $("#camB"); a.classList.toggle("on", on); b.classList.toggle("on", on && (post.uniforms.uSeam2.value - seamShown) * W > 150);   // 機械の帯が狭いときは二つ目の札を出さない
+    if (on) { const rw = W - seamShown * W; a.style.transform = `translate(${(seamShown * W + 10) | 0}px,${(H * .66) | 0}px)`; b.style.transform = `translate(${(post.uniforms.uSeam2.value * W - 12) | 0}px,${(H * (mobile ? .72 : .66)) | 0}px)`; } }
   const hx = seamShown * W; $("#seam").style.transform = `translateX(${hx | 0}px)`; $("#seam").classList.toggle("edge", seamShown > .97 || seamShown < .03);
   // 字幕
   if (capT > 0) { capT -= dt; if (capT <= 0) { $("#cap").classList.remove("on"); if (capQ.length) setTimeout(() => show(capQ.shift()), 500); } }
