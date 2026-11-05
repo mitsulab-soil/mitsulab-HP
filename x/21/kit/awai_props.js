@@ -44,7 +44,7 @@ export function tsuwabuki(R, { n = 9, spread = .45 } = {}) {
       const dg = new THREE.CylinderGeometry(.008, .006, .006, 10); dg.translate(c.x, c.y + .002, c.z); heads.push(dg.toNonIndexed());
     }
   }
-  const leafM = awaiPatch(new THREE.MeshPhysicalMaterial({ map: tsuwaTex(), bumpMap: tsuwaTex(), bumpScale: 1.4, color: 0xffffff, roughness: .42, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, side: THREE.DoubleSide }), { lines: false });
+  const leafM = awaiPatch(new THREE.MeshPhysicalMaterial({ map: tsuwaTex(), bumpMap: tsuwaTex(), bumpScale: 1.4, color: 0xffffff, roughness: .6, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, side: THREE.DoubleSide }), { lines: false });
   const stemM = awaiPatch(new THREE.MeshStandardMaterial({ color: 0x5b5a3a, roughness: .8 }), { lines: false });
   const rayM = awaiPatch(new THREE.MeshStandardMaterial({ color: 0xf2c21c, roughness: .6, side: THREE.DoubleSide, emissive: 0x3a2a00, emissiveIntensity: .4 }), { lines: false, keep: .25 });
   const discM = awaiPatch(new THREE.MeshStandardMaterial({ color: 0xc79215, roughness: .9 }), { lines: false });
@@ -118,12 +118,12 @@ export function monad(color, r = .5) {
 }
 
 // ───────── 人：等高線の姿（高さ 5 cm ごとの輪を重ねる＝人の形は線で）。脚と腕は付け根で振れる。描画は 5 回だけ
-export function contourPerson(color = 0xf4aa96, H = 1.68) {
+export function contourPerson(color = 0xf4aa96, H = 1.68, stepH = .05) {
   const g = new THREE.Group(), mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: .85, toneMapped: false });
   const ring = (arr, cx, h, rx, rz, n = 28) => { for (let i = 0; i < n; i++) { const a = i / n * TAU, b = (i + 1) / n * TAU; arr.push(cx + Math.cos(a) * rx, h, Math.sin(a) * rz, cx + Math.cos(b) * rx, h, Math.sin(b) * rz); } };
   const part = (arr, pivot) => { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(arr, 3)); gg.translate(-pivot.x, -pivot.y, -pivot.z); const l = new THREE.LineSegments(gg, mat); const p = new THREE.Group(); p.position.copy(pivot); p.add(l); g.add(p); return p; };
   const body = [], legL = [], legR = [], armL = [], armR = [], hip = .47 * H, sh = .8 * H;
-  for (let h = .02; h < H; h += .05) {
+  for (let h = .02; h < H; h += stepH) {
     const y = h / H;
     if (y < .47) { const rx = .055 + .02 * ss(0, .45, y), rz = .06 + .015 * ss(0, .45, y); ring(legL, -.09, h, rx, rz); ring(legR, .09, h, rx, rz); continue; }
     if (y < .52) { ring(body, 0, h, .17, .11); continue; }
@@ -132,7 +132,7 @@ export function contourPerson(color = 0xf4aa96, H = 1.68) {
     if (y < .87) { ring(body, 0, h, .055, .055, 16); continue; }
     const q = Math.sqrt(Math.max(0, 1 - Math.pow((y - .935) / .068, 2))); ring(body, 0, h, .085 * q + .01, .095 * q + .01, 20);
   }
-  for (let h = sh; h > .5 * H; h -= .05) { ring(armL, -.225, h, .035, .04, 14); ring(armR, .225, h, .035, .04, 14); }
+  for (let h = sh; h > .5 * H; h -= stepH) { ring(armL, -.225, h, .035, .04, 14); ring(armR, .225, h, .035, .04, 14); }
   part(body, new V3()); const LL = part(legL, new V3(-.09, hip, 0)), LR = part(legR, new V3(.09, hip, 0)), AL = part(armL, new V3(-.225, sh, 0)), AR = part(armR, new V3(.225, sh, 0));
   g.userData.walk = (t, k = 1) => { const s = Math.sin(t * Math.PI) * k; LL.rotation.x = s * .35; LR.rotation.x = -s * .35; AL.rotation.x = -s * .25; AR.rotation.x = s * .25; };
   g.userData.mat = mat; return g;
@@ -169,6 +169,33 @@ export function bakeRigid(root, { dropFur = false } = {}) {
       const m = new THREE.Mesh(mg, list[0].material); m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow; m.renderOrder = list[0].renderOrder;
       for (const c of list) node.remove(c); node.add(m);
     }
+  };
+  visit(root); return root;
+}
+
+// スマホだけ（2026-11-06）：小さな生き物の、動かない部品を材質をこえて一つに（色は頂点の色に写す）。
+//   画面の上で数ミリの虫や鳥では、材質ごとの照り（法線の地図・クリアコート）は見分けられないため。
+//   wings＝鳥の翼の羽の段（材質の配列）を一つの材質で描く（形は毎こま組み直すまま）
+let flatM = null;
+export function flattenSmall(root, { wings = false, collapse = null, keep = [] } = {}) {
+  const noop = THREE.Mesh.prototype.onBeforeRender;
+  if (collapse) {   // 関節ごとの小さな動き（触角・腹の伸び縮み）を止め、体の中の動かない部品を体の直下へ集める
+    const under = o => { for (let p = o; p && p !== collapse; p = p.parent) if (keep.includes(p)) return true; return false; };
+    const ms = []; collapse.traverse(o => { if (o !== collapse && o.isMesh && !o.material.transparent && !Array.isArray(o.material) && !o.children.length && !under(o) && o.parent !== collapse) ms.push(o); });
+    collapse.updateMatrixWorld(true); for (const m of ms) collapse.attach(m);
+  }
+  flatM ||= awaiPatch(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .62, metalness: 0 }), { lines: false, keep: .5 });
+  const visit = node => {
+    for (const c of node.children) visit(c);
+    if (wings) for (const c of node.children) if (c.isMesh && Array.isArray(c.material)) { c.material = c.material[0]; c.geometry.clearGroups(); }
+    const list = node.children.filter(c => c.isMesh && !c.isSkinnedMesh && !c.isInstancedMesh && !Array.isArray(c.material) && !c.children.length && c.visible && !c.material.transparent && c.onBeforeRender === noop && !c.morphTargetInfluences);
+    if (list.length < 2) return;
+    const geos = list.map(c => { c.updateMatrix(); let g = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone(); g.applyMatrix4(c.matrix);
+      const n = g.attributes.position.count, col = new Float32Array(n * 3), mc = c.material.color || new THREE.Color(1, 1, 1), vc = g.attributes.color;
+      for (let i = 0; i < n; i++) { col[i * 3] = mc.r * (vc ? vc.getX(i) : 1); col[i * 3 + 1] = mc.g * (vc ? vc.getY(i) : 1); col[i * 3 + 2] = mc.b * (vc ? vc.getZ(i) : 1); }
+      const out = new THREE.BufferGeometry(); out.setAttribute("position", g.attributes.position); out.setAttribute("normal", g.attributes.normal || (g.computeVertexNormals(), g.attributes.normal)); out.setAttribute("color", new THREE.BufferAttribute(col, 3)); return out; });
+    const mg = mergeGeometries(geos, false); if (!mg) return;
+    for (const c of list) node.remove(c); node.add(new THREE.Mesh(mg, flatM));
   };
   visit(root); return root;
 }

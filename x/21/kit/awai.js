@@ -12,6 +12,8 @@ import { fitRenderer } from "./atmosphere.js";
 import { installDapple, makeSightGrass } from "./sight_look.js";
 import { sightBark } from "./sight_trees.js";
 installDapple(THREE);   // 木もれ日（線の霞で近くから掛かるときだけ効く）。材質を作る前に一度
+// 11-06：このページでは木もれ日の斑を浅く（影の側も明るさを 4 割残す＝迷彩の斑に見えない）。sight のページには効かない（このページの中だけの書きかえ）
+if (!THREE.ShaderChunk.__awDapSoft) { THREE.ShaderChunk.__awDapSoft = 1; THREE.ShaderChunk.lights_fragment_begin = THREE.ShaderChunk.lights_fragment_begin.replace("qDap = mix( 1.0, .12 + 1.05 * lit, k );", "qDap = mix( 1.0, .44 + .7 * lit, k );"); }
 // 日の方角の霞は明るく温かく、背の側は青みに（空気遠近。2026-11-06）。霞の色に掛けるだけなので、抽象で紺へ沈むときは一緒に沈む
 const SUN_GL = "-.482, .392, -.784";   // 日の向き（下の SUNW と同じ）
 { const C = THREE.ShaderChunk; if (!C.__awSunFog) { C.__awSunFog = 1;
@@ -176,8 +178,8 @@ export async function createAwai(o) {
     const wood = new THREE.Mesh(mergeGeometries(all.flatMap(t => t.wood).map(g => { for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k); return g; })), bark); world.add(wood);
     const one = TL.load(o.sprig); one.colorSpace = THREE.SRGBColorSpace; one.anisotropy = 4; one.wrapS = one.wrapT = THREE.ClampToEdgeWrapping;
     const leaf = leafMaterial(one); translucent(leaf, .85); awaiPatch(leaf, { lines: false });
-    const tint = [1.3, .92, .42], tintB = [.95, .76, .4];   // 十一月のはじめ：緑に黄と橙が混じる
-    for (const t of near) world.add(KY.sprigMesh(t.sprigs, leaf, .62, tint, t.ctr, R));
+    const tint = [1.3, .92, .42], tintB = [.95, .76, .4], tintN = [1.42, .86, .36];   // 近くの木ほど色づきが見える   // 十一月のはじめ：緑に黄と橙が混じる
+    for (const t of near) world.add(KY.sprigMesh(t.sprigs, leaf, .62, tintN, t.ctr, R));
     { const fs = all.filter(t => !near.includes(t) && t.sprigs.length).flatMap(t => t.sprigs.map(b => [b, t.ctr])); if (fs.length) { const im = KY.sprigMesh(fs.map(b => b[0]), leaf, .9, tint, new THREE.Vector3(), R); const a = im.geometry.attributes.aCtr; fs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); world.add(im); } }   // 並木の枝先にも葉（枝先が槍に見えない）
     const backs = all.flatMap(t => t.back.map(b => [b, t.ctr]));
     const bIM = KY.sprigMesh(backs.map(b => b[0]), leaf, 1.05, tintB, new THREE.Vector3(), R); { const a = bIM.geometry.attributes.aCtr; backs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); } world.add(bIM);
@@ -291,7 +293,7 @@ export async function createAwai(o) {
     abs += (absT - abs) * (1 - Math.exp(-dt * (RM ? 30 : 3.2))); yaw += (yawT - yaw) * (1 - Math.exp(-dt * 3));
     AW.uAbs.value = abs; AW.uTime.value = t; WIND.uTime.value = RM ? 0 : t;
     scene.fog.color.copy(abs < .35 ? tmpC.copy(HAZE).lerp(GREY, ss(0, .35, abs)) : tmpC.copy(GREY).lerp(NAVY, ss(.35, .8, abs)));   // 霞 → 冷たい灰 → 紺（あいだで泥の色にならない） scene.fog.near = lerp(6, 40, abs); scene.fog.far = lerp(120, 170, abs); grassUp?.(camera.position, dt); scene.background.copy(scene.fog.color);
-    hemi.intensity = lerp(1.22, .5, abs);   // 具体の影を少し浅く（木陰の斑が迷彩に見えない） sun.intensity = lerp(2.2, .6, abs);
+    hemi.intensity = lerp(1.22, .5, abs);   // 具体の影を少し浅く（木陰の斑が迷彩に見えない） sun.intensity = lerp(1.9, .6, abs);   // 木陰の斑が迷彩に見えないよう、日をやや弱く
     for (const m of FADERS) { const f = m.userData.fade; m.opacity = f.max * bandK(f.band, abs); m.visible = m.opacity > .003; }
     const r = rig(abs, yaw, t); const sway = RM ? 0 : 1;
     focK += ((focT ? 1 : 0) - focK) * (1 - Math.exp(-dt * 1.6)); if (focT) { focP.lerp(focT, 1 - Math.exp(-dt * 3)); if (t > focUntil) focT = null; } if (focK > .001) { r.look.lerp(focP, focK * .45 * (1 - abs)); r.pos.lerp(focP.clone().add(r.pos.clone().sub(focP).multiplyScalar(.45)), focK * .6 * (1 - abs)); }
@@ -343,14 +345,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:#cfd5d2;-webkit-user-s
 #aw-ui::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 46%,rgba(3,5,12,0) 58%,rgba(3,5,12,.34) 100%)}
 #aw-ui{position:fixed;inset:0;pointer-events:none;font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;color:var(--aw-ink)}
 .aw-mark{padding:6px 10px 7px;margin:-6px 0 0 -10px;background:radial-gradient(ellipse at 30% 50%,rgba(3,6,15,.32),rgba(3,6,15,0) 72%);position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:3px;text-shadow:0 0 10px rgba(0,0,0,.35)}
-.aw-mark b{font-weight:600;font-size:15px;letter-spacing:.14em}
+.aw-mark b{font-weight:600;font-size:15px;letter-spacing:.14em;text-shadow:0 0 10px rgba(20,24,30,.6),0 0 2px rgba(20,24,30,.5)}
 .aw-mark i{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--aw-soft)}
 .aw-axis{position:absolute;right:max(14px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);height:min(46vh,360px);width:44px;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:auto;cursor:ns-resize}
 .aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-soft);text-shadow:0 0 8px rgba(0,0,0,.4)}
 .aw-line{flex:1;position:relative;width:1px;background:linear-gradient(rgba(155,220,240,.0),rgba(155,220,240,.55) 12%,rgba(155,220,240,.55) 88%,rgba(155,220,240,0));writing-mode:horizontal-tb!important}
 .aw-line em{position:absolute;left:50%;width:9px;height:9px;margin:-5px 0 0 -5px;border:1px solid var(--aw-aoi2);border-radius:50%;background:rgba(6,10,18,.4);box-shadow:0 0 0 4px rgba(155,220,240,.08)}
-.aw-cap{text-wrap:balance;word-break:auto-phrase;line-break:strict;position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;width:min(86vw,640px);text-align:center;font-size:15px;line-height:1.85;letter-spacing:.06em;padding:10px 18px;opacity:0;transition:opacity .7s ease;
- background:radial-gradient(ellipse at center,rgba(3,6,15,.58) 0%,rgba(3,6,15,.3) 55%,rgba(3,6,15,0) 80%)}
+.aw-cap{text-wrap:balance;word-break:auto-phrase;line-break:strict;position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;width:min(86vw,640px);text-align:center;font-size:15px;line-height:1.85;letter-spacing:.06em;padding:10px 18px;text-shadow:0 0 10px rgba(14,18,26,.7),0 0 2px rgba(14,18,26,.6);opacity:0;transition:opacity .7s ease;
+ background:radial-gradient(ellipse at center,rgba(3,6,15,.66) 0%,rgba(3,6,15,.38) 55%,rgba(3,6,15,0) 82%)}
 .aw-cap.on{opacity:1}
 .aw-snd{position:absolute;right:max(14px,env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));pointer-events:auto;min-width:44px;height:44px;background:none;border:0;color:var(--aw-soft);font:inherit;font-size:12px;letter-spacing:.2em;cursor:pointer;text-decoration:line-through;text-decoration-color:rgba(195,204,224,.6);text-shadow:0 0 8px rgba(0,0,0,.4)}
 .aw-snd[aria-pressed="true"]{text-decoration:none;color:var(--aw-ink)}

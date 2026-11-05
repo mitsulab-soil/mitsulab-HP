@@ -11,10 +11,10 @@ AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
 
 const W = await createAwai({
-  title: "計算機の思想", en: "Thought in Computing", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [2.2, 2.6, -.45], seed: 2222, abs0: 1,
+  title: "計算機の思想", en: "Thought in Computing", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [2.2, 2.6, -.45], seed: 2222, abs0: 1,
   rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 10.5, k), h = lerp(1.55, 8.6, k);
     const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, .2, k), lerp(-1.6, -.6, k));
-    if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(-.1 + Math.sin(y) * 1.5, 10.2, 5.6), q); look.lerp(new V3(-.1, 0, .95), q); }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
+    if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(-.35 + Math.sin(y) * 1.5, 11.4, 6.3), q); look.lerp(new V3(-.35, 0, .95), q); }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
     return { pos, look }; },
   credits: [
     "式は関係の形を示す模式（測れる量の式ではない）。E 環境・B 身体・P 知覚・K 経験と文脈・g 意味づけ・a ふるまいが環境に残す変化・F 環境自身の変化・L ほかの受けとり方の層",
@@ -27,7 +27,7 @@ const W = await createAwai({
 const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
-if (innerWidth < innerHeight * .8) W.aoi.then(a => a && a.place(1.3, .9, -.2));   // 縦長の画面では、碧を横から見た画の内側へ
+if (innerWidth < innerHeight * .8) W.aoi.then(a => a && a.place(-1.75, -.9, -.2));   // 縦長の画面では、碧を横から見た画の内側へ
 
 // ───────── 式（左上・抽象の側でだけ見える）
 const fx = document.createElement("div"); fx.className = "fx";
@@ -68,17 +68,20 @@ const ripple = (x, z, amp, col) => { RIP[rI].set(x, z, ripU.uT.value, amp); RCOL
 
 // ───────── 主体（ノード）
 const tree = W.near.map(t => { const p = t.wood[0].attributes.position; return new V3(p.getX(0), 0, p.getZ(0)); }).filter(v => v.x < 0).sort((a, b) => Math.abs(a.z + 2.5) - Math.abs(b.z + 2.5))[0] || new V3(-5.4, 0, -2.5);
-tree.x += .6;
-const tit = CR.makeTit(); PR.awaiCreature(tit, .5); tit.scale.setScalar(.26); tit.position.set(-1.55, 0, 1.5); tit.rotation.y = .7; tit.userData.state = "perch"; PR.bakeRigid(tit); W.add(tit);
+tree.x += .6;   /* 輪は幹の根もとのそば（縦長でも動かさない） */
+const tit = CR.makeTit(); PR.awaiCreature(tit, .5); tit.scale.setScalar(.3); tit.position.set(-2.0, 0, 2.0); tit.rotation.y = .7; tit.userData.state = "perch"; PR.bakeRigid(tit); if (MOBILE) PR.flattenSmall(tit, { wings: true }); W.add(tit);
 const tw = PR.tsuwabuki(R, { n: 11, spread: .42 }); tw.position.set(1.7, 0, 1.55); W.add(tw);
-const bee = CR.makeBee(); PR.awaiCreature(bee, .5); bee.scale.setScalar(.024); PR.bakeRigid(bee, { dropFur: MOBILE }); W.add(bee); const beeHome = tw.userData.heads[0].clone().add(tw.position);
+const bee = CR.makeBee(); PR.awaiCreature(bee, .5); bee.scale.setScalar(.024); PR.bakeRigid(bee, { dropFur: MOBILE }); if (MOBILE) { const bp = bee.userData.parts; bp.wings.forEach(w => w.hw.visible = false); PR.flattenSmall(bee, { collapse: bp.body, keep: bp.wings.flatMap(w => [w.fw, w.hw]) }); }   /* スマホ：後翅は前翅に重なるので省き、体の部品を一つに */ W.add(bee); const beeHome = tw.userData.heads[0].clone().add(tw.position);
 const person = PR.contourPerson(0xe9d2c2); person.position.set(-1.0, 0, 2.8); person.rotation.y = .25; W.add(person);
-const sens = PR.sensorPost(); sens.position.set(2.3, 0, -.9); sens.rotation.y = -.4; PR.bakeRigid(sens); W.add(sens);
+const sens = PR.sensorPost(); sens.position.set(innerWidth < innerHeight * .8 ? 1.3 : 2.3, 0, -.9); sens.rotation.y = -.4; PR.bakeRigid(sens); W.add(sens);
 
 const PORT = innerWidth < innerHeight * .8;
+if (PORT) { tit.position.copy(tree).add(new V3(.4, 0, 1.9)); person.position.set(-.2, 0, 2.4); tw.position.set(1.15, 0, 1.4); sens.position.set(.9, 0, -.9); }
+{ const P = [tree, tit.position, tw.position, person.position, sens.position];   /* どの主体の輪も 1.3 m 以上離す（近ければ奥行きの向きへ押す）。欅は動かさない */
+  for (let it = 0; it < 6; it++) for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) { const d = P[j].clone().sub(P[i]).setY(0); if (d.length() < 1.3) { const push = d.lengthSq() < 1e-4 ? new V3(0, 0, 1) : d.clone().normalize(); P[j].addScaledVector(push, 1.3 - d.length()); } } }   /* 縦長の俯瞰：五つの輪を五角に近く、1.2 m 以上離す */
 const C = { tit: 0xb9a7e6, bee: 0xf2cf8c, hum: 0xf4aa96, tree: 0x8fd6a8, sens: 0xa9c8d8 };
 const N = [
-  { id: "tit", sub: "シジュウカラ", col: C.tit, at: () => tit.position, h: .55, lag: .25, f: snd.note(7),
+  { id: "tit", sub: "シジュウカラ", col: C.tit, at: () => tit.position, h: .9, lag: .25, f: snd.note(7),
     c: "シジュウカラが地をつつき、跳ぶ。その声と動きが、聴きとれるもの、見てとれるものの入力になる。", a: "鳥は、鳥の身体で拾えるものだけを手がかりにする。紫外も見える目で。", out: ["声", "動き"], in: ["足音", "動き", "声", "落葉"],
     voice: o => { for (let k = 0; k < 3; k++) { snd.chirp(5200, 4900, .06, { ...o, at: (o.at || 0) + k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: (o.at || 0) + k * .42 + .1 }); }   /* ツツピー（シジュウカラのさえずりの句。声域 3〜6 kHz の模式） */ }, act: () => { hop = 1; } },
   { id: "bee", sub: "ミツバチ", col: C.bee, at: () => tw.position, h: .75, lag: .15, f: snd.note(3),
@@ -86,7 +89,7 @@ const N = [
     voice: o => snd.hum(230, .7, { ...o, gain: (o.gain ?? .3) * .7 }), act: () => { beeKick = 1; } },
   { id: "hum", sub: "人", col: C.hum, at: () => person.position, h: 1.95, lag: .6, f: snd.note(0), seen: new Set(),
     c: "人が歩く。足音と動きが、鳥の入力になる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
-    voice: o => { for (let i = 0; i < 2; i++) snd.wood(snd.note(-5 + i), { ...o, at: (o.at || 0) + i * .6, decay: .45 }); }, act: () => { steps = 1.2; } },   // 歩行 毎分約 100 歩＝0.6 秒
+    voice: o => { for (let i = 0; i < 2; i++) { snd.step({ ...o, at: (o.at || 0) + i * .6, gain: (o.gain ?? .3) * 1.3, f: 480 + i * 120 }); snd.wood(snd.note(-5 + i), { ...o, at: (o.at || 0) + i * .6, decay: .4, gain: (o.gain ?? .3) * .2 }); } }, act: () => { steps = 1.2; } },   // 歩行 毎分約 100 歩＝0.6 秒
   { id: "tree", sub: "欅", col: C.tree, at: () => tree, h: 3.2, lag: 2.0, f: snd.note(-5),
     c: "欅は、光と風と気温の移ろいを受けとり、葉を落とす。", a: "木のふるまいは遅く、大きい。季節に応じて葉を落とし、その葉が鳥と人の入力になる。", out: ["落葉"], in: ["気温", "光", "風"],
     voice: o => { snd.wood(snd.note(-10), { ...o, decay: 1.8 }); snd.breath(2.2, { ...o, f0: 1400, f1: 700, gain: (o.gain ?? .3) * .5 }); }, act: () => dropLeaf() },
@@ -97,7 +100,7 @@ const N = [
 // ノードの印：足もとの輪・立ちのぼる線・名札
 function label(t, col) {
   const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); x.font = '500 46px ui-monospace,"SF Mono",Menlo,monospace'; x.fillStyle = "#" + new THREE.Color(col).getHexString(); x.textBaseline = "middle";
-  if (MOBILE) { x.font = '600 44px "Hiragino Mincho ProN",serif'; x.fillText(t, 6, 52); } else { x.fillText("U", 6, 44); x.font = '600 30px "Hiragino Mincho ProN",serif'; x.fillText(t, 40, 60); }   // スマホは名だけ
+  if (MOBILE) { x.font = '600 44px "Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.fillText(t, 256, 52); }   /* スマホ：名は札の中央に（札の中心＝持ち主の輪） */ else { x.fillText("U", 6, 44); x.font = '600 30px "Hiragino Mincho ProN",serif'; x.fillText(t, 40, 60); }   // スマホは名だけ
   const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, toneMapped: false })); s.center.set(0, 0); s.scale.set(2.0, .375, 1); if (MOBILE) { s.center.set(.5, 0); s.scale.set(2.7, .5, 1); } return s;
 }
 for (const n of N) {
@@ -161,7 +164,7 @@ function gust(q) {
   for (const o of N) { const ch = ['気温', '光', '風'].find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(q); o.queue.push({ t: ripU.uT.value + d / SPEED, g: .8 * Math.exp(-d / 12), from: null, ch }); }
   if (!sawGust) { sawGust = true; W.sayNow("風や日の傾き、気温の移ろい（F）が、欅と記録計とミツバチの入力になる。"); }
 }
-function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l, t: 0, x: tree.x + 1.2, z: tree.z + .6 }; }
+function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l, t: 0, x: tree.x + .4, z: tree.z + .3 };   /* 葉は幹の真上の樹冠の下から */ }
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("bee"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
@@ -170,7 +173,7 @@ let saidDown = false, saidGround = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
   if (!saidDown && a < .55) { saidDown = true; W.say("式の外へ降りる。同じ流れが、朝の参道にある。"); }
-  if (!saidGround && a < .08) { saidGround = true; W.say("だれも全体を見ていない。けれど、全体はたしかに回っている。"); }
+  if (!saidGround && a < .08) { saidGround = true; W.say("だれも全体を見ていない。けれど、全体はたしかに回っている。"); setTimeout(() => { if (W.abs < .2) act(nodeOf("tree"), .8, null); }, 9500); }   /* 結び：言葉のあと少し間をおいて、欅がひとりでに葉を落とす（出来事で循環を見せる） */
 });
 
 // ───────── 毎こま
@@ -187,9 +190,9 @@ W.onFrame((dt, t, a) => {
     n.ring.userData.mat.opacity = Math.max(.75 * labA, .16 + .1 * Math.sin(t * 1.6 + N.indexOf(n))) + n.glow * .5 * ss(.05, .3, a);   // 具体の参道でも、足もとの輪が薄く息をする（触れる所が分かる）
     n.ring.scale.setScalar(1 + n.glow * .25);
     n.ring2.userData.mat.opacity = n.inK * .7 * ss(.08, .4, a); n.ring2.scale.setScalar(1 + (1 - n.inK) * 1.2);
-    n.stemM.opacity = labA * (.35 + n.glow * .5); n.lab.position.y = PORT ? lerp(n.h + .04, .06, ss(.3, 1, a)) : n.h + .04; n.lab.position.x = PORT ? lerp(.06, .62, ss(.3, 1, a)) : .06;   // 縦長の俯瞰では名札を足もとへ（上から見て持ち主の輪からずれない）
+    n.stemM.opacity = labA * (.35 + n.glow * .5); n.lab.position.y = PORT ? .06 : n.h + .04; n.lab.position.x = PORT ? 0 : .06; n.lab.position.z = PORT ? .5 : 0;   // 縦長の俯瞰では名札を足もとへ（上から見て持ち主の輪からずれない）
     n.lab.material.opacity = labA * (.75 + n.glow * .25);
-    n.ring.visible = n.ring.userData.mat.opacity > .003; n.ring2.visible = n.ring2.userData.mat.opacity > .003; n.stem.visible = n.stemM.opacity > .003; n.lab.visible = n.lab.material.opacity > .003;   // 見えないものは描かない（スマホの描画の回数）
+    n.ring.visible = n.ring.userData.mat.opacity > .003; n.ring2.visible = n.ring2.userData.mat.opacity > .003; n.stem.visible = n.stemM.opacity > .003 && !(PORT && a > .6);   /* 縦長の俯瞰では名札が足もとなので、立つ線は描かない */ n.lab.visible = n.lab.material.opacity > .003;   // 見えないものは描かない（スマホの描画の回数）
   }
   // 生き物
   hop = Math.max(0, hop - dt * 1.6); tit.position.y = Math.sin(Math.min(1, 1 - hop) * Math.PI) * (hop > 0 ? .06 : 0); tit.userData.animate?.(t, false);

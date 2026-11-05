@@ -24,7 +24,7 @@ export function createSound(btn) {
     return ctx;
   };
   const setBtn = () => { if (btn) btn.setAttribute("aria-pressed", on && !muted ? "true" : "false"); };
-  const start = () => { const c = ensure(); if (!c) return; c.resume?.(); if (!on) { on = true; master.gain.setTargetAtTime(.9, c.currentTime, .4); } setBtn(); };
+  const start = () => { const c = ensure(); if (!c) return; c.resume?.(); if (!on) { on = true; master.gain.setTargetAtTime(.9, c.currentTime, .4); bed(); } setBtn(); };
   if (btn) btn.addEventListener("click", e => { e.stopPropagation(); if (!on) { start(); return; } muted = !muted; master.gain.setTargetAtTime(muted ? 0 : .9, ctx.currentTime, .15); setBtn(); });
   const ok = () => on && !muted && ctx && ctx.state === "running";
 
@@ -45,14 +45,17 @@ export function createSound(btn) {
     [[1, 1, 1], [2.756, .42, .45], [5.404, .2, .22], [8.933, .08, .12]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), gn = ctx.createGain(); os.frequency.value = f * r; env(gn, t, .004, a, dur * d); os.connect(gn).connect(head); os.start(t); os.stop(t + dur * d + .6); }); };
   // 小さな鉦（倍音をずらした鐘の響き）
   const bell = (f, o = {}) => { if (!ok()) return; const dur = 2.8 * (o.decay || 1), { t, head } = out(o, dur);
-    [[1, 1, 1], [2.32, .5, .6], [3.86, .25, .4], [5.1, .14, .25], [.5, .2, 1.2]].forEach(([r, a, d]) => { const os = ctx.createOscillator(), gn = ctx.createGain(); os.frequency.value = f * r; env(gn, t, .006, a * .7, dur * d); os.connect(gn).connect(head); os.start(t); os.stop(t + dur * d + .8); }); };
+    // 11-06：倍音はおりんに近い 1：2.76：5.40：8.93。各音を ±4 セントずらした 2 本で重ね、ゆっくりうなる（電子の素の音にしない）
+    [[1, 1, 1], [2.756, .42, .62], [5.404, .2, .4], [8.933, .07, .22]].forEach(([r, a, d]) => { for (const dc of [-4, 4]) { const os = ctx.createOscillator(), gn = ctx.createGain(); os.frequency.value = f * r; os.detune.value = dc * (1 + r * .15); env(gn, t, .006, a * .4, dur * d); os.connect(gn).connect(head); os.start(t); os.stop(t + dur * d + .8); } }); };
   // 羽音：基音そのもの（ミツバチ 約 230 Hz）。のこぎり波を帯で絞り、はばたきの揺れ
   const hum = (f, dur = 1.4, o = {}) => { if (!ok()) return; const { t, head } = out(o, dur);
-    const os = ctx.createOscillator(), bp = ctx.createBiquadFilter(), gn = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
-    os.type = "sawtooth"; os.frequency.value = f; bp.type = "bandpass"; bp.frequency.value = f * 3; bp.Q.value = .9;
-    lfo.frequency.value = 5.5; lg.gain.value = f * .02; lfo.connect(lg).connect(os.frequency);
-    gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.5, t + .25); gn.gain.setValueAtTime(.5, t + dur - .4); gn.gain.linearRampToValueAtTime(0, t + dur);
-    os.connect(bp).connect(gn).connect(head); os.start(t); lfo.start(t); os.stop(t + dur + .1); lfo.stop(t + dur + .1); };
+    // 11-06：基音 230 Hz と 2・3 倍の三角波。音量に浅い揺れ（23 Hz）、高さにゆるい揺れ（ホバリングの修正）
+    const gn = ctx.createGain(), am = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain(), amL = ctx.createOscillator(), amG = ctx.createGain(), bp = ctx.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = f * 2; bp.Q.value = .5;
+    lfo.frequency.value = 3.1; lg.gain.value = f * .012; amL.frequency.value = 23; amG.gain.value = .18; am.gain.value = .82; amL.connect(amG).connect(am.gain);
+    const oss = [[1, 1], [2, .5], [3, .28]].map(([r, a]) => { const os = ctx.createOscillator(), g1 = ctx.createGain(); os.type = "triangle"; os.frequency.value = f * r; g1.gain.value = a; lfo.connect(lg).connect(os.frequency); os.connect(g1).connect(bp); return os; });
+    gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.55, t + .25); gn.gain.setValueAtTime(.55, t + dur - .4); gn.gain.linearRampToValueAtTime(0, t + dur);
+    bp.connect(am).connect(gn).connect(head); for (const os of [...oss, lfo, amL]) { os.start(t); os.stop(t + dur + .1); } };
   // 短い鳴き（模式。高さは聴きやすい所へ移してある）
   const chirp = (f0, f1, dur = .14, o = {}) => { if (!ok()) return; const { t, head } = out(o, dur);
     const os = ctx.createOscillator(), gn = ctx.createGain(); os.frequency.setValueAtTime(f0, t); os.frequency.exponentialRampToValueAtTime(f1, t + dur);
@@ -65,6 +68,19 @@ export function createSound(btn) {
     bp.type = "bandpass"; bp.frequency.setValueAtTime(o.f0 || 900, t); bp.frequency.linearRampToValueAtTime(o.f1 || o.f0 || 900, t + dur); bp.Q.value = o.q || 1.2;
     gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.5, t + dur * .35); gn.gain.linearRampToValueAtTime(0, t + dur);
     s.connect(bp).connect(gn).connect(head); s.start(t); s.stop(t + dur + .1); };
+  // 土の上の一歩（低い雑音の短い粒。木の打音にしない）
+  const step = (o = {}) => { if (!ok()) return; const { t, head } = out({ wet: .2, ...o }, .2);
+    const s = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), gn = ctx.createGain(); s.buffer = noiseBuf(); lp.type = "lowpass"; lp.frequency.value = o.f || 520; lp.Q.value = .7;
+    gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.9, t + .012); gn.gain.exponentialRampToValueAtTime(.001, t + .11); s.connect(lp).connect(gn).connect(head); s.start(t, Math.random() * 1.5); s.stop(t + .14); };
+  // 場の音：木立の風と葉ずれ（ごく小さく・途切れない）。鳴りはじめてから、ずっと地にある
+  let bedOn = false; const bed = () => { if (bedOn || !ctx) return; bedOn = true; const t = ctx.currentTime;
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf(); s.loop = true;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420; const g = ctx.createGain(); g.gain.value = .022;
+    const hp = ctx.createBiquadFilter(); hp.type = "bandpass"; hp.frequency.value = 2600; hp.Q.value = .8; const g2 = ctx.createGain(); g2.gain.value = .006;
+    const l1 = ctx.createOscillator(), lg1 = ctx.createGain(); l1.frequency.value = 1 / 11; lg1.gain.value = .012; l1.connect(lg1).connect(g.gain);
+    const l2 = ctx.createOscillator(), lg2 = ctx.createGain(); l2.frequency.value = 1 / 7.3; lg2.gain.value = .005; l2.connect(lg2).connect(g2.gain);
+    s.connect(lp).connect(g).connect(master); s.connect(hp).connect(g2).connect(master); const w = ctx.createGain(); w.gain.value = .3; g2.connect(w).connect(send);
+    s.start(t); l1.start(t); l2.start(t); };
   // 機械の読み取り（短い打鍵）
   const click = (o = {}) => { if (!ok()) return; const { t, head } = out({ wet: .25, ...o }, .1);
     const s = ctx.createBufferSource(), hp = ctx.createBiquadFilter(), gn = ctx.createGain(); s.buffer = noiseBuf(); hp.type = "highpass"; hp.frequency.value = 3200;
@@ -75,5 +91,5 @@ export function createSound(btn) {
     [0, 3.2].forEach(dt => { const os = ctx.createOscillator(), gn = ctx.createGain(); os.type = "triangle"; os.frequency.value = f; os.detune.value = dt;
       gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.32, t + dur * .4); gn.gain.linearRampToValueAtTime(0, t + dur); os.connect(gn).connect(head); os.start(t); os.stop(t + dur + .1); }); };
 
-  return { start, get on() { return ok(); }, get started() { return on; }, wood, bell, hum, chirp, breath, click, drone, note, now: () => ctx ? ctx.currentTime : 0 };
+  return { start, get on() { return ok(); }, get started() { return on; }, wood, bell, hum, chirp, breath, click, drone, step, note, now: () => ctx ? ctx.currentTime : 0 };
 }

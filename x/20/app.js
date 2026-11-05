@@ -9,11 +9,12 @@ import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
 
+let RIG = null;
 const W = await createAwai({
-  title: "哲学の思想", en: "Thought in Philosophy", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [innerWidth < innerHeight * .8 ? -.6 : -.35, -.6, .05]   /* 碧は主体の群れの奥（どの球とも 1 m 以上離れる） */, seed: 2020,
-  rig: (a, y) => {
-    const k = ss(0, 1, a), piv = new V3(lerp(1.0, 2.2, k), 0, 1.4), back = lerp(3.7, 4.3, k), h = lerp(1.3, 3.3, k);   // 具体は参道の右寄りから、左の木立へ斜めに見る（左右対称の消失点を外す）
-    return { pos: new V3(piv.x + Math.sin(y + lerp(.12, .3, k)) * back, h, piv.z + Math.cos(y + lerp(.12, .3, k)) * back), look: new V3(lerp(-.4, -.2, k), lerp(.3, .35, k), lerp(1.2, 1.6, k)) };
+  title: "哲学の思想", en: "Thought in Philosophy", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [innerWidth < innerHeight * .8 ? -1.75 : -.35, innerWidth < innerHeight * .8 ? -3.9 : -1.2, .05]   /* 碧は主体の群れの奥（どの球とも 1 m 以上離れる） */, seed: 2020, portrait: 1.15,
+  rig: RIG = (a, y) => {
+    const k = ss(0, 1, a), piv = new V3(lerp(1.0, innerWidth < innerHeight * .8 ? .25 : 1.3, k), 0, 1.4), back = lerp(3.7, innerWidth < innerHeight * .8 ? 4.9 : 3.7, k), h = lerp(innerWidth < innerHeight * .8 ? .9 : 1.3, 3.1, k);   // 具体は参道の右寄りから、左の木立へ斜めに見る（左右対称の消失点を外す）
+    return { pos: new V3(piv.x + Math.sin(y + lerp(.12, .3, k)) * back, h, piv.z + Math.cos(y + lerp(.12, .3, k)) * back), look: new V3(lerp(-.4, innerWidth < innerHeight * .8 ? .05 : -.2, k), lerp(.3, .35, k), lerp(1.2, innerWidth < innerHeight * .8 ? 2.2 : 1.6, k)) };
   },
   credits: [
     "ライプニッツ『モナドロジー』（1714）／ユクスキュル、クリサート『生物から見た世界』（1934）／マトゥラーナ、ヴァレラ（1972）",
@@ -32,10 +33,10 @@ W.onFirstInput(() => snd.start());
 const sub = [];
 const addSub = (o) => { o.open = 0; o.openT = 0; o.knock = 0; o.lit = 0; sub.push(o); return o; };
 // シジュウカラ：道の端で落ち葉をつつく
-const tit = CR.makeTit(); PR.awaiCreature(tit, .55); tit.scale.setScalar(.2); tit.position.set(-.4, 0, 3.3); tit.rotation.y = 1.1; tit.userData.state = "perch"; PR.bakeRigid(tit); W.add(tit);
+const tit = CR.makeTit(); PR.awaiCreature(tit, .55); tit.scale.setScalar(.2); tit.position.set(-.4, 0, 3.3); tit.rotation.y = 1.1; tit.userData.state = "perch"; PR.bakeRigid(tit); if (MOBILE) PR.flattenSmall(tit, { wings: true }); W.add(tit);
 // ツワブキとミツバチ
 const tw = PR.tsuwabuki(R, { n: 11, spread: .42 }); tw.position.set(.95, 0, 2.95); W.add(tw);
-const bee = CR.makeBee(); PR.awaiCreature(bee, .55); bee.scale.setScalar(.022); PR.bakeRigid(bee, { dropFur: MOBILE }); W.add(bee);
+const bee = CR.makeBee(); PR.awaiCreature(bee, .55); bee.scale.setScalar(.022); PR.bakeRigid(bee, { dropFur: MOBILE }); if (MOBILE) { const bp = bee.userData.parts; bp.wings.forEach(w => w.hw.visible = false); PR.flattenSmall(bee, { collapse: bp.body, keep: bp.wings.flatMap(w => [w.fw, w.hw]) }); }   /* スマホ：後翅は前翅に重なるので省き、体の部品を一つに */ W.add(bee);
 const beeHome = tw.userData.heads[0].clone().add(tw.position);
 // 落ち葉と菌の糸
 let hy = null;
@@ -47,6 +48,7 @@ const leaf = PR.keyakiLeaf(.085); leaf.rotation.set(-Math.PI / 2 + .06, 0, .7); 
 const sens = PR.sensorPost(); sens.position.set(-1.55, 0, 1.55); sens.rotation.y = .5; PR.bakeRigid(sens); W.add(sens);
 if (innerWidth < innerHeight * .8) { for (const o of [tit, tw, leaf, hy, sens]) o.position.x = .05 + (o.position.x - .05) * .3; tw.position.x = .12; }   // 縦長の画面：主体を左右の中央へ寄せる
 
+const YOU_ABS = innerWidth < innerHeight * .8 ? new V3(.55, .05, 3.3) : new V3(1.55, .05, 2.15);   // 抽象の図での「あなた」の場所（群れの手前・画面の下の中ほど）
 const C = { tit: 0xb9a7e6, bee: 0xf2cf8c, fungi: 0xe8e0c6, sens: 0xa9c8d8, you: 0xf4aa96 };
 // 何を出し（out）、何にだけ窓がひらくか（in）。事実のある経路だけを結ぶ
 addSub({ id: "tit", name: "シジュウカラ", col: C.tit, at: () => tit.position.clone().add(new V3(0, .09, 0)), r: .3, f: snd.note(7), out: ["声", "動き"], in: ["足音", "動き", "声"],
@@ -65,9 +67,9 @@ addSub({ id: "sens", name: "気温の記録計", col: C.sens, at: () => sens.pos
   c: "気温の記録計。温度だけを、数として受けとる。",
   a: "機械も、手がかりに応じて出力を変える。ここではそれを「受けとり方」と呼ぶ。",
   voice: (o) => { for (let i = 0; i < 3; i++) snd.click({ ...o, at: (o.at || 0) + i * .5, f: 1760 }); } });
-const you = { id: "you", name: "あなた", col: C.you, at: () => { const p = W.camera.position; return new V3(p.x, .05, p.z - 1.2); }, r: .5, f: snd.note(0), open: 0, openT: 0, lit: 0, out: ["足音", "動き", "踏む"], in: ["声", "羽音", "記録"],
-  voice: (o) => { for (let i = 0; i < 4; i++) snd.wood(snd.note(-5 + (i % 2)), { ...o, at: (o.at || 0) + i * .6, decay: .45, gain: (o.gain ?? .3) * .6 }); } };   // 歩行 毎分約 100 歩＝0.6 秒
-const SKY = { id: "sky", col: 0xfff1d8, at: () => new V3(-2.0, 2.3, .9), out: ["気温"], in: [] };   // 日差しと風（環境そのものの変化）
+const you = { id: "you", name: "あなた", col: C.you, at: () => { const p = W.camera.position; return new V3(p.x, .05, p.z - 1.2).lerp(YOU_ABS, ss(.4, .8, W.abs)); }, r: .5, f: snd.note(0), open: 0, openT: 0, lit: 0, out: ["足音", "動き", "踏む"], in: ["声", "羽音", "記録"],
+  voice: (o) => { for (let i = 0; i < 4; i++) { snd.step({ ...o, at: (o.at || 0) + i * .6, gain: (o.gain ?? .3) * 1.3, f: 480 + (i % 2) * 120 }); snd.wood(snd.note(-5 + (i % 2)), { ...o, at: (o.at || 0) + i * .6, decay: .4, gain: (o.gain ?? .3) * .18 }); } } };   // 歩行 毎分約 100 歩＝0.6 秒
+const SKY = { id: "sky", name: "日差し", r: .08, col: 0xfff1d8, at: () => new V3(-2.0, 1.9, .9), out: ["気温"], in: [] };   // 日差しと風（環境そのものの変化）
 const CH = {   // 経路をはじめて渡ったときの一行
   "tit>you": "シジュウカラの声が、あなたの入力になる。", "bee>you": "ミツバチの羽音が、あなたの入力になる。", "you>tit": "あなたの足音と動きが、シジュウカラの入力になる。",
   "bee>tit": "ミツバチの動きが、シジュウカラの入力になる。小鳥は虫を食べる。", "tit>bee": "シジュウカラの動きが、ミツバチの入力になる。",
@@ -84,7 +86,7 @@ for (const s of sub) {
 }
 // シジュウカラの紫外の模式：触れると羽のまわりに淡い紫の線（人の目には見えない反射の、目に見える模式）
 const uv = new THREE.Group(); { for (let k = 0; k < 3; k++) { const pts = []; for (let i = 0; i <= 24; i++) { const a = -1.1 + i / 24 * 2.2; pts.push(new V3(Math.cos(a) * (.06 + k * .025), .07 + Math.sin(a) * .02 * (k + 1), Math.sin(a) * (.08 + k * .03))); } uv.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lineMat(0xc7b4ff, 0))); } } W.add(uv); let uvK = 0;
-const youRing = PR.subjectRing(C.you, .42); youRing.userData.mat.opacity = 0; W.add(youRing);
+const youRing = PR.subjectRing(C.you, .3); youRing.userData.mat.opacity = 0; W.add(youRing);
 
 // ───────── 渡る光（事実のある経路だけ）と、地に残る跡
 const pulses = [], NP = 48;
@@ -115,7 +117,8 @@ const arrive = (p) => {
 const layTrace = (a, b) => {
   const key = keyOf(a, b); let t = traces.find(x => x.key === key);
   if (!t) {
-    const A = a.at(), B = b.at(), pts = []; for (let i = 0; i <= 40; i++) { const u = i / 40, p = A.clone().lerp(B, u); p.y = .025; p.x += Math.sin(u * Math.PI) * .12; pts.push(p); }
+    const A = a.at(), B = b.at(), pts = []; if (A.distanceTo(B) < .3) return;   /* 短すぎる跡は丸まって傷に見えるので描かない */
+    for (let i = 0; i <= 40; i++) { const u = i / 40, p = A.clone().lerp(B, u); p.y = .025; p.x += Math.sin(u * Math.PI) * .12; pts.push(p); }
     const m = lineMat(new THREE.Color(a.col).lerp(new THREE.Color(b.col), .5).multiplyScalar(1.3), 0); const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), m); scene.add(l);
     t = { key, l, m, life: 0 }; traces.push(t);
     if (traces.length === 3 && stage === 2) { stage = 3; setTimeout(finale, 2400); }
@@ -130,9 +133,25 @@ const panOf = s => { const v = s.at().project(W.camera); return clamp(v.x, -1, 1
 
 // ───────── 段（閉じた世界 → 関係の回路 → 外へ分かれる系 → 個に閉じない系としての認知）
 let stage = 0, sawAbs = false, sawBack = false, aoiA = null;
-W.aoi.then(a => aoiA = a);
+W.aoi.then(a => { aoiA = a; if (a) setTimeout(() => placeAoi(a), 600); });
+/* 碧の置き場を、具体・あわい・抽象のどの段でも、どの球にも・軸にも・題にも重ならない所から選ぶ（画面に写して確かめる） */
+function placeAoi(a) {
+  const cam = W.camera.clone(), port = innerWidth < innerHeight * .8, H = 1.62, v = new V3();
+  const scr = p => { v.copy(p).project(cam); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, v.z]; };
+  const camAt = ab => { const r = RIG(ab, 0); if (cam.aspect < .8) r.pos.sub(r.look).multiplyScalar(lerp(1, 1.15, clamp((.8 - cam.aspect) / .34, 0, 1) * (1 - ss(.2, .8, ab)))).add(r.look); cam.position.copy(r.pos); cam.lookAt(r.look); cam.updateMatrixWorld(); };
+  const bad = (x, z, tr) => { let n = 0; for (const ab of [0, .3, .5, .75, 1]) { camAt(ab);
+      const f = scr(new V3(x, 0, z)), h = scr(new V3(x, H, z)), side = scr(new V3(x + .3, H * .5, z)); if (f[2] > 1 || h[2] > 1) { n += 9; tr?.push(ab + ':behind'); continue; }
+      const hw = Math.abs(side[0] - f[0]) + 8, L = Math.min(f[0], h[0]) - hw, Rr = Math.max(f[0], h[0]) + hw, T = h[1] - 10, B = f[1] + 20;
+      if (L < 12 || Rr > innerWidth - 62 || (T < 8 && ab < .6) || (T < 70 && L < Math.min(240, innerWidth * .45))) { n += 1; tr?.push(ab + ':edge ' + [L, Rr, T, B].map(Math.round)); continue; }
+      for (const s of [...sub, ...(ab > .45 ? [{ at: () => YOU_ABS, r: .3 }] : [])]) { const c = scr(s.at()), e = scr(s.at().clone().add(new V3(s.r * 1.6, 0, 0))), rr = Math.hypot(e[0] - c[0], e[1] - c[1]) + 14; const qx = clamp(c[0], L, Rr), qy = clamp(c[1], T, B); if (Math.hypot(qx - c[0], qy - c[1]) < rr) { n += ab < .2 ? 6 : 3; tr?.push(ab + ':' + (s.id || 'you')); break; } } }
+    return n; };
+  const [x0, z0] = port ? [-1.75, -3.9] : [-.35, -1.2], cand = [[x0, z0]];
+  for (const dz of [0, -.5, -1, -1.5, -2, -2.5, -3, -3.5, -4, -4.5, -5, -5.5, -6, -7, -8, -9, ...(port ? [1, 2, 3, 4, 5, 6, 7] : [])]) for (const dx of [0, -.5, .5, -1, 1, -1.5, 1.5, -2, 2, -2.5, 2.5, -3, 3, 3.5, 4, 4.5]) cand.push([x0 + dx, z0 + dz]);
+  let best = null, bn = 1e9; for (const [x, z] of cand) { const n = bad(x, z) + Math.max(0, -4.5 - z) * .4;   /* 遠すぎる所は少し損（小さくなりすぎない） */ if (n < bn) { bn = n; best = [x, z]; } if (!n) break; }
+  a.motion.teleport(best[0], best[1], .05); window.__aoiAt = [...best, bn]; window.__aoiTr = (x, z) => { const t = []; bad(x, z, t); return t; }; window.__aoiDbg = () => cand.map(([x, z]) => [x, z, bad(x, z)]).sort((p, q) => p[2] - q[2]).slice(0, 12);   /* 重なりが 0 の所、なければいちばん少ない所 */
+}
 function tapSub(s) {
-  snd.start(); { const c = new V3(); sub.forEach(o => c.add(o.at())); c.multiplyScalar(1 / sub.length); const f = c.lerp(s.at(), s.id === "sens" ? 0 : innerWidth < innerHeight * .8 ? .3 : .6); f.y = Math.min(f.y, .6); W.focus(f, 5); }   // 記録計に触れても群れが画面に残る   // 寄る先は、触れた主体と群れの中ほど（ほかの主体を画面に残す）
+  snd.start(); { const c = new V3(); sub.forEach(o => c.add(o.at())); c.multiplyScalar(1 / sub.length); const f = c.lerp(s.at(), s.id === "sens" ? 0 : innerWidth < innerHeight * .8 ? .3 : .6); f.y = Math.min(f.y, .6); /* 触れても寄らない（群れを画面に残す・光と音で応える） */ }   // 記録計に触れても群れが画面に残る   // 寄る先は、触れた主体と群れの中ほど（ほかの主体を画面に残す）
   s.lit = 1;
   if (!s.openT) {   // 一度目：まず内でこもって鳴り（閉じた世界）、そのまま窓がひらく
     s.voice({ gain: .32, pan: panOf(s), lp: 620, wet: .08 });
@@ -150,7 +169,7 @@ function openWin(s) {
   s.voice({ gain: .36, pan: panOf(s), wet: .55 }); snd.bell(s.f, { gain: .24, pan: panOf(s) });
   const first = sub.filter(o => o.openT).length === 1;
   if (first) sub.filter(o => o !== s).forEach((o, i) => setTimeout(() => { if (!o.openT) o.lit = .7; }, 2200 + i * 450));   // 次に触れる所を、球を順に明るくして示す
-  W.say(s.id === "sens" ? "窓がひらく。ただし記録計の窓は、気温にだけひらいている。" : s.id === "fungi" ? "窓がひらく。菌の窓は、土と落ち葉の側にひらいている。" : (s.id === "tit" ? "シジュウカラの窓は、声と足音と動きにひらいている。" : "ミツバチの窓は、動きにひらいている。")); if (first) W.say("この音は、聴きとれるものの入力になる。");
+  W.say(s.id === "sens" ? "記録計がひらくのは、気温にだけ。" : s.id === "fungi" ? "菌の窓は、土と落ち葉の側にある。" : (s.id === "tit" ? "シジュウカラの窓は、声と足音と動きに向いている。" : "ミツバチが受けとるのは、ここでは動きだけ。")); if (first) W.say("この音は、聴きとれるものの入力になる。");
   fanOut(s, .5);
   const n = sub.filter(o => o.openT).length;
   if (n === 2 && stage === 0) { stage = 1; if (!sawAbs) W.sayNow("上へなぞると、同じ場所を概念の側から見る。"); W.say("心は、生き物と環境をふくむ回路の中にある。ベイトソン『精神の生態学』（1972）の考え。"); }
@@ -158,13 +177,11 @@ function openWin(s) {
 }
 function finale() {
   you.openT = 1; youTarget = 1;
-  W.say("ライプニッツは、主体に窓はないとした。ここでは、主体どうしが跡と場を介して、互いを変えていく。");
-  W.say("マトゥラーナとヴァレラは、作動が内で閉じていることと、環境と結びついて変わることを、両立するものとして書いた。");
-  W.say("閉じていることと、つながっていることは、矛盾しない。");
-  W.say("個に閉じない系としての認知。");
+  W.say("ライプニッツは、主体に窓はないとした。マトゥラーナとヴァレラは、閉じた作動と、環境と結びついて変わることを両立させた。");
+  W.say("ここでは主体どうしが、跡と場を介して互いを変えていく。個に閉じない系としての認知。");
   [0, 2, 4, 7].forEach((i, k) => snd.bell(snd.note(i), { gain: .12, at: k * .09, decay: 1.6, wet: .8 })); quietUntil = performance.now() / 1000 + 4.8;   // 和音のあと 4.8 秒の無音、そこから足音だけが戻る
   setTimeout(() => you.voice({ gain: .22, pan: 0, wet: .4 }), 4800 + 1600);   // 終幕：開いた声部が一つの和音に閉じる
-  W.say("あなたの窓も、声と羽音と記録にひらいている。足もとを押すと、足音が渡る。");
+  W.say("足もとを押すと、あなたの足音も渡る。");
 }
 let youTarget = 0, skyT = 0, padT = 0, quietUntil = 0;
 W.onTapEmpty(() => {
@@ -180,6 +197,22 @@ W.onAbs(a => {
   if (sawAbs && !sawBack && a < .15) { sawBack = true; W.say("具体へ戻る。概念は、この朝の一場面の中にある。"); }
 });
 
+// 抽象の側の地図：渡りうる経路（事実のある経路）を淡い破線で。線の中ほどに渡るものの名（PC だけ）
+let pathMap = null;
+function buildPathMap() {
+  const pos = [], col = [], labs = new THREE.Group(), seen = new Set();
+  for (const A of [...sub, SKY, you]) for (const B of [...sub, you]) { if (A === B || !canPass(A, B)) continue; const key = [A.id, B.id].sort().join("|"); if (seen.has(key)) continue; seen.add(key);
+    const P = A === you ? YOU_ABS.clone() : A.at(), Q = B === you ? YOU_ABS.clone() : B.at(), mid = P.clone().lerp(Q, .5); mid.y += .45 + P.distanceTo(Q) * .1; const cv = new THREE.QuadraticBezierCurve3(P, mid, Q), pts = cv.getPoints(36);
+    const c = new THREE.Color(A.col).lerp(new THREE.Color(B.col), .5);
+    for (let i = 0; i < pts.length - 1; i += 2) { pos.push(pts[i].x, pts[i].y, pts[i].z, pts[i + 1].x, pts[i + 1].y, pts[i + 1].z); col.push(c.r, c.g, c.b, c.r, c.g, c.b); }
+    if (A !== you && B !== you) { const both = [chanOf(A, B), chanOf(B, A)].filter(Boolean), t = [...new Set(both)].join("・");
+      const cn = document.createElement("canvas"); cn.width = 256; cn.height = 64; const x = cn.getContext("2d"); x.font = '500 30px "Hiragino Mincho ProN","Yu Mincho",serif'; x.shadowColor = "rgba(0,0,0,.75)"; x.shadowBlur = 8; x.fillStyle = "#" + c.getHexString(); x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(t, 128, 34);
+      const tx = new THREE.CanvasTexture(cn); tx.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, toneMapped: false, opacity: 0 })); sp.scale.set(.5, .125, 1); sp.position.copy(cv.getPoint(.5)).add(new V3(0, .06, 0)); labs.add(sp); } }
+  for (const S0 of [...sub, you, SKY]) { const P = S0 === you ? YOU_ABS.clone() : S0.at(), cn = document.createElement("canvas"); cn.width = 320; cn.height = 64; const x = cn.getContext("2d"); x.font = '600 32px "Hiragino Mincho ProN","Yu Mincho",serif'; x.shadowColor = "rgba(0,0,0,.75)"; x.shadowBlur = 8; x.fillStyle = "#" + new THREE.Color(S0.col).getHexString(); x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(S0.name, 160, 34);
+    const tx = new THREE.CanvasTexture(cn); tx.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, toneMapped: false, opacity: 0 })); sp.scale.set(.62, .124, 1); { const c0 = new V3(); sub.forEach(o => c0.add(o.at())); c0.multiplyScalar(1 / sub.length); const out = P.clone().sub(c0).setY(0); if (out.lengthSq() < 1e-4) out.set(0, 0, 1); out.normalize(); if (S0.id === "sens") sp.position.copy(P).add(new V3(0, -(S0.r * 1.2 + .1), .1)); else if (S0 === you) sp.position.copy(P).add(innerWidth < innerHeight * .8 ? new V3(0, .02, .48) : new V3(0, .42, 0)); else sp.position.copy(P).addScaledVector(out, (S0.r || .3) + .16).add(new V3(0, -.02, 0)); } labs.add(sp); }   /* 名は群れの中心から外向きに（重ならない）。あなたの名は輪の上に */   /* 主体の名（球の手前の地に） */
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  const m = lineMat(0xffffff, 0); m.vertexColors = true; const ls = new THREE.LineSegments(g, m); scene.add(ls, labs); pathMap = { ls, m, labs };
+}
 // ───────── 毎こま
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
@@ -197,7 +230,7 @@ W.onFrame((dt, t, a) => {
   padT -= dt; const nOpen = sub.filter(o => o.openT).length; if (nOpen && padT < 0 && performance.now() / 1000 > quietUntil) { padT = 6.4; sub.filter(o => o.openT).forEach((o, i) => { snd.drone(o.f / 4, 6.6, { gain: .05 + .012 * nOpen, wet: .85, at: i * .4 }); snd.drone(o.f / 2, 6.6, { gain: .025 + .008 * nOpen, wet: .9, at: i * .4 + .2 }); }); }   // ひらいた主体の高さを積んだ和音
   const sn = sub[3]; skyT -= dt; if (sn.openT && skyT < 0) { skyT = 9; sendPulse(SKY, sn, .6); }
   const yp = you.at(); youRing.position.set(yp.x, .03, yp.z); you.lit *= Math.exp(-dt * 2.4);
-  youRing.userData.mat.opacity = lerp(youRing.userData.mat.opacity, youTarget * (.55 + you.lit * .4), 1 - Math.exp(-dt * 1.5));
+  youRing.userData.mat.opacity = lerp(youRing.userData.mat.opacity, Math.max(youTarget, .8 * ss(.5, .85, a)) * (.55 + you.lit * .4), 1 - Math.exp(-dt * 1.5));
   let k = 0;
   for (let i = pulses.length - 1; i >= 0; i--) { const p = pulses[i]; p.u += p.du * dt; if (p.u >= 1) { pulses.splice(i, 1); arrive(p); } }
   for (const p of pulses) { if (k >= NP) break; const q = p.curve.getPointAt(Math.min(1, p.u)); pPos.set([q.x, q.y, q.z], k * 3); tmpC.copy(p.col).multiplyScalar(.6 + p.gain); pCol.set([tmpC.r, tmpC.g, tmpC.b], k * 3); k++; }
@@ -205,6 +238,8 @@ W.onFrame((dt, t, a) => {
   pg.attributes.position.needsUpdate = true; pg.attributes.color.needsUpdate = true;
   for (const tr of traces) { tr.life = Math.max(.18, tr.life - dt / 50); tr.m.opacity = tr.life * .75; }
   for (const k in links) links[k].opacity = .12 + .5 * ss(.2, .8, a);
+  if (!pathMap && a > .3) buildPathMap();
+  if (pathMap) { const k = ss(.45, .85, a); pathMap.m.opacity = .32 * k; pathMap.ls.visible = k > .003; pathMap.labs.visible = k > .003; for (const sp of pathMap.labs.children) sp.material.opacity = .92 * k; }
   if (soilLine) soilLine.m.opacity = Math.max(.25, soilLine.m.opacity - dt / 40);
 });
 AMK.done = Math.round(performance.now() - T0);
