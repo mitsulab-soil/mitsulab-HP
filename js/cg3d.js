@@ -1,6 +1,7 @@
-// © mitsulab. 環世界のコモングラウンド＝Qualium（2026-11-05 第 2 版）
-// 場（フィジカル情報の層＝下・デジタル情報の層＝上）の中に、六つの主体（鳥・虫・人間・AI・センサー・GIS）が立ち、
-// それぞれの環世界（ゆらぐ膜）が中央で重なる。重なりの中心に依代（碧）。各主体の式 U = g(P(E)) は HTML の札（index.html）を、ここで 3D の位置へ写す。
+// © mitsulab. 環世界のコモングラウンド＝Qualium（2026-11-05 第 3 版・分散の網）
+// 場（フィジカル情報の層＝下・デジタル情報の層＝上）の中に、六つの主体（鳥・虫・人間・AI・センサー・GIS）がばらばらに立つ。
+// 環世界（ゆらぐ膜）は主体ごとに主体のまわりにあり、となりどうしで重なる。重なり U_i ∩ U_j が網のように広がる所がコモングラウンド。中心は一つに置かない。
+// 依代（碧）と町の依代は、中心ではなく、重なりと重なりのあいだに立つ一つ。U_i = g_i(P_i(E, B_i), K_i) の札は HTML（index.html）を 3D の位置へ写す。
 // 大きさは見やすく描いた模式。見えていないときは描かない（IntersectionObserver）。
 import * as THREE from 'three';
 export function start(box){
@@ -12,15 +13,16 @@ export function start(box){
   const W=new THREE.Group(); S.add(W);   // 回す世界
   const WQ=[];   // 裏で一つずつ GPU へ送る（毎こま一つだけ、本番の描画の前に）
   const Q=[];   // 3D の読み込みは一つずつ、間をあけて（読み込み中のこま落ちを抑える）
+  const anim=[];
   let vis=true, raf=0, dirty=1, last=performance.now(), T0=last, auto=0;
   // 光：上の斜めから主の光、奥から水色の縁の光、地からの返し
   S.add(new THREE.HemisphereLight(0xcfe4ff,0x1a1408,.9));
   const key=new THREE.DirectionalLight(0xfff1dc,2.1); key.position.set(4,8,6); S.add(key);
   const rim=new THREE.DirectionalLight(0x8fd3ff,1.6); rim.position.set(-5,4,-7); S.add(rim);
-  const RR=3.1, SUB=[   // 角度は xz（z＋が手前）。layers＝受けとる層（p＝フィジカル・d＝デジタル）
-    {k:'bird',a:240,c:0x9fd8ff,h:.95,ly:'ppp'},{k:'bee',a:180,c:0xf0d58c,h:1.0,ly:'ppp'},{k:'human',a:120,c:0xe6ebf6,h:1.85,ly:'ppd'},
-    {k:'ai',a:60,c:0x8ff7e0,h:1.35,ly:'ddp'},{k:'sensor',a:0,c:0xb8f0a8,h:1.3,ly:'ppd'},{k:'gis',a:300,c:0xc9b8ff,h:1.25,ly:'ddd'}];
-  SUB.forEach(s=>{const r=s.a*Math.PI/180;s.p=new THREE.Vector3(Math.cos(r)*RR,0,Math.sin(r)*RR);s.ry=Math.atan2(-s.p.x,-s.p.z);});
+  const RR=3.1, SUB=[   // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。layers＝受けとる層（p＝フィジカル・d＝デジタル）
+    {k:'bird',x:-3.7,z:-.5,c:0x9fd8ff,h:.95,ly:'ppp'},{k:'bee',x:-2.0,z:1.75,c:0xf0d58c,h:1.0,ly:'ppp'},{k:'human',x:.95,z:1.35,c:0xe6ebf6,h:1.85,ly:'ppd'},
+    {k:'ai',x:2.15,z:-1.45,c:0x8ff7e0,h:1.35,ly:'ddp'},{k:'sensor',x:3.7,z:.85,c:0xb8f0a8,h:1.3,ly:'ppd'},{k:'gis',x:-.75,z:-1.95,c:0xc9b8ff,h:1.25,ly:'ddd'}];
+  SUB.forEach(s=>{s.p=new THREE.Vector3(s.x,0,s.z);s.a=Math.atan2(s.z,s.x)*180/Math.PI;s.ry=Math.atan2(-s.p.x,-s.p.z)+.5;});
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
   const blob=(p,r)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:blobT,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(p.x,.012,p.z);W.add(m);};
   // ---- 地：暗い地に、デジタルの格子（水色）とフィジカルの等高線（砂色）。縁は闇に溶ける
@@ -37,7 +39,7 @@ export function start(box){
     vertexShader:`uniform float t,ph;varying vec2 v;void main(){vec3 p=position;p.z+=sin(p.x*.7+t*.5+ph)*.09+cos(p.y*.6-t*.4+ph*1.7)*.08;v=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
     fragmentShader:`uniform vec3 col;uniform float t,ph;varying vec2 v;void main(){float r=length(v);float a=smoothstep(5.4,2.4,r);
       float s=smoothstep(.0,.02,abs(fract(v.x*.55+v.y*.2+ph+t*.03)-.5)-.47);float d=step(.82,fract(sin(dot(floor(v*3.),vec2(12.9,78.2)))*43758.5));
-      gl_FragColor=vec4(col,a*(.05+s*.12+d*.05));}`});
+      gl_FragColor=vec4(col,a*(.035+s*.075+d*.04));}`});
   const sheets=[], SY={p:[.3,.5,.7],d:[2.55,2.75,2.95]};
   ['p','d'].forEach(k=>SY[k].forEach((y,i)=>{const m=sheetM(k==='p'?0xe8c48a:0x8fd3ff,i*1.9+(k==='d'?3:0));const o=new THREE.Mesh(new THREE.PlaneGeometry(13,13,mob?24:40,mob?24:40),m);o.rotation.x=-Math.PI/2;o.position.y=y;W.add(o);sheets.push(m);}));
   // ---- 層から主体へ、受けとる線（3 本ずつ）。線の上を光の粒が下りてくる
@@ -45,31 +47,39 @@ export function start(box){
     vertexShader:`attribute float u;attribute vec3 col;varying float vu;varying vec3 vc;void main(){vu=u;vc=col;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
     fragmentShader:`uniform float t;varying float vu;varying vec3 vc;void main(){float f=.22+.78*smoothstep(.1,0.,abs(fract(vu*2.-t*.45)-.5)-.38);gl_FragColor=vec4(vc,f*.75);}`});
   { const P=[],U=[],Cc=[], cp=new THREE.Color(0xe8c48a), cd=new THREE.Color(0x8fd3ff);
-    SUB.forEach(s=>{ [...s.ly].forEach((k,j)=>{ const y=SY[k][j], ang=s.a*Math.PI/180+(j-1)*.32, rr=RR+.9+(j%2)*.35;
+    SUB.forEach(s=>{ [...s.ly].forEach((k,j)=>{ const y=SY[k][j], ang=s.a*Math.PI/180+(j-1)*.55, rr=s.p.length()+.95+(j%2)*.3;
       const a=new THREE.Vector3(Math.cos(ang)*rr,y,Math.sin(ang)*rr), b=s.p.clone().setY(s.h*.62), col=k==='p'?cp:cd, n=14;
       for(let q=0;q<n;q++){ for(const e of [q,q+1]){ const u=e/n; P.push(a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u+Math.sin(u*Math.PI)*.18,a.z+(b.z-a.z)*u); U.push(u); Cc.push(col.r,col.g,col.b); } }
       const dot=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:col,toneMapped:false})); dot.position.copy(a); W.add(dot); }); });
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('u',new THREE.Float32BufferAttribute(U,1)); g.setAttribute('col',new THREE.Float32BufferAttribute(Cc,3));
     W.add(new THREE.LineSegments(g,lineM)); }
   // ---- それぞれの環世界：主体を包み、中心へ寄せた膜（縁だけ光る）。六つが中央で重なる
-  const BR=2.15, BY=.62, BC=SUB.map(s=>s.p.clone().multiplyScalar(.56).setY(1.0));
+  const BR=1.78, BY=.5, BC=SUB.map(s=>s.p.clone().setY(.95));
   const shellM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,uniforms:{t:{value:0},col:{value:new THREE.Color()}},
     vertexShader:`uniform float t;varying float f;void main(){vec3 p=position;float w=sin(p.x*3.1+t*.9)*sin(p.y*2.7-t*.7)*sin(p.z*2.3+t*.5);p+=normal*w*.06;vec4 mv=modelViewMatrix*vec4(p,1.);vec3 n=normalize(normalMatrix*normal);f=pow(1.-abs(dot(n,normalize(-mv.xyz))),2.4);gl_Position=projectionMatrix*mv;}`,
-    fragmentShader:`uniform vec3 col;varying float f;void main(){gl_FragColor=vec4(col,f*.17);}`});
+    fragmentShader:`uniform vec3 col;varying float f;void main(){gl_FragColor=vec4(col,f*.09);}`});
   const shellG=new THREE.SphereGeometry(BR,mob?36:56,mob?24:36), shells=SUB.map((s,i)=>{const m=shellM.clone();m.uniforms.col.value.setHex(s.c);const o=new THREE.Mesh(shellG,m);o.position.copy(BC[i]);o.scale.y=BY;W.add(o);return o;});
   // 粒：いくつの環世界の中にあるかで明るさが変わる（重なるほど明るい＝共有の場）
   { const N=mob?5000:14000, P=new Float32Array(N*3);
-    for(let i=0;i<N;i++){let x,y,z;do{x=Math.random()*2-1;y=Math.random();z=Math.random()*2-1}while(x*x+z*z>1);P.set([x*4.6,.05+y*2.3,z*4.6],i*3);}
+    for(let i=0;i<N;i++){let x,y,z;do{x=Math.random()*2-1;y=Math.random();z=Math.random()*2-1}while(x*x+z*z>1);P.set([x*5.8,.05+y*2.1,z*4.4],i*3);}
     const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(P,3));
     const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{t:{value:0},c:{value:BC},r:{value:BR},px:{value:R.getPixelRatio()}},
       vertexShader:`uniform float t,r,px;uniform vec3 c[6];varying float k;void main(){vec3 p=position;p.y+=sin(t*.3+p.x*1.7+p.z)*.05;float n=0.;for(int i=0;i<6;i++){vec3 d=p-c[i];d.y/=${BY.toFixed(2)};n+=step(length(d),r);}k=n;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=px*(1.1+smoothstep(2.,6.,n)*1.9)*(9./-mv.z);gl_Position=projectionMatrix*mv;}`,
-      fragmentShader:`varying float k;void main(){vec2 q=gl_PointCoord-.5;if(dot(q,q)>.25)discard;float a=k<.5?.0:k<1.5?.04:.04+.07*(k-1.);vec3 col=mix(vec3(.6,.78,.9),vec3(.75,1.,.98),clamp((k-2.)/4.,0.,1.));gl_FragColor=vec4(col,min(a,.6));}`});
+      fragmentShader:`varying float k;void main(){vec2 q=gl_PointCoord-.5;if(dot(q,q)>.25)discard;float a=k<.5?.0:k<1.5?.03:.13+.05*(k-2.);vec3 col=mix(vec3(.6,.78,.9),vec3(.8,1.,.97),clamp(k-1.,0.,1.));gl_FragColor=vec4(col,min(a,.6));}`});
     W.add(new THREE.Points(g,m)); W.userData.pts=m; }
-  // 重なりの中心：足もとの光の輪
-  { const m=new THREE.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.5,toneMapped:false,depthWrite:false,blending:THREE.AdditiveBlending});
-    for(const r of [.75,1.05]){const o=new THREE.Mesh(new THREE.RingGeometry(r,r+.018,96),m);o.rotation.x=-Math.PI/2;o.position.y=.02;W.add(o);} }
+  // ---- 重なりの網：となりどうしの環世界が重なる所（U_i ∩ U_j）に節を置き、主体と節を細い線で結ぶ。中心は一つではない
+  const LENS=[]; for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){const d=SUB[i].p.distanceTo(SUB[j].p);if(d<BR*2*.99)LENS.push({i,j,m:SUB[i].p.clone().add(SUB[j].p).multiplyScalar(.5).setY(.95)});}
+  { const P=[],U=[],Cc=[], ca=new THREE.Color(), cb=new THREE.Color(), cw=new THREE.Color(0xa8f2f6);
+    LENS.forEach(L=>{[L.i,L.j].forEach(q=>{const a=SUB[q].p.clone().setY(SUB[q].h*.55), b=L.m, n=12; ca.setHex(SUB[q].c);
+      for(let e=0;e<n;e++)for(const f of [e,e+1]){const u=f/n; P.push(a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u+Math.sin(u*Math.PI)*.22,a.z+(b.z-a.z)*u); U.push(u); cb.copy(ca).lerp(cw,u); Cc.push(cb.r,cb.g,cb.b);} }); });
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('u',new THREE.Float32BufferAttribute(U,1)); g.setAttribute('col',new THREE.Float32BufferAttribute(Cc,3));
+    W.add(new THREE.LineSegments(g,lineM));
+    const nodeT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(220,255,252,1)');gr.addColorStop(.25,'rgba(168,242,246,.55)');gr.addColorStop(1,'rgba(168,242,246,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+    const nodes=LENS.map((L,k)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:nodeT,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));sp.position.copy(L.m);sp.scale.setScalar(.34);W.add(sp);return sp;});
+    {const RP=[];LENS.forEach(L=>{for(let q=0;q<48;q++)for(const e of [q,q+1]){const a=e/48*Math.PI*2;RP.push(L.m.x+Math.cos(a)*.31,.02,L.m.z+Math.sin(a)*.31);}});W.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(RP,3)),new THREE.LineBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.3,toneMapped:false,depthWrite:false,blending:THREE.AdditiveBlending})));}
+    anim.push(t=>nodes.forEach((n,k)=>n.scale.setScalar(.3+.06*Math.sin(t*1.3+k*1.7)))); }
   // ---- 主体の 3D
-  const look=o=>o; const anim=[];
+  const look=o=>o;
   const std=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:o.r??.45,metalness:o.m??.6,emissive:o.e??0,emissiveIntensity:o.ei??1});
   const at=(s,o,y=0)=>{o.position.set(s.p.x,y,s.p.z);o.rotation.y=s.ry;W.add(o);blob(s.p,s.k==='human'?.55:.45);return o;};
   // AI：台の上に、学習したモデル（節と結び目の多面体）と、分けた先の小さな箱（三つ）
@@ -115,17 +125,22 @@ export function start(box){
     const p=new THREE.Group();p.add(o);const s=SUB[2];at(s,p);p.rotation.y=s.ry+Math.PI*.82;dirty=1;}catch(e){console.warn('cg human',e);}});
   // 依代（碧）：重なりの真ん中に立つ（ほかの図と同じ VRM のバイト列を使い回す）
   let mot=null,vrm=null,aoiP=null,aoiN=0;
+  const lensOf=(a,b)=>LENS.find(L=>SUB[L.i].k===a&&SUB[L.j].k===b||SUB[L.i].k===b&&SUB[L.j].k===a);
+  const AOI=(lensOf('bird','gis')||LENS[0]).m.clone().setY(0), YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
+  // 町の依代（Qualium 大宮と同じ姿・その場で組む形）：AI とセンサーの重なりのあいだに
+  Q.push(async()=>{try{const {MachiYori}=await import('./kit/machiyori.js');const g=new THREE.Group();const my=new MachiYori({scene:g,camera:C,dom:document.createElement('i')});
+    my.add('shizuku',{x:YORI.x,z:YORI.z,yaw:.4,scale:1.45});W.add(g);blob(YORI,.3);anim.push((t,dt)=>my.update(dt));dirty=1;}catch(e){console.warn('cg yori',e);}});
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);L.register(p=>new V.VRMLoaderPlugin(p));
     const buf=await(window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())));const g=await L.parseAsync(buf.slice(0),'');
     vrm=g.userData.vrm;await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(g.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(vrm);vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
     const p=new THREE.Group();p.add(vrm.scene);p.visible=false;aoiP=p;W.add(p);vrm.humanoid.resetNormalizedPose();vrm.update(0);
-    const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.62/(bb.max.y-bb.min.y));blob(new THREE.Vector3(),.5);
-    const {AoiMotion}=await import('./aoi_motion.js?v=20261026-v61');mot=new AoiMotion(vrm,{root:p,reducedMotion:reduce,wind:.2,faceViewer:false,startCalm:1,posture:'upright',uprightWeight:.9});mot.faceTo(0);dirty=1;
+    const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.62/(bb.max.y-bb.min.y));p.position.set(AOI.x,0,AOI.z);blob(AOI,.5);
+    const {AoiMotion}=await import('./aoi_motion.js?v=20261026-v61');mot=new AoiMotion(vrm,{root:p,reducedMotion:reduce,wind:.2,faceViewer:false,startCalm:1,posture:'upright',uprightWeight:.9});mot.faceTo(.2);dirty=1;
   }catch(e){console.warn('cg aoi',e);}});
   // ---- 札（index.html の .cg-lb）を 3D の位置へ写す
   const st=box.querySelector('.cg-st'); const LB={};st.querySelectorAll('.cg-lb').forEach(d=>LB[d.dataset.k]=d);
-  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().multiplyScalar(mob?1.32:1.2).setY(s.h+.15)})).concat([{k:'aoi',p:new THREE.Vector3(0,1.9,0)},{k:'core',p:new THREE.Vector3(0,.02,2.3)},{k:'phys',p:new THREE.Vector3(-4.9,.45,2.2)},{k:'digi',p:new THREE.Vector3(4.6,2.85,-2.4)}]);
+  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().setY(s.h+.2)})).concat([{k:'aoi',p:AOI.clone().setY(1.85)},{k:'yori',p:YORI.clone().setY(.95)},{k:'phys',p:new THREE.Vector3(-5.6,.45,2.4)},{k:'digi',p:new THREE.Vector3(5.2,2.85,-2.2)}]);
   const v=new THREE.Vector3(), vc=new THREE.Vector3();
   // 視点：ゆっくり左右にめぐる。横になぞると回せる（縦のスクロールは止めない）
   let yaw=0, drag=null, user=0;
@@ -134,12 +149,12 @@ export function start(box){
   addEventListener('pointermove',e=>{if(!drag)return;yaw=drag.y0+(e.clientX-drag.x)*.006;user=performance.now();dirty=1;if(!raf&&vis)raf=requestAnimationFrame(loop);},{passive:true});
   addEventListener('pointerup',()=>{drag=null;});addEventListener('pointercancel',()=>{drag=null;});
   let wpx=0,hpx=0;
-  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?38:30;C.position.set(0,tall?7.2:5.2,tall?11.2:11.6);C.lookAt(0,tall?.9:.85,0);C.updateProjectionMatrix();dirty=1;}
+  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?46:30;C.position.set(0,tall?7.0:6.2,tall?10.6:12.8);C.lookAt(0,tall?2.1:1.0,0);C.updateProjectionMatrix();dirty=1;}
   size(); addEventListener('resize',size);
   new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop);}).observe(box);
   function frame(t,dt){
     if(!reduce){ if(!drag&&performance.now()-user>2500){auto+=dt*.07;} }
-    W.rotation.y=yaw+Math.sin(auto)*.45;
+    W.rotation.y=yaw+Math.sin(auto)*.35;
     sheets.forEach(m=>m.uniforms.t.value=t); lineM.uniforms.t.value=t; shells.forEach((o,i)=>o.material.uniforms.t.value=t+i); W.userData.pts.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     anim.forEach(f=>f(t,dt));
     if(mot){mot.update(dt,C,{vrmUpdate:false});vrm.update(dt);mot.afterVrmUpdate(dt);if(!aoiP.visible&&++aoiN>3)aoiP.visible=true;}
@@ -149,7 +164,7 @@ export function start(box){
     const box_=[];
     for(const a of anchors){const d=LB[a.k];if(!d)continue;v.copy(a.p).applyMatrix4(W.matrixWorld);const dz=v.clone().applyMatrix4(C.matrixWorldInverse).z;v.project(C);
       let x=(v.x*.5+.5)*wpx,y=(-v.y*.5+.5)*hpx;
-      if(a.k==='aoi'||a.k==='core'){const dw=d.offsetWidth,dh=d.offsetHeight;box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y,dw,dh,fix:1});continue;}
+      if(a.k==='aoi'||a.k==='yori'){const dw=d.offsetWidth,dh=d.offsetHeight;box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
       if(a.k==='phys'||a.k==='digi'){const dw=d.offsetWidth,dh=d.offsetHeight;let lx=a.k==='phys'?x:x-dw;lx=Math.max(2,Math.min(wpx-dw-2,lx));box_.push({d,lx,ly:y-dh/2,dw,dh});continue;}
       const left=x<cx, up=y<cy, dw=d.offsetWidth, dh=d.offsetHeight; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(2,Math.min(wpx-dw-2,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
 }

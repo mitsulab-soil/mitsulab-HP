@@ -10,7 +10,7 @@ const KINDS = {
   profile: { cam: [0, 2.2, 6.4], look: [0, 1.2, 0] },   // 測量の標尺と若い欅（土木と自然の現場）
   museum:  { cam: [0, 2.2, 7.4], look: [0, 1.1, 0] },   // 展示の台に、層を写した面が浮かぶ
   pair:    { cam: [0, 1.8, 5.6], look: [0, 1.0, 0] },   // 二人が並び、同じ層を見る（一緒に試す）
-  ground:  { cam: [0, 3.4, 8.6], look: [0, .8, 0] },    // 六つの環世界が重なる（コモングラウンド）
+  ground:  { cam: [0, 3.6, 9.6], look: [0, .8, 0] },    // 六つの環世界が、中心を持たず網のように重なる（コモングラウンド）
 };
 export function start(box, kind = box.dataset.th || 'ground') {
   const K = KINDS[kind] || KINDS.ground, mob = innerWidth < 760, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -45,13 +45,19 @@ export function start(box, kind = box.dataset.th || 'ground') {
   const add = async (o, x = 0, z = 0, ry = 0, r = .5) => { o.position.x += x; o.position.z += z; o.rotation.y = ry; try { if (R.compileAsync) await R.compileAsync(o, C, S); } catch (e) {} W.add(o); blob(x, z, r); dirty = 1; return o; };
   let dirty = 1;
   const build = {
-    async apps() { for (let i = 0; i < (mob ? 2 : 4); i++) for (const sx of [-1, 1]) { const t = await keyakiR((mob ? 3.4 : 2.6) + (i % 2) * .3); await add(t, sx * 1.6, 2.4 - i * 1.7, i * 1.3, .7); }
-      const path = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 9), std(0x4a4339, { r: .95 })); path.rotation.x = -Math.PI / 2; path.position.y = .01; W.add(path); },
+    async apps() { // 参道の並木の奥に朱の鳥居、手前に町の依代（Qualium 大宮の場）
+      const path = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 9), std(0x4a4339, { r: .95 })); path.rotation.x = -Math.PI / 2; path.position.y = .01; W.add(path);
+      const { makeTorii } = await import('./kit/torii.js'); const to = makeTorii(mob ? 2.9 : 2.5); await add(to, 0, -2.6, 0, .9);
+      for (let i = 0; i < (mob ? 2 : 4); i++) for (const sx of [-1, 1]) { const t = await keyakiR((mob ? 3.4 : 2.6) + (i % 2) * .3); await add(t, sx * 1.95, 1.8 - i * 1.7, i * 1.3, .7); }
+      try { const { MachiYori } = await import('./kit/machiyori.js'); const g = new THREE.Group(); const my = new MachiYori({ scene: g, camera: C, dom: document.createElement('i') }); my.add('shizuku', { x: 0, z: 0, yaw: 0, scale: 1.5 }); await add(g, .4, 1.5, .25, .22); anim.push((t, dt) => my.update(dt)); } catch (e) {} },
     async art() { R.toneMappingExposure = 1.0; const fl = new THREE.DirectionalLight(0xfff4e6, .9); fl.position.set(0, 2, 6); S.add(fl); const M = await import('./kit/sight/sightModels.js');
       const b = await M.loadSight('hiyo', { shadow: false }); b.object.scale.setScalar(7.5); b.play('perch'); const br = new THREE.Mesh(new THREE.CylinderGeometry(.035, .05, 2.6, 8), std(0x6b5a48, { r: 1 })); br.rotation.z = Math.PI / 2 - .12; br.position.set(-.9, 1.43, 0); W.add(br); const bg = new THREE.Group(); bg.add(b.object); await add(bg, -.9, 0, .9); bg.position.y = 1.36; anim.push((t, dt) => { b.update(dt); });
       const a = await M.loadSight('aosuji', { shadow: false }); a.object.scale.setScalar(11); a.play('fly'); const ag = new THREE.Group(); ag.add(a.object); await add(ag, 1.1, .4, -1); ag.position.y = 1.1; anim.push((t, dt) => { a.update(dt); ag.position.set(.9 + Math.sin(t * .6) * .35, 1.25 + Math.sin(t * 1.3) * .12, 1.4 + Math.cos(t * .5) * .25); }); },
-    async writing() { const pm = std(0xf0ece2, { r: .9 }); for (let i = 0; i < 9; i++) { const p = new THREE.Mesh(new THREE.BoxGeometry(1.5, .012, 2.0), pm); const g = new THREE.Group(); g.add(p); p.position.y = .3 + i * .17; p.rotation.y = (i - 4) * .09; W.add(g);
-        const ln = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .02), new THREE.MeshBasicMaterial({ color: i % 3 ? 0xe8c48a : 0x8fd3ff, transparent: true, opacity: .7, toneMapped: false })); ln.rotation.x = -Math.PI / 2; ln.position.set(0, .3 + i * .17 + .008, (i % 3 - 1) * .5); ln.rotation.z = p.rotation.y; W.add(ln);
+    async writing() { const ptx = (() => { const c = document.createElement('canvas'); c.width = 256; c.height = 340; const x = c.getContext('2d'); x.fillStyle = '#efe9dc'; x.fillRect(0, 0, 256, 340);
+        for (let i = 0; i < 1800; i++) { const v = 205 + Math.random() * 40 | 0; x.fillStyle = `rgba(${v},${v - 4},${v - 14},.18)`; x.fillRect(Math.random() * 256, Math.random() * 340, 1 + Math.random() * 3, 1); }
+        x.fillStyle = 'rgba(70,72,80,.28)'; for (let y = 36; y < 320; y += 15) { const w = 150 + Math.random() * 60; x.fillRect(28, y, w, 2); } const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; })();
+      const pm = new THREE.MeshStandardMaterial({ map: ptx, roughness: .92, metalness: 0 }); for (let i = 0; i < 9; i++) { const pmi = pm.clone(); pmi.color.setScalar(1 - (i * 7 % 3) * .035); const p = new THREE.Mesh(new THREE.BoxGeometry(1.5, .012, 2.0), pmi); const g = new THREE.Group(); g.add(p); p.position.y = .3 + i * .17; p.rotation.y = (i - 4) * .09; W.add(g);
+        const ln = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .02), new THREE.MeshBasicMaterial({ color: i % 3 ? 0xe8c48a : 0x8fd3ff, transparent: true, opacity: .7, toneMapped: false })); ln.rotation.x = -Math.PI / 2; ln.position.set(0, .3 + i * .17 + .008, (i % 3 - 1) * .5); ln.rotation.z = p.rotation.y; g.add(ln);
         anim.push(t => { g.position.y = Math.sin(t * .6 + i * .5) * .03; }); } blob(0, 0, 1.3); },
     async collab() { const t = await keyakiR(mob ? 5.6 : 5.2); await add(t, 0, -1.4, 0, 1.2); const h = await human(1.72); await add(h, -.9, .8, .5); h.rotation.y = 2.6; },
     async story() { const t = await keyakiR(mob ? 5.4 : 5.0); await add(t, 0, 0, 0, 1.2);
@@ -66,7 +72,7 @@ export function start(box, kind = box.dataset.th || 'ground') {
     async ground() { const cs = [0x8fd3ff, 0xe8c48a, 0xbfe6ff, 0xd9b27a, 0x6fbfe8, 0xf0d9b0], sm = new THREE.SphereGeometry(1.25, 40, 28);
       cs.forEach((c, i) => { const a = i / 6 * Math.PI * 2; const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { col: { value: new THREE.Color(c) } },
         vertexShader: `varying float f;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vec3 n=normalize(normalMatrix*normal);f=pow(1.-abs(dot(n,normalize(-mv.xyz))),2.4);gl_Position=projectionMatrix*mv;}`, fragmentShader: `uniform vec3 col;varying float f;void main(){gl_FragColor=vec4(col,f*.3);}` });
-        const o = new THREE.Mesh(sm, m); o.scale.y = .62; o.position.set(Math.cos(a) * .95, 1, Math.sin(a) * .95); W.add(o); anim.push(t => { o.position.y = 1 + Math.sin(t * .5 + i) * .05; }); }); },
+        const o = new THREE.Mesh(sm, m); o.scale.y = .55; const P = [[-2.3, -.2], [-1.1, 1.0], [.3, .55], [1.35, -.8], [2.45, .45], [-.6, -1.2]][i]; o.position.set(P[0], 1, P[1]); W.add(o); anim.push(t => { o.position.y = 1 + Math.sin(t * .5 + i) * .05; }); }); },
   };
   function size() { const w = box.clientWidth, h = box.clientHeight; R.setSize(w, h, false); C.aspect = w / h; C.fov = C.aspect < 1.2 ? 40 : 30; C.position.set(...K.cam); C.lookAt(...K.look); C.updateProjectionMatrix(); dirty = 1; }
   size(); addEventListener('resize', size);
