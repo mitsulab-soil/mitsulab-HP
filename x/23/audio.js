@@ -63,7 +63,7 @@ export function update(levels, pans, inner, rel) {
 // 一つの露から多くへ：距離の順に遅れて鳴る（一即多の模式）
 export function ripple(delays) {
   if (!ctx) return; const now = ctx.currentTime, vo = voices[0] && { v: { wave: 'sine' }, f: master };
-  delays.slice(0, 24).forEach((d, k) => blip({ v: { wave: 'sine' }, f: net }, now + d, degHz(14 + (k % 5), keyTarget), .35, .05));
+  delays.slice(0, 24).forEach((d, k) => { const vo = voices[k % voices.length]; const w = vo.v.wave === 'sawtooth' ? 'triangle' : vo.v.wave; blip({ v: { wave: w }, f: net }, now + d, degHz((vo.v.deg ?? 4) + 7, keyTarget), .35, w === 'square' ? .02 : .05); });   // 一即多：波紋の音は、それぞれの主体の声部の音色と高さで鳴る
   blip({ v: { wave: 'sine' }, f: master }, now, degHz(14, keyTarget), .5, .08);
 }
 export const ready = () => started;
