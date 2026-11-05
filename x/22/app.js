@@ -1,0 +1,208 @@
+// © mitsulab. 互いの入力（仮の名・x/22）── 計算機の思想
+//   U_i = g_i( P_i(E, B_i), K_i )   E(t+1) = F(E(t)) + Σ a_j(U_j)   U_人′ = g_人( P_人(E, B_人), K_人 ⊕ L )
+// 抽象の極（式と流れ）から始まり、下へなぞると朝の参道へ降りる。主体のふるまい a が環境 E に波を残し、波が届いた主体の P に入り、
+// その主体の g を経て、また a になる。渡るたびに弱まり（F の減衰）、ひとりでに静まる。人がほかの全員から受けとると、文脈に層 L が加わる。
+// 波の広がりは模式（実際の伝わり方や速さではない）。典拠と音の根拠＝../資料/出典と音の根拠.md
+const P = window.AW_PATHS; const T0 = performance.now(); const AMK = window.__appMK = {};
+const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, clamp, lerp, ss }, PR, S, CR] = await Promise.all([
+  import(P.kit + "awai.js"), import(P.kit + "awai_props.js"), import(P.kit + "awai_sound.js"), import(P.kit + "creatures_sight.js")]);
+import * as THREE from "three";
+AMK.mods = Math.round(performance.now() - T0); injectCSS();
+const V3 = THREE.Vector3;
+
+const W = await createAwai({
+  title: "互いの入力", en: "Each Other's Input", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [2.2, 2.6, -.45], seed: 2222, abs0: 1,
+  rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 10.5, k), h = lerp(1.55, 8.6, k);
+    const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, .2, k), lerp(-1.6, -.6, k));
+    if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(-.3 + Math.sin(y) * 1.5, 13.5, 6.2), q); look.lerp(new V3(-.3, 0, .5), q); }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
+    return { pos, look }; },
+  credits: [
+    "式は関係の形を示す模式（測れる量の式ではない）。E 環境・B 身体・P 知覚・K 経験と文脈・g 意味づけ・a ふるまいが環境に残す変化・F 環境自身の変化・L ほかの受けとり方の層",
+    "考え方の系譜：ユクスキュル（1934）・ウィーナー『サイバネティクス』（1948）・グラッセのスティグマジー（1959）・ハッチンス『Cognition in the Wild』（1995）",
+    "ミツバチの羽ばたき 約 230 回／秒：Altshuler ほか（PNAS 102, 2005）。歩行 毎分約 100 歩：Tudor-Locke ほか（IJBNPA 16, 2019）",
+    "波の広がりと速さ、木の間（ま）は作品の設定の値（模式）。記録計の一音は 10 分ごとの記録を縮めた模式。鳥の鳴きは聴こえる高さに移した模式",
+    "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
+  ],
+});
+const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
+const snd = S.createSound(W.sndBtn);
+W.onFirstInput(() => snd.start());
+if (innerWidth < innerHeight * .8) W.aoi.then(a => a && a.place(1.3, .9, -.2));   // 縦長の画面では、碧を横から見た画の内側へ
+
+// ───────── 式（左上・抽象の側でだけ見える）
+const fx = document.createElement("div"); fx.className = "fx";
+fx.innerHTML = `<p><span data-k="U">U<sub>i</sub></span> = <span data-k="g">g<sub>i</sub></span>( <span data-k="P">P<sub>i</sub></span>(<span data-k="E">E</span>, B<sub>i</sub>), <span data-k="K">K<sub>i</sub></span> )</p>
+<p><span data-k="E">E</span>(t+1) = <span data-k="F">F</span>(E(t)) + Σ <span data-k="a">a<sub>j</sub></span>(U<sub>j</sub>)</p>
+<p class="fxL"><span data-k="U">U<sub>人</sub>′</span> = g<sub>人</sub>( P<sub>人</sub>, <span data-k="L">K<sub>人</sub> ⊕ L</span> )</p>`;
+W.ui.appendChild(fx);
+{ const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(66px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#c3cce0;transition:opacity .6s}
+.fx p{margin:0}.fx sub{font-size:.72em}.fx span{transition:color .25s,text-shadow .25s}.fx span.hi{color:#eef5fb;text-shadow:0 0 12px rgba(155,220,240,.9)}.fx .fxL{opacity:0;transition:opacity 1.2s}.fx.L .fxL{opacity:1}
+@media (max-width:520px){.fx{font-size:11px;line-height:1.85}}`; document.head.appendChild(st); }
+const hi = k => { for (const e of fx.querySelectorAll(`[data-k="${k}"]`)) { e.classList.add("hi"); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove("hi"), 520); } };
+
+// ───────── 場 E：波（a が残した変化）を地の上に。点の格子は抽象の側で波に合わせて揺れる
+const NR = 14, RIP = Array.from({ length: NR }, () => new THREE.Vector4(0, 0, -99, 0)), RCOL = Array.from({ length: NR }, () => new THREE.Color());
+const SPEED = 2.1;   // 波の見える速さ（m/s・模式）
+const ripU = { uT: { value: 0 }, uRip: { value: RIP }, uRC: { value: RCOL }, uAbs: AW.uAbs, uV: { value: SPEED } };
+const ripFn = `uniform float uT, uV, uAbs; uniform vec4 uRip[${NR}]; uniform vec3 uRC[${NR}];
+vec4 field(vec2 p){ vec3 c = vec3(0.); float h = 0.;
+  for (int i = 0; i < ${NR}; i++){ vec4 r = uRip[i]; float age = uT - r.z; if (age < 0. || age > 7.) continue;
+    float d = length(p - r.xy), f = d - age * uV, w = .035 + age * .012;
+    float ring = exp(-f * f / (w * w)) * r.w * exp(-age / 3.2) * exp(-d / 9.); float wide = exp(-f * f / .5) * r.w * .05 * exp(-age / 3.2);
+    float echo = exp(-pow(f + .42, 2.) / (w * w * 1.4)) * r.w * .4 * exp(-age / 2.4) * exp(-d / 9.);
+    c += uRC[i] * (ring + echo + wide); h += (ring * 3. + wide * 8.) * sin(f * 6.); }
+  return vec4(c, h); }`;
+const ripMat = new THREE.ShaderMaterial({ uniforms: ripU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  vertexShader: `varying vec2 vP; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vP = w.xz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+  fragmentShader: ripFn + `varying vec2 vP; void main(){ vec4 f = field(vP); float k = mix(.22, 1., smoothstep(.1, .7, uAbs)); gl_FragColor = vec4(f.rgb * k * .75, 1.); }` });
+const ripPlane = new THREE.Mesh(new THREE.PlaneGeometry(36, 36).rotateX(-Math.PI / 2), ripMat); ripPlane.position.y = .04; ripPlane.renderOrder = 4; W.add(ripPlane);
+{ const N = MOBILE ? 46 : 70, sz = 22, pts = []; for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) pts.push((i / (N - 1) - .5) * sz, 0, (j / (N - 1) - .5) * sz - .5);
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+  const m = new THREE.ShaderMaterial({ uniforms: { ...ripU, uDot: { value: (await import(P.kit + "awai.js")).dotTex() }, uSz: { value: MOBILE ? 7 : 6 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    vertexShader: ripFn + `uniform float uSz; varying float vA; varying vec3 vC; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vec4 f = field(w.xz); w.y += .05 + f.w * .22; vC = vec3(.55, .78, .86) + f.rgb * 1.4;
+      vec4 mv = viewMatrix * w; gl_Position = projectionMatrix * mv; gl_PointSize = uSz * (1. + length(f.rgb)) * (8. / -mv.z); vA = smoothstep(.3, .85, uAbs) * (.32 + length(f.rgb)) * (1. - smoothstep(9., 12., length(w.xz))); }`,
+    fragmentShader: `uniform sampler2D uDot; varying float vA; varying vec3 vC; void main(){ float a = texture2D(uDot, gl_PointCoord).a; gl_FragColor = vec4(vC * a * vA, 1.); }` });
+  W.add(new THREE.Points(g, m)); }
+let rI = 0;
+const ripple = (x, z, amp, col) => { RIP[rI].set(x, z, ripU.uT.value, amp); RCOL[rI].set(col); rI = (rI + 1) % NR; };
+
+// ───────── 主体（ノード）
+const tree = W.near.map(t => { const p = t.wood[0].attributes.position; return new V3(p.getX(0), 0, p.getZ(0)); }).filter(v => v.x < 0).sort((a, b) => Math.abs(a.z + 2.5) - Math.abs(b.z + 2.5))[0] || new V3(-5.4, 0, -2.5);
+tree.x += .6;
+const tit = CR.makeTit(); PR.awaiCreature(tit, .5); tit.scale.setScalar(.15); tit.position.set(-1.55, 0, 1.5); tit.rotation.y = .7; tit.userData.state = "perch"; W.add(tit);
+const tw = PR.tsuwabuki(R, { n: 11, spread: .42 }); tw.position.set(1.7, 0, 1.55); W.add(tw);
+const bee = CR.makeBee(); PR.awaiCreature(bee, .5); bee.scale.setScalar(.016); W.add(bee); const beeHome = tw.userData.heads[0].clone().add(tw.position);
+const person = PR.contourPerson(0xe9d2c2); person.position.set(-1.0, 0, 2.8); person.rotation.y = .25; W.add(person);
+const sens = PR.sensorPost(); sens.position.set(2.3, 0, -.9); sens.rotation.y = -.4; W.add(sens);
+
+const C = { tit: 0xb9a7e6, bee: 0xf2cf8c, hum: 0xf4aa96, tree: 0x8fd6a8, sens: 0xa9c8d8 };
+const N = [
+  { id: "tit", sub: "シジュウカラ", col: C.tit, at: () => tit.position, h: .55, lag: .25, f: snd.note(7),
+    c: "シジュウカラが地をつつき、跳ぶ。その声と動きが、聴きとれるもの、見てとれるものの入力になる。", a: "鳥は、鳥の身体で拾えるものだけを手がかりにする。紫外も見える目で。", out: ["声", "動き"], in: ["足音", "動き", "声", "落葉"],
+    voice: o => { snd.chirp(3300, 3050, .07, o); snd.chirp(3300, 3050, .07, { ...o, at: (o.at || 0) + .16 }); snd.chirp(2450, 2300, .24, { ...o, at: (o.at || 0) + .32 }); }, act: () => { hop = 1; } },
+  { id: "bee", sub: "ミツバチ", col: C.bee, at: () => tw.position, h: .75, lag: .15, f: snd.note(3),
+    c: "ミツバチがツワブキの花をめぐる。羽音は、一秒に約 230 回のはばたきそのもの。", a: "蜂は、身体の拾えるものだけを手がかりにする。紫外・青・緑の三つで色を分けるとされる。", out: ["羽音", "動き"], in: ["動き", "光"],
+    voice: o => snd.hum(230, .7, { ...o, gain: (o.gain ?? .3) * .7 }), act: () => { beeKick = 1; } },
+  { id: "hum", sub: "人", col: C.hum, at: () => person.position, h: 1.95, lag: .6, f: snd.note(0), seen: new Set(),
+    c: "人が歩く。足音と動きが、鳥の入力になる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
+    voice: o => { for (let i = 0; i < 2; i++) snd.wood(snd.note(-5 + i), { ...o, at: (o.at || 0) + i * .6, decay: .45 }); }, act: () => { steps = 1.2; } },   // 歩行 毎分約 100 歩＝0.6 秒
+  { id: "tree", sub: "欅", col: C.tree, at: () => tree, h: 3.2, lag: 2.0, f: snd.note(-5),
+    c: "欅は、光と風と気温の移ろいを受けとり、葉を落とす。", a: "木のふるまいは遅く、大きい。落ちた葉が、鳥と人の入力になる。", out: ["落葉"], in: ["気温", "光", "風"],
+    voice: o => { snd.wood(snd.note(-10), { ...o, decay: 1.8 }); snd.breath(2.2, { ...o, f0: 1400, f1: 700, gain: (o.gain ?? .3) * .5 }); }, act: () => dropLeaf() },
+  { id: "sens", sub: "記録計", col: C.sens, at: () => sens.position, h: 1.85, lag: 1.0, f: snd.note(5),
+    c: "気温の記録計は、気温だけを数に残す。", a: "機械の受けとり方も、同じ形で書ける。その記録は、読む人の入力になる。", out: ["記録"], in: ["気温"],
+    voice: o => { snd.click({ ...o, f: 1760 }); snd.bell(snd.note(12), { ...o, gain: (o.gain ?? .3) * .4, decay: .4 }); }, act: () => {} },   // 記録が残るときだけ一音
+];
+// ノードの印：足もとの輪・立ちのぼる線・名札
+function label(t, col) {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); x.font = '500 46px ui-monospace,"SF Mono",Menlo,monospace'; x.fillStyle = "#" + new THREE.Color(col).getHexString(); x.textBaseline = "middle";
+  if (MOBILE) { x.font = '600 44px "Hiragino Mincho ProN",serif'; x.fillText(t, 6, 52); } else { x.fillText("U", 6, 44); x.font = '600 30px "Hiragino Mincho ProN",serif'; x.fillText(t, 40, 60); }   // スマホは名だけ
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, toneMapped: false })); s.center.set(0, 0); s.scale.set(2.0, .375, 1); if (MOBILE) { s.center.set(.5, 0); s.scale.set(2.7, .5, 1); } return s;
+}
+for (const n of N) {
+  const g = new THREE.Group(); W.add(g); n.g = g;
+  n.ring = PR.subjectRing(n.col, .42); g.add(n.ring);
+  n.ring2 = PR.subjectRing(n.col, .42); n.ring2.userData.mat.opacity = 0; g.add(n.ring2);
+  n.stemM = lineMat(n.col, .5); g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(0, .02, 0), new V3(0, n.h, 0)]), n.stemM));
+  n.lab = label(n.sub, n.col); n.lab.position.set(.06, n.h + .04, 0); g.add(n.lab);
+  n.glow = 0; n.cool = 0; n.inK = 0; n.queue = [];
+  W.addTouch({ getWorldPosition: v => v.copy(n.at()).add(new V3(0, Math.min(n.h, 1.2) * .5, 0)) }, () => tapNode(n), .7);
+}
+const nodeOf = id => N.find(n => n.id === id);
+// 立ちのぼる粒（P：環境から手がかりが入る）
+const NP = 120, pg = new THREE.BufferGeometry(), pp = new Float32Array(NP * 3), pc = new Float32Array(NP * 3), pl = [];
+pg.setAttribute("position", new THREE.BufferAttribute(pp, 3)); pg.setAttribute("color", new THREE.BufferAttribute(pc, 3));
+const pmt = pointMat(0xffffff, MOBILE ? .07 : .06, .9); pmt.vertexColors = true; W.add(new THREE.Points(pg, pmt));
+// 人の文脈に重なる層 L（ほかの全員の色の薄い輪が、人の身体を包む）
+const Lg = new THREE.Group(); W.add(Lg); const Lrings = [];
+[C.tit, C.bee, C.tree, C.sens].forEach((c, i) => { const r = PR.subjectRing(c, .34 + i * .045); r.position.y = .55 + i * .32; r.userData.mat.opacity = 0; Lg.add(r); Lrings.push(r); });
+let Lon = 0, Lt = 0;
+
+// ───────── ふるまい → 波 → 入力 → 意味づけ → ふるまい
+let beatI = -1, saidL2 = false, hop = 0, beeKick = 0, steps = 0, falling = null, firstCascade = false, sawGust = false, lastAct = -9, actCount = 0;
+function act(n, gain, from) {
+  if (n.cool > 0) return; n.cool = 1.4; n.glow = 1; actCount++;
+  const p = n.at(); ripple(p.x, p.z, clamp(gain, .15, 1.2), n.col); hi("a"); hi("U");
+  const pan = clamp(p.clone().project(camera).x, -1, 1) * .8;
+  n.voice({ gain: .34 * gain, pan, wet: .5 }); snd.bell(n.f, { gain: .16 * gain, pan, decay: .7 });
+  if (n.id === "hum" && Lon) [nodeOf("tit"), nodeOf("bee"), nodeOf("tree")].forEach((o, i) => snd.bell(o.f, { gain: .07 * gain, pan, at: .03 * (i + 1), decay: .6 }));   // 層 L：人の応えに、ほかの受けとり方の色が混じる
+  n.act(); lastAct = ripU.uT.value;
+  if (n.id === "hum" && Lon && !saidL2) { saidL2 = true; W.say("同じ足音でも、もう前と同じ意味ではない。"); }
+  // 波が届く時刻に、ほかの主体の入力へ
+  for (const o of N) { const ch = o !== n && n.out.find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(p), g = gain * Math.exp(-d / 9) * .9; o.queue.push({ t: ripU.uT.value + d / SPEED, g, from: n, ch }); }   // 受けとれる経路があるものだけが入力にする
+}
+const CHS = new Set();
+function receive(n, g, from, ch) {
+  const key = (from ? from.id : 'F') + '>' + n.id; if (!CHS.has(key) && CHS.size < 6) { CHS.add(key); W.say((from ? (from.sub === '人' ? '人' : from.sub) + 'の' : '') + ch + 'が、' + (n.sub === '人' ? '人' : n.sub) + 'の入力になる。'); }
+  n.inK = 1; hi("P"); hi("E"); spawnP(n, g);
+  if (n.id === "hum" && from) { n.seen.add(from.id); if (!Lon && n.seen.size >= 4) turnL(); }
+  const thr = n.id === "hum" && Lon ? .05 : .11;   // 層 L で注意が変わり、拾う手がかりが少し変わる（模式）
+  const out = g * .62;   // F：渡るたびに弱まる
+  if (out < thr) return;
+  setTimeout(() => { hi("g"); hi("K"); act(n, out, from); }, n.lag * 1000);
+}
+function spawnP(n, g) { const p = n.at(); for (let i = 0; i < 8; i++) pl.push({ x: p.x + (R() - .5) * .7, z: p.z + (R() - .5) * .7, y: .05, tx: p.x, tz: p.z, ty: Math.min(n.h, 1.4), u: -i * .06, col: new THREE.Color(n.col), g }); }
+function turnL() {
+  Lon = 1; fx.classList.add("L"); hi("L");
+  W.sayNow("身体は同じまま、人は鳥の声、蜂の羽音、欅の落葉、記録計の数を受けとった。"); W.say("そこから思い描く、ほかのものの受けとり方が、層 L として文脈 K に加わる。"); W.say("注意が変わるので、拾う手がかりも少し変わる。");
+}
+function tapNode(n) {
+  snd.start(); W.sayNow(W.abs > .5 ? n.a : n.c); n.cool = 0; act(n, 1, null);
+  if (!firstCascade) { firstCascade = true; setTimeout(() => { W.say("受けとれるものだけが受けとり、意味づけ、またふるまう。渡るたびに弱まり、やがて静まる。"); W.say("中心に指示する者はいない。環境を介して、互いの入力になっている。"); W.say("地を押すと、日差しや風が場を変える。欅と記録計は、それにだけ応える。"); }, 3800); }
+}
+const groundHit = new THREE.Raycaster(), gPlane = new THREE.Plane(new V3(0, 1, 0), 0), nd = new THREE.Vector2();
+W.onTapEmpty(e => {
+  snd.start(); nd.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); groundHit.setFromCamera(nd, camera); const q = new V3();
+  if (!groundHit.ray.intersectPlane(gPlane, q) || q.length() > 14) return; gust(q);
+});
+function gust(q) {
+  ripple(q.x, q.z, .6, 0xdde6ee); hi("F"); hi("E"); snd.breath(1.6, { f0: 600, f1: 1100, gain: .14, pan: clamp(nd.x, -1, 1) * .6 });
+  for (const o of N) { const ch = ['気温', '光', '風'].find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(q); o.queue.push({ t: ripU.uT.value + d / SPEED, g: .8 * Math.exp(-d / 12), from: null, ch }); }
+  if (!sawGust) { sawGust = true; W.sayNow("風や日の傾き、気温の移ろい（F）が、欅と記録計とミツバチの入力になる。"); }
+}
+function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l, t: 0, x: tree.x + 1.2, z: tree.z + .6 }; }
+
+// はじめと、降りるとき
+setTimeout(() => { if (!firstCascade) { act(nodeOf("bee"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
+setTimeout(() => { W.say("それぞれの受けとりとふるまいが、場を介して、互いの入力になる。地の波は、ふるまいが場に残す変化の模式。"); W.say("輪に触れると、その主体がふるまう。下へなぞると、朝の参道へ降りる。"); }, 900);
+let saidDown = false, saidGround = false;
+W.onAbs(a => {
+  fx.style.opacity = ss(.35, .7, a).toFixed(3);
+  if (!saidDown && a < .55) { saidDown = true; W.say("式の外へ降りる。同じ流れが、朝の参道にある。"); }
+  if (!saidGround && a < .08) { saidGround = true; W.say("だれも全体を見ていない。けれど、全体はたしかに回っている。"); }
+});
+
+// ───────── 毎こま
+const tmpC = new THREE.Color();
+W.onFrame((dt, t, a) => {
+  ripU.uT.value = t;
+  { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(3.5, 4.7, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .05 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く
+  const labA = ss(.25, .7, a);
+  for (const n of N) {
+    const p = n.at(); n.g.position.set(p.x, 0, p.z);
+    for (let i = n.queue.length - 1; i >= 0; i--) if (n.queue[i].t <= t) { const q = n.queue.splice(i, 1)[0]; receive(n, q.g, q.from, q.ch); }
+    n.cool = Math.max(0, n.cool - dt); n.glow *= Math.exp(-dt * 2.2); n.inK *= Math.exp(-dt * 3);
+    n.ring.userData.mat.opacity = (.75 * labA) + n.glow * .5 * ss(.05, .3, a); n.ring.scale.setScalar(1 + n.glow * .25);
+    n.ring2.userData.mat.opacity = n.inK * .7 * ss(.08, .4, a); n.ring2.scale.setScalar(1 + (1 - n.inK) * 1.2);
+    n.stemM.opacity = labA * (.35 + n.glow * .5); n.lab.material.opacity = labA * (.75 + n.glow * .25);
+  }
+  // 生き物
+  hop = Math.max(0, hop - dt * 1.6); tit.position.y = Math.sin(Math.min(1, 1 - hop) * Math.PI) * (hop > 0 ? .06 : 0); tit.userData.animate?.(t, false);
+  beeKick = Math.max(0, beeKick - dt * .8); const hv = RM ? 0 : 1;
+  bee.position.copy(beeHome).add(new V3(Math.sin(t * .9) * (.05 + beeKick * .25) * hv, .045 + Math.sin(t * 1.7) * .015 * hv + beeKick * .12, Math.cos(t * .7) * (.04 + beeKick * .2) * hv)); bee.rotation.y = Math.sin(t * .5) * .8; bee.userData.state = "fly"; bee.userData.animate?.(t, "hover");
+  if (steps > 0) { steps = Math.max(0, steps - dt); person.userData.walk((1.2 - steps) / .6, 1); } else person.userData.walk(0, 0);
+  person.userData.mat.opacity = lerp(.5, .6, ss(.08, .5, a));   // 具体では墨の線、抽象では光の線 person.userData.mat.color.copy(tmpC.set(0x2e2620).lerp(new THREE.Color(0xe9d2c2), ss(.15, .6, a)));   // 具体では墨の線の人、抽象では光の線
+  // 落ちる葉
+  if (falling) { const f = falling; f.t += dt; const u = Math.min(1, f.t / 5); f.l.position.set(f.x + Math.sin(f.t * 3) * .25 * (1 - u), lerp(4.5, .02, Math.pow(u, 1.1)), f.z + Math.cos(f.t * 1.7) * .15); f.l.rotation.set(-1.3 + Math.cos(f.t * 3) * .9 * (1 - u), f.t, 0); if (u >= 1) { f.l.rotation.set(-Math.PI / 2, f.t, 0); falling = null; } }
+  // 層 L
+  Lt += (Lon - Lt) * (1 - Math.exp(-dt * .8)); const hp = person.position; Lg.position.set(hp.x, 0, hp.z);
+  Lrings.forEach((r, i) => { r.userData.mat.opacity = Lt * ss(.08, .4, a) * (.45 + .25 * Math.sin(t * .8 + i)); r.rotation.y = t * .1 * (i % 2 ? 1 : -1); });
+  // 粒
+  let k = 0;
+  for (let i = pl.length - 1; i >= 0; i--) { const q = pl[i]; q.u += dt * 1.3; if (q.u > 1) { pl.splice(i, 1); continue; } }
+  for (const q of pl) { if (k >= NP) break; const u = Math.max(0, q.u), e = u * u * (3 - 2 * u); pp.set([lerp(q.x, q.tx, e), lerp(q.y, q.ty, e), lerp(q.z, q.tz, e)], k * 3); tmpC.copy(q.col).multiplyScalar((u > 0 ? 1 : 0) * (.5 + q.g)); pc.set([tmpC.r, tmpC.g, tmpC.b], k * 3); k++; }
+  for (let i = k; i < NP; i++) pp.set([0, -50, 0], i * 3);
+  pg.attributes.position.needsUpdate = true; pg.attributes.color.needsUpdate = true;
+});
+AMK.done = Math.round(performance.now() - T0);
+window.__app = { W, N, tapNode, act, gust: (x, z) => gust(new V3(x, 0, z)), get Lon() { return Lon; } };
