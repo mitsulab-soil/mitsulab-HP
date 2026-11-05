@@ -24,17 +24,18 @@ const A = [   // 位置 xz（z＋が手前）・膜の半径・膜の色・寄�
 const K = Object.fromEntries(A.map((a,i)=>[a.k,i]));
 // ある主体のふるまい → 環境の変化 → 受けとる主体（w＝伝わり方：g 地・a 空気・l 光・d 数値）
 const EV = [
-  {s:'human', t:['mimizu','inu'], w:'g', ja:'人の足音 → 地面の振動 → ミミズ・イヌが受けとる', en:'Footsteps → the ground trembles → the earthworm and the dog take it in'},
+  {s:'human', t:['mimizu'], w:'g', ja:'人の足音 → 地面の振動 → ミミズが体で受けとる', en:'Footsteps → the ground trembles → the earthworm takes it in through its body'},
+  {s:'human', t:['inu'], w:'a', ja:'人の足音 → 空気の音 → イヌが耳を向ける', en:'Footsteps → sound in the air → the dog turns its ears'},
   {s:'hiyo',  t:['human','ai'],   w:'a', ja:'ヒヨドリが鳴く → 空気の震え → 人が見上げ、AI のマイクが声の形を拾う', en:'A bulbul calls → the air trembles → a person looks up; the AI’s microphone picks up the shape of the call'},
-  {s:'ai',    t:['human'],        w:'d', ja:'AI が声から種の名を推定する → 人の文脈に一つ加わる', en:'The AI estimates the species from the call → one more thing enters the person’s context'},
+  {s:'ai',    t:['human'],        w:'d', ja:'AI が声から種の名を推定し、画面に出す → 人の目に入り、文脈に一つ加わる', en:'The AI estimates the species from the call → one more thing enters the person’s context'},
   {s:'keyaki',t:['sensor','mimizu'],w:'l', ja:'ケヤキが日陰をつくり、葉を落とす → 地面の温度と落ち葉が変わる → 気象計と土の生き物が受けとる', en:'The zelkova casts shade and drops leaves → ground temperature and litter change → the gauge and the soil animals take it in'},
   {s:'mimizu',t:['keyaki'],       w:'g', ja:'ミミズが落ち葉を土へ引き込む → 根のまわりの土が変わる', en:'Earthworms pull leaves into the soil → the soil around the roots changes'},
   {s:'koumori',t:['koumori'],     w:'a', ja:'コウモリが超音波を出す → 反響が返る → 自分で虫の位置を知る（人には聴こえない高さ）', en:'A bat calls in ultrasound → echoes return → it locates insects (too high for human ears)'},
-  {s:'bee',   t:['aosuji'],       w:'l', ja:'ミツバチが花を訪れる → 花に残る蜜が変わる → 次に来るチョウの受けとりが変わる', en:'A honeybee visits a flower → the nectar left changes → what the next butterfly finds changes'},
+  {s:'bee',   t:['aosuji'],       w:'l', ja:'日の入り前、ミツバチが花を訪れる → 花に残る蜜が変わる → 次に来るチョウの受けとりが変わる', en:'A honeybee visits a flower → the nectar left changes → what the next butterfly finds changes'},
   {s:'aosuji',t:['hiyo'],         w:'l', ja:'チョウが舞う → 光の中の動き → ヒヨドリの目に入る', en:'A butterfly flutters → movement in the light → it enters the bulbul’s eye'},
   {s:'inu',   t:['inu','human'],  w:'g', ja:'イヌが匂いをたどり、新しい匂いを残す → 地面の匂いの道が変わる', en:'The dog follows scents and leaves new ones → the scent trails on the ground change'},
-  {s:'sensor',t:['human'],        w:'d', ja:'気象計が気温と風を記録する → 人がその数値を見て、木陰を選ぶ', en:'The weather gauge records temperature and wind → a person reads it and chooses the shade'},
-  {s:'gis',   t:['human','keyaki'],w:'d', ja:'GIS が標高の層から、雨水の集まる低い所を示す → 人が根を守る手を入れる → 欅の受けとる水が変わる', en:'GIS shows the low ground where rain gathers → people act to protect the roots → the water the zelkova receives changes'},
+  {s:'sensor',t:['human'],        w:'d', ja:'気象計が気温と風を記録し、表示に出す → 人がその数値を見て、木陰を選ぶ', en:'The weather gauge records temperature and wind → a person reads it and chooses the shade'},
+  {s:'gis',   t:['human','keyaki'],w:'d', ja:'GIS が標高の層から、雨水の集まる低い所を地図に出す → 人が根を守る手を入れる → ケヤキの受けとる水が変わる', en:'GIS shows the low ground where rain gathers → people act to protect the roots → the water the zelkova receives changes'},
 ];
 
 // ---- 音（主体ごとの声部。最初は鳴らさず、「音を出す」に触れてから。リズムと間は出典で確かめた周期、音色だけを作る。聴こえない音は聴こえる高さに移した模式）
@@ -53,7 +54,7 @@ const VOICE = {
   bee:    t => { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 230; const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; o.connect(f); f.connect(env(t, .25, 1.4, .12)); o.start(t); o.stop(t+1.8); },
   hiyo:   t => { tone(t, 3400, .22, .16, 'sine', 2300); tone(t+.3, 3000, .3, .13, 'sine', 2000); },
   aosuji: t => { for (let i=0;i<3;i++) tone(t+i*.42, 1320+i*110, .5, .04, 'triangle'); },
-  koumori:t => { for (let i=0;i<10;i++) tone(t+i*.1, 50000/64*1.4, .03, .1, 'sine', 45000/64); },
+  koumori:t => { for (let i=0;i<10;i++) tone(t+i*.1, 70000/64, .03, .1, 'sine', 45000/64); },
   keyaki: t => { noise(t, 1.6, .18, 5000, .6, 'highpass'); tone(t+.1, 196, 1.8, .05, 'sine'); },
   mimizu: t => { tone(t, 55, 1.2, .3, 'sine', 48); noise(t, .9, .2, 120, 3); },
   ai:     t => { [0,.12,.24].forEach((d,i) => tone(t+d, 1760*(1+i*.5), .06, .06, 'square')); },
@@ -98,13 +99,13 @@ export function start(box){ let AB = 0, abW = 0;
         float a=0.;vec3 tc=vec3(0.);
         if(mode>.5&&mode<1.5){a=.5*smoothstep(4.,0.,length(v-vec2(-3.4,-2.6)));tc=vec3(.45,.85,.4);}                       // 欅：光と日陰
         else if(mode<2.5&&mode>1.5){float s=smoothstep(.05,0.,abs(sin(v.x*1.3+n2(v*.6)*4.)-.0)-.02);a=s*.7;tc=vec3(1.,.66,.36);} // イヌ：匂いの道
-        else if(mode<3.5&&mode>2.5){a=.42*(.5+.5*n2(v*2.+t*.1));tc=vec3(.62,.42,1.);}                                     // 紫外を含む色
+        else if(mode<3.5&&mode>2.5){float q=smoothstep(.55,.8,n2(v*1.6+3.));a=.5*q;tc=vec3(.78,.66,1.);}                                     // 紫外を含む色
         else if(mode<4.5&&mode>3.5){a=.55*exp(-abs(fract(length(v-sel)*.5-t*.6)-.5)*14.);tc=vec3(.7,.6,1.);col*=.45;}      // 反響
         else if(mode<5.5&&mode>4.5){a=.6*exp(-abs(fract(length(v-sel)*.8-t*.4)-.5)*10.);tc=vec3(1.,.72,.5);col*=.6;}       // 振動
         else if(mode<6.5&&mode>5.5){vec2 g=abs(fract(v*.8)-.5);a=.5*smoothstep(.46,.5,max(g.x,g.y));tc=vec3(.56,.97,.88);}  // 画素の格子
         else if(mode<7.5&&mode>6.5){vec2 g=abs(fract(v*.5)-.5);a=.35*smoothstep(.48,.5,max(g.x,g.y))+.18*sin(t+v.x);tc=vec3(.7,.95,.66);} // 数値の網
         else if(mode>7.5){float hh=sin(v.x*.5+1.)*cos(v.y*.4)+.3*sin(r*.8);a=.7*smoothstep(.08,0.,abs(fract(hh*3.)-.5)-.44);tc=vec3(.78,.72,1.);} // 等高線
-        col=mix(col,col*.5+tc*.9,a*mk);
+        col=mix(col,col*.62+tc*.6,a*mk*.75);
         {vec2 g=abs(fract(v*.9)-.5);float ln=smoothstep(.47,.5,max(g.x,g.y));col=mix(col,vec3(.03,.05,.08)+vec3(.56,.9,1.)*ln*.35+vec3(.66,.95,1.)*wv*.5,ab);}
         float fade=smoothstep(15.,5.,r); col=mix(vec3(.11,.14,.16),col,fade);
         gl_FragColor=vec4(col,1.);}`});
@@ -196,13 +197,16 @@ export function start(box){ let AB = 0, abW = 0;
   const pts = new THREE.Points(pg, new THREE.PointsMaterial({size:mob?.14:.12, vertexColors:true, transparent:true, opacity:.95, depthWrite:false, blending:THREE.AdditiveBlending}));
   pts.frustumCulled = false; S.add(pts); const flows = [];
   // ---- 名の札（押すと寄れる）
+  const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'cgf-ln'); svg.setAttribute('aria-hidden', 'true'); st.insertBefore(svg, cv.nextSibling);
+  const LN = A.map(() => { const l = document.createElementNS(NS, 'line'); svg.appendChild(l); return l; });
   const lbs = A.map((a,i) => { const b = st.querySelector('.cgf-lb[data-k="'+a.k+'"]'); if (b) b.addEventListener('click', e => { e.stopPropagation(); pick(i); }); return b; });
   // ---- カメラ
-  let yaw = .35, pitch = .42, dist = mob?17:14.5, tgt = new THREE.Vector3(0,.9,0), wantT = tgt.clone(), wantD = dist, sel = -1, idle = 0;
+  let yawW = null, yaw = .35, pitch = .42, dist = mob?17:14.5, tgt = new THREE.Vector3(0,.9,0), wantT = tgt.clone(), wantD = dist, sel = -1, idle = 0;
   const wantP = {v:pitch};
   function pick(i){ if (i>=0) play(A[i].k);
     if (sel === i || i < 0){ sel = -1; wantT.set(0,.9,0); wantD = mob?17:14.5; wantP.v = .42; U.mode.value = 0; box.classList.remove('sel'); }
-    else { sel = i; const a = A[i]; wantT.set(a.x, Math.max(.7, (a.y||0)*.8), a.z); wantD = ['hiyo','aosuji','bee','koumori','mimizu'].includes(a.k) ? 2.8 : Math.max(4.6, a.r*3.0); wantP.v = .3; U.mode.value = a.m; U.sel.value.set(a.x, -a.z); box.classList.add('sel'); }
+    else { sel = i; const a = A[i]; wantT.set(a.x, Math.max(.7, (a.y||0)*.8), a.z); wantD = ['hiyo','aosuji','bee','koumori','mimizu'].includes(a.k) ? 2.8 : Math.max(4.6, a.r*3.0); wantP.v = .3; U.mode.value = a.m; U.sel.value.set(a.x, -a.z); box.classList.add('sel');
+      const ref = a.k==='hiyo' ? A[K.ai] : a; const yy = Math.atan2(ref.x, ref.z); let d = yy - yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); yawW = yaw + d; }
     lbs.forEach((b,j) => b && b.classList.toggle('on', j===sel)); const bk = box.querySelector('.back'); if (bk) bk.hidden = sel < 0;
     showCap(); dirty = 1;
   }
@@ -210,7 +214,7 @@ export function start(box){ let AB = 0, abW = 0;
   function showCap(){ info.forEach(d => d.hidden = d.getAttribute('data-k') !== (sel<0?'':A[sel].k)); if (sel>=0) cap.classList.remove('on'); }
   // なぞって回す・押して選ぶ（触れた点にいちばん近い主体）
   let down = null, moved = 0;
-  cv.addEventListener('pointerdown', e => { down = {x:e.clientX, y:e.clientY, yaw, pitch}; moved = 0; idle = 0; });
+  cv.addEventListener('pointerdown', e => { yawW = null; down = {x:e.clientX, y:e.clientY, yaw, pitch}; moved = 0; idle = 0; });
   addEventListener('pointermove', e => { if (!down) return; const dx = e.clientX-down.x, dy = e.clientY-down.y; moved = Math.max(moved, Math.abs(dx)+Math.abs(dy)); if (moved > 6){ yaw = down.yaw - dx*.006; wantP.v = pitch = Math.min(1.1, Math.max(.12, down.pitch + dy*.004)); dirty = 1; } }, {passive:true});
   addEventListener('pointerup', e => { if (!down) return; const wasTap = moved < 7; down = null; if (!wasTap) return;
     const rc = cv.getBoundingClientRect(), mx = e.clientX-rc.left, my = e.clientY-rc.top; let bi = -1, bd = 1e9;
@@ -237,7 +241,11 @@ export function start(box){ let AB = 0, abW = 0;
     // 生き物の動き
     mixers.forEach(m => m.update(dt));
     const hy = A[K.hiyo], ao = A[K.aosuji], be = A[K.bee], ko = A[K.koumori], dg = A[K.inu];
-    loop.hp = (loop.hp||0) + dt*.45*((sel>=0) ? .3 : 1); const hp = loop.hp; hy.g.position.set(hy.x + Math.cos(hp)*1.1, hy.base + Math.sin(T*.9)*.25, hy.z + Math.sin(hp)*.8); hy.g.rotation.y = -hp;
+    const perch = sel === K.hiyo; loop.hp = (loop.hp||0) + dt*.45; const hp = loop.hp;
+    if (perch){ if (!loop.pp){ loop.pp = new THREE.Vector3(0, 2.47, .34); A[K.ai].g.localToWorld(loop.pp); } hy.g.position.lerp(loop.pp, Math.min(1, dt*1.6)); hy.g.rotation.y += (A[K.ai].g.rotation.y + Math.PI - hy.g.rotation.y)*Math.min(1, dt*2);
+      const hm = mixers.find(m => m.id === 'hiyo'); if (hm && hy.g.position.distanceTo(loop.pp) < .25 && hm.st !== 'perch'){ hm.play('perch', .4); hm.st = 'perch'; } }
+    else { const to = new THREE.Vector3(hy.x + Math.cos(hp)*1.1, hy.base + Math.sin(T*.9)*.25, hy.z + Math.sin(hp)*.8); hy.g.position.lerp(to, Math.min(1, dt*(loop.pp?1.2:60))); hy.g.rotation.y = -hp;
+      const hm = mixers.find(m => m.id === 'hiyo'); if (hm && hm.st === 'perch'){ hm.play('fly', .4); hm.st = 'fly'; } }
     ao.g.position.set(ao.x + Math.sin(T*.7)*.6, ao.base + Math.sin(T*2.3)*.18 + Math.sin(T*.5)*.15, ao.z + Math.cos(T*.6)*.5); ao.g.rotation.y = Math.atan2(Math.cos(T*.7)*.42, -Math.sin(T*.6)*.3);
     be.g.position.set(be.x + Math.sin(T*1.3)*.35, be.base + Math.sin(T*3.1)*.05, be.z + Math.cos(T*.9)*.3); be.g.rotation.y = Math.sin(T*.8)*1.2;
     if (be.bee) be.bee.userData.W.forEach(([p,sd]) => p.rotation.z = sd*Math.sin(T*90)*.6);
@@ -259,18 +267,22 @@ export function start(box){ let AB = 0, abW = 0;
     if (!reduce){ evT += dt; if (evT > (sel<0?4.2:6)){ evT = 0; fire(); } }
     // カメラ
     idle += dt; if (sel < 0 && !down && idle > 2 && !reduce) yaw += dt*.035;
+    if (sel >= 0 && yawW !== null && !down){ yaw += (yawW - yaw)*Math.min(1, dt*1.8); }
     if (sel >= 0){ const a = A[sel]; wantT.set(a.g.position.x, a.y ? a.g.position.y : Math.max(.5, a.r*.5), a.g.position.z); }
     tgt.lerp(wantT, Math.min(1, dt*2.2)); dist += (wantD*(sel<0?far:(portrait?1.45:1))-dist)*Math.min(1, dt*2.2); if (!down) pitch += (wantP.v + (portrait&&sel<0?.16:0) - pitch)*Math.min(1, dt*2);
     C.position.set(tgt.x + Math.sin(yaw)*Math.cos(pitch)*dist, tgt.y + Math.sin(pitch)*dist, tgt.z + Math.cos(yaw)*Math.cos(pitch)*dist); C.lookAt(tgt); S.fog.near = dist*.75; S.fog.far = dist*2.0;
     // 札を 3D の位置へ
     const rc = st.getBoundingClientRect();
-    A.forEach((a,i) => { const b = lbs[i]; if (!b) return; tmp.copy(a.mem.position); tmp.y += a.r*.78 + .15; tmp.project(C);
-      const off = tmp.z > 1 || Math.abs(tmp.x) > 1.05 || Math.abs(tmp.y) > 1.05; b.style.visibility = off ? 'hidden' : 'visible';
-      const w = b.offsetWidth, h = b.offsetHeight; let x = (tmp.x+1)/2*rc.width - w/2, y = (1-tmp.y)/2*rc.height - h; x = Math.max(4, Math.min(rc.width-w-4, x)); y = Math.max(70, y);
-      PL[i] = {b, x, y, w, h, off}; b.style.opacity = sel<0 ? 1 : (i===sel ? 1 : .35); });
-    for (let it=0; it<5; it++) for (let i=0;i<PL.length;i++) for (let j=i+1;j<PL.length;j++){ const p = PL[i], q = PL[j]; if (!p||!q||p.off||q.off) continue;
-      if (p.x < q.x+q.w+2 && q.x < p.x+p.w+2 && p.y < q.y+q.h+2 && q.y < p.y+p.h+2){ const o = (Math.min(p.y+p.h, q.y+q.h) - Math.max(p.y, q.y) + 3)/2; if (p.y < q.y){ p.y -= o; q.y += o; } else { p.y += o; q.y -= o; } } }
-    PL.forEach(p => { if (p) p.b.style.transform = `translate(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px)`; });
+    A.forEach((a,i) => { const b = lbs[i]; if (!b) return; if (i===sel){ tmp.copy(a.g.position); tmp.y += a.y ? .45 : Math.min(2.2, a.r*.9); } else { tmp.copy(a.mem.position); tmp.y += a.r*.78 + .15; } tmp.project(C);
+      const off = tmp.z > 1 || Math.abs(tmp.y) > 1.1 || Math.abs(tmp.x) > 1.6; const hideO = sel>=0 && i!==sel; b.style.visibility = (off||hideO) ? 'hidden' : 'visible';   // 横に少し外れた札は端にとどめて見せる
+      const ax = (tmp.x+1)/2*rc.width, ay = (1-tmp.y)/2*rc.height;
+      const w = b.offsetWidth, h = b.offsetHeight; let x = ax - w/2, y = ay - h - 10; x = Math.max(16, Math.min(rc.width-w-16, x)); y = Math.max(portrait?118:70, Math.min(rc.height-150, y));
+      PL[i] = {b, x, y, w, h, off, ax, ay, y0:y}; b.style.opacity = sel<0 ? 1 : (i===sel ? 1 : .35); });
+    for (let it=0; it<5; it++) for (let i=0;i<PL.length;i++) for (let j=i+1;j<PL.length;j++){ const p = PL[i], q = PL[j]; if (!p||!q||p.off||q.off||(sel>=0)) continue;
+      if (p.x < q.x+q.w+8 && q.x < p.x+p.w+8 && p.y < q.y+q.h+8 && q.y < p.y+p.h+8){ const o = (Math.min(p.y+p.h, q.y+q.h) - Math.max(p.y, q.y) + 9)/2; if (p.y < q.y){ p.y -= o; q.y += o; } else { p.y += o; q.y -= o; } } }
+    PL.forEach((p,i) => { if (!p) return; p.y = p.y0 + Math.max(-70, Math.min(70, p.y - p.y0));
+      p.b.style.transform = `translate(${p.x.toFixed(1)}px,${p.y.toFixed(1)}px)`;
+      const ln = LN[i]; if (ln){ const show = !p.off && (sel<0 || i===sel); ln.setAttribute('x1', (p.x+p.w/2).toFixed(1)); ln.setAttribute('y1', (p.y+p.h).toFixed(1)); ln.setAttribute('x2', Math.max(2, Math.min(rc.width-2, p.ax)).toFixed(1)); ln.setAttribute('y2', p.ay.toFixed(1)); ln.style.opacity = show ? .5 : 0; } });
     AB += (abW-AB)*Math.min(1,dt*3); U.ab.value = AB;
     if (Math.abs(AB-(loop.lastAB??-1))>.002){ loop.lastAB = AB; G.forEach(g => g.traverse(o => { if (o.isMesh && o.material){ const ms = Array.isArray(o.material)?o.material:[o.material]; ms.forEach(mt => { if (mt.userData.o0 === undefined){ mt.userData.o0 = mt.opacity; mt.userData.t0 = mt.transparent; } mt.transparent = AB>.01 || mt.userData.t0; mt.opacity = mt.userData.o0*(1-AB*.94); mt.depthWrite = AB<.5; }); } })); G.forEach(g => g.visible = AB < .92); }
     A.forEach(a => { a.dot.position.copy(a.mem.position); a.dot.material.opacity = AB; });

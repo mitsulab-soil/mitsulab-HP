@@ -20,7 +20,7 @@ export function start(box){
   const key=new THREE.DirectionalLight(0xfff1dc,2.1); key.position.set(4,8,6); S.add(key);
   const rim=new THREE.DirectionalLight(0x8fd3ff,1.6); rim.position.set(-5,4,-7); S.add(rim);
   const RR=3.1, SUB=[   // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。layers＝受けとる層（p＝フィジカル・d＝デジタル）
-    {k:'bird',x:-3.7,z:-.5,c:0x9fd8ff,h:.95,ly:'ppp'},{k:'bee',x:-2.0,z:1.75,c:0xf0d58c,h:1.0,ly:'ppp'},{k:'human',x:.95,z:1.35,c:0xe6ebf6,h:1.85,ly:'ppd'},
+    {k:'bird',x:-3.7,z:-.5,c:0x9fd8ff,h:.95,ly:'ppp'},{k:'bee',x:-2.0,z:1.75,c:0xf0d58c,h:1.6,ly:'ppp'},{k:'human',x:.95,z:1.35,c:0xe6ebf6,h:1.85,ly:'ppd'},
     {k:'ai',x:2.15,z:-1.45,c:0x8ff7e0,h:1.35,ly:'ddp'},{k:'sensor',x:3.7,z:.85,c:0xb8f0a8,h:1.3,ly:'ppd'},{k:'gis',x:-.75,z:-1.95,c:0xc9b8ff,h:1.25,ly:'ddd'}];
   SUB.forEach(s=>{s.p=new THREE.Vector3(s.x,0,s.z);s.a=Math.atan2(s.z,s.x)*180/Math.PI;s.ry=Math.atan2(-s.p.x,-s.p.z)+.5;});
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
@@ -122,7 +122,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(4.2);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xdcecff,3.2,2.6,1.6);pl.position.set(.35,1.1,.7);g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.01);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?5.4:4.2);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xdcecff,mob?5.5:3.2,2.6,1.6);pl.position.set(.35,1.1,.7);g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.01);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
@@ -170,8 +170,8 @@ export function start(box){
     for(const a of anchors){const d=LB[a.k];if(!d)continue;v.copy(a.p).applyMatrix4(W.matrixWorld);const dz=v.clone().applyMatrix4(C.matrixWorldInverse).z;v.project(C);
       let x=(v.x*.5+.5)*wpx,y=(-v.y*.5+.5)*hpx;
       if(a.k==='aoi'||a.k==='yori'){const dw=d.offsetWidth,dh=d.offsetHeight;box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
-      if(a.k==='phys'||a.k==='digi'){const dw=d.offsetWidth,dh=d.offsetHeight;let lx=a.k==='phys'?x:x-dw;lx=Math.max(2,Math.min(wpx-dw-2,lx));box_.push({d,lx,ly:y-dh/2,dw,dh});continue;}
-      const left=x<cx, up=y<cy, dw=d.offsetWidth, dh=d.offsetHeight; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(2,Math.min(wpx-dw-2,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
+      if(a.k==='phys'||a.k==='digi'){const dw=d.offsetWidth,dh=d.offsetHeight;let lx=a.k==='phys'?x:x-dw;lx=Math.max(12,Math.min(wpx-dw-12,lx));box_.push({d,lx,ly:y-dh/2,dw,dh});continue;}
+      const left=x<cx, up=y<cy, dw=d.offsetWidth, dh=d.offsetHeight; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(12,Math.min(wpx-dw-12,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
 }
     // 札どうしが重なったら、上下へ押し分ける（数回）
     for(let it=0;it<6;it++)for(let i=0;i<box_.length;i++)for(let j=i+1;j<box_.length;j++){const A=box_[i],B=box_[j];
