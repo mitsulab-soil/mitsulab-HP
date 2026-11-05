@@ -731,7 +731,7 @@ export class AoiMotion {
   afterVrmUpdate(dt) {
     if (!this.robe) return;
     if (this._robeReset) { this.robe.reset(); this._robeReset = false; }   // 揺れを止めて静止の形へ（そのあと脚との当たりだけは直す）
-    if (this.q.tier !== "high") { this.q.accR += dt; if (this.q.n & 1) return; dt = Math.min(this.q.accR, .05); this.q.accR = 0; }   // v5：mid・low では裾の布を一こまおき（たまった時間で進める）
+    if (this.q.tier !== "high") { this.q.accR += dt; const ev = this.q.tier === "low" || (typeof innerWidth === "number" && innerWidth < 768) ? 3 : 2; if (this.q.n % ev) return; dt = Math.min(this.q.accR, .066); this.q.accR = 0; }   /* 11-05 375 の fps：スマホの幅では裾の布を 3 こまに 1 回（たまった時間で進める） */   // v5：mid・low では裾の布を一こまおき（たまった時間で進める）
     this.robe.update(dt, { groundY: this.groundAt ? this.groundAt(this.pos.x, this.pos.z) : this.root.getWorldPosition(_v[9]).y, live: this.live });
   }
   _apply() { if (this.groundAt) { const F = this.feet, g = this.groundAt(this.pos.x, this.pos.z), gl = F ? Math.min(F.L.p.y, F.R.p.y) - this.ankleH * this.sc : g; this.pos.y = Math.min(g, gl + .02 * this.sc); }   // 坂では低いほうの足に合わせて腰を下げる（脚が伸びきらない）

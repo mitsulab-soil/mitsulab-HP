@@ -391,6 +391,7 @@ function forestAt(cx, cz, r0, r1, N, sd, axis) {
       M.compose(ps.set(x + Math.cos(a) * rr * k, y + h + (j ? -1.2 + rnd() * 2.2 : .9) * k, z + Math.sin(a) * rr * k), q.setFromAxisAngle(sc.set(0, 1, 0), rnd() * 6.28), sc.set(r, r * .82, r)); crown.setMatrixAt(ci, M);
       crown.setColorAt(ci, col.setHSL(hue + rnd() * .03, .28 + rnd() * .12, .13 + rnd() * .07 + (j ? 0 : .02))); ci++; } });
   trunk.count = ti; crown.count = ci; trunk.castShadow = crown.castShadow = false;
+  if (MOBILE) for (const im of [trunk, crown]) { const A = im.instanceMatrix.array; im.userData.xz = Array.from({ length: im.count }, (_, i) => [A[i * 16 + 12], A[i * 16 + 14]]); KURA.meshes.push(im); }   /* 11-05 375 の fps：遠くの木も蔵と同じく描かない（kuraCull） */
   g.add(trunk, crown); world.add(g); return pts.length;
 }
 let LEAF_GEO = null, LEAF_MAT = null;
@@ -1200,7 +1201,7 @@ QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.st
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261103x"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261105r"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */

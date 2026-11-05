@@ -1226,7 +1226,7 @@ QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.st
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261103x"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261105r"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */
