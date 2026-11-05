@@ -14,7 +14,7 @@ export class Music {
     this.out = c.createGain(); this.out.gain.value = 0;
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3;
     const lift = c.createGain(); lift.gain.value = 1.7;   // 圧縮のあとで持ち上げる（小さなスピーカー・展示）
-    const lim = c.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1;   // 最後に限界の止め
+    const lim = c.createWaveShaper(); { const n = 2048, cv = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cv[i] = .89 * Math.tanh(x * 1.25) / Math.tanh(1.25); } lim.curve = cv; lim.oversample = "2x"; }   // 最後に限界の止め（なめらかに頭を丸める・上限 −1 dBFS）
     this.out.connect(comp).connect(lift).connect(lim).connect(c.destination);
     this.out.gain.linearRampToValueAtTime(this.muted ? 0 : .55, c.currentTime + .6);
     // 小さな残響（生成した減衰の雑音）
