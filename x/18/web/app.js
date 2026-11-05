@@ -23,7 +23,7 @@ const WHO = [
   { k: "hito", n: "わたし", say: "" },
   { k: "hachi", n: "ミツバチ", say: "ミツバチは、赤が暗く、紫外が見える。カメラに紫外は写らないので、色は模式です。" },
   { k: "suzume", n: "スズメ", say: "鳥は四つの色で見る。色の差を強めた模式です。" },
-  { k: "tanuki", n: "タヌキ", say: "タヌキは二つの色で見るとされる。赤と緑が近づく模式です。" },
+  { k: "tanuki", n: "タヌキ", say: "タヌキは二つの色で見て、においをよく使うとされる。においは写らないので、においのもとを撮ってください。写真の色は、赤と緑が近づく模式です。" },
 ];
 function lens(k, d) { // d: ImageData.data
   if (k === "hito") return;
@@ -59,7 +59,8 @@ const params = new URLSearchParams(location.search);
 /* 2026-11-04 本人：公開の版は共有しない（端末の中だけ）。ワークショップの会場では ?ws=1 の入口で「渡す・受けとる」を出す。 */
 const SHARE = params.get("ws") === "1";
 document.body.classList.toggle("solo", !SHARE);
-function setQ(t, v) { $("qt").textContent = t; mine.q = t; const f = QFIT[QS.indexOf(t)]; if (f) { sense = f[0]; who = f[1]; if ($("sense").firstChild) buildRows(); } if (v) speak(t); }
+function setQ(t, v) { $("qt").textContent = t; mine.q = t; const f = QFIT[QS.indexOf(t)]; if (f) { sense = f[0]; who = f[1]; if ($("sense").firstChild) buildRows(); } if (v) speak(t); const w = WHO.find(x => x.k === who); if (v && !w?.say) { clearTimeout(subT); $("sub").style.opacity = 0; }   // 問いを変えたら前の字幕を残さない
+  if (w?.say) { if (v) say(w.say, 9000); else setTimeout(() => { if (mine.q === t) say(w.say, 9000); }, 400); } }   // 2026-11-05：生き物の問いでは「模式」の一言を必ず出す
 
 /* ---------- 下の並び ---------- */
 function buildRows() {
@@ -219,20 +220,22 @@ let stream = null, vid = null, vraf = 0;
 const vc = $("vc"), vx = vc.getContext("2d", { willReadFrequently: true });
 function drawLens(src, w, h, size) { const s = Math.min(w, h); vc.width = vc.height = size; vx.drawImage(src, (w - s) / 2, (h - s) / 2, s, s, 0, 0, size, size); const im = vx.getImageData(0, 0, size, size); lens(who, im.data); vx.putImageData(im, 0, 0); }
 function full() { if (mine.items.length >= MAX) { say(`ひとり ${MAX} つまで。よいものを選んで残しましょう。`); return true; } return false; }
-async function openCam() {
-  if (full()) return;
-  say("写真は、この端末の中だけに残ります。人の顔は写さないでください。", 0);
+let texMode = false;   // 2026-11-05 本人：三つ目の「手ざわり」＝触れた面を寄って撮る接写（触れるの印）
+async function openCam(tex) {
+  if (full()) return; texMode = tex === true;
+  say(texMode ? "触れた面に、寄って撮ってください。手ざわりの印が付きます。" : "写真は、この端末の中だけに残ります。人の顔は写さないでください。", 0);
   try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1280 } }, audio: false }); }
   catch { say("カメラを使わずに、写真を選んで参加できます。"); $("pic").click(); return; }
   vid = document.createElement("video"); vid.playsInline = true; vid.muted = true; vid.srcObject = stream; await vid.play().catch(() => { });
-  $("win").classList.add("on"); document.body.classList.add("cam"); const w = WHO.find(x => x.k === who); $("vlab").textContent = who === "hito" ? "" : w.n + "（模式）";
+  $("win").classList.add("on"); document.body.classList.add("cam"); const w = WHO.find(x => x.k === who); $("vlab").textContent = texMode ? "手ざわり（寄って撮る）" : who === "hito" ? "" : w.n + "（模式）";
   const loop = () => { if (vid.videoWidth) drawLens(vid, vid.videoWidth, vid.videoHeight, 360); vraf = requestAnimationFrame(loop); }; loop();
 }
 function closeCam() { cancelAnimationFrame(vraf); stream?.getTracks().forEach(t => t.stop()); stream = null; $("win").classList.remove("on"); document.body.classList.remove("cam"); $("sub").style.opacity = 0; }
-function addPhoto(src, w, h) { drawLens(src, w, h, 640); add({ kind: "photo", data: vc.toDataURL("image/jpeg", .82) }); }
-$("bShot").onclick = openCam;
+function addPhoto(src, w, h) { drawLens(src, w, h, 640); const o = { kind: "photo", data: vc.toDataURL("image/jpeg", .82) }; if (texMode) { o.sense = "touch"; o.tex = 1; } texMode = false; add(o); }
+$("bShot").onclick = () => openCam(false);
+$("bTex").onclick = () => openCam(true);
 $("bSnap").onclick = () => { if (vid) addPhoto(vid, vid.videoWidth, vid.videoHeight); closeCam(); };
-$("bCancel").onclick = closeCam;
+$("bCancel").onclick = () => { texMode = false; closeCam(); };
 $("win").onclick = e => { if (e.target.id === "win") closeCam(); };
 $("pic").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; try { const b = await createImageBitmap(f); addPhoto(b, b.width, b.height); } catch { say("この写真は読めませんでした。"); } };
 
@@ -254,14 +257,14 @@ $("bRec").onclick = async () => {
 };
 
 async function add(o) {
-  const it = { id: uid(), t: minute(), sense: o.kind === "sound" && sense === "sight" ? "sound" : sense, who, ...o };
+  const it = { id: uid(), t: minute(), sense: o.kind === "sound" && sense === "sight" ? "sound" : sense, who, ...o }; if (o.tex) it.who = "hito";
   mine.items.push(it); await put("mine", mine); count(); layout();
   say(mine.items.length === 1 ? "あなたの層が、ひとつ重なりました。" : `層に重ねました（${mine.items.length}）。`, 2800, "層に重ねました。");
 }
 
 /* ---------- 渡す（ファイル一つ。共有の画面か保存） ---------- */
 $("bGive").onclick = async () => {
-  if (!SHARE) return;
+  if (!SHARE) return; flash("bGive");
   if (!mine.items.length) { say("まだ層が空です。撮るか録ってから渡せます。"); return; }
   const name = `まなざし_${mine.id}.json`, blob = new Blob([JSON.stringify(mine)], { type: "application/json" });
   const file = new File([blob], name, { type: "application/json" });
@@ -282,7 +285,8 @@ async function takeFiles(fs) {
   await put("others", others); layout(); reset();
   say(n ? `${n} 人の層が重なりました（ぜんぶで ${allLayers().length} 人）。` : "読める層のファイルがありませんでした。", 5200, n ? "みんなの層が、重なりました。" : "");
 }
-$("bTake").onclick = () => $("file").click();
+$("bTake").onclick = () => { flash("bTake"); $("file").click(); };
+function flash(id) { const b = $(id); b.classList.remove("ok"); void b.offsetWidth; b.classList.add("ok"); }
 $("file").onchange = e => { takeFiles([...e.target.files]); e.target.value = ""; };
 addEventListener("dragover", e => { if (!SHARE) return; e.preventDefault(); $("drop").classList.add("on"); });
 addEventListener("dragleave", e => { if (!e.relatedTarget) $("drop").classList.remove("on"); });
@@ -291,7 +295,7 @@ function reset() { } // 2026-11-03：「空にする」は「おわる」の「�
 
 /* ---------- おわる：みんなの層を一つの場に重ね、ゆっくり回して閉じる。持ち帰る（ファイル）か、この端末から消す ---------- */
 function endOn(on) { if (typeof wipeMode === "function" && wipeAsk) wipeMode(false); ending = on; document.body.classList.toggle("ending", on); $("end").classList.toggle("on", on);
-  if (on) { closeCam(); if (rec) rec.stop(); near = null; pick(null); view = "stack"; focusSense = null; $("bView").textContent = "並べる"; layout(); say("今日の層は、ここまで。<br>帰り道で、あなたの足を止めるものは？", 0, "今日の層は、ここまで。帰り道で、あなたの足を止めるものは？"); }
+  if (on) { closeCam(); if (rec) rec.stop(); near = null; pick(null); view = "stack"; focusSense = null; viewLab(); layout(); say("今日の層は、ここまで。<br>帰り道で、あなたの足を止めるものは？", 0, "今日の層は、ここまで。帰り道で、あなたの足を止めるものは？"); }
   else $("sub").style.opacity = 0; }
 $("bEnd").onclick = () => endOn(true);
 $("bKeep").onclick = () => { if (SHARE) return $("bGive").click(); /* 共有しない版：この端末にファイルで保存するだけ（どこへも送らない） */
@@ -307,7 +311,8 @@ $("bWipe").onclick = async () => { if (!wipeAsk) { wipeMode(true); say("自分�
   say("この端末から、層を消しました。", 0); };
 
 /* ---------- 重ねる ⇄ 並べる ---------- */
-$("bView").onclick = () => { view = view === "stack" ? "side" : "stack"; $("bView").textContent = view === "stack" ? "並べる" : "重ねる"; layout();
+function viewLab() { $("bView").textContent = view === "stack" ? "並べる" : "重ねる"; $("bView").setAttribute("aria-pressed", String(view === "side")); }
+$("bView").onclick = () => { view = view === "stack" ? "side" : "stack"; viewLab(); layout();
   say(view === "side" ? "一人ひとりの層を、並べました。" : "みんなの層を、一つの場に重ねました。", 2600); };
 $("q").onclick = () => { if (params.get("q")) return; qi = (qi + 1) % QS.length; setQ(QS[qi], 1); };
 
@@ -318,6 +323,6 @@ buildRows(); count(); setQ(params.get("q")?.slice(0, 60) || QS[0]); window.MLLoa
   setQ(params.get("q")?.slice(0, 60) || mine.q || QS[0]); qi = Math.max(0, QS.indexOf($("qt").textContent));
   buildRows(); count(); layout(); reset();
   requestAnimationFrame(() => setTimeout(() => import("three").then(m => { ({ GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder } = m); THREE = m; init3D(); layout(); }).catch(() => { }), 420)); // 読み込みの幕が消えきってから 3D を組む（幕の消えるのを重い処理で遅らせない）
-  setTimeout(() => say(mine.items.length ? "続きから。" : "わたしは碧。問いを一つ、置きました。<br>感じたものを、<b>撮る</b>か<b>録る</b>で集めてください。", 6500), 600);
+  setTimeout(() => say(mine.items.length ? "続きから。" : "わたしは碧。問いを一つ、置きました。<br>感じたものを、<b>撮る</b>・<b>録る</b>・<b>手ざわり</b>で集めてください。", 6500), 600);
 })();
 window.__mz = { get mine() { return mine; }, get others() { return others; }, takeFiles, layout };

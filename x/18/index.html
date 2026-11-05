@@ -53,6 +53,8 @@ body.solo #bGive,body.solo #bTake,body.solo #bView,body.solo #drop{display:none}
 body.empty #topr{opacity:.38;transition:opacity .6s}body.empty #topr:hover,body.empty #topr:focus-within{opacity:1}
 #dock .lab{font-size:10px;letter-spacing:.16em;color:var(--ml-ink-3);margin:0 0 -4px;text-shadow:0 1px 6px #000}
 #who[hidden]{display:none}#q small#qn{display:block;margin-top:2px;font-size:10px;letter-spacing:.14em;color:var(--ml-ink-3)}
+#bWipe{margin-left:26px;opacity:.8}#bView[aria-pressed="true"]{background:rgba(168,242,246,.28)!important;border-color:rgba(168,242,246,.8)!important;color:#fff!important}#topr{pointer-events:none}#topr>*{pointer-events:auto}
+.mu-btn.ok{animation:okf .7s}@keyframes okf{0%{background:rgba(168,242,246,.45)}100%{}}
 #q #note{margin-top:4px;font-size:10.5px;letter-spacing:.08em}
 body:not(.solo) #note{display:none}
 @media (max-width:440px){#brand{display:block!important;font-size:11px;letter-spacing:.12em}#topr .mu-btn{padding-left:9px;padding-right:9px}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px)}#cr{right:0;left:0;text-align:center}#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}
@@ -81,6 +83,7 @@ body:not(.solo) #note{display:none}
   <div id="act">
     <span id="cnt"></span>
     <button class="big" id="bShot" aria-label="撮る"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="4"/><path d="M4 8h3l2-3h6l2 3h3v11H4z"/></svg>撮る</button>
+    <button class="big" id="bTex" aria-label="手ざわり（触れた面を寄って撮る）"><svg viewBox="0 0 24 24"><path d="M8.3 19.6V11a3.7 3.7 0 0 1 7.4 0v8.6"/><path d="M5 21h14"/></svg>手ざわり</button>
     <button class="big" id="bRec" aria-label="録る"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>録る</button>
     <span id="cnt2" style="min-width:40px"></span>
   </div>
@@ -91,7 +94,7 @@ body:not(.solo) #note{display:none}
 </div>
 <input type="file" id="file" multiple accept=".json,.qualia,application/json">
 <input type="file" id="pic" accept="image/*" capture="environment" style="display:none">
-<div id="end" role="dialog" aria-label="おわる"><div id="endb"><button class="big" id="bKeep">持ち帰る</button><button class="big" id="bWipe">消す</button><button class="big" id="bBack">もどる</button></div></div>
+<div id="end" role="dialog" aria-label="おわる"><div id="endb"><button class="big" id="bKeep">持ち帰る</button><button class="big" id="bBack">もどる</button><button class="big" id="bWipe">消す</button></div></div>
 <div id="drop">層のファイルを、ここに置く</div>
 <script type="module" src="web/app.js"></script>
 </body>

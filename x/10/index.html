@@ -16,9 +16,9 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css?v=20261027q">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="app.js?v=20261105ws2">
+<link rel="modulepreload" href="app.js?v=20261105ws3">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="i18n.js?v=20261105ws">
+<link rel="modulepreload" href="i18n.js?v=20261105ws3">
 <link rel="modulepreload" href="haptics.js?v=20261021">
 <link rel="modulepreload" href="estimate.js">
 <link rel="modulepreload" href="sounds.js?v=20261021">
@@ -35,6 +35,8 @@
 @media (max-width:420px){.brand .ml-title{font-size:13.5px;letter-spacing:.06em}}
 .ws-shoot{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;padding:0 20px;min-height:48px;cursor:pointer;z-index:5;white-space:nowrap}#stage:has(#wsShoot:not([hidden])) #cap{bottom:calc(176px + env(safe-area-inset-bottom))}
 #bAbout{width:auto;min-width:44px;padding:0 14px;border-radius:22px;font:500 12.5px/1 var(--mu-serif,serif);letter-spacing:.1em}
+body.ws #dlgAbout .dlg-in>h3,body.ws #dlgAbout .dlg-in>h3+p,body.ws #dlgAbout .ml-fold,body.ws #dlgAbout [data-t="about.lead"]{display:none}
+@media (max-width:899px){.dock{gap:26px}}
 .ws-shoot input{position:absolute;width:1px;height:1px;opacity:0}
 </style>
 </head>
@@ -71,7 +73,7 @@
     <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="形を保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>残す</b><small>立体で保存</small></button>
   </nav>
   <label id="wsShoot" class="ml-btn ml-btn--primary ws-shoot" hidden><input type="file" id="fShoot" accept="image/*" capture="environment" aria-label="見つけた手ざわりを撮る"><span>見つけた手ざわりを撮る</span></label>
-  <script>(function(){if(!/[?&]ws=1/.test(location.search))return;var l=document.getElementById('wsShoot');l.hidden=false;var h=document.getElementById('hint');if(h)h.textContent='触覚さがし ── 撮って、なぞる。';})();</script>
+  <script>(function(){if(!/[?&]ws=1/.test(location.search))return;var l=document.getElementById('wsShoot');l.hidden=false;var h=document.getElementById('hint');if(h)h.textContent='触覚さがし ── 撮って、なぞる。';document.body.classList.add('ws');var d=document.querySelector('#dlgAbout .howto');if(d)d.innerHTML='触覚さがしの使い方<br>1　見つけた手ざわりを「撮る」。<br>2　できた面を、指でなぞる。音（端末によっては震えも）が返ります。<br>3　残したい面は「残す」で立体のファイルに。<br>写真はこの端末の中だけで使い、外へ送りません。';})();</script>
   <div id="fhint" class="fhint" aria-hidden="true"><i></i><span>指でなぞる</span></div>
   <div id="busy" class="busy" hidden><span data-t="busy">凹凸をつくっています</span></div>
   <p class="err" id="err" role="alert" hidden></p>
@@ -112,6 +114,6 @@
   </div>
 </dialog>
 
-<script type="module" src="app.js?v=20261105ws2"></script>
+<script type="module" src="app.js?v=20261105ws3"></script>
 </body>
 </html>
