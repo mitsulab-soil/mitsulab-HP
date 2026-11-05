@@ -11,6 +11,8 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k24";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w20";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
+import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=1";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
+installDapple(THREE);
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=sp11";
 import { makeMapVeil } from "../kit/mapveil.js?v=mv2";
@@ -381,7 +383,7 @@ function buildBuildings(g) {
   // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
   const U = BLDU;
   const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
-    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * .25); gl_FragColor.a *= 1. - fgF * .82;\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .4 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .8 : .25)); gl_FragColor.a *= 1. - fgF * .82;\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
   m.onBeforeCompile = sh => { vs(sh);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
@@ -439,7 +441,7 @@ function leafAlpha(m) { if (LEAFA.has(m)) return; LEAFA.add(m); const prev = m.o
 #endif
 #ifdef USE_ALPHATEST
 diffuseColor.a = (diffuseColor.a - alphaTest) / max(fwidth(diffuseColor.a), 1e-4) + .5; if (diffuseColor.a < .5) discard;
-#endif`); };
+#endif`).replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * vec3(.16, .18, .08);"); };   // 11-05 sight の葉：日を透かす明るい黄緑をわずかに
   const k0 = m.customProgramCacheKey; m.customProgramCacheKey = function () { return (k0 ? k0.call(this) : "") + "|leafA"; }; m.needsUpdate = true; }
 function thinLeaves(geo, every = 3, grow = 1.5) {   // 葉の札を 3 枚に 1 枚へ減らし、残した札を少し大きく（中くらいの距離の形）
   const idx = geo.index ? geo.index.array : null; if (!idx) return geo;
@@ -808,6 +810,7 @@ function loadVeg() {
     }
     for (const S of VEG.sp) if (S.s <= 2 || S.s === 7) for (let k = 0; k < S.m; k++) if (S.xs[k * 6 + 3] > .9) collDisc(S.xs[k * 6], S.xs[k * 6 + 2], S.xs[k * 6 + 3] * .3);   // 大きな株（低木）は通れない。下草は踏める
     VEG.last.set(1e9, 0, 0); updateVeg(true);
+    { const an = []; for (const S of VEG.sp) for (let k = 0; k < S.m; k += (S.s <= 2 || S.s === 7 ? 2 : 1)) an.push(S.xs[k * 6], S.xs[k * 6 + 1], S.xs[k * 6 + 2]); VEG.grass = makeSightGrass(THREE, VEG.group, { anchors: an, mobile: MOBILE, reduced: RM }); }   // 11-05 sight の細い草
   }).catch(e => console.warn("veg", e));
 }
 function updateVeg(force = false) {
@@ -953,7 +956,8 @@ const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -
 const EYE = 1.55;   // 11-03 本人「視点は sight の方がリアリティ」＝sight の人の目の高さ   // 11-02 本人「碧ともっと近づいて、ドラマティックに」：やや低めの目線
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
-const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: FOG_SKY, n: 320, f: 695 })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
+const SIGHT_HAZE = new THREE.Color(SIGHT_AIR.color);
+const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: SIGHT_HAZE, n: SIGHT_AIR.near, f: SIGHT_AIR.far })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && prev !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
@@ -1187,7 +1191,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
   }
   const gy = Math.max(groundY(CAM.pos.x, CAM.pos.z), deckY(CAM.pos.x, CAM.pos.z)) + eye;
   CAM.pos.y += (gy - CAM.pos.y) * Math.min(1, dt * 8);
-  camera.position.copy(CAM.pos); if (bob && moving) camera.position.y += bob;
+  camera.position.copy(CAM.pos); if (bob && moving) camera.position.y += bob; else if (!bob && !RM && eye === EYE) camera.position.y += sightBob(performance.now() / 1000, moving);   // 11-05 sight の人の目の揺れ（歩く 2.5 cm・止まると息づかい）
   if (GYRO.on && GYRO.q) { camera.quaternion.copy(GYRO.q); _eu.setFromQuaternion(camera.quaternion); CAM.look = wrap(_eu.y - CAM.yaw); CAM.pitch = _eu.x; }
   else camera.quaternion.setFromEuler(_eu.set(CAM.pitch, CAM.yaw + CAM.look, 0));
   WALK.moving = moving;
@@ -2837,7 +2841,7 @@ function frame() {
   if ((GEO.t -= dt) < 0 && QW.mode !== "boot") { GEO.t = .25; const g = GEO.el || (GEO.el = document.getElementById("lsGeo")); const cp = camera.position;   // 視野の左上：いまいる所（緯度・経度・地面からの高さ）
     const la = 35.90725 - cp.z / 110980, lo = 139.631 + cp.x / (111320 * Math.cos(la * Math.PI / 180)), gy0 = groundY(cp.x, cp.z), h = Math.max(0, cp.y - (Number.isFinite(gy0) ? gy0 : 8));   /* 10-28 夜：地形の外（3D 地図の高い所）では地面の高さが NaN になり ALT NaNm と出ていた。外は大宮の台地の高さ およそ 8 m で数える */
     const txt = `POS <b>${la.toFixed(4)}N ${lo.toFixed(4)}E</b>\nALT ${Math.round(h)}m  ${QW.mode.toUpperCase()}`; if (g && txt !== GEO.last) { g.innerHTML = txt; GEO.last = txt; } }
-  updateTrees(); VEG.time.value += dt; updateVeg(); if (!RM) BLDU.t.value += dt; BLDU.g.value = QW.mode === "walk" || QW.mode === "sight" ? groundY(camera.position.x, camera.position.z) : -1e4; stepEdges(); stepHiyo(dt); stepMimi(dt); stepBats(dt); stepBody(dt);
+  updateTrees(); VEG.time.value += dt; updateVeg(); if (VEG.grass && (QW.mode === "walk" || QW.mode === "sight")) VEG.grass.update(camera.position, dt); if (!RM) BLDU.t.value += dt; BLDU.g.value = QW.mode === "walk" || QW.mode === "sight" ? groundY(camera.position.x, camera.position.z) : -1e4; stepEdges(); stepHiyo(dt); stepMimi(dt); stepBats(dt); stepBody(dt);
   if (BLD.length) { const cp = camera.position, far = QW.mode === "walk" || QW.mode === "sight" ? (MOBILE ? 320 : 430) : 1e9; for (const b of BLD) { const s = b.userData.ws; b.visible = Math.hypot(s.center.x - cp.x, s.center.z - cp.z) - s.radius < far; } }
   if (STONES.length && QW.mode !== "sky") { const cp = camera.position; for (const r of STONES) { const s = r.userData.ws; r.visible = s.center.distanceTo(cp) - s.radius < 160; } }
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); if (!QW.mveil && QW.farGM && QW.farGM.userData.gf.gfHole.value.z > QW.farGM.userData.gf.gfHole.value.x) { const h = QW.farGM.userData.gf.gfHole.value; QW.mveil = makeMapVeil({ THREE, parent: world, rect: [h.x, h.y, h.z, h.w], y0: groundY((h.x + h.z) / 2, (h.y + h.w) / 2), fog: scene.fog, k0: m === "sky" || m === "boot" ? 1 : 0 }); } if (QW.mveil) { if (!QW.mveilLift && START.sp) { QW.mveil.lift(START.sp.group); QW.mveilLift = 1; } QW.mveil.update(dt, m === "sky" || m === "boot" || (m === "descend" && camH > 160)); }   /* 11-04 本人「四角い枠が見える＝境界を無くして」：地図の縁を楕円の霞で溶かす（kit/mapveil.js） */
