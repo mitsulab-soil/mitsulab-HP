@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,viewport-fit=cover">
+<title>人と機械の受けとれる範囲 ── mitsulab</title>
+<meta name="description" content="同じ参道の一角を、人の受けとり方と機械の受けとり方で。重なる所、ずれる所、どちらにも届かない所。">
+<meta name="robots" content="noai,noimageai"><meta name="tdm-reservation" content="1">
+<link rel="modulepreload" href="vendor/three/build/three.module.js">
+<style>
+:root{--bg:#03060f;--ink:#eef5fb;--ink2:#c3cce0;--ink3:#8f9bb4;--aoi:#5cc8e0;--h:#f4aa96;--m:#a8f2f6;--line:rgba(150,170,240,.22);
+--min:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;--en:"Cormorant Garamond","Times New Roman",serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--min);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#stage,#stage canvas{position:fixed;inset:0;display:block;touch-action:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+.top{position:fixed;left:0;right:0;top:0;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 16px 0;display:flex;align-items:center;gap:14px;pointer-events:none;background:linear-gradient(rgba(3,6,15,.5),rgba(3,6,15,0))}
+.top>*{pointer-events:auto}
+.mark{font-size:12px;letter-spacing:.14em;color:var(--ink);white-space:nowrap;text-shadow:0 0 4px #03060f,0 0 10px rgba(3,6,15,.8)}
+.mark i{font-family:var(--en);font-style:italic;color:var(--ink3);margin-left:.6em;letter-spacing:.06em}
+.sp{flex:1}
+.tb{height:44px;min-width:44px;font-size:13px;letter-spacing:.16em;color:var(--ink2);position:relative}
+.tb::after{content:"";position:absolute;left:8px;right:8px;bottom:10px;height:1px;background:var(--ink2);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.tb:hover::after,.tb.hint::after{transform:scaleX(1)}
+.tb.hint{color:var(--m)}
+#snd.off{color:var(--ink3);text-decoration:line-through}
+#clip{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:3}
+#seam{position:absolute;left:0;top:0;bottom:0;width:0;pointer-events:none}
+#seam .hd{position:absolute;top:56%;left:-22px;width:44px;height:44px;border:1px solid rgba(238,245,251,.75);border-radius:50%;display:grid;place-items:center;font-size:12px;color:var(--ink);background:rgba(3,6,15,.25)}
+#seam .hl,#seam .hr{position:absolute;top:calc(56% - 36px);font-size:13px;letter-spacing:.14em;white-space:nowrap}
+#seam .hl{right:14px;color:var(--h)} #seam .hr{left:14px;color:var(--m)}
+#seam .hr i,.lab i{font-family:var(--en);font-style:italic;color:var(--ink3);margin-left:.5em;letter-spacing:.04em;font-size:12px}
+#seam.edge .hl,#seam.edge .hr{opacity:0}
+#spec{position:fixed;right:16px;top:calc(56px + env(safe-area-inset-top));max-width:min(56vw,340px);text-align:right;font-size:11px;line-height:1.6;color:var(--ink2);letter-spacing:.04em;text-shadow:0 0 4px #03060f,0 0 8px #03060f;transition:opacity .4s}
+#heatbar{position:fixed;right:16px;top:calc(92px + env(safe-area-inset-top));display:none;align-items:center;gap:8px;font:11px var(--mono);color:var(--ink3)}
+#heatbar.on{display:flex} #heatbar span{font-family:var(--min);font-size:10px;margin-left:6px} #heatbar b{display:block;width:96px;height:4px;background:linear-gradient(90deg,#120012,#54087f,#d12945,#fa950f,#fff5c7)}
+#cap{position:fixed;left:50%;bottom:calc(66px + env(safe-area-inset-bottom));transform:translateX(-50%);box-sizing:border-box;width:min(calc(100vw - 24px),640px);text-align:center;font-size:14px;line-height:1.8;letter-spacing:.05em;color:var(--ink);opacity:0;transition:opacity .7s;pointer-events:none;
+ background:linear-gradient(90deg,rgba(3,6,15,0),rgba(3,6,15,.5) 18%,rgba(3,6,15,.5) 82%,rgba(3,6,15,0));padding:6px 22px}
+#cap.on{opacity:1}
+.camt{position:fixed;left:0;top:0;font-size:11px;letter-spacing:.08em;color:var(--m);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap;text-shadow:0 0 4px #03060f,0 0 8px #03060f;z-index:2} .camt.on{opacity:.95} .camt.r{translate:-100% 0}
+#chs{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom);height:56px;display:flex;justify-content:center;align-items:center;gap:2px;padding:0 10px}
+#chs button{height:44px;padding:0 10px;font-size:13px;letter-spacing:.12em;color:var(--ink3);position:relative}
+#chs button.on{color:var(--m)}
+#chs button::after{content:"";position:absolute;left:10px;right:10px;bottom:9px;height:1px;background:var(--m);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+#chs button.on::after{transform:scaleX(1)}
+#chs .end{font-size:10px;color:var(--ink3);letter-spacing:.2em;padding:0 8px}
+#chs button.seen::before{content:"";position:absolute;left:50%;top:5px;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:var(--ink3)}
+#chs button.on.seen::before{background:var(--m)}
+body.out #spec,body.out #heatbar,body.out #seam{opacity:0;pointer-events:none}
+#labs{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.lab{position:absolute;left:0;top:0;font-size:11px;letter-spacing:.06em;color:var(--ink2);white-space:nowrap;opacity:0;transition:opacity .4s;pointer-events:none;translate:-50% -50%;text-shadow:0 0 3px #03060f,0 0 6px #03060f,0 0 10px rgba(3,6,15,.8)}
+.lab.on{opacity:1} button.lab.on{pointer-events:auto}
+button.lab{padding:14px 8px;min-height:44px}
+.lab u{text-decoration:none;margin-left:.3em;color:var(--ink2)}
+.lab.bt{translate:0 -50%;color:var(--ink);font-size:12px}
+.lab.ln{translate:6px -50%;font-size:10px} .lab.ln.h{color:var(--h)} .lab.ln.m{color:var(--m)}
+.lab.tk{font:10px var(--mono);color:var(--ink3)}
+.lab.mk{font-size:10px;color:var(--ink2);translate:-50% -100%}
+.lab.rg{font-size:11px;color:var(--ink)} .lab.none{color:var(--ink2)}
+.lab.cell{display:flex;flex-direction:column;align-items:center;gap:22px;font-size:11px}
+.lab.cell b{font-weight:400;color:var(--h)} .lab.cell i{margin:0;color:var(--m);font-family:var(--mono);font-style:normal;font-size:10px}
+.lab.ai{font:11px var(--mono);color:#d8d0ff;border-left:1px solid #b4a2ff;padding-left:6px;translate:0 -50%}
+.lab.ai i{font-family:var(--mono);font-style:normal;color:#b4a2ff}
+.lab.snd{border-left-color:var(--m);color:var(--ink);font-family:var(--min)} .lab.snd i{display:block;margin:0;color:var(--ink3);font-family:var(--min)}
+.lab.self{font-size:11px;color:var(--h)} .lab.self.m{color:var(--m)} .lab.self.n{color:#9ff0c8} .lab.self.n i{color:var(--ink2)} .lab.self i{display:block;margin:2px 0 0}
+#fold{position:fixed;right:16px;top:calc(52px + env(safe-area-inset-top));width:min(calc(100vw - 32px),420px);max-height:64vh;overflow:auto;background:rgba(6,10,18,.86);border:1px solid var(--line);padding:16px 18px;font-size:11px;line-height:1.75;color:var(--ink2);display:none;z-index:5;-webkit-user-select:text;user-select:text}
+#fold.on{display:block} #fold h2{font-size:13px;font-weight:600;margin:0 0 8px;letter-spacing:.12em;color:var(--ink)}
+#fold ul{margin:0 0 12px;padding-left:1.1em} #fold p{margin:0 0 10px}
+@media (max-width:520px){ .lab.mk,.lab.rg.x{display:none} .lab.ln{translate:calc(-100% - 6px) -50%} #chs button{padding:0 6px;font-size:12px;letter-spacing:.06em} #chs button::after{left:6px;right:6px} #chs .end{display:none} .mark{font-size:11px;letter-spacing:.08em} .mark i{display:none} #cap{font-size:13px} #spec{max-width:62vw;font-size:10px} #heatbar{flex-wrap:wrap;justify-content:flex-end;max-width:62vw} }
+@media (prefers-reduced-motion:reduce){ #cap,.lab{transition:none} }
+</style></head><body>
+<script src="loader.js" data-max="4000"></script>
+<div id="stage"></div>
+<div id="labs"></div>
+<div id="clip"><div id="seam"><span class="hl">人</span><div class="hd" aria-hidden="true">‹ ›</div><span class="hr" id="sl"></span></div></div>
+<div class="top">
+  <div class="mark">人と機械の受けとれる範囲<i>Human · Machine</i></div><div class="sp"></div>
+  <button class="tb" id="snd" aria-label="音を消す・出す">音</button>
+  <button class="tb" id="out">外から</button>
+  <button class="tb" id="plus" aria-label="典拠とつくり">＋</button>
+</div>
+<div id="spec"></div>
+<div class="camt" id="camA">一画素に一色</div><div class="camt r" id="camB">計算で埋めた色</div>
+<div id="heatbar">5°<b></b>35°C<span>空は 5 °C より低く色の外（模式）</span></div>
+<div id="cap" aria-live="polite"></div>
+<div id="chs" role="tablist" aria-label="機械の受けとり方"></div>
+<div id="fold"><h2>この作品について</h2>
+<p>左は人の受けとり方、右は機械の受けとり方。白い縁を動かす・触れる（鳴る）・なぞる（その場所の記述が書き換わり、線が旋律になる）・「外から」で自分の受けとり方を見る。</p>
+<p>「機械」は、ここでは一台のカメラ・熱カメラ・LiDAR・マイク・分類器の受けとれる範囲のことです（機械一般の限界ではありません）。機械の画は、機器の仕様と研究の数をもとにした模式です。温度・分類の確からしさの数は例です。音は光の周波数を 40 オクターブ下げた高さなど、聴こえる高さに移した模式です。書き換わるのはこの場所の記述で、場所そのものは変わりません。何も記録・送信しません。</p>
+<h2>問いの手がかり</h2><p>カント『純粋理性批判』（現象と物自体）／ユクスキュル（環世界と機能環）／メルロ＝ポンティ（身体と知覚）／ネーゲル（コウモリであるとはどのようなことか）／クワイン（翻訳の不確定性）／ウィトゲンシュタイン（多くの場合、意味は使われ方にある）／ベイトソン・ウィーナー（循環と帰還）。</p>
+<h2>典拠</h2><ul id="refs"></ul>
+<p>質感：Poly Haven・ambientCG（CC0）／Three.js・three-vrm（MIT）／碧の動き：CMU Graphics Lab Motion Capture Database をもとに mitsulab が作成</p>
+<p>© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p></div>
+<script type="importmap">
+{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
+</script>
+<script type="module" src="app.js?v=1"></script>
+</body></html>
