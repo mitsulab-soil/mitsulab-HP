@@ -10,7 +10,19 @@ export function attachYoru(q) {
   const tint = document.createElement("div"); tint.id = "yoruTint"; tint.setAttribute("aria-hidden", "true");
   tint.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity 1.5s linear;background:linear-gradient(to bottom,rgba(14,24,62,.72),rgba(10,18,40,.38) 55%,rgba(8,12,24,.25));mix-blend-mode:multiply";
   document.body.appendChild(tint);
-  const S = { k: 0 };
+  const S = { k: 0, ak: -1, sk: -1 };
+  // 碧（MToon）は露出の効き方が風景と違い、夜に一人だけ明るく浮いた。色の係数を直接落とす（顔が読めるよう 0.5 は残す）
+  function aoiNight(k) {
+    const root = q.AOI?.root; if (!root || Math.abs(k - S.ak) < .01) return; S.ak = k; const f = 1 - .5 * k;
+    root.traverse(o => { const ms = o.isMesh ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) {
+      const u = m.userData.yoru ||= { c: m.color?.clone(), s: m.shadeColorFactor?.clone(), e: m.emissive?.clone() };
+      if (u.c) m.color.copy(u.c).multiplyScalar(f); if (u.s) m.shadeColorFactor.copy(u.s).multiplyScalar(f); if (u.e) m.emissive.copy(u.e).multiplyScalar(f); } });
+  }
+  // 薄明の空：日の入りの前後（+4°〜−8°）だけ、膜に暮れの色（橙〜赤紫）を地平に寄せて重ねる。夜が深まると紺へ
+  const dusk = document.createElement("div"); dusk.setAttribute("aria-hidden", "true");
+  dusk.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity 1.5s linear;mix-blend-mode:soft-light;background:linear-gradient(to bottom,rgba(70,60,140,.55) 0%,rgba(200,110,120,.6) 38%,rgba(255,150,80,.7) 52%,rgba(255,150,80,0) 75%)";
+  document.body.appendChild(dusk);
+  function sky(k, el) { const on = q.mode === "walk", d = on ? (forced ? 0 : Math.max(0, 1 - Math.abs(el + 2) / 6)) : 0; if (Math.abs(d - S.sk) < .01) return; S.sk = d; dusk.style.opacity = d.toFixed(3); }
   const forced = /[?&]toki=1/.test(location.search) ? 1 : null;   // 行事の確かめ（?toki=1）は夜として見る
   setInterval(() => {
     const r = q.renderer; if (!r) return;
@@ -19,6 +31,8 @@ export function attachYoru(q) {
     const on = q.mode === "walk", k = on ? S.k : 0;
     if (q.scene && "backgroundIntensity" in q.scene) q.scene.backgroundIntensity = 1 - .92 * k;   // 空の写真は露出が効かないので、空だけ別に暗くする
     q.nightExp = 1 - .7 * S.k;   // 露出は app.js が毎こま、この係数に向けてなめらかに寄せる（夜でも 0.3 は残す＝道・木・碧が見える）
+    aoiNight(k);
+    sky(k, el);
     tint.style.opacity = (k * .9).toFixed(3);
     document.body.dataset.yoru = k > .5 ? "1" : "0";
   }, 200);
