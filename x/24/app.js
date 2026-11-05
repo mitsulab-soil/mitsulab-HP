@@ -59,10 +59,33 @@ const tex = (f, srgb = true, rep = [1, 1]) => { const t = TL.load("tex/" + f + "
 
 /* ── 場所：参道の一角（欅・灯籠・砂利・下草） ── */
 const R = rng(20261106);
-{ // 土
-  const g = new THREE.PlaneGeometry(320, 320, 1, 1); g.rotateX(-Math.PI / 2);
-  const m = mpatch(new THREE.MeshStandardMaterial({ map: tex("soil_forest", true, [80, 80]), color: 0x9a8f7c, roughness: 1 }), 7);
+{ // 土（Qualia/sight の森の地面と同じ作り：落ち葉の積もった土に、苔・湿り・踏み跡を頂点の色でまだらに）
+  const sst = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }, lp = (a, b, t) => a + (b - a) * t;
+  const nz = (x, z) => Math.sin(x * .31 + Math.sin(z * .17) * 2) * Math.sin(z * .27 + Math.cos(x * .13) * 2) + .5 * Math.sin(x * .9 + z * .7) * Math.sin(z * 1.1 - x * .4);
+  const S = 200, N = mobile ? 100 : 150, g = new THREE.PlaneGeometry(S, S, N, N); g.rotateX(-Math.PI / 2); g.translate(0, 0, -40);
+  const p = g.attributes.position, cs = [];
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), n = nz(x, z), ax = Math.abs(x);
+    const moss = sst(.35, .9, n) * sst(3, 7, ax) * .85, foot = sst(3.4, 2.2, ax), wet = sst(.6, 1.2, Math.sin(x * .07 + z * .05) * Math.cos(z * .09)) * .5;
+    let r = .78, gg = .72, b = .64;
+    r = lp(r, .55, moss); gg = lp(gg, .78, moss); b = lp(b, .42, moss);
+    r = lp(r, .6, wet * .6); gg = lp(gg, .62, wet * .6); b = lp(b, .52, wet * .6);
+    r = lp(r, 1.02, foot * .7); gg = lp(gg, .93, foot * .7); b = lp(b, .82, foot * .7);   // 参道の脇の踏み跡（砂利との境をやわらげる）
+    const k = .9 + .14 * n; cs.push(r * k, gg * k, b * k); }
+  g.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3));
+  const m = mpatch(new THREE.MeshStandardMaterial({ map: tex("soil_forest", true, [50, 50]), vertexColors: true, roughness: 1, envMapIntensity: .3 }), 7);
   scene.add(new THREE.Mesh(g, m));
+  // 落ち葉（sight と同じ、白い葉の形に一枚ずつ茶・黄土・こげ茶を掛ける）
+  setTimeout(() => { const c = document.createElement("canvas"); c.width = c.height = 64; const x2 = c.getContext("2d");   // 最初の絵のあとに敷く
+    x2.fillStyle = "#e8e2d6"; x2.beginPath(); x2.moveTo(32, 60); x2.bezierCurveTo(4, 44, 6, 14, 32, 4); x2.bezierCurveTo(58, 14, 60, 44, 32, 60); x2.fill();
+    x2.strokeStyle = "rgba(90,70,50,.55)"; x2.lineWidth = 1.5; x2.beginPath(); x2.moveTo(32, 60); x2.lineTo(32, 6); x2.stroke();
+    const lt = new THREE.CanvasTexture(c); lt.colorSpace = THREE.SRGBColorSpace;
+    const n = mobile ? 2200 : 5000, lg = new THREE.PlaneGeometry(.08, .08); lg.rotateX(-Math.PI / 2);
+    const im = new THREE.InstancedMesh(lg, mpatch(new THREE.MeshStandardMaterial({ map: lt, alphaTest: .5, side: THREE.DoubleSide, roughness: .95 }), 7), n);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), col = new THREE.Color(); let k = 0;
+    for (let t = 0; t < n * 20 && k < n; t++) { const x = (R() - .5) * 34, z = -42 + R() * 54, ax = Math.abs(x); if (ax < 1.7 && R() > .08) continue; if (Math.hypot(x - EYE.x, z - EYE.z) > 30 && R() > .3) continue;
+      e.set((R() - .5) * .5, R() * TAU, (R() - .5) * .5); q.setFromEuler(e); const s = .7 + R() * .8; m4.compose(new V3(x, .008 + R() * .01, z), q, new V3(s, 1, s * (.8 + R() * .6))); im.setMatrixAt(k, m4);
+      im.setColorAt(k, col.setHSL(.05 + R() * .05, .35 + R() * .25, .22 + R() * .2)); k++; }
+    im.count = k; im.frustumCulled = false; scene.add(im); }, 120);
   // 砂利の参道（幅 4.2 m）
   const pg = new THREE.PlaneGeometry(4.2, 140, 1, 1); pg.rotateX(-Math.PI / 2); pg.translate(0, .012, -45);
   const pm = mpatch(new THREE.MeshStandardMaterial({ map: tex("path_gravel", true, [1.6, 54]), normalMap: tex("sand_grit_n", false, [3, 100]), normalScale: new THREE.Vector2(.8, .8), color: 0xd9d2c4, roughness: .98, polygonOffset: true, polygonOffsetFactor: -2 }), 1);
@@ -105,7 +128,7 @@ const LANTERNS = [[-2.65, 1.2], [2.75, -9.5], [-2.65, -21]];
 const anchors = [];
 for (let z = -46; z < 13; z += .55) for (const s of [-1, 1]) { const x = s * (2.35 + R() * 1.3); anchors.push(x, 0, z + R() * .4); }
 for (const t of TREES) for (let i = 0; i < 4; i++) anchors.push(t.trunk[0] + (R() - .5) * 3, 0, t.trunk[1] + (R() - .5) * 3);
-const grass = makeSightGrass(THREE, scene, { anchors, mobile, reduced }); mpatch(grass.mesh.material, 5);
+let grass = null; setTimeout(() => { grass = makeSightGrass(THREE, scene, { anchors, mobile, reduced }); mpatch(grass.mesh.material, 5); }, 60);   // 最初の絵のあとに生やす
 
 /* ── 碧（3D）── */
 let aoi = null; const AOI = mobile ? new V3(-.55, 0, 2.9) : new V3(-1.35, 0, 3.4);
@@ -141,8 +164,9 @@ void main(){
   float sx2 = uSeam2 * uRes.x;
   if (fc.x >= sx2) {   // 鳥（模式）：紫外を含む四つの錐体。人に見えない紫外の明るさを青紫に写し、赤・緑・青を一段ずつ下へずらして見せる
     vec4 d = texture2D(tDat, vUv); float k = kOf(d); vec3 c = human(vUv);
-    float uvr = k < .5 ? .55 - .2 * vUv.y : k == 4. ? .05 : k == 5. ? .06 : k == 3. ? .08 : k == 2. ? .14 : k == 1. ? .16 : k == 7. ? .1 : .2;
-    col = c * vec3(.82, .92, .86) + vec3(.42, .3, .95) * uvr * 1.25;   // 色はそのまま少し沈め、紫外の明るさだけを青紫で重ねる
+    float uvr = k < .5 ? .75 - .25 * vUv.y : k == 4. ? .05 : k == 5. ? .06 : k == 3. ? .08 : k == 2. ? .14 : k == 1. ? .16 : k == 7. ? .1 : .2;
+    col = c * vec3(.7, .82, .76) + vec3(.5, .32, 1.) * uvr * .9;   // 色は少し沈め、紫外の明るさだけを青紫で重ねる（空は紫外を多く散らすので明るい）
+    col = min(col, vec3(.92));
   } else if (fc.x < sx) col = human(vUv);
   else {
     int ch = int(uCh + .5); vec4 d = texture2D(tDat, vUv); float k = kOf(d); float sky = 1. - step(.5, k); float dist = d.b * 120.;
@@ -504,7 +528,7 @@ function frame() {
   if (!reduced) camT.x += Math.sin(t * .13) * .05 * (1 - e), camT.y += Math.sin(t * .21) * .02;
   cam.position.copy(camT); cam.lookAt(lookT); cam.updateMatrixWorld();
   U.sunV.value.copy(SUN).transformDirection(cam.matrixWorldInverse);
-  aoi?.tick(dt, cam); grass.update(cam.position, dt);
+  aoi?.tick(dt, cam); grass?.update(cam.position, dt);
   // 帯：いまの受けとり方の帯を、空に一本（外からは六本を譜のように縦に重ねる）
   const keys = Object.keys(BANDG), cur = CH[ch].band;
   keys.forEach((k, i) => { const g = BANDG[k]; const on = outK > .5 ? ended : k === cur; g.userData.k += ((on ? 1 : 0) - g.userData.k) * Math.min(1, dt * 3); g.visible = g.userData.k > .02;
