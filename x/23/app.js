@@ -324,7 +324,7 @@ function swapMode() {
   mode = mode === 'outer' ? 'inner' : 'outer';
   outer.visible = mode === 'outer'; inner.visible = mode === 'inner';
   go.textContent = mode === 'outer' ? '内へ' : '外へ';
-  if (mode === 'inner') { view.tgt.set(0, camera.aspect < .7 ? -.25 : -.6, 0); inner.scale.setScalar(Math.min(1, camera.aspect * 1.15)); view.dist = camera.aspect < .7 ? 8.8 : 9.5; view.pitch = .12; say(rel > .6 ? '露はみな同じ一粒。\nどの粒にも、ほかの粒が映る。' : '体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
+  if (mode === 'inner') { view.tgt.set(0, camera.aspect < .7 ? -.25 : -.15, 0); inner.scale.setScalar(Math.min(1, camera.aspect * 1.15)); view.dist = camera.aspect < .7 ? 8.8 : 9.5; view.pitch = .12; say(rel > .6 ? '露はみな同じ一粒。\nどの粒にも、ほかの粒が映る。' : '体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
   else { view.tgt.set(0, 1.3, -2); view.dist = MOBILE ? 9.5 : 8; say(rel > .6 ? 'どれも中心ではない。映し合い、場を変え、変わった場がまた受けとられる。その全体が、ひとつの網。' : '露を体へ戻す。同じ参道が、重なって見える。', 9000); }
 }
 
@@ -335,7 +335,9 @@ function refreshEnv(once = false) { const was = inner.visible; inner.visible = f
 // ───────── 毎こま ─────────
 const clock = new THREE.Clock(); const v3b = new THREE.Vector3(); const tmpC = new THREE.Color(), white = new THREE.Color(1, 1, 1), tm = new THREE.Matrix4(), v3 = new THREE.Vector3();
 let said2 = false, saidEnd = false;
+let firstF = true;
 function frame() {
+  if (firstF) { firstF = false; window.__t.push(['frame1', performance.now()]); }
   const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
   // 相対化の進み：触れた数と内外の往き来で進む（ゆっくり）
   const target = Math.min(1, touched.size / 8 + (touched.has('drop') ? .1 : 0));
@@ -383,7 +385,7 @@ function frame() {
       const c = view.tgt; absDrops.forEach((d, i) => { const to = iDrops[i].position.clone().multiplyScalar(.35).add(c); d.position.lerpVectors(absHome[i], to, k * k * (3 - 2 * k)); d.scale.setScalar(1 + k * 2.5); });
       veils.forEach((v, i) => v.material.uniforms.uI.value *= (1 - k));
     }
-    if (trans >= 1 && transDir === 1) { transDir = 2; swapMode(); }
+    if (trans >= 1 && transDir === 1) { transDir = 2; swapMode(); if (mode === 'inner') { const d0 = scene.fog.density; scene.fog.density = .05; const b0 = scene.background.clone(); scene.background.copy(INNER_BG); refreshInner(); scene.fog.density = d0; scene.background.copy(b0); } }
     if (trans >= 2) { transDir = 0; scene.fog.density = mode === 'outer' ? .045 : .05; if (mode === 'inner') { scene.background.copy(INNER_BG); scene.fog.color.copy(INNER_BG); refreshInner(); } absDrops.forEach((d, i) => { d.position.copy(absHome[i]); d.scale.setScalar(1); }); }
   }
   const bg = mode === 'outer' ? HAZE : INNER_BG; scene.background.lerp(bg, .08); scene.fog.color.lerp(bg, .08);
@@ -400,7 +402,7 @@ window.__t.push(['env', performance.now()]);
 renderer.setAnimationLoop(frame);
 // 内の空間の材質は、はじめのこまのあとで静かに組んでおく（起動を重くしない）
 setTimeout(() => { if (mode !== 'outer' || !renderer.compileAsync) return; inner.visible = true; renderer.compileAsync(inner, camera, scene).catch(() => {}); inner.visible = false; }, 1200);
-requestAnimationFrame(() => { const l = document.getElementById('ld'); l.style.opacity = 0; setTimeout(() => l.remove(), 500); say('ここは参道。鳥も、蜂も、木も、計る器も、それぞれの感じ方で同じ場所にいる。', 7000); });
+requestAnimationFrame(() => { window.__t.push(['ready', performance.now()]); const l = document.getElementById('ld'); l.style.pointerEvents = 'none'; l.style.opacity = 0;   /* 幕は触れる邪魔をしない（操作はこの時点からできる） */ setTimeout(() => l.remove(), 500); say('ここは参道。鳥も、蜂も、木も、計る器も、それぞれの感じ方で同じ場所にいる。', 7000); });
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth < 760 ? 58 : 48; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 // 写真の質感が届いたら露の写しを撮り直す
-THREE.DefaultLoadingManager.onLoad = () => refreshEnv();
+THREE.DefaultLoadingManager.onLoad = () => { refreshEnv(); refreshInner(); };   // 内の露の写しも先に撮っておく（入れ替えが遅れても露がのっぺりしない）
