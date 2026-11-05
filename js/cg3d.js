@@ -20,7 +20,7 @@ export function start(box){
   const key=new THREE.DirectionalLight(0xfff1dc,2.1); key.position.set(4,8,6); S.add(key);
   const rim=new THREE.DirectionalLight(0x8fd3ff,1.6); rim.position.set(-5,4,-7); S.add(rim);
   const RR=3.1, SUB=[   // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。layers＝受けとる層（p＝フィジカル・d＝デジタル）
-    {k:'bird',x:-3.7,z:-.5,c:0x9fd8ff,h:.95,ly:'ppp'},{k:'bee',x:-2.0,z:1.75,c:0xf0d58c,h:1.6,ly:'ppp'},{k:'human',x:.95,z:1.35,c:0xe6ebf6,h:1.85,ly:'ppd'},
+    {k:'bird',x:-3.7,z:-.5,c:0x9fd8ff,h:.95,ly:'ppp'},{k:'bee',x:-2.0,z:1.75,c:0xf0d58c,h:1.0,ly:'ppp'},{k:'human',x:.95,z:1.35,c:0xe6ebf6,h:1.85,ly:'ppd'},
     {k:'ai',x:2.15,z:-1.45,c:0x8ff7e0,h:1.35,ly:'ddp'},{k:'sensor',x:3.7,z:.85,c:0xb8f0a8,h:1.3,ly:'ppd'},{k:'gis',x:-.75,z:-1.95,c:0xc9b8ff,h:1.25,ly:'ddd'}];
   SUB.forEach(s=>{s.p=new THREE.Vector3(s.x,0,s.z);s.a=Math.atan2(s.z,s.x)*180/Math.PI;s.ry=Math.atan2(-s.p.x,-s.p.z)+.5;});
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
@@ -122,7 +122,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(mob?5.6:5.6);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?7:6,3,1.4);pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,3,2.2,1.4).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.01);at(s,g);m.object.rotation.y=Math.PI/2-g.rotation.y;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?5.6:5.6);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?7:6,3,1.4);pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,3,2.2,1.4).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);m.object.rotation.y=.7;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
@@ -147,7 +147,7 @@ export function start(box){
   }catch(e){console.warn('cg aoi',e);}});
   // ---- 札（index.html の .cg-lb）を 3D の位置へ写す
   const st=box.querySelector('.cg-st'); const LB={};st.querySelectorAll('.cg-lb').forEach(d=>LB[d.dataset.k]=d);
-  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().setY(s.h+(s.k==='human'?.55:.2))})).concat([{k:'aoi',p:AOI.clone().setY(.02)},{k:'yori',p:YORI.clone().setY(.02)},{k:'phys',p:new THREE.Vector3(-5.6,.45,2.4)},{k:'digi',p:new THREE.Vector3(5.2,2.85,-2.2)}]);
+  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().setY(s.h+.2)})).concat([{k:'aoi',p:AOI.clone().setY(1.85)},{k:'yori',p:YORI.clone().setY(.95)},{k:'phys',p:new THREE.Vector3(-5.6,.45,2.4)},{k:'digi',p:new THREE.Vector3(5.2,2.85,-2.2)}]);
   const v=new THREE.Vector3(), vc=new THREE.Vector3();
   // 視点：ゆっくり左右にめぐる。横になぞると回せる（縦のスクロールは止めない）
   let yaw=0, drag=null, user=0;
