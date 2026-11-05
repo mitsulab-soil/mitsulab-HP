@@ -31,6 +31,7 @@ const EV = [
   {s:'keyaki',t:['sensor','mimizu'],w:'l', ja:'ケヤキが日陰をつくり、葉を落とす → 地面の温度と落ち葉が変わる → 気象計と土の生き物が受けとる', en:'The zelkova casts shade and drops leaves → ground temperature and litter change → the gauge and the soil animals take it in'},
   {s:'mimizu',t:['keyaki'],       w:'g', ja:'ミミズが落ち葉を土へ引き込む → 根のまわりの土が変わる', en:'Earthworms pull leaves into the soil → the soil around the roots changes'},
   {s:'koumori',t:['koumori'],     w:'a', ja:'コウモリが超音波を出す → 反響が返る → 自分で虫の位置を知る（人には聴こえない高さ）', en:'A bat calls in ultrasound → echoes return → it locates insects (too high for human ears)'},
+  {s:'koumori',t:['ai'], w:'a', ja:'コウモリが灯りのまわりの虫を捕る → 飛ぶ虫が減る → AI のカメラに映る虫の数が変わる', en:'A bat catches insects around a light → fewer insects fly → the number the AI’s camera sees changes'},
   {s:'bee',   t:['aosuji'],       w:'l', ja:'日の入り前、ミツバチが花を訪れる → 花に残る蜜が変わる → 次に来るチョウの受けとりが変わる', en:'Before sunset, a honeybee visits a flower → the nectar left changes → what the next butterfly finds changes'},
   {s:'aosuji',t:['hiyo'],         w:'l', ja:'チョウが舞う → 光の中の動き → ヒヨドリの目に入る', en:'A butterfly flutters → movement in the light → it enters the bulbul’s eye'},
   {s:'inu',   t:['inu'],  w:'g', ja:'イヌが匂いをたどり、新しい匂いを残す → 地面の匂いの道が変わる', en:'The dog follows scents and leaves new ones → the scent trails on the ground change'},
@@ -99,7 +100,7 @@ export function start(box){ let AB = 0, abW = 0; const CUT = {value:0};
         float a=0.;vec3 tc=vec3(0.);
         if(mode>.5&&mode<1.5){a=.5*smoothstep(4.,0.,length(v-vec2(-3.4,-2.6)));tc=vec3(.45,.85,.4);}                       // 欅：光と日陰
         else if(mode<2.5&&mode>1.5){float s=smoothstep(.05,0.,abs(sin(v.x*1.3+n2(v*.6)*4.)-.0)-.02);a=s*.7;tc=vec3(1.,.66,.36);} // イヌ：匂いの道
-        else if(mode<3.5&&mode>2.5){float q=smoothstep(.55,.8,n2(v*1.6+3.));a=.5*q;tc=vec3(.78,.66,1.);}                                     // 紫外を含む色
+        else if(mode<3.5&&mode>2.5){float q=smoothstep(.55,.8,n2(v*1.6+3.));a=.26*q;tc=vec3(.78,.66,1.);}                                     // 紫外を含む色
         else if(mode<4.5&&mode>3.5){a=.55*exp(-abs(fract(length(v-sel)*.5-t*.6)-.5)*14.);tc=vec3(.7,.6,1.);col*=.45;}      // 反響
         else if(mode<5.5&&mode>4.5){a=.6*exp(-abs(fract(length(v-sel)*.8-t*.4)-.5)*10.);tc=vec3(1.,.72,.5);col*=.6;}       // 振動
         else if(mode<6.5&&mode>5.5){vec2 g=abs(fract(v*.8)-.5);a=.5*smoothstep(.46,.5,max(g.x,g.y));tc=vec3(.56,.97,.88);}  // 画素の格子
@@ -298,7 +299,7 @@ export function start(box){ let AB = 0, abW = 0; const CUT = {value:0};
     C.position.set(tgt.x + Math.sin(yaw)*Math.cos(pitch)*dist, tgt.y + Math.sin(pitch)*dist, tgt.z + Math.cos(yaw)*Math.cos(pitch)*dist); C.lookAt(tgt); S.fog.near = dist*.75; S.fog.far = dist*2.0;
     // 札を 3D の位置へ
     const rc = st.getBoundingClientRect();
-    A.forEach((a,i) => { const b = lbs[i]; if (!b) return; if (i===sel){ tmp.copy(a.g.position); tmp.y += a.y ? .45 : Math.min(2.2, a.r*.9); } else if (LH[a.k]) { tmp.copy(a.g.position); tmp.y = LH[a.k]; } else { tmp.copy(a.mem.position); tmp.y += a.r*.78 + .15; } tmp.project(C);
+    A.forEach((a,i) => { const b = lbs[i]; if (!b) return; if (i===sel){ tmp.copy(a.g.position); tmp.y += a.y ? .45 : Math.min(2.2, a.r*.9); } else if (LH[a.k]) { tmp.copy(a.g.position); tmp.y = LH[a.k]; if (a.k==='mimizu'){ tmp.x += .75; tmp.z += .35; } } else { tmp.copy(a.mem.position); tmp.y += a.r*.78 + .15; } tmp.project(C);
       const off = tmp.z > 1 || Math.abs(tmp.y) > 1.1 || Math.abs(tmp.x) > 1.6; const hideO = sel>=0 && i!==sel; b.style.visibility = (off||hideO) ? 'hidden' : 'visible';   // 横に少し外れた札は端にとどめて見せる
       const ax = (tmp.x+1)/2*rc.width, ay = (1-tmp.y)/2*rc.height;
       const w = b.offsetWidth, h = b.offsetHeight; let x = ax - w/2, y = ay - h - 10; x = Math.max(16, Math.min(rc.width-w-16, x)); y = Math.max(portrait?118:70, Math.min(rc.height-150, y));
@@ -312,7 +313,7 @@ export function start(box){ let AB = 0, abW = 0; const CUT = {value:0};
     if (Math.abs(AB-(loop.lastAB??-1))>.002){ loop.lastAB = AB; G.forEach(g => g.traverse(o => { if (o.isMesh && o.material){ const ms = Array.isArray(o.material)?o.material:[o.material]; ms.forEach(mt => { if (mt.userData.o0 === undefined){ mt.userData.o0 = mt.opacity; mt.userData.t0 = mt.transparent; } mt.transparent = AB>.01 || mt.userData.t0; mt.opacity = mt.userData.o0*(1-AB*.94); mt.depthWrite = AB<.5; }); } })); G.forEach(g => g.visible = AB < .92); }
     A.forEach(a => { a.dot.position.copy(a.mem.position); a.dot.material.opacity = AB; });
     lbs.forEach((b,i) => b && b.classList.toggle('ab', AB>.5));
-    if (sel >= 0) G.forEach((g,i) => { if (i!==sel && i!==K.ai) g.visible = AB < .92 && g.position.distanceTo(C.position) > 1.8 && (i!==K.keyaki || C.position.distanceTo(g.position) > 4.5); }); else if (AB < .92) G.forEach(g => g.visible = true);
+    if (sel >= 0) G.forEach((g,i) => { if (i===sel || (sel===K.hiyo && i===K.ai)) return; tmp.copy(g.position); tmp.y += 1; tmp.project(C); const edge = Math.abs(tmp.x) > .72 || tmp.y > .55 || tmp.z > 1; g.visible = AB < .92 && !edge && g.position.distanceTo(C.position) > 1.8 && (i!==K.keyaki || C.position.distanceTo(g.position) > 4.5); A[i].mem.visible = !edge; }); else { A.forEach(a => a.mem.visible = true); if (AB < .92) G.forEach(g => g.visible = true); }
     R.render(S, C); dirty = 0;
     raf = requestAnimationFrame(loop);
   }
