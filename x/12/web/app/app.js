@@ -761,6 +761,14 @@ const AREAS = QW.AREAS = makeAreas({ THREE, world, camera, groundY: (x, z) => gr
 
 /* ---------- 写実の 3D：店蔵の型（模式）と時の鐘 ---------- */
 const KURA = { meshes: [] }; QW.KURA = KURA;
+/* 11-05 375 の fps：スマホでは、遠くの蔵・町家の写し（instance）を描かない（0.4 秒ごとに近い順に詰め直す。PC は今までどおり） */
+function kuraCull(dt) { if (!MOBILE || !KURA.meshes.length) return; if ((KURA.ct = (KURA.ct || 0) - dt) > 0) return; KURA.ct = .4;
+  const cx = camera.position.x, cz = camera.position.z, Rr = QW.mode === "walk" ? 120 : 1e9, R2 = Rr * Rr;
+  for (const im of KURA.meshes) { const u = im.userData, xz = u.xz; if (!xz) continue; if (!u.M0) { u.M0 = im.instanceMatrix.array.slice(); u.C0 = im.instanceColor ? im.instanceColor.array.slice() : null; u.sel = ""; }
+    const keep = []; for (let i = 0; i < xz.length; i++) { const dx = xz[i][0] - cx, dz = xz[i][1] - cz; if (dx * dx + dz * dz < R2) keep.push(i); } const key = keep.join(","); if (key === u.sel) continue; u.sel = key;
+    const A = im.instanceMatrix.array; keep.forEach((i, j) => A.set(u.M0.subarray(i * 16, i * 16 + 16), j * 16)); im.instanceMatrix.needsUpdate = true;
+    if (u.C0) { const Cc = im.instanceColor.array; keep.forEach((i, j) => Cc.set(u.C0.subarray(i * 3, i * 3 + 3), j * 3)); im.instanceColor.needsUpdate = true; }
+    im.count = keep.length; } }
 /* 2026-10-27 一番街の店蔵は、Blender で 1 棟作り込んだ型（_dev/blender/kura_master.py → web/app/kura_master.glb・本瓦の丸瓦を一枚ずつ・箱棟の熨斗瓦・三重の鬼瓦と経の巻・観音扉の三段・袖壁・置き屋根）を町に広げる。読めなければ従来の型 */
 let KURA_GLB = null;
 function loadKuraMaster() {
@@ -810,7 +818,7 @@ function buildKura2(GM) {
         o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, GM ? .9 + r * .22 : 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix);
         if (GM) { const v = mk === "tile" || mk === "hon" ? .72 + r * .5 : mk === "wood" ? .8 + ((r * 7) % 1) * .4 : mk === "shikkui" ? .9 + ((r * 13) % 1) * .2 : 1; const hb = mk === "tile" || mk === "hon" ? ((r * 29) % 1 - .5) * .12 : 0; tint.setRGB(v * (1 + hb), v * (mk === "wood" ? .97 : 1), v * (mk === "tile" || mk === "hon" ? 1.03 - hb : 1));   /* 11-02 P1「上から屋根が同じ色」→ 棟ごとに瓦の焼きの濃さと、青み・茶みを振る */ im.setColorAt(i, tint); } });
       if (im.instanceColor) im.instanceColor.needsUpdate = true;
-      im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im);
+      im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im); im.userData.xz = list.map(k => [k.x, k.z]);
     }
   }
   // 町家の型（模式）：型の蔵を置かなかった沿道の低い建物。瓦屋根の連なりと通りの狭さ
@@ -818,7 +826,7 @@ function buildKura2(GM) {
   for (const t in byM) { const { geos } = machiGeos(t), list = byM[t];
     for (const mk in geos) { const im = new THREE.InstancedMesh(geos[mk], M[mk] === M.glass ? M[mk] : kuraAO(M[mk], mk, false), list.length), o = new THREE.Object3D();
       list.forEach((k, i) => { o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
-      im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im); } }
+      im.computeBoundingSphere(); world.add(im); KURA.meshes.push(im); im.userData.xz = list.map(k => [k.x, k.z]); } }
   // 型の札（HUD の流儀・画面の部品）：近づくと「KURA TYPE A ／店蔵の型・模式」。どの建物が蔵造りかを写したものではないことを、画面の中で示す。層の一覧には重ねない
   KURA.tags = [...G.kura.map(k => ({ k, code: "KURA TYPE " + k.type, name: "店蔵の型 " + k.type })), ...(G.machi || []).map(k => ({ k, code: "MACHIYA TYPE " + k.type, name: "町家の型 " + k.type }))];
   // 時の鐘：OSM の輪郭の中心に、輪郭のいちばん長い辺の向きで
@@ -1934,6 +1942,7 @@ function frame() {
     const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyBg; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } scene.fog.color.copy(FOG).lerp(NAVY, CYBER.v.value); HAZE.visible = CYBER.v.value < .5 && !VEIL.visible; if (HAZE.visible) { HAZE.position.copy(camera.position); HAZE.position.y = Math.min(camera.position.y, 60); HAZE.scale.setScalar(camera.far * .8); } if (QW.near) QW.near.visible = CYBER.v.value < .5; }   // 3D 地図の電脳の地面（氷川と同じ）
   AREAS.update(dt, QW.mode);
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); stepSoundWalk(dt); MY.L?.update(dt); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  kuraCull(dt);
   if (KURA.tags) stepTag();
   if (QW.mode === "walk") { stepAoi(dt); EAR.update(dt); } else if (EAR.on && QW.mode !== "descend") EAR.stop();
   if (QW.mode === "sight") stepBody(dt);
