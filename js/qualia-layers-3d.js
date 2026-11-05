@@ -249,7 +249,7 @@ export async function boot(stage) {
       const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); L.register(p => new V.VRMLoaderPlugin(p));
       const buf = await (window.__aoiBuf || (window.__aoiBuf = fetch('img/hero/aoi.vrm').then(r => r.arrayBuffer())));
       const g = await L.parseAsync(buf.slice(0), '');
-      vrm = g.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(g.scene); V.VRMUtils.rotateVRM0(vrm);
+      vrm = g.userData.vrm; await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(g.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(vrm);
       vrm.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
       const pivot = new THREE.Group(); pivot.add(vrm.scene); pivot.visible = false; aoiPivot = pivot; S.add(pivot);
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);

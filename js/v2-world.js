@@ -92,7 +92,7 @@ async function boot(root, SC) {
   let real1 = null, SM1 = null;
   const loadReal1 = async () => {
     try {
-      const [U, C] = await Promise.all([import('./umwelt-3d.js?v=20261026w'), import('./kit/creatures.js')]);
+      const [U, C] = await Promise.all([import('./umwelt-3d.js?v=20261105y'), import('./kit/creatures.js')]);
       const r = new THREE.Group(); r.position.copy(BO); const tl = new THREE.TextureLoader();
       r.add(new THREE.HemisphereLight(0xffe6c4, 0x2a2016, 1.3)); const sun = new THREE.DirectionalLight(0xffd6a0, 2.0); sun.position.set(-6, 8, 4); r.add(sun, sun.target);
       const RG = 12.5, fade = U.fadeMap();
@@ -215,7 +215,7 @@ async function boot(root, SC) {
       const [V, { GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('@pixiv/three-vrm'), import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
       const Ld = new GLTFLoader(); Ld.setMeshoptDecoder(MeshoptDecoder); Ld.register(p => new V.VRMLoaderPlugin(p));
       const g = await Ld.parseAsync((await (window.__aoiBuf || (window.__aoiBuf = fetch('img/hero/aoi.vrm').then(r => r.arrayBuffer())))).slice(0), '');
-      const v = g.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(g.scene); V.VRMUtils.rotateVRM0(v);
+      const v = g.userData.vrm; await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(g.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(v);
       const N = n => v.humanoid.getNormalizedBoneNode(n), set = (n, x, y, z) => { const o = N(n); if (o) o.rotation.set(x, y, z); };
       set('leftUpperArm', -.12, 0, -1.28); set('rightUpperArm', -.12, 0, 1.28); set('leftLowerArm', 0, -.28, 0); set('rightLowerArm', 0, .28, 0);
       v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
@@ -230,7 +230,7 @@ async function boot(root, SC) {
       for (let gI = 0; gI < 3; gI++) { const a = gI / 3 * 6.283 + .6, r = 5 + gI * 1.5, mem = []; for (let k = 0; k < n; k++) mem.push({ layer: keys[(k + gI) % 5] }); herd.addGroup(mem, { x: AO.x + Math.cos(a) * r, z: AO.z + Math.sin(a) * r, radius: 2.4, role: gI === 1 ? 'watch' : '' }); }
       for (let k = 0; k < (mobile ? 3 : 6); k++) herd.add(keys[k % 5], { x: AO.x + (Math.random() - .5) * 14, z: AO.z + (Math.random() - .5) * 14, radius: 3, role: k % 2 ? 'watch' : 'wander' });
       herd.load();
-      try { const U = await import('./umwelt-3d.js?v=20261026w'); person2 = U.makePerson(); person2.position.copy(P2); person2.rotation.y = -.6; g2.add(person2); } catch (e) { console.warn('person2', e); }
+      try { const U = await import('./umwelt-3d.js?v=20261105y'); person2 = U.makePerson(); person2.position.copy(P2); person2.rotation.y = -.6; g2.add(person2); } catch (e) { console.warn('person2', e); }
     } catch (e) { console.warn('kasane', e); }
   };
 
@@ -243,7 +243,7 @@ async function boot(root, SC) {
     if (insBusy) return; insBusy = true; insI = (insI + 1) % INS.length; const [id, clip] = INS[insI];
     try {
       let o, m = null;
-      if (id === 'tick') o = (await import('./umwelt-3d.js?v=20261026w')).makeTick();
+      if (id === 'tick') o = (await import('./umwelt-3d.js?v=20261105y')).makeTick();
       else if (id === 'bee') o = (await import('./kit/creatures.js')).makeBee();
       else { m = await SM1.loadSight(id, { shadow: false, autoplay: false }); m.play(clip, 0); o = m.object; }
       if (insObj) IS.remove(insObj); const w = new THREE.Group(); w.add(o); IS.add(w);

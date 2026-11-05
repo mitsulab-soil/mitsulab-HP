@@ -390,7 +390,7 @@ function build2({ fig, mobile, reduce, S, g, tl, cam, kick }) {
       const Ld = new GLTFLoader(); Ld.setMeshoptDecoder(MeshoptDecoder); Ld.register(p => new V.VRMLoaderPlugin(p));
       const buf = await (window.__aoiBuf || (window.__aoiBuf = fetch('img/hero/aoi.vrm').then(r => r.arrayBuffer())));
       const gl = await Ld.parseAsync(buf.slice(0), '');
-      vrm = gl.userData.vrm; V.VRMUtils.removeUnnecessaryVertices(gl.scene); V.VRMUtils.rotateVRM0(vrm);
+      vrm = gl.userData.vrm; await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(gl.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(vrm);
       vrm.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
       const pivot = new THREE.Group(); pivot.add(vrm.scene); pivot.visible = false; aoiPivot = pivot; g.add(pivot);
       vrm.humanoid.resetNormalizedPose(); vrm.update(0);

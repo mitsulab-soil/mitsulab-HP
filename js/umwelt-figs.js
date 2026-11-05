@@ -117,7 +117,7 @@ async function boot(root, SC) {
     const U3 = regionUniforms(0x9fd8e6, .32); mats.push(U3); S.add(new THREE.Points(geo(a, r), pointMat(U3, mobile ? 1.6 : 1.8))); }
 
   // 生き物（光の線）
-  const [M3, C] = await Promise.all([import('./umwelt-3d.js?v=20261026w'), import('./kit/creatures.js')]);
+  const [M3, C] = await Promise.all([import('./umwelt-3d.js?v=20261105y'), import('./kit/creatures.js')]);
   const Uc = regionUniforms(0xcfe8ea, .5); mats.push(Uc); const CM = lineMat(Uc);
   const place = (o, p, s, ry, rx = 0) => { o.scale.setScalar(s); o.position.copy(p); o.rotation.set(rx, ry, 0); return o; };
   const P_PERSON = SC === 2 ? new THREE.Vector3(-1.9, 0, 1.2) : new THREE.Vector3(-1.85, 0, .95);

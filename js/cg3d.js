@@ -118,7 +118,7 @@ export function start(box){
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);L.register(p=>new V.VRMLoaderPlugin(p));
     const buf=await(window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())));const g=await L.parseAsync(buf.slice(0),'');
-    vrm=g.userData.vrm;V.VRMUtils.removeUnnecessaryVertices(g.scene);V.VRMUtils.rotateVRM0(vrm);vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
+    vrm=g.userData.vrm;await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(g.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(vrm);vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
     const p=new THREE.Group();p.add(vrm.scene);p.visible=false;aoiP=p;W.add(p);vrm.humanoid.resetNormalizedPose();vrm.update(0);
     const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.62/(bb.max.y-bb.min.y));blob(new THREE.Vector3(),.5);
     const {AoiMotion}=await import('./aoi_motion.js?v=20261026-v61');mot=new AoiMotion(vrm,{root:p,reducedMotion:reduce,wind:.2,faceViewer:false,startCalm:1,posture:'upright',uprightWeight:.9});mot.faceTo(0);dirty=1;
