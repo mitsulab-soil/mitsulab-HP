@@ -78,7 +78,7 @@ const KZ = growKeyaki(K, K.rng(77), 0, 0, { det: true, r: .52, hf: 3.3, limbs: 8
 const BG = [{ r: .2, hf: 2.4, limbs: 4, len: [3, 4], tilt: .45, levels: 2, forks: 2, decay: .62 }, { r: .18, hf: 3.6, limbs: 3, len: [4, 5.5], tilt: .3, levels: 2, forks: 2, decay: .6 }, { r: .24, hf: 1.8, limbs: 5, len: [3.2, 4.2], tilt: .6, levels: 2, forks: 2, decay: .6 }];
 let bgTrees = [];   /* 奥の木立は最初の画のあとで組む（起動を軽く） */
 const allT = [KZ];
-const bark = K.barkMaterial(tx("bark_zelkova.webp"), { normalMap: tx("bark_zelkova_n.webp", false) }); bark.color.setRGB(1.25, 1.22, 1.18); { const ob = bark.onBeforeCompile; bark.onBeforeCompile = (sh, r) => { ob(sh, r); sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ float l_ = dot(diffuseColor.rgb, vec3(.3, .55, .15)); diffuseColor.rgb = mix(vec3(l_) * vec3(1.02, 1., .96), diffuseColor.rgb, .28); }"); }; const ck = bark.customProgramCacheKey; bark.customProgramCacheKey = () => ck() + "gray"; }   /* ケヤキの肌は灰褐色（赤みを抑える） */
+const bark = K.barkMaterial(tx("bark_zelkova.webp"), { normalMap: tx("bark_zelkova_n.webp", false) }); bark.color.setRGB(1.25, 1.22, 1.18); { const ob = bark.onBeforeCompile; bark.onBeforeCompile = (sh, r) => { ob(sh, r); sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ float l_ = dot(diffuseColor.rgb, vec3(.3, .55, .15)); vec3 c_ = mix(vec3(l_) * vec3(1.02, 1., .96), diffuseColor.rgb, .62); diffuseColor.rgb = max(vec3(0.), (c_ - l_) * 1.25 + l_ + (l_ - .32) * .55); }"); }; const ck = bark.customProgramCacheKey; bark.customProgramCacheKey = () => ck() + "gray2"; } if (bark.normalScale) bark.normalScale.set(1.6, 1.6);   /* ケヤキの肌は灰褐色（赤みを抑える） */
 { const y0 = H(0, 0) - .05; KZ.wood.forEach(g => g.translate(0, y0, 0)); [...KZ.sprigs, ...KZ.back].forEach(c => c[0].y += y0); KZ.ctr.y += y0;
   for (const t of bgTrees) { const p = t.wood[0].attributes.position, y = H(p.getX(0), p.getZ(0)) - .1; t.wood.forEach(g => g.translate(0, y, 0)); t.back.forEach(c => c[0].y += y); t.ctr.y += y; } }
 const woodMesh = new THREE.Mesh(mergeGeometries(allT.flatMap(t => t.wood).map(g => { for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k); return g; })), bark); nature.add(woodMesh);
@@ -123,10 +123,10 @@ const NUMS = [];   // 数の札は画面の上でいつも同じ大きさ（毎�
 { const PROBES = [[-.9, 1.2, 0, -.12], [-1.9, -9, 0, .12]];   // [x, z, 札の高さ, 場所ごとの湿りの差（模式）]
   for (const [x, z, lh, wet] of PROBES) { const r = Math.hypot(x, z), y0 = H(x, z), rows = [];
     const rod = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 1.3, 6), new THREE.MeshBasicMaterial({ color: 0x6fb8d0 })); rod.position.set(x, y0 - .45, z); sensor.add(rod);
-    const head = new THREE.Mesh(new THREE.BoxGeometry(.16, .22, .1), new THREE.MeshBasicMaterial({ color: 0xa8e4f4 })); head.position.set(x, y0 + .25, z); sensor.add(head);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(.24, .32, .14), new THREE.MeshBasicMaterial({ color: 0xffe9a8 })); head.position.set(x, y0 + .25, z); sensor.add(head);
     for (let d = 0; d < 3; d++) { const w = Math.max(.1, Math.min(1, .35 + wet + .45 * Math.exp(-r * r / 14) + .12 * d - .03 * r)), y = y0 - .2 - d * .4;   // 根のまわりと深い所ほど湿る模式
       rows.push([20 + d * 40, Math.round(12 + 26 * w)]);   // 体積含水率（%）の模式の値
-      const m = new THREE.Mesh(new THREE.SphereGeometry(.07, 10, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(.25 + .75 * w, .55 + .45 * w, .75 + .25 * w) })); m.position.set(x, y, z); sensor.add(m); }
+      const m = new THREE.Mesh(new THREE.SphereGeometry(.12, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(.45 + .55 * w, .8 + .2 * w, 1) })); m.position.set(x, y, z); sensor.add(m); const rg = new THREE.Mesh(new THREE.RingGeometry(.17, .22, 24), new THREE.MeshBasicMaterial({ color: 0xffe9a8, depthTest: false })); rg.position.set(x, y, z); rg.lookAt(camera.position); sensor.add(rg); }   // 差した点は明るい輪で目立たせる
     const n = numSprite(rows); n.position.set(x + .22, y0 - .6, z);   /* 札は地面の下、深さの点の右 */ sensor.add(n); NUMS.push(n);
     { const sec = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.25), new THREE.MeshBasicMaterial({ color: 0x1d4656, transparent: true, opacity: .45, depthTest: false })); sec.position.set(x + .35, y0 - .62, z - .05); sec.lookAt(camera.position.x, y0 - .62, camera.position.z); sensor.add(sec); }   // 土の中の断面（深さ 0〜1.2 m）
     { const gl = new THREE.Mesh(new THREE.BoxGeometry(3.6, .02, .02), new THREE.MeshBasicMaterial({ color: 0x8fd6ea })); gl.position.set(x, y0, z); sensor.add(gl); }   // 地面の線（ここから下に深さ）
@@ -147,7 +147,7 @@ const post = new THREE.ShaderMaterial({
     vec2 uv = vUv; if (uSame > .5 && uN > 1) uv.x = .5 + (s - (a + b) * .5);   // 横長：どの帯にも同じまん中の一本（ケヤキ）を映す
     vec3 c = texture2D(tC, uv).rgb;
     float hexE = 0., skyF = -1., umB = -1.;
-    if (lens == 1) { float cs = uRes.y / uFov * 1.0; vec2 p = uv * uRes, rr = vec2(1., 1.7320508) * cs, hh = rr * .5; vec2 ga = mod(p, rr) - hh, gb = mod(p - hh, rr) - hh, g = dot(ga, ga) < dot(gb, gb) ? ga : gb; vec2 ce = (p - g) / uRes;
+    if (lens == 1) { float cs = uRes.y / uFov * .6; vec2 p = uv * uRes, rr = vec2(1., 1.7320508) * cs, hh = rr * .5; vec2 ga = mod(p, rr) - hh, gb = mod(p - hh, rr) - hh, g = dot(ga, ga) < dot(gb, gb) ? ga : gb; vec2 ce = (p - g) / uRes;
       vec3 acc = vec3(0.); skyF = 0.; umB = 0.; float wsum = 0.; for (int i = 0; i < 13; i++) { float an = float(i) * 1.0472 + (i > 6 ? .5236 : 0.) + fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) * 6.283,   /* 標本の向きを画素ごとに回し、網目の模様を出さない */ rd = i == 0 ? 0. : (i > 6 ? .5 : .26); vec2 o7 = vec2(cos(an), sin(an)) * cs * rd; float wt = i == 0 ? 1.6 : (i > 6 ? .55 : 1.); vec2 q = (p + o7) / uRes; acc += texture2D(tC, q).rgb * wt; skyF += step(.99995, texture2D(tD, q).r) * wt; umB += texture2D(tU, q).r * wt; wsum += wt; } c = acc / wsum; skyF /= wsum; umB /= wsum;
       vec2 ag = abs(g) / cs; hexE = .07 * smoothstep(.46, .5, max(ag.x, dot(ag, vec2(.5, .8660254)))); }   // ミツバチの目の細かさ：個眼の間の角度（約 1〜2 度・Land 1997。ここは 1 度）ほどの幅でぼかし、六角の格子を薄く重ねた模式
     
@@ -156,10 +156,10 @@ const post = new THREE.ShaderMaterial({
     float dz = texture2D(tD, uv).r, skyM = step(.99995, dz), far = smoothstep(28., 70., 60. / (600. - dz * 599.9)) * (1. - skyM);
     float leafM = (1. - skyM) * smoothstep(.02, .08, c.g - max(c.r, c.b) * .92);   // 葉（緑が勝つ所）
     if (skyF >= 0.) skyM = skyF * skyF;   /* 葉と空のまじる粒は、空の紫外を薄める（葉は紫外をほとんど返さない） */
-    float UVsky = (.75 + .25 * uv.y) * 1.05, UVr = skyM * UVsky + (1. - skyM) * mix(mix(.06, .03, leafM), UVsky * .9, smoothstep(0., .7, far));   /* 遠くの霞は空と同じく散乱光の紫外が多い（模式） */ float um = umB >= 0. ? umB : texture2D(tU, uv).r; UVr = max(UVr, um * (lens == 1 ? .6 : .95));   /* 粉をふいた実は紫外を返す（Burkhardt 1982・Siitari ほか 1999） */   // 物ごとの紫外の量：空は散乱光で多い・葉はほとんど返さない（Yang 1995）・幹と土は少なめ（模式）・遠くは霞の散乱
-    if (lens == 1) { float kk = mix(mix(1.05, 1.45, leafM), 1., max(skyM, smoothstep(0., .7, far)));   /* 明るさの持ち上げは葉だけ（幹は暗い赤茶のまま） */ o = vec3(c.g * kk, c.b * kk * mix(.55, .95, max(skyM, smoothstep(0., .7, far))), .1 * c.b + .9 * UVr); float skyB = max(skyM, smoothstep(0., .7, far)); o = mix(o, vec3(.6, .72, .98) * lum(c) * 1.3, skyB); o = 1. - exp(-o * 1.7); }   // 空と霞は同じ色あい（明るさだけ）にして地平で段を作らない。ミツバチ：緑→赤・青→緑・紫外→青。空と霞は紫外が多く水色に寄る（模式）。明るい所が白く飛ばないように
-    else if (lens == 2) { float l = lum(c); vec3 d = c - vec3(l); o = vec3(l) * .85 + d * 1.5 * (1. - .55 * skyM) + vec3(.22, .07, .4) * UVr * .38; o = mix(o, vec3(.48, .36, .7) * (.5 + 1.2 * l), um * .62); o = clamp(o, 0., 1.); }   // ヒヨドリ（スズメ目の多く＝紫外に強い型）：紫外を紫で重ねる＝紫外を返さない葉が空に黒く浮く
-    else if (lens == 3) { vec2 q = floor(uv * uRes / 6.) * 6. / uRes; float l = lum(texture2D(tC, q).rgb); o = mix(vec3(.05, .09, .13), vec3(.015, .025, .04), vUv.y); o *= .85 + .15 * step(.5, fract(gl_FragCoord.y / 3.)); { vec2 e2 = vec2(2.) / uRes; float gx = lum(texture2D(tC, uv + vec2(e2.x, 0.)).rgb) - lum(texture2D(tC, uv - vec2(e2.x, 0.)).rgb), gy = lum(texture2D(tC, uv + vec2(0., e2.y)).rgb) - lum(texture2D(tC, uv - vec2(0., e2.y)).rgb); o += vec3(.016, .036, .046) * smoothstep(.08, .28, length(vec2(gx, gy))); } o += texture2D(tS, uv).rgb; /* 木の輪郭は場所の目安（センサーの値ではない） */ }   // センサー：光は受けとらない・土の水分の数だけ
+    float UVsky = (.75 + .25 * uv.y) * 1.05, UVr = skyM * UVsky + (1. - skyM) * mix(mix(.06, .03, leafM), UVsky * .9, smoothstep(0., .7, far));   /* 遠くの霞は空と同じく散乱光の紫外が多い（模式） */ float um = umB >= 0. ? umB : texture2D(tU, uv).r; UVr = max(UVr, um * .95);   /* 粉をふいた実は紫外を返す（Burkhardt 1982・Siitari ほか 1999） */   // 物ごとの紫外の量：空は散乱光で多い・葉はほとんど返さない（Yang 1995）・幹と土は少なめ（模式）・遠くは霞の散乱
+    if (lens == 1) { float kk = mix(mix(1.05, 1.45, leafM), 1., max(skyM, smoothstep(0., .7, far)));   /* 明るさの持ち上げは葉だけ（幹は暗い赤茶のまま） */ o = vec3(c.g * kk * (1. - .8 * um), c.b * mix(.75, 1., max(skyM, um)), UVr * mix(.55, 1., max(skyM, um))); o = 1. - exp(-o * 1.7); }   /* 実＝紫外と青を返し緑は少ない→青（紫外）＋緑（青） */   // 空と霞は同じ色あい（明るさだけ）にして地平で段を作らない。ミツバチ：緑→赤・青→緑・紫外→青。空と霞は紫外が多く水色に寄る（模式）。明るい所が白く飛ばないように
+    else if (lens == 2) { float l = lum(c); vec3 d = c - vec3(l); vec3 d2 = d * 2.3 * (1. - .85 * skyM); d2.g *= 1.15; d2.r += (c.r - c.g) * .35; o = vec3(l) * .82 + d2 + vec3(.3, .05, .55) * UVr * .22 * skyM; o = mix(o, vec3(.78, .42, 1.) * (.55 + 1.2 * l), um * .85); o = clamp(o, 0., 1.); }   // ヒヨドリ（スズメ目の多く＝紫外に強い型）：紫外を紫で重ねる＝紫外を返さない葉が空に黒く浮く
+    else if (lens == 3) { vec2 q = floor(uv * uRes / 6.) * 6. / uRes; float l = lum(texture2D(tC, q).rgb); o = mix(vec3(.2, .3, .36), vec3(.09, .14, .18), vUv.y); o *= .85 + .15 * step(.5, fract(gl_FragCoord.y / 3.)); { vec2 e2 = vec2(2.) / uRes; float gx = lum(texture2D(tC, uv + vec2(e2.x, 0.)).rgb) - lum(texture2D(tC, uv - vec2(e2.x, 0.)).rgb), gy = lum(texture2D(tC, uv + vec2(0., e2.y)).rgb) - lum(texture2D(tC, uv - vec2(0., e2.y)).rgb); o += vec3(.028, .05, .06) * smoothstep(.08, .28, length(vec2(gx, gy))); } o += texture2D(tS, uv).rgb; /* 木の輪郭は場所の目安（センサーの値ではない） */ }   // センサー：光は受けとらない・土の水分の数だけ
     float e = min(abs(s - a), abs(s - b)) * (uVert > .5 ? uRes.y : uRes.x);
     if (uN > 1) o = mix(mix(o, vec3(.36, .78, .88), .45), o, smoothstep(.3, 1.1, e));
     gl_FragColor = vec4(o, 1.);
@@ -172,7 +172,7 @@ function sizeRT() { renderer.getDrawingBufferSize(dbs); if (rt.width !== dbs.x |
 const WHO = [
   { n: "人", m: "赤・緑・青\n人の目", say: "同じ一本のケヤキ。下の生き物や機械を押すと、その受けとり方が隣に並びます。" },
   { n: "ミツバチ", m: "色はずらした模式\n赤＝ハチの緑", say: "ミツバチは紫外・青・緑で受けとり、赤は届きにくい。その三つを、人に見える青・緑・赤へずらした模式。ぼかしは目の粗さ（個眼の間の角度 約 1〜2 度）の模式。色は、緑→赤・青→緑・紫外→青にずらした。" },
-  { n: "ヒヨドリ", m: "スズメ目の多く\n紫外型（模式）", say: "鳥は四色型。スズメ目の多くは、その一つが紫外に強く感じる型（ヒヨドリ自身は未確認）。紫外を紫で重ねた模式（細かさは人と同じにしたが、実際は人より粗い）。粉をふいた黒い実は紫外を返し、葉はほとんど返さない。" },
+  { n: "ヒヨドリ", m: "スズメ目の多く\n紫外型（模式）", say: "鳥は四色型。目の中の色の油滴で、色の違いを人より細かく見分ける。スズメ目の多くは紫外に強く感じる型（ヒヨドリ自身は未確認）。色の差を強め、紫外を紫で重ねた模式。粉をふいた黒い実は紫外を返し、葉はほとんど返さない。" },
   { n: "土のセンサー", m: "土の水分（%）\n値は模式", say: "センサーは画を見ない。差した 2 か所の土の水分を、深さごとに体積の % で読むだけ（値は模式）。薄い線は木の位置の目安。" } ];
 const SAY_MANY = "帯ごとに、同じ一本のケヤキを、それぞれの受けとり方で。あなたの帯も、その一つ。";
 const SAY_END = "外の本当の木の前で、どの帯の受けとり方を想像してみますか。";
@@ -198,7 +198,7 @@ const loadAoiLater = () => K.loadAoi(AOI, { scene, renderer, camera }).then(asyn
 setTimeout(() => say(WHO[0].say), 400);
 
 function buildBG() {
-  bgTrees = pts.map(([x, z]) => { const v = BG[Math.floor(R() * BG.length)], sc = .75 + R() * .5; return growKeyaki(K, R, x, z, { ...v, det: false, r: v.r * sc, hf: v.hf * sc, len: v.len.map(l => l * sc), sprigs: 0, back: mobile ? 320 : 480 }); });
+  bgTrees = pts.map(([x, z]) => { const v = BG[Math.floor(R() * BG.length)], sc = .7 + R() * .6, sh = .75 + R() * .5;   /* 一本ごとに枝数・開き・高さを散らし、同じ形をくり返さない */ return growKeyaki(K, R, x, z, { ...v, det: false, r: v.r * sc, hf: v.hf * sc * (.8 + R() * .45), limbs: Math.max(2, v.limbs + Math.floor(R() * 3) - 1), tilt: v.tilt * (.6 + R() * .8), decay: v.decay * (.9 + R() * .2), forks: R() < .3 ? 3 : v.forks, len: v.len.map(l => l * sc * sh), sprigs: 0, back: Math.round((mobile ? 320 : 480) * (.7 + R() * .6)) }); });
   for (const t of bgTrees) { const p = t.wood[0].attributes.position, y = H(p.getX(0), p.getZ(0)) - .1; t.wood.forEach(g => g.translate(0, y, 0)); t.back.forEach(c => c[0].y += y); t.ctr.y += y; }
   nature.add(new THREE.Mesh(mergeGeometries(bgTrees.flatMap(t => t.wood).map(g => { for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k); return g; })), bark));
   const bgIM = sprigMesh(bgTrees.flatMap(t => t.back), leafOne, 1.05, [.72, .84, .6], new V3(0, 0, 0), R); nature.add(bgIM);
