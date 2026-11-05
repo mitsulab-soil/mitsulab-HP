@@ -4,6 +4,9 @@
 <title>人と機械の受けとれる範囲 ── mitsulab</title>
 <meta name="description" content="同じ参道の一角を、人の受けとり方と機械の受けとり方で。重なる所、ずれる所、どちらにも届かない所。">
 <meta name="robots" content="noai,noimageai"><meta name="tdm-reservation" content="1">
+<script type="importmap">
+{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
+</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
 <link rel="modulepreload" href="app.js?v=1">
 <link rel="modulepreload" href="data.js">
@@ -12,7 +15,6 @@
 <link rel="modulepreload" href="kit/sight_look.js">
 <link rel="modulepreload" href="kit/sight_trees.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
-<link rel="preload" as="image" href="tex/path_gravel.webp"><link rel="preload" as="image" href="tex/soil_forest.webp">
 <style>
 :root{--bg:#03060f;--ink:#eef5fb;--ink2:#c3cce0;--ink3:#8f9bb4;--aoi:#5cc8e0;--h:#f4aa96;--m:#a8f2f6;--line:rgba(150,170,240,.22);
 --min:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;--en:"Cormorant Garamond","Times New Roman",serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
@@ -96,8 +98,5 @@ button.lab{padding:14px 8px;min-height:44px}
 <h2>典拠</h2><ul id="refs"></ul>
 <p>質感：Poly Haven・ambientCG（CC0）／Three.js・three-vrm（MIT）／碧の動き：CMU Graphics Lab Motion Capture Database をもとに mitsulab が作成</p>
 <p>© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p></div>
-<script type="importmap">
-{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
-</script>
 <script type="module" src="app.js?v=1"></script>
 </body></html>
