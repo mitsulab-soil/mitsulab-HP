@@ -1,7 +1,4 @@
-/* mitsulab 共通の部品（warm.js）。© 2026 mitsulab. All rights reserved.
-   2026-11-05（本人「全て 1 秒以内に。動いている時も」）：見せる前に、絵を GPU へ・材質を組む仕事を一こまずつに分ける。見た目は変えない。
-   warmScene(renderer, scene, camera)＝場面の網を数個ずつ compileAsync し、絵を 1 こま budget ms まで送る。
-   warmAoi・aoiYield＝aoi_motion.js（v6.2）と同じもの（碧の材質を出す前に組む）。 */
+/* mitsulab 共通の部品（warm.js）。© 2026 mitsulab. All rights reserved. */
 import * as THREE from "three";
 export const aoiYield = () => new Promise(r => (typeof requestAnimationFrame === "function" ? requestAnimationFrame(() => setTimeout(r, 0)) : setTimeout(r, 16)));
 export async function warmAoi(renderer, root, camera, scene, { budget = 8, whole = false, offscreen = false, batch = 4 } = {}) {   // whole＝root がまだ場面の外で、root の中の光（顔の補助光）も数えて組むとき／offscreen＝アプリが描き先（ぼかしなど）へ描くとき、その形で組む
@@ -92,7 +89,7 @@ export async function keepVariant(renderer, root, camera, scene, mutate, { batch
   }
   RT?.dispose();
 }
-/* loadTex(url)＝絵を読み、GPU へ送る前に別の糸で絵をほどいて（decode）から THREE.Texture にして返す。2026-11-05 夕（本人「全て 1 秒以内に。動いている時も」）
+/* loadTex(url)＝絵を読み、GPU へ送る前に別の糸で絵をほどいて（decode）から THREE.Texture にして返す。2026-11-05 夕（）
    three の TextureLoader（img）のままだと、はじめて描くこまで 2048 px の絵をほどき、そのこまが 0.1 秒ほど止まっていた。
    上下の向き・色の変換は TextureLoader と同じにそろえる（見た目は同じ）。ImageBitmap の向きを正しく扱えない古い Safari（16 まで）・Firefox（97 まで）は、これまでの TextureLoader で読む。
    読めないときは null（TextureLoader の失敗と同じ扱い）。
