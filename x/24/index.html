@@ -44,7 +44,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 #cap{position:fixed;left:50%;bottom:calc(66px + env(safe-area-inset-bottom));transform:translateX(-50%);box-sizing:border-box;width:min(calc(100vw - 24px),640px);text-align:center;font-size:14px;line-height:1.8;letter-spacing:.05em;color:var(--ink);opacity:0;transition:opacity .7s;pointer-events:none;
  background:linear-gradient(90deg,rgba(3,6,15,0),rgba(3,6,15,.5) 18%,rgba(3,6,15,.5) 82%,rgba(3,6,15,0));padding:6px 22px}
 #cap.on{opacity:1}
-.camt{position:fixed;left:0;top:0;font-size:11px;letter-spacing:.08em;color:var(--m);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap;text-shadow:0 0 4px #03060f,0 0 8px #03060f;z-index:2} .camt.on{opacity:.95} .camt.r{translate:-100% 0}
+.camt{position:fixed;left:0;top:0;font-size:11px;letter-spacing:.08em;color:var(--m);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap;text-shadow:0 0 4px #03060f,0 0 8px #03060f;z-index:2} .camt.on{opacity:.95} .camt.n{color:#9ff0c8;font-size:12px;line-height:1.5} .camt.n small{font-size:10px;color:var(--ink2)} .camt.r{translate:-100% 0}
 #chs{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom);height:56px;display:flex;justify-content:center;align-items:center;gap:2px;padding:0 10px}
 #chs button{height:44px;padding:0 10px;font-size:13px;letter-spacing:.12em;color:var(--ink3);position:relative}
 #chs button.on{color:var(--m)}
@@ -87,7 +87,7 @@ button.lab{padding:14px 8px;min-height:44px}
   <button class="tb" id="plus" aria-label="典拠とつくり">＋</button>
 </div>
 <div id="spec"></div>
-<div class="camt" id="camA">一画素に一色</div><div class="camt r" id="camB">計算で埋めた色</div>
+<div class="camt n" id="birdT">鳥（模式）<br><small>紫外を青紫に写した</small></div><div class="camt" id="camA">一画素に一色</div><div class="camt r" id="camB">計算で埋めた色</div>
 <div id="heatbar">5°<b></b>35°C<span>空は 5 °C より低く色の外（模式）</span></div>
 <div id="cap" aria-live="polite"></div>
 <div id="chs" role="tablist" aria-label="機械の受けとり方"></div>

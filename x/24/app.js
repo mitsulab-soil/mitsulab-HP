@@ -30,7 +30,7 @@ scene.add(new THREE.HemisphereLight(0xdce8ee, 0x5a5040, 1.0));
 { // 空の光（環境）：空の色から小さく作る
   const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene(), sm = new THREE.ShaderMaterial({ side: THREE.BackSide, uniforms: {}, vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }", fragmentShader: "varying vec3 vP; void main(){ float t = vP.y; vec3 c = t > 0. ? mix(vec3(.78,.84,.86), vec3(.42,.58,.74), t) : mix(vec3(.5,.46,.38), vec3(.22,.2,.16), -t); gl_FragColor = vec4(c, 1.); }" });
   es.add(new THREE.Mesh(new THREE.SphereGeometry(10, 16, 8), sm)); scene.environment = pm.fromScene(es, 0, .1, 50).texture; pm.dispose(); }
-const sun = new THREE.DirectionalLight(0xfff0d6, 3.1); sun.position.copy(SUN).multiplyScalar(60); scene.add(sun);
+const sun = new THREE.DirectionalLight(0xffe3bc, 3.3);   // 秋の午後三時ごろの、低めの暖かい日差し sun.position.copy(SUN).multiplyScalar(60); scene.add(sun);
 
 // 機械のための記述：種類（R）・日の当たり（G）・距離（B）を書き出す。同じ材質で、uMach のときだけ出す色を変える
 function mpatch(m, kind) {
@@ -76,7 +76,7 @@ const R = rng(20261106);
 // 欅
 const TREES = [];
 {
-  const pts = poisson(R, { x0: -30, x1: 30, z0: -115, z1: 13, d: 5.6, ok: (x, z) => Math.abs(x) > 4.3 && true });
+  const pts = poisson(R, { x0: -30, x1: 30, z0: -115, z1: 13, d: 5.6, ok: (x, z) => Math.abs(x) > 4.3 && !(z > 8 && Math.abs(x) < 8) });   // 外から見る位置の前はあける
   const far = [];
   for (const [x, z] of pts) { const d = Math.hypot(x - EYE.x, z - EYE.z); if (d < 2.5 || d > 70) continue;
     const sp = R() < .3 ? "konara" : "keyaki";   // 欅にコナラを混ぜる（同じ形を並べない）
@@ -121,12 +121,12 @@ setTimeout(async () => {
 const rtCol = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: mobile ? 0 : 2 });
 const rtDat = new THREE.WebGLRenderTarget(2, 2, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
 const post = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false,
-  uniforms: { tCol: { value: rtCol.texture }, tDat: { value: rtDat.texture }, uRes: { value: new THREE.Vector2() }, uDRes: { value: new THREE.Vector2() }, uSeam: { value: mobile ? .58 : .64 },
+  uniforms: { tCol: { value: rtCol.texture }, tDat: { value: rtDat.texture }, uRes: { value: new THREE.Vector2() }, uDRes: { value: new THREE.Vector2() }, uSeam: { value: mobile ? .58 : .64 }, uSeam2: { value: 1 },
     uCh: { value: 0 }, uT: { value: 0 }, uGust: { value: .5 }, uDpr: { value: 1 }, uInvProj: { value: new THREE.Matrix4() }, uCamW: { value: new THREE.Matrix4() },
     uSrc: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] }, uExp: { value: 1.08 } },
   vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }",
   fragmentShader: /* glsl */`
-uniform sampler2D tCol, tDat; uniform vec2 uRes, uDRes; uniform float uSeam, uCh, uT, uGust, uDpr, uExp; uniform mat4 uInvProj, uCamW; uniform vec4 uSrc[3]; varying vec2 vUv;
+uniform sampler2D tCol, tDat; uniform vec2 uRes, uDRes; uniform float uSeam, uSeam2, uCh, uT, uGust, uDpr, uExp; uniform mat4 uInvProj, uCamW; uniform vec4 uSrc[3]; varying vec2 vUv;
 vec3 neutral(vec3 c){ float x = min(c.r, min(c.g, c.b)); float o = x < .08 ? x - 6.25 * x * x : .04; c -= o; float p = max(c.r, max(c.g, c.b)); if (p < .76) return c;
   float d = .24; float np = 1. - d * d / (p + d - .76); c *= np / p; float g = 1. - 1. / (.15 * (p - np) + 1.); return mix(c, vec3(np), g); }
 vec3 srgb(vec3 c){ c = clamp(c, 0., 1.); return mix(c * 12.92, 1.055 * pow(c, vec3(1. / 2.4)) - .055, step(.0031308, c)); }
@@ -138,7 +138,12 @@ vec3 iron(float t){ t = clamp(t, 0., 1.); vec3 a = vec3(.02, .0, .07), b = vec3(
   return t < .25 ? mix(a, b, t * 4.) : t < .5 ? mix(b, c, (t - .25) * 4.) : t < .75 ? mix(c, d, (t - .5) * 4.) : mix(d, e, (t - .75) * 4.); }
 void main(){
   vec2 fc = vUv * uRes; float sx = uSeam * uRes.x; vec3 col;
-  if (fc.x < sx) col = human(vUv);
+  float sx2 = uSeam2 * uRes.x;
+  if (fc.x >= sx2) {   // 鳥（模式）：紫外を含む四つの錐体。人に見えない紫外の明るさを青紫に写し、赤・緑・青を一段ずつ下へずらして見せる
+    vec4 d = texture2D(tDat, vUv); float k = kOf(d); vec3 c = human(vUv);
+    float uvr = k < .5 ? .85 - .3 * vUv.y : k == 4. ? .05 : k == 5. ? .06 : k == 3. ? .08 : k == 2. ? .14 : k == 1. ? .16 : k == 7. ? .1 : .2;
+    col = c * vec3(.82, .92, .86) + vec3(.42, .3, .95) * uvr * 1.25;   // 色はそのまま少し沈め、紫外の明るさだけを青紫で重ねる
+  } else if (fc.x < sx) col = human(vUv);
   else {
     int ch = int(uCh + .5); vec4 d = texture2D(tDat, vUv); float k = kOf(d); float sky = 1. - step(.5, k); float dist = d.b * 120.;
     if (ch == 0) {   // カメラ：縁の近くは一画素一色の原画（ベイヤー配列）、離れるほど色を埋めた画（デモザイク）。画素の拡大は模式
@@ -167,14 +172,15 @@ void main(){
       col = vec3(.006, .012, .028);
       if (sky < .5 && dist < 100. && abs(el) < 16.5) {
         float w = fwidth(el) / 2., ln = 0.;
-        for (int j = 0; j < 2; j++) {   // 2 回転分を重ねた模式（一回転ごとに上下が少しずれる。16 本の隙間は残る）
+        float nj = dist < 25. ? 5. : 2.;   // 歩きながら重ねた回転の模式：近い物ほど多くの回転が当たる（遠くは 16 本の隙間が残る）
+        for (int j = 0; j < 5; j++) { if (float(j) >= nj) break;
           float e = (el + 15. - float(j) * .4) / 2.; float fe = abs(fract(e + .5) - .5);
-          ln = max(ln, (1. - smoothstep(w * .5, w * 1.6, fe)) * (1. - float(j) * .16) * step(abs(e - 7.5), 8.)); }
-        float edge = smoothstep(.15, .6, fwidth(dist));   // 物の縁（距離が跳ぶ所）は明るく
+          ln = max(ln, (1. - smoothstep(w * .5, w * 1.6, fe)) * (1. - float(j) * .12) * step(abs(e - 7.5), 8.)); }
+        float edge = smoothstep(.08, .4, fwidth(dist));   // 物の縁（距離が跳ぶ所）は明るく
         float a = az / .2, dv = 1. - smoothstep(.12, .42, abs(fract(a + .5) - .5));
         float rf = k == 4. ? .9 : k == 5. ? .8 : k == 3. ? .45 : k == 2. ? .4 : k == 1. ? .45 : k == 7. ? .35 : k == 6. ? .6 : .3;
         float g = k == 4. ? .8 + .2 * sin(az * 3. + uT * 10.) * uGust : 1.;   // 風に揺れる葉の返りは少しちらつく
-        col += mix(mix(vec3(1., .93, .78), vec3(.7, .97, 1.), clamp(dist / 26., 0., 1.)), vec3(.22, .4, .95), clamp((dist - 8.) / 45., 0., 1.)) * ln * (.35 + .65 * dv) * g * (.35 + .9 * rf) * (1.15 - dist / 110.) * (1. + 1.2 * edge);
+        col += mix(mix(vec3(1., .93, .78), vec3(.7, .97, 1.), clamp(dist / 26., 0., 1.)), vec3(.22, .4, .95), clamp((dist - 8.) / 45., 0., 1.)) * ln * (.35 + .65 * dv) * g * (.35 + .9 * rf) * (1.15 - dist / 110.) * (.55 + 2.2 * edge);
       }
     } else if (ch == 4) {   // 音：音の出どころから広がる輪（届く＝実線、どちらにも届かない＝破線）
       col = vec3(.03, .045, .08) + vec3(.05, .07, .1) * lum(human(vUv)) * 1.5;
@@ -192,6 +198,7 @@ void main(){
     }
   }
   float ln = 1. - smoothstep(.4, 1.4 * uDpr, abs(fc.x - sx)); col = mix(col, vec3(.95, .97, 1.), ln * .9 * step(.002, uSeam) * step(uSeam, .998));
+  float l2 = 1. - smoothstep(.4, 1.4 * uDpr, abs(fc.x - sx2)); col = mix(col, vec3(.62, .95, .8), l2 * .9 * step(uSeam2, .998));
   gl_FragColor = vec4(col, 1.);
 }` });
 const postScene = new THREE.Scene(), postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -323,7 +330,7 @@ const birdG = new THREE.Group(); ov.add(birdG); birdG.visible = false;
 const BIRD = new V3(-5.6, 7.4, -1.5);
 { const v = [], RR = 2.4; for (let az = -150; az <= 150; az += 25) for (let el = -60; el < 60; el += 12) { const p = (a, e) => [BIRD.x + Math.sin(a * Math.PI / 180) * Math.cos(e * Math.PI / 180) * RR, BIRD.y + Math.sin(e * Math.PI / 180) * RR, BIRD.z + Math.cos(a * Math.PI / 180) * Math.cos(e * Math.PI / 180) * RR]; v.push(...p(az, el), ...p(az, el + 12)); }
   birdG.add(segs(v, sm(COL.nature, .3))); }
-lab("鳥<i>紫外まで感じる錐体（模式）</i>", { cls: "self n", pos: BIRD.clone().add(new V3(mobile ? 2.6 : 0, 2.8, 0)), show: () => outK > .6 && birdG.visible });
+lab("鳥<i>紫外まで感じる錐体（模式）</i>", { cls: "self n", pos: BIRD.clone().add(new V3(mobile ? 2.6 : 0, 1.4, 0)), show: () => outK > .6 && birdG.visible });
 
 /* ── AI の札・音の出どころ ── */
 const T0 = TREES.filter(t => t.trunk[0] < 0).sort((a, b) => Math.hypot(a.trunk[0] - EYE.x, a.trunk[1] - EYE.z) - Math.hypot(b.trunk[0] - EYE.x, b.trunk[1] - EYE.z))[0];
@@ -355,7 +362,9 @@ function show(k) { const s = SAY[k]; if (!s) return; const el = $("#cap"); el.te
 let seamKeep = .6, ch = 0, outK = 0, outOn = false, seam = post.uniforms.uSeam.value; const seen = new Set();
 const chId = () => CH[ch].id;
 const music = new Music();
+const SPOTS = mobile ? [[-.55, 2.9], [-.25, 2.3], [-.8, 3.5]] : [[-1.35, 3.4], [-.7, 2.5], [-1.9, 2.1]];
 function setCh(i) {
+  if (aoi && i) { const [x, z] = SPOTS[i % 3]; aoi.walkTo(new V3(x, 0, z)); AIP.aoi.set(x, 1.45, z); }   // 受けとり方を替えるたびに、碧は少し場所を変える
   ch = i; post.uniforms.uCh.value = i; seen.add(CH[i].id);
   document.querySelectorAll("#chs button").forEach((b, j) => b.classList.toggle("on", j === i));
   $("#sl").innerHTML = CH[i].name + "<i>" + CH[i].en + "</i>"; $("#spec").textContent = BANDS[CH[i].band].note;
@@ -367,14 +376,14 @@ function setCh(i) {
 $("#chs").innerHTML = `<span class="end">具体から</span>` + CH.map((c, i) => `<button data-i="${i}">${c.name}</button>`).join("") + `<span class="end">抽象へ</span>`;
 document.querySelectorAll("#chs button").forEach(b => b.addEventListener("click", e => { music.start(); setCh(+b.dataset.i); }));
 $("#out").addEventListener("click", () => { music.start(); outOn = !outOn; if (outOn) { seamKeep = seam; seam = 1; } else seam = seamKeep; $("#out").textContent = outOn ? "戻る" : "外から"; document.body.classList.toggle("out", outOn); $("#out").classList.remove("hint");
-  capQ = capQ.filter(k => k === "hint"); if (outOn) { if (said.has("self")) say("kant", { once: true }); else { said.add("self"); show("self"); say("self2", { once: true }); } checkEnd(); } });
+  capQ = capQ.filter(k => k === "hint"); if (outOn) { const fin = seen.size >= 4 && STROKES.length >= 1; if (!said.has("self")) { said.add("self"); show("self"); if (!fin) say("self2", { once: true }); } else if (!fin) say("kant", { once: true }); checkEnd(); } });
 $("#snd").addEventListener("click", () => { music.start(); music.setMuted(!music.muted); $("#snd").classList.toggle("off", music.muted); });
 document.addEventListener("visibilitychange", () => { if (!music.ctx) return; document.hidden ? music.ctx.suspend() : (!music.muted && music.ctx.resume()); });
 $("#plus").addEventListener("click", () => $("#fold").classList.toggle("on"));
 $("#refs").innerHTML = REFS.map(r => `<li>${r}</li>`).join("");
 let ended = false;
 function checkEnd() {
-  if (seen.size >= 4 && STROKES.length >= 1 && said.has("self")) { if (!outOn) $("#out").classList.add("hint"); else if (!birdG.visible) { birdG.visible = true; ended = true; tintAtt(); say("common", { once: true }); say("common2", { once: true }); say("common3", { once: true }); } }
+  if (seen.size >= 4 && STROKES.length >= 1 && said.has("self")) { if (!outOn) $("#out").classList.add("hint"); else if (!birdG.visible) { birdG.visible = true; ended = true; tintAtt(); say("common", { once: true }); say("common2", { once: true }); say("common3", { once: true }); say("common4", { once: true }); } }
 }
 
 /* ── 触れる・なぞる ── */
@@ -388,7 +397,7 @@ function hitAt(cx, cy) {
   const sph = (c, r, kind) => { const oc = new V3().subVectors(o, c), b = oc.dot(d), q = oc.lengthSq() - r * r, D = b * b - q; if (D < 0) return; tryT(-b - Math.sqrt(D), kind); };
   for (const t of TREES) { const dd = Math.hypot(t.trunk[0] - o.x, t.trunk[1] - o.z); if (dd > 60) continue; cyl(t.trunk[0], t.trunk[1], t.trunk[2] + .08, 3.6, "bark"); sph(new V3(t.trunk[0], 7.8, t.trunk[1]), 4.3, "leaf"); }
   for (const [x, z] of LANTERNS) cyl(x, z, .34, 2.1, "stone");
-  cyl(AOI.x, AOI.z, .26, 1.62, "aoi");
+  { const ap = aoi ? aoi.root.position : AOI; cyl(ap.x, ap.z, .26, 1.62, "aoi"); }
   best.p = best.t < 1e8 ? o.clone().addScaledVector(d, best.t) : o.clone().addScaledVector(d, 60);
   best.pan = cx / innerWidth * 2 - 1; best.left = cx < seam * innerWidth; return best;
 }
@@ -525,6 +534,7 @@ function frame() {
   attP.material.opacity = .15 + .75 * outK;
   if (attN) { const j = ((attN - 1) % 900) * 3; attLab.pos.set(ATT[j], ATT[j + 1] + .4, ATT[j + 2]); }
   // 合わせ
+  { const want = ended && !outOn ? (mobile ? .8 : .78) : 1; post.uniforms.uSeam2.value += (want - post.uniforms.uSeam2.value) * Math.min(1, dt * 3); if (seam > post.uniforms.uSeam2.value - .02 && want < 1) seam = post.uniforms.uSeam2.value - .14; $("#birdT").classList.toggle("on", want < 1); $("#birdT").style.transform = `translate(${(post.uniforms.uSeam2.value * innerWidth + 10) | 0}px,${(innerHeight * .2) | 0}px)`; }
   seamShown += (seam - seamShown) * Math.min(1, dt * 14); post.uniforms.uSeam.value = seamShown; post.uniforms.uT.value = t;
   post.uniforms.uInvProj.value.copy(cam.projectionMatrixInverse); post.uniforms.uCamW.value.copy(cam.matrixWorld);
   { let i = 0; for (const s of SRC) { tmp.copy(s.p).project(cam); post.uniforms.uSrc.value[i++].set(tmp.x * .5 + .5, tmp.y * .5 + .5, 0, tmp.z < 1 ? s.w : 0); } }
