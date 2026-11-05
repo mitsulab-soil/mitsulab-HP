@@ -74,6 +74,13 @@ for (let i = 0; i < 10; i++) { const s = i % 2 ? 1 : -1; trees.push(new THREE.Ve
   outer.add(trunks, leaves);
 }
 
+// 木漏れ日：太陽の向きの細い光の筋（向きのある光を一つ）
+{
+  const c = document.createElement('canvas'); c.width = 16; c.height = 128; const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, 'rgba(255,244,214,0)'); g.addColorStop(.25, 'rgba(255,244,214,.55)'); g.addColorStop(1, 'rgba(255,244,214,0)'); x.fillStyle = g; x.fillRect(0, 0, 16, 128);
+  const t = new THREE.CanvasTexture(c), m = new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: .16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+  const dir = sun.position.clone().normalize();
+  [[-1.4, -1.5, .9], [.9, -4.2, 1.3], [-.2, -7.5, .7], [1.8, .6, .5]].forEach(([x0, z0, w]) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(w, 14), m); p.position.set(x0, 0, z0).addScaledVector(dir, 6.5); p.lookAt(p.position.clone().add(dir)); p.rotateX(Math.PI / 2); p.renderOrder = 3; outer.add(p); });
+}
 // ───────── 主体（10） ─────────
 // cap の文は資料/出典.md に照らした範囲。機械は「受けとり方」と呼ぶ。
 const SUBJ = [
@@ -131,7 +138,7 @@ const vGeo = new THREE.IcosahedronGeometry(1, MOBILE ? 4 : 5);
 SUBJ.forEach((s, i) => {
   const m = new THREE.ShaderMaterial({ vertexShader: veilVS, fragmentShader: veilFS, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true,
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uC: { value: new THREE.Color(s.col) }, uI: { value: .8 }, uM: { value: s.mach || 0 }, uT: { value: 0 }, uR: { value: 0 } }]) });
-  const v = new THREE.Mesh(vGeo, m); v.position.set(...s.pos); v.scale.setScalar(s.r); v.scale.y *= .72; v.renderOrder = 2; outer.add(v); veils.push(v);
+  const v = new THREE.Mesh(vGeo, m); v.position.set(s.pos[0], Math.min(s.pos[1], .9) * .6, s.pos[2]); v.scale.setScalar(s.r * 1.15); v.scale.y = .38;   // 受けとる層は地面近くの薄い帯（木と碧を横切らない） v.renderOrder = 2; outer.add(v); veils.push(v);
   const h = new THREE.Mesh(new THREE.SphereGeometry(Math.max(.7, s.r * .55), 8, 6), new THREE.MeshBasicMaterial({ visible: false })); h.position.set(...s.pos); h.userData.i = i; outer.add(h); hits.push(h);
   if (['sensor', 'camera', 'gis'].includes(s.id)) { const b = makeBody(s); outer.add(b); bodies[s.id] = b; }
 });
@@ -226,6 +233,18 @@ const iFN = MOBILE ? 10 : 18, iNF = SUBJ.length * iFN; const iPos = new Float32A
 const iGeo = new THREE.BufferGeometry(); iGeo.setAttribute('position', new THREE.BufferAttribute(iPos, 3)); iGeo.setAttribute('color', new THREE.BufferAttribute(iCol, 3));
 inner.add(new THREE.Points(iGeo, new THREE.PointsMaterial({ size: .06, map: dotTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
 const HUMAN = SUBJ.findIndex(s => s.id === 'human');
+// 映り合う光の点：各露の面の、近い露の向きに、その露の色の小さな光
+const REF = []; iDrops.forEach((a, i) => { iDrops.map((b, j) => [j, a.position.distanceTo(b.position)]).filter(x => x[0] !== i).sort((x, y) => x[1] - y[1]).slice(0, 4).forEach(([j]) => REF.push([i, j])); });
+const rPos = new Float32Array(REF.length * 3), rCol = new Float32Array(REF.length * 3);
+REF.forEach(([i, j], k) => { const c = new THREE.Color(SUBJ[j].col).lerp(new THREE.Color(1, 1, 1), .35); rCol.set([c.r, c.g, c.b], k * 3); });
+const rGeo = new THREE.BufferGeometry(); rGeo.setAttribute('position', new THREE.BufferAttribute(rPos, 3)); rGeo.setAttribute('color', new THREE.BufferAttribute(rCol, 3));
+inner.add(new THREE.Points(rGeo, new THREE.PointsMaterial({ size: .3, map: dotTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+// 各露から外の体の方へ残る細い糸（体→露→体の往き来）
+const tPts = [], tCols = []; iDrops.forEach((d, i) => { const o = d.position.clone().multiplyScalar(1.35); const c = new THREE.Color(SUBJ[i].col); tPts.push(d.position.x, d.position.y, d.position.z, o.x, o.y, o.z); tCols.push(c.r, c.g, c.b, 0, 0, 0); });
+const tGeo = new THREE.BufferGeometry(); tGeo.setAttribute('position', new THREE.Float32BufferAttribute(tPts, 3)); tGeo.setAttribute('color', new THREE.Float32BufferAttribute(tCols, 3));
+const tLines = new THREE.LineSegments(tGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending })); inner.add(tLines);
+// 人の露のふち（埋もれないように）
+const selfRing = new THREE.Mesh(new THREE.TorusGeometry(.4, .006, 6, 64), new THREE.MeshBasicMaterial({ color: '#f3e6c8', transparent: true, opacity: .7 })); iDrops[HUMAN].add(selfRing);
 // 具体↔抽象：外の各主体の上に、その受けとり方を写した小さな露（内の露と同じもの）。糸で体と結ぶ
 const absDrops = [], absHome = [], absLine = []; const absMat = absMatOuter;
 SUBJ.forEach((s, i) => {
@@ -339,8 +358,11 @@ function frame() {
     innerLayers.forEach((v, i) => { const u = v.material.uniforms; u.uT.value = t * (1 + i * .3); u.uI.value = 2.4 + rel * .6; v.rotation.y = t * .03 * (i + 1); });
     kPts.visible = false;
     // 自分の露は大きく真ん中寄りから、相対化とともにほかと同じ大きさ・同じ輪の上へ
-    iDrops.forEach((d, i) => { const self = i === HUMAN; const s = self ? THREE.MathUtils.lerp(2.2, 1, rel) : THREE.MathUtils.lerp(.75, 1, rel); d.scale.setScalar(s * (1 + focus[i] * .35)); d.children[0].material.opacity = .25 + focus[i] * .6 + rel * .2; });
+    iDrops.forEach((d, i) => { const self = i === HUMAN; const s = self ? THREE.MathUtils.lerp(1.15, 1, rel) : THREE.MathUtils.lerp(.75, 1, rel); d.scale.setScalar(s * (1 + focus[i] * .35)); d.children[0].material.opacity = .25 + focus[i] * .6 + rel * .2; });
     iLinks[0].material.opacity = rel * .28;
+    selfRing.lookAt(camera.position); selfRing.material.opacity = .3 + .15 * Math.sin(t * 1.2);
+    REF.forEach(([i, j], k) => { const a = iDrops[i], b = iDrops[j]; v3.subVectors(b.position, a.position).normalize().multiplyScalar(.32 * a.scale.x * .92).add(a.position); rPos.set([v3.x, v3.y, v3.z], k * 3); });
+    rGeo.attributes.position.needsUpdate = true;
     for (let i = 0; i < SUBJ.length; i++) { tmpC.set(SUBJ[i].col).lerp(white, .35); const P = v3b.copy(iDrops[i].position); for (let j = 0; j < iFN; j++) { const k = i * iFN + j; iT[k] = (iT[k] + dt * (.1 + focus[i] * .3)) % 1; const back = j % 3 === 0; const tt = back ? 1 - iT[k] : iT[k]; v3.copy(P).multiplyScalar(1 - tt); v3.y += Math.sin(tt * Math.PI) * .4; iPos.set([v3.x, v3.y, v3.z], k * 3); const a = (.3 + focus[i] + rel * .3) * Math.sin(Math.PI * iT[k]); iCol.set([tmpC.r * a, tmpC.g * a, tmpC.b * a], k * 3); } }
     iGeo.attributes.position.needsUpdate = iGeo.attributes.color.needsUpdate = true;
   }
