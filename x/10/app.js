@@ -2,8 +2,8 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261105ws3";
-import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105e";
+import { T, setLang, lang } from "./i18n.js?v=20261105f";
+import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
 import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027g";
@@ -186,6 +186,7 @@ const heightAt = (xmm, ymm) => {                       // x：左→右、y：�
 };
 let surf = null, params = null;
 const model = new TouchModel(), vibe = new Vibe(), sonic = new Sonic(SOUNDS);
+sonic.lag = vibe.ok ? .012 : 0;   // 振動のある端末は、振動子の立ち上がり（十数 ms）に音をそろえる
 vibe.onPulse = (ms, amp) => sonic.grain(ms, amp, model.speed);   // 振動と同じ刻みで、触れた音の一粒
 const cache = new Map(), maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 const tex = (src, srgb) => { const t = src instanceof HTMLCanvasElement ? new THREE.CanvasTexture(src) : new THREE.Texture(src); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso; t.needsUpdate = true; return t; };
@@ -617,6 +618,7 @@ resize();
   requestAnimationFrame(frame);
   setTimeout(() => { if (!said.hello) hello(); }, 1600);
   setTimeout(loadAoi, 350);
+  setTimeout(() => sonic.prefetch(), 400);   // 最初になぞる前に音を用意しておく
   // ほかの見本は、手が空いたときに先に読んでおく
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
   idle(() => SAMPLES.slice(1, 4).reduce((p, s) => p.then(() => loadSample(s).catch(() => {})), Promise.resolve()));

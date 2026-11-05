@@ -77,8 +77,8 @@ export class TouchModel {
 // 端末の振動（対応する端末だけ）。震えるたびに onPulse(ms, amp) を呼ぶ（音を同じ刻みで鳴らすため）。
 // 振動できない端末でも、同じ刻みで onPulse を呼ぶ（光の輪と音で確かめる）。
 export class Vibe {
-  // 凸の縁を越えるたびに 10〜20 ms の短い振動を 1 回。Web の振動は強さを変えられないので、
-  // 強さ＝振動の長さ（10〜20 ms）と、弱い縁を間引く割合（刻みの密度＝PWM のような刻み）で表す。
+  // 凸の縁を越えるたびに 15〜20 ms（弱い振動子でも立ち上がる長さ） の短い振動を 1 回。Web の振動は強さを変えられないので、
+  // 強さ＝振動の長さ（15〜20 ms）と、弱い縁を間引く割合（刻みの密度＝PWM のような刻み）で表す。
   // 呼びすぎで詰まらないよう、前の振動の始まりから GAP（33）ms は次を出さない（そのあいだの縁は強い方を一つに束ねる）。
   constructor() { this.ok = typeof navigator !== "undefined" && "vibrate" in navigator; this.on = this.ok; this.last = -1e9; this.onPulse = null; this.armed = false; this.pend = 0; this.log = []; this.GAP = 33; }
   can() { if (!(this.ok && this.on && this.armed)) return false; const u = navigator.userActivation; return !u || u.hasBeenActive; }   // 端末が「利用者の操作のあと」と認めてから
@@ -89,7 +89,7 @@ export class Vibe {
   }
   edges(now, list) {                                     // list＝このこまで越えた縁の強さ（0..1）
     for (const a of list) if (a > .12 && (a > .35 || Math.random() < a / .35)) this.pend = Math.max(this.pend, a);
-    if (this.pend > 0 && now - this.last >= this.GAP) { const a = this.pend; this.pend = 0; this.fire(now, Math.round(10 + 10 * a), a); return a; }
+    if (this.pend > 0 && now - this.last >= this.GAP) { const a = this.pend; this.pend = 0; this.fire(now, Math.round(15 + 5 * a), a); return a; }
     return 0;
   }
   tap() { if (this.can()) try { navigator.vibrate(12); } catch (e) { /* 何もしない */ } }
@@ -104,15 +104,19 @@ export class Sonic {
   constructor(sounds, base = "snd/") {
     this.AC = typeof window !== "undefined" ? (window.AudioContext || window.webkitAudioContext) : null;
     this.ok = !!this.AC && typeof fetch !== "undefined"; this.on = this.ok; this.ctx = null; this.p = null; this.p0 = null;
-    this.S = sounds; this.base = base; this.mat = null; this.bufs = new Map(); this.dec = new Map(); this.lv = new Map();
+    this.S = sounds; this.base = base; this.lag = 0;   // lag＝振動子の立ち上がりに合わせて音を遅らせる秒数
+    this.mat = null; this.bufs = new Map(); this.dec = new Map(); this.lv = new Map();
     try { if (localStorage.getItem("qt-sound") === "off") this.on = false; } catch (e) { /* 保存できない端末は入から */ }
   }
   setSurface(params, p0) { this.p = params; this.p0 = p0 || params; }
   setMaterial(m) { if (!this.S[m]) return; this.mat = m; if (this.ctx) this.load(m); }
+  // 最初に触れる前に、音を読んで解いておく（再生しない解き役＝OfflineAudioContext は利用者の操作なしで使える）
+  decoder() { if (this.ctx) return this.ctx; const O = window.OfflineAudioContext || window.webkitOfflineAudioContext; return this._off || (this._off = O ? new O(1, 1, 48000) : null) || { decodeAudioData: (a, ok, ng) => ng(new Error("no decoder")) }; }
+  prefetch() { if (this.ok && this.on && this.mat) this.load(this.mat); }
   load(m) {
     if (this.bufs.has(m)) return this.bufs.get(m);
     const pr = fetch(this.base + m + ".m4a?v=20261021").then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-      .then(ab => new Promise((ok, ng) => { const q = this.ctx.decodeAudioData(ab, ok, ng); if (q && q.catch) q.catch(ng); }))
+      .then(ab => new Promise((ok, ng) => { const q = this.decoder().decodeAudioData(ab, ok, ng); if (q && q.catch) q.catch(ng); }))
       .then(buf => {   // なでる音の帯を 10 ms ごとの大きさにし、静か〜大きい順に並べておく（強さで使う所を選ぶ）
         const d = buf.getChannelData(0), sr = buf.sampleRate, [s0, sl] = this.S[m].stroke, hop = Math.round(sr * .01), a = Math.round(s0 * sr), n = Math.floor(sl * sr / hop) - 12, env = [];
         for (let i = 0; i < n; i++) { let e = 0; for (let k = 0; k < hop; k++) { const v = d[a + i * hop + k] || 0; e += v * v; } env.push([i * hop / sr + s0, e]); }
@@ -138,7 +142,7 @@ export class Sonic {
   ready() { return this.ok && this.on && this.ctx && this.ctx.state === "running" && this.p && this.mat; }
   // 鳴らす。buf の [at, len] を、rate の速さ・vol の大きさ・cut の高い音の通りで
   play(buf, at, len, rate, vol, cut, atk) {
-    const c = this.ctx, t = c.currentTime + .004, dur = len / rate;
+    const c = this.ctx, t = c.currentTime + .004 + this.lag, dur = len / rate;
     const s = c.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate;
     const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = Math.min(18000, cut); lp.Q.value = .5;
     const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + atk);
