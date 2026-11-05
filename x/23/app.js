@@ -238,12 +238,17 @@ const REF = []; iDrops.forEach((a, i) => { iDrops.map((b, j) => [j, a.position.d
 const rPos = new Float32Array(REF.length * 3), rCol = new Float32Array(REF.length * 3);
 REF.forEach(([i, j], k) => { const c = new THREE.Color(SUBJ[j].col).lerp(new THREE.Color(1, 1, 1), .35); rCol.set([c.r, c.g, c.b], k * 3); });
 const rGeo = new THREE.BufferGeometry(); rGeo.setAttribute('position', new THREE.BufferAttribute(rPos, 3)); rGeo.setAttribute('color', new THREE.BufferAttribute(rCol, 3));
-inner.add(new THREE.Points(rGeo, new THREE.PointsMaterial({ size: .3, map: dotTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+inner.add(new THREE.Points(rGeo, new THREE.PointsMaterial({ size: .18, map: dotTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
 // 各露から外の体の方へ残る細い糸（体→露→体の往き来）
 const tPts = [], tCols = []; iDrops.forEach((d, i) => { const o = d.position.clone().multiplyScalar(1.35); const c = new THREE.Color(SUBJ[i].col); tPts.push(d.position.x, d.position.y, d.position.z, o.x, o.y, o.z); tCols.push(c.r, c.g, c.b, 0, 0, 0); });
 const tGeo = new THREE.BufferGeometry(); tGeo.setAttribute('position', new THREE.Float32BufferAttribute(tPts, 3)); tGeo.setAttribute('color', new THREE.Float32BufferAttribute(tCols, 3));
 const tLines = new THREE.LineSegments(tGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending })); inner.add(tLines);
 // 人の露のふち（埋もれないように）
+// 帝網：近い露どうしを結ぶ網（相対化が進むほど光る）
+const nSeg = [], beads = []; REF.forEach(([i, j]) => { if (!(i < j || !REF.some(([a, b]) => a === j && b === i))) return; const A = iDrops[i].position, B = iDrops[j].position, sag = A.distanceTo(B) * .12; let prev = A.clone();
+  for (let k = 1; k <= 10; k++) { const u = k / 10, p = A.clone().lerp(B, u); p.y -= Math.sin(u * Math.PI) * sag; nSeg.push(prev, p); if (k % 2 && k < 10) beads.push(p.x, p.y - .02, p.z); prev = p; } });   // 糸はたわみ、露の粒が並ぶ
+const netLines = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(nSeg), new THREE.LineBasicMaterial({ color: '#e8f2ee', transparent: true, opacity: .2, depthWrite: false })); inner.add(netLines);
+{ const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(beads, 3)); inner.add(new THREE.Points(g, new THREE.PointsMaterial({ size: .07, map: dotTex, color: '#f4f8f4', transparent: true, opacity: .7, depthWrite: false }))); }
 const selfRing = new THREE.Mesh(new THREE.TorusGeometry(.4, .006, 6, 64), new THREE.MeshBasicMaterial({ color: '#f3e6c8', transparent: true, opacity: .7 })); iDrops[HUMAN].add(selfRing);
 // 具体↔抽象：外の各主体の上に、その受けとり方を写した小さな露（内の露と同じもの）。糸で体と結ぶ
 const absDrops = [], absHome = [], absLine = []; const absMat = absMatOuter;
@@ -275,7 +280,7 @@ setTimeout(async () => {
 const capEl = document.getElementById('cap'); let capTimer = 0;
 const noteEl = document.getElementById('note');
 function say(t, ms = 6000) { capEl.textContent = t; capEl.classList.add('on'); noteEl.classList.remove('on'); clearTimeout(capTimer); capTimer = setTimeout(() => { capEl.classList.remove('on'); noteEl.classList.add('on'); }, ms); }
-const touched = new Set(); let rel = 0; // 相対化の進み 0→1
+const touched = new Set(); let rel = /[?&]rel=1/.test(location.search) ? 1 : 0;   // ?rel=1＝相対化が進んだあとの画を確かめる // 相対化の進み 0→1
 let mode = 'outer', trans = 0, transDir = 0;
 
 // ───────── 操作：なぞって回る・触れる ─────────
@@ -318,8 +323,8 @@ function swapMode() {
   mode = mode === 'outer' ? 'inner' : 'outer';
   outer.visible = mode === 'outer'; inner.visible = mode === 'inner';
   go.textContent = mode === 'outer' ? '内へ' : '外へ';
-  if (mode === 'inner') { view.tgt.set(0, 0, 0); inner.scale.setScalar(Math.min(1, camera.aspect * 1.15)); view.dist = 9.5; view.pitch = .12; say('体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
-  else { view.tgt.set(0, 1.3, -2); view.dist = MOBILE ? 9.5 : 8; say(rel > .6 ? 'どれも中心ではない。映し合い、場を変え、変わった場がまた受けとられる。その全体が、一つの系。' : '露を、それぞれの体へ戻す。同じ参道が、重なりに見えてくる。', 9000); }
+  if (mode === 'inner') { view.tgt.set(0, camera.aspect < .7 ? -.7 : 0, 0); inner.scale.setScalar(Math.min(1, camera.aspect * 1.15)); view.dist = 9.5; view.pitch = .12; say('体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
+  else { view.tgt.set(0, 1.3, -2); view.dist = MOBILE ? 9.5 : 8; say(rel > .6 ? 'どれも中心ではない。映し合い、場を変え、変わった場がまた受けとられる。その全体が、ひとつの網。' : '露を体へ戻す。同じ参道が、重なって見える。', 9000); }
 }
 
 // 環境の写し（露の映り込み）：はじめと碧が来たときだけ
@@ -333,7 +338,7 @@ function frame() {
   const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
   // 相対化の進み：触れた数と内外の往き来で進む（ゆっくり）
   const target = Math.min(1, touched.size / 8 + (touched.has('drop') ? .1 : 0));
-  rel += (target - rel) * dt * .4;
+  if (!/[?&]rel=1/.test(location.search)) rel += (target - rel) * dt * .4;
   if (!said2 && t > 9 && mode === 'outer') { said2 = true; say('触れると、その受けとり方が濃くなる。木のあいだの糸の露にも。', 6500); }
   if (!saidEnd && rel > .85) { saidEnd = true; setTimeout(() => say('受けとり、覚え、意味をつける。その働きが場に戻る。一人の受けとり方は、網の目の一つ。', 10000), 800); }
   for (let i = 0; i < SUBJ.length; i++) focus[i] = Math.max(0, focus[i] - dt * .12);
@@ -355,11 +360,11 @@ function frame() {
     if (bodies.worm) bodies.worm.rotation.y = t * .05;
     if (AM) { AM.lookAt(camera.position); AM.update(dt, camera); }
   } else {
-    innerLayers.forEach((v, i) => { const u = v.material.uniforms; u.uT.value = t * (1 + i * .3); u.uI.value = 2.4 + rel * .6; v.rotation.y = t * .03 * (i + 1); });
+    innerLayers.forEach((v, i) => { const u = v.material.uniforms; u.uT.value = t * (1 + i * .3); u.uI.value = 1.3 - rel * .8; v.rotation.y = t * .03 * (i + 1); });
     kPts.visible = false;
     // 自分の露は大きく真ん中寄りから、相対化とともにほかと同じ大きさ・同じ輪の上へ
-    iDrops.forEach((d, i) => { const self = i === HUMAN; const s = self ? THREE.MathUtils.lerp(1.15, 1, rel) : THREE.MathUtils.lerp(.75, 1, rel); d.scale.setScalar(s * (1 + focus[i] * .35)); d.children[0].material.opacity = .25 + focus[i] * .6 + rel * .2; });
-    iLinks[0].material.opacity = rel * .28;
+    iDrops.forEach((d, i) => { const self = i === HUMAN; const s = self ? THREE.MathUtils.lerp(1.15, .9, rel) : THREE.MathUtils.lerp(.75, 1, rel); d.scale.setScalar(s * (1 + focus[i] * .35)); d.children[0].material.opacity = .25 + focus[i] * .6 + rel * .2; });
+    iLinks[0].material.opacity = 0; netLines.material.opacity = .16 + rel * .2;
     selfRing.lookAt(camera.position); selfRing.material.opacity = .3 + .15 * Math.sin(t * 1.2);
     REF.forEach(([i, j], k) => { const a = iDrops[i], b = iDrops[j]; v3.subVectors(b.position, a.position).normalize().multiplyScalar(.32 * a.scale.x * .92).add(a.position); rPos.set([v3.x, v3.y, v3.z], k * 3); });
     rGeo.attributes.position.needsUpdate = true;

@@ -17,7 +17,7 @@ export const VOICE = {
 };
 const SCALE = [0, 2, 4, 7, 9]; // 五音（音色側の作り）
 const degHz = (d, key) => { const o = Math.floor(d / 5), k = ((d % 5) + 5) % 5; return 220 * Math.pow(2, (SCALE[k] + 12 * o + key) / 12); };
-let key = 0, keyTarget = 0;
+let key = 0, keyTarget = 0, lastRel = -1;
 
 export function start(ids) {
   if (started) { if (ctx.state === 'suspended') ctx.resume(); return; } started = true;
@@ -48,10 +48,10 @@ function blip(vo, t, hz, len, amp) {
 export function update(levels, pans, inner, rel) {
   if (!ctx) return; const now = ctx.currentTime;
   keyTarget = inner ? 5 : 0; key += (keyTarget - key) * .02; // 外⇄内で調が移る（四度）
-  netGain.gain.setTargetAtTime(.05 + rel * .35, now, .3); netFb.gain.setTargetAtTime(.3 + rel * .25, now, .5);
+  if (Math.abs(rel - lastRel) > .01) { lastRel = rel; netGain.gain.setTargetAtTime(.05 + rel * .35, now, .3); netFb.gain.setTargetAtTime(.3 + rel * .25, now, .5); }
   voices.forEach((vo, i) => {
     const L = levels[i]; if (L === 0 && vo.lastL === 0) return; const pv = Math.max(-1, Math.min(1, pans[i])); if (Math.abs(pv - (vo.lastP ?? 9)) > .01) { vo.pan.pan.setTargetAtTime(pv, now, .05); vo.lastP = pv; } const ch = Math.abs(L - (vo.lastL ?? 9)) > .01; vo.lastL = L;
-    if (vo.osc) { if (!ch && Math.abs(key - keyTarget) < .01) return; vo.g.gain.setTargetAtTime(L * (vo.id === 'bee' ? .018 : .07), now, .2); if (vo.v.deg !== undefined) vo.osc.frequency.setTargetAtTime(degHz(vo.v.deg, key), now, .3); return; }
+    if (vo.osc) { if (!ch && Math.abs(key - keyTarget) < .01) return; vo.g.gain.setTargetAtTime(L * (vo.id === 'bee' ? .012 : .07), now, .2); if (vo.v.deg !== undefined) vo.osc.frequency.setTargetAtTime(degHz(vo.v.deg, key), now, .3); return; }
     if (ch) vo.g.gain.setTargetAtTime(L > .01 ? 1 : 0, now, .1);
     if (L > .01 && now + .08 > vo.next) {
       const t = Math.max(now + .01, vo.next);
