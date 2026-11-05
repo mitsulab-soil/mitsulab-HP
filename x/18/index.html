@@ -55,6 +55,7 @@ body.empty #topr{opacity:.38;transition:opacity .6s}body.empty #topr:hover,body.
 #who[hidden]{display:none}#q small#qn{display:block;margin-top:2px;font-size:10px;letter-spacing:.14em;color:var(--ml-ink-3)}
 #bWipe{margin-left:26px;opacity:.8}#bView[aria-pressed="true"]{background:rgba(168,242,246,.28)!important;border-color:rgba(168,242,246,.8)!important;color:#fff!important}#topr{pointer-events:none}#topr>*{pointer-events:auto}
 .mu-btn.ok{animation:okf .7s}@keyframes okf{0%{background:rgba(168,242,246,.45)}100%{}}
+@media (max-width:440px){body.side #sub{bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 118px)}}
 #q #note{margin-top:4px;font-size:10.5px;letter-spacing:.08em}
 body:not(.solo) #note{display:none}
 @media (max-width:440px){#brand{display:block!important;font-size:11px;letter-spacing:.12em}#topr .mu-btn{padding-left:9px;padding-right:9px}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px)}#cr{right:0;left:0;text-align:center}#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}

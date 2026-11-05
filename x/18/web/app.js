@@ -23,7 +23,7 @@ const WHO = [
   { k: "hito", n: "わたし", say: "" },
   { k: "hachi", n: "ミツバチ", say: "ミツバチは、赤が暗く、紫外が見える。カメラに紫外は写らないので、色は模式です。" },
   { k: "suzume", n: "スズメ", say: "鳥は四つの色で見る。色の差を強めた模式です。" },
-  { k: "tanuki", n: "タヌキ", say: "タヌキは二つの色で見て、においをよく使うとされる。においは写らないので、においのもとを撮ってください。写真の色は、赤と緑が近づく模式です。" },
+  { k: "tanuki", n: "タヌキ", say: "タヌキはイヌ科。イヌ科の多くは二つの色で見て、においをよく使うとされる。においは写らないので、においのもとを撮ってください。写真の色は、赤と緑が近づく模式です。" },
 ];
 function lens(k, d) { // d: ImageData.data
   if (k === "hito") return;
@@ -59,7 +59,7 @@ const params = new URLSearchParams(location.search);
 /* 2026-11-04 本人：公開の版は共有しない（端末の中だけ）。ワークショップの会場では ?ws=1 の入口で「渡す・受けとる」を出す。 */
 const SHARE = params.get("ws") === "1";
 document.body.classList.toggle("solo", !SHARE);
-function setQ(t, v) { $("qt").textContent = t; mine.q = t; const f = QFIT[QS.indexOf(t)]; if (f) { sense = f[0]; who = f[1]; if ($("sense").firstChild) buildRows(); } if (v) speak(t); const w = WHO.find(x => x.k === who); if (v && !w?.say) { clearTimeout(subT); $("sub").style.opacity = 0; }   // 問いを変えたら前の字幕を残さない
+function setQ(t, v) { $("qt").textContent = t; mine.q = t; const f = QFIT[QS.indexOf(t)]; if (f) { sense = f[0]; who = f[1]; if ($("sense").firstChild) buildRows(); } if (v) speak(t); const w = WHO.find(x => x.k === who); if (v && !w?.say) { clearTimeout(subT); hush(); $("sub").style.opacity = 0; $("sub").innerHTML = ""; }   // 問いを変えたら前の字幕を残さない
   if (w?.say) { if (v) say(w.say, 9000); else setTimeout(() => { if (mine.q === t) say(w.say, 9000); }, 400); } }   // 2026-11-05：生き物の問いでは「模式」の一言を必ず出す
 
 /* ---------- 下の並び ---------- */
@@ -311,7 +311,7 @@ $("bWipe").onclick = async () => { if (!wipeAsk) { wipeMode(true); say("自分�
   say("この端末から、層を消しました。", 0); };
 
 /* ---------- 重ねる ⇄ 並べる ---------- */
-function viewLab() { $("bView").textContent = view === "stack" ? "並べる" : "重ねる"; $("bView").setAttribute("aria-pressed", String(view === "side")); }
+function viewLab() { document.body.classList.toggle("side", view === "side"); $("bView").textContent = view === "stack" ? "並べる" : "重ねる"; $("bView").setAttribute("aria-pressed", String(view === "side")); }
 $("bView").onclick = () => { view = view === "stack" ? "side" : "stack"; viewLab(); layout();
   say(view === "side" ? "一人ひとりの層を、並べました。" : "みんなの層を、一つの場に重ねました。", 2600); };
 $("q").onclick = () => { if (params.get("q")) return; qi = (qi + 1) % QS.length; setQ(QS[qi], 1); };
