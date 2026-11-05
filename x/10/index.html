@@ -16,9 +16,9 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css?v=20261027q">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="app.js?v=20261105w">
+<link rel="modulepreload" href="app.js?v=20261105ws">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="i18n.js?v=20261027g">
+<link rel="modulepreload" href="i18n.js?v=20261105ws">
 <link rel="modulepreload" href="haptics.js?v=20261021">
 <link rel="modulepreload" href="estimate.js">
 <link rel="modulepreload" href="sounds.js?v=20261021">
@@ -33,7 +33,8 @@
 .brand .ml-title{font:600 16px/1 var(--mu-serif);letter-spacing:.12em;color:#fff;text-shadow:var(--mu-shadow)}
 .ml-btn{border-radius:var(--mu-r);font:600 13.5px/1 var(--mu-serif);letter-spacing:.1em;min-height:var(--mu-hit);background:var(--mu-panel);border:1px solid var(--mu-line);color:var(--mu-ink);backdrop-filter:var(--mu-blur);-webkit-backdrop-filter:var(--mu-blur);transition:border-color var(--mu-t) var(--mu-ease),color var(--mu-t) var(--mu-ease)}.ml-btn:hover{border-color:var(--mu-line-on)}.ml-btn--primary{border-color:var(--mu-aoi);color:var(--mu-aoi-2)}#cap{font-family:var(--mu-serif);letter-spacing:.04em;color:var(--mu-ink);text-shadow:0 0 2px rgba(3,6,15,.95),0 1px 10px rgba(3,6,15,.85);background:none!important;border:0!important;box-shadow:none!important;word-break:auto-phrase;text-wrap:balance}
 @media (max-width:420px){.brand .ml-title{font-size:13.5px;letter-spacing:.06em}}
-.ws-shoot{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;padding:0 20px;min-height:48px;cursor:pointer;z-index:5;white-space:nowrap}.ws-shoot input{position:absolute;width:1px;height:1px;opacity:0}
+.ws-shoot{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;padding:0 20px;min-height:48px;cursor:pointer;z-index:5;white-space:nowrap}#stage:has(#wsShoot:not([hidden])) #cap{bottom:calc(176px + env(safe-area-inset-bottom))}
+.ws-shoot input{position:absolute;width:1px;height:1px;opacity:0}
 </style>
 </head>
 <body class="ml-root">
@@ -110,6 +111,6 @@
   </div>
 </dialog>
 
-<script type="module" src="app.js?v=20261105w"></script>
+<script type="module" src="app.js?v=20261105ws"></script>
 </body>
 </html>

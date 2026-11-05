@@ -67,7 +67,7 @@ function buildRows() {
 const HINT = {"touch": "触れて感じた所を撮ってください。触れるの印が付きます。", "smell": "においのもとを撮るか、そこの音を録ってください。嗅ぐの印が付きます。", "taste": "味わったものを撮ってください。味わうの印が付きます。", "x": "人にない感覚で感じそうな所を撮ってください。X 感の印が付きます。"};
 $("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.k !== sense && HINT[b.dataset.k]) say(HINT[b.dataset.k], 0); /* 次の一言まで残す（聞き逃しても読める） */ sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
 $("who").onclick = e => { const b = e.target.closest("button"); if (!b) return; who = b.dataset.k; buildRows(); const w = WHO.find(x => x.k === who); if (w.say) say(w.say); };
-function count() { $("cnt").textContent = `${mine.items.length}/${MAX}`; }
+function count() { $("cnt").textContent = `${mine.items.length}/${MAX}`; document.body.classList.toggle("empty", !mine.items.length && !(others && others.length)); }   // 2026-11-05：まだ何も無いうちは上の並びを控えめに
 
 /* ---------- 3D ---------- */
 const cv = $("c");
@@ -143,7 +143,7 @@ function tags(Ls) { if (!THREE) return; if (!tagG) { tagG = new THREE.Group(); S
     sp.scale.set(me ? .86 : .8, me ? .32 : .3, 1); sp.position.set((li - (n - 1) / 2) * .62, -.1, .2); tagG.add(sp); }); }
 function allLayers() { return [mine, ...others]; }
 let focusSense = null;
-function layout() {
+function layout() { document.body.classList.toggle("empty", !mine.items.length && !others.length);
   $("bView").setAttribute("aria-pressed", view === "side"); if (!THREE) return;
   const Ls = allLayers();
   for (const [id, m] of meshes) if (!Ls.some(L => L.items.some(i => L.id + ":" + i.id === id))) { items.remove(m.obj); meshes.delete(id); }

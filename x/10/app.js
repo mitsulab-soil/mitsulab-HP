@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261027g";
+import { T, setLang, lang } from "./i18n.js?v=20261105ws";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261021";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -312,7 +312,7 @@ async function onFile(e) {
     if (photoSurf) for (const k of ["map", "normalMap", "roughMap", "dispMap"]) photoSurf[k].dispose();
     photoSurf = { id: "photo", origin: "photo", material: null, map: tex(r.color, true), normalMap: tex(r.normalCanvas), roughMap: tex(r.roughCanvas), dispMap: tex(softDisp(r.height)), H: r.height, p0: r.params, metal: 0, nBase: 1, snd: nearestSnd(r.params) };
     const tc = $("#photoThumb").getContext("2d"); tc.drawImage(r.color, 0, 0, 48, 48);
-    photoChip.hidden = false; closeTray(); applySurface(photoSurf); say("aoi.photo", 7500); aoiReact();
+    photoChip.hidden = false; closeTray(); applySurface(photoSurf); say(WS ? "aoi.wsphoto" : "aoi.photo", 7500); aoiReact();
   } catch (err) { console.warn(err); $("#err").textContent = T("err.photo"); $("#err").hidden = false; }
   finally { busy(false); }
 }
@@ -449,7 +449,7 @@ const end = e => {
   if (drag) { drag = null; cv.classList.remove("grabbing"); return; }
   if (!touch || e.pointerId !== touch.id) return;
   endStroke();
-  if (!said.zoomhint && strokeMs > 900) { said.zoomhint = true; setTimeout(() => { if (!touch && !capKey) say(MOBILE ? "aoi.zoom" : "aoi.zoom.pc", 7000); }, 900); }
+  if (!WS && !said.zoomhint && strokeMs > 900) { said.zoomhint = true; setTimeout(() => { if (!touch && !capKey) say(MOBILE ? "aoi.zoom" : "aoi.zoom.pc", 7000); }, 900); }
 };
 cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
 function addTrail(a, b, start) {
@@ -498,7 +498,8 @@ function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 
 // ---- 碧の字幕
 // はじめに一度だけ名乗り、そのあとに触れ方を伝える（触れはじめたら名乗りは切りあげる）
-function hello() { said.hello = true; say("aoi.name", 8600); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 8800); }   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
+const WS = /[?&]ws=1/.test(location.search);   // 2026-11-05 ワークショップ（触覚さがし）
+function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.name", 8600); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 8800); }   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
 let capKey = null, capTimer = 0;
 function say(k, ms = 6000) {
   said[k.replace("aoi.", "")] = true; capKey = k; const c = $("#cap"); c.textContent = T(k); c.classList.add("on");
