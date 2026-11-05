@@ -29,8 +29,8 @@ const EM = {   // 手がかり（体の前、胸の高さに浮かぶ）
   tsuchi: () => [new THREE.SphereGeometry(.034, 12, 8).scale(1.2, .7, 1.1), new THREE.MeshStandardMaterial({ color: 0x6a4e36, roughness: .95 })],
 };
 export class MachiYori {
-  constructor({ scene, camera, dom, groundAt = () => 0, active = () => true, aoi = () => null }) {
-    Object.assign(this, { scene, camera, groundAt, active, aoi });
+  constructor({ scene, camera, dom, groundAt = () => 0, active = () => true, aoi = () => null, onGreet = null }) {
+    Object.assign(this, { scene, camera, groundAt, active, aoi, onGreet });
     /* 11-05 遠くからの目印：足もとの淡い水色の輪（全員で一つの形・材質。加算で光る。1 体 1 描画） */
     this.ringG = new THREE.RingGeometry(.16, .25, 32).rotateX(-Math.PI / 2); this.ringM = new THREE.MeshBasicMaterial({ color: 0x9fd2d6, transparent: true, opacity: .5, depthWrite: false, blending: THREE.AdditiveBlending }); this.items = []; this.t = 0;
     this.geo = bodyGeo(); this.mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0 });
@@ -61,7 +61,9 @@ export class MachiYori {
       const R = it.root, d = Math.hypot(R.position.x - cp.x, R.position.z - cp.z); R.visible = d < 40 && this.active(); if (!R.visible) continue;
       if (((it.gt ??= 0) - dt) < 0 || (it.gt -= dt) < 0) { it.gt = .6; R.position.y = this.groundAt(R.position.x, R.position.z); }   // 足もとは描いている面に合わせなおす（読みこみの前後で高さが変わる）
       const A = this.aoi(), da = A ? Math.hypot(A.x - R.position.x, A.z - R.position.z) : 99;   // 11-05 碧と仲良く：碧が 3 m に来ると碧へ向き、一度だけ小さく弾む
-      if (da < 3 && !it.met) { it.met = true; it.hop = Math.max(it.hop, .8); } else if (da > 6) it.met = false;
+      if (da < 3 && !it.met) { it.met = true; it.hop = Math.max(it.hop, .8); it.ct = 4 + Math.random() * 2; this.onGreet?.(it); } else if (da > 6) it.met = false;
+      if (da < 3 && (it.ct -= dt) < 0) { it.ct = 5 + Math.random() * 3; it.hop = Math.max(it.hop, .45); if (Math.random() < .5) this.onGreet?.(it); }   // 11-05 碧と仲良く：碧がそばにいるあいだは、ときどき小さく弾んで応える（碧も目をやる）
+      it.lean = (it.lean || 0) + ((da < 3 ? .07 : 0) - (it.lean || 0)) * Math.min(1, dt * 3); it.sway.rotation.x = it.lean;   // 碧の方へ少し身を寄せる
       const want = da < 3 ? Math.atan2(A.x - R.position.x, A.z - R.position.z) : d < 6 ? Math.atan2(cp.x - R.position.x, cp.z - R.position.z) : it.yaw;   // 近づくと見る人の方へ向く
       { const far = THREE.MathUtils.smoothstep(d, 6, 14) * (1 - THREE.MathUtils.smoothstep(d, 32, 40)); it.ring.material.opacity = far * (.32 + .18 * Math.sin(t * 1.8 + it.ph)); it.ring.visible = far > .02; it.ring.scale.setScalar(1 + far * 1.4); }   // 遠く（6〜40 m）ではかすかに光る輪、近くでは消える
       R.rotation.y += Math.atan2(Math.sin(want - R.rotation.y), Math.cos(want - R.rotation.y)) * Math.min(1, dt * 3);

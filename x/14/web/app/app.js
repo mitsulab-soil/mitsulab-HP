@@ -431,8 +431,11 @@ function paveStreets(list, parent) {   // list＝[{k, P, w}]
   const by = { T: [], M: [] }; for (const r of list) if (by[r.k] && r.P.length > 1) by[r.k].push(ribbon(densify(r.P, 3), r.w, .07 + r.w * .002, r.k === "T" ? 2.4 : 1.6));
   for (const k in by) if (by[k].length) { const m = new THREE.Mesh(mergeIdx(by[k]), paveMat(k)); m.renderOrder = 1; m.name = "pave_" + k; (parent || world).add(m); if (!parent) (QW.paveSt ||= []).push(m); }
 }
-function mergeIdx(gs) { let n = 0; const P = [], U = [], N = [], I = []; for (const g of gs) { const p = g.attributes.position.array, u = g.attributes.uv.array, nn = g.attributes.normal.array, ix = g.index.array; for (let i = 0; i < p.length; i++) P.push(p[i]); for (let i = 0; i < u.length; i++) U.push(u[i]); for (let i = 0; i < nn.length; i++) N.push(nn[i]); for (let i = 0; i < ix.length; i++) I.push(ix[i] + n); n += p.length / 3; g.dispose(); }
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(U, 2)); g.setAttribute("normal", new THREE.Float32BufferAttribute(N, 3)); g.setIndex(n > 65535 ? new THREE.Uint32BufferAttribute(I, 1) : new THREE.Uint16BufferAttribute(I, 1)); return g; }
+function mergeIdx(gs) {   // 11-05 起動：配列への push をやめ、はじめに大きさを数えて型つきの配列へ写す（中身は同じ）
+  let nv = 0, ni = 0; for (const g of gs) { nv += g.attributes.position.count; ni += g.index.count; }
+  const P = new Float32Array(nv * 3), U = new Float32Array(nv * 2), N = new Float32Array(nv * 3), I = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni); let v = 0, k = 0;
+  for (const g of gs) { const ix = g.index.array; P.set(g.attributes.position.array, v * 3); U.set(g.attributes.uv.array, v * 2); N.set(g.attributes.normal.array, v * 3); for (let i = 0; i < ix.length; i++) I[k + i] = ix[i] + v; k += ix.length; v += g.attributes.position.count; g.dispose(); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(P, 3)); g.setAttribute("uv", new THREE.BufferAttribute(U, 2)); g.setAttribute("normal", new THREE.BufferAttribute(N, 3)); g.setIndex(new THREE.BufferAttribute(I, 1)); return g; }
 function buildWater() {   // 渋谷：空の下の渋谷川（稲荷橋から下）は水の帯、暗渠（渋谷川・宇田川ほか。OSM の線）は足もとを流れる光の線（Qualia/nature の色・模式）
   const open = G.water.filter(w => !/暗渠/.test(w.nm) && w.k === "river").map(w => ribbon(densify(w.p, 3), 6, .2));
   if (open.length) { const m = new THREE.Mesh(mergeIdx(open), new THREE.MeshStandardMaterial({ color: "#22343a", roughness: .45, metalness: 0, envMapIntensity: .3, transparent: true, opacity: .9 })); m.name = "river"; world.add(m); }
@@ -868,6 +871,7 @@ const PARENT = { sho: "sound", history: "culture" }, SUBNAME = { sho: "sho", his
 const top5 = id => PARENT[id] || id;
 const COLOR5 = { sight: "#c9abe0", touch: "#f0d19d", sound: "#8fb6dc", nature: "#88b68f", culture: "#e79592" };   // 2026-10-23 本人「案１０で採用」：層の 5 色＝案 10（体の色：藤鼠 #a59fc3・砥粉 #d6c09b・藍鉄 #3a4360・老竹 #6c8d71・小豆 #864e4c）の、夜の地の HUD の線と字の列。sight と sound は夜の地で色相が近かったので、HUD の色だけ紫と青へ少し離した（体の色は変えない）
 function layerNo(id) { return ALL.findIndex(l => l.id === top5(id)) + 1; }
+function LB0() { const o = new THREE.Object3D(); o.material = {}; Object.defineProperty(o, "visible", { get: () => false, set() { } }); return o; }
 function buildObjs() {
   const rec = Object.fromEntries(C.layers.map(l => [l.id, l])), q = Object.fromEntries(QLAYERS.map(l => [l.id, { ...l, lead: C.ql[l.id] || l.lead }]));
   // 下から 01：記録の層（culture・nature）の上に、五感の層（sound・touch・sight）を重ねる。上から読むと sight・touch・sound・nature・culture
@@ -876,8 +880,8 @@ function buildObjs() {
   const add = (o, layer, kind) => {
     const L = GL[layer], m = makeMarker(layer, L.color, o.h || 1.8, MOBILE), y = o.bell ? groundY(o.x, o.z) : groundY(o.x, o.z);
     m.root.position.set(o.x, y, o.z); world.add(m.root);
-    const k6 = QAK({ o, layer, kind }), lb = makeLabel(layerNo(layer), k6 ? QAN(k6) : L.name, o.title, k6 ? QAC[k6] : L.color);   // 10-30：札も 6 層の名前 lb.position.set(o.x + .45, y + (o.h || 1.8) + .75, o.z); lb.userData.by = lb.position.y; world.add(lb);
-    for (const c of m.glyph.children) c.visible = false; m.beam.visible = false; m.base.visible = false;   // 2026-10-23 夜：線の印は描かず、かさねっこの形の結晶（qmarks.js）で描く
+    const k6 = QAK({ o, layer, kind }), lb = LB0();   /* 11-05 起動：名札の絵（512×128 の canvas を地点の数だけ）は画面に足していなかった（下の注記に world.add が入っていた）ので作らない。本人 11-02「札・カードは無くす」 */   // 10-30：札も 6 層の名前 lb.position.set(o.x + .45, y + (o.h || 1.8) + .75, o.z); lb.userData.by = lb.position.y; world.add(lb);
+    for (const c of m.glyph.children) c.visible = false; m.beam.visible = false; m.base.visible = false; m.glyph.clear(); m.root.remove(m.beam, m.base);   /* 11-05 軽さ：描かない線の印は木から外す（毎こまの位置の計算〔updateMatrixWorld〕を地点の数×10 減らす） */   // 2026-10-23 夜：線の印は描かず、かさねっこの形の結晶（qmarks.js）で描く
     LAYER.objs.push({ ...m, o, layer, kind, lb, show: 0 });
   };
   LAYER.add = add;   // 11-04 夜：あとから読む地点（loadMore）も同じ形で足す
@@ -908,7 +912,7 @@ function stepLayer(dt) {
   for (const L of LAYER.objs) {
     const on = LAYER.worn.includes(top5(L.layer)) && QW.mode !== "sight", d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z);
     const want = on ? (sky ? 1 : d < 140 ? 1 : 0) : 0; L.show += (want - L.show) * Math.min(1, dt * 4);
-    const vis = L.show > .02; L.root.visible = vis; L.lb.visible = vis && !L.qHide && (sky ? false : d < 90);   /* 10-28：札は見せている印と同じものだけ */   // 2026-10-26 遠くの目印も名を読めるように 34→58 m
+    const vis = L.show > .02; L.root.visible = vis; if (L.root.matrixAutoUpdate !== vis) { if (!vis) { L.root.updateMatrix(); L.glyph.updateMatrix(); } L.root.matrixAutoUpdate = L.glyph.matrixAutoUpdate = vis; }   /* 11-05 軽さ：見えない印は毎こまの位置の計算をしない */ L.lb.visible = vis && !L.qHide && (sky ? false : d < 90);   /* 10-28：札は見せている印と同じものだけ */   // 2026-10-26 遠くの目印も名を読めるように 34→58 m
     if (!vis) continue;
     const k = sky ? Math.min(14, Math.max(2.5, camera.position.distanceTo(L.root.position) / 60)) : 1;
     L.root.scale.setScalar(k * (.4 + .6 * L.show)); L.glyph.rotation.y = t * .6; L.glyph.position.y = (L.o.h || 1.8) + Math.sin(t * 1.4 + L.o.x) * .05;
@@ -1042,11 +1046,11 @@ async function startYorishiro() {
   try {
     const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y14");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
-    YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
+    YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z, true),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
     /* 11-04 本人：碧のデザインを受けつぐ町の依代（変身の対象ではない）。大宮と同じ kit/machiyori.js。近づいて触れると碧が、その印の出典つきの一行を感じ方の入口として話す */
     { const TOWN = { shizuku: "しずくのそばで、水の音に耳をすませてみます。", ishi: "石のそばで、石の肌に触れてみます。", ki: "木のそばで、幹を見上げてみます。", tsuchi: "土のそばで、足もとを確かめてみます。" };
-      const MY = YO.my = new (await import("../kit/machiyori.js?v=4")).MachiYori({ scene: world, camera, dom: renderer.domElement, groundAt: (x, z) => aoiFootY(x, z), active: () => QW.mode === "walk", aoi: () => AOI.m && AOI.root?.visible ? AOI.m.pos : null });
+      const MY = YO.my = new (await import("../kit/machiyori.js?v=5")).MachiYori({ scene: world, camera, dom: renderer.domElement, groundAt: (x, z) => aoiFootY(x, z, true), active: () => QW.mode === "walk", aoi: () => AOI.m && AOI.root?.visible ? AOI.m.pos : null, onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .35); AOI.gT = 1.2 + Math.random() * .5; } });   // 11-05 依代が碧へ弾んだら、碧もそちらへ目をやる
       const used = new Set(), TX = L => (L.o.title || "") + " " + (L.o.lines || []).map(l => l.t || "").join(" "), ANC = [...C.starts.filter(s => /ハチ公|金王|稲荷橋|神宮橋|代々木/.test(s.name || "")), C.starts[0]].map(stAt);
       for (const kind of Object.keys(TOWN)) { let n = 0;
         for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o && L.o.x != null).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 300).sort((p, q) => p[1] - q[1]).slice(0, 60).map(e => e[0]))) { if (n >= 3) break; if (used.has(L) || !YO_RE[kind].test(TX(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
@@ -1054,9 +1058,9 @@ async function startYorishiro() {
           used.add(L); n++; const pre = TOWN[kind];
           MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } }
       /* 11-05 本人：調べた候補の場所に町の依代を置く（出典＝資料/町の依代の候補_2026-11-05.md）。木・石・土はその場で揺れるだけ。話すのは碧（下に小さく字幕） */
-      for (const P of [{"k": "ki", "ll": [35.6576, 139.7062], "t": "区の天然記念物の桜。一つの枝に一重と八重が咲く。", "s": "渋谷区「区指定文化財」（金王桜）"}, {"k": "tsuchi", "ll": [35.6593, 139.7006], "t": "ここは谷の底。東も西も、坂を上ると地面が 10 メートル以上高い。", "s": "国土地理院の標高（5 m 格子）から計算"}, {"k": "ki", "ll": [35.6696, 139.7023], "t": "人がつくった森。全国から献木された木は約 10 万本。", "s": "明治神宮「明治神宮とは」"}, {"k": "ishi", "ll": [35.651, 139.7018], "t": "区の文化財の石の塔と道しるべ。江戸の中期以降に立った。", "s": "渋谷区「区指定文化財」（猿楽町の庚申塔・廿三夜塔・道標）"}]) { try { const [bx, bz] = [(P.ll[1] - G.origin[1]) * G.kx, -(P.ll[0] - G.origin[0]) * G.ky]; if (!isFinite(bx + bz)) continue; let ok = null;
-        for (let k = 0; k < 8; k++) { const a = k * .785, x = bx + Math.cos(a) * 1.4, z = bz + Math.sin(a) * 1.4; if (!inBld(x, z, .3)) { ok = [x, z]; break; } }
-        if (!ok) continue; const pre = TOWN[P.k], ln = { t: P.t, tc: P.t, src: P.s }; MY.add(P.k, { x: ok[0], z: ok[1], yaw: Math.atan2(bx - ok[0], bz - ok[1]) + Math.PI, scale: 1.5, onTouch: () => speakLines([{ t: pre, tc: pre }, ln], null, { narr: true }) }); } catch (e) { console.warn("machiyori", e); } } }
+      for (const P of [{"k": "ki", "ll": [35.65767, 139.70603], "pre": "木のそばで、桜の方を見上げてみます。", "t": "金王八幡宮に、区の天然記念物の桜。一つの枝に一重と八重が咲く。", "s": "渋谷区「区指定文化財」（金王桜）"}, {"k": "tsuchi", "ll": [35.6593, 139.7006], "t": "ここは谷の底。東も西も、坂を上ると地面が 10 メートル以上高い。", "s": "国土地理院の標高（5 m 格子）から計算"}, {"k": "ki", "ll": [35.6696, 139.7023], "t": "人がつくった森。全国から献木された木は約 10 万本。", "s": "明治神宮「明治神宮とは」"}, {"k": "ishi", "ll": [35.651, 139.7018], "t": "区の文化財の石の塔と道しるべ。江戸の中期以降に立った。", "s": "渋谷区「区指定文化財」（猿楽町の庚申塔・廿三夜塔・道標）"}, {"k": "ki", "ll": [35.6684, 139.6974], "pre": "木のそばで、森の高さを見上げてみます。", "t": "練兵場から選手村をへた公園。若かった木が育ち、隣の明治神宮の木々と森になった。", "s": "東京都公園協会「代々木公園」"}]) { try { const [bx, bz] = [(P.ll[1] - G.origin[1]) * G.kx, -(P.ll[0] - G.origin[0]) * G.ky]; if (!isFinite(bx + bz)) continue; let ok = null;
+        for (let k = 0; k < 40 && !ok; k++) { const a = k * .785, r = [1.4, 3, 5, 8, 12][k >> 3], x = bx + Math.cos(a) * r, z = bz + Math.sin(a) * r; if (!inBld(x, z, .3)) ok = [x, z]; }   // 11-05：建物の中しかないときは少し外へ（1.4→12 m）
+        if (!ok) continue; const pre = P.pre || TOWN[P.k], ln = { t: P.t, tc: P.t, src: P.s }; MY.add(P.k, { x: ok[0], z: ok[1], yaw: Math.atan2(bx - ok[0], bz - ok[1]) + Math.PI, scale: 1.5, onTouch: () => speakLines([{ t: pre, tc: pre, src: P.s }, ln], null, { narr: true }) }); /* 11-05 採点：誘いの一言の下にも、その一行の出典を（前の話の出典が残らないように） */ } catch (e) { console.warn("machiyori", e); } } }
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
       let yx = P.x + fz * .95 + fx * 1.8, yz = P.z - fx * .95 + fz * 1.8; if (inBld(yx, yz, .4)) { yx = P.x - fz * .95 + fx * 1.8; yz = P.z + fx * .95 + fz * 1.8; } if (inBld(yx, yz, .4)) { yx = (P.x + CAM.pos.x) / 2 + fz * .9; yz = (P.z + CAM.pos.z) / 2 - fx * .9; }   // 11-03：依代を建物の中に置かない（反対側か、碧と見る人のあいだへ）
@@ -1066,7 +1070,7 @@ async function startYorishiro() {
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
 function footHit(m, x, z, y0, y1) {
   let ix = FOOTIX.get(m);
-  if (!ix) { if (FOOTIX.building) return null; FOOTIX.building = true; try { ix = footIndex(m); } finally { FOOTIX.building = false; } FOOTIX.set(m, ix); return null; }
+  if (!ix) { FOOTIX.skip = true; if (FOOTIX.building || performance.now() - (FOOTIX.t || 0) < 150) return null; FOOTIX.building = true; FOOTIX.t = performance.now();   /* 11-05 索引づくりは 0.15 秒に一つまで（一こまに重ねない） */ try { ix = footIndex(m); } finally { FOOTIX.building = false; } FOOTIX.set(m, ix); return null; }
   const L = ix.c.get(Math.floor(x / 4) * 100003 + Math.floor(z / 4)); if (!L) return null; const P = ix.p; let best = null;
   for (const t of L) { const i = t * 9, ax = P[i], az = P[i + 2], bx = P[i + 3], bz = P[i + 5], cx = P[i + 6], cz = P[i + 8];
     const d = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz); if (Math.abs(d) < 1e-9) continue;
@@ -1074,22 +1078,28 @@ function footHit(m, x, z, y0, y1) {
     const yy = u * P[i + 1] + v * P[i + 4] + w * P[i + 7]; if (yy > y0 && yy < y1 && (best == null || yy > best)) best = yy; }
   return best;
 }
-function footIndex(m) {
-  const g = m.geometry, pos = g.attributes.position, idx = g.index, n = idx ? idx.count / 3 : pos.count / 3, P = new Float32Array(n * 9), c = new Map(), v = new THREE.Vector3(); m.updateWorldMatrix(true, false);
-  for (let t = 0; t < n; t++) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let k = 0; k < 3; k++) { const vi = idx ? idx.getX(t * 3 + k) : t * 3 + k; v.fromBufferAttribute(pos, vi).applyMatrix4(m.matrixWorld); P[t * 9 + k * 3] = v.x; P[t * 9 + k * 3 + 1] = v.y; P[t * 9 + k * 3 + 2] = v.z; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); z0 = Math.min(z0, v.z); z1 = Math.max(z1, v.z); }
+function footIndex(m) {   // 11-05 軽さ：配列を直に読み、行列が単位のときは掛けない（歩きだしの数百 ms の 1 こまをなくす。中身は同じ）
+  const g = m.geometry, pos = g.attributes.position, ix = g.index ? g.index.array : null, n = ix ? ix.length / 3 : pos.count / 3, P = new Float32Array(n * 9), c = new Map(); m.updateWorldMatrix(true, false);
+  const e = m.matrixWorld.elements, id = m.matrixWorld.equals(_I4), A = pos.isInterleavedBufferAttribute || pos.normalized ? null : pos.array, v = new THREE.Vector3();
+  for (let t = 0; t < n; t++) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; const o = t * 9;
+    for (let k = 0; k < 3; k++) { const vi = ix ? ix[t * 3 + k] : t * 3 + k; let x, y, z;
+      if (A) { x = A[vi * 3]; y = A[vi * 3 + 1]; z = A[vi * 3 + 2]; if (!id) { const X = x, Y = y, Z = z, w = 1 / (e[3] * X + e[7] * Y + e[11] * Z + e[15]); x = (e[0] * X + e[4] * Y + e[8] * Z + e[12]) * w; y = (e[1] * X + e[5] * Y + e[9] * Z + e[13]) * w; z = (e[2] * X + e[6] * Y + e[10] * Z + e[14]) * w; } }
+      else { v.fromBufferAttribute(pos, vi).applyMatrix4(m.matrixWorld); x = v.x; y = v.y; z = v.z; }
+      P[o + k * 3] = x; P[o + k * 3 + 1] = y; P[o + k * 3 + 2] = z; if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
     if (x1 - x0 > 60 || z1 - z0 > 60) continue;   // 立った壁・大きすぎる面は足もとにしない
     for (let cx = Math.floor(x0 / 4); cx <= Math.floor(x1 / 4); cx++) for (let cz = Math.floor(z0 / 4); cz <= Math.floor(z1 / 4); cz++) { const k = cx * 100003 + cz; let L = c.get(k); if (!L) c.set(k, L = []); L.push(t); } }
   return { p: P, c };
 }
-function aoiFootY(x, z) {   // 10-29：碧の足もと＝描いている面の高さ。重さの原因だった光線の当て方を軽く（1 m 四方で覚える・0.3 秒に一度だけ当てる・その点の上にある面だけに当てる）
+const _I4 = new THREE.Matrix4();
+function aoiFootY(x, z, own) {   // own＝町の依代など碧でないものの足もと（碧の差を使わず、碧の間引きの番もとらない）   // 10-29：碧の足もと＝描いている面の高さ。重さの原因だった光線の当て方を軽く（1 m 四方で覚える・0.3 秒に一度だけ当てる・その点の上にある面だけに当てる）
   const g = groundY(x, z), k = Math.round(x) + "," + Math.round(z), c = FOOT.m.get(k); if (c !== undefined) return g + c;
   const now = performance.now();
   if (!FOOT.list || now - FOOT.t > 5000) { FOOT.t = now; FOOT.list = []; const skip = AOI.root || null, bb = new THREE.Box3();
     (function walk(o) { if (o === skip || o.visible === false) return; if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !(o.material && (o.material.transparent || o.material.depthWrite === false))) { const ge = o.geometry; if (!ge.boundingBox) ge.computeBoundingBox(); bb.copy(ge.boundingBox).applyMatrix4(o.matrixWorld); FOOT.list.push({ o, x0: bb.min.x, x1: bb.max.x, z0: bb.min.z, z1: bb.max.z, y1: bb.max.y }); } for (const ch of o.children) walk(ch); })(world); }
-  if (now - FOOT.last < 300) return g + FOOT.off;   // 当てない間は、さっきの差のまま
-  FOOT.last = now; const cand = []; for (const e of FOOT.list) if (x >= e.x0 && x <= e.x1 && z >= e.z0 && z <= e.z1 && e.y1 > g - .3) cand.push(e.o);
+  if (!own && now - FOOT.last < 300) return g + FOOT.off;   // 当てない間は、さっきの差のまま
+  if (!own) FOOT.last = now; FOOTIX.skip = false; const cand = []; for (const e of FOOT.list) if (x >= e.x0 && x <= e.x1 && z >= e.z0 && z <= e.z1 && e.y1 > g - .3) cand.push(e.o);
   let y = g; for (const m of cand) { if (m === QW.terrain || m.name === "terrain" || m.name === "digiGround") continue; const h = footHit(m, x, z, g - .3, g + .9); if (h != null) y = Math.max(y, h); }   // 10-29 晩：地形（63 万面）に光線を当てていたのが PC の重さの元。地形は groundY で足り、ほかの面は 4 m の升目で引く
-  const off = Math.min(.9, y - g); FOOT.off = off; if (FOOT.m.size > 6000) FOOT.m.clear(); FOOT.m.set(k, off); return y;
+  const off = Math.min(.9, y - g); if (!own && !FOOTIX.skip) FOOT.off = off; /* 索引が欠けているときは前の差を保つ（碧が一瞬沈まないように） */ if (FOOT.m.size > 6000) FOOT.m.clear(); if (!FOOTIX.skip) FOOT.m.set(k, off); return y;   // 索引がまだの面があったときは覚えない（あとで正しく引く）
 }
 const FOOT = { m: new Map(), list: null, t: 0, last: 0, off: 0 }, _fr = new THREE.Raycaster(), _fd = new THREE.Vector3(0, -1, 0), _fo = new THREE.Vector3();
 let WL = null;
@@ -1932,7 +1942,7 @@ function frame0() {
   const dt = Math.min(.05, clock.getDelta());
   if (QW.bldLines) QW.bldLines.visible = QW.mode !== "walk";   // 11-02 採点 P1：歩くときは建物の輪郭の線（地面を横切る細い線に見える）を出さない
   if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); }   // 降りる動きのあいだに組む（歩きだしてからは組まない）   // 11-02：歩きはじめに影絵を前もって組み立てる（歩く途中の 100〜300 ms の 1 コマをなくす）
-  if (QW.ready) (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird })).update(dt, QW.mode === "walk");   // 11-03：鳥は操作できるようになってから
+  if (QW.ready) (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird, natural: true })).update(dt, QW.mode === "walk");   // 11-03：鳥は操作できるようになってから
   if (!stepTween(dt)) {
     if (QW.mode === "sky") { SKY.az += (SKY.tAz - SKY.az) * Math.min(1, dt * 5); SKY.el += (SKY.tEl - SKY.el) * Math.min(1, dt * 5); SKY.dist += (SKY.tDist - SKY.dist) * Math.min(1, dt * 5); if (!NAV.drag && !RM) SKY.tAz += dt * .02; skyCam(); }
     else if (QW.mode === "walk") { stepWalk(dt); NAV.update(dt); startQA(); QA?.update(dt); }
@@ -1989,7 +1999,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     const STAGE = []; for (const o of [...world.children, ...scene.children]) { if (o === world || o === camera || o.isLight || o === QW.terrain || o.name === "farGround") continue; const L = []; o.traverse(c => { L.push([c, c.layers.mask]); c.layers.set(31); }); STAGE.push(L); }
     renderer.setAnimationLoop(frame); QW.tm.l = performance.now() - T0;
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
+    document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; window.MLLoader?.done();   /* 11-05 起動：読み込み画面は ready のその場で閉じる（index.html の 60 ms ごとの見回りを待つと、あとの組み立てに先を越されて 1 秒あまり遅れていた） */ setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
     setTimeout(() => QW.late?.(), 30);
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
