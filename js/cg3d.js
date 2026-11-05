@@ -1,4 +1,4 @@
-// © mitsulab. 環世界のコモングラウンド＝Qualium（2026-11-05 第 3 版・分散の網）
+// © mitsulab. 環世界のコモングラウンド＝Qualium（2026-11-05 第 4 版・写実の土の地）
 // 場（フィジカル情報の層＝下・デジタル情報の層＝上）の中に、六つの主体（鳥・虫・人間・AI・センサー・GIS）がばらばらに立つ。
 // 環世界（ゆらぐ膜）は主体ごとに主体のまわりにあり、となりどうしで重なる。重なり U_i ∩ U_j が網のように広がる所がコモングラウンド。中心は一つに置かない。
 // 依代（碧）と町の依代は、中心ではなく、重なりと重なりのあいだに立つ一つ。U_i = g_i(P_i(E, B_i), K_i) の札は HTML（index.html）を 3D の位置へ写す。
@@ -26,13 +26,18 @@ export function start(box){
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
   const blob=(p,r)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:blobT,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(p.x,.012,p.z);W.add(m);};
   // ---- 地：暗い地に、デジタルの格子（水色）とフィジカルの等高線（砂色）。縁は闇に溶ける
-  { const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{t:{value:0}},
+  { const tl=new THREE.TextureLoader(), sc=tl.load('img/hero/3d/dio/soil_c.webp',()=>{dirty=1;}), sn=tl.load('img/hero/3d/dio/soil_n.webp',()=>{dirty=1;});
+    [sc,sn].forEach(x=>{x.wrapS=x.wrapT=THREE.RepeatWrapping;x.anisotropy=mob?2:8;}); sc.colorSpace=THREE.SRGBColorSpace;
+    const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{t:{value:0},sc:{value:sc},sn:{value:sn}},
       vertexShader:`varying vec2 v;void main(){v=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader:`varying vec2 v;uniform float t;void main(){float r=length(v);float fade=smoothstep(5.6,1.5,r);
+      fragmentShader:`varying vec2 v;uniform float t;uniform sampler2D sc,sn;void main(){float r=length(v);float fade=smoothstep(5.6,1.5,r);
+        vec3 so=texture2D(sc,v*.42).rgb*.55+texture2D(sc,v*.11+.3).rgb*.45;vec3 nn=texture2D(sn,v*.42).rgb*2.-1.;
+        float lit=clamp(.55+.45*dot(normalize(vec3(nn.xy,1.)),normalize(vec3(.45,.6,.65))),0.,1.3);
+        float sun=.55+.45*smoothstep(4.8,.4,length(v-vec2(.6,.9)));
         vec2 g=abs(fract(v*1.25)-.5);float grid=smoothstep(.47,.5,max(g.x,g.y));
         float h=sin(v.x*.9+1.3)*cos(v.y*.7-.4)+.5*sin(r*1.1-t*.15);float con=smoothstep(.06,0.,abs(fract(h*2.2)-.5)-.44);
-        vec3 col=vec3(.035,.05,.075)+vec3(.56,.83,1.)*grid*.13+vec3(.91,.77,.54)*con*.16;
-        gl_FragColor=vec4(col,fade*.95);}`});
+        vec3 earth=pow(so,vec3(1.15))*lit*sun*1.05;vec3 col=mix(vec3(.035,.05,.075),earth,smoothstep(5.4,2.2,r))+vec3(.56,.83,1.)*grid*.11+vec3(.91,.77,.54)*con*.13;
+        gl_FragColor=vec4(col,fade*.97);}`});
     const g=new THREE.Mesh(new THREE.CircleGeometry(7.4,mob?64:96),m); g.rotation.x=-Math.PI/2; W.add(g); W.userData.ground=m; }
   // ---- 情報の層：下にフィジカル情報（砂色）3 枚、上にデジタル情報（水色）3 枚。布のようにゆらぐ
   const sheetM=(col,ph)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,uniforms:{t:{value:0},col:{value:new THREE.Color(col)},ph:{value:ph}},
@@ -117,7 +122,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(3.4);m.object.position.y=.24;g.add(m.object);m.play(m.clips.includes('perch')?'perch':m.info.main);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(4.2);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xdcecff,3.2,2.6,1.6);pl.position.set(.35,1.1,.7);g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
