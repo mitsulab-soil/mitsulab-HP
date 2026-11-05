@@ -9,14 +9,16 @@ const YO = [0, 2, 5, 7, 9];
 export const note = (i, base = 293.66) => { const o = Math.floor(i / 5), k = ((i % 5) + 5) % 5; return base * Math.pow(2, o + YO[k] / 12); };
 
 export function createSound(btn) {
-  let ctx = null, master, comp, send, rev, on = false, muted = false;
+  let ctx = null, master, comp, send, rev, bedBus, on = false, muted = false;
   const ensure = () => {
     if (ctx) return ctx;
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = 0;
-    comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .3;
-    master.connect(comp).connect(ctx.destination);
+    comp = ctx.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 2.2;   /* 11-06 二版の後：浅く（鳴るたびに残響の地が沈んで息をするのを、声紋で見て直した。最大でも 0.5 ほどで割れない） */ comp.attack.value = .01; comp.release.value = .3;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -7; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .15;   // 11-06：天井（急なはね上がりを抑える）
+    master.connect(comp).connect(lim).connect(ctx.destination);
+    bedBus = ctx.createGain(); bedBus.gain.value = 0; bedBus.connect(ctx.destination);   // 11-06 二版の後：場の音は圧縮器を通さない（声が鳴るたびに地の葉ずれが沈んで息をする＝耳につくのを、書き出した音で確かめて直した）
     // 残響：減衰する雑音から作る（右と左で別の雑音）
     const len = Math.floor(ctx.sampleRate * 2.6), ir = ctx.createBuffer(2, len, ctx.sampleRate);
     for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lp = 0; for (let i = 0; i < len; i++) { const x = Math.random() * 2 - 1; lp += (x - lp) * (.35 - .25 * i / len); d[i] = lp * Math.pow(1 - i / len, 2.6); } }
@@ -24,8 +26,8 @@ export function createSound(btn) {
     return ctx;
   };
   const setBtn = () => { if (btn) btn.setAttribute("aria-pressed", on && !muted ? "true" : "false"); };
-  const start = () => { const c = ensure(); if (!c) return; c.resume?.(); if (!on) { on = true; master.gain.setTargetAtTime(.9, c.currentTime, .4); bed(); } setBtn(); };
-  if (btn) btn.addEventListener("click", e => { e.stopPropagation(); if (!on) { start(); return; } muted = !muted; master.gain.setTargetAtTime(muted ? 0 : .9, ctx.currentTime, .15); setBtn(); });
+  const start = () => { const c = ensure(); if (!c) return; c.resume?.(); if (!on) { on = true; master.gain.setTargetAtTime(1.2, c.currentTime, .4); bedBus.gain.setTargetAtTime(.9, c.currentTime, .4); bed(); } setBtn(); };
+  if (btn) btn.addEventListener("click", e => { e.stopPropagation(); if (!on) { start(); return; } muted = !muted; master.gain.setTargetAtTime(muted ? 0 : 1.2, ctx.currentTime, .15); bedBus.gain.setTargetAtTime(muted ? 0 : .9, ctx.currentTime, .15); setBtn(); });
   const ok = () => on && !muted && ctx && ctx.state === "running";
 
   // 一つの声の出口：（閉じた音＝低域だけ）→ 左右 → 大きさ → そのまま＋残響へ
@@ -75,16 +77,16 @@ export function createSound(btn) {
   // 場の音：木立の風と葉ずれ（ごく小さく・途切れない）。鳴りはじめてから、ずっと地にある
   let bedOn = false; const bed = () => { if (bedOn || !ctx) return; bedOn = true; const t = ctx.currentTime;
     const s = ctx.createBufferSource(); s.buffer = noiseBuf(); s.loop = true;
-    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420; const g = ctx.createGain(); g.gain.value = .022;
-    const hp = ctx.createBiquadFilter(); hp.type = "bandpass"; hp.frequency.value = 2600; hp.Q.value = .8; const g2 = ctx.createGain(); g2.gain.value = .006;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420; const g = ctx.createGain(); g.gain.value = .036;   /* 11-06：地の葉ずれを +4 dB（穴を埋め、はね上がりの差を縮める） */
+    const hp = ctx.createBiquadFilter(); hp.type = "bandpass"; hp.frequency.value = 2600; hp.Q.value = .8; const g2 = ctx.createGain(); g2.gain.value = .0095;
     const l1 = ctx.createOscillator(), lg1 = ctx.createGain(); l1.frequency.value = 1 / 11; lg1.gain.value = .012; l1.connect(lg1).connect(g.gain);
-    const l2 = ctx.createOscillator(), lg2 = ctx.createGain(); l2.frequency.value = 1 / 7.3; lg2.gain.value = .005; l2.connect(lg2).connect(g2.gain);
-    s.connect(lp).connect(g).connect(master); s.connect(hp).connect(g2).connect(master); const w = ctx.createGain(); w.gain.value = .3; g2.connect(w).connect(send);
+    const l2 = ctx.createOscillator(), lg2 = ctx.createGain(); l2.frequency.value = 1 / 7.3; lg2.gain.value = .003;   /* 揺れの下限を残す（無音まで落ちない） */ l2.connect(lg2).connect(g2.gain);
+    s.connect(lp).connect(g).connect(bedBus); s.connect(hp).connect(g2).connect(bedBus); const w = ctx.createGain(); w.gain.value = .3; g2.connect(w).connect(send);
     s.start(t); l1.start(t); l2.start(t); };
   // 機械の読み取り（短い打鍵）
   const click = (o = {}) => { if (!ok()) return; const { t, head } = out({ wet: .25, ...o }, .1);
     const s = ctx.createBufferSource(), hp = ctx.createBiquadFilter(), gn = ctx.createGain(); s.buffer = noiseBuf(); hp.type = "highpass"; hp.frequency.value = 3200;
-    gn.gain.setValueAtTime(.7, t); gn.gain.exponentialRampToValueAtTime(.001, t + .03); s.connect(hp).connect(gn).connect(head); s.start(t); s.stop(t + .05);
+    gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.5, t + .004); gn.gain.exponentialRampToValueAtTime(.001, t + .035);   /* 立ち上がりを丸める（刺さらない） */ s.connect(hp).connect(gn).connect(head); s.start(t); s.stop(t + .05);
     if (o.f) { const os = ctx.createOscillator(), g2 = ctx.createGain(); os.type = "square"; os.frequency.value = o.f; g2.gain.setValueAtTime(.06, t); g2.gain.exponentialRampToValueAtTime(.001, t + .09); os.connect(g2).connect(head); os.start(t); os.stop(t + .1); } };
   // 低い持続（土の中の遅い営み・層の重なり。模式）
   const drone = (f, dur = 4, o = {}) => { if (!ok()) return; const { t, head } = out(o, dur);

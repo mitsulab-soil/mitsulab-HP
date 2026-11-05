@@ -16,19 +16,19 @@ const camRig = (a, y, t) => {
   const k = ss(0, 1, a);
   if (ST.phase <= 1) {   // 葉を追う（宙では近く、落ちるにつれて目の高さより低く）
     const f = ST.phase === 0 ? 0 : clamp(ST.t / 6, 0, 1);
-    const pr = innerWidth < innerHeight * .8, d = lerp(pr ? .62 : .78, 1.1, f), off = new V3(Math.sin(y - .8) * d, lerp(-.12, .5, f), Math.cos(y - .8) * d);   /* 葉の背が参道の奥の明るい霞になる向き */
+    const pr = innerWidth < innerHeight * .8, d = lerp(pr ? .62 : .78, 1.1, f), off = new V3(Math.sin(y - .8) * d, lerp(-.3, .5, f), Math.cos(y - .8) * d);   // 11-06 二版の後：宙では葉の少し下から見上げる（葉の背が幹でなく、明るい樹冠と空になる）   /* 葉の背が参道の奥の明るい霞になる向き */
     const pos = leafP.clone().add(off); pos.y = Math.max(pos.y, .3);
-    return { pos, look: leafP.clone().add(new V3(lerp(pr ? .1 : -.02, 0, f), lerp(.16, -.05, f), lerp(-.12, 0, f))) };   // 宙：主役の葉と枝先の房を一つの画に   // 宙では葉を右三分の一に置き、奥へ参道が抜ける
+    return { pos, look: leafP.clone().add(new V3(lerp(pr ? .34 : -.02, 0, f), lerp(.16, -.05, f), lerp(-.12, 0, f))) };   // 宙：主役の葉と枝先の房を一つの画に   // 宙では葉を右三分の一に置き、奥へ参道が抜ける
   }
   const c = LAND.clone(), back = lerp(.72, 4.6, k), h = lerp(.3, 3.4, k);
   return { pos: new V3(c.x + Math.sin(y) * back, h, c.z + Math.cos(y) * back), look: c.clone().add(new V3(0, lerp(.1, 1.05, k), lerp(-.25, -.2, k))) };
 };
 
 const W = await createAwai({
-  title: "文学の思想", en: "Thought in Literature", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [-1.1, -3.8, .35], seed: 2121, rig: camRig, portrait: 1.3,
+  title: "Qualia/literature", sub: "文学の思想", en: "Thought in Literature", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [-1.1, -3.8, .35], seed: 2121, rig: camRig, portrait: 1.3,
   credits: [
     "欅の葉の形（卵形で先がとがる・縁に曲がった鋸歯・羽状の脈）と十一月の黄葉は、図鑑の形態にそって mitsulab が描いた画",
-    "鳥の目は動きをよくとらえる。葉の表には落ちる前から菌や細菌がすむ。歩行 毎分約 100 歩：Tudor-Locke ほか（IJBNPA 16, 2019）",
+    "鳥の目は動きをよくとらえるとされる。葉の表には落ちる前から菌や細菌がすむ。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
     "気温計の層：10 分ごとの記録を 2.4 秒に縮めた模式（気象庁のアメダスは 10 分ごとに観測する）。数値は描かない",
     "菌の営みの音は、聴こえる高さに移した模式。鳥の声は、シジュウカラの声域（3〜6 kHz）に合わせた模式",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
@@ -37,7 +37,7 @@ const W = await createAwai({
 const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
-W.aoi.then(a => a && (innerWidth < innerHeight * .8 ? a.place(LAND.x - 1.6, LAND.z - 2.6, .5) : a.place(LAND.x - 2.6, LAND.z - 5.4, .45)));   // 碧は葉の左奥（三分の一の位置）
+W.aoi.then(a => a && (innerWidth < innerHeight * .8 ? a.place(LAND.x - 1.6, LAND.z - 2.6, .5) : a.place(LAND.x + 1.9, LAND.z - 5.2, -.35)));   // 碧は葉の左奥（三分の一の位置）
 W.setAbs(0, true);
 
 // ───────── 一枚の葉
@@ -69,7 +69,7 @@ const petiole = new THREE.Line(new THREE.BufferGeometry().setFromPoints([AIR.clo
 const mark = PR.subjectRing(0x9bdcf0, .09); mark.userData.mat.opacity = 0; W.add(mark);
 const heroRing = PR.subjectRing(0xf2cf8c, .045); heroRing.geometry.rotateX(Math.PI / 2); W.add(heroRing);   // 主役の葉を示す細い輪（触れるまで）
 // 上へなぞる誘い：落ちた葉から立ちのぼる細い一本の線（画で誘う）
-const upM = lineMat(0x9bdcf0, 0), upL = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(0, .03, 0), new V3(0, .9, 0)]), upM); W.add(upL);
+const upM = lineMat(0x9bdcf0, 0), upL = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(0, .03, 0), new V3(0, .42, 0)]), upM); W.add(upL);
 const tapLeafHit = W.addTouch({ getWorldPosition: v => v.copy(leafP) }, () => tapLeaf(), .35);
 
 // シジュウカラ（地の層のあとで来る）
@@ -96,7 +96,7 @@ function textSprite(t, sub, col, right = false) {
   const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, opacity: 0, depthWrite: false, toneMapped: false })); s.center.set(0, 0); s.scale.set(.86, .16, 1); return s;
 }
-const labCSS = document.createElement("style"); labCSS.textContent = `.lit-lab{position:fixed;left:0;top:0;pointer-events:none;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-size:13px;letter-spacing:.12em;color:rgba(238,245,251,.92);padding:3px 8px 4px;background:rgba(3,6,15,.35);border-bottom:1px solid var(--c);white-space:nowrap;opacity:0;text-shadow:0 0 6px rgba(0,0,0,.6)}`; document.head.appendChild(labCSS);
+const labCSS = document.createElement("style"); labCSS.textContent = `.lit-lab{position:fixed;left:0;top:0;pointer-events:none;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-size:13px;letter-spacing:.12em;color:rgba(238,245,251,.92);padding:3px 8px 4px;background:rgba(3,6,15,.72);z-index:3;border-bottom:1px solid var(--c);white-space:nowrap;opacity:0;text-shadow:0 0 6px rgba(0,0,0,.6)}`; document.head.appendChild(labCSS);
 const C = { fungi: 0xe8e0c6, tit: 0xb9a7e6, hum: 0xf4aa96, sens: 0xa9c8d8 };
 const L0 = sheet(0, C.fungi, "菌と細菌", "葉の表面"), L1 = sheet(1, C.tit, "シジュウカラ", "落ちる動き"), L2 = sheet(2, C.hum, "歩く人", "色づき・季節"), L3 = sheet(3, C.sens, "気温計", "10 分ごとの記録");
 if (MOBILE) for (const o of L) { o.lab.visible = false; o.lab.material.visible = false; const d = document.createElement("div"); d.className = "lit-lab"; d.style.setProperty("--c", "#" + new THREE.Color(o.col).getHexString()); d.textContent = ["菌と細菌", "シジュウカラ", "歩く人", "気温計"][o.i]; W.ui.appendChild(d); o.dom = d; }
@@ -175,7 +175,7 @@ W.onFrame((dt, t, a) => {
   L.forEach((o, i) => {
     const on = ST.phase >= 2 ? ss(.12 + i * .17, .26 + i * .17, a) : 0;   // 時が過ぎた段でも、上へなぞれば同じ葉の層が重なる
     o.k += (on - o.k) * (1 - Math.exp(-dt * 3));
-    if (o.dom) { const P = o.g.getWorldPosition(new V3()).add(new V3(o.i % 2 ? .62 : -.62, 0, 0)).project(camera), sx = (P.x + 1) / 2 * innerWidth, sy = (1 - P.y) / 2 * innerHeight, w = o.dom.offsetWidth;
+    if (o.dom) { const P = o.g.getWorldPosition(new V3()).add(new V3((o.i % 2 ? 1 : -1) * (.36 * .9 * (1.55 + o.i * .12) + .08), 0, 0)).project(camera), sx = (P.x + 1) / 2 * innerWidth, sy = (1 - P.y) / 2 * innerHeight, w = o.dom.offsetWidth;
       o.dom.style.transform = `translate(${clamp(o.i % 2 ? sx + 8 : sx - 8 - w, 12, innerWidth - 64 - w)}px, ${sy - 12}px)`; o.dom.style.opacity = o.k < .15 ? "0" : (o.k * (o === L.filter(q => q.k > .5).at(-1) ? .95 : .55)).toFixed(3); }   /* スマホ：画面に置く札（読める大きさ・端で切れない・今の層だけ濃く） */
     for (const m of o.mats) m.opacity = (m.userData.max ?? .7) * o.k; o.pl.material.opacity = .045 * o.k; o.lab.material.opacity = .95 * o.k;
     o.g.visible = o.k > .004;
@@ -184,7 +184,7 @@ W.onFrame((dt, t, a) => {
   });
   if (ST.phase === 2) fg.setDrawRange(0, Math.floor(fN * clamp(L0.k * (.25 + ST.t * .04), 0, 1)));
   // 頂き：すべての層が重なる
-  if (ST.phase === 2 && a > .93 && said[3] && !ST.top) { ST.top = true; W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。もう一度、葉のところへ。"); }
+  if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。もう一度、葉のところへ。"); }
   // 降りる：時が過ぎた同じ場所
   if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; snd.bell(snd.note(0), { gain: .2 }); snd.bell(snd.note(4), { gain: .14, at: .05 }); snd.bell(snd.note(7), { gain: .1, at: .1 });
     W.sayNow("葉は参道の上で数日をすごし、やがて土の上へ移り、何か月もかけて菌に分けられ、土へ還っていく。"); W.say("だれも全体を見ていない。けれど、全体はたしかに回っている。"); W.say("自分の見ている欅が、欅のすべてではない。"); W.say("葉に触れると、もう一枚。"); }
