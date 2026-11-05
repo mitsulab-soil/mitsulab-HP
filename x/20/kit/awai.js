@@ -12,6 +12,14 @@ import { fitRenderer } from "./atmosphere.js";
 import { installDapple, makeSightGrass } from "./sight_look.js";
 import { sightBark } from "./sight_trees.js";
 installDapple(THREE);   // 木もれ日（線の霞で近くから掛かるときだけ効く）。材質を作る前に一度
+// 日の方角の霞は明るく温かく、背の側は青みに（空気遠近。2026-11-06）。霞の色に掛けるだけなので、抽象で紺へ沈むときは一緒に沈む
+const SUN_GL = "-.482, .392, -.784";   // 日の向き（下の SUNW と同じ）
+{ const C = THREE.ShaderChunk; if (!C.__awSunFog) { C.__awSunFog = 1;
+  C.fog_pars_vertex = C.fog_pars_vertex.replace("varying float vFogDepth;", "varying float vFogDepth; varying vec3 vFogDir;");
+  C.fog_vertex = C.fog_vertex.replace("vFogDepth = - mvPosition.z;", "vFogDepth = - mvPosition.z; vFogDir = ( vec4( mvPosition.xyz, 0. ) * viewMatrix ).xyz;");
+  C.fog_pars_fragment = C.fog_pars_fragment.replace("varying float vFogDepth;", "varying float vFogDepth; varying vec3 vFogDir;");
+  C.fog_fragment = C.fog_fragment.replace("gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );",
+    `{ float sd_ = max( dot( normalize( vFogDir ), vec3( ${SUN_GL} ) ), 0. ); vec3 fc_ = fogColor * mix( vec3( .9, .95, 1.03 ), vec3( 1.3, 1.1, .82 ), pow( sd_, 2.5 ) ); gl_FragColor.rgb = mix( gl_FragColor.rgb, fc_, fogFactor ); }`); } }
 
 const TAU = Math.PI * 2, clamp = (x, a, b) => Math.max(a, Math.min(b, x)), lerp = (a, b, t) => a + (b - a) * t;
 const ss = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -25,7 +33,7 @@ export const AW = {
   uInk: { value: new THREE.Color(0x060b16) }, uLineC: { value: new THREE.Color(0x8fd6e8) },
   uStep: { value: .5 }, uReach: { value: 60 },
 };
-const HAZE = new THREE.Color(0xcfd5d2), NAVY = new THREE.Color(0x03060f);
+const HAZE = new THREE.Color(0xcfd5d2), GREY = new THREE.Color(0x8f9aa3), NAVY = new THREE.Color(0x03060f);
 
 /* 材質に「抽象へ移る」はたらきを足す。上の方から先に写実がほどけ（昇る向き）、等高線が浮かぶ。
    opts.lines=false で線を引かない（葉の板など、線がちらつくもの） */
@@ -72,7 +80,7 @@ export const lineMat = (c, op = .6) => new THREE.LineBasicMaterial({ color: c, t
 export const pointMat = (c, size = .06, op = .8) => new THREE.PointsMaterial({ color: c, size, map: dotTex(), transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false, sizeAttenuation: true });
 
 // 葉を透かす光（ひとつの木と同じ式：逆光で黄緑に透け、樹冠の内側は暗い）
-const SUNW = new THREE.Vector3(-22, 18, 10).normalize();
+const SUNW = new THREE.Vector3(-16, 13, -26).normalize();   // 参道の奥の左から低い日（十一月の朝・高さ約 23°）。葉は逆光で透ける
 function translucent(m, k = 1) { const ob = m.onBeforeCompile; m.alphaTest = .3;
   m.onBeforeCompile = (sh, r) => { ob(sh, r); sh.uniforms.uSunW = { value: SUNW }; sh.uniforms.uTrK = { value: k };
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform vec3 uSunW; uniform float uTrK;")
@@ -89,14 +97,14 @@ export async function createAwai(o) {
   const KY = await import(o.keyaki); mk("keyaki");
   const canvas = document.createElement("canvas"); canvas.id = "cv"; document.body.prepend(canvas);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.02; renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.06; renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, .05, 700);
   const fit = fitRenderer(renderer, camera, document.body);
   scene.fog = new THREE.Fog(HAZE.clone(), 6, 120); scene.background = HAZE.clone();
 
-  // 光：十一月の朝、南東の低い日（参道は南北に通る＝日は左の木立の上から斜めに入る）
-  const hemi = new THREE.HemisphereLight(0xdfe8ee, 0x5a5040, 1.05); scene.add(hemi);
-  const sun = new THREE.DirectionalLight(0xffeed6, 2.2); sun.position.set(-22, 18, 10); scene.add(sun, sun.target);
+  // 光：十一月の朝の低い日。参道は南北に通る＝南（入口の側）を向くと、日は奥の左（南東）の木立の上から、こちらへ影を伸ばす
+  const hemi = new THREE.HemisphereLight(0xdfe8ee, 0x5e5242, 1.05); scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffe9cc, 2.3); sun.position.copy(SUNW).multiplyScalar(30); scene.add(sun, sun.target);
 
   // 空：天頂→地平。抽象へ行くほど紺へ
   const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 32, 16), new THREE.ShaderMaterial({
@@ -106,6 +114,8 @@ export async function createAwai(o) {
       void main(){ float y = clamp(vD.y, -1., 1.);
         vec3 top = mix(vec3(.30, .44, .58), vec3(.0004, .0012, .004), smoothstep(.0, .85, uAbs));   // 線形の色（天頂）
         vec3 c = mix(uFog, top, pow(smoothstep(0., 1., y), .55));                                    // 地平は霧の色と同じ＝境が出ない
+        float sd = max(dot(vD, vec3(${SUN_GL})), 0.); c *= mix(vec3(.9, .95, 1.03), vec3(1.3, 1.1, .82), pow(sd, 2.5) * (1. - smoothstep(0., .5, y)));   // 霞と同じ、日の方角の温かさ
+        c += vec3(1., .82, .58) * (pow(sd, 24.) * .55 + pow(sd, 6.) * .12) * (1. - smoothstep(.0, .7, uAbs));          // 霞の向こうの日（輪郭のない明るみ）
         gl_FragColor = vec4(c, 1.);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -166,7 +176,7 @@ export async function createAwai(o) {
     const wood = new THREE.Mesh(mergeGeometries(all.flatMap(t => t.wood).map(g => { for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k); return g; })), bark); world.add(wood);
     const one = TL.load(o.sprig); one.colorSpace = THREE.SRGBColorSpace; one.anisotropy = 4; one.wrapS = one.wrapT = THREE.ClampToEdgeWrapping;
     const leaf = leafMaterial(one); translucent(leaf, .85); awaiPatch(leaf, { lines: false });
-    const tint = [1.02, .98, .62], tintB = [.74, .76, .5];   // 十一月のはじめ：緑に黄が混じる
+    const tint = [1.3, .92, .42], tintB = [.95, .76, .4];   // 十一月のはじめ：緑に黄と橙が混じる
     for (const t of near) world.add(KY.sprigMesh(t.sprigs, leaf, .62, tint, t.ctr, R));
     { const fs = all.filter(t => !near.includes(t) && t.sprigs.length).flatMap(t => t.sprigs.map(b => [b, t.ctr])); if (fs.length) { const im = KY.sprigMesh(fs.map(b => b[0]), leaf, .9, tint, new THREE.Vector3(), R); const a = im.geometry.attributes.aCtr; fs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); world.add(im); } }   // 並木の枝先にも葉（枝先が槍に見えない）
     const backs = all.flatMap(t => t.back.map(b => [b, t.ctr]));
@@ -181,12 +191,12 @@ export async function createAwai(o) {
     gr.mesh.scale.y = .58; const GMAX = MOBILE ? 1100 : 2600; grassUp = (c, dt) => { gr.update(c, dt); gr.mesh.count = Math.min(gr.mesh.count, GMAX); };
     const lt = tex("leaf_one", 1); lt.wrapS = lt.wrapT = THREE.ClampToEdgeWrapping;
     const lm = new THREE.MeshStandardMaterial({ map: lt, alphaTest: .5, side: THREE.DoubleSide, roughness: .85 });
-    lm.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#ifdef USE_MAP\n{ vec4 tx_ = texture2D(map, vMapUv); diffuseColor *= vec4(vec3(dot(tx_.rgb, vec3(.3,.59,.11)) * 1.9), tx_.a); }\n#endif"); };
+    lm.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#ifdef USE_MAP\n{ vec4 tx_ = texture2D(map, vMapUv); diffuseColor *= vec4(vec3(dot(tx_.rgb, vec3(.3,.59,.11)) * 2.5), tx_.a); }\n#endif"); };
     awaiPatch(lm, { lines: false });
-    const n = MOBILE ? 700 : 1500, lg = new THREE.PlaneGeometry(.05, .1); lg.rotateX(-Math.PI / 2);
+    const n = MOBILE ? 1100 : 2200, lg = new THREE.PlaneGeometry(.05, .1); lg.rotateX(-Math.PI / 2);   // 近くほど多く（足もとの地が、ただの土の面に見えない）
     const im = new THREE.InstancedMesh(lg, lm, n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
     for (let i = 0; i < n; i++) {
-      const z = 8 - Math.pow(R(), .8) * 46, onPath = R() < .35, x = pathX(z) + (onPath ? (R() - .5) * 3.6 : (R() < .5 ? -1 : 1) * (2.2 + R() * 5));
+      const z = 8 - Math.pow(R(), 1.5) * 46, onPath = R() < .42, x = pathX(z) + (onPath ? (R() - .5) * 3.6 : (R() < .5 ? -1 : 1) * (2.2 + R() * 5));
       e.set((R() - .5) * .5, R() * TAU, (R() - .5) * .5); q.setFromEuler(e); const s = .8 + R() * .7;
       m4.compose(new THREE.Vector3(x, .012 + R() * .01, z), q, new THREE.Vector3(s, s, s)); im.setMatrixAt(i, m4);
       const k = R(); c.setRGB(lerp(.95, .62, k), lerp(.78, .42, k), lerp(.32, .2, k)); im.setColorAt(i, c);   // 黄から茶へ
@@ -280,8 +290,8 @@ export async function createAwai(o) {
     const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
     abs += (absT - abs) * (1 - Math.exp(-dt * (RM ? 30 : 3.2))); yaw += (yawT - yaw) * (1 - Math.exp(-dt * 3));
     AW.uAbs.value = abs; AW.uTime.value = t; WIND.uTime.value = RM ? 0 : t;
-    scene.fog.color.copy(tmpC.copy(HAZE).lerp(NAVY, ss(0, .8, abs))); scene.fog.near = lerp(6, 40, abs); scene.fog.far = lerp(120, 170, abs); grassUp?.(camera.position, dt); scene.background.copy(scene.fog.color);
-    hemi.intensity = lerp(1.05, .5, abs); sun.intensity = lerp(2.2, .6, abs);
+    scene.fog.color.copy(abs < .35 ? tmpC.copy(HAZE).lerp(GREY, ss(0, .35, abs)) : tmpC.copy(GREY).lerp(NAVY, ss(.35, .8, abs)));   // 霞 → 冷たい灰 → 紺（あいだで泥の色にならない） scene.fog.near = lerp(6, 40, abs); scene.fog.far = lerp(120, 170, abs); grassUp?.(camera.position, dt); scene.background.copy(scene.fog.color);
+    hemi.intensity = lerp(1.22, .5, abs);   // 具体の影を少し浅く（木陰の斑が迷彩に見えない） sun.intensity = lerp(2.2, .6, abs);
     for (const m of FADERS) { const f = m.userData.fade; m.opacity = f.max * bandK(f.band, abs); m.visible = m.opacity > .003; }
     const r = rig(abs, yaw, t); const sway = RM ? 0 : 1;
     focK += ((focT ? 1 : 0) - focK) * (1 - Math.exp(-dt * 1.6)); if (focT) { focP.lerp(focT, 1 - Math.exp(-dt * 3)); if (t > focUntil) focT = null; } if (focK > .001) { r.look.lerp(focP, focK * .45 * (1 - abs)); r.pos.lerp(focP.clone().add(r.pos.clone().sub(focP).multiplyScalar(.45)), focK * .6 * (1 - abs)); }
@@ -307,6 +317,7 @@ export async function createAwai(o) {
       try {
         const { loadAoi } = await import("./aoi.js");
         const a = await loadAoi(o.aoi, { scene, renderer, camera, quality: MOBILE ? "low" : "auto" });
+        if (MOBILE) a.root.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) if (mt.isOutline) mt.visible = false; });   // スマホは輪郭線の描画を省く（小さな画面では見分けがつかない・描画が 18 回減る）
         const p = o.aoiAt || [1.4, -1.2, -.4]; a.place(p[0], p[1], p[2]); aoiRef = a; frames.push(dt => a.tick(dt, camera)); window.__awai.aoi = Math.round(performance.now() - T0); res(a);
       } catch (e) { console.warn("碧の読み込みを見送りました", e); res(null); }
     };
@@ -329,6 +340,7 @@ export const AWAI_CSS = `
 :root{--aw-ink:#eef5fb;--aw-soft:#c3cce0;--aw-note:#8f9bb4;--aw-aoi:#5cc8e0;--aw-aoi2:#9bdcf0}
 html,body{margin:0;height:100%;overflow:hidden;background:#cfd5d2;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab}
+#aw-ui::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 46%,rgba(3,5,12,0) 58%,rgba(3,5,12,.34) 100%)}
 #aw-ui{position:fixed;inset:0;pointer-events:none;font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;color:var(--aw-ink)}
 .aw-mark{padding:6px 10px 7px;margin:-6px 0 0 -10px;background:radial-gradient(ellipse at 30% 50%,rgba(3,6,15,.32),rgba(3,6,15,0) 72%);position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:3px;text-shadow:0 0 10px rgba(0,0,0,.35)}
 .aw-mark b{font-weight:600;font-size:15px;letter-spacing:.14em}

@@ -44,7 +44,7 @@ export function tsuwabuki(R, { n = 9, spread = .45 } = {}) {
       const dg = new THREE.CylinderGeometry(.008, .006, .006, 10); dg.translate(c.x, c.y + .002, c.z); heads.push(dg.toNonIndexed());
     }
   }
-  const leafM = awaiPatch(new THREE.MeshPhysicalMaterial({ map: tsuwaTex(), bumpMap: tsuwaTex(), bumpScale: 1.4, color: 0xffffff, roughness: .3, clearcoat: MOBILE ? 0 : .6, clearcoatRoughness: .25, side: THREE.DoubleSide }), { lines: false });
+  const leafM = awaiPatch(new THREE.MeshPhysicalMaterial({ map: tsuwaTex(), bumpMap: tsuwaTex(), bumpScale: 1.4, color: 0xffffff, roughness: .42, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, side: THREE.DoubleSide }), { lines: false });
   const stemM = awaiPatch(new THREE.MeshStandardMaterial({ color: 0x5b5a3a, roughness: .8 }), { lines: false });
   const rayM = awaiPatch(new THREE.MeshStandardMaterial({ color: 0xf2c21c, roughness: .6, side: THREE.DoubleSide, emissive: 0x3a2a00, emissiveIntensity: .4 }), { lines: false, keep: .25 });
   const discM = awaiPatch(new THREE.MeshStandardMaterial({ color: 0xc79215, roughness: .9 }), { lines: false });
@@ -106,11 +106,11 @@ export function monad(color, r = .5) {
       void main(){ float f = pow(1. - abs(dot(normalize(vN), vV)), 3.);
         float cut = 1. - uOpen * 1.05; float cosA = dot(vP, normalize(uDir));
         if (uOpen > .001 && cosA > cut) discard;                                         // 窓＝ひらいた口
-        float lat = gl(asin(clamp(vP.y, -1., 1.)) / 3.14159 + .5, 9.);                  // 緯線（9 本）
+        float lat = gl(asin(clamp(vP.y, -1., 1.)) / 3.14159 + .5, 5.);                  // 緯線（5 本。地球儀に見えない）
         float lon = gl(atan(vP.z, vP.x) / 6.28318 + .5, 14.) * (1. - smoothstep(.9, .99, abs(vP.y)));   // 経線（14 本）
-        float wire = max(lat, lon * .8);
+        float wire = max(lat, lon * 0.);
         float edge = uOpen > .001 ? 1. - smoothstep(0., .025, cut - cosA) : 0.;           // 口のふち
-        float a = wire * mix(.22, .78, uAbs) + f * mix(.07, .16, uAbs) + edge * .85 + uLit * (wire * .5 + f * .15);
+        float a = wire * mix(.22, .78, uAbs) + f * mix(.14, .2, uAbs) + edge * .85 + uLit * (wire * .5 + f * .15);
         vec3 c = mix(uC, vec3(1.), .25 + edge * .3);
         gl_FragColor = vec4(c, clamp(a, 0., .9)); }`,
   });
@@ -147,3 +147,28 @@ export function subjectRing(color, r = .35) {
 
 // 生き物の材質にも「抽象へ」を（輪郭は残して沈む）
 export function awaiCreature(obj, keep = .5) { obj.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) awaiPatch(m, { lines: false, keep }); }); return obj; }
+
+// ───────── 描画の回数を減らす（2026-11-06）：動かない部品どうしを、同じ材質ごとに一つの形にまとめる。
+//   まとめるのは「同じ親の直下・子を持たない・透けない・ひとつの材質」の形だけ（親ごと動く関節・翅・残像はそのまま動く）。
+//   dropFur＝毛の層（画面の上で小さいと描かれない）を外す（スマホで小さな虫に使う）
+export function bakeRigid(root, { dropFur = false } = {}) {
+  const noop = THREE.Mesh.prototype.onBeforeRender;
+  const visit = node => {
+    if (dropFur) for (const c of [...node.children]) if (c.isMesh && c.userData.noCast && c.onBeforeRender !== noop) node.remove(c);
+    for (const c of node.children) visit(c);
+    const bins = new Map();
+    for (const c of node.children) {
+      if (!c.isMesh || c.isSkinnedMesh || c.isInstancedMesh || Array.isArray(c.material) || c.children.length || !c.visible || c.material.transparent || c.onBeforeRender !== noop || c.morphTargetInfluences) continue;
+      const g = c.geometry, key = c.material.uuid + "|" + Object.keys(g.attributes).sort().join(",") + "|" + (g.index ? 1 : 0) + "|" + Object.keys(g.morphAttributes).length;
+      (bins.get(key) || bins.set(key, []).get(key)).push(c);
+    }
+    for (const list of bins.values()) {
+      if (list.length < 2) continue;
+      const geos = list.map(c => { c.updateMatrix(); return c.geometry.clone().applyMatrix4(c.matrix); });
+      const mg = mergeGeometries(geos, false); if (!mg) continue;
+      const m = new THREE.Mesh(mg, list[0].material); m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow; m.renderOrder = list[0].renderOrder;
+      for (const c of list) node.remove(c); node.add(m);
+    }
+  };
+  visit(root); return root;
+}
