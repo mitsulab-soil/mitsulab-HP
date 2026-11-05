@@ -192,11 +192,12 @@ async function buildBase() {
     pos[k * 3] = x; pos[k * 3 + 1] = DEM[(j * st) * d.nx + i * st] / 100; pos[k * 3 + 2] = z; uv[k * 2] = (x - ph.x0) / (ph.x1 - ph.x0); uv[k * 2 + 1] = 1 - (z - ph.z0) / (ph.z1 - ph.z0); }
   for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c2 = a + nx, e = c2 + 1; idx.push(a, c2, b, b, c2, e); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e" });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
+  const PH0 = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); PH0.colorSpace = THREE.SRGBColorSpace; PH0.needsUpdate = true;   /* 11-05 起動 2 秒：写真が来たときに材質を組み直さない（はじめから「絵あり」の形で組む＝375 で 2 度目の組み立てが起動に重なっていた） */
+  const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, color: "#55534e", map: PH0 });   // 2026-10-23 本人「舗装が白くて眩しい」→ 明度を下げ、少し暖かい灰へ（写真が来たら #9c968c）
   mat._obc = cyberize; desat(mat);
   { const o = mat.onBeforeCompile, E = { value: new THREE.Vector4(d.x0, d.z0, d.x0 + (d.nx - 1) * d.cell, d.z0 + (d.nz - 1) * d.cell) };   // 2026-10-29 遠景：地形の縁（外の地面より高い所で切れて、地平に濃い段が出ていた）を、縁の 260 m で霞の色へ溶かす。歩くときだけ（3D 地図は変えない）
     mat.onBeforeCompile = sh => { o(sh); sh.uniforms.uEdgeB = E; sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform vec4 uEdgeB;").replace("#include <fog_fragment>", "#include <fog_fragment>\n#ifdef USE_FOG\n{ vec2 ed = min(vCw.xz - uEdgeB.xy, uEdgeB.zw - vCw.xz); float ek = (1. - smoothstep(0., 260., min(ed.x, ed.y))) * (1. - uCy); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, ek); }\n#endif"); }; }   // 2026-10-23 夜：空中写真は 3D 地図では使わない（電脳の地図に）。歩くときの地面のためだけに、起動のあとで読む
-  setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); mat.needsUpdate = true; }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain; buildDigi(geo);
+  setTimeout(() => texP(MOBILE ? "web/geo/photo_1k.webp" : "web/geo/photo_2k.webp").then(photo => { mat.map = photo; mat.color.set("#9c968c"); }).catch(() => { }), 1800); const terrain = new THREE.Mesh(geo, mat); terrain.name = "terrain"; world.add(terrain); QW.terrain = terrain; buildDigi(geo);
   buildRoute(); buildRoads(); buildMarkings(); buildWater(); buildFarGround();
   if (G.near) setTimeout(() => texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
     const n = G.near, d2 = G.dem, i0 = Math.max(0, Math.floor((n.x0 - d2.x0) / d2.cell)), i1 = Math.min(d2.nx - 1, Math.ceil((n.x1 - d2.x0) / d2.cell)), j0 = Math.max(0, Math.floor((n.z0 - d2.z0) / d2.cell)), j1 = Math.min(d2.nz - 1, Math.ceil((n.z1 - d2.z0) / d2.cell));
@@ -1205,7 +1206,7 @@ function loadAoi() {
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
     try { Robe?.hideCoveredLegs?.(v, { keep: .12 }); } catch { }
     await Y();
-    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" });
+    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" }); if (MOBILE && AOI.m.q) { AOI.m.q.tier = "mid"; AOI.m.q.auto = true; }   /* 11-05 375 の fps：スマホは mid から始め、遅ければ low へ自動で下げる（髪・揺れものも一こまおき） */
     if (AOI.m.robe) AOI.m.robe.wind = .2;
     AOI.root = root; AOI.ready = true;
     try { if (Mot.warmAoi) await Mot.warmAoi(renderer, root, camera, scene); else { root.visible = true; await renderer.compileAsync(root, camera, scene); } } catch { } root.visible = QW.mode === "walk";   /* 11-03：見せないまま、テクスチャ・シェーダー・影を少しずつ組む（碧が出る瞬間に止まらない） */
@@ -1955,7 +1956,8 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     buildObjs(); loadMore(); QW.tm.objs = performance.now() - T0; fillMenu(); buildTray(); buildStarts(); syncTalkBtn(); QW.tm.ui = performance.now() - T0;
     $("#starts").addEventListener("scroll", syncStMeter, { passive: true }); addEventListener("resize", syncStMeter);
     setMode("sky"); selectStart(START.sel); START.sp?.select(-1); requestAnimationFrame(syncStMeter);   /* はじめは何も選ばず、「ここから歩く」は押した印のそばに出す */ SKY.dist = SKY.tDist = MOBILE ? 1750 : 1550; SKY.c.set(140, 20, 540); { const P = (START.sp?.pins || []).filter(p => p.it.kind !== "here"); if (P.length > 1) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const p of P) { x0 = Math.min(x0, p.it.x); x1 = Math.max(x1, p.it.x); z0 = Math.min(z0, p.it.z); z1 = Math.max(z1, p.it.z); } SKY.c.set((x0 + x1) / 2 - (innerWidth < 640 ? 170 : 40), 20, z0 + (z1 - z0) * .36);   /* 左の層の一覧にかからないよう、印を少し右へ */ SKY.dist = SKY.tDist = Math.min(MOBILE ? 1750 : 1550, Math.max(900, Math.max(x1 - x0, z1 - z0) * (innerWidth < innerHeight ? 1.3 : 1.08))); } }   /* 10-28 夜：始める印が全部、見出しの下・画面の中ほどに入る高さへ（北の印の名札が下へずれ、長い線が地図を横切っていた） */   // 2026-10-26 JR 川越駅〜川越氷川神社までの六つのエリアが一度に見える高さ skyCam(); showSkyUI();
-    if (PRE) await Promise.race([PRE, new Promise(r => setTimeout(r, 120))]);   /* 11-05 起動 2 秒：材質の組み立て（compileAsync）を最大 1.5 秒待っていた＝起動の遅れの元（PC 0.65・375 2.1 秒）。はじめのこまは地面と GUI だけ（LATE）なので待たずに出し、組み立ては裏で続ける */ QW.tm.pre = performance.now() - T0;
+    if (PRE) await Promise.race([PRE, new Promise(r => setTimeout(r, 120))]);
+    /* 11-05 375 の起動 2 秒：本番の地形の材質がまだ組めていなければ、はじめは軽い材質（同じ色の単色）で出し、組めたら差し替える（見た目は 3D 地図の上空で、ほぼ変わらない） */
     const LATE = []; for (const o of world.children) if (o !== QW.terrain) o.traverse(c => { if (c.layers.mask === 1) { c.layers.set(5); LATE.push(c); } });   /* 11-03 起動 2 秒：はじめの 1 こまは地面と GUI だけ描き（影の組み立てを待たない）、ほかは操作できるようになってから裏で組み立てて出す */
     renderer.setAnimationLoop(frame); QW.tm.loop = performance.now() - T0; QW.tm.fr = []; QW.tm.ff = [];
     await new Promise(r => requestAnimationFrame(() => { QW.tm.f1 = performance.now() - T0; QW.tm.np = renderer.info.programs.length; QW.tm.sc = scene.children.length; requestAnimationFrame(r); }));

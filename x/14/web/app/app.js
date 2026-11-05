@@ -1240,7 +1240,7 @@ function loadAoi() {
     v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
     try { Robe?.hideCoveredLegs?.(v, { keep: .12 }); } catch { }
     await Y();
-    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" });
+    AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" }); if (MOBILE && AOI.m.q) { AOI.m.q.tier = "mid"; AOI.m.q.auto = true; }   /* 11-05 375 の fps：スマホは mid から始め、遅ければ low へ自動で下げる（髪・揺れものも一こまおき） */
     if (AOI.m.robe) AOI.m.robe.wind = .2;
     AOI.root = root; AOI.ready = true;
     try { if (Mot.warmAoi) await Mot.warmAoi(renderer, root, camera, scene); else { root.visible = true; await renderer.compileAsync(root, camera, scene); } } catch { } root.visible = QW.mode === "walk";   /* 11-03：見せないまま、テクスチャ・シェーダー・影を少しずつ組む（碧が出る瞬間に止まらない） */
