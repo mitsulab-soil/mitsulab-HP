@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261105f";
+import { T, setLang, lang } from "./i18n.js?v=20261105g";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -171,7 +171,7 @@ function gauges(r, dent, dt) {
   wave3.geometry.attributes.position.needsUpdate = true;
 }
 function updateScan(t) {
-  if (!params || objMesh) { scan.visible = false; return; } const z = ((t * .09) % 1.3) - .65; cloudU.uScan.value = z; const k = params.depth / SIZE_MM, inside = Math.abs(z) < .5;
+  if (!params || objMesh || blind) { scan.visible = false; return; } const z = ((t * .09) % 1.3) - .65; cloudU.uScan.value = z; const k = params.depth / SIZE_MM, inside = Math.abs(z) < .5;
   scan.visible = inside; if (!inside) return; const y = (z + .5) * SIZE_MM;
   for (let i = 0; i < SCN; i++) { const x = i / (SCN - 1); scPos[i * 3] = x - .5; scPos[i * 3 + 1] = heightAt(x * SIZE_MM, y) * k + .005; scPos[i * 3 + 2] = z; }
   scan.geometry.attributes.position.needsUpdate = true;
@@ -220,8 +220,8 @@ function applySurface(v, keepParams = false) {
   applyParams(); buildSliders(); setSnd(v.snd);
   $("#originT").textContent = T(v.origin === "photo" ? "origin.photo" : "origin.normal");
   for (const b of document.querySelectorAll("#chips .chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
-  const fi = $("#faceS"); if (v.id === "photo") fi.src = $("#photoThumb").toDataURL(); else fi.src = `tex/${v.id}_t.webp?v=20261021`;
-  const fn = $("#faceSN"); fn.dataset.t = "s." + v.id; fn.textContent = T("s." + v.id);
+  const fi = $("#faceS"); if (v.thumb) fi.src = v.thumb; else fi.src = `tex/${v.id}_t.webp?v=20261021`;
+  const fn = $("#faceSN"); if (v.label) { delete fn.dataset.t; fn.textContent = v.label; } else { fn.dataset.t = "s." + v.id; fn.textContent = T("s." + v.id); }
 }
 // ---- 形に貼る（触覚の mixed reality）
 // 形のための光：後ろからの縁の光と、斜め上からの締まった主光（形を選んだときだけ点ける）
@@ -285,7 +285,7 @@ function buildSliders() {
 }
 
 // ---- 表面を選ぶ
-const chips = $("#chips"), photoChip = chips.querySelector('[data-s="photo"]');
+const chips = $("#chips"), photoChip = $("#pickChip");
 for (const s of SAMPLES) {
   const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.s = s.id; b.setAttribute("aria-pressed", "false");
   b.innerHTML = `<img src="tex/${s.id}_t.webp?v=20261021" alt="" width="52" height="52" loading="lazy"><b data-t="s.${s.id}">${T("s." + s.id)}</b>`; b.title = T("s." + s.id + ".sub");
@@ -303,21 +303,74 @@ const closeTray = () => { if (!$("#tray").hidden) openTray(null); };
 for (const d of document.querySelectorAll(".dk")) d.addEventListener("click", () => openTray(d.dataset.tray));
 $("#tray").addEventListener("click", e => { if (e.target.closest("button.chip") && !e.target.closest("#trayK")) setTimeout(closeTray, 180); });
 addEventListener("keydown", e => { if (e.key === "Escape") closeTray(); });
-let photoSurf = null;
-photoChip.addEventListener("click", () => { if (photoSurf && surf !== photoSurf) { applySurface(photoSurf, false); say("aoi.photo", 7000); } });
+/* 2026-11-05：撮った面・受けとった面を並べて持つ（この端末のこの画面の中だけ。閉じると消える）。自分の面 6・受けとった面 12 まで */
+const FOUND = []; let fN = 0, rN = 0;
+async function makePhotoSurf(blob, from) {
+  const r = await estimateFromFile(blob);   // この端末の中だけ
+  const th = document.createElement("canvas"); th.width = th.height = 96; th.getContext("2d").drawImage(r.color, 0, 0, 96, 96);
+  const id = (from ? "r" : "f") + (from ? ++rN : ++fN);
+  const v = { id, from: !!from, label: T(from ? "s.from.c" : "s.found.c") + " " + (from ? rN : fN), origin: "photo", material: null, color: r.color, thumb: th.toDataURL("image/jpeg", .8), map: tex(r.color, true), normalMap: tex(r.normalCanvas), roughMap: tex(r.roughCanvas), dispMap: tex(softDisp(r.height)), H: r.height, p0: r.params, metal: 0, nBase: 1, snd: from && SND_IDS.includes(from.snd) ? from.snd : nearestSnd(r.params) };
+  const same = FOUND.filter(x => x.from === v.from); if (same.length >= (from ? 12 : 6)) { dropFound(same[0]); setTimeout(() => say("aoi.drop", 5000), 2600); }
+  const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.s = id; b.setAttribute("aria-pressed", "false");
+  b.innerHTML = `<img src="${v.thumb}" alt="" width="52" height="52"><b>${T(from ? "s.from.c" : "s.found.c")}${from ? rN : fN}</b>`; b.setAttribute("aria-label", v.label); b.addEventListener("click", () => { if (surf !== v) { applySurface(v); say(v.from ? "aoi.take.again" : "aoi.photo", 6000); } });
+  chips.insertBefore(b, photoChip); v.chip = b; FOUND.push(v); return v;
+}
+function dropFound(v) { const i = FOUND.indexOf(v); if (i < 0 || surf === v) return; FOUND.splice(i, 1); v.chip.remove(); for (const k of ["map", "normalMap", "roughMap", "dispMap"]) v[k].dispose(); }
 async function onFile(e) {
   const f = e.target.files?.[0]; e.target.value = ""; if (!f) return;
   $("#err").hidden = true; busy(true);
   try {
-    const r = await estimateFromFile(f);   // この端末の中だけ
-    if (photoSurf) for (const k of ["map", "normalMap", "roughMap", "dispMap"]) photoSurf[k].dispose();
-    photoSurf = { id: "photo", origin: "photo", material: null, map: tex(r.color, true), normalMap: tex(r.normalCanvas), roughMap: tex(r.roughCanvas), dispMap: tex(softDisp(r.height)), H: r.height, p0: r.params, metal: 0, nBase: 1, snd: nearestSnd(r.params) };
-    const tc = $("#photoThumb").getContext("2d"); tc.drawImage(r.color, 0, 0, 48, 48);
-    photoChip.hidden = false; closeTray(); applySurface(photoSurf); say(WS ? "aoi.wsphoto" : "aoi.photo", WS ? 14000 : 7500); aoiReact();
+    const v = await makePhotoSurf(f, null);
+    closeTray(); if (blind) setBlind(false, true); applySurface(v); say(WS ? "aoi.wsphoto" : "aoi.photo", WS ? 14000 : 7500); aoiReact();
   } catch (err) { console.warn(err); $("#err").textContent = T("err.photo"); $("#err").hidden = false; }
   finally { busy(false); }
 }
 $("#fPick").addEventListener("change", onFile); $("#fShoot").addEventListener("change", onFile);
+
+/* ---- 渡す・受けとる（ワークショップ ?ws=1 だけ）。まなざしと同じ＝サーバーなし・ファイル一つを端末どうしで（AirDrop・ニアバイシェア・LINE など）。
+   入れるのは、描き直した面の画像（位置・機種の情報は残らない）と、触れた音の種類と、分までの時刻だけ。名前・位置・端末の情報は入れない。 */
+const uid = () => Math.random().toString(36).slice(2, 10);
+const minute = () => { const d = new Date(); d.setSeconds(0, 0); return d.toISOString(); };
+async function give() {
+  if (!surf || surf.origin !== "photo") { say("aoi.give.none", 6000); return; }
+  const c = document.createElement("canvas"); c.width = c.height = 768; c.getContext("2d").drawImage(surf.color, 0, 0, 768, 768);
+  const L = { v: 1, app: "qualia-touch", t: minute(), surface: { img: c.toDataURL("image/jpeg", .86), snd: surf.snd } };
+  const name = `手ざわり_${uid()}.json`, blob = new Blob([JSON.stringify(L)], { type: "application/json" }), file = new File([blob], name, { type: "application/json" });
+  // 共有の画面が .json を受けない端末（Android の Chrome など）は、面の画像（JPEG）で渡す。「受けとる」は画像も開ける
+  const jb = await new Promise(ok => c.toBlob(ok, "image/jpeg", .86)), jf = jb && new File([jb], name.replace(/\.json$/, ".jpg"), { type: "image/jpeg" });
+  for (const f of [file, jf]) if (f && navigator.canShare?.({ files: [f] })) { try { await navigator.share({ files: [f], title: T("give.title") }); say("aoi.give.done", 5000); return; } catch (e) { if (e.name === "AbortError") return; } }
+  dl(blob, name); say("aoi.give.file", 8000);
+}
+const okImg = s => typeof s === "string" && s.length < 4e6 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s);
+async function takeFiles(fs) {
+  let last = null; busy(true);
+  try {
+    for (const f of fs) { try {
+      let blob = null, snd = null;
+      if (/^image\//.test(f.type)) blob = f;
+      else { const L = JSON.parse(await f.text()); if (L?.v !== 1 || L.app !== "qualia-touch" || !okImg(L.surface?.img)) continue; blob = await (await fetch(L.surface.img)).blob(); snd = String(L.surface.snd || ""); }
+      last = await makePhotoSurf(blob, { snd });
+    } catch (e) { console.warn(e); } }
+  } finally { busy(false); }
+  if (!last) { say("aoi.take.bad", 5000); return; }
+  closeTray(); if (objDef) await setObject(null); applySurface(last); setBlind(true, true); say("aoi.take", 12000);
+}
+$("#bGive").addEventListener("click", give);
+$("#bTake").addEventListener("click", () => $("#fTake").click());
+$("#fTake").addEventListener("change", e => { const fs = [...e.target.files]; e.target.value = ""; if (fs.length) takeFiles(fs); });
+addEventListener("dragover", e => { if (WS) e.preventDefault(); });
+addEventListener("drop", e => { if (!WS) return; e.preventDefault(); const fs = [...(e.dataTransfer?.files || [])]; if (fs.length) takeFiles(fs); });
+
+/* ---- 当て合い：画面を見ずになぞる（面の絵・形・点の層を隠し、音と震えと指の下の光だけ残す）。「見る」で答え */
+let blind = false;
+const blindTile = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x0c1422 })); blindTile.rotation.x = -Math.PI / 2; blindTile.position.y = -.001; blindTile.visible = false; scene.add(blindTile);
+async function setBlind(on, quiet) {
+  if (on && objDef) await setObject(null);
+  blind = on; document.body.classList.toggle("blind", on); plate.visible = !on && !objDef; cloud.visible = !on; blindTile.visible = on;
+  const b = $("#bBlind"); b.setAttribute("aria-pressed", String(on)); $("#blindB").textContent = T(on ? "blind.see" : "blind.hide"); $("#blindS").textContent = T(on ? "blind.see.s" : "blind.hide.s"); $("#blindIco").setAttribute("d", on ? "M6 20c3.5-5.5 8.3-8.3 14-8.3s10.5 2.8 14 8.3c-3.5 5.5-8.3 8.3-14 8.3S9.5 25.5 6 20zM20 16.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7z" : "M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3");
+  dirty = 2; if (!quiet) say(on ? "aoi.blind" : "aoi.see", on ? 8000 : 5000);
+}
+$("#bBlind").addEventListener("click", () => setBlind(!blind));
 function busy(on) { $("#busy").hidden = !on; }
 
 // ---- 見る向き（回す・傾ける・寄る・ずらす）。V＝いま、G＝向かう先
@@ -494,7 +547,7 @@ async function loadAoi() {
 }
 const AOI_X = MOBILE ? -.46 : -.78, AOI_Z = MOBILE ? -.62 : -.08;
 const LOOK = new THREE.Vector3(0, .02, 0);
-function aoiWatch(on) { aoi?.motion.lookAt(on ? LOOK : null); }
+function aoiWatch(on) { aoi?.motion.lookAt(on && !blind ? LOOK : null); }
 function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 
 // ---- 碧の字幕
@@ -509,7 +562,7 @@ function say(k, ms = 6000) {
 }
 
 // ---- 層を見る・書き出す（この端末に保存するだけ。送信しない）
-const layerNow = () => buildLayer({ surface: { id: surf.id, label: T("s." + surf.id), origin: surf.origin === "photo" ? "estimated-from-image" : "integrated-from-normal-map", material: surf.material }, params, heightAt, stroke: lastStroke });
+const layerNow = () => buildLayer({ surface: { id: surf.id, label: surf.label || T("s." + surf.id), origin: surf.origin === "photo" ? "estimated-from-image" : "integrated-from-normal-map", material: surf.material }, params, heightAt, stroke: lastStroke });
 function save() {
   const L = layerNow(), d = new Date(), pad = n => String(n).padStart(2, "0");
   const blob = new Blob([JSON.stringify(L, null, 1)], { type: "application/json" }), u = URL.createObjectURL(blob), a = document.createElement("a");
@@ -577,7 +630,7 @@ function frame(now) {
   const follow = !touch ? 1 : Math.min(1, dt * 60 * (1 - .8 * Math.min(1, model.d.mu * (.3 + r.amp) * .9 + stick)));
   shown.lerp(dentAt, follow); if (shown.distanceTo(dentAt) > 1e-4) dirty = 2;
   U.uDent.value.set(shown.x, shown.y, dent / SIZE_MM);
-  if (touch) { strokeMs += dtMs; if (!vibe.ok && strokeMs > 600 && !said.novib) say(sonic.ok && sonic.on ? "aoi.novib" : "aoi.novib.mute", 6000); if (strokeMs > 1400 && !said.stroke && r.speed > 30) say("aoi.stroke", 5500); if (dent > 1.2 && !said.press) say("aoi.press", 5500); }
+  if (touch) { strokeMs += dtMs; if (!vibe.ok && strokeMs > 600 && !said.novib) say(sonic.ok && sonic.on ? "aoi.novib" : "aoi.novib.mute", 6000); if (!blind && strokeMs > 1400 && !said.stroke && r.speed > 30) say("aoi.stroke", 5500); if (!blind && dent > 1.2 && !said.press) say("aoi.press", 5500); }   // かくしている間は「目を閉じて当てる」の字幕を残す
   // 輪
   // 振動の代わりに目で：強く当たるほど輪が明るく、少し広がる
   ring.material.opacity += ((touch ? .55 + .45 * r.amp : 0) - ring.material.opacity) * Math.min(1, dt * 8);
@@ -623,4 +676,4 @@ resize();
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
   idle(() => SAMPLES.slice(1, 4).reduce((p, s) => p.then(() => loadSample(s).catch(() => {})), Promise.resolve()));
 })();
-window.__qt = { model, sonic, vibe, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };
+window.__qt = { get blind() { return blind; }, setBlind, takeFiles, give, found: FOUND, model, sonic, vibe, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };

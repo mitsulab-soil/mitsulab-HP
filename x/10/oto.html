@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>土と樹の音 ／ mitsulab</title>
+<meta name="robots" content="noindex,noai,noimageai">
+<meta name="tdm-reservation" content="1">
+<meta name="theme-color" content="#03060f">
+<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="kit/ui.css?v=20261103">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
+<link rel="modulepreload" href="oto.js?v=20261105a">
+<link rel="modulepreload" href="vendor/three/build/three.module.js">
+<style>
+/* 土と樹の音（Qualia/touch の中の試作のモード・2026-11-05）。© mitsulab. All rights reserved. 1 画面で完結する */
+html,body{margin:0;height:100%;overflow:hidden;background:var(--ml-bg);color:var(--ml-ink);font-family:var(--ml-serif);-webkit-text-size-adjust:100%}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit}
+.hud-c{position:fixed;width:18px;height:18px;border:0 solid rgba(120,214,236,.5);pointer-events:none;z-index:2}
+.hud-c.tl{left:10px;top:10px;border-left-width:1px;border-top-width:1px}.hud-c.tr{right:10px;top:10px;border-right-width:1px;border-top-width:1px}
+.hud-c.bl{left:10px;bottom:10px;border-left-width:1px;border-bottom-width:1px}.hud-c.br{right:10px;bottom:10px;border-right-width:1px;border-bottom-width:1px}
+#top{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;padding:max(16px,env(safe-area-inset-top)) 16px 0;z-index:5;pointer-events:none}
+#top>*{pointer-events:auto}
+#brand b{display:block;font:600 16px/1.2 var(--ml-serif);letter-spacing:.14em;color:#fff;text-shadow:0 1px 8px rgba(3,6,15,.8)}
+#brand small{display:block;margin-top:3px;font:500 11px var(--ml-serif);letter-spacing:.14em;color:var(--ml-aoi-2)}
+#topr{display:flex;gap:6px}#topr .mu-btn{padding:0 12px;font-size:12.5px}
+#start{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;background:none;border:0;color:var(--ml-aoi-2);font:600 14px var(--ml-serif);letter-spacing:.2em;text-shadow:0 0 8px rgba(3,6,15,.95);min-width:180px;min-height:120px;justify-content:center}
+#start i{width:18px;height:18px;border-radius:50%;background:rgba(170,240,255,.85);box-shadow:0 0 16px rgba(120,214,236,.9);animation:pu 1.8s ease-in-out infinite}
+@keyframes pu{0%,100%{transform:scale(.8);opacity:.6}50%{transform:scale(1.25);opacity:1}}
+#start[hidden]{display:none}
+#band{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(16px,env(safe-area-inset-top)) + 54px);z-index:3;font:500 11px var(--ml-mono,monospace);letter-spacing:.08em;color:var(--ml-ink-3);white-space:nowrap;text-shadow:0 1px 6px #000}
+#band em{font-style:normal;color:#f2cf8c}
+#sub{bottom:calc(var(--mu-gb) + 176px);max-width:min(92vw,560px);white-space:pre-line;text-align:center}
+#dock{position:fixed;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom));z-index:6;display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100% - 24px,440px)}
+#tags .mu-chip{min-width:56px;justify-content:center}
+#act{display:flex;gap:18px;align-items:flex-end}
+.big{appearance:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0;color:var(--ml-ink-2);cursor:pointer}
+.big .f{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(120,214,236,.5);background:rgba(3,6,15,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:border-color .2s,box-shadow .2s}
+.big svg{width:24px;height:24px;fill:none;stroke:var(--ml-aoi-2);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.big b{font:600 11.5px var(--ml-serif);letter-spacing:.12em;white-space:nowrap;text-shadow:0 0 6px rgba(3,6,15,.95)}
+.big small{font-size:10px;color:var(--ml-ink-3);margin-top:-4px;white-space:nowrap;font-family:var(--ml-mono,monospace)}
+.big[aria-pressed="true"] .f{border-color:#f2cf8c;box-shadow:0 0 0 3px rgba(242,207,140,.16),0 0 18px rgba(242,207,140,.35)}.big[aria-pressed="true"] svg{stroke:#f2cf8c}.big[aria-pressed="true"] b{color:#f2cf8c}
+.big.rec .f{border-color:#f4aa96;box-shadow:0 0 18px rgba(244,170,150,.45)}.big.rec svg{stroke:#f4aa96}.big.rec b{color:#f4aa96}
+.big:focus-visible .f{outline:1px solid var(--ml-aoi-2);outline-offset:3px}
+#shelf{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom)) + 166px);z-index:6;width:min(100% - 24px,560px);max-height:42svh;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;padding:10px;border:1px solid rgba(120,214,236,.28);background:linear-gradient(180deg,rgba(6,12,22,.66),rgba(3,6,15,.82));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#shelf[hidden]{display:none}
+body.shelf #sub{bottom:auto;top:calc(max(16px,env(safe-area-inset-top)) + 84px)}
+.card{position:relative;display:flex;flex-direction:column;gap:3px;padding:6px 6px 5px;min-height:76px;border:1px solid rgba(195,204,224,.2);background:rgba(3,6,15,.4);color:var(--ml-ink);cursor:pointer;text-align:left}
+.card canvas{width:100%;height:34px;display:block}
+.card b{font:600 12px var(--ml-serif);letter-spacing:.08em}.card small{font:400 10px var(--ml-mono,monospace);color:var(--ml-ink-3)}
+.card.from{border-color:rgba(180,162,255,.4)}.card.play{border-color:#f2cf8c}
+.card .x{position:absolute;right:0;top:0;width:44px;height:40px;background:none;border:0;color:var(--ml-ink-3);font-size:15px;cursor:pointer}
+#empty{grid-column:1/-1;text-align:center;font-size:12px;color:var(--ml-ink-3);letter-spacing:.08em;padding:8px}
+#cr{position:fixed;right:8px;bottom:2px;z-index:3;font-size:9px;color:var(--ml-ink-3);opacity:.7;pointer-events:none}
+#fTake{display:none}
+@media (max-width:420px){#brand b{font-size:14px;letter-spacing:.1em}#act{gap:12px}#topr .mu-btn{padding:0 10px}#cr{left:auto;right:8px;top:calc(max(16px,env(safe-area-inset-top)) + 50px);bottom:auto}}
+@media (min-width:900px){#sub{font-size:15px}.big .f{width:64px;height:64px}}
+</style>
+</head>
+<body>
+<script src="loader/loader.js" data-max="3000"></script>
+<canvas id="c" aria-label="マイクの音の波形と、指でよく感じる帯域の 3D"></canvas>
+<i class="hud-c tl" aria-hidden="true"></i><i class="hud-c tr" aria-hidden="true"></i><i class="hud-c bl" aria-hidden="true"></i><i class="hud-c br" aria-hidden="true"></i>
+<div id="top">
+  <div id="brand"><b>土と樹の音</b><small>聴いて、指で感じる</small></div>
+  <div id="topr"><button class="mu-btn" id="bGive" type="button" aria-label="録った音を、ほかの人の端末へ渡す">渡す</button><button class="mu-btn" id="bTake" type="button" aria-label="渡された音を受けとる">受けとる</button></div>
+</div>
+<div id="band" aria-hidden="true"></div>
+<button id="start" type="button"><i></i><span>押して、聴きはじめる</span></button>
+<div id="sub" class="mu-cap" aria-live="polite"></div>
+<div id="shelf" hidden aria-label="標本"></div>
+<div id="dock">
+  <div class="mu-chips" id="tags" role="group" aria-label="どこの音"></div>
+  <div id="act">
+    <button class="big" id="bFlow" type="button" aria-pressed="false"><span class="f"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="15.5" rx="7.5" ry="3.6"/><path d="M5 11.5c1.6-1.4 3-1.4 4.6 0s3 1.4 4.6 0 3-1.4 4.6 0"/><path d="M7 7.5c1.6-1.4 3-1.4 4.6 0s3 1.4 4.6 0"/></svg></span><b>小石へ流す</b><small>音を震えに</small></button>
+    <button class="big" id="bRec" type="button"><span class="f"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="8.6" stroke-opacity=".45"/></svg></span><b>録る</b><small id="recT">30 秒まで</small></button>
+    <button class="big" id="bShelf" type="button" aria-pressed="false"><span class="f"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6"/><rect x="13" y="5" width="7" height="6"/><rect x="4" y="13" width="7" height="6"/><rect x="13" y="13" width="7" height="6"/></svg></span><b>並べる</b><small id="cnt">0</small></button>
+  </div>
+</div>
+<div id="cr">© mitsulab</div>
+<input type="file" id="fTake" accept=".json,application/json" multiple>
+<script type="module" src="oto.js?v=20261105a"></script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 let THREE, GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder; // 3D は操作できるようになってから読む
 
 const $ = id => document.getElementById(id);
-const MAX = 9, REC_MAX = 15;
+const MAX = 9, REC_MAX = 15, MOB = matchMedia("(max-width: 899px)").matches;
 const QS = ["いつもは気づかない音は、どこにある？", "手ざわりが、まわりと違う所は？", "ミツバチなら、どこへ向かう？", "スズメなら、どこに降りる？", "タヌキなら、どこを通る？", "あなたの足を止めたものは？"];
 /* 2026-11-05：選ぶのは感覚の一段だけ。だれの目かは問いが決める（問いを押すと次の問いへ） */
 const QFIT = { 0: ["sound", "hito"], 1: ["touch", "hito"], 2: ["sight", "hachi"], 3: ["sight", "suzume"], 4: ["smell", "tanuki"], 5: ["sight", "hito"] };
@@ -133,9 +133,20 @@ function makeObj(it, layer) {
     const hit = new THREE.Mesh(new THREE.PlaneGeometry(.42, .42), new THREE.MeshBasicMaterial({ visible: false })); g.add(hit);
   }
   const dot = new THREE.Mesh(new THREE.SphereGeometry(.018, 10, 8), new THREE.MeshBasicMaterial({ color: sc })); dot.position.set(0, -.3, 0); g.add(dot); // 感覚の色の点
+  { const k = it.kind === "sound" ? "oto" : it.tex ? "te" : "sha", b = new THREE.Sprite(new THREE.SpriteMaterial({ map: badgeTex(k), transparent: true, fog: false, depthWrite: false, depthTest: false, sizeAttenuation: false }));   // 2026-11-05 本人：写真・手ざわり・音のどれかを示す小さな印（左上の角）
+    b.scale.setScalar(MOB ? .046 : .044); b.renderOrder = 10; g.userData.badge = b; if (it.kind === "photo") b.position.set(-.285, .285, .012); else b.position.set(-.21, .21, .012); g.add(b); }   // 印は角の外側へ少し出す（写真を隠さない）
   g.scale.setScalar(.001); g.userData.s = 1;
   items.add(g); meshes.set(layer.id + ":" + it.id, { obj: g, it, layer, target: new THREE.Vector3(), op: 1 });
 }
+const BADGE = {};
+function badgeTex(k) { if (BADGE[k]) return BADGE[k]; const cv = document.createElement("canvas"); cv.width = cv.height = 96; const x = cv.getContext("2d");
+  x.fillStyle = "rgba(6,12,22,.82)"; x.beginPath(); x.arc(48, 48, 44, 0, 7); x.fill(); x.strokeStyle = "rgba(232,239,244,.55)"; x.lineWidth = 2; x.stroke();
+  x.save(); x.translate(12, 12); x.scale(3, 3); x.strokeStyle = k === "te" ? "#f2cf8c" : k === "oto" ? "#b4a2ff" : "#e8eff4"; x.lineWidth = 1.5; x.lineCap = x.lineJoin = "round";
+  const P = d => x.stroke(new Path2D(d));
+  if (k === "sha") { P("M4 8h3l2-3h6l2 3h3v11H4z"); x.beginPath(); x.arc(12, 13, 3.6, 0, 7); x.stroke(); }          // 写真＝カメラ
+  else if (k === "te") { P("M10.4 3v10.6a1.6 1.6 0 0 0 3.2 0V3"); P("M4 19h16"); P("M7.4 16.6c-.8.8-1.8 1.2-2.8 1.3M16.6 16.6c.8.8 1.8 1.2 2.8 1.3"); }   // 手ざわり＝面に触れる指先
+  else { P("M3 12h2M7 8v8M11 5v14M15 8v8M19 10.5v3M21 12h0"); }                                                      // 音＝波
+  x.restore(); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return BADGE[k] = t; }
 let tagG = null;
 function tagTex(t, c) { const cv = document.createElement("canvas"); cv.width = 256; cv.height = 96; const x = cv.getContext("2d");
   x.font = '700 76px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.lineJoin = "round"; x.lineWidth = 10; x.strokeStyle = "rgba(6,14,22,.85)"; x.strokeText(t, 128, 48); x.fillStyle = c; x.fillText(t, 128, 48); if (c === "#ffffff") { x.fillStyle = "#5cc8e0"; x.fillRect(48, 86, 160, 5); }
@@ -211,6 +222,7 @@ function frame() {
     const s = (big ? 2.2 : 1) * (playing?.id === o.userData.id ? 1 + Math.sin(t * 8) * .08 : 1); o.scale.lerp(new THREE.Vector3(s, s, s), 1 - Math.exp(-dt * 6));
     o.quaternion.slerp(C.quaternion, 1 - Math.exp(-dt * 6));
     o.traverse(c => { if (c.material && c.material.visible !== false) { c.material.transparent = true; c.material.opacity += ((m.op) - c.material.opacity) * (1 - Math.exp(-dt * 6)); } });
+    if (o.userData.badge) o.userData.badge.visible = view === "side";   // 印は並べたカードに（重ねると重なって読めないため）
     if (o.userData.ring) o.userData.ring.rotation.z = t * .6; }
   R.render(S, C);
 }
@@ -274,7 +286,7 @@ $("bGive").onclick = async () => {
 };
 
 /* ---------- 受けとる（運営の端末・大画面）。押すかファイルを置く ---------- */
-function valid(L) { return L && L.v === 1 && typeof L.id === "string" && Array.isArray(L.items) && L.items.length <= MAX && L.items.every(i => (i.kind === "photo" && /^data:image\/(jpeg|png|webp);base64,/.test(i.data)) || (i.kind === "sound" && /^data:audio\/[\w.+-]+(;[\w=]+)*;base64,/.test(i.data))); }
+function valid(L) { return L && L.v === 1 && typeof L.id === "string" && Array.isArray(L.items) && L.items.length <= MAX && L.items.every(i => typeof i.data === "string" && i.data.length < 3e6 && ((i.kind === "photo" && /^data:image\/(jpeg|png|webp);base64,/.test(i.data)) || (i.kind === "sound" && /^data:audio\/[\w.+-]+(;[\w=.+-]+)*;base64,/.test(i.data)))); }   // 大きさの上限は写真にも音にも
 async function takeFiles(fs) {
   if (!SHARE) return;
   let n = 0;

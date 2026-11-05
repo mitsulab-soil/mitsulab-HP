@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<script>/* 2026-11-05 土と樹の音（試作のモード・HP には出さない）＝ ?ws=oto */if(/[?&]ws=oto(&|$)/.test(location.search))location.replace("oto.html"+location.search);</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="tdm-reservation" content="1">
 <meta name="robots" content="noai, noimageai">
@@ -16,9 +17,9 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css?v=20261027q">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="app.js?v=20261105f">
+<link rel="modulepreload" href="app.js?v=20261105g">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="i18n.js?v=20261105f">
+<link rel="modulepreload" href="i18n.js?v=20261105g">
 <link rel="modulepreload" href="haptics.js?v=20261105f">
 <link rel="modulepreload" href="estimate.js">
 <link rel="modulepreload" href="sounds.js?v=20261021">
@@ -39,6 +40,12 @@ body.ws #dlgAbout .dlg-in>h3,body.ws #dlgAbout .dlg-in>h3+p,body.ws #dlgAbout .m
 @media (max-width:899px){.dock{gap:26px}}
 #dlgAbout .copy a{display:inline-flex;align-items:center;min-height:44px;padding:0 6px}
 .ws-shoot input{position:absolute;width:1px;height:1px;opacity:0}
+.top-r{display:flex;gap:6px;align-items:center}.ws-share{display:flex;gap:6px}.ws-share[hidden]{display:none}.ws-share .mu-btn{padding:0 12px;font-size:12.5px;letter-spacing:.08em}
+body.ws .dk[data-tray="trayO"]{display:none}.dk[hidden]{display:none}
+#bBlind[aria-pressed="true"] .face{border-color:#f2cf8c;box-shadow:0 0 0 3px rgba(242,207,140,.16),0 0 18px rgba(242,207,140,.35)}#bBlind[aria-pressed="true"] b{color:#f2cf8c}
+body.blind #faceS{visibility:hidden}body.blind .dk[data-tray="trayS"] .face::after{content:"？";position:absolute;font:600 22px var(--ml-serif);color:var(--ml-aoi-2)}.dk .face{position:relative}
+#stage.open #wsShoot,body.blind #wsShoot{display:none}body.blind #chips img{visibility:hidden}#stage.open #fhint{opacity:0}.ws-shoot{bottom:calc(126px + env(safe-area-inset-bottom))!important}#stage:has(#wsShoot:not([hidden])) #cap{bottom:calc(188px + env(safe-area-inset-bottom))}@media (min-width:900px){.ws-shoot{bottom:146px!important}#stage:has(#wsShoot:not([hidden])) #cap{bottom:200px}}#bAbout,.ws-share .mu-btn{white-space:nowrap}
+@media (max-width:420px){body.ws #bAbout{padding:0 10px;border-radius:2px}.ws-share .mu-btn{padding:0 10px;min-width:44px}body.ws .top{padding-left:14px;padding-right:14px}}
 </style>
 </head>
 <body class="ml-root">
@@ -49,14 +56,14 @@ body.ws #dlgAbout .dlg-in>h3,body.ws #dlgAbout .dlg-in>h3+p,body.ws #dlgAbout .m
   <i class="hud-c tl" aria-hidden="true"></i><i class="hud-c tr" aria-hidden="true"></i><i class="hud-c bl" aria-hidden="true"></i><i class="hud-c br" aria-hidden="true"></i>
   <header class="top">
     <div class="brand"><h1 class="ml-title">Qualia/touch</h1><p class="hint" id="hint">なぞって、触れる。</p></div>
-    <button class="ico-btn" id="bAbout" type="button" aria-label="使い方とこの作品について">使い方</button>
+    <div class="top-r"><span id="wsShare" class="ws-share" hidden><button class="mu-btn" id="bGive" type="button" aria-label="いまの面を、ほかの人の端末へ渡す">渡す</button><button class="mu-btn" id="bTake" type="button" aria-label="渡された面を受けとる">受けとる</button></span><button class="ico-btn" id="bAbout" type="button" aria-label="使い方とこの作品について">使い方</button></div>
   </header>
+  <input type="file" id="fTake" accept=".json,application/json,image/*" multiple hidden>
   <div id="aoiBox" aria-hidden="true"></div>
   <p id="cap" class="ml-caption" aria-live="polite"></p>
   <div id="tray" class="tray" hidden>
     <div class="tray-in" id="trayS" role="group" aria-label="触れるもの">
       <div class="chips" id="chips">
-        <button type="button" class="chip" data-s="photo" aria-pressed="false" hidden><canvas id="photoThumb" width="48" height="48"></canvas><b data-t="s.photo">選んだ画像</b></button>
         <label class="chip file" id="pickChip"><input type="file" id="fPick" accept="image/*" aria-label="触覚にしたい画像を選ぶ"><span class="plus" aria-hidden="true">＋</span><b>画像</b></label>
       </div>
     </div>
@@ -70,11 +77,12 @@ body.ws #dlgAbout .dlg-in>h3,body.ws #dlgAbout .dlg-in>h3+p,body.ws #dlgAbout .m
   </div>
   <nav class="dock" aria-label="操作">
     <button type="button" class="dk" data-tray="trayS" aria-expanded="false"><span class="face"><img id="faceS" src="tex/bark_t.webp?v=20261021" alt=""></span><b>触れるもの</b><small id="faceSN">樹皮</small></button>
+    <button type="button" class="dk" id="bBlind" aria-pressed="false" hidden><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path id="blindIco" d="M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><b id="blindB">かくす</b><small id="blindS">見ずになぞる</small></button>
     <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>かたち</b><small id="faceON">板</small></button>
     <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="形を保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>残す</b><small>立体で保存</small></button>
   </nav>
   <label id="wsShoot" class="ml-btn ml-btn--primary ws-shoot" hidden><input type="file" id="fShoot" accept="image/*" capture="environment" aria-label="見つけた手ざわりを撮る"><span>見つけた手ざわりを撮る</span></label>
-  <script>(function(){if(!/[?&]ws=1/.test(location.search))return;var l=document.getElementById('wsShoot');l.hidden=false;var h=document.getElementById('hint');if(h)h.textContent='触覚さがし ── 撮って、なぞる。';document.body.classList.add('ws');var d=document.querySelector('#dlgAbout .howto');if(d)d.innerHTML='触覚さがしの使い方<br>1　見つけた手ざわりを「撮る」。<br>2　できた面を、指でなぞる。音（端末によっては震えも）が返ります。<br>3　残したい面は「残す」で立体のファイルに。<br>写真はこの端末の中だけで使い、外へ送りません。';})();</script>
+  <script>(function(){if(!/[?&]ws=1/.test(location.search))return;var l=document.getElementById('wsShoot');l.hidden=false;document.getElementById('wsShare').hidden=false;document.getElementById('bBlind').hidden=false;var h=document.getElementById('hint');var ks=document.querySelector('.dk-s small');if(ks)ks.textContent='面を立体に';if(h)h.textContent=innerWidth<421?'触覚さがし':'触覚さがし ── 撮って、なぞる。';document.body.classList.add('ws');var d=document.querySelector('#dlgAbout .howto');if(d)d.innerHTML='触覚さがしの使い方<br>1　見つけた手ざわりを「撮る」。<br>2　できた面を、指でなぞる。音（端末によっては震えも）が返ります。<br>3　「渡す」で、いまの面をほかの人の端末へ（AirDrop・ニアバイシェア・LINE など）。受けとった人は「受けとる」で開きます。<br>4　「かくす」で画面を見ずになぞり、どこの手ざわりか当て合う。「見る」で答え。<br>5　残したい面は「残す」で立体のファイルに。<br>写真は描き直して位置や機種の情報を消し、サーバーには送りません。撮った面はこの画面を閉じると消えます。人の顔は写さないでください。渡すのは、あなたが「渡す」を押した面だけです。';})();</script>
   <div id="fhint" class="fhint" aria-hidden="true"><i></i><span>指でなぞる</span></div>
   <div id="busy" class="busy" hidden><span data-t="busy">凹凸をつくっています</span></div>
   <p class="err" id="err" role="alert" hidden></p>
@@ -115,6 +123,6 @@ body.ws #dlgAbout .dlg-in>h3,body.ws #dlgAbout .dlg-in>h3+p,body.ws #dlgAbout .m
   </div>
 </dialog>
 
-<script type="module" src="app.js?v=20261105f"></script>
+<script type="module" src="app.js?v=20261105g"></script>
 </body>
 </html>
