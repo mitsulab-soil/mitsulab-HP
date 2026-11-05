@@ -120,9 +120,9 @@ export function start(box){
     const ce=new THREE.Mesh(new THREE.SphereGeometry(.04,10,8),std(0xe0b030,{r:.8,m:0}));ce.position.y=.62;fl.add(ce);fl.position.set(.15,0,.12);g.add(fl);
     at(s,g);b.position.y=.95;anim.push(t=>{b.position.set(Math.sin(t*.9)*.05,.95+Math.sin(t*2.1)*.03,Math.cos(t*.7)*.04);b.userData.animate&&b.userData.animate(t,true);});dirty=1;}catch(e){console.warn('cg bee',e);}});
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
-  Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false});const s=SUB[0],g=new THREE.Group();
+  Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(4.2);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xdcecff,3.2,2.6,1.6);pl.position.set(.35,1.1,.7);g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(4.2);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xdcecff,3.2,2.6,1.6);pl.position.set(.35,1.1,.7);g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.01);at(s,g);anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
