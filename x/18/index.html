@@ -52,9 +52,10 @@ body.ending #dock,body.ending #topr{opacity:0;pointer-events:none;transition:opa
 body.solo #bGive,body.solo #bTake,body.solo #bView,body.solo #drop{display:none}
 body.empty #topr{opacity:.38;transition:opacity .6s}body.empty #topr:hover,body.empty #topr:focus-within{opacity:1}
 #dock .lab{font-size:10px;letter-spacing:.16em;color:var(--ml-ink-3);margin:0 0 -4px;text-shadow:0 1px 6px #000}
+#who[hidden]{display:none}#q small#qn{display:block;margin-top:2px;font-size:10px;letter-spacing:.14em;color:var(--ml-ink-3)}
 #q #note{margin-top:4px;font-size:10.5px;letter-spacing:.08em}
 body:not(.solo) #note{display:none}
-@media (max-width:440px){#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px)}#cr{right:0;left:0;text-align:center}#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}
+@media (max-width:440px){#brand{display:block!important;font-size:11px;letter-spacing:.12em}#topr .mu-btn{padding-left:9px;padding-right:9px}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px)}#cr{right:0;left:0;text-align:center}#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}
 @media (min-width:900px){#q{font-size:24px}#sub{font-size:15px}}
 </style>
 </head>
@@ -70,12 +71,11 @@ body:not(.solo) #note{display:none}
   <button class="mu-btn" id="bEnd">おわる</button>
   </div>
 </div>
-<div id="q"><span id="qt"></span><small id="note">この版は、写真と録音を共有しません（端末の中だけ）</small></div>
+<div id="q"><span id="qt"></span><small id="qn">問いを押すと、次の問いへ</small><small id="note">この版は、写真と録音を共有しません（端末の中だけ）</small></div>
 <div id="sub" class="mu-cap is-on"></div>
 <div id="cr">© mitsulab ・ 声 VOICEVOX:冥鳴ひまり</div>
 <div id="dock">
-  <small class="lab" aria-hidden="true">だれの目で</small>
-  <div class="mu-chips" id="who" aria-label="だれの受けとり方で"></div>
+  <div class="mu-chips" id="who" aria-label="だれの受けとり方で" hidden></div>
   <small class="lab" aria-hidden="true">どの感覚で</small>
   <div class="row" id="sense" aria-label="どの感覚で"></div>
   <div id="act">

@@ -312,7 +312,7 @@ async function onFile(e) {
     if (photoSurf) for (const k of ["map", "normalMap", "roughMap", "dispMap"]) photoSurf[k].dispose();
     photoSurf = { id: "photo", origin: "photo", material: null, map: tex(r.color, true), normalMap: tex(r.normalCanvas), roughMap: tex(r.roughCanvas), dispMap: tex(softDisp(r.height)), H: r.height, p0: r.params, metal: 0, nBase: 1, snd: nearestSnd(r.params) };
     const tc = $("#photoThumb").getContext("2d"); tc.drawImage(r.color, 0, 0, 48, 48);
-    photoChip.hidden = false; closeTray(); applySurface(photoSurf); say(WS ? "aoi.wsphoto" : "aoi.photo", 7500); aoiReact();
+    photoChip.hidden = false; closeTray(); applySurface(photoSurf); say(WS ? "aoi.wsphoto" : "aoi.photo", WS ? 14000 : 7500); aoiReact();
   } catch (err) { console.warn(err); $("#err").textContent = T("err.photo"); $("#err").hidden = false; }
   finally { busy(false); }
 }

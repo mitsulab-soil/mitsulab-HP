@@ -6,7 +6,9 @@ let THREE, GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder; // 3D は操�
 
 const $ = id => document.getElementById(id);
 const MAX = 9, REC_MAX = 15;
-const QS = ["いつもは気づかない音は、どこにある？", "手ざわりが、まわりと違う所は？", "ミツバチなら、どこへ向かう？", "あなたの足を止めたものは？"];
+const QS = ["いつもは気づかない音は、どこにある？", "手ざわりが、まわりと違う所は？", "ミツバチなら、どこへ向かう？", "スズメなら、どこに降りる？", "タヌキなら、どこを通る？", "あなたの足を止めたものは？"];
+/* 2026-11-05：選ぶのは感覚の一段だけ。だれの目かは問いが決める（問いを押すと次の問いへ） */
+const QFIT = { 0: ["sound", "hito"], 1: ["touch", "hito"], 2: ["sight", "hachi"], 3: ["sight", "suzume"], 4: ["smell", "tanuki"], 5: ["sight", "hito"] };
 const SENSES = [
   { k: "sight", n: "見る", c: "#9bdcf0", d: '<path d="M3 12c2.4-3.9 5.5-5.9 9-5.9s6.6 2 9 5.9c-2.4 3.9-5.5 5.9-9 5.9S5.4 15.9 3 12z"/><circle cx="12" cy="12" r="2.7"/>' },
   { k: "sound", n: "聴く", c: "#b4a2ff", d: '<circle cx="6.6" cy="12" r="1.2"/><path d="M10.4 8.7a4.7 4.7 0 0 1 0 6.6M13.6 6.2a8.2 8.2 0 0 1 0 11.6"/>' },
@@ -57,7 +59,7 @@ const params = new URLSearchParams(location.search);
 /* 2026-11-04 本人：公開の版は共有しない（端末の中だけ）。ワークショップの会場では ?ws=1 の入口で「渡す・受けとる」を出す。 */
 const SHARE = params.get("ws") === "1";
 document.body.classList.toggle("solo", !SHARE);
-function setQ(t, v) { $("qt").textContent = t; mine.q = t; if (v) speak(t); }
+function setQ(t, v) { $("qt").textContent = t; mine.q = t; const f = QFIT[QS.indexOf(t)]; if (f) { sense = f[0]; who = f[1]; if ($("sense").firstChild) buildRows(); } if (v) speak(t); }
 
 /* ---------- 下の並び ---------- */
 function buildRows() {
@@ -67,7 +69,7 @@ function buildRows() {
 const HINT = {"touch": "触れて感じた所を撮ってください。触れるの印が付きます。", "smell": "においのもとを撮るか、そこの音を録ってください。嗅ぐの印が付きます。", "taste": "味わったものを撮ってください。味わうの印が付きます。", "x": "人にない感覚で感じそうな所を撮ってください。X 感の印が付きます。"};
 $("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.k !== sense && HINT[b.dataset.k]) say(HINT[b.dataset.k], 0); /* 次の一言まで残す（聞き逃しても読める） */ sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
 $("who").onclick = e => { const b = e.target.closest("button"); if (!b) return; who = b.dataset.k; buildRows(); const w = WHO.find(x => x.k === who); if (w.say) say(w.say); };
-function count() { $("cnt").textContent = `${mine.items.length}/${MAX}`; document.body.classList.toggle("empty", !mine.items.length && !(others && others.length)); }   // 2026-11-05：まだ何も無いうちは上の並びを控えめに
+function count() { $("cnt").textContent = `標本 ${mine.items.length}/${MAX}`; document.body.classList.toggle("empty", !mine.items.length && !(others && others.length)); }   // 2026-11-05：まだ何も無いうちは上の並びを控えめに
 
 /* ---------- 3D ---------- */
 const cv = $("c");
