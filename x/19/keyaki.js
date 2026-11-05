@@ -52,6 +52,7 @@ export function growKeyaki(K, R, x, z, o) {
         const a = R() * TAU, side = new V3(Math.cos(a), 0, Math.sin(a)), h = new V3(d.x, 0, d.z).normalize();
         side.addScaledVector(h, .9).normalize();                                // 子の枝は外向きに寄せる（扇が閉じない）
         const cd = d.clone().multiplyScalar(1.1).addScaledVector(side, .3 + .06 * lvl).normalize();
+        if (o.det && lvl < 3) { const kn = new THREE.SphereGeometry(r1 * .97, 8, 6); kn.translate(at.x, at.y, at.z); wood.push(kn.toNonIndexed()); }   // 分かれ目の継ぎ目（管の切り口）を隠す
         limb(at, cd, len * rr(o.decay * .85, o.decay * 1.08), r1 * .92, depth - 1, lvl + 1);
       }
     }
