@@ -8,6 +8,8 @@ const KINDS = {
   collab:  { cam: [0, 2.3, 6.4], look: [0, 2.3, 0] },   // 人が欅の下に立ち、同じ層を見る（ワークショップ）
   story:   { cam: [0, 2.2, 6.6], look: [0, 2.2, 0] },    // 欅と、その下の土の層（土木と自然から始まった歩み）
   profile: { cam: [0, 1.7, 4.8], look: [0, 1.0, 0] },   // 一人が、層の中に立つ
+  museum:  { cam: [0, 2.2, 7.4], look: [0, 1.1, 0] },   // 展示の台に、層を写した面が浮かぶ
+  pair:    { cam: [0, 1.8, 5.6], look: [0, 1.0, 0] },   // 二人が並び、同じ層を見る（一緒に試す）
   ground:  { cam: [0, 3.4, 8.6], look: [0, .8, 0] },    // 六つの環世界が重なる（コモングラウンド）
 };
 export function start(box, kind = box.dataset.th || 'ground') {
@@ -37,7 +39,7 @@ export function start(box, kind = box.dataset.th || 'ground') {
   const std = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: o.r ?? .8, metalness: o.m ?? 0, emissive: o.e ?? 0 });
   let GL = null; const gltf = async url => { if (!GL) { const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]); GL = new GLTFLoader(); GL.setMeshoptDecoder(MeshoptDecoder); } return GL.loadAsync(url); };
   const fit = (o, h) => { const b = new THREE.Box3().setFromObject(o), s = b.getSize(new THREE.Vector3()), k = h / s.y; o.scale.setScalar(k); o.position.set(-(b.min.x + s.x / 2) * k, -b.min.y * k, -(b.min.z + s.z / 2) * k); const g = new THREE.Group(); g.add(o); return g; };
-  const keyakiR = async h => { const g = await gltf('img/hero/3d/sando_keyaki.glb'); g.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; if (m.material && m.material.map) m.material.map.anisotropy = 4; } }); return fit(g.scene, h); };
+  const keyakiR = async h => { const g = await gltf('img/hero/3d/sando_keyaki.glb'); g.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt && mt.map) mt.map.anisotropy = 4; if (mt && /bark|trunk|wood|kan|miki/i.test(m.name + mt.name)) mt.color && mt.color.setHex(0x7d7266); } }); return fit(g.scene, h); };
   const keyaki = async h => { const g = await gltf('img/hero/3d/keyaki_lod1_notex.glb'); g.scene.traverse(m => { if (m.isMesh) m.material = /leaf|ha|foli/i.test(m.name + (m.material && m.material.name)) ? std(0x8fae74, { r: .85 }) : std(0x8a7a66, { r: .95 }); }); return fit(g.scene, h); };
   const human = async h => { const g = await gltf('img/hero/3d/human.glb'); g.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt && mt.metalness != null) { mt.metalness = 0; mt.roughness = Math.max(.55, mt.roughness || 0); } if (/hair|brow|short/i.test(m.name) && mt) { mt.alphaTest = .5; mt.side = THREE.DoubleSide; } } }); return fit(g.scene, h); };
   const add = async (o, x = 0, z = 0, ry = 0, r = .5) => { o.position.x += x; o.position.z += z; o.rotation.y = ry; try { if (R.compileAsync) await R.compileAsync(o, C, S); } catch (e) {} W.add(o); blob(x, z, r); dirty = 1; return o; };
@@ -54,8 +56,13 @@ export function start(box, kind = box.dataset.th || 'ground') {
     async collab() { const t = await keyakiR(mob ? 5.6 : 5.2); await add(t, 0, -1.4, 0, 1.2); const h = await human(1.72); await add(h, -.9, .8, .5); h.rotation.y = 2.6; },
     async story() { const t = await keyakiR(mob ? 5.4 : 5.0); await add(t, 0, 0, 0, 1.2);
       [[0x3e3022, -.12, 1.6], [0x5a4630, -.42, 1.45], [0x7a6448, -.72, 1.3]].forEach(([c, y, r]) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .26, 48), std(c, { r: 1 })); s.position.y = y; W.add(s); }); },   // 土の層（表土・下層土・母材の模式）
+    async museum() { const pm = std(0x2a2f38, { r: .7 }); [-2, 0, 2].forEach((x, i) => { const p = new THREE.Mesh(new THREE.BoxGeometry(.9, .9, .9), pm); p.position.set(x, .45, i === 1 ? -.4 : 0); W.add(p); blob(x, p.position.z, .8);
+        const f = new THREE.Mesh(new THREE.PlaneGeometry(1.1, .75), new THREE.MeshBasicMaterial({ color: i === 1 ? 0x8fd3ff : 0xe8c48a, transparent: true, opacity: .22, side: THREE.DoubleSide, toneMapped: false, depthWrite: false }));
+        const e = new THREE.LineSegments(new THREE.EdgesGeometry(f.geometry), new THREE.LineBasicMaterial({ color: i === 1 ? 0x8fd3ff : 0xe8c48a, transparent: true, opacity: .8 })); const g = new THREE.Group(); g.add(f, e); g.position.set(x, 1.55, p.position.z); W.add(g);
+        anim.push(t => { g.position.y = 1.55 + Math.sin(t * .7 + i) * .05; g.rotation.y = Math.sin(t * .3 + i) * .25; }); }); },
+    async pair() { const a = await human(1.72); await add(a, -.45, 0, .35); const b = await human(1.64); await add(b, .45, .1, -.35); },
     async profile() { const h = await human(1.72); await add(h, 0, 0, 0); h.rotation.y = .3; },
-    async ground() { const cs = [0x9fd8ff, 0xf0d58c, 0xe6ebf6, 0x8ff7e0, 0xb8f0a8, 0xc9b8ff], sm = new THREE.SphereGeometry(1.25, 40, 28);
+    async ground() { const cs = [0x8fd3ff, 0xe8c48a, 0xbfe6ff, 0xd9b27a, 0x6fbfe8, 0xf0d9b0], sm = new THREE.SphereGeometry(1.25, 40, 28);
       cs.forEach((c, i) => { const a = i / 6 * Math.PI * 2; const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { col: { value: new THREE.Color(c) } },
         vertexShader: `varying float f;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vec3 n=normalize(normalMatrix*normal);f=pow(1.-abs(dot(n,normalize(-mv.xyz))),2.4);gl_Position=projectionMatrix*mv;}`, fragmentShader: `uniform vec3 col;varying float f;void main(){gl_FragColor=vec4(col,f*.3);}` });
         const o = new THREE.Mesh(sm, m); o.scale.y = .62; o.position.set(Math.cos(a) * .95, 1, Math.sin(a) * .95); W.add(o); anim.push(t => { o.position.y = 1 + Math.sin(t * .5 + i) * .05; }); }); },
