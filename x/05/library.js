@@ -11,7 +11,7 @@ const MARK = { "◎": "典拠あり", "△": "議論中・諸説", "◐": "近�
 // モバイルは説明と絞り込みを畳み、3Dの中央を空ける。内容は開いて読める。
 const compactView=matchMedia('(max-width:760px)');
 // 2026-10-18：PC も絞り込みは最初は畳む（最初の画面の左半分が字の板二枚で、林とカードが後になっていた）。導入はPCでは開いておく
-function compactLayout(){document.getElementById('libraryIntro').open=!compactView.matches;document.getElementById('filterTools').open=false;}
+function compactLayout(){document.getElementById('libraryIntro').open=false;   /* 2026-11-05 夕：PC でも閉じて始める（開いた板が左のカードの列を隠していた。「＋ 書庫の歩き方」で開く） */document.getElementById('filterTools').open=false;}
 compactLayout();compactView.addEventListener('change',compactLayout);
 new ResizeObserver(([entry])=>document.body.style.setProperty('--filter-height',entry.target.getBoundingClientRect().height+'px')).observe($('.filters'));
 
@@ -146,7 +146,7 @@ function readerHTML(c) {
   return `<div class="r-kick"><span style="color:${SUBJ_COLOR[c.主体key]}">${esc(c.主体)} ・ ${esc(c.主の次元)}</span>${c.関わる次元.length ? `<span>関わる次元：${c.関わる次元.map(esc).join("・")}</span>` : ""}<span class="mk" title="${MARK[c.確からしさ]}">${c.確からしさ} ${MARK[c.確からしさ]}</span></div>
     <h2 class="r-name" id="r-name">${esc(c.名前)}</h2>
     ${c.やさしく ? `<p class="r-kid"><span>ひとことで</span>${esc(c.やさしく)}</p>` : ""}
-    <p class="r-one">${F(c.一行)}</p>
+    ${c.やさしく ? "" : `<p class="r-one">${F(c.一行)}</p>`}   <!-- 2026-11-05 夕：「ひとことで」があるカードは、すぐ下に同じ中身の一行を重ねない（一行は 3D の板と「仕組み」に残る） -->
     ${lookTop}
     <ul class="tags" aria-label="分野">${c.分野.map(f => `<li>${esc(f)}</li>`).join("")}</ul>
     ${sec("仕組み", "how it works", c.仕組み)}

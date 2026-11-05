@@ -1,15 +1,13 @@
 /* mitsulab 共通の部品（aoi.js）。© 2026 mitsulab. All rights reserved. */
 import * as THREE from "three";
 import { AoiMotion } from "./aoi_motion.js";
-export { AoiMotion, EMOTIONS, timelineFromKana, timelineFromText, inferGestures, relaxPose, warmAoi, aoiYield } from "./aoi_motion.js";
-import { warmAoi, aoiYield } from "./aoi_motion.js";
+export { AoiMotion, EMOTIONS, timelineFromKana, timelineFromText, inferGestures, relaxPose } from "./aoi_motion.js";
 
-export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0, reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches, wind = .6, posture = "natural", quality = "auto", renderer = null, camera = null } = {}) {
+export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0, reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches, wind = .6, posture = "natural", quality = "auto" } = {}) {
   const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
   const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
   const g = await ld.loadAsync(url, e => { if (e.total && onProgress) onProgress(e.loaded / e.total); });
   const vrm = g.userData.vrm; if (!vrm) throw new Error("VRM ではありません");
-  await aoiYield();
   V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(vrm);
   vrm.scene.traverse(o => { o.frustumCulled = false; if (o.isMesh) o.castShadow = true; });
   const root = new THREE.Group(); root.add(vrm.scene);   // シーンに置くのは、動きの部品が休めの形にしてから（v3・2026-10-14：T ポーズを一こまも見せない）
@@ -17,9 +15,7 @@ export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0,
   vrm.humanoid.resetNormalizedPose(); vrm.update(0); vrm.scene.updateMatrixWorld(true);
   { const bx = new THREE.Box3().setFromObject(vrm.scene), h = bx.max.y - bx.min.y, sc = h > .5 ? height / h : 1; vrm.scene.scale.setScalar(sc); vrm.scene.position.y = -bx.min.y * sc; }
   root.updateMatrixWorld(true);
-  await aoiYield();
   const motion = new AoiMotion(vrm, { root, seed, reducedMotion, wind, posture, quality });   // quality（v5）＝"auto"|"high"|"mid"|"low"
-  if (renderer) { await aoiYield(); await warmAoi(renderer, root, camera || new THREE.PerspectiveCamera(), scene); }
   scene.add(root);
   // 透けさせて現れる
   const live = !reducedMotion; let fade = live ? 0 : 1;
