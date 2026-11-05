@@ -18,7 +18,7 @@ const camRig = (a, y, t) => {
     const f = ST.phase === 0 ? 0 : clamp(ST.t / 6, 0, 1);
     const pr = innerWidth < innerHeight * .8, d = lerp(pr ? .62 : .78, 1.1, f), off = new V3(Math.sin(y - .8) * d, lerp(-.3, .5, f), Math.cos(y - .8) * d);   // 11-06 二版の後：宙では葉の少し下から見上げる（葉の背が幹でなく、明るい樹冠と空になる）   /* 葉の背が参道の奥の明るい霞になる向き */
     const pos = leafP.clone().add(off); pos.y = Math.max(pos.y, .3);
-    return { pos, look: leafP.clone().add(new V3(lerp(pr ? .34 : -.02, 0, f), lerp(.16, -.05, f), lerp(-.12, 0, f))) };   // 宙：主役の葉と枝先の房を一つの画に   // 宙では葉を右三分の一に置き、奥へ参道が抜ける
+    return { pos, look: leafP.clone().add(new V3(lerp(pr ? .44 : -.02, 0, f), lerp(.16, -.05, f), lerp(-.12, 0, f))) };   // 宙：主役の葉と枝先の房を一つの画に   // 宙では葉を右三分の一に置き、奥へ参道が抜ける
   }
   const c = LAND.clone(), back = lerp(.72, 4.6, k), h = lerp(.3, 3.4, k);
   return { pos: new V3(c.x + Math.sin(y) * back, h, c.z + Math.cos(y) * back), look: c.clone().add(new V3(0, lerp(.1, 1.05, k), lerp(-.25, -.2, k))) };
@@ -147,9 +147,10 @@ function restart() {
   fg.setDrawRange(0, 0); tit.visible = false; W.setAbs(0); W.sayNow("もう一枚。");
 }
 const said = [false, false, false, false];
-let stepT = 0, chirpT = 0, tickT = 0, fungiT = 0, airT = 0, lastBeat = -1;   // 声部はすべて 0.6 秒の拍の上。8 拍（4.8 秒）ごとに頭がそろう
+let airT2 = 0, stepT = 0, chirpT = 0, tickT = 0, fungiT = 0, airT = 0, lastBeat = -1;   // 声部はすべて 0.6 秒の拍の上。8 拍（4.8 秒）ごとに頭がそろう
 W.onFrame((dt, t, a) => {
   ST.t += dt;
+  if (ST.phase >= 1) { airT2 -= dt; if (airT2 < 0) { airT2 = 3.4; snd.breath(3.6, { f0: 480 + Math.random() * 120, f1: 720, gain: .085, wet: .8, pan: (Math.random() - .5) * 1.4 }); } }   // 11-06：着地のあとも木立の風が途切れない（無音の穴を埋める）
   // 葉の動き
   if (ST.phase === 0) {
     const s = RM ? 0 : 1; leafP.copy(AIR); twig.rotation.z = Math.sin(t * .8) * .012 * s;   // 枝ごと風にゆれる（葉柄で枝につく）
@@ -186,7 +187,7 @@ W.onFrame((dt, t, a) => {
   // 頂き：すべての層が重なる
   if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。もう一度、葉のところへ。"); }
   // 降りる：時が過ぎた同じ場所
-  if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; snd.bell(snd.note(0), { gain: .2 }); snd.bell(snd.note(4), { gain: .14, at: .05 }); snd.bell(snd.note(7), { gain: .1, at: .1 });
+  if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; snd.bell(snd.note(0), { gain: .2, decay: 2.2, wet: .85 }); snd.bell(snd.note(4), { gain: .14, at: .05, decay: 2.2, wet: .85 }); snd.bell(snd.note(7), { gain: .1, decay: 2.2, wet: .85, at: .1 });
     W.sayNow("葉は参道の上で数日をすごし、やがて土の上へ移り、何か月もかけて菌に分けられ、土へ還っていく。"); W.say("だれも全体を見ていない。けれど、全体はたしかに回っている。"); W.say("自分の見ている欅が、欅のすべてではない。"); W.say("葉に触れると、もう一枚。"); }
   if (ST.phase === 3) {
     ST.later += dt; const u = clamp(ST.later / 5, 0, 1);

@@ -353,7 +353,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#cfd5d2;-webkit-user-s
 .aw-mark .aw-sub{font-size:12px;letter-spacing:.22em;color:var(--aw-ink);opacity:.86;text-shadow:0 0 8px rgba(20,24,30,.55)}
 .aw-mark i{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--aw-soft)}
 .aw-axis{position:absolute;right:max(14px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);height:min(46vh,360px);width:44px;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:auto;cursor:ns-resize}
-.aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-soft);text-shadow:0 0 8px rgba(0,0,0,.4)}
+.aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-ink);padding:4px 2px;border-radius:10px;background:rgba(3,6,15,.38);text-shadow:0 0 6px rgba(0,0,0,.7)}   /* 幹や空の上でも読める */
 .aw-line{flex:1;position:relative;width:1px;background:linear-gradient(rgba(155,220,240,.0),rgba(155,220,240,.55) 12%,rgba(155,220,240,.55) 88%,rgba(155,220,240,0));writing-mode:horizontal-tb!important}
 .aw-line em{position:absolute;left:50%;width:9px;height:9px;margin:-5px 0 0 -5px;border:1px solid var(--aw-aoi2);border-radius:50%;background:rgba(6,10,18,.4);box-shadow:0 0 0 4px rgba(155,220,240,.08)}
 .aw-cap{text-wrap:balance;word-break:auto-phrase;line-break:strict;position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;width:min(86vw,640px);text-align:center;font-size:15px;line-height:1.85;letter-spacing:.06em;padding:10px 18px;text-shadow:0 0 10px rgba(14,18,26,.7),0 0 2px rgba(14,18,26,.6);opacity:0;transition:opacity .7s ease;
