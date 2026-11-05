@@ -5,8 +5,8 @@ const KINDS = {
   apps:    { cam: [0, 3.2, 9.5], look: [0, .9, 0] },   // 参道の並木に、層が重なる（場所に層を重ねるアプリ）
   art:     { cam: [0, 1.8, 5.4], look: [0, 1.3, 0] },   // 生き物（ヒヨドリ・アオスジアゲハ）が、ゆらぐ層の中に
   writing: { cam: [0, 2.6, 8.0], look: [0, 1.2, 0] },   // 紙が層になって積み重なる（言葉に残す）
-  collab:  { cam: [0, 2.3, 6.4], look: [0, 2.3, 0] },   // 人が欅の下に立ち、同じ層を見る（ワークショップ）
-  story:   { cam: [0, 2.2, 6.6], look: [0, 2.2, 0] },    // 欅と、その下の土の層（土木と自然から始まった歩み）
+  collab:  { cam: [0, 2.6, 7.6], look: [0, 2.5, 0] },   // 人が欅の下に立ち、同じ層を見る（ワークショップ）
+  story:   { cam: [0, 2.6, 8.2], look: [0, 2.2, 0] },    // 欅と、その下の土の層（土木と自然から始まった歩み）
   profile: { cam: [0, 1.7, 4.8], look: [0, 1.0, 0] },   // 一人が、層の中に立つ
   museum:  { cam: [0, 2.2, 7.4], look: [0, 1.1, 0] },   // 展示の台に、層を写した面が浮かぶ
   pair:    { cam: [0, 1.8, 5.6], look: [0, 1.0, 0] },   // 二人が並び、同じ層を見る（一緒に試す）
@@ -26,7 +26,7 @@ export function start(box, kind = box.dataset.th || 'ground') {
   { const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
       vertexShader: `varying vec2 v;void main(){v=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
       fragmentShader: `varying vec2 v;void main(){float r=length(v);float f=smoothstep(5.,1.2,r);vec2 g=abs(fract(v*1.25)-.5);float gr=smoothstep(.47,.5,max(g.x,g.y));float h=sin(v.x*.9+1.3)*cos(v.y*.7-.4)+.4*sin(r*1.2);float c=smoothstep(.06,0.,abs(fract(h*2.2)-.5)-.44);gl_FragColor=vec4(vec3(.035,.05,.075)+vec3(.56,.83,1.)*gr*.12+vec3(.91,.77,.54)*c*.15,f*.95);}` });
-    const g = new THREE.Mesh(new THREE.CircleGeometry(5.4, 64), m); g.rotation.x = -Math.PI / 2; W.add(g); }
+    const g = new THREE.Mesh(kind === 'story' ? new THREE.RingGeometry(1.82, 5.4, 64) : new THREE.CircleGeometry(5.4, 64), m); g.rotation.x = -Math.PI / 2; W.add(g); }
   // 情報の層（下＝フィジカル、上＝デジタル）
   const sheets = [];
   [[.35, 0xe8c48a], [.6, 0xe8c48a], [2.5, 0x8fd3ff], [2.75, 0x8fd3ff]].forEach(([y, c], i) => {
@@ -45,21 +45,21 @@ export function start(box, kind = box.dataset.th || 'ground') {
   const add = async (o, x = 0, z = 0, ry = 0, r = .5) => { o.position.x += x; o.position.z += z; o.rotation.y = ry; try { if (R.compileAsync) await R.compileAsync(o, C, S); } catch (e) {} W.add(o); blob(x, z, r); dirty = 1; return o; };
   let dirty = 1;
   const build = {
-    async apps() { for (let i = 0; i < (mob ? 3 : 4); i++) for (const sx of [-1, 1]) { const t = await keyakiR(2.6 + (i % 2) * .3); await add(t, sx * 1.6, 2.4 - i * 1.7, i * 1.3, .7); }
+    async apps() { for (let i = 0; i < (mob ? 2 : 4); i++) for (const sx of [-1, 1]) { const t = await keyakiR((mob ? 3.4 : 2.6) + (i % 2) * .3); await add(t, sx * 1.6, 2.4 - i * 1.7, i * 1.3, .7); }
       const path = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 9), std(0x4a4339, { r: .95 })); path.rotation.x = -Math.PI / 2; path.position.y = .01; W.add(path); },
-    async art() { R.toneMappingExposure = 1.1; const fl = new THREE.DirectionalLight(0xfff4e6, .9); fl.position.set(0, 2, 6); S.add(fl); const M = await import('./kit/sight/sightModels.js');
-      const b = await M.loadSight('hiyo', { shadow: false }); b.object.scale.setScalar(7.5); b.object.traverse(m => { if (m.isMesh && m.material) { const mt = m.material; mt.color && mt.color.multiplyScalar(.86); if (mt.roughness != null) mt.roughness = Math.max(.7, mt.roughness); } }); b.play('fly'); const bg = new THREE.Group(); bg.add(b.object); await add(bg, -.9, 0, .6); bg.position.y = 1.5; anim.push((t, dt) => { b.update(dt); bg.position.y = 1.5 + Math.sin(t * .8) * .12; bg.rotation.y = .6 + Math.sin(t * .3) * .3; });
-      const a = await M.loadSight('aosuji', { shadow: false }); a.object.scale.setScalar(30); a.play('fly'); const ag = new THREE.Group(); ag.add(a.object); await add(ag, 1.1, .4, -1); ag.position.y = 1.1; anim.push((t, dt) => { a.update(dt); ag.position.set(1.1 + Math.sin(t * .6) * .3, 1.1 + Math.sin(t * 1.3) * .15, .4 + Math.cos(t * .5) * .2); }); },
+    async art() { R.toneMappingExposure = 1.0; const fl = new THREE.DirectionalLight(0xfff4e6, .9); fl.position.set(0, 2, 6); S.add(fl); const M = await import('./kit/sight/sightModels.js');
+      const b = await M.loadSight('hiyo', { shadow: false }); b.object.scale.setScalar(7.5); b.play('perch'); const br = new THREE.Mesh(new THREE.CylinderGeometry(.035, .05, 2.6, 8), std(0x6b5a48, { r: 1 })); br.rotation.z = Math.PI / 2 - .12; br.position.set(-.9, 1.43, 0); W.add(br); const bg = new THREE.Group(); bg.add(b.object); await add(bg, -.9, 0, .9); bg.position.y = 1.36; anim.push((t, dt) => { b.update(dt); });
+      const a = await M.loadSight('aosuji', { shadow: false }); a.object.scale.setScalar(11); a.play('fly'); const ag = new THREE.Group(); ag.add(a.object); await add(ag, 1.1, .4, -1); ag.position.y = 1.1; anim.push((t, dt) => { a.update(dt); ag.position.set(.9 + Math.sin(t * .6) * .35, 1.25 + Math.sin(t * 1.3) * .12, 1.4 + Math.cos(t * .5) * .25); }); },
     async writing() { const pm = std(0xf0ece2, { r: .9 }); for (let i = 0; i < 9; i++) { const p = new THREE.Mesh(new THREE.BoxGeometry(1.5, .012, 2.0), pm); const g = new THREE.Group(); g.add(p); p.position.y = .3 + i * .17; p.rotation.y = (i - 4) * .09; W.add(g);
         const ln = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .02), new THREE.MeshBasicMaterial({ color: i % 3 ? 0xe8c48a : 0x8fd3ff, transparent: true, opacity: .7, toneMapped: false })); ln.rotation.x = -Math.PI / 2; ln.position.set(0, .3 + i * .17 + .008, (i % 3 - 1) * .5); ln.rotation.z = p.rotation.y; W.add(ln);
         anim.push(t => { g.position.y = Math.sin(t * .6 + i * .5) * .03; }); } blob(0, 0, 1.3); },
     async collab() { const t = await keyakiR(mob ? 5.6 : 5.2); await add(t, 0, -1.4, 0, 1.2); const h = await human(1.72); await add(h, -.9, .8, .5); h.rotation.y = 2.6; },
     async story() { const t = await keyakiR(mob ? 5.4 : 5.0); await add(t, 0, 0, 0, 1.2);
-      [[0x3e3022, -.12, 1.6], [0x5a4630, -.42, 1.45], [0x7a6448, -.72, 1.3]].forEach(([c, y, r]) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .26, 48), std(c, { r: 1 })); s.position.y = y; W.add(s); }); },   // 土の層（表土・下層土・母材の模式）
+      W.position.y = .55; [[0x4a3826, -.15, 1.8], [0x6e5638, -.45, 1.7], [0x8f7a5a, -.75, 1.6]].forEach(([c, y, r]) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .28, 48), std(c, { r: 1, e: new THREE.Color(c).multiplyScalar(.25) })); s.position.y = y; W.add(s); }); },   // 土の層（表土・下層土・母材の模式）
     async museum() { const pm = std(0x2a2f38, { r: .7 }); [-2, 0, 2].forEach((x, i) => { const p = new THREE.Mesh(new THREE.BoxGeometry(.9, .9, .9), pm); p.position.set(x, .45, i === 1 ? -.4 : 0); W.add(p); blob(x, p.position.z, .8);
-        const f = new THREE.Mesh(new THREE.PlaneGeometry(1.1, .75), new THREE.MeshBasicMaterial({ color: i === 1 ? 0x8fd3ff : 0xe8c48a, transparent: true, opacity: .22, side: THREE.DoubleSide, toneMapped: false, depthWrite: false }));
+        const tx = new THREE.TextureLoader().load(['img/apps/vid/walk_poster.webp', 'img/apps/vid/hitotsu_poster.webp', 'img/apps/vid/touch_poster.webp'][i], () => { dirty = 1; }); tx.colorSpace = THREE.SRGBColorSpace; const f = new THREE.Mesh(new THREE.PlaneGeometry(1.28, .8), new THREE.MeshBasicMaterial({ map: tx, side: THREE.DoubleSide, toneMapped: false }));
         const e = new THREE.LineSegments(new THREE.EdgesGeometry(f.geometry), new THREE.LineBasicMaterial({ color: i === 1 ? 0x8fd3ff : 0xe8c48a, transparent: true, opacity: .8 })); const g = new THREE.Group(); g.add(f, e); g.position.set(x, 1.55, p.position.z); W.add(g);
-        anim.push(t => { g.position.y = 1.55 + Math.sin(t * .7 + i) * .05; g.rotation.y = Math.sin(t * .3 + i) * .25; }); }); },
+        anim.push(t => { g.position.y = 1.55 + Math.sin(t * .7 + i) * .05; g.rotation.y = (1 - i) * .25 + Math.sin(t * .3 + i) * .08; }); }); },
     async pair() { const a = await human(1.72); await add(a, -.45, 0, .35); const b = await human(1.64); await add(b, .45, .1, -.35); },
     async profile() { const h = await human(1.72); await add(h, 0, 0, 0); h.rotation.y = .3; },
     async ground() { const cs = [0x8fd3ff, 0xe8c48a, 0xbfe6ff, 0xd9b27a, 0x6fbfe8, 0xf0d9b0], sm = new THREE.SphereGeometry(1.25, 40, 28);
