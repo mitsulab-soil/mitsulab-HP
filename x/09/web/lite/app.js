@@ -685,7 +685,7 @@ function loadLate() {
         if (n.material.name === "black") { n.material = n.material.clone(); n.material.color.set("#1c1a19"); n.material.roughness = .38; n.material.metalness = .05; n.material.envMapIntensity = 1.25; }   // 根巻と笠木の黒：漆のような艶（平らな黒い箱に見えないように）
         else if (/^shu_/.test(n.material.name)) { const nm = n.material.name; n.material = WMAT[nm] ||= (m => { m.color.multiply(new THREE.Color().setRGB(1.05, .5, .42)); m.envMapIntensity = .45; return m; })(n.material.clone()); }   // 2026-10-29 本人「鳥居をもっと赤く」：朱の塗りの写真に赤みを掛け、霞と空の照り返しで桃色に浅くならないように
         else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; n.material = WMAT[nm] ||= weather((m => { if (nm === "old_lantern" && m.color) { const L = .2126 * m.color.r + .7152 * m.color.g + .0722 * m.color.b; if (L < .34) m.color.multiplyScalar(.34 / Math.max(.05, L)); } return m; })(n.material.clone()), STRUCT_WEATHER[nm]); } } });
-      o.name = s.id; structGroup.add(o);
+      o.name = s.id; structGroup.add(o); if (s.id === "shinkyo") DECK.o = o;
       if (!/^shinkyo/.test(s.id)) CSQ.push(o);   // 11-03：足もとの高さの柱・壁・柵を通れない所に（神橋の床は歩く）
       if (/^(ishidoro|komainu|hyoseki|shagohi|choishi|mokutoro)/.test(s.id)) collDisc(s.p[0], s.p[2], /^ishidoro|^mokutoro/.test(s.id) ? 1.0 : .8);   // 燈籠・狛犬・碑・丁石は通れない（鳥居と楼門はくぐれる）
       if (QW.mode === "sky" && /^torii_|^romon$|^shinkyo$/.test(s.id)) o.visible = false;
@@ -695,7 +695,7 @@ function loadLate() {
   });
   const tr = after.then(() => Promise.all([glb(BASE + "trees.glb"), glb(BASE + "keyaki.glb").catch(() => null)])).then(buildTrees); QW.roadP = road;
   loadVeg();
-  lateP = Promise.allSettled([road, st, tr]).then(r => { try { renderer.compileAsync(scene, camera).catch(() => { }); } catch { } return r; });   // 降りる前に、道・木・構造物の描き方を用意しておく（初めて見えたときに止まらない）
+  lateP = Promise.allSettled([road, st, tr]).then(r => { setTimeout(() => { preShaders(); warmTex(); }, 200); return r; });   /* 11-05：隠れている物も含めて上空のうちに組み、画像も少しずつ先に送る（降りる・飛ぶの最初のこまで止まらない） */   // 降りる前に、道・木・構造物の描き方を用意しておく（初めて見えたときに止まらない）
   return lateP;
 }
 
@@ -1060,8 +1060,10 @@ function inPark(x, z) {
   return false;
 }
 /* 2026-10-26 2（本人「公園の景色が模式的」）：芝と園路に、①大小二つの縮尺で同じ絵を混ぜて、くり返しの模様を消す ②数十 m の明るさと色のむら（日なた・踏まれて薄い所・落ち葉）③芝は遠くで少し青みを抜く */
+const TEXC = {};
 function parkMacro(m, amt, lawn) {
-  const lit = tex(BASE + "tex/litter.webp?v=" + VER), soil = lawn ? tex(BASE + "tex/Ground047_c5.webp") : null;
+  const lit = TEXC.lit ||= tex(BASE + "tex/litter.webp?v=" + VER), soil = lawn ? (TEXC.soil ||= tex(BASE + "tex/Ground047_c5.webp")) : null;   /* 11-05：同じ絵を一枚だけ作る（飛ぶときに何枚も送り直していた） */
+  m.userData.wt = [lit, soil];
   m.onBeforeCompile = sh => {
     sh.uniforms.uLit = { value: lit }; if (soil) sh.uniforms.uSoil = { value: soil };
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvPw=(modelMatrix*vec4(transformed,1.)).xyz;");
@@ -1172,7 +1174,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
     if (!blocked(CAM.pos.x, _pv.z)) CAM.pos.z = _pv.z; else if (!blocked(_pv.x, CAM.pos.z)) CAM.pos.x = _pv.x; else { CAM.pos.x = _pv.x; CAM.pos.z = _pv.z; }
     if (WALK.goal && Math.hypot(CAM.pos.x - _pv.x, CAM.pos.z - _pv.z) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
   }
-  const gy = groundY(CAM.pos.x, CAM.pos.z) + eye;
+  const gy = Math.max(groundY(CAM.pos.x, CAM.pos.z), deckY(CAM.pos.x, CAM.pos.z)) + eye;
   CAM.pos.y += (gy - CAM.pos.y) * Math.min(1, dt * 8);
   camera.position.copy(CAM.pos); if (bob && moving) camera.position.y += bob;
   if (GYRO.on && GYRO.q) { camera.quaternion.copy(GYRO.q); _eu.setFromQuaternion(camera.quaternion); CAM.look = wrap(_eu.y - CAM.yaw); CAM.pitch = _eu.x; }
@@ -1637,8 +1639,16 @@ function footIndex(m) {
     for (let cx = Math.floor(x0 / 4); cx <= Math.floor(x1 / 4); cx++) for (let cz = Math.floor(z0 / 4); cz <= Math.floor(z1 / 4); cz++) { const k = cx * 100003 + cz; let L = c.get(k); if (!L) c.set(k, L = []); L.push(t); } }
   return { p: P, c };
 }
+/* 11-05 神橋の床：池の上では地形が床より 1 m ほど低く、歩く目と碧が床に沈んでいた。橋の範囲だけ、床の高さを下向きの光線で測り（0.5 m 四方で覚える）、地形より高ければそれに立つ */
+const DECK = { o: null, bb: null, m: new Map(), rc: null }, _dkO = new THREE.Vector3(), _dkD = new THREE.Vector3(0, -1, 0);
+function deckY(x, z) { const o = DECK.o; if (!o) return -1e9;
+  if (!DECK.bb) { o.updateWorldMatrix(true, true); DECK.bb = new THREE.Box3().setFromObject(o); DECK.rc = new THREE.Raycaster(); }
+  const b = DECK.bb; if (x < b.min.x || x > b.max.x || z < b.min.z || z > b.max.z) return -1e9;
+  const k = Math.round(x * 2) + "," + Math.round(z * 2); let v = DECK.m.get(k);
+  if (v === undefined) { DECK.rc.set(_dkO.set(x, groundY(x, z) + 1.6, z), _dkD); DECK.rc.far = 3; const h = DECK.rc.intersectObject(o, true)[0]; v = h ? h.point.y : -1e9; DECK.m.set(k, v); }
+  return v; }
 function aoiFootY(x, z) {   // 10-29：碧の足もと＝描いている面の高さ。重さの原因だった光線の当て方を軽く（1 m 四方で覚える・0.3 秒に一度だけ当てる・その点の上にある面だけに当てる）
-  const g = groundY(x, z), k = Math.round(x) + "," + Math.round(z), c = FOOT.m.get(k); if (c !== undefined) return g + c;
+  const g = Math.max(groundY(x, z), deckY(x, z)), k = Math.round(x) + "," + Math.round(z), c = FOOT.m.get(k); if (c !== undefined) return g + c;
   const now = performance.now();
   if (!FOOT.list || now - FOOT.t > 5000) { FOOT.t = now; FOOT.list = []; const skip = AOI.root || null, bb = new THREE.Box3();
     (function walk(o) { if (o === skip || o.visible === false) return; if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !(o.material && (o.material.transparent || o.material.depthWrite === false))) { const ge = o.geometry; if (!ge.boundingBox) ge.computeBoundingBox(); bb.copy(ge.boundingBox).applyMatrix4(o.matrixWorld); FOOT.list.push({ o, x0: bb.min.x, x1: bb.max.x, z0: bb.min.z, z1: bb.max.z, y1: bb.max.y }); } for (const ch of o.children) walk(ch); })(world); }
@@ -1722,7 +1732,15 @@ const BIRD_LINES = [{ t: "いま目の前を横切ったのは、シジュウカ
 /* 11-02：歩くときの 100〜300 ms の 1 コマ＝初めて見えた物の影絵（シェーダー）をその場で組み立てていた（getProgramInfoLog）。
    歩きはじめに、隠れている物も含めて一度だけ前もって組み立てる（compileAsync・並列に組める端末では待たない）。 */
 /* 11-02 夜 P2：区画が入ったとき、その区画の物の影絵を次のこまで描く前に並列で組み立てておく（初めて見えたときの 100 ms 前後の引っかかりをなくす） */
-function preChunk(C) { try { const G = C.group || C.G || C.root; const tgt = G || C.road?.parent; if (!tgt || !renderer.compileAsync) return; const hid = []; tgt.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } }); const p = renderer.compileAsync(tgt, camera, scene); for (const o of hid) o.visible = false; p?.catch?.(() => { }); } catch { } }
+function preChunk(C) { try { const G = C.group || C.G || C.root; const tgt = G || C.road?.parent; if (!tgt || !renderer.compileAsync) return; const hid = []; tgt.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } }); const p = renderer.compileAsync(tgt, camera, scene); for (const o of hid) o.visible = false; p?.catch?.(() => { }); setTimeout(() => warmTex(tgt), 300); } catch { } }
+/* 11-05 降りる・飛ぶの初めのこまの 200〜500 ms の止まり＝画像を GPU へ送る（texSubImage2D）のを、手の空いた時間に少しずつ（1 回 6 ms まで）前もって行う */
+function warmTex(root = scene) { if (!renderer.initTexture) return; const seen = new Set(), L = [], P = renderer.properties;
+  const add = t => { if (t && t.isTexture && !seen.has(t)) { seen.add(t); L.push(t); } };
+  root.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) { for (const k in m) { const v = m[k]; if (v && v.isTexture) add(v); } for (const t of m.userData?.wt || []) add(t); if (m.uniforms) for (const k in m.uniforms) add(m.uniforms[k]?.value); } });
+  const ric = window.requestIdleCallback ? f => requestIdleCallback(f, { timeout: 400 }) : f => setTimeout(f, 30);
+  const W = [];   // まだ画像が届いていないもの（届いたら送る。10 秒まで待つ）
+  const step = () => { const t0 = performance.now(); while (L.length && performance.now() - t0 < 6) { const t = L.shift(); try { if (P.get(t).__webglTexture) continue; if (t.version > 0) renderer.initTexture(t); else if ((t.__wt = (t.__wt || 0) + 1) < 20) W.push(t); } catch { } } if (L.length) ric(step); else if (W.length) setTimeout(() => { L.push(...W.splice(0)); ric(step); }, 500); };
+  ric(step); }
 function preShaders() { try { const hid = []; scene.traverse(o => { if (!o.visible && !o.isLight) { hid.push(o); o.visible = true; } }); const p = renderer.compileAsync ? renderer.compileAsync(scene, camera) : (renderer.compile(scene, camera), null); for (const o of hid) o.visible = false; p?.catch?.(() => { }); } catch (e) { console.warn("pre", e); } }
 let U2 = null, U2P = null;   // 11-02：環世界 2.0 の重なり（大宮だけ）
 const UVV = { k: 0, el: null, o: "", said: false };
@@ -2784,9 +2802,10 @@ const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0;
 function frame() {
   if (!D) return;   // タブが隠れていたあいだに描画が始まったとき（データの前）は描かない
   const dt = Math.min(.05, clock.getDelta());
-  if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); startQA(); }   // 11-02：降りる動きのあいだに影絵を組む
-  (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird, natural: true, perch: true, trees: () => TREE.list, treeH: t => (SPH[t.sp] || 14) * t.s })).update(dt * (1 - .65 * (U2?.slow || 0)), QW.mode === "walk"); U2?.update(dt, QW.mode === "walk", QA?.top, QA?.still ?? 1);   // 11-02：環世界 2.0 の重なり（umwelt2.js）
-  { const F = QW.fliers; let dmin = 99; if (QW.mode === "walk") for (const g of F.group.children) if (g.visible) dmin = Math.min(dmin, g.position.distanceTo(camera.position));   // 11-02 本人「鳥に近づくと画面がその生き物の受けとり方に寄る（鳥＝紫外の色）。離れると環世界 1.0 に戻る」＝模式（色の寄せだけ・実際の見え方の再現ではない）
+  if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); setTimeout(() => { preShaders(); warmTex(); }, 4000); startQA(); }   /* 11-05：降りたあとに読みこんだ区画の物も、飛ぶ前に組んで送る */   // 11-02：降りる動きのあいだに影絵を組む
+  if (!QW.fliers && !QW._flT && QW.ready) QW._flT = setTimeout(() => { QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird, natural: true, perch: true, trees: () => TREE.list, treeH: t => (SPH[t.sp] || 14) * t.s }); }, 700);   /* 11-05 起動 1 秒：参道の鳥（約 80 ms）は操作できるようになってから作る */
+  QW.fliers?.update(dt * (1 - .65 * (U2?.slow || 0)), QW.mode === "walk"); U2?.update(dt, QW.mode === "walk", QA?.top, QA?.still ?? 1);   // 11-02：環世界 2.0 の重なり（umwelt2.js）
+  { const F = QW.fliers; let dmin = 99; if (F && QW.mode === "walk") for (const g of F.group.children) if (g.visible) dmin = Math.min(dmin, g.position.distanceTo(camera.position));   // 11-02 本人「鳥に近づくと画面がその生き物の受けとり方に寄る（鳥＝紫外の色）。離れると環世界 1.0 に戻る」＝模式（色の寄せだけ・実際の見え方の再現ではない）
     const w = dmin < 3.2 ? Math.min(1, (3.2 - dmin) / 1.6) : 0; UVV.k += (w - UVV.k) * Math.min(1, dt * 1.2);
     if (!UVV.el && UVV.k > .01) { UVV.el = document.createElement("div"); UVV.el.id = "uvVeil"; UVV.el.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;mix-blend-mode:screen;background:radial-gradient(ellipse at 50% 45%,rgba(150,120,255,.0) 30%,rgba(150,120,255,.55) 100%);opacity:0;transition:none"; document.body.appendChild(UVV.el); }
     if (UVV.el) { const o = (UVV.k * .32).toFixed(3); if (o !== UVV.o) { UVV.el.style.opacity = o; UVV.o = o; } }
@@ -2836,6 +2855,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await buildBase();
     buildObjs(); loadMore(); fillMenu(); buildTray();
     setMode("sky"); skyCam(); showSkyUI(); selectStart(0);
+    try { if (renderer.compileAsync) await Promise.race([renderer.compileAsync(scene, camera), new Promise(r => setTimeout(r, 1500))]); } catch { }   /* 11-05 起動 1 秒：最初のこまの描き方を並列に組んでから描く（本体の手を止めない） */
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready");

@@ -22,13 +22,13 @@ export const IKIMONO = {
     sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
   chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .12, bob: .06, fly: true,
     say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。",
-    sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H et al. (2008) J. Exp. Biol. 211:1223–1230" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
+    sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H, Kinoshita M, Vorobyev M, Arikawa K (2008) Proc. R. Soc. B 275:947–954" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
     say: "シジュウカラの目の模式。四色で色の差は細かく、紫外は紫に移し、視野は広く。", band: [300, 8000],
     sources: [{ claim: "多くの鳥は紫外に感じる錐体を含む四色型", cite: "Hart NS (2001) Prog. Retin. Eye Res. 20:675–703" }, { claim: "小鳥の視力は人より低いとされる（猛禽とは異なる）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "鳥のよく聴こえる帯はおよそ 1〜4 kHz", cite: "Dooling RJ (1982) Acoustic Communication in Birds, Academic Press" }] },
   inu: { name: "イヌ", make: "inu", lens: "inu", mix: 1, blur: 1.3, eye: 0, fov: 74, back: 1.05, up: .62, size: .55, bob: .015, fly: false,
     say: "イヌの目の模式。青と黄の二色で赤と緑は似て、像はやや粗く、視野は広く。", band: [67, 20000],
-    sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの視力は人の数分の一、視野は人より広い", cite: "Miller PE & Murphy CJ (1995) J. Am. Vet. Med. Assoc. 207:1623–1634" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE & Heffner RS (2007) Lab Animal 36(9):33–37" }] },
+    sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの視力は人の数分の一、視野は人より広い", cite: "Miller PE & Murphy CJ (1995) J. Am. Vet. Med. Assoc. 207:1623–1634" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE (1983) Behav. Neurosci. 97(2):310–318／Heffner HE & Heffner RS (2007) J. Am. Assoc. Lab. Anim. Sci. 46(1):20–22" }] },
 };
 export function attachIkimono(QW, opt = {}) {
   const { camera, scene } = QW, canvas = opt.canvas || document.getElementById("gl") || QW.renderer?.domElement, speak = opt.speak || (() => { });
@@ -46,7 +46,10 @@ export function attachIkimono(QW, opt = {}) {
     const c = P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : mod.makeDog();
     const g = new THREE.Group(); c.scale.setScalar(P.size); g.add(c); g.userData.c = c;
     g.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
-    g.visible = false; scene.add(g);
+    g.visible = false;
+    { const R = QW.renderer; try { if (R?.compileAsync) { g.visible = true; await R.compileAsync(g, camera, scene); g.visible = false; }   /* 11-05：場面の外で描き方を組み、画像も先に送る（初めて切り替えたときの 0.8〜1.4 秒の止まりをなくす） */
+      const ts = new Set(); g.traverse(o => { if (o.material) for (const m of [].concat(o.material)) for (const k in m) if (m[k]?.isTexture) ts.add(m[k]); }); for (const t of ts) { try { R?.initTexture?.(t); } catch { } await new Promise(r => setTimeout(r, 0)); } } catch { } g.visible = false; }
+    scene.add(g);
     cache[id] = g; upgrade(id, g); return g;
   }
   let gl = null;

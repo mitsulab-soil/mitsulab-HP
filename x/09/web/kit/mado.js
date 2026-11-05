@@ -7,7 +7,7 @@
 import * as THREE from "three";
 
 const ASK = {   // 実物への問い（答えでなく、目と体を風景に戻す）。field＝現地／home＝家から
-  field: ["画面から目を上げて、いちばん高い枝を探してみて。", "足もとの土に、手のひらを近づけてみて。冷たい？", "目を閉じて、聞こえる音を三つ数えてみて。", "風がどちらから来ているか、頬で確かめてみて。"],
+  field: ["画面から目を上げて、いちばん高い枝を探してみて。", "道の端に寄って、足もとの土に手のひらを近づけてみて。冷たい？", "道の端に寄って立ち止まり、目を閉じて、聞こえる音を三つ数えてみて。", "風がどちらから来ているか、頬で確かめてみて。"],
   home: ["部屋から外を見て、いちばん近い木を探してみて。", "目を閉じて、いま聞こえる音を三つ数えてみて。", "ここに立ったら、足の裏は何を感じるでしょう。"],
 };
 const NEAR = 9, STOP_S = 1.8, ASK_S = 5;
@@ -25,7 +25,7 @@ export function attachMado(q, { speak } = {}) {
   const glow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, toneMapped: false, fog: false }));
   glow.renderOrder = 2; glow.visible = false; (q.world || q.scene).add(glow);
 
-  let ac = null; const tone = (f = 660) => { try { ac ||= new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), v = ac.createGain(), t = ac.currentTime; o.type = "sine"; o.frequency.value = f; v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(.06, t + .02); v.gain.exponentialRampToValueAtTime(.0001, t + .5); o.connect(v).connect(ac.destination); o.start(t); o.stop(t + .55); } catch {} };
+  let ac = null; const tone = (f = 660) => { try { if (!ac || ac.state !== "running") return;   /* 11-05 触れる前に音の箱を作ると本体が止まる（約 0.3 秒）＝触れたあとに作った箱でだけ鳴らす */ const o = ac.createOscillator(), v = ac.createGain(), t = ac.currentTime; o.type = "sine"; o.frequency.value = f; v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(.06, t + .02); v.gain.exponentialRampToValueAtTime(.0001, t + .5); o.connect(v).connect(ac.destination); o.start(t); o.stop(t + .55); } catch {} };
   const buzz = p => { try { if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(p); } catch {} };   // 触れる前に振動を呼ぶと、ブラウザがエラーを出す
   addEventListener("pointerdown", () => { try { ac ||= new (window.AudioContext || window.webkitAudioContext)(); ac.resume?.(); } catch {} }, { once: true, passive: true });
 
