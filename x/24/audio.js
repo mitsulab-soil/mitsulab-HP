@@ -14,7 +14,8 @@ export class Music {
     this.out = c.createGain(); this.out.gain.value = 0;
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3;
     const lift = c.createGain(); lift.gain.value = 1.7;   // 圧縮のあとで持ち上げる（小さなスピーカー・展示）
-    this.out.connect(comp).connect(lift).connect(c.destination);
+    const lim = c.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1;   // 最後に限界の止め
+    this.out.connect(comp).connect(lift).connect(lim).connect(c.destination);
     this.out.gain.linearRampToValueAtTime(this.muted ? 0 : .55, c.currentTime + .6);
     // 小さな残響（生成した減衰の雑音）
     const len = c.sampleRate * 2.4 | 0, ir = c.createBuffer(2, len, c.sampleRate);
@@ -43,8 +44,8 @@ export class Music {
     o.start(t); o2.start(t); o.stop(t + dur * 2.2); o2.stop(t + dur * 2.2);
   }
   // 機械の声部：細い矩形を低域で丸め、短く。始まりは 0.1 秒の目にそろう
-  machine(f, { t = this.now(), dur = .22, gain = .07, pan = 0, cut = 2400 } = {}) {
-    if (!this.on || f <= 0) return; const c = this.ctx; t = this.grid(t);
+  machine(f, { t = this.now(), dur = .22, gain = .07, pan = 0, cut = 2400, lag = null } = {}) {   // lag＝触れたときは 50 ms 遅れて返す（二度鳴りに聴こえない幅）。旋律は 0.1 秒の目
+    if (!this.on || f <= 0) return; const c = this.ctx; t = lag != null ? t + lag : this.grid(t);
     const o = c.createOscillator(), lp = c.createBiquadFilter(), g = c.createGain(), p = this._pan(pan);
     o.type = "square"; o.frequency.setValueAtTime(f, t); lp.type = "lowpass"; lp.frequency.value = cut; lp.Q.value = .4;
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + .006); g.gain.setTargetAtTime(0, t + .02, dur * .45);
@@ -77,5 +78,5 @@ export class Music {
     s.buffer = this.noise; bp.type = "bandpass"; bp.frequency.value = fc; bp.Q.value = 2.2; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + .01); g.gain.setTargetAtTime(0, t + .04, .09);
     s.connect(bp).connect(g).connect(p); p.connect(this.out); p.connect(this.revIn); s.start(t, Math.random() * 7, .5);
   }
-  wind(gust) { if (this.on) this.leaf.gain.setTargetAtTime(.012 + .05 * gust, this.ctx.currentTime, .3); }
+  wind(gust, k = 1) { if (this.on) this.leaf.gain.setTargetAtTime((.012 + .05 * gust) * k, this.ctx.currentTime, .3); }
 }

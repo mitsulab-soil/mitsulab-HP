@@ -81,7 +81,7 @@ const TREES = [];
   for (const [x, z] of pts) { const d = Math.hypot(x - EYE.x, z - EYE.z); if (d < 2.5 || d > 70) continue;
     const sp = R() < .3 ? "konara" : "keyaki";   // 欅にコナラを混ぜる（同じ形を並べない）
     if (d < 30) TREES.push(growTree(sp, x, z, R, { det: d < 24, scale: .75 + R() * .5, q: mobile ? .6 : 1 })); else far.push([x, z, sp]); }
-  const bark = mpatch(sightBark(barkMaterial(tex("bark_zelkova", true, [1, 1]), { normalMap: tex("bark_zelkova_n", false) })), 3);
+  const bark = mpatch(sightBark(barkMaterial(tex("bark_zelkova", true, [1, 1.6]), { normalMap: tex("bark_zelkova_n", false, [1, 1.6]), color: 0xb2ada6 }), { relief: 2.2, contrast: 1.25, gray: .38 }), 3);   // 樹皮の凹凸と肌理を強める
   const leaf = mpatch((leafMaterial((t => (t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping, t))(tex("leaf_spray")), { wind: .06 })), 4); leaf.envMapIntensity = .55; leaf.emissive = new THREE.Color(0x1a2410);
   const leaf2 = mpatch((leafMaterial((t => (t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping, t))(tex("leaf_spray2")), { wind: .07 })), 4); leaf2.envMapIntensity = .55; leaf2.emissive = new THREE.Color(0x1a2410);
   const LM = { default: leaf, konara: leaf2 };
@@ -167,14 +167,14 @@ void main(){
       col = vec3(.006, .012, .028);
       if (sky < .5 && dist < 100. && abs(el) < 16.5) {
         float w = fwidth(el) / 2., ln = 0.;
-        for (int j = 0; j < 5; j++) {   // 歩きながら 5 回転分を重ねた模式（一回転ごとに上下が少しずれる）
+        for (int j = 0; j < 2; j++) {   // 2 回転分を重ねた模式（一回転ごとに上下が少しずれる。16 本の隙間は残る）
           float e = (el + 15. - float(j) * .4) / 2.; float fe = abs(fract(e + .5) - .5);
           ln = max(ln, (1. - smoothstep(w * .5, w * 1.6, fe)) * (1. - float(j) * .16) * step(abs(e - 7.5), 8.)); }
         float edge = smoothstep(.15, .6, fwidth(dist));   // 物の縁（距離が跳ぶ所）は明るく
         float a = az / .2, dv = 1. - smoothstep(.12, .42, abs(fract(a + .5) - .5));
         float rf = k == 4. ? .9 : k == 5. ? .8 : k == 3. ? .45 : k == 2. ? .4 : k == 1. ? .45 : k == 7. ? .35 : k == 6. ? .6 : .3;
-        float g = k == 4. ? .55 + .45 * sin(az * 3. + uT * 10.) * (.4 + uGust) : 1.;
-        col += mix(mix(vec3(1., .93, .78), vec3(.7, .97, 1.), clamp(dist / 16., 0., 1.)), vec3(.22, .4, .95), clamp((dist - 8.) / 45., 0., 1.)) * ln * (.35 + .65 * dv) * g * (.35 + .9 * rf) * (1.15 - dist / 110.) * (1. + 1.2 * edge);
+        float g = k == 4. ? .8 + .2 * sin(az * 3. + uT * 10.) * uGust : 1.;   // 風に揺れる葉の返りは少しちらつく
+        col += mix(mix(vec3(1., .93, .78), vec3(.7, .97, 1.), clamp(dist / 26., 0., 1.)), vec3(.22, .4, .95), clamp((dist - 8.) / 45., 0., 1.)) * ln * (.35 + .65 * dv) * g * (.35 + .9 * rf) * (1.15 - dist / 110.) * (1. + 1.2 * edge);
       }
     } else if (ch == 4) {   // 音：音の出どころから広がる輪（届く＝実線、どちらにも届かない＝破線）
       col = vec3(.03, .045, .08) + vec3(.05, .07, .1) * lum(human(vUv)) * 1.5;
@@ -270,9 +270,15 @@ function ring(p, c, { size = .6, life = 1.6, delay = 0 } = {}) { const r = RINGS
 const ATT = new Float32Array(900 * 3); let attN = 0;
 const attG = new THREE.BufferGeometry(); attG.setAttribute("position", new THREE.BufferAttribute(ATT, 3)); attG.setDrawRange(0, 0);
 const dotTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, "#fff"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
-const attP = new THREE.Points(attG, new THREE.PointsMaterial({ color: COL.human, size: .22, map: dotTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false }));
+const ATC = new Float32Array(900 * 3).fill(1); attG.setAttribute("color", new THREE.BufferAttribute(ATC, 3));
+const attP = new THREE.Points(attG, new THREE.PointsMaterial({ vertexColors: true, color: 0xffffff, size: .22, map: dotTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false }));
 ov.add(attP);
-function attend(p) { ATT.set([p.x, p.y + .03, p.z], (attN % 900) * 3); attN++; attG.setDrawRange(0, Math.min(attN, 900)); attG.attributes.position.needsUpdate = true; }
+const C_H = new THREE.Color(COL.human), C_W = new THREE.Color(0xffffff), C_B = new THREE.Color(COL.nature), cTmp = new THREE.Color();
+// 結びのあと、注意を向けた点を「どの受けとり方に届くか」で色分けする（人だけ＝珊瑚・人と機械＝白・鳥にも＝緑みの白）
+function tintAtt() { for (let i = 0; i < Math.min(attN, 900); i++) { const x = ATT[i * 3], y = ATT[i * 3 + 1], z = ATT[i * 3 + 2];
+    const r = Math.hypot(x - DEV.x, z - DEV.z), el = Math.atan2(y - DEV.y, r) * 180 / Math.PI, mach = r < 100 && Math.abs(el) <= 15, bird = Math.hypot(x - BIRD.x, y - BIRD.y, z - BIRD.z) < 14;
+    cTmp.copy(C_H); if (ended) { if (mach) cTmp.lerp(C_W, .8); if (bird) cTmp.lerp(C_B, .45); } ATC.set([cTmp.r, cTmp.g, cTmp.b], i * 3); } attG.attributes.color.needsUpdate = true; }
+function attend(p) { ATC.set([C_H.r, C_H.g, C_H.b], (attN % 900) * 3); attG.attributes.color && (attG.attributes.color.needsUpdate = true); ATT.set([p.x, p.y + .03, p.z], (attN % 900) * 3); attN++; attG.setDrawRange(0, Math.min(attN, 900)); attG.attributes.position.needsUpdate = true; }
 const STROKES = [];
 
 /* ── 自分の受けとり方（外から見たとき） ── */
@@ -285,7 +291,7 @@ const DEV = new V3(.2, 1.22, 6.95);
   for (let i = 0; i < 24; i++) { const t0 = i / 24 * TAU, t1 = (i + 1) / 24 * TAU; a.push(E.x + Math.cos(t0) * .11, 1.62 + Math.sin(t0) * .13, E.z, E.x + Math.cos(t1) * .11, 1.62 + Math.sin(t1) * .13, E.z); }
   a.push(E.x, 1.48, E.z, E.x, .92, E.z, E.x - .2, 1.42, E.z, E.x + .2, 1.42, E.z, E.x - .2, 1.42, E.z, E.x - .24, .98, E.z - .02, E.x + .2, 1.42, E.z, DEV.x, DEV.y, DEV.z,
     E.x, .92, E.z, E.x - .12, 0, E.z, E.x, .92, E.z, E.x + .12, 0, E.z + .03);
-  const fig = segs(a, sm(COL.human, .85)); selfG.add(fig); selfG.userData.fig = fig;
+  const fig = segs(a, sm(COL.human, .45)); selfG.add(fig); selfG.userData.fig = fig;
   // 人の視野：左右およそ 200°・上下およそ 130°（上 60°・下 70°）
   const v = [], RR = 4.6, f = new V3().subVectors(LOOK, E).normalize(), yaw0 = Math.atan2(f.x, -f.z);
   const P = (az, el) => { const A = yaw0 + az * Math.PI / 180, B = el * Math.PI / 180; return [E.x + Math.sin(A) * Math.cos(B) * RR, E.y + Math.sin(B) * RR, E.z - Math.cos(A) * Math.cos(B) * RR]; };
@@ -340,7 +346,7 @@ const BAYER = [460, 530, 600];  // カメラの三色の山（一例）
 const said = new Set(); let capT = 0, capQ = [];
 function say(k, { once = false } = {}) {
   if (once && said.has(k)) return; said.add(k);
-  if (capT > .6 && capQ.length < 2 && !capQ.includes(k)) { capQ.push(k); return; } show(k);
+  if (capT > .6 && (capQ.length < 2 || k.startsWith("common")) && !capQ.includes(k)) { capQ.push(k); return; } show(k);
 }
 function show(k) { const s = SAY[k]; if (!s) return; const el = $("#cap"); el.textContent = s; el.classList.add("on"); capT = 2.2 + s.length * .09;
   aoi?.speak({ text: s, dur: Math.min(6, s.length * .09) }); }
@@ -368,7 +374,7 @@ $("#plus").addEventListener("click", () => $("#fold").classList.toggle("on"));
 $("#refs").innerHTML = REFS.map(r => `<li>${r}</li>`).join("");
 let ended = false;
 function checkEnd() {
-  if (seen.size >= 4 && STROKES.length >= 1 && said.has("self")) { if (!outOn) $("#out").classList.add("hint"); else if (!birdG.visible) { birdG.visible = true; ended = true; say("common", { once: true }); say("common2", { once: true }); say("common3", { once: true }); } }
+  if (seen.size >= 4 && STROKES.length >= 1 && said.has("self")) { if (!outOn) $("#out").classList.add("hint"); else if (!birdG.visible) { birdG.visible = true; ended = true; tintAtt(); say("common", { once: true }); say("common2", { once: true }); say("common3", { once: true }); } }
 }
 
 /* ── 触れる・なぞる ── */
@@ -397,13 +403,13 @@ function sound(h, t, { glide = null, quiet = 1 } = {}) {
   ring(h.p, COL.human, { delay: dl });
   // 機械
   let rest = false;
-  if (id === "cam") { const ws = K.wl ? [BAYER.reduce((a, b) => Math.abs(b - K.wl) < Math.abs(a - K.wl) ? b : a)] : BAYER; for (const w of ws) { music.machine(wlHz(w), { t, pan, gain: .06 * quiet, dur: 1.0 }); bandDot("light", w, "m"); } }
-  else if (id === "nir") { music.machine(wlHz(850), { t, pan, gain: .1 * K.nir * quiet }); bandDot("light2", 850, "m"); if (K.wl) bandDot("light2", K.wl, "h"); }
+  if (id === "cam") { const ws = K.wl ? [BAYER.reduce((a, b) => Math.abs(b - K.wl) < Math.abs(a - K.wl) ? b : a)] : BAYER; for (const w of ws) { music.machine(wlHz(w), { t, pan, gain: .06 * quiet, dur: 1.0, lag: .05 }); bandDot("light", w, "m"); } }
+  else if (id === "nir") { music.machine(wlHz(850), { t, pan, gain: .1 * K.nir * quiet, lag: .05 }); bandDot("light2", 850, "m"); if (K.wl) bandDot("light2", K.wl, "h"); }
   else if (id === "heat") { if (h.kind === "sky") rest = true; else music.heat(K.heat, { t, pan }); if (h.kind === "aoi") say("heatAoi", { once: true }); bandDot("heat", 10, "m"); bandDot("heat", 3, "h"); }
   else if (id === "lidar") { if (h.kind === "sky" || h.t > 100) rest = true; else for (let i = 0; i < 4; i++) music.tick(1 - h.t / 110, { t: t + i * GRID, pan }); bandDot("dist", Math.max(.2, Math.min(900, h.t)), rest ? "h" : "both"); }
   else if (id === "sound") { const fc = SND[h.kind]; if (!fc) { rest = true; if (h.kind === "sky") { music.bat({ t: t + .2, pan }); bandDot("sound", 45000, "none"); say("bat", { once: true }); if (said.has("bat")) say("nagel", { once: true }); } } else { music.grain(fc, { t, pan }); music.grain(fc, { t: music.grid(t + GRID), pan, gain: .09 }); bandDot("sound", fc, "both"); } }
-  else { const [ci, mm] = K.ai; const f0 = K.wl ? wlHz(K.wl) : wlHz(550); music.machine(f0 * (mm >= 1 ? 1.5 : mm > 0 ? 1.414 : 1.0595), { t, pan, gain: .06 * quiet }); bandDot("mean", ci, mm >= 1 ? "both" : mm > 0 ? "m" : "h"); }
-  if (!rest) ring(h.p, COL.machine, { delay: dl + (t === now ? GRID : 0), size: .45 });
+  else { const [ci, mm] = K.ai; const f0 = K.wl ? wlHz(K.wl) : wlHz(550); music.machine(f0 * (mm >= 1 ? 1.5 : mm > 0 ? 1.414 : 1.0595), { t, pan, gain: .06 * quiet, lag: .05 }); bandDot("mean", ci, mm >= 1 ? "both" : mm > 0 ? "m" : "h"); }
+  if (!rest) ring(h.p, COL.machine, { delay: dl + .05, size: .45 });
 }
 let drag = null, lastHover = 0, lookTO = 0, lastTouch = -99;
 const cv = renderer.domElement;
@@ -425,7 +431,7 @@ const end = e => {
   if (d.line) { ov.remove(d.line); }
   const h = hitAt(e.clientX, e.clientY); if (h.kind !== "sky") attend(h.p);
   sound(h, music.now()); say("touch", { once: true }); if (aoi && h.kind !== "sky") { aoi.motion.lookAt(h.p.clone()); clearTimeout(lookTO); lookTO = setTimeout(() => aoi?.motion.lookAt(null), 2600); }
-  if (chId() === "ai" && said.has("ai")) say("quine", { once: true });
+  if (chId() === "ai" && said.has("ai")) { say("ai2", { once: true }); if (said.has("ai2")) say("quine", { once: true }); }
   if (chId() === "cam" && said.has("cam")) say("cam2", { once: true });
 };
 cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", () => { if (drag?.line) ov.remove(drag.line); drag = null; });
@@ -479,7 +485,7 @@ function frame() {
   requestAnimationFrame(frame);
   const dt = Math.min(.05, clk.getDelta()); t += dt;
   // 風（フィジカル）。強さが葉を揺らし、葉ずれを鳴らし、点群の葉の返りをちらつかせる
-  const gust = .5 + .5 * Math.sin(t * .23) * Math.sin(t * .071 + 1.3); WIND.uTime.value = reduced ? 0 : t; WIND.uGust.value = .55 + .7 * gust; post.uniforms.uGust.value = gust; if (t - windT > .1) { windT = t; music.wind(gust); }
+  const gust = .5 + .5 * Math.sin(t * .23) * Math.sin(t * .071 + 1.3); WIND.uTime.value = reduced ? 0 : t; WIND.uGust.value = .55 + .7 * gust; post.uniforms.uGust.value = gust; if (t - windT > .1) { windT = t; music.wind(gust, clock() - lastTouch > 8 ? .6 : 1); }   // 触れていないあいだ葉ずれは 0.6 倍
   const idle = Math.max(0, clock() - lastTouch - 8), quietK = Math.exp(-idle / 3);   // 触れずに 8 秒たつと、刻みとコウモリは弱まり休符へ
   if (music.on && seamShown < .97 && chId() === "lidar" && outK < .5 && quietK > .03) { const n0 = music.now(); if (nextTick < n0) nextTick = music.grid(n0 + .02); while (nextTick < n0 + .12) { music.tick((.2 + .5 * gust) * quietK, { t: nextTick, pan: .3 }); nextTick += GRID; } }   // 毎秒 10 回転＝0.1 秒ごとの刻み（返りの強さは風で揺れる葉で変わる）
   // 見る位置（内 ⇄ 外）
@@ -494,9 +500,9 @@ function frame() {
   const keys = Object.keys(BANDG), cur = CH[ch].band;
   keys.forEach((k, i) => { const g = BANDG[k]; const on = outK > .5 ? ended : k === cur; g.userData.k += ((on ? 1 : 0) - g.userData.k) * Math.min(1, dt * 3); g.visible = g.userData.k > .02;
     if (!g.visible) return;
-    const pIn = tmp.set(mobile ? .32 : -.1, mobile ? 2.62 : 2.85, mobile ? 2.8 : 1.2), pOut = new V3(mobile ? -2.6 : -5.4, .9 + i * .95, mobile ? 4 : 2.4);
+    const pIn = tmp.set(mobile ? .32 : -.1, mobile ? 2.62 : 2.85, mobile ? 2.8 : 1.2), pOut = mobile ? new V3(-1.9, 2.9 + i * .5, 6.2) : new V3(-5.4, .9 + i * .95, 2.4);
     const lane = keys.indexOf(cur); g.position.lerpVectors(pIn, pOut, e); if (outK < .5 && k !== cur) g.position.y += (i - lane) * .5;
-    g.lookAt(cam.position); g.scale.setScalar(1 + e * .6);
+    g.lookAt(cam.position); g.scale.setScalar(1 + e * (mobile ? -.25 : .6));
     g.traverse(o => { if (o.material && o !== g) { if (o.material.userData.o0 === undefined) o.material.userData.o0 = o.material.opacity; if (!g.userData.dots.includes(o)) o.material.opacity = o.material.userData.o0 * g.userData.k; } });
     for (const d of g.userData.dots) { d.userData.a = Math.max(0, (d.userData.a || 0) - dt * .8); d.material.opacity = d.userData.a * g.userData.k; d.scale.setScalar(1 + (1 - d.userData.a) * 1.5); }
   });
