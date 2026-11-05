@@ -20,7 +20,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261105sight3">
+<link rel="modulepreload" href="web/lite/app.js?v=20261105sight4">
 <!-- 2026-11-05 起動 2 秒：本体が読む部品も HTML と同時に（app.js → 部品 → creatures → BufferGeometryUtils の三段の待ちをなくす。layers は本体と同じ v=8 に） -->
 <link rel="modulepreload" href="web/lite/layers.js?v=8">
 <link rel="modulepreload" href="web/lite/qmarks.js?v=k24">
@@ -696,7 +696,7 @@ body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261105sight3").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261105sight4").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（木・石の環世界と依代への変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=11").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).then(() => Promise.all([import("./web/kit/mado.js?v=5").then(m => { q.MADO = m.attachMado(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/tokimusubi.js?v=6").then(m => { q.TOKI = m.attachTokimusubi(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/yoru.js?v=3").then(m => { q.YORU = m.attachYoru(q); })])).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
