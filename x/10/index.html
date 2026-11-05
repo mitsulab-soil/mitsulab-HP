@@ -30,6 +30,7 @@
 .brand .ml-title{font:600 16px/1 var(--mu-serif);letter-spacing:.12em;color:#fff;text-shadow:var(--mu-shadow)}
 .ml-btn{border-radius:var(--mu-r);font:600 13.5px/1 var(--mu-serif);letter-spacing:.1em;min-height:var(--mu-hit);background:var(--mu-panel);border:1px solid var(--mu-line);color:var(--mu-ink);backdrop-filter:var(--mu-blur);-webkit-backdrop-filter:var(--mu-blur);transition:border-color var(--mu-t) var(--mu-ease),color var(--mu-t) var(--mu-ease)}.ml-btn:hover{border-color:var(--mu-line-on)}.ml-btn--primary{border-color:var(--mu-aoi);color:var(--mu-aoi-2)}#cap{font-family:var(--mu-serif);letter-spacing:.04em;color:var(--mu-ink);text-shadow:0 0 2px rgba(3,6,15,.95),0 1px 10px rgba(3,6,15,.85);background:none!important;border:0!important;box-shadow:none!important;word-break:auto-phrase;text-wrap:balance}
 @media (max-width:420px){.brand .ml-title{font-size:13.5px;letter-spacing:.06em}}
+.ws-shoot{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;padding:0 20px;min-height:48px;cursor:pointer;z-index:5;white-space:nowrap}.ws-shoot input{position:absolute;width:1px;height:1px;opacity:0}
 </style>
 </head>
 <body class="ml-root">
@@ -64,6 +65,8 @@
     <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>形</b><small id="faceON">板</small></button>
     <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="形を保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>保存</b><small>3D データ</small></button>
   </nav>
+  <label id="wsShoot" class="ml-btn ml-btn--primary ws-shoot" hidden><input type="file" id="fShoot" accept="image/*" capture="environment" aria-label="見つけた手ざわりを撮る"><span>見つけた手ざわりを撮る</span></label>
+  <script>(function(){if(!/[?&]ws=1/.test(location.search))return;var l=document.getElementById('wsShoot');l.hidden=false;var h=document.getElementById('hint');if(h)h.textContent='触覚さがし ── 撮って、なぞる。';})();</script>
   <div id="fhint" class="fhint" aria-hidden="true"><i></i><span>指でなぞる</span></div>
   <div id="busy" class="busy" hidden><span data-t="busy">凹凸をつくっています</span></div>
   <p class="err" id="err" role="alert" hidden></p>
@@ -71,7 +74,7 @@
   <div hidden aria-hidden="true">
     <span id="originT"></span><div id="scaleL"></div><div id="ctl"><span id="viewName"></span><button id="bView" type="button"></button><button id="bHome" type="button"></button></div>
     <canvas id="wv"></canvas><p id="waveHint"></p><span id="rSpeed"></span><span id="rFreq"></span><span id="rAmp"></span><span id="rDent"></span>
-    <input type="file" id="fShoot" accept="image/*"><select id="sMat"></select><div id="sliders"></div>
+    <select id="sMat"></select><div id="sliders"></div>
     <button id="bReset" type="button"></button><button id="bSnd" type="button"></button><button id="bVib" type="button"></button><button id="bShow" type="button"></button><button id="bSave" type="button"></button>
   </div>
 </div>
