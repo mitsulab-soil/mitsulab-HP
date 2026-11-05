@@ -20,7 +20,7 @@ export const IKIMONO = {
   hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 3.2, eye: 1.0, fov: 80, back: .5, up: .16, size: .16, bob: .03, fly: true,
     say: "ミツバチの目の模式。赤は暗く、紫外は青に移し、像は粗く、視野は広く。", band: [20, 500],
     sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
-  chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .12, bob: .06, fly: true,
+  chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .155, bob: .06, fly: true,
     say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。",
     sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H, Kinoshita M, Vorobyev M, Arikawa K (2008) Proc. R. Soc. B 275:947–954" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
@@ -108,7 +108,7 @@ export function attachIkimono(QW, opt = {}) {
     { const gc = QW.groundAt ? QW.groundAt(C.x, C.z) : gy; if (C.y < gc + .12) C.y = gc + .12; }
     S.cam = S.cam ? S.cam.lerp(C, Math.min(1, dt * 7)) : C.clone();
     const k = S.k; camera.position.copy(S.cam);   // 11-04 P1：位置は混ぜない（混ぜている間、体がカメラの真下に隠れて碧だけが見えた）
-    L.copy(B).addScaledVector(F, back * .9); L.y += up * .25 - (camera.aspect < 1 && !P.fly ? .3 : 0);   // 11-04 P2：縦長の画面では、地を歩く体を少し上に見せて下の字幕にかけない   // 少し先を見る＝体は画面の中央の少し下
+    L.copy(B).addScaledVector(F, back * .9); L.y += up * .25 - (camera.aspect < 1 ? (P.fly ? .12 : .3) : 0);   /* 11-05：飛ぶものも縦長では少し上に（翅が字幕にかからない）。蝶は翅の模様がぼかしで消えないよう少し大きく */   // 11-04 P2：縦長の画面では、地を歩く体を少し上に見せて下の字幕にかけない   // 少し先を見る＝体は画面の中央の少し下
     camera.lookAt(L);
     camera.fov = S.saved.fov + (P.fov - S.saved.fov) * k; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
     { const A = QW.AOI?.root; if (A && S.id && A.visible) { A.visible = false; S.aoiHid = true; } if (QW.AOISH?.visible && S.id) { QW.AOISH.visible = false; S.shHid = true; } }   // 11-04 P1：生き物の目のあいだ、碧は中央に立たない（描くときだけ外す）

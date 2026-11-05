@@ -20,7 +20,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261105yoru">
+<link rel="modulepreload" href="web/lite/app.js?v=20261105hashi">
 <!-- 2026-11-05 起動 2 秒：本体が読む部品も HTML と同時に（app.js → 部品 → creatures → BufferGeometryUtils の三段の待ちをなくす。layers は本体と同じ v=8 に） -->
 <link rel="modulepreload" href="web/lite/layers.js?v=8">
 <link rel="modulepreload" href="web/lite/qmarks.js?v=k24">
@@ -35,7 +35,7 @@
 <link rel="modulepreload" href="web/kit/fliers.js?v=9">
 <link rel="modulepreload" href="web/kit/nav.js?v=n8p">
 <link rel="modulepreload" href="web/lite/soundwalk.js?v=1">
-<link rel="modulepreload" href="web/lite/areas.js?v=56m">
+<link rel="modulepreload" href="web/lite/areas.js?v=56n">
 <link rel="modulepreload" href="web/kit/creatures.js?v=1">
 <link rel="modulepreload" href="web/vendor/BufferGeometryUtils.js">
 <link rel="preload" href="web/lite/dem.bin" as="fetch" crossorigin>
@@ -617,7 +617,11 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 <style id="hud-veil">/* 11-02：上の札が枝に溶ける＝上の端だけ、ごく淡く暗くする（板ではなく、空気の陰り） */html body #hud::before{content:"";position:fixed;left:0;right:0;top:0;height:calc(max(12px,env(safe-area-inset-top)) + 96px);background:linear-gradient(rgba(3,6,15,.46),rgba(3,6,15,.18) 55%,rgba(3,6,15,0));pointer-events:none;z-index:-1}</style>
 <style id="qualium-p2-1103">#qHere{display:none!important}</style>
 <style id="qualium-375-1104">/* 11-04：スマホの地図では、録音の札を上の案内（どこから歩きはじめますか）の下へ＝字が重ならない */@media (max-width:640px){body:is([data-mode="sky"],[data-mode="descend"],[data-mode="boot"]) #sndTag{top:calc(max(12px,env(safe-area-inset-top)) + 140px)!important;bottom:auto!important}body[data-mode="walk"]:has(#qS6) #toast{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 134px)!important;top:auto!important}}</style>
-<style id="qualium-sndtag-small">/* 11-04 採点 P2：右上の音の札を小さく控えめに（375px で空をふさがない） */html body #sndTag{font-size:10px!important;line-height:1.45!important;max-width:min(240px,calc(100% - 120px))!important;padding:3px 8px!important;opacity:.8}html body #sndTag::before{font-size:7px!important;letter-spacing:.2em!important}@media (max-width:640px){html body #sndTag{max-width:148px!important;font-size:9.5px!important}}</style>
+<style id="qualium-sndtag-small">/* 11-04 採点 P2：右上の音の札を小さく控えめに（375px で空をふさがない） */html body #sndTag{font-size:10px!important;line-height:1.45!important;max-width:min(240px,calc(100% - 120px))!important;padding:3px 8px!important;opacity:.8}html body #sndTag::before{font-size:7px!important;letter-spacing:.2em!important}@media (max-width:640px){html body #sndTag{max-width:148px!important;font-size:9.5px!important}}/* 11-05 本人の決まり：右上の音の札（背景つき・英字）をやめ、画面下の小さな一行に。碧の字幕が出ているあいだは字幕を優先 */
+#sndTag{top:auto!important;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 74px)!important;left:50%!important;right:auto!important;transform:translateX(-50%);background:none!important;border:0!important;padding:0!important;font-size:10.5px!important;line-height:1.5!important;opacity:.82;text-align:center!important;max-width:calc(100% - 150px)!important;text-shadow:var(--hud-sh,0 1px 6px rgba(0,0,0,.8))}
+#sndTag::before{display:none!important;content:none!important}
+body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
+</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>
@@ -692,8 +696,8 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261105yoru").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261105hashi").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（木・石の環世界と依代への変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=10").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).then(() => Promise.all([import("./web/kit/mado.js?v=4").then(m => { q.MADO = m.attachMado(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/tokimusubi.js?v=5").then(m => { q.TOKI = m.attachTokimusubi(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/yoru.js?v=3").then(m => { q.YORU = m.attachYoru(q); })])).catch(e => console.warn("ikimono", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=11").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).then(() => Promise.all([import("./web/kit/mado.js?v=5").then(m => { q.MADO = m.attachMado(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/tokimusubi.js?v=6").then(m => { q.TOKI = m.attachTokimusubi(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/yoru.js?v=3").then(m => { q.YORU = m.attachYoru(q); })])).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 </body></html>

@@ -35,7 +35,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
   const tag = document.createElement("div"); tag.className = "arTag"; tag.setAttribute("aria-live", "polite"); tag.innerHTML = `<small></small><b></b><div class="ld"><i></i><span>道と建物を読み込んでいます</span></div>`; document.body.appendChild(tag);
   const nearEl = document.createElement("div"); nearEl.className = "arNear"; document.body.appendChild(nearEl);
   let tagT = 0;
-  function showTag(Z, loading) { tag.style.setProperty("--ac", Z.color); tag.querySelector("small").textContent = Z.en; tag.querySelector("b").textContent = Z.name; tag.querySelector(".ld").classList.toggle("on", !!loading); tag.classList.add("on"); tagT = loading ? 1e9 : 3.2; }
+  function showTag(Z, loading) { tag.style.setProperty("--ac", Z.color); tag.querySelector("small").textContent = "";   /* 11-05 英字の添えは出さない */ tag.querySelector("b").textContent = Z.name; tag.querySelector(".ld").classList.toggle("on", !!loading); tag.classList.add("on"); tagT = loading ? 1e9 : 3.2; }
 
   /* ---------- 光の幕（オーロラ）：エリアの輪郭の内側 1.2 m に、地面から立ちのぼる ---------- */
   const auroraMat = color => new THREE.ShaderMaterial({

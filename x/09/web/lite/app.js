@@ -20,7 +20,7 @@ import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
 import { makeFliers } from "../kit/fliers.js?v=9";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
 import { installNav } from "../kit/nav.js?v=n8p";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
-import { makeAreas } from "./areas.js?v=56m";
+import { makeAreas } from "./areas.js?v=56n";
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -431,6 +431,16 @@ function toFloat(src) {   // 量子化された頂点（Int16 など）を、変
   if (src.index) g.setIndex(src.index.clone());
   return g;
 }
+/* 11-05 採点「375px で樹冠の葉が粗い点の模様」：遠くの細かい段の絵では葉の抜きが痩せて点々になる。段の深さに応じて抜きを少し太らせ、縁は画素の幅でくっきり切る（重さはほぼ同じ） */
+const LEAFA = new WeakSet();
+function leafAlpha(m) { if (LEAFA.has(m)) return; LEAFA.add(m); const prev = m.onBeforeCompile;
+  m.onBeforeCompile = function (sh, r) { prev?.call(this, sh, r); sh.fragmentShader = sh.fragmentShader.replace("#include <alphatest_fragment>", `#ifdef USE_MAP
+{ vec2 tz = vec2(textureSize(map, 0)); vec2 ddx = dFdx(vMapUv * tz), ddy = dFdy(vMapUv * tz); float mip = max(0., .5 * log2(max(dot(ddx, ddx), dot(ddy, ddy)))); diffuseColor.a *= 1. + mip * .22; }
+#endif
+#ifdef USE_ALPHATEST
+diffuseColor.a = (diffuseColor.a - alphaTest) / max(fwidth(diffuseColor.a), 1e-4) + .5; if (diffuseColor.a < .5) discard;
+#endif`); };
+  const k0 = m.customProgramCacheKey; m.customProgramCacheKey = function () { return (k0 ? k0.call(this) : "") + "|leafA"; }; m.needsUpdate = true; }
 function thinLeaves(geo, every = 3, grow = 1.5) {   // 葉の札を 3 枚に 1 枚へ減らし、残した札を少し大きく（中くらいの距離の形）
   const idx = geo.index ? geo.index.array : null; if (!idx) return geo;
   const P = geo.attributes.position, keep = [], nT = idx.length / 3;
@@ -468,7 +478,7 @@ function buildTrees([g, kg]) {
       o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); geo.scale(k, k, k); if (o === bark) leanIn(geo, sp);
       const mat = o.material; if (mat.map) mat.map.anisotropy = 2; mat.envMapIntensity = .45;
       if (o === bark) barkUV(mat);
-      if (o === leaves) { mat.alphaTest = Math.max(mat.alphaTest || 0, .45); mat.transparent = false; mat.side = THREE.DoubleSide; }
+      if (o === leaves) { mat.alphaTest = Math.max(mat.alphaTest || 0, .45); mat.transparent = false; mat.side = THREE.DoubleSide; leafAlpha(mat); }
       const g2 = o === leaves && MOBILE && sp === "keyaki" ? thinLeaves(geo, 2, 1.3) : geo;   // スマホの近くのケヤキは、葉の札を半分に
       const im = new THREE.InstancedMesh(g2, mat, count[sp] || 1); im.count = 0; im.frustumCulled = false; world.add(im); parts.push(im);
     }
@@ -476,7 +486,7 @@ function buildTrees([g, kg]) {
     const fb = g.scene.getObjectByName(base + "_bark") || bark; fb.updateWorldMatrix(true, false);
     const bgeo = toFloat(fb.geometry).applyMatrix4(fb.matrixWorld); bgeo.translate(0, -box.min.y, 0); bgeo.scale(k, k, k); leanIn(bgeo, sp);
     const lgeo = thinLeaves(parts[1].geometry, MOBILE ? 5 : 4, MOBILE ? 1.85 : 1.7);
-    const lm2 = parts[1].material.clone(); lm2.side = THREE.DoubleSide;
+    const lm2 = parts[1].material.clone(); lm2.side = THREE.DoubleSide; leafAlpha(lm2);
     barkUV(fb.material);
     const mid = [new THREE.InstancedMesh(bgeo, fb.material, count[sp] || 1), new THREE.InstancedMesh(lgeo, lm2, count[sp] || 1)];
     if (sp === "keyaki") TREE.kMid = { bgeo, lgeo, bm: fb.material, lm: lm2, h: SPH[sp] };   // 2026-10-26 3：けやきひろばにも参道と同じケヤキを
@@ -1061,6 +1071,7 @@ function inPark(x, z) {
 }
 /* 2026-10-26 2（本人「公園の景色が模式的」）：芝と園路に、①大小二つの縮尺で同じ絵を混ぜて、くり返しの模様を消す ②数十 m の明るさと色のむら（日なた・踏まれて薄い所・落ち葉）③芝は遠くで少し青みを抜く */
 const TEXC = {};
+const SHOW_LABEL = false;   /* 11-05 本人の決まり（灰色の背景の文字・説明書きは無くす）：印の名前の札は出さない。名前と中身は碧の声と下の字幕で */
 function parkMacro(m, amt, lawn) {
   const lit = TEXC.lit ||= tex(BASE + "tex/litter.webp?v=" + VER), soil = lawn ? (TEXC.soil ||= tex(BASE + "tex/Ground047_c5.webp")) : null;   /* 11-05：同じ絵を一枚だけ作る（飛ぶときに何枚も送り直していた） */
   m.userData.wt = [lit, soil];
@@ -1439,7 +1450,7 @@ function stepLayer(dt) {
     L.glow.material.opacity = (.42 + .14 * Math.sin(t * 1.6 + L.o.x)) * op; L.glow.scale.setScalar(.5 + L.open * .3);
     // 名札：近くに来たら（歩く・生きものの高さ）
     const near = !sky && !flyish && M !== "descend" && dist < LABEL_R;   /* 10-28 夜 8：降りているあいだは札を出さない（着く直前に札が重なって見えた） */
-    if (near && !L.label) { { const k6 = QAK(L); L.label = makeLabel(layerNo(L.o.layer), k6 ? QAN(k6) : GL[L.o.layer].name, L.o.title, k6 ? QAC[k6] : GL[L.o.layer].color); }   /* 10-30：札も 6 層の名前 */ L.label.position.set(.5, .66, 0); L.label.userData.by = .66; L.label.material.depthTest = false; L.label.renderOrder = 9; L.glyph.add(L.label); }   // 札は木に隠さない（重なりは placeLabels で避ける）
+    if (SHOW_LABEL && near && !L.label) { { const k6 = QAK(L); L.label = makeLabel(layerNo(L.o.layer), k6 ? QAN(k6) : GL[L.o.layer].name, L.o.title, k6 ? QAC[k6] : GL[L.o.layer].color); }   /* 10-30：札も 6 層の名前 */ L.label.position.set(.5, .66, 0); L.label.userData.by = .66; L.label.material.depthTest = false; L.label.renderOrder = 9; L.glyph.add(L.label); }   // 札は木に隠さない（重なりは placeLabels で避ける）
     if (L.label) { L.label.visible = near && !L.qHide; L.label.material.opacity = Math.min(1, (LABEL_R - dist) / 6) * op; const gs = L.glyph.scale.x || 1, fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 30 : 30) * Math.max(1, dist) / fpx, k = wh / .4 / gs; L.label.scale.set(1.6 * k, .4 * k, 1); }   // 2026-10-26 15：札は画面の上でいつも同じ大きさ（名前の字が PC 約 25px・スマホ約 20px の明朝）
   }
   LAYER.qm?.update(camera, { t, sky, focus: PANEL.cur || null }); AREA.qm?.update(camera, { t, sky, focus: PANEL.cur || null });
@@ -1451,7 +1462,7 @@ function stepLayer(dt) {
   for (const L of LAYER.objs) if (L.label && L.label.visible && L.root.visible && !L.qHide) { if (!onScr(L)) { L.label.visible = false; continue; } lbs.push({ sp: L.label, L, d: Math.hypot(L.o.x - cp.x, L.o.z - cp.z), pri: PANEL.cur === L ? 1 : 0 }); }
   // 2026-10-26 16：町（東口・西口・新都心・公園）の典拠のある地点にも、近くに来たら名札（参道の札と同じ形・大きさ）
   if (!sky && !flyish) for (const L of AREA.marks || []) { const dA = Math.hypot(L.o.x - cp.x, L.o.z - cp.z), nearA = L.mark.visible && dA < LABEL_R && !L.qHide && onScr(L);
-    if (nearA && !L.label) { const k5 = top5(L.o.layer); { const k6 = QAK(L); L.label = makeLabel(layerNo(L.o.layer), k6 ? QAN(k6) : (GL[k5]?.name || ("Qualia/" + k5)), L.o.title, k6 ? QAC[k6] : (COLOR5[k5] || "#e8eef2")); } L.label.material.depthTest = false; L.label.renderOrder = 9; L.label.position.set(.9, .4, 0); L.label.userData.by = .4; L.glyph.add(L.label); }
+    if (SHOW_LABEL && nearA && !L.label) { const k5 = top5(L.o.layer); { const k6 = QAK(L); L.label = makeLabel(layerNo(L.o.layer), k6 ? QAN(k6) : (GL[k5]?.name || ("Qualia/" + k5)), L.o.title, k6 ? QAC[k6] : (COLOR5[k5] || "#e8eef2")); } L.label.material.depthTest = false; L.label.renderOrder = 9; L.label.position.set(.9, .4, 0); L.label.userData.by = .4; L.glyph.add(L.label); }
     if (L.label) { L.label.visible = nearA && !L.qHide;   /* 10-28：札は見せている印と同じものだけ */ if (nearA) { L.label.material.opacity = Math.min(1, (LABEL_R - dA) / 6); const fpx = innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360), wh = (MOBILE ? 30 : 30) * Math.max(1, dA) / fpx, k = wh / .4; L.label.scale.set(1.6 * k, .4 * k, 1); lbs.push({ sp: L.label, L, d: dA, pri: 0 }); } } }
   { lbs.sort((p, q) => q.pri - p.pri || p.d - q.d); const cap = MOBILE ? 3 : 4; for (const e of lbs.splice(cap)) e.sp.visible = false; if (MOBILE) for (let i = lbs.length - 1; i >= 0; i--) if (lbs[i].d > 30 && !lbs[i].pri) { lbs[i].sp.visible = false; lbs.splice(i, 1); } }   /* 2026-10-27 夜：スマホは遠い札（鳥居や並木に透けて重なる）を出さず、近い札だけ */   // 2026-10-26 15：大きな札は近い順に PC 4・スマホ 3 まで
   if (lbs.length) { const av = [...(LAYER.qm?.rects || []), ...(AREA.qm?.rects || [])]; for (const id of ["qHere", "lstack", "caption", "qDir", "hud", "sndTag"]) { const e = document.getElementById(id); if (!e || e.hidden) continue; { const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity < .05) continue; } const r = e.getBoundingClientRect(); if (r.width && r.height) av.push({ x0: r.left - 4, x1: r.right + 4, y0: r.top - 4, y1: r.bottom + 4 }); } placeLabels(THREE, camera, lbs, av, dt); }   // 2026-10-26 15：札を大きくしたので、画面の板（重なりの数・層の一覧・字幕）にもかけない
