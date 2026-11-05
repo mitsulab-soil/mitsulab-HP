@@ -322,6 +322,7 @@ async function buildBuildings() {
     if (!low && box && NET.pw) { let mx = 0, mz = 0; for (const p of ring) { mx += p.x; mz += p.y; } mx /= n; mz /= n; const A = Math.abs(THREE.ShapeUtils.area(ring));
       if (A > 18 && A < 3000 && (Math.hypot(mx - 465, mz + 440) < 62 || NET.pw.some(w => mx > w.x0 && mx < w.x1 && mz > w.z0 && mz < w.z1 && inRing(w.r, mx, mz))) && !netCrosses(ring)) { addTemple(ring, y, A); continue; } }   // 2026-10-26 川越氷川神社の境内（OSM では点だけ）も寺社の型に   // 2026-10-25 寺社の境内の建物＝寺社の建物の型（模式）
     if (!low && !far && streetSide(ring)) { addSolid(ring, y, top, SOLID, eraAt(ring)); for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n]; E.push(p.x, top, p.y, q.x, top, q.y); } continue; }   // 2026-10-24 本人「人が歩くところは透明にしない」＝通りに面した建物は不透明の壁に（入れない）
+    if (!low && box) { SOLID.polys[regSolidTo(ring, SOLID)].far = 1; QW.nMassSolid = (QW.nMassSolid || 0) + 1; }   /* 11-05 採点 P1「本川越駅から駅舎へ歩くと建物の中へ入り、画面が壁一色」：歩くときは不透明に描く町並みの建物（道が中を通るもの・通りから離れたもの）も、足もとの輪郭でぶつかる */
     const hr = Math.abs(Math.sin(cx * 12.9898 + cz * 78.233) * 43758.5453) % 1, wc = MASS_WALL[Math.floor(hr * MASS_WALL.length)], rc0 = (h < 9 ? TILE_ROOF : FLAT_ROOF)[Math.floor(((hr * 7) % 1) * (h < 9 ? TILE_ROOF.length : FLAT_ROOF.length))];
     for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n]; if (!low) for (let m = 0; m < 6; m++) MC.push(...(m === 2 || m === 4 || m === 5 ? wc : [wc[0] * .8, wc[1] * .8, wc[2] * .8]));
       P.push(p.x, y, p.y, q.x, y, q.y, q.x, top, q.y, p.x, y, p.y, q.x, top, q.y, p.x, top, p.y); for (let m = 0; m < 6; m++) Y0.push(y);
@@ -1187,6 +1188,7 @@ function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(
   if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); tag.textContent = "● " + QAN(k6) + (s0 ? "　出典：" + s0 : ""); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   delete c.dataset.talk;
   c.hidden = false; clearTimeout(capT); }
+function capNote(t) { if (voiceQ || !$("#caption").hidden) return; CAP_LAY = null; caption(t); hideCaption(Math.max(4500, t.length * 140)); }   /* 11-05 本人の決まり「説明書き（枠）は無くす」：注意の一言は、枠の知らせでなく画面下の字幕の一行に */
 function hideCaption(after = 0) { clearTimeout(capT); capT = setTimeout(() => { $("#caption").hidden = true; }, after); }
 $("#caption").addEventListener("click", () => { return; /* 10-28 午後：重ね窓は出さない */ const id = $("#caption").dataset.talk, L = LAYER.objs.find(x => x.o.id === id); if (!L) return; const keep = voiceQ; const g = GL[L.layer];
   openPanel({ color: g.color, layer: `${String(layerNo(L.layer)).padStart(2, "0")}　${g.name}`, title: L.o.title, lines: L.o.lines, more: L.o.more || [], how: L.o.how, src: L.o.src, ll: L.o.ll }); voiceQ = keep; });
@@ -1211,7 +1213,7 @@ QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.st
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261105r"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261105s"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */
@@ -1238,6 +1240,7 @@ function aoiSpot(out) {
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   if (offRoute(CAM.pos.x, CAM.pos.z) && n.dist < 40) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
   if (solidAt(out.x, out.z, .3)) { for (const [a, b] of [[f, 0], [f * .6, 0], [f, -s * side], [1.4, 0]]) { const x = CAM.pos.x + fx * a + rx * b, z = CAM.pos.z + fz * a + rz * b; if (!solidAt(x, z, .3)) { out.x = x; out.z = z; break; } } }   /* 11-03 立ち位置が壁の中なら、通りの側へ */
+  if (solidAt(out.x, out.z, .3)) { let ok = false; for (const r of [1.3, .9, 2.2]) { for (const k of [0, 1, -1, 2, -2]) { if (ok) break; const a = vy + k * Math.PI / 4, x = CAM.pos.x - Math.sin(a) * r, z = CAM.pos.z - Math.cos(a) * r; if (!solidAt(x, z, .3)) { out.x = x; out.z = z; ok = true; } } if (ok) break; } }   /* 11-05 採点：それでも壁の中なら、見る人のまわりの空いた所へ */
   out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
@@ -1256,12 +1259,14 @@ function stepAoi(dt) {
   if (!AOI.m || !AOI.root.visible) return;
   aoiSpot(_ap); const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
   AOI.bt = _ndc.copy(P).setY(P.y + 1).project(camera).z > 1 && QW.mode === "walk" ? (AOI.bt || 0) + dt : 0;   // 10-30：碧が見る人の後ろに 1.2 秒より長くいたら、前の立ち位置へ（375px で後ろへ消えていた）
+  if (solidAt(P.x, P.z, .1) && !solidAt(_ap.x, _ap.z, .3)) AOI.bt = 9;   // 11-05 採点「碧が建物の壁の中に立つ」：中に立っていたら、空いた立ち位置へ
   if (dist > 18 || AOI.bt > 1.2) { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
-    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
+    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;
+    if (MOBILE) { const sx = _ndc.copy(P).setY(P.y + 1).project(camera).x, sd = sx < -.08 ? "l" : sx > .08 ? "r" : null; if (sd && document.body.dataset.aoi !== sd) document.body.dataset.aoi = sd; }   // 11-05 375px：字幕を碧と反対の側へ   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(2.8, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v += Math.max(-1.8 * dt, Math.min(1.0 * dt, want - AOI.v));
-    if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt), q = _aq.set(P.x + dx / dist * st, 0, P.z + dz / dist * st); if (slideOut(q, P.x, P.z, .28) && Math.hypot(q.x - P.x, q.z - P.z) < 1e-4) { AOI.v = 0; if ((AOI.blk = (AOI.blk || 0) + dt) > 1.2) { AOI.blk = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); } } else { AOI.blk = 0; AOI.m.drive(q.x, q.z); } }   /* 11-03 碧も壁を抜けない（沿ってすべる） */
+    if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt), q = _aq.set(P.x + dx / dist * st, 0, P.z + dz / dist * st); if (slideOut(q, P.x, P.z, .28) && Math.hypot(q.x - P.x, q.z - P.z) < 1e-4) { AOI.v = 0; if ((AOI.blk = (AOI.blk || 0) + dt) > 1.2) { AOI.blk = 0; if (!solidAt(_ap.x, _ap.z, .3)) AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); } } else { AOI.blk = 0; AOI.m.drive(q.x, q.z); } }   /* 11-03 碧も壁を抜けない（沿ってすべる） */
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; AOI.m.faceTo(Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z)); }
   }
   AOI.gT = (AOI.gT ?? 5) - dt;
@@ -1384,10 +1389,10 @@ function solids(p, r = .35) {   // 店蔵の型と時の鐘には入らない（
   solidRings(p);
 }
 /* 2026-10-26 壁に近づくと視点が壁に入っていた：通りの不透明の建物（SOLID）の壁から 0.6 m 手前で止める */
-function solidRings(p, r = 1.1) {
+function solidRings(p, r0 = 1.1) {
   if (!SOLID.polys.length) return; const c = SOLID.cell, seen = new Set();
   for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) { const ids = SOLID.hash.get((Math.floor(p.x / c) + di) + "," + (Math.floor(p.z / c) + dj)); if (!ids) continue;
-    for (const id of ids) { if (seen.has(id)) continue; seen.add(id); const b = SOLID.polys[id]; if (p.x < b.x0 - r || p.x > b.x1 + r || p.z < b.z0 - r || p.z > b.z1 + r) continue;
+    for (const id of ids) { if (seen.has(id)) continue; seen.add(id); const b = SOLID.polys[id]; const r = b.far ? 2.6 : r0 > 1 && (b.x1 - b.x0) * (b.z1 - b.z0) > 60 ? 2 : r0; if (p.x < b.x0 - r || p.x > b.x1 + r || p.z < b.z0 - r || p.z > b.z1 + r) continue;   // 11-05 採点「駅舎の壁に寄りすぎて壁一色」：町並みの奥の建物は 2.6 m 手前で止める
       const R = b.ring, n = R.length; let bd = 1e9, qx = 0, qz = 0;
       for (let i = 0; i < n; i++) { const A = R[i], B = R[(i + 1) % n], ex = B.x - A.x, ez = B.y - A.y, L2 = ex * ex + ez * ez || 1e-9; let t = ((p.x - A.x) * ex + (p.z - A.y) * ez) / L2; t = Math.max(0, Math.min(1, t));
         const x = A.x + ex * t, z = A.y + ez * t, d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; qx = x; qz = z; } }
@@ -1411,7 +1416,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   const px0 = CAM.pos.x, pz0 = CAM.pos.z; CAM.pos.x += mx; CAM.pos.z += mz; corridorClamp(CAM.pos);
   if (slideOut(CAM.pos, px0, pz0, .35)) {   // 建物・蔵・時の鐘の壁の手前で止まる。斜めに当たったときは、壁に沿ってすべる
     if (WALK.goal && Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
-    if (performance.now() - (WALK.wallT || 0) > 8000) { WALK.wallT = performance.now(); toast("建物の中には入れません。通りを歩けます。"); } }
+    if (performance.now() - (WALK.wallT || 0) > 8000) { WALK.wallT = performance.now(); capNote("建物の中には入れません。通りを歩けます。"); } }
   if (WALK.auto && f) { const mv = Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0); WALK.stuckT = mv < speed * dt * .25 ? (WALK.stuckT || 0) + dt : 0;   // 10-28 晩：歩きつづけるで壁や道の端に当たって止まったままにならない
     if (WALK.stuckT > .7) { WALK.stuckT = 0; let turned = false; if (NET.segs) { const q = netNear(CAM.pos.x, CAM.pos.z, 30); if (q && isFinite(q.tx)) { const h = CAM.yaw + CAM.look, a1 = Math.atan2(-q.tx, -q.tz), cand = [a1, a1 + Math.PI].sort((u, v) => Math.abs(wrap(u - h - .3)) - Math.abs(wrap(v - h - .3))); for (const c of cand) if (Math.abs(wrap(c - h)) > .35) { CAM.yaw += wrap(c - h); turned = true; break; } } } if (!turned) CAM.yaw += .9; } }
   if (!KURA.blockBell) { }
@@ -1420,8 +1425,8 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, CAM.yaw + CAM.look, 0, "YXZ"));
 }
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
-function safetyNote() { if (WALK.safety) return; if (!AOI.greeted || voiceQ) { setTimeout(safetyNote, 1500); return; }   // 2026-10-26 降りた直後は名乗りを先に、案内はそのあと
-  WALK.safety = true; toast("裏の道も歩けます。歩くときは、前と周りの人・車・自転車に気をつけて。画面は立ち止まって見てください。"); }   // 2026-10-25 本人「メインストリートは人が多いので危なく」＝一度だけ
+function safetyNote() { if (WALK.safety) return; if (!AOI.greeted || voiceQ || !$("#caption").hidden) { setTimeout(safetyNote, 1500); return; }   // 2026-10-26 降りた直後は名乗りを先に、案内はそのあと
+  WALK.safety = true; capNote("裏の道も歩けます。歩くときは、前と周りの人・車・自転車に気をつけて。画面は立ち止まって見てください。"); }   // 2026-10-25 本人「メインストリートは人が多いので危なく」＝一度だけ
 function startFly() {
   hidePanel(); stopVoice(); hideSkyUI(); hideWalkUI();
   const from = QW.mode === "walk" ? CAM.pos.clone() : (() => { const a = stAt(C.starts[Math.max(0, START.sel)]); return new THREE.Vector3(a.x, groundY(a.x, a.z), a.z); })();
@@ -1720,7 +1725,7 @@ function stepSoundWalk(dt) {
   AMB.update(dt, { x: cp.x, z: cp.z, h: QW.mode === "fly" ? Math.max(0, cp.y - groundY(cp.x, cp.z) - EYE) : 0, yaw: CAM.yaw + CAM.look, active: QW.mode === "walk" || QW.mode === "sight" || QW.mode === "fly" });   // 空を飛んでいるときは、川や杜の上を通ると聞こえる
 }
 const WALDT = { t: 0 };
-function showTag(t, sec, sub) { const e = $("#sndTag"), k = sub || t; e.textContent = t; if (sub) { const s = document.createElement("small"); s.textContent = sub; e.appendChild(s); }
+function showTag(t, sec, sub) { const e = $("#sndTag"), k = sub || t; e.textContent = String(t).replace(/^[①-④]\s*/, "");   /* 11-05 番号の札をやめ、ふつうの一行に */ if (sub) { const s = document.createElement("small"); s.textContent = String(sub).replace(/^[①-④]\s*/, ""); e.appendChild(s); }
   e.dataset.k = k.startsWith("④") ? "poem" : k.startsWith("③") ? "re" : k.startsWith("②") ? "else" : "rec"; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, sec * 1000); }
 const WAVE = { rings: [], on: false, t0: 0,
   start() { this.stop(); this.on = true; this.t0 = performance.now() / 1000; },

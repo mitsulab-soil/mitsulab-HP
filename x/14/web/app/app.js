@@ -388,6 +388,7 @@ function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・
           diffuseColor.rgb = mix(diffuseColor.rgb, mix(diffuseColor.rgb, vec3(.12, .15, .18) + lu * .35, .3), win); }`); };
       mat.customProgramCacheKey = () => "plateauWall"; }
     const m = new THREE.Mesh(geo, mat); m.name = "plateau_" + gr.k; g0.add(m); landSweep();
+    setTimeout(() => plOccAdd(P, I, PL.r), 0);   /* 11-05 採点 P1「ハチ公前で建物の中へ入る」：PLATEAU の屋根の形から足もとの格子を作り、歩いて入らない */
   }).catch(e => console.warn("plateau", e?.message ?? e));
   QW.plateau = PL.groups.length;
 }
@@ -698,13 +699,30 @@ function regSolidTo(ring, acc) {
   for (let i = Math.floor(x0 / c); i <= Math.floor(x1 / c); i++) for (let j = Math.floor(z0 / c); j <= Math.floor(z1 / c); j++) { const k = i + "," + j; if (!SOLID.hash.has(k)) SOLID.hash.set(k, []); SOLID.hash.get(k).push(id); }
   (acc.ids ||= []).push(id); return id;
 }
+/* 11-05 PLATEAU の建物の足もと（1 m 格子）。屋根の面（上向き・地面から 2.5 m より上）を格子に塗る。道・道筋の中心から 2 m は空ける（デッキや通路の下を歩けるように） */
+const PLO = { g: null, n: 0, o: 0 };
+function plOccAdd(P, I, R) {
+  const n = PLO.n = Math.ceil(R * 2) + 4, o = PLO.o = n / 2, g = PLO.g || (PLO.g = new Uint8Array(n * n));
+  for (let t = 0; t < I.length; t += 3) { const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3;
+    const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, nl = Math.hypot(nx, ny, nz) || 1; if (Math.abs(ny) / nl < .7) continue;
+    const cx = (P[a] + P[b] + P[c]) / 3, cz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3; if ((P[a + 1] + P[b + 1] + P[c + 1]) / 3 - groundY(cx, cz) < 2.5) continue;
+    const x0 = Math.floor(Math.min(P[a], P[b], P[c]) + o), x1 = Math.floor(Math.max(P[a], P[b], P[c]) + o), z0 = Math.floor(Math.min(P[a + 2], P[b + 2], P[c + 2]) + o), z1 = Math.floor(Math.max(P[a + 2], P[b + 2], P[c + 2]) + o);
+    const Ax = P[a] + o, Az = P[a + 2] + o, Bx = P[b] + o, Bz = P[b + 2] + o, Cx = P[c] + o, Cz = P[c + 2] + o, d = (Bz - Cz) * (Ax - Cx) + (Cx - Bx) * (Az - Cz); if (Math.abs(d) < 1e-6) continue;
+    for (let i = Math.max(0, x0); i <= Math.min(n - 1, x1); i++) for (let k = Math.max(0, z0); k <= Math.min(n - 1, z1); k++) { const px = i + .5, pz = k + .5, l1 = ((Bz - Cz) * (px - Cx) + (Cx - Bx) * (pz - Cz)) / d, l2 = ((Cz - Az) * (px - Cx) + (Ax - Cx) * (pz - Cz)) / d; if (l1 >= -.02 && l2 >= -.02 && l1 + l2 <= 1.02) g[k * n + i] = 1; } }
+  const clr = (x, z) => { for (let i = -2; i <= 2; i++) for (let k = -2; k <= 2; k++) { const gi = Math.floor(x + o) + i, gk = Math.floor(z + o) + k; if (gi >= 0 && gk >= 0 && gi < n && gk < n) g[gk * n + gi] = 0; } };
+  for (const r of G.roads || []) for (const p of densify(r.p, 1.5)) clr(p[0], p[1]); for (const p of densify(G.line || [], 1.5)) clr(p[0], p[1]);
+  let c = 0; for (let i = 0; i < g.length; i++) c += g[i]; QW.plOcc = c;
+}
+function plAt(x, z) { const g = PLO.g; if (!g) return false; const i = Math.floor(x + PLO.o), k = Math.floor(z + PLO.o); return i >= 0 && k >= 0 && i < PLO.n && k < PLO.n && g[k * PLO.n + i] === 1; }
 function inBld(x, z, r = .35) {   // 建物の中か（体の幅 r を見て）
+  if (PLO.g && (plAt(x, z) || plAt(x + r, z) || plAt(x - r, z) || plAt(x, z + r) || plAt(x, z - r))) return true;
   if (!SOLID.polys.length) return false; const c = SOLID.cell, ids = SOLID.hash.get(Math.floor(x / c) + "," + Math.floor(z / c)); if (!ids) return false;
   for (const id of ids) { const b = SOLID.polys[id]; if (x < b.x0 - r || x > b.x1 + r || z < b.z0 - r || z > b.z1 + r) continue;
     if (inRing(b.ring, x, z) || inRing(b.ring, x + r, z) || inRing(b.ring, x - r, z) || inRing(b.ring, x, z + r) || inRing(b.ring, x, z - r)) return true; }
   return false;
 }
-QW.inBld = inBld; QW.SOLID = SOLID;
+QW.inBld = inBld; QW.SOLID = SOLID; QW.plAt = plAt;
 function buildSolids() {
   if (!SOLID.P.length) return;
   const mesh = makeSolidMesh(SOLID); mesh.name = "bldSolid"; world.add(mesh); BLD.solid = mesh; QW.nSolid = SOLID.polys.length;
@@ -1058,7 +1076,8 @@ async function startYorishiro() {
           used.add(L); n++; const pre = TOWN[kind];
           MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } }
       /* 11-05 本人：調べた候補の場所に町の依代を置く（出典＝資料/町の依代の候補_2026-11-05.md）。木・石・土はその場で揺れるだけ。話すのは碧（下に小さく字幕） */
-      for (const P of [{"k": "ki", "ll": [35.65767, 139.70603], "pre": "木のそばで、桜の方を見上げてみます。", "t": "金王八幡宮に、区の天然記念物の桜。一つの枝に一重と八重が咲く。", "s": "渋谷区「区指定文化財」（金王桜）"}, {"k": "tsuchi", "ll": [35.6593, 139.7006], "t": "ここは谷の底。東も西も、坂を上ると地面が 10 メートル以上高い。", "s": "国土地理院の標高（5 m 格子）から計算"}, {"k": "ki", "ll": [35.6696, 139.7023], "t": "人がつくった森。全国から献木された木は約 10 万本。", "s": "明治神宮「明治神宮とは」"}, {"k": "ishi", "ll": [35.651, 139.7018], "t": "区の文化財の石の塔と道しるべ。江戸の中期以降に立った。", "s": "渋谷区「区指定文化財」（猿楽町の庚申塔・廿三夜塔・道標）"}, {"k": "ki", "ll": [35.6684, 139.6974], "pre": "木のそばで、森の高さを見上げてみます。", "t": "練兵場から選手村をへた公園。若かった木が育ち、隣の明治神宮の木々と森になった。", "s": "東京都公園協会「代々木公園」"}]) { try { const [bx, bz] = [(P.ll[1] - G.origin[1]) * G.kx, -(P.ll[0] - G.origin[0]) * G.ky]; if (!isFinite(bx + bz)) continue; let ok = null;
+      /* 11-05 猿楽町の庚申塔（石）は歩ける範囲（と地形）の外＝外した。出典の場所から動かして置かない */
+      for (const P of [{"k": "ki", "ll": [35.65767, 139.70603], "pre": "木のそばで、桜の方を見上げてみます。", "t": "金王八幡宮に、区の天然記念物の桜。一つの枝に一重と八重が咲く。", "s": "渋谷区「区指定文化財」（金王桜）"}, {"k": "tsuchi", "ll": [35.6593, 139.7006], "t": "ここは谷の底。東も西も、坂を上ると地面が 10 メートル以上高い。", "s": "国土地理院の標高（5 m 格子）から計算"}, {"k": "ki", "ll": [35.6696, 139.7023], "t": "人がつくった森。全国から献木された木は約 10 万本。", "s": "明治神宮「明治神宮とは」"}, {"k": "ki", "ll": [35.6684, 139.6974], "pre": "木のそばで、森の高さを見上げてみます。", "t": "練兵場から選手村をへた公園。若かった木が育ち、隣の明治神宮の木々と森になった。", "s": "東京都公園協会「代々木公園」"}]) { try { const [bx, bz] = [(P.ll[1] - G.origin[1]) * G.kx, -(P.ll[0] - G.origin[0]) * G.ky]; if (!isFinite(bx + bz)) continue; let ok = null;
         for (let k = 0; k < 40 && !ok; k++) { const a = k * .785, r = [1.4, 3, 5, 8, 12][k >> 3], x = bx + Math.cos(a) * r, z = bz + Math.sin(a) * r; if (!inBld(x, z, .3)) ok = [x, z]; }   // 11-05：建物の中しかないときは少し外へ（1.4→12 m）
         if (!ok) continue; const pre = P.pre || TOWN[P.k], ln = { t: P.t, tc: P.t, src: P.s }; MY.add(P.k, { x: ok[0], z: ok[1], yaw: Math.atan2(bx - ok[0], bz - ok[1]) + Math.PI, scale: 1.5, onTouch: () => speakLines([{ t: pre, tc: pre, src: P.s }, ln], null, { narr: true }) }); /* 11-05 採点：誘いの一言の下にも、その一行の出典を（前の話の出典が残らないように） */ } catch (e) { console.warn("machiyori", e); } } }
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
@@ -1212,6 +1231,7 @@ function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(
   if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); tag.textContent = "● " + QAN(k6) + (s0 ? "　出典：" + s0 : ""); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   delete c.dataset.talk;
   c.hidden = false; clearTimeout(capT); }
+function capNote(t) { if (voiceQ || !$("#caption").hidden) return; CAP_LAY = null; caption(t); hideCaption(Math.max(4500, t.length * 140)); }   /* 11-05 本人の決まり「説明書き（枠）は無くす」：注意の一言は、枠の知らせでなく画面下の字幕の一行に */
 function hideCaption(after = 0) { clearTimeout(capT); capT = setTimeout(() => { $("#caption").hidden = true; }, after); }
 $("#caption").addEventListener("click", () => { return; /* 10-28 午後：重ね窓は出さない */ const id = $("#caption").dataset.talk, L = LAYER.objs.find(x => x.o.id === id); if (!L) return; const keep = voiceQ; const g = GL[L.layer];
   openPanel({ color: g.color, layer: `${String(layerNo(L.layer)).padStart(2, "0")}　${g.name}`, title: L.o.title, lines: L.o.lines, more: L.o.more || [], how: L.o.how, src: L.o.src, ll: L.o.ll }); voiceQ = keep; });
@@ -1236,7 +1256,7 @@ QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.st
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
-    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261105r"), import("../kit/aoi_robe.js").catch(() => null)]);
+    const [V, buf, Mot, Robe] = await Promise.all([import("@pixiv/three-vrm"), fetch("web/aoi.vrm").then(r => r.arrayBuffer()), import("../kit/aoi_motion.js?v=20261105s"), import("../kit/aoi_robe.js").catch(() => null)]);
     const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
     const gl = await ld.parseAsync(buf, ""); const v = gl.userData.vrm;
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */
@@ -1263,6 +1283,7 @@ function aoiSpot(out) {
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   if (offRoute(CAM.pos.x, CAM.pos.z)) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
   if (inBld(out.x, out.z, .4)) { for (const [ff, ss] of [[f, -s * side], [f * .75, s * side * 1.4], [f * .75, -s * side * 1.4], [f * .6, 0], [2, s * side * 1.6], [2, -s * side * 1.6], [1, 1.3 * side], [1, -1.3 * side], [.2, 1.2 * side], [.2, -1.2 * side]]) { const x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss; if (!inBld(x, z, .4)) { out.x = x; out.z = z; break; } } }   // 11-03 本人「碧が建物を通り抜けない」：立ち位置が建物の中なら、反対側・手前の空いた所へ（近すぎない）
+  if (inBld(out.x, out.z, .4)) { let ok = false; for (const r of [1.3, .9, 2.2]) { for (const k of [0, 1, -1, 2, -2]) { if (ok) break; const a = vy + k * Math.PI / 4, x = CAM.pos.x - Math.sin(a) * r, z = CAM.pos.z - Math.cos(a) * r; if (!inBld(x, z, .4)) { out.x = x; out.z = z; ok = true; } } if (ok) break; } }   /* 11-05 採点：それでも壁の中なら、見る人のまわりの空いた所へ */
   out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
@@ -1281,7 +1302,8 @@ function stepAoi(dt) {
   if (inBld(P.x, P.z, 0) && !inBld(_ap.x, _ap.z, .3)) AOI.bt = 9;   // 11-03：建物の中に立っていたら（建物が後から読みこまれたとき）、空いた立ち位置へ
   if (dist > 18 || AOI.bt > 1.2) { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
-    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
+    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;
+    if (MOBILE) { const sx = _ndc.copy(P).setY(P.y + 1).project(camera).x, sd = sx < -.08 ? "l" : sx > .08 ? "r" : null; if (sd && document.body.dataset.aoi !== sd) document.body.dataset.aoi = sd; }   // 11-05 375px：字幕を碧と反対の側へ   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(WALK.moving ? Math.max(1.6, WALK.speed * 1.15) : 1.6, dist * 1.4 + (WALK.moving ? WALK.speed : 0)) : 0;   /* 10-30：歩く速さ（2.4 m/s）が碧の上限 1.6 を超え、375px で碧が後ろへ消えていた */
     AOI.v += Math.max(-1.8 * dt, Math.min((WALK.moving ? 3.2 : 1.0) * dt, want - AOI.v));   // 10-30：見る人が歩き出したら、碧もすぐ同じ速さに（追い越されて後ろへ消えない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); let nx = P.x + dx / dist * st, nz = P.z + dz / dist * st;
@@ -1438,7 +1460,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   if (inBld(CAM.pos.x, CAM.pos.z) && !inBld(px0, pz0)) {   // 建物の壁の手前で止まる。斜めに当たったときは、壁に沿ってすべる
     if (!inBld(CAM.pos.x, pz0)) CAM.pos.z = pz0; else if (!inBld(px0, CAM.pos.z)) CAM.pos.x = px0; else { CAM.pos.x = px0; CAM.pos.z = pz0; }
     if (WALK.goal && Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
-    if (performance.now() - (WALK.wallT || 0) > 8000) { WALK.wallT = performance.now(); toast("建物の中には入れません。通りを歩けます。"); } }
+    if (performance.now() - (WALK.wallT || 0) > 8000) { WALK.wallT = performance.now(); capNote("建物の中には入れません。通りを歩けます。"); } }
   if (WALK.auto && f) { const mv = Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0); WALK.stuckT = mv < speed * dt * .25 ? (WALK.stuckT || 0) + dt : 0;   // 10-28 晩：歩きつづけるで壁や道の端に当たって止まったままにならない
     if (WALK.stuckT > .7) { WALK.stuckT = 0; let turned = false; if (NET.segs) { const q = netNear(CAM.pos.x, CAM.pos.z, 30); if (q && isFinite(q.tx)) { const h = CAM.yaw + CAM.look, a1 = Math.atan2(-q.tx, -q.tz), cand = [a1, a1 + Math.PI].sort((u, v) => Math.abs(wrap(u - h - .3)) - Math.abs(wrap(v - h - .3))); for (const c of cand) if (Math.abs(wrap(c - h)) > .35) { CAM.yaw += wrap(c - h); turned = true; break; } } } if (!turned) CAM.yaw += .9; } }
   if (!KURA.blockBell) { }
@@ -1447,8 +1469,8 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, CAM.yaw + CAM.look, 0, "YXZ"));
 }
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
-function safetyNote() { if (WALK.safety) return; if (!AOI.greeted || voiceQ) { setTimeout(safetyNote, 1500); return; }   // 2026-10-26 降りた直後は名乗りを先に、案内はそのあと
-  WALK.safety = true; toast("渋谷は人の多い町です。歩くときは画面を見ず、前と周りの人・車・自転車に気をつけて。画面は、立ち止まって見てください。"); }   // 2026-10-25 本人「メインストリートは人が多いので危なく」＝一度だけ
+function safetyNote() { if (WALK.safety) return; if (!AOI.greeted || voiceQ || !$("#caption").hidden) { setTimeout(safetyNote, 1500); return; }   // 2026-10-26 降りた直後は名乗りを先に、案内はそのあと
+  WALK.safety = true; capNote("渋谷は人の多い町です。歩くときは画面を見ず、前と周りの人・車・自転車に気をつけて。画面は、立ち止まって見てください。"); }   // 2026-10-25 本人「メインストリートは人が多いので危なく」＝一度だけ
 function startFly() {
   hidePanel(); stopVoice(); hideSkyUI(); hideWalkUI();
   const from = QW.mode === "walk" ? CAM.pos.clone() : (() => { const a = stAt(C.starts[Math.max(0, START.sel)]); return new THREE.Vector3(a.x, groundY(a.x, a.z), a.z); })();
@@ -1737,7 +1759,7 @@ function stepSoundWalk(dt) {
   AMB.update(dt, { x: cp.x, z: cp.z, h: QW.mode === "fly" ? Math.max(0, cp.y - groundY(cp.x, cp.z) - EYE) : 0, yaw: CAM.yaw + CAM.look, active: QW.mode === "walk" || QW.mode === "sight" || QW.mode === "fly" });   // 空を飛んでいるときは、川や杜の上を通ると聞こえる
 }
 const WALDT = { t: 0 };
-function showTag(t, sec, sub) { const e = $("#sndTag"), k = sub || t; e.textContent = t; if (sub) { const s = document.createElement("small"); s.textContent = sub; e.appendChild(s); }
+function showTag(t, sec, sub) { const e = $("#sndTag"), k = sub || t; e.textContent = String(t).replace(/^[①-④]\s*/, "");   /* 11-05 番号の札をやめ、ふつうの一行に */ if (sub) { const s = document.createElement("small"); s.textContent = String(sub).replace(/^[①-④]\s*/, ""); e.appendChild(s); }
   e.dataset.k = k.startsWith("④") ? "poem" : k.startsWith("③") ? "re" : k.startsWith("②") ? "else" : "rec"; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, sec * 1000); }
 const WAVE = { rings: [], on: false, t0: 0,
   start() { this.stop(); this.on = true; this.t0 = performance.now() / 1000; },
