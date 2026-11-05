@@ -206,7 +206,7 @@ const LOOK = { bird: 1, bee: 2, worm: 3, sensor: 4, camera: 4, tree: 5, fungi: 6
 function lookMat(id) {
   const m = iMat.clone(); const L = LOOK[id] || 0;
   m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>
-{ vec3 c = gl_FragColor.rgb; float l = dot(c, vec3(.3, .59, .11)); vec2 q = gl_FragCoord.xy; float L = ${L}.;
+{ vec3 c = gl_FragColor.rgb; float l = dot(c, vec3(.3, .59, .11)); vec2 q = (normal.xy * .5 + .5) * 90.;   /* 模様は露の面に貼る（画面の画素に貼ると小さい露でちらつく） */ float L = ${L}.;
   if (L == 1.) c = vec3(c.b * .9 + .1, c.g * .75, c.r * .35 + c.b * .8 + .05);
   else if (L == 2.) c = vec3(c.g * .85, c.g * .8 + c.b * .3, c.b + .12) * (.82 + .18 * sin((q.x + q.y) * .7));
   else if (L == 3.) c = vec3(smoothstep(.15, .55, l));
@@ -324,7 +324,7 @@ function swapMode() {
   mode = mode === 'outer' ? 'inner' : 'outer';
   outer.visible = mode === 'outer'; inner.visible = mode === 'inner';
   go.textContent = mode === 'outer' ? '内へ' : '外へ';
-  if (mode === 'inner') { view.tgt.set(0, camera.aspect < .7 ? -.7 : -.6, 0); inner.scale.setScalar(Math.min(1, camera.aspect * 1.15)); view.dist = 9.5; view.pitch = .12; say(rel > .6 ? '露はみな同じ一粒。\nどの粒にも、ほかの粒が映る。' : '体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
+  if (mode === 'inner') { view.tgt.set(0, camera.aspect < .7 ? -.25 : -.6, 0); inner.scale.setScalar(Math.min(1, camera.aspect * 1.15)); view.dist = camera.aspect < .7 ? 8.8 : 9.5; view.pitch = .12; say(rel > .6 ? '露はみな同じ一粒。\nどの粒にも、ほかの粒が映る。' : '体をほどくと、受けとり方は一粒の露になる。\nほかの露が、ここに映る。', 7500); }
   else { view.tgt.set(0, 1.3, -2); view.dist = MOBILE ? 9.5 : 8; say(rel > .6 ? 'どれも中心ではない。映し合い、場を変え、変わった場がまた受けとられる。その全体が、ひとつの網。' : '露を体へ戻す。同じ参道が、重なって見える。', 9000); }
 }
 
