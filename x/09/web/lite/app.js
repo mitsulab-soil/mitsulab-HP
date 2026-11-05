@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k24";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w20";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
-import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=2";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
+import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=3";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
 installDapple(THREE);
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=sp11";
@@ -716,6 +716,21 @@ function loadLate() {
    位置は _dev/20261020_lite/build_veg.mjs が決めた veg.bin（参道の植え込み・並木の根元・境内の縁。現地の一株ずつではなく、よくある植栽と下草の模式の配置）。
    葉の絵 veg.webp は ambientCG（Leaf001・LeafSet014、CC0）の葉の写真を組んだもの（build_surface.py）。
    種：0 ツツジ・1 アオキ・2 ヤツデ・3 ササ・4 チヂミザサ・5 ドクダミ・6 細い草。近くだけ描き、遠くの縁では小さくして消す。 */
+/* 11-05 本人「Qualia/sight のような風景」・採点「並木の外が霞の海に見える」：霞の奥（半径 150〜200 m）に、木立の影絵の帯を二重に巻く。
+   一枚の帯（canvas で描いた樹冠の輪郭・模式）を目の位置について回し、霞がほとんど溶かす。歩くときだけ出す */
+const FARWOOD = (() => {
+  const c = document.createElement("canvas"); c.width = 2048; c.height = 128; const x = c.getContext("2d"); let s = 3; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 520; i++) { const px = rnd() * 2048, h = 30 + rnd() * 80 + 18 * Math.sin(px / 140), r = 4 + rnd() * 14, v = 52 + rnd() * 30;   // 小さな葉の塊を大小重ね、輪郭を不揃いに（同じ形の山が並ばない）
+    x.fillStyle = `rgb(${v * .85 | 0},${v | 0},${v * .8 | 0})`; for (let k = 0; k < 4; k++) { x.beginPath(); x.arc(px + (rnd() - .5) * r * 2.4, 128 - h + (rnd() - .2) * r * 1.6, r * (.5 + rnd() * .6), 0, Math.PI * 2); x.fill(); }
+    x.fillRect(px - r, 128 - h + r, r * 2, h); }
+  const tx = new THREE.CanvasTexture(c); tx.wrapS = THREE.RepeatWrapping; tx.colorSpace = THREE.SRGBColorSpace; tx.repeat.set(3, 1);
+  const g = new THREE.Group(); g.name = "farWood"; g.visible = false;
+  for (const [R, H, o, k] of [[75, 22, .0, .42], [130, 34, .37, .3]]) { const t2 = tx.clone(); t2.needsUpdate = true; t2.offset.x = o;
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 64, 1, true), new THREE.MeshBasicMaterial({ map: t2, color: new THREE.Color(), userData: { k }, transparent: true, alphaTest: .5, side: THREE.BackSide, depthWrite: true, fog: true }));
+    m.material.userData.k = k; m.position.y = H / 2 - 8; m.renderOrder = -1; m.frustumCulled = false; g.add(m); }
+  scene.add(g);
+  return { g, at(px, py, pz) { const on = QW.mode === "walk"; g.visible = on; if (on) { g.position.set(px, py, pz); for (const m of g.children) m.material.color.copy(scene.fog.color).multiplyScalar(m.material.userData.k); } } };   // 霞の色を暗くした影絵（昼も夜も霞に溶ける）
+})();
 const VEG = { sp: [], last: new THREE.Vector3(1e9, 0, 0), t: 0, group: null, time: { value: 0 } };
 const VEG_UV = [[0, .5, .5, 1], [.5, .5, 1, 1], [0, 0, .5, .5], [.5, .25, .75, .5], [.75, .25, 1, .5], [.5, 0, .75, .25], [.75, 0, 1, .25]];
 function vegGeo(kind) {
@@ -1191,6 +1206,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed, bob = 0) {
     if (WALK.goal && Math.hypot(CAM.pos.x - _pv.x, CAM.pos.z - _pv.z) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
   }
   const gy = Math.max(groundY(CAM.pos.x, CAM.pos.z), deckY(CAM.pos.x, CAM.pos.z)) + eye;
+  FARWOOD.at(CAM.pos.x, gy - eye, CAM.pos.z);   // 11-05 霞の中の遠い木立
   CAM.pos.y += (gy - CAM.pos.y) * Math.min(1, dt * 8);
   camera.position.copy(CAM.pos); if (bob && moving) camera.position.y += bob; else if (!bob && !RM && eye === EYE) camera.position.y += sightBob(performance.now() / 1000, moving);   // 11-05 sight の人の目の揺れ（歩く 2.5 cm・止まると息づかい）
   if (GYRO.on && GYRO.q) { camera.quaternion.copy(GYRO.q); _eu.setFromQuaternion(camera.quaternion); CAM.look = wrap(_eu.y - CAM.yaw); CAM.pitch = _eu.x; }
@@ -2850,6 +2866,7 @@ function frame() {
   if (PARK.uT && !RM) PARK.uT.value += dt;
   stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.my?.update(dt); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);
+  if (QW.mode !== "walk") FARWOOD.g.visible = false;
   if (SIGHT.post && QW.mode === "sight") {
     const PU = SIGHT.post.mat.uniforms; PU.time.value += dt; SIGHT.ring = Math.max(0, (SIGHT.ring || 0) - dt / 1.1); PU.pulse.value = SIGHT.ring; PU.move.value += ((SIGHT.sp ? Math.min(1, Math.abs(SIGHT.v) / Math.max(.2, SIGHT.sp.speed || 1)) : 0) - PU.move.value) * Math.min(1, dt * 4);
     renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam);

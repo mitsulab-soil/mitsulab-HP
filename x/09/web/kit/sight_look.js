@@ -23,12 +23,13 @@ export function installDapple(THREE) {
   if ( on > 0.0 ) {
     vec3 wp = cameraPosition + transpose( mat3( viewMatrix ) ) * ( -vViewPosition );
     float dist = length( wp - cameraPosition );
-    float up = smoothstep( .35, .85, dot( normal, normalize( mat3( viewMatrix ) * vec3( 0., 1., 0. ) ) ) );
+    float up = smoothstep( .1, .7, dot( normal, normalize( mat3( viewMatrix ) * vec3( 0., 1., 0. ) ) ) );
     float k = on * up * ( 1.0 - smoothstep( 45.0, 90.0, dist ) ) * ( 1.0 - smoothstep( 2.5, 6.0, wp.y - cameraPosition.y ) );
     if ( k > 0.0 ) {
       vec2 p = wp.xz * 1.25; vec2 q = p + vec2( sin( p.y * .7 ), cos( p.x * .6 ) ) * .8;
       float n = sin( q.x * 1.7 ) * sin( q.y * 1.9 ) + .55 * sin( q.x * 3.9 + q.y * 1.3 ) * sin( q.y * 3.3 - q.x * .8 ) + .3 * sin( q.x * 7.1 - 2. ) * sin( q.y * 6.7 + 1. );
-      float lit = smoothstep( .38, .62, n * .5 + .5 );
+      vec2 pb = wp.xz * .42 + vec2( 3.1, 1.7 ); float nb = sin( pb.x * 1.3 + sin( pb.y * .9 ) ) * sin( pb.y * 1.5 - .7 ) + .4 * sin( pb.x * 2.9 - pb.y * 1.1 );
+      float lit = smoothstep( .3, .7, ( n * .5 + .5 ) * .62 + ( nb * .5 + .5 ) * .38 );   // 11-05 斑を大小まぜ、ふちをぼかす（大きな葉の塊の影＋小さな葉の透き間）
       qDap = mix( 1.0, .12 + 1.05 * lit, k );
     }
   }

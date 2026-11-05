@@ -18,7 +18,7 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261105sl1">
+<link rel="modulepreload" href="web/app/app.js?v=20261105sl3">
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="modulepreload" href="web/app/layers.js?v=k4">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
@@ -657,7 +657,7 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261105sl1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261105sl3").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=8").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>

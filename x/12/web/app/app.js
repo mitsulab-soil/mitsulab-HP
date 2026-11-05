@@ -924,7 +924,7 @@ function stepHere(cp, t, off) {
   const a = Math.atan2(v.x, -v.z), W = innerWidth, H = innerHeight, x = Math.max(MOBILE ? 30 : 270, Math.min(W - 30, W / 2 + Math.sin(a) * (W / 2 - 40))), y = Math.max(MOBILE ? 340 : 140, Math.min(H - (MOBILE ? 300 : 150), H * .55 - Math.cos(a) * (H * .55 - 150)));
   let X = x, Y = y; { const cap = $("#caption"); if (cap && !cap.hidden) { const r = cap.getBoundingClientRect(); if (X > r.left - 50 && X < r.right + 50 && Y > r.top - 60 && Y < r.bottom + 60) Y = r.top - 60; } Y = Math.max(MOBILE ? 150 : 120, Y); }   // 上のタブに重ねない   // 2026-10-26 字幕・碧に重ねない
   if (AOI.root?.visible) { const w = new THREE.Vector3(); AOI.root.getWorldPosition(w); w.project(camera); const ax = (w.x + 1) / 2 * innerWidth; if (w.z < 1 && Math.abs(X - ax) < 130 && Y > innerHeight * .35) X = ax + (X < ax ? -150 : 150); X = Math.max(30, Math.min(innerWidth - 30, X)); }
-  QH.dir.hidden = false; QH.dir.style.transform = `translate(${X - 18}px,${Y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
+  { const rk = ((QH.rkT = (QH.rkT || 0) + 1) % 60 === 1 || !QH.rk) ? (QH.rk = document.getElementById("qIK")?.getBoundingClientRect()) : QH.rk; if (rk && rk.width && X > rk.left - 30 && Y > rk.top - 30 && Y < rk.bottom + 46) X = rk.left - 34; }   /* 11-05 採点 P2：375 で生き物の列のすぐ下に重なって混んでいた→列の左へよける */ QH.dir.hidden = false; QH.dir.style.transform = `translate(${X - 18}px,${Y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
   QH.dir.style.setProperty("--c", GL[L.layer].color); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
 }
 /* 札どうし・札と結晶を重ねない（2026-10-23 深夜）：近い札から置き、重なる札は上へ一段ずつ逃がす（3 段まで）。それでも重なる遠い札はうすく消す。層の一覧の上にも出さない */
@@ -1180,11 +1180,12 @@ function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は�
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
-  return o2;
+  return o2.map(x => x.replace(/(\S)(?=[、。，．！？」』）])/g, "$1"));   // 11-05 採点 P2：375 で「、」が行の頭に来た（折り返しの前に語をつなぐ印を入れる）
 }
 let CAP_LAY = null;
-function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0]; const tag = $("#capTag");
-  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
+function capSet(s) { const e = $("#capText"); e.textContent = ""; for (const p of String(s).split(/([^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
+function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
+  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; capSet(ch[i]); if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
   if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); tag.textContent = "● " + QAN(k6) + (s0 ? "　出典：" + s0 : ""); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   delete c.dataset.talk;
@@ -1284,7 +1285,7 @@ const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c
 const WALK = { speed: 2.43, moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 12 };
 const KEYS = new Set();
-const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 14, f: 620 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 40, f: 900 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ

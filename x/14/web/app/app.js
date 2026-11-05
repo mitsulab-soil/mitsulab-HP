@@ -325,14 +325,14 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
         vec2 cell = floor(vPw.xz / 30.); float r = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5); float r2 = fract(r * 7.31);
         float tall = smoothstep(55., 90., vPw.y + 0.);
         float kind = r < .5 + tall * .35 ? 2. : r < .78 ? 1. : 3.;   // 2 ガラス・1 石・0 漆喰・3 金属パネル
-        float fh = kind == 2. ? 3.9 : 3.5, bw = kind == 2. ? 1.5 : kind == 1. ? 1.2 : 3.0;
+        float r3 = fract(r * 5.17), r4 = fract(r * 3.71); float fh = (kind == 2. ? 3.9 : 3.5) * mix(.92, 1.1, r4), bw = (kind == 2. ? 1.5 : kind == 1. ? 1.2 : 3.0) * mix(.8, 1.35, r3);   // 11-05 採点 P2「窓が同じ形の繰り返し」：建物ごとに階高・窓の幅・窓の形を変える
         vec2 c = vec2(fract(fu.x / bw), fract(fu.y / fh)); float fl = floor(fu.y / fh);
         vec3 tint = mix(vec3(.86, .84, .8), vec3(.7, .72, .74), r2);
         vec3 plaster = texture2D(tP, fu / 7.).rgb * tint;
         vec3 stone = texture2D(tG, fu / 3.).rgb * mix(vec3(.85, .8, .74), vec3(.6, .6, .62), r2);
         vec3 metal = vec3(.62, .64, .66) * (.85 + .15 * texture2D(tP, fu / 2.).r) * (1. - .25 * max(step(.97, fract(fu.x / 1.5)), step(.96, fract(fu.y / 1.2))));
         vec3 glass = mix(vec3(.12, .16, .2), vec3(.5, .6, .7), smoothstep(.0, 1., c.y) * .5) * (.85 + .3 * fract(sin(dot(floor(fu / vec2(bw, fh)), vec2(12.9, 78.2))) * 43758.5));
-        vec2 aw = fwidth(c) * 1.2 + 1e-4; float win = smoothstep(.2 - aw.x, .2 + aw.x, c.x) * (1. - smoothstep(.8 - aw.x, .8 + aw.x, c.x)) * smoothstep(.38 - aw.y, .38 + aw.y, c.y) * (1. - smoothstep(.84 - aw.y, .84 + aw.y, c.y)); win *= 1. - smoothstep(.25, .6, max(aw.x, aw.y));   // 10-28：窓のふちをなめらかに（遠くの段々・ちらつきを消す。遠くでは窓の格子を薄く）
+        vec2 aw = fwidth(c) * 1.2 + 1e-4; float wx = mix(.12, .28, r3), wy0 = mix(.3, .44, r4), wy1 = mix(.8, .9, r2); float win = smoothstep(wx - aw.x, wx + aw.x, c.x) * (1. - smoothstep(1. - wx - aw.x, 1. - wx + aw.x, c.x)) * smoothstep(wy0 - aw.y, wy0 + aw.y, c.y) * (1. - smoothstep(wy1 - aw.y, wy1 + aw.y, c.y)); win *= 1. - smoothstep(.25, .6, max(aw.x, aw.y));   // 10-28：窓のふちをなめらかに（遠くの段々・ちらつきを消す。遠くでは窓の格子を薄く）
         vec3 wall = kind == 1. ? stone : kind == 3. ? metal : plaster;
         float mull = max(smoothstep(.95 - aw.x, .95 + aw.x, c.x), smoothstep(.96 - aw.y, .96 + aw.y, c.y)) * (1. - smoothstep(.25, .6, max(aw.x, aw.y)));
         float spand = step(c.y, .22); vec3 col = kind == 2. ? mix(mix(glass, vec3(.32, .34, .36), mull), vec3(.2, .21, .22), spand * .85) : mix(wall, glass, win * (kind == 3. ? .8 : 1.));
@@ -341,7 +341,7 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
           vec2 pid = floor(fu / vec2(bw, fh)); float pr = fract(sin(dot(pid, vec2(91.7, 13.3))) * 43758.5);
           vec3 Np = normalize(Nn + vec3(0., (pr - .5) * .05, 0.) + (abs(Nn.x) > abs(Nn.z) ? vec3(0., 0., 1.) : vec3(1., 0., 0.)) * (fract(pr * 13.1) - .5) * .06);
           vec3 V = normalize(vPw - cameraPosition); vec3 R = reflect(V, Np); float fr = .35 + .6 * pow(1. - abs(dot(V, Np)), 3.);
-          vec3 inner = col * (.6 + .5 * step(.7, fract(pr * 5.3))) + vec3(.06, .055, .045) * step(.8, fract(pr * 3.1));
+          vec3 inner = col * (.6 + .5 * step(.7, fract(pr * 5.3))) + vec3(.06, .055, .045) * step(.8, fract(pr * 3.1)); { float bl = step(.72, fract(pr * 7.7)), bh = mix(.45, .95, fract(pr * 11.3)); inner = mix(inner, vec3(.62, .61, .58) * (.85 + .15 * step(.5, fract(c.y * 24.))), bl * step(1. - bh, c.y) * .8); }   // 窓ごとに下ろしたブラインドの丈が違う
           col = mix(inner, skyR(R) * (kind == 2. ? 1. : .8), isW * fr * (kind == 2. ? 1. : .7));
           vec2 gid = vec2(floor((pid.x + floor(fract(pid.y * .37) * 7.)) / (2. + floor(fract(pid.y * .71 + br) * 4.))), pid.y); float gr = fract(sin(dot(gid, vec2(41.7, 17.3)) + br * 3.1) * 43758.5);   // 10-28：階ごと・テナントごとに横 2〜5 枚の塊でそろえる
           col *= mix(1., .72 + .56 * fract(gr * 7.7) + .06 * fract(pr * 5.1) + .12 * sin(fl * 1.7 + br * 9.), isW * .8);
@@ -971,7 +971,7 @@ function stepHere(cp, t, off) {
   const a = Math.atan2(v.x, -v.z), W = innerWidth, H = innerHeight, x = Math.max(MOBILE ? 30 : 270, Math.min(W - 30, W / 2 + Math.sin(a) * (W / 2 - 40))), y = Math.max(MOBILE ? 340 : 140, Math.min(H - (MOBILE ? 300 : 150), H * .55 - Math.cos(a) * (H * .55 - 150)));
   let X = x, Y = y; { const cap = $("#caption"); if (cap && !cap.hidden) { const r = cap.getBoundingClientRect(); if (X > r.left - 50 && X < r.right + 50 && Y > r.top - 60 && Y < r.bottom + 60) Y = r.top - 60; } Y = Math.max(MOBILE ? 150 : 120, Y); }   // 上のタブに重ねない   // 2026-10-26 字幕・碧に重ねない
   if (AOI.root?.visible) { const w = new THREE.Vector3(); AOI.root.getWorldPosition(w); w.project(camera); const ax = (w.x + 1) / 2 * innerWidth; if (w.z < 1 && Math.abs(X - ax) < 130 && Y > innerHeight * .35) X = ax + (X < ax ? -150 : 150); X = Math.max(30, Math.min(innerWidth - 30, X)); }
-  QH.dir.hidden = false; QH.dir.style.transform = `translate(${X - 18}px,${Y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
+  { const rk = ((QH.rkT = (QH.rkT || 0) + 1) % 60 === 1 || !QH.rk) ? (QH.rk = document.getElementById("qIK")?.getBoundingClientRect()) : QH.rk; if (rk && rk.width && X > rk.left - 30 && Y > rk.top - 30 && Y < rk.bottom + 46) X = rk.left - 34; }   /* 11-05 採点 P2：375 で生き物の列のすぐ下に重なって混んでいた→列の左へよける */ QH.dir.hidden = false; QH.dir.style.transform = `translate(${X - 18}px,${Y - 18}px)`; QH.dir.firstElementChild.style.transform = `rotate(${a}rad)`;
   QH.dir.style.setProperty("--c", GL[L.layer].color); QH.dir.lastElementChild.textContent = `${Math.round(Math.hypot(L.o.x - cp.x, L.o.z - cp.z))} m`;
 }
 /* 札どうし・札と結晶を重ねない（2026-10-23 深夜）：近い札から置き、重なる札は上へ一段ずつ逃がす（3 段まで）。それでも重なる遠い札はうすく消す。層の一覧の上にも出さない */
@@ -1227,11 +1227,12 @@ function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は�
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
-  return o2;
+  return o2.map(x => x.replace(/(\S)(?=[、。，．！？」』）])/g, "$1"));   // 11-05 採点 P2：375 で「、」が行の頭に来た（折り返しの前に語をつなぐ印を入れる）
 }
 let CAP_LAY = null;
-function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0]; const tag = $("#capTag");
-  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
+function capSet(s) { const e = $("#capText"); e.textContent = ""; for (const p of String(s).split(/([^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
+function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
+  if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; capSet(ch[i]); if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
   if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); tag.textContent = "● " + QAN(k6) + (s0 ? "　出典：" + s0 : ""); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   delete c.dataset.talk;
@@ -1331,7 +1332,7 @@ const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 �
   moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 21 };   // 10-27 1.75 倍
 const KEYS = new Set();
-const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 14, f: 620 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 40, f: 900 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
