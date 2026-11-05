@@ -53,12 +53,12 @@ body.solo #bGive,body.solo #bTake,body.solo #bView,body.solo #drop{display:none}
 body.empty #topr{opacity:.38;transition:opacity .6s}body.empty #topr:hover,body.empty #topr:focus-within{opacity:1}
 #dock .lab{font-size:10px;letter-spacing:.16em;color:var(--ml-ink-3);margin:0 0 -4px;text-shadow:0 1px 6px #000}
 #who[hidden]{display:none}#q small#qn{display:block;margin-top:2px;font-size:10px;letter-spacing:.14em;color:var(--ml-ink-3)}
-#bWipe{margin-left:26px;opacity:.8}#bView[aria-pressed="true"]{background:rgba(168,242,246,.28)!important;border-color:rgba(168,242,246,.8)!important;color:#fff!important}#topr{pointer-events:none}#topr>*{pointer-events:auto}
+#bWipe{margin-left:26px;opacity:.8}#bView{display:inline-flex;padding:3px!important;gap:2px}#bView span{display:inline-flex;align-items:center;padding:0 11px;min-height:38px;border-radius:2px;color:rgba(232,238,245,.8);box-shadow:inset 0 0 0 1px rgba(195,204,224,.22);transition:background .2s,color .2s}#bView[data-v="stack"] span[data-k="stack"],#bView[data-v="side"] span[data-k="side"]{background:rgba(168,242,246,.22);color:#fff;box-shadow:inset 0 0 0 1px rgba(168,242,246,.7)}#topr{pointer-events:none}#topr>*{pointer-events:auto}
 .mu-btn.ok{animation:okf .7s}@keyframes okf{0%{background:rgba(168,242,246,.45)}100%{}}
 body.side #sub{bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 118px)}
 #q #note{margin-top:4px;font-size:10.5px;letter-spacing:.08em}
 body:not(.solo) #note{display:none}
-@media (max-width:440px){#brand{display:block!important;font-size:11px;letter-spacing:.12em}#topr .mu-btn{padding-left:9px;padding-right:9px}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px)}#cr{right:0;left:0;text-align:center}#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}
+@media (max-width:440px){#brand{display:block!important;font-size:11px;letter-spacing:.12em}#topr .mu-btn{padding-left:9px;padding-right:9px}#topr #bView{padding:2px!important}#bView span{padding:0 6px;min-height:36px;letter-spacing:.02em}#topr{gap:5px}#topr .mu-btn{padding-left:8px;padding-right:8px}}@media (max-width:400px){body:not(.solo) #brand{display:none!important}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px)}#cr{right:0;left:0;text-align:center}#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}
 @media (min-width:900px){#q{font-size:24px}#sub{font-size:15px}}
 </style>
 </head>
@@ -68,7 +68,7 @@ body:not(.solo) #note{display:none}
 <div id="top" class="mu-top">
   <div id="brand" class="mu-logo">mitsulab</div>
   <div id="topr" class="mu-top-r">
-  <button class="mu-btn" id="bView" aria-pressed="false">並べる</button>
+  <button class="mu-btn" id="bView" data-v="stack" aria-label="いまは重ねる。押すと並べる"><span data-k="stack">重ねる</span><span data-k="side">並べる</span></button>
   <button class="mu-btn" id="bGive">渡す</button>
   <button class="mu-btn" id="bTake">受けとる</button>
   <button class="mu-btn" id="bEnd">おわる</button>
@@ -97,6 +97,6 @@ body:not(.solo) #note{display:none}
 <input type="file" id="pic" accept="image/*" capture="environment" style="display:none">
 <div id="end" role="dialog" aria-label="おわる"><div id="endb"><button class="big" id="bKeep">持ち帰る</button><button class="big" id="bBack">もどる</button><button class="big" id="bWipe">消す</button></div></div>
 <div id="drop">層のファイルを、ここに置く</div>
-<script type="module" src="web/app.js"></script>
+<script type="module" src="web/app.js?v=20261105n"></script>
 </body>
 </html>

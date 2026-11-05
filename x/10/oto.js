@@ -64,9 +64,11 @@ addEventListener("resize", resize); resize();
 /* 碧（共通の部品。あとから読む。波のほうを向いて聴く） */
 let aoi = null;
 const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "aoi.vrm";
+async function firstUse(root) { const ms = []; root.traverse(o => { if (o.isMesh) { ms.push([o, o.visible]); o.visible = false; } }); const sc = root.scale.clone(); root.scale.multiplyScalar(1e-3); root.visible = true; const y = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+  for (const [o, v] of ms) { o.visible = v; await y(); await y(); } root.scale.copy(sc); }   // 2026-11-05：はじめて描く時の止まりを、網一つずつ別のこまに分ける（見えないほど小さくして描く）
 async function loadAoi() {
   try { const K = await import("./kit/aoi.js"); const a = await K.loadAoi(AOI_URL, { scene: S, height: MOBILE ? .62 : .7, wind: .1, posture: "upright", quality: MOBILE ? "mid" : "low" });
-    a.root.visible = false; try { const Wm = await import("./kit/warm.js"); await Wm.warmAoi(R, a.root, C, S, { batch: 2 }); } catch { } a.root.visible = true; aoi = a;
+    a.root.visible = false; try { const Wm = await import("./kit/warm.js"); await Wm.warmAoi(R, a.root, C, S, { batch: 1 }); } catch { } await firstUse(a.root); aoi = a;
     const x = MOBILE ? -.98 : -1.5, z = MOBILE ? -.95 : -.2; aoi.place(x, z, Math.atan2(-x, -z) * .6); aoi.motion.lookAt(new THREE.Vector3(0, .6, 0));
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
@@ -124,7 +126,7 @@ $("bRec").onclick = async () => {
   const ch = []; env = []; rec.ondataavailable = e => e.data.size && ch.push(e.data);
   rec.onstop = () => { clearInterval(recTimer); $("bRec").classList.remove("rec"); $("recT").textContent = "30 秒まで"; const dur = Math.round((performance.now() - recT0) / 100) / 10, r0 = rec; rec = null;
     if (dur < 1) { say("短すぎたので、残しませんでした。", 3000); return; }
-    const fr = new FileReader(); fr.onload = () => { mine.push({ id: uid(), t: minute(), tag, data: fr.result, dur, env: squash(env) }); shelf(); say(`${TAGS.find(x => x.k === tag).n}の音を、標本にしました（${mine.length}）。\n「並べる」で聴き比べられます。この画面を閉じると消えます。`, 6500); };
+    const fr = new FileReader(); fr.onload = () => { mine.push({ id: uid(), t: minute(), tag, data: fr.result, dur, env: squash(env), pk: Math.round(Math.max(.001, ...env) * 1e4) / 1e4 }); shelf(); say(`${TAGS.find(x => x.k === tag).n}の音を、標本にしました（${mine.length}）。\n「並べる」で聴き比べられます。この画面を閉じると消えます。`, 6500); };
     fr.readAsDataURL(new Blob(ch, { type: r0.mimeType || mt })); };
   rec.start(); recT0 = performance.now(); $("bRec").classList.add("rec");
   say("録っています。人の話し声は入れないでください。\nもう一度押すと止まります。", 0);
@@ -138,17 +140,26 @@ function shelf() {
   $("cnt").textContent = String(mine.length + from.length); const el = $("shelf"); el.hidden = !showShelf; document.body.classList.toggle("shelf", showShelf); $("bShelf").setAttribute("aria-pressed", String(showShelf)); if (!showShelf) return;
   const all = [...mine.map(x => [x, 0]), ...from.map(x => [x, 1])];
   el.innerHTML = all.length ? "" : '<div id="empty">まだ標本がありません。「録る」で、樹や土の音を残せます。<br>標本はこの画面を閉じると消えます（残すときは「渡す」でファイルに）。</div>';
+  if (all.length) { const n = document.createElement("div"); n.className = "dbnote"; n.textContent = "dB＝マイクが受けとれる最大を 0 とした大きさ（同じ端末・同じ当て方どうしで比べる）"; el.append(n); }
   for (const [it, f] of all) {
     const c = document.createElement("div"); c.className = "card" + (f ? " from" : "") + (player?.id === it.id ? " play" : ""); c.setAttribute("role", "button"); c.tabIndex = 0;
     c.setAttribute("aria-label", `${TAGS.find(x => x.k === it.tag)?.n || "ほか"}の音 ${it.dur} 秒・押すと鳴る`);
-    c.innerHTML = `<b>${TAGS.find(x => x.k === it.tag)?.n || "ほか"}${f ? "（受けとった）" : ""}</b><canvas width="200" height="68"></canvas><small>${hm(it.t)}・${it.dur} 秒</small>`;
-    const x = c.querySelector("canvas").getContext("2d"); x.strokeStyle = f ? "#b4a2ff" : "#9bdcf0"; x.lineWidth = 2; const ev = it.env || [];
-    for (let i = 0; i < ev.length; i++) { const px = (i + .5) / ev.length * 200, h = Math.max(1, ev[i] * 30); x.beginPath(); x.moveTo(px, 34 - h); x.lineTo(px, 34 + h); x.stroke(); }
+    c.innerHTML = `<b>${TAGS.find(x => x.k === it.tag)?.n || "ほか"}${f ? "（受けとった）" : ""}</b><canvas width="240" height="96"></canvas><small>${hm(it.t)}・${it.dur} 秒${it.pk ? `<span style="white-space:nowrap">・最大 約 ${Math.round(20 * Math.log10(it.pk))} dB</span>` : ""}</small>`;
+    drawEnv(c.querySelector("canvas"), it, f);
     const del = document.createElement("button"); del.className = "x"; del.type = "button"; del.textContent = "×"; del.setAttribute("aria-label", "この標本を外す");
     del.onclick = e => { e.stopPropagation(); if (player?.id === it.id) stopPlay(); const L = f ? from : mine, i = L.indexOf(it); if (i >= 0) L.splice(i, 1); shelf(); };
     c.append(del); c.onclick = () => play(it); c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); play(it); } };
     el.append(c);
   }
+}
+// 標本どうしの大きさを比べられる目盛り：縦は dB（マイクの入力の最大＝0 dB から −60 dB まで。録った端末と当て方で変わる相対の値）
+function drawEnv(cv, it, f) {
+  const x = cv.getContext("2d"), Wc = cv.width, Hc = cv.height, mid = Hc / 2, L = 44, ev = it.env || [], toH = db => Math.max(0, (db + 60) / 60) * (mid - 4);
+  x.font = "600 20px monospace"; x.textAlign = "right"; x.textBaseline = "middle";
+  if (!it.pk) { x.fillStyle = f ? "#b4a2ff" : "#9bdcf0"; const bw0 = Wc / Math.max(1, ev.length); for (let i = 0; i < ev.length; i++) { const h = Math.max(1.5, ev[i] * (mid - 4)); x.fillRect(i * bw0 + bw0 * .15, mid - h, bw0 * .7, h * 2); } return; }   // 大きさの記録がない古い標本は、目盛りなしの形だけ
+  for (const d of [0, -20, -40]) { const lab = d !== -20; const h = toH(d); x.strokeStyle = "rgba(195,204,224,.18)"; x.lineWidth = 1; x.beginPath(); x.moveTo(L, mid - h); x.lineTo(Wc, mid - h); x.moveTo(L, mid + h); x.lineTo(Wc, mid + h); x.stroke(); if (lab) { x.fillStyle = "rgba(195,204,224,.65)"; x.fillText(d ? "−40" : "0", L - 5, mid - h + (d === 0 ? 9 : 0)); } }
+  x.fillStyle = f ? "#b4a2ff" : "#9bdcf0"; const bw = (Wc - L) / Math.max(1, ev.length);
+  for (let i = 0; i < ev.length; i++) { const v = it.pk ? ev[i] * it.pk : ev[i] * .5, h = Math.max(1.5, toH(20 * Math.log10(Math.max(1e-4, v)))); x.fillRect(L + i * bw + bw * .15, mid - h, bw * .7, h * 2); }
 }
 function stopPlay() { if (!player) return; player.a.pause(); try { player.n.disconnect(); } catch { } if (micG) micG.gain.setTargetAtTime(1, AC.currentTime, .05); if (direct) direct.gain.value = 0; player = null; shelf(); }
 function play(it) {
@@ -170,7 +181,7 @@ tags();
 function dl(blob, name) { const u = URL.createObjectURL(blob), a = document.createElement("a"); a.href = u; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
 $("bGive").onclick = async () => {
   if (!mine.length) { say("まだ標本がありません。\n録ってから渡せます（渡すのは自分の標本だけ）。", 6000); return; }
-  const L = { v: 1, app: "oto", items: mine.map(({ id, t, tag, data, dur, env }) => ({ id, t, tag, data, dur, env })) };
+  const L = { v: 1, app: "oto", items: mine.map(({ id, t, tag, data, dur, env, pk }) => ({ id, t, tag, data, dur, env, pk })) };
   const name = `土と樹の音_${uid()}.json`, blob = new Blob([JSON.stringify(L)], { type: "application/json" }), file = new File([blob], name, { type: "application/json" });
   if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: "土と樹の音の標本" }); say("渡しました。相手は「受けとる」で並べられます。", 5000); return; } catch (e) { if (e.name === "AbortError") return; } }
   dl(blob, name); say("標本をファイルにしました。\nAirDrop・ニアバイシェア・LINE などで相手へ。相手は「受けとる」で並べられます。", 8000);
@@ -180,7 +191,7 @@ $("bTake").onclick = () => $("fTake").click();
 $("fTake").onchange = async e => { const fs = [...e.target.files]; e.target.value = ""; let n = 0;
   for (const f of fs) { try { const L = JSON.parse(await f.text()); if (L?.v !== 1 || L.app !== "oto" || !Array.isArray(L.items)) continue;
     for (const i of L.items.slice(0, MINE_MAX)) { if (!okItem(i) || from.some(x => x.id === i.id) || mine.some(x => x.id === i.id)) continue;
-      from.push({ id: String(i.id).slice(0, 16), t: String(i.t || "").slice(0, 30), tag: TAGS.some(x => x.k === i.tag) ? i.tag : "hoka", data: i.data, dur: Math.round(i.dur * 10) / 10, env: Array.isArray(i.env) ? i.env.slice(0, 64).map(v => Math.max(0, Math.min(1, +v || 0))) : [] }); n++;
+      from.push({ id: String(i.id).slice(0, 16), t: String(i.t || "").slice(0, 30), tag: TAGS.some(x => x.k === i.tag) ? i.tag : "hoka", data: i.data, dur: Math.round(i.dur * 10) / 10, env: Array.isArray(i.env) ? i.env.slice(0, 64).map(v => Math.max(0, Math.min(1, +v || 0))) : [], pk: +i.pk > 0 ? Math.min(1, +i.pk) : null }); n++;
       if (from.length > FROM_MAX) from.shift(); } } catch { } }
   showShelf = true; shelf(); say(n ? `音を ${n} 本、受けとりました。押すと鳴ります。` : "開ける標本のファイルがありませんでした。", 5000); };
 

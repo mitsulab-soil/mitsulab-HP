@@ -90,13 +90,17 @@ S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); sun = new THREE.Dir
   g.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: "#9bdcf0", size: .015, transparent: true, opacity: .5 })));
   S.add(g);
 }
+// 2026-11-05：はじめて描く時の止まり（材質の中身の読み出し）を、網一つずつ別のこまに分ける。見えないほど小さくして描き、終わったら元の大きさで出す
+const yieldF = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+async function firstUse(root) { const ms = []; root.traverse(o => { if (o.isMesh) { ms.push([o, o.visible]); o.visible = false; } }); const sc = root.scale.x; root.scale.setScalar(1e-3); S.add(root);
+  for (const [o, v] of ms) { o.visible = v; await yieldF(); await yieldF(); } root.scale.setScalar(sc); }
 new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPlugin(p)).loadAsync("web/aoi.vrm").then(g => {
   const v = g.userData.vrm; VRMUtils.rotateVRM0?.(v); aoi = v;
   trimMorphs(v);   // 2026-11-04：使う「まばたき」の形だけ残す（はじめの一枚で形の表を全部組むと、スマホで 0.3 秒ほど止まるため）
   const N = n => v.humanoid.getNormalizedBoneNode(n);
   for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1; N(sd + "UpperArm")?.rotation.set(-.06, sg * .06, sg * -1.3); N(sd + "LowerArm")?.rotation.set(0, sg * -.3, 0); }
   v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  v.scene.position.set(0, 0, -1.4); return R.compileAsync(v.scene, C, S).catch(() => { }).then(() => S.add(v.scene));   // 2026-11-03：材質を並列で組んでから出す（止まらない）
+  v.scene.position.set(0, 0, -1.4); return R.compileAsync(v.scene, C, S).catch(() => { }).then(() => firstUse(v.scene));   // 2026-11-03：材質を並列で組んでから出す（止まらない）
 }).catch(() => { });
 items = new THREE.Group(); S.add(items); texL = new THREE.TextureLoader(); ray = new THREE.Raycaster(); look = new THREE.Vector3(0, 1.05, 0); clk = new THREE.Clock();
 resize(); R.compileAsync(S, C).catch(() => { }).then(() => R.setAnimationLoop(frame));   // はじめの一枚で止まらない
@@ -148,17 +152,19 @@ function badgeTex(k) { if (BADGE[k]) return BADGE[k]; const cv = document.create
   else { P("M3 12h2M7 8v8M11 5v14M15 8v8M19 10.5v3M21 12h0"); }                                                      // 音＝波
   x.restore(); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return BADGE[k] = t; }
 let tagG = null;
-function tagTex(t, c) { const cv = document.createElement("canvas"); cv.width = 256; cv.height = 96; const x = cv.getContext("2d");
-  x.font = '700 76px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.textBaseline = "middle"; x.lineJoin = "round"; x.lineWidth = 10; x.strokeStyle = "rgba(6,14,22,.85)"; x.strokeText(t, 128, 48); x.fillStyle = c; x.fillText(t, 128, 48); if (c === "#ffffff") { x.fillStyle = "#5cc8e0"; x.fillRect(48, 86, 160, 5); }
+function tagTex(t, c, sub) { const cv = document.createElement("canvas"); cv.width = 256; cv.height = 128; const x = cv.getContext("2d"), F = '"Shippori Mincho","Hiragino Mincho ProN",serif', y = sub ? 88 : 60;   // 2026-11-05：受けとった人の層は「受けとった」＋番号（数字だけだと誰のことか分からないため）
+  x.textAlign = "center"; x.textBaseline = "middle"; x.lineJoin = "round"; x.strokeStyle = "rgba(6,14,22,.85)";
+  if (sub) { x.font = `700 44px ${F}`; x.lineWidth = 8; x.strokeText(sub, 128, 28); x.fillStyle = c; x.fillText(sub, 128, 28); }
+  x.font = `700 ${sub ? 58 : 76}px ${F}`; x.lineWidth = 10; x.strokeText(t, 128, y); x.fillStyle = c; x.fillText(t, 128, y); if (c === "#ffffff") { x.fillStyle = "#5cc8e0"; x.fillRect(48, 106, 160, 5); }
   const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; return tx; }
 function tags(Ls) { if (!THREE) return; if (!tagG) { tagG = new THREE.Group(); S.add(tagG); }
   tagG.clear(); tagG.visible = view === "side"; if (view !== "side") return;
-  const n = Ls.length; Ls.forEach((L, li) => { const me = L === mine, sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex(me ? "あなた" : String(li + 1), me ? "#ffffff" : L.color), transparent: true, fog: false, depthTest: false }));
-    sp.scale.set(me ? .86 : .8, me ? .32 : .3, 1); sp.position.set((li - (n - 1) / 2) * .62, -.1, .2); tagG.add(sp); }); }
+  const n = Ls.length; Ls.forEach((L, li) => { const me = L === mine, sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex(me ? "あなた" : String(li), me ? "#ffffff" : L.color, me ? "" : "受けとった"), transparent: true, fog: false, depthTest: false }));
+    sp.scale.set(.48, .24, 1); sp.position.set((li - (n - 1) / 2) * .62, -.14, .2); tagG.add(sp); }); }
 function allLayers() { return [mine, ...others]; }
 let focusSense = null;
 function layout() { document.body.classList.toggle("empty", !mine.items.length && !others.length);
-  $("bView").setAttribute("aria-pressed", view === "side"); if (!THREE) return;
+   if (!THREE) return;
   const Ls = allLayers();
   for (const [id, m] of meshes) if (!Ls.some(L => L.items.some(i => L.id + ":" + i.id === id))) { items.remove(m.obj); meshes.delete(id); }
   Ls.forEach((L, li) => L.items.forEach(it => { if (!meshes.has(L.id + ":" + it.id)) makeObj(it, L); }));
@@ -173,7 +179,7 @@ function layout() { document.body.classList.toggle("empty", !mine.items.length &
     }
     m.op = view === "side" || !focusSense || it.sense === focusSense ? 1 : .5; // 選んだ感覚を少し前に。ほかも見える明るさに残す
   }));
-  $("bView").setAttribute("aria-pressed", view === "side");
+  
   tags(Ls); aimC();
 }
 /* カメラ（ドラッグで回す・ピンチ／ホイールで寄る） */
@@ -323,7 +329,7 @@ $("bWipe").onclick = async () => { if (!wipeAsk) { wipeMode(true); say("自分�
   say("この端末から、層を消しました。", 0); };
 
 /* ---------- 重ねる ⇄ 並べる ---------- */
-function viewLab() { document.body.classList.toggle("side", view === "side"); $("bView").textContent = view === "stack" ? "並べる" : "重ねる"; $("bView").setAttribute("aria-pressed", String(view === "side")); }
+function viewLab() { document.body.classList.toggle("side", view === "side"); const b = $("bView"); b.dataset.v = view; b.setAttribute("aria-label", view === "stack" ? "いまは重ねる。押すと並べる" : "いまは並べる。押すと重ねる"); }   // 2026-11-05：いまの見え方の側を灯す二つ並びの切り替え（押すたびに入れかわる・ひと手間）
 $("bView").onclick = () => { view = view === "stack" ? "side" : "stack"; viewLab(); layout();
   say(view === "side" ? "一人ひとりの層を、並べました。" : "みんなの層を、一つの場に重ねました。", 2600); };
 $("q").onclick = () => { if (params.get("q")) return; qi = (qi + 1) % QS.length; setQ(QS[qi], 1); };

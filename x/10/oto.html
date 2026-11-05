@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="kit/ui.css?v=20261103">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="oto.js?v=20261105a">
+<link rel="modulepreload" href="oto.js?v=20261105d">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
 <style>
 /* 土と樹の音（Qualia/touch の中の試作のモード・2026-11-05）。© mitsulab. All rights reserved. 1 画面で完結する */
@@ -48,7 +48,7 @@ button{font:inherit}
 #shelf[hidden]{display:none}
 body.shelf #sub{bottom:auto;top:calc(max(16px,env(safe-area-inset-top)) + 84px)}
 .card{position:relative;display:flex;flex-direction:column;gap:3px;padding:6px 6px 5px;min-height:76px;border:1px solid rgba(195,204,224,.2);background:rgba(3,6,15,.4);color:var(--ml-ink);cursor:pointer;text-align:left}
-.card canvas{width:100%;height:34px;display:block}
+.dbnote{grid-column:1/-1;flex-basis:100%;width:100%;font-size:11px;color:var(--ml-ink-3);letter-spacing:.04em;line-height:1.5}.card canvas{width:100%;height:48px;display:block}
 .card b{font:600 12px var(--ml-serif);letter-spacing:.08em}.card small{font:400 10px var(--ml-mono,monospace);color:var(--ml-ink-3)}
 .card.from{border-color:rgba(180,162,255,.4)}.card.play{border-color:#f2cf8c}
 .card .x{position:absolute;right:0;top:0;width:44px;height:40px;background:none;border:0;color:var(--ml-ink-3);font-size:15px;cursor:pointer}
@@ -81,6 +81,6 @@ body.shelf #sub{bottom:auto;top:calc(max(16px,env(safe-area-inset-top)) + 84px)}
 </div>
 <div id="cr">© mitsulab</div>
 <input type="file" id="fTake" accept=".json,application/json" multiple>
-<script type="module" src="oto.js?v=20261105a"></script>
+<script type="module" src="oto.js?v=20261105d"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261105g";
+import { T, setLang, lang } from "./i18n.js?v=20261105h";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -369,7 +369,11 @@ async function setBlind(on, quiet) {
   blind = on; document.body.classList.toggle("blind", on); plate.visible = !on && !objDef; cloud.visible = !on; blindTile.visible = on;
   const b = $("#bBlind"); b.setAttribute("aria-pressed", String(on)); $("#blindB").textContent = T(on ? "blind.see" : "blind.hide"); $("#blindS").textContent = T(on ? "blind.see.s" : "blind.hide.s"); $("#blindIco").setAttribute("d", on ? "M6 20c3.5-5.5 8.3-8.3 14-8.3s10.5 2.8 14 8.3c-3.5 5.5-8.3 8.3-14 8.3S9.5 25.5 6 20zM20 16.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7z" : "M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3");
   dirty = 2; if (!quiet) say(on ? "aoi.blind" : "aoi.see", on ? 8000 : 5000);
+  const rv = $("#reveal"); clearTimeout(setBlind.t);   // 答え合わせ：なぞっていた面の写真と名前を、しずかに一度だけ見せる（正誤は画面が決めない＝輪で話す）
+  if (rv && !on && !quiet && surf) { $("#rvImg").src = surf.thumb || ""; $("#rvImg").hidden = !surf.thumb; $("#rvName").textContent = surf.label || document.querySelector("#chips .chip[aria-pressed=true] b")?.textContent || ""; rv.hidden = false; requestAnimationFrame(() => rv.classList.add("on")); setBlind.t = setTimeout(hideReveal, 7000); } else if (rv) hideReveal();
 }
+function hideReveal() { const rv = $("#reveal"); if (!rv || rv.hidden) return; rv.classList.remove("on"); setTimeout(() => { if (!rv.classList.contains("on")) rv.hidden = true; }, 400); }
+$("#reveal")?.addEventListener("click", hideReveal);
 $("#bBlind").addEventListener("click", () => setBlind(!blind));
 function busy(on) { $("#busy").hidden = !on; }
 
@@ -533,11 +537,13 @@ const aoiScene = new THREE.Scene(); aoiScene.environment = scene.environment;
 const aoiCam = new THREE.PerspectiveCamera(26, .74, .1, 20); aoiCam.position.set(0, 1.3, 1.95); aoiCam.lookAt(0, 1.2, 0);
 let aoi = null;
 const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "aoi.vrm";
+async function firstUse(root) { const ms = []; root.traverse(o => { if (o.isMesh) { ms.push([o, o.visible]); o.visible = false; } }); const sc = root.scale.clone(); root.scale.multiplyScalar(1e-3); root.visible = true; const y = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+  for (const [o, v] of ms) { o.visible = v; await y(); await y(); } root.scale.copy(sc); }   // 2026-11-05：はじめて描く時の止まりを、網一つずつ別のこまに分ける（見えないほど小さくして描く）
 async function loadAoi() {
   try {
     const K = await import("./kit/aoi.js");
     const a = await K.loadAoi(AOI_URL, { scene, height: MOBILE ? .6 : .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
-    a.root.visible = false; try { const W = await import("./kit/warm.js"); await W.warmAoi(renderer, a.root, camera, scene, { batch: 2 }); } catch { } a.root.visible = true; aoi = a;   // 2026-11-05：碧が出る瞬間の止まりを分ける
+    a.root.visible = false; try { const W = await import("./kit/warm.js"); await W.warmAoi(renderer, a.root, camera, scene, { batch: 1 }); } catch { } await firstUse(a.root); aoi = a;   // 2026-11-05：碧が出る瞬間の止まりを分ける
     aoi.root.position.y = -.106; aoi.place(AOI_X, AOI_Z, .35);
     { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, AOI_Z); scene.add(sh);
