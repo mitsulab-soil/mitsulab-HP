@@ -13,16 +13,16 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;-webkit-tap-highlight-color:transparent}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #who{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:10px;z-index:3}
-#who button{width:64px;height:64px;border-radius:50%;border:1px solid var(--line);background:rgba(6,10,18,.55);color:var(--ink);font:inherit;font-size:11px;letter-spacing:.04em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:border-color .2s,background .2s,transform .15s}
+#who button{width:64px;height:64px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--c) 55%,transparent);background:rgba(10,18,30,.62);color:var(--ink);font:inherit;font-size:11px;letter-spacing:.04em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:border-color .2s,background .2s,transform .15s}
 #who button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.3}
 #who button{--c:var(--aoi)}#who button[data-k="0"]{--c:#eef5fb}#who button[data-k="1"]{--c:#8f8cff}#who button[data-k="2"]{--c:#d2a6ff}#who button[data-k="3"]{--c:#78d6ec}
-.tag{border-top:2px solid var(--c);padding-top:5px}
+.tag{border-top:2px solid var(--c);padding:5px 8px 5px;text-align:center}
 #who button[aria-pressed="true"]{border:2px solid var(--c);background:rgba(92,200,224,.34);color:#fff;box-shadow:0 0 0 1px rgba(92,200,224,.35) inset}
 #who button:active{transform:scale(.94)}
 #cap{background:rgba(3,6,15,.55);border-radius:10px;padding:6px 12px;box-sizing:border-box;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);position:fixed;left:50%;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 80px);transform:translateX(-50%);width:min(560px,calc(100% - 32px));text-align:center;font-size:13px;line-height:1.7;color:var(--ink);text-shadow:0 1px 6px #000,0 0 2px #000;z-index:2;transition:opacity .4s;pointer-events:none}
 .tag{position:fixed;z-index:2;font-size:11px;color:var(--ink);letter-spacing:.06em;text-shadow:0 1px 4px #000;pointer-events:none;transition:left .5s,top .5s,opacity .3s;white-space:nowrap}
-.tag{text-shadow:0 0 6px #000,0 1px 3px #000,0 0 12px rgba(0,0,0,.8)}.tag i{font-style:normal;color:#d6e2f0;margin-left:6px;font-size:10px}
-@media (max-width:560px){#cap{font-size:12px;line-height:1.6;padding:4px 10px}.tag{font-size:10px;text-align:center;white-space:normal;width:22vw}.tag i{display:block;margin:2px 0 0}}
+.tag{text-shadow:0 0 6px #000,0 1px 3px #000,0 0 12px rgba(0,0,0,.8)}.tag{font-size:13px}.tag i{white-space:pre-line;font-style:normal;color:#d6e2f0;display:block;margin:3px 0 0;font-size:12px}
+@media (max-width:560px){#cap{font-size:12px;line-height:1.6;padding:4px 10px}.tag{font-size:10px;text-align:center;white-space:normal;width:23vw;box-sizing:border-box;padding:4px 2px;word-break:keep-all}.tag i{display:block;margin:2px 0 0;font-size:10px}}
 </style>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="./vendor/three/build/three.module.js"><link rel="modulepreload" href="./vendor/three/examples/jsm/controls/OrbitControls.js">
@@ -40,6 +40,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 <script type="module">
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { growKeyaki, sprigMesh } from "./keyaki.js";
+const TAU = Math.PI * 2;
 const ROOT = "./";   // ワークスペースの根（ひらく.command で根から配る）
 const KIT = "./kit/";
 const TEX = "./tex/";   // CC0（台帳 M-0793〜0796・M-0819）
@@ -53,101 +56,89 @@ const cv = document.getElementById("cv");
 const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: "high-performance" });
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, 1, .1, 600);
+{ const sp = renderer.setPixelRatio.bind(renderer); renderer.setPixelRatio = p => sp(Math.min(devicePixelRatio || 1, p * (Math.min(innerWidth, innerHeight) < 700 ? 1.5 : 1))); }   /* スマホは 1.5 倍の細かさで描く（葉が粗い粒に見えない） */
 const fit = K.fitRenderer(renderer, camera, document.body);
 const mobile = fit.mobile, R = K.rng(1105);
 const portrait = () => innerWidth < innerHeight;
-camera.position.set(portrait() ? .8 : 4.2, portrait() ? 3.2 : 3.4, portrait() ? 24 : 23);
-const controls = new OrbitControls(camera, cv); controls.target.set(0, portrait() ? 4.6 : 6.4, 0); controls.enableDamping = true; controls.enablePan = false;
-controls.minDistance = 7; controls.maxDistance = 24; controls.maxPolarAngle = Math.PI * .5; controls.minPolarAngle = Math.PI * .28;
-const atm = K.applyAtmosphere(renderer, scene, "komorebi");
+camera.position.set(portrait() ? .8 : 4.6, portrait() ? 3.2 : 3.6, portrait() ? 24 : 27);
+const controls = new OrbitControls(camera, cv); controls.target.set(0, portrait() ? 4.6 : 6.6, 0); controls.enableDamping = true; controls.enablePan = false;
+controls.minDistance = 7; controls.maxDistance = 28; controls.maxPolarAngle = Math.PI * .5; controls.minPolarAngle = Math.PI * .28;
+const atm = K.applyAtmosphere(renderer, scene, "komorebi"); if (scene.fog && scene.fog.density) scene.fog.density *= 1.45;   /* 奥の木立は霞に沈める（主役の一本を立てる） */
 
 // ---- 地面・木（ケヤキ 1 本＋遠くの木立は軽く）
 const H = (x, z) => .12 * Math.sin(x * .2) * Math.cos(z * .17) + .006 * (x * x + z * z) / 6;
 const TL = new THREE.TextureLoader(), tx = (f, srgb = true) => { const t = TL.load(TEX + f); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = 4; return t; };
 const nature = new THREE.Group(); scene.add(nature);
-K.groundPlane(nature, { size: 240, seg: mobile ? 60 : 90, map: tx("soil_forest.webp"), height: H, tint: (x, z) => { const k = .86 + .1 * Math.sin(x * .7) * Math.sin(z * .6); return [.8 * k, .82 * k, .66 * k]; } });
+K.groundPlane(nature, { size: 240, seg: mobile ? 60 : 90, map: tx("soil_forest.webp"), height: H, tint: (x, z) => { const k = .86 + .1 * Math.sin(x * .7) * Math.sin(z * .6); return [.92 * k, .9 * k, .72 * k]; } });
 const pts = K.poisson(R, { x0: -60, x1: 60, z0: -60, z1: 60, d: mobile ? 12 : 9, tries: mobile ? 500 : 900, ok: (x, z) => { const r = Math.hypot(x, z); return r > 15 && r < 64 && (z < 4 || Math.abs(x) > 28); }   /* 見る人の立つ所には木を置かない */ });
-// ---- このアプリだけの木（共通部品の growTree は使わない）。ケヤキ＝太い幹が低い所で数本の太枝に分かれ、上へ扇のように開く箒状
+// ---- このアプリだけのケヤキ（keyaki.js・共通部品の growTree は使わない）。太い幹が低い所で 8 本ほどに分かれ、上へ扇のように開く箒状
 const V3 = THREE.Vector3;
-function grow(kind, x, z, R, o) {
-  const rr = (a, b) => a + (b - a) * R(), geos = [], anchors = [], tips = [], det = o.det, base = new V3(x, 0, z);
-  const tube = (pts, r0, r1, rad, seg) => K.taperTube(pts, r0, r1, rad, seg).toNonIndexed();
-  const limb = (from, dir, len, r0, depth) => {
-    const pts = [from.clone()], d = dir.clone(); let p = from.clone(); const n = det ? 5 : 3;
-    for (let i = 1; i <= n; i++) { const h = new V3(d.x, 0, d.z); if (h.lengthSq() > 1e-4) h.normalize(); d.addScaledVector(h, o.out).add(new V3((R() - .5) * o.wig, o.up, (R() - .5) * o.wig)).normalize(); p = p.clone().addScaledVector(d, len / n); pts.push(p); if (depth <= 2 && i >= n - 2) anchors.push(p.clone()); }
-    const r1 = depth === 0 ? .006 : Math.max(.012, r0 * o.taper); geos.push(tube(pts, r0, r1, det ? (depth > 1 ? 9 : 5) : 4, det ? 6 : 3));
-    if (depth > 0) { const nf = o.forks + (R() < .4 ? 1 : 0); for (let j = 0; j < nf; j++) { const a = j / nf * Math.PI * 2 + R() * 2; const at = pts[Math.max(1, n - 1 - (j % 2))];
-        limb(at, new V3(d.x + Math.cos(a) * o.sub, d.y, d.z + Math.sin(a) * o.sub).normalize(), len * rr(o.decay * .85, o.decay * 1.1), r1 * .95, depth - 1); } }
-    else tips.push(p);
-  };
-  const tH = rr(...o.trunkH), r0 = o.r, top = base.clone().add(new V3(rr(-.15, .15), tH, rr(-.15, .15)));
-  geos.push(tube([base.clone().add(new V3(0, -.1, 0)), base.clone().lerp(top, .5).add(new V3(rr(-.06, .06), 0, rr(-.06, .06))), top], r0 * 1.12, r0 * .8, det ? 14 : 6, det ? 6 : 3));
-  
-  if (det) for (let k = 0, RR = K.rng(9); k < 7; k++) { const a = k / 7 * 6.283 + (RR() - .5) * .4, L = 1.1 + RR() * .7, dx = Math.cos(a), dz = Math.sin(a);   // 根張り：幹の根元から地面へ這う太い根（板根の模式）
-    geos.push(tube([new V3(x + dx * r0 * .4, .9, z + dz * r0 * .4), new V3(x + dx * (r0 + .25), .25, z + dz * (r0 + .25)), new V3(x + dx * (r0 + L * .6), -.02, z + dz * (r0 + L * .6)), new V3(x + dx * (r0 + L), -.12, z + dz * (r0 + L))], r0 * .42, .03, 8, 8)); }
-  const nL = o.limbs, a0 = R() * 6.283;
-  for (let k = 0; k < nL; k++) { const a = a0 + k / nL * 6.283 + rr(-.25, .25), tilt = rr(o.tilt * .7, o.tilt * 1.2);
-    limb(top.clone().add(new V3(0, -rr(0, .35), 0)), new V3(Math.cos(a) * tilt, 1, Math.sin(a) * tilt).normalize(), rr(...o.len), r0 * .62, o.levels); }
-  { const kn = new THREE.SphereGeometry(r0 * .8, det ? 14 : 6, det ? 8 : 4); kn.scale(1, 1.6, 1);   /* 太枝の分かれ目を幹の太さの中でつなぐ（帯に見せない） */ kn.translate(top.x, top.y - .15, top.z); geos.push(kn.toNonIndexed()); }
-  const ctr = tips.reduce((s, t) => s.add(t), new V3()).multiplyScalar(1 / tips.length); ctr.y -= o.ctrDrop;
-  const ys = anchors.map(t => t.y), ymin = Math.min(...ys), ymax = Math.max(...ys), mk = (n, cl, sc) => { const out = []; for (let i = 0; i < n; i++) { const t = anchors[Math.floor(R() * anchors.length)], rd = cl * (.2 + Math.pow(R(), .7) * .8);
-      const pos = t.clone().add(new V3(R() - .5, (R() - .5) * .8, R() - .5).normalize().multiplyScalar(rd)); out.push([pos, pos.clone().sub(ctr).normalize(), ctr.clone(), sc * (.75 + R() * .5), Math.min(1, Math.max(0, (pos.y - ymin) / Math.max(1, ymax - ymin)))]); } return out; };
-  return { kind, wood: geos, cards: mk(o.leaves, o.cluster, 1), mk, trunk: [x, z, r0 + .1] };
-}
-K.SPECIES.hk_keyaki = { card: .44, tint: [.86, .93, .78] }; K.SPECIES.hk_keyaki_b = { card: .7, tint: [.86, .93, .78] };
-const KEYAKI = { det: true, trunkH: [2.2, 2.6], r: .5, limbs: mobile ? 7 : 8, tilt: .24, len: [5.2, 6.4], levels: 3, forks: 2, sub: .5, decay: .64, taper: .6, out: .035, up: .1, wig: .2, ctrDrop: 2, leaves: mobile ? 3000 : 4000, cluster: .7 };
-const kTree = grow("hk_keyaki", 0, 0, K.rng(77), KEYAKI), kBack = { kind: "hk_keyaki_b", wood: [new THREE.SphereGeometry(.05, 4, 3).toNonIndexed().translate(0, 1, 0)], cards: kTree.mk(mobile ? 700 : 900, .9, 1), trunk: kTree.trunk };
-// 奥の木立：形を変えて（丸い樹冠・細く高い・横に広い）
-const BG = [{ trunkH: [3, 4.5], r: .22, limbs: 4, tilt: .7, len: [2.4, 3.4], levels: 1, forks: 2, sub: .8, decay: .7, taper: .6, out: .1, up: .02, wig: .5, ctrDrop: .8, leaves: 70, cluster: 1.4 },
-  { trunkH: [5, 7], r: .2, limbs: 3, tilt: .3, len: [3, 4.2], levels: 1, forks: 2, sub: .5, decay: .62, taper: .6, out: .02, up: .06, wig: .35, ctrDrop: 1.2, leaves: 70, cluster: 1.2 },
-  { trunkH: [1.6, 2.4], r: .26, limbs: 5, tilt: 1.1, len: [2.8, 3.6], levels: 1, forks: 2, sub: .9, decay: .6, taper: .55, out: .14, up: -.02, wig: .5, ctrDrop: .5, leaves: 80, cluster: 1.5 }];
-K.SPECIES.hk_bg = { card: 1.1, tint: [.82, .9, .72] };
-const bgTrees = pts.map(([x, z]) => { const v = BG[Math.floor(R() * BG.length)], sc = .8 + R() * .45; return grow("hk_bg", x, z, R, { ...v, det: false, r: v.r * sc, trunkH: v.trunkH.map(h => h * sc), len: v.len.map(l => l * sc), cluster: v.cluster * sc }); });
-const trees = [kTree, kBack, ...bgTrees];
-for (const t of trees) { const y = H(t.trunk[0], t.trunk[1]) - .05; t.wood.forEach(g => g.translate(0, y, 0)); t.cards.forEach(c => { c[0].y += y; c[2].y += y; }); }
-const bark = K.barkMaterial(tx("bark_zelkova.webp"), { normalMap: tx("bark_zelkova_n.webp", false) });
+const KZ = growKeyaki(K, K.rng(77), 0, 0, { det: true, r: .52, hf: 3.3, limbs: 8, len: [5.4, 6.4], tilt: .22, levels: 4, forks: 2, decay: .62, sprigs: mobile ? 7000 : 11000, back: mobile ? 900 : 1300 });
+// 奥の木立：同じ作り方で枝の少ない木を、大きさと形を散らして（丸い・細く高い・横に広い）
+const BG = [{ r: .2, hf: 2.4, limbs: 4, len: [3, 4], tilt: .45, levels: 2, forks: 2, decay: .62 }, { r: .18, hf: 3.6, limbs: 3, len: [4, 5.5], tilt: .3, levels: 2, forks: 2, decay: .6 }, { r: .24, hf: 1.8, limbs: 5, len: [3.2, 4.2], tilt: .6, levels: 2, forks: 2, decay: .6 }];
+const bgTrees = pts.map(([x, z]) => { const v = BG[Math.floor(R() * BG.length)], sc = .75 + R() * .5; return growKeyaki(K, R, x, z, { ...v, det: false, r: v.r * sc, hf: v.hf * sc, len: v.len.map(l => l * sc), sprigs: 0, back: mobile ? 320 : 480 }); });
+const allT = [KZ, ...bgTrees];
+const bark = K.barkMaterial(tx("bark_zelkova.webp"), { normalMap: tx("bark_zelkova_n.webp", false) }); bark.color.setRGB(1.25, 1.22, 1.18); { const ob = bark.onBeforeCompile; bark.onBeforeCompile = (sh, r) => { ob(sh, r); sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ float l_ = dot(diffuseColor.rgb, vec3(.3, .55, .15)); diffuseColor.rgb = mix(vec3(l_) * vec3(1.02, 1., .96), diffuseColor.rgb, .28); }"); }; const ck = bark.customProgramCacheKey; bark.customProgramCacheKey = () => ck() + "gray"; }   /* ケヤキの肌は灰褐色（赤みを抑える） */
+{ const y0 = H(0, 0) - .05; KZ.wood.forEach(g => g.translate(0, y0, 0)); [...KZ.sprigs, ...KZ.back].forEach(c => c[0].y += y0); KZ.ctr.y += y0;
+  for (const t of bgTrees) { const p = t.wood[0].attributes.position, y = H(p.getX(0), p.getZ(0)) - .1; t.wood.forEach(g => g.translate(0, y, 0)); t.back.forEach(c => c[0].y += y); t.ctr.y += y; } }
+const woodMesh = new THREE.Mesh(mergeGeometries(allT.flatMap(t => t.wood).map(g => { for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k); return g; })), bark); nature.add(woodMesh);
 const leaf = K.leafMaterial(tx("leaf_spray.webp")), leaf2 = K.leafMaterial(tx("leaf_spray2.webp"));
-[leaf.map, leaf2.map].forEach(t => t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping); /* 葉を透かす光：太陽の向き・見る向き・樹冠の外側かで決める（逆光で黄緑に透け、内側は暗い）。emissive の一色をやめた */
+[leaf.map, leaf2.map].forEach(t => t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping); /* 葉を透かす光：太陽の向き・見る向き・樹冠の外側かで決める（逆光で黄緑に透け、内側は暗い） */
 const SUNW = new THREE.Vector3(8, 14, 6).normalize();
 function translucent(m, k = 1) { const ob = m.onBeforeCompile; m.alphaToCoverage = true; m.alphaTest = .3;
   m.onBeforeCompile = (sh, r) => { ob(sh, r); sh.uniforms.uSunW = { value: SUNW }; sh.uniforms.uTrK = { value: k };
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform vec3 uSunW; uniform float uTrK;")
       .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
 { vec3 V_ = normalize(cameraPosition - vWP); vec3 out_ = normalize(vWP - vCtr + vec3(0., .25, 0.));
-  float back_ = pow(max(dot(-V_, uSunW), 0.), 3.);            // 逆光
-  float side_ = .5 + .5 * dot(out_, uSunW);                   // 日の当たる側
-  float rim_ = .35 + .65 * smoothstep(-.2, .8, dot(out_, V_)); // 樹冠の外側ほど明るい（内側は陰）
-  vec3 tr_ = diffuseColor.rgb * vec3(1.25, 1.35, .55);         // 透けた葉は黄緑
-  totalEmissiveRadiance += tr_ * uTrK * (.42 * rim_ + 1.1 * back_ * side_) ; }`)
-      .replace("#include <aomap_fragment>", "#include <aomap_fragment>\n{ vec3 o2_ = normalize(vWP - vCtr); float occ_ = .7 + .3 * smoothstep(-.3, .7, dot(o2_, normalize(cameraPosition - vWP))); reflectedLight.indirectDiffuse *= occ_; reflectedLight.directDiffuse *= mix(1., occ_, .5); }"); };
+  float back_ = pow(max(dot(-V_, uSunW), 0.), 3.);
+  float side_ = .5 + .5 * dot(out_, uSunW);
+  float rim_ = .35 + .65 * smoothstep(-.2, .8, dot(out_, V_));
+  vec3 tr_ = diffuseColor.rgb * vec3(1.2, 1.3, .55);
+  totalEmissiveRadiance += tr_ * uTrK * (.3 * rim_ + 1.0 * back_ * side_) ; }`); };
   const ck = m.customProgramCacheKey; m.customProgramCacheKey = () => ck() + "tr"; }
-[leaf, leaf2].forEach(m => translucent(m, .9));
-const leafSprigSlot = new THREE.MeshBasicMaterial();
-const PT = K.plantTrees(nature, trees, { barkMat: { default: bark }, leafMats: { hk_keyaki: leafSprigSlot, hk_keyaki_b: leaf, hk_bg: leaf2, default: leaf }, R, shadows: false });
-const baseLeaf = PT.meshes.filter(m => m.isInstancedMesh && m.material === leaf).map(m => (m.visible = false, m));   /* 葉の画像が読めなかったときだけ、房の板に戻す */
-const one = TL.load("tex/leaf_sprig.webp", undefined, undefined, () => TL.load("tex/leaf_sprig.webp?r=1", t => { one.image = t.image; one.needsUpdate = true; }, undefined, () => baseLeaf.forEach(m => m.visible = true))); one.wrapS = one.wrapT = THREE.ClampToEdgeWrapping;
-const leafOne = K.leafMaterial(one); translucent(leafOne, 1); PT.meshes.filter(m => m.isInstancedMesh && m.material === leafSprigSlot).forEach(m => m.material = leafOne);
-{ const RC = K.rng(5), c = new THREE.Color(); for (const im of PT.meshes) if (im.material === leafOne && im.instanceColor) { for (let i = 0; i < im.count; i++) { im.getColorAt(i, c); const t = RC(), l = .85 + RC() * .4; c.multiplyScalar(l); c.r *= .85 + t * .45; c.b *= 1.05 - t * .35; im.setColorAt(i, c); } im.instanceColor.needsUpdate = true; } }
-const grass = K.grassField(nature, R, { count: mobile ? 2600 : 5200, area: 23, ok: (x, z) => { const r = Math.hypot(x, z); return r > 1.4 && r < 7 + 6 * (.5 + .5 * Math.sin(x * 1.7 + z * 2.3)) * Math.random(); } });   /* 草の縁はまばらに消える */
+const one = new THREE.Texture(); { let n = 0; const get = () => TL.load("tex/leaf_sprig.webp" + (n ? "?r=" + n : ""), t => { one.image = t.image; one.needsUpdate = true; }, undefined, () => { if (++n < 4) setTimeout(get, 300 * n); else sprigIM.material = leaf; }); get(); }   /* 読めなければ 3 回まで読み直し、だめなら房の板に */
+one.colorSpace = THREE.SRGBColorSpace; one.anisotropy = 4; one.wrapS = one.wrapT = THREE.ClampToEdgeWrapping;
+const leafOne = K.leafMaterial(one); [leafOne, leaf, leaf2].forEach(m => translucent(m, .9));
+const sprigIM = sprigMesh(KZ.sprigs, leafOne, .62, [1.0, 1.08, .78], KZ.ctr, K.rng(5)); nature.add(sprigIM);   /* 一枚ずつの葉の小枝（樹冠の外側） */
+const backIM = sprigMesh(KZ.back, leafOne, 1.0, [.72, .82, .56], KZ.ctr, K.rng(6)); nature.add(backIM);         /* 樹冠の内側の暗い房（空が抜けないように） */
+const bgIM = sprigMesh(bgTrees.flatMap(t => t.back), leafOne, 1.05, [.72, .84, .6], new V3(0, 0, 0), R); nature.add(bgIM);
+{ const a = bgIM.geometry.attributes.aCtr; let i = 0; for (const t of bgTrees) for (const _ of t.back) { a.setXYZ(i++, t.ctr.x, t.ctr.y, t.ctr.z); } a.needsUpdate = true; }
+// ---- 足もとの低木と、粉をふいた黒紫の実（ヒヨドリなどが食べる液果の模式。種は決めない）
+const shrubAt = new V3(-1.9, 0, -1.6); shrubAt.y = H(shrubAt.x, shrubAt.z);
+const shrub = sprigMesh(Array.from({ length: 260 }, () => { const a = R() * TAU, e = R() * 1.3, rr = 1.0 + R() * .45, p = shrubAt.clone().add(new V3(Math.cos(a) * Math.cos(e) * rr * 1.2, Math.sin(e) * rr * .9 + .05, Math.sin(a) * Math.cos(e) * rr));
+  const o = p.clone().sub(shrubAt).normalize(); return [p, o.clone().add(new V3(0, .6, 0)).normalize(), o, .8 + R() * .4, .55 + .45 * Math.max(0, o.y)]; }), leaf2, .5, [.55, .66, .44], shrubAt.clone().add(new V3(0, .2, 0)), R); nature.add(shrub);
+const berryGeo = new THREE.SphereGeometry(.09, 10, 7), berryMat = new THREE.MeshStandardMaterial({ color: 0x4a4870, roughness: .38 });   // 粉（ろう）をふいた黒紫の実
+const BERRY = []; for (let c = 0; c < 18; c++) { const a = (c / 18) * TAU * 1.0 + R() * .3, e = .15 + R() * .9, base = shrubAt.clone().add(new V3(Math.cos(a) * Math.cos(e) * 1.6, Math.sin(e) * 1.25 + .15, Math.sin(a) * Math.cos(e) * 1.4)); for (let b = 0; b < 6; b++) BERRY.push(base.clone().add(new V3((R() - .5) * .24, (R() - .5) * .2, (R() - .5) * .24))); }
+const berries = new THREE.InstancedMesh(berryGeo, berryMat, BERRY.length); BERRY.forEach((p, i) => berries.setMatrixAt(i, new THREE.Matrix4().makeTranslation(p.x, p.y, p.z))); nature.add(berries);
+const uvScene = new THREE.Scene(); { const b2 = new THREE.InstancedMesh(berryGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), BERRY.length); for (let i = 0; i < BERRY.length; i++) { const m = new THREE.Matrix4(); berries.getMatrixAt(i, m); b2.setMatrixAt(i, m); } uvScene.add(b2); }   // 紫外を返す物の印（実だけ）
+const grass = K.grassField(nature, R, { count: mobile ? 2600 : 5200, area: 23, ok: (x, z) => { const r = Math.hypot(x, z); return r > 1.6 && r < 7 + 6 * (.5 + .5 * Math.sin(x * 1.7 + z * 2.3)) * Math.random(); } });   /* 草の縁はまばらに消える */
 
 MK.trees = Math.round(performance.now());
-// ---- 土のセンサーだけが受けとるもの（模式の点。測った値ではない）
+// ---- 土のセンサーだけが受けとるもの（模式の値。測った値ではない）：差した数か所で、深さ 3 段の土の水分（体積の %）を数で読む
 const sensor = new THREE.Scene();
-{ const pos = [], col = []; for (let x = -22; x <= 22; x += .6) for (let z = -16; z <= 14; z += .6) for (let d = 0; d < 3; d++) {
-    const r = Math.hypot(x, z), y = H(x, z) - .25 - d * .45; const w = Math.max(0, Math.min(1, .35 + .45 * Math.exp(-r * r / 14) + .12 * d - .03 * r));   // 根のまわりと深い所ほど湿る模式
-    pos.push(x, y + .02, z); col.push(.25 + .75 * w, .55 + .45 * w, .7 + .3 * w); }
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
-  sensor.add(new THREE.Points(g, new THREE.PointsMaterial({ size: mobile ? 3 : 3.5, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: .95, depthTest: false })));
-  const probe = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, 1.6, 6), new THREE.MeshBasicMaterial({ color: 0x9bdcf0 })); probe.position.set(1.2, H(1.2, .8) - .4, .8); sensor.add(probe); }
-
+const numSprite = rows => { const c = document.createElement("canvas"); c.width = 320; c.height = 236; const x = c.getContext("2d"); x.fillStyle = "rgba(4,14,22,.86)"; x.beginPath(); x.roundRect(4, 4, 312, 228, 22); x.fill(); x.strokeStyle = "rgba(120,214,236,.95)"; x.lineWidth = 4; x.stroke();
+  x.textBaseline = "middle"; rows.forEach(([d, v], k) => { const y = 42 + k * 74; x.fillStyle = "#8fd0e2"; x.font = '500 34px "Hiragino Sans","Noto Sans JP",sans-serif'; x.fillText(d + " cm", 20, y); x.fillStyle = "#eefaff"; x.font = '700 54px "Hiragino Sans","Noto Sans JP",sans-serif'; x.textAlign = "right"; x.fillText(v + "%", 300, y); x.textAlign = "left"; });
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, depthWrite: false, toneMapped: false })); sp.center.set(0, .5); return sp; };
+const NUMS = [];   // 数の札は画面の上でいつも同じ大きさ（毎こま距離で合わせる）
+{ const PROBES = [[-.9, 1.2, 0, -.12], [-1.9, -9, 0, .12]];   // [x, z, 札の高さ, 場所ごとの湿りの差（模式）]
+  for (const [x, z, lh, wet] of PROBES) { const r = Math.hypot(x, z), y0 = H(x, z), rows = [];
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 1.3, 6), new THREE.MeshBasicMaterial({ color: 0x6fb8d0 })); rod.position.set(x, y0 - .45, z); sensor.add(rod);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(.16, .22, .1), new THREE.MeshBasicMaterial({ color: 0xa8e4f4 })); head.position.set(x, y0 + .25, z); sensor.add(head);
+    for (let d = 0; d < 3; d++) { const w = Math.max(.1, Math.min(1, .35 + wet + .45 * Math.exp(-r * r / 14) + .12 * d - .03 * r)), y = y0 - .2 - d * .4;   // 根のまわりと深い所ほど湿る模式
+      rows.push([20 + d * 40, Math.round(12 + 26 * w)]);   // 体積含水率（%）の模式の値
+      const m = new THREE.Mesh(new THREE.SphereGeometry(.07, 10, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(.25 + .75 * w, .55 + .45 * w, .75 + .25 * w) })); m.position.set(x, y, z); sensor.add(m); }
+    const n = numSprite(rows); n.position.set(x + .22, y0 - .6, z);   /* 札は地面の下、深さの点の右 */ sensor.add(n); NUMS.push(n);
+    { const sec = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.25), new THREE.MeshBasicMaterial({ color: 0x1d4656, transparent: true, opacity: .45, depthTest: false })); sec.position.set(x + .35, y0 - .62, z - .05); sec.lookAt(camera.position.x, y0 - .62, camera.position.z); sensor.add(sec); }   // 土の中の断面（深さ 0〜1.2 m）
+    { const gl = new THREE.Mesh(new THREE.BoxGeometry(3.6, .02, .02), new THREE.MeshBasicMaterial({ color: 0x8fd6ea })); gl.position.set(x, y0, z); sensor.add(gl); }   // 地面の線（ここから下に深さ）
+    if (lh > .6) { const ln = new THREE.Mesh(new THREE.BoxGeometry(.015, lh - .3, .015), new THREE.MeshBasicMaterial({ color: 0x78d6ec })); ln.position.set(x, y0 + .35 + (lh - .3) / 2, z); sensor.add(ln); } } }
 // ---- 後処理：同じ画を、受けとる主体ごとの帯に分けて色を置きかえる（模式）
 const rt = new THREE.WebGLRenderTarget(2, 2, { samples: 4, depthTexture: new THREE.DepthTexture(2, 2) });   /* 葉の縁をなめらかに（alphaToCoverage は多重標本の上でだけ効く） */
-const rt2 = new THREE.WebGLRenderTarget(2, 2);
+const rt2 = new THREE.WebGLRenderTarget(2, 2), rt3 = new THREE.WebGLRenderTarget(2, 2);
 const MAXB = 4;
 const post = new THREE.ShaderMaterial({
-  uniforms: { tC: { value: rt.texture }, tD: { value: rt.depthTexture }, tS: { value: rt2.texture }, uEdge: { value: new Array(MAXB + 1).fill(0) }, uLens: { value: new Array(MAXB).fill(0) }, uN: { value: 1 }, uVert: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uSame: { value: 0 } },
+  uniforms: { tC: { value: rt.texture }, tD: { value: rt.depthTexture }, tS: { value: rt2.texture }, tU: { value: rt3.texture }, uFov: { value: 50 }, uEdge: { value: new Array(MAXB + 1).fill(0) }, uLens: { value: new Array(MAXB).fill(0) }, uN: { value: 1 }, uVert: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) }, uT: { value: 0 }, uSame: { value: 0 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
-  fragmentShader: `precision highp float; varying vec2 vUv; uniform sampler2D tC, tD, tS; uniform float uEdge[${MAXB + 1}]; uniform int uLens[${MAXB}]; uniform int uN; uniform float uVert; uniform vec2 uRes; uniform float uT; uniform float uSame;
+  fragmentShader: `precision highp float; varying vec2 vUv; uniform sampler2D tC, tD, tS, tU; uniform float uFov; uniform float uEdge[${MAXB + 1}]; uniform int uLens[${MAXB}]; uniform int uN; uniform float uVert; uniform vec2 uRes; uniform float uT; uniform float uSame;
   float lum(vec3 c){ return dot(c, vec3(.2126,.7152,.0722)); }
   void main(){
     float s = uVert > .5 ? 1. - vUv.y : vUv.x;
@@ -155,31 +146,35 @@ const post = new THREE.ShaderMaterial({
     for (int i = 0; i < ${MAXB}; i++) { if (i < uN && s >= uEdge[i]) { lens = uLens[i]; a = uEdge[i]; b = uEdge[i + 1]; } }
     vec2 uv = vUv; if (uSame > .5 && uN > 1) uv.x = .5 + (s - (a + b) * .5);   // 横長：どの帯にも同じまん中の一本（ケヤキ）を映す
     vec3 c = texture2D(tC, uv).rgb;
-    if (lens == 1) { float cs = max(3., uRes.y / 170.); vec2 cell = floor(uv * uRes / cs); vec2 ce = (cell + .5) * cs / uRes; vec3 acc = vec3(0.); for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) acc += texture2D(tC, ce + vec2(float(i), float(j)) * cs * .3 / uRes).rgb; c = acc / 9.; uv = ce; vec2 f = fract(uv * uRes / cs) ; }   // ミツバチの目の細かさ（個眼の間の角度 約 1〜2 度＝小さな目の粒ごとに一つの明るさ）の模式
+    float hexE = 0., skyF = -1., umB = -1.;
+    if (lens == 1) { float cs = uRes.y / uFov * 1.0; vec2 p = uv * uRes, rr = vec2(1., 1.7320508) * cs, hh = rr * .5; vec2 ga = mod(p, rr) - hh, gb = mod(p - hh, rr) - hh, g = dot(ga, ga) < dot(gb, gb) ? ga : gb; vec2 ce = (p - g) / uRes;
+      vec3 acc = vec3(0.); skyF = 0.; umB = 0.; float wsum = 0.; for (int i = 0; i < 13; i++) { float an = float(i) * 1.0472 + (i > 6 ? .5236 : 0.) + fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) * 6.283,   /* 標本の向きを画素ごとに回し、網目の模様を出さない */ rd = i == 0 ? 0. : (i > 6 ? .5 : .26); vec2 o7 = vec2(cos(an), sin(an)) * cs * rd; float wt = i == 0 ? 1.6 : (i > 6 ? .55 : 1.); vec2 q = (p + o7) / uRes; acc += texture2D(tC, q).rgb * wt; skyF += step(.99995, texture2D(tD, q).r) * wt; umB += texture2D(tU, q).r * wt; wsum += wt; } c = acc / wsum; skyF /= wsum; umB /= wsum;
+      vec2 ag = abs(g) / cs; hexE = .07 * smoothstep(.46, .5, max(ag.x, dot(ag, vec2(.5, .8660254)))); }   // ミツバチの目の細かさ：個眼の間の角度（約 1〜2 度・Land 1997。ここは 1 度）ほどの幅でぼかし、六角の格子を薄く重ねた模式
     
     
     vec3 o = c;
     float dz = texture2D(tD, uv).r, skyM = step(.99995, dz), far = smoothstep(28., 70., 60. / (600. - dz * 599.9)) * (1. - skyM);
     float leafM = (1. - skyM) * smoothstep(.02, .08, c.g - max(c.r, c.b) * .92);   // 葉（緑が勝つ所）
-    float UVr = skyM * (.6 + .4 * uv.y) + (1. - skyM) * mix(mix(.12, .03, leafM), .35, far);   // 物ごとの紫外の量：空は散乱光で多い・葉はほとんど返さない（Yang 1995）・幹と土は少なめ（模式）・遠くは霞の散乱
-    if (lens == 1) { o = vec3(c.g * 1.05, c.b * 1.1, .1 * c.b + .9 * UVr); o = mix(o, vec3(.55, .62, .78) * (.6 + .4 * UVr), far * .6); }   // ミツバチ：緑→赤・青→緑・紫外→青へずらした模式
-    else if (lens == 2) { float l = lum(c); vec3 d = c - vec3(l); o = vec3(l) * .82 + d * 1.6 + vec3(.34, .05, .62) * UVr * .75; o = clamp(o, 0., 1.); }   // ヒヨドリ（スズメ目の多く＝紫外に強い型）：紫外を紫で重ねる＝紫外を返さない葉が空に黒く浮く
-    else if (lens == 3) { vec2 q = floor(uv * uRes / 6.) * 6. / uRes; float l = lum(texture2D(tC, q).rgb); o = mix(vec3(.05, .09, .13), vec3(.015, .025, .04), vUv.y) + vec3(.004) * l; o *= .85 + .15 * step(.5, fract(gl_FragCoord.y / 3.)); o += texture2D(tS, vec2(uv.x, uv.y * .5)).rgb; /* 土の中の点を縦へ引きのばした模式 */ }   // センサー：光は受けとらない・土の水分の数だけ
+    if (skyF >= 0.) skyM = skyF * skyF;   /* 葉と空のまじる粒は、空の紫外を薄める（葉は紫外をほとんど返さない） */
+    float UVsky = (.75 + .25 * uv.y) * 1.05, UVr = skyM * UVsky + (1. - skyM) * mix(mix(.06, .03, leafM), UVsky * .9, smoothstep(0., .7, far));   /* 遠くの霞は空と同じく散乱光の紫外が多い（模式） */ float um = umB >= 0. ? umB : texture2D(tU, uv).r; UVr = max(UVr, um * (lens == 1 ? .6 : .95));   /* 粉をふいた実は紫外を返す（Burkhardt 1982・Siitari ほか 1999） */   // 物ごとの紫外の量：空は散乱光で多い・葉はほとんど返さない（Yang 1995）・幹と土は少なめ（模式）・遠くは霞の散乱
+    if (lens == 1) { float kk = mix(mix(1.05, 1.45, leafM), 1., max(skyM, smoothstep(0., .7, far)));   /* 明るさの持ち上げは葉だけ（幹は暗い赤茶のまま） */ o = vec3(c.g * kk, c.b * kk * mix(.55, .95, max(skyM, smoothstep(0., .7, far))), .1 * c.b + .9 * UVr); float skyB = max(skyM, smoothstep(0., .7, far)); o = mix(o, vec3(.6, .72, .98) * lum(c) * 1.3, skyB); o = 1. - exp(-o * 1.7); }   // 空と霞は同じ色あい（明るさだけ）にして地平で段を作らない。ミツバチ：緑→赤・青→緑・紫外→青。空と霞は紫外が多く水色に寄る（模式）。明るい所が白く飛ばないように
+    else if (lens == 2) { float l = lum(c); vec3 d = c - vec3(l); o = vec3(l) * .85 + d * 1.5 * (1. - .55 * skyM) + vec3(.22, .07, .4) * UVr * .38; o = mix(o, vec3(.48, .36, .7) * (.5 + 1.2 * l), um * .62); o = clamp(o, 0., 1.); }   // ヒヨドリ（スズメ目の多く＝紫外に強い型）：紫外を紫で重ねる＝紫外を返さない葉が空に黒く浮く
+    else if (lens == 3) { vec2 q = floor(uv * uRes / 6.) * 6. / uRes; float l = lum(texture2D(tC, q).rgb); o = mix(vec3(.05, .09, .13), vec3(.015, .025, .04), vUv.y); o *= .85 + .15 * step(.5, fract(gl_FragCoord.y / 3.)); { vec2 e2 = vec2(2.) / uRes; float gx = lum(texture2D(tC, uv + vec2(e2.x, 0.)).rgb) - lum(texture2D(tC, uv - vec2(e2.x, 0.)).rgb), gy = lum(texture2D(tC, uv + vec2(0., e2.y)).rgb) - lum(texture2D(tC, uv - vec2(0., e2.y)).rgb); o += vec3(.016, .036, .046) * smoothstep(.08, .28, length(vec2(gx, gy))); } o += texture2D(tS, uv).rgb; /* 木の輪郭は場所の目安（センサーの値ではない） */ }   // センサー：光は受けとらない・土の水分の数だけ
     float e = min(abs(s - a), abs(s - b)) * (uVert > .5 ? uRes.y : uRes.x);
     if (uN > 1) o = mix(mix(o, vec3(.36, .78, .88), .45), o, smoothstep(.3, 1.1, e));
     gl_FragColor = vec4(o, 1.);
   }`, depthTest: false, depthWrite: false });
 const pq = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), post); pq.frustumCulled = false; const pscene = new THREE.Scene(); pscene.add(pq); const pcam = new THREE.Camera();
 const dbs = new THREE.Vector2();
-function sizeRT() { renderer.getDrawingBufferSize(dbs); if (rt.width !== dbs.x || rt.height !== dbs.y) { rt.setSize(dbs.x, dbs.y); rt2.setSize(dbs.x, dbs.y); post.uniforms.uRes.value.copy(dbs); } }
+function sizeRT() { renderer.getDrawingBufferSize(dbs); if (rt.width !== dbs.x || rt.height !== dbs.y) { rt.setSize(dbs.x, dbs.y); rt2.setSize(dbs.x, dbs.y); rt3.setSize(dbs.x >> 1, dbs.y >> 1); post.uniforms.uRes.value.copy(dbs); } }
 
 // ---- 主体・碧の字幕（事実は 資料/出典.md）
 const WHO = [
-  { n: "人", m: "赤・緑・青", say: "同じ一本のケヤキ。下の生き物や機械を押すと、その受けとり方が隣に並びます。" },
-  { n: "ミツバチ", m: "三色をずらした模式", say: "ミツバチは紫外・青・緑で受けとり、赤は届きにくい。三つを赤・緑・青にずらした。葉は紫外をほとんど返さず、空だけが青く光る。" },
-  { n: "ヒヨドリ", m: "紫外に強い四色・模式", say: "ヒヨドリの仲間（スズメ目）の多くは紫外に強く感じる四色型。紫外を紫で重ねた模式。空は紫に染まり、紫外をほとんど返さない葉には紫が乗らない。" },
-  { n: "土のセンサー", m: "土の水分だけ", say: "センサーは画を見ない。土の水分を数で読むだけ。点は土の中を縦に引きのばして描いた模式。" } ];
-const SAY_MANY = "帯の上に、それぞれの受けとり方。同じ木が帯をまたいで続く。あなたの帯も、その一つ。";
+  { n: "人", m: "赤・緑・青\n人の目", say: "同じ一本のケヤキ。下の生き物や機械を押すと、その受けとり方が隣に並びます。" },
+  { n: "ミツバチ", m: "色はずらした模式\n赤＝ハチの緑", say: "ミツバチは紫外・青・緑で受けとり、赤は届きにくい。その三つを、人に見える青・緑・赤へずらした模式。ぼかしは目の粗さ（個眼の間の角度 約 1〜2 度）の模式。色は、緑→赤・青→緑・紫外→青にずらした。" },
+  { n: "ヒヨドリ", m: "スズメ目の多く\n紫外型（模式）", say: "鳥は四色型。スズメ目の多くは、その一つが紫外に強く感じる型（ヒヨドリ自身は未確認）。紫外を紫で重ねた模式（細かさは人と同じにしたが、実際は人より粗い）。粉をふいた黒い実は紫外を返し、葉はほとんど返さない。" },
+  { n: "土のセンサー", m: "土の水分（%）\n値は模式", say: "センサーは画を見ない。差した 2 か所の土の水分を、深さごとに体積の % で読むだけ（値は模式）。薄い線は木の位置の目安。" } ];
+const SAY_MANY = "帯ごとに、同じ一本のケヤキを、それぞれの受けとり方で。あなたの帯も、その一つ。";
 const SAY_END = "外の本当の木の前で、どの帯の受けとり方を想像してみますか。";
 let order = [0];
 const w = [1, 0, 0, 0];   // 帯の幅（なめらかに）
@@ -192,14 +187,14 @@ document.getElementById("who").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return; const k = +b.dataset.k; const i = order.indexOf(k);
   if (i >= 0) { if (order.length === 1) return; order.splice(i, 1); } else { order.push(k); order.sort((a, b) => a - b); }
   btns.forEach(x => x.setAttribute("aria-pressed", String(order.includes(+x.dataset.k))));
-  if (i < 0) say(WHO[k].n + "：" + WHO[k].say, order.length > 1 ? SAY_MANY : null); else if (order.length > 1) say(SAY_MANY, SAY_END); else say(WHO[order[0]].say);
+  if (i < 0 && order.length >= 4) say(SAY_MANY, SAY_END); else if (i < 0) say(WHO[k].n + "：" + WHO[k].say, order.length > 1 ? SAY_MANY : null); else if (order.length > 1) say(SAY_MANY, SAY_END); else say(WHO[order[0]].say);
   if (order.length >= 3) setTimeout(() => {}, 0);
 });
 
 MK.ui = Math.round(performance.now());
 // ---- 碧（読み込みは後ろで。画面はすぐ動く）
 let aoi = null; const CROWN = new THREE.Vector3(0, 8.5, 0);
-const loadAoiLater = () => K.loadAoi(AOI, { scene, renderer, camera }).then(async a => { /* 層 1 に置く間は主の画に映らない */ const ms = []; a.root.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) ms.push([m, m.transparent]); }); a.root.traverse(o => o.layers.set(1)); { const seen = new Set(); for (const [m] of ms) for (const v of Object.values(m)) if (v && v.isTexture && !seen.has(v)) { seen.add(v); renderer.initTexture(v); await new Promise(r => requestAnimationFrame(r)); } } /* 質感の送りこみを一こまに一枚ずつ */ const c1 = camera.clone(); c1.layers.set(1); try { await renderer.compileAsync(a.root, c1, scene); ms.forEach(([m]) => { m.transparent = false; m.needsUpdate = true; }); await renderer.compileAsync(a.root, c1, scene); } catch (e) {} ms.forEach(([m, t]) => { m.transparent = t; m.needsUpdate = true; }); /* 現れ終わりの形も先に下ごしらえ */ aoi = a; a.root.visible = true; a.root.traverse(o => o.layers.set(1)); const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(portrait() ? -.62 : -.7, portrait() ? -.5 : -.72), camera); const gp = new THREE.Vector3(); rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), gp); const x = gp.x, z = gp.z;   /* いつも左の帯の中（境目に重ねない） */ a.place(x, z, Math.atan2(camera.position.x - x, camera.position.z - z)); a.root.position.y = H(x, z); window.__aoi = a; }).catch(e => console.warn("碧を読み込めませんでした：", e.message));
+const loadAoiLater = () => K.loadAoi(AOI, { scene, renderer, camera }).then(async a => { /* 層 1 に置く間は主の画に映らない */ const ms = []; a.root.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) ms.push([m, m.transparent]); }); a.root.traverse(o => o.layers.set(1)); { const seen = new Set(); for (const [m] of ms) for (const v of Object.values(m)) if (v && v.isTexture && !seen.has(v)) { seen.add(v); renderer.initTexture(v); await new Promise(r => requestAnimationFrame(r)); } } /* 質感の送りこみを一こまに一枚ずつ */ const c1 = camera.clone(); c1.layers.set(1); try { await renderer.compileAsync(a.root, c1, scene); ms.forEach(([m]) => { m.transparent = false; m.needsUpdate = true; }); await renderer.compileAsync(a.root, c1, scene); } catch (e) {} ms.forEach(([m, t]) => { m.transparent = t; m.needsUpdate = true; }); /* 現れ終わりの形も先に下ごしらえ */ aoi = a; a.root.visible = true; a.root.traverse(o => o.layers.set(1)); const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(portrait() ? -.6 : -.62, portrait() ? -.62 : -.86), camera); const gp = new THREE.Vector3(); rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), gp); const x = gp.x, z = gp.z;   /* いつも左の帯の中（境目に重ねない） */ a.place(x, z, Math.atan2(camera.position.x - x, camera.position.z - z)); a.root.position.y = H(x, z); window.__aoi = a; }).catch(e => console.warn("碧を読み込めませんでした：", e.message));
 setTimeout(() => say(WHO[0].say), 400);
 
 // ---- 毎こま
@@ -220,6 +215,9 @@ function loop(now) {
   post.uniforms.uEdge.value[live.length] = 1.0001;
   [0, 1, 2, 3].filter(k => !live.includes(k)).forEach(k => tags[k].style.opacity = 0);
   renderer.setRenderTarget(rt); renderer.render(scene, camera);
+  post.uniforms.uFov.value = camera.fov;
+  if (live.includes(1) || live.includes(2)) { renderer.setRenderTarget(rt3); renderer.setClearColor(0, 1); renderer.clear(); renderer.render(uvScene, camera); }
+  if (live.includes(3)) { const hp = Math.min(innerHeight * .075, 58, innerWidth * .12), tn = 2 * Math.tan(camera.fov * Math.PI / 360) / innerHeight * hp; for (const n of NUMS) { const d = n.position.distanceTo(camera.position) * tn; n.scale.set(d * 320 / 236, d, 1); } }
   if (live.includes(3)) { renderer.setRenderTarget(rt2); renderer.setClearColor(0, 1); renderer.clear(); renderer.render(sensor, camera); }
   renderer.setRenderTarget(null); renderer.render(pscene, pcam);
   if (aoi) { const bg = scene.background; scene.background = null; renderer.autoClear = false; renderer.clearDepth(); camera.layers.set(1); renderer.render(scene, camera); camera.layers.set(0); renderer.autoClear = true; scene.background = bg; }   // 碧は帯の外（訳す側）＝色を置きかえない
@@ -229,7 +227,7 @@ function loop(now) {
 [atm.hemi, atm.sun].forEach(l => l && l.layers.enable(1));
 grass.visible = false;
 let compiled = false; renderer.compileAsync(pscene, pcam).catch(() => {}); renderer.compileAsync(scene, camera).catch(() => {}).finally(() => { compiled = true; requestAnimationFrame(loop); });
-window.__app = { renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, ready: window.__readyNav }) };
+window.__app = { camera, controls, renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, ready: window.__readyNav }) };
 </script>
 </body>
 </html>
