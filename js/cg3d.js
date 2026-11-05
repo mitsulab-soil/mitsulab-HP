@@ -1,13 +1,13 @@
-// © mitsulab. 環世界のコモングラウンド＝Qualium（2026-11-05 第 4 版・写実の土の地）
-// 場（フィジカル情報の層＝下・デジタル情報の層＝上）の中に、六つの主体（鳥・虫・人間・AI・センサー・GIS）がばらばらに立つ。
-// 環世界（ゆらぐ膜）は主体ごとに主体のまわりにあり、となりどうしで重なる。重なり U_i ∩ U_j が網のように広がる所がコモングラウンド。中心は一つに置かない。
-// 依代（碧）と町の依代は、中心ではなく、重なりと重なりのあいだに立つ一つ。U_i = g_i(P_i(E, B_i), K_i) の札は HTML（index.html）を 3D の位置へ写す。
-// 大きさは見やすく描いた模式。見えていないときは描かない（IntersectionObserver）。
+// © mitsulab. 環世界のコモングラウンド＝Qualium（2026-11-06 第 5 版・受けとる層）
+// 六つの主体（鳥・虫・人間・AI・気象計・GIS）がばらばらに立つ。主体ごとに受けとれる範囲を、地面と平行な薄い層（色・高さ・広さが違う）で描く。
+// 層が重なる所＝共有の場は、光が重なるように明るく浮かぶ。重なりは中心なく網のように広がる。
+// 受けとり（知覚）→ 意味づけ（認知）→ 選んでふるまう（知性）→ 環境へ返る → ほかの主体の受けとりへ、の輪を光の粒で回す。
+// 層に触れると、その主体の受けとる範囲が広がり、重なりが変わる。依代（碧）と町の依代は中心でなく、重なりのあいだに立つ一つ。大きさは模式。
 import * as THREE from 'three';
 export function start(box){
   const mob=innerWidth<760, reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cv=box.querySelector('canvas'), R=new THREE.WebGLRenderer({canvas:cv,antialias:!mob,alpha:true,powerPreference:'low-power'});
-  R.setPixelRatio(Math.min(devicePixelRatio,mob?1.4:1.75)); R.outputColorSpace=THREE.SRGBColorSpace; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.05;
+  R.setPixelRatio(Math.min(devicePixelRatio,mob?1.4:1.75)); R.outputColorSpace=THREE.SRGBColorSpace; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.0;
   const S=new THREE.Scene(); S.fog=new THREE.Fog(0x05080f,11,22);
   const C=new THREE.PerspectiveCamera(32,1,.1,60);
   const W=new THREE.Group(); S.add(W);   // 回す世界
@@ -19,70 +19,145 @@ export function start(box){
   S.add(new THREE.HemisphereLight(0xcfe4ff,0x1a1408,.9));
   const key=new THREE.DirectionalLight(0xfff1dc,2.1); key.position.set(4,8,6); S.add(key);
   const rim=new THREE.DirectionalLight(0x8fd3ff,1.6); rim.position.set(-5,4,-7); S.add(rim);
-  const RR=3.1, SUB=[   // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。layers＝受けとる層（p＝フィジカル・d＝デジタル）
-    {k:'bird',x:-3.7,z:-.5,c:0x9fd8ff,h:.95,ly:'ppp'},{k:'bee',x:-2.0,z:1.75,c:0xf0d58c,h:1.0,ly:'ppp'},{k:'human',x:.95,z:1.35,c:0xe6ebf6,h:1.85,ly:'ppd'},
-    {k:'ai',x:2.15,z:-1.45,c:0x8ff7e0,h:1.35,ly:'ddp'},{k:'sensor',x:3.7,z:.85,c:0xb8f0a8,h:1.3,ly:'ppd'},{k:'gis',x:-.75,z:-1.95,c:0xc9b8ff,h:1.25,ly:'ddd'}];
+  // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。h＝札の高さ、hd＝受けとる頭の高さ、ly＝受けとる層の高さ、r＝受けとれる範囲（模式）
+  const SUB=[
+    {k:'bird',x:-3.7,z:-.5,c:0x8fc9ff,h:.95,hd:.62,ly:1.95,r:2.2},{k:'bee',x:-2.0,z:1.75,c:0xf3c86e,h:1.0,hd:.98,ly:.62,r:1.5},{k:'human',x:.95,z:1.35,c:0xf1ece4,h:1.85,hd:1.6,ly:1.3,r:1.95},
+    {k:'ai',x:2.15,z:-1.45,c:0x7ff0d6,h:1.35,hd:1.0,ly:1.62,r:1.75},{k:'sensor',x:3.7,z:.85,c:0xa9ec9a,h:1.3,hd:1.18,ly:.95,r:1.5},{k:'gis',x:-.75,z:-1.95,c:0xc4b2ff,h:1.25,hd:.95,ly:.24,r:2.3}];
   SUB.forEach(s=>{s.p=new THREE.Vector3(s.x,0,s.z);s.a=Math.atan2(s.z,s.x)*180/Math.PI;s.ry=Math.atan2(-s.p.x,-s.p.z)+.5;});
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
   const blob=(p,r)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:blobT,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(p.x,.012,p.z);W.add(m);};
-  // ---- 地：暗い地に、デジタルの格子（水色）とフィジカルの等高線（砂色）。縁は闇に溶ける
+  // ---- 受けとる範囲の今の値（触れると広がる）。中心 xz と半径を、層・地・網が共有する
+  const NS=SUB.length, CEN=SUB.map(s=>new THREE.Vector3(s.x,s.z,0)), COL=SUB.map(s=>new THREE.Color(s.c));
+  const rad=SUB.map(()=>0), radT=SUB.map(s=>s.r), lit=SUB.map(()=>1);   // 今の半径・目標・明るさ
+  CEN.forEach((c,i)=>c.z=0);
+  const RU=SUB.map(()=>new THREE.Vector3());   // xyz＝中心 x・中心 z・半径（シェーダーへ）
+  const syncRU=()=>SUB.forEach((s,i)=>RU[i].set(s.x,s.z,rad[i]));
+  syncRU();
+  const GLSL_COMMON=`uniform vec3 ru[6];uniform vec3 rc[6];uniform float t;
+    float hs(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+    float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hs(i),hs(i+vec2(1,0)),f.x),mix(hs(i+vec2(0,1)),hs(i+1.),f.x),f.y);}
+    float edgeR(int i,vec2 q){vec2 d=q-ru[i].xy;float a=atan(d.y,d.x);return ru[i].z*(1.+.045*sin(a*3.+t*.21+float(i)*1.7)+.03*sin(a*5.-t*.17+float(i)));}
+    float ed(int i,vec2 q){return edgeR(i,q)-length(q-ru[i].xy);}
+    float cov(int i,float e){return ru[i].z<.01?0.:smoothstep(.0,.38,e);}
+    float cover(int i,vec2 q){return cov(i,ed(i,q));}`;
+  // ---- 地：写実の土。上に、それぞれの範囲が淡く落ち、重なりの下には光が透けて揺らぐ（光の透過）。縁は闇に溶ける
   { const tl=new THREE.TextureLoader(), sc=tl.load('img/hero/3d/dio/soil_c.webp',()=>{dirty=1;}), sn=tl.load('img/hero/3d/dio/soil_n.webp',()=>{dirty=1;});
     [sc,sn].forEach(x=>{x.wrapS=x.wrapT=THREE.RepeatWrapping;x.anisotropy=mob?2:8;}); sc.colorSpace=THREE.SRGBColorSpace;
-    const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{t:{value:0},sc:{value:sc},sn:{value:sn}},
-      vertexShader:`varying vec2 v;void main(){v=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader:`varying vec2 v;uniform float t;uniform sampler2D sc,sn;void main(){float r=length(v);float fade=smoothstep(5.6,1.5,r);
+    const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{t:{value:0},sc:{value:sc},sn:{value:sn},ru:{value:RU},rc:{value:COL}},
+      vertexShader:`varying vec2 v;void main(){v=vec2(position.x,-position.y);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+      fragmentShader:GLSL_COMMON+`varying vec2 v;uniform sampler2D sc,sn;void main(){float r=length(v);float fade=smoothstep(6.2,2.,r);
         vec3 so=texture2D(sc,v*.42).rgb*.55+texture2D(sc,v*.11+.3).rgb*.45;vec3 nn=texture2D(sn,v*.42).rgb*2.-1.;
-        float lit=clamp(.55+.45*dot(normalize(vec3(nn.xy,1.)),normalize(vec3(.45,.6,.65))),0.,1.3);
-        float sun=.55+.45*smoothstep(4.8,.4,length(v-vec2(.6,.9)));
-        vec2 g=abs(fract(v*1.25)-.5);float grid=smoothstep(.47,.5,max(g.x,g.y));
-        float h=sin(v.x*.9+1.3)*cos(v.y*.7-.4)+.5*sin(r*1.1-t*.15);float con=smoothstep(.06,0.,abs(fract(h*2.2)-.5)-.44);
-        vec3 earth=pow(so,vec3(1.15))*lit*sun*1.05;vec3 col=mix(vec3(.035,.05,.075),earth,smoothstep(5.4,2.2,r))+vec3(.56,.83,1.)*grid*.11+vec3(.91,.77,.54)*con*.13;
+        float lt=clamp(.55+.45*dot(normalize(vec3(nn.xy,1.)),normalize(vec3(.45,.6,.65))),0.,1.3);
+        float sun=.5+.5*smoothstep(5.,.4,length(v-vec2(.6,-.9)));
+        vec3 earth=pow(so,vec3(1.15))*lt*sun*.95;vec3 col=mix(vec3(.03,.045,.07),earth,smoothstep(5.8,2.4,r));
+        float n=0.;vec3 lc=vec3(0.);float rim=0.;
+        for(int i=0;i<6;i++){float e=ed(i,v);float c=cov(i,e);n+=c;lc+=rc[i]*c;rim+=smoothstep(.05,0.,abs(e))*step(.01,ru[i].z);}
+        float cs=vn(v*3.1+vec2(t*.11,-t*.07))*vn(v*5.3-vec2(t*.05,t*.09));float caus=smoothstep(.18,.5,cs);
+        float ov=smoothstep(1.2,2.,n);vec3 lm=n>.01?lc/n:vec3(0.);
+        col+=lm*(n*.035+ov*(.10+.16*caus))+vec3(.75,.9,1.)*rim*.035;
         gl_FragColor=vec4(col,fade*.97);}`});
-    const g=new THREE.Mesh(new THREE.CircleGeometry(7.4,mob?64:96),m); g.rotation.x=-Math.PI/2; W.add(g); W.userData.ground=m; }
-  // ---- 情報の層：下にフィジカル情報（砂色）3 枚、上にデジタル情報（水色）3 枚。布のようにゆらぐ
-  const sheetM=(col,ph)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,uniforms:{t:{value:0},col:{value:new THREE.Color(col)},ph:{value:ph}},
-    vertexShader:`uniform float t,ph;varying vec2 v;void main(){vec3 p=position;p.z+=sin(p.x*.7+t*.5+ph)*.09+cos(p.y*.6-t*.4+ph*1.7)*.08;v=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
-    fragmentShader:`uniform vec3 col;uniform float t,ph;varying vec2 v;void main(){float r=length(v);float a=smoothstep(5.4,2.4,r);
-      float s=smoothstep(.0,.02,abs(fract(v.x*.55+v.y*.2+ph+t*.03)-.5)-.47);float d=step(.82,fract(sin(dot(floor(v*3.),vec2(12.9,78.2)))*43758.5));
-      gl_FragColor=vec4(col,a*(.035+s*.075+d*.04));}`});
-  const sheets=[], SY={p:[.3,.5,.7],d:[2.55,2.75,2.95]};
-  ['p','d'].forEach(k=>SY[k].forEach((y,i)=>{const m=sheetM(k==='p'?0xe8c48a:0x8fd3ff,i*1.9+(k==='d'?3:0));const o=new THREE.Mesh(new THREE.PlaneGeometry(13,13,mob?24:40,mob?24:40),m);o.rotation.x=-Math.PI/2;o.position.y=y;W.add(o);sheets.push(m);}));
-  // ---- 層から主体へ、受けとる線（3 本ずつ）。線の上を光の粒が下りてくる
-  const lineM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{t:{value:0}},
-    vertexShader:`attribute float u;attribute vec3 col;varying float vu;varying vec3 vc;void main(){vu=u;vc=col;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-    fragmentShader:`uniform float t;varying float vu;varying vec3 vc;void main(){float f=.22+.78*smoothstep(.1,0.,abs(fract(vu*2.-t*.45)-.5)-.38);gl_FragColor=vec4(vc,f*.75);}`});
-  { const P=[],U=[],Cc=[], cp=new THREE.Color(0xe8c48a), cd=new THREE.Color(0x8fd3ff);
-    SUB.forEach(s=>{ [...s.ly].forEach((k,j)=>{ const y=SY[k][j], ang=s.a*Math.PI/180+(j-1)*.55, rr=s.p.length()+.95+(j%2)*.3;
-      const a=new THREE.Vector3(Math.cos(ang)*rr,y,Math.sin(ang)*rr), b=s.p.clone().setY(s.h*.62), col=k==='p'?cp:cd, n=14;
-      for(let q=0;q<n;q++){ for(const e of [q,q+1]){ const u=e/n; P.push(a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u+Math.sin(u*Math.PI)*.18,a.z+(b.z-a.z)*u); U.push(u); Cc.push(col.r,col.g,col.b); } }
-      const dot=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:col,toneMapped:false})); dot.position.copy(a); W.add(dot); }); });
-    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('u',new THREE.Float32BufferAttribute(U,1)); g.setAttribute('col',new THREE.Float32BufferAttribute(Cc,3));
-    W.add(new THREE.LineSegments(g,lineM)); }
-  // ---- それぞれの環世界：主体を包み、中心へ寄せた膜（縁だけ光る）。六つが中央で重なる
-  const BR=1.78, BY=.5, BC=SUB.map(s=>s.p.clone().setY(.95));
-  const shellM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,uniforms:{t:{value:0},col:{value:new THREE.Color()}},
-    vertexShader:`uniform float t;varying float f;void main(){vec3 p=position;float w=sin(p.x*3.1+t*.9)*sin(p.y*2.7-t*.7)*sin(p.z*2.3+t*.5);p+=normal*w*.06;vec4 mv=modelViewMatrix*vec4(p,1.);vec3 n=normalize(normalMatrix*normal);f=pow(1.-abs(dot(n,normalize(-mv.xyz))),2.4);gl_Position=projectionMatrix*mv;}`,
-    fragmentShader:`uniform vec3 col;varying float f;void main(){gl_FragColor=vec4(col,f*.09);}`});
-  const shellG=new THREE.SphereGeometry(BR,mob?36:56,mob?24:36), shells=SUB.map((s,i)=>{const m=shellM.clone();m.uniforms.col.value.setHex(s.c);const o=new THREE.Mesh(shellG,m);o.position.copy(BC[i]);o.scale.y=BY;W.add(o);return o;});
-  // 粒：いくつの環世界の中にあるかで明るさが変わる（重なるほど明るい＝共有の場）
-  { const N=mob?5000:14000, P=new Float32Array(N*3);
-    for(let i=0;i<N;i++){let x,y,z;do{x=Math.random()*2-1;y=Math.random();z=Math.random()*2-1}while(x*x+z*z>1);P.set([x*5.8,.05+y*2.1,z*4.4],i*3);}
-    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(P,3));
-    const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{t:{value:0},c:{value:BC},r:{value:BR},px:{value:R.getPixelRatio()}},
-      vertexShader:`uniform float t,r,px;uniform vec3 c[6];varying float k;void main(){vec3 p=position;p.y+=sin(t*.3+p.x*1.7+p.z)*.05;float n=0.;for(int i=0;i<6;i++){vec3 d=p-c[i];d.y/=${BY.toFixed(2)};n+=step(length(d),r);}k=n;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=px*(1.1+smoothstep(2.,6.,n)*1.9)*(9./-mv.z);gl_Position=projectionMatrix*mv;}`,
-      fragmentShader:`varying float k;void main(){vec2 q=gl_PointCoord-.5;if(dot(q,q)>.25)discard;float a=k<.5?.0:k<1.5?.03:.13+.05*(k-2.);vec3 col=mix(vec3(.6,.78,.9),vec3(.8,1.,.97),clamp(k-1.,0.,1.));gl_FragColor=vec4(col,min(a,.6));}`});
-    W.add(new THREE.Points(g,m)); W.userData.pts=m; }
-  // ---- 重なりの網：となりどうしの環世界が重なる所（U_i ∩ U_j）に節を置き、主体と節を細い線で結ぶ。中心は一つではない
-  const LENS=[]; for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){const d=SUB[i].p.distanceTo(SUB[j].p);if(d<BR*2*.99)LENS.push({i,j,m:SUB[i].p.clone().add(SUB[j].p).multiplyScalar(.5).setY(.95)});}
-  { const P=[],U=[],Cc=[], ca=new THREE.Color(), cb=new THREE.Color(), cw=new THREE.Color(0xa8f2f6);
-    LENS.forEach(L=>{[L.i,L.j].forEach(q=>{const a=SUB[q].p.clone().setY(SUB[q].h*.55), b=L.m, n=12; ca.setHex(SUB[q].c);
-      for(let e=0;e<n;e++)for(const f of [e,e+1]){const u=f/n; P.push(a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u+Math.sin(u*Math.PI)*.22,a.z+(b.z-a.z)*u); U.push(u); cb.copy(ca).lerp(cw,u); Cc.push(cb.r,cb.g,cb.b);} }); });
-    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('u',new THREE.Float32BufferAttribute(U,1)); g.setAttribute('col',new THREE.Float32BufferAttribute(Cc,3));
-    W.add(new THREE.LineSegments(g,lineM));
-    const nodeT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(220,255,252,1)');gr.addColorStop(.25,'rgba(168,242,246,.55)');gr.addColorStop(1,'rgba(168,242,246,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
-    const nodes=LENS.map((L,k)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:nodeT,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));sp.position.copy(L.m);sp.scale.setScalar(.34);W.add(sp);return sp;});
-    {const RP=[];LENS.forEach(L=>{for(let q=0;q<48;q++)for(const e of [q,q+1]){const a=e/48*Math.PI*2;RP.push(L.m.x+Math.cos(a)*.31,.02,L.m.z+Math.sin(a)*.31);}});W.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(RP,3)),new THREE.LineBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.3,toneMapped:false,depthWrite:false,blending:THREE.AdditiveBlending})));}
-    anim.push(t=>nodes.forEach((n,k)=>n.scale.setScalar(.3+.06*Math.sin(t*1.3+k*1.7)))); }
+    const g=new THREE.Mesh(new THREE.CircleGeometry(7.6,mob?64:96),m); g.rotation.x=-Math.PI/2; W.add(g); W.userData.ground=m; }
+  // ---- 受けとる層：主体ごとに一枚（地面と平行・色と高さと広さが違う）。縁はやわらかく、内に細い等距線、重なりでは光が混ざる
+  const layerM=(i,slice)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
+    uniforms:{t:{value:0},ru:{value:RU},rc:{value:COL},me:{value:i},lit:{value:1},sl:{value:slice}},
+    vertexShader:`uniform float t,sl;uniform int me;varying vec2 v;varying float fr;void main(){vec3 p=position;v=vec2(p.x,-p.y);
+      float w=sin(p.x*.8+t*.35+float(me)*2.1)*.045+cos(p.y*.7-t*.28+float(me))*.04;p.z+=w;
+      vec4 wp=modelMatrix*vec4(p,1.);vec3 nv=normalize(cameraPosition-wp.xyz);fr=1.-abs(nv.y);gl_Position=projectionMatrix*viewMatrix*wp;}`,
+    fragmentShader:GLSL_COMMON+`uniform int me;uniform float lit,sl;varying vec2 v;varying float fr;
+      void main(){vec2 q=v+ru[me].xy;float d=length(q-ru[me].xy),er=edgeR(me,q),e=er-d;float own=cov(me,e);if(own<.002)discard;
+        float rimL=smoothstep(.035,.0,abs(e-.02));float iso=smoothstep(.012,.0,abs(fract(d*3.2-t*.04)-.5)-.47)*smoothstep(.2,.9,e);
+        float n=0.;vec3 lc=rc[me];float m2=0.;
+        float lens=0.;for(int i=0;i<6;i++){if(i==me)continue;vec2 dd=q-ru[i].xy;if(dot(dd,dd)>ru[i].z*ru[i].z*1.3)continue;float ej=ed(i,q);float c=cov(i,ej);n+=c;lc+=rc[i]*c;m2+=c*ej;lens+=smoothstep(.03,0.,abs(ej-.01))*step(.01,ru[i].z);}
+        vec3 base=rc[me];vec3 mixc=lc/(1.+n);
+        float film=.5+.5*cos(6.2831*(m2*.8-e*.6)+t*.3);   // 重なりの縁に、薄い膜の干渉のような色のゆらぎ
+        vec3 irid=.5+.5*cos(6.2831*(vec3(.0,.33,.67)+film*.35+e*.2));
+        float ov=clamp(n,0.,1.);float rr=clamp(d/max(er,.01),0.,1.);
+        float glow=smoothstep(.45,1.,rr);   // 縁ほど光をためる（ガラスの縁のように）
+        vec3 col=mix(base*(.75+.45*glow),mix(mixc*1.5,vec3(1.),.32)+irid*.14,ov);
+        col=mix(col,vec3(1.),rimL*.35+lens*.5);
+        float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.36+.14*film)+lens*own*.45;
+        a*=lit*(1.-sl*.55);
+        gl_FragColor=vec4(min(col,vec3(1.)),a);}`});
+  const layers=[];
+  SUB.forEach((s,i)=>{const RM=s.r*1.55, seg=mob?28:44;
+    for(let k=0;k<1;k++){const m=layerM(i,k);const o=new THREE.Mesh(new THREE.PlaneGeometry(RM*2,RM*2,seg,seg),m);o.rotation.x=-Math.PI/2;o.position.set(s.x,s.ly-k*.05,s.z);o.renderOrder=2+i;W.add(o);layers.push({o,m,i});}});
+  // ---- 共有の場：二つの層が重なる所に、層と層をつなぐ光の柱（上下がやわらかく消える）。網の節
+  const PAIRS=[]; for(let i=0;i<NS;i++)for(let j=i+1;j<NS;j++)PAIRS.push({i,j,m:new THREE.Vector3(),w:0,amt:0});
+  const colM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,
+    uniforms:{t:{value:0},a:{value:0},c:{value:new THREE.Color()}},vertexShader:`uniform float a;uniform vec3 c;varying float va;varying vec3 vc;varying float vy;varying float fr;void main(){va=a;vc=c;vy=uv.y;
+      vec4 wp=modelMatrix*vec4(position,1.);vec3 nn=normalize(mat3(modelMatrix)*normal);fr=abs(dot(nn,normalize(cameraPosition-wp.xyz)));gl_Position=projectionMatrix*viewMatrix*wp;}`,
+    fragmentShader:`uniform float t;varying float va;varying vec3 vc;varying float vy;varying float fr;void main(){float s=smoothstep(0.,.25,vy)*smoothstep(1.,.7,vy);
+      float k=pow(fr,1.3);gl_FragColor=vec4(vc*(.9+.2*sin(vy*9.-t*1.2)),s*k*va*.3);}`});
+  const cols=[]; { const base=new THREE.CylinderGeometry(1,1,1,mob?18:28,1,true);
+    PAIRS.forEach(P=>{const m=colM.clone();m.uniforms.t=colM.uniforms.t;m.uniforms.c.value.copy(COL[P.i]).lerp(COL[P.j],.5).multiplyScalar(1.1);
+      const o=new THREE.Mesh(base,m);o.visible=false;W.add(o);cols.push(o);}); }
+  // 網：重なりの節どうしを、同じ主体を介してつなぐ細い光の糸（中心のない網）
+  const WEB=[]; PAIRS.forEach((A,a)=>PAIRS.forEach((B,b)=>{if(b<=a)return;const sh=[A.i,A.j].find(x=>x===B.i||x===B.j);if(sh!==undefined)WEB.push({a,b,s:sh});}));
+  const WN=10, webP=new Float32Array(WEB.length*WN*2*3), webA=new Float32Array(WEB.length*WN*2), webC=new Float32Array(WEB.length*WN*2*3), webU=new Float32Array(WEB.length*WN*2);
+  WEB.forEach((E,e)=>{const c=COL[E.s];for(let q=0;q<WN*2;q++){webC.set([c.r,c.g,c.b],(e*WN*2+q)*3);webU[e*WN*2+q]=(Math.floor(q/2)+(q%2))/WN;}});
+  const webG=new THREE.BufferGeometry(); webG.setAttribute('position',new THREE.BufferAttribute(webP,3)); webG.setAttribute('a',new THREE.BufferAttribute(webA,1)); webG.setAttribute('c',new THREE.BufferAttribute(webC,3)); webG.setAttribute('u',new THREE.BufferAttribute(webU,1));
+  const webM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{t:{value:0}},
+    vertexShader:`attribute float a,u;attribute vec3 c;varying float va,vu;varying vec3 vc;void main(){va=a;vu=u;vc=c;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+    fragmentShader:`uniform float t;varying float va,vu;varying vec3 vc;void main(){float f=.35+.65*smoothstep(.12,0.,abs(fract(vu-t*.18)-.5)-.36);gl_FragColor=vec4(vc*1.2,va*f*.75);}`});
+  const webL=new THREE.LineSegments(webG,webM); webL.frustumCulled=false; W.add(webL);
+  const nodeT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.22,'rgba(220,245,255,.5)');gr.addColorStop(1,'rgba(200,240,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
+  const nodes=PAIRS.map(P=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:nodeT,color:COL[P.i].clone().lerp(COL[P.j],.5),transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));sp.scale.setScalar(.3);W.add(sp);return sp;});
+  // ---- めぐり：受けとる（層から頭へ）→ 意味づけ・選ぶ（頭のまわりを一周）→ ふるまいが環境へ返る（足もとから地をつたう）→ 重なりを昇って、となりの主体の層へ
+  const NP=mob?90:190, TR=3, flowP=new Float32Array(NP*TR*3), flowC=new Float32Array(NP*TR*3), flowS=new Float32Array(NP*TR);
+  const flowG=new THREE.BufferGeometry(); flowG.setAttribute('position',new THREE.BufferAttribute(flowP,3)); flowG.setAttribute('c',new THREE.BufferAttribute(flowC,3)); flowG.setAttribute('s',new THREE.BufferAttribute(flowS,1));
+  const flowM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{px:{value:R.getPixelRatio()}},
+    vertexShader:`attribute vec3 c;attribute float s;uniform float px;varying vec3 vc;varying float vs;void main(){vc=c;vs=s;vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=px*(1.4+s*2.8)*(24./-mv.z);gl_Position=projectionMatrix*mv;}`,
+    fragmentShader:`varying vec3 vc;varying float vs;void main(){vec2 q=gl_PointCoord-.5;float d=dot(q,q);if(d>.25)discard;gl_FragColor=vec4(mix(vc,vec3(1.),.35),vs*(1.-d*4.));}`});
+  const flowPts=new THREE.Points(flowG,flowM); flowPts.frustumCulled=false; W.add(flowPts);
+  const tmp=new THREE.Vector3(), tmp2=new THREE.Vector3();
+  const nbr=i=>PAIRS.filter(P=>(P.i===i||P.j===i)&&P.amt>.3);
+  function hop(i){   // 主体 i から、重なりのあるとなりへの道（点の列）
+    const ns=nbr(i); if(!ns.length) return null; const P=ns[Math.floor(Math.random()*ns.length)], k=P.i===i?P.j:P.i, s=SUB[i], o=SUB[k];
+    const pts=[], ph=Math.random()*6.28;
+    for(let q=0;q<=8;q++){const u=q/8;pts.push(new THREE.Vector3(s.x+(o.x-s.x)*0,0,0).set(s.x+Math.cos(ph)*.02,s.ly+(s.hd-s.ly)*u,s.z));}   // 層から頭へ（受けとる）
+    if(!['ai','sensor','gis'].includes(s.k))for(let q=1;q<=16;q++){const a=ph+q/16*6.2832;pts.push(new THREE.Vector3(s.x+Math.cos(a)*.26,s.hd+.06*Math.sin(a*2.),s.z+Math.sin(a)*.26));}   // 頭のまわりを一周（意味づけ・選ぶ）
+    const f=new THREE.Vector3(s.x+Math.cos(ph)*.3,.04,s.z+Math.sin(ph)*.3);
+    for(let q=1;q<=6;q++){const u=q/6;pts.push(new THREE.Vector3(s.x+Math.cos(ph)*.26,s.hd*(1-u)+.04*u,s.z+Math.sin(ph)*.26));}   // ふるまいが足もとへ
+    for(let q=1;q<=10;q++){const u=q/10;pts.push(f.clone().lerp(tmp.set(P.m.x,.04,P.m.z),u).setY(.04+Math.sin(u*Math.PI)*.03));}   // 地をつたう（環境へ返る）
+    for(let q=1;q<=8;q++){const u=q/8;pts.push(new THREE.Vector3(P.m.x,.04+(o.ly-.04)*u,P.m.z));}   // 重なりを昇る
+    for(let q=1;q<=10;q++){const u=q/10;pts.push(new THREE.Vector3(P.m.x+(o.x-P.m.x)*u,o.ly+Math.sin(u*Math.PI)*.05,P.m.z+(o.z-P.m.z)*u));}   // となりの層をわたって、その主体の受けとりへ
+    const L=[0];for(let q=1;q<pts.length;q++)L.push(L[q-1]+pts[q].distanceTo(pts[q-1]));
+    return {pts,L,len:L[L.length-1],from:i,to:k};
+  }
+  const parts=[...Array(NP)].map((_,n)=>({at:n%NS,path:null,d:0,sp:.55+Math.random()*.35,wait:Math.random()*4}));
+  function posOn(pa,d,out){const L=pa.L;let q=1;while(q<L.length-1&&L[q]<d)q++;const u=(d-L[q-1])/Math.max(1e-4,L[q]-L[q-1]);return out.copy(pa.pts[q-1]).lerp(pa.pts[q],Math.min(1,Math.max(0,u)));}
+  let flowOn=0;
+  function updFlow(dt){
+    for(let n=0;n<NP;n++){const P=parts[n];
+      if(!P.path){P.wait-=dt;if(P.wait<=0){P.path=hop(P.at);P.d=0;if(!P.path)P.wait=1+Math.random()*2;}}
+      for(let r=0;r<TR;r++){const ix=(n*TR+r);if(!P.path){flowS[ix]=0;continue;}const d=P.d-r*.07;if(d<0){flowS[ix]=0;continue;}
+        posOn(P.path,d,tmp);flowP.set([tmp.x,tmp.y,tmp.z],ix*3);const u=d/P.path.len;tmp2.copy(COL[P.path.from]).lerp(COL[P.path.to],smoothstep(.45,.95,u));flowC.set([tmp2.r,tmp2.g,tmp2.b],ix*3);
+        flowS[ix]=flowOn*(1-r*.32)*(u<.02?u/.02:u>.97?(1-u)/.03:1);}
+      if(P.path){P.d+=dt*P.sp;if(P.d>=P.path.len+.2){P.at=P.path.to;P.path=null;P.wait=.15+Math.random()*1.2;}}}
+    flowG.attributes.position.needsUpdate=flowG.attributes.c.needsUpdate=flowG.attributes.s.needsUpdate=true;
+  }
+  function smoothstep(a,b,x){x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x);}
+  // 重なりの量・節・柱・網を、今の半径から求めなおす
+  function updOverlap(intro){
+    PAIRS.forEach((P,k)=>{const A=SUB[P.i],B=SUB[P.j],dx=B.x-A.x,dz=B.z-A.z,d=Math.hypot(dx,dz),ra=rad[P.i],rb=rad[P.j],o=ra+rb-d;
+      P.amt=Math.min(1,Math.max(0,o/.55));const w=Math.max(0,Math.min(o,2*Math.min(ra,rb)))/2;const u=(ra-w)/Math.max(1e-3,d);
+      P.m.set(A.x+dx*u,(A.ly+B.ly)/2,A.z+dz*u);P.w=w;
+      const c=cols[k],a=P.amt*Math.min(lit[P.i],lit[P.j]);c.visible=a>.01;if(c.visible){const y0=Math.min(A.ly,B.ly)-.05,y1=Math.max(A.ly,B.ly)+.05;c.position.set(P.m.x,(y0+y1)/2,P.m.z);c.scale.set(Math.max(.06,w*.62),y1-y0,Math.max(.06,w*.62));
+        c.material.uniforms.a.value=a;}
+      nodes[k].position.set(P.m.x,P.m.y,P.m.z);nodes[k].material.opacity=a*.85;});
+    WEB.forEach((E,e)=>{const A=PAIRS[E.a],B=PAIRS[E.b],a=A.amt*B.amt*intro,sy=SUB[E.s].ly;
+      for(let q=0;q<WN;q++)for(let r=0;r<2;r++){const u=(q+r)/WN,ix=e*WN*2+q*2+r;tmp.copy(A.m).lerp(B.m,u);tmp.y+=Math.sin(u*Math.PI)*((sy-tmp.y)*.6);webP.set([tmp.x,tmp.y,tmp.z],ix*3);webA[ix]=a;}});
+    webG.attributes.position.needsUpdate=webG.attributes.a.needsUpdate=true;
+  }
+  const LENS=PAIRS.filter(P=>{const A=SUB[P.i],B=SUB[P.j];return Math.hypot(B.x-A.x,B.z-A.z)<A.r+B.r;}).map(P=>{const A=SUB[P.i],B=SUB[P.j],d=Math.hypot(B.x-A.x,B.z-A.z),w=(A.r+B.r-d)/2,u=(A.r-w)/d;return {i:P.i,j:P.j,m:new THREE.Vector3(A.x+(B.x-A.x)*u,.95,A.z+(B.z-A.z)*u)};});
+  // 触れる：層（主体の範囲）を押すと、その主体の受けとる範囲が広がり、ほかは少し退く。もう一度押すと戻る
+  let sel=-1;
+  const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), pl=new THREE.Plane(new THREE.Vector3(0,1,0),0), hit=new THREE.Vector3(), inv=new THREE.Matrix4();
+  function pick(e){const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,C);
+    let best=-1,bd=1e9;SUB.forEach((s,i)=>{pl.constant=-s.ly;inv.copy(W.matrixWorld);const p=pl.clone().applyMatrix4(inv);if(!ray.ray.intersectPlane(p,hit))return;const lp=W.worldToLocal(hit.clone());const d=Math.hypot(lp.x-s.x,lp.z-s.z)/rad[i];if(d<1&&d<bd){bd=d;best=i;}});
+    return best;}
+  function choose(i){sel=(i===sel)?-1:i;SUB.forEach((s,k)=>{radT[k]=sel<0?s.r:k===sel?s.r*1.42:s.r*.92;});
+    st.querySelectorAll('.cg-lb').forEach(d=>d.classList.toggle('sel',sel>=0&&d.dataset.k===SUB[sel].k));dirty=1;}
   // ---- 主体の 3D
   const look=o=>o;
   const std=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:o.r??.45,metalness:o.m??.6,emissive:o.e??0,emissiveIntensity:o.ei??1});
@@ -128,7 +203,7 @@ export function start(box){
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
     const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3()),k=1.72/sz.y;o.scale.setScalar(k);o.position.set(-(bb.min.x+sz.x/2)*k,-bb.min.y*k,-(bb.min.z+sz.z/2)*k);
     const p=new THREE.Group();p.add(o);const s=SUB[2];at(s,p);p.rotation.y=s.ry+Math.PI*.82;dirty=1;}catch(e){console.warn('cg human',e);}});
-  // 依代（碧）：重なりの真ん中に立つ（ほかの図と同じ VRM のバイト列を使い回す）
+  // 依代（碧）：中心ではなく、鳥と GIS の重なりのあいだに立つ（ほかの図と同じ VRM のバイト列を使い回す）
   let mot=null,vrm=null,aoiP=null,aoiN=0;
   const lensOf=(a,b)=>LENS.find(L=>SUB[L.i].k===a&&SUB[L.j].k===b||SUB[L.i].k===b&&SUB[L.j].k===a);
   const AOI=(lensOf('bird','gis')||LENS[0]).m.clone().setY(0), YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
@@ -147,22 +222,27 @@ export function start(box){
   }catch(e){console.warn('cg aoi',e);}});
   // ---- 札（index.html の .cg-lb）を 3D の位置へ写す
   const st=box.querySelector('.cg-st'); const LB={};st.querySelectorAll('.cg-lb').forEach(d=>LB[d.dataset.k]=d);
-  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().setY(s.h+.2)})).concat([{k:'aoi',p:AOI.clone().setY(1.85)},{k:'yori',p:YORI.clone().setY(.95)},{k:'phys',p:new THREE.Vector3(-5.6,.45,2.4)},{k:'digi',p:new THREE.Vector3(5.2,2.85,-2.2)}]);
+  const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().setY(s.h+.2)})).concat([{k:'aoi',p:AOI.clone().setY(1.85)},{k:'yori',p:YORI.clone().setY(.95)}]);
   const v=new THREE.Vector3(), vc=new THREE.Vector3();
   // 視点：ゆっくり左右にめぐる。横になぞると回せる（縦のスクロールは止めない）
-  let yaw=0, drag=null, user=0;
+  let yaw=0, drag=null, user=0, tI0=-1; const base=SUB.map(s=>s.r);
   cv.style.touchAction='pan-y';
-  cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y0:yaw};user=performance.now();});
-  addEventListener('pointermove',e=>{if(!drag)return;yaw=drag.y0+(e.clientX-drag.x)*.006;user=performance.now();dirty=1;if(!raf&&vis)raf=requestAnimationFrame(loop);},{passive:true});
+  cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,y0:yaw,mv:0};user=performance.now();});
+  cv.addEventListener('pointerup',e=>{if(drag&&drag.mv<8){const i=pick(e);if(i>=0||sel>=0)choose(i<0?sel:i);}});
+  addEventListener('pointermove',e=>{if(!drag)return;drag.mv=Math.max(drag.mv,Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y));yaw=drag.y0+(e.clientX-drag.x)*.006;user=performance.now();dirty=1;if(!raf&&vis)raf=requestAnimationFrame(loop);},{passive:true});
   addEventListener('pointerup',()=>{drag=null;});addEventListener('pointercancel',()=>{drag=null;});
   let wpx=0,hpx=0;
-  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?50:30;C.position.set(0,tall?10.4:6.2,tall?8.2:12.8);C.lookAt(0,tall?.9:1.0,0);C.updateProjectionMatrix();dirty=1;}
+  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?48:30;C.position.set(0,tall?13.2:7.4,tall?5.6:12.2);C.lookAt(0,tall?.4:.9,tall?-.5:.1);C.updateProjectionMatrix();dirty=1;}
   size(); addEventListener('resize',size);
   new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop);}).observe(box);
   function frame(t,dt){
     if(!reduce){ if(!drag&&performance.now()-user>2500){auto+=dt*.07;} }
     W.rotation.y=yaw+Math.sin(auto)*.35;
-    sheets.forEach(m=>m.uniforms.t.value=t); lineM.uniforms.t.value=t; shells.forEach((o,i)=>o.material.uniforms.t.value=t+i); W.userData.pts.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
+    if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
+    for(let i=0;i<NS;i++){const g=smoothstep(0,1,(tI-.3-.34*i)/1.5);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
+      const lt=sel<0?1:i===sel?1.3:.55;lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
+    syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
+    updOverlap(smoothstep(2.6,4.2,tI)); flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
     anim.forEach(f=>f(t,dt));
     if(mot){mot.update(dt,C,{vrmUpdate:false});vrm.update(dt);mot.afterVrmUpdate(dt);if(!aoiP.visible&&++aoiN>3)aoiP.visible=true;}
     if(WQ.length)WQ.shift()();
@@ -172,7 +252,6 @@ export function start(box){
     for(const a of anchors){const d=LB[a.k];if(!d)continue;v.copy(a.p).applyMatrix4(W.matrixWorld);const dz=v.clone().applyMatrix4(C.matrixWorldInverse).z;v.project(C);
       let x=(v.x*.5+.5)*wpx,y=(-v.y*.5+.5)*hpx;
       if(a.k==='aoi'||a.k==='yori'){const dw=d.offsetWidth,dh=d.offsetHeight;box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
-      if(a.k==='phys'||a.k==='digi'){const dw=d.offsetWidth,dh=d.offsetHeight;let lx=a.k==='phys'?x:x-dw;lx=Math.max(12,Math.min(wpx-dw-12,lx));box_.push({d,lx,ly:y-dh/2,dw,dh});continue;}
       const left=x<cx, up=y<cy, dw=d.offsetWidth, dh=d.offsetHeight; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(12,Math.min(wpx-dw-12,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
 }
     // 札どうしが重なったら、上下へ押し分ける（数回）
