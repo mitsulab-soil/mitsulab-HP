@@ -7,7 +7,7 @@ const KINDS = {
   writing: { cam: [0, 2.6, 8.0], look: [0, 1.2, 0] },   // 紙が層になって積み重なる（言葉に残す）
   collab:  { cam: [0, 2.6, 7.6], look: [0, 2.5, 0] },   // 人が欅の下に立ち、同じ層を見る（ワークショップ）
   story:   { cam: [0, 2.6, 8.2], look: [0, 2.2, 0] },    // 欅と、その下の土の層（土木と自然から始まった歩み）
-  profile: { cam: [0, 1.7, 4.8], look: [0, 1.0, 0] },   // 一人が、層の中に立つ
+  profile: { cam: [0, 2.2, 6.4], look: [0, 1.2, 0] },   // 測量の標尺と若い欅（土木と自然の現場）
   museum:  { cam: [0, 2.2, 7.4], look: [0, 1.1, 0] },   // 展示の台に、層を写した面が浮かぶ
   pair:    { cam: [0, 1.8, 5.6], look: [0, 1.0, 0] },   // 二人が並び、同じ層を見る（一緒に試す）
   ground:  { cam: [0, 3.4, 8.6], look: [0, .8, 0] },    // 六つの環世界が重なる（コモングラウンド）
@@ -61,7 +61,8 @@ export function start(box, kind = box.dataset.th || 'ground') {
         const e = new THREE.LineSegments(new THREE.EdgesGeometry(f.geometry), new THREE.LineBasicMaterial({ color: i === 1 ? 0x8fd3ff : 0xe8c48a, transparent: true, opacity: .8 })); const g = new THREE.Group(); g.add(f, e); g.position.set(x, 1.55, p.position.z); W.add(g);
         anim.push(t => { g.position.y = 1.55 + Math.sin(t * .7 + i) * .05; g.rotation.y = (1 - i) * .25 + Math.sin(t * .3 + i) * .08; }); }); },
     async pair() { const a = await human(1.72); await add(a, -.45, 0, .35); const b = await human(1.64); await add(b, .45, .1, -.35); },
-    async profile() { const h = await human(1.72); await add(h, 0, 0, 0); h.rotation.y = .3; },
+    async profile() { const t = await keyakiR(2.8); await add(t, .7, -.2, .4, .9);
+      const st = new THREE.Group(); for (let k = 0; k < 10; k++) { const seg = new THREE.Mesh(new THREE.BoxGeometry(.07, .2, .025), std(k % 2 ? 0xc8452f : 0xece6d8, { r: .6 })); seg.position.y = .1 + k * .2; st.add(seg); } st.position.set(-.9, 0, .4); st.rotation.y = .5; W.add(st); blob(-.9, .4, .25); },
     async ground() { const cs = [0x8fd3ff, 0xe8c48a, 0xbfe6ff, 0xd9b27a, 0x6fbfe8, 0xf0d9b0], sm = new THREE.SphereGeometry(1.25, 40, 28);
       cs.forEach((c, i) => { const a = i / 6 * Math.PI * 2; const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { col: { value: new THREE.Color(c) } },
         vertexShader: `varying float f;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);vec3 n=normalize(normalMatrix*normal);f=pow(1.-abs(dot(n,normalize(-mv.xyz))),2.4);gl_Position=projectionMatrix*mv;}`, fragmentShader: `uniform vec3 col;varying float f;void main(){gl_FragColor=vec4(col,f*.3);}` });
