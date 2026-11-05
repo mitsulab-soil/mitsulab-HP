@@ -5,6 +5,7 @@
    座標：x＝東 m・y＝標高 m・z＝南 m（原点＝時の鐘 35.92348N 139.48334E）。
    walk 氷川（web/lite/app.js）の作りを写して、川越の中身で組み直した（氷川のファイルは触っていない）。 */
 import * as THREE from "three";
+import { sightBob } from "../kit/sight_look.js?v=2";   // 11-05 本人「Qualia/sight のような風景の質感に」：sight の霞（近くから淡く）と目の揺れ。木もれ日は木の下にだけ落ちるもので、空のひらけた通りには落とさない
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=k4";
@@ -1276,13 +1277,14 @@ function stepAoi(dt) {
 }
 
 /* ---------- カメラと動き ---------- */
+const RM_SL = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const EYE = 1.55;   // 11-03 本人「視点は sight の方がリアリティ」＝sight の人の目の高さ   // 11-02 大宮と同じ：やや低めの目線
 const CAM = { pos: new THREE.Vector3(), yaw: 0, look: 0, pitch: -.05, lastDrag: 0 };
 const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c: new THREE.Vector3(-40, 20, 420) };
 const WALK = { speed: 2.43, moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 12 };
 const KEYS = new Set();
-const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 300, f: 1100 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 14, f: 620 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
@@ -1375,6 +1377,7 @@ function descendTo(i, at) {   // at＝現在地（GPS）の位置
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
   const n = nearestOnLine(p.x, p.z); if (n.dist <= 14) { solids(p); return; }
+  { const ax = 506, az = 607, ex = 100, ez = 17, u = Math.max(0, Math.min(1, ((p.x - ax) * ex + (p.z - az) * ez) / (ex * ex + ez * ez))); if (Math.hypot(p.x - ax - ex * u, p.z - az - ez * u) < 31) { solids(p); return; } }   // 11-05 採点：喜多院の境内（本堂の前〜山門）は広場なので、道の幅に戻さない（「歩きつづける」で進まなかった）
   const a = atD(n.d), k = 14 / n.dist, rx = a.x + (p.x - a.x) * k, rz = a.z + (p.z - a.z) * k;
   if (NET.segs) { const q = netNear(p.x, p.z, 40); if (q.dist <= q.hw) { solids(p); return; }
     if (q.dist < 1e8) { const m = q.hw / (q.dist || 1), nx = q.x + (p.x - q.x) * m, nz = q.z + (p.z - q.z) * m; if (Math.hypot(nx - p.x, nz - p.z) < Math.hypot(rx - p.x, rz - p.z)) { p.x = nx; p.z = nz; solids(p); return; } } }
@@ -1422,7 +1425,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   if (!KURA.blockBell) { }
   const gy = groundY(CAM.pos.x, CAM.pos.z) + eye + (eye < .5 ? .1 : 0);   // 低い目（ハクセキレイ）は、道の面（地形より約 10 cm 上）から測る CAM.pos.y += (gy - CAM.pos.y) * Math.min(1, dt * 8);
   if (performance.now() - CAM.lastDrag > 2600 && WALK.moving) CAM.look *= Math.pow(.25, dt);   // 歩きだすと、見回した向きがゆっくり前へ戻る
-  camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, CAM.yaw + CAM.look, 0, "YXZ"));
+  camera.position.copy(CAM.pos); if (!RM_SL && eye === EYE) camera.position.y += sightBob(performance.now() / 1000, WALK.moving); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, CAM.yaw + CAM.look, 0, "YXZ"));
 }
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 function safetyNote() { if (WALK.safety) return; if (!AOI.greeted || voiceQ || !$("#caption").hidden) { setTimeout(safetyNote, 1500); return; }   // 2026-10-26 降りた直後は名乗りを先に、案内はそのあと
@@ -1726,7 +1729,7 @@ function stepSoundWalk(dt) {
 }
 const WALDT = { t: 0 };
 function showTag(t, sec, sub) { const e = $("#sndTag"), k = sub || t; e.textContent = String(t).replace(/^[①-④]\s*/, "");   /* 11-05 番号の札をやめ、ふつうの一行に */ if (sub) { const s = document.createElement("small"); s.textContent = String(sub).replace(/^[①-④]\s*/, ""); e.appendChild(s); }
-  e.dataset.k = k.startsWith("④") ? "poem" : k.startsWith("③") ? "re" : k.startsWith("②") ? "else" : "rec"; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, sec * 1000); }
+  e.dataset.k = k.startsWith("④") ? "poem" : k.startsWith("③") ? "re" : k.startsWith("②") ? "else" : "rec"; e.hidden = false; clearTimeout(e._t); const capOn = () => { const c = document.getElementById("caption"); return c && !c.hidden; }; let late = false; const end = () => { if (capOn()) { late = true; e._t = setTimeout(end, 400); return; } if (late) { late = false; e._t = setTimeout(end, 4000); return; } e.hidden = true; }; e._t = setTimeout(end, sec * 1000); }   /* 11-05 採点：字幕が出ているあいだ札は隠れる→字幕が消えたあと 4 秒出し直す */
 const WAVE = { rings: [], on: false, t0: 0,
   start() { this.stop(); this.on = true; this.t0 = performance.now() / 1000; },
   stop() { this.on = false; for (const r of this.rings) world.remove(r); this.rings.length = 0; },

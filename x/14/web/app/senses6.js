@@ -42,6 +42,7 @@ body.hen #sndTag,body.qRingOpen #sndTag{visibility:hidden!important}
   document.head.appendChild(css);
   css.textContent += `@media (max-width:400px){#qS6{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 58px)}}
 #qIK{position:fixed;right:max(12px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);z-index:7;display:flex;flex-direction:column;gap:6px;transition:opacity .4s}
+@media (max-width:640px){#qIK{top:calc(max(12px,env(safe-area-inset-top)) + 84px);transform:none}}   /* 11-05 375 で碧の顔と肩に重なっていた→見出しのすぐ下へ */
 body:not([data-mode="walk"]) #qIK{opacity:0;pointer-events:none}
 #qIK button{all:unset;box-sizing:border-box;width:52px;min-height:52px;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:rgba(236,242,246,.86);background:rgba(8,13,22,.36);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(225,235,242,.18);-webkit-tap-highlight-color:transparent;transition:background .3s,color .3s;font-family:var(--mincho,"Shippori Mincho",serif)}
 #qIK{align-items:flex-end}#qIK button.long{width:auto;padding:0 8px}#qIK button.long span{max-width:none}
