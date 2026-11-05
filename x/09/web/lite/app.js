@@ -397,7 +397,7 @@ function buildBuildings(g) {
         { float sh = roof > .5 ? 1. : .62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))));   // 10-28 夜 8：歩くときは、データの層を「沈んだ青灰の面＋細い走査線」に描き直す（白く浮かない・面の向きで明暗）
           vec3 wc = vec3(.13, .18, .22) * sh + vec3(.2, .45, .55) * (fl * nr * .7 + band * .5) + vec3(.1, .2, .24) * fr * .5;
           diffuseColor.rgb = mix(wc, diffuseColor.rgb, uSky); }
-        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(2.3, .4, uSky); }`);   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
+        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1.1, .4, uSky); }`);   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };
   m.customProgramCacheKey = () => "bldGhost3";
   const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
@@ -405,7 +405,7 @@ function buildBuildings(g) {
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { float dist = length(vWp - cameraPosition); float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.6, 2.));
-        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1., .5, uSky);
+        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.28, .5, uSky);   // 11-05 歩くときの箱の縁の線を淡く
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86,.99,1.), band * .7); }`);
   };
   lm.customProgramCacheKey = () => "bldGhostL2";
@@ -723,13 +723,16 @@ const FARWOOD = (() => {
   for (let i = 0; i < 520; i++) { const px = rnd() * 2048, h = 30 + rnd() * 80 + 18 * Math.sin(px / 140), r = 4 + rnd() * 14, v = 52 + rnd() * 30;   // 小さな葉の塊を大小重ね、輪郭を不揃いに（同じ形の山が並ばない）
     x.fillStyle = `rgb(${v * .85 | 0},${v | 0},${v * .8 | 0})`; for (let k = 0; k < 4; k++) { x.beginPath(); x.arc(px + (rnd() - .5) * r * 2.4, 128 - h + (rnd() - .2) * r * 1.6, r * (.5 + rnd() * .6), 0, Math.PI * 2); x.fill(); }
     x.fillRect(px - r, 128 - h + r, r * 2, h); }
+  { x.globalCompositeOperation = "source-atop"; const gr = x.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, "rgba(150,170,140,.55)"); gr.addColorStop(.45, "rgba(90,105,85,.25)"); gr.addColorStop(1, "rgba(20,26,20,.5)"); x.fillStyle = gr; x.fillRect(0, 0, 2048, 128); x.globalCompositeOperation = "source-over"; }   // 11-05 採点 P2「一色の切り絵」：梢は明るく、根もとは暗く
   const tx = new THREE.CanvasTexture(c); tx.wrapS = THREE.RepeatWrapping; tx.colorSpace = THREE.SRGBColorSpace; tx.repeat.set(3, 1);
   const g = new THREE.Group(); g.name = "farWood"; g.visible = false;
-  for (const [R, H, o, k] of [[75, 22, .0, .42], [130, 34, .37, .3]]) { const t2 = tx.clone(); t2.needsUpdate = true; t2.offset.x = o;
+  const UD = { value: new THREE.Vector2(0, 1) };
+  for (const [R, H, o, k] of [[38, 9, .2, .55], [75, 22, .0, .46], [130, 34, .37, .34], [200, 44, .71, .24]]) { const t2 = tx.clone(); t2.needsUpdate = true; t2.offset.x = o;
     const m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 64, 1, true), new THREE.MeshBasicMaterial({ map: t2, color: new THREE.Color(), userData: { k }, transparent: true, alphaTest: .5, side: THREE.BackSide, depthWrite: true, fog: true }));
-    m.material.userData.k = k; m.position.y = H / 2 - 8; m.renderOrder = -1; m.frustumCulled = false; g.add(m); }
+    m.material.userData.k = k; m.material.onBeforeCompile = sh => { sh.uniforms.uDir = UD; sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vLoc;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvLoc = position.xz;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vLoc; uniform vec2 uDir;").replace("#include <alphatest_fragment>", "diffuseColor.a *= smoothstep(.985, .93, abs(dot(normalize(vLoc), uDir)));\n#include <alphatest_fragment>"); }; m.material.customProgramCacheKey = () => "farWood";   // 参道の前と後ろは帯を切って、並木の見通しをふさがない
+    m.position.y = H / 2 - 8; m.renderOrder = -1; m.frustumCulled = false; g.add(m); }
   scene.add(g);
-  return { g, at(px, py, pz) { const on = QW.mode === "walk"; g.visible = on; if (on) { g.position.set(px, py, pz); for (const m of g.children) m.material.color.copy(scene.fog.color).multiplyScalar(m.material.userData.k); } } };   // 霞の色を暗くした影絵（昼も夜も霞に溶ける）
+  return { g, at(px, py, pz) { const on = QW.mode === "walk"; g.visible = on; if (on) { g.position.set(px, py, pz); if ((UD.n = (UD.n || 0) + 1) % 20 === 1) { const a = atD(nearestOnLine(px, pz).d); UD.value.set(a.tx, a.tz).normalize(); } for (const m of g.children) m.material.color.copy(scene.fog.color).multiplyScalar(m.material.userData.k); } } };   // 霞の色を暗くした影絵（昼も夜も霞に溶ける）
 })();
 const VEG = { sp: [], last: new THREE.Vector3(1e9, 0, 0), t: 0, group: null, time: { value: 0 } };
 const VEG_UV = [[0, .5, .5, 1], [.5, .5, 1, 1], [0, 0, .5, .5], [.5, .25, .75, .5], [.75, .25, 1, .5], [.5, 0, .75, .25], [.75, 0, 1, .25]];
