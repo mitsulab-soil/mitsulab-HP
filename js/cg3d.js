@@ -149,7 +149,7 @@ export function start(box){
   addEventListener('pointermove',e=>{if(!drag)return;yaw=drag.y0+(e.clientX-drag.x)*.006;user=performance.now();dirty=1;if(!raf&&vis)raf=requestAnimationFrame(loop);},{passive:true});
   addEventListener('pointerup',()=>{drag=null;});addEventListener('pointercancel',()=>{drag=null;});
   let wpx=0,hpx=0;
-  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?46:30;C.position.set(0,tall?7.0:6.2,tall?10.6:12.8);C.lookAt(0,tall?2.1:1.0,0);C.updateProjectionMatrix();dirty=1;}
+  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?50:30;C.position.set(0,tall?10.4:6.2,tall?8.2:12.8);C.lookAt(0,tall?.9:1.0,0);C.updateProjectionMatrix();dirty=1;}
   size(); addEventListener('resize',size);
   new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop);}).observe(box);
   function frame(t,dt){

@@ -2,7 +2,7 @@
 // そのタブの中身を表すものを一つ置く。画面に入ったときだけ読み・描き、離れたら止める。大きさは見やすく描いた模式。
 import * as THREE from 'three';
 const KINDS = {
-  apps:    { cam: [0, 3.2, 9.5], look: [0, .9, 0] },   // 参道の並木に、層が重なる（場所に層を重ねるアプリ）
+  apps:    { cam: [0, 2.4, 12.5], look: [0, 1.3, -1] },   // 参道の並木に、層が重なる（場所に層を重ねるアプリ）
   art:     { cam: [0, 1.8, 5.4], look: [0, 1.3, 0] },   // 生き物（ヒヨドリ・アオスジアゲハ）が、ゆらぐ層の中に
   writing: { cam: [0, 2.6, 8.0], look: [0, 1.2, 0] },   // 紙が層になって積み重なる（言葉に残す）
   collab:  { cam: [0, 2.6, 7.6], look: [0, 2.5, 0] },   // 人が欅の下に立ち、同じ層を見る（ワークショップ）
@@ -38,8 +38,10 @@ export function start(box, kind = box.dataset.th || 'ground') {
   const blob = (x, z, r) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(r * 2, r * 2), new THREE.MeshBasicMaterial({ map: blobT, transparent: true, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(x, .012, z); W.add(m); };
   const std = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: o.r ?? .8, metalness: o.m ?? 0, emissive: o.e ?? 0 });
   let GL = null; const GC = {}; const gltf = async url => { if (!GL) { const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]); GL = new GLTFLoader(); GL.setMeshoptDecoder(MeshoptDecoder); } const p = GC[url] || (GC[url] = GL.loadAsync(url)); const g = await p; if (!g.used) { g.used = 1; return g; } const sc = g.scene.clone(true); sc.traverse(m => { if (m.isMesh && m.material) m.material = m.material.clone(); }); await new Promise(r => setTimeout(r, 0)); return { scene: sc }; };
-  const fit = (o, h) => { const b = new THREE.Box3().setFromObject(o), s = b.getSize(new THREE.Vector3()), k = h / s.y; o.scale.setScalar(k); o.position.set(-(b.min.x + s.x / 2) * k, -b.min.y * k, -(b.min.z + s.z / 2) * k); const g = new THREE.Group(); g.add(o); return g; };
+  const fit = (o, h) => { o.scale.setScalar(1); o.position.set(0, 0, 0); o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o), s = b.getSize(new THREE.Vector3()), k = h / s.y; o.scale.setScalar(k); o.position.set(-(b.min.x + s.x / 2) * k, -b.min.y * k, -(b.min.z + s.z / 2) * k); const g = new THREE.Group(); g.add(o); return g; };
   const keyakiR = async h => { const g = await gltf('img/hero/3d/sando_keyaki.glb'); g.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt && mt.map) mt.map.anisotropy = 4; if (mt && /bark|trunk|wood|kan|miki/i.test(m.name + mt.name)) mt.color && mt.color.setHex(0x7d7266); } }); return fit(g.scene, h); };
+  // Qualium 大宮と同じケヤキ（x/09/web/keyaki.glb・写真の樹皮と葉）。開発の頭で使う
+  const keyakiA = async h => { const g = await gltf('x/09/web/keyaki.glb'); g.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt && mt.map) mt.map.anisotropy = 4; } }); return fit(g.scene, h); };
   const keyaki = async h => { const g = await gltf('img/hero/3d/keyaki_lod1_notex.glb'); g.scene.traverse(m => { if (m.isMesh) m.material = /leaf|ha|foli/i.test(m.name + (m.material && m.material.name)) ? std(0x8fae74, { r: .85 }) : std(0x8a7a66, { r: .95 }); }); return fit(g.scene, h); };
   const human = async h => { const g = await gltf('img/hero/3d/human.glb'); g.scene.traverse(m => { if (m.isMesh) { m.frustumCulled = false; const mt = m.material; if (mt && mt.metalness != null) { mt.metalness = 0; mt.roughness = Math.max(.55, mt.roughness || 0); } if (/hair|brow|short/i.test(m.name) && mt) { mt.alphaTest = .5; mt.side = THREE.DoubleSide; } } }); return fit(g.scene, h); };
   const add = async (o, x = 0, z = 0, ry = 0, r = .5) => { o.position.x += x; o.position.z += z; o.rotation.y = ry; try { if (R.compileAsync) await R.compileAsync(o, C, S); } catch (e) {} W.add(o); blob(x, z, r); dirty = 1; return o; };
@@ -48,7 +50,7 @@ export function start(box, kind = box.dataset.th || 'ground') {
     async apps() { // 参道の並木の奥に朱の鳥居、手前に町の依代（Qualium 大宮の場）
       const path = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 9), std(0x4a4339, { r: .95 })); path.rotation.x = -Math.PI / 2; path.position.y = .01; W.add(path);
       const { makeTorii } = await import('./kit/torii.js'); const to = makeTorii(mob ? 2.9 : 2.5); await add(to, 0, -2.6, 0, .9);
-      for (let i = 0; i < (mob ? 2 : 4); i++) for (const sx of [-1, 1]) { const t = await keyakiR((mob ? 3.4 : 2.6) + (i % 2) * .3); await add(t, sx * 1.95, 1.8 - i * 1.7, i * 1.3, .7); }
+      for (let i = 0; i < (mob ? 2 : 4); i++) for (const sx of [-1, 1]) { const t = await keyakiA((mob ? 3.8 : 3.6) + (i % 2) * .25); await add(t, sx * 2.05, .9 - i * 1.9, i * 1.3, .7); }
       try { const { MachiYori } = await import('./kit/machiyori.js'); const g = new THREE.Group(); const my = new MachiYori({ scene: g, camera: C, dom: document.createElement('i') }); my.add('shizuku', { x: 0, z: 0, yaw: 0, scale: 1.5 }); await add(g, .4, 1.5, .25, .22); anim.push((t, dt) => my.update(dt)); } catch (e) {} },
     async art() { R.toneMappingExposure = 1.0; const fl = new THREE.DirectionalLight(0xfff4e6, .9); fl.position.set(0, 2, 6); S.add(fl); const M = await import('./kit/sight/sightModels.js');
       const b = await M.loadSight('hiyo', { shadow: false }); b.object.scale.setScalar(7.5); b.play('perch'); const br = new THREE.Mesh(new THREE.CylinderGeometry(.035, .05, 2.6, 8), std(0x6b5a48, { r: 1 })); br.rotation.z = Math.PI / 2 - .12; br.position.set(-.9, 1.43, 0); W.add(br); const bg = new THREE.Group(); bg.add(b.object); await add(bg, -.9, 0, .9); bg.position.y = 1.36; anim.push((t, dt) => { b.update(dt); });
