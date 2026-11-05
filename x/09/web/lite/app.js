@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k24";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w20";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
-import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=1";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
+import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=2";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
 installDapple(THREE);
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=sp11";
@@ -383,7 +383,7 @@ function buildBuildings(g) {
   // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
   const U = BLDU;
   const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
-    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .4 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .8 : .25)); gl_FragColor.a *= 1. - fgF * .82;\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .97 : .82);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
   m.onBeforeCompile = sh => { vs(sh);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
@@ -800,7 +800,7 @@ function loadVeg() {
     for (let s = 0; s < 8; s++) {
       const L = lists[s], m = L.length; if (!m) continue;
       const xs = new Float32Array(m * 6);
-      L.forEach((i, k) => { xs[k * 6] = pos[i * 3] / 10; xs[k * 6 + 1] = pos[i * 3 + 1] / 100; xs[k * 6 + 2] = pos[i * 3 + 2] / 10; xs[k * 6 + 3] = .4 + at[i * 4 + 1] / 255 * 1.6; xs[k * 6 + 4] = at[i * 4 + 2] / 256 * Math.PI * 2; xs[k * 6 + 5] = at[i * 4 + 3] / 255; });
+      L.forEach((i, k) => { xs[k * 6] = pos[i * 3] / 10; xs[k * 6 + 1] = pos[i * 3 + 1] / 100; xs[k * 6 + 2] = pos[i * 3 + 2] / 10; xs[k * 6 + 3] = (.4 + at[i * 4 + 1] / 255 * 1.6) * (s === 1 || s === 2 ? .72 : 1); xs[k * 6 + 4] = at[i * 4 + 2] / 256 * Math.PI * 2; xs[k * 6 + 5] = at[i * 4 + 3] / 255; });
       const big = s <= 2 || s === 7, R = big ? (MOBILE ? 72 : 140) : (MOBILE ? 28 : 55);
       const cap = Math.min(m, big ? (MOBILE ? 700 : 2600) : (MOBILE ? 1100 : 4200));
       const im = new THREE.InstancedMesh(vegGeo(s), mat, cap); im.count = 0; im.frustumCulled = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -951,6 +951,7 @@ function stepMapLabels() {
 
 /* ---------- カメラと動き ---------- */
 // CAM.yaw＝体（歩く）の向き、CAM.look＝見回す向き（体からの差）、CAM.pitch＝上下。カメラの向き＝yaw＋look
+const walkPitch = () => innerWidth / innerHeight < .8 ? -.04 : -.12;   // 11-05 sight に近い、ほぼ水平の目線（スマホは並木の天蓋が多く入るように）
 const CAM = { yaw: 0, look: 0, pitch: 0, pos: new THREE.Vector3(), vy: 0, lastDrag: 0 };
 const SKY = { az: .3, el: .98, dist: MOBILE ? 2550 : 2150, tx: MOBILE ? -330 : -160, tz: MOBILE ? -10 : 150, tAz: .3, tEl: .98, tDist: MOBILE ? 2550 : 2150 };   // 2026-10-27：一の鳥居から楼門まで・西口まで、始めの一画面に収める
 const EYE = 1.55;   // 11-03 本人「視点は sight の方がリアリティ」＝sight の人の目の高さ   // 11-02 本人「碧ともっと近づいて、ドラマティックに」：やや低めの目線
@@ -1010,7 +1011,7 @@ function descendTo(i, at) {
 
     let ready = false; const wait = setTimeout(() => { if (!ready) toast("参道の道と木を読み込んでいます。"); }, 500);
     WAITORBIT = { c: new THREE.Vector3(a.x, y, a.z), r: 140 * Math.SQRT2 / Math.SQRT2, yaw, t: 0 };
-    (QW.roadP || lateP).then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, -.2, .6, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = -.2; enterWalk(); }); });
+    (QW.roadP || lateP).then(() => { ready = true; clearTimeout(wait); WAITORBIT = null; TWFOG = [FOGS.mid(), FOGS.walk()]; tweenTo(new THREE.Vector3(a.x, y, a.z), yaw, walkPitch(), .6, () => { CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = walkPitch(); enterWalk(); }); });
   });
 }
 let WAITORBIT = null;

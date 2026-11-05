@@ -26,9 +26,9 @@ export function installDapple(THREE) {
     float up = smoothstep( .35, .85, dot( normal, normalize( mat3( viewMatrix ) * vec3( 0., 1., 0. ) ) ) );
     float k = on * up * ( 1.0 - smoothstep( 45.0, 90.0, dist ) ) * ( 1.0 - smoothstep( 2.5, 6.0, wp.y - cameraPosition.y ) );
     if ( k > 0.0 ) {
-      vec2 p = wp.xz * .55; vec2 q = p + vec2( sin( p.y * .7 ), cos( p.x * .6 ) ) * .8;
+      vec2 p = wp.xz * 1.25; vec2 q = p + vec2( sin( p.y * .7 ), cos( p.x * .6 ) ) * .8;
       float n = sin( q.x * 1.7 ) * sin( q.y * 1.9 ) + .55 * sin( q.x * 3.9 + q.y * 1.3 ) * sin( q.y * 3.3 - q.x * .8 ) + .3 * sin( q.x * 7.1 - 2. ) * sin( q.y * 6.7 + 1. );
-      float lit = smoothstep( .15, .75, n * .5 + .5 );
+      float lit = smoothstep( .38, .62, n * .5 + .5 );
       qDap = mix( 1.0, .12 + 1.05 * lit, k );
     }
   }
