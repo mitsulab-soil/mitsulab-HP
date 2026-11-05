@@ -3,7 +3,7 @@
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
 import { T, setLang, lang } from "./i18n.js?v=20261105ws3";
-import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261021";
+import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105e";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
 import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027g";
@@ -404,7 +404,7 @@ const toPlate = e => { const r = cv.getBoundingClientRect(); ndc.set((e.clientX 
   }
   return ray.ray.intersectPlane(flat, hitP) ? hitP.clone() : null; };
 const inside = p => p && Math.abs(p.x) <= .5 && Math.abs(p.z) <= .5;
-let touch = null, force = 0, dentAt = new THREE.Vector2(), lastMove = 0, lastStroke = [], strokeMs = 0, said = {}, dirty = 2;
+let touch = null, force = 0, dentAt = new THREE.Vector2(), shown = new THREE.Vector2(), stick = 0, lastMove = 0, lastStroke = [], strokeMs = 0, said = {}, dirty = 2;
 const ptrs = new Map(); let drag = null, pinch = null;   // drag＝一本の指・マウスで回す／ずらす、pinch＝二本の指
 const mm = p => [(p.x + .5) * SIZE_MM, (p.z + .5) * SIZE_MM];
 const two = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
@@ -418,7 +418,7 @@ cv.addEventListener("pointerdown", e => {
   if (btn === 2 || btn === 1 || e.shiftKey) { drag = { kind: "pan", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
   if (mode === "move" || !inside(p)) { drag = { kind: "orbit", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
-  dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.tap(); sonic.tap(); addTrail(p, p, true);
+  dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.arm(); vibe.tap(); sonic.tap(); addTrail(p, p, true); model.takeEdges(); shown.copy(dentAt);
   $("#waveHint").style.opacity = 0; $("#fhint").classList.add("off"); aoiWatch(true);
   if (capKey === "aoi.name") { clearTimeout(capTimer); $("#cap").classList.remove("on"); capKey = null; }   // 2026-10-22 なではじめたら名乗りの字幕をたたむ（面を覆わない）
 });
@@ -569,13 +569,18 @@ function frame(now) {
   force += (target - force) * Math.min(1, dt * 9);
   if (touch && now - lastMove > 30) model.idle(dtMs); else if (!touch) model.idle(dtMs);
   const dent = model.press(dt, force);
-  U.uDent.value.set(dentAt.x, dentAt.y, dent / SIZE_MM);
   const r = model.measure();
-  if (touch) { vibe.tick(now, r.amp); strokeMs += dtMs; if (!vibe.ok && strokeMs > 600 && !said.novib) say(sonic.ok && sonic.on ? "aoi.novib" : "aoi.novib.mute", 6000); if (strokeMs > 1400 && !said.stroke && r.speed > 30) say("aoi.stroke", 5500); if (dent > 1.2 && !said.press) say("aoi.press", 5500); }
+  // 擬似触覚：ざらつく所・縁に当たった瞬間ほど、指の下の光とへこみが少し遅れてついてくる（引っかかる感じ）。振動のない端末でも効く
+  const hit = touch ? vibe.edges(now, model.takeEdges()) : 0;
+  stick = Math.max(stick * Math.exp(-dt / .05), hit * model.d.mu);
+  const follow = !touch ? 1 : Math.min(1, dt * 60 * (1 - .8 * Math.min(1, model.d.mu * (.3 + r.amp) * .9 + stick)));
+  shown.lerp(dentAt, follow); if (shown.distanceTo(dentAt) > 1e-4) dirty = 2;
+  U.uDent.value.set(shown.x, shown.y, dent / SIZE_MM);
+  if (touch) { strokeMs += dtMs; if (!vibe.ok && strokeMs > 600 && !said.novib) say(sonic.ok && sonic.on ? "aoi.novib" : "aoi.novib.mute", 6000); if (strokeMs > 1400 && !said.stroke && r.speed > 30) say("aoi.stroke", 5500); if (dent > 1.2 && !said.press) say("aoi.press", 5500); }
   // 輪
   // 振動の代わりに目で：強く当たるほど輪が明るく、少し広がる
   ring.material.opacity += ((touch ? .55 + .45 * r.amp : 0) - ring.material.opacity) * Math.min(1, dt * 8);
-  ring.position.set(dentAt.x, heightAt((dentAt.x + .5) * SIZE_MM, (-dentAt.y + .5) * SIZE_MM) * params.depth / SIZE_MM - dent / SIZE_MM * .6 + .002, -dentAt.y);
+  ring.position.set(shown.x, heightAt((shown.x + .5) * SIZE_MM, (-shown.y + .5) * SIZE_MM) * params.depth / SIZE_MM - dent / SIZE_MM * .6 + .002, -shown.y);
   ring.scale.setScalar(U.uDentR.value * (.9 + (touch ? .35 * r.amp : 0)));
   if (objMesh && objHit) { ring.position.copy(objHit.point); _nq.copy(objHit.face.normal).transformDirection(objMesh.matrixWorld); ring.quaternion.setFromUnitVectors(_up, _nq); ring.position.addScaledVector(_nq, .004); } else ring.quaternion.identity();
   // 通り道の色（2.4 秒で消える）
@@ -616,4 +621,4 @@ resize();
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
   idle(() => SAMPLES.slice(1, 4).reduce((p, s) => p.then(() => loadSample(s).catch(() => {})), Promise.resolve()));
 })();
-window.__qt = { model, sonic, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };
+window.__qt = { model, sonic, vibe, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };

@@ -27,6 +27,7 @@ export class TouchModel {
     this.speed = 0; this.freq = 0; this.amp = 0;
     this.dent = 0; this.dentV = 0; this.force = 0;              // へこみ（mm）
     this.stroke = []; this.recording = false;
+    this.edges = []; this.arm = true;                          // 凸の縁を越えた瞬間（なぞる速さと面の細かさで数が決まる）
   }
   setSurface(heightAt, params) { this.h = heightAt; this.p = params; this.d = derive(params); }
   push(v) { this.buf[this.w] = v; this.w = (this.w + 1) % this.buf.length; if (this.recording && this.stroke.length < FS * 8) this.stroke.push(v); }
@@ -46,7 +47,14 @@ export class TouchModel {
     // 摩擦：動いているあいだの細かなひっかかり（速さと摩擦に比例する小さなむら）
     const slip = v > 1 ? (Math.random() * 2 - 1) * d.mu * Math.min(1, v / 120) * .05 * this.p.depth * (.4 + this.p.rough) : 0;
     this.push((this.lp2 + slip) * d.gain);
+    // 凸の縁：細かな凹凸（うねりを除いた高さ）が上向きに閾を越えたら 1 回。0 より下がるまで次は数えない（ヒステリシス）
+    if (v > 1) {
+      const th = .035 * this.p.depth, x = this.lp2;
+      if (this.arm && x > th) { this.arm = false; if (this.edges.length < 64) this.edges.push(Math.min(1, x / (.22 * this.p.depth))); }
+      else if (x < 0) this.arm = true;
+    }
   }
+  takeEdges() { const e = this.edges; this.edges = []; return e; }
   // いまの振動の周波数と強さ（直近 60 ms）
   measure() {
     const W = 60, n = this.buf.length; let z = 0, s2 = 0, prev = this.buf[(this.w - W - 1 + n) % n];
@@ -69,16 +77,23 @@ export class TouchModel {
 // 端末の振動（対応する端末だけ）。震えるたびに onPulse(ms, amp) を呼ぶ（音を同じ刻みで鳴らすため）。
 // 振動できない端末でも、同じ刻みで onPulse を呼ぶ（光の輪と音で確かめる）。
 export class Vibe {
-  constructor() { this.ok = typeof navigator !== "undefined" && "vibrate" in navigator; this.on = this.ok; this.last = 0; this.onPulse = null; }
-  tick(now, amp) {
-    if (amp > .06 && now - this.last > 45) {
-      const ms = Math.round(6 + 28 * Math.min(1, amp));
-      if (this.ok && this.on) try { navigator.vibrate(ms); } catch (e) { /* 止められた端末 */ }
-      this.onPulse?.(ms, amp); this.last = now;
-    }
+  // 凸の縁を越えるたびに 10〜20 ms の短い振動を 1 回。Web の振動は強さを変えられないので、
+  // 強さ＝振動の長さ（10〜20 ms）と、弱い縁を間引く割合（刻みの密度＝PWM のような刻み）で表す。
+  // 呼びすぎで詰まらないよう、前の振動の始まりから GAP（33）ms は次を出さない（そのあいだの縁は強い方を一つに束ねる）。
+  constructor() { this.ok = typeof navigator !== "undefined" && "vibrate" in navigator; this.on = this.ok; this.last = -1e9; this.onPulse = null; this.armed = false; this.pend = 0; this.log = []; this.GAP = 33; }
+  can() { if (!(this.ok && this.on && this.armed)) return false; const u = navigator.userActivation; return !u || u.hasBeenActive; }   // 端末が「利用者の操作のあと」と認めてから
+  arm() { this.armed = true; }                           // 画面に触れた（利用者の操作）あとだけ呼ぶ
+  fire(now, ms, amp) {
+    if (this.can()) try { navigator.vibrate(ms); } catch (e) { /* 止められた端末 */ }
+    this.onPulse?.(ms, amp); this.last = now; if (this.log.length > 400) this.log.shift(); this.log.push([Math.round(now), ms]);
   }
-  tap() { if (this.ok && this.on) try { navigator.vibrate(12); } catch (e) { /* 何もしない */ } }
-  stop() { if (this.ok) try { navigator.vibrate(0); } catch (e) { /* 何もしない */ } }
+  edges(now, list) {                                     // list＝このこまで越えた縁の強さ（0..1）
+    for (const a of list) if (a > .12 && (a > .35 || Math.random() < a / .35)) this.pend = Math.max(this.pend, a);
+    if (this.pend > 0 && now - this.last >= this.GAP) { const a = this.pend; this.pend = 0; this.fire(now, Math.round(10 + 10 * a), a); return a; }
+    return 0;
+  }
+  tap() { if (this.can()) try { navigator.vibrate(12); } catch (e) { /* 何もしない */ } }
+  stop() { this.pend = 0; if (this.can()) try { navigator.vibrate(0); } catch (e) { /* 何もしない */ } }
 }
 
 // 触れた音（実際にその物に触れた・なでた・たたいた録音から鳴らす。録音はすべて Freesound の CC0）。
@@ -142,7 +157,7 @@ export class Sonic {
     const q = Math.min(.98, Math.max(q0, .25 + .7 * Math.min(1, amp) + (Math.random() - .5) * (.3 + .4 * Math.max(0, dr))));
     const at = env[Math.floor(q * (env.length - 1))][0] + Math.random() * .008;
     const len = Math.max(.045, Math.min(.16, (.06 + ms / 1000 * 2.4) * (1 - .45 * Math.max(0, dr))));
-    const rate = Math.max(.7, Math.min(1.5, (.84 + Math.min(1, speed / 220) * .42) * (tn.rate ?? 1) * (1 + .18 * dh) * (1 + (Math.random() - .5) * .05)));
+    const rate = Math.max(.7, Math.min(1.5, (.84 + Math.min(1, speed / 220) * .42) * (.9 + .22 * Math.min(1, amp)) * (tn.rate ?? 1) * (1 + .18 * dh) * (1 + (Math.random() - .5) * .05)));
     const vol = Math.min(1, amp) ** 1.1 * .5 * this.level(m) * (.55 + .45 * Math.min(1, speed / 90));
     const cut = Math.min(tn.cut ?? 18000, (2600 + 14000 * Math.min(1, .25 + speed / 200 + amp * .4)) * 2 ** (dh * 1.6));
     this.play(buf, at, len, rate, vol, cut, Math.min(.012, len * .25));
