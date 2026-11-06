@@ -87,12 +87,14 @@ export function start(box){
     uniforms:{t:{value:0},a:{value:0},c:{value:new THREE.Color()}},vertexShader:`uniform float a;uniform vec3 c;varying float va;varying vec3 vc;varying float vy;varying float fr;void main(){va=a;vc=c;vy=uv.y;
       vec4 wp=modelMatrix*vec4(position,1.);vec3 nn=normalize(mat3(modelMatrix)*normal);fr=abs(dot(nn,normalize(cameraPosition-wp.xyz)));gl_Position=projectionMatrix*viewMatrix*wp;}`,
     fragmentShader:`uniform float t;varying float va;varying vec3 vc;varying float vy;varying float fr;void main(){float s=smoothstep(0.,.25,vy)*smoothstep(1.,.7,vy);
-      float k=pow(fr,1.3);gl_FragColor=vec4(vc*(.9+.2*sin(vy*9.-t*1.2)),s*k*va*.3);}`});
+      float k=pow(fr,1.3);gl_FragColor=vec4(vc*(.9+.2*sin(vy*9.-t*1.2)),s*k*va*.55);}`});
   const cols=[]; { const base=new THREE.CylinderGeometry(1,1,1,mob?18:28,1,true);
     PAIRS.forEach(P=>{const m=colM.clone();m.uniforms.t=colM.uniforms.t;m.uniforms.c.value.copy(COL[P.i]).lerp(COL[P.j],.5).multiplyScalar(1.1);
       const o=new THREE.Mesh(base,m);o.visible=false;W.add(o);cols.push(o);}); }
   // 網：重なりの節どうしを、同じ主体を介してつなぐ細い光の糸（中心のない網）
-  const WEB=[]; PAIRS.forEach((A,a)=>PAIRS.forEach((B,b)=>{if(b<=a)return;const sh=[A.i,A.j].find(x=>x===B.i||x===B.j);if(sh!==undefined)WEB.push({a,b,s:sh});}));
+  const WEB=[]; { const lm=P=>{const A=SUB[P.i],B=SUB[P.j];return [(A.x+B.x)/2,(A.z+B.z)/2];}; const ok=P=>Math.hypot(SUB[P.j].x-SUB[P.i].x,SUB[P.j].z-SUB[P.i].z)<SUB[P.i].r+SUB[P.j].r+.4;
+    const ix=PAIRS.map((P,k)=>k).filter(k=>ok(PAIRS[k])), seen=new Set();
+    ix.forEach(a=>{const [ax,az]=lm(PAIRS[a]);ix.filter(b=>b!==a).map(b=>{const [bx,bz]=lm(PAIRS[b]);return [Math.hypot(ax-bx,az-bz),b];}).sort((p,q)=>p[0]-q[0]).slice(0,2).forEach(([d,b])=>{const k=Math.min(a,b)+'-'+Math.max(a,b);if(seen.has(k))return;seen.add(k);const A=PAIRS[a],B=PAIRS[b];WEB.push({a:Math.min(a,b),b:Math.max(a,b),s:[A.i,A.j].find(x=>x===B.i||x===B.j)??A.i});});}); }
   const WN=10, webP=new Float32Array(WEB.length*WN*2*3), webA=new Float32Array(WEB.length*WN*2), webC=new Float32Array(WEB.length*WN*2*3), webU=new Float32Array(WEB.length*WN*2);
   WEB.forEach((E,e)=>{const c=COL[E.s];for(let q=0;q<WN*2;q++){webC.set([c.r,c.g,c.b],(e*WN*2+q)*3);webU[e*WN*2+q]=(Math.floor(q/2)+(q%2))/WN;}});
   const webG=new THREE.BufferGeometry(); webG.setAttribute('position',new THREE.BufferAttribute(webP,3)); webG.setAttribute('a',new THREE.BufferAttribute(webA,1)); webG.setAttribute('c',new THREE.BufferAttribute(webC,3)); webG.setAttribute('u',new THREE.BufferAttribute(webU,1));
@@ -197,7 +199,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(mob?5.6:5.6);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?7:6,3,1.4);pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,3,2.2,1.4).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);m.object.rotation.y=.7;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?5.6:5.6);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?2.2:2,3,1.6);pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);m.object.rotation.y=.7;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});

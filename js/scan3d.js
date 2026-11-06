@@ -19,7 +19,7 @@ export async function start(sec){
       float n=0.;for(int i=0;i<12;i++){n+=smoothstep(.0,.12,su[i].w-length(p.xz-su[i].xy));}tint=vec3(smoothstep(1.2,2.2,n)*ac,n*ac,0.);
       vec4 mv=modelViewMatrix*vec4(p,1.);hz=smoothstep(15.,5.,-mv.z);gl_PointSize=px*(1.6+hot*2.5+tint.x*1.4)*(8./-mv.z);gl_Position=projectionMatrix*mv;}`,
     fragmentShader:`uniform float ac;varying float a;varying float hot;varying float hz;varying vec3 tint;void main(){vec2 c=gl_PointCoord-.5;if(dot(c,c)>.25)discard;vec3 col=mix(vec3(.55,.82,.9),vec3(.9,1.,1.),hot);col=mix(col,vec3(1.,.97,.9),tint.x*.6);
-      float al=(a*.5+hot*.6)*(.35+.65*hz)*(1.-ac*.45*(1.-min(1.,tint.y)))+tint.x*.35;gl_FragColor=vec4(col,al);}`});
+      float al=(a*.5+hot*.6)*(.35+.65*hz)*(1.-ac*.72*(1.-min(1.,tint.y)))+tint.x*.35;gl_FragColor=vec4(col,al);}`});
   S.add(new T.Points(g,pm));
   // 走査の面
   const plane=new T.Mesh(new T.PlaneGeometry(10.5,.5),new T.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.035,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide}));
