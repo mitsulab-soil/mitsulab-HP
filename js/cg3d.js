@@ -215,20 +215,30 @@ export function start(box){
     const pinB=new THREE.Mesh(new THREE.SphereGeometry(.04,16,12),pin.material); pinB.position.set(0,1.52,0); g.add(pinB);
     at(s,g); anim.push(t=>{pin.position.y=1.45+Math.sin(t*1.4)*.03;pinB.position.y=pin.position.y+.07;}); }
   // ミツバチ（形態は creatures.js の写実の造形＝頭・胸・腹、4 枚の翅、6 本の脚）。花の上でホバリング
-  Q.push(async()=>{try{const {makeBee}=await import('./kit/creatures.js');const s=SUB[1],b=makeBee();b.scale.setScalar(.34);const g=new THREE.Group();g.add(b);
+  // 鳥・蜂・人は、最初から同時に読みはじめる（場に出す準備だけ一つずつ）
+  const PRE={bee:import('./kit/creatures.js'),
+    bird:import('./kit/sight/sightModels.js').then(M=>M.loadSight('hiyo',{shadow:false,autoplay:false})),
+    human:Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]).then(([{GLTFLoader},{MeshoptDecoder}])=>{const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);return L.loadAsync('img/hero/3d/human.glb');})};
+  Object.values(PRE).forEach(p=>p.catch(()=>{}));
+  // 人の仮の姿（細い線の人形）を、本物が出るまで置く
+  const ghost=(()=>{const s=SUB[2],L=[],h=1.72,P=(a,b)=>L.push(...a,...b);const hd=h-.12;
+    P([0,0,0],[0,.92,0]);P([0,.92,0],[0,1.45,0]);P([0,1.45,0],[-.24,1.05,0]);P([0,1.45,0],[.24,1.05,0]);P([0,.92,0],[-.14,0,0]);P([0,.92,0],[.14,0,0]);
+    for(let k=0;k<16;k++){const a=k/16*6.283,b=(k+1)/16*6.283;P([Math.cos(a)*.11,hd+Math.sin(a)*.11,0],[Math.cos(b)*.11,hd+Math.sin(b)*.11,0]);}
+    const o=new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(L,3)),new THREE.LineBasicMaterial({color:0xfff1dc,transparent:true,opacity:.55}));o.position.set(s.x,0,s.z);o.rotation.y=s.ry;W.add(o);return o;})();
+  Q.push(async()=>{try{const {makeBee}=await PRE.bee;const s=SUB[1],b=makeBee();b.scale.setScalar(.34);const g=new THREE.Group();g.add(b);
     const fl=new THREE.Group();const stem=new THREE.Mesh(new THREE.CylinderGeometry(.012,.018,.6,6),std(0x5f7a3a,{r:.8,m:0}));stem.position.y=.3;fl.add(stem);
     for(let i=0;i<6;i++){const pt=new THREE.Mesh(new THREE.SphereGeometry(.07,10,6),std(0xf2efe6,{r:.7,m:0}));pt.scale.set(1,.25,.55);const a=i/6*Math.PI*2;pt.position.set(Math.cos(a)*.08,.6,Math.sin(a)*.08);pt.rotation.y=-a;fl.add(pt);}
     const ce=new THREE.Mesh(new THREE.SphereGeometry(.04,10,8),std(0xe0b030,{r:.8,m:0}));ce.position.y=.62;fl.add(ce);fl.position.set(.15,0,.12);g.add(fl);
     at(s,g);b.position.y=.95;anim.push(t=>{b.position.set(Math.sin(t*.9)*.05,.95+Math.sin(t*2.1)*.03,Math.cos(t*.7)*.04);b.userData.animate&&b.userData.animate(t,true);});dirty=1;}catch(e){console.warn('cg bee',e);}});
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
-  Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
+  Q.push(async()=>{try{const m=await PRE.bird;const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x4f4b45,{r:.98,m:0}));st.scale.set(1.25,.28,.9);st.position.y=.12;g.add(st);
     m.object.scale.setScalar(mob?4.2:3.4);/* 大小の順：虫 < 鳥 < 人（模式） */m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?9:5,3,1.6);if(mob)g.add(new THREE.PointLight(0xffffff,5,2.2,1.6).translateX(.6).translateY(1.2).translateZ(.8));g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
-  Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
-    const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
+  Q.push(async()=>{try{
+    const g=await PRE.human,o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
     const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3()),k=1.72/sz.y;o.scale.setScalar(k);o.position.set(-(bb.min.x+sz.x/2)*k,-bb.min.y*k,-(bb.min.z+sz.z/2)*k);
-    const p=new THREE.Group();p.add(o);const s=SUB[2];at(s,p);p.rotation.y=s.ry+Math.PI*.82;dirty=1;}catch(e){console.warn('cg human',e);}});
+    const p=new THREE.Group();p.add(o);const s=SUB[2];at(s,p);ghost.visible=false;box.dataset.humanMs=Math.round(performance.now()-T0);p.rotation.y=s.ry+Math.PI*.82;dirty=1;}catch(e){console.warn('cg human',e);}});
   // 依代（碧）：中心ではなく、鳥と GIS の重なりのあいだに立つ（ほかの図と同じ VRM のバイト列を使い回す）
   let mot=null,vrm=null,aoiP=null,aoiN=0;
   const lensOf=(a,b)=>LENS.find(L=>SUB[L.i].k===a&&SUB[L.j].k===b||SUB[L.i].k===b&&SUB[L.j].k===a);

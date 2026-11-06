@@ -59,7 +59,7 @@ export async function start(sec){
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
   const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], tags=[]; ACT.slice(0,7).forEach((a,i)=>{const c=document.createElement('canvas');c.width=128;c.height=48;const x=c.getContext('2d');x.font='28px "Shippori Mincho",serif';x.fillStyle='#f4f8fc';x.textAlign='center';x.fillText(document.documentElement.dataset.lang==='en'?['bird','insect','person','tree','AI','gauge','GIS'][i]:NAMES[i],64,34);
-    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false,sizeAttenuation:false}));sp.scale.set(mob?.052:.075,mob?.0195:.028,1);   /* 名札は遠近で大きさを変えずにそろえる */const OF=[[-.16,0],[.16,.1],[0,.22],[-.22,.14],[.22,.04],[0,.08],[-.1,.26]][i];sp.position.set(a.x+OF[0],a.ly+.12+OF[1],a.z);S.add(sp);tags.push(sp);});
+    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false,sizeAttenuation:false}));sp.scale.set(mob?.052:.075,mob?.0195:.028,1);   /* 名札は遠近で大きさを変えずにそろえる */const OF=[[-.16,0],[.16,.1],[0,.22],[-.22,.14],[.22,.04],[0,.08],[-.1,.26]][i].map(v=>v*(mob?1.6:1));sp.position.set(a.x+OF[0],a.ly+.12+OF[1],a.z);S.add(sp);tags.push(sp);});
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網
@@ -109,8 +109,8 @@ export async function start(sec){
     prog+= (progress()-prog)*(reduce?1:.12); const p=prog;
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
-    const a=-.6+p*(mob?.84:1.1), rr=mob?8.4-p*1.4:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
-    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(0,mob?.05:.2,mob?.2:0);
+    const a=-.6+p*(mob?.84:1.1), rr=mob?9.4-p*1.4:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
+    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(mob?.35:0,mob?.05:.2,mob?.2:0);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
     fg.attributes.position.needsUpdate=true;
