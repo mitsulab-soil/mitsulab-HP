@@ -234,7 +234,7 @@ export function start(box){
   const lensOf=(a,b)=>LENS.find(L=>SUB[L.i].k===a&&SUB[L.j].k===b||SUB[L.i].k===b&&SUB[L.j].k===a);
   const AOI=new THREE.Vector3(-2.31,0,-1.18),   /* 碧は層の中に立たず、鳥・虫・GIS の層の境に */ YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
   // 依代は主体と別の印：膜を持たず、重なりのあいだの地に細い光の輪（主体の数に数えない）
-  [AOI,YORI].forEach((p,k)=>{const r=new THREE.Mesh(new THREE.RingGeometry(k?.34:.5,k?.37:.54,64),new THREE.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));r.material.opacity=.35;r.rotation.x=-Math.PI/2;r.position.set(p.x,.02,p.z);W.add(r);});
+  [YORI].forEach((p,k)=>{k=1;const r=new THREE.Mesh(new THREE.RingGeometry(k?.34:.5,k?.37:.54,64),new THREE.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));r.material.opacity=.35;r.rotation.x=-Math.PI/2;r.position.set(p.x,.02,p.z);W.add(r);});
   // 町の依代（Qualium 大宮と同じ姿・その場で組む形）：AI とセンサーの重なりのあいだに
   Q.push(async()=>{try{const {MachiYori}=await import('./kit/machiyori.js');const g=new THREE.Group();const my=new MachiYori({scene:g,camera:C,dom:document.createElement('i')});
     my.add('shizuku',{x:YORI.x,z:YORI.z,yaw:.4,scale:1.45});
@@ -246,7 +246,7 @@ export function start(box){
     const buf=await(window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())));const g=await L.parseAsync(buf.slice(0),'');
     vrm=g.userData.vrm;await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(g.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(vrm);vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
     const p=new THREE.Group();p.add(vrm.scene);p.visible=false;aoiP=p;W.add(p);vrm.humanoid.resetNormalizedPose();vrm.update(0);
-    const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.3/(bb.max.y-bb.min.y));p.position.set(AOI.x,0,AOI.z);blob(AOI,.5);
+    const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.05/(bb.max.y-bb.min.y));p.position.set(AOI.x,0,AOI.z);blob(AOI,.5);
     const {AoiMotion}=await import('./aoi_motion.js?v=20261026-v61');mot=new AoiMotion(vrm,{root:p,reducedMotion:reduce,wind:.2,faceViewer:false,startCalm:1,posture:'upright',uprightWeight:.9});mot.faceTo(.2);dirty=1;
   }catch(e){console.warn('cg aoi',e);}});
   // ---- 札（index.html の .cg-lb）を 3D の位置へ写す
