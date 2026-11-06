@@ -129,7 +129,7 @@ export async function createAwai(o) {
 
   const world = new THREE.Group(); scene.add(world);
   const pending = new THREE.Group();   // 最初の絵のあとで組む（材質の組み立てを後ろへ回し、起動を軽く）
-  const R = rng(o.seed ?? 1106);
+  const R = rng(o.seed ?? 1106), RA = rng((o.seed ?? 1106) + 7);   // RA＝色と湿りだけに使う（R の並びを変えない＝木と主体の置き場は前と同じ）
   const pathX = z => Math.sin(z * .021) * .35;   // 参道のごく緩い揺れ（まっすぐすぎない）
 
   // 地面：土と砂利の道を一枚で（境はぼかす）。落ち葉のまだらと湿りは頂点の色で
@@ -179,10 +179,12 @@ export async function createAwai(o) {
     const one = TL.load(o.sprig); one.colorSpace = THREE.SRGBColorSpace; one.anisotropy = 4; one.wrapS = one.wrapT = THREE.ClampToEdgeWrapping;
     const leaf = leafMaterial(one); translucent(leaf, .85); awaiPatch(leaf, { lines: false });
     const tint = [1.3, .92, .42], tintB = [.95, .76, .4], tintN = [1.42, .86, .36];   // 近くの木ほど色づきが見える   // 十一月のはじめ：緑に黄と橙が混じる
-    for (const t of near) world.add(KY.sprigMesh(t.sprigs, leaf, .62, tintN, t.ctr, R));
-    { const fs = all.filter(t => !near.includes(t) && t.sprigs.length).flatMap(t => t.sprigs.map(b => [b, t.ctr])); if (fs.length) { const im = KY.sprigMesh(fs.map(b => b[0]), leaf, .9, tint, new THREE.Vector3(), R); const a = im.geometry.attributes.aCtr; fs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); world.add(im); } }   // 並木の枝先にも葉（枝先が槍に見えない）
+    // 11-06 二版の後：欅の黄葉を、房ごとにはっきり混ぜる（黄・橙・錆。十一月のはじめの大宮の並木＝緑のなかに色づいた房が散る）
+    const autumn = (im, frac) => { const c = new THREE.Color(); for (let i = 0; i < im.count; i++) { if (RA() > frac) continue; im.getColorAt(i, c); const k = RA(); c.multiply(k < .5 ? new THREE.Color(1.5, 1.22, .62) : k < .82 ? new THREE.Color(1.55, 1.0, .55) : new THREE.Color(1.3, .78, .5)); im.setColorAt(i, c); } im.instanceColor.needsUpdate = true; return im; };
+    for (const t of near) world.add(autumn(KY.sprigMesh(t.sprigs, leaf, .62, tintN, t.ctr, R), .42));
+    { const fs = all.filter(t => !near.includes(t) && t.sprigs.length).flatMap(t => t.sprigs.map(b => [b, t.ctr])); if (fs.length) { const im = KY.sprigMesh(fs.map(b => b[0]), leaf, .9, tint, new THREE.Vector3(), R); const a = im.geometry.attributes.aCtr; fs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); world.add(autumn(im, .38)); } }   // 並木の枝先にも葉（枝先が槍に見えない）
     const backs = all.flatMap(t => t.back.map(b => [b, t.ctr]));
-    const bIM = KY.sprigMesh(backs.map(b => b[0]), leaf, 1.05, tintB, new THREE.Vector3(), R); { const a = bIM.geometry.attributes.aCtr; backs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); } world.add(bIM);
+    const bIM = KY.sprigMesh(backs.map(b => b[0]), leaf, 1.05, tintB, new THREE.Vector3(), R); { const a = bIM.geometry.attributes.aCtr; backs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); } world.add(autumn(bIM, .34));
     mk("trees");
   }
   // 草（道の外の縁）と落ち葉
@@ -195,13 +197,13 @@ export async function createAwai(o) {
     const lm = new THREE.MeshStandardMaterial({ map: lt, alphaTest: .5, side: THREE.DoubleSide, roughness: .85 });
     lm.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#ifdef USE_MAP\n{ vec4 tx_ = texture2D(map, vMapUv); diffuseColor *= vec4(vec3(dot(tx_.rgb, vec3(.3,.59,.11)) * 2.5), tx_.a); }\n#endif"); };
     awaiPatch(lm, { lines: false });
-    const n = MOBILE ? 1100 : 2200, lg = new THREE.PlaneGeometry(.05, .1); lg.rotateX(-Math.PI / 2);   // 近くほど多く（足もとの地が、ただの土の面に見えない）
-    const im = new THREE.InstancedMesh(lg, lm, n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
-    for (let i = 0; i < n; i++) {
+    const n0 = MOBILE ? 1100 : 2200, n = MOBILE ? 2000 : 4200, lg = new THREE.PlaneGeometry(.05, .1); lg.rotateX(-Math.PI / 2);   // 11-06 二版の後：落ち葉を倍に（十一月の参道の地が、むきだしの泥に見えない。足した分は RA で置く＝R の並びは前と同じ）   // 近くほど多く（足もとの地が、ただの土の面に見えない）
+    const R0 = R, im = new THREE.InstancedMesh(lg, lm, n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), c = new THREE.Color();
+    for (let i = 0; i < n; i++) { const R = i < n0 ? R0 : RA;
       const z = 8 - Math.pow(R(), 1.5) * 46, onPath = R() < .42, x = pathX(z) + (onPath ? (R() - .5) * 3.6 : (R() < .5 ? -1 : 1) * (2.2 + R() * 5));
       e.set((R() - .5) * .5, R() * TAU, (R() - .5) * .5); q.setFromEuler(e); const s = .8 + R() * .7;
       m4.compose(new THREE.Vector3(x, .012 + R() * .01, z), q, new THREE.Vector3(s, s, s)); im.setMatrixAt(i, m4);
-      const k = R(); c.setRGB(lerp(.95, .62, k), lerp(.78, .42, k), lerp(.32, .2, k)); im.setColorAt(i, c);   // 黄から茶へ
+      const k = R(), wet = RA() < .25 ? .62 : 1; c.setRGB(lerp(.98, .58, k) * wet, lerp(.8, .4, k) * wet, lerp(.3, .2, k) * wet); im.setColorAt(i, c);   // 黄から茶へ（四分の一は湿って濃い）
     }
     pending.add(im);
   }
@@ -221,7 +223,7 @@ export async function createAwai(o) {
 
   // ───────── 画面（字幕・軸・題・音・出典）
   const ui = document.createElement("div"); ui.id = "aw-ui"; document.body.appendChild(ui);
-  ui.innerHTML = `<div class="aw-mark"><b>${o.title}</b><i>${o.en || ""}</i></div>
+  ui.innerHTML = `<div class="aw-mark"><b>${o.title}</b>${o.sub ? `<span class="aw-sub">${o.sub}</span>` : ""}<i>${o.en || ""}</i></div>
 <div class="aw-axis" aria-hidden="true"><span class="aw-top">抽象</span><span class="aw-line"><em></em></span><span class="aw-bot">具体</span></div>
 <p class="aw-cap" aria-live="polite"></p>
 <button class="aw-snd" type="button" aria-pressed="false">音</button>
@@ -292,8 +294,10 @@ export async function createAwai(o) {
     const dt = Math.min(.05, (now - last) / 1000); last = now; t += dt;
     abs += (absT - abs) * (1 - Math.exp(-dt * (RM ? 30 : 3.2))); yaw += (yawT - yaw) * (1 - Math.exp(-dt * 3));
     AW.uAbs.value = abs; AW.uTime.value = t; WIND.uTime.value = RM ? 0 : t;
-    scene.fog.color.copy(abs < .35 ? tmpC.copy(HAZE).lerp(GREY, ss(0, .35, abs)) : tmpC.copy(GREY).lerp(NAVY, ss(.35, .8, abs)));   // 霞 → 冷たい灰 → 紺（あいだで泥の色にならない） scene.fog.near = lerp(6, 40, abs); scene.fog.far = lerp(120, 170, abs); grassUp?.(camera.position, dt); scene.background.copy(scene.fog.color);
-    hemi.intensity = lerp(1.22, .5, abs);   // 具体の影を少し浅く（木陰の斑が迷彩に見えない） sun.intensity = lerp(1.9, .6, abs);   // 木陰の斑が迷彩に見えないよう、日をやや弱く
+    scene.fog.color.copy(abs < .35 ? tmpC.copy(HAZE).lerp(GREY, ss(0, .35, abs)) : tmpC.copy(GREY).lerp(NAVY, ss(.35, .8, abs)));   // 霞 → 冷たい灰 → 紺（あいだで泥の色にならない）
+    scene.fog.near = lerp(6, 40, abs); scene.fog.far = lerp(120, 170, abs); grassUp?.(camera.position, dt); scene.background.copy(scene.fog.color);   // 11-06 二版の後：注釈の後ろに入って効いていなかった（草が 0 本・霞が変わらない）のを直した
+    hemi.intensity = lerp(1.22, .5, abs);   // 具体の影を少し浅く（木陰の斑が迷彩に見えない）
+    sun.intensity = lerp(1.9, .6, abs);   // 木陰の斑が迷彩に見えないよう、日をやや弱く
     for (const m of FADERS) { const f = m.userData.fade; m.opacity = f.max * bandK(f.band, abs); m.visible = m.opacity > .003; }
     const r = rig(abs, yaw, t); const sway = RM ? 0 : 1;
     focK += ((focT ? 1 : 0) - focK) * (1 - Math.exp(-dt * 1.6)); if (focT) { focP.lerp(focT, 1 - Math.exp(-dt * 3)); if (t > focUntil) focT = null; } if (focK > .001) { r.look.lerp(focP, focK * .45 * (1 - abs)); r.pos.lerp(focP.clone().add(r.pos.clone().sub(focP).multiplyScalar(.45)), focK * .6 * (1 - abs)); }
@@ -345,14 +349,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:#cfd5d2;-webkit-user-s
 #aw-ui::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 46%,rgba(3,5,12,0) 58%,rgba(3,5,12,.34) 100%)}
 #aw-ui{position:fixed;inset:0;pointer-events:none;font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;color:var(--aw-ink)}
 .aw-mark{padding:6px 10px 7px;margin:-6px 0 0 -10px;background:radial-gradient(ellipse at 30% 50%,rgba(3,6,15,.32),rgba(3,6,15,0) 72%);position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:3px;text-shadow:0 0 10px rgba(0,0,0,.35)}
-.aw-mark b{font-weight:600;font-size:15px;letter-spacing:.14em;text-shadow:0 0 10px rgba(20,24,30,.6),0 0 2px rgba(20,24,30,.5)}
+.aw-mark b{font-weight:600;font-size:16px;letter-spacing:.08em;text-shadow:0 0 10px rgba(20,24,30,.6),0 0 2px rgba(20,24,30,.5)}
+.aw-mark .aw-sub{font-size:12px;letter-spacing:.22em;color:var(--aw-ink);opacity:.86;text-shadow:0 0 8px rgba(20,24,30,.55)}
 .aw-mark i{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--aw-soft)}
 .aw-axis{position:absolute;right:max(14px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);height:min(46vh,360px);width:44px;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:auto;cursor:ns-resize}
-.aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-soft);text-shadow:0 0 8px rgba(0,0,0,.4)}
+.aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-ink);text-shadow:0 0 3px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.75)}   /* 幹や空の上でも、文字の影で読める（下地の帯は付けない） */
 .aw-line{flex:1;position:relative;width:1px;background:linear-gradient(rgba(155,220,240,.0),rgba(155,220,240,.55) 12%,rgba(155,220,240,.55) 88%,rgba(155,220,240,0));writing-mode:horizontal-tb!important}
 .aw-line em{position:absolute;left:50%;width:9px;height:9px;margin:-5px 0 0 -5px;border:1px solid var(--aw-aoi2);border-radius:50%;background:rgba(6,10,18,.4);box-shadow:0 0 0 4px rgba(155,220,240,.08)}
-.aw-cap{text-wrap:balance;word-break:auto-phrase;line-break:strict;position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;width:min(86vw,640px);text-align:center;font-size:15px;line-height:1.85;letter-spacing:.06em;padding:10px 18px;text-shadow:0 0 10px rgba(14,18,26,.7),0 0 2px rgba(14,18,26,.6);opacity:0;transition:opacity .7s ease;
- background:radial-gradient(ellipse at center,rgba(3,6,15,.66) 0%,rgba(3,6,15,.38) 55%,rgba(3,6,15,0) 82%)}
+.aw-cap{text-wrap:balance;word-break:auto-phrase;line-break:strict;position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;width:min(86vw,640px);text-align:center;font-size:15px;line-height:1.85;letter-spacing:.06em;padding:10px 18px;text-shadow:0 0 2px rgba(2,4,10,1),0 0 5px rgba(2,4,10,.95),0 0 12px rgba(2,4,10,.9),0 0 26px rgba(2,4,10,.7);opacity:0;transition:opacity .7s ease;
+ background:radial-gradient(ellipse at center,rgba(3,6,15,.36) 0%,rgba(3,6,15,.15) 55%,rgba(3,6,15,0) 80%)}   /* 帯に見えない、ごく薄いにじみだけ。読ませるのは文字の影 */
 .aw-cap.on{opacity:1}
 .aw-snd{position:absolute;right:max(14px,env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));pointer-events:auto;min-width:44px;height:44px;background:none;border:0;color:var(--aw-soft);font:inherit;font-size:12px;letter-spacing:.2em;cursor:pointer;text-decoration:line-through;text-decoration-color:rgba(195,204,224,.6);text-shadow:0 0 8px rgba(0,0,0,.4)}
 .aw-snd[aria-pressed="true"]{text-decoration:none;color:var(--aw-ink)}
