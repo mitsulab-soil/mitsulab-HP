@@ -16,9 +16,9 @@ export async function start(sec){
   const SU=[...Array(12)].map(()=>new T.Vector4(0,0,-9,0)); const U={t:{value:0},scan:{value:-6},px:{value:R.getPixelRatio()},ac:{value:0},su:{value:SU},sc:{value:[...Array(12)].map(()=>new T.Color(0))},hi:{value:-1},hk:{value:0}};
   const pm=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,uniforms:U,
     vertexShader:`uniform float t,scan,px,ac;uniform vec4 su[12];uniform vec3 sc[12];uniform float hi,hk;varying float a;varying float hsel;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;void main(){vec3 p=position;float d=scan-p.z;a=step(0.,d);hot=smoothstep(.35,0.,abs(d))*(1.-ac*.85);p.y+=hot*.06;
-      float n=0.;vec3 wc=vec3(0.);hsel=0.;for(int i=0;i<12;i++){float c=smoothstep(.0,.12,su[i].w-length(p.xz-su[i].xy));n+=c;wc+=sc[i]*c;if(float(i)==hi)hsel=c*hk;}tint=vec3(smoothstep(1.2,2.2,n)*ac,n*ac,0.);
+      float n=0.;vec3 wc=vec3(0.);hsel=0.;for(int i=0;i<12;i++){float c=smoothstep(.0,.12,su[i].w-length(p.xz-su[i].xy));n+=c;wc+=sc[i]*c;if(float(i)==hi)hsel=smoothstep(-.18,.1,su[i].w-length(p.xz-su[i].xy))*hk;}tint=vec3(smoothstep(1.2,2.2,n)*ac,n*ac,0.);
       float ov=smoothstep(1.2,2.2,n)*ac;p.xz+=vec2(sin(t*2.1+p.z*37.),cos(t*1.7+p.x*41.))*.012*ov;p.y+=sin(t*2.6+p.x*23.)*.008*ov;wtint=n>.01?wc/n:vec3(0.);   // 受けとるものごとに同じ参道が別の色の世界に、重なる所で揺らぐ
-      vec4 mv=modelViewMatrix*vec4(p,1.);hz=smoothstep(15.,5.,-mv.z);gl_PointSize=px*(1.6+hot*2.5+tint.x*1.4)*(8./-mv.z);gl_Position=projectionMatrix*mv;}`,
+      vec4 mv=modelViewMatrix*vec4(p,1.);hz=smoothstep(15.,5.,-mv.z);gl_PointSize=px*(1.6+hot*2.5+tint.x*1.4+hsel*2.6)*(8./-mv.z);gl_Position=projectionMatrix*mv;}`,
     fragmentShader:`uniform float ac;uniform float hi,hk;uniform vec3 sc[12];varying float a;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;varying float hsel;void main(){vec2 c=gl_PointCoord-.5;if(dot(c,c)>.25)discard;vec3 col=mix(vec3(.55,.82,.9),vec3(.9,1.,1.),hot);col=mix(col,wtint*1.1,min(1.,tint.y)*.55);col=mix(col,sc[int(max(hi,0.))]*1.5,min(1.,hsel*1.2));col=mix(col,vec3(1.,.97,.9),tint.x*.6);
       float al=(a*.5+hot*.6)*(.35+.65*hz)*(1.-ac*.86*(1.-min(1.,tint.y)))+tint.x*.35;al*=mix(1.,.38,hk*(1.-min(1.,hsel*1.5)));al+=hsel*.35;gl_FragColor=vec4(col,al);}`});
   S.add(new T.Points(g,pm));
@@ -34,7 +34,7 @@ export async function start(sec){
   const fm=new T.PointsMaterial({color:0xf2cf8c,size:.05,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}); S.add(new T.Points(fg,fm));
   // 多くの主体：主体ごとに受けとる層（地面と平行・色と高さと広さが違う）。重なりに光の柱、柱どうしを糸がつなぐ（中心のない網）
   // だれかのふるまいは地（場所）をつたって重なりへ行き、となりの主体の層に入る。大きさは模式
-  const KINDS=[{c:0x8fc9ff,y:.62,r:.82},{c:0xf3c86e,y:.16,r:.42},{c:0xf1ece4,y:.36,r:.6},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xa9ec9a,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・木・AI・気象計・GIS
+  const KINDS=[{c:0x8fc9ff,y:.62,r:.82},{c:0xf3c86e,y:.16,r:.42},{c:0xf4aa96,y:.36,r:.6},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xb8c7e8,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・木・AI・気象計・GIS
   let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
   const NA=7, ACT=[];
   for(let tries=0;ACT.length<NA&&tries<4000;tries++){const k=Math.floor(rnd()*(P.length/3)),x=P[k*3],z=P[k*3+2];if(Math.abs(x)>1.9||Math.abs(z)>1.7)continue;if(ACT.some(a=>Math.hypot(a.x-x,a.z-z)<.72))continue;const K=KINDS[ACT.length%KINDS.length];ACT.push({x,z,g:P[k*3+1],ly:P[k*3+1]+K.y,r:K.r*(.72+rnd()*.62),c:new T.Color(K.c),rad:0});}
@@ -43,13 +43,13 @@ export async function start(sec){
   const LG=`uniform vec4 su[12];uniform vec3 sc[12];uniform float t;
     float er(int i,vec2 q){vec2 d=q-su[i].xy;float a=atan(d.y,d.x);return su[i].w*(1.+.05*sin(a*3.+t*.2+float(i)*1.3)+.03*sin(a*5.-t*.15+float(i)));}
     float cv(int i,vec2 q){float r=er(i,q);return r<.005?0.:smoothstep(0.,.14,r-length(q-su[i].xy));}`;
-  const lyM=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{t:U.t,su:{value:SU},sc:{value:SC},ac:U.ac,ef:{value:new Float32Array(12).fill(1)},hl:{value:new Float32Array(12)},hk2:{value:0}},
+  const lyM=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{t:U.t,su:{value:SU},sc:{value:SC},ac:U.ac,ef:{value:new Float32Array(12).fill(1)},hl:{value:new Float32Array(12)},hk2:{value:0},mob2:{value:mob?1:0}},
     vertexShader:`attribute float me;varying float vme;varying vec2 q;void main(){vme=me;vec4 wp=modelMatrix*vec4(position,1.);q=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
-    fragmentShader:LG+`uniform float ac,hk2;uniform float ef[12];uniform float hl[12];varying float vme;varying vec2 q;void main(){int me=int(vme+.5);float own=cv(me,q);if(own<.003)discard;
+    fragmentShader:LG+`uniform float ac,hk2,mob2;uniform float ef[12];uniform float hl[12];varying float vme;varying vec2 q;void main(){int me=int(vme+.5);float own=cv(me,q);if(own<.003)discard;
       float d=length(q-su[me].xy),e=er(me,q)-d;float rim=smoothstep(.016,0.,abs(e-.008));float iso=smoothstep(.01,0.,abs(fract(d*9.-t*.05)-.5)-.47)*smoothstep(.06,.3,e);
       float n=0.;vec3 lc=sc[me];for(int i=0;i<12;i++){if(i==me)continue;float c=cv(i,q);n+=c;lc+=sc[i]*c;}
       float ov=clamp(n,0.,1.);float film=.5+.5*cos(e*40.+t*.3);vec3 col=mix(sc[me],lc/(1.+n)*1.15+(.5+.5*cos(6.2831*(vec3(0.,.33,.67)+film*.3)))*.05,ov);float lu=dot(col,vec3(.299,.587,.114));col=mix(vec3(lu),col,.55);
-      gl_FragColor=vec4(min(col,vec3(1.)),(1.+1.1*hl[me])*(1.-.55*hk2*(1.-hl[me]))*ef[me]*ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
+      gl_FragColor=vec4(min(col,vec3(1.)),(1.+(mob2>.5?2.4:1.2)*hl[me])*(1.-.55*hk2*(1.-hl[me]))*ef[me]*ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
   { const pos=[],me=[];ACT.forEach((a,i)=>{const RM=a.r*1.5,n=mob?20:30;for(let u=0;u<n;u++)for(let v=0;v<n;v++){const q=[[u,v],[u+1,v],[u+1,v+1],[u,v],[u+1,v+1],[u,v+1]];for(const [x,z] of q){pos.push(a.x+(x/n*2-1)*RM,a.ly,a.z+(z/n*2-1)*RM);me.push(i);}}});
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('me',new T.Float32BufferAttribute(me,1));const o=new T.Mesh(g,lyM);o.frustumCulled=false;S.add(o); }
   // 主体のいる所：地から層まで細い一本と、層の上の小さな点
