@@ -179,7 +179,7 @@ export async function createAwai(o) {
     const bark = barkMaterial(tex("bark_zelkova", 1), { normalMap: tex("bark_zelkova_n", 1, false) }); bark.color.setRGB(1.0, .96, .92); sightBark(bark, { gray: .45, contrast: 1.25 }); awaiPatch(bark);
     const wood = new THREE.Mesh(mergeGeometries(all.flatMap(t => t.wood).map(g => { for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k); return g; })), bark); world.add(wood);
     const one = TL.load(o.sprig); one.colorSpace = THREE.SRGBColorSpace; one.anisotropy = 4; one.wrapS = one.wrapT = THREE.ClampToEdgeWrapping;
-    const leaf = leafMaterial(one); translucent(leaf, .85); awaiPatch(leaf, { lines: false });
+    const leaf = leafMaterial(one); translucent(leaf, .85); awaiPatch(leaf, { lines: false }); leaf.alphaToCoverage = true;   // 11-06：樹冠の葉の縁のギザギザを、多重標本のアルファでなめらかに
     const tint = [1.3, .92, .42], tintB = [.95, .76, .4], tintN = [1.42, .86, .36];   // 近くの木ほど色づきが見える   // 十一月のはじめ：緑に黄と橙が混じる
     // 11-06 二版の後：欅の黄葉を、房ごとにはっきり混ぜる（黄・橙・錆。十一月のはじめの大宮の並木＝緑のなかに色づいた房が散る）
     const autumn = (im, frac) => { const c = new THREE.Color(); for (let i = 0; i < im.count; i++) { if (RA() > frac) continue; im.getColorAt(i, c); const k = RA(); c.multiply(k < .5 ? new THREE.Color(1.5, 1.22, .62) : k < .82 ? new THREE.Color(1.55, 1.0, .55) : new THREE.Color(1.3, .78, .5)); im.setColorAt(i, c); } im.instanceColor.needsUpdate = true; return im; };
@@ -238,7 +238,7 @@ export async function createAwai(o) {
   const esc = x => x.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
   const capHTML = t => {   // 句読点のあとでだけ改行してよい（語の途中で割らない。Safari でも同じ）
     const parts = t.match(/[^。、]+[。、]?/g) || [t], narrow = innerWidth < 560, lim = narrow ? 17 : 34; let line = "", out = [];
-    for (const p of parts) { if (line && (line + p).length > lim) { out.push(line); line = p; } else line += p; } if (line) out.push(line);
+    for (const p of parts) { if (line && ((line + p).length > lim || (narrow && /。$/.test(line)))) { out.push(line); line = p; } else line += p; } if (line) out.push(line);   /* スマホは文の終わり（。）で必ず行を分ける */
     return out.map(l => `<span style="display:inline-block">${esc(l)}</span>`).join(narrow ? "<br>" : "");
   };
   const say = (text, hold) => { queue.push([text, hold ?? clamp(1.6 + text.length * .085, 2.6, 7.5)]); };

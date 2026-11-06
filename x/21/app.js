@@ -118,13 +118,13 @@ const tickG = new THREE.BufferGeometry(), tickM = lineMat(C.tit, 0); L1.inner.ad
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P3, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(CS, 3));
   const m = pointMat(0xffffff, .03, 0); m.vertexColors = true; m.userData.max = .85; L2.inner.add(new THREE.Points(g, m)); L2.mats.push(m); }
 // 気温計：一日の 144 の記録（10 分ごと）を円に。夜の目盛りは長い。葉のある所は空いたまま＝落葉は記録されない
-{ const seg = []; for (let i = 0; i < 144; i++) { const a = i / 144 * TAU - Math.PI / 2, night = (i < 36 || i > 114), r0 = .36, r1 = r0 + (night ? .1 : .05); seg.push(new V3(Math.cos(a) * r0, 0, Math.sin(a) * r0), new V3(Math.cos(a) * r1, 0, Math.sin(a) * r1)); }
+{ const seg = []; for (let i = 0; i < 144; i++) { const a = i / 144 * TAU - Math.PI / 2, night = (i < 36 || i >= 102)   /* 0〜6 時と 17 時以降（十一月の大宮の日の入りは 16 時半ごろ） */, r0 = .36, r1 = r0 + (night ? .1 : .05); seg.push(new V3(Math.cos(a) * r0, 0, Math.sin(a) * r0), new V3(Math.cos(a) * r1, 0, Math.sin(a) * r1)); }
   const m = lineMat(C.sens, 0); L3.inner.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg), m)); L3.mats.push(m);
   const ring = []; for (let i = 0; i <= 64; i++) { const a = i / 64 * TAU; ring.push(new V3(Math.cos(a) * .16, 0, Math.sin(a) * .16)); } const m2 = lineMat(C.sens, 0); L3.inner.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring), m2)); L3.mats.push(m2); }
 
 const LINES = [
   ["分解を担う菌は、落ちる前から葉にいる。この葉は、もう誰かの食べものだ。"],
-  ["小鳥には、この葉はまず、落ちる速さとして届く。"],
+  ["小鳥には、この葉はまず、落ちる動きとして届く。"],
   ["歩く人には、この葉は十一月の色になる。"],
   ["気温計は落葉を知らない。残るのは、ゆうべの冷え込みの数だけ。"],
 ];
@@ -142,7 +142,7 @@ function land() {
   // 道すじを層に写す
   const raw = path.map(p => new V3(p.x - LAND.x, 0, p.z - LAND.z).add(new V3(0, 0, (p.y - LAND.y) * -.3))); let mx = .01; raw.forEach(p => mx = Math.max(mx, Math.abs(p.x) / .5, Math.abs(p.z) / .65)); const pts = raw.map(p => p.multiplyScalar(1 / mx));   // 層の葉の形の中に収める
   trailG.setFromPoints(pts); const tk = []; for (let i = 0; i < pts.length - 1; i += 6) { const d = pts[i + 1].clone().sub(pts[i]).normalize(), n = new V3(-d.z, 0, d.x).multiplyScalar(.035); tk.push(pts[i].clone().add(n), pts[i].clone().sub(n)); } tickG.setFromPoints(tk);
-  W.say("参道に、落ちた。"); W.say("上へなぞる。同じ一枚を、ほかのものはどう受けとっているか。");
+  W.say("参道に、落ちた。"); W.say("上へなぞる。同じ一枚が、ほかのものにはどう届いているか。");
 }
 function restart() {
   ST.phase = 0; ST.t = 0; ST.top = false; ST.later = 0; said.fill(false); leafP.copy(AIR); petiole.visible = true; leaf.material.color.setRGB(1, 1, 1);
@@ -189,7 +189,7 @@ W.onFrame((dt, t, a) => {
   });
   if (ST.phase === 2) fg.setDrawRange(0, Math.floor(fN * clamp(L0.k * (.25 + ST.t * .04), 0, 1)));
   // 頂き：すべての層が重なる
-  if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; topFlash = 1; [0, 4, 7, 9].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .1, decay: 2.6, wet: .85 }));   /* 頂き：四つの層が一度に灯り、和音が鳴る（記憶に残る一瞬） */ W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。もう一度、葉のところへ。"); }
+  if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; topFlash = 1; [0, 4, 7, 9].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .1, decay: 2.6, wet: .85 }));   /* 頂き：四つの層が一度に灯り、和音が鳴る（記憶に残る一瞬） */ W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。葉のところへ戻る。"); }
   // 降りる：時が過ぎた同じ場所
   if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; snd.bell(snd.note(0), { gain: .2, decay: 2.2, wet: .85 }); snd.bell(snd.note(4), { gain: .14, at: .05, decay: 2.2, wet: .85 }); snd.bell(snd.note(7), { gain: .1, decay: 2.2, wet: .85, at: .1 });
     W.sayNow("葉は数日を参道ですごし、何か月もかけて菌に分けられ、土へ還る。"); W.say("だれも全体を見ていない。それでも、全体は回っている。"); W.say("自分の見ている欅が、欅のすべてではない。", 6); W.say("葉に触れると、もう一枚。"); }
@@ -210,6 +210,6 @@ W.onFrame((dt, t, a) => {
     if (nb && k3 > .2 && bi % 4 === 0) { snd.bell(snd.note(12), { gain: .05 * k3, pan: .6, decay: .35, wet: .7 }); }   // 10 分ごとの記録 → 2.4 秒（模式）
   }
 });
-setTimeout(() => { W.say("朝の氷川参道。欅の低い枝に、色づいた葉が一枚。"); W.say("葉に触れる。"); }, 800);
+setTimeout(() => { W.say("朝の氷川参道。欅の低い枝に、黄の葉が一枚。"); W.say("葉に触れる。"); }, 800);
 AMK.done = Math.round(performance.now() - T0);
 window.__app = { W, ST, L, tapLeaf, land };
