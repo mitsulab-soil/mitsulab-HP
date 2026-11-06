@@ -235,7 +235,7 @@ export function start(box){
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x4f4b45,{r:.98,m:0}));st.scale.set(1.25,.28,.9);st.position.y=.12;g.add(st);
     m.object.scale.setScalar(mob?4.2:3.4);/* 大小の順：虫 < 鳥 < 人（模式） */m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?9:5,3,1.6);if(mob)g.add(new THREE.PointLight(0xffffff,5,2.2,1.6).translateX(.6).translateY(1.2).translateZ(.8));g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
-  Q.push(async()=>{try{
+  Q.unshift(async()=>{try{
     const g=await PRE.human,o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
     const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3()),k=1.72/sz.y;o.scale.setScalar(k);o.position.set(-(bb.min.x+sz.x/2)*k,-bb.min.y*k,-(bb.min.z+sz.z/2)*k);
     const p=new THREE.Group();p.add(o);const s=SUB[2];at(s,p);ghost.visible=false;box.dataset.humanMs=Math.round(performance.now()-T0);p.rotation.y=s.ry+Math.PI*.82;dirty=1;}catch(e){console.warn('cg human',e);}});
