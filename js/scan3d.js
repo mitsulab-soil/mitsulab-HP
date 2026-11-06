@@ -59,7 +59,7 @@ export async function start(sec){
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
   const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], tags=[]; ACT.slice(0,7).forEach((a,i)=>{const c=document.createElement('canvas');c.width=128;c.height=48;const x=c.getContext('2d');x.font='28px "Shippori Mincho",serif';x.fillStyle='#f4f8fc';x.textAlign='center';x.fillText(document.documentElement.dataset.lang==='en'?['bird','insect','person','tree','AI','gauge','GIS'][i]:NAMES[i],64,34);
-    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false,sizeAttenuation:false}));sp.scale.set(mob?.052:.075,mob?.0195:.028,1);   /* 名札は遠近で大きさを変えずにそろえる */sp.position.set(a.x+(i%2?.12:-.12),a.ly+.14+(i%3)*.08,a.z);S.add(sp);tags.push(sp);});
+    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false,sizeAttenuation:false}));sp.scale.set(mob?.052:.075,mob?.0195:.028,1);   /* 名札は遠近で大きさを変えずにそろえる */const OF=[[-.16,0],[.16,.1],[0,.22],[-.22,.14],[.22,.04],[0,.08],[-.1,.26]][i];sp.position.set(a.x+OF[0],a.ly+.12+OF[1],a.z);S.add(sp);tags.push(sp);});
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網

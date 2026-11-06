@@ -22,8 +22,8 @@ export function start(box){
   const rim=new THREE.DirectionalLight(0x8fd3ff,1.6); rim.position.set(-5,4,-7); S.add(rim);
   // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。h＝札の高さ、hd＝受けとる頭の高さ、ly＝受けとる層の高さ、r＝受けとれる範囲（模式）
   const SUB=[
-    {k:'bird',x:-3.7,z:-.5,c:0x8fc9ff,h:1.3,hd:.62,ly:1.95,r:1.55},{k:'bee',x:-2.0,z:1.75,c:0xf3c86e,h:1.0,hd:.98,ly:.62,r:1.5},{k:'human',x:.95,z:1.35,c:0xfff1dc,h:1.85,hd:1.6,ly:1.3,r:1.95},
-    {k:'ai',x:2.15,z:-1.45,c:0x7ff0d6,h:1.35,hd:1.0,ly:1.62,r:1.75},{k:'sensor',x:3.7,z:.85,c:0xa9ec9a,h:1.3,hd:1.18,ly:.95,r:1.5},{k:'gis',x:-.75,z:-1.95,c:0xc4b2ff,h:1.25,hd:.95,ly:.24,r:2.3}];
+    {k:'bird',x:-3.7,z:-.5,c:0x8fc9ff,h:1.3,hd:.62,ly:1.95,r:1.55},{k:'bee',x:-2.0,z:1.75,c:0xf3c86e,h:1.35,hd:.98,ly:.62,r:1.5},{k:'human',x:.95,z:1.35,c:0xfff1dc,h:1.62,hd:1.6,ly:1.3,r:1.95},
+    {k:'ai',x:2.15,z:-1.45,c:0x7ff0d6,h:1.75,hd:1.0,ly:1.62,r:1.75},{k:'sensor',x:3.7,z:.85,c:0xa9ec9a,h:1.3,hd:1.18,ly:.95,r:1.5},{k:'gis',x:-.75,z:-1.95,c:0xc4b2ff,h:1.25,hd:.95,ly:.24,r:2.3}];
   SUB.forEach(s=>{s.p=new THREE.Vector3(s.x,0,s.z);s.a=Math.atan2(s.z,s.x)*180/Math.PI;s.ry=Math.atan2(-s.p.x,-s.p.z)+.5;});
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
   const blob=(p,r)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2),new THREE.MeshBasicMaterial({map:blobT,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(p.x,.012,p.z);W.add(m);};
@@ -179,8 +179,8 @@ export function start(box){
   { const s=SUB[3], g=new THREE.Group();
     const base=new THREE.Mesh(new THREE.CylinderGeometry(.32,.38,.5,32),std(0x1b2433,{r:.35,m:.8})); base.position.y=.25; g.add(base);
     const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(.36,1),new THREE.MeshBasicMaterial({color:0x8ff7e0,wireframe:true,transparent:true,opacity:.22,toneMapped:false})); ico.position.y=.95; ico.visible=false;
-    { const rack=new THREE.Mesh(new THREE.BoxGeometry(.26,.62,.3),new THREE.MeshPhysicalMaterial({color:0x1c2128,roughness:.45,metalness:.6,clearcoat:.4}));rack.position.y=.81;g.add(rack);   /* AI は計算機の棚（光る球にしない） */
-      for(let k=0;k<5;k++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.22,.012,.005),new THREE.MeshBasicMaterial({color:k%2?0x5fe6cc:0x8fd3ff,toneMapped:false,transparent:true,opacity:.7}));sl.position.set(0,.58+k*.1,.153);g.add(sl);} }
+    { const rack=new THREE.Mesh(new THREE.BoxGeometry(.42,1.0,.44),new THREE.MeshPhysicalMaterial({color:0x1c2128,roughness:.45,metalness:.6,clearcoat:.4}));rack.position.y=1.0;g.add(rack);const fr=new THREE.LineSegments(new THREE.EdgesGeometry(rack.geometry),new THREE.LineBasicMaterial({color:0x7ff0d6,transparent:true,opacity:.35}));fr.position.copy(rack.position);g.add(fr);   /* AI は計算機の棚（光る球にしない） */
+      for(let k=0;k<8;k++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.34,.014,.005),new THREE.MeshBasicMaterial({color:k%2?0x5fe6cc:0x8fd3ff,toneMapped:false,transparent:true,opacity:.7}));sl.position.set(0,.6+k*.11,.224);g.add(sl);} }
     { const body=new THREE.Mesh(new THREE.BoxGeometry(.3,.2,.22),new THREE.MeshPhysicalMaterial({color:0x2a2f36,roughness:.42,metalness:.55,clearcoat:.6,clearcoatRoughness:.3}));body.position.set(0,.62,0);g.add(body);
       const lens=new THREE.Mesh(new THREE.CylinderGeometry(.065,.07,.08,32),new THREE.MeshPhysicalMaterial({color:0x0b0f14,roughness:.08,metalness:.2,clearcoat:1}));lens.rotation.x=Math.PI/2;lens.position.set(0,.62,.14);g.add(lens);
       const glass=new THREE.Mesh(new THREE.CircleGeometry(.05,32),new THREE.MeshBasicMaterial({color:0x5fe6cc,transparent:true,opacity:.55,toneMapped:false}));glass.position.set(0,.62,.181);g.add(glass); }
@@ -285,7 +285,7 @@ export function start(box){
     const box_=[];
     for(const a of anchors){const d=LB[a.k];if(!d)continue;v.copy(a.p).applyMatrix4(W.matrixWorld);const dz=v.clone().applyMatrix4(C.matrixWorldInverse).z;v.project(C);
       let x=(v.x*.5+.5)*wpx,y=(-v.y*.5+.5)*hpx;
-      if(a.k==='aoi'||a.k==='yori'){const dw=SZ(d)[0],dh=SZ(d)[1];box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
+      if(a.k==='aoi'||a.k==='yori'||a.k==='human'||a.k==='bee'){const dw=SZ(d)[0],dh=SZ(d)[1];box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
       const left=x<cx, up=y<cy, dw=SZ(d)[0], dh=SZ(d)[1]; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(12,Math.min(wpx-dw-12,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
 }
     // 札どうしが重なったら、上下へ押し分ける（数回）
