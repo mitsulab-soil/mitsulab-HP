@@ -77,7 +77,9 @@ const sens = PR.sensorPost(); sens.position.set(innerWidth < innerHeight * .8 ? 
 
 const PORT = innerWidth < innerHeight * .8;
 if (PORT) { tit.position.copy(tree).add(new V3(.85, 0, 1.9)); person.position.set(-.2, 0, 2.4); tw.position.set(1.15, 0, 1.4); sens.position.set(.9, 0, -.9); }
-beeHome.copy(tw.userData.heads[0]).multiplyScalar(tw.scale.x).add(tw.position);   // 蜂は花の上に（縦長で花を動かしたあとも・大きさも含めて）
+beeHome.copy(tw.userData.heads[0]).multiplyScalar(tw.scale.x).add(tw.position);
+// 蜂の居場所の手がかり：体は実物の大きさのまま、羽ばたきの光の小さな点が明滅する（触れると強く）
+const beeGlowM = pointMat(0xfff1c8, MOBILE ? .2 : .16, 1); const beeGlow = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), beeGlowM); W.add(beeGlow);   // 蜂は花の上に（縦長で花を動かしたあとも・大きさも含めて）
 { const P = [tree, tit.position, tw.position, person.position, sens.position];   /* どの主体の輪も 1.3 m 以上離す（近ければ奥行きの向きへ押す）。欅は動かさない */
   for (let it = 0; it < 6; it++) for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) { const d = P[j].clone().sub(P[i]).setY(0); if (d.length() < 1.3) { const push = d.lengthSq() < 1e-4 ? new V3(0, 0, 1) : d.clone().normalize(); P[j].addScaledVector(push, 1.3 - d.length()); } } }   /* 縦長の俯瞰：五つの輪を五角に近く、1.2 m 以上離す */
 const C = { tit: 0xb9a7e6, bee: 0xf2cf8c, hum: 0xf4aa96, tree: 0x8fd6a8, sens: 0xa9c8d8 };
@@ -202,6 +204,7 @@ W.onFrame((dt, t, a) => {
   // 生き物
   hop = Math.max(0, hop - dt * 1.6); tit.position.y = Math.sin(Math.min(1, 1 - hop) * Math.PI) * (hop > 0 ? .06 : 0); tit.userData.animate?.(t, false);
   beeKick = Math.max(0, beeKick - dt * .8); const hv = RM ? 0 : 1;
+  beeGlow.position.copy(bee.position); beeGlowM.opacity = (.6 + .35 * Math.sin(t * 9)) * (1 - ss(.3, .7, a)) + beeKick * .6;
   bee.position.copy(beeHome).add(new V3(Math.sin(t * .9) * (.05 + beeKick * .25) * hv, .045 + Math.sin(t * 1.7) * .015 * hv + beeKick * .12, Math.cos(t * .7) * (.04 + beeKick * .2) * hv)); bee.rotation.y = Math.sin(t * .5) * .8; bee.userData.state = "fly"; bee.userData.animate?.(t, "hover");
   if (steps > 0) { steps = Math.max(0, steps - dt); person.userData.walk((1.2 - steps) / .6, 1); } else person.userData.walk(0, 0);
   person.userData.mat.opacity = lerp(.75, .6, ss(.08, .5, a));   // 具体では墨の線、抽象では光の線
