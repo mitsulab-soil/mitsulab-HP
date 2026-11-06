@@ -7,7 +7,7 @@ import * as THREE from 'three';
 export function start(box){
   const mob=innerWidth<760, reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cv=box.querySelector('canvas'), R=new THREE.WebGLRenderer({canvas:cv,antialias:!mob,alpha:true,powerPreference:'low-power'});
-  R.setPixelRatio(Math.min(devicePixelRatio,mob?1.4:1.75)); R.outputColorSpace=THREE.SRGBColorSpace; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.0;
+  R.setPixelRatio(Math.min(devicePixelRatio,mob?1.2:1.75)); R.outputColorSpace=THREE.SRGBColorSpace; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.0;
   const S=new THREE.Scene(); S.fog=new THREE.Fog(0x05080f,11,22);
   const C=new THREE.PerspectiveCamera(32,1,.1,60);
   const W=new THREE.Group(); S.add(W);   // 回す世界
@@ -158,7 +158,7 @@ export function start(box){
   function pick(e){const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,C);
     let best=-1,bd=1e9;SUB.forEach((s,i)=>{pl.constant=-s.ly;inv.copy(W.matrixWorld);const p=pl.clone().applyMatrix4(inv);if(!ray.ray.intersectPlane(p,hit))return;const lp=W.worldToLocal(hit.clone());const d=Math.hypot(lp.x-s.x,lp.z-s.z)/rad[i];if(d<1&&d<bd){bd=d;best=i;}});
     return best;}
-  function choose(i){sel=(i===sel)?-1:i;SUB.forEach((s,k)=>{radT[k]=sel<0?s.r:k===sel?s.r*1.42:s.r*.92;});
+  function choose(i){sel=(i===sel)?-1:i;SUB.forEach((s,k)=>{radT[k]=sel<0?s.r:k===sel?s.r*1.6:s.r*.9;});
     st.querySelectorAll('.cg-lb').forEach(d=>d.classList.toggle('sel',sel>=0&&d.dataset.k===SUB[sel].k));dirty=1;}
   // ---- 主体の 3D
   const look=o=>o;
@@ -241,10 +241,10 @@ export function start(box){
     if(!reduce){ if(!drag&&performance.now()-user>2500){auto+=dt*.07;} }
     W.rotation.y=yaw+Math.sin(auto)*.35;
     if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
-    for(let i=0;i<NS;i++){const g=smoothstep(0,1,(tI-.3-.34*i)/1.5);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
-      const lt=sel<0?1:i===sel?1.3:.55;lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
+    for(let i=0;i<NS;i++){const g=.32+.68*smoothstep(0,1,(tI-.1-.3*i)/1.4);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
+      const lt=sel<0?1:i===sel?1.9:.32;lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
     syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
-    updOverlap(smoothstep(2.6,4.2,tI)); flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
+    {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
     anim.forEach(f=>f(t,dt));
     if(mot){mot.update(dt,C,{vrmUpdate:false});vrm.update(dt);mot.afterVrmUpdate(dt);if(!aoiP.visible&&++aoiN>3)aoiP.visible=true;}
     if(WQ.length)WQ.shift()();
