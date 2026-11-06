@@ -34,10 +34,10 @@ export async function start(sec){
   const fm=new T.PointsMaterial({color:0xf2cf8c,size:.05,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}); S.add(new T.Points(fg,fm));
   // 多くの主体：主体ごとに受けとる層（地面と平行・色と高さと広さが違う）。重なりに光の柱、柱どうしを糸がつなぐ（中心のない網）
   // だれかのふるまいは地（場所）をつたって重なりへ行き、となりの主体の層に入る。大きさは模式
-  const KINDS=[{c:0x8fc9ff,y:.62,r:.66},{c:0xf3c86e,y:.16,r:.36},{c:0xf4aa96,y:.36,r:.98},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xb8c7e8,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・木・AI・気象計・GIS
+  const KINDS=[{c:0x8fc9ff,y:.62,r:.66},{c:0xf3c86e,y:.16,r:.36},{c:0xff9a5c,y:.36,r:.98},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xb8c7e8,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・木・AI・気象計・GIS
   let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
   const NA=7, ACT=[];
-  /* 主体の置き場は固定（参道の上に人、両脇の木立に鳥・木、地面に虫、測る機械は脇に） */const FIX=[[-.55,-.75],[-.75,.55],[.05,.2],[.8,-.6],[.8,.6],[.15,1.15],[-.15,-1.25]],FS=mob?1:1.45;
+  /* 主体の置き場は固定（参道の上に人、両脇の木立に鳥・木、地面に虫、測る機械は脇に） */const FIX=[[-.55,-.75],[-.75,.55],[.05,.2],[.75,-.6],[.62,.6],[.15,1.15],[-.15,-1.25]],FS=mob?1:1.45;
   for(let n=0;n<NA;n++){const x0=FIX[n][0]*FS,z0=FIX[n][1]*FS;let bk=0,bd=1e9;for(let q=0;q<P.length/3;q+=3){const d=Math.hypot(P[q*3]-x0,P[q*3+2]-z0);if(d<bd){bd=d;bk=q;}}const K=KINDS[n];ACT.push({x:x0,z:z0,g:P[bk*3+1],ly:P[bk*3+1]+K.y,r:K.r*(n<3?1:.85),c:new T.Color(K.c),rad:0});}
   const SC=ACT.map(a=>a.c); while(SC.length<12)SC.push(new T.Color(0)); SC.forEach((c,i)=>U.sc.value[i].copy(c));
   const syncSU=()=>{ACT.forEach((a,i)=>SU[i].set(a.x,a.z,a.ly,a.rad));};
@@ -128,8 +128,8 @@ export async function start(sec){
     prog+= (progress()-prog)*(reduce?1:.12); const p=prog;
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
-    const a=-.6+p*(mob?.84:1.1), rr=mob?7.8-p*1.0:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
-    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(mob?.1:0,mob?.02:.2,mob?.2:0);
+    const a=-.6+p*(mob?.84:1.1), rr=mob?7.3-p*1.0:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
+    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(mob?.1:0,mob?.3:.2,mob?.2:0);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
     fg.attributes.position.needsUpdate=true;
