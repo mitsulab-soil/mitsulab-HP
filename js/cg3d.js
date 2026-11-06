@@ -61,25 +61,25 @@ export function start(box){
     const g=new THREE.Mesh(new THREE.CircleGeometry(7.6,mob?64:96),m); g.rotation.x=-Math.PI/2; W.add(g); W.userData.ground=m; }
   // ---- 受けとる層：主体ごとに一枚（地面と平行・色と高さと広さが違う）。縁はやわらかく、内に細い等距線、重なりでは光が混ざる
   const layerM=(i,slice)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
-    uniforms:{t:{value:0},ru:{value:RU},rc:{value:COL},me:{value:i},lit:{value:1},sl:{value:slice},mech:{value:['ai','sensor','gis'].includes(SUB[i].k)?1:0}},
+    uniforms:{t:{value:0},ru:{value:RU},rc:{value:COL},me:{value:i},lit:{value:1},sl:{value:slice},mech:{value:['ai','sensor','gis'].includes(SUB[i].k)?1:0},hot:{value:0},selI:{value:-1}},
     vertexShader:`uniform float t,sl;uniform int me;varying vec2 v;varying float fr;void main(){vec3 p=position;v=vec2(p.x,-p.y);
       float w=sin(p.x*.8+t*.35+float(me)*2.1)*.045+cos(p.y*.7-t*.28+float(me))*.04;p.z+=w;
       vec4 wp=modelMatrix*vec4(p,1.);vec3 nv=normalize(cameraPosition-wp.xyz);fr=1.-abs(nv.y);gl_Position=projectionMatrix*viewMatrix*wp;}`,
-    fragmentShader:GLSL_COMMON+`uniform int me;uniform float lit,sl,mech;varying vec2 v;varying float fr;
+    fragmentShader:GLSL_COMMON+`uniform int me;uniform float lit,sl,mech,hot,selI;varying vec2 v;varying float fr;
       void main(){vec2 q=v+ru[me].xy;float d=length(q-ru[me].xy),er=edgeR(me,q),e=er-d;float own=cov(me,e);if(own<.002)discard;
         float rimL=smoothstep(.035,.0,abs(e-.02));float iso=smoothstep(.012,.0,abs(fract(d*3.2-t*.04)-.5)-.47)*smoothstep(.2,.9,e);
         float n=0.;vec3 lc=rc[me];float m2=0.;
-        float lens=0.;for(int i=0;i<6;i++){if(i==me)continue;vec2 dd=q-ru[i].xy;if(dot(dd,dd)>ru[i].z*ru[i].z*1.3)continue;float ej=ed(i,q);float c=cov(i,ej);n+=c;lc+=rc[i]*c;m2+=c*ej;lens+=smoothstep(.03,0.,abs(ej-.01))*step(.01,ru[i].z);}
+        float lens=0.,ovs=0.;for(int i=0;i<6;i++){if(i==me)continue;vec2 dd=q-ru[i].xy;if(dot(dd,dd)>ru[i].z*ru[i].z*1.3)continue;float ej=ed(i,q);float c=cov(i,ej);n+=c;if(float(i)==selI||float(me)==selI)ovs+=c;lc+=rc[i]*c;m2+=c*ej;lens+=smoothstep(.03,0.,abs(ej-.01))*step(.01,ru[i].z);}
         vec3 base=rc[me];vec3 mixc=lc/(1.+n);
         float film=.5+.5*cos(6.2831*(m2*.8-e*.6)+t*.3);   // 重なりの縁に、薄い膜の干渉のような色のゆらぎ
         vec3 irid=.5+.5*cos(6.2831*(vec3(.0,.33,.67)+film*.35+e*.2));
         float ov=clamp(n,0.,1.);float rr=clamp(d/max(er,.01),0.,1.);
         float glow=smoothstep(.45,1.,rr);   // 縁ほど光をためる（ガラスの縁のように）
         vec3 col=mix(base*(.75+.45*glow),mix(mixc*1.5,vec3(1.),.32)+irid*.14,ov);
-        col=mix(col,vec3(1.),rimL*.35+lens*.5);
+        col=mix(col,vec3(1.),rimL*(.35+hot*.4)+lens*.5+ovs*.3);
         float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.24+.09*film)*min(lit,1.)+lens*own*.4;
         float scan=mech*(smoothstep(.05,0.,abs(fract(q.y*9.-t*.15)-.5)-.44)*.6+smoothstep(.03,0.,min(abs(fract(q.x*3.)-.5),abs(fract(q.y*3.)-.5))-.47)*.35);   // 機械の層は走査線と格子で
-        a+=own*scan*(.25+.5*smoothstep(.0,.6,e));a*=lit*(1.-sl*.55);
+        a+=own*scan*(.25+.5*smoothstep(.0,.6,e))+rimL*hot*.45+ovs*own*.22;a*=lit*(1.-sl*.55);
         gl_FragColor=vec4(min(col,vec3(1.)),a);}`});
   const layers=[];
   SUB.forEach((s,i)=>{const RM=s.r*1.55, seg=mob?28:44;
@@ -255,7 +255,8 @@ export function start(box){
     W.rotation.y=yaw+Math.sin(auto)*.35;
     if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
     for(let i=0;i<NS;i++){const g=.32+.68*smoothstep(0,1,(tI-.1-.3*i)/1.4);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
-      const lt=sel<0?1:i===sel?1.35:.45;lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
+      const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.25:nb?.8:.4;
+      layers.filter(L=>L.i===i).forEach(L=>{L.m.uniforms.hot.value+=(((nb||i===sel)?1:0)-L.m.uniforms.hot.value)*Math.min(1,dt*4);L.m.uniforms.selI.value=sel;});lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
     syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
     if(!(mob&&(((frame.n||0)+1)&1)))anim.forEach(f=>f(t,mob?dt*2:dt));

@@ -48,7 +48,7 @@ export async function start(sec){
       float d=length(q-su[me].xy),e=er(me,q)-d;float rim=smoothstep(.016,0.,abs(e-.008));float iso=smoothstep(.01,0.,abs(fract(d*9.-t*.05)-.5)-.47)*smoothstep(.06,.3,e);
       float n=0.;vec3 lc=sc[me];for(int i=0;i<12;i++){if(i==me)continue;float c=cv(i,q);n+=c;lc+=sc[i]*c;}
       float ov=clamp(n,0.,1.);float film=.5+.5*cos(e*40.+t*.3);vec3 col=mix(sc[me],lc/(1.+n)*1.25+(.5+.5*cos(6.2831*(vec3(0.,.33,.67)+film*.3)))*.1,ov);
-      gl_FragColor=vec4(min(col,vec3(1.)),ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film)));}`});
+      gl_FragColor=vec4(min(col,vec3(1.)),ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
   { const pos=[],me=[];ACT.forEach((a,i)=>{const RM=a.r*1.5,n=mob?20:30;for(let u=0;u<n;u++)for(let v=0;v<n;v++){const q=[[u,v],[u+1,v],[u+1,v+1],[u,v],[u+1,v+1],[u,v+1]];for(const [x,z] of q){pos.push(a.x+(x/n*2-1)*RM,a.ly,a.z+(z/n*2-1)*RM);me.push(i);}}});
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('me',new T.Float32BufferAttribute(me,1));const o=new T.Mesh(g,lyM);o.frustumCulled=false;S.add(o); }
   // 主体のいる所：地から層まで細い一本と、層の上の小さな点
@@ -105,7 +105,7 @@ export async function start(sec){
     prog+= (progress()-prog)*(reduce?1:.12); const p=prog;
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
-    const a=-.6+p*(mob?.92:1.1), rr=mob?8.6-p*1.6:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
+    const a=-.6+p*(mob?.92:1.1), rr=mob?7.6-p*1.4:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
     C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(0,mob?-.15:.2,mob?.45:0);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
