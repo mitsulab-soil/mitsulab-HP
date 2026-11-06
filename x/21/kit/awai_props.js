@@ -118,7 +118,7 @@ export function monad(color, r = .5) {
 }
 
 // ───────── 人：等高線の姿（高さ 5 cm ごとの輪を重ねる＝人の形は線で）。脚と腕は付け根で振れる。描画は 5 回だけ
-export function contourPerson(color = 0xf4aa96, H = 1.68, stepH = .15) {
+export function contourPerson(color = 0xf4aa96, H = 1.68, stepH = .34) {
   const g = new THREE.Group(), mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: .85, toneMapped: false });
   const ring = (arr, cx, h, rx, rz, n = 28) => { for (let i = 0; i < n; i++) { const a = i / n * TAU, b = (i + 1) / n * TAU; arr.push(cx + Math.cos(a) * rx, h, Math.sin(a) * rz, cx + Math.cos(b) * rx, h, Math.sin(b) * rz); } };
   const part = (arr, pivot) => { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(arr, 3)); gg.translate(-pivot.x, -pivot.y, -pivot.z); const l = new THREE.LineSegments(gg, mat); const p = new THREE.Group(); p.position.copy(pivot); p.add(l); g.add(p); return p; };

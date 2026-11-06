@@ -131,7 +131,7 @@ function act(n, gain, from) {
   n.voice({ gain: .34 * gain, pan, wet: .5 }); snd.bell(n.f, { gain: .16 * gain, pan, decay: .7 });
   if (n.id === "hum" && Lon) [nodeOf("tit"), nodeOf("bee"), nodeOf("tree")].forEach((o, i) => snd.bell(o.f, { gain: .07 * gain, pan, at: .03 * (i + 1), decay: .6 }));   // 層 L：人の応えに、ほかの受けとり方の色が混じる
   n.act(); lastAct = ripU.uT.value;
-  if (n.id === "hum" && Lon && W.abs < .4) { const p2 = n.at(); ripple(p2.x, p2.z, 2.0, 0xffffff); [0, 4, 7].forEach((k, i) => snd.bell(snd.note(k), { gain: .07, at: i * .08, decay: 2, wet: .85 })); }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
+  if (n.id === "hum" && Lon && W.abs < .4) { const p2 = n.at(); ripple(p2.x, p2.z, 3.2, 0xffffff); [0, 4, 7].forEach((k, i) => snd.bell(snd.note(k), { gain: .07, at: i * .08, decay: 2, wet: .85 })); }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
   if (n.id === "hum" && Lon && !saidL2) { saidL2 = true; W.say("同じ足音でも、もう前と同じ意味ではない。"); }
   // 波が届く時刻に、ほかの主体の入力へ
   for (const o of N) { const ch = o !== n && n.out.find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(p), g = gain * Math.exp(-d / 9) * .9; o.queue.push({ t: ripU.uT.value + d / SPEED, g, from: n, ch }); }   // 受けとれる経路があるものだけが入力にする

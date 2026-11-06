@@ -351,7 +351,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#cfd5d2;-webkit-user-s
 .aw-mark{padding:6px 10px 7px;margin:-6px 0 0 -10px;background:radial-gradient(ellipse at 30% 50%,rgba(3,6,15,.32),rgba(3,6,15,0) 72%);position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:3px;text-shadow:0 0 10px rgba(0,0,0,.35)}
 .aw-mark b{font-weight:600;font-size:16px;letter-spacing:.08em;text-shadow:0 0 10px rgba(20,24,30,.6),0 0 2px rgba(20,24,30,.5)}
 .aw-mark .aw-sub{font-size:12px;letter-spacing:.22em;color:var(--aw-ink);opacity:.86;text-shadow:0 0 8px rgba(20,24,30,.55)}
-.aw-mark i{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--aw-soft)}
+.aw-mark i{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--aw-ink);opacity:.88;text-shadow:0 0 2px rgba(2,4,10,.95),0 0 8px rgba(2,4,10,.8)}   /* 明るい空の上でも英題が読める */
 .aw-axis{position:absolute;right:max(14px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);height:min(46vh,360px);width:44px;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:auto;cursor:ns-resize}
 .aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-ink);text-shadow:0 0 3px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.75)}   /* 幹や空の上でも、文字の影で読める（下地の帯は付けない） */
 .aw-line{flex:1;position:relative;width:1px;background:linear-gradient(rgba(155,220,240,.0),rgba(155,220,240,.55) 12%,rgba(155,220,240,.55) 88%,rgba(155,220,240,0));writing-mode:horizontal-tb!important}
