@@ -167,7 +167,10 @@ export function start(box){
   // AI：台の上に、学習したモデル（節と結び目の多面体）と、分けた先の小さな箱（三つ）
   { const s=SUB[3], g=new THREE.Group();
     const base=new THREE.Mesh(new THREE.CylinderGeometry(.32,.38,.5,32),std(0x1b2433,{r:.35,m:.8})); base.position.y=.25; g.add(base);
-    const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(.36,1),new THREE.MeshBasicMaterial({color:0x8ff7e0,wireframe:true,transparent:true,opacity:.75,toneMapped:false})); ico.position.y=.95; g.add(ico);
+    const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(.36,1),new THREE.MeshBasicMaterial({color:0x8ff7e0,wireframe:true,transparent:true,opacity:.22,toneMapped:false})); ico.position.y=.95; g.add(ico);
+    { const body=new THREE.Mesh(new THREE.BoxGeometry(.3,.2,.22),new THREE.MeshPhysicalMaterial({color:0x2a2f36,roughness:.42,metalness:.55,clearcoat:.6,clearcoatRoughness:.3}));body.position.set(0,.62,0);g.add(body);
+      const lens=new THREE.Mesh(new THREE.CylinderGeometry(.065,.07,.08,32),new THREE.MeshPhysicalMaterial({color:0x0b0f14,roughness:.08,metalness:.2,clearcoat:1}));lens.rotation.x=Math.PI/2;lens.position.set(0,.62,.14);g.add(lens);
+      const glass=new THREE.Mesh(new THREE.CircleGeometry(.05,32),new THREE.MeshBasicMaterial({color:0x5fe6cc,transparent:true,opacity:.55,toneMapped:false}));glass.position.set(0,.62,.181);g.add(glass); }
     const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.16,2),std(0x0d3a36,{e:0x5fe6cc,ei:1.4,r:.3,m:.2})); core.position.y=.95; g.add(core);
     const nodes=new THREE.InstancedMesh(new THREE.SphereGeometry(.03,6,4),new THREE.MeshBasicMaterial({color:0xd8fff6,toneMapped:false}),12); const v=ico.geometry.attributes.position, M=new THREE.Matrix4();
     for(let i=0;i<12;i++){M.makeTranslation(v.getX(i*5%v.count),v.getY(i*5%v.count)+.95,v.getZ(i*5%v.count));nodes.setMatrixAt(i,M);} g.add(nodes);

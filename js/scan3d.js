@@ -90,6 +90,10 @@ export async function start(sec){
         tc.copy(ACT[F.pa.from].c).lerp(ACT[F.pa.to].c,sm(.5,1,F.d/F.pa.len));fC.set([tc.r,tc.g,tc.b],n*3);if(F.d>=F.pa.len){F.at=F.pa.to;F.pa=null;F.w=.2+Math.random();}}else fP.set([0,-50,0],n*3);}
       fG.attributes.position.needsUpdate=fG.attributes.color.needsUpdate=true;}
   }
+  // 鳥居（位置は《Qualium 大宮》の地図の印＝PLATEAU・OSM から。高さはおよそ 12 m の模式）：朱の線だけで
+  { const L=[];for(const mk of (meta.marks||[])){if(!/鳥居/.test(mk.name))continue;const X=(mk.p[0]-o[0])*sc,Y=(mk.p[1]-o[1])*sc,Z=(mk.p[2]-o[2])*sc;if(Math.abs(X)>4.8||Math.abs(Z)>3.8)continue;
+      const h=.24,w=.13;L.push(X-w*.8,Y,Z,X-w*.7,Y+h,Z, X+w*.8,Y,Z,X+w*.7,Y+h,Z, X-w*1.25,Y+h+.02,Z,X+w*1.25,Y+h+.02,Z, X-w,Y+h*.8,Z,X+w,Y+h*.8,Z);}
+    if(L.length){const tm=new T.LineBasicMaterial({color:0xd6553a,transparent:true,opacity:.9,depthWrite:false});const to=new T.LineSegments(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(L,3)),tm);S.add(to);} }
   const caps=[...sec.querySelectorAll('.sc-cap')];
   function size(){const w=cv.clientWidth,h=cv.clientHeight;R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix();}
   size(); addEventListener('resize',size);
