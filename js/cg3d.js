@@ -226,6 +226,7 @@ export function start(box){
   const st=box.querySelector('.cg-st'); const LB={};st.querySelectorAll('.cg-lb').forEach(d=>LB[d.dataset.k]=d);
   const anchors=SUB.map(s=>({k:s.k,p:s.p.clone().setY(s.h+.2)})).concat([{k:'aoi',p:AOI.clone().setY(1.85)},{k:'yori',p:YORI.clone().setY(.95)}]);
   const v=new THREE.Vector3(), vc=new THREE.Vector3();
+  const SZC=new Map(); const SZ=d=>{let z=SZC.get(d);if(!z){z=[d.offsetWidth,d.offsetHeight];if(z[0])SZC.set(d,z);}return z;}; addEventListener('resize',()=>SZC.clear()); new MutationObserver(()=>SZC.clear()).observe(document.documentElement,{attributes:true,attributeFilter:['data-lang']});
   // 視点：ゆっくり左右にめぐる。横になぞると回せる（縦のスクロールは止めない）
   let yaw=0, drag=null, user=0, tI0=-1; const base=SUB.map(s=>s.r);
   cv.style.touchAction='pan-y';
@@ -245,16 +246,18 @@ export function start(box){
       const lt=sel<0?1:i===sel?1.9:.32;lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
     syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
-    anim.forEach(f=>f(t,dt));
-    if(mot){mot.update(dt,C,{vrmUpdate:false});vrm.update(dt);mot.afterVrmUpdate(dt);if(!aoiP.visible&&++aoiN>3)aoiP.visible=true;}
+    if(!(mob&&(((frame.n||0)+1)&1)))anim.forEach(f=>f(t,mob?dt*2:dt));
+    frame.n=(frame.n||0)+1; const half=mob&&(frame.n&1); frame.acc=(frame.acc||0)+dt;
+    if(mot&&!half){const d2=frame.acc;mot.update(d2,C,{vrmUpdate:false});vrm.update(d2);mot.afterVrmUpdate(d2);if(!aoiP.visible&&++aoiN>3)aoiP.visible=true;}
+    if(!half)frame.acc=0;
     if(WQ.length)WQ.shift()();
     R.render(S,C);
     vc.set(0,1,0).applyMatrix4(W.matrixWorld).project(C); const cx=(vc.x*.5+.5)*wpx, cy=(-vc.y*.5+.5)*hpx;
     const box_=[];
     for(const a of anchors){const d=LB[a.k];if(!d)continue;v.copy(a.p).applyMatrix4(W.matrixWorld);const dz=v.clone().applyMatrix4(C.matrixWorldInverse).z;v.project(C);
       let x=(v.x*.5+.5)*wpx,y=(-v.y*.5+.5)*hpx;
-      if(a.k==='aoi'||a.k==='yori'){const dw=d.offsetWidth,dh=d.offsetHeight;box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
-      const left=x<cx, up=y<cy, dw=d.offsetWidth, dh=d.offsetHeight; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(12,Math.min(wpx-dw-12,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
+      if(a.k==='aoi'||a.k==='yori'){const dw=SZ(d)[0],dh=SZ(d)[1];box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
+      const left=x<cx, up=y<cy, dw=SZ(d)[0], dh=SZ(d)[1]; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(12,Math.min(wpx-dw-12,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
 }
     // 札どうしが重なったら、上下へ押し分ける（数回）
     for(let it=0;it<6;it++)for(let i=0;i<box_.length;i++)for(let j=i+1;j<box_.length;j++){const A=box_[i],B=box_[j];
