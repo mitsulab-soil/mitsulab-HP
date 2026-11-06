@@ -47,14 +47,14 @@ export async function start(sec){
     fragmentShader:LG+`uniform float ac;varying float vme;varying vec2 q;void main(){int me=int(vme+.5);float own=cv(me,q);if(own<.003)discard;
       float d=length(q-su[me].xy),e=er(me,q)-d;float rim=smoothstep(.016,0.,abs(e-.008));float iso=smoothstep(.01,0.,abs(fract(d*9.-t*.05)-.5)-.47)*smoothstep(.06,.3,e);
       float n=0.;vec3 lc=sc[me];for(int i=0;i<12;i++){if(i==me)continue;float c=cv(i,q);n+=c;lc+=sc[i]*c;}
-      float ov=clamp(n,0.,1.);float film=.5+.5*cos(e*40.+t*.3);vec3 col=mix(sc[me],lc/(1.+n)*1.25+(.5+.5*cos(6.2831*(vec3(0.,.33,.67)+film*.3)))*.1,ov);
+      float ov=clamp(n,0.,1.);float film=.5+.5*cos(e*40.+t*.3);vec3 col=mix(sc[me],lc/(1.+n)*1.15+(.5+.5*cos(6.2831*(vec3(0.,.33,.67)+film*.3)))*.05,ov);float lu=dot(col,vec3(.299,.587,.114));col=mix(vec3(lu),col,.55);
       gl_FragColor=vec4(min(col,vec3(1.)),ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
   { const pos=[],me=[];ACT.forEach((a,i)=>{const RM=a.r*1.5,n=mob?20:30;for(let u=0;u<n;u++)for(let v=0;v<n;v++){const q=[[u,v],[u+1,v],[u+1,v+1],[u,v],[u+1,v+1],[u,v+1]];for(const [x,z] of q){pos.push(a.x+(x/n*2-1)*RM,a.ly,a.z+(z/n*2-1)*RM);me.push(i);}}});
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('me',new T.Float32BufferAttribute(me,1));const o=new T.Mesh(g,lyM);o.frustumCulled=false;S.add(o); }
   // 主体のいる所：地から層まで細い一本と、層の上の小さな点
-  { const L=[],D=[];ACT.forEach(a=>{L.push(a.x,a.g,a.z,a.x,a.ly,a.z);D.push(a.x,a.ly,a.z);});
+  const DC=[]; { const L=[],D=[];ACT.forEach(a=>{L.push(a.x,a.g,a.z,a.x,a.ly,a.z);D.push(a.x,a.ly,a.z);DC.push(a.c.r,a.c.g,a.c.b);});
     S.add(new T.LineSegments(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(L,3)),new T.LineBasicMaterial({color:0xdff6ff,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending})));
-    S.add(new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(D,3)),new T.PointsMaterial({color:0xffffff,size:.07,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}))); }
+    S.add(new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(D,3)).setAttribute('color',new T.Float32BufferAttribute(DC,3)),new T.PointsMaterial({vertexColors:true,size:.07,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}))); }
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;

@@ -75,11 +75,12 @@ export function start(box){
         vec3 irid=.5+.5*cos(6.2831*(vec3(.0,.33,.67)+film*.35+e*.2));
         float ov=clamp(n,0.,1.);float rr=clamp(d/max(er,.01),0.,1.);
         float glow=smoothstep(.45,1.,rr);   // 縁ほど光をためる（ガラスの縁のように）
-        vec3 col=mix(base*(.75+.45*glow),mix(mixc*1.5,vec3(1.),.32)+irid*.14,ov);
-        col=mix(col,vec3(1.),rimL*(.35+hot*.4)+lens*.5+ovs*.3);
-        float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.17+.07*film)*min(lit,1.)+lens*own*.3;
+        vec3 col=mix(base*(.75+.45*glow),mix(mixc*1.3,vec3(1.),.18)+irid*.06,ov);
+        col=mix(col,vec3(1.),rimL*(.3+hot*.3)+lens*.35+ovs*.12);
+        float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.24+.08*film)*min(lit,1.)+lens*own*.3;
         float scan=mech*(smoothstep(.05,0.,abs(fract(q.y*9.-t*.15)-.5)-.44)*.6+smoothstep(.03,0.,min(abs(fract(q.x*3.)-.5),abs(fract(q.y*3.)-.5))-.47)*.35);   // 機械の層は走査線と格子で
-        a+=own*scan*(.25+.5*smoothstep(.0,.6,e))+rimL*hot*.45+ovs*own*(float(me)==selI?.26:.08);a*=lit*(1.-sl*.55);
+        a+=own*scan*(.1+.22*smoothstep(.0,.6,e))+rimL*hot*.7+ovs*own*(float(me)==selI?.12:.05);a*=lit*(1.-sl*.55);
+        float lu=dot(col,vec3(.299,.587,.114));col=mix(vec3(lu),col,.55);col=mix(col,vec3(.78,.84,.9),.12);   // 霞の低い彩度（世界観の決まり）
         gl_FragColor=vec4(min(col,vec3(1.)),a);}`});
   const layers=[];
   SUB.forEach((s,i)=>{const RM=s.r*1.55, seg=mob?28:44;
@@ -161,7 +162,7 @@ export function start(box){
   function pick(e){const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,C);
     let best=-1,bd=1e9;SUB.forEach((s,i)=>{pl.constant=-s.ly;inv.copy(W.matrixWorld);const p=pl.clone().applyMatrix4(inv);if(!ray.ray.intersectPlane(p,hit))return;const lp=W.worldToLocal(hit.clone());const d=Math.hypot(lp.x-s.x,lp.z-s.z)/rad[i];if(d<1&&d<bd){bd=d;best=i;}});
     return best;}
-  function choose(i){sel=(i===sel)?-1:i;SUB.forEach((s,k)=>{radT[k]=sel<0?s.r:k===sel?s.r*1.6:s.r*.9;});
+  function choose(i){sel=(i===sel)?-1:i;SUB.forEach((s,k)=>{radT[k]=sel<0?s.r:k===sel?s.r*1.22:s.r*.95;});
     st.querySelectorAll('.cg-lb').forEach(d=>d.classList.toggle('sel',sel>=0&&d.dataset.k===SUB[sel].k));
     const cap=st.querySelector('.cg-cap');if(cap){const nm=k=>{const d=st.querySelector('.cg-lb[data-k="'+k+'"] .cg-n > span');return d?d.textContent:k;};
       if(sel<0)cap.textContent='';else{const S0=SUB[sel],ns=SUB.filter((o,k)=>k!==sel&&Math.hypot(o.x-S0.x,o.z-S0.z)<S0.r*1.6+o.r*.9).map(o=>nm(o.k));const en=document.documentElement.dataset.lang==='en';const mc=k=>['ai','sensor','gis'].includes(k);const rj=k=>mc(k)?'記録する範囲':'感じとる範囲';const re=k=>mc(k)?'the range it records':'the range it senses';
@@ -210,7 +211,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(mob?7:6.4);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?6:5,3,1.6);g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?9:6.4);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?6:5,3,1.6);g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
@@ -255,7 +256,7 @@ export function start(box){
     W.rotation.y=yaw+Math.sin(auto)*.35;
     if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
     for(let i=0;i<NS;i++){const g=.32+.68*smoothstep(0,1,(tI-.1-.3*i)/1.4);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
-      const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.55:nb?.6:.35;
+      const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.3:nb?.65:.38;
       layers.filter(L=>L.i===i).forEach(L=>{L.m.uniforms.hot.value+=(((nb||i===sel)?1:0)-L.m.uniforms.hot.value)*Math.min(1,dt*4);L.m.uniforms.selI.value=sel;});lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
     syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
