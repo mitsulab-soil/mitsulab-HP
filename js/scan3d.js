@@ -58,8 +58,17 @@ export async function start(sec){
     S.add(new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(D,3)).setAttribute('color',new T.Float32BufferAttribute(DC,3)),new T.PointsMaterial({vertexColors:true,size:.07,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}))); }
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
-  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], tags=[]; ACT.slice(0,7).forEach((a,i)=>{const c=document.createElement('canvas');c.width=128;c.height=48;const x=c.getContext('2d');x.font='28px "Shippori Mincho",serif';x.fillStyle='#f4f8fc';x.textAlign='center';x.fillText(document.documentElement.dataset.lang==='en'?['bird','insect','person','tree','AI','gauge','GIS'][i]:NAMES[i],64,34);
-    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false,sizeAttenuation:false}));sp.scale.set(mob?.052:.075,mob?.0195:.028,1);   /* 名札は遠近で大きさを変えずにそろえる */const OF=[[-.16,0],[.16,.1],[0,.22],[-.22,.14],[.22,.04],[0,.08],[-.1,.26]][i].map(v=>v*(mob?1.25:1));sp.position.set(a.x+OF[0],a.ly+.12+OF[1],a.z);S.add(sp);tags.push(sp);});
+  // 主体の名（HTML の札）：毎こま画面の位置を計算し、端から 16px 内側に収める・札どうしが重なれば縦にずらす
+  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','tree','AI','gauge','GIS'], tags=[];
+  const tagBox=sec.querySelector('.scn-st');
+  ACT.slice(0,7).forEach((a,i)=>{const d=document.createElement('span');d.className='sc-tag';d.setAttribute('aria-hidden','true');d.dataset.ja=NAMES[i];d.dataset.en=NAMES_EN[i];d.textContent=NAMES[i];
+    d.style.cssText='position:absolute;left:0;top:0;pointer-events:none;font:400 '+(mob?'13px':'14px')+'/1 "Shippori Mincho",serif;color:#f4f8fc;text-shadow:0 0 6px #03060f,0 0 2px #03060f;opacity:0;white-space:nowrap;will-change:transform;z-index:1';
+    tagBox.appendChild(d);tags.push({d,p:new T.Vector3(a.x,a.ly+.12,a.z)});});
+  function placeTags(ac){const W=tagBox.clientWidth,H=tagBox.clientHeight,en=document.documentElement.dataset.lang==='en',box=[];
+    for(const t of tags){t.d.textContent=en?t.d.dataset.en:t.d.dataset.ja;tv.copy(t.p).project(C);const vis=tv.z<1&&tv.y>-1&&tv.y<1;const w=t.d.offsetWidth,h=t.d.offsetHeight;
+      let x=(tv.x*.5+.5)*W-w/2,y=(-tv.y*.5+.5)*H-h-4;x=Math.max(16,Math.min(W-16-w,x));box.push({t,x,y,w,h,vis});}
+    for(let k=0;k<4;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w&&B.x<A.x+A.w&&A.y<B.y+B.h&&B.y<A.y+A.h){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y))/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
+    for(const q of box){q.t.d.style.transform=`translate(${q.x}px,${q.y}px)`;q.t.d.style.opacity=q.vis?ac*.9:0;}}
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網
@@ -83,7 +92,7 @@ export async function start(sec){
   function stage3(t,ac){
     const dt=Math.min(.05,t-(stage3.t||t)); stage3.t=t;
     ACT.forEach((a,i)=>{const g=sm(.64+i*.012,.8+i*.012,prog);a.rad=a.r*g;}); syncSU();
-    markL.material.opacity=ac*.35; markD.material.opacity=ac*.9; tags.forEach(s=>{s.material.opacity=ac*.85;tv.copy(s.position).project(C);s.center.x=tv.x>.55?1:tv.x<-.55?0:.5;});   /* 端の名札は内側へ寄せて切れないように */
+    markL.material.opacity=ac*.35; markD.material.opacity=ac*.9; if(ac>0.001||placeTags.on){placeTags(ac);placeTags.on=ac>0.001;}
     PR.forEach((p,k)=>{const A=ACT[p.i],B=ACT[p.j],o=A.rad+B.rad-p.d;p.amt=Math.min(1,Math.max(0,o/.25));const w=Math.max(0,Math.min(o,2*Math.min(A.rad,B.rad)))/2,u=(A.rad-w)/Math.max(1e-3,p.d);
       p.m.set(A.x+(B.x-A.x)*u,(A.ly+B.ly)/2,A.z+(B.z-A.z)*u);const c=COLS[k];c.visible=p.amt*ac>.01;if(c.visible){const y0=Math.min(A.ly,B.ly,(A.g+B.g)/2),y1=Math.max(A.ly,B.ly)+.03;c.position.set(p.m.x,(y0+y1)/2,p.m.z);c.scale.set(Math.max(.03,w*.6),y1-y0,Math.max(.03,w*.6));c.material.uniforms.a.value=p.amt*ac;}});
     WB.forEach(([a,b],e)=>{const A=PR[a],B=PR[b];for(let q=0;q<WN;q++)for(let r=0;r<2;r++){const u=(q+r)/WN;tv.copy(A.m).lerp(B.m,u);tv.y+=Math.sin(u*Math.PI)*.08;wP.set([tv.x,tv.y,tv.z],(e*WN*2+q*2+r)*3);}});
