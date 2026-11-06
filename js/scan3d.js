@@ -9,9 +9,9 @@ export async function start(sec){
   R.setPixelRatio(Math.min(devicePixelRatio,mob?1.25:1.5));
   const S=new T.Scene(), C=new T.PerspectiveCamera(42,1,.1,100);
   const ints=new Int16Array(buf), o=meta.center[Math.floor(meta.center.length/2)], sc=.02, q=meta.q, P=[];
-  const sub=mob?2:4, skip=mob?4:2;
-  for(const k of ['road','buildings','structures']){const [off,cnt]=meta.groups[k];for(let i=0;i+1<cnt;i+=2*skip){const n=(off+i)*3,m=n+3,x=ints[n]*q-o[0],z=ints[n+2]*q-o[2];if(Math.abs(x)>240||Math.abs(z)>190)continue;const y=ints[n+1]*q-o[1],x2=ints[m]*q-o[0],y2=ints[m+1]*q-o[1],z2=ints[m+2]*q-o[2];for(let j=0;j<sub;j++){const u=j/sub;P.push((x+(x2-x)*u)*sc,(y+(y2-y)*u)*sc,(z+(z2-z)*u)*sc);}}}
-  for(const [x,y,z] of meta.trees){const X=x-o[0],Z=z-o[2];if(Math.abs(X)>240||Math.abs(Z)>190)continue;for(let j=0;j<(mob?6:12);j++){const a=Math.random()*6.28,r=Math.random()*.09;P.push(X*sc+Math.cos(a)*r,(y-o[1])*sc+.12+Math.random()*.12,Z*sc+Math.sin(a)*r);}}
+  const sub=mob?2:4, skip=mob?8:4;   // 二の鳥居まで見える範囲を広げた分、点は間引いて数を増やさない
+  for(const k of ['road','buildings','structures']){const [off,cnt]=meta.groups[k];for(let i=0;i+1<cnt;i+=2*skip){const n=(off+i)*3,m=n+3,x=ints[n]*q-o[0],z=ints[n+2]*q-o[2];if(Math.abs(x)>240||z>190||z<-520)continue;const y=ints[n+1]*q-o[1],x2=ints[m]*q-o[0],y2=ints[m+1]*q-o[1],z2=ints[m+2]*q-o[2];for(let j=0;j<sub;j++){const u=j/sub;P.push((x+(x2-x)*u)*sc,(y+(y2-y)*u)*sc,(z+(z2-z)*u)*sc);}}}
+  for(const [x,y,z] of meta.trees){const X=x-o[0],Z=z-o[2];if(Math.abs(X)>240||Z>190||Z<-520||(Z<-190&&Math.random()<.5))continue;for(let j=0;j<(mob?6:12);j++){const a=Math.random()*6.28,r=Math.random()*.09;P.push(X*sc+Math.cos(a)*r,(y-o[1])*sc+.12+Math.random()*.12,Z*sc+Math.sin(a)*r);}}
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(P,3));
   const SU=[...Array(12)].map(()=>new T.Vector4(0,0,-9,0)); const U={t:{value:0},scan:{value:-6},px:{value:R.getPixelRatio()},ac:{value:0},su:{value:SU}};
   const pm=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,uniforms:U,
@@ -91,7 +91,7 @@ export async function start(sec){
       fG.attributes.position.needsUpdate=fG.attributes.color.needsUpdate=true;}
   }
   // 鳥居（位置は《Qualium 大宮》の地図の印＝PLATEAU・OSM から。高さはおよそ 12 m の模式）：朱の線だけで
-  { const L=[];for(const mk of (meta.marks||[])){if(!/鳥居/.test(mk.name))continue;const X=(mk.p[0]-o[0])*sc,Y=(mk.p[1]-o[1])*sc,Z=(mk.p[2]-o[2])*sc;if(Math.abs(X)>4.8||Math.abs(Z)>3.8)continue;
+  { const L=[];for(const mk of (meta.marks||[])){if(!/鳥居/.test(mk.name))continue;const X=(mk.p[0]-o[0])*sc,Y=(mk.p[1]-o[1])*sc,Z=(mk.p[2]-o[2])*sc;if(Math.abs(X)>4.8||Z>3.8||Z<-10.6)continue;
       const h=.24,w=.13;L.push(X-w*.8,Y,Z,X-w*.7,Y+h,Z, X+w*.8,Y,Z,X+w*.7,Y+h,Z, X-w*1.25,Y+h+.02,Z,X+w*1.25,Y+h+.02,Z, X-w,Y+h*.8,Z,X+w,Y+h*.8,Z);}
     if(L.length){const tm=new T.LineBasicMaterial({color:0xd6553a,transparent:true,opacity:.9,depthWrite:false});const to=new T.LineSegments(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(L,3)),tm);S.add(to);} }
   const caps=[...sec.querySelectorAll('.sc-cap')];
