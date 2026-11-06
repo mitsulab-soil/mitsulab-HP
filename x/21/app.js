@@ -59,7 +59,7 @@ let twigPal = null; const twigMat = base => { twigPal ||= [[1.02, .84, .5], [.98
     for (let i = 0; i < 5; i++) { const sd = i % 2 ? 1 : -1, p = c2.getPointAt(.25 + i * .17).add(new V3(0, sd * .018, sd * .03)), l = PR.keyakiLeaf(.06 + R() * .025); l.material = twigMat(l.material);   // 小枝に互い違いに
       l.position.copy(p); l.rotation.set(-.6 + sd * .5 + (R() - .5) * .3, -.8 + (R() - .5) * .5, sd * .9 + (R() - .5) * .3); twig.add(l); } } }
 PR.bakeRigid(twig);   // 枝と房の葉を材質ごとに一つに
-const petiole = new THREE.Line(new THREE.BufferGeometry().setFromPoints([AIR.clone().add(new V3(0, .05, 0)), AIR.clone().add(new V3(0, .0, 0))]), new THREE.LineBasicMaterial({ color: 0x6b4520, transparent: true, opacity: 0 })); twig.add(petiole);
+const petiole = new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(AIR.clone().add(new V3(.06, .04, -.01)), AIR.clone().add(new V3(.03, .045, 0)), AIR.clone().add(new V3(0, .035, 0))), 8, .0022, 5, false), awaiPatch(new THREE.MeshStandardMaterial({ color: 0x7a5a32, roughness: .9 }))); twig.add(petiole);   // 11-06：宙の葉を枝先につなぐ葉柄（見える細い茎）
 // 地の上の落ち葉の重なり（欅の葉の画を、着地点のまわりに）
 { const lt = PR.keyakiLeaf(.07), n = MOBILE ? 60 : 120, im = new THREE.InstancedMesh(lt.geometry, lt.material, n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
   for (let i = 0; i < n; i++) { const a = R() * TAU, r = .25 + Math.pow(R(), .7) * 2.2; q.setFromEuler(new THREE.Euler(-Math.PI / 2 + (R() - .5) * .3, 0, R() * TAU)); const sc = .8 + R() * .5;

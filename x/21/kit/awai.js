@@ -145,7 +145,7 @@ export async function createAwai(o) {
     }
     g.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3)); g.computeVertexNormals();
     const soil = tex("soil_forest", S / 2.6), grav = tex("path_gravel", 1);
-    const m = new THREE.MeshStandardMaterial({ map: soil, vertexColors: true, roughness: 1 });
+    const m = new THREE.MeshStandardMaterial({ map: soil, vertexColors: true, roughness: 1, normalMap: tex("sand_grit_n", S / 1.6, false), normalScale: new THREE.Vector2(.55, .55) });   // 11-06：地に細かな凹凸（CC0 の砂の法線。近景が平らな板に見えない）
     m.onBeforeCompile = sh => {
       sh.uniforms.uGrav = { value: grav };
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D uGrav;")
