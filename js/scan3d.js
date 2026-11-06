@@ -86,7 +86,7 @@ export async function start(sec){
     PR.forEach((p,k)=>{const A=ACT[p.i],B=ACT[p.j],o=A.rad+B.rad-p.d;p.amt=Math.min(1,Math.max(0,o/.25));const w=Math.max(0,Math.min(o,2*Math.min(A.rad,B.rad)))/2,u=(A.rad-w)/Math.max(1e-3,p.d);
       p.m.set(A.x+(B.x-A.x)*u,(A.ly+B.ly)/2,A.z+(B.z-A.z)*u);const c=COLS[k];c.visible=p.amt*ac>.01;if(c.visible){const y0=Math.min(A.ly,B.ly,(A.g+B.g)/2),y1=Math.max(A.ly,B.ly)+.03;c.position.set(p.m.x,(y0+y1)/2,p.m.z);c.scale.set(Math.max(.03,w*.6),y1-y0,Math.max(.03,w*.6));c.material.uniforms.a.value=p.amt*ac;}});
     WB.forEach(([a,b],e)=>{const A=PR[a],B=PR[b];for(let q=0;q<WN;q++)for(let r=0;r<2;r++){const u=(q+r)/WN;tv.copy(A.m).lerp(B.m,u);tv.y+=Math.sin(u*Math.PI)*.08;wP.set([tv.x,tv.y,tv.z],(e*WN*2+q*2+r)*3);}});
-    wG.attributes.position.needsUpdate=true; wM.opacity=ac*.16*sm(.72,.86,prog);
+    wG.attributes.position.needsUpdate=true; wM.opacity=ac*(.26+.08*Math.sin(t*.8))*sm(.72,.86,prog);
     const fo=sm(.74,.88,prog); fM.opacity=fo*.95;
     if(fo>0&&!reduce){for(let n=0;n<NPf;n++){const F=FQ[n];if(!F.pa){F.w-=dt;if(F.w<=0){F.pa=hopS(F.at);F.d=0;if(!F.pa)F.w=1;}}
       if(F.pa){F.d+=dt*F.sp;const L=F.pa.L;let q=1;while(q<L.length-1&&L[q]<F.d)q++;tv.copy(F.pa.W[q-1]).lerp(F.pa.W[q],Math.min(1,(F.d-L[q-1])/Math.max(1e-4,L[q]-L[q-1])));fP.set([tv.x,tv.y,tv.z],n*3);
