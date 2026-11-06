@@ -70,13 +70,14 @@ const ripple = (x, z, amp, col) => { RIP[rI].set(x, z, ripU.uT.value, amp); RCOL
 const tree = W.near.map(t => { const p = t.wood[0].attributes.position; return new V3(p.getX(0), 0, p.getZ(0)); }).filter(v => v.x < 0).sort((a, b) => Math.abs(a.z + 2.5) - Math.abs(b.z + 2.5))[0] || new V3(-5.4, 0, -2.5);
 tree.x += .6;   /* 輪は幹の根もとのそば（縦長でも動かさない） */
 const tit = CR.makeTit(); PR.awaiCreature(tit, .5); tit.scale.setScalar(.3); tit.position.set(-2.0, 0, 2.0); tit.rotation.y = .7; tit.userData.state = "perch"; PR.bakeRigid(tit); if (MOBILE) PR.flattenSmall(tit, { wings: true }); W.add(tit);
-const tw = PR.tsuwabuki(R, { n: 11, spread: .42 }); tw.position.set(1.7, 0, 1.55); W.add(tw);
-const bee = CR.makeBee(); PR.awaiCreature(bee, .5); bee.scale.setScalar(.024); PR.bakeRigid(bee, { dropFur: MOBILE }); if (MOBILE) { const bp = bee.userData.parts; bp.wings.forEach(w => w.hw.visible = false); PR.flattenSmall(bee, { collapse: bp.body, keep: bp.wings.flatMap(w => [w.fw, w.hw]) }); }   /* スマホ：後翅は前翅に重なるので省き、体の部品を一つに */ W.add(bee); const beeHome = tw.userData.heads[0].clone().add(tw.position);
+const tw = PR.tsuwabuki(R, { n: 11, spread: .42 }); tw.position.set(1.7, 0, 1.55); tw.scale.setScalar(1.5); W.add(tw);   /* 11-06：花が見える大きさに（十一月に咲く黄の頭花） */
+const bee = CR.makeBee(); PR.awaiCreature(bee, .5); bee.scale.setScalar(.034); PR.bakeRigid(bee, { dropFur: MOBILE }); if (MOBILE) { const bp = bee.userData.parts; bp.wings.forEach(w => w.hw.visible = false); PR.flattenSmall(bee, { collapse: bp.body, keep: bp.wings.flatMap(w => [w.fw, w.hw]) }); }   /* スマホ：後翅は前翅に重なるので省き、体の部品を一つに */ W.add(bee); const beeHome = tw.userData.heads[0].clone().add(tw.position);
 const person = PR.contourPerson(0xe9d2c2); person.position.set(-1.0, 0, 2.8); person.rotation.y = .25; W.add(person);
 const sens = PR.sensorPost(); sens.position.set(innerWidth < innerHeight * .8 ? 1.3 : 2.3, 0, -.9); sens.rotation.y = -.4; PR.bakeRigid(sens); W.add(sens);
 
 const PORT = innerWidth < innerHeight * .8;
 if (PORT) { tit.position.copy(tree).add(new V3(.85, 0, 1.9)); person.position.set(-.2, 0, 2.4); tw.position.set(1.15, 0, 1.4); sens.position.set(.9, 0, -.9); }
+beeHome.copy(tw.userData.heads[0]).multiplyScalar(tw.scale.x).add(tw.position);   // 蜂は花の上に（縦長で花を動かしたあとも・大きさも含めて）
 { const P = [tree, tit.position, tw.position, person.position, sens.position];   /* どの主体の輪も 1.3 m 以上離す（近ければ奥行きの向きへ押す）。欅は動かさない */
   for (let it = 0; it < 6; it++) for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) { const d = P[j].clone().sub(P[i]).setY(0); if (d.length() < 1.3) { const push = d.lengthSq() < 1e-4 ? new V3(0, 0, 1) : d.clone().normalize(); P[j].addScaledVector(push, 1.3 - d.length()); } } }   /* 縦長の俯瞰：五つの輪を五角に近く、1.2 m 以上離す */
 const C = { tit: 0xb9a7e6, bee: 0xf2cf8c, hum: 0xf4aa96, tree: 0x8fd6a8, sens: 0xa9c8d8 };
@@ -85,7 +86,7 @@ const N = [
     c: "シジュウカラが落ち葉をめくり、ひとつ跳ぶ。その声と影が、まわりの入力になる。", a: "鳥は、鳥の身体で拾えるものだけを手がかりにする。紫外も見える目で。", out: ["声", "動き"], in: ["足音", "動き", "声", "落葉"],
     voice: o => { for (let k = 0; k < 3; k++) { snd.chirp(5200, 4900, .06, { ...o, at: (o.at || 0) + k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: (o.at || 0) + k * .42 + .1 }); }   /* ツツピー（シジュウカラのさえずりの句。声域 3〜6 kHz の模式） */ }, act: () => { hop = 1; } },
   { id: "bee", sub: "ミツバチ", col: C.bee, at: () => tw.position, h: .75, lag: .15, f: snd.note(3),
-    c: "ミツバチがツワブキの花をめぐる。羽音は、一秒に約 230 回のはばたきそのもの。", a: "蜂は、身体の拾えるものだけを手がかりにする。紫外・青・緑の三つで色を分けるとされる。", out: ["羽音", "動き"], in: ["動き", "光"],
+    c: "ミツバチがツワブキのまわりを飛ぶ。羽音は、一秒に約 230 回のはばたき。", a: "蜂は、身体の拾えるものだけを手がかりにする。紫外・青・緑の三つで色を分けるとされる。", out: ["羽音", "動き"], in: ["動き", "光"],
     voice: o => snd.hum(230, .7, { ...o, gain: (o.gain ?? .3) * .7 }), act: () => { beeKick = 1; } },
   { id: "hum", sub: "人", col: C.hum, at: () => person.position, h: 1.95, lag: .6, f: snd.note(0), seen: new Set(),
     c: "人が歩く。一歩ごとの足音が、鳥を振り向かせる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
@@ -131,7 +132,7 @@ function act(n, gain, from) {
   n.voice({ gain: .34 * gain, pan, wet: .5 }); snd.bell(n.f, { gain: .16 * gain, pan, decay: .7 });
   if (n.id === "hum" && Lon) [nodeOf("tit"), nodeOf("bee"), nodeOf("tree")].forEach((o, i) => snd.bell(o.f, { gain: .07 * gain, pan, at: .03 * (i + 1), decay: .6 }));   // 層 L：人の応えに、ほかの受けとり方の色が混じる
   n.act(); lastAct = ripU.uT.value;
-  if (n.id === "hum" && Lon && W.abs < .4) { const p2 = n.at(); ripple(p2.x, p2.z, 3.2, 0xffffff); [0, 4, 7].forEach((k, i) => snd.bell(snd.note(k), { gain: .07, at: i * .08, decay: 2, wet: .85 })); }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
+  if (n.id === "hum" && Lon && W.abs < .4) { const p2 = n.at(); ripple(p2.x, p2.z, 3.2, 0xffffff); [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .06, at: i * .08, decay: 2, wet: .85 }));   /* 抽象で鳴った和音が、参道で一度だけ返ってくる */ }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
   if (n.id === "hum" && Lon && !saidL2) { saidL2 = true; W.say("同じ足音でも、もう前と同じ意味ではない。"); }
   // 波が届く時刻に、ほかの主体の入力へ
   for (const o of N) { const ch = o !== n && n.out.find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(p), g = gain * Math.exp(-d / 9) * .9; o.queue.push({ t: ripU.uT.value + d / SPEED, g, from: n, ch }); }   // 受けとれる経路があるものだけが入力にする

@@ -122,9 +122,9 @@ const tickG = new THREE.BufferGeometry(), tickM = lineMat(C.tit, 0); L1.inner.ad
 
 const LINES = [
   ["分解を担う菌は、落ちる前から葉にいる。この葉は、もう誰かの食べものだ。"],
-  ["小鳥の目は、速い動きをよく見分けるとされる。この葉は、まず落ちる動きとして届く。"],
-  ["歩く人にとって、この葉は色と季節になる。"],
-  ["気温計に、落葉は記録されない。残るのは、前の夜の冷え込みの数だ。"],
+  ["小鳥には、この葉はまず、落ちる速さとして届く。"],
+  ["歩く人には、この葉は十一月の色になる。"],
+  ["気温計は落葉を知らない。残るのは、ゆうべの冷え込みの数だけ。"],
 ];
 
 // ───────── 進み方
@@ -149,7 +149,7 @@ function restart() {
 const said = [false, false, false, false];
 let topFlash = 0, airT2 = 0, stepT = 0, chirpT = 0, tickT = 0, fungiT = 0, airT = 0, lastBeat = -1;   // 声部はすべて 0.6 秒の拍の上。8 拍（4.8 秒）ごとに頭がそろう
 W.onFrame((dt, t, a) => {
-  ST.t += dt; topFlash = Math.max(0, topFlash - dt / 2.4);
+  ST.t += dt; topFlash = Math.max(0, topFlash - dt / 5.5);
   if (ST.phase >= 1) { airT2 -= dt; if (airT2 < 0) { airT2 = 3.4; snd.breath(3.6, { f0: 480 + Math.random() * 120, f1: 720, gain: .085, wet: .8, pan: (Math.random() - .5) * 1.4 }); } }   // 11-06：着地のあとも木立の風が途切れない（無音の穴を埋める）
   // 葉の動き
   if (ST.phase === 0) {
@@ -188,7 +188,7 @@ W.onFrame((dt, t, a) => {
   if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; topFlash = 1; [0, 4, 7, 9].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .1, decay: 2.6, wet: .85 }));   /* 頂き：四つの層が一度に灯り、和音が鳴る（記憶に残る一瞬） */ W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。もう一度、葉のところへ。"); }
   // 降りる：時が過ぎた同じ場所
   if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; snd.bell(snd.note(0), { gain: .2, decay: 2.2, wet: .85 }); snd.bell(snd.note(4), { gain: .14, at: .05, decay: 2.2, wet: .85 }); snd.bell(snd.note(7), { gain: .1, decay: 2.2, wet: .85, at: .1 });
-    W.sayNow("葉は参道の上で数日をすごし、やがて土の上へ移り、何か月もかけて菌に分けられ、土へ還っていく。"); W.say("だれも全体を見ていない。けれど、全体はたしかに回っている。"); W.say("自分の見ている欅が、欅のすべてではない。"); W.say("葉に触れると、もう一枚。"); }
+    W.sayNow("葉は数日を参道ですごし、何か月もかけて菌に分けられ、土へ還る。"); W.say("だれも全体を見ていない。それでも、全体は回っている。"); W.say("自分の見ている欅が、欅のすべてではない。", 6); W.say("葉に触れると、もう一枚。"); }
   if (ST.phase === 3) {
     ST.later += dt; const u = clamp(ST.later / 5, 0, 1);
     leaf.material.color.setRGB(lerp(1, .55, u), lerp(1, .42, u), lerp(1, .32, u));   // 茶へ
