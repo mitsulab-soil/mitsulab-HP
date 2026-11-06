@@ -98,9 +98,9 @@ export function start(box){
     PAIRS.forEach(P=>{const m=colM.clone();m.uniforms.t=colM.uniforms.t;m.uniforms.c.value.copy(COL[P.i]).lerp(COL[P.j],.5).multiplyScalar(1.1);
       const o=new THREE.Mesh(base,m);o.visible=false;W.add(o);cols.push(o);}); }
   // 網：重なりの節どうしを、同じ主体を介してつなぐ細い光の糸（中心のない網）
-  const WEB=[]; { const lm=P=>{const A=SUB[P.i],B=SUB[P.j];return [(A.x+B.x)/2,(A.z+B.z)/2];}; const ok=P=>Math.hypot(SUB[P.j].x-SUB[P.i].x,SUB[P.j].z-SUB[P.i].z)<SUB[P.i].r+SUB[P.j].r+.4;
+  const WEB=[]; { const lm=P=>{const A=SUB[P.i],B=SUB[P.j];return [(A.x+B.x)/2,(A.z+B.z)/2];}; const ok=P=>Math.hypot(SUB[P.j].x-SUB[P.i].x,SUB[P.j].z-SUB[P.i].z)<SUB[P.i].r+SUB[P.j].r+.9;
     const ix=PAIRS.map((P,k)=>k).filter(k=>ok(PAIRS[k])), seen=new Set();
-    ix.forEach(a=>{const [ax,az]=lm(PAIRS[a]);ix.filter(b=>b!==a).map(b=>{const [bx,bz]=lm(PAIRS[b]);return [Math.hypot(ax-bx,az-bz),b];}).sort((p,q)=>p[0]-q[0]).slice(0,2).forEach(([d,b])=>{const k=Math.min(a,b)+'-'+Math.max(a,b);if(seen.has(k))return;seen.add(k);const A=PAIRS[a],B=PAIRS[b];WEB.push({a:Math.min(a,b),b:Math.max(a,b),s:[A.i,A.j].find(x=>x===B.i||x===B.j)??A.i});});}); }
+    ix.forEach(a=>{const [ax,az]=lm(PAIRS[a]);ix.filter(b=>b!==a).map(b=>{const [bx,bz]=lm(PAIRS[b]);return [Math.hypot(ax-bx,az-bz),b];}).sort((p,q)=>p[0]-q[0]).slice(0,3).forEach(([d,b])=>{const k=Math.min(a,b)+'-'+Math.max(a,b);if(seen.has(k))return;seen.add(k);const A=PAIRS[a],B=PAIRS[b];WEB.push({a:Math.min(a,b),b:Math.max(a,b),s:[A.i,A.j].find(x=>x===B.i||x===B.j)??A.i});});}); }
   const WN=10, webP=new Float32Array(WEB.length*WN*2*3), webA=new Float32Array(WEB.length*WN*2), webC=new Float32Array(WEB.length*WN*2*3), webU=new Float32Array(WEB.length*WN*2);
   WEB.forEach((E,e)=>{const c=COL[E.s];for(let q=0;q<WN*2;q++){webC.set([c.r,c.g,c.b],(e*WN*2+q)*3);webU[e*WN*2+q]=(Math.floor(q/2)+(q%2))/WN;}});
   const webG=new THREE.BufferGeometry(); webG.setAttribute('position',new THREE.BufferAttribute(webP,3)); webG.setAttribute('a',new THREE.BufferAttribute(webA,1)); webG.setAttribute('c',new THREE.BufferAttribute(webC,3)); webG.setAttribute('u',new THREE.BufferAttribute(webU,1));
@@ -242,7 +242,7 @@ export function start(box){
   // 依代（碧）：中心ではなく、鳥と GIS の重なりのあいだに立つ（ほかの図と同じ VRM のバイト列を使い回す）
   let mot=null,vrm=null,aoiP=null,aoiN=0;
   const lensOf=(a,b)=>LENS.find(L=>SUB[L.i].k===a&&SUB[L.j].k===b||SUB[L.i].k===b&&SUB[L.j].k===a);
-  const AOI=new THREE.Vector3(-2.31,0,-1.18),   /* 碧は層の中に立たず、鳥・虫・GIS の層の境に */ YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
+  const AOI=new THREE.Vector3(-1.2,0,.42),   /* 碧は層の中に立たず、鳥・虫・GIS の層の境に */ YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
   // 依代は主体と別の印：膜を持たず、重なりのあいだの地に細い光の輪（主体の数に数えない）
   [YORI].forEach((p,k)=>{k=1;const r=new THREE.Mesh(new THREE.RingGeometry(k?.34:.5,k?.37:.54,64),new THREE.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));r.material.opacity=.35;r.rotation.x=-Math.PI/2;r.position.set(p.x,.02,p.z);W.add(r);});
   // 町の依代（Qualium 大宮と同じ姿・その場で組む形）：AI とセンサーの重なりのあいだに
