@@ -43,13 +43,13 @@ export async function start(sec){
   const LG=`uniform vec4 su[12];uniform vec3 sc[12];uniform float t;
     float er(int i,vec2 q){vec2 d=q-su[i].xy;float a=atan(d.y,d.x);return su[i].w*(1.+.05*sin(a*3.+t*.2+float(i)*1.3)+.03*sin(a*5.-t*.15+float(i)));}
     float cv(int i,vec2 q){float r=er(i,q);return r<.005?0.:smoothstep(0.,.14,r-length(q-su[i].xy));}`;
-  const lyM=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{t:U.t,su:{value:SU},sc:{value:SC},ac:U.ac},
+  const lyM=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{t:U.t,su:{value:SU},sc:{value:SC},ac:U.ac,ef:{value:new Float32Array(12).fill(1)}},
     vertexShader:`attribute float me;varying float vme;varying vec2 q;void main(){vme=me;vec4 wp=modelMatrix*vec4(position,1.);q=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
-    fragmentShader:LG+`uniform float ac;varying float vme;varying vec2 q;void main(){int me=int(vme+.5);float own=cv(me,q);if(own<.003)discard;
+    fragmentShader:LG+`uniform float ac;uniform float ef[12];varying float vme;varying vec2 q;void main(){int me=int(vme+.5);float own=cv(me,q);if(own<.003)discard;
       float d=length(q-su[me].xy),e=er(me,q)-d;float rim=smoothstep(.016,0.,abs(e-.008));float iso=smoothstep(.01,0.,abs(fract(d*9.-t*.05)-.5)-.47)*smoothstep(.06,.3,e);
       float n=0.;vec3 lc=sc[me];for(int i=0;i<12;i++){if(i==me)continue;float c=cv(i,q);n+=c;lc+=sc[i]*c;}
       float ov=clamp(n,0.,1.);float film=.5+.5*cos(e*40.+t*.3);vec3 col=mix(sc[me],lc/(1.+n)*1.15+(.5+.5*cos(6.2831*(vec3(0.,.33,.67)+film*.3)))*.05,ov);float lu=dot(col,vec3(.299,.587,.114));col=mix(vec3(lu),col,.55);
-      gl_FragColor=vec4(min(col,vec3(1.)),ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
+      gl_FragColor=vec4(min(col,vec3(1.)),ef[me]*ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
   { const pos=[],me=[];ACT.forEach((a,i)=>{const RM=a.r*1.5,n=mob?20:30;for(let u=0;u<n;u++)for(let v=0;v<n;v++){const q=[[u,v],[u+1,v],[u+1,v+1],[u,v],[u+1,v+1],[u,v+1]];for(const [x,z] of q){pos.push(a.x+(x/n*2-1)*RM,a.ly,a.z+(z/n*2-1)*RM);me.push(i);}}});
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('me',new T.Float32BufferAttribute(me,1));const o=new T.Mesh(g,lyM);o.frustumCulled=false;S.add(o); }
   // 主体のいる所：地から層まで細い一本と、層の上の小さな点
@@ -59,17 +59,20 @@ export async function start(sec){
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
   // 主体の名（HTML の札）：毎こま画面の位置を計算し、端から 16px 内側に収める・札どうしが重なれば縦にずらす
-  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','tree','AI','weather gauge','GIS'], tags=[];
+  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','tree','AI','weather station','GIS'], tags=[];
   const tagBox=sec.querySelector('.scn-st');
   ACT.slice(0,7).forEach((a,i)=>{const d=document.createElement('span');d.className='sc-tag';d.setAttribute('aria-hidden','true');d.dataset.ja=NAMES[i];d.dataset.en=NAMES_EN[i];d.textContent=NAMES[i];
     d.style.cssText='position:absolute;left:0;top:0;pointer-events:none;font:400 '+(mob?'13px':'15px')+'/1 "Shippori Mincho",serif;color:#ffffff;text-shadow:0 0 8px #03060f,0 0 3px #03060f,0 0 1px #03060f;opacity:0;white-space:nowrap;will-change:transform;z-index:1';
     const ln=document.createElement('i');ln.setAttribute('aria-hidden','true');ln.style.cssText='position:absolute;left:0;top:0;width:1px;background:rgba(220,236,248,.55);transform-origin:0 0;pointer-events:none;opacity:0;z-index:1';   /* 札から円盤の中心への引き出し線 */
     tagBox.appendChild(ln);tagBox.appendChild(d);tags.push({d,ln,p:new T.Vector3(a.x,a.ly+.12,a.z),c:new T.Vector3(a.x,a.ly,a.z)});});
-  function placeTags(ac){const W=tagBox.clientWidth,H=tagBox.clientHeight,en=document.documentElement.dataset.lang==='en',box=[];
-    for(const t of tags){t.d.textContent=en?t.d.dataset.en:t.d.dataset.ja;tv.copy(t.p).project(C);const cc=t.c.clone().project(C);const vis=tv.z<1&&tv.y>-1&&tv.y<1&&Math.abs(cc.x)<.97&&Math.abs(cc.y)<.97;   /* 円盤が画面の外なら札も線も出さない */const w=t.d.offsetWidth,h=t.d.offsetHeight;
+  function placeTags(ac){const efv=lyM.uniforms.ef.value;ACT.forEach((a,i)=>{const r=a.rad||a.r;let m=0;for(const [dx,dz] of [[r,0],[-r,0],[0,r],[0,-r],[0,0]]){tv.set(a.x+dx,a.ly,a.z+dz).project(C);m=Math.max(m,Math.abs(tv.x),Math.abs(tv.y));}efv[i]=Math.max(0,Math.min(1,(1.02-m)/.12));});
+    const W=tagBox.clientWidth,H=tagBox.clientHeight,en=document.documentElement.dataset.lang==='en',box=[];
+    for(const t of tags){t.d.textContent=en?t.d.dataset.en:t.d.dataset.ja;tv.copy(t.p).project(C);const cc=t.c.clone().project(C);const ti=tags.indexOf(t);const vis=tv.z<1&&tv.y>-1&&tv.y<1&&Math.abs(cc.x)<.97&&Math.abs(cc.y)<.97&&efv[ti]>.35;   /* 円盤が画面の外なら札も線も出さない */const w=t.d.offsetWidth,h=t.d.offsetHeight;
       let x=(tv.x*.5+.5)*W-w/2,y=(-tv.y*.5+.5)*H-h-10;x=Math.max(16,Math.min(W-16-w,x));const cv=t.c.clone().project(C);box.push({t,x,y,w,h,vis,cx:(cv.x*.5+.5)*W,cy:(-cv.y*.5+.5)*H});}
-    const G=mob?16:8;for(let k=0;k<6;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
-    for(const q of box){q.t.d.style.transform=`translate(${q.x}px,${q.y}px)`;q.t.d.style.opacity=q.vis?ac*.95:0;
+    const G=mob?20:8;for(let k=0;k<6;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
+    const cross=(x1,y1,x2,y2,R)=>{for(let u=0;u<=1;u+=.05){const x=x1+(x2-x1)*u,y=y1+(y2-y1)*u;if(x>R.x-2&&x<R.x+R.w+2&&y>R.y-2&&y<R.y+R.h+2)return true;}return false;};
+    for(let k=0;k<4;k++)for(const q of box)for(const r of box){if(q===r||!r.vis)continue;if(cross(r.x+r.w/2,r.y+r.h+2,r.cx,r.cy,q)){q.y-=q.h+6;}}
+    for(const q of box){q.y=Math.max(4,q.y);q.t.d.style.transform=`translate(${q.x}px,${q.y}px)`;q.t.d.style.opacity=q.vis?ac*.95:0;
       const x0=q.x+q.w/2,y0=q.y+q.h+2,dx=q.cx-x0,dy=q.cy-y0,L=Math.hypot(dx,dy);q.t.ln.style.height=Math.max(0,L-3)+'px';q.t.ln.style.transform=`translate(${x0}px,${y0}px) rotate(${Math.atan2(-dx,dy)}rad)`;q.t.ln.style.opacity=q.vis?ac*.8:0;}}
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
