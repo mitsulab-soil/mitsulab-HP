@@ -160,7 +160,7 @@ W.onFrame((dt, t, a) => {
     const s = RM ? 0 : 1; leafP.copy(AIR); twig.rotation.z = Math.sin(t * .8) * .012 * s;   // 枝ごと風にゆれる（葉柄で枝につく）
     leaf.lookAt(camera.position); leaf.rotateX(Math.sin(t * .9) * .25 * s); leaf.rotateZ(Math.sin(t * .6) * .25 * s);   /* 宙の葉は面をこちらへ向け、少しだけ揺れる（真横の細い線に見えない） */
     leaf.material.emissive?.setRGB(.3 + .12 * Math.sin(t * 2), .17 + .06 * Math.sin(t * 2), .03);   // 主役の葉だけ少し明るく、ゆっくり揺れる
-    airT -= dt; if (airT < 0) { airT = 4.2; snd.breath(2.6, { f0: 650, f1: 900, gain: .08, wet: .7 }); }
+    airT -= dt; if (airT < 0) { airT = 4.2; snd.breath(2.6, { f0: 650, f1: 900, gain: .08, wet: .7, pan: (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .4) }); }
   } else if (ST.phase === 1) {
     const u = clamp(ST.t / 6, 0, 1), e = u * u * (3 - 2 * u);
     const sway = Math.sin(ST.t * 3.2) * (1 - u * .6) * .28;   // 落ち葉の振り子のゆれ（模式）
@@ -189,7 +189,7 @@ W.onFrame((dt, t, a) => {
   });
   if (ST.phase === 2) fg.setDrawRange(0, Math.floor(fN * clamp(L0.k * (.25 + ST.t * .04), 0, 1)));
   // 頂き：すべての層が重なる
-  if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; topFlash = 1; [0, 4, 7, 9].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .1, decay: 2.6, wet: .85 }));   /* 頂き：四つの層が一度に灯り、和音が鳴る（記憶に残る一瞬） */ W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。葉のところへ戻る。"); }
+  if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; topFlash = 1; [0, 4, 7, 9].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .1, decay: 2.6, wet: .85, pan: [-.7, .7, -.35, .35][i] }));   /* 頂き：四つの層が一度に灯り、和音が鳴る（記憶に残る一瞬） */ W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。葉のところへ戻る。"); }
   // 降りる：時が過ぎた同じ場所
   if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; snd.bell(snd.note(0), { gain: .2, decay: 2.2, wet: .85 }); snd.bell(snd.note(4), { gain: .14, at: .05, decay: 2.2, wet: .85 }); snd.bell(snd.note(7), { gain: .1, decay: 2.2, wet: .85, at: .1 });
     W.sayNow("葉は数日を参道ですごし、何か月もかけて菌に分けられ、土へ還る。"); W.say("だれも全体を見ていない。それでも、全体は回っている。"); W.say("自分の見ている欅が、欅のすべてではない。", 6); W.say("葉に触れると、もう一枚。"); }
@@ -205,7 +205,7 @@ W.onFrame((dt, t, a) => {
     const k0 = L0.k, k1 = L1.k, k2 = L2.k, k3 = L3.k;
     const bi = Math.floor(t / .6), nb = bi !== lastBeat; if (nb) lastBeat = bi;
     if (nb && k0 > .2 && bi % 8 === 0) { snd.drone(snd.note(-13), 3.8, { gain: .16 * k0, wet: .8 }); }
-    if (nb && k1 > .2 && bi % 4 === 0) { const o = { gain: .16 * k1, pan: -.5 }; for (let k = 0; k < 3; k++) { snd.chirp(5200, 4900, .06, { ...o, at: (o.at || 0) + k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: (o.at || 0) + k * .42 + .1 }); }   /* ツツピー（シジュウカラのさえずりの句。声域 3〜6 kHz の模式） */ }
+    if (nb && k1 > .2 && bi % 4 === 0) { const o = { gain: .16 * k1, pan: bi % 8 < 4 ? -.75 : .7 };   /* 鳥の声を左右に散らす */ for (let k = 0; k < 3; k++) { snd.chirp(5200, 4900, .06, { ...o, at: (o.at || 0) + k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: (o.at || 0) + k * .42 + .1 }); }   /* ツツピー（シジュウカラのさえずりの句。声域 3〜6 kHz の模式） */ }
     if (nb && k2 > .2) { snd.step({ gain: .16 * k2, pan: .3, f: 460 + (bi % 2) * 120 }); snd.wood(snd.note(-5 + (Math.floor(t / .6) % 2)), { gain: .03 * k2, decay: .4, pan: .3 }); }   // 歩行 毎分約 100 歩
     if (nb && k3 > .2 && bi % 4 === 0) { snd.bell(snd.note(12), { gain: .05 * k3, pan: .6, decay: .35, wet: .7 }); }   // 10 分ごとの記録 → 2.4 秒（模式）
   }

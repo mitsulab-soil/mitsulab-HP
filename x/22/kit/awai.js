@@ -237,7 +237,7 @@ export async function createAwai(o) {
   const queue = []; let capT = 0, capOn = false, aoiRef = null;
   const esc = x => x.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
   const capHTML = t => {   // 句読点のあとでだけ改行してよい（語の途中で割らない。Safari でも同じ）
-    const parts = t.match(/[^。、]+[。、]?/g) || [t], narrow = innerWidth < 560, lim = narrow ? 17 : 34; let line = "", out = [];
+    const parts = t.match(/[^。、]+[。、]?/g) || [t], narrow = innerWidth < 560, lim = narrow ? 21 : 34;   /* 375px で 21 字までは一行（一文の中の読点で切れにくく） */ let line = "", out = [];
     for (const p of parts) { if (line && ((line + p).length > lim || (narrow && /。$/.test(line)))) { out.push(line); line = p; } else line += p; } if (line) out.push(line);   /* スマホは文の終わり（。）で必ず行を分ける */
     return out.map(l => `<span style="display:inline-block">${esc(l)}</span>`).join(narrow ? "<br>" : "");
   };

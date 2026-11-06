@@ -81,8 +81,14 @@ export function createSound(btn) {
     const hp = ctx.createBiquadFilter(); hp.type = "bandpass"; hp.frequency.value = 2600; hp.Q.value = .8; const g2 = ctx.createGain(); g2.gain.value = .024;
     const l1 = ctx.createOscillator(), lg1 = ctx.createGain(); l1.frequency.value = 1 / 11; lg1.gain.value = .02; l1.connect(lg1).connect(g.gain);
     const l2 = ctx.createOscillator(), lg2 = ctx.createGain(); l2.frequency.value = 1 / 7.3; lg2.gain.value = .003;   /* 揺れの下限を残す（無音まで落ちない） */ l2.connect(lg2).connect(g2.gain);
-    s.connect(lp).connect(g).connect(bedBus); s.connect(hp).connect(g2).connect(bedBus); const w = ctx.createGain(); w.gain.value = .3; g2.connect(w).connect(send);
-    s.start(t); l1.start(t); l2.start(t); };
+    // 11-06：左右で別の雑音（同じ帯の、相関のない二本）にして、地の葉ずれを左右に広げる
+    const s2 = ctx.createBufferSource(); s2.buffer = noiseBuf(); s2.loop = true;
+    const pL = ctx.createStereoPanner(), pR = ctx.createStereoPanner(); pL.pan.value = -.85; pR.pan.value = .85; pL.connect(bedBus); pR.connect(bedBus);
+    const lp2 = ctx.createBiquadFilter(); lp2.type = "lowpass"; lp2.frequency.value = 420; const hp2 = ctx.createBiquadFilter(); hp2.type = "bandpass"; hp2.frequency.value = 2600; hp2.Q.value = .8;
+    const gB = ctx.createGain(); gB.gain.value = .1; const g2B = ctx.createGain(); g2B.gain.value = .024; lg1.connect(gB.gain); lg2.connect(g2B.gain);
+    s.connect(lp).connect(g).connect(pL); s.connect(hp).connect(g2).connect(pL); s2.connect(lp2).connect(gB).connect(pR); s2.connect(hp2).connect(g2B).connect(pR);
+    const w = ctx.createGain(); w.gain.value = .3; g2.connect(w).connect(send); g2B.connect(w);
+    s.start(t); s2.start(t, 3.7); l1.start(t); l2.start(t); };
   // 機械の読み取り（短い打鍵）
   const click = (o = {}) => { if (!ok()) return; const { t, head } = out({ wet: .25, ...o }, .1);
     const s = ctx.createBufferSource(), hp = ctx.createBiquadFilter(), gn = ctx.createGain(); s.buffer = noiseBuf(); hp.type = "highpass"; hp.frequency.value = 3200;
