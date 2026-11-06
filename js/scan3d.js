@@ -13,12 +13,13 @@ export async function start(sec){
   for(const k of ['road','buildings','structures']){const [off,cnt]=meta.groups[k];for(let i=0;i+1<cnt;i+=2*skip){const n=(off+i)*3,m=n+3,x=ints[n]*q-o[0],z=ints[n+2]*q-o[2];if(Math.abs(x)>240||z>190||z<-520)continue;const y=ints[n+1]*q-o[1],x2=ints[m]*q-o[0],y2=ints[m+1]*q-o[1],z2=ints[m+2]*q-o[2];for(let j=0;j<sub;j++){const u=j/sub;P.push((x+(x2-x)*u)*sc,(y+(y2-y)*u)*sc,(z+(z2-z)*u)*sc);}}}
   for(const [x,y,z] of meta.trees){const X=x-o[0],Z=z-o[2];if(Math.abs(X)>240||Z>190||Z<-520||(Z<-190&&Math.random()<.5))continue;for(let j=0;j<(mob?6:12);j++){const a=Math.random()*6.28,r=Math.random()*.09;P.push(X*sc+Math.cos(a)*r,(y-o[1])*sc+.12+Math.random()*.12,Z*sc+Math.sin(a)*r);}}
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(P,3));
-  const SU=[...Array(12)].map(()=>new T.Vector4(0,0,-9,0)); const U={t:{value:0},scan:{value:-6},px:{value:R.getPixelRatio()},ac:{value:0},su:{value:SU}};
+  const SU=[...Array(12)].map(()=>new T.Vector4(0,0,-9,0)); const U={t:{value:0},scan:{value:-6},px:{value:R.getPixelRatio()},ac:{value:0},su:{value:SU},sc:{value:[...Array(12)].map(()=>new T.Color(0))}};
   const pm=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,uniforms:U,
-    vertexShader:`uniform float t,scan,px,ac;uniform vec4 su[12];varying float a;varying float hot;varying float hz;varying vec3 tint;void main(){vec3 p=position;float d=scan-p.z;a=step(0.,d);hot=smoothstep(.35,0.,abs(d))*(1.-ac*.85);p.y+=hot*.06;
-      float n=0.;for(int i=0;i<12;i++){n+=smoothstep(.0,.12,su[i].w-length(p.xz-su[i].xy));}tint=vec3(smoothstep(1.2,2.2,n)*ac,n*ac,0.);
+    vertexShader:`uniform float t,scan,px,ac;uniform vec4 su[12];uniform vec3 sc[12];varying float a;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;void main(){vec3 p=position;float d=scan-p.z;a=step(0.,d);hot=smoothstep(.35,0.,abs(d))*(1.-ac*.85);p.y+=hot*.06;
+      float n=0.;vec3 wc=vec3(0.);for(int i=0;i<12;i++){float c=smoothstep(.0,.12,su[i].w-length(p.xz-su[i].xy));n+=c;wc+=sc[i]*c;}tint=vec3(smoothstep(1.2,2.2,n)*ac,n*ac,0.);
+      float ov=smoothstep(1.2,2.2,n)*ac;p.xz+=vec2(sin(t*2.1+p.z*37.),cos(t*1.7+p.x*41.))*.012*ov;p.y+=sin(t*2.6+p.x*23.)*.008*ov;wtint=n>.01?wc/n:vec3(0.);   // 受けとるものごとに同じ参道が別の色の世界に、重なる所で揺らぐ
       vec4 mv=modelViewMatrix*vec4(p,1.);hz=smoothstep(15.,5.,-mv.z);gl_PointSize=px*(1.6+hot*2.5+tint.x*1.4)*(8./-mv.z);gl_Position=projectionMatrix*mv;}`,
-    fragmentShader:`uniform float ac;varying float a;varying float hot;varying float hz;varying vec3 tint;void main(){vec2 c=gl_PointCoord-.5;if(dot(c,c)>.25)discard;vec3 col=mix(vec3(.55,.82,.9),vec3(.9,1.,1.),hot);col=mix(col,vec3(1.,.97,.9),tint.x*.6);
+    fragmentShader:`uniform float ac;varying float a;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;void main(){vec2 c=gl_PointCoord-.5;if(dot(c,c)>.25)discard;vec3 col=mix(vec3(.55,.82,.9),vec3(.9,1.,1.),hot);col=mix(col,wtint*1.1,min(1.,tint.y)*.55);col=mix(col,vec3(1.,.97,.9),tint.x*.6);
       float al=(a*.5+hot*.6)*(.35+.65*hz)*(1.-ac*.86*(1.-min(1.,tint.y)))+tint.x*.35;gl_FragColor=vec4(col,al);}`});
   S.add(new T.Points(g,pm));
   // 走査の面
@@ -35,9 +36,9 @@ export async function start(sec){
   // だれかのふるまいは地（場所）をつたって重なりへ行き、となりの主体の層に入る。大きさは模式
   const KINDS=[{c:0x8fc9ff,y:.62,r:.82},{c:0xf3c86e,y:.16,r:.42},{c:0xf1ece4,y:.36,r:.6},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xa9ec9a,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.95}];   // 鳥・虫・人・木・AI・気象計・GIS
   let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
-  const NA=mob?7:11, ACT=[];
-  for(let tries=0;ACT.length<NA&&tries<4000;tries++){const k=Math.floor(rnd()*(P.length/3)),x=P[k*3],z=P[k*3+2];if(Math.abs(x)>(mob?1.9:2.7)||Math.abs(z)>(mob?1.9:2.1))continue;if(ACT.some(a=>Math.hypot(a.x-x,a.z-z)<(mob?.7:.9)))continue;const K=KINDS[ACT.length%KINDS.length];ACT.push({x,z,g:P[k*3+1],ly:P[k*3+1]+K.y,r:K.r*(.72+rnd()*.62),c:new T.Color(K.c),rad:0});}
-  const SC=ACT.map(a=>a.c); while(SC.length<12)SC.push(new T.Color(0));
+  const NA=7, ACT=[];
+  for(let tries=0;ACT.length<NA&&tries<4000;tries++){const k=Math.floor(rnd()*(P.length/3)),x=P[k*3],z=P[k*3+2];if(Math.abs(x)>1.9||Math.abs(z)>1.7)continue;if(ACT.some(a=>Math.hypot(a.x-x,a.z-z)<.72))continue;const K=KINDS[ACT.length%KINDS.length];ACT.push({x,z,g:P[k*3+1],ly:P[k*3+1]+K.y,r:K.r*(.72+rnd()*.62),c:new T.Color(K.c),rad:0});}
+  const SC=ACT.map(a=>a.c); while(SC.length<12)SC.push(new T.Color(0)); SC.forEach((c,i)=>U.sc.value[i].copy(c));
   const syncSU=()=>{ACT.forEach((a,i)=>SU[i].set(a.x,a.z,a.ly,a.rad));};
   const LG=`uniform vec4 su[12];uniform vec3 sc[12];uniform float t;
     float er(int i,vec2 q){vec2 d=q-su[i].xy;float a=atan(d.y,d.x);return su[i].w*(1.+.05*sin(a*3.+t*.2+float(i)*1.3)+.03*sin(a*5.-t*.15+float(i)));}
@@ -57,7 +58,7 @@ export async function start(sec){
     S.add(new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(D,3)).setAttribute('color',new T.Float32BufferAttribute(DC,3)),new T.PointsMaterial({vertexColors:true,size:.07,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}))); }
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
-  const NAMES=['鳥','虫','人'], tags=[]; ACT.slice(0,3).forEach((a,i)=>{const c=document.createElement('canvas');c.width=128;c.height=48;const x=c.getContext('2d');x.font='28px "Shippori Mincho",serif';x.fillStyle='#e6ecf6';x.textAlign='center';x.fillText(document.documentElement.dataset.lang==='en'?['bird','insect','person'][i]:NAMES[i],64,34);
+  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], tags=[]; ACT.slice(0,7).forEach((a,i)=>{const c=document.createElement('canvas');c.width=128;c.height=48;const x=c.getContext('2d');x.font='28px "Shippori Mincho",serif';x.fillStyle='#e6ecf6';x.textAlign='center';x.fillText(document.documentElement.dataset.lang==='en'?['bird','insect','person','tree','AI','gauge','GIS'][i]:NAMES[i],64,34);
     const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false}));sp.scale.set(.32,.12,1);sp.position.set(a.x,a.ly+.14,a.z);S.add(sp);tags.push(sp);});
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;

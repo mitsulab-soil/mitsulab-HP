@@ -39,7 +39,7 @@ export function start(box){
     float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hs(i),hs(i+vec2(1,0)),f.x),mix(hs(i+vec2(0,1)),hs(i+1.),f.x),f.y);}
     float edgeR(int i,vec2 q){vec2 d=q-ru[i].xy;float a=atan(d.y,d.x);return ru[i].z*(1.+.045*sin(a*3.+t*.21+float(i)*1.7)+.03*sin(a*5.-t*.17+float(i)));}
     float ed(int i,vec2 q){return edgeR(i,q)-length(q-ru[i].xy);}
-    float cov(int i,float e){return ru[i].z<.01?0.:smoothstep(.0,.38,e);}
+    float cov(int i,float e){return ru[i].z<.01?0.:smoothstep(-.12,.75,e);}   // 境界は溶け合う
     float cover(int i,vec2 q){return cov(i,ed(i,q));}`;
   // ---- 地：写実の土。上に、それぞれの範囲が淡く落ち、重なりの下には光が透けて揺らぐ（光の透過）。縁は闇に溶ける
   { const tl=new THREE.TextureLoader(), sc=tl.load('img/hero/3d/dio/soil_c.webp',()=>{dirty=1;}), sn=tl.load('img/hero/3d/dio/soil_n.webp',()=>{dirty=1;}), lc=tl.load('img/hero/3d/dio/leaves_c.webp',()=>{dirty=1;});
@@ -78,14 +78,15 @@ export function start(box){
         float glow=smoothstep(.45,1.,rr);   // 縁ほど光をためる（ガラスの縁のように）
         vec3 col=mix(base*(.75+.45*glow),mix(mixc*1.3,vec3(1.),.18)+irid*.06,ov);
         col=mix(col,vec3(1.),rimL*.25+lens*.3+ovs*.1);col=mix(col,min(base*1.7,vec3(1.)),rimL*hot*.6);   // 選んだ層と相手の縁は、白でなくその層の色で灯す
-        float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.24+.08*film)*min(lit,1.)+lens*own*.3;
+        float a=own*(.018+.085*glow+.03*fr)+rimL*.1+iso*.07+ov*own*(.24+.08*film)*min(lit,1.)+lens*own*.3;
         float scan=mech*(smoothstep(.05,0.,abs(fract(q.y*9.-t*.15)-.5)-.44)*.6+smoothstep(.03,0.,min(abs(fract(q.x*3.)-.5),abs(fract(q.y*3.)-.5))-.47)*.35);   // 機械の層は走査線と格子で
         a+=own*scan*(.1+.22*smoothstep(.0,.6,e))+rimL*hot*.7+ovs*own*(float(me)==selI?.12:.05);a*=lit*(1.-sl*.55);
         float lu=dot(col,vec3(.299,.587,.114));col=mix(vec3(lu),col,.55);col=mix(col,vec3(.78,.84,.9),.12);   // 霞の低い彩度（世界観の決まり）
         gl_FragColor=vec4(min(col,vec3(1.)),a);}`});
   const layers=[];
   SUB.forEach((s,i)=>{const RM=s.r*1.55, seg=mob?28:44;
-    for(let k=0;k<1;k++){const m=layerM(i,k);const o=new THREE.Mesh(new THREE.PlaneGeometry(RM*2,RM*2,seg,seg),m);o.rotation.x=-Math.PI/2;o.position.set(s.x,s.ly-k*.05,s.z);o.renderOrder=2+i;W.add(o);layers.push({o,m,i});}});
+    const NSL=mob?2:3, th=.08+s.r*.045;   // 多層：主体ごとに厚みの違う層を重ねる
+    for(let k=0;k<NSL;k++){const m=layerM(i,NSL===3?Math.abs(k-1)*.55:k*.5);const o=new THREE.Mesh(new THREE.PlaneGeometry(RM*2,RM*2,seg,seg),m);o.rotation.x=-Math.PI/2;o.position.set(s.x,s.ly+(k-(NSL-1)/2)*th,s.z);o.renderOrder=2+i;W.add(o);layers.push({o,m,i});}});
   // ---- 共有の場：二つの層が重なる所に、層と層をつなぐ光の柱（上下がやわらかく消える）。網の節
   const PAIRS=[]; for(let i=0;i<NS;i++)for(let j=i+1;j<NS;j++)PAIRS.push({i,j,m:new THREE.Vector3(),w:0,amt:0});
   const colM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,
@@ -188,6 +189,12 @@ export function start(box){
     at(s,g); anim.push(t=>{ico.rotation.y=t*.35;ico.rotation.x=Math.sin(t*.3)*.3;nodes.rotation.copy(ico.rotation);nodes.position.y=0;core.rotation.y=-t*.5;}); }
   // センサー：細い柱の上に箱と受けの皿。足もとに、振動を受ける輪が広がる
   { const s=SUB[4], g=new THREE.Group();
+    // IoT センサー：土の湿り（二本の差し棒）・明るさ（白い受光窓）・音（小さなマイク）。ネットにつながる小さな計測器を、気象計のまわりに
+    { const box=(w,h,d,c)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshPhysicalMaterial({color:c,roughness:.5,metalness:.15,clearcoat:.3}));
+      const soil=new THREE.Group();const sb=box(.12,.07,.05,0x2c3138);sb.position.y=.12;soil.add(sb);for(const dx of [-.025,.025]){const pr=new THREE.Mesh(new THREE.CylinderGeometry(.006,.004,.18,6),new THREE.MeshStandardMaterial({color:0xc9ced6,metalness:.9,roughness:.3}));pr.position.set(dx,.0,0);soil.add(pr);}soil.position.set(.42,0,.18);g.add(soil);
+      const lux=box(.08,.05,.08,0xe6e9ee);lux.position.set(-.38,.06,.22);g.add(lux);const win=new THREE.Mesh(new THREE.CircleGeometry(.022,24),new THREE.MeshBasicMaterial({color:0xfdf6d8}));win.rotation.x=-Math.PI/2;win.position.set(-.38,.086,.22);g.add(win);
+      const mic=box(.06,.1,.06,0x3a3f47);mic.position.set(.1,.05,-.4);g.add(mic);const grill=new THREE.Mesh(new THREE.SphereGeometry(.025,12,8),new THREE.MeshStandardMaterial({color:0x8a919c,metalness:.6,roughness:.5}));grill.position.set(.1,.12,-.4);g.add(grill);
+      [soil,lux,mic].forEach(o=>{const led=new THREE.Mesh(new THREE.SphereGeometry(.008,6,4),new THREE.MeshBasicMaterial({color:0xb8f0a8,toneMapped:false}));led.position.copy(o.position).add(new THREE.Vector3(0,.16,0));if(o!==soil)led.position.y=.12;g.add(led);}); }
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,1.05,12),std(0x9aa3ae,{r:.3,m:.9})); pole.position.y=.52; g.add(pole);
     const head=new THREE.Mesh(new THREE.BoxGeometry(.26,.2,.18),std(0xd9dee6,{r:.5,m:.2})); head.position.y=1.12; g.add(head);
     const led=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),new THREE.MeshBasicMaterial({color:0xb8f0a8,toneMapped:false})); led.position.set(0,1.14,.095); g.add(led);
@@ -206,7 +213,7 @@ export function start(box){
     const pinB=new THREE.Mesh(new THREE.SphereGeometry(.04,16,12),pin.material); pinB.position.set(0,1.52,0); g.add(pinB);
     at(s,g); anim.push(t=>{pin.position.y=1.45+Math.sin(t*1.4)*.03;pinB.position.y=pin.position.y+.07;}); }
   // ミツバチ（形態は creatures.js の写実の造形＝頭・胸・腹、4 枚の翅、6 本の脚）。花の上でホバリング
-  Q.push(async()=>{try{const {makeBee}=await import('./kit/creatures.js');const s=SUB[1],b=makeBee();b.scale.setScalar(.5);const g=new THREE.Group();g.add(b);
+  Q.push(async()=>{try{const {makeBee}=await import('./kit/creatures.js');const s=SUB[1],b=makeBee();b.scale.setScalar(.34);const g=new THREE.Group();g.add(b);
     const fl=new THREE.Group();const stem=new THREE.Mesh(new THREE.CylinderGeometry(.012,.018,.6,6),std(0x5f7a3a,{r:.8,m:0}));stem.position.y=.3;fl.add(stem);
     for(let i=0;i<6;i++){const pt=new THREE.Mesh(new THREE.SphereGeometry(.07,10,6),std(0xf2efe6,{r:.7,m:0}));pt.scale.set(1,.25,.55);const a=i/6*Math.PI*2;pt.position.set(Math.cos(a)*.08,.6,Math.sin(a)*.08);pt.rotation.y=-a;fl.add(pt);}
     const ce=new THREE.Mesh(new THREE.SphereGeometry(.04,10,8),std(0xe0b030,{r:.8,m:0}));ce.position.y=.62;fl.add(ce);fl.position.set(.15,0,.12);g.add(fl);
@@ -214,7 +221,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(mob?9:6.4);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?9:5,3,1.6);if(mob)g.add(new THREE.PointLight(0xffffff,5,2.2,1.6).translateX(.6).translateY(1.2).translateZ(.8));g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?4.2:3.4);/* 大小の順：虫 < 鳥 < 人（模式） */m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?9:5,3,1.6);if(mob)g.add(new THREE.PointLight(0xffffff,5,2.2,1.6).translateX(.6).translateY(1.2).translateZ(.8));g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
@@ -298,7 +305,7 @@ export function start(box){
       if(m.isInstancedMesh){p.instanceMatrix=m.instanceMatrix;}if(m.morphTargetInfluences){p.morphTargetInfluences=m.morphTargetInfluences;p.morphTargetDictionary=m.morphTargetDictionary;}
       p.frustumCulled=false;p.onBeforeRender=m.onBeforeRender;dirty=1;await new Promise(r=>WQ.push(()=>{S2.add(p);R.setScissorTest(true);R.setScissor(0,0,1,1);R.render(S2,C);R.setScissorTest(false);S2.remove(p);r();}));} }catch(e){console.warn('cg warm',e);}};
   
-  (async()=>{ await comp(S); raf=requestAnimationFrame(loop);
+  (async()=>{ raf=requestAnimationFrame(loop); /* 最初の絵は待たずに出す */ await comp(S);
     for(const f of Q){ await idle(); const n0=W.children.length; const hold=[];
       // 足した物は、絵の具（シェーダー）を裏で作り終えてから場に出す
       const add0=W.add.bind(W); W.add=(...o)=>{hold.push(...o);return W;}; try{await f();}finally{W.add=add0;}
