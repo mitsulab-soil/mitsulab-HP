@@ -59,16 +59,16 @@ export async function start(sec){
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
   // 主体の名（HTML の札）：毎こま画面の位置を計算し、端から 16px 内側に収める・札どうしが重なれば縦にずらす
-  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','tree','AI','gauge','GIS'], tags=[];
+  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','tree','AI','weather gauge','GIS'], tags=[];
   const tagBox=sec.querySelector('.scn-st');
   ACT.slice(0,7).forEach((a,i)=>{const d=document.createElement('span');d.className='sc-tag';d.setAttribute('aria-hidden','true');d.dataset.ja=NAMES[i];d.dataset.en=NAMES_EN[i];d.textContent=NAMES[i];
     d.style.cssText='position:absolute;left:0;top:0;pointer-events:none;font:400 '+(mob?'13px':'15px')+'/1 "Shippori Mincho",serif;color:#ffffff;text-shadow:0 0 8px #03060f,0 0 3px #03060f,0 0 1px #03060f;opacity:0;white-space:nowrap;will-change:transform;z-index:1';
     const ln=document.createElement('i');ln.setAttribute('aria-hidden','true');ln.style.cssText='position:absolute;left:0;top:0;width:1px;background:rgba(220,236,248,.55);transform-origin:0 0;pointer-events:none;opacity:0;z-index:1';   /* 札から円盤の中心への引き出し線 */
     tagBox.appendChild(ln);tagBox.appendChild(d);tags.push({d,ln,p:new T.Vector3(a.x,a.ly+.12,a.z),c:new T.Vector3(a.x,a.ly,a.z)});});
   function placeTags(ac){const W=tagBox.clientWidth,H=tagBox.clientHeight,en=document.documentElement.dataset.lang==='en',box=[];
-    for(const t of tags){t.d.textContent=en?t.d.dataset.en:t.d.dataset.ja;tv.copy(t.p).project(C);const vis=tv.z<1&&tv.y>-1&&tv.y<1;const w=t.d.offsetWidth,h=t.d.offsetHeight;
+    for(const t of tags){t.d.textContent=en?t.d.dataset.en:t.d.dataset.ja;tv.copy(t.p).project(C);const cc=t.c.clone().project(C);const vis=tv.z<1&&tv.y>-1&&tv.y<1&&Math.abs(cc.x)<.97&&Math.abs(cc.y)<.97;   /* 円盤が画面の外なら札も線も出さない */const w=t.d.offsetWidth,h=t.d.offsetHeight;
       let x=(tv.x*.5+.5)*W-w/2,y=(-tv.y*.5+.5)*H-h-10;x=Math.max(16,Math.min(W-16-w,x));const cv=t.c.clone().project(C);box.push({t,x,y,w,h,vis,cx:(cv.x*.5+.5)*W,cy:(-cv.y*.5+.5)*H});}
-    const G=mob?10:8;for(let k=0;k<6;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
+    const G=mob?16:8;for(let k=0;k<6;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
     for(const q of box){q.t.d.style.transform=`translate(${q.x}px,${q.y}px)`;q.t.d.style.opacity=q.vis?ac*.95:0;
       const x0=q.x+q.w/2,y0=q.y+q.h+2,dx=q.cx-x0,dy=q.cy-y0,L=Math.hypot(dx,dy);q.t.ln.style.height=Math.max(0,L-3)+'px';q.t.ln.style.transform=`translate(${x0}px,${y0}px) rotate(${Math.atan2(-dx,dy)}rad)`;q.t.ln.style.opacity=q.vis?ac*.8:0;}}
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
@@ -120,7 +120,7 @@ export async function start(sec){
     prog+= (progress()-prog)*(reduce?1:.12); const p=prog;
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
-    const a=-.6+p*(mob?.84:1.1), rr=mob?9.6-p*1.4:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
+    const a=-.6+p*(mob?.84:1.1), rr=mob?10.8-p*1.4:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
     C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(mob?.15:0,mob?-.1:.2,mob?.2:0);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
