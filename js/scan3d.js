@@ -56,6 +56,9 @@ export async function start(sec){
     S.add(new T.LineSegments(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(L,3)),new T.LineBasicMaterial({color:0xdff6ff,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending})));
     S.add(new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(D,3)).setAttribute('color',new T.Float32BufferAttribute(DC,3)),new T.PointsMaterial({vertexColors:true,size:.07,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}))); }
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
+  // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
+  const NAMES=['鳥','虫','人'], tags=[]; ACT.slice(0,3).forEach((a,i)=>{const c=document.createElement('canvas');c.width=128;c.height=48;const x=c.getContext('2d');x.font='28px "Shippori Mincho",serif';x.fillStyle='#e6ecf6';x.textAlign='center';x.fillText(document.documentElement.dataset.lang==='en'?['bird','insect','person'][i]:NAMES[i],64,34);
+    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false}));sp.scale.set(.32,.12,1);sp.position.set(a.x,a.ly+.14,a.z);S.add(sp);tags.push(sp);});
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網
@@ -67,7 +70,7 @@ export async function start(sec){
   const COLS=PR.map(p=>{const m=colM.clone();m.uniforms={t:U.t,col:{value:ACT[p.i].c.clone().lerp(ACT[p.j].c,.5)},a:{value:0}};const o=new T.Mesh(colG,m);o.visible=false;S.add(o);return o;});
   const WB=[];PR.forEach((A,a)=>PR.forEach((B,b)=>{if(b<=a)return;if([A.i,A.j].some(x=>x===B.i||x===B.j))WB.push([a,b]);}));
   const WN=8, wP=new Float32Array(Math.max(1,WB.length)*WN*6), wG=new T.BufferGeometry(); wG.setAttribute('position',new T.BufferAttribute(wP,3));
-  const wM=new T.LineBasicMaterial({color:0xcfefff,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const wL=new T.LineSegments(wG,wM); wL.frustumCulled=false; S.add(wL);
+  const wM=new T.LineBasicMaterial({color:0x9fb8c8,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const wL=new T.LineSegments(wG,wM); wL.frustumCulled=false; S.add(wL);
   // めぐり：主体の層 → 地へ降りる（ふるまい）→ 地をつたう（場所）→ 重なりを昇る → となりの層 → その主体
   const NPf=mob?36:80, fP=new Float32Array(NPf*3), fC=new Float32Array(NPf*3), fG=new T.BufferGeometry(); fG.setAttribute('position',new T.BufferAttribute(fP,3)); fG.setAttribute('color',new T.BufferAttribute(fC,3));
   const fM=new T.PointsMaterial({size:.04,map:dotT,vertexColors:true,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const fPts=new T.Points(fG,fM); fPts.frustumCulled=false; S.add(fPts);
@@ -79,11 +82,11 @@ export async function start(sec){
   function stage3(t,ac){
     const dt=Math.min(.05,t-(stage3.t||t)); stage3.t=t;
     ACT.forEach((a,i)=>{const g=sm(.64+i*.012,.8+i*.012,prog);a.rad=a.r*g;}); syncSU();
-    markL.material.opacity=ac*.35; markD.material.opacity=ac*.9;
+    markL.material.opacity=ac*.35; markD.material.opacity=ac*.9; tags.forEach(s=>s.material.opacity=ac*.85);
     PR.forEach((p,k)=>{const A=ACT[p.i],B=ACT[p.j],o=A.rad+B.rad-p.d;p.amt=Math.min(1,Math.max(0,o/.25));const w=Math.max(0,Math.min(o,2*Math.min(A.rad,B.rad)))/2,u=(A.rad-w)/Math.max(1e-3,p.d);
       p.m.set(A.x+(B.x-A.x)*u,(A.ly+B.ly)/2,A.z+(B.z-A.z)*u);const c=COLS[k];c.visible=p.amt*ac>.01;if(c.visible){const y0=Math.min(A.ly,B.ly,(A.g+B.g)/2),y1=Math.max(A.ly,B.ly)+.03;c.position.set(p.m.x,(y0+y1)/2,p.m.z);c.scale.set(Math.max(.03,w*.6),y1-y0,Math.max(.03,w*.6));c.material.uniforms.a.value=p.amt*ac;}});
     WB.forEach(([a,b],e)=>{const A=PR[a],B=PR[b];for(let q=0;q<WN;q++)for(let r=0;r<2;r++){const u=(q+r)/WN;tv.copy(A.m).lerp(B.m,u);tv.y+=Math.sin(u*Math.PI)*.08;wP.set([tv.x,tv.y,tv.z],(e*WN*2+q*2+r)*3);}});
-    wG.attributes.position.needsUpdate=true; wM.opacity=ac*.28*sm(.72,.86,prog);
+    wG.attributes.position.needsUpdate=true; wM.opacity=ac*.16*sm(.72,.86,prog);
     const fo=sm(.74,.88,prog); fM.opacity=fo*.95;
     if(fo>0&&!reduce){for(let n=0;n<NPf;n++){const F=FQ[n];if(!F.pa){F.w-=dt;if(F.w<=0){F.pa=hopS(F.at);F.d=0;if(!F.pa)F.w=1;}}
       if(F.pa){F.d+=dt*F.sp;const L=F.pa.L;let q=1;while(q<L.length-1&&L[q]<F.d)q++;tv.copy(F.pa.W[q-1]).lerp(F.pa.W[q],Math.min(1,(F.d-L[q-1])/Math.max(1e-4,L[q]-L[q-1])));fP.set([tv.x,tv.y,tv.z],n*3);
