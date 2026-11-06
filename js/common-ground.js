@@ -17,13 +17,18 @@ mq.addEventListener('change',()=>{paused=mq.matches;pauseLabel();dirty=true;wake
 const talk=figure.querySelector('.cg-talk'), subtitle=figure.querySelector('.cg-subtitle'), talkStatus=figure.querySelector('.cg-talk-status');
 function talkLabel(){talk.textContent=en()?(dialogue?'Stop Aoi’s guide':'Meet Aoi · Japanese audio'):(dialogue?'碧の案内を止める':'碧に会う・声で案内');talk.setAttribute('aria-pressed',String(dialogue));}
 function stopNarration(){dialogue=false;if(audio){audio.pause();audio.currentTime=0;}motion?.stopSpeaking();subtitle.hidden=true;figure.classList.remove('is-talking');talkLabel();dirty=true;}
-let liveCue=-1;
+let liveCue=-1,cuePromise=null;
+function prepareNarration(){
+ if(audio)return;
+ audio=new Audio('img/common-ground/narration.m4a');audio.preload='auto';audio.addEventListener('ended',stopNarration);audio.addEventListener('error',()=>{stopNarration();talkStatus.textContent=en()?'Audio could not load. Read the transcript below.':'音声を読み込めませんでした。下の「案内の全文」から読めます。';});
+ cuePromise=fetch('img/common-ground/narration.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json();});cuePromise.catch(()=>{});audio.load();
+}
 async function beginNarration(){
  if(dialogue){stopNarration();return;}
  if(!vrm){talkStatus.textContent=en()?'Aoi is loading. You can explore the scene.':'碧を読み込んでいます。先に風景を操作できます。';return;}
  talk.disabled=true;talkStatus.textContent='';
  try{
-  if(!audio){audio=new Audio('img/common-ground/narration.m4a');audio.preload='auto';audio.addEventListener('ended',stopNarration);audio.addEventListener('error',()=>{stopNarration();talkStatus.textContent=en()?'Audio could not load. Read the transcript below.':'音声を読み込めませんでした。下の「案内の全文」から読めます。';});cues=await fetch('img/common-ground/narration.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json();});}
+  prepareNarration();cues=await cuePromise;
   await audio.play();dialogue=true;liveCue=-1;cueIndex=-1;subtitle.hidden=false;figure.classList.add('is-talking');talkLabel();dirty=true;wake();
  }catch(e){talkStatus.textContent=en()?'Audio is unavailable. Read the transcript below.':'音声を再生できませんでした。下の「案内の全文」から読めます。';console.warn('Common Ground audio',e.message);}
  finally{talk.disabled=false;}
@@ -39,9 +44,9 @@ function taperTube(pts,r0,r1,rad,seg){const curve=new T.CatmullRomCurve3(pts);co
 const textureLoader=new T.TextureLoader();
 function tex(url,repeat,color=false){const a=textureLoader.load(url,()=>{dirty=true;wake();},undefined,()=>console.warn('Common Ground texture unavailable',url));a.wrapS=a.wrapT=T.RepeatWrapping;a.repeat.set(...repeat);a.anisotropy=4;if(color)a.colorSpace=T.SRGBColorSpace;return a;}
 function sceneBoot(){
- renderer=new T.WebGLRenderer({canvas:stage.querySelector('canvas'),alpha:false,antialias:true,powerPreference:'high-performance'});renderer.debug.checkShaderErrors=true;renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
- scene=new T.Scene();scene.background=new T.Color(0x101c24);scene.fog=new T.FogExp2(0x101c24,.040);camera=new T.PerspectiveCamera(53,1,.1,100);world=new T.Group();scene.add(world);
- scene.add(new T.HemisphereLight(0xb6c9d4,0x554e37,2.1));const sun=new T.DirectionalLight(0xffe0b5,2.7);sun.position.set(-8,14,-5);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-14,right:14,top:16,bottom:-12,near:1,far:50});sun.shadow.radius=3;sun.shadow.bias=-.0006;sun.shadow.normalBias=.05;scene.add(sun);const fill=new T.DirectionalLight(0xe6ddd0,1.6);fill.position.set(4,6,9);scene.add(fill);
+ renderer=new T.WebGLRenderer({canvas:stage.querySelector('canvas'),alpha:false,antialias:true,powerPreference:'high-performance'});renderer.debug.checkShaderErrors=true;renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
+ scene=new T.Scene();scene.background=new T.Color(0x162b30);scene.fog=new T.FogExp2(0x162b30,.033);camera=new T.PerspectiveCamera(53,1,.1,100);world=new T.Group();scene.add(world);
+ scene.add(new T.HemisphereLight(0xb6c9d4,0x554e37,2.1));const sun=new T.DirectionalLight(0xffe0b5,2.7);sun.position.set(-8,14,-5);sun.castShadow=true;sun.shadow.mapSize.set(mobile?1024:2048,mobile?1024:2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:16,bottom:-12,near:1,far:50});sun.shadow.radius=3;sun.shadow.bias=-.0006;sun.shadow.normalBias=.05;scene.add(sun);const fill=new T.DirectionalLight(0xe6ddd0,1.6);fill.position.set(4,6,9);scene.add(fill);
  const groundMat=mat(0x9a9383);groundMat.map=tex('img/hero/3d/dio/soil_c.webp',[70,70],true);groundMat.normalMap=tex('img/hero/3d/dio/soil_n.webp',[70,70]);groundMat.normalScale.set(.55,.55);
  const groundGeo=new T.PlaneGeometry(120,120,100,100),gc=[];const gp=groundGeo.attributes.position;
  for(let i=0;i<gp.count;i++){const x=gp.getX(i),z=-gp.getY(i),path=2.6+Math.sin(z*.1)*2,edge=T.MathUtils.smoothstep(Math.abs(x-path),1.2,3.8),noise=.83+.17*Math.sin(x*1.8+z*.7)*Math.cos(z*1.4);gc.push((1-edge*.33)*noise,(.93-edge*.09)*noise,(.75-edge*.29)*noise);}groundGeo.setAttribute('color',new T.Float32BufferAttribute(gc,3));groundMat.vertexColors=true;
@@ -63,7 +68,7 @@ function sceneBoot(){
  const rockGeo=new T.IcosahedronGeometry(1,2);const rockPos=rockGeo.attributes.position;for(let i=0;i<rockPos.count;i++){const x=rockPos.getX(i),y=rockPos.getY(i),z=rockPos.getZ(i);const f=1+.13*Math.sin(x*6+y*9+z*4);rockPos.setXYZ(i,x*f,y*f,z*f);}rockGeo.computeVertexNormals();const rocks=new T.InstancedMesh(rockGeo,mat(0x777b70),18);for(let i=0;i<18;i++){dummy.position.set((rand()-.5)*27,.05,rand()*30-18);dummy.rotation.set(rand(),rand()*6,rand());dummy.scale.set(.1+rand()*.35,.06+rand()*.16,.1+rand()*.30);dummy.updateMatrix();rocks.setMatrixAt(i,dummy.matrix);}rocks.castShadow=true;rocks.receiveShadow=true;world.add(rocks);
  // Fern understory: curved fronds and paired pinnae, clustered where the path is not.
  const fp=[],fc=[];const tri=(a,b,c,shade)=>{for(const p of [a,b,c]){fp.push(...p);fc.push(.12*shade,.25*shade,.075*shade);}};
- for(let f=0;f<7;f++){const a=f/7*Math.PI*2,cs=Math.cos(a),sn=Math.sin(a);const pos=(u,v)=>[(u*cs-v*sn),Math.sin(u*2.3)*.42,(u*sn+v*cs)];for(let i=1;i<12;i++){const u=i/12*.78,w=Math.sin(i/12*Math.PI)*.17;for(const side of [-1,1]){const root=pos(u,0),tip=pos(u+.10,side*w),back=pos(u-.025,side*w*.48);tip[1]+=.025;tri(root,back,tip,1+i*.045);}}}
+ for(let f=0;f<7;f++){const a=f/7*Math.PI*2,cs=Math.cos(a),sn=Math.sin(a);const pos=(u,v)=>[(u*cs-v*sn),Math.sin(u*2.3)*.42,(u*sn+v*cs)];for(let i=1;i<13;i++){const u=i/13*.78,w=Math.sin(i/13*Math.PI)*.17;for(const side of [-1,1]){const point=(t,edge)=>{const breadth=Math.sin(Math.PI*t)*.019;const p=pos(u+.10*t+edge*breadth,side*w*t);p[1]+=.035*Math.sin(t*Math.PI)-Math.abs(edge)*.012;return p;};for(let j=0;j<5;j++){const t0=j/5,t1=(j+1)/5;tri(point(t0,-1),point(t1,-1),point(t0,0),.78+i*.025);tri(point(t0,0),point(t1,-1),point(t1,0),.78+i*.025);tri(point(t0,0),point(t1,0),point(t0,1),1+i*.022);tri(point(t0,1),point(t1,0),point(t1,1),1+i*.022);}}}}
  const fg=new T.BufferGeometry();fg.setAttribute('position',new T.Float32BufferAttribute(fp,3));fg.setAttribute('color',new T.Float32BufferAttribute(fc,3));fg.computeVertexNormals();const fern=new T.InstancedMesh(fg,new T.MeshStandardMaterial({vertexColors:true,roughness:.73,side:T.DoubleSide}),70);
  for(let i=0;i<70;i++){const a=rand()*Math.PI*2,r=1.4+rand()*4.2,cent=i<40?[-2,-3]:i<55?[-3,5]:[7,3];dummy.position.set(cent[0]+Math.cos(a)*r,.035,cent[1]+Math.sin(a)*r);dummy.rotation.set(0,rand()*6,0);dummy.scale.setScalar(.5+rand()*.8);dummy.updateMatrix();fern.setMatrixAt(i,dummy.matrix);}fern.receiveShadow=true;fern.castShadow=true;world.add(fern);
  // Ground leaves from the same licensed leaf set, never an opaque green carpet.
@@ -105,8 +110,8 @@ async function loadAoi(){
  const gltf=await loader.parseAsync(buf.slice(0),'');vrm=gltf.userData.vrm;VRM.VRMUtils.rotateVRM0(vrm);vrm.humanoid.resetNormalizedPose();vrm.update(0);
  aoigroup=new T.Group();aoigroup.add(vrm.scene);aoigroup.position.set(mobile?3.4:5.3,0,4.7);const bb=new T.Box3().setFromObject(vrm.scene);aoigroup.scale.setScalar(1.7/(bb.max.y-bb.min.y));world.add(aoigroup);
  vrm.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;o.receiveShadow=false;}});
- motion=new AoiMotion(vrm,{root:aoigroup,reducedMotion:paused,wind:.12,faceViewer:true,startCalm:1,posture:'upright',uprightWeight:1,quality:mobile?'mid':'high'});vrm.scene.traverse(o=>{if(o.isSkinnedMesh){o.frustumCulled=false;o.geometry.computeBoundingSphere();o.boundingSphere=o.geometry.boundingSphere.clone();}});motion.faceTo(.15);motion.update(.016,camera,{vrmUpdate:false});vrm.update(.016);motion.afterVrmUpdate(.016);
- renderer.render(scene,camera);stage.dataset.aoiMs=Math.round(performance.now());talkStatus.textContent='';dirty=true;wake();loadBird();
+ motion=new AoiMotion(vrm,{root:aoigroup,reducedMotion:paused,wind:.12,faceViewer:true,startCalm:1,posture:'upright',uprightWeight:1,quality:mobile?'mid':'high'});vrm.scene.traverse(o=>{if(o.isSkinnedMesh){o.frustumCulled=false;o.geometry.computeBoundingSphere();o.boundingSphere=o.geometry.boundingSphere.clone();}});motion.faceTo(null);motion.update(.016,camera,{vrmUpdate:false});vrm.update(.016);motion.afterVrmUpdate(.016);
+ renderer.render(scene,camera);stage.dataset.aoiMs=Math.round(performance.now());talkStatus.textContent='';dirty=true;wake();loadBird();prepareNarration();
  }catch(e){console.error('Common Ground Aoi',e);talkStatus.textContent=en()?'Aoi could not load. The transcript remains available.':'碧を読み込めませんでした。案内の全文は下から読めます。';}
 }
 function resize(){if(!renderer)return;width=stage.clientWidth;height=stage.clientHeight;if(!width||!height)return;mobile=width<760;renderer.setSize(width,height,false);camera.aspect=width/height;camera.fov=mobile?54:49;camera.updateProjectionMatrix();positionCamera();dirty=true;wake();}
@@ -121,7 +126,7 @@ function loop(now){raf=0;if(!active||document.hidden)return;if(!dirty&&paused&&!
  if(motion&&!paused){motion.update(dt,camera,{vrmUpdate:false});vrm.update(dt);motion.afterVrmUpdate(dt);}
  guideBlend=paused?(dialogue?1:0):T.MathUtils.lerp(guideBlend,dialogue?1:0,Math.min(1,dt*2));positionCamera();renderer.render(scene,camera);
  const anchors={branch:V(-.8,3.0,-2.5),shade:V(-1,.3,1),sensor:V(3.5,1.6,-1.5)};
- figure.querySelectorAll('[data-anchor]').forEach(el=>{const p=anchors[el.dataset.anchor].clone().project(camera);const x=(p.x*.5+.5)*width,y=(-p.y*.5+.5)*height;el.style.transform=`translate(${Math.max(16,Math.min(width-el.offsetWidth-16,x))}px,${Math.max(height*.38,Math.min(height-240,y))}px)`;const show=step===1||step===2;el.style.opacity=show?'1':'0';el.style.pointerEvents=show?'auto':'none';el.tabIndex=show?0:-1;});
+ figure.querySelectorAll('[data-anchor]').forEach(el=>{const p=anchors[el.dataset.anchor].clone().project(camera);const x=(p.x*.5+.5)*width,y=(-p.y*.5+.5)*height;const anchor=el.dataset.anchor,ax=mobile?(anchor==='sensor'?width-el.offsetWidth-16:16):Math.max(16,Math.min(width-el.offsetWidth-16,x)),ay=mobile?height*({branch:.34,shade:.48,sensor:.40}[anchor]):Math.max(height*.38,Math.min(height-240,y));el.style.transform=`translate(${ax}px,${ay}px)`;const show=step===1||step===2;el.style.opacity=show?'1':'0';el.style.pointerEvents=show?'auto':'none';el.tabIndex=show?0:-1;});
  frames++;dirty=false;stage.dataset.frames=frames;
  if(!paused||dialogue)wake();
 }
