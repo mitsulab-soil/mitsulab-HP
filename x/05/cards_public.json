@@ -1601,11 +1601,6 @@
      "名前": "Qualia/sight",
      "url": "https://mitsulab.jp/x/02/",
      "一言": "コウモリの体と「なぜ、そう見えるの？」"
-    },
-    {
-     "名前": "Qualia Lab《超音波を聞こえる音に》",
-     "url": "https://mitsulab.jp/x/06/?b=phono",
-     "一言": "米国で録られたコウモリの声（CC0）を、聞こえる高さに"
     }
    ],
    "典拠": [
@@ -1739,11 +1734,6 @@
      "名前": "Qualia/sight",
      "url": "https://mitsulab.jp/x/02/",
      "一言": "ミミズの体と「なぜ、そう見えるの？」"
-    },
-    {
-     "名前": "Qualia Lab《ミミズが土を混ぜる》",
-     "url": "https://mitsulab.jp/x/06/?b=worm",
-     "一言": "ダーウィンの白亜の線が、ふんで埋まっていく"
     }
    ],
    "典拠": [
@@ -2443,13 +2433,7 @@
      "人の耳に届く音はわずかでも、土に差したセンサーには、土の中の生き物が動き、こする小さな音が届いていることがあります。人の土地や境内では、土を掘らないでください。林では長袖・長ズボンで、帰ったらマダニがついていないか体を確かめてください。"
     ]
    },
-   "試せる作品": [
-    {
-     "名前": "Qualia Lab《超音波を聞こえる音に》",
-     "url": "https://mitsulab.jp/x/06/?b=phono",
-     "一言": "人の耳に届かない音を、機械で聞ける形にする例（こちらは高すぎる音を、聞こえる高さに下げる。土の中の音は、高さではなく小ささのために届かないので、大きくして聞く）"
-    }
-   ],
+   "試せる作品": [],
    "典拠": [
     "Hill, P. S. M. (2009). How do animals use substrate-borne vibrations as an information source? *Naturwissenschaften*, 96(12), 1355–1371. https://doi.org/10.1007/s00114-009-0588-8",
     "Cocroft, R. B., & Rodríguez, R. L. (2005). The behavioral ecology of insect vibrational communication. *BioScience*, 55(4), 323–334. https://doi.org/10.1641/0006-3568(2005)055[0323:TBEOIV]2.0.CO;2",
