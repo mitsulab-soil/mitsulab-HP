@@ -37,7 +37,8 @@ export async function start(sec){
   const KINDS=[{c:0x8fc9ff,y:.62,r:.66},{c:0xf3c86e,y:.16,r:.36},{c:0xf4aa96,y:.36,r:.98},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xb8c7e8,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・木・AI・気象計・GIS
   let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
   const NA=7, ACT=[];
-  for(let tries=0;ACT.length<NA&&tries<4000;tries++){const k=Math.floor(rnd()*(P.length/3)),x=P[k*3],z=P[k*3+2];if(Math.abs(x)>(mob?1.1:1.9)||Math.abs(z)>(mob?1.35:1.7))continue;if(ACT.some(a=>Math.hypot(a.x-x,a.z-z)<(mob?.78:.72)))continue;const K=KINDS[ACT.length%KINDS.length];ACT.push({x,z,g:P[k*3+1],ly:P[k*3+1]+K.y,r:K.r*(ACT.length<3?1:.72+rnd()*.62),c:new T.Color(K.c),rad:0});}
+  /* 主体の置き場は固定（参道の上に人、両脇の木立に鳥・木、地面に虫、測る機械は脇に） */const FIX=[[-.55,-.75],[-.75,.55],[.05,.2],[.8,-.6],[.8,.6],[.15,1.15],[-.15,-1.25]],FS=mob?1:1.45;
+  for(let n=0;n<NA;n++){const x0=FIX[n][0]*FS,z0=FIX[n][1]*FS;let bk=0,bd=1e9;for(let q=0;q<P.length/3;q+=3){const d=Math.hypot(P[q*3]-x0,P[q*3+2]-z0);if(d<bd){bd=d;bk=q;}}const K=KINDS[n];ACT.push({x:x0,z:z0,g:P[bk*3+1],ly:P[bk*3+1]+K.y,r:K.r*(n<3?1:.85),c:new T.Color(K.c),rad:0});}
   const SC=ACT.map(a=>a.c); while(SC.length<12)SC.push(new T.Color(0)); SC.forEach((c,i)=>U.sc.value[i].copy(c));
   const syncSU=()=>{ACT.forEach((a,i)=>SU[i].set(a.x,a.z,a.ly,a.rad));};
   const LG=`uniform vec4 su[12];uniform vec3 sc[12];uniform float t;
@@ -62,7 +63,7 @@ export async function start(sec){
   const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','tree','AI','weather station','GIS'], tags=[];
   const tagBox=sec.querySelector('.scn-st');
   ACT.slice(0,7).forEach((a,i)=>{const d=document.createElement('span');d.className='sc-tag';d.setAttribute('aria-hidden','true');d.dataset.ja=NAMES[i];d.dataset.en=NAMES_EN[i];d.textContent=NAMES[i];
-    d.style.cssText='position:absolute;left:0;top:0;pointer-events:none;font:400 '+(mob?'13px':'15px')+'/1 "Shippori Mincho",serif;color:#ffffff;text-shadow:0 0 8px #03060f,0 0 3px #03060f,0 0 1px #03060f;opacity:0;white-space:nowrap;will-change:transform;z-index:1';
+    d.style.cssText='position:absolute;left:0;top:0;pointer-events:none;font:400 '+(mob?'13px':'15px')+'/1 "Shippori Mincho",serif;color:#ffffff;text-shadow:0 0 14px #03060f,0 0 8px #03060f,0 0 4px #03060f,0 0 2px #03060f,0 0 1px #03060f;opacity:0;white-space:nowrap;will-change:transform;z-index:1';
     const ln=document.createElement('i');ln.setAttribute('aria-hidden','true');ln.style.cssText='position:absolute;left:0;top:0;width:1px;background:rgba(220,236,248,.55);transform-origin:0 0;pointer-events:none;opacity:0;z-index:1';   /* 札から円盤の中心への引き出し線 */
     const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');dot.style.cssText='position:absolute;left:0;top:0;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#'+a.c.getHexString()+';box-shadow:0 0 6px #'+a.c.getHexString()+';pointer-events:none;opacity:0;z-index:1';tagBox.appendChild(dot);
     tagBox.appendChild(ln);tagBox.appendChild(d);tags.push({d,ln,dot,p:new T.Vector3(a.x,a.ly+.12,a.z),c:new T.Vector3(a.x,a.ly,a.z)});});
@@ -75,7 +76,7 @@ export async function start(sec){
     const cross=(x1,y1,x2,y2,R)=>{for(let u=0;u<=1;u+=.05){const x=x1+(x2-x1)*u,y=y1+(y2-y1)*u;if(x>R.x-2&&x<R.x+R.w+2&&y>R.y-2&&y<R.y+R.h+2)return true;}return false;};
     for(let k=0;k<4;k++)for(const q of box)for(const r of box){if(q===r||!r.vis)continue;if(cross(r.x+r.w/2,r.y+r.h+2,r.cx,r.cy,q)){q.y-=q.h+6;}}
     for(let k=0;k<4;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
-    for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.vis&&B.vis&&A.x<B.x+B.w+4&&B.x<A.x+A.w+4&&A.y<B.y+B.h+4&&B.y<A.y+A.h+4){(A.cy<B.cy?A:B).vis=false;}}   /* それでも重なるこまは、奥の札を隠す */
+    for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.vis&&B.vis&&A.x<B.x+B.w+4&&B.x<A.x+A.w+4&&A.y<B.y+B.h+4&&B.y<A.y+A.h+4){const L2=A.cx<B.cx?A:B,R2=L2===A?B:A,o=(L2.x+L2.w+6-R2.x)/2;L2.x=Math.max(4,L2.x-o);R2.x=Math.min(W-4-R2.w,R2.x+o);if(L2.x+L2.w+4>R2.x){R2.y=L2.y+L2.h+6;}}}   /* 重なる札は隠さず、左右（足りなければ下）へずらす */   /* それでも重なるこまは、奥の札を隠す */
     for(const q of box){q.y=Math.max(4,q.y);q.t.d.style.transform=`translate(${q.x}px,${q.y}px)`;q.t.d.style.opacity=q.vis?ac*.95:0;
       const x0=q.x+q.w/2,y0=q.y+q.h+2,dx=q.cx-x0,dy=q.cy-y0,L=Math.hypot(dx,dy);const LM=mob?150:220;q.t.ln.style.height=Math.max(0,Math.min(L,LM)-3)+'px';if(L>LM*1.6)q.vis=false;q.t.ln.style.transform=`translate(${x0}px,${y0}px) rotate(${Math.atan2(-dx,dy)}rad)`;q.t.ln.style.opacity=q.vis?ac*.8:0;q.t.dot.style.transform=`translate(${q.cx}px,${q.cy}px)`;q.t.dot.style.opacity=q.vis?ac:0;}}
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
@@ -128,7 +129,7 @@ export async function start(sec){
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
     const a=-.6+p*(mob?.84:1.1), rr=mob?7.8-p*1.0:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
-    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(mob?.1:0,mob?.15:.2,mob?.2:0);
+    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(mob?.1:0,mob?.02:.2,mob?.2:0);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
     fg.attributes.position.needsUpdate=true;

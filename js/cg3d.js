@@ -98,9 +98,9 @@ export function start(box){
     PAIRS.forEach(P=>{const m=colM.clone();m.uniforms.t=colM.uniforms.t;m.uniforms.c.value.copy(COL[P.i]).lerp(COL[P.j],.5).multiplyScalar(1.1);
       const o=new THREE.Mesh(base,m);o.visible=false;W.add(o);cols.push(o);}); }
   // 網：重なりの節どうしを、同じ主体を介してつなぐ細い光の糸（中心のない網）
-  const WEB=[]; { const lm=P=>{const A=SUB[P.i],B=SUB[P.j];return [(A.x+B.x)/2,(A.z+B.z)/2];}; const ok=P=>Math.hypot(SUB[P.j].x-SUB[P.i].x,SUB[P.j].z-SUB[P.i].z)<SUB[P.i].r+SUB[P.j].r+.9;
+  const WEB=[]; { const lm=P=>{const A=SUB[P.i],B=SUB[P.j];return [(A.x+B.x)/2,(A.z+B.z)/2];}; const ok=P=>Math.hypot(SUB[P.j].x-SUB[P.i].x,SUB[P.j].z-SUB[P.i].z)<SUB[P.i].r+SUB[P.j].r+(mob?.9:1.5);
     const ix=PAIRS.map((P,k)=>k).filter(k=>ok(PAIRS[k])), seen=new Set();
-    ix.forEach(a=>{const [ax,az]=lm(PAIRS[a]);ix.filter(b=>b!==a).map(b=>{const [bx,bz]=lm(PAIRS[b]);return [Math.hypot(ax-bx,az-bz),b];}).sort((p,q)=>p[0]-q[0]).slice(0,3).forEach(([d,b])=>{const k=Math.min(a,b)+'-'+Math.max(a,b);if(seen.has(k))return;seen.add(k);const A=PAIRS[a],B=PAIRS[b];WEB.push({a:Math.min(a,b),b:Math.max(a,b),s:[A.i,A.j].find(x=>x===B.i||x===B.j)??A.i});});}); }
+    ix.forEach(a=>{const [ax,az]=lm(PAIRS[a]);ix.filter(b=>b!==a).map(b=>{const [bx,bz]=lm(PAIRS[b]);return [Math.hypot(ax-bx,az-bz),b];}).sort((p,q)=>p[0]-q[0]).slice(0,mob?3:4).forEach(([d,b])=>{const k=Math.min(a,b)+'-'+Math.max(a,b);if(seen.has(k))return;seen.add(k);const A=PAIRS[a],B=PAIRS[b];WEB.push({a:Math.min(a,b),b:Math.max(a,b),s:[A.i,A.j].find(x=>x===B.i||x===B.j)??A.i});});}); }
   const WN=10, webP=new Float32Array(WEB.length*WN*2*3), webA=new Float32Array(WEB.length*WN*2), webC=new Float32Array(WEB.length*WN*2*3), webU=new Float32Array(WEB.length*WN*2);
   WEB.forEach((E,e)=>{const c=COL[E.s];for(let q=0;q<WN*2;q++){webC.set([c.r,c.g,c.b],(e*WN*2+q)*3);webU[e*WN*2+q]=(Math.floor(q/2)+(q%2))/WN;}});
   const webG=new THREE.BufferGeometry(); webG.setAttribute('position',new THREE.BufferAttribute(webP,3)); webG.setAttribute('a',new THREE.BufferAttribute(webA,1)); webG.setAttribute('c',new THREE.BufferAttribute(webC,3)); webG.setAttribute('u',new THREE.BufferAttribute(webU,1));
