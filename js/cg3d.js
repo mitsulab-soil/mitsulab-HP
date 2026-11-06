@@ -233,7 +233,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const m=await PRE.bird;const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x2f2c28,{r:1,m:0}));st.scale.set(.8,.22,.6);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(mob?4.2:3.4);/* 大小の順：虫 < 鳥 < 人（模式） */m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?13:10,3,1.6);g.add(new THREE.PointLight(0xffffff,9,2.4,1.6).translateX(.6).translateY(1.2).translateZ(.8));g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;if(mob){m.object.rotation.x=-.95;m.object.scale.multiplyScalar(1.3);}   /* スマホは上からの視点なので、横向きのシルエットが見えるよう体を起こす */anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?4.2:3.4);/* 大小の順：虫 < 鳥 < 人（模式） */m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?13:10,3,1.6);g.add(new THREE.PointLight(0xffffff,9,2.4,1.6).translateX(.6).translateY(1.2).translateZ(.8));g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);g.rotation.y=0;m.object.rotation.y=Math.PI/2;   /* スマホは上からの視点なので、横向きのシルエットが見えるよう体を起こす */anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.unshift(async()=>{try{
     const g=await PRE.human,o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
@@ -273,12 +273,14 @@ export function start(box){
   addEventListener('pointerup',()=>{drag=null;});addEventListener('pointercancel',()=>{drag=null;});
   box.__cgPos=k=>{const i=SUB.findIndex(s=>s.k===k);const s=SUB[i];const q=new THREE.Vector3(s.x+rad[i]*.35,s.ly,s.z+rad[i]*.35).applyMatrix4(W.matrixWorld).project(C);const r=cv.getBoundingClientRect();return [r.left+(q.x*.5+.5)*r.width,r.top+(-q.y*.5+.5)*r.height,sel];};
   let wpx=0,hpx=0;
-  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?44:30;C.position.set(tall?-.5:0,tall?8.6:7.4,tall?6.6:12.2);C.lookAt(tall?-.5:0,tall?.6:.9,tall?-.3:.1);C.updateProjectionMatrix();dirty=1;}
+  /* 目の高さ：その場に立つ一人の目。層に触れると、その主体の高さと向きへ目が寄り、もう一度触れると戻る */const EYE={b:new THREE.Vector3(),lb:new THREE.Vector3(),p:new THREE.Vector3(),l:new THREE.Vector3(),tp:new THREE.Vector3(),tl:new THREE.Vector3(),init:0};
+  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?64:46;EYE.b.set(0,1.9,tall?6.6:7.0);EYE.lb.set(0,.75,-.6);if(!EYE.init){EYE.p.copy(EYE.b);EYE.l.copy(EYE.lb);EYE.init=1;}C.position.copy(EYE.p);C.lookAt(EYE.l);C.updateProjectionMatrix();dirty=1;}
   size(); addEventListener('resize',size);
   new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop);}).observe(box);
   function frame(t,dt){
     if(!reduce){ if(!drag&&performance.now()-user>2500){auto+=dt*.07;} }
     W.rotation.y=yaw+Math.sin(auto)*.35;
+    {W.updateMatrixWorld();if(sel>=0){const q=SUB[sel],sp=new THREE.Vector3(q.x,q.hd,q.z).applyMatrix4(W.matrixWorld);EYE.tp.set(sp.x*.5,Math.max(.35,q.hd+.12),sp.z*.5+(C.aspect<1?3.0:3.6));EYE.tl.set(sp.x,q.ly*.8,sp.z-1.2);}else{EYE.tp.copy(EYE.b);EYE.tl.copy(EYE.lb);}const kk=Math.min(1,dt*2.2);if(EYE.p.distanceToSquared(EYE.tp)>1e-6||EYE.l.distanceToSquared(EYE.tl)>1e-6){EYE.p.lerp(EYE.tp,kk);EYE.l.lerp(EYE.tl,kk);C.position.copy(EYE.p);C.lookAt(EYE.l);dirty=1;}}
     if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
     for(let i=0;i<NS;i++){const g=.32+.68*smoothstep(0,1,(tI-.1-.3*i)/1.4);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
       const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.15:nb?.75:.38;
@@ -295,6 +297,7 @@ export function start(box){
     const box_=[];
     for(const a of anchors){const d=LB[a.k];if(!d)continue;v.copy(a.p).applyMatrix4(W.matrixWorld);const dz=v.clone().applyMatrix4(C.matrixWorldInverse).z;v.project(C);
       let x=(v.x*.5+.5)*wpx,y=(-v.y*.5+.5)*hpx;
+      {const off=dz>0||Math.abs(v.x)>1.02||v.y>1.02||v.y<-1.02;d.style.visibility=off?'hidden':'';if(off)continue;}   /* 目を寄せて画面の外に出た主体の札は出さない */
       if(a.k==='aoi'||a.k==='yori'||a.k==='human'||a.k==='bee'){const dw=SZ(d)[0],dh=SZ(d)[1];box_.push({d,lx:Math.max(2,Math.min(wpx-dw-2,x-dw/2)),ly:a.k==='aoi'?y-dh:y-dh-4,dw,dh,fix:1});continue;}
       const left=x<cx, up=y<cy, dw=SZ(d)[0], dh=SZ(d)[1]; let lx=left?x-6-dw:x+6, ly=up?y-4-dh:y+4; lx=Math.max(12,Math.min(wpx-dw-12,lx)); ly=Math.max(2,Math.min(hpx-dh-2,ly)); box_.push({d,lx,ly,dw,dh,up});d.classList.toggle('l',left);
 }

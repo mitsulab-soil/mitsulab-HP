@@ -13,12 +13,12 @@ export async function start(sec){
   for(const k of ['road','buildings','structures']){const [off,cnt]=meta.groups[k];for(let i=0;i+1<cnt;i+=2*skip){const n=(off+i)*3,m=n+3,x=ints[n]*q-o[0],z=ints[n+2]*q-o[2];if(Math.abs(x)>240||z>190||z<-520)continue;const y=ints[n+1]*q-o[1],x2=ints[m]*q-o[0],y2=ints[m+1]*q-o[1],z2=ints[m+2]*q-o[2];for(let j=0;j<sub;j++){const u=j/sub;P.push((x+(x2-x)*u)*sc,(y+(y2-y)*u)*sc,(z+(z2-z)*u)*sc);}}}
   for(const [x,y,z] of meta.trees){const X=x-o[0],Z=z-o[2];if(Math.abs(X)>240||Z>190||Z<-520||(Z<-190&&Math.random()<.5))continue;for(let j=0;j<(mob?6:12);j++){const a=Math.random()*6.28,r=Math.random()*.09;P.push(X*sc+Math.cos(a)*r,(y-o[1])*sc+.12+Math.random()*.12,Z*sc+Math.sin(a)*r);}}
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(P,3));
-  const SU=[...Array(12)].map(()=>new T.Vector4(0,0,-9,0)); const U={t:{value:0},scan:{value:-6},px:{value:R.getPixelRatio()},ac:{value:0},su:{value:SU},sc:{value:[...Array(12)].map(()=>new T.Color(0))},hi:{value:-1},hk:{value:0},hi2:{value:-1}};
+  const SU=[...Array(12)].map(()=>new T.Vector4(0,0,-9,0)); const U={t:{value:0},scan:{value:-6},px:{value:R.getPixelRatio()},ac:{value:0},su:{value:SU},sc:{value:[...Array(12)].map(()=>new T.Color(0))},hi:{value:-1},hk:{value:0},hi2:{value:-1},ek:{value:0}};
   const pm=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,uniforms:U,
-    vertexShader:`uniform float t,scan,px,ac;uniform vec4 su[12];uniform vec3 sc[12];uniform float hi,hk,hi2;varying float a;varying float hsel;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;void main(){vec3 p=position;float d=scan-p.z;a=step(0.,d);hot=smoothstep(.35,0.,abs(d))*(1.-ac*.85);p.y+=hot*.06;
+    vertexShader:`uniform float t,scan,px,ac;uniform vec4 su[12];uniform vec3 sc[12];uniform float hi,hk,hi2,ek;varying float a;varying float hsel;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;void main(){vec3 p=position;float d=scan-p.z;a=step(0.,d);hot=smoothstep(.35,0.,abs(d))*(1.-ac*.85);p.y+=hot*.06;
       float n=0.;vec3 wc=vec3(0.);hsel=0.;for(int i=0;i<12;i++){float c=smoothstep(.0,.12,su[i].w-length(p.xz-su[i].xy));n+=c;wc+=sc[i]*c;if(float(i)==hi||float(i)==hi2)hsel=max(hsel,smoothstep(-.18,.1,su[i].w-length(p.xz-su[i].xy))*hk);}tint=vec3(smoothstep(1.2,2.2,n)*ac,n*ac,0.);
       float ov=smoothstep(1.2,2.2,n)*ac;p.xz+=vec2(sin(t*2.1+p.z*37.),cos(t*1.7+p.x*41.))*.012*ov;p.y+=sin(t*2.6+p.x*23.)*.008*ov;wtint=n>.01?wc/n:vec3(0.);if(hi>-.5){for(int i=0;i<12;i++){if(float(i)==hi||float(i)==hi2){float h2=smoothstep(-.18,.1,su[i].w-length(p.xz-su[i].xy))*hk;p.y+=h2*(su[i].z-p.y)*.55;}}}   // 受けとるものごとに同じ参道が別の色の世界に、重なる所で揺らぐ
-      vec4 mv=modelViewMatrix*vec4(p,1.);hz=smoothstep(15.,5.,-mv.z);gl_PointSize=px*(1.6+hot*2.5+tint.x*1.4+hsel*2.6)*(8./-mv.z);gl_Position=projectionMatrix*mv;}`,
+      vec4 mv=modelViewMatrix*vec4(p,1.);hz=smoothstep(15.,5.,-mv.z);gl_PointSize=min(px*(1.6+hot*2.5+tint.x*1.4+hsel*2.6)*(8./-mv.z),px*6.)*mix(1.,smoothstep(.5,2.2,-mv.z),ek);gl_Position=projectionMatrix*mv;}`,
     fragmentShader:`uniform float ac;uniform float hi,hk,hi2;uniform vec3 sc[12];varying float a;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;varying float hsel;void main(){vec2 c=gl_PointCoord-.5;if(dot(c,c)>.25)discard;vec3 col=mix(vec3(.55,.82,.9),vec3(.9,1.,1.),hot);col=mix(col,wtint*1.1,min(1.,tint.y)*.55);col=mix(col,sc[int(max(hi,0.))]*1.5,min(1.,hsel*1.2));col=mix(col,vec3(1.,.97,.9),tint.x*.6);
       float al=(a*.5+hot*.6)*(.35+.65*hz)*(1.-ac*.86*(1.-min(1.,tint.y)))+tint.x*.35;al*=mix(1.,.38,hk*(1.-min(1.,hsel*1.5)));al+=hsel*.35;gl_FragColor=vec4(col,al);}`});
   S.add(new T.Points(g,pm));
@@ -34,10 +34,10 @@ export async function start(sec){
   const fm=new T.PointsMaterial({color:0xf2cf8c,size:.05,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}); S.add(new T.Points(fg,fm));
   // 多くの主体：主体ごとに受けとる層（地面と平行・色と高さと広さが違う）。重なりに光の柱、柱どうしを糸がつなぐ（中心のない網）
   // だれかのふるまいは地（場所）をつたって重なりへ行き、となりの主体の層に入る。大きさは模式
-  const KINDS=[{c:0x8fc9ff,y:.62,r:.66},{c:0xf3c86e,y:.16,r:.36},{c:0xff9a5c,y:.36,r:.98},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xb8c7e8,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・木・AI・気象計・GIS
+  const KINDS=[{c:0x8fc9ff,y:.62,r:.66},{c:0xf3c86e,y:.16,r:.36},{c:0xff9a5c,y:.36,r:.98},{c:0x7ff0d6,y:.44,r:.52},{c:0xb8c7e8,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・AI・気象計・GIS
   let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
-  const NA=7, ACT=[];
-  /* 主体の置き場は固定（参道の上に人、両脇の木立に鳥・木、地面に虫、測る機械は脇に） */const FIX=[[-.55,-.75],[-.75,.55],[.05,.2],[.75,-.6],[.62,.6],[.15,1.15],[-.15,-1.25]],FS=mob?1:1.45;
+  const NA=6, ACT=[];
+  /* 主体の置き場は固定（参道の上に人、両脇の木立に鳥・木、地面に虫、測る機械は脇に） */const FIX=[[-.55,-.75],[-.55,.62],[.05,.2],[.62,.6],[.15,1.15],[-.15,-1.25]],FS=mob?1:1.45;
   for(let n=0;n<NA;n++){const x0=FIX[n][0]*FS,z0=FIX[n][1]*FS;let bk=0,bd=1e9;for(let q=0;q<P.length/3;q+=3){const d=Math.hypot(P[q*3]-x0,P[q*3+2]-z0);if(d<bd){bd=d;bk=q;}}const K=KINDS[n];ACT.push({x:x0,z:z0,g:P[bk*3+1],ly:P[bk*3+1]+K.y,r:K.r*(n<3?1:.85),c:new T.Color(K.c),rad:0});}
   const SC=ACT.map(a=>a.c); while(SC.length<12)SC.push(new T.Color(0)); SC.forEach((c,i)=>U.sc.value[i].copy(c));
   const syncSU=()=>{ACT.forEach((a,i)=>SU[i].set(a.x,a.z,a.ly,a.rad));};
@@ -60,7 +60,7 @@ export async function start(sec){
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
   // 主体の名（HTML の札）：毎こま画面の位置を計算し、端から 16px 内側に収める・札どうしが重なれば縦にずらす
-  const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','tree','AI','weather station','GIS'], tags=[];
+  const NAMES=['鳥','虫','人','AI','気象計','GIS'], NAMES_EN=['bird','insect','person','AI','weather station','GIS'], tags=[];
   const tagBox=sec.querySelector('.scn-st');
   ACT.slice(0,7).forEach((a,i)=>{const d=document.createElement('span');d.className='sc-tag';d.setAttribute('aria-hidden','true');d.dataset.ja=NAMES[i];d.dataset.en=NAMES_EN[i];d.textContent=NAMES[i];
     d.style.cssText='position:absolute;left:0;top:0;pointer-events:none;font:400 '+(mob?'13px':'15px')+'/1 "Shippori Mincho",serif;color:#ffffff;text-shadow:0 0 14px #03060f,0 0 8px #03060f,0 0 4px #03060f,0 0 2px #03060f,0 0 1px #03060f;opacity:0;white-space:nowrap;will-change:transform;z-index:1';
@@ -68,17 +68,17 @@ export async function start(sec){
     const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');dot.style.cssText='position:absolute;left:0;top:0;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#'+a.c.getHexString()+';box-shadow:0 0 6px #'+a.c.getHexString()+';pointer-events:none;opacity:0;z-index:1';tagBox.appendChild(dot);
     tagBox.appendChild(ln);tagBox.appendChild(d);tags.push({d,ln,dot,p:new T.Vector3(a.x,a.ly+.12,a.z),c:new T.Vector3(a.x,a.ly,a.z)});});
   function cycle(t,ac){const ev=lyM.uniforms.ef.value;const L=[];for(let i=0;i<Math.min(ACT.length,7);i++){tv.set(ACT[i].x,ACT[i].ly,ACT[i].z).project(C);if(ev[i]>.5&&Math.abs(tv.x)<.85&&Math.abs(tv.y)<.85)L.push(i);}if(!L.length)L.push(0);const kk=Math.floor(t/4),k=L[kk%L.length],f=t%4,e=Math.min(1,f/.8)*Math.min(1,(4-f)/.8);const pr=PR.filter(p=>(p.i===k||p.j===k)&&p.amt>.3&&L.includes(p.i===k?p.j:p.i)),k2=kk%2&&pr.length?(pr[kk%pr.length].i===k?pr[kk%pr.length].j:pr[kk%pr.length].i):-1;U.hi.value=k;U.hi2.value=k2;U.hk.value=e*ac;lyM.uniforms.hk2.value=e;const hl=lyM.uniforms.hl.value;for(let i=0;i<12;i++)hl[i]=i===k||i===k2?e:0;tags.forEach((t2,i)=>t2.d.style.color=(i===k||i===k2)&&e>.3?'#'+ACT[i].c.getHexString():'#ffffff');}
-  function placeTags(ac){const efv=lyM.uniforms.ef.value;ACT.forEach((a,i)=>{const r=(a.rad||a.r)*(mob?.5:1);let m=0;for(const [dx,dz] of [[r,0],[-r,0],[0,r],[0,-r],[0,0]]){tv.set(a.x+dx,a.ly,a.z+dz).project(C);m=Math.max(m,Math.abs(tv.x),Math.abs(tv.y));}efv[i]=Math.max(0,Math.min(1,(1.02-m)/.12));});
+  function placeTags(ac){const efv=lyM.uniforms.ef.value;ACT.forEach((a,i)=>{const r=(a.rad||a.r)*(mob?.5:1)*(1-.85*EYEK);let m=0;for(const [dx,dz] of [[r,0],[-r,0],[0,r],[0,-r],[0,0]]){tv.set(a.x+dx,a.ly,a.z+dz).project(C);m=Math.max(m,Math.abs(tv.x),Math.abs(tv.y));}efv[i]=Math.max(0,Math.min(1,(1.02-m)/.12));});
     const W=tagBox.clientWidth,H=tagBox.clientHeight,en=document.documentElement.dataset.lang==='en',box=[];
     for(const t of tags){t.d.textContent=en?t.d.dataset.en:t.d.dataset.ja;tv.copy(t.p).project(C);const cc=t.c.clone().project(C);const ti=tags.indexOf(t);const vis=tv.z<1&&tv.y>-1&&tv.y<1&&Math.abs(cc.x)<.97&&Math.abs(cc.y)<.97&&efv[ti]>.35;   /* 円盤が画面の外なら札も線も出さない */const w=t.d.offsetWidth,h=t.d.offsetHeight;
-      let x=(tv.x*.5+.5)*W-w/2,y=(-tv.y*.5+.5)*H-h-10;x=Math.max(16,Math.min(W-16-w,x));const cv=t.c.clone().project(C);box.push({t,x,y,w,h,vis,cx:(cv.x*.5+.5)*W,cy:(-cv.y*.5+.5)*H});}
+      let x=(tv.x*.5+.5)*W-w/2,y=(-tv.y*.5+.5)*H-h-10;y+=(H*(.16+(ti%3)*.045)-y)*EYEK;   /* 目の高さでは札を上の暗い空へ逃がし、細い線で下の主体へ */x=Math.max(16,Math.min(W-16-w,x));const cv=t.c.clone().project(C);box.push({t,x,y,w,h,vis,cx:(cv.x*.5+.5)*W,cy:(-cv.y*.5+.5)*H});}
     const G=mob?30:8;for(let k=0;k<(mob?16:6);k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
     const cross=(x1,y1,x2,y2,R)=>{for(let u=0;u<=1;u+=.05){const x=x1+(x2-x1)*u,y=y1+(y2-y1)*u;if(x>R.x-2&&x<R.x+R.w+2&&y>R.y-2&&y<R.y+R.h+2)return true;}return false;};
     for(let k=0;k<4;k++)for(const q of box)for(const r of box){if(q===r||!r.vis)continue;if(cross(r.x+r.w/2,r.y+r.h+2,r.cx,r.cy,q)){q.y-=q.h+6;}}
     for(let k=0;k<4;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
     for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.vis&&B.vis&&A.x<B.x+B.w+4&&B.x<A.x+A.w+4&&A.y<B.y+B.h+4&&B.y<A.y+A.h+4){const L2=A.cx<B.cx?A:B,R2=L2===A?B:A,o=(L2.x+L2.w+6-R2.x)/2;L2.x=Math.max(4,L2.x-o);R2.x=Math.min(W-4-R2.w,R2.x+o);if(L2.x+L2.w+4>R2.x){R2.y=L2.y+L2.h+6;}}}   /* 重なる札は隠さず、左右（足りなければ下）へずらす */   /* それでも重なるこまは、奥の札を隠す */
     for(const q of box){q.y=Math.max(4,q.y);q.t.d.style.transform=`translate(${q.x}px,${q.y}px)`;q.t.d.style.opacity=q.vis?ac*.95:0;
-      const x0=q.x+q.w/2,y0=q.y+q.h+2,dx=q.cx-x0,dy=q.cy-y0,L=Math.hypot(dx,dy);const LM=mob?150:220;q.t.ln.style.height=Math.max(0,Math.min(L,LM)-3)+'px';if(L>LM*1.6)q.vis=false;q.t.ln.style.transform=`translate(${x0}px,${y0}px) rotate(${Math.atan2(-dx,dy)}rad)`;q.t.ln.style.opacity=q.vis?ac*.8:0;q.t.dot.style.transform=`translate(${q.cx}px,${q.cy}px)`;q.t.dot.style.opacity=q.vis?ac:0;}}
+      const x0=q.x+q.w/2,y0=q.y+q.h+2,dx=q.cx-x0,dy=q.cy-y0,L=Math.hypot(dx,dy);const LM=(mob?150:220)*(1+2.5*EYEK);q.t.ln.style.height=Math.max(0,Math.min(L,LM)-3)+'px';if(L>LM*1.6)q.vis=false;q.t.ln.style.transform=`translate(${x0}px,${y0}px) rotate(${Math.atan2(-dx,dy)}rad)`;q.t.ln.style.opacity=q.vis?ac*.8:0;q.t.dot.style.transform=`translate(${q.cx}px,${q.cy}px)`;q.t.dot.style.opacity=q.vis?ac:0;}}
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網
@@ -117,6 +117,7 @@ export async function start(sec){
   { const L=[];for(const mk of (meta.marks||[])){if(!/鳥居/.test(mk.name))continue;const X=(mk.p[0]-o[0])*sc,Y=(mk.p[1]-o[1])*sc,Z=(mk.p[2]-o[2])*sc;if(Math.abs(X)>4.8||Z>3.8||Z<-10.6)continue;
       const h=.24,w=.13;L.push(X-w*.8,Y,Z,X-w*.7,Y+h,Z, X+w*.8,Y,Z,X+w*.7,Y+h,Z, X-w*1.25,Y+h+.02,Z,X+w*1.25,Y+h+.02,Z, X-w,Y+h*.8,Z,X+w,Y+h*.8,Z);}
     if(L.length){const tm=new T.LineBasicMaterial({color:0xd6553a,transparent:true,opacity:.9,depthWrite:false});const to=new T.LineSegments(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(L,3)),tm);S.add(to);} }
+  const EP=new T.Vector3(),EL=new T.Vector3();let EYEK=0;
   const caps=[...sec.querySelectorAll('.sc-cap')];
   function size(){const w=cv.clientWidth,h=cv.clientHeight;R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix();}
   size(); addEventListener('resize',size);
@@ -129,7 +130,10 @@ export async function start(sec){
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
     const a=-.6+p*(mob?.84:1.1), rr=mob?7.3-p*1.0:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
-    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(mob?.1:0,mob?.3:.2,mob?.2:0);
+    C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); tv.set(mob?.1:0,mob?.3:.2,mob?.2:0);
+    { /* 最後は、参道に立つ一人の目の高さへ降りる。染まる主体の高さへ目が寄る（鳥なら上へ、虫なら地面近くへ） */const e3=sm(.6,.78,p);EYEK=e3;U.ek.value=e3;const g0=ACT[2]?ACT[2].g:0,k=U.hi.value|0,hk=U.hk.value,q=ACT[k]||ACT[2];const ey=g0+.3+(q?(q.ly-g0-.3)*.3*hk:0),ex=Math.sin(t*.13)*.05;
+      EP.set(ex,ey,mob?2.9:2.4);EL.set(0,g0+.28+(q?(q.ly-g0-.28)*.25*hk:0),-1.6);C.position.lerp(EP,e3);tv.lerp(EL,e3);C.fov=42+e3*(mob?30:12);C.updateProjectionMatrix();}
+    C.lookAt(tv);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
     fg.attributes.position.needsUpdate=true;
