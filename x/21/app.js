@@ -46,6 +46,7 @@ const leaf = PR.keyakiLeaf(.09); W.add(leaf);
 const tw0 = W.near.map(t => { const p = t.wood[0].attributes.position; return new V3(p.getX(0), 0, p.getZ(0)); }).filter(v => v.x > 0).sort((a, b) => Math.abs(a.z - 1) - Math.abs(b.z - 1))[0] || new V3(5.6, 0, 1);
 AIR.set(W.pathX(3) + .8, 2.7, 3); LAND.set(W.pathX(AIR.z + .7) + .7, .022, AIR.z + .7); leafP.copy(AIR);   // 右の欅の張り出した枝の先。葉は風に流されて参道の上に落ちる
 const twig = new THREE.Group(); W.add(twig);
+const halo = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), pointMat(0xffe2a0, MOBILE ? .26 : .22, .6)); W.add(halo);   // 宙の葉の後ろの、光の暈（目を引く一点）
 let twigPal = null; const twigMat = base => { twigPal ||= [[1.02, .84, .5], [.98, .7, .45], [.86, 1.0, .62]].map(([r, g, b2]) => { const m = base.clone(); m.onBeforeCompile = base.onBeforeCompile; m.customProgramCacheKey = base.customProgramCacheKey; m.color.setRGB(r, g, b2); return m; }); return twigPal[Math.floor(R() * 3)]; };   /* 房の葉の色は三つ（黄・橙・まだ緑）。材質を分けすぎない＝描画の回数 */
 { const VG = await import(P.kit + "vegetation.js");
   const pts = [tw0.clone().setY(AIR.y + .75).lerp(AIR.clone().add(new V3(2.8, .75, -1.3)), .15),   // 根もとは右の欅の幹の中から（枝が宙に浮かない）
@@ -157,11 +158,11 @@ W.onFrame((dt, t, a) => {
   if (ST.phase >= 1) { airT2 -= dt; if (airT2 < 0) { airT2 = 3.4; snd.breath(3.6, { f0: 480 + Math.random() * 120, f1: 720, gain: .085, wet: .8, pan: (Math.random() - .5) * 1.4 }); } }   // 11-06：着地のあとも木立の風が途切れない（無音の穴を埋める）
   // 葉の動き
   if (ST.phase === 0) {
-    const s = RM ? 0 : 1; leafP.copy(AIR); twig.rotation.z = Math.sin(t * .8) * .012 * s;   // 枝ごと風にゆれる（葉柄で枝につく）
+    const s = RM ? 0 : 1; leafP.copy(AIR); halo.visible = true; twig.rotation.z = Math.sin(t * .8) * .012 * s;   // 枝ごと風にゆれる（葉柄で枝につく）
     leaf.lookAt(camera.position); leaf.rotateX(Math.sin(t * .9) * .25 * s); leaf.rotateZ(Math.sin(t * .6) * .25 * s);   /* 宙の葉は面をこちらへ向け、少しだけ揺れる（真横の細い線に見えない） */
-    leaf.material.emissive?.setRGB(.3 + .12 * Math.sin(t * 2), .17 + .06 * Math.sin(t * 2), .03);   // 主役の葉だけ少し明るく、ゆっくり揺れる
+    leaf.material.emissive?.setRGB(.6 + .14 * Math.sin(t * 2), .36 + .07 * Math.sin(t * 2), .06);   /* 朝の斜めの光が葉を透かす（逆光の明るみ） */ halo.position.copy(leafP); halo.material.opacity = .6 + .12 * Math.sin(t * 2);   // 主役の葉だけ少し明るく、ゆっくり揺れる
     airT -= dt; if (airT < 0) { airT = 4.2; snd.breath(2.6, { f0: 650, f1: 900, gain: .08, wet: .7, pan: (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .4) }); }
-  } else if (ST.phase === 1) {
+  } else if (ST.phase === 1) { halo.visible = false;
     const u = clamp(ST.t / 6, 0, 1), e = u * u * (3 - 2 * u);
     const sway = Math.sin(ST.t * 3.2) * (1 - u * .6) * .28;   // 落ち葉の振り子のゆれ（模式）
     leafP.set(lerp(AIR.x, LAND.x, e) + sway, lerp(AIR.y, LAND.y + .02, Math.pow(u, 1.15)), lerp(AIR.z, LAND.z, e) + Math.cos(ST.t * 1.6) * .12 * (1 - u));
@@ -191,7 +192,7 @@ W.onFrame((dt, t, a) => {
   // 頂き：すべての層が重なる
   if (ST.phase === 2 && said[3] && !ST.top) { ST.top = true; topFlash = 1; [0, 4, 7, 9].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .1, decay: 2.6, wet: .85, pan: [-.7, .7, -.35, .35][i] }));   /* 頂き：四つの層が一度に灯り、和音が鳴る（記憶に残る一瞬） */ W.sayNow("同じ一枚の葉が、主体の数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); W.say("下へなぞる。葉のところへ戻る。"); }
   // 降りる：時が過ぎた同じ場所
-  if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; snd.bell(snd.note(0), { gain: .2, decay: 2.2, wet: .85 }); snd.bell(snd.note(4), { gain: .14, at: .05, decay: 2.2, wet: .85 }); snd.bell(snd.note(7), { gain: .1, decay: 2.2, wet: .85, at: .1 });
+  if (ST.phase === 2 && ST.top && a < .08) { ST.phase = 3; ST.later = 0; tit.visible = true; tit.position.set(LAND.x + (innerWidth < innerHeight * .8 ? .16 : .36), .02, LAND.z - (innerWidth < innerHeight * .8 ? .42 : .22));   /* 縦長は画面の内側へ */ tit.rotation.y = 2.3; tit.scale.setScalar(.14);   /* 時が過ぎた参道：シジュウカラが葉のそばの地をついばむ */ snd.bell(snd.note(0), { gain: .2, decay: 2.2, wet: .85 }); snd.bell(snd.note(4), { gain: .14, at: .05, decay: 2.2, wet: .85 }); snd.bell(snd.note(7), { gain: .1, decay: 2.2, wet: .85, at: .1 });
     W.sayNow("葉は数日を参道ですごし、何か月もかけて菌に分けられ、土へ還る。"); W.say("だれも全体を見ていない。それでも、全体は回っている。"); W.say("自分の見ている欅が、欅のすべてではない。", 6); W.say("葉に触れると、もう一枚。"); }
   if (ST.phase === 3) {
     ST.later += dt; const u = clamp(ST.later / 5, 0, 1);

@@ -184,9 +184,9 @@ export async function createAwai(o) {
     // 11-06 二版の後：欅の黄葉を、房ごとにはっきり混ぜる（黄・橙・錆。十一月のはじめの大宮の並木＝緑のなかに色づいた房が散る）
     const autumn = (im, frac) => { const c = new THREE.Color(); for (let i = 0; i < im.count; i++) { if (RA() > frac) continue; im.getColorAt(i, c); const k = RA(); c.multiply(k < .5 ? new THREE.Color(1.5, 1.22, .62) : k < .82 ? new THREE.Color(1.55, 1.0, .55) : new THREE.Color(1.3, .78, .5)); im.setColorAt(i, c); } im.instanceColor.needsUpdate = true; return im; };
     for (const t of near) world.add(autumn(KY.sprigMesh(t.sprigs, leaf, .62, tintN, t.ctr, R), .42));
-    { const fs = all.filter(t => !near.includes(t) && t.sprigs.length).flatMap(t => t.sprigs.map(b => [b, t.ctr])); if (fs.length) { const im = KY.sprigMesh(fs.map(b => b[0]), leaf, .9, tint, new THREE.Vector3(), R); const a = im.geometry.attributes.aCtr; fs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); world.add(autumn(im, .38)); } }   // 並木の枝先にも葉（枝先が槍に見えない）
+    { const fs = all.filter(t => !near.includes(t) && t.sprigs.length).flatMap(t => t.sprigs.map(b => [b, t.ctr])); if (fs.length) { const im = KY.sprigMesh(fs.map(b => b[0]), leaf, 1.15, tint, new THREE.Vector3(), R); const a = im.geometry.attributes.aCtr; fs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); world.add(autumn(im, .38)); } }   // 並木の枝先にも葉（枝先が槍に見えない）
     const backs = all.flatMap(t => t.back.map(b => [b, t.ctr]));
-    const bIM = KY.sprigMesh(backs.map(b => b[0]), leaf, 1.05, tintB, new THREE.Vector3(), R); { const a = bIM.geometry.attributes.aCtr; backs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); } world.add(autumn(bIM, .34));
+    const bIM = KY.sprigMesh(backs.map(b => b[0]), leaf, 1.35, tintB, new THREE.Vector3(), R); { const a = bIM.geometry.attributes.aCtr; backs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); } world.add(autumn(bIM, .34));
     mk("trees");
   }
   // 草（道の外の縁）と落ち葉
