@@ -19,8 +19,8 @@ export async function start(sec){
       float n=0.;vec3 wc=vec3(0.);hsel=0.;for(int i=0;i<12;i++){float c=smoothstep(.0,.12,su[i].w-length(p.xz-su[i].xy));n+=c;wc+=sc[i]*c;if(float(i)==hi)hsel=c*hk;}tint=vec3(smoothstep(1.2,2.2,n)*ac,n*ac,0.);
       float ov=smoothstep(1.2,2.2,n)*ac;p.xz+=vec2(sin(t*2.1+p.z*37.),cos(t*1.7+p.x*41.))*.012*ov;p.y+=sin(t*2.6+p.x*23.)*.008*ov;wtint=n>.01?wc/n:vec3(0.);   // 受けとるものごとに同じ参道が別の色の世界に、重なる所で揺らぐ
       vec4 mv=modelViewMatrix*vec4(p,1.);hz=smoothstep(15.,5.,-mv.z);gl_PointSize=px*(1.6+hot*2.5+tint.x*1.4)*(8./-mv.z);gl_Position=projectionMatrix*mv;}`,
-    fragmentShader:`uniform float ac;uniform float hi;uniform vec3 sc[12];varying float a;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;varying float hsel;void main(){vec2 c=gl_PointCoord-.5;if(dot(c,c)>.25)discard;vec3 col=mix(vec3(.55,.82,.9),vec3(.9,1.,1.),hot);col=mix(col,wtint*1.1,min(1.,tint.y)*.55);col=mix(col,sc[int(max(hi,0.))]*1.35,hsel*.85);col=mix(col,vec3(1.,.97,.9),tint.x*.6);
-      float al=(a*.5+hot*.6)*(.35+.65*hz)*(1.-ac*.86*(1.-min(1.,tint.y)))+tint.x*.35;gl_FragColor=vec4(col,al);}`});
+    fragmentShader:`uniform float ac;uniform float hi,hk;uniform vec3 sc[12];varying float a;varying float hot;varying float hz;varying vec3 tint;varying vec3 wtint;varying float hsel;void main(){vec2 c=gl_PointCoord-.5;if(dot(c,c)>.25)discard;vec3 col=mix(vec3(.55,.82,.9),vec3(.9,1.,1.),hot);col=mix(col,wtint*1.1,min(1.,tint.y)*.55);col=mix(col,sc[int(max(hi,0.))]*1.5,min(1.,hsel*1.2));col=mix(col,vec3(1.,.97,.9),tint.x*.6);
+      float al=(a*.5+hot*.6)*(.35+.65*hz)*(1.-ac*.86*(1.-min(1.,tint.y)))+tint.x*.35;al*=mix(1.,.38,hk*(1.-min(1.,hsel*1.5)));al+=hsel*.35;gl_FragColor=vec4(col,al);}`});
   S.add(new T.Points(g,pm));
   // 走査の面
   const plane=new T.Mesh(new T.PlaneGeometry(10.5,.5),new T.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.035,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide}));
@@ -43,13 +43,13 @@ export async function start(sec){
   const LG=`uniform vec4 su[12];uniform vec3 sc[12];uniform float t;
     float er(int i,vec2 q){vec2 d=q-su[i].xy;float a=atan(d.y,d.x);return su[i].w*(1.+.05*sin(a*3.+t*.2+float(i)*1.3)+.03*sin(a*5.-t*.15+float(i)));}
     float cv(int i,vec2 q){float r=er(i,q);return r<.005?0.:smoothstep(0.,.14,r-length(q-su[i].xy));}`;
-  const lyM=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{t:U.t,su:{value:SU},sc:{value:SC},ac:U.ac,ef:{value:new Float32Array(12).fill(1)},hl:{value:new Float32Array(12)}},
+  const lyM=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{t:U.t,su:{value:SU},sc:{value:SC},ac:U.ac,ef:{value:new Float32Array(12).fill(1)},hl:{value:new Float32Array(12)},hk2:{value:0}},
     vertexShader:`attribute float me;varying float vme;varying vec2 q;void main(){vme=me;vec4 wp=modelMatrix*vec4(position,1.);q=wp.xz;gl_Position=projectionMatrix*viewMatrix*wp;}`,
-    fragmentShader:LG+`uniform float ac;uniform float ef[12];uniform float hl[12];varying float vme;varying vec2 q;void main(){int me=int(vme+.5);float own=cv(me,q);if(own<.003)discard;
+    fragmentShader:LG+`uniform float ac,hk2;uniform float ef[12];uniform float hl[12];varying float vme;varying vec2 q;void main(){int me=int(vme+.5);float own=cv(me,q);if(own<.003)discard;
       float d=length(q-su[me].xy),e=er(me,q)-d;float rim=smoothstep(.016,0.,abs(e-.008));float iso=smoothstep(.01,0.,abs(fract(d*9.-t*.05)-.5)-.47)*smoothstep(.06,.3,e);
       float n=0.;vec3 lc=sc[me];for(int i=0;i<12;i++){if(i==me)continue;float c=cv(i,q);n+=c;lc+=sc[i]*c;}
       float ov=clamp(n,0.,1.);float film=.5+.5*cos(e*40.+t*.3);vec3 col=mix(sc[me],lc/(1.+n)*1.15+(.5+.5*cos(6.2831*(vec3(0.,.33,.67)+film*.3)))*.05,ov);float lu=dot(col,vec3(.299,.587,.114));col=mix(vec3(lu),col,.55);
-      gl_FragColor=vec4(min(col,vec3(1.)),(1.+.9*hl[me])*ef[me]*ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
+      gl_FragColor=vec4(min(col,vec3(1.)),(1.+1.1*hl[me])*(1.-.55*hk2*(1.-hl[me]))*ef[me]*ac*(own*.05+rim*.3+iso*.06+ov*own*(.18+.08*film))*mix(1.,.72,smoothstep(.6,.95,su[me].w)));}`});
   { const pos=[],me=[];ACT.forEach((a,i)=>{const RM=a.r*1.5,n=mob?20:30;for(let u=0;u<n;u++)for(let v=0;v<n;v++){const q=[[u,v],[u+1,v],[u+1,v+1],[u,v],[u+1,v+1],[u,v+1]];for(const [x,z] of q){pos.push(a.x+(x/n*2-1)*RM,a.ly,a.z+(z/n*2-1)*RM);me.push(i);}}});
     const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('me',new T.Float32BufferAttribute(me,1));const o=new T.Mesh(g,lyM);o.frustumCulled=false;S.add(o); }
   // 主体のいる所：地から層まで細い一本と、層の上の小さな点
@@ -66,7 +66,7 @@ export async function start(sec){
     const ln=document.createElement('i');ln.setAttribute('aria-hidden','true');ln.style.cssText='position:absolute;left:0;top:0;width:1px;background:rgba(220,236,248,.55);transform-origin:0 0;pointer-events:none;opacity:0;z-index:1';   /* 札から円盤の中心への引き出し線 */
     const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');dot.style.cssText='position:absolute;left:0;top:0;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#'+a.c.getHexString()+';box-shadow:0 0 6px #'+a.c.getHexString()+';pointer-events:none;opacity:0;z-index:1';tagBox.appendChild(dot);
     tagBox.appendChild(ln);tagBox.appendChild(d);tags.push({d,ln,dot,p:new T.Vector3(a.x,a.ly+.12,a.z),c:new T.Vector3(a.x,a.ly,a.z)});});
-  function cycle(t,ac){const n=Math.min(ACT.length,7),k=Math.floor(t/4)%n,f=t%4,e=Math.min(1,f/.8)*Math.min(1,(4-f)/.8);U.hi.value=k;U.hk.value=e*ac;const hl=lyM.uniforms.hl.value;for(let i=0;i<12;i++)hl[i]=i===k?e:0;tags.forEach((t2,i)=>t2.d.style.color=i===k&&e>.3?'#'+ACT[i].c.getHexString():'#ffffff');}
+  function cycle(t,ac){const n=Math.min(ACT.length,7),k=Math.floor(t/4)%n,f=t%4,e=Math.min(1,f/.8)*Math.min(1,(4-f)/.8);U.hi.value=k;U.hk.value=e*ac;lyM.uniforms.hk2.value=e;const hl=lyM.uniforms.hl.value;for(let i=0;i<12;i++)hl[i]=i===k?e:0;tags.forEach((t2,i)=>t2.d.style.color=i===k&&e>.3?'#'+ACT[i].c.getHexString():'#ffffff');}
   function placeTags(ac){const efv=lyM.uniforms.ef.value;ACT.forEach((a,i)=>{const r=a.rad||a.r;let m=0;for(const [dx,dz] of [[r,0],[-r,0],[0,r],[0,-r],[0,0]]){tv.set(a.x+dx,a.ly,a.z+dz).project(C);m=Math.max(m,Math.abs(tv.x),Math.abs(tv.y));}efv[i]=Math.max(0,Math.min(1,(1.02-m)/.12));});
     const W=tagBox.clientWidth,H=tagBox.clientHeight,en=document.documentElement.dataset.lang==='en',box=[];
     for(const t of tags){t.d.textContent=en?t.d.dataset.en:t.d.dataset.ja;tv.copy(t.p).project(C);const cc=t.c.clone().project(C);const ti=tags.indexOf(t);const vis=tv.z<1&&tv.y>-1&&tv.y<1&&Math.abs(cc.x)<.97&&Math.abs(cc.y)<.97&&efv[ti]>.35;   /* 円盤が画面の外なら札も線も出さない */const w=t.d.offsetWidth,h=t.d.offsetHeight;
@@ -77,7 +77,7 @@ export async function start(sec){
     for(let k=0;k<4;k++)for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.x<B.x+B.w+G&&B.x<A.x+A.w+G&&A.y<B.y+B.h+G&&B.y<A.y+A.h+G){const o=(Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y)+G)/2+2;if(A.y<B.y){A.y-=o;B.y+=o;}else{A.y+=o;B.y-=o;}}}
     for(let a=0;a<box.length;a++)for(let b=a+1;b<box.length;b++){const A=box[a],B=box[b];if(A.vis&&B.vis&&A.x<B.x+B.w+4&&B.x<A.x+A.w+4&&A.y<B.y+B.h+4&&B.y<A.y+A.h+4){(A.cy<B.cy?A:B).vis=false;}}   /* それでも重なるこまは、奥の札を隠す */
     for(const q of box){q.y=Math.max(4,q.y);q.t.d.style.transform=`translate(${q.x}px,${q.y}px)`;q.t.d.style.opacity=q.vis?ac*.95:0;
-      const x0=q.x+q.w/2,y0=q.y+q.h+2,dx=q.cx-x0,dy=q.cy-y0,L=Math.hypot(dx,dy);q.t.ln.style.height=Math.max(0,L-3)+'px';q.t.ln.style.transform=`translate(${x0}px,${y0}px) rotate(${Math.atan2(-dx,dy)}rad)`;q.t.ln.style.opacity=q.vis?ac*.8:0;q.t.dot.style.transform=`translate(${q.cx}px,${q.cy}px)`;q.t.dot.style.opacity=q.vis?ac:0;}}
+      const x0=q.x+q.w/2,y0=q.y+q.h+2,dx=q.cx-x0,dy=q.cy-y0,L=Math.hypot(dx,dy);const LM=mob?110:220;q.t.ln.style.height=Math.max(0,Math.min(L,LM)-3)+'px';if(L>LM*1.6)q.vis=false;q.t.ln.style.transform=`translate(${x0}px,${y0}px) rotate(${Math.atan2(-dx,dy)}rad)`;q.t.ln.style.opacity=q.vis?ac*.8:0;q.t.dot.style.transform=`translate(${q.cx}px,${q.cy}px)`;q.t.dot.style.opacity=q.vis?ac:0;}}
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網
