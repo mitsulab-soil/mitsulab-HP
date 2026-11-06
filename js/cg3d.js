@@ -61,11 +61,11 @@ export function start(box){
     const g=new THREE.Mesh(new THREE.CircleGeometry(7.6,mob?64:96),m); g.rotation.x=-Math.PI/2; W.add(g); W.userData.ground=m; }
   // ---- 受けとる層：主体ごとに一枚（地面と平行・色と高さと広さが違う）。縁はやわらかく、内に細い等距線、重なりでは光が混ざる
   const layerM=(i,slice)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
-    uniforms:{t:{value:0},ru:{value:RU},rc:{value:COL},me:{value:i},lit:{value:1},sl:{value:slice}},
+    uniforms:{t:{value:0},ru:{value:RU},rc:{value:COL},me:{value:i},lit:{value:1},sl:{value:slice},mech:{value:['ai','sensor','gis'].includes(SUB[i].k)?1:0}},
     vertexShader:`uniform float t,sl;uniform int me;varying vec2 v;varying float fr;void main(){vec3 p=position;v=vec2(p.x,-p.y);
       float w=sin(p.x*.8+t*.35+float(me)*2.1)*.045+cos(p.y*.7-t*.28+float(me))*.04;p.z+=w;
       vec4 wp=modelMatrix*vec4(p,1.);vec3 nv=normalize(cameraPosition-wp.xyz);fr=1.-abs(nv.y);gl_Position=projectionMatrix*viewMatrix*wp;}`,
-    fragmentShader:GLSL_COMMON+`uniform int me;uniform float lit,sl;varying vec2 v;varying float fr;
+    fragmentShader:GLSL_COMMON+`uniform int me;uniform float lit,sl,mech;varying vec2 v;varying float fr;
       void main(){vec2 q=v+ru[me].xy;float d=length(q-ru[me].xy),er=edgeR(me,q),e=er-d;float own=cov(me,e);if(own<.002)discard;
         float rimL=smoothstep(.035,.0,abs(e-.02));float iso=smoothstep(.012,.0,abs(fract(d*3.2-t*.04)-.5)-.47)*smoothstep(.2,.9,e);
         float n=0.;vec3 lc=rc[me];float m2=0.;
@@ -77,8 +77,9 @@ export function start(box){
         float glow=smoothstep(.45,1.,rr);   // 縁ほど光をためる（ガラスの縁のように）
         vec3 col=mix(base*(.75+.45*glow),mix(mixc*1.5,vec3(1.),.32)+irid*.14,ov);
         col=mix(col,vec3(1.),rimL*.35+lens*.5);
-        float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.36+.14*film)+lens*own*.45;
-        a*=lit*(1.-sl*.55);
+        float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.24+.09*film)*min(lit,1.)+lens*own*.4;
+        float scan=mech*(smoothstep(.05,0.,abs(fract(q.y*9.-t*.15)-.5)-.44)*.6+smoothstep(.03,0.,min(abs(fract(q.x*3.)-.5),abs(fract(q.y*3.)-.5))-.47)*.35);   // 機械の層は走査線と格子で
+        a+=own*scan*.3;a*=lit*(1.-sl*.55);
         gl_FragColor=vec4(min(col,vec3(1.)),a);}`});
   const layers=[];
   SUB.forEach((s,i)=>{const RM=s.r*1.55, seg=mob?28:44;
@@ -149,7 +150,7 @@ export function start(box){
       const c=cols[k],a=P.amt*Math.min(lit[P.i],lit[P.j]);c.visible=a>.01;if(c.visible){const y0=Math.min(A.ly,B.ly)-.05,y1=Math.max(A.ly,B.ly)+.05;c.position.set(P.m.x,(y0+y1)/2,P.m.z);c.scale.set(Math.max(.06,w*.62),y1-y0,Math.max(.06,w*.62));
         c.material.uniforms.a.value=a;}
       nodes[k].position.set(P.m.x,P.m.y,P.m.z);nodes[k].material.opacity=a*.85;});
-    WEB.forEach((E,e)=>{const A=PAIRS[E.a],B=PAIRS[E.b],a=A.amt*B.amt*intro,sy=SUB[E.s].ly;
+    WEB.forEach((E,e)=>{const A=PAIRS[E.a],B=PAIRS[E.b],hit=sel>=0&&([A.i,A.j,B.i,B.j].includes(sel)),a=A.amt*B.amt*intro*(sel<0?1:hit?2.6:.3),sy=SUB[E.s].ly;
       for(let q=0;q<WN;q++)for(let r=0;r<2;r++){const u=(q+r)/WN,ix=e*WN*2+q*2+r;tmp.copy(A.m).lerp(B.m,u);tmp.y+=Math.sin(u*Math.PI)*((sy-tmp.y)*.6);webP.set([tmp.x,tmp.y,tmp.z],ix*3);webA[ix]=a;}});
     webG.attributes.position.needsUpdate=webG.attributes.a.needsUpdate=true;
   }
@@ -206,7 +207,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(mob?5.6:5.6);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?2.2:2,3,1.6);pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);m.object.rotation.y=.7;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?5.6:5.6);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?4:3.6,3,1.6);pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);m.object.rotation.y=.7;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});

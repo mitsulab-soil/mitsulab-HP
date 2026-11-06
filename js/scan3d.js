@@ -105,7 +105,7 @@ export async function start(sec){
     prog+= (progress()-prog)*(reduce?1:.12); const p=prog;
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
-    const a=-.6+p*(mob?.92:1.1), rr=mob?8.6-p*1.6:7.4-p*1.6, hh=4.4-p*2.2;
+    const a=-.6+p*(mob?.92:1.1), rr=mob?8.6-p*1.6:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
     C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(0,.2,0);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
