@@ -14,6 +14,7 @@ export function start(box){
   const WQ=[];   // 裏で一つずつ GPU へ送る（毎こま一つだけ、本番の描画の前に）
   const Q=[];   // 3D の読み込みは一つずつ、間をあけて（読み込み中のこま落ちを抑える）
   const anim=[];
+  window.__aoiBuf=window.__aoiBuf||fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer());   // 碧は先に読みはじめる
   let vis=true, raf=0, dirty=1, last=performance.now(), T0=last, auto=0;
   // 光：上の斜めから主の光、奥から水色の縁の光、地からの返し
   S.add(new THREE.HemisphereLight(0xcfe4ff,0x1a1408,.9));
@@ -228,7 +229,8 @@ export function start(box){
   // 町の依代（Qualium 大宮と同じ姿・その場で組む形）：AI とセンサーの重なりのあいだに
   Q.push(async()=>{try{const {MachiYori}=await import('./kit/machiyori.js');const g=new THREE.Group();const my=new MachiYori({scene:g,camera:C,dom:document.createElement('i')});
     my.add('shizuku',{x:YORI.x,z:YORI.z,yaw:.4,scale:1.45});W.add(g);blob(YORI,.3);anim.push((t,dt)=>my.update(dt));dirty=1;}catch(e){console.warn('cg yori',e);}});
-  Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
+
+  Q.unshift(async()=>{try{const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);L.register(p=>new V.VRMLoaderPlugin(p));
     const buf=await(window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())));const g=await L.parseAsync(buf.slice(0),'');
     vrm=g.userData.vrm;await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(g.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(vrm);vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
@@ -264,7 +266,7 @@ export function start(box){
     {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
     if(!(mob&&(((frame.n||0)+1)&1)))anim.forEach(f=>f(t,mob?dt*2:dt));
     frame.n=(frame.n||0)+1; const half=mob&&(frame.n&1); frame.acc=(frame.acc||0)+dt;
-    if(mot&&!half){const d2=frame.acc;mot.update(d2,C,{vrmUpdate:false});vrm.update(d2);mot.afterVrmUpdate(d2);if(!aoiP.visible&&++aoiN>3)aoiP.visible=true;}
+    if(mot&&!half){const d2=frame.acc;mot.update(d2,C,{vrmUpdate:false});vrm.update(d2);mot.afterVrmUpdate(d2);if(!aoiP.visible&&++aoiN>3){aoiP.visible=true;box.dataset.aoiMs=Math.round(performance.now()-T0);}}
     if(!half)frame.acc=0;
     if(WQ.length)WQ.shift()();
     R.render(S,C);
@@ -288,9 +290,10 @@ export function start(box){
   const comp=async o=>{try{if(R.compileAsync)await R.compileAsync(o,C,S);
     // 絵（テクスチャ）も一枚ずつ、空いた時間に GPU へ送っておく（最初に描くときのつかえを無くす）
     const tx=new Set();o.traverse(m=>{[].concat(m.material||[]).forEach(mt=>{for(const k in mt){const v=mt[k];if(v&&v.isTexture)tx.add(v);}if(mt.uniforms)for(const k in mt.uniforms){const v=mt.uniforms[k].value;if(v&&v.isTexture)tx.add(v);}});});
-    for(const t of tx){await idle();R.initTexture(t);}
+    for(const t of tx){if(tx.size<12)await idle();R.initTexture(t);}
     // 形（頂点の束）も一つずつ、1×1 の裏の画面へ一度描いて GPU に送っておく
     const ms=[];o.traverse(m=>{if(m.isMesh||m.isPoints||m.isLine)ms.push(m);});
+    if(ms.length>12)return;   // 部品の多いもの（碧）は一つずつ温めず、すぐ場に出す（待ちを 1 秒以内に）
     for(const m of ms){await idle();let p;if(m.isSkinnedMesh){p=new THREE.SkinnedMesh(m.geometry,m.material);p.bind(m.skeleton,m.bindMatrix);}else p=new (m.isInstancedMesh?THREE.InstancedMesh:m.isPoints?THREE.Points:m.isLineSegments?THREE.LineSegments:m.isLine?THREE.Line:THREE.Mesh)(m.geometry,m.material,m.count);
       if(m.isInstancedMesh){p.instanceMatrix=m.instanceMatrix;}if(m.morphTargetInfluences){p.morphTargetInfluences=m.morphTargetInfluences;p.morphTargetDictionary=m.morphTargetDictionary;}
       p.frustumCulled=false;p.onBeforeRender=m.onBeforeRender;dirty=1;await new Promise(r=>WQ.push(()=>{S2.add(p);R.setScissorTest(true);R.setScissor(0,0,1,1);R.render(S2,C);R.setScissorTest(false);S2.remove(p);r();}));} }catch(e){console.warn('cg warm',e);}};
