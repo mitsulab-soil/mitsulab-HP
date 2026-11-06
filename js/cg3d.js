@@ -41,14 +41,16 @@ export function start(box){
     float cov(int i,float e){return ru[i].z<.01?0.:smoothstep(.0,.38,e);}
     float cover(int i,vec2 q){return cov(i,ed(i,q));}`;
   // ---- 地：写実の土。上に、それぞれの範囲が淡く落ち、重なりの下には光が透けて揺らぐ（光の透過）。縁は闇に溶ける
-  { const tl=new THREE.TextureLoader(), sc=tl.load('img/hero/3d/dio/soil_c.webp',()=>{dirty=1;}), sn=tl.load('img/hero/3d/dio/soil_n.webp',()=>{dirty=1;});
-    [sc,sn].forEach(x=>{x.wrapS=x.wrapT=THREE.RepeatWrapping;x.anisotropy=mob?2:8;}); sc.colorSpace=THREE.SRGBColorSpace;
-    const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{t:{value:0},sc:{value:sc},sn:{value:sn},ru:{value:RU},rc:{value:COL}},
+  { const tl=new THREE.TextureLoader(), sc=tl.load('img/hero/3d/dio/soil_c.webp',()=>{dirty=1;}), sn=tl.load('img/hero/3d/dio/soil_n.webp',()=>{dirty=1;}), lc=tl.load('img/hero/3d/dio/leaves_c.webp',()=>{dirty=1;});
+    lc.colorSpace=THREE.SRGBColorSpace;[sc,sn,lc].forEach(x=>{x.wrapS=x.wrapT=THREE.RepeatWrapping;x.anisotropy=mob?2:8;}); sc.colorSpace=THREE.SRGBColorSpace;
+    const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{t:{value:0},sc:{value:sc},sn:{value:sn},lft:{value:lc},ru:{value:RU},rc:{value:COL}},
       vertexShader:`varying vec2 v;void main(){v=vec2(position.x,-position.y);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader:GLSL_COMMON+`varying vec2 v;uniform sampler2D sc,sn;void main(){float r=length(v);float fade=smoothstep(6.2,2.,r);
+      fragmentShader:GLSL_COMMON+`varying vec2 v;uniform sampler2D sc,sn,lft;void main(){float r=length(v);float fade=smoothstep(6.2,2.,r);
         vec3 so=texture2D(sc,v*.42).rgb*.55+texture2D(sc,v*.11+.3).rgb*.45;vec3 nn=texture2D(sn,v*.42).rgb*2.-1.;
         float lt=clamp(.55+.45*dot(normalize(vec3(nn.xy,1.)),normalize(vec3(.45,.6,.65))),0.,1.3);
         float sun=.5+.5*smoothstep(5.,.4,length(v-vec2(.6,-.9)));
+        float lmk=smoothstep(.48,.7,vn(v*.55+3.1)*.7+vn(v*2.3)*.3);vec3 lf=texture2D(lft,v*.38).rgb;so=mix(so,lf*vec3(.78,.7,.55),lmk*.75);   // 落ち葉のまだら（CC0 の葉の写真）
+        float wet=smoothstep(.55,.8,vn(v*.9-1.7));so*=1.-wet*.22;   // 湿り
         vec3 earth=pow(so,vec3(1.15))*lt*sun*.95;vec3 col=mix(vec3(.03,.045,.07),earth,smoothstep(5.8,2.4,r));
         float n=0.;vec3 lc=vec3(0.);float rim=0.;
         for(int i=0;i<6;i++){float e=ed(i,v);float c=cov(i,e);n+=c;lc+=rc[i]*c;rim+=smoothstep(.05,0.,abs(e))*step(.01,ru[i].z);}
@@ -187,12 +189,14 @@ export function start(box){
     at(s,g); anim.push(t=>{rings.forEach((o,i)=>{const u=(t*.4+i/3)%1;o.scale.setScalar(.15+u*.9);o.material.opacity=.55*(1-u);});led.material.color.setScalar(.6+.4*Math.sin(t*3)**2).multiply(new THREE.Color(0xb8f0a8));}); }
   // GIS：位置の印と、地形の層を三枚重ねた小さな板
   { const s=SUB[5], g=new THREE.Group(), cols=[0xe8c48a,0x8fd3ff,0xc9b8ff];
-    cols.forEach((c,i)=>{const pg=new THREE.PlaneGeometry(.95,.95,18,18);const a=pg.attributes.position;for(let j=0;j<a.count;j++){const x=a.getX(j),y=a.getY(j);a.setZ(j,i===0?Math.max(0,.16-Math.hypot(x-.1,y+.05)*.35)+Math.sin(x*7)*.015:0);}pg.computeVertexNormals();
-      const m=i===0?std(0x6d5a42,{r:.85,m:0}):new THREE.MeshBasicMaterial({color:c,wireframe:true,transparent:true,opacity:.55,toneMapped:false});const o=new THREE.Mesh(pg,m);o.rotation.x=-Math.PI/2;o.position.y=.28+i*.3;g.add(o);});
-    const pin=new THREE.Mesh(new THREE.ConeGeometry(.07,.22,16),std(0xc9b8ff,{e:0x3a2c70,ei:1,r:.4,m:.2})); pin.rotation.x=Math.PI; pin.position.set(.1,1.1,.05); g.add(pin);
-    const pinB=new THREE.Mesh(new THREE.SphereGeometry(.07,16,12),pin.material); pinB.position.set(.1,1.22,.05); g.add(pinB);
-    const st=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.9,6),new THREE.MeshBasicMaterial({color:0xc9b8ff,transparent:true,opacity:.5,toneMapped:false})); st.position.set(.1,.55,.05); g.add(st);
-    at(s,g); anim.push(t=>{pin.position.y=1.1+Math.sin(t*1.4)*.04;pinB.position.y=pin.position.y+.12;}); }
+    { const metal=new THREE.MeshPhysicalMaterial({color:0xb9c0c9,roughness:.32,metalness:.85}), dark=new THREE.MeshPhysicalMaterial({color:0x22262c,roughness:.5,metalness:.3,clearcoat:.4});
+      for(let k=0;k<3;k++){const a=k/3*Math.PI*2,leg=new THREE.Mesh(new THREE.CylinderGeometry(.012,.016,1.0,8),metal);leg.position.set(Math.cos(a)*.17,.47,Math.sin(a)*.17);leg.rotation.set(Math.sin(a)*.34,0,-Math.cos(a)*.34);g.add(leg);}
+      const head=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.12,12),metal);head.position.y=.98;g.add(head);
+      const ant=new THREE.Mesh(new THREE.CylinderGeometry(.13,.15,.07,40),dark);ant.position.y=1.07;g.add(ant);
+      const dome=new THREE.Mesh(new THREE.SphereGeometry(.13,32,12,0,Math.PI*2,0,Math.PI/2),new THREE.MeshPhysicalMaterial({color:0xe8ecf0,roughness:.35,clearcoat:.6}));dome.scale.y=.35;dome.position.y=1.105;g.add(dome); }
+    const pin=new THREE.Mesh(new THREE.ConeGeometry(.04,.12,16),std(0xc9b8ff,{e:0x3a2c70,ei:1,r:.4,m:.2})); pin.rotation.x=Math.PI; pin.position.set(0,1.45,0); g.add(pin);
+    const pinB=new THREE.Mesh(new THREE.SphereGeometry(.04,16,12),pin.material); pinB.position.set(0,1.52,0); g.add(pinB);
+    at(s,g); anim.push(t=>{pin.position.y=1.45+Math.sin(t*1.4)*.03;pinB.position.y=pin.position.y+.07;}); }
   // ミツバチ（形態は creatures.js の写実の造形＝頭・胸・腹、4 枚の翅、6 本の脚）。花の上でホバリング
   Q.push(async()=>{try{const {makeBee}=await import('./kit/creatures.js');const s=SUB[1],b=makeBee();b.scale.setScalar(.5);const g=new THREE.Group();g.add(b);
     const fl=new THREE.Group();const stem=new THREE.Mesh(new THREE.CylinderGeometry(.012,.018,.6,6),std(0x5f7a3a,{r:.8,m:0}));stem.position.y=.3;fl.add(stem);
