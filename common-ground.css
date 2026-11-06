@@ -156,3 +156,8 @@ body.cg-design #bgRain,body.cg-design>.aurora{display:none}
 @media(max-width:759px){#top .cg-hero-copy{top:34px}#top #visionH{font-size:26px!important;line-height:1.6!important}#top .cg-scene-intro{display:block;margin:8px 0 25px}#top .cg-scene-intro .cg-hero-note{font-size:12px}#top .cg-subtitle{left:0;max-width:100%;width:100%;bottom:calc(100% + 8px)}#top .cg-hero.is-speaking .cg-hero-copy{opacity:0}}
 #top .cg-subtitle{left:0;bottom:calc(100% + 24px);width:620px;max-width:47vw;text-align:left;padding-left:0;background:linear-gradient(90deg,rgba(3,6,15,.65),transparent)}
 @media(max-width:759px){#top .cg-subtitle{max-width:100%;width:100%;text-align:center;bottom:calc(100% + 8px);background:linear-gradient(90deg,transparent,rgba(3,6,15,.7),transparent)}}
+#top .cg-scene-label{min-height:44px;border:0;border-left:1px solid #a8ddd6;background:linear-gradient(90deg,rgba(3,6,15,.75),rgba(3,6,15,.3));cursor:pointer;font-size:11px;white-space:normal;text-align:left;padding:6px 10px;max-width:180px;line-height:1.6;pointer-events:auto}
+#top .cg-scene-label[aria-pressed=true]{color:white;border-color:white;background:rgba(21,61,61,.9)}
+#top .cg-gl-fallback{z-index:5;top:35%;bottom:auto;left:6vw;max-width:360px;padding:16px;background:#03060fd9}
+#top .cg-clue-copy{min-height:54px}
+@media(max-width:759px){#top .cg-scene-label{font-size:10px;max-width:110px;padding:5px 8px}#top .cg-clue-copy{font-size:11px;min-height:62px}#top .cg-caption:has(.cg-clue-copy:not([hidden])){min-height:62px}}
