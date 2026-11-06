@@ -51,7 +51,7 @@ export function start(box){
         float sun=.5+.5*smoothstep(5.,.4,length(v-vec2(.6,-.9)));
         float lmk=smoothstep(.48,.7,vn(v*.55+3.1)*.7+vn(v*2.3)*.3);vec3 lf=texture2D(lft,v*.38).rgb;so=mix(so,lf*vec3(.78,.7,.55),lmk*.75);   // 落ち葉のまだら（CC0 の葉の写真）
         float wet=smoothstep(.55,.8,vn(v*.9-1.7));so*=1.-wet*.22;   // 湿り
-        vec3 earth=pow(so,vec3(1.15))*lt*sun*.95;vec3 col=mix(vec3(.03,.045,.07),earth,smoothstep(5.8,2.4,r));
+        vec3 earth=pow(so,vec3(1.1))*lt*sun*1.3;vec3 col=mix(vec3(.03,.045,.07),earth,smoothstep(5.8,2.4,r));
         float n=0.;vec3 lc=vec3(0.);float rim=0.;
         for(int i=0;i<6;i++){float e=ed(i,v);float c=cov(i,e);n+=c;lc+=rc[i]*c;rim+=smoothstep(.05,0.,abs(e))*step(.01,ru[i].z);}
         float cs=vn(v*3.1+vec2(t*.11,-t*.07))*vn(v*5.3-vec2(t*.05,t*.09));float caus=smoothstep(.18,.5,cs);
@@ -226,7 +226,7 @@ export function start(box){
     const buf=await(window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>r.arrayBuffer())));const g=await L.parseAsync(buf.slice(0),'');
     vrm=g.userData.vrm;await new Promise(r=>setTimeout(r,0)); V.VRMUtils.removeUnnecessaryVertices(g.scene); await new Promise(r=>setTimeout(r,0)); V.VRMUtils.rotateVRM0(vrm);vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
     const p=new THREE.Group();p.add(vrm.scene);p.visible=false;aoiP=p;W.add(p);vrm.humanoid.resetNormalizedPose();vrm.update(0);
-    const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.62/(bb.max.y-bb.min.y));p.position.set(AOI.x,0,AOI.z);blob(AOI,.5);
+    const bb=new THREE.Box3().setFromObject(vrm.scene);p.scale.setScalar(1.3/(bb.max.y-bb.min.y));p.position.set(AOI.x,0,AOI.z);blob(AOI,.5);
     const {AoiMotion}=await import('./aoi_motion.js?v=20261026-v61');mot=new AoiMotion(vrm,{root:p,reducedMotion:reduce,wind:.2,faceViewer:false,startCalm:1,posture:'upright',uprightWeight:.9});mot.faceTo(.2);dirty=1;
   }catch(e){console.warn('cg aoi',e);}});
   // ---- 札（index.html の .cg-lb）を 3D の位置へ写す
@@ -235,12 +235,13 @@ export function start(box){
   const v=new THREE.Vector3(), vc=new THREE.Vector3();
   const SZC=new Map(); const SZ=d=>{let z=SZC.get(d);if(!z){z=[d.offsetWidth,d.offsetHeight];if(z[0])SZC.set(d,z);}return z;}; addEventListener('resize',()=>SZC.clear()); new MutationObserver(()=>SZC.clear()).observe(document.documentElement,{attributes:true,attributeFilter:['data-lang']});
   // 視点：ゆっくり左右にめぐる。横になぞると回せる（縦のスクロールは止めない）
-  let yaw=0, drag=null, user=0, tI0=-1; const base=SUB.map(s=>s.r);
+  let yaw=.42, drag=null, user=0, tI0=-1; const base=SUB.map(s=>s.r);
   cv.style.touchAction='pan-y';
   cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,y0:yaw,mv:0};user=performance.now();});
   cv.addEventListener('pointerup',e=>{if(drag&&drag.mv<8){const i=pick(e);if(i>=0||sel>=0)choose(i<0?sel:i);}});
   addEventListener('pointermove',e=>{if(!drag)return;drag.mv=Math.max(drag.mv,Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y));yaw=drag.y0+(e.clientX-drag.x)*.006;user=performance.now();dirty=1;if(!raf&&vis)raf=requestAnimationFrame(loop);},{passive:true});
   addEventListener('pointerup',()=>{drag=null;});addEventListener('pointercancel',()=>{drag=null;});
+  box.__cgPos=k=>{const i=SUB.findIndex(s=>s.k===k);const s=SUB[i];const q=new THREE.Vector3(s.x+rad[i]*.35,s.ly,s.z+rad[i]*.35).applyMatrix4(W.matrixWorld).project(C);const r=cv.getBoundingClientRect();return [r.left+(q.x*.5+.5)*r.width,r.top+(-q.y*.5+.5)*r.height,sel];};
   let wpx=0,hpx=0;
   function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?48:30;C.position.set(0,tall?13.2:7.4,tall?5.6:12.2);C.lookAt(0,tall?.4:.9,tall?-.5:.1);C.updateProjectionMatrix();dirty=1;}
   size(); addEventListener('resize',size);
@@ -250,7 +251,7 @@ export function start(box){
     W.rotation.y=yaw+Math.sin(auto)*.35;
     if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
     for(let i=0;i<NS;i++){const g=.32+.68*smoothstep(0,1,(tI-.1-.3*i)/1.4);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
-      const lt=sel<0?1:i===sel?1.9:.32;lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
+      const lt=sel<0?1:i===sel?1.35:.45;lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
     syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);
     if(!(mob&&(((frame.n||0)+1)&1)))anim.forEach(f=>f(t,mob?dt*2:dt));
