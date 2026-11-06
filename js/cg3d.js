@@ -259,7 +259,7 @@ export function start(box){
   addEventListener('pointerup',()=>{drag=null;});addEventListener('pointercancel',()=>{drag=null;});
   box.__cgPos=k=>{const i=SUB.findIndex(s=>s.k===k);const s=SUB[i];const q=new THREE.Vector3(s.x+rad[i]*.35,s.ly,s.z+rad[i]*.35).applyMatrix4(W.matrixWorld).project(C);const r=cv.getBoundingClientRect();return [r.left+(q.x*.5+.5)*r.width,r.top+(-q.y*.5+.5)*r.height,sel];};
   let wpx=0,hpx=0;
-  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?48:30;C.position.set(0,tall?13.2:7.4,tall?5.6:12.2);C.lookAt(0,tall?.4:.9,tall?-.5:.1);C.updateProjectionMatrix();dirty=1;}
+  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?46:30;C.position.set(0,tall?11:7.4,tall?8.2:12.2);C.lookAt(0,tall?.6:.9,tall?-.2:.1);C.updateProjectionMatrix();dirty=1;}
   size(); addEventListener('resize',size);
   new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop);}).observe(box);
   function frame(t,dt){

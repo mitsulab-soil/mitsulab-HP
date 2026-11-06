@@ -34,7 +34,7 @@ export async function start(sec){
   const fm=new T.PointsMaterial({color:0xf2cf8c,size:.05,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false}); S.add(new T.Points(fg,fm));
   // 多くの主体：主体ごとに受けとる層（地面と平行・色と高さと広さが違う）。重なりに光の柱、柱どうしを糸がつなぐ（中心のない網）
   // だれかのふるまいは地（場所）をつたって重なりへ行き、となりの主体の層に入る。大きさは模式
-  const KINDS=[{c:0x8fc9ff,y:.62,r:.82},{c:0xf3c86e,y:.16,r:.42},{c:0xf1ece4,y:.36,r:.6},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xa9ec9a,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.95}];   // 鳥・虫・人・木・AI・気象計・GIS
+  const KINDS=[{c:0x8fc9ff,y:.62,r:.82},{c:0xf3c86e,y:.16,r:.42},{c:0xf1ece4,y:.36,r:.6},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xa9ec9a,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.68}];   // 鳥・虫・人・木・AI・気象計・GIS
   let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
   const NA=7, ACT=[];
   for(let tries=0;ACT.length<NA&&tries<4000;tries++){const k=Math.floor(rnd()*(P.length/3)),x=P[k*3],z=P[k*3+2];if(Math.abs(x)>1.9||Math.abs(z)>1.7)continue;if(ACT.some(a=>Math.hypot(a.x-x,a.z-z)<.72))continue;const K=KINDS[ACT.length%KINDS.length];ACT.push({x,z,g:P[k*3+1],ly:P[k*3+1]+K.y,r:K.r*(.72+rnd()*.62),c:new T.Color(K.c),rad:0});}
@@ -59,7 +59,7 @@ export async function start(sec){
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   // 主体の名（三つだけ・小さく）：文の「多くの主体」と絵を結ぶ
   const NAMES=['鳥','虫','人','木','AI','気象計','GIS'], tags=[]; ACT.slice(0,7).forEach((a,i)=>{const c=document.createElement('canvas');c.width=128;c.height=48;const x=c.getContext('2d');x.font='28px "Shippori Mincho",serif';x.fillStyle='#e6ecf6';x.textAlign='center';x.fillText(document.documentElement.dataset.lang==='en'?['bird','insect','person','tree','AI','gauge','GIS'][i]:NAMES[i],64,34);
-    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false}));sp.scale.set(.32,.12,1);sp.position.set(a.x,a.ly+.14,a.z);S.add(sp);tags.push(sp);});
+    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,opacity:0,depthWrite:false}));sp.scale.set(.32,.12,1);sp.position.set(a.x,a.ly+.14+(i%2)*.1,a.z);S.add(sp);tags.push(sp);});
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
   markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網
