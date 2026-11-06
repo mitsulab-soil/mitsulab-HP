@@ -89,6 +89,8 @@ const sheet = (i, col, label, sub) => {
   const stem = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(0, -y + .03, 0), new V3(0, 0, 0)]), lineMat(col, 0)); g.add(stem);   // 葉から層へ：この葉が入力になる
   const o = { g, i, col, frame, cm, pl, lab, stem, k: 0, mats: [frame.material, cm, stem.material], inner: new THREE.Group() }; g.add(o.inner); W.add(g); L.push(o); return o;
 };
+// 頂きの一瞬：同じ一枚の葉の輪郭が、四つの層を下から上へ貫いて重なる（四つの受けとり方が、一枚の葉で一つにつながる）
+const spine = new THREE.Group(); { for (let k = 0; k < 9; k++) { const pts = LEAFO.map(p => p.clone().multiplyScalar(1.0 + k * .07)); const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lineMat(0xf2c25a, 0)); ln.position.y = .1 + k * .16; for (const dy of [.004, -.004]) { const l2 = new THREE.Line(ln.geometry, ln.material); l2.position.y = dy; ln.add(l2); } spine.add(ln); } } W.add(spine);
 function textSprite(t, sub, col, right = false) {
   const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); if (right === "mid") { x.textAlign = "center"; x.translate(256, 0); } else if (right) { x.textAlign = "right"; x.translate(504, 0); }
   x.font = '600 38px "Shippori Mincho","Hiragino Mincho ProN",serif'; x.fillStyle = "#" + new THREE.Color(col).getHexString(); x.textBaseline = "middle"; x.fillText(t, right ? 0 : 4, 32);   /* mid も 0 */
@@ -147,9 +149,11 @@ function restart() {
   fg.setDrawRange(0, 0); tit.visible = false; W.setAbs(0); W.sayNow("もう一枚。");
 }
 const said = [false, false, false, false];
-let topFlash = 0, airT2 = 0, stepT = 0, chirpT = 0, tickT = 0, fungiT = 0, airT = 0, lastBeat = -1;   // 声部はすべて 0.6 秒の拍の上。8 拍（4.8 秒）ごとに頭がそろう
+let farT = 6, topFlash = 0, airT2 = 0, stepT = 0, chirpT = 0, tickT = 0, fungiT = 0, airT = 0, lastBeat = -1;   // 声部はすべて 0.6 秒の拍の上。8 拍（4.8 秒）ごとに頭がそろう
 W.onFrame((dt, t, a) => {
   ST.t += dt; topFlash = Math.max(0, topFlash - dt / 5.5);
+  spine.position.set(LAND.x, 0, LAND.z); spine.children.forEach((ln, k) => { const u = clamp(topFlash * 1.25 - (1 - k / 8) * .25, 0, 1); ln.material.opacity = Math.min(1, 1.1 * u * u); }); spine.visible = topFlash > .002;
+  if (ST.phase >= 2 && a < .3) { farT -= dt; if (farT < 0) { farT = 8 + Math.random() * 4; const o = { gain: .055, pan: (Math.random() - .5) * 1.4, wet: .9 }; for (let k = 0; k < 2; k++) { snd.chirp(5200, 4900, .06, { ...o, at: k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: k * .42 + .1 }); } } }   // 静かな区間：遠いシジュウカラの一声（ツツピーの句・まばらに）
   if (ST.phase >= 1) { airT2 -= dt; if (airT2 < 0) { airT2 = 3.4; snd.breath(3.6, { f0: 480 + Math.random() * 120, f1: 720, gain: .085, wet: .8, pan: (Math.random() - .5) * 1.4 }); } }   // 11-06：着地のあとも木立の風が途切れない（無音の穴を埋める）
   // 葉の動き
   if (ST.phase === 0) {

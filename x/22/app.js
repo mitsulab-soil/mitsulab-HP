@@ -134,8 +134,8 @@ function act(n, gain, from) {
   n.voice({ gain: .34 * gain, pan, wet: .5 }); snd.bell(n.f, { gain: .16 * gain, pan, decay: .7 });
   if (n.id === "hum" && Lon) [nodeOf("tit"), nodeOf("bee"), nodeOf("tree")].forEach((o, i) => snd.bell(o.f, { gain: .07 * gain, pan, at: .03 * (i + 1), decay: .6 }));   // 層 L：人の応えに、ほかの受けとり方の色が混じる
   n.act(); lastAct = ripU.uT.value;
-  if (n.id === "hum" && Lon && W.abs < .4) { const p2 = n.at(); ripple(p2.x, p2.z, 3.2, 0xffffff); [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .06, at: i * .08, decay: 2, wet: .85 }));   /* 抽象で鳴った和音が、参道で一度だけ返ってくる */ }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
-  if (n.id === "hum" && Lon && !saidL2) { saidL2 = true; W.say("同じ足音でも、もう前と同じ意味ではない。"); }
+  if (n.id === "hum" && Lon && W.abs < .4) { if (!answered) { answered = true; setTimeout(() => W.say("鳥が振り向く。蜂は、人の影をよけて花を移る。記録計は、変わらず朝の冷えだけを書きとめる。"), 2600); } const p2 = n.at(); ripple(p2.x, p2.z, 3.2, 0xffffff); [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .06, at: i * .08, decay: 2, wet: .85 }));   /* 抽象で鳴った和音が、参道で一度だけ返ってくる */ }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
+  if (n.id === "hum" && Lon && !saidL2) { saidL2 = true; W.say("同じ足音でも、もう前と同じ響きではない。"); }
   // 波が届く時刻に、ほかの主体の入力へ
   for (const o of N) { const ch = o !== n && n.out.find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(p), g = gain * Math.exp(-d / 9) * .9; o.queue.push({ t: ripU.uT.value + d / SPEED, g, from: n, ch }); }   // 受けとれる経路があるものだけが入力にする
 }
@@ -151,10 +151,10 @@ function receive(n, g, from, ch) {
 }
 function spawnP(n, g) { const p = n.at(); for (let i = 0; i < 8; i++) pl.push({ x: p.x + (R() - .5) * .7, z: p.z + (R() - .5) * .7, y: .05, tx: p.x, tz: p.z, ty: Math.min(n.h, 1.4), u: -i * .06, col: new THREE.Color(n.col), g }); }
 function turnL() {
-  Lon = 1; N.forEach(n => { n.glow = 1; }); { const c = new V3(); N.forEach(n => c.add(n.at())); c.multiplyScalar(1 / N.length); ripple(c.x, c.z, 2.4, 0xffffff); [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .08, decay: 2.4, wet: .85 })); }   /* 11-06：全員の受けとり方が人に届いた一瞬、すべての輪が同時に灯り、場の中心から一つの大きな波が広がる */ fx.classList.add("L"); hi("L");
+  Lon = 1; N.forEach(n => { n.glow = 1; }); { const c = new V3(); N.forEach(n => c.add(n.at())); c.multiplyScalar(1 / N.length); ripple(c.x, c.z, 2.4, 0xffffff); aoiRef?.motion?.lookAt?.(c.clone().setY(1)); aoiRef?.motion?.express?.("warm", .8, 3);   /* 山場で碧が場の中心へ顔を向ける */ [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .08, decay: 2.4, wet: .85 })); }   /* 11-06：全員の受けとり方が人に届いた一瞬、すべての輪が同時に灯り、場の中心から一つの大きな波が広がる */ fx.classList.add("L"); hi("L");
   W.sayNow("身体は同じまま、人は鳥の声と、羽音と、落ち葉と、朝の冷えの数を受けとった。"); W.say("ほかのものの受けとり方を思い描くことが、薄い層になって、人の記憶と文脈に重なる。"); W.say("同じ参道で、耳と目が少しだけ違う所へ向く。"); W.say("いまの足音は、だれの入力になっただろう。");
 }
-let humAgain = false;
+let humAgain = false, answered = false, aoiRef = null; W.aoi.then(a => aoiRef = a);
 function tapNode(n) {
   if (n.id === "hum" && Lon) humAgain = true;
   snd.start(); W.sayNow(W.abs > .5 ? n.a : n.c); n.cool = 0; act(n, 1, null);
@@ -178,7 +178,7 @@ setTimeout(() => { W.say("受けとり、ふるまう。そのふるまいが場
 let saidDown = false, saidGround = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
-  if (!saidDown && a < .55) { saidDown = true; W.say("式の外へ降りる。同じ流れが、朝の参道にある。"); }
+  if (!saidDown && a < .55) { saidDown = true; W.say("式の外へ降りる。同じ流れが、この朝の参道にある。"); }
   if (!saidGround && a < .08) { saidGround = true; W.say("だれも全体を見ていない。けれど、全体はたしかに回っている。"); setTimeout(() => { if (W.abs < .2) act(nodeOf("tree"), .8, null); }, 9500); }   /* 結び：言葉のあと少し間をおいて、欅がひとりでに葉を落とす（出来事で循環を見せる） */
 });
 

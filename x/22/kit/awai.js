@@ -145,7 +145,9 @@ export async function createAwai(o) {
     }
     g.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3)); g.computeVertexNormals();
     const soil = tex("soil_forest", S / 2.6), grav = tex("path_gravel", 1);
-    const m = new THREE.MeshStandardMaterial({ map: soil, vertexColors: true, roughness: 1, normalMap: tex("sand_grit_n", S / 1.6, false), normalScale: new THREE.Vector2(.55, .55) });   // 11-06：地に細かな凹凸（CC0 の砂の法線。近景が平らな板に見えない）
+    const fc = document.createElement("canvas"); fc.width = fc.height = 4; { const x = fc.getContext("2d"); x.fillStyle = "rgb(128,128,255)"; x.fillRect(0, 0, 4, 4); } const flatN = new THREE.Texture(fc); flatN.needsUpdate = true;   /* 平らな法線（画だけをあとで差し替えられる普通の画） */ flatN.wrapS = flatN.wrapT = THREE.RepeatWrapping; flatN.repeat.set(S / 1.6, S / 1.6);
+    const m = new THREE.MeshStandardMaterial({ map: soil, vertexColors: true, roughness: 1, normalMap: flatN, normalScale: new THREE.Vector2(.55, .55) });
+    setTimeout(() => { TL.load(o.tex + "sand_grit_n.webp", t2 => { flatN.image = t2.image; flatN.anisotropy = MOBILE ? 2 : 8; flatN.needsUpdate = true; }); }, 1500);   /* 地の細かな凹凸は、最初の絵のあとで画だけ差し替える（材質は組み直さない＝こま落ちなし・起動を 1 秒以内に） */   // 11-06：地に細かな凹凸（CC0 の砂の法線。近景が平らな板に見えない）
     m.onBeforeCompile = sh => {
       sh.uniforms.uGrav = { value: grav };
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D uGrav;")
