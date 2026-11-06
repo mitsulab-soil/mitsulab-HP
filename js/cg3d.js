@@ -166,7 +166,7 @@ export function start(box){
     return best;}
   function choose(i){sel=(i===sel)?-1:i;SUB.forEach((s,k)=>{radT[k]=sel<0?s.r:k===sel?s.r*1.22:s.r*.95;});
     st.querySelectorAll('.cg-lb').forEach(d=>d.classList.toggle('sel',sel>=0&&d.dataset.k===SUB[sel].k));
-    const cap=st.querySelector('.cg-cap');if(cap){const nm=k=>{const d=st.querySelector('.cg-lb[data-k="'+k+'"] .cg-n > span');const t=d?d.textContent:k;return mob?t.replace(/[（(].*?[）)]/g,''):t;};
+    const cap=st.querySelector('.cg-cap');if(cap){const nm=k=>{const d=st.querySelector('.cg-lb[data-k="'+k+'"] .cg-n > span');const t=(d?d.textContent:k).replace('計IoT','計・IoT').replace('gaugeIoT','gauge · IoT');return mob?t.replace(/[（(].*?[）)]/g,''):t;};
       if(sel<0)cap.textContent='';else{const S0=SUB[sel],ns=SUB.filter((o,k)=>k!==sel&&Math.hypot(o.x-S0.x,o.z-S0.z)<S0.r*1.6+o.r*.9).map(o=>nm(o.k));const en=document.documentElement.dataset.lang==='en';const mc=k=>['ai','sensor','gis'].includes(k);const rj=k=>mc(k)?'記録する範囲':'感じとる範囲';const re=k=>mc(k)?'the range it records':'the range it senses';
         const nk=SUB.filter((o,k)=>k!==sel&&Math.hypot(o.x-S0.x,o.z-S0.z)<S0.r*1.6+o.r*.9);const nb=nk.filter(o=>!mc(o.k)),nm2=nk.filter(o=>mc(o.k));const ja=nm(S0.k)+'の'+rj(S0.k)+'が、'+(nb.length?nb.map(o=>nm(o.k)+(mob?'の範囲':'の'+rj(o.k))).join('・')+'と重なり'+(nm2.length?'、':''):'')+(nm2.length?nm2.map(o=>nm(o.k)).join('・')+'の記録する範囲とも重なる':'');
         const enx=nm(S0.k)+': '+re(S0.k)+(nb.length?' overlaps with what '+nb.map(o=>nm(o.k)).join(', ')+' senses':'')+(nm2.length?(nb.length?', and also with what ':' overlaps with what ')+nm2.map(o=>nm(o.k)).join(', ')+' records':'');
@@ -178,13 +178,15 @@ export function start(box){
   // AI：台の上に、学習したモデル（節と結び目の多面体）と、分けた先の小さな箱（三つ）
   { const s=SUB[3], g=new THREE.Group();
     const base=new THREE.Mesh(new THREE.CylinderGeometry(.32,.38,.5,32),std(0x1b2433,{r:.35,m:.8})); base.position.y=.25; g.add(base);
-    const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(.36,1),new THREE.MeshBasicMaterial({color:0x8ff7e0,wireframe:true,transparent:true,opacity:.22,toneMapped:false})); ico.position.y=.95; g.add(ico);
+    const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(.36,1),new THREE.MeshBasicMaterial({color:0x8ff7e0,wireframe:true,transparent:true,opacity:.22,toneMapped:false})); ico.position.y=.95; ico.visible=false;
+    { const rack=new THREE.Mesh(new THREE.BoxGeometry(.26,.62,.3),new THREE.MeshPhysicalMaterial({color:0x1c2128,roughness:.45,metalness:.6,clearcoat:.4}));rack.position.y=.81;g.add(rack);   /* AI は計算機の棚（光る球にしない） */
+      for(let k=0;k<5;k++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.22,.012,.005),new THREE.MeshBasicMaterial({color:k%2?0x5fe6cc:0x8fd3ff,toneMapped:false,transparent:true,opacity:.7}));sl.position.set(0,.58+k*.1,.153);g.add(sl);} }
     { const body=new THREE.Mesh(new THREE.BoxGeometry(.3,.2,.22),new THREE.MeshPhysicalMaterial({color:0x2a2f36,roughness:.42,metalness:.55,clearcoat:.6,clearcoatRoughness:.3}));body.position.set(0,.62,0);g.add(body);
       const lens=new THREE.Mesh(new THREE.CylinderGeometry(.065,.07,.08,32),new THREE.MeshPhysicalMaterial({color:0x0b0f14,roughness:.08,metalness:.2,clearcoat:1}));lens.rotation.x=Math.PI/2;lens.position.set(0,.62,.14);g.add(lens);
       const glass=new THREE.Mesh(new THREE.CircleGeometry(.05,32),new THREE.MeshBasicMaterial({color:0x5fe6cc,transparent:true,opacity:.55,toneMapped:false}));glass.position.set(0,.62,.181);g.add(glass); }
     const core=new THREE.Mesh(new THREE.IcosahedronGeometry(.16,2),std(0x0d3a36,{e:0x5fe6cc,ei:1.4,r:.3,m:.2})); core.position.y=.95; core.visible=false;
     const nodes=new THREE.InstancedMesh(new THREE.SphereGeometry(.03,6,4),new THREE.MeshBasicMaterial({color:0xd8fff6,toneMapped:false}),12); const v=ico.geometry.attributes.position, M=new THREE.Matrix4();
-    for(let i=0;i<12;i++){M.makeTranslation(v.getX(i*5%v.count),v.getY(i*5%v.count)+.95,v.getZ(i*5%v.count));nodes.setMatrixAt(i,M);} g.add(nodes);
+    for(let i=0;i<12;i++){M.makeTranslation(v.getX(i*5%v.count),v.getY(i*5%v.count)+.95,v.getZ(i*5%v.count));nodes.setMatrixAt(i,M);} nodes.visible=false;
     for(let i=0;i<3;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(.13,.13,.13),std([0x8ff7e0,0x8fd3ff,0xe8c48a][i],{r:.4,m:.3,e:[0x1e5c50,0x1e4060,0x5a4020][i],ei:.8}));b.position.set((i-1)*.3,1.42,0);g.add(b);}
     at(s,g); anim.push(t=>{ico.rotation.y=t*.35;ico.rotation.x=Math.sin(t*.3)*.3;nodes.rotation.copy(ico.rotation);nodes.position.y=0;core.rotation.y=-t*.5;}); }
   // センサー：細い柱の上に箱と受けの皿。足もとに、振動を受ける輪が広がる
@@ -230,12 +232,14 @@ export function start(box){
   // 依代（碧）：中心ではなく、鳥と GIS の重なりのあいだに立つ（ほかの図と同じ VRM のバイト列を使い回す）
   let mot=null,vrm=null,aoiP=null,aoiN=0;
   const lensOf=(a,b)=>LENS.find(L=>SUB[L.i].k===a&&SUB[L.j].k===b||SUB[L.i].k===b&&SUB[L.j].k===a);
-  const AOI=new THREE.Vector3(-1.9,0,.2),   /* 碧は層の中に立たず、鳥・虫・GIS の層の境に */ YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
+  const AOI=new THREE.Vector3(-2.31,0,-1.18),   /* 碧は層の中に立たず、鳥・虫・GIS の層の境に */ YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
   // 依代は主体と別の印：膜を持たず、重なりのあいだの地に細い光の輪（主体の数に数えない）
   [AOI,YORI].forEach((p,k)=>{const r=new THREE.Mesh(new THREE.RingGeometry(k?.34:.5,k?.37:.54,64),new THREE.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));r.material.opacity=.35;r.rotation.x=-Math.PI/2;r.position.set(p.x,.02,p.z);W.add(r);});
   // 町の依代（Qualium 大宮と同じ姿・その場で組む形）：AI とセンサーの重なりのあいだに
   Q.push(async()=>{try{const {MachiYori}=await import('./kit/machiyori.js');const g=new THREE.Group();const my=new MachiYori({scene:g,camera:C,dom:document.createElement('i')});
-    my.add('shizuku',{x:YORI.x,z:YORI.z,yaw:.4,scale:1.45});W.add(g);blob(YORI,.3);anim.push((t,dt)=>my.update(dt));dirty=1;}catch(e){console.warn('cg yori',e);}});
+    my.add('shizuku',{x:YORI.x,z:YORI.z,yaw:.4,scale:1.45});
+    { const tuft=new THREE.Group();for(let k=0;k<3;k++){const lf=new THREE.Mesh(new THREE.ConeGeometry(.03,.14,8),new THREE.MeshStandardMaterial({color:0x5cc8e0,roughness:.6,emissive:0x1d4f5c,emissiveIntensity:.6}));lf.position.set((k-1)*.03,0,0);lf.rotation.z=(k-1)*.45;tuft.add(lf);}tuft.position.set(YORI.x,.78,YORI.z);g.add(tuft); }   /* 依代の目印＝碧の色の葉の房 */
+    W.add(g);blob(YORI,.3);anim.push((t,dt)=>my.update(dt));dirty=1;}catch(e){console.warn('cg yori',e);}});
 
   Q.unshift(async()=>{try{const [{GLTFLoader},{MeshoptDecoder},V]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('@pixiv/three-vrm')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);L.register(p=>new V.VRMLoaderPlugin(p));
@@ -259,7 +263,7 @@ export function start(box){
   addEventListener('pointerup',()=>{drag=null;});addEventListener('pointercancel',()=>{drag=null;});
   box.__cgPos=k=>{const i=SUB.findIndex(s=>s.k===k);const s=SUB[i];const q=new THREE.Vector3(s.x+rad[i]*.35,s.ly,s.z+rad[i]*.35).applyMatrix4(W.matrixWorld).project(C);const r=cv.getBoundingClientRect();return [r.left+(q.x*.5+.5)*r.width,r.top+(-q.y*.5+.5)*r.height,sel];};
   let wpx=0,hpx=0;
-  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?46:30;C.position.set(0,tall?11:7.4,tall?8.2:12.2);C.lookAt(0,tall?.6:.9,tall?-.2:.1);C.updateProjectionMatrix();dirty=1;}
+  function size(){wpx=box.querySelector('.cg-st').clientWidth;hpx=box.querySelector('.cg-st').clientHeight;R.setSize(wpx,hpx,false);C.aspect=wpx/hpx;const tall=C.aspect<1;C.fov=tall?44:30;C.position.set(tall?-.5:0,tall?8.6:7.4,tall?6.6:12.2);C.lookAt(tall?-.5:0,tall?.6:.9,tall?-.3:.1);C.updateProjectionMatrix();dirty=1;}
   size(); addEventListener('resize',size);
   new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(loop);}).observe(box);
   function frame(t,dt){
