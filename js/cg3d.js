@@ -21,7 +21,7 @@ export function start(box){
   const rim=new THREE.DirectionalLight(0x8fd3ff,1.6); rim.position.set(-5,4,-7); S.add(rim);
   // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。h＝札の高さ、hd＝受けとる頭の高さ、ly＝受けとる層の高さ、r＝受けとれる範囲（模式）
   const SUB=[
-    {k:'bird',x:-3.7,z:-.5,c:0x8fc9ff,h:.95,hd:.62,ly:1.95,r:2.2},{k:'bee',x:-2.0,z:1.75,c:0xf3c86e,h:1.0,hd:.98,ly:.62,r:1.5},{k:'human',x:.95,z:1.35,c:0xf1ece4,h:1.85,hd:1.6,ly:1.3,r:1.95},
+    {k:'bird',x:-3.7,z:-.5,c:0x8fc9ff,h:.95,hd:.62,ly:1.95,r:1.85},{k:'bee',x:-2.0,z:1.75,c:0xf3c86e,h:1.0,hd:.98,ly:.62,r:1.5},{k:'human',x:.95,z:1.35,c:0xf1ece4,h:1.85,hd:1.6,ly:1.3,r:1.95},
     {k:'ai',x:2.15,z:-1.45,c:0x7ff0d6,h:1.35,hd:1.0,ly:1.62,r:1.75},{k:'sensor',x:3.7,z:.85,c:0xa9ec9a,h:1.3,hd:1.18,ly:.95,r:1.5},{k:'gis',x:-.75,z:-1.95,c:0xc4b2ff,h:1.25,hd:.95,ly:.24,r:2.3}];
   SUB.forEach(s=>{s.p=new THREE.Vector3(s.x,0,s.z);s.a=Math.atan2(s.z,s.x)*180/Math.PI;s.ry=Math.atan2(-s.p.x,-s.p.z)+.5;});
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
@@ -79,7 +79,7 @@ export function start(box){
         col=mix(col,vec3(1.),rimL*(.35+hot*.4)+lens*.5+ovs*.3);
         float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.24+.09*film)*min(lit,1.)+lens*own*.4;
         float scan=mech*(smoothstep(.05,0.,abs(fract(q.y*9.-t*.15)-.5)-.44)*.6+smoothstep(.03,0.,min(abs(fract(q.x*3.)-.5),abs(fract(q.y*3.)-.5))-.47)*.35);   // 機械の層は走査線と格子で
-        a+=own*scan*(.25+.5*smoothstep(.0,.6,e))+rimL*hot*.45+ovs*own*.22;a*=lit*(1.-sl*.55);
+        a+=own*scan*(.25+.5*smoothstep(.0,.6,e))+rimL*hot*.45+ovs*own*(float(me)==selI?.26:.08);a*=lit*(1.-sl*.55);
         gl_FragColor=vec4(min(col,vec3(1.)),a);}`});
   const layers=[];
   SUB.forEach((s,i)=>{const RM=s.r*1.55, seg=mob?28:44;
@@ -164,8 +164,8 @@ export function start(box){
   function choose(i){sel=(i===sel)?-1:i;SUB.forEach((s,k)=>{radT[k]=sel<0?s.r:k===sel?s.r*1.6:s.r*.9;});
     st.querySelectorAll('.cg-lb').forEach(d=>d.classList.toggle('sel',sel>=0&&d.dataset.k===SUB[sel].k));
     const cap=st.querySelector('.cg-cap');if(cap){const nm=k=>{const d=st.querySelector('.cg-lb[data-k="'+k+'"] .cg-n > span');return d?d.textContent:k;};
-      if(sel<0)cap.textContent='';else{const S0=SUB[sel],ns=SUB.filter((o,k)=>k!==sel&&Math.hypot(o.x-S0.x,o.z-S0.z)<S0.r*1.6+o.r*.9).map(o=>nm(o.k));const en=document.documentElement.dataset.lang==='en';
-        cap.textContent=ns.length?(en?'The range '+nm(S0.k)+' takes in now overlaps with '+ns.join(', '):nm(S0.k)+'の受けとる範囲が、'+ns.join('・')+'の範囲と重なる'):'';}}dirty=1;}
+      if(sel<0)cap.textContent='';else{const S0=SUB[sel],ns=SUB.filter((o,k)=>k!==sel&&Math.hypot(o.x-S0.x,o.z-S0.z)<S0.r*1.6+o.r*.9).map(o=>nm(o.k));const en=document.documentElement.dataset.lang==='en';const mc=k=>['ai','sensor','gis'].includes(k);const rj=k=>mc(k)?'記録する範囲':'感じとる範囲';const re=k=>mc(k)?'the range it records':'the range it senses';
+        const nk=SUB.filter((o,k)=>k!==sel&&Math.hypot(o.x-S0.x,o.z-S0.z)<S0.r*1.6+o.r*.9);cap.textContent=nk.length?(en?nm(S0.k)+': '+re(S0.k)+' now overlaps with '+nk.map(o=>nm(o.k)+' ('+re(o.k)+')').join(', '):nm(S0.k)+'の'+rj(S0.k)+'が、'+nk.map(o=>nm(o.k)+'の'+rj(o.k)).join('・')+'と重なる'):'';}}dirty=1;}
   // ---- 主体の 3D
   const look=o=>o;
   const std=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:o.r??.45,metalness:o.m??.6,emissive:o.e??0,emissiveIntensity:o.ei??1});
@@ -210,7 +210,7 @@ export function start(box){
   // ヒヨドリ（Qualia/sight の写実のモデル）。石の上にとまる
   Q.push(async()=>{try{const M=await import('./kit/sight/sightModels.js');const m=await M.loadSight('hiyo',{shadow:false,autoplay:false});const s=SUB[0],g=new THREE.Group();
     const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,1),std(0x6e6a62,{r:.95,m:0}));st.scale.set(1.3,.55,1);st.position.y=.12;g.add(st);
-    m.object.scale.setScalar(mob?5.6:5.6);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?4:3.6,3,1.6);g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);m.object.rotation.y=.7;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
+    m.object.scale.setScalar(mob?7:6.4);m.object.position.y=.24;g.add(m.object);const pl=new THREE.PointLight(0xffe2c0,mob?6:5,3,1.6);g.add(new THREE.PointLight(0xcfe8ff,2.6,2.4,1.6).translateX(-.3).translateY(.9).translateZ(-.7));pl.position.set(.5,1.0,1.0);g.add(new THREE.PointLight(0x9fd8ff,1,2.2,1.6).translateX(-.6).translateY(.7).translateZ(-.4));g.add(pl);m.play(m.clips.includes('perch')?'perch':m.info.main,0);m.update&&m.update(.4);at(s,g);m.object.rotation.y=.7;anim.push((t,dt)=>m.update?m.update(dt):m.mixer.update(dt));dirty=1;}catch(e){console.warn('cg bird',e);}});
   // 人（MakeHuman の CC0 から作った human.glb）
   Q.push(async()=>{try{const [{GLTFLoader},{MeshoptDecoder}]=await Promise.all([import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js')]);
     const L=new GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);const g=await L.loadAsync('img/hero/3d/human.glb'),o=g.scene;o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;const mt=m.material;if(mt&&mt.metalness!=null){mt.metalness=0;mt.roughness=Math.max(.55,mt.roughness||0);}if(/hair|brow|short/i.test(m.name)&&mt){mt.alphaTest=.5;mt.side=THREE.DoubleSide;}}});
@@ -255,7 +255,7 @@ export function start(box){
     W.rotation.y=yaw+Math.sin(auto)*.35;
     if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
     for(let i=0;i<NS;i++){const g=.32+.68*smoothstep(0,1,(tI-.1-.3*i)/1.4);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
-      const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.25:nb?.8:.4;
+      const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.55:nb?.6:.35;
       layers.filter(L=>L.i===i).forEach(L=>{L.m.uniforms.hot.value+=(((nb||i===sel)?1:0)-L.m.uniforms.hot.value)*Math.min(1,dt*4);L.m.uniforms.selI.value=sel;});lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
     syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);

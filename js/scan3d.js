@@ -57,7 +57,7 @@ export async function start(sec){
     S.add(new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(D,3)),new T.PointsMaterial({color:0xffffff,size:.07,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}))); }
   const markL=S.children[S.children.length-2], markD=S.children[S.children.length-1];
   const dotT=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d'),g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.6)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new T.CanvasTexture(c);})();
-  markD.material.map=dotT;markD.material.size=.05;
+  markD.material.map=dotT;markD.material.size=.038;
   // 重なり（となりどうし）と網
   const PR=[];for(let i=0;i<ACT.length;i++)for(let j=i+1;j<ACT.length;j++){const A=ACT[i],B=ACT[j],d=Math.hypot(A.x-B.x,A.z-B.z);if(d<(A.r+B.r)*1.0)PR.push({i,j,d,m:new T.Vector3(),amt:0});}
   const colG=new T.CylinderGeometry(1,1,1,mob?14:22,1,true);
@@ -70,7 +70,7 @@ export async function start(sec){
   const wM=new T.LineBasicMaterial({color:0xcfefff,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const wL=new T.LineSegments(wG,wM); wL.frustumCulled=false; S.add(wL);
   // めぐり：主体の層 → 地へ降りる（ふるまい）→ 地をつたう（場所）→ 重なりを昇る → となりの層 → その主体
   const NPf=mob?50:110, fP=new Float32Array(NPf*3), fC=new Float32Array(NPf*3), fG=new T.BufferGeometry(); fG.setAttribute('position',new T.BufferAttribute(fP,3)); fG.setAttribute('color',new T.BufferAttribute(fC,3));
-  const fM=new T.PointsMaterial({size:.05,map:dotT,vertexColors:true,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const fPts=new T.Points(fG,fM); fPts.frustumCulled=false; S.add(fPts);
+  const fM=new T.PointsMaterial({size:.04,map:dotT,vertexColors:true,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const fPts=new T.Points(fG,fM); fPts.frustumCulled=false; S.add(fPts);
   const tv=new T.Vector3(), tc=new T.Color();
   function hopS(i){const ns=PR.filter(p=>(p.i===i||p.j===i)&&p.amt>.3);if(!ns.length)return null;const p=ns[Math.floor(Math.random()*ns.length)],k=p.i===i?p.j:p.i,a=ACT[i],b=ACT[k],ph=Math.random()*6.28;
     const W=[new T.Vector3(a.x,a.ly,a.z),new T.Vector3(a.x+Math.cos(ph)*.05,a.g+.02,a.z+Math.sin(ph)*.05),new T.Vector3(p.m.x,p.m.y*0+((a.g+b.g)/2)+.02,p.m.z),new T.Vector3(p.m.x,b.ly,p.m.z),new T.Vector3(b.x,b.ly,b.z)];
@@ -105,7 +105,7 @@ export async function start(sec){
     prog+= (progress()-prog)*(reduce?1:.12); const p=prog;
     U.t.value=t; U.scan.value=-4+sm(0,.33,p)*8.5; plane.position.set(0,.4,U.scan.value); plane.material.opacity=.035*(1-sm(.3,.38,p));
     // カメラ：俯瞰から寄って、最後は低く
-    const a=-.6+p*(mob?.92:1.1), rr=mob?7.6-p*1.4:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
+    const a=-.6+p*(mob?.84:1.1), rr=mob?7.6-p*1.4:7.4-p*1.6, hh=(mob?3.9:4.4)-p*(mob?2.5:2.2);
     C.position.set(Math.sin(a)*rr,hh,Math.cos(a)*rr); C.lookAt(0,mob?-.15:.2,mob?.45:0);
     const fl=sm(.33,.45,p)*(1-sm(.72,.85,p)); fm.opacity=fl*.9;
     for(let i=0;i<NF;i++){const s=sens[fseed[i*2]],u=(fseed[i*2+1]+t*.25)%1;FP[i*3]=s.x+(hub.x-s.x)*u;FP[i*3+1]=s.y+(hub.y-s.y)*u+Math.sin(u*3.14)*.6;FP[i*3+2]=s.z+(hub.z-s.z)*u;}
