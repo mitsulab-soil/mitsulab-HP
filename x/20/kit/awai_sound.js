@@ -64,7 +64,7 @@ export function createSound(btn) {
     gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(.45, t + .012); gn.gain.setTargetAtTime(0, t + dur * .6, dur * .25);
     os.connect(gn).connect(head); os.start(t); os.stop(t + dur + .3); };
   // 息・風・葉ずれ（雑音を帯で絞る）
-  let nb = null; const noiseBuf = () => { if (nb) return nb; nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return nb; };
+  let nb = null; const noiseBuf = () => { if (nb) return nb; nb = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 7.37), ctx.sampleRate);   /* 11-06：2 秒の輪だと地の音がくり返して聴こえる＝7.37 秒に延ばした */ const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return nb; };
   const breath = (dur = 1.5, o = {}) => { if (!ok()) return; const { t, head } = out(o, dur);
     const s = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), gn = ctx.createGain(); s.buffer = noiseBuf(); s.loop = true;
     bp.type = "bandpass"; bp.frequency.setValueAtTime(o.f0 || 900, t); bp.frequency.linearRampToValueAtTime(o.f1 || o.f0 || 900, t + dur); bp.Q.value = o.q || 1.2;

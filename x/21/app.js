@@ -37,7 +37,7 @@ const W = await createAwai({
 const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
-W.aoi.then(a => a && (innerWidth < innerHeight * .8 ? a.place(LAND.x - 1.6, LAND.z - 2.6, .5) : a.place(LAND.x + 1.9, LAND.z - 5.2, -.35)));   // 碧は葉の左奥（三分の一の位置）
+W.aoi.then(a => a && (innerWidth < innerHeight * .8 ? a.place(LAND.x - .85, LAND.z - 4.6, .3) : a.place(LAND.x + 1.9, LAND.z - 5.2, -.35)));   // 碧は葉の左奥（三分の一の位置）
 W.setAbs(0, true);
 
 // ───────── 一枚の葉
