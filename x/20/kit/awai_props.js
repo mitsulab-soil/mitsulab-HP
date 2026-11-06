@@ -118,7 +118,7 @@ export function monad(color, r = .5) {
 }
 
 // ───────── 人：等高線の姿（高さ 5 cm ごとの輪を重ねる＝人の形は線で）。脚と腕は付け根で振れる。描画は 5 回だけ
-export function contourPerson(color = 0xf4aa96, H = 1.68, stepH = .09) {
+export function contourPerson(color = 0xf4aa96, H = 1.68, stepH = .15) {
   const g = new THREE.Group(), mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: .85, toneMapped: false });
   const ring = (arr, cx, h, rx, rz, n = 28) => { for (let i = 0; i < n; i++) { const a = i / n * TAU, b = (i + 1) / n * TAU; arr.push(cx + Math.cos(a) * rx, h, Math.sin(a) * rz, cx + Math.cos(b) * rx, h, Math.sin(b) * rz); } };
   const part = (arr, pivot) => { const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.Float32BufferAttribute(arr, 3)); gg.translate(-pivot.x, -pivot.y, -pivot.z); const l = new THREE.LineSegments(gg, mat); const p = new THREE.Group(); p.position.copy(pivot); p.add(l); g.add(p); return p; };
@@ -136,6 +136,7 @@ export function contourPerson(color = 0xf4aa96, H = 1.68, stepH = .09) {
   { const R = y => y < .47 ? null : y < .52 ? [.17, .11] : y < .8 ? [lerp(.15, .2, ss(.52, .78, y)), lerp(.1, .12, ss(.52, .78, y))] : y < .84 ? [.17 - (y - .8) * 2.5, .1] : y < .87 ? [.055, .055] : (q => [.085 * q + .01, .095 * q + .01])(Math.sqrt(Math.max(0, 1 - Math.pow((y - .935) / .068, 2))));
     for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; let prev = null; for (let y = .47; y <= 1.0; y += .012) { const r = R(Math.min(y, .999)); if (!r) continue; const p = [Math.cos(a) * r[0], y * H, Math.sin(a) * r[1]]; if (prev) body.push(...prev, ...p); prev = p; } }
     for (const [arr, cx] of [[legL, -.09], [legR, .09]]) for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; let prev = null; for (let y = .02; y <= .47; y += .02) { const rx = .055 + .02 * ss(0, .45, y), rz = .06 + .015 * ss(0, .45, y), p = [cx + Math.cos(a) * rx, y * H, Math.sin(a) * rz]; if (prev) arr.push(...prev, ...p); prev = p; } } }
+  for (const [arr, cx] of [[armL, -.225], [armR, .225]]) for (let k = 0; k < 4; k++) { const a = k / 4 * TAU; arr.push(cx + Math.cos(a) * .035, sh, Math.sin(a) * .04, cx + Math.cos(a) * .03, .5 * H, Math.sin(a) * .035); }   // 腕にも縦の線
   for (let h = sh; h > .5 * H; h -= stepH) { ring(armL, -.225, h, .035, .04, 14); ring(armR, .225, h, .035, .04, 14); }
   part(body, new V3()); const LL = part(legL, new V3(-.09, hip, 0)), LR = part(legR, new V3(.09, hip, 0)), AL = part(armL, new V3(-.225, sh, 0)), AR = part(armR, new V3(.225, sh, 0));
   g.userData.walk = (t, k = 1) => { const s = Math.sin(t * Math.PI) * k; LL.rotation.x = s * .35; LR.rotation.x = -s * .35; AL.rotation.x = -s * .25; AR.rotation.x = s * .25; };

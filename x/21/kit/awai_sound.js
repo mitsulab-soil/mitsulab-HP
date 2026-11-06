@@ -77,9 +77,9 @@ export function createSound(btn) {
   // 場の音：木立の風と葉ずれ（ごく小さく・途切れない）。鳴りはじめてから、ずっと地にある
   let bedOn = false; const bed = () => { if (bedOn || !ctx) return; bedOn = true; const t = ctx.currentTime;
     const s = ctx.createBufferSource(); s.buffer = noiseBuf(); s.loop = true;
-    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420; const g = ctx.createGain(); g.gain.value = .036;   /* 11-06：地の葉ずれを +4 dB（穴を埋め、はね上がりの差を縮める） */
-    const hp = ctx.createBiquadFilter(); hp.type = "bandpass"; hp.frequency.value = 2600; hp.Q.value = .8; const g2 = ctx.createGain(); g2.gain.value = .0095;
-    const l1 = ctx.createOscillator(), lg1 = ctx.createGain(); l1.frequency.value = 1 / 11; lg1.gain.value = .012; l1.connect(lg1).connect(g.gain);
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420; const g = ctx.createGain(); g.gain.value = .1;   /* 11-06：地の葉ずれを +4 dB（穴を埋め、はね上がりの差を縮める） */
+    const hp = ctx.createBiquadFilter(); hp.type = "bandpass"; hp.frequency.value = 2600; hp.Q.value = .8; const g2 = ctx.createGain(); g2.gain.value = .024;
+    const l1 = ctx.createOscillator(), lg1 = ctx.createGain(); l1.frequency.value = 1 / 11; lg1.gain.value = .02; l1.connect(lg1).connect(g.gain);
     const l2 = ctx.createOscillator(), lg2 = ctx.createGain(); l2.frequency.value = 1 / 7.3; lg2.gain.value = .003;   /* 揺れの下限を残す（無音まで落ちない） */ l2.connect(lg2).connect(g2.gain);
     s.connect(lp).connect(g).connect(bedBus); s.connect(hp).connect(g2).connect(bedBus); const w = ctx.createGain(); w.gain.value = .3; g2.connect(w).connect(send);
     s.start(t); l1.start(t); l2.start(t); };

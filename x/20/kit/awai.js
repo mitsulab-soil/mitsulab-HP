@@ -353,11 +353,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:#cfd5d2;-webkit-user-s
 .aw-mark .aw-sub{font-size:12px;letter-spacing:.22em;color:var(--aw-ink);opacity:.86;text-shadow:0 0 8px rgba(20,24,30,.55)}
 .aw-mark i{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--aw-soft)}
 .aw-axis{position:absolute;right:max(14px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);height:min(46vh,360px);width:44px;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:auto;cursor:ns-resize}
-.aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-ink);padding:4px 2px;border-radius:10px;background:rgba(3,6,15,.38);text-shadow:0 0 6px rgba(0,0,0,.7)}   /* 幹や空の上でも読める */
+.aw-axis span{font-size:11px;letter-spacing:.3em;writing-mode:vertical-rl;color:var(--aw-ink);text-shadow:0 0 3px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.75)}   /* 幹や空の上でも、文字の影で読める（下地の帯は付けない） */
 .aw-line{flex:1;position:relative;width:1px;background:linear-gradient(rgba(155,220,240,.0),rgba(155,220,240,.55) 12%,rgba(155,220,240,.55) 88%,rgba(155,220,240,0));writing-mode:horizontal-tb!important}
 .aw-line em{position:absolute;left:50%;width:9px;height:9px;margin:-5px 0 0 -5px;border:1px solid var(--aw-aoi2);border-radius:50%;background:rgba(6,10,18,.4);box-shadow:0 0 0 4px rgba(155,220,240,.08)}
-.aw-cap{text-wrap:balance;word-break:auto-phrase;line-break:strict;position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;width:min(86vw,640px);text-align:center;font-size:15px;line-height:1.85;letter-spacing:.06em;padding:10px 18px;text-shadow:0 0 10px rgba(14,18,26,.7),0 0 2px rgba(14,18,26,.6);opacity:0;transition:opacity .7s ease;
- background:radial-gradient(ellipse at center,rgba(3,6,15,.66) 0%,rgba(3,6,15,.38) 55%,rgba(3,6,15,0) 82%)}
+.aw-cap{text-wrap:balance;word-break:auto-phrase;line-break:strict;position:absolute;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);margin:0;width:min(86vw,640px);text-align:center;font-size:15px;line-height:1.85;letter-spacing:.06em;padding:10px 18px;text-shadow:0 0 3px rgba(4,7,14,.95),0 0 10px rgba(4,7,14,.85),0 0 22px rgba(4,7,14,.6);opacity:0;transition:opacity .7s ease;
+ background:radial-gradient(ellipse at center,rgba(3,6,15,.3) 0%,rgba(3,6,15,.12) 55%,rgba(3,6,15,0) 80%)}   /* 帯に見えない、ごく薄いにじみだけ。読ませるのは文字の影 */
 .aw-cap.on{opacity:1}
 .aw-snd{position:absolute;right:max(14px,env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));pointer-events:auto;min-width:44px;height:44px;background:none;border:0;color:var(--aw-soft);font:inherit;font-size:12px;letter-spacing:.2em;cursor:pointer;text-decoration:line-through;text-decoration-color:rgba(195,204,224,.6);text-shadow:0 0 8px rgba(0,0,0,.4)}
 .aw-snd[aria-pressed="true"]{text-decoration:none;color:var(--aw-ink)}
