@@ -21,7 +21,7 @@ export function start(box){
   const rim=new THREE.DirectionalLight(0x8fd3ff,1.6); rim.position.set(-5,4,-7); S.add(rim);
   // 位置は xz（z＋が手前）。輪にせず、ばらばらに置く。h＝札の高さ、hd＝受けとる頭の高さ、ly＝受けとる層の高さ、r＝受けとれる範囲（模式）
   const SUB=[
-    {k:'bird',x:-3.7,z:-.5,c:0x8fc9ff,h:.95,hd:.62,ly:1.95,r:1.55},{k:'bee',x:-2.0,z:1.75,c:0xf3c86e,h:1.0,hd:.98,ly:.62,r:1.5},{k:'human',x:.95,z:1.35,c:0xf1ece4,h:1.85,hd:1.6,ly:1.3,r:1.95},
+    {k:'bird',x:-3.7,z:-.5,c:0x8fc9ff,h:.95,hd:.62,ly:1.95,r:1.55},{k:'bee',x:-2.0,z:1.75,c:0xf3c86e,h:1.0,hd:.98,ly:.62,r:1.5},{k:'human',x:.95,z:1.35,c:0xfff1dc,h:1.85,hd:1.6,ly:1.3,r:1.95},
     {k:'ai',x:2.15,z:-1.45,c:0x7ff0d6,h:1.35,hd:1.0,ly:1.62,r:1.75},{k:'sensor',x:3.7,z:.85,c:0xa9ec9a,h:1.3,hd:1.18,ly:.95,r:1.5},{k:'gis',x:-.75,z:-1.95,c:0xc4b2ff,h:1.25,hd:.95,ly:.24,r:2.3}];
   SUB.forEach(s=>{s.p=new THREE.Vector3(s.x,0,s.z);s.a=Math.atan2(s.z,s.x)*180/Math.PI;s.ry=Math.atan2(-s.p.x,-s.p.z)+.5;});
   const blobT=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.75)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);})();
@@ -76,7 +76,7 @@ export function start(box){
         float ov=clamp(n,0.,1.);float rr=clamp(d/max(er,.01),0.,1.);
         float glow=smoothstep(.45,1.,rr);   // 縁ほど光をためる（ガラスの縁のように）
         vec3 col=mix(base*(.75+.45*glow),mix(mixc*1.3,vec3(1.),.18)+irid*.06,ov);
-        col=mix(col,vec3(1.),rimL*(.3+hot*.3)+lens*.35+ovs*.12);
+        col=mix(col,vec3(1.),rimL*.25+lens*.3+ovs*.1);col=mix(col,min(base*1.7,vec3(1.)),rimL*hot*.6);   // 選んだ層と相手の縁は、白でなくその層の色で灯す
         float a=own*(.018+.085*glow+.03*fr)+rimL*.22+iso*.07+ov*own*(.24+.08*film)*min(lit,1.)+lens*own*.3;
         float scan=mech*(smoothstep(.05,0.,abs(fract(q.y*9.-t*.15)-.5)-.44)*.6+smoothstep(.03,0.,min(abs(fract(q.x*3.)-.5),abs(fract(q.y*3.)-.5))-.47)*.35);   // 機械の層は走査線と格子で
         a+=own*scan*(.1+.22*smoothstep(.0,.6,e))+rimL*hot*.7+ovs*own*(float(me)==selI?.12:.05);a*=lit*(1.-sl*.55);
@@ -220,7 +220,7 @@ export function start(box){
   // 依代（碧）：中心ではなく、鳥と GIS の重なりのあいだに立つ（ほかの図と同じ VRM のバイト列を使い回す）
   let mot=null,vrm=null,aoiP=null,aoiN=0;
   const lensOf=(a,b)=>LENS.find(L=>SUB[L.i].k===a&&SUB[L.j].k===b||SUB[L.i].k===b&&SUB[L.j].k===a);
-  const AOI=(lensOf('bird','gis')||LENS[0]).m.clone().setY(0), YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
+  const AOI=(()=>{const L=lensOf('bird','gis')||LENS[0];return L.m.clone().lerp(SUB[5].p,.32).setY(0);})(), YORI=(lensOf('ai','sensor')||LENS[LENS.length-1]).m.clone().setY(0);
   // 依代は主体と別の印：膜を持たず、重なりのあいだの地に細い光の輪（主体の数に数えない）
   [AOI,YORI].forEach((p,k)=>{const r=new THREE.Mesh(new THREE.RingGeometry(k?.34:.5,k?.37:.54,64),new THREE.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));r.rotation.x=-Math.PI/2;r.position.set(p.x,.02,p.z);W.add(r);});
   // 町の依代（Qualium 大宮と同じ姿・その場で組む形）：AI とセンサーの重なりのあいだに
@@ -256,7 +256,7 @@ export function start(box){
     W.rotation.y=yaw+Math.sin(auto)*.35;
     if(tI0<0)tI0=t; const tI=reduce?99:t-tI0;
     for(let i=0;i<NS;i++){const g=.32+.68*smoothstep(0,1,(tI-.1-.3*i)/1.4);base[i]+=(radT[i]-base[i])*Math.min(1,dt*2.4);rad[i]=base[i]*(g*(2-g));
-      const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.3:nb?.65:.38;
+      const nb=sel>=0&&i!==sel&&PAIRS.some(P=>((P.i===sel&&P.j===i)||(P.j===sel&&P.i===i))&&P.amt>.2), lt=sel<0?1:i===sel?1.15:nb?.75:.38;
       layers.filter(L=>L.i===i).forEach(L=>{L.m.uniforms.hot.value+=(((nb||i===sel)?1:0)-L.m.uniforms.hot.value)*Math.min(1,dt*4);L.m.uniforms.selI.value=sel;});lit[i]+=(lt-lit[i])*Math.min(1,dt*3);}
     syncRU(); layers.forEach(L=>{L.m.uniforms.t.value=t;L.m.uniforms.lit.value=lit[L.i];}); colM.uniforms.t.value=t; webM.uniforms.t.value=t; W.userData.ground.uniforms.t.value=t;
     {const sig=rad.reduce((p,r)=>p+r,0)+lit.reduce((p,r)=>p+r,0)*3+smoothstep(2.6,4.2,tI)*7;if(Math.abs(sig-(frame.sig||0))>1e-4){frame.sig=sig;updOverlap(smoothstep(2.6,4.2,tI));}} flowOn=smoothstep(3.4,5.2,tI); updFlow(reduce?0:dt);

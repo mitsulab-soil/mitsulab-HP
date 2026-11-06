@@ -36,7 +36,7 @@ export async function start(sec){
   const KINDS=[{c:0x8fc9ff,y:.62,r:.82},{c:0xf3c86e,y:.16,r:.42},{c:0xf1ece4,y:.36,r:.6},{c:0x8fe3a8,y:.5,r:.66},{c:0x7ff0d6,y:.44,r:.52},{c:0xa9ec9a,y:.24,r:.44},{c:0xc4b2ff,y:.07,r:.95}];   // 鳥・虫・人・木・AI・気象計・GIS
   let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
   const NA=mob?7:11, ACT=[];
-  for(let tries=0;ACT.length<NA&&tries<4000;tries++){const k=Math.floor(rnd()*(P.length/3)),x=P[k*3],z=P[k*3+2];if(Math.abs(x)>(mob?1.9:2.7)||Math.abs(z)>(mob?1.9:2.1))continue;if(ACT.some(a=>Math.hypot(a.x-x,a.z-z)<(mob?.7:.9)))continue;const K=KINDS[ACT.length%KINDS.length];ACT.push({x,z,g:P[k*3+1],ly:P[k*3+1]+K.y,r:K.r*(.95+rnd()*.3),c:new T.Color(K.c),rad:0});}
+  for(let tries=0;ACT.length<NA&&tries<4000;tries++){const k=Math.floor(rnd()*(P.length/3)),x=P[k*3],z=P[k*3+2];if(Math.abs(x)>(mob?1.9:2.7)||Math.abs(z)>(mob?1.9:2.1))continue;if(ACT.some(a=>Math.hypot(a.x-x,a.z-z)<(mob?.7:.9)))continue;const K=KINDS[ACT.length%KINDS.length];ACT.push({x,z,g:P[k*3+1],ly:P[k*3+1]+K.y,r:K.r*(.72+rnd()*.62),c:new T.Color(K.c),rad:0});}
   const SC=ACT.map(a=>a.c); while(SC.length<12)SC.push(new T.Color(0));
   const syncSU=()=>{ACT.forEach((a,i)=>SU[i].set(a.x,a.z,a.ly,a.rad));};
   const LG=`uniform vec4 su[12];uniform vec3 sc[12];uniform float t;
@@ -63,13 +63,13 @@ export async function start(sec){
   const colG=new T.CylinderGeometry(1,1,1,mob?14:22,1,true);
   const colM=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,uniforms:{t:U.t},
     vertexShader:`varying float vy;varying float fr;void main(){vy=uv.y;vec4 wp=modelMatrix*vec4(position,1.);fr=abs(dot(normalize(mat3(modelMatrix)*normal),normalize(cameraPosition-wp.xyz)));gl_Position=projectionMatrix*viewMatrix*wp;}`,
-    fragmentShader:`uniform float t;uniform vec3 col;uniform float a;varying float vy;varying float fr;void main(){float s=smoothstep(0.,.3,vy)*smoothstep(1.,.65,vy);gl_FragColor=vec4(col*(.9+.2*sin(vy*8.-t*1.1)),s*pow(fr,1.5)*a*.22);}`});
+    fragmentShader:`uniform float t;uniform vec3 col;uniform float a;varying float vy;varying float fr;void main(){float s=smoothstep(0.,.3,vy)*smoothstep(1.,.65,vy);gl_FragColor=vec4(col*(.9+.2*sin(vy*8.-t*1.1)),s*pow(fr,1.5)*a*${mob?".15":".2"});}`});
   const COLS=PR.map(p=>{const m=colM.clone();m.uniforms={t:U.t,col:{value:ACT[p.i].c.clone().lerp(ACT[p.j].c,.5)},a:{value:0}};const o=new T.Mesh(colG,m);o.visible=false;S.add(o);return o;});
   const WB=[];PR.forEach((A,a)=>PR.forEach((B,b)=>{if(b<=a)return;if([A.i,A.j].some(x=>x===B.i||x===B.j))WB.push([a,b]);}));
   const WN=8, wP=new Float32Array(Math.max(1,WB.length)*WN*6), wG=new T.BufferGeometry(); wG.setAttribute('position',new T.BufferAttribute(wP,3));
   const wM=new T.LineBasicMaterial({color:0xcfefff,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const wL=new T.LineSegments(wG,wM); wL.frustumCulled=false; S.add(wL);
   // めぐり：主体の層 → 地へ降りる（ふるまい）→ 地をつたう（場所）→ 重なりを昇る → となりの層 → その主体
-  const NPf=mob?50:110, fP=new Float32Array(NPf*3), fC=new Float32Array(NPf*3), fG=new T.BufferGeometry(); fG.setAttribute('position',new T.BufferAttribute(fP,3)); fG.setAttribute('color',new T.BufferAttribute(fC,3));
+  const NPf=mob?36:80, fP=new Float32Array(NPf*3), fC=new Float32Array(NPf*3), fG=new T.BufferGeometry(); fG.setAttribute('position',new T.BufferAttribute(fP,3)); fG.setAttribute('color',new T.BufferAttribute(fC,3));
   const fM=new T.PointsMaterial({size:.04,map:dotT,vertexColors:true,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}); const fPts=new T.Points(fG,fM); fPts.frustumCulled=false; S.add(fPts);
   const tv=new T.Vector3(), tc=new T.Color();
   function hopS(i){const ns=PR.filter(p=>(p.i===i||p.j===i)&&p.amt>.3);if(!ns.length)return null;const p=ns[Math.floor(Math.random()*ns.length)],k=p.i===i?p.j:p.i,a=ACT[i],b=ACT[k],ph=Math.random()*6.28;
