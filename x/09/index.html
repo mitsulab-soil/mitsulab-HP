@@ -17,7 +17,11 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/vendor/BufferGeometryUtils.js"}}
 </script>
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/lite/data.json?v=20261028t" as="fetch" crossorigin>
+<!-- 歩行と碧の待ちを直列にしない。モデルは既存と同じURLで一度だけ先読み。 -->
+<link rel="preload" href="web/aoi.vrm" as="fetch" crossorigin>
+<link rel="modulepreload" href="web/kit/aoi_motion.js?v=20261103x">
+<link rel="modulepreload" href="web/kit/aoi_robe.js">
+<link rel="preload" href="web/lite/data.json?v=20261107cg2" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
 <link rel="modulepreload" href="web/lite/app.js?v=20261107cg1">

@@ -12,9 +12,13 @@
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="stylesheet" href="web/kit/ui.css?v=1">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261028t" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261028t" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261028t" as="fetch" crossorigin>
+<!-- 歩行と碧の待ちを直列にしない。モデルは既存と同じURLで一度だけ先読み。 -->
+<link rel="preload" href="web/aoi.vrm" as="fetch" crossorigin>
+<link rel="modulepreload" href="web/kit/aoi_motion.js?v=20261105s">
+<link rel="modulepreload" href="web/kit/aoi_robe.js">
+<link rel="preload" href="web/geo/geo.json?v=20261107cg2" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261107cg2" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261107cg2" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>

@@ -2043,7 +2043,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
-    setTimeout(() => { loadAoi(); fetch("web/app/lip.json?v=" + VER).then(r => r.json()).then(j => { LIP = j; }).catch(() => { }); }, 500);
+    setTimeout(() => { loadAoi(); fetch("web/app/lip.json?v=" + VER).then(r => r.json()).then(j => { LIP = j; }).catch(() => { }); }, 0);
     const s0 = Q.get("start"); if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
   } catch (e) { console.error(e); status("読み込めませんでした。ページを開きなおしてください。"); }
 })();

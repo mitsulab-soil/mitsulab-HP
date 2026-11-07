@@ -2898,7 +2898,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     QW.ready = true; QW.tReady = performance.now() - T0; setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方） setTimeout(() => loadLate(), 400);   // 2026-10-26 3：道と木は、操作できるようになったらすぐ先に読みはじめる（降りるときに待たない）
     // 歩く前に要るものを、上空で選んでいるあいだに読む（地図の線と名前 → 道・木・構造物 → 碧 → 話）
     setTimeout(() => { fetch(BASE + "map.json?v=" + VER).then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
-    loadLate(); const aoiAfterRoad = () => Promise.race([QW.roadP || lateP, new Promise(r => setTimeout(r, 2500))]).then(loadAoi);   /* 11-04 起動 1 秒：道（歩きだすのに要る）を先に一本で読み、碧（2 MB）はそのあと＝回線を取り合わない */
+    loadLate(); const aoiAfterRoad = () => loadAoi();   /* 11-08：モデルはHTMLで先読み済み。道路取得完了を待たず、姿の準備を重ねる */
     setTimeout(() => { aoiAfterRoad(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 60);
     setTimeout(initAreas, 700);   // 7 つのエリアの輪郭（2 KB）。中身は近づいたときに読む   // 2026-10-23：碧を道・木・構造物と同時に読みはじめる（前は 0.4 秒あと）
     const s0 = Q.get("start"); if (s0 != null && D.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
