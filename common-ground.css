@@ -243,3 +243,31 @@ body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
 #top .cg-journey progress::-webkit-progress-value{background:#b1e5dc}
 #top .cg-journey progress::-moz-progress-bar{background:#b1e5dc}
 #top .cg-stage canvas{cursor:default}
+
+/* 2026-11-07: concept -> definition -> shared 3D -> works. Keep the established background. */
+#top .cg-opening{padding:clamp(60px,8vw,112px) 0 clamp(45px,6vw,80px);max-width:1000px}
+#top .cg-opening #visionH{font:400 clamp(30px,4.2vw,60px)/1.6 var(--serif,serif)!important;letter-spacing:.045em!important;margin:0 0 24px;word-break:normal;overflow-wrap:anywhere}
+#top .cg-opening-lead{font:400 clamp(15px,1.5vw,19px)/2 var(--sans,sans-serif);color:var(--cg-muted);margin:0 0 22px}
+#top .cg-definition{padding:clamp(42px,6vw,76px) 0}
+#top .cg-definition .cg-prose{padding-top:0}
+#top .cg-place-intro{border-top:1px solid var(--cg-line);padding:34px 0 28px;max-width:100%;display:grid;grid-template-columns:1.3fr 1fr;gap:32px}
+#top .cg-place-intro p{font:400 14px/2 var(--sans,sans-serif);color:var(--cg-muted);margin:0;max-width:45em}
+#top #cgExperience{scroll-margin-top:64px}
+#top #cgSceneH{font:400 15px/1.65 var(--serif,serif);letter-spacing:.06em;margin:0;color:var(--ink,#f4f6fb)}
+#top .cg-hero-copy,#top .cg-hero.is-observing .cg-hero-copy{top:28px}
+#top .cg-after-scene{padding-top:20px}
+@media(max-width:759px){
+ #top .cg-opening{padding:48px 0 40px}
+ #top .cg-opening #visionH{font-size:clamp(26px,7.4vw,38px)!important;line-height:1.65!important}
+ #top .cg-opening .cg-eyebrow{font-size:8px;margin-bottom:20px}
+ #top .cg-opening-lead{font-size:14px;line-height:2}
+ #top .cg-definition{padding:36px 0}
+ #top .cg-place-intro{display:block;padding:24px 0}
+ #top .cg-place-intro p{font-size:12px;line-height:1.9}
+ #top .cg-place-intro p+p{margin-top:10px}
+ #top #cgSceneH{font-size:13px;line-height:1.6}
+ #top .cg-hero-copy,#top .cg-hero.is-observing .cg-hero-copy{top:24px}
+}
+
+#top .cg-opening,#top .cg-place-intro{width:min(1120px,calc(100% - 10vw));margin-left:auto;margin-right:auto}
+@media(max-width:759px){#top .cg-opening,#top .cg-place-intro{width:calc(100% - 44px)}}

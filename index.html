@@ -42,7 +42,7 @@
 </style>
 <script>addEventListener('load',function(){ document.getElementById('fontfaces-late').media='all'; });</script>
 <script>document.documentElement.classList.add('js');</script>
-<script type="importmap">{"imports":{"three":"./js/three-fast.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script><link rel="modulepreload" href="js/common-ground.js?v=20261107place1"><link rel="modulepreload" href="js/three-fast.js"><link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js"><link rel="modulepreload" href="js/common-ground-tree.js"><link rel="modulepreload" href="js/common-ground-birth.js"><link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js"><link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js"><link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js"><link rel="modulepreload" href="js/aoi_motion.js?v=20261026-v61"><link rel="modulepreload" href="js/aoi_mocap.js"><link rel="modulepreload" href="js/aoi_robe.js"><link rel="preload" as="style" href="qualium-top.css?v=20261028p3"><link rel="preload" as="style" href="v2.css?v=20261027t23"><link rel="preload" as="style" href="top-qx.css?v=20261103p2d"><link rel="preload" as="style" href="common-ground.css?v=20261107place1"><link rel="preload" as="image" href="img/common-ground/leaf.webp"><link rel="preload" as="image" href="img/hero/3d/dio/soil_c.webp"><link rel="preload" as="image" href="img/hero/3d/dio/soil_n.webp"><link rel="preload" as="image" href="img/hero/3d/dio/bark_c.webp"><link rel="preload" as="image" href="img/hero/3d/dio/bark_n.webp"><script>if(!location.hash||location.hash==="#top"){window.__aoiBuf=fetch("img/hero/aoi.vrm").then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer();});window.__aoiBuf.catch(()=>{});}</script>
+<script type="importmap">{"imports":{"three":"./js/three-fast.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script><link rel="modulepreload" href="js/common-ground.js?v=20261107layers2"><link rel="modulepreload" href="js/three-fast.js"><link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js"><link rel="modulepreload" href="js/common-ground-tree.js"><link rel="modulepreload" href="js/common-ground-birth.js"><link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js"><link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js"><link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js"><link rel="modulepreload" href="js/aoi_motion.js?v=20261026-v61"><link rel="modulepreload" href="js/aoi_mocap.js"><link rel="modulepreload" href="js/aoi_robe.js"><link rel="preload" as="style" href="qualium-top.css?v=20261028p3"><link rel="preload" as="style" href="v2.css?v=20261027t23"><link rel="preload" as="style" href="top-qx.css?v=20261103p2d"><link rel="preload" as="style" href="common-ground.css?v=20261107place1"><link rel="preload" as="image" href="img/common-ground/leaf.webp"><link rel="preload" as="image" href="img/hero/3d/dio/soil_c.webp"><link rel="preload" as="image" href="img/hero/3d/dio/soil_n.webp"><link rel="preload" as="image" href="img/hero/3d/dio/bark_c.webp"><link rel="preload" as="image" href="img/hero/3d/dio/bark_n.webp"><script>if(!location.hash||location.hash==="#top"){window.__aoiBuf=fetch("img/hero/aoi.vrm").then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer();});window.__aoiBuf.catch(()=>{});}</script>
 <!-- 最初に見える点/線の3Dに使うThreeと地理データだけを並列取得。モデル用ローダー/VRM/詳細モデルは場面に応じて読む。 -->
 <!-- 2026-10-20 夜 本人「スマホでは TOP のアニメーションと層の 3D を出さず、シンプルに」：700px 以下は html.simple を付け、3D の先読みもしない -->
 <script>(function(){try{var d=document.documentElement;if(matchMedia('(max-width:700px)').matches){d.classList.add('simple');return;}[['modulepreload','./vendor/three/build/three.module.js']].forEach(function(a){var l=document.createElement('link');l.rel=a[0];l.href=a[1];if(a[0]==='preload'){l.as='fetch';l.crossOrigin='anonymous';}document.head.appendChild(l);});}catch(e){}})();</script>
@@ -1326,30 +1326,52 @@ ol.rd-l{counter-reset:rd}ol.rd-l li{grid-template-columns:2em 1fr}ol.rd-l li::be
      詳しいことは、それぞれのタブのページへ。場面のしくみは script の「mitsulab の没入の場面 v3」。 ── -->
 <section id="top" class="tab-panel active cg-page" data-panel="top" aria-label="mitsulab">
 <div class="cg-home">
+<section class="cg-opening" aria-labelledby="visionH">
+  <p class="cg-eyebrow" translate="no">MITSULAB / COMMON GROUND</p>
+  <h1 id="visionH" data-i18n-en="Making a common ground of Umwelten.">環世界の<br>コモングラウンドをつくる。</h1>
+  <p class="cg-opening-lead" data-i18n-en="Explore different ways of sensing in the same place. Develop how we engage with it.">異なる受けとり方を、同じ場所で確かめる。<br>そこから、関わり方を育てる。</p>
+  <a class="cg-text-link" href="#cgExperience" data-i18n-en="Explore the shared place ↓">共有地を体験する ↓</a>
+</section>
+
+<section class="cg-chapter cg-definition" aria-labelledby="cgDefinitionH">
+    <div class="cg-chapter-head"><p class="cg-eyebrow" translate="no">01 / THE IDEA</p><h2 id="cgDefinitionH" data-i18n-en="What is an Umwelt?">環世界とは。</h2></div>
+    <div class="cg-prose">
+      <p data-i18n-en="Living things inhabit meaningful worlds shaped by their bodies, senses, experience and activity. This world of a particular subject is called an Umwelt.">生き物は、身体や感覚、経験、そのときの活動を通して、自分にとって意味のある世界を生きています。この主体ごとの世界を「環世界」と呼びます。</p>
+      <p data-i18n-en="Observation, research and local records offer clues to relationships we often miss. What a machine captures and computes depends on its sensors and models; this is distinct from a living being’s subjective experience.">観測や研究、土地に残る記録は、ふだん気づかない関係への手がかりになります。機械の取得・計算は、センサーやモデルの条件に左右されます。それを、生き物の主観と同じものとは扱いません。</p>
+      <p data-i18n-en="This is the common ground of Umwelten that mitsulab aims to build. Qualium is our concrete practice of making and exploring it.">それが、mitsulabの目指す「環世界のコモングラウンド」。その具体的な制作と探究を、Qualiumと呼んでいます。</p>
+      <button type="button" class="cg-text-link" data-tab="qualium" data-i18n-en="Explore the idea →">考え方を深く読む →</button>
+    </div>
+  </section>
+
+<div class="cg-place-intro">
+  <p data-i18n-en="Distinguish observations, records and models. Follow the information and relationships connected to the same subject.">観測・記録・モデルを区別し、同じ対象に結びつく情報と関係を辿ります。</p>
+  <p data-i18n-en="Aoi carries clues, their sources and questions between the layers.">碧は、その層のあいだで手がかり・根拠・問いを渡す身体です。</p>
+</div>
+
 <div id="cgExperience">
-  <section class="cg-hero" aria-labelledby="visionH">
+  <section class="cg-hero" aria-labelledby="cgSceneH">
     <div class="cg-hero-copy">
-      <p class="cg-eyebrow" translate="no">MITSULAB / COMMON GROUND</p>
-      <h1 id="visionH" data-i18n-en="Making a common ground of Umwelten.">環世界の<br>コモングラウンドを<br>つくる。</h1>
+      <p class="cg-eyebrow" translate="no">02 / SHARED PLACE</p>
+      <h2 id="cgSceneH" data-i18n-en="Layer information around the same subject.">同じ対象に、情報を重ねる。</h2>
 
     </div>
-    <figure class="cg-scene" id="cgScene" aria-label="一本の木を舞台に、木陰、枝の足場、計測の位置へ連続して移る3D体験。" data-i18n-aria="Move continuously between shade, a branch foothold, and a limited sensing position around one tree.">
+    <figure class="cg-scene" id="cgScene" aria-label="同じ木に観測・記録・モデルの情報を重ね、つながりを辿る3D体験。" data-i18n-aria="Layer observations, records and models around the same tree, and trace their connections in 3D.">
       <div class="cg-stage" id="cgStage">
         <img class="cg-poster" src="img/common-ground/poster.webp" alt="木の枝と葉、足元の土、そばに立つ碧の3D風景" width="1280" height="960" fetchpriority="high">
-        <canvas aria-label="木と土と碧の共有地。異なる関わりの位置へ自動で移ります。" data-i18n-aria="A shared place around a tree. Different situated relations unfold automatically."></canvas>
-        <button type="button" aria-pressed="false" class="cg-scene-label" data-anchor="branch" data-i18n-en="Bird · A perch">鳥 · 枝にとまる</button>
-        <button type="button" aria-pressed="false" class="cg-scene-label" data-anchor="shade" data-i18n-en="Person · Shade">人 · 木陰で休む</button>
-        <button type="button" aria-pressed="false" class="cg-scene-label" data-anchor="sensor" data-i18n-en="Sensor · Temperature">計測 · 温度を記録する</button>
+        <canvas aria-label="木と土と碧の共有地。同じ構図に情報の層が加わり、関係がつながります。" data-i18n-aria="A shared place with a tree, soil and Aoi. Information layers and connections accumulate within the same view."></canvas>
+        <button type="button" aria-pressed="false" class="cg-scene-label" data-anchor="branch" data-i18n-en="Branches and living things">枝と生きもの</button>
+        <button type="button" aria-pressed="false" class="cg-scene-label" data-anchor="shade" data-i18n-en="Light and shade">光と木陰</button>
+        <button type="button" aria-pressed="false" class="cg-scene-label" data-anchor="sensor" data-i18n-en="Observation and interpretation">観測と解釈</button>
         <p class="cg-gl-fallback" hidden data-i18n-en="The still image shows the scene. Use the buttons to explore its meaning.">この環境では静止画を表示しています。下のボタンで場面の説明を読めます。</p>
       </div>
       <p class="cg-subtitle" lang="ja" hidden aria-live="off"></p>
-      <div class="cg-journey" aria-label="碧と風景の旅路" data-i18n-aria="Aoi and the emerging world">
-        <button id="cgJourneyExit" type="button" aria-label="全画面を閉じる" data-i18n-aria="Exit full screen">×</button><div class="cg-journey-line"><span id="cgJourneyPhase" aria-live="off">共有地</span><button id="cgJourneyPlay" hidden type="button" aria-label="旅路の動きを止める" data-i18n-aria="Pause the journey">Ⅱ</button><button id="cgJourneyEnter" type="button" data-i18n-en="Enter the place ↗">風景に入る ↗</button></div>
+      <div class="cg-journey" aria-label="同じ対象を辿る情報の層" data-i18n-aria="Information layers around the same subject">
+        <button id="cgJourneyExit" type="button" aria-label="全画面を閉じる" data-i18n-aria="Exit full screen">×</button><div class="cg-journey-line"><span id="cgJourneyPhase" aria-live="off">情報の積層</span><button id="cgJourneyPlay" hidden type="button" aria-label="旅路の動きを止める" data-i18n-aria="Pause the journey">Ⅱ</button><button id="cgJourneyEnter" type="button" data-i18n-en="Enter the place ↗">風景に入る ↗</button></div>
         <progress id="cgJourney" hidden max="1000" value="0" aria-label="自動で進む碧の旅路" data-i18n-aria="Aoi’s automatic journey"></progress>
 
       </div>
       <a class="cg-scroll-cue" href="#cgTools" data-i18n-en="Explore this place ↓">この風景に触れる ↓</a>
-    </figure><script type="module" src="js/common-ground.js?v=20261107place1"></script>
+    </figure><script type="module" src="js/common-ground.js?v=20261107layers2"></script>
   </section>
 
   <section id="cgTools" tabindex="-1" class="cg-world-tools" aria-label="風景の手がかりと案内">
@@ -1371,31 +1393,9 @@ ol.rd-l{counter-reset:rd}ol.rd-l li{grid-template-columns:2em 1fr}ol.rd-l li::be
   </section>
 </div>
 
-<div class="cg-after-scene"><div class="cg-scene-intro">      <p class="cg-hero-lead" data-i18n-en="Different ways of sensing. A place to meet.">違う受けとり方が、<br>出会う場所へ。</p>
-      <p class="cg-hero-note" data-i18n-en="A tree, a bird, a person, a sensor. Different relationships unfold in the same place.">一本の木。枝に止まる鳥。木陰で休む人。<br>同じ場所から、異なる関係が立ち上がる。</p>
-      <a class="cg-text-link" href="x/19/" data-i18n-en="Experience one tree ↗">ひとつの木を、体験する ↗</a></div><p data-i18n-en="A conceptual place, not a reconstruction of Hikawa. Voice: VOICEVOX: Meimei Himari. Aoi is rendered live in 3D.">関係を描く創作の場で、氷川参道の実測復元ではありません。碧はリアルタイム3D。声：VOICEVOX:冥鳴ひまり。</p><details><summary data-i18n-en="Read Aoi’s guide">案内の全文・素材について</summary><p>わたしは碧。ビットとアトムのあわいに立ち、この場所の記憶をたどり、五感をひらいて、目の前の風景に層を重ねます。身体やセンサーが違えば、受けとれる世界も違う。生き物の環世界も、機械の受けとり方も、主体の数だけあります。その一つひとつを、並べて、重ねてみる。中心は一つではなく、重なりが、網のように広がっていきます。それが、環世界のコモングラウンド。mitsulab は、Qualium と呼んでいます。ほかの受けとり方に触れて、自分の世界を広げ、自分の受けとり方も、多くの中の一つとして見なおす。複雑な世界を、複雑なまま味わう。</p><p>木：mitsulabの手続き型モデル。葉：ambientCG LeafSet014（CC0）から制作。樹皮・土：既存HPの許諾済み素材を再利用。自然と情報の関係を光や線に訳した模式表現です。</p><a href="https://ambientcg.com/view?id=LeafSet014" target="_blank" rel="noopener">葉の素材・利用条件 ↗</a></details></div>
-  <section class="cg-chapter cg-definition" aria-labelledby="cgDefinitionH">
-    <div class="cg-chapter-head"><p class="cg-eyebrow" translate="no">01 / THE IDEA</p><h2 id="cgDefinitionH" data-i18n-en="A world opens through each body.">それぞれの身体から、<br>世界はひらく。</h2></div>
-    <div class="cg-prose">
-      <p data-i18n-en="Living things inhabit meaningful worlds shaped by their bodies, senses, experience and activity. This world of a particular subject is called an Umwelt.">生き物は、身体や感覚、経験、そのときの活動を通して、自分にとって意味のある世界を生きています。この主体ごとの世界を「環世界」と呼びます。</p>
-      <p data-i18n-en="Observation, research and local records offer clues to relationships we often miss. What a machine captures and computes depends on its sensors and models; this is distinct from a living being’s subjective experience.">観測や研究、土地に残る記録は、ふだん気づかない関係への手がかりになります。機械の取得・計算は、センサーやモデルの条件に左右されます。それを、生き物の主観と同じものとは扱いません。</p>
-      <p class="cg-statement" data-i18n-en="Explore different ways of sensing in the same place. Develop how we engage with it.">異なる受けとり方を、同じ場所で確かめる。<br>そこから、関わり方を育てる。</p>
-      <p data-i18n-en="This is the common ground of Umwelten that mitsulab aims to build. Qualium is our concrete practice of making and exploring it.">それが、mitsulabの目指す「環世界のコモングラウンド」。その具体的な制作と探究を、Qualiumと呼んでいます。</p>
-      <button type="button" class="cg-text-link" data-tab="qualium" data-i18n-en="Explore the idea →">考え方を深く読む →</button>
-    </div>
-  </section>
+<div class="cg-after-scene"><p data-i18n-en="A conceptual place, not a reconstruction of Hikawa. Voice: VOICEVOX: Meimei Himari. Aoi is rendered live in 3D.">関係を描く創作の場で、氷川参道の実測復元ではありません。碧はリアルタイム3D。声：VOICEVOX:冥鳴ひまり。</p><details><summary data-i18n-en="Read Aoi’s guide">案内の全文・素材について</summary><p>わたしは碧。ビットとアトムのあわいに立ち、この場所の記憶をたどり、五感をひらいて、目の前の風景に層を重ねます。身体やセンサーが違えば、受けとれる世界も違う。生き物の環世界も、機械の受けとり方も、主体の数だけあります。その一つひとつを、並べて、重ねてみる。中心は一つではなく、重なりが、網のように広がっていきます。それが、環世界のコモングラウンド。mitsulab は、Qualium と呼んでいます。ほかの受けとり方に触れて、自分の世界を広げ、自分の受けとり方も、多くの中の一つとして見なおす。複雑な世界を、複雑なまま味わう。</p><p>木：mitsulabの手続き型モデル。葉：ambientCG LeafSet014（CC0）から制作。樹皮・土：既存HPの許諾済み素材を再利用。自然と情報の関係を光や線に訳した模式表現です。</p><a href="https://ambientcg.com/view?id=LeafSet014" target="_blank" rel="noopener">葉の素材・利用条件 ↗</a></details></div>
 
-  <section class="cg-chapter cg-method" aria-labelledby="cgMethodH">
-    <div class="cg-chapter-head"><p class="cg-eyebrow" translate="no">02 / FROM CLUES TO EXPERIENCE</p><h2 id="cgMethodH" data-i18n-en="Translate clues into something we can feel.">手がかりを、<br>感じられるかたちへ。</h2></div>
-    <div class="cg-prose">
-      <p data-i18n-en="Maps, records, sensors and AI-assisted computation become light, sound, vibration, space and words. We make the sources and transformations traceable, so people can feel, consider and engage.">地図、記録、センサー、AIによる計算を、光・音・振動・空間・ことばへ。何をもとに、どう訳したのかを辿れる形で、人が感じ、考え、関われる体験へつなぎます。</p>
-      <div class="cg-flow" aria-label="観測・変換・体験・現実への往復" data-i18n-aria="Observe, translate, experience, and return"><span data-i18n-en="Observe">観測・記録</span><i aria-hidden="true">→</i><span data-i18n-en="Translate">計算・変換</span><i aria-hidden="true">→</i><span data-i18n-en="Experience">感じる・考える</span><i aria-hidden="true">↗</i><span data-i18n-en="Revisit the place">場所を見直す</span></div>
-      <p data-i18n-en="Aoi, our yorishiro, is a body that carries clues, their sources and questions. She guides attention back to the place, without claiming to speak for another being’s inner experience.">依代・碧は、手がかり・根拠・問いを渡す身体です。他者の内面を代弁せず、何をもとにそう捉えたのかを示し、見慣れた風景へ問いを返します。</p>
-      <button type="button" class="cg-text-link" data-tab="yorishiro" data-i18n-en="Meet Aoi →">碧と依代について →</button>
-    </div>
-  </section>
-
-  <section class="cg-chapter cg-start" aria-labelledby="cgStartH">
+<section class="cg-chapter cg-start" aria-labelledby="cgStartH">
     <div class="cg-chapter-head"><p class="cg-eyebrow" translate="no">03 / EXPERIENCE</p><h2 id="cgStartH" data-i18n-en="Your familiar world, once more.">いつもの世界を、<br>もう一度。</h2></div>
     <div class="cg-prose"><p data-i18n-en="Start with one tree, compare human and machine ways of receiving information, then collect what you notice around you.">一本の木で、受けとる手がかりを見比べる。人と機械の違いを試す。そして、身近な場所の気づきへ。</p>
       <div class="cg-entrances"><a href="x/19/"><span data-i18n-en="Start with one tree">ひとつの木から</span><small translate="no">Qualia/tree ↗</small></a><a href="x/24/"><span data-i18n-en="Compare people and machines">人と機械を見比べる</span><small translate="no">Qualia/translate ↗</small></a><a href="x/18/"><span data-i18n-en="Collect what you notice">身近な気づきを集める</span><small translate="no">Qualia/gaze ↗</small></a></div>
