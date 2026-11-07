@@ -3,6 +3,9 @@
    分類ごとにゆるく集まるのは作品の上の地図（分類の札は出さない・2026-10-22）。
    点にかざすと言葉が点のそばに明朝で出て、押すとその場で鳴る（js/synth.js）。同じ点をもう一度押すと止まり、ほかの点で切りかわる。
    聴く人のつまみで、同じ一行をその人の側へ鳴らしなおす。入力はどこにも保存・送信しない。 */
+// Make the data globals explicit module dependencies; cached module startup must not depend on parser script timing.
+import "../data/sounds.js";
+import "../data/gain.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { applyAtmosphere, fitRenderer } from "../kit/atmosphere.js";
@@ -10,9 +13,9 @@ import { WIND, rng, growTree, plantTrees, leafMaterial, barkMaterial, poisson, g
 import { LAYER, lineMaterial } from "../kit/layers.js";
 import { QSynth, readingOf, seedOf } from "./synth.js";
 
-import { SoundSpace } from "./sound-space.js";
+import { SoundSpace } from "./sound-space.js?v=20261107entry1";
 import { PERFORMANCE_DEFAULTS, filterHz, rhythmHz } from "./performance-fx.js";
-const D = window.QS_SOUNDS, ITEMS = D.items, TAGS = D.tags;
+const D = window.QS_SOUNDS, ITEMS = D.items.map(item=>({...item,t:item.t.replace(/(?:の音){2,}$/,'の音')})).filter((item,i,all)=>all.findIndex(x=>x.t===item.t)===i), TAGS = D.tags;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = id => document.getElementById(id);
 // 分類の色（線と点だけに使う。HP の層の色と同じ値）
@@ -166,7 +169,7 @@ function select(it, { fly = true, audible = true } = {}) {
     fly = s.z > 1 || (sheetMQ.matches ? y > r.top - 40 || y < 90 : x > r.left - 40); }
   if (fly) { const p = new THREE.Vector3().fromArray(POS, it.i * 3); target = sheetMQ.matches ? p.clone() : p.clone().lerp(new THREE.Vector3(0, 3.1, 0), .25); controls.autoRotate = false; }
 }
-function clearSel() { cur = null; halt(); panel.hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
+function clearSel() { if (entryReturn) { const b = entryReturn; requestAnimationFrame(() => b.focus({preventScroll:true})); entryReturn = null; } cur = null; halt(); panel.hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
 $("bClose").addEventListener("click", clearSel);
 addEventListener("keydown", e => { if (e.key !== "Escape" || document.querySelector("dialog[open]")) return; if (cur) clearSel(); });
 const step = k => { const i = cur ? order.indexOf(cur) : -1; select(order[(i + k + order.length) % order.length]); };
@@ -276,6 +279,23 @@ $("aShown").textContent = N;
 labs.style.visibility = "hidden";
 const start = (fade = true) => { labs.style.visibility = ""; $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
 $("bStart").addEventListener("click", () => { synth.ensure(); start(); });
+// 2026-11-07: 三つの入口も既存の言葉の点へ。全項目・原文・合成規則はそのまま。
+// 短い手がかりは索引であり、選択後は本人の原文を演奏面と点の札へ出す。
+const nearbyEntries = [
+  { n: 509, label: "雨", title: "雨の日のバス停の音" },
+  { n: 485, label: "水", title: "青い水たまりの音" },
+  { n: 800, label: "風", title: "更科の風の音" }
+];
+let entryReturn = null;
+for (const entry of nearbyEntries) {
+  const it = ITEMS.find(x => x.n === entry.n && x.t === entry.title && !x.quiet);
+  if (!it) continue;
+  const b = document.createElement("button"); b.type = "button"; b.dataset.soundEntry = String(it.n);
+  b.textContent = entry.label; b.setAttribute("aria-label", entry.label + "から聴く：" + it.t); b.title = it.t;
+  b.addEventListener("click", () => { entryReturn = b; select(it); });
+  $("nearSoundPoints").appendChild(b);
+}
+
 // 見本づくり用：?skip で入口を飛ばす、#8 でその番号の言葉をひらく（音は押すまで鳴らない）
 { const sp = new URLSearchParams(location.search), h = parseInt(location.hash.slice(1), 10);
   if (sp.has("skip")) start(false);

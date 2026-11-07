@@ -37,6 +37,42 @@ export function attachIkimono(QW, opt = {}) {
   svg.innerHTML = '<filter id="ikF" color-interpolation-filters="linearRGB"><feColorMatrix id="ikM" type="matrix"/></filter>';
   document.body.appendChild(svg); const fm = svg.querySelector("#ikM");
   const S = { id: null, body: null, k: 0, t: 0, saved: null }, cache = {};
+  // 生き物の選択列に高度操作をまとめる。値は体験用の模式オフセットで、AR/GPSの実測高度ではない。
+  const flight = { key: 0, pointer: 0, heldAt: 0, panel: null, up: null, down: null };
+  S.flightAltitude = 0;
+  function canFly() { return !!(S.id && IKIMONO[S.id]?.fly && QW.mode === "walk"); }
+  function clearFlightInput() { flight.key = 0; flight.pointer = 0; flight.up?.classList.remove("is-held"); flight.down?.classList.remove("is-held"); }
+  function raiseFlight(amount) { if (canFly()) S.flightAltitude = THREE.MathUtils.clamp(S.flightAltitude + amount, 0, 8); }
+  function mountFlightControls() {
+    if (flight.panel) return;
+    const nav = document.getElementById("qIK"); if (!nav) return;
+    const panel = document.createElement("div"); panel.className = "ik-flight"; panel.hidden = true;
+    panel.setAttribute("role", "group"); panel.setAttribute("aria-label", "飛ぶ高さ（体験用の模式・R/Fキーでも操作）");
+    panel.innerHTML = '<span class="ik-flight-label">飛ぶ高さ<small>模式 · R / F</small></span><button type="button" class="ik-alt-up" aria-label="上へ（長押し・Rキー）" title="長押しで上へ・Rキーでも操作">↑</button><button type="button" class="ik-alt-down" aria-label="下へ（長押し・Fキー）" title="長押しで下へ・Fキーでも操作">↓</button>';
+    const style = document.createElement("style"); style.textContent = '#qIK .ik-flight[hidden]{display:none!important}#qIK .ik-flight{display:flex;flex-direction:column;align-items:center;gap:3px;width:52px;padding-top:6px;border-top:1px solid #dce8ee44}#qIK .ik-flight-label{color:#edf5f7;text-shadow:0 1px 3px #000;font:10px/1.3 sans-serif;text-align:center}#qIK .ik-flight-label small{display:block;font-size:8px;white-space:nowrap}#qIK .ik-flight button{width:44px;min-width:44px;min-height:44px;height:44px;font:22px/1 sans-serif;touch-action:none;user-select:none}#qIK .ik-flight button:focus-visible{outline:2px solid #d2f6fa;outline-offset:2px}#qIK .ik-flight button.is-held{color:#0b1119;background:#d8e6ec}';
+    document.head.appendChild(style); nav.appendChild(panel); flight.panel = panel;
+    for (const [selector, dir] of [[".ik-alt-up", 1], [".ik-alt-down", -1]]) {
+      const button = panel.querySelector(selector); if (dir > 0) flight.up = button; else flight.down = button;
+      button.addEventListener("pointerdown", e => { e.preventDefault(); e.stopPropagation(); if (!canFly()) return; clearFlightInput(); flight.pointer = dir; flight.heldAt = performance.now(); button.classList.add("is-held"); button.setPointerCapture?.(e.pointerId); raiseFlight(.25 * dir); });
+      const release = e => { e.stopPropagation(); flight.pointer = 0; button.classList.remove("is-held"); };
+      button.addEventListener("pointerup", release); button.addEventListener("pointercancel", release); button.addEventListener("lostpointercapture", release);
+      button.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); if (e.detail === 0) raiseFlight(.35 * dir); });
+    }
+    panel.addEventListener("click", e => e.stopPropagation());
+    // 選択列の既存paintは全buttonへaria-pressedを付ける。上下は押し分けでなくmomentary操作なので除く。
+    new MutationObserver(() => panel.querySelectorAll("button[aria-pressed]").forEach(b => b.removeAttribute("aria-pressed"))).observe(panel, { subtree: true, attributes: true, attributeFilter: ["aria-pressed"] });
+  }
+  const editable = el => el?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName || "");
+  addEventListener("keydown", e => { if (!canFly() || editable(e.target) || e.ctrlKey || e.metaKey || e.altKey) return; const key = e.key.toLowerCase(); if (key !== "r" && key !== "f") return; e.preventDefault(); e.stopImmediatePropagation(); flight.key = key === "r" ? 1 : -1; }, true);
+  addEventListener("keyup", e => { if (["r", "f"].includes(e.key.toLowerCase())) { const was = flight.key; flight.key = 0; if (was && canFly()) { e.preventDefault(); e.stopImmediatePropagation(); } } }, true);
+  addEventListener("blur", clearFlightInput); document.addEventListener("visibilitychange", () => { if (document.hidden) clearFlightInput(); });
+  function updateFlight(dt, now) {
+    mountFlightControls(); const active = canFly();
+    if (flight.panel) flight.panel.hidden = !active;
+    if (!active) { clearFlightInput(); S.flightAltitude = 0; return; }
+    const dir = flight.key || (flight.pointer && now - flight.heldAt > 180 ? flight.pointer : 0);
+    if (dir) raiseFlight(dir * dt * 1.6);
+  }
   let mod = null;
   const pend = {};
   function bodyOf(id) { return cache[id] ? Promise.resolve(cache[id]) : (pend[id] ||= build(id)); }
@@ -77,9 +113,10 @@ export function attachIkimono(QW, opt = {}) {
   }
   function paint() { if (!canvas) return; if (S.k < .01) { canvas.style.filter = ""; return; } const P = IKIMONO[S.id || S.last]; if (!P) return; fm.setAttribute("values", lensMatrix(P, S.k)); const bl = (P.blur || 0) * S.k * Math.min(innerWidth, 1600) / 1000; canvas.style.filter = bl > .05 ? `url(#ikF) blur(${bl.toFixed(2)}px)` : "url(#ikF)"; }   /* 11-04 夜 本人「見え方が変わらない」：色は混ぜずに全部かけ、視力の低さを軽いぼかしで（CSS の blur は GPU で軽い） */
   async function go(id) {   // id＝生き物（同じものをもう一度＝人の目へ戻る）
-    if (!id || id === S.id) { S.id = null; document.body.classList.remove("iki"); QW.sndBand?.(); opt.onChange?.(null); return null; }
+    if (!id || id === S.id) { S.id = null; S.flightAltitude = 0; S.cam = null; clearFlightInput(); if (flight.panel) flight.panel.hidden = true; document.body.classList.remove("iki"); QW.sndBand?.(); opt.onChange?.(null); return null; }
     const P = IKIMONO[id]; if (!P) return null; const t0 = performance.now();
     { const cr = document.getElementById("credit"); if (cr && !cr.textContent.includes("quander")) cr.textContent += "／" + CREDITS.join("／"); }   // 写実の 3D の出典（CC BY）をクレジットに足す
+    if (!P.fly) { S.flightAltitude = 0; S.cam = null; clearFlightInput(); }
     const b = await bodyOf(id); for (const k in cache) cache[k].visible = false;
     S.id = id; S.last = id; S.body = b; document.body.classList.add("iki"); opt.onChange?.(id); paint();   /* 11-04 夜 P1：生き物から生き物へ替えたとき、前の生き物の見え方のまま残っていた */
     QW.sndBand?.(...(P.band || [20, 20000])); navigator.userActivation?.hasBeenActive !== false && navigator.vibrate?.(P.fly ? [6, 40, 6] : 14);   // 音の帯と、体の入れかわりの小さな振動（模式）
@@ -89,8 +126,15 @@ export function attachIkimono(QW, opt = {}) {
      体は歩く人の足もとの位置（飛ぶものは P.eye の高さ）に置き、カメラは後ろ・少し上からゆるくついていく。
      体は画面の中央の少し下。見回し（向き）は歩く操作の向きをそのまま使う。描く直前にだけ差しかえ、描いたあと戻す。 */
   const F = new THREE.Vector3(), D = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), L = new THREE.Vector3(), E = new THREE.Euler(0, 0, 0, "YXZ");
+  const AP = new THREE.Vector3(), AT = new THREE.Vector3();
+  function restoreRenderState() {
+    for (const item of S.renderHidden || []) item.object.visible = item.visible;
+    S.renderHidden = null;
+    const s = S.saved; if (s) { camera.position.copy(s.p); camera.quaternion.copy(s.q); camera.fov = s.fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true); S.saved = null; }
+  }
   const pb = scene.onBeforeRender, pa = scene.onAfterRender; let lastR = performance.now();
   scene.onBeforeRender = function (...a) {
+    restoreRenderState(); // 前の描画が中断された場合も、保存した物理状態を先に戻す。
     pb && pb.apply(this, a);
     const P = IKIMONO[S.id || S.last]; if (!P || S.k < .01 || QW.mode !== "walk") { for (const k in cache) cache[k].visible = false; S.cam = null; return; }
     const now = performance.now(), dt = Math.min(.1, (now - lastR) / 1000); lastR = now;
@@ -98,7 +142,7 @@ export function attachIkimono(QW, opt = {}) {
     const gy = QW.groundAt ? QW.groundAt(camera.position.x, camera.position.z) : camera.position.y - 1.55;
     E.setFromQuaternion(camera.quaternion); camera.getWorldDirection(D); F.set(D.x, 0, D.z).normalize();
     // 体の位置：人の足もと（飛ぶものは少し浮かせて、ゆるく上下）
-    B.set(camera.position.x, gy + P.eye + (P.fly ? Math.sin(S.t * 1.7) * P.bob : 0), camera.position.z);
+    B.set(camera.position.x, gy + P.eye + (P.fly ? S.flightAltitude + Math.sin(S.t * 1.7) * P.bob : 0), camera.position.z);
     // 体の向きは進む向きへゆるく回す
     S.yaw = S.yaw == null ? E.y : S.yaw + Math.atan2(Math.sin(E.y - S.yaw), Math.cos(E.y - S.yaw)) * Math.min(1, dt * 6);
     // カメラの行き先：体の後ろ・少し上。見上げ・見下ろしは少しだけ効かせる
@@ -109,9 +153,24 @@ export function attachIkimono(QW, opt = {}) {
     S.cam = S.cam ? S.cam.lerp(C, Math.min(1, dt * 7)) : C.clone();
     const k = S.k; camera.position.copy(S.cam);   // 11-04 P1：位置は混ぜない（混ぜている間、体がカメラの真下に隠れて碧だけが見えた）
     L.copy(B).addScaledVector(F, back * .9); L.y += up * .25 - (camera.aspect < 1 ? (P.fly ? .12 : .3) : 0);   /* 11-05：飛ぶものも縦長では少し上に（翅が字幕にかからない）。蝶は翅の模様がぼかしで消えないよう少し大きく */   // 11-04 P2：縦長の画面では、地を歩く体を少し上に見せて下の字幕にかけない   // 少し先を見る＝体は画面の中央の少し下
+    S.flightFrame = { offset: P.fly ? S.flightAltitude : 0, groundY: gy, bodyY: B.y, cameraY: camera.position.y };
     camera.lookAt(L);
     camera.fov = S.saved.fov + (P.fov - S.saved.fov) * k; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
-    { const A = QW.AOI?.root; if (A && S.id && A.visible) { A.visible = false; S.aoiHid = true; } if (QW.AOISH?.visible && S.id) { QW.AOISH.visible = false; S.shHid = true; } }   // 11-04 P1：生き物の目のあいだ、碧は中央に立たない（描くときだけ外す）
+    // 同じ物理位置の碧を同伴させる。中央の体・進路を塞ぐ近接時だけ、この描画中は避ける。
+    // 人物の接地・身長・歩行座標には触れず、影も人物と同じ条件で復元する。
+    const A = QW.AOI?.root;
+    S.companion = { visible: !!A?.visible, reason: A?.visible ? "in-world" : "not-ready" };
+    if (A?.visible && S.id) {
+      A.getWorldPosition(AP); const distance = AP.distanceTo(camera.position);
+      AT.copy(AP); AT.y += .85; AT.applyMatrix4(camera.matrixWorldInverse);
+      const depth = -AT.z; AP.y += .85; AP.project(camera);
+      const blocksCenter = depth > 0 && depth < 2.2 && Math.abs(AP.x) < .26 && Math.abs(AP.y) < .8;
+      if (distance < .7 || blocksCenter) {
+        S.companion = { visible: false, reason: distance < .7 ? "too-close" : "central-occlusion" };
+        S.renderHidden = [{ object: A, visible: A.visible }]; A.visible = false;
+        const shadow = QW.AOISH; if (shadow?.visible) { S.renderHidden.push({ object: shadow, visible: shadow.visible }); shadow.visible = false; }
+      }
+    }
     const b = S.body; if (b && S.id) {
       b.position.copy(B); b.rotation.set(0, S.yaw + Math.PI, 0); b.visible = true;
       const mv = S.prevB ? S.prevB.distanceTo(B) / Math.max(dt, 1e-3) > .15 : false; (S.prevB ||= new THREE.Vector3()).copy(B);
@@ -121,9 +180,9 @@ export function attachIkimono(QW, opt = {}) {
       b.updateMatrixWorld(true);
     }
   };
-  scene.onAfterRender = function (...a) { pa && pa.apply(this, a); if (S.aoiHid) { S.aoiHid = false; if (QW.AOI?.root) QW.AOI.root.visible = true; } if (S.shHid) { S.shHid = false; QW.AOISH.visible = true; } const s = S.saved; if (s) { camera.position.copy(s.p); camera.quaternion.copy(s.q); camera.fov = s.fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true); S.saved = null; } };
+  scene.onAfterRender = function (...a) { try { pa && pa.apply(this, a); } finally { restoreRenderState(); } };
   let tl = performance.now();
-  (function loop(t) { const dr = Math.min(.5, (t - tl) / 1000), dt = Math.min(.05, dr); tl = t; S.t += dt; const want = S.id && QW.mode === "walk" ? 1 : 0, k0 = S.k;
+  (function loop(t) { const dr = Math.min(.5, (t - tl) / 1000), dt = Math.min(.05, dr); tl = t; S.t += dt; updateFlight(dt, t); const want = S.id && QW.mode === "walk" ? 1 : 0, k0 = S.k;
     S.k += Math.sign(want - S.k) * Math.min(Math.abs(want - S.k), dr / .35);   /* 11-04 P1：こま数でなく時間で 0.35 秒（重い時も 1 秒以内） */ if (S.k !== k0) paint(); requestAnimationFrame(loop); })(tl);
   /* 切り替えを 1 秒以内に：歩きだして手が空いたら、体を一つずつ先に組んでおく（描き方も先に組む） */
   const warm = async () => { for (const id of ["inu", "chou", "hachi", "tori"]) { await new Promise(r => (window.requestIdleCallback || setTimeout)(r, { timeout: 1500 })); try { await bodyOf(id); } catch (e) { console.warn("ikimono", id, e); } } };

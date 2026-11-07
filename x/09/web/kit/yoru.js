@@ -11,9 +11,9 @@ export function attachYoru(q) {
   tint.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity 1.5s linear;background:linear-gradient(to bottom,rgba(14,24,62,.72),rgba(10,18,40,.38) 55%,rgba(8,12,24,.25));mix-blend-mode:multiply";
   document.body.appendChild(tint);
   const S = { k: 0, ak: -1, sk: -1 };
-  // 碧（MToon）は露出の効き方が風景と違い、夜に一人だけ明るく浮いた。色の係数を直接落とす（顔が読めるよう 0.5 は残す）
+  // 碧（MToon）は露出の効き方が風景と違い、夜に一人だけ明るく浮いた。色の係数を直接落とす（露出と暗幕も重なるため、人物の色係数は0.8までに留める）
   function aoiNight(k) {
-    const root = q.AOI?.root; if (!root || Math.abs(k - S.ak) < .01) return; S.ak = k; const f = 1 - .5 * k;
+    const root = q.AOI?.root; if (!root || Math.abs(k - S.ak) < .01) return; S.ak = k; const f = 1 - .2 * k;
     root.traverse(o => { const ms = o.isMesh ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) {
       const u = m.userData.yoru ||= { c: m.color?.clone(), s: m.shadeColorFactor?.clone(), e: m.emissive?.clone() };
       if (u.c) m.color.copy(u.c).multiplyScalar(f); if (u.s) m.shadeColorFactor.copy(u.s).multiplyScalar(f); if (u.e) m.emissive.copy(u.e).multiplyScalar(f); } });

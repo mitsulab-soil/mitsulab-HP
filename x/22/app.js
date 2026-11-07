@@ -20,22 +20,52 @@ const W = await createAwai({
     "式は関係の形を示す模式（測れる量の式ではない）。E 環境・B 身体・P 知覚・K 経験と文脈・g 意味づけ・a ふるまいが環境に残す変化・F 環境自身の変化・L ほかの受けとり方の層",
     "考え方の系譜：ユクスキュル（1934）・ウィーナー『サイバネティクス』（1948）・グラッセのスティグマジー（1959）・ハッチンス『Cognition in the Wild』（1995）",
     "ミツバチの羽ばたき 約 230 回／秒：Altshuler ほか（PNAS 102, 2005）。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
-    "波の広がりと速さ、木の間（ま）は作品の設定の値（模式）。記録計の一音は 10 分ごとの記録を縮めた模式。鳥の鳴きは聴こえる高さに移した模式",
+    "波の広がりと速さ、木の間（ま）は作品の設定の値（模式）。記録計の一音は 10 分ごとの記録を縮めた模式。鳥の鳴きは声域を参考にした合成音（実測音ではありません）",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
 const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
+// Enlarged captions scroll without changing the scene behind them.
+const scrollCaption = W.ui.querySelector(".aw-cap");
+scrollCaption.tabIndex = 0;
+scrollCaption.addEventListener("wheel", e => e.stopPropagation(), { passive: true });
+scrollCaption.addEventListener("keydown", e => { if (e.key.startsWith("Arrow") || ["PageUp", "PageDown", "Home", "End", " "].includes(e.key)) e.stopPropagation(); });
+// The visible abstraction axis also supports keyboard and assistive technology.
+const accessAxis=W.ui.querySelector('.aw-axis');
+if(accessAxis){accessAxis.tabIndex=0;accessAxis.setAttribute('role','slider');accessAxis.setAttribute('aria-label','具体と抽象の視点');accessAxis.setAttribute('aria-valuemin','0');accessAxis.setAttribute('aria-valuemax','100');accessAxis.setAttribute('aria-orientation','vertical');
+ accessAxis.addEventListener('keydown',e=>{let v=W.absTarget;if(['ArrowUp','ArrowRight'].includes(e.key))v+=.1;else if(['ArrowDown','ArrowLeft'].includes(e.key))v-=.1;else if(e.key==='Home')v=0;else if(e.key==='End')v=1;else return;e.preventDefault();e.stopPropagation();W.setAbs(v);});
+ const syncAxis=()=>{const n=Math.round(W.absTarget*100);accessAxis.setAttribute('aria-valuenow',String(n));accessAxis.setAttribute('aria-valuetext',n===0?'具体の風景':n===100?'抽象の関係':'抽象度 '+n+'%');};syncAxis();setInterval(syncAxis,200);
+ const style=document.createElement('style');style.textContent='.aw-axis:focus-visible{outline:2px solid #b9f5ff;outline-offset:4px;border-radius:8px}.aw-fold>summary{width:auto;height:auto;min-height:44px;max-width:70vw;padding:2px 10px;box-sizing:border-box;white-space:normal;font-size:12px;background:#09111bd9;border-radius:6px}';document.head.appendChild(style);
+}
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
+// 2026-11-07: existing credits fold also offers an optional next question.
+{
+ const fold=W.ui.querySelector('.aw-fold'), body=fold?.querySelector('div');
+ if(body){
+  fold.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+  fold.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))e.stopPropagation();if(e.key==='Escape'){e.stopPropagation();fold.open=false;fold.querySelector('summary').focus({preventScroll:true});}});
+  body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../19/\" data-question-local=\"../../12_ひとつの木/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
+  fold.querySelector('summary').setAttribute('aria-label','主体の選択・典拠と次の問い');fold.querySelector('summary').textContent='主体・典拠 ＋';
+  if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))body.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);
+  body.querySelector('[data-question-return]').addEventListener('click',e=>{
+   e.stopPropagation();W.setAbs(0);if(snd.on)W.sndBtn.click();
+   W.sayNow('身近な木のまわりで、一つの変化がどこへ届くか、確かめてみてください。',8);
+   fold.open=false;fold.querySelector('summary').focus({preventScroll:true});
+  });
+ }
+}
+
 if (innerWidth < innerHeight * .8) W.aoi.then(a => a && a.place(-2.5, -2.6, -.1));   /* 縦長：波の届く輪から外す */   // 縦長の画面では、碧を横から見た画の内側へ
 
 // ───────── 式（左上・抽象の側でだけ見える）
-const fx = document.createElement("div"); fx.className = "fx";
-fx.innerHTML = `<p><span data-k="U">U<sub>i</sub></span> = <span data-k="g">g<sub>i</sub></span>( <span data-k="P">P<sub>i</sub></span>(<span data-k="E">E</span>, B<sub>i</sub>), <span data-k="K">K<sub>i</sub></span> )</p>
+const fx = document.createElement("details"); fx.className = "fx";
+for (const ev of ["pointerdown","pointerup","click","wheel","keydown"]) fx.addEventListener(ev,e=>e.stopPropagation());
+fx.innerHTML = `<summary>＋ 関係を式で見る</summary><p><span data-k="U">U<sub>i</sub></span> = <span data-k="g">g<sub>i</sub></span>( <span data-k="P">P<sub>i</sub></span>(<span data-k="E">E</span>, B<sub>i</sub>), <span data-k="K">K<sub>i</sub></span> )</p>
 <p><span data-k="E">E</span>(t+1) = <span data-k="F">F</span>(E(t)) + Σ <span data-k="a">a<sub>j</sub></span>(U<sub>j</sub>)</p>
 <p class="fxL"><span data-k="U">U<sub>人</sub>′</span> = g<sub>人</sub>( P<sub>人</sub>, <span data-k="L">K<sub>人</sub> ⊕ L</span> )</p>`;
 W.ui.appendChild(fx);
-{ const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#c3cce0;transition:opacity .6s}
+{ const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#e0eaf2;transition:opacity .6s;pointer-events:auto;max-width:calc(100vw - 32px);box-sizing:border-box;background:#09111bd9;border-radius:6px;padding:0 10px}.fx summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font:12px/1.6 sans-serif;list-style:none}.fx summary:focus-visible{outline:2px solid #b9f5ff}.fx[open]{padding-bottom:10px}
 .fx p{margin:0}.fx sub{font-size:.72em}.fx span{transition:color .25s,text-shadow .25s}.fx span.hi{color:#eef5fb;text-shadow:0 0 12px rgba(155,220,240,.9)}.fx .fxL{opacity:0;transition:opacity 1.2s}.fx.L .fxL{opacity:1}
 @media (max-width:520px){.fx{font-size:11px;line-height:1.85}}`; document.head.appendChild(st); }
 const hi = k => { for (const e of fx.querySelectorAll(`[data-k="${k}"]`)) { e.classList.add("hi"); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove("hi"), 520); } };
@@ -116,6 +146,13 @@ for (const n of N) {
   W.addTouch({ getWorldPosition: v => v.copy(n.at()).add(new V3(0, Math.min(n.h, 1.2) * .5, 0)) }, () => tapNode(n), .7);
 }
 const nodeOf = id => N.find(n => n.id === id);
+// Same interaction as the 3D rings, reachable by keyboard through the existing fold.
+{
+ const fold=W.ui.querySelector('.aw-fold'), body=fold?.querySelector('div');
+ if(body){const group=document.createElement('fieldset');group.className='q-route';group.style.border='0';group.innerHTML='<legend>輪を選んで、変化を起こす</legend>';
+ for(const n of N){const b=document.createElement('button');b.type='button';b.textContent=n.sub+'の輪に触れる';b.addEventListener('click',e=>{e.stopPropagation();tapNode(n);fold.open=false;fold.querySelector('summary').focus({preventScroll:true});});group.appendChild(b);}body.prepend(group);}
+}
+
 // 立ちのぼる粒（P：環境から手がかりが入る）
 const NP = 120, pg = new THREE.BufferGeometry(), pp = new Float32Array(NP * 3), pc = new Float32Array(NP * 3), pl = [];
 pg.setAttribute("position", new THREE.BufferAttribute(pp, 3)); pg.setAttribute("color", new THREE.BufferAttribute(pc, 3));
@@ -174,7 +211,7 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("bee"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("受けとり、ふるまう。そのふるまいが場に波を残し、ほかの誰かの入力になる。"); W.say("輪に触れると、その主体がふるまう。"); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
+setTimeout(() => { W.say("鳥・人・木の輪を一つ押してみてください。そこから広がる変化に、何が応えるでしょうか。"); W.say("環境を介して伝わる、相互の応答を描く計算模型です。"); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
 let saidDown = false, saidGround = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);

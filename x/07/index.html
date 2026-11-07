@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261025-lab">
+<link rel="stylesheet" href="style.css?v=20261107entry1">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 <!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
-<link rel="modulepreload" href="js/app.js?v=20261023-icon">
+<link rel="modulepreload" href="js/app.js?v=20261107entry1">
 <link rel="modulepreload" href="vendor/three.module.js">
 <link rel="modulepreload" href="vendor/OrbitControls.js">
 <link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
@@ -60,7 +60,7 @@
   <div class="intro-in">
     <p class="ml-kicker">Qualia/sound</p>
     <h2 id="introT" class="ml-title intro-line">同じ一行でも、<br>聞こえる音は、<br>人によって違う。</h2>
-    <p class="intro-body">「◯◯の音」──森に浮かぶ点にかざすと、その音の言葉が出ます。押すと、その場で鳴ります。二つの音を重ねたり、自分の言葉から新しい音をつくったり。音の高さやリズムを動かして、3D波形・粒の流れ・倍音の層・音の彫刻で違いを眺めてください。音は言葉を手がかりに合成した表現で、実際の録音ではありません。</p>
+    <p class="intro-body">点を押して鳴らす。二つの音を混ぜる。言葉から音をつくる。音と3Dの形を、一緒に動かして遊べます。<br>音は作者の言葉から合成した表現です。実録音や、ほかの人の主観を再現したものではありません。</p>
     <div class="intro-act">
       <button class="ml-btn ml-btn--primary" id="bStart" type="button">はじめる</button>
       <span class="intro-note">音は、押したときだけ鳴ります。</span>
@@ -73,6 +73,7 @@
 <section id="panel" class="panel" aria-label="音の演奏面" hidden>
   <div class="p-head">
     <span class="p-no" id="pNo"></span><span class="ml-label" id="pTag"></span>
+    <button id="bStop" type="button" class="ml-btn p-stop" aria-label="音を止める">■ 停止</button>
     <button class="ml-btn ml-btn--quiet p-x" id="bClose" type="button">とじる</button>
   </div>
   <p class="p-line" id="pLine" aria-live="polite"></p>
@@ -99,7 +100,7 @@
         <canvas id="wave" class="wave" aria-label="最終出力の波形"></canvas>
         <p class="spaceNote">どの表示も、操作後の再生出力を解析した値から描きます。彫刻は、その値で育てた形です。周囲の音圧を測った値ではありません。</p>
       </div>
-      <div class="soundActions"><p class="playHint" id="playHint">点をもう一度押すと止まり、ほかの点を押すと切りかわります。</p><button id="bStop" type="button" class="ml-btn">■ 音を止める</button><button id="bKeep" type="button" class="ml-btn ml-btn--quiet">Aの素材にする</button></div>
+      <div class="soundActions"><p class="playHint" id="playHint">点をもう一度押すと止まり、ほかの点を押すと切りかわります。</p><button id="bKeep" type="button" class="ml-btn ml-btn--quiet">Aの素材にする</button></div>
       <div class="p-nav"><button class="ml-btn ml-btn--quiet" id="bPrev" type="button">← 前の音</button><button class="ml-btn ml-btn--quiet" id="bRand" type="button">偶然の一行</button><button class="ml-btn ml-btn--quiet" id="bNext" type="button">次の音 →</button></div>
     </div>
     <aside class="performance" aria-label="音を動かす">
@@ -131,6 +132,10 @@
 
 <!-- 何も選んでいないときの下の帯 -->
 <div id="hint" class="hint" hidden>
+  <div class="near-sounds" role="group" aria-labelledby="nearSoundPrompt">
+    <span id="nearSoundPrompt">身近な手がかりから</span>
+    <div id="nearSoundPoints" class="near-sound-points"></div>
+  </div>
   <p><span class="pc">浮かぶ点の一つ一つが、言葉です。かざすと言葉が出て、押すと鳴ります。</span><span class="spo">点の一つ一つが言葉。触れると鳴ります。</span></p>
   <div class="p-row">
     <button class="ml-btn ml-btn--primary" id="bRand2" type="button">偶然の一行</button>
@@ -178,6 +183,6 @@
 
 <script src="data/sounds.js"></script>
 <script src="data/gain.js"></script>
-<script type="module" src="js/app.js?v=20261023-icon"></script>
+<script type="module" src="js/app.js?v=20261107entry1"></script>
 </body>
 </html>

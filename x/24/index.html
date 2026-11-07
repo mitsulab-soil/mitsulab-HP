@@ -8,9 +8,9 @@
 {"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=1">
+<link rel="modulepreload" href="app.js?v=20261108-access">
 <link rel="modulepreload" href="data.js">
-<link rel="modulepreload" href="audio.js">
+<link rel="modulepreload" href="audio.js?v=20261107p2">
 <link rel="modulepreload" href="kit/vegetation.js">
 <link rel="modulepreload" href="kit/sight_look.js">
 <link rel="modulepreload" href="kit/sight_trees.js">
@@ -34,7 +34,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 #clip{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:3}
 #seam{position:absolute;left:0;top:0;bottom:0;width:0;pointer-events:none}
 #seam .hd{position:absolute;top:56%;left:-22px;width:44px;height:44px;border:1px solid rgba(238,245,251,.75);border-radius:50%;display:grid;place-items:center;font-size:12px;color:var(--ink);background:rgba(3,6,15,.25)}
-#seam .hl,#seam .hr{position:absolute;top:calc(56% - 36px);font-size:13px;letter-spacing:.14em;white-space:nowrap}
+#seam .hd:focus-visible{outline:3px solid #c4f5ff;outline-offset:5px;background:#03060f} #seam .hl,#seam .hr{position:absolute;top:calc(56% - 36px);font-size:13px;letter-spacing:.14em;white-space:nowrap}
 #seam .hl{right:14px;color:var(--h)} #seam .hr{left:14px;color:var(--m)}
 #seam .hr i,.lab i{font-family:var(--en);font-style:italic;color:var(--ink3);margin-left:.5em;letter-spacing:.04em;font-size:12px}
 #seam.edge .hl,#seam.edge .hr{opacity:0}
@@ -46,7 +46,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 #cap.on{opacity:1}
 .camt{position:fixed;left:0;top:0;font-size:11px;letter-spacing:.08em;color:var(--m);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap;text-shadow:0 0 4px #03060f,0 0 8px #03060f;z-index:2} .camt.on{opacity:.95} .camt.n{color:#9ff0c8;font-size:12px;line-height:1.5;white-space:normal} .camt.n small{font-size:10px;color:var(--ink2)} .camt.r{translate:-100% 0}
 #chs{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom);height:56px;display:flex;justify-content:center;align-items:center;gap:2px;padding:0 10px}
-#chs button{height:44px;padding:0 10px;font-size:13px;letter-spacing:.12em;color:var(--ink3);position:relative}
+#chs button{min-width:44px;height:44px;padding:0 10px;font-size:13px;letter-spacing:.12em;color:var(--ink3);position:relative}
 #chs button.on{color:var(--m)}
 #chs button::after{content:"";position:absolute;left:10px;right:10px;bottom:9px;height:1px;background:var(--m);transform:scaleX(0);transform-origin:left;transition:transform .35s}
 #chs button.on::after{transform:scaleX(1)}
@@ -58,7 +58,7 @@ body.out #spec,body.out #heatbar,body.out #seam{opacity:0;pointer-events:none}
 .lab{position:absolute;left:0;top:0;font-size:11px;letter-spacing:.06em;color:var(--ink2);white-space:nowrap;opacity:0;transition:opacity .4s;pointer-events:none;translate:-50% -50%;text-shadow:0 0 3px #03060f,0 0 6px #03060f,0 0 10px rgba(3,6,15,.8)}
 .lab.on{opacity:1} button.lab.on{pointer-events:auto}
 button.lab{padding:14px 8px;min-height:44px}
-.lab u{text-decoration:none;margin-left:.3em;color:var(--ink2)}
+.lab:not(.cell){background:rgba(3,6,15,.68);box-shadow:0 0 9px 3px rgba(3,6,15,.35);border-radius:3px;padding:2px 4px}.lab u{text-decoration:none;margin-left:.3em;color:var(--ink2)}
 .lab.bt{translate:0 -50%;color:var(--ink);font-size:12px}
 .lab.ln{translate:6px -50%;font-size:10px} .lab.ln.h{color:var(--h)} .lab.ln.m{color:var(--m)}
 .lab.tk{font:10px var(--mono);color:var(--ink3)}
@@ -70,33 +70,45 @@ button.lab{padding:14px 8px;min-height:44px}
 .lab.ai i{font-family:var(--mono);font-style:normal;color:#b4a2ff}
 .lab.snd{border-left-color:var(--m);color:var(--ink);font-family:var(--min)} .lab.snd i{display:block;margin:0;color:var(--ink3);font-family:var(--min)}
 .lab.self{font-size:11px;color:var(--h)} .lab.self.m{color:var(--m)} .lab.self.n{color:#9ff0c8} .lab.self.n i{color:var(--ink2)} .lab.self i{display:block;margin:2px 0 0}
-#fold{position:fixed;right:16px;top:calc(52px + env(safe-area-inset-top));width:min(calc(100vw - 32px),420px);max-height:64vh;overflow:auto;background:rgba(6,10,18,.86);border:1px solid var(--line);padding:16px 18px;font-size:11px;line-height:1.75;color:var(--ink2);display:none;z-index:5;-webkit-user-select:text;user-select:text}
+#fold{box-sizing:border-box;position:fixed;right:16px;top:calc(52px + env(safe-area-inset-top));width:min(calc(100vw - 32px),420px);max-height:64vh;overflow:auto;background:rgba(6,10,18,.86);border:1px solid var(--line);padding:16px 18px;font-size:11px;line-height:1.75;color:var(--ink2);display:none;z-index:5;-webkit-user-select:text;user-select:text}
 #fold.on{display:block} #fold h2{font-size:13px;font-weight:600;margin:0 0 8px;letter-spacing:.12em;color:var(--ink)}
 #fold ul{margin:0 0 12px;padding-left:1.1em} #fold p{margin:0 0 10px}
-@media (max-width:520px){ .lab.mk,.lab.rg.x{display:none} .lab.ln{translate:calc(-100% - 6px) -50%} #chs button{padding:0 6px;font-size:12px;letter-spacing:.06em} #chs button::after{left:6px;right:6px} #chs .end{display:none} .mark{font-size:11px;letter-spacing:.08em} .mark i{display:none} #cap{font-size:13px} #spec{max-width:62vw;font-size:10px} #heatbar{flex-wrap:wrap;justify-content:flex-end;max-width:62vw} }
+@media (max-width:520px){ .lab.mk,.lab.rg.x{display:none} .lab.ln{translate:calc(-100% - 6px) -50%} #chs{padding:0 8px;gap:0} #chs button{padding:0 4px;min-width:44px;flex:1;font-size:12px;letter-spacing:.02em} #chs button::after{left:6px;right:6px} #chs .end{display:none} .mark{font-size:11px;letter-spacing:.08em} .mark i{display:none} #cap{font-size:13px} #spec{max-width:62vw;font-size:10px} #heatbar{flex-wrap:wrap;justify-content:flex-end;max-width:62vw} }
 @media (prefers-reduced-motion:reduce){ #cap,.lab{transition:none} }
+</style><style id="question-route-style">.q-route{margin:12px 0;padding:12px 0;border-top:1px solid currentColor;font:13px/1.8 Inter,"Hiragino Sans",sans-serif;text-align:left}.q-route h2,.q-route h3{margin:0 0 8px;font-size:14px;font-weight:500;line-height:1.5}.q-route p{margin:4px 0 8px}.q-route a,.q-route button{min-height:44px;display:flex;align-items:center;color:inherit;background:none;border:0;border-bottom:1px solid #9ed9e64d;padding:4px 0;font:inherit;text-align:left;cursor:pointer;text-decoration:none;width:100%;box-sizing:border-box}.q-route a:focus-visible,.q-route button:focus-visible{outline:2px solid #b9f5ff;outline-offset:3px}.q-route small{display:block;opacity:.8}</style><style id="zoom-layout-20261107">
+/* Let enlarged controls wrap; the fixed canvas remains the backdrop. */
+body{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid-template-columns:minmax(0,1fr);overflow-y:auto}
+.top{grid-area:1/1;position:relative;top:auto;left:auto;right:auto;box-sizing:border-box;min-height:52px;height:auto;padding:calc(4px + env(safe-area-inset-top)) 12px 4px;flex-wrap:wrap;gap:4px 10px;z-index:6}
+.mark{flex:1 1 auto;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.tb{flex:0 0 auto;min-height:44px;height:auto}
+#spec{grid-area:2/1;position:relative;top:auto;right:auto;justify-self:end;margin:0 12px;max-width:min(62%,340px);max-height:20vh;overflow:auto;touch-action:pan-y}
+#heatbar{grid-area:3/1;position:relative;top:auto;right:auto;justify-self:end;margin:0 12px;max-width:calc(100% - 24px);flex-wrap:wrap}
+#cap{grid-area:5/1;position:relative;left:auto;bottom:auto;transform:none;margin:4px auto;width:min(calc(100% - 24px),640px);max-height:25vh;overflow:auto;pointer-events:auto;touch-action:pan-y}
+#chs{grid-area:6/1;position:relative;left:auto;right:auto;bottom:auto;min-height:56px;height:auto;box-sizing:border-box;flex-wrap:wrap;padding-bottom:env(safe-area-inset-bottom);max-height:40vh;overflow:auto;touch-action:pan-y}
+#chs button{flex:1 1 auto;min-height:44px;height:auto;white-space:normal;overflow-wrap:anywhere}
+#fold{grid-area:2/1/7/2;position:relative;top:auto;right:auto;justify-self:end;align-self:stretch;margin:0 12px 8px;width:min(calc(100% - 24px),420px);min-height:0;max-height:100%;overflow:auto;touch-action:pan-y;z-index:7}
 </style></head><body>
 <script src="loader.js" data-max="4000"></script>
 <div id="stage"></div>
 <div id="labs"></div>
-<div id="clip"><div id="seam"><span class="hl">人</span><div class="hd" aria-hidden="true">‹ ›</div><span class="hr" id="sl"></span></div></div>
+<div id="clip"><div id="seam"><span class="hl">人</span><div class="hd" role="slider" tabindex="0" aria-label="人と機械の比較境界" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-orientation="horizontal">‹ ›</div><span class="hr" id="sl"></span></div></div>
 <div class="top">
   <div class="mark">Qualia/translate<i>人と機械の認知可能領域</i></div><div class="sp"></div>
   <button class="tb" id="snd" aria-label="音を消す・出す">音</button>
   <button class="tb" id="out">外から</button>
-  <button class="tb" id="plus" aria-label="典拠とつくり">＋</button>
+  <button class="tb" id="plus" aria-label="典拠と次の問い">＋</button>
 </div>
 <div id="spec"></div>
 <div class="camt n" id="birdT">鳥（模式）<br><small>紫外を青紫に</small></div><div class="camt" id="camA">一画素に一色</div><div class="camt r" id="camB">計算で埋めた色</div>
 <div id="heatbar">5°<b></b>35°C<span>空は 5 °C より低く色の外（模式）</span></div>
 <div id="cap" aria-live="polite"></div>
 <div id="chs" role="tablist" aria-label="機械の受けとり方"></div>
-<div id="fold"><h2>この作品について</h2>
+<div id="fold"><section class="q-route"><h2>次の問いへ。</h2><p>違う手がかりを持つ主体は、環境を介してどう応え合うでしょうか。</p><a href="../22/" data-question-local="../../15_Qualia_compute/★実行データ/">変化が伝わる場へ →</a><a href="../19/" data-question-local="../../12_ひとつの木/★実行データ/">一本の木を見直す →</a><p>ここでの機械の画は、取得条件を考えるための模式です。</p></section><h2>この作品について</h2>
 <p>左は人の受けとり方、右は機械の受けとり方。白い縁を動かす・触れる（鳴る）・なぞる（その場所の記述が書き換わり、線が旋律になる）・「外から」で自分の受けとり方を見る。</p>
 <p>「機械」は、ここでは一台のカメラ・熱カメラ・LiDAR・マイク・分類器の受けとれる範囲のことです（機械一般の限界ではありません）。機械の画は、機器の仕様と研究の数をもとにした模式です。温度・分類の確からしさの数は例です。音は光の周波数を 40 オクターブ下げた高さなど、聴こえる高さに移した模式です。書き換わるのはこの場所の記述で、場所そのものは変わりません。何も記録・送信しません。</p>
 <h2>問いの手がかり</h2><p>カント『純粋理性批判』（現象と物自体）／ユクスキュル（環世界と機能環）／メルロ＝ポンティ（身体と知覚）／ネーゲル（コウモリであるとはどのようなことか）／クワイン（翻訳の不確定性）／ウィトゲンシュタイン（多くの場合、意味は使われ方にある）／ベイトソン・ウィーナー（循環と帰還）。</p>
 <h2>典拠</h2><ul id="refs"></ul>
 <p>質感：Poly Haven・ambientCG（CC0）／Three.js・three-vrm（MIT）／碧の動き：CMU Graphics Lab Motion Capture Database をもとに mitsulab が作成</p>
 <p>© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p></div>
-<script type="module" src="app.js?v=1"></script>
-</body></html>
+<script type="module" src="app.js?v=20261108-access"></script>
+<script>(()=>{if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script></body></html>

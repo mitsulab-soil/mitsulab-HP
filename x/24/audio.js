@@ -30,7 +30,7 @@ export class Music {
     try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
     this.on = true;
   }
-  setMuted(m) { this.muted = m; if (this.ctx) this.out.gain.setTargetAtTime(m ? 0 : .55, this.ctx.currentTime, .08); }
+  setMuted(m) { this.muted = m; if (this.ctx) { const g=this.out.gain,t=this.ctx.currentTime; if(g.cancelAndHoldAtTime)g.cancelAndHoldAtTime(t);else{g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);} g.setTargetAtTime(m ? 0 : .55,t,.04); } }
   now() { return this.ctx ? this.ctx.currentTime : 0; }
   grid(t) { return Math.ceil(t / GRID) * GRID; }   // 機械の目（0.1 秒）にそろえる
   _pan(p) { const s = this.ctx.createStereoPanner(); s.pan.value = Math.max(-1, Math.min(1, p)); return s; }

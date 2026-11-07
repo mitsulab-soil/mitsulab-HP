@@ -7,7 +7,7 @@ import { rng, growTree, plantTrees, leafMaterial, barkMaterial, WIND, poisson } 
 import { installDapple, makeSightGrass, SIGHT_AIR } from "./kit/sight_look.js";
 import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
 import { CH, BANDS, SAY, AI_LABELS, REFS, wlHz } from "./data.js";
-import { Music, PHRASE, GRID } from "./audio.js";
+import { Music, PHRASE, GRID } from "./audio.js?v=20261107p2";
 
 installDapple(THREE);
 const $ = s => document.querySelector(s);
@@ -239,7 +239,7 @@ const segs = (arr, mat) => { const g = new THREE.BufferGeometry(); g.setAttribut
 const LABS = [];
 function lab(text, { cls = "", obj = null, pos = new V3(), side = "any", onTap = null, show = () => true } = {}) {
   const el = document.createElement(onTap ? "button" : "div"); el.className = "lab " + cls; el.innerHTML = text; $("#labs").appendChild(el);
-  if (onTap) el.addEventListener("pointerdown", e => { e.stopPropagation(); onTap(); });
+  if (onTap) el.addEventListener("click", e => { e.stopPropagation(); onTap(); });
   const L = { el, obj, pos, side, show, w: new V3() }; LABS.push(L); return L;
 }
 
@@ -403,8 +403,75 @@ $("#out").addEventListener("click", () => { music.start(); outOn = !outOn; if (o
   capQ = capQ.filter(k => k === "hint"); if (outOn) { const fin = seen.size >= 4 && STROKES.length >= 1; if (!said.has("self")) { said.add("self"); show("self"); if (!fin) say("self2", { once: true }); } else if (!fin) say("kant", { once: true }); checkEnd(); } });
 $("#snd").addEventListener("click", () => { music.start(); music.setMuted(!music.muted); $("#snd").classList.toggle("off", music.muted); });
 document.addEventListener("visibilitychange", () => { if (!music.ctx) return; document.hidden ? music.ctx.suspend() : (!music.muted && music.ctx.resume()); });
-$("#plus").addEventListener("click", () => $("#fold").classList.toggle("on"));
+function toggleInfo(on){$("#fold").classList.toggle("on",on);$("#plus").setAttribute("aria-expanded",String(on));}
+$("#plus").setAttribute("aria-controls","fold");$("#plus").setAttribute("aria-expanded","false");
+$("#plus").addEventListener("click",()=>toggleInfo(!$("#fold").classList.contains("on")));
+addEventListener("keydown",e=>{if(e.key==='Escape'&&$("#fold").classList.contains("on")){e.preventDefault();toggleInfo(false);$("#plus").focus({preventScroll:true});}});
+const seamHandle=$("#seam .hd");
+seamHandle.addEventListener('keydown',e=>{let x=seam;if(e.key==='ArrowLeft')x-=.05;else if(e.key==='ArrowRight')x+=.05;else if(e.key==='Home')x=0;else if(e.key==='End')x=1;else return;e.preventDefault();e.stopPropagation();setSeam(x);seamHandle.setAttribute('aria-valuenow',String(Math.round(seam*100)));});
 $("#refs").innerHTML = REFS.map(r => `<li>${r}</li>`).join("");
+// Enlarged labels keep their original text and actions in a scrollable reading column.
+// Focus/click draws a leader back to the projected point; normal-size placement is unchanged.
+function createProjectionNotes() {
+  const rail = document.createElement("section"); rail.id = "projectionNotes"; rail.hidden = true; rail.setAttribute("aria-label", "帯と場面のラベル");
+  rail.innerHTML = '<h2>手がかり・模式のラベル</h2><div id="projectionList" tabindex="0" aria-label="ラベルをスクロール"></div>';
+  document.body.appendChild(rail); const list = rail.lastElementChild;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.id = "projectionLeader"; svg.setAttribute("aria-hidden", "true"); svg.innerHTML = '<polyline fill="none" stroke="#d9f7ff" stroke-width="1.5"/><circle r="4" fill="#d9f7ff"/>'; document.body.appendChild(svg);
+  const style = document.createElement("style"); style.textContent = `
+#projectionNotes{position:fixed;z-index:4;box-sizing:border-box;display:flex;flex-direction:column;background:#07111aeb;border:1px solid #9ed9e655;border-radius:8px;color:var(--ink);pointer-events:auto}
+#projectionNotes[hidden]{display:none}#projectionNotes h2{font:inherit;font-size:12px;font-weight:500;margin:0;padding:8px 10px;border-bottom:1px solid #9ed9e644}
+#projectionList{min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;padding:4px 8px}
+#projectionNotes [data-projection]{box-sizing:border-box;position:relative!important;left:auto!important;top:auto!important;transform:none!important;translate:none!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere;opacity:1!important;transition:none!important;display:block!important;text-align:left;pointer-events:auto;margin:3px 0;padding:7px 5px!important;border-bottom:1px solid #9ed9e622;text-shadow:none}
+#projectionNotes [data-projection]:not(.on){display:none!important}#projectionNotes .cell{gap:4px}#projectionNotes .cell b,#projectionNotes .cell i{display:block;margin:0}#projectionNotes .hr i{display:block;font-size:.92em}
+#projectionNotes [data-projection]:focus-visible,#projectionList:focus-visible{outline:2px solid #b9f5ff;outline-offset:-2px}
+#projectionLeader{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible}#projectionLeader[hidden]{display:none}`; document.head.appendChild(style);
+  const extra = [$("#camA"), $("#camB"), $("#birdT"), $("#seam .hl"), $("#sl")];
+  const rank = el => el.classList.contains("bt") ? 0 : el.classList.contains("ln") ? 1 : el.classList.contains("cell") ? 2 : el.classList.contains("tk") ? 3 : el.classList.contains("mk") ? 4 : 5;
+  const entries = [...LABS.map(l => l.el).sort((a,b) => rank(a)-rank(b)), ...extra].map((el,i) => {
+    const pin = document.createComment("projection label home"); el.before(pin); el.dataset.projection = i;
+    return { el, pin, baseFont:parseFloat(getComputedStyle(el).fontSize), tab: el.getAttribute("tabindex"), x:0, y:0, visible:false };
+  });
+  const byEl = new Map(entries.map(e => [e.el,e])); let active=false, chosen=null, nextCheck=0, view="", lastLayout="";
+  const probe = LABS.find(l => l.el.classList.contains("bt")).el;
+  const choose = e => { chosen=byEl.get(e.target.closest?.("[data-projection]")) || null;nextCheck=0; };
+  list.addEventListener("click",choose);list.addEventListener("focusin",choose);list.addEventListener("pointerleave",()=>{if(!list.contains(document.activeElement))chosen=null;});list.addEventListener("focusout",e=>{if(!list.contains(e.relatedTarget))chosen=null;});
+  for(const event of ["pointerdown","pointerup","wheel","keydown"])rail.addEventListener(event,e=>e.stopPropagation(),{passive:event==="wheel"});
+  function updateMode() {
+    const now=performance.now(); if(now<nextCheck)return active;nextCheck=now+200;
+    const want=innerWidth<=520 || entries.some(e=>e.el.classList.contains("on") && parseFloat(getComputedStyle(e.el).fontSize)>e.baseFont*1.4);
+    if(want!==active){active=want;rail.hidden=!active;svg.toggleAttribute("hidden",!active);chosen=null;
+      for(const e of entries){if(active){list.appendChild(e.el);if(e.el.tagName!=="BUTTON")e.el.tabIndex=0;}else{e.pin.after(e.el);if(e.tab===null)e.el.removeAttribute("tabindex");else e.el.setAttribute("tabindex",e.tab);}}
+    }
+    if(active){
+      const currentView=chId()+":"+outOn;if(currentView!==view){view=currentView;list.scrollTop=0;chosen=null;}
+      const topUI=[$(".top"),$("#spec"),$("#heatbar")].filter(e=>getComputedStyle(e).display!=="none"&&+getComputedStyle(e).opacity>0).map(e=>e.getBoundingClientRect().bottom);
+      let top=Math.max(12,...topUI)+8;const cap=$("#cap"),controlsTop=$("#chs").getBoundingClientRect().top,capTop=cap.classList.contains("on")?cap.getBoundingClientRect().top:controlsTop;
+      let bottom=Math.min(controlsTop-10,capTop-10);if(innerWidth<600&&!outOn)bottom=Math.min(bottom,seamHandle.getBoundingClientRect().top-10);
+      const width=Math.min(360,innerWidth-24),left=innerWidth-12-width;
+      // Keep the chosen projected point outside the reading column, never behind another row.
+      if(chosen?.visible&&chosen.x>=left&&chosen.x<=innerWidth-12&&chosen.y>top&&chosen.y<bottom){
+        const above=chosen.y-12-top,below=bottom-chosen.y-12;
+        if(Math.max(above,below)>=96){if(above>=below)bottom=chosen.y-12;else top=chosen.y+12;}
+      }
+      const height=Math.max(64,Math.min(innerHeight*.5,bottom-top)),layout=top+"/"+height;
+      rail.style.top=top+"px";rail.style.right="12px";rail.style.width=width+"px";rail.style.maxHeight=height+"px";
+      if(layout!==lastLayout&&chosen&&document.activeElement===chosen.el)chosen.el.scrollIntoView({block:"nearest"});lastLayout=layout;
+      rail.dataset.mode="stacked";
+    }else rail.dataset.mode="projected";
+    return active;
+  }
+  function point(el,x,y,visible=true){const e=byEl.get(el);if(e){e.x=x;e.y=y;e.visible=visible&&x>=0&&x<=innerWidth&&y>=0&&y<=innerHeight;}}
+  function draw(){const hide=!active||!chosen||!chosen.visible||!chosen.el.classList.contains("on");svg.toggleAttribute("hidden",hide);if(hide)return;
+    const r=chosen.el.getBoundingClientRect(),clip=list.getBoundingClientRect();if(r.bottom<clip.top||r.top>clip.bottom){svg.setAttribute("hidden","");return;}
+    const pane=rail.getBoundingClientRect(),left=chosen.x<pane.x+pane.width/2,x=left?pane.x:pane.right,y=Math.max(clip.top,Math.min(clip.bottom,r.y+r.height/2)),edge=x+(left?-6:6),line=svg.firstElementChild,circle=svg.lastElementChild;
+    // Route around the column so the leader never crosses another label's words.
+    const points=chosen.y<pane.top||chosen.y>pane.bottom?[[x,y],[edge,y],[edge,chosen.y],[chosen.x,chosen.y]]:[[x,y],[chosen.x,chosen.y]];
+    line.setAttribute("points",points.map(p=>p.join(",")).join(" "));circle.setAttribute("cx",chosen.x);circle.setAttribute("cy",chosen.y);
+  }
+  return {updateMode,point,draw,extra,get active(){return active;}};
+}
+const projectionNotes=createProjectionNotes();
+
 let ended = false;
 function checkEnd() {
   if (seen.size >= 4 && STROKES.length >= 1 && said.has("self")) { if (!outOn) $("#out").classList.add("hint"); else if (!birdG.visible) { birdG.visible = true; ended = true; tintAtt(); say("common", { once: true }); say("common2", { once: true }); say("common3", { once: true }); say("common4", { once: true }); } }
@@ -573,12 +640,34 @@ function frame() {
   renderer.autoClear = false; renderer.clearDepth(); renderer.render(ov, cam); renderer.autoClear = true;
   // 札
   const W = innerWidth, H = innerHeight;
-  for (const L of LABS) { let ok = L.show(); if (ok) { L.w.copy(L.pos); if (L.obj) L.obj.localToWorld(L.w); L.w.project(cam); ok = L.w.z < 1 && Math.abs(L.w.x) < 1.1 && Math.abs(L.w.y) < 1.1; }
-    const x = (L.w.x * .5 + .5) * W, y = (-L.w.y * .5 + .5) * H; if (ok && L.side === "machine" && x < seamShown * W) ok = false;
-    if (ok !== L.on) { L.on = ok; L.el.classList.toggle("on", ok); } if (ok) L.el.style.transform = `translate(${x | 0}px,${y | 0}px)`; }
-  { const on = chId() === "cam" && outK < .3 && seamShown < .9, a = $("#camA"), b = $("#camB"); a.classList.toggle("on", on); b.classList.toggle("on", on && (post.uniforms.uSeam2.value - seamShown) * W > 150);   // 機械の帯が狭いときは二つ目の札を出さない
+  const readingLabels=projectionNotes.updateMode();
+  const placedSelf=[];
+  for (const L of LABS) { let ok = L.show(); const self= L.el.classList.contains("self");
+    if (ok) { L.w.copy(L.pos); if (L.obj) L.obj.localToWorld(L.w); L.w.project(cam); ok = readingLabels || (L.w.z < 1 && ((mobile && self && outK>.6) || (Math.abs(L.w.x)<1.1 && Math.abs(L.w.y)<1.1))); }
+    let x=(L.w.x*.5+.5)*W,y=(-L.w.y*.5+.5)*H;
+    if(ok&&!readingLabels&&L.side==="machine"&&x<seamShown*W)ok=false;
+    if(ok!==L.on){L.on=ok;L.el.classList.toggle("on",ok);}
+    if(ok){
+      projectionNotes.point(L.el,x,y,L.w.z<1);
+      if(readingLabels)continue;
+      // Keep projected captions readable without dropping any words on a narrow screen.
+      const lw=L.el.offsetWidth,lh=L.el.offsetHeight,cl=L.el.classList;
+      const tx=cl.contains("bt")?0:cl.contains("ln")?(mobile?-lw-6:6):-lw/2;
+      const ty=cl.contains("mk")?-lh:-lh/2;
+      x=Math.max(10-tx,Math.min(W-10-lw-tx,x));y=Math.max(88-ty,Math.min(H-78-lh-ty,y));
+      if(mobile&&self&&outK>.6){let top=y+ty;for(const r of placedSelf){if(top<r.bottom+10&&top+lh>r.top-10)top=r.bottom+10;}if(top+lh>H-88)top=Math.max(90,placedSelf.length?placedSelf[0].top-lh-12:90);y=top-ty;placedSelf.push({top,bottom:top+lh});}
+      L.el.style.transform=`translate(${x|0}px,${y|0}px)`;
+    }
+  }
+  { const on = chId() === "cam" && outK < .3 && seamShown < .9, a = $("#camA"), b = $("#camB"); a.classList.toggle("on", on); b.classList.toggle("on", on && (readingLabels || (post.uniforms.uSeam2.value - seamShown) * W > 150));   // 機械の帯が狭いときは二つ目の札を出さない
     if (on) { const rw = W - seamShown * W; a.style.transform = `translate(${(seamShown * W + 10) | 0}px,${(H * .66) | 0}px)`; b.style.transform = `translate(${(post.uniforms.uSeam2.value * W - 12) | 0}px,${(H * (mobile ? .72 : .66)) | 0}px)`; } }
+  seamHandle.setAttribute('aria-valuenow',String(Math.round(seamShown*100)));
   const hx = seamShown * W; $("#seam").style.transform = `translateX(${hx | 0}px)`; $("#seam").classList.toggle("edge", seamShown > .97 || seamShown < .03);
+  projectionNotes.point($("#camA"),seamShown*W+10,H*.66);
+  projectionNotes.point($("#camB"),post.uniforms.uSeam2.value*W-12,H*(mobile?.72:.66));
+  projectionNotes.point($("#birdT"),post.uniforms.uSeam2.value*W+8,H*.2);
+  for(const el of projectionNotes.extra.slice(3)){el.classList.toggle("on",outK<.5&&seamShown>.03&&seamShown<.97);projectionNotes.point(el,hx,H*.56);}
+  projectionNotes.draw();
   // 字幕
   if (capT > 0) { capT -= dt; if (capT <= 0) { $("#cap").classList.remove("on"); if (capQ.length) setTimeout(() => show(capQ.shift()), 500); } }
   // 重いときは画素を下げる

@@ -30,7 +30,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261028t";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261107cg2";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -43,11 +43,12 @@ renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.N
 const scene = new THREE.Scene();
 /* 2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ」：層を重ねているあいだ、風景（トーンマップされる物）だけを一段控えめに（彩度と明るさを下げ、写実は保つ）。
    印（toneMapped:false）・碧・かさねっこ・札は除く。層をすべて外すと、ふつうの風景に戻る。 */
+// 2026-11-06 コモングラウンド：情報層を重ねても、物理風景の色と明暗を保つ。
 const LANDG = { value: 0 }, LZERO = { value: 0 }; QW.LANDG = LANDG;
 THREE.ShaderChunk.tonemapping_pars_fragment = "uniform float uLandG;\n" + THREE.ShaderChunk.tonemapping_pars_fragment;
 THREE.ShaderChunk.tonemapping_fragment += `
 #if defined( TONE_MAPPING )
-{ float lu = dot(gl_FragColor.rgb, vec3(.2126, .7152, .0722)); vec3 lg = mix(vec3(lu), gl_FragColor.rgb, .34) * vec3(.64, .66, .71); gl_FragColor.rgb = mix(gl_FragColor.rgb, lg, uLandG); }
+{ float lu = dot(gl_FragColor.rgb, vec3(.2126, .7152, .0722)); vec3 lg = mix(vec3(lu), gl_FragColor.rgb, .85) * vec3(.94); gl_FragColor.rgb = mix(gl_FragColor.rgb, lg, uLandG); }
 #endif
 `;
 THREE.Material.prototype.onBeforeCompile = function (sh) { sh.uniforms.uLandG = this.userData.land ? LANDG : LZERO; };
@@ -718,7 +719,11 @@ function loadLate() {
    種：0 ツツジ・1 アオキ・2 ヤツデ・3 ササ・4 チヂミザサ・5 ドクダミ・6 細い草。近くだけ描き、遠くの縁では小さくして消す。 */
 /* 11-05 本人「Qualia/sight のような風景」・採点「並木の外が霞の海に見える」：霞の奥（半径 150〜200 m）に、木立の影絵の帯を二重に巻く。
    一枚の帯（canvas で描いた樹冠の輪郭・模式）を目の位置について回し、霞がほとんど溶かす。歩くときだけ出す */
+// 2026-11-07 実画面で円筒が板壁に見えたため、全ての追従樹影帯を非表示。既存の3D樹木・建物・霞を使う。
+const SHOW_DISTANT_TREE_BANDS = false;
 const FARWOOD = (() => {
+  if (!SHOW_DISTANT_TREE_BANDS) { const g=new THREE.Group();g.name="farWood";g.visible=false;return {g,at(){}}; }
+
   const c = document.createElement("canvas"); c.width = 2048; c.height = 128; const x = c.getContext("2d"); let s = 3; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 520; i++) { const px = rnd() * 2048, h = 30 + rnd() * 80 + 18 * Math.sin(px / 140), r = 4 + rnd() * 14, v = 52 + rnd() * 30;   // 小さな葉の塊を大小重ね、輪郭を不揃いに（同じ形の山が並ばない）
     x.fillStyle = `rgb(${v * .85 | 0},${v | 0},${v * .8 | 0})`; for (let k = 0; k < 4; k++) { x.beginPath(); x.arc(px + (rnd() - .5) * r * 2.4, 128 - h + (rnd() - .2) * r * 1.6, r * (.5 + rnd() * .6), 0, Math.PI * 2); x.fill(); }
@@ -727,12 +732,13 @@ const FARWOOD = (() => {
   const tx = new THREE.CanvasTexture(c); tx.wrapS = THREE.RepeatWrapping; tx.colorSpace = THREE.SRGBColorSpace; tx.repeat.set(3, 1);
   const g = new THREE.Group(); g.name = "farWood"; g.visible = false;
   const UD = { value: new THREE.Vector2(0, 1) };
-  for (const [R, H, o, k] of [[38, 9, .2, .55], [75, 22, .0, .46], [130, 34, .37, .34], [200, 44, .71, .24]]) { const t2 = tx.clone(); t2.needsUpdate = true; t2.offset.x = o;
+  // 2026-11-06：38 m の追従する樹影の壁を外し、近景の建物・樹木を遮らない。残る遠景帯は模式。
+  for (const [R, H, o, k] of [[75, 22, .0, .46], [130, 34, .37, .34], [200, 44, .71, .24]]) { const t2 = tx.clone(); t2.needsUpdate = true; t2.offset.x = o;
     const m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 64, 1, true), new THREE.MeshBasicMaterial({ map: t2, color: new THREE.Color(), userData: { k }, transparent: true, alphaTest: .5, side: THREE.BackSide, depthWrite: true, fog: true }));
     m.material.userData.k = k; m.material.onBeforeCompile = sh => { sh.uniforms.uDir = UD; sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vLoc;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvLoc = position.xz;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vLoc; uniform vec2 uDir;").replace("#include <alphatest_fragment>", "diffuseColor.a *= smoothstep(.985, .93, abs(dot(normalize(vLoc), uDir)));\n#include <alphatest_fragment>"); }; m.material.customProgramCacheKey = () => "farWood";   // 参道の前と後ろは帯を切って、並木の見通しをふさがない
     m.position.y = H / 2 - 8; m.renderOrder = -1; m.frustumCulled = false; g.add(m); }
   scene.add(g);
-  return { g, at(px, py, pz) { const on = QW.mode === "walk"; g.visible = on; if (on) { g.position.set(px, py, pz); if ((UD.n = (UD.n || 0) + 1) % 20 === 1) { const a = atD(nearestOnLine(px, pz).d); UD.value.set(a.tx, a.tz).normalize(); } for (const m of g.children) m.material.color.copy(scene.fog.color).multiplyScalar(m.material.userData.k); } } };   // 霞の色を暗くした影絵（昼も夜も霞に溶ける）
+  return { g, at(px, py, pz) { const on = SHOW_DISTANT_TREE_BANDS && QW.mode === "walk"; g.visible = on; if (on) { g.position.set(px, py, pz); if ((UD.n = (UD.n || 0) + 1) % 20 === 1) { const a = atD(nearestOnLine(px, pz).d); UD.value.set(a.tx, a.tz).normalize(); } for (const m of g.children) m.material.color.copy(scene.fog.color).multiplyScalar(m.material.userData.k); } } };   // 霞の色を暗くした影絵（昼も夜も霞に溶ける）
 })();
 const VEG = { sp: [], last: new THREE.Vector3(1e9, 0, 0), t: 0, group: null, time: { value: 0 } };
 const VEG_UV = [[0, .5, .5, 1], [.5, .5, 1, 1], [0, 0, .5, .5], [.5, .25, .75, .5], [.75, .25, 1, .5], [.5, 0, .75, .25], [.75, 0, 1, .25]];
@@ -1640,17 +1646,7 @@ async function startYorishiro() {
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
-    /* 11-04 本人「環世界に入り込むのはリアルな生き物のみ。それとは別に、碧のデザインを踏襲した可愛い依代が町の中にいて、彼らを通して環境の感じ方を伝える」
-       → 水・石・木・土の依代を、その話の印のそばに 1 体ずつ置く（変身の対象ではない）。触れると碧が、その印の出典つきの一行を、その感じ方の入口として話す。 */
-    const TOWN = { shizuku: ["しずくのそばで、水の音に耳をすませてみます。", "sound"], ishi: ["石のそばで、石の肌に触れてみます。", "touch"], ki: ["木のそばで、幹を見上げてみます。", "sight"], tsuchi: ["土のそばで、足もとを確かめてみます。", "touch"] };
-    const MY = YO.my = new (await import("../kit/machiyori.js?v=3")).MachiYori({ scene: world, camera, dom: renderer.domElement, groundAt: (x, z) => aoiFootY(x, z), active: () => QW.mode === "walk" });
-    const used = new Set();
-    const ANC = [D.starts.find(s => /平成ひろば/.test(s.name || "")) || D.starts[0], D.starts[0]];   /* 11-04 P2：町の依代は歩き始めの近く（平成ひろば・一の鳥居）で出会えるように、近い印から順に置く */
-    for (const kind of Object.keys(TOWN)) { let n = 0;
-      for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 160).sort((p, q) => p[1] - q[1]).slice(0, 40).map(e => e[0]))) { if (n >= 2) break; if (!L.o || used.has(L) || !YO_RE[kind].test(QA_TXT(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
-        let ok = null; for (let k = 0; k < 8 && !ok; k++) { const a = k * .785, x = L.o.x + Math.cos(a) * 1.3, z = L.o.z + Math.sin(a) * 1.3; if (!blocked(x, z)) ok = [x, z]; } if (!ok) continue;
-        used.add(L); n++; const pre = TOWN[kind][0];
-        MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } }
+    // 2026-11-06 本人指定：町に点在する小さな碧（MachiYori）は置かない。主役の碧と自然物の依代は保持。
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
       await YO.y.add(kind, { x: P.x + fz * .95 + fx * 1.8, z: P.z - fx * .95 + fz * 1.8, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
@@ -2038,6 +2034,8 @@ function aoiFingers(dt) {
 /* ---------- かさねっこ（小さな環境エージェント）：層の地点のそばに、その層の色の子がいる（2026-10-23 本人「かさねっこを、川越と氷川にたくさん入れてください」）
    触れると、点の吹き出しで応え、碧がその地点の典拠つきの記録を訳して読む（いまの札と声の仕組み）。遠くの物陰から覗く・層の地点へ案内する（一度したら、しばらく来ない）。
    歩くのは歩道・石畳・砂利の上だけ（車道・植え込み・幹・池・燈籠には入らない）。遠くは描かず、起動のあと（道を読み終えてから）読む。部品＝web/kit/envAgents/kasane.js */
+// 2026-11-07 本人指定の小型の碧を撤去：旧かさねっこの人形群も生成しない。地点・本文・主役の碧は保持。
+const SHOW_KASANE_FIGURES = false;
 const KASA = { herd: null, p: null, cur: null, ok: null, n: 0, miss: 0, noCover: 0, bins: 0 };
 const KASA_SURF = /^(sidewalk|granite_light|granite_plaza|granite_black|granite_band|washed|sand|gravel)\|/;   // stone（縁石・石垣）の上には乗らない
 function kasaCell(x, z) { if (!COLL) return -1; const i = Math.floor((x - COLL.x0) / COLL.c), j = Math.floor((z - COLL.z0) / COLL.c); return i >= 0 && j >= 0 && i < COLL.nx && j < COLL.nz ? j * COLL.nx + i : -1; }
@@ -2066,6 +2064,7 @@ function kasaRaster(o, val = 1) {   // 歩ける面（歩道・石畳・砂利�
   }
 }
 function loadKasane() {
+  if (!SHOW_KASANE_FIGURES) return;
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
     await loadLate(); if (!roadGroup || !COLL) return;
@@ -2154,6 +2153,7 @@ function pickAreaMark(x, y) {
   return best;
 }
 async function areaKasane(Z, J, C) {   // かさねっこ：各エリアに群れ（地点のそばと、道ぞいの数か所）。近くだけ描く
+  if (!SHOW_KASANE_FIGURES) return;
   if (!J.p.length) return;
   const M = AREA.M ||= await import("../kit/envAgents/kasane.js?v=b1"); if (C.dead) return;
   const ok = (x, z) => AREAS.walkable(x, z);
@@ -2867,7 +2867,7 @@ function frame() {
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); if (!QW.mveil && QW.farGM && QW.farGM.userData.gf.gfHole.value.z > QW.farGM.userData.gf.gfHole.value.x) { const h = QW.farGM.userData.gf.gfHole.value; QW.mveil = makeMapVeil({ THREE, parent: world, rect: [h.x, h.y, h.z, h.w], y0: groundY((h.x + h.z) / 2, (h.y + h.w) / 2), fog: scene.fog, k0: m === "sky" || m === "boot" ? 1 : 0 }); } if (QW.mveil) { if (!QW.mveilLift && START.sp) { QW.mveil.lift(START.sp.group); QW.mveilLift = 1; } QW.mveil.update(dt, m === "sky" || m === "boot" || (m === "descend" && camH > 160)); }   /* 11-04 本人「四角い枠が見える＝境界を無くして」：地図の縁を楕円の霞で溶かす（kit/mapveil.js） */
     if (QW.skyTex && m !== "sight") { const vt = m === "boot" ? 1 : 0; VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp(NAVY, CYBER.v.value); } else VEIL.visible = false; CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
   if (PARK.uT && !RM) PARK.uT.value += dt;
-  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.my?.update(dt); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);
   if (QW.mode !== "walk") FARWOOD.g.visible = false;
   if (SIGHT.post && QW.mode === "sight") {

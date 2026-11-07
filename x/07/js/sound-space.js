@@ -157,12 +157,12 @@ export class SoundSpace{
   for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),a=i*2.39996+this.R();const d=new T.Vector3(r*Math.cos(a),y,r*Math.sin(a));this.tips.push({p:d.clone().multiplyScalar(.05),d,o:new T.Vector3(this.R(),this.R(),this.R()).multiplyScalar(Math.PI),gen:0,age:0,life:110+this.R()*110});}
  }
  grow(){
-  const f=this.feat,[lo,mid,hi]=this.levels;if(f.L<.05||this.nSeg>=this.segCap)return;
+  const f=this.feat,L=f.sculptureL||0,[lo,mid,hi]=this.levels;if(L<.05||this.nSeg>=this.segCap)return;
   // 回転の対称の数＝鳴りはじめの、はっきりした周波数の山の数（1〜7）
   // 鳴りはじめの約0.5秒（8回分）のスペクトルを平均してから数える（毎回同じ数になるように）
   if(!this.sym){const acc=this.symAcc||=new Float32Array(this.bins);if(!this.symN)acc.fill(0);for(let x=0;x<this.bins;x++)acc[x]+=this.history[x];if(++this.symN<8)return;
    let k=0;for(let x=1;x<this.bins-1;x++){const v=acc[x]/8;if(v>.45&&v>=acc[x-1]/8&&v>acc[x+1]/8)k++;}this.sym=clamp(k,1,7);}
-  const n=this.sym,R=this.R,A=.35+1.8*lo,B=.35+1.8*mid,C=.35+1.8*hi,s=2.6+2.4*f.c,step0=.006+.03*f.L,col=freqColor(f.c),bright=.3+.7*f.L,fl=clamp(f.flux*14,0,1),sum=lo+mid+hi+1e-6,ex=.75+1.1*lo/sum,ey=.75+1.1*hi/sum,minT=MOBILE?14:24;   // 外形：横の広がり＝低域の割合、縦＝高域の割合
+  const n=this.sym,R=this.R,A=.35+1.8*lo,B=.35+1.8*mid,C=.35+1.8*hi,s=2.6+2.4*f.c,step0=.006+.03*L,col=freqColor(f.c),bright=.3+.7*L,fl=clamp(f.flux*14,0,1),sum=lo+mid+hi+1e-6,ex=.75+1.1*lo/sum,ey=.75+1.1*hi/sum,minT=MOBILE?14:24;   // 外形：横の広がり＝低域の割合、縦＝高域の割合
   const P=this.sGeo.attributes.position.array,Cl=this.sGeo.attributes.color.array,start=this.nSeg,v=this.v,q=this.q,born=[];
   for(const t of this.tips){
    const fade=Math.pow(.8,t.gen)*Math.min(1,1.4/Math.sqrt(n));   // 対称で重なる分、一本を細く淡く
@@ -210,7 +210,8 @@ export class SoundSpace{
   let ps=0,pf=0;for(let k=2;k*bin<16000;k++){const d=this.db[k];if(!Number.isFinite(d)||d<-95)continue;const p=Math.pow(10,d/10);ps+=p;pf+=p*k*bin;}
   const cen=ps>0?pf/ps:0;this.cen=cen;
   this.samples.fill(0);this.a.wave(this.samples);let e=0;for(let i=0;i<2048;i++)e+=this.samples[i]*this.samples[i];const rms=Math.sqrt(e/2048);
-  const f=this.feat;f.L=clamp((20*Math.log10(rms+1e-9)+60)/50,0,1);f.c=cen?clamp(Math.log(cen/150)/Math.log(40),0,1):f.c;f.flux=flux/this.bins;   // 明るさ：150 Hz〜6 kHz を 0〜1 に
+  // 静かな合成音も表示するため、彫刻のみRMSの表示範囲を−80〜−10 dBFSとする。音声ゲインや基音判定は変えない。無音は成長しない。
+  const f=this.feat;f.sculptureL=clamp((20*Math.log10(rms+1e-9)+80)/70,0,1);f.L=clamp((20*Math.log10(rms+1e-9)+60)/50,0,1);f.c=cen?clamp(Math.log(cen/150)/Math.log(40),0,1):f.c;f.flux=flux/this.bins;   // 明るさ：150 Hz〜6 kHz を 0〜1 に
   let est=f.L>.05?this.estimateF0(sr):{f0:null,conf:0};if(est.f0&&this.f0Weak(est.f0,sr))est={f0:null,conf:est.conf};
   // 直近 5 回の中央値をとり、0.3 秒ごとのオクターブの行き来で倍音の列がちらつかないようにする
   if(est.f0){const h=f.hist||=[];h.push(est.f0);if(h.length>5)h.shift();const m=[...h].sort((a,b)=>a-b)[h.length>>1];est={f0:m,conf:est.conf};}else if(f.hist&&f.L<=.05)f.hist.length=0;
@@ -252,7 +253,7 @@ export class SoundSpace{
     this.hMesh[k].attributes.position.needsUpdate=true;this.hLine[k].attributes.position.needsUpdate=true;}
    const f=this.feat;this.caption('倍音の層：手前から奥へ第1〜第8倍音（推定した基音の整数倍）／横＝時間（右が今）／高さ＝各倍音のFFTレベル。'+(f.src==='f0'?'いまの基音の推定：約 '+Math.round(f.f0)+' Hz。':f.src==='peak'?'基音が読みとれないので、最も強い成分（約 '+Math.round(f.f0)+' Hz）を基準にしています。':'いまは音がありません。'));
   }else if(this.view==='sculpture'){
-   this.caption('鳴っているあいだ、音の帯ごとの強さが流れになって、枝が育ちます。くわしく：分岐の成長 × ABC流れ場（カオス的な流れ）。流れの三つの強さ＝低・中・高域／外形の横・縦＝低域・高域の割合／回転の対称の数＝鳴りはじめの周波数の山の数／伸びる長さ＝音の大きさ／枝分かれ＝音の変化／色＝音の明るさ（重心周波数）。止めると形が残ります。'+(this.nSeg>=this.segCap?'形は育ちきりました（もう一度育てるには、ほかの音を選ぶか同じ音を鳴らしなおします）。':this.nSeg?'':'音を鳴らすと育ちはじめます。'));
+   this.caption('鳴っているあいだ、音の帯ごとの強さが流れになって、枝が育ちます。くわしく：分岐の成長 × ABC流れ場（カオス的な流れ）。流れの三つの強さ＝低・中・高域／外形の横・縦＝低域・高域の割合／回転の対称の数＝鳴りはじめの周波数の山の数／伸びる長さ＝音の大きさ（RMS −80〜−10 dBFSを表示へ変換）／枝分かれ＝音の変化／色＝音の明るさ（重心周波数）。止めると形が残ります。'+(this.nSeg>=this.segCap?'形は育ちきりました（もう一度育てるには、ほかの音を選ぶか同じ音を鳴らしなおします）。':this.nSeg?'':'音を鳴らすと育ちはじめます。'));
   }else{
    for(let i=0;i<this.history.length;i++){const v=this.history[i],c=this.palette[Math.round(v*255)];this.pos[i*3+1]=v*2.1;for(let k=0;k<3;k++)this.colors[i*3+k]=c[k]/255;}
    this.g.attributes.position.needsUpdate=true;this.g.attributes.color.needsUpdate=true;

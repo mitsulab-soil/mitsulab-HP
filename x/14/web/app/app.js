@@ -36,7 +36,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", tm: { m0: performance.now() } }; QW.THREE = THREE;
-const VER = "20261028t";
+const VER = "20261107cg2";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -48,11 +48,12 @@ renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.N
 QW.renderer = renderer;
 const scene = new THREE.Scene(), world = new THREE.Group(); scene.add(world); QW.scene = scene;
 /* 2026-10-26 本人「Qualia がメインで、風景はそのオーバーレイ」（氷川と同じ）：層を重ねているあいだ、風景（トーンマップされる物）だけ一段控えめに。印・碧・かさねっこ・札は除く。層をすべて外すと元へ */
+// 2026-11-06 コモングラウンド：情報層を重ねても、物理風景の色と明暗を保つ。
 const LANDG = { value: 0 }, LZERO = { value: 0 }; QW.LANDG = LANDG;
 THREE.ShaderChunk.tonemapping_pars_fragment = "uniform float uLandG;\n" + THREE.ShaderChunk.tonemapping_pars_fragment;
 THREE.ShaderChunk.tonemapping_fragment += `
 #if defined( TONE_MAPPING )
-{ float lu = dot(gl_FragColor.rgb, vec3(.2126, .7152, .0722)); vec3 lg = mix(vec3(lu), gl_FragColor.rgb, .34) * vec3(.64, .66, .71); gl_FragColor.rgb = mix(gl_FragColor.rgb, lg, uLandG); }
+{ float lu = dot(gl_FragColor.rgb, vec3(.2126, .7152, .0722)); vec3 lg = mix(vec3(lu), gl_FragColor.rgb, .85) * vec3(.94); gl_FragColor.rgb = mix(gl_FragColor.rgb, lg, uLandG); }
 #endif
 `;
 THREE.Material.prototype.onBeforeCompile = function (sh) { sh.uniforms.uLandG = this.userData.land ? LANDG : LZERO; };
@@ -946,7 +947,7 @@ function stepLayer(dt) {
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
   { const gT = LAYER.worn.length && QW.mode !== "boot" ? (sky ? .32 : .3) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
   stepHere(cp, t, sky || QW.mode === "fly");
-  declutter(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.my?.update(dt); YO.y?.update(dt);
+  declutter(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);
 }
 /* 2026-10-26（氷川と同じ）：いまいる場所の重なり（半径 30 m の Qualia の数と層）と、画面の外のいちばん近い Qualia の方角 */
 const QH = { t: 0, el: null, dir: null };
@@ -1071,20 +1072,7 @@ async function startYorishiro() {
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z, true),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
-    /* 11-04 本人：碧のデザインを受けつぐ町の依代（変身の対象ではない）。大宮と同じ kit/machiyori.js。近づいて触れると碧が、その印の出典つきの一行を感じ方の入口として話す */
-    { const TOWN = { shizuku: "しずくのそばで、水の音に耳をすませてみます。", ishi: "石のそばで、石の肌に触れてみます。", ki: "木のそばで、幹を見上げてみます。", tsuchi: "土のそばで、足もとを確かめてみます。" };
-      const MY = YO.my = new (await import("../kit/machiyori.js?v=5")).MachiYori({ scene: world, camera, dom: renderer.domElement, groundAt: (x, z) => aoiFootY(x, z, true), active: () => QW.mode === "walk", aoi: () => AOI.m && AOI.root?.visible ? AOI.m.pos : null, onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .35); AOI.gT = 1.2 + Math.random() * .5; } });   // 11-05 依代が碧へ弾んだら、碧もそちらへ目をやる
-      const used = new Set(), TX = L => (L.o.title || "") + " " + (L.o.lines || []).map(l => l.t || "").join(" "), ANC = [...C.starts.filter(s => /ハチ公|金王|稲荷橋|神宮橋|代々木/.test(s.name || "")), C.starts[0]].map(stAt);
-      for (const kind of Object.keys(TOWN)) { let n = 0;
-        for (const L of ANC.flatMap(A => LAYER.objs.filter(L => L.o && L.o.x != null).map(L => [L, Math.hypot(L.o.x - A.x, L.o.z - A.z)]).filter(e => e[1] < 300).sort((p, q) => p[1] - q[1]).slice(0, 60).map(e => e[0]))) { if (n >= 3) break; if (used.has(L) || !YO_RE[kind].test(TX(L))) continue; const ln = (L.o.lines || []).find(l => l.t); if (!ln) continue;
-          let ok = null; for (let k = 0; k < 8 && !ok; k++) { const a = k * .785, x = L.o.x + Math.cos(a) * 1.3, z = L.o.z + Math.sin(a) * 1.3; if (!inBld(x, z, .3)) ok = [x, z]; } if (!ok) continue;
-          used.add(L); n++; const pre = TOWN[kind];
-          MY.add(kind, { x: ok[0], z: ok[1], yaw: Math.random() * 6.28, onTouch: () => { speakLines([{ t: pre, tc: pre }, ln], L, { narr: true }); } }); } }
-      /* 11-05 本人：調べた候補の場所に町の依代を置く（出典＝資料/町の依代の候補_2026-11-05.md）。木・石・土はその場で揺れるだけ。話すのは碧（下に小さく字幕） */
-      /* 11-05 猿楽町の庚申塔（石）は歩ける範囲（と地形）の外＝外した。出典の場所から動かして置かない */
-      for (const P of [{"k": "ki", "ll": [35.65767, 139.70603], "pre": "木のそばで、桜の方を見上げてみます。", "t": "金王八幡宮に、区の天然記念物の桜。一つの枝に一重と八重が咲く。", "s": "渋谷区「区指定文化財」（金王桜）"}, {"k": "tsuchi", "ll": [35.6593, 139.7006], "t": "ここは谷の底。東も西も、坂を上ると地面が 10 メートル以上高い。", "s": "国土地理院の標高（5 m 格子）から計算"}, {"k": "ki", "ll": [35.6696, 139.7023], "t": "人がつくった森。全国から献木された木は約 10 万本。", "s": "明治神宮「明治神宮とは」"}, {"k": "ki", "ll": [35.6684, 139.6974], "pre": "木のそばで、森の高さを見上げてみます。", "t": "練兵場から選手村をへた公園。若かった木が育ち、隣の明治神宮の木々と森になった。", "s": "東京都公園協会「代々木公園」"}]) { try { const [bx, bz] = [(P.ll[1] - G.origin[1]) * G.kx, -(P.ll[0] - G.origin[0]) * G.ky]; if (!isFinite(bx + bz)) continue; let ok = null;
-        for (let k = 0; k < 40 && !ok; k++) { const a = k * .785, r = [1.4, 3, 5, 8, 12][k >> 3], x = bx + Math.cos(a) * r, z = bz + Math.sin(a) * r; if (!inBld(x, z, .3)) ok = [x, z]; }   // 11-05：建物の中しかないときは少し外へ（1.4→12 m）
-        if (!ok) continue; const pre = P.pre || TOWN[P.k], ln = { t: P.t, tc: P.t, src: P.s }; MY.add(P.k, { x: ok[0], z: ok[1], yaw: Math.atan2(bx - ok[0], bz - ok[1]) + Math.PI, scale: 1.5, onTouch: () => speakLines([{ t: pre, tc: pre, src: P.s }, ln], null, { narr: true }) }); /* 11-05 採点：誘いの一言の下にも、その一行の出典を（前の話の出典が残らないように） */ } catch (e) { console.warn("machiyori", e); } } }
+    // 2026-11-06 本人指定：町に点在する小さな碧（MachiYori）は置かない。主役の碧と自然物の依代は保持。
     QW.yoShow = async kind => {   // 変身の輪から呼ぶ：選んだ一体だけを碧の横へ（木・石・土は動かず、その場に置く）
       YO.y.dispose(); if (!kind || !AOI.m) return; const P = AOI.m.pos, still = /^(ki|ishi|tsuchi|shizuku)$/.test(kind), fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);   // 碧の左・少し奥（画面の下の GUI と重ならない）
       let yx = P.x + fz * .95 + fx * 1.8, yz = P.z - fx * .95 + fz * 1.8; if (inBld(yx, yz, .4)) { yx = P.x - fz * .95 + fx * 1.8; yz = P.z + fx * .95 + fz * 1.8; } if (inBld(yx, yz, .4)) { yx = (P.x + CAM.pos.x) / 2 + fz * .9; yz = (P.z + CAM.pos.z) / 2 - fx * .9; }   // 11-03：依代を建物の中に置かない（反対側か、碧と見る人のあいだへ）
@@ -1289,7 +1277,7 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 3.0 : 2.3, s = MOBILE ? .55 : 1.1,   /* 11-03 本人「碧との距離をもっと近く」：前 3.6/3.0 m・横 1.25 */   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
+  const f = MOBILE ? 3.8 : 3.6, s = MOBILE ? .55 : 1.1,   /* 11-03 本人「碧との距離をもっと近く」：前 3.6/3.0 m・横 1.25 */   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = !$("#panel").hidden && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：左右がこまごとに入れかわらない */
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
@@ -1302,7 +1290,19 @@ function aoiArrive() {
   loadAoi().then(() => {
     if (!AOI.m || QW.mode !== "walk") return;
     aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, Math.atan2(CAM.pos.x - AOI.pos.x, CAM.pos.z - AOI.pos.z)); AOI.root.visible = true;
-    if (!AOI.greeted) { setTimeout(() => { if (QW.mode === "walk") speakLines([C.intro], null, { done: () => { AOI.greeted = true; TALK.nextT = performance.now() + 2500; } }); else AOI.greeted = true; }, 900); }
+    if (!AOI.greeted && !AOI.greetPending) {
+      AOI.greetPending = true;
+      const beginIntro = () => {
+        if (QW.mode !== "walk") { AOI.greetPending = false; return; }
+        const spot = aoiSpot(new THREE.Vector3());
+        // 案内は立ち位置へ着き、正面を向いてから。移動操作は待たせない。
+        if (WALK.moving || Math.hypot(spot.x - AOI.m.pos.x, spot.z - AOI.m.pos.z) > .4 || AOI.v > .12) { setTimeout(beginIntro, 200); return; }
+        AOI.m.faceTo(Math.atan2(CAM.pos.x - AOI.m.pos.x, CAM.pos.z - AOI.m.pos.z));
+        AOI.greetPending = false;
+        speakLines([C.intro], null, { done: () => { AOI.greeted = true; TALK.nextT = performance.now() + 2500; } });
+      };
+      setTimeout(beginIntro, 900);
+    }
   });
 }
 const _ap = new THREE.Vector3();
@@ -1316,16 +1316,17 @@ function stepAoi(dt) {
   else {
     const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;
     if (MOBILE) { const sx = _ndc.copy(P).setY(P.y + 1).project(camera).x, sd = sx < -.08 ? "l" : sx > .08 ? "r" : null; if (sd && document.body.dataset.aoi !== sd) document.body.dataset.aoi = sd; }   // 11-05 375px：字幕を碧と反対の側へ   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
-    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(WALK.moving ? Math.max(1.6, WALK.speed * 1.15) : 1.6, dist * 1.4 + (WALK.moving ? WALK.speed : 0)) : 0;   /* 10-30：歩く速さ（2.4 m/s）が碧の上限 1.6 を超え、375px で碧が後ろへ消えていた */
+    const presenting = !!voiceQ && !WALK.moving && dist < .35; // 案内中もまず安全な立ち位置まで移動し、着いてから見る人へ向く
+    const go = !presenting && (WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : !AOI.greeted ? .35 : 1.3)), want = go ? Math.min(WALK.moving ? Math.max(1.6, WALK.speed * 1.15) : 1.6, dist * 1.4 + (WALK.moving ? WALK.speed : 0)) : 0;   /* 10-30：歩く速さ（2.4 m/s）が碧の上限 1.6 を超え、375px で碧が後ろへ消えていた */
     AOI.v += Math.max(-1.8 * dt, Math.min((WALK.moving ? 3.2 : 1.0) * dt, want - AOI.v));   // 10-30：見る人が歩き出したら、碧もすぐ同じ速さに（追い越されて後ろへ消えない）
-    if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); let nx = P.x + dx / dist * st, nz = P.z + dz / dist * st;
+    if (!presenting && (AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); let nx = P.x + dx / dist * st, nz = P.z + dz / dist * st;
       if (inBld(nx, nz, .3) && !inBld(P.x, P.z, .3)) { if (!inBld(nx, P.z, .3)) nz = P.z; else if (!inBld(P.x, nz, .3)) nx = P.x; else { nx = P.x; nz = P.z; AOI.bt = 9; } }   // 11-03：碧も壁に沿ってすべる（抜けられないときは見る人の前へ移る）
       AOI.m.drive(nx, nz); }
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; AOI.m.faceTo(Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z)); }
   }
   AOI.gT = (AOI.gT ?? 5) - dt;
   if (!AOI.focus && AOI.gT <= 0) { if (AOI.glance) { AOI.glance = null; AOI.gT = 5 + Math.random() * 6; } else { AOI.glance = KURA.tower && Math.hypot(KURA.tower.position.x - P.x, KURA.tower.position.z - P.z) < 60 ? new THREE.Vector3(KURA.tower.position.x, KURA.bellY, KURA.tower.position.z) : new THREE.Vector3(P.x - Math.sin(CAM.yaw) * 12, P.y + 6, P.z - Math.cos(CAM.yaw) * 12); AOI.gT = 1.6 + Math.random() * 1.4; } }
-  AOI.m.lookAt(AOI.focus || AOI.glance || null);
+  AOI.m.lookAt(voiceQ && !WALK.moving ? camera.position : (AOI.focus || AOI.glance || null)); // 停止中の案内は視線も見る人へ。歩行・観察中の目配せは維持
   AOI.m.update(dt, camera);
 }
 
@@ -1559,6 +1560,8 @@ function showGoal(p) { if (!WALK.ring) { WALK.ring = new THREE.Mesh(new THREE.Ri
 /* ---------- かさねっこ（小さな環境エージェント）：層の地点のそばに、その層の色の子がいる（2026-10-23 本人「かさねっこを、川越と氷川にたくさん入れてください」）
    触れると、点の吹き出しで応え、碧がその地点の典拠つきの記録を訳して読む（いまの札と声の仕組み）。蔵や町家の角から覗く・層の地点へ案内する（一度したら、しばらく来ない）。
    歩くのは通りの上だけ（店蔵・町家・時の鐘の中には入らない）。遠くは描かず、起動のあと（降りてから）読む。部品＝web/kit/envAgents/kasane.js */
+// 2026-11-07 本人指定の小型の碧を撤去：旧かさねっこの人形群も生成しない。地点・本文・主役の碧は保持。
+const SHOW_KASANE_FIGURES = false;
 const KASA = { herd: null, p: null, cur: null, n: 0 };
 function kasaBox(x, z, r = .25) {   // 店蔵・町家・時の鐘の箱の中か
   const inb = (cx, cz, yaw, hw, hd) => { const c = Math.cos(yaw), s = Math.sin(yaw), dx = x - cx, dz = z - cz, lx = dx * c - dz * s, lz = dx * s + dz * c; return Math.abs(lx) < hw + r && Math.abs(lz) < hd + r; };
@@ -1570,6 +1573,7 @@ function kasaBox(x, z, r = .25) {   // 店蔵・町家・時の鐘の箱の中�
 function kasaOk(x, z) { return (nearestOnLine(x, z, 6).dist < 5 || onNet(x, z, -.4)) && !kasaBox(x, z) && !inBld(x, z, .2); }   // 通りの中ほど（両側の建物の前まで出ない）
 function kasaPeek(x, z) { return (nearestOnLine(x, z, 12).dist < 11 || onNet(x, z, 1.5)) && !kasaBox(x, z, .02); }   // 覗く所：建物の角のすぐ脇
 function loadKasane() {
+  if (!SHOW_KASANE_FIGURES) return;
   if (KASA.p) return KASA.p;
   return KASA.p = (async () => {
     const M = await import("../kit/envAgents/kasane.js?v=b1");

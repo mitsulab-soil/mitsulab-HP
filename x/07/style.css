@@ -208,3 +208,16 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 @media (prefers-reduced-motion:reduce){ #labs .lab{transition:none} }
 #panel .p-law{display:block;order:0;margin:0 0 12px;line-height:1.5;font-size:12px;color:#a2b8bf}
 @media(max-width:680px){ #panel .p-law{font-size:10px;margin-bottom:8px} }
+
+/* 2026-11-07: stop is always in the sticky performance header, also on 375px. */
+#panel .p-head{gap:8px}#panel .p-stop{margin-left:auto;min-height:44px;min-width:64px;font-size:12px;padding:0 10px;color:#d4f3f3}#panel .p-x{margin-left:0}#panel .p-head .ml-label{max-width:34%;overflow-wrap:anywhere}
+
+/* 2026-11-07: three existing sound points, not a separate collection or cards. */
+#hint .near-sounds{display:grid;justify-items:center;gap:2px}
+#nearSoundPrompt{font:11px/1.6 var(--ml-serif);color:#b7cad0;text-shadow:0 1px 5px #000}
+.near-sound-points{display:flex;justify-content:center;gap:8px}
+.near-sound-points button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:84px;min-height:44px;padding:0 10px;border:0;border-radius:0;background:none;color:#e2f0ef;font:500 15px/1.5 var(--ml-serif);letter-spacing:.06em;cursor:pointer;text-shadow:0 1px 5px #000}
+.near-sound-points button::before{content:"";width:9px;height:9px;border:1px solid #c5ebec;border-radius:50%;background:#82bfc1;box-shadow:0 0 9px #b3e5e888;transition:box-shadow .2s,background .2s}
+.near-sound-points button:hover::before,.near-sound-points button:focus-visible::before{background:#edfdfb;box-shadow:0 0 14px #b3e5e8}
+.near-sound-points button:focus-visible{outline:2px solid #bce8e8;outline-offset:1px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){.near-sound-points button::before{transition:none}}

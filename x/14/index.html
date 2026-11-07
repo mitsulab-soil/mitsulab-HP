@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="ja" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qualium 渋谷</title>
-<meta name="description" content="谷の底の渋谷駅から、大山道の宮益坂・道玄坂、渋谷川、金王八幡宮、代々木公園の入口へ。渋谷の町に、Qualia/sight・touch・sound・nature・culture の五つの層（sound に書の Qualia/sho、culture に歴史を含む）を重ねて歩く場、Qualium。">
+<meta name="description" content="坂道と渋谷川のまわりを碧と歩き、土地の記録・音・生き物の手がかりを重ねる。互いの受けとり方に触れ、現実の町へ問いを持ち帰るQualium。">
 <meta name="tdm-reservation" content="1">
-<meta property="og:title" content="Qualium 渋谷"><meta property="og:description" content="谷の底の町に Qualia の層を重ね、大山道の坂と渋谷川を歩く。"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="Qualium 渋谷"><meta property="og:description" content="坂道と渋谷川のまわりを碧と歩き、土地の記録・音・生き物の手がかりを重ねる。互いの受けとり方に触れ、現実の町へ問いを持ち帰るQualium。"><meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#03060f">
 <link rel="icon" href="favicon/favicon.ico" sizes="any"><link rel="icon" href="favicon/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261105sl4">
+<link rel="modulepreload" href="web/app/app.js?v=20261107night">
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="modulepreload" href="web/app/layers.js?v=k5">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
@@ -649,8 +649,8 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261105sl4").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261107night").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=8").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261107flight1").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 </body></html>
