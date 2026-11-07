@@ -271,3 +271,8 @@ body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
 
 #top .cg-opening,#top .cg-place-intro{width:min(1120px,calc(100% - 10vw));margin-left:auto;margin-right:auto}
 @media(max-width:759px){#top .cg-opening,#top .cg-place-intro{width:calc(100% - 44px)}}
+
+/* Opening copy clears the fixed header; restore semantic Japanese line breaks. */
+#top .cg-opening{padding-top:calc(64px + clamp(40px,5vw,72px))}
+#top .cg-opening #visionH br{display:block}
+@media(max-width:759px){#top .cg-opening{padding-top:100px}}
