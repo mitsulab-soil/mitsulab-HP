@@ -83,7 +83,7 @@
 #top .cg-scene{position:absolute;inset:0;margin:0;width:100%;height:100%}
 #top .cg-stage{position:absolute;inset:0;height:100%;width:100%;touch-action:pan-y}
 #top .cg-stage canvas,#top .cg-poster{mask-image:none;width:100%;height:100%}
-#top .cg-stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(3,6,15,.84),rgba(3,6,15,.23) 38%,transparent 65%),linear-gradient(0deg,#03060f 0%,rgba(3,6,15,.6) 18%,transparent 42%)}
+#top .cg-stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(3,6,15,.84),rgba(3,6,15,.14) 38%,transparent 65%),linear-gradient(0deg,#03060f 0%,rgba(3,6,15,.40) 18%,transparent 42%)}
 #top .cg-scene-controls{position:absolute;z-index:4;left:6vw;right:6vw;bottom:42px;max-width:900px}
 #top .cg-scene-bar,#top .cg-steps{margin:0}
 #top .cg-steps{max-width:640px}
@@ -161,3 +161,85 @@ body.cg-design #bgRain,body.cg-design>.aurora{display:none}
 #top .cg-gl-fallback{z-index:5;top:35%;bottom:auto;left:6vw;max-width:360px;padding:16px;background:#03060fd9}
 #top .cg-clue-copy{min-height:54px}
 @media(max-width:759px){#top .cg-scene-label{font-size:10px;max-width:110px;padding:5px 8px}#top .cg-clue-copy{font-size:11px;min-height:62px}#top .cg-caption:has(.cg-clue-copy:not([hidden])){min-height:62px}}
+
+/* A shared physical condition can be changed before comparing its meanings. */
+#top .cg-light-control{display:flex;align-items:center;gap:10px;min-height:44px;color:#d4e2e4;font:400 12px/1.4 var(--sans,sans-serif)}
+#top .cg-light-control input{width:110px;min-height:44px;accent-color:#a8d9cd;cursor:ew-resize}
+#top .cg-light-control output{min-width:3em;font:11px/1.4 var(--sans,sans-serif)}
+#top .cg-light-control input:focus-visible{outline:2px solid #c5f5ee;outline-offset:3px}
+@media(max-width:759px){#top .cg-light-control{font-size:11px;gap:6px}#top .cg-light-control input{width:85px}#top .cg-source-note{font-size:11px;line-height:1.7}}
+
+/* Observation gives the place more room without removing any clue labels. */
+#top .cg-hero.is-observing .cg-hero-copy{width:calc(100% - 12vw);top:28px}
+#top .cg-hero.is-observing #visionH{font-size:16px!important;line-height:1.5!important;letter-spacing:.08em!important}
+#top .cg-hero.is-observing #visionH br{display:none}
+#top .cg-hero.is-observing .cg-stage:after{background:linear-gradient(0deg,#03060f 0%,rgba(3,6,15,.4) 18%,transparent 42%)}
+@media(max-width:759px){#top .cg-hero.is-observing .cg-hero-copy{left:22px;top:68px;width:calc(100% - 44px)}#top .cg-hero.is-observing #visionH{font-size:14px!important}}
+
+/* 2026-11-07: a visit begins as a work, before its explanation. */
+#top .cg-hero{height:calc(100svh - 64px);min-height:560px;max-height:none}
+#top .cg-hero-copy{top:30px;left:5vw;width:70%;opacity:.85}
+#top #visionH,#top .cg-hero.is-observing #visionH{font:400 15px/1.6 var(--serif,serif)!important;letter-spacing:.1em!important;margin:0}
+#top #visionH br{display:none}
+#top .cg-hero-copy .cg-eyebrow{font-size:8px;letter-spacing:.25em;margin-bottom:10px}
+#top .cg-hero.is-observing .cg-hero-copy{top:30px;left:5vw;width:70%}
+#top .cg-stage:after,#top .cg-hero.is-observing .cg-stage:after{background:linear-gradient(0deg,rgba(3,6,15,.85),transparent 28%),linear-gradient(180deg,rgba(3,6,15,.4),transparent 22%)}
+#top .cg-journey{position:absolute;z-index:6;left:5vw;right:5vw;bottom:58px;max-width:520px}
+#top .cg-journey-line{display:flex;align-items:center;gap:16px;color:#d0e5e2;font:11px/1.6 var(--sans,sans-serif);letter-spacing:.12em}
+#cgJourneyPhase{margin-right:auto;min-width:5em}
+#top .cg-journey button{border:0;background:transparent;color:#e1eeea;font:12px/1.6 var(--sans,sans-serif);min-width:44px;min-height:44px;cursor:pointer;padding:6px 10px}
+#top .cg-journey button:hover{background:#a8f2f614}
+#top .cg-journey input{display:block;width:100%;height:36px;margin:0;accent-color:#b1e5dc;cursor:ew-resize}
+#top .cg-journey-hint{margin:0;color:#a4b9ba;font:10px/1.6 var(--sans,sans-serif);letter-spacing:.12em}
+#top .cg-scroll-cue{position:absolute;z-index:6;bottom:2px;left:5vw;min-height:44px;display:flex;align-items:center;text-decoration:none;color:#b7ccca;font:11px/1.6 var(--sans,sans-serif);letter-spacing:.1em}
+#top #cgJourneyExit{display:none}
+#top .cg-expanded #cgJourneyExit{display:block;position:fixed;right:15px;top:15px;border:1px solid #c6e5df66;border-radius:50%;font-size:24px;background:#03060f99}
+#top .cg-subtitle{left:50%;transform:translateX(-50%);bottom:190px;width:min(620px,85vw);max-width:none;font-size:17px;z-index:5}
+#top .cg-world-tools{position:relative;max-width:1180px;margin:0 auto;padding:35px 6vw 24px;box-sizing:border-box;scroll-margin-top:84px}
+#top .cg-world-tools .cg-scene-controls{position:relative;inset:auto;max-width:none}
+#top .cg-world-tools .cg-source-note{position:relative;inset:auto;max-width:680px;margin:18px 0 0;font-size:11px}
+#top .cg-world-tools .cg-caption{min-height:54px}
+#top .cg-world-tools .cg-caption p{font-size:13px}
+#top .cg-world-tools .cg-scene-bar{max-width:640px}
+#cgWorldCanvas{position:fixed;inset:64px 0 0;z-index:0;pointer-events:none;display:none;overflow:hidden;background:#03060f}
+#cgWorldCanvas canvas{display:block;width:100%;height:100%;opacity:.55}
+body.cg-beyond #cgWorldCanvas{display:block}
+body.cg-beyond #main{position:relative;z-index:1;background:transparent}
+body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.82),rgba(3,6,15,.73) 70%,rgba(3,6,15,.65))!important}
+body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
+@media(max-width:759px){
+ #top .cg-hero{min-height:540px;height:calc(100svh - 64px)}
+ #top .cg-hero-copy,#top .cg-hero.is-observing .cg-hero-copy{top:30px;left:22px;width:calc(100% - 44px)}
+ #top #visionH,#top .cg-hero.is-observing #visionH{font-size:13px!important;letter-spacing:.06em!important}
+ #top .cg-journey{left:22px;right:22px;bottom:58px}
+ #top .cg-scroll-cue{left:22px}
+ #top .cg-world-tools{padding:26px 22px 12px}
+ #top .cg-subtitle{left:50%;bottom:188px;font-size:14px;line-height:1.8;width:calc(100% - 44px);padding:9px 10px;box-sizing:border-box}
+ #top .cg-hero.cg-expanded{min-height:0;height:100dvh}
+}
+@media(prefers-reduced-motion:reduce){#top .cg-journey *{transition:none}}
+/* The first frame is the dark place, not a flash-forward to the finished scene. */
+#top .cg-stage:not([data-ready]) .cg-poster{opacity:0}
+#top .cg-stage[data-ready="false"] .cg-poster{opacity:1}
+#cgJourney{appearance:none;-webkit-appearance:none;background:transparent}
+#cgJourney::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,#d8efe5,#d8efe544)}
+#cgJourney::-moz-range-track{height:1px;background:#b9dbce66}
+#cgJourney::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:9px;height:9px;border-radius:50%;margin-top:-4px;background:#e1f3ea;box-shadow:0 0 13px #c6f5dc66}
+#cgJourney::-moz-range-thumb{width:9px;height:9px;border:0;border-radius:50%;background:#e1f3ea;box-shadow:0 0 13px #c6f5dc66}
+#cgJourney:focus-visible{outline:1px solid #c6e7dc;outline-offset:3px}
+
+#top .cg-hero-copy,#top .cg-hero.is-observing .cg-hero-copy{top:90px}
+
+/* The sound invitations read as an open sequence, not boxed cards. */
+#collab .ws-grid .ws-sound-entry{flex-basis:100%;width:100%;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:32px;background:transparent;border:0;border-top:1px solid #b9d8d429;border-radius:0;padding:30px 0;box-shadow:none}
+.ws-sound-entry figure{margin:0}.ws-sound-entry img{width:100%;height:240px;object-fit:cover;display:block}.ws-sound-entry figcaption{font:10px/1.5 var(--sans,sans-serif);color:#a6b9b9;margin-top:8px}.ws-sound-entry h3{font:400 26px/1.6 var(--serif,serif);margin:10px 0}.ws-sound-entry a{color:inherit;text-decoration:none}.ws-sound-entry p{font:14px/1.9 var(--sans,sans-serif);color:#bdcbd0;margin:16px 0}.ws-sound-entry .ws-preview-link{display:inline-flex;align-items:center;min-height:44px;font-size:12px;color:#b4dfd5;border-bottom:1px solid #b4dfd555}
+@media(max-width:600px){#collab .ws-grid .ws-sound-entry{grid-template-columns:1fr;gap:16px}.ws-sound-entry img{height:210px}.ws-sound-entry h3{font-size:23px}.ws-sound-entry p{font-size:13px}}
+/* Reading has its own quiet surface; the shared place remains at the edges. */
+#top .cg-world-tools{background:linear-gradient(90deg,#03060ff2,#03060fd9)}
+
+/* The arrival is automatic. A quiet progress line replaces the scrub slider. */
+#top .cg-journey progress{display:block;width:100%;height:1px;margin:14px 0 6px;appearance:none;border:0;background:#c3e8dc26;color:#b1e5dc;pointer-events:none}
+#top .cg-journey progress::-webkit-progress-bar{background:#c3e8dc26}
+#top .cg-journey progress::-webkit-progress-value{background:#b1e5dc}
+#top .cg-journey progress::-moz-progress-bar{background:#b1e5dc}
+#top .cg-stage canvas{cursor:default}

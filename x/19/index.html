@@ -22,16 +22,38 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #cap{background:rgba(3,6,15,.55);border-radius:10px;padding:6px 12px;box-sizing:border-box;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);position:fixed;left:50%;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 80px);transform:translateX(-50%);width:min(560px,calc(100% - 32px));text-align:center;font-size:13px;line-height:1.7;color:var(--ink);text-shadow:0 1px 6px #000,0 0 2px #000;z-index:2;transition:opacity .4s;pointer-events:none}
 .tag{position:fixed;z-index:2;font-size:11px;color:var(--ink);letter-spacing:.06em;text-shadow:0 1px 4px #000;pointer-events:none;transition:left .5s,top .5s,opacity .3s;white-space:nowrap}
 .tag{text-shadow:0 0 6px #000,0 1px 3px #000,0 0 12px rgba(0,0,0,.8)}.tag{font-size:13px}.tag i{white-space:pre-line;font-style:normal;color:#d6e2f0;display:block;margin:3px 0 0;font-size:12px}
-@media (max-width:560px){#cap{font-size:12px;line-height:1.6;padding:4px 10px}.tag{font-size:10px;text-align:center;white-space:normal;width:23vw;box-sizing:border-box;padding:4px 2px;word-break:keep-all}.tag i{display:block;margin:2px 0 0;font-size:10px}}
+@media (max-width:560px){#cap{font-size:12px;line-height:1.6;padding:4px 10px}.tag{font-size:10px;text-align:center;white-space:normal;width:23vw;box-sizing:border-box;padding:4px 3px;word-break:normal;overflow-wrap:anywhere;line-height:1.5;background:rgba(3,6,15,.32)}.tag i{display:block;margin:2px 0 0;font-size:10px}}
 </style>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="./vendor/three/build/three.module.js"><link rel="modulepreload" href="./vendor/three/examples/jsm/controls/OrbitControls.js"><link rel="modulepreload" href="./keyaki.js"><link rel="modulepreload" href="./kit/index.js"><link rel="modulepreload" href="./kit/atmosphere.js"><link rel="modulepreload" href="./kit/vegetation.js"><link rel="modulepreload" href="./kit/layers.js"><link rel="modulepreload" href="./kit/aoi.js"><link rel="modulepreload" href="./kit/aoi_motion.js"><link rel="modulepreload" href="./kit/aoi_mocap.js"><link rel="modulepreload" href="./kit/aoi_robe.js"><link rel="modulepreload" href="./vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
-</head>
+<style id="question-route-style">.q-route{margin:12px 0;padding:12px 0;border-top:1px solid currentColor;font:13px/1.8 Inter,"Hiragino Sans",sans-serif;text-align:left}.q-route h2,.q-route h3{margin:0 0 8px;font-size:14px;font-weight:500;line-height:1.5}.q-route p{margin:4px 0 8px}.q-route a,.q-route button{min-height:44px;display:flex;align-items:center;color:inherit;background:none;border:0;border-bottom:1px solid #9ed9e64d;padding:4px 0;font:inherit;text-align:left;cursor:pointer;text-decoration:none;width:100%;box-sizing:border-box}.q-route a:focus-visible,.q-route button:focus-visible{outline:2px solid #b9f5ff;outline-offset:3px}.q-route small{display:block;opacity:.8}</style><style>.q-tree-route{position:fixed;z-index:20;right:max(12px,env(safe-area-inset-right));top:calc(64px + env(safe-area-inset-top));color:#dae8ee;max-width:min(340px,calc(100vw - 24px));font:13px/1.8 sans-serif}.q-tree-route>summary{width:max-content;min-width:44px;height:44px;padding:0 12px;box-sizing:border-box;display:grid;place-items:center;list-style:none;cursor:pointer;background:#08111ac9;border-radius:50%;margin-left:auto;border:1px solid #a8f2f63d}.q-tree-route>summary::-webkit-details-marker{display:none}.q-evidence>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;border-top:1px solid #9ed9e64d}.q-evidence a{font-size:12px}.q-tree-route[open] .q-route{background:#08111aed;border:1px solid #a8f2f633;border-radius:8px;padding:16px;max-height:calc(100dvh - 164px);overflow:auto;margin:6px 0 0}.q-tree-route>summary:focus-visible{outline:2px solid #b9f5ff;outline-offset:3px}</style><style id="zoom-layout-20261107">
+/* Keep captions and every selector in flow when text or the viewport grows narrow. */
+body{display:grid;grid-template-rows:minmax(128px,1fr) auto auto auto;justify-items:center;overflow-y:auto}
+#tags{grid-row:1}
+#cap{grid-row:3;position:relative;left:auto;bottom:auto;transform:none;margin:8px auto;max-height:35vh;overflow:auto;pointer-events:auto;touch-action:pan-y;width:min(560px,calc(100% - 24px))}
+#who{grid-row:4;position:relative;left:auto;bottom:auto;transform:none;width:calc(100% - 24px);justify-content:center;flex-wrap:wrap;gap:8px;margin:0 auto max(18px,env(safe-area-inset-bottom))}
+#who button{box-sizing:border-box;flex:0 0 64px;min-height:64px;height:auto;padding:6px 3px;overflow-wrap:anywhere}
+.q-tree-route{grid-row:2;position:relative;top:auto;right:auto;justify-self:end;width:calc(100% - 24px);max-width:340px;margin:0 12px}
+.q-tree-route[open]{position:fixed;top:12px;right:12px;left:auto;margin:0}
+.q-tree-route[open] .q-route{position:relative;right:auto;bottom:auto;max-height:calc(100dvh - 88px)}
+.q-tree-route>summary{max-width:100%;height:auto;min-height:44px;overflow-wrap:anywhere}
+.q-tree-route[open] .q-route{box-sizing:border-box;width:min(340px,100%);overflow-wrap:anywhere}
+</style><style id="tree-revisit-style">
+#journey{grid-row:2;position:relative;z-index:3;width:min(560px,calc(100% - 24px));display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font:13px/1.5 "Hiragino Sans",sans-serif}
+#journey-step{width:100%;text-align:center;text-shadow:0 1px 5px #000;margin:0}
+#journey-next{min-height:44px;max-width:100%;padding:8px 14px;border:1px solid #a8f2f670;border-radius:22px;background:#08111ae8;color:var(--ink);font:inherit;cursor:pointer;overflow-wrap:anywhere}
+#journey-next:focus-visible{outline:2px solid #b9f5ff;outline-offset:3px}
+#journey .q-tree-route{width:auto;margin:0;max-width:100%;font:inherit}
+#journey .q-tree-route>summary{border-radius:22px}
+#journey .q-tree-route[open]{width:min(340px,calc(100% - 24px));max-width:none}
+.q-return{padding-left:1.4em;margin:8px 0}.q-return li{margin:6px 0}
+@media(prefers-reduced-motion:reduce){#cap{transition:none}}
+</style></head>
 <body>
 <canvas id="cv" aria-label="一本のケヤキ"></canvas>
-<div id="tags"></div>
+<div id="tags"></div><div id="journey" data-stage="observe"><p id="journey-step">まず見る</p><button id="journey-next" type="button">ミツバチの手がかりへ →</button><details id="question-route" class="q-tree-route"><summary aria-label="身近な木への問いと根拠">＋ 問いと根拠</summary><section class="q-route"><h2>画面を閉じて、身近な木へ。</h2><ol class="q-return"><li>まず、目に入るものを一つ。葉・幹・根もとのどこでしょう。</li><li>立つ位置を少し変えて、光と影を見てみる。</li><li>最初の位置でもう一度。気になったところは変わりましたか。</li></ol><p>見えたことと、想像したことは分けておきましょう。色だけでは、その木の紫外の反射や土の水分まではわかりません。</p><button id="journey-restart" type="button">画面の木でもう一度</button><a href="../24/" data-question-local="../../13_Qualia_translate/★実行データ/">人と機械でも見比べる →</a><details class="q-evidence"><summary>見え方の根拠と限界</summary><p>色・光・数値は、人に見えるように置き換えた模式です。生き物の主観や、この場所の紫外画像・土壌水分を実測したものではありません。</p><p>ハチの受容体：紫外・青・緑を手がかりにしています。<a href="https://pubmed.ncbi.nlm.nih.gov/1573568/" target="_blank" rel="noopener">Peitschほか（1992）↗</a></p><p>鳥の紫外感度は種で異なります。ここで描くヒヨドリの型は未確認です。<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3637589/" target="_blank" rel="noopener">Ödeen・Håstad（2013）↗</a></p><p>土の水分を誘電率から推定する方法があります。画面の深さと数値は作者の設定で、深いほど必ず湿るとは限りません。<a href="https://doi.org/10.1029/WR016i003p00574" target="_blank" rel="noopener">Toppほか（1980）↗</a></p></details><a href="https://mitsulab.jp/#apps">作品の一覧へ →</a></section></details></div>
 <p id="cap" aria-live="polite"></p>
-<nav id="who" aria-label="受けとる生き物と機械">
+<nav id="who" aria-label="補助操作：受けとり方を並べて比較。押すたび追加・解除">
   <button data-k="0" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21c0-4 2.7-7 6-7s6 3 6 7"/></svg>人</button>
   <button data-k="1" aria-pressed="false"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="3.2" ry="5"/><path d="M9 11c-4-3-6-1-5 1s4 1 5 0M15 11c4-3 6-1 5 1s-4 1-5 0M10.5 5.5 9 3M13.5 5.5 15 3"/></svg>ミツバチ</button>
   <button data-k="2" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 14c3-5 9-7 13-5l3-1-1.5 3c0 4-4 7-9 7H4l3-2z"/><circle cx="15.5" cy="10.5" r=".6"/></svg>ヒヨドリ</button>
@@ -170,32 +192,62 @@ function sizeRT() { renderer.getDrawingBufferSize(dbs); if (rt.width !== dbs.x |
 
 // ---- 主体・碧の字幕（事実は 資料/出典.md）
 const WHO = [
-  { n: "人", m: "赤・緑・青\n人の目", say: "同じ一本のケヤキ。下の生き物や機械を押すと、その受けとり方が隣に並びます。" },
+  { n: "人", m: "赤・緑・青\n人の目", say: "まずは、この一本を。葉・幹・根もと、どこに目が向きますか。画面をなぞると、見る位置を変えられます。" },
   { n: "ミツバチ", m: "色はずらした模式\nハチの緑→赤", say: "ミツバチは紫外・青・緑で受けとり、赤は届きにくい。その三つを、人に見える青・緑・赤へずらした模式。ぼかしは目の粗さ（個眼の間の角度 約 1〜2 度）の模式。色は、緑→赤・青→緑・紫外→青にずらした。" },
-  { n: "ヒヨドリ", m: "紫外にも感じる型\n色の差は模式", say: "鳥は四色型。目の中の色の油滴で、色の違いを人より細かく見分ける。ヒヨドリが属するスズメ目の多くは、紫外にも強く感じる型（ヒヨドリ自身は未確認）。色の差を強め、紫外を紫で重ねた模式。粉をふいた黒い実は紫外を返し、葉はほとんど返さない。" },
+  { n: "ヒヨドリ", m: "鳥の紫外感度の模式\n種の型は未確認", say: "鳥の色覚には、人にはない紫外から紫の感度をもつ型があります。この画面は鳥の色覚研究を手がかりにした模式で、ヒヨドリの感度を測ったものではありません。紫の重ね合わせも紫外写真ではなく、色の受けとり方を考えるための表現です。" },
   { n: "土のセンサー", m: "土の水分（%）\n値は模式", say: "センサーは画を見ない。根もと近くと離れた所の 2 か所に差し、土の水分を、深さごとに体積の % で読むだけ（値は模式）。薄い線は木の位置の目安。" } ];
 const SAY_MANY = "帯ごとに、同じ一本のケヤキを、それぞれの受けとり方で。あなたの帯も、その一つ。";
-const SAY_END = "外の本当の木の前で、どの帯の受けとり方を想像してみますか。";
+const SAY_END = "別の手がかりに触れたあと、人の目でもう一度。同じ木の、どこが気になりますか。";
+const SAY_REVISIT = "人の目に戻りました。最初と比べて、目が向くところは変わりましたか。見えない手がかりも、この木のまわりにあります。";
 let order = [0];
 const w = [1, 0, 0, 0];   // 帯の幅（なめらかに）
 const btns = [...document.querySelectorAll("#who button")];
 const tagsEl = document.getElementById("tags"), tags = WHO.map((x, i) => { const d = document.createElement("div"); d.style.setProperty("--c", ["#eef5fb", "#8f8cff", "#d2a6ff", "#78d6ec"][i]); d.className = "tag"; d.innerHTML = x.n + (x.m ? `<i>${x.m}</i>` : ""); d.style.opacity = 0; tagsEl.appendChild(d); return d; });
 const cap = document.getElementById("cap");
-let capTimer = 0;
-function say(t, next) { cap.style.opacity = 0; setTimeout(() => { cap.textContent = t; cap.style.opacity = 1; }, 180); if (aoi) aoi.speak({ dur: Math.min(4.5, 1.2 + t.length * .07), kana: "", text: t, ref: CROWN, gesture: [{ t: .35, type: "deictic", target: CROWN }] });   /* 話しながら木の樹冠へ手をかざす */ clearTimeout(capTimer); if (next) capTimer = setTimeout(() => say(next), 6500); }
+let capTimer = 0, capSwap = 0, said = false, compared = false;
+const journey = document.getElementById("journey"), nextButton = document.getElementById("journey-next"), route = document.getElementById("question-route");
+function say(t, next) {
+  said = true; clearTimeout(capSwap); clearTimeout(capTimer); cap.style.opacity = 0;
+  capSwap = setTimeout(() => { cap.textContent = t; cap.style.opacity = 1; }, RM ? 0 : 180);
+  if (aoi) aoi.speak({ dur: Math.min(4.5, 1.2 + t.length * .07), kana: "", text: t, ref: CROWN, gesture: [{ t: .35, type: "deictic", target: CROWN }] });
+  if (next) capTimer = setTimeout(() => say(next), 6500);
+}
+function syncJourney() {
+  const other = order.some(k => k !== 0);
+  if (other) compared = true;
+  const stage = other ? "compare" : compared ? "revisit" : "observe";
+  journey.dataset.stage = stage;
+  document.getElementById("journey-step").textContent = { observe: "まず見る", compare: order.length === 1 ? WHO[order[0]].n + "の手がかり" : "手がかりを並べて比べる", revisit: "もう一度見る" }[stage];
+  nextButton.textContent = { observe: "ミツバチの手がかりへ →", compare: "人の目でもう一度 →", revisit: "身近な木へ →" }[stage];
+  btns.forEach(x => x.setAttribute("aria-pressed", String(order.includes(+x.dataset.k))));
+}
+nextButton.addEventListener("click", () => {
+  if (journey.dataset.stage === "revisit") {
+    route.open = true; route.querySelector("summary").focus(); return;
+  }
+  if (journey.dataset.stage === "observe") { order = [1]; say(WHO[1].n + "：" + WHO[1].say, SAY_END); }
+  else { order = [0]; say(SAY_REVISIT); }
+  syncJourney();
+});
+document.getElementById("journey-restart").addEventListener("click", () => {
+  compared = false; order = [0]; route.open = false; syncJourney(); say(WHO[0].say); nextButton.focus();
+});
 document.getElementById("who").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return; const k = +b.dataset.k; const i = order.indexOf(k);
   if (i >= 0) { if (order.length === 1) return; order.splice(i, 1); } else { order.push(k); order.sort((a, b) => a - b); }
-  btns.forEach(x => x.setAttribute("aria-pressed", String(order.includes(+x.dataset.k))));
-  if (i < 0 && order.length >= 4) say(SAY_MANY, SAY_END); else if (i < 0) say(WHO[k].n + "：" + WHO[k].say, order.length > 1 ? SAY_MANY : null); else if (order.length > 1) say(SAY_MANY, SAY_END); else say(WHO[order[0]].say);
-  if (order.length >= 3) setTimeout(() => {}, 0);
+  syncJourney();
+  if (journey.dataset.stage === "revisit") say(SAY_REVISIT);
+  else if (i < 0 && order.length >= 4) say(SAY_MANY, SAY_END);
+  else if (i < 0) say(WHO[k].n + "：" + WHO[k].say, SAY_END);
+  else if (order.length > 1) say(SAY_MANY, SAY_END);
+  else say(WHO[order[0]].say, SAY_END);
 });
 
 MK.ui = Math.round(performance.now());
 // ---- 碧（読み込みは後ろで。画面はすぐ動く）
 let aoi = null; const CROWN = new THREE.Vector3(0, 8.5, 0);
-const loadAoiLater = () => K.loadAoi(AOI, { scene, renderer, camera }).then(async a => { /* 層 1 に置く間は主の画に映らない */ const ms = []; a.root.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) ms.push([m, m.transparent]); }); a.root.traverse(o => o.layers.set(1)); { const seen = new Set(); for (const [m] of ms) for (const v of Object.values(m)) if (v && v.isTexture && !seen.has(v)) { seen.add(v); renderer.initTexture(v); await new Promise(r => requestAnimationFrame(r)); } } /* 質感の送りこみを一こまに一枚ずつ */ const c1 = camera.clone(); c1.layers.set(1); try { await renderer.compileAsync(a.root, c1, scene); ms.forEach(([m]) => { m.transparent = false; m.needsUpdate = true; }); await renderer.compileAsync(a.root, c1, scene); } catch (e) {} ms.forEach(([m, t]) => { m.transparent = t; m.needsUpdate = true; }); /* 現れ終わりの形も先に下ごしらえ */ aoi = a; a.root.visible = true; a.root.traverse(o => o.layers.set(1)); const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(portrait() ? -.6 : -.62, portrait() ? -.62 : -.86), camera); const gp = new THREE.Vector3(); rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), gp); const x = gp.x, z = gp.z;   /* いつも左の帯の中（境目に重ねない） */ a.place(x, z, Math.atan2(camera.position.x - x, camera.position.z - z)); a.root.position.y = H(x, z); window.__aoi = a; }).catch(e => console.warn("碧を読み込めませんでした：", e.message));
-setTimeout(() => say(WHO[0].say), 400);
+const loadAoiLater = () => K.loadAoi(AOI, { scene, renderer, camera }).then(async a => { /* 層 1 に置く間は主の画に映らない */ const ms = []; a.root.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) ms.push([m, m.transparent]); }); a.root.traverse(o => o.layers.set(1)); { const seen = new Set(); for (const [m] of ms) for (const v of Object.values(m)) if (v && v.isTexture && !seen.has(v)) { seen.add(v); renderer.initTexture(v); await new Promise(r => requestAnimationFrame(r)); } } /* 質感の送りこみを一こまに一枚ずつ */ const c1 = camera.clone(); c1.layers.set(1); try { await renderer.compileAsync(a.root, c1, scene); ms.forEach(([m]) => { m.transparent = false; m.needsUpdate = true; }); await renderer.compileAsync(a.root, c1, scene); } catch (e) {} ms.forEach(([m, t]) => { m.transparent = t; m.needsUpdate = true; }); /* 現れ終わりの形も先に下ごしらえ */ aoi = a; a.root.visible = true; a.root.traverse(o => o.layers.set(1)); const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(portrait() ? -.6 : -.62, portrait() ? -.30 : -.52), camera); const gp = new THREE.Vector3(); rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), gp); const x = gp.x, z = gp.z;   /* いつも左の帯の中（境目に重ねない） */ a.place(x, z, Math.atan2(camera.position.x - x, camera.position.z - z)); a.root.position.y = H(x, z); window.__aoi = a; }).catch(e => console.warn("碧を読み込めませんでした：", e.message));
+setTimeout(() => { if (!said) say(WHO[0].say); }, 400);
 
 function buildBG() {
   bgTrees = pts.map(([x, z]) => { const v = BG[Math.floor(R() * BG.length)], sc = .7 + R() * .6, sh = .75 + R() * .5;   /* 一本ごとに枝数・開き・高さを散らし、同じ形をくり返さない */ return growKeyaki(K, R, x, z, { ...v, det: false, r: v.r * sc * (1.3 + R() * .5), hf: v.hf * sc * (.8 + R() * .45), limbs: Math.max(2, v.limbs + Math.floor(R() * 3) - 1), tilt: v.tilt * (.6 + R() * .8), decay: v.decay * (.9 + R() * .2), forks: R() < .3 ? 3 : v.forks, len: v.len.map(l => l * sc * sh), sprigs: 0, back: Math.round((mobile ? 320 : 480) * (.7 + R() * .6)) }); });
@@ -217,8 +269,8 @@ function loop(now) {
   const live = [...order, ...[0, 1, 2, 3].filter(k => !order.includes(k) && w[k] > 0)].slice(0, MAXB);
   const sum = live.reduce((s, k) => s + w[k], 0) || 1; let acc = 0; const vert = false;
   post.uniforms.uN.value = live.length; post.uniforms.uSame.value = 1; post.uniforms.uVert.value = vert ? 1 : 0;
-  live.forEach((k, i) => { post.uniforms.uEdge.value[i] = acc; post.uniforms.uLens.value[i] = k; const a0 = acc; acc += w[k] / sum; const mid = (a0 + acc) / 2, op = live.length > 1 && w[k] > .5 ? 1 : 0;
-    const el = tags[k]; el.style.opacity = op; if (vert) { el.style.left = "16px"; el.style.top = `calc(${a0 * 100}% + 14px)`; } else { el.style.left = `calc(${mid * 100}% - ${el.offsetWidth / 2}px)`; el.style.top = "max(16px, env(safe-area-inset-top))"; } });
+  live.forEach((k, i) => { post.uniforms.uEdge.value[i] = acc; post.uniforms.uLens.value[i] = k; const a0 = acc; acc += w[k] / sum; const mid = (a0 + acc) / 2, op = (live.length > 1 || k !== 0) && w[k] > .5 ? 1 : 0;
+    const el = tags[k]; el.style.opacity = op; if (vert) { el.style.left = "16px"; el.style.top = `calc(${a0 * 100}% + 14px)`; } else { el.style.boxSizing="border-box"; el.style.width=`${Math.max(0,(acc-a0)*innerWidth-8)}px`; el.style.maxWidth="none"; el.style.left = `${a0*innerWidth+4}px`; el.style.top = "max(16px, env(safe-area-inset-top))"; el.style.transition="opacity .3s"; el.style.whiteSpace="normal"; el.style.overflowWrap="anywhere"; el.style.wordBreak="normal"; } });
   post.uniforms.uEdge.value[live.length] = 1.0001;
   [0, 1, 2, 3].filter(k => !live.includes(k)).forEach(k => tags[k].style.opacity = 0);
   renderer.setRenderTarget(rt); renderer.render(scene, camera);
@@ -236,5 +288,5 @@ grass.visible = false;
 let compiled = false; renderer.compileAsync(pscene, pcam).catch(() => {}); renderer.compileAsync(scene, camera).catch(() => {}).finally(() => { compiled = true; requestAnimationFrame(loop); });
 window.__app = { camera, controls, renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, ready: window.__readyNav }) };
 </script>
-</body>
+<script>(()=>{if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script><script>document.addEventListener('keydown',e=>{if(e.key==='Escape'){const d=document.getElementById('question-route');if(d.open){d.open=false;d.querySelector('summary').focus();}}});</script></body>
 </html>
