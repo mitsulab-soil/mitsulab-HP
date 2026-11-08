@@ -190,7 +190,7 @@ sonic.lag = vibe.ok ? .012 : 0;   // 振動のある端末は、振動子の立�
 vibe.onPulse = (ms, amp) => sonic.grain(ms, amp, model.speed);   // 振動と同じ刻みで、触れた音の一粒
 const cache = new Map(), maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 const tex = (src, srgb) => { const t = src instanceof HTMLCanvasElement ? new THREE.CanvasTexture(src) : new THREE.Texture(src); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso; t.needsUpdate = true; return t; };
-const img = url => new Promise((ok, ng) => { const i = new Image(); i.decoding = "async"; i.onload = () => ok(i); i.onerror = ng; i.src = url; });
+const img = url => new Promise((ok, ng) => { const i = new Image(); i.decoding = "async"; i.onload = () => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()).then(() => ok(i)); i.onerror = ng; i.src = url; });   // 2026-11-09：絵を解くのを裏の糸で済ませる（読み終わりの止まりを減らす）
 function heightFrom(image) {
   const c = document.createElement("canvas"); c.width = c.height = EN; const g = c.getContext("2d", { willReadFrequently: true });
   g.drawImage(image, 0, 0, EN, EN); const d = g.getImageData(0, 0, EN, EN).data, h = new Float32Array(EN * EN);
@@ -199,8 +199,11 @@ function heightFrom(image) {
 // 形を立てる地図だけ、少しならす（近くへ寄っても、細い針のような三角が立たない）。触れ心地の計算は元の凹凸のまま
 function softDisp(h, r = 2, passes = 2) {
   const n = EN, a = Float32Array.from(h), b = new Float32Array(n * n), w = 2 * r + 1;
+  // 2026-11-09：同じならし（端は端の値をくり返す）を、窓をずらして足し引きする形に（計算の量を 1/5 に・結果は同じ）
   for (let k = 0; k < passes; k++) for (const [src, dst, hor] of [[a, b, true], [b, a, false]]) {
-    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { let s = 0; for (let t = -r; t <= r; t++) { const x = hor ? Math.min(n - 1, Math.max(0, i + t)) : i, y = hor ? j : Math.min(n - 1, Math.max(0, j + t)); s += src[y * n + x]; } dst[j * n + i] = s / w; }
+    const st = hor ? 1 : n, ln = hor ? n : 1;
+    for (let j = 0; j < n; j++) { const o = j * ln; let s = 0; for (let t = -r; t <= r; t++) s += src[o + Math.min(n - 1, Math.max(0, t)) * st];
+      for (let i = 0; i < n; i++) { dst[o + i * st] = s / w; s += src[o + Math.min(n - 1, i + r + 1) * st] - src[o + Math.max(0, i - r) * st]; } }
   }
   const c = document.createElement("canvas"); c.width = c.height = n; const g = c.getContext("2d"), im = g.createImageData(n, n);
   for (let i = 0; i < n * n; i++) { const v = Math.round(a[i] * 255); im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; }
