@@ -1,0 +1,52 @@
+/* Shared open catalogue: portfolio and workshops. Existing controls/content stay intact. */
+.cg-design #apps .pr-wrap,.cg-design #collab>.v2-content{box-sizing:border-box;width:100%;max-width:1120px;margin-inline:auto;padding:30px clamp(20px,4vw,48px) 88px}
+.cg-design #collab .v2-portfolio,.cg-design #collab .si-sec{width:100%;max-width:none;margin-inline:0;padding-inline:0}
+.cg-design #collab :is(.qx-sec-h,h2){font:400 clamp(26px,3vw,44px)/1.55 var(--serif,serif)!important;letter-spacing:.04em;margin:0 0 20px;color:var(--ink,#f4f6fb)}
+.cg-design #collab .qx-sec-code{font:400 10px/1.6 var(--sans,sans-serif);letter-spacing:.2em;margin:0 0 16px;color:#a8f2f6}
+.cg-design #collab :is(.qm-lead,.si-what,.si-body,.ws-sound-entry p){font:400 14px/1.95 var(--sans,sans-serif)!important;color:#becbd5;max-width:52em;overflow-wrap:anywhere;text-wrap:pretty}
+.cg-design #collab .qm-lead{margin:0 0 20px}
+.cg-design #apps .pr-card,.cg-design #collab .si-card{border:0;border-top:1px solid #b9d8d438;border-radius:0;background:transparent!important;box-shadow:none;overflow:visible;padding-top:18px;min-width:0}
+.cg-design #apps .pr-grid{gap:38px 28px}
+.cg-design #apps .pr-card-body{padding:20px 0 12px}
+.cg-design #apps .pr-card .ap-f{border-radius:0}
+.cg-design #apps .pr-places a{border:0;border-radius:0;border-bottom:1px solid #b9d8d455;padding:0 3px;min-height:44px}
+.cg-design #collab .si-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px!important;list-style:none;padding:0;margin:32px 0 36px}
+.cg-design #collab .ws-grid>.si-card:not(.ws-sound-entry){grid-column:1/-1}
+.cg-design #collab .si-card:has(details[open]){grid-column:1/-1}
+.cg-design #collab .si-fold>summary{padding:4px 0 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;row-gap:8px;min-height:44px}
+.cg-design #collab .si-k{grid-column:1/-1;color:#a8c9ce;font:400 10px/1.5 var(--sans,sans-serif);letter-spacing:.16em}
+.cg-design #collab .si-name{grid-column:1;font:400 clamp(18px,1.6vw,23px)/1.5 var(--serif,serif)!important;color:var(--ink,#f4f6fb);letter-spacing:.015em}
+.cg-design #collab .si-what{grid-column:1;margin:0}
+.cg-design #collab .si-more{grid-column:2;grid-row:2/4;align-self:start;min-height:44px;padding:0 2px;margin:0;border:0;border-radius:0;border-bottom:1px solid #b9d8d455;color:#bceef1;font:400 12px/1.5 var(--sans,sans-serif)}
+.cg-design #collab .si-body{padding:18px 0 12px;border-top:1px solid #b9d8d429;max-width:none}
+.cg-design #collab .ws-row{margin:0 0 18px}
+.cg-design #collab .ws-rk{font-weight:400;color:#bceef1}
+.cg-design #collab .ws-grid .ws-sound-entry{display:flex;flex-direction:column;gap:0;width:auto;padding:18px 0 12px;grid-template-columns:none;grid-column:auto;border:0;border-top:1px solid #b9d8d438;background:transparent}
+.cg-design #collab .ws-sound-entry figure{width:100%;margin:0 0 18px}
+.cg-design #collab .ws-sound-entry img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;object-position:center 35%;border-radius:0}
+.cg-design #collab .ws-sound-entry h3{font:400 clamp(18px,1.6vw,23px)/1.5 var(--serif,serif);margin:8px 0 12px}
+.cg-design #collab .ws-sound-entry p{margin:14px 0}
+.cg-design #collab .ws-common{border-top:1px solid #b9d8d438;padding-top:12px;margin:28px 0 42px}
+.cg-design #collab .ws-common>summary{font:400 14px/1.8 var(--sans,sans-serif);padding-block:8px}
+.cg-design #collab :is(a,button,summary):focus-visible{outline:2px solid #c3f8f7;outline-offset:5px}
+@media(max-width:680px){
+ .cg-design #apps .pr-wrap,.cg-design #collab>.v2-content{padding:20px 20px 64px}
+ .cg-design #apps .pr-grid,.cg-design #collab .si-grid{grid-template-columns:minmax(0,1fr);gap:28px!important}
+ .cg-design #collab .si-fold>summary{column-gap:12px}
+ .cg-design #collab .ws-grid .ws-sound-entry{grid-column:1}
+ .cg-design #collab .si-name{font-size:19px!important}
+ .cg-design #collab .si-what{grid-column:1/-1}
+ .cg-design #collab .si-more{grid-row:2;grid-column:2}
+}
+/* The first workshop heading starts at the same baseline as the portfolio. */
+body.cg-design #collab #workshop{padding-block:0;background:transparent}
+body.cg-design #collab #workshop>.si-sec:first-child{border-top:0;padding-top:0;margin-top:0}
+/* The TOP selection uses the same open catalogue surface. */
+.cg-design #top .pr-selection .pr-card{border:0;border-top:1px solid #b9d8d438;border-radius:0;background:transparent!important;box-shadow:none;overflow:visible;padding-top:18px;min-width:0}
+.cg-design #top .pr-selection .pr-grid{gap:38px 28px}
+.cg-design #top .pr-selection .pr-card-body{padding:20px 0 12px}
+.cg-design #top .pr-selection .pr-card .ap-f{border-radius:0}
+.cg-design #top .pr-selection .pr-card h3.ap-n{font:400 clamp(18px,1.6vw,23px)/1.5 var(--serif,serif)!important}
+.cg-design #top .pr-selection .pr-description{font:400 14px/1.9 var(--sans,sans-serif)!important}
+.cg-design #top .pr-selection .pr-places a{border:0;border-radius:0;border-bottom:1px solid #b9d8d455;padding:0 3px;min-height:44px}
+@media(max-width:680px){.cg-design #top .pr-selection .pr-grid{gap:28px}}
