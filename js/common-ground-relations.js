@@ -4,7 +4,7 @@ export const MODES=Object.freeze([
  {id:'forest',title:'森',en:'Forest',description:'枝葉・光・生きもの。同じ場所の異なる手がかりをたどる。',href:'x/02/',eye:[6.3,2.6,11.2],look:[.7,1,-1.3]},
  {id:'soil',title:'土',en:'Soil',description:'足元をひらく。根・地層・水の通り道を、断面の模型で結ぶ。',href:'x/24/',eye:[1.55,1.4,3.65],look:[-.65,.3,1.0]},
  {id:'water',title:'水',en:'Water',description:'流れをたどる。地形と水面、音の関係が一つの場所に重なる。',href:'x/19/',eye:[-1.1,1.25,5],look:[-4,.15,-2.4]},
- {id:'body',title:'身体',en:'Body',description:'碧を介して、計算で捉えた関係を人が感じられる形へ。',href:'x/09/',eye:[6.5,1.8,8.7],look:[3.8,1.1,3.9]},
+ {id:'body',title:'身体',en:'Body',description:'碧を介して、計算で捉えた関係を人が感じられる形へ。',href:'x/09/',eye:[7.6,1.8,7.9],look:[5.0,1.1,3.0]},
  {id:'sound',title:'音',en:'Sound',description:'時間と強さを立体波形へ変換する生成模型。ここでは実音との同期ではなく、音を形へ訳す入口を示します。',href:'x/07/',eye:[5,2.5,5],look:[1.8,1,-.7]},
  {id:'time',title:'時間',en:'Time',description:'年輪と場所の履歴。ひとつの現在に重なる異なる時間を見る。',href:'x/12/',eye:[1.2,1.65,1.6],look:[-1.1,.3,-1.8]},
  {id:'language',title:'言語',en:'Language',description:'同じ木、水、土を違うことばで結ぶ。意味は場所との関係から生まれる。',href:'x/21/',eye:[6.5,2.8,5.7],look:[1.4,1.7,-1.8]},
@@ -36,14 +36,14 @@ export function createRelations(scene,{mobile=false,groundHeight=()=>0,samples=[
 
  const ripple=[];for(let i=0;i<9;i++){const z=3.7-i*1.05,x=-4.8+Math.sin(z*.32)*.65;const pts=[];for(let j=0;j<=24;j++){const a=j/24*Math.PI*2;pts.push(V(x+Math.cos(a)*.18,.059+groundHeight(x,z),z+Math.sin(a)*.08));}ripple.push(line(water,pts,0xbacbc5,.45));}
  // A wave is a model generated locally; amplitude/time are legible geometry, not an aurora.
- const sound=make('sound');sound.position.set(1.3,.75,-.9);const waves=[];for(let k=0;k<6;k++){const pts=Array.from({length:97},(_,i)=>V((i/96-.5)*3.1,0,(k-2.5)*.15));waves.push(line(sound,pts,k===0?0xf0d4a1:0x95aaa4));}
+ const sound=make('sound');sound.position.set(1.3,.75,-.9);const waves=[];for(let k=0;k<6;k++){const pts=Array.from({length:97},(_,i)=>V((i/96-.5)*3.1,0,(k-2.5)*.15));waves.push(line(sound,pts,k===0?0xd9c49a:0x7f948c,k===0?.7:.38));}
  const time=make('time');time.position.set(-1.1,.08,-1.8);time.scale.setScalar(.8);const timber=add(time,new T.CylinderGeometry(.59,.65,.24,40),soilMaterial(0xb19671),[0,.12,0]);timber.rotation.z=.16;
  const rings=[];for(let i=0;i<13;i++){const pts=[];const r=.05+i*.037;for(let j=0;j<=64;j++){const a=j/64*Math.PI*2,rr=r*(1+.045*Math.sin(a*3+i*.22));pts.push(V(Math.cos(a)*rr,.248+Math.cos(a)*.012,Math.sin(a)*rr));}rings.push(line(time,pts,i%3?0x503e2d:0x6b5034));}
  // Words occupy the same field and point back to named physical references.
  const language=make('language');const labels=[];for(const [text,x,y,z] of [['木',-1.7,2.5,-3],['水',-4.5,.65,-1.4],['土',-.6,1.05,1.1],['記憶',.6,2.4,-2.1]]){const c=document.createElement('canvas');c.width=192;c.height=96;const ctx=c.getContext('2d');ctx.fillStyle='#e6e2ce';ctx.font='40px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,96,48);const tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;const m=new T.SpriteMaterial({map:tx,transparent:true,depthWrite:false});const sp=new T.Sprite(m);sp.position.set(x,y,z);sp.scale.set(1.1,.55,1);language.add(sp);labels.push(sp);}
  // Sample the existing geometry, preserving its spatial provenance.
  const computation=make('computation');const cp=[];for(let i=0;i<samples.length;i+=mobile?18:9){cp.push(samples[i],samples[i+1],samples[i+2]);}const dots=new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(cp,3)),new T.PointsMaterial({color:0xc1dbd2,size:.032,transparent:true,opacity:.5,depthWrite:false}));computation.add(dots);
- const connections=make('connections'),anchors={forest:V(-1.6,2.6,-3),soil:V(-.6,.5,1.1),water:V(-4.6,.09,-1.5),body:V(mobile?3.4:5.3,1.15,4.7),sound:V(1.3,.9,-.9),time:V(-1.1,.3,-1.8),language:V(.6,2.4,-2.1),computation:V(3.5,1.4,-1.5)},links=[];
+ const connections=make('connections'),anchors={forest:V(-1.6,2.6,-3),soil:V(-.6,.5,1.1),water:V(-4.6,.09,-1.5),body:V(mobile?4.1:6.2,1.1,3.7),sound:V(1.3,.9,-.9),time:V(-1.1,.3,-1.8),language:V(.6,2.4,-2.1),computation:V(3.5,1.4,-1.5)},links=[];
  for(const [a,b] of [['forest','soil'],['soil','water'],['water','sound'],['sound','body'],['forest','time'],['time','language'],['language','computation'],['computation','body'],['body','soil']]){const mid=anchors[a].clone().lerp(anchors[b],.5);mid.y+=.25;const curve=new T.CatmullRomCurve3([anchors[a],mid,anchors[b]]);const l=line(connections,curve.getPoints(28),0xc3cab5,.2);links.push({a,b,l});}
  // Retain source material values; reduce opacity only for translated, nonphysical layers.
  for(const [id,{g}] of Object.entries(groups)){g.traverse(o=>{if(o.material){const m=o.material;m.userData.baseOpacity=m.opacity;m.transparent=true;groups[id].materials.push(m);}});}
