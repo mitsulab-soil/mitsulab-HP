@@ -1,0 +1,1159 @@
+{
+  "source": "02_プロジェクト/05_保留/20_森羅百景/_dev/kotoba_data.py",
+  "note": "原作あめ百景32景のデータを保持。原作の語義・文化の記述は再検証済を意味しない。今回表示の採用語は別のtermsで典拠確認。",
+  "scenes": [
+    {
+      "w": "時雨",
+      "lang": "日本語",
+      "read": "しぐれ",
+      "map": [
+        135.76,
+        35.0
+      ],
+      "mx": [
+        0.35,
+        0.25
+      ],
+      "lb": "W",
+      "ja": "晩秋から初冬の、降ってはやみ、やんではまた降る通り雨。",
+      "en": "A passing shower of early winter — falling, ceasing, returning.",
+      "cul": "芭蕉が好んだ雨。忌日は「時雨忌」（陰暦10月12日）と呼ばれ、「初しぐれ猿も小蓑をほしげ也」は撰集『猿蓑』の巻頭に置かれて書名の由来になった。",
+      "rain": {
+        "mode": "passing",
+        "n": 220,
+        "spd": [
+          5,
+          8
+        ],
+        "len": [
+          10,
+          20
+        ],
+        "ang": 0.14,
+        "alpha": 0.5,
+        "tone": 3200,
+        "vol": 0.5,
+        "drop": 0.5,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "五月雨",
+      "lang": "日本語",
+      "read": "さみだれ",
+      "map": [
+        140.1,
+        38.76
+      ],
+      "mx": [
+        0.45,
+        0.8
+      ],
+      "lb": "E",
+      "ja": "旧暦五月——いまの六月ごろに降りつづく長雨。梅雨の雨。",
+      "en": "The long rains of the fifth lunar month.",
+      "cul": "「五月雨をあつめて早し最上川」（芭蕉『おくのほそ道』）。初案は「涼し」で、実際に急流を下ってから「早し」へ改めたと伝わる。",
+      "rain": {
+        "mode": "steady",
+        "n": 240,
+        "spd": [
+          4.5,
+          7
+        ],
+        "len": [
+          10,
+          18
+        ],
+        "ang": 0.1,
+        "alpha": 0.45,
+        "tone": 2800,
+        "vol": 0.45,
+        "drop": 0.5,
+        "rumble": 0.1
+      }
+    },
+    {
+      "w": "夕立",
+      "lang": "日本語",
+      "read": "ゆうだち",
+      "map": [
+        139.7,
+        36.2
+      ],
+      "mx": [
+        0.85,
+        0.15
+      ],
+      "lb": "E",
+      "ja": "夏の午後、急に降り出して激しく通りすぎるにわか雨。",
+      "en": "A sudden, violent summer-afternoon shower.",
+      "cul": "",
+      "rain": {
+        "mode": "swell",
+        "n": 360,
+        "spd": [
+          10,
+          15
+        ],
+        "len": [
+          24,
+          40
+        ],
+        "ang": 0.2,
+        "alpha": 0.6,
+        "tone": 5200,
+        "vol": 0.85,
+        "drop": 2.2,
+        "rumble": 0.5
+      }
+    },
+    {
+      "w": "村雨",
+      "lang": "日本語",
+      "read": "むらさめ",
+      "map": [
+        135.5,
+        34.2
+      ],
+      "mx": [
+        0.6,
+        0.2
+      ],
+      "lb": "S",
+      "ja": "ひとしきり強く降っては、やむ。群れて通る雨。",
+      "en": "Rain that passes in bands — hard for a moment, then gone.",
+      "cul": "百人一首の寂蓮法師「村雨の露もまだひぬまきの葉に霧たちのぼる秋の夕暮」で知られる。",
+      "rain": {
+        "mode": "passing",
+        "n": 280,
+        "spd": [
+          7,
+          11
+        ],
+        "len": [
+          16,
+          28
+        ],
+        "ang": 0.16,
+        "alpha": 0.55,
+        "tone": 4200,
+        "vol": 0.6,
+        "drop": 1.2,
+        "rumble": 0.2
+      }
+    },
+    {
+      "w": "春雨",
+      "lang": "日本語",
+      "read": "はるさめ",
+      "map": [
+        133.9,
+        34.6
+      ],
+      "mx": [
+        0.15,
+        0.55
+      ],
+      "lb": "S",
+      "ja": "春に、細かく静かに降る雨。",
+      "en": "The fine, quiet rain of spring.",
+      "cul": "「春雨じゃ、濡れて行こう」——新国劇『月形半平太』（1919）の名台詞（「濡れて参ろう」とも伝わる）。",
+      "rain": {
+        "mode": "steady",
+        "n": 380,
+        "spd": [
+          1.8,
+          3
+        ],
+        "len": [
+          4,
+          9
+        ],
+        "ang": 0.06,
+        "alpha": 0.32,
+        "mist": 0.35,
+        "tone": 2200,
+        "vol": 0.3,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "秋雨",
+      "lang": "日本語",
+      "read": "あきさめ",
+      "map": [
+        140.87,
+        38.27
+      ],
+      "mx": [
+        0.3,
+        0.85
+      ],
+      "lb": "E",
+      "ja": "秋の長雨。南の暖かく湿った空気と、北の冷たく乾いた空気の境にできる前線（秋雨前線）がもたらす。",
+      "en": "The long autumn rains, born of a stalled front.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 260,
+        "spd": [
+          3.5,
+          5.5
+        ],
+        "len": [
+          8,
+          14
+        ],
+        "ang": 0.1,
+        "alpha": 0.4,
+        "tone": 2400,
+        "vol": 0.38,
+        "drop": 0.3,
+        "rumble": 0.1
+      }
+    },
+    {
+      "w": "遣らずの雨",
+      "lang": "日本語",
+      "read": "やらずのあめ",
+      "map": [
+        137.2,
+        36.6
+      ],
+      "mx": [
+        0.5,
+        0.35
+      ],
+      "lb": "N",
+      "ja": "帰ろうとする人を、引き留めるかのように降ってくる雨。",
+      "en": "Rain that falls as if to keep a departing guest from leaving.",
+      "cul": "雨に「引き留める」という意思を読んだ言い回し。雨の名前が、そのまま人の関係の名前になっている。",
+      "rain": {
+        "mode": "steady",
+        "n": 260,
+        "spd": [
+          5,
+          8
+        ],
+        "len": [
+          12,
+          20
+        ],
+        "ang": 0.12,
+        "alpha": 0.5,
+        "tone": 3000,
+        "vol": 0.5,
+        "drop": 0.8,
+        "rumble": 0.15
+      }
+    },
+    {
+      "w": "霧雨",
+      "lang": "日本語",
+      "read": "きりさめ",
+      "map": [
+        144.4,
+        43.3
+      ],
+      "mx": [
+        0.1,
+        0.4
+      ],
+      "lb": "E",
+      "ja": "霧のように細かい粒が、音もなく降る雨。",
+      "en": "Rain as fine as mist, falling without a sound.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 460,
+        "spd": [
+          1.2,
+          2.2
+        ],
+        "len": [
+          3,
+          8
+        ],
+        "ang": 0.05,
+        "alpha": 0.3,
+        "mist": 0.55,
+        "tone": 1800,
+        "vol": 0.22,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "小糠雨",
+      "lang": "日本語",
+      "read": "こぬかあめ",
+      "map": [
+        139.2,
+        37.75
+      ],
+      "mx": [
+        0.06,
+        0.5
+      ],
+      "lb": "N",
+      "ja": "米糠のように細かく、音もなく肌にたまる雨。",
+      "en": "Rain as fine as rice-bran, soundless on the skin.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 520,
+        "spd": [
+          1,
+          1.8
+        ],
+        "len": [
+          2,
+          6
+        ],
+        "ang": 0.03,
+        "alpha": 0.26,
+        "mist": 0.4,
+        "tone": 1500,
+        "vol": 0.18,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "狐の嫁入り",
+      "lang": "日本語",
+      "read": "きつねのよめいり",
+      "map": [
+        139.44,
+        37.68
+      ],
+      "mx": [
+        0.4,
+        0.1
+      ],
+      "lb": "S",
+      "ja": "日が差したまま降る雨。狐の婚礼の行列が通る、と言い伝えられた。",
+      "en": "A sunshower — said to mark a fox's wedding procession.",
+      "cul": "天気雨を動物の婚礼と結ぶ言い方は世界に多い——ブルガリアでは熊が、ケニアでは猿が結婚するという。",
+      "rain": {
+        "mode": "sparse",
+        "n": 90,
+        "spd": [
+          6,
+          9
+        ],
+        "len": [
+          12,
+          20
+        ],
+        "ang": 0.1,
+        "alpha": 0.5,
+        "sun": 1,
+        "tone": 3600,
+        "vol": 0.35,
+        "drop": 0.8,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "篠突く雨",
+      "lang": "日本語",
+      "read": "しのつくあめ",
+      "map": [
+        136.5,
+        35.4
+      ],
+      "mx": [
+        0.95,
+        0.3
+      ],
+      "lb": "S",
+      "ja": "篠竹を束ねて突きおろすように、激しくまっすぐ降る雨。",
+      "en": "Rain that drives straight down like bundled bamboo.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 420,
+        "spd": [
+          13,
+          18
+        ],
+        "len": [
+          30,
+          48
+        ],
+        "ang": 0.06,
+        "alpha": 0.6,
+        "tone": 5600,
+        "vol": 0.95,
+        "drop": 3,
+        "rumble": 0.7
+      }
+    },
+    {
+      "w": "慈雨",
+      "lang": "日本語",
+      "read": "じう",
+      "map": [
+        132.46,
+        34.4
+      ],
+      "mx": [
+        0.3,
+        0.5
+      ],
+      "lb": "S",
+      "ja": "日照りのあとに降る、めぐみの雨。「干天の慈雨」。",
+      "en": "Merciful rain after drought.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 200,
+        "spd": [
+          4,
+          6
+        ],
+        "len": [
+          8,
+          16
+        ],
+        "ang": 0.08,
+        "alpha": 0.42,
+        "sun": 0.4,
+        "tone": 2600,
+        "vol": 0.4,
+        "drop": 0.6,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "梅雨",
+      "lang": "日本語・中国語",
+      "read": "つゆ・ばいう／メイユイ",
+      "map": [
+        130.4,
+        32.2
+      ],
+      "mx": [
+        0.4,
+        0.92
+      ],
+      "lb": "S",
+      "ja": "梅の実が熟すころの長雨。東アジアをおおう雨の季節。",
+      "en": "The plum rains — East Asia's shared season of long rain.",
+      "cul": "日本語の梅雨は中国語の梅雨（メイユイ）に由来するとされる。黴（かび）の雨＝黴雨から転じたとする説もある。",
+      "rain": {
+        "mode": "steady",
+        "n": 260,
+        "spd": [
+          4,
+          6.5
+        ],
+        "len": [
+          9,
+          16
+        ],
+        "ang": 0.09,
+        "alpha": 0.42,
+        "mist": 0.25,
+        "tone": 2600,
+        "vol": 0.45,
+        "drop": 0.6,
+        "rumble": 0.15
+      }
+    },
+    {
+      "w": "장마",
+      "lang": "韓国語",
+      "read": "チャンマ jangma",
+      "map": [
+        127.0,
+        37.55
+      ],
+      "mx": [
+        0.5,
+        0.9
+      ],
+      "lb": "N",
+      "ja": "韓国の梅雨。六月から七月にかけての長い雨の季節。「長い雨」に由来するとされる。",
+      "en": "Korea's monsoon season — the long rains of early summer.",
+      "cul": "同じ前線がもたらす同じ季節を、日本は梅の実で、韓国は長さで名づけた。",
+      "rain": {
+        "mode": "steady",
+        "n": 280,
+        "spd": [
+          5,
+          8
+        ],
+        "len": [
+          10,
+          18
+        ],
+        "ang": 0.12,
+        "alpha": 0.45,
+        "tone": 3000,
+        "vol": 0.5,
+        "drop": 0.8,
+        "rumble": 0.2
+      }
+    },
+    {
+      "w": "bruine",
+      "ins": "eu",
+      "lang": "フランス語",
+      "read": "ブリュイヌ",
+      "map": [
+        2.35,
+        48.85
+      ],
+      "mx": [
+        0.1,
+        0.45
+      ],
+      "lb": "N",
+      "ja": "ごく細かい粒がゆっくり落ちる霧雨。",
+      "en": "Drizzle — droplets so fine they drift more than fall.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 440,
+        "spd": [
+          1.4,
+          2.4
+        ],
+        "len": [
+          3,
+          8
+        ],
+        "ang": 0.06,
+        "alpha": 0.28,
+        "mist": 0.5,
+        "tone": 2100,
+        "vol": 0.22,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "crachin",
+      "ins": "eu",
+      "lang": "フランス語",
+      "read": "クラシャン",
+      "map": [
+        -3.5,
+        48.2
+      ],
+      "mx": [
+        0.15,
+        0.75
+      ],
+      "lb": "W",
+      "ja": "服にしみこむほど、しつこく続く細かい雨。",
+      "en": "Fine, persistent rain that soaks into cloth.",
+      "cul": "「crachin breton（ブルターニュのクラシャン）」が定型句になるほど、土地と結びついた語。",
+      "rain": {
+        "mode": "steady",
+        "n": 480,
+        "spd": [
+          1.6,
+          2.8
+        ],
+        "len": [
+          4,
+          9
+        ],
+        "ang": 0.12,
+        "alpha": 0.3,
+        "mist": 0.5,
+        "tone": 2200,
+        "vol": 0.26,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "giboulée",
+      "ins": "eu",
+      "lang": "フランス語",
+      "read": "ジブレ",
+      "map": [
+        2.2,
+        46.6
+      ],
+      "mx": [
+        0.75,
+        0.12
+      ],
+      "lb": "S",
+      "ja": "冬から春への変わり目の、急で短いにわか雨。雹やみぞれを交えることも。",
+      "en": "A sudden shower at winter's end, laced with hail.",
+      "cul": "「giboulées de mars」＝三月のにわか雨。ひと月が、雨の名になっている。",
+      "rain": {
+        "mode": "swell",
+        "n": 300,
+        "spd": [
+          9,
+          14
+        ],
+        "len": [
+          20,
+          34
+        ],
+        "ang": 0.24,
+        "alpha": 0.55,
+        "hail": 1,
+        "tone": 4800,
+        "vol": 0.7,
+        "drop": 1.8,
+        "rumble": 0.3
+      }
+    },
+    {
+      "w": "petrichor",
+      "lang": "英語",
+      "read": "ペトリコール",
+      "map": [
+        149.1,
+        -35.3
+      ],
+      "mx": [
+        0.02,
+        0.08
+      ],
+      "lb": "W",
+      "ja": "雨上がりに立ちのぼる、土の匂い。石（petra）と神々の血（ichor）から作られた語。",
+      "en": "The smell of earth after rain — from petra (stone) and ichor.",
+      "cul": "1964年、豪CSIROのベアとトーマスがNature誌で造語。匂いの主成分の一つは放線菌のつくるゲオスミンで、ヒトはごく低濃度でも嗅ぎとれるとされる。",
+      "rain": {
+        "mode": "after",
+        "n": 0,
+        "spd": [
+          0,
+          0
+        ],
+        "len": [
+          0,
+          0
+        ],
+        "ang": 0,
+        "alpha": 0.3,
+        "mist": 0.7,
+        "tone": 1200,
+        "vol": 0.3,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "dreich",
+      "ins": "eu",
+      "lang": "スコットランド語",
+      "read": "ドリーク",
+      "map": [
+        -3.2,
+        55.95
+      ],
+      "mx": [
+        0.2,
+        0.65
+      ],
+      "lb": "N",
+      "ja": "どんよりと湿って、暗く、じっとりした天気。",
+      "en": "Damp, grey, dreary weather — the sky pressing down.",
+      "cul": "2019年の投票で「最も象徴的なスコットランド語」に選ばれた。原義は「長く続く」とされる。",
+      "rain": {
+        "mode": "steady",
+        "n": 380,
+        "spd": [
+          1.5,
+          2.6
+        ],
+        "len": [
+          3,
+          8
+        ],
+        "ang": 0.1,
+        "alpha": 0.26,
+        "mist": 0.45,
+        "grey": 0.4,
+        "tone": 1400,
+        "vol": 0.24,
+        "drop": 0,
+        "rumble": 0.1
+      }
+    },
+    {
+      "w": "smirr",
+      "ins": "eu",
+      "lang": "スコットランド語",
+      "read": "スマー",
+      "map": [
+        -6.3,
+        57.3
+      ],
+      "mx": [
+        0.05,
+        0.35
+      ],
+      "lb": "W",
+      "ja": "霧のように細かく、煙のように空中にとどまる雨。",
+      "en": "Rain so fine it hangs in the air like smoke.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 500,
+        "spd": [
+          1,
+          1.8
+        ],
+        "len": [
+          2,
+          6
+        ],
+        "ang": 0.08,
+        "alpha": 0.24,
+        "mist": 0.6,
+        "tone": 1700,
+        "vol": 0.2,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "mizzle",
+      "ins": "eu",
+      "lang": "英語（方言）",
+      "read": "ミズル",
+      "map": [
+        -4.6,
+        50.2
+      ],
+      "mx": [
+        0.08,
+        0.3
+      ],
+      "lb": "S",
+      "ja": "霧と霧雨のあいだのような、ごく細かい雨。イングランド南西部などの方言。",
+      "en": "Rain between mist and drizzle — a west-country word.",
+      "cul": "デヴォンやコーンウォールでは、濃い霧と極細の雨がまざった天気を指す。",
+      "rain": {
+        "mode": "steady",
+        "n": 460,
+        "spd": [
+          1.1,
+          2
+        ],
+        "len": [
+          2,
+          6
+        ],
+        "ang": 0.07,
+        "alpha": 0.24,
+        "mist": 0.55,
+        "tone": 1600,
+        "vol": 0.2,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "Landregen",
+      "ins": "eu",
+      "lang": "ドイツ語",
+      "read": "ラントレーゲン",
+      "map": [
+        9.6,
+        53.2
+      ],
+      "mx": [
+        0.35,
+        0.75
+      ],
+      "lb": "N",
+      "ja": "広い土地をおおって、一様に、長く降り続く雨。",
+      "en": "Rain that settles evenly over the whole land and stays.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 280,
+        "spd": [
+          4,
+          6
+        ],
+        "len": [
+          9,
+          15
+        ],
+        "ang": 0.08,
+        "alpha": 0.4,
+        "tone": 2400,
+        "vol": 0.42,
+        "drop": 0.4,
+        "rumble": 0.15
+      }
+    },
+    {
+      "w": "Platzregen",
+      "ins": "eu",
+      "lang": "ドイツ語",
+      "read": "プラッツレーゲン",
+      "map": [
+        11.6,
+        48.1
+      ],
+      "mx": [
+        0.9,
+        0.08
+      ],
+      "lb": "E",
+      "ja": "突然、大粒でたたきつける短い雨。",
+      "en": "A cloudburst — big drops slamming down, over in minutes.",
+      "cul": "",
+      "rain": {
+        "mode": "swell",
+        "n": 380,
+        "spd": [
+          11,
+          16
+        ],
+        "len": [
+          26,
+          42
+        ],
+        "ang": 0.18,
+        "alpha": 0.6,
+        "tone": 5400,
+        "vol": 0.9,
+        "drop": 2.6,
+        "rumble": 0.5
+      }
+    },
+    {
+      "w": "морось",
+      "ins": "eu",
+      "lang": "ロシア語",
+      "read": "モロシ",
+      "map": [
+        37.6,
+        55.75
+      ],
+      "mx": [
+        0.07,
+        0.55
+      ],
+      "lb": "N",
+      "ja": "ロシア語の霧雨。低い雲から、ごくゆっくり降りる微細な粒。",
+      "en": "Russian drizzle — droplets sifting slowly from low cloud.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 440,
+        "spd": [
+          1.2,
+          2.2
+        ],
+        "len": [
+          3,
+          7
+        ],
+        "ang": 0.06,
+        "alpha": 0.26,
+        "mist": 0.5,
+        "grey": 0.25,
+        "tone": 1700,
+        "vol": 0.22,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "garúa",
+      "lang": "スペイン語",
+      "read": "ガルーア",
+      "map": [
+        -77.05,
+        -12.05
+      ],
+      "mx": [
+        0.12,
+        0.8
+      ],
+      "lb": "W",
+      "ja": "ペルー・チリの太平洋岸に降る、霧のような細かい雨。リマの冬を湿らせる。",
+      "en": "The mist-fine rain of the Peruvian coast — Lima's winter veil.",
+      "cul": "フンボルト寒流のつくる低い雲に由来するとされる。海流が、雨のことばを作った例。",
+      "rain": {
+        "mode": "steady",
+        "n": 460,
+        "spd": [
+          1.2,
+          2
+        ],
+        "len": [
+          3,
+          7
+        ],
+        "ang": 0.05,
+        "alpha": 0.26,
+        "mist": 0.65,
+        "grey": 0.25,
+        "tone": 1600,
+        "vol": 0.22,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "garoa",
+      "lang": "ポルトガル語",
+      "read": "ガロア",
+      "map": [
+        -46.6,
+        -23.55
+      ],
+      "mx": [
+        0.1,
+        0.7
+      ],
+      "lb": "E",
+      "ja": "霧に近いごく細かい雨。サンパウロは「Terra da Garoa（霧雨の街）」と呼ばれてきた。",
+      "en": "Mist-fine drizzle — São Paulo has long been \"Terra da Garoa.\"",
+      "cul": "都市の広がりとともに、この霧雨そのものは減っているとされる。ことばが先に残り、天気があとから消えていく。",
+      "rain": {
+        "mode": "steady",
+        "n": 450,
+        "spd": [
+          1.2,
+          2.1
+        ],
+        "len": [
+          3,
+          7
+        ],
+        "ang": 0.06,
+        "alpha": 0.26,
+        "mist": 0.6,
+        "tone": 1700,
+        "vol": 0.22,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "aguacero",
+      "lang": "スペイン語",
+      "read": "アグアセロ",
+      "map": [
+        -74.1,
+        4.6
+      ],
+      "mx": [
+        0.88,
+        0.26
+      ],
+      "lb": "W",
+      "ja": "突然の、量の多い激しい土砂降り。",
+      "en": "A sudden, abundant downpour.",
+      "cul": "",
+      "rain": {
+        "mode": "swell",
+        "n": 360,
+        "spd": [
+          10,
+          15
+        ],
+        "len": [
+          24,
+          38
+        ],
+        "ang": 0.16,
+        "alpha": 0.58,
+        "tone": 5000,
+        "vol": 0.85,
+        "drop": 2.4,
+        "rumble": 0.5
+      }
+    },
+    {
+      "w": "वर्षा",
+      "lang": "ヒンディー語",
+      "read": "ヴァルシャー varṣā",
+      "map": [
+        77.2,
+        28.6
+      ],
+      "mx": [
+        0.7,
+        0.95
+      ],
+      "lb": "N",
+      "ja": "サンスクリット由来の「雨」。伝統的な六季のひとつ、雨季の名でもある。",
+      "en": "Rain, from Sanskrit — also the monsoon season itself.",
+      "cul": "日常の話しことばではペルシア語由来の बारिश（バーリシュ）。ひとつの雨に、ふたつの来歴のことばが重なっている。",
+      "rain": {
+        "mode": "steady",
+        "n": 340,
+        "spd": [
+          8,
+          12
+        ],
+        "len": [
+          18,
+          30
+        ],
+        "ang": 0.14,
+        "alpha": 0.55,
+        "tone": 4200,
+        "vol": 0.75,
+        "drop": 1.6,
+        "rumble": 0.4
+      }
+    },
+    {
+      "w": "Kanilehua",
+      "lang": "ハワイ語",
+      "read": "カニレフア",
+      "map": [
+        -155.1,
+        19.7
+      ],
+      "mx": [
+        0.18,
+        0.6
+      ],
+      "lb": "S",
+      "ja": "ハワイ島ヒロの雨の名。「レフアの花が飲む雨」とも解される。",
+      "en": "Hilo's mist-rain — \"the rain the lehua blossoms drink.\"",
+      "cul": "ハワイ語では雨が土地ごとに固有名を持つ。『Hānau ka Ua』（2015）は200を超える雨の名を集めている。",
+      "rain": {
+        "mode": "steady",
+        "n": 420,
+        "spd": [
+          1.4,
+          2.4
+        ],
+        "len": [
+          3,
+          8
+        ],
+        "ang": 0.06,
+        "alpha": 0.28,
+        "mist": 0.5,
+        "sun": 0.25,
+        "tone": 1900,
+        "vol": 0.26,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "Tuahine",
+      "lang": "ハワイ語",
+      "read": "トゥアヒネ",
+      "map": [
+        -157.8,
+        21.3
+      ],
+      "mx": [
+        0.22,
+        0.5
+      ],
+      "lb": "N",
+      "ja": "オアフ島マーノア渓谷の雨の名。歌にもしばしば詠まれる。",
+      "en": "The rain of Mānoa Valley, sung of in many songs.",
+      "cul": "雨に固有名があるということは、雨が「現象」ではなく「その土地の住人」だということ。",
+      "rain": {
+        "mode": "passing",
+        "n": 380,
+        "spd": [
+          1.6,
+          2.6
+        ],
+        "len": [
+          4,
+          9
+        ],
+        "ang": 0.08,
+        "alpha": 0.3,
+        "mist": 0.5,
+        "tone": 2000,
+        "vol": 0.24,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "lilinoe",
+      "lang": "ハワイ語",
+      "read": "リリノエ",
+      "map": [
+        -156.3,
+        20.8
+      ],
+      "mx": [
+        0.03,
+        0.45
+      ],
+      "lb": "E",
+      "ja": "とりわけ細かい霧。noe（霧）より、さらに細かいもの。",
+      "en": "An especially fine mist — finer still than noe.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 540,
+        "spd": [
+          0.7,
+          1.3
+        ],
+        "len": [
+          1.5,
+          4
+        ],
+        "ang": 0.03,
+        "alpha": 0.2,
+        "mist": 0.75,
+        "tone": 1400,
+        "vol": 0.18,
+        "drop": 0,
+        "rumble": 0
+      }
+    },
+    {
+      "w": "毛毛雨",
+      "lang": "中国語",
+      "read": "マオマオユイ",
+      "map": [
+        116.4,
+        39.9
+      ],
+      "mx": [
+        0.14,
+        0.33
+      ],
+      "lb": "W",
+      "ja": "毛のように細かく、音もなく降る雨。",
+      "en": "\"Hair-fine rain\" — drizzle without a sound.",
+      "cul": "",
+      "rain": {
+        "mode": "steady",
+        "n": 480,
+        "spd": [
+          1.2,
+          2
+        ],
+        "len": [
+          2,
+          6
+        ],
+        "ang": 0.05,
+        "alpha": 0.26,
+        "mist": 0.45,
+        "tone": 1800,
+        "vol": 0.22,
+        "drop": 0,
+        "rumble": 0
+      }
+    }
+  ]
+}
