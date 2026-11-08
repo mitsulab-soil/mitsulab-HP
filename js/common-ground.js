@@ -6,7 +6,7 @@ import {growKeyaki,sprigMesh} from './common-ground-tree.js';
 import {sightLeaf,sightBark,setSightSun} from './kit/sight_trees.js';
 import {installDapple} from './kit/sight_look.js';
 installDapple(T);
-import {MODES,createRelations} from './common-ground-relations.js?v=20261109layers3';
+import {MODES,createRelations} from './common-ground-relations.js?v=20261109birdlow';
 let relations=null,relationMode='forest',relationClock=0;
 function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
 function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}
@@ -136,10 +136,10 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  const base=new T.Mesh(new T.CylinderGeometry(.09,.13,.045,16),steel);base.position.y=.022;instrument.add(base);
  instrument.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});landscape.add(instrument);
  // One tree, several ways of receiving it. Open, wavering strands at each receiver's own height (insect near the ground, a person at eye height, the sensor at its mast, a bird in the crown). No ring is closed and none is centred on a point.
- {const TR=V(-2,0,-3),bands=[[.4,0xe2ad3a,1.6,0.3],[1.55,0xf4f1e6,2.3,1.9],[1.2,0x4fcbb0,2.9,3.4],[2.75,0x6aa6dc,1.9,4.6]];
+ {const TR=V(-2,0,-3),bands=[[.4,0xe2ad3a,1.6,0.3],[1.55,0xf4f1e6,2.3,1.9],[1.2,0x4fcbb0,2.9,3.4],[2.2,0x6aa6dc,1.0,4.6]];
   bands.forEach(([h,c,rad,a0],bi)=>{const m=new T.MeshBasicMaterial({color:c,transparent:true,opacity:.6,depthWrite:false});for(let k=0;k<3;k++){const pts=[];const span=2.1+.35*k,st=a0+k*.7;for(let i=0;i<=24;i++){const a=st+span*i/24,rr=rad*(1+.12*Math.sin(a*3+bi+k)),y=h+.09*k+.07*Math.sin(a*5+bi*2);pts.push(V(TR.x+Math.cos(a)*rr,y,TR.z+Math.sin(a)*rr*.8));}const g=new T.TubeGeometry(new T.CatmullRomCurve3(pts),48,.008+.004*(2-k),5,false);const o=new T.Mesh(g,k?m:m.clone());if(k)o.material=m;else o.material.opacity=.9;landscape.add(o);}});
   const dm=new T.LineDashedMaterial({color:0x9fdccb,dashSize:.08,gapSize:.06,transparent:true,opacity:.75});
-  const link=(pts,c)=>{const l=new T.Line(new T.BufferGeometry().setFromPoints(pts),dm.clone());l.material.color.set(c);l.computeLineDistances();landscape.add(l);};link([V(3.5,1.43,-1.5),V(.6,1.3,-2.4),V(-1.4,1.2,-2.8)],0x4fcbb0);link([V(-.8,2.75,-2.5),V(-1.3,2.75,-2.8)],0x6aa6dc);link([V(mobile?4.1:6.2,1.5,3.7),V(1.5,1.55,-.4),V(-.6,1.55,-1.6)],0xf4f1e6);}
+  const link=(pts,c)=>{const l=new T.Line(new T.BufferGeometry().setFromPoints(pts),dm.clone());l.material.color.set(c);l.computeLineDistances();landscape.add(l);};link([V(3.5,1.43,-1.5),V(.6,1.3,-2.4),V(-1.4,1.2,-2.8)],0x4fcbb0);link([V(-.8,2.7,-2.5),V(-1.2,2.25,-2.7)],0x6aa6dc);link([V(mobile?4.1:6.2,1.5,3.7),V(1.5,1.55,-.4),V(-.6,1.55,-1.6)],0xf4f1e6);}
  layers=new T.Group();landscape.add(layers);
  const pointsGeo=new T.BufferGeometry();pointsGeo.setAttribute('position',new T.Float32BufferAttribute(samples,3));edgeMat=new T.PointsMaterial({size:.027,color:0xa2e4d5,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending});layers.add(new T.Points(pointsGeo,edgeMat));
  const anchors=[V(-1.2,3.3,-2.8),V(1.5,.12,1),V(3.5,1.45,-1.5),V(-2,.15,-3),V(-4,1.1,-1.5)];
