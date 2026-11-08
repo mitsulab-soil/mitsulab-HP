@@ -6,7 +6,7 @@ import {growKeyaki,sprigMesh} from './common-ground-tree.js';
 import {sightLeaf,sightBark,setSightSun} from './kit/sight_trees.js';
 import {installDapple} from './kit/sight_look.js';
 installDapple(T);
-import {MODES,createRelations} from './common-ground-relations.js?v=20261109leaf2';
+import {MODES,createRelations} from './common-ground-relations.js?v=20261109env2';
 let relations=null,relationMode='forest',relationClock=0;
 function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
 function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}
@@ -174,7 +174,9 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  new IntersectionObserver(()=>queueWorldMode(),{threshold:[0,.05,.3]}).observe(figure.closest('.cg-hero'));
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(audio&&!audio.paused)stopNarration();}else{last=0;dirty=true;wake();}});
  updateEmergence();renderer.render(scene,camera);stage.dataset.ready='true';stage.dataset.readyMs=Math.round(performance.now());
- active=true;loadAoi();queueWorldMode();wake();
+ active=true;loadAoi();
+ // Sky light from a CC0 Poly Haven forest panorama (forest_slope, reduced to 512px), loaded after the first frame.
+ new T.TextureLoader().load('img/common-ground/env_forest_slope.jpg',tx=>{tx.mapping=T.EquirectangularReflectionMapping;tx.colorSpace=T.SRGBColorSpace;const pm=new T.PMREMGenerator(renderer);if(!scene.environment){scene.environment=pm.fromEquirectangular(tx).texture;scene.environmentIntensity=.5;ambientLight.intensity*=.8;}pm.dispose();tx.dispose();dirty=true;wake();});queueWorldMode();wake();
 }
 // Capture the actual shared ground once. Reflections use this fixed probe, not six extra renders per frame.
 function makeBirthReflection(){
@@ -195,7 +197,7 @@ async function loadAoi(){
  const loader=new GLTFLoader();loader.setMeshoptDecoder(MeshoptDecoder);loader.register(p=>new VRM.VRMLoaderPlugin(p));
  const buf=await(window.__aoiBuf||(window.__aoiBuf=fetch('img/hero/aoi.vrm').then(r=>{if(!r.ok)throw Error(r.status);return r.arrayBuffer();})));
  const gltf=await loader.parseAsync(buf.slice(0),'');vrm=gltf.userData.vrm;VRM.VRMUtils.rotateVRM0(vrm);vrm.humanoid.resetNormalizedPose();vrm.update(0);
- aoigroup=new T.Group();aoigroup.add(vrm.scene);aoigroup.position.set(mobile?4.1:6.2,0,3.7);const bb=new T.Box3().setFromObject(vrm.scene);aoigroup.scale.setScalar(1.6/(bb.max.y-bb.min.y));world.add(aoigroup);
+ aoigroup=new T.Group();aoigroup.add(vrm.scene);aoigroup.position.set(mobile?2.4:6.2,0,mobile?3.0:3.7);const bb=new T.Box3().setFromObject(vrm.scene);aoigroup.scale.setScalar(1.6/(bb.max.y-bb.min.y));world.add(aoigroup);
  vrm.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;o.receiveShadow=false;}});
  // The robe adds bones and rewrites skin attributes. GLTF primitives may share those
  // arrays while retaining different skeleton palettes; isolate each mesh beforehand.
@@ -253,7 +255,7 @@ function loop(now){raf=0;if(!active||document.hidden||warming)return;if(!dirty&&
  updateEmergence();
  const goal=layerKeys.size?.65:0;layerAlpha=(paused||detachedCanvas)?goal:T.MathUtils.lerp(layerAlpha,goal,Math.min(1,dt*3));edgeMat.opacity=layerKeys.has('sensor')?layerAlpha*.3:0;paths.forEach(p=>{if(p.ribbon)p.m.uniforms.alpha.value=0;else if(p.ends){const active=[...layerKeys].some(k=>p.ends.includes({branch:0,shade:1,sensor:2}[k]));const focused=selectedClue&&p.ends.includes({branch:0,shade:1,sensor:2}[selectedClue]);p.m.opacity=active?layerAlpha*(focused?.62:.27):0;}else p.m.opacity=0;});particles.visible=false;particles.material.opacity=layerAlpha*.8;
  if(particles.visible)paths.filter(p=>p.c).forEach((p,k)=>{for(let i=0;i<12;i++){const v=p.c.getPoint(((i/12+t*.045+k*.12)%1));particlePositions.set([v.x,v.y,v.z],(k*12+i)*3);}});particles.geometry.attributes.position.needsUpdate=true;
- if(aoigroup)aoigroup.position.x=mobile?4.1:6.2;if(bird){bird.object.visible=selectedClue!=='branch';if(!paused)bird.update(dt);}if(!paused)leafGroups.forEach(o=>o.g.rotation.z=Math.sin(t*.27+o.phase)*.003);
+ if(aoigroup)aoigroup.position.x=mobile?2.4:6.2;if(bird){bird.object.visible=selectedClue!=='branch';if(!paused)bird.update(dt);}if(!paused)leafGroups.forEach(o=>o.g.rotation.z=Math.sin(t*.27+o.phase)*.003);
  if(dialogue&&audio){const idx=cues.findIndex(c=>audio.currentTime>=c.s&&audio.currentTime<c.e);if(idx!==cueIndex){cueIndex=idx;subtitle.textContent=idx>=0?cues[idx].text:'';if(idx>=0&&motion&&!paused){motion.speak({text:cues[idx].text,kana:cues[idx].text,dur:cues[idx].e-cues[idx].s,clock:()=>audio.currentTime-cues[idx].s,gesture:[{t:.4,type:idx%3?'metaphoric':'deictic',shape:'present',target:V(-2,2,-3)}]});}}const n=audio.currentTime<11?0:audio.currentTime<23?1:audio.currentTime<42?2:3;if(n!==liveCue){liveCue=n;choose(n);}}
  if(motion&&!paused&&journey>.83){motion.update(dt,camera,{vrmUpdate:false});vrm.update(dt);motion.afterVrmUpdate(dt);}
  clueBlend=0;viewClue=null;
