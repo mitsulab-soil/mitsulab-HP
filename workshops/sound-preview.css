@@ -7,3 +7,6 @@
 
 /* Override the compact legacy waveform height with the 3D stage. */
 .sound-panel #soundLine{height:180px}.sound-panel #guideStage #soundLine{height:360px}.aoi-guide>.voice-controls{padding:0}@media(max-width:600px){.sound-panel #guideStage #soundLine{height:350px}}
+
+/* Material and spectrum share one three-dimensional stage. */
+#soundStage #soundLine{height:clamp(360px,48vw,560px);margin:0}.sound-panel{border:0;border-radius:0;background:radial-gradient(ellipse at 50% 35%,#20312e55,transparent 68%);padding:22px 0}.model-note{letter-spacing:.08em}#guideStage #soundLine{height:400px}@media(max-width:600px){#soundStage #soundLine{height:390px}#guideStage #soundLine{height:370px}}

@@ -3,13 +3,18 @@
 import * as T from 'three';
 import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import {growKeyaki,sprigMesh} from './common-ground-tree.js';
+import {MODES,createRelations} from './common-ground-relations.js?v=20261108a';
+let relations=null,relationMode='forest',relationClock=0;
+function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
+function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-cg-mode]');if(b){stopNarration();selectMode(b.dataset.cgMode);}});
 
 const stage=document.getElementById('cgStage'), figure=document.getElementById('cgScene');
 const ui=document.getElementById('cgExperience');
 const en=()=>document.documentElement.dataset.lang==='en';
 const mq=matchMedia('(prefers-reduced-motion: reduce)');
 const layerKeys=new Set();
-let selectedClue=null,viewClue=null,clueBlend=0,immersionTime=0,autoImmersion=true;
+let selectedClue=null,viewClue=null,clueBlend=0,immersionTime=0,autoImmersion=!mq.matches;
 const bodyPresence={value:0};
 let journey=1,journeyPlaying=false,birth=null,landscape,ambientLight,fillLight,seedField,detachedCanvas=false,warming=false;
 const journeyRange=document.getElementById('cgJourney'),journeyPlay=document.getElementById('cgJourneyPlay'),journeyEnter=document.getElementById('cgJourneyEnter'),journeyPhase=document.getElementById('cgJourneyPhase');
@@ -24,8 +29,8 @@ const choose=(n)=>{if(n===0||n===3)layerKeys.clear();selectedClue=null;figure.cl
 ui.querySelectorAll('[data-cg-step]').forEach(b=>b.addEventListener('click',()=>{autoImmersion=false;enterPlace();choose(+b.dataset.cgStep);}));
 const pause=ui.querySelector('.cg-motion');
 function pauseLabel(){pause.setAttribute('aria-pressed',String(paused));pause.textContent=en()?(paused?'Resume motion':'Pause motion'):(paused?'動きを再開':'動きを止める');}
-pause.addEventListener('click',()=>{paused=!paused;if(paused){journeyPlaying=false;stopNarration();journeyLabels();}pauseLabel();dirty=true;wake();});
-mq.addEventListener('change',()=>{paused=mq.matches;if(paused)journeyPlaying=false;journeyLabels();pauseLabel();dirty=true;wake();});pauseLabel();
+pause.addEventListener('click',()=>{paused=!paused;if(paused){tourState(false);journeyPlaying=false;stopNarration();journeyLabels();}pauseLabel();dirty=true;wake();});
+mq.addEventListener('change',()=>{paused=mq.matches;if(paused){tourState(false);journeyPlaying=false;}journeyLabels();pauseLabel();dirty=true;wake();});pauseLabel();
 const talk=ui.querySelector('.cg-talk'), subtitle=ui.querySelector('.cg-subtitle'), talkStatus=ui.querySelector('.cg-talk-status');
 function talkLabel(){talk.textContent=en()?(dialogue?'Stop Aoi’s guide':'Meet Aoi · Japanese audio'):(dialogue?'碧の案内を止める':'碧に会う・声で案内');talk.setAttribute('aria-pressed',String(dialogue));}
 function stopNarration(){narrationRequest++;dialogue=false;if(audio){audio.pause();audio.currentTime=0;}motion?.stopSpeaking();subtitle.hidden=true;figure.classList.remove('is-talking');talkLabel();dirty=true;}
@@ -37,7 +42,7 @@ function prepareNarration(){
 }
 async function beginNarration(){
  if(dialogue){stopNarration();return;}
- enterPlace();window.scrollTo({top:Math.max(0,figure.closest('.cg-hero').getBoundingClientRect().top+scrollY-64),behavior:'instant'});queueWorldMode();
+ tourState(false);enterPlace();window.scrollTo({top:Math.max(0,figure.closest('.cg-hero').getBoundingClientRect().top+scrollY-64),behavior:'instant'});queueWorldMode();
  if(!vrm){talkStatus.textContent=en()?'Aoi is loading. You can explore the scene.':'碧を読み込んでいます。先に風景を操作できます。';return;}
  const request=++narrationRequest;talk.disabled=true;talkStatus.textContent='';
  try{
@@ -101,17 +106,17 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
   for(let j=0;j<5;j++){let u=j/5,v=(j+1)/5;vertex(u,-1);vertex(v,-1);vertex(u,1);vertex(u,1);vertex(v,-1);vertex(v,1);}
  }
  const grassGeo=new T.BufferGeometry();grassGeo.setAttribute('position',new T.Float32BufferAttribute(grassPos,3));grassGeo.setAttribute('color',new T.Float32BufferAttribute(grassColors,3));grassGeo.computeVertexNormals();
- const grass=new T.InstancedMesh(grassGeo,new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:1}),mobile?1700:2800),dummy=new T.Object3D();let count=0;const colonies=Array.from({length:42},()=>[(rand()-.5)*37,rand()*45-33,.6+rand()*1.3]);
- for(let i=0;i<grass.count;i++){const cl=colonies[i%colonies.length],a=rand()*Math.PI*2,r=Math.sqrt(-2*Math.log(Math.max(.001,rand())))*cl[2];let x=cl[0]+Math.cos(a)*r,z=cl[1]+Math.sin(a)*r;const pathX=2.6+Math.sin(z*.10)*2;if(Math.abs(x-pathX)<1.4){x+=x<pathX?-2.2:2.2;}dummy.position.set(x,groundHeight(x,z)+.005,z);dummy.rotation.set(0,rand()*Math.PI*2,(rand()-.5)*.35);const k=.38+rand()*.72;dummy.scale.set(k*(.6+rand()*.6),k,k*(.6+rand()*.6));dummy.updateMatrix();grass.setMatrixAt(count++,dummy.matrix);}grass.receiveShadow=true;landscape.add(grass);
+ const grass=new T.InstancedMesh(grassGeo,new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:1}),mobile?1700:2800),dummy=new T.Object3D();let count=0;const colonies=Array.from({length:42},()=>[(rand()-.5)*37,rand()*45-33,.35+rand()*2.1]);
+ for(let i=0;i<grass.count;i++){const cl=colonies[i%colonies.length],a=rand()*Math.PI*2,r=Math.sqrt(-2*Math.log(Math.max(.001,rand())))*cl[2];let x=cl[0]+Math.cos(a)*r,z=cl[1]+Math.sin(a)*r;const pathX=2.6+Math.sin(z*.10)*2;if(Math.abs(x-pathX)<1.4){x+=x<pathX?-2.2:2.2;}dummy.position.set(x,groundHeight(x,z)+.005,z);dummy.rotation.set(0,rand()*Math.PI*2,(rand()-.5)*.35);const k=.16+Math.pow(rand(),1.7)*1.4;dummy.scale.set(k*(.5+rand()*.85),k*(.65+rand()*.65),k*(.5+rand()*.85));dummy.updateMatrix();grass.setMatrixAt(count++,dummy.matrix);}grass.receiveShadow=true;landscape.add(grass);
  const rockGeo=mergeVertices(new T.IcosahedronGeometry(1,2));const rockPos=rockGeo.attributes.position;for(let i=0;i<rockPos.count;i++){const x=rockPos.getX(i),y=rockPos.getY(i),z=rockPos.getZ(i);const f=1+.13*Math.sin(x*6+y*9+z*4);rockPos.setXYZ(i,x*f,y*f,z*f);}rockGeo.computeVertexNormals();const stoneMat=mat(0x858780);stoneMat.normalMap=groundMat.normalMap.clone();stoneMat.normalMap.repeat.set(2.5,2.5);stoneMat.normalScale.set(.25,.25);const rocks=new T.InstancedMesh(rockGeo,stoneMat,18);for(let i=0;i<18;i++){dummy.position.set((rand()-.5)*27,.05,rand()*25-22);dummy.rotation.set(rand(),rand()*6,rand());dummy.scale.set(.08+rand()*.26,.045+rand()*.105,.08+rand()*.23);dummy.updateMatrix();dummy.position.y=groundHeight(dummy.position.x,dummy.position.z)+.045;dummy.updateMatrix();rocks.setMatrixAt(i,dummy.matrix);}rocks.castShadow=true;rocks.receiveShadow=true;landscape.add(rocks);
  // Fern understory: curved fronds and paired pinnae, clustered where the path is not.
  const fp=[],fc=[];const tri=(a,b,c,shade)=>{for(const p of [a,b,c]){fp.push(...p);fc.push(.12*shade,.25*shade,.075*shade);}};
  for(let f=0;f<7;f++){const a=f/7*Math.PI*2,cs=Math.cos(a),sn=Math.sin(a);const pos=(u,v)=>[(u*cs-v*sn),Math.sin(u*2.3)*.42,(u*sn+v*cs)];for(let i=1;i<13;i++){const u=i/13*.78,w=Math.sin(i/13*Math.PI)*.17;for(const side of [-1,1]){const point=(t,edge)=>{const breadth=Math.sin(Math.PI*t)*.019;const p=pos(u+.10*t+edge*breadth,side*w*t);p[1]+=.035*Math.sin(t*Math.PI)-Math.abs(edge)*.012;return p;};for(let j=0;j<5;j++){const t0=j/5,t1=(j+1)/5;tri(point(t0,-1),point(t1,-1),point(t0,0),.78+i*.025);tri(point(t0,0),point(t1,-1),point(t1,0),.78+i*.025);tri(point(t0,0),point(t1,0),point(t0,1),1+i*.022);tri(point(t0,1),point(t1,0),point(t1,1),1+i*.022);}}}}
  const fg=new T.BufferGeometry();fg.setAttribute('position',new T.Float32BufferAttribute(fp,3));fg.setAttribute('color',new T.Float32BufferAttribute(fc,3));fg.computeVertexNormals();const fern=new T.InstancedMesh(fg,new T.MeshStandardMaterial({vertexColors:true,roughness:.73,side:T.DoubleSide}),70);
- for(let i=0;i<70;i++){const a=rand()*Math.PI*2,r=1.4+rand()*4.2,cent=i<40?[-2,-3]:i<55?[-3,5]:[7,3];dummy.position.set(cent[0]+Math.cos(a)*r,.035,cent[1]+Math.sin(a)*r);dummy.rotation.set((rand()-.5)*.22,rand()*6,(rand()-.5)*.28);const fs=.28+Math.pow(rand(),1.4)*.7;dummy.scale.set(fs*(.8+rand()*.4),fs*(.65+rand()*.55),fs*(.75+rand()*.5));dummy.updateMatrix();dummy.position.y=groundHeight(dummy.position.x,dummy.position.z)+.01;dummy.updateMatrix();fern.setMatrixAt(i,dummy.matrix);fern.setColorAt(i,new T.Color().setRGB(.65+rand()*.28,.70+rand()*.25,.54+rand()*.3));}fern.receiveShadow=true;fern.castShadow=true;landscape.add(fern);
+ for(let i=0;i<70;i++){const a=rand()*Math.PI*2,r=.25+Math.pow(rand(),1.8)*3.5,cent=i<26?[-4.6,-2]:i<39?[-3.6,2.8]:i<48?[6.9,-4.2]:i<63?[-6.7,-7.5]:[7.1,4.3];dummy.position.set(cent[0]+Math.cos(a)*r,.035,cent[1]+Math.sin(a)*r);dummy.rotation.set((rand()-.5)*.48,rand()*6,(rand()-.5)*.55);const fs=.16+Math.pow(rand(),1.7)*.95;dummy.scale.set(fs*(.8+rand()*.4),fs*(.65+rand()*.55),fs*(.75+rand()*.5));dummy.updateMatrix();dummy.position.y=groundHeight(dummy.position.x,dummy.position.z)+.01;dummy.updateMatrix();fern.setMatrixAt(i,dummy.matrix);fern.setColorAt(i,new T.Color().setRGB(.65+rand()*.28,.70+rand()*.25,.54+rand()*.3));}fern.receiveShadow=true;fern.castShadow=true;landscape.add(fern);
  // Ground leaves from the same licensed leaf set, never an opaque green carpet.
  const litter=new T.InstancedMesh(new T.PlaneGeometry(.24,.27),new T.MeshStandardMaterial({map:leafMap,alphaTest:.5,side:T.DoubleSide,color:0x9b773c,roughness:1}),180);
- for(let i=0;i<180;i++){dummy.position.set((rand()-.5)*14,.015,rand()*17-9);dummy.rotation.set(-Math.PI/2,0,rand()*6);dummy.scale.setScalar(.6+rand());dummy.updateMatrix();dummy.position.y=groundHeight(dummy.position.x,dummy.position.z)+.012;dummy.updateMatrix();litter.setMatrixAt(i,dummy.matrix);}landscape.add(litter);litter.receiveShadow=true;
+ for(let i=0;i<180;i++){const la=rand()*6.28,lr=Math.pow(rand(),.7)*5.1;dummy.position.set(-2+Math.cos(la)*lr,.015,-3+Math.sin(la)*lr*.8);dummy.rotation.set(-Math.PI/2,0,rand()*6);dummy.scale.setScalar(.6+rand());dummy.updateMatrix();dummy.position.y=groundHeight(dummy.position.x,dummy.position.z)+.012;dummy.updateMatrix();litter.setMatrixAt(i,dummy.matrix);}landscape.add(litter);litter.receiveShadow=true;
  // Slender instrument anchored to the ground. It is an illustration, not a live sensor.
  instrument=new T.Group();instrument.position.set(3.5,0,-1.5);
  const steel=new T.MeshStandardMaterial({color:0x81928d,roughness:.42,metalness:.68});
@@ -131,12 +136,8 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  // Nested topographic traces lie on the physical ground and bend around the tree.
  for(let k=0;k<8;k++){let pts=[];for(let i=0;i<=120;i++){const a=i/120*Math.PI*2,r=1.1+k*.46+.16*Math.sin(a*4+k*.5);pts.push(V(-2+Math.cos(a)*r,.025+k*.003,-3+Math.sin(a)*r*.67));}const m=new T.LineBasicMaterial({color:0x86b9b1,transparent:true,opacity:0,depthWrite:false});layers.add(new T.Line(new T.BufferGeometry().setFromPoints(pts),m));paths.push({m});}
  particlePositions=new Float32Array(72*3);particles=new T.Points(new T.BufferGeometry().setAttribute('position',new T.BufferAttribute(particlePositions,3)),new T.PointsMaterial({size:.038,color:0xb4e8dd,transparent:true,opacity:.75,depthWrite:false,blending:T.AdditiveBlending}));layers.add(particles);
- // Soft translucent sheets: local fields of contact, woven through branches and soil.
- for(let k=0;k<3;k++){
- const positions=[],uv=[],idx=[];for(let i=0;i<=140;i++){const u=i/140,a=u*Math.PI*2,r=2.7+k*.65;for(let j=0;j<2;j++){const w=(j-.5)*(.12+Math.sin(u*Math.PI)*.42);positions.push(-1+Math.cos(a)*r,1.5+Math.sin(a*2+k*.7)*.8+w,-1.8+Math.sin(a)*r*.7);uv.push(u,j);}}for(let i=0;i<140;i++){const n=i*2;idx.push(n,n+1,n+2,n+1,n+3,n+2);}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(idx);
- const m=new T.ShaderMaterial({transparent:true,side:T.DoubleSide,depthWrite:false,blending:T.AdditiveBlending,uniforms:{alpha:{value:0},color:{value:new T.Color([0x8fe5c7,0x98bce3,0xe0c999][k])}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform float alpha;uniform vec3 color;varying vec2 vUv;void main(){float edge=pow(1.-abs(vUv.y-.5)*2.,2.);gl_FragColor=vec4(color,alpha*edge*.28);}' });layers.add(new T.Mesh(g,m));paths.push({m,ribbon:true});
- }
 
+ relations=createRelations(landscape,{mobile,groundHeight,samples,groundMaterial:groundMat,renderer,sceneRoot:scene});relations.select(relationMode);
  const seeds=[];for(let i=0;i<140;i++)seeds.push((mobile?3.4:5.3)+(rand()-.5)*2.8,.2+rand()*2.1,4.7+(rand()-.5)*2.0);
  seedField=new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(seeds,3)),new T.PointsMaterial({color:0xa7d4cb,size:.025,transparent:true,opacity:.38,depthWrite:false,blending:T.AdditiveBlending}));world.add(seedField);
  const cv=stage.querySelector('canvas');
@@ -157,7 +158,7 @@ function makeBirthReflection(){
  // These light cards exist only during the one-time reflection capture.
  const cards=new T.Group(),cardGeometry=new T.PlaneGeometry(1,1),cardMaterial=new T.MeshBasicMaterial({color:new T.Color(3.2,3.4,3.3),side:T.DoubleSide,toneMapped:false});
  for(const [x,y,z,w,h] of [[-3,3,2,2,5],[3,2,-1,1.2,4],[0,5,-2,4,2]]){const card=new T.Mesh(cardGeometry,cardMaterial);card.position.copy(probe.position).add(V(x,y,z));card.scale.set(w,h,1);card.lookAt(probe.position);cards.add(card);}scene.add(cards);
- try{landscape.visible=true;aoigroup.visible=false;seedField.visible=false;layers.visible=false;scene.background.set(0x354b49);scene.fog.color.copy(scene.background);scene.fog.density=.026;ambientLight.intensity=2.1;fillLight.intensity=1.15;sunlight.intensity=1.6;
+ try{landscape.visible=true;aoigroup.visible=false;seedField.visible=false;layers.visible=false;scene.background.set(0x354b49);scene.fog.color.set(0x75847a);scene.fog.density=.026;ambientLight.intensity=2.1;fillLight.intensity=1.15;sunlight.intensity=1.6;
   probe.update(renderer,scene);const pmrem=new T.PMREMGenerator(renderer),filtered=pmrem.fromCubemap(target.texture);pmrem.dispose();world.userData.birthEnvironment=filtered;stage.dataset.reflection='shared-ground-once';return filtered.texture;
  }finally{cards.removeFromParent();cardGeometry.dispose();cardMaterial.dispose();probe.removeFromParent();target.dispose();landscape.visible=saved.landscape;aoigroup.visible=saved.aoi;seedField.visible=saved.seeds;layers.visible=saved.layers;scene.background.copy(saved.background);scene.fog.color.copy(saved.fog);scene.fog.density=saved.density;ambientLight.intensity=saved.ambient;fillLight.intensity=saved.fill;sunlight.intensity=saved.sun;}
 }
@@ -214,12 +215,13 @@ if(cgBodyPresence<1.0 && cgBodyY>mix(-.05,1.85,cgBodyPresence)) discard;`);
  }catch(e){warming=false;if(renderer)renderer.setViewport(0,0,width,height);console.error('Common Ground Aoi',e);talkStatus.textContent=en()?'Aoi could not load. The transcript remains available.':'碧を読み込めませんでした。案内の全文は下から読めます。';}
 }
 function resize(){if(!renderer)return;width=detachedCanvas?worldHost.clientWidth:stage.clientWidth;height=detachedCanvas?worldHost.clientHeight:stage.clientHeight;if(!width||!height)return;mobile=width<760;renderer.setSize(width,height,false);camera.aspect=width/height;camera.fov=mobile?54:49;camera.updateProjectionMatrix();positionCamera();dirty=true;wake();}
-function positionCamera(){if(!camera)return;const p=mobile?V(5.9,2.1,10.4):V(6.3,2.9,11.2),look=V(mobile?1.0:.2,mobile?.15:1.5,mobile?-.3:-2.0);p.applyAxisAngle(V(0,1,0),yaw);p.lerp(mobile?V(4.2,1.5,8.7):V(6.7,1.65,8.5),guideBlend);look.lerp(mobile?V(3.4,.7,4.7):V(3.8,1.3,4.7),guideBlend);if(journey<.96){const born=1-T.MathUtils.smoothstep(journey,.64,.96);p.lerp(mobile?V(3.7,1.25,8.3):V(5.8,1.25,8.6),born);look.lerp(mobile?V(3.4,.87,4.7):V(5.3,.87,4.7),born);}if(viewClue&&clueBlend>0){const views={branch:[V(-.65,2.85,-2.35),V(2,3.1,-8)],shade:[V(.8,1.18,1.4),V(-2,2,-3)],sensor:[V(3.5,1.43,-1.35),V(-1,.5,-3)]};const v=views[viewClue];p.lerp(v[0],clueBlend);look.lerp(v[1],clueBlend);}if(!camera.userData.look){camera.userData.look=look.clone();camera.position.copy(p);}const damping=paused?1:.035;camera.position.lerp(p,damping);camera.userData.look.lerp(look,damping);camera.lookAt(camera.userData.look);}
+function positionCamera(){if(!camera)return;const p=mobile?V(5.9,2.1,10.4):V(6.3,2.9,11.2),look=V(mobile?1.0:.2,mobile?.15:1.5,mobile?-.3:-2.0);p.applyAxisAngle(V(0,1,0),yaw);p.lerp(mobile?V(4.2,1.5,8.7):V(6.7,1.65,8.5),guideBlend);look.lerp(mobile?V(3.4,.7,4.7):V(3.8,1.3,4.7),guideBlend);if(journey<.96){const born=1-T.MathUtils.smoothstep(journey,.64,.96);p.lerp(mobile?V(3.7,1.25,8.3):V(5.8,1.25,8.6),born);look.lerp(mobile?V(3.4,.87,4.7):V(5.3,.87,4.7),born);}if(viewClue&&clueBlend>0){const views={branch:[V(-.65,2.85,-2.35),V(2,3.1,-8)],shade:[V(.8,1.18,1.4),V(-2,2,-3)],sensor:[V(3.5,1.43,-1.35),V(-1,.5,-3)]};const v=views[viewClue];p.lerp(v[0],clueBlend);look.lerp(v[1],clueBlend);}if(!dialogue&&!viewClue){const mode=MODES.find(m=>m.id===relationMode);if(mode){const eye=V(...mode.eye),target=V(...mode.look);if(mobile){eye.sub(target).multiplyScalar(1.18).add(target);eye.y+=.3;}p.copy(eye);look.copy(target);}}if(!camera.userData.look){camera.userData.look=look.clone();camera.position.copy(p);}const damping=paused?1:.035;camera.position.lerp(p,damping);camera.userData.look.lerp(look,damping);camera.lookAt(camera.userData.look);}
 function wake(){if(!raf&&renderer&&active&&!document.hidden)raf=requestAnimationFrame(loop);}
 let layerAlpha=0,frames=0,frameTimes=[];
 function loop(now){raf=0;if(!active||document.hidden||warming)return;if(!dirty&&(paused||detachedCanvas)&&!dialogue&&!journeyPlaying)return;if(last&&now-last<32){wake();return;}const dt=Math.min(.05,last?(now-last)/1000:.016);if(last)frameTimes.push(now-last);if(frameTimes.length>120)frameTimes.shift();last=now;if(!paused)t+=dt;
  if(birth&&journeyPlaying&&!detachedCanvas){journey=Math.min(1,journey+dt/24);if(journey>=1)journeyPlaying=false;journeyLabels();}
- if(autoImmersion&&vrm&&!paused&&!detachedCanvas&&!dialogue){immersionTime+=dt;const key=immersionTime<6?null:immersionTime<16?'shade':immersionTime<27?'branch':immersionTime<38?'sensor':'shade';if(key!==selectedClue&&key)showClue(key);if(immersionTime>48)autoImmersion=false;}
+ if(autoImmersion&&vrm&&!paused&&!detachedCanvas&&!dialogue){immersionTime+=dt;const key=MODES[Math.min(MODES.length-1,Math.floor(immersionTime/12))].id;if(key!==relationMode)selectMode(key,{automatic:true});if(immersionTime>MODES.length*12)tourState(false);}
+ relations?.update(dt,t,paused);
  updateEmergence();
  const goal=layerKeys.size?.65:0;layerAlpha=(paused||detachedCanvas)?goal:T.MathUtils.lerp(layerAlpha,goal,Math.min(1,dt*3));edgeMat.opacity=layerKeys.has('sensor')?layerAlpha*.3:0;paths.forEach(p=>{if(p.ribbon)p.m.uniforms.alpha.value=0;else if(p.ends){const active=[...layerKeys].some(k=>p.ends.includes({branch:0,shade:1,sensor:2}[k]));const focused=selectedClue&&p.ends.includes({branch:0,shade:1,sensor:2}[selectedClue]);p.m.opacity=active?layerAlpha*(focused?.62:.27):0;}else p.m.opacity=0;});particles.visible=false;particles.material.opacity=layerAlpha*.8;
  if(particles.visible)paths.filter(p=>p.c).forEach((p,k)=>{for(let i=0;i<12;i++){const v=p.c.getPoint(((i/12+t*.045+k*.12)%1));particlePositions.set([v.x,v.y,v.z],(k*12+i)*3);}});particles.geometry.attributes.position.needsUpdate=true;
@@ -243,7 +245,8 @@ function loop(now){raf=0;if(!active||document.hidden||warming)return;if(!dirty&&
  frames++;dirty=false;stage.dataset.frames=frames;
  if((!paused&&!detachedCanvas)||dialogue||journeyPlaying&&!detachedCanvas)wake();
 }
-window.__commonGround={choose,get stats(){return {layers:[...layerKeys],immersionTime,autoImmersion,step,selectedClue,clueBlend,lightAngle,journey,journeyPlaying,detachedCanvas,birth:birth?.stats,instrument:camera?(()=>{const p=V(3.5,1.43,-1.5).project(camera);return {x:(p.x*.5+.5)*width,y:(-p.y*.5+.5)*height,inFrustum:Math.abs(p.x)<1&&Math.abs(p.y)<1&&Math.abs(p.z)<1};})():null,frames,ready:stage.dataset.ready,aoi:!!vrm,drawCalls:renderer?.info.render.calls,triangles:renderer?.info.render.triangles,medianFrameMs:frameTimes.slice().sort((a,b)=>a-b)[Math.floor(frameTimes.length/2)],paused,active};},capture:()=>{renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');},render:()=>{dirty=true;wake();}};
+window.__commonGround={choose,selectMode,modes:MODES,setAuto(value){if(value&&paused&&!mq.matches){paused=false;pauseLabel();}tourState(!!value&&!paused);immersionTime=0;dirty=true;wake();},get stats(){return {relations:relations?.stats,relationMode,layers:[...layerKeys],immersionTime,autoImmersion,step,selectedClue,clueBlend,lightAngle,journey,journeyPlaying,detachedCanvas,birth:birth?.stats,instrument:camera?(()=>{const p=V(3.5,1.43,-1.5).project(camera);return {x:(p.x*.5+.5)*width,y:(-p.y*.5+.5)*height,inFrustum:Math.abs(p.x)<1&&Math.abs(p.y)<1&&Math.abs(p.z)<1};})():null,frames,ready:stage.dataset.ready,aoi:!!vrm,drawCalls:renderer?.info.render.calls,triangles:renderer?.info.render.triangles,medianFrameMs:frameTimes.slice().sort((a,b)=>a-b)[Math.floor(frameTimes.length/2)],paused,active};},capture:()=>{renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');},render:()=>{dirty=true;wake();}};
+requestAnimationFrame(()=>tourState(autoImmersion));
 let booted=false;const deepStart=!!location.hash&&location.hash!=='#top';const bootObserver=new IntersectionObserver(es=>{if(deepStart&&document.readyState==='loading')return;if(es[0].isIntersecting&&!booted){booted=true;try{sceneBoot();choose(2);}catch(e){console.error('Common Ground scene',e);stage.querySelector('.cg-gl-fallback').hidden=false;stage.dataset.ready='false';}}},{rootMargin:'100px'});bootObserver.observe(stage);if(deepStart)document.addEventListener('DOMContentLoaded',()=>{bootObserver.unobserve(stage);bootObserver.observe(stage);},{once:true});
 const full=ui.querySelector('.cg-fullscreen'),hero=figure.closest('.cg-hero');
 let expanded=false,priorOverflow='';
@@ -274,7 +277,7 @@ lightControl.addEventListener('input',()=>{
 function updateEmergence(){
  if(!scene)return;const k=T.MathUtils.smoothstep(journey,.56,.90);
  landscape.visible=journey>.55;scene.background.copy(new T.Color(0x03060f)).lerp(new T.Color(0x354b49),k);
- scene.fog.color.copy(scene.background);scene.fog.density=T.MathUtils.lerp(.18,.026,k);
+ scene.fog.color.set(0x75847a);scene.fog.density=T.MathUtils.lerp(.18,.026,k);
  ambientLight.intensity=.65+1.45*k;fillLight.intensity=.45+.70*k;sunlight.intensity=.5+1.10*k;
  bodyPresence.value=T.MathUtils.smoothstep(journey,.61,.83);
  if(vrm)vrm.scene.visible=bodyPresence.value>.001;
