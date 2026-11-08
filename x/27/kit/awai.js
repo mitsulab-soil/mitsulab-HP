@@ -164,12 +164,14 @@ export async function createAwai(o) {
   }
 
   // 欅の並木（参道の両側）。形＝ひとつの木と同じ作り方（低い所で太枝に分かれ、箒のように上へ開く）。近い 6 本だけ細かく
-  const near = [], all = []; let grassUp = null;
+  const near = [], all = []; let grassUp = null, growLater = null;   // o.deferBack：奥の並木を最初の絵のあとで組む（使うアプリだけ。ほかは前と同じ）
   {
     const K = { taperTube }, spots = [];
     for (const side of [-1, 1]) for (let z = 12 + R() * 3, i = 0; z > -140; z -= 9 + R() * 3.5, i++) spots.push([pathX(z) + side * (5.4 + R() * 1.4), z, i < (MOBILE ? 2 : 3)]);
     for (const side of [-1, 1]) for (const [x0, dz] of (MOBILE ? [[13, 12], [24, 11]] : [[13, 11], [22, 9], [32, 8], [44, 8]])) for (let z = 10 + R() * 5; z > -120; z -= dz + R() * 6) spots.push([pathX(z) + side * (x0 + R() * 7), z, false, true]);
+    const later = [];
     for (const [x, z, det, back] of spots) {
+      if (back && o.deferBack) { later.push([x, z]); continue; }
       const sc = (back ? .8 : 1) * (.85 + R() * .35), d = det && Math.abs(z) < 30;
       const t = KY.growKeyaki(K, R, x, z, { det: d, r: .55 * sc * (.8 + R() * .5), hf: 3.1 * sc * (.75 + R() * .55), limbs: (d ? 6 : (MOBILE ? 4 : 5)) + Math.floor(R() * 3) - 1, len: [6.8 * sc, 8.4 * sc].map(l => l * (.8 + R() * .4)), tilt: .17 + R() * .2, levels: d && !MOBILE ? 3 : 2, forks: 2, decay: .64,
         sprigs: d ? (MOBILE ? 2600 : 5200) : (back ? 0 : (MOBILE ? 260 : 620)), back: d ? (MOBILE ? 420 : 800) : (MOBILE ? 220 : 380) });
@@ -187,6 +189,10 @@ export async function createAwai(o) {
     { const fs = all.filter(t => !near.includes(t) && t.sprigs.length).flatMap(t => t.sprigs.map(b => [b, t.ctr])); if (fs.length) { const im = KY.sprigMesh(fs.map(b => b[0]), leaf, 1.15, tint, new THREE.Vector3(), R); const a = im.geometry.attributes.aCtr; fs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); world.add(autumn(im, .38)); } }   // 並木の枝先にも葉（枝先が槍に見えない）
     const backs = all.flatMap(t => t.back.map(b => [b, t.ctr]));
     const bIM = KY.sprigMesh(backs.map(b => b[0]), leaf, 1.35, tintB, new THREE.Vector3(), R); { const a = bIM.geometry.attributes.aCtr; backs.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); } world.add(autumn(bIM, .34));
+    if (later.length) growLater = () => { const RL = rng((o.seed ?? 1106) + 31), ts = [];
+      for (const [x, z] of later) { const sc = .8 * (.85 + RL() * .35); ts.push(KY.growKeyaki(K, RL, x, z, { det: false, r: .55 * sc * (.8 + RL() * .5), hf: 3.1 * sc * (.75 + RL() * .55), limbs: (MOBILE ? 4 : 5) + Math.floor(RL() * 3) - 1, len: [6.8 * sc, 8.4 * sc].map(l => l * (.8 + RL() * .4)), tilt: .17 + RL() * .2, levels: 2, forks: 2, decay: .64, sprigs: 0, back: MOBILE ? 220 : 380 })); }
+      const g = new THREE.Group(); g.add(new THREE.Mesh(mergeGeometries(ts.flatMap(t => t.wood).map(q => { for (const k of Object.keys(q.attributes)) if (!["position", "normal", "uv"].includes(k)) q.deleteAttribute(k); return q; })), bark));
+      const bk = ts.flatMap(t => t.back.map(b => [b, t.ctr])), im = KY.sprigMesh(bk.map(b => b[0]), leaf, 1.35, tintB, new THREE.Vector3(), RL); { const a = im.geometry.attributes.aCtr; bk.forEach(([, c], i) => a.setXYZ(i, c.x, c.y, c.z)); } g.add(autumn(im, .34)); return g; };
     mk("trees");
   }
   // 草（道の外の縁）と落ち葉
@@ -312,6 +318,7 @@ export async function createAwai(o) {
     renderer.render(scene, camera);
     fit.frame(dt * 1000);
     if (!firstFrame) { firstFrame = performance.now() - T0; window.__awai.first = Math.round(firstFrame); document.documentElement.classList.add("aw-ready");
+      setTimeout(() => { if (growLater) { world.add(growLater()); growLater = null; } }, 700);   // 操作できるようになってから
       setTimeout(() => renderer.compileAsync(pending, camera, scene).catch(() => {}).then(() => { while (pending.children.length) scene.add(pending.children[0]); window.__awai.full = Math.round(performance.now() - T0); readyFns.forEach(f => f()); }), 30); }
     fpsN++; fpsT += dt; if (fpsT > 1) { fps = fpsN / fpsT; fpsN = 0; fpsT = 0; window.__awai.fps = Math.round(fps); }
     requestAnimationFrame(loop);

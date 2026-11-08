@@ -12,7 +12,7 @@ AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
 
 const W = await createAwai({
-  title: "Qualia/leaf", sub: "一枚の葉の連なり", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0,
+  title: "Qualia/leaf", sub: "一枚の葉の連なり", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
   rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 5.0, k), h = lerp(1.55, 1.7, k);   // 11-06 本人「俯瞰でなく主観の体験に」：抽象でも、その場に立つ人の目の高さ（約 1.6 m）のまま。一歩前へ出て、場の波を自分の足もとから受けとる   // 11-06 二版の後：抽象を一歩寄せる（主体が小さく、画面の下が空いていた）
     const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, 0, k), lerp(-1.6, .2, k));
     if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(.1 + Math.sin(y) * 1.2, 1.75, 7.6), q); look.lerp(new V3(.1, .1, .4), q);   /* 縦長も目の高さのまま（真上から見下ろさない） */   /* 11-06 二版の後：主体を画面の中ほどへ下ろし、一歩寄せる（下半分が空いていた） */ }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）

@@ -330,14 +330,14 @@ function paintHall() {
   $('capNo').textContent = '上原光瑛の書と言葉 ── Qualia/oto';
   $('capTi').textContent = '書と音の広間'; $('capTi').classList.remove('long');
   $('capRd').textContent = '光の点は、まだ書になっていない「〇〇の音」の言葉。触れると鳴る。';
-  $('count').textContent = `-- / ${String(stops.length).padStart(2, '0')}`;
+  $('count').textContent = ''; $('count').style.visibility = 'hidden';   // oto：書の前に立つまで番号は出さない
 }
 function setFocus(it) {
   focus = it; const w = it.w; $('capRd').classList.remove('aoi');
   $('capNo').textContent = it.paper ? `上原光瑛の書 ── 紙の原本　${sid(w.id)}` : idLabel(w);
   $('capTi').textContent = w.title; $('capTi').classList.toggle('long', w.title.length > 16);
   $('capRd').textContent = it.paper ? '紙に墨で書いた、もとの書。立体にせず、紙の上の墨のまま掛けた。' : (w.reading || '');
-  stopK = stops.indexOf(it); $('count').textContent = `${String(stopK + 1).padStart(2, '0')} / ${String(stops.length).padStart(2, '0')}`;
+  stopK = stops.indexOf(it); $('count').style.visibility = ''; $('count').textContent = `${String(stopK + 1).padStart(2, '0')} / ${String(stops.length).padStart(2, '0')}`;
   stops.forEach(s => s.btn.setAttribute('aria-current', s === it));
 }
 function goStop(k) {
@@ -381,7 +381,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
 
 /* ── 音と振動 ── */
 const sBtn = $('snd');
-const paintSnd = () => { sBtn.setAttribute('aria-pressed', soundOn); sBtn.textContent = soundOn ? '音 入' : '音 切'; };
+const paintSnd = () => { sBtn.setAttribute('aria-pressed', soundOn); sBtn.textContent = soundOn ? '音 あり' : '音 なし'; };
 paintSnd();
 function wake() {                                              // 最初の操作で音をひらく（自動再生の決まりを守る）
   if (audioWoken || !soundOn) return; audioWoken = true;
@@ -532,7 +532,7 @@ addEventListener('resize', resize);
 const nearest = () => { let b = null, bd = 1e9; for (const it of works) { const d = Math.hypot(it.x - P.x, it.z - P.z); if (d < bd) { bd = d; b = it; } } return b; };
 // v11 起動は近い書から：入口から近い数作だけ先に組んで、残りは動き出してから一つずつ
 const byNear = [...works].sort((a, b) => Math.hypot(a.x - SPAWN.x, a.z - SPAWN.z) - Math.hypot(b.x - SPAWN.x, b.z - SPAWN.z));
-await Promise.all(byNear.slice(0, SHOT ? works.length : 3).map(it => prepare(it).catch(e => { console.warn('prep', it.w?.id, e?.message ?? e); it.prep = null; })));   /* 11-03：書の画が読めなくても（3 回読み直したあと）、その書だけ外して起動を続ける */
+await Promise.all(byNear.slice(0, SHOT ? works.length : 1).map(it => prepare(it).catch(e => { console.warn('prep', it.w?.id, e?.message ?? e); it.prep = null; })));   /* 11-03：書の画が読めなくても（3 回読み直したあと）、その書だけ外して起動を続ける */
 buildHall(null);
 works.filter(it => it.sho).forEach(placeInRoom);
 scene.add(paperG);
