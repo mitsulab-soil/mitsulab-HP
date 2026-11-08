@@ -68,9 +68,9 @@ function sceneBoot(){
  renderer=new T.WebGLRenderer({canvas:stage.querySelector('canvas'),alpha:false,antialias:true,powerPreference:'high-performance'});renderer.debug.checkShaderErrors=true;renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
  scene=new T.Scene();scene.background=new T.Color(0x354b49);scene.fog=new T.FogExp2(0x354b49,.026);camera=new T.PerspectiveCamera(53,1,.1,100);world=new T.Group();scene.add(world);landscape=new T.Group();world.add(landscape);
  ambientLight=new T.HemisphereLight(0xc4d9e2,0x625a43,1.8);scene.add(ambientLight);const sun=new T.DirectionalLight(0xffe7c7,2.4);sunlight=sun;sun.position.set(-8,14,-5);sun.castShadow=true;sun.shadow.mapSize.set(mobile?1024:2048,mobile?1024:2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:16,bottom:-12,near:1,far:50});sun.shadow.radius=5;sun.shadow.intensity=.58;sun.shadow.bias=-.0006;sun.shadow.normalBias=.05;scene.add(sun);const fill=new T.DirectionalLight(0xcbd9d5,1.0);fillLight=fill;fill.position.set(4,6,9);scene.add(fill);
- const groundMat=mat(0xb7b2a1);groundMat.map=tex('img/hero/3d/dio/soil_c.webp',[70,70],true);groundMat.normalMap=tex('img/hero/3d/dio/soil_n.webp',[70,70]);groundMat.normalScale.set(.85,.85);
+ const groundMat=mat(0xb7b2a1);groundMat.map=tex('img/hero/3d/dio/soil_c.webp',[70,70],true);groundMat.normalMap=tex('img/hero/3d/dio/soil_n.webp',[70,70]);groundMat.normalScale.set(1.1,1.1);groundMat.roughness=.96;
  const groundGeo=new T.PlaneGeometry(120,120,100,100),gc=[];const gp=groundGeo.attributes.position;
- for(let i=0;i<gp.count;i++){const x=gp.getX(i),z=-gp.getY(i),path=2.6+Math.sin(z*.1)*2,edge=T.MathUtils.smoothstep(Math.abs(x-path),1.2,3.8),noise=.90+.07*Math.sin(x*.51+Math.sin(z*.26))+.03*Math.cos(z*1.17+x*.41);gp.setZ(i,groundHeight(x,z)+.03);gc.push((1-edge*.20)*noise,(.96-edge*.16)*noise,(.83-edge*.24)*noise);}groundGeo.computeVertexNormals();groundGeo.setAttribute('color',new T.Float32BufferAttribute(gc,3));groundMat.vertexColors=true;
+ for(let i=0;i<gp.count;i++){const x=gp.getX(i),z=-gp.getY(i),path=2.6+Math.sin(z*.1)*2,edge=T.MathUtils.smoothstep(Math.abs(x-path),1.2,3.8),noise=.90+.07*Math.sin(x*.51+Math.sin(z*.26))+.03*Math.cos(z*1.17+x*.41);gp.setZ(i,groundHeight(x,z)+.03);const moss=T.MathUtils.smoothstep(Math.sin(x*.23+Math.cos(z*.19)*1.7)*.5+Math.sin(z*.31-x*.07)*.5,-.1,.7)*(.35+.65*edge),litter=T.MathUtils.smoothstep(Math.cos(x*.61-z*.43)+Math.sin(z*.17),.6,1.6);gc.push(((.98-edge*.26)*(1-moss*.50)+litter*.08)*noise,((1.04-edge*.08)*(1+moss*.22)+litter*.03)*noise,((.88-edge*.26)*(1-moss*.28))*noise);}groundGeo.computeVertexNormals();groundGeo.setAttribute('color',new T.Float32BufferAttribute(gc,3));groundMat.vertexColors=true;
  const ground=new T.Mesh(groundGeo,groundMat);ground.rotation.x=-Math.PI/2;ground.position.y=-.03;ground.receiveShadow=true;landscape.add(ground);
  // The trail has no abrupt diorama edge: textured soil continues into the fog.
  const bark=mat(0xb9ad97);bark.map=tex('img/hero/3d/dio/bark_c.webp',[1.4,1],true);bark.normalMap=tex('img/hero/3d/dio/bark_n.webp',[1.4,1]);bark.normalScale.set(1.15,1.15);
@@ -226,6 +226,7 @@ function loop(now){raf=0;if(!active||document.hidden||warming)return;if(!dirty&&
  if(birth&&journeyPlaying&&!detachedCanvas){journey=Math.min(1,journey+dt/24);if(journey>=1)journeyPlaying=false;journeyLabels();}
  if(autoImmersion&&vrm&&!paused&&!detachedCanvas&&!dialogue){immersionTime+=dt;const key=MODES[Math.min(MODES.length-1,Math.floor(immersionTime/12))].id;if(key!==relationMode)selectMode(key,{automatic:true});if(immersionTime>MODES.length*12)tourState(false);}
  relations?.update(dt,t,paused);
+ if(!paused)driftLight();
  updateEmergence();
  const goal=layerKeys.size?.65:0;layerAlpha=(paused||detachedCanvas)?goal:T.MathUtils.lerp(layerAlpha,goal,Math.min(1,dt*3));edgeMat.opacity=layerKeys.has('sensor')?layerAlpha*.3:0;paths.forEach(p=>{if(p.ribbon)p.m.uniforms.alpha.value=0;else if(p.ends){const active=[...layerKeys].some(k=>p.ends.includes({branch:0,shade:1,sensor:2}[k]));const focused=selectedClue&&p.ends.includes({branch:0,shade:1,sensor:2}[selectedClue]);p.m.opacity=active?layerAlpha*(focused?.62:.27):0;}else p.m.opacity=0;});particles.visible=false;particles.material.opacity=layerAlpha*.8;
  if(particles.visible)paths.filter(p=>p.c).forEach((p,k)=>{for(let i=0;i<12;i++){const v=p.c.getPoint(((i/12+t*.045+k*.12)%1));particlePositions.set([v.x,v.y,v.z],(k*12+i)*3);}});particles.geometry.attributes.position.needsUpdate=true;
@@ -271,12 +272,9 @@ ui.querySelectorAll('[data-anchor]').forEach(b=>b.addEventListener('click',()=>{
 // CSS full-screen also works on iOS. Keep keyboard focus within the scene until Escape.
 addEventListener('keydown',e=>{if(!expanded||e.key!=='Tab')return;const controls=[...hero.querySelectorAll('button,a[href],summary,input,select,textarea')].filter(el=>el.getClientRects().length&&el.tabIndex>=0&&getComputedStyle(el).opacity!=='0');const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
 
-const lightControl=document.getElementById('cgLight');
-lightControl.addEventListener('input',()=>{
- lightAngle=Number(lightControl.value);document.getElementById('cgLightValue').textContent=lightAngle+'°';
- if(sunlight){sunlight.position.copy(V(-8,14,-5).applyAxisAngle(V(0,1,0),T.MathUtils.degToRad(lightAngle)));sunlight.shadow.needsUpdate=true;}
- dirty=true;wake();
-});
+// Light drifts slowly on its own (no slider): a gentle sweep of the sun around the clearing.
+const SUN_BASE=V(-8,14,-5),SUN_AXIS=V(0,1,0),sunWarm=new T.Color(0xffdcb0),sunCool=new T.Color(0xfff0d8);
+function driftLight(){if(!sunlight)return;lightAngle=Math.round(Math.sin(t*.035)*28*10)/10;sunlight.position.copy(SUN_BASE).applyAxisAngle(SUN_AXIS,T.MathUtils.degToRad(lightAngle));sunlight.color.copy(sunCool).lerp(sunWarm,(Math.sin(t*.035)+1)*.5*.6);}
 
 function updateEmergence(){
  if(!scene)return;const k=T.MathUtils.smoothstep(journey,.56,.90);
