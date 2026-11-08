@@ -6,7 +6,7 @@ import {growKeyaki,sprigMesh} from './common-ground-tree.js';
 import {sightLeaf,sightBark,setSightSun} from './kit/sight_trees.js';
 import {installDapple} from './kit/sight_look.js';
 installDapple(T);
-import {MODES,createRelations} from './common-ground-relations.js?v=20261109zones3';
+import {MODES,createRelations} from './common-ground-relations.js?v=20261109zones4';
 let relations=null,relationMode='forest',relationClock=0;
 function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
 function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}
@@ -77,10 +77,10 @@ function sceneBoot(){
  // Insect and sensor: the same ground, received differently in a few separate places (illustrative models).
  groundMat.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vGW;').replace('#include <project_vertex>','#include <project_vertex>\nvGW=(modelMatrix*vec4(transformed,1.)).xyz;');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vGW;').replace('#include <color_fragment>',`#include <color_fragment>
-{ vec2 p_=vGW.xz; float iz_=0.; iz_=max(iz_,1.-smoothstep(.9,2.,length(p_-vec2(-3.4,-.6)))); iz_=max(iz_,1.-smoothstep(.9,2.,length(p_-vec2(1.8,-6.2)))); iz_=max(iz_,1.-smoothstep(.9,2.,length(p_-vec2(-7.6,-2.8))));
+{ vec2 p_=vGW.xz; float iz_=0.; iz_=max(iz_,1.-smoothstep(.9,2.,length(p_-vec2(-3.4,-.6)))); iz_=max(iz_,1.-smoothstep(.9,2.,length(p_-vec2(1.8,-6.2)))); iz_=max(iz_,1.-smoothstep(1.,2.2,length(p_-vec2(-6.8,-6.6)))); iz_=max(iz_,1.-smoothstep(1.,2.2,length(p_-vec2(5.6,-10.2))));
   float fl_=smoothstep(.35,.75,sin(p_.x*9.1+sin(p_.y*7.3))*sin(p_.y*8.7-p_.x*3.1)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.92,.70,.24),iz_*fl_*.95);
-  float sz_=1.-smoothstep(1.6,2.8,length(p_-vec2(3.5,-1.5))); float ln_=smoothstep(.0,.03,abs(fract(p_.x*2.5+p_.y*.8)-.5)-.41); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.33,.86,.74),sz_*ln_*.9); }`);};
- groundMat.customProgramCacheKey=()=>'cg-ground-zones-v3';
+  float sz_=max(1.-smoothstep(1.6,2.8,length(p_-vec2(3.5,-1.5))),max(1.-smoothstep(1.2,2.4,length(p_-vec2(-6.8,-6.6))),1.-smoothstep(1.2,2.4,length(p_-vec2(5.6,-10.2))))); float ln_=smoothstep(.0,.03,abs(fract(p_.x*2.5+p_.y*.8)-.5)-.41); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.33,.86,.74),sz_*ln_*.9); }`);};
+ groundMat.customProgramCacheKey=()=>'cg-ground-zones-v4';
  const ground=new T.Mesh(groundGeo,groundMat);ground.rotation.x=-Math.PI/2;ground.position.y=-.03;ground.receiveShadow=true;landscape.add(ground);
  // The trail has no abrupt diorama edge: textured soil continues into the fog.
  const bark=mat(0xb9ad97);bark.map=tex('img/hero/3d/dio/bark_c.webp',[1.4,1],true);bark.normalMap=tex('img/hero/3d/dio/bark_n.webp',[1.4,1]);bark.normalScale.set(1.15,1.15);sightBark(bark);
@@ -99,7 +99,7 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
   if(bz_>0.){ float l_=dot(diffuseColor.rgb,vec3(.3,.55,.15)); vec3 c_=mix(vec3(.62,.78,.95)*l_*1.6,diffuseColor.rgb,.45); float ck_=step(.5,fract((vStW.x+vStW.y*.7)*2.3)); totalEmissiveRadiance+=bz_*(c_*(.32+.3*ck_)); } }`);};const k1=leaves.customProgramCacheKey;leaves.customProgramCacheKey=()=>k1()+'|cgBird2';}
  const trees=[[-2.0,-3,1,8000],[-9,-9,1.1,2000],[8,-13,1.15,2000],[-6,-21,.9,1600],[11,-28,1.05,1600],[0,-32,.85,1400],[-12,-26,.92,750],[5,-36,.95,650],[-4,-40,1.2,650],[13,-17,.9,700],[-13,-3,.95,900]];
  trees.forEach(([x,z,s,n],idx)=>{
-  const tr=growKeyaki({taperTube},rand,0,0,{...(idx?{r:.36+.05*(idx%3),hf:2.4+.35*((idx*7)%4),limbs:4+(idx*5)%4,len:[3.4+.3*(idx%4),4.6+.35*((idx*3)%5)],tilt:.26+.06*((idx*11)%5)}:{r:.43,hf:2.9,limbs:6,len:[4.0,5.2],tilt:.37}),levels:3,forks:2,decay:.62,sprigs:mobile?Math.round(n*.68):n,back:0,det:idx<3});
+  const tr=growKeyaki({taperTube},rand,0,0,{...(idx?{r:.36+.05*(idx%3),hf:2.4+.35*((idx*7)%4),limbs:4+(idx*5)%4,len:[3.4+.3*(idx%4),4.6+.35*((idx*3)%5)],tilt:.26+.06*((idx*11)%5)}:{r:.43,hf:2.9,limbs:6,len:[4.0,5.2],tilt:.37}),levels:3,forks:2,decay:.62,sprigs:Math.round((mobile?n*.68:n)*(idx?1.35:1)),back:0,det:idx<3});
   const group=new T.Group();group.position.set(x,0,z);group.rotation.y=idx?idx*1.7:0;group.scale.setScalar(s);landscape.add(group);const geo=mergeGeometries(tr.wood);tr.wood.forEach(g=>g.dispose());const trunk=new T.Mesh(geo,bark);trunk.castShadow=true;trunk.receiveShadow=true;group.add(trunk);
   const foliage=sprigMesh(tr.sprigs,leaves,.72,[.84,.92,.67],tr.ctr,rand);foliage.castShadow=idx<2;foliage.receiveShadow=true;group.add(foliage);leafGroups.push({g:foliage,phase:idx});
   if(idx===0){const pos=geo.attributes.position,pts=[];for(let i=0;i<pos.count;i+=19)pts.push(pos.getX(i)+x,pos.getY(i),pos.getZ(i)+z);for(let i=0;i<tr.sprigs.length;i+=5){const p=tr.sprigs[i][0];pts.push(p.x+x,p.y,p.z+z);}samples=pts;}
@@ -275,7 +275,7 @@ ui.querySelector('.cg-scroll-cue').addEventListener('click',()=>{if(expanded)exp
 document.getElementById('cgJourneyExit').addEventListener('click',()=>{expand(false);full.focus();});full.addEventListener('click',()=>{expand(!expanded);if(expanded)requestAnimationFrame(()=>journeyEnter.focus());});addEventListener('keydown',e=>{if(e.key==='Escape'&&expanded){expand(false);full.focus();}});
 new MutationObserver(()=>hero.classList.toggle('is-speaking',figure.classList.contains('is-talking'))).observe(figure,{attributes:true,attributeFilter:['class']});
 
-async function loadBird(){try{const {loadSight}=await import('./kit/sight/sightModels.js');bird=await loadSight('hiyo',{shadow:false,autoplay:false});bird.play('perch',0);bird.object.position.set(-.8,2.7,-2.5);bird.object.rotation.y=.6;landscape.add(bird.object);const branch=new T.Mesh(taperTube([V(-2,1.8,-3),V(-1.4,2.4,-2.6),V(-.65,2.7,-2.5)],.07,.018,8,8),mat(0x635b43));landscape.add(branch);dirty=true;wake();}catch(e){console.warn('Common Ground bird',e.message);}}
+async function loadBird(){try{const {loadSight}=await import('./kit/sight/sightModels.js');bird=await loadSight('hiyo',{shadow:false,autoplay:false});bird.play('perch',0);bird.object.position.set(-.8,2.7,-2.5);bird.object.rotation.y=.6;landscape.add(bird.object);const branch=new T.Mesh(taperTube([V(-2,1.8,-3),V(-1.4,2.4,-2.6),V(-.65,2.7,-2.5)],.12,.04,8,8),mat(0x635b43));landscape.add(branch);dirty=true;wake();}catch(e){console.warn('Common Ground bird',e.message);}}
 
 const clueTexts={
  shade:{ja:'光と木陰。枝葉の位置と光の向きが、地面の明暗につながります。光を動かして関係を確かめる模型です。温度の実測ではありません。',en:'Light and shade: the canopy and light direction shape ground illumination. Move the light to explore the model, not measured temperatures.'},
