@@ -6,7 +6,7 @@ import {growKeyaki,sprigMesh} from './common-ground-tree.js';
 import {sightLeaf,sightBark,setSightSun} from './kit/sight_trees.js';
 import {installDapple} from './kit/sight_look.js';
 installDapple(T);
-import {MODES,createRelations} from './common-ground-relations.js?v=20261109zones4';
+import {MODES,createRelations} from './common-ground-relations.js?v=20261109leaf2';
 let relations=null,relationMode='forest',relationClock=0;
 function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
 function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}
@@ -84,7 +84,15 @@ function sceneBoot(){
  const ground=new T.Mesh(groundGeo,groundMat);ground.rotation.x=-Math.PI/2;ground.position.y=-.03;ground.receiveShadow=true;landscape.add(ground);
  // The trail has no abrupt diorama edge: textured soil continues into the fog.
  const bark=mat(0xb9ad97);bark.map=tex('img/hero/3d/dio/bark_c.webp',[1.4,1],true);bark.normalMap=tex('img/hero/3d/dio/bark_n.webp',[1.4,1]);bark.normalScale.set(1.15,1.15);sightBark(bark);
- const leafMap=tex('img/common-ground/leaf.webp',[1,1],true);const leaves=new T.MeshStandardMaterial({map:leafMap,alphaTest:.45,side:T.DoubleSide,roughness:.78,color:0xd4e0c2,emissive:0x000000});
+ // Keyaki sprig drawn the same way as Qualia/sight (alternate ovate leaves with arched serration), so each card carries many small leaves instead of one.
+ const leafMap=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d'),w=256,h=256,cx=128;
+  for(const [ox,rot] of [[-38,-.3],[38,.3],[0,0]]){g.save();g.translate(ox,0);g.translate(cx,h);g.rotate(rot);g.translate(-cx,-h);
+   g.strokeStyle='#5b4a36';g.lineWidth=3;g.beginPath();g.moveTo(cx,h);g.lineTo(cx+8,10);g.stroke();
+   for(let k=0;k<9;k++){const y=h-(k+.7)*h/9.6,sd=k%2?1:-1,L=(52-k*2.5)*1.45;g.save();g.translate(cx+3,y);g.rotate(sd*(.9-k*.03));const lp=new Path2D();lp.moveTo(0,0);
+    for(let i=0;i<=14;i++){const t=i/14;lp.lineTo(-L*t,13*Math.sin(Math.PI*Math.pow(t,.7))+(i%2)*2);}for(let i=14;i>=0;i--){const t=i/14;lp.lineTo(-L*t,-13*Math.sin(Math.PI*Math.pow(t,.7))-(i%2)*2);}
+    g.fillStyle=`hsl(${95+k*3},45%,${38+(k%3)*5}%)`;g.fill(lp);g.strokeStyle='rgba(220,240,180,.35)';g.lineWidth=1;g.beginPath();g.moveTo(0,0);g.lineTo(-L,0);g.stroke();g.restore();}
+   g.restore();}
+  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;})();const leaves=new T.MeshStandardMaterial({map:leafMap,alphaTest:.45,side:T.DoubleSide,roughness:.78,color:0xd4e0c2,emissive:0x000000});
  // Adapt sight's outward canopy normals locally; shared tree/other applications remain unchanged.
  leaves.onBeforeCompile=sh=>{
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 aCtr; varying vec3 cgCrownNormal;').replace('#include <project_vertex>',`#include <project_vertex>
@@ -113,7 +121,7 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  for(let k=0;k<60;k++){let x=(rand()-.5)*49,z=-7-rand()*36;const pathX=2.6+Math.sin(z*.1)*2;if(Math.abs(x-pathX)<3)x+=x<pathX?-3:3;const h=.85+rand()*1.35,base=groundHeight(x,z),ctr=V(x,base+h*.65,z);shrubDummy.position.set(x,base+.31,z);shrubDummy.rotation.set((rand()-.5)*.15,rand()*6,(rand()-.5)*.15);shrubDummy.scale.setScalar(.7+h*.3);shrubDummy.updateMatrix();shrubStems.setMatrixAt(k,shrubDummy.matrix);
   for(let j=0;j<(mobile?58:82);j++){const a=rand()*Math.PI*2,r=Math.sqrt(rand())*(.55+h*.4),y=base+.24+rand()*h*(1-r/(1.7+h));const pos=V(x+Math.cos(a)*r,y,z+Math.sin(a)*r*.78);shrubSprigs.push([pos,V((rand()-.5)*.6,1,(rand()-.5)*.6).normalize(),V(Math.cos(a),.25,Math.sin(a)).normalize(),.65+rand()*.45,.75+rand()*.2]);shrubCenters.push(ctr.x,ctr.y,ctr.z);}
  }
- const shrub=sprigMesh(shrubSprigs,leaves,.82,[.64,.73,.57],V(),rand);shrub.geometry.getAttribute('aCtr').array.set(shrubCenters);shrub.geometry.getAttribute('aCtr').needsUpdate=true;shrub.receiveShadow=true;shrubStems.receiveShadow=true;landscape.add(shrub,shrubStems);
+ const shrubLeaves=leaves.clone();shrubLeaves.map=tex('img/common-ground/leaf.webp',[1,1],true);shrubLeaves.onBeforeCompile=leaves.onBeforeCompile;shrubLeaves.customProgramCacheKey=()=>leaves.customProgramCacheKey()+'|shrub';const shrub=sprigMesh(shrubSprigs,shrubLeaves,.82,[.64,.73,.57],V(),rand);shrub.geometry.getAttribute('aCtr').array.set(shrubCenters);shrub.geometry.getAttribute('aCtr').needsUpdate=true;shrub.receiveShadow=true;shrubStems.receiveShadow=true;landscape.add(shrub,shrubStems);
  // Instanced undergrowth: many thin blades, dark roots, lit tips; keep the path open.
  // Curved blades have a continuous taper and a shaded midrib; clusters replace isolated spikes.
  const grassPos=[],grassColors=[];
