@@ -36,7 +36,7 @@ export function createRelations(scene,{mobile=false,groundHeight=()=>0,samples=[
 
  const ripple=[];for(let i=0;i<9;i++){const z=3.7-i*1.05,x=-4.8+Math.sin(z*.32)*.65;const pts=[];for(let j=0;j<=24;j++){const a=j/24*Math.PI*2;pts.push(V(x+Math.cos(a)*.18,.059+groundHeight(x,z),z+Math.sin(a)*.08));}ripple.push(line(water,pts,0xbacbc5,.45));}
  // A wave is a model generated locally; amplitude/time are legible geometry, not an aurora.
- const sound=make('sound');sound.position.set(1.3,.75,-.9);const waves=[];for(let k=0;k<6;k++){const pts=Array.from({length:97},(_,i)=>V((i/96-.5)*3.1,0,(k-2.5)*.15));waves.push(line(sound,pts,k===0?0xd9c49a:0x7f948c,k===0?.7:.38));}
+ const sound=make('sound');sound.position.set(1.3,.75,-.9);const waves=[];for(let k=0;k<6;k++){const pts=Array.from({length:97},(_,i)=>V((i/96-.5)*3.1,0,(k-2.5)*.15));waves.push(line(sound,pts,k===0?0xd9c49a:0x7f948c,k===0?.95:.6));}
  const time=make('time');time.position.set(-1.1,.08,-1.8);time.scale.setScalar(.8);const timber=add(time,new T.CylinderGeometry(.59,.65,.24,40),soilMaterial(0xb19671),[0,.12,0]);timber.rotation.z=.16;
  const rings=[];for(let i=0;i<13;i++){const pts=[];const r=.05+i*.037;for(let j=0;j<=64;j++){const a=j/64*Math.PI*2,rr=r*(1+.045*Math.sin(a*3+i*.22));pts.push(V(Math.cos(a)*rr,.248+Math.cos(a)*.012,Math.sin(a)*rr));}rings.push(line(time,pts,i%3?0x503e2d:0x6b5034));}
  // Words occupy the same field and point back to named physical references.

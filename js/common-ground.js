@@ -3,7 +3,10 @@
 import * as T from 'three';
 import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import {growKeyaki,sprigMesh} from './common-ground-tree.js';
-import {MODES,createRelations} from './common-ground-relations.js?v=20261109aside';
+import {sightLeaf,sightBark,setSightSun} from './kit/sight_trees.js';
+import {installDapple} from './kit/sight_look.js';
+installDapple(T);
+import {MODES,createRelations} from './common-ground-relations.js?v=20261109layers3';
 let relations=null,relationMode='forest',relationClock=0;
 function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
 function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}
@@ -66,15 +69,15 @@ function tex(url,repeat,color=false){const a=textureLoader.load(url,()=>{dirty=t
 function groundHeight(x,z){const trail=2.6+Math.sin(z*.1)*2,edge=T.MathUtils.smoothstep(Math.abs(x-trail),1.2,3.8);return -.03+edge*(.018*Math.sin(x*.83+Math.sin(z*.31))+.012*Math.cos(z*1.27+x*.37));}
 function sceneBoot(){
  renderer=new T.WebGLRenderer({canvas:stage.querySelector('canvas'),alpha:false,antialias:true,powerPreference:'high-performance'});renderer.debug.checkShaderErrors=true;renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
- scene=new T.Scene();scene.background=new T.Color(0x354b49);scene.fog=new T.FogExp2(0x354b49,.026);camera=new T.PerspectiveCamera(53,1,.1,100);world=new T.Group();scene.add(world);landscape=new T.Group();world.add(landscape);
- ambientLight=new T.HemisphereLight(0xc4d9e2,0x625a43,1.8);scene.add(ambientLight);const sun=new T.DirectionalLight(0xffe7c7,2.4);sunlight=sun;sun.position.set(-8,14,-5);sun.castShadow=true;sun.shadow.mapSize.set(mobile?1024:2048,mobile?1024:2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:16,bottom:-12,near:1,far:50});sun.shadow.radius=5;sun.shadow.intensity=.58;sun.shadow.bias=-.0006;sun.shadow.normalBias=.05;scene.add(sun);const fill=new T.DirectionalLight(0xcbd9d5,1.0);fillLight=fill;fill.position.set(4,6,9);scene.add(fill);
- const groundMat=mat(0xb7b2a1);groundMat.map=tex('img/hero/3d/dio/soil_c.webp',[70,70],true);groundMat.normalMap=tex('img/hero/3d/dio/soil_n.webp',[70,70]);groundMat.normalScale.set(1.1,1.1);groundMat.roughness=.96;
+ scene=new T.Scene();scene.background=new T.Color(0x354b49);scene.fog=new T.Fog(0x354b49,1,100);setFog(.026);camera=new T.PerspectiveCamera(53,1,.1,100);world=new T.Group();scene.add(world);landscape=new T.Group();world.add(landscape);
+ ambientLight=new T.HemisphereLight(0xc4d9e2,0x625a43,1.8);scene.add(ambientLight);const sun=new T.DirectionalLight(0xffe7c7,2.4);sunlight=sun;sun.position.set(-8,14,-5);setSightSun(sun.position);sun.castShadow=true;sun.shadow.mapSize.set(mobile?1024:2048,mobile?1024:2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:16,bottom:-12,near:1,far:50});sun.shadow.radius=5;sun.shadow.intensity=.58;sun.shadow.bias=-.0006;sun.shadow.normalBias=.05;scene.add(sun);const fill=new T.DirectionalLight(0xcbd9d5,1.0);fillLight=fill;fill.position.set(4,6,9);scene.add(fill);
+ const groundMat=mat(0xb7b2a1);groundMat.map=tex('img/hero/3d/dio/leaves_c.webp',[48,48],true);groundMat.normalMap=tex('img/hero/3d/dio/leaves_n.webp',[48,48]);groundMat.normalScale.set(1.1,1.1);groundMat.roughness=.96;
  const groundGeo=new T.PlaneGeometry(120,120,100,100),gc=[];const gp=groundGeo.attributes.position;
  for(let i=0;i<gp.count;i++){const x=gp.getX(i),z=-gp.getY(i),path=2.6+Math.sin(z*.1)*2,edge=T.MathUtils.smoothstep(Math.abs(x-path),1.2,3.8),noise=.90+.07*Math.sin(x*.51+Math.sin(z*.26))+.03*Math.cos(z*1.17+x*.41);gp.setZ(i,groundHeight(x,z)+.03);const moss=T.MathUtils.smoothstep(Math.sin(x*.23+Math.cos(z*.19)*1.7)*.5+Math.sin(z*.31-x*.07)*.5,-.1,.7)*(.35+.65*edge),litter=T.MathUtils.smoothstep(Math.cos(x*.61-z*.43)+Math.sin(z*.17),.6,1.6);gc.push(((.98-edge*.26)*(1-moss*.50)+litter*.08)*noise,((1.04-edge*.08)*(1+moss*.22)+litter*.03)*noise,((.88-edge*.26)*(1-moss*.28))*noise);}groundGeo.computeVertexNormals();groundGeo.setAttribute('color',new T.Float32BufferAttribute(gc,3));groundMat.vertexColors=true;
  const ground=new T.Mesh(groundGeo,groundMat);ground.rotation.x=-Math.PI/2;ground.position.y=-.03;ground.receiveShadow=true;landscape.add(ground);
  // The trail has no abrupt diorama edge: textured soil continues into the fog.
- const bark=mat(0xb9ad97);bark.map=tex('img/hero/3d/dio/bark_c.webp',[1.4,1],true);bark.normalMap=tex('img/hero/3d/dio/bark_n.webp',[1.4,1]);bark.normalScale.set(1.15,1.15);
- const leafMap=tex('img/common-ground/leaf.webp',[1,1],true);const leaves=new T.MeshStandardMaterial({map:leafMap,alphaTest:.45,side:T.DoubleSide,roughness:.78,color:0xd4e0c2,emissive:0x2f4a1c,emissiveIntensity:.32});
+ const bark=mat(0xb9ad97);bark.map=tex('img/hero/3d/dio/bark_c.webp',[1.4,1],true);bark.normalMap=tex('img/hero/3d/dio/bark_n.webp',[1.4,1]);bark.normalScale.set(1.15,1.15);sightBark(bark);
+ const leafMap=tex('img/common-ground/leaf.webp',[1,1],true);const leaves=new T.MeshStandardMaterial({map:leafMap,alphaTest:.45,side:T.DoubleSide,roughness:.78,color:0xd4e0c2,emissive:0x000000});sightLeaf(leaves,{crownY:4.2,crownR:3.4,k:.85});
  // Adapt sight's outward canopy normals locally; shared tree/other applications remain unchanged.
  leaves.onBeforeCompile=sh=>{
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 aCtr; varying vec3 cgCrownNormal;').replace('#include <project_vertex>',`#include <project_vertex>
@@ -85,8 +88,8 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  leaves.customProgramCacheKey=()=> 'cg-canopy-normal-v1';
  const trees=[[-2.0,-3,1,8000],[-9,-9,1.1,2000],[8,-13,1.15,2000],[-6,-21,.9,1600],[11,-28,1.05,1600],[0,-32,.85,1400],[-12,-26,.92,750],[5,-36,.95,650],[-4,-40,1.2,650],[13,-17,.9,700],[-13,-3,.95,900]];
  trees.forEach(([x,z,s,n],idx)=>{
-  const tr=growKeyaki({taperTube},rand,0,0,{r:.43,hf:2.9,limbs:6,len:[4.0,5.2],tilt:.37,levels:3,forks:2,decay:.62,sprigs:mobile?Math.round(n*.68):n,back:0,det:idx<3});
-  const group=new T.Group();group.position.set(x,0,z);group.scale.setScalar(s);landscape.add(group);const geo=mergeGeometries(tr.wood);tr.wood.forEach(g=>g.dispose());const trunk=new T.Mesh(geo,bark);trunk.castShadow=true;trunk.receiveShadow=true;group.add(trunk);
+  const tr=growKeyaki({taperTube},rand,0,0,{...(idx?{r:.36+.05*(idx%3),hf:2.4+.35*((idx*7)%4),limbs:4+(idx*5)%4,len:[3.4+.3*(idx%4),4.6+.35*((idx*3)%5)],tilt:.26+.06*((idx*11)%5)}:{r:.43,hf:2.9,limbs:6,len:[4.0,5.2],tilt:.37}),levels:3,forks:2,decay:.62,sprigs:mobile?Math.round(n*.68):n,back:0,det:idx<3});
+  const group=new T.Group();group.position.set(x,0,z);group.rotation.y=idx?idx*1.7:0;group.scale.setScalar(s);landscape.add(group);const geo=mergeGeometries(tr.wood);tr.wood.forEach(g=>g.dispose());const trunk=new T.Mesh(geo,bark);trunk.castShadow=true;trunk.receiveShadow=true;group.add(trunk);
   const foliage=sprigMesh(tr.sprigs,leaves,.72,[.84,.92,.67],tr.ctr,rand);foliage.castShadow=idx<2;foliage.receiveShadow=true;group.add(foliage);leafGroups.push({g:foliage,phase:idx});
   if(idx===0){const pos=geo.attributes.position,pts=[];for(let i=0;i<pos.count;i+=19)pts.push(pos.getX(i)+x,pos.getY(i),pos.getZ(i)+z);for(let i=0;i<tr.sprigs.length;i+=5){const p=tr.sprigs[i][0];pts.push(p.x+x,p.y,p.z+z);}samples=pts;}
  });
@@ -132,6 +135,11 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  const sensorCore=new T.Mesh(new T.CylinderGeometry(.045,.045,.25,12),mat(0x4a5d57,.45));sensorCore.position.y=1.43;instrument.add(sensorCore);
  const base=new T.Mesh(new T.CylinderGeometry(.09,.13,.045,16),steel);base.position.y=.022;instrument.add(base);
  instrument.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});landscape.add(instrument);
+ // One tree, several ways of receiving it. Open, wavering strands at each receiver's own height (insect near the ground, a person at eye height, the sensor at its mast, a bird in the crown). No ring is closed and none is centred on a point.
+ {const TR=V(-2,0,-3),bands=[[.4,0xe2ad3a,1.6,0.3],[1.55,0xf4f1e6,2.3,1.9],[1.2,0x4fcbb0,2.9,3.4],[2.75,0x6aa6dc,1.9,4.6]];
+  bands.forEach(([h,c,rad,a0],bi)=>{const m=new T.MeshBasicMaterial({color:c,transparent:true,opacity:.6,depthWrite:false});for(let k=0;k<3;k++){const pts=[];const span=2.1+.35*k,st=a0+k*.7;for(let i=0;i<=24;i++){const a=st+span*i/24,rr=rad*(1+.12*Math.sin(a*3+bi+k)),y=h+.09*k+.07*Math.sin(a*5+bi*2);pts.push(V(TR.x+Math.cos(a)*rr,y,TR.z+Math.sin(a)*rr*.8));}const g=new T.TubeGeometry(new T.CatmullRomCurve3(pts),48,.008+.004*(2-k),5,false);const o=new T.Mesh(g,k?m:m.clone());if(k)o.material=m;else o.material.opacity=.9;landscape.add(o);}});
+  const dm=new T.LineDashedMaterial({color:0x9fdccb,dashSize:.08,gapSize:.06,transparent:true,opacity:.75});
+  const link=(pts,c)=>{const l=new T.Line(new T.BufferGeometry().setFromPoints(pts),dm.clone());l.material.color.set(c);l.computeLineDistances();landscape.add(l);};link([V(3.5,1.43,-1.5),V(.6,1.3,-2.4),V(-1.4,1.2,-2.8)],0x4fcbb0);link([V(-.8,2.75,-2.5),V(-1.3,2.75,-2.8)],0x6aa6dc);link([V(mobile?4.1:6.2,1.5,3.7),V(1.5,1.55,-.4),V(-.6,1.55,-1.6)],0xf4f1e6);}
  layers=new T.Group();landscape.add(layers);
  const pointsGeo=new T.BufferGeometry();pointsGeo.setAttribute('position',new T.Float32BufferAttribute(samples,3));edgeMat=new T.PointsMaterial({size:.027,color:0xa2e4d5,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending});layers.add(new T.Points(pointsGeo,edgeMat));
  const anchors=[V(-1.2,3.3,-2.8),V(1.5,.12,1),V(3.5,1.45,-1.5),V(-2,.15,-3),V(-4,1.1,-1.5)];
@@ -155,16 +163,16 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
 }
 // Capture the actual shared ground once. Reflections use this fixed probe, not six extra renders per frame.
 function makeBirthReflection(){
- const saved={landscape:landscape.visible,aoi:aoigroup.visible,seeds:seedField.visible,layers:layers.visible,background:scene.background.clone(),density:scene.fog.density,fog:scene.fog.color.clone(),ambient:ambientLight.intensity,fill:fillLight.intensity,sun:sunlight.intensity};
+ const saved={landscape:landscape.visible,aoi:aoigroup.visible,seeds:seedField.visible,layers:layers.visible,background:scene.background.clone(),density:fogD,fog:scene.fog.color.clone(),ambient:ambientLight.intensity,fill:fillLight.intensity,sun:sunlight.intensity};
  const target=new T.WebGLCubeRenderTarget(mobile?64:128,{type:T.HalfFloatType,generateMipmaps:true,minFilter:T.LinearMipmapLinearFilter});
  const probe=new T.CubeCamera(.05,65,target);probe.position.copy(aoigroup.position).add(V(0,1.1,0));scene.add(probe);
  // Broad studio reflections make the mirror facets readable before the forest appears.
  // These light cards exist only during the one-time reflection capture.
  const cards=new T.Group(),cardGeometry=new T.PlaneGeometry(1,1),cardMaterial=new T.MeshBasicMaterial({color:new T.Color(3.2,3.4,3.3),side:T.DoubleSide,toneMapped:false});
  for(const [x,y,z,w,h] of [[-3,3,2,2,5],[3,2,-1,1.2,4],[0,5,-2,4,2]]){const card=new T.Mesh(cardGeometry,cardMaterial);card.position.copy(probe.position).add(V(x,y,z));card.scale.set(w,h,1);card.lookAt(probe.position);cards.add(card);}scene.add(cards);
- try{landscape.visible=true;aoigroup.visible=false;seedField.visible=false;layers.visible=false;scene.background.set(0x354b49);scene.fog.color.set(0x75847a);scene.fog.density=.026;ambientLight.intensity=2.1;fillLight.intensity=1.15;sunlight.intensity=1.6;
+ try{landscape.visible=true;aoigroup.visible=false;seedField.visible=false;layers.visible=false;scene.background.set(0x354b49);scene.fog.color.set(0x75847a);setFog(.026);ambientLight.intensity=2.1;fillLight.intensity=1.15;sunlight.intensity=1.6;
   probe.update(renderer,scene);const pmrem=new T.PMREMGenerator(renderer),filtered=pmrem.fromCubemap(target.texture);pmrem.dispose();world.userData.birthEnvironment=filtered;stage.dataset.reflection='shared-ground-once';return filtered.texture;
- }finally{cards.removeFromParent();cardGeometry.dispose();cardMaterial.dispose();probe.removeFromParent();target.dispose();landscape.visible=saved.landscape;aoigroup.visible=saved.aoi;seedField.visible=saved.seeds;layers.visible=saved.layers;scene.background.copy(saved.background);scene.fog.color.copy(saved.fog);scene.fog.density=saved.density;ambientLight.intensity=saved.ambient;fillLight.intensity=saved.fill;sunlight.intensity=saved.sun;}
+ }finally{cards.removeFromParent();cardGeometry.dispose();cardMaterial.dispose();probe.removeFromParent();target.dispose();landscape.visible=saved.landscape;aoigroup.visible=saved.aoi;seedField.visible=saved.seeds;layers.visible=saved.layers;scene.background.copy(saved.background);scene.fog.color.copy(saved.fog);setFog(saved.density);ambientLight.intensity=saved.ambient;fillLight.intensity=saved.fill;sunlight.intensity=saved.sun;}
 }
 async function loadAoi(){
  try{
@@ -273,13 +281,14 @@ ui.querySelectorAll('[data-anchor]').forEach(b=>b.addEventListener('click',()=>{
 addEventListener('keydown',e=>{if(!expanded||e.key!=='Tab')return;const controls=[...hero.querySelectorAll('button,a[href],summary,input,select,textarea')].filter(el=>el.getClientRects().length&&el.tabIndex>=0&&getComputedStyle(el).opacity!=='0');const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
 
 // Light drifts slowly on its own (no slider): a gentle sweep of the sun around the clearing.
+let fogD=.026;function setFog(d){fogD=d;scene.fog.near=.1/d;scene.fog.far=1.05/d;}
 const SUN_BASE=V(-8,14,-5),SUN_AXIS=V(0,1,0),sunWarm=new T.Color(0xffdcb0),sunCool=new T.Color(0xfff0d8);
-function driftLight(){if(!sunlight)return;lightAngle=Math.round(Math.sin(t*.035)*28*10)/10;sunlight.position.copy(SUN_BASE).applyAxisAngle(SUN_AXIS,T.MathUtils.degToRad(lightAngle));sunlight.color.copy(sunCool).lerp(sunWarm,(Math.sin(t*.035)+1)*.5*.6);}
+function driftLight(){if(!sunlight)return;lightAngle=Math.round(Math.sin(t*.035)*28*10)/10;sunlight.position.copy(SUN_BASE).applyAxisAngle(SUN_AXIS,T.MathUtils.degToRad(lightAngle));setSightSun(sunlight.position);sunlight.color.copy(sunCool).lerp(sunWarm,(Math.sin(t*.035)+1)*.5*.6);}
 
 function updateEmergence(){
  if(!scene)return;const k=T.MathUtils.smoothstep(journey,.56,.90);
  landscape.visible=journey>.55;scene.background.copy(new T.Color(0x03060f)).lerp(new T.Color(0x354b49),k);
- scene.fog.color.set(0x87988b);scene.fog.density=T.MathUtils.lerp(.18,.017,k);
+ scene.fog.color.set(0x87988b);setFog(T.MathUtils.lerp(.18,.017,k));
  ambientLight.intensity=.4+.85*k;fillLight.intensity=.25+.40*k;sunlight.intensity=.5+2.15*k;
  bodyPresence.value=T.MathUtils.smoothstep(journey,.61,.83);
  if(vrm)vrm.scene.visible=bodyPresence.value>.001;
