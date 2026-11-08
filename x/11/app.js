@@ -5,7 +5,7 @@
 // v9（10-23 本人「音に触れてもバラバラにならないで、振動と音だけ発生させてください。また、それぞれの作品で、３d立体と合わせて、紙の作品を壁に飾ってください。また、碧も登場させてください。」）
 // 古寺の板の間の広間に、墨の立体の書が浮かぶ。床を押すとその向きへ歩き（一度に進むのは数歩まで）、書に触れるとその音が鳴って題が出て、墨が揺れる。動いたあとは字の形に戻る。
 import * as THREE from 'three';
-import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261103a';
+import { loadShoMap, createSho, createShoSound } from './kit/sho3d.js?v=20261107light';
 import { buildRoom, loadRoomTextures, setRoomHalf, setHallNiches } from './room.js?v=20261105s';
 import { createLive } from './live.js?v=20261023e';
 import { createDOF } from './dof.js?v=20261023e';
@@ -88,8 +88,8 @@ function shoOpts(it, width, x = {}) {
   return {
     width, mobile, material: it.form === 'scroll' ? 'ink' : it.w.material, particleMode: 'ink', edgeGlow: 0, envGain: 0.4,   /* v11b 墨のつや消し・掛け軸はにじみの粒を出さない */ ink: 0x060708,
     particleSize: 0.0085, spread: width * 0.14, particles: mobile ? 600 : 1500, segments: Math.round((+(q.get('seg') || 0) || (mobile ? 170 : 320)) * Math.min(1, Math.sqrt(width / HMAX))),
-    keep: true, deep: +(q.get('deep') || 0.8), rim: +(q.get('rim') || 0), inkCap: +(q.get('cap') || 0.07),   /* v8 縁は濡れた暗い墨の明るさまで（025 が金属の管に見えた）・縁の光沢は 027 だけ */
-    toLight: 0, depth: full * F.dp, thickness: full * F.th, seed: it.i * 1.7 + 0.4 + (x.j || 0) * 0.37, flow: 0.1,
+    keep: true, deep: +(q.get('deep') || 0.8), rim: +(q.get('rim') ?? 0.24), inkCap: +(q.get('cap') || 0.07),   /* v8 縁は濡れた暗い墨の明るさまで（025 が金属の管に見えた）・縁の光沢は 027 だけ */
+    panelLight: 0.052, toLight: 0, depth: full * F.dp, thickness: full * F.th, seed: it.i * 1.7 + 0.4 + (x.j || 0) * 0.37, flow: 0.1,
   };
 }
 // 筆の厚み（G）の分かれ目：書ごとに、薄い 3 割＝はらい・かすれ、厚い 2 割＝とめ・墨だまり
@@ -203,8 +203,14 @@ function hiRes(it) {                                           // 原本から�
 
 /* ── 広間を組む ── */
 let room = null, ENV = null;
-const ENVG = +(q.get('env') || 0.45);   /* v11b 黒いプラスチックの照りにしない */   /* v8 映りこみを弱く（濡れた暗い墨） */   /* 濡れた墨は、斜めほど障子の明るさを映す（照りの点ではなく、縁の湿った光沢で厚みが見える） */
+const ENVG = +(q.get('env') || 0.68);   /* v11b 黒いプラスチックの照りにしない */   /* v8 映りこみを弱く（濡れた暗い墨） */   /* 濡れた墨は、斜めほど障子の明るさを映す（照りの点ではなく、縁の湿った光沢で厚みが見える） */
 const litV = new THREE.Vector3();
+// 2026-11-07: 障子からの斜光を正面の補助光と分ける。墨の基色・濃淡・形は変えず、
+// 斜めの面だけに環境の反射を残す。既存の shader とベクトルを使い、光源/描画回数は増やさない。
+function inkLight(dx, dz) {
+  return litV.set(dx * 0.72 + dz * 0.69, 0, dz * 0.72 - dx * 0.69)
+    .normalize().multiplyScalar(0.85).add(room.sun).normalize();
+}
 function placeInRoom(it) {
   scene.add(it.sho.group);
   if (it.shadow) scene.remove(it.shadow);
@@ -555,13 +561,15 @@ const AOI_LINES = {
 };
 const AOI_H = 1.6;
 const AO = { root: null, M: null, mats: null, pos: new THREE.Vector3(mobile ? 1.3 : -2.6, 0, mobile ? 5.4 : 4.6), vel: new THREE.Vector3(), goal: null, from: null, fade: 0, op: -1, out: 0, for: null, said: null, sayT: 99, ready: false };
+const STARTUP = window.__shoStartup = {};
 let aoiLoading = null;
 function loadAoi() {
   if (aoiLoading || q.has('noaoi')) return aoiLoading; aoiLoading = (async () => {
     try {
+      STARTUP.aoiBegin = performance.now();
       const [{ GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion, warmAoi }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('@pixiv/three-vrm'), import('./kit/aoi_motion.js?v=20261103w')]);
       const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder); ld.register(p => new V.VRMLoaderPlugin(p));
-      const g = await ld.loadAsync('data/aoi.vrm');
+      STARTUP.modules = performance.now(); const g = await ld.loadAsync('data/aoi.vrm'); STARTUP.model = performance.now();
       const v = g.userData.vrm; if (!v) throw new Error('VRM ではない');
       V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
       v.scene.traverse(o => { o.frustumCulled = false; });
@@ -577,7 +585,7 @@ function loadAoi() {
       AO.root = root; AO.vrm = v; AO.fade = 0; aoiOpacity(0);
       try { aoiOpacity(1); const W = await WARM; await W.keepVariant(R, root, cam, scene, () => { }, { offscreen: dof.on }); } catch { }   /* 2026-11-05 夕：現れ終わって透けない材質に戻るこまで 6〜10 個組み直して 0.15〜0.28 秒止まっていた → 透けない形を写しで先に組んで持っておく（kit/warm.js keepVariant） */
       try { const W = await WARM; for (const op of [1, 0]) { aoiOpacity(op); await W.warmAoi(R, root, cam, scene, { offscreen: dof.on }); } } catch { }   /* 2026-11-05 夕：kit/warm.js の warmAoi（ぼかしの描き先で組む形）に。aoi_motion.js の warmAoi は画面へ描く形で組み、ぼかしへ描く本番の形は碧が出たこまで組み直していた */   /* 11-03：見せる前に、テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */
-      scene.remove(aoiFaceStub); scene.add(root); AO.ready = true;
+      STARTUP.warmed = performance.now(); scene.remove(aoiFaceStub); scene.add(root); AO.ready = true;
       window.__aoi = AO;
     } catch (e) { console.warn('碧の姿を読み込めませんでした：', e?.message ?? e); }
   })(); return aoiLoading;
@@ -706,7 +714,7 @@ function frame() {
     s.group.rotation.y = (RM ? 0 : Math.sin(t * 0.13 + it.i) * 0.1 + Math.sin(t * 0.41 + 1.0 + it.i) * 0.03) + it.face;
     if (it.form === 'floor') { s.group.position.y = it.y + s.height * 0.5 * Math.sin(0.42) + (RM ? 0 : 0.006 * Math.sin(t * 0.7 + 1.3)); s.group.rotation.x = -Math.PI / 2 + 0.42 + (RM ? 0 : 0.004 * Math.sin(t * 0.5));   /* v11 少し起こして（低い台に寝かせた角度）、立って見ても字に読める */ s.group.rotation.z = 0; s.group.rotation.y = it.face + (RM ? 0 : Math.sin(t * 0.09) * 0.03); }   /* v11 床にひらいた墨だまり：浮かばず、かすかに息をする */
     if (it.w.id === '038' && !RM) { const ph = (t / 1.05) % 1, en = Math.exp(-ph * 9) + 0.6 * Math.exp(-Math.max(0, ph - 0.24) * 10) * (ph > 0.24 ? 1 : 0); s.group.scale.setScalar(1 + 0.012 * en); }   /* v11 いのちの最初の音：拍で満ち引き */
-    if (room) { litV.set(dx, 0, dz).normalize().multiplyScalar(0.55).add(room.sun).normalize(); s.setLight(litV); }   /* 見る人の側の斜め上からも光を回す（逆光の切り絵にしない） */
+    if (room) { s.setLight(inkLight(dx, dz)); }   /* 見る人の側の斜め上からも光を回す（逆光の切り絵にしない） */
     /* v9 触れたとき：字の形は保ったまま、細かく震える（押しているあいだは震え続け、離すと 1.8 秒で静まる）。崩れ・散り・大きな揺れはしない */
     if (it.vib > 0) { if (!it.pressed) it.vib = Math.max(0, it.vib - dt / (it.vibT || 1.8)); }
     { const w = (it.vib || 0) * (RM ? 0.3 : 1), j = 0.011 * w * w;
@@ -734,7 +742,7 @@ function frame() {
   }
   if (shakeAmp > 0) cam.position.add(tmpV.set(Math.sin(t * 71) * shakeAmp * 0.4, Math.cos(t * 67) * shakeAmp * 0.4, 0));
   dof.render(scene, cam, focusDist());
-  if (!started) { started = true; window.MLLoader?.done(); window.__shoReady = performance.now(); later().then(prepRest).then(() => { loadAoi(); return hiAll(); }); }
+  if (!started) { started = true; window.MLLoader?.done(); window.__shoReady = performance.now(); later().then(() => { STARTUP.room = performance.now(); return loadAoi(); }).then(prepRest).then(hiAll); }
 }
 function focusDist() {                                         // 画面の中央に見えている書の距離（無ければ近い書）
   rc.setFromCamera(ndc.set(0, 0), cam); let best = 1e9;
@@ -752,7 +760,7 @@ if (SHOT) {                                                    // 静止画：?s
   const hit = works.find(it => it.w.id === q.get('hit'));
   if (q.get('face') !== '0') for (const it of works) { const az = Math.atan2(P.x - it.x, P.z - it.z), d = wrap(az - it.face), e = it.oneSide || Math.abs(d) <= Math.PI / 2 ? d : wrap(d - Math.PI), over = Math.abs(e) - 0.28; if (over > 0) it.face += Math.sign(e) * over; it.sho.group.rotation.y = it.face; }
   for (const it of works) { it.sho.target = it === hit ? +(q.get('u') ?? 0.6) : 0; for (let i = 0; i < T * 30; i++) it.sho.update(1 / 30, i / 30); it.sho.points.visible = false; if (it.sho.lightPoints) it.sho.lightPoints.visible = false; it.sho.group.updateMatrixWorld(true); }
-  for (const it of works) { litV.set(P.x - it.x, 0, P.z - it.z).normalize().multiplyScalar(0.55).add(room.sun).normalize(); it.sho.setLight(litV); }
+  for (const it of works) { it.sho.setLight(inkLight(P.x - it.x, P.z - it.z)); }
   placeCam(T); room.update(T);
   if (hit) {
     setFocus(hit);

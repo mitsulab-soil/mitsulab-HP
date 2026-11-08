@@ -17,12 +17,18 @@
 <link rel="stylesheet" href="style.css?v=20261026a">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261105s">
-<link rel="modulepreload" href="kit/sho3d.js?v=20261026a">
+<link rel="modulepreload" href="app.js?v=20261108start2">
+<link rel="modulepreload" href="kit/sho3d.js?v=20261107light">
 <link rel="modulepreload" href="room.js?v=20261105s">
 <link rel="modulepreload" href="live.js?v=20261023e">
 <link rel="modulepreload" href="dof.js?v=20261023e">
 <link rel="preload" href="data/works.json" as="fetch" crossorigin>
+<link rel="preload" href="data/aoi.vrm" as="fetch" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/meshopt_decoder.module.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js">
+<link rel="modulepreload" href="kit/aoi_motion.js?v=20261103w">
+
 <link rel="stylesheet" href="kit/ui.css?v=20261103">
 <style id="mu-align">/* 共通 GUI（kit/ui.css）に合わせる＝左上の名前・押せる大きさを全アプリでそろえる（2026-11-03） */
 .brand .ml-kicker{display:none}.brand .name{font:600 16px/1 var(--mu-serif);letter-spacing:.12em;color:#fff;text-shadow:var(--mu-shadow)}
@@ -102,6 +108,6 @@
 </section>
 
 <noscript><p class="nojs">この作品は JavaScript と WebGL で動きます。</p></noscript>
-<script type="module" src="app.js?v=20261105s"></script>
+<script type="module" src="app.js?v=20261108start2"></script>
 </body>
 </html>

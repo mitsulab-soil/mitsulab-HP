@@ -112,6 +112,7 @@ export function createSho(THREE, map, opts = {}) {
     uLight: { value: new THREE.Vector3(-0.45, 0.65, 0.62).normalize() },
     uSize: { value: (opts.particleSize ?? 0.009) * (MK.psize ?? 1) * width / 2.4 }, uScale: { value: 600 },
     uDeep: { value: opts.deep ?? 1 },
+    uPanelLight: { value: opts.panelLight ?? 0 }, // 書の広間だけ: 障子の広い反射。基色は変えない
     uRim: { value: opts.rim ?? 0 },   /* v3.2（10-23）濡れた墨の縁の湿った光沢（斜めほど障子を映す・照りの点は出さない）。0＝なし */   /* v3.1（10-23）墨の深さ：面の明るさをまとめて沈める（灰色のゴムに見えない・1＝そのまま） */
     uEdge: { value: opts.edgeGlow ?? 0.85 },   // ほどける縁の光（明るい場では弱く）
     uEnv: { value: opts.env ?? null }, uHasEnv: { value: opts.env ? 1 : 0 }, uEnvGain: { value: opts.envGain ?? 1 },
@@ -202,7 +203,7 @@ export function createSho(THREE, map, opts = {}) {
     fragmentShader: /* glsl */`
       uniform sampler2D uMap, uEnv; uniform vec2 uTexel; uniform float uThick, uSide, uU, uHasEnv, uEnvGain, uFiber, uMat, uTime, uSeed, uHasDet; uniform sampler2D uDet; uniform vec2 uDetTexel;
       #define uSeed2 uSeed
-      uniform vec3 uInk, uGlow, uTint, uLight; uniform float uEdge, uDeep, uRim, uInkCap;
+      uniform vec3 uInk, uGlow, uTint, uLight; uniform float uEdge, uDeep, uRim, uInkCap, uPanelLight;
       varying vec2 vUv; varying vec3 vView; varying float vG, vGg; varying vec3 vNX, vNY, vNZ, vNg; varying vec2 vDs; varying vec3 vPm; varying float vPl; varying float vBk; varying vec2 vCr; uniform float uBurstA;
       uniform float uKeep, uDepth; uniform vec2 uWH;
       // 面の向きは画素ごとに求める（頂点の網の段が、ふちで縞にならないように）
@@ -419,6 +420,10 @@ export function createSho(THREE, map, opts = {}) {
           float sheen = (0.5 + 0.5 * smoothstep(0.2, 0.7, m.g)) * (0.55 + 0.9 * beat);   // v2.0 濡れた墨のつや（拍のない間も、形が分かる程度に）
           c = base * (0.25 + 0.6 * dif) + env * Fe * (0.5 + 1.1 * beat) + vec3(0.9) * spe * (0.9 + 2.4 * beat) + vec3(0.07, 0.07, 0.072) * pow(1.0 - nv, 1.4) * sheen + vec3(0.05) * smoothstep(0.55, 0.9, vn(pxN * 0.01 + vec2(0.0, T * 0.05))) * beat * smoothstep(0.3, 0.7, m.g);   /* v2.2 拍が満ちたとき、つやが帯として見える */
         }
+        // 広い障子の反射を斜めの面に返す。原本の濃淡と黒い基色は保持し、
+        // 法線・見る方向・濡れ/乾きで変わる反射だけを加える（追加の光源/texture参照なし）。
+        float panelReflection = pow(max(dot(n, normalize(l + v)), 0.0), mix(5.0, 12.0, wet));
+        c += vec3(uPanelLight) * panelReflection * mix(0.38, 1.0, wet) * (0.8 + 0.2 * f0);
         c = mix(c, uGlow, edge * step(0.001, uU) * uEdge);
         { float sideK = max(1.0 - smoothstep(0.18, 0.5, face), wallC); vec3 matte = vec3(0.012, 0.012, 0.013) * (0.6 + 0.5 * wrapD) + env * Fe * 0.08; c = mix(c, matte, sideK * 0.4);   /* v3.0 側面を一色の灰色の板にしない（陰影を残す） */ }   /* v1.6 側面（表と裏をつなぐ厚み）は鈍い墨一色に：網の段が輪の縞に見えない */
         float kPl = smoothstep(0.02, 0.6, vPl);   /* v2.2 押した所はなだらかに（境目のくっきりした黒い円盤にしない）。明るい当たりだけ墨の明るさに抑え、模様は残す */
