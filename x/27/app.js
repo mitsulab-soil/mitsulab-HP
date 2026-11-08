@@ -37,7 +37,7 @@ const accessAxis=W.ui.querySelector('.aw-axis');
 if(accessAxis){accessAxis.tabIndex=0;accessAxis.setAttribute('role','slider');accessAxis.setAttribute('aria-label','具体と抽象の視点');accessAxis.setAttribute('aria-valuemin','0');accessAxis.setAttribute('aria-valuemax','100');accessAxis.setAttribute('aria-orientation','vertical');
  accessAxis.addEventListener('keydown',e=>{let v=W.absTarget;if(['ArrowUp','ArrowRight'].includes(e.key))v+=.1;else if(['ArrowDown','ArrowLeft'].includes(e.key))v-=.1;else if(e.key==='Home')v=0;else if(e.key==='End')v=1;else return;e.preventDefault();e.stopPropagation();W.setAbs(v);});
  const syncAxis=()=>{const n=Math.round(W.absTarget*100);accessAxis.setAttribute('aria-valuenow',String(n));accessAxis.setAttribute('aria-valuetext',n===0?'具体の風景':n===100?'抽象の関係':'抽象度 '+n+'%');};syncAxis();setInterval(syncAxis,200);
- const style=document.createElement('style');style.textContent='.aw-axis:focus-visible{outline:2px solid #b9f5ff;outline-offset:4px;border-radius:8px}.aw-fold>summary{width:auto;height:auto;min-height:44px;max-width:70vw;padding:2px 10px;box-sizing:border-box;white-space:normal;font-size:12px;background:#09111bd9;border-radius:6px}';document.head.appendChild(style);
+ const style=document.createElement('style');style.textContent='.aw-axis:focus-visible{outline:2px solid #b9f5ff;outline-offset:4px;border-radius:8px}.aw-fold>summary{width:auto;height:auto;min-height:44px;max-width:70vw;padding:2px 10px;box-sizing:border-box;white-space:normal;font-size:12px;background:none;text-shadow:0 1px 3px #000c,0 0 10px #000a;border-radius:6px}.aw-axis.hint{animation:axhint 1.6s ease-in-out 5}@keyframes axhint{50%{filter:drop-shadow(0 0 8px #b9f5ff)}}';document.head.appendChild(style);
 }
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
@@ -67,7 +67,7 @@ fx.innerHTML = `<summary>＋ 関係を式で見る</summary><p><span data-k="U">
 <p><span data-k="E">E</span>(t+1) = <span data-k="F">F</span>(E(t)) + Σ <span data-k="a">a<sub>j</sub></span>(U<sub>j</sub>)</p>
 <p class="fxL"><span data-k="U">U<sub>人</sub>′</span> = g<sub>人</sub>( P<sub>人</sub>, <span data-k="L">K<sub>人</sub> ⊕ L</span> )</p>`;
 W.ui.appendChild(fx);
-{ const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#e0eaf2;transition:opacity .6s;pointer-events:auto;max-width:calc(100vw - 32px);box-sizing:border-box;background:#09111bd9;border-radius:6px;padding:0 10px}.fx summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font:12px/1.6 sans-serif;list-style:none}.fx summary:focus-visible{outline:2px solid #b9f5ff}.fx[open]{padding-bottom:10px}
+{ const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#e0eaf2;transition:opacity .6s;pointer-events:auto;max-width:calc(100vw - 32px);box-sizing:border-box;background:none;text-shadow:0 1px 3px #000d,0 0 12px #000b;padding:0 10px}.fx summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font:12px/1.6 sans-serif;list-style:none}.fx summary:focus-visible{outline:2px solid #b9f5ff}.fx[open]{padding-bottom:10px}
 .fx p{margin:0}.fx sub{font-size:.72em}.fx span{transition:color .25s,text-shadow .25s}.fx span.hi{color:#eef5fb;text-shadow:0 0 12px rgba(155,220,240,.9)}.fx .fxL{opacity:0;transition:opacity 1.2s}.fx.L .fxL{opacity:1}
 @media (max-width:520px){.fx{font-size:11px;line-height:1.85}}`; document.head.appendChild(st); }
 const hi = k => { for (const e of fx.querySelectorAll(`[data-k="${k}"]`)) { e.classList.add("hi"); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove("hi"), 520); } };
@@ -125,7 +125,7 @@ const N = [
     c: "ミツバチがツワブキのまわりを飛ぶ。羽音は、一秒に約 230 回のはばたき。", a: "蜂は、身体の拾えるものだけを手がかりにする。紫外・青・緑の三つで色を分けるとされる。", out: ["羽音", "動き"], in: ["動き", "光"],
     voice: o => snd.hum(230, .7, { ...o, gain: (o.gain ?? .3) * .7 }), act: () => { beeKick = 1; } },
   { id: "hum", sub: "人", col: C.hum, at: () => person.position, h: 1.95, lag: .6, f: snd.note(0), seen: new Set(),
-    c: "人が歩く。一歩ごとの足音が、鳥を振り向かせる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
+    c: "人が歩く。一歩ごとの足音が、鳥の入力になる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
     voice: o => { for (let i = 0; i < 2; i++) { snd.step({ ...o, at: (o.at || 0) + i * .6, gain: (o.gain ?? .3) * 1.3, f: 480 + i * 120 }); snd.wood(snd.note(-5 + i), { ...o, at: (o.at || 0) + i * .6, decay: .4, gain: (o.gain ?? .3) * .2 }); } }, act: () => { steps = 1.2; } },   // 歩行 毎分約 100 歩＝0.6 秒
   { id: "tree", sub: "欅", col: C.tree, at: () => tree, h: 3.2, lag: 2.0, f: snd.note(-5),
     c: "欅は、冷えていく朝を受けとり、黄に染まった葉を一枚ずつ手放す。", a: "木のふるまいは遅く、大きい。季節に応じて葉を落とし、その葉が鳥と人の入力になる。", out: ["落葉"], in: ["気温", "光", "風", "養分"],
@@ -189,7 +189,7 @@ function act(n, gain, from) {
   if (n.id === "hum" && Lon) [nodeOf("tit"), nodeOf("bee"), nodeOf("tree")].forEach((o, i) => snd.bell(o.f, { gain: .07 * gain, pan, at: .03 * (i + 1), decay: .6 }));   // 層 L：人の応えに、ほかの受けとり方の色が混じる
   n.act(); lastAct = ripU.uT.value;
   if (n.id === "tree" && !saidSens) { saidSens = true; setTimeout(() => W.say("記録計の数には、落ちた葉は書かれない。書かれるのは、朝の冷えだけ。"), 5200); }
-  if (n.id === "hum" && Lon && W.abs < .4) { if (!answered) { answered = true; setTimeout(() => W.say("鳥が振り向く。蜂は、人の影をよけて花を移る。記録計には、朝の冷えだけが記録される。"), 2600); } const p2 = n.at(); ripple(p2.x, p2.z, 3.2, 0xffffff); [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .06, at: i * .08, decay: 2, wet: .85 }));   /* 抽象で鳴った和音が、参道で一度だけ返ってくる */ }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
+  if (n.id === "hum" && Lon && W.abs < .4) { if (!answered) { answered = true; setTimeout(() => W.say("鳥は、足音のほうへ目を向けることがある。蜂は、花を移る。記録計には、朝の冷えだけが記録される。"), 2600); } const p2 = n.at(); ripple(p2.x, p2.z, 3.2, 0xffffff); [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .06, at: i * .08, decay: 2, wet: .85 }));   /* 抽象で鳴った和音が、参道で一度だけ返ってくる */ }   // 参道でも、同じ山場が短く起きる（人の一歩から白い波が地を渡る）
   if (n.id === "hum" && Lon && !saidL2) { saidL2 = true; W.say("同じ足音でも、もう前と同じ響きではない。"); }
   // 波が届く時刻に、ほかの主体の入力へ
   for (const o of N) { const ch = o !== n && n.out.find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(p), g = gain * Math.exp(-d / 9) * .9; o.queue.push({ t: ripU.uT.value + d / SPEED, g, from: n, ch }); }   // 受けとれる経路があるものだけが入力にする
@@ -231,7 +231,7 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("tree"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("朝の氷川参道。欅が、黄の葉を一枚はなす。"); setTimeout(() => { W.say("輪に触れると、そこから変化が広がる。上へなぞると、関係が式と流れになる。"); }, 7000); }, 900);
+setTimeout(() => { W.say("朝の氷川参道。欅が、黄の葉を一枚はなす。"); setTimeout(() => { W.say("輪に触れると、そこから変化が広がる。上へなぞると、関係が式と流れになる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }, 7000); }, 900);
 let saidDown = false, saidGround = false, wentUp = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
@@ -256,7 +256,7 @@ W.onFrame((dt, t, a) => {
     n.ring2.userData.mat.opacity = n.inK * .7 * ss(.08, .4, a); n.ring2.scale.setScalar(1 + (1 - n.inK) * 1.2);
     n.stemM.opacity = labA * (.35 + n.glow * .5); const low = PORT || a < .3; n.lab.position.y = low ? .06 : n.h + .04; n.lab.position.x = low ? (PORT ? 0 : .5) : .06; n.lab.position.z = low ? .62 : 0; if (PORT) n.lab.position.x = clamp(-n.at().x * .5, -.7, .7); if (low && n.id === "tit") { if (PORT) { const w = n.g.position.clone().add(new V3(a > .3 ? .35 : 1.05, .06, a > .3 ? .55 : .75)); n.lab.position.copy(n.g.worldToLocal(w)); } else { n.lab.position.x = -.55; n.lab.position.z = 1.15; } }   /* 目の高さの抽象では、シジュウカラの名を輪の奥へ（字幕にかからない） */   if (low && PORT && n.id === "sens") { n.lab.position.z = -.55; n.lab.position.y = .5; } if (low && PORT && n.id === "bee") { n.lab.position.z = .2; n.lab.position.x = .42; }   // 縦長：記録計の名は柱の上、ミツバチの名は株の手前（重ならない）
     // シジュウカラの名は人の線から離す（PC は左、縦長は画面の内側）   // 地の名札は輪の手前の右（柱・株の上にかからない）。縦長は画面の内側へ寄せる   // 具体の側では名札を足もとへ（宙に浮かない）   // 縦長の俯瞰では名札を足もとへ（上から見て持ち主の輪からずれない）
-    n.lab.material.opacity = Math.max(PORT ? .9 : .62, labA) * (.75 + n.glow * .25); if (PORT) n.lab.scale.set(lerp(3.0, 1.7, ss(.3, .8, a)), lerp(.56, .32, ss(.3, .8, a)), 1); else n.lab.scale.set(lerp(1.5, .85, ss(.3, .8, a)), lerp(.28, .16, ss(.3, .8, a)), 1); if (n.id === "hum") n.lab.material.opacity *= 1 - ss(.35, .6, a);   // 主観の近い画角では名札を小さく。見ている自分＝人の名は消す   // 目の高さの抽象では、名札を近さに合わせて小さく   // 具体の側でも名札を薄く残す（触れる所が分かる）
+    n.lab.material.opacity = Math.max(Math.min(1, Math.max(n.glow, n.inK) * 1.6), labA) * (.75 + n.glow * .25); if (PORT) n.lab.scale.set(lerp(3.0, 1.7, ss(.3, .8, a)), lerp(.56, .32, ss(.3, .8, a)), 1); else n.lab.scale.set(lerp(1.5, .85, ss(.3, .8, a)), lerp(.28, .16, ss(.3, .8, a)), 1); if (n.id === "hum") n.lab.material.opacity *= 1 - ss(.35, .6, a);   // 主観の近い画角では名札を小さく。見ている自分＝人の名は消す   // 目の高さの抽象では、名札を近さに合わせて小さく   // 具体の側でも名札を薄く残す（触れる所が分かる）
     n.ring.visible = n.ring.userData.mat.opacity > .003; n.ring2.visible = n.ring2.userData.mat.opacity > .003; n.stem.visible = n.stemM.opacity > .003 && !(PORT && a > .6);   /* 縦長の俯瞰では名札が足もとなので、立つ線は描かない */ n.lab.visible = n.lab.material.opacity > .003;   // 見えないものは描かない（スマホの描画の回数）
   }
   // 生き物
@@ -266,7 +266,7 @@ W.onFrame((dt, t, a) => {
   { const me = ss(.35, .6, a); person.visible = me < .98; person.userData.mat && (person.userData.mat.opacity = .85 * (1 - me)); person.userData.mat && (person.userData.mat.transparent = true); }   // 抽象では、見ている自分＝人の目から受けとる（自分の体の線は消える）
   bee.position.copy(beeHome).add(new V3(Math.sin(t * .9) * (.05 + beeKick * .25) * hv, .045 + Math.sin(t * 1.7) * .015 * hv + beeKick * .12, Math.cos(t * .7) * (.04 + beeKick * .2) * hv)); bee.rotation.y = Math.sin(t * .5) * .8; bee.userData.state = "fly"; bee.userData.animate?.(t, "hover");
   if (steps > 0) { steps = Math.max(0, steps - dt); person.userData.walk((1.2 - steps) / .6, 1); } else person.userData.walk(0, 0);
-  person.userData.mat.opacity = lerp(.75, .6, ss(.08, .5, a));   // 具体では墨の線、抽象では光の線
+  person.userData.mat.opacity = lerp(.32, .6, ss(.08, .5, a));   // 具体では墨の線、抽象では光の線
   person.userData.mat.color.copy(tmpC.set(0xd9c3a5).lerp(new THREE.Color(0xe9d2c2), ss(.15, .6, a)));   // 具体では墨の線の人、抽象では光の線
   // 落ちる葉
   if (falling) { const f = falling; f.t += dt; const u = Math.min(1, f.t / 5); f.l.position.set(f.x + Math.sin(f.t * 3) * .25 * (1 - u), lerp(4.5, .02, Math.pow(u, 1.1)), f.z + Math.cos(f.t * 1.7) * .15); f.l.rotation.set(-1.3 + Math.cos(f.t * 3) * .9 * (1 - u), f.t, 0); if (u >= 1) { f.l.rotation.set(-Math.PI / 2, f.t, 0); falling = null; } }
