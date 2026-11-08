@@ -12,7 +12,7 @@ const buffers=new Map(),pending=new Map();
 const scene=new T.Scene();scene.background=new T.Color(0x233c40);scene.fog=new T.FogExp2(0x233c40,.075);
 const camera=new T.PerspectiveCamera(52,1,.1,90);camera.position.set(0,1.55,4.7);camera.lookAt(0,1.25,-4);
 let renderer;
-const states={ready:false,aoi:false,frames:0,recorded:false,mic:false,micLevel:0,surface,being,paused};
+const states={moduleStartMs:performance.now(),ready:false,aoi:false,frames:0,recorded:false,mic:false,micLevel:0,surface,being,paused};
 window.__rainWorkshop={stats:states};
 function status(t){$('#status').textContent=t;}
 // Existing HP CC0 photographic materials; audio, weather and microphone state are unchanged.
@@ -42,6 +42,7 @@ const N=innerWidth<600?1100:2200,positions=new Float32Array(N*6),drops=Array.fro
 const rings=new T.InstancedMesh(new T.RingGeometry(.92,1,32),new T.MeshBasicMaterial({color:0xa1c9bf,transparent:true,opacity:.24,depthWrite:false,side:T.DoubleSide}),90);scene.add(rings);const ringSeeds=Array.from({length:90},()=>[rand()*5-2.5,rand()*4-4,rand()]);
 let biostart=0;const departure=new T.Mesh(new T.SphereGeometry(.085,12,8),new T.MeshBasicMaterial({color:0xe2d7a2}));departure.visible=false;scene.add(departure);const departureLine=new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(-.85,1.9,-2.4),new T.Vector3(1,2.7,-6)]),new T.LineBasicMaterial({color:0x9db6ad,transparent:true,opacity:.3}));departureLine.visible=false;scene.add(departureLine);
 const signal=new T.Mesh(new T.RingGeometry(.97,1,64),new T.MeshBasicMaterial({color:0xdbd5a2,transparent:true,opacity:.5,side:T.DoubleSide,depthWrite:false}));signal.rotation.x=-Math.PI/2;signal.position.set(-.7,.035,-2);signal.visible=false;scene.add(signal);
+states.sceneBuiltMs=performance.now();
 let visible=true;new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible){last=0;dirty=true;wake();}else if(raf){cancelAnimationFrame(raf);raf=0;}},{rootMargin:"60px"}).observe(stage);
 let resize=()=>{};
 try{renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-8,right:8,top:10,bottom:-8,near:1,far:35});sun.shadow.normalBias=.05;sun.shadow.bias=-.0005;ground.receiveShadow=true;stage.append(renderer.domElement);$('#fallback').hidden=true;resize=()=>{renderer.setSize(stage.clientWidth,stage.clientHeight,false);camera.aspect=stage.clientWidth/stage.clientHeight;if(aoiRoot)aoiRoot.position.x=innerWidth<600?.8:-.35;camera.fov=camera.aspect<.8?60:52;camera.updateProjectionMatrix();dirty=true;wake();};new ResizeObserver(resize).observe(stage);resize();loadAoi();}catch(e){$('#fallback').textContent='3Dを表示できませんでした。下の雨音と言葉は操作できます。';states.error=e.message;}
