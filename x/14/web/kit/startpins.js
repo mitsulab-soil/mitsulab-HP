@@ -47,7 +47,7 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
     const lead = document.createElement("i"); lead.className = "spLead"; layer.appendChild(lead); tag.setAttribute("aria-label", it.name + "を選ぶ"); tag.addEventListener("click", e => { e.stopPropagation(); api.select(i); }); layer.appendChild(tag);
     return { it, P, head, core, ring, ring2, pulse, beam, foot, tag, lead, y, c };
   });
-  const title = document.createElement("div"); title.className = "spTitle"; title.innerHTML = "どこから歩きはじめますか<small>印を押すと、碧がその場所を話します。<br class=spBr>もう一度押すと、歩きはじめます</small>"; layer.appendChild(title);
+  const title = document.createElement("div"); title.className = "spTitle"; title.innerHTML = "どこから歩きはじめますか<small>印を押すと、その場所の目の高さへ降りて<br class=spBr>歩きはじめます</small>"; layer.appendChild(title);
   let noteEl = null; if (note) { noteEl = document.createElement("div"); noteEl.className = "spNote"; noteEl.textContent = note.text; layer.appendChild(noteEl); }
   /* 2026-10-28 本人：「ここから歩く」のボタンは外す。1 回目に押す＝説明と目の高さの眺め、同じ所をもう 1 回＝そこから歩く */
   if (goBtn) { goBtn.hidden = true; goBtn.style.display = "none"; goBtn = null; }
@@ -66,10 +66,10 @@ export function makeStartPins({ THREE, parent, camera, groundY, mobile = false, 
   const fpx = () => innerHeight / 2 / Math.tan(camera.fov * Math.PI / 360);
   const api = {
     sel: -1, pins, group: g, layer,
-    select(i) { if (i >= 0 && i === api.sel && pins[i]?.it.kind !== "here") { showCard(-1); onGo?.(i); return; }   /* 同じ印を 2 回目＝そこから歩く */
+    select(i) { if (i >= 0 && i === api.sel) return;   /* 11-09 第2周：二段の操作をなくす＝一回押すとその場の目の高さへ降りる（同じ印の 2 回目は何もしない） */
       api.sel = i; showCard(i); pins.forEach((p, k) => { const on = k === i; p.tag.classList.toggle("on", on); p.tag.setAttribute("aria-pressed", String(on)); for (const m of [p.core, p.ring, p.ring2, p.pulse, p.beam, p.foot]) m.material.color.copy(on ? PK : p.c); });
       if (goBtn) { goBtn.hidden = i < 0; goBtn.disabled = i < 0; if (i >= 0) goBtn.setAttribute("aria-label", pins[i].it.name + "から歩く"); }
-      onSelect?.(i); },
+      onSelect?.(i); if (i >= 0 && pins[i]?.it.kind !== "here") onGo?.(i); },
     movePin(i, x, z) { const p = pins[i]; if (!p) return; p.it.x = x; p.it.z = z; p.P.position.set(x, groundY(x, z), z); },
     show(on) { g.visible = on; layer.hidden = !on; if (!on) { showCard(-1); if (api.sel >= 0) api.select(-1); } },   /* 地図を離れたら選択も戻す（戻ったとき 1 回目でいきなり歩かない） */
     card() { return card && !card.hidden ? card.getBoundingClientRect() : null; },

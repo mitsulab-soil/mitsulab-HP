@@ -25,20 +25,20 @@
 <link rel="preload" href="web/lite/data.json?v=20261107cg2" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261107cg1">
+<link rel="modulepreload" href="web/lite/app.js?v=20261109r2">
 <!-- 2026-11-05 起動 2 秒：本体が読む部品も HTML と同時に（app.js → 部品 → creatures → BufferGeometryUtils の三段の待ちをなくす。layers は本体と同じ v=8 に） -->
 <link rel="modulepreload" href="web/lite/layers.js?v=8">
 <link rel="modulepreload" href="web/lite/qmarks.js?v=k24">
 <link rel="modulepreload" href="web/lite/session.js?v=s2">
 <link rel="modulepreload" href="web/lite/worldlayers.js?v=w20">
 <link rel="modulepreload" href="web/kit/ground_far.js?v=7">
-<link rel="modulepreload" href="web/kit/startpins.js?v=sp11">
+<link rel="modulepreload" href="web/kit/startpins.js?v=sp13">
 <link rel="modulepreload" href="web/kit/mapveil.js?v=mv2">
 <link rel="modulepreload" href="web/kit/mapguide.js?v=mg2">
 <link rel="modulepreload" href="web/lite/herewalk.js?v=2">
 <link rel="modulepreload" href="web/kit/sunpos.js?v=1">
 <link rel="modulepreload" href="web/kit/fliers.js?v=9">
-<link rel="modulepreload" href="web/kit/nav.js?v=n8p">
+<link rel="modulepreload" href="web/kit/nav.js?v=n9">
 <link rel="modulepreload" href="web/lite/soundwalk.js?v=1">
 <link rel="modulepreload" href="web/lite/areas.js?v=56n">
 <link rel="modulepreload" href="web/kit/creatures.js?v=1">
@@ -636,8 +636,8 @@ body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 
 <div id="qposter" aria-hidden="true"></div>
 <style>/* 2026-11-09 起動：読み込み画面は最長 1.2 秒・その後は 3D が整うまで最初の眺めの静止画（ポスター）を GUI の下に置く。左上に mitsulab.jp へ戻る印。Tab は操作ボタンから。地点の字は 375 で 15px・白 */
-#qposter{position:fixed;inset:0;z-index:2;pointer-events:none;background:#c3c7cd url(web/qposter_sp.webp) center/cover no-repeat;transition:opacity .6s,visibility 0s .6s}
-@media (min-width:641px){#qposter{background-image:url(web/qposter_pc.webp)}}
+#qposter{position:fixed;inset:0;z-index:2;pointer-events:none;background:#c3c7cd url(web/qposter_sp.webp?v=n2) center/cover no-repeat;transition:opacity .6s,visibility 0s .6s}
+@media (min-width:641px){#qposter{background-image:url(web/qposter_pc.webp?v=n2)}}
 body.ready #qposter{opacity:0;visibility:hidden}
 .qhome{pointer-events:auto;flex:none;width:44px;height:44px;margin:0 -6px 0 -8px;display:grid;place-items:center;color:#eef5f8;text-decoration:none;font:300 26px/1 "Hiragino Mincho ProN",serif;text-shadow:0 0 6px rgba(3,6,15,.9);border-radius:22px}
 .qhome:hover{color:#9bdcf0}.embed .qhome{display:none}
@@ -713,7 +713,7 @@ body.ready #qposter{opacity:0;visibility:hidden}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261107cg1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261109r2").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（木・石の環世界と依代への変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261107flight1").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).then(() => Promise.all([import("./web/kit/mado.js?v=5").then(m => { q.MADO = m.attachMado(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/tokimusubi.js?v=6").then(m => { q.TOKI = m.attachTokimusubi(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/yoru.js?v=20261107night").then(m => { q.YORU = m.attachYoru(q); })])).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>

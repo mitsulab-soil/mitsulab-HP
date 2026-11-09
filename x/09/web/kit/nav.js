@@ -133,7 +133,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
   const fly = $("#modeFly"), sky = $("#modeSky"), walk = $("#modeWalk");
   if (sky) sky.textContent = "地図";
   let arB = null;
-  if (walk && mobile) { arB = document.createElement("button"); arB.id = "modeAR"; arB.setAttribute("aria-pressed", "false"); arB.textContent = "AR"; arB.title = "いまいる所で、端末を向けて見る"; walk.after(arB); arB.addEventListener("click", () => toggleAR()); }
+  if (walk && mobile) { arB = document.createElement("button"); arB.id = "modeAR"; arB.setAttribute("aria-pressed", "false"); arB.textContent = "AR"; arB.title = "AR＝いまいる所で端末を向けると、その向きの印が風景に重なる"; arB.setAttribute("aria-label", arB.title); walk.after(arB); arB.addEventListener("click", () => toggleAR()); }
   const tick = b => { b.classList.remove("qtick"); void b.offsetWidth; b.classList.add("qtick"); };
   for (const b of [sky, walk, arB]) if (b) b.addEventListener("click", () => tick(b));
   new MutationObserver(() => { if (arB) { if (N.ar) { walk.setAttribute("aria-pressed", "false"); } arB.setAttribute("aria-pressed", String(N.ar)); } }).observe(walk, { attributes: true, attributeFilter: ["aria-pressed"] });
@@ -187,7 +187,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
     if (o.mode() !== "walk") { $("#modeWalk")?.click(); await new Promise(r => setTimeout(r, 2600)); }
     N.ar = true; N.ori = null; N.oriBase = null; addEventListener("deviceorientation", onOrient); arB?.setAttribute("aria-pressed", "true"); walk?.setAttribute("aria-pressed", "false");
     if (!o.here()?.on) o.hereToggle();
-    once("q.h.ar", "足元に気をつけて。ゆっくり端末を向けると、印が重なります。");
+    once("q.h.ar", "AR は、いまいる所で端末を向けると、その向きの印が風景に重なります。足元に気をつけて。");
     setTimeout(() => { if (N.ar && !N.ori) { N.ar = false; removeEventListener("deviceorientation", onOrient); arB?.setAttribute("aria-pressed", "false"); o.say("この端末では、向きの知らせが届きませんでした。なぞって見回せます。"); } }, 1800);
   }
   N.leaveAR = () => { if (N.ar) toggleAR(); };
