@@ -15,7 +15,7 @@ import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight
 installDapple(THREE);
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=sp13";
-import { makeMapVeil } from "../kit/mapveil.js?v=mv2";
+import { makeMapVeil } from "../kit/mapveil.js?v=r3";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
@@ -864,7 +864,7 @@ QW.veg = () => VEG.sp.map(S => [S.s, S.im.count, S.m]); QW.VEG = VEG;
 
 
 /* ---------- 3D 地図（上空）：始める場所・道と地名・等高線・鳥居の 3D・いまの地点 ---------- */
-const START = { pins: [], sel: -1, labels: [] };
+const START = { pins: [], sel: -1, labels: [] }; QW.START = START;   /* 11-10 第3周：入口の目の高さの画から選べるように */
 const MAP = { group: null, labels: [], big: [], here: null, data: null };
 const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）
 /* 2026-10-28 本人：3D 地図の案内（共通部品 kit/mapguide.js）＝透けた細い線と淡い面で道筋と主な場所を示す。エリア分けは描かない。
@@ -1811,7 +1811,7 @@ function playNext() {
 let capT = 0;
 let capChunkT = 0;
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
-  const max = innerWidth < 640 ? 44 : 70; t = String(t).trim(); if (t.length <= max) return [t];
+  const max = innerWidth < 640 ? 20 : 70;   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); } return o2;   // 改行だけの区切りを出さない・短い切れ端はつなぐ

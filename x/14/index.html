@@ -24,7 +24,7 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261109r2">
+<link rel="modulepreload" href="web/app/app.js?v=20261110r3">
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="modulepreload" href="web/app/layers.js?v=k5">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
@@ -590,6 +590,19 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 <div id="pinLabels" hidden></div>
 
 <div id="qposter" aria-hidden="true"></div>
+<!-- 11-10 第3周：俯瞰の地図の上に、一歩目の目の高さの画（実際のプレイ画）を重ねる。地点名を 3D より先に出す -->
+<button id="qEye" type="button" aria-label="渋谷川・稲荷橋から、目の高さで歩きはじめる"><img src="web/qeye.webp?v=r3" alt="" width="640" height="360" decoding="async"><span class="t"><b>渋谷川・稲荷橋</b><br>から、目の高さで歩く</span><span class="s">ほかの場所は、地図の印から</span></button>
+<style>
+#qEye{position:fixed;left:50%;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 10px);transform:translateX(-50%);z-index:8;width:min(300px,calc(100vw - 32px));padding:0;border:1px solid rgba(214,232,238,.45);border-radius:4px;overflow:hidden;background:#0b1a30;color:#f2f7f9;cursor:pointer;text-align:left;box-shadow:0 10px 36px rgba(0,0,0,.45);font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;-webkit-user-select:none;user-select:none}
+#qEye img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+#qEye .t{position:absolute;left:0;right:0;bottom:22px;padding:18px 12px 0;font-size:14px;font-weight:500;line-height:1.5;letter-spacing:.06em;text-shadow:0 0 8px rgba(3,6,15,.95),0 1px 2px #000;background:linear-gradient(transparent,rgba(6,12,22,.55))}
+#qEye .t b{font-weight:700;color:#ffcf86}
+#qEye .s{display:block;height:22px;padding:3px 12px 0;font-size:11px;font-weight:400;line-height:1.5;letter-spacing:.08em;color:rgba(221,231,236,.8);background:#0b1a30}
+#qEye:hover,#qEye:focus-visible{border-color:#ffcf86;outline:none}
+body[data-mode]:not([data-mode="sky"]):not([data-mode="boot"]) #qEye,body.qEyeOff #qEye{display:none}
+@media (max-width:640px){#qEye{width:min(236px,calc(100vw - 32px))}#qEye .t{font-size:13px;bottom:22px}}
+</style>
+<script>(()=>{const N='渋谷川・稲荷橋',b=document.getElementById("qEye");let want=0;const go=()=>{const S=window.__qw&&__qw.START&&__qw.START.sp;if(!S){if(!want){want=1;const iv=setInterval(()=>{const T=window.__qw&&__qw.START&&__qw.START.sp;if(T){clearInterval(iv);T.select(T.pins.findIndex(p=>p.it.name===N));}},120);}return;}const i=S.pins.findIndex(p=>p.it.name===N);if(i>=0)S.select(i);};b.addEventListener("click",e=>{e.stopPropagation();go();});["pointerdown","touchstart"].forEach(k=>b.addEventListener(k,e=>e.stopPropagation(),{passive:true}));})();</script>
 <style>/* 2026-11-09 起動：読み込み画面は最長 1.2 秒・その後は 3D が整うまで最初の眺めの静止画（ポスター）を GUI の下に置く。左上に mitsulab.jp へ戻る印。Tab は操作ボタンから。地点の字は 375 で 15px・白 */
 #qposter{position:fixed;inset:0;z-index:2;pointer-events:none;background:#c3c7cd url(web/qposter_sp.webp?v=n2) center/cover no-repeat;transition:opacity .6s,visibility 0s .6s}
 @media (min-width:641px){#qposter{background-image:url(web/qposter_pc.webp?v=n2)}}
@@ -666,7 +679,7 @@ body.ready #qposter{opacity:0;visibility:hidden}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261109r2").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261110r3").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261107flight1").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>

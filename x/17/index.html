@@ -45,14 +45,14 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
 @media(max-width:560px){.top{gap:8px;left:12px;top:8px}.top .w{font-size:17px}.top .n{font-size:12px}.hint{top:62px;right:12px}.hint>span{display:none}}
 </style>
 <link rel="modulepreload" href="./vendor/three/build/three.module.js" crossorigin>
-<link rel="modulepreload" href="app.js?v=20261109r2">
+<link rel="modulepreload" href="app.js?v=20261110r3">
 <!-- 2026-11-09 草地と札を先に。碧（VRM）はそのあとで読む -->
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 </head>
 <body>
 <script src="kit/loader_qualium.js" data-max="1200"></script>
 <canvas id="c" aria-label="碧が立つ小さな庭。下の札を押すと、碧がほかの生き物や昔の受けとり方を案内する"></canvas>
-<div class="top"><a class="w" href="/#apps" aria-label="mitsulab の作品一覧へ戻る">← mitsulab</a><span class="n">碧の層</span></div>
+<div class="top"><a class="w" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">← mitsulab</a><span class="n">碧の層</span></div>
 <div class="hint"><button id="meetAoi" type="button">碧に話しかける</button><span>下の札から、ひとつ選ぶ</span></div>
 <div class="cap" id="cap" aria-live="polite"></div>
 <nav class="dock" aria-label="ひらく世界">
@@ -60,10 +60,10 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
   <button type="button" data-w="bat" style="--c:#8fb6dc" aria-pressed="false"><span class="l">コウモリの耳</span><span class="s">コウモリ</span><i>ultrasound</i></button>
   <button type="button" data-w="soil" style="--c:#88b68f" aria-pressed="false">土の中<i>roots</i></button>
   <button type="button" data-w="road" style="--c:#e8c48a" aria-pressed="false">昔の道<i>memory</i></button>
-  <button type="button" data-w="yori" style="--c:#a8f2f6" aria-pressed="false" aria-label="依代（姿を変えた碧）">依代<span class="l" style="font-size:10.5px;color:var(--ml-ink-3)">姿を変えた碧</span><i>yorishiro</i></button>
+  <button type="button" data-w="yori" style="--c:#a8f2f6" aria-pressed="false" aria-label="すがたを変える（依代＝姿を変えた碧）"><span style="font-size:11.5px;line-height:1.25">すがたを<br>変える</span><span class="l" style="font-size:10.5px;color:var(--ml-ink-3)">依代</span><i>yorishiro</i></button>
 </nav>
 <p class="cr">© mitsulab</p>
 <script>/* 2026-11-09 3D を読む前に押された札・碧に話しかけるを覚えておき、読めたら続ける */window.__early=null;document.querySelector(".dock").addEventListener("click",function(e){var b=e.target.closest("button");if(b&&!window.__bound){window.__early=b.dataset.w;document.getElementById("cap").textContent="ひらいています…";}});document.getElementById("meetAoi").addEventListener("click",function(){if(!window.__bound)window.__early="meet";});</script>
-<script type="module" src="app.js?v=20261109r2"></script>
+<script type="module" src="app.js?v=20261110r3"></script>
 </body>
 </html>

@@ -32,7 +32,7 @@ export function makeMapVeil({ THREE, parent, rect, y0 = 0, top = 170, shrink = 1
     const p = new THREE.Mesh(new THREE.PlaneGeometry(S * 2, S * 2).rotateX(-Math.PI / 2), m);
     p.position.set(cx, y0 + h, cz); p.renderOrder = 60; p.frustumCulled = false; p.visible = false; p.name = "mapVeil"; parent.add(p); return p;
   };
-  const planes = [mk(4, .85, 1), mk(top, 1, 0, .74, 1.06, false)];   // 地面のすぐ上（淡い）と、いちばん高い建物より上（縁で満ちる）の 2 枚＝奥行きのある霞。縁の外の地形・建物・木は上の板が隠す
+  const planes = [mk(4, .85, 0, .56, .98), mk(top, 1, 0, .64, 1.04, false)];   /* 11-10 第3周：楕円の光の輪を外し、縁の霞を広くして境界を見せない */   // 地面のすぐ上（淡い）と、いちばん高い建物より上（縁で満ちる）の 2 枚＝奥行きのある霞。縁の外の地形・建物・木は上の板が隠す
   let k = 0, t = 0;
   return {
     planes,
