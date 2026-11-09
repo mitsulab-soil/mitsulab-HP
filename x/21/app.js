@@ -34,6 +34,7 @@ const W = await createAwai({
     "葉の表には落ちる前から菌や細菌がすむ。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
     "気温計の層：10 分ごとの記録を 2.4 秒に縮めた模式（気象庁のアメダスは 10 分ごとに観測する）。数値は描かない",
     "菌の営みを、ゆっくり重なる合成音で表した創作です。実測した菌の音ではありません。鳥の声も合成音です（実際の鳴き声の録音ではありません）",
+    "書誌：葉の形＝『日本の野生植物 木本 I』（平凡社, 1989）／葉にすむ菌と細菌＝Vorholt, J. A.（2012）Nature Reviews Microbiology 10: 828–840、Osono, T.（2006）Canadian Journal of Microbiology 52: 701–716／小鳥の目の速さ＝Boström, J. E. ほか（2016）PLoS ONE 11(3): e0151099（アオガラなどで測った値をシジュウカラに当てはめた模式）／気温の記録＝気象庁「アメダス」（10 分ごとの観測）",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
@@ -50,7 +51,7 @@ const leaf = PR.keyakiLeaf(.09); W.add(leaf);
 const tw0 = W.near.map(t => { const p = t.wood[0].attributes.position; return new V3(p.getX(0), 0, p.getZ(0)); }).filter(v => v.x > 0).sort((a, b) => Math.abs(a.z - 1) - Math.abs(b.z - 1))[0] || new V3(5.6, 0, 1);
 AIR.set(W.pathX(3) + .8, 2.7, 3); LAND.set(W.pathX(AIR.z + .7) + .7, .022, AIR.z + .7); leafP.copy(AIR);   // 右の欅の張り出した枝の先。葉は風に流されて参道の上に落ちる
 const twig = new THREE.Group(); W.add(twig);
-const halo = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), pointMat(0xffe2a0, MOBILE ? .26 : .22, .6)); W.add(halo);   // 宙の葉の後ろの、光の暈（目を引く一点）
+const halo = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), pointMat(0xffe2a0, MOBILE ? .4 : .34, .6)); W.add(halo);   // 宙の葉の後ろの、光の暈（目を引く一点）
 let twigPal = null; const twigMat = base => { twigPal ||= [[1.02, .84, .5], [.98, .7, .45], [.86, 1.0, .62]].map(([r, g, b2]) => { const m = base.clone(); m.onBeforeCompile = base.onBeforeCompile; m.customProgramCacheKey = base.customProgramCacheKey; m.color.setRGB(r, g, b2); return m; }); return twigPal[Math.floor(R() * 3)]; };   /* 房の葉の色は三つ（黄・橙・まだ緑）。材質を分けすぎない＝描画の回数 */
 { const VG = await import(P.kit + "vegetation.js");
   const pts = [tw0.clone().setY(AIR.y + .75).lerp(AIR.clone().add(new V3(2.8, .75, -1.3)), .15),   // 根もとは右の欅の幹の中から（枝が宙に浮かない）
@@ -135,7 +136,7 @@ const LINES = [
 ];
 
 // ───────── 進み方
-function tapLeaf() {
+function tapLeaf() { document.body.classList.add("qx-started");   /* 2026-11-10 第4周：はじめに押せるのは葉だけ。右の線は葉に触れてから出す */
   snd.start(); GO.end();
   if (ST.phase === 0) { ST.phase = 1; ST.t = 0; path.length = 0; petiole.visible = false; leaf.material.emissive?.setRGB(0, 0, 0); W.sayNow("葉が、枝をはなれる。"); snd.wood(snd.note(10), { gain: .14, decay: .5 }); return; }
   if (ST.phase === 3 && ST.later > 2) restart();
@@ -156,7 +157,7 @@ litGuide.textContent = "キーボードは Tab で風景へ。" + litHelp.textCo
 const KB = matchMedia("(hover:hover) and (pointer:fine)").matches;   // 2026-11-09 スマホではキーボードの説明を出さない
 if (KB) W.ui.querySelector(".aw-fold > div").appendChild(litGuide); else litHelp.hidden = true;
 // 2026-11-09「抽象／具体」の目盛りの字は、触れているあいだ（と動いているあいだ）だけ出す
-{ const ax = W.ui.querySelector(".aw-axis"); if (ax) { const st = document.createElement("style"); st.textContent = ".aw-axis .aw-top,.aw-axis .aw-bot{opacity:0;transition:opacity .5s}.aw-axis.qx-on .aw-top,.aw-axis.qx-on .aw-bot,.aw-axis:focus-visible .aw-top,.aw-axis:focus-visible .aw-bot{opacity:1}"; document.head.appendChild(st);
+{ const ax = W.ui.querySelector(".aw-axis"); if (ax) { ax.querySelector(".aw-top").textContent = "つながりの図"; ax.querySelector(".aw-bot").textContent = "いまの風景"; ax.title = "上へなぞると、同じ葉を受けとる層が重なる"; const st = document.createElement("style"); st.textContent = "body:not(.qx-started) .aw-axis{opacity:0!important;pointer-events:none!important}.aw-axis{transition:opacity .8s}.aw-axis .aw-top,.aw-axis .aw-bot{opacity:.9;transition:opacity .5s}.aw-axis.qx-on .aw-top,.aw-axis.qx-on .aw-bot,.aw-axis:focus-visible .aw-top,.aw-axis:focus-visible .aw-bot{opacity:1}"; document.head.appendChild(st);
   let last = W.abs, tOff = 0; const on = () => { ax.classList.add("qx-on"); clearTimeout(tOff); tOff = setTimeout(() => ax.classList.remove("qx-on"), 1800); };
   ax.addEventListener("pointerdown", on); ax.addEventListener("pointerenter", on); setInterval(() => { if (Math.abs(W.abs - last) > .004) on(); last = W.abs; }, 150); } }
 const litStyle = document.createElement("style");
@@ -199,7 +200,7 @@ W.onFrame((dt, t, a) => {
   if (ST.phase === 0) {
     const s = RM ? 0 : 1; leafP.copy(AIR); halo.visible = true; twig.rotation.z = Math.sin(t * .8) * .012 * s;   // 枝ごと風にゆれる（葉柄で枝につく）
     leaf.lookAt(camera.position); leaf.rotateX(Math.sin(t * .9) * .25 * s); leaf.rotateZ(Math.sin(t * .6) * .25 * s);   /* 宙の葉は面をこちらへ向け、少しだけ揺れる（真横の細い線に見えない） */
-    leaf.material.emissive?.setRGB(.6 + .14 * Math.sin(t * 2), .36 + .07 * Math.sin(t * 2), .06);   /* 朝の斜めの光が葉を透かす（逆光の明るみ） */ halo.position.copy(leafP); halo.material.opacity = .6 + .12 * Math.sin(t * 2);   // 主役の葉だけ少し明るく、ゆっくり揺れる
+    leaf.material.emissive?.setRGB(.85 + .2 * Math.sin(t * 2), .52 + .1 * Math.sin(t * 2), .1);   /* 朝の斜めの光が葉を透かす（逆光の明るみ） */ halo.position.copy(leafP); halo.material.opacity = .85 + .15 * Math.sin(t * 2);   // 主役の葉だけ少し明るく、ゆっくり揺れる
     airT -= dt; if (airT < 0) { airT = 4.2; snd.breath(2.6, { f0: 650, f1: 900, gain: .08, wet: .7, pan: (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .4) }); }
   } else if (ST.phase === 1) { halo.visible = false;
     const u = clamp(ST.t / 6, 0, 1), e = u * u * (3 - 2 * u);

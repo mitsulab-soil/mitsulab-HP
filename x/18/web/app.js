@@ -78,7 +78,7 @@ let R, S, C, sun, items, texL, ray, clk, look; const meshes = new Map(); let aoi
 function init3D() {
 R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
 R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputColorSpace = THREE.SRGBColorSpace; R.debug.checkShaderErrors = false;   // 2026-11-03：確かめで止まらない
-S = new THREE.Scene(); S.background = new THREE.Color("#03060f"); S.fog = new THREE.Fog("#03060f", 6, 16);
+S = new THREE.Scene(); S.background = new THREE.Color("#0b1622"); S.fog = new THREE.Fog("#0b1622", 5, 17);
 C = new THREE.PerspectiveCamera(45, 1, .05, 60);
 S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); sun = new THREE.DirectionalLight("#fff4e6", 1.6); sun.position.set(2, 4, 3); S.add(sun);
 { // 地：光の等高線（線と点だけ）
@@ -92,7 +92,15 @@ S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); sun = new THREE.Dir
   // 2026-11-09 第2周：足もとに参道の砂利を淡く（写真 CC0・Qualia/sight と同じ。一枚の円だけで軽く）
   new THREE.TextureLoader().load("web/path_gravel.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(7, 7); t.anisotropy = 4;
     const m = new THREE.Mesh(new THREE.CircleGeometry(7, 48), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: .3, color: "#9aa7ad", depthWrite: false }));
-    m.rotation.x = -Math.PI / 2; m.position.y = -.004; m.renderOrder = -1; S.add(m); });
+    m.rotation.x = -Math.PI / 2; m.position.y = -.004; m.renderOrder = -1; S.add(m);
+    // 2026-11-10 第4周：奥へ続く参道の砂利の道（場所として感じられるように）
+    const t2 = t.clone(); t2.needsUpdate = true; t2.repeat.set(2, 14);
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 30), new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: .36, color: "#b9b2a2", depthWrite: false }));
+    road.rotation.x = -Math.PI / 2; road.position.set(0, -.002, -11); road.renderOrder = -1; S.add(road); });
+  // 両側の並木（幹の影だけ。霧に溶ける）
+  { const n = 24, geo = new THREE.CylinderGeometry(.16, .24, 7, 7), mat = new THREE.MeshLambertMaterial({ color: "#2a2620" }), im = new THREE.InstancedMesh(geo, mat, n), o = new THREE.Object3D();
+    for (let i = 0; i < n; i++) { const side = i % 2 ? 1 : -1, k = Math.floor(i / 2); o.position.set(side * (2.3 + (k % 3) * .35), 3.5, 2 - k * 2.4); o.rotation.set(0, 0, side * .03); o.scale.setScalar(.85 + (k % 4) * .08); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
+    S.add(im); }
 }
 // 2026-11-05：はじめて描く時の止まり（材質の中身の読み出し）を、網一つずつ別のこまに分ける。見えないほど小さくして描き、終わったら元の大きさで出す
 const yieldF = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
@@ -345,6 +353,6 @@ buildRows(); count(); setQ(params.get("q")?.slice(0, 60) || QS[0]); window.MLLoa
   setQ(params.get("q")?.slice(0, 60) || mine.q || QS[0]); qi = Math.max(0, QS.indexOf($("qt").textContent));
   buildRows(); count(); layout(); reset();
   requestAnimationFrame(() => setTimeout(() => import("three").then(m => { ({ GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder } = m); THREE = m; init3D(); layout(); }).catch(() => { }), 420)); // 読み込みの幕が消えきってから 3D を組む（幕の消えるのを重い処理で遅らせない）
-  setTimeout(() => say(mine.items.length ? "続きから。" : "わたしは碧。問いを一つ、置きました。<br>感じたものを、<b>撮る</b>・<b>録る</b>・<b>手ざわり</b>で集めてください。", 6500), 600);
+  setTimeout(() => say(mine.items.length ? "続きから。" : "わたしは碧。問いを一つ、置きました。<br>感じたものを、<b>撮る</b>・<b>手ざわり</b>・<b>音をとる</b>で集めてください。", 6500), 600);
 })();
 window.__mz = { get mine() { return mine; }, get others() { return others; }, takeFiles, layout };

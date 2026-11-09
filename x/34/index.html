@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Qualia/fable</title>
-<meta name="robots" content="noindex,noai,noimageai">
+<meta name="robots" content="noai,noimageai">
 <meta name="tdm-reservation" content="1">
 <style>
 :root{
@@ -70,6 +70,12 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:600px){#card{top:auto;bottom:0;width:100vw;max-height:38vh;border-radius:6px 6px 0 0;transform:translate(-50%,12%);padding:20px 20px 10px}#card.open{transform:translate(-50%,0)}#card h2{font-size:17px}#card .body{font-size:15px;line-height:1.95}#veil{background:rgba(2,4,10,.12)}}
 @media (min-width:900px){#card{left:auto;right:5vw;width:min(36vw,440px);transform:translate(0,-46%) scale(.96)}#card.open{transform:translate(0,-50%) scale(1)}#veil{background:rgba(2,4,10,.15)}}
+/* 2026-11-10 第4周：灯は近い（画面の下の）ものほど大きく・名は読める大きさに。参道は手前ほど明るく、敷石の目地が遠くへ詰まる。× は「とじる」と字で */
+.lt{font-size:calc(16px + 6px*var(--k,0));gap:calc(5px + 4px*var(--k,0))}
+.lt i{width:calc(10px + 10px*var(--k,0));height:calc(10px + 10px*var(--k,0))}
+.lt ruby rt{font-size:calc(10px + 2px*var(--k,0))}
+.close{width:auto;font-size:15px!important;letter-spacing:.06em;padding:0 12px!important;border:1px solid rgba(90,80,64,.35)!important;border-radius:2px;top:10px!important;right:10px!important}
+#card h2{padding-right:96px}
 </style>
 </head>
 <body>
@@ -88,7 +94,13 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
   <!-- 目の高さ（地平＝ y560）から見た参道：両側の並木が遠くへ細くなる -->
   <rect y="540" width="1000" height="120" fill="url(#fog)" opacity=".6"/>
   <g id="trees0" fill="#15181a"></g><g id="trees" fill="url(#bark)" opacity=".34"></g>
-  <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="url(#grav)" opacity=".32"/>
+  <linearGradient id="pathL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05080f" stop-opacity=".75"/><stop offset=".45" stop-color="#05080f" stop-opacity=".25"/><stop offset="1" stop-color="#f2cf8c" stop-opacity=".10"/></linearGradient>
+  <radialGradient id="pool" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="#f2cf8c" stop-opacity=".16"/><stop offset="1" stop-color="#f2cf8c" stop-opacity="0"/></radialGradient>
+  <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="url(#grav)" opacity=".4"/>
+  <g id="joints" stroke="#0a0c0c" stroke-opacity=".5" fill="none"></g>
+  <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="url(#pathL)"/>
+  <path d="M470 560 L240 1000 M530 560 L760 1000" stroke="#c8bba0" stroke-opacity=".22" stroke-width="2" fill="none"/>
+  <ellipse cx="500" cy="1000" rx="420" ry="260" fill="url(#pool)"/>
   <!-- 鳥居（遠く・朱） -->
   <g id="torii" transform="translate(500 520)" fill="#b3402c" style="filter:drop-shadow(0 0 6px rgba(214,90,60,.3))"><defs><linearGradient id="tpil" x1="0" x2="1"><stop offset="0" stop-color="#7d2a1d"/><stop offset=".45" stop-color="#c44a31"/><stop offset="1" stop-color="#8a2e20"/></linearGradient></defs><path d="M-40 -7 Q0 -2 40 -7 L38 -3 Q0 1 -38 -3Z" fill="#1d1715"/><path d="M-36 -3 Q0 1 36 -3 L35 1 Q0 4 -35 1Z"/><rect x="-1.6" y="2" width="3.2" height="7"/><rect x="-33" y="9" width="66" height="3.2"/><path d="M-23 1 L-19.6 1 L-19 40 L-23.6 40Z" fill="url(#tpil)"/><path d="M19.6 1 L23 1 L23.6 40 L19 40Z" fill="url(#tpil)"/><rect x="-24.4" y="37" width="6" height="4" fill="#1d1715"/><rect x="18.4" y="37" width="6" height="4" fill="#1d1715"/></g>
   <rect width="1000" height="1000" fill="url(#fog)"/>
@@ -101,7 +113,7 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
 <div id="lights"></div>
 <div id="veil"></div>
 <article id="card" role="dialog" aria-modal="true" aria-labelledby="ch">
-  <button class="close" aria-label="とじる">×</button>
+  <button class="close" aria-label="とじる">とじる ×</button>
   <div class="tag" id="ct"></div>
   <h2 id="ch"></h2>
   <div class="body" id="cb"></div>
@@ -129,7 +141,7 @@ const F=[
 {n:"アゲハ",c:"#f0d77c",fx:"fly",x:0.15,y:0.7,t:"胡蝶の夢",
  b:"［蝶の段］\nアゲハが葉にとまり、前脚の先で葉を味わう。\n卵を産む葉を、足で確かめている。\n\n［人の段］\nむかし、蝶になった夢を見た人（『荘子』斉物論の「胡蝶の夢」）が、目覚めて、\n自分が蝶の夢を見たのか、蝶が自分の夢を見ているのか、分からなくなった。\n\n足で葉を味わう世界から戻ると、手の中の葉が少しちがって見える。",
  e:"いまの見え方から離れて戻ると、同じ世界にまた出会う。",
- s:["事実：ナミアゲハは前脚の感覚毛で葉の成分を味わい、産卵する植物を見分ける（Ozaki, K. et al. 2011, Nature Communications 2: 542）。胡蝶の夢は『荘子』斉物論。","寓話にしたところ：蝶と人の夢を並べたのは寓話。どちらが本当かは決めない。"]},
+ s:["事実：ナミアゲハは前脚の感覚毛で葉の成分を味わい、産卵する植物を見分ける（Ozaki, K. et al. 2011, Nature Communications 2: 542）。胡蝶の夢は『荘子』斉物論（内篇）。本文の「蝶になった夢を見た人」のくだりは mitsulab の要約。原文と訳：金谷治 訳注『荘子 第一冊（内篇）』岩波文庫、1971。","寓話にしたところ：蝶と人の夢を並べたのは寓話。どちらが本当かは決めない。"]},
 {n:"ミミズ",c:"#b8b2a6",fx:"worm",x:.3,y:.82,t:"見ない夜",
  b:"目がない。\n\n体の表で、明るさを受けとる。\n明るいほうから、土へもぐる。\n\n昼の参道は、\nミミズには、ただもぐる明るさ。\n\n夜になると、地表へ出てくる。",
  e:"無いことで、見えてくるものがある。",
@@ -156,6 +168,8 @@ const F=[
  s:["事実：藤原定家の歌（『新古今和歌集』秋上・363）。","考え方：環世界はその主体には全てであり、それ自体で固定されたものではなく、環境と身体と意味づけの関係として立ち上がる。これを仏教哲学の「空」（龍樹『中論』24 章 18 偈の、縁起と空）に重ねて読むのは mitsulab の解釈。環世界の外もまた、それだけで在るものではなく、ほかの受けとり方との関係の中で立ち上がる（補集合もまた空）。"]}
 ];
 
+/* 参道の敷石の目地：遠くほど詰まる（2026-11-10 第4周） */
+(function(){let h="";for(let i=1;i<16;i++){const y=560+440*Math.pow(i/16,1.8),t=(y-560)/440,xl=470-230*t,xr=530+230*t;h+=`<line x1="${xl}" y1="${y}" x2="${xr}" y2="${y}" stroke-width="${.6+t*1.6}"/>`;}document.getElementById("joints").innerHTML=h;})();
 /* 並木：目の高さから見た遠近（地平 y=560・消失点 x=500） */
 (function(){const g=document.getElementById("trees");let h="";
  for(let i=0;i<9;i++){const k=Math.pow(.72,i),dx=470*k+30,w=26*k+2,top=560-430*k,bot=560+380*k;
@@ -165,7 +179,7 @@ const F=[
 const box=document.getElementById("lights"),card=document.getElementById("card"),veil=document.getElementById("veil"),sub=document.getElementById("sub");
 let cur=-1;const read=new Set();
 F.forEach((f,i)=>{const b=document.createElement("button");b.className="lt";b.style.left=(f.x*100)+"%";b.style.top=(f.y*100)+"%";
- b.style.setProperty("--c",f.c);b.innerHTML="<i></i><span>"+(f.r||f.n)+"</span>";b.setAttribute("aria-label",f.n+"の寓話「"+f.t+"」をひらく");b.onclick=()=>open(i);box.appendChild(b);f.el=b;});
+ b.style.setProperty("--c",f.c);b.style.setProperty("--k",Math.max(0,Math.min(1,(f.y-.2)/.68)).toFixed(2));b.innerHTML="<i></i><span>"+(f.r||f.n)+"</span>";b.setAttribute("aria-label",f.n+"の寓話「"+f.t+"」をひらく");b.onclick=()=>open(i);box.appendChild(b);f.el=b;});
 function open(i){cur=i;const f=F[i];
  document.getElementById("ct").textContent="寓話 "+(i+1)+" ／ "+F.length+"　"+f.n;
  document.getElementById("ch").textContent=f.t;
@@ -187,5 +201,6 @@ document.getElementById("next").onclick=()=>open((cur+1)%F.length);
 document.getElementById("prev").onclick=()=>open((cur-1+F.length)%F.length);
 addEventListener("keydown",e=>{if(cur<0)return;if(e.key==="Escape")close();if(e.key==="ArrowRight")open((cur+1)%F.length);if(e.key==="ArrowLeft")open((cur-1+F.length)%F.length);});
 </script>
+<!-- © mitsulab. All rights reserved. 2026-11-09 公開。Qualia/fable＝寓話集：環世界のコモングラウンドを、氷川参道の生き物・木・土・機械の寓話にしたもの。AI の学習・生成への利用はお断りします。 -->
 </body>
 </html>

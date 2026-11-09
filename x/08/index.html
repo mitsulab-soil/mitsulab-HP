@@ -217,8 +217,21 @@ html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-r
  font:600 clamp(16px,2vw,19px)/1.6 var(--ml-serif);letter-spacing:.1em;color:#eef5fb;text-shadow:0 1px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9)}
 .cap small{display:block;font:400 12px/1.6 var(--ml-sans);letter-spacing:.08em;color:#c3cce0}
 .play[hidden] + .cap{display:none}
+<style id="song-r4">
+/* 2026-11-10 第4周：はじめの画の上の注（等高線）は＋の中へ＝横長の画面では画の上を少し切って注を見せない。再生の印は碧の顔から外し下へ。再生は画からゆっくり映像へ溶ける（碧の画が数秒残る） */
+@media (min-aspect-ratio:1/1){html,body{background-size:calc(max(100vw,177.78vh)*1.32) auto;background-position:50% 100%}}
+#mv{opacity:0;transition:opacity 1.6s ease}
+body:not(.pre) #mv{opacity:1}
+#keep{position:fixed;inset:0;z-index:2;pointer-events:none;background:#03060f url(poster.webp?v=20261020-title) 50% 50%/cover no-repeat;opacity:0;transition:opacity 5s ease}
+@media (min-aspect-ratio:1/1){#keep{background-size:calc(max(100vw,177.78vh)*1.32) auto;background-position:50% 100%}}
+body.pre #keep,body.fade #keep{opacity:1;transition:none}
+@media (max-aspect-ratio:1/1){#keep{background-position:60% 50%}}
+.play{top:auto!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 150px)!important;transform:translateX(-50%)!important}
+.cap{top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 76px)}
+.ver button{position:relative}
 </style></head>
 <body class="ml-root pre">
+<div id="keep" aria-hidden="true"></div>
 <video id="mv" playsinline preload="none" poster="poster.webp?v=20261020-title" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
 <script>
   // 画面の幅と通信のようすで、同じ映像の 1080p／720p／540p を選ぶ（2026-10-19。スマホで止まらないように）
@@ -237,13 +250,13 @@ html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-r
 </script>
 <header class="top mu-top">
   <div class="brand mu-logo"><span class="ml-title">Qualia/song</span><small class="song-sub">碧の歌を聴く</small></div>
-  <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true">MV</button><button type="button" id="vLive" aria-pressed="false">ライブ</button></div>
+  <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true" title="杜の中で歌う映像" aria-label="MV（杜の中で歌う映像）">MV</button><button type="button" id="vLive" aria-pressed="false" title="同じ曲を舞台で歌う版" aria-label="ライブ（同じ曲を舞台で歌う版）">ライブ</button></div>
   <a class="home" href="https://mitsulab.jp/">mitsulab.jp ↗</a>
 </header>
 <button id="framing" type="button" aria-pressed="true" aria-label="映像の全景を表示する">全景を見る</button>
 <section class="hero" aria-label="映像">
   <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
-  <p class="cap" id="cap">碧がうたう、杜が息をする歌<small>1分45秒・音が出ます</small></p>
+  <p class="cap" id="cap">碧がうたう、杜が息をする歌<small>1分45秒・音が出ます ／ MV＝杜で歌う・ライブ＝舞台で歌う</small></p>
   <div class="bar ml-panel ml-panel--corner" id="bar">
     <button class="ml-btn" id="pp" type="button" aria-label="再生する">▶</button>
     <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生の位置">
@@ -264,6 +277,7 @@ html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-r
         <dt>地を這う線</dt><dd>木々の根と、地の下の水の道を思い描いた線。見えない土の中のつながりを、光で描いた。</dd>
         <dt>光の木</dt><dd>幹と枝を、ガラスのような光の筒に。土から吸い上げた水が、梢へのぼっていく道。</dd>
         <dt>広がる輪</dt><dd>碧の声とともに、足もとから広がる波。音で土を聴き、杜が息をする。</dd>
+        <dt>はじめの画の線</dt><dd>地面の高さ 6 cm ごとの等高線と、雨水が窪みへ集まる筋。mitsulab が 3D で作った地形から描いた模式（実測ではありません）。</dd>
         <dt>宙の 0 と 1</dt><dd>機械のことば。歌詞の「0 と 1 のあいだに緑」から。</dd>
       </dl>
       <p>聴き終えたら、足もとの土に、すこし耳をすませてみてください。</p>
@@ -277,6 +291,12 @@ html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-r
     </dl>
   </div>
   <div class="folds ml-panel">
+    <details class="ml-fold">
+      <summary>歌の手がかり（出典）</summary>
+      <p>踏まれた土の下の根と水の道：踏み固められた土は孔隙が減り、水と空気の通り道が細る（Hamza, M. A. &amp; Anderson, W. K. 2005. Soil compaction in cropping systems: A review of the nature, causes and possible solutions. <i>Soil &amp; Tillage Research</i> 82: 121–145）。</p>
+      <p>土から梢へのぼる水：木は葉からの蒸散に引かれて、根から幹の道管・仮道管を通して水を吸い上げる（Tyree, M. T. &amp; Zimmermann, M. H. 2002. <i>Xylem Structure and the Ascent of Sap</i>, 2nd ed. Springer）。</p>
+      <p>神籬（ひもろぎ）：神を迎えるために木や榊を立てて設けた場（國學院大學日本文化研究所 編『神道事典』弘文堂 1994）。歌詞は創作で、事実の主張ではありません。</p>
+    </details>
     <details class="ml-fold">
       <summary>素材とクレジット</summary>
       <p>楽曲：Suno の Pro Plan の期間に制作（商用の利用が認められる条件）。歌は碧、映像の中の字幕は曲に登録された歌詞です。</p>
@@ -336,7 +356,7 @@ html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-r
   { const B = document.body; let idT = 0;
     const wake = () => { B.classList.remove('idle'); clearTimeout(idT); if (!v.paused && about.hidden) idT = setTimeout(() => B.classList.add('idle'), 2500); };
     ['pointermove', 'pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, wake, { passive: true }));
-    v.addEventListener('play', () => { B.classList.remove('pre'); wake(); }); v.addEventListener('pause', wake); info.addEventListener('click', wake); }
+    v.addEventListener('play', () => { if (B.classList.contains('pre')) { B.classList.add('fade'); requestAnimationFrame(() => requestAnimationFrame(() => B.classList.remove('fade'))); } B.classList.remove('pre'); wake(); }); v.addEventListener('pause', wake); info.addEventListener('click', wake); }
 </script>
 </body>
 </html>

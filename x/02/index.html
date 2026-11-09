@@ -235,7 +235,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261109r2">
+<link rel="modulepreload" href="umwelt.js?v=20261110r4">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -295,7 +295,7 @@ body{word-break:auto-phrase;line-break:strict}
 
 <header id="top">
   <span class="topL"><a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">←</a><span class="dream-title">Qualia/sight</span></span>
-  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="出典と設定">＋</button></span>
+  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog" aria-label="なぜ、そう見えるの？">なぜ<span class="wlg">、そう見えるの</span>？</button><button class="ico" id="menuBtn" aria-label="出典と設定">＋</button></span>
 </header>
 <aside id="bodyControls" aria-label="身体の操作"><button id="padTog" type="button" aria-expanded="false" aria-label="移動のボタンを出す・しまう">⋯</button><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
 <div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
@@ -365,6 +365,16 @@ body{word-break:auto-phrase;line-break:strict}
   <p class="whyNote">● その生きもの（か同じ種）で確かめられていること　◐ 近い仲間の研究から推しはかっていること</p>
 </div></div>
 
+<style id="r4boot">/* 2026-11-10 第4周：覆いをやめる。森の静止画は押せる UI の下に敷き、3D が組めたら静かに消す */
+#poster{position:fixed;inset:0;z-index:3;background:#0d1410 url(assets/poster_pc.webp) center/cover no-repeat;pointer-events:none;transition:opacity .6s}
+@media(max-width:700px){#poster{background-image:url(assets/poster_sp.webp)}}
+#poster.gone{opacity:0}
+#boot{inset:auto 0 0 0!important;background:none!important;pointer-events:none;z-index:7!important}
+#boot #prog,#boot #bootMsg{display:none}#boot.fail #bootMsg{display:block}#boot button{pointer-events:auto}
+#stage:focus-visible{outline:3px solid var(--gold);outline-offset:-4px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+@media(max-width:420px){#top .wlg{display:none}}
+</style>
 <style id="r3poster">/* 2026-11-09 第3周：静止画を先に出し、3D はその裏で組む。← はすぐ押せる */
 #boot{background:#0d1410 url(assets/poster_pc.webp) center/cover no-repeat}
 @media(max-width:700px){#boot{background-image:url(assets/poster_sp.webp)}}
@@ -375,6 +385,7 @@ body:not(.booted) #top{z-index:60}body:not(.booted) #top .topR{visibility:hidden
 #where b,#where small{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 10px rgba(0,0,0,.9)}
 @media(max-width:700px){#where{top:64px;max-width:86vw}#where small{font-size:14px}}
 </style>
+<div id="poster" aria-hidden="true"></div>
 <div id="boot" role="status" aria-live="polite"><div>
   <b data-n="app">Qualia/sight</b>
   <div id="prog"><i></i></div>
@@ -394,10 +405,10 @@ body:not(.booted) #top{z-index:60}body:not(.booted) #top .topR{visibility:hidden
 <script src="data/why.js?v=20261109f"></script>
 <script>
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
-window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
+window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var bo=document.getElementById('boot');if(bo)bo.classList.add('fail');var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261109r2';s.onerror=window.__bootFail;document.body.appendChild(s);
-  setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r4';s.onerror=window.__bootFail;document.body.appendChild(s);
+  setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed){document.getElementById('boot').classList.add('fail');}if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <script>/* 第3周：静止画が出たら読み込み画面を下ろす。3D が組めたら body.booted */
 (function(){var go=function(){window.MLLoader&&MLLoader.done();};if(document.readyState!=='loading')go();else document.addEventListener('DOMContentLoaded',go);

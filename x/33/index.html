@@ -67,6 +67,24 @@ header span{font-size:12px;color:var(--ink3)}
 #rk{font-size:12px;color:var(--sumi2);min-height:18px;margin-top:4px;transition:color .6s}
 #more>summary{color:var(--sumi2)}
 @media (max-width:420px){#wname{font-size:13px}.wb{padding:0 9px;font-size:12.5px}#wtop{padding:12px 12px 24px}#paper.fold{max-height:none;cursor:pointer}#paper.fold>*:not(#pfrom){display:none}#paper.fold #pfrom::after{content:"　＋ 便りをひらく";color:var(--sumi)}#pfrom{min-height:24px}#pbody{text-wrap:pretty;font-size:13.5px;line-height:1.7}#paper{max-height:40vh;padding:10px 14px 0}#pfrom{font-size:11px!important}}@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* 2026-11-10 第4周：ひらいたら便りの文を画面の中央に大きく（なぞると下へ畳む）・返事の欄を大きく・封は和紙の繊維と縁の陰で紙らしく */
+#paper{top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(92vw,560px);max-height:76vh;padding:22px 26px 6px;transition:top .5s var(--ease),transform .5s var(--ease)}
+#paper.fold{top:auto;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:12px 16px 2px}
+#pfrom{font-size:14px!important}
+#pbody{font-size:clamp(17px,2.2vw,20px);line-height:2;letter-spacing:.06em}
+#pq{font-size:15px}#psig{font-size:13.5px}
+.reply{margin-top:10px}
+.reply input{height:56px;font-size:18px;border:1px solid rgba(90,80,64,.45);border-radius:2px;padding:0 12px;background:rgba(255,255,255,.35)}
+.reply button{height:56px;font-size:16px;padding:0 18px}
+@media (max-width:420px){#paper{padding:16px 18px 4px;max-height:78vh}#pbody{font-size:16.5px;line-height:1.9}}
+.env{background:
+  radial-gradient(120% 90% at 50% 45%,rgba(255,252,244,.55),rgba(255,252,244,0) 60%),
+  linear-gradient(170deg,#f1e9d8 0%,#e6dbc4 62%,#dccfb4 100%);
+  box-shadow:0 0 0 1px rgba(120,104,80,.18) inset,0 -2px 6px rgba(120,100,70,.12) inset,0 2px 3px rgba(0,0,0,.25),0 18px 34px rgba(0,0,0,.42)}
+.env::after{opacity:.5;background-image:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .40 0 0 0 0 .32 0 0 0 .55 -.18'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E"),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .36 0 0 0 0 .3 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.env .seal{background:radial-gradient(circle at 38% 34%,#a9503f 0%,#8a3b2e 55%,#6f2c22 100%);box-shadow:inset 0 0 0 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.3)}
 </style>
 </head>
 <body>

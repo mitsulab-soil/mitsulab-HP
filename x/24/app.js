@@ -8,7 +8,7 @@ qxEntry({ css: ".top{padding-left:56px!important}#seam .hd.qx-glow{animation:qxp
 import { rng, growTree, plantTrees, leafMaterial, barkMaterial, WIND, poisson } from "./kit/vegetation.js";
 import { installDapple, makeSightGrass, SIGHT_AIR } from "./kit/sight_look.js";
 import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
-import { CH, BANDS, SAY, AI_LABELS, REFS, wlHz } from "./data.js?v=20261109r3";
+import { CH, BANDS, SAY, AI_LABELS, REFS, wlHz } from "./data.js?v=20261110r4";
 import { Music, PHRASE, GRID } from "./audio.js?v=20261107p2";
 
 installDapple(THREE);
@@ -406,7 +406,7 @@ $("#out").addEventListener("click", () => { music.start(); outOn = !outOn; if (o
   capQ = capQ.filter(k => k === "hint"); if (outOn) { const fin = seen.size >= 4 && STROKES.length >= 1; if (!said.has("self")) { said.add("self"); show("self"); if (!fin) say("self2", { once: true }); } else if (!fin) say("kant", { once: true }); checkEnd(); } });
 $("#snd").addEventListener("click", () => { music.start(); music.setMuted(!music.muted); $("#snd").classList.toggle("off", music.muted); });
 document.addEventListener("visibilitychange", () => { if (!music.ctx) return; document.hidden ? music.ctx.suspend() : (!music.muted && music.ctx.resume()); });
-function toggleInfo(on){$("#fold").classList.toggle("on",on);$("#plus").setAttribute("aria-expanded",String(on));}
+function toggleInfo(on){$("#fold").classList.toggle("on",on);document.body.classList.toggle("info",on);$("#plus").setAttribute("aria-expanded",String(on));}
 $("#plus").setAttribute("aria-controls","fold");$("#plus").setAttribute("aria-expanded","false");
 $("#plus").addEventListener("click",()=>toggleInfo(!$("#fold").classList.contains("on")));
 addEventListener("keydown",e=>{if(e.key==='Escape'&&$("#fold").classList.contains("on")){e.preventDefault();toggleInfo(false);$("#plus").focus({preventScroll:true});}});
@@ -605,7 +605,7 @@ function frame() {
   aoi?.tick(dt, cam); grass?.update(cam.position, dt);
   // 帯：いまの受けとり方の帯を、空に一本（外からは六本を譜のように縦に重ねる）
   const keys = Object.keys(BANDG), cur = CH[ch].band;
-  keys.forEach((k, i) => { const g = BANDG[k]; const on = outK > .5 ? ended : k === cur; g.userData.k += ((on ? 1 : 0) - g.userData.k) * Math.min(1, dt * 3); g.visible = g.userData.k > .02;
+  keys.forEach((k, i) => { const g = BANDG[k]; const on = outK > .5 ? ended : (k === cur && document.body.classList.contains("info"));   // 2026-11-10 第4周：波長の図と数値は＋を開いたときだけ g.userData.k += ((on ? 1 : 0) - g.userData.k) * Math.min(1, dt * 3); g.visible = g.userData.k > .02;
     if (!g.visible) return;
     const pIn = tmp.set(mobile ? .32 : -.1, mobile ? 2.62 : 2.85, mobile ? 2.8 : 1.2), pOut = mobile ? new V3(-1.9, 2.9 + i * .5, 6.2) : new V3(-5.4, .9 + i * .95, 2.4);
     const lane = keys.indexOf(cur); g.position.lerpVectors(pIn, pOut, e); if (outK < .5 && k !== cur) g.position.y += (i - lane) * .5;
@@ -680,7 +680,7 @@ function frame() {
   // 重いときは画素を下げる
   if (dt > .045) slow += dt; else slow = Math.max(0, slow - dt * .5);
   if (slow > 1.5 && dpr > .7) { dpr = Math.max(.7, dpr - .2); slow = 0; resize(); }
-  if (first) { first = false; window.MLLoader?.done(); window.__ready = performance.now(); setTimeout(() => say("open"), 900); }
+  if (first) { first = false; window.MLLoader?.done(); window.__ready = performance.now(); setTimeout(() => say("open"), 300); }
 }
 let seamShown = seam;
 setCh(0); said.delete("cam"); capT = 0; $("#cap").classList.remove("on"); capQ = [];

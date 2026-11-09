@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Qualia/leaf ── 一枚の葉から始まる入力の連なり</title>
+<title>Qualia/leaf ── 一枚の葉が、次のだれかへ届く</title>
 <meta name="description" content="氷川参道の欅の一枚の葉が、鳥・人・菌・記録計にとって別の出来事になり、互いの入力になって土へ還る。鳥の跳びから記録計までの光る線で、ひとつの動きが次の入力になる順をたどる。mitsulab">
 <meta name="robots" content="noai,noimageai"><meta name="tdm-reservation" content="1">
 <meta name="theme-color" content="#cfd5d2">
@@ -22,6 +22,7 @@
 #aw-ui .aw-fold>div{position:absolute;right:0;bottom:48px;box-sizing:border-box;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 100px);overflow:auto;overflow-wrap:anywhere;touch-action:pan-y}
 </style></head><body>
 <div id="aw-ld"></div>
+<div id="qx-vig" aria-hidden="true"></div><style>#qx-vig{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(0,0,0,0) 40%,rgba(8,10,8,.72) 100%);transition:opacity 1.6s ease}#qx-vig.out{opacity:0}</style>
 <script src="loader_qualium.js" data-max="2500"></script>
 <a class="qx-home" href="/" aria-label="mitsulab のホームへ戻る">←</a>
 <div id="qx-intro" aria-hidden="true"><span>目の前の一枚の葉は、だれの何になる？</span></div>
@@ -31,5 +32,5 @@
 #qx-fail{position:fixed;inset:auto 0 30vh 0;z-index:2147483002;text-align:center;font:15px/1.8 "Hiragino Sans",sans-serif;color:#f2f5f8}#qx-fail button{min-height:44px;padding:8px 18px;margin-top:8px;border-radius:999px;border:1px solid #cfe;background:#0b1520;color:#eef5fb;font:inherit;cursor:pointer}</style>
 <script>/* 2026-11-09 読み込みに失敗しても止まらない：一度だけ読み直し、それでも駄目なら押して読み直せる */(function(){var K="qx-retry:"+location.pathname,shown=0;function fail(){if(window.__appMK&&window.__appMK.stage)return;try{if(!sessionStorage.getItem(K)){sessionStorage.setItem(K,"1");setTimeout(function(){location.reload()},500);return}}catch(e){}if(shown++)return;window.MLLoader&&MLLoader.done&&MLLoader.done(true);var d=document.createElement("div");d.id="qx-fail";d.innerHTML='通信が混み合っていて、風景を読みこめませんでした。<br><button type="button">もう一度ひらく</button>';d.querySelector("button").onclick=function(){location.reload()};document.body.appendChild(d)}addEventListener("error",function(e){if(e.target&&e.target.tagName==="SCRIPT"||/import|module|fetch/i.test(e.message||""))fail()},true);addEventListener("unhandledrejection",function(e){if(/import|module|fetch/i.test(String(e.reason&&e.reason.message||e.reason)))fail()});setTimeout(function(){if(!(window.__appMK&&window.__appMK.stage))fail()},15000);addEventListener("pageshow",function(){});})();</script>
 <style id="r3ttl">/* 2026-11-09 第3周：作品名は左上だけ・英字は出さない */.aw-mark i{display:none!important}</style><link rel="modulepreload" href="./kit/awai.js"><link rel="modulepreload" href="./kit/awai_props.js"><link rel="modulepreload" href="./kit/creatures_sight.js"><link rel="modulepreload" href="./kit/keyaki.js"><link rel="modulepreload" href="../../vendor/three/build/three.module.js">
-<script type="module" src="app.js?v=20261109r3"></script>
+<script type="module" src="app.js?v=20261110r4"></script>
 </body></html>

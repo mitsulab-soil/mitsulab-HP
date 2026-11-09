@@ -153,7 +153,7 @@ const order = [...ITEMS].sort((a, b) => a.n - b.n);
 let target = null;   // カメラの見る先（なめらかに寄る）
 const panel = $("panel"), sheetMQ = matchMedia("(max-width:680px)");   // 狭い画面＝下から出る面、広い画面＝右の面
 function select(it, { fly = true, audible = true } = {}) {
-  if (!seenAll) { seenAll = true; for (const id in labEls) labEls[id].classList.remove("big"); measure(); }
+  if (!seenAll) { seenAll = true; labs.style.visibility = ""; for (const id in labEls) labEls[id].classList.remove("big"); measure(); }   /* 2026-11-10 第4周：分類の印は一つ鳴らすまで出さない（最初は身近な三語だけ・分類は＋の「分類について」に） */
   cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'A：'+material.t+' ／ B：'+it.t:'Aの素材にして、もう一つの音を選ぶと合成できます。';
   $("sound").hidden = !!it.quiet; $("quiet").hidden = !it.quiet;
   { const rd = it.quiet ? null : readingOf(it); $("readF").hidden = !(rd && rd.hand); $("readF").open = false; if (rd && rd.hand) $("readT").textContent = rd.reading; }   // 手で譜を書いた行だけ、読みの一文を畳んで置く
@@ -182,7 +182,9 @@ $("bPrev").addEventListener("click", () => step(-1)); $("bNext").addEventListene
 const HEAVY = /死|髑髏|悪魔|恐怖|恐ろし|滅|墓|痛|傷|邪|破壊|崩壊|戦/; let randN = 0;
 const DIM = /眼|縛|痩|情念|不在|しなび|白髪|ホクロ|曖昧|お金|修行|人生|非物質|不可視|閉じ|見えない|ヒッピー|恐竜|免疫|結晶|ミイラ|極限/;   // はじめの三回は、子どもにも明るく分かる行だけ
 const SAFE = new Set(["mizu", "seimei", "iro"]);   // 2026-11-09 第3周：はじめの三回は明るい群れ（水と天気・生命と土・色と光）から。ほかの群れは消さず、四回目から
-const rand = () => { const pool = randN++ < 3 ? ITEMS.filter(x => SAFE.has(x.tag) && (!x.tag2 || SAFE.has(x.tag2)) && !HEAVY.test(x.t) && !DIM.test(x.t) && !x.quiet) : ITEMS; select(pool[Math.floor(Math.random() * pool.length)]); };
+// 2026-11-10 第4周：はじめの三回は、子どもにも分かる自然の音に固定（朝の小鳥・木の雫・雲が8割の青空）。四回目からは今までどおり
+const FIRST3 = [429, 805, 404].map(n => ITEMS.find(x => x.n === n && !x.quiet)).filter(Boolean);
+const rand = () => { if (randN < FIRST3.length) { select(FIRST3[randN++]); return; } const pool = randN++ < 3 ? ITEMS.filter(x => SAFE.has(x.tag) && (!x.tag2 || SAFE.has(x.tag2)) && !HEAVY.test(x.t) && !DIM.test(x.t) && !x.quiet) : ITEMS; select(pool[Math.floor(Math.random() * pool.length)]); };
 $("bRand").addEventListener("click", rand); $("bRand2").addEventListener("click", rand); window.__qsReady = true; if (window.__qsPend) { window.__qsPend = 0; setTimeout(() => $("bRand2").click(), 0); }
 requestAnimationFrame(() => { if (document.activeElement === document.body || !document.activeElement) $("bRand2").focus({ preventScroll: true }); });   // 最初の焦点はボタンに
 
@@ -284,7 +286,7 @@ $("aShown").textContent = N;
 
 // ---- 入口
 labs.style.visibility = "hidden";
-const start = (fade = true) => { labs.style.visibility = ""; $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
+const start = (fade = true) => { $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
 $("bStart").addEventListener("click", () => { synth.ensure(); start(); });
 start(false);   // 2026-11-09 入口の説明は出さない（音は点に触れたときだけ鳴る）
 // 2026-11-07: 三つの入口も既存の言葉の点へ。全項目・原文・合成規則はそのまま。
