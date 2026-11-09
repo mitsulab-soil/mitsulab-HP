@@ -94,12 +94,26 @@ body::before{content:"";position:fixed;left:-30%;right:-30%;bottom:-6%;height:58
 body.kids #pbody{font-size:clamp(20px,2.8vw,24px);line-height:2.3}body.kids #sub{font-size:1.15em}
 #paper ruby rt{font-size:.5em;letter-spacing:0}
 @media (max-width:420px){#kids{padding:0 10px;font-size:12px}}
+/* 2026-11-10 第6周：最初の画を夕暮れの参道に（黒い地をやめ、遠くの灯を並べ砂利を見せる）・375 の便りの字を一段大きく・返事の欄の字 */
+body{background:radial-gradient(130% 80% at 50% 110%,#6e574c 0%,#4a4258 40%,#2c3450 74%,#222a44 100%)}
+body::before{opacity:.52}
+body::after{content:"";position:fixed;left:0;right:0;top:24%;height:20%;pointer-events:none;z-index:0;background:
+ radial-gradient(3px 4px at 18% 62%,#ffe3a8,transparent),radial-gradient(28px 22px at 18% 62%,rgba(255,214,150,.22),transparent),
+ radial-gradient(2.5px 3.5px at 33% 54%,#ffe3a8,transparent),radial-gradient(22px 18px at 33% 54%,rgba(255,214,150,.18),transparent),
+ radial-gradient(2px 3px at 44% 49%,#ffe3a8,transparent),radial-gradient(16px 14px at 44% 49%,rgba(255,214,150,.16),transparent),
+ radial-gradient(2px 3px at 57% 49%,#ffe3a8,transparent),radial-gradient(16px 14px at 57% 49%,rgba(255,214,150,.16),transparent),
+ radial-gradient(2.5px 3.5px at 68% 54%,#ffe3a8,transparent),radial-gradient(22px 18px at 68% 54%,rgba(255,214,150,.18),transparent),
+ radial-gradient(3px 4px at 83% 62%,#ffe3a8,transparent),radial-gradient(28px 22px at 83% 62%,rgba(255,214,150,.22),transparent),
+ radial-gradient(60% 50% at 50% 70%,rgba(255,196,140,.10),transparent)}
+#lamp{opacity:.8}
+.reply input{color:#2e271d}.reply input::placeholder{color:#6b5f4c;opacity:1;font-size:16px}
+@media (max-width:420px){#pbody{font-size:18.5px;line-height:1.95}#pq{font-size:15.5px}body.kids #pbody{font-size:21px}.reply input{font-size:17px}}
 </style>
 </head>
 <body>
 <div id="lamp" aria-hidden="true" title=""></div><!-- 2026-11-09 第2周：遠くの参道の灯を一つ、淡く -->
 <header><div style="display:flex;align-items:baseline"><a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のホームへ戻る">← mitsulab</a><h1>Qualia/<i>letter</i>　便り</h1></div><button id="kids" type="button" aria-pressed="false">大きな字・ふりがな</button></header>
-<p id="sub">参道の生き物たちの受けとり方を、碧が訳して書いた便りです。<small>いちばん上の封にふれると、受けとり方を訳した便りを読めます。</small></p>
+<p id="sub">参道の生き物たちの受けとり方を、碧が人のことばに置きかえて書いた便りです。<small>いちばん上の封にふれると、便りを読めます。</small></p>
 <div id="stack"></div>
 <section id="world" role="dialog" aria-modal="true" aria-labelledby="wname">
   <canvas id="cv"></canvas>
@@ -107,11 +121,11 @@ body.kids #pbody{font-size:clamp(20px,2.8vw,24px);line-height:2.3}body.kids #sub
   <p id="hint"></p>
   <article id="paper">
     <div id="pfrom" style="font-size:12px;color:var(--sumi2);letter-spacing:.14em;margin-bottom:4px"></div><div id="pbody"></div>
-    <div id="psig">── 訳して書いた人　碧</div>
+    <div id="psig">── 人のことばに置きかえて書いた人　碧</div>
     <form class="reply" autocomplete="off"><input id="ri" maxlength="40" placeholder="生き物へ、返事を一言" aria-label="生き物へ、返事を一言（この端末の中にだけ残る）"><button aria-label="返事を封に挟む（この端末の中にだけ残る）">封に挟む</button></form>
     <div id="rk"></div>
     <details id="more"><summary>問いと出典</summary><div id="pq"></div>
-    <details><summary>出典と訳し方</summary><div id="ps"></div></details></details>
+    <details><summary>出典と置きかえ方</summary><div id="ps"></div></details></details>
   </article>
 </section>
 <script>
@@ -237,7 +251,7 @@ cv.addEventListener('pointermove',()=>{if(drag&&drag.moved)hideHint()});
 function hideHint(){$('hint').style.opacity=0}
 $('eye').onclick=()=>{human=!human;$('eye').setAttribute('aria-pressed',human);$('wname').firstChild.textContent=human?'人の目':VW(L[cur]);$('eye').textContent=human?VW(L[cur])+'で受けとる':'人の目で見る'};
 function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];
- $('wname').innerHTML=VW(l)+'<small>碧が訳した模式</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
+ $('wname').innerHTML=VW(l)+'<small>碧が人のことばに置きかえた模式</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
  $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pq').textContent=l.q;if(document.body.classList.contains('kids'))furi();$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
  const o=st();$('rk').textContent=o[i]&&o[i].t?'封に挟んだ返事：'+o[i].t:'返事は、この端末の中にだけ残ります。';$('ri').value='';o[i]=Object.assign(o[i]||{},{r:1});save(o);
  world.querySelectorAll('details').forEach(d=>d.open=false);$('paper').classList.remove('fold');world.classList.add('on');sub.style.opacity=0;size();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);

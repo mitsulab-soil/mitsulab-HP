@@ -50,6 +50,12 @@ body.yose #row{padding-right:56px}
 @media (prefers-reduced-motion:reduce){#seki .card.rec{animation:none}}
 #hp{font-size:14px;letter-spacing:.06em;font-family:"Hiragino Sans",sans-serif;padding:0 8px;margin-left:-4px;white-space:nowrap}
 @media (max-width:400px){#row b{font-size:13px}#row b small{font-size:9.5px}}
+/* 2026-11-10 第6周：高座のまわりを暗くしすぎない（夕方の寄席の木と灯の色）・375 は演目の帯を一段（横に送る） */
+:root{--bg:#1d1a22}
+#bar{background:linear-gradient(#2a2430,#211d28)}
+#app,#wait{background:#1d1a22}
+@media (max-width:420px){#row b small{display:none}#row{padding-left:8px}#hp{margin-left:0;padding:0 6px}#row button{min-width:48px;padding:0 10px}}
+@media (max-width:760px){#seki{display:none}body.yose #seki{display:flex!important;overflow-x:auto;scroll-snap-type:x proximity;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}#seki .card{flex:0 0 auto;min-width:76px;scroll-snap-align:start;padding:0 6px}#seki .card span{font-size:13.5px;white-space:nowrap}}
 </style>
 </head>
 <body>
@@ -79,14 +85,14 @@ function go(v, e, room, from, now) {
   seki.querySelectorAll('.card').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.e === e)));
   app.src = v === 'kan' ? MUSEUM + '?embed=1' + (room ? '&room=' + room : '') : YOSE + '?embed=1' + (e ? '&e=' + e + (now ? '&go=1' : '') : '');
   const u = new URL(location); u.searchParams.set('v', v); e ? u.searchParams.set('e', e) : u.searchParams.delete('e'); history.replaceState(null, '', u);
-  fit(); const w = document.getElementById('wait'); document.getElementById('wt').textContent = v === 'kan' ? '館をひらいています' : '寄席をひらいています'; w.classList.remove('off'); clearTimeout(go.t); go.t = setTimeout(() => w.classList.add('off'), 700); if (now) setTimeout(() => { try { app.focus(); } catch (x) {} }, 50);
+  fit(); const w = document.getElementById('wait'); document.getElementById('wt').textContent = v === 'kan' ? '館をひらいています' : '寄席をひらいています'; w.classList.remove('off'); clearTimeout(go.t); go.t = setTimeout(() => w.classList.add('off'), 700); if (now && go.ok) setTimeout(() => { try { app.focus(); } catch (x) {} }, 50); go.ok = true;
 }
 document.querySelectorAll('#row button').forEach(b => b.onclick = () => go(b.dataset.v));
 addEventListener('resize', fit);
 // 焦点が寄席・館の中にあるときは、枠に印を出す
 addEventListener('blur', () => setTimeout(() => document.body.classList.toggle('inapp', document.activeElement === app), 0)); addEventListener('focus', () => document.body.classList.remove('inapp'));
 app.addEventListener('load', () => document.getElementById('wait').classList.add('off'));   // 2026-11-09 第2周：読み込みが済んだらすぐ外す（前は 0.6 秒待った）
-const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : (q.get('v') === 'kan' ? null : 'hachi'));   // 2026-11-10 第4周：はじめから一席目の高座を出す（空の高座にしない）
+const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : (q.get('v') === 'kan' ? null : 'hachi'), null, null, q.get('v') !== 'kan');   // 第6周：席は既定のまま始め（席を選ぶ画面を挟まない）、高座の中で後から変えられる   // 2026-11-10 第4周：はじめから一席目の高座を出す（空の高座にしない）
 </script>
 </body>
 </html>

@@ -12,12 +12,12 @@ let seed=1108;const R=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/429496
 // ---------- 場の状態 ----------
 const N=48,SIZE=24,H=SIZE/2,cell=SIZE/N,NN=N*N;
 const w=new Float32Array(NN),s=new Float32Array(NN),c=new Float32Array(NN),d=new Float32Array(NN),sp=new Float32Array(NN),root=new Float32Array(NN),tmp=new Float32Array(NN);
-const TREE={x:3.5,z:-3.5},POND={x:-5,z:2};
+const TREE={x:3.5,z:-3.5},POND={x:-1,z:2.5};   /* 第6周：水際を手前の近くに */
 const field={rain:0,pond:0,sap:.2,air:.3,clock:0,here:0,dwell:0,pulse:0,reached:0,scent:1,birdSee:1,probe:.3,edge:.3};
 const PROBE={x:4.6,z:4.2},FLOWER={x:-1,z:-7};const TRAIL=[];for(let q=0;q<=40;q++){const u=q/40;TRAIL.push([FLOWER.x+(TREE.x-FLOWER.x)*u+Math.sin(u*9)*.7,FLOWER.z+(TREE.z+1.5-FLOWER.z)*u]);}const scent=new Float32Array(TRAIL.length).fill(1);
 for(let j=0;j<N;j++)for(let i=0;i<N;i++){const k=j*N+i,x=-H+(i+.5)*cell,z=-H+(j+.5)*cell;
   const dt=Math.hypot(x-TREE.x,z-TREE.z);root[k]=Math.max(0,1-dt/5.5);s[k]=.25+.1*Math.max(0,1-Math.hypot(x-POND.x,z-POND.z)/8);sp[k]=s[k];}
-const pondR=()=>3.0+.7*field.pond;
+const pondR=()=>3.8+.7*field.pond;
 const inPond=(x,z)=>Math.hypot(x-POND.x,z-POND.z)<pondR();
 const idx=(x,z)=>{const i=Math.floor((x+H)/cell),j=Math.floor((z+H)/cell);return(i<0||j<0||i>=N||j>=N)?-1:j*N+i;};
 function rainAt(t){ // 創作の雨の周期（約 100 秒で強まり・やむ）
@@ -75,22 +75,24 @@ if(!mobile){sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(
 const L=new T.TextureLoader(),tex=(n,r,col)=>{const t=L.load('assets/'+n);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(r,r);if(col)t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;};
 // 場の状態を地面へ：湿り→暗く・艶、踏み跡→わずかに明るく締まる
 const fieldTex=new T.DataTexture(new Uint8Array(NN*4),N,N,T.RGBAFormat);fieldTex.magFilter=fieldTex.minFilter=T.LinearFilter;fieldTex.needsUpdate=true;
-const gMat=new T.MeshStandardMaterial({map:tex('soil_c.webp',30,1),normalMap:tex('soil_n.webp',30),roughness:.95,color:0xaeac98});   /* 2026-11-10 第4周：枯れ色を抑え、湿った土の落ち着いた色に */
+const gMat=new T.MeshStandardMaterial({map:tex('soil_c.webp',30,1),normalMap:tex('soil_n.webp',30),roughness:.95,color:0xc2b596});   /* 第6周：地を暗く単調にしない（明るい土の色に、苔と落ち葉のむら） */   /* 2026-11-10 第4周：枯れ色を抑え、湿った土の落ち着いた色に */
 gMat.onBeforeCompile=sh=>{sh.uniforms.uField={value:fieldTex};sh.uniforms.uPulse={value:0};sh.uniforms.uSky={value:scene.fog.color};sh.uniforms.uRad={value:0};gMat.userData.u=sh.uniforms;
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vF;varying vec3 vWp;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nvec4 wpF=modelMatrix*vec4(transformed,1.);vWp=wpF.xyz;vF=(wpF.xz+'+H.toFixed(1)+')/'+SIZE.toFixed(1)+';');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vF;varying vec3 vWp;uniform vec3 uSky;uniform sampler2D uField;uniform float uPulse,uRad;float fWet,rg;')
-   .replace('#include <map_fragment>','#include <map_fragment>\nvec4 F=texture2D(uField,vF);float inF=smoothstep(0.,.18,vF.x)*smoothstep(1.,.82,vF.x)*smoothstep(0.,.18,vF.y)*smoothstep(1.,.82,vF.y);fWet=inF*clamp(F.r*.7+F.g*.5,0.,1.);float dT=length(vF*24.-12.-vec2(3.5,-3.5));float rg=uPulse*exp(-pow((dT-uRad)*.7,2.));fWet=clamp(fWet+rg,0.,1.);diffuseColor.rgb*=mix(1.12,.42,fWet)*(1.+.14*F.b*inF)*(1.-.35*uPulse*step(dT,uRad));vec3 Vv=normalize(cameraPosition-vWp);float fr=pow(1.-max(Vv.y,0.),3.);diffuseColor.rgb=mix(diffuseColor.rgb,uSky*.55,clamp(rg*fr*1.4,0.,.75));')
+   .replace('#include <map_fragment>','#include <map_fragment>\nvec4 F=texture2D(uField,vF);float inF=smoothstep(0.,.18,vF.x)*smoothstep(1.,.82,vF.x)*smoothstep(0.,.18,vF.y)*smoothstep(1.,.82,vF.y);fWet=inF*clamp(F.r*.7+F.g*.5,0.,1.);float dT=length(vF*24.-12.-vec2(3.5,-3.5));float rg=uPulse*exp(-pow((dT-uRad)*.7,2.));fWet=clamp(fWet+rg,0.,1.);float nz=sin(vWp.x*.37+1.3)*sin(vWp.z*.29)+.6*sin(vWp.x*.11-vWp.z*.13);diffuseColor.rgb*=mix(vec3(1.06,1.0,.9),vec3(.82,.95,.74),smoothstep(-.4,.9,nz));diffuseColor.rgb*=mix(1.12,.42,fWet)*(1.+.14*F.b*inF)*(1.-.35*uPulse*step(dT,uRad));vec3 Vv=normalize(cameraPosition-vWp);float fr=pow(1.-max(Vv.y,0.),3.);diffuseColor.rgb=mix(diffuseColor.rgb,uSky*.55,clamp(rg*fr*1.4,0.,.75));')
    .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.28,fWet*fWet);roughnessFactor=mix(roughnessFactor,.12,rg);');};
 /* 2026-11-10 第5周：歩く範囲と樹のある所（半径 19 m）は平らなまま、その外をゆるい起伏にして地平まで続ける（約 1.3 万三角形・描画 1 回） */
 const gGeo=new T.PlaneGeometry(260,260,80,80);{const p=gGeo.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),r=Math.hypot(x,y),k=T.MathUtils.smoothstep(r,19,42);p.setZ(i,k*(1.3*Math.sin(x*.07+1.2)*Math.cos(y*.05)+.9*Math.sin(x*.023-y*.031)+.5*Math.cos(x*.11+y*.09)+.8));}gGeo.computeVertexNormals();}
 const ground=new T.Mesh(gGeo,gMat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 // 遠くの木立（霧の向こうの影・描画 1 回）
-{const g=new T.IcosahedronGeometry(1,3);g.translate(0,.55,0);const im=new T.InstancedMesh(g,new T.MeshStandardMaterial({color:0x7d8a7a,roughness:1,flatShading:false}),90),o=new T.Object3D();let s=19;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
- for(let i=0;i<90;i++){const a=rnd()*Math.PI*2,r=48+rnd()*34,x=Math.cos(a)*r,z=Math.sin(a)*r;o.position.set(x,.6,z);const h=4+rnd()*4;o.scale.set(3+rnd()*3,h,3+rnd()*3);o.updateMatrix();im.setMatrixAt(i,o.matrix);}scene.add(im);}
+/* 第6周：球の書き割りをやめ、霞の中の木の形（幹＋不揃いな樹冠の塊）に。一つの形にまとめ描画は 1 回のまま */
+{const tg=[new T.CylinderGeometry(.05,.09,1.5,6).translate(0,.75,0)];let s0=7;const r0=()=>(s0=(s0*16807)%2147483647)/2147483647;for(const [cx,cy,cz,sx,sy] of [[0,1.75,0,.62,.42],[.32,1.5,.1,.42,.32],[-.34,1.55,-.08,.44,.34],[.05,2.08,-.05,.4,.3],[-.12,1.32,.22,.36,.26]]){const c=new T.IcosahedronGeometry(1,2),p=c.attributes.position,nn=c.attributes.normal,ph=r0()*6;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=.86+.14*Math.sin(3.1*x+ph)*Math.sin(3.7*y+1)*Math.sin(2.9*z+ph*.5);nn.setXYZ(i,x,y,z);p.setXYZ(i,x*k,y*k,z*k);}c.scale(sx,sy,sx).translate(cx,cy,cz);tg.push(c);}
+ const g=mergeGeometries(tg.map(x=>x.index?x.toNonIndexed():x));   /* 樹冠は向きで揺らぎを決め、法線は球の向きのまま＝角ばらず霞に溶ける */const im=new T.InstancedMesh(g,new T.MeshStandardMaterial({color:0x76806c,roughness:1,flatShading:false}),90),o=new T.Object3D();let s=19;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+ for(let i=0;i<90;i++){const a=rnd()*Math.PI*2,r=48+rnd()*34,x=Math.cos(a)*r,z=Math.sin(a)*r;o.position.set(x,0,z);const h=5+rnd()*4;const wd=4+rnd()*3;o.scale.set(wd,h,wd);o.rotation.y=rnd()*6.28;o.updateMatrix();im.setMatrixAt(i,o.matrix);}scene.add(im);}
 // 水面
 /* 第5周：水際の縁をぼかし、板に見えないように（中心ほど深い色・縁は濡れた土へ溶ける） */
 const wA=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'#fff');g.addColorStop(.62,'#eee');g.addColorStop(.86,'#555');g.addColorStop(1,'#000');x.fillStyle=g;x.fillRect(0,0,128,128);return new T.CanvasTexture(c);})();
-const water=new T.Mesh(new T.CircleGeometry(1,64),new T.MeshStandardMaterial({color:0x34494a,roughness:.05,metalness:.3,transparent:true,opacity:.9,alphaMap:wA,depthWrite:false}));
+const water=new T.Mesh(new T.CircleGeometry(1,64),new T.MeshStandardMaterial({color:0x55706c,roughness:.05,metalness:.3,transparent:true,opacity:.9,alphaMap:wA,depthWrite:false}));
 water.rotation.x=-Math.PI/2;water.position.set(POND.x,.025,POND.z);scene.add(water);
 const ringGeo=new T.RingGeometry(.9,1,40),rings=[];for(let i=0;i<40;i++){const m=new T.Mesh(ringGeo,new T.MeshBasicMaterial({color:0xdfe8e6,transparent:true,opacity:0,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.y=.03;m.userData.t=9;scene.add(m);rings.push(m);}
 // 樹（近くに一本・遠くに三本）
@@ -149,7 +151,7 @@ function updateOthers(now,dt){
 let yaw=Math.atan2(-(TREE.x-me.x),-(TREE.z-me.z))+.5,pitch=-.06,target=null,moving=false,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* 2026-11-10 第4周：最初に見せる一つ＝水際の光。押すとそこへ歩き、着く前から足もとの土に水がしみこむ */
 const goP=(()=>{const dx=me.x-POND.x,dz=me.z-POND.z,l=Math.hypot(dx,dz),r=pondR()+.7;return{x:POND.x+dx/l*r,z:POND.z+dz/l*r};})(),goV=new T.Vector3();
-const edgeM=new T.SpriteMaterial({map:dotTex(),color:0xfff3c8,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0});const edgeGlow=new T.Sprite(edgeM);edgeGlow.scale.set(1.1,1.1,1);edgeGlow.position.set(goP.x,.12,goP.z);_add(edgeGlow);let edgeOn=1;
+const edgeM=new T.SpriteMaterial({map:dotTex(),color:0xfff3c8,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0});const edgeGlow=new T.Sprite(edgeM);edgeGlow.scale.set(2.2,2.2,1);edgeGlow.position.set(goP.x,.12,goP.z);_add(edgeGlow);let edgeOn=1;
 function splash(x,z,a=.8){const k0=idx(x,z);if(k0<0)return;for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const kk=k0+dj*N+di;if(kk<0||kk>=NN)continue;const f=1-Math.hypot(di,dj)/3.2;if(f<=0)continue;w[kk]=Math.min(1,w[kk]+a*f);d[kk]=Math.min(2,d[kk]+1.4*f);}}
 const probeTag=document.createElement('div');probeTag.textContent='土の湿りを測る棒（センサー）';probeTag.setAttribute('aria-hidden','true');probeTag.style.cssText='position:fixed;left:0;top:0;pointer-events:none;font-size:11px;letter-spacing:.06em;white-space:nowrap;text-shadow:0 1px 3px #000,0 0 10px #000a;transform:translate(-50%,-140%);opacity:0;transition:opacity .6s';document.body.appendChild(probeTag);const prV=new T.Vector3();
 setTimeout(()=>{splash(goP.x,goP.z,.9);},1200);const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:112px!important}.qx-home{width:auto!important;padding:0 10px;font-size:14px!important;letter-spacing:.06em}',onPress:()=>{target={x:goP.x,z:goP.z};splash(goP.x,goP.z,.7);$('hint').style.opacity=0;}});{const h=document.querySelector('.qx-home');if(h){h.textContent='← mitsulab';h.href='https://mitsulab.jp/';}}
@@ -184,7 +186,7 @@ function sound(){if(!A||!A.on)return;const t=A.ac.currentTime;if(field.pulse>.98
   A.g2.gain.setTargetAtTime(field.sap*near*.025*att,t,.6);A.o2.frequency.setTargetAtTime(165+field.sap*60,t,.8);}       // 樹の吸い上げ（近いほど）
 
 // ---------- 毎フレーム ----------
-const fog=new T.Color(),dry=new T.Color(0xc4d6dc),wet=new T.Color(0xa9bcc0),dropC=new T.Color(),tmpV=new T.Vector3();
+const fog=new T.Color(),dry=new T.Color(0xd8d6c8),wet=new T.Color(0xb6c0bb),dropC=new T.Color(),tmpV=new T.Vector3();
 let last=performance.now(),acc=0,ready=false,ringI=0,ringAcc=0,frames=0;
 function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;frames++;if(tapRing.visible){const u=(tapRing.userData.t+=dt)/1.1;tapRing.scale.setScalar(.4+u*1.4);tapRing.material.opacity=.85*(1-u);if(u>=1)tapRing.visible=false;}
   acc+=dt;while(acc>=.1){step(.1);acc-=.1;}

@@ -12,7 +12,7 @@ const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, 
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
-const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（葉が落ち、変化が広がる）", css: "#aw-ui .aw-mark{margin-left:112px!important}@media (max-width:520px){#aw-ui .aw-mark{margin-left:0!important;margin-top:46px!important}}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { document.body.classList.add("qx-started"); heroFall = 0; document.getElementById("qx-vig")?.classList.add("out"); tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
+const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（落ちると、鳥が気づく）", css: "#aw-ui .aw-mark{margin-left:112px!important}@media (max-width:520px){#aw-ui .aw-mark{margin-left:0!important;margin-top:46px!important}}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { document.body.classList.add("qx-started"); heroFall = 0; document.getElementById("qx-vig")?.classList.add("out"); tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
 
 const W = await createAwai({
   title: "Qualia/leaf", sub: "一枚の葉が、次のだれかへ届く", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
@@ -24,7 +24,7 @@ const W = await createAwai({
     "一枚の葉の行き先を、関係の形で書いた模式（測れる量の式ではない）",
     "葉の表には落ちる前から菌や細菌がすみ、落ち葉は数か月から年の単位で分解されて土へ還る。ここでは時間を縮めた模式で、菌の音は実測音ではない合成音",
     "ミツバチの羽ばたき 約 230 回／秒：Altshuler ほか（PNAS 102, 2005）。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
-    "考え方の系譜：ユクスキュル『生物から見た世界』（1934）・ウィーナー『サイバネティクス』（1948）・グラッセのスティグマジー（1959）・ハッチンス『Cognition in the Wild』（1995）。光る線は、ひとつの動きが次の入力になる順の模式",
+    "考え方のもと：ユクスキュル 1934・ウィーナー 1948・グラッセ 1959・ハッチンス 1995（書名と頁は次の行）。光る線は、ひとつの動きが次の手がかりになる順の模式",
     "計算のかたち（右の線を上へなぞると出る式と流れ）の出典：環境に残した変化が次の行動の入力になる仕組み＝グラッセ「スティグマジー」（Insectes Sociaux 6: 41–80, 1959）、出力が入力へ戻る輪＝ウィーナー『サイバネティクス』（MIT Press, 1948）、道具と人のあいだで分かれて進む認知＝ハッチンス『Cognition in the Wild』（MIT Press, 1995）。式はこれらをもとに mitsulab が関係を書いた模式",
     "葉が落ちる時期：欅は秋に葉を黄から赤茶に変えて落とす落葉樹。画面の落ち方と時間は作品の設定（模式）",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
@@ -56,7 +56,7 @@ W.onFirstInput(() => snd.start());
  if(body){
   fold.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
   fold.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))e.stopPropagation();if(e.key==='Escape'){e.stopPropagation();fold.open=false;fold.querySelector('summary').focus({preventScroll:true});}});
-  body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../21/\">一枚の葉を、言葉で読む（Qualia/literature）→</a><a href=\"../29/\" data-question-local=\"../../19_Qualia_keyaki/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
+  body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../21/\" aria-label=\"一枚の葉を、言葉で読む（Qualia/literature）\">一枚の葉を、言葉で読む（Qualia/literature）→</a><a href=\"../29/\" aria-label=\"一本の木を、もう一度（Qualia/keyaki）\" data-question-local=\"../../19_Qualia_keyaki/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" aria-label=\"人と機械を見比べる（Qualia/translate）\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
   fold.querySelector('summary').setAttribute('aria-label','だれ？ どこから？（主体と典拠）と次の問い');fold.querySelector('summary').textContent='だれ？・どこから？ ＋';
   if(!/\/x\/\d+(\/|$)/.test(location.pathname))body.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);
   body.querySelector('[data-question-return]').setAttribute('aria-label','風景に戻る');body.querySelector('[data-question-return]').addEventListener('click',e=>{
@@ -112,7 +112,7 @@ const ripple = (x, z, amp, col) => { RIP[rI].set(x, z, ripU.uT.value, amp); RCOL
 const tree = W.near.map(t => { const p = t.wood[0].attributes.position; return new V3(p.getX(0), 0, p.getZ(0)); }).filter(v => v.x < 0).sort((a, b) => Math.abs(a.z + 2.5) - Math.abs(b.z + 2.5))[0] || new V3(-5.4, 0, -2.5);
 tree.x += .6;   /* 輪は幹の根もとのそば（縦長でも動かさない） */
 const fungiP = new V3(tree.x + 1.1, 0, tree.z - .9);   // 落ち葉のたまる、欅の根もと
-const tit = CR.makeTit(); PR.awaiCreature(tit, .5); tit.scale.setScalar(.3); tit.position.set(-2.0, 0, 2.0); tit.rotation.y = .7; tit.userData.state = "perch"; PR.bakeRigid(tit); if (MOBILE) PR.flattenSmall(tit, { wings: true }); W.add(tit);
+const tit = CR.makeTit(); PR.awaiCreature(tit, .5); tit.scale.setScalar(.62);   /* 第6周：受けとる鳥が見える大きさに */ tit.position.set(-2.0, 0, 2.0); tit.rotation.y = .7; tit.userData.state = "perch"; PR.bakeRigid(tit); if (MOBILE) PR.flattenSmall(tit, { wings: true }); W.add(tit);
 const tw = PR.tsuwabuki(R, { n: 11, spread: .42 }); tw.position.set(1.7, 0, 1.55); tw.scale.setScalar(1.5); W.add(tw);   /* 11-06：花が見える大きさに（十一月に咲く黄の頭花） */
 const bee = CR.makeBee(); PR.awaiCreature(bee, .5); bee.scale.setScalar(.034); PR.bakeRigid(bee, { dropFur: MOBILE }); if (MOBILE) { const bp = bee.userData.parts; bp.wings.forEach(w => w.hw.visible = false); PR.flattenSmall(bee, { collapse: bp.body, keep: bp.wings.flatMap(w => [w.fw, w.hw]) }); }   /* スマホ：後翅は前翅に重なるので省き、体の部品を一つに */ W.add(bee); const beeHome = tw.userData.heads[0].clone().add(tw.position);
 const person = PR.contourPerson(0xe9d2c2); person.position.set(-1.0, 0, 2.8); person.rotation.y = .25; W.add(person);
@@ -135,13 +135,13 @@ const N = [
     c: "ミツバチがツワブキのまわりを飛ぶ。羽音は、一秒に約 230 回のはばたき。", a: "蜂は、身体の拾えるものだけを手がかりにする。紫外・青・緑の三つで色を分けるとされる。", out: ["羽音", "動き"], in: ["動き", "光"],
     voice: o => snd.hum(230, .7, { ...o, gain: (o.gain ?? .3) * .7 }), act: () => { beeKick = 1; } },
   { id: "hum", sub: "人", col: C.hum, at: () => person.position, h: 1.95, lag: .6, f: snd.note(0), seen: new Set(),
-    c: "人は、足もとのこの葉を踏む。乾いた音が、鳥の入力になる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
+    c: "人は、足もとのこの葉を踏む。乾いた音が、鳥の手がかりになる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
     voice: o => { for (let i = 0; i < 2; i++) { snd.step({ ...o, at: (o.at || 0) + i * .6, gain: (o.gain ?? .3) * 1.3, f: 480 + i * 120 }); snd.wood(snd.note(-5 + i), { ...o, at: (o.at || 0) + i * .6, decay: .4, gain: (o.gain ?? .3) * .2 }); } }, act: () => { steps = 1.2; } },   // 歩行 毎分約 100 歩＝0.6 秒
   { id: "tree", sub: "欅", col: C.tree, at: () => tree, h: 3.2, lag: 2.0, f: snd.note(-5),
-    c: "欅は、短くなる日と冷えを受けとり、この葉を手放す。", a: "木のふるまいは遅く、大きい。季節に応じて葉を落とし、その葉が鳥と人の入力になる。", out: ["落葉"], in: ["気温", "光", "風", "養分"],
+    c: "欅は、短くなる日と冷えを受けとり、この葉を手放す。", a: "木のふるまいは遅く、大きい。季節に応じて葉を落とし、その葉が鳥と人の手がかりになる。", out: ["落葉"], in: ["気温", "光", "風", "養分"],
     voice: o => { snd.wood(snd.note(-10), { ...o, decay: 1.8 }); snd.breath(2.2, { ...o, f0: 1400, f1: 700, gain: (o.gain ?? .3) * .5 }); }, act: () => dropLeaf() },
   { id: "sens", sub: "記録計", col: C.sens, at: () => sens.position, h: 1.85, lag: 1.0, f: snd.note(5),
-    c: "記録計は、この葉が落ちた朝の冷えを、一つの数として記録する。葉そのものは記録されない。", a: "機械の受けとり方も、同じ形で書ける。その記録は、読む人の入力になる。", out: ["記録"], in: ["気温"],
+    c: "記録計は、この葉が落ちた朝の冷えを、一つの数として記録する。葉そのものは記録されない。", a: "機械の受けとり方も、同じ形で書ける。その記録は、読む人の手がかりになる。", out: ["記録"], in: ["気温"],
     voice: o => { snd.click({ ...o, f: 1760 }); snd.bell(snd.note(12), { ...o, gain: (o.gain ?? .3) * .4, decay: .4 }); }, act: () => {} },   // 記録が残るときだけ一音
   { id: "fungi", sub: "菌と細菌", col: C.fungi, at: () => fungiP, h: .35, lag: 3.0, f: snd.note(-8),
     c: "落ち葉の下で、菌と細菌が葉を分けはじめる。", a: "菌と細菌には、葉は食べもの。何か月もかけて分け、養分として土へ還す（ここでは時間を縮めた模式）。", out: ["養分"], in: ["落葉"],
@@ -228,14 +228,14 @@ function receive(n, g, from, ch) {
 function spawnP(n, g) { const p = n.at(); for (let i = 0; i < 8; i++) pl.push({ x: p.x + (R() - .5) * .7, z: p.z + (R() - .5) * .7, y: .05, tx: p.x, tz: p.z, ty: Math.min(n.h, 1.4), u: -i * .06, col: new THREE.Color(n.col), g }); }
 function turnL() {
   Lon = 1; N.forEach(n => { n.glow = 1; }); { const c = new V3(); N.forEach(n => c.add(n.at())); c.multiplyScalar(1 / N.length); ripple(c.x, c.z, 2.4, 0xffffff); aoiRef?.motion?.lookAt?.(c.clone().setY(1)); aoiRef?.motion?.express?.("warm", .8, 3);   /* 山場で碧が場の中心へ顔を向ける */ [0, 4, 7, 9, 12].forEach((k, i) => snd.bell(snd.note(k), { gain: .1, at: i * .08, decay: 2.4, wet: .85 })); }   /* 11-06：全員の受けとり方が人に届いた一瞬、すべての輪が同時に灯り、場の中心から一つの大きな波が広がる */ fx.classList.add("L"); hi("L");
-  W.sayNow("身体は同じまま、人は鳥の声と、羽音と、落ち葉と、朝の冷えの数を受けとった。"); W.say("ほかのものの受けとり方を思い描くことが、薄い層になって、人の記憶と文脈に重なる。"); W.say("同じ参道で、耳と目が少しだけ違う所へ向く。"); W.say("いまの足音は、だれの入力になっただろう。");
+  W.sayNow("身体は同じまま、人は鳥の声と、羽音と、落ち葉と、朝の冷えの数を受けとった。"); W.say("ほかのものの受けとり方を思い描くことが、薄い層になって、人の記憶と文脈に重なる。"); W.say("同じ参道で、耳と目が少しだけ違う所へ向く。"); W.say("いまの足音は、だれの手がかりになっただろう。");
 }
 let humAgain = false, answered = false, aoiRef = null; W.aoi.then(a => aoiRef = a);
 function tapNode(n) {
   GO.end();
   if (n.id === "hum" && Lon) humAgain = true;
   snd.start(); W.sayNow(W.abs > .5 ? n.a : n.c); n.cool = 0; act(n, 1, null);
-  if (!firstCascade) { firstCascade = true; setTimeout(() => { W.say("それぞれが拾える手がかりだけを拾い、自分のしかたで応える。波は渡るたびに細り、やがて静まる。"); W.say("中心に指示する者はいない。環境を介して、互いの入力になっている。"); W.say("地を押すと、日差しや風が場を変える。欅と記録計は、それにだけ応える。"); }, 3800); }
+  if (!firstCascade) { firstCascade = true; setTimeout(() => { W.say("それぞれが拾える手がかりだけを拾い、自分のしかたで応える。波は渡るたびに細り、やがて静まる。"); W.say("中心に指示する者はいない。まわりの環境を通して、互いの手がかりになっている。"); W.say("地を押すと、日差しや風が場を変える。欅と記録計は、それにだけ応える。"); }, 3800); }
 }
 const groundHit = new THREE.Raycaster(), gPlane = new THREE.Plane(new V3(0, 1, 0), 0), nd = new THREE.Vector2();
 W.onTapEmpty(e => {
@@ -264,7 +264,7 @@ W.onAbs(a => {
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
   if (heroFall >= 0) { if (!chainMesh) buildChain(); chainV = Math.min(1, chainV + dt * .8); const v = (1 - ss(.25, .55, a)) * chainV; chainM.opacity = .5 * v; chainMesh.visible = v > .01; chainU = (chainU + dt * (RM ? 0 : .2)) % 1; chainDot.position.copy(chainCurve.getPointAt(chainU)); chainDotM.opacity = v; chainDot.visible = v > .01; }   // compute から：入力の連鎖の光る線
-  { const hv = RM ? 0 : 1; if (heroFall < 0) { camera.getWorldDirection(_fw); HERO0.copy(camera.position).addScaledVector(_fw, .2); HERO0.y -= .015; heroLeaf.scale.setScalar(HS); heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv); heroLeaf.material.emissive?.setRGB(.14, .08, .015); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.scale.setScalar(lerp(HS, 1, Math.min(1, u * 2.5))); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
+  { const hv = RM ? 0 : 1; if (heroFall < 0) { camera.getWorldDirection(_fw); HERO0.copy(camera.position).addScaledVector(_fw, .36); HERO0.y -= .06;   /* 第6周：手の届く距離（目の前 36 cm・少し下）に */ heroLeaf.scale.setScalar(HS); heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv); heroLeaf.material.emissive?.setRGB(.14, .08, .015); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.scale.setScalar(lerp(HS, 1, Math.min(1, u * 2.5))); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
   if (!GO.done) { goId = "tree"; _pv.copy(heroLeaf.position).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < .95 && Math.abs(_pv.y) < .95 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
   { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(.6, 1.3, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .04 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く

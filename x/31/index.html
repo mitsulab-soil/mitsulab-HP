@@ -36,6 +36,14 @@ body.picking #bar button{display:none}
 #pick .kid{display:inline-block;margin:0 0 0 12px;padding:4px 12px;border:1px solid #ffcf86;border-radius:999px;color:#ffe2b0;font-style:normal;font-size:clamp(14px,1.3vw,17px);letter-spacing:.1em;vertical-align:middle}
 #pick button[data-p="omiya"]{border-color:#ffcf86}
 #pick button[data-p="shibuya"] img{object-position:50% 78%;filter:saturate(1.12) contrast(1.08) brightness(.9)}
+/* 2026-11-10 第6周：選ぶ画面の地を夕方の色に（黒い地を狭く）・三町の違いを一字ずつ・川越の画に夕日の温度 */
+#pick{background:radial-gradient(ellipse 120% 80% at 50% 0%,#5a4a5e 0%,#2c3550 42%,#14203a 100%)}
+#pick ul{max-width:1240px}
+#bar{background:#14203a}
+#pick .one{display:inline-grid;place-items:center;width:30px;height:30px;margin-right:10px;border-radius:50%;background:rgba(255,207,134,.18);border:1px solid rgba(255,207,134,.6);color:#ffe2b0;font-style:normal;font-size:16px;letter-spacing:0;vertical-align:middle}
+#pick button{background:rgba(20,32,58,.72)}
+#pick button[data-p="kawagoe"] img{filter:sepia(.22) saturate(1.25) brightness(1.06) contrast(1.04)}
+#pick button[data-p="shibuya"] img{filter:sepia(.12) saturate(1.2) contrast(1.08) brightness(.98)}
 </style>
 </head>
 <body>
@@ -44,9 +52,9 @@ body.picking #bar button{display:none}
 <p id="hint">親子なら大宮・蔵の町並みなら川越・坂と谷なら渋谷</p>
 <div id="wait"><i></i><span id="wt"></span><small>人と生き物の受けとり方が、同じ町に重なる</small></div>
 <section id="pick" hidden aria-label="町を選ぶ"><h1>どの町を歩きますか<small>押すと、その町の目の高さへ</small></h1><ul>
-<li><button data-p="omiya"><img alt="" width="640" height="360" decoding="async"><b>大宮<em class="kid">親子なら、まずここ</em></b><span>氷川参道の杜と鳥居の道</span></button></li>
-<li><button data-p="kawagoe"><img alt="" width="640" height="360" decoding="async"><b>川越</b><span>蔵の町並みと裏路地</span></button></li>
-<li><button data-p="shibuya"><img alt="" width="640" height="360" decoding="async"><b>渋谷</b><span>渋谷川の谷と坂。人の多い所では立ち止まって</span></button></li>
+<li><button data-p="omiya"><img alt="" width="640" height="360" decoding="async"><b><em class="one" aria-hidden="true">杜</em>大宮<em class="kid">親子なら、まずここ</em></b><span>杜：ケヤキの並木と鳥居の道を、鳥や虫の目でも</span></button></li>
+<li><button data-p="kawagoe"><img alt="" width="640" height="360" decoding="async"><b><em class="one" aria-hidden="true">蔵</em>川越</b><span>蔵：黒漆喰の蔵と裏路地に、町の昔が重なる</span></button></li>
+<li><button data-p="shibuya"><img alt="" width="640" height="360" decoding="async"><b><em class="one" aria-hidden="true">谷</em>渋谷</b><span>谷：ビルの下に隠れた川と坂。人の多い所では立ち止まって</span></button></li>
 </ul></section>
 <iframe id="app" title="Qualium" allow="autoplay; fullscreen; xr-spatial-tracking; camera; microphone; geolocation; accelerometer; gyroscope; magnetometer"></iframe>
 <script>

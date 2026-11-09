@@ -69,6 +69,7 @@ body:not(.solo) #note{display:none}
 #bShot.first{border-color:#a8f2f6;box-shadow:0 0 0 0 rgba(168,242,246,.6);animation:gzf 1.8s ease-out infinite}
 @keyframes gzf{0%{box-shadow:0 0 0 0 rgba(168,242,246,.55)}100%{box-shadow:0 0 0 16px rgba(168,242,246,0)}}
 @media (prefers-reduced-motion:reduce){#bShot.first{animation:none;box-shadow:0 0 0 2px #a8f2f6}}
+html,body{background:#a08c84}/* 第6周：3D の前も夕方の参道の色 */
 </style>
 </head>
 <body>
@@ -106,7 +107,7 @@ body:not(.solo) #note{display:none}
 <input type="file" id="pic" accept="image/*" capture="environment" style="display:none">
 <div id="end" role="dialog" aria-label="おわる"><div id="endb"><button class="big" id="bKeep">持ち帰る</button><button class="big" id="bBack">もどる</button><button class="big" id="bWipe">消す</button></div></div>
 <div id="drop">層のファイルを、ここに置く</div>
-<script type="module" src="web/app.js?v=20261110r4"></script>
+<script type="module" src="web/app.js?v=20261110r6"></script>
 <script>document.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest(".big"))document.getElementById("bShot").classList.remove("first")},true)</script>
 </body>
 </html>
