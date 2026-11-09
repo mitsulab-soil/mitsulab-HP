@@ -7,7 +7,7 @@
 import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
-import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261105s";
+import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261110r9";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";

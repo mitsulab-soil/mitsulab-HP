@@ -211,7 +211,7 @@ async function buildBase() {
     const det = texLate("web/tex/pave_c.webp"); det.wrapS = det.wrapT = THREE.RepeatWrapping; det.colorSpace = THREE.SRGBColorSpace; det.anisotropy = MOBILE ? 4 : 8;
     m2.onBeforeCompile = sh => { sh.uniforms.uDet = { value: det };   /* 11-02 採点 P1「右手の地面が水面のよう」：空中写真（約 0.5 m）は目の高さでは流れて見えるので、近くは CC0 の石と土の地肌（pave_c）に置きかえ、遠くだけ写真の色に */
       sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
-      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D uDet; varying vec3 vWp;").replace("#include <map_fragment>", "#include <map_fragment>\n float eg=min(min(vMapUv.x,1.-vMapUv.x),min(vMapUv.y,1.-vMapUv.y)); if(eg<0.) discard;\n { vec3 dc=texture2D(uDet, vWp.xz/2.4).rgb; float lum=dot(diffuseColor.rgb,vec3(.3,.59,.11)); float k=1.-smoothstep(60.,150.,distance(vWp,cameraPosition)); diffuseColor.rgb=mix(diffuseColor.rgb, dc*vec3(.78,.76,.73)*(.75+lum*.6), k*.85); }"); };
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D uDet; varying vec3 vWp;").replace("#include <map_fragment>", "#include <map_fragment>\n float eg=min(min(vMapUv.x,1.-vMapUv.x),min(vMapUv.y,1.-vMapUv.y)); if(eg<0.) discard;\n { vec3 dc=texture2D(uDet, vWp.xz/2.4).rgb; float gB=texture2D(uDet, vWp.xz/13.+.37).g, gF=texture2D(uDet, vWp.xz/.75).r; dc*=(.62+gB*.8)*(.86+gF*.28); dc=mix(dc, dc*vec3(1.08,.98,.84), smoothstep(.45,.7,gB));   /* 11-10 第9周：無地に見えないよう、大きなむら（13 m）と足もとの粒（0.75 m）を重ねる */ float lum=dot(diffuseColor.rgb,vec3(.3,.59,.11)); float k=1.-smoothstep(60.,150.,distance(vWp,cameraPosition)); diffuseColor.rgb=mix(diffuseColor.rgb, dc*vec3(.78,.76,.73)*(.75+lum*.6), k*.85); }"); };
     m2._obc = m2.onBeforeCompile; desat(m2);
     const near = new THREE.Mesh(g2, m2); near.renderOrder = 1; world.add(near); QW.near = near;
   }).catch(() => { }), 2200);
@@ -1099,7 +1099,10 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
   if (/水路|流れ|街道|運ば|行き来|つなが|舟運/.test(tx)) return "x.link";
   return t === "culture" || t === "nature" ? "x.memory" : "x.memory"; }
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
-function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
+const QJA = { "x.umwelt": "ほかの生き物の受けとり方", "x.beyond": "人に届かない感覚", "x.memory": "この場所の記憶", "x.link": "つながり", "x.soil": "足もとの下", "x.scale": "大きさのちがい", sound: "音", touch: "触れる", sight: "見る", taste: "味", smell: "におい" };   /* 11-10 第9周：内部の層の名前（Qualia/x ── memory）は一般の人に見せない */
+function QAN(k) { return QJA[k] || k; }
+function capTagSet(tag, k, s0) { tag.textContent = "● " + QAN(k); tag.title = s0 ? "出典：" + s0 : ""; if (s0) { const b = document.createElement("span"); b.className = "capSrc"; b.textContent = "　＋ 出典"; b.onclick = e => { e.stopPropagation(); b.textContent = b.textContent.startsWith("　＋") ? "　出典：" + s0 : "　＋ 出典"; }; tag.appendChild(b); } }   /* 11-10 第9周：出典は ＋ を押して開く（字幕と重ねない） */
+
 let QA = null, QAP = null;
 function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b16hs6").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t), hidden: () => true }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
@@ -1199,7 +1202,7 @@ function capSet(s) { const e = $("#capText"); if (innerWidth < 640) { s = capLin
 function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; capSet(ch[i]); if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
-  if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); tag.textContent = "● " + QAN(k6) + (s0 ? "　出典：" + s0 : ""); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
+  if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); capTagSet(tag, k6, s0); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
   delete c.dataset.talk;
   c.hidden = false; clearTimeout(capT); }
 function capNote(t) { if (voiceQ || !$("#caption").hidden) return; CAP_LAY = null; caption(t); hideCaption(Math.max(4500, t.length * 140)); }   /* 11-05 本人の決まり「説明書き（枠）は無くす」：注意の一言は、枠の知らせでなく画面下の字幕の一行に */
@@ -1509,7 +1512,7 @@ function tap(x, y) {
   if (QW.mode === "walk" && QW.fliers?.pick(x, y, renderer.domElement)) return;   // 11-02：鳥に触れる
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
   const L = pickObj(x, y) || QA?.pick(x, y);
-  if (L) { QA?.touch(L); { const k = QAK(L); if (k) { toast(k === "x.soil" ? QAN(k) + "：足もとの下（根と菌糸の模式）" : k === "sound" && QW.sunTimes ? (r => `${QAN(k)} ── この場所のきょうの日の出 ${r.rise}・日の入り ${r.set}（計算）`)(QW.sunTimes(35.918, 139.483)) : QAN(k));   /* 10-30：リズム＝その場所の周期（日の出・日の入り）を sound の中に */ if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === L && performance.now() - LASTM.t < 25000 && !(NARR.L === L && NARR.sp) && L.kind !== "touch" && L.kind !== "sound";   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
+  if (L) { QA?.touch(L); { const k = QAK(L); if (k) { toast(k === "x.soil" ? "足もとの下（根と菌糸の模式）" : k === "sound" && QW.sunTimes ? (r => `この場所のきょうの日の出 ${r.rise}・日の入り ${r.set}（計算）`)(QW.sunTimes(35.918, 139.483)) : QAN(k));   /* 10-30：リズム＝その場所の周期（日の出・日の入り）を sound の中に */ if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === L && performance.now() - LASTM.t < 25000 && !(NARR.L === L && NARR.sp) && L.kind !== "touch" && L.kind !== "sound";   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
     LASTM.L = L; LASTM.t = performance.now(); if (again) { L.glyph.getWorldPosition(_v); walkToward(_v); return; } openObj(L); return; }
   const g = goalAt(x, y); if (g) { WALK.goal = g; showGoal(g); }
 }

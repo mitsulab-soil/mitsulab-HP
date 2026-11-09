@@ -45,7 +45,7 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
 @media(max-width:560px){.top{gap:8px;left:12px;top:8px}.top .w{font-size:17px}.top .n{font-size:12px}.hint{top:62px;right:12px}.hint>span{display:none}}
 </style>
 <link rel="modulepreload" href="./vendor/three/build/three.module.js" crossorigin>
-<link rel="modulepreload" href="app.js?v=20261110r8">
+<link rel="modulepreload" href="app.js?v=20261110r9">
 <!-- 2026-11-09 草地と札を先に。碧（VRM）はそのあとで読む -->
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 </head>
@@ -65,6 +65,6 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
 </nav>
 <p class="cr">© mitsulab</p>
 <script>/* 2026-11-09 3D を読む前に押された札・碧に話しかけるを覚えておき、読めたら続ける */window.__early=null;document.querySelector(".dock").addEventListener("click",function(e){var b=e.target.closest("button");if(b)document.body.classList.add("picked");if(b&&!window.__bound){window.__early=b.dataset.w;document.getElementById("cap").textContent="ひらいています…";}});document.getElementById("meetAoi").addEventListener("click",function(){if(!window.__bound)window.__early="meet";});</script>
-<script type="module" src="app.js?v=20261110r8"></script>
+<script type="module" src="app.js?v=20261110r9"></script>
 </body>
 </html>

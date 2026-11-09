@@ -40,10 +40,11 @@ const grassMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness:
   for (let i = 0; i < N; i++) { const a = rnd() * 6.283, r = 1 + Math.sqrt(rnd()) * 7; o.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); if (o.position.z > 2.2 && Math.abs(o.position.x) < 2.5) o.position.z -= 4; o.rotation.set((rnd() - .5) * .4, rnd() * 6.28, (rnd() - .5) * .4); { const sc = .6 + rnd() * .9; o.scale.set(sc * (.7 + rnd() * .6), sc, sc); } o.updateMatrix(); im.setMatrixAt(i, o.matrix); im.setColorAt(i, new THREE.Color().setHSL(.2 + rnd() * .08, .35 + rnd() * .2, .45 + rnd() * .3)); }
   scene.add(im);
 }
+function wob(g, amp, seed) { const a = g.attributes.position; let s = seed; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; const ph = [r() * 6, r() * 6, r() * 6]; for (let i = 0; i < a.count; i++) { const x = a.getX(i), y = a.getY(i), z = a.getZ(i), an = Math.atan2(z, x), k = 1 + amp * (Math.sin(an * 5 + y * 1.7 + ph[0]) * .5 + Math.sin(an * 11 + y * 4.3 + ph[1]) * .3 + Math.sin(y * .9 + ph[2]) * .4); a.setX(i, x * k); a.setZ(i, z * k); } g.computeVertexNormals(); return g; }   /* 11-10 第9周：幹を棒にしない（樹皮の稜と根もとのうねり） */
 // 木（幹と、点の樹冠）
 const tree = new THREE.Group(); tree.position.set(innerWidth < 700 ? -1.7 : -2.6, 0, -2.4); scene.add(tree);
 {
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.11, .24, 3.6, 12), new THREE.MeshStandardMaterial({ map: tex("tex/bark_zelkova.webp", 1), normalMap: tex("tex/bark_zelkova_n.webp", 1, false), roughness: .95 })); trunk.material.map.repeat.set(2, 3); trunk.material.normalMap.repeat.set(2, 3); trunk.position.y = 1.4; tree.add(trunk);
+  const trunk = new THREE.Mesh(wob(new THREE.CylinderGeometry(.11, .26, 3.6, 24, 12), .09, 7), new THREE.MeshStandardMaterial({ map: tex("tex/bark_zelkova.webp", 1), normalMap: tex("tex/bark_zelkova_n.webp", 1, false), roughness: .95 })); trunk.material.map.repeat.set(2, 3); trunk.material.normalMap.repeat.set(2, 3); trunk.position.y = 1.4; tree.add(trunk);
   const P = [], C = []; let s = 3; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 2600; i++) { const u = rnd() * 6.283, v = Math.acos(2 * rnd() - 1), r = Math.cbrt(rnd()) * 1.4; P.push(Math.sin(v) * Math.cos(u) * r * 1.2, 3.3 + Math.cos(v) * r * .8, Math.sin(v) * Math.sin(u) * r * 1.2); const k = .5 + rnd() * .5; C.push(.25 * k, .5 * k, .3 * k); }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(C, 3));
@@ -55,9 +56,9 @@ const tree = new THREE.Group(); tree.position.set(innerWidth < 700 ? -1.7 : -2.6
 }
 
 // 2026-11-10 第5周：中ほどと奥に幹を立て、霧で段をつける（1 回の描画・三角形は約 2 千）
-{ const bm = new THREE.MeshStandardMaterial({ map: tex("tex/bark_zelkova.webp", 1), color: 0x8a8070, roughness: .95 });
-  const N = 34, im = new THREE.InstancedMesh(new THREE.CylinderGeometry(.09, .2, 7, 8, 1, true), bm, N), o = new THREE.Object3D(); let s = 11; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < N; i++) { const a = Math.PI * (1.05 + rnd() * .9), r = 5 + rnd() * 9; o.position.set(Math.cos(a) * r, 3.3, Math.sin(a) * r); const k = .8 + rnd() * .9; o.scale.set(k, 1, k); o.rotation.y = rnd() * 6; o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
+{ const bm = new THREE.MeshStandardMaterial({ map: tex("tex/bark_zelkova.webp", 1), normalMap: tex("tex/bark_zelkova_n.webp", 1, false), color: 0x8a8070, roughness: .95 });
+  const N = 34, im = new THREE.InstancedMesh(wob(new THREE.CylinderGeometry(.09, .2, 7, 12, 6, true), .1, 13), bm, N), o = new THREE.Object3D(); let s = 11; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < N; i++) { const a = Math.PI * (1.05 + rnd() * .9), r = 5 + rnd() * 9; const ky = .7 + rnd() * .6; o.position.set(Math.cos(a) * r, 3.5 * ky - .2, Math.sin(a) * r); const k = .55 + rnd() * 1.2; o.scale.set(k, ky, k); o.rotation.set((rnd() - .5) * .08, rnd() * 6, (rnd() - .5) * .08);   /* 第9周：太さ・高さ・傾きを一本ずつ */ o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
   /* 第7周：幹ごとに樹皮の明るさと色みを変える */{ const cc = new THREE.Color(); for (let i = 0; i < N; i++) { const l = .75 + rnd() * .5; cc.setRGB(l * 1.05, l, l * (.86 + rnd() * .1)); im.setColorAt(i, cc); } }
   scene.add(im); }
 // 遠くの木立の影（霧の向こう）と、まばらな星
@@ -318,7 +319,7 @@ addEventListener("resize", layout); layout();
 // 碧を読む（読み込み画面は碧が立つか 5 秒で消える）
 // 2026-11-09：草地と札を先に見せ、碧は最初のこまのあとで読む
 new Promise(r => setTimeout(r, 400)).then(() => import("./kit/aoi.js")).then(m => m.loadAoi("aoi.vrm", { scene, posture: "natural", quality: innerWidth < 700 ? "mid" : "auto" })).then(a => {
-  aoi = a; window.__aoiModelLoaded = performance.now(); a.place(0, 0, 0); harmonizeAoi(a); try { renderer.compile(scene, camera); } catch { } a.t0 = performance.now();
+  aoi = a; window.__aoiModelLoaded = performance.now(); a.place(innerWidth < 700 ? .22 : .38, 0, 0);   /* 11-10 第9周：碧を半歩横へ（木と花の前を空ける） */ harmonizeAoi(a); try { renderer.compile(scene, camera); } catch { } a.t0 = performance.now();
   setTimeout(() => { if (!mode && sayId === 0) say([{ t: "こんばんは、碧です。光っている花に、触れてみてください。", q: 1 }]); }, 900);
 }).catch(e => { console.warn("碧を読めませんでした", e); window.MLLoader?.done?.(); say([{ t: "下の札から、ひとつ選んでみてください。" }]); });
 
