@@ -36,7 +36,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", tm: { m0: performance.now() } }; QW.THREE = THREE;
-const VER = "20261110r3";
+const VER = "20261110r4";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -415,8 +415,15 @@ function buildFacades() {   // 駅前の建物：外壁＝Poly Haven「White Pla
       vec3 glass = mix(vec3(.08, .1, .12), vec3(.42, .52, .6), smoothstep(.3, .86, c.y) * .55) * (.8 + .2 * fract(sin(dot(floor(fu / vec2(2.4, 3.6)), vec2(12.9, 78.2))) * 43758.5));
       vec3 shop = vec3(.16, .17, .17) + vec3(.5, .46, .38) * step(.25, c.y) * step(c.y, .85) * step(.1, c.x) * step(c.x, .9) * .45;
       float curtain = step(.62, bid); float mull = max(step(.94, c.x), step(.95, c.y)); vec3 cw = mix(glass * 1.1, vec3(.3, .32, .33), mull);
-      diffuseColor.rgb = fl < .5 ? shop : mix(mix(wall, glass, win), cw, curtain); float isWin = fl < .5 ? .6 : max(win, curtain * (1. - mull));   // 柱間ごとの窓のビルと、ガラスのカーテンウォールのビル`).replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, .12, isWin);"); };
-  mat.defines = { USE_UV: "" }; mat.customProgramCacheKey = () => "facade";
+      diffuseColor.rgb = fl < .5 ? shop : mix(mix(wall, glass, win), cw, curtain); float isWin = fl < .5 ? .6 : max(win, curtain * (1. - mull));   // 柱間ごとの窓のビルと、ガラスのカーテンウォールのビル
+      { vec3 Nw = inverseTransformDirection(normalize(vNormal), viewMatrix); float sunF = dot(Nw, normalize(vec3(.55, 0., .35)));   // 11-10 第4周：のっぺりした箱に見せない＝面ごとの日向と陰・足もとの陰・窓の奥行き・床の帯・柱型・雨だれ・壁のむら・ガラスの映り込み
+        float ao = mix(.5, 1., smoothstep(0., 4., fu.y)); float rec = win * (1. - curtain) * (smoothstep(.74, .86, c.y) * .5 + (1. - smoothstep(.12, .2, c.x)) * .3);
+        float slab = (1. - curtain) * (1. - smoothstep(0., .06, c.y)) * step(.5, fl) * .32; float pil = (1. - curtain) * step(.5, fl) * step(.93, fract(fu.x / 7.2)) * .2;
+        float sx = fract(sin(floor(fu.x * 1.9) * 12.9 + bid * 7.1) * 43758.5); float streak = step(.72, sx) * (1. - isWin) * (1. - smoothstep(0., .3, c.y)) * .18;
+        float big = texture2D(tW, fu / 37.).r; float fr = pow(1. - abs(dot(normalize(vViewPosition), normalize(vNormal))), 3.);
+        diffuseColor.rgb *= ao * (1. - rec) * (1. - slab) * (1. - pil) * (1. - streak) * (.86 + .28 * big) * mix(.62, 1.15, smoothstep(-.6, .7, sunF));
+        diffuseColor.rgb += isWin * fr * vec3(.25, .3, .36) * .6; }`).replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, .12, isWin);"); };
+  mat.defines = { USE_UV: "" }; mat.customProgramCacheKey = () => "facade4";
   const mesh = new THREE.Mesh(geo, mat); mesh.name = "facade"; world.add(mesh);
   const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(RP, 3)); rg.setIndex(RI); rg.computeVertexNormals();
   const roof = new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: "#6f706e", roughness: .95, side: THREE.DoubleSide })); roof.name = "roof"; world.add(roof);
@@ -1211,7 +1218,7 @@ function playNext() {
 let capT = 0;
 let capChunkT = 0;
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
-  const max = innerWidth < 640 ? 20 : 70;   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
+  const max = innerWidth < 640 ? 20 : 22;   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
@@ -1422,13 +1429,13 @@ function selectStart(i) { START.sel = i; /* 印の選択（札と 2 回目で歩
   START.pins.forEach((p, k) => { const on = k === i; p.ring.material.color.set(on ? PICK : "#7fe3f7"); p.ring.material.opacity = on ? 1 : .4; p.ring.scale.setScalar(on ? 1.8 : .8); p.beam.material.color.set(on ? PICK : "#7fe3f7"); p.beam.material.opacity = on ? .9 : .18; p.beam.scale.set(on ? 1.8 : 1, 1, on ? 1.8 : 1); });   // 選んでいる所は濃く、ほかは薄く
   setTimeout(() => { const box = $("#starts"), bb = box?.querySelectorAll(".stBtn")[i]; if (bb && START.sel === i) { box.scrollLeft = Math.max(0, bb.offsetLeft - box.offsetLeft - 8); syncStMeter(); } }, 400);   // 選んだ場所のボタンを列の中に見せる
   const a = stAt(C.starts[i]); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
-function descendTo(i, at) {   // at＝現在地（GPS）の位置
+function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   const s = C.starts[i], xz = !at && s.x != null, d = xz ? 0 : Math.min(at ? at.d : s.d, G.lineD[G.lineD.length - 1] - 3), a = at ? { x: at.x, z: at.z } : xz ? stAt(s) : atD(d), y = groundY(a.x, a.z) + EYE;
   const wait = AREAS.ensureAt(a.x, a.z);   // 広げたエリアの中なら、そのエリアの道と建物を読みながら降りる
   hideSkyUI(); exitSight(true); hideFlyUI(); setMode("descend"); hidePanel(); stopVoice();   // 前の場所の語りを、降りた先へ持ちこまない
   CAM.pos.set(a.x, y, a.z); CAM.yaw = xz ? stYaw(s) : /菓子屋/.test(s.name) ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = -.04;
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
-  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, 2.6, () => wait.then(() => { setMode("walk"); showWalkUI(); aoiArrive(); }));
+  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => wait.then(() => { setMode("walk"); showWalkUI(); aoiArrive(); }));
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
   const n = nearestOnLine(p.x, p.z); if (n.dist <= 14) { solids(p); return; }
@@ -2044,6 +2051,6 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
     setTimeout(() => { loadAoi(); fetch("web/app/lip.json?v=" + VER).then(r => r.json()).then(j => { LIP = j; }).catch(() => { }); }, 0);
-    const s0 = Q.get("start"); if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
+    const s0 = Q.get("start") ?? (Q.has("map") ? null : String(C.starts.findIndex(s => s.name === "渋谷川・稲荷橋")));   /* 11-10 第4周：最初から目の高さへ（地図は「ほかの場所」で開く・?map=1 で地図から） */ if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0, null, 1.1); }
   } catch (e) { console.error(e); status("読み込めませんでした。ページを開きなおしてください。"); }
 })();

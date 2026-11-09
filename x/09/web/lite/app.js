@@ -30,7 +30,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261107cg2";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261110r4";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -1811,7 +1811,7 @@ function playNext() {
 let capT = 0;
 let capChunkT = 0;
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
-  const max = innerWidth < 640 ? 20 : 70;   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
+  const max = innerWidth < 640 ? 20 : 22;   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); } return o2;   // 改行だけの区切りを出さない・短い切れ端はつなぐ
@@ -2901,7 +2901,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     loadLate(); const aoiAfterRoad = () => loadAoi();   /* 11-08：モデルはHTMLで先読み済み。道路取得完了を待たず、姿の準備を重ねる */
     setTimeout(() => { aoiAfterRoad(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 60);
     setTimeout(initAreas, 700);   // 7 つのエリアの輪郭（2 KB）。中身は近づいたときに読む   // 2026-10-23：碧を道・木・構造物と同時に読みはじめる（前は 0.4 秒あと）
-    const s0 = Q.get("start"); if (s0 != null && D.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
+    const s0 = Q.get("start") ?? (Q.has("map") ? null : String(D.starts.findIndex(s => s.name === "二の鳥居")));   /* 11-10 第4周：最初から目の高さ（二の鳥居）へ。地図は「ほかの場所」で開く（?map=1 で地図から） */ if (s0 != null && D.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
     if (Q.get("layer")) setTimeout(() => wearLayer(Q.get("layer")), 200);
     if (Q.get("sight")) setTimeout(() => QW.sight(Q.get("sight")), 300);
   } catch (e) {
