@@ -9,7 +9,7 @@ const cv = document.getElementById("c");
 const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: "high-performance" });
 renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 700 ? 1.5 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.18;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x253834);
 scene.fog = new THREE.FogExp2(0x253834, .075);
@@ -86,6 +86,10 @@ const flowers = new THREE.Group(); scene.add(flowers);
   const ctr = new THREE.Mesh(new THREE.SphereGeometry(.022, 12, 8), new THREE.MeshStandardMaterial({ color: 0x7a4a12, roughness: 1 })); ctr.scale.z = .5; ctr.position.z = .002; head.add(ctr);
   flowers.add(f);
 });
+
+// 2026-11-10 第4周：場の中の物に触れて選ぶ。手前の花を一つ、淡く光らせて誘う（押すと「鳥の目」）
+const invite = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(232,214,255,.95)"); gr.addColorStop(.35, "rgba(201,171,224,.45)"); gr.addColorStop(1, "rgba(201,171,224,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, opacity: .9 })); sp.position.set(.65, .4, 1.25); sp.scale.setScalar(.34); scene.add(sp); return sp; })();
 
 // 札（3D の小さな字）
 function label(text, color = "#c3cce0") {
@@ -280,6 +284,9 @@ cv.addEventListener("pointermove", e => { if (down && e.buttons) camYawT = THREE
 cv.addEventListener("pointerup", e => {
   const moved = down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8; down = null; if (moved) return;
   if (mode === "yori" && yo && yo.pick(e.clientX, e.clientY, cv)) return;
+  { const r = cv.getBoundingClientRect(); v2.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(v2, camera);
+    const pr = invite.position.clone().project(camera), near = Math.hypot((pr.x - v2.x) * r.width / 2, (pr.y - v2.y) * r.height / 2) < 46;
+    if (mode !== "uv" && (near || ray.intersectObject(flowers, true).length)) { setMode("uv"); return; } }
   if (!aoi || !aoi.root.visible) return;
   const r = cv.getBoundingClientRect(); v2.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(v2, camera);
   if (ray.intersectObject(aoi.root, true).length) { introduceAoi(); }
@@ -297,13 +304,13 @@ addEventListener("resize", layout); layout();
 // 2026-11-09：草地と札を先に見せ、碧は最初のこまのあとで読む
 new Promise(r => setTimeout(r, 400)).then(() => import("./kit/aoi.js")).then(m => m.loadAoi("aoi.vrm", { scene, posture: "natural", quality: innerWidth < 700 ? "mid" : "auto" })).then(a => {
   aoi = a; window.__aoiModelLoaded = performance.now(); a.place(0, 0, 0); harmonizeAoi(a); try { renderer.compile(scene, camera); } catch { } a.t0 = performance.now();
-  setTimeout(() => { if (!mode && sayId === 0) say([{ t: "こんばんは、碧です。下の札から、ひとつ選んでみてください。", q: 1 }]); }, 900);
+  setTimeout(() => { if (!mode && sayId === 0) say([{ t: "こんばんは、碧です。光っている花に、触れてみてください。", q: 1 }]); }, 900);
 }).catch(e => { console.warn("碧を読めませんでした", e); window.MLLoader?.done?.(); say([{ t: "下の札から、ひとつ選んでみてください。" }]); });
 
 // Qualium の札：庭から遠くの町へ続く、光の粒の道
 const way = (() => { const c = new THREE.CatmullRomCurve3([[.5, 1.4], [.9, -.4], [.6, -3], [1.3, -6.5], [.7, -11], [1.6, -18]].map(([x, z]) => new THREE.Vector3(x, .05, z))); const N = 700, P = new Float32Array(N * 3); for (let i = 0; i < N; i++) { const q = c.getPoint(i / N); P.set([q.x + (Math.random() - .5) * .25, .12 + Math.random() * .25, q.z + (Math.random() - .5) * .25], i * 3); } const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(P, 3)); const m = new THREE.PointsMaterial({ color: 0xa8f2f6, size: .05, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }); const pts = new THREE.Points(g, m); pts.visible = false; scene.add(pts); return { pts, m, c }; })();
 // 世界の色（札ごと）
-const TINT = { none: [0x253834, 0xc4d9e2, 1.8], uv: [0x0b0618, 0xc6a8f0, 1.7], bat: [0x010309, 0x6f86b0, .8], soil: [0x060504, 0xc9a77a, 1.2], road: [0x0d0904, 0xe8c48a, 1.3], yori: [0x03080e, 0xa8f2f6, 1.6] };
+const TINT = { none: [0x31483f, 0xd2e4ea, 2.3], uv: [0x0b0618, 0xc6a8f0, 1.7], bat: [0x010309, 0x6f86b0, .8], soil: [0x060504, 0xc9a77a, 1.2], road: [0x0d0904, 0xe8c48a, 1.3], yori: [0x03080e, 0xa8f2f6, 1.6] };
 const hemi = scene.children.find(o => o.isHemisphereLight), cA = new THREE.Color(), cB = new THREE.Color();
 let glanceT = 4;
 // 毎こま
@@ -317,6 +324,7 @@ function frame() {
   if (aoi && !RM && (glanceT -= dt) < 0) { glanceT = 5 + Math.random() * 4; const W = mode && WORLDS[mode].target; const p = W ? W.clone().add(new THREE.Vector3((Math.random() - .5) * .8, Math.random() * .3, 0)) : new THREE.Vector3((Math.random() - .5) * 4, .2 + Math.random() * 1.2, 1.5 + Math.random() * 2); aoi.motion.lookAt(p); setTimeout(() => aoi?.motion.lookAt(null), 1400 + Math.random() * 900); }
   if (aoi && !aoi.shown && aoi.t0 && (clothFade.length && clothFade.every(([s]) => s.opacity >= .98) || performance.now() - aoi.t0 > 2200)) aoi.shown = true;   /* 透けて現れる途中は、暗い背景に衣が黒く透けて見える→透けが終わってから出す */
   if (aoi) aoi.root.visible = fadeT.yori < .5 && !!aoi.shown;   /* 11-10 第3周：375 の初回に衣が黒く見えた＝材質を組み終えるまで出さない */
+  invite.visible = !mode && fadeT.yori < .5; if (invite.visible) { const k = RM ? 1 : .75 + .25 * Math.sin(t * 2.2); invite.material.opacity = k; invite.scale.setScalar(.5 + (RM ? 0 : .08 * Math.sin(t * 2.2))); }
   { const idle = mode ? 0 : (RM ? .14 : .1 + .07 * Math.sin(t * .6)); frame.idle = idle; if (idle) { if (!RM && (frame.hintT = (frame.hintT ?? 2.5) - dt) < 0) { frame.hintT = 3.8; ping(new THREE.Vector3(-1.6, 2.3, -2.6), 0x8fb6dc); } } }   /* 11-10 第3周：札を押す前から、層の気配（昔の道の淡い線・空の輪）を背景に */
   if (yo) { for (const it of yo.items) { it.root.visible = fadeT.yori >= .5; it.root.scale.setScalar(.55 * Math.min(1, Math.max(.01, fadeT.yori * 2 - 1))); } yo.update(dt); }
   way.pts.visible = false; way.m.opacity = fadeT.yori * (RM ? .8 : .6 + .25 * Math.sin(t * 1.5)); way.m.size = .11 + .02 * Math.sin(t * 2);

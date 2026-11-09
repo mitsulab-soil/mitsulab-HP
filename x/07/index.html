@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="style.css?v=20261109q">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 <!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
-<link rel="modulepreload" href="js/app.js?v=20261110">
+<link rel="modulepreload" href="js/app.js?v=20261110b">
 <link rel="modulepreload" href="vendor/three.module.js">
 <link rel="modulepreload" href="vendor/OrbitControls.js">
 <link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
@@ -38,6 +38,7 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 .brand .ml-kicker{display:none}.brand .ml-title{font:600 16px/1 var(--mu-serif);letter-spacing:.12em;color:#fff;text-shadow:var(--mu-shadow)}
 .ml-btn{border-radius:var(--mu-r);font:600 13.5px/1 var(--mu-serif);letter-spacing:.1em;min-height:var(--mu-hit);background:var(--mu-panel);border:1px solid var(--mu-line);color:var(--mu-ink);backdrop-filter:var(--mu-blur);-webkit-backdrop-filter:var(--mu-blur);transition:border-color var(--mu-t) var(--mu-ease),color var(--mu-t) var(--mu-ease)}.ml-btn:hover{border-color:var(--mu-line-on)}.ml-btn--primary{border-color:var(--mu-aoi);color:var(--mu-aoi-2)}#say{font-family:var(--mu-serif);letter-spacing:.04em;color:var(--mu-ink);text-shadow:0 0 2px rgba(3,6,15,.95),0 1px 10px rgba(3,6,15,.85);background:none!important;border:0!important;box-shadow:none!important;word-break:auto-phrase;text-wrap:balance}
 @media (max-width:420px){.brand .ml-title{font-size:13.5px;letter-spacing:.06em}}
+.brand{display:flex;align-items:center;gap:6px}.brand .back{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-12px;color:#fff;text-decoration:none;font:400 20px/1 var(--mu-serif);text-shadow:var(--mu-shadow);border-radius:var(--mu-r)}.brand .back:hover{color:var(--mu-aoi-2)}.brand .back:focus-visible{outline:2px solid var(--mu-aoi);outline-offset:-2px}
 </style>
 </head>
 <body class="ml-root">
@@ -50,6 +51,7 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 
 <header class="top">
   <div class="brand">
+    <a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のトップへ戻る">←</a>
     <span class="ml-kicker">mitsulab</span>
     <h1 class="ml-title">Qualia/sound</h1>
   </div>
@@ -190,7 +192,7 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 <script src="data/sounds.js"></script>
 <script src="data/hidden.js?v=20261110"></script>
 <script src="data/gain.js"></script>
-<script type="module" src="js/app.js?v=20261110"></script>
+<script type="module" src="js/app.js?v=20261110b"></script>
 <script>/* 2026-11-09 第3周：画面の字とボタンが組めたらすぐ読み込み画面を下ろす（3D の部品の到着を待たない）。早く押した「偶然の一行」は覚えておき、部品が来たら鳴らす */window.MLLoader&&MLLoader.done();document.addEventListener("click",function(e){if(!window.__qsReady&&e.target.closest&&e.target.closest("#bRand2"))window.__qsPend=1;},true);</script>
 </body>
 </html>
