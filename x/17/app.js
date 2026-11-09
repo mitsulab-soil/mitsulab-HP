@@ -94,8 +94,8 @@ const flowers = new THREE.Group(); scene.add(flowers);
 flowers.children[7].scale.setScalar(1.6);   // 第5周：光る花を大きく（子どもが見つけやすく）
 
 // 2026-11-10 第4周：場の中の物に触れて選ぶ。手前の花を一つ、淡く光らせて誘う（押すと「鳥の目」）
-const invite = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(232,214,255,.95)"); gr.addColorStop(.35, "rgba(201,171,224,.45)"); gr.addColorStop(1, "rgba(201,171,224,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, opacity: .9 })); sp.position.set(.65, .61, 1.25); sp.scale.setScalar(.5); scene.add(sp); return sp; })();
+const invite = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(240,232,250,.8)"); gr.addColorStop(.3, "rgba(206,190,226,.32)"); gr.addColorStop(1, "rgba(206,190,226,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: true, blending: THREE.AdditiveBlending, opacity: .45 })); sp.position.set(.65, .61, 1.25); sp.scale.setScalar(.5); scene.add(sp); return sp; })();
 
 // 札（3D の小さな字）
 function label(text, color = "#c3cce0") {
@@ -330,7 +330,7 @@ function frame() {
   if (aoi && !RM && (glanceT -= dt) < 0) { glanceT = 5 + Math.random() * 4; const W = mode && WORLDS[mode].target; const p = W ? W.clone().add(new THREE.Vector3((Math.random() - .5) * .8, Math.random() * .3, 0)) : new THREE.Vector3((Math.random() - .5) * 4, .2 + Math.random() * 1.2, 1.5 + Math.random() * 2); aoi.motion.lookAt(p); setTimeout(() => aoi?.motion.lookAt(null), 1400 + Math.random() * 900); }
   if (aoi && !aoi.shown && aoi.t0 && (clothFade.length && clothFade.every(([s]) => s.opacity >= .98) || performance.now() - aoi.t0 > 1100)) aoi.shown = true;   /* 透けて現れる途中は、暗い背景に衣が黒く透けて見える→透けが終わってから出す */
   if (aoi) aoi.root.visible = fadeT.yori < .5 && !!aoi.shown;   /* 11-10 第3周：375 の初回に衣が黒く見えた＝材質を組み終えるまで出さない */
-  invite.visible = !mode && fadeT.yori < .5; if (invite.visible) { const k = RM ? 1 : .75 + .25 * Math.sin(t * 2.2); invite.material.opacity = k; invite.scale.setScalar(.78 + (RM ? 0 : .1 * Math.sin(t * 2.2))); }
+  invite.visible = !mode && fadeT.yori < .5; if (invite.visible) { const k = RM ? .5 : .38 + .14 * Math.sin(t * 1.3); invite.material.opacity = k; invite.scale.setScalar(.34 + (RM ? 0 : .04 * Math.sin(t * 1.3)));   /* 2026-11-10 第6周：光る花を風景になじませる（小さく・淡く・ゆっくり） */ }
   { const idle = mode ? 0 : (RM ? .14 : .1 + .07 * Math.sin(t * .6)); frame.idle = idle; if (idle) { if (!RM && (frame.hintT = (frame.hintT ?? 2.5) - dt) < 0) { frame.hintT = 3.8; /* 第5周：空の大きな輪は意味が伝わらないので出さない */ } } }   /* 11-10 第3周：札を押す前から、層の気配（昔の道の淡い線・空の輪）を背景に */
   if (yo) { for (const it of yo.items) { it.root.visible = fadeT.yori >= .5; it.root.scale.setScalar(.55 * Math.min(1, Math.max(.01, fadeT.yori * 2 - 1))); } yo.update(dt); }
   way.pts.visible = false; way.m.opacity = fadeT.yori * (RM ? .8 : .6 + .25 * Math.sin(t * 1.5)); way.m.size = .11 + .02 * Math.sin(t * 2);
