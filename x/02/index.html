@@ -228,14 +228,14 @@ body{word-break:auto-phrase;line-break:strict}
 /* スマホ：飛ぶ体の「上昇・下降」が右の端で切れていた → 二つを細く */
 @media(max-width:700px){#flightControls button{min-width:32px!important;width:32px;padding:2px!important;font-size:17px!important}#flightControls small{font-size:12px}#bodyControls{gap:7px}}
 </style>
-<link rel="preload" href="assets/poster_pc.webp" as="image" media="(min-width:701px)" fetchpriority="high"><link rel="preload" href="assets/poster_sp.webp" as="image" media="(max-width:700px)" fetchpriority="high">
+<link rel="preload" href="assets/poster_pc.webp" as="image" media="(min-width:701px)" fetchpriority="high"><link rel="preload" href="assets/poster_sp.webp?v=r6" as="image" media="(max-width:700px)" fetchpriority="high">
 <script type="importmap">
 {"imports":{"three":"./vendor/three/build/three.module.js",
 "three/addons/":"./vendor/three/examples/jsm/",
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261110r4">
+<link rel="modulepreload" href="umwelt.js?v=20261110r6">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -357,7 +357,7 @@ body{word-break:auto-phrase;line-break:strict}
 
 <style id="r4boot">/* 2026-11-10 第4周：覆いをやめる。森の静止画は押せる UI の下に敷き、3D が組めたら静かに消す */
 #poster{position:fixed;inset:0;z-index:3;background:#0d1410 url(assets/poster_pc.webp) center/cover no-repeat;pointer-events:none;transition:opacity .6s}
-@media(max-width:700px){#poster{background-image:url(assets/poster_sp.webp)}}
+@media(max-width:700px){#poster{background-image:url(assets/poster_sp.webp?v=r6)}}
 #poster.gone{opacity:0}
 #boot{inset:auto 0 0 0!important;background:none!important;pointer-events:none;z-index:7!important}
 #boot #prog,#boot #bootMsg{display:none}#boot.fail #bootMsg{display:block}#boot button{pointer-events:auto}
@@ -367,7 +367,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offse
 </style>
 <style id="r3poster">/* 2026-11-09 第3周：静止画を先に出し、3D はその裏で組む。← はすぐ押せる */
 #boot{background:#0d1410 url(assets/poster_pc.webp) center/cover no-repeat}
-@media(max-width:700px){#boot{background-image:url(assets/poster_sp.webp)}}
+@media(max-width:700px){#boot{background-image:url(assets/poster_sp.webp?v=r6)}}
 #boot>div{align-self:end;margin-bottom:max(28px,env(safe-area-inset-bottom));text-shadow:0 1px 8px rgba(0,0,0,.9)}
 #boot b{display:none}#boot p{color:#eef3ea}
 body:not(.booted) #top{z-index:60}body:not(.booted) #top .topR{visibility:hidden}
@@ -411,7 +411,7 @@ body.r5go #r5intro{display:none}
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var bo=document.getElementById('boot');if(bo)bo.classList.add('fail');var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r4';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r6';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed){document.getElementById('boot').classList.add('fail');}if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <script>/* 第3周：静止画が出たら読み込み画面を下ろす。3D が組めたら body.booted */

@@ -26,7 +26,7 @@ export function attachYoru(q) {
   const forced = /[?&]toki=1/.test(location.search) ? 1 : null;   // 行事の確かめ（?toki=1）は夜として見る
   setInterval(() => {
     const r = q.renderer; if (!r) return;
-    const el = q.sunAE?.[1] ?? 30, target = forced ?? nightAmount(el);
+    const el = q.sunAE?.[1] ?? 30, target = forced ?? Math.min(.3, nightAmount(el));   /* 11-10 第6周：夜も参道が見える暮れの明るさで止める（深い夜は ?toki=1 の行事のときだけ） */
     if (!S.init) { S.init = 1; S.k = target; }   /* 11-10 第5周：はじめから今の時刻の明るさへ一度の淡いフェードで（歩きはじめた瞬間に暗転しない） */
     S.k += (target - S.k) * .25;   // 急に変えない
     const on = q.mode !== "sky", k = on ? S.k : 0;   /* 11-10 第5周：起動・降りる間も同じ暗さ（地図だけ明るいまま） */
