@@ -1,35 +1,6 @@
 <!doctype html>
-<html lang="ja"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Qualia/compute ── 計算機の思想</title>
-<meta name="description" content="鳥・虫・人・木・機械の受けとり方が、環境を介して互いの入力になる流れ。抽象の極から、朝の参道へ降りる。mitsulab">
-<meta name="robots" content="noai,noimageai"><meta name="tdm-reservation" content="1">
-<meta name="theme-color" content="#cfd5d2">
-<style>html,body{margin:0;height:100%;background:#cfd5d2}#aw-ld{position:fixed;inset:0;background:#cfd5d2}</style>
-<script>window.AW_PATHS={kit:"./kit/",tex:"./tex/",aoi:"../../img/hero/aoi.vrm",keyaki:"./kit/keyaki.js",sprig:"./tex/leaf_sprig.webp"};for(const k in AW_PATHS)AW_PATHS[k]=new URL(AW_PATHS[k],location.href).href;</script>
-<script type="importmap">{"imports":{"three":"../../vendor/three/build/three.module.js","three/addons/":"../../vendor/three/examples/jsm/","@pixiv/three-vrm":"../../vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<style id="question-route-style">.q-route{margin:12px 0;padding:12px 0;border-top:1px solid currentColor;font:13px/1.8 Inter,"Hiragino Sans",sans-serif;text-align:left}.q-route h2,.q-route h3{margin:0 0 8px;font-size:14px;font-weight:500;line-height:1.5}.q-route p{margin:4px 0 8px}.q-route a,.q-route button{min-height:44px;display:flex;align-items:center;color:inherit;background:none;border:0;border-bottom:1px solid #9ed9e64d;padding:4px 0;font:inherit;text-align:left;cursor:pointer;text-decoration:none;width:100%;box-sizing:border-box}.q-route a:focus-visible,.q-route button:focus-visible{outline:2px solid #b9f5ff;outline-offset:3px}.q-route small{display:block;opacity:.8}</style><style id="zoom-layout-20261107">
-/* Use content height for the fixed UI; keep the stage, words and camera unchanged. */
-#aw-ui{display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:auto auto minmax(24px,1fr) auto auto;gap:8px;box-sizing:border-box;padding:14px 16px 8px;overflow-y:auto;touch-action:pan-y}
-#aw-ui .aw-mark{grid-area:1/1;position:relative;left:auto;top:auto;padding:0;margin:0;min-width:0;overflow-wrap:anywhere}
-#aw-ui .aw-snd{grid-area:1/2;position:relative;right:auto;top:auto;align-self:start}
-#aw-ui .fx{grid-area:2/1;position:relative;left:auto;top:auto;min-width:0;max-width:100%;max-height:30vh;overflow:auto;overflow-wrap:anywhere;touch-action:pan-y}
-#aw-ui .fx summary{height:auto;min-height:44px}
-#aw-ui .aw-axis{grid-area:2/2/4/3;position:relative;right:auto;top:auto;transform:none;align-self:center;min-height:100px;max-height:100%;height:38vh}
-#aw-ui .aw-cap{grid-area:4/1/5/3;position:relative;left:auto;bottom:auto;transform:none;box-sizing:border-box;width:100%;padding:8px 0;max-height:30vh;overflow:auto;pointer-events:auto;touch-action:pan-y}
-#aw-ui .aw-cap span{max-width:100%;overflow-wrap:anywhere}
-#aw-ui .aw-fold{grid-area:5/1/6/3;justify-self:end;position:relative;right:auto;bottom:auto;max-width:none;align-self:end;z-index:5}
-#aw-ui .aw-fold>div{position:absolute;right:0;bottom:48px;box-sizing:border-box;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 100px);overflow:auto;overflow-wrap:anywhere;touch-action:pan-y}
-</style></head><body>
-<div id="aw-ld"></div>
-<script src="loader_qualium.js" data-max="2500"></script>
-<a class="qx-home" href="/" aria-label="mitsulab のホームへ戻る">←</a>
-<div id="qx-intro" aria-hidden="true"><span>鳥がひと跳びしたら、つぎにだれが動く？</span></div>
-<style>.qx-home{position:fixed;left:max(6px,env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));z-index:2147483001;width:44px;height:44px;display:grid;place-items:center;color:#eef5fb;text-decoration:none;font:400 18px/1 "Hiragino Sans",sans-serif;text-shadow:0 0 3px #000,0 0 10px rgba(0,0,0,.7)}.qx-home:focus-visible{outline:2px solid #9bdcf0;outline-offset:3px}
-#qx-intro{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:2147483001;width:min(560px,calc(100vw - 48px));text-align:center;color:#f2f5f8;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;pointer-events:none;transition:opacity 1.2s ease;text-shadow:0 0 3px #000,0 0 14px rgba(0,0,0,.8)}
-#qx-intro b{display:block;font:italic 400 22px/1.3 "Cormorant Garamond",Georgia,serif;letter-spacing:.03em}#qx-intro small{display:block;font-size:12px;letter-spacing:.3em;margin:4px 0 14px;opacity:.85}#qx-intro span{display:block;font-size:17px;line-height:1.7;color:#bfe3ec}#qx-intro.out{opacity:0}
-#qx-fail{position:fixed;inset:auto 0 30vh 0;z-index:2147483002;text-align:center;font:15px/1.8 "Hiragino Sans",sans-serif;color:#f2f5f8}#qx-fail button{min-height:44px;padding:8px 18px;margin-top:8px;border-radius:999px;border:1px solid #cfe;background:#0b1520;color:#eef5fb;font:inherit;cursor:pointer}</style>
-<script>/* 2026-11-09 読み込みに失敗しても止まらない：一度だけ読み直し、それでも駄目なら押して読み直せる */(function(){var K="qx-retry:"+location.pathname,shown=0;function fail(){if(window.__appMK&&window.__appMK.stage)return;try{if(!sessionStorage.getItem(K)){sessionStorage.setItem(K,"1");setTimeout(function(){location.reload()},500);return}}catch(e){}if(shown++)return;window.MLLoader&&MLLoader.done&&MLLoader.done(true);var d=document.createElement("div");d.id="qx-fail";d.innerHTML='通信が混み合っていて、風景を読みこめませんでした。<br><button type="button">もう一度ひらく</button>';d.querySelector("button").onclick=function(){location.reload()};document.body.appendChild(d)}addEventListener("error",function(e){if(e.target&&e.target.tagName==="SCRIPT"||/import|module|fetch/i.test(e.message||""))fail()},true);addEventListener("unhandledrejection",function(e){if(/import|module|fetch/i.test(String(e.reason&&e.reason.message||e.reason)))fail()});setTimeout(function(){if(!(window.__appMK&&window.__appMK.stage))fail()},15000);addEventListener("pageshow",function(){});})();</script>
-<style id="r3ttl">/* 2026-11-09 第3周：作品名は左上だけ・英字は出さない */.aw-mark i{display:none!important}</style><link rel="modulepreload" href="./kit/awai.js"><link rel="modulepreload" href="./kit/awai_props.js"><link rel="modulepreload" href="./kit/creatures_sight.js"><link rel="modulepreload" href="./kit/keyaki.js"><link rel="modulepreload" href="../../vendor/three/build/three.module.js">
-<script type="module" src="app.js?v=20261109r3"></script>
-</body></html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qualia/leaf へ</title><meta name="robots" content="noindex,noai,noimageai"><meta http-equiv="refresh" content="0; url=../27/"><link rel="canonical" href="https://mitsulab.jp/x/27/">
+<!-- © mitsulab. All rights reserved. 2026-11-10 この作品は Qualia/leaf（x/27）にまとめました。 -->
+<style>html,body{margin:0;height:100%;background:#0a1424;color:#e8f1f6}body{display:flex;align-items:center;justify-content:center;padding:0 16px;box-sizing:border-box;font:16px/1.8 "Hiragino Mincho ProN","Yu Mincho",serif;text-align:center}a{color:#bfe3ec;display:inline-block;min-height:44px;line-height:44px}</style>
+</head><body><p>この作品は <a href="../27/">Qualia/leaf</a> にまとめました。</p><script>location.replace("../27/"+location.search+location.hash)</script></body></html>

@@ -15,7 +15,7 @@ const V3 = THREE.Vector3;
 const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（葉が落ち、変化が広がる）", css: "#aw-ui .aw-mark{margin-left:40px!important}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { heroFall = 0; tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
 
 const W = await createAwai({
-  title: "Qualia/leaf", sub: "一枚の葉の連なり", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
+  title: "Qualia/leaf", sub: "一枚の葉から始まる入力の連なり", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
   rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 5.0, k), h = lerp(1.55, 1.7, k);   // 11-06 本人「俯瞰でなく主観の体験に」：抽象でも、その場に立つ人の目の高さ（約 1.6 m）のまま。一歩前へ出て、場の波を自分の足もとから受けとる   // 11-06 二版の後：抽象を一歩寄せる（主体が小さく、画面の下が空いていた）
     const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, 0, k), lerp(-1.6, .2, k));
     if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(.1 + Math.sin(y) * 1.2, 1.75, 7.6), q); look.lerp(new V3(.1, .1, .4), q);   /* 縦長も目の高さのまま（真上から見下ろさない） */   /* 11-06 二版の後：主体を画面の中ほどへ下ろし、一歩寄せる（下半分が空いていた） */ }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
@@ -24,6 +24,7 @@ const W = await createAwai({
     "一枚の葉の行き先を、関係の形で書いた模式（測れる量の式ではない）",
     "葉の表には落ちる前から菌や細菌がすみ、落ち葉は数か月から年の単位で分解されて土へ還る。ここでは時間を縮めた模式で、菌の音は実測音ではない合成音",
     "ミツバチの羽ばたき 約 230 回／秒：Altshuler ほか（PNAS 102, 2005）。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
+    "考え方の系譜：ユクスキュル『生物から見た世界』（1934）・ウィーナー『サイバネティクス』（1948）・グラッセのスティグマジー（1959）・ハッチンス『Cognition in the Wild』（1995）。光る線は、ひとつの動きが次の入力になる順の模式",
     "葉が落ちる時期：欅は秋に葉を黄から赤茶に変えて落とす落葉樹。画面の落ち方と時間は作品の設定（模式）",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
@@ -155,6 +156,12 @@ W.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(fgPts), fgM));
 // 同じ一枚の葉が、受けとるものごとに別の出来事になる（文学の思想から）
 
 // ───────── 2026-11-09 第3周：目の前の一枚の葉を主役に（押すと落ち、鳥・人・菌・記録計へ連なる）
+// ───────── 2026-11-10 compute（x/22）から統合：入力の連鎖（落ちる葉 → 鳥の跳び → 枝のゆれ → 人の見上げ → 記録計 → 根もとの菌）。葉に触れたあと、光る線と動く点で
+const chainPts = () => [new V3(tree.x + .4, 3.4, tree.z + .3), tit.position.clone().add(new V3(0, .3, 0)), new V3(tree.x, 2.6, tree.z), person.position.clone().add(new V3(0, 1.5, 0)), sens.position.clone().add(new V3(0, 1.0, 0)), fungiP.clone().add(new V3(0, .15, 0))];
+const chainM = new THREE.MeshBasicMaterial({ color: 0xffe2a8, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+let chainMesh = null, chainCurve = null, chainU = 0, chainV = 0;
+const buildChain = () => { chainCurve = new THREE.CatmullRomCurve3(chainPts(), false, "centripetal"); chainMesh = new THREE.Mesh(new THREE.TubeGeometry(chainCurve, 90, MOBILE ? .016 : .012, 5, false), chainM); W.add(chainMesh); };
+const chainDotM = pointMat(0xfff4d8, MOBILE ? .3 : .22, 1); chainDotM.opacity = 0; const chainDot = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), chainDotM); chainDot.visible = false; W.add(chainDot);
 const heroLeaf = PR.keyakiLeaf(.09); W.add(heroLeaf); const HERO0 = new V3(innerWidth < innerHeight * .8 ? .05 : .16, 1.45, 6.32); heroLeaf.position.copy(HERO0); let heroFall = -1;
 const LEAF = { tit: "シジュウカラには、落ちる葉は動く影。目が向く。", hum: "人には、葉は十一月の色。黄から赤茶へ移る、季節のことば。", fungi: "菌と細菌には、葉は食べもの。落ちる前から、葉の表にすんでいた。" };
 const leafSaid = new Set(); let saidSens = false;
@@ -255,6 +262,7 @@ W.onAbs(a => {
 // ───────── 毎こま
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
+  if (heroFall >= 0) { if (!chainMesh) buildChain(); chainV = Math.min(1, chainV + dt * .8); const v = (1 - ss(.25, .55, a)) * chainV; chainM.opacity = .5 * v; chainMesh.visible = v > .01; chainU = (chainU + dt * (RM ? 0 : .2)) % 1; chainDot.position.copy(chainCurve.getPointAt(chainU)); chainDotM.opacity = v; chainDot.visible = v > .01; }   // compute から：入力の連鎖の光る線
   { const hv = RM ? 0 : 1; if (heroFall < 0) { heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv); heroLeaf.material.emissive?.setRGB(.5, .3, .05); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
   if (!GO.done) { goId = "tree"; _pv.copy(heroLeaf.position).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < .95 && Math.abs(_pv.y) < .95 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
