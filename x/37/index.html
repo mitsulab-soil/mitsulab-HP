@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noai,noimageai">
+<meta name="tdm-reservation" content="1">
+<title>Qualia/time ── 時間の速さ</title>
+<meta name="description" content="氷川参道の目の高さで、時間の速さを 10 のべき乗で切れ目なく変える。速すぎて見えないもの、遅すぎて見えないものを、受けとれる速さに移した模式。">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
+<style>
+:root{--sky:#c9d6dc;--t1:#1f2a2e;--t2:#3d4a4f;--t3:#4f5c60;--aoi:#2f8fa8;--line:rgba(31,42,46,.22);--pane:transparent;--halo:0 0 6px #eef3f1,0 0 12px #eef3f1,0 0 2px #eef3f1}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:linear-gradient(#b9cbd4,#d9e0dc 60%,#a59c86 61%,#8d8470);color:var(--t1);font-family:Inter,"Hiragino Kaku Gothic ProN","Hiragino Sans",sans-serif;-webkit-tap-highlight-color:transparent}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:ns-resize}
+.top{position:fixed;left:16px;top:max(10px,env(safe-area-inset-top));display:flex;align-items:baseline;gap:12px;pointer-events:none}
+.back{text-shadow:var(--halo);pointer-events:auto;color:var(--t2);text-decoration:none;font-size:13px;padding:12px 2px;min-height:44px;display:inline-flex;align-items:center}
+h1{text-shadow:var(--halo);font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;font-weight:400;font-size:17px;letter-spacing:.06em}
+h1 small{font-size:12px;color:var(--t3);margin-left:6px}
+.meter{text-shadow:var(--halo);position:fixed;left:16px;top:calc(max(10px,env(safe-area-inset-top)) + 54px);font:12px/1.55 "JetBrains Mono",ui-monospace,Menlo,monospace;color:var(--t2);pointer-events:none;background:var(--pane);padding:8px 10px;border-radius:2px;max-width:calc(100vw - 92px)}
+.meter .big{font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-size:19px;color:var(--t1);letter-spacing:.02em}
+.meter div:nth-child(2){color:var(--t1);font-size:13px}.meter .ev{font-family:"Hiragino Kaku Gothic ProN",sans-serif;font-size:12.5px;color:var(--t1)}
+.meter .ago{color:var(--t3)}
+.rail{position:fixed;right:10px;top:calc(max(10px,env(safe-area-inset-top)) + 54px);bottom:calc(132px + env(safe-area-inset-bottom));width:52px;touch-action:none;cursor:ns-resize}
+.rail::before{content:"";position:absolute;right:20px;top:0;bottom:0;width:1px;background:var(--t3);opacity:.5}
+.rail i{position:absolute;right:16px;width:9px;height:1px;background:var(--t3);font-style:normal}
+.rail i span{text-shadow:0 0 4px #eef3f1,0 0 2px #eef3f1;color:var(--t1)!important;position:absolute;right:14px;top:-7px;font:600 12px/1 ui-monospace,Menlo,monospace;color:var(--t3);white-space:nowrap}
+.rail b{position:absolute;right:13px;width:15px;height:15px;margin-top:-7px;border-radius:50%;background:var(--aoi);box-shadow:0 0 0 4px rgba(47,143,168,.18)}
+.rail .lab{position:absolute;right:8px;font:11px/1 "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t2)}
+.cap{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));text-align:center;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-size:14.5px;line-height:1.7;color:var(--t1);text-shadow:var(--halo),0 0 18px #eef3f1;font-weight:600;pointer-events:none;max-width:620px;margin:0 auto;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance;transition:opacity .5s}
+.bar{position:fixed;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:8px;padding:0 16px}
+.bar button,.fold summary{font:inherit;font-size:13px;color:var(--t1);text-shadow:var(--halo);background:rgba(255,255,255,.08);backdrop-filter:blur(2px);border:1px solid rgba(31,42,46,.45);border-radius:2px;min-height:44px;padding:0 14px;cursor:pointer;white-space:nowrap}
+.bar button:focus-visible,.fold summary:focus-visible,.back:focus-visible{outline:1px solid var(--aoi);outline-offset:2px}
+.fold{position:fixed;right:70px;top:max(10px,env(safe-area-inset-top));max-width:min(440px,calc(100vw - 32px))}
+.fold summary{list-style:none;display:inline-flex;align-items:center;float:right}
+.fold summary::-webkit-details-marker{display:none}
+.fold[open]{left:16px;right:16px;max-width:none}
+.fold .in{clear:both;margin-top:6px;background:rgba(240,244,242,.96);border:1px solid var(--line);border-radius:2px;padding:14px 16px;font-size:12.5px;line-height:1.75;color:var(--t2);max-height:60vh;overflow:auto;max-width:560px;margin-left:auto}
+.fold .in p+p{margin-top:6px}.fold .in b{font-weight:400;color:var(--t1)}
+.hint{text-shadow:var(--halo);position:fixed;left:calc(50% - 26px);top:40%;transform:translate(-50%,-50%);font-size:13px;color:var(--t1);background:var(--pane);padding:10px 14px;border-radius:2px;pointer-events:none;transition:opacity .8s;white-space:nowrap}
+@media (max-width:420px){h1{font-size:15px}.top{gap:8px}.hint{font-size:12px}h1 small{display:none}.fold summary .w{display:none}.fold{right:16px}.meter{font-size:11px}.meter .big{font-size:17px}.cap{font-size:13.5px}.rail .lab{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="氷川参道の目の高さの3Dの風景。上下にスクロールかドラッグで、時間の速さが変わります。"></canvas>
+<div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/time<small>時間の速さ</small></h1></div>
+<div class="meter" aria-live="polite"><div class="big" id="mH">1 秒で 1 秒</div><div id="mN">10<sup>0</sup> 倍</div><div class="ev" id="mE">いまの 1 秒</div><div class="ago" id="mA"></div></div>
+<div class="rail" id="rail" role="slider" aria-label="時間の速さ" aria-valuemin="-10" aria-valuemax="13" aria-valuenow="0" tabindex="0"><b id="knob"></b></div>
+<details class="fold" id="fold"><summary>＋ 出典<span class="w">と模式</span></summary><div class="in">
+<p>速すぎるもの・遅すぎるものは、そのままでは人に受けとれません。ここでは<b>時間の速さだけを変えて、受けとれる速さに移した模式</b>として見せます。形・数・色は模式で、実測の映像ではありません。</p>
+<p><b>速い方</b>　光が葉の幅 10 cm を渡る＝約 0.3 ナノ秒（光速 約 30 万 km/秒からの計算）／音が 1 mm 進む＝約 3 マイクロ秒（音速 約 340 m/秒。参道の幅 約 20 m なら約 0.06 秒）／神経の信号＝活動電位の一回の持続が約 1 ミリ秒、伝わる速さは毎秒およそ 0.5〜120 m（有髄か無髄かで異なる）（神経科学の教科書の値）／蚊の羽ばたき＝毎秒 メス約 400・オス約 600 回（ネッタイシマカ。Cator et al. 2009, <i>Science</i> 323。参道に多いヒトスジシマカの値ではない）／ミツバチの羽ばたき＝毎秒 約 230 回（Altshuler et al. 2005, <i>PNAS</i> 102）。</p>
+<p><b>遅い方</b>　一日の影の動き（太陽の向きは天文の近似の計算。時刻は太陽時の模式で、標準時との差と均時差は省く）／ケヤキの一年（芽吹きは 4 月ごろ、落葉は 11〜12 月ごろ）・年輪は一年に一つ／参道の樹木は約 40 種・約 650 本、市の天然記念物の古木は令和 4 年 3 月で 11 本、昭和の初めまではスギ並木だった（さいたま市「氷川参道の樹木調査」報告・令和 4 年）。参道の木の植えた年と大きさは模式です。</p>
+<p><b>歴史</b>　見沼代用水の開削＝1728 年（井沢弥惣兵衛）／見沼溜井＝1629 年（伊奈忠治）／氷川神社は『延喜式』神名帳（927 年に撰進）に名神大社として載る／創建は孝昭天皇 3 年と<b>社伝</b>に伝わる（社伝であり、年代は確かめられていない）。</p>
+<p><b>土と地形</b>　土が 1 cm できるのに、最大で千年ほどかかることがある。気候・母材・地形で大きく異なる（FAO 2015「Soil is a non-renewable resource」）／約 6000〜7000 年前の縄文海進で、見沼の低地まで入り江（奥東京湾）が入りこんだ／大宮台地は、海面がいまより高かった約 12〜13 万年前（下末吉期）に浅い海にたまった地層が、のちに陸になり、その上に火山灰の関東ロームが積もってできた（産業技術総合研究所 地質調査総合センターの地質図幅などの説明による）。水の高さと岸の形は模式です。</p>
+<p>遡るのは、大宮台地の地層がたまった下末吉期（約 12〜13 万年前）のあたりまでにとどめています（10⁸·⁶ 倍より遅い方では、その速さで数秒ぶんを繰り返し遡ります）。</p>
+<p class="k">3D：three.js r170（MIT）。質感：CC0（Qualia/sight と同じ写真）。造形と音なしの模式は mitsulab の自作。© mitsulab. All rights reserved.</p>
+</div></details>
+<div class="cap" id="cap">いまの 1 秒。人の目と耳に、ちょうど受けとれる速さ。</div>
+<div class="bar"><button id="bF">▼ 短い時間へ</button><button id="b0">いまへ</button><button id="bS">▲ 長い時間へ</button></div>
+
+<script type="module">
+const $=id=>document.getElementById(id);
+const NMIN=-9.6,NMAX=12.8;
+let n=0,nT=0,ago=0;   // n＝10ⁿ 秒が 1 秒に／ago＝いまから遡った年
+const BANDS=[ // [n, 起きていること, 受けとれること]
+ [-9.5,'光が葉の幅を渡る（約 0.3 ナノ秒）','光の届く先が、葉の上を進んでいく（模式）。ほかはすべて止まっている。'],
+ [-5.5,'音が 1 mm 進む（約 3 マイクロ秒）','音さえ、ほとんど進まない。羽も葉も止まったまま。'],
+ [-3,'神経の信号がひとつ走る（活動電位 約 1 ミリ秒）','腕の中の信号が、目で追える。この速さでは、まだ何も感じとれない。'],
+ [-2.6,'蚊（ネッタイシマカ）の羽の一打ち（雌 約 400・雄 約 600 回/秒）','蚊の羽の一打ちが、ひとつずつ見える。'],
+ [-2.3,'ミツバチの羽の一打ち（毎秒 約 230 回）','ミツバチの羽が、打ち下ろし、打ち上げるのが見える。'],
+ [-1.2,'音が参道の幅を渡る（約 0.06 秒）','羽音のもとの動きが見えてくる。人の歩みは止まって見える。'],
+ [0,'いまの 1 秒（等倍）','人の目と耳に、ちょうど受けとれる速さ。羽は霞んで見えない。'],
+ [2,'雲が流れる（数分）','雲の流れが見える。羽も、人の一歩も、もう見えない。'],
+ [4.8,'一日の影がめぐる','影が足もとを回る。人の姿は速すぎて、もう見えない。'],
+ [7.4,'ケヤキの一年','葉がひらき、色づき、落ちる。一日の明暗は、ちらつきに溶ける。'],
+ [9.2,'並木が育つ（数十年）','木が育ち、倒れ、植えかえられる。季節はもう見分けられない。'],
+ [10.5,'土が 1 cm できる（数百〜千年）','1 cm の土に、数百〜千年。木は生えては消え、並木も道も霞む。'],
+ [11.6,'見沼の入り江（数千年）','水が台地の下まで寄せ、引いていく。'],
+ [12.5,'大宮台地の地層がたまった海の時代（約 12〜13 万年前）','いま立つ台地の地層が、浅い海の底にたまっていたころへ。']];
+const EVENTS=[[1728,'見沼代用水の開削（1728 年）'],[1629,'見沼溜井（1629 年）'],[927,'『延喜式』に名神大社として載る（927 年）'],[-4500,'縄文海進の入り江（約 7000〜6000 年前）'],[-123000,'下末吉期の海']];
+const sup=v=>{const s=(Math.round(v*10)/10).toFixed(1).replace('.0','');return s.replace('-','−')};
+function human(s){const r=(v,u)=>(v>=100?Math.round(v):v>=10?Math.round(v):Math.round(v*10)/10).toLocaleString('ja-JP')+' '+u;if(s<1e-6)return r(s*1e9,'ナノ秒');if(s<1e-3)return r(s*1e6,'マイクロ秒');if(s<1)return r(s*1e3,'ミリ秒');if(s<60)return r(s,'秒');if(s<3600)return r(s/60,'分');if(s<86400)return r(s/3600,'時間');const y=s/3.156e7;if(y<1)return r(s/86400,'日');if(y<1e4)return r(y,'年');return r(y/1e4,'万年')}
+function bandAt(v){let b=BANDS[0];for(const x of BANDS)if(Math.abs(v-x[0])<Math.abs(v-b[0]))b=x;return b}
+function fmtAgo(y){if(y<1)return '';const yr=2026-y;let t=y<1e4?Math.round(y).toLocaleString('ja-JP')+' 年前':(y/1e4).toFixed(1)+' 万年前';t='約 '+t;let ev='';for(const e of EVENTS)if(yr<=e[0]+Math.max(8,y*.04)&&yr>=e[0]-Math.max(8,y*.04))ev='　'+e[1];return '遡って いまから'+t+ev}
+// 目盛り
+const rail=$('rail');[-9,-6,-3,0,3,6,9,12].forEach(v=>{const i=document.createElement('i');i.style.top=(100*(NMAX-v)/(NMAX-NMIN))+'%';i.innerHTML='<span>10'+(v<0?'⁻':'')+String(Math.abs(v)).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]).join('')+'</span>';rail.appendChild(i)});
+[['長い時間','-18px'],['短い時間','calc(100% + 6px)']].forEach(([t,p])=>{const l=document.createElement('div');l.className='lab';l.style.top=p;l.textContent=t;rail.appendChild(l)});
+const setT=v=>{nT=Math.max(NMIN,Math.min(NMAX,v));hideHint()};
+let hinted=false;const hideHint=()=>{if(!hinted){hinted=true;lastBand=null}};setTimeout(hideHint,4000);
+addEventListener('wheel',e=>{if(e.target.closest('.fold'))return;e.preventDefault();setT(nT-e.deltaY*.004)},{passive:false});
+let drag=null;
+const down=(e,r)=>{if(e.target.closest('.bar,.fold,.back'))return;drag={y:e.clientY,x:e.clientX,n:nT,rail:r};e.target.setPointerCapture?.(e.pointerId)};
+$('c').addEventListener('pointerdown',e=>down(e,false));rail.addEventListener('pointerdown',e=>{down(e,true);railTo(e.clientY)});
+function railTo(y){const r=rail.getBoundingClientRect();setT(NMAX-(y-r.top)/r.height*(NMAX-NMIN))}
+addEventListener('pointermove',e=>{if(!drag)return;if(drag.rail)railTo(e.clientY);else{setT(drag.n+(drag.y-e.clientY)*.03);window.__yaw=(window.__yaw||0)+(e.movementX||0)*.003}});
+addEventListener('pointerup',()=>drag=null);addEventListener('pointercancel',()=>drag=null);
+rail.addEventListener('keydown',e=>{if(e.key==='ArrowUp')setT(nT+.5);if(e.key==='ArrowDown')setT(nT-.5)});
+addEventListener('keydown',e=>{if(e.target===rail)return;if(e.key==='ArrowUp')setT(nT+.5);if(e.key==='ArrowDown')setT(nT-.5)});
+const step=d=>{const i=BANDS.findIndex(b=>b[0]>nT+.05);const cur=d>0?(i<0?BANDS.length:i):BANDS.findLastIndex(b=>b[0]<nT-.05);const b=BANDS[Math.max(0,Math.min(BANDS.length-1,d>0?cur:cur))];setT(b[0])};
+$('bS').onclick=()=>step(1);$('bF').onclick=()=>step(-1);$('b0').onclick=()=>{setT(0)};
+// 表示
+let lastBand=null,lastTxt='';
+function ui(){
+ const p=(NMAX-n)/(NMAX-NMIN);$('knob').style.top=(p*100)+'%';rail.setAttribute('aria-valuenow',n.toFixed(1));
+ $('mN').innerHTML=Math.abs(n)<.05?'等倍':'10<sup>'+sup(n)+'</sup> 倍の速さ';$('mH').textContent='1 秒で '+human(Math.pow(10,n));
+ const b=bandAt(n);if(b!==lastBand){lastBand=b;$('mE').textContent=b[1];$('cap').textContent=hinted?b[2]:'上下にドラッグ・スクロールで、時間の速さが変わる。'}
+ const a=fmtAgo(ago);if(a!==lastTxt){lastTxt=a;$('mA').textContent=a}
+}
+window.__setN=v=>{nT=v;n=v;};window.__time={get n(){return n},get ago(){return ago}};
+// 3D は後から（文字と操作は先に出す）
+let W=null;
+import('./time3d.js').then(m=>{W=m.create($('c'));window.__ready=performance.now()}).catch(e=>console.warn(e));
+let tp=performance.now();
+function loop(t){const dt=Math.min(.1,(t-tp)/1000);tp=t;
+ n+=(nT-n)*Math.min(1,dt*4);
+ const rate=Math.pow(10,n); // 1 秒あたりに進む秒
+ if(n>4.5){let A=Math.min(4e4,.4*rate/3.156e7),B=Math.min(1.4e5,3.5*A);if(n>12.1){ago+=(125000-ago)*Math.min(1,dt*1.5)}else{ago+=rate*dt/3.156e7;if(n>8.6&&ago>B)ago=A}ago=Math.min(1.4e5,ago)} else ago=Math.max(0,ago*(1-Math.min(1,dt*3))-dt*.5);
+ W&&W.frame(dt,n,rate,ago,window.__yaw||0);ui();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script>
+<!-- © mitsulab. All rights reserved. 2026-11-10 公開。Qualia/time＝氷川参道の目の高さで、時間の速さを 10 のべき乗で変える模式。AI の学習・生成への利用はお断りします。 -->
+</body>
+</html>
