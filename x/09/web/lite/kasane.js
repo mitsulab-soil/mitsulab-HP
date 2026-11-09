@@ -28,6 +28,16 @@ const LINES = {
     { t: "欅が葉を手放す。人がそれを踏む。" },
     { t: "その動きが、次のだれかの手がかりになる。光の粒の順は模式。" },
   ],
+  jikan: [
+    { t: "参道でいちばん太いケヤキは、幹の回りが 5.80 メートルと記録された。" },
+    { t: "3 メートルを超える巨木は 15 本。輪の広がりは、太る時間の模式。" },
+    { t: "（出典：氷川の杜まちづくり協議会『氷川参道の樹木調査』）" },
+  ],
+  chikei: [
+    { t: "この平らな道の下は台地。12〜13 万年ほど前は、浅い海の底だったと考えられている。" },
+    { t: "その上に、箱根や富士の火山灰が積もった。線は地形の模式。" },
+    { t: "（出典：国土交通省『土地分類基本調査 説明書「大宮」』2012）" },
+  ],
   trace: [
     { t: "雨のあと、葉に残った水が、遅れて土に落ちる。" },
     { t: "記録計は、その量を一つの数として記録する。光の線は模式。" },
@@ -64,7 +74,11 @@ function traceGeo() {   // 雨の痕：落ちる雫と、記録計の光る線
   const drop = new THREE.SphereGeometry(.05, 12, 10); { const p = drop.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setY(i, y > 0 ? y * 1.9 : y); p.setX(i, p.getX(i) * (y > 0 ? 1 - y * 8 : 1)); p.setZ(i, p.getZ(i) * (y > 0 ? 1 - y * 8 : 1)); } drop.computeVertexNormals(); drop.translate(0, .3, 0); }
   return mergeGeos([new THREE.TubeGeometry(c, 64, .008, 4, false), drop]);
 }
-const FORMS = { literature: [leafGeo, 0xd9b26a, 0], sound: [waveGeo, 0x9fc6d8, 1], keyaki: [ringsGeo, 0xc89a72, 2], leaf: [chainGeo, 0xb8d6a8, 3], trace: [traceGeo, 0xa9c9e6, 4] };
+function contourGeo() {   // 地形：ゆがんだ等高線を三段、足もとの高さに
+  const ring = (r, y, ph) => { const c = new THREE.Curve(); c.getPoint = t => { const th = t * Math.PI * 2, rr = r * (1 + .12 * Math.sin(th * 3 + ph) + .06 * Math.sin(th * 5)); return new THREE.Vector3(Math.cos(th) * rr, y, Math.sin(th) * rr * .7); }; return new THREE.TubeGeometry(c, 90, .012, 4, true); };
+  return mergeGeos([ring(.9, 0, 0), ring(.62, .12, 1), ring(.34, .24, 2)]);
+}
+const FORMS = { jikan: [ringsGeo, 0xb48a62, 5], chikei: [contourGeo, 0xc8d0a8, 6], literature: [leafGeo, 0xd9b26a, 0], sound: [waveGeo, 0x9fc6d8, 1], keyaki: [ringsGeo, 0xc89a72, 2], leaf: [chainGeo, 0xb8d6a8, 3], trace: [traceGeo, 0xa9c9e6, 4] };
 
 const VS = `varying vec3 vW; varying vec3 vN; varying vec3 vL;
 void main(){ vL=position; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`;
@@ -73,6 +87,8 @@ void main(){ vec3 n=normalize(vN), v=normalize(cameraPosition-vW); if(!gl_FrontF
   float dif=.5+.5*max(0.,dot(n,normalize(vec3(.3,1.,.4))));
   float pat=0.;
   if(uK<.5){ pat=smoothstep(.012,.0,abs(vL.y))*.8 + smoothstep(.01,.0,abs(fract(vL.x*9.+abs(vL.y)*14.)-.5)-.47)*.25; }   // 葉の中の筋と側脈
+  else if(uK>5.5){ pat=exp(-pow(fract(vL.y*4.-uT*.2)-.5,2.)*40.)*.9; }   // 地形の線を、上から下へ光が渡る
+  else if(uK>4.5){ float r=length(vL.xz); pat=smoothstep(.05,.0,abs(fract(r*18.-uT*.12)-.5)-.42)*.8; }   // 年輪が外へ広がる（太る時間の模式）
   else if(uK<2.5 && uK>1.5){ float r=length(vL.xz); pat=smoothstep(.06,.0,abs(fract(r*26.+.15*sin(atan(vL.z,vL.x)*3.))-.5)-.40)*.7*step(.02,abs(vL.y)+.0) ; }   // 年輪
   else if(uK>3.5){ pat=exp(-pow(fract(vL.x*1.4-uT*.35)-.5,2.)*60.)*1.2; }   // 記録計の線を光が渡る
   else if(uK>2.5){ pat=exp(-pow(fract((vL.x+.35)*1.3-uT*.3)-.5,2.)*40.)*1.1; }   // 連なりを光が順に渡る
@@ -109,7 +125,8 @@ export function attachKasane(q, opt = {}) {
       if (!it.me.visible) continue;
       it.me.position.y = it.y + Math.sin(t * .9 + it.x) * .05;
       if (it.k === "literature") { it.me.rotation.set(.5 + Math.sin(t * .7) * .25, t * .25, Math.sin(t * .5) * .3); }
-      else if (it.k === "keyaki") { it.me.lookAt(_v.set(cam.position.x, it.me.position.y, cam.position.z)); it.me.rotateX(Math.PI / 2 - .45); }
+      else if (it.k === "chikei") { it.me.rotation.set(0, t * .05, 0); }
+      else if (it.k === "keyaki" || it.k === "jikan") { it.me.lookAt(_v.set(cam.position.x, it.me.position.y, cam.position.z)); it.me.rotateX(Math.PI / 2 - .45); }
       else if (it.k === "sound") { it.me.rotation.set(.35, t * (.3 + it.on * .9), 0); const s = 1 + it.on * .08 * Math.sin(t * 18); it.me.scale.set(s, 1, s); }
       else { it.me.lookAt(_v.set(cam.position.x, it.me.position.y, cam.position.z)); it.me.rotateY(Math.PI / 2 * 0); }
     }
