@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261107entry1">
+<link rel="stylesheet" href="style.css?v=20261109p">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 <!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
-<link rel="modulepreload" href="js/app.js?v=20261107entry1">
+<link rel="modulepreload" href="js/app.js?v=20261109p">
 <link rel="modulepreload" href="vendor/three.module.js">
 <link rel="modulepreload" href="vendor/OrbitControls.js">
 <link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
@@ -30,6 +30,10 @@
 <link rel="modulepreload" href="js/scores.js">
 <link rel="modulepreload" href="js/voices.js">
 <link rel="stylesheet" href="kit/ui.css?v=20261103">
+<style id="poster-first">/* 2026-11-09 3D が描けるまで、同じ場面の静止画を先に見せる。操作の部品は選択させない */
+html{background:#0b0f1c url(img/poster_pc.webp) center/cover no-repeat}@media (max-aspect-ratio:3/4){html{background-image:url(img/poster_sp.webp)}}body{background:transparent}
+button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#cv{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#cv{opacity:0;transition:opacity .35s}body[data-ready=true] #cv{opacity:1}</style>
 <style id="mu-align">/* 共通 GUI（kit/ui.css）に合わせる＝左上の名前・押せる大きさを全アプリでそろえる（2026-11-03） */
 .brand .ml-kicker{display:none}.brand .ml-title{font:600 16px/1 var(--mu-serif);letter-spacing:.12em;color:#fff;text-shadow:var(--mu-shadow)}
 .ml-btn{border-radius:var(--mu-r);font:600 13.5px/1 var(--mu-serif);letter-spacing:.1em;min-height:var(--mu-hit);background:var(--mu-panel);border:1px solid var(--mu-line);color:var(--mu-ink);backdrop-filter:var(--mu-blur);-webkit-backdrop-filter:var(--mu-blur);transition:border-color var(--mu-t) var(--mu-ease),color var(--mu-t) var(--mu-ease)}.ml-btn:hover{border-color:var(--mu-line-on)}.ml-btn--primary{border-color:var(--mu-aoi);color:var(--mu-aoi-2)}#say{font-family:var(--mu-serif);letter-spacing:.04em;color:var(--mu-ink);text-shadow:0 0 2px rgba(3,6,15,.95),0 1px 10px rgba(3,6,15,.85);background:none!important;border:0!important;box-shadow:none!important;word-break:auto-phrase;text-wrap:balance}
@@ -56,7 +60,8 @@
 </header>
 
 <!-- 入口 -->
-<section id="intro" class="intro" aria-labelledby="introT">
+<!-- 2026-11-09 入口の説明は出さず、場面と一行の字幕から（中身は残す） -->
+<section id="intro" class="intro" aria-labelledby="introT" hidden>
   <div class="intro-in">
     <p class="ml-kicker">Qualia/sound</p>
     <h2 id="introT" class="ml-title intro-line">同じ一行でも、<br>聞こえる音は、<br>人によって違う。</h2>
@@ -131,12 +136,12 @@
 </section>
 
 <!-- 何も選んでいないときの下の帯 -->
-<div id="hint" class="hint" hidden>
+<div id="hint" class="hint">
   <div class="near-sounds" role="group" aria-labelledby="nearSoundPrompt">
     <span id="nearSoundPrompt">身近な手がかりから</span>
     <div id="nearSoundPoints" class="near-sound-points"></div>
   </div>
-  <p><span class="pc">浮かぶ点の一つ一つが、言葉です。かざすと言葉が出て、押すと鳴ります。</span><span class="spo">点の一つ一つが言葉。触れると鳴ります。</span></p>
+  <p class="aoi-line">言葉の点に触れると、音が鳴ります。</p>
   <div class="p-row">
     <button class="ml-btn ml-btn--primary" id="bRand2" type="button">偶然の一行</button>
     <button class="ml-btn" id="bList2" type="button">一覧から選ぶ</button>
@@ -158,6 +163,7 @@
   <div class="sheet-in about">
     <div class="sheet-head"><h2 id="aboutT" class="ml-title">Qualia/sound</h2><span class="ml-en">about</span><button class="ml-btn ml-btn--quiet" data-close type="button">とじる</button></div>
     <p>Qualia/sound は、mitsulab 代表・上原光瑛の、書と言葉の作品のシリーズです。「音」一字の書と、その字から生まれた言葉の作品（ZINE『Qualia/sound Ⅰ・Ⅱ』）。このアプリはその続きで、書きためた「◯◯の音」の一覧《音の言然》<span id="aTotal">839</span> 行を元にしています。いま浮かんでいるのは <span id="aShown"></span> の言葉です。</p>
+    <p>音は作者の言葉から合成した表現です。実録音や、ほかの人の主観を再現したものではありません。</p>
     <p>だれかの耳に聞こえている音そのものは、ほかの人に渡せません。ここで鳴る音は、一行の言葉を音に翻訳した模式のひとつです。同じ一行から、聴く人の数だけ別の音が立ちあがる。その違いに、順番はありません。</p>
     <details class="ml-fold">
       <summary>音のつくり</summary>
@@ -183,6 +189,7 @@
 
 <script src="data/sounds.js"></script>
 <script src="data/gain.js"></script>
-<script type="module" src="js/app.js?v=20261107entry1"></script>
+<script type="module" src="js/app.js?v=20261109p"></script>
+<script>/* 2026-11-09 静止画を先に出す（読み込み画面は待たない） */addEventListener("DOMContentLoaded",function(){window.MLLoader&&MLLoader.done()});</script>
 </body>
 </html>

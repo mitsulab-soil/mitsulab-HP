@@ -279,6 +279,7 @@ $("aShown").textContent = N;
 labs.style.visibility = "hidden";
 const start = (fade = true) => { labs.style.visibility = ""; $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
 $("bStart").addEventListener("click", () => { synth.ensure(); start(); });
+start(false);   // 2026-11-09 入口の説明は出さない（音は点に触れたときだけ鳴る）
 // 2026-11-07: 三つの入口も既存の言葉の点へ。全項目・原文・合成規則はそのまま。
 // 短い手がかりは索引であり、選択後は本人の原文を演奏面と点の札へ出す。
 const nearbyEntries = [

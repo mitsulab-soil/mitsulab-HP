@@ -337,9 +337,9 @@ const I3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 const xz = v => [v.x, v.z], xyz = v => [v.x, v.y, v.z];
 const sat = s => { const w = [.2126, .7152, .0722]; return [0, 1, 2].flatMap(i => [0, 1, 2].map(j => (i === j ? s : 0) + (1 - s) * w[j])); };
 const LENS = {
-  hito: { eye: 1.55, m: I3, uvw: [0, 0, 0], sub: "色を受けとる細胞は三種類（三色型）", legend: "" },
+  hito: { eye: 1.55, m: I3, uvw: [0, 0, 0], sub: "色を受けとる細胞は三種類（三色型・Dartnall ら 1983）", legend: "" },
   // ミツバチ：紫外・青・緑（Peitsch et al. 1992：約 340・435・540 nm）。表示は 紫外→青・青→緑・緑→赤
-  hachi: { eye: .95, speed: 2.2, spot: [...xz(bed(-1.0, 0, 1.7)), ...xyz(bed(-1.9, 1.15, -.9))], m: [.18, .85, .10, 0, .15, .85, 0, 0, .02], uvw: [0, 0, 1], sub: "紫外・青・緑の三色型", legend: "<b>人の画面への置きかえ（近似）</b><br>紫外 → 青<br>青 → 緑<br>緑 → 赤<br>紫外を返すものを見ると、高い音" },
+  hachi: { eye: .95, speed: 2.2, spot: [...xz(bed(-1.0, 0, 1.7)), ...xyz(bed(-1.9, 1.15, -.9))], m: [.18, .85, .10, 0, .15, .85, 0, 0, .02], uvw: [0, 0, 1], sub: "紫外・青・緑の三色型（Peitsch ら 1992）", legend: "<b>人の画面への置きかえ（近似）</b><span class='sight-colours'><span>紫外 → 青</span><span>青 → 緑</span><span>緑 → 赤</span></span><span class='sight-sonic'>紫外を返すものを見ると、高い音</span>" },
   // アゲハ：四色型（Koshitaka et al. 2008）。紫外は紫がかった光で重ねる
   chou: { eye: .9, speed: 2, spot: [...xz(bed(3.6, 0, 2.3)), ...xyz(bed(1.6, .75, .2))], m: sat(1.12), uvw: [.45, 0, .65], sub: "紫外から赤まで・四色型とされる", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（人の画面に出せない四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
   // 鳥：四色型（Hart 2001）。紫外は同じく紫で重ねる
@@ -498,7 +498,7 @@ function applyLens(id) {
     : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ 長押しで進む・＋ − で上下' : (id === 'hebi' ? '地面を這う' : '歩く') + ' · ↑ 長押しで進む・なぞって見回す')
     : FLIGHT.has(id) ? '飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも）' : id === 'hebi' ? '地面を這う · W A S D ／ 押した場所へ' : '歩く · W A S D ／ 押した場所へ');
   $('bodyControls').hidden = !!L.under || chapter !== 'umwelt';   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
-  $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
+  $("legend").dataset.lens = id; $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
   $("cmpBtn").hidden = id === "hito" || !!L.under || chapter !== "umwelt";
 }
@@ -693,6 +693,8 @@ let curActs = [];
 function setActs(list) {
   curActs = list; const box = $("acts"); box.innerHTML = "";
   for (const a of list) { const b = document.createElement("button"); b.className = "btn" + (a[2] ? " pri" : ""); b.textContent = typeof a[0] === "function" ? a[0]() : a[0]; if (a[3]) b.setAttribute("aria-label", a[3]); b.onclick = a[1]; box.appendChild(b); }
+  // 2026-11-09：はじめの選択肢が出たら、最初の焦点をそのボタンへ（キーボードでもすぐ選べる）
+  if (!setActs.focused && list.length) { const ae = document.activeElement; if (!ae || ae === document.body || ae.id === "stage") { const p = box.querySelector(".pri") || box.firstChild; if (p) { p.focus({ preventScroll: true }); setActs.focused = 1; } } }
 }
 // 2026-10-25 碧の自然さ：「広がっています」などで両腕を左右対称に一瞬だけ大きく開く身ぶり（0.3 秒）が、操り人形のように見えた → 片手で、手のひらを上に差し出す身ぶりにゆっくり置きかえる
 function aoiGestures(text, kana, dur) {
@@ -1210,7 +1212,7 @@ function frame(now=0) {
     // 身体を切り替えた直後の 2〜3 秒だけ、自分の体を横から寄せて見せる（毛・艶・翅がわかるように。2026-10-13）
     // 2026-10-13（80 点へ）：生きものごとに寄り方を変える（蜂・小鳥は横から大きく、マムシは斜め上から銭形が見えるように、コウモリは翼と耳が入る距離）。
     //   画面が横に広いと体が小さく見えるので大きく。見せ場は 3.6 秒。⟲ のボタン（showAgain）でもう一度見られる
-    { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, sv = SHOW[lens] || SHOW.def, wide = innerWidth / innerHeight > 1.2 ? 1.3 : 1,
+    { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, sv = innerWidth < 700 && lens === 'hachi' ? { ...SHOW.hachi, y:-.20, z:-.72, s:1.2 } : SHOW[lens] || SHOW.def, wide = innerWidth / innerHeight > 1.2 ? 1.3 : 1,
         k = (RM || KUR.on || lens === 'hito' || lens === 'mimizu') ? 0 :   /* くらべる旅では体の見せ場を出さない（答えの瞬間に自分の体が花をふさいだ・2026-10-14 r3） */ sstep(0, .5, u) * (1 - sstep(3.3, 4.1, u)), bp = BODYPOS[lens] || [-.27, -.65];
       bodyRoot.rotation.set(0, Math.PI, 0, 'YXZ'); bodyRoot.position.set(0, bp[0] + (sv.y - bp[0]) * k, bp[1] + (sv.z - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (1 + (sv.s * wide - 1) * k));
       setBodyAlpha(lens, KUR.on ? k : .55 + .45 * k); if (KUR.on && k < .01) bodyRoot.visible = false; }   // くらべる旅では、見せ場のあとは自分の体を消して、見比べる花を隠さない（2026-10-14 r2：PC の犬が中央を占めた）
@@ -1249,7 +1251,7 @@ function frame(now=0) {
   }
   aoiTick(dt); kurMarks();
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); }
-  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
+  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(() => { const ae = document.activeElement; if (!ae || ae === document.body) { const p = $("acts")?.querySelector(".pri") || $("acts")?.querySelector("button") || $("kurBtn"); p?.focus({ preventScroll: true }); } }, 60); }   /* 2026-11-09 最初の焦点をボタンへ */   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);
@@ -1279,7 +1281,8 @@ STARTUP.sceneBuiltAt = performance.now();
   const preCompile = renderer.compileAsync ? renderer.compileAsync(scene, camera).catch(() => {}) : null;
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
-  const aoiReady = loadAoi().then(async () => {
+  // 2026-11-09：スマホは森を描き終えてから碧（2 MB）を読む（375 で重い）
+  const aoiReady = (innerWidth < 700 ? Promise.resolve(preCompile).then(() => new Promise(r => setTimeout(r, 700))) : Promise.resolve()).then(() => loadAoi()).then(async () => {
     if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); try { await (await import("./kit/warm.js")).keepVariant(renderer, aoi, camera, scene, k => { k.transparent = false; }); } catch (e) {} const WA = (await import("./kit/warm.js")).warmAoi; for (const op of [1, 0]) { opacity(op); await WA(renderer, aoi, camera, scene, { batch: 1 }); }   /* 2026-11-05 夕：kit/warm.js の warmAoi（骨で動く網の外接球も先に測る＝碧が出たこまの約 30 ms を前へ） */   /* 2026-11-05：不透明の形も写しで持っておく */ scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
@@ -1319,8 +1322,8 @@ STARTUP.sceneBuiltAt = performance.now();
 })();
 // 2026-10-14：上の説明（#where）が 2 行に折れても、「歩く…」の行（#moveNote）と予想の札が重ならないよう、高さを #where の下にそろえる
 { const W = $("where"), N = $("moveNote"), Q = $("kurQ"), C = $("cmpTag");
-  const lay = () => { const b = W.getBoundingClientRect().bottom; N.style.top = Math.round(b + 4) + "px"; const nb = N.hidden || !N.textContent ? b : N.getBoundingClientRect().bottom; if (Q) Q.style.top = Math.round(nb + 6) + "px"; if (C) C.style.top = Math.round(nb + 6 + (Q && !Q.hidden ? Q.offsetHeight + 6 : 0)) + "px"; };
-  new ResizeObserver(lay).observe(W); new ResizeObserver(lay).observe(N); addEventListener("resize", lay); new MutationObserver(lay).observe(N, { attributes: true, childList: true, subtree: true, characterData: true }); if (Q) new MutationObserver(lay).observe(Q, { attributes: true, attributeFilter: ["hidden"] }); lay(); }
+  const lay = () => { const b = W.getBoundingClientRect().bottom; N.style.top = Math.round(b + 4) + "px"; const nb = N.hidden || !N.textContent ? b : N.getBoundingClientRect().bottom; if (Q) Q.style.top = Math.round(nb + 6) + "px"; if (C) C.style.top = Math.round(nb + 6 + (Q && !Q.hidden ? Q.offsetHeight + 6 : 0)) + "px"; const keyTop = Math.max(nb, Q && !Q.hidden ? Q.getBoundingClientRect().bottom : 0, C && !C.hidden ? C.getBoundingClientRect().bottom : 0); document.documentElement.style.setProperty("--sight-legend-top", Math.round(keyTop + 6) + "px"); };
+  new ResizeObserver(lay).observe(W); new ResizeObserver(lay).observe(N); addEventListener("resize", lay); new MutationObserver(lay).observe(N, { attributes: true, childList: true, subtree: true, characterData: true }); if (Q) new MutationObserver(lay).observe(Q, { attributes: true, attributeFilter: ["hidden"] }); if (C) new MutationObserver(lay).observe(C, { attributes: true, attributeFilter: ["hidden"] }); lay(); }
 // くらべる旅の印（2026-10-14 11 人：「この白い花」「橙の花」「ネズミ」がどれか、画面が指していなかった）：見比べるものに細い輪と名前を出す
 const KMARK = { hachi: [["wf", "白い花"]], inu: [["kz", "橙の花（ノカンゾウ）"]], hebi: [["mouse", "草むらのネズミ"]] };
 function kurMarks() {

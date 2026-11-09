@@ -68,6 +68,7 @@
        speak({ kana, dur, gesture:[{ t:1.2, type:"deictic", target:v3 }, { t:2.0, type:"iconic", shape:"small-round" }] })
        type＝beat（拍子）| deictic（指し示し。target＝世界の位置か Object3D。無ければ「ここ」＝手のひらを下へ）| iconic（shape＝small・small-round・round・large・long・tall・flat）
              | metaphoric（shape＝contrast（二つを左右の手に置いてくらべる）・present（手のひらを上に、考えを差し出す））
+             | cue（v7・任意。shape＝listen 耳を澄ます・lookup 見上げる・below 足もとへ・far 遠くを示す。目と首も合わせる。渡したときだけ動く）
        t の代わりに word:"これ" でもよい（字幕・かなの中のその語の時刻）。hand:"left"|"right"|"both"・hold（秒）は任意。
      印が無い行は、字幕（text）か読み（kana）から簡単な身ぶりを推して付ける（autoGesture:false で止める）：
        これ・あれ・ここ → 指す先が分かっていれば（speak の ref か、lookAt の先）そこを指す。「ここ」で先が無ければ手のひらを下へ
@@ -183,7 +184,7 @@ const G_RULES = [
   ["metaphoric", "contrast", /(?:^|[、。！？\s])(?:でも|けれど|けど|しかし)|一方|ではなく|じゃなく|逆に|違う|違い|ちがう|ちがい|比べ|くらべ|かわりに|よりも/, /(?:^|[、/])(?:デモ|ケレド|シカシ)|イッポ[オウ]|デワナ[クイ]|ジャナク|ギャクニ|チガ[ウイッ]|クラベ|カワリニ|ヨリモ/],
   ["beat", "", /とても|すごい|すごく|本当|ほんとう|必ず|かならず|一番|いちばん|絶対|ぜったい|大事|だいじ|大切|たいせつ|まさに|全部|ぜんぶ|もっと|まったく|全く|[！!]/, /トテモ|スゴ[イク]|ホント[オウ]|カナラズ|イチバン|ゼッタイ|ダイジ|タイセツ|マサニ|ゼンブ|モット|(?:^|[/、])マッタク/],
 ];
-const G_PRI = { deictic: 4, iconic: 3, metaphoric: 2, beat: 1 };
+const G_PRI = { deictic: 4, cue: 3, iconic: 3, metaphoric: 2, beat: 1 };   // v7：cue＝札ごとに応えるしぐさ（渡したときだけ。字幕からは推さない）
 // 語の位置 → 時刻。かなは口の時刻表と同じ数え方（一拍＝一つ）、字幕は字の重み（漢字は約 1.7 拍・小さい字は 0・句読点は間）
 function _kanaClock(kana, tl, dur) {
   const raw = (kana || "").replace(/['_]/g, ""), at = []; let n = 0;
@@ -1160,6 +1161,7 @@ export class AoiMotion {
     const dom = g.hand === "left" ? "left" : "right", both = g.hand === "both";
     let parts;
     if (g.type === "deictic") parts = [P(g.hand && g.hand !== "both" ? g.hand : null, a, .55, .5)];
+    else if (g.type === "cue") parts = [P(g.hand === "left" ? "left" : "right", a, g.shape === "listen" ? 1.4 : 1.1, .7)];   // v7：しぐさはゆっくり上げ、長めに止める
     else if (g.type === "metaphoric" && g.shape === "contrast") parts = [P("left", a, 1.25), P("right", a + .75, .5)];   // くらべる語で一つめを左の手に置き、少し遅れて右の手に二つめを置く（両手で見くらべる）
     else if (g.type === "iconic" && (g.shape === "small" || g.shape === "tall") && !both) parts = [P(dom, a, .45)];
     else if (g.type === "metaphoric") parts = both ? [P("left", a, .5), P("right", a, .5)] : [P(dom, a, .5)];
@@ -1174,6 +1176,14 @@ export class AoiMotion {
       const tp = g.target.isObject3D ? g.target.getWorldPosition(_v[9]) : _v[9].copy(g.target), tl = this.root.worldToLocal(tp), d = _v[8].subVectors(tl, sh);
       d.y = clamp(d.y / Math.max(.2, Math.hypot(d.x, d.z)), -1.4, .3) * Math.hypot(d.x, d.z); d.normalize(); if (d.z < .2) { d.z = .2; d.normalize(); }   // 体の後ろは指さない（体を回すのは向きの仕事）。足もとの物は下へ向けて指す
       out.p.copy(sh).addScaledVector(d, .36); out.p.y -= .05; out.f.copy(d); out.n.set(-sg * .3, -1, 0); out.shape = "point"; return out; }
+    if (g.type === "cue") {   // v7：札ごとのしぐさ（耳を澄ます・見上げる・足もとへ手のひらを伏せる・遠くを示す）
+      switch (g.shape) {
+        case "listen": return set(sg * .13, .13, .02, [0, 1, .15], [0, .1, 1], "cup");          // 耳のうしろに手をそえる（手のひらは前）
+        case "lookup": return set(sg * .17, -.1, .3, [sg * .15, .7, 1], [-sg * .25, .9, -.2], "open");   // 胸の前で手のひらを上へ、空へ向けてひらく
+        case "below": return set(sg * .14, -.42, .3, [0, -.55, 1], [0, -1, 0], "flat");          // 足もとへ手のひらを伏せる
+        case "far": return set(sg * .26, -.2, .34, [sg * .35, .1, 1], [-sg * .3, .5, 0], "open");   // 遠くの道を手のひらで示す
+        default: return set(sg * .12, -.3, .28, [sg * .2, .05, 1], [-sg * .2, 1, 0], "open");
+      } }
     if (g.type === "metaphoric") {
       // くらべる：二つを左右の手に載せて量るように、手のひらを内向き・上に、左右で高さを変える（前へ差し出さない＝「どうぞ」に見えない。11 人の指摘）
       if (g.shape === "contrast") return set(sg * .2, sd === "left" ? -.27 : -.36, .22, [sg * .1, .15, 1], [-sg * .6, .8, 0], "open");
@@ -1198,7 +1208,10 @@ export class AoiMotion {
       for (const g of sp.gq) { if (g.type === "beat") continue;
         for (const part of this._gParts(g)) { const side = part.side || (g.target ? (this.root.worldToLocal((g.target.isObject3D ? g.target.getWorldPosition(_v[9]) : _v[9].copy(g.target))).x >= 0 ? "left" : "right") : "right");
           if (c >= part.apex - part.prep && c <= part.apex + part.hold) { want[side] = part; part.sideNow = side;
-            if (g.type === "deictic" && g.target && !part.gz && c >= part.apex - .35) { part.gz = 1; this._gz = { p: g.target, until: this.t + (part.apex + part.hold * .85 - c) }; } } } } }
+            if (g.type === "deictic" && g.target && !part.gz && c >= part.apex - .35) { part.gz = 1; this._gz = { p: g.target, until: this.t + (part.apex + part.hold * .85 - c) }; }
+            if (g.type === "cue" && !part.gz && c >= part.apex - .4) { part.gz = 1; const lp = { listen: [.9, 1.25, 1.6], lookup: [0, 2.6, 1.4], below: [0, 0, .9], far: [1.2, 1.1, 4] }[g.shape];   // 目の行く先（碧から見た位置。耳を澄ますときは横の少し下＝聴くときは見ない）
+              if (lp) { const sx = part.sideNow === "left" ? 1 : -1; this._gz = { p: g.target || this.root.localToWorld(new THREE.Vector3(sx * lp[0] * (g.shape === "listen" ? 1 : .4), lp[1] * this.sc, lp[2] * this.sc)), until: this.t + (part.apex + part.hold * .9 - c) };
+                if (g.shape === "listen" && this.s?.tilt) { this.s.tilt.t = sx * .07; this.s._tlHold = part.hold + .5; } } } } } } }
     const tmp = this._gTmp ||= { p: new THREE.Vector3(), f: new THREE.Vector3(), n: new THREE.Vector3(), shape: "open" };
     res.on = false;
     for (const sd of ["left", "right"]) { const S = G[sd], part = want[sd];

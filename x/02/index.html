@@ -19,7 +19,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 [hidden]{display:none!important}
 .btn{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card2);font-size:15px}
 .btn.pri{background:var(--aoi);border-color:var(--aoi);color:#06201d;font-weight:600}
-.btn:focus-visible,.pill:focus-visible,.tab:focus-visible,.ico:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn:focus-visible,.pill:focus-visible,.tab:focus-visible,.ico:focus-visible,.home:focus-visible,#bodyControls button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.topL{display:flex;align-items:center;gap:2px;pointer-events:auto}.home{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;color:#f0e9cf;text-decoration:none;font:400 20px/1 var(--mincho,serif);text-shadow:0 1px 6px rgba(0,0,0,.6);border-radius:4px}
+@media (max-width:420px){.topL{gap:0}.home{min-width:30px;font-size:17px}#top{padding-left:2px!important;padding-right:4px!important}#top .btn.why{padding:0 5px!important;letter-spacing:0!important}#top .ico{min-width:40px}}
 .ico{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 85%,transparent);display:grid;place-items:center;font-size:17px;padding:0;box-shadow:var(--shadow)}
 /* 上の帯：章と場所 */
 #top{position:fixed;top:0;left:0;right:0;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;padding:max(8px,env(safe-area-inset-top)) 10px 0;z-index:5;pointer-events:none}
@@ -232,7 +234,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261105s">
+<link rel="modulepreload" href="umwelt.js?v=20261109g">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -274,6 +276,16 @@ body{word-break:auto-phrase;line-break:strict}
 #dial .pill::after{content:'⟳';position:absolute;right:4px;top:2px;font-size:12px;opacity:.7}
 #dial .creaturePortrait{width:64px!important;height:40px!important}#dial .pill span{font-size:13px!important}
 </style>
+<style id="sight-mobile-observation">
+/* Keep the translation key readable above the scene, leaving the lower view for the body and speech. */
+#legend .sight-colours span,#legend .sight-sonic{display:block}
+@media(max-width:700px){
+ #legend[data-lens="hachi"]{top:var(--sight-legend-top,172px);bottom:auto;left:12px;right:108px;transform:none;max-width:none;width:auto;padding:6px 8px;line-height:1.5}
+ #legend[data-lens="hachi"] .sight-colours{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+ #legend[data-lens="hachi"] .sight-colours span{white-space:nowrap}
+ #legend[data-lens="hachi"] .sight-sonic{font-weight:400}
+}
+</style>
 </head>
 <body>
 <script src="loader/loader.js" data-max="4000"></script>
@@ -281,7 +293,7 @@ body{word-break:auto-phrase;line-break:strict}
 <div id="veil"></div>
 
 <header id="top">
-  <span class="dream-title">Qualia/sight</span>
+  <span class="topL"><a class="home" href="/#apps" aria-label="mitsulab の作品一覧へ戻る">←</a><span class="dream-title">Qualia/sight</span></span>
   <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
 </header>
 <aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
@@ -367,12 +379,12 @@ body{word-break:auto-phrase;line-break:strict}
 <script src="data/paths.js?v=20261010"></script>
 <script src="data/daihon.js?v=20261014p2"></script>
 <script src="data/voice.js?v=20261013k80" onerror="window.VOICE={}"></script>
-<script src="data/why.js?v=20261013tp"></script>
+<script src="data/why.js?v=20261109f"></script>
 <script>
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261105s';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261109g';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>

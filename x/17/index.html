@@ -17,8 +17,9 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
 .top .w{font:italic 400 19px/1 var(--ml-latin);letter-spacing:.02em;color:var(--ml-ink)}
 .top .n{font:400 13px/1 var(--ml-serif);letter-spacing:.14em;color:var(--ml-l-aoi)}
 .cap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom));width:min(680px,calc(100% - 32px));text-align:center;font:400 16px/1.8 var(--ml-serif);letter-spacing:.04em;color:var(--ml-ink);text-shadow:0 1px 10px #000,0 0 2px #000;min-height:3.6em;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
-.cap .q{color:var(--ml-l-aoi)}
+.cap .q{color:var(--ml-l-aoi)}.cap .go{pointer-events:auto;align-self:center;margin-top:8px;font-size:13px;color:var(--ml-l-aoi);text-decoration:none;border:1px solid var(--ml-line);border-radius:999px;padding:10px 16px;min-height:44px;box-sizing:border-box;background:rgba(6,10,18,.55)}
 .cap .note{font-size:12px;color:var(--ml-ink-3);letter-spacing:.06em;margin-top:2px}
+.cap .src{pointer-events:auto;align-self:center;margin-top:4px;font-size:12px;line-height:1.7;color:var(--ml-ink-3);letter-spacing:.04em}.cap .src summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;color:var(--ml-l-aoi);font-size:18px}.cap .src summary::-webkit-details-marker{display:none}.cap .src summary:focus-visible{outline:2px solid var(--ml-l-aoi);outline-offset:2px}.cap .src p{margin:0 0 4px;max-width:560px}
 .dock{position:fixed;left:0;right:0;bottom:max(16px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px;padding:0 12px}
 .dock button{appearance:none;background:rgba(6,10,18,.6);border:1px solid var(--ml-line);color:var(--ml-ink-2);border-radius:999px;min-height:48px;min-width:48px;padding:6px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:400 13px/1.2 var(--ml-serif);letter-spacing:.06em;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:border-color .3s,color .3s,background .3s}
 .dock button i{display:none;font:400 9.5px/1 var(--ml-sans);font-style:normal;letter-spacing:.12em;color:var(--ml-ink-3);text-transform:uppercase}
@@ -36,14 +37,23 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
   .hint{display:none}
   .cr{bottom:calc(70px + env(safe-area-inset-bottom))}
 }
+/* 人物操作をキーボードからも。375pxでも常に見える。 */
+.top{z-index:2;pointer-events:auto}.top .w{text-decoration:none;display:flex;align-items:center;min-height:44px}
+.top .w:focus-visible,#meetAoi:focus-visible{outline:2px solid var(--ml-l-aoi);outline-offset:3px}
+.hint{z-index:2;display:flex;flex-direction:column;align-items:flex-end;gap:5px;pointer-events:auto}
+#meetAoi{font:inherit;font-size:13px;color:var(--ml-ink);min-height:44px;padding:8px 14px;border:1px solid var(--ml-line);border-radius:999px;background:rgba(6,10,18,.7);cursor:pointer}
+@media(max-width:560px){.top{gap:8px;left:12px;top:8px}.top .w{font-size:17px}.top .n{font-size:12px}.hint{top:62px;right:12px}.hint>span{display:none}}
 </style>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
+<link rel="modulepreload" href="./vendor/three/build/three.module.js" crossorigin>
+<link rel="modulepreload" href="app.js?v=20261109src">
+<!-- 2026-11-09 草地と札を先に。碧（VRM）はそのあとで読む -->
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 </head>
 <body>
 <script src="kit/loader_qualium.js"></script>
-<canvas id="c" aria-label="碧が立つ小さな庭。下の札を押すと、碧が人の感覚では届かない世界を訳して見せる"></canvas>
-<div class="top"><span class="w">mitsulab</span><span class="n">碧の層</span></div>
-<p class="hint">碧に触れると、名乗ります<br>下の札で、届かない世界をひらく</p>
+<canvas id="c" aria-label="碧が立つ小さな庭。下の札を押すと、碧がほかの生き物や昔の受けとり方を案内する"></canvas>
+<div class="top"><a class="w" href="/#apps" aria-label="mitsulab の作品一覧へ戻る">← mitsulab</a><span class="n">碧の層</span></div>
+<div class="hint"><button id="meetAoi" type="button">碧に話しかける</button><span>下の札から、ひとつ選ぶ</span></div>
 <div class="cap" id="cap" aria-live="polite"></div>
 <nav class="dock" aria-label="ひらく世界">
   <button type="button" data-w="uv" style="--c:#c9abe0" aria-pressed="false">鳥の目<i>ultraviolet</i></button>
@@ -53,6 +63,6 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
   <button type="button" data-w="yori" style="--c:#a8f2f6" aria-pressed="false">依代<i>yorishiro</i></button>
 </nav>
 <p class="cr">© mitsulab</p>
-<script type="module" src="app.js"></script>
+<script type="module" src="app.js?v=20261109src"></script>
 </body>
 </html>

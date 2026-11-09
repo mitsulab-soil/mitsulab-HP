@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261105h";
+import { T, setLang, lang } from "./i18n.js?v=20261109t";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -389,7 +389,7 @@ const look = new THREE.Vector3();
 let fitAspect = 1;
 function fitDist() {
   const a = fitAspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
-  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? .9 : 1.34);
+  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? .9 : 1.12);   // 2026-11-09 PC でも面をはじめから中央に大きく
 }
 const markFree = () => { const n = $("#viewName"); if (n.dataset.t !== "view.free") { n.dataset.t = "view.free"; n.textContent = T("view.free"); } };
 const clampG = () => { G.zoom = Math.min(Z_MAX, Math.max(Z_MIN, G.zoom)); G.el = Math.min(EL_MAX, Math.max(EL_MIN, G.el)); G.tx = Math.min(.55, Math.max(-.55, G.tx)); G.tz = Math.min(.6, Math.max(-.55, G.tz)); dirty = 2; };
@@ -562,7 +562,7 @@ function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 // ---- 碧の字幕
 // はじめに一度だけ名乗り、そのあとに触れ方を伝える（触れはじめたら名乗りは切りあげる）
 const WS = /[?&]ws=1/.test(location.search);   // 2026-11-05 ワークショップ（触覚さがし）
-function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.name", 8600); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 8800); }   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
+function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.hello", 7000); }   // 2026-11-09 名乗りは出さず、なぞる一言から   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
 let capKey = null, capTimer = 0;
 function say(k, ms = 6000) {
   said[k.replace("aoi.", "")] = true; capKey = k; const c = $("#cap"); c.textContent = T(k); c.classList.add("on");
@@ -675,11 +675,12 @@ resize();
 (async () => {
   try { applySurface(await loadSample(SAMPLES[0])); }
   catch (e) { console.error(e); }
-  try { const W = await import("./kit/warm.js"); await W.warmScene(renderer, scene, camera); } catch (e) { console.warn(e); }   // 2026-11-05：見せる前に材質を組み・絵を送る（最初のこまの止まりを分ける）
+  // 2026-11-09：面が来たらすぐ一こま描いて見せる（材質の下ごしらえ・碧はそのあと）
+  try { placeCam(1); renderer.render(scene, camera); } catch (e) { console.warn(e); }
   window.MLLoader?.done();
   requestAnimationFrame(frame);
-  setTimeout(() => { if (!said.hello) hello(); }, 1600);
-  setTimeout(loadAoi, 350);
+  setTimeout(() => { if (!said.hello) hello(); }, 900);
+  setTimeout(loadAoi, 2500);
   setTimeout(() => sonic.prefetch(), 400);   // 最初になぞる前に音を用意しておく
   // ほかの見本は、手が空いたときに先に読んでおく
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
