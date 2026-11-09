@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Qualia/yose ── 館と寄席</title>
+<meta name="robots" content="noai,noimageai">
+<meta name="tdm-reservation" content="1">
+<!-- © mitsulab. All rights reserved. 2026-11-09。Qualia/yose＝Qualia Museum と Qualia/rakugo の集約：時代と文化の受けとり方を館で見て、碧が噺に訳す 8 席を寄席で聴く。各席に、あわせて訪ねる館の部屋を添える。 -->
+<style>
+:root{--bg:#03060f;--ink:#eef5fb;--aoi:#5cc8e0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif}
+#bar{position:fixed;top:0;left:0;right:0;padding-top:env(safe-area-inset-top);background:var(--bg);border-bottom:1px solid rgba(92,200,224,.25);z-index:2}
+#row{height:52px;display:flex;align-items:center;gap:6px;padding:0 8px 0 12px}
+#row b{font-weight:400;letter-spacing:.08em;font-size:15px;margin-right:auto;line-height:1.3}#row b small{display:block;font-size:11px;letter-spacing:.02em;color:#cfe3ee}#row button{min-width:56px}
+button{height:44px;border-radius:22px;border:1px solid rgba(92,200,224,.4);background:transparent;color:var(--ink);font:inherit;font-size:14px;letter-spacing:.06em;cursor:pointer;padding:0 14px;white-space:nowrap}
+button[aria-pressed="true"]{background:rgba(92,200,224,.3);border-color:var(--aoi)}
+#seki{display:none;gap:6px;overflow-x:auto;padding:0 8px 8px;scrollbar-width:none}
+#seki::-webkit-scrollbar{display:none}
+#seki{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+body.yose #seki{display:flex}
+#go{display:none;padding:0 8px 8px}body.room #go{display:block}#toRoom{width:100%;border-color:var(--aoi)}
+#seki button{height:50px;line-height:1.3;font-size:14px;padding:0 12px;border-radius:12px}
+#seki small{display:block;font-size:11px;color:#cfe3ee;letter-spacing:.02em}
+@media (max-width:560px){body.yose #seki{display:grid;grid-template-columns:repeat(4,1fr);overflow:visible;-webkit-mask-image:none;mask-image:none}#seki button{padding:0 2px;font-size:12.5px;letter-spacing:0}#seki small{font-size:10.5px}#row b small{font-size:10px}}
+#app{position:fixed;left:0;right:0;bottom:0;width:100%;border:0;display:block;background:var(--bg)}
+#wait{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg);color:var(--ink);font-size:14px;letter-spacing:.1em;z-index:1;transition:opacity .4s;pointer-events:none}#wait.off{opacity:0}#wait i{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(92,200,224,.25);border-top-color:var(--aoi);animation:r 1s linear infinite}@keyframes r{to{transform:rotate(1turn)}}#wait small{font-size:12px;color:#cfe3ee;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<nav id="bar"><div id="row"><b>Qualia/yose<small>自然の受けとり方を館で見て、碧の噺で聴く</small></b><button data-v="kan">館</button><button data-v="yose">寄席</button></div><div id="seki"></div><div id="go"><button id="toRoom"></button></div></nav>
+<div id="wait"><i></i><span id="wt"></span></div>
+<iframe id="app" title="Qualia/yose" allow="autoplay; fullscreen"></iframe>
+<script>
+const MUSEUM = 'https://mitsulab-soil.github.io/museum/', YOSE = 'https://mitsulab-soil.github.io/aoi-shizen-rakugo/';
+// 8 席と、あわせて訪ねる館の部屋（館の部屋は名前で案内する）
+const S = [['hachi','蜂の目','やさい百景','花と受粉','yasai'],['mimizu','みみずの耳','つち百景','土の中','tsuchi'],['ga','蛾の恋文','つき百景','夜の空気','tsuki'],['kumo','蜘蛛の留守番','あめ百景','軒と雨','ame'],['inu','犬の道しるべ','かぜ百景','地面と風の匂い','kaze'],['keyaki','欅の目方','たいよう百景','光を積む木','taiyo'],['shashin','写真の留守','たいよう百景','光で写す','taiyo'],['hoshi','星の遅刻','たいよう百景','8 分前の日の光','taiyo']];
+const app = document.getElementById('app'), bar = document.getElementById('bar'), seki = document.getElementById('seki');
+seki.innerHTML = S.map(([k, t, r, w]) => `<button data-e="${k}">${t}<small>${w}</small></button>`).join('');
+const fit = () => { const h = bar.offsetHeight; app.style.top = h + 'px'; document.getElementById('wait').style.top = h + 'px'; app.style.height = (innerHeight - h) + 'px'; };
+function go(v, e, room) {
+  if (v !== 'yose') v = 'kan';
+  const s = S.find(x => x[0] === e); document.body.classList.toggle('room', v === 'yose' && !!s);
+  if (s) { const b = document.getElementById('toRoom'); b.textContent = `館の${s[2]}へ（${s[3]}）`; b.onclick = () => go('kan', null, s[4]); }
+  document.body.classList.toggle('yose', v === 'yose');
+  document.querySelectorAll('#row button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+  seki.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.e === e));
+  app.src = v === 'kan' ? MUSEUM + '?embed=1' + (room ? '&room=' + room : '') : YOSE + '?embed=1' + (e ? '&e=' + e : '');
+  const u = new URL(location); u.searchParams.set('v', v); e ? u.searchParams.set('e', e) : u.searchParams.delete('e'); history.replaceState(null, '', u);
+  fit(); const w = document.getElementById('wait'); document.getElementById('wt').textContent = v === 'kan' ? '館をひらいています' : '寄席をひらいています'; w.classList.remove('off');
+}
+document.querySelectorAll('#row button').forEach(b => b.onclick = () => go(b.dataset.v));
+seki.querySelectorAll('button').forEach(b => b.onclick = () => go('yose', b.dataset.e));
+addEventListener('resize', fit);
+app.addEventListener('load', () => setTimeout(() => document.getElementById('wait').classList.add('off'), 600));
+const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : null);
+</script>
+</body>
+</html>
