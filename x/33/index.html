@@ -68,7 +68,7 @@ header span{font-size:12px;color:var(--ink3)}
 #more>summary{color:var(--sumi2)}
 @media (max-width:420px){#wname{font-size:13px}.wb{padding:0 9px;font-size:12.5px}#wtop{padding:12px 12px 24px}#paper.fold{max-height:none;cursor:pointer}#paper.fold>*:not(#pfrom){display:none}#paper.fold #pfrom::after{content:"　＋ 便りをひらく";color:var(--sumi)}#pfrom{min-height:24px}#pbody{text-wrap:pretty;font-size:13.5px;line-height:1.7}#paper{max-height:40vh;padding:10px 14px 0}#pfrom{font-size:11px!important}}@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 /* 2026-11-10 第4周：ひらいたら便りの文を画面の中央に大きく（なぞると下へ畳む）・返事の欄を大きく・封は和紙の繊維と縁の陰で紙らしく */
-#paper{top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(92vw,560px);max-height:76vh;padding:22px 26px 6px;transition:top .5s var(--ease),transform .5s var(--ease)}
+#paper{top:62%;bottom:auto;transform:translate(-50%,-50%);width:min(92vw,470px);max-height:66vh;padding:22px 26px 6px;transition:top .5s var(--ease),transform .5s var(--ease)}
 #paper.fold{top:auto;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:12px 16px 2px}
 #pfrom{font-size:14px!important}
 #pbody{font-size:clamp(17px,2.2vw,20px);line-height:2;letter-spacing:.06em}
@@ -137,7 +137,7 @@ body::after{content:"";position:fixed;left:0;right:0;top:24%;height:20%;pointer-
 <p id="sub">参道の生き物たちの受けとり方を、碧が人のことばに置きかえて書いた便りです。<small>いちばん上の封にふれると、便りを読めます。</small></p>
 <div id="stack"></div>
 <section id="world" role="dialog" aria-modal="true" aria-labelledby="wname">
-  <canvas id="cv"></canvas>
+  <canvas id="gl" style="position:absolute;inset:0;width:100%;height:100%;display:none"></canvas><canvas id="cv"></canvas>
   <div id="wtop"><div id="wname"></div><div style="display:flex;gap:6px"><button class="wb" id="eye" aria-pressed="false">人の目で見る</button><button class="wb" id="back">自分の目に戻る</button></div></div>
   <p id="hint"></p>
   <article id="paper">
@@ -173,10 +173,10 @@ const L=[
  q:"見えないまま知る、ということがあるでしょうか。",
  s:"アブラコウモリ（Pipistrellus abramus）は周波数の下がる超音波（終わりがおよそ 40 kHz）で反響定位する：Hiryu, S. et al. (2008) J. Acoust. Soc. Am. 124: EL51–EL56。実際の声は数ミリ秒。音＝人に聞こえる高さへ下げ、時間もゆっくりにし、反響の遅れは省いた模式。画＝反響のとどいた所だけを線で示した模式。"}
 ];
-const VW=l=>l.id==='worm'?'ミミズの肌':l.id==='bat'?'アブラコウモリの耳':l.from+'の目';const $=id=>document.getElementById(id),stack=$('stack'),world=$('world'),cv=$('cv'),cx=cv.getContext('2d'),sub=$('sub');
+const VW=l=>l.id==='worm'?'ミミズの肌':l.id==='bat'?'アブラコウモリの耳':l.from+'の目';const $=id=>document.getElementById(id),stack=$('stack'),world=$('world'),cv=$('cv'),gl=$('gl'),cx=cv.getContext('2d'),sub=$('sub');
 const st=()=>{try{return JSON.parse(localStorage.getItem('qletter2')||'{}')}catch(e){return{}}};
 const save=o=>{try{localStorage.setItem('qletter2',JSON.stringify(o))}catch(e){}};
-let hintT=0,cur=-1,human=false,camX=0,drag=null,raf=0,t0=0,pulses=[],quakes=[],W=0,H=0,DPR=1,AC=null;
+let G3=null,hintT=0,cur=-1,human=false,camX=0,drag=null,raf=0,t0=0,pulses=[],quakes=[],W=0,H=0,DPR=1,AC=null;
 /* 束 */
 function lay(){stack.innerHTML='';const n=L.length,w=Math.min(innerWidth,900),sp=Math.min(60,(w-40)/n*0.3),o0=st();
  const ord=L.map((_,i)=>i).sort((a,b)=>(!!(o0[b]&&o0[b].r))-(!!(o0[a]&&o0[a].r))||b-a);
@@ -201,7 +201,7 @@ function canopy(alpha,tint){const im=TX.leaf_cluster||TX.leaf_spray;if(!im)retur
  if(tint){ox.globalCompositeOperation='source-atop';ox.globalAlpha=.45;ox.fillStyle=tint;ox.fillRect(0,0,W,ch);ox.globalAlpha=1}
  ox.globalCompositeOperation='destination-out';const g=ox.createLinearGradient(0,ch*.45,0,ch);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'#000');ox.fillStyle=g;ox.fillRect(0,0,W,ch);ox.globalCompositeOperation='source-over';
  cx.globalAlpha=alpha;cx.drawImage(OC,0,0,W,ch);cx.globalAlpha=1}
-function size(){DPR=Math.min(devicePixelRatio||1,2);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;cx.setTransform(DPR,0,0,DPR,0,0)}
+function size(){if(G3)G3.resize();DPR=Math.min(devicePixelRatio||1,2);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;cx.setTransform(DPR,0,0,DPR,0,0)}
 const P=(x,par)=>W/2+(x-camX*par)*Math.min(W,H)*0.9;
 function sky(c1,c2,hz){const g=cx.createLinearGradient(0,0,0,H*hz);g.addColorStop(0,c1);g.addColorStop(1,c2);cx.fillStyle=g;cx.fillRect(0,0,W,H*hz)}
 function ground(c1,c2,hz){const g=cx.createLinearGradient(0,H*hz,0,H);g.addColorStop(0,c1);g.addColorStop(1,c2);cx.fillStyle=g;cx.fillRect(0,H*hz-1,W,H)}
@@ -235,8 +235,8 @@ function flower(f,mode,t){const x=P(f.x,1.6),y=H*f.y+Math.sin(t*1.3+f.ph)*2,r=f.
  cx.save();cx.translate(x,y);cx.rotate(f.ph);cx.scale(1,.72);
  cx.globalAlpha=.25;cx.fillStyle='#000';cx.beginPath();cx.ellipse(r*.06,r*.12,r*.95,r*.95,0,0,6.283);cx.fill();cx.globalAlpha=1;
  const s=fsprite(f.c,f.p,mode==='bee'?'bee':mode==='ageha'?'ageha':'h');cx.drawImage(s,-r,-r,r*2,r*2);cx.restore()}
-function draw(t){const l=L[cur],m=human?'human':l.id;cx.clearRect(0,0,W,H);
- if(m==='human'&&l.id!=='bat'&&l.id!=='worm'||m==='bird'||m==='ageha'||m==='bee'){
+function draw(t){const l=L[cur],m=human?'human':l.id,use3=!!(G3&&G3.has(l.id));cx.clearRect(0,0,W,H);
+ if(m==='human'&&l.id!=='bat'&&l.id!=='worm'||m==='bird'||m==='ageha'||m==='bee'){ if(!use3){
   const hz=l.id==='bee'?0.42:l.id==='bird'?0.7:0.55;
   if(m==='bee'){sky('#7f9fc0','#b9cdd8',hz);ground('#35603f','#1f3a26',hz)}
   else{sky('#9ab8d4','#dfe6e8',hz);ground('#6d6450','#3c362b',hz)}
@@ -253,12 +253,13 @@ function draw(t){const l=L[cur],m=human?'human':l.id;cx.clearRect(0,0,W,H);
     cx.fillStyle='#5a2a3a';cx.beginPath();cx.arc(x,y,r,0,6.283);cx.fill();
     if(m==='bird'&&(b.x*97|0)%3!==0){cx.fillStyle='rgba(205,190,255,.55)';cx.beginPath();cx.arc(x-r*.25,y-r*.3,r*.7,0,6.283);cx.fill();cx.strokeStyle='rgba(225,215,255,.6)';cx.lineWidth=1;cx.beginPath();cx.arc(x,y,r*1.4+Math.sin(t*2+b.x)*1,0,6.283);cx.stroke()}}}
   if(l.id!=='bird')for(const f of flowers)flower(f,m,t);
+  }
   // 生き物の体の端（自分の体が視野の端に見える）
   if(m==='bee'){cx.fillStyle='rgba(20,18,12,.55)';cx.beginPath();cx.ellipse(W*.08,H*1.02,W*.18,H*.12,0.3,0,6.283);cx.fill();cx.strokeStyle='rgba(20,18,12,.6)';cx.lineWidth=2;cx.beginPath();cx.moveTo(W*.5-14,H*.98);cx.quadraticCurveTo(W*.5-40,H*.85,W*.5-30,H*.72);cx.moveTo(W*.5+14,H*.98);cx.quadraticCurveTo(W*.5+40,H*.85,W*.5+30,H*.72);cx.stroke()}
   if(m==='bird'){cx.fillStyle='rgba(120,120,125,.75)';cx.beginPath();cx.moveTo(W*.5-10,H);cx.lineTo(W*.5,H*.9);cx.lineTo(W*.5+10,H);cx.fill()}
-  if(m==='ageha'){cx.fillStyle='rgba(30,26,20,.5)';cx.beginPath();cx.moveTo(0,H*.2+Math.sin(t*6)*H*.05);cx.lineTo(W*.12,H*.5);cx.lineTo(0,H*.8);cx.fill();cx.beginPath();cx.moveTo(W,H*.2+Math.sin(t*6)*H*.05);cx.lineTo(W*.88,H*.5);cx.lineTo(W,H*.8);cx.fill()}
+  if(m==='ageha'&&!use3){cx.fillStyle='rgba(30,26,20,.5)';cx.beginPath();cx.moveTo(0,H*.2+Math.sin(t*6)*H*.05);cx.lineTo(W*.12,H*.5);cx.lineTo(0,H*.8);cx.fill();cx.beginPath();cx.moveTo(W,H*.2+Math.sin(t*6)*H*.05);cx.lineTo(W*.88,H*.5);cx.lineTo(W,H*.8);cx.fill()}
   // 霧
-  const g=cx.createLinearGradient(0,H*.3,0,H*.7);g.addColorStop(0,'rgba(230,236,240,0)');g.addColorStop(.5,'rgba(230,236,240,.12)');g.addColorStop(1,'rgba(230,236,240,0)');cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  if(!use3){const g=cx.createLinearGradient(0,H*.3,0,H*.7);g.addColorStop(0,'rgba(230,236,240,0)');g.addColorStop(.5,'rgba(230,236,240,.12)');g.addColorStop(1,'rgba(230,236,240,0)');cx.fillStyle=g;cx.fillRect(0,0,W,H);}
  }
  if(l.id==='worm'){
   if(m==='human'){sky('#9ab8d4','#dfe6e8',.45);ground('#5d5442','#2f291f',.45);trunks('#4a3b2e',.45,.5);
@@ -280,7 +281,7 @@ function draw(t){const l=L[cur],m=human?'human':l.id;cx.clearRect(0,0,W,H);
     for(const mo of moths){const x=P(mo.x+Math.sin(t+mo.ph)*.1,1.1),y=H*mo.y+Math.cos(t*2+mo.ph)*6;const d=Math.hypot(x-W/2,y-H*.95);if(d<R){cx.fillStyle='rgba(242,207,140,.95)';cx.beginPath();cx.arc(x,y,3,0,6.283);cx.fill();cx.strokeStyle='rgba(242,207,140,.6)';cx.beginPath();cx.arc(x,y,7,0,6.283);cx.stroke()}}
     cx.globalAlpha=1}}}
 }
-function loop(ts){const t=ts/1000;draw(t);raf=requestAnimationFrame(loop)}
+function loop(ts){const t=ts/1000;const l=L[cur],u=!!(G3&&G3.has(l.id));gl.style.display=u?'block':'none';if(u){G3.setCam(camX);G3.render(t)}draw(t);raf=requestAnimationFrame(loop)}
 function snd(kind){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.connect(g);g.connect(AC.destination);
  if(kind==='bat'){o.type='sine';o.frequency.setValueAtTime(5200,n);o.frequency.exponentialRampToValueAtTime(2500,n+0.06);g.gain.setValueAtTime(0.0001,n);g.gain.exponentialRampToValueAtTime(0.12,n+0.005);g.gain.exponentialRampToValueAtTime(0.0001,n+0.08)}
  else{o.type='sine';o.frequency.setValueAtTime(48,n);g.gain.setValueAtTime(0.0001,n);g.gain.exponentialRampToValueAtTime(0.25,n+0.02);g.gain.exponentialRampToValueAtTime(0.0001,n+0.6)}
@@ -292,8 +293,8 @@ cv.addEventListener('pointerup',e=>{const tap=drag&&!drag.moved;drag=null;if(!ta
  if(id==='bat'){pulses.push({t});snd('bat')}else if(id==='worm'){quakes.push({t,x:e.clientX,y:e.clientY});snd('worm')}hideHint()});
 cv.addEventListener('pointermove',()=>{if(drag&&drag.moved)hideHint()});
 function hideHint(){$('hint').style.opacity=0}
-$('eye').onclick=()=>{human=!human;$('eye').setAttribute('aria-pressed',human);$('wname').firstChild.textContent=human?'人の目':VW(L[cur]);$('eye').textContent=human?VW(L[cur])+'で受けとる':'人の目で見る'};
-function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];
+$('eye').onclick=()=>{human=!human;if(G3&&G3.has(L[cur].id))G3.setMode(L[cur].id,human);$('eye').setAttribute('aria-pressed',human);$('wname').firstChild.textContent=human?'人の目':VW(L[cur]);$('eye').textContent=human?VW(L[cur])+'で受けとる':'人の目で見る'};
+function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];if(G3&&G3.has(l.id))G3.setMode(l.id,false);
  $('wname').innerHTML=VW(l)+'<small>碧が人のことばに置きかえた模式</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
  $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pcite').textContent='典拠　'+l.c;$('pq').textContent=l.q;if(document.body.classList.contains('kids'))furi();$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
  const o=st();$('rk').textContent=o[i]&&o[i].t?'封に挟んだ返事：'+o[i].t:'返事は、この端末の中にだけ残ります。';$('ri').value='';o[i]=Object.assign(o[i]||{},{r:1});save(o);
@@ -307,7 +308,7 @@ function closeL(){if(!world.classList.contains('on'))return;world.classList.remo
 $('back').onclick=closeL;$('paper').addEventListener('click',e=>{const pp=$('paper');if(pp.classList.contains('fold')){pp.classList.remove('fold');e.preventDefault()}});addEventListener('keydown',e=>{if(e.key==='Escape')closeL()});
 world.querySelector('form').onsubmit=ev=>{ev.preventDefault();const v=$('ri').value.trim();if(!v)return;const o=st();o[cur]=Object.assign(o[cur]||{},{t:v});save(o);
  const rk=$('rk');rk.textContent='返事を、この便りの封に挟みました：'+v;rk.style.color='#8a3b2e';setTimeout(()=>rk.style.color='',900);$('ri').value=''};
-lay();addEventListener('resize',()=>{clearTimeout(window._r);window._r=setTimeout(()=>{lay();if(world.classList.contains('on'))size()},120)});
+lay();setTimeout(()=>import('./letter3d.js').then(m=>{G3=m.create(gl,'tex/');if(cur>=0&&world.classList.contains('on')){G3.setMode(L[cur].id,human);size()}}).catch(()=>{}),250);addEventListener('resize',()=>{clearTimeout(window._r);window._r=setTimeout(()=>{lay();if(world.classList.contains('on'))size()},120)});
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-09 公開。Qualia/letter＝便り：氷川参道の生き物たちの受けとり方を、碧が訳して書いた便り。質感の写真は CC0（Qualia/sight と同じ）。AI の学習・生成への利用はお断りします。 -->
 <script>
