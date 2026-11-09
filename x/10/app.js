@@ -380,7 +380,7 @@ $("#bBlind").addEventListener("click", () => setBlind(!blind));
 function busy(on) { $("#busy").hidden = !on; }
 
 // ---- 見る向き（回す・傾ける・寄る・ずらす）。V＝いま、G＝向かう先
-const VIEWS = [{ el: .9, d: 1 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 斜め・真上・低く
+const VIEWS = [{ el: 1.22, d: MOBILE ? .44 : .47 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 斜め・真上・低く
 const Z_MIN = .5, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .3 : .1;   // 下の帯（波・字幕）のぶん、面を少し上へ
 let view = 0, baseD = 2;
 const V = { az: 0, el: VIEWS[0].el, zoom: 1, tx: 0, tz: T0 }, G = { ...V };
@@ -468,6 +468,9 @@ let touch = null, force = 0, dentAt = new THREE.Vector2(), shown = new THREE.Vec
 const ptrs = new Map(); let drag = null, pinch = null;   // drag＝一本の指・マウスで回す／ずらす、pinch＝二本の指
 const mm = p => [(p.x + .5) * SIZE_MM, (p.z + .5) * SIZE_MM];
 const two = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
+function tapRip(x, y, two) { for (const c of two ? ["", " b"] : [""]) { const d = document.createElement("i"); d.className = "tap-rip" + c; d.style.left = x + "px"; d.style.top = y + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 900); } }
+let ripDomT = 0;
+cv.addEventListener("pointermove", e => { if (touch && touch.id === e.pointerId && performance.now() - ripDomT > 220) { ripDomT = performance.now(); tapRip(e.clientX, e.clientY, false); } });
 cv.addEventListener("pointerdown", e => {
   closeTray(); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); cv.setPointerCapture(e.pointerId); e.preventDefault();
   if (ptrs.size === 2) {   // 二本目の指：なでるのをやめて、寄る・回す・ずらすへ
@@ -477,6 +480,7 @@ cv.addEventListener("pointerdown", e => {
   const p = toPlate(e), btn = e.button;
   if (btn === 2 || btn === 1 || e.shiftKey) { drag = { kind: "pan", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
   if (mode === "move" || !inside(p)) { drag = { kind: "orbit", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
+  tapRip(e.clientX, e.clientY, true);   // 2026-11-10 第4周：押した所に波紋（押した手応え）
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
   dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.arm(); vibe.tap(); sonic.tap(); addTrail(p, p, true); model.takeEdges(); shown.copy(dentAt);
   $("#waveHint").style.opacity = 0; $("#fhint").classList.add("off"); aoiWatch(true);

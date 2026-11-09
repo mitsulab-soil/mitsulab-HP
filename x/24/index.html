@@ -8,7 +8,7 @@
 {"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261109r3">
+<link rel="modulepreload" href="app.js?v=20261110r4">
 <link rel="modulepreload" href="data.js">
 <link rel="modulepreload" href="audio.js?v=20261107p2">
 <link rel="modulepreload" href="kit/vegetation.js">
@@ -88,6 +88,7 @@ body{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid
 #chs{grid-area:6/1;position:relative;left:auto;right:auto;bottom:auto;min-height:56px;height:auto;box-sizing:border-box;flex-wrap:wrap;padding-bottom:env(safe-area-inset-bottom);max-height:40vh;overflow:auto;touch-action:pan-y}
 #chs button{flex:1 1 auto;min-height:44px;height:auto;white-space:normal;overflow-wrap:anywhere}
 #fold{grid-area:2/1/7/2;position:relative;top:auto;right:auto;justify-self:end;align-self:stretch;margin:0 12px 8px;width:min(calc(100% - 24px),420px);min-height:0;max-height:100%;overflow:auto;touch-action:pan-y;z-index:7}
+body:not(.info) #spec,body:not(.info) #heatbar{display:none}
 </style></head><body>
 <script src="loader.js" data-max="4000"></script>
 <div id="stage"></div>
@@ -104,12 +105,12 @@ body{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid
 <div id="heatbar">例 5°<b></b>35°C<span>温度は例。空は 5 °C より低く色の外（模式）</span></div>
 <div id="cap" aria-live="polite"></div>
 <div id="chs" role="tablist" aria-label="機械の受けとり方"></div>
-<div id="fold"><section class="q-route"><h2>次の問いへ。</h2><p>違う手がかりを持つ主体は、環境を介してどう応え合うでしょうか。</p><a href="../22/" data-question-local="../../15_Qualia_compute/★実行データ/">変化が伝わる場へ →</a><a href="../19/" data-question-local="../../12_ひとつの木/★実行データ/">一本の木を見直す →</a><p>ここでの機械の画は、取得条件を考えるための模式です。</p></section><h2>この作品について</h2>
+<div id="fold"><section class="q-route"><h2>次の問いへ。</h2><p>違う手がかりを持つ主体は、環境を介してどう応え合うでしょうか。</p><a href="../22/" data-question-local="../../17_Qualia_leaf/★実行データ/">変化が伝わる場へ →</a><a href="../19/" data-question-local="../../19_Qualia_keyaki/★実行データ/">一本の木を見直す →</a><p>ここでの機械の画は、取得条件を考えるための模式です。</p></section><h2>この作品について</h2>
 <p>左は人の受けとり方、右は機械の受けとり方。まん中のつまみを動かす・触れる（鳴る）・なぞる（その場所の記述が書き換わり、線が旋律になる）・「外から」で自分の受けとり方を見る。</p>
 <p>「機械」は、ここでは一台のカメラ・熱カメラ・LiDAR・マイク・分類器の受けとれる範囲のことです（機械一般の限界ではありません）。機械の画は、機器の仕様と研究の数をもとにした模式です。温度・分類の確からしさの数は例です。音は光の周波数を 40 オクターブ下げた高さなど、聴こえる高さに移した模式です。書き換わるのはこの場所の記述で、場所そのものは変わりません。何も記録・送信しません。</p>
 <h2>問いの手がかり</h2><p>カント『純粋理性批判』（現象と物自体）／ユクスキュル（環世界と機能環）／メルロ＝ポンティ（身体と知覚）／ネーゲル（コウモリであるとはどのようなことか）／クワイン（翻訳の不確定性）／ウィトゲンシュタイン（多くの場合、意味は使われ方にある）／ベイトソン・ウィーナー（循環と帰還）。</p>
 <h2>典拠</h2><ul id="refs"></ul>
 <p>質感：Poly Haven・ambientCG（CC0）／Three.js・three-vrm（MIT）／碧の動き：CMU Graphics Lab Motion Capture Database をもとに mitsulab が作成</p>
 <p>© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p></div>
-<script type="module" src="app.js?v=20261109r3"></script>
+<script type="module" src="app.js?v=20261110r4"></script>
 <script>(()=>{if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script></body></html>

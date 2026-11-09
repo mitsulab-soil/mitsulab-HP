@@ -337,15 +337,15 @@ const I3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 const xz = v => [v.x, v.z], xyz = v => [v.x, v.y, v.z];
 const sat = s => { const w = [.2126, .7152, .0722]; return [0, 1, 2].flatMap(i => [0, 1, 2].map(j => (i === j ? s : 0) + (1 - s) * w[j])); };
 const LENS = {
-  hito: { eye: 1.55, m: I3, uvw: [0, 0, 0], sub: "色を受けとる細胞は三種類（三色型・Dartnall ら 1983）", legend: "" },
+  hito: { eye: 1.55, m: I3, uvw: [0, 0, 0], sub: "色を見わける細胞が 3 種類", legend: "" },
   // ミツバチ：紫外・青・緑（Peitsch et al. 1992：約 340・435・540 nm）。表示は 紫外→青・青→緑・緑→赤
-  hachi: { eye: .95, speed: 2.2, spot: [...xz(bed(-1.0, 0, 1.7)), ...xyz(bed(-1.9, 1.15, -.9))], m: [.18, .85, .10, 0, .15, .85, 0, 0, .02], uvw: [0, 0, 1], sub: "紫外・青・緑の三色型（Peitsch ら 1992）", legend: "<b>人の画面への置きかえ（近似）</b><span class='sight-colours'><span>紫外 → 青</span><span>青 → 緑</span><span>緑 → 赤</span></span><span class='sight-sonic'>紫外を返すものを見ると、高い音</span>" },
+  hachi: { eye: .95, speed: 2.2, spot: [...xz(bed(-1.0, 0, 1.7)), ...xyz(bed(-1.9, 1.15, -.9))], m: [.18, .85, .10, 0, .15, .85, 0, 0, .02], uvw: [0, 0, 1], sub: "紫外・青・緑の 3 種類で色を見る", legend: "<b>人の画面への置きかえ（近似）</b><span class='sight-colours'><span>紫外 → 青</span><span>青 → 緑</span><span>緑 → 赤</span></span><span class='sight-sonic'>紫外を返すものを見ると、高い音</span>" },
   // アゲハ：四色型（Koshitaka et al. 2008）。紫外は紫がかった光で重ねる
-  chou: { eye: .9, speed: 2, spot: [...xz(bed(3.6, 0, 2.3)), ...xyz(bed(1.6, .75, .2))], m: sat(1.12), uvw: [.45, 0, .65], sub: "紫外から赤まで・四色型とされる", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（人の画面に出せない四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
+  chou: { eye: .9, speed: 2, spot: [...xz(bed(3.6, 0, 2.3)), ...xyz(bed(1.6, .75, .2))], m: sat(1.12), uvw: [.45, 0, .65], sub: "紫外から赤まで、4 種類以上で見るとされる", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（人の画面に出せない四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
   // 鳥：四色型（Hart 2001）。紫外は同じく紫で重ねる
-  tori: { eye: 2.3, speed: 2.4, spot: [TREE.x - 3.2, TREE.z + 3.6, TREE.x - .9, 2.4, TREE.z + .9], m: sat(1.25), uvw: [.4, 0, .7], sub: "四色型・種によって紫外まで", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
+  tori: { eye: 2.3, speed: 2.4, spot: [TREE.x - 3.2, TREE.z + 3.6, TREE.x - .9, 2.4, TREE.z + .9], m: sat(1.25), uvw: [.4, 0, .7], sub: "4 種類。紫外まで見える鳥もいる", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
   // 犬：二色型（Neitz, Geist & Jacobs 1989：約 429・555 nm）。人の二色型の近似の行列（Machado et al. 2009）と、ぼかし
-  inu: { eye: .5, spot: [...xz(bed(.4, 0, 4.6)), ...xyz(bed(1.4, .45, 2.2))], m: [.367322, .860646, -.227968, .280085, .672501, .047413, -.01182, .04294, .968881], uvw: [0, 0, 0], blur: .3, sub: "青と黄緑あたりの二色型", legend: "<b>二色型の近似</b><br>ぼかし＝細かさの見分けがあらい" },
+  inu: { eye: .5, spot: [...xz(bed(.4, 0, 4.6)), ...xyz(bed(1.4, .45, 2.2))], m: [.367322, .860646, -.227968, .280085, .672501, .047413, -.01182, .04294, .968881], uvw: [0, 0, 0], blur: .3, sub: "青と黄緑の 2 種類で色を見る", legend: "<b>二色型の近似</b><br>ぼかし＝細かさの見分けがあらい" },
   hebi: { eye: .25, mode: 1, spot: [MOUSE.x - .5, MOUSE.z + 1.4, MOUSE.x, .08, MOUSE.z], m: I3, uvw: [0, 0, 0], sub: "目と、ピット（赤外を熱で感じる）", legend: "<b>明るいところ</b>＝温かいもの<br>温かいものを見ると、低い音" },
   koumori: { eye: 2.0, mode: 2, spot: [.5, 6.5, 1, 1.6, -1], m: I3, uvw: [0, 0, 0], night: true, sub: "反響で形をとらえる（エコーロケーション）", legend: "<b>光る輪</b>＝声のとどいたところ<br>（ゆっくりにして見せている）<br>音＝人に聞こえる高さに下げた作り音" },
   mimizu: { under: "light", mode: 4, m: I3, uvw: [0, 0, 0], sub: "目はない・体で光の明るさを感じる", legend: "<b>画面の明るさ</b>＝光の明るさだけ<br>▲▼で上へ・下へ" },
@@ -1314,8 +1314,8 @@ STARTUP.sceneBuiltAt = performance.now();
     STARTUP.forestRestAt = performance.now(); })();
   /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 400))]);   /* 2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 3 && dt < 50) || t - t0 > 700) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
-  window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
-  { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
+  window.__muBoot = true; document.getElementById("poster")?.classList.add("gone"); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
+  { const T0 = "画面を押すと、碧といっしょに蜂や犬の目で森を見くらべるよ。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
   if (!A.hold) { A.appear = true; A.intro = true; if (AM) AM.calm = 2.4; }   // 2026-10-14：待たずに、最初のこまから現れはじめる
