@@ -30,7 +30,7 @@ const app = document.getElementById('app'), bs = [...document.querySelectorAll('
 function go(t) {
   if (!T[t]) t = 'omiya';
   bs.forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t));
-  app.src = BASE + T[t]; document.getElementById('sub').textContent = SUB[t];
+  app.src = BASE + T[t] + '?embed=1'; document.getElementById('sub').textContent = SUB[t];
   const u = new URL(location); u.searchParams.set('t', t); history.replaceState(null, '', u);
 }
 bs.forEach(b => b.onclick = () => { if (b.getAttribute('aria-pressed') !== 'true') go(b.dataset.t); });
