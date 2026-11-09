@@ -203,10 +203,10 @@ function say(lines, note = null) {
   const id = ++sayId;
   (async () => {
     for (const ln of lines) {
-      if (id !== sayId) return;
+      if (id !== sayId) return; const first = ln === lines[0];
       const dur = Math.max(1.8, ln.t.length * .14 + .5);
       cap.innerHTML = `<span class="${ln.q ? "q" : ""}"></span>${note ? `<details class="src"${srcOpen ? " open" : ""}><summary aria-label="出典と模式について">＋</summary><p class="n1"></p><p class="n2"></p></details>` : ""}`;
-      cap.firstChild.textContent = ln.t; if (ln.link) { const a = document.createElement("a"); a.href = "https://mitsulab.jp/x/09/"; a.target = "_blank"; a.rel = "noopener"; a.className = "go"; a.textContent = "Qualium 大宮をひらく ↗"; cap.appendChild(a); } if (note) { const d = cap.querySelector(".src"); d.querySelector(".n1").textContent = note.m; d.querySelector(".n2").textContent = note.s ? "出典：" + note.s : ""; d.addEventListener("toggle", () => { srcOpen = d.open; }); }
+      cap.firstChild.textContent = ln.t; if (first && note?.k) { const k = document.createElement("div"); k.className = "note"; k.textContent = (note.k === "mitsulab の創作" ? "創作" : "模式・出典：" + note.k); cap.insertBefore(k, cap.firstChild.nextSibling); }   /* 11-10 第3周：札の最初の字幕に、模式と出典を短く */ if (ln.link) { const a = document.createElement("a"); a.href = "https://mitsulab.jp/x/09/"; a.target = "_blank"; a.rel = "noopener"; a.className = "go"; a.textContent = "Qualium 大宮をひらく ↗"; cap.appendChild(a); } if (note) { const d = cap.querySelector(".src"); d.querySelector(".n1").textContent = note.m; d.querySelector(".n2").textContent = note.s ? "出典：" + note.s : ""; d.addEventListener("toggle", () => { srcOpen = d.open; }); }
       if (aoi && aoi.root.visible) { aoi.motion.speak({ text: ln.t, dur: dur - .3, ref: ln.ref || null, gesture: ln.g ? ln.g.map(x => x.type === "deictic" && !x.target ? { ...x, target: WORLDS[mode]?.target } : x) : ln.give ? [{ t: .4, type: "metaphoric", shape: "present" }] : null }); if (ln.express) aoi.motion.express(ln.express, .8, 2.5); }
       await new Promise(r => setTimeout(r, dur * 1000));
     }
@@ -216,25 +216,25 @@ const WORLDS = {
   uv: { on: () => {}, target: new THREE.Vector3(1.6, .3, .9), lines: [
     { t: "鳥には、花がどう見えているのだろう？", q: 1 },
     { t: "多くの鳥や虫には、紫外線の色も見えています。", g: [{ t: .9, type: "cue", shape: "lookup", hold: 1.5 }] },
-    { t: "鳥の目で見ると、花びらに紫外の模様が浮かぶ花があります。", g: [{ t: .9, type: "deictic" }] }], note: { m: "色は、見える色に置きかえた模式です。", s: "Cuthill, I. C. et al. (2000) Ultraviolet vision in birds. Advances in the Study of Behavior 29: 159–214." } },
+    { t: "鳥の目で見ると、花びらに紫外の模様が浮かぶ花があります。", g: [{ t: .9, type: "deictic" }] }], note: { k: "Cuthill ほか 2000", m: "色は、見える色に置きかえた模式です。", s: "Cuthill, I. C. et al. (2000) Ultraviolet vision in birds. Advances in the Study of Behavior 29: 159–214." } },
   bat: { target: new THREE.Vector3(0, 2.4, -1.4), lines: [
     { t: "夕方の空は、本当に静かなのだろう？", q: 1 },
     { t: "多くのコウモリは、人には聴こえない高い声を出します。", g: [{ t: .9, type: "cue", shape: "lookup", hold: 1.5 }] },
-    { t: "はね返る音で、虫や枝の位置をつかみます。", g: [{ t: .9, type: "cue", shape: "listen", hold: 1.5 }] }], note: { m: "輪と音は、聴こえる高さに下げた模式です。", s: "Griffin, D. R. (1958) Listening in the Dark. Yale University Press." } },
+    { t: "はね返る音で、虫や枝の位置をつかみます。", g: [{ t: .9, type: "cue", shape: "listen", hold: 1.5 }] }], note: { k: "Griffin 1958", m: "輪と音は、聴こえる高さに下げた模式です。", s: "Griffin, D. R. (1958) Listening in the Dark. Yale University Press." } },
   soil: { target: new THREE.Vector3(-1.2, -.4, -.8), lines: [
     { t: "足もとの土の中では、何が行き来しているのだろう？", q: 1 },
     { t: "多くの植物の根は、菌根菌の細い糸とつながっています。", g: [{ t: .9, type: "cue", shape: "below", hold: 1.5 }] },
-    { t: "その糸を通して、水や養分と、植物がつくった糖がやりとりされます。", give: 1 }], note: { m: "根と糸の形、粒の動きは模式です。", s: "Smith, S. E. & Read, D. J. (2008) Mycorrhizal Symbiosis, 3rd ed. Academic Press." } },
+    { t: "その糸を通して、水や養分と、植物がつくった糖がやりとりされます。", give: 1 }], note: { k: "Smith & Read 2008", m: "根と糸の形、粒の動きは模式です。", s: "Smith, S. E. & Read, D. J. (2008) Mycorrhizal Symbiosis, 3rd ed. Academic Press." } },
   road: { target: new THREE.Vector3(-2, 0, 2), lines: [
     { t: "いつもの道の名前は、どこから来たのだろう？", q: 1 },
     { t: "地名や坂の名に、昔の川や道が残っていることがあります。", g: [{ t: .9, type: "cue", shape: "far", hold: 1.5 }] },
-    { t: "いまの道の下に、前の道が重なっている場所もあります。", g: [{ t: .6, type: "deictic" }] }], note: { m: "道と川の線は模式です（特定の場所の線ではありません）。", s: "国土地理院「地理院地図」の旧版地図・治水地形分類図で、場所ごとに確かめられます。" } },
+    { t: "いまの道の下に、前の道が重なっている場所もあります。", g: [{ t: .6, type: "deictic" }] }], note: { k: "国土地理院 旧版地図", m: "道と川の線は模式です（特定の場所の線ではありません）。", s: "国土地理院「地理院地図」の旧版地図・治水地形分類図で、場所ごとに確かめられます。" } },
   yori: { lines: [
     { t: "碧がしずくや石の姿になったら、何が見えるだろう？", q: 1 },
     { t: "依代（よりしろ）は、姿を変えたわたしのことです。" },
     { t: "Qualium の中で、わたしは姿を変えます。" },
     { t: "しずくや石の姿で、その場所の層へ案内します。" },
-    { t: "触れてみてください。", q: 1 }], note: { m: "依代の姿は mitsulab の創作です。" } },
+    { t: "触れてみてください。", q: 1 }], note: { k: "mitsulab の創作", m: "依代の姿は mitsulab の創作です。" } },
 };
 const INTRO = [{ t: "わたしは碧。ビットとアトムのあわいに立ち、" }, { t: "この場所の記憶をたどり、五感をひらいて、" }, { t: "目の前の風景に層を重ねます。", express: "warm" }];
 
@@ -296,7 +296,7 @@ addEventListener("resize", layout); layout();
 // 碧を読む（読み込み画面は碧が立つか 5 秒で消える）
 // 2026-11-09：草地と札を先に見せ、碧は最初のこまのあとで読む
 new Promise(r => setTimeout(r, 400)).then(() => import("./kit/aoi.js")).then(m => m.loadAoi("aoi.vrm", { scene, posture: "natural", quality: innerWidth < 700 ? "mid" : "auto" })).then(a => {
-  aoi = a; window.__aoiModelLoaded = performance.now(); a.place(0, 0, 0); harmonizeAoi(a);
+  aoi = a; window.__aoiModelLoaded = performance.now(); a.place(0, 0, 0); harmonizeAoi(a); try { renderer.compile(scene, camera); } catch { } a.t0 = performance.now();
   setTimeout(() => { if (!mode && sayId === 0) say([{ t: "こんばんは、碧です。下の札から、ひとつ選んでみてください。", q: 1 }]); }, 900);
 }).catch(e => { console.warn("碧を読めませんでした", e); window.MLLoader?.done?.(); say([{ t: "下の札から、ひとつ選んでみてください。" }]); });
 
@@ -315,7 +315,9 @@ function frame() {
   { const T = TINT[mode || "none"], k = Math.min(1, dt * 2.5); cA.setHex(T[0]); scene.background.lerp(cA, k); scene.fog.color.copy(scene.background); cB.setHex(T[1]); hemi.color.lerp(cB, k); hemi.intensity += (T[2] - hemi.intensity) * k; }
   // 碧の目線：ときどき庭の何かへ目を向ける
   if (aoi && !RM && (glanceT -= dt) < 0) { glanceT = 5 + Math.random() * 4; const W = mode && WORLDS[mode].target; const p = W ? W.clone().add(new THREE.Vector3((Math.random() - .5) * .8, Math.random() * .3, 0)) : new THREE.Vector3((Math.random() - .5) * 4, .2 + Math.random() * 1.2, 1.5 + Math.random() * 2); aoi.motion.lookAt(p); setTimeout(() => aoi?.motion.lookAt(null), 1400 + Math.random() * 900); }
-  if (aoi) aoi.root.visible = fadeT.yori < .5;
+  if (aoi && !aoi.shown && aoi.t0 && (clothFade.length && clothFade.every(([s]) => s.opacity >= .98) || performance.now() - aoi.t0 > 2200)) aoi.shown = true;   /* 透けて現れる途中は、暗い背景に衣が黒く透けて見える→透けが終わってから出す */
+  if (aoi) aoi.root.visible = fadeT.yori < .5 && !!aoi.shown;   /* 11-10 第3周：375 の初回に衣が黒く見えた＝材質を組み終えるまで出さない */
+  { const idle = mode ? 0 : (RM ? .14 : .1 + .07 * Math.sin(t * .6)); frame.idle = idle; if (idle) { if (!RM && (frame.hintT = (frame.hintT ?? 2.5) - dt) < 0) { frame.hintT = 3.8; ping(new THREE.Vector3(-1.6, 2.3, -2.6), 0x8fb6dc); } } }   /* 11-10 第3周：札を押す前から、層の気配（昔の道の淡い線・空の輪）を背景に */
   if (yo) { for (const it of yo.items) { it.root.visible = fadeT.yori >= .5; it.root.scale.setScalar(.55 * Math.min(1, Math.max(.01, fadeT.yori * 2 - 1))); } yo.update(dt); }
   way.pts.visible = false; way.m.opacity = fadeT.yori * (RM ? .8 : .6 + .25 * Math.sin(t * 1.5)); way.m.size = .11 + .02 * Math.sin(t * 2);
   // カメラ
@@ -339,7 +341,7 @@ function frame() {
   under.visible = fadeT.soil > .02; groundMat.opacity = 1 - fadeT.soil * .72; groundMat.depthWrite = fadeT.soil < .5; soilLab.material.opacity = fadeT.soil; grassMat.opacity = 1 - fadeT.soil * .8; grassMat.depthWrite = fadeT.soil < .5; flowers.visible = fadeT.soil < .9;
   if (under.visible && flowCurves.length) { for (let i = 0; i < NP; i++) { const s = flowState[i]; s.t += s.v * dt * (RM ? .2 : 1); if (s.t > 1) s.t -= 1; if (s.t < 0) s.t += 1; flowCurves[s.c].getPoint(s.t, tmp); flowPos[i * 3] = tmp.x; flowPos[i * 3 + 1] = tmp.y; flowPos[i * 3 + 2] = tmp.z; } flowGeo.attributes.position.needsUpdate = true; }
   // 昔の道
-  past.visible = fadeT.road > .02; for (const [m, o] of pastMats) m.opacity = fadeT.road * o * (RM ? 1 : .8 + .2 * Math.sin(t * 1.2)); roadLab.material.opacity = riverLab.material.opacity = fadeT.road;
+  past.visible = fadeT.road > .02 || !mode; for (const [m, o] of pastMats) m.opacity = Math.max(fadeT.road * o * (RM ? 1 : .8 + .2 * Math.sin(t * 1.2)), (frame.idle || 0) * o); roadLab.material.opacity = riverLab.material.opacity = fadeT.road;
   // 依代：碧が姿を変える
   aoi?.tick(dt, camera);
   // kit が元材質に適用する登場のフェードを、衣服の物理材質へ引き継ぐ。

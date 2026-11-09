@@ -23,7 +23,7 @@ import { SPOTS } from "./sounds.js?v=4";
 import { makeEarWalk } from "./earwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=5n";
 import { makeStartPins } from "../kit/startpins.js?v=sp13";
-import { makeMapVeil } from "../kit/mapveil.js?v=mv1";
+import { makeMapVeil } from "../kit/mapveil.js?v=r3";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
 import { makeFliers } from "../kit/fliers.js?v=6";   // 10-30 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥・iNaturalist の研究用の質の記録あり）を数羽
@@ -1176,7 +1176,7 @@ function playNext() {
 let capT = 0;
 let capChunkT = 0;
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
-  const max = innerWidth < 640 ? 44 : 70; t = String(t).trim(); if (t.length <= max) return [t];
+  const max = innerWidth < 640 ? 20 : 70;   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
@@ -1313,7 +1313,7 @@ function stepTween(dt) { if (!TW) return false; TW.t = Math.max(TW.t + Math.min(
   if (k >= 1) { const d = TW.done; TW = null; d?.(); } return true; }
 /* 始める場所（道筋 A の 7 地点） */
 const PICK = "#ffb648";   // 選んでいる場所の色（地図のしるし・ボタンと同じ）
-const START = { sel: 4, pins: [], labels: [] };   // 2026-10-23 はじめは蔵造りの一番街（仲町交差点）から
+const START = { sel: 4, pins: [], labels: [] }; QW.START = START;   /* 11-10 第3周：入口の目の高さの画から選べるように */   // 2026-10-23 はじめは蔵造りの一番街（仲町交差点）から
 /* 2026-10-28 本人：3D 地図の案内（共通部品 kit/mapguide.js）＝透けた細い線と淡い面で道筋と主な場所を示す。エリア分けは描かない。
    始める場所は、1 回目に押す＝その場所の説明と、アプリ自身の 3D を目の高さで描いた眺め／同じ所をもう 1 回＝そこから歩く */
 let MGUIDE = null, EYEV = null;
