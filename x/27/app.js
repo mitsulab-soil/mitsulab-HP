@@ -12,7 +12,7 @@ const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, 
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
-const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（落ちると、鳥が気づく）", css: "#aw-ui .aw-mark{margin-left:112px!important}@media (max-width:520px){#aw-ui .aw-mark{margin-left:0!important;margin-top:46px!important}}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { document.body.classList.add("qx-started"); heroFall = 0; document.getElementById("qx-vig")?.classList.add("out"); tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
+const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（落ちる葉は、鳥の目を引くとされる）", css: "#aw-ui .aw-mark{margin-left:112px!important}@media (max-width:520px){#aw-ui .aw-mark{margin-left:0!important;margin-top:46px!important}}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { document.body.classList.add("qx-started"); heroFall = 0; document.getElementById("qx-vig")?.classList.add("out"); tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
 
 const W = await createAwai({
   title: "Qualia/leaf", sub: "一枚の葉が、次のだれかへ届く", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
@@ -30,7 +30,7 @@ const W = await createAwai({
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
-const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0); try { sessionStorage.removeItem("qx-retry:" + location.pathname); } catch (_) { } window.MLLoader?.done?.(); setTimeout(() => document.getElementById("qx-intro")?.classList.add("out"), 2600);
+const { scene, R, camera } = W; scene.add(new THREE.HemisphereLight(0xf4f1e6, 0x6b6250, .55));   /* 第9周：画面を一段明るく */ document.body.prepend(GO.home); document.body.prepend(GO.el);   /* 第9周：最初の Tab は ← と葉のボタン（DOM の先頭へ） */ AMK.stage = Math.round(performance.now() - T0); try { sessionStorage.removeItem("qx-retry:" + location.pathname); } catch (_) { } window.MLLoader?.done?.(); setTimeout(() => document.getElementById("qx-intro")?.classList.add("out"), 2600);
 // Enlarged captions scroll without changing the scene behind them.
 const scrollCaption = W.ui.querySelector(".aw-cap");
 scrollCaption.tabIndex = 0;
@@ -45,7 +45,7 @@ if(accessAxis){accessAxis.tabIndex=0;accessAxis.setAttribute('role','slider');ac
 }
 
 // 2026-11-09 第3周：最初の Tab・焦点は光るボタンへ
-setTimeout(() => { if (!GO.done) try { GO.el.focus({ preventScroll: true }); } catch (_) { } }, 50); scrollCaption.tabIndex = -1;
+/* 第9周：焦点は自動で移さない */ scrollCaption.tabIndex = -1;
 
 { const ax = W.ui.querySelector(".aw-axis"); if (ax) { ax.querySelector(".aw-top").textContent = "つながりの図"; ax.querySelector(".aw-bot").textContent = "いまの風景"; ax.title = "上へなぞると、同じつながりが図と式になる"; const st = document.createElement("style"); st.textContent = "body:not(.qx-started) .aw-axis{opacity:0!important;pointer-events:none!important}.aw-axis{transition:opacity .8s}.aw-axis .aw-top,.aw-axis .aw-bot{opacity:.9;transition:opacity .5s}.aw-axis.qx-on .aw-top,.aw-axis.qx-on .aw-bot,.aw-axis:focus-visible .aw-top,.aw-axis:focus-visible .aw-bot{opacity:1}"; document.head.appendChild(st); let tm; const on = () => { ax.classList.add("qx-on"); clearTimeout(tm); tm = setTimeout(() => ax.classList.remove("qx-on"), 2500); }; ax.addEventListener("pointerdown", on); ax.addEventListener("pointermove", e => { if (e.buttons) on(); }); } }   // 2026-11-09 第3周：目盛りの字は触れたときだけ
 const snd = S.createSound(W.sndBtn);
@@ -253,7 +253,7 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 /* 2026-11-09 第3周：はじめは目の前の葉だけ（押すまで動かさない） */   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("目の前の一枚の葉に触れてみよう。落ちると、鳥が気づき、つながりが動きだす。"); const axHint = () => { if (!GO.done) return setTimeout(axHint, 3000); document.body.classList.add("qx-started"); W.say("右の線を上へなぞると、同じつながりが図と式になる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }; setTimeout(axHint, 7000); }, 900);
+setTimeout(() => { W.say("目の前の一枚の葉に触れてみよう。落ちると、鳥の目が向くとされる動きから、つながりが動きだす。"); const axHint = () => { if (!GO.done) return setTimeout(axHint, 3000); document.body.classList.add("qx-started"); W.say("右の線を上へなぞると、同じつながりが図と式になる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }; setTimeout(axHint, 7000); }, 900);
 let saidDown = false, saidGround = false, wentUp = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
@@ -266,7 +266,7 @@ W.onAbs(a => {
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
   if (heroFall >= 0) { if (!chainMesh) buildChain(); chainV = Math.min(1, chainV + dt * .8); const v = (1 - ss(.25, .55, a)) * chainV; chainM.opacity = .5 * v; chainMesh.visible = v > .01; chainU = (chainU + dt * (RM ? 0 : .2)) % 1; chainDot.position.copy(chainCurve.getPointAt(chainU)); chainDotM.opacity = v; chainDot.visible = v > .01; }   // compute から：入力の連鎖の光る線
-  { const hv = RM ? 0 : 1; if (heroFall < 0) { camera.getWorldDirection(_fw); HERO0.copy(camera.position).addScaledVector(_fw, .36); HERO0.y -= .06;   /* 第6周：手の届く距離（目の前 36 cm・少し下）に */ heroLeaf.scale.setScalar(HS); heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv); heroLeaf.material.emissive?.setRGB(.14, .08, .015); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.scale.setScalar(lerp(HS, 1, Math.min(1, u * 2.5))); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
+  { const hv = RM ? 0 : 1; if (heroFall < 0) { camera.getWorldDirection(_fw); HERO0.copy(camera.position).addScaledVector(_fw, .36); HERO0.y -= .06;   /* 第6周：手の届く距離（目の前 36 cm・少し下）に */ heroLeaf.scale.setScalar(HS); heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); const fl = Math.exp(-Math.pow((t % 2.6) - .35, 2) * 26) * hv;   /* 第9周：黄の輪をやめ、葉そのものが風にふるえて「さわれる」を伝える */ heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv + Math.sin(t * 23) * .32 * fl); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv + Math.sin(t * 17) * .18 * fl); heroLeaf.material.emissive?.setRGB(.14 + .1 * fl, .08 + .06 * fl, .015); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.scale.setScalar(lerp(HS, 1, Math.min(1, u * 2.5))); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
   if (!GO.done) { goId = "tree"; _pv.copy(heroLeaf.position).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < .95 && Math.abs(_pv.y) < .95 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
   { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(.6, 1.3, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .04 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く

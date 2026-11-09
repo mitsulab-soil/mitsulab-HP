@@ -16,10 +16,10 @@ ${o.css || ""}
   document.body.appendChild(go);
   let done = !o.onPress;
   go.addEventListener("click", e => { e.stopPropagation(); if (done) return; done = true; go.hidden = true; o.onPress?.(); });
-  if (!done) setTimeout(() => { try { go.focus({ preventScroll: true }); } catch (_) { } }, 0);
+  /* 第9周：焦点を勝手に移さない（最初の Tab で葉のボタンへ） */
   return {
     home, el: go,
-    place(x, y) { if (done) return; if (x == null) { go.style.visibility = "hidden"; return; } go.style.visibility = ""; if (document.activeElement === document.body || !document.activeElement) try { go.focus({ preventScroll: true }); } catch (_) { } go.style.transform = `translate(${x | 0}px,${y | 0}px)`; },
+    place(x, y) { if (done) return; if (x == null) { go.style.visibility = "hidden"; return; } go.style.visibility = ""; go.style.transform = `translate(${x | 0}px,${y | 0}px)`; },
     end() { done = true; go.hidden = true; },
     get done() { return done; },
   };

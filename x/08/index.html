@@ -238,6 +238,11 @@ body:not(.pre) #mv{filter:brightness(1.16) contrast(.97) saturate(.7) sepia(.1)}
 #mist{--mc:118,96,64;--mg:255,214,150;position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(120% 60% at 70% 6%,rgba(var(--mg),.16),rgba(var(--mg),0) 60%),linear-gradient(180deg,rgba(var(--mc),0) 8%,rgba(var(--mc),.26) 26%,rgba(var(--mc),.22) 44%,rgba(var(--mc),0) 60%);mix-blend-mode:soft-light}/* 2026-11-10 第6周：霧を見る人の時刻の光で暖かく（朝＝金・昼＝淡い琥珀・夕＝茜・夜＝藍に少し灯） */
 @media(max-width:600px) and (orientation:portrait){#mv{object-position:36% 50%}#keep{background-position:46% 50%}}
 .home{color:#dfeaf6}
+</style><style id="r9">/* 11-10 第9周：映像の冒頭の暗い数秒は杜の画を残す（押すと暗い舞台に変わったと見えない）／再生の印を小さく／霧に奥の層と階調／杜を明るく */
+.play span{width:64px;height:64px;border-width:1px;background:rgba(3,6,15,.3)}.play span::before{border-left-width:18px;border-top-width:11px;border-bottom-width:11px;margin-left:6px}
+body:not(.pre) #mv{filter:brightness(1.3) contrast(.94) saturate(.72) sepia(.1)}
+#mist::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(236,240,236,0) 30%,rgba(236,240,236,.10) 46%,rgba(236,240,236,.05) 58%,rgba(236,240,236,0) 74%),radial-gradient(60% 22% at 30% 52%,rgba(240,236,224,.10),rgba(240,236,224,0) 70%),radial-gradient(50% 18% at 78% 48%,rgba(240,236,224,.08),rgba(240,236,224,0) 70%);mix-blend-mode:screen}
+html,body{background-color:#1a2026}
 </style><style id="r7">/* 11-10 第7周：題を背景から浮かせる（帯は使わず縁取り） */.ml-title,.ml-kicker,.ml-title *,.ml-kicker *{text-shadow:0 0 2px #03060f,0 0 6px rgba(3,6,15,.9),0 1px 14px rgba(3,6,15,.8)!important}</style></head>
 <body class="ml-root pre">
 <div id="keep" aria-hidden="true"></div>
@@ -366,7 +371,7 @@ body:not(.pre) #mv{filter:brightness(1.16) contrast(.97) saturate(.7) sepia(.1)}
   { const B = document.body; let idT = 0;
     const wake = () => { B.classList.remove('idle'); clearTimeout(idT); if (!v.paused && about.hidden) idT = setTimeout(() => B.classList.add('idle'), 2500); };
     ['pointermove', 'pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, wake, { passive: true }));
-    v.addEventListener('play', () => { if (B.classList.contains('pre')) { B.classList.add('fade'); requestAnimationFrame(() => requestAnimationFrame(() => B.classList.remove('fade'))); } B.classList.remove('pre'); wake(); }); v.addEventListener('pause', wake); info.addEventListener('click', wake); }
+    v.addEventListener('play', () => { if (B.classList.contains('pre')) { B.classList.add('fade'); setTimeout(() => B.classList.remove('fade'), 5200); } B.classList.remove('pre'); wake(); }); v.addEventListener('pause', wake); info.addEventListener('click', wake); }
 </script>
 </body>
 </html>
