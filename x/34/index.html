@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Qualia/fable</title>
-<meta name="robots" content="noai,noimageai">
+<meta name="robots" content="noindex,noai,noimageai">
 <meta name="tdm-reservation" content="1">
 <style>
 :root{
@@ -17,6 +17,7 @@
 html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--serif);overflow:hidden;-webkit-text-size-adjust:100%}
 #scene{position:fixed;inset:0;width:100%;height:100%;display:block}
 header{position:fixed;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:baseline;z-index:5;pointer-events:none}
+header .back{pointer-events:auto;display:inline-flex;align-items:center;min-width:44px;min-height:44px;margin:-12px 10px -12px -6px;padding:0 6px;color:var(--ink,#eef1f6);text-decoration:none;font-size:14px;letter-spacing:.06em}header .back:focus-visible{outline:2px solid var(--aoi)}
 header h1{font-size:15px;font-weight:500;letter-spacing:.08em}
 header h1 i{font-family:"Cormorant Garamond",serif;color:var(--ink3);font-weight:400}
 header span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
@@ -24,11 +25,11 @@ header span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
 #sub small{display:block;font-size:12px;color:var(--ink3)}
 /* 灯：参道のあちこちに散らばる（中心は置かない） */
 .lt:focus:not(:focus-visible){outline:none}
-.lt{position:fixed;transform:translate(-50%,-11px);min-width:44px;min-height:44px;padding:6px 4px;border:0;background:transparent;color:var(--ink);font:12px var(--serif);letter-spacing:.1em;white-space:nowrap;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:4}
+.lt{position:fixed;transform:translate(-50%,-11px);min-width:44px;min-height:44px;padding:6px 4px;border:0;background:transparent;color:var(--ink);font:15px var(--serif);letter-spacing:.08em;white-space:nowrap;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:4}
 .lt i{width:12px;height:12px;border-radius:50%;background:#f2cf8c;box-shadow:0 0 12px 3px rgba(242,207,140,.45);animation:br 4.8s ease-in-out infinite}
 .lt i{background:color-mix(in srgb,var(--c) 82%,#3a2a20);box-shadow:0 0 10px 2px color-mix(in srgb,var(--c) 30%,transparent)}.lt{text-shadow:0 1px 6px #000}
 .lt.read i{background:transparent;box-shadow:inset 0 0 0 1px rgba(242,207,140,.6);animation:none}
-.lt.read{color:var(--ink3)}
+.lt.read{color:var(--ink3)}.lt ruby rt{font-size:9px;letter-spacing:0}.lt span{text-shadow:0 0 4px #000,0 1px 8px #000,0 0 14px rgba(0,0,0,.8)}
 .lt:focus-visible{outline:1px solid var(--aoi);outline-offset:2px}
 @keyframes br{0%,100%{opacity:.7}50%{opacity:.92}}
 /* 一編 */
@@ -52,7 +53,7 @@ header span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
 .close{position:absolute;right:6px;top:6px;font-size:22px;color:var(--sumi2)}
 /* 2026-11-09 第2周：ひらく途中（縮んだ姿）でも 44px を下回らない */#card summary,.row button,.close{min-height:48px;min-width:48px}
 #scene,#torii{transition:filter 1s,opacity 1s,fill 1s}
-body.fx-bee #torii{fill:#1c1414;filter:none}
+body.fx-bee #torii{fill:#1c1414;filter:none}body.fx-bee #torii *{fill:#1c1414}
 body.fx-worm #scene{filter:grayscale(1) brightness(.55)}
 body.fx-bat #arcs{opacity:.5}
 body.fx-rec #scan{opacity:.18}
@@ -89,12 +90,12 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
   <g id="trees0" fill="#15181a"></g><g id="trees" fill="url(#bark)" opacity=".34"></g>
   <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="url(#grav)" opacity=".32"/>
   <!-- 鳥居（遠く・朱） -->
-  <g id="torii" transform="translate(500 520)" fill="#b3402c" style="filter:drop-shadow(0 0 6px rgba(214,90,60,.35))"><rect x="-34" y="-4" width="68" height="5"/><rect x="-28" y="5" width="56" height="3"/><rect x="-22" y="0" width="4" height="40"/><rect x="18" y="0" width="4" height="40"/></g>
+  <g id="torii" transform="translate(500 520)" fill="#b3402c" style="filter:drop-shadow(0 0 6px rgba(214,90,60,.3))"><defs><linearGradient id="tpil" x1="0" x2="1"><stop offset="0" stop-color="#7d2a1d"/><stop offset=".45" stop-color="#c44a31"/><stop offset="1" stop-color="#8a2e20"/></linearGradient></defs><path d="M-40 -7 Q0 -2 40 -7 L38 -3 Q0 1 -38 -3Z" fill="#1d1715"/><path d="M-36 -3 Q0 1 36 -3 L35 1 Q0 4 -35 1Z"/><rect x="-1.6" y="2" width="3.2" height="7"/><rect x="-33" y="9" width="66" height="3.2"/><path d="M-23 1 L-19.6 1 L-19 40 L-23.6 40Z" fill="url(#tpil)"/><path d="M19.6 1 L23 1 L23.6 40 L19 40Z" fill="url(#tpil)"/><rect x="-24.4" y="37" width="6" height="4" fill="#1d1715"/><rect x="18.4" y="37" width="6" height="4" fill="#1d1715"/></g>
   <rect width="1000" height="1000" fill="url(#fog)"/>
   <g id="arcs" fill="none" stroke="#a9d8f2" stroke-width="1.2"><path d="M380 210 q40 -30 80 0"/><path d="M360 230 q60 -50 120 0"/><path d="M340 250 q80 -70 160 0"/></g>
   <g id="scan" stroke="#5cc8e0" stroke-width="1"><line x1="0" y1="600" x2="1000" y2="600"/><line x1="0" y1="680" x2="1000" y2="680"/><line x1="0" y1="760" x2="1000" y2="760"/><line x1="0" y1="840" x2="1000" y2="840"/><line x1="0" y1="920" x2="1000" y2="920"/></g>
 </svg>
-<header><h1 id="ttl"></h1><span>氷川参道・大宮</span></header>
+<header><div style="display:flex;align-items:baseline"><a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のホームへ戻る">‹ mitsulab</a><h1 id="ttl"></h1></div><span>氷川参道・大宮</span></header>
 <p id="sub">参道のあちこちに、九つの寓話の灯があります。<small>どれからでも、ふれるとひらきます。</small></p>
 <svg id="net" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
 <div id="lights"></div>
@@ -126,7 +127,7 @@ const F=[
  e:"中心がなくても、つながりは保たれる。",
  s:["事実：木の水は、葉からの蒸散で生じる張力と、水の分子どうしの凝集力によって、道管・仮道管の中を切れずに上がる（凝集力-張力説。Dixon, H. H. & Joly, J. 1895, Phil. Trans. R. Soc. B 186: 563–576。Tyree, M. T. & Zimmermann, M. H. 2002, Xylem Structure and the Ascent of Sap, Springer）。","寓話にしたところ：ケヤキに尋ねる場面は寓話。木は答えない。"]},
 {n:"アゲハ",c:"#f0d77c",fx:"fly",x:0.15,y:0.7,t:"胡蝶の夢",
- b:"［蝶の段］\nアゲハが葉にとまり、前脚の先で葉を味わう。\n卵を産む葉を、足で確かめている。\n\n［人の段］\nむかし、蝶になった夢を見た人が、目覚めて、\n自分が蝶の夢を見たのか、蝶が自分の夢を見ているのか、分からなくなった。\n\n足で葉を味わう世界から戻ると、手の中の葉が少しちがって見える。",
+ b:"［蝶の段］\nアゲハが葉にとまり、前脚の先で葉を味わう。\n卵を産む葉を、足で確かめている。\n\n［人の段］\nむかし、蝶になった夢を見た人（『荘子』斉物論の「胡蝶の夢」）が、目覚めて、\n自分が蝶の夢を見たのか、蝶が自分の夢を見ているのか、分からなくなった。\n\n足で葉を味わう世界から戻ると、手の中の葉が少しちがって見える。",
  e:"いまの見え方から離れて戻ると、同じ世界にまた出会う。",
  s:["事実：ナミアゲハは前脚の感覚毛で葉の成分を味わい、産卵する植物を見分ける（Ozaki, K. et al. 2011, Nature Communications 2: 542）。胡蝶の夢は『荘子』斉物論。","寓話にしたところ：蝶と人の夢を並べたのは寓話。どちらが本当かは決めない。"]},
 {n:"ミミズ",c:"#b8b2a6",fx:"worm",x:.3,y:.82,t:"見ない夜",
@@ -145,12 +146,12 @@ const F=[
  b:"一　酪酸の匂い。\n二　温かさ。\n三　毛のふれる感じ。\n\n枝の先で待つマダニの世界は、この寓話では、この三つでできている。\n参道の灯も、鳥の声も、そこには現れない。\nマダニの環世界の中には、外が現れない。",
  e:"あなたの世界の外は、あなたから見えますか。",
  s:["事実：ユクスキュルは、マダニが酪酸の匂い・温かさ・毛のある皮膚への接触という少ない手がかりで動く例を挙げ、生き物ごとの世界を「環世界」と呼んだ（J. v. ユクスキュル、G. クリサート『生物から見た世界』1934。日高敏隆・羽田節子訳、岩波文庫、2005）。","寓話にしたところ：マダニが世界を「満ちている」と感じるかは分からない。三つの手がかりで世界が閉じていることを、ことばにした。"]},
-{n:"記録計",c:"#5cc8e0",fx:"rec",x:.62,y:.88,t:"感じない記録",
- b:"11/02　雨のあと　数字が上がる\n11/03　晴れ　　　少し下がる\n11/04　晴れ　　　下がる\n11/05　晴れ　　　下がる\n\nケヤキの根もとに埋まった記録計の列。\n記録計は感じない。ただ記録する。\nその列をケヤキの水の柱と並べて読むと、木と雨のあいだに一本の線が引かれる。",
+{n:"記録計",r:"<ruby>記録計<rt>きろくけい</rt></ruby>",c:"#5cc8e0",fx:"rec",x:.62,y:.88,t:"感じない記録",
+ b:"11/02　雨のあと　数字が上がる\n11/03　晴れ　　　少し下がる\n11/04　晴れ　　　下がる\n11/05　晴れ　　　下がる\n\nケヤキの根もとに埋まった記録計（きろくけい。土の水分を測って記録する機械）の列。\n記録計は感じない。ただ記録する。\nその列をケヤキの水の柱と並べて読むと、木と雨のあいだに一本の線が引かれる。",
  e:"記録は、だれかが読むときに、受けとり方になる。",
  s:["事実：多くの土壌水分計は、土の誘電率を測って体積含水率を推定する（Topp, G. C., Davis, J. L. & Annan, A. P. 1980, Water Resources Research 16: 574–582）。","寓話にしたところ：この記録計と日付の列は寓話の中のもの（測った値ではない）。機械は感じない、と書いた。数字に意味を与えるのは読む側。"]},
-{n:"苫屋",c:"#f2cf8c",fx:"end",x:.66,y:.52,t:"なかりけり",
- b:"見わたせば　花ももみぢも　なかりけり\n浦の苫屋の　秋の夕ぐれ\n\n花も紅葉も無い、と詠むことで、無いものが見えてくる。\nどの生き物にとっても、その環世界が世界の全てなら、その外は見えない。\nだから、ほかの受けとり方に触れたとき、無かったものが立ち上がる。",
+{n:"苫屋",r:"<ruby>苫屋<rt>とまや</rt></ruby>",c:"#f2cf8c",fx:"end",x:.66,y:.52,t:"なかりけり",
+ b:"見わたせば　花ももみぢも　なかりけり\n浦の苫屋の　秋の夕ぐれ\n（苫屋＝とまや。草で屋根をふいた小さな小屋）\n\n花も紅葉も無い、と詠むことで、無いものが見えてくる。\nどの生き物にとっても、その環世界が世界の全てなら、その外は見えない。\nだから、ほかの受けとり方に触れたとき、無かったものが立ち上がる。",
  e:"顔を上げて、目の前の参道を見てください。さっきと同じですか。",
  s:["事実：藤原定家の歌（『新古今和歌集』秋上・363）。","考え方：環世界はその主体には全てであり、それ自体で固定されたものではなく、環境と身体と意味づけの関係として立ち上がる。これを仏教哲学の「空」（龍樹『中論』24 章 18 偈の、縁起と空）に重ねて読むのは mitsulab の解釈。環世界の外もまた、それだけで在るものではなく、ほかの受けとり方との関係の中で立ち上がる（補集合もまた空）。"]}
 ];
@@ -164,7 +165,7 @@ const F=[
 const box=document.getElementById("lights"),card=document.getElementById("card"),veil=document.getElementById("veil"),sub=document.getElementById("sub");
 let cur=-1;const read=new Set();
 F.forEach((f,i)=>{const b=document.createElement("button");b.className="lt";b.style.left=(f.x*100)+"%";b.style.top=(f.y*100)+"%";
- b.style.setProperty("--c",f.c);b.innerHTML="<i></i>"+f.n;b.setAttribute("aria-label",f.n+"の寓話「"+f.t+"」をひらく");b.onclick=()=>open(i);box.appendChild(b);f.el=b;});
+ b.style.setProperty("--c",f.c);b.innerHTML="<i></i><span>"+(f.r||f.n)+"</span>";b.setAttribute("aria-label",f.n+"の寓話「"+f.t+"」をひらく");b.onclick=()=>open(i);box.appendChild(b);f.el=b;});
 function open(i){cur=i;const f=F[i];
  document.getElementById("ct").textContent="寓話 "+(i+1)+" ／ "+F.length+"　"+f.n;
  document.getElementById("ch").textContent=f.t;
@@ -186,6 +187,5 @@ document.getElementById("next").onclick=()=>open((cur+1)%F.length);
 document.getElementById("prev").onclick=()=>open((cur-1+F.length)%F.length);
 addEventListener("keydown",e=>{if(cur<0)return;if(e.key==="Escape")close();if(e.key==="ArrowRight")open((cur+1)%F.length);if(e.key==="ArrowLeft")open((cur-1+F.length)%F.length);});
 </script>
-<!-- © mitsulab. All rights reserved. 2026-11-09 公開。Qualia/fable＝寓話集：環世界のコモングラウンドを、氷川参道の生き物・木・土・機械の寓話にしたもの。AI の学習・生成への利用はお断りします。 -->
 </body>
 </html>
