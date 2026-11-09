@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261109r3";
+import { T, setLang, lang } from "./i18n.js?v=20261110r8";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -75,20 +75,22 @@ scene.add(new THREE.HemisphereLight(0x8a96ad, 0x05080f, .25));
 // ---- 表面（10 cm 四方＝1 単位）
 const SEG = MOBILE ? 200 : 300;
 const geo = new THREE.PlaneGeometry(1, 1, SEG, SEG);
-const U = { uDent: { value: new THREE.Vector3(0, 0, 0) }, uDentR: { value: .08 } };
+const U = { uDent: { value: new THREE.Vector3(0, 0, 0) }, uDentR: { value: .08 }, uBend: { value: 0 } };   // uBend＝第8周：樹皮のとき幹の曲面（1/半径）
 const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0, envMapIntensity: .55, displacementScale: .03 });
 mat.onBeforeCompile = sh => {
-  sh.uniforms.uDent = U.uDent; sh.uniforms.uDentR = U.uDentR;
-  sh.vertexShader = "uniform vec3 uDent; uniform float uDentR; varying float vDentG;\n" + sh.vertexShader
+  sh.uniforms.uDent = U.uDent; sh.uniforms.uDentR = U.uDentR; sh.uniforms.uBend = U.uBend;
+  sh.vertexShader = "uniform vec3 uDent; uniform float uDentR; uniform float uBend; varying float vDentG; varying float vBendX;\n" + sh.vertexShader
     .replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
-      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); vec2 grad = uDent.z * g * 2.0 * dd / (uDentR * uDentR); objectNormal = normalize(objectNormal - vec3(grad, 0.0)); }`)
+      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); vec2 grad = uDent.z * g * 2.0 * dd / (uDentR * uDentR); objectNormal = normalize(objectNormal - vec3(grad, 0.0)); }
+      objectNormal = normalize(objectNormal + vec3(position.x * uBend, 0.0, 0.0)); vBendX = position.x;`)
     .replace("#include <displacementmap_vertex>", `#ifdef USE_DISPLACEMENTMAP
       { vec2 eu = vDisplacementMapUv; float ed = min(min(eu.x, 1.0 - eu.x), min(eu.y, 1.0 - eu.y));   // 縁は凹凸を 0 へ（切り口がとげにならない）
         transformed += normalize(objectNormal) * (texture2D(displacementMap, vDisplacementMapUv).x * displacementScale * smoothstep(0.0, 0.02, ed) + displacementBias); }
       #endif
-      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); transformed.z -= uDent.z * g; vDentG = uDent.z * g; }`);
+      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); transformed.z -= uDent.z * g; vDentG = uDent.z * g; }
+      transformed.z -= position.x * position.x * uBend * 0.5;`);
   // へこんだところは光が入りにくく、少し暗い
-  sh.fragmentShader = "varying float vDentG;\n" + sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= 1.0 - clamp(vDentG * 7.0, 0.0, 0.5);");
+  sh.fragmentShader = "uniform float uBend; varying float vDentG; varying float vBendX;\n" + sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= 1.0 - clamp(vDentG * 7.0, 0.0, 0.5);\n diffuseColor.rgb *= 1.0 - step(0.0001, uBend) * 0.5 * smoothstep(0.12, 0.5, abs(vBendX));");
 };
 mat.fog = false; const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Math.PI / 2; scene.add(plate);
 // 台：上の面のない箱（へこみが台に隠れない深さ 10 mm の側面だけ）
@@ -99,7 +101,7 @@ const TRK = 1.6, trunkMat = new THREE.MeshStandardMaterial({ color: 0xa0968a, ro
 const trunk = new THREE.Mesh(new THREE.CylinderGeometry(TRK, TRK, 3.2, 96, 1, true, Math.PI - 1.22, 2.44).rotateX(Math.PI / 2), trunkMat);
 trunk.position.y = -TRK - .006; trunk.visible = false; scene.add(trunk);
 function trunkFor(v) {
-  let od = null; try { od = objDef; } catch (e) {} const on = v && v.id === "bark" && !od; trunk.visible = on; if (window.__touchBase) window.__touchBase.color.set(on ? 0x2a2119 : 0x0a0f1a);
+  let od = null; try { od = objDef; } catch (e) {} const on = v && v.id === "bark" && !od; trunk.visible = on; U.uBend.value = on ? .2 : 0; if (window.__touchBase) window.__touchBase.color.set(on ? 0x2a2119 : 0x0a0f1a);
   if (!on || trunk.userData.src === v.map) return; trunk.userData.src = v.map;
   const rep = (t, srgb) => { if (!t) return null; const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(3.9, 3.2); if (srgb) c.colorSpace = THREE.SRGBColorSpace; c.needsUpdate = true; return c; };
   trunkMat.map = rep(v.map, true); trunkMat.normalMap = rep(v.normalMap); trunkMat.roughnessMap = rep(v.roughMap); trunkMat.needsUpdate = true;

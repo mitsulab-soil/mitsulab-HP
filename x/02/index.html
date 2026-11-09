@@ -235,7 +235,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261110r6">
+<link rel="modulepreload" href="umwelt.js?v=20261110r8">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -376,20 +376,24 @@ body:not(.booted) #top{z-index:60}body:not(.booted) #top .topR{visibility:hidden
 @media(max-width:700px){#where{top:64px;max-width:86vw}#where small{font-size:14px}}
 </style>
 <div id="poster" aria-hidden="true"></div>
-<section id="r5intro" aria-label="はじめに"><p class="pl">池のほとりの雑木林</p><p class="ln"><span class="sr">碧（あおい）：</span>同じ森を、ミツバチやマムシの目で歩いてみよう。</p><button class="btn pri" id="r5go" type="button">はじめる</button></section>
+<section id="r5intro" aria-label="はじめに"><p class="pl">池のほとりの雑木林</p><p class="ln"><span class="sr">碧（あおい）：</span>まずはミツバチの目で、この森を歩いてみよう。</p><button class="btn pri" id="r5go" type="button">はじめる</button></section>
 <style id="r5style">/* 2026-11-10 第5周：冒頭は場所の名と碧の一言と「はじめる」だけ。ほかの札は押してから出す */
 #r5intro{position:fixed;left:50%;transform:translateX(-50%);bottom:max(26px,env(safe-area-inset-bottom));width:min(560px,calc(100vw - 32px));z-index:65;display:grid;justify-items:center;gap:10px;text-align:center;pointer-events:auto}
 #r5intro .pl{margin:0;font:600 13px/1.4 var(--mincho,serif);letter-spacing:.24em;color:#f6efd6;text-shadow:0 1px 8px #000,0 0 2px #000}
 #r5intro .pl::before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:#7fd0e0;box-shadow:0 0 8px #7fd0e0;vertical-align:2px}
 #r5intro .ln{margin:0;font:600 18px/1.7 var(--mincho,serif);letter-spacing:.06em;color:#fff;text-shadow:0 1px 10px #000,0 0 3px #000;text-wrap:balance}
 #r5intro .btn{min-width:160px;min-height:48px;font-size:16px;letter-spacing:.16em}
+#top .home{border:1px solid var(--mu-line,rgba(255,255,255,.3));border-radius:999px;background:var(--mu-panel,rgba(16,22,18,.46));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:0 12px!important;min-height:40px!important;height:40px!important;margin:2px 4px}
+#r8hint{position:fixed;left:12px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 236px);z-index:64;margin:0;max-width:min(300px,70vw);font:600 14px/1.6 var(--mincho,serif);letter-spacing:.05em;color:#fff;text-shadow:0 1px 8px #000,0 0 3px #000;pointer-events:none;transition:opacity 1s}
+body:not(.r5go) #r8hint,#r8hint.off{opacity:0}
 #r5intro .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 body:not(.r5go) #where,body:not(.r5go) #guide,body:not(.r5go) #bodyWheel,body:not(.r5go) #bodyControls,body:not(.r5go) #aoiWin,body:not(.r5go) #legend,body:not(.r5go) #kurQ,body:not(.r5go) #cmpTag,body:not(.r5go) #kurMarks,body:not(.r5go) #boot,body:not(.r5go) #moveNote,body:not(.r5go) #toast,body:not(.r5go) #panHint{visibility:hidden!important}
 body.r5go #r5intro{display:none}
 #top .home{width:auto!important;padding:0 8px 0 4px;font:600 15px/1 var(--mincho,serif)!important;letter-spacing:.08em;gap:6px}
 @media(max-width:420px){#top .home{font-size:13px!important;letter-spacing:.02em;padding:0 4px 0 2px}.dream-title{display:none}#r5intro .ln{font-size:16px}}
 </style>
-<script>document.getElementById('r5go').addEventListener('click',function(){document.body.classList.add('r5go');try{var g=document.getElementById('stage');g&&g.focus({preventScroll:true});}catch(e){}});if(/[?&](skip|go)\b/.test(location.search))document.body.classList.add('r5go');</script>
+<p id="r8hint" aria-live="polite">行きたい所を押すと歩く。<br>この下の枠を押すと、生きものが変わる。</p>
+<script>document.getElementById('r5go').addEventListener('click',function(){document.body.classList.add('r5go');setTimeout(function(){var h=document.getElementById('r8hint');h&&h.classList.add('off');},7000);try{var g=document.getElementById('stage');g&&g.focus({preventScroll:true});}catch(e){}});if(/[?&](skip|go)\b/.test(location.search))document.body.classList.add('r5go');</script>
 <div id="boot" role="status" aria-live="polite"><div>
   <b data-n="app">Qualia/sight</b>
   <div id="prog"><i></i></div>
@@ -406,12 +410,12 @@ body.r5go #r5intro{display:none}
 <script src="data/paths.js?v=20261010"></script>
 <script src="data/daihon.js?v=20261014p2"></script>
 <script src="data/voice.js?v=20261013k80" onerror="window.VOICE={}"></script>
-<script src="data/why.js?v=20261109f"></script>
+<script src="data/why.js?v=20261110r8"></script>
 <script>
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var bo=document.getElementById('boot');if(bo)bo.classList.add('fail');var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r6';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r8';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed){document.getElementById('boot').classList.add('fail');}if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <script>/* 第3周：静止画が出たら読み込み画面を下ろす。3D が組めたら body.booted */

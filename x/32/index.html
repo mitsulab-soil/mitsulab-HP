@@ -92,7 +92,9 @@ addEventListener('resize', fit);
 // 焦点が寄席・館の中にあるときは、枠に印を出す
 addEventListener('blur', () => setTimeout(() => document.body.classList.toggle('inapp', document.activeElement === app), 0)); addEventListener('focus', () => document.body.classList.remove('inapp'));
 app.addEventListener('load', () => document.getElementById('wait').classList.add('off'));   // 2026-11-09 第2周：読み込みが済んだらすぐ外す（前は 0.6 秒待った）
-const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : (q.get('v') === 'kan' ? null : 'hachi'), null, null, q.get('v') !== 'kan');   // 第6周：席は既定のまま始め（席を選ぶ画面を挟まない）、高座の中で後から変えられる   // 2026-11-10 第4周：はじめから一席目の高座を出す（空の高座にしない）
+const q = new URLSearchParams(location.search); const start = () => go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : (q.get('v') === 'kan' ? null : 'hachi'), null, null, q.get('v') !== 'kan');
+// 第8周 P1：題の札と枠を先に出し、中の寄席（碧の VRM・板の質感 2.4MB）はこのページの読み込みが済んでから読む＝初回にページが重く止まらない
+if (document.readyState === 'complete') requestAnimationFrame(start); else addEventListener('load', () => requestAnimationFrame(start), { once: true });   // 第6周：席は既定のまま始め（席を選ぶ画面を挟まない）、高座の中で後から変えられる   // 2026-11-10 第4周：はじめから一席目の高座を出す（空の高座にしない）
 </script>
 </body>
 </html>
