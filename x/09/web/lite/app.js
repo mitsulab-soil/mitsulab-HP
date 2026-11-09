@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
-import { makeQMarks, placeLabels } from "./qmarks.js?v=k24";
+import { makeQMarks, placeLabels } from "./qmarks.js?v=k25";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w20";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
@@ -74,8 +74,8 @@ scene.add(camera);
 const FOG_SKY = new THREE.Color("#d2d8df"), NAVY = new THREE.Color("#03060f");
 scene.fog = new THREE.Fog(FOG_SKY, 900, 3600);
 scene.background = FOG_SKY.clone();
-const hemi = new THREE.HemisphereLight("#d6e6ff", "#4d4636", 1.15); scene.add(hemi);
-const sun = new THREE.DirectionalLight("#fff1dc", 2.3); sun.position.set(320, 520, 260); scene.add(sun); scene.add(sun.target);
+const hemi = new THREE.HemisphereLight("#e2f0ff", "#77705a", 1.3)   /* 11-10 本人「氷川参道が暗すぎる」：昼の明るさへ */; scene.add(hemi);
+const sun = new THREE.DirectionalLight("#fff4e0", 2.6); sun.position.set(320, 520, 260); scene.add(sun); scene.add(sun.target);
 { const setSun = () => { const d = sunDir(35.90725, 139.631); sun.position.set(d.x * 600, d.y * 600, d.z * 600); QW.sunAE = [Math.round(d.az), Math.round(d.el)]; }; setSun(); setInterval(setSun, 300000); }   // 11-02 本人決定：太陽の向きは、いまの日時とこの場所から計算（kit/sunpos.js・夜は光の高さだけ 12 度で止める）
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
@@ -696,7 +696,7 @@ function loadLate() {
       const o = src.clone(true); o.position.set(s.p[0], s.p[1], s.p[2]); o.rotation.set(0, s.r, 0); o.scale.setScalar(1);
       o.traverse(n => { if (n.isMesh && n.material) { n.material.envMapIntensity = .6;
         if (n.material.name === "black") { n.material = n.material.clone(); n.material.color.set("#1c1a19"); n.material.roughness = .38; n.material.metalness = .05; n.material.envMapIntensity = 1.25; }   // 根巻と笠木の黒：漆のような艶（平らな黒い箱に見えないように）
-        else if (/^shu_/.test(n.material.name)) { const nm = n.material.name; n.material = WMAT[nm] ||= (m => { m.color.multiply(new THREE.Color().setRGB(1.05, .5, .42)); m.envMapIntensity = .45; return m; })(n.material.clone()); }   // 2026-10-29 本人「鳥居をもっと赤く」：朱の塗りの写真に赤みを掛け、霞と空の照り返しで桃色に浅くならないように
+        else if (/^shu_/.test(n.material.name)) { const nm = n.material.name; n.material = WMAT[nm] ||= (m => { m.color.multiply(new THREE.Color().setRGB(1.12, .44, .34)); m.envMapIntensity = .35; if (m.emissive) m.emissive.setRGB(.09, .012, .004); return m;   /* 11-10：霞の中でも朱がはっきり */ })(n.material.clone()); }   // 2026-10-29 本人「鳥居をもっと赤く」：朱の塗りの写真に赤みを掛け、霞と空の照り返しで桃色に浅くならないように
         else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; n.material = WMAT[nm] ||= weather((m => { if (nm === "old_lantern" && m.color) { const L = .2126 * m.color.r + .7152 * m.color.g + .0722 * m.color.b; if (L < .34) m.color.multiplyScalar(.34 / Math.max(.05, L)); } return m; })(n.material.clone()), STRUCT_WEATHER[nm]); } } });
       o.name = s.id; structGroup.add(o); if (s.id === "shinkyo") DECK.o = o;
       if (!/^shinkyo/.test(s.id)) CSQ.push(o);   // 11-03：足もとの高さの柱・壁・柵を通れない所に（神橋の床は歩く）
@@ -1328,6 +1328,7 @@ function tap(x, y) {
   }
   if (QW.mode !== "walk" && QW.mode !== "sight") return;
   if (QW.mode === "walk" && KASA.herd?.pickView(x, y)) return;   // 空中の 3D の窓に触れたら閉じる
+  if (QW.mode === "walk" && QW.KASANE?.pick(x, y)) return;   // 11-10 作品の層（kasane.js）に触れる
   if (QW.mode === "walk" && QW.fliers?.pick(x, y, renderer.domElement)) return;   // 11-02：鳥に触れる
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk") { for (const h of AREA.herds) { if (h.pickView(x, y)) return; const k = h.pick(x, y); if (k) { touchKasane(k); return; } } const L = pickAreaMark(x, y); if (L) { openObj(L); return; } }   // エリアのかさねっこと地点
@@ -1501,7 +1502,7 @@ function pickObj(x, y) {
   let best = null, bd = (MOBILE ? 50 : 42) ** 2;   // 10-28 午後：印を小さくしたので、当たりは広めに（外れて歩き出さない）
   for (const L of LAYER.objs) {
     if (!L.root.visible || L.show < .5 || L.qHide) continue;
-    L.glyph.getWorldPosition(_v3); const dist = _v3.distanceTo(camera.position); if (dist > (MOBILE ? 45 : 55)) continue; _v3.project(camera); if (_v3.z > 1) continue;   // 10-29 本人「遠くの印に触れてしまう」：遠い印には触れない（近づけば触れる）
+    L.glyph.getWorldPosition(_v3); const dist = _v3.distanceTo(camera.position); if (dist > (MOBILE ? 20 : 24)) continue;   /* 11-10 本人「遠くの印には触れられないように」：45/55 m→20/24 m */ _v3.project(camera); if (_v3.z > 1) continue;   // 10-29 本人「遠くの印に触れてしまう」：遠い印には触れない（近づけば触れる）
     const sx = (_v3.x + 1) / 2 * innerWidth, sy = (1 - _v3.y) / 2 * innerHeight, d = (sx - x) ** 2 + (sy - y) ** 2;
     const rad = Math.max(bd, (420 / Math.max(1, dist)) ** 2);
     if (d < rad && (!best || d < best.d)) best = { L, d };
@@ -2877,7 +2878,7 @@ function frame() {
     const PU = SIGHT.post.mat.uniforms; PU.time.value += dt; SIGHT.ring = Math.max(0, (SIGHT.ring || 0) - dt / 1.1); PU.pulse.value = SIGHT.ring; PU.move.value += ((SIGHT.sp ? Math.min(1, Math.abs(SIGHT.v) / Math.max(.2, SIGHT.sp.speed || 1)) : 0) - PU.move.value) * Math.min(1, dt * 4);
     renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam);
   } else renderer.render(scene, camera);
-  if (QW.mode === "sky" || QW.mode === "descend" || QW.mode === "walk" || QW.mode === "fly") renderer.toneMappingExposure += ((QW.mode === "sky" ? .5 : 1.02 * (QW.mode === "walk" ? (QW.nightExp ?? 1) : 1)) - renderer.toneMappingExposure) * Math.min(1, dt * 3);   /* 11-05 夜の暗さ（kit/yoru.js が QW.nightExp を決める） */   // 3D 地図は暗めに（白すぎないように）
+  if (QW.mode === "sky" || QW.mode === "descend" || QW.mode === "walk" || QW.mode === "fly") renderer.toneMappingExposure += ((QW.mode === "sky" ? .5 : 1.14 * (QW.mode === "walk" ? (QW.nightExp ?? 1) : 1)) - renderer.toneMappingExposure) * Math.min(1, dt * 3);   /* 11-05 夜の暗さ（kit/yoru.js が QW.nightExp を決める） */   // 3D 地図は暗めに（白すぎないように）
   renderBody();
   // こまの速さを見て、画面の細かさを上げ下げする（落ち込みを止める）
   fpsAcc += dt; fpsN++; prT += dt;

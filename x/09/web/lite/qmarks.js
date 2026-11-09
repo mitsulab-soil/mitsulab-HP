@@ -17,9 +17,19 @@
 let MK = .24;   /* 2026-10-28 午後 本人「印が大きくて目立ちすぎ。もっとさりげなく」→ v9：球を 2/3 に・遠くは淡い点・近づくと少し強まる */
 const KIND = { sight: 0, touch: 1, sound: 2, nature: 3, culture: 4 };
 
-function crystalGeo(THREE) {
-  // 2026-10-26 本人「Qualium は目印を球体にしてください」→ v5：滑らかな球（半径 .34・中心 0.07）
-  const g = new THREE.SphereGeometry(.34, 40, 24); g.translate(0, .07, 0); return g;
+function mergeG(THREE, list) { const P = [], N = []; for (const g0 of list) { const g = g0.index ? g0.toNonIndexed() : g0; if (!g.attributes.normal) g.computeVertexNormals(); P.push(...g.attributes.position.array); N.push(...g.attributes.normal.array); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(N, 3)); return g; }
+/* 2026-11-10 本人「感覚の印を別のデザインに。Qualia を 3D オブジェクトとして、層ごとに意味のある形に。洗練させ、風景から浮かび上がるように・目立ちすぎない」→ v11：球をやめ、層ごとの形にした。
+   sight＝光を集めるレンズ（凸の雫）・touch＝樹皮の稜をもつ小石・sound＝ふるえる二重の輪（振動の形）・nature＝一枚の葉・culture＝古い札（薄い板）。どれも半径およそ .34 の中に収める。 */
+function crystalGeo(THREE, k = 0) {
+  let g;
+  if (k === 1) { g = new THREE.IcosahedronGeometry(.27, 2); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), a = Math.atan2(z, x); const f = 1 + .07 * Math.sin(a * 9 + y * 6) + .03 * Math.sin(y * 31); p.setXYZ(i, x * f, y * 1.18, z * f * .82); } g = g.toNonIndexed(); g.computeVertexNormals(); }
+  else if (k === 2) { const ring = (r, am, kk, tube) => { const c = new THREE.Curve(); c.getPoint = t => { const th = t * Math.PI * 2, rr = r + am * Math.sin(th * kk); return new THREE.Vector3(Math.cos(th) * rr, am * .7 * Math.cos(th * kk), Math.sin(th) * rr); }; return new THREE.TubeGeometry(c, 80, tube, 5, true); };
+    g = mergeG(THREE, [ring(.3, .035, 6, .012), ring(.18, .025, 4, .011), new THREE.SphereGeometry(.05, 10, 8)]); }
+  else if (k === 3) { g = new THREE.PlaneGeometry(1, 1, 12, 6); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) + .5, v = p.getY(i) * 2, w = .2 * Math.pow(Math.sin(Math.PI * u), .9) * (1 - .3 * u); p.setXYZ(i, (u - .5) * .66, v * w, Math.abs(v) * w * .6 - .05 * Math.sin(u * Math.PI)); } g.rotateZ(.9); g.computeVertexNormals(); }
+  else if (k === 4) { g = new THREE.BoxGeometry(.22, .44, .025, 1, 6, 1); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setZ(i, p.getZ(i) + .04 * Math.cos(y * 5)); } g.computeVertexNormals(); }
+  else { g = new THREE.SphereGeometry(.3, 24, 16); const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, p.getZ(i) * .42); g.computeVertexNormals(); }
+  g.translate(0, .07, 0); return g;
 }
 
 const VS_COMMON = /* glsl */`
@@ -58,52 +68,26 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
     return im;
   };
   // 結晶：屈折風の虹の縁・切子のきらめき・芯の灯り
-  const crystal = mk(crystalGeo(THREE), VS_COMMON + /* glsl */`
-    varying vec3 vC; varying float vR;
-    void main(){ vCol=iCol; vP=iP; vQ=iQ; mat4 mw=modelMatrix*instanceMatrix; vec4 w=mw*vec4(position,1.); vW=w.xyz; vL=position; vN=normalize(mat3(mw)*normal);
-      vC=(mw*vec4(0.,.07,0.,1.)).xyz; vR=length(mw[0].xyz)*.34; gl_Position=projectionMatrix*viewMatrix*w; }`,
-  /* glsl */`uniform float uT; varying vec3 vCol; varying vec4 vP; varying vec2 vQ; varying vec3 vW; varying vec3 vL; varying vec3 vN; varying vec3 vC; varying float vR;
-    vec3 film(float x){ return .5+.5*cos(6.2832*(x+vec3(0.,.33,.67))); }` + EMB + /* glsl */`
-    void main(){
-      vec3 n=normalize(vN); vec3 v=normalize(cameraPosition-vW); if(!gl_FrontFacing) n=-n; float nv=clamp(abs(dot(n,v)),0.,1.);
-      float fr=pow(1.-nv,2.4);
-      vec3 Ld=normalize(vec3(sin(uT*.5),.95,cos(uT*.5)));
-      float dif=.45+.55*max(0.,dot(n,Ld));
-      float spec=pow(max(0.,dot(reflect(-v,n),Ld)),140.)*2.2+pow(max(0.,dot(reflect(-v,n),normalize(vec3(-.6,.4,.7)))),60.)*.5;   // v7：鋭い映り込み二つ
-      // 切子のきらめき：法線を細かな面に量子化して、ときどき光る
-      vec3 fq=floor(n*7.+.5); float h=fract(sin(dot(fq,vec3(12.9,78.2,37.7)))*43758.5);
-      float glint=pow(max(0.,sin(uT*.9+h*40.)),90.)*step(.86,h)*smoothstep(.25,.75,nv)*.7;
-      float core=pow(nv,7.)*(.85+.35*sin(uT*2.2+vL.y*3.))*.9;   // v7：芯は小さく
-      float crisp=vP.y, em=vP.z, op=vQ.y;
-      vec3 sat=mix(vec3(dot(vCol,vec3(.333))),vCol,1.35);
-      vec3 rim=mix(sat, sat*film(fr*1.4+vL.y*.6+uT*.05)*1.6, .42*crisp);       // 縁の薄膜の色ずれ（層の色を芯に）
-      vec3 deep=sat*sat*.07;   // v7：明るい空でも沈まない、深い色の硝子の地
-      vec3 c=deep*(.6+.4*dif)+sat*core*(.35+op*.3)+rim*fr*(.8+crisp*.5)+vec3(1.)*pow(fr,5.)*(.25+crisp*.35)+vec3(1.)*(spec*(.7+crisp*.5)+glint*crisp);
-      float a=(.78+.1*crisp+core*.2+fr*.6+spec*.45+glint*.5)*(.7+.3*em);
-      // 球の中に光る層の紋（見る向きの平面に写す）と、ゆっくり流れる層の膜
-      vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]), U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
-      vec2 q=vec2(dot(vW-vC,R),dot(vW-vC,U))/max(1e-4,vR);
-      float inner=emb(q*.95, vQ.x, uT)*smoothstep(.2,.7,nv)*crisp*(.35+.65*op);
-      float memb=ln(fract(vL.y*5.-uT*.12+.3*sin(atan(vL.z,vL.x)*2.+uT*.2))-.5,.05)*fr*.5*crisp;
-      c+=sat*.8*inner+rim*memb*.6; a+=inner*.3+memb*.2;
-      // 2026-10-27 v7（宝石・精密な機器の質感）：屈折した視線で球の中を辿り、細い格子（ジャイロイド）と二重の殻を描く。縁は波長ごとに色がずれる
-      if(gl_FrontFacing && crisp>.05){
-        vec3 rd=refract(-v,n,.69), ro=(vW-vC)/max(1e-4,vR); float bb=dot(ro,rd), hh=bb*bb-(dot(ro,ro)-1.); float tx=max(0.,-bb+sqrt(max(hh,0.)));
-        float st=tx/10., ki=6.2+vQ.x*.7, inT=0., shT=0.;
-        for(int i=0;i<10;i++){ vec3 p=ro+rd*(st*(float(i)+.5)); float rr=length(p);
-          vec3 pr=p*ki+vec3(0.,uT*.22,uT*.1);
-          float g=sin(pr.x)*cos(pr.y)+sin(pr.y)*cos(pr.z)+sin(pr.z)*cos(pr.x);
-          inT+=exp(-abs(g)*26.)*(1.-smoothstep(.5,.9,rr))*st;
-          shT+=(exp(-pow((rr-.48)*30.,2.))+exp(-pow((rr-.2)*40.,2.))*.7)*st; }
-        vec3 fc=pow(vec3(1.-nv),vec3(2.,2.5,3.1));
-        c+=mix(sat,vec3(1.),.55)*(inT*3.2+shT*1.1)*crisp*(.7+.5*op)+fc*vec3(.9,1.,1.15)*.55*crisp;
-        a+=(inT*.7+shT*.45)*crisp;
-      }
-      c+=mix(rim,vec3(1.),.35)*pow(fr,2.6)*(1.25+.5*em);   // v8：暗い緑の地でも輪郭が切れない明るい縁
-      a+=pow(fr,2.6)*.35;
-      gl_FragColor=vec4(c*(1.+em*.2+op*.1),clamp(a,0.,.96)*vP.x);
+  // v11：層ごとの形（5 つ）。描き方は軽く：半透明の地・縁の光・層ごとの模様（葉脈・樹皮の稜・振動の脈・札の罫・レンズの映り込み）
+  const FSX = /* glsl */`uniform float uT; varying vec3 vCol; varying vec4 vP; varying vec2 vQ; varying vec3 vW; varying vec3 vL; varying vec3 vN;
+    void main(){ vec3 n=normalize(vN), v=normalize(cameraPosition-vW); if(!gl_FrontFacing) n=-n; float nv=clamp(abs(dot(n,v)),0.,1.), fr=pow(1.-nv,2.2);
+      float dif=.5+.5*max(0.,dot(n,normalize(vec3(.3,1.,.45)))); float sp=pow(max(0.,dot(reflect(-v,n),normalize(vec3(.3,1.,.45)))),48.);
+      float k=vQ.x, op=vQ.y, crisp=vP.y, em=vP.z, pat=0.;
+      if(k<.5) pat=sp*1.4+smoothstep(.9,1.,fr)*.4;
+      else if(k<1.5) pat=smoothstep(.55,1.,sin(atan(vL.z,vL.x)*9.+vL.y*6.))*.35;
+      else if(k<2.5) pat=exp(-pow(fract(atan(vL.z,vL.x)/6.2832*2.-uT*.25)-.5,2.)*30.)*.9;
+      else if(k<3.5) pat=smoothstep(.016,.0,abs(vL.y+vL.x*.0))*.0+smoothstep(.02,.0,abs(dot(vL.xy,vec2(-.78,.62))))*.7;
+      else pat=smoothstep(.012,.0,abs(fract(vL.y*9.)-.5)-.46)*.45;
+      vec3 sat=mix(vec3(dot(vCol,vec3(.333))),vCol,1.15);
+      vec3 c=sat*(.30+.45*dif)+mix(sat,vec3(1.),.45)*(fr*(.7+.4*crisp)+pat*(.5+.5*op))+vec3(1.)*sp*.35;
+      float a=(.38+.42*fr+.3*pat+.15*op)*(.75+.25*em);
+      gl_FragColor=vec4(c,clamp(a,0.,.92)*vP.x);
       #include <colorspace_fragment>
-    }`, 7, THREE.NormalBlending);
+    }`;
+  const VSX = VS_COMMON + /* glsl */`
+    void main(){ vCol=iCol; vP=iP; vQ=iQ; mat4 mw=modelMatrix*instanceMatrix; vec4 w=mw*vec4(position,1.); vW=w.xyz; vL=position; vN=normalize(mat3(mw)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`;
+  const crystals = [0, 1, 2, 3, 4].map(k => mk(crystalGeo(THREE, k), VSX, FSX, 7, THREE.NormalBlending));
+  const crystal = crystals[0];
   // 紋の円盤：結晶の後ろで見る人へ向く。細い輪と層の紋（近いときだけ）
   const hg = new THREE.PlaneGeometry(2, 2);
   const halo = mk(hg, VS_COMMON + /* glsl */`
@@ -169,7 +153,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
   const items = [];
   const _p = new THREE.Vector3(), _r = new THREE.Vector3(), _s = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _e = new THREE.Euler(), _c = new THREE.Color();
   const rects = [], _sp = new THREE.Vector3(), _r2 = new THREE.Vector3(), SPACE = opt.space ?? 7;
-  const ALLM = [crystal, halo, orbit, ring, beam];
+  const ALLM = [halo, orbit, ring, beam]; halo.visible = orbit.visible = false;   /* v11：紋の円盤とまわる輪はやめた（形そのものを見せる） */
   return {
     add(L, color, kind) { _c.set(color); items.push({ L, c: [_c.r, _c.g, _c.b], ph: items.length * 1.7, k: typeof kind === "number" ? kind : (KIND[kind] ?? 0), no: 0 }); },
     get count() { return items.length; },
@@ -178,8 +162,8 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
     remove(pred) { for (let i = items.length - 1; i >= 0; i--) if (pred(items[i].L)) items.splice(i, 1); },
     update(cam, o = {}) {
       const t = o.t ?? performance.now() / 1000, sky = !!o.sky, focus = o.focus || null, dt = Math.min(.1, Math.max(0, t - (this._t ?? t))); this._t = t;
-      for (const im of ALLM) im.material.uniforms.uT.value = t;
-      const CA = crystal.geometry.attributes, HA = halo.geometry.attributes, OA = orbit.geometry.attributes, RA = ring.geometry.attributes, BA = beam.geometry.attributes;
+      for (const im of [...ALLM, ...crystals]) im.material.uniforms.uT.value = t;
+      const CN = [0, 0, 0, 0, 0], HA = halo.geometry.attributes, OA = orbit.geometry.attributes, RA = ring.geometry.attributes, BA = beam.geometry.attributes;
       let n = 0; rects.length = 0;
       const ppk = innerHeight / (2 * Math.tan((cam.fov || 50) * Math.PI / 360));
       if (!sky) {   // 2026-10-28 Qualium 共通の基準：歩くときに見せる印は、視野の中の近い順に MAXN 個まで（印の壁にしない）
@@ -213,11 +197,11 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         if (!sky) { const nearMin = 1 - Math.min(1, Math.max(0, (d - 45) / 40)); cs = Math.max(cs, Math.min(cs * CAPK, MINPX * d / (ppk * .34)) * nearMin); }   // 最小の大きさは近い範囲（〜45 m、85 m で消える）だけ。遠い印は小さく、通りの奥で団子にしない   // 2026-10-27 v8：画面で直径 22px より小さくしない（遠くでも見つかる・近くは本来の大きさ）
         _e.set(0, t * (.5 - op * .3) + it.ph, 0); _q.setFromEuler(_e); _s.set(cs, cs, cs);
         const cy = _p.y + Math.sin(t * 1.3 + it.ph) * .06 * sg + op * .12 * sg;
-        _m.compose(_p.set(_p.x, cy, _p.z), _q, _s); crystal.setMatrixAt(n, _m);
+        _m.compose(_p.set(_p.x, cy, _p.z), _q, _s); const kk = Math.min(4, Math.max(0, it.k | 0)), cm = crystals[kk], ci = CN[kk]++, CA = cm.geometry.attributes; cm.setMatrixAt(ci, _m);
         const nearK = sky || focus === L ? 1 : Math.min(1, Math.max(.12, (d - 1.4) / 2.6));
         const cv = sky ? 0 : show * nearK * (1 - .55 * Math.min(1, Math.max(0, (d - 35) / 70))) * (.38 + .5 * Math.min(1, Math.max(0, (22 - dh) / 14)));   /* v9：遠くは淡い点（.38）・近づく（22 m→8 m）と少し強まる */   // 遠い印（並木や壁の向こうを含む）は薄く、手前の印を主役に
         const scr = ppk / Math.max(.5, d) * cs / innerHeight, big = Math.min(1, Math.max(0, 1 - (scr - .28) / .14));   // 画面の高さの 3 割を超える近さでは、輪と紋をうすく（左の一覧や字を覆わない）
-        CA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); CA.iP.setXYZW(n, cv * Math.max(.18, big), crisp, em, far); CA.iQ.setXY(n, it.k, op);
+        CA.iCol.setXYZ(ci, it.c[0], it.c[1], it.c[2]); CA.iP.setXYZW(ci, cv * Math.max(.18, big), crisp, em, far); CA.iQ.setXY(ci, it.k, op);
         // 紋の円盤（結晶の芯の高さ・見る人へ向く）。遠くでは描かない
         const hs = cs * (.95 + op * .12);   /* v9：近づいてもひらきは控えめ */
         _q.identity(); _s.set(hs, hs, hs); _m.compose(_r.set(_p.x, cy + .02 * cs, _p.z), _q, _s); halo.setMatrixAt(n, _m);
@@ -239,7 +223,7 @@ export function makeQMarks(THREE, parent, cap, mobile = false, opt = {}) {
         BA.iCol.setXYZ(n, it.c[0], it.c[1], it.c[2]); BA.iP.setXYZW(n, show * near * (1 - .75 * far) * (sky ? 1 : .18), crisp, em, far);   /* v9：歩くときの光の柱はほぼ消す（景色が主役） */   // 遠い印の光の柱は薄く（空に刺さって見えないように） BA.iQ.setXY(n, it.k, op);
         n++;
       }
-      for (const im of ALLM) { im.count = n; im.instanceMatrix.needsUpdate = true; const A = im.geometry.attributes; A.iCol.needsUpdate = A.iP.needsUpdate = A.iQ.needsUpdate = true; }
+      crystals.forEach((im, i) => { im.count = CN[i]; im.instanceMatrix.needsUpdate = true; const A = im.geometry.attributes; A.iCol.needsUpdate = A.iP.needsUpdate = A.iQ.needsUpdate = true; }); for (const im of ALLM) { im.count = n; im.instanceMatrix.needsUpdate = true; const A = im.geometry.attributes; A.iCol.needsUpdate = A.iP.needsUpdate = A.iQ.needsUpdate = true; }
     },
   };
 }
