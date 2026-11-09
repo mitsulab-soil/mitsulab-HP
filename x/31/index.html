@@ -16,7 +16,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #bar button[aria-pressed="true"]{background:rgba(92,200,224,.3);border-color:var(--aoi)}
 #app{position:fixed;left:0;right:0;bottom:0;top:calc(52px + env(safe-area-inset-top));width:100%;height:calc(100% - 52px - env(safe-area-inset-top));border:0;display:block;background:var(--bg)}
 @media (max-width:400px){#bar b{font-size:13px}#bar b small{font-size:10px}#bar button{min-width:56px;font-size:13px}}
-#wait{position:fixed;left:0;right:0;bottom:0;top:calc(52px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg);color:var(--ink);font-size:14px;letter-spacing:.1em;z-index:1;transition:opacity .4s;pointer-events:none}#wait.off{opacity:0}#wait i{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(92,200,224,.25);border-top-color:var(--aoi);animation:r 1s linear infinite}@keyframes r{to{transform:rotate(1turn)}}#wait small{font-size:12px;color:#cfe3ee;letter-spacing:.04em}
+#wait{position:fixed;left:0;right:0;bottom:0;top:calc(52px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg) center/cover no-repeat;color:var(--ink);font-size:14px;letter-spacing:.1em;z-index:1;transition:opacity .4s;pointer-events:none}#wait.off{opacity:0}#wait i{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(92,200,224,.25);border-top-color:var(--aoi);animation:r 1s linear infinite}@keyframes r{to{transform:rotate(1turn)}}#wait small{font-size:12px;color:#cfe3ee;letter-spacing:.04em}
+#wait span,#wait small{text-shadow:0 0 10px #03060f,0 1px 2px #000}#hint{position:fixed;left:0;right:0;top:calc(52px + env(safe-area-inset-top));z-index:3;margin:0;padding:8px 16px;text-align:center;font-size:12px;letter-spacing:.06em;color:#cfe3ee;text-shadow:0 0 10px #03060f,0 1px 2px #000;pointer-events:none;transition:opacity .6s}#hint.off{opacity:0}
 #home{flex:none;width:44px;height:44px;margin-left:-8px;display:grid;place-items:center;color:var(--ink);text-decoration:none;font-size:26px;line-height:1;border-radius:22px}#home:hover{color:var(--aoi)}
 :focus-visible{outline:2px solid var(--aoi);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){#wait{transition:none}#wait i{animation:none;border-top-color:rgba(92,200,224,.25)}}
@@ -24,23 +25,26 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 </head>
 <body>
 <nav id="bar"><a id="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">‹</a><b>Qualium<small id="sub"></small></b>
-<button data-t="omiya">大宮</button><button data-t="kawagoe">川越</button><button data-t="shibuya">渋谷</button></nav>
+<button data-t="omiya" title="氷川参道の杜と鳥居の道">大宮</button><button data-t="kawagoe" title="蔵の町並みと裏路地">川越</button><button data-t="shibuya" title="渋谷川の谷と坂。人の多い交差点では立ち止まって">渋谷</button></nav>
+<p id="hint">親子なら大宮・蔵の町並みなら川越・坂と谷なら渋谷</p>
 <div id="wait"><i></i><span id="wt"></span><small>人と生き物の受けとり方が、同じ町に重なる</small></div>
 <iframe id="app" title="Qualium" allow="autoplay; fullscreen; xr-spatial-tracking; camera; microphone; geolocation; accelerometer; gyroscope; magnetometer"></iframe>
 <script>
 const BASE = location.hostname === 'mitsulab.jp' ? '../' : 'https://mitsulab.jp/x/';
 const T = { omiya: '09/', kawagoe: '12/', shibuya: '14/' };
+const POS = t => BASE + T[t] + 'web/qposter_' + (innerWidth < 640 ? 'sp' : 'pc') + '.webp?v=n2';   /* 11-09 第2周：待つあいだも、その町の入口の地図の画を先に出す */
 const SUB = { omiya: '氷川参道の杜を歩く', kawagoe: '蔵の町と裏路地を歩く', shibuya: '渋谷川の谷を歩く' };
 const app = document.getElementById('app'), bs = [...document.querySelectorAll('#bar button')];
 function go(t) {
   if (!T[t]) t = 'omiya';
   bs.forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t));
-  app.src = BASE + T[t] + '?embed=1'; document.getElementById('wt').textContent = SUB[t].replace('を歩く', '') + 'へ'; document.getElementById('wait').classList.remove('off'); document.getElementById('sub').textContent = SUB[t];
+  app.src = BASE + T[t] + '?embed=1'; document.getElementById('wt').textContent = SUB[t].replace('を歩く', '') + 'へ'; const w = document.getElementById('wait'); w.style.backgroundImage = 'url(' + POS(t) + ')'; w.classList.remove('off'); document.getElementById('sub').textContent = SUB[t];
   const u = new URL(location); u.searchParams.set('t', t); history.replaceState(null, '', u);
 }
 bs.forEach(b => b.onclick = () => { if (b.getAttribute('aria-pressed') !== 'true') go(b.dataset.t); });
 app.addEventListener('load', () => setTimeout(() => document.getElementById('wait').classList.add('off'), 600));
 go(new URLSearchParams(location.search).get('t'));
+setTimeout(() => document.getElementById('hint').classList.add('off'), 9000);   /* 選ぶ手がかりは、はじめのうちだけ */
 </script>
 </body>
 </html>

@@ -380,7 +380,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
 
 /* ── 音と振動 ── */
 const sBtn = $('snd');
-const paintSnd = () => { sBtn.setAttribute('aria-pressed', soundOn); sBtn.textContent = soundOn ? '音 入' : '音 切'; };
+const paintSnd = () => { sBtn.setAttribute('aria-pressed', soundOn); sBtn.textContent = soundOn ? '♪ 音あり' : '音なし'; };
 paintSnd();
 function wake() {                                              // 最初の操作で音をひらく（自動再生の決まりを守る）
   if (audioWoken || !soundOn) return; audioWoken = true;
@@ -536,7 +536,7 @@ scene.add(paperG);
 resize();
 paintHall();
 if (!SHOT) { const w0 = nearest(); if (w0) P.yaw = Math.atan2(-(w0.x - P.x), -(w0.z - P.z)); }   // 2026-11-09：最初の視点は、いちばん近い書の正面へ
-showHint('<span>床を押すと、その向きへ歩く。</span><span>ドラッグで見回す。</span><span>書に触れると、その音が鳴る。</span>');
+showHint('<b class="lead">書にさわると、音が鳴るよ。</b><span>床を押すと、その向きへ歩く。</span><span>ドラッグで見回す。</span>');
 const WARM = import('./kit/warm.js');   // 2026-11-05：あとから足す物は、隠したまま材質を組んでから見せる（起動直後の止まりを分ける）
 const warmIn = async (objs) => { try { const W = await WARM; const vs = objs.map(o => o.visible); objs.forEach(o => o.visible = false); for (const o of objs) await W.warmScene(R, scene, cam, { root: o, batch: 2, offscreen: dof.on }); objs.forEach((o, i) => o.visible = vs[i]); } catch (e) { console.warn('warm', e); } };
 const later = () => loadRoomTextures(R, mobile).then(async t => {

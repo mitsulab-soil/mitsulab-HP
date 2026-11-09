@@ -17,7 +17,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--serif);overflow:hidden;-webkit-text-size-adjust:100%;touch-action:manipulation}
 body{background:radial-gradient(120% 80% at 30% 100%,#0b1626 0%,var(--bg) 60%)}
-#lamp{position:fixed;left:12%;bottom:18%;width:6px;height:6px;border-radius:50%;background:#f2cf8c;opacity:.7}
+#lamp{position:fixed;left:24%;bottom:47%;width:4px;height:5px;border-radius:50%;background:#f6dca4;opacity:.55;box-shadow:0 0 14px 6px rgba(242,207,140,.16),0 0 46px 20px rgba(242,207,140,.06);animation:lp 7s ease-in-out infinite;pointer-events:none}@keyframes lp{50%{opacity:.4}}
+:focus:not(:focus-visible){outline:none}#world:focus{outline:none}:focus-visible{outline:2px solid var(--aoi);outline-offset:2px}
 header{position:fixed;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:baseline;z-index:5;pointer-events:none}
 header h1{font-size:15px;font-weight:500;letter-spacing:.08em}
 header h1 i{font-family:"Cormorant Garamond",serif;color:var(--ink3);font-weight:400}
@@ -68,7 +69,7 @@ header span{font-size:12px;color:var(--ink3)}
 </style>
 </head>
 <body>
-<div id="lamp" aria-hidden="true"></div>
+<div id="lamp" aria-hidden="true" title=""></div><!-- 2026-11-09 第2周：遠くの参道の灯を一つ、淡く -->
 <header><h1>Qualia/<i>letter</i>　便り</h1><span>氷川参道・大宮</span></header>
 <p id="sub">参道の生き物たちの受けとり方を、碧が訳して書いた便りです。<small>いちばん上の封にふれると、その生き物の受けとり方に入ります。</small></p>
 <div id="stack"></div>
@@ -79,7 +80,7 @@ header span{font-size:12px;color:var(--ink3)}
   <article id="paper">
     <div id="pfrom" style="font-size:12px;color:var(--sumi2);letter-spacing:.14em;margin-bottom:4px"></div><div id="pbody"></div>
     <div id="psig">── 訳して書いた人　碧</div>
-    <form class="reply" autocomplete="off"><input id="ri" maxlength="40" placeholder="返事を一言" aria-label="返事を一言"><button>置く</button></form>
+    <form class="reply" autocomplete="off"><input id="ri" maxlength="40" placeholder="生き物へ、返事を一言" aria-label="生き物へ、返事を一言（この端末の中にだけ残る）"><button aria-label="返事を封に挟む（この端末の中にだけ残る）">封に挟む</button></form>
     <div id="rk"></div>
     <details id="more"><summary>問いと出典</summary><div id="pq"></div>
     <details><summary>出典と訳し方</summary><div id="ps"></div></details></details>
@@ -210,10 +211,10 @@ $('eye').onclick=()=>{human=!human;$('eye').setAttribute('aria-pressed',human);$
 function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];
  $('wname').innerHTML=VW(l)+'<small>碧が訳した模式</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
  $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pq').textContent=l.q;$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
- const o=st();$('rk').textContent=o[i]&&o[i].t?'置いた返事：'+o[i].t:'返事は、この端末の中にだけ残ります。';$('ri').value='';o[i]=Object.assign(o[i]||{},{r:1});save(o);
+ const o=st();$('rk').textContent=o[i]&&o[i].t?'封に挟んだ返事：'+o[i].t:'返事は、この端末の中にだけ残ります。';$('ri').value='';o[i]=Object.assign(o[i]||{},{r:1});save(o);
  world.querySelectorAll('details').forEach(d=>d.open=false);$('paper').classList.remove('fold');world.classList.add('on');sub.style.opacity=0;size();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
  if(l.id==='bat')setTimeout(()=>{if(cur===i&&!pulses.length)pulses.push({t:performance.now()/1000})},700);
- world.tabIndex=-1;setTimeout(()=>world.focus({preventScroll:true}),60);hintT=(l.id==='bat'||l.id==='worm')?0:setTimeout(hideHint,6000)}
+ world.tabIndex=-1;setTimeout(()=>$('back').focus({preventScroll:true}),60);hintT=(l.id==='bat'||l.id==='worm')?0:setTimeout(hideHint,6000)}
 function closeL(){if(!world.classList.contains('on'))return;world.classList.remove('on');setTimeout(()=>cancelAnimationFrame(raf),900);lay();sub.style.opacity=1;
  const n=Object.values(st()).filter(x=>x.r).length;
  if(n>=L.length)sub.innerHTML='見わたせば花ももみぢもなかりけり<br>浦の苫屋の秋の夕ぐれ<small>藤原定家『新古今和歌集』秋上・363<br><br>花も紅葉も「ない」と詠むことで、かえって浮かぶ景色があります。<br>あなたに見えなかった模様、聞こえなかった声も、いまは目の前の参道に重なっています。<br>ひとつの受けとり方は、その生き物が生きているあいだだけ開いています。<br>閉じたあとも、それが触れていた参道は、ここにあります。<br><br>画面から目を上げて、同じ参道に、もう一度。</small>';

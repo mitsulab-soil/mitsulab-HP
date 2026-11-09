@@ -31,7 +31,7 @@ button:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset:2px}
 .big{width:64px;height:64px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;letter-spacing:.08em;color:var(--ml-ink);border:1px solid rgba(255,255,255,.55);background:rgba(8,13,22,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .big svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.3}
 .big.rec{border-color:#f4aa96;color:#f4aa96}
-#cnt{font-family:var(--ml-mono);font-size:11px;color:var(--ml-ink-3);min-width:40px;text-align:center}
+#cnt{font-size:11px;letter-spacing:.06em;white-space:nowrap;color:var(--ml-ink-3);min-width:40px;text-align:center}
 #win{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(3,6,15,.55)}
 #win.on{display:flex}
 body.cam #topr,body.cam #q{opacity:0;pointer-events:none}
@@ -97,6 +97,6 @@ body:not(.solo) #note{display:none}
 <input type="file" id="pic" accept="image/*" capture="environment" style="display:none">
 <div id="end" role="dialog" aria-label="おわる"><div id="endb"><button class="big" id="bKeep">持ち帰る</button><button class="big" id="bBack">もどる</button><button class="big" id="bWipe">消す</button></div></div>
 <div id="drop">層のファイルを、ここに置く</div>
-<script type="module" src="web/app.js?v=20261105n"></script>
+<script type="module" src="web/app.js?v=20261109g"></script>
 </body>
 </html>

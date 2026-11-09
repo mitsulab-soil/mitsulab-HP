@@ -133,7 +133,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
   const fly = $("#modeFly"), sky = $("#modeSky"), walk = $("#modeWalk");
   if (sky) sky.textContent = "地図";
   let arB = null;
-  if (walk && mobile) { arB = document.createElement("button"); arB.id = "modeAR"; arB.setAttribute("aria-pressed", "false"); arB.textContent = "AR"; arB.title = "いまいる所で、端末を向けて見る"; walk.after(arB); arB.addEventListener("click", () => toggleAR()); }
+  if (walk && mobile) { arB = document.createElement("button"); arB.id = "modeAR"; arB.setAttribute("aria-pressed", "false"); arB.textContent = "AR"; arB.title = "AR＝いまいる所で端末を向けると、その向きの印が風景に重なる"; arB.setAttribute("aria-label", arB.title); walk.after(arB); arB.addEventListener("click", () => toggleAR()); }
   const tick = b => { b.classList.remove("qtick"); void b.offsetWidth; b.classList.add("qtick"); };
   for (const b of [sky, walk, arB]) if (b) b.addEventListener("click", () => tick(b));
   new MutationObserver(() => { if (arB) { if (N.ar) { walk.setAttribute("aria-pressed", "false"); } arB.setAttribute("aria-pressed", String(N.ar)); } }).observe(walk, { attributes: true, attributeFilter: ["aria-pressed"] });
@@ -187,7 +187,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
     if (o.mode() !== "walk") { $("#modeWalk")?.click(); await new Promise(r => setTimeout(r, 2600)); }
     N.ar = true; N.ori = null; N.oriBase = null; addEventListener("deviceorientation", onOrient); arB?.setAttribute("aria-pressed", "true"); walk?.setAttribute("aria-pressed", "false");
     if (!o.here()?.on) o.hereToggle();
-    once("q.h.ar", "足元に気をつけて。ゆっくり端末を向けると、印が重なります。");
+    once("q.h.ar", "AR は、いまいる所で端末を向けると、その向きの印が風景に重なります。足元に気をつけて。");
     setTimeout(() => { if (N.ar && !N.ori) { N.ar = false; removeEventListener("deviceorientation", onOrient); arB?.setAttribute("aria-pressed", "false"); o.say("この端末では、向きの知らせが届きませんでした。なぞって見回せます。"); } }, 1800);
   }
   N.leaveAR = () => { if (N.ar) toggleAR(); };
@@ -195,7 +195,7 @@ body.qStick[data-mode="walk"] #qStickZone{display:block}
   /* ---------- 最初の一言（1 回だけ） ---------- */
   function once(k, t, n = 0) { if (ss.get(k)) return; if (n < 8 && document.getElementById("caption")?.hidden === false) return setTimeout(() => once(k, t, n + 1), 3000); ss.set(k, "1"); o.say(t); }   // 11-02：碧の字幕が出ているあいだは、知らせを重ねない
   N.firstWalk = () => setTimeout(() => once("q.h.walk", mobile ? "行きたい所を、指でさしてください。なぞると見回せます。" : "行きたい所をクリック。ドラッグで見回し、W A S D でも歩けます。"), 400);
-  N.firstWalk = ((f0) => () => { f0(); { const tc = () => { if (!document.querySelector("#qHere:not([hidden])")) return; if (document.getElementById("caption")?.hidden === false) return setTimeout(tc, 4000); once("q.h.cnt", "左の数字は、まわり 30 m に重なっている層の数です。"); }; setTimeout(tc, 16000); }   /* 11-02 採点 P2：字幕と重ねて出さない */ })(N.firstWalk);   // 10-30 パネル：数字の札の意味を最初の一度だけ
+  N.firstWalk = ((f0) => () => { f0(); { const tc = () => { if (!document.querySelector("#qHere:not([hidden])")) return; if (document.getElementById("caption")?.hidden === false) return setTimeout(tc, 4000); once("q.h.cnt", "左の数字は、まわり 30 m に重なっている層の数です。"); }; setTimeout(tc, 16000); setTimeout(() => once("q.h.safe", "スクランブル交差点のような人の多い所では、立ち止まってから画面を見てください。"), 5000); }   /* 11-02 採点 P2：字幕と重ねて出さない */ })(N.firstWalk);   // 10-30 パネル：数字の札の意味を最初の一度だけ
   const ab = $("#autoBtn"); if (ab) ab.addEventListener("click", e => { if (ab.dataset.qstop) { e.stopImmediatePropagation(); o.stop(); delete ab.dataset.qstop; return; }   /* 押した所へ歩いている間の「止まる」 */ if (ab.getAttribute("aria-pressed") === "true") once("q.h.auto", "行きたい所を押すと、そちらへ向きを変えます。止まるときは右下の「止まる」。"); });
   return N;
 }

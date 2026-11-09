@@ -6,6 +6,7 @@
 <title>Qualia/yose ── 館と寄席</title>
 <meta name="robots" content="noai,noimageai">
 <meta name="tdm-reservation" content="1">
+<link rel="preconnect" href="https://mitsulab-soil.github.io" crossorigin><link rel="dns-prefetch" href="https://mitsulab-soil.github.io">
 <!-- © mitsulab. All rights reserved. 2026-11-09。Qualia/yose＝Qualia Museum と Qualia/rakugo の集約：時代と文化の受けとり方を館で見て、碧が噺に訳す 8 席を寄席で聴く。各席に、あわせて訪ねる館の部屋を添える。 -->
 <style>
 :root{--bg:#03060f;--ink:#eef5fb;--aoi:#5cc8e0}
@@ -49,12 +50,12 @@ function go(v, e, room, from) {
   sel.value = e || '';
   app.src = v === 'kan' ? MUSEUM + '?embed=1' + (room ? '&room=' + room : '') : YOSE + '?embed=1' + (e ? '&e=' + e : '');
   const u = new URL(location); u.searchParams.set('v', v); e ? u.searchParams.set('e', e) : u.searchParams.delete('e'); history.replaceState(null, '', u);
-  fit(); const w = document.getElementById('wait'); document.getElementById('wt').textContent = v === 'kan' ? '館をひらいています' : '寄席をひらいています'; w.classList.remove('off'); clearTimeout(go.t); go.t = setTimeout(() => w.classList.add('off'), 1500);
+  fit(); const w = document.getElementById('wait'); document.getElementById('wt').textContent = v === 'kan' ? '館をひらいています' : '寄席をひらいています'; w.classList.remove('off'); clearTimeout(go.t); go.t = setTimeout(() => w.classList.add('off'), 900);
 }
 document.querySelectorAll('#row button').forEach(b => b.onclick = () => go(b.dataset.v));
-sel.onchange = () => go('yose', sel.value || null);
+sel.onchange = () => { if ((new URLSearchParams(location.search).get('e') || '') !== sel.value) go('yose', sel.value || null); };   // 同じ席はひらき直さない
 addEventListener('resize', fit);
-app.addEventListener('load', () => setTimeout(() => document.getElementById('wait').classList.add('off'), 600));
+app.addEventListener('load', () => document.getElementById('wait').classList.add('off'));   // 2026-11-09 第2周：読み込みが済んだらすぐ外す（前は 0.6 秒待った）
 const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : null);
 </script>
 </body>
