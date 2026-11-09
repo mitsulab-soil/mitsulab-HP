@@ -6,7 +6,7 @@ import {growKeyaki,sprigMesh} from './common-ground-tree.js';
 import {sightLeaf,sightBark,setSightSun} from './kit/sight_trees.js';
 import {installDapple} from './kit/sight_look.js';
 installDapple(T);
-import {MODES,createRelations} from './common-ground-relations.js?v=20261109env2';
+import {MODES,createRelations} from './common-ground-relations.js?v=20261110r4';
 let relations=null,relationMode='forest',relationClock=0;
 function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
 function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}

@@ -31,10 +31,16 @@ body.yose #row{padding-right:56px}
 @media (max-width:560px){#go{padding-top:0}#row b small{font-size:10px}}
 #app{position:fixed;left:0;right:0;bottom:0;width:100%;border:0;display:block;background:var(--bg)}
 #wait{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg);color:var(--ink);font-size:14px;letter-spacing:.1em;z-index:1;transition:opacity .4s;pointer-events:none}#wait.off{opacity:0}#wait i{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(92,200,224,.25);border-top-color:var(--aoi);animation:r 1s linear infinite}@keyframes r{to{transform:rotate(1turn)}}#wait small{font-size:12px;color:#cfe3ee;letter-spacing:.04em}
+/* 2026-11-10 第4周：題の札（字だけ）を PC 4 列・スマホ 2 列で */
+#seki{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px}
+#seki .card{min-height:52px;justify-content:center;background:#07101d;border-color:rgba(92,200,224,.35)}
+#seki .card span{font-size:16px;letter-spacing:.08em;padding:6px 4px 0}
+#seki .card small{display:block;font-size:11.5px;color:#cfe3ee;letter-spacing:.02em;padding:0 4px 6px;text-align:center;white-space:normal;line-height:1.35;font-family:"Hiragino Sans",sans-serif}
+@media (max-width:760px){#seki{grid-template-columns:repeat(2,minmax(0,1fr))!important}#seki .card{min-height:48px}#seki .card span{font-size:15px}#seki .card small{display:none}}
 </style>
 </head>
 <body>
-<nav id="bar"><div id="row"><a id="hp" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">‹</a><b>Qualia/yose<small>題を押すと、すぐはじまる</small></b><button data-v="kan">館</button><button data-v="yose">寄席</button></div><div id="seki" role="group" aria-label="噺を選ぶ（8 席）"></div><details id="src"><summary aria-label="噺ごとの出典">＋</summary><ol id="srcl"></ol></details><div id="go"><button id="toRoom"></button></div></nav>
+<nav id="bar"><div id="row"><a id="hp" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">‹</a><b>Qualia/yose<small>題を押すと、すぐはじまる・小学生から親子で</small></b><button data-v="kan">館</button><button data-v="yose">寄席</button></div><div id="seki" role="group" aria-label="噺を選ぶ（8 席）"></div><details id="src"><summary aria-label="噺ごとの出典">＋</summary><ol id="srcl"></ol></details><div id="go"><button id="toRoom"></button></div></nav>
 <div id="wait"><i></i><span id="wt"></span></div>
 <iframe id="app" title="Qualia/yose" allow="autoplay; fullscreen"></iframe>
 <script>
@@ -45,7 +51,7 @@ const app = document.getElementById('app'), bar = document.getElementById('bar')
 const RK = 'https://mitsulab-soil.github.io/aoi-shizen-rakugo/img/';
 // 噺ごとの主な出典（一次の文献。くわしくは寄席の中の「典拠」）
 const SRC = { hachi: 'N. Hempel de Ibarra ほか (2014) <i>J. Comp. Physiol. A</i>（ミツバチの色の見え方）', mimizu: 'C. Darwin (1881) <i>The Formation of Vegetable Mould, through the Action of Worms</i> 第一章', ga: 'J. H. Fabre『The Life of the Caterpillar』（英訳 1916）第 11 章', kumo: 'B. Mortimer ほか (2016) <i>J. R. Soc. Interface</i>（網の糸が揺れを伝える）', inu: 'G. J. Romanes (1887) <i>J. Linn. Soc. Zool.</i> 20（犬の嗅覚の実験）', keyaki: 'さいたま市「武蔵一宮氷川神社と氷川参道」・環境省 巨樹・巨木林データベース', shashin: 'パリ市「Un détail imprévu fait revivre un cliché historique」（2026-10-15）', hoshi: '清少納言『枕草子』「星は」の段' };
-seki.innerHTML = S.map(([k, t]) => `<button class="card" type="button" data-e="${k}" aria-pressed="false"><img src="${RK}${k}_poster.webp" alt="" loading="lazy" decoding="async" width="320" height="180"><span>${t}</span></button>`).join('');
+seki.innerHTML = S.map(([k, t, , g]) => `<button class="card" type="button" data-e="${k}" aria-pressed="false"><span>${t}</span><small>${g}</small></button>`).join('');   // 2026-11-10 第4周：碧の顔の帯をやめ題の札だけに
 document.getElementById('srcl').innerHTML = S.map(([k, t]) => `<li><b>${t}</b>　${SRC[k]}</li>`).join('');
 seki.onclick = ev => { const c = ev.target.closest('.card'); if (!c) return; if ((new URLSearchParams(location.search).get('e') || '') === c.dataset.e && document.body.classList.contains('yose')) return; go('yose', c.dataset.e, null, null, true); };   // 同じ席はひらき直さない
 const fit = () => { const h = bar.offsetHeight; app.style.top = (h + 8) + 'px'; document.getElementById('wait').style.top = h + 'px'; app.style.height = (innerHeight - h - 8) + 'px'; };
@@ -66,7 +72,7 @@ addEventListener('resize', fit);
 // 焦点が寄席・館の中にあるときは、枠に印を出す
 addEventListener('blur', () => setTimeout(() => document.body.classList.toggle('inapp', document.activeElement === app), 0)); addEventListener('focus', () => document.body.classList.remove('inapp'));
 app.addEventListener('load', () => document.getElementById('wait').classList.add('off'));   // 2026-11-09 第2周：読み込みが済んだらすぐ外す（前は 0.6 秒待った）
-const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : null);
+const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : (q.get('v') === 'kan' ? null : 'hachi'));   // 2026-11-10 第4周：はじめから一席目の高座を出す（空の高座にしない）
 </script>
 </body>
 </html>
