@@ -31,7 +31,7 @@ export function makeAreas({ THREE, world, camera, groundY, BASE, VER, mobile, rm
 @media (max-width:600px){.arTag{font-size:16px;top:24%}.arNear{bottom:150px;font-size:12px}.arLabel{font-size:12px;padding:5px 10px 6px}}
 @media (prefers-reduced-motion:reduce){.arTag .ld i:after{animation:none;width:100%}}`; document.head.appendChild(css);
   const labBox = document.createElement("div"); labBox.className = "arLabels"; labBox.hidden = true; document.body.appendChild(labBox);
-  const tag = document.createElement("div"); tag.className = "arTag"; tag.setAttribute("aria-live", "polite"); tag.innerHTML = `<small></small><b></b><div class="ld"><i></i><span>道と建物を読み込んでいます</span></div>`; document.body.appendChild(tag);
+  const tag = document.createElement("div"); tag.className = "arTag"; tag.setAttribute("aria-live", "polite"); tag.innerHTML = `<small></small><b></b><div class="ld"><i></i><span></span></div>`; document.body.appendChild(tag);
   const nearEl = document.createElement("div"); nearEl.className = "arNear"; document.body.appendChild(nearEl);
   let tagT = 0;
   function showTag(Z, loading) { tag.style.setProperty("--ac", Z.color); tag.querySelector("small").textContent = Z.en; tag.querySelector("b").textContent = Z.name; tag.querySelector(".ld").classList.toggle("on", !!loading); tag.classList.add("on"); tagT = loading ? 1e9 : 3.2; }

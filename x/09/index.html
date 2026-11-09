@@ -629,12 +629,24 @@ body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="15000"></script>
-<canvas id="gl" aria-label="氷川参道の 3D（実寸。地形は国土地理院、建物は PLATEAU）" tabindex="0"></canvas>
+<script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="1200"></script>
+<canvas id="gl" aria-label="氷川参道の 3D（実寸。地形は国土地理院、建物は PLATEAU）" tabindex="-1"></canvas>
 <div id="mapLabels" hidden></div>
 <div id="pinLabels" hidden></div>
 
+<div id="qposter" aria-hidden="true"></div>
+<style>/* 2026-11-09 起動：読み込み画面は最長 1.2 秒・その後は 3D が整うまで最初の眺めの静止画（ポスター）を GUI の下に置く。左上に mitsulab.jp へ戻る印。Tab は操作ボタンから。地点の字は 375 で 15px・白 */
+#qposter{position:fixed;inset:0;z-index:2;pointer-events:none;background:#c3c7cd url(web/qposter_sp.webp) center/cover no-repeat;transition:opacity .6s,visibility 0s .6s}
+@media (min-width:641px){#qposter{background-image:url(web/qposter_pc.webp)}}
+body.ready #qposter{opacity:0;visibility:hidden}
+.qhome{pointer-events:auto;flex:none;width:44px;height:44px;margin:0 -6px 0 -8px;display:grid;place-items:center;color:#eef5f8;text-decoration:none;font:300 26px/1 "Hiragino Mincho ProN",serif;text-shadow:0 0 6px rgba(3,6,15,.9);border-radius:22px}
+.qhome:hover{color:#9bdcf0}.embed .qhome{display:none}
+:focus-visible{outline:2px solid #9bdcf0;outline-offset:2px}
+@media (max-width:640px){body .spTag{font-size:15px!important;color:#fff!important;font-weight:600!important;text-shadow:0 0 2px #03060f,0 0 6px #03060f,0 0 14px rgba(3,6,15,.9)!important}body .spTag .no{color:#d6eef5!important}body .spTag.k-area{color:#ffe2a8!important}}
+@media (prefers-reduced-motion:reduce){#qposter{transition:none}}
+</style>
 <header id="hud">
+  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">‹</a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
   <div class="brand mu-logo">Qualium 大宮</div>
   <nav class="seg" aria-label="見方">
