@@ -235,13 +235,13 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261110r8">
+<link rel="modulepreload" href="umwelt.js?v=20261110r9">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
 <link rel="modulepreload" href="bodies.js?v=20261016-startup1">
-<link rel="modulepreload" href="forest.js?v=20261105s">
+<link rel="modulepreload" href="forest.js?v=20261110r9">
 <link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
 <link rel="modulepreload" href="nature.js?v=20261105s">
 <link rel="modulepreload" href="zen.js">
@@ -277,6 +277,7 @@ body{word-break:auto-phrase;line-break:strict}
  #legend[data-lens="hachi"] .sight-sonic{font-weight:400}
 }
 </style>
+<style id="r9-top">@media (max-width:420px){#top .btn.why{font-size:13.5px!important;padding:0 6px!important}}@media (min-width:701px){#top .btn.why{font-size:15px}}</style>
 </head>
 <body>
 <script src="loader/loader.js" data-max="4000"></script>
@@ -415,7 +416,7 @@ body.r5go #r5intro{display:none}
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var bo=document.getElementById('boot');if(bo)bo.classList.add('fail');var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r8';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r9';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed){document.getElementById('boot').classList.add('fail');}if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <script>/* 第3周：静止画が出たら読み込み画面を下ろす。3D が組めたら body.booted */

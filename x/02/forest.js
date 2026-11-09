@@ -256,7 +256,7 @@ export function buildForest(ctx) {
     const sg = inSugi(x, z), d = sg ? 2.9 : (near(x, z, 0) ? 4.3 : 5.2) * (mobile ? 1.12 : 1); if (!farEnough(x, z, d)) continue;
     put(x, z, sg ? "sugi" : R() < .62 ? "konara" : "keyaki");
   }
-  for (const [x, z, kind] of placed) tree(kind, x, z, near(x, z, 6), kind === "sugi" ? 1 : rr(.9, 1.15));
+  for (const [x, z, kind] of placed) tree(kind, x, z, near(x, z, 6), kind === "sugi" ? rr(.86, 1.1) : rr(0, 1) < .22 ? rr(.55, .74) : rr(.86, 1.32));   /* 11-10 第9周：樹齢の不揃い（若木を 2 割ほど・大木も）。葉の数は大きさに比例するので平均の重さはほぼ同じ */
   // 亜高木：イロハモミジ（日陰〜半日陰。高木のあいだ）
   let nM = 0;
   for (let i = 0; i < 3000 && nM < (mobile ? 26 : 44); i++) { const x = rr(-34, 36), z = rr(-32, 34); if (!canopyOK(x, z) || inSugi(x, z) || lightAt(x, z) > .55 || !farEnough(x, z, 3)) continue; put(x, z, "momiji"); tree("momiji", x, z, near(x, z, 2), rr(.8, 1.2)); nM++; }

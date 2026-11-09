@@ -3,12 +3,12 @@
    触れると鳴る（人の声と機械の声）。なぞると、その場所の記述が書き換わり、線が旋律になる。「外から」で自分の受けとり方が見える。
    描き方：①色の描画（人）②種類・日の当たり・距離の描画（機械のための記述）③二つを縁で合わせる ④線・帯・輪を上に重ねる */
 import * as THREE from "three";
-import { qxEntry } from "./qx.js?v=20261110r5";
+import { qxEntry } from "./qx.js?v=20261110r9";
 qxEntry({ css: ".top{padding-left:124px!important}#seam .hd.qx-glow{animation:qxp 2.4s ease-in-out infinite;border-color:#f2d696}#chs button.qx-later{display:none}@media (prefers-reduced-motion:reduce){#seam .hd.qx-glow{animation:none}}#projToggle{position:fixed;left:12px;top:calc(58px + env(safe-area-inset-top));z-index:4;min-height:44px;padding:0 12px;font-size:12px;letter-spacing:.08em;color:var(--ink);background:#07111acc;border:1px solid #9ed9e655;border-radius:22px}#projToggle[hidden]{display:none}#projectionNotes h2{display:flex;align-items:center;justify-content:space-between;gap:8px}.pn-x{min-height:44px;min-width:44px;padding:0 8px;font-size:12px;color:var(--ink)}" });
 import { rng, growTree, plantTrees, leafMaterial, barkMaterial, WIND, poisson } from "./kit/vegetation.js";
 import { installDapple, makeSightGrass, SIGHT_AIR } from "./kit/sight_look.js";
 import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
-import { CH, BANDS, SAY, AI_LABELS, REFS, wlHz } from "./data.js?v=20261110r8";
+import { CH, BANDS, SAY, AI_LABELS, REFS, wlHz } from "./data.js?v=20261110r9";
 import { Music, PHRASE, GRID } from "./audio.js?v=20261107p2";
 
 installDapple(THREE);
@@ -271,7 +271,7 @@ function makeBand(key) {
     for (const [a, z] of inter(b.h, b.m)) { const x0 = bandX(b, a), x1 = bandX(b, z); g.add(segs([x0, -LY + LH / 2, 0, x0, LY - LH / 2, 0, x1, -LY + LH / 2, 0, x1, LY - LH / 2, 0, x0, 0, 0, x1, 0, 0], lineM(COL.both, .9)));
       L.push(lab("両方に届く", { cls: "rg", obj: g, pos: new V3((x0 + x1) / 2, mobile ? -LY - .44 : -LY - .2, 0), show: () => vis() && !OUTH() })); }
     for (const t of b.ticks) { const x = bandX(b, t); g.add(segs([x, -.02, 0, x, .02, 0], lineM(0xffffff, .5)));
-      L.push(lab(t >= 1000 ? (t / 1000) + "k" : String(t), { cls: "tk", obj: g, pos: new V3(x, -LY - .08, 0), show: () => vis() && !OUTH() })); }
+      L.push(lab((b.h.some(r => r[0] === t || r[1] === t) || (b.m.some(r => r[1] === t) && b.unit === "nm") ? "およそ " : "") + (t >= 1000 ? (t / 1000) + "k" : String(t)), {   /* 11-10 第9周：境目は人・機械により幅がある＝「およそ」 */ cls: "tk", obj: g, pos: new V3(x, -LY - .08, 0), show: () => vis() && !OUTH() })); }
     for (const [v, s] of b.marks || []) { const x = bandX(b, v); g.add(segs([x, LY + LH / 2, 0, x, LY + .13, 0], lineM(0xffffff, .45))); L.push(lab(s, { cls: "mk", obj: g, pos: new V3(x, LY + .17, 0), show: () => vis() && !OUTH() })); }
     // どちらにも届かない所（いちばん広い隙間に札）
     const all = [...b.h, ...b.m, ...(b.hsoft || [])].sort((p, q) => p[0] - q[0]); let gaps = [], cur = b.min;

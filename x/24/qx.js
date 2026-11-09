@@ -4,7 +4,7 @@ export function qxEntry(o = {}) {
   const st = document.createElement("style");
   st.textContent = `
 .qx-home{position:fixed;left:max(6px,env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));z-index:9;width:44px;height:44px;display:grid;place-items:center;color:#eef5fb;text-decoration:none;font:400 18px/1 "Hiragino Sans",sans-serif;text-shadow:0 0 3px #000,0 0 10px rgba(0,0,0,.7);pointer-events:auto}
-.qx-home{width:auto!important;padding:0 12px 0 8px;font-size:15px!important;background:rgba(14,26,46,.58);border-radius:6px}
+.qx-home{width:auto!important;padding:0 12px 0 8px;font-size:15px!important;background:none;border-radius:0}
 ${o.css || ""}
 .qx-go{position:fixed;left:0;top:0;z-index:8;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;border:1px solid rgba(242,214,150,.85);background:radial-gradient(circle,rgba(255,236,190,.16),rgba(255,236,190,0) 70%);box-shadow:0 0 14px rgba(255,226,160,.45);cursor:pointer;pointer-events:auto;padding:0;animation:qxp 2.4s ease-in-out infinite;transition:opacity .4s}
 .qx-go[hidden]{display:none}
