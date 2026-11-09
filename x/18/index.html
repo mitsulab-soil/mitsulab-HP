@@ -62,13 +62,20 @@ body:not(.solo) #note{display:none}
 @media (min-width:900px){#q{font-size:24px}#sub{font-size:15px}}
 /* 2026-11-09 第3周：感覚は問いが決める。下は「撮る・手ざわり・録る」の 3 つだけ（二段の選択をなくす） */
 #sense,#dock .lab{display:none}#cnt2:empty{display:none}#act{gap:18px}.big{width:72px;height:72px;font-size:12px}.big ruby rt{font-size:8px;letter-spacing:0}#cnt{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 6px)}#act{position:relative}
+/* 2026-11-10 第5周：最初の一手は「撮る」一つを光らせる・下の小さな字をなくす・← mitsulab */
+#cr{font-size:11px;opacity:.85}
+#brand .nm{margin-left:.8em;font-size:.86em;opacity:.8}
+#note{max-width:min(560px,88vw);line-height:1.7;text-align:center}
+#bShot.first{border-color:#a8f2f6;box-shadow:0 0 0 0 rgba(168,242,246,.6);animation:gzf 1.8s ease-out infinite}
+@keyframes gzf{0%{box-shadow:0 0 0 0 rgba(168,242,246,.55)}100%{box-shadow:0 0 0 16px rgba(168,242,246,0)}}
+@media (prefers-reduced-motion:reduce){#bShot.first{animation:none;box-shadow:0 0 0 2px #a8f2f6}}
 </style>
 </head>
 <body>
 <script src="loader/loader.js" data-max="1000"></script>
 <canvas id="c" aria-label="みんなの層を重ねた 3D の空間"></canvas>
 <div id="top" class="mu-top">
-  <a id="brand" class="mu-logo" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る" style="color:inherit;text-decoration:none">‹ Qualia/gaze</a>
+  <a id="brand" class="mu-logo" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る" style="color:inherit;text-decoration:none">← mitsulab<span class="nm">Qualia/gaze</span></a>
   <div id="topr" class="mu-top-r">
   <button class="mu-btn" id="bView" data-v="stack" aria-label="いまは重ねる。押すと並べる"><span data-k="stack">重ねる</span><span data-k="side">並べる</span></button>
   <button class="mu-btn" id="bGive">渡す</button>
@@ -76,16 +83,16 @@ body:not(.solo) #note{display:none}
   <button class="mu-btn" id="bEnd">おわる</button>
   </div>
 </div>
-<div id="q"><span id="qt"></span><small id="qn">問いを押すと、次の問いへ</small><details id="note"><summary aria-label="この版について">＋</summary>この版は、写真と録音を共有しません（端末の中だけ）</details></div>
+<div id="q"><span id="qt"></span><small id="qn">問いを押すと、次の問いへ</small><details id="note"><summary aria-label="この版について">＋</summary>この版は、写真と録音を共有しません（端末の中だけ）。<br>親子で：子どもが撮り、おとなが「なぜそれ？」と聞く。カメラとマイクは、押したときに端末が許可を聞きます。<br>地は氷川参道（さいたま市大宮区）の並木道を思わせる模式・砂利と樹皮の写真 CC0</details></div>
 <div id="sub" class="mu-cap is-on"></div>
-<div id="cr">地は氷川参道（さいたま市大宮区）の並木道を思わせる模式・砂利の写真 CC0<br>© mitsulab ・ 声 VOICEVOX:冥鳴ひまり</div>
+<div id="cr">© mitsulab ・ 声 VOICEVOX:冥鳴ひまり</div>
 <div id="dock">
   <div class="mu-chips" id="who" aria-label="だれの受けとり方で" hidden></div>
   <small class="lab" aria-hidden="true">どの感覚で</small>
   <div class="row" id="sense" aria-label="どの感覚で"></div>
   <div id="act">
     <span id="cnt"></span>
-    <button class="big" id="bShot" aria-label="撮る"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="4"/><path d="M4 8h3l2-3h6l2 3h3v11H4z"/></svg>撮る</button>
+    <button class="big first" id="bShot" aria-label="撮る"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="4"/><path d="M4 8h3l2-3h6l2 3h3v11H4z"/></svg>撮る</button>
     <button class="big" id="bTex" aria-label="手ざわり（触れた面を寄って撮る）"><svg viewBox="0 0 24 24"><path d="M10.4 3v10.6a1.6 1.6 0 0 0 3.2 0V3"/><path d="M4 19h16"/><path d="M7.4 16.6c-.8.8-1.8 1.2-2.8 1.3M16.6 16.6c.8.8 1.8 1.2 2.8 1.3"/></svg>手ざわり</button>
     <button class="big" id="bRec" aria-label="録る（音を録音する）"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>音をとる</span></button>
     <span id="cnt2" style="min-width:40px"></span>
@@ -100,5 +107,6 @@ body:not(.solo) #note{display:none}
 <div id="end" role="dialog" aria-label="おわる"><div id="endb"><button class="big" id="bKeep">持ち帰る</button><button class="big" id="bBack">もどる</button><button class="big" id="bWipe">消す</button></div></div>
 <div id="drop">層のファイルを、ここに置く</div>
 <script type="module" src="web/app.js?v=20261110r4"></script>
+<script>document.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest(".big"))document.getElementById("bShot").classList.remove("first")},true)</script>
 </body>
 </html>

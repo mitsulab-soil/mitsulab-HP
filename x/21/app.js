@@ -19,16 +19,16 @@ const camRig = (a, y, t) => {
   const k = ss(0, 1, a);
   if (ST.phase <= 1) {   // 葉を追う（宙では近く、落ちるにつれて目の高さより低く）
     const f = ST.phase === 0 ? 0 : clamp(ST.t / 6, 0, 1);
-    const pr = innerWidth < innerHeight * .8, d = lerp(pr ? .62 : .78, 1.1, f), off = new V3(Math.sin(y - .8) * d, lerp(-.3, .5, f), Math.cos(y - .8) * d);   // 11-06 二版の後：宙では葉の少し下から見上げる（葉の背が幹でなく、明るい樹冠と空になる）   /* 葉の背が参道の奥の明るい霞になる向き */
+    const pr = innerWidth < innerHeight * .8, d = lerp(pr ? .3 : .3, 1.1, f), off = new V3(Math.sin(y - .8) * d, lerp(-.06, .5, f), Math.cos(y - .8) * d);   // 11-06 二版の後：宙では葉の少し下から見上げる（葉の背が幹でなく、明るい樹冠と空になる）   /* 葉の背が参道の奥の明るい霞になる向き */
     const pos = leafP.clone().add(off); pos.y = Math.max(pos.y, .3);
-    return { pos, look: leafP.clone().add(new V3(lerp(pr ? .44 : -.02, 0, f), lerp(.16, -.05, f), lerp(-.12, 0, f))) };   // 宙：主役の葉と枝先の房を一つの画に   // 宙では葉を右三分の一に置き、奥へ参道が抜ける
+    return { pos, look: leafP.clone().add(new V3(lerp(pr ? .03 : .06, 0, f), lerp(-.03, -.05, f), lerp(-.12, 0, f))) };   // 宙：主役の葉と枝先の房を一つの画に   // 宙では葉を右三分の一に置き、奥へ参道が抜ける
   }
   const c = LAND.clone(), back = lerp(.72, 2.3, k), h = lerp(.3, 1.5, k);   // 11-06 本人「俯瞰でなく主観の体験に」：上へなぞると、しゃがんだ目から立ち上がる人の目の高さへ。層は自分の前に立ちのぼり、見上げて受けとる
   return { pos: new V3(c.x + Math.sin(y) * back, h, c.z + Math.cos(y) * back), look: c.clone().add(new V3(0, lerp(.1, 1.25, k), lerp(-.25, -.2, k))) };
 };
 
 const W = await createAwai({
-  title: "Qualia/literature", sub: "文学の思想", en: "Thought in Literature", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [-1.1, -3.8, .35], seed: 2121, deferBack: true, rig: camRig, portrait: 1.3,
+  title: "Qualia/literature", sub: "ことばで読む一枚の葉（文学の思想）", en: "Thought in Literature", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [-1.1, -3.8, .35], seed: 2121, deferBack: true, rig: camRig, portrait: 1.3,
   credits: [
     "欅の葉の形（卵形で先がとがる・縁に曲がった鋸歯・羽状の脈）と十一月の黄葉は、図鑑の形態にそって mitsulab が描いた画",
     "葉の表には落ちる前から菌や細菌がすむ。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
@@ -200,7 +200,7 @@ W.onFrame((dt, t, a) => {
   if (ST.phase === 0) {
     const s = RM ? 0 : 1; leafP.copy(AIR); halo.visible = true; twig.rotation.z = Math.sin(t * .8) * .012 * s;   // 枝ごと風にゆれる（葉柄で枝につく）
     leaf.lookAt(camera.position); leaf.rotateX(Math.sin(t * .9) * .25 * s); leaf.rotateZ(Math.sin(t * .6) * .25 * s);   /* 宙の葉は面をこちらへ向け、少しだけ揺れる（真横の細い線に見えない） */
-    leaf.material.emissive?.setRGB(.85 + .2 * Math.sin(t * 2), .52 + .1 * Math.sin(t * 2), .1);   /* 朝の斜めの光が葉を透かす（逆光の明るみ） */ halo.position.copy(leafP); halo.material.opacity = .85 + .15 * Math.sin(t * 2);   // 主役の葉だけ少し明るく、ゆっくり揺れる
+    leaf.material.emissive?.setRGB(.13 + .04 * Math.sin(t * 2), .07 + .02 * Math.sin(t * 2), .01);   /* 第5周：光る玉に見えないよう、葉の形と脈が読める明るさに */   /* 朝の斜めの光が葉を透かす（逆光の明るみ） */ halo.position.copy(leafP); halo.material.opacity = .28 + .08 * Math.sin(t * 2);   // 主役の葉だけ少し明るく、ゆっくり揺れる
     airT -= dt; if (airT < 0) { airT = 4.2; snd.breath(2.6, { f0: 650, f1: 900, gain: .08, wet: .7, pan: (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .4) }); }
   } else if (ST.phase === 1) { halo.visible = false;
     const u = clamp(ST.t / 6, 0, 1), e = u * u * (3 - 2 * u);

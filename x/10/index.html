@@ -56,6 +56,11 @@ a:focus-visible,button:focus-visible,.chip:focus-within,.dk:focus-visible{outlin
 @keyframes tapRip{0%{transform:scale(.4);opacity:1}100%{transform:scale(5.5);opacity:0}}
 @media (prefers-reduced-motion:reduce){.tap-rip{animation-duration:.01s}}
 </style>
+<style id="touch-r5">/* 2026-11-10 第5周：題に地の帯（写真に溶けない）・← mitsulab・形の選択に一言 */
+.top{z-index:3}.top::before{content:"";position:absolute;left:0;top:0;width:min(520px,100vw);height:110px;pointer-events:none;z-index:-1;background:linear-gradient(90deg,rgba(3,6,15,.78),rgba(3,6,15,.5) 60%,rgba(3,6,15,0)),linear-gradient(180deg,rgba(3,6,15,.4),rgba(3,6,15,0))}
+.brand{padding-left:96px}.brand .home{font:500 14px/1 var(--mu-sans,sans-serif);letter-spacing:.06em;min-width:88px;justify-content:start}
+.tray-say{margin:0 0 8px;font:500 13px/1.5 var(--mu-sans,sans-serif);color:#dfeaf6;text-align:center;width:100%}
+</style>
 </head>
 <body class="ml-root">
 <script src="loader/loader.js" data-title="Qualia/touch" data-en="touch, as a layer" data-icon="favicon/icon.svg" data-max="300"></script>
@@ -64,7 +69,7 @@ a:focus-visible,button:focus-visible,.chip:focus-within,.dk:focus-visible{outlin
   <canvas id="cv" aria-label="触れる面の 3D。指でなぞると、波紋と音（振動）が返る"></canvas>
   <i class="hud-c tl" aria-hidden="true"></i><i class="hud-c tr" aria-hidden="true"></i><i class="hud-c bl" aria-hidden="true"></i><i class="hud-c br" aria-hidden="true"></i>
   <header class="top">
-    <div class="brand"><a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">←</a><h1 class="ml-title">Qualia/touch</h1><p class="hint" id="hint">なぞって、触れる。</p></div>
+    <div class="brand"><a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">← mitsulab</a><h1 class="ml-title">Qualia/touch</h1><p class="hint" id="hint">なぞって、触れる。</p></div>
     <div class="top-r"><span id="wsShare" class="ws-share" hidden><button class="mu-btn" id="bGive" type="button" aria-label="いまの面を、ほかの人の端末へ渡す">渡す</button><button class="mu-btn" id="bTake" type="button" aria-label="渡された面を受けとる">受けとる</button></span><button class="ico-btn" id="bAbout" type="button" aria-label="この作品について">＋</button></div>
   </header>
   <input type="file" id="fTake" accept=".json,application/json,image/*" multiple hidden>
@@ -76,7 +81,7 @@ a:focus-visible,button:focus-visible,.chip:focus-within,.dk:focus-visible{outlin
         <label class="chip file" id="pickChip"><input type="file" id="fPick" accept="image/*" aria-label="触覚にしたい画像を選ぶ"><span class="plus" aria-hidden="true">＋</span><b>画像</b></label>
       </div>
     </div>
-    <div class="tray-in" id="trayO" role="group" aria-label="形" hidden><div class="chips" id="objChips"></div></div>
+    <div class="tray-in" id="trayO" role="group" aria-label="形" hidden><p class="tray-say">いまの手ざわりを、ほかの形に貼ってなぞる</p><div class="chips" id="objChips"></div></div>
     <div class="tray-in" id="trayK" role="group" aria-label="保存" hidden>
       <div class="chips save">
         <button type="button" class="chip" id="bStl"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 26l12 6 12-6M8 26V14l12-6 12 6v12M8 14l12 6 12-6M20 20v12" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><b>STL</b></button>
@@ -87,7 +92,7 @@ a:focus-visible,button:focus-visible,.chip:focus-within,.dk:focus-visible{outlin
   <nav class="dock" aria-label="操作">
     <button type="button" class="dk" data-tray="trayS" aria-expanded="false"><span class="face"><img id="faceS" src="tex/bark_t.webp?v=20261021" alt=""></span><b>触れるもの</b><small id="faceSN">樹皮</small></button>
     <button type="button" class="dk" id="bBlind" aria-pressed="false" hidden><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path id="blindIco" d="M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><b id="blindB">かくす</b><small id="blindS">見ずになぞる</small></button>
-    <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>かたち</b><small id="faceON">平らな面</small></button>
+    <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>形をかえる</b><small id="faceON">平らな面</small></button>
     <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="かたちを保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>持ち帰る</b><small>かたちを保存</small></button>
   </nav>
   <div id="reveal" class="reveal" hidden role="status"><img id="rvImg" alt="" width="120" height="120"><div><small>なぞっていたのは</small><b id="rvName"></b></div></div>

@@ -252,16 +252,6 @@ body{word-break:auto-phrase;line-break:strict}
 <link rel="modulepreload" href="kit/aoi_robe.js">
 <link rel="preload" href="kit/aoi_mocap.json" as="fetch" crossorigin>
 <!-- 最初に見える森の材質だけを先読みし、3D構築後の画像通信を避ける。 -->
-<link rel="preload" href="tex/soil_forest.webp" as="image" crossorigin>
-<link rel="preload" href="tex/leaf_spray.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_zelkova_n.webp" as="image" crossorigin>
-<link rel="preload" href="tex/leaf_spray2.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_camphor.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_zelkova.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_zelkova_orm.webp" as="image" crossorigin>
-<link rel="preload" href="tex/rock_surface.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_camphor_orm.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_camphor_n.webp" as="image" crossorigin>
 
 <link rel="stylesheet" href="kit/ui.css?v=20261103">
 <style id="mu-align">/* 共通 GUI（kit/ui.css）に合わせる＝左上の名前・押せる大きさを全アプリでそろえる（2026-11-03） */
@@ -294,7 +284,7 @@ body{word-break:auto-phrase;line-break:strict}
 <div id="veil"></div>
 
 <header id="top">
-  <span class="topL"><a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">←</a><span class="dream-title">Qualia/sight</span></span>
+  <span class="topL"><a class="home" href="https://mitsulab.jp/" aria-label="mitsulab のトップへ戻る">← mitsulab</a><span class="dream-title">Qualia/sight</span></span>
   <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog" aria-label="なぜ、そう見えるの？">なぜ<span class="wlg">、そう見えるの</span>？</button><button class="ico" id="menuBtn" aria-label="出典と設定">＋</button></span>
 </header>
 <aside id="bodyControls" aria-label="身体の操作"><button id="padTog" type="button" aria-expanded="false" aria-label="移動のボタンを出す・しまう">⋯</button><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
@@ -386,6 +376,20 @@ body:not(.booted) #top{z-index:60}body:not(.booted) #top .topR{visibility:hidden
 @media(max-width:700px){#where{top:64px;max-width:86vw}#where small{font-size:14px}}
 </style>
 <div id="poster" aria-hidden="true"></div>
+<section id="r5intro" aria-label="はじめに"><p class="pl">池のほとりの雑木林</p><p class="ln"><span class="sr">碧（あおい）：</span>同じ森を、ミツバチやマムシの目で歩いてみよう。</p><button class="btn pri" id="r5go" type="button">はじめる</button></section>
+<style id="r5style">/* 2026-11-10 第5周：冒頭は場所の名と碧の一言と「はじめる」だけ。ほかの札は押してから出す */
+#r5intro{position:fixed;left:50%;transform:translateX(-50%);bottom:max(26px,env(safe-area-inset-bottom));width:min(560px,calc(100vw - 32px));z-index:65;display:grid;justify-items:center;gap:10px;text-align:center;pointer-events:auto}
+#r5intro .pl{margin:0;font:600 13px/1.4 var(--mincho,serif);letter-spacing:.24em;color:#f6efd6;text-shadow:0 1px 8px #000,0 0 2px #000}
+#r5intro .pl::before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:#7fd0e0;box-shadow:0 0 8px #7fd0e0;vertical-align:2px}
+#r5intro .ln{margin:0;font:600 18px/1.7 var(--mincho,serif);letter-spacing:.06em;color:#fff;text-shadow:0 1px 10px #000,0 0 3px #000;text-wrap:balance}
+#r5intro .btn{min-width:160px;min-height:48px;font-size:16px;letter-spacing:.16em}
+#r5intro .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+body:not(.r5go) #where,body:not(.r5go) #guide,body:not(.r5go) #bodyWheel,body:not(.r5go) #bodyControls,body:not(.r5go) #aoiWin,body:not(.r5go) #legend,body:not(.r5go) #kurQ,body:not(.r5go) #cmpTag,body:not(.r5go) #kurMarks,body:not(.r5go) #boot,body:not(.r5go) #moveNote,body:not(.r5go) #toast,body:not(.r5go) #panHint{visibility:hidden!important}
+body.r5go #r5intro{display:none}
+#top .home{width:auto!important;padding:0 8px 0 4px;font:600 15px/1 var(--mincho,serif)!important;letter-spacing:.08em;gap:6px}
+@media(max-width:420px){#top .home{font-size:13px!important;letter-spacing:.02em;padding:0 4px 0 2px}.dream-title{display:none}#r5intro .ln{font-size:16px}}
+</style>
+<script>document.getElementById('r5go').addEventListener('click',function(){document.body.classList.add('r5go');try{var g=document.getElementById('stage');g&&g.focus({preventScroll:true});}catch(e){}});if(/[?&](skip|go)\b/.test(location.search))document.body.classList.add('r5go');</script>
 <div id="boot" role="status" aria-live="polite"><div>
   <b data-n="app">Qualia/sight</b>
   <div id="prog"><i></i></div>

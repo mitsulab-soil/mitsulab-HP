@@ -18,7 +18,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 @media (max-width:400px){#bar b{font-size:13px}#bar b small{font-size:10px}#bar button{min-width:56px;font-size:13px}}
 #wait{position:fixed;left:0;right:0;bottom:0;top:calc(52px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg) center/cover no-repeat;color:var(--ink);font-size:14px;letter-spacing:.1em;z-index:1;transition:opacity .4s;pointer-events:none}#wait.off{opacity:0}#wait i{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(92,200,224,.25);border-top-color:var(--aoi);animation:r 1s linear infinite}@keyframes r{to{transform:rotate(1turn)}}#wait small{font-size:12px;color:#cfe3ee;letter-spacing:.04em}
 #wait span,#wait small{text-shadow:0 0 10px #03060f,0 1px 2px #000}#hint{position:fixed;left:0;right:0;top:calc(52px + env(safe-area-inset-top));z-index:3;margin:0;padding:8px 16px;text-align:center;font-size:12px;letter-spacing:.06em;color:#cfe3ee;text-shadow:0 0 10px #03060f,0 1px 2px #000;pointer-events:none;transition:opacity .6s}#hint.off{opacity:0}
-#home{flex:none;width:44px;height:44px;margin-left:-8px;display:grid;place-items:center;color:var(--ink);text-decoration:none;font-size:26px;line-height:1;border-radius:22px}#home:hover{color:var(--aoi)}
+#home{flex:none;min-width:44px;height:44px;margin-left:-4px;padding:0 10px 0 4px;display:grid;place-items:center;color:var(--ink);text-decoration:none;font-size:14px;letter-spacing:.06em;font-family:"Hiragino Sans",sans-serif;line-height:1;border-radius:22px}#home:hover{color:var(--aoi)}
 :focus-visible{outline:2px solid var(--aoi);outline-offset:2px}
 #app:focus,#app:focus-visible{outline:3px solid var(--aoi);outline-offset:-3px}   /* 11-10 第3周：Tab で町の中へ入ったことが見えるように */
 #pick{position:fixed;left:0;right:0;bottom:0;top:calc(52px + env(safe-area-inset-top));z-index:4;overflow:auto;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:20px 16px calc(20px + env(safe-area-inset-bottom));box-sizing:border-box}
@@ -31,15 +31,20 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #pick b{display:block;padding:10px 12px 2px;font-weight:600;font-size:16px;letter-spacing:.12em}#pick span{display:block;padding:0 12px 12px;font-size:12.5px;line-height:1.6;color:#cfe3ee}
 @media (max-width:760px){#pick{justify-content:flex-start}#pick ul{grid-template-columns:1fr;max-width:340px;gap:12px}#pick img{aspect-ratio:16/7}#pick b{padding-top:8px;font-size:15px}#pick span{padding-bottom:9px}}
 @media (prefers-reduced-motion:reduce){#wait{transition:none}#wait i{animation:none;border-top-color:rgba(92,200,224,.25)}}
+/* 2026-11-10 第5周：選ぶ画面では上の町のボタンを出さない（カードと二重にしない）・「親子なら大宮」を大きく・渋谷の画は谷の足もと寄りに */
+body.picking #bar button{display:none}
+#pick .kid{display:inline-block;margin:0 0 0 12px;padding:4px 12px;border:1px solid #ffcf86;border-radius:999px;color:#ffe2b0;font-style:normal;font-size:clamp(14px,1.3vw,17px);letter-spacing:.1em;vertical-align:middle}
+#pick button[data-p="omiya"]{border-color:#ffcf86}
+#pick button[data-p="shibuya"] img{object-position:50% 78%;filter:saturate(1.12) contrast(1.08) brightness(.9)}
 </style>
 </head>
 <body>
-<nav id="bar"><a id="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">‹</a><b>Qualium<small id="sub"></small></b>
+<nav id="bar"><a id="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">← mitsulab</a><b>Qualium<small id="sub"></small></b>
 <button data-t="omiya" title="氷川参道の杜と鳥居の道">大宮</button><button data-t="kawagoe" title="蔵の町並みと裏路地">川越</button><button data-t="shibuya" title="渋谷川の谷と坂。人の多い交差点では立ち止まって">渋谷</button></nav>
 <p id="hint">親子なら大宮・蔵の町並みなら川越・坂と谷なら渋谷</p>
 <div id="wait"><i></i><span id="wt"></span><small>人と生き物の受けとり方が、同じ町に重なる</small></div>
 <section id="pick" hidden aria-label="町を選ぶ"><h1>どの町を歩きますか<small>押すと、その町の目の高さへ</small></h1><ul>
-<li><button data-p="omiya"><img alt="" width="640" height="360" decoding="async"><b>大宮</b><span>氷川参道の杜と鳥居の道。親子でも</span></button></li>
+<li><button data-p="omiya"><img alt="" width="640" height="360" decoding="async"><b>大宮<em class="kid">親子なら、まずここ</em></b><span>氷川参道の杜と鳥居の道</span></button></li>
 <li><button data-p="kawagoe"><img alt="" width="640" height="360" decoding="async"><b>川越</b><span>蔵の町並みと裏路地</span></button></li>
 <li><button data-p="shibuya"><img alt="" width="640" height="360" decoding="async"><b>渋谷</b><span>渋谷川の谷と坂。人の多い所では立ち止まって</span></button></li>
 </ul></section>
@@ -60,8 +65,8 @@ bs.forEach(b => b.onclick = () => { if (b.getAttribute('aria-pressed') !== 'true
 app.addEventListener('load', () => setTimeout(() => document.getElementById('wait').classList.add('off'), 600));
 /* 11-10 第3周：はじめは三つの町の目の高さの画（実際のプレイ画）を並べて選ぶ。?t= があればその町へ */
 const pk = document.getElementById('pick'), t0 = new URLSearchParams(location.search).get('t');
-pk.querySelectorAll('button').forEach(b => { b.querySelector('img').src = BASE + T[b.dataset.p] + 'web/qeye.webp?v=r3'; b.onclick = () => { pk.hidden = true; go(b.dataset.p); }; });
-if (T[t0]) go(t0); else { pk.hidden = false; document.getElementById('hint').classList.add('off'); document.getElementById('wait').classList.add('off'); document.getElementById('sub').textContent = '三つの町から選ぶ'; }
+pk.querySelectorAll('button').forEach(b => { b.querySelector('img').src = BASE + T[b.dataset.p] + 'web/qeye.webp?v=r3'; b.onclick = () => { pk.hidden = true; document.body.classList.remove('picking'); go(b.dataset.p); }; });
+if (T[t0]) go(t0); else { pk.hidden = false; document.body.classList.add('picking'); document.getElementById('hint').classList.add('off'); document.getElementById('wait').classList.add('off'); document.getElementById('sub').textContent = '三つの町から選ぶ'; }
 setTimeout(() => document.getElementById('hint').classList.add('off'), 9000);   /* 選ぶ手がかりは、はじめのうちだけ */
 </script>
 </body>

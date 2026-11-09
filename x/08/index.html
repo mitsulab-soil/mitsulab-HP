@@ -217,6 +217,7 @@ html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-r
  font:600 clamp(16px,2vw,19px)/1.6 var(--ml-serif);letter-spacing:.1em;color:#eef5fb;text-shadow:0 1px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9)}
 .cap small{display:block;font:400 12px/1.6 var(--ml-sans);letter-spacing:.08em;color:#c3cce0}
 .play[hidden] + .cap{display:none}
+</style>
 <style id="song-r4">
 /* 2026-11-10 第4周：はじめの画の上の注（等高線）は＋の中へ＝横長の画面では画の上を少し切って注を見せない。再生の印は碧の顔から外し下へ。再生は画からゆっくり映像へ溶ける（碧の画が数秒残る） */
 @media (min-aspect-ratio:1/1){html,body{background-size:calc(max(100vw,177.78vh)*1.32) auto;background-position:50% 100%}}
@@ -229,9 +230,17 @@ body.pre #keep,body.fade #keep{opacity:1;transition:none}
 .play{top:auto!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 150px)!important;transform:translateX(-50%)!important}
 .cap{top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 76px)}
 .ver button{position:relative}
+</style>
+<style id="song-r5">
+/* 2026-11-10 第5周：再生後の画を少し明るく（碧が沈まない）／奥の白い木立を杜の霧の色に沈める薄い層（映像は描き直さない）／375 は碧が左に切れないよう画の中心を左へ */
+body:not(.pre) #mv{filter:brightness(1.2) contrast(1.04) saturate(1.06)}
+#mist{position:fixed;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(24,40,32,0) 8%,rgba(34,54,42,.34) 26%,rgba(34,54,42,.30) 44%,rgba(24,40,32,0) 60%)}
+@media(max-width:600px) and (orientation:portrait){#mv{object-position:36% 50%}#keep{background-position:46% 50%}}
+.home{color:#dfeaf6}
 </style></head>
 <body class="ml-root pre">
 <div id="keep" aria-hidden="true"></div>
+<div id="mist" aria-hidden="true"></div>
 <video id="mv" playsinline preload="none" poster="poster.webp?v=20261020-title" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
 <script>
   // 画面の幅と通信のようすで、同じ映像の 1080p／720p／540p を選ぶ（2026-10-19。スマホで止まらないように）
@@ -251,9 +260,9 @@ body.pre #keep,body.fade #keep{opacity:1;transition:none}
 <header class="top mu-top">
   <div class="brand mu-logo"><span class="ml-title">Qualia/song</span><small class="song-sub">碧の歌を聴く</small></div>
   <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true" title="杜の中で歌う映像" aria-label="MV（杜の中で歌う映像）">MV</button><button type="button" id="vLive" aria-pressed="false" title="同じ曲を舞台で歌う版" aria-label="ライブ（同じ曲を舞台で歌う版）">ライブ</button></div>
-  <a class="home" href="https://mitsulab.jp/">mitsulab.jp ↗</a>
+  <a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">← mitsulab</a>
 </header>
-<button id="framing" type="button" aria-pressed="true" aria-label="映像の全景を表示する">全景を見る</button>
+<button id="framing" type="button" aria-pressed="true" aria-label="映像の全体を表示する">映像の全体を見る</button>
 <section class="hero" aria-label="映像">
   <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
   <p class="cap" id="cap">碧がうたう、杜が息をする歌<small>1分45秒・音が出ます ／ MV＝杜で歌う・ライブ＝舞台で歌う</small></p>
@@ -306,7 +315,7 @@ body.pre #keep,body.fade #keep{opacity:1;transition:none}
 </main>
 <script>
   const framing=document.getElementById('framing');
-  framing.addEventListener('click',()=>{const wide=document.body.dataset.framing!=='wide';document.body.dataset.framing=wide?'wide':'close';framing.setAttribute('aria-pressed',String(!wide));framing.textContent=wide?'大きく見る':'全景を見る';framing.setAttribute('aria-label',wide?'映像を大きく表示する':'映像の全景を表示する');});
+  framing.addEventListener('click',()=>{const wide=document.body.dataset.framing!=='wide';document.body.dataset.framing=wide?'wide':'close';framing.setAttribute('aria-pressed',String(!wide));framing.textContent=wide?'碧を大きく見る':'映像の全体を見る';framing.setAttribute('aria-label',wide?'碧を大きく表示する':'映像の全体を表示する');});
   // 再生の操作（自動では鳴らさない）。読み込み待ちが続いたら、同じ場所から一段軽い映像へ
   const v = document.getElementById('mv'), b = document.getElementById('play'), pp = document.getElementById('pp'), seek = document.getElementById('seek'), tm = document.getElementById('tm');
   const fmt = s => { s = Math.max(0, s | 0); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); };
