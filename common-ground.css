@@ -291,3 +291,6 @@ body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
  #top .cg-opening>.cg-play-wrap .cg-play-shot{margin:0!important}
  #top .cg-opening #visionH{font-size:clamp(34px,3.3vw,50px)!important}
 }
+/* 11-10 第6周：仮説の旗を見えやすく（本文の前に小さな札） */
+.hyp-flag{display:inline-block;margin:0 .5em 0 0;padding:1px 8px;border:1px solid #e8c27a;border-radius:10px;color:#f3d79c;font:600 11px/1.6 var(--sans,sans-serif);letter-spacing:.12em;vertical-align:.12em}
+.rs-kid .hyp-flag{margin:0 0 0 .4em}

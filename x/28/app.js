@@ -337,7 +337,7 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書と言葉 ── Qualia/oto';
   $('capTi').textContent = '書と音の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = '光の一つひとつが、音の言葉。';
+  $('capRd').textContent = '光の一つひとつが、音の言葉。音は合成した模式。';
   $('count').textContent = ''; $('count').style.visibility = 'hidden'; $('allBtn').style.visibility = 'hidden';   /* 第5周：番号のないあいだは空の枠も出さない */   // oto：書の前に立つまで番号は出さない
 }
 function setFocus(it) {
@@ -787,4 +787,4 @@ if (SHOT) {                                                    // 静止画：?s
   window.MLLoader?.done(); window.__shotReady = true;
 } else frame();
 window.__sho = { works, P, goStop, pick, focusDist }; window.__cam = cam;
-import('./oto/words.js?v=5').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
+import('./oto/words.js?v=6').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
