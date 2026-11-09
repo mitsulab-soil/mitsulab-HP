@@ -54,20 +54,20 @@ body{display:grid;grid-template-rows:minmax(128px,1fr) auto auto auto;justify-it
 @media(max-width:420px){#who{gap:5px!important;width:calc(100% - 12px)!important}#who button{padding:0 8px 0 6px!important;font-size:11.5px!important;gap:3px!important;letter-spacing:0!important}#who button svg{width:17px!important;height:17px!important}}
 #who button[hidden]{display:none!important}
 </style>
-<script>/* 0.5 秒で最初の画が出ないときだけ、ロゴの読み込み画面を出す */setTimeout(function(){if(window.__ready)return;var s=document.createElement("script");s.src="loader/loader.js";s.setAttribute("data-max","5000");document.head.appendChild(s);(function w(){if(window.__ready){window.MLLoader&&MLLoader.done();}else setTimeout(w,40);})();},500);</script>
+<style id="r3poster">/* 2026-11-09 第3周：ロゴを後から重ねず、最初の画の静止画を先に置く（押しても別の画面に見えない） */#poster{position:fixed;inset:0;z-index:0;pointer-events:none;transition:opacity .45s;background:#0a1424}#poster img{width:100%;height:100%;object-fit:cover;display:block}#sub{position:fixed;top:calc(max(8px,env(safe-area-inset-top)) + 38px);left:30px;margin:0;z-index:6;font:10.5px/1.3 "Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.02em;color:#cfe3ee;text-shadow:0 1px 6px #000;pointer-events:none}</style>
 </head>
 <body>
-<a id="ttl" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">‹ <span>Qualia/keyaki<small>機械の目で見る一本の欅 ── 生き物の目は Qualia/tree</small></span></a>
-<canvas id="cv" aria-label="一本のケヤキ"></canvas>
-<div id="tags"></div><div id="journey" data-stage="observe"><p id="journey-step">まず見る</p><button id="journey-next" type="button">近赤外の手がかりへ →</button><details id="question-route" class="q-tree-route"><summary aria-label="身近な木への問いと根拠">＋ 問いと根拠</summary><section class="q-route"><h2>画面を閉じて、身近な木へ。</h2><ol class="q-return"><li>まず、目に入るものを一つ。葉・幹・根もとのどこでしょう。</li><li>立つ位置を少し変えて、光と影を見てみる。</li><li>最初の位置でもう一度。気になったところは変わりましたか。</li></ol><p>見えたことと、想像したことは分けておきましょう。色だけでは、その木の紫外の反射や土の水分まではわかりません。</p><button id="journey-restart" type="button">画面の木でもう一度</button><a href="../24/" data-question-local="../../13_Qualia_translate/★実行データ/">人と機械でも見比べる →</a><details class="q-evidence"><summary>見え方の根拠と限界</summary><p>色・光・数値は、人に見えるように置き換えた模式です。生き物の主観や、この場所の紫外画像・土壌水分を実測したものではありません。</p><p>ハチの受容体：紫外・青・緑を手がかりにしています。<a href="https://pubmed.ncbi.nlm.nih.gov/1573568/" target="_blank" rel="noopener">Peitschほか（1992）↗</a></p><p>鳥の紫外感度は種で異なります。ここで描くヒヨドリの型は未確認です。<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3637589/" target="_blank" rel="noopener">Ödeen・Håstad（2013）↗</a></p><p>土の水分を誘電率から推定する方法があります。画面の深さと数値は作者の設定で、深いほど必ず湿るとは限りません。<a href="https://doi.org/10.1029/WR016i003p00574" target="_blank" rel="noopener">Toppほか（1980）↗</a></p></details><a href="https://mitsulab.jp/#apps">作品の一覧へ →</a></section></details></div>
+<a id="ttl" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">‹ <span>Qualia/keyaki</span></a><p id="sub">機械が記録する一本の欅</p>
+<canvas id="cv" aria-label="一本のケヤキ"></canvas><picture id="poster" aria-hidden="true"><source media="(max-width:700px)" srcset="poster_sp.webp"><img src="poster_pc.webp" alt="" fetchpriority="high"></picture><script>(function w(){if(window.__ready){var p=document.getElementById("poster");setTimeout(function(){p.style.opacity=0;setTimeout(function(){p.remove()},500)},120);}else setTimeout(w,40);})();</script>
+<div id="tags"></div><div id="journey" data-stage="observe"><p id="journey-step">まず見る</p><button id="journey-next" type="button">人の目と並べる →</button><details id="question-route" class="q-tree-route"><summary aria-label="身近な木への問いと根拠">＋ 問いと根拠</summary><section class="q-route"><h2>画面を閉じて、身近な木へ。</h2><ol class="q-return"><li>まず、目に入るものを一つ。葉・幹・根もとのどこでしょう。</li><li>立つ位置を少し変えて、光と影を見てみる。</li><li>最初の位置でもう一度。気になったところは変わりましたか。</li></ol><p>見えたことと、想像したことは分けておきましょう。色だけでは、その木の紫外の反射や土の水分まではわかりません。</p><button id="journey-restart" type="button">画面の木でもう一度</button><a href="../19/" data-question-local="../../12_ひとつの木/★実行データ/">生き物の目で見比べる（Qualia/tree）→</a><details class="q-evidence"><summary>見え方の根拠と限界</summary><p>色・光・数値は、人に見えるように置き換えた模式です。生き物の主観や、この場所の紫外画像・土壌水分を実測したものではありません。</p><p>ハチの受容体：紫外・青・緑を手がかりにしています。<a href="https://pubmed.ncbi.nlm.nih.gov/1573568/" target="_blank" rel="noopener">Peitschほか（1992）↗</a></p><p>鳥の紫外感度は種で異なります。ヒヨドリの型は文献で未確認です。<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3637589/" target="_blank" rel="noopener">Ödeen・Håstad（2013）↗</a></p><p>土の水分を誘電率から推定する方法があります。画面の深さと数値は作者の設定で、深いほど必ず湿るとは限りません。<a href="https://doi.org/10.1029/WR016i003p00574" target="_blank" rel="noopener">Toppほか（1980）↗</a></p></details><a href="https://mitsulab.jp/#apps">作品の一覧へ →</a></section></details></div>
 <p id="cap" aria-live="polite"></p>
 <nav id="who" aria-label="補助操作：受けとり方を並べて比較。押すたび追加・解除">
-  <button data-k="0" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21c0-4 2.7-7 6-7s6 3 6 7"/></svg>人</button>
+  <button data-k="0" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21c0-4 2.7-7 6-7s6 3 6 7"/></svg>人</button>
   <button data-k="1" aria-pressed="false" hidden><svg viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="3.2" ry="5"/><path d="M9 11c-4-3-6-1-5 1s4 1 5 0M15 11c4-3 6-1 5 1s-4 1-5 0M10.5 5.5 9 3M13.5 5.5 15 3"/></svg>ミツバチ</button>
   <button data-k="2" aria-pressed="false" hidden><svg viewBox="0 0 24 24"><path d="M4 14c3-5 9-7 13-5l3-1-1.5 3c0 4-4 7-9 7H4l3-2z"/><circle cx="15.5" cy="10.5" r=".6"/></svg>ヒヨドリ</button>
   <button data-k="3" aria-pressed="false" hidden><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="8" rx="1"/><path d="M10.5 11v9M13.5 11v9M4 15h16"/></svg>センサー</button>
   <button data-k="4" aria-pressed="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 7l1.5-3h5L16 7"/></svg>カメラ</button>
-  <button data-k="5" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M12 2v3M7 3.5l1 2M17 3.5l-1 2"/></svg>近赤外</button>
+  <button data-k="5" aria-pressed="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M12 2v3M7 3.5l1 2M17 3.5l-1 2"/></svg>近赤外</button>
 </nav>
 <script type="module">
 import * as THREE from "three";
@@ -206,16 +206,17 @@ function sizeRT() { renderer.getDrawingBufferSize(dbs); if (rt.width !== dbs.x |
 const WHO = [
   { n: "人", m: "赤・緑・青\n人の目", say: "まずは、この一本を。葉・幹・根もと、どこに目が向きますか。画面をなぞると、見る位置を変えられます。" },
   { n: "ミツバチ", m: "色はずらした模式\nハチの緑→赤", say: "ミツバチは紫外・青・緑で受けとり、赤は届きにくいとされます。その三つを、人に見える青・緑・赤へずらした模式です。ぼかしは目の粗さ（個眼の間の角度 約 1〜2 度）の模式です。" },
-  { n: "ヒヨドリ", m: "鳥の紫外感度の模式\nヒヨドリの型は文献で未確認", say: "鳥の色覚には、人にはない紫外から紫の感度をもつ型があります。この画面は鳥の色覚研究を手がかりにした模式で、ヒヨドリの感度を測ったものではありません。紫の重ね合わせも紫外写真ではなく、色の受けとり方を考えるための表現です。鳥の型の分布は Ödeen & Håstad 2013（BMC Evolutionary Biology 13:36）にまとめられていますが、ヒヨドリの型はまだ確かめられていません。" },
+  { n: "ヒヨドリ", m: "鳥の紫外感度の模式", say: "鳥の色覚には、人にはない紫外から紫の感度をもつ型があります。この画面は鳥の色覚研究を手がかりにした模式で、ヒヨドリの感度を測ったものではありません。紫の重ね合わせも紫外写真ではなく、色の受けとり方を考えるための表現です。鳥の型の分布は Ödeen & Håstad 2013（BMC Evolutionary Biology 13:36）にまとめられていますが、ヒヨドリの型はまだ確かめられていません。" },
   { n: "土のセンサー", m: "土の水分（%）\n値は模式", say: "センサーは画を記録しません。根もと近くと離れた所の 2 か所に差し、土の水分を、深さごとに体積の % で記録するだけです（値は模式）。薄い線は木の位置の目安です。" },
   { n: "カメラ", m: "画素と色の並び\n機械が記録する", say: "カメラは画を、画素の格子として記録します。一つの画素は赤・緑・青のどれか一色だけを記録し、あとで計算で色をそろえます（ベイヤー配列の模式）。人に見える細部の一部は、格子の外に落ちます。" },
   { n: "近赤外", m: "人に見えない光\n値は模式", say: "近赤外は人の目では見えない光です。葉は近赤外を強く返すので、近赤外のカメラには樹冠が明るく、空は暗く記録されます（模式）。葉が赤の先で急に明るくなる境目はレッドエッジと呼ばれます（Gates ほか 1965, Applied Optics 4(1):11–20 の葉の反射の測定）。" } ];
-const SAY_FIRST = "同じ欅を、左は人の目、右はカメラの記録で。カメラは色を、画素の小さな格子で残します。";
+const SAY_FIRST = "カメラが記録した同じ欅。左は画素の格子、右は人に見えない近赤外の光。";
+const INIT = [4, 5];
 const SAY_MANY = "帯ごとに、同じ一本のケヤキを、それぞれの受けとり方で。あなたの帯も、その一つ。";
 const SAY_END = "別の手がかりに触れたあと、人の目でもう一度。同じ木の、どこが気になりますか。";
 const SAY_REVISIT = "人の目に戻りました。最初と比べて、目が向くところは変わりましたか。見えない手がかりも、この木のまわりにあります。";
-let order = [0, 4];   // 2026-11-09 第2周：入口は人の目とカメラの二つの帯（生き物の目は Qualia/tree）
-const w = [1, 0, 0, 0, 1, 0];   // 帯の幅（なめらかに）
+let order = [4, 5];   // 2026-11-09 第3周：入口は機械の記録（カメラの画素と近赤外）が主役
+const w = [0, 0, 0, 0, 1, 1];   // 帯の幅（なめらかに）
 const btns = [...document.querySelectorAll("#who button")];
 const tagsEl = document.getElementById("tags"), tags = WHO.map((x, i) => { const d = document.createElement("div"); d.style.setProperty("--c", ["#eef5fb", "#8f8cff", "#d2a6ff", "#78d6ec", "#9fd0b6", "#e8e8e8"][i]); d.className = "tag"; d.innerHTML = x.n + (x.m ? `<i>${x.m}</i>` : ""); d.style.opacity = 0; tagsEl.appendChild(d); return d; });
 const cap = document.getElementById("cap");
@@ -228,24 +229,24 @@ function say(t, next) {
   if (next) capTimer = setTimeout(() => say(next), 6500);
 }
 function syncJourney() {
-  const other = !(order.length === 2 && order[0] === 0 && order[1] === 4) && order.some(k => k !== 0);
+  const other = order.join() !== INIT.join() && order.some(k => k !== 0);
   if (other) compared = true;
   const stage = other ? "compare" : compared ? "revisit" : "observe";
   journey.dataset.stage = stage;
   document.getElementById("journey-step").textContent = { observe: "まず見る", compare: order.length === 1 ? WHO[order[0]].n + "の手がかり" : "手がかりを並べて比べる", revisit: "もう一度見る" }[stage];
-  nextButton.textContent = { observe: "近赤外の手がかりへ →", compare: "人の目でもう一度 →", revisit: "身近な木へ →" }[stage];
+  nextButton.textContent = { observe: "人の目と並べる →", compare: "人の目でもう一度 →", revisit: "身近な木へ →" }[stage];
   btns.forEach(x => x.setAttribute("aria-pressed", String(order.includes(+x.dataset.k))));
 }
 nextButton.addEventListener("click", () => {
   if (journey.dataset.stage === "revisit") {
     route.open = true; route.querySelector("summary").focus(); return;
   }
-  if (journey.dataset.stage === "observe") { order = [5]; say(WHO[5].n + "：" + WHO[5].say, SAY_END); }
+  if (journey.dataset.stage === "observe") { order = [0, 4, 5]; say("人の目と並べると。カメラは格子に、近赤外は葉を明るく記録します。", SAY_END); }
   else { order = [0]; say(SAY_REVISIT); }
   syncJourney();
 });
 document.getElementById("journey-restart").addEventListener("click", () => {
-  compared = false; order = [0, 4]; route.open = false; syncJourney(); say(SAY_FIRST); nextButton.focus();
+  compared = false; order = INIT.slice(); route.open = false; syncJourney(); say(SAY_FIRST); nextButton.focus();
 });
 document.getElementById("who").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return; const k = +b.dataset.k; const i = order.indexOf(k);
@@ -308,5 +309,5 @@ grass.visible = false;
 let compiled = false; renderer.compileAsync(pscene, pcam).catch(() => {}); renderer.compileAsync(scene, camera).catch(() => {}).finally(() => { compiled = true; requestAnimationFrame(loop); });
 window.__app = { camera, controls, renderer, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr: fit.pixelRatio, ready: window.__readyNav }) };
 </script>
-<script>(()=>{if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script><script>document.addEventListener('keydown',e=>{if(e.key==='Escape'){const d=document.getElementById('question-route');if(d.open){d.open=false;d.querySelector('summary').focus();}}});</script></body>
+<script>(()=>{if(!/\/x\/(19|22|24|29)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script><script>document.addEventListener('keydown',e=>{if(e.key==='Escape'){const d=document.getElementById('question-route');if(d.open){d.open=false;d.querySelector('summary').focus();}}});</script></body>
 </html>

@@ -68,14 +68,14 @@ const renderer=new T.WebGLRenderer({canvas:$('w'),antialias:!mobile,powerPrefere
 renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.25));renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
 renderer.shadowMap.enabled=false;const wantShadow=!mobile; renderer.shadowMap.type=T.PCFSoftShadowMap; // 影は最初の描画のあとに入れる
-const scene=new T.Scene(),sky=new T.Color(0x8fa3a3);scene.background=sky.clone();scene.fog=new T.FogExp2(sky.getHex(),.03);
+const scene=new T.Scene(),sky=new T.Color(0xbccbd0);scene.background=sky.clone();scene.fog=new T.FogExp2(sky.getHex(),.03);
 const cam=new T.PerspectiveCamera(mobile?68:58,innerWidth/innerHeight,.05,120);
-scene.add(new T.HemisphereLight(0xcfe0e4,0x4a4230,1.5));const sun=new T.DirectionalLight(0xfff0d6,1.9);sun.position.set(-9,14,7);
+scene.add(new T.HemisphereLight(0xe4eef0,0x7a6a4c,2.0));const sun=new T.DirectionalLight(0xfff2da,2.5);sun.position.set(-9,14,7);
 if(!mobile){sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-14,right:14,top:14,bottom:-14});}scene.add(sun);
 const L=new T.TextureLoader(),tex=(n,r,col)=>{const t=L.load('assets/'+n);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(r,r);if(col)t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;};
 // 場の状態を地面へ：湿り→暗く・艶、踏み跡→わずかに明るく締まる
 const fieldTex=new T.DataTexture(new Uint8Array(NN*4),N,N,T.RGBAFormat);fieldTex.magFilter=fieldTex.minFilter=T.LinearFilter;fieldTex.needsUpdate=true;
-const gMat=new T.MeshStandardMaterial({map:tex('soil_c.webp',30,1),normalMap:tex('soil_n.webp',30),roughness:.95,color:0xb4ad95});
+const gMat=new T.MeshStandardMaterial({map:tex('soil_c.webp',30,1),normalMap:tex('soil_n.webp',30),roughness:.95,color:0xd8cfb4});
 gMat.onBeforeCompile=sh=>{sh.uniforms.uField={value:fieldTex};sh.uniforms.uPulse={value:0};sh.uniforms.uSky={value:scene.fog.color};sh.uniforms.uRad={value:0};gMat.userData.u=sh.uniforms;
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vF;varying vec3 vWp;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nvec4 wpF=modelMatrix*vec4(transformed,1.);vWp=wpF.xyz;vF=(wpF.xz+'+H.toFixed(1)+')/'+SIZE.toFixed(1)+';');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vF;varying vec3 vWp;uniform vec3 uSky;uniform sampler2D uField;uniform float uPulse,uRad;float fWet,rg;')
@@ -142,10 +142,11 @@ function updateOthers(now,dt){
 let yaw=Math.atan2(-(TREE.x-me.x),-(TREE.z-me.z))+.5,pitch=-.06,target=null,moving=false,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const goP={x:me.x-Math.sin(yaw)*3.4,z:me.z-Math.cos(yaw)*3.4},goV=new T.Vector3();const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:54px!important}',onPress:()=>{target={x:goP.x,z:goP.z};$('hint').style.opacity=0;}});
 const ray=new T.Raycaster(),ndc=new T.Vector2();let down=null;
+/* 2026-11-09 第3周：押した所に輪を一つ（どこへ行くかが分かる） */const tapRing=new T.Mesh(new T.RingGeometry(.42,.5,40).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0xf6f0d6,transparent:true,opacity:0,depthWrite:false,toneMapped:false}));tapRing.visible=false;tapRing.renderOrder=5;scene.add(tapRing);
 const cv=$('w');
 cv.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false};cv.setPointerCapture(e.pointerId);});
 cv.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>6)down.moved=true;if(down.moved){yaw=down.yaw+dx*.005;pitch=Math.max(-.7,Math.min(.5,down.pitch+dy*.004));}});
-cv.addEventListener('pointerup',e=>{if(down&&!down.moved){GO.end();ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(h)target={x:Math.max(-11,Math.min(11,h.point.x)),z:Math.max(-11,Math.min(11,h.point.z))};$('hint').style.opacity=0;}down=null;});
+cv.addEventListener('pointerup',e=>{if(down&&!down.moved){GO.end();ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(h){target={x:Math.max(-11,Math.min(11,h.point.x)),z:Math.max(-11,Math.min(11,h.point.z))};tapRing.position.set(target.x,h.point.y+.03,target.z);tapRing.userData.t=0;tapRing.visible=true;}$('hint').style.opacity=0;}down=null;});
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 function walk(dt){let vx=0,vz=0;const f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),sd=(keys.d?1:0)-(keys.a?1:0);
   if(keys.arrowleft)yaw+=dt*1.2;if(keys.arrowright)yaw-=dt*1.2;
@@ -171,9 +172,9 @@ function sound(){if(!A||!A.on)return;const t=A.ac.currentTime;if(field.pulse>.98
   A.g2.gain.setTargetAtTime(field.sap*near*.025*att,t,.6);A.o2.frequency.setTargetAtTime(165+field.sap*60,t,.8);}       // 樹の吸い上げ（近いほど）
 
 // ---------- 毎フレーム ----------
-const fog=new T.Color(),dry=new T.Color(0xa9b8b0),wet=new T.Color(0x8d9a97),dropC=new T.Color(),tmpV=new T.Vector3();
+const fog=new T.Color(),dry=new T.Color(0xc6d4d6),wet=new T.Color(0xaab8ba),dropC=new T.Color(),tmpV=new T.Vector3();
 let last=performance.now(),acc=0,ready=false,ringI=0,ringAcc=0,frames=0;
-function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;frames++;
+function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;frames++;if(tapRing.visible){const u=(tapRing.userData.t+=dt)/1.1;tapRing.scale.setScalar(.4+u*1.4);tapRing.material.opacity=.85*(1-u);if(u>=1)tapRing.visible=false;}
   acc+=dt;while(acc>=.1){step(.1);acc-=.1;}
   walk(dt);
   // 身体：目の高さ 1.55 m。歩くと少し上下し、留まると静まる
@@ -182,7 +183,7 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   if(!GO.done){cam.updateMatrixWorld();goV.set(goP.x,.05,goP.z).project(cam);GO.place(goV.z<1&&Math.abs(goV.x)<.9&&Math.abs(goV.y)<.9?(goV.x+1)/2*innerWidth:null,(1-goV.y)/2*innerHeight);}
   // 空気 → 霧と光
   fog.copy(dry).lerp(wet,field.air);scene.fog.color.copy(fog);scene.background.copy(fog);scene.fog.density=(.012+.022*field.air)*(1-.35*field.pulse);
-  sun.intensity=1.9-1.1*field.air;
+  sun.intensity=2.5-1.0*field.air;
   // 状態 → 地面（r=地表の水 g=土の湿り b=踏み跡）
   const px=fieldTex.image.data;for(let k=0;k<NN;k++){px[k*4]=w[k]*255;px[k*4+1]=s[k]*255;px[k*4+2]=c[k]*255;px[k*4+3]=255;}fieldTex.needsUpdate=true;
   // 変化 → 粒。留まるほど、自分の近くの変化が見えやすくなる

@@ -40,6 +40,9 @@ if(accessAxis){accessAxis.tabIndex=0;accessAxis.setAttribute('role','slider');ac
  const syncAxis=()=>{const n=Math.round(W.absTarget*100);accessAxis.setAttribute('aria-valuenow',String(n));accessAxis.setAttribute('aria-valuetext',n===0?'具体の風景':n===100?'抽象の関係':'抽象度 '+n+'%');};syncAxis();setInterval(syncAxis,200);
  const style=document.createElement('style');style.textContent='.aw-axis:focus-visible{outline:2px solid #b9f5ff;outline-offset:4px;border-radius:8px}.aw-fold>summary{width:auto;height:auto;min-height:44px;max-width:70vw;padding:2px 10px;box-sizing:border-box;white-space:normal;font-size:12px;background:#09111bd9;border-radius:6px}';document.head.appendChild(style);
 }
+
+// 2026-11-09 第3周：最初の Tab・焦点は光るボタンへ
+setTimeout(() => { if (!GO.done) try { GO.el.focus({ preventScroll: true }); } catch (_) { } }, 50); scrollCaption.tabIndex = -1;
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
 // 2026-11-07: existing credits fold also offers an optional next question.
@@ -49,7 +52,7 @@ W.onFirstInput(() => snd.start());
   fold.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
   fold.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))e.stopPropagation();if(e.key==='Escape'){e.stopPropagation();fold.open=false;fold.querySelector('summary').focus({preventScroll:true});}});
   body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../19/\" data-question-local=\"../../12_ひとつの木/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
-  fold.querySelector('summary').setAttribute('aria-label','主体の選択・典拠と次の問い');fold.querySelector('summary').textContent='主体・典拠 ＋';
+  fold.querySelector('summary').setAttribute('aria-label','だれ？ どこから？（主体と典拠）と次の問い');fold.querySelector('summary').textContent='だれ？・どこから？ ＋';
   if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))body.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);
   body.querySelector('[data-question-return]').addEventListener('click',e=>{
    e.stopPropagation();W.setAbs(0);if(snd.on)W.sndBtn.click();
@@ -120,7 +123,7 @@ const beeGlowM = pointMat(0xfff1c8, MOBILE ? .2 : .16, 1); const beeGlow = new T
 const C = { tit: 0xb9a7e6, bee: 0xf2cf8c, hum: 0xf4aa96, tree: 0x8fd6a8, sens: 0xa9c8d8 };
 const N = [
   { id: "tit", sub: "シジュウカラ", col: C.tit, at: () => tit.position, h: .9, lag: .25, f: snd.note(7),
-    c: "シジュウカラが落ち葉をめくり、ひとつ跳ぶ。その声と影が、まわりの入力になる。", a: "鳥は、鳥の身体で拾えるものだけを手がかりにする。紫外も見える目で。", out: ["声", "動き"], in: ["足音", "動き", "声", "落葉"],
+    c: "シジュウカラが枝から跳ぶ。枝がゆれ、その動きを人が見上げる。記録計は朝の冷えを書く。ひとつの動きが、次の入力になる。", a: "鳥は、鳥の身体で拾えるものだけを手がかりにする。紫外も見える目で。", out: ["声", "動き"], in: ["足音", "動き", "声", "落葉"],
     voice: o => { for (let k = 0; k < 3; k++) { snd.chirp(5200, 4900, .06, { ...o, at: (o.at || 0) + k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: (o.at || 0) + k * .42 + .1 }); }   /* ツツピー（シジュウカラのさえずりの句。声域 3〜6 kHz の模式） */ }, act: () => { hop = 1; } },
   { id: "bee", sub: "ミツバチ", col: C.bee, at: () => tw.position, h: .75, lag: .15, f: snd.note(3),
     c: "ミツバチがツワブキのまわりを飛ぶ。羽音は、一秒に約 230 回のはばたき。", a: "蜂は、身体の拾えるものだけを手がかりにする。紫外・青・緑の三つで色を分けるとされる。", out: ["羽音", "動き"], in: ["動き", "光"],
@@ -151,6 +154,18 @@ for (const n of N) {
   W.addTouch({ getWorldPosition: v => v.copy(n.at()).add(new V3(0, Math.min(n.h, 1.2) * .5, 0)) }, () => tapNode(n), .7);
 }
 const nodeOf = id => N.find(n => n.id === id);
+// ───────── 2026-11-09 第3周：入力の連鎖（鳥の跳び → 枝のゆれ → 人の見上げ → 記録計）を最初の画の主役に
+const chainPts = () => [tit.position.clone().add(new V3(0, .3, 0)), new V3(tree.x, 2.6, tree.z), person.position.clone().add(new V3(0, 1.5, 0)), sens.position.clone().add(new V3(0, 1.0, 0))];
+const chainM = new THREE.MeshBasicMaterial({ color: 0xffe2a8, transparent: true, opacity: .55, depthWrite: false, toneMapped: false });
+const chainG = new THREE.Group(); W.add(chainG); let chainMesh = null, chainCurve = null;
+const buildChain = () => { if (chainMesh) { chainG.remove(chainMesh); chainMesh.geometry.dispose(); } chainCurve = new THREE.CatmullRomCurve3(chainPts(), false, "centripetal"); chainMesh = new THREE.Mesh(new THREE.TubeGeometry(chainCurve, 80, MOBILE ? .016 : .012, 5, false), chainM); chainG.add(chainMesh); };
+const chainDotM = pointMat(0xfff4d8, MOBILE ? .3 : .22, 1); const chainDot = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), chainDotM); W.add(chainDot);
+let chainU = 0, chainOn = 1;
+// 人の体の線は出さず、足もとの影だけ（見ているのは、あなたの目）
+person.userData.mat.visible = false;
+{ const c = document.createElement("canvas"); c.width = 64; c.height = 128; const x = c.getContext("2d"), gr = x.createRadialGradient(32, 64, 4, 32, 64, 62); gr.addColorStop(0, "rgba(0,0,0,.9)"); gr.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = gr; x.save(); x.scale(1, 2); x.beginPath(); x.arc(32, 32, 30, 0, Math.PI * 2); x.fill(); x.restore();
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(.6, 1.9).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, opacity: .5, depthWrite: false, toneMapped: false })); sh.position.set(.25, .015, -.75); sh.rotation.y = -.3; sh.renderOrder = 3; person.add(sh); }
+
 // Same interaction as the 3D rings, reachable by keyboard through the existing fold.
 {
  const fold=W.ui.querySelector('.aw-fold'), body=fold?.querySelector('div');
@@ -211,13 +226,13 @@ W.onTapEmpty(e => {
 function gust(q) {
   ripple(q.x, q.z, .6, 0xdde6ee); hi("F"); hi("E"); snd.breath(1.6, { f0: 600, f1: 1100, gain: .14, pan: clamp(nd.x, -1, 1) * .6 });
   for (const o of N) { const ch = ['気温', '光', '風'].find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(q); o.queue.push({ t: ripU.uT.value + d / SPEED, g: .8 * Math.exp(-d / 12), from: null, ch }); }
-  if (!sawGust) { sawGust = true; W.sayNow("風や日の傾き、気温の移ろいが、欅と記録計とミツバチの入力になる。"); }
+  if (!sawGust) { sawGust = true; W.sayNow("風が枝をゆらす。気温の移ろいは、記録計の入力になる。"); }
 }
 function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l, t: 0, x: tree.x + .4, z: tree.z + .3 };   /* 葉は幹の真上の樹冠の下から */ }
 
 // はじめと、降りるとき
-setTimeout(() => { if (!firstCascade) { act(nodeOf("bee"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("鳥がひと跳びしたら、だれが気づくかな？　光っている輪を押してみよう。"); setTimeout(() => { if (!touchedAxis && W.abs > .9) { W.setAbs(.72); W.say("右の線を下へなぞると、式から朝の参道へおりていく。"); setTimeout(() => { if (!touchedAxis) W.setAbs(1); }, 1500); } }, 4200); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
+setTimeout(() => { if (!firstCascade) { act(nodeOf("tit"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
+setTimeout(() => { W.say("鳥が跳ぶ → 枝がゆれる → 人が見上げる → 記録計が書く。光る線のはじまりの鳥を押してみよう。"); setTimeout(() => { if (!touchedAxis && W.abs > .9) { W.setAbs(.72); W.say("右の線を下へなぞると、式から朝の参道へおりていく。"); setTimeout(() => { if (!touchedAxis) W.setAbs(1); }, 1500); } }, 4200); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
 let saidDown = true, saidGround = false, touchedAxis = false; W.ui.querySelector('.aw-axis')?.addEventListener('pointerdown', () => { touchedAxis = true; }); addEventListener('wheel', () => { touchedAxis = true; }, { passive: true });
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
@@ -228,6 +243,7 @@ W.onAbs(a => {
 // ───────── 毎こま
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
+  if (!chainMesh) buildChain(); { const v = (1 - ss(.25, .55, a)) * chainOn; chainM.opacity = .5 * v; chainMesh.visible = v > .01; chainU = (chainU + dt * (RM ? 0 : .22)) % 1; chainDot.position.copy(chainCurve.getPointAt(chainU)); chainDotM.opacity = v; chainDot.visible = v > .01; }
   if (!GO.done) { _pv.copy(tit.position).add(new V3(0, .35, 0)).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < .95 && Math.abs(_pv.y) < .95 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
   { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(.6, 1.3, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .04 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く
