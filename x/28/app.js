@@ -258,7 +258,7 @@ PAPERS.forEach(makePaper);
 setHallNiches(PAPERS.filter(p => p.wall !== 'w').map(p => ({ side: { n: 1, e: 2, s: 3 }[p.wall], x: p.wall === 'n' ? p.x : p.wall === 'e' ? p.z : -p.x, w: p.g.userData.w + 0.7 })));
 
 /* ── 歩く：押した所からは向きだけを読み、一度に進むのは数歩まで（walk 氷川と同じ） ── */
-const STEP_MAX = 3.2, SPEED = 1.45, KEEP = 1.0;               // 一度に進む上限（m）・歩く速さ（m/秒）・書からとる間合い（m）
+const STEP_MAX = 3.2, SPEED = 1.45, KEEP = 1.4;   /* 2026-11-10 第5周：書からとる間合いを 1.0→1.4 m（押して歩くときは walkToward で書の手前に止まる） */               // 一度に進む上限（m）・歩く速さ（m/秒）・書からとる間合い（m）
 const P = { x: SPAWN.x, z: SPAWN.z, yaw: SPAWN.yaw, pitch: SPAWN.pitch, goal: null, turn: null, keys: new Set(), bob: 0 };
 const fwd = (yaw, o = new THREE.Vector3()) => o.set(-Math.sin(yaw), 0, -Math.cos(yaw));
 function segOf(it) { const c = Math.cos(it.face), s = -Math.sin(it.face), hw = it.sho ? it.sho.width / 2 : 1.5; return [it.x - c * hw, it.z - s * hw, it.x + c * hw, it.z + s * hw]; }
@@ -274,7 +274,12 @@ function keepOut(x, z) {                                       // 書と壁に�
 }
 function walkToward(tx, tz, maxStep = STEP_MAX) {
   const dx = tx - P.x, dz = tz - P.z, l = Math.hypot(dx, dz); if (l < 0.05) return;
-  const s = Math.min(l, maxStep); P.route = null; P.fast = false; P.goal = { x: P.x + dx / l * s, z: P.z + dz / l * s };
+  let s = Math.min(l, maxStep);
+  /* 2026-11-10 第5周：押した先が書のすぐ前なら、書の高さの約 1.9 倍（最低 5.2 m）の手前で止まる（墨の塊が画面を覆わない） */
+  for (const it of works) { if (it.form === 'floor' || !it.sho) continue; const near = Math.max(5.2, it.sho.height * 1.9), d0 = Math.hypot(P.x - it.x, P.z - it.z);
+    for (let k = 0; k < 16 && s > 0.05; k++) { const gx = P.x + dx / l * s, gz = P.z + dz / l * s; if (Math.hypot(gx - it.x, gz - it.z) >= Math.min(near, d0)) break; s *= 0.8; } }
+  if (s < 0.1) return;
+  P.route = null; P.fast = false; P.goal = { x: P.x + dx / l * s, z: P.z + dz / l * s };
   showStep(P.goal);
 }
 function standBefore(it) {
@@ -333,14 +338,14 @@ function paintHall() {
   $('capNo').textContent = '上原光瑛の書と言葉 ── Qualia/oto';
   $('capTi').textContent = '書と音の広間'; $('capTi').classList.remove('long');
   $('capRd').textContent = '光の一つひとつが、音の言葉。';
-  $('count').textContent = ''; $('count').style.visibility = 'hidden';   // oto：書の前に立つまで番号は出さない
+  $('count').textContent = ''; $('count').style.visibility = 'hidden'; $('allBtn').style.visibility = 'hidden';   /* 第5周：番号のないあいだは空の枠も出さない */   // oto：書の前に立つまで番号は出さない
 }
 function setFocus(it) {
   focus = it; const w = it.w; $('capRd').classList.remove('aoi');
   $('capNo').textContent = it.paper ? `上原光瑛の書 ── 紙の原本　${sid(w.id)}` : idLabel(w);
   $('capTi').textContent = w.title; $('capTi').classList.toggle('long', w.title.length > 16);
   $('capRd').textContent = it.paper ? '紙に墨で書いた、もとの書。立体にせず、紙の上の墨のまま掛けた。' : (w.reading || '');
-  stopK = stops.indexOf(it); $('count').style.visibility = ''; $('count').textContent = `${String(stopK + 1).padStart(2, '0')} / ${String(stops.length).padStart(2, '0')}`;
+  stopK = stops.indexOf(it); $('count').style.visibility = ''; $('allBtn').style.visibility = ''; $('count').textContent = `${String(stopK + 1).padStart(2, '0')} / ${String(stops.length).padStart(2, '0')}`;
   stops.forEach(s => s.btn.setAttribute('aria-current', s === it));
 }
 function goStop(k) {
@@ -782,4 +787,4 @@ if (SHOT) {                                                    // 静止画：?s
   window.MLLoader?.done(); window.__shotReady = true;
 } else frame();
 window.__sho = { works, P, goStop, pick, focusDist }; window.__cam = cam;
-import('./oto/words.js?v=3').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
+import('./oto/words.js?v=5').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
