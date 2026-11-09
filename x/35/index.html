@@ -12,6 +12,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--t1);overflow:hidden;font-family:Inter,"Hiragino Kaku Gothic ProN","Hiragino Sans",sans-serif;-webkit-tap-highlight-color:transparent}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+#halo{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background:radial-gradient(ellipse 22% 60% at 0% 50%,rgba(242,190,110,var(--l,0)),transparent 70%),radial-gradient(ellipse 22% 60% at 100% 50%,rgba(242,190,110,var(--r,0)),transparent 70%),radial-gradient(ellipse 60% 18% at 50% 100%,rgba(242,190,110,var(--b,0)),transparent 70%)}
+body.eye #halo{opacity:1}
 .top{position:fixed;left:16px;top:max(14px,env(safe-area-inset-top));display:flex;align-items:baseline;gap:14px;pointer-events:none}
 .back{pointer-events:auto;color:var(--t2);text-decoration:none;font-size:13px;letter-spacing:.04em;padding:12px 2px;min-height:44px;display:inline-flex;align-items:center}
 .back:hover,.back:focus-visible{color:var(--t1)}
@@ -38,16 +40,17 @@ body.fo .cap{opacity:0!important;transition:none}
 </head>
 <body>
 <canvas id="c" aria-label="数千の点が群れをつくる3Dの空間。触れた所に、あなたが一体として入ります。"></canvas>
+<div id="halo"></div>
 <div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/swarm<small>群れ</small></h1></div>
 <div class="meter" aria-live="off"><span id="mN"></span><br>向きのそろい <b id="mA">0.00</b><br>群れ <b id="mG">0</b></div>
 <details class="fold" id="fold"><summary>＋ 出典と模式</summary><div class="in">
 <p>一つひとつの点は、近くの仲間だけを見て動きます。<b style="font-weight:400;color:var(--t1)">離れる</b>（ぶつからない）・<b style="font-weight:400;color:var(--t1)">そろえる</b>（向きを合わせる）・<b style="font-weight:400;color:var(--t1)">寄る</b>（近くの中心へ）。全体の形を知る者も、指示を出す中心もありません。</p>
-<p>見える範囲（半径と視野角）がそれぞれの環世界です。範囲が重なると、互いの動きが互いの入力になり、そのくり返しで群れの形が生まれます。明るい点ほど、多くの仲間の範囲に入っています。緑の細い線は「見ている → 見られている」のつながり（一部だけを描いています）。</p>
+<p>見える範囲（半径と視野角）がそれぞれの環世界です。範囲が重なると、互いの動きが互いの入力になり、そのくり返しで群れの形が生まれます。明るい点ほど、多くの仲間の範囲に入っています。緑の細い線は「見ている → 見られている」のつながり（一部だけを描いています）。あたたかい色の点と線は、いま一体（あなた）を見ている仲間です。一体の目では、目に入らない後ろや横の仲間の分だけ、画面の縁があたたかくなります。</p>
 <p>「個に閉じない系としての認知」を、計算で試す模式として置いています（仮説としての読み）。</p>
 <p class="k">事実：三つの規則で群れを計算する方法は、Craig W. Reynolds「Flocks, Herds, and Schools: A Distributed Behavioral Model」Computer Graphics 21(4): 25–34（SIGGRAPH ’87, 1987）による。近傍を距離と向きで限る考え方も同論文。</p>
 <p class="k">右上の数：向きのそろい＝全員の向きの平均の長さ（0 ばらばら〜1 一方向）。群れ＝見えている仲間どうしをつないだ 8 体以上の塊の数。</p><p class="k">模式：半径・視野角・重み・速さの数値、ゆっくり動く見えない器（遠くへ行きすぎたら戻る）、一体が見る仲間の数の上限（計算を軽くするため）は、この作品で決めたもの。実在の鳥や魚の測定ではありません。音は計算の値（そろい）から合成した音です。</p>
 </div></details>
-<p class="cap" id="cap">空間に触れると、あなたが一体として入ります。</p>
+<p class="cap" id="cap">あたたかく光るのは、一体を見ている仲間たち。空間に触れると、あなたが入ります。</p>
 <div class="bar">
 <button id="bEye" aria-pressed="false">一体の目</button>
 <button id="bView">視野：ふつう</button>
@@ -81,7 +84,7 @@ for(let i=0;i<MAXN;i++){
  P[i*3]=x*26;P[i*3+1]=y*14;P[i*3+2]=z*26;
  V[i*3]=rnd()*4;V[i*3+1]=rnd()*1.5;V[i*3+2]=rnd()*4;
 }
-let focus=-1; // あなたの一体
+let focus=0;const WL=new Int32Array(400);let nW=0; // あなたの一体
 // spatial hash
 const HB=1<<14,HM=HB-1;
 const cStart=new Int32Array(HB+1),cCnt=new Int32Array(HB),order=new Int32Array(MAXN),cellOf=new Int32Array(MAXN);
@@ -92,7 +95,7 @@ function fd(a){while(par[a]!==a){par[a]=par[par[a]];a=par[a]}return a}
 let groups=0,align=0,frameNo=0;const WC=[0,0,0];let simT=0;
 const LMAX=Math.ceil(MAXN/5)*2,LI=new Int32Array(LMAX*2),LP=new Float32Array(LMAX*6),LG=new Float32Array(LMAX*2);let nL=0,flash=0;
 function step(dt){
- simT+=dt;WC[0]=Math.sin(simT*0.043)*9;WC[1]=Math.sin(simT*0.031+1)*5;WC[2]=Math.cos(simT*0.037)*9;nL=0;
+ simT+=dt;nW=0;WC[0]=Math.sin(simT*0.043)*9;WC[1]=Math.sin(simT*0.031+1)*5;WC[2]=Math.cos(simT*0.037)*9;nL=0;
  const inv=1/R;cCnt.fill(0);
  for(let i=0;i<N;i++){const k=hk(Math.floor(P[i*3]*inv),Math.floor(P[i*3+1]*inv),Math.floor(P[i*3+2]*inv));cellOf[i]=k;cCnt[k]++;}
  let s=0;for(let k=0;k<HB;k++){cStart[k]=s;s+=cCnt[k];}cStart[HB]=s;
@@ -122,6 +125,7 @@ function step(dt){
     if(++n>=MAXNB)break outer;
    }
   }
+  if(focus>=0&&i!==focus&&nW<400){const ox=P[focus*3]-px,oy=P[focus*3+1]-py,oz=P[focus*3+2]-pz,d2=ox*ox+oy*oy+oz*oz;if(d2<R2&&d2>1e-6&&(ox*hx+oy*hy+oz*hz)/Math.sqrt(d2)>=cosH)WL[nW++]=i;}
   let fx=0,fy=0,fz=0;
   if(n){
    fx+=sx*W_SEP*6;fy+=sy*W_SEP*6;fz+=sz*W_SEP*6;
@@ -157,16 +161,18 @@ void main(){vec4 q=M*vec4(p,1.);gl_Position=q;float d=max(q.w,.2);vd=d;
  float inF=fc>.5?step(length(p-fp),fr):0.;vf=inF;
  gl_PointSize=clamp(sz*(.55+.9*h)*(1.+g*.8+inF*.6)/d,1.,30.);vg=g;}`;
 const FS=`#version 300 es
-precision mediump float;in float vg;in float vf;in float vd;in float vh;uniform vec3 c0,c1,c2;uniform float fog;out vec4 o;
+precision mediump float;in float vg;in float vf;in float vd;in float vh;uniform vec3 c0,c1,c2,wc;uniform float fog,wm;out vec4 o;
 void main(){vec2 u=gl_PointCoord*2.-1.;float r=dot(u,u);if(r>1.)discard;float a=exp(-r*3.2);
  vec3 base=mix(vec3(.80,.77,.70),c0,smoothstep(.2,.8,vh));
- vec3 c=mix(base,c1,vg*.8);c=mix(c,c2,vf*.85);float f=exp(-vd*fog);o=vec4(c*a*(.12+.88*f)*(.35+.55*vh+.45*vg+vf*.5),1.);}`;
+ vec3 c=mix(base,c1,vg*.8);c=mix(c,c2,vf*.85);c=mix(c,wc,wm);float f=exp(-vd*fog);o=vec4(c*a*(1.+wm*.8)*(.12+.88*f)*(.35+.55*vh+.45*vg+vf*.5),1.);}`;
 const pP=prog(VS,FS);
 const LVS=`#version 300 es
 in vec3 p;in float g;uniform mat4 M;out float vg;out float vd;void main(){vec4 q=M*vec4(p,1.);gl_Position=q;vg=g;vd=q.w;}`;
 const LFS=`#version 300 es
 precision mediump float;in float vg;in float vd;uniform vec3 c0;uniform float fog;out vec4 o;void main(){o=vec4(c0*vg*exp(-vd*fog),1.);}`;
 const pL=prog(LVS,LFS);
+const WP=new Float32Array(400*3),WG=new Float32Array(400).fill(1),WLP=new Float32Array(400*6),WLG=new Float32Array(400*2);const bW=gl.createBuffer(),bWG=gl.createBuffer(),bWL=gl.createBuffer(),bWLG=gl.createBuffer();
+for(const[b,a]of[[bW,WP],[bWG,WG],[bWL,WLP],[bWLG,WLG]]){gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,a.byteLength,gl.DYNAMIC_DRAW);}
 const bL=gl.createBuffer(),bLG=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bL);gl.bufferData(gl.ARRAY_BUFFER,LP.byteLength,gl.DYNAMIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,bLG);gl.bufferData(gl.ARRAY_BUFFER,LG.byteLength,gl.DYNAMIC_DRAW);
 const bP=gl.createBuffer(),bG=gl.createBuffer(),bT=gl.createBuffer(),bTG=gl.createBuffer(),bD=gl.createBuffer(),bDG=gl.createBuffer(),bU=gl.createBuffer(),bUG=gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER,bP);gl.bufferData(gl.ARRAY_BUFFER,P.byteLength,gl.DYNAMIC_DRAW);
@@ -182,17 +188,17 @@ for(let i=0;i<ND;i++){const ground=i<ND*0.6;
 gl.bindBuffer(gl.ARRAY_BUFFER,bD);gl.bufferData(gl.ARRAY_BUFFER,DUST,gl.STATIC_DRAW);
 gl.bindBuffer(gl.ARRAY_BUFFER,bDG);gl.bufferData(gl.ARRAY_BUFFER,DG,gl.STATIC_DRAW);
 // あなたの環世界の殻（視野の円錐の縁を点で）
-const NU=520,UM=new Float32Array(NU*3),UG=new Float32Array(NU).fill(0.55);
+const NU=1100,UM=new Float32Array(NU*3),UG=new Float32Array(NU).fill(0.9);
 gl.bindBuffer(gl.ARRAY_BUFFER,bU);gl.bufferData(gl.ARRAY_BUFFER,UM.byteLength,gl.DYNAMIC_DRAW);
 gl.bindBuffer(gl.ARRAY_BUFFER,bUG);gl.bufferData(gl.ARRAY_BUFFER,UG,gl.STATIC_DRAW);
 const uDir=[];for(let i=0;i<NU;i++){const z=1-2*(i+.5)/NU,a=i*2.39996;const s=Math.sqrt(1-z*z);uDir.push([s*Math.cos(a),s*Math.sin(a),z]);}
-const vaoL=gl.createVertexArray();
+const vaoL=gl.createVertexArray(),vaoW=gl.createVertexArray(),vaoWL=gl.createVertexArray();
 const vaoP=gl.createVertexArray(),vaoT=gl.createVertexArray(),vaoD=gl.createVertexArray(),vaoU=gl.createVertexArray();
 function bindV(vao,pr,bp,bg){gl.bindVertexArray(vao);const lp=gl.getAttribLocation(pr,'p'),lg=gl.getAttribLocation(pr,'g');
  gl.bindBuffer(gl.ARRAY_BUFFER,bp);gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,3,gl.FLOAT,false,0,0);
  gl.bindBuffer(gl.ARRAY_BUFFER,bg);gl.enableVertexAttribArray(lg);gl.vertexAttribPointer(lg,1,gl.FLOAT,false,0,0);gl.bindVertexArray(null);}
-bindV(vaoL,pL,bL,bLG);bindV(vaoP,pP,bP,bG);bindV(vaoT,pL,bT,bTG);bindV(vaoD,pP,bD,bDG);bindV(vaoU,pP,bU,bUG);
-const U={};for(const n of['M','sz','fc','fp','fr','c0','c1','c2','fog'])U[n]=gl.getUniformLocation(pP,n);
+bindV(vaoL,pL,bL,bLG);bindV(vaoW,pP,bW,bWG);bindV(vaoWL,pL,bWL,bWLG);bindV(vaoP,pP,bP,bG);bindV(vaoT,pL,bT,bTG);bindV(vaoD,pP,bD,bDG);bindV(vaoU,pP,bU,bUG);
+const U={};for(const n of['M','sz','fc','fp','fr','c0','c1','c2','fog','wc','wm'])U[n]=gl.getUniformLocation(pP,n);
 const UL={M:gl.getUniformLocation(pL,'M'),c0:gl.getUniformLocation(pL,'c0'),fog:gl.getUniformLocation(pL,'fog')};
 // ---------- camera ----------
 let W=1,H=1,DPR=1;
@@ -204,7 +210,7 @@ function look(e,c,u){let zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];let l=Math.hypot
  const yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
  return[xx,yx,zx,0,xy,yy,zy,0,xz,yz,zz,0,-(xx*e[0]+xy*e[1]+xz*e[2]),-(yx*e[0]+yy*e[1]+yz*e[2]),-(zx*e[0]+zy*e[1]+zz*e[2]),1]}
 function mul(a,b){const o=new Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s}return o}
-let yaw=0.6,pitch=0.12,dist=mobile?64:50,eye=false;
+let yaw=0.6,pitch=0.5,dist=mobile?64:50,eye=false;
 let ce=[0,0,60],cc=[0,0,0],cHead=[0,0,1],lookYaw=0,lookPitch=0;
 let lastVP=null;
 // ---------- input ----------
@@ -229,7 +235,7 @@ function tap(x,y){
  let i;if(N<MAXN){i=N;N++;}else{i=(Math.random()*N)|0;}
  P[i*3]=px;P[i*3+1]=py;P[i*3+2]=pz;V[i*3]=dx*5;V[i*3+1]=dy*5;V[i*3+2]=dz*5;GLOW[i]=0;
  focus=i;
- setCap(eye?'あなたの目に入る仲間だけが、あなたの次の動きを決めます。':'明るい殻が、あなたの見える範囲。あなたも仲間の入力になります。');
+ setCap(eye?'あたたかく光るのは、あなたを見ている仲間。':'殻があなたの見える範囲。光る仲間は、あなたを入力にしています。');
  audioOn(true);ping();
 }
 function invert(m){const inv=new Array(16);const a=m;
@@ -253,10 +259,10 @@ function invert(m){const inv=new Array(16);const a=m;
 function xf(m,v){const x=v[0],y=v[1],z=v[2];const w=m[3]*x+m[7]*y+m[11]*z+m[15];return[(m[0]*x+m[4]*y+m[8]*z+m[12])/w,(m[1]*x+m[5]*y+m[9]*z+m[13])/w,(m[2]*x+m[6]*y+m[10]*z+m[14])/w]}
 // ---------- buttons ----------
 const bEye=document.getElementById('bEye'),bView=document.getElementById('bView'),bSnd=document.getElementById('bSnd');
-bEye.onclick=()=>{eye=!eye;bEye.setAttribute('aria-pressed',eye);bEye.textContent=eye?'外から':'一体の目';
+bEye.onclick=()=>{eye=!eye;document.body.classList.toggle('eye',eye);bEye.setAttribute('aria-pressed',eye);bEye.textContent=eye?'外から':'一体の目';
  if(eye&&focus<0){let b=0;for(let i=0;i<N;i++)if(SEEN[i]>SEEN[b])b=i;focus=b;}lookYaw=0;lookPitch=0;
  const h=[V[focus*3],V[focus*3+1],V[focus*3+2]],l=Math.hypot(...h)||1;cHead=h.map(v=>v/l);
- setCap(eye?'群れの一体の目の高さ。見えるのは、近くの仲間だけ。':'外から見ると、誰も知らない全体の形が見えます。');};
+ setCap(eye?'後ろや横からあなたを見ている仲間が、画面の縁をあたたかく照らします。':'外から見ると、誰も知らない全体の形が見えます。');};
 bView.onclick=()=>{pre=(pre+1)%3;flash=1;if(focus<0){let b=0;for(let i=0;i<N;i++)if(SEEN[i]>SEEN[b])b=i;focus=b;}R=PRE[pre].R;cosH=Math.cos(PRE[pre].fov*Math.PI/360);bView.textContent='視野：'+PRE[pre].name;
  setCap(pre===0?'見える範囲がせまいと、群れは小さく分かれていきます。':pre===2?'見える範囲が重なるほど、群れは大きな一つにまとまります。':'ふつうの視野。いくつかの群れが出会い、分かれます。');};
 bSnd.onclick=()=>{audioOn(!(snd&&snd.on));};
@@ -279,12 +285,12 @@ function soundTick(){if(!snd||!snd.on)return;const t=snd.ac.currentTime;
 // ---------- loop ----------
 const mN=document.getElementById('mN'),mA=document.getElementById('mA'),mG=document.getElementById('mG');
 const t0=performance.now();let drawn=false;window.__t={script:t0};let last=t0,acc=0,slow=0,fps=60;
-const C0=[.58,.68,.80],C1=[.55,.85,.90],C2=[.72,.94,.92],CL=[.50,.86,.66],CB=[.03,.05,.1];
+const C0=[.58,.68,.80],C1=[.55,.85,.90],C2=[.72,.94,.92],CL=[.50,.86,.66],CW=[.95,.74,.42],CB=[.03,.05,.1];
 function frame(now){
  let dt=Math.min(0.05,(now-last)/1000);last=now;fps=fps*0.95+0.05/Math.max(dt,1e-3);
  if(drawn&&(!reduce||frameNo<2))step(reduce?dt*0.25:dt);
  // 重い端末では数を減らす
- if(fps<42&&now-t0>3000){if(++slow>45&&N>900){N=Math.floor(N*0.85);slow=0;if(focus>=N)focus=-1;}}else slow=0;
+ if(fps<42&&now-t0>3000){if(++slow>45&&N>900){N=Math.floor(N*0.85);slow=0;if(focus>=N)focus=0;}}else slow=0;
  // camera
  let VP;const asp=W/H;
  if(eye&&focus>=0){
@@ -324,13 +330,18 @@ function frame(now){
   gl.uniform3fv(UL.c0,CL);gl.bindVertexArray(vaoL);gl.drawArrays(gl.LINES,0,nL*2);}
  gl.useProgram(pP);gl.uniformMatrix4fv(U.M,false,VP);gl.uniform3fv(U.c0,C0);gl.uniform3fv(U.c1,C1);gl.uniform3fv(U.c2,C2);gl.uniform1f(U.fog,fog);
  const base=(eye?64:120)*DPR*(H/800);gl.uniform1f(U.sz,base);
- gl.uniform1f(U.fc,hasF?1:0);if(hasF){gl.uniform3f(U.fp,P[focus*3],P[focus*3+1],P[focus*3+2]);gl.uniform1f(U.fr,R);}
+ gl.uniform1f(U.wm,0);gl.uniform3fv(U.wc,CW);gl.uniform1f(U.fc,hasF?1:0);if(hasF){gl.uniform3f(U.fp,P[focus*3],P[focus*3+1],P[focus*3+2]);gl.uniform1f(U.fr,R);}
  gl.bindVertexArray(vaoP);gl.drawArrays(gl.POINTS,0,N);
  gl.uniform1f(U.fc,0);gl.uniform1f(U.sz,base*0.7);gl.bindVertexArray(vaoD);gl.drawArrays(gl.POINTS,0,ND);
- if(hasF&&!eye&&frame.uc){gl.uniform1f(U.sz,base*0.35);gl.bindVertexArray(vaoU);gl.drawArrays(gl.POINTS,0,frame.uc);}
+ if(hasF&&nW){const fx=P[focus*3],fy=P[focus*3+1],fz=P[focus*3+2];for(let q=0;q<nW;q++){const i=WL[q]*3,k=q*6;WP[q*3]=P[i];WP[q*3+1]=P[i+1];WP[q*3+2]=P[i+2];WLP[k]=P[i];WLP[k+1]=P[i+1];WLP[k+2]=P[i+2];WLP[k+3]=fx;WLP[k+4]=fy;WLP[k+5]=fz;WLG[q*2]=.55;WLG[q*2+1]=.12;}
+  gl.bindBuffer(gl.ARRAY_BUFFER,bW);gl.bufferSubData(gl.ARRAY_BUFFER,0,WP,0,nW*3);gl.bindBuffer(gl.ARRAY_BUFFER,bWL);gl.bufferSubData(gl.ARRAY_BUFFER,0,WLP,0,nW*6);gl.bindBuffer(gl.ARRAY_BUFFER,bWLG);gl.bufferSubData(gl.ARRAY_BUFFER,0,WLG,0,nW*2);
+  gl.uniform1f(U.wm,1);gl.uniform3fv(U.wc,CW);gl.uniform1f(U.sz,base*1.5);gl.bindVertexArray(vaoW);gl.drawArrays(gl.POINTS,0,nW);gl.uniform1f(U.wm,0);
+  if(!eye){gl.useProgram(pL);gl.uniform3fv(UL.c0,CW);gl.bindVertexArray(vaoWL);gl.drawArrays(gl.LINES,0,nW*2);gl.useProgram(pP);}}
+ if(hasF&&!eye&&frame.uc){gl.uniform1f(U.sz,base*0.6);gl.bindVertexArray(vaoU);gl.drawArrays(gl.POINTS,0,frame.uc);}
  gl.bindVertexArray(null);
  if(!drawn){drawn=true;window.__t.first=performance.now();setTimeout(()=>{for(const o of SH)if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));},3000);}
  if(frameNo%15===0||!window.__t.m){window.__t.m=1;mN.textContent=N.toLocaleString('ja-JP')+' 体';mA.textContent=align.toFixed(2);mG.textContent=groups;soundTick();}
+ if(eye&&hasF&&frameNo%4===0){let l=0,r=0,b=0;const hx=cHead[0],hz=cHead[2];for(let q=0;q<nW;q++){const i=WL[q]*3,ox=P[i]-P[focus*3],oz=P[i+2]-P[focus*3+2];const fw=ox*hx+oz*hz,sd=ox*hz-oz*hx;if(fw<0)b++;else if(sd>0)l++;else r++;}const k=x=>Math.min(.42,x*.035).toFixed(3);const hs=document.getElementById('halo').style;hs.setProperty('--l',k(l));hs.setProperty('--r',k(r));hs.setProperty('--b',k(b));}
  if(capT&&now>capT){cap.style.opacity=0;capT=0;}
  requestAnimationFrame(frame);
 }
