@@ -9,16 +9,17 @@ const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, 
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
+const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "シジュウカラの輪に触れる（変化が広がる）", css: "#aw-ui .aw-mark{margin-left:40px!important}", onPress: () => tapNode(nodeOf("tit")) }); const _pv = new THREE.Vector3();
 
 const W = await createAwai({
-  title: "Qualia/compute", sub: "計算機の思想", en: "Thought in Computing", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 1,
+  title: "Qualia/compute", sub: "計算機の思想", en: "Thought in Computing", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 1, deferBack: true,
   rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 5.0, k), h = lerp(1.55, 1.7, k);   // 11-06 本人「俯瞰でなく主観の体験に」：抽象でも、その場に立つ人の目の高さ（約 1.6 m）のまま。一歩前へ出て、場の波を自分の足もとから受けとる   // 11-06 二版の後：抽象を一歩寄せる（主体が小さく、画面の下が空いていた）
     const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, 0, k), lerp(-1.6, .2, k));
     if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(.1 + Math.sin(y) * 1.2, 1.75, 7.6), q); look.lerp(new V3(.1, .1, .4), q);   /* 縦長も目の高さのまま（真上から見下ろさない） */   /* 11-06 二版の後：主体を画面の中ほどへ下ろし、一歩寄せる（下半分が空いていた） */ }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
     return { pos, look }; },
   credits: [
     "式は関係の形を示す模式（測れる量の式ではない）。E 環境・B 身体・P 知覚・K 経験と文脈・g 意味づけ・a ふるまいが環境に残す変化・F 環境自身の変化・L ほかの受けとり方の層",
-    "考え方の系譜：ユクスキュル（1934）・ウィーナー『サイバネティクス』（1948）・グラッセのスティグマジー（1959）・ハッチンス『Cognition in the Wild』（1995）",
+    "考え方の系譜：ユクスキュル『生物から見た世界』（1934）・ウィーナー『サイバネティクス』（1948）・グラッセのスティグマジー（1959）・ハッチンス『Cognition in the Wild』（1995）",
     "ミツバチの羽ばたき 約 230 回／秒：Altshuler ほか（PNAS 102, 2005）。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
     "波の広がりと速さ、木の間（ま）は作品の設定の値（模式）。記録計の一音は 10 分ごとの記録を縮めた模式。鳥の鳴きは声域を参考にした合成音（実測音ではありません）",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
@@ -87,11 +88,11 @@ const ripMat = new THREE.ShaderMaterial({ uniforms: ripU, transparent: true, dep
   vertexShader: `varying vec2 vP; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vP = w.xz; gl_Position = projectionMatrix * viewMatrix * w; }`,
   fragmentShader: ripFn + `varying vec2 vP; void main(){ vec4 f = field(vP); float k = mix(.22, 1., smoothstep(.1, .7, uAbs)); gl_FragColor = vec4(f.rgb * k * .75, 1.); }` });
 const ripPlane = new THREE.Mesh(new THREE.PlaneGeometry(36, 36).rotateX(-Math.PI / 2), ripMat); ripPlane.position.y = .04; ripPlane.renderOrder = 4; W.add(ripPlane);
-{ const N = MOBILE ? 46 : 70, sz = 22, pts = []; for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) pts.push((i / (N - 1) - .5) * sz, 0, (j / (N - 1) - .5) * sz - .5);
+{ const N = MOBILE ? 26 : 36, sz = 22, pts = []; for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) pts.push((i / (N - 1) - .5) * sz, 0, (j / (N - 1) - .5) * sz - .5);
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
   const m = new THREE.ShaderMaterial({ uniforms: { ...ripU, uDot: { value: (await import(P.kit + "awai.js")).dotTex() }, uSz: { value: MOBILE ? 7 : 6 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
     vertexShader: ripFn + `uniform float uSz; varying float vA; varying vec3 vC; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vec4 f = field(w.xz); w.y += .05 + f.w * .22; vC = vec3(.55, .78, .86) + f.rgb * 1.4;
-      vec4 mv = viewMatrix * w; gl_Position = projectionMatrix * mv; gl_PointSize = uSz * (1. + length(f.rgb)) * (8. / -mv.z); vA = smoothstep(.3, .85, uAbs) * (.32 + length(f.rgb)) * (1. - smoothstep(9., 12., length(w.xz))); }`,
+      vec4 mv = viewMatrix * w; gl_Position = projectionMatrix * mv; gl_PointSize = uSz * (1. + length(f.rgb)) * (8. / -mv.z); vA = smoothstep(.3, .85, uAbs) * (.12 + length(f.rgb)) * (1. - smoothstep(9., 12., length(w.xz))); }`,
     fragmentShader: `uniform sampler2D uDot; varying float vA; varying vec3 vC; void main(){ float a = texture2D(uDot, gl_PointCoord).a; gl_FragColor = vec4(vC * a * vA, 1.); }` });
   W.add(new THREE.Points(g, m)); }
 let rI = 0;
@@ -134,9 +135,9 @@ const N = [
 ];
 // ノードの印：足もとの輪・立ちのぼる線・名札
 function label(t, col) {
-  const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); x.font = '500 46px ui-monospace,"SF Mono",Menlo,monospace'; x.fillStyle = "#" + new THREE.Color(col).getHexString(); x.textBaseline = "middle"; x.shadowColor = "rgba(2,4,10,.95)"; x.shadowBlur = 10;   /* 地の上でも読める縁取り */
+  const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); x.font = '500 46px ui-monospace,"SF Mono",Menlo,monospace'; x.fillStyle = "#" + new THREE.Color(col).lerp(new THREE.Color(0xffffff), .45).getHexString(); x.textBaseline = "middle"; x.shadowColor = "rgba(2,4,10,.95)"; x.shadowBlur = 10;   /* 地の上でも読める縁取り */
   if (MOBILE) { x.font = '600 44px "Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.fillText(t, 256, 52); }   /* スマホ：名は札の中央に（札の中心＝持ち主の輪） */ else { x.fillText("U", 6, 44); x.font = '600 42px "Hiragino Mincho ProN",serif'; x.fillText(t, 44, 58); }   // スマホは名だけ
-  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false })); s.renderOrder = 5; s.center.set(0, 0); s.scale.set(2.3, .43, 1);   /* PC の名札を控えめに */ if (MOBILE) { s.center.set(.5, 0); s.scale.set(3.0, .56, 1); }   /* スマホの札を読める大きさに */ return s;
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false })); s.renderOrder = 5; s.center.set(0, 0); s.scale.set(2.9, .54, 1);   /* PC の名札を控えめに */ if (MOBILE) { s.center.set(.5, 0); s.scale.set(3.0, .56, 1); }   /* スマホの札を読める大きさに */ return s;
 }
 for (const n of N) {
   const g = new THREE.Group(); W.add(g); n.g = g;
@@ -195,6 +196,7 @@ function turnL() {
 }
 let humAgain = false, answered = false, aoiRef = null; W.aoi.then(a => aoiRef = a);
 function tapNode(n) {
+  GO.end();
   if (n.id === "hum" && Lon) humAgain = true;
   snd.start(); W.sayNow(W.abs > .5 ? n.a : n.c); n.cool = 0; act(n, 1, null);
   if (!firstCascade) { firstCascade = true; setTimeout(() => { W.say("それぞれが拾える手がかりだけを拾い、自分のしかたで応える。波は渡るたびに細り、やがて静まる。"); W.say("中心に指示する者はいない。環境を介して、互いの入力になっている。"); W.say("地を押すと、日差しや風が場を変える。欅と記録計は、それにだけ応える。"); }, 3800); }
@@ -213,8 +215,8 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("bee"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("生き物・人・木・機械の輪を、一つ押してみてください。そこから広がる変化に、何が応えるでしょうか。"); W.say("環境を介して伝わる、相互の応答を描く計算模型です。"); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
-let saidDown = false, saidGround = false;
+setTimeout(() => { W.say("光っている輪を押してみよう。鳥のひと跳びが、まわりのだれに届くかが見える。"); setTimeout(() => { if (!touchedAxis && W.abs > .9) { W.setAbs(.72); W.say("右の線を下へなぞると、式から朝の参道へおりていく。"); setTimeout(() => { if (!touchedAxis) W.setAbs(1); }, 1500); } }, 4200); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
+let saidDown = false, saidGround = false, touchedAxis = false; W.ui.querySelector('.aw-axis')?.addEventListener('pointerdown', () => { touchedAxis = true; }); addEventListener('wheel', () => { touchedAxis = true; }, { passive: true });
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
   if (!saidDown && a < .55) { saidDown = true; W.say("式の外へ降りる。同じ流れが、この朝の参道にある。"); }
@@ -224,6 +226,7 @@ W.onAbs(a => {
 // ───────── 毎こま
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
+  if (!GO.done) { _pv.copy(tit.position).add(new V3(0, .35, 0)).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < .95 && Math.abs(_pv.y) < .95 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
   { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(.6, 1.3, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .04 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く
   const labA = ss(.25, .7, a);

@@ -6,24 +6,25 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#24302e;color:#e8ece4;font:13px/1.7 "Hiragino Mincho ProN","Yu Mincho",serif}
 canvas{display:block;width:100vw;height:100dvh;touch-action:none;cursor:crosshair}
-#t{position:fixed;top:18px;left:20px;pointer-events:none;letter-spacing:.18em;font-size:14px;opacity:.9;text-shadow:0 1px 3px #000c,0 0 10px #0009}
-#t small{display:block;font-size:10px;letter-spacing:.12em;opacity:.7}
+#t{position:fixed;top:calc(12px + env(safe-area-inset-top));left:20px;max-width:calc(100vw - 80px);pointer-events:none;letter-spacing:.14em;font-size:16px;padding:6px 12px 8px;border-radius:8px;background:#121a19b3;text-shadow:0 1px 3px #000c}
+#t small{display:block;font-size:12px;letter-spacing:.06em;line-height:1.6;margin-top:2px;opacity:.92}
 #ui{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:8px}
 #ui button{min-width:44px;min-height:44px;padding:0 12px;border:1px solid #e8ece433;border-radius:22px;background:#16201ecc;color:inherit;font:inherit;font-size:12px;letter-spacing:.08em;backdrop-filter:blur(8px)}
 #ui button[aria-pressed=true]{border-color:#e8ece4;background:#e8ece4;color:#16201e}
 #ui button:focus-visible{outline:2px solid #f2f6d8}
-#hint{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:12px;opacity:.75;pointer-events:none;transition:opacity 2s;text-shadow:0 1px 6px #000a;white-space:nowrap}
+#hint{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));transform:translateX(-50%);font-size:13px;padding:4px 12px;border-radius:14px;background:#121a19b3;pointer-events:none;transition:opacity 2s;text-shadow:0 1px 6px #000a;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){#hint{transition:none}*{scroll-behavior:auto!important}}
 #src{position:fixed;inset:auto 14px calc(70px + env(safe-area-inset-bottom)) auto;width:min(360px,calc(100vw - 28px));max-height:72dvh;overflow:auto;padding:14px 16px;background:#121a19ee;border:1px solid #e8ece422;border-radius:10px;font-size:12px;display:none}
 #src h2{font-size:13px;font-weight:400;margin:0 0 6px;letter-spacing:.1em}#src ul{margin:0 0 10px;padding-left:1.1em}#src p{margin:0 0 8px;opacity:.85}
 </style></head><body>
 <canvas id="w" aria-label="水際の場の3D。押した所へ歩く。ドラッグで見回す。"></canvas>
-<div id="t">Qualia/dream<small>水際</small></div>
-<div id="hint">押した所へ歩く・立ち止まると足元の変化が灯る</div>
+<div id="t">Qualia/dream<small>水際 ── 雨が土にしみて、木と空気までつながる</small></div>
+<div id="hint">光る輪を押すと歩く・止まると足もとが灯る</div>
 <div id="ui"><button id="bSnd" aria-pressed="false">♪ 聴く</button><button id="bMot" aria-pressed="false">動き控えめ</button><button id="bSrc" aria-pressed="false">出所</button></div>
-<div id="src" role="dialog" aria-label="出所と記録"><h2>この場について</h2>
+<div id="src" role="dialog" aria-label="出所と記録"><h2>この場について（模式）</h2>
 <p>雨・地表の水・土の湿り・根の吸い上げ・樹・空気は、ひとつの連続した状態として互いを変えています。光・見通し・揺れ・音は、すべて同じ状態から作っています。</p>
 <p>中身はすべて<b>創作モデル</b>です（観測・実測の入力はありません）。音は<b>想定合成音</b>で、土や樹の実音ではありません。生き物の主観を再現したものではありません。</p>
-<p>地表のすぐ上の小さな光は、いま土の湿りが変わっている所です。</p><p>蜂の匂いの道筋（花から樹への琥珀の粒）・鳥の旋回の高さ・土の湿りのセンサーの灯り（地表の水が多いほど読みが揺らぐ。差した位置の誤差は入れていない）も、同じ状態から作った<b>模式</b>です。雨で匂いが運ばれにくくなる・霧で見通しが縮む・濡れた地表で測定が揺らぐ、という向きだけを表し、量は創作です。時間は実際より大きく縮めた模式です。湿りの前線が根に届いた瞬間、地面・葉・霧・音が同じ拍で応えます。</p><h2>いまの場の記録（古い順）</h2><ul id="log"></ul><p>蜂（ミツバチ）とシジュウカラの姿は Qualia/sight の造形を使い、見やすさのため実寸より大きくしています。</p></div>
+<p>地表のすぐ上の小さな光は、いま土の湿りが変わっている所です。</p><p>蜂の匂いの道筋（花から樹への琥珀の粒）・鳥の旋回の高さ・土の湿りのセンサーの灯り（地表の水が多いほど読みが揺らぐ。差した位置の誤差は入れていない）も、同じ状態から作った<b>模式</b>です。雨で匂いが運ばれにくくなる・霧で見通しが縮む・濡れた地表で測定が揺らぐ、という向きだけを表し、量は創作です。時間は実際より大きく縮めた模式です。湿りの前線が根に届いた瞬間、地面・葉・霧・音が同じ拍で応えます。</p><h2>向きを決めるのに使った一次の出典</h2><ul><li>雨が土にしみこむ速さは、土が湿るほど落ちていく：Horton, R. E. (1933) The role of infiltration in the hydrologic cycle. <i>Trans. AGU</i> 14, 446–460</li><li>霧が濃いほど見通しの距離が縮む：Koschmieder, H. (1924) Theorie der horizontalen Sichtweite. <i>Beitr. Phys. freien Atmos.</i> 12, 33–55</li><li>土の水分を電気的に測る方法：Topp, G. C., Davis, J. L. &amp; Annan, A. P. (1980) <i>Water Resources Research</i> 16(3), 574–582</li></ul><p>出典は向き（どちらへ変わるか）を決めるためだけに使い、量・速さ・時間はすべて作品の模式です。</p><h2>いまの場の記録（古い順）</h2><ul id="log"></ul><p>蜂（ミツバチ）とシジュウカラの姿は Qualia/sight の造形を使い、見やすさのため実寸より大きくしています。</p></div>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
-<script type="module" src="./field.js"></script>
+<script type="module" src="./field.js?v=20261109q"></script>
 </body></html>

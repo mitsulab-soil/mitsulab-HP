@@ -5,6 +5,7 @@
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 import {growKeyaki,sprigMesh} from './vendor/tree.js';
+import {qxEntry} from './qx.js';
 const t0=performance.now(),$=id=>document.getElementById(id),mobile=innerWidth<600;
 let seed=1108;const R=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
 
@@ -64,7 +65,7 @@ function step(dt){
 
 // ---------- 3D ----------
 const renderer=new T.WebGLRenderer({canvas:$('w'),antialias:!mobile,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.5));renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.25));renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
 renderer.shadowMap.enabled=false;const wantShadow=!mobile; renderer.shadowMap.type=T.PCFSoftShadowMap; // 影は最初の描画のあとに入れる
 const scene=new T.Scene(),sky=new T.Color(0x8fa3a3);scene.background=sky.clone();scene.fog=new T.FogExp2(sky.getHex(),.03);
@@ -139,11 +140,12 @@ function updateOthers(now,dt){
 }
 // ---------- 身体と操作 ----------
 let yaw=Math.atan2(-(TREE.x-me.x),-(TREE.z-me.z))+.5,pitch=-.06,target=null,moving=false,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const goP={x:me.x-Math.sin(yaw)*3.4,z:me.z-Math.cos(yaw)*3.4},goV=new T.Vector3();const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:54px!important}',onPress:()=>{target={x:goP.x,z:goP.z};$('hint').style.opacity=0;}});
 const ray=new T.Raycaster(),ndc=new T.Vector2();let down=null;
 const cv=$('w');
 cv.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false};cv.setPointerCapture(e.pointerId);});
 cv.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>6)down.moved=true;if(down.moved){yaw=down.yaw+dx*.005;pitch=Math.max(-.7,Math.min(.5,down.pitch+dy*.004));}});
-cv.addEventListener('pointerup',e=>{if(down&&!down.moved){ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(h)target={x:Math.max(-11,Math.min(11,h.point.x)),z:Math.max(-11,Math.min(11,h.point.z))};$('hint').style.opacity=0;}down=null;});
+cv.addEventListener('pointerup',e=>{if(down&&!down.moved){GO.end();ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(h)target={x:Math.max(-11,Math.min(11,h.point.x)),z:Math.max(-11,Math.min(11,h.point.z))};$('hint').style.opacity=0;}down=null;});
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 function walk(dt){let vx=0,vz=0;const f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),sd=(keys.d?1:0)-(keys.a?1:0);
   if(keys.arrowleft)yaw+=dt*1.2;if(keys.arrowright)yaw-=dt*1.2;
@@ -177,6 +179,7 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   // 身体：目の高さ 1.55 m。歩くと少し上下し、留まると静まる
   const bob=reduce?0:(moving?Math.sin(now*.009)*.025:0);cam.position.set(me.x,1.55+bob,me.z);
   cam.rotation.set(0,0,0);cam.rotateY(yaw);cam.rotateX(pitch);
+  if(!GO.done){cam.updateMatrixWorld();goV.set(goP.x,.05,goP.z).project(cam);GO.place(goV.z<1&&Math.abs(goV.x)<.9&&Math.abs(goV.y)<.9?(goV.x+1)/2*innerWidth:null,(1-goV.y)/2*innerHeight);}
   // 空気 → 霧と光
   fog.copy(dry).lerp(wet,field.air);scene.fog.color.copy(fog);scene.background.copy(fog);scene.fog.density=(.012+.022*field.air)*(1-.35*field.pulse);
   sun.intensity=1.9-1.1*field.air;

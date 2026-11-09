@@ -1,5 +1,5 @@
 // © mitsulab. Qualia/leaf ── 一枚の葉の連なり（2026-11-08 集約：Qualia/literature〔文学の思想〕＋ Qualia/compute〔計算機の思想〕）
-// 欅が手放した一枚の葉が、受けとるものの数だけ別の出来事になり（literature）、環境を介して互いの入力になって、菌と細菌から養分として欅へ戻る（compute）。
+// 欅が手放した一枚の葉が、受けとるものの数だけ別の出来事になり（literature）、環境を介して互いの入力になって、菌と細菌に分けられて土へ還り、木々の養分になりうる（compute）。
 //   U_i = g_i( P_i(E, B_i), K_i )   E(t+1) = F(E(t)) + Σ a_j(U_j)   U_人′ = g_人( P_人(E, B_人), K_人 ⊕ L )
 // 抽象の極（式と流れ）から始まり、下へなぞると朝の参道へ降りる。主体のふるまい a が環境 E に波を残し、波が届いた主体の P に入り、
 // その主体の g を経て、また a になる。渡るたびに弱まり（F の減衰）、ひとりでに静まる。人がほかの全員から受けとると、文脈に層 L が加わる。
@@ -10,6 +10,7 @@ const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, 
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
+const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "光っている輪に触れる（変化が広がる）", css: "#aw-ui .aw-mark{margin-left:40px!important}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => tapNode(nodeOf(goId)) }); const _pv = new THREE.Vector3(); let goId = "tree";
 
 const W = await createAwai({
   title: "Qualia/leaf", sub: "一枚の葉の連なり", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
@@ -167,7 +168,7 @@ const nodeOf = id => N.find(n => n.id === id);
 {
  const fold=W.ui.querySelector('.aw-fold'), body=fold?.querySelector('div');
  if(body){const group=document.createElement('fieldset');group.className='q-route';group.style.border='0';group.innerHTML='<legend>輪を選んで、変化を起こす</legend>';
- for(const n of N){const b=document.createElement('button');b.type='button';b.textContent=n.sub+'の輪に触れる';b.addEventListener('click',e=>{e.stopPropagation();tapNode(n);fold.open=false;fold.querySelector('summary').focus({preventScroll:true});});group.appendChild(b);}body.prepend(group);}
+ for(const n of N){const b=document.createElement('button');b.type='button';b.textContent=n.sub+'の輪に触れる';b.addEventListener('click',e=>{e.stopPropagation();tapNode(n);fold.open=false;fold.querySelector('summary').focus({preventScroll:true});});group.appendChild(b);}body.prepend(group);fx.open=true;body.appendChild(fx);}
 }
 
 // 立ちのぼる粒（P：環境から手がかりが入る）
@@ -197,7 +198,7 @@ function act(n, gain, from) {
 const CHS = new Set();
 function receive(n, g, from, ch) {
   if (ch === "落葉" && LEAF[n.id] && !leafSaid.has(n.id)) { leafSaid.add(n.id); W.say(LEAF[n.id]); if (leafSaid.size === 3) W.say("同じ一枚の葉が、受けとるものの数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); }
-  if (ch === "養分") W.say("葉は分けられ、養分になって、欅の根の入力へ戻る。");
+  if (ch === "養分") W.say("葉は分けられて土へ還り、木々の養分になりうる。");
   const key = (from ? from.id : 'F') + '>' + n.id; if (!CHS.has(key) && CHS.size < 2) { CHS.add(key); W.say((from ? (from.sub === '人' ? '人' : from.sub) + 'の' : '') + ch + 'が、' + (n.sub === '人' ? '人' : n.sub) + 'の入力になる。'); }
   n.inK = 1; hi("P"); hi("E"); spawnP(n, g);
   if (n.id === "hum" && from) { n.seen.add(from.id); if (!Lon && n.seen.size >= 4) turnL(); }
@@ -213,6 +214,7 @@ function turnL() {
 }
 let humAgain = false, answered = false, aoiRef = null; W.aoi.then(a => aoiRef = a);
 function tapNode(n) {
+  GO.end();
   if (n.id === "hum" && Lon) humAgain = true;
   snd.start(); W.sayNow(W.abs > .5 ? n.a : n.c); n.cool = 0; act(n, 1, null);
   if (!firstCascade) { firstCascade = true; setTimeout(() => { W.say("それぞれが拾える手がかりだけを拾い、自分のしかたで応える。波は渡るたびに細り、やがて静まる。"); W.say("中心に指示する者はいない。環境を介して、互いの入力になっている。"); W.say("地を押すと、日差しや風が場を変える。欅と記録計は、それにだけ応える。"); }, 3800); }
@@ -231,7 +233,7 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("tree"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("朝の氷川参道。欅が、黄の葉を一枚はなす。"); setTimeout(() => { W.say("輪に触れると、そこから変化が広がる。上へなぞると、関係が式と流れになる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }, 7000); }, 900);
+setTimeout(() => { W.say("光っている輪に触れてみよう。欅の一枚の葉が、だれに、どう届くかが見える。"); setTimeout(() => { W.say("右の線を上へなぞると、同じつながりが式と流れになる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }, 7000); }, 900);
 let saidDown = false, saidGround = false, wentUp = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
@@ -243,6 +245,7 @@ W.onAbs(a => {
 // ───────── 毎こま
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
+  if (!GO.done) { let ok = false; for (const id of ["tree", "tit", "hum"]) { _pv.copy(nodeOf(id).at()).add(new V3(0, .5, 0)).project(camera); if (_pv.z < 1 && Math.abs(_pv.x) < .85 && Math.abs(_pv.y) < .9) { goId = id; ok = true; break; } } GO.place(ok ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
   { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(.6, 1.3, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .04 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く
   const labA = ss(.25, .7, a);

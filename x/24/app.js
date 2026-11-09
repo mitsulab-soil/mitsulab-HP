@@ -3,6 +3,8 @@
    触れると鳴る（人の声と機械の声）。なぞると、その場所の記述が書き換わり、線が旋律になる。「外から」で自分の受けとり方が見える。
    描き方：①色の描画（人）②種類・日の当たり・距離の描画（機械のための記述）③二つを縁で合わせる ④線・帯・輪を上に重ねる */
 import * as THREE from "three";
+import { qxEntry } from "./qx.js";
+qxEntry({ css: ".top{padding-left:56px!important}#seam .hd.qx-glow{animation:qxp 2.4s ease-in-out infinite;border-color:#f2d696}#chs button.qx-later{display:none}@media (prefers-reduced-motion:reduce){#seam .hd.qx-glow{animation:none}}#projToggle{position:fixed;left:12px;top:calc(58px + env(safe-area-inset-top));z-index:4;min-height:44px;padding:0 12px;font-size:12px;letter-spacing:.08em;color:var(--ink);background:#07111acc;border:1px solid #9ed9e655;border-radius:22px}#projToggle[hidden]{display:none}#projectionNotes h2{display:flex;align-items:center;justify-content:space-between;gap:8px}.pn-x{min-height:44px;min-width:44px;padding:0 8px;font-size:12px;color:var(--ink)}" });
 import { rng, growTree, plantTrees, leafMaterial, barkMaterial, WIND, poisson } from "./kit/vegetation.js";
 import { installDapple, makeSightGrass, SIGHT_AIR } from "./kit/sight_look.js";
 import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
@@ -399,6 +401,7 @@ function setCh(i) {
 }
 $("#chs").innerHTML = `<span class="end">具体から</span>` + CH.map((c, i) => `<button data-i="${i}">${c.name}</button>`).join("") + `<span class="end">抽象へ</span>`;
 document.querySelectorAll("#chs button").forEach(b => b.addEventListener("click", e => { music.start(); setCh(+b.dataset.i); }));
+document.querySelectorAll("#chs button").forEach((b, j) => j && b.classList.add("qx-later")); function qxReveal() { document.querySelectorAll("#chs .qx-later").forEach(b => b.classList.remove("qx-later")); seamHandleGlow?.classList.remove("qx-glow"); } var seamHandleGlow = document.querySelector("#seam .hd"); seamHandleGlow?.classList.add("qx-glow"); setTimeout(() => seamHandleGlow?.focus({ preventScroll: true }), 0); setTimeout(qxReveal, 20000);
 $("#out").addEventListener("click", () => { music.start(); outOn = !outOn; if (outOn) { seamKeep = seam; seam = 1; } else seam = seamKeep; $("#out").textContent = outOn ? "戻る" : "外から"; document.body.classList.toggle("out", outOn); $("#out").classList.remove("hint");
   capQ = capQ.filter(k => k === "hint"); if (outOn) { const fin = seen.size >= 4 && STROKES.length >= 1; if (!said.has("self")) { said.add("self"); show("self"); if (!fin) say("self2", { once: true }); } else if (!fin) say("kant", { once: true }); checkEnd(); } });
 $("#snd").addEventListener("click", () => { music.start(); music.setMuted(!music.muted); $("#snd").classList.toggle("off", music.muted); });
@@ -414,8 +417,12 @@ $("#refs").innerHTML = REFS.map(r => `<li>${r}</li>`).join("");
 // Focus/click draws a leader back to the projected point; normal-size placement is unchanged.
 function createProjectionNotes() {
   const rail = document.createElement("section"); rail.id = "projectionNotes"; rail.hidden = true; rail.setAttribute("aria-label", "帯と場面のラベル");
-  rail.innerHTML = '<h2>手がかり・模式のラベル</h2><div id="projectionList" tabindex="0" aria-label="ラベルをスクロール"></div>';
-  document.body.appendChild(rail); const list = rail.lastElementChild;
+  rail.innerHTML = '<h2>手がかり・模式のラベル<button type="button" class="pn-x" aria-label="ラベルの一覧を閉じる">閉じる ×</button></h2><div id="projectionList" tabindex="0" aria-label="ラベルをスクロール"></div>';
+  document.body.appendChild(rail); const list = rail.lastElementChild; let railOpen = false;
+  const tog = document.createElement("button"); tog.type = "button"; tog.id = "projToggle"; tog.hidden = true; tog.textContent = "＋ ラベル"; tog.setAttribute("aria-label", "手がかり・模式のラベルの一覧をひらく"); document.body.appendChild(tog);
+  const setOpen = on => { railOpen = on; rail.hidden = !active || !railOpen; tog.hidden = !active || railOpen; svg.toggleAttribute("hidden", !active || !railOpen); nextCheck = 0; (on ? rail.querySelector(".pn-x") : tog).focus({ preventScroll: true }); };
+  tog.addEventListener("click", e => { e.stopPropagation(); setOpen(true); }); rail.querySelector(".pn-x").addEventListener("click", e => { e.stopPropagation(); setOpen(false); });
+  for (const ev of ["pointerdown", "pointerup"]) tog.addEventListener(ev, e => e.stopPropagation());
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.id = "projectionLeader"; svg.setAttribute("aria-hidden", "true"); svg.innerHTML = '<polyline fill="none" stroke="#d9f7ff" stroke-width="1.5"/><circle r="4" fill="#d9f7ff"/>'; document.body.appendChild(svg);
   const style = document.createElement("style"); style.textContent = `
 #projectionNotes{position:fixed;z-index:4;box-sizing:border-box;display:flex;flex-direction:column;background:#07111aeb;border:1px solid #9ed9e655;border-radius:8px;color:var(--ink);pointer-events:auto}
@@ -439,10 +446,10 @@ function createProjectionNotes() {
   function updateMode() {
     const now=performance.now(); if(now<nextCheck)return active;nextCheck=now+200;
     const want=innerWidth<=520 || entries.some(e=>e.el.classList.contains("on") && parseFloat(getComputedStyle(e.el).fontSize)>e.baseFont*1.4);
-    if(want!==active){active=want;rail.hidden=!active;svg.toggleAttribute("hidden",!active);chosen=null;
+    if(want!==active){active=want;rail.hidden=!active||!railOpen;tog.hidden=!active||railOpen;svg.toggleAttribute("hidden",!active||!railOpen);chosen=null;
       for(const e of entries){if(active){list.appendChild(e.el);if(e.el.tagName!=="BUTTON")e.el.tabIndex=0;}else{e.pin.after(e.el);if(e.tab===null)e.el.removeAttribute("tabindex");else e.el.setAttribute("tabindex",e.tab);}}
     }
-    if(active){
+    if(active&&railOpen){
       const currentView=chId()+":"+outOn;if(currentView!==view){view=currentView;list.scrollTop=0;chosen=null;}
       const topUI=[$(".top"),$("#spec"),$("#heatbar")].filter(e=>getComputedStyle(e).display!=="none"&&+getComputedStyle(e).opacity>0).map(e=>e.getBoundingClientRect().bottom);
       let top=Math.max(12,...topUI)+8;const cap=$("#cap"),controlsTop=$("#chs").getBoundingClientRect().top,capTop=cap.classList.contains("on")?cap.getBoundingClientRect().top:controlsTop;
@@ -535,7 +542,7 @@ const end = e => {
   if (chId() === "cam" && said.has("cam")) say("cam2", { once: true });
 };
 cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", () => { if (drag?.line) ov.remove(drag.line); drag = null; });
-function setSeam(x) { const was = seam; seam = Math.max(0, Math.min(1, x)); if (Math.abs(was - seam) > .02) { say(chId(), { once: true }); say("hint", { once: true }); } }
+function setSeam(x) { const was = seam; seam = Math.max(0, Math.min(1, x)); if (Math.abs(was - seam) > .02) { qxReveal(); say(chId(), { once: true }); say("hint", { once: true }); } }
 function growStroke(d) {
   const arr = d.pts.flatMap(h => [h.p.x, h.p.y + .03, h.p.z]);
   if (d.line) { d.line.geometry.dispose(); d.line.geometry = new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(arr, 3)); }

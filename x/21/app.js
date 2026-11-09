@@ -7,6 +7,7 @@ const [{ createAwai, injectCSS, lineMat, pointMat, awaiPatch, AW, MOBILE, RM, TA
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
+const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "葉に触れる（葉が落ちはじめる）", css: ".aw-mark{left:calc(54px + env(safe-area-inset-left))!important}", onPress: () => tapLeaf() }); const _pv = new THREE.Vector3();
 
 // ───────── 物語の状態
 const ST = { phase: 0, t: 0, top: false, later: 0 };   // 0 宙・1 落ちる・2 地・3 時が過ぎた
@@ -20,24 +21,25 @@ const camRig = (a, y, t) => {
     const pos = leafP.clone().add(off); pos.y = Math.max(pos.y, .3);
     return { pos, look: leafP.clone().add(new V3(lerp(pr ? .44 : -.02, 0, f), lerp(.16, -.05, f), lerp(-.12, 0, f))) };   // 宙：主役の葉と枝先の房を一つの画に   // 宙では葉を右三分の一に置き、奥へ参道が抜ける
   }
-  const c = LAND.clone(), back = lerp(.72, 4.6, k), h = lerp(.3, 3.4, k);
-  return { pos: new V3(c.x + Math.sin(y) * back, h, c.z + Math.cos(y) * back), look: c.clone().add(new V3(0, lerp(.1, 1.05, k), lerp(-.25, -.2, k))) };
+  const c = LAND.clone(), back = lerp(.72, 2.3, k), h = lerp(.3, 1.5, k);   // 11-06 本人「俯瞰でなく主観の体験に」：上へなぞると、しゃがんだ目から立ち上がる人の目の高さへ。層は自分の前に立ちのぼり、見上げて受けとる
+  return { pos: new V3(c.x + Math.sin(y) * back, h, c.z + Math.cos(y) * back), look: c.clone().add(new V3(0, lerp(.1, 1.25, k), lerp(-.25, -.2, k))) };
 };
 
 const W = await createAwai({
-  title: "Qualia/literature", sub: "文学の思想", en: "Thought in Literature", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [-1.1, -3.8, .35], seed: 2121, rig: camRig, portrait: 1.3,
+  title: "Qualia/literature", sub: "文学の思想", en: "Thought in Literature", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: [-1.1, -3.8, .35], seed: 2121, deferBack: true, rig: camRig, portrait: 1.3,
   credits: [
     "欅の葉の形（卵形で先がとがる・縁に曲がった鋸歯・羽状の脈）と十一月の黄葉は、図鑑の形態にそって mitsulab が描いた画",
-    "鳥の目は動きをよくとらえるとされる。葉の表には落ちる前から菌や細菌がすむ。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
+    "葉の表には落ちる前から菌や細菌がすむ。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
     "気温計の層：10 分ごとの記録を 2.4 秒に縮めた模式（気象庁のアメダスは 10 分ごとに観測する）。数値は描かない",
-    "菌の営みの音は、聴こえる高さに移した模式。鳥の声は、シジュウカラの声域（3〜6 kHz）に合わせた模式",
+    "菌の営みを、ゆっくり重なる合成音で表した創作です。実測した菌の音ではありません。鳥の声も合成音です（実際の鳴き声の録音ではありません）",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
 const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
-W.aoi.then(a => a && (innerWidth < innerHeight * .8 ? a.place(LAND.x - .85, LAND.z - 4.6, .3) : a.place(LAND.x + 1.9, LAND.z - 5.2, -.35)));   // 碧は葉の左奥（三分の一の位置）
+let aoiL = null, aoiAside = false; W.aoi.then(a => aoiL = a);
+W.aoi.then(a => a && (innerWidth < innerHeight * .8 ? a.place(LAND.x - 1.25, LAND.z - 6.2, .3) : a.place(LAND.x + 3.4, LAND.z - 5.6, -.5)   /* 主観の視点：層の縁より外、目の高さで横に立つ */));   // 碧は葉の左奥（三分の一の位置）
 W.setAbs(0, true);
 
 // ───────── 一枚の葉
@@ -132,11 +134,39 @@ const LINES = [
 
 // ───────── 進み方
 function tapLeaf() {
-  snd.start();
+  snd.start(); GO.end();
   if (ST.phase === 0) { ST.phase = 1; ST.t = 0; path.length = 0; petiole.visible = false; leaf.material.emissive?.setRGB(0, 0, 0); W.sayNow("葉が、枝をはなれる。"); snd.wood(snd.note(10), { gain: .14, decay: .5 }); return; }
   if (ST.phase === 3 && ST.later > 2) restart();
 }
 W.onTapEmpty(() => { snd.start(); if (ST.phase === 0) tapLeaf(); else if (ST.phase === 3 && ST.later > 2) restart(); else if (ST.phase === 2 && W.abs < .1) W.sayNow("上へなぞると、この葉を受けとる層が重なる。"); });
+// キーボードも既存の葉へのタップ・層の操作につなぐ。物語の進行は共通。
+const litCanvas = document.getElementById("cv");
+litCanvas.tabIndex = 0;
+litCanvas.setAttribute("aria-label", "落ち葉の風景");
+litCanvas.setAttribute("aria-describedby", "lit-key-help");
+litCanvas.setAttribute("aria-keyshortcuts", "Enter Space ArrowUp ArrowDown ArrowLeft ArrowRight");
+const litHelp = document.createElement("p");
+litHelp.id = "lit-key-help";
+litHelp.textContent = "Enter / Space：葉に触れる　↑ / ↓：層を重ねる・戻る　← / →：見回す";
+W.ui.appendChild(litHelp);
+const litGuide = document.createElement("p");
+litGuide.textContent = "キーボードは Tab で風景へ。" + litHelp.textContent;
+W.ui.querySelector(".aw-fold > div").appendChild(litGuide);
+const litStyle = document.createElement("style");
+litStyle.textContent = `#cv:focus-visible{outline:2px solid #d5e4fa;outline-offset:-5px}
+#lit-key-help{position:absolute;top:90px;left:16px;max-width:calc(100vw - 92px);margin:0;padding:8px 10px;background:rgba(6,10,18,.88);color:#e7edf7;font:12px/1.7 sans-serif;opacity:0}
+#cv:focus-visible ~ #aw-ui #lit-key-help{opacity:1}`;
+document.head.appendChild(litStyle);
+litCanvas.addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    if (!e.repeat) tapLeaf();
+  } else if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    // あわい共通の window ハンドラが層・視線を更新する（重複更新しない）。
+    e.preventDefault(); snd.start();
+  }
+});
+
 function land() {
   ST.phase = 2; ST.t = 0; leafP.copy(LAND);
   snd.wood(snd.note(-5), { gain: .32, decay: 1.6 }); snd.breath(1.2, { f0: 500, f1: 300, gain: .12 });
@@ -152,7 +182,9 @@ function restart() {
 const said = [false, false, false, false];
 let farT = 6, topFlash = 0, airT2 = 0, stepT = 0, chirpT = 0, tickT = 0, fungiT = 0, airT = 0, lastBeat = -1;   // 声部はすべて 0.6 秒の拍の上。8 拍（4.8 秒）ごとに頭がそろう
 W.onFrame((dt, t, a) => {
+  if (!GO.done) { _pv.copy(leafP).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < 1 && Math.abs(_pv.y) < 1 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ST.t += dt; topFlash = Math.max(0, topFlash - dt / 5.5);
+  if (aoiL) { const side = a > .3; if (side !== aoiAside) { aoiAside = side; const pr = innerWidth < innerHeight * .8; aoiL.walkTo(side ? new V3(LAND.x + (pr ? -2.4 : 4.6), 0, LAND.z - (pr ? 3.2 : 3.0)) : new V3(LAND.x + (pr ? -1.25 : 3.4), 0, LAND.z - (pr ? 6.2 : 5.6))); } }   // 層が立ちのぼるあいだ、碧は層の縁の外へ一歩よける（主観の視界をふさがない）
   spine.position.set(LAND.x, 0, LAND.z); spine.children.forEach((ln, k) => { const u = clamp(topFlash * 1.25 - (1 - k / 8) * .25, 0, 1); ln.material.opacity = Math.min(1, 1.1 * u * u); }); spine.visible = topFlash > .002;
   if (ST.phase >= 2 && a < .3) { farT -= dt; if (farT < 0) { farT = 8 + Math.random() * 4; const o = { gain: .055, pan: (Math.random() - .5) * 1.4, wet: .9 }; for (let k = 0; k < 2; k++) { snd.chirp(5200, 4900, .06, { ...o, at: k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: k * .42 + .1 }); } } }   // 静かな区間：遠いシジュウカラの一声（ツツピーの句・まばらに）
   if (ST.phase >= 1) { airT2 -= dt; if (airT2 < 0) { airT2 = 3.4; snd.breath(3.6, { f0: 480 + Math.random() * 120, f1: 720, gain: .085, wet: .8, pan: (Math.random() - .5) * 1.4 }); } }   // 11-06：着地のあとも木立の風が途切れない（無音の穴を埋める）
@@ -182,8 +214,8 @@ W.onFrame((dt, t, a) => {
     const on = ST.phase >= 2 ? ss(.12 + i * .17, .26 + i * .17, a) : 0;   // 時が過ぎた段でも、上へなぞれば同じ葉の層が重なる
     o.k += (on - o.k) * (1 - Math.exp(-dt * 3));
     if (o.dom) { const P = o.g.getWorldPosition(new V3()).add(new V3((o.i % 2 ? 1 : -1) * (.36 * .9 * (1.55 + o.i * .12) + .08), 0, 0)).project(camera), sx = (P.x + 1) / 2 * innerWidth, sy = (1 - P.y) / 2 * innerHeight, w = o.dom.offsetWidth;
-      o.dom.style.transform = `translate(${clamp(o.i % 2 ? sx + 8 : sx - 8 - w, 12, innerWidth - 64 - w)}px, ${sy - 12}px)`; o.dom.style.opacity = o.k < .15 ? "0" : (o.k * (o === L.filter(q => q.k > .5).at(-1) ? .95 : .55)).toFixed(3); }   /* スマホ：画面に置く札（読める大きさ・端で切れない・今の層だけ濃く） */
-    for (const m of o.mats) m.opacity = Math.min(1, (m.userData.max ?? .7) * o.k * (1 + topFlash * 1.6)); o.pl.material.opacity = .045 * o.k; o.lab.material.opacity = .95 * o.k;
+      o.dom.style.transform = `translate(${clamp(o.i % 2 ? sx + 8 : sx - 8 - w, 20, innerWidth - 84 - w)}px, ${clamp(sy - 12, 70, innerHeight - 170)}px)`;   /* 画面の内側・軸と題と字幕を避ける */ o.dom.style.opacity = o.k < .15 ? "0" : (o.k * (o === L.filter(q => q.k > .5).at(-1) ? .95 : .55)).toFixed(3); }   /* スマホ：画面に置く札（読める大きさ・端で切れない・今の層だけ濃く） */
+    for (const m of o.mats) m.opacity = Math.min(1, (m.userData.max ?? .7) * o.k * (1 + topFlash * 1.6)); o.pl.material.opacity = .045 * o.k; o.lab.material.opacity = .95 * o.k; if (!MOBILE) { o.lab.scale.set(.86, .16, 1).multiplyScalar(lerp(.55, 1, ss(.5, .9, a))); o.lab.position.x = (o.i % 2 ? -1 : 1) * lerp(.42, .62 + o.i * .05, ss(.5, .9, a)); }   // 主観の近い画角では札を小さく内側へ（画面の端で切れない）
     o.g.visible = o.k > .004;
     o.g.position.y = lerp(.02, .32 + i * .36, ss(0, 1, o.k));   // 葉から立ちのぼる
     if (on > .5 && !said[i]) { said[i] = true; W.sayNow(LINES[i][0]); }   // 一つの層に一行・すぐ出す（字幕が絵より遅れない）
@@ -211,6 +243,6 @@ W.onFrame((dt, t, a) => {
     if (nb && k3 > .2 && bi % 4 === 0) { snd.bell(snd.note(12), { gain: .05 * k3, pan: .6, decay: .35, wet: .7 }); }   // 10 分ごとの記録 → 2.4 秒（模式）
   }
 });
-setTimeout(() => { W.say("朝の氷川参道。欅の低い枝に、黄の葉が一枚。"); W.say("葉に触れる。"); }, 800);
+setTimeout(() => { W.say("光っている葉に触れてみよう。落ちる一枚が、だれにどう届くかを見る。"); }, 300);
 AMK.done = Math.round(performance.now() - T0);
 window.__app = { W, ST, L, tapLeaf, land };
