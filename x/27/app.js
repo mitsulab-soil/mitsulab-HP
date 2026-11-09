@@ -55,7 +55,7 @@ W.onFirstInput(() => snd.start());
  if(body){
   fold.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
   fold.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))e.stopPropagation();if(e.key==='Escape'){e.stopPropagation();fold.open=false;fold.querySelector('summary').focus({preventScroll:true});}});
-  body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../21/\">一枚の葉を、言葉で読む（Qualia/literature）→</a><a href=\"../22/\">関係を、流れで見る（Qualia/compute）→</a><a href=\"../19/\" data-question-local=\"../../12_ひとつの木/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
+  body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../21/\">一枚の葉を、言葉で読む（Qualia/literature）→</a><a href=\"../29/\" data-question-local=\"../../19_Qualia_keyaki/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
   fold.querySelector('summary').setAttribute('aria-label','だれ？ どこから？（主体と典拠）と次の問い');fold.querySelector('summary').textContent='だれ？・どこから？ ＋';
   if(!/\/x\/\d+(\/|$)/.test(location.pathname))body.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);
   body.querySelector('[data-question-return]').addEventListener('click',e=>{
