@@ -14,6 +14,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#03060f">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="poster.webp?v=20261020-title" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style data-source="tokens.css">
@@ -189,8 +190,20 @@
  .play{top:calc(146px + min(100vw,100svh - 260px));bottom:auto}
  .bar{bottom:max(14px,env(safe-area-inset-bottom))}
 }
+</style>
+<style id="song-r2">
+/* 2026-11-09 第2周：枠の中のプレイヤーをやめ、全面の映像に。操作は触れたときだけ出す。再生は大きな一つ */
+@media (min-width:601px),(orientation:landscape){#mv{top:0;bottom:0;height:100%;max-height:none;object-fit:cover}.play{top:50%;bottom:auto;transform:translate(-50%,-50%)}}
+.top{background:linear-gradient(rgba(3,6,15,.62),rgba(3,6,15,0));border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+.bar{background:rgba(3,6,15,.5)}
+.play span{width:96px;height:96px;min-height:0;padding:0;border-radius:50%;justify-content:center;gap:0;font-size:0;border-width:1.5px;background:rgba(3,6,15,.45)}
+.play span::before{border-left-width:28px;border-top-width:17px;border-bottom-width:17px;margin-left:9px}
+.bar,.top,#framing{transition:opacity .5s}
+body.pre .bar{opacity:0;pointer-events:none}
+body.idle .bar,body.idle .top,body.idle #framing{opacity:0;pointer-events:none}
+body.idle{cursor:none}
 </style></head>
-<body class="ml-root">
+<body class="ml-root pre">
 <script src="loader/loader.js" data-auto="dom"></script>
 <video id="mv" playsinline preload="metadata" poster="poster.webp?v=20261020-title" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
 <script>
@@ -304,6 +317,11 @@
     if (waits.length >= 2) down();
   });
   v.addEventListener('playing', () => clearTimeout(waitT));
+  // 2026-11-09 第2周：操作は触れたときだけ出し、再生中は 2.5 秒で引く
+  { const B = document.body; let idT = 0;
+    const wake = () => { B.classList.remove('idle'); clearTimeout(idT); if (!v.paused && about.hidden) idT = setTimeout(() => B.classList.add('idle'), 2500); };
+    ['pointermove', 'pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, wake, { passive: true }));
+    v.addEventListener('play', () => { B.classList.remove('pre'); wake(); }); v.addEventListener('pause', wake); info.addEventListener('click', wake); }
 </script>
 </body>
 </html>
