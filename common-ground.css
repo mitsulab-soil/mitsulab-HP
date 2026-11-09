@@ -202,7 +202,7 @@ body.cg-design #bgRain,body.cg-design>.aurora{display:none}
 #top .cg-world-tools .cg-caption p{font-size:13px}
 #top .cg-world-tools .cg-scene-bar{max-width:640px}
 #cgWorldCanvas{position:fixed;inset:64px 0 0;z-index:0;pointer-events:none;display:none;overflow:hidden;background:#03060f}
-#cgWorldCanvas canvas{display:block;width:100%;height:100%;opacity:.55}
+#cgWorldCanvas canvas{display:block;width:100%;height:100%;opacity:.26;filter:blur(1.5px)}
 body.cg-beyond #cgWorldCanvas{display:block}
 body.cg-beyond #main{position:relative;z-index:1;background:transparent}
 body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.82),rgba(3,6,15,.73) 70%,rgba(3,6,15,.65))!important}
