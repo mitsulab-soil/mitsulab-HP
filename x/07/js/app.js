@@ -15,7 +15,7 @@ import { QSynth, readingOf, seedOf } from "./synth.js";
 
 import { SoundSpace } from "./sound-space.js?v=20261107entry1";
 import { PERFORMANCE_DEFAULTS, filterHz, rhythmHz } from "./performance-fx.js";
-const D = window.QS_SOUNDS, ITEMS = D.items.map(item=>({...item,t:item.t.replace(/(?:の音){2,}$/,'の音')})).filter((item,i,all)=>all.findIndex(x=>x.t===item.t)===i), TAGS = D.tags;
+const D = window.QS_SOUNDS, ITEMS = D.items.filter(item=>!(window.QS_HIDDEN||[]).includes(item.n)).map(item=>({...item,t:item.t.replace(/(?:の音){2,}$/,'の音')})).filter((item,i,all)=>all.findIndex(x=>x.t===item.t)===i), TAGS = D.tags;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = id => document.getElementById(id);
 // 分類の色（線と点だけに使う。HP の層の色と同じ値）
