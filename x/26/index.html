@@ -10,7 +10,7 @@
 /* 2026-11-09 第3周：起動直後から最初の場面の画を出す・作品名と問いを上に（375 も） */
 body{background:#07100e url(poster_pc.webp?v=20261109r3) center/cover no-repeat fixed}@media(max-width:600px){body{background-image:url(poster_sp.webp?v=20261109r3)}}
 #ttl{position:fixed;z-index:3;left:0;right:0;top:calc(var(--header-height,70px) - 6px);padding:0 16px;text-align:center;pointer-events:none;text-shadow:0 1px 8px #000,0 0 2px #000}
-#ttl b{display:block;font:500 clamp(15px,1.6vw,19px)/1.5 "Hiragino Mincho ProN",serif;letter-spacing:.08em}
+#ttl b{display:block;font:600 clamp(17px,1.8vw,22px)/1.5 "Hiragino Mincho ProN",serif;letter-spacing:.08em}/* 第7周：見出しを太く大きく */
 #ttl span{display:block;font:13px/1.7 "Hiragino Mincho ProN",serif;color:#dfe9dc;letter-spacing:.04em}
 @media(min-width:601px){header span{display:none}}
 #next{border-color:#e7f9de;animation:nx 2.4s ease-in-out infinite}@keyframes nx{50%{box-shadow:0 0 0 6px #e7f9de33}}#world{cursor:pointer}.tap{position:fixed;z-index:2;width:56px;height:56px;margin:-28px 0 0 -28px;border:1.5px solid #e7f9de;border-radius:50%;pointer-events:none;animation:tp .7s ease-out forwards}@keyframes tp{from{transform:scale(.3);opacity:1}to{transform:scale(1.4);opacity:0}}@media(prefers-reduced-motion:reduce){#next{animation:none}.tap{display:none}}

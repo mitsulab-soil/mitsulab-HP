@@ -22,7 +22,7 @@ const rim = new THREE.DirectionalLight(0xcbd9d5, .65); rim.position.set(-3, 2.5,
 
 // 地面：土の円と、上品な等高線の輪
 const TL = new THREE.TextureLoader(), tex = (u, rep, srgb = true) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
-const groundMat = new THREE.MeshStandardMaterial({ map: tex("tex/soil_forest.webp", 5), color: 0x68715b, roughness: .95, transparent: true, opacity: 1 });
+const groundMat = new THREE.MeshStandardMaterial({ map: tex("tex/soil_forest.webp", 5), color: 0x8c7c64, roughness: .95, transparent: true, opacity: 1 });
 { const c = document.createElement("canvas"); c.width = c.height = 256; const x = c.getContext("2d"), g = x.createRadialGradient(128, 128, 0, 128, 128, 128); g.addColorStop(0, "#fff"); g.addColorStop(.55, "#fff"); g.addColorStop(.92, "#000"); x.fillStyle = g; x.fillRect(0, 0, 256, 256); groundMat.alphaMap = new THREE.CanvasTexture(c); groundMat.depthWrite = true; }
 const ground = new THREE.Mesh(new THREE.CircleGeometry(12, 72), groundMat); ground.rotation.x = -Math.PI / 2; scene.add(ground);
 const contourMat = new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .07 });
@@ -58,12 +58,14 @@ const tree = new THREE.Group(); tree.position.set(innerWidth < 700 ? -1.7 : -2.6
 { const bm = new THREE.MeshStandardMaterial({ map: tex("tex/bark_zelkova.webp", 1), color: 0x8a8070, roughness: .95 });
   const N = 34, im = new THREE.InstancedMesh(new THREE.CylinderGeometry(.09, .2, 7, 8, 1, true), bm, N), o = new THREE.Object3D(); let s = 11; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < N; i++) { const a = Math.PI * (1.05 + rnd() * .9), r = 5 + rnd() * 9; o.position.set(Math.cos(a) * r, 3.3, Math.sin(a) * r); const k = .8 + rnd() * .9; o.scale.set(k, 1, k); o.rotation.y = rnd() * 6; o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
+  /* 第7周：幹ごとに樹皮の明るさと色みを変える */{ const cc = new THREE.Color(); for (let i = 0; i < N; i++) { const l = .75 + rnd() * .5; cc.setRGB(l * 1.05, l, l * (.86 + rnd() * .1)); im.setColorAt(i, cc); } }
   scene.add(im); }
 // 遠くの木立の影（霧の向こう）と、まばらな星
 {
-  const g = new THREE.SphereGeometry(1, 10, 6); const m = new THREE.MeshBasicMaterial({ color: 0x14251e, fog: true });
+  const g = new THREE.SphereGeometry(1, 10, 6); const m = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: true });
   const N = 70, im = new THREE.InstancedMesh(g, m, N), o = new THREE.Object3D(); let s = 5; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < N; i++) { const a = Math.PI * (1.1 + rnd() * .8), r = 16 + rnd() * 5, h = 3 + rnd() * 4; o.position.set(Math.cos(a) * r, h / 2 - .2, Math.sin(a) * r); o.scale.set(1.6 + rnd() * 1.6, h * .55, 1.6 + rnd() * 1.6); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
+  { const cc = new THREE.Color(), pal = [0x14251e, 0x1d2a1c, 0x24261b, 0x172320, 0x2a2a20]; for (let i = 0; i < N; i++) { cc.setHex(pal[(rnd() * pal.length) | 0]); cc.multiplyScalar(.85 + rnd() * .35); im.setColorAt(i, cc); } }   /* 第7周：単色の緑をやめ、深緑・苔・枯れ色の木立を混ぜる */
   scene.add(im);
   const P = []; for (let i = 0; i < 260; i++) { const a = rnd() * 6.283, e = .08 + rnd() * .9; P.push(Math.cos(a) * Math.cos(e) * 40, Math.sin(e) * 40, Math.sin(a) * Math.cos(e) * 40); }
   const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.Float32BufferAttribute(P, 3));
@@ -246,7 +248,7 @@ const WORLDS = {
     { t: "しずくや石の姿で、その場所の層へ案内します。" },
     { t: "触れてみてください。", q: 1 }], note: { k: "mitsulab の創作", m: "姿を変えた碧は mitsulab の創作です。" } },
 };
-const INTRO = [{ t: "わたしは碧。ビットとアトムのあわいに立ち、" }, { t: "この場所の記憶をたどり、五感をひらいて、" }, { t: "目の前の風景に層を重ねます。", express: "warm" }];
+/* 2026-11-10 第7周：名乗りは本人の確定文を一度に全文で（途中で切れて見えないように） */const INTRO = [{ t: "わたしは碧。ビットとアトムのあわいに立ち、この場所の記憶をたどり、五感をひらいて、目の前の風景に層を重ねます。", express: "warm" }];
 
 // 音（コウモリ：聴こえる高さに下げた短い声）
 let ac = null;

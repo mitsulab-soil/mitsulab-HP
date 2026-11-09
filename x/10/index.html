@@ -90,6 +90,7 @@ a:focus-visible,button:focus-visible,.chip:focus-within,.dk:focus-visible{outlin
       </div>
     </div>
   </div>
+  <style>/* 2026-11-10 第7周：「持ち帰る（STL）」は子どもには目立たせない（小さく淡く・触れれば従来どおり） */.dock .dk-s{opacity:.55;transform:scale(.8);transform-origin:50% 70%}.dock .dk-s:hover,.dock .dk-s:focus-visible,.dock .dk-s[aria-expanded=true]{opacity:1}</style>
   <nav class="dock" aria-label="操作">
     <button type="button" class="dk" data-tray="trayS" aria-expanded="false"><span class="face"><img id="faceS" src="tex/bark_t.webp?v=20261021" alt=""></span><b>触れるもの</b><small id="faceSN">樹皮</small></button>
     <button type="button" class="dk" id="bBlind" aria-pressed="false" hidden><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path id="blindIco" d="M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><b id="blindB">かくす</b><small id="blindS">見ずになぞる</small></button>

@@ -87,6 +87,10 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
 @media (max-width:600px){.lt{font-size:calc(17px + 5px*var(--k,0))}
  #card .close{position:sticky!important;top:auto!important;right:auto!important;bottom:4px;margin:14px 0 4px auto;display:flex;align-items:center;justify-content:center;min-height:52px;min-width:120px;font-size:16px!important;background:rgba(243,236,223,.96);box-shadow:0 -6px 14px rgba(243,236,223,.9)}}
 </style>
+<style>/* 2026-11-10 第7周：灯の名をもう一段大きく・参道に奥行き（指やマウスの位置で並木の層が少しずれる＝書き割りに見せない） */
+.lt{font-size:calc(21px + 7px*var(--k,0))}.lt ruby rt{font-size:calc(11px + 2px*var(--k,0))}
+@media (max-width:600px){.lt{font-size:calc(19px + 6px*var(--k,0))}}
+</style>
 </head>
 <body>
 <svg id="scene" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -171,11 +175,11 @@ const F=[
 {n:"記録計",r:"<ruby>記録計<rt>きろくけい</rt></ruby>",c:"#5cc8e0",fx:"rec",x:.8,y:.64,t:"感じない記録",
  b:"11/02　雨のあと　数字が上がる\n11/03　晴れ　　　少し下がる\n11/04　晴れ　　　下がる\n11/05　晴れ　　　下がる\n\nケヤキの根もとに埋まった記録計（きろくけい。土の水分を測って記録する機械）の列。\n記録計は感じない。ただ記録する。\nその列をケヤキの水の柱と並べて読むと、木と雨のあいだに一本の線が引かれる。",
  e:"記録は、だれかが読むときに、受けとり方になる。",
- s:["事実：多くの土壌水分計は、土の誘電率を測って体積含水率を推定する（Topp, G. C., Davis, J. L. & Annan, A. P. 1980, Water Resources Research 16: 574–582）。","寓話にしたところ：この記録計と日付の列は寓話の中のもの（測った値ではない）。機械は感じない、と書いた。数字に意味を与えるのは読む側。"]},
+ s:["事実：多くの土壌水分計は、土の誘電率を測って体積含水率を推定する（Topp, G. C., Davis, J. L. & Annan, A. P. 1980, Water Resources Research 16: 574–582）。","寓話にしたところ：この記録計と日付の列は寓話の中のもの（測った値ではない）。機械は感じない、と書いた。数字に意味を与えるのは読む側。","生き物でない主体の扱い：記録計と苫屋（歌の中の小屋）は、感じる心があるとは書かず、「記録する」「詠まれる」という、ほかの主体への手がかりの出し方として並べた。"]},
 {n:"苫屋",r:"<ruby>苫屋<rt>とまや</rt></ruby>",c:"#f2cf8c",fx:"end",x:.66,y:.52,t:"なかりけり",
  b:"見わたせば　花ももみぢも　なかりけり\n浦の苫屋の　秋の夕ぐれ\n（苫屋＝とまや。草で屋根をふいた小さな小屋）\n\n花も紅葉も無い、と詠むことで、無いものが見えてくる。\nどの生き物にとっても、その環世界が世界の全てなら、その外は見えない。\nだから、ほかの受けとり方に触れたとき、無かったものが立ち上がる。",
  e:"顔を上げて、目の前の参道を見てください。さっきと同じですか。",
- s:["事実：藤原定家の歌（『新古今和歌集』秋上・363）。","考え方：環世界はその主体には全てであり、それ自体で固定されたものではなく、環境と身体と意味づけの関係として立ち上がる。これを仏教哲学の「空」（龍樹『中論』24 章 18 偈の、縁起と空）に重ねて読むのは mitsulab の解釈。環世界の外もまた、それだけで在るものではなく、ほかの受けとり方との関係の中で立ち上がる（補集合もまた空）。"]}
+ s:["事実：藤原定家の歌（『新古今和歌集』秋上・363）。","考え方：環世界はその主体には全てであり、それ自体で固定されたものではなく、環境と身体と意味づけの関係として立ち上がる。これを仏教哲学の「空」（龍樹『中論』24 章 18 偈の、縁起と空）に重ねて読むのは mitsulab の解釈。環世界の外もまた、それだけで在るものではなく、ほかの受けとり方との関係の中で立ち上がる（補集合もまた空）。","生き物でない主体の扱い：苫屋は感じない。歌の中で、人に「無いもの」を見せる手がかりとして置いた。"]}
 ];
 
 /* 参道の敷石の目地：遠くほど詰まる（2026-11-10 第4周） */
@@ -214,6 +218,12 @@ card.querySelector(".close").onclick=close;if(matchMedia("(max-width:600px)").ma
 document.getElementById("next").onclick=()=>open((cur+1)%F.length);
 document.getElementById("prev").onclick=()=>open((cur-1+F.length)%F.length);
 addEventListener("keydown",e=>{if(cur<0)return;if(e.key==="Escape")close();if(e.key==="ArrowRight")open((cur+1)%F.length);if(e.key==="ArrowLeft")open((cur-1+F.length)%F.length);});
+</script>
+<script>/* 第7周：並木の層の視差（遠い鳥居ほど少なく、手前の幹ほど大きく）。動き控えめの設定では動かさない */
+(()=>{if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;const L=[["crowns",10],["trees0",16],["trees",22],["shade",22]];let raf=0,px=0,py=0;
+const set=()=>{raf=0;for(const [id,k] of L){const g=document.getElementById(id);if(g)g.setAttribute("transform","translate("+(px*k).toFixed(1)+" "+(py*k*.25).toFixed(1)+")");}const t=document.getElementById("torii");if(t)t.setAttribute("transform","translate("+(500+px*3).toFixed(1)+" 520)");};
+addEventListener("pointermove",e=>{px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5;if(!raf)raf=requestAnimationFrame(set);},{passive:true});
+addEventListener("deviceorientation",e=>{if(e.gamma==null)return;px=Math.max(-.5,Math.min(.5,e.gamma/40));py=0;if(!raf)raf=requestAnimationFrame(set);},{passive:true});})();
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-09 公開。Qualia/fable＝寓話集：環世界のコモングラウンドを、氷川参道の生き物・木・土・機械の寓話にしたもの。AI の学習・生成への利用はお断りします。 -->
 </body>

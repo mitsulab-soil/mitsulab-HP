@@ -102,7 +102,8 @@ body:not(.info) #spec,body:not(.info) #heatbar{display:none}
   <button class="tb" id="plus" aria-label="典拠と次の問い">＋</button>
 </div>
 <div id="spec"></div>
-<div class="camt n" id="birdT">鳥（模式）<br><small>紫外を青紫に</small></div><div class="camt" id="camA">一画素に一色</div><div class="camt r" id="camB">計算で埋めた色</div>
+<style>/* 2026-11-10 第7周：カメラの注記は一か所に・375 の題は箱にせず一行・中央の枠に一語 */#camB{display:none!important}#seam .hd::after{content:"人｜機械";position:absolute;top:78px;left:50%;translate:-50% 0;font-size:11px;letter-spacing:.1em;white-space:nowrap;color:#fff8ea;text-shadow:0 0 4px #03060f,0 0 10px #03060f}@media (max-width:520px){.top .mark{background:none!important;padding:0!important;top:calc(60px + env(safe-area-inset-top))!important;left:16px!important;font-size:11px;opacity:.85;text-shadow:0 0 4px #03060f,0 0 10px #03060f}}</style>
+<div class="camt n" id="birdT">鳥（模式）<br><small>紫外を青紫に</small></div><div class="camt" id="camA">カメラ：一画素に一色 → 残りは計算で埋めた色</div><div class="camt r" id="camB" hidden></div>
 <div id="heatbar">例 5°<b></b>35°C<span>温度は例。空は 5 °C より低く色の外（模式）</span></div>
 <div id="cap" aria-live="polite"></div>
 <div id="chs" role="tablist" aria-label="機械の受けとり方"></div>
