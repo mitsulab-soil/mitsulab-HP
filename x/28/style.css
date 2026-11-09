@@ -113,3 +113,5 @@ body.is-all .count{font-family:var(--ml-serif);letter-spacing:.14em;color:var(--
 
 /* 2026-11-09 キーボードの印 */
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #b9f5ff;outline-offset:2px}
+/* 11-10 第7周：題の横に「本人の書の題」 */
+#capTi .tik{font-size:.62em;opacity:.8;margin-left:.5em;letter-spacing:.04em;white-space:nowrap}

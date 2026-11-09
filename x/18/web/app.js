@@ -78,7 +78,7 @@ let R, S, C, sun, items, texL, ray, clk, look; const meshes = new Map(); let aoi
 function init3D() {
 R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
 R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputColorSpace = THREE.SRGBColorSpace; R.debug.checkShaderErrors = false;   // 2026-11-03：確かめで止まらない
-S = new THREE.Scene(); S.background = new THREE.Color("#a08c84"); S.fog = new THREE.Fog("#a08c84", 7, 24);   /* 第6周：夕方の参道の色（黒・灰の地をやめ体温を） */   // 2026-11-10 第5周：地を明るく
+S = new THREE.Scene(); S.background = new THREE.Color("#5a6178"); S.fog = new THREE.Fog("#5a6178", 7, 24);   /* 11-10 第7周 採点「薄桃の地がほかとずれる」：夕暮れの藍へ（ほかの作品の夜紺〜夕の系統） */   /* 第6周：夕方の参道の色（黒・灰の地をやめ体温を） */   // 2026-11-10 第5周：地を明るく
 C = new THREE.PerspectiveCamera(45, 1, .05, 60);
 S.add(new THREE.HemisphereLight("#ffe6cc", "#5a4a3a", 1.7)); sun = new THREE.DirectionalLight("#ffd9a8", 1.9); sun.position.set(2, 4, 3); S.add(sun);
 { // 地：光の等高線（線と点だけ）

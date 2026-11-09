@@ -683,7 +683,7 @@ function loadLate() {
     for (const [k, [t, c, r, n]] of Object.entries(ROAD_MATS)) { mats[k] = new THREE.MeshStandardMaterial({ map: tex(BASE + "tex/" + t + "_c5.webp"), normalMap: MOBILE ? null : tex(BASE + "tex/" + t + "_n5.webp", false), normalScale: new THREE.Vector2(n, -n), color: new THREE.Color(...c), roughness: r, metalness: 0, envMapIntensity: .3 }); if (ROAD_WEATHER[k]) weather(mats[k], ROAD_WEATHER[k]); }
     for (const m of Object.values(mats)) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; }   // ROAD_STENCIL
     g.scene.traverse(o => { if (o.isMesh) { const k = o.name.split("|")[0]; if (mats[k]) o.material = mats[k]; o.renderOrder = -1; o.userData.stone = k === "stone"; pickables.push(o); } });
-    roadGroup = g.scene; world.add(roadGroup); roadGroup.updateMatrixWorld(true);
+    roadGroup = g.scene; world.add(roadGroup); roadGroup.updateMatrixWorld(true); requestAnimationFrame(() => requestAnimationFrame(() => { QW.roadReady = true; }));   /* 11-10 第7周：道が描けたら最初の静止画を外す（index.html） */
     roadGroup.traverse(o => { if (o.isMesh && /^(bed|lawn|roots)\|/.test(o.name)) collMesh(o); }); collShrink(); for (const p of D.ponds) collPoly(p.poly); for (const t of D.trees) collDisc(t[0], t[2], Math.max(.35, .32 * t[4]));
     roadGroup.traverse(o => { if (o.isMesh && o.userData.stone) { o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); STONES.push(o); } });
   });
@@ -1942,12 +1942,12 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
   for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 3.0 : 2.3, s = MOBILE ? .34 : .9;   /* 11-03 本人「碧との距離をもっと近く」：前 3.15/2.9 m */   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 3.0 : 2.3, s = MOBILE ? .2 : .9;   /* 11-10 第7周：375 で碧が右端で切れない */   /* 11-03 本人「碧との距離をもっと近く」：前 3.15/2.9 m */   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = PANEL.cur && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：道の中心を歩くと左右がこまごとに入れかわり、碧が真ん中に留まっていた。0.8 m の幅でしか入れかえない */   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
   if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); aoiOffRoad(out, rx, rz); return out; }
-  { const c = MOBILE ? aoiPick(fx, fz, rx, rz, f, [[f, s * side], [f, (s + .25) * side], [f * .85, (s + .15) * side], [f, -s * side], [f, -(s + .25) * side]]   /* 10-30 パネル：真ん中（-.15）の候補を外し、反対側の寄せを代わりに */) : (() => { for (const k of [s, s * .8, s * .62, -s * .8, -s * .62]) { const x = CAM.pos.x + fx * f + rx * k * side, z = CAM.pos.z + fz * f + rz * k * side; if (!blocked(x, z)) return [f, k * side]; } return [f, s * side]; })();   /* 10-30 パネル：PC は植え込みに入らない一番外側の寄せ（植え込みに当たって道の真ん中へ戻されていた） */   /* 2026-10-26 17：スマホは参道の近くでも目印の球と重ならない立ち位置を選ぶ（池の球の列） */
+  { const c = MOBILE ? aoiPick(fx, fz, rx, rz, f, [[f, s * side], [f, (s + .12) * side], [f * .85, (s + .08) * side], [f, -s * side], [f, -(s + .12) * side]]   /* 10-30 パネル：真ん中（-.15）の候補を外し、反対側の寄せを代わりに */) : (() => { for (const k of [s, s * .8, s * .62, -s * .8, -s * .62]) { const x = CAM.pos.x + fx * f + rx * k * side, z = CAM.pos.z + fz * f + rz * k * side; if (!blocked(x, z)) return [f, k * side]; } return [f, s * side]; })();   /* 10-30 パネル：PC は植え込みに入らない一番外側の寄せ（植え込みに当たって道の真ん中へ戻されていた） */   /* 2026-10-26 17：スマホは参道の近くでも目印の球と重ならない立ち位置を選ぶ（池の球の列） */
     out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); }
   aoiOffRoad(out, rx, rz);
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
@@ -1968,9 +1968,9 @@ function stepAoi(dt) {
   aoiSpot(_ap);
   const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
   AOI.bt = _ndc.copy(P).setY(P.y + 1).project(camera).z > 1 && QW.mode === "walk" ? (AOI.bt || 0) + dt : 0;   // 10-30：碧が見る人の後ろに 1.2 秒より長くいたら、前の立ち位置へ（375px で後ろへ消えていた）
-  if (dist > 18 || AOI.bt > 1.2) { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
+  if (dist > 18 || AOI.bt > 1.2 || (MOBILE && Math.hypot(P.x - CAM.pos.x, P.z - CAM.pos.z) < 1.7))   /* 11-10 第7周：375 で碧の顔が画面を塞がない（近すぎたら立ち位置へ） */ { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
-    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;   /* 10-28 夜 8：375px で碧が画面の端に寄ったら、立ち位置へ戻る（川越・渋谷と同じ） */
+    const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .3;   /* 10-28 夜 8：375px で碧が画面の端に寄ったら、立ち位置へ戻る（川越・渋谷と同じ） */
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3);
     const want = go ? Math.min(2.9, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
     AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.8) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）

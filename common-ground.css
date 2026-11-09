@@ -278,7 +278,7 @@ body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
 @media(max-width:759px){#top .cg-opening{padding-top:100px}}
 /* 2026-11-10 第5周：冒頭のプレイ画を主役の大きさに（PC は見出しの右に大きく）・親子の入口 */
 #top .cg-play-wrap .cg-play-shot{max-width:none!important}
-#top .cg-kids{margin:28px 0 0;padding:16px 18px;border:1px solid rgba(242,244,239,.22);border-radius:8px;background:rgba(14,24,44,.55);max-width:560px}
+#top .cg-kids{margin:clamp(48px,9vh,88px) 0 0;padding:16px 18px;border:1px solid rgba(242,244,239,.22);border-radius:8px;background:rgba(14,24,44,.55);max-width:560px}
 #top .cg-kids-h{font:500 16px/1.5 var(--serif,serif);color:var(--ink,#f2f4ef);margin:0 0 2px}
 #top .cg-kids-t{font-size:14px;line-height:1.7;color:rgba(242,244,239,.82);margin:0 0 8px}
 #top .cg-kids-l{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}

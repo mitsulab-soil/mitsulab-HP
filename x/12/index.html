@@ -585,7 +585,7 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 @media (max-width:640px){html body #sndTag,html body[data-mode] #sndTag{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 142px)!important;max-width:calc(100% - 2 * var(--g))!important}}
 </style>
 <style id="qualium-cap-375">/* 11-05 採点「375px で字幕が碧の衣に重なる」：スマホで歩くとき、字幕は碧の立つ側と反対の欄に（碧の画面の位置を毎こま見て data-aoi に） */@media (max-width:640px){html body[data-mode="walk"][data-aoi] #caption{width:auto!important;max-width:none!important;transform:none!important;text-align:left!important}html body[data-mode="walk"][data-aoi="l"] #caption{left:46%!important;right:var(--g)!important}html body[data-mode="walk"][data-aoi="r"] #caption{left:var(--g)!important;right:46%!important}html body[data-mode="walk"][data-aoi] #caption:not(.full) #capText{-webkit-line-clamp:5!important;letter-spacing:0!important;font-size:12px!important}}</style>
-</head>
+<style id="q7lab">/* 11-10 第7周：戻る先と音の札に名前を出す */html:not(.embed) .qhome{width:auto!important;padding:0 10px 0 8px!important;gap:4px;display:inline-flex!important;align-items:center;font-size:18px!important}.qhome .qhl{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}#walkUI #qSnd{width:auto!important;max-width:none!important;padding:0 12px!important;gap:6px}.q7t{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}@media (min-width:641px){#menuBtn{width:auto!important;padding:0 12px!important;gap:6px;display:inline-flex!important;align-items:center}}@media (max-width:640px){#menuBtn .q7t{display:none}}@media (max-width:400px){html:not(.embed) .brand{display:none!important}}</style><script>/* 11-10 第7周 */(()=>{const iv=setInterval(()=>{const s=document.getElementById("qSnd"),m=document.getElementById("menuBtn");if(m&&!m.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="メニュー";t.setAttribute("aria-hidden","true");m.append(t)}if(s&&!s.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="音";t.setAttribute("aria-hidden","true");s.append(t);clearInterval(iv)}},300);setTimeout(()=>clearInterval(iv),20000)})()</script></head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 川越" data-en="Qualium Kawagoe" data-icon="favicon/icon.svg" data-max="500"></script>
 <canvas id="gl" aria-label="川越の蔵の町の 3D（地形は国土地理院、道と建物の平面は OpenStreetMap）" tabindex="-1"></canvas>
@@ -622,7 +622,7 @@ html:not(.qmap) #qEye{display:none}
 @media (prefers-reduced-motion:reduce){#qposter{transition:none}}
 </style>
 <header id="hud">
-  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">←</a>
+  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">← <span class="qhl">mitsulab</span></a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
   <div class="brand">Qualium 川越<small>QUALIUM KAWAGOE</small></div>
   <nav class="seg" aria-label="見方">

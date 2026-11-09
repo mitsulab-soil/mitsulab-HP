@@ -14,7 +14,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#03060f">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
-<link rel="preload" as="image" href="poster.webp?v=20261020-title" fetchpriority="high">
+<link rel="preload" as="image" href="poster_clean.webp?v=20261110r7" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style data-source="tokens.css">
@@ -212,7 +212,7 @@ body.idle{cursor:none}
  body.pre #framing{display:none}
  .play{top:50%;bottom:auto;transform:translate(-50%,-50%)}
 }
-html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-repeat}
+html,body{background:#03060f url(poster_clean.webp?v=20261110r7) center/cover no-repeat}
 .cap{position:absolute;left:50%;top:calc(50% + 64px);transform:translateX(-50%);margin:0;width:max-content;max-width:calc(100vw - 32px);text-align:center;pointer-events:none;
  font:600 clamp(16px,2vw,19px)/1.6 var(--ml-serif);letter-spacing:.1em;color:#eef5fb;text-shadow:0 1px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9)}
 .cap small{display:block;font:400 12px/1.6 var(--ml-sans);letter-spacing:.08em;color:#c3cce0}
@@ -223,7 +223,7 @@ html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-r
 @media (min-aspect-ratio:1/1){html,body{background-size:calc(max(100vw,177.78vh)*1.32) auto;background-position:50% 100%}}
 #mv{opacity:0;transition:opacity 1.6s ease}
 body:not(.pre) #mv{opacity:1}
-#keep{position:fixed;inset:0;z-index:2;pointer-events:none;background:#03060f url(poster.webp?v=20261020-title) 50% 50%/cover no-repeat;opacity:0;transition:opacity 5s ease}
+#keep{position:fixed;inset:0;z-index:2;pointer-events:none;background:#03060f url(poster_clean.webp?v=20261110r7) 50% 50%/cover no-repeat;opacity:0;transition:opacity 5s ease}
 @media (min-aspect-ratio:1/1){#keep{background-size:calc(max(100vw,177.78vh)*1.32) auto;background-position:50% 100%}}
 body.pre #keep,body.fade #keep{opacity:1;transition:none}
 @media (max-aspect-ratio:1/1){#keep{background-position:60% 50%}}
@@ -237,11 +237,11 @@ body:not(.pre) #mv{filter:brightness(1.2) contrast(1.04) saturate(1.06)}
 #mist{--mc:118,96,64;--mg:255,214,150;position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(120% 60% at 70% 6%,rgba(var(--mg),.16),rgba(var(--mg),0) 60%),linear-gradient(180deg,rgba(var(--mc),0) 8%,rgba(var(--mc),.26) 26%,rgba(var(--mc),.22) 44%,rgba(var(--mc),0) 60%);mix-blend-mode:soft-light}/* 2026-11-10 第6周：霧を見る人の時刻の光で暖かく（朝＝金・昼＝淡い琥珀・夕＝茜・夜＝藍に少し灯） */
 @media(max-width:600px) and (orientation:portrait){#mv{object-position:36% 50%}#keep{background-position:46% 50%}}
 .home{color:#dfeaf6}
-</style></head>
+</style><style id="r7">/* 11-10 第7周：題を背景から浮かせる（帯は使わず縁取り） */.ml-title,.ml-kicker,.ml-title *,.ml-kicker *{text-shadow:0 0 2px #03060f,0 0 6px rgba(3,6,15,.9),0 1px 14px rgba(3,6,15,.8)!important}</style></head>
 <body class="ml-root pre">
 <div id="keep" aria-hidden="true"></div>
 <div id="mist" aria-hidden="true"></div><script>(function(){var h=new Date().getHours(),m=document.getElementById("mist"),t=h<5||h>=19?["70,74,96","255,196,130"]:h<9?["150,112,62","255,214,150"]:h<15?["128,108,74","255,232,186"]:["156,92,58","255,170,110"];m.style.setProperty("--mc",t[0]);m.style.setProperty("--mg",t[1]);})();</script>
-<video id="mv" playsinline preload="none" poster="poster.webp?v=20261020-title" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
+<video id="mv" playsinline preload="none" poster="poster_clean.webp?v=20261110r7" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
 <script>
   // 画面の幅と通信のようすで、同じ映像の 1080p／720p／540p を選ぶ（2026-10-19。スマホで止まらないように）
   (function () {
@@ -265,7 +265,7 @@ body:not(.pre) #mv{filter:brightness(1.2) contrast(1.04) saturate(1.06)}
 <button id="framing" type="button" aria-pressed="true" aria-label="映像の全体を表示する">映像の全体を見る</button>
 <section class="hero" aria-label="映像">
   <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
-  <p class="cap" id="cap">碧がうたう、杜が息をする歌<small>1分45秒・音が出ます ／ MV＝杜で歌う・ライブ＝舞台で歌う</small></p>
+  <p class="cap" id="cap">碧がうたう、杜の息づかいの歌<small>息づかい＝湿った土と風のゆらぎのたとえ ／ 1分45秒・音が出ます ／ MV＝杜で歌う・ライブ＝舞台で歌う</small></p>
   <div class="bar ml-panel ml-panel--corner" id="bar">
     <button class="ml-btn" id="pp" type="button" aria-label="再生する">▶</button>
     <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生の位置">
@@ -285,7 +285,7 @@ body:not(.pre) #mv{filter:brightness(1.2) contrast(1.04) saturate(1.06)}
       <dl class="read" aria-label="映像の見かた">
         <dt>地を這う線</dt><dd>木々の根と、地の下の水の道を思い描いた線。見えない土の中のつながりを、光で描いた。</dd>
         <dt>光の木</dt><dd>幹と枝を、ガラスのような光の筒に。土から吸い上げた水が、梢へのぼっていく道。</dd>
-        <dt>広がる輪</dt><dd>碧の声とともに、足もとから広がる波。音で土を聴き、杜が息をする。</dd>
+        <dt>広がる輪</dt><dd>碧の声とともに、足もとから広がる波。音で土を聴く。「杜が息をする」は、湿った土と風のゆらぎを呼吸にたとえた言い方です。</dd>
         <dt>はじめの画の線</dt><dd>地面の高さ 6 cm ごとの等高線と、雨水が窪みへ集まる筋。mitsulab が 3D で作った地形から描いた模式（実測ではありません）。</dd>
         <dt>宙の 0 と 1</dt><dd>機械のことば。歌詞の「0 と 1 のあいだに緑」から。</dd>
       </dl>
@@ -342,7 +342,7 @@ body:not(.pre) #mv{filter:brightness(1.2) contrast(1.04) saturate(1.06)}
   const vMV = document.getElementById('vMV'), vLive = document.getElementById('vLive');
   const mark = () => { const l = v.dataset.set === 'live'; vMV.setAttribute('aria-pressed', !l); vLive.setAttribute('aria-pressed', l); document.getElementById('ttl').textContent = l ? '《Breathing OS》ライブ版' : '《Breathing OS》'; };
   const pickSet = k => { if (v.dataset.set === k) return; const lv = Math.min(+v.dataset.lv || 0, 2), playing = !v.paused; v.dataset.set = k;
-    v.poster = k === 'live' ? 'live_poster.webp?v=20261104' : 'poster.webp?v=20261020-title'; v.src = SETS[k][lv] + VER[k]; waits = []; lastSwitch = performance.now(); seek.value = 0; mark();
+    v.poster = k === 'live' ? 'live_poster.webp?v=20261104' : 'poster_clean.webp?v=20261110r7'; v.src = SETS[k][lv] + VER[k]; waits = []; lastSwitch = performance.now(); seek.value = 0; mark();
     try { history.replaceState(null, '', k === 'live' ? '?v=live' : location.pathname); } catch (e) {}
     if (playing) { b.hidden = true; v.play().catch(() => { b.hidden = false; }); } else b.hidden = false; };
   vMV.addEventListener('click', () => pickSet('mv')); vLive.addEventListener('click', () => pickSet('live')); mark();

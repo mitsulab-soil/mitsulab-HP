@@ -39,7 +39,7 @@ const HALF = 12.5;                                             // v11 広間は 
 setRoomHalf(HALF);
 const EYE = 1.62;                                              // 目の高さ
 const Y_C = 2.75;                                              // 書の中心の高さ
-const HMAX = mobile ? 3.2 : 4.1;                               // 書の大きいほうの辺（m）
+const HMAX = mobile ? 2.4 : 3.0;   /* 11-10 第7周 採点「墨の塊が重くこわい」：一つずつを小さく、まわりに余白 */                               // 書の大きいほうの辺（m）
 const SPAWN = { x: 0, z: mobile ? 9.6 : 8.6, yaw: 0, pitch: 0.1 };   /* v11b 入口から近く大きく */   // 入口（南）から北を見る
 // v11（10-26 本人「3D の種類を増やす」）：十の書を、書ごとに合う形で置く
 //  relief＝墨の厚みの浮き彫りで浮かぶ／ribbon＝筆の幅の平たい帯（丸い管に見せない）／layers＝一画ずつが離れて宙に浮く（正面で一つの書になる）
@@ -337,14 +337,14 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書と言葉 ── Qualia/oto';
   $('capTi').textContent = '書と音の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = '光の一つひとつが、音の言葉。音は合成した模式。';
+  $('capRd').textContent = '光の一つひとつが、音の言葉。音は、その言葉から組み立てた音（合成）。';
   $('count').textContent = ''; $('count').style.visibility = 'hidden'; $('allBtn').style.visibility = 'hidden';   /* 第5周：番号のないあいだは空の枠も出さない */   // oto：書の前に立つまで番号は出さない
 }
 function setFocus(it) {
   focus = it; const w = it.w; $('capRd').classList.remove('aoi');
   $('capNo').textContent = it.paper ? `上原光瑛の書 ── 紙の原本　${sid(w.id)}` : idLabel(w);
-  $('capTi').textContent = w.title; $('capTi').classList.toggle('long', w.title.length > 16);
-  $('capRd').textContent = it.paper ? '紙に墨で書いた、もとの書。立体にせず、紙の上の墨のまま掛けた。' : (w.reading || '');
+  $('capTi').textContent = w.title; $('capTi').classList.toggle('long', w.title.length > 16); { const k = document.createElement('small'); k.className = 'tik'; k.textContent = '（本人の書の題）'; $('capTi').append(k); }   /* 11-10 第7周 */
+  $('capRd').textContent = it.paper ? '紙に墨で書いた、もとの書。立体にせず、紙の上の墨のまま掛けた。' : ((w.reading || '') + (w.reading ? ' ' : '') + '鳴る音は、この題の言葉から組み立てた音（合成）。');
   stopK = stops.indexOf(it); $('count').style.visibility = ''; $('allBtn').style.visibility = ''; $('count').textContent = `${String(stopK + 1).padStart(2, '0')} / ${String(stops.length).padStart(2, '0')}`;
   stops.forEach(s => s.btn.setAttribute('aria-current', s === it));
 }

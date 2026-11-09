@@ -627,14 +627,14 @@ html body #hud .brand,html body header .brand,html body #menuBtn{text-shadow:0 0
 #sndTag::before{display:none!important;content:none!important}
 body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 </style>
-</head>
+<style id="q7lab">/* 11-10 第7周：戻る先と音の札に名前を出す */html:not(.embed) .qhome{width:auto!important;padding:0 10px 0 8px!important;gap:4px;display:inline-flex!important;align-items:center;font-size:18px!important}.qhome .qhl{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}#walkUI #qSnd{width:auto!important;max-width:none!important;padding:0 12px!important;gap:6px}.q7t{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}@media (min-width:641px){#menuBtn{width:auto!important;padding:0 12px!important;gap:6px;display:inline-flex!important;align-items:center}}@media (max-width:640px){#menuBtn .q7t{display:none}}@media (max-width:400px){html:not(.embed) .brand{display:none!important}}</style><script>/* 11-10 第7周 */(()=>{const iv=setInterval(()=>{const s=document.getElementById("qSnd"),m=document.getElementById("menuBtn");if(m&&!m.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="メニュー";t.setAttribute("aria-hidden","true");m.append(t)}if(s&&!s.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="音";t.setAttribute("aria-hidden","true");s.append(t);clearInterval(iv)}},300);setTimeout(()=>clearInterval(iv),20000)})()</script></head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="500"></script>
 <canvas id="gl" aria-label="氷川参道の 3D（実寸。地形は国土地理院、建物は PLATEAU）" tabindex="-1"></canvas>
 <div id="mapLabels" hidden></div>
 <div id="pinLabels" hidden></div>
 
-<div id="qposter" aria-hidden="true"></div>
+<div id="qposter" aria-hidden="true"></div><script>(()=>{const t0=Date.now(),iv=setInterval(()=>{const q=window.__qw;if((q&&q.roadReady&&q.mode!=="boot"&&q.mode!=="descend")||Date.now()-t0>12000){clearInterval(iv);document.documentElement.classList.add("q3d")}},100)})()</script>
 <!-- 11-10 第3周：俯瞰の地図の上に、一歩目の目の高さの画（実際のプレイ画）を重ねる。地点名を 3D より先に出す -->
 <button id="qEye" type="button" aria-label="二の鳥居から、目の高さで歩きはじめる"><img src="web/qeye.webp?v=r3" alt="" width="640" height="360" decoding="async"><span class="t"><b>二の鳥居</b><br>から、目の高さで歩く</span><span class="s">ほかの場所は、地図の印から</span></button>
 <style>
@@ -656,6 +656,8 @@ body.ready #qposter{opacity:0;visibility:hidden}
 html:not(.qmap) #qposter{background-image:url(web/qwalk_sp.webp?v=1)}
 @media (min-width:641px){html:not(.qmap) #qposter{background-image:url(web/qwalk_pc.webp?v=1)}}
 html:not(.qmap) body.ready:is([data-mode="boot"],[data-mode="descend"]) #qposter{opacity:1;visibility:visible}
+/* 11-10 第7周：3D の道が描けるまで最初の静止画を消さない（通信が遅い回に黒い画を見せない） */
+html:not(.qmap):not(.q3d) body.ready #qposter{opacity:1;visibility:visible}
 html:not(.qmap) #qEye{display:none}
 /* 11-10 第6周：375 の右の札を 2 つ（ミツバチ・小鳥）に */@media (max-width:640px){#qIK button[data-id="chou"],#qIK button[data-id="inu"]{display:none!important}}/* 11-10 第5周：右の生き物の札の字を読める大きさに（9.5→12px） */html body #qIK button span{font-size:12px!important;letter-spacing:0!important;max-width:none!important}html body #qIK button{min-width:56px!important;width:auto!important;padding-left:6px!important;padding-right:6px!important}
 .qhome{pointer-events:auto;flex:none;width:44px;height:44px;margin:0 -6px 0 -8px;display:grid;place-items:center;color:#eef5f8;text-decoration:none;font:400 20px/1 "Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;text-shadow:0 0 6px rgba(3,6,15,.9);border-radius:22px}
@@ -665,7 +667,7 @@ html:not(.qmap) #qEye{display:none}
 @media (prefers-reduced-motion:reduce){#qposter{transition:none}}
 </style>
 <header id="hud">
-  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">←</a>
+  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">← <span class="qhl">mitsulab</span></a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
   <div class="brand mu-logo">Qualium 大宮</div>
   <nav class="seg" aria-label="見方">
