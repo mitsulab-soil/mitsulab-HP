@@ -8,7 +8,7 @@
 {"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261109q">
+<link rel="modulepreload" href="app.js?v=20261109r3">
 <link rel="modulepreload" href="data.js">
 <link rel="modulepreload" href="audio.js?v=20261107p2">
 <link rel="modulepreload" href="kit/vegetation.js">
@@ -33,7 +33,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 #snd.off{color:var(--ink3);text-decoration:line-through}
 #clip{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:3}
 #seam{position:absolute;left:0;top:0;bottom:0;width:0;pointer-events:none}
-#seam .hd{position:absolute;top:56%;left:-22px;width:44px;height:44px;border:1px solid rgba(238,245,251,.75);border-radius:50%;display:grid;place-items:center;font-size:12px;color:var(--ink);background:rgba(3,6,15,.25)}
+#seam .hd{position:absolute;top:calc(56% - 14px);left:-22px;width:44px;height:72px;border:3px solid rgba(238,245,251,.92);border-radius:22px;box-shadow:0 0 0 1px rgba(3,6,15,.5),0 2px 10px rgba(3,6,15,.6);display:grid;place-items:center;font-size:12px;color:var(--ink);background:rgba(3,6,15,.25)}
 #seam .hd:focus-visible{outline:3px solid #c4f5ff;outline-offset:5px;background:#03060f} #seam .hl,#seam .hr{position:absolute;top:calc(56% - 36px);font-size:13px;letter-spacing:.14em;white-space:nowrap}
 #seam .hl{right:14px;color:var(--h)} #seam .hr{left:14px;color:var(--m)}
 #seam .hr i,.lab i{font-family:var(--en);font-style:italic;color:var(--ink3);margin-left:.5em;letter-spacing:.04em;font-size:12px}
@@ -73,6 +73,7 @@ button.lab{padding:14px 8px;min-height:44px}
 #fold{box-sizing:border-box;position:fixed;right:16px;top:calc(52px + env(safe-area-inset-top));width:min(calc(100vw - 32px),420px);max-height:64vh;overflow:auto;background:rgba(6,10,18,.86);border:1px solid var(--line);padding:16px 18px;font-size:11px;line-height:1.75;color:var(--ink2);display:none;z-index:5;-webkit-user-select:text;user-select:text}
 #fold.on{display:block} #fold h2{font-size:13px;font-weight:600;margin:0 0 8px;letter-spacing:.12em;color:var(--ink)}
 #fold ul{margin:0 0 12px;padding-left:1.1em} #fold p{margin:0 0 10px}
+.lab.rg.x{display:none}
 @media (max-width:520px){ .lab.mk,.lab.rg.x{display:none} .lab.ln{translate:calc(-100% - 6px) -50%} #chs{padding:0 8px;gap:0} #chs button{padding:0 4px;min-width:44px;flex:1;font-size:12px;letter-spacing:.02em} #chs button::after{left:6px;right:6px} #chs .end{display:none} .mark{font-size:11px;letter-spacing:.08em} .mark i{display:none} #cap{font-size:13px} #spec{max-width:62vw;font-size:10px} #heatbar{flex-wrap:wrap;justify-content:flex-end;max-width:62vw} }
 @media (prefers-reduced-motion:reduce){ #cap,.lab{transition:none} }
 </style><style id="question-route-style">.q-route{margin:12px 0;padding:12px 0;border-top:1px solid currentColor;font:13px/1.8 Inter,"Hiragino Sans",sans-serif;text-align:left}.q-route h2,.q-route h3{margin:0 0 8px;font-size:14px;font-weight:500;line-height:1.5}.q-route p{margin:4px 0 8px}.q-route a,.q-route button{min-height:44px;display:flex;align-items:center;color:inherit;background:none;border:0;border-bottom:1px solid #9ed9e64d;padding:4px 0;font:inherit;text-align:left;cursor:pointer;text-decoration:none;width:100%;box-sizing:border-box}.q-route a:focus-visible,.q-route button:focus-visible{outline:2px solid #b9f5ff;outline-offset:3px}.q-route small{display:block;opacity:.8}</style><style id="zoom-layout-20261107">
@@ -100,15 +101,15 @@ body{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid
 </div>
 <div id="spec"></div>
 <div class="camt n" id="birdT">鳥（模式）<br><small>紫外を青紫に</small></div><div class="camt" id="camA">一画素に一色</div><div class="camt r" id="camB">計算で埋めた色</div>
-<div id="heatbar">5°<b></b>35°C<span>空は 5 °C より低く色の外（模式）</span></div>
+<div id="heatbar">例 5°<b></b>35°C<span>温度は例。空は 5 °C より低く色の外（模式）</span></div>
 <div id="cap" aria-live="polite"></div>
 <div id="chs" role="tablist" aria-label="機械の受けとり方"></div>
 <div id="fold"><section class="q-route"><h2>次の問いへ。</h2><p>違う手がかりを持つ主体は、環境を介してどう応え合うでしょうか。</p><a href="../22/" data-question-local="../../15_Qualia_compute/★実行データ/">変化が伝わる場へ →</a><a href="../19/" data-question-local="../../12_ひとつの木/★実行データ/">一本の木を見直す →</a><p>ここでの機械の画は、取得条件を考えるための模式です。</p></section><h2>この作品について</h2>
-<p>左は人の受けとり方、右は機械の受けとり方。白い縁を動かす・触れる（鳴る）・なぞる（その場所の記述が書き換わり、線が旋律になる）・「外から」で自分の受けとり方を見る。</p>
+<p>左は人の受けとり方、右は機械の受けとり方。まん中のつまみを動かす・触れる（鳴る）・なぞる（その場所の記述が書き換わり、線が旋律になる）・「外から」で自分の受けとり方を見る。</p>
 <p>「機械」は、ここでは一台のカメラ・熱カメラ・LiDAR・マイク・分類器の受けとれる範囲のことです（機械一般の限界ではありません）。機械の画は、機器の仕様と研究の数をもとにした模式です。温度・分類の確からしさの数は例です。音は光の周波数を 40 オクターブ下げた高さなど、聴こえる高さに移した模式です。書き換わるのはこの場所の記述で、場所そのものは変わりません。何も記録・送信しません。</p>
 <h2>問いの手がかり</h2><p>カント『純粋理性批判』（現象と物自体）／ユクスキュル（環世界と機能環）／メルロ＝ポンティ（身体と知覚）／ネーゲル（コウモリであるとはどのようなことか）／クワイン（翻訳の不確定性）／ウィトゲンシュタイン（多くの場合、意味は使われ方にある）／ベイトソン・ウィーナー（循環と帰還）。</p>
 <h2>典拠</h2><ul id="refs"></ul>
 <p>質感：Poly Haven・ambientCG（CC0）／Three.js・three-vrm（MIT）／碧の動き：CMU Graphics Lab Motion Capture Database をもとに mitsulab が作成</p>
 <p>© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p></div>
-<script type="module" src="app.js?v=20261109q"></script>
+<script type="module" src="app.js?v=20261109r3"></script>
 <script>(()=>{if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script></body></html>

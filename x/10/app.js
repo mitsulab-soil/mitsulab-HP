@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261109r2";
+import { T, setLang, lang } from "./i18n.js?v=20261109r3";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -561,7 +561,7 @@ function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 // ---- 碧の字幕
 // はじめに一度だけ名乗り、そのあとに触れ方を伝える（触れはじめたら名乗りは切りあげる）
 const WS = /[?&]ws=1/.test(location.search);   // 2026-11-05 ワークショップ（触覚さがし）
-function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.hello", 7000); }   // 2026-11-09 名乗りは出さず、なぞる一言から   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
+function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.hello", 9000); }   // 2026-11-09 名乗りは出さず、なぞる一言から   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
 let capKey = null, capTimer = 0;
 function say(k, ms = 6000) {
   said[k.replace("aoi.", "")] = true; capKey = k; const c = $("#cap"); c.textContent = T(k); c.classList.add("on");
@@ -677,6 +677,8 @@ resize();
   // 2026-11-09：面が来たらすぐ一こま描いて見せる（材質の下ごしらえ・碧はそのあと）
   try { placeCam(1); renderer.render(scene, camera); } catch (e) { console.warn(e); }
   window.MLLoader?.done();
+  // 2026-11-09 第3周：最初の焦点を body から下の「触れるもの」へ
+  try { if (document.activeElement === document.body) document.querySelector(".dock .dk")?.focus({ preventScroll: true }); } catch { }
   requestAnimationFrame(frame);
   setTimeout(() => { if (!said.hello) hello(); }, 900);
   setTimeout(loadAoi, 2500);

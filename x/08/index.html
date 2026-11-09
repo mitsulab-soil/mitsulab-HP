@@ -202,19 +202,33 @@
 body.pre .bar{opacity:0;pointer-events:none}
 body.idle .bar,body.idle .top,body.idle #framing{opacity:0;pointer-events:none}
 body.idle{cursor:none}
+</style>
+<style id="song-r3">
+/* 2026-11-09 第3周：375 の縦でも全面の映像の上に再生（上の映像と下の黒地を分けない）。再生の下に何の歌かの一言 */
+@media(max-width:600px) and (orientation:portrait){
+ #mv{top:0;bottom:0;left:0;right:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
+ body[data-framing="wide"] #mv{object-fit:contain}
+ #framing{top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 92px)}
+ body.pre #framing{display:none}
+ .play{top:50%;bottom:auto;transform:translate(-50%,-50%)}
+}
+html,body{background:#03060f url(poster.webp?v=20261020-title) center/cover no-repeat}
+.cap{position:absolute;left:50%;top:calc(50% + 64px);transform:translateX(-50%);margin:0;width:max-content;max-width:calc(100vw - 32px);text-align:center;pointer-events:none;
+ font:600 clamp(16px,2vw,19px)/1.6 var(--ml-serif);letter-spacing:.1em;color:#eef5fb;text-shadow:0 1px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9)}
+.cap small{display:block;font:400 12px/1.6 var(--ml-sans);letter-spacing:.08em;color:#c3cce0}
+.play[hidden] + .cap{display:none}
 </style></head>
 <body class="ml-root pre">
-<script src="loader/loader.js" data-auto="dom"></script>
-<video id="mv" playsinline preload="metadata" poster="poster.webp?v=20261020-title" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
+<video id="mv" playsinline preload="none" poster="poster.webp?v=20261020-title" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
 <script>
   // 画面の幅と通信のようすで、同じ映像の 1080p／720p／540p を選ぶ（2026-10-19。スマホで止まらないように）
   (function () {
     var v = document.getElementById('mv'), w = window.innerWidth || 1280, c = navigator.connection || {};
     var lv = w <= 600 ? 2 : (w <= 1100 ? 1 : 0), et = c.effectiveType || '';
     if (c.saveData || /(^|-)2g/.test(et)) lv = 2; else if (et === '3g') lv = Math.max(lv, 1);
-    v.dataset.lv = lv; v.preload = 'metadata';
+    v.dataset.lv = lv; v.preload = 'none';
     // 2026-11-03：起動を軽く。映像の先読みは画面が操作できるようになってから
-    if (!c.saveData) addEventListener('load', function () { setTimeout(function () { v.preload = 'auto'; }, 800); });
+    if (!c.saveData) addEventListener('load', function () { setTimeout(function () { v.preload = 'metadata'; setTimeout(function () { v.preload = 'auto'; }, 1500); }, 800); });
     // 2026-11-04：MV とライブ版（?v=live）。上の「MV／ライブ」で切りかえる
     var live = new URLSearchParams(location.search).get('v') === 'live'; v.dataset.set = live ? 'live' : 'mv';
     if (live) v.poster = 'live_poster.webp?v=20261104';
@@ -229,6 +243,7 @@ body.idle{cursor:none}
 <button id="framing" type="button" aria-pressed="true" aria-label="映像の全景を表示する">全景を見る</button>
 <section class="hero" aria-label="映像">
   <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
+  <p class="cap" id="cap">碧がうたう、杜が息をする歌<small>1分45秒・音が出ます</small></p>
   <div class="bar ml-panel ml-panel--corner" id="bar">
     <button class="ml-btn" id="pp" type="button" aria-label="再生する">▶</button>
     <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生の位置">

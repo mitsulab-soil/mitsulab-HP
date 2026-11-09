@@ -16,11 +16,15 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #row b{font-weight:400;letter-spacing:.08em;font-size:15px;margin-right:auto;line-height:1.3}#row b small{display:block;font-size:11px;letter-spacing:.02em;color:#cfe3ee}#row button{min-width:56px}
 button{height:44px;border-radius:22px;border:1px solid rgba(92,200,224,.4);background:transparent;color:var(--ink);font:inherit;font-size:14px;letter-spacing:.06em;cursor:pointer;padding:0 14px;white-space:nowrap}
 button[aria-pressed="true"]{background:rgba(92,200,224,.3);border-color:var(--aoi)}
-#seki{display:none;gap:6px;overflow-x:auto;padding:0 8px 8px;scrollbar-width:none}
+#seki{display:none;gap:6px;padding:0 8px 8px;grid-template-columns:repeat(8,minmax(0,1fr))}
 #seki::-webkit-scrollbar{display:none}
-body.yose #seki{display:flex}
+body.yose #seki{display:grid}
+#seki .card{height:auto;min-height:44px;border-radius:4px;padding:0;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;background:#07101d;font-size:13px;letter-spacing:.02em}#seki .card img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-position:50% 30%;object-fit:cover;opacity:.9}#seki .card span{display:block;padding:5px 2px 6px;text-align:center;white-space:normal;line-height:1.3}#seki .card[aria-pressed="true"]{border-color:var(--aoi);box-shadow:0 0 0 1px var(--aoi)}
+@media (max-width:760px){#seki{grid-template-columns:repeat(4,minmax(0,1fr))}#seki .card img{aspect-ratio:2/1}#seki .card span{font-size:12px;padding:4px 1px 5px}}
+#src{position:absolute;right:8px;top:calc(env(safe-area-inset-top) + 4px);display:none}body.yose #src{display:block}#src summary{list-style:none;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--aoi)}#src summary::-webkit-details-marker{display:none}#src ol{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 56px);margin:0;padding:12px 14px 12px 34px;background:#07101df2;border:1px solid rgba(92,200,224,.4);border-radius:4px;font-size:12.5px;line-height:1.7;max-height:60vh;overflow:auto;z-index:5}#src ol b{font-weight:500;color:#bfeaf3}
+body.yose #row{padding-right:56px}
+#app:focus,#app:focus-visible,body.inapp #app{outline:3px solid var(--aoi);outline-offset:-3px}
 #go{display:none;padding:0 8px 8px}body.room #go{display:block}#toRoom{width:100%;border-color:var(--aoi)}
-#sel{width:100%;height:44px;border-radius:22px;border:1px solid var(--aoi);background:var(--bg);color:var(--ink);font:inherit;font-size:15px;padding:0 14px;letter-spacing:.04em}
 #hp{display:flex;align-items:center;justify-content:center;min-width:44px;height:44px;color:var(--ink);text-decoration:none;font-size:24px;margin-left:-8px}
 :focus-visible{outline:2px solid var(--aoi);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){#wait i{animation:none}#wait{transition:none}}
@@ -30,7 +34,7 @@ body.yose #seki{display:flex}
 </style>
 </head>
 <body>
-<nav id="bar"><div id="row"><a id="hp" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">‹</a><b>Qualia/yose<small>噺を選ぶと、対になる館の部屋へ</small></b><button data-v="kan">館</button><button data-v="yose">寄席</button></div><div id="seki"><select id="sel" aria-label="噺を選ぶ"></select></div><div id="go"><button id="toRoom"></button></div></nav>
+<nav id="bar"><div id="row"><a id="hp" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">‹</a><b>Qualia/yose<small>題を押すと、すぐはじまる</small></b><button data-v="kan">館</button><button data-v="yose">寄席</button></div><div id="seki" role="group" aria-label="噺を選ぶ（8 席）"></div><details id="src"><summary aria-label="噺ごとの出典">＋</summary><ol id="srcl"></ol></details><div id="go"><button id="toRoom"></button></div></nav>
 <div id="wait"><i></i><span id="wt"></span></div>
 <iframe id="app" title="Qualia/yose" allow="autoplay; fullscreen"></iframe>
 <script>
@@ -38,23 +42,29 @@ const MUSEUM = 'https://mitsulab-soil.github.io/museum/', YOSE = 'https://mitsul
 // 8 席と、あわせて訪ねる館の部屋（館の部屋は名前で案内する）
 const S = [['hachi','蜂の目','やさい百景','花と受粉','yasai'],['mimizu','みみずの耳','つち百景','土の中','tsuchi'],['ga','蛾の恋文','かぜ百景','夜風に乗る匂い','kaze'],['kumo','蜘蛛の留守番','あめ百景','雨粒と獲物の揺れを糸で聞く','ame'],['inu','犬の道しるべ','かぜ百景','地面と風の匂い','kaze'],['keyaki','欅の目方','つち百景','土から来ない目方','tsuchi'],['shashin','写真の留守','たいよう百景','光で写す','taiyo'],['hoshi','星の遅刻','つき百景','月の光も約 1.3 秒前','tsuki']];
 const app = document.getElementById('app'), bar = document.getElementById('bar'), seki = document.getElementById('seki');
-const sel = document.getElementById('sel'); sel.innerHTML = '<option value="">噺を選ぶ（8 席）</option>' + S.map(([k, t, r, w]) => `<option value="${k}">${t} ── ${w}</option>`).join('');
+const RK = 'https://mitsulab-soil.github.io/aoi-shizen-rakugo/img/';
+// 噺ごとの主な出典（一次の文献。くわしくは寄席の中の「典拠」）
+const SRC = { hachi: 'N. Hempel de Ibarra ほか (2014) <i>J. Comp. Physiol. A</i>（ミツバチの色の見え方）', mimizu: 'C. Darwin (1881) <i>The Formation of Vegetable Mould, through the Action of Worms</i> 第一章', ga: 'J. H. Fabre『The Life of the Caterpillar』（英訳 1916）第 11 章', kumo: 'B. Mortimer ほか (2016) <i>J. R. Soc. Interface</i>（網の糸が揺れを伝える）', inu: 'G. J. Romanes (1887) <i>J. Linn. Soc. Zool.</i> 20（犬の嗅覚の実験）', keyaki: 'さいたま市「武蔵一宮氷川神社と氷川参道」・環境省 巨樹・巨木林データベース', shashin: 'パリ市「Un détail imprévu fait revivre un cliché historique」（2026-10-15）', hoshi: '清少納言『枕草子』「星は」の段' };
+seki.innerHTML = S.map(([k, t]) => `<button class="card" type="button" data-e="${k}" aria-pressed="false"><img src="${RK}${k}_poster.webp" alt="" loading="lazy" decoding="async" width="320" height="180"><span>${t}</span></button>`).join('');
+document.getElementById('srcl').innerHTML = S.map(([k, t]) => `<li><b>${t}</b>　${SRC[k]}</li>`).join('');
+seki.onclick = ev => { const c = ev.target.closest('.card'); if (!c) return; if ((new URLSearchParams(location.search).get('e') || '') === c.dataset.e && document.body.classList.contains('yose')) return; go('yose', c.dataset.e, null, null, true); };   // 同じ席はひらき直さない
 const fit = () => { const h = bar.offsetHeight; app.style.top = (h + 8) + 'px'; document.getElementById('wait').style.top = h + 'px'; app.style.height = (innerHeight - h - 8) + 'px'; };
-function go(v, e, room, from) {
+function go(v, e, room, from, now) {
   if (v !== 'kan') v = 'yose';
   const s = S.find(x => x[0] === e), f = S.find(x => x[0] === from), b = document.getElementById('toRoom'); document.body.classList.toggle('room', (v === 'yose' && !!s) || (v === 'kan' && !!f));
   if (v === 'yose' && s) { b.textContent = `館の${s[2]}へ（${s[3]}）`; b.onclick = () => go('kan', null, s[4], s[0]); }
   if (v === 'kan' && f) { b.textContent = `寄席の「${f[1]}」へ戻る`; b.onclick = () => go('yose', f[0]); }
   document.body.classList.toggle('yose', v === 'yose');
   document.querySelectorAll('#row button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
-  sel.value = e || '';
-  app.src = v === 'kan' ? MUSEUM + '?embed=1' + (room ? '&room=' + room : '') : YOSE + '?embed=1' + (e ? '&e=' + e : '');
+  seki.querySelectorAll('.card').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.e === e)));
+  app.src = v === 'kan' ? MUSEUM + '?embed=1' + (room ? '&room=' + room : '') : YOSE + '?embed=1' + (e ? '&e=' + e + (now ? '&go=1' : '') : '');
   const u = new URL(location); u.searchParams.set('v', v); e ? u.searchParams.set('e', e) : u.searchParams.delete('e'); history.replaceState(null, '', u);
-  fit(); const w = document.getElementById('wait'); document.getElementById('wt').textContent = v === 'kan' ? '館をひらいています' : '寄席をひらいています'; w.classList.remove('off'); clearTimeout(go.t); go.t = setTimeout(() => w.classList.add('off'), 900);
+  fit(); const w = document.getElementById('wait'); document.getElementById('wt').textContent = v === 'kan' ? '館をひらいています' : '寄席をひらいています'; w.classList.remove('off'); clearTimeout(go.t); go.t = setTimeout(() => w.classList.add('off'), 700); if (now) setTimeout(() => { try { app.focus(); } catch (x) {} }, 50);
 }
 document.querySelectorAll('#row button').forEach(b => b.onclick = () => go(b.dataset.v));
-sel.onchange = () => { if ((new URLSearchParams(location.search).get('e') || '') !== sel.value) go('yose', sel.value || null); };   // 同じ席はひらき直さない
 addEventListener('resize', fit);
+// 焦点が寄席・館の中にあるときは、枠に印を出す
+addEventListener('blur', () => setTimeout(() => document.body.classList.toggle('inapp', document.activeElement === app), 0)); addEventListener('focus', () => document.body.classList.remove('inapp'));
 app.addEventListener('load', () => document.getElementById('wait').classList.add('off'));   // 2026-11-09 第2周：読み込みが済んだらすぐ外す（前は 0.6 秒待った）
 const q = new URLSearchParams(location.search); go(q.get('v'), S.some(s => s[0] === q.get('e')) ? q.get('e') : null);
 </script>

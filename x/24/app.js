@@ -8,7 +8,7 @@ qxEntry({ css: ".top{padding-left:56px!important}#seam .hd.qx-glow{animation:qxp
 import { rng, growTree, plantTrees, leafMaterial, barkMaterial, WIND, poisson } from "./kit/vegetation.js";
 import { installDapple, makeSightGrass, SIGHT_AIR } from "./kit/sight_look.js";
 import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
-import { CH, BANDS, SAY, AI_LABELS, REFS, wlHz } from "./data.js";
+import { CH, BANDS, SAY, AI_LABELS, REFS, wlHz } from "./data.js?v=20261109r3";
 import { Music, PHRASE, GRID } from "./audio.js?v=20261107p2";
 
 installDapple(THREE);
@@ -177,10 +177,10 @@ void main(){
       vec2 sb = mod(cell, 2.); float id = sb.x + sb.y * 2.;
       vec3 raw = id < .5 ? vec3(c.r, 0., 0.) : id > 2.5 ? vec3(0., 0., c.b) : vec3(0., c.g, 0.);
       vec2 o1 = vec2(1.2 * uDpr / uRes.x, 0.); vec3 dm = vec3(human(vUv + o1).r, human(vUv).g, human(vUv - o1).b) * vec3(1.03, 1., .95) + (hash(fc + floor(uT * 30.)) - .5) * .03;   // 色を埋めた画：近くの画素から推して埋めるので、境にわずかな色のにじみ・雑音・色の違いが残る
-      float nr = 1. - smoothstep(.04, .4, (fc.x - sx) / max(1., uRes.x - sx));
+      float nr = (1. - smoothstep(.0, .13, (fc.x - sx) / max(1., uRes.x - sx))) * .5;   // 2026-11-09 第3周：原画の帯を細く淡く
       vec2 f = fract(fc / px); float gl = step(1. / px, min(f.x, f.y));
       dm = floor(dm * 64. + .5) / 64.; dm = mix(vec3(lum(dm)), dm, 1.12) * vec3(1.02, 1., .97);   // 色を埋めた画にも、細かな画素の目と、わずかな色の違いが残る
-      col = mix(dm * (.9 + .1 * gl), raw * 1.6 * (.8 + .2 * gl), nr);
+      col = mix(dm * (.9 + .1 * gl), raw * 1.35 * (.8 + .2 * gl), nr);
     } else if (ch == 1) {   // 近赤外（可視を切るフィルター付き）：葉が明るく、空が暗い。霞は抜ける。明るさの差は強めた模式
       float rf = k == 4. ? .95 : k == 5. ? .85 : k == 3. ? .38 : k == 2. ? .32 : k == 1. ? .35 : k == 7. ? .28 : k == 6. ? .5 : .05;
       float L = sky > .5 ? .05 + .07 * (1. - vUv.y) : rf * (.3 + .9 * d.g) + .08 * lum(human(vUv));
@@ -246,7 +246,7 @@ function lab(text, { cls = "", obj = null, pos = new V3(), side = "any", onTap =
 }
 
 // 帯＝認知可能領域（人の道・機械の道・重なり・どちらにも届かない所）
-const BW = mobile ? 1.6 : 3.3, BANDG = {};
+const BW = mobile ? 1.6 : 4.4, BANDG = {};
 function bandX(b, v) { const a = Math.log10(b.min), z = Math.log10(b.max); return (Math.log10(v) - a) / (z - a) * BW - BW / 2; }
 function inter(A, B) { const o = []; for (const [a, b] of A) for (const [c, d] of B) { const l = Math.max(a, c), r = Math.min(b, d); if (l < r) o.push([l, r]); } return o; }
 function makeBand(key) {

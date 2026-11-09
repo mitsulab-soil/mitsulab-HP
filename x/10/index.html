@@ -17,9 +17,9 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css?v=20261027q">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="app.js?v=20261109r2">
+<link rel="modulepreload" href="app.js?v=20261109r3">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="i18n.js?v=20261109r2">
+<link rel="modulepreload" href="i18n.js?v=20261109r3">
 <link rel="modulepreload" href="haptics.js?v=20261105f">
 <link rel="modulepreload" href="estimate.js">
 <link rel="modulepreload" href="sounds.js?v=20261021">
@@ -47,10 +47,11 @@ body.blind #faceS{visibility:hidden}body.blind .dk[data-tray="trayS"] .face::aft
 #stage.open #wsShoot,body.blind #wsShoot{display:none}body.blind #chips img{visibility:hidden}#stage.open #fhint{opacity:0}.ws-shoot{bottom:calc(126px + env(safe-area-inset-bottom))!important}#stage:has(#wsShoot:not([hidden])) #cap{bottom:calc(188px + env(safe-area-inset-bottom))}@media (min-width:900px){.ws-shoot{bottom:146px!important}#stage:has(#wsShoot:not([hidden])) #cap{bottom:200px}}#bAbout,.ws-share .mu-btn{white-space:nowrap}
 @media (max-width:420px){body.ws #bAbout{padding:0 10px;border-radius:2px}.ws-share .mu-btn{padding:0 10px;min-width:44px}body.ws .top{padding-left:14px;padding-right:14px}}
 .reveal{position:absolute;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translate(-50%,8px);display:flex;gap:14px;align-items:center;padding:12px 18px 12px 12px;background:rgba(10,18,30,.72);border:1px solid rgba(242,207,140,.45);border-radius:4px;color:#e8eef5;z-index:6;opacity:0;transition:opacity .4s,transform .4s;max-width:calc(100vw - 32px);cursor:pointer}.reveal.on{opacity:1;transform:translate(-50%,0)}.reveal img{width:84px;height:84px;object-fit:cover;border-radius:2px}.reveal small{display:block;font-size:11px;letter-spacing:.2em;color:#f2cf8c}.reveal b{display:block;font:600 17px var(--ml-serif);margin:2px 0 4px}.reveal span{font-size:12.5px;opacity:.85}@media (max-width:420px){.reveal img{width:64px;height:64px}.reveal{top:18%}}
+#stage{background:#03060f url(poster_pc.webp?v=20261109r3) center/cover no-repeat}@media (max-width:600px){#stage{background-image:url(poster_sp.webp?v=20261109r3)}}
 </style>
 </head>
 <body class="ml-root">
-<script src="loader/loader.js" data-title="Qualia/touch" data-en="touch, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>
+<script src="loader/loader.js" data-title="Qualia/touch" data-en="touch, as a layer" data-icon="favicon/icon.svg" data-max="1200"></script>
 
 <div id="stage">
   <canvas id="cv" aria-label="触れる面の 3D。指でなぞると、波紋と音（振動）が返る"></canvas>
@@ -80,7 +81,7 @@ body.blind #faceS{visibility:hidden}body.blind .dk[data-tray="trayS"] .face::aft
     <button type="button" class="dk" data-tray="trayS" aria-expanded="false"><span class="face"><img id="faceS" src="tex/bark_t.webp?v=20261021" alt=""></span><b>触れるもの</b><small id="faceSN">樹皮</small></button>
     <button type="button" class="dk" id="bBlind" aria-pressed="false" hidden><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path id="blindIco" d="M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><b id="blindB">かくす</b><small id="blindS">見ずになぞる</small></button>
     <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>かたち</b><small id="faceON">平らな面</small></button>
-    <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="形を保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>持ち帰る</b><small>形のファイル</small></button>
+    <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="かたちを保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>持ち帰る</b><small>かたちを保存</small></button>
   </nav>
   <div id="reveal" class="reveal" hidden role="status"><img id="rvImg" alt="" width="120" height="120"><div><small>なぞっていたのは</small><b id="rvName"></b></div></div>
   <label id="wsShoot" class="ml-btn ml-btn--primary ws-shoot" hidden><input type="file" id="fShoot" accept="image/*" capture="environment" aria-label="見つけた手ざわりを撮る"><span>見つけた手ざわりを撮る</span></label>
@@ -126,6 +127,6 @@ body.blind #faceS{visibility:hidden}body.blind .dk[data-tray="trayS"] .face::aft
   </div>
 </dialog>
 
-<script type="module" src="app.js?v=20261109r2"></script>
+<script type="module" src="app.js?v=20261109r3"></script>
 </body>
 </html>
