@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Qualium まなざし</title>
+<title>Qualia/gaze ── まなざしの採集</title>
 <meta name="robots" content="noindex,noai,noimageai">
 <meta name="tdm-reservation" content="1">
 <link rel="stylesheet" href="web/tokens.css">
@@ -56,7 +56,7 @@ body.empty #topr{opacity:.38;transition:opacity .6s}body.empty #topr:hover,body.
 #bWipe{margin-left:26px;opacity:.8}#bView{display:inline-flex;padding:3px!important;gap:2px}#bView span{display:inline-flex;align-items:center;padding:0 11px;min-height:38px;border-radius:2px;color:rgba(232,238,245,.8);box-shadow:inset 0 0 0 1px rgba(195,204,224,.22);transition:background .2s,color .2s}#bView[data-v="stack"] span[data-k="stack"],#bView[data-v="side"] span[data-k="side"]{background:rgba(168,242,246,.22);color:#fff;box-shadow:inset 0 0 0 1px rgba(168,242,246,.7)}#topr{pointer-events:none}#topr>*{pointer-events:auto}
 .mu-btn.ok{animation:okf .7s}@keyframes okf{0%{background:rgba(168,242,246,.45)}100%{}}
 body.side #sub{bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 118px)}
-#q #note{margin-top:4px;font-size:10.5px;letter-spacing:.08em}
+#q #note{margin-top:4px;font-size:10.5px;letter-spacing:.08em;pointer-events:auto}#note summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;font-size:16px}#note summary::-webkit-details-marker{display:none}a:focus-visible,summary:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset:2px}
 body:not(.solo) #note{display:none}
 @media (max-width:440px){#brand{display:block!important;font-size:11px;letter-spacing:.12em}#topr .mu-btn{padding-left:9px;padding-right:9px}#topr #bView{padding:2px!important}#bView span{padding:0 6px;min-height:36px;letter-spacing:.02em}#topr{gap:5px}#topr .mu-btn{padding-left:8px;padding-right:8px}}@media (max-width:400px){body:not(.solo) #brand{display:none!important}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 14px)}#cr{right:0;left:0;text-align:center}#brand{display:none}#q{top:calc(max(10px,env(safe-area-inset-top)) + 58px);font-size:16px}}
 @media (min-width:900px){#q{font-size:24px}#sub{font-size:15px}}
@@ -66,7 +66,7 @@ body:not(.solo) #note{display:none}
 <script src="loader/loader.js"></script>
 <canvas id="c" aria-label="みんなの層を重ねた 3D の空間"></canvas>
 <div id="top" class="mu-top">
-  <div id="brand" class="mu-logo">mitsulab</div>
+  <a id="brand" class="mu-logo" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る" style="color:inherit;text-decoration:none">‹ Qualia/gaze</a>
   <div id="topr" class="mu-top-r">
   <button class="mu-btn" id="bView" data-v="stack" aria-label="いまは重ねる。押すと並べる"><span data-k="stack">重ねる</span><span data-k="side">並べる</span></button>
   <button class="mu-btn" id="bGive">渡す</button>
@@ -74,7 +74,7 @@ body:not(.solo) #note{display:none}
   <button class="mu-btn" id="bEnd">おわる</button>
   </div>
 </div>
-<div id="q"><span id="qt"></span><small id="qn">問いを押すと、次の問いへ</small><small id="note">この版は、写真と録音を共有しません（端末の中だけ）</small></div>
+<div id="q"><span id="qt"></span><small id="qn">問いを押すと、次の問いへ</small><details id="note"><summary aria-label="この版について">＋</summary>この版は、写真と録音を共有しません（端末の中だけ）</details></div>
 <div id="sub" class="mu-cap is-on"></div>
 <div id="cr">© mitsulab ・ 声 VOICEVOX:冥鳴ひまり</div>
 <div id="dock">

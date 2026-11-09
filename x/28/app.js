@@ -329,7 +329,7 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書と言葉 ── Qualia/oto';
   $('capTi').textContent = '書と音の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = '光の点は、まだ書になっていない「〇〇の音」の言葉。触れると鳴る。';
+  $('capRd').textContent = '光の点は、まだ書になっていない「〇〇の音」の言葉。触れると、言葉から組み立てた音が鳴る（合成の模式）。';
   $('count').textContent = ''; $('count').style.visibility = 'hidden';   // oto：書の前に立つまで番号は出さない
 }
 function setFocus(it) {

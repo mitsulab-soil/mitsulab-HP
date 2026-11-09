@@ -108,3 +108,6 @@ body.is-all .count{font-family:var(--ml-serif);letter-spacing:.14em;color:var(--
 /* v9 碧のことば（字幕） */
 .cap .rd.aoi{color:var(--ml-aoi-2)}
 .cap .rd.aoi{text-shadow:0 1px 3px rgba(3,6,15,.95),0 0 12px rgba(3,6,15,.9)}
+
+/* 2026-11-09 キーボードの印 */
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #b9f5ff;outline-offset:2px}

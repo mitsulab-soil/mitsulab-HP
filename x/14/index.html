@@ -585,11 +585,23 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 <style id="qualium-cap-375">/* 11-05 採点「375px で字幕が碧の衣に重なる」：スマホで歩くとき、字幕は碧の立つ側と反対の欄に（碧の画面の位置を毎こま見て data-aoi に） */@media (max-width:640px){html body[data-mode="walk"][data-aoi] #caption{width:auto!important;max-width:none!important;transform:none!important;text-align:left!important}html body[data-mode="walk"][data-aoi="l"] #caption{left:46%!important;right:var(--g)!important}html body[data-mode="walk"][data-aoi="r"] #caption{left:var(--g)!important;right:46%!important}html body[data-mode="walk"][data-aoi] #caption:not(.full) #capText{-webkit-line-clamp:5!important;letter-spacing:0!important;font-size:12px!important}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualium 渋谷" data-en="Qualium Shibuya" data-icon="favicon/icon.svg" data-max="15000"></script>
-<canvas id="gl" aria-label="渋谷の谷の町の 3D（地形は国土地理院、道と建物の平面は OpenStreetMap）" tabindex="0"></canvas>
+<script src="loader/loader.js" data-title="Qualium 渋谷" data-en="Qualium Shibuya" data-icon="favicon/icon.svg" data-max="1200"></script>
+<canvas id="gl" aria-label="渋谷の谷の町の 3D（地形は国土地理院、道と建物の平面は OpenStreetMap）" tabindex="-1"></canvas>
 <div id="pinLabels" hidden></div>
 
+<div id="qposter" aria-hidden="true"></div>
+<style>/* 2026-11-09 起動：読み込み画面は最長 1.2 秒・その後は 3D が整うまで最初の眺めの静止画（ポスター）を GUI の下に置く。左上に mitsulab.jp へ戻る印。Tab は操作ボタンから。地点の字は 375 で 15px・白 */
+#qposter{position:fixed;inset:0;z-index:2;pointer-events:none;background:#c3c7cd url(web/qposter_sp.webp) center/cover no-repeat;transition:opacity .6s,visibility 0s .6s}
+@media (min-width:641px){#qposter{background-image:url(web/qposter_pc.webp)}}
+body.ready #qposter{opacity:0;visibility:hidden}
+.qhome{pointer-events:auto;flex:none;width:44px;height:44px;margin:0 -6px 0 -8px;display:grid;place-items:center;color:#eef5f8;text-decoration:none;font:300 26px/1 "Hiragino Mincho ProN",serif;text-shadow:0 0 6px rgba(3,6,15,.9);border-radius:22px}
+.qhome:hover{color:#9bdcf0}.embed .qhome{display:none}
+:focus-visible{outline:2px solid #9bdcf0;outline-offset:2px}
+@media (max-width:640px){body .spTag{font-size:15px!important;color:#fff!important;font-weight:600!important;text-shadow:0 0 2px #03060f,0 0 6px #03060f,0 0 14px rgba(3,6,15,.9)!important}body .spTag .no{color:#d6eef5!important}body .spTag.k-area{color:#ffe2a8!important}}
+@media (prefers-reduced-motion:reduce){#qposter{transition:none}}
+</style>
 <header id="hud">
+  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">‹</a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
   <div class="brand mu-logo">Qualium 渋谷</div>
   <nav class="seg" aria-label="見方">

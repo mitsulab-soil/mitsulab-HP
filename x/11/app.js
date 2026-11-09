@@ -328,8 +328,8 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書 ── Qualia/sho';
   $('capTi').textContent = '書の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = '「〇〇の音」の連作から十の書が、古寺の板の間に浮かび、吊られ、床にひらく。壁には、それぞれの紙の原本を掛けた。';
-  $('count').textContent = `-- / ${String(stops.length).padStart(2, '0')}`;
+  $('capRd').textContent = '書に触れると音が鳴る。音は録音でなく、書の形から組み立てた合成の模式。';
+  $('count').textContent = `全 ${stops.length}`;
 }
 function setFocus(it) {
   focus = it; const w = it.w; $('capRd').classList.remove('aoi');
@@ -535,6 +535,7 @@ works.filter(it => it.sho).forEach(placeInRoom);
 scene.add(paperG);
 resize();
 paintHall();
+if (!SHOT) { const w0 = nearest(); if (w0) P.yaw = Math.atan2(-(w0.x - P.x), -(w0.z - P.z)); }   // 2026-11-09：最初の視点は、いちばん近い書の正面へ
 showHint('<span>床を押すと、その向きへ歩く。</span><span>ドラッグで見回す。</span><span>書に触れると、その音が鳴る。</span>');
 const WARM = import('./kit/warm.js');   // 2026-11-05：あとから足す物は、隠したまま材質を組んでから見せる（起動直後の止まりを分ける）
 const warmIn = async (objs) => { try { const W = await WARM; const vs = objs.map(o => o.visible); objs.forEach(o => o.visible = false); for (const o of objs) await W.warmScene(R, scene, cam, { root: o, batch: 2, offscreen: dof.on }); objs.forEach((o, i) => o.visible = vs[i]); } catch (e) { console.warn('warm', e); } };
