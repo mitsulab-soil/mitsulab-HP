@@ -4,9 +4,11 @@
 // 抽象の極（式と流れ）から始まり、下へなぞると朝の参道へ降りる。主体のふるまい a が環境 E に波を残し、波が届いた主体の P に入り、
 // その主体の g を経て、また a になる。渡るたびに弱まり（F の減衰）、ひとりでに静まる。人がほかの全員から受けとると、文脈に層 L が加わる。
 // 波の広がりは模式（実際の伝わり方や速さではない）。典拠と音の根拠＝../資料/出典と音の根拠.md
+// 2026-11-09 一時の 503 などで読めなかった部品は、間をおいて読み直す
+const imp = async (u, n = 0) => { try { return await import(n ? u + "?r=" + n : u); } catch (e) { if (n >= 2) throw e; await new Promise(r => setTimeout(r, 400 * (n + 1))); return imp(u, n + 1); } };
 const P = window.AW_PATHS; const T0 = performance.now(); const AMK = window.__appMK = {};
 const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, clamp, lerp, ss }, PR, S, CR] = await Promise.all([
-  import(P.kit + "awai.js"), import(P.kit + "awai_props.js"), import(P.kit + "awai_sound.js"), import(P.kit + "creatures_sight.js")]);
+  imp(P.kit + "awai.js"), imp(P.kit + "awai_props.js"), imp(P.kit + "awai_sound.js"), imp(P.kit + "creatures_sight.js")]);
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
@@ -27,7 +29,7 @@ const W = await createAwai({
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
-const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
+const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0); try { sessionStorage.removeItem("qx-retry:" + location.pathname); } catch (_) { } window.MLLoader?.done?.(); setTimeout(() => document.getElementById("qx-intro")?.classList.add("out"), 2600);
 // Enlarged captions scroll without changing the scene behind them.
 const scrollCaption = W.ui.querySelector(".aw-cap");
 scrollCaption.tabIndex = 0;
@@ -68,6 +70,7 @@ fx.innerHTML = `<summary>＋ 関係を式で見る</summary><p><span data-k="U">
 <p><span data-k="E">E</span>(t+1) = <span data-k="F">F</span>(E(t)) + Σ <span data-k="a">a<sub>j</sub></span>(U<sub>j</sub>)</p>
 <p class="fxL"><span data-k="U">U<sub>人</sub>′</span> = g<sub>人</sub>( P<sub>人</sub>, <span data-k="L">K<sub>人</sub> ⊕ L</span> )</p>`;
 W.ui.appendChild(fx);
+{ const fb = W.ui.querySelector(".aw-fold > div"); if (fb) { fb.insertBefore(fx, fb.firstChild); fx.open = true; } }   // 2026-11-09「＋」は一つに：式は典拠の「＋」の中へ
 { const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#e0eaf2;transition:opacity .6s;pointer-events:auto;max-width:calc(100vw - 32px);box-sizing:border-box;background:none;text-shadow:0 1px 3px #000d,0 0 12px #000b;padding:0 10px}.fx summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font:12px/1.6 sans-serif;list-style:none}.fx summary:focus-visible{outline:2px solid #b9f5ff}.fx[open]{padding-bottom:10px}
 .fx p{margin:0}.fx sub{font-size:.72em}.fx span{transition:color .25s,text-shadow .25s}.fx span.hi{color:#eef5fb;text-shadow:0 0 12px rgba(155,220,240,.9)}.fx .fxL{opacity:0;transition:opacity 1.2s}.fx.L .fxL{opacity:1}
 @media (max-width:520px){.fx{font-size:11px;line-height:1.85}}`; document.head.appendChild(st); }
@@ -233,7 +236,7 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("tree"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("光っている輪に触れてみよう。欅の一枚の葉が、だれに、どう届くかが見える。"); setTimeout(() => { W.say("右の線を上へなぞると、同じつながりが式と流れになる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }, 7000); }, 900);
+setTimeout(() => { W.say("一枚の葉から、何が起きる？　光っている輪に触れてみよう。"); setTimeout(() => { W.say("右の線を上へなぞると、同じつながりが式と流れになる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }, 7000); }, 900);
 let saidDown = false, saidGround = false, wentUp = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);

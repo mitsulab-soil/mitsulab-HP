@@ -3,16 +3,18 @@
 // 抽象の極（式と流れ）から始まり、下へなぞると朝の参道へ降りる。主体のふるまい a が環境 E に波を残し、波が届いた主体の P に入り、
 // その主体の g を経て、また a になる。渡るたびに弱まり（F の減衰）、ひとりでに静まる。人がほかの全員から受けとると、文脈に層 L が加わる。
 // 波の広がりは模式（実際の伝わり方や速さではない）。典拠と音の根拠＝../資料/出典と音の根拠.md
+// 2026-11-09 一時の 503 などで読めなかった部品は、間をおいて読み直す
+const imp = async (u, n = 0) => { try { return await import(n ? u + "?r=" + n : u); } catch (e) { if (n >= 2) throw e; await new Promise(r => setTimeout(r, 400 * (n + 1))); return imp(u, n + 1); } };
 const P = window.AW_PATHS; const T0 = performance.now(); const AMK = window.__appMK = {};
 const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, clamp, lerp, ss }, PR, S, CR] = await Promise.all([
-  import(P.kit + "awai.js"), import(P.kit + "awai_props.js"), import(P.kit + "awai_sound.js"), import(P.kit + "creatures_sight.js")]);
+  imp(P.kit + "awai.js"), imp(P.kit + "awai_props.js"), imp(P.kit + "awai_sound.js"), imp(P.kit + "creatures_sight.js")]);
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
 const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "シジュウカラの輪に触れる（変化が広がる）", css: "#aw-ui .aw-mark{margin-left:40px!important}", onPress: () => tapNode(nodeOf("tit")) }); const _pv = new THREE.Vector3();
 
 const W = await createAwai({
-  title: "Qualia/compute", sub: "計算機の思想", en: "Thought in Computing", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 1, deferBack: true,
+  title: "Qualia/compute", sub: "計算機の思想", en: "Thought in Computing", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: .3, deferBack: true,   /* 2026-11-09 はじめは朝の参道に寄せる（紺の抽象からは始めない） */
   rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 5.0, k), h = lerp(1.55, 1.7, k);   // 11-06 本人「俯瞰でなく主観の体験に」：抽象でも、その場に立つ人の目の高さ（約 1.6 m）のまま。一歩前へ出て、場の波を自分の足もとから受けとる   // 11-06 二版の後：抽象を一歩寄せる（主体が小さく、画面の下が空いていた）
     const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, 0, k), lerp(-1.6, .2, k));
     if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(.1 + Math.sin(y) * 1.2, 1.75, 7.6), q); look.lerp(new V3(.1, .1, .4), q);   /* 縦長も目の高さのまま（真上から見下ろさない） */   /* 11-06 二版の後：主体を画面の中ほどへ下ろし、一歩寄せる（下半分が空いていた） */ }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
@@ -25,7 +27,7 @@ const W = await createAwai({
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
-const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
+const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0); try { sessionStorage.removeItem("qx-retry:" + location.pathname); } catch (_) { } window.MLLoader?.done?.(); setTimeout(() => document.getElementById("qx-intro")?.classList.add("out"), 2600);
 // Enlarged captions scroll without changing the scene behind them.
 const scrollCaption = W.ui.querySelector(".aw-cap");
 scrollCaption.tabIndex = 0;
@@ -94,7 +96,7 @@ const ripPlane = new THREE.Mesh(new THREE.PlaneGeometry(36, 36).rotateX(-Math.PI
     vertexShader: ripFn + `uniform float uSz; varying float vA; varying vec3 vC; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vec4 f = field(w.xz); w.y += .05 + f.w * .22; vC = vec3(.55, .78, .86) + f.rgb * 1.4;
       vec4 mv = viewMatrix * w; gl_Position = projectionMatrix * mv; gl_PointSize = uSz * (1. + length(f.rgb)) * (8. / -mv.z); vA = smoothstep(.3, .85, uAbs) * (.12 + length(f.rgb)) * (1. - smoothstep(9., 12., length(w.xz))); }`,
     fragmentShader: `uniform sampler2D uDot; varying float vA; varying vec3 vC; void main(){ float a = texture2D(uDot, gl_PointCoord).a; gl_FragColor = vec4(vC * a * vA, 1.); }` });
-  W.add(new THREE.Points(g, m)); }
+  /* 2026-11-09 点の格子は飾りの HUD に見えるので出さない */ }
 let rI = 0;
 const ripple = (x, z, amp, col) => { RIP[rI].set(x, z, ripU.uT.value, amp); RCOL[rI].set(col); rI = (rI + 1) % NR; };
 
@@ -135,7 +137,7 @@ const N = [
 ];
 // ノードの印：足もとの輪・立ちのぼる線・名札
 function label(t, col) {
-  const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); x.font = '500 46px ui-monospace,"SF Mono",Menlo,monospace'; x.fillStyle = "#" + new THREE.Color(col).lerp(new THREE.Color(0xffffff), .45).getHexString(); x.textBaseline = "middle"; x.shadowColor = "rgba(2,4,10,.95)"; x.shadowBlur = 10;   /* 地の上でも読める縁取り */
+  const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); x.font = '500 46px ui-monospace,"SF Mono",Menlo,monospace'; x.fillStyle = "#" + new THREE.Color(col).lerp(new THREE.Color(0xffffff), .75).getHexString(); x.textBaseline = "middle"; x.shadowColor = "rgba(2,4,10,1)"; x.shadowBlur = 14; x.lineWidth = 7; x.strokeStyle = "rgba(2,4,10,.75)"; const _ft = x.fillText.bind(x); x.fillText = (s, a, b) => { x.save(); x.shadowBlur = 0; x.strokeText(s, a, b); x.restore(); _ft(s, a, b); };   /* 地の上でも読める縁取り */
   if (MOBILE) { x.font = '600 44px "Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.fillText(t, 256, 52); }   /* スマホ：名は札の中央に（札の中心＝持ち主の輪） */ else { x.fillText("U", 6, 44); x.font = '600 42px "Hiragino Mincho ProN",serif'; x.fillText(t, 44, 58); }   // スマホは名だけ
   const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false })); s.renderOrder = 5; s.center.set(0, 0); s.scale.set(2.9, .54, 1);   /* PC の名札を控えめに */ if (MOBILE) { s.center.set(.5, 0); s.scale.set(3.0, .56, 1); }   /* スマホの札を読める大きさに */ return s;
 }
@@ -215,8 +217,8 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("bee"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("光っている輪を押してみよう。鳥のひと跳びが、まわりのだれに届くかが見える。"); setTimeout(() => { if (!touchedAxis && W.abs > .9) { W.setAbs(.72); W.say("右の線を下へなぞると、式から朝の参道へおりていく。"); setTimeout(() => { if (!touchedAxis) W.setAbs(1); }, 1500); } }, 4200); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
-let saidDown = false, saidGround = false, touchedAxis = false; W.ui.querySelector('.aw-axis')?.addEventListener('pointerdown', () => { touchedAxis = true; }); addEventListener('wheel', () => { touchedAxis = true; }, { passive: true });
+setTimeout(() => { W.say("鳥がひと跳びしたら、だれが気づくかな？　光っている輪を押してみよう。"); setTimeout(() => { if (!touchedAxis && W.abs > .9) { W.setAbs(.72); W.say("右の線を下へなぞると、式から朝の参道へおりていく。"); setTimeout(() => { if (!touchedAxis) W.setAbs(1); }, 1500); } }, 4200); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
+let saidDown = true, saidGround = false, touchedAxis = false; W.ui.querySelector('.aw-axis')?.addEventListener('pointerdown', () => { touchedAxis = true; }); addEventListener('wheel', () => { touchedAxis = true; }, { passive: true });
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
   if (!saidDown && a < .55) { saidDown = true; W.say("式の外へ降りる。同じ流れが、この朝の参道にある。"); }
