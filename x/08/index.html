@@ -127,6 +127,7 @@
   .ml-btn,.ml-btn::after{transition:none}
 }
 
+/* 2026-11-09 */.top .brand{flex-direction:column;align-items:flex-start;gap:0}.song-sub{display:block;font:400 11px var(--ml-sans);letter-spacing:.06em;color:var(--ml-ink-2)}.ver button{min-height:44px;min-width:44px}.top,.bar,.play,#framing,.ml-seg{-webkit-user-select:none;user-select:none}.hero:has(.play:not([hidden])) #pp{display:none}a:focus-visible,button:focus-visible{outline:2px solid #b9f5ff;outline-offset:2px}
 </style>
 <style>
   /* Qualia/song（2026-10-30 本人「3D グラフィックはやめて、もとの MV を表示するように」）1 画面で完結。曲のことは「曲」で重ねて開く */
@@ -208,7 +209,7 @@
   })();
 </script>
 <header class="top mu-top">
-  <div class="brand mu-logo"><span class="ml-title">Qualia/song</span></div>
+  <div class="brand mu-logo"><span class="ml-title">Qualia/song</span><small class="song-sub">碧の歌を聴く</small></div>
   <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true">MV</button><button type="button" id="vLive" aria-pressed="false">ライブ</button></div>
   <a class="home" href="https://mitsulab.jp/">mitsulab.jp ↗</a>
 </header>

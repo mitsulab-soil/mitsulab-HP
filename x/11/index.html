@@ -14,10 +14,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261026a">
+<link rel="stylesheet" href="style.css?v=20261109f">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261108start2">
+<link rel="modulepreload" href="app.js?v=20261109f">
 <link rel="modulepreload" href="kit/sho3d.js?v=20261107light">
 <link rel="modulepreload" href="room.js?v=20261105s">
 <link rel="modulepreload" href="live.js?v=20261023e">
@@ -53,7 +53,7 @@
     <button class="ml-btn tb" id="snd" type="button" aria-pressed="true">音 入</button>
     <button class="ml-btn tb" id="origBtn" type="button" aria-expanded="false" aria-controls="orig">元の書</button>
     <button class="ml-btn tb" id="listBtn" type="button" aria-expanded="false" aria-controls="list">目録</button>
-    <button class="ml-btn tb" id="infoBtn" type="button" aria-expanded="false" aria-controls="info">解説</button>
+    <button class="ml-btn tb" id="infoBtn" type="button" aria-expanded="false" aria-controls="info" aria-label="解説">＋</button>
   </nav>
 </header>
 
@@ -87,7 +87,7 @@
 
 <section class="sheet" id="info" hidden aria-label="この作品について">
   <div class="sheet-in">
-    <div class="sheet-head"><span class="ml-kicker">解説</span><button class="ml-btn close" type="button" data-close aria-label="閉じる">×</button></div>
+    <div class="sheet-head"><span class="ml-kicker">解説</span><button class="ml-btn close" type="button" data-close aria-label="閉じる">×</button></div><p>「〇〇の音」の連作から十の書が、古寺の板の間に浮かび、吊られ、床にひらく。壁には、それぞれの紙の原本を掛けた。</p>
     <h2>Qualia/sho ── 書の広間</h2>
     <p>上原光瑛が墨で書いた「〇〇の音」の連作から十作が、古寺の板の間の広間に、墨の立体としてある。それぞれの立体の近くの壁には、同じ書の紙の原本を掛けた。西の壁の「蕾が春化粧をする音」は、立体にせず紙の原本だけを掛けている。</p>
     <p>立体の形は、書ごとに変えた。墨の厚みの浮き彫りで浮かぶもの、筆の幅の平たい帯のもの、一画ずつが離れて宙に浮かび正面でひとつの書になるもの、紙ごと掛け軸の形で浮かぶもの、細い糸で天井から吊られたもの、床にひらいた墨だまり。</p>
@@ -108,6 +108,6 @@
 </section>
 
 <noscript><p class="nojs">この作品は JavaScript と WebGL で動きます。</p></noscript>
-<script type="module" src="app.js?v=20261108start2"></script>
+<script type="module" src="app.js?v=20261109f"></script>
 </body>
 </html>

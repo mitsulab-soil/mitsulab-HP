@@ -15,7 +15,7 @@ const SENSES = [
   { k: "touch", n: "触れる", c: "#f2cf8c", d: '<path d="M8.3 19.6V11a3.7 3.7 0 0 1 7.4 0v8.6"/><path d="M11 18.4v-7.2a1 1 0 0 1 2 0v7.2"/>' },
   { k: "smell", n: "嗅ぐ", c: "#7fe0b4", d: '<path d="M7.6 20c-1.6-1.9-1.6-3.6 0-5.4s1.6-3.5 0-5.4M12 19.4c-1.6-1.9-1.6-3.6 0-5.4s1.6-3.5 0-5.4M16.4 20c-1.6-1.9-1.6-3.6 0-5.4s1.6-3.5 0-5.4"/>' },
   { k: "taste", n: "味わう", c: "#f4aa96", d: '<path d="M4.2 11.6h15.6a7.8 7 0 0 1-15.6 0z"/><path d="M9.6 19.6h4.8"/>' },
-  { k: "x", n: "X 感", c: "#a8f2f6", d: '<path d="M11.4 3.8c.6 4.3 3.6 7.4 8 8-4.4.6-7.4 3.7-8 8-.6-4.3-3.6-7.4-8-8 4.4-.6 7.4-3.7 8-8z"/>' },
+  { k: "x", n: "人にない", c: "#a8f2f6", d: '<path d="M11.4 3.8c.6 4.3 3.6 7.4 8 8-4.4.6-7.4 3.7-8 8-.6-4.3-3.6-7.4-8-8 4.4-.6 7.4-3.7 8-8z"/>' },
 ];
 /* だれの受けとり方で。写真の色は「模式」（実際の見え方そのものではない）。
    ミツバチ＝紫外・青・緑の三色で赤は暗い／スズメ＝紫外を含む四色で色の差が大きい／タヌキ＝二色の目。 */
@@ -67,7 +67,7 @@ function buildRows() {
   $("sense").innerHTML = SENSES.map(s => `<button data-k="${s.k}" style="--c:${s.c}" aria-pressed="${s.k === sense}"><svg viewBox="0 0 24 24">${s.d}</svg>${s.n}</button>`).join("");
   $("who").innerHTML = WHO.map(w => `<button class="mu-chip" data-k="${w.k}" aria-pressed="${w.k === who}">${w.n}</button>`).join("");
 }
-const HINT = {"touch": "触れて感じた所を撮ってください。触れるの印が付きます。", "smell": "においのもとを撮るか、そこの音を録ってください。嗅ぐの印が付きます。", "taste": "味わったものを撮ってください。味わうの印が付きます。", "x": "人にない感覚で感じそうな所を撮ってください。X 感の印が付きます。"};
+const HINT = {"touch": "触れて感じた所を撮ってください。触れるの印が付きます。", "smell": "においのもとを撮るか、そこの音を録ってください。嗅ぐの印が付きます。", "taste": "味わったものを撮ってください。味わうの印が付きます。", "x": "人にない感覚で感じそうな所を撮ってください。その印が付きます。"};
 $("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.k !== sense && HINT[b.dataset.k]) say(HINT[b.dataset.k], 0); /* 次の一言まで残す（聞き逃しても読める） */ sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
 $("who").onclick = e => { const b = e.target.closest("button"); if (!b) return; who = b.dataset.k; buildRows(); const w = WHO.find(x => x.k === who); if (w.say) say(w.say); };
 function count() { $("cnt").textContent = `標本 ${mine.items.length}/${MAX}`; document.body.classList.toggle("empty", !mine.items.length && !(others && others.length)); }   // 2026-11-05：まだ何も無いうちは上の並びを控えめに
