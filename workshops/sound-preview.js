@@ -1,5 +1,5 @@
 import {sourceFor} from "./sound-sources.js?v=20261108";
-import {createSoundSculpture} from "./sound-sculpture.js?v=20261109photo";
+import {createSoundSculpture} from "./sound-sculpture.js?v=20261109r2";
 /* Explanation-only synthesis. No recording, microphone, or sensor input. */
 (()=>{'use strict';
 const $=s=>document.querySelector(s),kind=document.body.dataset.sound,play=$('#playSound'),stop=$('#stopSound'),status=$('#soundStatus'),spacing=$('#soundSpacing'),pitch=$('#soundPitch'),volume=$('#soundVolume'),progress=$('#soundProgress'),time=$('#timeValue'),canvas=$('#soundLine'),mq=matchMedia('(prefers-reduced-motion: reduce)');
