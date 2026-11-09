@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261109t";
+import { T, setLang, lang } from "./i18n.js?v=20261109r2";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -124,12 +124,11 @@ function ripple(pos, quat, amp = .6) { const m = RIP[ripW++ % RIP.length]; m.pos
 function tickRipples(dt) { for (const m of RIP) { const a = m.userData.age += dt; if (a > 1) { m.material.opacity = 0; continue; } m.scale.setScalar(.03 + a * .16 * (.6 + m.userData.amp)); m.material.opacity = Math.pow(1 - a, 1.5) * (.5 + .5 * m.userData.amp); } }
 // ---- デジタルの層（2026-10-27 本人「デジタルとフィジカルの融合」）：写真の面の上に、点群・走査線・地の光のグリッドを薄く重ねる
 scene.fog = new THREE.FogExp2(0x03060f, .22);
-{ const L = [], C = [], E = 1.6, S = .1;
-  const n = Math.round(2 * E / S);   // 線を短い区間に分けて、中心から遠いほど薄くする
-  for (let a = 0; a <= n; a++) for (let k = 0; k < n; k++) { const v = -E + a * S, u0 = -E + k * S, u1 = u0 + S; L.push(u0, -.106, v, u1, -.106, v, v, -.106, u0, v, -.106, u1); }
-  for (let i = 0; i < L.length; i += 3) { const r = Math.hypot(L[i], L[i + 2]), o = Math.pow(Math.max(0, 1 - r / E), 1.6) * (r < .56 ? .3 : 1); C.push(o * .5, o * .9, 1 * o); }
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(L, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(C, 3));
-  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false }))); }
+// 2026-11-09 第2周：足もとの光の格子（HUD に見える）をやめ、木の机の天板に置く（写真の質感 CC0・遠くは霧に溶ける）
+{ const tl = new THREE.TextureLoader(), desk = new THREE.MeshStandardMaterial({ color: 0x6b5a48, roughness: .82, metalness: 0 });
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), desk); top.rotation.x = -Math.PI / 2; top.position.y = -.107; scene.add(top);
+  const load = () => tl.load("tex/wood_c.webp?v=20261021", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.4, 2.4); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; desk.map = t; desk.color.set(0x8a7764); desk.needsUpdate = true; });
+  window.requestIdleCallback ? requestIdleCallback(load, { timeout: 600 }) : setTimeout(load, 300); }
 const CN = MOBILE ? 64 : 96, cPos = new Float32Array(CN * CN * 3);
 const cloudU = { uScan: { value: 0 }, uSize: { value: (MOBILE ? 2.2 : 2.4) * Math.min(devicePixelRatio, 2) } };
 const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(cPos, 3)), new THREE.ShaderMaterial({
@@ -247,7 +246,7 @@ async function setObject(id) {
   plate.visible = !objDef; $("#scaleL").hidden = !!objDef;
   for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));
   $("#bGlb").hidden = !objDef;
-  const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "板"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
+  const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "平らな面"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
   if (!objDef) { aoi?.motion.lookAt(null); aoi?.place(AOI_X, AOI_Z, .35); setView(0); return; }
   Object.assign(G, { zoom: MOBILE ? .62 : .8, tx: 0, tz: MOBILE ? .12 : .05 }); clampG();   // 形は小さいので寄る
   const want = objDef; let g; try { busy(true); g = await loadGeometry(objDef); } finally { busy(false); } if (objDef !== want) { g.dispose(); return; }
@@ -600,7 +599,7 @@ $("#bGlb").addEventListener("click", async () => {
 });
 { const box = $("#objChips");
   const mk = (id, name, sub) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip objchip"; if (id) b.dataset.o = id; b.setAttribute("aria-pressed", String(!id)); b.innerHTML = `${SHAPE[id || "plate"] || SHAPE.plate}<b>${name}</b>`; b.title = sub; b.addEventListener("click", () => setObject(id)); box.append(b); };
-  mk(null, "板", "10 cm 四方の面"); for (const o of OBJECTS) mk(o.id, o.name, o.sub); $("#faceO").innerHTML = SHAPE.plate; }
+  mk(null, "平らな面", "10 cm 四方"); for (const o of OBJECTS) mk(o.id, o.name, o.sub); $("#faceO").innerHTML = SHAPE.plate; }
 $("#bShow").addEventListener("click", () => {
   const L = layerNow(), short = JSON.stringify(L, (k, v) => typeof v === "string" && v.length > 80 ? v.slice(0, 48) + `…（${v.length}）` : v, 1);
   $("#layerPre").textContent = short; $("#dlgLayer").showModal();

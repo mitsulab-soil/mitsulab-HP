@@ -96,6 +96,9 @@ const ring = new THREE.LineSegments(ringGeo, lineMaterial(LAYER.aoi, .3)); ring.
 const labs = $("labs"), labEls = {};
 TAGS.forEach(t => { const b = document.createElement("span"); b.className = "lab"; b.style.setProperty("--c", css(TAGC[t.id]));
   b.innerHTML = `<i aria-hidden="true"></i>${t.ja}`; labs.appendChild(b); labEls[t.id] = b; });
+// 2026-11-09 第2周：はじめは大きい群れ 4 つの印だけを大きく出し、一つ鳴らしたら全部の印を出す
+const FEW = new Set(Object.keys(count).sort((a, b) => count[b] - count[a]).slice(0, 4)); let seenAll = false;
+for (const id in labEls) if (FEW.has(id)) labEls[id].classList.add("big");
 const measure = () => { for (const id in labEls) { const el = labEls[id]; el._w = el.offsetWidth; el._h = el.offsetHeight; } };
 document.fonts?.ready.then(measure); addEventListener("resize", measure);
 
@@ -150,6 +153,7 @@ const order = [...ITEMS].sort((a, b) => a.n - b.n);
 let target = null;   // カメラの見る先（なめらかに寄る）
 const panel = $("panel"), sheetMQ = matchMedia("(max-width:680px)");   // 狭い画面＝下から出る面、広い画面＝右の面
 function select(it, { fly = true, audible = true } = {}) {
+  if (!seenAll) { seenAll = true; for (const id in labEls) labEls[id].classList.remove("big"); measure(); }
   cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'A：'+material.t+' ／ B：'+it.t:'Aの素材にして、もう一つの音を選ぶと合成できます。';
   $("sound").hidden = !!it.quiet; $("quiet").hidden = !it.quiet;
   { const rd = it.quiet ? null : readingOf(it); $("readF").hidden = !(rd && rd.hand); $("readF").open = false; if (rd && rd.hand) $("readT").textContent = rd.reading; }   // 手で譜を書いた行だけ、読みの一文を畳んで置く
@@ -178,6 +182,7 @@ $("bPrev").addEventListener("click", () => step(-1)); $("bNext").addEventListene
 const HEAVY = /死|髑髏|悪魔|恐怖|恐ろし|滅|墓|痛|傷|邪|破壊|崩壊|戦/; let randN = 0;
 const rand = () => { const pool = randN++ < 3 ? ITEMS.filter(x => !HEAVY.test(x.t) && !x.quiet) : ITEMS; select(pool[Math.floor(Math.random() * pool.length)]); };
 $("bRand").addEventListener("click", rand); $("bRand2").addEventListener("click", rand);
+requestAnimationFrame(() => { if (document.activeElement === document.body || !document.activeElement) $("bRand2").focus({ preventScroll: true }); });   // 最初の焦点はボタンに
 
 // ---- 群れの音の決まり（演奏面に分類名と一緒に出す）
 const LAW = {   // 群れの音の決まり（やさしい言い方。正は js/world.js の WORLDS）
@@ -349,7 +354,7 @@ function loop(now) {
   // 分類の札の置き場所（重なったら下の札を下へずらす。語は間引かない）。面を開いているあいだは出さない
   { const L = [], hintTop = $("hint").hidden ? 1e9 : $("hint").getBoundingClientRect().top;
     for (const id in labEls) { const c = centers[id]; v3.set(c.x, c.y + 1.75, c.z).project(camera); const el = labEls[id];
-      const show = v3.z < 1 && Math.abs(v3.x) < 1.05 && v3.y < .92 && !cur && !(byTouch && hoverI >= 0 && portrait());
+      const show = (seenAll || FEW.has(id)) && v3.z < 1 && Math.abs(v3.x) < 1.05 && v3.y < .92 && !cur && !(byTouch && hoverI >= 0 && portrait());
       if (!el._w) { el._w = el.offsetWidth || 120; el._h = el.offsetHeight || 44; }
       L.push({ el, x: (v3.x * .5 + .5) * innerWidth, y: Math.max(70, (-v3.y * .5 + .5) * innerHeight), vis: show }); }
     L.forEach(o => o.x = Math.max(o.el._w / 2 + 6, Math.min(innerWidth - o.el._w / 2 - 6, o.x)));

@@ -234,7 +234,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261109g">
+<link rel="modulepreload" href="umwelt.js?v=20261109r2">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -294,9 +294,9 @@ body{word-break:auto-phrase;line-break:strict}
 
 <header id="top">
   <span class="topL"><a class="home" href="/#apps" aria-label="mitsulab の作品一覧へ戻る">←</a><span class="dream-title">Qualia/sight</span></span>
-  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
+  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="出典と設定">＋</button></span>
 </header>
-<aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
+<aside id="bodyControls" aria-label="身体の操作"><button id="padTog" type="button" aria-expanded="false" aria-label="移動のボタンを出す・しまう">⋯</button><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
 <div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
 <div id="legend" hidden></div>
 <p id="kurQ" hidden aria-live="polite"></p>
@@ -341,7 +341,7 @@ body{word-break:auto-phrase;line-break:strict}
   <h2>八つの受けとり方（くらべる）</h2>
   <table id="lensTable"></table>
   <h2>操作</h2>
-  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
+  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ⋯ を押すと出るボタン：↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
   <p>上の「くらべる」＝同じ場所に立ったまま、ミツバチ・犬・マムシに体を入れかえる旅。切り替える前に見え方を予想してから確かめ、最後に外で使える見方を持ち帰ります。右の「◐ 人の目とくらべる」は、押しているあいだだけ同じ場所を人の目に戻します。</p>
   <h2>この空間のつくり</h2>
   <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、モンシロチョウの雌雄と空です。白い花の多くが紫外を吸うことは研究の報告にもとづきますが、この森の草花・鳥の一つひとつの値は測ったものではなく、目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
@@ -384,9 +384,20 @@ body{word-break:auto-phrase;line-break:strict}
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261109g';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261109r2';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
+<style id="r2pad">/* 2026-11-09 第2周：押した所へ歩くのが主。移動の盤は ⋯ で出す（飛ぶ身体では出したまま）。右上の札は軽く */
+#bodyControls:not(.open):not(.fly) #bodyForward,#bodyControls:not(.open):not(.fly)>div:not(#flightControls),#bodyControls:not(.open):not(.fly) #bodyBack{display:none!important}
+#bodyControls.fly #padTog{display:none}
+#padTog{opacity:.7;font-size:20px!important;background:rgba(6,10,18,.4)!important}
+#bodyControls:not(.open):not(.fly) #padTog{border-color:transparent!important}
+#top .btn.why{background:transparent!important;border-color:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:0 1px 6px rgba(0,0,0,.75);opacity:.92}
+#top .btn.why:hover,#top .btn.why:focus-visible{border-color:var(--line)!important}
+#top .ico{font-size:22px}
+.home{width:44px;height:44px;min-width:44px!important;min-height:44px;font-size:20px!important}
+</style>
+<script>(function(){var b=document.getElementById("padTog"),c=document.getElementById("bodyControls");if(!b||!c)return;b.addEventListener("click",function(){var o=c.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");});})();</script>
 </body>
 </html>

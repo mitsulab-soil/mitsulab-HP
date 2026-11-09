@@ -20,11 +20,11 @@ canvas{display:block;width:100vw;height:100dvh;touch-action:none;cursor:crosshai
 <canvas id="w" aria-label="水際の場の3D。押した所へ歩く。ドラッグで見回す。"></canvas>
 <div id="t">Qualia/dream<small>水際 ── 雨が土にしみて、木と空気までつながる</small></div>
 <div id="hint">光る輪を押すと歩く・止まると足もとが灯る</div>
-<div id="ui"><button id="bSnd" aria-pressed="false">♪ 聴く</button><button id="bMot" aria-pressed="false">動き控えめ</button><button id="bSrc" aria-pressed="false">出所</button></div>
-<div id="src" role="dialog" aria-label="出所と記録"><h2>この場について（模式）</h2>
+<div id="ui"><button id="bSnd" type="button" aria-pressed="false">♪ 聴く</button><button id="bMot" type="button" aria-pressed="false">動き控えめ</button><button id="bSrc" type="button" aria-pressed="false" aria-controls="src">どこから来た話？</button></div>
+<div id="src" role="dialog" aria-label="どこから来た話？（出典と記録）"><h2>この場について（模式）</h2>
 <p>雨・地表の水・土の湿り・根の吸い上げ・樹・空気は、ひとつの連続した状態として互いを変えています。光・見通し・揺れ・音は、すべて同じ状態から作っています。</p>
 <p>中身はすべて<b>創作モデル</b>です（観測・実測の入力はありません）。音は<b>想定合成音</b>で、土や樹の実音ではありません。生き物の主観を再現したものではありません。</p>
 <p>地表のすぐ上の小さな光は、いま土の湿りが変わっている所です。</p><p>蜂の匂いの道筋（花から樹への琥珀の粒）・鳥の旋回の高さ・土の湿りのセンサーの灯り（地表の水が多いほど読みが揺らぐ。差した位置の誤差は入れていない）も、同じ状態から作った<b>模式</b>です。雨で匂いが運ばれにくくなる・霧で見通しが縮む・濡れた地表で測定が揺らぐ、という向きだけを表し、量は創作です。時間は実際より大きく縮めた模式です。湿りの前線が根に届いた瞬間、地面・葉・霧・音が同じ拍で応えます。</p><h2>向きを決めるのに使った一次の出典</h2><ul><li>雨が土にしみこむ速さは、土が湿るほど落ちていく：Horton, R. E. (1933) The role of infiltration in the hydrologic cycle. <i>Trans. AGU</i> 14, 446–460</li><li>霧が濃いほど見通しの距離が縮む：Koschmieder, H. (1924) Theorie der horizontalen Sichtweite. <i>Beitr. Phys. freien Atmos.</i> 12, 33–55</li><li>土の水分を電気的に測る方法：Topp, G. C., Davis, J. L. &amp; Annan, A. P. (1980) <i>Water Resources Research</i> 16(3), 574–582</li></ul><p>出典は向き（どちらへ変わるか）を決めるためだけに使い、量・速さ・時間はすべて作品の模式です。</p><h2>いまの場の記録（古い順）</h2><ul id="log"></ul><p>蜂（ミツバチ）とシジュウカラの姿は Qualia/sight の造形を使い、見やすさのため実寸より大きくしています。</p></div>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
-<script type="module" src="./field.js?v=20261109q"></script>
+<script type="module" src="./field.js?v=20261109r2"></script>
 </body></html>

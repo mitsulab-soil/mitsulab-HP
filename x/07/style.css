@@ -206,6 +206,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 .p-law{flex-basis:100%;order:3;font-size:.78rem;color:var(--ml-ink-3);line-height:1.6}
 @media (max-width:720px){ #labs .lab{font-size:.84rem;padding:3px 8px;gap:5px;letter-spacing:.06em} #labs .lab i{width:8px;height:8px} }   /* 2026-10-25：375 の字を 13.4px に・字は色を白へ寄せて地を濃く（「時間と死」の灰色が読めなかった） */
 @media (prefers-reduced-motion:reduce){ #labs .lab{transition:none} }
+#labs .lab.big{font-size:1.05rem;padding:6px 14px;letter-spacing:.14em} #labs .lab.big i{width:11px;height:11px}   /* 2026-11-09 はじめの 4 つは大きく */
 #panel .p-law{display:block;order:0;margin:0 0 12px;line-height:1.5;font-size:12px;color:#a2b8bf}
 @media(max-width:680px){ #panel .p-law{font-size:10px;margin-bottom:8px} }
 

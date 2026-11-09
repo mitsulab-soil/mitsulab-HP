@@ -14,10 +14,10 @@ const S = V.SILENT;
 
 // ---- 九つの群れの法則（音律 hs＝使う倍音の番号、under＝下方倍音、tet＝平均律に丸める、stretch＝倍音の伸び、time＝時間の流れ方、space＝空間）
 export const WORLDS = {
-  uchu:   { ja: "宇宙",       hs: [7, 9, 11, 13, 15, 17, 19, 23, 27, 31], stretch: 1.006, time: "still",      gap: 2.6, space: { len: .7, wet: .1, lp: 9000, width: 1 },  ground: [1, 2],   sig: "beyond",   law: "高い奇数の倍音だけ・ほとんど響かない広さ・立ち上がりの長い、ほとんど動かない時間" },
+  uchu:   { ja: "空と星",     hs: [7, 9, 11, 13, 15, 17, 19, 23, 27, 31], stretch: 1.006, time: "still",      gap: 2.6, space: { len: .7, wet: .1, lp: 9000, width: 1 },  ground: [1, 2],   sig: "beyond",   law: "高い奇数の倍音だけ・ほとんど響かない広さ・立ち上がりの長い、ほとんど動かない時間" },
   seimei: { ja: "生命と土",   hs: [2, 3, 4, 5, 6, 8, 10, 12], time: "breath",     gap: 1.3, space: { len: 1.6, wet: .32, lp: 3200, width: .6 }, ground: [2, 3],   sig: "breath",   law: "低い純正の倍音・息の周期（4 秒）でふくらむ・近くて温かい" },
   toshi:  { ja: "都市と機械", hs: [4, 5, 6, 8, 9, 10, 12, 15, 16], tet: true, time: "grid", gap: .3125, space: { len: 1, wet: .26, lp: 6500, width: .8, slap: [.11, .23] }, ground: [4], sig: "machine", law: "平均律に丸めた高さ・96 拍の格子・硬い反射" },
-  kokoro: { ja: "心と意識",   hs: [3, 5, 7, 9, 11, 13], drift: true, time: "rubato", gap: 1.7, space: { len: 1.1, wet: .4, lp: 1900, width: .35 }, ground: [2, 3], sig: "inner", law: "七・十一の倍音（あいまいな音程）・始まりが揺れる時間・内側にこもる狭い空間" },
+  kokoro: { ja: "こころ",     hs: [3, 5, 7, 9, 11, 13], drift: true, time: "rubato", gap: 1.7, space: { len: 1.1, wet: .4, lp: 1900, width: .35 }, ground: [2, 3], sig: "inner", law: "七・十一の倍音（あいまいな音程）・始まりが揺れる時間・内側にこもる狭い空間" },
   kotoba: { ja: "ことばと文字", hs: [8, 9, 10, 12, 15, 16, 18, 20], time: "speech", gap: .22, space: { len: .55, wet: .14, lp: 5200, width: .5 }, ground: [4], sig: "speech", law: "8〜20 番の倍音（純正の音程）・行のモーラの長短がそのまま拍・乾いた近さ" },
   toki:   { ja: "時間と死",   hs: [1, 2, 3, 4, 5, 6, 7, 8], under: true, time: "decel", gap: 1.5, space: { len: 5.5, wet: .55, lp: 3600, width: .8 }, ground: [1], sig: "dissolve", law: "下方倍音（高さが割り算で下がる列）・だんだん遅くなる時間・長く消えていく空間" },
   mizu:   { ja: "水と天気",   hs: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16], gliss: true, time: "stochastic", gap: .9, space: { len: 3.2, wet: .48, lp: 5200, width: 1 }, ground: [2, 4], sig: "flow", law: "倍音のあいだをすべる高さ・偶然に降る時間（ポアソン）・ひらけた空間" },

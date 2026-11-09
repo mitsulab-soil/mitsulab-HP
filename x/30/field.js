@@ -5,7 +5,7 @@
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 import {growKeyaki,sprigMesh} from './vendor/tree.js';
-import {qxEntry} from './qx.js';
+import {qxEntry} from './qx.js?v=20261109r2';
 const t0=performance.now(),$=id=>document.getElementById(id),mobile=innerWidth<600;
 let seed=1108;const R=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
 

@@ -17,9 +17,9 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css?v=20261027q">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="app.js?v=20261109t">
+<link rel="modulepreload" href="app.js?v=20261109r2">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="i18n.js?v=20261109t">
+<link rel="modulepreload" href="i18n.js?v=20261109r2">
 <link rel="modulepreload" href="haptics.js?v=20261105f">
 <link rel="modulepreload" href="estimate.js">
 <link rel="modulepreload" href="sounds.js?v=20261021">
@@ -79,10 +79,10 @@ body.blind #faceS{visibility:hidden}body.blind .dk[data-tray="trayS"] .face::aft
   <nav class="dock" aria-label="操作">
     <button type="button" class="dk" data-tray="trayS" aria-expanded="false"><span class="face"><img id="faceS" src="tex/bark_t.webp?v=20261021" alt=""></span><b>触れるもの</b><small id="faceSN">樹皮</small></button>
     <button type="button" class="dk" id="bBlind" aria-pressed="false" hidden><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path id="blindIco" d="M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><b id="blindB">かくす</b><small id="blindS">見ずになぞる</small></button>
-    <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>かたち</b><small id="faceON">板</small></button>
-    <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="形を保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>残す</b><small>立体で保存</small></button>
+    <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>かたち</b><small id="faceON">平らな面</small></button>
+    <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="形を保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>持ち帰る</b><small>形のファイル</small></button>
   </nav>
-  <div id="reveal" class="reveal" hidden role="status"><img id="rvImg" alt="" width="120" height="120"><div><small>答え</small><b id="rvName"></b></div></div>
+  <div id="reveal" class="reveal" hidden role="status"><img id="rvImg" alt="" width="120" height="120"><div><small>なぞっていたのは</small><b id="rvName"></b></div></div>
   <label id="wsShoot" class="ml-btn ml-btn--primary ws-shoot" hidden><input type="file" id="fShoot" accept="image/*" capture="environment" aria-label="見つけた手ざわりを撮る"><span>見つけた手ざわりを撮る</span></label>
   <script>(function(){if(!/[?&]ws=1/.test(location.search))return;var l=document.getElementById('wsShoot');l.hidden=false;document.getElementById('wsShare').hidden=false;document.getElementById('bBlind').hidden=false;var h=document.getElementById('hint');var ks=document.querySelector('.dk-s small');if(ks)ks.textContent='面を立体に';if(h)h.textContent=innerWidth<421?'触覚さがし':'触覚さがし ── 撮って、なぞる。';document.body.classList.add('ws');var d=document.querySelector('#dlgAbout .howto');if(d)d.innerHTML='触覚さがしの使い方<br>1　見つけた手ざわりを「撮る」。<br>2　できた面を、指でなぞる。音（端末によっては震えも）が返ります。<br>3　「渡す」で、いまの面をほかの人の端末へ（AirDrop・ニアバイシェア・LINE など）。受けとった人は「受けとる」で開きます。<br>4　「かくす」で画面を見ずになぞり、どこの手ざわりか当て合う。「見る」で答え。<br>5　残したい面は「残す」で立体のファイルに。<br>写真は描き直して位置や機種の情報を消し、サーバーには送りません。撮った面はこの画面を閉じると消えます。人の顔は写さないでください。渡すのは、あなたが「渡す」を押した面だけです。';})();</script>
   <div id="fhint" class="fhint" aria-hidden="true"><i></i><span>指でなぞる</span></div>
@@ -126,6 +126,6 @@ body.blind #faceS{visibility:hidden}body.blind .dk[data-tray="trayS"] .face::aft
   </div>
 </dialog>
 
-<script type="module" src="app.js?v=20261109t"></script>
+<script type="module" src="app.js?v=20261109r2"></script>
 </body>
 </html>

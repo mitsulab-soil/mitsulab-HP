@@ -12,9 +12,9 @@ ${o.css || ""}
 @media (prefers-reduced-motion:reduce){.qx-go{animation:none}}`;
   document.head.appendChild(st);
   const home = document.createElement("a"); home.className = "qx-home"; home.href = "/"; home.setAttribute("aria-label", "mitsulab のホームへ戻る"); home.textContent = "←";
-  document.body.appendChild(home);
+  document.body.prepend(home);   // 2026-11-09 第2周：Tab の順を 戻る→最初の輪→下の操作 に（末尾に置くと Tab が外へ抜けた）
   const go = document.createElement("button"); go.className = "qx-go"; go.type = "button"; go.setAttribute("aria-label", o.label || "ここに触れる"); go.hidden = !o.onPress;
-  document.body.appendChild(go);
+  home.after(go);
   let done = !o.onPress;
   go.addEventListener("click", e => { e.stopPropagation(); if (done) return; done = true; go.hidden = true; o.onPress?.(); });
   if (!done) setTimeout(() => { try { go.focus({ preventScroll: true }); } catch (_) { } }, 0);

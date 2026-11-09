@@ -495,9 +495,9 @@ function applyLens(id) {
   $('flightControls').hidden=!FLIGHT.has(id)||chapter!=='umwelt';
   // 操作の説明（2026-10-13）：指で触る端末では、キーボードの説明を出さない
   $('moveNote').innerHTML = phrases(L.under ? '土の中 · ▲ 上へ・▼ 下へ で明るさが変わる'
-    : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ 長押しで進む・＋ − で上下' : (id === 'hebi' ? '地面を這う' : '歩く') + ' · ↑ 長押しで進む・なぞって見回す')
+    : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ を押しているあいだ前へ・＋ − で上と下' : (id === 'hebi' ? '這う' : '歩く') + ' · 行きたい地面を押すと、そこまで進むよ')
     : FLIGHT.has(id) ? '飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも）' : id === 'hebi' ? '地面を這う · W A S D ／ 押した場所へ' : '歩く · W A S D ／ 押した場所へ');
-  $('bodyControls').hidden = !!L.under || chapter !== 'umwelt';   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
+  $('bodyControls').hidden = !!L.under || chapter !== 'umwelt'; $('bodyControls').classList.toggle('fly', FLIGHT.has(id));   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
   $("legend").dataset.lens = id; $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
   $("cmpBtn").hidden = id === "hito" || !!L.under || chapter !== "umwelt";
