@@ -361,7 +361,7 @@ lab("鳥<i>紫外まで感じる錐体（模式）</i>", { cls: "self n", pos: B
 /* ── AI の札・音の出どころ ── */
 const T0 = TREES.filter(t => t.trunk[0] < 0).sort((a, b) => Math.hypot(a.trunk[0] - EYE.x, a.trunk[1] - EYE.z) - Math.hypot(b.trunk[0] - EYE.x, b.trunk[1] - EYE.z))[0];
 const AIP = { tree: new V3(T0.trunk[0], 2.2, T0.trunk[1]), path: new V3(.2, 0, -4), earth: new V3(-6.5, 0, -2), sky: new V3(-5, 22, -40), lantern: new V3(LANTERNS[0][0], 1.7, LANTERNS[0][1]), aoi: AOI.clone().setY(1.45), grass: new V3(2.9, .2, 4.4) };
-for (const [k, p] of Object.entries(AIP)) { const [n, s] = AI_LABELS[k]; lab(`${n} <i>${s}</i>`, { cls: "ai", pos: p, side: "machine", show: () => chId() === "ai" && outK < .3 }); }
+for (const [k, p] of Object.entries(AIP)) { const [n, s] = AI_LABELS[k]; lab(`${n} <i>確信度 ${s}</i>`, { cls: "ai", pos: p, side: "machine", show: () => chId() === "ai" && outK < .3 }); }
 const SRC = [{ p: new V3(T0.trunk[0], 7.5, T0.trunk[1]), w: 1, t: "葉ずれ<i>耳にもマイクにも届く</i>" }, { p: new V3(.8, 9, -9), w: 2, t: "コウモリの声<i>どちらにも届かない（模式）</i>" }];
 for (const s of SRC) lab(s.t, { cls: "ai snd", pos: s.p, side: "machine", show: () => chId() === "sound" && outK < .3 });
 

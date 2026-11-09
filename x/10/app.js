@@ -141,9 +141,10 @@ scene.fog = new THREE.FogExp2(0x03060f, .22);
   void load; }
 const CN = MOBILE ? 64 : 96, cPos = new Float32Array(CN * CN * 3);
 const cloudU = { uScan: { value: 0 }, uSize: { value: (MOBILE ? 2.2 : 2.4) * Math.min(devicePixelRatio, 2) } };
+/* 2026-11-10 第7周：点は、なぞる線の近くだけに出し、板の縁へ溶かす（縁の点線が作業中の印に見えたため） */
 const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(cPos, 3)), new THREE.ShaderMaterial({
   uniforms: cloudU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-  vertexShader: "uniform float uScan, uSize; varying float vA; void main(){ float d = position.z - uScan; vA = .2 + .75 * exp(-d * d / .0008); gl_PointSize = uSize * (.8 + .6 * vA); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  vertexShader: "uniform float uScan, uSize; varying float vA; void main(){ float d = position.z - uScan; vA = .55 * exp(-d * d / .0008) * smoothstep(.5, .36, abs(position.x)) * smoothstep(.5, .36, abs(position.z)); gl_PointSize = uSize * (.8 + .6 * vA); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
   fragmentShader: "varying float vA; void main(){ vec2 c = gl_PointCoord - .5; if (dot(c, c) > .25) discard; gl_FragColor = vec4(.66, .95, .97, vA * .45); }" }));
 cloud.frustumCulled = false; cloud.userData.plate = true; scene.add(cloud);
 const SCN = 128, scPos = new Float32Array(SCN * 3);

@@ -55,6 +55,7 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
 <div class="top"><a class="w" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">← mitsulab</a><span class="n">碧の層</span></div>
 <div class="hint"><button id="meetAoi" type="button">碧に話しかける</button><span>光る花に触れるか、下の札から選ぶ</span></div>
 <div class="cap" id="cap" aria-live="polite"></div>
+<style>/* 2026-11-10 第7周：札に模式の印 */.dock button[data-w]:not([data-w=yori])::before{content:"模式";position:absolute;top:3px;right:5px;font-size:9px;letter-spacing:.06em;color:var(--ml-ink-3,#9aa);opacity:.9}.dock button{position:relative}</style>
 <nav class="dock" aria-label="ひらく世界">
   <button type="button" data-w="uv" style="--c:#c9abe0" aria-pressed="false">鳥の目<i>ultraviolet</i></button>
   <button type="button" data-w="bat" style="--c:#8fb6dc" aria-pressed="false"><span class="l">コウモリの耳</span><span class="s">コウモリ</span><i>ultrasound</i></button>

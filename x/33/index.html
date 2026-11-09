@@ -109,10 +109,18 @@ body::after{content:"";position:fixed;left:0;right:0;top:24%;height:20%;pointer-
 .reply input{color:#2e271d}.reply input::placeholder{color:#6b5f4c;opacity:1;font-size:16px}
 @media (max-width:420px){#pbody{font-size:18.5px;line-height:1.95}#pq{font-size:15.5px}body.kids #pbody{font-size:21px}.reply input{font-size:17px}}
 </style>
+<style>/* 2026-11-10 第7周：便りをひらいている間は背景の画を暗く落とす・返事の欄を大きく・末の出典の一行・ふりがなは最初からオン */
+#cv{transition:filter .5s}#world:has(#paper:not(.fold)) #cv{filter:brightness(.42) saturate(.6) blur(2px)}
+#world:has(#paper:not(.fold)) #hint{opacity:0!important}
+#pcite{font-size:12px;color:var(--sumi2);letter-spacing:.04em;margin:2px 0 6px;text-align:right}
+#paper .reply input{height:64px;font-size:19px}#paper .reply button{height:64px;font-size:17px}
+@media (max-width:420px){#paper .reply input{height:60px;font-size:18px}#pcite{font-size:11.5px}}
+@media (prefers-reduced-motion:reduce){#world:has(#paper:not(.fold)) #cv{filter:brightness(.42) saturate(.6)}}
+</style>
 </head>
-<body>
+<body class="kids">
 <div id="lamp" aria-hidden="true" title=""></div><!-- 2026-11-09 第2周：遠くの参道の灯を一つ、淡く -->
-<header><div style="display:flex;align-items:baseline"><a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のホームへ戻る">← mitsulab</a><h1>Qualia/<i>letter</i>　便り</h1></div><button id="kids" type="button" aria-pressed="false">大きな字・ふりがな</button></header>
+<header><div style="display:flex;align-items:baseline"><a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のホームへ戻る">← mitsulab</a><h1>Qualia/<i>letter</i>　便り</h1></div><button id="kids" type="button" aria-pressed="true">大きな字・ふりがな</button></header>
 <p id="sub">参道の生き物たちの受けとり方を、碧が人のことばに置きかえて書いた便りです。<small>いちばん上の封にふれると、便りを読めます。</small></p>
 <div id="stack"></div>
 <section id="world" role="dialog" aria-modal="true" aria-labelledby="wname">
@@ -121,7 +129,7 @@ body::after{content:"";position:fixed;left:0;right:0;top:24%;height:20%;pointer-
   <p id="hint"></p>
   <article id="paper">
     <div id="pfrom" style="font-size:12px;color:var(--sumi2);letter-spacing:.14em;margin-bottom:4px"></div><div id="pbody"></div>
-    <div id="psig">── 人のことばに置きかえて書いた人　碧</div>
+    <div id="psig">── 人のことばに置きかえて書いた人　碧</div><div id="pcite"></div>
     <form class="reply" autocomplete="off"><input id="ri" maxlength="40" placeholder="生き物へ、返事を一言" aria-label="生き物へ、返事を一言（この端末の中にだけ残る）"><button aria-label="返事を封に挟む（この端末の中にだけ残る）">封に挟む</button></form>
     <div id="rk"></div>
     <details id="more"><summary>問いと出典</summary><div id="pq"></div>
@@ -131,24 +139,24 @@ body::after{content:"";position:fixed;left:0;right:0;top:24%;height:20%;pointer-
 <script>
 /* 便り：出典は一次の文献。画は模式（実際の見え方の再現ではない） */
 const L=[
-{id:"bee",from:"ミツバチ",to:"花のそばのあなたへ",hint:"左右になぞると、花のあいだを動けます",
+{id:"bee",c:"Peitsch ほか 1992『J. Comp. Physiol. A』170",from:"ミツバチ",to:"花のそばのあなたへ",hint:"左右になぞると、花のあいだを動けます",
  b:"一色に見える花びらに、\n蜜へ向かう模様が見えている花があります。\n赤は、暗く沈みます。\n数週間の短い一生のうち、外で花を訪ねるのは、終わりのころです。",
  q:"見え方がちがっても、わたしたちは同じ参道にいると言えるでしょうか。",
  s:"ミツバチの視細胞の感度の山はおよそ 344・436・556 nm（紫外・青・緑）で、赤の受容体はない（白い花の多くは紫外を吸うため、蜂には青緑に近く見える）：Peitsch, D. et al. (1992) J. Comp. Physiol. A 170: 23–40。花の紫外の模様：Kevan, P. G., Chittka, L. & Dyer, A. G. (2001) J. Exp. Biol. 204: 2571–2580。夏の働き蜂の成虫の寿命はおよそ 2〜6 週間で、はじめの数週間は巣の中で働き、花を訪ねるのは終わりの時期：Winston, M. L. (1987) The Biology of the Honey Bee, Harvard University Press。画＝紫外を青紫に、赤を暗く置きかえた模式（ミツバチの見え方そのものではない）。"},
-{id:"bird",from:"ヒヨドリ",to:"木の下に立つあなたへ",hint:"左右になぞると、枝のあいだを見わたせます",
+{id:"bird",c:"Hart 2001『Prog. Retin. Eye Res.』20",from:"ヒヨドリ",to:"木の下に立つあなたへ",hint:"左右になぞると、枝のあいだを見わたせます",
  b:"人の目の色の窓は三つ。\n鳥の多くには四つあり、四つめは紫外の側。\n実の皮の、あなたに見えない艶を受けとるとされます。\n同じ枝を、いま、あなたも見上げています。",
  q:"見えない色があると知ったあと、目の前の景色は少し変わりますか。",
  s:"鳥類の網膜の 4 種の単一錐体：Hart, N. S. (2001) Prog. Retin. Eye Res. 20: 675–703。果実の表面の紫外の反射：Burkhardt, D. (1982) Naturwissenschaften 69: 153–157。紫外を返す実は一部で、画でも一部の実だけに艶を置いた。ヒヨドリ一種の感度は測っていないため「鳥の多く」と書いた。画＝紫外の艶を淡い光で示した模式。"},
-{id:"ageha",from:"ナミアゲハ",to:"鳥居の前のあなたへ",hint:"左右になぞると、ひらひらと動けます",
- b:"ミツバチには暗い朱も、\nこの蝶の目には届きます。\n紫外から赤まで、受けとる窓が六つあります。\n同じ鳥居を、いま、あなたと受けとっています。",
+{id:"ageha",c:"Arikawa 2003『J. Comp. Physiol. A』189",from:"ナミアゲハ",to:"鳥居の前のあなたへ",hint:"左右になぞると、ひらひらと動けます",
+ b:"ミツバチには暗い朱も、\nこの蝶の目には届きます。\n紫外から赤まで、受けとる窓が六つあります。\n同じ鳥居の前に、いま、あなたもいます。",
  q:"同じ朱の鳥居を、いくつの目が見てきたでしょう。",
  s:"ナミアゲハ（Papilio xuthus）の複眼は紫外から赤まで 6 種の視細胞を持つ（視細胞の種類の数で、色覚の次元とは別）：Arikawa, K. (2003) J. Comp. Physiol. A 189: 791–800。画＝朱を保ち、紫外の模様も重ねた模式。"},
-{id:"worm",from:"ミミズ",to:"土の上のあなたへ",hint:"画面にふれると、地面が震えます",
- b:"目はありません。\n皮膚で明るさを受けとり、光から遠ざかります。\n地面の震えにも、身をちぢめます。\nあなたの足音も、届いているかもしれません。",
+{id:"worm",c:"Darwin 1881『The Formation of Vegetable Mould』",from:"ミミズ",to:"土の上のあなたへ",hint:"画面にふれると、地面が震えます",
+ b:"目はありません。\n皮膚で明るさに反応し、光から遠ざかります。\n地面の震えにも、身をちぢめます。\nあなたの足音も、届いているかもしれません。",
  q:"知らずに届けているものは、ほかに何があるでしょう。",
  s:"ミミズは眼を持たないが光と振動に反応する：Darwin, C. (1881) The Formation of Vegetable Mould through the Action of Worms, John Murray, ch.1。画と音＝明るさと震えだけを残した模式。ふれたときだけ低い音が鳴る。"},
-{id:"bat",from:"アブラコウモリ",to:"夕暮れの参道のあなたへ",hint:"画面にふれると、声を放ちます",
- b:"夕暮れ、人に聞こえない高い声を放ち、\nはね返る音で、虫と枝のありかを知ります。\n声のたびに、世界が一瞬あらわれるように。\n暗がりのあなたの横も、通りすぎたかもしれません。",
+{id:"bat",c:"Hiryu ほか 2008『J. Acoust. Soc. Am.』124",from:"アブラコウモリ",to:"夕暮れの参道のあなたへ",hint:"画面にふれると、声を放ちます",
+ b:"夕暮れ、人に聞こえない高い声を放ち、\nはね返る音で、虫と枝のありかを知ります。\n声のたびに、はね返りの届いた所が、一瞬だけ分かるとされます。\n暗がりのあなたの横も、通りすぎたかもしれません。",
  q:"見えないまま知る、ということがあるでしょうか。",
  s:"アブラコウモリ（Pipistrellus abramus）は周波数の下がる超音波（終わりがおよそ 40 kHz）で反響定位する：Hiryu, S. et al. (2008) J. Acoust. Soc. Am. 124: EL51–EL56。実際の声は数ミリ秒。音＝人に聞こえる高さへ下げ、時間もゆっくりにし、反響の遅れは省いた模式。画＝反響のとどいた所だけを線で示した模式。"}
 ];
@@ -252,7 +260,7 @@ function hideHint(){$('hint').style.opacity=0}
 $('eye').onclick=()=>{human=!human;$('eye').setAttribute('aria-pressed',human);$('wname').firstChild.textContent=human?'人の目':VW(L[cur]);$('eye').textContent=human?VW(L[cur])+'で受けとる':'人の目で見る'};
 function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];
  $('wname').innerHTML=VW(l)+'<small>碧が人のことばに置きかえた模式</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
- $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pq').textContent=l.q;if(document.body.classList.contains('kids'))furi();$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
+ $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pcite').textContent='出典：'+l.c+'（くわしくは「問いと出典」）';$('pq').textContent=l.q;if(document.body.classList.contains('kids'))furi();$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
  const o=st();$('rk').textContent=o[i]&&o[i].t?'封に挟んだ返事：'+o[i].t:'返事は、この端末の中にだけ残ります。';$('ri').value='';o[i]=Object.assign(o[i]||{},{r:1});save(o);
  world.querySelectorAll('details').forEach(d=>d.open=false);$('paper').classList.remove('fold');world.classList.add('on');sub.style.opacity=0;size();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
  if(l.id==='bat')setTimeout(()=>{if(cur===i&&!pulses.length)pulses.push({t:performance.now()/1000})},700);
