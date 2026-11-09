@@ -328,7 +328,7 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書 ── Qualia/sho';
   $('capTi').textContent = '書の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = '書に触れると音が鳴る。音は録音でなく、書の形から組み立てた合成の模式。';
+  $('capRd').textContent = '音は録音でなく、書の形から組み立てた合成の模式。';
   $('count').textContent = `全 ${stops.length}`;
 }
 function setFocus(it) {
@@ -535,8 +535,8 @@ works.filter(it => it.sho).forEach(placeInRoom);
 scene.add(paperG);
 resize();
 paintHall();
-if (!SHOT) { const w0 = nearest(); if (w0) P.yaw = Math.atan2(-(w0.x - P.x), -(w0.z - P.z)); }   // 2026-11-09：最初の視点は、いちばん近い書の正面へ
-showHint('<b class="lead">書にさわると、音が鳴るよ。</b><span>床を押すと、その向きへ歩く。</span><span>ドラッグで見回す。</span>');
+if (!SHOT) { P.z = 11.2; P.yaw = 0; P.pitch = 0.06; }   // 2026-11-09 第3周：最初は入口の奥から広間を見わたす。墨の立体は小さく遠くに見える
+showHint('<b class="lead">書にさわると、音が鳴るよ。</b><span>床を押すと歩く。</span>');
 const WARM = import('./kit/warm.js');   // 2026-11-05：あとから足す物は、隠したまま材質を組んでから見せる（起動直後の止まりを分ける）
 const warmIn = async (objs) => { try { const W = await WARM; const vs = objs.map(o => o.visible); objs.forEach(o => o.visible = false); for (const o of objs) await W.warmScene(R, scene, cam, { root: o, batch: 2, offscreen: dof.on }); objs.forEach((o, i) => o.visible = vs[i]); } catch (e) { console.warn('warm', e); } };
 const later = () => loadRoomTextures(R, mobile).then(async t => {

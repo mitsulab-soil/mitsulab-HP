@@ -222,3 +222,5 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 .near-sound-points button:hover::before,.near-sound-points button:focus-visible::before{background:#edfdfb;box-shadow:0 0 14px #b3e5e8}
 .near-sound-points button:focus-visible{outline:2px solid #bce8e8;outline-offset:1px;border-radius:4px}
 @media(prefers-reduced-motion:reduce){.near-sound-points button::before{transition:none}}
+
+#labs .lab.dot{font-size:0!important;padding:5px!important;gap:0!important;letter-spacing:0!important}   /* 2026-11-09 第3周：遠くの群れは色の点だけ */

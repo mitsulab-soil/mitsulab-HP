@@ -228,6 +228,7 @@ body{word-break:auto-phrase;line-break:strict}
 /* スマホ：飛ぶ体の「上昇・下降」が右の端で切れていた → 二つを細く */
 @media(max-width:700px){#flightControls button{min-width:32px!important;width:32px;padding:2px!important;font-size:17px!important}#flightControls small{font-size:12px}#bodyControls{gap:7px}}
 </style>
+<link rel="preload" href="assets/poster_pc.webp" as="image" media="(min-width:701px)" fetchpriority="high"><link rel="preload" href="assets/poster_sp.webp" as="image" media="(max-width:700px)" fetchpriority="high">
 <script type="importmap">
 {"imports":{"three":"./vendor/three/build/three.module.js",
 "three/addons/":"./vendor/three/examples/jsm/",
@@ -293,7 +294,7 @@ body{word-break:auto-phrase;line-break:strict}
 <div id="veil"></div>
 
 <header id="top">
-  <span class="topL"><a class="home" href="/#apps" aria-label="mitsulab の作品一覧へ戻る">←</a><span class="dream-title">Qualia/sight</span></span>
+  <span class="topL"><a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">←</a><span class="dream-title">Qualia/sight</span></span>
   <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="出典と設定">＋</button></span>
 </header>
 <aside id="bodyControls" aria-label="身体の操作"><button id="padTog" type="button" aria-expanded="false" aria-label="移動のボタンを出す・しまう">⋯</button><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
@@ -364,6 +365,16 @@ body{word-break:auto-phrase;line-break:strict}
   <p class="whyNote">● その生きもの（か同じ種）で確かめられていること　◐ 近い仲間の研究から推しはかっていること</p>
 </div></div>
 
+<style id="r3poster">/* 2026-11-09 第3周：静止画を先に出し、3D はその裏で組む。← はすぐ押せる */
+#boot{background:#0d1410 url(assets/poster_pc.webp) center/cover no-repeat}
+@media(max-width:700px){#boot{background-image:url(assets/poster_sp.webp)}}
+#boot>div{align-self:end;margin-bottom:max(28px,env(safe-area-inset-bottom));text-shadow:0 1px 8px rgba(0,0,0,.9)}
+#boot b{display:none}#boot p{color:#eef3ea}
+body:not(.booted) #top{z-index:60}body:not(.booted) #top .topR{visibility:hidden}
+.srcTip{pointer-events:auto;min-width:44px;min-height:44px;margin-left:2px;background:none;border:0;color:#f4f8f2;font:600 16px/1 var(--mincho);text-shadow:0 1px 6px #000;cursor:pointer;vertical-align:middle}
+#where b,#where small{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 10px rgba(0,0,0,.9)}
+@media(max-width:700px){#where{top:64px;max-width:86vw}#where small{font-size:14px}}
+</style>
 <div id="boot" role="status" aria-live="polite"><div>
   <b data-n="app">Qualia/sight</b>
   <div id="prog"><i></i></div>
@@ -387,6 +398,10 @@ addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&
 if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261109r2';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
+<script>/* 第3周：静止画が出たら読み込み画面を下ろす。3D が組めたら body.booted */
+(function(){var go=function(){window.MLLoader&&MLLoader.done();};if(document.readyState!=='loading')go();else document.addEventListener('DOMContentLoaded',go);
+var t=setInterval(function(){if(window.__muBoot){document.body.classList.add('booted');clearInterval(t);}},100);
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.srcTip')){e.preventDefault();var m=document.getElementById('menuBtn');m&&m.click();}});})();</script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
 <style id="r2pad">/* 2026-11-09 第2周：押した所へ歩くのが主。移動の盤は ⋯ で出す（飛ぶ身体では出したまま）。右上の札は軽く */
 #bodyControls:not(.open):not(.fly) #bodyForward,#bodyControls:not(.open):not(.fly)>div:not(#flightControls),#bodyControls:not(.open):not(.fly) #bodyBack{display:none!important}

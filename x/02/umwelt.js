@@ -857,7 +857,7 @@ function layoutBodyWheel(){const cur=lensRequest;[...dial.children].forEach(b=>{
 $('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:LENS_IDS.length-1))%LENS_IDS.length]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
 async function veil(fn, token) { $("veil").classList.add("on"); await sleep(RM ? 60 : 260); if(token!==undefined&&token!==lensToken)return false; fn(); await sleep(60); if(token!==undefined&&token!==lensToken)return false; $("veil").classList.remove("on");return true; }
 function setWhere() {
-  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").innerHTML = phrases(LENS[lens].sub); }
+  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; const sub = LENS[lens].sub, cite = /[A-Z][A-Za-z]+ ら \d{4}/.test(sub); $("whereSub").innerHTML = phrases(sub.replace(/・?[A-Z][A-Za-z]+ ら \d{4}/, "").replace(/（）/, "")) + (cite ? '<button type="button" class="srcTip" aria-label="この説明の出典を見る">＋</button>' : ""); }   /* 2026-11-09 第3周：出典の名は＋の中へ（主張のすぐ横の＋から辿れる） */
   else if (chapter === "iro") { $("whereName").textContent = N.ch_iro; $("whereSub").textContent = IRO.lang ? LANGS[IRO.lang].name : "あなたの線を引く"; }
   else { $("whereName").textContent = N.ch_toki; $("whereSub").textContent = "同じ庭を、四つの速さで"; }
 }

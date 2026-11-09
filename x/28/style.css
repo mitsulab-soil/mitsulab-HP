@@ -68,7 +68,8 @@ body.is-all .count{font-family:var(--ml-serif);letter-spacing:.14em;color:var(--
 .credit dd{margin:0;color:var(--ml-ink)}
 .orig .sheet-in{width:min(760px,100%)}
 .orig-fig{margin:0}
-.orig-fig img{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--ml-line-weak)}
+.orig-fig img{display:block;width:100%;height:auto;box-sizing:border-box;background:#e6dfd0;border:16px solid #17130e;outline:1px solid #3b3327;box-shadow:0 12px 44px rgba(0,0,0,.65);filter:brightness(.8) sepia(.14)}   /* 2026-11-09 第3周：白い窓にせず、暗い地の額で（広間の暗さを壊さない） */
+@media(max-width:600px){.orig-fig img{border-width:10px}}
 .orig-fig figcaption{font-family:var(--ml-serif);color:var(--ml-ink);letter-spacing:.06em;margin-top:10px;line-height:1.6}
 .orig-fig .ot{display:block;font-size:1.08rem;font-weight:600}
 .orig-fig .om{display:block;margin-top:6px;font-family:var(--ml-sans);font-size:.8rem;color:var(--ml-ink-3);letter-spacing:.04em}
