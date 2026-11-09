@@ -11,7 +11,7 @@ ${o.css || ""}
 :focus-visible{outline:2px solid #9bdcf0!important;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){.qx-go{animation:none}}`;
   document.head.appendChild(st);
-  const home = document.createElement("a"); home.className = "qx-home"; home.href = "/"; home.setAttribute("aria-label", "mitsulab のホームへ戻る"); home.textContent = "←";
+  const home = document.createElement("a"); home.className = "qx-home"; home.href = "https://mitsulab.jp/"; home.setAttribute("aria-label", "mitsulab のホームへ戻る"); home.textContent = "←";
   document.body.appendChild(home);
   const go = document.createElement("button"); go.className = "qx-go"; go.type = "button"; go.setAttribute("aria-label", o.label || "ここに触れる"); go.hidden = !o.onPress;
   document.body.appendChild(go);
