@@ -81,14 +81,19 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
 @media (min-width:900px){#card{top:auto;bottom:4vh;transform:translate(0,4%) scale(.96)}#card.open{transform:translate(0,0) scale(1)}}
 @media (max-width:600px){#card{max-height:38vh}}
 #veil{background:rgba(2,4,10,.08)!important}
+/* 2026-11-10 第6周：夕暮れの参道（体温のある空と地）・幹に欅の樹皮をはっきり・灯の名を大きく・375 は「とじる」を札の下（指の届く所）に */
+#trees{opacity:.95!important}#trees0{fill:#2a231c}#shade{opacity:.34!important}
+.lt{font-size:calc(18px + 6px*var(--k,0))}
+@media (max-width:600px){.lt{font-size:calc(17px + 5px*var(--k,0))}
+ #card .close{position:sticky!important;top:auto!important;right:auto!important;bottom:4px;margin:14px 0 4px auto;display:flex;align-items:center;justify-content:center;min-height:52px;min-width:120px;font-size:16px!important;background:rgba(243,236,223,.96);box-shadow:0 -6px 14px rgba(243,236,223,.9)}}
 </style>
 </head>
 <body>
 <svg id="scene" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#03060e"/><stop offset=".55" stop-color="#0c1526"/><stop offset="1" stop-color="#131a22"/></linearGradient>
-    <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262a28"/><stop offset="1" stop-color="#121413"/></linearGradient>
-    <radialGradient id="fog" cx=".5" cy=".56" r=".5"><stop offset="0" stop-color="#2a3a4a" stop-opacity=".55"/><stop offset="1" stop-color="#2a3a4a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2238"/><stop offset=".42" stop-color="#3a3550"/><stop offset=".56" stop-color="#6a4f4a"/><stop offset="1" stop-color="#5a4438"/></linearGradient>
+    <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3e34"/><stop offset="1" stop-color="#231c17"/></linearGradient>
+    <radialGradient id="fog" cx=".5" cy=".56" r=".5"><stop offset="0" stop-color="#b08a74" stop-opacity=".42"/><stop offset="1" stop-color="#6a5560" stop-opacity="0"/></radialGradient>
   </defs>
   <rect width="1000" height="1000" fill="url(#sky)"/>
   <pattern id="soil" patternUnits="userSpaceOnUse" width="220" height="220"><image href="tex/soil_forest.webp" width="220" height="220"/></pattern>
@@ -98,7 +103,7 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
   <rect y="560" width="1000" height="440" fill="url(#soil)" opacity=".28"/>
   <!-- 目の高さ（地平＝ y560）から見た参道：両側の並木が遠くへ細くなる -->
   <rect y="540" width="1000" height="120" fill="url(#fog)" opacity=".6"/>
-  <g id="crowns" fill="#0b1310" opacity=".92"></g><g id="trees0" fill="#1c1a17"></g><g id="trees" fill="url(#bark)" opacity=".62"></g><g id="shade" fill="#000" opacity=".28"></g>
+  <g id="crowns" fill="#28332a" opacity=".9"></g><g id="trees0" fill="#1c1a17"></g><g id="trees" fill="url(#bark)" opacity=".62"></g><g id="shade" fill="#000" opacity=".28"></g>
   <linearGradient id="pathL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05080f" stop-opacity=".75"/><stop offset=".45" stop-color="#05080f" stop-opacity=".25"/><stop offset="1" stop-color="#f2cf8c" stop-opacity=".10"/></linearGradient>
   <radialGradient id="pool" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="#f2cf8c" stop-opacity=".16"/><stop offset="1" stop-color="#f2cf8c" stop-opacity="0"/></radialGradient>
   <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="url(#grav)" opacity=".4"/>
@@ -160,7 +165,7 @@ const F=[
  e:"見分けられないことが、そこにあったことを消すわけではない。",
  s:["事実：ミミズは夜、落ち葉を巣穴へ引きこむ（Darwin, C. 1881, The Formation of Vegetable Mould through the Action of Worms, John Murray）。落ち葉は土の動物・菌・細菌によって分解され、養分が土へ戻る（Swift, M. J., Heal, O. W. & Anderson, J. M. 1979, Decomposition in Terrestrial Ecosystems, Blackwell）。","寓話にしたところ：葉や木が何かを感じるかは分からない。「跡が残る」は、分解された物質がほかの生き物の体や土に入ることを、ことばにしたもの。慰めの意味はこめていない。落ち葉を巣穴へ引きこむのは Darwin が観察したヨーロッパのミミズに典型的な行動で、この参道で確かめたものではない。"]},
 {n:"マダニ",c:"#e3b07a",fx:"tick",x:0.2,y:0.45,t:"三つで満ちる",
- b:"一　酪酸の匂い。\n二　温かさ。\n三　毛のふれる感じ。\n\n枝の先で待つマダニの世界は、この寓話では、この三つでできている。\n参道の灯も、鳥の声も、そこには現れない。\nマダニの環世界の中には、外が現れない。",
+ b:"一　酪酸の匂い。\n二　温かさ。\n三　毛のふれる感じ。\n\n枝の先で待つマダニの世界は、この寓話では、この三つでできている。\n参道の灯も、鳥の声も、そこには現れない。\nマダニの環世界の中には、外が現れない。\n\n（ユクスキュル『生物から見た世界』1934 のマダニの例から）",
  e:"あなたの世界の外は、あなたから見えますか。",
  s:["事実：ユクスキュルは、マダニが酪酸の匂い・温かさ・毛のある皮膚への接触という少ない手がかりで動く例を挙げ、生き物ごとの世界を「環世界」と呼んだ（J. v. ユクスキュル、G. クリサート『生物から見た世界』1934。日高敏隆・羽田節子訳、岩波文庫、2005）。","寓話にしたところ：マダニが世界を「満ちている」と感じるかは分からない。三つの手がかりで世界が閉じていることを、ことばにした。"]},
 {n:"記録計",r:"<ruby>記録計<rt>きろくけい</rt></ruby>",c:"#5cc8e0",fx:"rec",x:.8,y:.64,t:"感じない記録",
@@ -205,7 +210,7 @@ net.innerHTML=`<path vector-effect="non-scaling-stroke" d="M${P.map(p=>p.join(" 
 function close(){document.body.className=document.body.className.replace(/fx-\w+/g,"").trim();
  if(read.size===F.length&&!document.body.classList.contains("all")){document.body.classList.add("all");sub.innerHTML="九つの受けとり方が、<br>同じ参道で重なっていました。<small>顔を上げて、目の前の世界へ。</small>";}
  sub.style.opacity=1;card.classList.remove("open");veil.classList.remove("on");if(cur>=0)F[cur].el.focus({preventScroll:true});cur=-1;}
-card.querySelector(".close").onclick=close;veil.onclick=close;
+card.querySelector(".close").onclick=close;if(matchMedia("(max-width:600px)").matches)card.appendChild(card.querySelector(".close"));veil.onclick=close;
 document.getElementById("next").onclick=()=>open((cur+1)%F.length);
 document.getElementById("prev").onclick=()=>open((cur-1+F.length)%F.length);
 addEventListener("keydown",e=>{if(cur<0)return;if(e.key==="Escape")close();if(e.key==="ArrowRight")open((cur+1)%F.length);if(e.key==="ArrowLeft")open((cur-1+F.length)%F.length);});

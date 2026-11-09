@@ -6,7 +6,7 @@ let THREE, GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder; // 3D は操�
 
 const $ = id => document.getElementById(id);
 const MAX = 9, REC_MAX = 15, MOB = matchMedia("(max-width: 899px)").matches;
-const QS = ["いつもは気づかない音は、どこにある？", "手ざわりが、まわりと違う所は？", "ミツバチなら、どこへ向かう？", "スズメなら、どこに降りる？", "タヌキなら、どこを通る？", "あなたの足を止めたものは？"];
+const QS = ["砂利を踏む音は、どこで変わる？", "手ざわりが、まわりと違う所は？", "ミツバチなら、どこへ向かう？", "スズメなら、どこに降りる？", "タヌキなら、どこを通る？", "あなたの足を止めたものは？"];
 /* 2026-11-05：選ぶのは感覚の一段だけ。だれの目かは問いが決める（問いを押すと次の問いへ） */
 const QFIT = { 0: ["sound", "hito"], 1: ["touch", "hito"], 2: ["sight", "hachi"], 3: ["sight", "suzume"], 4: ["smell", "tanuki"], 5: ["sight", "hito"] };
 const SENSES = [
@@ -78,27 +78,35 @@ let R, S, C, sun, items, texL, ray, clk, look; const meshes = new Map(); let aoi
 function init3D() {
 R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
 R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.outputColorSpace = THREE.SRGBColorSpace; R.debug.checkShaderErrors = false;   // 2026-11-03：確かめで止まらない
-S = new THREE.Scene(); S.background = new THREE.Color("#1a2a33"); S.fog = new THREE.Fog("#1a2a33", 5, 19);   // 2026-11-10 第5周：地を明るく
+S = new THREE.Scene(); S.background = new THREE.Color("#a08c84"); S.fog = new THREE.Fog("#a08c84", 7, 24);   /* 第6周：夕方の参道の色（黒・灰の地をやめ体温を） */   // 2026-11-10 第5周：地を明るく
 C = new THREE.PerspectiveCamera(45, 1, .05, 60);
-S.add(new THREE.HemisphereLight("#d8ecff", "#2a2a24", 1.6)); sun = new THREE.DirectionalLight("#fff4e6", 1.6); sun.position.set(2, 4, 3); S.add(sun);
+S.add(new THREE.HemisphereLight("#ffe6cc", "#5a4a3a", 1.7)); sun = new THREE.DirectionalLight("#ffd9a8", 1.9); sun.position.set(2, 4, 3); S.add(sun);
 { // 地：光の等高線（線と点だけ）
   const g = new THREE.Group();
+  { // 2026-11-10 第6周：円い舞台に見えないよう、参道の土を地平まで（霧の色に溶ける）
+    const gd = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.MeshLambertMaterial({ color: "#7a6650" })); gd.rotation.x = -Math.PI / 2; gd.position.y = -.01; gd.renderOrder = -2; S.add(gd); }
   for (let i = 1; i <= 9; i++) { const pts = []; for (let a = 0; a <= 96; a++) { const t = a / 96 * Math.PI * 2, r = i * .55 + Math.sin(t * 3 + i) * .04; pts.push(new THREE.Vector3(Math.cos(t) * r, 0, Math.sin(t) * r)); }
-    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: "#5cc8e0", transparent: true, opacity: .22 - i * .018 }))); }
+    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: "#5cc8e0", transparent: true, opacity: .10 - i * .009 }))); }
   const P = []; for (let i = 0; i < 900; i++) { const r = Math.sqrt(Math.random()) * 6, t = Math.random() * 6.283; P.push(Math.cos(t) * r, 0, Math.sin(t) * r); }
   const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.Float32BufferAttribute(P, 3));
   g.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: "#9bdcf0", size: .015, transparent: true, opacity: .5 })));
   S.add(g);
   // 2026-11-09 第2周：足もとに参道の砂利を淡く（写真 CC0・Qualia/sight と同じ。一枚の円だけで軽く）
   new THREE.TextureLoader().load("web/path_gravel.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(7, 7); t.anisotropy = 4;
-    const m = new THREE.Mesh(new THREE.CircleGeometry(7, 48), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: .5, color: "#aeb6b6", depthWrite: false }));
+    const m = new THREE.Mesh(new THREE.CircleGeometry(7, 48), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: .78, color: "#d8cdb8", depthWrite: false, alphaMap: (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const x = c.getContext("2d"), gr = x.createRadialGradient(32, 32, 8, 32, 32, 32); gr.addColorStop(0, "#fff"); gr.addColorStop(1, "#000"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })() }));
     m.rotation.x = -Math.PI / 2; m.position.y = -.004; m.renderOrder = -1; S.add(m);
     // 2026-11-10 第4周：奥へ続く参道の砂利の道（場所として感じられるように）
     const t2 = t.clone(); t2.needsUpdate = true; t2.repeat.set(2, 14);
     const road = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 30), new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: .62, color: "#cfc6b2", depthWrite: false }));
-    road.rotation.x = -Math.PI / 2; road.position.set(0, -.002, -11); road.renderOrder = -1; S.add(road); });
+    road.rotation.x = -Math.PI / 2; road.position.set(0, -.002, -11); road.renderOrder = -1; S.add(road);
+    // 2026-11-10 第6周：問い「砂利を踏む音は、どこで変わる？」の出どころ＝道の先の、砂利が厚く敷かれた一か所（夕日に光る足あと）
+    const gp = new THREE.Group(); gp.position.set(.35, .003, -2.6); const gm = new THREE.MeshBasicMaterial({ color: "#ffd9a0", transparent: true, opacity: .13, depthWrite: false, blending: THREE.AdditiveBlending });
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(.75, 40), gm); pool.rotation.x = -Math.PI / 2; gp.add(pool);
+    const fm = new THREE.MeshBasicMaterial({ color: "#3a2e24", transparent: true, opacity: .3, depthWrite: false });
+    for (let k = 0; k < 4; k++) { const f = new THREE.Mesh(new THREE.CircleGeometry(.09, 16), fm); f.scale.set(.62, 1.5, 1); f.rotation.x = -Math.PI / 2; f.position.set((k % 2 ? .13 : -.13), .001, .5 - k * .36); gp.add(f); }
+    gp.renderOrder = 0; S.add(gp); window.__gp = gp; });
   // 両側の並木（幹の影だけ。霧に溶ける）
-  { const n = 24, geo = new THREE.CylinderGeometry(.16, .24, 7, 7), mat = new THREE.MeshLambertMaterial({ color: "#9a8f80" }), im = new THREE.InstancedMesh(geo, mat, n), o = new THREE.Object3D();
+  { const n = 24, geo = new THREE.CylinderGeometry(.16, .24, 7, 7), mat = new THREE.MeshLambertMaterial({ color: "#c4b4a0" }), im = new THREE.InstancedMesh(geo, mat, n), o = new THREE.Object3D();
     for (let i = 0; i < n; i++) { const side = i % 2 ? 1 : -1, k = Math.floor(i / 2); o.position.set(side * (2.3 + (k % 3) * .35), 3.5, 2 - k * 2.4); o.rotation.set(0, 0, side * .03); o.scale.setScalar(.85 + (k % 4) * .08); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
     S.add(im);
     // 2026-11-10 第5周：幹にケヤキの樹皮の写真（CC0・碧の層と同じ）。黒い柱に見えないように
@@ -114,7 +122,7 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPl
   const N = n => v.humanoid.getNormalizedBoneNode(n);
   for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1; N(sd + "UpperArm")?.rotation.set(-.06, sg * .06, sg * -1.3); N(sd + "LowerArm")?.rotation.set(0, sg * -.3, 0); }
   v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  v.scene.position.set(0, 0, -1.4); return R.compileAsync(v.scene, C, S).catch(() => { }).then(() => firstUse(v.scene));   // 2026-11-03：材質を並列で組んでから出す（止まらない）
+  v.scene.position.set(1.05, 0, 1.3); v.scene.rotation.y = -.35;   /* 第6周：碧を近くに（画面の右手前） */ return R.compileAsync(v.scene, C, S).catch(() => { }).then(() => firstUse(v.scene));   // 2026-11-03：材質を並列で組んでから出す（止まらない）
 }).catch(() => { });
 items = new THREE.Group(); S.add(items); texL = new THREE.TextureLoader(); ray = new THREE.Raycaster(); look = new THREE.Vector3(0, 1.05, 0); clk = new THREE.Clock();
 resize(); R.compileAsync(S, C).catch(() => { }).then(() => R.setAnimationLoop(frame));   // はじめの一枚で止まらない
@@ -352,7 +360,7 @@ $("q").onclick = () => { if (params.get("q")) return; qi = (qi + 1) % QS.length;
 buildRows(); count(); setQ(params.get("q")?.slice(0, 60) || QS[0]); window.MLLoader?.done(); // 押せる画面を先に出す（3D と保存の読み出しはあと）
 (async () => {
   const m = await get("mine"); if (m && valid(m)) mine = m; const o = await get("others"); if (Array.isArray(o)) others = o.filter(valid);
-  setQ(params.get("q")?.slice(0, 60) || mine.q || QS[0]); qi = Math.max(0, QS.indexOf($("qt").textContent));
+  if (mine.q === "いつもは気づかない音は、どこにある？") mine.q = QS[0]; setQ(params.get("q")?.slice(0, 60) || mine.q || QS[0]); qi = Math.max(0, QS.indexOf($("qt").textContent));
   buildRows(); count(); layout(); reset();
   requestAnimationFrame(() => setTimeout(() => import("three").then(m => { ({ GLTFLoader, VRMLoaderPlugin, VRMUtils, MeshoptDecoder } = m); THREE = m; init3D(); layout(); }).catch(() => { }), 420)); // 読み込みの幕が消えきってから 3D を組む（幕の消えるのを重い処理で遅らせない）
   setTimeout(() => say(mine.items.length ? "続きから。" : "わたしは碧。問いを一つ、置きました。<br>まずは<b>撮る</b>で、気になったものを一枚。", 6500), 600);

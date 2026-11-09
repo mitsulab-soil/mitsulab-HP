@@ -93,7 +93,17 @@ mat.onBeforeCompile = sh => {
 mat.fog = false; const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Math.PI / 2; scene.add(plate);
 // 台：上の面のない箱（へこみが台に隠れない深さ 10 mm の側面だけ）
 { const dark = new THREE.MeshStandardMaterial({ color: 0x0a0f1a, roughness: 1 }), none = new THREE.MeshBasicMaterial({ visible: false });
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; base.userData.plate = true; scene.add(base); }
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; base.userData.plate = true; scene.add(base); window.__touchBase = dark; }
+// 2026-11-10 第6周：樹皮のときは、面のまわりに同じ樹皮の幹（半径 16 cm 相当の弧）が続き、闇へ溶ける＝宙に浮く板でなく幹の一部に見せる
+const TRK = 1.6, trunkMat = new THREE.MeshStandardMaterial({ color: 0xa0968a, roughness: 1, metalness: 0, envMapIntensity: .4 });
+const trunk = new THREE.Mesh(new THREE.CylinderGeometry(TRK, TRK, 3.2, 96, 1, true, Math.PI - 1.22, 2.44).rotateX(Math.PI / 2), trunkMat);
+trunk.position.y = -TRK - .006; trunk.visible = false; scene.add(trunk);
+function trunkFor(v) {
+  let od = null; try { od = objDef; } catch (e) {} const on = v && v.id === "bark" && !od; trunk.visible = on; if (window.__touchBase) window.__touchBase.color.set(on ? 0x2a2119 : 0x0a0f1a);
+  if (!on || trunk.userData.src === v.map) return; trunk.userData.src = v.map;
+  const rep = (t, srgb) => { if (!t) return null; const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(3.9, 3.2); if (srgb) c.colorSpace = THREE.SRGBColorSpace; c.needsUpdate = true; return c; };
+  trunkMat.map = rep(v.map, true); trunkMat.normalMap = rep(v.normalMap); trunkMat.roughnessMap = rep(v.roughMap); trunkMat.needsUpdate = true;
+}
 // 四隅の印と、10 cm の目盛り（事実の線）
 {
   const L = [], c = .53, a = .06;
@@ -219,7 +229,7 @@ function applySurface(v, keepParams = false) {
   surf = v; H = v.H; HN = EN;
   mat.map = v.map; mat.normalMap = v.normalMap; mat.roughnessMap = v.roughMap; mat.displacementMap = v.dispMap; mat.metalness = v.metal; mat.needsUpdate = true;
   if (!keepParams) params = { ...v.p0 };
-  applyParams(); buildSliders(); setSnd(v.snd);
+  trunkFor(v); applyParams(); buildSliders(); setSnd(v.snd);
   $("#originT").textContent = T(v.origin === "photo" ? "origin.photo" : "origin.normal");
   for (const b of document.querySelectorAll("#chips .chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
   const fi = $("#faceS"); if (v.thumb) fi.src = v.thumb; else fi.src = `tex/${v.id}_t.webp?v=20261021`;
@@ -241,7 +251,7 @@ function relief() {
 async function setObject(id) {
   if (objMesh) { scene.remove(objMesh); objMesh.geometry.dispose(); objMesh = null; objHit = null; }
   objDef = OBJECTS.find(o => o.id === id) || null;
-  for (const o of scene.children) if (o.userData.plate) o.visible = !objDef;
+  for (const o of scene.children) if (o.userData.plate) o.visible = !objDef; trunkFor(surf);
   objRim.visible = objKey.visible = !!objDef; fill.intensity = objDef ? .12 : .28;
   plate.visible = !objDef; $("#scaleL").hidden = !!objDef;
   for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));

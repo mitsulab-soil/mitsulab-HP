@@ -223,7 +223,7 @@ void main(){
       col = mix(col, vec3(.72, .65, 1.), clamp(edge, 0., 1.) * .8);
     }
   }
-  float ln = 1. - smoothstep(.4, 1.4 * uDpr, abs(fc.x - sx)); col = mix(col, vec3(.95, .97, 1.), ln * .9 * step(.002, uSeam) * step(uSeam, .998));
+  float ln = 1. - smoothstep(.4, 1.4 * uDpr, abs(fc.x - sx)); float lnv = smoothstep(0., .22, vUv.y) * (1. - smoothstep(.78, 1., vUv.y)); float lg = exp(-pow((fc.x - sx) / (7. * uDpr), 2.)); col = mix(col, vec3(1., .96, .86), (ln * .55 + lg * .12) * lnv * step(.002, uSeam) * step(uSeam, .998)); /* 2026-11-10 第6周：縦線を木もれ日の光の筋に（上下は淡く溶ける） */
   float l2 = 1. - smoothstep(.4, 1.4 * uDpr, abs(fc.x - sx2)); col = mix(col, vec3(.62, .95, .8), l2 * .9 * step(uSeam2, .998));
   gl_FragColor = vec4(col, 1.);
 }` });
