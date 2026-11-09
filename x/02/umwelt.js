@@ -1314,10 +1314,11 @@ STARTUP.sceneBuiltAt = performance.now();
     STARTUP.forestRestAt = performance.now(); })();
   /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 400))]);   /* 2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 3 && dt < 50) || t - t0 > 700) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
-  window.__muBoot = true; document.getElementById("poster")?.classList.add("gone"); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
+  window.__muBoot = true; { const pg = () => document.getElementById("poster")?.classList.add("gone"); if (A.loadDone) pg(); else { aoiReady.finally(() => setTimeout(pg, 120)); setTimeout(pg, 4000); } }   /* 第8周：碧の立つ最初の静止画は、3D の碧が現れるまで残す（森だけの空っぽのこまを見せない） */ $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "画面を押すと、碧といっしょに蜂や犬の目で森を見くらべるよ。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
+  $("r5go")?.addEventListener("click", () => { if (lens === "hito") setTimeout(() => setLens("hachi"), 350); }, { once: true });   // 第8周：「はじめる」で、まずミツバチの目から（子どもにこわくない入口）
   if (!A.hold) { A.appear = true; A.intro = true; if (AM) AM.calm = 2.4; }   // 2026-10-14：待たずに、最初のこまから現れはじめる
 })();
 // 2026-10-14：上の説明（#where）が 2 行に折れても、「歩く…」の行（#moveNote）と予想の札が重ならないよう、高さを #where の下にそろえる

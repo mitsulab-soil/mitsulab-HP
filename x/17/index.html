@@ -45,7 +45,7 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
 @media(max-width:560px){.top{gap:8px;left:12px;top:8px}.top .w{font-size:17px}.top .n{font-size:12px}.hint{top:62px;right:12px}.hint>span{display:none}}
 </style>
 <link rel="modulepreload" href="./vendor/three/build/three.module.js" crossorigin>
-<link rel="modulepreload" href="app.js?v=20261110r4">
+<link rel="modulepreload" href="app.js?v=20261110r8">
 <!-- 2026-11-09 草地と札を先に。碧（VRM）はそのあとで読む -->
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 </head>
@@ -55,7 +55,7 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
 <div class="top"><a class="w" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">← mitsulab</a><span class="n">碧の層</span></div>
 <div class="hint"><button id="meetAoi" type="button">碧に話しかける</button><span>光る花に触れるか、下の札から選ぶ</span></div>
 <div class="cap" id="cap" aria-live="polite"></div>
-<style>/* 2026-11-10 第7周：札に模式の印 */.dock button[data-w]:not([data-w=yori])::before{content:"模式";position:absolute;top:3px;right:5px;font-size:9px;letter-spacing:.06em;color:var(--ml-ink-3,#9aa);opacity:.9}.dock button{position:relative}</style>
+<style>/* 第8周：札の上の「模式」の小さな字は外し、模式と出典は札を押したあとの字幕の＋へ。はじめは「鳥の目」一つだけを淡く光らせて最初の一手を示す */.dock button{position:relative}body:not(.picked) .dock button[data-w=uv]{box-shadow:0 0 0 1px rgba(201,171,224,.9),0 0 18px rgba(201,171,224,.55);animation:r8glow 2.4s ease-in-out infinite}@keyframes r8glow{50%{box-shadow:0 0 0 1px rgba(201,171,224,.6),0 0 8px rgba(201,171,224,.25)}}@media (prefers-reduced-motion:reduce){body:not(.picked) .dock button[data-w=uv]{animation:none}}</style>
 <nav class="dock" aria-label="ひらく世界">
   <button type="button" data-w="uv" style="--c:#c9abe0" aria-pressed="false">鳥の目<i>ultraviolet</i></button>
   <button type="button" data-w="bat" style="--c:#8fb6dc" aria-pressed="false"><span class="l">コウモリの耳</span><span class="s">コウモリ</span><i>ultrasound</i></button>
@@ -64,7 +64,7 @@ body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:min(240px,3
   <button type="button" data-w="yori" style="--c:#a8f2f6" aria-pressed="false" aria-label="すがたを変える（姿を変えた碧）"><span style="font-size:11.5px;line-height:1.25">すがたを<br>変える</span><i>yorishiro</i></button>
 </nav>
 <p class="cr">© mitsulab</p>
-<script>/* 2026-11-09 3D を読む前に押された札・碧に話しかけるを覚えておき、読めたら続ける */window.__early=null;document.querySelector(".dock").addEventListener("click",function(e){var b=e.target.closest("button");if(b&&!window.__bound){window.__early=b.dataset.w;document.getElementById("cap").textContent="ひらいています…";}});document.getElementById("meetAoi").addEventListener("click",function(){if(!window.__bound)window.__early="meet";});</script>
-<script type="module" src="app.js?v=20261110r4"></script>
+<script>/* 2026-11-09 3D を読む前に押された札・碧に話しかけるを覚えておき、読めたら続ける */window.__early=null;document.querySelector(".dock").addEventListener("click",function(e){var b=e.target.closest("button");if(b)document.body.classList.add("picked");if(b&&!window.__bound){window.__early=b.dataset.w;document.getElementById("cap").textContent="ひらいています…";}});document.getElementById("meetAoi").addEventListener("click",function(){if(!window.__bound)window.__early="meet";});</script>
+<script type="module" src="app.js?v=20261110r8"></script>
 </body>
 </html>

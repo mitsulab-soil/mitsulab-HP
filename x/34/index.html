@@ -90,6 +90,16 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
 <style>/* 2026-11-10 第7周：灯の名をもう一段大きく・参道に奥行き（指やマウスの位置で並木の層が少しずれる＝書き割りに見せない） */
 .lt{font-size:calc(21px + 7px*var(--k,0))}.lt ruby rt{font-size:calc(11px + 2px*var(--k,0))}
 @media (max-width:600px){.lt{font-size:calc(19px + 6px*var(--k,0))}}
+/* 2026-11-10 第8周：灯は線の絵の印つき・石灯籠のように参道の両脇へ／375 の札は画面の上まで出し最後まで読める／閉じた札は画面に残さない／最下部の字を読める大きさに */
+.lt{gap:calc(3px + 3px*var(--k,0))}
+.lt i{width:calc(30px + 12px*var(--k,0))!important;height:calc(30px + 12px*var(--k,0))!important;display:grid;place-items:center;border-radius:50%;
+ background:radial-gradient(circle,color-mix(in srgb,var(--c) 30%,#0b0d14) 0%,rgba(8,10,16,.75) 70%)!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 70%,transparent),0 0 16px 3px color-mix(in srgb,var(--c) 35%,transparent)!important}
+.lt i svg{width:66%;height:66%;fill:none;stroke:var(--c);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.lt.read i{box-shadow:0 0 0 1px rgba(242,207,140,.45)!important;background:rgba(8,10,16,.6)!important}.lt.read i svg{stroke:#a59a86}
+#card{visibility:hidden;transition:transform .6s var(--ease),opacity .5s,visibility 0s .6s}#card.open{visibility:visible;transition:transform .6s var(--ease),opacity .5s,visibility 0s}
+.kid{margin-top:10px;font-size:13.5px;line-height:1.8;color:var(--sumi2);border-left:2px solid rgba(138,59,46,.5);padding-left:10px}.kid:empty{display:none}
+footer{font-size:12px}
+@media (max-width:600px){#card{max-height:calc(100dvh - 72px)!important;padding-bottom:max(10px,env(safe-area-inset-bottom))}footer .long{display:none}#sub{top:58px}}
 </style>
 </head>
 <body>
@@ -107,7 +117,9 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
   <rect y="560" width="1000" height="440" fill="url(#soil)" opacity=".28"/>
   <!-- 目の高さ（地平＝ y560）から見た参道：両側の並木が遠くへ細くなる -->
   <rect y="540" width="1000" height="120" fill="url(#fog)" opacity=".6"/>
-  <g id="crowns" fill="#28332a" opacity=".9"></g><g id="trees0" fill="#1c1a17"></g><g id="trees" fill="url(#bark)" opacity=".62"></g><g id="shade" fill="#000" opacity=".28"></g>
+  
+  <linearGradient id="lit" x1="0" y1="0" x2="0" y2="1"><stop offset=".45" stop-color="#f2cf8c" stop-opacity="0"/><stop offset="1" stop-color="#f2cf8c" stop-opacity=".22"/></linearGradient>
+  <g id="crowns" fill="#28332a" opacity=".9"></g><g id="trees0" fill="#1c1a17"></g><g id="trees" fill="url(#bark)" opacity=".62"></g><g id="shade" fill="#000" opacity=".28"></g><g id="glow" fill="url(#lit)"></g><g id="limbs" fill="none" stroke="#2a221b" stroke-linecap="round"></g><g id="leaves" opacity=".9" style="filter:brightness(.42) saturate(.75) sepia(.12)"></g>
   <linearGradient id="pathL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05080f" stop-opacity=".75"/><stop offset=".45" stop-color="#05080f" stop-opacity=".25"/><stop offset="1" stop-color="#f2cf8c" stop-opacity=".10"/></linearGradient>
   <radialGradient id="pool" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="#f2cf8c" stop-opacity=".16"/><stop offset="1" stop-color="#f2cf8c" stop-opacity="0"/></radialGradient>
   <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="url(#grav)" opacity=".4"/>
@@ -132,10 +144,11 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
   <h2 id="ch"></h2>
   <div class="body" id="cb"></div>
   <div class="end" id="ce"></div>
+  <div class="kid" id="ck"></div>
   <details><summary>確かめた事実と、寓話にしたところ</summary><div id="cs"></div></details>
   <div class="row"><button id="prev">← まえ</button><button id="next">つぎ →</button></div>
 </article>
-<footer>© mitsulab. All rights reserved.　AI の学習・生成への利用はお断りします。</footer>
+<footer>© mitsulab. All rights reserved.<span class="long">　AI の学習・生成への利用はお断りします。</span></footer>
 <script>
 /* 表示名はここだけで差し替える */
 const NAME={en:"Qualia/",en2:"fable",ja:"寓話集"};
@@ -185,24 +198,60 @@ const F=[
 /* 参道の敷石の目地：遠くほど詰まる（2026-11-10 第4周） */
 (function(){let h="";for(let i=1;i<16;i++){const y=560+440*Math.pow(i/16,1.8),t=(y-560)/440,xl=470-230*t,xr=530+230*t;h+=`<line x1="${xl}" y1="${y}" x2="${xr}" y2="${y}" stroke-width="${.6+t*1.6}"/>`;}document.getElementById("joints").innerHTML=h;})();
 /* 並木：目の高さから見た遠近（地平 y=560・消失点 x=500） */
-(function(){const g=document.getElementById("trees");let h="",sh="",cr="";
- for(let i=0;i<9;i++){const k=Math.pow(.72,i),dx=470*k+30,w=26*k+2,top=560-430*k,bot=560+380*k;
-  /* 2026-11-10 第5周：棒でなく幹に＝上へ細く・根もとが張り・片側に陰・上に樹冠の影 */
-  for(const cx of [500-dx,500+dx]){const tw=w*.62,fl=w*1.9,j=(i*37%11)/11-.5;
-   h+=`<path d="M${cx-tw/2} ${top} L${cx+tw/2} ${top} L${cx+w/2} ${bot-w*1.2} Q${cx+w*.62} ${bot-w*.3} ${cx+fl/2} ${bot} L${cx-fl/2} ${bot} Q${cx-w*.62} ${bot-w*.3} ${cx-w/2} ${bot-w*1.2}Z"/>`;
-   sh+=`<path d="M${cx+(cx<500?tw*.05:-tw/2)} ${top} L${cx+(cx<500?tw/2:-tw*.05)} ${top} L${cx+(cx<500?w/2:-w*.1)} ${bot} L${cx+(cx<500?w*.1:-w/2)} ${bot}Z"/>`;
-   cr+=`<ellipse cx="${cx+j*w*3}" cy="${top+8*k}" rx="${w*4.2+60*k}" ry="${w*2.2+70*k}"/><ellipse cx="${cx-j*w*4+(cx<500?-1:1)*w*2}" cy="${top+50*k}" rx="${w*3+40*k}" ry="${w*1.6+40*k}"/>`;}}
- g.innerHTML=h;document.getElementById("trees0").innerHTML=h;document.getElementById("shade").innerHTML=sh;document.getElementById("crowns").innerHTML=cr;})();
+/* 2026-11-10 第8周：並木を一本ずつ変える（太さ・高さ・傾き・幹のうねり・二、三本の太い枝）。樹冠は葉の写真（CC0）を重ねた房の集まり。画面の外の木は描かない */
+/* 葉の房の写真（CC0）を一枚ずつ、向きと大きさを変えて枝先に置く */
+const sp=(x,y,w,a)=>{const h=w*285/512;return `<image href="tex/leaf_cluster.webp" x="${(x-w/2).toFixed(1)}" y="${(y-h*.7).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" transform="rotate(${a.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`};
+function trees(){const s=Math.max(innerWidth,innerHeight)/1000,ox=(innerWidth-1000*s)/2,x0=-ox/s-40,x1=(innerWidth-ox)/s+40;
+ let h="",sh="",cr="",lf="",lm="",gl="";const R=n=>{const v=Math.sin(n*12.9898)*43758.5453;return v-Math.floor(v)};
+ for(let i=0;i<11;i++){const k=Math.pow(.74,i);
+  for(const sd of [-1,1]){const r1=R(i*2+(sd>0?1:0)+1),r2=R(i*7+sd*3+11),r3=R(i*5+sd+23);
+   const dx=(470*k+30)*(.93+.14*r1),cx=500+sd*dx,w=(26*k+2)*(.75+.5*r2),top=560-430*k*(.88+.24*r3),bot=560+380*k,lean=(r2-.5)*w*1.4,tw=w*.55,fl=w*2;
+   const cw=w*4.4+70*k;if(cx+cw<x0||cx-cw>x1)continue;
+   const tx=cx+lean,mx=cx+lean*.35+(r3-.5)*w*.5,my=(top+bot)/2;
+   const d=`M${tx-tw/2} ${top} Q${mx-w*.42} ${my} ${cx-w/2} ${bot-w*1.2} Q${cx-w*.62} ${bot-w*.3} ${cx-fl/2} ${bot} L${cx+fl/2} ${bot} Q${cx+w*.62} ${bot-w*.3} ${cx+w/2} ${bot-w*1.2} Q${mx+w*.42} ${my} ${tx+tw/2} ${top}Z`;
+   h+=`<path d="${d}"/>`;gl+=`<path d="${d}"/>`;
+   const sx=sd<0?1:-1;sh+=`<path d="M${tx+sx*tw*.05} ${top} Q${mx+sx*w*.1} ${my} ${cx+sx*w*.1} ${bot} L${cx-sx*w*.5} ${bot} Q${mx-sx*w*.42} ${my} ${tx-sx*tw/2} ${top}Z"/>`;
+   const by=top+(bot-top)*(.12+.1*r1);
+   for(let b=0;b<3;b++){const dir=b===1?-sd:sd*(b?1:.6),y0=by+b*(bot-top)*.05,len=w*(1.1+.7*R(i+b*3+sd)),ex=tx+dir*len,ey=y0-len*(.7+.4*R(b+i));
+    lm+=`<path d="M${tx+dir*tw*.3} ${y0} Q${tx+dir*len*.45} ${y0-len*.15} ${ex} ${ey}" stroke-width="${(tw*.5*(1-b*.2)).toFixed(1)}"/>`;
+    const rr=w*1.6+26*k;lf+=sp(ex,ey,rr*2.6,(dir*.5+(R(i*b+3)-.5)*.6)*57);cr+=`<ellipse cx="${ex}" cy="${ey+rr*.15}" rx="${rr*1.45}" ry="${rr*1.1}"/>`}
+   cr+=`<ellipse cx="${tx+(r1-.5)*w*3}" cy="${top+8*k}" rx="${w*4.2+60*k}" ry="${w*2.2+70*k}"/>`;const cw2=w*3.4+48*k;for(let q=0;q<3;q++)lf+=sp(tx+(q-1)*cw2*.75+(r3-.5)*w*2,top+(q===1?-cw2*.25:cw2*.1),cw2*1.7,(q-1)*25+(r1-.5)*20)}}
+ for(const [id,v] of [["trees",h],["trees0",h],["shade",sh],["crowns",cr],["leaves",lf],["limbs",lm],["glow",gl]])document.getElementById(id).innerHTML=v}
+trees();
 
+/* 2026-11-10 第8周：親子で読むときの一言（子どもに聞かれたら） */
+const KID={tick:"おうちの方へ：マダニは、草や枝の先で、通りかかる動物を待つダニのなかま。人の血を吸うこともあるので、草むらに入るときは長そで・長ズボンで。",
+ end:"おうちの方へ：苫屋（とまや）は、草を編んだ「苫」で屋根をふいた、海辺の小さな家。歌は、何も無い秋の夕ぐれの浜を詠んでいます。",
+ rec:"おうちの方へ：記録計は、土のしめり気を測って、数字を残しつづける機械です。"};
 const box=document.getElementById("lights"),card=document.getElementById("card"),veil=document.getElementById("veil"),sub=document.getElementById("sub");
 let cur=-1;const read=new Set();
-F.forEach((f,i)=>{const b=document.createElement("button");b.className="lt";b.style.left=(f.x*100)+"%";b.style.top=(f.y*100)+"%";
- b.style.setProperty("--c",f.c);b.style.setProperty("--k",Math.max(0,Math.min(1,(f.y-.2)/.68)).toFixed(2));b.innerHTML="<i></i><span>"+(f.r||f.n)+"</span>";b.setAttribute("aria-label",f.n+"の寓話「"+f.t+"」をひらく");b.onclick=()=>open(i);box.appendChild(b);f.el=b;});
+/* 2026-11-10 第8周：灯に絵の印（線の絵）。字が読めなくても何の話か分かるように */
+const IC={bee:'<ellipse cx="12" cy="13" rx="5" ry="6.5"/><path d="M7.5 11h9M7.5 14.5h9M9 7Q5 2 3 6q1 3 6 3M15 7q4-5 6-1-1 3-6 3"/>',
+ tree:'<path d="M12 22V12M12 15l-4-3M12 13l4-3"/><path d="M12 3c-5 0-8 3-7 6 1 3 4 3 7 3s6 0 7-3c1-3-2-6-7-6z"/>',
+ fly:'<path d="M12 6v14M12 9C8 3 3 4 4 9c1 3 5 4 8 3M12 9c4-6 9-5 8 0-1 3-5 4-8 3M12 13c-3 0-6 2-5 5 2 1 4-1 5-3M12 13c3 0 6 2 5 5-2 1-4-1-5-3"/>',
+ worm:'<path d="M3 15c2-4 4-4 6 0s4 4 6 0 4-4 6 0"/><circle cx="21" cy="15" r=".8"/>',
+ bat:'<path d="M2 9c3 0 4 2 5 4 1-1 2-1 3 0l2-3 2 3c1-1 2-1 3 0 1-2 2-4 5-4-1 4-3 7-6 8-1-1-2-1-3 0l-1 1-1-1c-1-1-2-1-3 0-3-1-5-4-6-8z"/>',
+ leaf:'<path d="M5 19C4 10 10 4 20 4c0 10-6 16-15 15zM5 19L14 10"/>',
+ tick:'<ellipse cx="12" cy="13" rx="4.5" ry="5.5"/><circle cx="12" cy="6.5" r="1.6"/><path d="M8 10L3 7M8 13H2.5M8 16l-5 3M16 10l5-3M16 13h5.5M16 16l5 3"/>',
+ rec:'<rect x="4" y="5" width="16" height="12" rx="1"/><path d="M6 14l3-4 3 2 3-5 3 3M12 17v4"/>',
+ end:'<path d="M3 12L12 5l9 7M5 11v9h14v-9M3 12c3-1 6 0 9-1s6 0 9 1"/>'};
+F.forEach((f,i)=>{const b=document.createElement("button");b.className="lt";
+ b.style.setProperty("--c",f.c);b.innerHTML='<i><svg viewBox="0 0 24 24" aria-hidden="true">'+IC[f.fx]+'</svg></i><span>'+(f.r||f.n)+"</span>";b.setAttribute("aria-label",f.n+"の寓話「"+f.t+"」をひらく");b.onclick=()=>open(i);box.appendChild(b);f.el=b;});
+/* 灯は参道の両脇に、石灯籠のように手前から奥へ交互に並べる（コウモリだけは空）。画面の縦横に合わせて並べ直す */
+const ORD=[0,3,5,2,7,6,8,1];/* 手前から奥へ：ミツバチ・ミミズ・落ち葉・アゲハ・記録計・マダニ・苫屋・ケヤキ */
+function place(){const W=innerWidth,H=innerHeight,s=Math.max(W,H)/1000,ox=(W-1000*s)/2,oy=(H-1000*s)/2,hz=560*s+oy,narrow=W<600;
+ const yTop=hz+(narrow?-70:30),yBot=H-(narrow?104:118),n=ORD.length;
+ ORD.forEach((fi,j)=>{const f=F[fi],u=1-j/(n-1),y=yTop+(yBot-yTop)*Math.pow(u,narrow?1:1.1),sy=Math.max(570,(y-oy)/s),t=(sy-560)/440,side=j%2?1:-1;
+  let x=(500+side*(80+330*t))*s+ox;x=Math.max(narrow?62:90,Math.min(W-(narrow?62:90),x));
+  f.el.style.left=x+"px";f.el.style.top=y+"px";f.x=x/W;f.y=y/H;f.el.style.setProperty("--k",Math.max(0,Math.min(1,(y-hz)/(H-hz))).toFixed(2))});
+ const bt=F[4].el;bt.style.left=(W*.5+(narrow?-W*.18:-W*.14))+"px";bt.style.top=(Math.max(narrow?250:170,hz*.42))+"px";bt.style.setProperty("--k","0.2");F[4].x=parseFloat(bt.style.left)/W;F[4].y=parseFloat(bt.style.top)/H}
+place();addEventListener("resize",()=>{clearTimeout(window._pr);window._pr=setTimeout(()=>{place();trees()},150)});
 function open(i){cur=i;const f=F[i];
  document.getElementById("ct").textContent="寓話 "+(i+1)+" ／ "+F.length+"　"+f.n;
  document.getElementById("ch").textContent=f.t;
  document.getElementById("cb").textContent=f.b;
  document.getElementById("ce").textContent=f.e;
+ document.getElementById("ck").textContent=KID[f.fx]||"";
  document.getElementById("cs").innerHTML=f.s.map(x=>"<p></p>").join("");
  [...document.getElementById("cs").children].forEach((p,k)=>p.textContent=f.s[k]);
  card.querySelector("details").open=false;card.scrollTop=0;
@@ -220,7 +269,7 @@ document.getElementById("prev").onclick=()=>open((cur-1+F.length)%F.length);
 addEventListener("keydown",e=>{if(cur<0)return;if(e.key==="Escape")close();if(e.key==="ArrowRight")open((cur+1)%F.length);if(e.key==="ArrowLeft")open((cur-1+F.length)%F.length);});
 </script>
 <script>/* 第7周：並木の層の視差（遠い鳥居ほど少なく、手前の幹ほど大きく）。動き控えめの設定では動かさない */
-(()=>{if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;const L=[["crowns",10],["trees0",16],["trees",22],["shade",22]];let raf=0,px=0,py=0;
+(()=>{if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;const L=[["crowns",10],["trees0",16],["trees",22],["shade",22],["glow",22],["limbs",22],["leaves",14]];let raf=0,px=0,py=0;
 const set=()=>{raf=0;for(const [id,k] of L){const g=document.getElementById(id);if(g)g.setAttribute("transform","translate("+(px*k).toFixed(1)+" "+(py*k*.25).toFixed(1)+")");}const t=document.getElementById("torii");if(t)t.setAttribute("transform","translate("+(500+px*3).toFixed(1)+" 520)");};
 addEventListener("pointermove",e=>{px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5;if(!raf)raf=requestAnimationFrame(set);},{passive:true});
 addEventListener("deviceorientation",e=>{if(e.gamma==null)return;px=Math.max(-.5,Math.min(.5,e.gamma/40));py=0;if(!raf)raf=requestAnimationFrame(set);},{passive:true});})();

@@ -233,7 +233,8 @@ body.pre #keep,body.fade #keep{opacity:1;transition:none}
 </style>
 <style id="song-r5">
 /* 2026-11-10 第5周：再生後の画を少し明るく（碧が沈まない）／奥の白い木立を杜の霧の色に沈める薄い層（映像は描き直さない）／375 は碧が左に切れないよう画の中心を左へ */
-body:not(.pre) #mv{filter:brightness(1.2) contrast(1.04) saturate(1.06)}
+body:not(.pre) #mv{filter:brightness(1.16) contrast(.97) saturate(.7) sepia(.1)}   /* 第8周：線と 0・1 の水色を霞の低い彩度へ */
+#mute,#full{display:none!important}   /* 第8周：下段は ▶ と「曲」の二つに（音は端末の音量で。要素と処理は残す） */
 #mist{--mc:118,96,64;--mg:255,214,150;position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(120% 60% at 70% 6%,rgba(var(--mg),.16),rgba(var(--mg),0) 60%),linear-gradient(180deg,rgba(var(--mc),0) 8%,rgba(var(--mc),.26) 26%,rgba(var(--mc),.22) 44%,rgba(var(--mc),0) 60%);mix-blend-mode:soft-light}/* 2026-11-10 第6周：霧を見る人の時刻の光で暖かく（朝＝金・昼＝淡い琥珀・夕＝茜・夜＝藍に少し灯） */
 @media(max-width:600px) and (orientation:portrait){#mv{object-position:36% 50%}#keep{background-position:46% 50%}}
 .home{color:#dfeaf6}
@@ -259,13 +260,13 @@ body:not(.pre) #mv{filter:brightness(1.2) contrast(1.04) saturate(1.06)}
 </script>
 <header class="top mu-top">
   <div class="brand mu-logo"><span class="ml-title">Qualia/song</span><small class="song-sub">碧の歌を聴く</small></div>
-  <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true" title="杜の中で歌う映像" aria-label="MV（杜の中で歌う映像）">MV</button><button type="button" id="vLive" aria-pressed="false" title="同じ曲を舞台で歌う版" aria-label="ライブ（同じ曲を舞台で歌う版）">ライブ</button></div>
+  <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true" title="杜の中で歌う映像" aria-label="MV（杜の中で歌う映像）">杜で歌う</button><button type="button" id="vLive" aria-pressed="false" title="同じ曲を舞台で歌う版" aria-label="ライブ（同じ曲を舞台で歌う版）">舞台で歌う</button></div>
   <a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">← mitsulab</a>
 </header>
 <button id="framing" type="button" aria-pressed="true" aria-label="映像の全体を表示する">映像の全体を見る</button>
 <section class="hero" aria-label="映像">
   <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
-  <p class="cap" id="cap">碧がうたう、杜の息づかいの歌<small>息づかい＝湿った土と風のゆらぎのたとえ ／ 1分45秒・音が出ます ／ MV＝杜で歌う・ライブ＝舞台で歌う</small></p>
+  <p class="cap" id="cap">碧がうたう、杜の息づかいの歌<small>1分45秒・音が出ます</small></p>
   <div class="bar ml-panel ml-panel--corner" id="bar">
     <button class="ml-btn" id="pp" type="button" aria-label="再生する">▶</button>
     <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生の位置">
