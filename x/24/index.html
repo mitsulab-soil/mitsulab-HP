@@ -8,7 +8,7 @@
 {"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261110r4">
+<link rel="modulepreload" href="app.js?v=20261110r5">
 <link rel="modulepreload" href="data.js">
 <link rel="modulepreload" href="audio.js?v=20261107p2">
 <link rel="modulepreload" href="kit/vegetation.js">
@@ -42,7 +42,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 #heatbar{position:fixed;right:16px;top:calc(92px + env(safe-area-inset-top));display:none;align-items:center;gap:8px;font:11px var(--mono);color:var(--ink3)}
 #heatbar.on{display:flex} #heatbar span{font-family:var(--min);font-size:10px;margin-left:6px} #heatbar b{display:block;width:96px;height:4px;background:linear-gradient(90deg,#120012,#54087f,#d12945,#fa950f,#fff5c7)}
 #cap{position:fixed;left:50%;bottom:calc(66px + env(safe-area-inset-bottom));transform:translateX(-50%);box-sizing:border-box;width:min(calc(100vw - 24px),640px);text-align:center;font-size:14px;line-height:1.8;letter-spacing:.05em;color:var(--ink);opacity:0;transition:opacity .7s;pointer-events:none;
- background:linear-gradient(90deg,rgba(3,6,15,0),rgba(3,6,15,.5) 18%,rgba(3,6,15,.5) 82%,rgba(3,6,15,0));padding:6px 22px}
+ text-shadow:0 0 3px #03060f,0 0 10px rgba(3,6,15,.9),0 0 18px rgba(3,6,15,.6);padding:6px 22px}   /* 第5周：灰色の帯を外し、字の縁取りで読ませる */
 #cap.on{opacity:1}
 .camt{position:fixed;left:0;top:0;font-size:11px;letter-spacing:.08em;color:var(--m);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap;text-shadow:0 0 4px #03060f,0 0 8px #03060f;z-index:2} .camt.on{opacity:.95} .camt.n{color:#9ff0c8;font-size:12px;line-height:1.5;white-space:normal} .camt.n small{font-size:10px;color:var(--ink2)} .camt.r{translate:-100% 0}
 #chs{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom);height:56px;display:flex;justify-content:center;align-items:center;gap:2px;padding:0 10px}
@@ -89,6 +89,7 @@ body{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid
 #chs button{flex:1 1 auto;min-height:44px;height:auto;white-space:normal;overflow-wrap:anywhere}
 #fold{grid-area:2/1/7/2;position:relative;top:auto;right:auto;justify-self:end;align-self:stretch;margin:0 12px 8px;width:min(calc(100% - 24px),420px);min-height:0;max-height:100%;overflow:auto;touch-action:pan-y;z-index:7}
 body:not(.info) #spec,body:not(.info) #heatbar{display:none}
+@media (max-width:520px){.top .mark{position:absolute;left:14px;top:calc(56px + env(safe-area-inset-top));background:rgba(14,26,46,.58);border-radius:6px;padding:4px 10px}.top{padding-left:118px!important}#projToggle{top:calc(92px + env(safe-area-inset-top))!important}}
 </style></head><body>
 <script src="loader.js" data-max="4000"></script>
 <div id="stage"></div>
@@ -97,7 +98,7 @@ body:not(.info) #spec,body:not(.info) #heatbar{display:none}
 <div class="top">
   <div class="mark">Qualia/translate<i>人と機械の認知可能領域</i></div><div class="sp"></div>
   <button class="tb" id="snd" aria-label="音を消す・出す">音</button>
-  <button class="tb" id="out">外から</button>
+  <button class="tb" id="out" aria-label="自分の見え方を外から見る">自分を見る</button>
   <button class="tb" id="plus" aria-label="典拠と次の問い">＋</button>
 </div>
 <div id="spec"></div>
@@ -106,11 +107,11 @@ body:not(.info) #spec,body:not(.info) #heatbar{display:none}
 <div id="cap" aria-live="polite"></div>
 <div id="chs" role="tablist" aria-label="機械の受けとり方"></div>
 <div id="fold"><section class="q-route"><h2>次の問いへ。</h2><p>違う手がかりを持つ主体は、環境を介してどう応え合うでしょうか。</p><a href="../22/" data-question-local="../../17_Qualia_leaf/★実行データ/">変化が伝わる場へ →</a><a href="../19/" data-question-local="../../19_Qualia_keyaki/★実行データ/">一本の木を見直す →</a><p>ここでの機械の画は、取得条件を考えるための模式です。</p></section><h2>この作品について</h2>
-<p>左は人の受けとり方、右は機械の受けとり方。まん中のつまみを動かす・触れる（鳴る）・なぞる（その場所の記述が書き換わり、線が旋律になる）・「外から」で自分の受けとり方を見る。</p>
+<p>左は人の受けとり方、右は機械の受けとり方。まん中のつまみを動かす・触れる（鳴る）・なぞる（その場所の記述が書き換わり、線が旋律になる）・「自分を見る」で自分の受けとり方を見る。</p>
 <p>「機械」は、ここでは一台のカメラ・熱カメラ・LiDAR・マイク・分類器の受けとれる範囲のことです（機械一般の限界ではありません）。機械の画は、機器の仕様と研究の数をもとにした模式です。温度・分類の確からしさの数は例です。音は光の周波数を 40 オクターブ下げた高さなど、聴こえる高さに移した模式です。書き換わるのはこの場所の記述で、場所そのものは変わりません。何も記録・送信しません。</p>
 <h2>問いの手がかり</h2><p>カント『純粋理性批判』（現象と物自体）／ユクスキュル（環世界と機能環）／メルロ＝ポンティ（身体と知覚）／ネーゲル（コウモリであるとはどのようなことか）／クワイン（翻訳の不確定性）／ウィトゲンシュタイン（多くの場合、意味は使われ方にある）／ベイトソン・ウィーナー（循環と帰還）。</p>
 <h2>典拠</h2><ul id="refs"></ul>
 <p>質感：Poly Haven・ambientCG（CC0）／Three.js・three-vrm（MIT）／碧の動き：CMU Graphics Lab Motion Capture Database をもとに mitsulab が作成</p>
 <p>© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p></div>
-<script type="module" src="app.js?v=20261110r4"></script>
+<script type="module" src="app.js?v=20261110r5"></script>
 <script>(()=>{if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script></body></html>

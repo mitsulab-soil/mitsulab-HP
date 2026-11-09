@@ -3,8 +3,8 @@
    触れると鳴る（人の声と機械の声）。なぞると、その場所の記述が書き換わり、線が旋律になる。「外から」で自分の受けとり方が見える。
    描き方：①色の描画（人）②種類・日の当たり・距離の描画（機械のための記述）③二つを縁で合わせる ④線・帯・輪を上に重ねる */
 import * as THREE from "three";
-import { qxEntry } from "./qx.js";
-qxEntry({ css: ".top{padding-left:56px!important}#seam .hd.qx-glow{animation:qxp 2.4s ease-in-out infinite;border-color:#f2d696}#chs button.qx-later{display:none}@media (prefers-reduced-motion:reduce){#seam .hd.qx-glow{animation:none}}#projToggle{position:fixed;left:12px;top:calc(58px + env(safe-area-inset-top));z-index:4;min-height:44px;padding:0 12px;font-size:12px;letter-spacing:.08em;color:var(--ink);background:#07111acc;border:1px solid #9ed9e655;border-radius:22px}#projToggle[hidden]{display:none}#projectionNotes h2{display:flex;align-items:center;justify-content:space-between;gap:8px}.pn-x{min-height:44px;min-width:44px;padding:0 8px;font-size:12px;color:var(--ink)}" });
+import { qxEntry } from "./qx.js?v=20261110r5";
+qxEntry({ css: ".top{padding-left:124px!important}#seam .hd.qx-glow{animation:qxp 2.4s ease-in-out infinite;border-color:#f2d696}#chs button.qx-later{display:none}@media (prefers-reduced-motion:reduce){#seam .hd.qx-glow{animation:none}}#projToggle{position:fixed;left:12px;top:calc(58px + env(safe-area-inset-top));z-index:4;min-height:44px;padding:0 12px;font-size:12px;letter-spacing:.08em;color:var(--ink);background:#07111acc;border:1px solid #9ed9e655;border-radius:22px}#projToggle[hidden]{display:none}#projectionNotes h2{display:flex;align-items:center;justify-content:space-between;gap:8px}.pn-x{min-height:44px;min-width:44px;padding:0 8px;font-size:12px;color:var(--ink)}" });
 import { rng, growTree, plantTrees, leafMaterial, barkMaterial, WIND, poisson } from "./kit/vegetation.js";
 import { installDapple, makeSightGrass, SIGHT_AIR } from "./kit/sight_look.js";
 import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
@@ -133,7 +133,7 @@ for (const t of TREES) for (let i = 0; i < 4; i++) anchors.push(t.trunk[0] + (R(
 let grass = null; setTimeout(() => { grass = makeSightGrass(THREE, scene, { anchors, mobile, reduced }); mpatch(grass.mesh.material, 5); }, 60);   // 最初の絵のあとに生やす
 
 /* ── 碧（3D）── */
-let aoi = null; const AOI = mobile ? new V3(-.55, 0, 2.9) : new V3(-1.35, 0, 3.4);
+let aoi = null; const AOI = mobile ? new V3(-.35, 0, 2.6) : new V3(-1.05, 0, 3.0);   /* 第5周：左端で半身にならないよう内へ */
 setTimeout(async () => {
   try { const { loadAoi } = await import("./kit/aoi.js");
     aoi = await loadAoi("assets/aoi/aoi.vrm", { scene, renderer, camera: cam, reducedMotion: reduced });
@@ -402,7 +402,7 @@ function setCh(i) {
 $("#chs").innerHTML = `<span class="end">具体から</span>` + CH.map((c, i) => `<button data-i="${i}">${c.name}</button>`).join("") + `<span class="end">抽象へ</span>`;
 document.querySelectorAll("#chs button").forEach(b => b.addEventListener("click", e => { music.start(); setCh(+b.dataset.i); }));
 document.querySelectorAll("#chs button").forEach((b, j) => j && b.classList.add("qx-later")); function qxReveal() { document.querySelectorAll("#chs .qx-later").forEach(b => b.classList.remove("qx-later")); seamHandleGlow?.classList.remove("qx-glow"); } var seamHandleGlow = document.querySelector("#seam .hd"); seamHandleGlow?.classList.add("qx-glow"); setTimeout(() => seamHandleGlow?.focus({ preventScroll: true }), 0); setTimeout(qxReveal, 20000);
-$("#out").addEventListener("click", () => { music.start(); outOn = !outOn; if (outOn) { seamKeep = seam; seam = 1; } else seam = seamKeep; $("#out").textContent = outOn ? "戻る" : "外から"; document.body.classList.toggle("out", outOn); $("#out").classList.remove("hint");
+$("#out").addEventListener("click", () => { music.start(); outOn = !outOn; if (outOn) { seamKeep = seam; seam = 1; } else seam = seamKeep; $("#out").textContent = outOn ? "戻る" : "自分を見る"; document.body.classList.toggle("out", outOn); $("#out").classList.remove("hint");
   capQ = capQ.filter(k => k === "hint"); if (outOn) { const fin = seen.size >= 4 && STROKES.length >= 1; if (!said.has("self")) { said.add("self"); show("self"); if (!fin) say("self2", { once: true }); } else if (!fin) say("kant", { once: true }); checkEnd(); } });
 $("#snd").addEventListener("click", () => { music.start(); music.setMuted(!music.muted); $("#snd").classList.toggle("off", music.muted); });
 document.addEventListener("visibilitychange", () => { if (!music.ctx) return; document.hidden ? music.ctx.suspend() : (!music.muted && music.ctx.resume()); });
@@ -419,7 +419,7 @@ function createProjectionNotes() {
   const rail = document.createElement("section"); rail.id = "projectionNotes"; rail.hidden = true; rail.setAttribute("aria-label", "帯と場面のラベル");
   rail.innerHTML = '<h2>手がかり・模式のラベル<button type="button" class="pn-x" aria-label="ラベルの一覧を閉じる">閉じる ×</button></h2><div id="projectionList" tabindex="0" aria-label="ラベルをスクロール"></div>';
   document.body.appendChild(rail); const list = rail.lastElementChild; let railOpen = false;
-  const tog = document.createElement("button"); tog.type = "button"; tog.id = "projToggle"; tog.hidden = true; tog.textContent = "＋ ラベル"; tog.setAttribute("aria-label", "手がかり・模式のラベルの一覧をひらく"); document.body.appendChild(tog);
+  const tog = document.createElement("button"); tog.type = "button"; tog.id = "projToggle"; tog.hidden = true; tog.textContent = "＋ 名前の一覧"; tog.setAttribute("aria-label", "手がかり・模式のラベルの一覧をひらく"); document.body.appendChild(tog);
   const setOpen = on => { railOpen = on; rail.hidden = !active || !railOpen; tog.hidden = !active || railOpen; svg.toggleAttribute("hidden", !active || !railOpen); nextCheck = 0; (on ? rail.querySelector(".pn-x") : tog).focus({ preventScroll: true }); };
   tog.addEventListener("click", e => { e.stopPropagation(); setOpen(true); }); rail.querySelector(".pn-x").addEventListener("click", e => { e.stopPropagation(); setOpen(false); });
   for (const ev of ["pointerdown", "pointerup"]) tog.addEventListener(ev, e => e.stopPropagation());
@@ -680,9 +680,11 @@ function frame() {
   // 重いときは画素を下げる
   if (dt > .045) slow += dt; else slow = Math.max(0, slow - dt * .5);
   if (slow > 1.5 && dpr > .7) { dpr = Math.max(.7, dpr - .2); slow = 0; resize(); }
-  if (first) { first = false; window.MLLoader?.done(); window.__ready = performance.now(); setTimeout(() => say("open"), 300); }
+  if (first) { first = false; window.MLLoader?.done(); window.__ready = performance.now(); setTimeout(() => say("open"), 300); demoSeam(); }
 }
 let seamShown = seam;
+/* 第5周：最初の一回だけ、つまみが自分で左右に動いて見せる（触れたら止む・動きを減らす設定では動かさない） */
+function demoSeam() { if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const s0 = seam, t0 = performance.now(); let stop = false; const off = () => { stop = true; }; addEventListener("pointerdown", off, { once: true, capture: true }); addEventListener("keydown", off, { once: true, capture: true }); const step = () => { if (stop || outOn) return; const u = (performance.now() - t0) / 2600; if (u >= 1) { seam = s0; return; } seam = Math.max(.08, Math.min(.92, s0 - Math.sin(u * Math.PI * 2) * .2 * Math.sin(u * Math.PI))); requestAnimationFrame(step); }; setTimeout(() => requestAnimationFrame(step), 900); }
 setCh(0); said.delete("cam"); capT = 0; $("#cap").classList.remove("on"); capQ = [];
 frame();
 window.__app = { dpr: v => { dpr = v; resize(); }, size: () => [renderer.domElement.width, renderer.domElement.height, innerWidth, innerHeight, dpr], setCh, setSeam: x => { seam = x; }, out: v => { outOn = v; }, STROKES, hitAt, said, finishStroke, growStroke, attend };

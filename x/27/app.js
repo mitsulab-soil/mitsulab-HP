@@ -12,7 +12,7 @@ const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, 
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
-const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（葉が落ち、変化が広がる）", css: "#aw-ui .aw-mark{margin-left:40px!important}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { document.body.classList.add("qx-started"); heroFall = 0; document.getElementById("qx-vig")?.classList.add("out"); tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
+const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（葉が落ち、変化が広がる）", css: "#aw-ui .aw-mark{margin-left:112px!important}@media (max-width:520px){#aw-ui .aw-mark{margin-left:0!important;margin-top:46px!important}}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { document.body.classList.add("qx-started"); heroFall = 0; document.getElementById("qx-vig")?.classList.add("out"); tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
 
 const W = await createAwai({
   title: "Qualia/leaf", sub: "一枚の葉が、次のだれかへ届く", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
@@ -59,7 +59,7 @@ W.onFirstInput(() => snd.start());
   body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../21/\">一枚の葉を、言葉で読む（Qualia/literature）→</a><a href=\"../29/\" data-question-local=\"../../19_Qualia_keyaki/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
   fold.querySelector('summary').setAttribute('aria-label','だれ？ どこから？（主体と典拠）と次の問い');fold.querySelector('summary').textContent='だれ？・どこから？ ＋';
   if(!/\/x\/\d+(\/|$)/.test(location.pathname))body.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);
-  body.querySelector('[data-question-return]').addEventListener('click',e=>{
+  body.querySelector('[data-question-return]').setAttribute('aria-label','風景に戻る');body.querySelector('[data-question-return]').addEventListener('click',e=>{
    e.stopPropagation();W.setAbs(0);if(snd.on)W.sndBtn.click();
    W.sayNow('身近な木のまわりで、一つの変化がどこへ届くか、確かめてみてください。',8);
    fold.open=false;fold.querySelector('summary').focus({preventScroll:true});
@@ -163,7 +163,7 @@ const chainM = new THREE.MeshBasicMaterial({ color: 0xffe2a8, transparent: true,
 let chainMesh = null, chainCurve = null, chainU = 0, chainV = 0;
 const buildChain = () => { chainCurve = new THREE.CatmullRomCurve3(chainPts(), false, "centripetal"); chainMesh = new THREE.Mesh(new THREE.TubeGeometry(chainCurve, 90, MOBILE ? .016 : .012, 5, false), chainM); W.add(chainMesh); };
 const chainDotM = pointMat(0xfff4d8, MOBILE ? .3 : .22, 1); chainDotM.opacity = 0; const chainDot = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), chainDotM); chainDot.visible = false; W.add(chainDot);
-const heroLeaf = PR.keyakiLeaf(.09); const HS = innerWidth < innerHeight * .8 ? 2.3 : 2.9, _fw = new THREE.Vector3();   /* 2026-11-10 第4周：はじめは目の前の一枚を視界いっぱいに（literature の並木と分ける） */ W.add(heroLeaf); const HERO0 = new V3(innerWidth < innerHeight * .8 ? .05 : .16, 1.45, 6.32); heroLeaf.position.copy(HERO0); let heroFall = -1;
+const heroLeaf = PR.keyakiLeaf(.09); const HS = innerWidth < innerHeight * .8 ? 1.15 : 1.25,   /* 第5周：葉は実寸に近く（約 10 cm）、目のすぐ前に */ _fw = new THREE.Vector3();   /* 2026-11-10 第4周：はじめは目の前の一枚を視界いっぱいに（literature の並木と分ける） */ W.add(heroLeaf); const HERO0 = new V3(innerWidth < innerHeight * .8 ? .05 : .16, 1.45, 6.32); heroLeaf.position.copy(HERO0); let heroFall = -1;
 const LEAF = { tit: "シジュウカラには、落ちる葉は動く影。目が向く。", hum: "人には、葉は十一月の色。黄から赤茶へ移る、季節のことば。", fungi: "菌と細菌には、葉は食べもの。落ちる前から、葉の表にすんでいた。" };
 const leafSaid = new Set(); let saidSens = false;
 // ノードの印：足もとの輪・立ちのぼる線・名札
@@ -186,7 +186,7 @@ const nodeOf = id => N.find(n => n.id === id);
 {
  const fold=W.ui.querySelector('.aw-fold'), body=fold?.querySelector('div');
  if(body){const group=document.createElement('fieldset');group.className='q-route';group.style.border='0';group.innerHTML='<legend>輪を選んで、変化を起こす</legend>';
- for(const n of N){const b=document.createElement('button');b.type='button';b.textContent=n.sub+'の輪に触れる';b.addEventListener('click',e=>{e.stopPropagation();tapNode(n);fold.open=false;fold.querySelector('summary').focus({preventScroll:true});});group.appendChild(b);}body.prepend(group);fx.open=true;body.appendChild(fx);}
+ for(const n of N){const b=document.createElement('button');b.type='button';b.textContent=n.sub+'の輪に触れる';b.setAttribute('aria-label',n.sub+'の輪に触れる');b.addEventListener('click',e=>{e.stopPropagation();tapNode(n);fold.open=false;fold.querySelector('summary').focus({preventScroll:true});});group.appendChild(b);}body.prepend(group);fx.open=true;body.appendChild(fx);}
 }
 
 // 立ちのぼる粒（P：環境から手がかりが入る）
@@ -251,7 +251,7 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 /* 2026-11-09 第3周：はじめは目の前の葉だけ（押すまで動かさない） */   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("目の前の一枚の葉に触れてみよう。落ちたあと、だれの何になる？"); const axHint = () => { if (!GO.done) return setTimeout(axHint, 3000); document.body.classList.add("qx-started"); W.say("右の線を上へなぞると、同じつながりが図と式になる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }; setTimeout(axHint, 7000); }, 900);
+setTimeout(() => { W.say("目の前の一枚の葉に触れてみよう。落ちると、鳥が気づき、つながりが動きだす。"); const axHint = () => { if (!GO.done) return setTimeout(axHint, 3000); document.body.classList.add("qx-started"); W.say("右の線を上へなぞると、同じつながりが図と式になる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }; setTimeout(axHint, 7000); }, 900);
 let saidDown = false, saidGround = false, wentUp = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
@@ -264,7 +264,7 @@ W.onAbs(a => {
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
   if (heroFall >= 0) { if (!chainMesh) buildChain(); chainV = Math.min(1, chainV + dt * .8); const v = (1 - ss(.25, .55, a)) * chainV; chainM.opacity = .5 * v; chainMesh.visible = v > .01; chainU = (chainU + dt * (RM ? 0 : .2)) % 1; chainDot.position.copy(chainCurve.getPointAt(chainU)); chainDotM.opacity = v; chainDot.visible = v > .01; }   // compute から：入力の連鎖の光る線
-  { const hv = RM ? 0 : 1; if (heroFall < 0) { camera.getWorldDirection(_fw); HERO0.copy(camera.position).addScaledVector(_fw, .34); HERO0.y -= .015; heroLeaf.scale.setScalar(HS); heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv); heroLeaf.material.emissive?.setRGB(.5, .3, .05); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.scale.setScalar(lerp(HS, 1, Math.min(1, u * 2.5))); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
+  { const hv = RM ? 0 : 1; if (heroFall < 0) { camera.getWorldDirection(_fw); HERO0.copy(camera.position).addScaledVector(_fw, .2); HERO0.y -= .015; heroLeaf.scale.setScalar(HS); heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv); heroLeaf.material.emissive?.setRGB(.14, .08, .015); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.scale.setScalar(lerp(HS, 1, Math.min(1, u * 2.5))); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
   if (!GO.done) { goId = "tree"; _pv.copy(heroLeaf.position).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < .95 && Math.abs(_pv.y) < .95 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
   { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(.6, 1.3, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .04 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く
