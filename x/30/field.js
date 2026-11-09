@@ -75,7 +75,7 @@ if(!mobile){sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(
 const L=new T.TextureLoader(),tex=(n,r,col)=>{const t=L.load('assets/'+n);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(r,r);if(col)t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;};
 // 場の状態を地面へ：湿り→暗く・艶、踏み跡→わずかに明るく締まる
 const fieldTex=new T.DataTexture(new Uint8Array(NN*4),N,N,T.RGBAFormat);fieldTex.magFilter=fieldTex.minFilter=T.LinearFilter;fieldTex.needsUpdate=true;
-const gMat=new T.MeshStandardMaterial({map:tex('soil_c.webp',30,1),normalMap:tex('soil_n.webp',30),roughness:.95,color:0xd8cfb4});
+const gMat=new T.MeshStandardMaterial({map:tex('soil_c.webp',30,1),normalMap:tex('soil_n.webp',30),roughness:.95,color:0xaeac98});   /* 2026-11-10 第4周：枯れ色を抑え、湿った土の落ち着いた色に */
 gMat.onBeforeCompile=sh=>{sh.uniforms.uField={value:fieldTex};sh.uniforms.uPulse={value:0};sh.uniforms.uSky={value:scene.fog.color};sh.uniforms.uRad={value:0};gMat.userData.u=sh.uniforms;
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vF;varying vec3 vWp;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nvec4 wpF=modelMatrix*vec4(transformed,1.);vWp=wpF.xyz;vF=(wpF.xz+'+H.toFixed(1)+')/'+SIZE.toFixed(1)+';');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vF;varying vec3 vWp;uniform vec3 uSky;uniform sampler2D uField;uniform float uPulse,uRad;float fWet,rg;')
@@ -140,13 +140,18 @@ function updateOthers(now,dt){
 }
 // ---------- 身体と操作 ----------
 let yaw=Math.atan2(-(TREE.x-me.x),-(TREE.z-me.z))+.5,pitch=-.06,target=null,moving=false,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const goP={x:me.x-Math.sin(yaw)*3.4,z:me.z-Math.cos(yaw)*3.4},goV=new T.Vector3();const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:54px!important}',onPress:()=>{target={x:goP.x,z:goP.z};$('hint').style.opacity=0;}});
+/* 2026-11-10 第4周：最初に見せる一つ＝水際の光。押すとそこへ歩き、着く前から足もとの土に水がしみこむ */
+const goP=(()=>{const dx=me.x-POND.x,dz=me.z-POND.z,l=Math.hypot(dx,dz),r=pondR()+.7;return{x:POND.x+dx/l*r,z:POND.z+dz/l*r};})(),goV=new T.Vector3();
+const edgeM=new T.SpriteMaterial({map:dotTex(),color:0xfff3c8,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0});const edgeGlow=new T.Sprite(edgeM);edgeGlow.scale.set(1.1,1.1,1);edgeGlow.position.set(goP.x,.12,goP.z);_add(edgeGlow);let edgeOn=1;
+function splash(x,z,a=.8){const k0=idx(x,z);if(k0<0)return;for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const kk=k0+dj*N+di;if(kk<0||kk>=NN)continue;const f=1-Math.hypot(di,dj)/3.2;if(f<=0)continue;w[kk]=Math.min(1,w[kk]+a*f);d[kk]=Math.min(2,d[kk]+1.4*f);}}
+const probeTag=document.createElement('div');probeTag.textContent='土の湿りを測る棒（センサー）';probeTag.setAttribute('aria-hidden','true');probeTag.style.cssText='position:fixed;left:0;top:0;pointer-events:none;font-size:11px;letter-spacing:.06em;white-space:nowrap;text-shadow:0 1px 3px #000,0 0 10px #000a;transform:translate(-50%,-140%);opacity:0;transition:opacity .6s';document.body.appendChild(probeTag);const prV=new T.Vector3();
+setTimeout(()=>{splash(goP.x,goP.z,.9);},1200);const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:54px!important}',onPress:()=>{target={x:goP.x,z:goP.z};splash(goP.x,goP.z,.7);$('hint').style.opacity=0;}});
 const ray=new T.Raycaster(),ndc=new T.Vector2();let down=null;
 /* 2026-11-09 第3周：押した所に輪を一つ（どこへ行くかが分かる） */const tapRing=new T.Mesh(new T.RingGeometry(.42,.5,40).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0xf6f0d6,transparent:true,opacity:0,depthWrite:false,toneMapped:false}));tapRing.visible=false;tapRing.renderOrder=5;scene.add(tapRing);
 const cv=$('w');
 cv.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false};cv.setPointerCapture(e.pointerId);});
 cv.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>6)down.moved=true;if(down.moved){yaw=down.yaw+dx*.005;pitch=Math.max(-.7,Math.min(.5,down.pitch+dy*.004));}});
-cv.addEventListener('pointerup',e=>{if(down&&!down.moved){GO.end();ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(h){target={x:Math.max(-11,Math.min(11,h.point.x)),z:Math.max(-11,Math.min(11,h.point.z))};tapRing.position.set(target.x,h.point.y+.03,target.z);tapRing.userData.t=0;tapRing.visible=true;}$('hint').style.opacity=0;}down=null;});
+cv.addEventListener('pointerup',e=>{if(down&&!down.moved){GO.end();ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(h){target={x:Math.max(-11,Math.min(11,h.point.x)),z:Math.max(-11,Math.min(11,h.point.z))};tapRing.position.set(target.x,h.point.y+.03,target.z);tapRing.userData.t=0;tapRing.visible=true;splash(target.x,target.z,.6);}$('hint').style.opacity=0;}down=null;});
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 function walk(dt){let vx=0,vz=0;const f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),sd=(keys.d?1:0)-(keys.a?1:0);
   if(keys.arrowleft)yaw+=dt*1.2;if(keys.arrowright)yaw-=dt*1.2;
@@ -172,7 +177,7 @@ function sound(){if(!A||!A.on)return;const t=A.ac.currentTime;if(field.pulse>.98
   A.g2.gain.setTargetAtTime(field.sap*near*.025*att,t,.6);A.o2.frequency.setTargetAtTime(165+field.sap*60,t,.8);}       // 樹の吸い上げ（近いほど）
 
 // ---------- 毎フレーム ----------
-const fog=new T.Color(),dry=new T.Color(0xc6d4d6),wet=new T.Color(0xaab8ba),dropC=new T.Color(),tmpV=new T.Vector3();
+const fog=new T.Color(),dry=new T.Color(0xc4d6dc),wet=new T.Color(0xa9bcc0),dropC=new T.Color(),tmpV=new T.Vector3();
 let last=performance.now(),acc=0,ready=false,ringI=0,ringAcc=0,frames=0;
 function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;frames++;if(tapRing.visible){const u=(tapRing.userData.t+=dt)/1.1;tapRing.scale.setScalar(.4+u*1.4);tapRing.material.opacity=.85*(1-u);if(u>=1)tapRing.visible=false;}
   acc+=dt;while(acc>=.1){step(.1);acc-=.1;}
@@ -181,6 +186,8 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   const bob=reduce?0:(moving?Math.sin(now*.009)*.025:0);cam.position.set(me.x,1.55+bob,me.z);
   cam.rotation.set(0,0,0);cam.rotateY(yaw);cam.rotateX(pitch);
   if(!GO.done){cam.updateMatrixWorld();goV.set(goP.x,.05,goP.z).project(cam);GO.place(goV.z<1&&Math.abs(goV.x)<.9&&Math.abs(goV.y)<.9?(goV.x+1)/2*innerWidth:null,(1-goV.y)/2*innerHeight);}
+  {const dE=Math.hypot(me.x-goP.x,me.z-goP.z);if(edgeOn&&dE<1.2)edgeOn=0;const k=edgeOn?.75+.25*(reduce?0:Math.sin(now*.003)):0;edgeM.opacity+=(k-edgeM.opacity)*Math.min(1,dt*3);edgeGlow.visible=edgeM.opacity>.01;}
+  {prV.set(PROBE.x,.85,PROBE.z).project(cam);const dP=Math.hypot(me.x-PROBE.x,me.z-PROBE.z),on=prV.z<1&&Math.abs(prV.x)<.9&&Math.abs(prV.y)<.9&&dP<7;probeTag.style.opacity=on?.9:0;if(on)probeTag.style.left=((prV.x+1)/2*innerWidth|0)+'px',probeTag.style.top=((1-prV.y)/2*innerHeight|0)+'px';}
   // 空気 → 霧と光
   fog.copy(dry).lerp(wet,field.air);scene.fog.color.copy(fog);scene.background.copy(fog);scene.fog.density=(.012+.022*field.air)*(1-.35*field.pulse);
   sun.intensity=2.5-1.0*field.air;
