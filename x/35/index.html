@@ -19,7 +19,7 @@ h1{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;font-w
 h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 .meter{position:fixed;right:16px;top:max(26px,calc(env(safe-area-inset-top) + 12px));font:12px/1.5 "JetBrains Mono",ui-monospace,Menlo,monospace;color:var(--t3);text-align:right;pointer-events:none;letter-spacing:.04em}
 .meter b{font-weight:400;color:var(--t2)}
-.cap{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));text-align:center;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-size:14px;line-height:1.7;color:var(--t1);text-shadow:0 0 8px #03060f,0 0 2px #03060f;pointer-events:none;transition:opacity .8s;max-width:640px;margin:0 auto}
+.cap{text-wrap:balance;word-break:keep-all;overflow-wrap:anywhere;position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));text-align:center;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-size:14px;line-height:1.7;color:var(--t1);text-shadow:0 0 8px #03060f,0 0 2px #03060f;pointer-events:none;transition:opacity .8s;max-width:640px;margin:0 auto}
 .bar{position:fixed;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:8px;padding:0 16px;flex-wrap:nowrap}
 .bar button,.fold summary{font:inherit;font-size:13px;color:var(--t2);background:rgba(3,6,15,.55);border:1px solid var(--line);border-radius:2px;min-height:44px;padding:0 14px;cursor:pointer;letter-spacing:.04em;white-space:nowrap;min-width:64px}
 .bar button[aria-pressed="true"]{color:var(--t1);border-color:var(--aoi)}
@@ -32,6 +32,7 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 .fold .in p+p{margin-top:8px}
 .fold .in .k{color:var(--t3);font-size:12px}
 .fold[open] .in{max-height:calc(100vh - 260px)}
+body.fo .cap{opacity:0!important;transition:none}
 @media (max-width:420px){.bar button{padding:0 10px;font-size:12.5px}.bar{gap:6px}h1 small{display:none}}
 </style>
 </head>
@@ -41,10 +42,10 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 <div class="meter" aria-live="off"><span id="mN"></span><br>向きのそろい <b id="mA">0.00</b><br>群れ <b id="mG">0</b></div>
 <details class="fold" id="fold"><summary>＋ 出典と模式</summary><div class="in">
 <p>一つひとつの点は、近くの仲間だけを見て動きます。<b style="font-weight:400;color:var(--t1)">離れる</b>（ぶつからない）・<b style="font-weight:400;color:var(--t1)">そろえる</b>（向きを合わせる）・<b style="font-weight:400;color:var(--t1)">寄る</b>（近くの中心へ）。全体の形を知る者も、指示を出す中心もありません。</p>
-<p>見える範囲（半径と視野角）がそれぞれの環世界です。範囲が重なると、互いの動きが互いの入力になり、そのくり返しで群れの形が生まれます。明るい点ほど、多くの仲間の範囲に入っています。</p>
+<p>見える範囲（半径と視野角）がそれぞれの環世界です。範囲が重なると、互いの動きが互いの入力になり、そのくり返しで群れの形が生まれます。明るい点ほど、多くの仲間の範囲に入っています。緑の細い線は「見ている → 見られている」のつながり（一部だけを描いています）。</p>
 <p>「個に閉じない系としての認知」を、計算で試す模式として置いています（仮説としての読み）。</p>
 <p class="k">事実：三つの規則で群れを計算する方法は、Craig W. Reynolds「Flocks, Herds, and Schools: A Distributed Behavioral Model」Computer Graphics 21(4): 25–34（SIGGRAPH ’87, 1987）による。近傍を距離と向きで限る考え方も同論文。</p>
-<p class="k">右上の数：向きのそろい＝全員の向きの平均の長さ（0 ばらばら〜1 一方向）。群れ＝見えている仲間どうしをつないだ 8 体以上の塊の数。</p><p class="k">模式：半径・視野角・重み・速さの数値、見えない器の壁（遠くへ行きすぎたら戻る）、一体が見る仲間の数の上限（計算を軽くするため）は、この作品で決めたもの。実在の鳥や魚の測定ではありません。音は計算の値（そろい）から合成した音です。</p>
+<p class="k">右上の数：向きのそろい＝全員の向きの平均の長さ（0 ばらばら〜1 一方向）。群れ＝見えている仲間どうしをつないだ 8 体以上の塊の数。</p><p class="k">模式：半径・視野角・重み・速さの数値、ゆっくり動く見えない器（遠くへ行きすぎたら戻る）、一体が見る仲間の数の上限（計算を軽くするため）は、この作品で決めたもの。実在の鳥や魚の測定ではありません。音は計算の値（そろい）から合成した音です。</p>
 </div></details>
 <p class="cap" id="cap">空間に触れると、あなたが一体として入ります。</p>
 <div class="bar">
@@ -71,7 +72,7 @@ const PRE=[ // 視野の型（模式）
  {name:'ふつう',R:5.5,fov:270},
  {name:'ひろい',R:9.0,fov:340}];
 let pre=1;let R=PRE[1].R,cosH=Math.cos(PRE[1].fov*Math.PI/360);
-const WALL=34,VMIN=3.2,VMAX=7.5,SEP=1.4,MAXNB=14;
+const WALL=38,VMIN=3.2,VMAX=7.5,SEP=1.4,MAXNB=14;
 const W_SEP=1.9,W_ALI=1.1,W_COH=0.75;
 function rnd(){return Math.random()*2-1}
 for(let i=0;i<MAXN;i++){
@@ -88,8 +89,10 @@ function hk(ix,iy,iz){return ((ix*73856093)^(iy*19349663)^(iz*83492791))&HM}
 // union-find for group count
 const par=new Int32Array(MAXN);
 function fd(a){while(par[a]!==a){par[a]=par[par[a]];a=par[a]}return a}
-let groups=0,align=0,frameNo=0;
+let groups=0,align=0,frameNo=0;const WC=[0,0,0];let simT=0;
+const LMAX=Math.ceil(MAXN/5)*2,LI=new Int32Array(LMAX*2),LP=new Float32Array(LMAX*6),LG=new Float32Array(LMAX*2);let nL=0,flash=0;
 function step(dt){
+ simT+=dt;WC[0]=Math.sin(simT*0.043)*9;WC[1]=Math.sin(simT*0.031+1)*5;WC[2]=Math.cos(simT*0.037)*9;nL=0;
  const inv=1/R;cCnt.fill(0);
  for(let i=0;i<N;i++){const k=hk(Math.floor(P[i*3]*inv),Math.floor(P[i*3+1]*inv),Math.floor(P[i*3+2]*inv));cellOf[i]=k;cCnt[k]++;}
  let s=0;for(let k=0;k<HB;k++){cStart[k]=s;s+=cCnt[k];}cStart[HB]=s;
@@ -103,6 +106,7 @@ function step(dt){
   const vl=Math.hypot(vx,vy,vz)||1,hx=vx/vl,hy=vy/vl,hz=vz/vl;
   ax+=hx;ay+=hy;az+=hz;
   const ix=Math.floor(px*inv),iy=Math.floor(py*inv),iz=Math.floor(pz*inv);
+  const rec=(i%5===0);let nr=0;
   let n=0,sx=0,sy=0,sz=0,lx=0,ly=0,lz=0,cx=0,cy=0,cz=0;
   outer:for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(let dz=-1;dz<=1;dz++){
    const k=hk(ix+dx,iy+dy,iz+dz),e=cStart[k]+cCnt[k];
@@ -111,7 +115,7 @@ function step(dt){
     if(d2>R2||d2<1e-6)continue;
     const d=Math.sqrt(d2);
     if((ox*hx+oy*hy+oz*hz)/d<cosH)continue; // 視野の外
-    SEEN[j]+=1;
+    SEEN[j]+=1;if(rec&&nr<2&&nL<LMAX){LI[nL*2]=i;LI[nL*2+1]=j;nL++;nr++;}
     if(doUF){const a=fd(i),b=fd(j);if(a!==b)par[a]=b;}
     if(d2<S2){const f=(SEP-d)/(d*SEP);sx-=ox*f;sy-=oy*f;sz-=oz*f;}
     lx+=V[j*3];ly+=V[j*3+1];lz+=V[j*3+2];cx+=ox;cy+=oy;cz+=oz;
@@ -125,8 +129,8 @@ function step(dt){
    fx+=(cx/n)*W_COH;fy+=(cy/n)*W_COH;fz+=(cz/n)*W_COH;
   }
   // 見えない器の壁（模式）
-  const r=Math.hypot(px,py*1.7,pz);
-  if(r>WALL){const k=(r-WALL)*0.9/r;fx-=px*k;fy-=py*1.7*k;fz-=pz*k;}
+  const qx=px-WC[0],qy=py-WC[1],qz=pz-WC[2],r=Math.hypot(qx,qy,qz),u=r/WALL;
+  if(u>0.7){const k=(u-0.7)*(u-0.7)*2.4/r;fx-=qx*k;fy-=qy*k;fz-=qz*k;}
   // ゆらぎ
   fx+=rnd()*0.6;fy+=rnd()*0.3;fz+=rnd()*0.6;
   A[i*3]=fx;A[i*3+1]=fy;A[i*3+2]=fz;
@@ -143,23 +147,27 @@ function step(dt){
  frameNo++;
 }
 // ---------- GL ----------
-function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(o);return o}
+const SH=[];function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);SH.push(o);return o}
 function prog(v,f){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,v));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));gl.linkProgram(p);return p}
 const VS=`#version 300 es
 in vec3 p;in float g;uniform mat4 M;uniform float sz,fc;uniform vec3 fp;uniform float fr;out float vg;out float vf;out float vd;
+out float vh;
 void main(){vec4 q=M*vec4(p,1.);gl_Position=q;float d=max(q.w,.2);vd=d;
+ float h=fract(sin(float(gl_VertexID)*12.9898)*43758.5453);vh=h;
  float inF=fc>.5?step(length(p-fp),fr):0.;vf=inF;
- gl_PointSize=clamp(sz*(1.+g*.9+inF*.6)/d,1.,28.);vg=g;}`;
+ gl_PointSize=clamp(sz*(.55+.9*h)*(1.+g*.8+inF*.6)/d,1.,30.);vg=g;}`;
 const FS=`#version 300 es
-precision mediump float;in float vg;in float vf;in float vd;uniform vec3 c0,c1,c2;uniform float fog;out vec4 o;
+precision mediump float;in float vg;in float vf;in float vd;in float vh;uniform vec3 c0,c1,c2;uniform float fog;out vec4 o;
 void main(){vec2 u=gl_PointCoord*2.-1.;float r=dot(u,u);if(r>1.)discard;float a=exp(-r*3.2);
- vec3 c=mix(c0,c1,vg);c=mix(c,c2,vf*.85);float f=exp(-vd*fog);o=vec4(c*a*(.4+.6*f)*(.55+.5*vg+vf*.5),1.);}`;
+ vec3 base=mix(vec3(.80,.77,.70),c0,smoothstep(.2,.8,vh));
+ vec3 c=mix(base,c1,vg*.8);c=mix(c,c2,vf*.85);float f=exp(-vd*fog);o=vec4(c*a*(.12+.88*f)*(.35+.55*vh+.45*vg+vf*.5),1.);}`;
 const pP=prog(VS,FS);
 const LVS=`#version 300 es
 in vec3 p;in float g;uniform mat4 M;out float vg;out float vd;void main(){vec4 q=M*vec4(p,1.);gl_Position=q;vg=g;vd=q.w;}`;
 const LFS=`#version 300 es
 precision mediump float;in float vg;in float vd;uniform vec3 c0;uniform float fog;out vec4 o;void main(){o=vec4(c0*vg*exp(-vd*fog),1.);}`;
 const pL=prog(LVS,LFS);
+const bL=gl.createBuffer(),bLG=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bL);gl.bufferData(gl.ARRAY_BUFFER,LP.byteLength,gl.DYNAMIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,bLG);gl.bufferData(gl.ARRAY_BUFFER,LG.byteLength,gl.DYNAMIC_DRAW);
 const bP=gl.createBuffer(),bG=gl.createBuffer(),bT=gl.createBuffer(),bTG=gl.createBuffer(),bD=gl.createBuffer(),bDG=gl.createBuffer(),bU=gl.createBuffer(),bUG=gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER,bP);gl.bufferData(gl.ARRAY_BUFFER,P.byteLength,gl.DYNAMIC_DRAW);
 gl.bindBuffer(gl.ARRAY_BUFFER,bG);gl.bufferData(gl.ARRAY_BUFFER,GLOW.byteLength,gl.DYNAMIC_DRAW);
@@ -178,11 +186,12 @@ const NU=520,UM=new Float32Array(NU*3),UG=new Float32Array(NU).fill(0.55);
 gl.bindBuffer(gl.ARRAY_BUFFER,bU);gl.bufferData(gl.ARRAY_BUFFER,UM.byteLength,gl.DYNAMIC_DRAW);
 gl.bindBuffer(gl.ARRAY_BUFFER,bUG);gl.bufferData(gl.ARRAY_BUFFER,UG,gl.STATIC_DRAW);
 const uDir=[];for(let i=0;i<NU;i++){const z=1-2*(i+.5)/NU,a=i*2.39996;const s=Math.sqrt(1-z*z);uDir.push([s*Math.cos(a),s*Math.sin(a),z]);}
+const vaoL=gl.createVertexArray();
 const vaoP=gl.createVertexArray(),vaoT=gl.createVertexArray(),vaoD=gl.createVertexArray(),vaoU=gl.createVertexArray();
 function bindV(vao,pr,bp,bg){gl.bindVertexArray(vao);const lp=gl.getAttribLocation(pr,'p'),lg=gl.getAttribLocation(pr,'g');
  gl.bindBuffer(gl.ARRAY_BUFFER,bp);gl.enableVertexAttribArray(lp);gl.vertexAttribPointer(lp,3,gl.FLOAT,false,0,0);
  gl.bindBuffer(gl.ARRAY_BUFFER,bg);gl.enableVertexAttribArray(lg);gl.vertexAttribPointer(lg,1,gl.FLOAT,false,0,0);gl.bindVertexArray(null);}
-bindV(vaoP,pP,bP,bG);bindV(vaoT,pL,bT,bTG);bindV(vaoD,pP,bD,bDG);bindV(vaoU,pP,bU,bUG);
+bindV(vaoL,pL,bL,bLG);bindV(vaoP,pP,bP,bG);bindV(vaoT,pL,bT,bTG);bindV(vaoD,pP,bD,bDG);bindV(vaoU,pP,bU,bUG);
 const U={};for(const n of['M','sz','fc','fp','fr','c0','c1','c2','fog'])U[n]=gl.getUniformLocation(pP,n);
 const UL={M:gl.getUniformLocation(pL,'M'),c0:gl.getUniformLocation(pL,'c0'),fog:gl.getUniformLocation(pL,'fog')};
 // ---------- camera ----------
@@ -220,7 +229,7 @@ function tap(x,y){
  let i;if(N<MAXN){i=N;N++;}else{i=(Math.random()*N)|0;}
  P[i*3]=px;P[i*3+1]=py;P[i*3+2]=pz;V[i*3]=dx*5;V[i*3+1]=dy*5;V[i*3+2]=dz*5;GLOW[i]=0;
  focus=i;
- setCap(eye?'あなたの目に入る仲間だけが、あなたの次の動きを決めます。':'明るい殻が、あなたの見える範囲。仲間はあなたを手がかりに動きはじめます。');
+ setCap(eye?'あなたの目に入る仲間だけが、あなたの次の動きを決めます。':'明るい殻が、あなたの見える範囲。あなたも仲間の入力になります。');
  audioOn(true);ping();
 }
 function invert(m){const inv=new Array(16);const a=m;
@@ -248,7 +257,7 @@ bEye.onclick=()=>{eye=!eye;bEye.setAttribute('aria-pressed',eye);bEye.textConten
  if(eye&&focus<0){let b=0;for(let i=0;i<N;i++)if(SEEN[i]>SEEN[b])b=i;focus=b;}lookYaw=0;lookPitch=0;
  const h=[V[focus*3],V[focus*3+1],V[focus*3+2]],l=Math.hypot(...h)||1;cHead=h.map(v=>v/l);
  setCap(eye?'群れの一体の目の高さ。見えるのは、近くの仲間だけ。':'外から見ると、誰も知らない全体の形が見えます。');};
-bView.onclick=()=>{pre=(pre+1)%3;R=PRE[pre].R;cosH=Math.cos(PRE[pre].fov*Math.PI/360);bView.textContent='視野：'+PRE[pre].name;
+bView.onclick=()=>{pre=(pre+1)%3;flash=1;if(focus<0){let b=0;for(let i=0;i<N;i++)if(SEEN[i]>SEEN[b])b=i;focus=b;}R=PRE[pre].R;cosH=Math.cos(PRE[pre].fov*Math.PI/360);bView.textContent='視野：'+PRE[pre].name;
  setCap(pre===0?'見える範囲がせまいと、群れは小さく分かれていきます。':pre===2?'見える範囲が重なるほど、群れは大きな一つにまとまります。':'ふつうの視野。いくつかの群れが出会い、分かれます。');};
 bSnd.onclick=()=>{audioOn(!(snd&&snd.on));};
 let capT=0;function setCap(t){cap.textContent=t;cap.style.opacity=1;capT=performance.now()+6500;}
@@ -269,11 +278,11 @@ function soundTick(){if(!snd||!snd.on)return;const t=snd.ac.currentTime;
  snd.lp.frequency.setTargetAtTime(400+align*1400,t,0.8);}
 // ---------- loop ----------
 const mN=document.getElementById('mN'),mA=document.getElementById('mA'),mG=document.getElementById('mG');
-const t0=performance.now();let last=t0,acc=0,slow=0,fps=60;
-const C0=[.56,.62,.74],C1=[.50,.88,.96],C2=[.66,.95,.97],CB=[.03,.05,.1];
+const t0=performance.now();let drawn=false;window.__t={script:t0};let last=t0,acc=0,slow=0,fps=60;
+const C0=[.58,.68,.80],C1=[.55,.85,.90],C2=[.72,.94,.92],CL=[.50,.86,.66],CB=[.03,.05,.1];
 function frame(now){
  let dt=Math.min(0.05,(now-last)/1000);last=now;fps=fps*0.95+0.05/Math.max(dt,1e-3);
- if(!reduce||frameNo<2)step(reduce?dt*0.25:dt);
+ if(drawn&&(!reduce||frameNo<2))step(reduce?dt*0.25:dt);
  // 重い端末では数を減らす
  if(fps<42&&now-t0>3000){if(++slow>45&&N>900){N=Math.floor(N*0.85);slow=0;if(focus>=N)focus=-1;}}else slow=0;
  // camera
@@ -307,9 +316,12 @@ function frame(now){
  // draw
  gl.clearColor(CB[0],CB[1],CB[2],1);gl.clear(gl.COLOR_BUFFER_BIT);
  gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE);
- const fog=eye?0.012:0.006;
+ const fog=eye?0.016:0.012;flash*=0.985;
  gl.useProgram(pL);gl.uniformMatrix4fv(UL.M,false,VP);gl.uniform3fv(UL.c0,C1);gl.uniform1f(UL.fog,fog);
  gl.bindVertexArray(vaoT);gl.drawArrays(gl.LINES,0,N*2);
+ if(nL){for(let q=0;q<nL;q++){const i=LI[q*2]*3,j=LI[q*2+1]*3,k=q*6;LP[k]=P[i];LP[k+1]=P[i+1];LP[k+2]=P[i+2];LP[k+3]=P[j];LP[k+4]=P[j+1];LP[k+5]=P[j+2];const g=(eye?.32:.2)+flash*.5;LG[q*2]=g;LG[q*2+1]=g*.35;}
+  gl.bindBuffer(gl.ARRAY_BUFFER,bL);gl.bufferSubData(gl.ARRAY_BUFFER,0,LP,0,nL*6);gl.bindBuffer(gl.ARRAY_BUFFER,bLG);gl.bufferSubData(gl.ARRAY_BUFFER,0,LG,0,nL*2);
+  gl.uniform3fv(UL.c0,CL);gl.bindVertexArray(vaoL);gl.drawArrays(gl.LINES,0,nL*2);}
  gl.useProgram(pP);gl.uniformMatrix4fv(U.M,false,VP);gl.uniform3fv(U.c0,C0);gl.uniform3fv(U.c1,C1);gl.uniform3fv(U.c2,C2);gl.uniform1f(U.fog,fog);
  const base=(eye?64:120)*DPR*(H/800);gl.uniform1f(U.sz,base);
  gl.uniform1f(U.fc,hasF?1:0);if(hasF){gl.uniform3f(U.fp,P[focus*3],P[focus*3+1],P[focus*3+2]);gl.uniform1f(U.fr,R);}
@@ -317,13 +329,15 @@ function frame(now){
  gl.uniform1f(U.fc,0);gl.uniform1f(U.sz,base*0.7);gl.bindVertexArray(vaoD);gl.drawArrays(gl.POINTS,0,ND);
  if(hasF&&!eye&&frame.uc){gl.uniform1f(U.sz,base*0.35);gl.bindVertexArray(vaoU);gl.drawArrays(gl.POINTS,0,frame.uc);}
  gl.bindVertexArray(null);
- if(frameNo%15===0){mN.textContent=N.toLocaleString('ja-JP')+' 体';mA.textContent=align.toFixed(2);mG.textContent=groups;soundTick();}
+ if(!drawn){drawn=true;window.__t.first=performance.now();setTimeout(()=>{for(const o of SH)if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(o));},3000);}
+ if(frameNo%15===0||!window.__t.m){window.__t.m=1;mN.textContent=N.toLocaleString('ja-JP')+' 体';mA.textContent=align.toFixed(2);mG.textContent=groups;soundTick();}
  if(capT&&now>capT){cap.style.opacity=0;capT=0;}
  requestAnimationFrame(frame);
 }
 // 最初の数歩を先に計算しておかない（散らばりから群れが生まれる様子を見せる）
 requestAnimationFrame(frame);
 capT=performance.now()+7000;
+document.getElementById('fold').addEventListener('toggle',e=>document.body.classList.toggle('fo',e.target.open));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const f=document.getElementById('fold');if(f.open)f.open=false;}});
 document.addEventListener('visibilitychange',()=>{if(snd)document.hidden?snd.ac.suspend():(snd.on&&snd.ac.resume())});
 })();
