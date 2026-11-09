@@ -16,7 +16,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k18";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { installNav } from "../kit/nav.js?v=n9";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=4";
@@ -34,7 +34,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261110r4";
+const VER = "20261110r5";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -344,8 +344,13 @@ async function buildBuildings() {
         float f=smoothstep(fogNear,fogFar,vFogDepth); gl_FragColor=vec4(c,a*amul*(1.-f*.9)); }`,
     transparent: true, depthWrite: false, side: THREE.DoubleSide });
   const m = new THREE.Mesh(g, mat); m.renderOrder = 2; m.name = "bld"; world.add(m);
-  { const mg = new THREE.BufferGeometry(); mg.setAttribute("position", g.attributes.position); mg.setAttribute("normal", g.attributes.normal); mg.setAttribute("color", new THREE.Float32BufferAttribute(MC, 3));   /* 11-02 P1「上空から屋根が同じ・透けた箱」→ 歩く・飛ぶときは、通りから外れた建物も不透明の壁と屋根（色は棟ごと・模式）。地図のときは今までの HUD の箱 */
-    const mm = new THREE.Mesh(mg, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); mm.name = "bldMass"; mm.visible = false; world.add(mm); BLD.mass = mm; }
+  { const mg = new THREE.BufferGeometry(); mg.setAttribute("position", g.attributes.position); mg.setAttribute("normal", g.attributes.normal); mg.setAttribute("y0", g.attributes.y0); mg.setAttribute("color", new THREE.Float32BufferAttribute(MC, 3));   /* 11-02 P1「上空から屋根が同じ・透けた箱」→ 歩く・飛ぶときは、通りから外れた建物も不透明の壁と屋根（色は棟ごと・模式）。地図のときは今までの HUD の箱 */
+    const mmat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    mmat.onBeforeCompile = sh => {   /* 11-10 第5周：箱の壁に、石の土台・階の庇の影・板目の縦の揺らぎ・上へ明るむ陰影（シェーダーの数行・三角形は増やさない） */
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float y0; varying float vH; varying vec3 vWp; varying float vSide;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvH = position.y - y0; vWp = position; vSide = 1. - abs(normal.y);");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vH; varying vec3 vWp; varying float vSide;").replace("#include <color_fragment>", "#include <color_fragment>\nif (vSide > .5) { float u = vWp.x + vWp.z; float n = fract(sin(floor(u * 3.) * 12.9898) * 43758.5453); diffuseColor.rgb *= .8 + .26 * n * step(.5, fract(u * 3.)) + .1; diffuseColor.rgb *= mix(.55, 1., smoothstep(.0, .9, vH)) * mix(1., .62, step(.0, vH - .9) * (1. - step(.0, vH - 1.05))); float fl = fract(vH / 3.4); diffuseColor.rgb *= 1. - .55 * smoothstep(.0, .06, fl) * (1. - smoothstep(.06, .16, fl)) * step(2.5, vH); diffuseColor.rgb *= .86 + .14 * smoothstep(0., 9., vH); }");
+    };
+    const mm = new THREE.Mesh(mg, mmat); mm.name = "bldMass"; mm.visible = false; world.add(mm); BLD.mass = mm; }
   const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(E, 3));
   const em = new THREE.LineBasicMaterial({ color: "#9fe6f8", transparent: true, opacity: .12, depthWrite: false });   /* 11-02 採点「上空で水色の透けた箱が目立つ」→ 輪郭の線を淡く */
   const lines = new THREE.LineSegments(eg, em); lines.renderOrder = 3; world.add(lines); QW.bldLines = lines;
@@ -573,7 +578,7 @@ function addSolid(ring, y, top, acc = SOLID, era = 0) {
   return regSolidTo(ring, acc);
 }
 const TILE_ROOF = [[.27, .28, .31], [.15, .16, .18], [.29, .23, .19], [.21, .25, .3], [.34, .34, .35], [.2, .19, .18]], FLAT_ROOF = [[.42, .41, .39], [.3, .31, .32], [.5, .47, .42], [.36, .34, .31], [.24, .25, .27]];
-const MASS_WALL = [[.78, .76, .72], [.66, .65, .63], [.72, .68, .6], [.58, .6, .62], [.84, .82, .78], [.62, .56, .5]];
+const MASS_WALL = [[.36, .33, .3], [.46, .36, .27], [.74, .7, .62], [.4, .31, .23], [.58, .52, .44], [.66, .62, .56]];   /* 11-10 第5周：無地の灰色の箱をやめ、川越の町並みの色（黒漆喰・板張り・土壁・漆喰）に寄せる（模式） */
 function hipRoof(ring, top, acc, rc, pitch = .32, gable = false) {   // 寄棟の屋根（長い辺に沿って・外へ 0.9 m 出す。模式）
   let best = 0, ang = 0; for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], l = Math.hypot(q.x - p.x, q.y - p.y); if (l > best) { best = l; ang = Math.atan2(q.y - p.y, q.x - p.x); } }
   const ux = Math.cos(ang), uz = Math.sin(ang), vx = -uz, vz = ux; let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9;

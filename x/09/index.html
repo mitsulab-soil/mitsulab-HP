@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja" data-theme="dark"><head><meta charset="utf-8">
-<script data-embed>/* 2026-11-09：?embed=1 は集約アプリ（Qualia/yose・Qualium x/31）の中で、自分の見出しを隠す。引数なしは今までどおり */if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add("embed")</script><style>.embed .brand,.embed .mu-logo{display:none!important}</style><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>/* 11-10 第5周：地図から・別の地点から始めるときの印 */if(/[?&](map|start)(=|&|$)/.test(location.search))document.documentElement.classList.add("qmap")</script><script>/* 11-10 第5周：夜は最初の静止画も同じ暗さに（3D の夜の暗さ〔kit/yoru.js〕が後から重なって暗転して見えないように。太陽の高さは kit/sunpos.js と同じ近似式） */(()=>{try{const d=new Date(),R=Math.PI/180,n=d.getTime()/864e5+2440587.5-2451545,L=(280.46+.9856474*n)%360,g=((357.528+.9856003*n)%360)*R,l=(L+1.915*Math.sin(g)+.02*Math.sin(2*g))*R,e=(23.439-4e-7*n)*R,ra=Math.atan2(Math.cos(e)*Math.sin(l),Math.cos(l)),dc=Math.asin(Math.sin(e)*Math.sin(l)),gm=(18.697374558+24.06570982441908*n)%24,H=(gm*15+139.63)*R-ra,f=35.916*R,el=Math.asin(Math.sin(f)*Math.sin(dc)+Math.cos(f)*Math.cos(dc)*Math.cos(H))/R,t=Math.min(1,Math.max(0,-el/12)),k=t*t*(3-2*t);if(k>.02)document.documentElement.style.setProperty("--qnight",(1-.62*k).toFixed(3))}catch(_){}})()</script><style>#qposter{filter:brightness(var(--qnight,1))}</style><script data-embed>/* 2026-11-09：?embed=1 は集約アプリ（Qualia/yose・Qualium x/31）の中で、自分の見出しを隠す。引数なしは今までどおり */if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add("embed")</script><style>.embed .brand,.embed .mu-logo{display:none!important}</style><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qualium 大宮</title>
 <meta name="description" content="氷川参道と境内を碧と歩き、土地の記録・音・生き物の手がかりを重ねる。互いの受けとり方に触れ、現実の町へ問いを持ち帰るQualium。">
 <meta property="og:title" content="Qualium 大宮"><meta property="og:description" content="氷川参道と境内を碧と歩き、土地の記録・音・生き物の手がかりを重ねる。互いの受けとり方に触れ、現実の町へ問いを持ち帰るQualium。">
@@ -25,7 +25,7 @@
 <link rel="preload" href="web/lite/data.json?v=20261107cg2" as="fetch" crossorigin>
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
-<link rel="modulepreload" href="web/lite/app.js?v=20261110r4">
+<link rel="modulepreload" href="web/lite/app.js?v=20261110r5">
 <!-- 2026-11-05 起動 2 秒：本体が読む部品も HTML と同時に（app.js → 部品 → creatures → BufferGeometryUtils の三段の待ちをなくす。layers は本体と同じ v=8 に） -->
 <link rel="modulepreload" href="web/lite/layers.js?v=8">
 <link rel="modulepreload" href="web/lite/qmarks.js?v=k24">
@@ -38,7 +38,7 @@
 <link rel="modulepreload" href="web/lite/herewalk.js?v=2">
 <link rel="modulepreload" href="web/kit/sunpos.js?v=1">
 <link rel="modulepreload" href="web/kit/fliers.js?v=9">
-<link rel="modulepreload" href="web/kit/nav.js?v=n9">
+<link rel="modulepreload" href="web/kit/nav.js?v=n10">
 <link rel="modulepreload" href="web/lite/soundwalk.js?v=1">
 <link rel="modulepreload" href="web/lite/areas.js?v=56n">
 <link rel="modulepreload" href="web/kit/creatures.js?v=1">
@@ -629,7 +629,7 @@ body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 </style>
 </head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="1200"></script>
+<script src="loader/loader.js" data-title="Qualium 大宮" data-en="Qualium Omiya" data-icon="favicon/icon.svg" data-max="500"></script>
 <canvas id="gl" aria-label="氷川参道の 3D（実寸。地形は国土地理院、建物は PLATEAU）" tabindex="-1"></canvas>
 <div id="mapLabels" hidden></div>
 <div id="pinLabels" hidden></div>
@@ -652,14 +652,20 @@ body[data-mode]:not([data-mode="sky"]):not([data-mode="boot"]) #qEye,body.qEyeOf
 #qposter{position:fixed;inset:0;z-index:2;pointer-events:none;background:#c3c7cd url(web/qposter_sp.webp?v=n2) center/cover no-repeat;transition:opacity .6s,visibility 0s .6s}
 @media (min-width:641px){#qposter{background-image:url(web/qposter_pc.webp?v=n2)}}
 body.ready #qposter{opacity:0;visibility:hidden}
-.qhome{pointer-events:auto;flex:none;width:44px;height:44px;margin:0 -6px 0 -8px;display:grid;place-items:center;color:#eef5f8;text-decoration:none;font:300 26px/1 "Hiragino Mincho ProN",serif;text-shadow:0 0 6px rgba(3,6,15,.9);border-radius:22px}
+/* 11-10 第5周：最初は目の高さの静止画（実際のプレイ画）を、歩きはじめるまで敷く＝町の道と建物が組み上がる前に、空と平らな面だけが見えないように。?map=1・?start= は従来の紺の画 */
+html:not(.qmap) #qposter{background-image:url(web/qwalk_sp.webp?v=1)}
+@media (min-width:641px){html:not(.qmap) #qposter{background-image:url(web/qwalk_pc.webp?v=1)}}
+html:not(.qmap) body.ready:is([data-mode="boot"],[data-mode="descend"]) #qposter{opacity:1;visibility:visible}
+html:not(.qmap) #qEye{display:none}
+/* 11-10 第5周：右の生き物の札の字を読める大きさに（9.5→12px） */html body #qIK button span{font-size:12px!important;letter-spacing:0!important;max-width:none!important}html body #qIK button{min-width:56px!important;width:auto!important;padding-left:6px!important;padding-right:6px!important}
+.qhome{pointer-events:auto;flex:none;width:44px;height:44px;margin:0 -6px 0 -8px;display:grid;place-items:center;color:#eef5f8;text-decoration:none;font:400 20px/1 "Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;text-shadow:0 0 6px rgba(3,6,15,.9);border-radius:22px}
 .qhome:hover{color:#9bdcf0}.embed .qhome{display:none}
 :focus-visible{outline:2px solid #9bdcf0;outline-offset:2px}
 @media (max-width:640px){body .spTag{font-size:15px!important;color:#fff!important;font-weight:600!important;text-shadow:0 0 2px #03060f,0 0 6px #03060f,0 0 14px rgba(3,6,15,.9)!important}body .spTag .no{color:#d6eef5!important}body .spTag.k-area{color:#ffe2a8!important}}
 @media (prefers-reduced-motion:reduce){#qposter{transition:none}}
 </style>
 <header id="hud">
-  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">‹</a>
+  <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">←</a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
   <div class="brand mu-logo">Qualium 大宮</div>
   <nav class="seg" aria-label="見方">
@@ -726,9 +732,9 @@ body.ready #qposter{opacity:0;visibility:hidden}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/lite/app.js?v=20261110r4").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/lite/app.js?v=20261110r5").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（木・石の環世界と依代への変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261107flight1").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).then(() => Promise.all([import("./web/kit/mado.js?v=5").then(m => { q.MADO = m.attachMado(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/tokimusubi.js?v=6").then(m => { q.TOKI = m.attachTokimusubi(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/yoru.js?v=20261107night").then(m => { q.YORU = m.attachYoru(q); })])).catch(e => console.warn("ikimono", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261107flight1").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).then(() => Promise.all([import("./web/kit/mado.js?v=5").then(m => { q.MADO = m.attachMado(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/tokimusubi.js?v=6").then(m => { q.TOKI = m.attachTokimusubi(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/yoru.js?v=20261110r5").then(m => { q.YORU = m.attachYoru(q); })])).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 <style id="q4lure">/* 11-10 第4周：下の五つの札は、はじめ「聴く」だけを光らせて誘う（一度押したら消える） */
 @keyframes q4l{0%,100%{box-shadow:0 0 0 0 rgba(255,207,134,0)}50%{box-shadow:0 0 0 2px rgba(255,207,134,.75),0 0 18px rgba(255,207,134,.45)}}

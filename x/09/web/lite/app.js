@@ -20,7 +20,7 @@ import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
 import { makeFliers } from "../kit/fliers.js?v=9";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
-import { installNav } from "../kit/nav.js?v=n9";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAreas } from "./areas.js?v=56n";
 
@@ -30,7 +30,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", renderer: null };
-const BASE = "web/lite/", VER = "20261110r4";   // データの版の印（公開直後に古いデータが出ないように）
+const BASE = "web/lite/", VER = "20261110r5";   // データの版の印（公開直後に古いデータが出ないように）
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */

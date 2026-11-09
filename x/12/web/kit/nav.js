@@ -94,7 +94,7 @@ export function installNav(o) {
     if (k === "escape") { o.hush(); return; }
     if ((k === "+" || k === "=") && !e.metaKey && !e.ctrlKey) { zoom(.92); return; }
     if (k === "-" && !e.metaKey && !e.ctrlKey) { zoom(1.08); return; }
-    if (k === "tab" && m === "walk") { e.preventDefault(); o.tabMark(e.shiftKey ? -1 : 1); return; }
+    if ((k === "]" || k === "[") && m === "walk") { e.preventDefault(); o.tabMark(k === "[" ? -1 : 1); return; }   /* 11-10 第5周：Tab は画面の札の順に焦点を送る（印をめぐるのは [ ]） */
     if (k === "enter" && m === "walk") { if (o.enterMark()) e.preventDefault(); return; }
     if (k === "enter" && m === "sky") { $("#goDown")?.click(); return; }
     if (k === " " && m === "walk") { e.preventDefault(); if (o.isMoving()) o.stop(); else $("#autoBtn")?.click(); }

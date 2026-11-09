@@ -18,7 +18,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k9";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { installNav } from "../kit/nav.js?v=n9";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=s1";
@@ -36,7 +36,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", tm: { m0: performance.now() } }; QW.THREE = THREE;
-const VER = "20261110r4";
+const VER = "20261110r5";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -329,8 +329,9 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
         float r3 = fract(r * 5.17), r4 = fract(r * 3.71); float fh = (kind == 2. ? 3.9 : 3.5) * mix(.92, 1.1, r4), bw = (kind == 2. ? 1.5 : kind == 1. ? 1.2 : 3.0) * mix(.8, 1.35, r3);   // 11-05 採点 P2「窓が同じ形の繰り返し」：建物ごとに階高・窓の幅・窓の形を変える
         vec2 c = vec2(fract(fu.x / bw), fract(fu.y / fh)); float fl = floor(fu.y / fh);
         vec3 tint = mix(vec3(.86, .84, .8), vec3(.7, .72, .74), r2);
-        vec3 plaster = texture2D(tP, fu / 7.).rgb * tint;
-        vec3 stone = texture2D(tG, fu / 3.).rgb * mix(vec3(.85, .8, .74), vec3(.6, .6, .62), r2);
+        float bk = smoothstep(.3, .7, texture2D(tG, fu / 41. + r).r);   /* 11-10 第5周：壁の質感の同じ模様の繰り返しを崩す＝向きと大きさの違う二枚を大きなむらで混ぜ、大きな汚れを重ねる */
+        vec3 plaster = mix(texture2D(tP, fu / 7.).rgb, texture2D(tP, vec2(fu.y, -fu.x) / 10.3 + r * 7.).rgb, bk) * tint * (.88 + .2 * texture2D(tP, fu / 57. + r2).r);
+        vec3 stone = mix(texture2D(tG, fu / 3.).rgb, texture2D(tG, vec2(-fu.y, fu.x) / 4.7 + r2 * 5.).rgb, bk) * (.9 + .16 * texture2D(tP, fu / 47. + r).r) * mix(vec3(.85, .8, .74), vec3(.6, .6, .62), r2);
         vec3 metal = vec3(.62, .64, .66) * (.85 + .15 * texture2D(tP, fu / 2.).r) * (1. - .25 * max(step(.97, fract(fu.x / 1.5)), step(.96, fract(fu.y / 1.2))));
         vec3 glass = mix(vec3(.12, .16, .2), vec3(.5, .6, .7), smoothstep(.0, 1., c.y) * .5) * (.85 + .3 * fract(sin(dot(floor(fu / vec2(bw, fh)), vec2(12.9, 78.2))) * 43758.5));
         vec2 aw = fwidth(c) * 1.2 + 1e-4; float wx = mix(.12, .28, r3), wy0 = mix(.3, .44, r4), wy1 = mix(.8, .9, r2); float win = smoothstep(wx - aw.x, wx + aw.x, c.x) * (1. - smoothstep(1. - wx - aw.x, 1. - wx + aw.x, c.x)) * smoothstep(wy0 - aw.y, wy0 + aw.y, c.y) * (1. - smoothstep(wy1 - aw.y, wy1 + aw.y, c.y)); win *= 1. - smoothstep(.25, .6, max(aw.x, aw.y));   // 10-28：窓のふちをなめらかに（遠くの段々・ちらつきを消す。遠くでは窓の格子を薄く）
@@ -408,11 +409,11 @@ function buildFacades() {   // 駅前の建物：外壁＝Poly Haven「White Pla
   const mat = new THREE.MeshStandardMaterial({ color: "#c9c6bf", roughness: .85, metalness: 0, side: THREE.DoubleSide });
   mat.onBeforeCompile = sh => { sh.uniforms.tW = { value: tex };
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D tW;").replace("#include <map_fragment>", `#include <map_fragment>
-      vec2 fu = vUv; float fl = floor(fu.y / 3.6); float bid = fract(sin(floor(fu.x / 40.) * 7.13 + 3.1) * 43758.5);
-      vec3 tw = texture2D(tW, fu / 9.).rgb; vec3 wall = mix(tw, vec3(dot(tw, vec3(.333))), .4) * mix(vec3(.82, .8, .76), vec3(.62, .64, .66), bid);
-      vec2 c = vec2(fract(fu.x / 2.4), fract(fu.y / 3.6)); float win = step(.12, c.x) * step(c.x, .88) * step(.3, c.y) * step(c.y, .86) * step(.5, fl);
+      vec2 fu = vUv; float bid = fract(sin(floor(fu.x / 40.) * 7.13 + 3.1) * 43758.5); float bw = mix(1.8, 3.4, fract(bid * 7.31)), fh = mix(3.3, 4.2, fract(bid * 3.77)); float rib = step(.36, bid) * step(bid, .62); float fl = floor(fu.y / fh);   /* 11-10 第5周：同じ窓の格子の繰り返しを崩す＝棟ごとに柱間・階高・横長の連窓を変える（模式） */
+      vec3 tw = texture2D(tW, fu / 9.).rgb; vec3 wall = mix(tw, vec3(dot(tw, vec3(.333))), .4) * mix(mix(vec3(.82, .8, .76), vec3(.62, .64, .66), bid), vec3(.7, .62, .54), step(.8, fract(bid * 11.3)) * .8);
+      vec2 c = vec2(fract(fu.x / bw), fract(fu.y / fh)); float wx = mix(.12 + .08 * fract(bid * 5.1), .02, rib); float win = step(wx, c.x) * step(c.x, 1. - wx) * step(mix(.3, .42, rib), c.y) * step(c.y, .86) * step(.5, fl);
       float band = (1. - step(.9, fu.y)) * 0. + step(fl, .5) * .0;
-      vec3 glass = mix(vec3(.08, .1, .12), vec3(.42, .52, .6), smoothstep(.3, .86, c.y) * .55) * (.8 + .2 * fract(sin(dot(floor(fu / vec2(2.4, 3.6)), vec2(12.9, 78.2))) * 43758.5));
+      vec3 glass = mix(vec3(.08, .1, .12), vec3(.42, .52, .6), smoothstep(.3, .86, c.y) * .55) * (.8 + .2 * fract(sin(dot(floor(fu / vec2(bw, fh)), vec2(12.9, 78.2))) * 43758.5));
       vec3 shop = vec3(.16, .17, .17) + vec3(.5, .46, .38) * step(.25, c.y) * step(c.y, .85) * step(.1, c.x) * step(c.x, .9) * .45;
       float curtain = step(.62, bid); float mull = max(step(.94, c.x), step(.95, c.y)); vec3 cw = mix(glass * 1.1, vec3(.3, .32, .33), mull);
       diffuseColor.rgb = fl < .5 ? shop : mix(mix(wall, glass, win), cw, curtain); float isWin = fl < .5 ? .6 : max(win, curtain * (1. - mull));   // 柱間ごとの窓のビルと、ガラスのカーテンウォールのビル
@@ -423,7 +424,7 @@ function buildFacades() {   // 駅前の建物：外壁＝Poly Haven「White Pla
         float big = texture2D(tW, fu / 37.).r; float fr = pow(1. - abs(dot(normalize(vViewPosition), normalize(vNormal))), 3.);
         diffuseColor.rgb *= ao * (1. - rec) * (1. - slab) * (1. - pil) * (1. - streak) * (.86 + .28 * big) * mix(.62, 1.15, smoothstep(-.6, .7, sunF));
         diffuseColor.rgb += isWin * fr * vec3(.25, .3, .36) * .6; }`).replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, .12, isWin);"); };
-  mat.defines = { USE_UV: "" }; mat.customProgramCacheKey = () => "facade4";
+  mat.defines = { USE_UV: "" }; mat.customProgramCacheKey = () => "facade5";
   const mesh = new THREE.Mesh(geo, mat); mesh.name = "facade"; world.add(mesh);
   const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(RP, 3)); rg.setIndex(RI); rg.computeVertexNormals();
   const roof = new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: "#6f706e", roughness: .95, side: THREE.DoubleSide })); roof.name = "roof"; world.add(roof);
