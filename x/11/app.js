@@ -37,23 +37,23 @@ const cam = new THREE.PerspectiveCamera(mobile ? 66 : 52, 1, 0.05, 90);
 const HALF = 12.5;                                             // v11 広間は 25 m 四方（書を十に増やした）
 setRoomHalf(HALF);
 const EYE = 1.62;                                              // 目の高さ
-const Y_C = 2.75;                                              // 書の中心の高さ
-const HMAX = mobile ? 3.2 : 4.1;                               // 書の大きいほうの辺（m）
+const Y_C = 1.85;   /* 2026-11-10 第4周：書を壁の高さ・原寸の感じに（頭上を覆わない） */                                              // 書の中心の高さ
+const HMAX = mobile ? 2.2 : 2.7;                               // 書の大きいほうの辺（m）
 const SPAWN = { x: 0, z: mobile ? 9.6 : 8.6, yaw: 0, pitch: 0.1 };   /* v11b 入口から近く大きく */   // 入口（南）から北を見る
 // v11（10-26 本人「3D の種類を増やす」）：十の書を、書ごとに合う形で置く
 //  relief＝墨の厚みの浮き彫りで浮かぶ／ribbon＝筆の幅の平たい帯（丸い管に見せない）／layers＝一画ずつが離れて宙に浮く（正面で一つの書になる）
 //  scroll＝紙ごと掛け軸の形で浮かぶ／hang＝細い糸で天井から吊る（クモの巣の水滴）／floor＝床にひらく墨だまり（のぞきこむ）
 const PLACE = [
-  { id: 'oto', x: -0.4, z: 0.6, y: 3.05, form: 'relief', s: 1.0 },
+  { id: 'oto', x: -0.4, z: 0.6, y: 2.10, form: 'relief', s: 1.0 },
   { id: '020', x: 4.2, z: 6.4, y: 0.07, form: 'floor', s: 1.2 },
-  { id: '027', x: 3.0, z: -6.0, y: 3.0, form: 'relief', s: 1.0 },
-  { id: '012', x: -7.4, z: 3.6, y: 2.55, form: 'relief', s: 0.95 },
-  { id: '025', x: 7.8, z: 2.0, y: 2.85, form: 'ribbon', s: 0.95 },
-  { id: '035', x: -4.4, z: -5.6, y: 2.9, form: 'layers', s: 1.0 },
-  { id: '038', x: 8.0, z: -7.6, y: 2.8, form: 'relief', s: 0.9 },
-  { id: '001', x: -8.4, z: -3.0, y: 2.75, form: 'scroll', s: 0.8 },
-  { id: '008', x: 8.6, z: 7.4, y: 2.95, form: 'hang', s: 0.85 },
-  { id: '007', x: -4.6, z: 7.6, y: 2.6, form: 'relief', s: 0.85 },
+  { id: '027', x: 3.0, z: -6.0, y: 2.05, form: 'relief', s: 1.0 },
+  { id: '012', x: -7.4, z: 3.6, y: 1.60, form: 'relief', s: 0.95 },
+  { id: '025', x: 7.8, z: 2.0, y: 1.90, form: 'ribbon', s: 0.95 },
+  { id: '035', x: -4.4, z: -5.6, y: 1.95, form: 'layers', s: 1.0 },
+  { id: '038', x: 8.0, z: -7.6, y: 1.85, form: 'relief', s: 0.9 },
+  { id: '001', x: -8.4, z: -3.0, y: 1.80, form: 'scroll', s: 0.8 },
+  { id: '008', x: 8.6, z: 7.4, y: 2.00, form: 'hang', s: 0.85 },
+  { id: '007', x: -4.6, z: 7.6, y: 1.65, form: 'relief', s: 0.85 },
 ];
 const PAPER = { id: '034', x: -HALF + 0.05, z: -9.2, y: 2.25, w: 3.1 };   // 紙の原本だけ：西の漆喰の壁に掛ける（3D にしない）
 // v9 立体の書の近くの壁に、同じ書の紙の原本を一枚ずつ（北・東・南は障子なので、漆喰の壁を一間ぶん入れて掛ける＝room.js の niches）
@@ -72,6 +72,9 @@ const PAPERS = [
 ];
 
 const meta = await (await fetch('data/works.json')).json();
+// 2026-11-10 第4周：本人 10-27「宇宙の話も削除」→ 書 020 の題は画面に出さず番号で呼ぶ（works.json の元の題は残す・戻すときはこの表から消す）
+const HIDE_TITLE = { '020': '書 020' };
+meta.works.forEach(w => { if (HIDE_TITLE[w.id]) { w.title0 = w.title; w.title = HIDE_TITLE[w.id]; } });
 let layersMeta = {}; try { layersMeta = await (await fetch('data/layers.json')).json(); } catch (e) { /* 無ければ浮き彫りで */ }
 const works = PLACE.map((p, i) => ({ ...p, i, w: meta.works.find(w => w.id === p.id), sho: null, snd: null, live: null, shadow: null, face: 0, base: 0, hold: 0, pressed: false, near: 0 })).filter(it => it.w);
 const paperW = meta.works.find(w => w.id === PAPER.id);
@@ -328,7 +331,7 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書 ── Qualia/sho';
   $('capTi').textContent = '書の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = '音は録音でなく、書の形から組み立てた合成の模式。';
+  $('capRd').textContent = '書の形から作った音。';
   $('count').textContent = `全 ${stops.length}`;
 }
 function setFocus(it) {
@@ -553,7 +556,7 @@ const AOI_LINES = {
   '025': '「夜の森に漂う無数の眼の音」。夜の墨の奥で、小さな照り返しが灯っては消えます。',
   '034': '「蕾が春化粧をする音」。この書だけは、紙の上の墨のまま掛けています。',
   'oto': '「音」の一字。この連作の芯です。触れる場所で、鳴り方が変わります。はらいは長く、とめは短く。',
-  '020': '「宇宙の虚空間の音」。床にひらいた墨だまりです。のぞきこむように、触れてみてください。',
+  '020': '床にひらいた墨だまりの書です。のぞきこむように、触れてみてください。',
   '035': '「花が産声を上げて咲く音」。一画ずつが離れて浮かび、正面でひとつの書になります。',
   '038': '「いのちの最初に聴こえる音」。墨が、拍のように満ち引きしています。',
   '001': '「菌糸の胞子が惑星の心臓を蔽いつくす音」。掛け軸のまま浮かんでいます。紙の上で、薄墨の毛羽が芯を蔽っていきます。',

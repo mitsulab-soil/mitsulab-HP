@@ -16,12 +16,15 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
   const titleOf = it => it.w && it.w.title;
   // 置き場：書のまわりを避けて、目の高さの前後に漂う
   const pts = [];
+  let nC = 0;   // 2026-11-10 第4周：最初の一枚は光の言葉が主役。入口の目の前に、水と天気・生命と土の短い言葉を十二ほど置く（墨の立体は遠くに）
   for (const it of items) {
     const onWork = works.find(w => titleOf(w) === it.t);
     let x, z, y;
     if (onWork) { x = onWork.x; z = onWork.z + .9; y = (onWork.form === 'floor' ? .9 : Math.min(2.4, (onWork.y || 2) - .4)); }
     else { for (let k = 0; k < 20; k++) { x = (R() * 2 - 1) * (HALF - 1.4); z = (R() * 2 - 1) * (HALF - 1.4); if (works.every(w => Math.hypot(w.x - x, w.z - z) > 2.0)) break; } y = .7 + R() * 2.0; [x, z] = keepOut ? keepOut(x, z) : [x, z]; }
-    pts.push({ it, p: new THREE.Vector3(x, y, z), k: kanji(it.t), glow: 0, ph: R() * 6.28, onWork: !!onWork });
+    let front = false;
+    if (!onWork && nC < 12 && (it.tag === 'mizu' || it.tag === 'seimei') && it.t.length <= 12) { x = 1.4 - Math.floor(nC / 4) * .75 + (R() - .5) * .25; z = 7.3 + (nC % 4) * .85 + Math.floor(nC / 4) * .3 + (R() - .5) * .3; y = 1.2 + R() * .7; nC++; front = true; }
+    pts.push({ it, p: new THREE.Vector3(x, y, z), k: kanji(it.t), glow: front ? 1 : 0, ph: R() * 6.28, onWork: !!onWork, front });
   }
   const g = new THREE.BufferGeometry(), pos = new Float32Array(pts.length * 3), col = new Float32Array(pts.length * 3), sz = new Float32Array(pts.length);
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('size', new THREE.BufferAttribute(sz, 1));
@@ -61,15 +64,15 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
   }
   function tick(dt, t) {
     pts.forEach((q, i) => {
-      q.glow = Math.max(0, q.glow - dt * .35);
+      q.glow = Math.max(q.front && t < 20 ? .45 : 0, q.glow - dt * .35);
       pos.set([q.p.x, q.p.y + Math.sin(t * .4 + q.ph) * .05, q.p.z], i * 3);
       c.copy(q.onWork ? warm : base).multiplyScalar(.7 + q.glow * 1.2); col.set([c.r, c.g, c.b], i * 3);
-      sz[i] = (q.onWork ? 2.4 : 1.4) * (1 + q.glow * 1.4) * (mobile ? 1.3 : 1);
+      sz[i] = (q.onWork ? 2.4 : q.front ? 2.2 : 1.4) * (1 + q.glow * 1.4) * (mobile ? 1.3 : 1);
     });
     g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; g.attributes.size.needsUpdate = true;
     lblT -= dt; focusT = Math.max(0, focusT - dt); if (!focusT) focusQ = null;
     if (lblT <= 0) { lblT = .5; const f = new THREE.Vector3(); cam.getWorldDirection(f);
-      const near = pts.filter(q => q !== focusQ).map(q => { v.copy(q.p).sub(cam.position); const d = v.length(); return { q, d, dot: v.dot(f) / d }; }).filter(o => o.d < 3.2 && o.dot > .85).sort((a, b) => a.d - b.d).slice(0, focusQ ? 1 : 2);
+      const near = pts.filter(q => q !== focusQ).map(q => { v.copy(q.p).sub(cam.position); const d = v.length(); return { q, d, dot: v.dot(f) / d }; }).filter(o => o.d < (o.q.front ? 4.5 : 3.2) && o.dot > .85).sort((a, b) => (b.q.front - a.q.front) || (a.d - b.d)).slice(0, focusQ ? 1 : 3);
       const pool = focusQ ? labels.slice(1) : labels; pool.forEach((s, i) => { const o = near[i]; if (!o) { s.userData.q = null; return; } if (s.userData.q !== o.q || s.userData.big) draw(s, o.q, false); }); }
     labels.forEach((s, i) => { const q = s.userData.q; const big = i === 0 && focusQ; if (!q || (i === 0 && !focusQ && s.userData.big)) { s.material.opacity = Math.max(0, s.material.opacity - dt * 2); s.visible = s.material.opacity > .01; if (!s.visible) s.userData.big = false; return; }
       const d = q.p.distanceTo(cam.position), w = (big ? .05 : .032) * d * (mobile ? .9 : 1); s.scale.set(w * 10.7, w, 1); s.position.copy(q.p).add(new THREE.Vector3(0, .02, 0)); v.copy(q.p).project(cam); s.center.set(v.x > 0 ? 1 : 0, -.3);

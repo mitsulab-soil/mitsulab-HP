@@ -73,6 +73,9 @@ const PAPERS = [
 ];
 
 const meta = await (await fetch('data/works.json')).json();
+// 2026-11-10 第4周：本人 10-27「宇宙の話も削除」→ 書 020 の題は画面に出さず番号で呼ぶ（works.json の元の題は残す・戻すときはこの表から消す）
+const HIDE_TITLE = { '020': '書 020' };
+meta.works.forEach(w => { if (HIDE_TITLE[w.id]) { w.title0 = w.title; w.title = HIDE_TITLE[w.id]; } });
 let layersMeta = {}; try { layersMeta = await (await fetch('data/layers.json')).json(); } catch (e) { /* 無ければ浮き彫りで */ }
 const works = PLACE.map((p, i) => ({ ...p, i, w: meta.works.find(w => w.id === p.id), sho: null, snd: null, live: null, shadow: null, face: 0, base: 0, hold: 0, pressed: false, near: 0 })).filter(it => it.w);
 const paperW = meta.works.find(w => w.id === PAPER.id);
@@ -329,7 +332,7 @@ function showHint(txt) { const h = $('hint'); if (txt) h.innerHTML = txt; h.clas
 function paintHall() {
   $('capNo').textContent = '上原光瑛の書と言葉 ── Qualia/oto';
   $('capTi').textContent = '書と音の広間'; $('capTi').classList.remove('long');
-  $('capRd').textContent = 'sho は書が鳴る。ここでは書のまわりの光（約三百の言葉）が鳴る（合成の模式）。';
+  $('capRd').textContent = '光の一つひとつが、音の言葉。';
   $('count').textContent = ''; $('count').style.visibility = 'hidden';   // oto：書の前に立つまで番号は出さない
 }
 function setFocus(it) {
@@ -538,7 +541,7 @@ works.filter(it => it.sho).forEach(placeInRoom);
 scene.add(paperG);
 resize();
 paintHall();
-if (!SHOT) { P.z = 11.2; P.yaw = 0; P.pitch = 0.06; }   // 2026-11-09 第3周：最初は入口の奥から広間を見わたす。墨の立体は小さく遠くに
+if (!SHOT) { P.x = 3.4; P.z = 8.6; P.yaw = Math.PI / 2; P.pitch = -0.04; }   /* 2026-11-10 第4周：oto は sho と別の一枚＝入口の近くから西の漆喰の壁を向き、目の前の光の言葉が主役（墨の立体は遠く） */ //   // 2026-11-09 第3周：最初は入口の奥から広間を見わたす。墨の立体は小さく遠くに
 showHint('<b class="lead">光にさわると、音が鳴るよ。</b><span>床を押すと歩く。</span>');
 const WARM = import('./kit/warm.js');   // 2026-11-05：あとから足す物は、隠したまま材質を組んでから見せる（起動直後の止まりを分ける）
 const warmIn = async (objs) => { try { const W = await WARM; const vs = objs.map(o => o.visible); objs.forEach(o => o.visible = false); for (const o of objs) await W.warmScene(R, scene, cam, { root: o, batch: 2, offscreen: dof.on }); objs.forEach((o, i) => o.visible = vs[i]); } catch (e) { console.warn('warm', e); } };
@@ -556,7 +559,7 @@ const AOI_LINES = {
   '025': '「夜の森に漂う無数の眼の音」。夜の墨の奥で、小さな照り返しが灯っては消えます。',
   '034': '「蕾が春化粧をする音」。この書だけは、紙の上の墨のまま掛けています。',
   'oto': '「音」の一字。この連作の芯です。触れる場所で、鳴り方が変わります。はらいは長く、とめは短く。',
-  '020': '「宇宙の虚空間の音」。床にひらいた墨だまりです。のぞきこむように、触れてみてください。',
+  '020': '床にひらいた墨だまりの書です。のぞきこむように、触れてみてください。',
   '035': '「花が産声を上げて咲く音」。一画ずつが離れて浮かび、正面でひとつの書になります。',
   '038': '「いのちの最初に聴こえる音」。墨が、拍のように満ち引きしています。',
   '001': '「菌糸の胞子が惑星の心臓を蔽いつくす音」。掛け軸のまま浮かんでいます。紙の上で、薄墨の毛羽が芯を蔽っていきます。',
@@ -779,4 +782,4 @@ if (SHOT) {                                                    // 静止画：?s
   window.MLLoader?.done(); window.__shotReady = true;
 } else frame();
 window.__sho = { works, P, goStop, pick, focusDist }; window.__cam = cam;
-import('./oto/words.js?v=2').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
+import('./oto/words.js?v=3').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
