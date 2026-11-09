@@ -11,8 +11,8 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 700 ? 1.5 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.18;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x253834);
-scene.fog = new THREE.FogExp2(0x253834, .075);
+scene.background = new THREE.Color(0x2c423c);
+scene.fog = new THREE.FogExp2(0x2c423c, .062);   // 2026-11-10 第5周：霧を少し薄く・明るくし、奥の木立が段になって見えるように
 const camera = new THREE.PerspectiveCamera(36, 1, .05, 80);
 
 // 光
@@ -54,6 +54,11 @@ const tree = new THREE.Group(); tree.position.set(innerWidth < 700 ? -1.7 : -2.6
   tree.add(new THREE.Points(g, new THREE.PointsMaterial({ size: .075, map: leafMap, alphaTest: .45, vertexColors: true, transparent: false })));
 }
 
+// 2026-11-10 第5周：中ほどと奥に幹を立て、霧で段をつける（1 回の描画・三角形は約 2 千）
+{ const bm = new THREE.MeshStandardMaterial({ map: tex("tex/bark_zelkova.webp", 1), color: 0x8a8070, roughness: .95 });
+  const N = 34, im = new THREE.InstancedMesh(new THREE.CylinderGeometry(.09, .2, 7, 8, 1, true), bm, N), o = new THREE.Object3D(); let s = 11; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < N; i++) { const a = Math.PI * (1.05 + rnd() * .9), r = 5 + rnd() * 9; o.position.set(Math.cos(a) * r, 3.3, Math.sin(a) * r); const k = .8 + rnd() * .9; o.scale.set(k, 1, k); o.rotation.y = rnd() * 6; o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
+  scene.add(im); }
 // 遠くの木立の影（霧の向こう）と、まばらな星
 {
   const g = new THREE.SphereGeometry(1, 10, 6); const m = new THREE.MeshBasicMaterial({ color: 0x14251e, fog: true });
@@ -86,10 +91,11 @@ const flowers = new THREE.Group(); scene.add(flowers);
   const ctr = new THREE.Mesh(new THREE.SphereGeometry(.022, 12, 8), new THREE.MeshStandardMaterial({ color: 0x7a4a12, roughness: 1 })); ctr.scale.z = .5; ctr.position.z = .002; head.add(ctr);
   flowers.add(f);
 });
+flowers.children[7].scale.setScalar(1.6);   // 第5周：光る花を大きく（子どもが見つけやすく）
 
 // 2026-11-10 第4周：場の中の物に触れて選ぶ。手前の花を一つ、淡く光らせて誘う（押すと「鳥の目」）
 const invite = (() => { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(232,214,255,.95)"); gr.addColorStop(.35, "rgba(201,171,224,.45)"); gr.addColorStop(1, "rgba(201,171,224,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, opacity: .9 })); sp.position.set(.65, .4, 1.25); sp.scale.setScalar(.34); scene.add(sp); return sp; })();
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, opacity: .9 })); sp.position.set(.65, .61, 1.25); sp.scale.setScalar(.5); scene.add(sp); return sp; })();
 
 // 札（3D の小さな字）
 function label(text, color = "#c3cce0") {
@@ -235,10 +241,10 @@ const WORLDS = {
     { t: "いまの道の下に、前の道が重なっている場所もあります。", g: [{ t: .6, type: "deictic" }] }], note: { k: "国土地理院 旧版地図", m: "道と川の線は模式です（特定の場所の線ではありません）。", s: "国土地理院「地理院地図」の旧版地図・治水地形分類図で、場所ごとに確かめられます。" } },
   yori: { lines: [
     { t: "碧がしずくや石の姿になったら、何が見えるだろう？", q: 1 },
-    { t: "依代（よりしろ）は、姿を変えたわたしのことです。" },
+    { t: "これは、姿を変えたわたしです。" },
     { t: "Qualium の中で、わたしは姿を変えます。" },
     { t: "しずくや石の姿で、その場所の層へ案内します。" },
-    { t: "触れてみてください。", q: 1 }], note: { k: "mitsulab の創作", m: "依代の姿は mitsulab の創作です。" } },
+    { t: "触れてみてください。", q: 1 }], note: { k: "mitsulab の創作", m: "姿を変えた碧は mitsulab の創作です。" } },
 };
 const INTRO = [{ t: "わたしは碧。ビットとアトムのあわいに立ち、" }, { t: "この場所の記憶をたどり、五感をひらいて、" }, { t: "目の前の風景に層を重ねます。", express: "warm" }];
 
@@ -322,10 +328,10 @@ function frame() {
   { const T = TINT[mode || "none"], k = Math.min(1, dt * 2.5); cA.setHex(T[0]); scene.background.lerp(cA, k); scene.fog.color.copy(scene.background); cB.setHex(T[1]); hemi.color.lerp(cB, k); hemi.intensity += (T[2] - hemi.intensity) * k; }
   // 碧の目線：ときどき庭の何かへ目を向ける
   if (aoi && !RM && (glanceT -= dt) < 0) { glanceT = 5 + Math.random() * 4; const W = mode && WORLDS[mode].target; const p = W ? W.clone().add(new THREE.Vector3((Math.random() - .5) * .8, Math.random() * .3, 0)) : new THREE.Vector3((Math.random() - .5) * 4, .2 + Math.random() * 1.2, 1.5 + Math.random() * 2); aoi.motion.lookAt(p); setTimeout(() => aoi?.motion.lookAt(null), 1400 + Math.random() * 900); }
-  if (aoi && !aoi.shown && aoi.t0 && (clothFade.length && clothFade.every(([s]) => s.opacity >= .98) || performance.now() - aoi.t0 > 2200)) aoi.shown = true;   /* 透けて現れる途中は、暗い背景に衣が黒く透けて見える→透けが終わってから出す */
+  if (aoi && !aoi.shown && aoi.t0 && (clothFade.length && clothFade.every(([s]) => s.opacity >= .98) || performance.now() - aoi.t0 > 1100)) aoi.shown = true;   /* 透けて現れる途中は、暗い背景に衣が黒く透けて見える→透けが終わってから出す */
   if (aoi) aoi.root.visible = fadeT.yori < .5 && !!aoi.shown;   /* 11-10 第3周：375 の初回に衣が黒く見えた＝材質を組み終えるまで出さない */
-  invite.visible = !mode && fadeT.yori < .5; if (invite.visible) { const k = RM ? 1 : .75 + .25 * Math.sin(t * 2.2); invite.material.opacity = k; invite.scale.setScalar(.5 + (RM ? 0 : .08 * Math.sin(t * 2.2))); }
-  { const idle = mode ? 0 : (RM ? .14 : .1 + .07 * Math.sin(t * .6)); frame.idle = idle; if (idle) { if (!RM && (frame.hintT = (frame.hintT ?? 2.5) - dt) < 0) { frame.hintT = 3.8; ping(new THREE.Vector3(-1.6, 2.3, -2.6), 0x8fb6dc); } } }   /* 11-10 第3周：札を押す前から、層の気配（昔の道の淡い線・空の輪）を背景に */
+  invite.visible = !mode && fadeT.yori < .5; if (invite.visible) { const k = RM ? 1 : .75 + .25 * Math.sin(t * 2.2); invite.material.opacity = k; invite.scale.setScalar(.78 + (RM ? 0 : .1 * Math.sin(t * 2.2))); }
+  { const idle = mode ? 0 : (RM ? .14 : .1 + .07 * Math.sin(t * .6)); frame.idle = idle; if (idle) { if (!RM && (frame.hintT = (frame.hintT ?? 2.5) - dt) < 0) { frame.hintT = 3.8; /* 第5周：空の大きな輪は意味が伝わらないので出さない */ } } }   /* 11-10 第3周：札を押す前から、層の気配（昔の道の淡い線・空の輪）を背景に */
   if (yo) { for (const it of yo.items) { it.root.visible = fadeT.yori >= .5; it.root.scale.setScalar(.55 * Math.min(1, Math.max(.01, fadeT.yori * 2 - 1))); } yo.update(dt); }
   way.pts.visible = false; way.m.opacity = fadeT.yori * (RM ? .8 : .6 + .25 * Math.sin(t * 1.5)); way.m.size = .11 + .02 * Math.sin(t * 2);
   // カメラ

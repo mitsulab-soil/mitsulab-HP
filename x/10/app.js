@@ -126,9 +126,9 @@ function tickRipples(dt) { for (const m of RIP) { const a = m.userData.age += dt
 scene.fog = new THREE.FogExp2(0x03060f, .22);
 // 2026-11-09 第2周：足もとの光の格子（HUD に見える）をやめ、木の机の天板に置く（写真の質感 CC0・遠くは霧に溶ける）
 { const tl = new THREE.TextureLoader(), desk = new THREE.MeshStandardMaterial({ color: 0x6b5a48, roughness: .82, metalness: 0 });
-  const top = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), desk); top.rotation.x = -Math.PI / 2; top.position.y = -.107; scene.add(top);
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), desk); top.rotation.x = -Math.PI / 2; top.position.y = -.107; top.visible = false;   // 2026-11-10 第5周：机の天板を外し、面だけを闇に浮かべる
   const load = () => tl.load("tex/wood_c.webp?v=20261021", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.4, 2.4); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; desk.map = t; desk.color.set(0x8a7764); desk.needsUpdate = true; });
-  window.requestIdleCallback ? requestIdleCallback(load, { timeout: 600 }) : setTimeout(load, 300); }
+  void load; }
 const CN = MOBILE ? 64 : 96, cPos = new Float32Array(CN * CN * 3);
 const cloudU = { uScan: { value: 0 }, uSize: { value: (MOBILE ? 2.2 : 2.4) * Math.min(devicePixelRatio, 2) } };
 const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(cPos, 3)), new THREE.ShaderMaterial({

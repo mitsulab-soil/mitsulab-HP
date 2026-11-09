@@ -81,9 +81,16 @@ gMat.onBeforeCompile=sh=>{sh.uniforms.uField={value:fieldTex};sh.uniforms.uPulse
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vF;varying vec3 vWp;uniform vec3 uSky;uniform sampler2D uField;uniform float uPulse,uRad;float fWet,rg;')
    .replace('#include <map_fragment>','#include <map_fragment>\nvec4 F=texture2D(uField,vF);float inF=smoothstep(0.,.18,vF.x)*smoothstep(1.,.82,vF.x)*smoothstep(0.,.18,vF.y)*smoothstep(1.,.82,vF.y);fWet=inF*clamp(F.r*.7+F.g*.5,0.,1.);float dT=length(vF*24.-12.-vec2(3.5,-3.5));float rg=uPulse*exp(-pow((dT-uRad)*.7,2.));fWet=clamp(fWet+rg,0.,1.);diffuseColor.rgb*=mix(1.12,.42,fWet)*(1.+.14*F.b*inF)*(1.-.35*uPulse*step(dT,uRad));vec3 Vv=normalize(cameraPosition-vWp);float fr=pow(1.-max(Vv.y,0.),3.);diffuseColor.rgb=mix(diffuseColor.rgb,uSky*.55,clamp(rg*fr*1.4,0.,.75));')
    .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.28,fWet*fWet);roughnessFactor=mix(roughnessFactor,.12,rg);');};
-const ground=new T.Mesh(new T.PlaneGeometry(260,260,1,1),gMat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+/* 2026-11-10 第5周：歩く範囲と樹のある所（半径 19 m）は平らなまま、その外をゆるい起伏にして地平まで続ける（約 1.3 万三角形・描画 1 回） */
+const gGeo=new T.PlaneGeometry(260,260,80,80);{const p=gGeo.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),r=Math.hypot(x,y),k=T.MathUtils.smoothstep(r,19,42);p.setZ(i,k*(1.3*Math.sin(x*.07+1.2)*Math.cos(y*.05)+.9*Math.sin(x*.023-y*.031)+.5*Math.cos(x*.11+y*.09)+.8));}gGeo.computeVertexNormals();}
+const ground=new T.Mesh(gGeo,gMat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+// 遠くの木立（霧の向こうの影・描画 1 回）
+{const g=new T.IcosahedronGeometry(1,3);g.translate(0,.55,0);const im=new T.InstancedMesh(g,new T.MeshStandardMaterial({color:0x7d8a7a,roughness:1,flatShading:false}),90),o=new T.Object3D();let s=19;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+ for(let i=0;i<90;i++){const a=rnd()*Math.PI*2,r=48+rnd()*34,x=Math.cos(a)*r,z=Math.sin(a)*r;o.position.set(x,.6,z);const h=4+rnd()*4;o.scale.set(3+rnd()*3,h,3+rnd()*3);o.updateMatrix();im.setMatrixAt(i,o.matrix);}scene.add(im);}
 // 水面
-const water=new T.Mesh(new T.CircleGeometry(1,64),new T.MeshStandardMaterial({color:0x2c3d3c,roughness:.06,metalness:.25,transparent:true,opacity:.92}));
+/* 第5周：水際の縁をぼかし、板に見えないように（中心ほど深い色・縁は濡れた土へ溶ける） */
+const wA=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'#fff');g.addColorStop(.62,'#eee');g.addColorStop(.86,'#555');g.addColorStop(1,'#000');x.fillStyle=g;x.fillRect(0,0,128,128);return new T.CanvasTexture(c);})();
+const water=new T.Mesh(new T.CircleGeometry(1,64),new T.MeshStandardMaterial({color:0x34494a,roughness:.05,metalness:.3,transparent:true,opacity:.9,alphaMap:wA,depthWrite:false}));
 water.rotation.x=-Math.PI/2;water.position.set(POND.x,.025,POND.z);scene.add(water);
 const ringGeo=new T.RingGeometry(.9,1,40),rings=[];for(let i=0;i<40;i++){const m=new T.Mesh(ringGeo,new T.MeshBasicMaterial({color:0xdfe8e6,transparent:true,opacity:0,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.y=.03;m.userData.t=9;scene.add(m);rings.push(m);}
 // 樹（近くに一本・遠くに三本）
@@ -145,7 +152,7 @@ const goP=(()=>{const dx=me.x-POND.x,dz=me.z-POND.z,l=Math.hypot(dx,dz),r=pondR(
 const edgeM=new T.SpriteMaterial({map:dotTex(),color:0xfff3c8,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0});const edgeGlow=new T.Sprite(edgeM);edgeGlow.scale.set(1.1,1.1,1);edgeGlow.position.set(goP.x,.12,goP.z);_add(edgeGlow);let edgeOn=1;
 function splash(x,z,a=.8){const k0=idx(x,z);if(k0<0)return;for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const kk=k0+dj*N+di;if(kk<0||kk>=NN)continue;const f=1-Math.hypot(di,dj)/3.2;if(f<=0)continue;w[kk]=Math.min(1,w[kk]+a*f);d[kk]=Math.min(2,d[kk]+1.4*f);}}
 const probeTag=document.createElement('div');probeTag.textContent='土の湿りを測る棒（センサー）';probeTag.setAttribute('aria-hidden','true');probeTag.style.cssText='position:fixed;left:0;top:0;pointer-events:none;font-size:11px;letter-spacing:.06em;white-space:nowrap;text-shadow:0 1px 3px #000,0 0 10px #000a;transform:translate(-50%,-140%);opacity:0;transition:opacity .6s';document.body.appendChild(probeTag);const prV=new T.Vector3();
-setTimeout(()=>{splash(goP.x,goP.z,.9);},1200);const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:54px!important}',onPress:()=>{target={x:goP.x,z:goP.z};splash(goP.x,goP.z,.7);$('hint').style.opacity=0;}});
+setTimeout(()=>{splash(goP.x,goP.z,.9);},1200);const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:112px!important}.qx-home{width:auto!important;padding:0 10px;font-size:14px!important;letter-spacing:.06em}',onPress:()=>{target={x:goP.x,z:goP.z};splash(goP.x,goP.z,.7);$('hint').style.opacity=0;}});{const h=document.querySelector('.qx-home');if(h){h.textContent='← mitsulab';h.href='https://mitsulab.jp/';}}
 const ray=new T.Raycaster(),ndc=new T.Vector2();let down=null;
 /* 2026-11-09 第3周：押した所に輪を一つ（どこへ行くかが分かる） */const tapRing=new T.Mesh(new T.RingGeometry(.42,.5,40).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0xf6f0d6,transparent:true,opacity:0,depthWrite:false,toneMapped:false}));tapRing.visible=false;tapRing.renderOrder=5;scene.add(tapRing);
 const cv=$('w');

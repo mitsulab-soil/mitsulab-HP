@@ -85,11 +85,20 @@ header span{font-size:12px;color:var(--ink3)}
   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .40 0 0 0 0 .32 0 0 0 .55 -.18'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E"),
   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .36 0 0 0 0 .3 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 .env .seal{background:radial-gradient(circle at 38% 34%,#a9503f 0%,#8a3b2e 55%,#6f2c22 100%);box-shadow:inset 0 0 0 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.3)}
+/* 2026-11-10 第5周：封の下に参道の地を淡く／低学年向けに「大きな字・ふりがな」／ひらいた画に奥行きの霞 */
+#kids{pointer-events:auto;min-height:44px;padding:0 14px;border:1px solid rgba(232,238,245,.3);border-radius:22px;background:rgba(8,13,22,.5);color:var(--ink,#eef1f6);font:13px var(--serif);letter-spacing:.06em;cursor:pointer}
+#kids[aria-pressed="true"]{background:#eef1f6;color:#0b1119}
+body::before{content:"";position:fixed;left:-30%;right:-30%;bottom:-6%;height:58%;pointer-events:none;background:url(tex/path_gravel.webp) center/360px repeat;opacity:.34;transform:perspective(520px) rotateX(62deg);transform-origin:50% 100%;-webkit-mask-image:linear-gradient(transparent,#000 70%);mask-image:linear-gradient(transparent,#000 70%);z-index:0}
+#stack,#sub{z-index:1}
+#world{background:#0a1422}#cv{-webkit-mask-image:radial-gradient(130% 100% at 50% 60%,#000 52%,rgba(0,0,0,.45) 100%);mask-image:radial-gradient(130% 100% at 50% 60%,#000 52%,rgba(0,0,0,.45) 100%)}
+body.kids #pbody{font-size:clamp(20px,2.8vw,24px);line-height:2.3}body.kids #sub{font-size:1.15em}
+#paper ruby rt{font-size:.5em;letter-spacing:0}
+@media (max-width:420px){#kids{padding:0 10px;font-size:12px}}
 </style>
 </head>
 <body>
 <div id="lamp" aria-hidden="true" title=""></div><!-- 2026-11-09 第2周：遠くの参道の灯を一つ、淡く -->
-<header><div style="display:flex;align-items:baseline"><a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のホームへ戻る">‹ mitsulab</a><h1>Qualia/<i>letter</i>　便り</h1></div><span>氷川参道・大宮</span></header>
+<header><div style="display:flex;align-items:baseline"><a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のホームへ戻る">← mitsulab</a><h1>Qualia/<i>letter</i>　便り</h1></div><button id="kids" type="button" aria-pressed="false">大きな字・ふりがな</button></header>
 <p id="sub">参道の生き物たちの受けとり方を、碧が訳して書いた便りです。<small>いちばん上の封にふれると、受けとり方を訳した便りを読めます。</small></p>
 <div id="stack"></div>
 <section id="world" role="dialog" aria-modal="true" aria-labelledby="wname">
@@ -229,7 +238,7 @@ function hideHint(){$('hint').style.opacity=0}
 $('eye').onclick=()=>{human=!human;$('eye').setAttribute('aria-pressed',human);$('wname').firstChild.textContent=human?'人の目':VW(L[cur]);$('eye').textContent=human?VW(L[cur])+'で受けとる':'人の目で見る'};
 function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];
  $('wname').innerHTML=VW(l)+'<small>碧が訳した模式</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
- $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pq').textContent=l.q;$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
+ $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pq').textContent=l.q;if(document.body.classList.contains('kids'))furi();$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
  const o=st();$('rk').textContent=o[i]&&o[i].t?'封に挟んだ返事：'+o[i].t:'返事は、この端末の中にだけ残ります。';$('ri').value='';o[i]=Object.assign(o[i]||{},{r:1});save(o);
  world.querySelectorAll('details').forEach(d=>d.open=false);$('paper').classList.remove('fold');world.classList.add('on');sub.style.opacity=0;size();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
  if(l.id==='bat')setTimeout(()=>{if(cur===i&&!pulses.length)pulses.push({t:performance.now()/1000})},700);
@@ -244,5 +253,11 @@ world.querySelector('form').onsubmit=ev=>{ev.preventDefault();const v=$('ri').va
 lay();addEventListener('resize',()=>{clearTimeout(window._r);window._r=setTimeout(()=>{lay();if(world.classList.contains('on'))size()},120)});
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-09 公開。Qualia/letter＝便り：氷川参道の生き物たちの受けとり方を、碧が訳して書いた便り。質感の写真は CC0（Qualia/sight と同じ）。AI の学習・生成への利用はお断りします。 -->
+<script>
+/* 2026-11-10 第5周：ふりがな（低学年）。便りの文の漢字にだけ、辞書の読みを添える */
+const FURI=Object.fromEntries("見:み,紫外:しがい,目:め,花:はな,模式:もしき,受:う,同:おな,参道:さんどう,人:ひと,便:たよ,方:かた,赤:あか,震:ふる,声:こえ,模様:もよう,暗:くら,枝:えだ,実:み,知:し,明:あか,音:おと,左右:さゆう,終:お,視細胞:しさいぼう,多:おお,中:なか,下:した,艶:つや,前:まえ,光:ひかり,鳥居:とりい,朱:しゅ,届:とど,聞:き,物:もの,体:からだ,返事:へんじ,実際:じっさい,動:うご,訪:おとず,感度:かんど,蜂:はち,働:はたら,置:お,色:いろ,窓:まど,鳥:とり,景色:けしき,種:しゅ,返:かえ,書:か,持:も,重:かさ,土:つち,上:うえ,地面:じめん,遠:とお,残:のこ,夕暮:ゆうぐ,高:たか,世界:せかい,反響:はんきょう,自分:じぶん,碧:あお,訳:やく,封:ふう,蜜:みつ,向:む,短:みじか,一生:いっしょう,外:そと,言:い,青:あお,緑:みどり,白:しろ,近:ちか,夏:なつ,巣:す,木:き,立:た,少:すこ,変:か,果実:かじつ,淡:あわ,蝶:ちょう,複眼:ふくがん,皮膚:ひふ,足音:あしおと,何:なに,振動:しんどう,低:ひく,鳴:な,虫:むし,超音波:ちょうおんぱ,秒:びょう,時間:じかん,耳:みみ,道:みち,霧:きり,秋:あき,紅葉:もみじ,浮:う,触:ふ,生:い,数週間:すうしゅうかん,一色:ひといろ,沈:しず,山:やま,吸:す,成虫:せいちゅう,寿命:じゅみょう,鳥類:ちょうるい,網膜:もうまく,表面:ひょうめん,反射:はんしゃ,種類:しゅるい,色覚:しょっかく,眼:め,反応:はんのう,一瞬:いっしゅん,横:よこ,通:とお,周波数:しゅうはすう,遅:おそ,所:ところ,線:せん,肌:はだ,先:さき,夕:ゆう,開:ひら,閉:と,画面:がめん,画:え,一部:いちぶ,四:よん,三:さん,六:ろく,数:かず,放:はな,端:はし,見上:みあ,皮:かわ,側:がわ,時期:じき,一度:いちど".split(",").map(x=>x.split(":")));const FK=Object.keys(FURI).sort((a,b)=>b.length-a.length);const FRE=new RegExp(FK.join("|"),"g");
+function furi(){for(const id of ["pbody","pq"]){const e=document.getElementById(id);if(!e||e.querySelector("ruby"))continue;const t=e.textContent.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));e.innerHTML=t.replace(FRE,w=>"<ruby>"+w+"<rt>"+FURI[w]+"</rt></ruby>");}}
+document.getElementById("kids").onclick=e=>{const on=document.body.classList.toggle("kids");e.currentTarget.setAttribute("aria-pressed",String(on));if(on)furi();else for(const id of ["pbody","pq"]){const x=document.getElementById(id);if(x){x.querySelectorAll("rt").forEach(r=>r.remove());x.textContent=x.textContent;}}};
+</script>
 </body>
 </html>

@@ -37,10 +37,23 @@ body.yose #row{padding-right:56px}
 #seki .card span{font-size:16px;letter-spacing:.08em;padding:6px 4px 0}
 #seki .card small{display:block;font-size:11.5px;color:#cfe3ee;letter-spacing:.02em;padding:0 4px 6px;text-align:center;white-space:normal;line-height:1.35;font-family:"Hiragino Sans",sans-serif}
 @media (max-width:760px){#seki{grid-template-columns:repeat(2,minmax(0,1fr))!important}#seki .card{min-height:48px}#seki .card span{font-size:15px}#seki .card small{display:none}}
+/* 2026-11-10 第5周：題の格子を一列の細い札に畳み、舞台を主役に。最初のおすすめ「蜂の目」を光らせる */
+#seki{grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:4px;padding-bottom:6px}
+#seki .card{min-height:44px;border-color:transparent;background:transparent}
+#seki .card small{display:none}
+#seki .card span{font-size:14px;padding:0 2px}
+#seki .card[aria-pressed="true"]{border-color:var(--aoi);background:rgba(92,200,224,.14)}
+#seki .card.rec{border-color:#ffcf86;animation:rec 2s ease-in-out infinite}
+#seki .card.rec span::after{content:"おすすめ";display:block;font:11px/1.3 "Hiragino Sans",sans-serif;color:#ffe2b0;letter-spacing:.08em}
+@keyframes rec{50%{box-shadow:0 0 0 4px rgba(255,207,134,.28)}}
+@media (max-width:760px){#seki{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:2px}#seki .card{min-height:44px}#seki .card span{font-size:12.5px;letter-spacing:0}#seki .card.rec span::after{font-size:9.5px}}
+@media (prefers-reduced-motion:reduce){#seki .card.rec{animation:none}}
+#hp{font-size:14px;letter-spacing:.06em;font-family:"Hiragino Sans",sans-serif;padding:0 8px;margin-left:-4px;white-space:nowrap}
+@media (max-width:400px){#row b{font-size:13px}#row b small{font-size:9.5px}}
 </style>
 </head>
 <body>
-<nav id="bar"><div id="row"><a id="hp" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">‹</a><b>Qualia/yose<small>題を押すと、すぐはじまる・小学生から親子で</small></b><button data-v="kan">館</button><button data-v="yose">寄席</button></div><div id="seki" role="group" aria-label="噺を選ぶ（8 席）"></div><details id="src"><summary aria-label="噺ごとの出典">＋</summary><ol id="srcl"></ol></details><div id="go"><button id="toRoom"></button></div></nav>
+<nav id="bar"><div id="row"><a id="hp" href="https://mitsulab.jp/" aria-label="mitsulab のサイトへ戻る">← mitsulab</a><b>Qualia/yose<small>題を押すと、すぐはじまる・小学生から親子で</small></b><button data-v="kan">館</button><button data-v="yose">寄席</button></div><div id="seki" role="group" aria-label="噺を選ぶ（8 席）"></div><details id="src"><summary aria-label="噺ごとの出典">＋</summary><ol id="srcl"></ol></details><div id="go"><button id="toRoom"></button></div></nav>
 <div id="wait"><i></i><span id="wt"></span></div>
 <iframe id="app" title="Qualia/yose" allow="autoplay; fullscreen"></iframe>
 <script>
@@ -53,7 +66,8 @@ const RK = 'https://mitsulab-soil.github.io/aoi-shizen-rakugo/img/';
 const SRC = { hachi: 'N. Hempel de Ibarra ほか (2014) <i>J. Comp. Physiol. A</i>（ミツバチの色の見え方）', mimizu: 'C. Darwin (1881) <i>The Formation of Vegetable Mould, through the Action of Worms</i> 第一章', ga: 'J. H. Fabre『The Life of the Caterpillar』（英訳 1916）第 11 章', kumo: 'B. Mortimer ほか (2016) <i>J. R. Soc. Interface</i>（網の糸が揺れを伝える）', inu: 'G. J. Romanes (1887) <i>J. Linn. Soc. Zool.</i> 20（犬の嗅覚の実験）', keyaki: 'さいたま市「武蔵一宮氷川神社と氷川参道」・環境省 巨樹・巨木林データベース', shashin: 'パリ市「Un détail imprévu fait revivre un cliché historique」（2026-10-15）', hoshi: '清少納言『枕草子』「星は」の段' };
 seki.innerHTML = S.map(([k, t, , g]) => `<button class="card" type="button" data-e="${k}" aria-pressed="false"><span>${t}</span><small>${g}</small></button>`).join('');   // 2026-11-10 第4周：碧の顔の帯をやめ題の札だけに
 document.getElementById('srcl').innerHTML = S.map(([k, t]) => `<li><b>${t}</b>　${SRC[k]}</li>`).join('');
-seki.onclick = ev => { const c = ev.target.closest('.card'); if (!c) return; if ((new URLSearchParams(location.search).get('e') || '') === c.dataset.e && document.body.classList.contains('yose')) return; go('yose', c.dataset.e, null, null, true); };   // 同じ席はひらき直さない
+seki.querySelector('[data-e="hachi"]').classList.add('rec');
+seki.onclick = ev => { const c = ev.target.closest('.card'); if (!c) return; const wr = c.classList.contains('rec'); seki.querySelector('.rec')?.classList.remove('rec'); if (!wr && (new URLSearchParams(location.search).get('e') || '') === c.dataset.e && document.body.classList.contains('yose')) return; go('yose', c.dataset.e, null, null, true); };   // 同じ席はひらき直さない
 const fit = () => { const h = bar.offsetHeight; app.style.top = (h + 8) + 'px'; document.getElementById('wait').style.top = h + 'px'; app.style.height = (innerHeight - h - 8) + 'px'; };
 function go(v, e, room, from, now) {
   if (v !== 'kan') v = 'yose';
