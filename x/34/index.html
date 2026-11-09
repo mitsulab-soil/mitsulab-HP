@@ -38,7 +38,7 @@ header span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
 #card.open{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
 #card .tag{font-size:11px;color:var(--sumi3);letter-spacing:.2em}
 #card h2{margin-top:6px;padding-right:36px;font-size:19px;font-weight:500;letter-spacing:.1em}
-#card .body{margin-top:14px;font-size:16px;line-height:2.05;letter-spacing:.04em;white-space:pre-line}
+#card .body{margin-top:14px;font-size:16px;line-height:2.05;letter-spacing:.04em;white-space:pre-wrap}
 #card .end{margin-top:12px;font-size:14px;color:var(--sumi2);line-height:1.9}
 #card details{margin-top:12px;font-size:12px;color:var(--sumi3);line-height:1.75}
 #card summary{cursor:pointer;min-height:44px;display:flex;align-items:center;list-style:none;color:var(--sumi2)}
@@ -66,6 +66,8 @@ body.all #net line{opacity:.4}
 #veil.on{opacity:1;pointer-events:auto}
 footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(safe-area-inset-bottom));font-size:10px;color:var(--ink3);text-align:center;letter-spacing:.05em;pointer-events:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:600px){#card{top:auto;bottom:0;width:100vw;max-height:44vh;border-radius:6px 6px 0 0;transform:translate(-50%,12%);padding:20px 20px 10px}#card.open{transform:translate(-50%,0)}#card h2{font-size:17px}#card .body{font-size:15px;line-height:1.95}#veil{background:rgba(2,4,10,.12)}}
+@media (min-width:900px){#card{left:auto;right:5vw;width:min(36vw,440px);transform:translate(0,-46%) scale(.96)}#card.open{transform:translate(0,-50%) scale(1)}#veil{background:rgba(2,4,10,.15)}}
 </style>
 </head>
 <body>
@@ -76,10 +78,15 @@ footer{position:fixed;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(saf
     <radialGradient id="fog" cx=".5" cy=".56" r=".5"><stop offset="0" stop-color="#2a3a4a" stop-opacity=".55"/><stop offset="1" stop-color="#2a3a4a" stop-opacity="0"/></radialGradient>
   </defs>
   <rect width="1000" height="1000" fill="url(#sky)"/>
+  <pattern id="soil" patternUnits="userSpaceOnUse" width="220" height="220"><image href="tex/soil_forest.webp" width="220" height="220"/></pattern>
+  <pattern id="grav" patternUnits="userSpaceOnUse" width="140" height="140"><image href="tex/path_gravel.webp" width="140" height="140"/></pattern>
+  <pattern id="bark" patternUnits="userSpaceOnUse" width="90" height="260"><image href="tex/bark_zelkova.webp" width="90" height="260" preserveAspectRatio="none"/></pattern>
   <rect y="560" width="1000" height="440" fill="url(#gr)"/>
+  <rect y="560" width="1000" height="440" fill="url(#soil)" opacity=".16"/>
   <!-- 目の高さ（地平＝ y560）から見た参道：両側の並木が遠くへ細くなる -->
-  <g id="trees" fill="#07090b"></g>
-  <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="#1d1f1e" opacity=".7"/>
+  <rect y="540" width="1000" height="120" fill="url(#fog)" opacity=".6"/>
+  <g id="trees0" fill="#15181a"></g><g id="trees" fill="url(#bark)" opacity=".22"></g>
+  <path d="M470 560 L530 560 L760 1000 L240 1000Z" fill="url(#grav)" opacity=".18"/>
   <!-- 鳥居（遠く・朱） -->
   <g id="torii" transform="translate(500 520)" fill="#7d2b22"><rect x="-34" y="-4" width="68" height="5"/><rect x="-28" y="5" width="56" height="3"/><rect x="-22" y="0" width="4" height="40"/><rect x="18" y="0" width="4" height="40"/></g>
   <rect width="1000" height="1000" fill="url(#fog)"/>
@@ -110,39 +117,42 @@ document.title=NAME.en+NAME.en2+" ── "+NAME.ja;
 /* x,y は画面の割合。地平（56%）のまわりに散らす＝中心を置かない */
 const F=[
 {n:"マダニ",c:"#e3b07a",fx:"tick",x:.16,y:.47,t:"三つで満ちる",
- b:"枝の先で、マダニが待っている。\nこの寓話のマダニの世界には、三つのことしかない。\n酪酸の匂い、温かさ、毛のふれる感じ。\n参道の灯も、鳥の声も、そこには無い。\nマダニの環世界の中には、外が現れない。",
+ b:"一　酪酸の匂い。\n二　温かさ。\n三　毛のふれる感じ。\n\n枝の先で待つマダニの世界は、この寓話では、この三つでできている。\n参道の灯も、鳥の声も、そこには現れない。\nマダニの環世界の中には、外が現れない。",
  e:"あなたの世界の外は、あなたから見えますか。",
  s:["事実：ユクスキュルは、マダニが酪酸の匂い・温かさ・毛のある皮膚への接触という少ない手がかりで動く例を挙げ、生き物ごとの世界を「環世界」と呼んだ（J. v. ユクスキュル、G. クリサート『生物から見た世界』1934。日高敏隆・羽田節子訳、岩波文庫、2005）。","寓話にしたところ：マダニが世界を「満ちている」と感じるかは分からない。三つの手がかりで世界が閉じていることを、ことばにした。"]},
 {n:"ミツバチ",c:"#b9a7ff",fx:"bee",x:.76,y:.66,t:"二つの目立つもの",
- b:"朱の鳥居の前を、ミツバチが通りすぎる。\n人には、参道でいちばん目立つ色。\nミツバチの目は赤をほとんど受けとらないので、\nその朱は暗い柱になる、と考えられている。\nかわりに、花によっては、人に見えない紫外の模様がある。",
+ b:"［人の目］\n朱の鳥居が、参道でいちばん目立つ。\n足もとの花は、一色に見える。\n\n［ミツバチの目］\nその朱は、暗い柱になると考えられている。\n花によっては、紫外の模様が浮かぶ。",
  e:"同じ参道に、二つの「目立つもの」がある。どちらが本当かは、決めずにおく。",
  s:["事実：ミツバチの視細胞の感度の山はおよそ 344・436・556 nm（紫外・青・緑）で、赤に感じる受容体を持たない（Peitsch, D. et al. 1992, J. Comp. Physiol. A 170: 23–40）。花には紫外の模様を持つものがある。ただし紫外がハチに特に目立つとは限らない（Kevan, P. G., Chittka, L. & Dyer, A. G. 2001, J. Exp. Biol. 204: 2571–2580）。","寓話にしたところ：鳥居の色の見え方は受容体からの推定の模式。ミツバチが鳥居をどう意味づけるかは書いていない。"]},
 {n:"ケヤキ",c:"#9fd3a6",fx:"tree",x:.88,y:.36,t:"中心のない木",
- b:"ケヤキには、心臓がない。\n水は根から梢まで、葉から空へ出ていく水に引かれて上がる。\n葉・細い管・根・土・空の乾き。\nどこか一か所が命じているのではない。\n寓話で「あなたの中心はどこ」と尋ねても、答えは返らない。",
+ b:"──　あなたの心臓は、どこにありますか。\n\nケヤキに心臓はない。\n水は、葉から空へ出ていく水に引かれて、根から梢まで上がる。\n葉、細い管、根、土、空の乾き。\n\n──　では、あなたの中心は。\n\n寓話の問いに、答えは返らない。",
  e:"中心がなくても、つながりは保たれる。",
  s:["事実：木の水は、葉からの蒸散で生じる張力と、水の分子どうしの凝集力によって、道管・仮道管の中を切れずに上がる（凝集力-張力説。Dixon, H. H. & Joly, J. 1895, Phil. Trans. R. Soc. B 186: 563–576。Tyree, M. T. & Zimmermann, M. H. 2002, Xylem Structure and the Ascent of Sap, Springer）。","寓話にしたところ：ケヤキに尋ねる場面は寓話。木は答えない。"]},
 {n:"ミミズ",c:"#b8b2a6",fx:"worm",x:.3,y:.82,t:"見ない夜",
- b:"ミミズには目がない。\nそれでも体の表で光を受けとり、明るさを避けて土へもぐる。\n見るための器官が無いことで、\n明るい・暗いだけの、静かな世界がある。\n満月の参道は、ミミズにとっては、ただもぐる夜になる。",
+ b:"目がない。\n\n体の表で、明るさを受けとる。\n明るいほうから、土へもぐる。\n\n昼の参道は、
+ミミズには、ただもぐる明るさ。
+
+夜になると、地表へ出てくる。",
  e:"無いことで、見えてくるものがある。",
- s:["事実：ミミズは目を持たないが光に反応し、光を避ける（Darwin, C. 1881, The Formation of Vegetable Mould through the Action of Worms, John Murray）。体の表に光を受けとる細胞があるとされる。","寓話にしたところ：「静かな世界」「もぐる夜」は詩の言い方。ミミズの感じ方の中身は分からない。"]},
+ s:["事実：ミミズは目を持たないが光に反応し、光を避ける（Darwin, C. 1881, The Formation of Vegetable Mould through the Action of Worms, John Murray）。体の表に光を受けとる細胞があるとされる。","寓話にしたところ：「もぐる明るさ」は詩の言い方。ミミズの感じ方の中身は分からない。"]},
 {n:"コウモリ",c:"#a9d8f2",fx:"bat",x:.42,y:.2,t:"静かな空",
- b:"夕暮れ、参道の上をコウモリが飛ぶ。\n人の耳には、静かな空。\nけれど同じ空を、人に聴こえない高い声が行き交い、\nその跳ね返りで、虫のいる所が受けとられている。\n静かな空と、にぎやかな空が、同じ場所に重なっている。",
+ b:"18時40分　参道の上を、コウモリが飛びはじめる。\n18時41分　人の耳には、静かな空。\n18時41分　同じ空を、人に聴こえない高い声が行き交う。\n18時42分　その跳ね返りで、虫のいる所が受けとられている。\n\n静かな空と、にぎやかな空が、同じ時刻に重なっている。",
  e:"静けさは、だれにとっての静けさだろう。",
- s:["事実：コウモリの多くは超音波を出し、その反響で周りや餌の位置をとらえる（反響定位。Griffin, D. R. 1958, Listening in the Dark, Yale University Press）。人に聴こえる高さの上限はおよそ 20 kHz。","寓話にしたところ：日本の市街地に広く見られるアブラコウモリを念頭に置いたが、この参道で記録したものではない。「にぎやか」は人の言い方。"]},
+ s:["事実：コウモリの多くは超音波を出し、その反響で周りや餌の位置をとらえる（反響定位。Griffin, D. R. 1958, Listening in the Dark, Yale University Press）。人に聴こえる高さの上限はおよそ 20 kHz。","寓話にしたところ：日本の市街地に広く見られるアブラコウモリを念頭に置いたが、この参道で記録したものではない。「にぎやか」は人の言い方。時刻は寓話の中のもので、飛びはじめる時刻は季節と日没で変わる。"]},
 {n:"記録計",c:"#5cc8e0",fx:"rec",x:.62,y:.88,t:"感じない記録",
- b:"ケヤキの根もとに、土の湿りを測る記録計が埋まっている。\n雨のあと、数字が上がる。晴れが続くと、下がる。\n記録計は感じない。ただ記録する。\nその数字の列を、ケヤキの水の柱と並べて読んでみる。\n記録が、木と雨のあいだに一本の線を引く。",
+ b:"11/02　雨のあと　数字が上がる\n11/03　晴れ　　　少し下がる\n11/04　晴れ　　　下がる\n11/05　晴れ　　　下がる\n\nケヤキの根もとに埋まった記録計の列。\n記録計は感じない。ただ記録する。\nその列をケヤキの水の柱と並べて読むと、木と雨のあいだに一本の線が引かれる。",
  e:"記録は、だれかが読むときに、受けとり方になる。",
- s:["事実：多くの土壌水分計は、土の誘電率を測って体積含水率を推定する（Topp, G. C., Davis, J. L. & Annan, A. P. 1980, Water Resources Research 16: 574–582）。","寓話にしたところ：この記録計は寓話の中のもの。機械は感じない、と書いた。数字に意味を与えるのは読む側。"]},
+ s:["事実：多くの土壌水分計は、土の誘電率を測って体積含水率を推定する（Topp, G. C., Davis, J. L. & Annan, A. P. 1980, Water Resources Research 16: 574–582）。","寓話にしたところ：この記録計と日付の列は寓話の中のもの（測った値ではない）。機械は感じない、と書いた。数字に意味を与えるのは読む側。"]},
 {n:"アゲハ",c:"#f0d77c",fx:"fly",x:.08,y:.7,t:"胡蝶の夢",
- b:"アゲハが葉にとまり、前脚の先で葉を味わう。\n卵を産む葉を、足で確かめている。\nむかし、蝶になった夢を見た人が、目覚めて、\n自分が蝶の夢を見たのか、蝶が自分の夢を見ているのか、分からなくなった。\n足で葉を味わう世界から戻ると、手の中の葉が少しちがって見える。",
+ b:"［蝶の段］\nアゲハが葉にとまり、前脚の先で葉を味わう。\n卵を産む葉を、足で確かめている。\n\n［人の段］\nむかし、蝶になった夢を見た人が、目覚めて、\n自分が蝶の夢を見たのか、蝶が自分の夢を見ているのか、分からなくなった。\n\n足で葉を味わう世界から戻ると、手の中の葉が少しちがって見える。",
  e:"いまの見え方から離れて戻ると、同じ世界にまた出会う。",
  s:["事実：ナミアゲハは前脚の感覚毛で葉の成分を味わい、産卵する植物を見分ける（Ozaki, K. et al. 2011, Nature Communications 2: 542）。胡蝶の夢は『荘子』斉物論。","寓話にしたところ：蝶と人の夢を並べたのは寓話。どちらが本当かは決めない。"]},
 {n:"落ち葉",c:"#c9a46a",fx:"leaf",x:.54,y:.76,t:"閉じたあとに",
- b:"秋、ケヤキの葉が一枚、参道に落ちる。\n水を引き、光を受けていた葉のはたらきは、もう止まっている。\n夜、ミミズがその葉を巣穴へ引きこむ。\n葉は土の生き物や菌の食べものになり、少しずつ土に混ざっていく。\n葉のはたらきは戻らない。ただ、ほかの生き物の世界の中に、その跡が残る。",
- e:"足もとの土に、去年の葉はもう見分けられない。",
+ b:"秋　ケヤキの葉が一枚、参道に落ちる。\n　　水を引き、光を受けていた葉のはたらきは、止まっている。\n\n夜　ミミズが、その葉を巣穴へ引きこむ。\n\n冬　葉は、土の生き物や菌の食べものになっていく。\n\n春　足もとの土に、去年の葉はもう見分けられない。\n　　葉のはたらきは戻らない。\n　　ほかの生き物の体と土の中に、その跡が残る。",
+ e:"見分けられないことが、そこにあったことを消すわけではない。",
  s:["事実：ミミズは夜、落ち葉を巣穴へ引きこむ（Darwin, C. 1881, The Formation of Vegetable Mould through the Action of Worms, John Murray）。落ち葉は土の動物・菌・細菌によって分解され、養分が土へ戻る（Swift, M. J., Heal, O. W. & Anderson, J. M. 1979, Decomposition in Terrestrial Ecosystems, Blackwell）。","寓話にしたところ：葉や木が何かを感じるかは分からない。「跡が残る」は、分解された物質がほかの生き物の体や土に入ることを、ことばにしたもの。慰めの意味はこめていない。落ち葉を巣穴へ引きこむのは Darwin が観察したヨーロッパのミミズに典型的な行動で、この参道で確かめたものではない。"]},
 {n:"苫屋",c:"#f2cf8c",fx:"end",x:.66,y:.52,t:"なかりけり",
- b:"見わたせば　花ももみぢも　なかりけり\n浦の苫屋の　秋の夕ぐれ\n\n花も紅葉も無い、と詠むことで、無いものが見えてくる。\nどの生き物にも、その環世界が世界の全てだと考えると、その外は見えない。\nだから、ほかの受けとり方に触れたとき、無かったものが立ち上がる。",
+ b:"見わたせば　花ももみぢも　なかりけり\n浦の苫屋の　秋の夕ぐれ\n\n花も紅葉も無い、と詠むことで、無いものが見えてくる。\nどの生き物にとっても、その環世界が世界の全てなら、その外は見えない。\nだから、ほかの受けとり方に触れたとき、無かったものが立ち上がる。",
  e:"顔を上げて、目の前の参道を見てください。さっきと同じですか。",
  s:["事実：藤原定家の歌（『新古今和歌集』秋上・363）。","考え方：環世界はその主体には全てであり、それ自体で固定されたものではなく、環境と身体と意味づけの関係として立ち上がる。これを仏教哲学の「空」（龍樹『中論』24 章 18 偈の、縁起と空）に重ねて読むのは mitsulab の解釈。環世界の外もまた、それだけで在るものではなく、ほかの受けとり方との関係の中で立ち上がる（補集合もまた空）。"]}
 ];
@@ -151,7 +161,7 @@ const F=[
 (function(){const g=document.getElementById("trees");let h="";
  for(let i=0;i<9;i++){const k=Math.pow(.72,i),dx=470*k+30,w=26*k+2,top=560-430*k,bot=560+380*k;
   h+=`<rect x="${500-dx-w/2}" y="${top}" width="${w}" height="${bot-top}"/><rect x="${500+dx-w/2}" y="${top}" width="${w}" height="${bot-top}"/>`;}
- g.innerHTML=h;})();
+ g.innerHTML=h;document.getElementById("trees0").innerHTML=h;})();
 
 const box=document.getElementById("lights"),card=document.getElementById("card"),veil=document.getElementById("veil"),sub=document.getElementById("sub");
 let cur=-1;const read=new Set();
@@ -170,7 +180,7 @@ function open(i){cur=i;const f=F[i];
 const net=document.getElementById("net");const LK=[[2,5],[2,7],[7,3],[3,5],[1,6],[1,2],[4,1],[0,4],[6,0],[8,7],[8,6],[8,0]];
 net.innerHTML=LK.map(([i,j],k)=>`<line style="transition-delay:${k*.25}s" x1="${F[i].x*100}" y1="${F[i].y*100}" x2="${F[j].x*100}" y2="${F[j].y*100}" vector-effect="non-scaling-stroke"/>`).join("");
 function close(){document.body.className=document.body.className.replace(/fx-\w+/g,"").trim();
- if(read.size===F.length&&!document.body.classList.contains("all")){document.body.classList.add("all");sub.innerHTML="九つの受けとり方が、同じ参道で重なっていました。<small>顔を上げて、目の前の世界へ。</small>";}
+ if(read.size===F.length&&!document.body.classList.contains("all")){document.body.classList.add("all");sub.innerHTML="九つの受けとり方が、<br>同じ参道で重なっていました。<small>顔を上げて、目の前の世界へ。</small>";}
  sub.style.opacity=1;card.classList.remove("open");veil.classList.remove("on");if(cur>=0)F[cur].el.focus({preventScroll:true});cur=-1;}
 card.querySelector(".close").onclick=close;veil.onclick=close;
 document.getElementById("next").onclick=()=>open((cur+1)%F.length);
