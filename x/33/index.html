@@ -20,11 +20,12 @@ body{background:radial-gradient(120% 80% at 30% 100%,#0b1626 0%,var(--bg) 60%)}
 #lamp{position:fixed;left:24%;bottom:47%;width:4px;height:5px;border-radius:50%;background:#f6dca4;opacity:.55;box-shadow:0 0 14px 6px rgba(242,207,140,.16),0 0 46px 20px rgba(242,207,140,.06);animation:lp 7s ease-in-out infinite;pointer-events:none}@keyframes lp{50%{opacity:.4}}
 :focus:not(:focus-visible){outline:none}#world:focus{outline:none}:focus-visible{outline:2px solid var(--aoi);outline-offset:2px}
 header{position:fixed;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:baseline;z-index:5;pointer-events:none}
+header .back{pointer-events:auto;display:inline-flex;align-items:center;min-width:44px;min-height:44px;margin:-12px 10px -12px -6px;padding:0 6px;color:var(--ink,#eef1f6);text-decoration:none;font-size:14px;letter-spacing:.06em}header .back:focus-visible{outline:2px solid var(--aoi)}
 header h1{font-size:15px;font-weight:500;letter-spacing:.08em}
 header h1 i{font-family:"Cormorant Garamond",serif;color:var(--ink3);font-weight:400}
 header span{font-size:12px;color:var(--ink3)}
-#stack{position:fixed;left:0;right:0;bottom:0;height:40%}
-.env{position:absolute;bottom:40px;left:50%;margin-left:calc(min(68vw,300px)/-2);width:min(68vw,300px);height:min(42vw,184px);border-radius:2px;cursor:pointer;
+#stack{position:fixed;left:0;right:0;bottom:calc(50vh - min(24vw,118px) - 70px);height:40%}
+.env{position:absolute;bottom:40px;left:50%;margin-left:calc(min(76vw,380px)/-2);width:min(76vw,380px);height:min(48vw,236px);border-radius:2px;cursor:pointer;
   background:linear-gradient(170deg,var(--paper) 0%,var(--paper2) 100%);
   box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 14px 30px rgba(0,0,0,.45);transition:transform .55s var(--ease);outline:none}
 .env:focus-visible{box-shadow:0 0 0 2px var(--aoi),0 14px 30px rgba(0,0,0,.45)}
@@ -34,10 +35,10 @@ header span{font-size:12px;color:var(--ink3)}
 .env::after{content:"";position:absolute;inset:0;opacity:.22;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .36 0 0 0 0 .3 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 .env .to{position:absolute;left:18px;bottom:16px;color:var(--sumi);font-size:14px;letter-spacing:.12em;z-index:2}
 .env .from{position:absolute;right:16px;top:14px;color:var(--sumi);font-size:14px;writing-mode:vertical-rl;letter-spacing:.2em;z-index:2}
-.env .seal{position:absolute;left:50%;top:40%;width:28px;height:28px;margin:-14px;border-radius:50%;background:#8a3b2e;z-index:2;box-shadow:inset 0 0 0 3px rgba(0,0,0,.12)}
+.env .seal{position:absolute;left:50%;top:40%;width:40px;height:40px;margin:-20px;border-radius:50%;background:#8a3b2e;z-index:2;box-shadow:inset 0 0 0 3px rgba(0,0,0,.12)}
 .env.read .seal{background:transparent;box-shadow:inset 0 0 0 1px rgba(90,80,64,.4)}
 #sub{position:fixed;left:16px;right:16px;top:12%;text-wrap:pretty;text-align:center;font-size:15px;line-height:2;letter-spacing:.08em;transition:opacity .8s}
-#sub small{display:block;font-size:12px;color:var(--ink3)}
+#sub small{display:block;font-size:13.5px;color:#d9dfec;font-weight:500}
 @media (min-width:900px){#sub{font-size:17px}}
 /* 生き物の受けとり方の中 */
 #world{position:fixed;inset:0;z-index:8;opacity:0;pointer-events:none;transition:opacity .9s var(--ease);background:#000}
@@ -70,8 +71,8 @@ header span{font-size:12px;color:var(--ink3)}
 </head>
 <body>
 <div id="lamp" aria-hidden="true" title=""></div><!-- 2026-11-09 第2周：遠くの参道の灯を一つ、淡く -->
-<header><h1>Qualia/<i>letter</i>　便り</h1><span>氷川参道・大宮</span></header>
-<p id="sub">参道の生き物たちの受けとり方を、碧が訳して書いた便りです。<small>いちばん上の封にふれると、その生き物の受けとり方に入ります。</small></p>
+<header><div style="display:flex;align-items:baseline"><a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のホームへ戻る">‹ mitsulab</a><h1>Qualia/<i>letter</i>　便り</h1></div><span>氷川参道・大宮</span></header>
+<p id="sub">参道の生き物たちの受けとり方を、碧が訳して書いた便りです。<small>いちばん上の封にふれると、受けとり方を訳した便りを読めます。</small></p>
 <div id="stack"></div>
 <section id="world" role="dialog" aria-modal="true" aria-labelledby="wname">
   <canvas id="cv"></canvas>
@@ -118,7 +119,7 @@ let hintT=0,cur=-1,human=false,camX=0,drag=null,raf=0,t0=0,pulses=[],quakes=[],W
 function lay(){stack.innerHTML='';const n=L.length,w=Math.min(innerWidth,900),sp=Math.min(60,(w-40)/n*0.3),o0=st();
  const ord=L.map((_,i)=>i).sort((a,b)=>(!!(o0[b]&&o0[b].r))-(!!(o0[a]&&o0[a].r))||b-a);
  ord.forEach((i,j)=>{const l=L[i],e=document.createElement('div');e.className='env'+(o0[i]&&o0[i].r?' read':'');e.tabIndex=j===n-1?0:-1;e.setAttribute('role','button');e.setAttribute('aria-label',l.from+'からの便りをひらく');
-  const o=j-(n-1)/2;e.style.transform=`translateX(${o*sp}px) translateY(${-Math.abs(o)*6+j*-4}px) rotate(${o*3.2+(i%2?.6:-.4)}deg)`;e.style.zIndex=j;
+  const o=j-(n-1);e.style.transform=`translateX(${o*sp*.55}px) translateY(${o*-3}px) rotate(${o*1.8+(i%2?.6:-.4)}deg)`;e.style.zIndex=j;
   e.innerHTML=`<span class="from">${l.from}より</span><span class="seal"></span><span class="to">${l.to}</span>`;
   e.onclick=()=>openL(i);e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();openL(i)}};stack.appendChild(e)})}
 /* 世界の部品（乱数は固定） */

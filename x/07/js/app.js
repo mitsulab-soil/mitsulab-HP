@@ -180,8 +180,10 @@ const step = k => { const i = cur ? order.indexOf(cur) : -1; select(order[(i + k
 $("bPrev").addEventListener("click", () => step(-1)); $("bNext").addEventListener("click", () => step(1));
 // 偶然の一行：はじめの三回は、重い語（死・髑髏・悪魔・恐怖など）を含まない行から選ぶ
 const HEAVY = /死|髑髏|悪魔|恐怖|恐ろし|滅|墓|痛|傷|邪|破壊|崩壊|戦/; let randN = 0;
-const rand = () => { const pool = randN++ < 3 ? ITEMS.filter(x => !HEAVY.test(x.t) && !x.quiet) : ITEMS; select(pool[Math.floor(Math.random() * pool.length)]); };
-$("bRand").addEventListener("click", rand); $("bRand2").addEventListener("click", rand);
+const DIM = /眼|縛|痩|情念|不在|しなび|白髪|ホクロ|曖昧|お金|修行|人生|非物質|不可視|閉じ|見えない|ヒッピー|恐竜|免疫|結晶|ミイラ|極限/;   // はじめの三回は、子どもにも明るく分かる行だけ
+const SAFE = new Set(["mizu", "seimei", "iro"]);   // 2026-11-09 第3周：はじめの三回は明るい群れ（水と天気・生命と土・色と光）から。ほかの群れは消さず、四回目から
+const rand = () => { const pool = randN++ < 3 ? ITEMS.filter(x => SAFE.has(x.tag) && (!x.tag2 || SAFE.has(x.tag2)) && !HEAVY.test(x.t) && !DIM.test(x.t) && !x.quiet) : ITEMS; select(pool[Math.floor(Math.random() * pool.length)]); };
+$("bRand").addEventListener("click", rand); $("bRand2").addEventListener("click", rand); window.__qsReady = true; if (window.__qsPend) { window.__qsPend = 0; setTimeout(() => $("bRand2").click(), 0); }
 requestAnimationFrame(() => { if (document.activeElement === document.body || !document.activeElement) $("bRand2").focus({ preventScroll: true }); });   // 最初の焦点はボタンに
 
 // ---- 群れの音の決まり（演奏面に分類名と一緒に出す）
@@ -355,6 +357,7 @@ function loop(now) {
   { const L = [], hintTop = $("hint").hidden ? 1e9 : $("hint").getBoundingClientRect().top;
     for (const id in labEls) { const c = centers[id]; v3.set(c.x, c.y + 1.75, c.z).project(camera); const el = labEls[id];
       const show = (seenAll || FEW.has(id)) && v3.z < 1 && Math.abs(v3.x) < 1.05 && v3.y < .92 && !cur && !(byTouch && hoverI >= 0 && portrait());
+      { const far = camera.position.distanceTo(c) > 8.2 && !(hoverI >= 0 && ITEMS[hoverI]?.tag === id); if (el._far !== far) { el._far = far; el.classList.toggle("dot", far); el._w = 0; } }   // 2026-11-09 第3周：分類名は近づいたとき（またはその群れの点に触れたとき）だけ。遠くは色の点だけ
       if (!el._w) { el._w = el.offsetWidth || 120; el._h = el.offsetHeight || 44; }
       L.push({ el, x: (v3.x * .5 + .5) * innerWidth, y: Math.max(70, (-v3.y * .5 + .5) * innerHeight), vis: show }); }
     L.forEach(o => o.x = Math.max(o.el._w / 2 + 6, Math.min(innerWidth - o.el._w / 2 - 6, o.x)));

@@ -12,7 +12,7 @@ const [{ createAwai, injectCSS, lineMat, pointMat, fadeBy, AW, MOBILE, RM, TAU, 
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
-const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "光っている輪に触れる（変化が広がる）", css: "#aw-ui .aw-mark{margin-left:40px!important}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => tapNode(nodeOf(goId)) }); const _pv = new THREE.Vector3(); let goId = "tree";
+const { qxEntry } = await import("./qx.js"); const GO = qxEntry({ label: "目の前の葉に触れる（葉が落ち、変化が広がる）", css: "#aw-ui .aw-mark{margin-left:40px!important}.aw-fold .fx{position:static!important;opacity:1!important;padding:0 0 10px!important;max-width:none!important}.aw-fold .fx summary{display:none}", onPress: () => { heroFall = 0; tapNode(nodeOf(goId)); } }); const _pv = new THREE.Vector3(); let goId = "tree";
 
 const W = await createAwai({
   title: "Qualia/leaf", sub: "一枚の葉の連なり", en: "One Leaf, Many Events", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 0, deferBack: true,
@@ -21,11 +21,10 @@ const W = await createAwai({
     if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(.1 + Math.sin(y) * 1.2, 1.75, 7.6), q); look.lerp(new V3(.1, .1, .4), q);   /* 縦長も目の高さのまま（真上から見下ろさない） */   /* 11-06 二版の後：主体を画面の中ほどへ下ろし、一歩寄せる（下半分が空いていた） */ }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
     return { pos, look }; },
   credits: [
-    "式は関係の形を示す模式（測れる量の式ではない）。E 環境・B 身体・P 知覚・K 経験と文脈・g 意味づけ・a ふるまいが環境に残す変化・F 環境自身の変化・L ほかの受けとり方の層",
-    "考え方の系譜：ユクスキュル（1934）・ウィーナー『サイバネティクス』（1948）・グラッセのスティグマジー（1959）・ハッチンス『Cognition in the Wild』（1995）",
+    "一枚の葉の行き先を、関係の形で書いた模式（測れる量の式ではない）",
     "葉の表には落ちる前から菌や細菌がすみ、落ち葉は数か月から年の単位で分解されて土へ還る。ここでは時間を縮めた模式で、菌の音は実測音ではない合成音",
     "ミツバチの羽ばたき 約 230 回／秒：Altshuler ほか（PNAS 102, 2005）。歩く拍 毎分約 100 歩（中くらいの速さで歩くときの目安：Tudor-Locke ほか IJBNPA 16, 2019）",
-    "波の広がりと速さ、木の間（ま）は作品の設定の値（模式）。記録計の一音は 10 分ごとの記録を縮めた模式。鳥の鳴きは声域を参考にした合成音（実測音ではありません）",
+    "葉が落ちる時期：欅は秋に葉を黄から赤茶に変えて落とす落葉樹。画面の落ち方と時間は作品の設定（模式）",
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
@@ -42,6 +41,11 @@ if(accessAxis){accessAxis.tabIndex=0;accessAxis.setAttribute('role','slider');ac
  const syncAxis=()=>{const n=Math.round(W.absTarget*100);accessAxis.setAttribute('aria-valuenow',String(n));accessAxis.setAttribute('aria-valuetext',n===0?'具体の風景':n===100?'抽象の関係':'抽象度 '+n+'%');};syncAxis();setInterval(syncAxis,200);
  const style=document.createElement('style');style.textContent='.aw-axis:focus-visible{outline:2px solid #b9f5ff;outline-offset:4px;border-radius:8px}.aw-fold>summary{width:auto;height:auto;min-height:44px;max-width:70vw;padding:2px 10px;box-sizing:border-box;white-space:normal;font-size:12px;background:none;text-shadow:0 1px 3px #000c,0 0 10px #000a;border-radius:6px}.aw-axis.hint{animation:axhint 1.6s ease-in-out 5}@keyframes axhint{50%{filter:drop-shadow(0 0 8px #b9f5ff)}}';document.head.appendChild(style);
 }
+
+// 2026-11-09 第3周：最初の Tab・焦点は光るボタンへ
+setTimeout(() => { if (!GO.done) try { GO.el.focus({ preventScroll: true }); } catch (_) { } }, 50); scrollCaption.tabIndex = -1;
+
+{ const ax = W.ui.querySelector(".aw-axis"); if (ax) { const st = document.createElement("style"); st.textContent = ".aw-axis .aw-top,.aw-axis .aw-bot{opacity:0;transition:opacity .5s}.aw-axis.qx-on .aw-top,.aw-axis.qx-on .aw-bot,.aw-axis:focus-visible .aw-top,.aw-axis:focus-visible .aw-bot{opacity:1}"; document.head.appendChild(st); let tm; const on = () => { ax.classList.add("qx-on"); clearTimeout(tm); tm = setTimeout(() => ax.classList.remove("qx-on"), 2500); }; ax.addEventListener("pointerdown", on); ax.addEventListener("pointermove", e => { if (e.buttons) on(); }); } }   // 2026-11-09 第3周：目盛りの字は触れたときだけ
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
 // 2026-11-07: existing credits fold also offers an optional next question.
@@ -51,7 +55,7 @@ W.onFirstInput(() => snd.start());
   fold.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
   fold.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))e.stopPropagation();if(e.key==='Escape'){e.stopPropagation();fold.open=false;fold.querySelector('summary').focus({preventScroll:true});}});
   body.insertAdjacentHTML('afterbegin',"<section class=\"q-route\"><h3>身近な木へ、問いを返す。</h3><p>ひとつの変化が、ほかの生き物や人にどう届くでしょうか。画面から顔を上げ、身近な木のまわりで手がかりを探してみてください。</p><button type=\"button\" data-question-return>風景に戻る</button><a href=\"../21/\">一枚の葉を、言葉で読む（Qualia/literature）→</a><a href=\"../22/\">関係を、流れで見る（Qualia/compute）→</a><a href=\"../19/\" data-question-local=\"../../12_ひとつの木/★実行データ/\">一本の木を、もう一度 →</a><a href=\"../24/\" data-question-local=\"../../13_Qualia_translate/★実行データ/\">人と機械を見比べる →</a></section>");
-  fold.querySelector('summary').setAttribute('aria-label','主体の選択・典拠と次の問い');fold.querySelector('summary').textContent='主体・典拠 ＋';
+  fold.querySelector('summary').setAttribute('aria-label','だれ？ どこから？（主体と典拠）と次の問い');fold.querySelector('summary').textContent='だれ？・どこから？ ＋';
   if(!/\/x\/\d+(\/|$)/.test(location.pathname))body.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);
   body.querySelector('[data-question-return]').addEventListener('click',e=>{
    e.stopPropagation();W.setAbs(0);if(snd.on)W.sndBtn.click();
@@ -123,19 +127,19 @@ const beeGlowM = pointMat(0xfff1c8, MOBILE ? .2 : .16, 1); const beeGlow = new T
 const C = { tit: 0xb9a7e6, bee: 0xf2cf8c, hum: 0xf4aa96, tree: 0x8fd6a8, sens: 0xa9c8d8, fungi: 0xd8b98a };
 const N = [
   { id: "tit", sub: "シジュウカラ", col: C.tit, at: () => tit.position, h: .9, lag: .25, f: snd.note(7),
-    c: "シジュウカラが落ち葉をめくり、ひとつ跳ぶ。その声と影が、まわりの入力になる。", a: "鳥は、鳥の身体で拾えるものだけを手がかりにする。紫外も見える目で。", out: ["声", "動き"], in: ["足音", "動き", "声", "落葉"],
+    c: "落ちたこの葉を、シジュウカラがめくる。葉の下の小さな虫が、鳥の手がかりになる。", a: "鳥は、鳥の身体で拾えるものだけを手がかりにする。紫外も見える目で。", out: ["声", "動き"], in: ["足音", "動き", "声", "落葉"],
     voice: o => { for (let k = 0; k < 3; k++) { snd.chirp(5200, 4900, .06, { ...o, at: (o.at || 0) + k * .42 }); snd.chirp(3700, 3450, .19, { ...o, at: (o.at || 0) + k * .42 + .1 }); }   /* ツツピー（シジュウカラのさえずりの句。声域 3〜6 kHz の模式） */ }, act: () => { hop = 1; } },
   { id: "bee", sub: "ミツバチ", col: C.bee, at: () => tw.position, h: .75, lag: .15, f: snd.note(3),
     c: "ミツバチがツワブキのまわりを飛ぶ。羽音は、一秒に約 230 回のはばたき。", a: "蜂は、身体の拾えるものだけを手がかりにする。紫外・青・緑の三つで色を分けるとされる。", out: ["羽音", "動き"], in: ["動き", "光"],
     voice: o => snd.hum(230, .7, { ...o, gain: (o.gain ?? .3) * .7 }), act: () => { beeKick = 1; } },
   { id: "hum", sub: "人", col: C.hum, at: () => person.position, h: 1.95, lag: .6, f: snd.note(0), seen: new Set(),
-    c: "人が歩く。一歩ごとの足音が、鳥の入力になる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
+    c: "人は、足もとのこの葉を踏む。乾いた音が、鳥の入力になる。", a: "人は、経験と言葉で、同じ手がかりに別の意味をつける。", out: ["足音", "動き"], in: ["声", "羽音", "落葉", "記録"],
     voice: o => { for (let i = 0; i < 2; i++) { snd.step({ ...o, at: (o.at || 0) + i * .6, gain: (o.gain ?? .3) * 1.3, f: 480 + i * 120 }); snd.wood(snd.note(-5 + i), { ...o, at: (o.at || 0) + i * .6, decay: .4, gain: (o.gain ?? .3) * .2 }); } }, act: () => { steps = 1.2; } },   // 歩行 毎分約 100 歩＝0.6 秒
   { id: "tree", sub: "欅", col: C.tree, at: () => tree, h: 3.2, lag: 2.0, f: snd.note(-5),
-    c: "欅は、短くなる日と重なる冷えを受けとり、黄に染まった葉を一枚ずつ手放す。", a: "木のふるまいは遅く、大きい。季節に応じて葉を落とし、その葉が鳥と人の入力になる。", out: ["落葉"], in: ["気温", "光", "風", "養分"],
+    c: "欅は、短くなる日と冷えを受けとり、この葉を手放す。", a: "木のふるまいは遅く、大きい。季節に応じて葉を落とし、その葉が鳥と人の入力になる。", out: ["落葉"], in: ["気温", "光", "風", "養分"],
     voice: o => { snd.wood(snd.note(-10), { ...o, decay: 1.8 }); snd.breath(2.2, { ...o, f0: 1400, f1: 700, gain: (o.gain ?? .3) * .5 }); }, act: () => dropLeaf() },
   { id: "sens", sub: "記録計", col: C.sens, at: () => sens.position, h: 1.85, lag: 1.0, f: snd.note(5),
-    c: "気温の記録計は、朝の冷えを、ただ一つの数として書きとめる。", a: "機械の受けとり方も、同じ形で書ける。その記録は、読む人の入力になる。", out: ["記録"], in: ["気温"],
+    c: "記録計は、この葉が落ちた朝の冷えを、一つの数として記録する。葉そのものは記録されない。", a: "機械の受けとり方も、同じ形で書ける。その記録は、読む人の入力になる。", out: ["記録"], in: ["気温"],
     voice: o => { snd.click({ ...o, f: 1760 }); snd.bell(snd.note(12), { ...o, gain: (o.gain ?? .3) * .4, decay: .4 }); }, act: () => {} },   // 記録が残るときだけ一音
   { id: "fungi", sub: "菌と細菌", col: C.fungi, at: () => fungiP, h: .35, lag: 3.0, f: snd.note(-8),
     c: "落ち葉の下で、菌と細菌が葉を分けはじめる。", a: "菌と細菌には、葉は食べもの。何か月もかけて分け、養分として土へ還す（ここでは時間を縮めた模式）。", out: ["養分"], in: ["落葉"],
@@ -149,6 +153,9 @@ let fungiK = 0;
 const fgM = pointMat(0xf1e2c0, MOBILE ? .05 : .04, .0), fgPts = []; for (let i = 0; i < 60; i++) { const a = R() * TAU, r = Math.pow(R(), .5) * .36; fgPts.push(new V3(fungiP.x + Math.cos(a) * r, .03 + R() * .02, fungiP.z + Math.sin(a) * r)); }
 W.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(fgPts), fgM));
 // 同じ一枚の葉が、受けとるものごとに別の出来事になる（文学の思想から）
+
+// ───────── 2026-11-09 第3周：目の前の一枚の葉を主役に（押すと落ち、鳥・人・菌・記録計へ連なる）
+const heroLeaf = PR.keyakiLeaf(.09); W.add(heroLeaf); const HERO0 = new V3(innerWidth < innerHeight * .8 ? .05 : .16, 1.45, 6.32); heroLeaf.position.copy(HERO0); let heroFall = -1;
 const LEAF = { tit: "シジュウカラには、落ちる葉は動く影。目が向く。", hum: "人には、葉は十一月の色。黄から赤茶へ移る、季節のことば。", fungi: "菌と細菌には、葉は食べもの。落ちる前から、葉の表にすんでいた。" };
 const leafSaid = new Set(); let saidSens = false;
 // ノードの印：足もとの輪・立ちのぼる線・名札
@@ -230,13 +237,13 @@ W.onTapEmpty(e => {
 function gust(q) {
   ripple(q.x, q.z, .6, 0xdde6ee); hi("F"); hi("E"); snd.breath(1.6, { f0: 600, f1: 1100, gain: .14, pan: clamp(nd.x, -1, 1) * .6 });
   for (const o of N) { const ch = ['気温', '光', '風'].find(k => o.in.includes(k)); if (!ch) continue; const d = o.at().distanceTo(q); o.queue.push({ t: ripU.uT.value + d / SPEED, g: .8 * Math.exp(-d / 12), from: null, ch }); }
-  if (!sawGust) { sawGust = true; W.sayNow("風や日の傾き、気温の移ろいが、欅と記録計とミツバチの入力になる。"); }
+  if (!sawGust) { sawGust = true; W.sayNow("風が、この葉をゆらす。"); }
 }
 function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l, t: 0, x: tree.x + .4, z: tree.z + .3 };   /* 葉は幹の真上の樹冠の下から */ }
 
 // はじめと、降りるとき
-setTimeout(() => { if (!firstCascade) { act(nodeOf("tree"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("一枚の葉から、何が起きる？　光っている輪に触れてみよう。"); setTimeout(() => { W.say("右の線を上へなぞると、同じつながりが式と流れになる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }, 7000); }, 900);
+/* 2026-11-09 第3周：はじめは目の前の葉だけ（押すまで動かさない） */   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
+setTimeout(() => { W.say("目の前の一枚の葉に触れてみよう。落ちたあと、だれの何になる？"); setTimeout(() => { W.say("右の線を上へなぞると、同じつながりが式と流れになる。"); W.ui.querySelector(".aw-axis")?.classList.add("hint"); }, 7000); }, 900);
 let saidDown = false, saidGround = false, wentUp = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
@@ -248,7 +255,8 @@ W.onAbs(a => {
 // ───────── 毎こま
 const tmpC = new THREE.Color();
 W.onFrame((dt, t, a) => {
-  if (!GO.done) { let ok = false; for (const id of ["tree", "tit", "hum"]) { _pv.copy(nodeOf(id).at()).add(new V3(0, .5, 0)).project(camera); if (_pv.z < 1 && Math.abs(_pv.x) < .85 && Math.abs(_pv.y) < .9) { goId = id; ok = true; break; } } GO.place(ok ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
+  { const hv = RM ? 0 : 1; if (heroFall < 0) { heroLeaf.position.copy(HERO0).add(new V3(Math.sin(t * .7) * .012 * hv, Math.sin(t * .9) * .01 * hv, 0)); heroLeaf.lookAt(camera.position); heroLeaf.rotateX(Math.sin(t * .9) * .2 * hv); heroLeaf.rotateZ(.5 + Math.sin(t * .6) * .15 * hv); heroLeaf.material.emissive?.setRGB(.5, .3, .05); } else { heroFall += dt; const u = Math.min(1, heroFall / 2.2); heroLeaf.position.set(HERO0.x + Math.sin(heroFall * 3) * .08 * (1 - u), lerp(HERO0.y, .02, u * u), HERO0.z - u * .9); heroLeaf.rotation.set(-1.2 + Math.cos(heroFall * 3) * .8 * (1 - u), heroFall, 0); } heroLeaf.visible = a < .2; }
+  if (!GO.done) { goId = "tree"; _pv.copy(heroLeaf.position).project(camera); GO.place(_pv.z < 1 && Math.abs(_pv.x) < .95 && Math.abs(_pv.y) < .95 ? (_pv.x + 1) / 2 * innerWidth : null, (1 - _pv.y) / 2 * innerHeight); }
   ripU.uT.value = t;
   { const bi = Math.floor(t / .6); if (bi !== beatI) { beatI = bi; const fade = 1 - ss(.6, 1.3, t - lastAct); if (fade > .01 && snd.on) snd.wood(snd.note(-5 + (bi % 2)), { gain: .04 * fade, decay: .35, wet: .3 }); } }   // 静まったら 2 拍で消える   // 連なりの間、足音の拍（0.6 秒）を下で弱く
   const labA = ss(.25, .7, a);

@@ -1,5 +1,5 @@
 /* 植物（写実の側）。v1・2026-10-12
-   胡蝶の夢の森（02_プロジェクト/01_公開中（HP公開）/03_胡蝶の夢/★実行データ/forest.js）の作り方を、どのアプリでも使える小さな形にしたもの。
+   胡蝶の夢の森の作り方を、どのアプリでも使える小さな形にしたもの。
    - 木：先細りの管で幹と枝を分け（taperTube）、枝先のまわりに葉の房（写真の葉の板）を外と上へ向けて散らす
    - 葉の板の陰：法線を樹冠の中心から外へ向けて混ぜる（crown）。板の向きのばらつきで面がちらつかない
    - 風：高さに比例して、場所ごとに位相のずれた二つの波で揺らす（同じ動きの木を並べない）
@@ -54,7 +54,7 @@ export function taperTube(pts, r0, r1, radial = 6, seg = 4) {
 }
 const strip = g => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(k)) g.deleteAttribute(k); return g; };
 
-// 樹種の形（胡蝶の夢の値。形の根拠は 胡蝶の夢/資料/調べたこと/森の草木_形の確かめ.md）
+// 樹種の形（胡蝶の夢の値）
 export const SPECIES = {
   konara: { trunkH: [4.5, 6.5], r: [.2, .34], limbs: [3, 4], spread: .85, len: [3.6, 5.2], fork: 2, sub: .7, up: .18, decay: .62, wig: .45, cards: 260, cluster: 1.7, card: 1.05, tint: [.82, .9, .72] },
   keyaki: { trunkH: [2.6, 3.8], r: [.26, .4], limbs: [5, 7], spread: .42, len: [5, 7], fork: 2, sub: .5, up: .32, decay: .6, wig: .25, cards: 280, cluster: 1.6, card: .9, tint: [.86, .93, .78] },
