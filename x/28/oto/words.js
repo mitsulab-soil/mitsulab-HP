@@ -4,11 +4,12 @@
 // 書に触れると、同じ字を含む言葉の点が灯り、細い線で書とつながる。どこにも保存・送信しない。
 import * as THREE from 'three';
 import './sounds.js';
+import './hidden.js';
 import './gain.js';
 import { QSynth } from './synth.js';
 
 export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HALF }) {
-  const D = window.QS_SOUNDS, items = D.items.filter(i => /の音$/.test(i.t));
+  const D = window.QS_SOUNDS, items = D.items.filter(i => /の音$/.test(i.t) && !(window.QS_HIDDEN || []).includes(i.n));
   const syn = new QSynth();
   let seed = 9109; const R = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
   const kanji = s => new Set([...s].filter(c => /[一-鿿]/.test(c) && c !== '音'));

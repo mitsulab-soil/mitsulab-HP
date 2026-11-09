@@ -779,4 +779,4 @@ if (SHOT) {                                                    // 静止画：?s
   window.MLLoader?.done(); window.__shotReady = true;
 } else frame();
 window.__sho = { works, P, goStop, pick, focusDist }; window.__cam = cam;
-import('./oto/words.js?v=1').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
+import('./oto/words.js?v=2').then(m => { window.__oto = m.initWords({ scene, cam, works, mobile, HALF, keepOut, soundOk: () => soundOn && audioWoken, say: t => { $('capRd').classList.remove('aoi'); $('capRd').textContent = t; } }); }).catch(e => console.warn('oto', e));
