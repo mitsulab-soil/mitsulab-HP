@@ -116,6 +116,19 @@ body::after{content:"";position:fixed;left:0;right:0;top:24%;height:20%;pointer-
 #paper .reply input{height:64px;font-size:19px}#paper .reply button{height:64px;font-size:17px}
 @media (max-width:420px){#paper .reply input{height:60px;font-size:18px}#pcite{font-size:11.5px}}
 @media (prefers-reduced-motion:reduce){#world:has(#paper:not(.fold)) #cv{filter:brightness(.42) saturate(.6)}}
+/* 2026-11-10 第8周：畳んだ便りは細い帯でなく、封の色の小さな札（濃い墨・朱の封の点）／375 は封の束を大きく・便りは一画面に収める */
+#paper.fold{width:auto;max-width:92vw;opacity:1;padding:0 18px!important;min-height:48px;display:flex;align-items:center;border-radius:3px;
+ background:linear-gradient(170deg,#f1e9d8,#e2d6bd);box-shadow:0 0 0 1px rgba(120,104,80,.25) inset,0 10px 24px rgba(0,0,0,.5)}
+#paper.fold #pfrom{margin:0!important;color:#2a2622!important;font-size:15px!important;letter-spacing:.1em!important;display:flex;align-items:center;gap:10px}
+#paper.fold #pfrom::before{content:"";width:12px;height:12px;border-radius:50%;background:#8a3b2e;flex:none}
+#paper.fold #pfrom::after{content:"ひらく ＋"!important;color:#8a3b2e!important;margin-left:6px}
+#paper{overflow:auto}
+.tm{font-size:.82em;color:#c9d1e2}
+#paper.fold #pfrom{white-space:nowrap}header .back,#kids,header h1{white-space:nowrap}
+@media (max-width:420px){header{padding:12px 10px}header .back{margin-right:4px;font-size:13px}header h1{font-size:13.5px}#kids{font-size:11.5px;padding:0 8px}
+ #paper.fold #pfrom{font-size:12.5px!important;max-width:84vw;overflow:hidden}#paper.fold #pfrom::after{content:"ひらく"!important;margin-left:2px}
+ .env{width:84vw;height:53vw;margin-left:calc(-42vw + 14px)}#stack{bottom:calc(50vh - 27vw - 80px)}
+ #paper:not(.fold){max-height:80vh}#paper .reply input,#paper .reply button{height:52px}#paper.fold #pfrom{font-size:13.5px!important}}
 </style>
 </head>
 <body class="kids">
@@ -180,7 +193,14 @@ for(let i=0;i<34;i++)flowers.push({x:(rnd()-.5)*5,y:0.44+rnd()*0.26,r:0.022+rnd(
 for(let c=0;c<9;c++){const cxp=-1.8+c*0.45+rnd()*0.2,u=(cxp+2)/4,yb=(1-u)*(1-u)*.3+2*u*(1-u)*.42+u*u*.26;for(let k=0;k<6;k++)berries.push({x:cxp+(rnd()-.5)*0.12,y:yb+0.015+rnd()*0.05,r:0.009+rnd()*0.006})}
 for(let i=0;i<5;i++)moths.push({x:(rnd()-.5)*3,y:0.25+rnd()*0.35,ph:rnd()*6});
 const TX={};['bark_zelkova','soil_forest','path_gravel','leaf_spray','leaf_cluster'].forEach(n=>{const im=new Image();im.decoding='async';im.onload=()=>{TX[n]=im;TX[n+'P']=cx.createPattern(im,'repeat')};im.src='tex/'+n+'.webp'});
-function canopy(alpha,tint){const im=TX.leaf_cluster||TX.leaf_spray;if(!im)return;cx.globalAlpha=alpha;for(let i=0;i<7;i++){const x=P(-2.4+i*0.8,0.5),w=W*0.7;cx.drawImage(im,x-w/2,-H*0.12+(i%2)*H*0.05,w,w*im.height/im.width)}cx.globalAlpha=1;if(tint){cx.fillStyle=tint;cx.globalCompositeOperation='multiply';cx.fillRect(0,0,W,H*.45);cx.globalCompositeOperation='source-over'}}
+/* 第8周：樹冠は別の画に描き、色は葉だけに乗せ、下の縁を霞へ溶かす（四角い切れ目を出さない） */
+let OC=null,ox=null;
+function canopy(alpha,tint){const im=TX.leaf_cluster||TX.leaf_spray;if(!im)return;const ch=H*.62;
+ if(!OC){OC=document.createElement('canvas');ox=OC.getContext('2d')}if(OC.width!==(W|0)||OC.height!==(ch|0)){OC.width=W|0;OC.height=ch|0}
+ ox.globalCompositeOperation='source-over';ox.clearRect(0,0,W,ch);for(let i=0;i<7;i++){const x=P(-2.4+i*0.8,0.5),w=W*0.7;ox.drawImage(im,x-w/2,-H*0.12+(i%2)*H*0.05,w,w*im.height/im.width)}
+ if(tint){ox.globalCompositeOperation='source-atop';ox.globalAlpha=.45;ox.fillStyle=tint;ox.fillRect(0,0,W,ch);ox.globalAlpha=1}
+ ox.globalCompositeOperation='destination-out';const g=ox.createLinearGradient(0,ch*.45,0,ch);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'#000');ox.fillStyle=g;ox.fillRect(0,0,W,ch);ox.globalCompositeOperation='source-over';
+ cx.globalAlpha=alpha;cx.drawImage(OC,0,0,W,ch);cx.globalAlpha=1}
 function size(){DPR=Math.min(devicePixelRatio||1,2);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;cx.setTransform(DPR,0,0,DPR,0,0)}
 const P=(x,par)=>W/2+(x-camX*par)*Math.min(W,H)*0.9;
 function sky(c1,c2,hz){const g=cx.createLinearGradient(0,0,0,H*hz);g.addColorStop(0,c1);g.addColorStop(1,c2);cx.fillStyle=g;cx.fillRect(0,0,W,H*hz)}
@@ -191,15 +211,30 @@ function trunks(col,hz,fog,outline){for(const t of trees){const x=P(t.x,0.35+t.z
  if(col!=='#4a3b2e'&&col!=='#111'){cx.globalCompositeOperation='multiply';cx.fillStyle=col;cx.beginPath();cx.moveTo(x-w/2,bot);cx.lineTo(x-w*0.4,top);cx.lineTo(x+w*0.4,top);cx.lineTo(x+w/2,bot);cx.fill();cx.globalCompositeOperation='source-over'}cx.globalAlpha*=.25;cx.strokeStyle='#000';cx.lineWidth=1;for(let k=0;k<3;k++){cx.beginPath();cx.moveTo(x-w*0.3+k*w*0.3,bot);cx.lineTo(x-w*0.25+k*w*0.25,top);cx.stroke()}cx.globalAlpha=1}}
 function torii(col,hz){const x=P(0.2,0.6),s=Math.min(W,H)*0.32,y=H*hz;cx.fillStyle=col;cx.fillRect(x-s*0.42,y-s*0.95,s*0.06,s*0.95);cx.fillRect(x+s*0.36,y-s*0.95,s*0.06,s*0.95);
  cx.fillRect(x-s*0.6,y-s*1.02,s*1.2,s*0.07);cx.fillRect(x-s*0.5,y-s*0.82,s*1.0,s*0.05)}
-function flower(f,mode,t){const x=P(f.x,1.6),y=H*f.y+Math.sin(t*1.3+f.ph)*2,r=f.r*Math.min(W,H)*(0.7+f.y);if(x<-r||x>W+r)return;
- const hum=['#f4f1ea','#f1d23c','#c8343a'][f.c];
- let petal=hum,center='#e8c23a',guide=null;
- if(mode==='bee'){petal=['#8fc6c9','#9fd3a3','#1a1c22'][f.c];guide=f.c===1?'#5a2fa8':null;center='#3d1c7a'}
- if(mode==='ageha'){guide=f.c===1?'rgba(150,110,255,.85)':null}
- cx.fillStyle=petal;for(let k=0;k<f.p;k++){const a=k/f.p*6.283+f.ph;cx.beginPath();cx.ellipse(x+Math.cos(a)*r*.55,y+Math.sin(a)*r*.38,r*.5,r*.3,a,0,6.283);cx.fill()}
- if(guide){cx.fillStyle=guide;for(let k=0;k<f.p;k++){const a=k/f.p*6.283+f.ph;cx.beginPath();cx.ellipse(x+Math.cos(a)*r*.32,y+Math.sin(a)*r*.22,r*.22,r*.1,a,0,6.283);cx.fill()}}
- cx.fillStyle=center;cx.beginPath();cx.arc(x,y,r*.2,0,6.283);cx.fill();
- cx.strokeStyle=mode==='bee'?'#2b4a2e':'#3b5a2a';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(x,y+r*.2);cx.lineTo(x,H);cx.stroke()}
+/* 2026-11-10 第8周：花は一度だけ陰影つきの絵に焼いて置く（花びらの付け根の陰・脈・縁の明るみ・蕊の粒・葉）。平面の切り絵に見せない */
+const FS={};
+function fsprite(c,p,mode){const k=mode+c+p;if(FS[k])return FS[k];const R=64,o=document.createElement('canvas');o.width=o.height=R*2;const g=o.getContext('2d');g.translate(R,R);
+ const hum=[['#fbf8f1','#d9d2c2'],['#f6dc52','#c99a1e'],['#d8454a','#7e1d22']][c];
+ let pc=hum,guide=null,cen=['#e8c23a','#9a6a12'];
+ if(mode==='bee'){pc=[['#a9d8da','#5f9a9e'],['#b4e0b6','#6aa070'],['#2a2c33','#121318']][c];guide=c===1?'#4b2596':null;cen=['#5a2fa8','#2a0f5a']}
+ if(mode==='ageha'&&c===1)guide='rgba(140,100,250,.8)';
+ for(let i=0;i<p;i++){const a=i/p*6.283;g.save();g.rotate(a);
+  const gr=g.createLinearGradient(0,0,R*.95,0);gr.addColorStop(0,pc[1]);gr.addColorStop(.35,pc[0]);gr.addColorStop(1,pc[0]);
+  g.fillStyle=gr;g.beginPath();g.moveTo(0,0);g.bezierCurveTo(R*.25,-R*.38,R*.8,-R*.34,R*.92,-R*.04);g.quadraticCurveTo(R*.96,R*.04,R*.9,R*.08);g.bezierCurveTo(R*.75,R*.36,R*.25,R*.36,0,0);g.fill();
+  g.strokeStyle='rgba(0,0,0,.10)';g.lineWidth=1;for(const s of[-.12,0,.12]){g.beginPath();g.moveTo(R*.12,0);g.quadraticCurveTo(R*.5,R*s,R*.82,R*s*1.6);g.stroke()}
+  g.strokeStyle='rgba(255,255,255,.28)';g.lineWidth=1.5;g.beginPath();g.moveTo(R*.3,-R*.24);g.quadraticCurveTo(R*.7,-R*.3,R*.9,-R*.05);g.stroke();
+  if(guide){g.fillStyle=guide;g.beginPath();g.ellipse(R*.3,0,R*.2,R*.05,0,0,6.283);g.fill()}
+  g.restore()}
+ const cg=g.createRadialGradient(-R*.05,-R*.05,1,0,0,R*.2);cg.addColorStop(0,cen[0]);cg.addColorStop(1,cen[1]);g.fillStyle=cg;g.beginPath();g.arc(0,0,R*.19,0,6.283);g.fill();
+ g.fillStyle=mode==='bee'?'rgba(200,180,255,.8)':'rgba(255,240,170,.9)';for(let i=0;i<10;i++){const a=i*2.4,d=R*(.08+.08*(i%3)/2);g.beginPath();g.arc(Math.cos(a)*d,Math.sin(a)*d,1.6,0,6.283);g.fill()}
+ return FS[k]=o}
+function flower(f,mode,t){const x=P(f.x,1.6),y=H*f.y+Math.sin(t*1.3+f.ph)*2,r=f.r*Math.min(W,H)*(0.7+f.y);if(x<-r*1.2||x>W+r*1.2)return;
+ const sc=mode==='bee'?'#2b4a2e':'#3b5a2a';
+ cx.strokeStyle=sc;cx.lineWidth=Math.max(1,r*.06);cx.beginPath();cx.moveTo(x,y+r*.15);cx.quadraticCurveTo(x+r*.25*Math.sin(f.ph),y+(H-y)*.5,x+r*.1,H);cx.stroke();
+ cx.fillStyle=sc;cx.beginPath();cx.ellipse(x+r*.35,y+r*1.3,r*.38,r*.12,-.5,0,6.283);cx.fill();
+ cx.save();cx.translate(x,y);cx.rotate(f.ph);cx.scale(1,.72);
+ cx.globalAlpha=.25;cx.fillStyle='#000';cx.beginPath();cx.ellipse(r*.06,r*.12,r*.95,r*.95,0,0,6.283);cx.fill();cx.globalAlpha=1;
+ const s=fsprite(f.c,f.p,mode==='bee'?'bee':mode==='ageha'?'ageha':'h');cx.drawImage(s,-r,-r,r*2,r*2);cx.restore()}
 function draw(t){const l=L[cur],m=human?'human':l.id;cx.clearRect(0,0,W,H);
  if(m==='human'&&l.id!=='bat'&&l.id!=='worm'||m==='bird'||m==='ageha'||m==='bee'){
   const hz=l.id==='bee'?0.42:l.id==='bird'?0.7:0.55;
@@ -267,7 +302,7 @@ function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];
  world.tabIndex=-1;setTimeout(()=>$('back').focus({preventScroll:true}),60);hintT=(l.id==='bat'||l.id==='worm')?0:setTimeout(hideHint,6000)}
 function closeL(){if(!world.classList.contains('on'))return;world.classList.remove('on');setTimeout(()=>cancelAnimationFrame(raf),900);lay();sub.style.opacity=1;
  const n=Object.values(st()).filter(x=>x.r).length;
- if(n>=L.length)sub.innerHTML='見わたせば花ももみぢもなかりけり<br>浦の苫屋の秋の夕ぐれ<small>藤原定家『新古今和歌集』秋上・363<br><br>花も紅葉も「ない」と詠むことで、かえって浮かぶ景色があります。<br>あなたに見えなかった模様、聞こえなかった声も、いまは目の前の参道に重なっています。<br>ひとつの受けとり方は、その生き物が生きているあいだだけ開いています。<br>閉じたあとも、それが触れていた参道は、ここにあります。<br><br>画面から目を上げて、同じ参道に、もう一度。</small>';
+ if(n>=L.length)sub.innerHTML='見わたせば花ももみぢもなかりけり<br>浦の苫屋の秋の夕ぐれ<small class="tm">（苫屋＝草を編んだ苫で屋根をふいた、海辺の小さな家）</small><small>藤原定家『新古今和歌集』秋上・363<br><br>花も紅葉も「ない」と詠むことで、かえって浮かぶ景色があります。<br>あなたに見えなかった模様、聞こえなかった声も、いまは目の前の参道に重なっています。<br>ひとつの受けとり方は、その生き物が生きているあいだだけ開いています。<br>閉じたあとも、それが触れていた参道は、ここにあります。<br><br>画面から目を上げて、同じ参道に、もう一度。</small>';
  const top=stack.lastElementChild;if(top)top.focus({preventScroll:true})}
 $('back').onclick=closeL;$('paper').addEventListener('click',e=>{const pp=$('paper');if(pp.classList.contains('fold')){pp.classList.remove('fold');e.preventDefault()}});addEventListener('keydown',e=>{if(e.key==='Escape')closeL()});
 world.querySelector('form').onsubmit=ev=>{ev.preventDefault();const v=$('ri').value.trim();if(!v)return;const o=st();o[cur]=Object.assign(o[cur]||{},{t:v});save(o);
@@ -279,7 +314,11 @@ lay();addEventListener('resize',()=>{clearTimeout(window._r);window._r=setTimeou
 /* 2026-11-10 第5周：ふりがな（低学年）。便りの文の漢字にだけ、辞書の読みを添える */
 const FURI=Object.fromEntries("見:み,紫外:しがい,目:め,花:はな,模式:もしき,受:う,同:おな,参道:さんどう,人:ひと,便:たよ,方:かた,赤:あか,震:ふる,声:こえ,模様:もよう,暗:くら,枝:えだ,実:み,知:し,明:あか,音:おと,左右:さゆう,終:お,視細胞:しさいぼう,多:おお,中:なか,下:した,艶:つや,前:まえ,光:ひかり,鳥居:とりい,朱:しゅ,届:とど,聞:き,物:もの,体:からだ,返事:へんじ,実際:じっさい,動:うご,訪:おとず,感度:かんど,蜂:はち,働:はたら,置:お,色:いろ,窓:まど,鳥:とり,景色:けしき,種:しゅ,返:かえ,書:か,持:も,重:かさ,土:つち,上:うえ,地面:じめん,遠:とお,残:のこ,夕暮:ゆうぐ,高:たか,世界:せかい,反響:はんきょう,自分:じぶん,碧:あお,訳:やく,封:ふう,蜜:みつ,向:む,短:みじか,一生:いっしょう,外:そと,言:い,青:あお,緑:みどり,白:しろ,近:ちか,夏:なつ,巣:す,木:き,立:た,少:すこ,変:か,果実:かじつ,淡:あわ,蝶:ちょう,複眼:ふくがん,皮膚:ひふ,足音:あしおと,何:なに,振動:しんどう,低:ひく,鳴:な,虫:むし,超音波:ちょうおんぱ,秒:びょう,時間:じかん,耳:みみ,道:みち,霧:きり,秋:あき,紅葉:もみじ,浮:う,触:ふ,生:い,数週間:すうしゅうかん,一色:ひといろ,沈:しず,山:やま,吸:す,成虫:せいちゅう,寿命:じゅみょう,鳥類:ちょうるい,網膜:もうまく,表面:ひょうめん,反射:はんしゃ,種類:しゅるい,色覚:しょっかく,眼:め,反応:はんのう,一瞬:いっしゅん,横:よこ,通:とお,周波数:しゅうはすう,遅:おそ,所:ところ,線:せん,肌:はだ,先:さき,夕:ゆう,開:ひら,閉:と,画面:がめん,画:え,一部:いちぶ,四:よん,三:さん,六:ろく,数:かず,放:はな,端:はし,見上:みあ,皮:かわ,側:がわ,時期:じき,一度:いちど".split(",").map(x=>x.split(":")));const FK=Object.keys(FURI).sort((a,b)=>b.length-a.length);const FRE=new RegExp(FK.join("|"),"g");
 function furi(){for(const id of ["pbody","pq"]){const e=document.getElementById(id);if(!e||e.querySelector("ruby"))continue;const t=e.textContent.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));e.innerHTML=t.replace(FRE,w=>"<ruby>"+w+"<rt>"+FURI[w]+"</rt></ruby>");}}
-document.getElementById("kids").onclick=e=>{const on=document.body.classList.toggle("kids");e.currentTarget.setAttribute("aria-pressed",String(on));if(on)furi();else for(const id of ["pbody","pq"]){const x=document.getElementById(id);if(x){x.querySelectorAll("rt").forEach(r=>r.remove());x.textContent=x.textContent;}}};
+document.getElementById("kids").onclick=e=>{const on=document.body.classList.toggle("kids");e.currentTarget.setAttribute("aria-pressed",String(on));if(on)furi();else for(const id of ["pbody","pq"]){const x=document.getElementById(id);if(x){x.querySelectorAll("rt").forEach(r=>r.remove());x.textContent=x.textContent;}}fitP()};
+/* 2026-11-10 第8周：便りの文は、ひらいた紙の中にスクロールなしで収まる大きさまで字を詰める（下限 15px） */
+function fitP(){const p=document.getElementById("paper"),b=document.getElementById("pbody");if(!p||p.classList.contains("fold"))return;b.style.fontSize="";b.style.lineHeight="";
+ let f=parseFloat(getComputedStyle(b).fontSize),n=0;while(p.scrollHeight>p.clientHeight+1&&f>15&&n++<30){f-=.5;b.style.fontSize=f+"px";b.style.lineHeight=f<17?"1.75":"1.85"}}
+{const o=openL;openL=function(i){o(i);requestAnimationFrame(fitP)};addEventListener("resize",()=>setTimeout(fitP,200));document.getElementById("paper").addEventListener("click",()=>requestAnimationFrame(fitP))}
 </script>
 </body>
 </html>
