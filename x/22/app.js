@@ -12,9 +12,9 @@ const V3 = THREE.Vector3;
 
 const W = await createAwai({
   title: "Qualia/compute", sub: "計算機の思想", en: "Thought in Computing", tex: P.tex, aoi: P.aoi, keyaki: P.keyaki, sprig: P.sprig, aoiAt: innerWidth < innerHeight * .8 ? [-.9, -1.5, -.2] : [1.4, -5.6, .1], seed: 2222, abs0: 1,
-  rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 8.6, k), h = lerp(1.55, 7.0, k);   // 11-06 二版の後：抽象を一歩寄せる（主体が小さく、画面の下が空いていた）
-    const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, .2, k), lerp(-1.6, -1.15, k));
-    if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(-.55 + Math.sin(y) * 1.5, 10.9, 5.9), q); look.lerp(new V3(-.55, 0, .55), q);   /* 11-06 二版の後：主体を画面の中ほどへ下ろし、一歩寄せる（下半分が空いていた） */ }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
+  rig: (a, y) => { const k = ss(0, 1, a), piv = new V3(0, 0, .4), back = lerp(6.4, 5.0, k), h = lerp(1.55, 1.7, k);   // 11-06 本人「俯瞰でなく主観の体験に」：抽象でも、その場に立つ人の目の高さ（約 1.6 m）のまま。一歩前へ出て、場の波を自分の足もとから受けとる   // 11-06 二版の後：抽象を一歩寄せる（主体が小さく、画面の下が空いていた）
+    const pos = new V3(piv.x + Math.sin(y) * back, h, piv.z + Math.cos(y) * back), look = new V3(0, lerp(1.0, 0, k), lerp(-1.6, .2, k));
+    if (innerWidth < innerHeight * .8) { const q = ss(.3, 1, a); pos.lerp(new V3(.1 + Math.sin(y) * 1.2, 1.75, 7.6), q); look.lerp(new V3(.1, .1, .4), q);   /* 縦長も目の高さのまま（真上から見下ろさない） */   /* 11-06 二版の後：主体を画面の中ほどへ下ろし、一歩寄せる（下半分が空いていた） */ }   // 縦長の画面の抽象は、真上に近い高い俯瞰（五つの主体が画面の内側に入る）
     return { pos, look }; },
   credits: [
     "式は関係の形を示す模式（測れる量の式ではない）。E 環境・B 身体・P 知覚・K 経験と文脈・g 意味づけ・a ふるまいが環境に残す変化・F 環境自身の変化・L ほかの受けとり方の層",
@@ -56,7 +56,7 @@ W.onFirstInput(() => snd.start());
  }
 }
 
-if (innerWidth < innerHeight * .8) W.aoi.then(a => a && a.place(-2.5, -2.6, -.1));   /* 縦長：波の届く輪から外す */   // 縦長の画面では、碧を横から見た画の内側へ
+if (innerWidth < innerHeight * .8) W.aoi.then(a => a && a.place(-1.4, -3.4, -.1));   /* 縦長：波の届く輪から外す */   // 縦長の画面では、碧を横から見た画の内側へ
 
 // ───────── 式（左上・抽象の側でだけ見える）
 const fx = document.createElement("details"); fx.className = "fx";
@@ -67,7 +67,8 @@ fx.innerHTML = `<summary>＋ 関係を式で見る</summary><p><span data-k="U">
 W.ui.appendChild(fx);
 { const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#e0eaf2;transition:opacity .6s;pointer-events:auto;max-width:calc(100vw - 32px);box-sizing:border-box;background:#09111bd9;border-radius:6px;padding:0 10px}.fx summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font:12px/1.6 sans-serif;list-style:none}.fx summary:focus-visible{outline:2px solid #b9f5ff}.fx[open]{padding-bottom:10px}
 .fx p{margin:0}.fx sub{font-size:.72em}.fx span{transition:color .25s,text-shadow .25s}.fx span.hi{color:#eef5fb;text-shadow:0 0 12px rgba(155,220,240,.9)}.fx .fxL{opacity:0;transition:opacity 1.2s}.fx.L .fxL{opacity:1}
-@media (max-width:520px){.fx{font-size:11px;line-height:1.85}}`; document.head.appendChild(st); }
+@media (max-width:520px){.fx{font-size:11px;line-height:1.85}}
+.fx:not([open]){background:none;justify-self:start;width:max-content;max-width:100%}.fx:not([open]) summary{border-bottom:1px solid rgba(224,234,242,.35)}`; document.head.appendChild(st); }
 const hi = k => { for (const e of fx.querySelectorAll(`[data-k="${k}"]`)) { e.classList.add("hi"); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove("hi"), 520); } };
 
 // ───────── 場 E：波（a が残した変化）を地の上に。点の格子は抽象の側で波に合わせて揺れる
@@ -107,6 +108,7 @@ const sens = PR.sensorPost(); sens.position.set(innerWidth < innerHeight * .8 ? 
 
 const PORT = innerWidth < innerHeight * .8;
 if (PORT) { tit.position.copy(tree).add(new V3(.85, 0, 1.9)); person.position.set(-.2, 0, 2.4); tw.position.set(1.15, 0, 1.4); sens.position.set(.9, 0, -.9); }
+if (PORT) tit.position.x = Math.max(tit.position.x, -.5);   // 縦長：シジュウカラを目の高さの画面の内側へ
 beeHome.copy(tw.userData.heads[0]).multiplyScalar(tw.scale.x).add(tw.position);
 // 蜂の居場所の手がかり：体は実物の大きさのまま、羽ばたきの光の小さな点が明滅する（触れると強く）
 const beeGlowM = pointMat(0xfff1c8, MOBILE ? .2 : .16, 1); const beeGlow = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), beeGlowM); W.add(beeGlow);   // 蜂は花の上に（縦長で花を動かしたあとも・大きさも含めて）
@@ -133,8 +135,8 @@ const N = [
 // ノードの印：足もとの輪・立ちのぼる線・名札
 function label(t, col) {
   const c = document.createElement("canvas"); c.width = 512; c.height = 96; const x = c.getContext("2d"); x.font = '500 46px ui-monospace,"SF Mono",Menlo,monospace'; x.fillStyle = "#" + new THREE.Color(col).getHexString(); x.textBaseline = "middle"; x.shadowColor = "rgba(2,4,10,.95)"; x.shadowBlur = 10;   /* 地の上でも読める縁取り */
-  if (MOBILE) { x.font = '600 44px "Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.fillText(t, 256, 52); }   /* スマホ：名は札の中央に（札の中心＝持ち主の輪） */ else { x.fillText("U", 6, 44); x.font = '600 30px "Hiragino Mincho ProN",serif'; x.fillText(t, 40, 60); }   // スマホは名だけ
-  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false })); s.renderOrder = 5; s.center.set(0, 0); s.scale.set(1.5, .28, 1);   /* PC の名札を控えめに */ if (MOBILE) { s.center.set(.5, 0); s.scale.set(3.0, .56, 1); }   /* スマホの札を読める大きさに */ return s;
+  if (MOBILE) { x.font = '600 44px "Hiragino Mincho ProN",serif'; x.textAlign = "center"; x.fillText(t, 256, 52); }   /* スマホ：名は札の中央に（札の中心＝持ち主の輪） */ else { x.fillText("U", 6, 44); x.font = '600 42px "Hiragino Mincho ProN",serif'; x.fillText(t, 44, 58); }   // スマホは名だけ
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false })); s.renderOrder = 5; s.center.set(0, 0); s.scale.set(2.3, .43, 1);   /* PC の名札を控えめに */ if (MOBILE) { s.center.set(.5, 0); s.scale.set(3.0, .56, 1); }   /* スマホの札を読める大きさに */ return s;
 }
 for (const n of N) {
   const g = new THREE.Group(); W.add(g); n.g = g;
@@ -211,7 +213,7 @@ function dropLeaf() { const l = PR.keyakiLeaf(.07); scene.add(l); falling = { l,
 
 // はじめと、降りるとき
 setTimeout(() => { if (!firstCascade) { act(nodeOf("bee"), .8, null); } }, 2600);   // はじめに一度、ミツバチがふるまい、波が渡るのを見せる（音は触れるまで鳴らない）
-setTimeout(() => { W.say("鳥・人・木の輪を一つ押してみてください。そこから広がる変化に、何が応えるでしょうか。"); W.say("環境を介して伝わる、相互の応答を描く計算模型です。"); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
+setTimeout(() => { W.say("生き物・人・木・機械の輪を、一つ押してみてください。そこから広がる変化に、何が応えるでしょうか。"); W.say("環境を介して伝わる、相互の応答を描く計算模型です。"); setTimeout(() => { if (W.abs > .6) W.say("下へなぞると、朝の参道へ降りる。"); }, 9000); }, 900);
 let saidDown = false, saidGround = false;
 W.onAbs(a => {
   fx.style.opacity = ss(.35, .7, a).toFixed(3);
@@ -233,15 +235,16 @@ W.onFrame((dt, t, a) => {
     n.ring.userData.mat.opacity = Math.max(.75 * labA, .3 + .1 * Math.sin(t * 1.6 + N.indexOf(n))) + n.glow * .5 * ss(.05, .3, a) + (n.id === "hum" && Lon && !humAgain ? .35 * (.5 + .5 * Math.sin(t * 2.4)) : 0);   /* 山場のあと、人の輪だけが息をする（もう一度触れる誘い） */   // 具体の参道でも、足もとの輪が薄く息をする（触れる所が分かる）
     n.ring.scale.setScalar(1 + n.glow * .25);
     n.ring2.userData.mat.opacity = n.inK * .7 * ss(.08, .4, a); n.ring2.scale.setScalar(1 + (1 - n.inK) * 1.2);
-    n.stemM.opacity = labA * (.35 + n.glow * .5); const low = PORT || a < .3; n.lab.position.y = low ? .06 : n.h + .04; n.lab.position.x = low ? (PORT ? 0 : .5) : .06; n.lab.position.z = low ? .62 : 0; if (PORT) n.lab.position.x = clamp(-n.at().x * .5, -.7, .7); if (low && n.id === "tit") { if (PORT) { const w = n.g.position.clone().add(new V3(1.05, .06, .75)); n.lab.position.copy(n.g.worldToLocal(w)); } else { n.lab.position.x = -.55; n.lab.position.z = 1.15; } }   if (low && PORT && n.id === "sens") { n.lab.position.z = -.55; n.lab.position.y = .5; } if (low && PORT && n.id === "bee") { n.lab.position.z = .2; n.lab.position.x = .42; }   // 縦長：記録計の名は柱の上、ミツバチの名は株の手前（重ならない）
+    n.stemM.opacity = labA * (.35 + n.glow * .5); const low = PORT || a < .3; n.lab.position.y = low ? .06 : n.h + .04; n.lab.position.x = low ? (PORT ? 0 : .5) : .06; n.lab.position.z = low ? .62 : 0; if (PORT) n.lab.position.x = clamp(-n.at().x * .5, -.7, .7); if (low && n.id === "tit") { if (PORT) { const w = n.g.position.clone().add(new V3(a > .3 ? .35 : 1.05, .06, a > .3 ? .55 : .75)); n.lab.position.copy(n.g.worldToLocal(w)); } else { n.lab.position.x = -.55; n.lab.position.z = 1.15; } }   /* 目の高さの抽象では、シジュウカラの名を輪の奥へ（字幕にかからない） */   if (low && PORT && n.id === "sens") { n.lab.position.z = -.55; n.lab.position.y = .5; } if (low && PORT && n.id === "bee") { n.lab.position.z = .2; n.lab.position.x = .42; }   // 縦長：記録計の名は柱の上、ミツバチの名は株の手前（重ならない）
     // シジュウカラの名は人の線から離す（PC は左、縦長は画面の内側）   // 地の名札は輪の手前の右（柱・株の上にかからない）。縦長は画面の内側へ寄せる   // 具体の側では名札を足もとへ（宙に浮かない）   // 縦長の俯瞰では名札を足もとへ（上から見て持ち主の輪からずれない）
-    n.lab.material.opacity = Math.max(PORT ? .9 : .62, labA) * (.75 + n.glow * .25);   // 具体の側でも名札を薄く残す（触れる所が分かる）
+    n.lab.material.opacity = Math.max(PORT ? .9 : .62, labA) * (.75 + n.glow * .25); if (PORT) n.lab.scale.set(lerp(3.0, 1.7, ss(.3, .8, a)), lerp(.56, .32, ss(.3, .8, a)), 1); else n.lab.scale.set(lerp(1.5, .85, ss(.3, .8, a)), lerp(.28, .16, ss(.3, .8, a)), 1); if (n.id === "hum") n.lab.material.opacity *= 1 - ss(.35, .6, a);   // 主観の近い画角では名札を小さく。見ている自分＝人の名は消す   // 目の高さの抽象では、名札を近さに合わせて小さく   // 具体の側でも名札を薄く残す（触れる所が分かる）
     n.ring.visible = n.ring.userData.mat.opacity > .003; n.ring2.visible = n.ring2.userData.mat.opacity > .003; n.stem.visible = n.stemM.opacity > .003 && !(PORT && a > .6);   /* 縦長の俯瞰では名札が足もとなので、立つ線は描かない */ n.lab.visible = n.lab.material.opacity > .003;   // 見えないものは描かない（スマホの描画の回数）
   }
   // 生き物
   hop = Math.max(0, hop - dt * 1.6); tit.position.y = Math.sin(Math.min(1, 1 - hop) * Math.PI) * (hop > 0 ? .06 : 0); tit.userData.animate?.(t, false);
   beeKick = Math.max(0, beeKick - dt * .8); const hv = RM ? 0 : 1;
   beeGlow.position.copy(bee.position); beeGlowM.opacity = (.6 + .35 * Math.sin(t * 9)) * (1 - ss(.3, .7, a)) + beeKick * .6;
+  { const me = ss(.35, .6, a); person.visible = me < .98; person.userData.mat && (person.userData.mat.opacity = .85 * (1 - me)); person.userData.mat && (person.userData.mat.transparent = true); }   // 抽象では、見ている自分＝人の目から受けとる（自分の体の線は消える）
   bee.position.copy(beeHome).add(new V3(Math.sin(t * .9) * (.05 + beeKick * .25) * hv, .045 + Math.sin(t * 1.7) * .015 * hv + beeKick * .12, Math.cos(t * .7) * (.04 + beeKick * .2) * hv)); bee.rotation.y = Math.sin(t * .5) * .8; bee.userData.state = "fly"; bee.userData.animate?.(t, "hover");
   if (steps > 0) { steps = Math.max(0, steps - dt); person.userData.walk((1.2 - steps) / .6, 1); } else person.userData.walk(0, 0);
   person.userData.mat.opacity = lerp(.75, .6, ss(.08, .5, a));   // 具体では墨の線、抽象では光の線
