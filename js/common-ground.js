@@ -17,7 +17,7 @@ const ui=document.getElementById('cgExperience');
 const en=()=>document.documentElement.dataset.lang==='en';
 const mq=matchMedia('(prefers-reduced-motion: reduce)');
 const layerKeys=new Set();
-let selectedClue=null,viewClue=null,clueBlend=0,immersionTime=0,autoImmersion=!mq.matches;
+let selectedClue=null,viewClue=null,clueBlend=0,immersionTime=0,autoImmersion=false;
 const bodyPresence={value:0};
 let journey=1,journeyPlaying=false,birth=null,landscape,ambientLight,fillLight,seedField,detachedCanvas=false,warming=false;
 const journeyRange=document.getElementById('cgJourney'),journeyPlay=document.getElementById('cgJourneyPlay'),journeyEnter=document.getElementById('cgJourneyEnter'),journeyPhase=document.getElementById('cgJourneyPhase');
