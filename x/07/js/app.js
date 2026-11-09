@@ -15,7 +15,7 @@ import { QSynth, readingOf, seedOf } from "./synth.js";
 
 import { SoundSpace } from "./sound-space.js?v=20261107entry1";
 import { PERFORMANCE_DEFAULTS, filterHz, rhythmHz } from "./performance-fx.js";
-const D = window.QS_SOUNDS, ITEMS = D.items.filter(item=>!(window.QS_HIDDEN||[]).includes(item.n)).map(item=>({...item,t:item.t.replace(/(?:の音){2,}$/,'の音')})).filter((item,i,all)=>all.findIndex(x=>x.t===item.t)===i), TAGS = D.tags;
+const D = window.QS_SOUNDS, ITEMS = D.items.map(item=>({...item,t:item.t.replace(/(?:の音){2,}$/,'の音')})).filter((item,i,all)=>all.findIndex(x=>x.t===item.t)===i), TAGS = D.tags;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = id => document.getElementById(id);
 // 分類の色（線と点だけに使う。HP の層の色と同じ値）
@@ -48,8 +48,6 @@ const nature = new THREE.Group(); scene.add(nature);
 groundPlane(nature, { size: 300, seg: mobile ? 100 : 150, map: tx("soil_forest.webp"), height: H,
   tint: (x, z) => { const n = Math.sin(x * .7) * Math.sin(z * .6), r = Math.hypot(x, z), m = Math.max(0, Math.min(1, (9 - r) / 5)); const k = .84 + .12 * n;
     return [(.72 * (1 - m) + .58 * m) * k, (.68 * (1 - m) + .74 * m) * k, (.6 * (1 - m) + .46 * m) * k]; } });
-// 2026-11-10 第5周：森の木と草は、最初の一こまと操作の部品のあとに育てる（起動を軽く）
-const growForest = () => {
 const pts = poisson(R, { x0: -75, x1: 75, z0: -75, z1: 75, d: mobile ? 6.6 : 5, tries: mobile ? 2400 : 5200, ok: (x, z) => { const r = Math.hypot(x, z); return r > 18.5 && r < 75; } });
 const trees = pts.map(([x, z], i) => growTree(i % 5 === 0 ? "keyaki" : i % 7 === 3 ? "momiji" : "konara", x, z, R, { det: Math.hypot(x, z) < 26, q: mobile ? .65 : 1.1, scale: .95 + R() * .3 }));
 for (const t of trees) { const y = H(t.trunk[0], t.trunk[1]) - .05; t.wood.forEach(g => g.translate(0, y, 0)); t.cards.forEach(c => { c[0].y += y; c[2].y += y; }); }
@@ -62,8 +60,6 @@ plantTrees(nature, trees, { barkMat: { keyaki: bark, konara: barkK, default: bar
 const grass = grassField(nature, R, { count: mobile ? 2600 : 7000, area: 34, ok: (x, z) => { const r = Math.hypot(x, z); return r > 2 && r < 17; } });
 { const m4 = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
   for (let i = 0; i < grass.count; i++) { grass.getMatrixAt(i, m4); m4.decompose(p, q, s); p.y = H(p.x, p.z) - .02; m4.compose(p, q, s); grass.setMatrixAt(i, m4); } grass.instanceMatrix.needsUpdate = true; }
-};
-let forestGrown = false; const growLater = () => { if (forestGrown) return; forestGrown = true; growForest(); };
 
 // ---- 言葉の点（一つの点＝一つの言葉）。分類ごとにゆるく集まる（作品の上の地図）
 const N = ITEMS.length, BASE = new Float32Array(N * 3), POS = new Float32Array(N * 3), COL = new Float32Array(N * 3), PH = new Float32Array(N * 3);
@@ -154,11 +150,10 @@ let lensX = 0, lensY = 0;
 const lensWant = () => { if (!cur || panel.hidden) return { x: 0, y: 0 }; const r = panel.getBoundingClientRect();
   return sheetMQ.matches ? { x: 0, y: Math.max(0, innerHeight - r.top) * .5 } : { x: Math.max(0, innerWidth - r.left) * .5, y: 0 }; };
 const order = [...ITEMS].sort((a, b) => a.n - b.n);
-const listOrder = () => [...order.filter(x => !ABSTRACT(x)), ...order.filter(x => ABSTRACT(x))];   // 一覧は、短く具体の題から
 let target = null;   // カメラの見る先（なめらかに寄る）
 const panel = $("panel"), sheetMQ = matchMedia("(max-width:680px)");   // 狭い画面＝下から出る面、広い画面＝右の面
 function select(it, { fly = true, audible = true } = {}) {
-  if (!seenAll) { seenAll = true; labs.style.visibility = ""; for (const id in labEls) labEls[id].classList.remove("big"); measure(); }   /* 2026-11-10 第4周：分類の印は一つ鳴らすまで出さない（最初は身近な三語だけ・分類は＋の「分類について」に） */
+  if (!seenAll) { seenAll = true; for (const id in labEls) labEls[id].classList.remove("big"); measure(); }
   cur = it; halt(); setDials(FIRST); $('mixStatus').textContent=material?'A：'+material.t+' ／ B：'+it.t:'Aの素材にして、もう一つの音を選ぶと合成できます。';
   $("sound").hidden = !!it.quiet; $("quiet").hidden = !it.quiet;
   { const rd = it.quiet ? null : readingOf(it); $("readF").hidden = !(rd && rd.hand); $("readF").open = false; if (rd && rd.hand) $("readT").textContent = rd.reading; }   // 手で譜を書いた行だけ、読みの一文を畳んで置く
@@ -186,11 +181,8 @@ $("bPrev").addEventListener("click", () => step(-1)); $("bNext").addEventListene
 // 偶然の一行：はじめの三回は、重い語（死・髑髏・悪魔・恐怖など）を含まない行から選ぶ
 const HEAVY = /死|髑髏|悪魔|恐怖|恐ろし|滅|墓|痛|傷|邪|破壊|崩壊|戦/; let randN = 0;
 const DIM = /眼|縛|痩|情念|不在|しなび|白髪|ホクロ|曖昧|お金|修行|人生|非物質|不可視|閉じ|見えない|ヒッピー|恐竜|免疫|結晶|ミイラ|極限/;   // はじめの三回は、子どもにも明るく分かる行だけ
-const ABSTRACT = it => it.t.length > 24 || /ミーム|俯瞰|我々|存在自体|嘘が|クオリア|意識|輪廻|AI|虚空|無自体|反転した瞬間/.test(it.t);   // 2026-11-10 第5周：観念的・長い題は最初に出さない（データは消さない）
 const SAFE = new Set(["mizu", "seimei", "iro"]);   // 2026-11-09 第3周：はじめの三回は明るい群れ（水と天気・生命と土・色と光）から。ほかの群れは消さず、四回目から
-// 2026-11-10 第4周：はじめの三回は、子どもにも分かる自然の音に固定（朝の小鳥・木の雫・雲が8割の青空）。四回目からは今までどおり
-const FIRST3 = [429, 805, 404].map(n => ITEMS.find(x => x.n === n && !x.quiet)).filter(Boolean);
-const rand = () => { if (randN < FIRST3.length) { select(FIRST3[randN++]); return; } const pool = randN++ < 12 ? ITEMS.filter(x => SAFE.has(x.tag) && (!x.tag2 || SAFE.has(x.tag2)) && !HEAVY.test(x.t) && !DIM.test(x.t) && !ABSTRACT(x) && !x.quiet) : ITEMS.filter(x => !ABSTRACT(x) || Math.random() < .3); select(pool[Math.floor(Math.random() * pool.length)]); };
+const rand = () => { const pool = randN++ < 3 ? ITEMS.filter(x => SAFE.has(x.tag) && (!x.tag2 || SAFE.has(x.tag2)) && !HEAVY.test(x.t) && !DIM.test(x.t) && !x.quiet) : ITEMS; select(pool[Math.floor(Math.random() * pool.length)]); };
 $("bRand").addEventListener("click", rand); $("bRand2").addEventListener("click", rand); window.__qsReady = true; if (window.__qsPend) { window.__qsPend = 0; setTimeout(() => $("bRand2").click(), 0); }
 requestAnimationFrame(() => { if (document.activeElement === document.body || !document.activeElement) $("bRand2").focus({ preventScroll: true }); });   // 最初の焦点はボタンに
 
@@ -211,9 +203,8 @@ const LAW = {   // 群れの音の決まり（やさしい言い方。正は js/
 // かざす（マウス）＝点のそばに言葉。押す＝その場で鳴らし、音のかたちを出す。同じ点をもう一度押すと止まる。
 // 指で触れたとき＝言葉を点のそばに出しながら、そのまま鳴らす。
 const v3 = new THREE.Vector3();
-let ABS_W = [], pressN = 0;   // 2026-11-10 第5周：観念的・長い題の点は、近くに具体の点があればそちらを先に拾う
-function nearest(cx, cy, maxPx) { if (!ABS_W.length) ABS_W = ITEMS.map(it => ABSTRACT(it) ? 1 : .3); let best = -1, bd = maxPx * maxPx; const w = innerWidth, h = innerHeight; camera.updateMatrixWorld();
-  for (let i = 0; i < N; i++) { v3.fromArray(POS, i * 3).project(camera); if (v3.z > 1) continue; const dx = (v3.x * .5 + .5) * w - cx, dy = (-v3.y * .5 + .5) * h - cy, d = (dx * dx + dy * dy) * (ABS_W[i] || 1); if (d < bd) { bd = d; best = i; } }
+function nearest(cx, cy, maxPx) { let best = -1, bd = maxPx * maxPx; const w = innerWidth, h = innerHeight; camera.updateMatrixWorld();
+  for (let i = 0; i < N; i++) { v3.fromArray(POS, i * 3).project(camera); if (v3.z > 1) continue; const dx = (v3.x * .5 + .5) * w - cx, dy = (-v3.y * .5 + .5) * h - cy, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
   return best; }
 const screenOf = i => { v3.fromArray(POS, i * 3).project(camera); return { x: (v3.x * .5 + .5) * innerWidth, y: (-v3.y * .5 + .5) * innerHeight, z: v3.z }; };
 const no3 = n => "No. " + String(n).padStart(3, "0");
@@ -244,9 +235,8 @@ cv.addEventListener("pointerup", e => { if (!down) return; const moved = Math.hy
   const touch = e.pointerType !== "mouse"; byTouch = touch; if (touch) { ghostUntil = performance.now() + 500; ghostX = e.clientX; ghostY = e.clientY; }
   let i = nearest(e.clientX, e.clientY, touch ? 34 : 22);
   if (!touch && hoverI >= 0) { const s = screenOf(hoverI); if (Math.hypot(s.x - e.clientX, s.y - e.clientY) < 44) i = hoverI; }   // 言葉が出ている点を押したら、その点を鳴らす（点が少し漂っても外れない）
-  if (i >= 0 && pressN < 6 && ABSTRACT(ITEMS[i])) { ABS_W = ITEMS.map(it => ABSTRACT(it) ? 1e9 : 1); const j = nearest(e.clientX, e.clientY, 140); ABS_W = []; if (j >= 0) i = j; }   // 2026-11-10 第5周：はじめの数回は、観念的な題より近くの具体の題を
   if (i < 0) return;
-  pressN++; hoverI = -1; kb = false; tip.classList.remove("on"); press(i); });
+  hoverI = -1; kb = false; tip.classList.remove("on"); press(i); });
 cv.addEventListener("pointermove", e => { if (e.pointerType !== "mouse" || e.buttons) { hoverI = -1; return; }
   kb = false; mx = e.clientX; my = e.clientY; hoverI = nearest(mx, my, 22); cv.style.cursor = hoverI < 0 ? "" : "pointer"; });
 cv.addEventListener("pointerleave", () => { if (kb) return; hoverI = -1; mx = my = -1e4; cv.style.cursor = ""; });
@@ -268,7 +258,7 @@ function updateLabels() {
   else tip.classList.remove("on");
   if (cur && !cur.generated) { const s = screenOf(cur.i), on = playing();
     const v = byTouch ? "触れる" : "押す", note = cur.quiet ? quietNote : on ? `鳴っています ・ もう一度${v}と止まる` : `止まっています ・ ${v}と鳴る`;
-    fillLabel(nowEl, cur, note); nowEl.classList.toggle("playing", on); nowEl.classList.toggle("short", sheetMQ.matches && !panel.hidden); nowEl.classList.toggle("notitle", !panel.hidden);   /* 2026-11-10 第5周：面に同じ題が出ているあいだは、点のそばには題を出さない */   // スマホで下の面が開いているあいだは、本文を 2 行までに（同じ一行は面に全文が出ている）
+    fillLabel(nowEl, cur, note); nowEl.classList.toggle("playing", on); nowEl.classList.toggle("short", sheetMQ.matches && !panel.hidden);   // スマホで下の面が開いているあいだは、本文を 2 行までに（同じ一行は面に全文が出ている）
     const b = s.z > 1 ? null : placeLabel(nowEl, s);
     const hit = b && a && !(b.x > a.x + a.w || a.x > b.x + b.w || b.y > a.y + a.h || a.y > b.y + b.h);
     nowEl.classList.toggle("on", !!b && !hit); }
@@ -278,7 +268,7 @@ function updateLabels() {
 // ---- 一覧
 const dList = $("dList"), list = $("list"), q = $("q");
 function renderList() {
-  const s = q.value.trim(), rows = listOrder().filter(it => !s || it.t.includes(s));
+  const s = q.value.trim(), rows = order.filter(it => !s || it.t.includes(s));
   $("count").textContent = `${rows.length} の言葉`;
   const frag = document.createDocumentFragment();
   for (const it of rows) { const li = document.createElement("li"), b = document.createElement("button"); b.type = "button"; b.innerHTML = `<span>${String(it.n).padStart(3, "0")}</span>`; b.append(it.t);
@@ -294,7 +284,7 @@ $("aShown").textContent = N;
 
 // ---- 入口
 labs.style.visibility = "hidden";
-const start = (fade = true) => { $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
+const start = (fade = true) => { labs.style.visibility = ""; $("intro").classList.add("out"); setTimeout(() => $("intro").hidden = true, fade ? 1100 : 0); $("hint").hidden = false; };
 $("bStart").addEventListener("click", () => { synth.ensure(); start(); });
 start(false);   // 2026-11-09 入口の説明は出さない（音は点に触れたときだけ鳴る）
 // 2026-11-07: 三つの入口も既存の言葉の点へ。全項目・原文・合成規則はそのまま。
@@ -305,14 +295,14 @@ const nearbyEntries = [
   { n: 800, label: "風", title: "更科の風の音" }
 ];
 let entryReturn = null;
-// 2026-11-10 第5周：雨・水・風の絵の札は HTML に先に置く（3D を待たずに押せる）。ここでは押したときの動きだけ
 for (const entry of nearbyEntries) {
   const it = ITEMS.find(x => x.n === entry.n && x.t === entry.title && !x.quiet);
-  const b = document.querySelector(`[data-sound-entry="${entry.n}"]`);
-  if (!it || !b) { b && b.remove(); continue; }
-  b.addEventListener("click", () => { synth.ensure(); entryReturn = b; select(it); });
+  if (!it) continue;
+  const b = document.createElement("button"); b.type = "button"; b.dataset.soundEntry = String(it.n);
+  b.textContent = entry.label; b.setAttribute("aria-label", entry.label + "から聴く：" + it.t); b.title = it.t;
+  b.addEventListener("click", () => { entryReturn = b; select(it); });
+  $("nearSoundPoints").appendChild(b);
 }
-if (window.__qsPendEntry) { const b = document.querySelector(`[data-sound-entry="${window.__qsPendEntry}"]`); window.__qsPendEntry = 0; b && setTimeout(() => b.click(), 0); }
 
 // 見本づくり用：?skip で入口を飛ばす、#8 でその番号の言葉をひらく（音は押すまで鳴らない）
 { const sp = new URLSearchParams(location.search), h = parseInt(location.hash.slice(1), 10);
@@ -384,7 +374,7 @@ function loop(now) {
     renderer.render(scene, camera);forestFrame=now;startup.forestFrames++;
     if(startup.firstFrameMs===null){
       // 空・床・森・音の点を実際に描いた後に操作を開く。写真素材は別に計測する。
-      startup.firstFrameMs=performance.now();document.body.dataset.ready='true';window.MLLoader?.done();setTimeout(()=>{(window.requestIdleCallback||(f=>setTimeout(f,60)))(growLater,{timeout:700});},120);
+      startup.firstFrameMs=performance.now();document.body.dataset.ready='true';window.MLLoader?.done();
     }
   }
   startup.frames++;queueFrame();

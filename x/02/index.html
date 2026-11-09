@@ -19,9 +19,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 [hidden]{display:none!important}
 .btn{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card2);font-size:15px}
 .btn.pri{background:var(--aoi);border-color:var(--aoi);color:#06201d;font-weight:600}
-.btn:focus-visible,.pill:focus-visible,.tab:focus-visible,.ico:focus-visible,.home:focus-visible,#bodyControls button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.topL{display:flex;align-items:center;gap:2px;pointer-events:auto}.home{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;color:#f0e9cf;text-decoration:none;font:400 20px/1 var(--mincho,serif);text-shadow:0 1px 6px rgba(0,0,0,.6);border-radius:4px}
-@media (max-width:420px){.topL{gap:0}.home{min-width:30px;font-size:17px}#top{padding-left:2px!important;padding-right:4px!important}#top .btn.why{padding:0 5px!important;letter-spacing:0!important}#top .ico{min-width:40px}}
+.btn:focus-visible,.pill:focus-visible,.tab:focus-visible,.ico:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .ico{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 85%,transparent);display:grid;place-items:center;font-size:17px;padding:0;box-shadow:var(--shadow)}
 /* 上の帯：章と場所 */
 #top{position:fixed;top:0;left:0;right:0;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;padding:max(8px,env(safe-area-inset-top)) 10px 0;z-index:5;pointer-events:none}
@@ -228,20 +226,19 @@ body{word-break:auto-phrase;line-break:strict}
 /* スマホ：飛ぶ体の「上昇・下降」が右の端で切れていた → 二つを細く */
 @media(max-width:700px){#flightControls button{min-width:32px!important;width:32px;padding:2px!important;font-size:17px!important}#flightControls small{font-size:12px}#bodyControls{gap:7px}}
 </style>
-<link rel="preload" href="assets/poster_pc.webp" as="image" media="(min-width:701px)" fetchpriority="high"><link rel="preload" href="assets/poster_sp.webp?v=r6" as="image" media="(max-width:700px)" fetchpriority="high">
 <script type="importmap">
 {"imports":{"three":"./vendor/three/build/three.module.js",
 "three/addons/":"./vendor/three/examples/jsm/",
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261110r9">
+<link rel="modulepreload" href="umwelt.js?v=20261107layout">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
 <link rel="modulepreload" href="bodies.js?v=20261016-startup1">
-<link rel="modulepreload" href="forest.js?v=20261110r9">
+<link rel="modulepreload" href="forest.js?v=20261105s">
 <link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
 <link rel="modulepreload" href="nature.js?v=20261105s">
 <link rel="modulepreload" href="zen.js">
@@ -252,6 +249,16 @@ body{word-break:auto-phrase;line-break:strict}
 <link rel="modulepreload" href="kit/aoi_robe.js">
 <link rel="preload" href="kit/aoi_mocap.json" as="fetch" crossorigin>
 <!-- 最初に見える森の材質だけを先読みし、3D構築後の画像通信を避ける。 -->
+<link rel="preload" href="tex/soil_forest.webp" as="image" crossorigin>
+<link rel="preload" href="tex/leaf_spray.webp" as="image" crossorigin>
+<link rel="preload" href="tex/bark_zelkova_n.webp" as="image" crossorigin>
+<link rel="preload" href="tex/leaf_spray2.webp" as="image" crossorigin>
+<link rel="preload" href="tex/bark_camphor.webp" as="image" crossorigin>
+<link rel="preload" href="tex/bark_zelkova.webp" as="image" crossorigin>
+<link rel="preload" href="tex/bark_zelkova_orm.webp" as="image" crossorigin>
+<link rel="preload" href="tex/rock_surface.webp" as="image" crossorigin>
+<link rel="preload" href="tex/bark_camphor_orm.webp" as="image" crossorigin>
+<link rel="preload" href="tex/bark_camphor_n.webp" as="image" crossorigin>
 
 <link rel="stylesheet" href="kit/ui.css?v=20261103">
 <style id="mu-align">/* 共通 GUI（kit/ui.css）に合わせる＝左上の名前・押せる大きさを全アプリでそろえる（2026-11-03） */
@@ -277,7 +284,6 @@ body{word-break:auto-phrase;line-break:strict}
  #legend[data-lens="hachi"] .sight-sonic{font-weight:400}
 }
 </style>
-<style id="r9-top">@media (max-width:420px){#top .btn.why{font-size:13.5px!important;padding:0 6px!important}}@media (min-width:701px){#top .btn.why{font-size:15px}}</style>
 </head>
 <body>
 <script src="loader/loader.js" data-max="4000"></script>
@@ -285,10 +291,10 @@ body{word-break:auto-phrase;line-break:strict}
 <div id="veil"></div>
 
 <header id="top">
-  <span class="topL"><a class="home" href="https://mitsulab.jp/" aria-label="mitsulab のトップへ戻る">← mitsulab</a><span class="dream-title">Qualia/sight</span></span>
-  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog" aria-label="なぜ、そう見えるの？">なぜ<span class="wlg">、そう見えるの</span>？</button><button class="ico" id="menuBtn" aria-label="出典と設定">＋</button></span>
+  <span class="dream-title">Qualia/sight</span>
+  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
 </header>
-<aside id="bodyControls" aria-label="身体の操作"><button id="padTog" type="button" aria-expanded="false" aria-label="移動のボタンを出す・しまう">⋯</button><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
+<aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
 <div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
 <div id="legend" hidden></div>
 <p id="kurQ" hidden aria-live="polite"></p>
@@ -333,7 +339,7 @@ body{word-break:auto-phrase;line-break:strict}
   <h2>八つの受けとり方（くらべる）</h2>
   <table id="lensTable"></table>
   <h2>操作</h2>
-  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ⋯ を押すと出るボタン：↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
+  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
   <p>上の「くらべる」＝同じ場所に立ったまま、ミツバチ・犬・マムシに体を入れかえる旅。切り替える前に見え方を予想してから確かめ、最後に外で使える見方を持ち帰ります。右の「◐ 人の目とくらべる」は、押しているあいだだけ同じ場所を人の目に戻します。</p>
   <h2>この空間のつくり</h2>
   <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、モンシロチョウの雌雄と空です。白い花の多くが紫外を吸うことは研究の報告にもとづきますが、この森の草花・鳥の一つひとつの値は測ったものではなく、目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
@@ -356,45 +362,6 @@ body{word-break:auto-phrase;line-break:strict}
   <p class="whyNote">● その生きもの（か同じ種）で確かめられていること　◐ 近い仲間の研究から推しはかっていること</p>
 </div></div>
 
-<style id="r4boot">/* 2026-11-10 第4周：覆いをやめる。森の静止画は押せる UI の下に敷き、3D が組めたら静かに消す */
-#poster{position:fixed;inset:0;z-index:3;background:#0d1410 url(assets/poster_pc.webp) center/cover no-repeat;pointer-events:none;transition:opacity .6s}
-@media(max-width:700px){#poster{background-image:url(assets/poster_sp.webp?v=r6)}}
-#poster.gone{opacity:0}
-#boot{inset:auto 0 0 0!important;background:none!important;pointer-events:none;z-index:7!important}
-#boot #prog,#boot #bootMsg{display:none}#boot.fail #bootMsg{display:block}#boot button{pointer-events:auto}
-#stage:focus-visible{outline:3px solid var(--gold);outline-offset:-4px}
-a:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-@media(max-width:420px){#top .wlg{display:none}}
-</style>
-<style id="r3poster">/* 2026-11-09 第3周：静止画を先に出し、3D はその裏で組む。← はすぐ押せる */
-#boot{background:#0d1410 url(assets/poster_pc.webp) center/cover no-repeat}
-@media(max-width:700px){#boot{background-image:url(assets/poster_sp.webp?v=r6)}}
-#boot>div{align-self:end;margin-bottom:max(28px,env(safe-area-inset-bottom));text-shadow:0 1px 8px rgba(0,0,0,.9)}
-#boot b{display:none}#boot p{color:#eef3ea}
-body:not(.booted) #top{z-index:60}body:not(.booted) #top .topR{visibility:hidden}
-.srcTip{pointer-events:auto;min-width:44px;min-height:44px;margin-left:2px;background:none;border:0;color:#f4f8f2;font:600 16px/1 var(--mincho);text-shadow:0 1px 6px #000;cursor:pointer;vertical-align:middle}
-#where b,#where small{text-shadow:0 0 3px rgba(0,0,0,.95),0 1px 10px rgba(0,0,0,.9)}
-@media(max-width:700px){#where{top:64px;max-width:86vw}#where small{font-size:14px}}
-</style>
-<div id="poster" aria-hidden="true"></div>
-<section id="r5intro" aria-label="はじめに"><p class="pl">池のほとりの雑木林</p><p class="ln"><span class="sr">碧（あおい）：</span>まずはミツバチの目で、この森を歩いてみよう。</p><button class="btn pri" id="r5go" type="button">はじめる</button></section>
-<style id="r5style">/* 2026-11-10 第5周：冒頭は場所の名と碧の一言と「はじめる」だけ。ほかの札は押してから出す */
-#r5intro{position:fixed;left:50%;transform:translateX(-50%);bottom:max(26px,env(safe-area-inset-bottom));width:min(560px,calc(100vw - 32px));z-index:65;display:grid;justify-items:center;gap:10px;text-align:center;pointer-events:auto}
-#r5intro .pl{margin:0;font:600 13px/1.4 var(--mincho,serif);letter-spacing:.24em;color:#f6efd6;text-shadow:0 1px 8px #000,0 0 2px #000}
-#r5intro .pl::before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:#7fd0e0;box-shadow:0 0 8px #7fd0e0;vertical-align:2px}
-#r5intro .ln{margin:0;font:600 18px/1.7 var(--mincho,serif);letter-spacing:.06em;color:#fff;text-shadow:0 1px 10px #000,0 0 3px #000;text-wrap:balance}
-#r5intro .btn{min-width:160px;min-height:48px;font-size:16px;letter-spacing:.16em}
-#top .home{border:1px solid var(--mu-line,rgba(255,255,255,.3));border-radius:999px;background:var(--mu-panel,rgba(16,22,18,.46));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:0 12px!important;min-height:40px!important;height:40px!important;margin:2px 4px}
-#r8hint{position:fixed;left:12px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 236px);z-index:64;margin:0;max-width:min(300px,70vw);font:600 14px/1.6 var(--mincho,serif);letter-spacing:.05em;color:#fff;text-shadow:0 1px 8px #000,0 0 3px #000;pointer-events:none;transition:opacity 1s}
-body:not(.r5go) #r8hint,#r8hint.off{opacity:0}
-#r5intro .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-body:not(.r5go) #where,body:not(.r5go) #guide,body:not(.r5go) #bodyWheel,body:not(.r5go) #bodyControls,body:not(.r5go) #aoiWin,body:not(.r5go) #legend,body:not(.r5go) #kurQ,body:not(.r5go) #cmpTag,body:not(.r5go) #kurMarks,body:not(.r5go) #boot,body:not(.r5go) #moveNote,body:not(.r5go) #toast,body:not(.r5go) #panHint{visibility:hidden!important}
-body.r5go #r5intro{display:none}
-#top .home{width:auto!important;padding:0 8px 0 4px;font:600 15px/1 var(--mincho,serif)!important;letter-spacing:.08em;gap:6px}
-@media(max-width:420px){#top .home{font-size:13px!important;letter-spacing:.02em;padding:0 4px 0 2px}.dream-title{display:none}#r5intro .ln{font-size:16px}}
-</style>
-<p id="r8hint" aria-live="polite">行きたい所を押すと歩く。<br>この下の枠を押すと、生きものが変わる。</p>
-<script>document.getElementById('r5go').addEventListener('click',function(){document.body.classList.add('r5go');setTimeout(function(){var h=document.getElementById('r8hint');h&&h.classList.add('off');},7000);try{var g=document.getElementById('stage');g&&g.focus({preventScroll:true});}catch(e){}});if(/[?&](skip|go)\b/.test(location.search))document.body.classList.add('r5go');</script>
 <div id="boot" role="status" aria-live="polite"><div>
   <b data-n="app">Qualia/sight</b>
   <div id="prog"><i></i></div>
@@ -407,33 +374,17 @@ body.r5go #r5intro{display:none}
   if(location.protocol==='file:'){document.getElementById('bootMsg').innerHTML='ファイルを直接ひらくと庭を組み立てられません。同じフォルダの<b>「ひらく.command」</b>をダブルクリックしてください。';document.getElementById('prog').hidden=true;}
 })();
 </script>
-<script>window.MLLoader&&MLLoader.done();</script>
 <script src="data/paths.js?v=20261010"></script>
 <script src="data/daihon.js?v=20261014p2"></script>
 <script src="data/voice.js?v=20261013k80" onerror="window.VOICE={}"></script>
-<script src="data/why.js?v=20261110r8"></script>
+<script src="data/why.js?v=20261013tp"></script>
 <script>
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
-window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var bo=document.getElementById('boot');if(bo)bo.classList.add('fail');var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
+window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261110r9';s.onerror=window.__bootFail;document.body.appendChild(s);
-  setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed){document.getElementById('boot').classList.add('fail');}if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261107layout';s.onerror=window.__bootFail;document.body.appendChild(s);
+  setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
-<script>/* 第3周：静止画が出たら読み込み画面を下ろす。3D が組めたら body.booted */
-(function(){var go=function(){window.MLLoader&&MLLoader.done();};if(document.readyState!=='loading')go();else document.addEventListener('DOMContentLoaded',go);
-var t=setInterval(function(){if(window.__muBoot){document.body.classList.add('booted');clearInterval(t);}},100);
-document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.srcTip')){e.preventDefault();var m=document.getElementById('menuBtn');m&&m.click();}});})();</script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
-<style id="r2pad">/* 2026-11-09 第2周：押した所へ歩くのが主。移動の盤は ⋯ で出す（飛ぶ身体では出したまま）。右上の札は軽く */
-#bodyControls:not(.open):not(.fly) #bodyForward,#bodyControls:not(.open):not(.fly)>div:not(#flightControls),#bodyControls:not(.open):not(.fly) #bodyBack{display:none!important}
-#bodyControls.fly #padTog{display:none}
-#padTog{opacity:.7;font-size:20px!important;background:rgba(6,10,18,.4)!important}
-#bodyControls:not(.open):not(.fly) #padTog{border-color:transparent!important}
-#top .btn.why{background:transparent!important;border-color:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:0 1px 6px rgba(0,0,0,.75);opacity:.92}
-#top .btn.why:hover,#top .btn.why:focus-visible{border-color:var(--line)!important}
-#top .ico{font-size:22px}
-.home{width:44px;height:44px;min-width:44px!important;min-height:44px;font-size:20px!important}
-</style>
-<script>(function(){var b=document.getElementById("padTog"),c=document.getElementById("bodyControls");if(!b||!c)return;b.addEventListener("click",function(){var o=c.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");});})();</script>
 </body>
 </html>

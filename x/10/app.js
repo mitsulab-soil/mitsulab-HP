@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261110r9";
+import { T, setLang, lang } from "./i18n.js?v=20261105h";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -75,37 +75,25 @@ scene.add(new THREE.HemisphereLight(0x8a96ad, 0x05080f, .25));
 // ---- 表面（10 cm 四方＝1 単位）
 const SEG = MOBILE ? 200 : 300;
 const geo = new THREE.PlaneGeometry(1, 1, SEG, SEG);
-const U = { uDent: { value: new THREE.Vector3(0, 0, 0) }, uDentR: { value: .08 }, uBend: { value: 0 } };   // uBend＝第8周：樹皮のとき幹の曲面（1/半径）
+const U = { uDent: { value: new THREE.Vector3(0, 0, 0) }, uDentR: { value: .08 } };
 const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0, envMapIntensity: .55, displacementScale: .03 });
 mat.onBeforeCompile = sh => {
-  sh.uniforms.uDent = U.uDent; sh.uniforms.uDentR = U.uDentR; sh.uniforms.uBend = U.uBend;
-  sh.vertexShader = "uniform vec3 uDent; uniform float uDentR; uniform float uBend; varying float vDentG; varying float vBendX;\n" + sh.vertexShader
+  sh.uniforms.uDent = U.uDent; sh.uniforms.uDentR = U.uDentR;
+  sh.vertexShader = "uniform vec3 uDent; uniform float uDentR; varying float vDentG;\n" + sh.vertexShader
     .replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
-      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); vec2 grad = uDent.z * g * 2.0 * dd / (uDentR * uDentR); objectNormal = normalize(objectNormal - vec3(grad, 0.0)); }
-      objectNormal = normalize(objectNormal + vec3(position.x * uBend, 0.0, 0.0)); vBendX = position.x;`)
+      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); vec2 grad = uDent.z * g * 2.0 * dd / (uDentR * uDentR); objectNormal = normalize(objectNormal - vec3(grad, 0.0)); }`)
     .replace("#include <displacementmap_vertex>", `#ifdef USE_DISPLACEMENTMAP
       { vec2 eu = vDisplacementMapUv; float ed = min(min(eu.x, 1.0 - eu.x), min(eu.y, 1.0 - eu.y));   // 縁は凹凸を 0 へ（切り口がとげにならない）
         transformed += normalize(objectNormal) * (texture2D(displacementMap, vDisplacementMapUv).x * displacementScale * smoothstep(0.0, 0.02, ed) + displacementBias); }
       #endif
-      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); transformed.z -= uDent.z * g; vDentG = uDent.z * g; }
-      transformed.z -= position.x * position.x * uBend * 0.5;`);
+      { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); transformed.z -= uDent.z * g; vDentG = uDent.z * g; }`);
   // へこんだところは光が入りにくく、少し暗い
-  sh.fragmentShader = "uniform float uBend; varying float vDentG; varying float vBendX;\n" + sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= 1.0 - clamp(vDentG * 7.0, 0.0, 0.5);\n diffuseColor.rgb *= 1.0 - step(0.0001, uBend) * 0.5 * smoothstep(0.12, 0.5, abs(vBendX));");
+  sh.fragmentShader = "varying float vDentG;\n" + sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= 1.0 - clamp(vDentG * 7.0, 0.0, 0.5);");
 };
 mat.fog = false; const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Math.PI / 2; scene.add(plate);
 // 台：上の面のない箱（へこみが台に隠れない深さ 10 mm の側面だけ）
 { const dark = new THREE.MeshStandardMaterial({ color: 0x0a0f1a, roughness: 1 }), none = new THREE.MeshBasicMaterial({ visible: false });
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; base.userData.plate = true; scene.add(base); window.__touchBase = dark; }
-// 2026-11-10 第6周：樹皮のときは、面のまわりに同じ樹皮の幹（半径 16 cm 相当の弧）が続き、闇へ溶ける＝宙に浮く板でなく幹の一部に見せる
-const TRK = 1.6, trunkMat = new THREE.MeshStandardMaterial({ color: 0xa0968a, roughness: 1, metalness: 0, envMapIntensity: .4 });
-const trunk = new THREE.Mesh(new THREE.CylinderGeometry(TRK, TRK, 3.2, 96, 1, true, Math.PI - 1.22, 2.44).rotateX(Math.PI / 2), trunkMat);
-trunk.position.y = -TRK - .006; trunk.visible = false; scene.add(trunk);
-function trunkFor(v) {
-  let od = null; try { od = objDef; } catch (e) {} const on = v && v.id === "bark" && !od; trunk.visible = on; U.uBend.value = on ? .2 : 0; if (window.__touchBase) window.__touchBase.color.set(on ? 0x2a2119 : 0x0a0f1a);
-  if (!on || trunk.userData.src === v.map) return; trunk.userData.src = v.map;
-  const rep = (t, srgb) => { if (!t) return null; const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(3.9, 3.2); if (srgb) c.colorSpace = THREE.SRGBColorSpace; c.needsUpdate = true; return c; };
-  trunkMat.map = rep(v.map, true); trunkMat.normalMap = rep(v.normalMap); trunkMat.roughnessMap = rep(v.roughMap); trunkMat.needsUpdate = true;
-}
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; base.userData.plate = true; scene.add(base); }
 // 四隅の印と、10 cm の目盛り（事実の線）
 {
   const L = [], c = .53, a = .06;
@@ -136,17 +124,17 @@ function ripple(pos, quat, amp = .6) { const m = RIP[ripW++ % RIP.length]; m.pos
 function tickRipples(dt) { for (const m of RIP) { const a = m.userData.age += dt; if (a > 1) { m.material.opacity = 0; continue; } m.scale.setScalar(.03 + a * .16 * (.6 + m.userData.amp)); m.material.opacity = Math.pow(1 - a, 1.5) * (.5 + .5 * m.userData.amp); } }
 // ---- デジタルの層（2026-10-27 本人「デジタルとフィジカルの融合」）：写真の面の上に、点群・走査線・地の光のグリッドを薄く重ねる
 scene.fog = new THREE.FogExp2(0x03060f, .22);
-// 2026-11-09 第2周：足もとの光の格子（HUD に見える）をやめ、木の机の天板に置く（写真の質感 CC0・遠くは霧に溶ける）
-{ const tl = new THREE.TextureLoader(), desk = new THREE.MeshStandardMaterial({ color: 0x6b5a48, roughness: .82, metalness: 0 });
-  const top = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), desk); top.rotation.x = -Math.PI / 2; top.position.y = -.107; top.visible = false;   // 2026-11-10 第5周：机の天板を外し、面だけを闇に浮かべる
-  const load = () => tl.load("tex/wood_c.webp?v=20261021", t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.4, 2.4); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; desk.map = t; desk.color.set(0x8a7764); desk.needsUpdate = true; });
-  void load; }
+{ const L = [], C = [], E = 1.6, S = .1;
+  const n = Math.round(2 * E / S);   // 線を短い区間に分けて、中心から遠いほど薄くする
+  for (let a = 0; a <= n; a++) for (let k = 0; k < n; k++) { const v = -E + a * S, u0 = -E + k * S, u1 = u0 + S; L.push(u0, -.106, v, u1, -.106, v, v, -.106, u0, v, -.106, u1); }
+  for (let i = 0; i < L.length; i += 3) { const r = Math.hypot(L[i], L[i + 2]), o = Math.pow(Math.max(0, 1 - r / E), 1.6) * (r < .56 ? .3 : 1); C.push(o * .5, o * .9, 1 * o); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(L, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(C, 3));
+  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false }))); }
 const CN = MOBILE ? 64 : 96, cPos = new Float32Array(CN * CN * 3);
 const cloudU = { uScan: { value: 0 }, uSize: { value: (MOBILE ? 2.2 : 2.4) * Math.min(devicePixelRatio, 2) } };
-/* 2026-11-10 第7周：点は、なぞる線の近くだけに出し、板の縁へ溶かす（縁の点線が作業中の印に見えたため） */
 const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(cPos, 3)), new THREE.ShaderMaterial({
   uniforms: cloudU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-  vertexShader: "uniform float uScan, uSize; varying float vA; void main(){ float d = position.z - uScan; vA = .55 * exp(-d * d / .0008) * smoothstep(.5, .36, abs(position.x)) * smoothstep(.5, .36, abs(position.z)); gl_PointSize = uSize * (.8 + .6 * vA); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+  vertexShader: "uniform float uScan, uSize; varying float vA; void main(){ float d = position.z - uScan; vA = .2 + .75 * exp(-d * d / .0008); gl_PointSize = uSize * (.8 + .6 * vA); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
   fragmentShader: "varying float vA; void main(){ vec2 c = gl_PointCoord - .5; if (dot(c, c) > .25) discard; gl_FragColor = vec4(.66, .95, .97, vA * .45); }" }));
 cloud.frustumCulled = false; cloud.userData.plate = true; scene.add(cloud);
 const SCN = 128, scPos = new Float32Array(SCN * 3);
@@ -202,7 +190,7 @@ sonic.lag = vibe.ok ? .012 : 0;   // 振動のある端末は、振動子の立�
 vibe.onPulse = (ms, amp) => sonic.grain(ms, amp, model.speed);   // 振動と同じ刻みで、触れた音の一粒
 const cache = new Map(), maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 const tex = (src, srgb) => { const t = src instanceof HTMLCanvasElement ? new THREE.CanvasTexture(src) : new THREE.Texture(src); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = maxAniso; t.needsUpdate = true; return t; };
-const img = url => new Promise((ok, ng) => { const i = new Image(); i.decoding = "async"; i.onload = () => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()).then(() => ok(i)); i.onerror = ng; i.src = url; });   // 2026-11-09：絵を解くのを裏の糸で済ませる（読み終わりの止まりを減らす）
+const img = url => new Promise((ok, ng) => { const i = new Image(); i.decoding = "async"; i.onload = () => ok(i); i.onerror = ng; i.src = url; });
 function heightFrom(image) {
   const c = document.createElement("canvas"); c.width = c.height = EN; const g = c.getContext("2d", { willReadFrequently: true });
   g.drawImage(image, 0, 0, EN, EN); const d = g.getImageData(0, 0, EN, EN).data, h = new Float32Array(EN * EN);
@@ -211,11 +199,8 @@ function heightFrom(image) {
 // 形を立てる地図だけ、少しならす（近くへ寄っても、細い針のような三角が立たない）。触れ心地の計算は元の凹凸のまま
 function softDisp(h, r = 2, passes = 2) {
   const n = EN, a = Float32Array.from(h), b = new Float32Array(n * n), w = 2 * r + 1;
-  // 2026-11-09：同じならし（端は端の値をくり返す）を、窓をずらして足し引きする形に（計算の量を 1/5 に・結果は同じ）
   for (let k = 0; k < passes; k++) for (const [src, dst, hor] of [[a, b, true], [b, a, false]]) {
-    const st = hor ? 1 : n, ln = hor ? n : 1;
-    for (let j = 0; j < n; j++) { const o = j * ln; let s = 0; for (let t = -r; t <= r; t++) s += src[o + Math.min(n - 1, Math.max(0, t)) * st];
-      for (let i = 0; i < n; i++) { dst[o + i * st] = s / w; s += src[o + Math.min(n - 1, i + r + 1) * st] - src[o + Math.max(0, i - r) * st]; } }
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { let s = 0; for (let t = -r; t <= r; t++) { const x = hor ? Math.min(n - 1, Math.max(0, i + t)) : i, y = hor ? j : Math.min(n - 1, Math.max(0, j + t)); s += src[y * n + x]; } dst[j * n + i] = s / w; }
   }
   const c = document.createElement("canvas"); c.width = c.height = n; const g = c.getContext("2d"), im = g.createImageData(n, n);
   for (let i = 0; i < n * n; i++) { const v = Math.round(a[i] * 255); im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; }
@@ -232,7 +217,7 @@ function applySurface(v, keepParams = false) {
   surf = v; H = v.H; HN = EN;
   mat.map = v.map; mat.normalMap = v.normalMap; mat.roughnessMap = v.roughMap; mat.displacementMap = v.dispMap; mat.metalness = v.metal; mat.needsUpdate = true;
   if (!keepParams) params = { ...v.p0 };
-  trunkFor(v); applyParams(); buildSliders(); setSnd(v.snd);
+  applyParams(); buildSliders(); setSnd(v.snd);
   $("#originT").textContent = T(v.origin === "photo" ? "origin.photo" : "origin.normal");
   for (const b of document.querySelectorAll("#chips .chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
   const fi = $("#faceS"); if (v.thumb) fi.src = v.thumb; else fi.src = `tex/${v.id}_t.webp?v=20261021`;
@@ -254,12 +239,12 @@ function relief() {
 async function setObject(id) {
   if (objMesh) { scene.remove(objMesh); objMesh.geometry.dispose(); objMesh = null; objHit = null; }
   objDef = OBJECTS.find(o => o.id === id) || null;
-  for (const o of scene.children) if (o.userData.plate) o.visible = !objDef; trunkFor(surf);
+  for (const o of scene.children) if (o.userData.plate) o.visible = !objDef;
   objRim.visible = objKey.visible = !!objDef; fill.intensity = objDef ? .12 : .28;
   plate.visible = !objDef; $("#scaleL").hidden = !!objDef;
   for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));
   $("#bGlb").hidden = !objDef;
-  const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "平らな面"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
+  const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "板"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
   if (!objDef) { aoi?.motion.lookAt(null); aoi?.place(AOI_X, AOI_Z, .35); setView(0); return; }
   Object.assign(G, { zoom: MOBILE ? .62 : .8, tx: 0, tz: MOBILE ? .12 : .05 }); clampG();   // 形は小さいので寄る
   const want = objDef; let g; try { busy(true); g = await loadGeometry(objDef); } finally { busy(false); } if (objDef !== want) { g.dispose(); return; }
@@ -393,7 +378,7 @@ $("#bBlind").addEventListener("click", () => setBlind(!blind));
 function busy(on) { $("#busy").hidden = !on; }
 
 // ---- 見る向き（回す・傾ける・寄る・ずらす）。V＝いま、G＝向かう先
-const VIEWS = [{ el: 1.22, d: MOBILE ? .44 : .47 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 斜め・真上・低く
+const VIEWS = [{ el: .9, d: 1 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 斜め・真上・低く
 const Z_MIN = .5, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .3 : .1;   // 下の帯（波・字幕）のぶん、面を少し上へ
 let view = 0, baseD = 2;
 const V = { az: 0, el: VIEWS[0].el, zoom: 1, tx: 0, tz: T0 }, G = { ...V };
@@ -401,7 +386,7 @@ const look = new THREE.Vector3();
 let fitAspect = 1;
 function fitDist() {
   const a = fitAspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
-  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? .9 : 1.12);   // 2026-11-09 PC でも面をはじめから中央に大きく
+  baseD = Math.max((MOBILE ? .8 : .98) / Math.tan(hf / 2), .78 / Math.tan(vf / 2)) * (MOBILE ? .9 : 1.34);
 }
 const markFree = () => { const n = $("#viewName"); if (n.dataset.t !== "view.free") { n.dataset.t = "view.free"; n.textContent = T("view.free"); } };
 const clampG = () => { G.zoom = Math.min(Z_MAX, Math.max(Z_MIN, G.zoom)); G.el = Math.min(EL_MAX, Math.max(EL_MIN, G.el)); G.tx = Math.min(.55, Math.max(-.55, G.tx)); G.tz = Math.min(.6, Math.max(-.55, G.tz)); dirty = 2; };
@@ -481,9 +466,6 @@ let touch = null, force = 0, dentAt = new THREE.Vector2(), shown = new THREE.Vec
 const ptrs = new Map(); let drag = null, pinch = null;   // drag＝一本の指・マウスで回す／ずらす、pinch＝二本の指
 const mm = p => [(p.x + .5) * SIZE_MM, (p.z + .5) * SIZE_MM];
 const two = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
-function tapRip(x, y, two) { for (const c of two ? ["", " b"] : [""]) { const d = document.createElement("i"); d.className = "tap-rip" + c; d.style.left = x + "px"; d.style.top = y + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 900); } }
-let ripDomT = 0;
-cv.addEventListener("pointermove", e => { if (touch && touch.id === e.pointerId && performance.now() - ripDomT > 220) { ripDomT = performance.now(); tapRip(e.clientX, e.clientY, false); } });
 cv.addEventListener("pointerdown", e => {
   closeTray(); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); cv.setPointerCapture(e.pointerId); e.preventDefault();
   if (ptrs.size === 2) {   // 二本目の指：なでるのをやめて、寄る・回す・ずらすへ
@@ -493,7 +475,6 @@ cv.addEventListener("pointerdown", e => {
   const p = toPlate(e), btn = e.button;
   if (btn === 2 || btn === 1 || e.shiftKey) { drag = { kind: "pan", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
   if (mode === "move" || !inside(p)) { drag = { kind: "orbit", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
-  tapRip(e.clientX, e.clientY, true);   // 2026-11-10 第4周：押した所に波紋（押した手応え）
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
   dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.arm(); vibe.tap(); sonic.tap(); addTrail(p, p, true); model.takeEdges(); shown.copy(dentAt);
   $("#waveHint").style.opacity = 0; $("#fhint").classList.add("off"); aoiWatch(true);
@@ -578,7 +559,7 @@ function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 // ---- 碧の字幕
 // はじめに一度だけ名乗り、そのあとに触れ方を伝える（触れはじめたら名乗りは切りあげる）
 const WS = /[?&]ws=1/.test(location.search);   // 2026-11-05 ワークショップ（触覚さがし）
-function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.hello", 9000); }   // 2026-11-09 名乗りは出さず、なぞる一言から   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
+function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.name", 8600); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 8800); }   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
 let capKey = null, capTimer = 0;
 function say(k, ms = 6000) {
   said[k.replace("aoi.", "")] = true; capKey = k; const c = $("#cap"); c.textContent = T(k); c.classList.add("on");
@@ -616,7 +597,7 @@ $("#bGlb").addEventListener("click", async () => {
 });
 { const box = $("#objChips");
   const mk = (id, name, sub) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip objchip"; if (id) b.dataset.o = id; b.setAttribute("aria-pressed", String(!id)); b.innerHTML = `${SHAPE[id || "plate"] || SHAPE.plate}<b>${name}</b>`; b.title = sub; b.addEventListener("click", () => setObject(id)); box.append(b); };
-  mk(null, "平らな面", "10 cm 四方"); for (const o of OBJECTS) mk(o.id, o.name, o.sub); $("#faceO").innerHTML = SHAPE.plate; }
+  mk(null, "板", "10 cm 四方の面"); for (const o of OBJECTS) mk(o.id, o.name, o.sub); $("#faceO").innerHTML = SHAPE.plate; }
 $("#bShow").addEventListener("click", () => {
   const L = layerNow(), short = JSON.stringify(L, (k, v) => typeof v === "string" && v.length > 80 ? v.slice(0, 48) + `…（${v.length}）` : v, 1);
   $("#layerPre").textContent = short; $("#dlgLayer").showModal();
@@ -691,14 +672,11 @@ resize();
 (async () => {
   try { applySurface(await loadSample(SAMPLES[0])); }
   catch (e) { console.error(e); }
-  // 2026-11-09：面が来たらすぐ一こま描いて見せる（材質の下ごしらえ・碧はそのあと）
-  try { placeCam(1); renderer.render(scene, camera); } catch (e) { console.warn(e); }
+  try { const W = await import("./kit/warm.js"); await W.warmScene(renderer, scene, camera); } catch (e) { console.warn(e); }   // 2026-11-05：見せる前に材質を組み・絵を送る（最初のこまの止まりを分ける）
   window.MLLoader?.done();
-  // 2026-11-09 第3周：最初の焦点を body から下の「触れるもの」へ
-  try { if (document.activeElement === document.body) document.querySelector(".dock .dk")?.focus({ preventScroll: true }); } catch { }
   requestAnimationFrame(frame);
-  setTimeout(() => { if (!said.hello) hello(); }, 900);
-  setTimeout(loadAoi, 2500);
+  setTimeout(() => { if (!said.hello) hello(); }, 1600);
+  setTimeout(loadAoi, 350);
   setTimeout(() => sonic.prefetch(), 400);   // 最初になぞる前に音を用意しておく
   // ほかの見本は、手が空いたときに先に読んでおく
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));

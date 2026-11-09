@@ -7,7 +7,7 @@
 import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
-import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261110r9";
+import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261105s";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -337,15 +337,15 @@ const I3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 const xz = v => [v.x, v.z], xyz = v => [v.x, v.y, v.z];
 const sat = s => { const w = [.2126, .7152, .0722]; return [0, 1, 2].flatMap(i => [0, 1, 2].map(j => (i === j ? s : 0) + (1 - s) * w[j])); };
 const LENS = {
-  hito: { eye: 1.55, m: I3, uvw: [0, 0, 0], sub: "色を見わける細胞が 3 種類", legend: "" },
+  hito: { eye: 1.55, m: I3, uvw: [0, 0, 0], sub: "色を受けとる細胞は三種類（三色型）", legend: "" },
   // ミツバチ：紫外・青・緑（Peitsch et al. 1992：約 340・435・540 nm）。表示は 紫外→青・青→緑・緑→赤
-  hachi: { eye: .95, speed: 2.2, spot: [...xz(bed(-1.0, 0, 1.7)), ...xyz(bed(-1.9, 1.15, -.9))], m: [.18, .85, .10, 0, .15, .85, 0, 0, .02], uvw: [0, 0, 1], sub: "紫外・青・緑の 3 種類で色を見る", legend: "<b>人の画面への置きかえ（近似）</b><span class='sight-colours'><span>紫外 → 青</span><span>青 → 緑</span><span>緑 → 赤</span></span><span class='sight-sonic'>紫外を返すものを見ると、高い音</span>" },
+  hachi: { eye: .95, speed: 2.2, spot: [...xz(bed(-1.0, 0, 1.7)), ...xyz(bed(-1.9, 1.15, -.9))], m: [.18, .85, .10, 0, .15, .85, 0, 0, .02], uvw: [0, 0, 1], sub: "紫外・青・緑の三色型", legend: "<b>人の画面への置きかえ（近似）</b><span class='sight-colours'><span>紫外 → 青</span><span>青 → 緑</span><span>緑 → 赤</span></span><span class='sight-sonic'>紫外を返すものを見ると、高い音</span>" },
   // アゲハ：四色型（Koshitaka et al. 2008）。紫外は紫がかった光で重ねる
-  chou: { eye: .9, speed: 2, spot: [...xz(bed(3.6, 0, 2.3)), ...xyz(bed(1.6, .75, .2))], m: sat(1.12), uvw: [.45, 0, .65], sub: "紫外から赤まで、4 種類以上で見るとされる", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（人の画面に出せない四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
+  chou: { eye: .9, speed: 2, spot: [...xz(bed(3.6, 0, 2.3)), ...xyz(bed(1.6, .75, .2))], m: sat(1.12), uvw: [.45, 0, .65], sub: "紫外から赤まで・四色型とされる", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（人の画面に出せない四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
   // 鳥：四色型（Hart 2001）。紫外は同じく紫で重ねる
-  tori: { eye: 2.3, speed: 2.4, spot: [TREE.x - 3.2, TREE.z + 3.6, TREE.x - .9, 2.4, TREE.z + .9], m: sat(1.25), uvw: [.4, 0, .7], sub: "4 種類。紫外まで見える鳥もいる", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
+  tori: { eye: 2.3, speed: 2.4, spot: [TREE.x - 3.2, TREE.z + 3.6, TREE.x - .9, 2.4, TREE.z + .9], m: sat(1.25), uvw: [.4, 0, .7], sub: "四色型・種によって紫外まで", legend: "<b>紫がかった光</b>＝紫外を返すところ<br>（四つ目の色の置きかえ）<br>紫外を返すものを見ると、高い音" },
   // 犬：二色型（Neitz, Geist & Jacobs 1989：約 429・555 nm）。人の二色型の近似の行列（Machado et al. 2009）と、ぼかし
-  inu: { eye: .5, spot: [...xz(bed(.4, 0, 4.6)), ...xyz(bed(1.4, .45, 2.2))], m: [.367322, .860646, -.227968, .280085, .672501, .047413, -.01182, .04294, .968881], uvw: [0, 0, 0], blur: .3, sub: "青と黄緑の 2 種類で色を見る", legend: "<b>二色型の近似</b><br>ぼかし＝細かさの見分けがあらい" },
+  inu: { eye: .5, spot: [...xz(bed(.4, 0, 4.6)), ...xyz(bed(1.4, .45, 2.2))], m: [.367322, .860646, -.227968, .280085, .672501, .047413, -.01182, .04294, .968881], uvw: [0, 0, 0], blur: .3, sub: "青と黄緑あたりの二色型", legend: "<b>二色型の近似</b><br>ぼかし＝細かさの見分けがあらい" },
   hebi: { eye: .25, mode: 1, spot: [MOUSE.x - .5, MOUSE.z + 1.4, MOUSE.x, .08, MOUSE.z], m: I3, uvw: [0, 0, 0], sub: "目と、ピット（赤外を熱で感じる）", legend: "<b>明るいところ</b>＝温かいもの<br>温かいものを見ると、低い音" },
   koumori: { eye: 2.0, mode: 2, spot: [.5, 6.5, 1, 1.6, -1], m: I3, uvw: [0, 0, 0], night: true, sub: "反響で形をとらえる（エコーロケーション）", legend: "<b>光る輪</b>＝声のとどいたところ<br>（ゆっくりにして見せている）<br>音＝人に聞こえる高さに下げた作り音" },
   mimizu: { under: "light", mode: 4, m: I3, uvw: [0, 0, 0], sub: "目はない・体で光の明るさを感じる", legend: "<b>画面の明るさ</b>＝光の明るさだけ<br>▲▼で上へ・下へ" },
@@ -454,7 +454,7 @@ function initLegacyGarden() {
   garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return; o.receiveShadow = true; o.castShadow = !o.userData.noCast && !(mobile && o.userData.smallCast); });
   STARTUP.legacyGardenBuilt = true; renderer.shadowMap.needsUpdate = true;
 }
-function setHabitat(place){window.__echoList=null;if(place==='garden')initLegacyGarden();habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=place==='forest'&&innerWidth<700?.34:0;/* 11-10 第6周：375 は池の水際が見える向きから */me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
+function setHabitat(place){window.__echoList=null;if(place==='garden')initLegacyGarden();habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
 let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
 // 見え方だけを切りかえる（色の写し方・ぼかし・夜）。「人の目とくらべる」を押しているあいだは、ひとの見え方を一時的に重ねる（2026-10-13）
@@ -495,9 +495,9 @@ function applyLens(id) {
   $('flightControls').hidden=!FLIGHT.has(id)||chapter!=='umwelt';
   // 操作の説明（2026-10-13）：指で触る端末では、キーボードの説明を出さない
   $('moveNote').innerHTML = phrases(L.under ? '土の中 · ▲ 上へ・▼ 下へ で明るさが変わる'
-    : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ を押しているあいだ前へ・＋ − で上と下' : (id === 'hebi' ? '這う' : '歩く') + ' · 行きたい地面を押すと、そこまで進むよ')
+    : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ 長押しで進む・＋ − で上下' : (id === 'hebi' ? '地面を這う' : '歩く') + ' · ↑ 長押しで進む・なぞって見回す')
     : FLIGHT.has(id) ? '飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも）' : id === 'hebi' ? '地面を這う · W A S D ／ 押した場所へ' : '歩く · W A S D ／ 押した場所へ');
-  $('bodyControls').hidden = !!L.under || chapter !== 'umwelt'; $('bodyControls').classList.toggle('fly', FLIGHT.has(id));   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
+  $('bodyControls').hidden = !!L.under || chapter !== 'umwelt';   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
   $("legend").dataset.lens = id; $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
   $("cmpBtn").hidden = id === "hito" || !!L.under || chapter !== "umwelt";
@@ -693,8 +693,6 @@ let curActs = [];
 function setActs(list) {
   curActs = list; const box = $("acts"); box.innerHTML = "";
   for (const a of list) { const b = document.createElement("button"); b.className = "btn" + (a[2] ? " pri" : ""); b.textContent = typeof a[0] === "function" ? a[0]() : a[0]; if (a[3]) b.setAttribute("aria-label", a[3]); b.onclick = a[1]; box.appendChild(b); }
-  // 2026-11-09：はじめの選択肢が出たら、最初の焦点をそのボタンへ（キーボードでもすぐ選べる）
-  if (!setActs.focused && list.length) { const ae = document.activeElement; if (!ae || ae === document.body || ae.id === "stage") { const p = box.querySelector(".pri") || box.firstChild; if (p) { p.focus({ preventScroll: true }); setActs.focused = 1; } } }
 }
 // 2026-10-25 碧の自然さ：「広がっています」などで両腕を左右対称に一瞬だけ大きく開く身ぶり（0.3 秒）が、操り人形のように見えた → 片手で、手のひらを上に差し出す身ぶりにゆっくり置きかえる
 function aoiGestures(text, kana, dur) {
@@ -857,7 +855,7 @@ function layoutBodyWheel(){const cur=lensRequest;[...dial.children].forEach(b=>{
 $('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:LENS_IDS.length-1))%LENS_IDS.length]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
 async function veil(fn, token) { $("veil").classList.add("on"); await sleep(RM ? 60 : 260); if(token!==undefined&&token!==lensToken)return false; fn(); await sleep(60); if(token!==undefined&&token!==lensToken)return false; $("veil").classList.remove("on");return true; }
 function setWhere() {
-  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; const sub = LENS[lens].sub, cite = /[A-Z][A-Za-z]+ ら \d{4}/.test(sub); $("whereSub").innerHTML = phrases(sub.replace(/・?[A-Z][A-Za-z]+ ら \d{4}/, "").replace(/（）/, "")) + (cite ? '<button type="button" class="srcTip" aria-label="この説明の出典を見る">＋</button>' : ""); }   /* 2026-11-09 第3周：出典の名は＋の中へ（主張のすぐ横の＋から辿れる） */
+  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").innerHTML = phrases(LENS[lens].sub); }
   else if (chapter === "iro") { $("whereName").textContent = N.ch_iro; $("whereSub").textContent = IRO.lang ? LANGS[IRO.lang].name : "あなたの線を引く"; }
   else { $("whereName").textContent = N.ch_toki; $("whereSub").textContent = "同じ庭を、四つの速さで"; }
 }
@@ -1251,7 +1249,7 @@ function frame(now=0) {
   }
   aoiTick(dt); kurMarks();
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); }
-  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(() => { const ae = document.activeElement; if (!ae || ae === document.body) { const p = $("acts")?.querySelector(".pri") || $("acts")?.querySelector("button") || $("kurBtn"); p?.focus({ preventScroll: true }); } }, 60); }   /* 2026-11-09 最初の焦点をボタンへ */   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
+  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);
@@ -1276,17 +1274,16 @@ garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return
 // ---------------------------------------------------------------- はじまり
 STARTUP.sceneBuiltAt = performance.now();
 (async () => {
-  me.pos.set(0,1.55,4);if(innerWidth<700)me.yaw=.34;/* 11-10 第6周：375 は池の水際が見える向きから */prog(20); applyLens("hito"); setWhere(); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
+  me.pos.set(0,1.55,4);prog(20); applyLens("hito"); setWhere(); camera.rotation.set(me.pitch, me.yaw, 0, "YXZ");
   // 2026-10-23 起動 5 秒：碧を読むあいだに、森の材質（シェーダー）を並行に組み立てておく（はじめのこまで一つずつ組み立てて数秒止まっていた）
   const preCompile = renderer.compileAsync ? renderer.compileAsync(scene, camera).catch(() => {}) : null;
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
-  // 2026-11-09：スマホは森を描き終えてから碧（2 MB）を読む（375 で重い）
-  const aoiReady = (innerWidth < 700 ? Promise.resolve(preCompile).then(() => new Promise(r => setTimeout(r, 250))) : Promise.resolve()).then(() => loadAoi()).then(async () => {
+  const aoiReady = loadAoi().then(async () => {
     if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); try { await (await import("./kit/warm.js")).keepVariant(renderer, aoi, camera, scene, k => { k.transparent = false; }); } catch (e) {} const WA = (await import("./kit/warm.js")).warmAoi; for (const op of [1, 0]) { opacity(op); await WA(renderer, aoi, camera, scene, { batch: 1 }); }   /* 2026-11-05 夕：kit/warm.js の warmAoi（骨で動く網の外接球も先に測る＝碧が出たこまの約 30 ms を前へ） */   /* 2026-11-05：不透明の形も写しで持っておく */ scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
-    if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.0 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang - me.yaw), 0, me.pos.z - D * Math.cos(ang - me.yaw)); A.yaw = me.yaw; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
+    if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.0 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }
     A.loadDone = true;
     if (vrm && A.sayOnShow && !started) $("say").textContent = A.sayOnShow;   // 碧が現れてから「となりに立っているのが…」を出す
     if (vrm) { STARTUP.aoiAppearAt = performance.now(); A.late = !!$("boot").hidden; if (A.late) { A.shadowOn = false; aoi.traverse(o => { if (o.isMesh) o.castShadow = false; }); } A.hold = false; A.appear = true; if (!started) A.intro = true; if (AM) AM.calm = 2.4; }   // 幕のあとに届いたときは、1 秒かけて静かに現れる
@@ -1314,11 +1311,10 @@ STARTUP.sceneBuiltAt = performance.now();
     STARTUP.forestRestAt = performance.now(); })();
   /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 400))]);   /* 2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 3 && dt < 50) || t - t0 > 700) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
-  window.__muBoot = true; { const pg = () => document.getElementById("poster")?.classList.add("gone"); if (A.loadDone) pg(); else { aoiReady.finally(() => setTimeout(pg, 120)); setTimeout(pg, 4000); } }   /* 第8周：碧の立つ最初の静止画は、3D の碧が現れるまで残す（森だけの空っぽのこまを見せない） */ $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
-  { const T0 = "画面を押すと、碧といっしょに蜂や犬の目で森を見くらべるよ。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
+  window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
+  { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
-  $("r5go")?.addEventListener("click", () => { if (lens === "hito") setTimeout(() => setLens("hachi"), 350); }, { once: true });   // 第8周：「はじめる」で、まずミツバチの目から（子どもにこわくない入口）
   if (!A.hold) { A.appear = true; A.intro = true; if (AM) AM.calm = 2.4; }   // 2026-10-14：待たずに、最初のこまから現れはじめる
 })();
 // 2026-10-14：上の説明（#where）が 2 行に折れても、「歩く…」の行（#moveNote）と予想の札が重ならないよう、高さを #where の下にそろえる

@@ -14,7 +14,6 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#03060f">
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
-<link rel="preload" as="image" href="poster_clean.webp?v=20261110r7" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style data-source="tokens.css">
@@ -128,7 +127,6 @@
   .ml-btn,.ml-btn::after{transition:none}
 }
 
-/* 2026-11-09 */.top .brand{flex-direction:column;align-items:flex-start;gap:0}.song-sub{display:block;font:400 11px var(--ml-sans);letter-spacing:.06em;color:var(--ml-ink-2)}.ver button{min-height:44px;min-width:44px}.top,.bar,.play,#framing,.ml-seg{-webkit-user-select:none;user-select:none}.hero:has(.play:not([hidden])) #pp{display:none}a:focus-visible,button:focus-visible{outline:2px solid #b9f5ff;outline-offset:2px}
 </style>
 <style>
   /* Qualia/song（2026-10-30 本人「3D グラフィックはやめて、もとの MV を表示するように」）1 画面で完結。曲のことは「曲」で重ねて開く */
@@ -179,84 +177,19 @@
 </style>
 <link rel="stylesheet" href="ui.css?v=20261103">
 <style>.top.mu-top{z-index:5}/* 引き出し・重ね窓より下に（閉じるが隠れないように） */</style>
-<style id="song-mobile-stage">
-.play{top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 112px);transform:translateX(-50%)}
-#framing{display:none}
-@media(max-width:600px) and (orientation:portrait){
- .top{gap:8px;padding-inline:12px}.brand .ml-title{font-size:15px}.ver{gap:10px;flex-shrink:0}.ver button{white-space:nowrap}.home{font-size:11px}
- #mv{top:76px;bottom:auto;width:100vw;height:min(100vw,calc(100svh - 260px));max-height:none;margin:0;object-fit:cover;object-position:50% 50%}
- body[data-framing="wide"] #mv{object-fit:contain}
- #framing{display:inline-flex;position:fixed;z-index:4;right:16px;top:calc(88px + min(100vw,100svh - 260px));min-height:44px;padding:0 14px;background:#07101deb;border:1px solid #5cc8e0;color:#c4edf4;align-items:center}
- .play{top:calc(146px + min(100vw,100svh - 260px));bottom:auto}
- .bar{bottom:max(14px,env(safe-area-inset-bottom))}
-}
-</style>
-<style id="song-r2">
-/* 2026-11-09 第2周：枠の中のプレイヤーをやめ、全面の映像に。操作は触れたときだけ出す。再生は大きな一つ */
-@media (min-width:601px),(orientation:landscape){#mv{top:0;bottom:0;height:100%;max-height:none;object-fit:cover}.play{top:50%;bottom:auto;transform:translate(-50%,-50%)}}
-.top{background:linear-gradient(rgba(3,6,15,.62),rgba(3,6,15,0));border-bottom:0;backdrop-filter:none;-webkit-backdrop-filter:none}
-.bar{background:rgba(3,6,15,.5)}
-.play span{width:96px;height:96px;min-height:0;padding:0;border-radius:50%;justify-content:center;gap:0;font-size:0;border-width:1.5px;background:rgba(3,6,15,.45)}
-.play span::before{border-left-width:28px;border-top-width:17px;border-bottom-width:17px;margin-left:9px}
-.bar,.top,#framing{transition:opacity .5s}
-body.pre .bar{opacity:0;pointer-events:none}
-body.idle .bar,body.idle .top,body.idle #framing{opacity:0;pointer-events:none}
-body.idle{cursor:none}
-</style>
-<style id="song-r3">
-/* 2026-11-09 第3周：375 の縦でも全面の映像の上に再生（上の映像と下の黒地を分けない）。再生の下に何の歌かの一言 */
-@media(max-width:600px) and (orientation:portrait){
- #mv{top:0;bottom:0;left:0;right:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
- body[data-framing="wide"] #mv{object-fit:contain}
- #framing{top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 92px)}
- body.pre #framing{display:none}
- .play{top:50%;bottom:auto;transform:translate(-50%,-50%)}
-}
-html,body{background:#03060f url(poster_clean.webp?v=20261110r7) center/cover no-repeat}
-.cap{position:absolute;left:50%;top:calc(50% + 64px);transform:translateX(-50%);margin:0;width:max-content;max-width:calc(100vw - 32px);text-align:center;pointer-events:none;
- font:600 clamp(16px,2vw,19px)/1.6 var(--ml-serif);letter-spacing:.1em;color:#eef5fb;text-shadow:0 1px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9)}
-.cap small{display:block;font:400 12px/1.6 var(--ml-sans);letter-spacing:.08em;color:#c3cce0}
-.play[hidden] + .cap{display:none}
-</style>
-<style id="song-r4">
-/* 2026-11-10 第4周：はじめの画の上の注（等高線）は＋の中へ＝横長の画面では画の上を少し切って注を見せない。再生の印は碧の顔から外し下へ。再生は画からゆっくり映像へ溶ける（碧の画が数秒残る） */
-@media (min-aspect-ratio:1/1){html,body{background-size:calc(max(100vw,177.78vh)*1.32) auto;background-position:50% 100%}}
-#mv{opacity:0;transition:opacity 1.6s ease}
-body:not(.pre) #mv{opacity:1}
-#keep{position:fixed;inset:0;z-index:2;pointer-events:none;background:#03060f url(poster_clean.webp?v=20261110r7) 50% 50%/cover no-repeat;opacity:0;transition:opacity 5s ease}
-@media (min-aspect-ratio:1/1){#keep{background-size:calc(max(100vw,177.78vh)*1.32) auto;background-position:50% 100%}}
-body.pre #keep,body.fade #keep{opacity:1;transition:none}
-@media (max-aspect-ratio:1/1){#keep{background-position:60% 50%}}
-.play{top:auto!important;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 150px)!important;transform:translateX(-50%)!important}
-.cap{top:auto;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 76px)}
-.ver button{position:relative}
-</style>
-<style id="song-r5">
-/* 2026-11-10 第5周：再生後の画を少し明るく（碧が沈まない）／奥の白い木立を杜の霧の色に沈める薄い層（映像は描き直さない）／375 は碧が左に切れないよう画の中心を左へ */
-body:not(.pre) #mv{filter:brightness(1.16) contrast(.97) saturate(.7) sepia(.1)}   /* 第8周：線と 0・1 の水色を霞の低い彩度へ */
-#mute,#full{display:none!important}   /* 第8周：下段は ▶ と「曲」の二つに（音は端末の音量で。要素と処理は残す） */
-#mist{--mc:118,96,64;--mg:255,214,150;position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(120% 60% at 70% 6%,rgba(var(--mg),.16),rgba(var(--mg),0) 60%),linear-gradient(180deg,rgba(var(--mc),0) 8%,rgba(var(--mc),.26) 26%,rgba(var(--mc),.22) 44%,rgba(var(--mc),0) 60%);mix-blend-mode:soft-light}/* 2026-11-10 第6周：霧を見る人の時刻の光で暖かく（朝＝金・昼＝淡い琥珀・夕＝茜・夜＝藍に少し灯） */
-@media(max-width:600px) and (orientation:portrait){#mv{object-position:36% 50%}#keep{background-position:46% 50%}}
-.home{color:#dfeaf6}
-</style><style id="r9">/* 11-10 第9周：映像の冒頭の暗い数秒は杜の画を残す（押すと暗い舞台に変わったと見えない）／再生の印を小さく／霧に奥の層と階調／杜を明るく */
-.play span{width:64px;height:64px;border-width:1px;background:rgba(3,6,15,.3)}.play span::before{border-left-width:18px;border-top-width:11px;border-bottom-width:11px;margin-left:6px}
-body:not(.pre) #mv{filter:brightness(1.3) contrast(.94) saturate(.72) sepia(.1)}
-#mist::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(236,240,236,0) 30%,rgba(236,240,236,.10) 46%,rgba(236,240,236,.05) 58%,rgba(236,240,236,0) 74%),radial-gradient(60% 22% at 30% 52%,rgba(240,236,224,.10),rgba(240,236,224,0) 70%),radial-gradient(50% 18% at 78% 48%,rgba(240,236,224,.08),rgba(240,236,224,0) 70%);mix-blend-mode:screen}
-html,body{background-color:#1a2026}
-</style><style id="r7">/* 11-10 第7周：題を背景から浮かせる（帯は使わず縁取り） */.ml-title,.ml-kicker,.ml-title *,.ml-kicker *{text-shadow:0 0 2px #03060f,0 0 6px rgba(3,6,15,.9),0 1px 14px rgba(3,6,15,.8)!important}</style></head>
-<body class="ml-root pre">
-<div id="keep" aria-hidden="true"></div>
-<div id="mist" aria-hidden="true"></div><script>(function(){var h=new Date().getHours(),m=document.getElementById("mist"),t=h<5||h>=19?["70,74,96","255,196,130"]:h<9?["150,112,62","255,214,150"]:h<15?["128,108,74","255,232,186"]:["156,92,58","255,170,110"];m.style.setProperty("--mc",t[0]);m.style.setProperty("--mg",t[1]);})();</script>
-<video id="mv" playsinline preload="none" poster="poster_clean.webp?v=20261110r7" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
+</head>
+<body class="ml-root">
+<script src="loader/loader.js" data-auto="dom"></script>
+<video id="mv" playsinline preload="metadata" poster="poster.webp?v=20261020-title" width="1920" height="1080" aria-label="Qualia/song《Breathing OS》。光の柱が重なるデジタルの杜で、碧が歌う"></video>
 <script>
   // 画面の幅と通信のようすで、同じ映像の 1080p／720p／540p を選ぶ（2026-10-19。スマホで止まらないように）
   (function () {
     var v = document.getElementById('mv'), w = window.innerWidth || 1280, c = navigator.connection || {};
     var lv = w <= 600 ? 2 : (w <= 1100 ? 1 : 0), et = c.effectiveType || '';
     if (c.saveData || /(^|-)2g/.test(et)) lv = 2; else if (et === '3g') lv = Math.max(lv, 1);
-    v.dataset.lv = lv; v.preload = 'none';
+    v.dataset.lv = lv; v.preload = 'metadata';
     // 2026-11-03：起動を軽く。映像の先読みは画面が操作できるようになってから
-    if (!c.saveData) addEventListener('load', function () { setTimeout(function () { v.preload = 'metadata'; setTimeout(function () { v.preload = 'auto'; }, 1500); }, 800); });
+    if (!c.saveData) addEventListener('load', function () { setTimeout(function () { v.preload = 'auto'; }, 800); });
     // 2026-11-04：MV とライブ版（?v=live）。上の「MV／ライブ」で切りかえる
     var live = new URLSearchParams(location.search).get('v') === 'live'; v.dataset.set = live ? 'live' : 'mv';
     if (live) v.poster = 'live_poster.webp?v=20261104';
@@ -264,14 +197,12 @@ html,body{background-color:#1a2026}
   })();
 </script>
 <header class="top mu-top">
-  <div class="brand mu-logo"><span class="ml-title">Qualia/song</span><small class="song-sub">碧の歌を聴く</small></div>
-  <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true" title="杜の中で歌う映像" aria-label="MV（杜の中で歌う映像）">杜で歌う</button><button type="button" id="vLive" aria-pressed="false" title="同じ曲を舞台で歌う版" aria-label="ライブ（同じ曲を舞台で歌う版）">舞台で歌う</button></div>
-  <a class="home" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る">← mitsulab</a>
+  <div class="brand mu-logo"><span class="ml-title">Qualia/song</span></div>
+  <div class="ml-seg ver" role="group" aria-label="映像を選ぶ"><button type="button" id="vMV" aria-pressed="true">MV</button><button type="button" id="vLive" aria-pressed="false">ライブ</button></div>
+  <a class="home" href="https://mitsulab.jp/">mitsulab.jp ↗</a>
 </header>
-<button id="framing" type="button" aria-pressed="true" aria-label="映像の全体を表示する">映像の全体を見る</button>
 <section class="hero" aria-label="映像">
   <button class="play" id="play" type="button" aria-label="映像を再生する（音が出ます）"><span>再生する</span></button>
-  <p class="cap" id="cap">碧がうたう、杜の息づかいの歌<small>1分45秒・音が出ます</small></p>
   <div class="bar ml-panel ml-panel--corner" id="bar">
     <button class="ml-btn" id="pp" type="button" aria-label="再生する">▶</button>
     <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生の位置">
@@ -291,8 +222,7 @@ html,body{background-color:#1a2026}
       <dl class="read" aria-label="映像の見かた">
         <dt>地を這う線</dt><dd>木々の根と、地の下の水の道を思い描いた線。見えない土の中のつながりを、光で描いた。</dd>
         <dt>光の木</dt><dd>幹と枝を、ガラスのような光の筒に。土から吸い上げた水が、梢へのぼっていく道。</dd>
-        <dt>広がる輪</dt><dd>碧の声とともに、足もとから広がる波。音で土を聴く。「杜が息をする」は、湿った土と風のゆらぎを呼吸にたとえた言い方です。</dd>
-        <dt>はじめの画の線</dt><dd>地面の高さ 6 cm ごとの等高線と、雨水が窪みへ集まる筋。mitsulab が 3D で作った地形から描いた模式（実測ではありません）。</dd>
+        <dt>広がる輪</dt><dd>碧の声とともに、足もとから広がる波。音で土を聴き、杜が息をする。</dd>
         <dt>宙の 0 と 1</dt><dd>機械のことば。歌詞の「0 と 1 のあいだに緑」から。</dd>
       </dl>
       <p>聴き終えたら、足もとの土に、すこし耳をすませてみてください。</p>
@@ -307,12 +237,6 @@ html,body{background-color:#1a2026}
   </div>
   <div class="folds ml-panel">
     <details class="ml-fold">
-      <summary>歌の手がかり（出典）</summary>
-      <p>踏まれた土の下の根と水の道：踏み固められた土は孔隙が減り、水と空気の通り道が細る（Hamza, M. A. &amp; Anderson, W. K. 2005. Soil compaction in cropping systems: A review of the nature, causes and possible solutions. <i>Soil &amp; Tillage Research</i> 82: 121–145）。</p>
-      <p>土から梢へのぼる水：木は葉からの蒸散に引かれて、根から幹の道管・仮道管を通して水を吸い上げる（Tyree, M. T. &amp; Zimmermann, M. H. 2002. <i>Xylem Structure and the Ascent of Sap</i>, 2nd ed. Springer）。</p>
-      <p>神籬（ひもろぎ）：神を迎えるために木や榊を立てて設けた場（國學院大學日本文化研究所 編『神道事典』弘文堂 1994）。歌詞は創作で、事実の主張ではありません。</p>
-    </details>
-    <details class="ml-fold">
       <summary>素材とクレジット</summary>
       <p>楽曲：Suno の Pro Plan の期間に制作（商用の利用が認められる条件）。歌は碧、映像の中の字幕は曲に登録された歌詞です。</p>
       <p>この頁の書体：Shippori Mincho・Inter・Cormorant Garamond・JetBrains Mono、映像の書体：Klee One・Zen Kaku Gothic New（いずれも SIL Open Font License）。</p>    </details>
@@ -320,8 +244,6 @@ html,body{background-color:#1a2026}
   </div>
 </main>
 <script>
-  const framing=document.getElementById('framing');
-  framing.addEventListener('click',()=>{const wide=document.body.dataset.framing!=='wide';document.body.dataset.framing=wide?'wide':'close';framing.setAttribute('aria-pressed',String(!wide));framing.textContent=wide?'碧を大きく見る':'映像の全体を見る';framing.setAttribute('aria-label',wide?'碧を大きく表示する':'映像の全体を表示する');});
   // 再生の操作（自動では鳴らさない）。読み込み待ちが続いたら、同じ場所から一段軽い映像へ
   const v = document.getElementById('mv'), b = document.getElementById('play'), pp = document.getElementById('pp'), seek = document.getElementById('seek'), tm = document.getElementById('tm');
   const fmt = s => { s = Math.max(0, s | 0); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); };
@@ -348,7 +270,7 @@ html,body{background-color:#1a2026}
   const vMV = document.getElementById('vMV'), vLive = document.getElementById('vLive');
   const mark = () => { const l = v.dataset.set === 'live'; vMV.setAttribute('aria-pressed', !l); vLive.setAttribute('aria-pressed', l); document.getElementById('ttl').textContent = l ? '《Breathing OS》ライブ版' : '《Breathing OS》'; };
   const pickSet = k => { if (v.dataset.set === k) return; const lv = Math.min(+v.dataset.lv || 0, 2), playing = !v.paused; v.dataset.set = k;
-    v.poster = k === 'live' ? 'live_poster.webp?v=20261104' : 'poster_clean.webp?v=20261110r7'; v.src = SETS[k][lv] + VER[k]; waits = []; lastSwitch = performance.now(); seek.value = 0; mark();
+    v.poster = k === 'live' ? 'live_poster.webp?v=20261104' : 'poster.webp?v=20261020-title'; v.src = SETS[k][lv] + VER[k]; waits = []; lastSwitch = performance.now(); seek.value = 0; mark();
     try { history.replaceState(null, '', k === 'live' ? '?v=live' : location.pathname); } catch (e) {}
     if (playing) { b.hidden = true; v.play().catch(() => { b.hidden = false; }); } else b.hidden = false; };
   vMV.addEventListener('click', () => pickSet('mv')); vLive.addEventListener('click', () => pickSet('live')); mark();
@@ -367,11 +289,6 @@ html,body{background-color:#1a2026}
     if (waits.length >= 2) down();
   });
   v.addEventListener('playing', () => clearTimeout(waitT));
-  // 2026-11-09 第2周：操作は触れたときだけ出し、再生中は 2.5 秒で引く
-  { const B = document.body; let idT = 0;
-    const wake = () => { B.classList.remove('idle'); clearTimeout(idT); if (!v.paused && about.hidden) idT = setTimeout(() => B.classList.add('idle'), 2500); };
-    ['pointermove', 'pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, wake, { passive: true }));
-    v.addEventListener('play', () => { if (B.classList.contains('pre')) { B.classList.add('fade'); setTimeout(() => B.classList.remove('fade'), 5200); } B.classList.remove('pre'); wake(); }); v.addEventListener('pause', wake); info.addEventListener('click', wake); }
 </script>
 </body>
 </html>

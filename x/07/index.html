@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="style.css?v=20261109q">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 <!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
-<link rel="modulepreload" href="js/app.js?v=20261110e">
+<link rel="modulepreload" href="js/app.js?v=20261109q">
 <link rel="modulepreload" href="vendor/three.module.js">
 <link rel="modulepreload" href="vendor/OrbitControls.js">
 <link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
@@ -38,13 +38,6 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 .brand .ml-kicker{display:none}.brand .ml-title{font:600 16px/1 var(--mu-serif);letter-spacing:.12em;color:#fff;text-shadow:var(--mu-shadow)}
 .ml-btn{border-radius:var(--mu-r);font:600 13.5px/1 var(--mu-serif);letter-spacing:.1em;min-height:var(--mu-hit);background:var(--mu-panel);border:1px solid var(--mu-line);color:var(--mu-ink);backdrop-filter:var(--mu-blur);-webkit-backdrop-filter:var(--mu-blur);transition:border-color var(--mu-t) var(--mu-ease),color var(--mu-t) var(--mu-ease)}.ml-btn:hover{border-color:var(--mu-line-on)}.ml-btn--primary{border-color:var(--mu-aoi);color:var(--mu-aoi-2)}#say{font-family:var(--mu-serif);letter-spacing:.04em;color:var(--mu-ink);text-shadow:0 0 2px rgba(3,6,15,.95),0 1px 10px rgba(3,6,15,.85);background:none!important;border:0!important;box-shadow:none!important;word-break:auto-phrase;text-wrap:balance}
 @media (max-width:420px){.brand .ml-title{font-size:13.5px;letter-spacing:.06em}}
-.brand{display:flex;align-items:center;gap:6px}.brand .back{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-12px;color:#fff;text-decoration:none;font:400 20px/1 var(--mu-serif);text-shadow:var(--mu-shadow);border-radius:var(--mu-r)}.brand .back:hover{color:var(--mu-aoi-2)}.brand .back:focus-visible{outline:2px solid var(--mu-aoi);outline-offset:-2px}
-/* 2026-11-10 第5周：雨・水・風の絵の札（はじめの入口）／面が開いているあいだは点のそばに題を出さない */
-.near-sound-points{gap:12px}.near-sound-points .ncard{flex-direction:column;gap:4px;width:92px;min-width:0;height:96px;padding:8px 0 6px;border:1px solid rgba(200,235,240,.35);border-radius:14px;background:rgba(8,16,30,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font:600 17px/1 var(--mu-serif,serif);letter-spacing:.14em;color:#f2fbfb}
-.near-sound-points .ncard::before{display:none}.near-sound-points .ncard svg{width:48px;height:48px;fill:none;stroke:#bfeaf0;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.near-sound-points .ncard:hover,.near-sound-points .ncard:focus-visible{border-color:#9be0ee;background:rgba(20,40,60,.55)}
-#nearSoundPrompt{font-size:13px}
-.now.notitle .t{display:none}
 </style>
 </head>
 <body class="ml-root">
@@ -57,7 +50,6 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 
 <header class="top">
   <div class="brand">
-    <a class="back" href="https://mitsulab.jp/" aria-label="mitsulab のトップへ戻る">←</a>
     <span class="ml-kicker">mitsulab</span>
     <h1 class="ml-title">Qualia/sound</h1>
   </div>
@@ -96,9 +88,12 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
     <div class="visualArea">
       <div id="soundSpace">
         <div class="spaceToolbar" role="group" aria-label="音の表示">
-          <button type="button" data-sound-view="waveform" aria-pressed="true">波のかたち</button>
+          <button type="button" data-sound-view="waveform" aria-pressed="true">3D波形</button>
           <button type="button" data-sound-view="flow" aria-pressed="false">粒の流れ</button>
-          <button type="button" data-sound-view="sculpture" aria-pressed="false">音の彫刻</button>
+          <button type="button" data-sound-view="harmonics" aria-pressed="false">倍音の層</button>
+          <button type="button" data-sound-view="sculpture" aria-pressed="false">3D音の彫刻</button>
+          <button type="button" data-sound-view="spectrum" aria-pressed="false">3D周波数</button>
+          <button type="button" data-sound-view="heat" aria-pressed="false">ヒートマップ</button>
         </div>
         <div class="soundStage">
           <canvas id="spectrum" tabindex="0" aria-label="音の3D表示。ドラッグ、または矢印キーで回転。Homeキーで正面に戻す"></canvas>
@@ -108,7 +103,7 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
         <div class="viewActions"><p id="spaceCaption"></p><button type="button" id="freezeSound" class="ml-btn ml-btn--quiet" aria-pressed="false">表示を止める</button></div>
         <div class="heatLegend" hidden><span>弱い −100 dB</span><i></i><span>強い −20 dB</span></div>
         <canvas id="wave" class="wave" aria-label="最終出力の波形"></canvas>
-        <p class="spaceNote">いま鳴っている音から描いた形です。</p>
+        <p class="spaceNote">どの表示も、操作後の再生出力を解析した値から描きます。彫刻は、その値で育てた形です。周囲の音圧を測った値ではありません。</p>
       </div>
       <div class="soundActions"><p class="playHint" id="playHint">点をもう一度押すと止まり、ほかの点を押すと切りかわります。</p><button id="bKeep" type="button" class="ml-btn ml-btn--quiet">Aの素材にする</button></div>
       <div class="p-nav"><button class="ml-btn ml-btn--quiet" id="bPrev" type="button">← 前の音</button><button class="ml-btn ml-btn--quiet" id="bRand" type="button">偶然の一行</button><button class="ml-btn ml-btn--quiet" id="bNext" type="button">次の音 →</button></div>
@@ -143,14 +138,10 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 <!-- 何も選んでいないときの下の帯 -->
 <div id="hint" class="hint">
   <div class="near-sounds" role="group" aria-labelledby="nearSoundPrompt">
-    <span id="nearSoundPrompt">押して聴く</span>
-    <div id="nearSoundPoints" class="near-sound-points">
-      <button type="button" class="ncard" data-sound-entry="509" aria-label="雨から聴く：雨の日のバス停の音" title="雨の日のバス停の音"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 30c0-8 7-13 14-12 3-6 13-8 18-1 7 0 11 6 9 12" /><path d="M20 38l-3 8M32 38l-3 8M44 38l-3 8M26 50l-2 6M38 50l-2 6"/></svg><span>雨</span></button>
-      <button type="button" class="ncard" data-sound-entry="485" aria-label="水から聴く：青い水たまりの音" title="青い水たまりの音"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 10c-6 9-11 15-11 21a11 11 0 0 0 22 0c0-6-5-12-11-21z"/><ellipse cx="32" cy="52" rx="20" ry="4"/><ellipse cx="32" cy="52" rx="11" ry="2"/></svg><span>水</span></button>
-      <button type="button" class="ncard" data-sound-entry="800" aria-label="風から聴く：更科の風の音" title="更科の風の音"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 24h32a7 7 0 1 0-7-7"/><path d="M8 34h42a7 7 0 1 1-7 7"/><path d="M8 44h22"/></svg><span>風</span></button>
-    </div>
+    <span id="nearSoundPrompt">身近な手がかりから</span>
+    <div id="nearSoundPoints" class="near-sound-points"></div>
   </div>
-  <p class="aoi-line">森の光の点も、押すと鳴ります。</p>
+  <p class="aoi-line">言葉の点に触れると、音が鳴ります。</p>
   <div class="p-row">
     <button class="ml-btn ml-btn--primary" id="bRand2" type="button">偶然の一行</button>
     <button class="ml-btn" id="bList2" type="button">一覧から選ぶ</button>
@@ -196,10 +187,9 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
   </div>
 </dialog>
 
-<script>/* 2026-11-10 第5周：字とボタンが組めた時点で読み込み画面を下ろす（データと 3D を待たない）。早く押した札は覚えておく */window.MLLoader&&MLLoader.done();document.addEventListener("click",function(e){if(window.__qsReady||!e.target.closest)return;var c=e.target.closest("[data-sound-entry]");if(c)window.__qsPendEntry=c.dataset.soundEntry;else if(e.target.closest("#bRand2"))window.__qsPend=1;},true);</script>
-<script defer src="data/sounds.js"></script>
-<script defer src="data/hidden.js?v=20261110"></script>
-<script defer src="data/gain.js"></script>
-<script type="module" src="js/app.js?v=20261110e"></script>
+<script src="data/sounds.js"></script>
+<script src="data/gain.js"></script>
+<script type="module" src="js/app.js?v=20261109q"></script>
+<script>/* 2026-11-09 第3周：画面の字とボタンが組めたらすぐ読み込み画面を下ろす（3D の部品の到着を待たない）。早く押した「偶然の一行」は覚えておき、部品が来たら鳴らす */window.MLLoader&&MLLoader.done();document.addEventListener("click",function(e){if(!window.__qsReady&&e.target.closest&&e.target.closest("#bRand2"))window.__qsPend=1;},true);</script>
 </body>
 </html>
