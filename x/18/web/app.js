@@ -70,7 +70,7 @@ function buildRows() {
 const HINT = {"touch": "触れて感じた所を撮ってください。触れるの印が付きます。", "smell": "においのもとを撮るか、そこの音を録ってください。嗅ぐの印が付きます。", "taste": "味わったものを撮ってください。味わうの印が付きます。", "x": "人にない感覚で感じそうな所を撮ってください。その印が付きます。"};
 $("sense").onclick = e => { const b = e.target.closest("button"); if (!b) return; if (b.dataset.k !== sense && HINT[b.dataset.k]) say(HINT[b.dataset.k], 0); /* 次の一言まで残す（聞き逃しても読める） */ sense = sense === b.dataset.k && view === "stack" ? sense : b.dataset.k; buildRows(); focusSense = focusSense === sense ? null : sense; layout(); };
 $("who").onclick = e => { const b = e.target.closest("button"); if (!b) return; who = b.dataset.k; buildRows(); const w = WHO.find(x => x.k === who); if (w.say) say(w.say); };
-function count() { $("cnt").textContent = `標本 ${mine.items.length}/${MAX}`; document.body.classList.toggle("empty", !mine.items.length && !(others && others.length)); }   // 2026-11-05：まだ何も無いうちは上の並びを控えめに
+function count() { $("cnt").textContent = `あつめた ${mine.items.length}／${MAX}`; document.body.classList.toggle("empty", !mine.items.length && !(others && others.length)); }   // 2026-11-05：まだ何も無いうちは上の並びを控えめに
 
 /* ---------- 3D ---------- */
 const cv = $("c");
@@ -89,6 +89,10 @@ S.add(new THREE.HemisphereLight("#cfe8ff", "#0a0f18", 1.2)); sun = new THREE.Dir
   const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.Float32BufferAttribute(P, 3));
   g.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: "#9bdcf0", size: .015, transparent: true, opacity: .5 })));
   S.add(g);
+  // 2026-11-09 第2周：足もとに参道の砂利を淡く（写真 CC0・Qualia/sight と同じ。一枚の円だけで軽く）
+  new THREE.TextureLoader().load("web/path_gravel.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(7, 7); t.anisotropy = 4;
+    const m = new THREE.Mesh(new THREE.CircleGeometry(7, 48), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: .3, color: "#9aa7ad", depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.y = -.004; m.renderOrder = -1; S.add(m); });
 }
 // 2026-11-05：はじめて描く時の止まり（材質の中身の読み出し）を、網一つずつ別のこまに分ける。見えないほど小さくして描き、終わったら元の大きさで出す
 const yieldF = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));

@@ -1,9 +1,11 @@
 // © mitsulab. 文学の思想（x/21）── 文学の思想：欅の一枚の葉から、受けとり方の層が重なり、また葉へ戻ってくる
 // 具体（宙を舞う一枚・地に落ちた一枚）→ 上へなぞると、同じ葉を受けとる四つの層が積み重なる（抽象）→ 降りると、時の過ぎた同じ場所へ戻る。
 // 言葉は碧の字幕の一行ずつ。典拠と音の根拠＝../資料/出典と音の根拠.md
+// 2026-11-09 一時の 503 などで読めなかった部品は、間をおいて読み直す
+const imp = async (u, n = 0) => { try { return await import(n ? u + "?r=" + n : u); } catch (e) { if (n >= 2) throw e; await new Promise(r => setTimeout(r, 400 * (n + 1))); return imp(u, n + 1); } };
 const P = window.AW_PATHS; const T0 = performance.now(); const AMK = window.__appMK = {};
 const [{ createAwai, injectCSS, lineMat, pointMat, awaiPatch, AW, MOBILE, RM, TAU, clamp, lerp, ss }, PR, S, CR] = await Promise.all([
-  import(P.kit + "awai.js"), import(P.kit + "awai_props.js"), import(P.kit + "awai_sound.js"), import(P.kit + "creatures_sight.js")]);
+  imp(P.kit + "awai.js"), imp(P.kit + "awai_props.js"), imp(P.kit + "awai_sound.js"), imp(P.kit + "creatures_sight.js")]);
 import * as THREE from "three";
 AMK.mods = Math.round(performance.now() - T0); injectCSS();
 const V3 = THREE.Vector3;
@@ -35,7 +37,7 @@ const W = await createAwai({
     "質感：Poly Haven・ambientCG（CC0）。生き物の形：mitsulab の造形。碧の 3D・声・文：mitsulab",
   ],
 });
-const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0);
+const { scene, R, camera } = W; AMK.stage = Math.round(performance.now() - T0); try { sessionStorage.removeItem("qx-retry:" + location.pathname); } catch (_) { } window.MLLoader?.done?.(); setTimeout(() => document.getElementById("qx-intro")?.classList.add("out"), 2600);
 const snd = S.createSound(W.sndBtn);
 W.onFirstInput(() => snd.start());
 let aoiL = null, aoiAside = false; W.aoi.then(a => aoiL = a);
@@ -151,7 +153,12 @@ litHelp.textContent = "Enter / Space：葉に触れる　↑ / ↓：層を重�
 W.ui.appendChild(litHelp);
 const litGuide = document.createElement("p");
 litGuide.textContent = "キーボードは Tab で風景へ。" + litHelp.textContent;
-W.ui.querySelector(".aw-fold > div").appendChild(litGuide);
+const KB = matchMedia("(hover:hover) and (pointer:fine)").matches;   // 2026-11-09 スマホではキーボードの説明を出さない
+if (KB) W.ui.querySelector(".aw-fold > div").appendChild(litGuide); else litHelp.hidden = true;
+// 2026-11-09「抽象／具体」の目盛りの字は、触れているあいだ（と動いているあいだ）だけ出す
+{ const ax = W.ui.querySelector(".aw-axis"); if (ax) { const st = document.createElement("style"); st.textContent = ".aw-axis .aw-top,.aw-axis .aw-bot{opacity:0;transition:opacity .5s}.aw-axis.qx-on .aw-top,.aw-axis.qx-on .aw-bot,.aw-axis:focus-visible .aw-top,.aw-axis:focus-visible .aw-bot{opacity:1}"; document.head.appendChild(st);
+  let last = W.abs, tOff = 0; const on = () => { ax.classList.add("qx-on"); clearTimeout(tOff); tOff = setTimeout(() => ax.classList.remove("qx-on"), 1800); };
+  ax.addEventListener("pointerdown", on); ax.addEventListener("pointerenter", on); setInterval(() => { if (Math.abs(W.abs - last) > .004) on(); last = W.abs; }, 150); } }
 const litStyle = document.createElement("style");
 litStyle.textContent = `#cv:focus-visible{outline:2px solid #d5e4fa;outline-offset:-5px}
 #lit-key-help{position:absolute;top:90px;left:16px;max-width:calc(100vw - 92px);margin:0;padding:8px 10px;background:rgba(6,10,18,.88);color:#e7edf7;font:12px/1.7 sans-serif;opacity:0}

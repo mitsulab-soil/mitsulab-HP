@@ -214,22 +214,24 @@ function say(lines, note = null) {
 }
 const WORLDS = {
   uv: { on: () => {}, target: new THREE.Vector3(1.6, .3, .9), lines: [
+    { t: "鳥には、花がどう見えているのだろう？", q: 1 },
     { t: "多くの鳥や虫には、紫外線の色も見えています。", g: [{ t: .9, type: "cue", shape: "lookup", hold: 1.5 }] },
-    { t: "鳥の目で見ると、花びらに紫外の模様が浮かぶ花があります。", g: [{ t: .9, type: "deictic" }] },
-    { t: "いつもの花壇は、鳥の目にはどう映っているでしょう。", q: 1, express: "curious" }], note: { m: "色は、見える色に置きかえた模式です。", s: "Cuthill, I. C. et al. (2000) Ultraviolet vision in birds. Advances in the Study of Behavior 29: 159–214." } },
+    { t: "鳥の目で見ると、花びらに紫外の模様が浮かぶ花があります。", g: [{ t: .9, type: "deictic" }] }], note: { m: "色は、見える色に置きかえた模式です。", s: "Cuthill, I. C. et al. (2000) Ultraviolet vision in birds. Advances in the Study of Behavior 29: 159–214." } },
   bat: { target: new THREE.Vector3(0, 2.4, -1.4), lines: [
+    { t: "夕方の空は、本当に静かなのだろう？", q: 1 },
     { t: "多くのコウモリは、人には聴こえない高い声を出します。", g: [{ t: .9, type: "cue", shape: "lookup", hold: 1.5 }] },
-    { t: "はね返る音で、虫や枝の位置をつかみます。", g: [{ t: .9, type: "cue", shape: "listen", hold: 1.5 }] },
-    { t: "夕方の空。静かに見えて、本当に静かでしょうか。", q: 1, express: "curious", g: [{ t: 0.8, type: "cue", shape: "listen", hold: 1.5 }] }], note: { m: "輪と音は、聴こえる高さに下げた模式です。", s: "Griffin, D. R. (1958) Listening in the Dark. Yale University Press." } },
+    { t: "はね返る音で、虫や枝の位置をつかみます。", g: [{ t: .9, type: "cue", shape: "listen", hold: 1.5 }] }], note: { m: "輪と音は、聴こえる高さに下げた模式です。", s: "Griffin, D. R. (1958) Listening in the Dark. Yale University Press." } },
   soil: { target: new THREE.Vector3(-1.2, -.4, -.8), lines: [
+    { t: "足もとの土の中では、何が行き来しているのだろう？", q: 1 },
     { t: "多くの植物の根は、菌根菌の細い糸とつながっています。", g: [{ t: .9, type: "cue", shape: "below", hold: 1.5 }] },
-    { t: "その糸を通して、水や養分と、植物がつくった糖がやりとりされます。", give: 1 },
-    { t: "足もとの土の中で、いま何が行き来しているでしょう。", q: 1, express: "curious", g: [{ t: .9, type: "cue", shape: "below", hold: 1.5 }] }], note: { m: "根と糸の形、粒の動きは模式です。", s: "Smith, S. E. & Read, D. J. (2008) Mycorrhizal Symbiosis, 3rd ed. Academic Press." } },
+    { t: "その糸を通して、水や養分と、植物がつくった糖がやりとりされます。", give: 1 }], note: { m: "根と糸の形、粒の動きは模式です。", s: "Smith, S. E. & Read, D. J. (2008) Mycorrhizal Symbiosis, 3rd ed. Academic Press." } },
   road: { target: new THREE.Vector3(-2, 0, 2), lines: [
+    { t: "いつもの道の名前は、どこから来たのだろう？", q: 1 },
     { t: "地名や坂の名に、昔の川や道が残っていることがあります。", g: [{ t: .9, type: "cue", shape: "far", hold: 1.5 }] },
-    { t: "いまの道の下に、前の道が重なっている場所もあります。", g: [{ t: .6, type: "deictic" }] },
-    { t: "いつも歩く道の名前は、どこから来たのでしょう。", q: 1, express: "curious" }], note: { m: "道と川の線は模式です（特定の場所の線ではありません）。", s: "国土地理院「地理院地図」の旧版地図・治水地形分類図で、場所ごとに確かめられます。" } },
+    { t: "いまの道の下に、前の道が重なっている場所もあります。", g: [{ t: .6, type: "deictic" }] }], note: { m: "道と川の線は模式です（特定の場所の線ではありません）。", s: "国土地理院「地理院地図」の旧版地図・治水地形分類図で、場所ごとに確かめられます。" } },
   yori: { lines: [
+    { t: "碧がしずくや石の姿になったら、何が見えるだろう？", q: 1 },
+    { t: "依代（よりしろ）は、姿を変えたわたしのことです。" },
     { t: "Qualium の中で、わたしは姿を変えます。" },
     { t: "しずくや石の姿で、その場所の層へ案内します。" },
     { t: "触れてみてください。", q: 1 }], note: { m: "依代の姿は mitsulab の創作です。" } },
@@ -268,6 +270,8 @@ function introduceAoi() {
   aoi?.motion.bow("eshaku"); say(INTRO);
 }
 document.getElementById("meetAoi").addEventListener("click", introduceAoi);
+window.__bound = 1; if (window.__early) { const e0 = window.__early; window.__early = null; e0 === "meet" ? introduceAoi() : setMode(e0); }
+setTimeout(() => window.MLLoader?.done?.(), 0);   // 2026-11-09 札は先に押せるように、最初のこまを待たずに読み込み画面を外す
 // 触れる：碧（名乗り）・依代
 const ray = new THREE.Raycaster(), v2 = new THREE.Vector2();
 let down = null;
