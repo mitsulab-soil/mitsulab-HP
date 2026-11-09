@@ -8,7 +8,7 @@
 {"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="app.js?v=20261110r5">
+<link rel="modulepreload" href="app.js?v=20261110r8">
 <link rel="modulepreload" href="data.js">
 <link rel="modulepreload" href="audio.js?v=20261107p2">
 <link rel="modulepreload" href="kit/vegetation.js">
@@ -94,7 +94,7 @@ body:not(.info) #spec,body:not(.info) #heatbar{display:none}
 <script src="loader.js" data-max="4000"></script>
 <div id="stage"></div>
 <div id="labs"></div>
-<div id="clip"><div id="seam"><span class="hl">人</span><div class="hd" role="slider" tabindex="0" aria-label="人と機械の比較境界" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-orientation="horizontal">‹ ›</div><span class="hr" id="sl"></span></div></div>
+<div id="clip"><div id="seam"><span class="hl">人</span><div class="hd" role="slider" tabindex="0" aria-label="人と機械の境目（左右に動かす）" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-orientation="horizontal">◂ ▸</div><span class="hr" id="sl"></span></div></div>
 <div class="top">
   <div class="mark">Qualia/translate<i>人と機械の認知可能領域</i></div><div class="sp"></div>
   <button class="tb" id="snd" aria-label="音を消す・出す">音</button>
@@ -114,5 +114,6 @@ body:not(.info) #spec,body:not(.info) #heatbar{display:none}
 <h2>典拠</h2><ul id="refs"></ul>
 <p>質感：Poly Haven・ambientCG（CC0）／Three.js・three-vrm（MIT）／碧の動き：CMU Graphics Lab Motion Capture Database をもとに mitsulab が作成</p>
 <p>© mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。</p></div>
-<script type="module" src="app.js?v=20261110r5"></script>
+<script type="module" src="app.js?v=20261110r8"></script>
+<style>/* 2026-11-10 第8周：縦の境界は左右に動かす取っ手・まわりの札を減らす・375 の名前の一覧を軽く */#seam .hl,#seam .hr{display:none!important}#seam .hd{font-size:15px!important;letter-spacing:0;white-space:nowrap;cursor:ew-resize}#projToggle{background:none!important;border:0!important;box-shadow:none!important;font-size:12px!important;opacity:.72;min-height:44px}</style>
 <script>(()=>{if(!/\/x\/(19|22|24)(\/|$)/.test(location.pathname))document.querySelectorAll('[data-question-local]').forEach(a=>a.href=a.dataset.questionLocal);})();</script></body></html>

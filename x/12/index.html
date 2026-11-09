@@ -19,7 +19,7 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261110r6">
+<link rel="modulepreload" href="web/app/app.js?v=20261110r8">
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="modulepreload" href="web/app/layers.js?v=k4">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
@@ -624,7 +624,7 @@ html:not(.qmap) #qEye{display:none}
 <header id="hud">
   <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">← <span class="qhl">mitsulab</span></a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand">Qualium 川越<small>QUALIUM KAWAGOE</small></div>
+  <div class="brand">Qualium 川越</div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -689,13 +689,23 @@ html:not(.qmap) #qEye{display:none}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261110r6").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261110r8").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=8").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=8").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=17")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 <style id="q4lure">/* 11-10 第4周：下の五つの札は、はじめ「聴く」だけを光らせて誘う（一度押したら消える） */
 @keyframes q4l{0%,100%{box-shadow:0 0 0 0 rgba(255,207,134,0)}50%{box-shadow:0 0 0 2px rgba(255,207,134,.75),0 0 18px rgba(255,207,134,.45)}}
 body:not(.q4used)[data-mode="walk"] #qS6 button:nth-child(2){animation:q4l 2.2s ease-in-out infinite;color:#fff}
 @media (prefers-reduced-motion:reduce){body:not(.q4used)[data-mode="walk"] #qS6 button:nth-child(2){animation:none;box-shadow:0 0 0 2px rgba(255,207,134,.75)}}</style>
 <script>addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);</script>
+<style id="qualium-r8">/* 11-10 第8周：字幕に影・375 の下の札を濃く大きく・着いた町の名・模式の明記 */
+html body #capText{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.7),0 0 2px rgba(0,0,0,.9)!important;color:#fff!important}
+html body #capTag{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.7)!important}
+@media (max-width:640px){html body #capTag{display:block;margin-top:8px!important;font-size:11px;opacity:.85}
+ html body #walkUI .ib,html body #sndBtn{min-height:46px;font-size:14px;color:#fff;background:rgba(8,13,22,.62)!important;border-color:rgba(225,235,242,.35)!important}}
+#qTown{position:fixed;left:0;right:0;top:34%;z-index:8;text-align:center;pointer-events:none;color:#fff;font-family:var(--serif,"Shippori Mincho",serif);opacity:0;transition:opacity .7s;text-shadow:0 2px 14px rgba(0,0,0,.75),0 0 3px rgba(0,0,0,.8)}
+#qTown.on{opacity:1}#qTown b{display:block;font-size:clamp(40px,11vw,72px);letter-spacing:.18em;font-weight:600}#qTown small{display:block;margin-top:10px;font-size:clamp(12.5px,3.4vw,15px);letter-spacing:.06em}#qTown i{display:block;margin-top:6px;font-style:normal;font-size:clamp(11.5px,3vw,13px);opacity:.9;letter-spacing:.03em}
+@media (prefers-reduced-motion:reduce){#qTown{transition:none}}</style>
+<div id="qTown" aria-hidden="true"><b>川越</b><small>蔵造りの町</small><i>記録と出典をもとにした模式の風景です</i></div>
+<script>/* 11-10 第8周：歩きはじめたとき一度だけ、着いた町の名を大きく */(()=>{const t=document.getElementById("qTown");let done=0;const go=()=>{if(done||document.body.dataset.mode!=="walk")return;done=1;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),2600)};new MutationObserver(go).observe(document.body,{attributes:true,attributeFilter:["data-mode"]});go()})()</script>
 </body></html>

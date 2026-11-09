@@ -74,12 +74,14 @@ const fx = document.createElement("details"); fx.className = "fx";
 for (const ev of ["pointerdown","pointerup","click","wheel","keydown"]) fx.addEventListener(ev,e=>e.stopPropagation());
 fx.innerHTML = `<summary>＋ 関係を式で見る</summary><p><span data-k="U">U<sub>i</sub></span> = <span data-k="g">g<sub>i</sub></span>( <span data-k="P">P<sub>i</sub></span>(<span data-k="E">E</span>, B<sub>i</sub>), <span data-k="K">K<sub>i</sub></span> )</p>
 <p><span data-k="E">E</span>(t+1) = <span data-k="F">F</span>(E(t)) + Σ <span data-k="a">a<sub>j</sub></span>(U<sub>j</sub>)</p>
-<p class="fxL"><span data-k="U">U<sub>人</sub>′</span> = g<sub>人</sub>( P<sub>人</sub>, <span data-k="L">K<sub>人</sub> ⊕ L</span> )</p>`;
+<p class="fxL"><span data-k="U">U<sub>人</sub>′</span> = g<sub>人</sub>( P<sub>人</sub>, <span data-k="L">K<sub>人</sub> ⊕ L</span> )</p>
+<p class="fxK">U 受けとった意味・P 知覚・E まわり・B からだ・K 経験・a ふるまいが残す変化・L 重ねた層（i＝鳥・人・菌・記録計）</p>`;
 W.ui.appendChild(fx);
 { const fb = W.ui.querySelector(".aw-fold > div"); if (fb) { fb.insertBefore(fx, fb.firstChild); fx.open = true; } }   // 2026-11-09「＋」は一つに：式は典拠の「＋」の中へ
 { const st = document.createElement("style"); st.textContent = `.fx{position:absolute;left:max(16px,env(safe-area-inset-left));top:calc(86px + env(safe-area-inset-top));font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:2;letter-spacing:.04em;color:#e0eaf2;transition:opacity .6s;pointer-events:auto;max-width:calc(100vw - 32px);box-sizing:border-box;background:none;text-shadow:0 1px 3px #000d,0 0 12px #000b;padding:0 10px}.fx summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font:12px/1.6 sans-serif;list-style:none}.fx summary:focus-visible{outline:2px solid #b9f5ff}.fx[open]{padding-bottom:10px}
 .fx p{margin:0}.fx sub{font-size:.72em}.fx span{transition:color .25s,text-shadow .25s}.fx span.hi{color:#eef5fb;text-shadow:0 0 12px rgba(155,220,240,.9)}.fx .fxL{opacity:0;transition:opacity 1.2s}.fx.L .fxL{opacity:1}
-@media (max-width:520px){.fx{font-size:11px;line-height:1.85}}`; document.head.appendChild(st); }
+@media (max-width:520px){.fx{font-size:11px;line-height:1.85}}
+.fx .fxK{font-family:"Hiragino Mincho ProN",serif;font-size:11.5px;line-height:1.6;letter-spacing:.02em;margin-top:4px;opacity:.9;white-space:normal}`; document.head.appendChild(st); }
 const hi = k => { for (const e of fx.querySelectorAll(`[data-k="${k}"]`)) { e.classList.add("hi"); clearTimeout(e._t); e._t = setTimeout(() => e.classList.remove("hi"), 520); } };
 
 // ───────── 場 E：波（a が残した変化）を地の上に。点の格子は抽象の側で波に合わせて揺れる
@@ -163,7 +165,7 @@ const chainM = new THREE.MeshBasicMaterial({ color: 0xffe2a8, transparent: true,
 let chainMesh = null, chainCurve = null, chainU = 0, chainV = 0;
 const buildChain = () => { chainCurve = new THREE.CatmullRomCurve3(chainPts(), false, "centripetal"); chainMesh = new THREE.Mesh(new THREE.TubeGeometry(chainCurve, 90, MOBILE ? .016 : .012, 5, false), chainM); W.add(chainMesh); };
 const chainDotM = pointMat(0xfff4d8, MOBILE ? .3 : .22, 1); chainDotM.opacity = 0; const chainDot = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new V3()]), chainDotM); chainDot.visible = false; W.add(chainDot);
-const heroLeaf = PR.keyakiLeaf(.09); const HS = innerWidth < innerHeight * .8 ? 1.15 : 1.25,   /* 第5周：葉は実寸に近く（約 10 cm）、目のすぐ前に */ _fw = new THREE.Vector3();   /* 2026-11-10 第4周：はじめは目の前の一枚を視界いっぱいに（literature の並木と分ける） */ W.add(heroLeaf); const HERO0 = new V3(innerWidth < innerHeight * .8 ? .05 : .16, 1.45, 6.32); heroLeaf.position.copy(HERO0); let heroFall = -1;
+const heroLeaf = PR.keyakiLeaf(.09); const HS = innerWidth < innerHeight * .8 ? .82 : .95,   /* 第8周：記号的に大きすぎた→実寸に寄せる */   /* 第5周：葉は実寸に近く（約 10 cm）、目のすぐ前に */ _fw = new THREE.Vector3();   /* 2026-11-10 第4周：はじめは目の前の一枚を視界いっぱいに（literature の並木と分ける） */ W.add(heroLeaf); const HERO0 = new V3(innerWidth < innerHeight * .8 ? .05 : .16, 1.45, 6.32); heroLeaf.position.copy(HERO0); let heroFall = -1;
 const LEAF = { tit: "シジュウカラには、落ちる葉は動く影。目が向く。", hum: "人には、葉は十一月の色。黄から赤茶へ移る、季節のことば。", fungi: "菌と細菌には、葉は食べもの。落ちる前から、葉の表にすんでいた。" };
 const leafSaid = new Set(); let saidSens = false;
 // ノードの印：足もとの輪・立ちのぼる線・名札
@@ -217,7 +219,7 @@ const CHS = new Set();
 function receive(n, g, from, ch) {
   if (ch === "落葉" && LEAF[n.id] && !leafSaid.has(n.id)) { leafSaid.add(n.id); W.say(LEAF[n.id]); if (leafSaid.size === 3) W.say("同じ一枚の葉が、受けとるものの数だけ別の出来事になる。どれも欠けた見え方で、どれも本当の葉だ。"); }
   if (ch === "養分") W.say("葉は分けられて土へ還り、木々の養分になりうる。");
-  const key = (from ? from.id : 'F') + '>' + n.id; if (!CHS.has(key) && CHS.size < 2) { CHS.add(key); W.say((from ? (from.sub === '人' ? '人' : from.sub) + 'の' : '') + ch + 'が、' + (n.sub === '人' ? '人' : n.sub) + 'の入力になる。'); }
+  const key = (from ? from.id : 'F') + '>' + n.id; if (!CHS.has(key) && CHS.size < 2) { CHS.add(key); W.say((from ? (from.sub === '人' ? '人' : from.sub) + 'の' : '') + ch + 'が、' + (n.sub === '人' ? '人' : n.sub) + 'の手がかりになる。'); }
   n.inK = 1; hi("P"); hi("E"); spawnP(n, g);
   if (n.id === "hum" && from) { n.seen.add(from.id); if (!Lon && n.seen.size >= 4) turnL(); }
   const thr = n.id === "hum" && Lon ? .05 : .11;   // 層 L で注意が変わり、拾う手がかりが少し変わる（模式）
@@ -277,7 +279,7 @@ W.onFrame((dt, t, a) => {
     n.ring.userData.mat.opacity = Math.max(.75 * labA, .3 + .1 * Math.sin(t * 1.6 + N.indexOf(n))) + n.glow * .5 * ss(.05, .3, a) + (n.id === "hum" && Lon && !humAgain ? .35 * (.5 + .5 * Math.sin(t * 2.4)) : 0);   /* 山場のあと、人の輪だけが息をする（もう一度触れる誘い） */   // 具体の参道でも、足もとの輪が薄く息をする（触れる所が分かる）
     n.ring.scale.setScalar(1 + n.glow * .25);
     n.ring2.userData.mat.opacity = n.inK * .7 * ss(.08, .4, a); n.ring2.scale.setScalar(1 + (1 - n.inK) * 1.2);
-    n.stemM.opacity = labA * (.35 + n.glow * .5); const low = PORT || a < .3; n.lab.position.y = low ? .06 : n.h + .04; n.lab.position.x = low ? (PORT ? 0 : .5) : .06; n.lab.position.z = low ? .62 : 0; if (PORT) n.lab.position.x = clamp(-n.at().x * .5, -.7, .7); if (low && n.id === "tit") { if (PORT) { const w = n.g.position.clone().add(new V3(a > .3 ? .35 : 1.05, .06, a > .3 ? .55 : .75)); n.lab.position.copy(n.g.worldToLocal(w)); } else { n.lab.position.x = -.55; n.lab.position.z = 1.15; } }   /* 目の高さの抽象では、シジュウカラの名を輪の奥へ（字幕にかからない） */   if (low && PORT && n.id === "sens") { n.lab.position.z = -.55; n.lab.position.y = .5; } if (low && PORT && n.id === "bee") { n.lab.position.z = .2; n.lab.position.x = .42; }   // 縦長：記録計の名は柱の上、ミツバチの名は株の手前（重ならない）
+    n.stemM.opacity = labA * (.35 + n.glow * .5); const low = !PORT && a < .3;   /* 第8周：375 は名札を持ち主の上へ（手前の葉に重ねない） */ n.lab.position.y = low ? .06 : n.h + .04; n.lab.position.x = low ? (PORT ? 0 : .5) : .06; n.lab.position.z = low ? .62 : 0; if (PORT) n.lab.position.x = clamp(-n.at().x * .5, -.7, .7); if (low && n.id === "tit") { if (PORT) { const w = n.g.position.clone().add(new V3(a > .3 ? .35 : 1.05, .06, a > .3 ? .55 : .75)); n.lab.position.copy(n.g.worldToLocal(w)); } else { n.lab.position.x = -.55; n.lab.position.z = 1.15; } }   /* 目の高さの抽象では、シジュウカラの名を輪の奥へ（字幕にかからない） */   if (low && PORT && n.id === "sens") { n.lab.position.z = -.55; n.lab.position.y = .5; } if (low && PORT && n.id === "bee") { n.lab.position.z = .2; n.lab.position.x = .42; }   // 縦長：記録計の名は柱の上、ミツバチの名は株の手前（重ならない）
     // シジュウカラの名は人の線から離す（PC は左、縦長は画面の内側）   // 地の名札は輪の手前の右（柱・株の上にかからない）。縦長は画面の内側へ寄せる   // 具体の側では名札を足もとへ（宙に浮かない）   // 縦長の俯瞰では名札を足もとへ（上から見て持ち主の輪からずれない）
     n.lab.material.opacity = Math.max(Math.min(1, Math.max(n.glow, n.inK) * 1.6), labA) * (.75 + n.glow * .25); if (PORT) n.lab.scale.set(lerp(3.0, 1.7, ss(.3, .8, a)), lerp(.56, .32, ss(.3, .8, a)), 1); else n.lab.scale.set(lerp(1.5, .85, ss(.3, .8, a)), lerp(.28, .16, ss(.3, .8, a)), 1); if (n.id === "hum") n.lab.material.opacity *= 1 - ss(.35, .6, a);   // 主観の近い画角では名札を小さく。見ている自分＝人の名は消す   // 目の高さの抽象では、名札を近さに合わせて小さく   // 具体の側でも名札を薄く残す（触れる所が分かる）
     n.ring.visible = n.ring.userData.mat.opacity > .003; n.ring2.visible = n.ring2.userData.mat.opacity > .003; n.stem.visible = n.stemM.opacity > .003 && !(PORT && a > .6);   /* 縦長の俯瞰では名札が足もとなので、立つ線は描かない */ n.lab.visible = n.lab.material.opacity > .003;   // 見えないものは描かない（スマホの描画の回数）
@@ -306,3 +308,10 @@ W.onFrame((dt, t, a) => {
 });
 AMK.done = Math.round(performance.now() - T0);
 window.__app = { W, N, tapNode, act, gust: (x, z) => gust(new V3(x, 0, z)), get Lon() { return Lon; } };
+
+/* 2026-11-10 第8周：はじめの一押しをやさしく（触れたら消える） */
+{ const tip = document.createElement("div"); tip.id = "lfTip"; tip.textContent = "葉や、地面の丸い印に、さわってね"; tip.setAttribute("aria-hidden", "true");
+  const st = document.createElement("style"); st.textContent = "#lfTip{position:fixed;left:0;right:0;bottom:calc(118px + env(safe-area-inset-bottom));text-align:center;z-index:5;pointer-events:none;color:#fff6e2;font:500 14px/1.6 'Hiragino Mincho ProN','Yu Mincho',serif;letter-spacing:.06em;text-shadow:0 1px 3px #000e,0 0 10px #000b;transition:opacity .6s}#lfTip.off{opacity:0}";
+  document.head.appendChild(st); document.body.appendChild(tip);
+  const off = () => { tip.classList.add("off"); setTimeout(() => tip.remove(), 800); removeEventListener("pointerdown", off, true); };
+  addEventListener("pointerdown", off, true); setTimeout(off, 12000); }
