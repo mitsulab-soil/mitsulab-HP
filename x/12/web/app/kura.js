@@ -312,7 +312,9 @@ export function machiGeos(type) {
     for (let x = -hw + .3; x < hw - .2; x += .1) A.cedar.box(x - .017, .5, hd - .26, x + .017, T.h1 - .4, hd - .22, 1, "xXZ");   // 格子（模式）
     A.wood.box(-hw + .1, .15, hd - .3, hw - .1, .5, hd - .16, 1, "ZY");   // 格子の下の腰板
   } else {   // ガラス戸の店の口：引き戸の框と、上に欄間の格子（店名・看板は作らない）。ガラスの奥 2.5 m に土間と奥の壁
-    const bz = hd - 3; A.doma.quad([-hw + .1, .16, hd - .3], [hw - .1, .16, hd - .3], [hw - .1, .16, bz], [-hw + .1, .16, bz]); A.doma.quad([-hw + .1, .16, bz], [hw - .1, .16, bz], [hw - .1, T.h1 - .4, bz], [-hw + .1, T.h1 - .4, bz]);
+    const bz = hd - 3, zf = hd - .3, xl = -hw + .1, xr = hw - .1, yt = T.h1 - .38;   /* 11-11 第6周 採点「町家 G の店の奥が透ける」：ガラスの奥の土間に、内側の左右の壁と天井（外の壁は外向きだけなので、中から外が抜けて見えていた） */
+    A.doma.quad([xl, .16, bz], [xl, yt, bz], [xl, yt, zf], [xl, .16, zf]); A.doma.quad([xr, .16, bz], [xr, .16, zf], [xr, yt, zf], [xr, yt, bz]); A.doma.quad([xl, yt, bz], [xr, yt, bz], [xr, yt, zf], [xl, yt, zf]);
+    A.doma.quad([-hw + .1, .16, hd - .3], [hw - .1, .16, hd - .3], [hw - .1, .16, bz], [-hw + .1, .16, bz]); A.doma.quad([-hw + .1, .16, bz], [hw - .1, .16, bz], [hw - .1, T.h1 - .4, bz], [-hw + .1, T.h1 - .4, bz]);
     for (let x = -hw + .8; x < hw - .5; x += 1.6) A.wood.box(x - .5, .9, bz + .02, x + .5, 1.0, bz + .4, 1, "ZY");   // 奥の棚（模式）
     A.glass.quad([-hw + .1, .2, hd - .3], [hw - .1, .2, hd - .3], [hw - .1, T.h1 - .95, hd - .3], [-hw + .1, T.h1 - .95, hd - .3]);
     for (let x = -hw + .1; x <= hw - .1 + 1e-6; x += (W - .2) / (nb * 2)) A.wood.box(x - .035, .2, hd - .3, x + .035, T.h1 - .95, hd - .24, 1, "xXZ");

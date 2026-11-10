@@ -13,7 +13,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k27";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k28";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
@@ -561,8 +561,8 @@ function addSolid(ring, y, top, acc = SOLID, era = 0) {
   const T4 = era === 4 ? ERA_TONES[4] : null;
   if (T4) b = T4[Math.floor(rnd * T4.length)];
   const col = [b[0] + j, b[1] + j, b[2] + j], roofc = era === 5 ? [.15, .16, .18] : FLAT_ROOF[Math.floor(hs(3) * FLAT_ROOF.length)];   /* 11-02 P1「上から屋根が同じ色」→ 陸屋根は打ち放し・防水の灰・明るい砂色を棟ごとに */
-  let L = 0; const y0 = y - .3, awn = AWN[Math.floor(rnd * 997) % AWN.length];
-  for (let k = 0; k < n; k++) { const p = ring[k], q = ring[(k + 1) % n], len = Math.hypot(q.x - p.x, q.y - p.y), u0 = L, u1 = L + len; L += len;
+  let L = 0; const y0 = y - .3, awn = AWN[Math.floor(rnd * 997) % AWN.length], wr = THREE.ShapeUtils.area(ring) > 0 ? ring.slice().reverse() : ring;   /* 11-11 第6周：OSM の輪郭の回り順のせいで壁が内向きに張られ、外から見ると手前の壁が抜けて奥の壁の裏が「茶色の箱」に見えていた → 壁は外向きの回り順で張る（屋根・当たり判定・平面と高さはそのまま） */
+  for (let k = 0; k < n; k++) { const p = wr[k], q = wr[(k + 1) % n], len = Math.hypot(q.x - p.x, q.y - p.y), u0 = L, u1 = L + len; L += len;
     const fr = era ? frontOf(p, q, ring) : { f: false }, ff = fr.f && len > 2.2 ? 1 : 0, tp = era === 1 && ff ? top + 1.3 : top, H = tp - y;   // 看板建築の正面は、屋根より 1.3 m 高く立ち上げる
     P.push(p.x, y0, p.y, q.x, y0, q.y, q.x, tp, q.y, p.x, y0, p.y, q.x, tp, q.y, p.x, tp, p.y);
     for (const [u, v] of [[u0, -.3], [u1, -.3], [u1, H], [u0, -.3], [u1, H], [u0, H]]) { U.push(u / 2.5, v / 2.5); W.push(u, v, H, len); E.push(era, ff); }
