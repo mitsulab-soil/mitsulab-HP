@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k25";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w21";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
-import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=6";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
+import { installDapple, makeSightGrass, SIGHT_AIR, sightBob, setCanopy } from "../kit/sight_look.js?v=7";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
 installDapple(THREE);
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=sp13";
@@ -695,6 +695,8 @@ function buildCrowns() {
 /* 11-10 採点 P2「舗装の陰がまだら・規則的」：実際の木の位置から、日の向きにずらした樹冠の陰を地面に落とす（やわらかな楕円・まとめて 1 回で描く・歩くときだけ） */
 function treeShadows() {
   const L = TREE.list; if (!L?.length) return;
+  /* 11-11 採点 2 人「陰が実際の木の位置から落ちていない・斑が型押し」：木の位置・樹冠の大きさ・日の向き（sunpos）から陰の絵を一度だけ焼き、舗装・両脇の歩道の木もれ日に使う（板の陰は使わない） */
+  if (Q.get("canopy") !== "0") { try { const d = sun.position.clone().sub(sun.target.position).normalize(); const r = setCanopy(THREE, L.map(t => { const H = (SPH[t.sp] || 14) * (t.s || 1); return { x: t.x, z: t.z, R: H * .34, h: H * .62, gap: ((Math.sin(t.x * 12.9898 + t.z * 78.233) * 43758.5) % 1 + 1) % 1 * .7 + (t.sp === "keyaki" || t.sp === "sakura" ? .3 : 0) }; }), d, { mobile: MOBILE }); QW.canopy = r; if (r) return; } catch (e) { console.warn("canopy", e); } }
   const cv = document.createElement("canvas"); cv.width = cv.height = 128; const x = cv.getContext("2d");
   for (let i = 0; i < 7; i++) { const cx = 64 + Math.cos(i * 2.4) * 22 * (i ? 1 : 0), cy = 64 + Math.sin(i * 2.4) * 22 * (i ? 1 : 0), r = i ? 30 : 40; const gr = x.createRadialGradient(cx, cy, 2, cx, cy, r); gr.addColorStop(0, "rgba(0,0,0,.55)"); gr.addColorStop(.6, "rgba(0,0,0,.3)"); gr.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); }
   const tx = new THREE.CanvasTexture(cv);

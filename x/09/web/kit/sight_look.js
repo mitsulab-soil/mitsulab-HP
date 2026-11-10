@@ -12,11 +12,17 @@ export const SIGHT_AIR = { color: 0xc9d3d6, near: 4, far: 240 };   // sight の 
 export const SIGHT_EYE = 1.55, SIGHT_BOB = { amp: .025, freq: 9, still: .18 };
 export function sightBob(t, moving) { return Math.sin(t * SIGHT_BOB.freq) * SIGHT_BOB.amp * (moving ? 1 : SIGHT_BOB.still); }
 
+export const CANOPY = {};   // 11-11 樹冠の陰の絵（setCanopy で一度だけ焼く）
 /* ① 木もれ日。霞の near が 50 m より手前のとき（歩く）だけ効く＝見方を切りかえるための値を別に持たない */
 export function installDapple(THREE) {
   if (THREE.ShaderChunk.__sightDap) return; THREE.ShaderChunk.__sightDap = 1;
   const C = THREE.ShaderChunk, key = "getDirectionalLightInfo( directionalLight, directLight );";
   if (!C.lights_fragment_begin.includes(key)) return;   // 目印が見つからなければ何もしない
+  if (!C.lights_pars_begin.includes("qCanT")) C.lights_pars_begin = "uniform sampler2D qCanT; uniform vec4 qCanB; uniform vec4 qCanS;\n" + C.lights_pars_begin;
+  /* 樹冠の陰の絵は一つを全部の材質で共有する（材質ごとの写しを作らせない＝clone で自分を返す） */
+  const keep = o => { o.clone = () => o; return o; };
+  CANOPY.tex = keep(new THREE.DataTexture(new Uint8Array(4), 1, 1)); CANOPY.tex.needsUpdate = true; CANOPY.box = keep(new THREE.Vector4(0, 0, 0, 0)); CANOPY.sun = keep(new THREE.Vector4(1, 0, 1, 0));
+  for (const k of ["standard", "physical", "lambert", "phong"]) { const L = THREE.ShaderLib[k]; if (L) Object.assign(L.uniforms, { qCanT: { value: CANOPY.tex }, qCanB: { value: CANOPY.box }, qCanS: { value: CANOPY.sun } }); }
   C.lights_fragment_begin = C.lights_fragment_begin.replace("#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )", `float qDap = 1.0;
 #define Q_DAP 1
 #if defined( USE_FOG ) && !defined( FOG_EXP2 ) && ( NUM_DIR_LIGHTS > 0 )
@@ -30,11 +36,31 @@ export function installDapple(THREE) {
       vec2 p = wp.xz * 1.25; vec2 q = p + vec2( sin( p.y * .7 ), cos( p.x * .6 ) ) * .8;
       float n = sin( q.x * 1.7 ) * sin( q.y * 1.9 ) + .55 * sin( q.x * 3.9 + q.y * 1.3 ) * sin( q.y * 3.3 - q.x * .8 ) + .3 * sin( q.x * 7.1 - 2. ) * sin( q.y * 6.7 + 1. );
       vec2 pb = wp.xz * .42 + vec2( 3.1, 1.7 ); float nb = sin( pb.x * 1.3 + sin( pb.y * .9 ) ) * sin( pb.y * 1.5 - .7 ) + .4 * sin( pb.x * 2.9 - pb.y * 1.1 );
-      float cov = smoothstep( .25, .75, nb * .5 + .5 );   /* 11-10 採点 P2「舗装の陰がまだら」：樹冠の大きな影（cov）の中に、丸くやわらかな光の斑（葉の透き間の像）だけが落ちる */
+      float cov = smoothstep( .25, .75, nb * .5 + .5 );
+      float qGap = -1.;
+      if ( qCanB.w > 0.5 ) {   /* 11-11 採点 2 人「陰が木の位置から落ちていない・斑が型押し」：並木の位置と日の向きから焼いた樹冠の陰の絵（R＝陰の濃さ・G＝葉の透き間の大きさ） */
+        vec2 cu = ( wp.xz - qCanB.xy ) * qCanB.z; vec4 ct = texture2D( qCanT, cu );
+        float inB = step( 0., cu.x ) * step( cu.x, 1. ) * step( 0., cu.y ) * step( cu.y, 1. );
+        cov = inB * smoothstep( .08, .7, ct.r + ( n * .5 + .5 - .5 ) * .18 ); qGap = ct.g;
+      }   /* 11-10 採点 P2「舗装の陰がまだら」：樹冠の大きな影（cov）の中に、丸くやわらかな光の斑（葉の透き間の像）だけが落ちる */
       vec2 pc = wp.xz * 1.6 + vec2( sin( wp.z * .37 ), cos( wp.x * .41 ) ) * .6; vec2 cc = floor( pc ); vec2 fc = fract( pc ) - .5; float hh = fract( sin( dot( cc, vec2( 12.99, 78.23 ) ) ) * 43758.5 );
       vec2 off = vec2( fract( hh * 7.1 ), fract( hh * 3.7 ) ) - .5; vec2 dd = ( fc - off * .8 ) * vec2( 1., 1.35 ); float spot = ( 1. - smoothstep( .04 + .06 * hh, .18 + .16 * fract( hh * 13.7 ), length( dd ) ) ) * step( .58, hh ) * ( .55 + .45 * fract( hh * 5.3 ) );
+      if ( qGap >= 0. ) {   /* 斑＝葉の透き間を通った日の像：日の向きに伸びた楕円・大きさは透き間の大きさ（G）と升ごとの乱れで大小、二つの格子を回して重ね型押しに見せない */
+        vec2 sd = normalize( qCanS.xy + vec2( 1e-4 ) ); vec2 so = vec2( -sd.y, sd.x ); vec2 lp = vec2( dot( wp.xz, sd ) / qCanS.z, dot( wp.xz, so ) );
+        float sc1 = mix( 2.6, 1.1, qGap ); spot = 0.;
+        for ( int L = 0; L < 2; L++ ) {
+          float fl = float( L ); vec2 rp = lp * ( sc1 * ( 1. + fl * .83 ) ) + vec2( fl * 3.7, fl * 1.9 ) + vec2( sin( lp.y * .9 + fl ), cos( lp.x * .8 ) ) * .35;
+          vec2 c2 = floor( rp ); vec2 f2 = fract( rp ) - .5; float h2 = fract( sin( dot( c2 + fl * 17., vec2( 12.99, 78.23 ) ) ) * 43758.5 );
+          vec2 o2 = vec2( fract( h2 * 7.1 ), fract( h2 * 3.7 ) ) - .5; float rr = mix( .05, .3, pow( fract( h2 * 13.7 ), 2.2 ) ) * ( .6 + .7 * qGap );
+          float on2 = step( mix( .78, .45, qGap ) + fl * .08, h2 );
+          spot = max( spot, ( 1. - smoothstep( rr * .55, rr, length( f2 - o2 * .5 ) ) ) * on2 * ( .7 + .3 * fract( h2 * 5.3 ) ) );
+        }
+        float lit2 = ( 1. - cov ) + cov * spot * 1.25;
+        qDap = mix( 1.0, .1 + 1.0 * lit2, k );
+      } else {
       float lit = mix( 1., .0, cov ) + cov * spot * .95 + ( 1. - cov ) * .0 + smoothstep( .45, .9, n * .5 + .5 ) * .25 * cov;   // 11-05 斑を大小まぜ、ふちをぼかす（大きな葉の塊の影＋小さな葉の透き間）
       qDap = mix( 1.0, .12 + 1.05 * lit, k );
+      }
     }
   }
 }
@@ -42,6 +68,29 @@ export function installDapple(THREE) {
 #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )`).replace(key, key + "\n\t\tdirectLight.color *= qDap;");
   /* 11-10：木漏れ日が舗装に写らなかった（日の光より空の光が強く、日の光だけ斑にしても見えない）→ 樹冠の陰では空の光も少し落とす */
   if (C.lights_fragment_end.indexOf("qDapI") < 0) C.lights_fragment_end = C.lights_fragment_end + "\n#ifdef Q_DAP\n{ float qDapI = clamp( qDap, 0., 1. ); reflectedLight.indirectDiffuse *= .45 + .55 * qDapI; }\n#endif\n";
+}
+
+/* ①' 樹冠の陰を焼く。trees＝[{x, z, R（樹冠の半径 m）, h（樹冠の中心の高さ m）, gap（0〜1 葉の透き間）}]、sun＝日の向き（単位ベクトル）。
+   樹冠を日の向きに地面へ投げ、日の高さに応じて伸ばした楕円で塗る。R＝陰の濃さ、G＝透き間の大きさ */
+export function setCanopy(THREE, trees, sun, { mobile = false } = {}) {
+  if (!CANOPY.tex || !trees.length) return;
+  const el = Math.max(.5, Math.min(1, sun.y)), sh = Math.hypot(sun.x, sun.z) || 1, dx = -sun.x / sh, dz = -sun.z / sh, elong = Math.min(5, 1 / el), tn = Math.sqrt(1 - el * el) / el;   // 高度は 30 度より下げない（低い日は樹冠の下をくぐり、絵では陰が道から外れて木の下が明るく見えるため。向きは実際の日のまま）。球の樹冠（高さ h・半径 R）の陰＝中心 h/tan(高度)、日の向きに R/sin(高度) の楕円
+  const P = trees.map(t => { const off = t.h * tn; return { x: t.x + dx * off, z: t.z + dz * off, R: t.R, g: t.gap }; });
+  let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (const p of P) { const r = p.R * elong + 2; x0 = Math.min(x0, p.x - r); x1 = Math.max(x1, p.x + r); z0 = Math.min(z0, p.z - r); z1 = Math.max(z1, p.z + r); }
+  const span = Math.max(x1 - x0, z1 - z0), N = mobile ? 1024 : 2048, mpp = Math.max(mobile ? .9 : .5, span / N), W = Math.ceil(span / mpp);
+  const cov = new Float32Array(W * W), gap = new Float32Array(W * W), wsum = new Float32Array(W * W);
+  for (const p of P) {
+    const ra = p.R * elong, rb = p.R, r = ra + 1, i0 = Math.max(0, Math.floor((p.x - r - x0) / mpp)), i1 = Math.min(W - 1, Math.ceil((p.x + r - x0) / mpp)), j0 = Math.max(0, Math.floor((p.z - r - z0) / mpp)), j1 = Math.min(W - 1, Math.ceil((p.z + r - z0) / mpp));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const wx = x0 + (i + .5) * mpp - p.x, wz = z0 + (j + .5) * mpp - p.z, a = wx * dx + wz * dz, b = -wx * dz + wz * dx, an = Math.atan2(b, a);
+      const edge = 1 + .12 * Math.sin(an * 5 + p.x) + .07 * Math.sin(an * 11 + p.z), d = Math.hypot(a / ra, b / rb) / edge; if (d >= 1.15) continue;
+      const v = Math.max(0, Math.min(1, (1.15 - d) / .45)) * .92, o = j * W + i; cov[o] = 1 - (1 - cov[o]) * (1 - v); gap[o] += p.g * v; wsum[o] += v;
+    }
+  }
+  const D = new Uint8Array(W * W * 4); for (let o = 0; o < W * W; o++) { D[o * 4] = Math.min(255, cov[o] * 255); D[o * 4 + 1] = wsum[o] > 0 ? Math.min(255, gap[o] / wsum[o] * 255) : 0; D[o * 4 + 3] = 255; }
+  const T = CANOPY.tex; T.dispose(); T.image = { data: D, width: W, height: W }; T.magFilter = T.minFilter = THREE.LinearFilter; T.generateMipmaps = false; T.wrapS = T.wrapT = THREE.ClampToEdgeWrapping; T.needsUpdate = true;
+  CANOPY.box.set(x0, z0, 1 / span, 1); CANOPY.sun.set(-dx, -dz, Math.min(2, elong), 0);
+  return { W, mpp };
 }
 
 /* ② 草（sight の nature.js makeGrass と同じ葉の形・色の幅）。anchors＝[x, y, z] の並び（植え込み・下草の位置）。
