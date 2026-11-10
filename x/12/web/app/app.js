@@ -902,7 +902,11 @@ function buildKura2(GM) {
     }
   }
   // 町家の型（模式）：型の蔵を置かなかった沿道の低い建物。瓦屋根の連なりと通りの狭さ
-  const byM = {}; (G.machi || []).filter(k => !(G.bell && Math.hypot(k.x - G.bell.x, k.z - G.bell.z) < Math.hypot(k.w, k.dp) / 2 + 3.5)).forEach((k, i) => { k.type = "MNGK"[(i * 3 + Math.floor(k.w)) % 4]; (byM[k.type] ||= []).push(k); });   // 4 つの型を混ぜ、同じ並びが続かないように
+  /* 11-11 第9周 採点「店先のガラスの奥の白い箱」＝隣の店蔵の袖壁（海鼠壁と漆喰）が町家の型に食い込み、ガラスの奥に見えていた → 町家の幅を、重なる店蔵の手前で詰める（OSM の位置は変えず、型の幅だけ） */
+  if (!G.machiFit) { G.machiFit = 1; for (const m of (G.machi || [])) { m.wT = m.w; } for (const m of (G.machi || [])) for (const c of G.kura) { const ux = Math.cos(m.yaw), uz = -Math.sin(m.yaw), dx = c.x - m.x, dz = c.z - m.z; if (Math.abs(dx) > 20 || Math.abs(dz) > 20) continue;
+    const lx = dx * ux + dz * uz, lz = -dx * uz + dz * ux; if (Math.abs(lz) > (m.dp + c.dp) / 2 - .5) continue; const ov = m.w / 2 + c.w / 2 + .15 - Math.abs(lx); if (ov <= 0 || ov > m.w * .45) continue;
+    m.w -= ov; const sg = Math.sign(lx) || 1; m.x -= sg * ov / 2 * ux; m.z -= sg * ov / 2 * uz; } }
+  const byM = {}; (G.machi || []).filter(k => !(G.bell && Math.hypot(k.x - G.bell.x, k.z - G.bell.z) < Math.hypot(k.w, k.dp) / 2 + 3.5)).forEach((k, i) => { k.type = "MNGK"[(i * 3 + Math.floor(k.wT ?? k.w)) % 4]; (byM[k.type] ||= []).push(k); });   // 4 つの型を混ぜ、同じ並びが続かないように
   for (const t in byM) { const { geos } = machiGeos(t), list = byM[t];
     for (const mk in geos) { const im = new THREE.InstancedMesh(geos[mk], M[mk] === M.glass ? M[mk] : kuraAO(M[mk], mk, false), list.length), o = new THREE.Object3D();
       list.forEach((k, i) => { o.position.set(k.x, k.y - .05, k.z); o.rotation.set(0, k.yaw, 0); o.scale.set(k.w / W0, 1, k.dp / D0); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
