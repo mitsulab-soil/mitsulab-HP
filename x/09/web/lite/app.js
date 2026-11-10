@@ -18,10 +18,10 @@ import { makeStartPins } from "../kit/startpins.js?v=sp13";
 import { makeMapVeil } from "../kit/mapveil.js?v=r3";
 import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { sunDir } from "../kit/sunpos.js?v=1";   // 11-02：太陽の位置
+import { sunDir } from "../kit/sunpos.js?v=2";   // 11-02：太陽の位置
 import { makeFliers } from "../kit/fliers.js?v=9";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
-import { makeSoundWalk } from "./soundwalk.js?v=1";
+import { makeSoundWalk } from "./soundwalk.js?v=2";
 import { makeAreas } from "./areas.js?v=56n";
 
 const $ = s => document.querySelector(s);
@@ -276,7 +276,7 @@ function buildSkirt() {
   const ll2 = (lon, lat) => [(lon - D.origin[0]) * 111320 * Math.cos(D.origin[1] * Math.PI / 180), -(lat - D.origin[1]) * 110574];
   const [rx0, rz0] = ll2(139.54833984375, 35.978006180855665), [rx1, rz1] = ll2(139.68017578125, 35.87124685002796);   // 国土地理院 シームレス空中写真 z14（tex/far_photo.webp）の範囲
   const gm = groundFarMat(THREE, { hole: [x0, z0, x1, z1], base: "#8d8a83", rect: [rx0, rz0, rx1, rz1] });
-  setTimeout(() => TL.load(BASE + "tex/far_photo.webp?v=1", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);   // 起動のあとで読む
+  setTimeout(() => TL.load(BASE + "tex/far_photo.webp?v=2", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);   // 起動のあとで読む
   QW.farGM = gm; const m = new THREE.Mesh(g, gm);   // 2026-10-27 夜：遠くの地面を灰色の無地にしない（共通部品 kit/ground_far.js・実在の空中写真）
   m.position.y = 9.2; m.renderOrder = -2; world.add(m); QW.skirt = m;
 }
@@ -347,7 +347,7 @@ const MIMI = { m: null, loading: false, yaw: null, lb: null }; QW.MIMI = MIMI;
 const preC = async o => { o.visible = true;   /* 場面の外で組む（場面には入れずに＝見えない） */ try { if (renderer.compileAsync) await renderer.compileAsync(o, camera, scene); } catch { } };   // 11-03 見せる前に描き方を組む（歩きだしてから初めて見えて止まらない）
 function loadMimi() {
   if (MIMI.loading || !D) return; MIMI.loading = true;
-  import("./sight/sightModels.js?v=1").then(async ({ loadSight }) => {
+  import("./sight/sightModels.js?v=2").then(async ({ loadSight }) => {
     const m = await loadSight("mimizu", { shadow: false }); await (VEG.p || Promise.resolve());
     const sp = D.sight.find(q => q.id === "mimizu"), d = sp ? nearestOnLine(sp.x, sp.z).d : 640, { x, z } = clearSpot(d);
     const gy = surfaceY(x, z);
@@ -363,7 +363,7 @@ function stepMimi(dt) {
 }
 function loadHiyo() {
   if (HIYO.loading || !D) return; HIYO.loading = true;
-  import("./sight/sightModels.js?v=1").then(async ({ loadSight }) => {
+  import("./sight/sightModels.js?v=2").then(async ({ loadSight }) => {
     const [n, f] = await Promise.all([loadSight("hiyo", { shadow: false }), loadSight("hiyo", { lod: "far", shadow: false })]);
     const sp = D.sight.find(q => q.id === "hiyo"), d = sp ? nearestOnLine(sp.x, sp.z).d : 499, p = atD(d), side = 7.2;
     let x = p.x - p.tz * side, z = p.z + p.tx * side, top = groundY(x, z) + 1.0; HIYO.c = { x, z, y: groundY(x, z) };
@@ -393,7 +393,7 @@ const BATS = { list: [], loading: false, c: null, t: 0 }; QW.BATS = BATS; QW.cam
 function stepBats(dt) {
   const on = QW.mode === "sight" && SIGHT.sp?.id === "koumori";
   if (on && !BATS.loading) { BATS.loading = true;
-    import("./sight/sightModels.js?v=1").then(({ loadSight }) => Promise.all([0, 1, 2].map(() => loadSight("koumori", { lod: "far", shadow: false })))).then(ms => {
+    import("./sight/sightModels.js?v=2").then(({ loadSight }) => Promise.all([0, 1, 2].map(() => loadSight("koumori", { lod: "far", shadow: false })))).then(ms => {
       ms.forEach((m, i) => { m.object.scale.setScalar(5); m.play("fly", 0, .55 + i * .07); m.object.visible = false; world.add(m.object); BATS.list.push({ m, r: 6 + i * 4, w: (.5 + i * .13) * (i % 2 ? -1 : 1), ph: i * 2.1, h: 4 + i * 2.2 });   /* 空を背にして見えるよう、少し上を */ });
     }).catch(e => console.warn("bats", e)); }
   if (!BATS.list.length) return;
@@ -480,6 +480,13 @@ function leafAlpha(m) { if (LEAFA.has(m)) return; LEAFA.add(m); const prev = m.o
 diffuseColor.a = (diffuseColor.a - alphaTest) / max(fwidth(diffuseColor.a), 1e-4) + .5; if (diffuseColor.a < .5) discard;
 #endif`).replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * vec3(.16, .18, .08);"); };   // 11-05 sight の葉：日を透かす明るい黄緑をわずかに
   const k0 = m.customProgramCacheKey; m.customProgramCacheKey = function () { return (k0 ? k0.call(this) : "") + "|leafA"; }; m.needsUpdate = true; }
+/* 11-10 ケヤキの樹冠の明暗：同じ絵の札が一様な模様に見えないよう、1〜3 m の房ごとに日なたと陰を分け、樹冠の内側と下ほど暗く（式を足すだけ・描画回数は同じ） */
+function leafClumps(m) { if (m.userData.clump) return; m.userData.clump = true; const prev = m.onBeforeCompile, k0 = m.customProgramCacheKey;
+  m.onBeforeCompile = function (sh, r) { prev?.call(this, sh, r);
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vKp;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvKp = position;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vKp; float kh(vec3 p){return fract(sin(dot(floor(p),vec3(12.99,78.23,37.71)))*43758.5);} float kn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(kh(i),kh(i+vec3(1,0,0)),f.x),mix(kh(i+vec3(0,1,0)),kh(i+vec3(1,1,0)),f.x),f.y),mix(mix(kh(i+vec3(0,0,1)),kh(i+vec3(1,0,1)),f.x),mix(kh(i+vec3(0,1,1)),kh(i+vec3(1,1,1)),f.x),f.y),f.z);}")
+      .replace("#include <color_fragment>", "#include <color_fragment>\n{ float cl = kn(vKp * .55) * .65 + kn(vKp * 1.6) * .35; float outr = smoothstep(2.5, 6.5, length(vKp.xz)) * .6 + smoothstep(8., 17., vKp.y) * .4; diffuseColor.rgb *= mix(.5, 1.22, smoothstep(.22, .82, cl * .62 + outr * .55)); }"); };
+  m.customProgramCacheKey = function () { return (k0 ? k0.call(this) : "") + "|clump"; }; }
 function thinLeaves(geo, every = 3, grow = 1.5) {   // 葉の札を 3 枚に 1 枚へ減らし、残した札を少し大きく（中くらいの距離の形）
   const idx = geo.index ? geo.index.array : null; if (!idx) return geo;
   const P = geo.attributes.position, keep = [], nT = idx.length / 3;
@@ -505,6 +512,7 @@ function leanIn(geo, sp) {
 }
 /* 11-10 第3周：ケヤキが低い所で幹が分かれ、プラタナスに見えた→幹の下 30% を 1.7 倍に伸ばし、分かれる位置を高く（樹冠はそのまま上へずらし、全体の高さは SPH に戻す） */
 function liftFork(geo, h) { const P = geo.attributes.position, f = h * .3, k = 1.7; for (let i = 0; i < P.count; i++) { const y = P.getY(i); P.setY(i, (y < f ? y * k : y + f * (k - 1)) * h / (h + f * (k - 1))); } P.needsUpdate = true; geo.computeBoundingBox(); }
+const NOATLAS = /[?&]atlas=0/.test(location.search);
 function buildTrees([g, kg]) {
   const get = n => (n.startsWith("keyaki_") && kg ? kg.scene.getObjectByName(n === "keyaki_s8_far_bark" ? "keyaki_bark" : n === "keyaki_s8_near_leaves" ? "keyaki_leaves" : n) : null) || g.scene.getObjectByName(n);
   if (!TREE.crown) buildCrowns();
@@ -537,6 +545,8 @@ function buildTrees([g, kg]) {
   }
   try { buildImpostors(); } catch (e) { console.warn("impostor", e); }
   { const lm = TREE.protos.keyaki?.parts[1]?.material; if (lm?.map && TREE.leafU) { lm.map.wrapS = lm.map.wrapT = THREE.RepeatWrapping; lm.map.needsUpdate = true; TREE.leafU.value = lm.map; } }
+  /* 11-10：近い・中くらいの距離の木（ケヤキ・シラカシ・スダジイ・クスノキ・エノキ）の葉の札の絵を、立体の葉（本当の大きさ・樹種の形）を並べて描いた絵に差し替える（遠くの絵の木は元のまま） */
+  if (!NOATLAS) import("./leaf3d.js?v=8").then(({ makeLeafAtlas, LEAFSP }) => { for (const sp of Object.keys(LEAFSP)) { const K = TREE.protos[sp]; if (!K) continue; const tx = makeLeafAtlas(THREE, renderer, { size: MOBILE ? 1024 : 2048, sp, seed: 11 + sp.length * 7 }); if (sp !== "keyaki") { const c = K.parts[1].material.clone(); leafAlpha(c); K.parts[1].material = c; }   /* trees.glb の木は葉の材質を共有している（杉・桜・檜は元のまま） */ for (const lm of [K.parts[1].material, K.mid[1].material]) { lm.map = tx; leafClumps(lm); lm.needsUpdate = true; } } }).catch(e => console.warn("leafAtlas", e));
   TREE.lastPos.set(1e9, 0, 0); updateTrees(true);
 }
 /* 2026-10-23 幹の樹皮が縦に引き伸ばされて縞になっていた（採点の指摘）：絵の座標を、幹のまわりの角度と高さから作りなおす（どの太さ・高さでも同じ肌理の大きさ） */
@@ -2298,7 +2308,7 @@ const BODY_D = { hiyo: [.9, .36, .62, "far"], koumori: [.85, .24, 0, "far"], aos
 // 10-22 深夜（採点「ヒヨドリの真後ろの姿が、フードを被った人影に見える」）：飛ぶものは真後ろでなく、斜め後ろの少し上から（翼と尾が読める・合格した画角＝遠く用の飛ぶ姿）
 function showBody(sp) {
   hideBody(); if (!BODY_D[sp.id]) return; BODY.id = sp.id; const id = sp.id;
-  BODY.p = import("./sight/sightModels.js?v=1").then(({ loadSight }) => loadSight(id, { lod: BODY_D[id][3], shadow: false })).then(m => {
+  BODY.p = import("./sight/sightModels.js?v=2").then(({ loadSight }) => loadSight(id, { lod: BODY_D[id][3], shadow: false })).then(m => {
     if (BODY.id !== id) { m.dispose(); return; } BODY.m = m;
     if (!BODY.scene) { BODY.scene = new THREE.Scene(); BODY.scene.environment = QW.env; BODY.hemi = new THREE.HemisphereLight("#dfe9ff", "#4d4636", 1.1); BODY.sun = new THREE.DirectionalLight("#fff1dc", 2.0); BODY.sun.position.set(.4, 1, .3); BODY.scene.add(BODY.hemi, BODY.sun); }
     if (id === "inu") m.object.traverse(o => { if (!o.isMesh) return; for (const mt of [].concat(o.material)) mt.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <dithering_fragment>", "#include <dithering_fragment>\n{ vec3 c0 = gl_FragColor.rgb; gl_FragColor.rgb = max(vec3(0.), vec3(dot(vec3(.367,.861,-.228),c0), dot(vec3(.280,.673,.047),c0), dot(vec3(-.012,.043,.969),c0))); }"); }; });   // 10-22 深夜（採点「二色型の世界で、犬の体だけ元の色で浮く」）：犬の体も、景色と同じ二色型の置きかえで
@@ -2843,7 +2853,7 @@ $("#menuX").addEventListener("click", () => { $("#menu").hidden = true; $("#menu
 /* 11-02 本人決定「鳥の声の認識を本番に入れる」：メニューの「鳥の声を聞く」を押し、端末のマイクの許可を出したあとだけ聞く（kit/birdear・音は端末の中で聞き分けて残さない） */
 let EAR = null;
 $("#earBtn")?.addEventListener("click", async () => { const b = $("#earBtn");
-  if (!EAR) { const { makeBirdEar } = await import("../kit/birdear/birdear.js?v=1"); EAR = QW.BIRDEAR = makeBirdEar({ base: "web/kit/birdear/", model: (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? "web/kit/birdear/model/" : "https://mitsulab-soil.github.io/aoi-walk-hikawa/web/kit/birdear/model/"), busy: () => !!voiceQ,
+  if (!EAR) { const { makeBirdEar } = await import("../kit/birdear/birdear.js?v=2"); EAR = QW.BIRDEAR = makeBirdEar({ base: "web/kit/birdear/", model: (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? "web/kit/birdear/model/" : "https://mitsulab-soil.github.io/aoi-walk-hikawa/web/kit/birdear/model/"), busy: () => !!voiceQ,
     say: v => speakLines([{ t: v.t, tc: v.t, f: v.f, dur: v.dur, id: v.id }], null, { narr: true }),
     onState: s => { b.setAttribute("aria-pressed", String(s === "on" || s === "load")); b.textContent = s === "load" ? "鳥の声 準備中…" : s === "on" ? "鳥の声を聞いています" : s === "denied" ? "マイクが許可されていません" : s === "error" ? "鳥の声を聞けませんでした" : "鳥の声を聞く"; } }); }
   EAR.toggle(); });
