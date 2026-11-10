@@ -13,7 +13,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k19";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k20";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
@@ -785,8 +785,8 @@ function kuraCull(dt) { if (!MOBILE || !KURA.meshes.length) return; if ((KURA.ct
 let KURA_GLB = null;
 function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
-    ld.load("web/app/kura_master.glb?v=10", g => { g.scene.updateMatrixWorld(true); const out = {};
-      g.scene.traverse(o => { if (o.isMesh) { const k = o.name.replace(/[._]\d+$/, ""); const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
+    ld.load("web/app/kura_master.glb?v=11", g => { g.scene.updateMatrixWorld(true); const out = {};
+      g.scene.traverse(o => { if (o.isMesh) { const k = (/^[ABC]_/.test(o.name) ? o.name : (o.parent?.name || o.name)).replace(/[._]\d+$/, "");   /* 11-10 第2：gltfpack の量子化で名前が親の節に移る */ const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
       res(out); }, undefined, () => res(null)); }); }
 function buildKura() {
   loadKuraMaster().then(gm => buildKura2(gm));
@@ -823,7 +823,7 @@ function buildKura2(GM) {
   for (const t in byType) {
     const geos = GM ? (GM[KVAR(t)] || GM.A) : kuraGeos(t).geos, list = byType[t];   /* 2026-11-02 型 3 通り（A 二つ窓・B 大きな一つ窓と高い箱棟・C 袖壁なし）を型の記号で振り分け */
     for (const mk in geos) {
-      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .08; m.clearcoat = MOBILE ? .7 : .8; m.envMapIntensity = 1.1; m.color.set("#141518");   /* 11-02 P1「壁・柱・屋根が一様な暗い灰」→ 黒漆喰は磨いた面に空が映る黒（木の茶・瓦の銀鼠・石の灰と分かれる） */   /* 2026-11-02 採点「蔵造りに見えない（灰の壁）」→ 空の映りを一面に広げず、黒漆喰の深い黒に細い照りだけ */   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .5; m.envMapIntensity = 1.0; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#8a8f97", roughness: .48, metalness: .25, clearcoat: MOBILE ? 0 : .3, clearcoatRoughness: .35, envMapIntensity: 1.0, side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
+      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .04; m.clearcoat = 1; m.roughness = .14; m.envMapIntensity = MOBILE ? 2.0 : 2.4;   /* 11-10 第2：近くで分かる黒漆喰の映り込み */ m.color.set("#141518");   /* 11-02 P1「壁・柱・屋根が一様な暗い灰」→ 黒漆喰は磨いた面に空が映る黒（木の茶・瓦の銀鼠・石の灰と分かれる） */   /* 2026-11-02 採点「蔵造りに見えない（灰の壁）」→ 空の映りを一面に広げず、黒漆喰の深い黒に細い照りだけ */   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .2; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f7379", roughness: .8, metalness: 0, clearcoat: 0, clearcoatRoughness: .35, envMapIntensity: .35,   /* 第5：鬼瓦を焼き物のマットに（青光りを消す） */   /* 第3：軒先の白い縞を抑える */ side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
       const o = new THREE.Object3D();
       const tint = new THREE.Color();
       list.forEach((k, i) => { const r1 = (Math.sin(k.x * 12.9898 + k.z * 78.233) * 43758.5) % 1, r = Math.abs(r1);   // 棟ごとの違い（高さ・瓦の焼きむら・漆喰の黒の深さ）：同じ型の繰り返しに見せない
