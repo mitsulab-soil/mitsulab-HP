@@ -9,7 +9,7 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { QLAYERS, makeMarker, makeLabel, glowTex } from "./layers.js?v=8";
 import { makeQMarks, placeLabels } from "./qmarks.js?v=k25";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
-import { makeWorldLayers } from "./worldlayers.js?v=w20";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
+import { makeWorldLayers } from "./worldlayers.js?v=w21";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=6";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
 installDapple(THREE);
