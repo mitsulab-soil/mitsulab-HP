@@ -158,7 +158,7 @@ export function kuraMats(TL, mobile) {
     doma: new THREE.MeshStandardMaterial({ color: "#4a3a2c", roughness: .9, emissive: "#3a2814", emissiveIntensity: .5 }),   // 店の奥（土間と奥の壁）：暗いが真っ黒にしない
     // 町家の型の板壁・格子：杉板（焼いた色に寄せて暗く）
     cedar: new THREE.MeshStandardMaterial({ color: "#4a3d32", map: ld("web/tex/cedar_c.webp", true, .5), normalMap: ld("web/tex/cedar_n.webp", false, .5), normalScale: new THREE.Vector2(.8, .8), roughness: .78 }),
-    tile: new THREE.MeshStandardMaterial({ color: "#a9acb1", map: tile.T, normalMap: tile.N, normalScale: new THREE.Vector2(.55, .55), roughnessMap: tile.R, roughness: 1, metalness: 0, envMapIntensity: .25   /* 11-10 夜：軒先の白い縞を抑える */ }),   // いぶし瓦：金属の照りにしない（粗さは瓦ごとにむら）
+    tile: new THREE.MeshStandardMaterial({ color: "#a9acb1", map: tile.T, normalMap: tile.N, normalScale: new THREE.Vector2(.38, .38), roughnessMap: tile.R, roughness: 1, metalness: 0, envMapIntensity: .12   /* 11-10 夜：軒先の白い縞を抑える */ }),   // いぶし瓦：金属の照りにしない（粗さは瓦ごとにむら）
     wood: new THREE.MeshStandardMaterial({ color: "#48443f"   /* 11-10 第2：彩度を下げる */   /* 11-10 本人「実際の蔵と乖離」：柱・下屋の木を、橙の白木から古色の焦げ茶へ（店蔵の木部は黒みの茶） */, map: ld("web/tex/cedar_c.webp", true, .6), normalMap: ld("web/tex/cedar_n.webp", false, .6), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/cedar_r.webp", false, .6), roughness: .9 }),   // 11-02 P1：柱・扉の枠・下屋の木を、杉板の写真（Poly Haven CC0）の古色の茶に（黒漆喰・瓦と分かれる）
     bwood: new THREE.MeshStandardMaterial({ color: "#5a5048", map: ld("web/tex/bplank_c.webp", true, .5), normalMap: ld("web/tex/bplank_n.webp", false, .5), roughness: .66 }),
     stone: new THREE.MeshStandardMaterial({ color: "#d2cdc4", map: ld("web/tex/stonew_c.webp", true, .5), normalMap: ld("web/tex/stonew_n.webp", false, .5), normalScale: new THREE.Vector2(1.2, 1.2), roughness: .88 }),   // 11-02 P1：石の腰を、石積みの写真（Poly Haven CC0 japanese_stone_wall）の明るい灰に
@@ -179,7 +179,7 @@ export function kuraMats(TL, mobile) {
         ${k !== "shikkui" ? "" : "float tw = sin(vLxz.x * 1.7 + vLy * .9) * sin((vLxz.y - vLy) * 1.3); diffuseColor.rgb *= 1. + tw * .06;"}`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);")
       .replace("#include <clearcoat_normal_fragment_maps>", k !== "shikkui" ? "#include <clearcoat_normal_fragment_maps>" : `#include <clearcoat_normal_fragment_maps>
-        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .08); clearcoatNormal = normalize(clearcoatNormal);`);   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
+        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .05); clearcoatNormal = normalize(clearcoatNormal);`);   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
   };
   MATS.shikkui.customProgramCacheKey = () => "kura-shikkui"; MATS.plaster.customProgramCacheKey = () => "kura-plaster"; MATS.plasterg.customProgramCacheKey = () => "kura-plasterg";
   MATS.tileCanvas = tile.canvas;
