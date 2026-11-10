@@ -20,9 +20,8 @@
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
 <link rel="modulepreload" href="web/app/app.b.js?v=20261110b1">
-<link rel="modulepreload" href="web/kit/BufferGeometryUtils.js"><link rel="preload" href="web/tex/sky.webp" as="image" crossorigin>   <!-- 11-11 375 の起動：app.js を読んでから見つかっていた 3 つを先に -->
+<link rel="modulepreload" href="web/kit/BufferGeometryUtils.js">   <!-- 11-11 375 の起動：app.js を読んでから見つかっていた 3 つを先に -->
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
-<link rel="preload" href="web/app/kura_master.glb?v=14" as="fetch" crossorigin>
 <link rel="preload" href="web/app/content.json?v=20261110r5" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
