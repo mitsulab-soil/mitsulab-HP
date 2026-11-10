@@ -12,9 +12,9 @@
 <script>{ const f = () => { if (f.d) return; f.d = 1; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap"; document.head.appendChild(l); }; const h = setInterval(() => { if (window.__qw?.ready) { clearInterval(h); setTimeout(f, 200); } }, 100); setTimeout(f, 6000); }</script>
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
-<link rel="preload" href="web/geo/geo.json?v=20261102m" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261102m" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261102m" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261110r5" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261110r5" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261110r5" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
@@ -25,7 +25,7 @@
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
 <link rel="modulepreload" href="web/app/worldlayers.js?v=w16z">
 <link rel="modulepreload" href="web/kit/ground_far.js?v=7">
-<link rel="modulepreload" href="web/app/kura.js?v=k18">
+<link rel="modulepreload" href="web/app/kura.js?v=k22">
 <link rel="modulepreload" href="web/app/bell.js?v=k1">
 <link rel="modulepreload" href="web/app/herewalk.js?v=2">
 <link rel="modulepreload" href="web/kit/nav.js?v=n10">
@@ -35,13 +35,13 @@
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
 <link rel="modulepreload" href="web/app/areas.js?v=5n">
 <link rel="modulepreload" href="web/kit/startpins.js?v=sp13">
-<link rel="modulepreload" href="web/kit/mapveil.js?v=mv1">
+<link rel="modulepreload" href="web/kit/mapveil.js?v=r3">
 <link rel="modulepreload" href="web/kit/mapguide.js?v=mg2">
 <link rel="modulepreload" href="web/kit/sunpos.js?v=1">
 <link rel="modulepreload" href="web/kit/fliers.js?v=6">
 <link rel="modulepreload" href="web/kit/creatures.js">
-<link rel="preload" href="web/app/kura_master.glb?v=9" as="fetch" crossorigin>
-<link rel="preload" href="web/app/content.json?v=20261102m" as="fetch" crossorigin>
+<link rel="preload" href="web/app/kura_master.glb?v=13" as="fetch" crossorigin>
+<link rel="preload" href="web/app/content.json?v=20261110r5" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -586,6 +586,7 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 </style>
 <style id="qualium-cap-375">/* 11-05 採点「375px で字幕が碧の衣に重なる」：スマホで歩くとき、字幕は碧の立つ側と反対の欄に（碧の画面の位置を毎こま見て data-aoi に） */@media (max-width:640px){html body[data-mode="walk"][data-aoi] #caption{width:auto!important;max-width:none!important;transform:none!important;text-align:left!important}html body[data-mode="walk"][data-aoi="l"] #caption{left:46%!important;right:var(--g)!important}html body[data-mode="walk"][data-aoi="r"] #caption{left:var(--g)!important;right:46%!important}html body[data-mode="walk"][data-aoi] #caption:not(.full) #capText{-webkit-line-clamp:5!important;letter-spacing:0!important;font-size:12px!important}}</style>
 <style id="q7lab">/* 11-10 第7周：戻る先と音の札に名前を出す */html:not(.embed) .qhome{width:auto!important;padding:0 10px 0 8px!important;gap:4px;display:inline-flex!important;align-items:center;font-size:18px!important}.qhome .qhl{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}#walkUI #qSnd{width:auto!important;max-width:none!important;padding:0 12px!important;gap:6px}.q7t{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}@media (min-width:641px){#menuBtn{width:auto!important;padding:0 12px!important;gap:6px;display:inline-flex!important;align-items:center}}@media (max-width:640px){#menuBtn .q7t{display:none}}@media (max-width:400px){html:not(.embed) .brand{display:none!important}}</style><script>/* 11-10 第7周 */(()=>{const iv=setInterval(()=>{const s=document.getElementById("qSnd"),m=document.getElementById("menuBtn");if(m&&!m.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="メニュー";t.setAttribute("aria-hidden","true");m.append(t)}if(s&&!s.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="音";t.setAttribute("aria-hidden","true");s.append(t);clearInterval(iv)}},300);setTimeout(()=>clearInterval(iv),20000)})()</script><style id="r9-capsrc">html body #caption #capTag .capSrc{pointer-events:auto;cursor:pointer;opacity:.75;padding:6px 2px;margin:-6px 0}html body #caption #capTag{pointer-events:auto}</style>
+<style id="qualium-375-bottom">/* 11-10 深夜 採点「スマホの画面下が詰まる」：五感の帯をひとまわり小さく下へ、右下の二つの札は 44px を保ち細く・字を小さく */@media (max-width:640px){html body #qS6{scale:.9;transform-origin:50% 100%;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 60px)!important}html body[data-mode="walk"] #walkUI .ib{padding:0 10px!important;font-size:12px!important;letter-spacing:.04em;background:rgba(14,18,24,.42)!important}html body[data-mode="walk"] #walkUI{gap:4px!important}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 川越" data-en="Qualium Kawagoe" data-icon="favicon/icon.svg" data-max="500"></script>

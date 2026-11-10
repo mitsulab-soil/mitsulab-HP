@@ -177,7 +177,9 @@ export function kuraMats(TL, mobile) {
         ${k !== "plaster" ? "" : "diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(.2126,.7152,.0722))) * vec3(1.,1.,1.02), .85);"}   // 漆喰の写真の黄みを抜き、灰白に
         diffuseColor.rgb *= 1. - streak * ${k === "shikkui" ? ".0" : ".1"} + streak * ${k === "shikkui" ? ".25" : ".0"};
         ${k !== "shikkui" ? "" : "float tw = sin(vLxz.x * 1.7 + vLy * .9) * sin((vLxz.y - vLy) * 1.3); diffuseColor.rgb *= 1. + tw * .06;"}`)
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);");
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);")
+      .replace("#include <clearcoat_normal_fragment_maps>", k !== "shikkui" ? "#include <clearcoat_normal_fragment_maps>" : `#include <clearcoat_normal_fragment_maps>
+        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .045);`);   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
   };
   MATS.shikkui.customProgramCacheKey = () => "kura-shikkui"; MATS.plaster.customProgramCacheKey = () => "kura-plaster"; MATS.plasterg.customProgramCacheKey = () => "kura-plasterg";
   MATS.tileCanvas = tile.canvas;
