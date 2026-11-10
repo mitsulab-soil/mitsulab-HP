@@ -13,7 +13,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k28";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k29";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
@@ -563,20 +563,47 @@ function addSolid(ring, y, top, acc = SOLID, era = 0) {
   const col = [b[0] + j, b[1] + j, b[2] + j], roofc = era === 5 ? [.15, .16, .18] : FLAT_ROOF[Math.floor(hs(3) * FLAT_ROOF.length)];   /* 11-02 P1「上から屋根が同じ色」→ 陸屋根は打ち放し・防水の灰・明るい砂色を棟ごとに */
   let L = 0; const y0 = y - .3, awn = AWN[Math.floor(rnd * 997) % AWN.length], wr = THREE.ShapeUtils.area(ring) > 0 ? ring.slice().reverse() : ring;   /* 11-11 第6周：OSM の輪郭の回り順のせいで壁が内向きに張られ、外から見ると手前の壁が抜けて奥の壁の裏が「茶色の箱」に見えていた → 壁は外向きの回り順で張る（屋根・当たり判定・平面と高さはそのまま） */
   for (let k = 0; k < n; k++) { const p = wr[k], q = wr[(k + 1) % n], len = Math.hypot(q.x - p.x, q.y - p.y), u0 = L, u1 = L + len; L += len;
-    const fr = era ? frontOf(p, q, ring) : { f: false }, ff = fr.f && len > 2.2 ? 1 : 0, tp = era === 1 && ff ? top + 1.3 : top, H = tp - y;   // 看板建築の正面は、屋根より 1.3 m 高く立ち上げる
+    const fr = (era || top - y > 4.5) ? frontOf(p, q, ring) : { f: false }, ff = fr.f && len > 2.2 ? 1 : 0, tp = era === 1 && ff ? top + 1.3 : top, H = tp - y;   // 看板建築の正面は、屋根より 1.3 m 高く立ち上げる
     P.push(p.x, y0, p.y, q.x, y0, q.y, q.x, tp, q.y, p.x, y0, p.y, q.x, tp, q.y, p.x, tp, p.y);
-    for (const [u, v] of [[u0, -.3], [u1, -.3], [u1, H], [u0, -.3], [u1, H], [u0, H]]) { U.push(u / 2.5, v / 2.5); W.push(u, v, H, len); E.push(era, ff); }
+    for (const [u, v] of [[u0, -.3], [u1, -.3], [u1, H], [u0, -.3], [u1, H], [u0, H]]) { U.push(u / 2.5, v / 2.5); W.push(u - u0, v, H, len);   /* 11-11 第7周：窓の割り付けは壁ごとの長さ（以前は輪郭の周りの通し長さで、二枚目からの壁は端の判定で窓が消えていた） */ E.push(era, ff); }
     for (let m = 0; m < 6; m++) C.push(...col);
     if (ff && (era === 2 || era === 1 && rnd > .5)) {   // 日よけ（一階の上・外へ 1.1 m・ゆるく下がる）
       const o = 1.1, a1 = y + 3.0, a2 = y + 2.55, ax = p.x + fr.nx * .05, az = p.y + fr.nz * .05, bx = q.x + fr.nx * .05, bz = q.y + fr.nz * .05, cx = q.x + fr.nx * o, cz = q.y + fr.nz * o, dx = p.x + fr.nx * o, dz = p.y + fr.nz * o;
       for (const [X, Y, Z] of [[ax, a1, az], [cx, a2, cz], [bx, a1, bz], [ax, a1, az], [dx, a2, dz], [cx, a2, cz], [ax, a1, az], [bx, a1, bz], [cx, a2, cz], [ax, a1, az], [cx, a2, cz], [dx, a2, dz]]) { P.push(X, Y, Z); U.push(0, 0); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...awn); } }
     if (ff && era === 3 && k % 2 === 0 && H > 7) {   // 字のない袖の看板（壁から外へ 0.9 m・縦長の板）
       const t = Math.min(.8, 1.2 / len), sx = p.x + (q.x - p.x) * t, sz = p.y + (q.y - p.y) * t, ex = sx + fr.nx * .9, ez = sz + fr.nz * .9, b0 = y + 3.6, b1 = Math.min(tp - .4, y + 3.6 + 5.5), sc = [.3, .29, .27];
-      for (const [X, Y, Z] of [[sx, b0, sz], [ex, b0, ez], [ex, b1, ez], [sx, b0, sz], [ex, b1, ez], [sx, b1, sz], [sx, b0, sz], [ex, b1, ez], [ex, b0, ez], [sx, b0, sz], [sx, b1, sz], [ex, b1, ez]]) { P.push(X, Y, Z); U.push(0, 0); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...sc); } } }
+      for (const [X, Y, Z] of [[sx, b0, sz], [ex, b0, ez], [ex, b1, ez], [sx, b0, sz], [ex, b1, ez], [sx, b1, sz], [sx, b0, sz], [ex, b1, ez], [ex, b0, ez], [sx, b0, sz], [sx, b1, sz], [ex, b1, ez]]) { P.push(X, Y, Z); U.push(0, 0); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...sc); } }
+    if (era === 0 && H > 4.5 && len > 1.2) massWall(p, q, fr, y, tp, ff, col, acc);   /* 11-11 第6周 採点「開始地点の箱がのっぺり」：建物の形そのもの（階の帯の出・一階の庇・屋上の笠木の出・角の付け柱）を幾何で。OSM の平面と高さは変えない。看板の字は作らない（模式） */
+  }
   if (era === 5) { const segs = segRoof(ring, top, acc, roofc); if (!segs) hipRoof(ring, top, acc, roofc); }
   else if (era === 4) { const rt = TILE_ROOF[Math.floor(hs(2) * TILE_ROOF.length)], d = (hs(4) - .5) * .05; hipRoof(ring, top, acc, [rt[0] + d, rt[1] + d, rt[2] + d], .24 + hs(5) * .18, hs(6) < .45, 3.2); }   /* 11-11 町家の屋根の立ち上がりは 3.2 m まで（奥行きの深い平面で屋根が壁より高く立つのを止める） */   /* 11-02 P1「上から屋根が同じ形と色」→ 瓦の色（いぶし銀・黒・茶・青み）と勾配を棟ごとに、切妻と寄棟を混ぜる */
   else for (const [a, b2, c] of THREE.ShapeUtils.triangulateShape(ring, [])) for (const t of [a, c, b2]) { P.push(ring[t].x, top, ring[t].y); U.push(ring[t].x / 2.5, ring[t].y / 2.5); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...roofc); }
   return regSolidTo(ring, acc);
+}
+/* 壁から外へ出る帯（箱の形）：p→q の壁の外へ o m、高さ y0〜y1。前・下・上・両端の面（法線は外向き） */
+function wallBand(p, q, nx, nz, y0, y1, o, c, acc, s0 = 0, s1 = 1) {
+  const ax = p.x + (q.x - p.x) * s0, az = p.y + (q.y - p.y) * s0, bx = p.x + (q.x - p.x) * s1, bz = p.y + (q.y - p.y) * s1, Ax = ax + nx * o, Az = az + nz * o, Bx = bx + nx * o, Bz = bz + nz * o;
+  const quad = (a, b, c2, d, k) => { for (const V of [a, b, c2, a, c2, d]) { acc.P.push(...V); acc.U.push(0, 0); acc.W.push(0, -9, 0, 0); acc.E.push(0, 0); acc.C.push(c[0] * k, c[1] * k, c[2] * k); } };
+  quad([Ax, y0, Az], [Bx, y0, Bz], [Bx, y1, Bz], [Ax, y1, Az], 1);          // 前
+  quad([ax, y1, az], [Ax, y1, Az], [Bx, y1, Bz], [bx, y1, bz], 1.12);       // 上
+  quad([ax, y0, az], [bx, y0, bz], [Bx, y0, Bz], [Ax, y0, Az], .55);        // 下（陰）
+  quad([ax, y0, az], [Ax, y0, Az], [Ax, y1, Az], [ax, y1, az], .8);         // 端
+  quad([bx, y0, bz], [bx, y1, bz], [Bx, y1, Bz], [Bx, y0, Bz], .8);
+}
+function massWall(p, q, fr, y, tp, ff, col, acc) {
+  const H = tp - y, len = Math.hypot(q.x - p.x, q.y - p.y), nx = fr.nx, nz = fr.nz, lt = [Math.min(1, col[0] * 1.25 + .05), Math.min(1, col[1] * 1.25 + .05), Math.min(1, col[2] * 1.25 + .05)], dk = [col[0] * .62, col[1] * .62, col[2] * .62];
+  wallBand(p, q, nx, nz, tp - .55, tp + .12, .32, lt, acc, -.012 * 0, 1);                      // 屋上の笠木と軒の蛇腹（出 0.32 m）
+  wallBand(p, q, nx, nz, tp - .85, tp - .55, .14, col, acc);
+  if (!ff) return;
+  for (let v = 3.4 + 3.1; v < H - 1.2; v += 3.1) wallBand(p, q, nx, nz, y + v - .06, y + v + .16, .16, lt, acc);   // 階の床の帯（窓の段と同じ 3.1 m ごと）
+  wallBand(p, q, nx, nz, y + 3.18, y + 3.3, .6, dk, acc);                                    // 一階の庇（出 1.05 m）
+  wallBand(p, q, nx, nz, y + 3.34, y + 3.9, .1, lt, acc);                                       // 庇の上の幕板（字なし）
+  if (len > 4) for (const s of [0, 1]) { const t = .22 / len, a = s ? 1 - t : 0, b = s ? 1 : t; wallBand(p, q, nx, nz, y - .3, tp - .85, .2, col, acc, a, b); }   // 角の付け柱
+  wallBand(p, q, nx, nz, y - .3, y + .35, .08, dk, acc);                                        // 足もとの基礎の出
+  /* 窓と店先の形（壁の窓の絵と同じ割り付け：2 階から上は 2.6 m ごと、一階は 3.2 m ごとの柱）。窓の上下に枠の出、一階は柱の出 */
+  const wn = Math.floor(len / 2.6); if (len > 3.4 && wn > 0) for (let v = 3.4; v < H - .9 - 1.5; v += 3.1) for (let i = 0; i < wn; i++) { const u0 = (i * 2.6 + 2.6 * .25) / len, u1 = (i * 2.6 + 2.6 * .75) / len; if (u0 * len < 1.2 || u1 * len > len - 1.2) continue;
+    wallBand(p, q, nx, nz, y + v + 3.1 * .22, y + v + 3.1 * .27, .12, lt, acc, u0, u1); wallBand(p, q, nx, nz, y + v + 3.1 * .83, y + v + 3.1 * .87, .08, dk, acc, u0, u1); }
+  if (len > 3.4) for (let u = 3.2; u < len - .4; u += 3.2) { const a = (u - .14) / len, b = (u + .14) / len; wallBand(p, q, nx, nz, y + .35, y + 3.18, .14, dk, acc, a, b); }
 }
 const TILE_ROOF = [[.27, .28, .31], [.15, .16, .18], [.29, .23, .19], [.21, .25, .3], [.34, .34, .35], [.2, .19, .18]], FLAT_ROOF = [[.42, .41, .39], [.3, .31, .32], [.5, .47, .42], [.36, .34, .31], [.24, .25, .27]];
 const MASS_WALL = [[.36, .33, .3], [.46, .36, .27], [.74, .7, .62], [.4, .31, .23], [.58, .52, .44], [.66, .62, .56]];   /* 11-10 第5周：無地の灰色の箱をやめ、川越の町並みの色（黒漆喰・板張り・土壁・漆喰）に寄せる（模式） */
@@ -639,7 +666,7 @@ function solidMat() {
         float joint = (v > 3.4 && v < H - .4) ? smoothstep(.03, 0., abs(fract((v - 3.4) / 3.1) - .0) ) * .0 + step(fract((v - 3.4) / 3.1), .025) : 0.;
         float base = 1. - smoothstep(0., .9, v);                                // 足もとの汚れ
         float cap = step(H - .35, v);                                           // 屋上の縁
-        vec3 glass = mix(vec3(.10, .13, .16), vec3(.36, .44, .52), clamp((v - .3) / max(1., H), 0., 1.) * .6 + .15);
+        vec3 glass = mix(vec3(.07, .09, .11), vec3(.22, .27, .32), clamp((v - .3) / max(1., H), 0., 1.) * .6 + .15);
         diffuseColor.rgb *= 1. - base * .35 - joint * .18 - cap * .12;
         // 2026-10-26 近寄っても箱に見えないように：腰板（焼杉の板・模式）・雨だれの筋・軒下の陰
         float koshi = step(v, .95) * step(-.2, v);
@@ -793,7 +820,7 @@ function kuraCull(dt) { if (!MOBILE || !KURA.meshes.length) return; if ((KURA.ct
 let KURA_GLB = null;
 function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
-    ld.load("web/app/kura_master.glb?v=15", g => { g.scene.updateMatrixWorld(true); const out = {};
+    ld.load("web/app/kura_master.glb?v=18", g => { g.scene.updateMatrixWorld(true); const out = {};
       g.scene.traverse(o => { if (o.isMesh) { const k = (/^[ABC]_/.test(o.name) ? o.name : (o.parent?.name || o.name)).replace(/[._]\d+$/, "");   /* 11-10 第2：gltfpack の量子化で名前が親の節に移る */ const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
       res(kuraTune(out)); }, undefined, () => res(null)); }); }
 /* 11-11 採点「屋根の反りが弱い」「鬼瓦の段が角張り、彫りの陰が弱い」：型（glb）を読んだあとで、

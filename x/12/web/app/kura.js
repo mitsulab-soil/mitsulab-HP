@@ -321,6 +321,7 @@ export function machiGeos(type) {
     A.wood.box(-hw + .1, T.h1 - 1.0, hd - .3, hw - .1, T.h1 - .9, hd - .22, 1, "ZYy"); A.wood.box(-hw + .1, .15, hd - .3, hw - .1, .24, hd - .2, 1, "ZY");
     for (let x = -hw + .2; x < hw - .15; x += .14) A.cedar.box(x - .015, T.h1 - .9, hd - .28, x + .015, T.h1 - .38, hd - .25, 1, "xXZ");
   }
+  for (const sx of [-1, 1]) A[T.side].box(sx > 0 ? hw - .12 : -hw, .15, fz - .02, sx > 0 ? hw : -hw + .12, T.h1, hd, 1, sx > 0 ? "xXZ" : "xXZ");   /* 11-11 第6周 採点「町家 G の端の隙間から隣の白い壁が見える」：1 階の正面の両端に袖壁（厚さ 12 cm） */
   const hy = T.h1 + .3, hz = hd + .85;
   A.tile.slab(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .1);   // 下屋
   A.wood.quad([hw + .05, hy - .38 - .11, hz], [-hw - .05, hy - .38 - .11, hz], [-hw - .05, hy - .11, hd], [hw + .05, hy - .11, hd]);   // 軒裏
