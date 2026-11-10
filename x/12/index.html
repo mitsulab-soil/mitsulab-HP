@@ -19,28 +19,9 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261110k1">
-<link rel="modulepreload" href="web/kit/sight_look.js?v=2"><link rel="modulepreload" href="web/kit/BufferGeometryUtils.js"><link rel="preload" href="web/tex/sky.webp" as="image">   <!-- 11-11 375 の起動：app.js を読んでから見つかっていた 3 つを先に -->
+<link rel="modulepreload" href="web/app/app.b.js?v=20261110b1">
+<link rel="modulepreload" href="web/kit/BufferGeometryUtils.js"><link rel="preload" href="web/tex/sky.webp" as="image" crossorigin>   <!-- 11-11 375 の起動：app.js を読んでから見つかっていた 3 つを先に -->
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
-<link rel="modulepreload" href="web/app/layers.js?v=k4">
-<link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
-<link rel="modulepreload" href="web/app/worldlayers.js?v=w16z">
-<link rel="modulepreload" href="web/kit/ground_far.js?v=7">
-<link rel="modulepreload" href="web/app/kura.js?v=k27">
-<link rel="modulepreload" href="web/app/bell.js?v=k1">
-<link rel="modulepreload" href="web/app/herewalk.js?v=2">
-<link rel="modulepreload" href="web/kit/nav.js?v=n10">
-<link rel="modulepreload" href="web/app/soundwalk.js?v=1">
-<link rel="modulepreload" href="web/app/ambience.js?v=1">
-<link rel="modulepreload" href="web/app/sounds.js?v=4">
-<link rel="modulepreload" href="web/app/earwalk.js?v=1">
-<link rel="modulepreload" href="web/app/areas.js?v=5n">
-<link rel="modulepreload" href="web/kit/startpins.js?v=sp13">
-<link rel="modulepreload" href="web/kit/mapveil.js?v=r3">
-<link rel="modulepreload" href="web/kit/mapguide.js?v=mg2">
-<link rel="modulepreload" href="web/kit/sunpos.js?v=1">
-<link rel="modulepreload" href="web/kit/fliers.js?v=6">
-<link rel="modulepreload" href="web/kit/creatures.js">
 <link rel="preload" href="web/app/kura_master.glb?v=14" as="fetch" crossorigin>
 <link rel="preload" href="web/app/content.json?v=20261110r5" as="fetch" crossorigin>
 <style>
@@ -692,7 +673,7 @@ html:not(.qmap) #qEye{display:none}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261110k1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.b.js?v=20261110b1").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=8").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=17")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
