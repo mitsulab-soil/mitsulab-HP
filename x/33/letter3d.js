@@ -37,16 +37,16 @@ export function create(canvas, TEX) {
   function crownLight(m, cx0, cy0, cz0, cr) {   // sight の樹（sight_trees.js）と同じ式：樹冠の内側の陰・外側と逆光で葉を透かす
     m.onBeforeCompile = sh => { sh.uniforms.uC = { value: new THREE.Vector4(cx0, cy0, cz0, cr) }; sh.uniforms.uSun = { value: SUN };
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vCw;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvCw = (modelMatrix * vec4(transformed, 1.)).xyz;');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec4 uC; uniform vec3 uSun; varying vec3 vCw;').replace('#include <color_fragment>', '#include <color_fragment>\n{ float rr = length((vCw - uC.xyz) * vec3(1., 1.3, 1.)) / uC.w; diffuseColor.rgb *= mix(.62, 1.05, smoothstep(.25, 1., rr)); }').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n{ vec3 V = normalize(cameraPosition - vCw), O = normalize(vCw - uC.xyz); float back = pow(max(dot(-V, uSun), 0.), 3.), side = .5 + .5 * dot(O, uSun), rim = .35 + .65 * smoothstep(-.2, .8, dot(O, V)); totalEmissiveRadiance += diffuseColor.rgb * vec3(1.15, 1.25, .55) * (.18 * rim + .8 * back * side); }'); };
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec4 uC; uniform vec3 uSun; varying vec3 vCw;').replace('#include <color_fragment>', '#include <color_fragment>\n{ float rr = length((vCw - uC.xyz) * vec3(1., 1.3, 1.)) / uC.w; diffuseColor.rgb *= mix(.72, 1.05, smoothstep(.25, 1., rr)); }').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n{ vec3 V = normalize(cameraPosition - vCw), O = normalize(vCw - uC.xyz); float back = pow(max(dot(-V, uSun), 0.), 3.), side = .5 + .5 * dot(O, uSun), rim = .35 + .65 * smoothstep(-.2, .8, dot(O, V)); totalEmissiveRadiance += diffuseColor.rgb * vec3(1.15, 1.25, .55) * (.18 * rim + .8 * back * side); }'); };
     m.customProgramCacheKey = () => 'crownLight1'; }
   const _yU = new THREE.Vector3(0, 1, 0);
   function limb(p, d, len, r0, r1, mat) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r0, r1, len, 7), mat); m.quaternion.setFromUnitVectors(_yU, d.clone().normalize()); m.position.copy(p).addScaledVector(d.clone().normalize(), len / 2); S.add(m); return m; }
   const trunks = [], TV = [];   // TV＝一本ずつの色の揺らぎ（幹と葉の材質の写し）
   for (let side of [-1, 1]) for (let z = 12; z > -46; z -= 3.2 + rnd() * 2.6) {
     const x = side * (3.4 + rnd() * 2.8), r = .28 + rnd() * .22, h = 13 + rnd() * 5, hv = hash1(x * 3.1 + z * 7.7);
-    const tM = tMat.clone(), lM = lMat.clone(); lM.emissive.set('#162210'); crownLight(lM, x, h * .78, z, h * .32); TV.push({ tM, lM, v: .86 + .28 * hv, y: hash1(hv * 91.3) });   // 樹皮の明るさと葉の緑〜黄を一本ずつ
+    const tM = tMat.clone(), lM = lMat.clone(); lM.emissive.set('#24361b'); crownLight(lM, x, h * .78, z, h * .32); TV.push({ tM, lM, v: .86 + .28 * hv, y: hash1(hv * 91.3) });   // 樹皮の明るさと葉の緑〜黄を一本ずつ
     const tr = new THREE.Mesh(new THREE.CylinderGeometry(r * .55, r, h, 12), tM); tr.position.set(x, h / 2, z); tr.rotation.z = (rnd() - .5) * .06; S.add(tr); trunks.push(tr);
-    for (let k = 0; k < 5; k++) { const a = rnd() * 6.283, y = h * .55 + k * 1.2, d = new THREE.Vector3(Math.cos(a) * .8, .55 + rnd() * .3, Math.sin(a) * .8); limb(new THREE.Vector3(x + Math.cos(a) * r * .6, y, z + Math.sin(a) * r * .6), d, 2 + rnd() * 1.2, .04, .1, tM); }   // 枝は幹から斜め上へ（根もとのない枝を作らない）
+    for (let k = 0; k < 5; k++) { const a = rnd() * 6.283, y = h * .55 + k * 1.2, d = new THREE.Vector3(Math.cos(a) * .8, .55 + rnd() * .3, Math.sin(a) * .8); limb(new THREE.Vector3(x + Math.cos(a) * r * .6, y, z + Math.sin(a) * r * .6), d, 1.1 + rnd() * .7, .025, .07, tM); }   // 枝は幹から斜め上へ（根もとのない枝を作らない）
     for (let k = 0; k < 18; k++) { const l = new THREE.Mesh(leafGeo, lM); l.position.set(x + (rnd() - .5) * 5, h * .55 + rnd() * h * .45, z + (rnd() - .5) * 4); l.rotation.set((rnd() - .5) * 1.6, rnd() * 3.14, (rnd() - .5) * 1.2); l.scale.setScalar(.8 + rnd() * .7); S.add(l); }
   }
   // 鳥居（朱）
@@ -72,7 +72,7 @@ export function create(canvas, TEX) {
     fl.push({ x, z, h, c, s, face, ph: rnd() * 6 });
   }
   const HUM = [new THREE.Color('#f3efe6'), new THREE.Color('#efcf3a'), new THREE.Color('#c8343a')];
-  const BEE = [new THREE.Color('#8fc6c9'), new THREE.Color('#9fd3a3'), new THREE.Color('#15161b')];
+  const BEE = [new THREE.Color('#8fc6c9'), new THREE.Color('#9fd3a3'), new THREE.Color('#40304f')];
   function placeFlowers(t) {
     let pi = 0;
     fl.forEach((f, i) => {
@@ -95,10 +95,10 @@ export function create(canvas, TEX) {
   const uvMat = new THREE.MeshStandardMaterial({ color: '#a8161f', roughness: .22, emissive: '#000000' });
   const berries = new THREE.Group();
   { const own = new THREE.Mesh(new THREE.CylinderGeometry(.24, .34, 16, 12), tMat); own.position.set(-5.85, 8, -1.6); S.add(own); const n0 = S.children.length;   // ヒヨドリの止まる木：幹から一本の枝、その先の小枝に実の房（クロガネモチ）
-    const p0 = new THREE.Vector3(-5.62, 5.35, -1.6), dir = new THREE.Vector3(1, .14, 0).normalize(), len = 2.3; const BP = [p0.clone()]; { let p = p0.clone(), d = dir.clone(), r = .085; for (let k = 0; k < 4; k++) { const sl = len * .27, r2 = r * .72; limb(p, d, sl, r2, r, tMat); p = p.clone().addScaledVector(d, sl * .97); BP.push(p); d = d.clone().add(new THREE.Vector3(0, .07 + k * .03, (k % 2 ? -.06 : .07))).normalize(); r = r2; } }   // 四つの節で少しずつ上へ曲がり、先へ細くなる   // 先へ細く、途中で少し上へ曲がる
+    const p0 = new THREE.Vector3(-5.62, 5.35, -1.6), dir = new THREE.Vector3(1, .14, 0).normalize(), len = 2.3; const BP = [p0.clone()]; { let p = p0.clone(), d = dir.clone(), r = .085; for (let k = 0; k < 4; k++) { const sl = len * .27, r2 = r * .72; limb(p, d, sl, r2, r, tMat); p = p.clone().addScaledVector(d, sl * .97); BP.push(p); d = d.clone().add(new THREE.Vector3(0, .26 + k * .1, (k % 2 ? -.12 : .14))).normalize(); r = r2; } }   // 四つの節で少しずつ上へ曲がり、先へ細くなる   // 先へ細く、途中で少し上へ曲がる
     const TS = [.16, .3, .37, .52, .6, .74, .9]; for (let c = 0; c < 7; c++) { const t = TS[c] + (rnd() - .5) * .05, side = c % 2 ? 1 : -1, base = (() => { const f = Math.min(t, .999) * (BP.length - 1), i = Math.floor(f); return BP[i].clone().lerp(BP[i + 1], f - i); })(), td = new THREE.Vector3(.2 + rnd() * .5, .45 + rnd() * .5, side * (.25 + rnd() * .5)).normalize(), tl = .18 + rnd() * .3, tip = base.clone().addScaledVector(td, tl); limb(base, td, tl, .006, .014, tMat);
       for (let k = 0; k < 8; k++) { const rr = .012 + rnd() * .003, uv = (c * 7 + k) % 3 === 0, m = new THREE.Mesh(new THREE.SphereGeometry(rr, 12, 8), uv ? uvMat : berryMat); m.position.set(tip.x + (rnd() - .5) * .06, tip.y - .03 - rnd() * .04, tip.z + (rnd() - .5) * .06); berries.add(m); const st = new THREE.Mesh(new THREE.CylinderGeometry(.0012, .0012, .05, 4), tMat); st.position.copy(m.position); st.position.y += .026; berries.add(st); }
-      for (let k = 0; k < 3; k++) { const l = new THREE.Mesh(new THREE.PlaneGeometry(.5, .28), BL); l.position.set(tip.x + (rnd() - .5) * .25, tip.y + .04 + rnd() * .12, tip.z + (rnd() - .5) * .25); l.rotation.set(-.9 + (rnd() - .5) * .6, rnd() * 3, (rnd() - .5) * .5); S.add(l); } }
+      for (let k = 0; k < 3; k++) { const l = new THREE.Mesh(new THREE.PlaneGeometry(.55, .4), BL); l.position.set(tip.x + (rnd() - .5) * .25, tip.y + .04 + rnd() * .12, tip.z + (rnd() - .5) * .25); l.rotation.set(-.35 + (rnd() - .5) * .4, (rnd() - .5) * .8, (rnd() - .5) * .4); S.add(l); } }   // 葉はこちらへ面を向ける（縁から見た尖った房にしない）
     const moved = S.children.splice(n0); for (const o of moved) { o.parent = null; perch.add(o); } }   // 葉は小枝の先に重なる房。枝と実と葉はヒヨドリの場面だけ（ほかの場面で根もとの見えない枝にしない）
   perch.add(berries);
 
@@ -106,7 +106,7 @@ export function create(canvas, TEX) {
   const POSE = {
     bee: { p: [1.9, .32, 3.2], l: [1.4, .3, -2], fov: 82 },
     bird: { p: [-3.6, 5.85, .4], l: [-2.6, 4.6, -6], fov: 68 },
-    ageha: { p: [1.2, 1.35, 4], l: [0, 2.4, -12], fov: 72 }
+    ageha: { p: [1.0, 1.4, -6.5], l: [0, 2.2, -12], fov: 70 }
   };
   function apply() {
     const bee = mode === 'bee' && !human;
@@ -114,7 +114,7 @@ export function create(canvas, TEX) {
     petals.instanceColor.needsUpdate = centers.instanceColor.needsUpdate = true;
     guides.visible = !human && (mode === 'bee' || mode === 'ageha');
     guides.material.color.set(mode === 'bee' ? '#5a2fa8' : '#9a74ff');
-    toriiMat.color.set(bee ? '#4a3a35' : '#c23b22'); perch.visible = mode === 'bird'; torii.visible = !(mode === 'bee' && !human);   // ミツバチの便りでは鳥居を見せない（紙の上に黒い板だけがのぞくため。2D の版と同じ）   // ミツバチの目でも鳥居の形は読める暗さに（赤は沈む）
+    toriiMat.color.set(bee ? '#4a3a35' : '#c23b22'); perch.visible = mode === 'bird'; torii.visible = !((mode === 'bee' || mode === 'bird') && !human);   // ミツバチの便りでは鳥居を見せない（紙の上に黒い板だけがのぞくため。2D の版と同じ）   // ミツバチの目でも鳥居の形は読める暗さに（赤は沈む）
     const sky = bee ? '#9db7c4' : '#c9d6dc'; S.background.set(sky); S.fog.color.set(sky);
     gMat.color.set(bee ? '#6f9a86' : '#9a8f78'); pMat.color.set(bee ? '#9fb7ae' : '#d8d0c0');
     lMat.color.set(bee ? '#bfe3d8' : '#e8f0dc'); tMat.color.set(bee ? '#8fa3a8' : '#b9aa96');

@@ -295,7 +295,7 @@ cv.addEventListener('pointermove',()=>{if(drag&&drag.moved)hideHint()});
 function hideHint(){$('hint').style.opacity=0}
 $('eye').onclick=()=>{human=!human;if(G3&&G3.has(L[cur].id))G3.setMode(L[cur].id,human);$('eye').setAttribute('aria-pressed',human);$('wname').firstChild.textContent=human?'人の目':VW(L[cur]);$('eye').textContent=human?VW(L[cur])+'で受けとる':'人の目で見る'};
 function openL(i){cur=i;human=false;camX=0;pulses=[];quakes=[];const l=L[i];if(G3&&G3.has(l.id))G3.setMode(l.id,false);
- $('wname').innerHTML=VW(l)+'<small>'+(l.id==='bee'?'花の色は、紫外を青紫に・赤を暗く置きかえた模式':'碧が人のことばに置きかえた模式')+'</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
+ $('wname').innerHTML=VW(l)+'<small>'+(l.id==='bee'?'花の色は、ハチの目に置きかえた模式':'碧が人のことばに置きかえた模式')+'</small>';$('eye').textContent='人の目で見る';$('eye').setAttribute('aria-pressed','false');
  $('pfrom').textContent=l.from+'より　'+l.to;$('pbody').textContent=l.b;$('pcite').textContent='典拠　'+l.c;$('pq').textContent=l.q;if(document.body.classList.contains('kids'))furi();$('ps').textContent=l.s;$('hint').textContent=l.hint;$('hint').style.opacity=1;
  const o=st();$('rk').textContent=o[i]&&o[i].t?'封に挟んだ返事：'+o[i].t:'返事は、この端末の中にだけ残ります。';$('ri').value='';o[i]=Object.assign(o[i]||{},{r:1});save(o);
  world.querySelectorAll('details').forEach(d=>d.open=false);$('paper').classList.remove('fold');world.classList.add('on');sub.style.opacity=0;size();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
