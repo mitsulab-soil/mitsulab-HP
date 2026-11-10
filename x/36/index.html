@@ -464,7 +464,7 @@ function makeDeep() {
   const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
   /* 膜：上と下の頭（リン脂質の頭は約 0.8 nm）を二枚。厚さ 4.5 nm */
   const mem = new THREE.Group(); g.add(mem); const NH = MOB ? 3200 : 5200, R0 = 34;   /* 頭の並び＝約 0.7 nm² に一つ（模式） */
-  const hg = new THREE.IcosahedronGeometry(.33, 1), hm = new THREE.InstancedMesh(hg, M(0xc9d3b0, .8), NH * 2), T = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), s1 = new THREE.Vector3(1, 1, 1);
+  const hg = new THREE.IcosahedronGeometry(MOB ? .27 : .33, 1), hm = new THREE.InstancedMesh(hg, M(0xc9d3b0, .8), NH * 2), T = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), s1 = new THREE.Vector3(1, 1, 1);
   const PS = [[16, -10, .4], [24, 16, 1.1], [-20, 15, 2.2], [-10, -24, .6], [6, 30, 1.7], [-30, -4, .3]];   /* 光化学系 II の二量体の置き場所（模式） */
   const inPS = (x, y) => PS.some(([px, py, a]) => { const c = Math.cos(a), s = Math.sin(a), u = (x - px) * c + (y - py) * s, w = -(x - px) * s + (y - py) * c; return (u / 11.5) ** 2 + (w / 6.2) ** 2 < 1; });
   let n = 0; for (let i = 0; n < NH * 2 && i < NH * 6; i++) { const r = Math.sqrt(rnd(i)) * R0, t = rnd(i + .5) * 6.283, x = Math.cos(t) * r, y = Math.sin(t) * r; if (inPS(x, y) || Math.hypot(x, y) < 1.4) continue;
@@ -489,13 +489,19 @@ function makeDeep() {
   const bond = (a, b) => { const A = new THREE.Vector3(...a.slice(0, 3)), B = new THREE.Vector3(...b.slice(0, 3)), L = A.distanceTo(B); const m = new THREE.Mesh(bg, bm_); m.position.copy(A).add(B).multiplyScalar(.5); m.scale.set(1, L, 1); m.quaternion.setFromUnitVectors(up, B.clone().sub(A).normalize()); mol.add(m); };
   for (let i = 1; i < atoms.length; i++) for (let j = 0; j < i; j++) { const L = Math.hypot(atoms[i][0] - atoms[j][0], atoms[i][1] - atoms[j][1]); if (L > .05 && L < .21) bond(atoms[i], atoms[j]); }
   let best = 0, bd = 1e9; atoms.forEach((a, i) => { const d = Math.hypot(a[0] + .4, a[1] + .4); if (a[3] === 0 && d < bd) { bd = d; best = i; } }); bond(atoms[best], tail[0]); for (let i = 1; i < tail.length; i++) bond(tail[i - 1], tail[i]);
-  deep = { sc, g, mem, mol, mats, memM: [hm.material, pm, pm2, lm] };
+  /* グラナ：チラコイドの円盤（径 約 0.4 µm・一枚 約 15 nm）が十数枚重なり、間をストロマ・ラメラがつなぐ（Taiz & Zeiger『植物生理学』・模式） */
+  const gran = new THREE.Group(); sc.add(gran); const gm_ = M(0x86a26a, .7), gs_ = M(0xa9bd8e, .8), dg = new THREE.CylinderGeometry(1, 1, 1, 48, 1); dg.rotateX(Math.PI / 2);
+  const ST = [[0, 0, 210, 14], [560, 120, 190, 11], [-520, 260, 230, 16], [180, -560, 200, 9], [-260, -470, 180, 12], [620, -380, 170, 8], [-700, -160, 200, 10]];
+  for (const [x, y, r, n] of ST) for (let k = 0; k < n; k++) { const m = new THREE.Mesh(dg, gm_); m.scale.set(r * (1 - .03 * Math.abs(k - n / 2) / n), r, 15); m.position.set(x, y, -k * 19.5); gran.add(m); }
+  for (let i = 0; i < ST.length; i++) for (let j = 0; j < i; j++) { const A = ST[i], B = ST[j], L = Math.hypot(A[0] - B[0], A[1] - B[1]); if (L > 820) continue; const m = new THREE.Mesh(new THREE.BoxGeometry(L, 70, 8), gs_); m.position.set((A[0] + B[0]) / 2, (A[1] + B[1]) / 2, -60 - 40 * ((i + j) % 3)); m.rotation.z = Math.atan2(B[1] - A[1], B[0] - A[0]); gran.add(m); }
+  deep = { sc, g, mem, mol, mats, gran, granM: [gm_, gs_], memM: [hm.material, pm, pm2, lm] };
 }
 function deepFrame(S) {
-  const a = sm(-7.0, -7.45, S); if (a <= 0) return; if (!deep) makeDeep();
+  const a = sm(-7.0, -7.45, S), ag = sm(-5.85, -6.15, S) * (1 - sm(-6.45, -6.75, S)); if (a <= 0 && ag <= 0) return; if (!deep) makeDeep();
+  for (const m of deep.granM) m.opacity = ag; deep.gran.visible = ag > 0;
   const Hn = 10 ** S * 1e9, d = Hn * .5 / Math.tan(19 * Math.PI / 180) / Math.min(innerWidth / innerHeight, 1);
   dcam.aspect = innerWidth / innerHeight; dcam.near = d * .02; dcam.far = d * 6; dcam.updateProjectionMatrix();
-  const tilt = .32 + .18 * sm(-8.2, -9, S); dcam.position.set(0, -Math.sin(tilt) * d, Math.cos(tilt) * d + .75); dcam.lookAt(0, 0, .75 * sm(-8, -8.8, S));
+  const gw_ = sm(-5.85, -6.15, S) * (1 - sm(-6.45, -6.75, S)), tilt = .32 + .18 * sm(-8.2, -9, S) + .62 * gw_, lz_ = .75 * sm(-8, -8.8, S) - 130 * gw_; dcam.position.set(0, -Math.sin(tilt) * d, Math.cos(tilt) * d + lz_); dcam.lookAt(0, 0, lz_);
   deep.sc.fog.near = d * .6; deep.sc.fog.far = d * 3.2;
   const am = a * (1 - sm(-8.55, -8.95, S)), ao = sm(-8.1, -8.6, S);
   for (const m of deep.memM) m.opacity = am; deep.mem.visible = am > 0;
@@ -504,7 +510,7 @@ function deepFrame(S) {
 }
 
 /* ── 大きさの言葉（いま受けとれるもの・受けとれないもの） ── */
-const CAPS = [[-9, "クロロフィル a（環は約 1 nm、長い尾はフィトール）。光を受けとる色素。模式"], [-7.8, "チラコイドの膜に並ぶ光化学系 II（二量体で約 20 nm）とアンテナ。模式"], [-6.7, "葉緑体の中のグラナ（0.3〜0.5 µm）。重なりは光では見分けられない。ここから模式"],
+const CAPS = [[-9, "クロロフィル a（環は約 1 nm、長い尾はフィトール）。光を受けとる色素。模式"], [-7.8, "チラコイドの膜に並ぶ光化学系 II（二量体で約 20 nm）とアンテナ。模式"], [-6.7, "葉緑体の中のグラナ（0.3〜0.5 µm）。チラコイドの円盤が重なる。ここから模式"],
   [-5.6, "孔辺細胞の中の葉緑体（数 µm）。光の顕微鏡なら見える"], [-4.5, "葉の裏の気孔（数十 µm）。水蒸気と酸素が出て、二酸化炭素が入る"], [-3.5, "人の目に見える、いちばん小さな大きさ（約 0.1 mm）"],
   [-2.3, "葉脈の網。目を近づければ、まだ見える"], [-1, "参道の欅の一枚。長さは <span class='nw'>3〜7 cm</span> ほど。手のひらで受けとれる"], [.2, "腕をのばせば届く。からだで測れる大きさ"],
   [1.25, "一本の欅。見上げれば、まだ全体が入る"], [2.4, "参道の並木（約 2 km）。歩けば受けとれるが、一目では見えない"], [3.6, "大宮の町。<span class='nw'>もう一度には</span>見わたせない"],
