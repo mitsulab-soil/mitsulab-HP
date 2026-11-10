@@ -251,7 +251,7 @@ async function buildBase() {
   tm.onBeforeCompile = sh => {   // 近くだけ、草と土の細かい絵を重ねる（遠くは写真のまま）
     sh.uniforms.detail = { value: grass }; sh.uniforms.litter = { value: litter }; sh.uniforms.uCy = CYBER.v; sh.uniforms.uScan = CYBER.scan;
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uCy; uniform float uScan;\nfloat gridL(vec2 p, float s){ vec2 q=abs(fract(p/s+.5)-.5)*s; vec2 w=fwidth(p)*1.3; vec2 l=1.-smoothstep(vec2(0.),w,q); return max(l.x,l.y); }")
-      .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\nif(uCy>.001){ vec2 p=vWp.xz; float fw=length(fwidth(p)); float g1=gridL(p,100.), g2=gridL(p,20.)*(1.-smoothstep(1.5,5.,fw)); float hh=vWp.y; float cq=abs(fract(hh+.5)-.5); float cl=1.-smoothstep(0.,fwidth(hh)*1.3,cq); float sc=exp(-pow((p.y-uScan)/60.,2.)); vec3 ln=vec3(.32,.78,.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.01,.025,.045),uCy); totalEmissiveRadiance+=uCy*(ln*(g1*.32+g2*.1+cl*.18)+ln*sc*(.05+g1*.4+cl*.3)); }\n/* 2026-10-27 夜 融合：歩くときも、地面に細い光の格子（5 m）と高さ 50 cm ごとの光の等高線を、近くは控えめに・10〜100 m で薄く重ねる */ { float dc=length(vWp.xz-cameraPosition.xz); float fz=smoothstep(5.,16.,dc)*(1.-smoothstep(60.,140.,dc))*(1.-uCy); vec2 gq=abs(fract(vWp.xz/5.+.5)-.5)/max(fwidth(vWp.xz/5.),vec2(1e-4)); float gl=1.-min(min(gq.x,gq.y)/1.1,1.); float hq=abs(fract(vWp.y*2.+.5)-.5)/max(fwidth(vWp.y*2.),1e-4); float cl2=1.-min(hq/1.2,1.); totalEmissiveRadiance+=vec3(.5,.86,.92)*fz*(gl*.07+cl2*.12); }");
+      .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\nif(uCy>.001){ vec2 p=vWp.xz; float fw=length(fwidth(p)); float g1=gridL(p,100.), g2=gridL(p,20.)*(1.-smoothstep(1.5,5.,fw)); float hh=vWp.y; float cq=abs(fract(hh+.5)-.5); float cl=1.-smoothstep(0.,fwidth(hh)*1.3,cq); float sc=exp(-pow((p.y-uScan)/60.,2.)); vec3 ln=vec3(.32,.78,.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.01,.025,.045),uCy); totalEmissiveRadiance+=uCy*(ln*(g1*.32+g2*.1+cl*.18)+ln*sc*(.05+g1*.4+cl*.3)); }\n/* 2026-10-27 夜 融合：歩くときも、地面に細い光の格子（5 m）と高さ 50 cm ごとの光の等高線を、近くは控えめに・10〜100 m で薄く重ねる */ { float dc=length(vWp.xz-cameraPosition.xz); float fz=smoothstep(5.,16.,dc)*(1.-smoothstep(28.,70.,dc))*(1.-uCy);   /* 11-10 霞の中の格子の線：遠くは早めに消す */ vec2 gq=abs(fract(vWp.xz/5.+.5)-.5)/max(fwidth(vWp.xz/5.),vec2(1e-4)); float gl=1.-min(min(gq.x,gq.y)/1.1,1.); float hq=abs(fract(vWp.y*2.+.5)-.5)/max(fwidth(vWp.y*2.),1e-4); float cl2=1.-min(hq/1.2,1.); totalEmissiveRadiance+=vec3(.5,.86,.92)*fz*(gl*.07+cl2*.12); }");
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D detail; uniform sampler2D litter; varying vec3 vWp;")
       .replace("#include <map_fragment>", "#include <map_fragment>\n{ float dist=length(vWp-cameraPosition); float k=1.-smoothstep(25.,140.,dist); vec3 dt=texture2D(detail,vWp.xz*.33).rgb; float l=dot(dt,vec3(.333)); diffuseColor.rgb*=mix(1.,.55+l*1.1,k*.85); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0),.45)*vec3(.86,.83,.76); float lu=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.37,.36,.34)*(.8+lu*.25),smoothstep(.28,.52,lu)*.92); { float wk=1.-uCy; float d2=length(vWp.xz-cameraPosition.xz); vec3 g2=texture2D(detail,vWp.xz*.045).rgb; vec3 g3=texture2D(detail,vWp.xz*.011+.3).rgb; float m=dot(g2,vec3(.333))*.6+dot(g3,vec3(.333))*.8; vec3 und=mix(vec3(.25,.29,.18),vec3(.36,.37,.25),m)*(.82+.36*dot(texture2D(detail,vWp.xz*.18).rgb,vec3(.333))); diffuseColor.rgb=mix(diffuseColor.rgb,und*(.72+lu*.4),wk*smoothstep(6.,20.,d2)*.95); }"
@@ -405,6 +405,21 @@ function stepBats(dt) {
     const d = o.position.distanceTo(cp), px = .2 * 5 * innerHeight / (2 * Math.max(.1, d) * Math.tan(camera.fov * Math.PI / 360));
     o.visible = d > 12 && px < 120; if (o.visible) b.m.update(dt); }
 }
+/* 11-10 採点 P2「灯籠・欄干の接地に影がない」：足もとに淡い接地の陰（一枚の放射の絵・まとめて 1 回で描く） */
+function contactShadows() {
+  const L = []; const bb = new THREE.Box3(), sz = new THREE.Vector3(), c = new THREE.Vector3();
+  structGroup.updateMatrixWorld(true);
+  for (const o of structGroup.children) { if (/^(torii_|romon|shinkyo)/.test(o.name)) continue; bb.setFromObject(o); bb.getSize(sz); bb.getCenter(c);
+    if (sz.x > 40 || sz.z > 40 || sz.y > 8) continue; L.push([c.x, c.z, sz.x, sz.z, o.rotation.y]); }
+  if (!L.length) return;
+  const cv = document.createElement("canvas"); cv.width = cv.height = 64; const x = cv.getContext("2d"); const gr = x.createRadialGradient(32, 32, 4, 32, 32, 32);
+  gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(.55, "rgba(0,0,0,.55)"); gr.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+  const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.MeshBasicMaterial({ map: tx, color: "#000", transparent: true, opacity: .42, depthWrite: false, fog: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2); const im = new THREE.InstancedMesh(geo, m, L.length); const M = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
+  L.forEach((v, i) => { const w = Math.max(.6, Math.min(v[2], v[3]) * 1.35 + .3), l = Math.max(v[2], v[3]) * 1.15 + .3; const ax = v[2] >= v[3]; p.set(v[0], groundY(v[0], v[1]) + .03, v[1]); q.setFromEuler(e.set(0, 0, 0)); s.set(ax ? l : w, 1, ax ? w : l); M.compose(p, q, s); im.setMatrixAt(i, M); });
+  im.renderOrder = 1; im.frustumCulled = false; structGroup.add(im);
+}
 function stepEdges() { if (!EDGEQ.length) return; const t0 = performance.now();
   do { const o = EDGEQ.shift(); const ln = new THREE.LineSegments(bldEdges(o.geometry), QW.bldLine); ln.renderOrder = 2; ln.matrixAutoUpdate = false; o.add(ln); } while (EDGEQ.length && performance.now() - t0 < (MOBILE ? 3 : 6)); }
 let bldGroup = null; const BLD = [], ROOF = { x0: -680, z0: -1360, cell: 20, nx: 68, nz: 136, h: new Float32Array(68 * 136) };
@@ -418,7 +433,7 @@ function buildBuildings(g) {
   // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
   const U = BLDU;
   const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
-    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .8 : .82) * mix(.25, 1., uSky); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .8 : .82) * mix(.6, 1., uSky);   /* 11-10 歩くとき霞の中の箱は、色を寄せるより薄くして消す（白い帯を出さない） */ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
   m.onBeforeCompile = sh => { vs(sh);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
@@ -434,7 +449,11 @@ function buildBuildings(g) {
           diffuseColor.rgb = mix(wc, diffuseColor.rgb, uSky); }
         diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1.1, .4, uSky);
         /* 11-10 第3周：歩くときは、データの層の建物（本人 10-22 の半透明）は残し、近く（〜30 m）だけ薄めて消す（並木のすぐ外で半透明の板に見えたため） */
-        { float wk = 1. - uSky; float far = smoothstep(20., 40., dist); vec3 fc = roof > .5 ? vec3(.30, .31, .33) : vec3(.66, .63, .58) * (.62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))))) * (.9 + .1 * step(.5, fract(fy))); diffuseColor.rgb = mix(diffuseColor.rgb, fc, wk); diffuseColor.a *= mix(1., smoothstep(40., 90., dist) * 2.1, wk); } }`);   /* 11-10 本人「建物をもう少し濃く。薄すぎて見えません」：近く（〜40 m）は消したまま、その先を濃く */   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
+        { float wk = 1. - uSky; float far = smoothstep(20., 40., dist); vec3 fc = roof > .5 ? vec3(.30, .31, .33) : vec3(.66, .63, .58) * (.62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))))) * (.9 + .1 * step(.5, fract(fy))); diffuseColor.rgb = mix(diffuseColor.rgb, fc, wk); diffuseColor.a *= mix(1., smoothstep(40., 90., dist) * 2.1 * mix(1., .55, smoothstep(90., 260., dist)), wk); 
+#ifdef USE_FOG
+ diffuseColor.rgb = mix(diffuseColor.rgb, fogColor, wk * smoothstep(70., 260., dist) * .5);
+#endif
+ }   /* 11-10 霞の奥の箱は色を霞へ寄せる（濃さは近い所で保つ） */ }`);   /* 11-10 本人「建物をもう少し濃く。薄すぎて見えません」：近く（〜40 m）は消したまま、その先を濃く */   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };
   m.customProgramCacheKey = () => "bldGhost3";
   const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
@@ -442,7 +461,7 @@ function buildBuildings(g) {
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { float dist = length(vWp - cameraPosition); float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.6, 2.));
-        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.42, .5, uSky);   // 11-05 歩くときの箱の縁の線を淡く
+        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.42, .5, uSky) * mix(.38 * (1. - smoothstep(60., 220., dist)), 1., uSky);   /* 11-10 歩くとき箱の縁の線を霞になじませる */   // 11-05 歩くときの箱の縁の線を淡く
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86,.99,1.), band * .7); }`);
   };
   lm.customProgramCacheKey = () => "bldGhostL2";
@@ -764,6 +783,7 @@ function loadLate() {
       if (/^(ishidoro|komainu|hyoseki|shagohi|choishi|mokutoro)/.test(s.id)) collDisc(s.p[0], s.p[2], /^ishidoro|^mokutoro/.test(s.id) ? 1.0 : .8);   // 燈籠・狛犬・碑・丁石は通れない（鳥居と楼門はくぐれる）
       if (QW.mode === "sky" && /^torii_|^romon$|^shinkyo$/.test(s.id)) o.visible = false;
     }
+    try { contactShadows(); } catch (e) { console.warn("contact", e); }
     try { buildBigStructs(g.scene); } catch (e) { console.warn("bigstructs", e); }
     collStructsIdle();
   });
@@ -2035,7 +2055,7 @@ function stepAoi(dt) {
   aoiSpot(_ap);
   const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
   AOI.bt = _ndc.copy(P).setY(P.y + 1).project(camera).z > 1 && QW.mode === "walk" ? (AOI.bt || 0) + dt : 0;   // 10-30：碧が見る人の後ろに 1.2 秒より長くいたら、前の立ち位置へ（375px で後ろへ消えていた）
-  if (dist > 18 || AOI.bt > 1.2 || (MOBILE && Math.hypot(P.x - CAM.pos.x, P.z - CAM.pos.z) < 1.7))   /* 11-10 第7周：375 で碧の顔が画面を塞がない（近すぎたら立ち位置へ） */ { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
+  if (dist > 18 || AOI.bt > 1.2 || (MOBILE && Math.hypot(P.x - CAM.pos.x, P.z - CAM.pos.z) < 1.7) || (MOBILE && !WALK.moving && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .6))   /* 11-10 375 で碧が右端で切れる画角：端を越えたらすぐ立ち位置へ */   /* 11-10 第7周：375 で碧の顔が画面を塞がない（近すぎたら立ち位置へ） */ { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
   else {
     const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .3;   /* 10-28 夜 8：375px で碧が画面の端に寄ったら、立ち位置へ戻る（川越・渋谷と同じ） */
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3);
