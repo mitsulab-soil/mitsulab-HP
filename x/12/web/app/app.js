@@ -13,7 +13,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k20";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k21";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
@@ -785,7 +785,7 @@ function kuraCull(dt) { if (!MOBILE || !KURA.meshes.length) return; if ((KURA.ct
 let KURA_GLB = null;
 function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
-    ld.load("web/app/kura_master.glb?v=11", g => { g.scene.updateMatrixWorld(true); const out = {};
+    ld.load("web/app/kura_master.glb?v=12", g => { g.scene.updateMatrixWorld(true); const out = {};
       g.scene.traverse(o => { if (o.isMesh) { const k = (/^[ABC]_/.test(o.name) ? o.name : (o.parent?.name || o.name)).replace(/[._]\d+$/, "");   /* 11-10 第2：gltfpack の量子化で名前が親の節に移る */ const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
       res(out); }, undefined, () => res(null)); }); }
 function buildKura() {
@@ -905,6 +905,7 @@ function stepLayer(dt) {
   if (!(LAYER.sweepT > t)) { LAYER.sweepT = t + 1.5; landSweep(); }
   { const gT = LAYER.worn.length && QW.mode !== "boot" ? (sky ? .32 : .62) : 0; LANDG.value += (gT - LANDG.value) * Math.min(1, dt * 2.2); }
   stepHere(cp, t, sky || QW.mode === "fly");
+  { const nL = NARR.L; if (nL && nL.o && nL.o.x != null && voiceQ && voiceQ.L === nL && Math.hypot(cp.x - nL.o.x, cp.z - nL.o.z) > 45) stopVoice(); }   // 11-10 夜：語っている印から 45 m 離れたら語りを止める（離れた建物の前で別の建物の字幕が続かない）
   declutter(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.my?.update(dt); YO.y?.update(dt);
 }
 /* 2026-10-26（氷川と同じ）：いまいる場所の重なり（半径 30 m の Qualia の数と層）と、画面の外のいちばん近い Qualia の方角 */
@@ -1196,9 +1197,11 @@ function capLines(s) {   // 11-05 採点 P2：375 で「立ち、」だけの行
   const e = $("#capText"), c = e.parentElement, cs = getComputedStyle(e), r = c?.getBoundingClientRect(); const ccs = c ? getComputedStyle(c) : null, L = parseFloat(ccs?.left), R = parseFloat(ccs?.right); const w = Math.max(120, (isFinite(L) && isFinite(R) ? innerWidth - L - R : r && r.width > 40 ? r.width : innerWidth * .6) * .9 - 6);   // 字の幅の測りの誤差の分だけ余白
   const X = capLines.x || (capLines.x = document.createElement("canvas").getContext("2d")); X.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`; const ls = parseFloat(cs.letterSpacing) || 0, W = q => X.measureText(q).width + ls * q.length;
   const cut = q => { const out = []; while (W(q) > w) { let k = 0, k2 = 0; for (let i = 1; i < q.length; i++) { if (W(q.slice(0, i + 1)) > w) break; if (/[をにがはでとへもやの]/.test(q[i]) && !/[ぁぃぅぇぉっゃゅょ、。！？」』）]/.test(q[i + 1] || "、")) { k = i + 1; if (q.length - k >= 4) k2 = k; } } k = k2 || k; if (!k) { k = 1; while (k < q.length && W(q.slice(0, k + 1)) <= w) k++; } out.push(q.slice(0, k)); q = q.slice(k); } out.push(q); return out; };
-  const out = []; for (const para of String(s).split("\n")) { let cur = ""; for (const seg0 of para.split(/(?<=[、。！？」』）])/)) { if (!seg0) continue; for (const seg of cut(seg0)) { if (cur && W(cur + seg) > w) { out.push(cur); cur = ""; } cur += seg; } } if (cur) out.push(cur); }
+  const out = []; for (const para of String(s).split("\n")) { let cur = ""; for (const seg0 of para.split(/(?<=[、。！？」』]|[^\d０-９]）)/)) { if (!seg0) continue; for (const seg of cut(seg0)) { if (cur && W(cur + seg) > w) { out.push(cur); cur = ""; } cur += seg; } } if (cur) out.push(cur); }
+  for (let i = 1; i < out.length; i++) { const m = /((?:明治|大正|昭和|平成|令和|西暦)?[\d０-９]+)$/.exec(out[i - 1]); if (m && /^[年月日（]/.test(out[i]) && m[1].length < out[i - 1].length) { out[i - 1] = out[i - 1].slice(0, -m[1].length); out[i] = m[1] + out[i]; } }   // 11-10 夜：年号の途中（昭和2／年）で折り返さない
+  for (let i = out.length - 1; i > 0; i--) if (out[i].length <= 2 && W(out[i - 1] + out[i]) <= w * 1.08) { out[i - 1] += out[i]; out.splice(i, 1); }   // 一、二字だけの行は前の行へ
   return out.join("\n"); }
-function capSet(s) { const e = $("#capText"); if (innerWidth < 640) { s = capLines(s); e.style.whiteSpace = "pre-line"; } else e.style.whiteSpace = ""; e.textContent = ""; for (const p of String(s).split(/([^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
+function capSet(s) { const e = $("#capText"); s = String(s).replace(/((?:明治|大正|昭和|平成|令和)?[\d０-９]+年(?:（[\d０-９]+）)?)/g, "$1"); if (innerWidth < 640) { s = capLines(s); e.style.whiteSpace = "pre-line"; } else e.style.whiteSpace = ""; e.textContent = ""; for (const p of String(s).split(/((?:明治|大正|昭和|平成|令和)?[\d０-９]+年(?:（[\d０-９]+）)?[、。]?|[^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p) || /[\d０-９]年/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
 function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; capSet(ch[i]); if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
