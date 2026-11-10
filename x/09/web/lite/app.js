@@ -724,6 +724,7 @@ function edgeGeo(g) {
   }
   n.setAttribute("aEdge", new THREE.BufferAttribute(e, 3)); EDGEG.set(g, n); return n;
 }
+const SEKI = { p: null, o: null };   /* 11-10 本人「層を複数にグラフィカルに重ねる」＝情報の層の積層（sekiso.js） */
 let lateP = null; const STONES = [];
 function loadLate() {
   if (lateP) return lateP;
@@ -2923,7 +2924,7 @@ function frame() {
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); if (!QW.mveil && QW.farGM && QW.farGM.userData.gf.gfHole.value.z > QW.farGM.userData.gf.gfHole.value.x) { const h = QW.farGM.userData.gf.gfHole.value; QW.mveil = makeMapVeil({ THREE, parent: world, rect: [h.x, h.y, h.z, h.w], y0: groundY((h.x + h.z) / 2, (h.y + h.w) / 2), fog: scene.fog, k0: m === "sky" || m === "boot" ? 1 : 0 }); } if (QW.mveil) { if (!QW.mveilLift && START.sp) { QW.mveil.lift(START.sp.group); QW.mveilLift = 1; } QW.mveil.update(dt, m === "sky" || m === "boot" || (m === "descend" && camH > 160)); }   /* 11-04 本人「四角い枠が見える＝境界を無くして」：地図の縁を楕円の霞で溶かす（kit/mapveil.js） */
     if (QW.skyTex && m !== "sight") { const vt = m === "boot" || m === "sky" ? 1 : 0;   /* 11-09 第2周：入口の地図は紺の地（灰色の霞にしない）。降りると空の写真へ溶ける */ VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp((QW.mapNavy ||= new THREE.Color("#0b1a30")), Math.max(CYBER.v.value, VEIL.k ?? 0)); } else VEIL.visible = false; CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
   if (PARK.uT && !RM) PARK.uT.value += dt;
-  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (QW.mode === "walk" && !SEKI.p && /[?&]sekiso=1/.test(location.search)) SEKI.p = import("./sekiso.js?v=p1").then(M => { SEKI.o = M.makeSekiso({ scene, camera, groundY, renderer, MOBILE }); QW.SEKI = SEKI.o; }).catch(e => console.warn("sekiso", e)); SEKI.o?.update(dt, QW.mode === "walk"); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);
   if (QW.mode !== "walk") FARWOOD.g.visible = false;
   if (SIGHT.post && QW.mode === "sight") {
