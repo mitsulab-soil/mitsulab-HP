@@ -413,11 +413,28 @@ function zebras() {
     for (let o = -2 + .225; o < 2; o += .9) { const q = []; for (const [d, oo] of [[d0, o - .225], [d0, o + .225], [d1, o + .225], [d1, o - .225]]) { const a = atD(d), x = a.x - a.tz * oo, z = a.z + a.tx * oo; q.push(x, groundY(x, z) + .035, z); }
       P.push(...q); I.push(b, b + 1, b + 2, b, b + 2, b + 3); b += 4; } }
   if (!b) return; const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setIndex(I); g.computeVertexNormals();
-  const m = new THREE.MeshStandardMaterial({ color: "#9a968e", roughness: .92, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });   /* 採点：白が強く CG っぽい→明度を落とし、擦れ（タイヤの通る所ほど薄い）を足す */
+  const m = new THREE.MeshStandardMaterial({ color: "#9a968e", roughness: .92, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });   /* 11-11 試し：縞をさらに落とす・透かすと、採点 2 人が「消えて汚れに見える」→ 7342ba9 の明るさのまま */   /* 採点：白が強く CG っぽい→明度を落とし、擦れ（タイヤの通る所ほど薄い）を足す */
   m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vZw;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvZw = (modelMatrix * vec4(transformed, 1.)).xyz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vZw; float zh(vec2 p){ return fract(sin(dot(floor(p), vec2(12.99, 78.23))) * 43758.5); }")
       .replace("#include <color_fragment>", "#include <color_fragment>\n{ vec2 p = vZw.xz; float n = zh(p * 9.) * .5 + zh(p * 3.1) * .3 + zh(p * .9) * .2; diffuseColor.rgb *= .7 + .3 * n; diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.36, .35, .33), .25 * smoothstep(.3, .0, abs(fract(p.x * .5 + p.y * .5) - .5))); diffuseColor.a = 1.; if (n < .2) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.33, .32, .3), .7); }"); };
   const ms = new THREE.Mesh(g, m); ms.renderOrder = 1; world.add(ms);
+}
+/* 11-11 採点 P2「鳥居の根巻の黒が四角い塊」：structures.glb の根巻（柱の根もとの八角・四角の箱）を外し、柱の根もとを包む銅板の筒（円筒・裾がわずかに開き・上端と継ぎ目に帯）に作り直す。
+   根巻＝木の柱の根もとの腐れを防ぐために包む金属（多くは銅板）の覆い。黒い塗りの根巻の色は元のまま（暗い銅の色・少し金属の照り）。帯の数と高さは寸法の記録がないので、上端の返しと中ほど 1 本の継ぎ目だけにとどめる */
+const NEMAKI_MAT = new THREE.MeshStandardMaterial({ color: "#201c19", roughness: .32, metalness: .7, envMapIntensity: 1.1 });
+function nemaki(m) {
+  const g0 = m.geometry; if (!g0.index) return; const g = g0.clone(); m.geometry = g; const P = g.attributes.position, I = g.index.array, v = new THREE.Vector3();
+  let ymin = 1e9, ymax = -1e9; for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y < ymin) ymin = y; if (y > ymax) ymax = y; }
+  const lim = ymin + (ymax - ymin) * .3, keep = [], C = {};
+  for (let t = 0; t < I.length; t += 3) { let hi = -1e9, sx = 0; for (let k = 0; k < 3; k++) { const y = P.getY(I[t + k]); if (y > hi) hi = y; sx += P.getX(I[t + k]); }
+    if (hi > lim) { keep.push(I[t], I[t + 1], I[t + 2]); continue; }
+    const key = sx < 0 ? "a" : "b", c = C[key] ||= { x0: 1e9, x1: -1e9, z0: 1e9, z1: -1e9, y0: 1e9, y1: -1e9 };
+    for (let k = 0; k < 3; k++) { v.fromBufferAttribute(P, I[t + k]); c.x0 = Math.min(c.x0, v.x); c.x1 = Math.max(c.x1, v.x); c.z0 = Math.min(c.z0, v.z); c.z1 = Math.max(c.z1, v.z); c.y0 = Math.min(c.y0, v.y); c.y1 = Math.max(c.y1, v.y); } }
+  if (!Object.keys(C).length) { m.geometry = g0; return; }
+  g.setIndex(keep);
+  for (const c of Object.values(C)) { const r = Math.min(c.x1 - c.x0, c.z1 - c.z0) / 2 * 1.02, h = c.y1 - c.y0; if (!(r > 0 && h > 0)) continue;
+    const L = [[0, 0], [r * 1.07, 0], [r * 1.07, h * .025], [r * 1.02, h * .06], [r, h * .1], [r, h * .52], [r * 1.014, h * .535], [r * 1.014, h * .565], [r, h * .58], [r, h * .9], [r * 1.03, h * .92], [r * 1.03, h * .975], [r * .9, h], [r * .9, h * 1.04]].map(([a, b]) => new THREE.Vector2(a, b));
+    const lg = new THREE.LatheGeometry(L, 40); lg.translate((c.x0 + c.x1) / 2, c.y0, (c.z0 + c.z1) / 2); const o = new THREE.Mesh(lg, NEMAKI_MAT); o.name = "nemaki"; m.add(o); }
 }
 function contactShadows() {
   const L = []; const bb = new THREE.Box3(), sz = new THREE.Vector3(), c = new THREE.Vector3();
@@ -626,7 +643,7 @@ function buildImpostors() {
     renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(sc, cam); sc.remove(g);
     P.impR = { rt, cam, sc };   /* 11-10：葉の絵を立体の葉に差し替えたあと、遠景の絵も描き直す */
     const geo = new THREE.BufferGeometry(), pos = [], uv = [], idx = [];
-    for (let k = 0; k < 2; k++) { const a = k * Math.PI / 2, cx = Math.cos(a) * W / 2, cz = Math.sin(a) * W / 2, b = pos.length / 3;
+    for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3,   /* 11-11 採点 P2「遠景の木の板らしさ」：十字の 2 枚を 60° ずつ 3 枚に（真横から見て薄くなる向きを減らす） */ cx = Math.cos(a) * W / 2, cz = Math.sin(a) * W / 2, b = pos.length / 3;
       pos.push(-cx, 0, -cz, cx, 0, cz, cx, H, cz, -cx, H, -cz); uv.push(0, 0, 1, 0, 1, 1, 0, 1); idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
     geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx);
     const mat = new THREE.MeshBasicMaterial({ map: rt.texture, alphaTest: .45, side: THREE.DoubleSide, color: "#e2e6e0" });
@@ -634,7 +651,7 @@ function buildImpostors() {
     mat.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying float vFc; varying vec3 vTn;")
         .replace("#include <fog_vertex>", "#include <fog_vertex>\n{ vec3 nv = normalize(mat3(modelViewMatrix) * mat3(instanceMatrix) * normal); vFc = abs(dot(nv, normalize(-mvPosition.xyz))); vec3 ip = instanceMatrix[3].xyz; float h = fract(sin(dot(ip.xz, vec2(12.99, 78.23))) * 43758.5); vTn = vec3(.86 + .22 * h, .9 + .16 * fract(h * 7.3), .84 + .2 * fract(h * 3.1)); }");
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vFc; varying vec3 vTn;")
-        .replace("#include <alphatest_fragment>", "{ vec2 e = min(vMapUv, 1. - vMapUv); diffuseColor.a *= smoothstep(.0, .06, e.x) * smoothstep(.0, .04, 1. - vMapUv.y) * smoothstep(.12, .42, vFc); diffuseColor.rgb *= vTn; }\n#include <alphatest_fragment>"); };
+        .replace("#include <alphatest_fragment>", "{ vec2 e = min(vMapUv, 1. - vMapUv); diffuseColor.a *= smoothstep(.0, .06, e.x) * smoothstep(.0, .04, 1. - vMapUv.y) * smoothstep(.12, .42, vFc); diffuseColor.rgb *= vTn; /* 11-11 板らしさ：樹冠の内側と下ほど暗く（葉の重なりの陰）、縁は少し明るく */ diffuseColor.rgb *= mix(.72, 1.06, smoothstep(.05, .45, e.x)) * mix(.78, 1., smoothstep(.1, .6, vMapUv.y)); }\n#include <alphatest_fragment>"); };
     mat.customProgramCacheKey = () => "treeImp2";
     const im = new THREE.InstancedMesh(geo, mat, count[sp] || 1); im.count = 0; im.frustumCulled = false; world.add(im); P.imp = im;
     { /* 11-10 採点 P2「遠景の木の低い板の並び」：同じ樹種で、細く高い型をもう一つ（横 .8・縦 1.25・45° 回した向きから写す） */
@@ -825,6 +842,7 @@ function loadLate() {
       const src = g.scene.getObjectByName(s.m); if (!src) continue;
       const o = src.clone(true); o.position.set(s.p[0], s.p[1], s.p[2]); o.rotation.set(0, s.r, 0); o.scale.setScalar(1);
       o.traverse(n => { if (n.isMesh && n.material) { n.material.envMapIntensity = .6;
+        if (n.material.name === "black" && /^torii_/.test(s.id)) { try { nemaki(n); } catch (e) { console.warn("nemaki", e); } }
         if (n.material.name === "black") { n.material = n.material.clone(); n.material.color.set("#1c1a19"); n.material.roughness = .38; n.material.metalness = .05; n.material.envMapIntensity = 1.25; }   // 根巻と笠木の黒：漆のような艶（平らな黒い箱に見えないように）
         else if (/^shu_/.test(n.material.name)) { const nm = n.material.name; n.material = WMAT[nm] ||= (m => { m.color.multiply(new THREE.Color().setRGB(1.12, .44, .34)); m.envMapIntensity = .35; if (m.emissive) m.emissive.setRGB(.09, .012, .004); return m;   /* 11-10：霞の中でも朱がはっきり */ })(n.material.clone()); }   // 2026-10-29 本人「鳥居をもっと赤く」：朱の塗りの写真に赤みを掛け、霞と空の照り返しで桃色に浅くならないように
         else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; if (STRUCT_WEATHER[nm].edge) n.geometry = edgeGeo(n.geometry); n.material = WMAT[nm] ||= weather((m => { if (nm === "old_lantern" && m.color) { const L = .2126 * m.color.r + .7152 * m.color.g + .0722 * m.color.b; if (L < .34) m.color.multiplyScalar(.34 / Math.max(.05, L)); } return m; })(n.material.clone()), STRUCT_WEATHER[nm]); } } });
