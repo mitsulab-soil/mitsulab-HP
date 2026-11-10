@@ -415,7 +415,7 @@ function zebras() {
   if (!b) return; const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setIndex(I); g.computeVertexNormals();
   const m = new THREE.MeshStandardMaterial({ color: "#9a968e", roughness: .92, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });   /* 11-11 試し：縞をさらに落とす・透かすと、採点 2 人が「消えて汚れに見える」→ 7342ba9 の明るさのまま */   /* 採点：白が強く CG っぽい→明度を落とし、擦れ（タイヤの通る所ほど薄い）を足す */
   m.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vZw;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvZw = (modelMatrix * vec4(transformed, 1.)).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vZw; float zh(vec2 p){ return fract(sin(dot(floor(p), vec2(12.99, 78.23))) * 43758.5); }")
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vZw; float zh0(vec2 p){ return fract(sin(dot(p, vec2(12.99, 78.23))) * 43758.5); } float zh(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(zh0(i), zh0(i + vec2(1., 0.)), f.x), mix(zh0(i + vec2(0., 1.)), zh0(i + 1.), f.x), f.y); }   /* 11-11 採点 P2「近くの縞が粗い点」：四角い升の雑音をなめらかな雑音に */")
       .replace("#include <color_fragment>", "#include <color_fragment>\n{ vec2 p = vZw.xz; float n = zh(p * 9.) * .5 + zh(p * 3.1) * .3 + zh(p * .9) * .2; diffuseColor.rgb *= .7 + .3 * n; diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.36, .35, .33), .25 * smoothstep(.3, .0, abs(fract(p.x * .5 + p.y * .5) - .5))); diffuseColor.a = 1.; if (n < .2) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.33, .32, .3), .7); }"); };
   const ms = new THREE.Mesh(g, m); ms.renderOrder = 1; world.add(ms);
 }
@@ -466,12 +466,12 @@ function buildBuildings(g) {
   const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
     sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .094 : fogFar, vFogDepth);   /* 11-10 霞を奥へ広げても、霞の中の箱の薄め方は前のまま（.16×240/408） */ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .8 : .82) * mix(.6, 1., uSky);   /* 11-10 歩くとき霞の中の箱は、色を寄せるより薄くして消す（白い帯を出さない） */ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
-  m.onBeforeCompile = sh => { vs(sh);
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
+  m.onBeforeCompile = sh => { vs(sh); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float aTop; varying float vTop;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvTop = (modelMatrix * vec4(position.x, aTop, position.z, 1.)).y;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; varying float vTop; uniform float uT; uniform float uG; uniform float uSky;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { vec3 fn = normalize(cross(dFdx(vWp), dFdy(vWp))); float dist = length(vWp - cameraPosition); vec3 vd = (cameraPosition - vWp) / max(dist, 1e-3);
         float fr = pow(1. - abs(dot(fn, vd)), 2.); float roof = step(.6, abs(fn.y)); float nr = 1. - smoothstep(80., 420., dist);
-        float fy = (vWp.y - 13.2) / 3.15; float d = abs(fract(fy + .5) - .5); float fl = (1. - roof) * step(.5, fy) * (1. - smoothstep(0., fwidth(fy) * 1.2, d));
+        float fy = (vWp.y - 13.2) / 3.15; float d = abs(fract(fy + .5) - .5); float fl = (1. - roof) * step(.5, fy) * (1. - smoothstep(0., fwidth(fy) * 1.2, d)) * mix(1., 1. - smoothstep(70., 140., dist), 1. - uSky);   /* 11-11 歩くとき霞の中の階の線を消す（四角い枠に読める） */
         float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.1, 2.)) * (1. - roof);
         float fade = mix(mix(1., .42, smoothstep(90., 420., dist)), mix(1., .6, smoothstep(140., 760., dist)), uSky);   /* 10-28 夜 5：歩くとき遠くの建物を早めに消す（遠くが白く浮いていた） */
         diffuseColor.rgb = mix(vec3(.25,.35,.43), vec3(.36,.66,.78), fr * .7 + band * .7 + fl * nr * .6) * (roof > .5 ? 1.1 : 1.);
@@ -484,6 +484,7 @@ function buildBuildings(g) {
 #ifdef USE_FOG
  diffuseColor.rgb = mix(diffuseColor.rgb, fogColor, wk * smoothstep(70., 260., dist) * .5);
 #endif
+ { float hz = wk * smoothstep(80., 200., dist), hn = wk * smoothstep(30., 60., dist); diffuseColor.a *= mix(1., (1. - smoothstep(min(max(vTop - 7., uG + 1.), vTop - .6), vTop + .01, vWp.y)) * (1. - .7 * smoothstep(uG + .5, max(vTop, uG + 1.5), vWp.y))   /* 低い箱（屋根が uG+1 より下）で smoothstep の端が逆になり細い線が出た→端の順を保つ */ * (1. - roof) * (1. - .45 * smoothstep(70., 150., dist)), hn);   /* 第4周：根もとから上へ霞に溶ける勾配・遠いほど薄く */   /* 11-11 第3周：40 m より先の箱も、上の縁と屋根を霞へ溶かす（壁の根もとの濃さは本人 11-10 の決定どおり残す） */ diffuseColor.a *= mix(1., (1. - .4 * fr) * (1. - .6 * smoothstep(140., 300., dist)), hz); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(.333))), hz * .5); }   /* 11-11 第2周：面の向きの明暗差（角の縦線）も霞の中では平らに */   /* 11-11 採点 P2「霧の中の半透明の四角い面」：霞の中の箱は上へ行くほど霞へ溶かし（上の縁と角を見せない）、斜めの面の縁の照りも抑える。手前の濃さはそのまま */
  }   /* 11-10 霞の奥の箱は色を霞へ寄せる（濃さは近い所で保つ） */ }`);   /* 11-10 本人「建物をもう少し濃く。薄すぎて見えません」：近く（〜40 m）は消したまま、その先を濃く */   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };
   m.customProgramCacheKey = () => "bldGhost3";
@@ -492,12 +493,14 @@ function buildBuildings(g) {
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { float dist = length(vWp - cameraPosition); float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.6, 2.));
-        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.42, .5, uSky) * mix(.38 * (1. - smoothstep(60., 220., dist)), 1., uSky);   /* 11-10 歩くとき箱の縁の線を霞になじませる */   // 11-05 歩くときの箱の縁の線を淡く
+        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.42, .5, uSky) * uSky;   /* 11-11 歩くときは箱の縁の線を描かない（近くの箱の面は消してあり、線だけが碧の前を横切る細い線に見えた） */   /* 11-10 歩くとき箱の縁の線を霞になじませる */   // 11-05 歩くときの箱の縁の線を淡く
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86,.99,1.), band * .7); }`);
   };
   lm.customProgramCacheKey = () => "bldGhostL2";
   QW.bldMat = m; QW.bldLine = lm; QW.bldGhost = g.scene;
   g.scene.updateMatrixWorld(true);
+  g.scene.traverse(o => { if (o.isMesh && !o.geometry.attributes.aTop) { const P = o.geometry.attributes.position, T = new Float32Array(P.count), M = new Map(), k = i => Math.round(P.getX(i) * 2) + "," + Math.round(P.getZ(i) * 2);   /* 11-11 箱の上の縁を霞へ溶かすため、頂点ごとにその箱の屋根の高さ（同じ位置の頂点のいちばん高い y）を持たせる */
+    for (let i = 0; i < P.count; i++) { const q = k(i), y = P.getY(i); if (!(M.get(q) >= y)) M.set(q, y); } for (let i = 0; i < P.count; i++) T[i] = M.get(k(i)); o.geometry.setAttribute("aTop", new THREE.BufferAttribute(T, 1)); } });
   g.scene.traverse(o => { if (o.isMesh) { o.material = m; o.geometry.computeBoundingSphere(); o.userData.ws = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld); } });
   bldGroup = g.scene; world.add(bldGroup); BLD.length = 0; bldGroup.traverse(o => { if (o.isMesh) BLD.push(o); });
   bldGroup.traverse(o => { if (o.isMesh) { o.renderOrder = 1; o.castShadow = o.receiveShadow = false; } });
