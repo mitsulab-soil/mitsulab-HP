@@ -179,7 +179,7 @@ export function kuraMats(TL, mobile) {
         ${k !== "shikkui" ? "" : "float tw = sin(vLxz.x * 1.7 + vLy * .9) * sin((vLxz.y - vLy) * 1.3); diffuseColor.rgb *= 1. + tw * .06;"}`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);")
       .replace("#include <clearcoat_normal_fragment_maps>", k !== "shikkui" ? "#include <clearcoat_normal_fragment_maps>" : `#include <clearcoat_normal_fragment_maps>
-        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .045);`);   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
+        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .08); clearcoatNormal = normalize(clearcoatNormal);`);   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
   };
   MATS.shikkui.customProgramCacheKey = () => "kura-shikkui"; MATS.plaster.customProgramCacheKey = () => "kura-plaster"; MATS.plasterg.customProgramCacheKey = () => "kura-plasterg";
   MATS.tileCanvas = tile.canvas;
@@ -220,7 +220,7 @@ export function kuraGeos(type) {
   A.tile.slab(-hw - .15, hw + .15, hy - .45, hz, hy, hd, .14); A.tile.ribs(-hw - .15, hw + .15, hy - .45, hz, hy, hd, .3, .06, .06);
   A.wood.box(-hw - .17, hy - .45 - .2, hz - .03, hw + .17, hy - .45 + .03, hz + .03);   // 鼻隠しの板（2026-10-23 公開前：下屋の瓦の切り口に白い光の縞が出たので板で隠す）
   A.wood.quad([hw + .15, hy - .45 - .15, hz], [-hw - .15, hy - .45 - .15, hz], [-hw - .15, hy - .15, hd], [hw + .15, hy - .15, hd]);   // 下屋の軒裏は板（見上げたとき瓦の照りが見えない）
-  for (let x = -hw; x <= hw; x += .9) A.wood.box(x - .04, hy - .62, hd, x + .04, hy - .5, hz - .1, 1, "xXy");   // 垂木
+  if (false) for (let x = -hw; x <= hw; x += 1) A.dark.box(x - .04, hy - .62, hd, x + .04, hy - .5, hz - .1, 1, "xXy");   // 11-11：白い縞→陰の色に   // 垂木
   // 2 階：厚い土壁（手前を 0.25 m 引っこめる）
   const z2 = hd - .25;
   A.shikkui.box(-hw, T.h1, -hd, hw, T.h2, z2, 1, "xXzZ");
@@ -322,7 +322,7 @@ export function machiGeos(type) {
   const hy = T.h1 + .3, hz = hd + .85;
   A.tile.slab(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .1);   // 下屋
   A.wood.quad([hw + .05, hy - .38 - .11, hz], [-hw - .05, hy - .38 - .11, hz], [-hw - .05, hy - .11, hd], [hw + .05, hy - .11, hd]);   // 軒裏
-  for (let x = -hw; x <= hw; x += .75) A.wood.box(x - .035, hy - .5, hd, x + .035, hy - .42, hz - .08, 1, "xXy");
+  if (false) for (let x = -hw; x <= hw; x += 1) A.dark.box(x - .035, hy - .5, hd, x + .035, hy - .42, hz - .08, 1, "xXy");   // 11-11：軒裏の垂木が白い縞に光った→陰の色に
   const z2 = hd - .15;
   A[T.side].box(-hw, T.h1, -hd, hw, T.h2, z2, 1, "xXz");   // 2 階の横と奥
   A[T.up].quad([-hw, T.h1, z2], [hw, T.h1, z2], [hw, T.h2, z2], [-hw, T.h2, z2]);   // 2 階の正面

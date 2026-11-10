@@ -13,7 +13,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k22";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k25";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
@@ -804,10 +804,10 @@ function kuraAO(m0, mk, full = true) {
       .replace("#include <aomap_fragment>", `#include <aomap_fragment>
         { float y = vAoP.y, ny = vAoN.y, wall = 1. - smoothstep(.35, .7, abs(ny));
           float ao = 1.;
-          ao *= mix(.55, 1., smoothstep(0., 1.5, y));                                  // 地面との際
+          ao *= mix(.42, 1., smoothstep(0., 1.6, y));   // 11-11 接地の影を濃く                                  // 地面との際
           ${full ? "" : "/*"} ao *= 1. - .32 * wall * smoothstep(2.1, 3.42, y) * (1. - smoothstep(3.42, 3.6, y));   // 下屋の下の壁
           ao *= 1. - .3 * wall * smoothstep(5.3, 6.5, y) * (1. - smoothstep(6.5, 6.7, y));     // 軒の下の壁
-          ao *= mix(1., .3, smoothstep(.3, .8, -ny));                                  // 軒裏・庇の裏
+          ao *= mix(1., .22, smoothstep(.3, .8, -ny));                                  // 軒裏・庇の裏
           ao *= 1. - .18 * smoothstep(.55, .95, ny) * smoothstep(6.4, 6.9, y) * (1. - smoothstep(7.4, 8.4, y));   // 屋根の谷（下の方）
           ${full ? "" : "*/"}
           reflectedLight.indirectDiffuse *= ao; reflectedLight.indirectSpecular *= mix(1., ao, .8);
@@ -823,7 +823,7 @@ function buildKura2(GM) {
   for (const t in byType) {
     const geos = GM ? (GM[KVAR(t)] || GM.A) : kuraGeos(t).geos, list = byType[t];   /* 2026-11-02 型 3 通り（A 二つ窓・B 大きな一つ窓と高い箱棟・C 袖壁なし）を型の記号で振り分け */
     for (const mk in geos) {
-      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .04; m.clearcoat = 1; m.roughness = .14; m.envMapIntensity = MOBILE ? 2.0 : 2.4;   /* 11-10 第2：近くで分かる黒漆喰の映り込み */ m.color.set("#141518");   /* 11-02 P1「壁・柱・屋根が一様な暗い灰」→ 黒漆喰は磨いた面に空が映る黒（木の茶・瓦の銀鼠・石の灰と分かれる） */   /* 2026-11-02 採点「蔵造りに見えない（灰の壁）」→ 空の映りを一面に広げず、黒漆喰の深い黒に細い照りだけ */   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .2; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f7379", roughness: .8, metalness: 0, clearcoat: 0, clearcoatRoughness: .35, envMapIntensity: .35,   /* 第5：鬼瓦を焼き物のマットに（青光りを消す） */   /* 第3：軒先の白い縞を抑える */ side: THREE.DoubleSide })) : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
+      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .04; m.clearcoat = 1; m.roughness = .14; m.envMapIntensity = MOBILE ? 2.0 : 2.4;   /* 11-10 第2：近くで分かる黒漆喰の映り込み */ m.color.set("#141518");   /* 11-02 P1「壁・柱・屋根が一様な暗い灰」→ 黒漆喰は磨いた面に空が映る黒（木の茶・瓦の銀鼠・石の灰と分かれる） */   /* 2026-11-02 採点「蔵造りに見えない（灰の壁）」→ 空の映りを一面に広げず、黒漆喰の深い黒に細い照りだけ */   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .2; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f7379", roughness: .8, metalness: 0, clearcoat: 0, clearcoatRoughness: .35, envMapIntensity: .35,   /* 第5：鬼瓦を焼き物のマットに（青光りを消す） */   /* 第3：軒先の白い縞を抑える */ side: THREE.DoubleSide }), M.tileG.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <opaque_fragment>", "{ float rim = pow(1. - clamp(dot(normalize(vViewPosition), -normal), 0., 1.), 4.); outgoingLight += vec3(.5, .53, .58) * rim * .11; }\n#include <opaque_fragment>"); }, M.tileG.customProgramCacheKey = () => "kura-tileG-rim", M.tileG)   /* 11-11：鬼瓦の縁に空の明るさ（リム）を入れ、スマホでも形が読めるように */ : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
       const o = new THREE.Object3D();
       const tint = new THREE.Color();
       list.forEach((k, i) => { const r1 = (Math.sin(k.x * 12.9898 + k.z * 78.233) * 43758.5) % 1, r = Math.abs(r1);   // 棟ごとの違い（高さ・瓦の焼きむら・漆喰の黒の深さ）：同じ型の繰り返しに見せない

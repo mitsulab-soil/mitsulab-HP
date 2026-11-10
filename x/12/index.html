@@ -20,12 +20,13 @@
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
 <link rel="modulepreload" href="web/app/app.js?v=20261110k1">
+<link rel="modulepreload" href="web/kit/sight_look.js?v=2"><link rel="modulepreload" href="web/kit/BufferGeometryUtils.js"><link rel="preload" href="web/tex/sky.webp" as="image">   <!-- 11-11 375 の起動：app.js を読んでから見つかっていた 3 つを先に -->
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="modulepreload" href="web/app/layers.js?v=k4">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
 <link rel="modulepreload" href="web/app/worldlayers.js?v=w16z">
 <link rel="modulepreload" href="web/kit/ground_far.js?v=7">
-<link rel="modulepreload" href="web/app/kura.js?v=k22">
+<link rel="modulepreload" href="web/app/kura.js?v=k25">
 <link rel="modulepreload" href="web/app/bell.js?v=k1">
 <link rel="modulepreload" href="web/app/herewalk.js?v=2">
 <link rel="modulepreload" href="web/kit/nav.js?v=n10">
@@ -586,7 +587,7 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 </style>
 <style id="qualium-cap-375">/* 11-05 採点「375px で字幕が碧の衣に重なる」：スマホで歩くとき、字幕は碧の立つ側と反対の欄に（碧の画面の位置を毎こま見て data-aoi に） */@media (max-width:640px){html body[data-mode="walk"][data-aoi] #caption{width:auto!important;max-width:none!important;transform:none!important;text-align:left!important}html body[data-mode="walk"][data-aoi="l"] #caption{left:46%!important;right:var(--g)!important}html body[data-mode="walk"][data-aoi="r"] #caption{left:var(--g)!important;right:46%!important}html body[data-mode="walk"][data-aoi] #caption:not(.full) #capText{-webkit-line-clamp:5!important;letter-spacing:0!important;font-size:12px!important}}</style>
 <style id="q7lab">/* 11-10 第7周：戻る先と音の札に名前を出す */html:not(.embed) .qhome{width:auto!important;padding:0 10px 0 8px!important;gap:4px;display:inline-flex!important;align-items:center;font-size:18px!important}.qhome .qhl{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}#walkUI #qSnd{width:auto!important;max-width:none!important;padding:0 12px!important;gap:6px}.q7t{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}@media (min-width:641px){#menuBtn{width:auto!important;padding:0 12px!important;gap:6px;display:inline-flex!important;align-items:center}}@media (max-width:640px){#menuBtn .q7t{display:none}}@media (max-width:400px){html:not(.embed) .brand{display:none!important}}</style><script>/* 11-10 第7周 */(()=>{const iv=setInterval(()=>{const s=document.getElementById("qSnd"),m=document.getElementById("menuBtn");if(m&&!m.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="メニュー";t.setAttribute("aria-hidden","true");m.append(t)}if(s&&!s.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="音";t.setAttribute("aria-hidden","true");s.append(t);clearInterval(iv)}},300);setTimeout(()=>clearInterval(iv),20000)})()</script><style id="r9-capsrc">html body #caption #capTag .capSrc{pointer-events:auto;cursor:pointer;opacity:.75;padding:6px 2px;margin:-6px 0}html body #caption #capTag{pointer-events:auto}</style>
-<style id="qualium-375-bottom">/* 11-10 深夜 採点「スマホの画面下が詰まる」：五感の帯をひとまわり小さく下へ、右下の二つの札は 44px を保ち細く・字を小さく */@media (max-width:640px){html body #qS6{scale:.9;transform-origin:50% 100%;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 60px)!important}html body[data-mode="walk"] #walkUI .ib{padding:0 10px!important;font-size:12px!important;letter-spacing:.04em;background:rgba(14,18,24,.42)!important}html body[data-mode="walk"] #walkUI{gap:4px!important}}</style>
+<style id="qualium-375-bottom">/* 11-10 深夜 採点「スマホの画面下が詰まる」：五感の帯をひとまわり小さく下へ、右下の二つの札は 44px を保ち細く・字を小さく */@media (max-width:640px){html body #qS6{scale:.9;transform-origin:50% 100%;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 60px)!important}html body[data-mode="walk"] #walkUI .ib{padding:0 10px!important;font-size:12px!important;letter-spacing:.04em;background:rgba(14,18,24,.42)!important}html body[data-mode="walk"] #walkUI{gap:4px!important}html body #qIK{top:auto!important;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 178px)!important;transform:none!important;opacity:.95;gap:4px!important}html body #qIK button{background:rgba(12,15,20,.58)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 川越" data-en="Qualium Kawagoe" data-icon="favicon/icon.svg" data-max="500"></script>
