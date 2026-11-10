@@ -230,7 +230,9 @@ const pickables = [];   // 地面を押して歩くときに当たる面
 
 async function buildBase() {
   status("参道の地形を読み込んでいます");
-  const [data, dem, tg, sky] = await Promise.all([pData, pDem, pTerrain, pSky]);
+  /* 11-11 起動：空の絵（31 KB）が回線で遅れても待たない。0.25 秒で来なければ、空の色の仮の絵で始め、届いたら差しかえて映り込みも作り直す */
+  const skyTmp = () => { const cv = document.createElement("canvas"); cv.width = 4; cv.height = 64; const x = cv.getContext("2d"), g = x.createLinearGradient(0, 0, 0, 64); g.addColorStop(0, "#7d9fc4"); g.addColorStop(.48, "#c9d6e0"); g.addColorStop(.52, "#b7bcb4"); g.addColorStop(1, "#6f7466"); x.fillStyle = g; x.fillRect(0, 0, 4, 64); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.tmp = 1; return t; };
+  const [data, dem, tg, sky] = await Promise.all([pData, pDem, pTerrain, Q.get("skywait") === "1" ? pSky : Promise.race([pSky, new Promise(r => setTimeout(r, 250))]).then(t => t || skyTmp())]);
   D = data;
   /* 11-10 第4周：歩くと参道の外が平らな地平のまま見えた→並木の外 40〜170 m に社叢の木（シイ・カシ・クスノキ・ケヤキ）を置く。
      描き方は並木と同じ（近くは形・遠くは横から写した絵の一回の描画）。一本ずつの位置は模式（実在の社叢・屋敷林の位置ではない） */
@@ -244,6 +246,7 @@ async function buildBase() {
   scene.background = sky; QW.skyTex = sky;
   const pm = new THREE.PMREMGenerator(renderer); const env = pm.fromEquirectangular(sky).texture; pm.dispose();
   scene.environment = env; QW.env = env;
+  if (sky.tmp) pSky.then(real => { real.mapping = THREE.EquirectangularReflectionMapping; if (scene.background === sky) scene.background = real; QW.skyTex = real; const p2 = new THREE.PMREMGenerator(renderer), e2 = p2.fromEquirectangular(real).texture; p2.dispose(); const old = QW.env; scene.environment = e2; QW.env = e2; scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.envMap === old) { m.envMap = e2; m.needsUpdate = true; } }); sky.dispose(); }).catch(() => { });
   const grass = tex(BASE + "tex/grass5.webp"), litter = tex(BASE + "tex/litter.webp?v=" + VER);
   terrainMesh = tg.scene.getObjectByProperty("isMesh", true); if (!terrainMesh.geometry.attributes.normal) terrainMesh.geometry.computeVertexNormals();
   const tm = new THREE.MeshStandardMaterial({ color: 0x55604a, roughness: 1, metalness: 0, envMapIntensity: .35 });
