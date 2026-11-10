@@ -35,7 +35,7 @@ span.nw{white-space:nowrap}
 body.fo #cap{opacity:0}
 #hint{position:fixed;left:50%;bottom:max(92px,calc(env(safe-area-inset-bottom) + 92px));transform:translateX(-50%);padding:10px 22px;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent);mask-image:radial-gradient(closest-side,#000 62%,transparent);font:500 15px/1.6 "Shippori Mincho",serif;color:var(--t1);text-shadow:0 0 2px rgba(7,13,26,.95),0 0 6px rgba(7,13,26,.75),0 0 16px rgba(7,13,26,.45);pointer-events:none;transition:opacity 1s;white-space:nowrap}
 #cred{position:fixed;right:64px;bottom:max(6px,env(safe-area-inset-bottom));font:10px/1.4 Inter,sans-serif;color:var(--t1);opacity:.92;pointer-events:none;text-shadow:0 0 3px rgba(7,13,26,.75),0 0 10px rgba(7,13,26,.5)}
-@media (max-width:520px){#cap{font-size:14px;width:calc(100% - 150px);left:calc(50% + 4px);bottom:max(30px,calc(env(safe-area-inset-bottom) + 22px))}#cred{right:56px}#hint{white-space:normal;width:calc(100% - 110px);text-align:center;font-size:13px}#rule{width:44px}#rule svg{right:6px;width:26px}#rule text{font-size:11px}#rule line{stroke-opacity:.4}}
+@media (max-width:520px){#cap{font-size:14px;width:calc(100% - 150px);left:calc(50% + 4px);bottom:max(30px,calc(env(safe-area-inset-bottom) + 22px))}#cred{right:56px}#hint{white-space:normal;width:calc(100% - 110px);text-align:center;font-size:13px}#rule{width:52px}#rule svg{right:8px;width:30px}#rule text{font-size:13px;font-weight:600}#now small{font-size:12.5px}#now{font-size:14px}#rule line{stroke-opacity:.4}}
 </style>
 </head>
 <body>
@@ -266,20 +266,34 @@ function buildTrees() {
       const L2 = new (window.__GL)(); L2.setMeshoptDecoder(window.__MD);
       return new Promise(ok => L2.load("./bldg/buildings.glb", ok, undefined, () => ok(null))); }).then(g => { if (!g) return;
       const box = new THREE.Group(); box.rotation.y = .0436; box.add(g.scene); g.scene.position.set(-18.9, -14.02, -359.21);
-      const bm = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
+      const bm = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }); window.__bm = bm;
       /* 町は遠景：霞の色へ寄せ、高さで淡く（壁の細部は持たないので、近くでも主張させない） */
       const tW = new THREE.TextureLoader().load("./img/g_wall.webp"); const tFa = new THREE.TextureLoader().load("./img/f_a.webp"), tFb = new THREE.TextureLoader().load("./img/f_b.webp"); for (const t of [tFa, tFb]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; } tW.wrapS = tW.wrapT = THREE.RepeatWrapping; tW.colorSpace = THREE.SRGBColorSpace;
-      bm.onBeforeCompile = sh => { sh.uniforms.tW = { value: tW }; sh.uniforms.tFa = { value: tFa }; sh.uniforms.tFb = { value: tFb }; sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying float vBy; varying vec3 vBw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvBw = ( modelMatrix * vec4( transformed, 1. ) ).xyz; vBy = vBw.y;");
-        sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vBy; varying vec3 vBw; uniform sampler2D tW, tFa, tFb;").replace("#include <color_fragment>", `#include <color_fragment>
+      bm.onBeforeCompile = sh => { sh.uniforms.tW = { value: tW }; sh.uniforms.tFa = { value: tFa }; sh.uniforms.tFb = { value: tFb }; sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying float vBy; varying vec3 vBw; attribute float aBh; varying float vBh;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvBh = aBh; vBw = ( modelMatrix * vec4( transformed, 1. ) ).xyz; vBy = vBw.y;");
+        sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vBy; varying vec3 vBw; varying float vBh; uniform sampler2D tW, tFa, tFb;").replace("#include <color_fragment>", `#include <color_fragment>
 { vec3 n_ = normalize( cross( dFdx( vBw ), dFdy( vBw ) ) );
   if ( abs( n_.y ) < .5 ) { float u_ = dot( vBw.xz, normalize( vec2( -n_.z, n_.x ) ) ), v_ = vBw.y;
     vec2 cell_ = floor( vBw.xz / 14. ); float hh_ = fract( sin( dot( cell_, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
     vec3 pal_ = hh_ < .3 ? vec3( 1.05, 1.03, 1. ) : hh_ < .55 ? vec3( .92, .9, .86 ) : hh_ < .75 ? vec3( .78, .78, .78 ) : vec3( 1., .97, .92 );
     float vg_ = v_ + 14.02; vec2 fu_ = vec2( u_ / 16. + hh_ * 7.3, vg_ / 24. );
-    vec3 fa_ = hh_ < .78 ? texture2D( tFa, fu_ ).rgb : texture2D( tFb, fu_ * vec2( 1.3, 1. ) ).rgb;   /* 外壁と窓の並び＝ambientCG Facade017・Facade006（CC0 の写真） */
-    diffuseColor.rgb = fa_ * pal_ * 1.15;
-    if ( vg_ < 3.4 ) { diffuseColor.rgb = vec3( .3, .29, .27 ) * ( .8 + .36 * texture2D( tW, vec2( u_, v_ ) / 4. ).g ); diffuseColor.rgb += vec3( .2, .19, .15 ) * step( .2, fract( u_ / 4.2 ) ) * step( .6, vg_ ) * step( vg_, 2.8 ); } }   /* 1 階の店先の帯（模式） */
-  else { vec2 rc_ = fract( vBw.xz / 3. ); diffuseColor.rgb = vec3( .5, .5, .49 ) * ( .85 + .3 * texture2D( tW, vBw.xz / 5. ).g ) - .12 * step( .7, rc_.x ) * step( .7, rc_.y ); } }`)   /* 屋上（設備は模式の影） */.replace("#include <fog_fragment>", "gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( .72, .77, .79 ), .12 + .12 * smoothstep( 0., 40., vBy ) );\n#include <fog_fragment>"); }; g.scene.traverse(o => { if (o.isMesh) { o.material = bm; o.frustumCulled = true; } });
+    vec3 fa_ = hh_ < .78 ? texture2D( tFa, fu_ ).rgb : texture2D( tFb, fu_ * vec2( 1.3, 1. ) ).rgb;
+    float lo_ = 1. - step( 10.5, vBh );   /* PLATEAU の高さが 3 階ほどまで＝住宅の外壁 */   /* 外壁と窓の並び＝ambientCG Facade017・Facade006（CC0 の写真） */
+    float hk_ = fract( sin( dot( floor( vBw.xz / 9. ) + floor( vBh ), vec2( 41.3, 17.7 ) ) ) * 9137.1 ); vec3 hp_ = hk_ < .25 ? vec3( .74, .71, .65 ) : hk_ < .45 ? vec3( .58, .57, .54 ) : hk_ < .62 ? vec3( .66, .6, .52 ) : hk_ < .8 ? vec3( .8, .78, .73 ) : vec3( .5, .48, .45 );
+    vec3 sid_ = hp_ * .9 * ( .9 + .14 * texture2D( tW, vec2( u_, v_ ) / 3. ).g ) * ( .96 + .04 * step( .5, fract( v_ / .25 ) ) );
+    float win_ = step( .55, fract( u_ / 3.6 + hh_ ) ) * step( .75, fract( u_ / 3.6 + hh_ + .2 ) ) * step( .9, fract( vg_ / 2.9 ) + .4 ) ;
+    sid_ = mix( sid_, vec3( .2, .22, .24 ), .7 * step( .62, fract( u_ / 3.6 + hh_ ) ) * step( fract( u_ / 3.6 + hh_ ), .8 ) * step( .35, fract( vg_ / 2.9 ) ) * step( fract( vg_ / 2.9 ), .75 ) );
+    diffuseColor.rgb = mix( fa_ * pal_ * 1.15, sid_, lo_ );
+    if ( vg_ < 3.4 && lo_ < .5 ) { diffuseColor.rgb = vec3( .3, .29, .27 ) * ( .8 + .36 * texture2D( tW, vec2( u_, v_ ) / 4. ).g ); diffuseColor.rgb += vec3( .2, .19, .15 ) * step( .2, fract( u_ / 4.2 ) ) * step( .6, vg_ ) * step( vg_, 2.8 ); } }   /* 1 階の店先の帯（模式） */
+  else { vec2 cl_ = floor( vBw.xz / 14. ); float hr_ = fract( sin( dot( cl_, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ); float vr_ = vBy + 14.02;
+    if ( vBh < 10.5 ) { vec3 rf_ = hr_ < .35 ? vec3( .30, .31, .33 ) : hr_ < .6 ? vec3( .24, .23, .22 ) : hr_ < .8 ? vec3( .36, .30, .26 ) : vec3( .28, .32, .36 ); float ro_ = step( .82, fract( dot( vBw.xz, vec2( .7, .71 ) ) / .3 ) ); diffuseColor.rgb = rf_ * ( .88 + .22 * texture2D( tW, vBw.xz / 2. ).g ) * ( 1. - .18 * ro_ ); }   /* 瓦・スレートの屋根の色（模式） */
+    else { vec2 rc_ = fract( vBw.xz / 3. ); diffuseColor.rgb = vec3( .5, .5, .49 ) * ( .85 + .3 * texture2D( tW, vBw.xz / 5. ).g ) - .12 * step( .7, rc_.x ) * step( .7, rc_.y ); } } }`)   /* 屋上（設備は模式の影） */.replace("#include <fog_fragment>", "gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( .72, .77, .79 ), .12 + .12 * smoothstep( 0., 40., vBy ) + .38 * smoothstep( 25., 80., vBh ) * smoothstep( 60., 400., length( vBw - cameraPosition ) ) );   /* 高い建物（PLATEAU の実在）は距離の霞へ寄せて圧迫させない */\n#include <fog_fragment>"); }; const pre = []; g.scene.updateMatrixWorld(true); g.scene.traverse(o => { if (o.isMesh) { o.material = bm; o.frustumCulled = true;
+        /* 建物ごとの高さ（つながった面の y の幅）を頂点に持たせる */
+        const ge = o.geometry, P = ge.attributes.position, n = P.count, par = new Int32Array(n).map((_, i) => i), f = i => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; } return i; };
+        const ix = ge.index ? ge.index.array : null; if (ix) for (let t = 0; t < ix.length; t += 3) { const a = f(ix[t]), b = f(ix[t + 1]), c = f(ix[t + 2]); par[b] = a; par[f(c)] = a; }
+        const lo = new Float32Array(n).fill(1e9), hi = new Float32Array(n).fill(-1e9); for (let i = 0; i < n; i++) { const r = f(i), y = P.getY(i); if (y < lo[r]) lo[r] = y; if (y > hi[r]) hi[r] = y; }
+        const bh = new Float32Array(n); for (let i = 0; i < n; i++) { const r = f(i); bh[i] = ix ? (hi[r] - lo[r]) * o.matrixWorld.elements[5] : 6; } ge.setAttribute("aBh", new THREE.BufferAttribute(bh, 1)); o.renderOrder = 2; pre.push(o); } });
+      /* 溶けるときに奥の面が透けないよう、先に深さだけを描く */
+      { const dm = new THREE.MeshBasicMaterial({ colorWrite: false, transparent: true }); window.__bpre = pre.map(o => { const c = new THREE.Mesh(o.geometry, dm); c.renderOrder = 1; c.visible = false; o.parent.add(c); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); return c; }); }
       trees.add(box);
   }).catch(e => console.warn("tree", e));
   const NEAR = 34; let mats = null, loG = null;
@@ -314,20 +328,28 @@ function buildTwig() {
   float w_ = gw_(); vec3 g_ = mix( so_ * vec3( .95, .93, .88 ), le_ * vec3( .8, .78, .7 ), w_ ); g_ = mix( vec3( dot( g_, vec3( .3, .55, .15 ) ) ), g_, .55 ) * .85; diffuseColor.rgb *= g_;`)
       .replace("#include <normal_fragment_maps>", `vec3 mapN = mix( texture2D( normalMap, vGw.xz / 1.6 ).xyz, texture2D( tLn, vGw.xz / 1.6 * 1.15 ).xyz, gw_() ) * 2. - 1.; mapN.xy *= normalScale;
   normal = normalize( tbn * mapN );`); };
-  gm.customProgramCacheKey = () => "gnd2";
+  gm.customProgramCacheKey = () => "gnd2"; window.__gm = gm;
   const gp = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), gm); gp.rotation.x = -Math.PI / 2; gp.position.y = -.03; gp.renderOrder = -12; trees.add(gp);
   /* 手前の低い枝：互生の葉が二列に（ケヤキの小枝はジグザグに伸びる）。いちばん手前の一枚を最初に向き合う葉にする */
   const twig = new THREE.Group(); const tw = new THREE.MeshLambertMaterial({ color: 0x6d6050 });
   const lm = sightLeaf(new THREE.MeshPhysicalMaterial({ map: leafTexB, bumpMap: leafTexB, bumpScale: 2, alphaTest: .5, side: THREE.DoubleSide, roughness: .5, sheen: .5, sheenColor: new THREE.Color(0xdfeec0), sheenRoughness: .5, clearcoat: .12, clearcoatRoughness: .4 }), { crownY: 1.53, crownR: .1, k: .9 });
   const lmUp = sightLeaf(new THREE.MeshPhysicalMaterial({ map: leafTexB, bumpMap: leafTexB, bumpScale: 2, alphaTest: .5, side: THREE.DoubleSide, roughness: .45, color: 0x7f9a5c, sheen: .4, sheenColor: new THREE.Color(0xd0e4a8), roughness: .6 }), { crownY: 1.53, crownR: .1, k: .9 });
-  const pts = [new THREE.Vector3(-6.9, 2.7, -.35), new THREE.Vector3(-5.62, 1.98, -.06), new THREE.Vector3(-5.53, 1.7, -.012), new THREE.Vector3(-5.52, 1.575, -.004)];
+  const pts = [new THREE.Vector3(-6.9, 1.9, -.3), new THREE.Vector3(-6.2, 1.66, -.08), new THREE.Vector3(-5.85, 1.596, -.03), new THREE.Vector3(-5.70, 1.581, -.016)];
   const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, .0016, 6), tw); twig.add(tube);
   /* 葉の付く小枝（葉柄はここから出る）：画面の上を横切って見えるように */
-  twig.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-5.575, 1.574, -.012), new THREE.Vector3(-5.52, 1.5675, -.004), new THREE.Vector3(-5.47, 1.571, -.009)]), 16, .0011, 8), tw));
-  const hero = new THREE.Mesh(leafGeo(.062, .03, 48), lm); hero.position.set(-5.52, 1.53 + .031, 0); hero.rotation.set(-.12, .1, -Math.PI / 2 + .12); twig.add(hero);
-  twig.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-5.52, 1.5675, -.004), new THREE.Vector3(-5.5195, 1.564, -.002), new THREE.Vector3(-5.52, 1.558, .001)]), 6, .0006, 5), new THREE.MeshLambertMaterial({ color: 0x7d8a52 })));
-  for (let i = 0; i < 7; i++) { const t = .08 + i * .12, p = new THREE.CatmullRomCurve3(pts).getPoint(Math.min(.92, t)); const l = new THREE.Mesh(leafGeo(.05 + hash1(i) * .02, .025, 16), lm);
-    l.position.copy(p); l.rotation.set((i % 2 ? 1 : -1) * 1.1, 1.2 + hash1(i * 3) * .6, (i % 2 ? .5 : -.5)); twig.add(l); }
+  const hero = new THREE.Mesh(leafGeo(.062, .03, 48), lm); hero.rotation.set(-.12, .1, -Math.PI / 2 + .12); twig.add(hero);
+  /* 葉の付く小枝：ジグザグに伸び、節ごとに左右交互に一枚（互生・二列）。節には葉柄と、葉のわきの小さな芽 */
+  { const tw2 = new THREE.MeshLambertMaterial({ color: 0x5f5244 }), pet = new THREE.MeshLambertMaterial({ color: 0x7d8a52 }), bud = new THREE.MeshLambertMaterial({ color: 0x6a4a34 });
+    const N = [[-5.70, 1.581, -.016], [-5.655, 1.5745, -.006], [-5.61, 1.5785, -.013], [-5.565, 1.5675, -.004], [-5.52, 1.5675, -.008], [-5.475, 1.5735, -.002], [-5.432, 1.569, -.009]].map(a => new THREE.Vector3(...a));
+    twig.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(N), 48, .0011, 6), tw2));
+    twig.add(new THREE.Mesh(new THREE.ConeGeometry(.0012, .004, 6), bud).translateX(-5.429).translateY(1.5765).rotateZ(-.9));   /* 先端の芽 */
+    const P = [[1, -1.25, .042], [2, 1.2, .05], [3, -1.15, .046], [4, 0, .062], [5, 1.15, .052], [6, -1.2, .04]];
+    for (const [k, a, len] of P) { const n = N[k], side = k % 2 ? 1 : -1, ang = -Math.PI / 2 + a + (k === 4 ? .12 : 0);
+      const dir = new THREE.Vector3(Math.cos(ang), Math.sin(ang), side * .25).normalize(), pe = n.clone().addScaledVector(dir, k === 4 ? .006 : .004);
+      twig.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([n, n.clone().lerp(pe, .5).add(new THREE.Vector3(0, .0008, 0)), pe]), 6, .0006, 5), pet));
+      twig.add(new THREE.Mesh(new THREE.SphereGeometry(.0011, 6, 4), bud).translateX(n.x - Math.cos(ang) * .0006).translateY(n.y + .0012).translateZ(n.z));   /* 葉のわきの芽 */
+      if (k === 4) { hero.position.copy(pe); continue; }
+      const l = new THREE.Mesh(leafGeo(len, len * .48, 24), lm); l.position.copy(pe); l.rotation.set(side * .35 - .1, side * .25, ang); twig.add(l); } }
   trees.add(twig);
   /* 参道の縁石（花崗岩・Poly Haven Granite Tile〈CC0〉。道の幅と縁石の位置は模式） */
   { const ct = new THREE.TextureLoader().load("./img/g_curb.webp"); ct.wrapS = ct.wrapT = THREE.RepeatWrapping; ct.repeat.set(1, 600); ct.colorSpace = THREE.SRGBColorSpace;
@@ -497,12 +519,13 @@ function frame(now) {
   const microA = sm(-1.22, -1.5, S);
   /* 霞：近い段は数百 m 先が霞む。大きい段では消えていき、地球では無い */
   const far = Math.max(H * 28 * (1 - .75 * sm(2.6, 3.2, S) * (1 - sm(3.8, 4.3, S))), 380), fogOff = sm(4.2, 5.4, S);
-  scene.fog.near = far * .12 + fogOff * 1e9; scene.fog.far = far + fogOff * 1e9;
+  const dip_ = sm(1.35, 1.95, S) * (1 - sm(2.25, 2.9, S)), farF = far + (Math.max(d * 2.2, 60) - far) * dip_ * .85;
+  scene.fog.near = farF * (.12 - .08 * dip_) + fogOff * 1e9; scene.fog.far = farF + fogOff * 1e9; if (window.__gm) { const go_ = 1 - sm(1.7, 2.3, S); __gm.opacity = go_; if (__gm.transparent !== (go_ < 1)) { __gm.transparent = go_ < 1; __gm.needsUpdate = true; } __gm.depthWrite = go_ > .5; }
   const bg = new THREE.Color().copy(HAZE).lerp(new THREE.Color(0x5d7fa6), sm(4.4, 6, S)).lerp(new THREE.Color(0x0e1a2c), sm(6, 6.9, S));
   scene.fog.color.copy(HAZE); R.setClearColor(bg, 1);
   sky.position.copy(cam.position); sky.scale.setScalar(Math.min(far * .9, cam.far * .9)); sky.material.opacity = 1 - sm(3.8, 5.2, S); sky.visible = sky.material.opacity > 0;
   U.soil.value = 1 - sm(1.3, 2.3, S); U.match.value = sm(2.6, 3.2, S) * (1 - sm(3.9, 4.3, S)); U.pop.value = sm(3.9, 4.3, S) * (1 - sm(5.4, 6, S));
-  trees.visible = S < 2.25;
+  trees.visible = S < 2.3; if (window.__bm) { const k_ = 1 - sm(1.85, 2.28, S); __bm.opacity = k_; if (__bm.transparent !== (k_ < 1)) { __bm.transparent = k_ < 1; __bm.needsUpdate = true; } if (window.__bpre) __bpre.forEach(m => m.visible = k_ < 1); }   /* 町の箱は写真の屋根へ溶けて重なる（高さは PLATEAU のまま） */
   if (S > 4 && !globe) makeGlobe();
   if (globe) { globe.material.opacity = sm(4.8, 5.8, S); globe.visible = globe.material.opacity > 0; atm.material.uniforms.uA.value = sm(5.4, 6.4, S); atm.visible = S > 5.4; jp.material.opacity = globe.material.opacity; jp.visible = globe.visible; }
   TF = 1 - sm(5.5, 6.05, S);
