@@ -289,7 +289,7 @@ function buildMarkings() {   // 川越：渋谷・大宮と同じ作り（2026-1
   const add = (gs, mat, nm) => { if (!gs.length) return; const m = new THREE.Mesh(mergeIdx(gs), mat); m.name = nm; m.renderOrder = 1; world.add(m); };
   add(solid, markMat(0), "markSolid"); add(dash, markMat(1), "markDash"); add(zebra, markMat(2), "zebra");
   add(curb, new THREE.MeshStandardMaterial({ color: "#a9a6a0", roughness: .9, map: (t => (t.wrapS = t.wrapT = THREE.RepeatWrapping, t.colorSpace = THREE.SRGBColorSpace, t))(texLate("web/tex/pave_c.webp")), polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -9 }), "curb");
-  add(side, new THREE.MeshStandardMaterial({ color: "#b3aa9c", roughness: .88, map: (t => (t.wrapS = t.wrapT = THREE.RepeatWrapping, t.colorSpace = THREE.SRGBColorSpace, t.anisotropy = MOBILE ? 4 : 8, t))(texLate("web/tex/pave_c.webp")), polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8 }), "sideWalk");
+  add(side, new THREE.MeshStandardMaterial({ color: "#b3aa9c", roughness: .88, map: (t => (t.wrapS = t.wrapT = THREE.RepeatWrapping, t.colorSpace = THREE.SRGBColorSpace, t.anisotropy = MOBILE ? 4 : 8, t))(texLate("web/tex/pave_c.webp")), polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8, onBeforeCompile: sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 q = vMapUv; float u = q.x; float eL = u, eR = 2.1 - u; float ed = min(eL, eR); float kerb = 1. - step(.2, ed); float gap = (1. - smoothstep(.0, .025, abs(ed - .2))); float row = floor(q.y / .9); vec2 sl = vec2((u - .2) / .85 + mod(row, 2.) * .5, q.y / .9); vec2 cf = fract(sl); vec2 ci = floor(sl); float jn = (1. - smoothstep(.0, .035, min(min(cf.x, 1. - cf.x) * .85, min(cf.y, 1. - cf.y) * .9))) * (1. - kerb); float rnd = fract(sin(dot(ci, vec2(12.9898, 78.233))) * 43758.5); diffuseColor.rgb *= (1. - kerb) * (.9 + rnd * .16) + kerb * 1.12; diffuseColor.rgb *= 1. - jn * .3 - gap * .45; }   /* 11-11 採点「路面が単調」：石の板（約 0.85×0.9 m・半枚ずらし）の継ぎ目と、車道との際の縁石（幅 20 cm・模式） */"); } }), "sideWalk");
   QW.marks = { side: side.length, solid: solid.length, dash: dash.length, zebra: zebra.length, curb: curb.length };
 }
 function mergeIdx(gs) {   // 11-05 起動：配列への push をやめ、はじめに大きさを数えて型つきの配列へ写す（中身は同じ）
@@ -787,7 +787,37 @@ function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
     ld.load("web/app/kura_master.glb?v=14", g => { g.scene.updateMatrixWorld(true); const out = {};
       g.scene.traverse(o => { if (o.isMesh) { const k = (/^[ABC]_/.test(o.name) ? o.name : (o.parent?.name || o.name)).replace(/[._]\d+$/, "");   /* 11-10 第2：gltfpack の量子化で名前が親の節に移る */ const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
-      res(out); }, undefined, () => res(null)); }); }
+      res(kuraTune(out)); }, undefined, () => res(null)); }); }
+/* 11-11 採点「屋根の反りが弱い」「鬼瓦の段が角張り、彫りの陰が弱い」：型（glb）を読んだあとで、
+   ①屋根の面（棟から軒まで）を流れの中ほどで少し沈め、凹の反りを深くする（棟と軒先の位置は動かさない）
+   ②鬼瓦の頂点の法線を近い向きどうしでならし（段の角を丸く見せる）、正面を向かない面と奥の段を暗くする（彫りの陰・cav） */
+function kuraTune(out) {
+  try { for (const v in out) { const G = out[v], tl = G.tile; if (!tl) continue;
+    const tp = tl.attributes.position; let n = 0, sz = 0, sy = 0, szz = 0, szy = 0;
+    for (let i = 0; i < tp.count; i++) { const x = Math.abs(tp.getX(i)), z = Math.abs(tp.getZ(i)), y = tp.getY(i); if (x < 4.95 && z > 1.6 && z < 5.4 && y > 6.4) { n++; sz += z; sy += y; szz += z * z; szy += z * y; } }
+    if (n < 8) continue; const b = (n * szy - sz * sy) / (n * szz - sz * sz), a = (sy - b * sz) / n;   // 屋根の面 y ≈ a + b|z|
+    const z1 = Math.max(4.6, (6.55 - a) / b);   // 軒先
+    for (const k in G) { const g = G[k], p = g.attributes.position;
+      for (let i = 0; i < p.count; i++) { const z = Math.abs(p.getZ(i)), y = p.getY(i), t = Math.min(1, Math.max(0, (z - .7) / (z1 - .7))), yl = a + b * z;
+        if (y < 6.4 || t <= 0 || t >= 1) continue; const w = Math.min(1, Math.max(0, (y - (yl - .7)) / .4)); if (w > 0) p.setY(i, y - .42 * Math.sin(Math.PI * t) * Math.pow(t, .35) * w); }
+      p.needsUpdate = true; g.computeBoundingSphere(); }
+    // 鬼瓦：棟の両端の高い所（|x| が大きく、屋根の面より上）
+    const nr = tl.attributes.normal, cav = new Float32Array(tp.count).fill(1), oni = [];
+    let xmin = 9, xmax = 0;
+    for (let i = 0; i < tp.count; i++) { const x = Math.abs(tp.getX(i)), z = Math.abs(tp.getZ(i)), y = tp.getY(i); if (x > 3.6 && z < 1.6 && y > a + b * z + .25) { oni.push(i); xmin = Math.min(xmin, x); xmax = Math.max(xmax, x); } }
+    if (nr && oni.length) { const grp = new Map(), q = i => Math.round(tp.getX(i) * 400) + "," + Math.round(tp.getY(i) * 400) + "," + Math.round(tp.getZ(i) * 400);
+      for (const i of oni) { const kk = q(i); (grp.get(kk) || grp.set(kk, []).get(kk)).push(i); }
+      const nn = new Float32Array(tp.count * 3);
+      for (const ids of grp.values()) for (const i of ids) { let sx = 0, sy2 = 0, sz2 = 0; const ax = nr.getX(i), ay = nr.getY(i), az = nr.getZ(i);
+        for (const j of ids) { const bx = nr.getX(j), by = nr.getY(j), bz = nr.getZ(j); if (ax * bx + ay * by + az * bz > .45) { sx += bx; sy2 += by; sz2 += bz; } }
+        const l = Math.hypot(sx, sy2, sz2) || 1; nn[i * 3] = sx / l; nn[i * 3 + 1] = sy2 / l; nn[i * 3 + 2] = sz2 / l; }
+      for (const i of oni) { nr.setXYZ(i, nn[i * 3], nn[i * 3 + 1], nn[i * 3 + 2]);
+        const face = Math.abs(nn[i * 3]), d = xmax > xmin ? (Math.abs(tp.getX(i)) - xmin) / (xmax - xmin) : 1;
+        cav[i] = (.5 + .5 * Math.min(1, Math.max(0, (face - .25) / .6))) * (.72 + .28 * Math.min(1, d * 1.4)); }
+      nr.needsUpdate = true; }
+    tl.setAttribute("cav", new THREE.BufferAttribute(cav, 1)); } } catch (e) { console.warn("kuraTune", e); }
+  return out;
+}
 function buildKura() {
   loadKuraMaster().then(gm => buildKura2(gm));
 }
@@ -823,7 +853,7 @@ function buildKura2(GM) {
   for (const t in byType) {
     const geos = GM ? (GM[KVAR(t)] || GM.A) : kuraGeos(t).geos, list = byType[t];   /* 2026-11-02 型 3 通り（A 二つ窓・B 大きな一つ窓と高い箱棟・C 袖壁なし）を型の記号で振り分け */
     for (const mk in geos) {
-      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .04; m.clearcoat = 1; m.roughness = .14; m.envMapIntensity = MOBILE ? 2.0 : 2.4;   /* 11-10 第2：近くで分かる黒漆喰の映り込み */ m.color.set("#141518");   /* 11-02 P1「壁・柱・屋根が一様な暗い灰」→ 黒漆喰は磨いた面に空が映る黒（木の茶・瓦の銀鼠・石の灰と分かれる） */   /* 2026-11-02 採点「蔵造りに見えない（灰の壁）」→ 空の映りを一面に広げず、黒漆喰の深い黒に細い照りだけ */   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .2; } m.customProgramCacheKey = () => "kura-shikkui-g"; m.onBeforeCompile = M.shikkui.onBeforeCompile; return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f7379", roughness: .8, metalness: 0, clearcoat: 0, clearcoatRoughness: .35, envMapIntensity: .35,   /* 第5：鬼瓦を焼き物のマットに（青光りを消す） */   /* 第3：軒先の白い縞を抑える */ side: THREE.DoubleSide }), M.tileG.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <opaque_fragment>", "{ float rim = pow(1. - clamp(dot(normalize(vViewPosition), -normal), 0., 1.), 4.); outgoingLight += vec3(.5, .53, .58) * rim * .11; }\n#include <opaque_fragment>"); }, M.tileG.customProgramCacheKey = () => "kura-tileG-rim", M.tileG)   /* 11-11：鬼瓦の縁に空の明るさ（リム）を入れ、スマホでも形が読めるように */ : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
+      const mat = mk === "oni" ? M.tile : (GM && mk === "shikkui") ? (M.shikkuiG ||= (() => { const m = M.shikkui.clone(); m.clearcoatRoughness = .04; m.clearcoat = 1; m.roughness = .14; m.envMapIntensity = MOBILE ? 2.0 : 2.4;   /* 11-10 第2：近くで分かる黒漆喰の映り込み */ m.color.set("#141518");   /* 11-02 P1「壁・柱・屋根が一様な暗い灰」→ 黒漆喰は磨いた面に空が映る黒（木の茶・瓦の銀鼠・石の灰と分かれる） */   /* 2026-11-02 採点「蔵造りに見えない（灰の壁）」→ 空の映りを一面に広げず、黒漆喰の深い黒に細い照りだけ */   /* 10-28：磨いた黒漆喰に空と町が映る */ if (MOBILE) { m.roughness = .2; } m.customProgramCacheKey = () => "kura-shikkui-g2"; { const ob = M.shikkui.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob?.call(m, sh, r); sh.fragmentShader = sh.fragmentShader.replace("#include <aomap_fragment>", "#include <aomap_fragment>\n{ float nv = clamp(dot(normal, normalize(vViewPosition)), 0., 1.); reflectedLight.indirectSpecular *= mix(.38, 1., smoothstep(.05, .55, nv)); reflectedLight.indirectSpecular = min(reflectedLight.indirectSpecular, vec3(.5)); }   /* 11-11 採点「PC の左の蔵の壁の白いにじみ」：浅い角度で空が白く広がる映りを抑える（正面の照りは残す） */"); }; } return m; })()) : (GM && mk === "tile") ? (M.tileG ||= new THREE.MeshPhysicalMaterial({ color: "#6f7379", roughness: .8, metalness: 0, clearcoat: 0, clearcoatRoughness: .35, envMapIntensity: .35,   /* 第5：鬼瓦を焼き物のマットに（青光りを消す） */   /* 第3：軒先の白い縞を抑える */ side: THREE.DoubleSide }), M.tileG.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute float cav; varying float vCav;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvCav = cav;"); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vCav;").replace("#include <aomap_fragment>", "#include <aomap_fragment>\nreflectedLight.directDiffuse *= vCav; reflectedLight.indirectDiffuse *= vCav * vCav; reflectedLight.indirectSpecular *= vCav;   /* 11-11 鬼瓦の彫りの陰 */").replace("#include <opaque_fragment>", "{ float rim = pow(1. - clamp(dot(normalize(vViewPosition), -normal), 0., 1.), 4.); outgoingLight += vec3(.5, .53, .58) * rim * .11; }\n#include <opaque_fragment>"); }, M.tileG.customProgramCacheKey = () => "kura-tileG-rim", M.tileG)   /* 11-11：鬼瓦の縁に空の明るさ（リム）を入れ、スマホでも形が読めるように */ : M[mk];   /* いぶし瓦：銀鼠の鈍い照り（型の丸瓦は形で凹凸を出すので、平らな屋根用の波の絵は貼らない）。型の細かい段の縁で照りがちらつかないよう、照りを少しやわらげる */ const im = new THREE.InstancedMesh(geos[mk], GM ? kuraAO(mat, mk) : mat, list.length);
       const o = new THREE.Object3D();
       const tint = new THREE.Color();
       list.forEach((k, i) => { const r1 = (Math.sin(k.x * 12.9898 + k.z * 78.233) * 43758.5) % 1, r = Math.abs(r1);   // 棟ごとの違い（高さ・瓦の焼きむら・漆喰の黒の深さ）：同じ型の繰り返しに見せない
