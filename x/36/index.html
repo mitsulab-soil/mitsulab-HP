@@ -37,7 +37,7 @@ body.fo #cap{opacity:0}
 @media (min-width:900px){#cap{font-size:18px;width:min(760px,calc(100% - 120px))}#rule text{font-size:14px}}
 #hint{position:fixed;left:50%;bottom:max(92px,calc(env(safe-area-inset-bottom) + 92px));transform:translateX(-50%);padding:10px 22px;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent);mask-image:radial-gradient(closest-side,#000 62%,transparent);font:500 15px/1.6 "Shippori Mincho",serif;color:var(--t1);text-shadow:0 0 2px rgba(7,13,26,.95),0 0 6px rgba(7,13,26,.75),0 0 16px rgba(7,13,26,.45);pointer-events:none;transition:opacity 1s;white-space:nowrap}
 #cred{position:fixed;right:64px;bottom:max(6px,env(safe-area-inset-bottom));font:10px/1.4 Inter,sans-serif;color:var(--t1);opacity:.92;pointer-events:none;text-shadow:0 0 3px rgba(7,13,26,.75),0 0 10px rgba(7,13,26,.5)}
-@media (max-width:520px){#cap{font-size:13.5px;width:calc(100% - 118px);left:calc(50% + 4px);bottom:max(30px,calc(env(safe-area-inset-bottom) + 22px))}#cred{right:56px}#hint{white-space:normal;width:calc(100% - 110px);bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px));text-align:center;font-size:13px}#rule{width:52px}#rule svg{right:8px;width:30px}#rule text{font-size:13px;font-weight:600}#now small{font-size:12.5px}#now{font-size:14px}#rule line{stroke-opacity:.4}}
+@media (max-width:520px){#cap{font-size:13.5px;width:calc(100% - 118px);text-shadow:0 0 2px rgba(7,13,26,.95),0 0 5px rgba(7,13,26,.85),0 0 12px rgba(7,13,26,.6),0 0 22px rgba(7,13,26,.35);left:calc(50% + 4px);bottom:max(30px,calc(env(safe-area-inset-bottom) + 22px))}#cred{right:56px}#hint{white-space:normal;width:calc(100% - 110px);bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px));text-align:center;font-size:13px}#rule{width:52px}#rule svg{right:8px;width:30px}#rule text{font-size:14px;font-weight:600}#now small{font-size:12.5px}#now{font-size:14px}#rule line{stroke-opacity:.4}}
 </style>
 </head>
 <body>
@@ -313,6 +313,8 @@ function buildTrees() {
   function add(g, hi) {
     g.scene.updateMatrixWorld(true);
     if (hi) { mats = {}; hi.scene.traverse(o => { if (o.isMesh) { const m = o.material; m.side = THREE.DoubleSide; if (/leaf/.test(m.name)) { m.alphaTest = .5; m.transparent = false; if (m.map) { m.map.anisotropy = MOB ? 2 : 8; } sightLeaf(m, { crownY: 11, crownR: 7.5, k: .85 }); } else sightBark(m); mats[/leaf/.test(m.name) ? "leaf" : "bark"] = m; } });
+      /* 葉の札の絵を、立体の葉を小枝に並べて焼いた絵に差し替える（Qualium 大宮の kit/leaf3d.js。起動のあとに一度だけ・描画回数は変えない） */
+      if (mats.leaf) { const lm_ = mats.leaf; new Promise(ok => { const w = () => window.__ready ? setTimeout(ok, 600) : setTimeout(w, 200); w(); }).then(() => import("./kit/leaf3d.js")).then(({ makeLeafAtlas }) => { const tx = makeLeafAtlas(THREE, R, { size: MOB ? 1024 : 2048, sp: "keyaki", seed: 18 }); tx.flipY = false; tx.anisotropy = MOB ? 2 : 8; lm_.map = tx; lm_.needsUpdate = true; }).catch(e => console.warn("leafAtlas", e)); }
       if (loG) loG.forEach(im => { im.material = mats[im.userData.k]; im.visible = true; }); }
     const list = TP.filter(([x, z]) => hi ? Math.hypot(x, z) < NEAR : true), parts = [];
     g.scene.traverse(o => { if (o.isMesh) parts.push(o); });
@@ -494,17 +496,26 @@ function makeDeep() {
   const ST = [[0, 0, 210, 14], [560, 120, 190, 11], [-520, 260, 230, 16], [180, -560, 200, 9], [-260, -470, 180, 12], [620, -380, 170, 8], [-700, -160, 200, 10]];
   for (const [x, y, r, n] of ST) for (let k = 0; k < n; k++) { const m = new THREE.Mesh(dg, gm_); m.scale.set(r * (1 - .03 * Math.abs(k - n / 2) / n), r, 15); m.position.set(x, y, -k * 19.5); gran.add(m); }
   for (let i = 0; i < ST.length; i++) for (let j = 0; j < i; j++) { const A = ST[i], B = ST[j], L = Math.hypot(A[0] - B[0], A[1] - B[1]); if (L > 820) continue; const m = new THREE.Mesh(new THREE.BoxGeometry(L, 70, 8), gs_); m.position.set((A[0] + B[0]) / 2, (A[1] + B[1]) / 2, -60 - 40 * ((i + j) % 3)); m.rotation.z = Math.atan2(B[1] - A[1], B[0] - A[0]); gran.add(m); }
-  deep = { sc, g, mem, mol, mats, gran, granM: [gm_, gs_], memM: [hm.material, pm, pm2, lm] };
+  /* 葉の裏の表皮と気孔（模式）：表皮の細胞（数十 µm・縁が波うつ）、一対の孔辺細胞（気孔は数十 µm）、孔辺細胞の中の葉緑体（数 µm）（Lawson 2009, New Phytologist 181: 13–34・Taiz & Zeiger） */
+  const epi = new THREE.Group(); sc.add(epi); const em = M(0xb9c79e, .85), gcm = M(0x9fb784, .6), clm = M(0x5f8a3c, .55), pom = M(0x2c3524, .9);
+  { const cg = new THREE.SphereGeometry(1, 20, 10); const P = cg.attributes.position; for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const a = Math.atan2(v.y, v.x); const k = 1 + .12 * Math.sin(a * 7) + .06 * Math.sin(a * 11); P.setXYZ(i, v.x * k, v.y * k, v.z); } cg.computeVertexNormals();
+    for (let i = 0; i < 260; i++) { const r = Math.sqrt(rnd(i * 7.1)) * 160000, t = rnd(i * 3.3) * 6.283, x = -7000 + Math.cos(t) * r, y = Math.sin(t) * r; if (Math.hypot(x + 7000, y) < 30000) continue; const m = new THREE.Mesh(cg, em); const w = 16000 + rnd(i) * 14000; m.scale.set(w, w * (.7 + rnd(i * 2) * .5), 3500); m.rotation.z = rnd(i * 5) * 6.283; m.position.set(x, y, -2500); epi.add(m); }
+    const sides = [[-14000, 0, 0], [0, 0, Math.PI]]; const tg = new THREE.TorusGeometry(1, .42, 18, 40, Math.PI);
+    for (const [x, , rz] of sides) { const m = new THREE.Mesh(tg, gcm); m.scale.set(12000, 15000, 9000); m.rotation.z = rz + Math.PI / 2; m.position.set(-7000 + (rz ? 0 : 0), 0, 0); m.position.x = -7000; epi.add(m); }
+    const po = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12), pom); po.scale.set(2200, 9000, 800); po.position.set(-7000, 0, 1500); epi.add(po);
+    const eg = new THREE.SphereGeometry(1, 36, 24); for (let i = 0; i < 18; i++) { const t = ((i % 9) / 8 - .5) * 2.4 + (i > 8 ? Math.PI : 0), m = new THREE.Mesh(eg, clm); m.scale.set(2600, 1800, 1500); const R_ = 12000; m.position.set(-7000 + Math.cos(t) * R_, Math.sin(t) * R_ * 1.25, 1200 + rnd(i * 9) * 1500); if (i === 4) m.position.set(0, 0, 0); m.rotation.z = t; epi.add(m); } }
+  deep = { sc, g, mem, mol, mats, gran, epi, epiM: [em, gcm, clm, pom], gran, granM: [gm_, gs_], memM: [hm.material, pm, pm2, lm] };
 }
 function deepFrame(S) {
-  const a = sm(-7.0, -7.45, S), ag = sm(-5.85, -6.15, S) * (1 - sm(-6.45, -6.75, S)); if (a <= 0 && ag <= 0) return; if (!deep) makeDeep();
-  for (const m of deep.granM) m.opacity = ag; deep.gran.visible = ag > 0;
+  const ae = 0, a = sm(-7.0, -7.45, S), ag = sm(-5.85, -6.15, S) * (1 - sm(-6.45, -6.75, S)); if (a <= 0 && ag <= 0 && ae <= 0) return; if (!deep) makeDeep();
+  for (const m of deep.epiM) m.opacity = ae * (m === deep.epiM[1] ? .78 : m === deep.epiM[2] ? .72 : 1); deep.epi.visible = ae > 0;
+  for (const m of deep.granM) { m.opacity = ag * .88; m.depthWrite = ag > .5; }   /* 膜は少し透かす */ deep.gran.visible = ag > 0;
   const Hn = 10 ** S * 1e9, d = Hn * .5 / Math.tan(19 * Math.PI / 180) / Math.min(innerWidth / innerHeight, 1);
   dcam.aspect = innerWidth / innerHeight; dcam.near = d * .02; dcam.far = d * 6; dcam.updateProjectionMatrix();
   const gw_ = sm(-5.85, -6.15, S) * (1 - sm(-6.45, -6.75, S)), tilt = .32 + .18 * sm(-8.2, -9, S) + .62 * gw_, lz_ = .75 * sm(-8, -8.8, S) - 130 * gw_; dcam.position.set(0, -Math.sin(tilt) * d, Math.cos(tilt) * d + lz_); dcam.lookAt(0, 0, lz_);
-  deep.sc.fog.near = d * .6; deep.sc.fog.far = d * 3.2;
+  deep.sc.fog.near = d * .45; deep.sc.fog.far = d * 2.2;   /* 遠い所ほど霞む＝浅い被写界深度の代わり（模式） */
   const am = a * (1 - sm(-8.55, -8.95, S)), ao = sm(-8.1, -8.6, S);
-  for (const m of deep.memM) m.opacity = am; deep.mem.visible = am > 0;
+  for (const m of deep.memM) m.opacity = am * .92; deep.mem.visible = am > 0;
   deep.mol.children.forEach(o => o.material.opacity = ao); deep.mol.visible = ao > 0;
   R.render(deep.sc, dcam);
 }
