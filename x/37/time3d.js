@@ -5,6 +5,7 @@ import { installSkyFog, groundMottle, landTint, hash1 } from './kit/sight_land.j
 
 const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const LAT = 35.9 * Math.PI / 180;   // 大宮の緯度
+const ROAD = 4 * Math.PI / 180;   // 参道の向き＝N 約 4° W（一の鳥居側から三の鳥居側へ。OpenStreetMap の参道の線 約 1.4 km で測った）
 
 export function create(canvas) {
   const mobile = matchMedia('(max-width:760px)').matches;
@@ -19,7 +20,7 @@ export function create(canvas) {
   const hemi = new THREE.HemisphereLight('#dfe9ee', '#4a4030', 1.2); S.add(hemi);
   const sun = new THREE.DirectionalLight('#fff1d8', 2.2); sun.castShadow = true;
   sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
-  Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 120 }); sun.shadow.bias = -0.0008; sun.shadow.normalBias = .04;
+  Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 120 }); sun.shadow.bias = -0.0008; sun.shadow.intensity = .72; sun.shadow.radius = 3; sun.shadow.normalBias = .04;
   S.add(sun, sun.target); sun.target.position.set(0, 0, -14);
   installSkyFog(THREE, { sun: new THREE.Vector3(-.4, .6, .3) });
   const domeM = new THREE.MeshBasicMaterial({ color: '#c9d6dc', side: THREE.BackSide, fog: true });
@@ -35,7 +36,10 @@ export function create(canvas) {
   groundMottle(gMat, { relief: !mobile });
   const ground = new THREE.Mesh(gGeo, gMat); ground.receiveShadow = true; S.add(ground);
   const pMat = new THREE.MeshStandardMaterial({ map: tex('path_gravel', 2, 50), roughness: 1, color: '#d8d0c0', transparent: true });
-  const path = new THREE.Mesh(new THREE.PlaneGeometry(5, 120), pMat); path.rotation.x = -Math.PI / 2; path.position.set(0, .02, -50); path.receiveShadow = true; S.add(path);
+  { const c = document.createElement('canvas'); c.width = 64; c.height = 256; const g = c.getContext('2d');
+    for (let y = 0; y < 256; y++) for (let x = 0; x < 64; x++) { const e = Math.min(x, 63 - x) / 64 + (Math.sin(y * .7 + x) * .5 + Math.sin(y * 2.3) * .5) * .025; const a = Math.max(0, Math.min(1, (e - .02) / .16)); g.fillStyle = `rgb(${a * 255 | 0},${a * 255 | 0},${a * 255 | 0})`; g.fillRect(x, y, 1, 1); }
+    const am = new THREE.CanvasTexture(c); am.wrapT = THREE.RepeatWrapping; am.repeat.set(1, 30); pMat.alphaMap = am; pMat.alphaTest = 0; pMat.depthWrite = false; }   // 道の縁は砂利が土へまばらに溶ける
+  const path = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 120), pMat); path.rotation.x = -Math.PI / 2; path.position.set(0, .02, -50); path.receiveShadow = true; S.add(path);
 
   // 水（縄文海進・下末吉期の海の模式）
   const wMat = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, color: '#8fb2ae', roughness: .25, metalness: .1, transparent: true, opacity: .0, depthWrite: false });
@@ -67,10 +71,13 @@ export function create(canvas) {
 
   // 人（参道を歩く・模式）
   const NP = 16, people = [];
-  const bodyGeo = new THREE.CapsuleGeometry(.2, 1.05, 3, 8); bodyGeo.translate(0, .73, 0);
+  const bodyGeo = new THREE.CapsuleGeometry(.17, .5, 3, 10); bodyGeo.scale(1, 1, .7); bodyGeo.translate(0, 1.2, 0);
   const headGeo = new THREE.SphereGeometry(.12, 10, 8); headGeo.translate(0, 1.6, 0);
   const pM = new THREE.MeshStandardMaterial({ roughness: .9, transparent: true }), hM = new THREE.MeshStandardMaterial({ color: '#c9a58a', roughness: .8, transparent: true });
   const pB = new THREE.InstancedMesh(bodyGeo, pM, NP), pH = new THREE.InstancedMesh(headGeo, hM, NP); pB.castShadow = true;
+  const legGeo = new THREE.CapsuleGeometry(.07, .62, 3, 6); legGeo.translate(0, -.38, 0);
+  const pL = new THREE.InstancedMesh(legGeo, pM, NP * 2); S.add(pL);
+  const armGeo = new THREE.CapsuleGeometry(.05, .5, 3, 6); armGeo.translate(0, -.3, 0); const pA = new THREE.InstancedMesh(armGeo, pM, NP * 2); S.add(pA);
   const cloth = ['#3b4048', '#6d6a60', '#8a7f6b', '#4d5a62', '#5f4e45', '#2e3b3a', '#9c968a'];
   for (let i = 0; i < NP; i++) { people.push({ x: (hash1(i * 3.3) - .5) * 3.6, z0: hash1(i * 1.9) * 66, v: (i % 2 ? 1 : -1) * (1.1 + hash1(i * 6.1) * .4) }); pB.setColorAt(i, new THREE.Color(cloth[i % cloth.length])); }
   S.add(pB, pH);
@@ -87,9 +94,17 @@ export function create(canvas) {
   const bug = (len, col, wingL) => {
     const g = new THREE.Group(), bm = new THREE.MeshStandardMaterial({ color: col, roughness: .6 });
     const th = new THREE.Mesh(new THREE.SphereGeometry(len * .22, 14, 10), bm); g.add(th);
-    const ab = new THREE.Mesh(new THREE.SphereGeometry(len * .3, 14, 10), bm); ab.scale.set(.8, .8, 1.3); ab.position.z = len * .42; g.add(ab);
+    const sc = document.createElement('canvas'); sc.width = 8; sc.height = 64; { const gg = sc.getContext('2d'); for (let y = 0; y < 64; y++) { const b = Math.floor(y / 8) % 2; gg.fillStyle = b ? '#2a2016' : col; gg.fillRect(0, y, 8, 1); } }
+    const st = new THREE.CanvasTexture(sc); st.colorSpace = THREE.SRGBColorSpace;
+    const abM = new THREE.MeshStandardMaterial({ map: st, roughness: .7 });
+    const abG = new THREE.SphereGeometry(len * .3, 18, 14); abG.rotateX(Math.PI / 2);
+    const ab = new THREE.Mesh(abG, abM); ab.scale.set(.8, .8, 1.35); ab.position.z = len * .44; g.add(ab);
+    th.scale.set(1.05, 1, 1.1); bm.roughness = 1; bm.sheen = 1;
+    const lm = new THREE.MeshStandardMaterial({ color: '#2a241c', roughness: .6 });
+    for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { const L = new THREE.Mesh(new THREE.CylinderGeometry(len * .018, len * .012, len * .55, 4), lm); L.position.set(sx * len * .16, -len * .2, (k - 1) * len * .14); L.rotation.set(.3 * (k - 1), 0, sx * .9); g.add(L); }
+    for (const sx of [-1, 1]) { const A = new THREE.Mesh(new THREE.CylinderGeometry(len * .012, len * .012, len * .45, 4), lm); A.position.set(sx * len * .07, len * .12, -len * .5); A.rotation.set(-1.1, 0, sx * .35); g.add(A); }
     const hd = new THREE.Mesh(new THREE.SphereGeometry(len * .15, 12, 8), new THREE.MeshStandardMaterial({ color: '#1d1a16', roughness: .5 })); hd.position.z = -len * .3; g.add(hd);
-    const wm = new THREE.MeshStandardMaterial({ color: '#e9f0f2', transparent: true, opacity: .45, side: THREE.DoubleSide, roughness: .2, depthWrite: false });
+    const wm = new THREE.MeshStandardMaterial({ color: '#e9f0f2', transparent: true, opacity: .45, emissive: '#5a6a70', emissiveIntensity: .3, side: THREE.DoubleSide, roughness: .2, depthWrite: false });
     const wg = new THREE.PlaneGeometry(wingL, wingL * .38); wg.translate(wingL / 2, 0, 0);
     const wings = []; for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg, wm.clone()); w.position.set(s * len * .12, len * .16, len * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k }); }
     return { g, wings, bm };
@@ -111,7 +126,8 @@ export function create(canvas) {
     for (let i = 0; i <= 24; i++) { const x = 6 + i * 10, w = Math.sin(Math.PI * i / 24) ** .8 * 52, tooth = i % 2 ? 4 : 0; g.lineTo(x, 64 - w - tooth); } for (let i = 24; i >= 0; i--) { const x = 6 + i * 10, w = Math.sin(Math.PI * i / 24) ** .8 * 52, tooth = i % 2 ? 4 : 0; g.lineTo(x, 64 + w + tooth); } g.fill();
     g.strokeStyle = 'rgba(220,230,170,.55)'; g.lineWidth = 2; g.beginPath(); g.moveTo(6, 64); g.lineTo(246, 64); for (let i = 2; i < 23; i += 2) { g.moveTo(6 + i * 10, 64); g.lineTo(26 + i * 10, 64 - 40 * Math.sin(Math.PI * i / 24)); g.moveTo(6 + i * 10, 64); g.lineTo(26 + i * 10, 64 + 40 * Math.sin(Math.PI * i / 24)); } g.stroke(); }
   const lcT = new THREE.CanvasTexture(lc2); lcT.colorSpace = THREE.SRGBColorSpace;
-  const oneLeaf = new THREE.Mesh(new THREE.PlaneGeometry(.1, .05), new THREE.MeshStandardMaterial({ map: lcT, alphaTest: .3, side: THREE.DoubleSide, roughness: .6, transparent: true }));   // ケヤキの葉一枚（鋸歯と側脈・模式）
+  const olG = new THREE.PlaneGeometry(.1, .05, 12, 4); { const p = olG.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, -(y * y) * 6 - x * x * 2); } olG.computeVertexNormals(); }
+  const oneLeaf = new THREE.Mesh(olG, new THREE.MeshStandardMaterial({ map: lcT, alphaTest: .3, side: THREE.DoubleSide, roughness: .6, transparent: true }));   // ケヤキの葉一枚（鋸歯と側脈・模式）
   oneLeaf.position.set(-.06, 1.5, 3.74); oneLeaf.rotation.set(-.9, .5, .2); S.add(oneLeaf);
   const front = new THREE.Mesh(new THREE.PlaneGeometry(.006, .07), new THREE.MeshBasicMaterial({ color: '#fffef2', blending: THREE.AdditiveBlending, transparent: true, opacity: 0, depthTest: false }));
   oneLeaf.add(front); front.position.z = .002;
@@ -126,7 +142,16 @@ export function create(canvas) {
 
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3(), e = new THREE.Euler(), col = new THREE.Color();
   let tFast = 0, tDay = 0, lastAgo = -1, lastSeason = -1;
-  const sunDir = new THREE.Vector3();
+  const sunDir = new THREE.Vector3(), _Y = new THREE.Vector3(0, 1, 0);
+  // 影の先の道すじ：一本のケヤキの影の先が、その日に地面に描く弧（日時計の線・模式）
+  const TR = 60, trP = new Float32Array(TR * 3), trG = new THREE.BufferGeometry(); trG.setAttribute('position', new THREE.BufferAttribute(trP, 3)); trG.setDrawRange(0, 0);
+  const trM = new THREE.LineBasicMaterial({ color: '#f2ead2', transparent: true, opacity: 0, depthWrite: false }); const trail = new THREE.Line(trG, trM); trail.frustumCulled = false; S.add(trail);
+  const tipM = new THREE.Mesh(new THREE.RingGeometry(.18, .3, 24), new THREE.MeshBasicMaterial({ color: '#f2ead2', transparent: true, opacity: 0, depthWrite: false })); tipM.rotation.x = -Math.PI / 2; S.add(tipM);
+  const sunAt = (doy, hour, out) => { const dec = -23.44 * Math.PI / 180 * Math.cos(2 * Math.PI * (doy + 10) / 365), H = (hour - 12) * Math.PI / 12;
+    const el = Math.asin(Math.sin(LAT) * Math.sin(dec) + Math.cos(LAT) * Math.cos(dec) * Math.cos(H)), az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(LAT) - Math.tan(dec) * Math.cos(LAT));
+    return out.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).applyAxisAngle(_Y, -ROAD); };
+  const tipOf = (d, H0, t0, out) => { const hz = Math.max(1e-3, Math.hypot(d.x, d.z)), k = Math.min(16, H0 * hz / Math.max(.05, d.y)) / hz; return out.set(t0.x - d.x * k, .04, t0.z - d.z * k); };
+  const _d = new THREE.Vector3(), _p = new THREE.Vector3();
   const GREEN = new THREE.Color('#e8f0dc'), YEL = new THREE.Color('#f0d48a'), RED = new THREE.Color('#e0a070'), BUD = new THREE.Color('#d8ecb8');
 
   let seaF = 0;
@@ -164,8 +189,14 @@ export function create(canvas) {
     const avg = sm(4.4, 5.6, n);   // 一日がちらつきに溶ける
     const day = Math.max(.28, sm(-.08, .12, Math.sin(el)) * (1 - avg) + .55 * avg);
     sunDir.set(-Math.sin(az) * Math.cos(el), Math.max(.05, Math.sin(el)), Math.cos(az) * Math.cos(el));   // 参道は南北（−z が北）の模式
+    sunDir.applyAxisAngle(_Y, -ROAD);   // 参道（−z）は真北から西へ約 4°
     if (avg > .5) sunDir.set(0, 1, .3).normalize();
     sun.position.copy(sun.target.position).addScaledVector(sunDir, 60);
+    { const tv = sm(3.4, 4.2, n) * (1 - sm(5.4, 6, n)); trM.opacity = .7 * tv; tipM.material.opacity = .8 * tv; trail.visible = tipM.visible = tv > .02;
+      if (tv > .02) { const t0 = T[1], H0 = 4 + 18 * Math.max(0, Math.min(1, (t0.planted - ago) / 50)); let m = 0;
+        for (let k = 0; k < TR; k++) { sunAt(doy, 4 + k * 16 / (TR - 1), _d); if (_d.y < .06) continue; tipOf(_d, H0, t0, _p); trP[m * 3] = _p.x; trP[m * 3 + 1] = _p.y; trP[m * 3 + 2] = _p.z; m++; }
+        trG.setDrawRange(0, m); trG.attributes.position.needsUpdate = true;
+        if (sunDir.y > .06) { tipOf(sunDir, H0, t0, _p); tipM.position.copy(_p); } else tipM.visible = false; } }
     sun.intensity = 2.3 * day * (1 - .55 * avg); hemi.intensity = .25 + 1.0 * day + .55 * avg;
     sun.castShadow = avg < .95;
     // 水の高さ（模式）：縄文海進は約 6000〜7000 年前に最も高い／下末吉期は約 12〜13 万年前
@@ -186,10 +217,14 @@ export function create(canvas) {
     wind.value = (tFast * 1.0) % 1e3; windAmp.value = 1 - sm(.5, 2.2, n);
     // 人
     const pv = 1 - sm(1.3, 3.2, n), hist = 1 - sm(60, 120, ago);
-    pM.opacity = hM.opacity = .4 * pv * hist; pB.visible = pH.visible = pv * hist > .02;
+    pM.opacity = hM.opacity = .4 * pv * hist; pB.visible = pH.visible = pL.visible = pA.visible = pv * hist > .02;
     for (let i = 0; i < NP; i++) { const p = people[i]; const z = -24 - (((p.z0 + p.v * tDay) % 66) + 66) % 66; const bob = Math.abs(Math.sin(tDay * 3.2 + i)) * .03;
-      m4.compose(v3.set(p.x, bob, z), q.setFromAxisAngle(s3.set(0, 1, 0), p.v > 0 ? Math.PI : 0), s3.set(1, 1, 1)); pB.setMatrixAt(i, m4); pH.setMatrixAt(i, m4); }
-    pB.instanceMatrix.needsUpdate = pH.instanceMatrix.needsUpdate = true;
+      m4.compose(v3.set(p.x, bob, z), q.setFromAxisAngle(s3.set(0, 1, 0), p.v > 0 ? Math.PI : 0), s3.set(1, 1, 1)); pB.setMatrixAt(i, m4); pH.setMatrixAt(i, m4);
+      const sw = Math.sin(tDay * 3.2 * 1.6 + i * 1.7) * .45, ry = p.v > 0 ? Math.PI : 0;
+      for (let k = 0; k < 2; k++) { const sg = k ? 1 : -1;
+        e.set(sw * sg, ry, 0, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(p.x + Math.cos(ry) * sg * .09, .95 + bob, z), q, s3.set(1, 1, 1)); pL.setMatrixAt(i * 2 + k, m4);
+        e.set(-sw * sg * .7, ry, sg * .12, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(p.x + Math.cos(ry) * sg * .22, 1.42 + bob, z), q, s3.set(1, 1, 1)); pA.setMatrixAt(i * 2 + k, m4); } }
+    pB.instanceMatrix.needsUpdate = pH.instanceMatrix.needsUpdate = pL.instanceMatrix.needsUpdate = pA.instanceMatrix.needsUpdate = true;
     // 雲
     const cv = 1 - sm(3.6, 5.2, n); clM.opacity = .25 + .75 * cv; clM.color.copy(col.set('#f4f6f6').multiplyScalar(.35 + .65 * day));
     for (let i = 0; i < NC; i++) { const c = CL[i]; const x = (((c.x + 9 * tDay) + 260) % 520 + 520) % 520 - 260;
@@ -197,7 +232,7 @@ export function create(canvas) {
     clouds.instanceMatrix.needsUpdate = true;
     // 羽：見かけの回数が毎秒 20 回を超えると、霞んだ扇に
     for (const [b, f, amp] of [[bee, 230, 1.0], [mos, 500, 1.2]]) {
-      const fa = f * rate, blur = sm(12, 30, fa), vis = 1 - sm(1.5, 3, n);
+      const fa = f * rate, blur = sm(12, 30, fa), vis = 1 - sm(.9, 1.7, n);
       b.g.visible = vis > .02; 
       for (const { w, s, k } of b.wings) { const ph = 2 * Math.PI * f * tFast;
         const a = blur > .5 ? (k - 1) * amp * .9 : amp * Math.sin(ph) * (k === 0 ? 1 : 0);
