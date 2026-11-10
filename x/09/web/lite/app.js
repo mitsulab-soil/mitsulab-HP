@@ -471,7 +471,7 @@ function thinLeaves(geo, every = 3, grow = 1.5) {   // 葉の札を 3 枚に 1 �
   const g = new THREE.BufferGeometry(); for (const [k, o] of Object.entries(attrs)) g.setAttribute(k, new THREE.Float32BufferAttribute(o.v, o.a.itemSize)); g.setIndex(outIdx); return g;
 }
 /* 11-04 夜：エノキ（ほか）の太枝が樹冠の外へ 5 m ほど斜めに伸び、並木の上に宙に浮いた斜めの幹に見えた→根もと 1.5 m までは元のまま、上ほど水平の張り出しを幹の芯へ寄せる（枝先は樹冠の中に収まる） */
-const LEAN = { enoki: .5, shii: .7, kashi: .7, sakura: .75, kusu: .75 };
+const LEAN = { enoki: .62, shii: .78, kashi: .78, sakura: .8, kusu: .8 };   /* 11-10 本人「樹木が一部で分離」：葉も幹と同じだけ寄せる（枝先から葉の房が離れて浮かないように） */
 function leanIn(geo, sp) {
   const f = LEAN[sp]; if (!f) return; const P = geo.attributes.position;
   for (let i = 0; i < P.count; i++) { const y = P.getY(i), t = Math.min(1, Math.max(0, (y - 1.5) / 4)), s = 1 - (1 - f) * t * t * (3 - 2 * t); P.setX(i, P.getX(i) * s); P.setZ(i, P.getZ(i) * s); }
@@ -490,7 +490,7 @@ function buildTrees([g, kg]) {
     const h = box.max.y - box.min.y, k = SPH[sp] / h;
     const parts = [];
     for (const o of [bark, leaves]) {
-      o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); if (sp === "keyaki") liftFork(geo, h); geo.scale(k, k, k); if (o === bark) leanIn(geo, sp);
+      o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); if (sp === "keyaki") liftFork(geo, h); geo.scale(k, k, k); leanIn(geo, sp);
       const mat = o.material; if (mat.map) mat.map.anisotropy = 2; mat.envMapIntensity = .45;
       if (o === bark) barkUV(mat);
       if (o === leaves) { mat.alphaTest = .34;   /* 11-10 第4周：葉の縁のギザギザ→抜きの線を下げ、遠くの細い葉も残す */ mat.transparent = false; mat.side = THREE.DoubleSide; leafAlpha(mat); }
@@ -498,7 +498,7 @@ function buildTrees([g, kg]) {
       const im = new THREE.InstancedMesh(g2, mat, count[sp] || 1); im.count = 0; im.frustumCulled = false; world.add(im); parts.push(im);
     }
     // 中くらいの距離：幹は遠景の形、葉は札を減らした形
-    const fb = g.scene.getObjectByName(base + "_bark") || bark; fb.updateWorldMatrix(true, false);
+    const fb = sp === "keyaki" ? bark : (g.scene.getObjectByName(base + "_bark") || bark);   /* 11-10：中くらいの距離のケヤキも、葉と同じ形の幹（別の形の幹だと葉の房が枝から離れて浮いた） */ fb.updateWorldMatrix(true, false);
     const bgeo = toFloat(fb.geometry).applyMatrix4(fb.matrixWorld); bgeo.translate(0, -box.min.y, 0); if (sp === "keyaki") liftFork(bgeo, h); bgeo.scale(k, k, k); leanIn(bgeo, sp);
     const lgeo = thinLeaves(parts[1].geometry, MOBILE ? 5 : 4, MOBILE ? 1.85 : 1.7);
     const lm2 = parts[1].material.clone(); lm2.side = THREE.DoubleSide; leafAlpha(lm2);
@@ -576,7 +576,7 @@ function buildCrowns() {
   const tgeo = new THREE.CylinderGeometry(.12, .2, 1, 5, 1, true); tgeo.translate(0, .5, 0);
   TREE.trunk = new THREE.InstancedMesh(tgeo, new THREE.MeshStandardMaterial({ color: "#4a3f35", roughness: 1 }), D.trees.length);
   for (const im of [TREE.crown, TREE.trunk]) { im.count = 0; im.frustumCulled = false; world.add(im); }
-  TREE.list = D.trees.map(t => ({ x: t[0], y: groundY(t[0], t[2]), z: t[2], sp: t[3], s: t[4], r: t[5] }));
+  TREE.list = D.trees.map(t => ({ x: t[0], y: groundY(t[0], t[2]) - .3, z: t[2], sp: t[3], s: t[4], r: t[5] }));
   { const L = TREE.list; for (const t of L) t.lone = !L.some(u => u !== t && (u.x - t.x) ** 2 + (u.z - t.z) ** 2 < 144); }   // 12 m 以内にほかの木がない
   TREE.lastPos.set(1e9, 0, 0); updateTrees(true);
 }
