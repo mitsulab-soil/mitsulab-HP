@@ -53,7 +53,9 @@ export function installDapple(THREE) {
           vec2 c2 = floor( rp ); vec2 f2 = fract( rp ) - .5; float h2 = fract( sin( dot( c2 + fl * 17., vec2( 12.99, 78.23 ) ) ) * 43758.5 );
           vec2 o2 = vec2( fract( h2 * 7.1 ), fract( h2 * 3.7 ) ) - .5; float rr = mix( .05, .3, pow( fract( h2 * 13.7 ), 2.2 ) ) * ( .6 + .7 * qGap );
           float on2 = step( mix( .78, .45, qGap ) + fl * .08, h2 );
-          spot = max( spot, ( 1. - smoothstep( rr * .55, rr, length( f2 - o2 * .5 ) ) ) * on2 * ( .7 + .3 * fract( h2 * 5.3 ) ) );
+          /* 11-11 採点 3 人「スマホで路面に白い擦り傷の線」：寝た角度で斑が画面の縦に潰れて細い線になる→画面で見た斑の大きさ（fwidth）が斑より大きいほど、斑を濃淡のむら（その升の平均の明るさ）に置きかえる */
+          float pxv = max( fwidth( rp.x ), fwidth( rp.y ) ), far = smoothstep( .12, .45, pxv / rr ), sp1 = ( 1. - smoothstep( rr * .55, rr, length( f2 - o2 * .5 ) ) ) * on2 * ( .7 + .3 * fract( h2 * 5.3 ) );
+          spot = max( spot, mix( sp1, on2 * rr * rr * 2.2 * ( .7 + .3 * fract( h2 * 5.3 ) ) + .06 * ( n * .5 + .5 ), far ) );
         }
         float lit2 = ( 1. - cov ) + cov * spot * 1.25;
         qDap = mix( 1.0, .1 + 1.0 * lit2, k );

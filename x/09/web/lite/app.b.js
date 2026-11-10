@@ -127,7 +127,9 @@ varying vec2 vGf; uniform sampler2D gfMap; uniform vec4 gfRect; uniform float gf
           vec2 c2 = floor( rp ); vec2 f2 = fract( rp ) - .5; float h2 = fract( sin( dot( c2 + fl * 17., vec2( 12.99, 78.23 ) ) ) * 43758.5 );
           vec2 o2 = vec2( fract( h2 * 7.1 ), fract( h2 * 3.7 ) ) - .5; float rr = mix( .05, .3, pow( fract( h2 * 13.7 ), 2.2 ) ) * ( .6 + .7 * qGap );
           float on2 = step( mix( .78, .45, qGap ) + fl * .08, h2 );
-          spot = max( spot, ( 1. - smoothstep( rr * .55, rr, length( f2 - o2 * .5 ) ) ) * on2 * ( .7 + .3 * fract( h2 * 5.3 ) ) );
+          /* 11-11 \u63A1\u70B9 3 \u4EBA\u300C\u30B9\u30DE\u30DB\u3067\u8DEF\u9762\u306B\u767D\u3044\u64E6\u308A\u50B7\u306E\u7DDA\u300D\uFF1A\u5BDD\u305F\u89D2\u5EA6\u3067\u6591\u304C\u753B\u9762\u306E\u7E26\u306B\u6F70\u308C\u3066\u7D30\u3044\u7DDA\u306B\u306A\u308B\u2192\u753B\u9762\u3067\u898B\u305F\u6591\u306E\u5927\u304D\u3055\uFF08fwidth\uFF09\u304C\u6591\u3088\u308A\u5927\u304D\u3044\u307B\u3069\u3001\u6591\u3092\u6FC3\u6DE1\u306E\u3080\u3089\uFF08\u305D\u306E\u5347\u306E\u5E73\u5747\u306E\u660E\u308B\u3055\uFF09\u306B\u7F6E\u304D\u304B\u3048\u308B */
+          float pxv = max( fwidth( rp.x ), fwidth( rp.y ) ), far = smoothstep( .12, .45, pxv / rr ), sp1 = ( 1. - smoothstep( rr * .55, rr, length( f2 - o2 * .5 ) ) ) * on2 * ( .7 + .3 * fract( h2 * 5.3 ) );
+          spot = max( spot, mix( sp1, on2 * rr * rr * 2.2 * ( .7 + .3 * fract( h2 * 5.3 ) ) + .06 * ( n * .5 + .5 ), far ) );
         }
         float lit2 = ( 1. - cov ) + cov * spot * 1.25;
         qDap = mix( 1.0, .1 + 1.0 * lit2, k );
