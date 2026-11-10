@@ -497,7 +497,7 @@ async function buildBuildings() {
     vertexShader: `attribute float y0; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN, vV;
       void main(){ vec4 mv=modelViewMatrix*vec4(position,1.); vV=mv.xyz; vY=position.y; vH=position.y-y0; vN=normal; vFogDepth=-mv.z; gl_Position=projectionMatrix*mv; }`,
     fragmentShader: `uniform float t; uniform float amul, farCut; uniform vec3 c; uniform vec3 fogColor; uniform float fogNear, fogFar; varying float vY, vH, vUp; varying float vFogDepth; varying vec3 vN, vV;
-      void main(){ float side=1.-abs(normalize(vN).y); float a=.011+.026*side; float near=smoothstep(6.,40.,vFogDepth); a*=mix(.35,1.,near); a*=mix(1.,.3,smoothstep(14.,90.,vH));   // 渋谷：高いビルは上ほど霧へ（町並みは控えめな地）
+      void main(){ float side=1.-abs(normalize(vN).y); float a=.03+.06*side;   /* 11-10 本人「建物をもう少し濃く」 */ float near=smoothstep(6.,40.,vFogDepth); a*=mix(.35,1.,near); a*=mix(1.,.3,smoothstep(14.,90.,vH));   // 渋谷：高いビルは上ほど霧へ（町並みは控えめな地）
         float fl=smoothstep(.06,0.,abs(fract(vH/3.2)-.5)*2.-.94); a+=fl*.045*side*near*mix(1.,.4,smoothstep(14.,90.,vH));             // 階の線（3.2 m ごと・模式）
         float sc=exp(-pow((fract(vH*.05-t*.12)-.5)*9.,2.)); a+=sc*.025*side;                     // 上へ抜ける走査の帯
         float f=smoothstep(fogNear,fogFar,vFogDepth); a*=mix(1.,1.-smoothstep(20.,50.,length(vV)),farCut); a+=farCut*side*.16*(1.-smoothstep(3.,16.,length(vV)));   /* 11-03：ぶつかる壁は、近づくと淡いガラスの面として見える（見えない壁にしない） */   /* 11-03 P2：歩く目では遠いビルと高い所の半透明の殻を消す（空と遠景の縦の筋） */ gl_FragColor=vec4(c,a*amul*(1.-f*.9)); }`,
@@ -1347,7 +1347,7 @@ const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 �
   moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 21 };   // 10-27 1.75 倍
 const KEYS = new Set();
-const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 40, f: 900 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 110, f: 1500 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
