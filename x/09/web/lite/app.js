@@ -154,7 +154,7 @@ function weather(m, o = {}) {   // o: moss・grime・lichen（0〜1）、scale�
   float wn1 = wn3(vWp * .45), wn2 = wn3(vWp * 1.9 + 11.), wn4 = wn3(vWp * 6.3 + 5.), wMac = wn3(vWp * .13 + 2.);
 #endif
   float grain = mix(W.r, W2.r, .45), grain2 = W.b;
-  diffuseColor.rgb *= (.74 + .52 * grain) * (.8 + .36 * wn1) * (.93 + .14 * wn4) * (.86 + .26 * wMac);
+  diffuseColor.rgb *= (.9 + .2 * wMac);   /* 11-10 第3周：手で足した細かいノイズを外し、写真の石（CC0）の肌理のまま */
   float oy = wQ.z > -9000. ? vWp.y - wQ.z : vOy;
   float wUp = smoothstep(.25, .9, wN.y);
   float wLow = 1. - smoothstep(0., .3 + .9 * wn2, oy);
@@ -167,12 +167,12 @@ function weather(m, o = {}) {   // o: moss・grime・lichen（0〜1）、scale�
   float wGrime = clamp(wLow * .85 + streak * .45, 0., 1.) * wP.y;
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.52, .5, .44), wGrime);
   float wMs = wn1 * .45 + wn2 * .3 + wUp * .2 + wLow * .25 + (1. - grain2) * .15 - .08 * wQ.x;
-  float wT = .97 - .3 * wP.x; float wMoss = smoothstep(wT, wT + .1, wMs) * .92 * step(.001, wP.x);   // 苔なしの面（舗装）は苔を描かない
+  float wT = .97 - .3 * wP.x; float wMoss = smoothstep(wT, wT + .1, wMs) * .92 * step(.001, wP.x) * (.35 + .65 * (1. - wUp) * wLow);   // 苔なしの面（舗装）は苔を描かない
   vec3 mossC = mix(vec3(.10, .13, .055), vec3(.24, .28, .12), W2.a) * (.8 + .4 * wn4);
   diffuseColor.rgb = mix(diffuseColor.rgb, mossC, wMoss);
   float wLic = W.g * wP.z * smoothstep(.3, .65, wn2);
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.58, .6, .52) * (.85 + .3 * grain), wLic * .6);
-  float wH = grain * .7 + grain2 * .3 + wMoss * .35 + wn4 * .15;`)
+  float wH = wMoss * .35;`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = clamp(max(roughnessFactor, wQ.w) + (wn2 - .5) * .14 + wMoss * .12 - wGrime * .05, .76, 1.);")
       .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
   { float k = wQ.y * (1. - smoothstep(5., 45., wD)); vec3 sp = -vViewPosition; vec3 sx = dFdx(sp), sy = dFdy(sp);
@@ -205,7 +205,15 @@ const pickables = [];   // 地面を押して歩くときに当たる面
 async function buildBase() {
   status("参道の地形を読み込んでいます");
   const [data, dem, tg, sky] = await Promise.all([pData, pDem, pTerrain, pSky]);
-  D = data; DEM = new Int16Array(dem);
+  D = data;
+  /* 11-10 第4周：歩くと参道の外が平らな地平のまま見えた→並木の外 40〜170 m に社叢の木（シイ・カシ・クスノキ・ケヤキ）を置く。
+     描き方は並木と同じ（近くは形・遠くは横から写した絵の一回の描画）。一本ずつの位置は模式（実在の社叢・屋敷林の位置ではない） */
+  { let sd = 1110; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647, SPP = ["shii", "kashi", "kusu", "kashi", "keyaki", "shii"], C = D.cl, add = [], [x0, x1, z0, z1] = D.extent;
+    const nearCl = (x, z) => { let b = 1e18; for (let i = 0; i < C.length; i += 2) { const dx = C[i][0] - x, dz = C[i][2] - z, d = dx * dx + dz * dz; if (d < b) b = d; } return Math.sqrt(b); };
+    for (let i = 0; i < C.length - 1; i += 2) { const dx = C[i + 1][0] - C[i][0], dz = C[i + 1][2] - C[i][2], L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L;
+      for (let k = 0; k < (MOBILE ? 6 : 11); k++) { const sg = r() < .5 ? -1 : 1, o = 40 + Math.pow(r(), .8) * 130, x = C[i][0] + nx * o * sg + (r() - .5) * 8, z = C[i][2] + nz * o * sg + (r() - .5) * 8;
+        if (x < x0 + 5 || x > x1 - 5 || z < z0 + 5 || z > z1 - 5 || nearCl(x, z) < 36) continue; add.push([x, 0, z, SPP[(r() * SPP.length) | 0], .6 + Math.pow(r(), 1.5) * .95, r() * 6.28]); } }
+    D.trees = D.trees.concat(add); } DEM = new Int16Array(dem);
   sky.mapping = THREE.EquirectangularReflectionMapping;
   scene.background = sky; QW.skyTex = sky;
   const pm = new THREE.PMREMGenerator(renderer); const env = pm.fromEquirectangular(sky).texture; pm.dispose();
@@ -220,7 +228,7 @@ async function buildBase() {
       .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\nif(uCy>.001){ vec2 p=vWp.xz; float fw=length(fwidth(p)); float g1=gridL(p,100.), g2=gridL(p,20.)*(1.-smoothstep(1.5,5.,fw)); float hh=vWp.y; float cq=abs(fract(hh+.5)-.5); float cl=1.-smoothstep(0.,fwidth(hh)*1.3,cq); float sc=exp(-pow((p.y-uScan)/60.,2.)); vec3 ln=vec3(.32,.78,.9); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.01,.025,.045),uCy); totalEmissiveRadiance+=uCy*(ln*(g1*.32+g2*.1+cl*.18)+ln*sc*(.05+g1*.4+cl*.3)); }\n/* 2026-10-27 夜 融合：歩くときも、地面に細い光の格子（5 m）と高さ 50 cm ごとの光の等高線を、近くは控えめに・10〜100 m で薄く重ねる */ { float dc=length(vWp.xz-cameraPosition.xz); float fz=smoothstep(5.,16.,dc)*(1.-smoothstep(60.,140.,dc))*(1.-uCy); vec2 gq=abs(fract(vWp.xz/5.+.5)-.5)/max(fwidth(vWp.xz/5.),vec2(1e-4)); float gl=1.-min(min(gq.x,gq.y)/1.1,1.); float hq=abs(fract(vWp.y*2.+.5)-.5)/max(fwidth(vWp.y*2.),1e-4); float cl2=1.-min(hq/1.2,1.); totalEmissiveRadiance+=vec3(.5,.86,.92)*fz*(gl*.07+cl2*.12); }");
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D detail; uniform sampler2D litter; varying vec3 vWp;")
-      .replace("#include <map_fragment>", "#include <map_fragment>\n{ float dist=length(vWp-cameraPosition); float k=1.-smoothstep(25.,140.,dist); vec3 dt=texture2D(detail,vWp.xz*.33).rgb; float l=dot(dt,vec3(.333)); diffuseColor.rgb*=mix(1.,.55+l*1.1,k*.85); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0),.45)*vec3(.86,.83,.76); float lu=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.37,.36,.34)*(.8+lu*.25),smoothstep(.28,.52,lu)*.92);"
+      .replace("#include <map_fragment>", "#include <map_fragment>\n{ float dist=length(vWp-cameraPosition); float k=1.-smoothstep(25.,140.,dist); vec3 dt=texture2D(detail,vWp.xz*.33).rgb; float l=dot(dt,vec3(.333)); diffuseColor.rgb*=mix(1.,.55+l*1.1,k*.85); float l0=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(l0),.45)*vec3(.86,.83,.76); float lu=dot(diffuseColor.rgb,vec3(.333)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.37,.36,.34)*(.8+lu*.25),smoothstep(.28,.52,lu)*.92); { float wk=1.-uCy; float d2=length(vWp.xz-cameraPosition.xz); vec3 g2=texture2D(detail,vWp.xz*.045).rgb; vec3 g3=texture2D(detail,vWp.xz*.011+.3).rgb; float m=dot(g2,vec3(.333))*.6+dot(g3,vec3(.333))*.8; vec3 und=mix(vec3(.25,.29,.18),vec3(.36,.37,.25),m)*(.82+.36*dot(texture2D(detail,vWp.xz*.18).rgb,vec3(.333))); diffuseColor.rgb=mix(diffuseColor.rgb,und*(.72+lu*.4),wk*smoothstep(6.,20.,d2)*.95); }"
         + " float rg=smoothstep(-1075.,-1045.,vWp.z)*(1.-smoothstep(-870.,-835.,vWp.z))*smoothstep(-175.,-150.,vWp.x)*(1.-smoothstep(0.,25.,vWp.x)); vec3 lt=texture2D(litter,vWp.xz*.24).rgb; vec3 lt2=texture2D(litter,vWp.xz*.09+.37).rgb; vec3 lt3=texture2D(litter,vWp.zx*.55+.21).rgb; lt=mix(lt,lt3,.35); lt=mix(lt,vec3(dot(lt,vec3(.333))),.62)*vec3(.66,.58,.47); lt=(lt-.14)*1.3+.14; diffuseColor.rgb=mix(diffuseColor.rgb,max(lt,vec3(0.))*(.35+1.*dot(lt2,vec3(.333))),rg*(1.-smoothstep(60.,220.,dist))*.9); }");   // 境内の林の床：落ち葉と腐植（2026-10-22）
   };
   tm.customProgramCacheKey = () => "terrainDetail";
@@ -384,7 +392,7 @@ function buildBuildings(g) {
   // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
   const U = BLDU;
   const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
-    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .97 : .82);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .97 : .82) * mix(.25, 1., uSky); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
   m.onBeforeCompile = sh => { vs(sh);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
@@ -398,7 +406,9 @@ function buildBuildings(g) {
         { float sh = roof > .5 ? 1. : .62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))));   // 10-28 夜 8：歩くときは、データの層を「沈んだ青灰の面＋細い走査線」に描き直す（白く浮かない・面の向きで明暗）
           vec3 wc = vec3(.13, .18, .22) * sh + vec3(.2, .45, .55) * (fl * nr * .7 + band * .5) + vec3(.1, .2, .24) * fr * .5;
           diffuseColor.rgb = mix(wc, diffuseColor.rgb, uSky); }
-        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1.1, .4, uSky); }`);   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
+        diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1.1, .4, uSky);
+        /* 11-10 第3周：歩くときは、データの層の建物（本人 10-22 の半透明）は残し、近く（〜30 m）だけ薄めて消す（並木のすぐ外で半透明の板に見えたため） */
+        { float wk = 1. - uSky; float far = smoothstep(20., 40., dist); vec3 fc = roof > .5 ? vec3(.30, .31, .33) : vec3(.66, .63, .58) * (.62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))))) * (.9 + .1 * step(.5, fract(fy))); diffuseColor.rgb = mix(diffuseColor.rgb, fc, wk); diffuseColor.a *= mix(1., smoothstep(60., 140., dist) * .6, wk); } }`);   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };
   m.customProgramCacheKey = () => "bldGhost3";
   const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
@@ -438,7 +448,7 @@ function toFloat(src) {   // 量子化された頂点（Int16 など）を、変
 const LEAFA = new WeakSet();
 function leafAlpha(m) { if (LEAFA.has(m)) return; LEAFA.add(m); const prev = m.onBeforeCompile;
   m.onBeforeCompile = function (sh, r) { prev?.call(this, sh, r); sh.fragmentShader = sh.fragmentShader.replace("#include <alphatest_fragment>", `#ifdef USE_MAP
-{ vec2 tz = vec2(textureSize(map, 0)); vec2 ddx = dFdx(vMapUv * tz), ddy = dFdy(vMapUv * tz); float mip = max(0., .5 * log2(max(dot(ddx, ddx), dot(ddy, ddy)))); diffuseColor.a *= 1. + mip * .22; }
+{ vec2 tz = vec2(textureSize(map, 0)); vec2 ddx = dFdx(vMapUv * tz), ddy = dFdy(vMapUv * tz); float mip = max(0., .5 * log2(max(dot(ddx, ddx), dot(ddy, ddy)))); diffuseColor.a *= 1. + mip * .3; }
 #endif
 #ifdef USE_ALPHATEST
 diffuseColor.a = (diffuseColor.a - alphaTest) / max(fwidth(diffuseColor.a), 1e-4) + .5; if (diffuseColor.a < .5) discard;
@@ -467,6 +477,8 @@ function leanIn(geo, sp) {
   for (let i = 0; i < P.count; i++) { const y = P.getY(i), t = Math.min(1, Math.max(0, (y - 1.5) / 4)), s = 1 - (1 - f) * t * t * (3 - 2 * t); P.setX(i, P.getX(i) * s); P.setZ(i, P.getZ(i) * s); }
   P.needsUpdate = true; geo.computeBoundingBox();
 }
+/* 11-10 第3周：ケヤキが低い所で幹が分かれ、プラタナスに見えた→幹の下 30% を 1.7 倍に伸ばし、分かれる位置を高く（樹冠はそのまま上へずらし、全体の高さは SPH に戻す） */
+function liftFork(geo, h) { const P = geo.attributes.position, f = h * .3, k = 1.7; for (let i = 0; i < P.count; i++) { const y = P.getY(i); P.setY(i, (y < f ? y * k : y + f * (k - 1)) * h / (h + f * (k - 1))); } P.needsUpdate = true; geo.computeBoundingBox(); }
 function buildTrees([g, kg]) {
   const get = n => (n.startsWith("keyaki_") && kg ? kg.scene.getObjectByName(n === "keyaki_s8_far_bark" ? "keyaki_bark" : n === "keyaki_s8_near_leaves" ? "keyaki_leaves" : n) : null) || g.scene.getObjectByName(n);
   if (!TREE.crown) buildCrowns();
@@ -478,16 +490,16 @@ function buildTrees([g, kg]) {
     const h = box.max.y - box.min.y, k = SPH[sp] / h;
     const parts = [];
     for (const o of [bark, leaves]) {
-      o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); geo.scale(k, k, k); if (o === bark) leanIn(geo, sp);
+      o.updateWorldMatrix(true, false); const geo = toFloat(o.geometry).applyMatrix4(o.matrixWorld); geo.translate(0, -box.min.y, 0); if (sp === "keyaki") liftFork(geo, h); geo.scale(k, k, k); if (o === bark) leanIn(geo, sp);
       const mat = o.material; if (mat.map) mat.map.anisotropy = 2; mat.envMapIntensity = .45;
       if (o === bark) barkUV(mat);
-      if (o === leaves) { mat.alphaTest = Math.max(mat.alphaTest || 0, .45); mat.transparent = false; mat.side = THREE.DoubleSide; leafAlpha(mat); }
+      if (o === leaves) { mat.alphaTest = .34;   /* 11-10 第4周：葉の縁のギザギザ→抜きの線を下げ、遠くの細い葉も残す */ mat.transparent = false; mat.side = THREE.DoubleSide; leafAlpha(mat); }
       const g2 = o === leaves && MOBILE && sp === "keyaki" ? thinLeaves(geo, 2, 1.3) : geo;   // スマホの近くのケヤキは、葉の札を半分に
       const im = new THREE.InstancedMesh(g2, mat, count[sp] || 1); im.count = 0; im.frustumCulled = false; world.add(im); parts.push(im);
     }
     // 中くらいの距離：幹は遠景の形、葉は札を減らした形
     const fb = g.scene.getObjectByName(base + "_bark") || bark; fb.updateWorldMatrix(true, false);
-    const bgeo = toFloat(fb.geometry).applyMatrix4(fb.matrixWorld); bgeo.translate(0, -box.min.y, 0); bgeo.scale(k, k, k); leanIn(bgeo, sp);
+    const bgeo = toFloat(fb.geometry).applyMatrix4(fb.matrixWorld); bgeo.translate(0, -box.min.y, 0); if (sp === "keyaki") liftFork(bgeo, h); bgeo.scale(k, k, k); leanIn(bgeo, sp);
     const lgeo = thinLeaves(parts[1].geometry, MOBILE ? 5 : 4, MOBILE ? 1.85 : 1.7);
     const lm2 = parts[1].material.clone(); lm2.side = THREE.DoubleSide; leafAlpha(lm2);
     barkUV(fb.material);
@@ -1896,6 +1908,8 @@ function loadAoi() {
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; });
+    /* 11-10 第3周：手先・袖口・裾・髪先の点々（輪郭線の抜け）→ 顔のほかは輪郭線を描かない。PC は抜きの縁をなめらかに */
+    v.scene.traverse(o => { for (const m of [].concat(o.material || [])) { if (!m?.isMToonMaterial) continue; if (!/face|eye|brow/i.test(m.name + o.name) && "outlineWidthMode" in m) { m.outlineWidthMode = "none"; m.outlineWidthFactor = 0; m.needsUpdate = true; } if (m.alphaTest > 0 && !MOBILE) { m.alphaToCoverage = true; m.needsUpdate = true; } } });
     // 2026-10-26 3（採点「服がのっぺりした単色で陰影がない」）：衣の陰をやわらかく少し深く（顔・目・髪はそのまま）
     v.scene.traverse(o => { for (const m of [].concat(o.material || [])) { if (!m?.isMToonMaterial || /face|eye|hair|brow|mouth|teeth/i.test(m.name + o.name)) continue; if (m.shadeColorFactor) m.shadeColorFactor.lerp(new THREE.Color(0x6f7c8c), .35); if ("shadingToonyFactor" in m) m.shadingToonyFactor = Math.min(m.shadingToonyFactor, .42); if ("shadingShiftFactor" in m) m.shadingShiftFactor = Math.max(m.shadingShiftFactor - .14, -.5); if (m.color && /cloth|body|tops|bottoms|onepiece|coat|skirt|dress/i.test(m.name + o.name)) m.color.multiplyScalar(.9); } });   // 2026-10-26 16：衣が光から浮く → 白を少し落とし、陰をやわらかく深く
     const root = new THREE.Group(); root.name = "aoi"; root.add(v.scene); root.visible = false; world.add(root);
