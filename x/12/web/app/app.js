@@ -13,7 +13,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k18";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k19";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
@@ -785,7 +785,7 @@ function kuraCull(dt) { if (!MOBILE || !KURA.meshes.length) return; if ((KURA.ct
 let KURA_GLB = null;
 function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
-    ld.load("web/app/kura_master.glb?v=9", g => { g.scene.updateMatrixWorld(true); const out = {};
+    ld.load("web/app/kura_master.glb?v=10", g => { g.scene.updateMatrixWorld(true); const out = {};
       g.scene.traverse(o => { if (o.isMesh) { const k = o.name.replace(/[._]\d+$/, ""); const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
       res(out); }, undefined, () => res(null)); }); }
 function buildKura() {
@@ -1300,7 +1300,7 @@ const SKY = { az: -.35, el: .95, dist: 1100, tAz: -.35, tEl: .95, tDist: 1100, c
 const WALK = { speed: 2.43, moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 12 };
 const KEYS = new Set();
-const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 40, f: 900 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: { n: 900, f: 3000 }, walk: { n: 110, f: 1500 }, fly: { n: 500, f: 3200 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
