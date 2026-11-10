@@ -2008,7 +2008,7 @@ function stepTag() {
       const w = el.offsetWidth || 260, h = el.offsetHeight || 52; let x = (_tp.x + 1) / 2 * innerWidth - w / 2, y = (1 - _tp.y) / 2 * innerHeight - h;
       x = Math.max(TAG.av.lx, Math.min(innerWidth - w - 16, x)); y = Math.max(TAG.av.ty, Math.min(TAG.av.cy - h, y));
       if (x < TAG.av.lx + 1 && y < TAG.av.ly) x = TAG.av.lx;
-      el.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`; show = true; TAG.a = Math.min(1, (16 - bd) / 5); } }
+      el.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`; show = true; TAG.a = Math.min(1, .6 + (16 - bd) / 6);   /* 11-11 第8周 採点「町家 G の札の字が壁に溶ける」：近づく途中も字が読める濃さに（下地は字の影で・灰の網かけにしない） */ } }
   el.style.opacity = show ? TAG.a.toFixed(2) : "0"; el.hidden = !show;
 }
 
