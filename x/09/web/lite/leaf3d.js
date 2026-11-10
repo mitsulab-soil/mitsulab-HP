@@ -31,7 +31,7 @@ export function makeLeaf3D(THREE, { teeth = 5, wide = .3 } = {}) {
 }
 
 /* 樹種ごとの葉（確かめた範囲・模式）：ケヤキ 3〜7 cm・鋸歯／シラカシ 6〜11 cm・細く上半分に鋸歯／スダジイ 5〜10 cm・全縁／クスノキ 6〜10 cm・全縁で黄緑／エノキ 4〜8 cm・上半分に鋸歯 */
-export const LEAFSP = { keyaki: { l: [.052, .072], teeth: 5, wide: .3, col: [.18, .3, .1] }, kashi: { l: [.07, .1], teeth: 3, wide: .2, col: [.13, .22, .09] }, shii: { l: [.06, .09], teeth: 0, wide: .26, col: [.12, .2, .08] }, kusu: { l: [.065, .09], teeth: 0, wide: .28, col: [.22, .32, .1] }, enoki: { l: [.05, .075], teeth: 3, wide: .32, col: [.19, .3, .11] } };
+export const LEAFSP = { keyaki: { l: [.052, .072], teeth: 5, wide: .3, col: [.18, .3, .1] }, kashi: { l: [.07, .1], teeth: 3, wide: .2, col: [.13, .22, .09] }, shii: { l: [.06, .11], teeth: 0, wide: .26, col: [.12, .2, .08] }, kusu: { l: [.065, .09], teeth: 0, wide: .28, col: [.22, .32, .1] }, enoki: { l: [.05, .09], teeth: 3, wide: .32, col: [.19, .3, .11] } };
 export function makeLeafAtlas(THREE, renderer, { size = 1024, card = .87, seed = 11, sp = "keyaki" } = {}) {
   const S = LEAFSP[sp] || LEAFSP.keyaki;
   let sd = seed; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;

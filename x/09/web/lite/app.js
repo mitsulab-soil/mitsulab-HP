@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k25";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w20";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
-import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=3";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
+import { installDapple, makeSightGrass, SIGHT_AIR, sightBob } from "../kit/sight_look.js?v=6";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
 installDapple(THREE);
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=sp13";
@@ -409,15 +409,16 @@ function stepBats(dt) {
 function contactShadows() {
   const L = []; const bb = new THREE.Box3(), sz = new THREE.Vector3(), c = new THREE.Vector3();
   structGroup.updateMatrixWorld(true);
-  for (const o of structGroup.children) { if (/^(torii_|romon|shinkyo)/.test(o.name)) continue; bb.setFromObject(o); bb.getSize(sz); bb.getCenter(c);
-    if (sz.x > 40 || sz.z > 40 || sz.y > 8) continue; L.push([c.x, c.z, sz.x, sz.z, o.rotation.y]); }
+  for (const o of structGroup.children) { if (/^(torii_|romon|shinkyo)/.test(o.name) || o.isInstancedMesh) continue; const ry = o.rotation.y; o.rotation.y = 0; o.updateMatrixWorld(true); bb.setFromObject(o); o.rotation.y = ry; o.updateMatrixWorld(true); bb.getSize(sz); bb.getCenter(c);
+    if (sz.y > 8 || (Math.max(sz.x, sz.z) > 6 && sz.y > 2.2)) continue;   /* 11-10 石柵のような低く長い物も：向きをそろえた箱で陰を伸ばす */
+    const dx = c.x - o.position.x, dz = c.z - o.position.z, cs = Math.cos(ry), sn = Math.sin(ry); L.push([o.position.x + dx * cs + dz * sn, o.position.z - dx * sn + dz * cs, sz.x, sz.z, ry]); }
   if (!L.length) return;
   const cv = document.createElement("canvas"); cv.width = cv.height = 64; const x = cv.getContext("2d"); const gr = x.createRadialGradient(32, 32, 4, 32, 32, 32);
   gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(.55, "rgba(0,0,0,.55)"); gr.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
   const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace;
   const m = new THREE.MeshBasicMaterial({ map: tx, color: "#000", transparent: true, opacity: .42, depthWrite: false, fog: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2); const im = new THREE.InstancedMesh(geo, m, L.length); const M = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
-  L.forEach((v, i) => { const w = Math.max(.6, Math.min(v[2], v[3]) * 1.35 + .3), l = Math.max(v[2], v[3]) * 1.15 + .3; const ax = v[2] >= v[3]; p.set(v[0], groundY(v[0], v[1]) + .03, v[1]); q.setFromEuler(e.set(0, 0, 0)); s.set(ax ? l : w, 1, ax ? w : l); M.compose(p, q, s); im.setMatrixAt(i, M); });
+  L.forEach((v, i) => { const sx = v[2] * 1.2 + .45, sz2 = v[3] * 1.2 + .45; p.set(v[0], groundY(v[0], v[1]) + .03, v[1]); q.setFromEuler(e.set(0, v[4], 0)); s.set(Math.max(.6, sx), 1, Math.max(.6, sz2)); M.compose(p, q, s); im.setMatrixAt(i, M); });
   im.renderOrder = 1; im.frustumCulled = false; structGroup.add(im);
 }
 function stepEdges() { if (!EDGEQ.length) return; const t0 = performance.now();
@@ -433,7 +434,7 @@ function buildBuildings(g) {
   // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
   const U = BLDU;
   const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
-    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .8 : .82) * mix(.6, 1., uSky);   /* 11-10 歩くとき霞の中の箱は、色を寄せるより薄くして消す（白い帯を出さない） */ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .094 : fogFar, vFogDepth);   /* 11-10 霞を奥へ広げても、霞の中の箱の薄め方は前のまま（.16×240/408） */ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .8 : .82) * mix(.6, 1., uSky);   /* 11-10 歩くとき霞の中の箱は、色を寄せるより薄くして消す（白い帯を出さない） */ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
   m.onBeforeCompile = sh => { vs(sh);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
@@ -565,7 +566,7 @@ function buildTrees([g, kg]) {
   try { buildImpostors(); } catch (e) { console.warn("impostor", e); }
   { const lm = TREE.protos.keyaki?.parts[1]?.material; if (lm?.map && TREE.leafU) { lm.map.wrapS = lm.map.wrapT = THREE.RepeatWrapping; lm.map.needsUpdate = true; TREE.leafU.value = lm.map; } }
   /* 11-10：近い・中くらいの距離の木（ケヤキ・シラカシ・スダジイ・クスノキ・エノキ）の葉の札の絵を、立体の葉（本当の大きさ・樹種の形）を並べて描いた絵に差し替える（遠くの絵の木は元のまま） */
-  if (!NOATLAS) new Promise(ok => { const w = () => QW.ready ? setTimeout(ok, 400) : setTimeout(w, 200); w(); }).then(() => import("./leaf3d.js?v=9")).then(async ({ makeLeafAtlas, LEAFSP }) => { for (const sp of Object.keys(LEAFSP)) { const K = TREE.protos[sp]; if (!K) continue; await new Promise(ok => setTimeout(ok, 120));   /* 起動を待ってから、1 種ずつ間をあけて描く（起動と動きを止めない） */ const tx = makeLeafAtlas(THREE, renderer, { size: MOBILE ? 1024 : 2048, sp, seed: 11 + sp.length * 7 }); if (sp !== "keyaki") { const c = K.parts[1].material.clone(); leafAlpha(c); K.parts[1].material = c; }   /* trees.glb の木は葉の材質を共有している（杉・桜・檜は元のまま） */ for (const lm of [K.parts[1].material, K.mid[1].material]) { lm.map = tx; leafClumps(lm); lm.needsUpdate = true; } } }).catch(e => console.warn("leafAtlas", e));
+  if (!NOATLAS) new Promise(ok => { const w = () => QW.ready ? setTimeout(ok, 400) : setTimeout(w, 200); w(); }).then(() => import("./leaf3d.js?v=10")).then(async ({ makeLeafAtlas, LEAFSP }) => { for (const sp of Object.keys(LEAFSP)) { const K = TREE.protos[sp]; if (!K) continue; await new Promise(ok => setTimeout(ok, 120));   /* 起動を待ってから、1 種ずつ間をあけて描く（起動と動きを止めない） */ const tx = makeLeafAtlas(THREE, renderer, { size: MOBILE ? 1024 : 2048, sp, seed: 11 + sp.length * 7 }); if (sp !== "keyaki") { const c = K.parts[1].material.clone(); leafAlpha(c); K.parts[1].material = c; }   /* trees.glb の木は葉の材質を共有している（杉・桜・檜は元のまま） */ for (const lm of [K.parts[1].material, K.mid[1].material]) { lm.map = tx; leafClumps(lm); lm.needsUpdate = true; } await new Promise(ok => setTimeout(ok, 60)); reImp(K); } }).catch(e => console.warn("leafAtlas", e));
   TREE.lastPos.set(1e9, 0, 0); updateTrees(true);
 }
 /* 2026-10-23 幹の樹皮が縦に引き伸ばされて縞になっていた（採点の指摘）：絵の座標を、幹のまわりの角度と高さから作りなおす（どの太さ・高さでも同じ肌理の大きさ） */
@@ -594,20 +595,33 @@ function barkUV(m) {
   m.needsUpdate = true;
 }
 /* 遠くの木：中くらいの形を一度だけ横から写した絵を、十字に組んだ 2 枚の板に貼る（1 本 4 三角形）。歩くときの遠景だけに使う */
+function reImp(P) {   /* 11-10 採点 P2「遠景の木は元の絵」：遠景の板の絵を、差し替えた葉の絵で描き直す（1 種 1 回） */
+  const I = P?.impR; if (!I) return; const old = renderer.getRenderTarget(), oc = new THREE.Color(), oa = renderer.getClearAlpha(); renderer.getClearColor(oc);
+  const g = new THREE.Group(); for (const im of P.mid) g.add(new THREE.Mesh(im.geometry, im.material)); I.sc.add(g);
+  renderer.setRenderTarget(I.rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(I.sc, I.cam); I.sc.remove(g);
+  renderer.setRenderTarget(old); renderer.setClearColor(oc, oa);
+}
 function buildImpostors() {
   const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight("#d6e6ff", "#4d4636", 1.15)); const dl = new THREE.DirectionalLight("#fff1dc", 2.3); dl.position.set(.6, 1, .8); sc.add(dl);
   const old = renderer.getRenderTarget(), oc = new THREE.Color(), oa = renderer.getClearAlpha(); renderer.getClearColor(oc);
   const count = {}; for (const t of D.trees) count[t[3]] = (count[t[3]] || 0) + 1;
   for (const [sp, P] of Object.entries(TREE.protos)) {
-    const W = P.w * 1.04, H = P.h * 1.04, R = 256, rt = new THREE.WebGLRenderTarget(R, Math.round(R * H / W), { samples: 0 }); rt.texture.colorSpace = THREE.SRGBColorSpace;
+    const W = P.w * 1.04, H = P.h * 1.04, R = MOBILE ? 256 : 384, rt = new THREE.WebGLRenderTarget(R, Math.round(R * H / W), { samples: 0 }); rt.texture.colorSpace = THREE.SRGBColorSpace;
     const cam = new THREE.OrthographicCamera(-W / 2, W / 2, H, 0, -100, 100); cam.position.set(0, 0, 50); cam.lookAt(0, 0, 0);
     const g = new THREE.Group(); for (const im of P.mid) g.add(new THREE.Mesh(im.geometry, im.material)); sc.add(g);
     renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(sc, cam); sc.remove(g);
+    P.impR = { rt, cam, sc };   /* 11-10：葉の絵を立体の葉に差し替えたあと、遠景の絵も描き直す */
     const geo = new THREE.BufferGeometry(), pos = [], uv = [], idx = [];
     for (let k = 0; k < 2; k++) { const a = k * Math.PI / 2, cx = Math.cos(a) * W / 2, cz = Math.sin(a) * W / 2, b = pos.length / 3;
       pos.push(-cx, 0, -cz, cx, 0, cz, cx, H, cz, -cx, H, -cz); uv.push(0, 0, 1, 0, 1, 1, 0, 1); idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
     geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx);
     const mat = new THREE.MeshBasicMaterial({ map: rt.texture, alphaTest: .45, side: THREE.DoubleSide, color: "#e2e6e0" });
+    geo.computeVertexNormals();   /* 11-10 採点 P2「遠景の木の板の縁」：板を真横から見るほど薄くし、縁の直線を食い、一本ずつ色と明るさを少し変える */
+    mat.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying float vFc; varying vec3 vTn;")
+        .replace("#include <fog_vertex>", "#include <fog_vertex>\n{ vec3 nv = normalize(mat3(modelViewMatrix) * mat3(instanceMatrix) * normal); vFc = abs(dot(nv, normalize(-mvPosition.xyz))); vec3 ip = instanceMatrix[3].xyz; float h = fract(sin(dot(ip.xz, vec2(12.99, 78.23))) * 43758.5); vTn = vec3(.86 + .22 * h, .9 + .16 * fract(h * 7.3), .84 + .2 * fract(h * 3.1)); }");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vFc; varying vec3 vTn;")
+        .replace("#include <alphatest_fragment>", "{ vec2 e = min(vMapUv, 1. - vMapUv); diffuseColor.a *= smoothstep(.0, .06, e.x) * smoothstep(.0, .04, 1. - vMapUv.y) * smoothstep(.12, .42, vFc); diffuseColor.rgb *= vTn; }\n#include <alphatest_fragment>"); };
+    mat.customProgramCacheKey = () => "treeImp2";
     const im = new THREE.InstancedMesh(geo, mat, count[sp] || 1); im.count = 0; im.frustumCulled = false; world.add(im); P.imp = im;
   }
   renderer.setRenderTarget(old); renderer.setClearColor(oc, oa);
@@ -658,7 +672,7 @@ function updateTrees(force = false) {
       _q.setFromAxisAngle(_up, t.r); _m.compose(_p.set(t.x, t.y - .15, t.z), _q, _s.setScalar(t.s));
       for (const im of P.mid) im.setMatrixAt(im.count++, _m);
     } else if ((useImp || (t.lone && mode === "fly")) && P?.imp) {   // 真上から見る上空では板が細く暗く写るので、丸い樹冠のまま
-      _q.setFromAxisAngle(_up, t.r); _m.compose(_p.set(t.x, t.y - .15, t.z), _q, _s.setScalar(t.s)); P.imp.setMatrixAt(P.imp.count++, _m);
+      _q.setFromAxisAngle(_up, t.r); { const h = Math.abs(Math.sin(t.x * 12.99 + t.z * 78.23)) % 1, h2 = Math.abs(Math.sin(t.x * 3.7 - t.z * 5.3)) % 1; _m.compose(_p.set(t.x, t.y - .15, t.z), _q.setFromAxisAngle(_up, t.r + h * 6.28), _s.set(t.s * (.82 + .36 * h), t.s * (.78 + .44 * h2), t.s * (.82 + .36 * h))); }   /* 11-10 採点 P2「遠景の木の繰り返し」：一本ずつ向き・幅・高さを変える */ P.imp.setMatrixAt(P.imp.count++, _m);
     } else {
       const h = (SPH[t.sp] || 14) * t.s, w = (P ? P.w : h * .7) * .5 * t.s;
       _m.compose(_p.set(t.x, t.y + h * .6, t.z), _q.setFromAxisAngle(_up, t.r), _s.set(w, h * .42, w)); TREE.crown.setMatrixAt(nc, _m);
@@ -894,10 +908,12 @@ function loadVeg() {
       sh.uniforms.vTime = VEG.time;
       if (!MOBILE && !RM) sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nuniform float vTime;")
         .replace("#include <begin_vertex>", "#include <begin_vertex>\n{ vec3 ip = instanceMatrix[3].xyz; float sw = sin(vTime * 1.6 + ip.x * .7 + ip.z * .9) + .5 * sin(vTime * 2.9 + ip.z * 1.3); transformed.xz += vec2(sw, sw * .6) * .025 * max(transformed.y, 0.); }");
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vVt;").replace("#include <begin_vertex>", "#include <begin_vertex>\n{ vec3 ip0 = instanceMatrix[3].xyz; float h0 = fract(sin(dot(floor(ip0.xz * 1.7), vec2(12.99, 78.23))) * 43758.5), h1 = .5 + .5 * sin(ip0.x * .23 + ip0.z * .31) * sin(ip0.x * .07 - ip0.z * .11); transformed.y *= .62 + .5 * h0 + .3 * h1; vVt = vec3(.84 + .3 * h0, .88 + .2 * h1, .8 + .25 * fract(h0 * 5.7)); }");   /* 11-10 採点 P2「草の帯が一様」：株ごとの高さと色、数 m のむら */
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vVt;").replace("#include <color_fragment>", "#include <color_fragment>\n  diffuseColor.rgb *= vVt;");
       sh.fragmentShader = sh.fragmentShader.replace("#include <normal_fragment_begin>", "#include <normal_fragment_begin>\n  normal = normalize(vNormal);")   // 札の裏も表と同じ明るさに
         .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * .07;");   // 葉を透ける光（ごく弱く）
     };
-    mat.customProgramCacheKey = () => "veg" + (MOBILE ? 1 : 0) + (RM ? 1 : 0);
+    mat.customProgramCacheKey = () => "veg2" + (MOBILE ? 1 : 0) + (RM ? 1 : 0);
     VEG.group = new THREE.Group(); VEG.group.name = "veg"; world.add(VEG.group);
     const lists = Array.from({ length: 8 }, () => []);
     for (let i = 0; i < n; i++) { const s0 = at[i * 4]; lists[s0 === 0 ? 7 : s0].push(i); }   // ツツジは、枝葉が株元から立ち上がる株の形（2026-10-22 丸いドームの形はやめた）
@@ -1063,7 +1079,7 @@ const EYE = 1.55;   // 11-03 本人「視点は sight の方がリアリティ�
 let tween = null, TWFOG = null;
 // どの見方も、空と霞は同じ色。切りかえのあいだも、霞の近さ・遠さだけが連続して変わる（黒い画面にしない）
 const SIGHT_HAZE = new THREE.Color(SIGHT_AIR.color);
-const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: SIGHT_HAZE, n: SIGHT_AIR.near, f: SIGHT_AIR.far })   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
+const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: SIGHT_HAZE, n: SIGHT_AIR.near, f: SIGHT_AIR.far * 1.7 })   /* 11-10 採点 P2「参道の奥が霞で途切れる」：霞の奥だけ広げる（手前 near を動かすと 375 で碧が消えた） */   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && prev !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
@@ -2099,7 +2115,7 @@ function aoiElbows() {
 // 足もとの接地の陰（スマホでも）：やわらかな丸い陰を碧の足もとに
 let AOISH = null;
 function aoiShadow() {
-  if (!AOISH) { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.86)"); gr.addColorStop(.28, "rgba(0,0,0,.6)"); gr.addColorStop(.6, "rgba(0,0,0,.24)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  if (!AOISH) { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.95)"); gr.addColorStop(.16, "rgba(0,0,0,.82)"); gr.addColorStop(.3, "rgba(0,0,0,.56)");   /* 11-10 採点 P2「375 で碧が浮いて見える」：足の真下の芯を濃く */ gr.addColorStop(.6, "rgba(0,0,0,.24)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
     AOISH = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false, toneMapped: false })); AOISH.renderOrder = 1; world.add(AOISH); QW.AOISH = AOISH; }
   const p = AOI.root.position; AOISH.visible = AOI.root.visible; AOISH.position.set(p.x, groundY(p.x, p.z) + .03, p.z); AOISH.rotation.y = AOI.m.yaw || 0;
 }

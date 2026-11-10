@@ -18,6 +18,7 @@ export function installDapple(THREE) {
   const C = THREE.ShaderChunk, key = "getDirectionalLightInfo( directionalLight, directLight );";
   if (!C.lights_fragment_begin.includes(key)) return;   // 目印が見つからなければ何もしない
   C.lights_fragment_begin = C.lights_fragment_begin.replace("#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )", `float qDap = 1.0;
+#define Q_DAP 1
 #if defined( USE_FOG ) && !defined( FOG_EXP2 ) && ( NUM_DIR_LIGHTS > 0 )
 { float on = 1.0 - smoothstep( 20.0, 50.0, fogNear );
   if ( on > 0.0 ) {
@@ -29,13 +30,18 @@ export function installDapple(THREE) {
       vec2 p = wp.xz * 1.25; vec2 q = p + vec2( sin( p.y * .7 ), cos( p.x * .6 ) ) * .8;
       float n = sin( q.x * 1.7 ) * sin( q.y * 1.9 ) + .55 * sin( q.x * 3.9 + q.y * 1.3 ) * sin( q.y * 3.3 - q.x * .8 ) + .3 * sin( q.x * 7.1 - 2. ) * sin( q.y * 6.7 + 1. );
       vec2 pb = wp.xz * .42 + vec2( 3.1, 1.7 ); float nb = sin( pb.x * 1.3 + sin( pb.y * .9 ) ) * sin( pb.y * 1.5 - .7 ) + .4 * sin( pb.x * 2.9 - pb.y * 1.1 );
-      float lit = smoothstep( .3, .7, ( n * .5 + .5 ) * .62 + ( nb * .5 + .5 ) * .38 );   // 11-05 斑を大小まぜ、ふちをぼかす（大きな葉の塊の影＋小さな葉の透き間）
+      float cov = smoothstep( .25, .75, nb * .5 + .5 );   /* 11-10 採点 P2「舗装の陰がまだら」：樹冠の大きな影（cov）の中に、丸くやわらかな光の斑（葉の透き間の像）だけが落ちる */
+      vec2 pc = wp.xz * 1.6 + vec2( sin( wp.z * .37 ), cos( wp.x * .41 ) ) * .6; vec2 cc = floor( pc ); vec2 fc = fract( pc ) - .5; float hh = fract( sin( dot( cc, vec2( 12.99, 78.23 ) ) ) * 43758.5 );
+      vec2 off = vec2( fract( hh * 7.1 ), fract( hh * 3.7 ) ) - .5; vec2 dd = ( fc - off * .8 ) * vec2( 1., 1.35 ); float spot = ( 1. - smoothstep( .04 + .06 * hh, .18 + .16 * fract( hh * 13.7 ), length( dd ) ) ) * step( .58, hh ) * ( .55 + .45 * fract( hh * 5.3 ) );
+      float lit = mix( 1., .0, cov ) + cov * spot * .95 + ( 1. - cov ) * .0 + smoothstep( .45, .9, n * .5 + .5 ) * .25 * cov;   // 11-05 斑を大小まぜ、ふちをぼかす（大きな葉の塊の影＋小さな葉の透き間）
       qDap = mix( 1.0, .12 + 1.05 * lit, k );
     }
   }
 }
 #endif
 #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )`).replace(key, key + "\n\t\tdirectLight.color *= qDap;");
+  /* 11-10：木漏れ日が舗装に写らなかった（日の光より空の光が強く、日の光だけ斑にしても見えない）→ 樹冠の陰では空の光も少し落とす */
+  if (C.lights_fragment_end.indexOf("qDapI") < 0) C.lights_fragment_end = C.lights_fragment_end + "\n#ifdef Q_DAP\n{ float qDapI = clamp( qDap, 0., 1. ); reflectedLight.indirectDiffuse *= .45 + .55 * qDapI; }\n#endif\n";
 }
 
 /* ② 草（sight の nature.js makeGrass と同じ葉の形・色の幅）。anchors＝[x, y, z] の並び（植え込み・下草の位置）。
