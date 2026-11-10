@@ -392,7 +392,7 @@ function buildBuildings(g) {
   // 面はごく薄い色（斜めから見る面ほど少し濃い）、輪郭は細い線、壁に階の線（近くだけ）、ゆっくり上へ抜ける走査の帯。遠いほど薄く。参道の並木・鳥居・社殿は写実のまま
   const U = BLDU;
   const vs = (sh) => { sh.uniforms.uT = U.t; sh.uniforms.uG = U.g; sh.uniforms.uSky = U.sky;   // 霞では色を霞へ寄せず、薄くして消す（データの層は、遠くでは見えなくなるだけ）
-    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .97 : .82) * mix(.25, 1., uSky); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
+    sh.fragmentShader = sh.fragmentShader.replace("#include <fog_fragment>", "#ifdef USE_FOG\n float fgF = smoothstep(fogNear, fogNear < 50. ? fogNear + (fogFar - fogNear) * .16 : fogFar, vFogDepth); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (fogNear < 50. ? .92 : .25)); gl_FragColor.a *= 1. - fgF * (fogNear < 50. ? .8 : .82) * mix(.25, 1., uSky); gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fgF * (1. - uSky) * .6);\n#endif"); sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;").replace("#include <fog_vertex>", "#include <fog_vertex>\nvWp=(modelMatrix*vec4(transformed,1.)).xyz;"); };
   const m = new THREE.MeshBasicMaterial({ color: "#d8f3fb", transparent: true, depthWrite: true, fog: true, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
   m.onBeforeCompile = sh => { vs(sh);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
@@ -401,14 +401,14 @@ function buildBuildings(g) {
         float fr = pow(1. - abs(dot(fn, vd)), 2.); float roof = step(.6, abs(fn.y)); float nr = 1. - smoothstep(80., 420., dist);
         float fy = (vWp.y - 13.2) / 3.15; float d = abs(fract(fy + .5) - .5); float fl = (1. - roof) * step(.5, fy) * (1. - smoothstep(0., fwidth(fy) * 1.2, d));
         float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.1, 2.)) * (1. - roof);
-        float fade = mix(mix(1., .18, smoothstep(80., 380., dist)), mix(1., .6, smoothstep(140., 760., dist)), uSky);   /* 10-28 夜 5：歩くとき遠くの建物を早めに消す（遠くが白く浮いていた） */
+        float fade = mix(mix(1., .42, smoothstep(90., 420., dist)), mix(1., .6, smoothstep(140., 760., dist)), uSky);   /* 10-28 夜 5：歩くとき遠くの建物を早めに消す（遠くが白く浮いていた） */
         diffuseColor.rgb = mix(vec3(.25,.35,.43), vec3(.36,.66,.78), fr * .7 + band * .7 + fl * nr * .6) * (roof > .5 ? 1.1 : 1.);
         { float sh = roof > .5 ? 1. : .62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))));   // 10-28 夜 8：歩くときは、データの層を「沈んだ青灰の面＋細い走査線」に描き直す（白く浮かない・面の向きで明暗）
           vec3 wc = vec3(.13, .18, .22) * sh + vec3(.2, .45, .55) * (fl * nr * .7 + band * .5) + vec3(.1, .2, .24) * fr * .5;
           diffuseColor.rgb = mix(wc, diffuseColor.rgb, uSky); }
         diffuseColor.a = (.24 + .14 * fr + roof * .04 + fl * .3 * nr + band * .26) * fade * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(1.1, .4, uSky);
         /* 11-10 第3周：歩くときは、データの層の建物（本人 10-22 の半透明）は残し、近く（〜30 m）だけ薄めて消す（並木のすぐ外で半透明の板に見えたため） */
-        { float wk = 1. - uSky; float far = smoothstep(20., 40., dist); vec3 fc = roof > .5 ? vec3(.30, .31, .33) : vec3(.66, .63, .58) * (.62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))))) * (.9 + .1 * step(.5, fract(fy))); diffuseColor.rgb = mix(diffuseColor.rgb, fc, wk); diffuseColor.a *= mix(1., smoothstep(60., 140., dist) * .6, wk); } }`);   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
+        { float wk = 1. - uSky; float far = smoothstep(20., 40., dist); vec3 fc = roof > .5 ? vec3(.30, .31, .33) : vec3(.66, .63, .58) * (.62 + .38 * abs(dot(fn.xz, normalize(vec2(.6, .8))))) * (.9 + .1 * step(.5, fract(fy))); diffuseColor.rgb = mix(diffuseColor.rgb, fc, wk); diffuseColor.a *= mix(1., smoothstep(40., 90., dist) * 2.1, wk); } }`);   /* 11-10 本人「建物をもう少し濃く。薄すぎて見えません」：近く（〜40 m）は消したまま、その先を濃く */   /* 11-05 採点 P2：歩くとき並木の外に半透明の箱の縁が見えた→面をさらに淡く */   /* 10-28 夜 4：歩くときは面をさらに淡く（白く浮いて見えていた） */   /* 3D 地図では面をさらに淡く */
   };
   m.customProgramCacheKey = () => "bldGhost3";
   const lm = new THREE.LineBasicMaterial({ color: "#5fcfe9", transparent: true, depthWrite: false, fog: true });
@@ -416,7 +416,7 @@ function buildBuildings(g) {
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; uniform float uT; uniform float uG; uniform float uSky;")
       .replace("#include <color_fragment>", `#include <color_fragment>
       { float dist = length(vWp - cameraPosition); float sy = 12. + mod(uT * 5.5, 78.); float band = exp(-pow((vWp.y - sy) / 1.6, 2.));
-        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.28, .5, uSky);   // 11-05 歩くときの箱の縁の線を淡く
+        diffuseColor.a = (mix(.8, .24, smoothstep(30., 700., dist)) + band * .35) * smoothstep(uG - 2.5, uG - .3, vWp.y) * mix(.42, .5, uSky);   // 11-05 歩くときの箱の縁の線を淡く
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.86,.99,1.), band * .7); }`);
   };
   lm.customProgramCacheKey = () => "bldGhostL2";
