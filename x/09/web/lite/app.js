@@ -222,7 +222,7 @@ const VEIL = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), new THREE.Shade
 const MAPV = .32;   /* 2026-10-28 本人：3D 地図は航空写真の地に、淡い線と面を重ねる（暗い電脳の地にしない） */
 const CYBER = { v: { value: 1 }, scan: { value: 0 } };   // 3D 地図の地面：暗い地に細い格子・等高線・ゆっくり流れる光の走査（1＝地図・0＝歩く）
 const pSky = texP(BASE + "tex/sky.webp");
-const pBld = glb(BASE + "buildings.glb");
+const pBld = new Promise(r => { const iv = setInterval(() => { if (QW.ready) { clearInterval(iv); setTimeout(() => r(glb(BASE + "buildings.glb")), 300); } }, 100); });   /* 11-10 起動 2 秒：建物（0.66 MB）は起動のあとに読む（最初の読み込みと回線を取り合わない） */
 
 const world = new THREE.Group(); scene.add(world); QW.scene = scene; QW.world = world; QW.TREE = null;
 let terrainMesh = null, roadGroup = null, structGroup = null;
