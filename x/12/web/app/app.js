@@ -557,7 +557,7 @@ function addSolid(ring, y, top, acc = SOLID, era = 0) {
   const P = acc.P, U = acc.U, W = acc.W, C = acc.C, E = acc.E, n = ring.length, hs = k => { const v = Math.sin(ring[0].x * 12.9898 + ring[0].y * 78.233 + k * 37.719) * 43758.5453; return v - Math.floor(v); }, rnd = hs(0);   /* 色と高さの揺らぎは場所で決める（開くたびに変わらない） */
   let T = ERA_TONES[era], b = T ? T[Math.floor(rnd * T.length)] : SOLID_TONES[Math.floor(rnd * SOLID_TONES.length)], j = (hs(1) - .5) * .05;
   if (era === 1) top = y + 7.2 + rnd * 1.6; else if (era === 2) top = y + Math.min(Math.max(top - y, 6.6), 10.4); else if (era === 3) top = y + Math.min(Math.max(top - y, 9.5), 22); else if (era === 5) top = y + Math.min(top - y, 5.8);
-  if (era === 0 && top - y < 12.5 && top - y > 2.5) { const A0 = Math.abs(THREE.ShapeUtils.area(ring)); if (A0 > 16 && A0 < 520) { era = 4; top = y + 5.4 + rnd * 1.6; } }   /* 11-02 町並みの作り直し：低い建物は町家・蔵の外観（格子・出し桁・漆喰・瓦の寄棟）。一棟ずつの姿ではない模式 */
+  if (era === 0 && top - y < 12.5 && top - y > 2.5) { const A0 = Math.abs(THREE.ShapeUtils.area(ring)); if (A0 > 16 && A0 < 260) { era = 4; top = y + 5.4 + rnd * 1.6; } }   /* 11-11 採点「開始地点の大きな屋根」：OSM の平面が 260 m² を超える建物は町家の型にせず陸屋根のまま（町家の平面は大きくても 200 m² ほど）。11-02 町並みの作り直し：低い建物は町家・蔵の外観（格子・出し桁・漆喰・瓦の寄棟）。一棟ずつの姿ではない模式 */
   const T4 = era === 4 ? ERA_TONES[4] : null;
   if (T4) b = T4[Math.floor(rnd * T4.length)];
   const col = [b[0] + j, b[1] + j, b[2] + j], roofc = era === 5 ? [.15, .16, .18] : FLAT_ROOF[Math.floor(hs(3) * FLAT_ROOF.length)];   /* 11-02 P1「上から屋根が同じ色」→ 陸屋根は打ち放し・防水の灰・明るい砂色を棟ごとに */
@@ -574,17 +574,17 @@ function addSolid(ring, y, top, acc = SOLID, era = 0) {
       const t = Math.min(.8, 1.2 / len), sx = p.x + (q.x - p.x) * t, sz = p.y + (q.y - p.y) * t, ex = sx + fr.nx * .9, ez = sz + fr.nz * .9, b0 = y + 3.6, b1 = Math.min(tp - .4, y + 3.6 + 5.5), sc = [.3, .29, .27];
       for (const [X, Y, Z] of [[sx, b0, sz], [ex, b0, ez], [ex, b1, ez], [sx, b0, sz], [ex, b1, ez], [sx, b1, sz], [sx, b0, sz], [ex, b1, ez], [ex, b0, ez], [sx, b0, sz], [sx, b1, sz], [ex, b1, ez]]) { P.push(X, Y, Z); U.push(0, 0); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...sc); } } }
   if (era === 5) { const segs = segRoof(ring, top, acc, roofc); if (!segs) hipRoof(ring, top, acc, roofc); }
-  else if (era === 4) { const rt = TILE_ROOF[Math.floor(hs(2) * TILE_ROOF.length)], d = (hs(4) - .5) * .05; hipRoof(ring, top, acc, [rt[0] + d, rt[1] + d, rt[2] + d], .24 + hs(5) * .18, hs(6) < .45); }   /* 11-02 P1「上から屋根が同じ形と色」→ 瓦の色（いぶし銀・黒・茶・青み）と勾配を棟ごとに、切妻と寄棟を混ぜる */
+  else if (era === 4) { const rt = TILE_ROOF[Math.floor(hs(2) * TILE_ROOF.length)], d = (hs(4) - .5) * .05; hipRoof(ring, top, acc, [rt[0] + d, rt[1] + d, rt[2] + d], .24 + hs(5) * .18, hs(6) < .45, 3.2); }   /* 11-11 町家の屋根の立ち上がりは 3.2 m まで（奥行きの深い平面で屋根が壁より高く立つのを止める） */   /* 11-02 P1「上から屋根が同じ形と色」→ 瓦の色（いぶし銀・黒・茶・青み）と勾配を棟ごとに、切妻と寄棟を混ぜる */
   else for (const [a, b2, c] of THREE.ShapeUtils.triangulateShape(ring, [])) for (const t of [a, c, b2]) { P.push(ring[t].x, top, ring[t].y); U.push(ring[t].x / 2.5, ring[t].y / 2.5); W.push(0, -9, 0, 0); E.push(0, 0); C.push(...roofc); }
   return regSolidTo(ring, acc);
 }
 const TILE_ROOF = [[.27, .28, .31], [.15, .16, .18], [.29, .23, .19], [.21, .25, .3], [.34, .34, .35], [.2, .19, .18]], FLAT_ROOF = [[.42, .41, .39], [.3, .31, .32], [.5, .47, .42], [.36, .34, .31], [.24, .25, .27]];
 const MASS_WALL = [[.36, .33, .3], [.46, .36, .27], [.74, .7, .62], [.4, .31, .23], [.58, .52, .44], [.66, .62, .56]];   /* 11-10 第5周：無地の灰色の箱をやめ、川越の町並みの色（黒漆喰・板張り・土壁・漆喰）に寄せる（模式） */
-function hipRoof(ring, top, acc, rc, pitch = .32, gable = false) {   // 寄棟の屋根（長い辺に沿って・外へ 0.9 m 出す。模式）
+function hipRoof(ring, top, acc, rc, pitch = .32, gable = false, maxRise = 7.5) {   // 寄棟の屋根（長い辺に沿って・外へ 0.9 m 出す。模式）
   let best = 0, ang = 0; for (let i = 0; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length], l = Math.hypot(q.x - p.x, q.y - p.y); if (l > best) { best = l; ang = Math.atan2(q.y - p.y, q.x - p.x); } }
   const ux = Math.cos(ang), uz = Math.sin(ang), vx = -uz, vz = ux; let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9;
   for (const p of ring) { const a = p.x * ux + p.y * uz, b = p.x * vx + p.y * vz; a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b); }
-  a0 -= .9; a1 += .9; b0 -= .9; b1 += .9; const Wd = b1 - b0, Lg = a1 - a0, rise = Math.min(7.5, Wd * pitch), rr = gable ? Lg / 2 - .9 : Math.max(0, (Lg - Wd) / 2), am = (a0 + a1) / 2, bm = (b0 + b1) / 2, ry = top + rise, ey = top - .2;
+  a0 -= .9; a1 += .9; b0 -= .9; b1 += .9; const Wd = b1 - b0, Lg = a1 - a0, rise = Math.min(maxRise, Wd * pitch), rr = gable ? Lg / 2 - .9 : Math.max(0, (Lg - Wd) / 2), am = (a0 + a1) / 2, bm = (b0 + b1) / 2, ry = top + rise, ey = top - .2;
   const Pt = (a, b, h) => [a * ux + b * vx, h, a * uz + b * vz], e1 = Pt(a0, b0, ey), e2 = Pt(a1, b0, ey), e3 = Pt(a1, b1, ey), e4 = Pt(a0, b1, ey), r1 = Pt(am - rr, bm, ry), r2 = Pt(am + rr, bm, ry);
   const tri = (A_, B_, C_) => { for (const V of [A_, B_, C_]) { acc.P.push(...V); acc.U.push(V[0] / 2.5, V[2] / 2.5); acc.W.push(0, -9, 0, 0); acc.E.push(6, 0); acc.C.push(...rc); } };
   for (const [A_, B_, C_] of [[e1, r2, e2], [e1, r1, r2], [e3, r1, e4], [e3, r2, r1], [e2, r2, e3], [e4, r1, e1]]) { tri(A_, B_, C_); tri(A_, C_, B_); }   // 両面（下からも見える軒）
@@ -785,7 +785,7 @@ function kuraCull(dt) { if (!MOBILE || !KURA.meshes.length) return; if ((KURA.ct
 let KURA_GLB = null;
 function loadKuraMaster() {
   return KURA_GLB ||= new Promise(res => { const ld = new GLTFLoader(); ld.setMeshoptDecoder(MeshoptDecoder);
-    ld.load("web/app/kura_master.glb?v=14", g => { g.scene.updateMatrixWorld(true); const out = {};
+    ld.load("web/app/kura_master.glb?v=15", g => { g.scene.updateMatrixWorld(true); const out = {};
       g.scene.traverse(o => { if (o.isMesh) { const k = (/^[ABC]_/.test(o.name) ? o.name : (o.parent?.name || o.name)).replace(/[._]\d+$/, "");   /* 11-10 第2：gltfpack の量子化で名前が親の節に移る */ const geo = o.geometry.clone(); for (const nm of ["position", "normal"]) { const at = geo.attributes[nm]; if (at && !(at.array instanceof Float32Array)) { const f = new Float32Array(at.count * 3); for (let i = 0; i < at.count; i++) { f[i * 3] = at.getX(i); f[i * 3 + 1] = at.getY(i); f[i * 3 + 2] = at.getZ(i); } geo.setAttribute(nm, new THREE.BufferAttribute(f, 3)); } } geo.applyMatrix4(o.matrixWorld);   /* 10-28：量子化した glb（meshopt）を小数に戻す */ for (const n of Object.keys(geo.attributes)) if (!["position", "normal", "uv"].includes(n)) geo.deleteAttribute(n); const v = /^([ABC])_(.+)$/.exec(k); if (v) (out[v[1]] ||= {})[v[2]] = geo; else (out.A ||= {})[k] = geo; } });
       res(kuraTune(out)); }, undefined, () => res(null)); }); }
 /* 11-11 採点「屋根の反りが弱い」「鬼瓦の段が角張り、彫りの陰が弱い」：型（glb）を読んだあとで、
