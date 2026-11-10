@@ -8,7 +8,7 @@
 <title>Qualia/scale ── 大きさをわたる</title>
 <meta name="description" content="氷川参道の欅の一枚の葉から、分子の模式まで、地球の全体まで。指数でつながる大きさを、目の高さから連続してわたる。">
 <link rel="preconnect" href="https://cyberjapandata.gsi.go.jp" crossorigin>
-<link rel="modulepreload" href="./kit/three/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="./kit/boot.b.js" crossorigin>
 <style>
 :root{--t1:#eef5fb;--t2:#c3cce0;--t3:#8f9bb4;--aoi:#5cc8e0;--band:rgba(7,13,26,.42)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -70,14 +70,10 @@ body.fo #cap{opacity:0}
 </ul>
 <p style="margin-top:.8em">© mitsulab. All rights reserved.</p>
 </div>
-<script type="importmap">{"imports":{"three":"./kit/three/build/three.module.min.js","three/addons/":"./kit/three/addons/"}}</script>
-<link rel="modulepreload" href="./kit/three/build/three.module.min.js">
-<link rel="modulepreload" href="./kit/three/addons/loaders/GLTFLoader.js">
-<link rel="modulepreload" href="./kit/three/addons/libs/meshopt_decoder.module.js">
+<script type="importmap">{"imports":{"three":"./kit/boot.b.js","three/addons/":"./kit/three/addons/"}}</script>
 <script type="module">
 import * as THREE from "three";
-import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
-import { installSkyFog, treeVariety, landTint, groundMottle, hash1 } from "./kit/sight_land.js";
+import { sightLeaf, sightBark, setSightSun, installSkyFog, treeVariety, landTint, groundMottle, hash1, GLTFLoader as GLTFLoader_, MeshoptDecoder as MeshoptDecoder_ } from "three";   /* three と最初の部品は kit/boot.b.js に束ねてある（_dev/bundle.mjs） */
 
 const MOB = matchMedia("(max-width:760px)").matches || /Android|iPhone|iPad/.test(navigator.userAgent);
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -262,7 +258,7 @@ function buildTrees() {
   /* 並木の外は町（航空写真と食い違うので、外に林は置かない） */
   TP.push([-7, 0, .42]);
   /* ケヤキの 3D（mitsulab の形・樹皮と葉の絵は Poly Haven ほかの CC0。Qualium 大宮と同じ型）。近い数本は細かい型、ほかは軽い型 */
-  Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js")]).then(([{ GLTFLoader }, { MeshoptDecoder }]) => {
+  Promise.resolve([{ GLTFLoader: GLTFLoader_ }, { MeshoptDecoder: MeshoptDecoder_ }]).then(([{ GLTFLoader }, { MeshoptDecoder }]) => {
     const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); window.__GL = GLTFLoader; window.__MD = MeshoptDecoder;
     const get = u => new Promise((ok, ng) => L.load(u, ok, undefined, ng));
     const pHi = get("./tree/keyaki.glb"); return get("./tree/keyaki_lod1_notex.glb").then(lo => { add(lo, null); return pHi; }).then(hi => add(hi, hi));
