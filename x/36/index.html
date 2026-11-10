@@ -547,7 +547,7 @@ function frame(now) {
   if (microA < 1) R.render(scene, cam);
   if (microA > 0) { const mu = mq.material.uniforms; mu.uS.value = S; mu.uAsp.value = innerWidth / innerHeight; mu.uT.value = (now * .001) % 10; mu.uA.value = microA; R.render(mscene, mcam); }
   /* 表示 */
-  const n = Math.round(S); nE.textContent = "10" + String(n).split("").map(c => SUP[c]).join("") + " m"; nH.textContent = human(S);
+  const n = Math.abs(S - Math.round(S)) < .05 ? String(Math.round(S)) : S.toFixed(1); nE.textContent = "10" + n.split("").map(c => c === "." ? "·" : SUP[c]).join("") + " m";   /* 指数は小数一桁まで（下の行の数と食い違わない） */ nH.textContent = human(S);
   rk().setAttribute("cy", ((SMAX - S) / (SMAX - SMIN) * 100) + "%"); rule.setAttribute("aria-valuenow", S.toFixed(1));
   { const on = S > 6.6 || S < -8.6; home.style.opacity = on ? 1 : 0; home.style.pointerEvents = on ? "auto" : "none"; }
   caption(S); const cr = microA > .5 ? "模式と値は ＋" : TF > .5 && S > 1.6 ? (S > 4.2 ? "写真：国土地理院（Landsat8・GEBCO ほか）" : "写真：国土地理院") : S > 5.5 ? "画像：NASA Earth Observatory" : ""; if (credEl.textContent !== cr) credEl.textContent = cr;
