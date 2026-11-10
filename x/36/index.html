@@ -8,7 +8,7 @@
 <title>Qualia/scale ── 大きさをわたる</title>
 <meta name="description" content="氷川参道の欅の一枚の葉から、分子の模式まで、地球の全体まで。指数でつながる大きさを、目の高さから連続してわたる。">
 <link rel="preconnect" href="https://cyberjapandata.gsi.go.jp" crossorigin>
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="./kit/three/build/three.module.min.js" crossorigin>
 <style>
 :root{--t1:#eef5fb;--t2:#c3cce0;--t3:#8f9bb4;--aoi:#5cc8e0;--band:rgba(7,13,26,.42)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -67,10 +67,10 @@ body.fo #cap{opacity:0}
 </ul>
 <p style="margin-top:.8em">© mitsulab. All rights reserved.</p>
 </div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js">
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/meshopt_decoder.module.js">
+<script type="importmap">{"imports":{"three":"./kit/three/build/three.module.min.js","three/addons/":"./kit/three/addons/"}}</script>
+<link rel="modulepreload" href="./kit/three/build/three.module.min.js">
+<link rel="modulepreload" href="./kit/three/addons/loaders/GLTFLoader.js">
+<link rel="modulepreload" href="./kit/three/addons/libs/meshopt_decoder.module.js">
 <script type="module">
 import * as THREE from "three";
 import { sightLeaf, sightBark, setSightSun } from "./kit/sight_trees.js";
@@ -286,7 +286,7 @@ function buildTrees() {
     if ( vg_ < 3.4 && lo_ < .5 ) { diffuseColor.rgb = vec3( .3, .29, .27 ) * ( .8 + .36 * texture2D( tW, vec2( u_, v_ ) / 4. ).g ); diffuseColor.rgb += vec3( .2, .19, .15 ) * step( .2, fract( u_ / 4.2 ) ) * step( .6, vg_ ) * step( vg_, 2.8 ); } }   /* 1 階の店先の帯（模式） */
   else { vec2 cl_ = floor( vBw.xz / 14. ); float hr_ = fract( sin( dot( cl_, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ); float vr_ = vBy + 14.02;
     if ( vBh < 10.5 ) { vec3 rf_ = hr_ < .35 ? vec3( .30, .31, .33 ) : hr_ < .6 ? vec3( .24, .23, .22 ) : hr_ < .8 ? vec3( .36, .30, .26 ) : vec3( .28, .32, .36 ); float ro_ = step( .82, fract( dot( vBw.xz, vec2( .7, .71 ) ) / .3 ) ); diffuseColor.rgb = rf_ * ( .88 + .22 * texture2D( tW, vBw.xz / 2. ).g ) * ( 1. - .18 * ro_ ); }   /* 瓦・スレートの屋根の色（模式） */
-    else { vec2 rc_ = fract( vBw.xz / 3. ); diffuseColor.rgb = vec3( .5, .5, .49 ) * ( .85 + .3 * texture2D( tW, vBw.xz / 5. ).g ) - .12 * step( .7, rc_.x ) * step( .7, rc_.y ); } } }`)   /* 屋上（設備は模式の影） */.replace("#include <fog_fragment>", "gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( .72, .77, .79 ), .12 + .12 * smoothstep( 0., 40., vBy ) + .38 * smoothstep( 25., 80., vBh ) * smoothstep( 60., 400., length( vBw - cameraPosition ) ) );   /* 高い建物（PLATEAU の実在）は距離の霞へ寄せて圧迫させない */\n#include <fog_fragment>"); }; const pre = []; g.scene.updateMatrixWorld(true); g.scene.traverse(o => { if (o.isMesh) { o.material = bm; o.frustumCulled = true;
+    else { vec2 rc_ = fract( vBw.xz / 3. ); diffuseColor.rgb = vec3( .5, .5, .49 ) * ( .85 + .3 * texture2D( tW, vBw.xz / 5. ).g ) - .12 * step( .7, rc_.x ) * step( .7, rc_.y ); } } }`)   /* 屋上（設備は模式の影） */.replace("#include <fog_fragment>", "gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( .72, .77, .79 ), .12 + .12 * smoothstep( 0., 40., vBy ) + .62 * smoothstep( 25., 70., vBh ) * smoothstep( 30., 260., length( vBw - cameraPosition ) ) );   /* 高い建物（PLATEAU の実在）は距離の霞へ寄せて圧迫させない */\n#include <fog_fragment>"); }; const pre = []; g.scene.updateMatrixWorld(true); g.scene.traverse(o => { if (o.isMesh) { o.material = bm; o.frustumCulled = true;
         /* 建物ごとの高さ（つながった面の y の幅）を頂点に持たせる */
         const ge = o.geometry, P = ge.attributes.position, n = P.count, par = new Int32Array(n).map((_, i) => i), f = i => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; } return i; };
         const ix = ge.index ? ge.index.array : null; if (ix) for (let t = 0; t < ix.length; t += 3) { const a = f(ix[t]), b = f(ix[t + 1]), c = f(ix[t + 2]); par[b] = a; par[f(c)] = a; }
@@ -337,15 +337,15 @@ function buildTwig() {
   const pts = [new THREE.Vector3(-6.9, 1.9, -.3), new THREE.Vector3(-6.2, 1.66, -.08), new THREE.Vector3(-5.85, 1.596, -.03), new THREE.Vector3(-5.70, 1.581, -.016)];
   const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, .0016, 6), tw); twig.add(tube);
   /* 葉の付く小枝（葉柄はここから出る）：画面の上を横切って見えるように */
-  const hero = new THREE.Mesh(leafGeo(.062, .03, 48), lm); hero.rotation.set(-.12, .1, -Math.PI / 2 + .12); twig.add(hero);
+  const hero = new THREE.Mesh(leafGeo(.062, .03, 48), lm); hero.rotation.set(-.12, .1, -Math.PI / 2 + .85); twig.add(hero);
   /* 葉の付く小枝：ジグザグに伸び、節ごとに左右交互に一枚（互生・二列）。節には葉柄と、葉のわきの小さな芽 */
   { const tw2 = new THREE.MeshLambertMaterial({ color: 0x5f5244 }), pet = new THREE.MeshLambertMaterial({ color: 0x7d8a52 }), bud = new THREE.MeshLambertMaterial({ color: 0x6a4a34 });
     const N = [[-5.70, 1.581, -.016], [-5.655, 1.5745, -.006], [-5.61, 1.5785, -.013], [-5.565, 1.5675, -.004], [-5.52, 1.5675, -.008], [-5.475, 1.5735, -.002], [-5.432, 1.569, -.009]].map(a => new THREE.Vector3(...a));
     twig.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(N), 48, .0011, 6), tw2));
     twig.add(new THREE.Mesh(new THREE.ConeGeometry(.0012, .004, 6), bud).translateX(-5.429).translateY(1.5765).rotateZ(-.9));   /* 先端の芽 */
     const P = [[1, -1.25, .042], [2, 1.2, .05], [3, -1.15, .046], [4, 0, .062], [5, 1.15, .052], [6, -1.2, .04]];
-    for (const [k, a, len] of P) { const n = N[k], side = k % 2 ? 1 : -1, ang = -Math.PI / 2 + a + (k === 4 ? .12 : 0);
-      const dir = new THREE.Vector3(Math.cos(ang), Math.sin(ang), side * .25).normalize(), pe = n.clone().addScaledVector(dir, k === 4 ? .006 : .004);
+    for (const [k, a, len] of P) { const n = N[k], side = k % 2 ? 1 : -1, ang = -Math.PI / 2 + a + (k === 4 ? .85 : 0);
+      const dir = new THREE.Vector3(Math.cos(ang), Math.sin(ang), side * .25).normalize(), pe = n.clone().addScaledVector(dir, .004);
       twig.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([n, n.clone().lerp(pe, .5).add(new THREE.Vector3(0, .0008, 0)), pe]), 6, .0006, 5), pet));
       twig.add(new THREE.Mesh(new THREE.SphereGeometry(.0011, 6, 4), bud).translateX(n.x - Math.cos(ang) * .0006).translateY(n.y + .0012).translateZ(n.z));   /* 葉のわきの芽 */
       if (k === 4) { hero.position.copy(pe); continue; }
@@ -491,7 +491,7 @@ addEventListener("resize", () => { R.setSize(innerWidth, innerHeight, false); ca
 
 /* ── 大きさ s（見えている高さ 10^s m）から、目の位置を決める ── */
 const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const CENV = new THREE.Vector3(CEN[0], CEN[1], CEN[2]), LEAF = new THREE.Vector3(-5.52, 1.53, 0), tgt = new THREE.Vector3(), cp = new THREE.Vector3();
+const CENV = new THREE.Vector3(CEN[0], CEN[1], CEN[2]), LEAF = new THREE.Vector3(-5.497, 1.543, 0), tgt = new THREE.Vector3(), cp = new THREE.Vector3();
 function place(s) {
   const H = 10 ** s, d = H / (2 * Math.tan(25 * D2R)) / Math.min(1, cam.aspect);
   const lift = sm(.3, 1.35, s), drop = sm(1.4, 3, s);
