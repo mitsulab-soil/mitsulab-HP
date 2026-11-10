@@ -286,12 +286,24 @@ function buildTrees() {
     if ( vg_ < 3.4 && lo_ < .5 ) { diffuseColor.rgb = vec3( .3, .29, .27 ) * ( .8 + .36 * texture2D( tW, vec2( u_, v_ ) / 4. ).g ); diffuseColor.rgb += vec3( .2, .19, .15 ) * step( .2, fract( u_ / 4.2 ) ) * step( .6, vg_ ) * step( vg_, 2.8 ); } }   /* 1 階の店先の帯（模式） */
   else { vec2 cl_ = floor( vBw.xz / 14. ); float hr_ = fract( sin( dot( cl_, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ); float vr_ = vBy + 14.02;
     if ( vBh < 10.5 ) { vec3 rf_ = hr_ < .35 ? vec3( .30, .31, .33 ) : hr_ < .6 ? vec3( .24, .23, .22 ) : hr_ < .8 ? vec3( .36, .30, .26 ) : vec3( .28, .32, .36 ); float ro_ = step( .82, fract( dot( vBw.xz, vec2( .7, .71 ) ) / .3 ) ); diffuseColor.rgb = rf_ * ( .88 + .22 * texture2D( tW, vBw.xz / 2. ).g ) * ( 1. - .18 * ro_ ); }   /* 瓦・スレートの屋根の色（模式） */
-    else { vec2 rc_ = fract( vBw.xz / 3. ); diffuseColor.rgb = vec3( .5, .5, .49 ) * ( .85 + .3 * texture2D( tW, vBw.xz / 5. ).g ) - .12 * step( .7, rc_.x ) * step( .7, rc_.y ); } } }`)   /* 屋上（設備は模式の影） */.replace("#include <fog_fragment>", "gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( .72, .77, .79 ), .12 + .12 * smoothstep( 0., 40., vBy ) + .62 * smoothstep( 25., 70., vBh ) * smoothstep( 30., 260., length( vBw - cameraPosition ) ) );   /* 高い建物（PLATEAU の実在）は距離の霞へ寄せて圧迫させない */\n#include <fog_fragment>"); }; const pre = []; g.scene.updateMatrixWorld(true); g.scene.traverse(o => { if (o.isMesh) { o.material = bm; o.frustumCulled = true;
+    else { vec2 rc_ = fract( vBw.xz / 3. ); diffuseColor.rgb = vec3( .5, .5, .49 ) * ( .85 + .3 * texture2D( tW, vBw.xz / 5. ).g ) - .12 * step( .7, rc_.x ) * step( .7, rc_.y ); } } }`)   /* 屋上（設備は模式の影） */.replace("#include <fog_fragment>", "gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( .72, .77, .79 ), .12 + .12 * smoothstep( 0., 40., vBy ) + .62 * smoothstep( 25., 70., vBh ) * smoothstep( 30., 260., length( vBw - cameraPosition ) ) );   /* 高い建物（PLATEAU の実在）は距離の霞へ寄せて圧迫させない */\n#include <fog_fragment>"); }; const pre = [], roofs = [], roofM = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }); window.__roofM = roofM; g.scene.updateMatrixWorld(true); g.scene.traverse(o => { if (o.isMesh) { o.material = bm; o.frustumCulled = true;
         /* 建物ごとの高さ（つながった面の y の幅）を頂点に持たせる */
         const ge = o.geometry, P = ge.attributes.position, n = P.count, par = new Int32Array(n).map((_, i) => i), f = i => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; } return i; };
         const ix = ge.index ? ge.index.array : null; if (ix) for (let t = 0; t < ix.length; t += 3) { const a = f(ix[t]), b = f(ix[t + 1]), c = f(ix[t + 2]); par[b] = a; par[f(c)] = a; }
         const lo = new Float32Array(n).fill(1e9), hi = new Float32Array(n).fill(-1e9); for (let i = 0; i < n; i++) { const r = f(i), y = P.getY(i); if (y < lo[r]) lo[r] = y; if (y > hi[r]) hi[r] = y; }
-        const bh = new Float32Array(n); for (let i = 0; i < n; i++) { const r = f(i); bh[i] = ix ? (hi[r] - lo[r]) * o.matrixWorld.elements[5] : 6; } ge.setAttribute("aBh", new THREE.BufferAttribute(bh, 1)); o.renderOrder = 2; pre.push(o); } });
+        const bh = new Float32Array(n); for (let i = 0; i < n; i++) { const r = f(i); bh[i] = ix ? (hi[r] - lo[r]) * o.matrixWorld.elements[5] : 6; } ge.setAttribute("aBh", new THREE.BufferAttribute(bh, 1)); o.renderOrder = 2; pre.push(o);
+        /* 低い建物（PLATEAU の高さ 10.5 m 未満）に切妻屋根の形を足す（屋根の形と色は模式。輪郭の長い向きに棟） */
+        if (ix) { const sc = o.matrixWorld.elements[5] || 1, bx = {}; for (let i = 0; i < n; i++) { const r = f(i); let b = bx[r]; if (!b) b = bx[r] = [1e9, -1e9, 1e9, -1e9]; const x = P.getX(i), z = P.getZ(i); if (x < b[0]) b[0] = x; if (x > b[1]) b[1] = x; if (z < b[2]) b[2] = z; if (z > b[3]) b[3] = z; }
+          const rp = [], rc = [], C = [[.25, .26, .28], [.2, .19, .18], [.31, .25, .21], [.23, .27, .31]];
+          for (const r in bx) { const b = bx[r], hW = (hi[r] - lo[r]) * sc; if (hW >= 10.5 || hW < 2.5) continue; const wx = (b[1] - b[0]) * sc, wz = (b[3] - b[2]) * sc; if (Math.min(wx, wz) < 3 || Math.max(wx, wz) > 22) continue;
+            const y0 = hi[r], ex = .35 / sc, xA = b[0] - ex, xB = b[1] + ex, zA = b[2] - ex, zB = b[3] + ex, alongX = wx >= wz, hh = Math.min(wx, wz) * .22 / sc, y1 = y0 + hh;
+            const q = alongX ? [[xA, zA], [xB, zA], [xB, zB], [xA, zB], [xA, (zA + zB) / 2], [xB, (zA + zB) / 2]] : [[xA, zA], [xB, zA], [xB, zB], [xA, zB], [(xA + xB) / 2, zA], [(xA + xB) / 2, zB]];
+            const V = q.map((p, i) => [p[0], i > 3 ? y1 : y0, p[1]]);
+            const T = alongX ? [[0, 4, 5], [0, 5, 1], [3, 2, 5], [3, 5, 4], [0, 3, 4], [1, 5, 2]] : [[0, 4, 3], [4, 5, 3], [1, 2, 4], [4, 2, 5], [0, 1, 4], [3, 5, 2]];
+            const c = C[(+r * 7919) % 4]; for (const t of T) for (const k of t) { rp.push(...V[k]); rc.push(...c); } }
+          if (rp.length) { const rg = new THREE.BufferGeometry(); rg.setAttribute("position", new THREE.Float32BufferAttribute(rp, 3)); rg.setAttribute("color", new THREE.Float32BufferAttribute(rc, 3)); rg.computeVertexNormals();
+            const rm = new THREE.Mesh(rg, roofM); rm.position.copy(o.position); rm.quaternion.copy(o.quaternion); rm.scale.copy(o.scale); rm.renderOrder = 2; roofs.push([o.parent, rm]); } } } });
+      roofs.forEach(([p, m]) => p.add(m));
       /* 溶けるときに奥の面が透けないよう、先に深さだけを描く */
       { const dm = new THREE.MeshBasicMaterial({ colorWrite: false, transparent: true }); window.__bpre = pre.map(o => { const c = new THREE.Mesh(o.geometry, dm); c.renderOrder = 1; c.visible = false; o.parent.add(c); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); return c; }); }
       trees.add(box);
@@ -525,7 +537,7 @@ function frame(now) {
   scene.fog.color.copy(HAZE); R.setClearColor(bg, 1);
   sky.position.copy(cam.position); sky.scale.setScalar(Math.min(far * .9, cam.far * .9)); sky.material.opacity = 1 - sm(3.8, 5.2, S); sky.visible = sky.material.opacity > 0;
   U.soil.value = 1 - sm(1.3, 2.3, S); U.match.value = sm(2.6, 3.2, S) * (1 - sm(3.9, 4.3, S)); U.pop.value = sm(3.9, 4.3, S) * (1 - sm(5.4, 6, S));
-  trees.visible = S < 2.3; if (window.__bm) { const k_ = 1 - sm(1.85, 2.28, S); __bm.opacity = k_; if (__bm.transparent !== (k_ < 1)) { __bm.transparent = k_ < 1; __bm.needsUpdate = true; } if (window.__bpre) __bpre.forEach(m => m.visible = k_ < 1); }   /* 町の箱は写真の屋根へ溶けて重なる（高さは PLATEAU のまま） */
+  trees.visible = S < 2.3; if (window.__bm) { const k_ = 1 - sm(1.75, 2.02, S); if (window.__roofM) { __roofM.opacity = k_; if (__roofM.transparent !== (k_ < 1)) { __roofM.transparent = k_ < 1; __roofM.needsUpdate = true; } } __bm.opacity = k_; if (__bm.transparent !== (k_ < 1)) { __bm.transparent = k_ < 1; __bm.needsUpdate = true; } if (window.__bpre) __bpre.forEach(m => m.visible = k_ < 1); }   /* 町の箱は写真の屋根へ溶けて重なる（高さは PLATEAU のまま） */
   if (S > 4 && !globe) makeGlobe();
   if (globe) { globe.material.opacity = sm(4.8, 5.8, S); globe.visible = globe.material.opacity > 0; atm.material.uniforms.uA.value = sm(5.4, 6.4, S); atm.visible = S > 5.4; jp.material.opacity = globe.material.opacity; jp.visible = globe.visible; }
   TF = 1 - sm(5.5, 6.05, S);
