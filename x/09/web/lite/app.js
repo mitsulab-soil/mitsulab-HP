@@ -137,9 +137,10 @@ function weather(m, o = {}) {   // o: moss・grime・lichen（0〜1）、scale�
   m.onBeforeCompile = sh => {
     sh.uniforms.wTex = { value: W_TEX }; sh.uniforms.wP = { value: P }; sh.uniforms.wQ = { value: Qv };
     if (MOBILE) sh.defines = Object.assign(sh.defines || {}, { W_CHEAP: "" });
-    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; varying vec3 vWn; varying float vOy;")
-      .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\n{ vec4 wq = modelMatrix * vec4(transformed, 1.); vWp = wq.xyz; vWn = normalize(mat3(modelMatrix) * objectNormal); vOy = wq.y - modelMatrix[3].y; }");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\n" + W_CHUNK)
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp; varying vec3 vWn; varying float vOy;" + (o.edge ? "\nattribute vec3 aEdge; varying vec3 vEdge;" : ""))
+      .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\n{ vec4 wq = modelMatrix * vec4(transformed, 1.); vWp = wq.xyz; vWn = normalize(mat3(modelMatrix) * objectNormal); vOy = wq.y - modelMatrix[3].y; }" + (o.edge ? "\nvEdge = aEdge;" : ""));
+    if (o.edge) sh.defines = Object.assign(sh.defines || {}, { W_EDGE: "" }); if (o.flat) sh.defines = Object.assign(sh.defines || {}, { W_FLAT: "" }); if (o.cells) sh.defines = Object.assign(sh.defines || {}, { W_CELLS: "" });
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\n" + W_CHUNK + (o.edge ? "\nvarying vec3 vEdge;" : ""))
       .replace("#include <map_fragment>", `#include <map_fragment>
   vec3 wN = normalize(vWn); float wD = length(vWp - cameraPosition);
   vec4 W = wTri(vWp * wP.w, wN);
@@ -155,6 +156,31 @@ function weather(m, o = {}) {   // o: moss・grime・lichen（0〜1）、scale�
 #endif
   float grain = mix(W.r, W2.r, .45), grain2 = W.b;
   diffuseColor.rgb *= (.9 + .2 * wMac);   /* 11-10 第3周：手で足した細かいノイズを外し、写真の石（CC0）の肌理のまま */
+  /* 11-10 材質：数 m〜数十 m の汚れのむら（別の周期の絵を二つ重ねる・繰り返しが見えないように） */
+  float wSt = texture2D(wTex, vWp.xz * .019 + vec2(.37, .11)).r * .6 + texture2D(wTex, vWp.zx * .067 + vec2(.81, .4)).b * .4;
+  wSt = smoothstep(.22, .78, wSt);
+  diffuseColor.rgb *= mix(vec3(.76, .74, .7), vec3(1.08, 1.07, 1.05), wSt);
+#ifdef W_FLAT
+  { float wSp = texture2D(wTex, vWp.xz * .21 + vec2(.13, .57)).g; diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.7, .67, .62), smoothstep(.55, .8, wSp) * .45); }   // 雨の染み・踏まれた跡の小さな斑
+#endif
+#ifdef W_CELLS
+  { vec2 wc = floor(vec2(vWp.x * 1.6, vWp.z * 1.1)); float h = fract(sin(dot(wc, vec2(12.9898, 78.233))) * 43758.5453); diffuseColor.rgb *= mix(vec3(.86, .85, .83), vec3(1.08, 1.07, 1.05), h); }   // 縁石の一つずつの色の違い
+#endif
+  float wGr = 0.;
+#ifndef W_FLAT
+  /* 石の物：岩の写真（Poly Haven rock_surface・lichen_rock）の明暗を色と凹凸に（つるりとした一色にしない） */
+  wGr = mix(W.r, W2.r, .4);
+  diffuseColor.rgb *= mix(.86, 1.1, wGr) * mix(.96, 1.03, W.b);
+#endif
+  float wEdgeL = 0., wChip = 0.;
+#ifdef W_EDGE
+  { float eb = min(vEdge.x, min(vEdge.y, vEdge.z)); float ew = eb / max(fwidth(eb), 1e-5) * length(fwidth(vWp));   // 面の縁までの距離（m）
+    wEdgeL = 1. - smoothstep(.004, .028, ew);
+    float cn = texture2D(wTex, (vWp.xy + vWp.zz) * 2.3 + .5).r;
+    wChip = wEdgeL * smoothstep(.55, .72, cn);   // 角の欠け
+    diffuseColor.rgb *= 1. + .12 * wEdgeL * (1. - wChip);   // 角は擦れて明るい
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(.62, .6, .57), wChip); }
+#endif
   float oy = wQ.z > -9000. ? vWp.y - wQ.z : vOy;
   float wUp = smoothstep(.25, .9, wN.y);
   float wLow = 1. - smoothstep(0., .3 + .9 * wn2, oy);
@@ -172,15 +198,15 @@ function weather(m, o = {}) {   // o: moss・grime・lichen（0〜1）、scale�
   diffuseColor.rgb = mix(diffuseColor.rgb, mossC, wMoss);
   float wLic = W.g * wP.z * smoothstep(.3, .65, wn2);
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.58, .6, .52) * (.85 + .3 * grain), wLic * .6);
-  float wH = wMoss * .35;`)
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = clamp(max(roughnessFactor, wQ.w) + (wn2 - .5) * .14 + wMoss * .12 - wGrime * .05, .76, 1.);")
+  float wH = wMoss * .35 + wGr * .5 - wChip * .6;`)
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = clamp(max(roughnessFactor, wQ.w) + (wn2 - .5) * .14 + wMoss * .12 - wGrime * .05 - (1. - wSt) * .06 - wEdgeL * .05, .72, 1.);")
       .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
   { float k = wQ.y * (1. - smoothstep(5., 45., wD)); vec3 sp = -vViewPosition; vec3 sx = dFdx(sp), sy = dFdy(sp);
     vec3 r1 = cross(sy, normal), r2 = cross(normal, sx); float det = dot(sx, r1) * faceDirection;
     float hx = dFdx(wH) * k, hy = dFdy(wH) * k; vec3 gr = sign(det) * (hx * r1 + hy * r2);
     if (k > 0.) normal = normalize(abs(det) * normal - gr); }`);
   };
-  m.customProgramCacheKey = () => "weather" + (MOBILE ? 1 : 0);
+  m.customProgramCacheKey = () => "weather" + (MOBILE ? 1 : 0) + (o.edge ? "e" : "") + (o.flat ? "f" : "") + (o.cells ? "c" : "") + "m2";
   m.needsUpdate = true;
   return m;
 }
@@ -624,10 +650,10 @@ const ROAD_MATS = { asphalt_dark: ["Asphalt023S", [.95, .93, .9], 1, .8], asphal
   gravel: ["Gravel023", [.8, .79, .76], 1, 1.2], concrete: ["asphalt_04", [.9, .87, .82], 1, .5], paint: ["Asphalt023S", [1.55, 1.52, 1.45], .8, .4] };
 const ROAD_WEATHER = { stone: { moss: 0, grime: .45, lichen: 0, scale: 1.1, bump: .05 }, concrete: { moss: 0, grime: .55, lichen: 0, scale: 1.5, bump: .03 },   // 2026-10-23 本人「石畳の舗装に苔を生やさない」＝舗装の面は苔・地衣（緑のしみ）なし。縁の外の土・植え込みはそのまま
   granite_light: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .93 }, granite_plaza: { flat: 1, moss: 0, grime: .38, lichen: 0, scale: 1, bump: .022, rough: .93 },
-  granite_black: { flat: 1, moss: 0, grime: .3, lichen: 0, scale: 1, bump: .02, rough: .9 }, granite_band: { flat: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .93 },
+  granite_black: { flat: 1, moss: 0, grime: .3, lichen: 0, scale: 1, bump: .02, rough: .9 }, granite_band: { flat: 1, cells: 1, moss: 0, grime: .4, lichen: 0, scale: 1, bump: .022, rough: .93 },
   asphalt_light: { flat: 1, moss: 0, grime: .6, lichen: 0, scale: .9, bump: .03, rough: .9 },   // 2026-10-28 深夜 3D：参道の中央の舗装が無地の灰に見えないよう、使い込まれた濃淡・細かな凹凸（苔なし）
   sidewalk: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .02 }, washed: { flat: 1, moss: 0, grime: .35, lichen: 0, scale: 1.2, bump: .025 } };
-const STRUCT_WEATHER = { stone_new: { moss: .38, grime: .55, lichen: .45 }, granite: { moss: .32, grime: .5, lichen: .4 }, old_lantern: { moss: .45, grime: .42, lichen: .55 },   /* 11-04 灯籠の石（元の色 0.18 前後）が近くで黒く沈む→汚れを弱め、下の lift で明るさの下限を上げる */
+const STRUCT_WEATHER = { stone_new: { moss: 0, grime: .6, lichen: .15, edge: 1, bump: .06 }, granite: { moss: 0, grime: .55, lichen: .15, edge: 1, bump: .06 }, old_lantern: { moss: 0, grime: .5, lichen: .2, edge: 1, bump: .06 },   /* 11-10 材質：苔は付けない・角の欠けと擦れ */   /* 11-04 灯籠の石（元の色 0.18 前後）が近くで黒く沈む→汚れを弱め、下の lift で明るさの下限を上げる */
   copper: { moss: 0, grime: .3, lichen: .12, scale: 1.6, bump: .02, rough: .55, env: .5 },   /* 11-04 夜：楼門・燈籠の銅板の屋根に、緑青のむらと雨筋 */
   old_komainu: { moss: .5, grime: .6, lichen: .6 }, old_hyoseki: { moss: .45, grime: .6, lichen: .55 }, old_shago: { moss: .45, grime: .6, lichen: .55 },
   inscr_hyoseki: { moss: .12, grime: .35, lichen: .18, bump: .02 }, inscr_shago: { moss: .12, grime: .35, lichen: .18, bump: .02 },
@@ -686,6 +712,18 @@ function collShrink() {   // 塗った所の縁を 1 こまぶん削る（細い
   for (let j = 1; j < nz - 1; j++) for (let i = 1; i < nx - 1; i++) { const k = j * nx + i; if (h[k] && (!h[k - 1] || !h[k + 1] || !h[k - nx] || !h[k + nx])) g[k] = 2; }
   for (let k = 0; k < g.length; k++) if (g[k] === 2) g[k] = 0;
 }
+/* 11-10 材質：面の縁までの距離（重心座標）。四角の面の対角線は縁に数えない（いちばん長い辺を外す） */
+const EDGEG = new Map();
+function edgeGeo(g) {
+  if (EDGEG.has(g)) return EDGEG.get(g);
+  const n = g.index ? g.toNonIndexed() : g.clone(), P = n.attributes.position, c = P.count, e = new Float32Array(c * 3), a = new THREE.Vector3(), b = new THREE.Vector3(), d = new THREE.Vector3();
+  for (let t = 0; t + 2 < c; t += 3) {
+    a.fromBufferAttribute(P, t); b.fromBufferAttribute(P, t + 1); d.fromBufferAttribute(P, t + 2);
+    const L = [b.distanceTo(d), a.distanceTo(d), a.distanceTo(b)], k = L.indexOf(Math.max(...L)), sq = Math.min(...L) > 0 && Math.abs(L[k] * L[k] - (L[0] * L[0] + L[1] * L[1] + L[2] * L[2] - L[k] * L[k])) < .08 * L[k] * L[k];   // 直角三角形＝四角の半分
+    for (let v = 0; v < 3; v++) for (let j = 0; j < 3; j++) e[(t + v) * 3 + j] = (sq && j === k) ? 1 : (v === j ? 1 : 0);
+  }
+  n.setAttribute("aEdge", new THREE.BufferAttribute(e, 3)); EDGEG.set(g, n); return n;
+}
 let lateP = null; const STONES = [];
 function loadLate() {
   if (lateP) return lateP;
@@ -709,7 +747,7 @@ function loadLate() {
       o.traverse(n => { if (n.isMesh && n.material) { n.material.envMapIntensity = .6;
         if (n.material.name === "black") { n.material = n.material.clone(); n.material.color.set("#1c1a19"); n.material.roughness = .38; n.material.metalness = .05; n.material.envMapIntensity = 1.25; }   // 根巻と笠木の黒：漆のような艶（平らな黒い箱に見えないように）
         else if (/^shu_/.test(n.material.name)) { const nm = n.material.name; n.material = WMAT[nm] ||= (m => { m.color.multiply(new THREE.Color().setRGB(1.12, .44, .34)); m.envMapIntensity = .35; if (m.emissive) m.emissive.setRGB(.09, .012, .004); return m;   /* 11-10：霞の中でも朱がはっきり */ })(n.material.clone()); }   // 2026-10-29 本人「鳥居をもっと赤く」：朱の塗りの写真に赤みを掛け、霞と空の照り返しで桃色に浅くならないように
-        else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; n.material = WMAT[nm] ||= weather((m => { if (nm === "old_lantern" && m.color) { const L = .2126 * m.color.r + .7152 * m.color.g + .0722 * m.color.b; if (L < .34) m.color.multiplyScalar(.34 / Math.max(.05, L)); } return m; })(n.material.clone()), STRUCT_WEATHER[nm]); } } });
+        else if (STRUCT_WEATHER[n.material.name]) { const nm = n.material.name; if (STRUCT_WEATHER[nm].edge) n.geometry = edgeGeo(n.geometry); n.material = WMAT[nm] ||= weather((m => { if (nm === "old_lantern" && m.color) { const L = .2126 * m.color.r + .7152 * m.color.g + .0722 * m.color.b; if (L < .34) m.color.multiplyScalar(.34 / Math.max(.05, L)); } return m; })(n.material.clone()), STRUCT_WEATHER[nm]); } } });
       o.name = s.id; structGroup.add(o); if (s.id === "shinkyo") DECK.o = o;
       if (!/^shinkyo/.test(s.id)) CSQ.push(o);   // 11-03：足もとの高さの柱・壁・柵を通れない所に（神橋の床は歩く）
       if (/^(ishidoro|komainu|hyoseki|shagohi|choishi|mokutoro)/.test(s.id)) collDisc(s.p[0], s.p[2], /^ishidoro|^mokutoro/.test(s.id) ? 1.0 : .8);   // 燈籠・狛犬・碑・丁石は通れない（鳥居と楼門はくぐれる）
