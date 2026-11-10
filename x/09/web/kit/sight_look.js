@@ -18,11 +18,11 @@ export function installDapple(THREE) {
   if (THREE.ShaderChunk.__sightDap) return; THREE.ShaderChunk.__sightDap = 1;
   const C = THREE.ShaderChunk, key = "getDirectionalLightInfo( directionalLight, directLight );";
   if (!C.lights_fragment_begin.includes(key)) return;   // 目印が見つからなければ何もしない
-  if (!C.lights_pars_begin.includes("qCanT")) C.lights_pars_begin = "uniform sampler2D qCanT; uniform vec4 qCanB; uniform vec4 qCanS;\n" + C.lights_pars_begin;
+  if (!C.lights_pars_begin.includes("qCanT")) C.lights_pars_begin = "uniform sampler2D qCanT; uniform vec4 qCanB; uniform vec4 qCanS; uniform sampler2D qCanN; uniform vec4 qCanNB;\n" + C.lights_pars_begin;
   /* 樹冠の陰の絵は一つを全部の材質で共有する（材質ごとの写しを作らせない＝clone で自分を返す） */
   const keep = o => { o.clone = () => o; return o; };
-  CANOPY.tex = keep(new THREE.DataTexture(new Uint8Array(4), 1, 1)); CANOPY.tex.needsUpdate = true; CANOPY.box = keep(new THREE.Vector4(0, 0, 0, 0)); CANOPY.sun = keep(new THREE.Vector4(1, 0, 1, 0));
-  for (const k of ["standard", "physical", "lambert", "phong"]) { const L = THREE.ShaderLib[k]; if (L) Object.assign(L.uniforms, { qCanT: { value: CANOPY.tex }, qCanB: { value: CANOPY.box }, qCanS: { value: CANOPY.sun } }); }
+  CANOPY.tex = keep(new THREE.DataTexture(new Uint8Array(4), 1, 1)); CANOPY.tex.needsUpdate = true; CANOPY.box = keep(new THREE.Vector4(0, 0, 0, 0)); CANOPY.sun = keep(new THREE.Vector4(1, 0, 1, 0)); CANOPY.ntex = keep(new THREE.DataTexture(new Uint8Array(4), 1, 1)); CANOPY.ntex.needsUpdate = true; CANOPY.nbox = keep(new THREE.Vector4(0, 0, 0, 0));
+  for (const k of ["standard", "physical", "lambert", "phong"]) { const L = THREE.ShaderLib[k]; if (L) Object.assign(L.uniforms, { qCanT: { value: CANOPY.tex }, qCanB: { value: CANOPY.box }, qCanS: { value: CANOPY.sun }, qCanN: { value: CANOPY.ntex }, qCanNB: { value: CANOPY.nbox } }); }
   C.lights_fragment_begin = C.lights_fragment_begin.replace("#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )", `float qDap = 1.0;
 #define Q_DAP 1
 #if defined( USE_FOG ) && !defined( FOG_EXP2 ) && ( NUM_DIR_LIGHTS > 0 )
@@ -58,6 +58,12 @@ export function installDapple(THREE) {
           spot = max( spot, mix( sp1, on2 * rr * rr * 2.2 * ( .7 + .3 * fract( h2 * 5.3 ) ) + .06 * ( n * .5 + .5 ), far ) );
         }
         float lit2 = ( 1. - cov ) + cov * spot * 1.25;
+        if ( qCanNB.w > 0.5 ) {   /* 11-11 歩く人のまわり 60 m：0.1 m／画素で焼いた陰と葉の透き間の斑（R＝陰・G＝斑）。絵の縮小に任せるので寝た角度でも線にならない。縁の 12 m で遠くの陰へ溶かす */
+          vec2 nu = ( wp.xz - qCanNB.xy ) * qCanNB.z; vec4 cn = texture2D( qCanN, nu );
+          vec2 ne = min( nu, 1. - nu ); float wN = smoothstep( 0., .1, min( ne.x, ne.y ) );
+          float litN = ( 1. - cn.r ) + cn.r * cn.g * 1.3;
+          lit2 = mix( lit2, litN, wN );
+        }
         qDap = mix( 1.0, .1 + 1.0 * lit2, k );
       } else {
       float lit = mix( 1., .0, cov ) + cov * spot * .95 + ( 1. - cov ) * .0 + smoothstep( .45, .9, n * .5 + .5 ) * .25 * cov;   // 11-05 斑を大小まぜ、ふちをぼかす（大きな葉の塊の影＋小さな葉の透き間）
@@ -92,6 +98,7 @@ export function setCanopy(THREE, trees, sun, { mobile = false } = {}) {
   const D = new Uint8Array(W * W * 4); for (let o = 0; o < W * W; o++) { D[o * 4] = Math.min(255, cov[o] * 255); D[o * 4 + 1] = wsum[o] > 0 ? Math.min(255, gap[o] / wsum[o] * 255) : 0; D[o * 4 + 3] = 255; }
   const T = CANOPY.tex; T.dispose(); T.image = { data: D, width: W, height: W }; T.magFilter = T.minFilter = THREE.LinearFilter; T.generateMipmaps = false; T.wrapS = T.wrapT = THREE.ClampToEdgeWrapping; T.needsUpdate = true;
   CANOPY.box.set(x0, z0, 1 / span, 1); CANOPY.sun.set(-dx, -dz, Math.min(2, elong), 0);
+  CANOPY.P = P; CANOPY.el = { dx, dz, elong }; CANOPY.mobile = mobile; CANOPY.nx = 1e9; CANOPY.nz = 1e9;
   return { W, mpp };
 }
 
@@ -142,4 +149,46 @@ export function makeSightGrass(THREE, parent, { anchors, mobile = false, reduced
     im.count = c; im.instanceMatrix.needsUpdate = true;
   }
   return { mesh: im, update, set visible(b) { im.visible = b; } };
+}
+
+/* ①'' 歩く人のまわり 60 m の細かい陰の絵（11-11）。PC 0.15 m・スマホ 0.25 m／画素（絵を送る手間でこまが落ちないよう）。8 m 動いたときだけ、数こまに分けて描き直す。
+   斑＝葉の透き間を通った日の像：1.1 m の升ごとに一つ、0.5〜1 m の楕円（日の向きに伸ばす）。升の乱数は場所で決まるので描き直しても同じ所に出る */
+export function updateCanopyNear(THREE, x, z) {
+  const C = CANOPY; if (!C.P || C.busy) return;
+  if (Math.hypot(x - C.nx, z - C.nz) < 8) return;
+  const half = 60, mpp = C.mobile ? .25 : .15, W = Math.round(half * 2 / mpp), x0 = x - half, z0 = z - half, { dx, dz, elong } = C.el;
+  const P = C.P.filter(p => Math.abs(p.x - x) < half + p.R * elong + 2 && Math.abs(p.z - z) < half + p.R * elong + 2);
+  const cov = new Float32Array(W * W), D = new Uint8Array(W * W * 4); C.busy = 1;
+  let k = 0; const step = () => {
+    const t0 = performance.now();
+    while (k < P.length && performance.now() - t0 < 2) {
+      const p = P[k++], ra = p.R * elong, rb = p.R, r = ra + 1, i0 = Math.max(0, Math.floor((p.x - r - x0) / mpp)), i1 = Math.min(W - 1, Math.ceil((p.x + r - x0) / mpp)), j0 = Math.max(0, Math.floor((p.z - r - z0) / mpp)), j1 = Math.min(W - 1, Math.ceil((p.z + r - z0) / mpp));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const wx = x0 + (i + .5) * mpp - p.x, wz = z0 + (j + .5) * mpp - p.z, a = wx * dx + wz * dz, b = -wx * dz + wz * dx, an = Math.atan2(b, a);
+        const edge = 1 + .12 * Math.sin(an * 5 + p.x) + .07 * Math.sin(an * 11 + p.z), d = Math.hypot(a / ra, b / rb) / edge; if (d >= 1.15) continue;
+        const v = Math.max(0, Math.min(1, (1.15 - d) / .45)) * .92, o = j * W + i; cov[o] = 1 - (1 - cov[o]) * (1 - v);
+      }
+    }
+    if (k < P.length) { requestAnimationFrame(step); return; }
+    /* 斑：升 1.1 m・確からしさ 45 %・半径 .25〜.5 m・日の向きに伸ばす */
+    let j = 0; const spots = () => {
+      const t1 = performance.now();
+      for (; j < W && performance.now() - t1 < 2; j++) for (let i = 0; i < W; i++) {
+        const wx = x0 + (i + .5) * mpp, wz = z0 + (j + .5) * mpp, a = (wx * -dx + wz * -dz) / Math.min(elong, 1.6), b = -wx * -dz + wz * -dx; let g = 0;   /* 採点 3 人 P1「斑が一列に等間隔で並ぶ（型押し）」→ 大きさの違う二つの升（1.3 m・2.1 m、向きを 37 度ずらす）を重ね、升の中の位置は升いっぱいに散らし、大きさも 0.2〜0.6 m と幅を広げる */
+        for (let L = 0; L < 2; L++) {
+          const cs = L ? 2.1 : 1.3, ang = L ? .646 : 0, aa = a * Math.cos(ang) - b * Math.sin(ang) + L * 5.3, bb = a * Math.sin(ang) + b * Math.cos(ang) + L * 2.9, ca = Math.floor(aa / cs), cb = Math.floor(bb / cs);
+          for (let u = -1; u <= 1; u++) for (let w = -1; w <= 1; w++) {
+            const X = ca + u + L * 71, Y = cb + w + L * 37, h = Math.abs(Math.sin(X * 127.1 + Y * 311.7) * 43758.5) % 1; if (h < (L ? .5 : .62)) continue;
+            const h2 = Math.abs(Math.sin(X * 269.5 + Y * 183.3) * 24634.6) % 1, h3 = Math.abs(Math.sin(X * 419.2 + Y * 371.9) * 15731.7) % 1, h4 = Math.abs(Math.sin(X * 91.7 + Y * 57.3) * 9631.1) % 1;
+            const cxa = (ca + u + h2) * cs, cxb = (cb + w + h3) * cs, rr = (L ? .3 : .2) + .3 * Math.pow(h4, 1.5), dd = Math.hypot(aa - cxa, (bb - cxb) * (1 + .4 * (h4 - .5)));
+            g = Math.max(g, Math.max(0, Math.min(1, (rr - dd) / (rr * .5))) * (.55 + .45 * h3));
+          }
+        }
+        const o = j * W + i; D[o * 4] = Math.min(255, cov[o] * 255); D[o * 4 + 1] = g * 255; D[o * 4 + 3] = 255;
+      }
+      if (j < W) { requestAnimationFrame(spots); return; }
+      const T = C.ntex; if (T.image.width !== W) T.dispose(); T.image = { data: D, width: W, height: W }; T.magFilter = THREE.LinearFilter; T.minFilter = THREE.LinearMipmapLinearFilter; T.generateMipmaps = true; T.anisotropy = C.mobile ? 4 : 8; T.wrapS = T.wrapT = THREE.ClampToEdgeWrapping; T.needsUpdate = true;
+      C.nbox.set(x0, z0, 1 / (half * 2), 1); C.nx = x; C.nz = z; C.busy = 0;
+    }; spots();
+  }; step();
 }

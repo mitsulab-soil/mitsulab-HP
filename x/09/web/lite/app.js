@@ -11,7 +11,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k25";
 import { makeSession } from "./session.js?v=s2";   // 10-29 本人「Qualium に音を実装」：自然とのセッション（kit/session.js）
 import { makeWorldLayers } from "./worldlayers.js?v=w21";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
-import { installDapple, makeSightGrass, SIGHT_AIR, sightBob, setCanopy } from "../kit/sight_look.js?v=8";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
+import { installDapple, makeSightGrass, SIGHT_AIR, sightBob, setCanopy, updateCanopyNear } from "../kit/sight_look.js?v=10";   // 11-05 本人「Qualia/sight のような風景の質感に」：木もれ日・草・霞・目の揺れ
 installDapple(THREE);
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
 import { makeStartPins } from "../kit/startpins.js?v=sp13";
@@ -3001,6 +3001,7 @@ function syncTray() {
 /* ---------- まわす ---------- */
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0;
 function frame() {
+  if (QW.canopy && QW.ready && Q.get("cnear") !== "0" && (QW.mode === "walk" || QW.mode === "sight")) updateCanopyNear(THREE, camera.position.x, camera.position.z);   /* 11-11 歩く人のまわりの細かい陰（8 m 動いたときだけ描き直す） */
   if (!D) return;   // タブが隠れていたあいだに描画が始まったとき（データの前）は描かない
   const dt = Math.min(.05, clock.getDelta());
   if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); setTimeout(() => { preShaders(); warmTex(); }, 4000); startQA(); }   /* 11-05：降りたあとに読みこんだ区画の物も、飛ぶ前に組んで送る */   // 11-02：降りる動きのあいだに影絵を組む
