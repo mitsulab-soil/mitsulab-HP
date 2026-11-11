@@ -18,7 +18,7 @@ export function installDapple(THREE) {
   if (THREE.ShaderChunk.__sightDap) return; THREE.ShaderChunk.__sightDap = 1;
   const C = THREE.ShaderChunk, key = "getDirectionalLightInfo( directionalLight, directLight );";
   if (!C.lights_fragment_begin.includes(key)) return;   // 目印が見つからなければ何もしない
-  if (!C.lights_pars_begin.includes("qCanT")) C.lights_pars_begin = "uniform sampler2D qCanT; uniform vec4 qCanB; uniform vec4 qCanS; uniform sampler2D qCanN; uniform vec4 qCanNB;\n" + C.lights_pars_begin;
+  if (!C.lights_pars_begin.includes("qCanT")) C.lights_pars_begin = "#define Q_CAN 1\nuniform sampler2D qCanT; uniform vec4 qCanB; uniform vec4 qCanS; uniform sampler2D qCanN; uniform vec4 qCanNB;\n" + C.lights_pars_begin;
   /* 樹冠の陰の絵は一つを全部の材質で共有する（材質ごとの写しを作らせない＝clone で自分を返す） */
   const keep = o => { o.clone = () => o; return o; };
   CANOPY.tex = keep(new THREE.DataTexture(new Uint8Array(4), 1, 1)); CANOPY.tex.needsUpdate = true; CANOPY.box = keep(new THREE.Vector4(0, 0, 0, 0)); CANOPY.sun = keep(new THREE.Vector4(1, 0, 1, 0)); CANOPY.ntex = keep(new THREE.DataTexture(new Uint8Array(4), 1, 1)); CANOPY.ntex.needsUpdate = true; CANOPY.nbox = keep(new THREE.Vector4(0, 0, 0, 0));
@@ -43,19 +43,19 @@ export function installDapple(THREE) {
         float inB = step( 0., cu.x ) * step( cu.x, 1. ) * step( 0., cu.y ) * step( cu.y, 1. );
         cov = inB * smoothstep( .08, .7, ct.r + ( n * .5 + .5 - .5 ) * .18 ); qGap = ct.g;
       }   /* 11-10 採点 P2「舗装の陰がまだら」：樹冠の大きな影（cov）の中に、丸くやわらかな光の斑（葉の透き間の像）だけが落ちる */
-      vec2 pc = wp.xz * 1.6 + vec2( sin( wp.z * .37 ), cos( wp.x * .41 ) ) * .6; vec2 cc = floor( pc ); vec2 fc = fract( pc ) - .5; float hh = fract( sin( dot( cc, vec2( 12.99, 78.23 ) ) ) * 43758.5 );
+      vec2 pc = wp.xz * 1.6 + vec2( sin( wp.z * .37 ), cos( wp.x * .41 ) ) * .6; vec2 cc = floor( pc ); vec2 fc = fract( pc ) - .5; float hh = fract( sin( dot( mod( cc, 251. ), vec2( 12.99, 78.23 ) ) ) * 43758.5 );
       vec2 off = vec2( fract( hh * 7.1 ), fract( hh * 3.7 ) ) - .5; vec2 dd = ( fc - off * .8 ) * vec2( 1., 1.35 ); float spot = ( 1. - smoothstep( .04 + .06 * hh, .18 + .16 * fract( hh * 13.7 ), length( dd ) ) ) * step( .58, hh ) * ( .55 + .45 * fract( hh * 5.3 ) );
       if ( qGap >= 0. ) {   /* 斑＝葉の透き間を通った日の像：日の向きに伸びた楕円・大きさは透き間の大きさ（G）と升ごとの乱れで大小、二つの格子を回して重ね型押しに見せない */
         vec2 sd = normalize( qCanS.xy + vec2( 1e-4 ) ); vec2 so = vec2( -sd.y, sd.x ); vec2 lp = vec2( dot( wp.xz, sd ) / qCanS.z, dot( wp.xz, so ) );
         float sc1 = mix( 2.6, 1.1, qGap ); spot = 0.;
         for ( int L = 0; L < 2; L++ ) {
           float fl = float( L ); vec2 rp = lp * ( sc1 * ( 1. + fl * .83 ) ) + vec2( fl * 3.7, fl * 1.9 ) + vec2( sin( lp.y * .9 + fl ), cos( lp.x * .8 ) ) * .35;
-          vec2 c2 = floor( rp ); vec2 f2 = fract( rp ) - .5; float h2 = fract( sin( dot( c2 + fl * 17., vec2( 12.99, 78.23 ) ) ) * 43758.5 );
+          vec2 c2 = floor( rp ); vec2 f2 = fract( rp ) - .5; float h2 = fract( sin( dot( mod( c2, 251. ) + fl * 17., vec2( 12.99, 78.23 ) ) ) * 43758.5 );
           vec2 o2 = vec2( fract( h2 * 7.1 ), fract( h2 * 3.7 ) ) - .5; float rr = mix( .05, .3, pow( fract( h2 * 13.7 ), 2.2 ) ) * ( .6 + .7 * qGap );
           float on2 = step( mix( .78, .45, qGap ) + fl * .08, h2 );
           /* 11-11 採点 3 人「スマホで路面に白い擦り傷の線」：寝た角度で斑が画面の縦に潰れて細い線になる→画面で見た斑の大きさ（fwidth）が斑より大きいほど、斑を濃淡のむら（その升の平均の明るさ）に置きかえる */
-          float pxv = max( fwidth( rp.x ), fwidth( rp.y ) ), far = smoothstep( .12, .45, pxv / rr ), sp1 = ( 1. - smoothstep( rr * .55, rr, length( f2 - o2 * .5 ) ) ) * on2 * ( .7 + .3 * fract( h2 * 5.3 ) );
-          spot = max( spot, mix( sp1, on2 * rr * rr * 2.2 * ( .7 + .3 * fract( h2 * 5.3 ) ) + .06 * ( n * .5 + .5 ), far ) );
+          float pxv = max( fwidth( rp.x ), fwidth( rp.y ) ), far = smoothstep( .05, .2, pxv / rr ), sp1 = ( 1. - smoothstep( rr * .55, rr, length( f2 - o2 * .5 ) ) ) * on2 * ( .7 + .3 * fract( h2 * 5.3 ) );
+          spot = max( spot, mix( sp1, .07 + .06 * ( n * .5 + .5 ), far )   /* 11-11 遠くの升ごとの明るさは波打つ縞（大理石の模様）に見えた→升に依らない淡いむらだけにする */ );
         }
         float lit2 = ( 1. - cov ) + cov * spot * 1.25;
         if ( qCanNB.w > 0.5 ) {   /* 11-11 歩く人のまわり 60 m：0.1 m／画素で焼いた陰と葉の透き間の斑（R＝陰・G＝斑）。絵の縮小に任せるので寝た角度でも線にならない。縁の 12 m で遠くの陰へ溶かす */
@@ -75,7 +75,17 @@ export function installDapple(THREE) {
 #endif
 #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )`).replace(key, key + "\n\t\tdirectLight.color *= qDap;");
   /* 11-10：木漏れ日が舗装に写らなかった（日の光より空の光が強く、日の光だけ斑にしても見えない）→ 樹冠の陰では空の光も少し落とす */
-  if (C.lights_fragment_end.indexOf("qDapI") < 0) C.lights_fragment_end = C.lights_fragment_end + "\n#ifdef Q_DAP\n{ float qDapI = clamp( qDap, 0., 1. ); reflectedLight.indirectDiffuse *= .45 + .55 * qDapI; }\n#endif\n";
+  /* 11-11 採点「参道の奥に白い光の柱」：霞が満ちきる奥（並木の透き間の先）が霞の色そのもので白く抜けた→歩くとき（霞の手前が近い）だけ、奥の霞を並木の陰の空気の色へ少し沈める。?hz=0 で前 */
+  if (!/[?&]hz=0/.test(location.search) && C.fog_fragment.indexOf("qHz") < 0) C.fog_fragment = C.fog_fragment.replace("gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );", "vec3 qHz = fogColor * mix( 1., .8, ( 1. - smoothstep( 20., 50., fogNear ) ) * smoothstep( 140., 520., vFogDepth ) ); gl_FragColor.rgb = mix( gl_FragColor.rgb, qHz, fogFactor );");
+  /* 11-11 採点「陰の中の舗装に擦れの筋」：材質の地の絵の白い擦れが、陰の中では日なたより目立った→樹冠の陰の中だけ、地の絵を細かい模様の平均（mip の奥）へ寄せてコントラストを下げる。?pv=0 で前 */
+  if (!/[?&]pv=0/.test(location.search) && C.map_fragment.indexOf("qMv") < 0) C.map_fragment = C.map_fragment + `
+#if defined( USE_MAP ) && defined( USE_FOG ) && defined( Q_CAN )
+if ( qCanB.w > .5 && fogNear < 50. ) { vec3 qMw = cameraPosition + transpose( mat3( viewMatrix ) ) * ( -vViewPosition ); vec2 qMu = ( qMw.xz - qCanB.xy ) * qCanB.z;
+  float qMv = texture2D( qCanT, qMu ).r * step( 0., qMu.x ) * step( qMu.x, 1. ) * step( 0., qMu.y ) * step( qMu.y, 1. ) * ( 1. - smoothstep( 1.5, 4., qMw.y - cameraPosition.y + 1.5 ) );
+  if ( qMv > .05 ) { vec3 qMa = texture2D( map, vMapUv, 6. ).rgb; diffuseColor.rgb *= mix( vec3( 1. ), clamp( qMa / max( sampledDiffuseColor.rgb, vec3( .03 ) ), vec3( .55 ), vec3( 1.12 ) ), smoothstep( .2, .7, qMv ) * .5 ); } }
+#endif
+`;
+  if (C.lights_fragment_end.indexOf("qDapI") < 0) C.lights_fragment_end = C.lights_fragment_end + "\n#ifdef Q_DAP\n{ float qDapI = clamp( qDap, 0., 1. ); reflectedLight.indirectDiffuse *= .45 + .55 * qDapI; reflectedLight.indirectSpecular *= .25 + .75 * qDapI; }   /* 11-11 陰の中の舗装の擦れの筋＝空の照り返し：樹冠が空を覆う所では照り返しも落とす */\n#endif\n";
 }
 
 /* ①' 樹冠の陰を焼く。trees＝[{x, z, R（樹冠の半径 m）, h（樹冠の中心の高さ m）, gap（0〜1 葉の透き間）}]、sun＝日の向き（単位ベクトル）。
