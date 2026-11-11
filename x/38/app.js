@@ -34,11 +34,11 @@ const M={
      hear:["空気の音を人の耳のようには受けとりません。触角の付け根の器官で、近くの空気のふるえを受ける記録があります。","dreller"],
      smell:["触角でにおいを受けとります。花のにおいと、仲間のにおいが主な手がかりです。","frisch"],
      you:["たとえばあなたが赤い服なら、この模式では暗く見えているかもしれません。","peitsch"],
-     away:["遠くの細かい形は、人より粗く受けとります。小さな目の集まりで、形の細かさは人より粗い。",""],
+     away:["小さな目の集まりで、形の細かさは人より粗い、とこの模式では置いています。",""],
      move:["速いちらつきや動きを人より細かく分ける、という測定があります。","srini"]}},
  bat:{n:"コウモリ",col:[0x3a4360,0x78d6ec,0xa8f2f6],light:[0,0],dim:"明暗は受ける（色は扱わない）",sound:[10000,200000],light_t:"目で明暗",sound_t:"人の耳より高い声（種による）",time:"声とこだまの間のわずかな差",
   intro:"コウモリ（超音波で探る種）に切りかえました。自分の声のこだまで、暗い中の形をつかみます。",
-  a:{see:["自分の出した声のこだまで、前の物の形と距離をつかみます。声の高さは種によって約10kHz から 200kHz 近くまで幅があります。","jones"],
+  a:{see:["自分の出した声のこだまで、前の物の形と距離をつかみます。声の高さは種によって幅があり、多くは約10kHz より高く、100kHz を超える種もあります。","jones"],
      nosee:["人に聞こえる高さの音の多くは、この模式の狩りの手がかりではありません。目も使いますが、この模式の中心は色ではありません。",""],
      time:["声を出してこだまが返るまでの短い間が、距離の手がかりです。","griffin"],
      hear:["多くの種は、人の耳の上限（約20kHz）より高い声を出し、そのこだまを受けとります。","griffin"],
@@ -64,7 +64,7 @@ const M={
      hear:["人より高い音まで受けとります（約45kHz まで）。","heffner"],
      smell:["においを受けとる壊れていない（はたらきうる）遺伝子が 800 個以上あると報告されています。この模式の世界は、においの道でできています。","quignon"],
      you:["あなたは、姿より先に、においとして現れるのかもしれません。",""],
-     away:["遠くの色の細かさは人より粗く、色より明暗と動きが手がかりです。",""],
+     away:["遠くの見え方の細かさは、この模式ではまだ扱いません。色の系統が二つであることだけを置いています。","neitz"],
      move:["色より、明暗と動きが手がかりになります。","neitz"]}},
  worm:{n:"ミミズ",col:[0x6c8d71,0xd6c09b,0x864e4c],light:[0,0],sound:[0,0],light_t:"皮膚で明暗だけ",sound_t:"土を伝わる振動",time:"昼と夜、湿りと乾き",
   intro:"ミミズに切りかえました。目は無く、土のふるえと湿りが世界の大部分です。",
@@ -84,14 +84,14 @@ const M={
      hear:["音を聴く器官はありません。触れられる・揺らされる刺激で、育ち方が変わる記録はあります。","braam"],
      smell:["におい物質への応答の研究はありますが、この模式ではまだ扱いません。",""],
      you:["あなたは、光をさえぎる影や、触れる刺激として現れるかもしれません。","braam"],
-     away:["隣の葉の影は、光の赤と遠赤の割合を変えます。この模式では、それを影の手がかりとして置いています。",""],
+     away:["遠くという手がかりは、この模式では扱いません。光の色の割合に応じることだけを置いています。","butler"],
      move:["動くのではなく、光の向きへ伸びます（青い光が手がかり）。","christie"]}},
  human:{n:"人",col:[0xeef5fb,0x9bdcf0,0xf2cf8c],light:[380,780],sound:[20,20000],light_t:"約380〜780nm",sound_t:"約20Hz〜20kHz",time:"時計と記憶と予定",
   intro:"人の受けとり方も、ほかと並べた一つの模式として話します。",
-  a:{see:["三種の錐体（感度の山は約420・530・560nm）で色を分けます。","bowmaker"],
+  a:{see:["三種の錐体（感度の山は約420・534・564nm）で色を分けます。","bowmaker"],
      nosee:["紫外・赤外・超音波は、この受けとり方にはありません。",""],
      time:["時計という道具で時刻を共有し、記憶と予定で前後へ広げます。",""],
-     hear:["低い音から高い音まで、およそ一定の範囲を聴きます。年とともに高い音から聞こえにくくなります。",""],
+     hear:["低い音から高い音まで、およそ一定の範囲を聴きます（範囲は人によって違います）。",""],
      smell:["においも受けとりますが、多くの場面で見えるものが先に立ちます。",""],
      you:["あなた自身の受けとり方です。ほかと並べると、一つの範囲だと分かります。",""],
      away:["遠くの細かい形を分けるのが得意な受けとり方です。",""],
@@ -156,6 +156,7 @@ let cur="bee",outN=0;
 const $=s=>document.querySelector(s);
 const say=(t,k)=>{const e=$("#say");e.style.opacity=.25;const det=[];t=t.replace(/（[^）]*）/g,m=>{det.push(m.slice(1,-1));return""});e.innerHTML=t+(det.length?`<details><summary>＋</summary>${det.join("／")}</details>`:"")+(k&&BIB[k]?`<small>出典：${BIB[k].split(/[,，]/)[0].replace(/『.*』/,' ')}</small>`:"");requestAnimationFrame(()=>requestAnimationFrame(()=>e.style.opacity=1))};
 let lastK=null;
+const WHY={peitsch:"ミツバチの目の細胞が、どの色の光に応じるかを電気で測った研究があるからです。",frisch:"巣の中の踊りと、太陽や空の向きとの関係を、長く観察した記録があるからです。",srini:"ちらつく光をミツバチが見分けられるかを、行動で試した実験があるからです。",dreller:"触角の付け根の器官が、空気のふるえに応じるかを測った研究があるからです。",griffin:"コウモリの声を、人に聞こえる高さに変えて録った実験の記録があるからです。",jones:"多くの種のコウモリの声を比べてまとめた研究があるからです。",uex:"ユクスキュルがマダニの行動を観察して書いた記録があるからです。",sonen:"マダニの体のつくりと感覚をまとめた研究書があるからです。",neitz:"犬の目の細胞が、どの色の光に応じるかを測った研究があるからです。",heffner:"犬が聞き分けられる音の高さを、行動で試した実験があるからです。",quignon:"犬の遺伝子を読み、においを受けとる遺伝子を数えた研究があるからです。",darwin:"ダーウィンが、光や振動にミミズがどう応じるかを長く観察した記録があるからです。",butler:"植物が赤と遠赤の光で切りかわる色素を見つけた研究があるからです。",christie:"青い光を受けとる植物の色素をまとめた研究があるからです。",braam:"触れられた植物の育ち方の変化をまとめた研究があるからです。",mcclung:"植物の一日の周期の仕組みをまとめた研究があるからです。",bowmaker:"人の目の細胞が、どの色の光に応じるかを測った研究があるからです。",bayer:"色のフィルターを格子に並べる仕組みの特許があるからです。",vollmer:"赤外線で温度を記録する仕組みをまとめた教科書があるからです。"};
 function answer(k){lastK=k;const [t,s]=M[cur].a[k];say(t,s)}
 const GO=k=>`<button class="go" data-k="${k}">${M[k].n}に切りかえる</button>`;
 const NEAR=[[/蝶|ちょう|虫|むし|ハエ|トンボ/,"bee"],[/猫|ねこ|ネコ|狐|たぬき|タヌキ/,"dog"],[/土の中|地面の下|もぐら|モグラ/,"worm"]];
@@ -173,10 +174,10 @@ function free(t){
   if(mk&&mk!==cur&&!/違い|違う|比べ/.test(t)){setMode(mk);if(!k){const[a,b]=M[mk].a.see;say(M[mk].intro+"<br>"+a,b);return}}
   if(/心がある|心はある|意識/.test(t)){say("この AI は、感じる心を持つとは言えません。生き物や機械の受けとり方を、研究の記録から組み立てた模式に切りかえて話します。");return}
   if(/痛|眠|好き|きらい|嫌い|考えて|楽し|うれし|嬉し|心は/.test(t)){say(`${M[cur].n}の模式は、感じる心を持つとは言えません。言えるのは、何を手がかりとして受けとるかです。<button class="go" data-a="see">何が見える？</button>`);return}
-  if(/夜|よる|暗い|くらい/.test(t)&&/見え|みえ/.test(t)){const L={bee:"暗いと色の手がかりは弱まります。この模式の多くは昼に動きます。",bat:"暗くても、声のこだまで形をつかみます。",tick:"もともと明暗くらいしか受けないので、夜も同じ手がかり（におい・熱）で待ちます。",dog:"人より暗いところに強い目だとされますが、この模式ではにおいが先です。",worm:"夜の暗さが、地表へ出る合図になると観察されています。",plant:"夜は光が無く、内部の周期で次の朝に備えます。",human:"暗いと色が分かりにくくなり、明暗が主になります。",cam:"暗いと光の数が少なく、ざらつきになります。",sensor:"暗さに関係なく、温度を記録します。"};say(L[cur]);return}
+  if(/夜|よる|暗い|くらい/.test(t)&&/見え|みえ/.test(t)&&!(typeof ANIMAL!=="undefined"&&ANIMAL.test(t)&&!modeIn(t))){const L={bee:"暗いと色の手がかりは弱まります。この模式の多くは昼に動きます。",bat:"暗くても、声のこだまで形をつかみます。",tick:"もともと明暗くらいしか受けないので、夜も同じ手がかり（におい・熱）で待ちます。",dog:"人より暗いところに強い目だとされますが、この模式ではにおいが先です。",worm:"夜の暗さが、地表へ出る合図になると観察されています。",plant:"夜は光が無く、内部の周期で次の朝に備えます。",human:"暗いと色が分かりにくくなり、明暗が主になります。",cam:"暗いと光の数が少なく、ざらつきになります。",sensor:"暗さに関係なく、温度を記録します。"};say(L[cur]);return}
   if(mk&&mk!==cur){setMode(mk);if(!k){const[a,b]=M[mk].a.see;say(M[mk].intro+"<br>"+a,b);return}}
   if(/もっと|詳しく|くわしく|続き/.test(t)&&lastK){const d=document.querySelector("#say details");if(d){d.open=true;return}const n=CH[cur].find(x=>x!==lastK)||"see";return answer(n)}
-  if(/^(なぜ|なんで|どうして)/.test(t)&&lastK){const s_=M[cur].a[lastK][1];say(s_&&BIB[s_]?`そう言えるのは、研究の記録があるからです。`:`これは、この模式の仮の置き方です。`,s_);return}
+  if(/^(なぜ|なんで|どうして)/.test(t)&&lastK){const s_=M[cur].a[lastK][1];say(s_&&WHY[s_]?WHY[s_]:`これは、この模式の仮の置き方で、研究の記録で確かめた言い方ではありません。`,s_);return}
   if(/わから|分から|わかんな|^[?？]+$|どうすれば|使い方/.test(t)&&!/見え|聞こ|におい/.test(t)){const q=CH[cur][0];say(`まずはここから。下の札を押すと、${M[cur].n}の受けとり方を話します。<button class="go" data-a="${q}">${QL[q]}</button>`);return}
   if(/ありがと|サンキュー/.test(t)){say("どういたしまして。ほかの生き物にも切りかえてみてください。");return}
   if(/さよなら|さようなら|またね|バイバイ/.test(t)){say("また来てください。");return}
@@ -204,7 +205,7 @@ function chips(k){const c=$("#chips");c.innerHTML="";CH[k].forEach(q=>{const b=d
  if(k==="human"){const b=document.createElement("button");b.textContent="ミツバチと比べる";b.className="cmp";b.onclick=()=>compare("bee","human");c.appendChild(b)}
  if(k!=="human"){const b=document.createElement("button");b.textContent="人と比べる";b.className="cmp";b.onclick=()=>compare(k,"human");c.appendChild(b)}}
 const COMP={bee:"人に見えない紫外まで見え、赤は暗く沈む。",bat:"人に聞こえない高い声のこだまで、形をつかむ。",tick:"光も音もほぼ無く、におい・熱・触れる感じだけ。",dog:"色は二つの系統だけ。そのかわり、においの世界が広い。",worm:"目も耳も無く、皮膚で明暗を、体で土のふるえを受ける。",plant:"光の色の割合と、一日の周期に応じる。",cam:"光を数として記録する。感じてはいない。",sensor:"人に見えない長い赤外を、温度として記録する。"};
-function compare(a,b){const A=M[a],B=M[b];say(`${A.n}は、${COMP[a]||""}（人：光 ${B.light_t.replace(/[（）]/g," ")}・音 ${B.sound_t.replace(/[（）]/g," ")}　${A.n}：光 ${A.light_t.replace(/[（）]/g," ")}・音 ${A.sound_t.replace(/[（）]/g," ")}）`)}
+function compare(a,b){const A=M[a],B=M[b];const nx=CH[a].find(q=>q!=="see")||"see";say(`${A.n}は、${COMP[a]||""}<button class="go" data-a="${nx}">${QL[nx]}</button>（人：光 ${B.light_t.replace(/[（）]/g," ")}・音 ${B.sound_t.replace(/[（）]/g," ")}　${A.n}：光 ${A.light_t.replace(/[（）]/g," ")}・音 ${A.sound_t.replace(/[（）]/g," ")}）`)}
 $("#f").onsubmit=e=>{e.preventDefault();const t=$("#q").value.trim();if(t)free(t);$("#q").value=""};
 const lp=nm=>Math.max(0,Math.min(100,(nm-300)/8)),sp=hz=>hz<=0?0:Math.max(0,Math.min(100,(Math.log10(hz)-1)/(Math.log10(200000)-1)*100));
 function bands(m0){const m=m0===M.human?M.bee:m0;
@@ -217,6 +218,7 @@ function bands(m0){const m=m0===M.human?M.bee:m0;
   `<div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...L,c,m.dim)}</div>`+
   `<div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${lp(335)}%">紫外</b><b style="left:${lp(580)}%">見える光</b><b style="left:${lp(940)}%">赤外</b></span></div>`+
   (false?"":`<div class="row"><span class="k">音</span><span class="who">人</span>${bar(...hs,hc)}</div><div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...S,c)}</div><div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${sp(12)}%">低い</b><b style="left:${sp(630)}%">人の耳</b><b style="left:${sp(63000)}%">超音波</b></span></div>`)+
+  `<div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:50%">帯の端は模式の目安</b></span></div>`+
   `<div class="row"><span class="k">時間</span><em style="width:auto;max-width:none;text-align:left">${m0.time}<b id="wait"></b></em></div>`;
 }
 function setMode(k){look(k);chips(k);cur=k;setTimeout(()=>{const b=document.querySelector(`#modes button[data-k="${k}"]`);b&&b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})},0);const m=M[k];
@@ -235,12 +237,12 @@ const R_=Math.random;function inE(cx,cy,cz,rx,ry,rz){const u=R_()*2-1,a=R_()*6.2
 function mk(parts){const f=new Float32Array(N*3),tot=parts.reduce((a,p)=>a+p[0],0);for(let i=0;i<N;i++){let q=R_()*tot,p=parts[0];for(const pp of parts){if((q-=pp[0])<=0){p=pp;break}}f.set(inE(...p.slice(1)),i*3)}return f}
 const SH={
  bee:mk([[4,0,1.25,0,.36,.34,.34],[6,0,1.12,-.9,.44,.4,.66],[2,0,1.3,.58,.28,.28,.25],[2,.55,1.85,-.15,.55,.42,.05],[2,-.55,1.85,-.15,.55,.42,.05],[1,.12,1.55,.85,.03,.25,.03],[1,-.12,1.55,.85,.03,.25,.03]]),
- bat:mk([[3,0,1.2,0,.25,.4,.22],[4,1.1,1.3,0,1.0,.35,.06],[4,-1.1,1.3,0,1.0,.35,.06],[1,.12,1.68,0,.06,.14,.05],[1,-.12,1.68,0,.06,.14,.05]]),
+ bat:mk([[3,0,1.2,0,.22,.38,.2],[5,1.15,1.35,0,1.0,.28,.03],[5,-1.15,1.35,0,1.0,.28,.03],[2,1.6,1.1,0,.5,.3,.03],[2,-1.6,1.1,0,.5,.3,.03],[1,.1,1.72,0,.05,.14,.04],[1,-.1,1.72,0,.05,.14,.04]]),
  tick:mk([[6,0,.55,0,.75,.25,.95],[1,0,.6,.95,.18,.1,.2],[1,.85,.35,.3,.45,.04,.04],[1,-.85,.35,.3,.45,.04,.04],[1,.85,.35,-.3,.45,.04,.04],[1,-.85,.35,-.3,.45,.04,.04]]),
  dog:mk([[5,0,1.1,0,.35,.35,.85],[2,0,1.5,.95,.25,.25,.28],[1,0,1.4,1.3,.12,.1,.2],[1,.2,.45,.5,.08,.45,.08],[1,-.2,.45,.5,.08,.45,.08],[1,.2,.45,-.55,.08,.45,.08],[1,-.2,.45,-.55,.08,.45,.08]]),
  worm:mk([[1,-1.6,.2,0,.35,.14,.14],[1,-.8,.22,.15,.35,.15,.15],[1,0,.24,0,.35,.16,.16],[1,.8,.22,-.15,.35,.15,.15],[1,1.6,.2,0,.35,.14,.14]]),
  plant:mk([[3,0,1.2,0,.05,1.25,.05],[2,.35,.7,0,.35,.04,.14],[2,-.35,1.1,0,.35,.04,.14],[2,.32,1.55,0,.32,.04,.13],[2,-.3,1.95,0,.3,.04,.12],[3,0,2.5,0,.3,.22,.3],[2,0,.02,0,.6,.03,.6]]),
- human:mk([[3,0,1.85,0,.2,.24,.2],[5,0,1.2,0,.32,.48,.2],[2,.14,.4,0,.1,.4,.1],[2,-.14,.4,0,.1,.4,.1]]),
+ human:mk([[3,0,1.95,0,.17,.2,.17],[5,0,1.35,0,.27,.4,.16],[2,.36,1.3,0,.07,.36,.07],[2,-.36,1.3,0,.07,.36,.07],[2,.12,.48,0,.09,.48,.09],[2,-.12,.48,0,.09,.48,.09]]),
  cam:mk([[6,0,1.2,0,.8,.55,.45],[3,0,1.2,.6,.35,.35,.25]]),
  sensor:mk([[6,0,1.2,0,.9,.7,.08]])
 };
