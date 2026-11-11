@@ -36,7 +36,7 @@ const M={
      you:["たとえばあなたが赤い服なら、この模式では暗く見えているかもしれません。","peitsch"],
      away:["遠くの細かい形は、人より粗く受けとります。小さな目の集まりで、形の細かさは人より粗い。",""],
      move:["速いちらつきや動きを人より細かく分ける、という測定があります。","srini"]}},
- bat:{n:"コウモリ",col:[0x3a4360,0x78d6ec,0xa8f2f6],light:[0,0],dim:"目で明暗を受ける（色の範囲はこの模式では扱わない）",sound:[10000,200000],light_t:"目で明暗",sound_t:"人の耳より高い声（種による）",time:"声とこだまの間のわずかな差",
+ bat:{n:"コウモリ",col:[0x3a4360,0x78d6ec,0xa8f2f6],light:[0,0],dim:"明暗は受ける（色は扱わない）",sound:[10000,200000],light_t:"目で明暗",sound_t:"人の耳より高い声（種による）",time:"声とこだまの間のわずかな差",
   intro:"コウモリ（超音波で探る種）に切りかえました。自分の声のこだまで、暗い中の形をつかみます。",
   a:{see:["自分の出した声のこだまで、前の物の形と距離をつかみます。声の高さは種によって約10kHz から 200kHz 近くまで幅があります。","jones"],
      nosee:["人に聞こえる高さの音の多くは、この模式の狩りの手がかりではありません。目も使いますが、この模式の中心は色ではありません。",""],
@@ -177,6 +177,7 @@ function free(t){
   if(mk&&mk!==cur){setMode(mk);if(!k){const[a,b]=M[mk].a.see;say(M[mk].intro+"<br>"+a,b);return}}
   if(/もっと|詳しく|くわしく|続き/.test(t)&&lastK){const d=document.querySelector("#say details");if(d){d.open=true;return}const n=CH[cur].find(x=>x!==lastK)||"see";return answer(n)}
   if(/^(なぜ|なんで|どうして)/.test(t)&&lastK){const s_=M[cur].a[lastK][1];say(s_&&BIB[s_]?`そう言えるのは、研究の記録があるからです。`:`これは、この模式の仮の置き方です。`,s_);return}
+  if(/わから|分から|わかんな|^[?？]+$|どうすれば|使い方/.test(t)&&!/見え|聞こ|におい/.test(t)){const q=CH[cur][0];say(`まずはここから。下の札を押すと、${M[cur].n}の受けとり方を話します。<button class="go" data-a="${q}">${QL[q]}</button>`);return}
   if(/ありがと|サンキュー/.test(t)){say("どういたしまして。ほかの生き物にも切りかえてみてください。");return}
   if(/さよなら|さようなら|またね|バイバイ/.test(t)){say("また来てください。");return}
   if(/こんにちは|はじめまして|こんばんは|おはよう/.test(t)&&!k){say(`こんにちは。いまは${M[cur].n}の模式です。「何が見える？」と聞いてみてください。`);return}
@@ -200,12 +201,13 @@ ORDER.forEach(k=>{const b=document.createElement("button");b.textContent=M[k].n;
 const CH={bee:["see","nosee","move"],bat:["hear","see","away"],tick:["smell","time","nosee"],dog:["smell","see","hear"],worm:["hear","see","you"],plant:["see","time","nosee"],human:["see","nosee","hear","time"],cam:["see","time","nosee"],sensor:["see","nosee","you"]};
 const QL=Object.fromEntries(QS);
 function chips(k){const c=$("#chips");c.innerHTML="";CH[k].forEach(q=>{const b=document.createElement("button");b.textContent=QL[q];b.onclick=()=>answer(q);c.appendChild(b)});
+ if(k==="human"){const b=document.createElement("button");b.textContent="ミツバチと比べる";b.className="cmp";b.onclick=()=>compare("bee","human");c.appendChild(b)}
  if(k!=="human"){const b=document.createElement("button");b.textContent="人と比べる";b.className="cmp";b.onclick=()=>compare(k,"human");c.appendChild(b)}}
 const COMP={bee:"人に見えない紫外まで見え、赤は暗く沈む。",bat:"人に聞こえない高い声のこだまで、形をつかむ。",tick:"光も音もほぼ無く、におい・熱・触れる感じだけ。",dog:"色は二つの系統だけ。そのかわり、においの世界が広い。",worm:"目も耳も無く、皮膚で明暗を、体で土のふるえを受ける。",plant:"光の色の割合と、一日の周期に応じる。",cam:"光を数として記録する。感じてはいない。",sensor:"人に見えない長い赤外を、温度として記録する。"};
 function compare(a,b){const A=M[a],B=M[b];say(`${A.n}は、${COMP[a]||""}（人：光 ${B.light_t.replace(/[（）]/g," ")}・音 ${B.sound_t.replace(/[（）]/g," ")}　${A.n}：光 ${A.light_t.replace(/[（）]/g," ")}・音 ${A.sound_t.replace(/[（）]/g," ")}）`)}
 $("#f").onsubmit=e=>{e.preventDefault();const t=$("#q").value.trim();if(t)free(t);$("#q").value=""};
 const lp=nm=>Math.max(0,Math.min(100,(nm-300)/8)),sp=hz=>hz<=0?0:Math.max(0,Math.min(100,(Math.log10(hz)-1)/(Math.log10(200000)-1)*100));
-function bands(m){
+function bands(m0){const m=m0===M.human?M.bee:m0;
   const c="#"+m.col[1].toString(16).padStart(6,"0");
   const bar=(l,w,col,nt)=>w?`<span class="bar"><i style="left:${l}%;width:${w}%;background:${col}"></i></span>`:`<span class="bar" style="background:none;border-top:1px dashed rgba(195,204,224,.25);height:0"></span><em style="width:auto;max-width:none;font-size:11px">${nt||"この帯では受けない"}</em>`;
   const L=m.light[1]?[lp(m.light[0]),lp(m.light[1])-lp(m.light[0])]:[0,0],S=m.sound[1]?[sp(m.sound[0]),sp(m.sound[1])-sp(m.sound[0])]:[0,0];
@@ -214,8 +216,8 @@ function bands(m){
   `<div class="row"><span class="k">光</span><span class="who">人</span>${bar(...hl,hc)}</div>`+
   `<div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...L,c,m.dim)}</div>`+
   `<div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${lp(335)}%">紫外</b><b style="left:${lp(580)}%">見える光</b><b style="left:${lp(940)}%">赤外</b></span></div>`+
-  (m===M.human?"":`<div class="row"><span class="k">音</span><span class="who">人</span>${bar(...hs,hc)}</div><div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...S,c)}</div><div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${sp(12)}%">低い</b><b style="left:${sp(630)}%">人の耳</b><b style="left:${sp(63000)}%">超音波</b></span></div>`)+
-  `<div class="row"><span class="k">時間</span><em style="width:auto;max-width:none;text-align:left">${m.time}<b id="wait"></b></em></div>`;
+  (false?"":`<div class="row"><span class="k">音</span><span class="who">人</span>${bar(...hs,hc)}</div><div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...S,c)}</div><div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${sp(12)}%">低い</b><b style="left:${sp(630)}%">人の耳</b><b style="left:${sp(63000)}%">超音波</b></span></div>`)+
+  `<div class="row"><span class="k">時間</span><em style="width:auto;max-width:none;text-align:left">${m0.time}<b id="wait"></b></em></div>`;
 }
 function setMode(k){look(k);chips(k);cur=k;setTimeout(()=>{const b=document.querySelector(`#modes button[data-k="${k}"]`);b&&b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})},0);const m=M[k];
   modes.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===k));
@@ -237,7 +239,7 @@ const SH={
  tick:mk([[6,0,.55,0,.75,.25,.95],[1,0,.6,.95,.18,.1,.2],[1,.85,.35,.3,.45,.04,.04],[1,-.85,.35,.3,.45,.04,.04],[1,.85,.35,-.3,.45,.04,.04],[1,-.85,.35,-.3,.45,.04,.04]]),
  dog:mk([[5,0,1.1,0,.35,.35,.85],[2,0,1.5,.95,.25,.25,.28],[1,0,1.4,1.3,.12,.1,.2],[1,.2,.45,.5,.08,.45,.08],[1,-.2,.45,.5,.08,.45,.08],[1,.2,.45,-.55,.08,.45,.08],[1,-.2,.45,-.55,.08,.45,.08]]),
  worm:mk([[1,-1.6,.2,0,.35,.14,.14],[1,-.8,.22,.15,.35,.15,.15],[1,0,.24,0,.35,.16,.16],[1,.8,.22,-.15,.35,.15,.15],[1,1.6,.2,0,.35,.14,.14]]),
- plant:stem,
+ plant:mk([[3,0,1.2,0,.05,1.25,.05],[2,.35,.7,0,.35,.04,.14],[2,-.35,1.1,0,.35,.04,.14],[2,.32,1.55,0,.32,.04,.13],[2,-.3,1.95,0,.3,.04,.12],[3,0,2.5,0,.3,.22,.3],[2,0,.02,0,.6,.03,.6]]),
  human:mk([[3,0,1.85,0,.2,.24,.2],[5,0,1.2,0,.32,.48,.2],[2,.14,.4,0,.1,.4,.1],[2,-.14,.4,0,.1,.4,.1]]),
  cam:mk([[6,0,1.2,0,.8,.55,.45],[3,0,1.2,.6,.35,.35,.25]]),
  sensor:mk([[6,0,1.2,0,.9,.7,.08]])
@@ -310,9 +312,9 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;const m=M[mo
   const w=Math.sin(t*3+i*.37)*v.jit;x*=1+w;z*=1+w;y+=Math.sin(t+i)*v.jit*.5;
   if(v.q){x=Math.round(x/v.q)*v.q;y=Math.round(y/v.q)*v.q;z=Math.round(z/v.q)*v.q}
   pos[k]=x;pos[k+1]=y;pos[k+2]=z;
-  let c=cc[b];if(mode==="tick"){const h=.35+.35*Math.sin(waitT*.8+i*.01);tmp.setRGB(.95*h,.55*h,.4*h);c=tmp}if(mode==="sensor"){const h=1-Math.min(1,Math.hypot(x,y-1.2,z)/1);tmp.setHSL(.66-.62*h,.9,.35+.3*h);c=tmp}
+  let c=cc[b];if(mode==="bee"&&T===SH.bee&&z<-.35){const st=Math.sin(z*14)>0;tmp.setRGB(st?.95:.15,st?.8:.12,st?.35:.1);c=tmp}if(mode==="tick"){const h=.35+.35*Math.sin(waitT*.8+i*.01);tmp.setRGB(.95*h,.55*h,.4*h);c=tmp}if(mode==="sensor"){const h=1-Math.min(1,Math.hypot(x,y-1.2,z)/1);tmp.setHSL(.66-.62*h,.9,.35+.3*h);c=tmp}
   col[k]=c.r;col[k+1]=c.g;col[k+2]=c.b}
- g.attributes.position.needsUpdate=true;g.attributes.color.needsUpdate=true;body.rotation.y+=dt*.12*Math.min(2,v.spd);
+ g.attributes.position.needsUpdate=true;g.attributes.color.needsUpdate=true;if(mode==="bee"||mode==="plant"||mode==="dog"){body.rotation.y+=(((mode==="bee"?-1.35:mode==="dog"?-1.2:0)+Math.sin(t*.3)*.25)-body.rotation.y)*.05}else body.rotation.y+=dt*.12*Math.min(2,v.spd);
  // 地面
  const gcol=mode==="worm"?tmp.set(0x6b4f36):mode==="sensor"?tmp.set(0x1a2a60):cc[2];
  for(let i=0;i<G;i++){const k=i*3,x=g0[k],z=g0[k+2];let y=0,br=.5;
