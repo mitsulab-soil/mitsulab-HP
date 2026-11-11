@@ -29,7 +29,7 @@ const M={
  bee:{n:"ミツバチ",col:[0xb4a2ff,0x78d6ec,0x7fe0b4],light:[300,650],sound:[0,0],light_t:"紫外〜緑",sound_t:"近くの空気のふるえ",time:"速い動きも見分ける",
   intro:"ミツバチの受けとり方に切りかえました。花には、人に見えない紫外の模様があります。",
   a:{see:["紫外・青・緑の三つの手がかりで色を分けます（感度の山は約344・436・544nm）。花の紫外の模様（多くの黄色い花の例をもとにした模式）は、目立つ手がかりです。","peitsch"],
-     nosee:["赤は、この受けとり方では暗く沈みます。人の言う「赤」の手がかりは、ここにはありません。","peitsch"],
+     nosee:["赤は、この受けとり方ではほとんど暗い明るさとして受けます。人の言う「赤」の手がかりは、ここにはありません。","peitsch"],
      time:["人の時計は持ちませんが、体の中に約一日の周期があります。太陽の動きを時刻で補いながら、太陽の位置と空の偏光で方角をとる、と記録されています。","frisch"],
      hear:["空気の音を人の耳のようには受けとりません。触角の付け根の器官で、近くの空気のふるえを受ける記録があります。","dreller"],
      smell:["触角でにおいを受けとります。花のにおいと、仲間のにおいが主な手がかりです。","frisch"],
@@ -53,11 +53,11 @@ const M={
      time:["時刻はありません。手がかりが来るまで、とても長く待ちます。研究室で18年生きた例をユクスキュルが書いています。","uex"],
      hear:["音の手がかりは、この受けとり方にはありません。","uex"],
      smell:["哺乳類の皮膚から出る酪酸のにおいが、落ちる合図になる、とユクスキュルは書きました。（いまの研究では、前脚のハラー器官で二酸化炭素や熱などを受けることが重視されています。）","sonen"],
-     you:["あなたは、におい・あたたかさ・毛の感触の三つだけの存在として現れます。","uex"],
+     you:["あなたは、におい・あたたかさ・毛の感触の三つとして現れる、と考えられます（模式）。","uex"],
      away:["遠くという手がかりは、ほとんどありません。","uex"],
      move:["動きそのものより、におい・あたたかさの変化が合図です。","uex"]}},
- dog:{n:"犬",col:[0x5cc8e0,0xf2cf8c,0x8f9bb4],light:[400,680],sound:[67,45000],light_t:"青と黄の二つ",sound_t:"約67Hz〜45kHz",time:"においの濃さに残る、少し前の出来事",
-  intro:"犬に切りかえました。この世界は、姿より先に、においでできています。",
+ dog:{n:"犬",col:[0x5cc8e0,0xf2cf8c,0x8f9bb4],light:[400,680],sound:[67,45000],light_t:"青と黄の二つ（画面の色は近似）",sound_t:"約67Hz〜45kHz",time:"においの濃さに残る、少し前の出来事",
+  intro:"犬に切りかえました。この世界は、姿より先に、においでできています。<br><small style='color:var(--ml-ink-3)'>画面の色は、犬の二つの色の系統に寄せた近似です。犬の見え方そのものではありません。</small>",
   a:{see:["色の手がかりは青と黄の二つの系統（感度の山は約429・555nm）。人が赤と緑と呼ぶものの区別は付きにくい。","neitz"],
      nosee:["赤と緑の違いは、この受けとり方には薄い。","neitz"],
      time:["時計の時刻は持ちません。この模式では、においの濃い・薄いを、時間の手がかりとして仮に置いています。",""],
@@ -73,7 +73,7 @@ const M={
      time:["時刻ではなく、暗さと湿り。夜に地表へ出ることが多いと観察されています。","darwin"],
      hear:["空気の音にはほとんど反応せず、土を伝わる振動には強く反応した、とダーウィンは書いています。","darwin"],
      smell:["葉のにおいや味の違いを選び分けた観察があります。","darwin"],
-     you:["あなたは、足音の振動として現れます。","darwin"],
+     you:["あなたは、足音の振動として現れる、と考えられます（模式）。","darwin"],
      away:["遠くは無く、触れている土の湿りと固さが世界の大部分です。","darwin"],
      move:["土のふるえが、近づくものの合図です。","darwin"]}},
  plant:{n:"植物",col:[0x7fe0b4,0xf4aa96,0x6c8d71],light:[400,750],sound:[0,0],light_t:"青と、赤・遠赤の比",sound_t:"受けない（触れる刺激は受ける）",time:"約一日の内部の周期",
@@ -155,9 +155,9 @@ function modeIn(t){const h=kata2hira(t);for(const k of ORDER){if(h.includes(kata
 let cur="bee",outN=0;
 const $=s=>document.querySelector(s);
 const say=(t,k)=>{const e=$("#say");e.style.opacity=.25;const det=[];t=t.replace(/（[^）]*）/g,m=>{det.push(m.slice(1,-1));return""});e.innerHTML=t+(det.length?`<details><summary>＋</summary>${det.join("／")}</details>`:"")+(k&&BIB[k]?`<small>出典：${BIB[k].split(/[,，]/)[0].replace(/『.*』/,' ')}</small>`:"");requestAnimationFrame(()=>requestAnimationFrame(()=>e.style.opacity=1))};
-let lastK=null;
-const WHY={peitsch:"ミツバチの目の細胞が、どの色の光に応じるかを電気で測った研究があるからです。",frisch:"巣の中の踊りと、太陽や空の向きとの関係を、長く観察した記録があるからです。",srini:"ちらつく光をミツバチが見分けられるかを、行動で試した実験があるからです。",dreller:"触角の付け根の器官が、空気のふるえに応じるかを測った研究があるからです。",griffin:"コウモリの声を、人に聞こえる高さに変えて録った実験の記録があるからです。",jones:"多くの種のコウモリの声を比べてまとめた研究があるからです。",uex:"ユクスキュルがマダニの行動を観察して書いた記録があるからです。",sonen:"マダニの体のつくりと感覚をまとめた研究書があるからです。",neitz:"犬の目の細胞が、どの色の光に応じるかを測った研究があるからです。",heffner:"犬が聞き分けられる音の高さを、行動で試した実験があるからです。",quignon:"犬の遺伝子を読み、においを受けとる遺伝子を数えた研究があるからです。",darwin:"ダーウィンが、光や振動にミミズがどう応じるかを長く観察した記録があるからです。",butler:"植物が赤と遠赤の光で切りかわる色素を見つけた研究があるからです。",christie:"青い光を受けとる植物の色素をまとめた研究があるからです。",braam:"触れられた植物の育ち方の変化をまとめた研究があるからです。",mcclung:"植物の一日の周期の仕組みをまとめた研究があるからです。",bowmaker:"人の目の細胞が、どの色の光に応じるかを測った研究があるからです。",bayer:"色のフィルターを格子に並べる仕組みの特許があるからです。",vollmer:"赤外線で温度を記録する仕組みをまとめた教科書があるからです。"};
-function answer(k){lastK=k;const [t,s]=M[cur].a[k];say(t,s)}
+let lastK=null,feelN=0;
+const WHY={peitsch:"ミツバチの目の細胞が、どの色の光に応じるかを電気で測った研究があるからです。",frisch:"巣の中の踊りと、太陽や空の向きとの関係を、長く観察した記録があるからです。",srini:"ちらつく光をミツバチが見分けられるかを、行動で試した実験があるからです。",dreller:"触角の付け根の器官が、空気のふるえに応じるかを測った研究があるからです。",griffin:"コウモリの声を、人に聞こえる高さに変えて録った実験の記録があるからです。",jones:"多くの種のコウモリの声を比べてまとめた研究があるからです。",uex:"ユクスキュルがマダニの行動を観察して書いた記録があるからです。",sonen:"マダニの体のつくりと感覚をまとめた研究書があるからです。",neitz:"犬の目の細胞が、どの色の光に応じるかを測った研究があるからです。",heffner:"犬が聞き分けられる音の高さを、行動で試した実験があるからです。",quignon:"犬の遺伝子を読み、においを受けとる遺伝子を数えた研究があるからです。",darwin:"ダーウィンが、光や振動にミミズがどう応じるかを長く観察した記録があるからです。",butler:"植物が赤と遠赤の光で切りかわる色素を見つけた研究があるからです。",christie:"青い光を受けとる植物の色素をまとめた研究があるからです。",braam:"触れられた植物の育ち方の変化をまとめた研究があるからです。",mcclung:"植物の一日の周期の仕組みをまとめた研究があるからです。",bowmaker:"人の目の細胞が、どの色の光を吸うかを、一つずつ測った研究があるからです。",bayer:"色のフィルターを格子に並べる仕組みの特許があるからです。",vollmer:"赤外線で温度を記録する仕組みをまとめた教科書があるからです。"};
+function answer(k){lastK=k;const [t,s]=M[cur].a[k];say(s?t:t+"（出典を付けていない、この模式の置き方です）",s)}
 const GO=k=>`<button class="go" data-k="${k}">${M[k].n}に切りかえる</button>`;
 const NEAR=[[/蝶|ちょう|虫|むし|ハエ|トンボ/,"bee"],[/猫|ねこ|ネコ|狐|たぬき|タヌキ/,"dog"],[/土の中|地面の下|もぐら|モグラ/,"worm"]];
 const ANIMAL=/鳥|蝶|猫|ねこ|魚|蛇|へび|ヘビ|ネコ|サカナ|カラス|スズメ|ハト|トンボ|モグラ|土の中|^とり|^虫|虫の|^むし/;
@@ -173,8 +173,8 @@ function free(t){
     say(`${A.n}：光は${A.light_t}、音は${A.sound_t}。<br>${B.n}：光は${B.light_t}、音は${B.sound_t}。${GO(o)}`);return}
   if(mk&&mk!==cur&&!/違い|違う|比べ/.test(t)){setMode(mk);if(!k){const[a,b]=M[mk].a.see;say(M[mk].intro+"<br>"+a,b);return}}
   if(/心がある|心はある|意識/.test(t)){say("この AI は、感じる心を持つとは言えません。生き物や機械の受けとり方を、研究の記録から組み立てた模式に切りかえて話します。");return}
-  if(/痛|眠|好き|きらい|嫌い|考えて|楽し|うれし|嬉し|心は/.test(t)){say(`${M[cur].n}の模式は、感じる心を持つとは言えません。言えるのは、何を手がかりとして受けとるかです。<button class="go" data-a="see">何が見える？</button>`);return}
-  if(/夜|よる|暗い|くらい/.test(t)&&/見え|みえ/.test(t)&&!(typeof ANIMAL!=="undefined"&&ANIMAL.test(t)&&!modeIn(t))){const L={bee:"暗いと色の手がかりは弱まります。この模式の多くは昼に動きます。",bat:"暗くても、声のこだまで形をつかみます。",tick:"もともと明暗くらいしか受けないので、夜も同じ手がかり（におい・熱）で待ちます。",dog:"人より暗いところに強い目だとされますが、この模式ではにおいが先です。",worm:"夜の暗さが、地表へ出る合図になると観察されています。",plant:"夜は光が無く、内部の周期で次の朝に備えます。",human:"暗いと色が分かりにくくなり、明暗が主になります。",cam:"暗いと光の数が少なく、ざらつきになります。",sensor:"暗さに関係なく、温度を記録します。"};say(L[cur]);return}
+  if(/痛|眠|好き|きらい|嫌い|考えて|楽し|うれし|嬉し|心は/.test(t)){const v=[`${M[cur].n}の模式は、感じる心を持つとは言えません。言えるのは、何を手がかりにするかです。`,`気持ちのことは、この模式では分かりません。${M[cur].n}について言えるのは──${(COMP[cur]||"人の受けとり方の一つです。")}`,`そこは記録の外です。${M[cur].n}の模式で答えられるのは、見え方や音、においのことです。`];const q=CH[cur][(feelN)%CH[cur].length];say(v[(feelN++)%3]+`<button class="go" data-a="${q}">${QL[q]}</button>`);return}
+  if(/夜|よる|暗い|くらい/.test(t)&&/見え|みえ/.test(t)&&!(typeof ANIMAL!=="undefined"&&ANIMAL.test(t)&&!modeIn(t))){const L={bee:"暗いと色の手がかりは弱まります。この模式の多くは昼に動きます。",bat:"暗くても、声のこだまで形をつかみます。",tick:"もともと明暗くらいしか受けないので、夜も同じ手がかり（におい・熱）で待ちます。",dog:"暗いところの見え方は、この模式ではまだ扱いません。この模式ではにおいが先です。",worm:"夜の暗さが、地表へ出る合図になると観察されています。",plant:"夜は光が無く、内部の周期で次の朝に備えます。",human:"暗いと色が分かりにくくなり、明暗が主になります。",cam:"暗いと光の数が少なく、ざらつきになります。",sensor:"暗さに関係なく、温度を記録します。"};say(L[cur]);return}
   if(mk&&mk!==cur){setMode(mk);if(!k){const[a,b]=M[mk].a.see;say(M[mk].intro+"<br>"+a,b);return}}
   if(/もっと|詳しく|くわしく|続き/.test(t)&&lastK){const d=document.querySelector("#say details");if(d){d.open=true;return}const n=CH[cur].find(x=>x!==lastK)||"see";return answer(n)}
   if(/^(なぜ|なんで|どうして)/.test(t)&&lastK){const s_=M[cur].a[lastK][1];say(s_&&WHY[s_]?WHY[s_]:`これは、この模式の仮の置き方で、研究の記録で確かめた言い方ではありません。`,s_);return}
@@ -205,7 +205,7 @@ function chips(k){const c=$("#chips");c.innerHTML="";CH[k].forEach(q=>{const b=d
  if(k==="human"){const b=document.createElement("button");b.textContent="ミツバチと比べる";b.className="cmp";b.onclick=()=>compare("bee","human");c.appendChild(b)}
  if(k!=="human"){const b=document.createElement("button");b.textContent="人と比べる";b.className="cmp";b.onclick=()=>compare(k,"human");c.appendChild(b)}}
 const COMP={bee:"人に見えない紫外まで見え、赤は暗く沈む。",bat:"人に聞こえない高い声のこだまで、形をつかむ。",tick:"光も音もほぼ無く、におい・熱・触れる感じだけ。",dog:"色は二つの系統だけ。そのかわり、においの世界が広い。",worm:"目も耳も無く、皮膚で明暗を、体で土のふるえを受ける。",plant:"光の色の割合と、一日の周期に応じる。",cam:"光を数として記録する。感じてはいない。",sensor:"人に見えない長い赤外を、温度として記録する。"};
-function compare(a,b){const A=M[a],B=M[b];const nx=CH[a].find(q=>q!=="see")||"see";say(`${A.n}は、${COMP[a]||""}<button class="go" data-a="${nx}">${QL[nx]}</button>（人：光 ${B.light_t.replace(/[（）]/g," ")}・音 ${B.sound_t.replace(/[（）]/g," ")}　${A.n}：光 ${A.light_t.replace(/[（）]/g," ")}・音 ${A.sound_t.replace(/[（）]/g," ")}）`)}
+function compare(a,b){const A=M[a],B=M[b];const nx=CH[a].find(q=>q!=="see")||"see";say(`${A.n}は、${COMP[a]||""}（人：光 ${B.light_t.replace(/[（）]/g," ")}・音 ${B.sound_t.replace(/[（）]/g," ")}　${A.n}：光 ${A.light_t.replace(/[（）]/g," ")}・音 ${A.sound_t.replace(/[（）]/g," ")}）`)}
 $("#f").onsubmit=e=>{e.preventDefault();const t=$("#q").value.trim();if(t)free(t);$("#q").value=""};
 const lp=nm=>Math.max(0,Math.min(100,(nm-300)/8)),sp=hz=>hz<=0?0:Math.max(0,Math.min(100,(Math.log10(hz)-1)/(Math.log10(200000)-1)*100));
 function bands(m0){const m=m0===M.human?M.bee:m0;
