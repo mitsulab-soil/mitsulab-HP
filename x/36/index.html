@@ -87,7 +87,7 @@ R.autoClear = false;
 const SUN = new THREE.Vector3(.35, .62, .7).normalize();
 installSkyFog(THREE, { sun: SUN });
 const scene = new THREE.Scene();
-const HAZE = new THREE.Color(0xb7c4c9);
+const HAZE = new THREE.Color(0xb7c4c9); const FOGE = new THREE.Color(0x8f8a72);
 scene.fog = new THREE.Fog(HAZE, 50, 400);
 const cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, .001, 1000);
 scene.add(new THREE.HemisphereLight(0xdfe8ee, 0x6d6a52, 1.5));
@@ -122,10 +122,10 @@ function tileGeo(z, x, y) {
 function tileMat(m, z) {
   m.userData.uF = { value: new THREE.Vector2(1e12, 2e12) }; m.userData.uHs = { value: 0 }; m.userData.hs = { value: null };
   const near = z >= 16, hs = z >= 9 && z <= 15, land = z <= 14;
-  m.onBeforeCompile = sh => { sh.uniforms.uSoil = U.soil; sh.uniforms.uMatch = U.match; sh.uniforms.uPop = U.pop; sh.uniforms.uFade = m.userData.uF; sh.uniforms.uHsA = m.userData.uHs; sh.uniforms.tHs = m.userData.hs;
+  m.onBeforeCompile = sh => { Object.assign(sh.uniforms, CANU); sh.uniforms.uSoil = U.soil; sh.uniforms.uMatch = U.match; sh.uniforms.uPop = U.pop; sh.uniforms.uFade = m.userData.uF; sh.uniforms.uHsA = m.userData.uHs; sh.uniforms.tHs = m.userData.hs;
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vTw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvTw = ( modelMatrix * vec4( transformed, 1. ) ).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSoil, uHsA, uMatch, uPop; uniform vec2 uFade; uniform sampler2D tHs; varying vec3 vTw;").replace("#include <color_fragment>", `#include <color_fragment>
-${near ? "{ float sh_ = smoothstep( 12.5, 8., abs( vTw.x ) ) * smoothstep( 2.5, 4.5, abs( vTw.x ) ) * smoothstep( 440., 400., abs( vTw.z ) ) * ( 1. - uSoil ); diffuseColor.rgb *= 1. - .32 * sh_; }   " : ""}
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\n" + CANF + "\nuniform float uSoil, uHsA, uMatch, uPop; uniform vec2 uFade; uniform sampler2D tHs; varying vec3 vTw;").replace("#include <color_fragment>", `#include <color_fragment>
+${near ? "{ float sh_ = smoothstep( 12.5, 8., abs( vTw.x ) ) * smoothstep( 2.5, 4.5, abs( vTw.x ) ) * smoothstep( 440., 400., abs( vTw.z ) ) * ( 1. - uSoil ); diffuseColor.rgb *= 1. - .12 * sh_; diffuseColor.rgb *= canLit_( vTw.xz ); }   /* 樹冠の陰と根もとの暗がりを写真にも落とす（並木が写真の上に浮かないように） */   " : ""}
 ${near ? "{ float l_ = dot( diffuseColor.rgb, vec3( .3, .55, .15 ) ); diffuseColor.rgb = mix( diffuseColor.rgb, vec3( .42, .37, .29 ) * ( .75 + .6 * l_ ), uSoil * .8 ); }" : ""}
 diffuseColor.a *= mix( 1., smoothstep( 40., 140., length( vTw.xz ) ), uSoil );
 ${land ? "{ float l_ = dot( diffuseColor.rgb, vec3( .3, .55, .15 ) ); diffuseColor.rgb = mix( diffuseColor.rgb, vec3( l_ ) * vec3( .98, 1., 1.02 ) * 1.06 + .03, .5 * uMatch ); vec3 c_ = ( diffuseColor.rgb - .45 ) * 1.12 + .44; float m_ = dot( c_, vec3( .3, .55, .15 ) ); diffuseColor.rgb = mix( diffuseColor.rgb, mix( vec3( m_ ), c_, 1.08 ), .55 * uPop ); }" : ""}
@@ -251,12 +251,40 @@ function barkCanvas() { const c = document.createElement("canvas"); c.width = 25
     x.beginPath(); x.ellipse(Math.random() * 256, Math.random() * 512, w / 2, h / 2, 0, 0, 7); x.fill(); }
   return c; }
 const trees = new THREE.Group(); scene.add(trees);
+/* 並木の位置（両側に約 9.5 m おき）。並木の外は町（航空写真と食い違うので、外に林は置かない） */
+function treeTP() { const TP = [], span = MOB ? 260 : 420;
+  for (let z = -span; z <= span; z += 9.5) for (const sx of [-1, 1]) { const x = sx * 7 + (hash1(z * 3.1 + sx) - .5) * 1.6, zz = z + (hash1(z + sx * 9) - .5) * 3; if (Math.abs(zz) < 6 && sx < 0) continue; TP.push([x, zz, hash1(z * .7 + sx * 13)]); }
+  TP.push([-7, 0, .42]); return TP; }
+/* 樹冠の陰（Qualium 大宮 kit/sight_look.js の setCanopy と同じ考え方）：一本ずつ樹冠を日の向きに地面へ投げた楕円を焼く。R＝陰・B＝根もとの暗がり。斑（葉の透き間の日の像）は描くときに足す */
+window.__CANU = null; const CANU = { tCan: { value: null }, uCanB: { value: new THREE.Vector4(0, 0, 0, 0) }, uSun2: { value: new THREE.Vector2(0, 1) }, uCanK: { value: 1 } };
+(function bakeCanopy() {
+  const el = SUN.y, sh = Math.hypot(SUN.x, SUN.z), dx = -SUN.x / sh, dz = -SUN.z / sh, elong = Math.min(3, 1 / el), tn = Math.sqrt(1 - el * el) / el;
+  const x0 = -48, x1 = 48, z0 = -(MOB ? 300 : 460), z1 = -z0, mpp = MOB ? .4 : .25, W = Math.ceil((x1 - x0) / mpp), Hh = Math.ceil((z1 - z0) / mpp);
+  const cov = new Float32Array(W * Hh), ao = new Float32Array(W * Hh);
+  for (const [tx, tz, sd] of treeTP()) { const s = .72 + sd * .5, h = 11 * s, Rr = 6.8 * s, px = tx + dx * h * tn, pz = tz + dz * h * tn, ra = Rr * elong, r = ra + 1;
+    const i0 = Math.max(0, Math.floor((px - r - x0) / mpp)), i1 = Math.min(W - 1, Math.ceil((px + r - x0) / mpp)), j0 = Math.max(0, Math.floor((pz - r - z0) / mpp)), j1 = Math.min(Hh - 1, Math.ceil((pz + r - z0) / mpp));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { const wx = x0 + (i + .5) * mpp - px, wz = z0 + (j + .5) * mpp - pz, a = wx * dx + wz * dz, b = -wx * dz + wz * dx, an = Math.atan2(b, a);
+      const edge = 1 + .12 * Math.sin(an * 5 + tx) + .07 * Math.sin(an * 11 + tz), d = Math.hypot(a / ra, b / Rr) / edge; if (d >= 1.15) continue;
+      const v = Math.max(0, Math.min(1, (1.15 - d) / .45)) * .9, o = j * W + i; cov[o] = 1 - (1 - cov[o]) * (1 - v); }
+    /* 根もとの暗がり（幹のまわり 1.6 m・接地を見せる） */
+    const ri = Math.ceil(1.8 / mpp), ci = Math.round((tx - x0) / mpp), cj = Math.round((tz - z0) / mpp);
+    for (let j = Math.max(0, cj - ri); j <= Math.min(Hh - 1, cj + ri); j++) for (let i = Math.max(0, ci - ri); i <= Math.min(W - 1, ci + ri); i++) { const d = Math.hypot(i - ci, j - cj) * mpp / 1.6; if (d < 1.12) { const o = j * W + i; ao[o] = Math.max(ao[o], (1 - Math.min(1, d)) ** 1.5); } } }
+  const D = new Uint8Array(W * Hh * 4); for (let o = 0; o < W * Hh; o++) { D[o * 4] = Math.min(255, cov[o] * 255); D[o * 4 + 2] = Math.min(255, ao[o] * 255); D[o * 4 + 3] = 255; }
+  const T = new THREE.DataTexture(D, W, Hh); T.magFilter = T.minFilter = THREE.LinearFilter; T.generateMipmaps = false; T.needsUpdate = true;
+  window.__CANU = CANU; CANU.tCan.value = T; CANU.uCanB.value.set(x0, z0, 1 / (x1 - x0), 1 / (z1 - z0)); CANU.uSun2.value.set(-dx, -dz);
+})();
+const CANF = `uniform sampler2D tCan; uniform vec4 uCanB; uniform vec2 uSun2; uniform float uCanK;
+float canLit_( vec2 w ){ vec2 cu = ( w - uCanB.xy ) * uCanB.zw; if ( cu.x < 0. || cu.x > 1. || cu.y < 0. || cu.y > 1. ) return 1.; vec4 ct = texture2D( tCan, cu );
+  vec2 sd_ = uSun2, so_ = vec2( -sd_.y, sd_.x ); vec2 lp_ = vec2( dot( w, sd_ ) / 1.5, dot( w, so_ ) ) * 1.1; lp_ += vec2( sin( lp_.y * .9 ), cos( lp_.x * .8 ) ) * .35;
+  vec2 c2_ = floor( lp_ ), f2_ = fract( lp_ ) - .5; float hq_ = fract( sin( dot( c2_, vec2( 12.99, 78.23 ) ) ) * 43758.5 ); vec2 o2_ = vec2( fract( hq_ * 7.1 ), fract( hq_ * 3.7 ) ) - .5;
+  float rr_ = mix( .08, .3, pow( fract( hq_ * 13.7 ), 2. ) ); float sp_ = ( 1. - smoothstep( rr_ * .5, rr_, length( f2_ - o2_ * .5 ) ) ) * step( .5, hq_ ) * ( .6 + .4 * fract( hq_ * 5.3 ) );
+  float pxv_ = fwidth( lp_.x ) + fwidth( lp_.y ); sp_ = mix( sp_, .1, smoothstep( .15, .5, pxv_ / rr_ ) );
+  float nb_ = sin( w.x * .55 + sin( w.y * .37 ) * 1.6 ) * sin( w.y * .43 - .5 ) + .5 * sin( w.x * 1.3 - w.y * .9 ) + .3 * sin( w.y * 1.7 + w.x * .4 );   /* 樹冠の葉の塊と、そのあいだの日だまり */
+  float cv_ = ct.r * smoothstep( -1.1, .1, nb_ );
+  return mix( 1., ( 1. - cv_ * .62 * ( 1. - sp_ ) ) * ( 1. - ct.b * .4 ), uCanK ); }`;
 function buildTrees() {
   /* 並木の位置（両側に約 9.5 m おき・事実の並びは前と同じ） */
-  const TP = []; const span = MOB ? 260 : 420;
-  for (let z = -span; z <= span; z += 9.5) for (const sx of [-1, 1]) { const x = sx * 7 + (hash1(z * 3.1 + sx) - .5) * 1.6, zz = z + (hash1(z + sx * 9) - .5) * 3; if (Math.abs(zz) < 6 && sx < 0) continue; TP.push([x, zz, hash1(z * .7 + sx * 13)]); }
-  /* 並木の外は町（航空写真と食い違うので、外に林は置かない） */
-  TP.push([-7, 0, .42]);
+  const TP = treeTP();
   /* ケヤキの 3D（mitsulab の形・樹皮と葉の絵は Poly Haven ほかの CC0。Qualium 大宮と同じ型）。近い数本は細かい型、ほかは軽い型 */
   Promise.resolve([{ GLTFLoader: GLTFLoader_ }, { MeshoptDecoder: MeshoptDecoder_ }]).then(([{ GLTFLoader }, { MeshoptDecoder }]) => {
     const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); window.__GL = GLTFLoader; window.__MD = MeshoptDecoder;
@@ -340,13 +368,14 @@ function buildTwig() {
   const gm = new THREE.MeshStandardMaterial({ map: gS, normalMap: gSn, roughness: .95, metalness: 0 });
   gm.onBeforeCompile = sh => { sh.uniforms.tL = { value: gL }; sh.uniforms.tG = { value: gG }; sh.uniforms.tLn = { value: gLn };
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vGw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvGw = ( modelMatrix * vec4( transformed, 1. ) ).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D tL, tLn, tG; varying vec3 vGw;\nfloat gw_(){ float n = sin( vGw.z * .31 + sin( vGw.x * .23 ) * 2. ) * .5 + sin( vGw.z * .071 + vGw.x * .05 ) * .5; return smoothstep( 3.6, 6.2, abs( vGw.x ) + n * 1.2 ); }")
+    Object.assign(sh.uniforms, CANU); sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\n" + CANF + "\nuniform sampler2D tL, tLn, tG; varying vec3 vGw;\nfloat gw_(){ float n = sin( vGw.z * .31 + sin( vGw.x * .23 ) * 2. ) * .5 + sin( vGw.z * .071 + vGw.x * .05 ) * .5; return smoothstep( 3.6, 6.2, abs( vGw.x ) + n * 1.2 ); }")
       .replace("#include <map_fragment>", `vec2 u1_ = vGw.xz / 1.6, u2_ = vGw.xz / 11.;
-  vec3 so_ = mix( texture2D( tG, u1_ * .8 ).rgb * vec3( .95, .92, .86 ), texture2D( map, u1_ ).rgb, smoothstep( 1.8, 3.4, abs( vGw.x ) ) * .8 + .2 ) * ( .72 + .56 * texture2D( map, u2_ ).g ); vec3 le_ = texture2D( tL, u1_ * 1.15 ).rgb * ( .7 + .6 * texture2D( tL, u2_ ).g );
-  float w_ = gw_(); vec3 g_ = mix( so_ * vec3( .95, .93, .88 ), le_ * vec3( .8, .78, .7 ), w_ ); g_ = mix( vec3( dot( g_, vec3( .3, .55, .15 ) ) ), g_, .55 ) * .85; { float p_ = texture2D( map, vGw.xz / 47. + .37 ).g, q_ = texture2D( tL, vGw.xz / 83. ).g; g_ *= .8 + .4 * p_; g_ = mix( g_, g_ * vec3( .86, .95, .8 ), smoothstep( .45, .7, q_ ) * .5 ); }   /* 土の湿りと苔の広いむら */ diffuseColor.rgb *= g_;`)
+  float ax_ = abs( vGw.x ), gz_ = 1. - smoothstep( 2.9, 3.7, ax_ + ( texture2D( map, u2_ * 3. ).g - .5 ) * .6 ); vec3 gr_ = texture2D( tG, u1_ * .9 ).rgb, gr2_ = texture2D( tG, u1_ * .37 + .41 ).rgb; vec3 gv_ = mix( gr_, gr2_, .35 ) * vec3( 1.02, .98, .91 ) * ( 1.12 - .14 * exp( -ax_ * ax_ / 1.2 ) );   /* 中央＝砂利を敷いた歩くところ（真ん中ほど踏まれて沈む）。両わき＝土 */
+  vec3 so_ = mix( texture2D( map, u1_ ).rgb * ( .72 + .56 * texture2D( map, u2_ ).g ), gv_ * ( .86 + .28 * texture2D( map, u2_ ).g ), gz_ ); vec3 le_ = texture2D( tL, u1_ * 1.15 ).rgb * ( .7 + .6 * texture2D( tL, u2_ ).g );
+  float w_ = gw_(); vec3 g_ = mix( so_ * vec3( .95, .93, .88 ), le_ * vec3( .8, .78, .7 ), w_ ); g_ = mix( vec3( dot( g_, vec3( .3, .55, .15 ) ) ), g_, .55 ) * .85; { float p_ = texture2D( map, vGw.xz / 47. + .37 ).g, q_ = texture2D( tL, vGw.xz / 83. ).g; g_ *= .8 + .4 * p_; g_ = mix( g_, g_ * vec3( .86, .95, .8 ), smoothstep( .45, .7, q_ ) * .5 ); }   /* 土の湿りと苔の広いむら */ diffuseColor.rgb *= g_ * canLit_( vGw.xz );`)
       .replace("#include <normal_fragment_maps>", `vec3 mapN = mix( texture2D( normalMap, vGw.xz / 1.6 ).xyz, texture2D( tLn, vGw.xz / 1.6 * 1.15 ).xyz, gw_() ) * 2. - 1.; mapN.xy *= normalScale;
   normal = normalize( tbn * mapN );`); };
-  gm.customProgramCacheKey = () => "gnd2"; window.__gm = gm;
+  gm.customProgramCacheKey = () => "gnd3"; window.__gm = gm;
   const gp = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), gm); gp.rotation.x = -Math.PI / 2; gp.position.y = -.03; gp.renderOrder = -12; trees.add(gp);
   /* 手前の低い枝：互生の葉が二列に（ケヤキの小枝はジグザグに伸びる）。いちばん手前の一枚を最初に向き合う葉にする */
   const twig = new THREE.Group(); const tw = new THREE.MeshLambertMaterial({ color: 0x6d6050 });
@@ -429,7 +458,7 @@ vec4 stD( vec2 p ){ vec2 q = p * 1e9; vec2 c0 = floor( q / 650. ); float disk = 
   for ( int y = -1; y <= 1; y++ ) for ( int x = -1; x <= 1; x++ ){ vec2 cell = c0 + vec2( x, y ); vec2 cc = ( cell + .5 ) * 650. + ( h22( cell ) - .5 ) * 160.; if ( cell == vec2( -1. ) ) cc = vec2( 0 ); else if ( length( cc ) < 520. ) continue;
     float rr = length( q - cc ), R0 = 190. + h2( cell ) * 40.; float dk = smoothstep( R0, R0 - 12., rr ); if ( dk > disk ){ disk = dk; r = rr; } }
   float rings = .5 + .5 * sin( r * .35 ); float lam = smoothstep( 22., 8., abs( fract( ( q.x * .7 - q.y * .7 ) / 260. ) - .5 ) * 260. );
-  float h = disk * ( .7 + rings * .06 ) + lam * .25 * ( 1. - disk ); vec3 c = mix( vec3( .86, .88, .8 ), vec3( .58, .68, .5 ), max( disk, lam * .6 ) ); c = mix( c, c * .92, rings * disk * .3 );
+  float h = disk * ( .7 + rings * .06 ) + lam * .25 * ( 1. - disk ); vec3 c = mix( vec3( .86, .88, .8 ), vec3( .58, .68, .5 ), max( disk, lam * .6 ) ); c = mix( c, c * .92, rings * disk * .3 ); { float mp_ = smoothstep( .3, .12, vor( q / 22. ).z ) * disk, mw_ = vn( q / 90. ); c = mix( c, c * vec3( .84, .9, .8 ), mp_ * .55 ); c *= .94 + .1 * mw_; h += mp_ * .12; }   /* 円盤の膜の上に並ぶたんぱく質の粒（約 20 nm・模式）。次の段の膜へつなぐ */
   return vec4( c, h ); }
 /* E 膜にならぶたんぱく質（nm・模式） */
 vec4 stE( vec2 p ){ vec2 q = p * 1e9; vec2 g0 = floor( q / 28. ); float ps = 0.; vec2 g = g0;
@@ -450,6 +479,7 @@ void main(){ float H = pow( 10., uS ); vec2 p = vec2( vU.x * uAsp, vU.y ) * H * 
   float nxt = k < 5 ? SB[k + 1] : -99.; float w = k < 5 ? smoothstep( nxt + .3, nxt - .2, uS ) : 0.;
   vec3 c = shade( k, p, H ); if ( w > 0. ) c = mix( c, shade( k + 1, p, H ), w );
   float mo = smoothstep( -6.5, -6.9, uS ); c = mix( c, vec3( dot( c, vec3( .33 ) ) ) * vec3( .98, 1., .96 ) * .3 + c * .7, mo * .15 );
+  { float dp_ = fbm( p / H * 2.3 + uS * .7 ); c = mix( c, c * vec3( 1.04, 1.08, .94 ) + vec3( .05, .06, .03 ), .3 * dp_ ); float lg_ = pow( max( 0., 1. - length( vU - vec2( -.55, .7 ) ) * .62 ), 2.2 ); c += vec3( .11, .12, .07 ) * lg_ * smoothstep( -2.5, -3.5, uS ); c = mix( c, c * vec3( .9, 1.02, .86 ), .25 * ( 1. - dp_ ) * smoothstep( -2.5, -3.5, uS ) ); }   /* 細胞の層を透けてくる光（奥の層は淡く・光の来る側が明るむ）。顕微鏡の明視野の見え方に寄せた模式 */
   float vg = 1. - dot( vU * vec2( .55, .75 ), vU * vec2( .55, .75 ) ) * .35; c *= vg; c += ( h2( vU * 911. + uT ) - .5 ) * .02;
   gl_FragColor = vec4( pow( c, vec3( 1. ) ), 1. ); }`;
 const mq = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ vertexShader: MV, fragmentShader: MF, transparent: true, depthTest: false, depthWrite: false,
@@ -526,7 +556,7 @@ function deepFrame(S) {
 const CAPS = [[-9, "クロロフィル a（環は約 1 nm、長い尾はフィトール）。光を受けとる色素。模式"], [-7.8, "チラコイドの膜に並ぶ光化学系 II（二量体で約 20 nm）とアンテナ。模式"], [-6.7, "葉緑体の中のグラナ（0.3〜0.5 µm）。チラコイドの円盤が重なる。ここから模式"],
   [-5.6, "孔辺細胞の中の葉緑体（数 µm）。光の顕微鏡なら見える"], [-4.5, "葉の裏の気孔（数十 µm）。水蒸気と酸素が出て、二酸化炭素が入る"], [-3.5, "人の目に見える、いちばん小さな大きさ（約 0.1 mm）"],
   [-2.3, "葉脈の網。目を近づければ、まだ見える"], [-1, "参道の欅の一枚。長さは <span class='nw'>3〜7 cm</span> ほど。手のひらで受けとれる"], [.2, "腕をのばせば届く。からだで測れる大きさ"],
-  [1.25, "一本の欅。見上げれば、まだ全体が入る"], [2.4, "参道の並木（約 2 km）。歩けば受けとれるが、一目では見えない"], [3.6, "大宮の町。<span class='nw'>もう一度には</span>見わたせない"],
+  [1.25, "一本の欅。見上げれば、まだ全体が入る"], [1.5, "並木のあいだに立つ。両側の欅が、道の上で枝を重ねる"], [1.85, "梢の高さ。見上げていた枝葉が、目の前にある"], [2.2, "参道の並木（約 2 km）。歩けば受けとれるが、一目では見えない"], [3.6, "大宮の町。<span class='nw'>もう一度には</span>見わたせない"],
   [4.6, "台地と川の低地。高さの差は数 m から十数 m、足では気づきにくい"], [5.45, "関東平野。高い所に登っても、端までは見えない"], [6.3, "日本列島（南北 約 3,000 km）。形は、写真でしか受けとれない"],
   [6.95, "地球（直径 約 12,742 km）。丸さは、足もとでは感じられない"]];
 const capEl = document.getElementById("cap"); let capI = -1, capT = 0;
@@ -582,7 +612,7 @@ function place(s) {
   const az = AZ * (1 - sm(5.5, 6.5, s)) + azRoad;
   cp.set(Math.sin(az) * Math.cos(ph), Math.sin(ph), Math.cos(az) * Math.cos(ph)).multiplyScalar(d).add(tgt);
   cam.position.copy(cp); cam.up.set(0, 1, 0); cam.lookAt(tgt);
-  cam.near = Math.max(1e-4, d * .02); cam.far = Math.max(d * 60, 2000); if (s > 4.5) cam.far = d * 4 + RE * 2; cam.updateProjectionMatrix();
+  { const n0_ = d * .02, n1_ = d * (.02 + (.09 + .08 * (1 - Math.min(1, cam.aspect))) * sm(1.45, 1.7, s) * (1 - sm(2.1, 2.35, s))); cam.near = Math.max(1e-4, n1_ > n0_ ? Math.max(n0_, Math.min(n1_, cp.y * .85)) : n0_); }   /* 上へ離れる途中（縦長の画面ほど深く）で目の前の枝葉を切る（葉が大きな板に見えないように） */ cam.far = Math.max(d * 60, 2000); if (s > 4.5) cam.far = d * 4 + RE * 2; cam.updateProjectionMatrix();
   return { H, d };
 }
 
@@ -596,13 +626,14 @@ function frame(now) {
   const microA = sm(-1.22, -1.5, S);
   /* 霞：近い段は数百 m 先が霞む。大きい段では消えていき、地球では無い */
   const far = Math.max(H * 28 * (1 - .75 * sm(2.6, 3.2, S) * (1 - sm(3.8, 4.3, S))), 380), fogOff = sm(4.2, 5.4, S);
-  const dip_ = sm(1.35, 1.95, S) * (1 - sm(2.25, 2.9, S)), farF = far + (Math.max(d * 2.2, 60) - far) * dip_ * .62;
-  scene.fog.near = farF * (.12 - .08 * dip_) + fogOff * 1e9; scene.fog.far = farF + fogOff * 1e9; if (window.__gm) { const go_ = 1 - sm(1.7, 2.3, S); __gm.opacity = go_; if (__gm.transparent !== (go_ < 1)) { __gm.transparent = go_ < 1; __gm.needsUpdate = true; } __gm.depthWrite = go_ > .5; }
+  const dip_ = sm(1.35, 1.95, S) * (1 - sm(2.25, 2.9, S)), farF = far + (Math.max(d * 2.2, 60) - far) * dip_ * .38;
+  const dp2_ = sm(1.8, 2.1, S) * (1 - sm(2.3, 2.6, S));   /* 並木を上から見る段：木も写真も同じ空気の厚みで霞ませる（木だけが写真の上に乗って見えないように） */
+  scene.fog.near = farF * (.12 - .05 * dip_) * (1 - dp2_) + d * .2 * dp2_ + fogOff * 1e9; scene.fog.far = farF * (1 - dp2_) + d * 4 * dp2_ + fogOff * 1e9; if (window.__gm) { const go_ = 1 - sm(1.95, 2.35, S); __gm.opacity = go_; if (__gm.transparent !== (go_ < 1)) { __gm.transparent = go_ < 1; __gm.needsUpdate = true; } __gm.depthWrite = go_ > .5; }
   const bg = new THREE.Color().copy(HAZE).lerp(new THREE.Color(0x5d7fa6), sm(4.4, 6, S)).lerp(new THREE.Color(0x0e1a2c), sm(6, 6.9, S));
-  scene.fog.color.copy(HAZE); R.setClearColor(bg, 1);
+  scene.fog.color.copy(HAZE).lerp(FOGE, dip_ * .55 * (1 - sm(1.9, 2.1, S)));   /* 梢の高さの段：近い霞を土と葉の色へ寄せる（地面が灰色の面に見えないように） */ R.setClearColor(bg, 1);
   sky.position.copy(cam.position); sky.scale.setScalar(Math.min(far * .9, cam.far * .9)); sky.material.opacity = 1 - sm(3.8, 5.2, S); sky.visible = sky.material.opacity > 0;
-  U.soil.value = 1 - sm(1.3, 2.3, S); U.match.value = sm(2.6, 3.2, S) * (1 - sm(3.9, 4.3, S)); U.pop.value = sm(3.9, 4.3, S) * (1 - sm(5.4, 6, S));
-  trees.visible = S < 2.3; if (window.__bm) { const k_ = 1 - sm(1.6, 1.8, S);   /* 上へ離れると町の箱は写真の屋根へ（10^1.8 で消えきる。葉ごしに屋上だけが浮いて見えないように） */ if (window.__roofM) { __roofM.opacity = k_; if (__roofM.transparent !== (k_ < 1)) { __roofM.transparent = k_ < 1; __roofM.needsUpdate = true; } } __bm.opacity = k_; if (__bm.transparent !== (k_ < 1)) { __bm.transparent = k_ < 1; __bm.needsUpdate = true; } if (window.__bpre) __bpre.forEach(m => m.visible = k_ < 1); }   /* 町の箱は写真の屋根へ溶けて重なる（高さは PLATEAU のまま） */
+  U.soil.value = 1 - sm(1.85, 2.35, S);   /* 写真へ移るのは足もとの地面が溶けるのと同じとき（10^1.8 で写真が灰色に透けないように） */ U.match.value = sm(2.6, 3.2, S) * (1 - sm(3.9, 4.3, S)); U.pop.value = sm(3.9, 4.3, S) * (1 - sm(5.4, 6, S));
+  CANU.uCanK.value = 1 - sm(2.5, 3.0, S); trees.visible = S < 2.3; if (window.__bm) { const k_ = 1 - sm(1.6, 1.8, S);   /* 上へ離れると町の箱は写真の屋根へ（10^1.8 で消えきる。葉ごしに屋上だけが浮いて見えないように） */ if (window.__roofM) { __roofM.opacity = k_; if (__roofM.transparent !== (k_ < 1)) { __roofM.transparent = k_ < 1; __roofM.needsUpdate = true; } } __bm.opacity = k_; if (__bm.transparent !== (k_ < 1)) { __bm.transparent = k_ < 1; __bm.needsUpdate = true; } if (window.__bpre) __bpre.forEach(m => m.visible = k_ < 1); }   /* 町の箱は写真の屋根へ溶けて重なる（高さは PLATEAU のまま） */
   if (S > 4 && !globe) makeGlobe();
   if (globe) { globe.material.opacity = sm(4.8, 5.8, S); globe.visible = globe.material.opacity > 0; atm.material.uniforms.uA.value = sm(5.4, 6.4, S); atm.visible = S > 5.4; jp.material.opacity = globe.material.opacity; jp.visible = globe.visible; }
   TF = 1 - sm(5.5, 6.05, S);
