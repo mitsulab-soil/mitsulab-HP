@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Qualia/AI ── 環世界 AI</title>
+<meta name="robots" content="noai,noimageai"><meta name="description" content="ひとつの AI が、生き物や機械の受けとり方の模式に切りかわって話す。"><meta name="tdm-reservation" content="1">
+<link rel="stylesheet" href="tokens.css">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:var(--ml-bg);color:var(--ml-ink);font-family:var(--ml-sans)}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+#top{position:fixed;left:16px;top:14px;right:16px;display:flex;justify-content:space-between;align-items:baseline;pointer-events:none}
+#top b{font-family:var(--ml-serif);font-weight:600;letter-spacing:.14em;font-size:15px}
+#cr{position:fixed;right:16px;top:32px;font-size:10px;color:var(--ml-ink-3);pointer-events:none}
+#now{font-size:12px;color:var(--ml-ink-3);letter-spacing:.08em}
+#band{position:fixed;left:16px;right:16px;top:44px;height:auto;pointer-events:none}
+#band .row{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:11px;color:var(--ml-ink-3)}
+#band .row span.k{width:2.6em;flex:none}
+#band .bar{position:relative;flex:1;height:6px;border-radius:3px;background:rgba(195,204,224,.08);overflow:hidden}
+#band .bar i{position:absolute;top:0;bottom:0;border-radius:3px;transition:left .5s,width .5s,background .5s}
+#band .row em{font-style:normal;max-width:44%;flex:none;text-align:right;line-height:1.25}
+@media(max-width:480px){#band .row em{width:auto;max-width:48%;font-size:10px;white-space:normal;line-height:1.2}}
+.sc{position:relative;max-width:720px;margin:0 auto}.sc .more{position:absolute;right:0;top:0;bottom:8px;display:none;align-items:center;padding-left:14px;color:var(--ml-aoi);font-size:20px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(3,6,15,.95) 60%)}.sc.of .more{display:flex}
+#modes.x,#chips.x{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+#modes{display:flex;gap:6px;justify-content:safe center;overflow-x:auto;scrollbar-width:none;max-width:720px;margin:0 auto 8px}
+#modes button{flex:none}
+#modes button{min-height:44px;min-width:64px;padding:0 12px;border-radius:22px;border:1px solid var(--ml-line);background:rgba(3,6,15,.55);color:var(--ml-ink-2);font:500 14px var(--ml-sans);letter-spacing:.06em;cursor:pointer}
+#modes button[aria-pressed=true]{border-color:var(--ml-aoi);color:var(--ml-ink);box-shadow:0 0 0 1px var(--ml-aoi) inset}
+#talk{position:fixed;left:0;right:0;bottom:0;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(3,6,15,.86) 30%)}
+#say{transition:opacity .25s;font-family:var(--ml-serif);font-size:15px;line-height:1.7;letter-spacing:.04em;min-height:3.4em;max-width:720px;margin:0 auto 6px;text-align:center}
+#say small{display:block;font-family:var(--ml-sans);font-size:11px;color:var(--ml-ink-3);margin-top:2px}
+#chips{display:flex;gap:6px;overflow-x:auto;max-width:720px;margin:0 auto 6px;scrollbar-width:none}
+#chips button{flex:none;min-height:44px;padding:0 12px;border-radius:18px;border:1px solid var(--ml-line-weak);background:transparent;color:var(--ml-ink-2);font:13px var(--ml-sans);cursor:pointer}
+#say .go{display:block;margin:6px auto 0;min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--ml-aoi);background:transparent;color:var(--ml-ink);font:14px var(--ml-sans);cursor:pointer}
+#band{max-width:720px;margin:0 auto}
+#band .row span.k,#band .row em{font-size:12px}
+#band .row .who{width:4.6em;flex:none;font-size:11px;color:var(--ml-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#band .bar{height:8px}
+#band .row.lab{margin-top:-1px}#band .scale{flex:1;position:relative;height:13px;font-size:10px;color:var(--ml-ink-3)}#band .scale b{font-weight:400;position:absolute;transform:translateX(-50%);white-space:nowrap}
+#chips button{padding:0 10px;font-size:12.5px}
+#say details{font-size:11px;color:var(--ml-ink-3);margin-top:2px}#say summary{cursor:pointer;list-style:none;display:inline-block;min-width:44px;min-height:44px;line-height:44px}
+#chips{justify-content:center;flex-wrap:wrap;overflow:visible}
+#chips+.more{display:none!important}#chips .cmp{border-color:var(--ml-aoi);color:var(--ml-ink)}
+#band .row .who,#band .row span.k{font-size:13px}#band .scale{font-size:11.5px;height:15px}#band .row em{font-size:13px}#band .bar{height:10px}
+#say summary::after{content:" くわしく";font-size:11px}
+@media(max-width:600px){#modes{flex-wrap:wrap;justify-content:center;overflow:visible;-webkit-mask-image:none;mask-image:none}#modes button{min-width:0;padding:0 10px;font-size:13px}#modes+.more{display:none!important}}
+#f{display:flex;gap:6px;max-width:720px;margin:0 auto}
+#q{flex:1;min-height:44px;border-radius:22px;border:1px solid var(--ml-line);background:rgba(3,6,15,.6);color:var(--ml-ink);padding:0 16px;font:15px var(--ml-sans)}
+#f button{min-height:44px;min-width:56px;border-radius:22px;border:1px solid var(--ml-aoi);background:transparent;color:var(--ml-ink);font:14px var(--ml-sans)}
+</style></head>
+<body class="ml-root">
+<canvas id="cv"></canvas>
+<!-- 犬の模式：Neitz・Geist・Jacobs 1989 の二つの錐体（約429nm・約555nm）に合わせ、赤と緑を一つの量（黄）に、青を別の量に分ける。画面の RGB からの近似で、犬の見え方そのものではない --><svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="dichro"><feColorMatrix type="matrix" values="0.44 0.56 0 0 0  0.40 0.52 0.08 0 0  0.02 0.10 0.88 0 0  0 0 0 1 0"/></filter></svg>
+<div id="top"><b>Qualia/AI <span style="font-weight:400;font-size:12px;color:var(--ml-ink-3)">── 環世界 AI</span></b><span id="now"></span></div><span id="cr">© mitsulab. All rights reserved.</span>
+<div id="band"></div>
+<div id="talk">
+  <div class="sc"><div id="modes" role="group" aria-label="受けとり方"></div><span class="more" aria-hidden="true">›</span></div>
+  <div id="say" aria-live="polite"></div>
+  <div class="sc"><div id="chips"></div><span class="more" aria-hidden="true">›</span></div>
+  <form id="f"><input id="q" placeholder="話しかける" autocomplete="off" enterkeyhint="send"><button>送る</button></form>
+</div>
+<script type="module" src="app.js"></script>
+</body></html>
