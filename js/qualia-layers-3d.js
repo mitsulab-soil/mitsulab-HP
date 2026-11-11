@@ -21,7 +21,7 @@ export async function boot(stage) {
   let R;
   try { R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, powerPreference: 'low-power' }); }
   catch (e) { return; }
-  R.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.75 : 1.5));   // 2026-10-23 スマホでも層の 3D を出す（欄は小さいので 1.75 まで。碧の輪郭が荒れないように）
+  R.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1 : 1.5));   // 2026-11-11 動きの基準：スマホ 1・PC 1.5   // 2026-10-23 スマホでも層の 3D を出す（欄は小さいので 1.75 まで。碧の輪郭が荒れないように）
   R.outputColorSpace = THREE.SRGBColorSpace;
   stage.prepend(cv);
 
@@ -369,7 +369,9 @@ export async function boot(stage) {
     placeTag();
     fps.n++; if (now - fps.t > 1000) { fps.v = Math.round(fps.n * 1000 / (now - fps.t)); fps.n = 0; fps.t = now; }
   }
-  const loop = now => { if (!vis || document.hidden) { raf = 0; return; } render(now); raf = reduce ? 0 : requestAnimationFrame(loop); };
+  // 2026-11-11 動きの基準：スクロール中は 1 秒に 8 回だけ描く（隅に小さく残す版でも軽く）
+  let scrollT = 0, lastR = 0; addEventListener('scroll', () => { scrollT = performance.now(); }, { passive: true });
+  const loop = now => { if (!vis || document.hidden) { raf = 0; return; } if (now - scrollT < 200 && now - lastR < 125) { raf = requestAnimationFrame(loop); return; } lastR = now; render(now); raf = reduce ? 0 : requestAnimationFrame(loop); };
   function kick() { if (!raf && vis && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(loop); } }
   new IntersectionObserver(es => { vis = es[es.length - 1].isIntersecting; kick(); }).observe(cv);
   document.addEventListener('visibilitychange', kick);
