@@ -13,7 +13,7 @@ import { makeQMarks, placeLabels } from "./qmarks.js?v=k19s7";
 import { makeWorldLayers } from "./worldlayers.js?v=w16z";   // 10-28 晩：層は世界の中に（関係の線・見下ろす／見上げるでミクロ⇄マクロ）
 import { groundFarMat } from "../kit/ground_far.js?v=7";
 const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基準（大宮・川越・渋谷で同じ）
-import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k29";
+import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k32";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
@@ -34,7 +34,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot" }; QW.THREE = THREE;
-const VER = "20261112k1";
+const VER = "20261112k5";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -184,8 +184,8 @@ function buildFarGround() {
 
 async function buildBase() {
   status("地形を読み込んでいます");
-  const [g, c, dem] = await Promise.all([fetch("web/geo/geo.json?v=" + VER).then(r => r.json()), fetch("web/app/content.json?v=" + VER).then(r => r.json()), fetch("web/geo/dem.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet()]);   // 歩ける道（30 KB）も一緒に
-  QW.tFetch = performance.now() - T0; G = g; C = c; DEM = new Int16Array(dem); QW.G = G; QW.C = C;
+  const [g, c, dem] = await Promise.all([fetch("web/geo/geo.json?v=" + VER).then(r => r.json()), fetch("web/app/content.json?v=" + VER).then(r => r.json()), fetch("web/geo/demd.bin?v=" + VER).then(r => r.arrayBuffer()), loadNet()]);   // 歩ける道（30 KB）も一緒に
+  QW.tFetch = performance.now() - T0; G = g; C = c; DEM = (u => { const n = u.length >> 1, nx = g.dem.nx, o = new Int16Array(n); for (let k = 0; k < n; k++) { const v = (u[k] | (u[n + k] << 8)) << 16 >> 16; o[k] = (k % nx ? o[k - 1] : 0) + v; } return o; })(new Uint8Array(dem));   /* 11-12 地形は横の差分＋上下の桁を分けて送る（gzip で約 389→279 KB・中身は同じ） */ QW.G = G; QW.C = C;
   const d = G.dem, st = MOBILE ? 2 : 1, nx = Math.floor((d.nx - 1) / st) + 1, nz = Math.floor((d.nz - 1) / st) + 1;
   const pos = new Float32Array(nx * nz * 3), uv = new Float32Array(nx * nz * 2), idx = [];
   const ph = G.photo;

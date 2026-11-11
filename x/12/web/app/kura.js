@@ -155,6 +155,7 @@ export function kuraMats(TL, mobile) {
     plaster: new THREE.MeshStandardMaterial({ color: "#c9c4ba", map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
     plasterg: new THREE.MeshStandardMaterial({ color: "#8a6f55",   /* 2026-10-26 本人「灰色の面が多い」→ 土壁（荒壁の土の色・模式）に */ map: ld("web/tex/plaster_c.webp", true, .5), normalMap: ld("web/tex/plaster_n.webp", false, .5), normalScale: new THREE.Vector2(.5, .5), roughnessMap: ld("web/tex/plaster_r.webp", false, .5), roughness: .95 }),
     glass: new THREE.MeshStandardMaterial({ color: "#6d7a84", roughness: .04, metalness: 0, envMapIntensity: .8, transparent: true, opacity: .16, depthWrite: false }),   // ガラス戸：透けて奥の土間が見え、空がうすく映る
+    nokiura: new THREE.MeshStandardMaterial({ color: "#3b3129", roughness: .93, metalness: 0, envMapIntensity: .18 }),   // 11-12 下屋の軒裏（野地板）：陰の面なので光らせない・空を映さない
     doma: new THREE.MeshStandardMaterial({ color: "#4a3a2c", roughness: .9, emissive: "#3a2814", emissiveIntensity: .5 }),   // 店の奥（土間と奥の壁）：暗いが真っ黒にしない
     // 町家の型の板壁・格子：杉板（焼いた色に寄せて暗く）
     cedar: new THREE.MeshStandardMaterial({ color: "#4a3d32", map: ld("web/tex/cedar_c.webp", true, .5), normalMap: ld("web/tex/cedar_n.webp", false, .5), normalScale: new THREE.Vector2(.8, .8), roughness: .78 }),
@@ -179,7 +180,9 @@ export function kuraMats(TL, mobile) {
         ${k !== "shikkui" ? "" : "float tw = sin(vLxz.x * 1.7 + vLy * .9) * sin((vLxz.y - vLy) * 1.3); diffuseColor.rgb *= 1. + tw * .06;"}`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);")
       .replace("#include <clearcoat_normal_fragment_maps>", k !== "shikkui" ? "#include <clearcoat_normal_fragment_maps>" : `#include <clearcoat_normal_fragment_maps>
-        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .05); clearcoatNormal = normalize(clearcoatNormal);`);   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
+        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .05); clearcoatNormal = normalize(clearcoatNormal);`)
+      .replace("( clearcoatSpecularDirect + clearcoatSpecularIndirect )", k !== "shikkui" ? "( clearcoatSpecularDirect + clearcoatSpecularIndirect )" : "( min(clearcoatSpecularDirect, vec3(.05)) + min(clearcoatSpecularIndirect, vec3(.12)) )")
+      .replace("#include <aomap_fragment>", k !== "shikkui" ? "#include <aomap_fragment>" : "#include <aomap_fragment>\n reflectedLight.directSpecular = min(reflectedLight.directSpecular, vec3(.06)); reflectedLight.indirectSpecular = min(reflectedLight.indirectSpecular, vec3(.1));");   /* 11-12 採点 P2「二階の白く飛んだ四角い面」＝うねりのある上塗りが日をそのまま映していた → 上塗りに映る日と空の明るいところだけを頭打ちにする（空と町の映り込みとつやは残す） */   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
   };
   MATS.shikkui.customProgramCacheKey = () => "kura-shikkui"; MATS.plaster.customProgramCacheKey = () => "kura-plaster"; MATS.plasterg.customProgramCacheKey = () => "kura-plasterg";
   MATS.tileCanvas = tile.canvas;
@@ -301,7 +304,7 @@ const MTYPES = {   // up＝2 階の正面・side＝横と奥・f1＝1 階の正�
 };
 export function machiGeos(type) {
   const T = MTYPES[type], W = W0, D = D0, hw = W / 2, hd = D / 2;
-  const A = { stone: new Acc(), cedar: new Acc(), wood: new Acc(), dark: new Acc(), tile: new Acc(), plaster: new Acc(), plasterg: new Acc(), shikkui: new Acc(), glass: new Acc(), doma: new Acc() };
+  const A = { stone: new Acc(), cedar: new Acc(), wood: new Acc(), dark: new Acc(), tile: new Acc(), plaster: new Acc(), plasterg: new Acc(), shikkui: new Acc(), glass: new Acc(), doma: new Acc(), nokiura: new Acc() };
   A.stone.box(-hw, -.6, -hd, hw, .15, hd, 1, "xXzZY");
   const fz = hd - .55;
   A[T.side].box(-hw, .15, -hd, hw, T.h1, T.f1 === "glass" ? hd - .3 : fz, 1, "xXz");   // 1 階の横と奥
@@ -322,9 +325,13 @@ export function machiGeos(type) {
     for (let x = -hw + .2; x < hw - .15; x += .14) A.cedar.box(x - .015, T.h1 - .9, hd - .28, x + .015, T.h1 - .38, hd - .25, 1, "xXZ");
   }
   for (const sx of [-1, 1]) A[T.side].box(sx > 0 ? hw - .12 : -hw, .15, fz - .02, sx > 0 ? hw : -hw + .12, T.h1, hd, 1, sx > 0 ? "xXZ" : "xXZ");   /* 11-11 第6周 採点「町家 G の端の隙間から隣の白い壁が見える」：1 階の正面の両端に袖壁（厚さ 12 cm） */
-  const hy = T.h1 + .3, hz = hd + .85;
+  const hy = T.h1 + .3, hz = hd + 1.1;   /* 11-12 未明：歩く目の高さで見える下屋の軒の出を 0.85→1.1 m に（模式） */
   A.tile.slab(-hw - .05, hw + .05, hy - .38, hz, hy, hd, .1);   // 下屋
-  A.wood.quad([hw + .05, hy - .38 - .11, hz], [-hw - .05, hy - .38 - .11, hz], [-hw - .05, hy - .11, hd], [hw + .05, hy - .11, hd]);   // 軒裏
+  A.nokiura.quad([hw + .05, hy - .38 - .11, hz], [-hw - .05, hy - .38 - .11, hz], [-hw - .05, hy - .11, hd], [hw + .05, hy - .11, hd]);   // 軒裏
+  A.wood.box(-hw - .05, hy - .38 - .11 - .07, hz - .05, hw + .05, hy - .38 - .1, hz + .005, 1, "xXZy");   // 11-12 下屋の軒先の薄い板（広小舞・高さ約 7 cm。上の瓦の面は見えたまま）
+  A.nokiura.quad([-hw - .05, hy - .38 - .11, hd + .02], [hw + .05, hy - .38 - .11, hd + .02], [hw + .05, hy - .38 - .11, hd - .4], [-hw - .05, hy - .38 - .11, hd - .4]);   // 11-12 第3：軒裏を壁の奥まで張り、下から見上げたとき空が透けないように   // 11-12 第4：軒裏の板は映り込みの少ない暗い木の色（空の青が映って透けて見えていた）
+  A.nokiura.quad([-hw - .05, hy - .38 - .11 - .004, hz - .05], [hw + .05, hy - .38 - .11 - .004, hz - .05], [hw + .05, hy - .38 - .11 - .004, hd + .02], [-hw - .05, hy - .38 - .11 - .004, hd + .02]);   // 野地板の下の面（垂木のあいだをふさぐ）
+  for (let x = -hw + .25; x < hw - .15; x += .45) A.cedar.box(x - .035, hy - .38 - .11 - .065, hd + .02, x + .035, hy - .38 - .11 - .002, hz - .05, 1, "xXy");   // 下屋の垂木（約 7 cm 角・0.45 m おき・軒桁から軒先の板まで。間隔は模式。色は杉の焼いた色で一段暗く）
   if (false) for (let x = -hw; x <= hw; x += 1) A.dark.box(x - .035, hy - .5, hd, x + .035, hy - .42, hz - .08, 1, "xXy");   // 11-11：軒裏の垂木が白い縞に光った→陰の色に
   const z2 = hd - .15;
   A[T.side].box(-hw, T.h1, -hd, hw, T.h2, z2, 1, "xXz");   // 2 階の横と奥
