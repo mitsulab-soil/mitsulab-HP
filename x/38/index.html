@@ -42,6 +42,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--ml-bg);color:var
 #band .row .who,#band .row span.k{font-size:13px}#band .scale{font-size:11.5px;height:15px}#band .row em{font-size:13px}#band .bar{height:10px}
 #say summary::after{content:" くわしく";font-size:11px}
 @media(max-width:600px){#modes{flex-wrap:wrap;justify-content:center;overflow:visible;-webkit-mask-image:none;mask-image:none;gap:4px}#modes+.more{display:none!important}#modes button{min-width:0;padding:0 10px;font-size:13px}#chips{flex-wrap:wrap;justify-content:center;overflow:visible;gap:4px}#chips button{min-height:44px}#chips button{padding:0 9px;font-size:12px}#say{min-height:2.6em;font-size:14px}#band .scale{height:13px}}
+#bandmore{display:none;min-height:44px;background:none;border:0;color:var(--ml-aoi-2);font:12px var(--ml-sans);padding:0 4px;pointer-events:auto;cursor:pointer}
+#band{pointer-events:none}#band button{pointer-events:auto}
+@media(max-width:600px){#band .snd{display:none}#band.open .snd{display:flex}#bandmore{display:inline-block}}
+#band.hl .row:has(.who) .who{animation:hl 1.6s}#band.hl .bar i{animation:hlb 1.6s}
+@keyframes hl{0%,60%{color:var(--ml-aoi-2)}100%{color:var(--ml-ink-2)}}@keyframes hlb{0%,60%{filter:brightness(1.8)}100%{filter:none}}
+.flash{animation:fl 1.2s}@keyframes fl{0%,50%{box-shadow:0 0 0 3px var(--ml-aoi);color:var(--ml-ink)}100%{box-shadow:none}}
 #f{display:flex;gap:6px;max-width:720px;margin:0 auto}
 #q{flex:1;min-height:44px;border-radius:22px;border:1px solid var(--ml-line);background:rgba(3,6,15,.6);color:var(--ml-ink);padding:0 16px;font:15px var(--ml-sans)}
 #f button{min-height:44px;min-width:56px;border-radius:22px;border:1px solid var(--ml-aoi);background:transparent;color:var(--ml-ink);font:14px var(--ml-sans)}

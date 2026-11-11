@@ -65,7 +65,7 @@ const M={
      smell:["においを受けとる壊れていない（はたらきうる）遺伝子が 800 個以上あると報告されています。この模式の世界は、においの道でできています。","quignon"],
      you:["あなたは、姿より先に、においとして現れるのかもしれません。",""],
      away:["遠くの見え方の細かさは、この模式ではまだ扱いません。色の系統が二つであることだけを置いています。","neitz"],
-     move:["色より、明暗と動きが手がかりになります。","neitz"]}},
+     move:["色より、明暗と動きが手がかりになる、とこの模式では置いています。",""]}},
  worm:{n:"ミミズ",col:[0x6c8d71,0xd6c09b,0x864e4c],light:[0,0],sound:[0,0],light_t:"皮膚で明暗だけ",sound_t:"土を伝わる振動",time:"昼と夜、湿りと乾き",
   intro:"ミミズに切りかえました。目は無く、土のふるえと湿りが世界の大部分です。",
   a:{see:["目はありません。皮膚で光の強さを受け、明るいと土へ戻る、とダーウィンは観察しました。","darwin"],
@@ -156,6 +156,15 @@ let cur="bee",outN=0;
 const $=s=>document.querySelector(s);
 const say=(t,k)=>{const e=$("#say");e.style.opacity=.25;const det=[];t=t.replace(/（[^）]*）/g,m=>{det.push(m.slice(1,-1));return""});e.innerHTML=t+(det.length?`<details><summary>＋</summary>${det.join("／")}</details>`:"")+(k&&BIB[k]?`<small>出典：${BIB[k].split(/[,，]/)[0].replace(/『.*』/,' ')}</small>`:"");requestAnimationFrame(()=>requestAnimationFrame(()=>e.style.opacity=1))};
 let lastK=null,feelN=0;
+const MECH={bee:{eye:"仕組みは、目に紫外・青・緑のそれぞれに応じる三種の細胞があり、赤に強く応じる細胞が無いことです。",ear:"仕組みは、触角の付け根の器官が、近くの空気の動きに応じることです。",nose:"仕組みは、触角ににおいを受ける器官が並んでいることです。",time:"仕組みは、体の中の約一日の周期と、太陽の向きの手がかりです。"},
+bat:{eye:"仕組みは、自分の声のこだまが返る向きと時間の差です。",ear:"仕組みは、耳が人の上限より高い音に応じることです。",nose:"",time:"仕組みは、声を出してからこだまが返るまでの短い時間です。"},
+tick:{eye:"仕組みは、多くの種で目が無いか小さく、明暗しか受けないことです。",ear:"",nose:"仕組みは、前脚の器官で、におい・二酸化炭素・熱を受けることです。",time:"仕組みは、合図が来るまで動かずに待てることです。"},
+dog:{eye:"仕組みは、目の色の細胞が二種で、赤と緑を分ける組が無いことです。",ear:"仕組みは、耳が人より高い音まで応じることです。",nose:"仕組みは、においを受ける遺伝子が多く、鼻の中の受けとる面が広いことです。",time:""},
+worm:{eye:"仕組みは、目は無く、皮膚に光に応じる細胞があることです。",ear:"仕組みは、空気の音ではなく、体に伝わる土のふるえに応じることです。",nose:"",time:"仕組みは、明暗と湿りの変化です。"},
+plant:{eye:"仕組みは、赤と遠赤で形を変える色素と、青に応じる色素があることです。",ear:"",nose:"",time:"仕組みは、細胞の中の約一日の周期です。"},
+human:{eye:"仕組みは、目に色の細胞が三種あり、その組み合わせで色を分けることです。",ear:"仕組みは、耳の奥の細胞が高さごとに並び、およそ決まった範囲に応じることです。",nose:"",time:""},
+cam:{eye:"仕組みは、素子の上に赤・緑・青のフィルターが格子に並び、光の量を数にすることです。",ear:"",nose:"",time:"仕組みは、決まった間隔で一枚ずつ記録することです。"},
+sensor:{eye:"仕組みは、ものが出す長い赤外線の量を受け、温度に換算することです。",ear:"",nose:"",time:"仕組みは、決まった間隔で値を記録することです。"}};
 const WHY={peitsch:"ミツバチの目の細胞が、どの色の光に応じるかを電気で測った研究があるからです。",frisch:"巣の中の踊りと、太陽や空の向きとの関係を、長く観察した記録があるからです。",srini:"ちらつく光をミツバチが見分けられるかを、行動で試した実験があるからです。",dreller:"触角の付け根の器官が、空気のふるえに応じるかを測った研究があるからです。",griffin:"コウモリの声を、人に聞こえる高さに変えて録った実験の記録があるからです。",jones:"多くの種のコウモリの声を比べてまとめた研究があるからです。",uex:"ユクスキュルがマダニの行動を観察して書いた記録があるからです。",sonen:"マダニの体のつくりと感覚をまとめた研究書があるからです。",neitz:"犬の目の細胞が、どの色の光に応じるかを測った研究があるからです。",heffner:"犬が聞き分けられる音の高さを、行動で試した実験があるからです。",quignon:"犬の遺伝子を読み、においを受けとる遺伝子を数えた研究があるからです。",darwin:"ダーウィンが、光や振動にミミズがどう応じるかを長く観察した記録があるからです。",butler:"植物が赤と遠赤の光で切りかわる色素を見つけた研究があるからです。",christie:"青い光を受けとる植物の色素をまとめた研究があるからです。",braam:"触れられた植物の育ち方の変化をまとめた研究があるからです。",mcclung:"植物の一日の周期の仕組みをまとめた研究があるからです。",bowmaker:"人の目の細胞が、どの色の光を吸うかを、一つずつ測った研究があるからです。",bayer:"色のフィルターを格子に並べる仕組みの特許があるからです。",vollmer:"赤外線で温度を記録する仕組みをまとめた教科書があるからです。"};
 function answer(k){lastK=k;const [t,s]=M[cur].a[k];say(s?t:t+"（出典を付けていない、この模式の置き方です）",s)}
 const GO=k=>`<button class="go" data-k="${k}">${M[k].n}に切りかえる</button>`;
@@ -164,7 +173,7 @@ const ANIMAL=/鳥|蝶|猫|ねこ|魚|蛇|へび|ヘビ|ネコ|サカナ|カラ�
 let fbN=0;
 const TRY=[["smell","においは？"],["see","何が見える？"],["away","遠くは？"],["move","動きは？"]];
 function outside(){const cs=CH[cur],k=cs[(fbN++)%cs.length],l=QL[k];say(`そのことは、${M[cur].n}の模式では分かりません。代わりに、こちらはどうですか。<button class="go" data-a="${k}">${l}</button>`)}
-function free(t){
+function free(t){const before=cur;setTimeout(()=>{if(cur!==before){[$("#now"),document.querySelector(`#modes button[data-k="${cur}"]`)].forEach(e=>{if(!e)return;e.classList.remove("flash");void e.offsetWidth;e.classList.add("flash")})}},0);
   const mk=modeIn(t),k=classify(t);
   if(/今何時|いま何時|何時\?|何時？|なんじ/.test(t)){const d=new Date();say(`いまは ${d.getHours()} 時 ${d.getMinutes()} 分（この端末の時計）。${M[cur].n}の模式では──${M[cur].a.time[0]}`,M[cur].a.time[1]);return}
   if(/機械は感じ|AIは感じ|ＡＩは感じ/.test(t)){say("この AI も、カメラや熱センサーも感じません。光や温度を数として記録し、その記録から組み立てた模式で話します。");return}
@@ -176,8 +185,8 @@ function free(t){
   if(/痛|眠|好き|きらい|嫌い|考えて|楽し|うれし|嬉し|心は/.test(t)){const v=[`${M[cur].n}の模式は、感じる心を持つとは言えません。言えるのは、何を手がかりにするかです。`,`気持ちのことは、この模式では分かりません。${M[cur].n}について言えるのは──${(COMP[cur]||"人の受けとり方の一つです。")}`,`そこは記録の外です。${M[cur].n}の模式で答えられるのは、見え方や音、においのことです。`];const q=CH[cur][(feelN)%CH[cur].length];say(v[(feelN++)%3]+`<button class="go" data-a="${q}">${QL[q]}</button>`);return}
   if(/夜|よる|暗い|くらい/.test(t)&&/見え|みえ/.test(t)&&!(typeof ANIMAL!=="undefined"&&ANIMAL.test(t)&&!modeIn(t))){const L={bee:"暗いと色の手がかりは弱まります。この模式の多くは昼に動きます。",bat:"暗くても、声のこだまで形をつかみます。",tick:"もともと明暗くらいしか受けないので、夜も同じ手がかり（におい・熱）で待ちます。",dog:"暗いところの見え方は、この模式ではまだ扱いません。この模式ではにおいが先です。",worm:"夜の暗さが、地表へ出る合図になると観察されています。",plant:"夜は光が無く、内部の周期で次の朝に備えます。",human:"暗いと色が分かりにくくなり、明暗が主になります。",cam:"暗いと光の数が少なく、ざらつきになります。",sensor:"暗さに関係なく、温度を記録します。"};say(L[cur]);return}
   if(mk&&mk!==cur){setMode(mk);if(!k){const[a,b]=M[mk].a.see;say(M[mk].intro+"<br>"+a,b);return}}
-  if(/もっと|詳しく|くわしく|続き/.test(t)&&lastK){const d=document.querySelector("#say details");if(d){d.open=true;return}const n=CH[cur].find(x=>x!==lastK)||"see";return answer(n)}
-  if(/^(なぜ|なんで|どうして)/.test(t)&&lastK){const s_=M[cur].a[lastK][1];say(s_&&WHY[s_]?WHY[s_]:`これは、この模式の仮の置き方で、研究の記録で確かめた言い方ではありません。`,s_);return}
+  if(/もっと|詳しく|くわしく|続き/.test(t)&&lastK){const d=document.querySelector("#say details");if(d){d.open=true;return}say("この答えには、これ以上の記録はありません。「なぜ？」と聞くと、仕組みを話します。");return}
+  if(/^(なぜ|なんで|どうして)/.test(t)&&lastK){const s_=M[cur].a[lastK][1];const mech=MECH[cur]&&MECH[cur][["see","nosee","red","away"].includes(lastK)?"eye":lastK==="hear"?"ear":lastK==="smell"?"nose":"time"];say((mech?mech+"<br>":"")+(s_&&WHY[s_]?WHY[s_]:`これは、この模式の仮の置き方で、研究の記録で確かめた言い方ではありません。`),s_);return}
   if(/わから|分から|わかんな|^[?？]+$|どうすれば|使い方/.test(t)&&!/見え|聞こ|におい/.test(t)){const q=CH[cur][0];say(`まずはここから。下の札を押すと、${M[cur].n}の受けとり方を話します。<button class="go" data-a="${q}">${QL[q]}</button>`);return}
   if(/ありがと|サンキュー/.test(t)){say("どういたしまして。ほかの生き物にも切りかえてみてください。");return}
   if(/さよなら|さようなら|またね|バイバイ/.test(t)){say("また来てください。");return}
@@ -205,7 +214,7 @@ function chips(k){const c=$("#chips");c.innerHTML="";CH[k].forEach(q=>{const b=d
  if(k==="human"){const b=document.createElement("button");b.textContent="ミツバチと比べる";b.className="cmp";b.onclick=()=>compare("bee","human");c.appendChild(b)}
  if(k!=="human"){const b=document.createElement("button");b.textContent="人と比べる";b.className="cmp";b.onclick=()=>compare(k,"human");c.appendChild(b)}}
 const COMP={bee:"人に見えない紫外まで見え、赤は暗く沈む。",bat:"人に聞こえない高い声のこだまで、形をつかむ。",tick:"光も音もほぼ無く、におい・熱・触れる感じだけ。",dog:"色は二つの系統だけ。そのかわり、においの世界が広い。",worm:"目も耳も無く、皮膚で明暗を、体で土のふるえを受ける。",plant:"光の色の割合と、一日の周期に応じる。",cam:"光を数として記録する。感じてはいない。",sensor:"人に見えない長い赤外を、温度として記録する。"};
-function compare(a,b){const A=M[a],B=M[b];const nx=CH[a].find(q=>q!=="see")||"see";say(`${A.n}は、${COMP[a]||""}（人：光 ${B.light_t.replace(/[（）]/g," ")}・音 ${B.sound_t.replace(/[（）]/g," ")}　${A.n}：光 ${A.light_t.replace(/[（）]/g," ")}・音 ${A.sound_t.replace(/[（）]/g," ")}）`)}
+function compare(a,b){const A=M[a],B=M[b];const bd=$("#band");bd.classList.remove("hl");void bd.offsetWidth;bd.classList.add("hl");const nx=CH[a].find(q=>q!=="see")||"see";say(`${A.n}は、${COMP[a]||""}（人：光 ${B.light_t.replace(/[（）]/g," ")}・音 ${B.sound_t.replace(/[（）]/g," ")}　${A.n}：光 ${A.light_t.replace(/[（）]/g," ")}・音 ${A.sound_t.replace(/[（）]/g," ")}）`)}
 $("#f").onsubmit=e=>{e.preventDefault();const t=$("#q").value.trim();if(t)free(t);$("#q").value=""};
 const lp=nm=>Math.max(0,Math.min(100,(nm-300)/8)),sp=hz=>hz<=0?0:Math.max(0,Math.min(100,(Math.log10(hz)-1)/(Math.log10(200000)-1)*100));
 function bands(m0){const m=m0===M.human?M.bee:m0;
@@ -217,9 +226,9 @@ function bands(m0){const m=m0===M.human?M.bee:m0;
   `<div class="row"><span class="k">光</span><span class="who">人</span>${bar(...hl,hc)}</div>`+
   `<div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...L,c,m.dim)}</div>`+
   `<div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${lp(335)}%">紫外</b><b style="left:${lp(580)}%">見える光</b><b style="left:${lp(940)}%">赤外</b></span></div>`+
-  (false?"":`<div class="row"><span class="k">音</span><span class="who">人</span>${bar(...hs,hc)}</div><div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...S,c)}</div><div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${sp(12)}%">低い</b><b style="left:${sp(630)}%">人の耳</b><b style="left:${sp(63000)}%">超音波</b></span></div>`)+
-  `<div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:50%">帯の端は模式の目安</b></span></div>`+
-  `<div class="row"><span class="k">時間</span><em style="width:auto;max-width:none;text-align:left">${m0.time}<b id="wait"></b></em></div>`;
+  (false?"":`<div class="row snd"><span class="k">音</span><span class="who">人</span>${bar(...hs,hc)}</div><div class="row snd"><span class="k"></span><span class="who">${m.n}</span>${bar(...S,c)}</div><div class="row lab snd"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${sp(12)}%">低い</b><b style="left:${sp(630)}%">人の耳</b><b style="left:${sp(63000)}%">超音波</b></span></div>`)+
+  `<div class="row lab snd"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:50%">帯の端は模式の目安</b></span></div>`+
+  `<button id="bandmore" aria-expanded="false" onclick="this.parentNode.classList.toggle('open');this.setAttribute('aria-expanded',this.parentNode.classList.contains('open'))">＋ 音と時間</button><div class="row snd"><span class="k">時間</span><em style="width:auto;max-width:none;text-align:left">${m0.time}<b id="wait"></b></em></div>`;
 }
 function setMode(k){look(k);chips(k);cur=k;setTimeout(()=>{const b=document.querySelector(`#modes button[data-k="${k}"]`);b&&b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})},0);const m=M[k];
   modes.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===k));
