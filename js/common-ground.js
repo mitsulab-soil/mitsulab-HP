@@ -6,7 +6,7 @@ import {growKeyaki,sprigMesh} from './common-ground-tree.js';
 import {sightLeaf,sightBark,setSightSun} from './kit/sight_trees.js';
 import {installDapple} from './kit/sight_look.js';
 installDapple(T);
-import {MODES,createRelations} from './common-ground-relations.js?v=20261110r4';
+import {MODES,createRelations} from './common-ground-relations.js?v=20261111p5';
 let relations=null,relationMode='forest',relationClock=0;
 function tourState(value){autoImmersion=!!value;window.dispatchEvent(new CustomEvent('cg:tour',{detail:{active:autoImmersion}}));}
 function selectMode(id,{automatic=false}={}){const mode=MODES.find(m=>m.id===id);if(!mode)return false;if(!automatic)tourState(false);relationMode=id;relations?.select(id);viewClue=null;selectedClue=null;dirty=true;wake();window.dispatchEvent(new CustomEvent('cg:mode',{detail:{...mode,kind:'illustrative',automatic}}));return true;}
@@ -68,7 +68,7 @@ function tex(url,repeat,color=false){const a=textureLoader.load(url,()=>{dirty=t
 // Subtle unevenness belongs to the ground and every object resting on it.
 function groundHeight(x,z){const trail=2.6+Math.sin(z*.1)*2,edge=T.MathUtils.smoothstep(Math.abs(x-trail),1.2,3.8);return -.03+edge*(.018*Math.sin(x*.83+Math.sin(z*.31))+.012*Math.cos(z*1.27+x*.37));}
 function sceneBoot(){
- renderer=new T.WebGLRenderer({canvas:stage.querySelector('canvas'),alpha:false,antialias:true,powerPreference:'high-performance'});renderer.debug.checkShaderErrors=true;renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1:1.25));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;/* 2026-11-11 軽く：影は 1 秒に 1 回だけ描き直す */
+ renderer=new T.WebGLRenderer({canvas:stage.querySelector('canvas'),alpha:false,antialias:(devicePixelRatio||1)<1.5,powerPreference:'high-performance'});renderer.debug.checkShaderErrors=false;/* 2026-11-11 軽く：シェーダーの記録を同期で読まない */renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1:1.25));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;/* 2026-11-11 軽く：影は 1 秒に 1 回だけ描き直す */
  scene=new T.Scene();scene.background=new T.Color(0x354b49);scene.fog=new T.Fog(0x354b49,1,100);setFog(.026);camera=new T.PerspectiveCamera(53,1,.1,100);world=new T.Group();scene.add(world);landscape=new T.Group();world.add(landscape);
  ambientLight=new T.HemisphereLight(0xc4d9e2,0x625a43,1.8);scene.add(ambientLight);const sun=new T.DirectionalLight(0xffe7c7,2.4);sunlight=sun;sun.position.set(-8,14,-5);setSightSun(sun.position);sun.castShadow=true;sun.shadow.mapSize.set(mobile?1024:2048,mobile?1024:2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:16,bottom:-12,near:1,far:50});sun.shadow.radius=5;sun.shadow.intensity=.58;sun.shadow.bias=-.0006;sun.shadow.normalBias=.05;scene.add(sun);const fill=new T.DirectionalLight(0xcbd9d5,1.0);fillLight=fill;fill.position.set(4,6,9);scene.add(fill);
  const groundMat=mat(0xb7b2a1);groundMat.map=tex('img/hero/3d/dio/leaves_c.webp',[48,48],true);groundMat.normalMap=tex('img/hero/3d/dio/leaves_n.webp',[48,48]);groundMat.normalScale.set(1.1,1.1);groundMat.roughness=.96;
@@ -238,6 +238,8 @@ if(cgBodyPresence<1.0 && cgBodyY>mix(-.05,1.85,cgBodyPresence)) discard;`);
  warming=true;vrm.scene.visible=true;landscape.visible=true;bodyPresence.value=1;
  await renderer.compileAsync(scene,camera);
  vrm.scene.visible=true;landscape.visible=true;
+ await new Promise(r=>{const c=()=>performance.now()-scrollT>400?(window.requestIdleCallback?requestIdleCallback(()=>r(),{timeout:300}):r()):setTimeout(c,150);c();});/* 2026-11-11 重い組み立てはスクロールが止まっている間に */
+ {const hid=[];scene.traverse(o=>{if(!o.visible){hid.push(o);o.visible=true;}});try{renderer.compile(scene,camera);renderer.shadowMap.needsUpdate=true;renderer.setViewport(0,0,1,1);renderer.render(scene,camera);renderer.shadowMap.needsUpdate=true;}catch(e){}hid.forEach(o=>o.visible=false);}/* 2026-11-11 隠れた物も先に組み立てる（スクロール中に組み立てない） */
  renderer.setViewport(0,0,1,1);renderer.render(scene,camera);renderer.setViewport(0,0,width,height);
  warming=false;
  updateEmergence();renderer.render(scene,camera);stage.dataset.aoiMs=Math.round(performance.now());talkStatus.textContent='';dirty=true;wake();loadBird();prepareNarration();
@@ -248,7 +250,7 @@ function positionCamera(){if(!camera)return;const p=mobile?V(5.9,2.1,10.4):V(6.3
 function wake(){if(!raf&&renderer&&active&&!document.hidden)raf=requestAnimationFrame(loop);}
 let layerAlpha=0,frames=0,frameTimes=[];
 /* 2026-11-11 軽く：スクロール中は背景の 3D を描かない（止めた絵のまま）。止まって 180ms で再開 */let scrollT=0;addEventListener('scroll',()=>{scrollT=performance.now();},{passive:true});let shadowT=0;
-function loop(now){raf=0;if(!active||document.hidden||warming)return;if(now-scrollT<180&&!dialogue){raf=requestAnimationFrame(loop);return;}if(now-shadowT>1000){shadowT=now;renderer.shadowMap.needsUpdate=true;}if(!dirty&&(paused||detachedCanvas)&&!dialogue&&!journeyPlaying)return;if(last&&now-last<32){wake();return;}const dt=Math.min(.05,last?(now-last)/1000:.016);if(last)frameTimes.push(now-last);if(frameTimes.length>120)frameTimes.shift();last=now;if(!paused)t+=dt;
+function loop(now){raf=0;if(!active||document.hidden||warming)return;if(performance.now()-scrollT<400&&!dialogue){raf=requestAnimationFrame(loop);return;}if(now-shadowT>4000){shadowT=now;renderer.shadowMap.needsUpdate=true;}if(!dirty&&(paused||detachedCanvas)&&!dialogue&&!journeyPlaying)return;if(last&&now-last<(dialogue?32:60)){wake();return;}const dt=Math.min(.05,last?(now-last)/1000:.016);if(last)frameTimes.push(now-last);if(frameTimes.length>120)frameTimes.shift();last=now;if(!paused)t+=dt;
  if(birth&&journeyPlaying&&!detachedCanvas){journey=Math.min(1,journey+dt/24);if(journey>=1)journeyPlaying=false;journeyLabels();}
  if(autoImmersion&&vrm&&!paused&&!detachedCanvas&&!dialogue){immersionTime+=dt;const key=MODES[Math.min(MODES.length-1,Math.floor(immersionTime/12))].id;if(key!==relationMode)selectMode(key,{automatic:true});if(immersionTime>MODES.length*12)tourState(false);}
  relations?.update(dt,t,paused);
