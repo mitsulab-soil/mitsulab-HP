@@ -1,6 +1,6 @@
 /* Qualia/AI v1（2026-11-11）。知識は出典つきの模式。数値は出典の範囲だけを使う。
    頁の典拠は原本で確かめたものだけを書く（未確認は「頁未確認」と残す＝捏造しない）。 */
-import * as THREE from "./vendor/three.module.js";
+import * as THREE from "./vendor/three.module.min.js";
 
 const BIB={
  peitsch:"Peitsch ほか 1992, J Comp Physiol A 170:23–40",
