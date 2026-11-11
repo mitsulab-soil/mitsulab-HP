@@ -284,7 +284,7 @@ let booted=false;const deepStart=!!location.hash&&location.hash!=='#top';const b
 const full=ui.querySelector('.cg-fullscreen'),hero=figure.closest('.cg-hero');
 let expanded=false,priorOverflow='';
 function expand(on){expanded=on;hero.classList.toggle('cg-expanded',on);if(on){hero.setAttribute('role','dialog');hero.setAttribute('aria-modal','true');hero.setAttribute('aria-label',en()?'Common Ground 3D':'コモングラウンドの3D');}else{hero.removeAttribute('role');hero.removeAttribute('aria-modal');hero.removeAttribute('aria-label');}full.setAttribute('aria-pressed',String(on));full.textContent=en()?(on?'Return to page ↙':'Expand scene ↗'):(on?'ページに戻る ↙':'風景を広げる ↗');if(on){priorOverflow=document.body.style.overflow;document.body.style.overflow='hidden';}else document.body.style.overflow=priorOverflow;resize();}
-ui.querySelector('.cg-scroll-cue').addEventListener('click',()=>{if(expanded)expand(false);setTimeout(()=>document.getElementById('cgTools').focus({preventScroll:true}),50);});
+ui.querySelector('.cg-scroll-cue')?.addEventListener('click',()=>{if(expanded)expand(false);setTimeout(()=>document.getElementById('cgTools').focus({preventScroll:true}),50);});
 document.getElementById('cgJourneyExit').addEventListener('click',()=>{expand(false);full.focus();});full.addEventListener('click',()=>{expand(!expanded);if(expanded)requestAnimationFrame(()=>journeyEnter.focus());});addEventListener('keydown',e=>{if(e.key==='Escape'&&expanded){expand(false);full.focus();}});
 new MutationObserver(()=>hero.classList.toggle('is-speaking',figure.classList.contains('is-talking'))).observe(figure,{attributes:true,attributeFilter:['class']});
 
