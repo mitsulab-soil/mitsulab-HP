@@ -179,7 +179,9 @@ export function kuraMats(TL, mobile) {
         ${k !== "shikkui" ? "" : "float tw = sin(vLxz.x * 1.7 + vLy * .9) * sin((vLxz.y - vLy) * 1.3); diffuseColor.rgb *= 1. + tw * .06;"}`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, .95, dust);")
       .replace("#include <clearcoat_normal_fragment_maps>", k !== "shikkui" ? "#include <clearcoat_normal_fragment_maps>" : `#include <clearcoat_normal_fragment_maps>
-        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .05); clearcoatNormal = normalize(clearcoatNormal);`);   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
+        clearcoatNormal = normalize(clearcoatNormal + vec3(sin(vLxz.x * .9 + vLy * .55) + .5 * sin(vLxz.y * 2.3 - vLy * 1.1), .6 * sin(vLy * 1.7 + vLxz.x * .4), sin(vLxz.y * .8 - vLy * .6) + .5 * sin(vLxz.x * 2.1 + vLy)) * .05); clearcoatNormal = normalize(clearcoatNormal);`)
+      .replace("( clearcoatSpecularDirect + clearcoatSpecularIndirect )", k !== "shikkui" ? "( clearcoatSpecularDirect + clearcoatSpecularIndirect )" : "( min(clearcoatSpecularDirect, vec3(.05)) + min(clearcoatSpecularIndirect, vec3(.12)) )")
+      .replace("#include <aomap_fragment>", k !== "shikkui" ? "#include <aomap_fragment>" : "#include <aomap_fragment>\n reflectedLight.directSpecular = min(reflectedLight.directSpecular, vec3(.06)); reflectedLight.indirectSpecular = min(reflectedLight.indirectSpecular, vec3(.1));");   /* 11-12 採点 P2「二階の白く飛んだ四角い面」＝うねりのある上塗りが日をそのまま映していた → 上塗りに映る日と空の明るいところだけを頭打ちにする（空と町の映り込みとつやは残す） */   // 11-10 深夜：磨いた黒漆喰の面のゆるいうねり（平らな壁にも空と町の映り込みが揺らいで見える）
   };
   MATS.shikkui.customProgramCacheKey = () => "kura-shikkui"; MATS.plaster.customProgramCacheKey = () => "kura-plaster"; MATS.plasterg.customProgramCacheKey = () => "kura-plasterg";
   MATS.tileCanvas = tile.canvas;
