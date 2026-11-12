@@ -596,7 +596,7 @@ const CAPS = [[-9, "クロロフィル a（環は約 1 nm、長い尾はフィ�
   [6.95, "地球（直径 約 12,742 km）。丸さは、足もとでは感じられない"]];
 const capEl = document.getElementById("cap"); let capI = -1, capT = 0;
 function caption(s) { let b = 0, bd = 9; CAPS.forEach((c, i) => { const d = Math.abs(c[0] - s); if (d < bd) { bd = d; b = i; } });
-  if (b !== capI) { capI = b; clearTimeout(capT); capEl.style.opacity = 0; capT = setTimeout(() => { capEl.innerHTML = CAPS[capI][1]; capEl.style.opacity = 1; }, 180); } }
+  if (b !== capI) { capI = b; window.mitsuIchimai && window.mitsuIchimai.layer(human(CAPS[b][0]));   /* 11-12 持ち帰りの一枚に、通った大きさを足す */ clearTimeout(capT); capEl.style.opacity = 0; capT = setTimeout(() => { capEl.innerHTML = CAPS[capI][1]; capEl.style.opacity = 1; }, 180); } }
 const SUP = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
 function human(s) { const v = 10 ** s; const f = (x, u) => (x >= 100 ? Math.round(x) : x >= 10 ? Math.round(x) : x.toFixed(1).replace(/\.0$/, "")) + " " + u;
   if (v < 1e-6) return f(v * 1e9, "nm"); if (v < 1e-3) return f(v * 1e6, "µm"); if (v < 1e-2) return f(v * 1e3, "mm"); if (v < 1) return f(v * 100, "cm"); if (v < 1e3) return f(v, "m"); return f(v / 1e3, "km").replace(/^(\d+)(\d{3}) /, "$1,$2 "); }
