@@ -114,7 +114,7 @@ export function create(canvas) {
   const bee = bug(.014, '#8a6a2c', .011); bee.g.position.set(mobile ? .025 : .07, 1.55, 3.74); bee.g.rotation.y = .9; S.add(bee.g);
   { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
   // ハチドリ（日本にはいない。羽ばたきの速さを比べるための模式）：毎秒 およそ 50 回で描く
-  let hum = null; const mkHum = () => { const g = new THREE.Group(), L = .08;
+  let hum = null; const mkHum = () => { const g = new THREE.Group(), L = .13;
     const fm = new THREE.MeshStandardMaterial({ color: '#3f7a4a', roughness: .35, metalness: .35 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
     const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .2, 16, 12), fm); bd.scale.set(.8, .85, 1.6); g.add(bd);
     const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#d9d6c8', roughness: .8 })); bl.scale.set(.75, .7, 1.3); bl.position.set(0, -L * .05, L * .02); g.add(bl);
@@ -126,7 +126,7 @@ export function create(canvas) {
     const ws = new THREE.Shape(); ws.moveTo(0, -L * .05); ws.quadraticCurveTo(L * .45, -L * .1, L * .85, -L * .02); ws.quadraticCurveTo(L * .5, L * .12, 0, L * .06); ws.lineTo(0, -L * .05);
     const wg2 = new THREE.ShapeGeometry(ws, 6); const wings = [];
     for (const s of [-1, 1]) { const w = new THREE.Mesh(wg2, wm2.clone()); w.position.set(s * L * .1, L * .1, -L * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k: 0 }); }
-    g.rotation.x = .5; g.position.set(mobile ? -.1 : -.3, 1.5, 3.2); g.rotation.y = -.5; g.visible = false; S.add(g); return { g, wings }; };   // ハチドリ（模式）。帯に近づいてから組み立てる
+    g.rotation.x = .5; g.position.set(mobile ? -.06 : -.22, 1.52, 3.25); g.rotation.y = -.5; g.visible = false; S.add(g); return { g, wings }; };   // ハチドリ（模式）。帯に近づいてから組み立てる
   const mos = bug(.006, '#4a4038', .0055); mos.g.position.set(-.06, 1.62, 3.8); mos.g.rotation.y = -.6; S.add(mos.g);
 
   // 自分の前腕と神経（模式）
@@ -265,7 +265,7 @@ export function create(canvas) {
     // 羽：見かけの回数が毎秒 20 回を超えると、霞んだ扇に
     if (!hum && n > -2.2 && n < .3) hum = mkHum();
     for (const [b, f, amp, hv] of hum ? [[bee, 230, 1.0], [mos, 500, 1.2], [hum, 50, 1.1, 1]] : [[bee, 230, 1.0], [mos, 500, 1.2]]) {
-      const fa = f * rate, blur = sm(12, 30, fa), vis = hv ? sm(-1.5, -1.2, n) * (1 - sm(-.7, -.4, n)) : 1 - sm(.9, 1.7, n);
+      const fa = f * rate, blur = sm(12, 30, fa), vis = hv ? sm(-1.5, -1.2, n) * (1 - sm(-.75, -.55, n)) : 1 - sm(.9, 1.7, n);
       b.g.visible = vis > .02; 
       for (const { w, s, k } of b.wings) { const ph = 2 * Math.PI * f * tFast;
         const a = blur > .5 ? (k - 1) * amp * .9 : amp * Math.sin(ph) * (k === 0 ? 1 : 0);
@@ -292,7 +292,7 @@ export function create(canvas) {
       } }
     // 目：ほんの少しの呼吸と、見回し
     cam.position.y = 1.6 + Math.sin(performance.now() / 1600) * .004;
-    cam.rotation.set(.2 * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + .42 * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
+    cam.rotation.set(.2 * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + Math.atan2(-T[2].x, 4 - T[2].z) * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
     R.render(S, cam);
   }
   return { frame };
