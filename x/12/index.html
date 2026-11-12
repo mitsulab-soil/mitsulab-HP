@@ -696,5 +696,5 @@ html body #capTag{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.7)!i
 <script>/* 11-10 第8周：歩きはじめたとき一度だけ、着いた町の名を大きく */(()=>{const t=document.getElementById("qTown");let done=0;const go=()=>{if(done||document.body.dataset.mode!=="walk")return;done=1;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1800)};new MutationObserver(go).observe(document.body,{attributes:true,attributeFilter:["data-mode"]});go()})()</script>
 <script src="kit/tsugi.js" data-bottom="220" data-href="../14/" data-name="Qualium 渋谷" data-line="谷の町を、同じ碧と歩く" defer></script>
 <script src="kit/ichimai.js" data-name="Qualium 川越" data-right="12" data-bottom="284" data-wide-bottom="156" defer></script>
-<script src="kit/hajime.js" data-delay="2200" defer></script>
+<script src="kit/hajime.js" data-delay="2200" data-mix=".85" data-sat="1.35" defer></script>
 </body></html>
