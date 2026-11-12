@@ -8,7 +8,7 @@ import { sunAzEl } from "./sunpos.js?v=2";
 
 const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const Q = new URLSearchParams(location.search);
-const ON = new Set(["up", "light"]);   // 足した順に一つずつ公開する（up・light・soil）
+const ON = new Set(["up", "light", "soil"]);   // 足した順に一つずつ公開する（up・light・soil）
 
 export function attachWalk4(QW) {
   const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 700;
@@ -113,7 +113,7 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
     const f = QW.scene?.fog;
     if (f && QW.mode === "walk") { if (L.mine == null || Math.abs(f.far - L.mine) > .5) L.base = f.far; L.mine = L.base * T.air; f.far = L.mine; }   // app.js が霞を置きなおしたら、それを新しい元にする
     else L.mine = null;
-    if (!L.said && QW.mode === "walk" && QW.walked !== false) { L.waitT = (L.waitT || 0) + .5; if (L.waitT > 14 && !UP.on) { L.said = true; sayLight(T); } }
+    if (!L.said && QW.mode === "walk" && QW.walked !== false) { L.waitT = (L.waitT || 0) + .5; if (L.waitT > 14 && !UP.on && !(SO.k > .01)) { L.said = true; sayLight(T); } }
   }
   function sayLight(T) {
     const e = document.getElementById("toast"); if (!e) return;
@@ -126,6 +126,7 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
      ④ 足もとの土の中
      ===================================================================== */
   const SO = { g: null, k: 0, want: 0, stillT: 0, last: new THREE.Vector3(), said: false, mats: [], worm: null, wormP: null, crT: 0 };
+  addEventListener("pointerdown", () => { SO.drag = true; }, true); addEventListener("pointerup", () => { SO.drag = false; SO.p0 = QW.CAM.pitch; }, true); addEventListener("pointercancel", () => { SO.drag = false; }, true);
   function rnd(i) { const v = Math.sin(i * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); }
   function strataTex() {
     const c = document.createElement("canvas"); c.width = 64; c.height = 256; const x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, 256);
@@ -175,13 +176,15 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
   function soilStep(dt) {
     const cam = QW.camera.position, walk = QW.mode === "walk" && !UP.on && !QW.ikimono?.state?.id;
     const mv = cam.distanceTo(SO.last) / Math.max(dt, 1e-3); SO.last.copy(cam);
-    const down = QW.CAM.pitch < -.55;
+    // 足もとを見ているあいだは、見下ろした向きをそのまま保つ（水平へ自動で戻る動きで土の層が閉じないように）。自分で見上げたら閉じる
+    if ((SO.k > .5 || SO.stillT > 0) && !SO.drag && SO.p0 < -.55 && QW.CAM.pitch > SO.p0 && QW.CAM.pitch < -.3) QW.CAM.pitch = SO.p0;
+    const down = QW.CAM.pitch < -.55; if (down && !SO.drag) SO.p0 = Math.min(SO.p0 ?? 0, QW.CAM.pitch); if (!down && SO.k < .01) SO.p0 = 0;
     SO.stillT = walk && mv < .08 && !QW.WALK.auto && !QW.WALK.goal ? SO.stillT + dt : 0;
     SO.want = walk && down && SO.stillT > .8 ? 1 : 0;
     if (SO.want && !SO.g && !SO.p) SO.p = soilBuild().catch(e => console.warn("walk4 soil", e));
     if (!SO.g) return;
     if (SO.want && SO.k < .01) {   // ひらく所：見ている先の足もと（1 m ほど前）
-      const yaw = QW.CAM.yaw + QW.CAM.look, x = cam.x - Math.sin(yaw) * 1.1, z = cam.z - Math.cos(yaw) * 1.1;
+      const yaw = QW.CAM.yaw + QW.CAM.look, x = cam.x - Math.sin(yaw) * 1.6, z = cam.z - Math.cos(yaw) * 1.6;
       SO.g.position.set(x, (QW.groundAt ? QW.groundAt(x, z) : 0) + .01, z);
     }
     SO.k += Math.sign(SO.want - SO.k) * Math.min(Math.abs(SO.want - SO.k), dt / (SO.want ? .6 : .35));
@@ -192,10 +195,11 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
     if (SO.worm) { SO.worm.position.x = .2 + Math.sin(t * .25) * .12; SO.worm.rotation.y = .7 + Math.sin(t * .25) * .6; SO.worm.userData.animate?.(t, true); }
     if (SO.dots) SO.dots.rotation.y = t * .03;
     if (k > .9) { SO.crT -= dt; if (SO.crT <= 0) { crackle(); SO.crT = .25 + Math.random() * 1.2; } }
+    if (k > .9 && !SO.layered) { SO.layered = true; try { window.mitsuIchimai?.layer?.("土の中"); } catch { } }   // 持ち帰りの一枚に層の名を
     if (k > .9 && !SO.said) {
       SO.said = true;
       QW.speak?.([{ t: "足もとの土の中。根と、そこから広がる菌糸と、土の生き物の層。音は、小さな動きを聴こえる高さに移した模式です。", tc: "足もとの土の中。根と菌糸と、土の生き物の層（模式）。音は、聴こえる高さに移した模式。" }]);
-      showSrc("soil", ["根・菌糸・生き物の形、数、深さ、土の層の色は模式（この場所で掘って確かめたものではない）", "菌根菌の菌糸は根から土の中へ伸び、水や養分のやりとりにかかわる：Smith SE & Read DJ (2008) Mycorrhizal Symbiosis, 3rd ed., Academic Press", "ミミズの写実の体：Qualia/sight と同じ 3D", "音：録った音ではなく、端末の中で組み立てた「聴こえる高さに移した模式」"], 14, "土の出典");
+      showSrc("soil", ["根・菌糸・生き物・土の層の形と数は模式（この場所で掘ったものではない）。音は端末で組み立てた模式", "菌根菌の菌糸は根から土へ伸び、水と養分のやりとりにかかわる：Smith & Read (2008) Mycorrhizal Symbiosis, 3rd ed."], 14, "土の出典");
     }
   }
 
