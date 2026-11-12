@@ -15,6 +15,8 @@ const SENSES = [
 const XS = [
   { id: "hachi", n: "ミツバチ", d: '<ellipse cx="12" cy="13" rx="4" ry="5.6"/><path d="M8.3 11.5h7.4M8.1 14.5h7.8"/><path d="M8.6 9.4C5 6.4 3.4 8.4 4.6 10.6s3.7.9 4.4-.4M15.4 9.4c3.6-3 5.2-1 4 1.2s-3.7.9-4.4-.4"/>' },
   { id: "chou", n: "ナミアゲハ", d: '<path d="M12 6v13"/><path d="M11.4 9C8 4.2 3.6 4.8 4 8.6c.3 2.6 3.4 3.6 7.4 3.4M12.6 9C16 4.2 20.4 4.8 20 8.6c-.3 2.6-3.4 3.6-7.4 3.4M11.4 12.6c-3 .6-5 2.6-4 4.6s3.4.4 4-2.4M12.6 12.6c3 .6 5 2.6 4 4.6s-3.4.4-4-2.4"/>' },
+  { id: "suzume", n: "スズメ", d: '<path d="M4 14.6c2.6.4 4.6-.4 6-2.4 1.2-1.8 2.6-3.6 5-3.6 2 0 3.2 1.4 3.6 2.6l2.2.8-2.2.8c-.4 3.4-3.6 5.8-7.6 5.6-3-.2-5.6-1.6-7-3.6z"/><circle cx="16.2" cy="10.8" r=".6" class="f"/><path d="M15 12.6c.8.4 1.6.4 2.2 0"/>' },
+  { id: "tanuki", n: "タヌキ", d: '<path d="M4.6 17.6v-4.4c0-1.6 1.2-2.8 2.8-2.8h6.4l1.6-1.8h2.4l1.6 1.8v2.4l-1.8.6v4.2M8 17.6v-3.4M14.4 17.6v-3.4M4.6 13.4l-1.6 2.6"/><path d="M15.4 10.2l.6-1.6M18 10.2l-.4-1.6"/><circle cx="16.8" cy="11.2" r=".5" class="f"/>' },
   { id: "tori", n: "小鳥", d: '<path d="M4 14.6c2.6.4 4.6-.4 6-2.4 1.2-1.8 2.6-3.6 5-3.6 2 0 3.2 1.4 3.6 2.6l2 .6-2 .8c-.4 3.4-3.6 5.8-7.6 5.6-3-.2-5.6-1.6-7-3.6z"/><circle cx="16.2" cy="10.8" r=".6" class="f"/><path d="M11 17.2l-1 2.6M13.4 17.4l.2 2.4"/>' },
   { id: "inu", n: "イヌ", d: '<path d="M5 18v-5.6c0-1.4 1-2.4 2.4-2.4h7.2l2-3.2 1.2.4.8 2.2 1.8 1.2-.6 1.6h-2.2v5.8M8 18v-4.2M14.6 18v-4"/><circle cx="17.4" cy="9.4" r=".5" class="f"/><path d="M5 12.6L3.4 10"/>' },
 ];
@@ -48,7 +50,7 @@ body:not([data-mode="walk"]) #qIK{opacity:0;pointer-events:none}
 #qIK button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}#qIK button svg .f{fill:currentColor;stroke:none}
 #qIK button span{font-size:11.5px;letter-spacing:.02em;line-height:1.15;white-space:nowrap;text-align:center;max-width:58px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
 #qIKsrc{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 74px);z-index:7;max-width:min(300px,62vw);font-size:11.5px;line-height:1.5;color:#eef3f6;text-align:right;text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 8px rgba(0,0,0,.5);pointer-events:none;transition:opacity .4s}
-#qIKsrc[hidden]{display:block;opacity:0}
+#qIKsrc[hidden]{display:none}#qIKsrc{pointer-events:auto!important}#qIKsrc button{all:unset;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;padding:0 12px;border-radius:22px;background:rgba(8,13,22,.5);border:1px solid rgba(225,235,242,.22)}@media (min-width:641px){#qIKsrc{right:calc(max(12px,env(safe-area-inset-right)) + 84px)!important}}@media (max-width:640px){#qIKsrc{top:calc(max(12px,env(safe-area-inset-top)) + 66px)!important;bottom:auto!important;left:16px!important;right:auto!important;text-align:left!important;max-width:calc(100vw - 92px)!important}#qIKsrc ul{max-height:24vh!important}}#qIKsrc ul{margin:6px 0 0;padding:6px 10px 6px 20px;text-align:left;font-size:10.5px;line-height:1.45;background:rgba(8,13,22,.66);border-radius:10px;max-height:34vh;overflow:auto}#qIKsrc ul[hidden]{display:none}
 @media (max-width:400px){#qIKsrc{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 128px)}}
 #qIK button[aria-pressed="true"]{color:#0b1119;background:radial-gradient(120% 100% at 50% 20%,#fbfcfd,#d8e6ec);box-shadow:0 0 14px rgba(200,225,235,.45)}`;
   const col = k => (QW.QAC?.[k] || "#cfe3ea");
@@ -73,8 +75,10 @@ body:not([data-mode="walk"]) #qIK{opacity:0;pointer-events:none}
     for (const ms of [30, 200, 600, 1200, 2400, 3600, 5200]) setTimeout(() => { const g = document.getElementById("capTag"); if (g) g.hidden = true; }, ms);
   }
   const src = document.createElement("div"); src.id = "qIKsrc"; src.hidden = true; src.setAttribute("aria-live", "polite"); document.body.appendChild(src);
-  function showSrc(id) { const c = id && H.list?.[id]?.sources?.[0]; src.textContent = c ? `模式・出典：${c.cite}` : ""; src.hidden = !c; }   // 2026-11-10 第8周：生き物を選んだら出典を一行
-  async function pickIk(id) { navigator.vibrate?.(8); const r = await H.go(id); st.id = r; paint(); showSrc(r); if (!r) QW.speak?.([{ t: "人の目に、もどります。" }]); }
+  function showSrc(id) { const P = id && H.list?.[id], c = P?.sources?.[0]; src.hidden = !c; if (!c) { src.innerHTML = ""; return; }
+    src.innerHTML = `<button type="button" aria-expanded="false">＋ 出典（模式）</button><ul hidden>${(P.note ? [P.note] : []).concat(P.sources.map(x => `${x.claim}：${x.cite}`)).map(t => `<li>${t.replace(/[<>&]/g, "")}</li>`).join("")}</ul>`;
+    const b = src.querySelector("button"), u = src.querySelector("ul"); b.addEventListener("click", e => { e.stopPropagation(); u.hidden = !u.hidden; b.textContent = (u.hidden ? "＋" : "−") + " 出典（模式）"; b.setAttribute("aria-expanded", String(!u.hidden)); }); }   // 2026-11-12：「＋ 出典」を押すと、模式の説明と出典の全部がその場に開く   // 2026-11-10 第8周：生き物を選んだら出典を一行
+  async function pickIk(id) { navigator.vibrate?.(8); const r = await H.go(id); st.id = r; paint(); showSrc(r); if (r) try { window.mitsuIchimai?.layer?.(`${H.list[r].name}の目`); } catch { }   /* 持ち帰りの一枚に層の名を */ if (!r) QW.speak?.([{ t: "人の目に、もどります。" }]); }
   bar.addEventListener("click", e => { const b = e.target.closest("button"); if (b) pick(b.dataset.k); });
   ik.addEventListener("click", e => { const b = e.target.closest("button"); if (b) pickIk(b.dataset.id); });
   paint();

@@ -420,8 +420,20 @@ const featherTex = (key, base, edge, tip, tipW, fringe = 'rgba(206,212,218,.3)',
   c.strokeStyle = fringe; c.lineWidth = 2; c.beginPath(); c.moveTo(1, h * .2); c.quadraticCurveTo(w * .5, -h * .05, w - 1, h * .2); c.stroke(); }, [1, 1]);
 export function makeTit(mat = stdMat, o = {}) {
   const g = new T.Group(), body = new T.Group(); g.add(body);
-  const K = 0x141518, Wt = 0xeceee8, GRN = 0x96a05a, BG = 0x74818f, BEL = 0xdfe1db, FL = 0xc6c9c0;
-  const col = (t, sx, cy, x, y, z) => {
+  const K = 0x141518, Wt = 0xeceee8, GRN = 0x96a05a, BG = 0x74818f, BEL = 0xdfe1db, FL = 0xc6c9c0, SZ = o.sp === 'suzume';
+  // 2026-11-12 スズメ（Passer montanus）：頭は栗色、白い頬に黒い斑、のどは黒、背は褐色に黒い縦の筋、腹は灰白、くちばしは太く短い（円錐）
+  const colSZ = (t, sx, cy, x, y, z) => {
+    if (z > .175) {
+      if (cy < -.45 && z > .26) return K;                                                    // のどの黒
+      if (z > .215 && z < .322 && cy < .12 && cy > -.45) return Math.abs(sx) > .55 && cy < -.05 && cy > -.32 && z > .245 && z < .3 ? K : 0xf0ede4;   // 白い頬と黒い斑
+      if (z < .215 && cy < .3) return 0xeeebe2;                                               // 首の白い輪
+      return 0x7b4426;                                                                        // 栗色の頭
+    }
+    if (cy < -.15) return z < -.1 ? 0xe8e4da : 0xd9d5cb;
+    if (cy < .35) return 0xbfb4a0;
+    const st = Math.sin(sx * 23) > .55; return st ? 0x2a211a : z > 0 ? 0x8a5a36 : 0x96704c;   // 背の黒い筋
+  };
+  const col = SZ ? colSZ : (t, sx, cy, x, y, z) => {
     if (z > .175) {   // 頭
       if (z > .215 && z < .322 && cy < -.02 && cy > -.52) return Wt;   // 白い頬（目より下。目は黒い頭の中）
       if (z < .215 && cy > .72) return 0xd9dcd2;                    // うなじの白い斑
@@ -442,7 +454,7 @@ export function makeTit(mat = stdMat, o = {}) {
   const bm = new T.Mesh(bodyG, mk(mat, 0xffffff, { vc: true, map: plumeTex([7, 5]), rough: .74, temp: .95, uv: .06, nmap: plumeN, ns: .45, phys: { clearcoat: 1, clearcoatMap: capMap, clearcoatRoughness: .32, sheen: .45, sheenRoughness: .5, sheenColor: 0x8090a8 } })); body.add(bm);
   addFur(bm, mat, { len: (u, v) => { const cy = Math.cos(v * TAU), env = sstep(.12, .28, u) * (1 - sstep(.56, .66, u)); return cy < -.15 ? .018 * env : cy < .3 ? .009 * env * sstep(.3, -.15, cy) : 0; }, dens: 150, thick: .58, root: .82, droop: .12, comb: [0, -.2, -1.4], temp: .95, sheen: 0xf8f8f0 });
   const headG = new T.Group(), HP = new T.Vector3(0, .07, .2); headG.position.copy(HP); body.add(headG);   // 首の軸
-  const bill = new T.Mesh(sweep([[0, .074, .33], [0, .07, .37], [0, .064, .392]], tab([[0, .02], [1, .002]]), tab([[0, .018], [1, .002]]), () => 0x1d1e21, { n: 6, r: 8 }), mk(mat, 0xffffff, { vc: true, rough: .32, temp: .6, uv: .04, phys: { clearcoat: .5, clearcoatRoughness: .25 } })); bill.position.sub(HP); headG.add(bill);
+  const bill = new T.Mesh(sweep(SZ ? [[0, .072, .32], [0, .068, .355], [0, .062, .378]] : [[0, .074, .33], [0, .07, .37], [0, .064, .392]], SZ ? tab([[0, .032], [1, .003]]) : tab([[0, .02], [1, .002]]), SZ ? tab([[0, .03], [1, .003]]) : tab([[0, .018], [1, .002]]), () => 0x1d1e21, { n: 6, r: 8 }), mk(mat, 0xffffff, { vc: true, rough: .32, temp: .6, uv: .04, phys: { clearcoat: .5, clearcoatRoughness: .25 } })); bill.position.sub(HP); headG.add(bill);
   const eyeM = wetEye(mat, 0x050506, { temp: .9 }); for (const s of [-1, 1]) { const e = ell(eyeM, s * .05, .1, .287, .012, .014, .013, 14); /* 11-05：目が頭の輪郭から球のように突き出て見えた＝少し内へ・小さく */ e.position.sub(HP); headG.add(e); }
   const P0 = Float32Array.from(bodyG.attributes.position.array), hW = new Float32Array(P0.length / 3); for (let i = 0; i < hW.length; i++) hW[i] = sstep(.15, .225, P0[i * 3 + 2]);
   let hy0 = 0, hp0 = 0; const _q = new T.Quaternion(), _e = new T.Euler(), _v = new T.Vector3();
@@ -453,7 +465,7 @@ export function makeTit(mat = stdMat, o = {}) {
   // 尾：12 枚の扇（外側ほど白い）
   const tailGeos = [];
   for (let i = 0; i < 12; i++) { const u = i / 11 - .5, fg = featherGeo(.35, .066, 0); fg.rotateY(-u * .46); fg.translate(u * .05, -.004 + Math.abs(u) * -.006, -.15 - .002 * Math.abs(u)); const w = Math.abs(u) > .44 ? 1 : 0; const n = fg.attributes.position.count; fg.setAttribute('color', new T.BufferAttribute(new Float32Array(n * 3).fill(0), 3)); const cA = fg.attributes.color, cc = new T.Color(w ? 0xe8e8e2 : 0x56606e); for (let k = 0; k < n; k++) cA.setXYZ(k, cc.r, cc.g, cc.b); tailGeos.push(fg); }
-  const tail = new T.Mesh(mergeGeometries(tailGeos), mk(mat, 0xffffff, { vc: true, map: featherTex('tf', '#c9cdd4', '#e8ebee', null), side: T.DoubleSide, rough: .8, temp: .8, uv: .2 }));
+  const tail = new T.Mesh(mergeGeometries(tailGeos), mk(mat, 0xffffff, { vc: true, map: SZ ? featherTex('stf', '#5e4330', '#7a5a3e', null) : featherTex('tf', '#c9cdd4', '#e8ebee', null), side: T.DoubleSide, rough: .8, temp: .8, uv: .2 }));
   const tailPiv = new T.Group(); tailPiv.position.set(0, -.005, -.15); tail.position.set(0, .005, .15); tailPiv.add(tail); body.add(tailPiv);
   // 脚と足指（前 3・後 1）
   const legs = new T.Group(); body.add(legs); const legM = mk(mat, 0x5d636d, { rough: .5, temp: .7 });
@@ -475,7 +487,8 @@ export function makeTit(mat = stdMat, o = {}) {
   for (let i = 0; i < 6; i++) F.push({ seg: 1, x: .01 + i * .026, a0: -.12 - i * .03, aF: 1.32, len: .075, wid: .072, layer: .016 + i * .0008, m: 3 });          // 中雨覆（大雨覆の根もとを覆う一段）
   for (let i = 0; i < 4; i++) F.push({ seg: 1, x: .015 + i * .036, a0: -.2 - i * .03, aF: 1.3, len: .045, wid: .068, layer: .02 + i * .0008, m: 3 });          // 小雨覆（前縁のいちばん上の段）
   // 色の段（シジュウカラ）：風切は黒みの灰で外弁が青灰／三列風切は黒く白い縁／大雨覆は青灰で先が白（翼帯）／小・中雨覆は青灰
-  const texs = [featherTex('wf', '#353a42', '#a3b8cc', null, 0, undefined, 0, .3), featherTex('wt', '#222529', '#c9cdd0', null, 0, 'rgba(244,245,240,.75)', 0, .26), featherTex('wc', '#56616f', '#8091a5', '#f7f7f3', .24, undefined, .6), featherTex('wl', '#6c7a8b', '#8797aa', null, 0, 'rgba(160,176,192,.35)', .7)];   // 11-05：風切の外弁の青灰を太く明るく・翼帯の白を太く・雨覆の筋は弱く
+  const texsT = [featherTex('wf', '#353a42', '#a3b8cc', null, 0, undefined, 0, .3), featherTex('wt', '#222529', '#c9cdd0', null, 0, 'rgba(244,245,240,.75)', 0, .26), featherTex('wc', '#56616f', '#8091a5', '#f7f7f3', .24, undefined, .6), featherTex('wl', '#6c7a8b', '#8797aa', null, 0, 'rgba(160,176,192,.35)', .7)];   // 11-05：風切の外弁の青灰を太く明るく・翼帯の白を太く・雨覆の筋は弱く
+  const texs = SZ ? [featherTex('swf', '#4a3424', '#9a7652', null, 0, undefined, 0, .3), featherTex('swt', '#2e221a', '#b48a5e', null, 0, 'rgba(226,206,170,.7)', 0, .26), featherTex('swc', '#6e4a30', '#8c6644', '#f2ede2', .24, undefined, .6), ...texsT.slice(3).map(() => featherTex('swl', '#7c5636', '#93704e', '#efe9dc', .2))] : texsT;   // スズメ：褐色の翼に白い二本の帯
   const wingMats = texs.map((tx, m) => { const wm = mk(mat, 0xffffff, { map: tx, side: T.DoubleSide, rough: .8, temp: .85, uv: .18 }); if (m >= 2) { wm.polygonOffset = true; wm.polygonOffsetFactor = -(m - 1); wm.polygonOffsetUnits = -(m - 1) * 2; } return wm; });   // 雨覆は風切より手前に描く（深さの取りあいで縞にならない）
   function wingMesh(side) {
     const geos = [], base = [];
@@ -551,7 +564,7 @@ export function makeTit(mat = stdMat, o = {}) {
 //   赤毛に「裏白」（頬・のど・胸・腹・脚の内・尾の裏が白っぽい）。立った三角の耳、巻いた尾、黒い鼻、奥まった三角の目。
 // 2026-11-04 本人「柴犬にする」：イヌは柴犬（makeShiba）に。旧トイプードルは参照用に残す（呼ばれない）。
 export function makeDog(mat = stdMat, o = {}) {
-  const g = makeShiba(mat, o), w = new T.Group(); g.scale.setScalar(.6); w.add(g); w.userData = g.userData; return w;
+  const g = makeShiba(mat, o), w = new T.Group(); if (o.tanuki) g.scale.set(.68, .48, .62); else g.scale.setScalar(.6); w.add(g); w.userData = g.userData; return w;   // タヌキは脚が短く胴が太い（体の形を低く・幅広に）
 }
 
 function makePoodleOld(mat = stdMat, o = {}) {
@@ -609,7 +622,9 @@ function makePoodleOld(mat = stdMat, o = {}) {
 function makeShiba(mat = stdMat, o = {}) {
   //   2026-10-13：赤毛（毛の先が赤く、根もとの下毛は淡い）と裏白。二重の毛（上毛と、密な下毛）を毛の層で。尾はふさふさ。
   //   鼻は湿って細かい粒のある面（鼻鏡）、目は濡れた映りこみ、まぶたのふちは黒い。
-  const g = new T.Group(); const R = 0xb8692f, Cr = 0xf3e9d6, RD = 0x9c5326, RL = 0xc98a50;
+  // 2026-11-12 タヌキ（Nyctereutes procyonoides）：柴犬の体の形を土台に、毛の色（灰褐色・背は黒みを帯びる・脚は黒）、小さく丸い耳、垂れた太い尾に替える
+  const TN = !!o.tanuki;
+  const g = new T.Group(); const R = TN ? 0x7a6b58 : 0xb8692f, Cr = TN ? 0x2b2622 : 0xf3e9d6, RD = TN ? 0x3e352d : 0x9c5326, RL = TN ? 0x9a8a72 : 0xc98a50;
   const fur = mk(mat, 0xffffff, { vc: true, map: furTex([8, 4]), rough: .9, temp: .95, uv: .04, phys: MOBILE ? undefined : { sheen: .5, sheenRoughness: .5, sheenColor: 0xffe2c0 } });
   const urajiro = (cyLim) => (t, sx, cy) => cy < cyLim ? Cr : cy < cyLim + .2 ? mixc(Cr, RL, (cy - cyLim) / .2) : cy < cyLim + .4 ? mixc(RL, R, (cy - cyLim - .2) / .2) : cy > .6 ? RD : R;
   const ellC = (m, c, ...a) => { const e = ell(m, ...a); e.geometry = e.geometry.clone(); const n = e.geometry.attributes.position.count, cA = new Float32Array(n * 3), cc = new T.Color(c); for (let i = 0; i < n; i++) cA.set([cc.r, cc.g, cc.b], i * 3); e.geometry.setAttribute('color', new T.BufferAttribute(cA, 3)); return e; };
@@ -643,7 +658,7 @@ function makeShiba(mat = stdMat, o = {}) {
   // 耳：立った三角。付け根を軸に、音のするほうへ向きを変える
   const earM = mk(mat, 0xffffff, { vc: true, map: furTex([2, 2]), rough: .85, temp: .9, side: T.DoubleSide });
   const ears = [];
-  for (const s of [-1, 1]) { const ep = new T.Group(); ep.position.set(s * .066, .095, .0); ep.rotation.set(.25, 0, -s * .25); ep.scale.set(.85, .82, 1.5); head.add(ep);   // 小さく厚い三角の耳
+  for (const s of [-1, 1]) { const ep = new T.Group(); ep.position.set(s * .066, .095, .0); ep.rotation.set(.25, 0, -s * .25); ep.scale.set(...(TN ? [.75, .5, 1.6] : [.85, .82, 1.5])); head.add(ep);   // 小さく厚い三角の耳
     const ear = new T.Mesh(sweep([[0, 0, 0], [0, .06, .01], [0, .12, .02]], tab([[0, .055], [1, .003]]), tab([[0, .02], [1, .002]]), (t, sx, cy) => cy > .2 ? Cr : R, { n: 6, r: 8, up: [0, 0, 1] }), earM); ep.add(ear); ears.push({ s, ep }); }
   // 脚：前は肩→肘→手首→足、後ろは腰→膝→かかと→足。肘と膝で曲げる。関節のすき間は丸みでつなぐ
   const legs = [];
@@ -663,10 +678,11 @@ function makeShiba(mat = stdMat, o = {}) {
   for (const s of [-1, 1]) { leg(s, true); leg(s, false); }
   // 巻いた尾（背の上で巻く。裏は白い。毛が長くふさふさ）。付け根を軸に左右へ振る
   const tailP = new T.Group(); tailP.position.set(0, .74, -.48); g.add(tailP);
-  const tailG = sweep([[0, .74, -.48], [0, .92, -.56], [0, 1.03, -.46], [.03, 1.02, -.33], [.08, .93, -.31], [.1, .87, -.38]], tab([[0, .055], [.5, .06], [1, .025]]), tab([[0, .055], [.5, .065], [1, .025]]), (t, sx, cy) => cy < -.1 ? Cr : R, { n: 20, r: 12 }); tailG.translate(0, -.74, .48);
+  const tailG = TN ? sweep([[0, .74, -.48], [0, .66, -.6], [0, .52, -.66], [0, .4, -.68]], tab([[0, .06], [.5, .075], [1, .03]]), tab([[0, .06], [.5, .08], [1, .03]]), (t, sx, cy) => t > .75 || cy > .5 ? RD : R, { n: 14, r: 12 }) : sweep([[0, .74, -.48], [0, .92, -.56], [0, 1.03, -.46], [.03, 1.02, -.33], [.08, .93, -.31], [.1, .87, -.38]], tab([[0, .055], [.5, .06], [1, .025]]), tab([[0, .055], [.5, .065], [1, .025]]), (t, sx, cy) => cy < -.1 ? Cr : R, { n: 20, r: 12 });   // タヌキは垂れた太い尾（先が黒っぽい） tailG.translate(0, -.74, .48);
+  if (TN) tailG.translate(0, -.74, .48);   // 尾の付け根（tailP）からの位置に
   const tailM = new T.Mesh(tailG, fur); tailP.add(tailM);
   addFur(tailM, mat, { ...FD, len: (u) => .055 * sstep(0, .15, u) * (1 - .4 * sstep(.8, 1, u)), droop: .25, thick: .5, comb: [0, 0, 0] });
-  g.userData = { kind: 'inu', breed: 'shiba', head, legs, ears, tail: tailP };
+  g.userData = { kind: TN ? 'tanuki' : 'inu', breed: TN ? 'tanuki' : 'shiba', head, legs, ears, tail: tailP };
   // 歩き方（2026-10-13）：動きはじめは「なみ足」（4 拍・左後→左前→右後→右前の順に一本ずつ）、速くなると「速足（トロット）」（対角の前後が一緒）へ移る。
   //   足が地面にある割合はなみ足で長く（約 6 割）、速足で短い（半分弱）。速足では体が一歩ごとに小さく上下し、なみ足では頭が前脚に合わせてうなずく（Hildebrand 1965・Maes ら 2008）。
   //   止まると：息で胸がふくらむ・耳を別々に動かす・見回す・ときどき地面を嗅ぐ（嗅ぐときは鼻を 1 秒に数回ひくつかせる。Craven ら 2010）・尾をゆるく振る。
@@ -694,7 +710,7 @@ function makeShiba(mat = stdMat, o = {}) {
     // 耳：止まっているときは別々に向きを変える。走ると少し後ろへ
     for (const e of ears) e.ep.rotation.set(.25 - trot * .3 + sn * .15, e.s * .25 * idle * bout(t, 4.1 + e.s * .7, .9, e.s * 3), -e.s * .25);
     // 尾：巻いた尾を左右に振る（歩くと速く）
-    tailP.rotation.set(0, 0, .1 * Math.sin(t * TAU * lerp(.6, 1.8, go)) * lerp(.6, 1, go));
+    tailP.rotation.set(0, 0, (TN ? .04 : .1) * Math.sin(t * TAU * lerp(.6, 1.8, go)) * lerp(.6, 1, go));
   };
   g.userData.animate(0, false);
   return g;

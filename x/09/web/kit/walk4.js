@@ -192,6 +192,7 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
     if (SO.worm) { SO.worm.position.x = .2 + Math.sin(t * .25) * .12; SO.worm.rotation.y = .7 + Math.sin(t * .25) * .6; SO.worm.userData.animate?.(t, true); }
     if (SO.dots) SO.dots.rotation.y = t * .03;
     if (k > .9) { SO.crT -= dt; if (SO.crT <= 0) { crackle(); SO.crT = .25 + Math.random() * 1.2; } }
+    if (k > .9 && !SO.layered) { SO.layered = true; try { window.mitsuIchimai?.layer?.("土の中"); } catch { } }   // 持ち帰りの一枚に層の名を
     if (k > .9 && !SO.said) {
       SO.said = true;
       QW.speak?.([{ t: "足もとの土の中。根と、そこから広がる菌糸と、土の生き物の層。音は、小さな動きを聴こえる高さに移した模式です。", tc: "足もとの土の中。根と菌糸と、土の生き物の層（模式）。音は、聴こえる高さに移した模式。" }]);

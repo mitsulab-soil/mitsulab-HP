@@ -26,6 +26,14 @@ export const IKIMONO = {
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
     say: "シジュウカラの目の模式。四色で色の差は細かく、紫外は紫に移し、視野は広く。", band: [300, 8000],
     sources: [{ claim: "多くの鳥は紫外に感じる錐体を含む四色型", cite: "Hart NS (2001) Prog. Retin. Eye Res. 20:675–703" }, { claim: "小鳥の視力は人より低いとされる（猛禽とは異なる）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "鳥のよく聴こえる帯はおよそ 1〜4 kHz", cite: "Dooling RJ (1982) Acoustic Communication in Birds, Academic Press" }] },
+  suzume: { name: "スズメ", make: "suzume", lens: "tori", mix: 1, blur: .7, eye: .9, fov: 80, back: .44, up: .12, size: .32, bob: .02, fly: true,
+    say: "スズメの目の模式。目の高さはしげみほど、紫外は紫に移し、視野は広く。", band: [300, 8000],
+    note: "見え方・目の高さ（しげみの高さを低く飛ぶ想定）・画角は模式。スズメそのものの見え方の再現ではない。",
+    sources: [{ claim: "スズメの仲間（スズメ目）は紫外に感じる錐体（UVS 型）をもつ", cite: "Ödeen A & Håstad O (2003) Mol. Biol. Evol. 20:855–861" }, { claim: "多くの鳥は紫外を含む四色型", cite: "Hart NS (2001) Prog. Retin. Eye Res. 20:675–703" }, { claim: "目が頭の横につく鳥は視野が広い", cite: "Martin GR (2007) J. Ornithol. 148:S547–S562" } ] },
+  tanuki: { name: "タヌキ", make: "tanuki", lens: "inu", mix: 1, blur: 1.3, eye: 0, fov: 76, back: 1.0, up: .5, size: .72, bob: .015, fly: false,
+    say: "タヌキの目の模式。目の高さは地面から 30 センチほど、青と黄の二色で赤と緑は似て見える。",
+    note: "色はイヌ科の多くに共通する二色型の模式。タヌキで測った値ではない。目の高さ（約 30 cm）と画角も模式。体は柴犬の形をもとに毛色・耳・尾を替えた mitsulab の 3D。",
+    sources: [{ claim: "イヌ科の多くは二色型の色覚（タヌキでの測定は確かめられていない）", cite: "Jacobs GH (1993) Biol. Rev. 68:413–471" }, { claim: "イヌ科（イヌ）の視力は人の数分の一、視野は人より広い", cite: "Miller PE & Murphy CJ (1995) J. Am. Vet. Med. Assoc. 207:1623–1634" }] },
   inu: { name: "イヌ", make: "inu", lens: "inu", mix: 1, blur: 1.3, eye: 0, fov: 74, back: 1.05, up: .62, size: .55, bob: .015, fly: false,
     say: "イヌの目の模式。青と黄の二色で赤と緑は似て、像はやや粗く、視野は広く。", band: [67, 20000],
     sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの視力は人の数分の一、視野は人より広い", cite: "Miller PE & Murphy CJ (1995) J. Am. Vet. Med. Assoc. 207:1623–1634" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE (1983) Behav. Neurosci. 97(2):310–318／Heffner HE & Heffner RS (2007) J. Am. Assoc. Lab. Anim. Sci. 46(1):20–22" }] },
@@ -78,8 +86,8 @@ export function attachIkimono(QW, opt = {}) {
   function bodyOf(id) { return cache[id] ? Promise.resolve(cache[id]) : (pend[id] ||= build(id)); }
   async function build(id) {
     const P = IKIMONO[id];
-    mod ||= await import("./creatures_sight.js?v=5");
-    const c = P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : mod.makeDog();
+    mod ||= await import("./creatures_sight.js?v=10");
+    const c = P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : P.make === "suzume" ? mod.makeTit(undefined, { sp: "suzume" }) : P.make === "tanuki" ? mod.makeDog(undefined, { tanuki: true }) : mod.makeDog();
     const g = new THREE.Group(); c.scale.setScalar(P.size); g.add(c); g.userData.c = c;
     g.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
     g.visible = false;
@@ -185,7 +193,7 @@ export function attachIkimono(QW, opt = {}) {
   (function loop(t) { const dr = Math.min(.5, (t - tl) / 1000), dt = Math.min(.05, dr); tl = t; S.t += dt; updateFlight(dt, t); const want = S.id && QW.mode === "walk" ? 1 : 0, k0 = S.k;
     S.k += Math.sign(want - S.k) * Math.min(Math.abs(want - S.k), dr / .35);   /* 11-04 P1：こま数でなく時間で 0.35 秒（重い時も 1 秒以内） */ if (S.k !== k0) paint(); requestAnimationFrame(loop); })(tl);
   /* 切り替えを 1 秒以内に：歩きだして手が空いたら、体を一つずつ先に組んでおく（描き方も先に組む） */
-  const warm = async () => { for (const id of ["inu", "chou", "hachi", "tori"]) { await new Promise(r => (window.requestIdleCallback || setTimeout)(r, { timeout: 1500 })); try { await bodyOf(id); } catch (e) { console.warn("ikimono", id, e); } } };
+  const warm = async () => { for (const id of ["hachi", "suzume", "tanuki"]) { await new Promise(r => (window.requestIdleCallback || setTimeout)(r, { timeout: 1500 })); try { await bodyOf(id); } catch (e) { console.warn("ikimono", id, e); } } };
   { const w = setInterval(() => { if (QW.mode === "walk") { clearInterval(w); setTimeout(warm, 600); } }, 500); }
   QW.ikimono = { go, state: S, list: IKIMONO };
   return QW.ikimono;
