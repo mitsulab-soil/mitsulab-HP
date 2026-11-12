@@ -48,9 +48,17 @@
     }
     run = function (now) {
       if (done) return; done = true; cancelAnimationFrame(raf);
-      cv.classList.remove("hj-on"); css.remove(); svg.remove(); cap.style.opacity = "0"; setTimeout(function () { cap.remove(); }, 700);
+      cv.classList.remove("hj-on"); glow.forEach(function (el) { el.classList.remove("hj-glow"); }); css.remove(); svg.remove(); cap.style.opacity = "0"; setTimeout(function () { cap.remove(); }, 700);
     };
     cv.classList.add("hj-on");
+    // 画面の中の「ミツバチ」の札を、寄せているあいだ淡く光らせる（何が起きたかの合図）
+    var glow = [];
+    Array.prototype.some.call(document.querySelectorAll("button,[role=button]"), function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.width > 0 && r.width < 160 && r.height < 120 && /^[^ぁ-んァ-ヶ一-龠]*ミツバチ\s*$/.test(el.textContent || "")) { glow.push(el.closest("button,[role=button],a") || el); return true; }
+    });
+    css.textContent += ".hj-glow{box-shadow:0 0 0 2px rgba(191,227,240,.9),0 0 18px rgba(191,227,240,.7)!important;transition:box-shadow .5s}";
+    glow.forEach(function (el) { el.classList.add("hj-glow"); });
     function step(t) {
       if (done) return;
       e += Math.min(50, Math.max(0, t - lt)); lt = t; var k;   // 重いコマが続いても一瞬で終わらないよう、一コマで進む時間に上限

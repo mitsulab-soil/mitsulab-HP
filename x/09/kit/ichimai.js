@@ -35,7 +35,7 @@
   }
   function addLayer(s) {
     s = String(s || "").trim().slice(0, 24); if (!s) return;
-    if (layers.indexOf(s) < 0) { layers.push(s); if (layers.length > 12) layers.shift(); }
+    if (layers.indexOf(s) < 0) { layers.push(s); if (layers.length > 60) layers.splice(1, 1); }   // 最初の一つは残す
   }
   var down = false;
   addEventListener("pointerdown", function (e) { if (b.contains(e.target)) return; down = true; addPt(e.clientX / innerWidth, e.clientY / innerHeight); }, { passive: true, capture: true });
@@ -93,7 +93,6 @@
       g.stroke(); g.restore();
       var e = P[P.length - 1]; g.fillStyle = "rgba(238,243,246," + a + ")"; g.beginPath(); g.arc(ox + e[0] * w, oy + e[1] * h, lw * 1.6, 0, 7); g.fill();
     }
-    line((CW - dw) / 2, (IH - dh) / 2, dw, dh, 0.55, 3);
     g.restore();
     var asp = H / W, bx = 64, by = IH + 30, bh = 290, bw = Math.max(170, Math.min(400, bh / asp));
     if (P.length < 2) bw = -64;   // 道のりがないときは枠ごと出さず、層を左から
@@ -111,14 +110,15 @@
     // 層
     var lx = bx + bw + 64, ly = by + 8;
     g.fillStyle = "rgba(238,243,246,.55)"; g.font = "20px " + serif; g.fillText("受けとった層", lx, ly + 20);
-    g.font = "30px " + serif; ly += 70;
+    g.font = "28px " + serif; ly += 64;
     var L = layers.length ? layers : ["いまの景色"];
-    L.slice(-6).forEach(function (s) {
-      g.fillStyle = "rgba(191,227,240,.9)"; g.beginPath(); g.arc(lx + 8, ly - 10, 5, 0, 7); g.fill();
-      g.fillStyle = "rgba(238,243,246,.92)"; g.fillText(s, lx + 28, ly); ly += 50;
+    if (L.length > 6) L = [L[0], "…"].concat(L.slice(-4));   // 上限を超えたら最初と最後を残し、間を省く
+    L.forEach(function (s) {
+      if (s !== "…") { g.fillStyle = "rgba(191,227,240,.9)"; g.beginPath(); g.arc(lx + 8, ly - 10, 5, 0, 7); g.fill(); }
+      g.fillStyle = "rgba(238,243,246,.92)"; g.fillText(s, lx + 28, ly); ly += 44;
     });
     var mins = Math.max(1, Math.round((Date.now() - t0) / 60000));
-    g.fillStyle = "rgba(238,243,246,.55)"; g.font = "20px " + serif; g.fillText(mins + " 分", lx, Math.min(ly + 10, CH - 70));
+    g.fillStyle = "rgba(238,243,246,.55)"; g.font = "20px " + serif; g.fillText(mins + " 分", lx, ly + 6);
     // 名前
     g.fillStyle = "rgba(238,243,246,.86)"; g.font = "26px " + serif; g.textBaseline = "bottom";
     g.textAlign = "right"; g.fillText(name + " ── mitsulab", CW - 64, CH - 36); g.textAlign = "left";
