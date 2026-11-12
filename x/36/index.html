@@ -611,7 +611,7 @@ const SMIN = -9.2, SMAX = 7.15, rsv = document.getElementById("rsv"), rule = doc
 const rk = () => document.getElementById("rk");
 
 /* ── 操作：スクロール・ピンチ・上下のドラッグ＝大きさ、左右のドラッグ＝見まわす ── */
-let S = -1, ST = -1, AZ = 0, AZT = 0; const clampS = v => Math.min(SMAX, Math.max(SMIN, v)); { const q_ = parseFloat(new URLSearchParams(location.search).get("s")); if (isFinite(q_)) S = ST = clampS(q_); }   /* Qualia/time から、その速さに合う大きさで入る */
+let S = -1, ST = -1, AZ = 0, AZT = 0; const clampS = v => Math.min(SMAX, Math.max(SMIN, v)); { const q_ = parseFloat(new URLSearchParams(location.search).get("s")); if (isFinite(q_)) setTimeout(() => { ST = clampS(q_); }, 400); }   /* Qualia/time から：いつもの葉の段で起動し（起動の速さを保つ）、その速さに合う大きさへ移っていく */
 const tqEl=document.getElementById("tq");let tqK=null;
 function tq(k,line,note,href,lab){if(k===tqK)return;tqK=k;if(!k){tqEl.classList.remove("on");return}tqEl.innerHTML=line+(note?'<small>'+note+'</small>':'')+'<a href="'+href+'">'+lab+' →</a>';tqEl.classList.add("on")}
 function tqAt(s){ if (s > -2.9 && s < -1.6) tq("s","この大きさの虫には、時間を細かく受けとるものが多い（模式・出典は ＋）","","../37/?n=-2.3","羽の一打ちの速さへ"); else if (s > 1.1 && s < 2.05) tq("b","大きなものの変化は、人には遅すぎて見えない","","../37/?n=7.4","欅の一年の速さへ"); else tq(null); }
