@@ -36,7 +36,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", tm: { m0: performance.now() } }; QW.THREE = THREE;
-const VER = "20261112m1";
+const VER = "20261112m2";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -371,9 +371,17 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
           float streak = (kind == 2. ? .35 : 1.) * step(.7, sx) * (1. - isW) * smoothstep(.38, 0., c.y) * .22;
           float big = texture2D(tP, vPw.xz / 40. + vPw.y / 55.).r;
           float sunF = dot(Nn, normalize(vec3(.55, 0., .35)));   // 日の当たる面と陰の面の差（面ごとの明るさの違いで、箱に見せない）
-          col *= ao * (1. - rec) * (1. - streak) * (.88 + .24 * big) * mix(.66, 1.14, smoothstep(-.6, .7, sunF)); float dd = length(vPw - cameraPosition); col = mix(col, vec3(.62, .68, .76), smoothstep(90., 520., dd) * .42); }   // 遠いほど青く薄く（大気の遠近）
+          col *= ao * (1. - rec) * (1. - streak) * (.88 + .24 * big) * mix(.66, 1.14, smoothstep(-.6, .7, sunF)); float dd = length(vPw - cameraPosition); col = mix(col, vec3(.62, .68, .76), smoothstep(90., 520., dd) * .42);   // 遠いほど青く薄く（大気の遠近）
+          /* 11-12 採点「近くの壁が単色の板」：近寄ったときだけ、外装の目地（石とパネル 1.2×.6 m・漆喰は 2.4 m ごとの伸縮目地）・細かな肌理・板ごとの色の差を足す（ガラスには足さない・遠くでは消える） */
+          float nd = (1. - smoothstep(14., 48., dd)) * (1. - clamp(isW, 0., 1.)); if (nd > .01) {
+            vec2 js = kind == 0. ? vec2(2.4, 3.6) : vec2(1.2, .6); vec2 jf = fract(fu / js); vec2 jw = fwidth(fu / js) * 1.5 + .004;
+            float joint = max(1. - smoothstep(0., jw.x + .012, min(jf.x, 1. - jf.x)), 1. - smoothstep(0., jw.y + .02, min(jf.y, 1. - jf.y)));
+            float pr2 = fract(sin(dot(floor(fu / js), vec2(27.1, 61.7)) + br * 5.3) * 43758.5);
+            float fine = texture2D(tP, fu / 1.3 + r).r * .6 + texture2D(tG, fu / .7 + r2).r * .4;
+            vec3 cd = col * (1. + (pr2 - .5) * .1) * (.78 + .44 * fine) * (1. - joint * .5);
+            col = mix(col, cd, nd); } }
         diffuseColor.rgb = col; }`).replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ntotalEmissiveRadiance += emi;").replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = isW < 0. ? .55 : mix(roughnessFactor, .1, isW);"); };
-  m.customProgramCacheKey = () => "plateauCC0g"; return PFM.m = m;
+  m.customProgramCacheKey = () => "plateauCC0h"; return PFM.m = m;
 }
 function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・LOD2）を mitsulab が加工した建物（外壁は航空写真からの質感）。_dev/plateau/build_plateau.py
   const g0 = new THREE.Group(); g0.name = "plateau"; world.add(g0);
@@ -1479,8 +1487,12 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   else if (WALK.goal) { const dx = WALK.goal.x - CAM.pos.x, dz = WALK.goal.z - CAM.pos.z, dd = Math.hypot(dx, dz); if (dd < .4) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; } else { mx = dx / dd * Math.min(dd, speed * dt); mz = dz / dd * Math.min(dd, speed * dt); const ty = Math.atan2(-dx, -dz); CAM.yaw += wrap(ty - CAM.yaw - CAM.look) * Math.min(1, dt * 2.2); } }
   WALK.moving = Math.abs(mx) + Math.abs(mz) > 1e-5;
   const px0 = CAM.pos.x, pz0 = CAM.pos.z; CAM.pos.x += mx; CAM.pos.z += mz; corridorClamp(CAM.pos);
-  if (inBld(CAM.pos.x, CAM.pos.z) && !inBld(px0, pz0)) {   // 建物の壁の手前で止まる。斜めに当たったときは、壁に沿ってすべる
-    if (!inBld(CAM.pos.x, pz0)) CAM.pos.z = pz0; else if (!inBld(px0, CAM.pos.z)) CAM.pos.x = px0; else { CAM.pos.x = px0; CAM.pos.z = pz0; }
+  const WR = MOBILE ? 2.2 : .35;   /* 11-12：スマホは縦の狭い画角で壁に寄ると画面が壁だけになるので、壁から 2.2 m 手前で止まる */
+  if (MOBILE && QW.mode === "walk" && performance.now() - CAM.lastDrag > 2600) {   /* 11-12：スマホで目の前 5 m が壁なら、空いた通りの方へゆっくり向きを変える（画面が壁だけにならない） */
+    const h = CAM.yaw + CAM.look, ahead = (a, d) => inBld(CAM.pos.x - Math.sin(a) * d, CAM.pos.z - Math.cos(a) * d, .2);
+    if (ahead(h, 5)) for (const k of [.35, -.35, .7, -.7, 1.05, -1.05, 1.4, -1.4]) if (!ahead(h + k, 5) && !ahead(h + k, 10)) { CAM.yaw += k * Math.min(1, dt * 1.4); break; } }
+  if (inBld(CAM.pos.x, CAM.pos.z, WR) && !inBld(px0, pz0, WR)) {   // 建物の壁の手前で止まる。斜めに当たったときは、壁に沿ってすべる
+    if (!inBld(CAM.pos.x, pz0, WR)) CAM.pos.z = pz0; else if (!inBld(px0, CAM.pos.z, WR)) CAM.pos.x = px0; else { CAM.pos.x = px0; CAM.pos.z = pz0; }
     if (WALK.goal && Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
     if (performance.now() - (WALK.wallT || 0) > 8000) { WALK.wallT = performance.now(); capNote("建物の中には入れません。通りを歩けます。"); } }
   if (WALK.auto && f) { const mv = Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0); WALK.stuckT = mv < speed * dt * .25 ? (WALK.stuckT || 0) + dt : 0;   // 10-28 晩：歩きつづけるで壁や道の端に当たって止まったままにならない
@@ -1986,8 +1998,8 @@ function stepTag() {
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0; const GEO = { t: 0, last: "" };
 function frame() { const _f0 = performance.now(); frame0(); if ((QW._fn = (QW._fn || 0) + 1) <= 4) (QW.tm.fr ||= []).push([Math.round(_f0 - T0), Math.round(performance.now() - _f0)]); }
 function meijiTalk() {   /* 11-12：昔の川が浮かんだとき、字幕で三行だけ（出典は端に） */
-  const L = ["足もとに重ねたのは、明治の地図の川と、低く湿った土地です。", "明治 13〜19 年の迅速測図から、国土地理院が写しとりました。", "川は谷の底を流れ、両岸には田や湿地などの低い土地が続いていました。", "いまの川が空の下に出るのは、稲荷橋から先です。", "上流と、「春の小川」のモデルとされる河骨川は、暗渠になりました。"];
-  const SR = ["国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "東京都建設局「渋谷川・古川流域とは」", "東京都建設局「渋谷川・古川流域とは」／国土交通省「渋谷川・古川かわまちづくり」"];
+  const L = ["足もとに、明治の地図の川を重ねました。", "明治13〜19年の迅速測図からです。", "川は谷の底を流れていました。", "両岸は田や湿地などの低い土地でした。", "いまは稲荷橋から先が空の下です。", "上流と河骨川は暗渠になりました。", "河骨川は「春の小川」のモデルとされます。"];   /* 11-12：スマホで一行が割れない長さ（20 字まで）に */
+  const SR = ["国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "東京都建設局「渋谷川・古川流域とは」", "東京都建設局「渋谷川・古川流域とは」", "国土交通省「渋谷川・古川かわまちづくり」"];
   const go = () => { if (voiceQ || !$("#panel").hidden || !$("#caption").hidden || performance.now() - (QW._capT || 0) < 1500) { setTimeout(go, 1200); return; } let k0 = 0; const Q = L.map((t, k) => ({ t, src: SR[k], lay: "x.memory" })); let fin = false; speakLines(Q.slice(k0), null, { narr: true, done: () => { fin = true; } }); const me = voiceQ;
     const watch = () => { if (fin) return; if (voiceQ === me) { k0 = me.i; setTimeout(watch, 500); return; } L.splice(0, k0 + (k0 < L.length ? 0 : 0)); SR.splice(0, k0); if (L.length) setTimeout(go, 1500); }; setTimeout(watch, 500); }; go(); }   /* 割りこまれたら、残りの行をあとで続ける */
 function frame0() {
@@ -2054,7 +2066,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; window.MLLoader?.done();   /* 11-05 起動：読み込み画面は ready のその場で閉じる（index.html の 60 ms ごとの見回りを待つと、あとの組み立てに先を越されて 1 秒あまり遅れていた） */ setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
     setTimeout(() => QW.late?.(), 30);
-    setTimeout(() => import("./meiji.js?v=4").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
+    setTimeout(() => import("./meiji.js?v=5").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);

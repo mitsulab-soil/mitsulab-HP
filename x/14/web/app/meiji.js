@@ -5,7 +5,7 @@ export function buildMeiji(THREE, { terrain, world, camera, mode, mobile, onFirs
   const U = { tex: { value: null }, t: { value: 0 }, k: { value: 0 }, eye: { value: new THREE.Vector3() }, R: { value: mobile ? 75 : 95 }, aoi: { value: new THREE.Vector4(0, 0, 0, 0) } };
   const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, toneMapped: true, fog: false,
     polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
-    vertexShader: "uniform vec4 aoi; varying vec2 vU; varying vec3 vW; void main(){ vU = uv; vec4 w = modelMatrix * vec4(position, 1.); w.y += .32; if (aoi.w > .5) w.y = mix(min(w.y, aoi.y + .015), w.y, smoothstep(.8, 2.2, distance(w.xz, aoi.xz))); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",
+    vertexShader: "uniform vec4 aoi; varying vec2 vU; varying vec3 vW; void main(){ vU = uv; vec4 w = modelMatrix * vec4(position, 1.); w.y += .22; if (aoi.w > .5) w.y = mix(min(w.y, aoi.y + .015), w.y, smoothstep(.8, 2.2, distance(w.xz, aoi.xz))); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",
     fragmentShader: `uniform sampler2D tex; uniform float t, k, R; uniform vec3 eye; uniform vec4 aoi; varying vec2 vU; varying vec3 vW;
       float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f); return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+1.), f.x), f.y); }
@@ -13,9 +13,14 @@ export function buildMeiji(THREE, { terrain, world, camera, mode, mobile, onFirs
         if (k < .002) { if (sh < .01) discard; gl_FragColor = vec4(vec3(.03, .04, .04), sh); return; } vec3 m = texture2D(tex, vU).rgb; float d = distance(vW.xz, eye.xz);
         float near = 1. - smoothstep(R * .2, R, d); near *= near; float a0 = near * k * smoothstep(.25, .95, ad); if (a0 < .004 && sh < .01) discard;
         float wtr = smoothstep(.45, .9, m.r), low = smoothstep(.15, .85, m.g) * (1. - wtr);
-        vec2 p = vW.xz; float rip = n(p * .9 + vec2(t * .35, t * .6)) * .6 + n(p * 2.3 - vec2(t * .5, t * .2)) * .4;
+        vec2 p = vW.xz;
+        vec2 e = vec2(1. / 1024., 1. / 1430.) * 2.; vec2 gr = vec2(texture2D(tex, vU + vec2(e.x, 0.)).r - texture2D(tex, vU - vec2(e.x, 0.)).r, -(texture2D(tex, vU + vec2(0., e.y)).r - texture2D(tex, vU - vec2(0., e.y)).r));   // 川の幅の向き（地図の濃さの傾き）
+        vec2 acr = length(gr) > .02 ? normalize(gr) : vec2(1., 0.); vec2 fl = vec2(-acr.y, acr.x); if (fl.y < 0.) fl = -fl;   // 流れの向き＝幅に直交・南（下流＝天現寺・古川）へ
+        float along = dot(p, fl), across = dot(p, acr);
+        float strk = n(vec2(along * .22 - t * 1.1, across * 2.6)) * .65 + n(vec2(along * .6 - t * 1.6, across * 5.)) * .35;   // 流れに沿って伸びる細い筋
+        float rip = mix(n(p * 1.4 + t * .3), strk, .8);
         vec3 V = normalize(eye - vW); float fr = pow(1. - clamp(V.y, 0., 1.), 3.);
-        float gl = pow(n(p * 3.1 + vec2(t * .9, -t * .4)), 5.); vec3 water = mix(vec3(.035, .06, .055), vec3(.58, .64, .66), clamp(fr * .75 + rip * .1, 0., 1.)) + gl * .28;
+        float gl = pow(n(p * 3.1 + vec2(t * .9, -t * .4)), 5.); vec3 water = mix(vec3(.035, .06, .055), vec3(.58, .64, .66), clamp(fr * .75 + rip * .1, 0., 1.)) + gl * .2 + pow(strk, 4.) * .32;
         float tuft = n(p * 1.7) * .6 + n(p * 6.) * .4;
         vec3 paddy = mix(vec3(.34, .40, .20), vec3(.58, .60, .34), tuft) * (.85 + .3 * n(p * .25));
         float edge = smoothstep(.0, .25, m.r) * (1. - wtr);   // 岸の湿った縁
