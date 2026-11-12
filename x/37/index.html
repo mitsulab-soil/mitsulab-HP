@@ -33,12 +33,12 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 .bar{position:fixed;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:8px;padding:0 16px}
 .bar button,.fold summary{font:inherit;font-size:13px;color:var(--t1);text-shadow:var(--halo);background:rgba(255,255,255,.08);backdrop-filter:blur(2px);border:1px solid rgba(31,42,46,.45);border-radius:2px;min-height:44px;padding:0 14px;cursor:pointer;white-space:nowrap}
 /* 下の札：tokens.css の .ml-btn--quiet にならう（箱なし・碧の下線・角 2px・44px） */
-.bar button{appearance:none;position:relative;background:none;backdrop-filter:none;border:0;border-bottom:1px solid rgba(31,42,46,.35);border-radius:2px;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.06em;padding:0 12px;transition:border-color .18s cubic-bezier(.22,.61,.36,1)}
+.bar button{appearance:none;position:relative;background:none;backdrop-filter:none;border:1px solid rgba(47,143,168,.6);border-radius:2px;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.06em;padding:0 12px;transition:border-color .18s cubic-bezier(.22,.61,.36,1)}
 .bar button::after{content:"";position:absolute;left:0;bottom:-1px;height:1px;width:100%;background:var(--aoi);transform:scaleX(0);transform-origin:left;transition:transform .42s cubic-bezier(.22,.61,.36,1)}
 .bar button:hover::after,.bar button:focus-visible::after{transform:scaleX(1)}
 .bar button:focus-visible,.fold summary:focus-visible,.back:focus-visible{outline:1px solid var(--aoi);outline-offset:2px}
 .fold{position:fixed;right:70px;top:max(10px,env(safe-area-inset-top));max-width:min(440px,calc(100vw - 32px))}
-.fold summary{list-style:none;display:inline-flex;align-items:center;float:right}
+.fold summary{background:none!important;backdrop-filter:none!important;border:1px solid rgba(47,143,168,.6)!important;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.06em;list-style:none;display:inline-flex;align-items:center;float:right}
 .fold summary::-webkit-details-marker{display:none}
 .fold[open]{left:16px;right:16px;max-width:none}
 .fold .in{clear:both;margin-top:6px;background:rgba(240,244,242,.96);border:1px solid var(--line);border-radius:2px;padding:14px 16px;font-size:12.5px;line-height:1.75;color:var(--t2);max-height:60vh;overflow:auto;max-width:560px;margin-left:auto}
@@ -55,8 +55,8 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 <div class="rail" id="rail" role="slider" aria-label="時間の速さ" aria-valuemin="-10" aria-valuemax="13" aria-valuenow="0" tabindex="0"><b id="knob"></b></div>
 <details class="fold" id="fold"><summary>＋ 出典<span class="w">と模式</span></summary><div class="in">
 <p>速すぎるもの・遅すぎるものは、そのままでは人に受けとれません。ここでは<b>時間の速さだけを変えて、受けとれる速さに移した模式</b>として見せます。形・数・色は模式で、実測の映像ではありません。</p>
-<p><b>速い方</b>　光が葉の幅 10 cm を渡る＝約 0.3 ナノ秒（光速 約 30 万 km/秒からの計算）／音が 1 mm 進む＝約 3 マイクロ秒（音速 約 340 m/秒。参道の幅 約 20 m なら約 0.06 秒）／神経の信号＝活動電位の一回の持続が約 1 ミリ秒、伝わる速さは毎秒およそ 0.5〜120 m（有髄か無髄かで異なる）（神経科学の教科書の値）／蚊の羽ばたき＝毎秒 メス約 400・オス約 600 回（ネッタイシマカ。Cator et al. 2009, <i>Science</i> 323。参道に多いヒトスジシマカの値ではない）／ミツバチの羽ばたき＝毎秒 約 230 回（Altshuler et al. 2005, <i>PNAS</i> 102）／ハチドリの羽ばたき＝ホバリングで多くの種が毎秒 およそ 20〜80 回（大きな種ではさらに少ない。種と体の大きさによる。Altshuler &amp; Dudley 2003, <i>J. Exp. Biol.</i> 206 ほか。日本にはいない鳥で、比べるための模式）／ちらつきを見分ける上限（臨界融合頻度）＝人 明るい所でおよそ 60 回/秒、ハエのなかまを含む多くの昆虫 およそ 100〜300 回/秒（Cosens &amp; Spatz 1978 ほか。種・明るさ・温度で幅がある。下の Healy ほか 2013 も参照）。</p><p><b>欅一本の百年</b>　植えたケヤキの樹高＝27 年生で約 14.5 m、45 年生で約 21.9 m（片倉正行・奥村俊介 1989「ケヤキ人工林の成長」長野県林総研研究報告 5。長野県の人工林の上層木の値で、立地で大きく異なる）。芽生えのころと 45 年より先の伸び方、枝ぶりは模式。百年を約 30 秒（10⁸ 倍）で見せます。</p>
-<p><b>遅い方</b>　一日の影の動き（太陽の向きは天文の近似の計算。時刻は太陽時の模式で、標準時との差と均時差は省く。参道の向きは真北から西へ約 4°＝OpenStreetMap の参道の線で測った値）／月の満ち欠け＝朔望月 約 29.53 日（国立天文台『理科年表』）。欠け方は太陽との離角からの計算で、月の大きさ（実際の約 6 倍に見やすく）・模様・方角と高さは模式。新月のころは太陽の近くにあり見えない／ケヤキの一年（芽吹きは 4 月ごろ、落葉は 11〜12 月ごろ）・年輪は一年に一つ／参道は約 2 km、両側におよそ 650 本の高木があり、ケヤキが約 65％、30 種類以上。昭和の初めには杉並木だった（さいたま市『氷川参道のまちづくり』）。市の天然記念物の古木は令和 4 年 3 月で 11 本（さいたま市・氷川参道の樹木調査の報告）。ケヤキの樹冠は箒状・扇状に開く（三重県林業研究所の樹種解説）。参道の木の植えた年と大きさ、枝ぶりは模式です。ハチドリの体形（嘴は全長のおよそ 4 分の 1）とハエの姿も模式です。</p>
+<p><b>速い方</b>　光が葉の幅 10 cm を渡る＝約 0.3 ナノ秒（光速 約 30 万 km/秒からの計算）／音が 1 mm 進む＝約 3 マイクロ秒（音速 約 340 m/秒。参道の幅 約 20 m なら約 0.06 秒）／神経の信号＝活動電位の一回の持続が約 1 ミリ秒、伝わる速さは毎秒およそ 0.5〜120 m（有髄か無髄かで異なる）（神経科学の教科書の値）／蚊の羽ばたき＝毎秒 メス約 400・オス約 600 回（ネッタイシマカ。Cator et al. 2009, <i>Science</i> 323。参道に多いヒトスジシマカの値ではない）／ミツバチの羽ばたき＝毎秒 約 230 回（Altshuler et al. 2005, <i>PNAS</i> 102）／ちらつきを見分ける上限（臨界融合頻度）＝人 明るい所でおよそ 60 回/秒、ハエのなかまを含む多くの昆虫 およそ 100〜300 回/秒（Cosens &amp; Spatz 1978 ほか。種・明るさ・温度で幅がある。下の Healy ほか 2013 も参照）。</p><p><b>欅一本の百年</b>　植えたケヤキの樹高＝27 年生で約 14.5 m、45 年生で約 21.9 m（片倉正行・奥村俊介 1989「ケヤキ人工林の成長」長野県林総研研究報告 5。長野県の人工林の上層木の値で、立地で大きく異なる）。芽生えのころと 45 年より先の伸び方、枝ぶりは模式。百年を約 30 秒（10⁸ 倍）で見せます。</p>
+<p><b>遅い方</b>　一日の影の動き（太陽の向きは天文の近似の計算。時刻は太陽時の模式で、標準時との差と均時差は省く。参道の向きは真北から西へ約 4°＝OpenStreetMap の参道の線で測った値）／月の満ち欠け＝朔望月 約 29.53 日（国立天文台『理科年表』）。欠け方は太陽との離角からの計算で、月の大きさ（実際の約 6 倍に見やすく）・模様・方角と高さは模式。新月のころは太陽の近くにあり見えない／ケヤキの一年（芽吹きは 4 月ごろ、落葉は 11〜12 月ごろ）・年輪は一年に一つ／参道は約 2 km、両側におよそ 650 本の高木があり、ケヤキが約 65％、30 種類以上。昭和の初めには杉並木だった（さいたま市『氷川参道のまちづくり』）。市の天然記念物の古木は令和 4 年 3 月で 11 本（さいたま市・氷川参道の樹木調査の報告）。ケヤキの樹冠は箒状・扇状に開く（三重県林業研究所の樹種解説）。参道の木の植えた年と大きさ、枝ぶりは模式です。ハエの姿も模式です。</p>
 <p><b>歴史</b>　見沼代用水の開削＝1728 年（井沢弥惣兵衛）／見沼溜井＝1629 年（伊奈忠治）／氷川神社は『延喜式』神名帳（927 年に撰進）に名神大社として載る／創建は孝昭天皇 3 年と<b>社伝</b>に伝わる（社伝であり、年代は確かめられていない）。</p>
 <p><b>土と地形</b>　土が 1 cm できるのに、最大で千年ほどかかることがある。気候・母材・地形で大きく異なる（FAO 2015「Soil is a non-renewable resource」）／約 6000〜7000 年前の縄文海進で、見沼の低地まで入り江（奥東京湾）が入りこんだ／大宮台地は約 12〜13 万年前の最終間氷期に浅い海の底で、のちに段丘となり、その上に主に箱根・富士山などから飛来した火山灰（関東ローム層）が厚く積もった（国土交通省『土地分類基本調査（土地履歴調査）説明書「大宮」』2012、p.7）。水の高さと岸の形は模式です。</p>
 <p><b>大きさと速さ</b>　Healy, K. ほか（2013）「Metabolic rate and body size are linked with perception of temporal information」Animal Behaviour 86: 685–696。体の小さい・代謝の速い動物ほど、見分けられるちらつきの速さの上限が高い傾向（種や明るさで幅がある）。Qualia/scale との行き来は、この傾向を模式にしたもの。</p>
@@ -80,7 +80,6 @@ const BANDS=[ // [n, 起きていること, 受けとれること]
  [-3,'神経の信号がひとつ走る（活動電位 約 1 ミリ秒）','腕の中の信号が、目で追える。この速さでは、まだ何も感じとれない。'],
  [-2.6,'蚊（ネッタイシマカ）の羽の一打ち（雌 約 400・雄 約 600 回/秒）','蚊の羽の一打ちが、ひとつずつ見える。'],
  [-2.3,'ミツバチの羽の一打ち（毎秒 約 230 回）','ミツバチの羽が、打ち下ろし、打ち上げるのが見える。'],
- [-.95,'ハチドリの羽（毎秒 約 20〜80 回）','ハチドリの羽の一打ちが、ゆっくり見える（模式）。'],
  [-1.2,'音が参道の幅を渡る（約 0.06 秒）','羽音のもとの動きが見えてくる。人の歩みは止まって見える。'],
  [-.45,'ハエの 1 秒（ちらつきを細かく見分ける）','ハエは人より細かく、ちらつきを見分ける。その 1 秒を引きのばした模式。'],
  [0,'いまの 1 秒（等倍）','人の目と耳に、ちょうど受けとれる速さ。羽は霞んで見えない。'],
@@ -120,7 +119,7 @@ function ui(){
  const p=(NMAX-n)/(NMAX-NMIN);$('knob').style.top=(p*100)+'%';rail.setAttribute('aria-valuenow',n.toFixed(1));
  $('mN').innerHTML=Math.abs(n)<.05?'等倍':'10<sup>'+sup(n)+'</sup> 倍の速さ';$('mH').textContent='1 秒で '+human(Math.pow(10,n));
  const b=bandAt(n);if(b!==lastBand){lastBand=b;window.mitsuIchimai&&window.mitsuIchimai.layer(b[1].split('（')[0]);/* 11-12 持ち帰りの一枚に、通った時間の段を足す */$('mE').textContent=b[1];$('cap').textContent=hinted?b[2]:'上下にドラッグ・スクロールで、時間の速さが変わる。'}
- if(n>-3.3&&n<-1.6)tq('f','小さく速く飛ぶ虫は、この細かさまで受けとる（模式・出典は ＋）','','../36/?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../36/?s=1.25','一本の欅の大きさへ');else tq(null);
+ if(n>-3.3&&n<-1.6)tq('f','小さく速く飛ぶ虫は、この細かさまで受けとる（模式）','','../36/?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../36/?s=1.25','一本の欅の大きさへ');else tq(null);
  const gA=W&&W.grow;const a=gA>=0?'植えてから 約 '+Math.round(gA)+' 年':fmtAgo(ago);if(a!==lastTxt){lastTxt=a;$('mA').textContent=a}
 }
 window.__setN=v=>{nT=v;n=v;};window.__time={get n(){return n},get ago(){return ago}};
