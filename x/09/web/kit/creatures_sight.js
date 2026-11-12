@@ -564,7 +564,7 @@ export function makeTit(mat = stdMat, o = {}) {
 //   赤毛に「裏白」（頬・のど・胸・腹・脚の内・尾の裏が白っぽい）。立った三角の耳、巻いた尾、黒い鼻、奥まった三角の目。
 // 2026-11-04 本人「柴犬にする」：イヌは柴犬（makeShiba）に。旧トイプードルは参照用に残す（呼ばれない）。
 export function makeDog(mat = stdMat, o = {}) {
-  const g = makeShiba(mat, o), w = new T.Group(); if (o.tanuki) g.scale.set(.68, .48, .62); else g.scale.setScalar(.6); w.add(g); w.userData = g.userData; return w;   // タヌキは脚が短く胴が太い（体の形を低く・幅広に）
+  const g = makeShiba(mat, o), w = new T.Group(); if (o.tanuki) g.scale.set(.8, .42, .62); else g.scale.setScalar(.6); w.add(g); w.userData = g.userData; return w;   // タヌキは脚が短く胴が太い（体の形を低く・幅広に）
 }
 
 function makePoodleOld(mat = stdMat, o = {}) {
@@ -624,7 +624,7 @@ function makeShiba(mat = stdMat, o = {}) {
   //   鼻は湿って細かい粒のある面（鼻鏡）、目は濡れた映りこみ、まぶたのふちは黒い。
   // 2026-11-12 タヌキ（Nyctereutes procyonoides）：柴犬の体の形を土台に、毛の色（灰褐色・背は黒みを帯びる・脚は黒）、小さく丸い耳、垂れた太い尾に替える
   const TN = !!o.tanuki;
-  const g = new T.Group(); const R = TN ? 0x7a6b58 : 0xb8692f, Cr = TN ? 0x2b2622 : 0xf3e9d6, RD = TN ? 0x3e352d : 0x9c5326, RL = TN ? 0x9a8a72 : 0xc98a50;
+  const g = new T.Group(); const R = TN ? 0x5f5545 : 0xb8692f, Cr = TN ? 0x2b2622 : 0xf3e9d6, RD = TN ? 0x3e352d : 0x9c5326, RL = TN ? 0x9a8a72 : 0xc98a50;
   const fur = mk(mat, 0xffffff, { vc: true, map: furTex([8, 4]), rough: .9, temp: .95, uv: .04, phys: MOBILE ? undefined : { sheen: .5, sheenRoughness: .5, sheenColor: 0xffe2c0 } });
   const urajiro = (cyLim) => (t, sx, cy) => cy < cyLim ? Cr : cy < cyLim + .2 ? mixc(Cr, RL, (cy - cyLim) / .2) : cy < cyLim + .4 ? mixc(RL, R, (cy - cyLim - .2) / .2) : cy > .6 ? RD : R;
   const ellC = (m, c, ...a) => { const e = ell(m, ...a); e.geometry = e.geometry.clone(); const n = e.geometry.attributes.position.count, cA = new Float32Array(n * 3), cc = new T.Color(c); for (let i = 0; i < n; i++) cA.set([cc.r, cc.g, cc.b], i * 3); e.geometry.setAttribute('color', new T.BufferAttribute(cA, 3)); return e; };
@@ -678,7 +678,7 @@ function makeShiba(mat = stdMat, o = {}) {
   for (const s of [-1, 1]) { leg(s, true); leg(s, false); }
   // 巻いた尾（背の上で巻く。裏は白い。毛が長くふさふさ）。付け根を軸に左右へ振る
   const tailP = new T.Group(); tailP.position.set(0, .74, -.48); g.add(tailP);
-  const tailG = TN ? sweep([[0, .74, -.48], [0, .66, -.6], [0, .52, -.66], [0, .4, -.68]], tab([[0, .06], [.5, .075], [1, .03]]), tab([[0, .06], [.5, .08], [1, .03]]), (t, sx, cy) => t > .75 || cy > .5 ? RD : R, { n: 14, r: 12 }) : sweep([[0, .74, -.48], [0, .92, -.56], [0, 1.03, -.46], [.03, 1.02, -.33], [.08, .93, -.31], [.1, .87, -.38]], tab([[0, .055], [.5, .06], [1, .025]]), tab([[0, .055], [.5, .065], [1, .025]]), (t, sx, cy) => cy < -.1 ? Cr : R, { n: 20, r: 12 });   // タヌキは垂れた太い尾（先が黒っぽい） tailG.translate(0, -.74, .48);
+  const tailG = TN ? sweep([[0, .74, -.48], [0, .66, -.6], [0, .52, -.66], [0, .4, -.68]], tab([[0, .08], [.5, .11], [1, .05]]), tab([[0, .08], [.5, .12], [1, .05]]), (t, sx, cy) => t > .7 || cy > .5 ? RD : R, { n: 14, r: 12 }) : sweep([[0, .74, -.48], [0, .92, -.56], [0, 1.03, -.46], [.03, 1.02, -.33], [.08, .93, -.31], [.1, .87, -.38]], tab([[0, .055], [.5, .06], [1, .025]]), tab([[0, .055], [.5, .065], [1, .025]]), (t, sx, cy) => cy < -.1 ? Cr : R, { n: 20, r: 12 });   // タヌキは垂れた太い尾（先が黒っぽい） tailG.translate(0, -.74, .48);
   if (TN) tailG.translate(0, -.74, .48);   // 尾の付け根（tailP）からの位置に
   const tailM = new T.Mesh(tailG, fur); tailP.add(tailM);
   addFur(tailM, mat, { ...FD, len: (u) => .055 * sstep(0, .15, u) * (1 - .4 * sstep(.8, 1, u)), droop: .25, thick: .5, comb: [0, 0, 0] });
