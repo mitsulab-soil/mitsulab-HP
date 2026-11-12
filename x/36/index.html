@@ -19,6 +19,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .top a{pointer-events:auto;color:var(--t1);text-decoration:none;font:500 13px/1 Inter,sans-serif;letter-spacing:.08em;padding:12px 0;min-height:44px;display:inline-flex;align-items:center}
 .top b{font:400 15px/1 "Shippori Mincho","Hiragino Mincho ProN",serif;font-weight:400;letter-spacing:.06em}
 span.nw{white-space:nowrap}
+#tq{position:fixed;bottom:calc(max(22px,calc(env(safe-area-inset-bottom) + 14px)) + 84px);color:#eef3f1;text-shadow:0 0 3px rgba(7,13,26,.9),0 0 10px rgba(7,13,26,.6);left:50%;transform:translateX(-50%);width:min(330px,calc(100% - 120px));text-align:center;font:12px/1.6 "Hiragino Kaku Gothic ProN",sans-serif;opacity:0;pointer-events:none;transition:opacity .6s;z-index:5}#tq.on{opacity:1}#tq.on a{pointer-events:auto}#tq a{background:rgba(20,30,34,.18);display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid currentColor;border-radius:2px;text-decoration:none;color:inherit}#tq small{display:block;font-size:11px;opacity:.85}
 #cap{position:fixed;left:50%;bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));transform:translateX(-50%);width:min(640px,calc(100% - 92px));text-align:center;font:400 15px/1.7 "Shippori Mincho","Hiragino Mincho ProN",serif;color:var(--t1);text-shadow:0 0 2px rgba(7,13,26,.9),0 0 6px rgba(7,13,26,.7),0 0 16px rgba(7,13,26,.45);transition:opacity .5s;text-wrap:balance;word-break:auto-phrase;line-break:strict;pointer-events:none}
 #rule{position:fixed;right:0;top:0;bottom:0;width:64px;touch-action:none;cursor:pointer}
 #rule svg{position:absolute;right:14px;top:12%;height:76%;width:34px;overflow:visible}
@@ -47,6 +48,7 @@ body.fo #cap{opacity:0}
 <div id="rule" role="slider" aria-label="大きさ" aria-valuemin="-9" aria-valuemax="7" tabindex="0"><svg id="rsv"></svg></div>
 <div id="cred"></div>
 <div id="hint" aria-hidden="true">上下になぞる・つまむ・スクロールで、大きさが変わる</div>
+<div id="tq" aria-live="polite"></div>
 <div id="cap">参道の欅の一枚。</div>
 <button id="home" title="葉へ戻る" style="position:fixed;right:70px;top:max(56px,calc(env(safe-area-inset-top) + 44px));min-height:44px;padding:0 12px;border:1px solid rgba(238,245,251,.55);border-radius:2px;background:transparent;color:#eef5fb;font:400 13px/1 'Shippori Mincho',serif;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .6s">葉へ戻る</button>
 <button id="plus" aria-expanded="false" aria-controls="fold" title="出典">＋</button>
@@ -61,6 +63,7 @@ body.fo #cap{opacity:0}
 <li>光の顕微鏡で分けられる限界＝約 0.2 µm（Abbe の回折限界）。これより小さい段は、電子顕微鏡の像と測定にもとづく<b>模式</b>。</li>
 <li>光化学系 II とアンテナの複合体＝数十 nm（Dekker &amp; Boekema 2005, <i>BBA</i> 1706: 12–39）。光化学系 II の二量体＝約 20 × 10 nm（Umena ほか 2011, <i>Nature</i> 473: 55–60）。チラコイドの膜の厚さ＝約 4〜5 nm。</li>
 <li>クロロフィル a＝Mg を中心にしたクロリン環（約 1 nm）と、炭素 20 のフィトールの尾（Taiz &amp; Zeiger『植物生理学』）。原子の並びと結合は <a href="https://pubchem.ncbi.nlm.nih.gov/compound/12085802" target="_blank" rel="noopener">PubChem CID 12085802</a> の構造（重原子 65 個）。膜と分子の立体の形・尾の曲がり・色は<b>模式</b>。</li>
+<li>大きさと時間の受けとり方＝Healy, K. ほか（2013）「Metabolic rate and body size are linked with perception of temporal information」Animal Behaviour 86: 685–696。体の小さい・代謝の速い動物ほど、見分けられるちらつきの速さの上限（臨界融合頻度）が高い傾向。明るい所で測った値で、人は約 60 回/秒、ハエのなかまでは 200 回/秒をこえる例がある。種や明るさで幅があり、ここでは傾向として模式で示す。</li>
 <li>参道・町・地形・平野の写真＝<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（全国最新写真・シームレス）</a>。出典：国土地理院。ズーム 9〜13 のデータソース：Landsat8画像（GSI,TSIC,GEO Grid/AIST）, Landsat8画像（courtesy of the U.S. Geological Survey）, 海底地形（GEBCO）。ズーム 7〜8 は世界衛星モザイク画像（NASA LP DAAC／USGS EROS）。台地の段の陰影＝国土地理院 地理院タイル（陰影起伏図）。</li>
 <li>日本列島＝南北およそ 3,000 km（国土地理院）。地球＝平均半径 6,371 km（NASA Earth Fact Sheet）。</li>
 <li>列島と地球の画像＝Blue Marble Next Generation（2004 年 11 月）。Credit: NASA Earth Observatory（Reto Stöckli）。</li>
@@ -608,7 +611,10 @@ const SMIN = -9.2, SMAX = 7.15, rsv = document.getElementById("rsv"), rule = doc
 const rk = () => document.getElementById("rk");
 
 /* ── 操作：スクロール・ピンチ・上下のドラッグ＝大きさ、左右のドラッグ＝見まわす ── */
-let S = -1, ST = -1, AZ = 0, AZT = 0; const clampS = v => Math.min(SMAX, Math.max(SMIN, v));
+let S = -1, ST = -1, AZ = 0, AZT = 0; const clampS = v => Math.min(SMAX, Math.max(SMIN, v)); { const q_ = parseFloat(new URLSearchParams(location.search).get("s")); if (isFinite(q_)) setTimeout(() => { ST = clampS(q_); }, 400); }   /* Qualia/time から：いつもの葉の段で起動し（起動の速さを保つ）、その速さに合う大きさへ移っていく */
+const tqEl=document.getElementById("tq");let tqK=null;
+function tq(k,line,note,href,lab){if(k===tqK)return;tqK=k;if(!k){tqEl.classList.remove("on");return}tqEl.innerHTML=line+(note?'<small>'+note+'</small>':'')+'<a href="'+href+'">'+lab+' →</a>';tqEl.classList.add("on")}
+function tqAt(s){ if (s > -2.9 && s < -1.6) tq("s","この大きさの虫には、時間を細かく受けとるものが多い（模式・出典は ＋）","","../37/?n=-2.3","羽の一打ちの速さへ"); else if (s > 1.1 && s < 2.05) tq("b","大きなものの変化は、人には遅すぎて見えない","","../37/?n=7.4","欅の一年の速さへ"); else tq(null); }
 addEventListener("wheel", e => { e.preventDefault(); ST = clampS(ST + Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 120) * .0028); }, { passive: false });
 const ptr = new Map(); let pinch0 = 0, sAt = 0;
 cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptr.set(e.pointerId, [e.clientX, e.clientY]); if (ptr.size === 2) { const [a, b] = [...ptr.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); sAt = ST; } });
@@ -679,7 +685,7 @@ function frame(now) {
   const n = Math.abs(S - Math.round(S)) < .05 ? String(Math.round(S)) : S.toFixed(1); nE.textContent = "10" + n.split("").map(c => c === "." ? "·" : SUP[c]).join("") + " m";   /* 指数は小数一桁まで（下の行の数と食い違わない） */ nH.textContent = human(S);
   rk().setAttribute("cy", ((SMAX - S) / (SMAX - SMIN) * 100) + "%"); rule.setAttribute("aria-valuenow", S.toFixed(1));
   { const on = S > 6.6 || S < -8.6; home.style.opacity = on ? 1 : 0; home.style.pointerEvents = on ? "auto" : "none"; }
-  caption(S); const cr = microA > .5 ? "模式と値は ＋" : TF > .5 && S > 1.6 ? (S > 4.2 ? "写真：国土地理院（Landsat8・GEBCO ほか）" : "写真：国土地理院") : S > 5.5 ? "画像：NASA Earth Observatory" : ""; if (credEl.textContent !== cr) credEl.textContent = cr;
+  caption(S); tqAt(S); const cr = microA > .5 ? "模式と値は ＋" : TF > .5 && S > 1.6 ? (S > 4.2 ? "写真：国土地理院（Landsat8・GEBCO ほか）" : "写真：国土地理院") : S > 5.5 ? "画像：NASA Earth Observatory" : ""; if (credEl.textContent !== cr) credEl.textContent = cr;
   requestAnimationFrame(frame);
 }
 window.__setS = v => { S = ST = v; }; window.__loading = () => loading + queue.length; window.__cam = () => cam.position.toArray(); window.__trees = () => trees.children.map(c => [c.type, c.visible, c.count || 0]);

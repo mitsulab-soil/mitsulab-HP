@@ -2969,6 +2969,7 @@ QW.dbg = () => ({ moving: WALK.moving, v: AOI.v, vis: AOI.root?.visible, cam: [C
 QW.wear = id => wearLayer(id);
 QW.sight = id => { const sp = D.sight.find(s => s.id === id); if (sp && BODY_D[sp.id]) enterSight(sp, null); };
 QW.goto = d => { const a = atD(d); CAM.pos.set(a.x, groundY(a.x, a.z) + EYE, a.z); CAM.yaw = yawAlong(d + 5); CAM.look = 0; if (AOI.m) { aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, CAM.yaw + Math.PI); } updateTrees(true); };
+QW.sun = sun; QW.hemi = hemi; QW.sndCtx = () => sndCtx(); QW.sndOut = () => SND.out; QW.syncAuto = () => syncAutoBtn(); QW.soundOn = () => soundOn;   /* 11-12 kit/walk4.js（顔を上げる時間・その日の光・足もとの土）が使う */
 QW.groundAt = (x, z) => aoiFootY(x, z); QW.LAYER = LAYER; QW.CAM = CAM; QW.QAK = QAK; QW.QAC = QAC;
 QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) { L.show = 1; L.root.visible = true; openObj(L); } return !!L; };
 QW.talkNow = () => { TALK.nextT = 0; };
