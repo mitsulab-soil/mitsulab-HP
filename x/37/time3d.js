@@ -114,7 +114,7 @@ export function create(canvas) {
     const wings = []; for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg, wm.clone()); w.position.set(s * len * .12, len * .16, len * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k }); }
     return { g, wings, bm };
   };
-  const bee = bug(.014, '#8a6a2c', .011); bee.g.position.set(mobile ? .025 : .07, 1.55, 3.74); bee.g.rotation.y = .9; S.add(bee.g);
+  const bee = bug(.014, '#8a6a2c', .011); bee.g.position.set(mobile ? .012 : .04, 1.57, 3.84); bee.g.rotation.y = .9; S.add(bee.g);
   { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
   const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .012 : .03, 1.585, 3.79); fly.g.rotation.y = 1.57; fly.bm.color.set('#4a4a44'); S.add(fly.g);   // イエバエのなかま（模式）
   const mos = bug(.006, '#4a4038', .0055); mos.g.position.set(-.06, 1.62, 3.8); mos.g.rotation.y = -.6; S.add(mos.g);
@@ -169,7 +169,7 @@ export function create(canvas) {
   const _d = new THREE.Vector3(), _p = new THREE.Vector3();
   const GREEN = new THREE.Color('#e8f0dc'), YEL = new THREE.Color('#f0d48a'), RED = new THREE.Color('#e0a070'), BUD = new THREE.Color('#d8ecb8');
 
-  let seaF = 0, gw = 0, gAge = 0;
+  let seaF = 0, gw = 0, gAge = 0; const GI = 3;   // 育つ一本（少し奥の一本。全身が入る）
   // 欅一本の百年（樹高：27 年生 約 14.5 m・45 年生 約 21.9 m＝片倉・奥村 1989 長野県林総研報告 5。45 年より先と芽生えは模式）
   const hOf = a => a < 27 ? .15 + 14.35 * Math.pow(a / 27, 1.15) : a < 45 ? 14.5 + 7.4 * (a - 27) / 18 : 21.9 + 3.6 * (1 - Math.exp(-(a - 45) / 30));
   function placeTrees(ago, season, dens) {
@@ -183,7 +183,7 @@ export function create(canvas) {
       gk = keyaki * (1 - deep) + deep * (t.seed % 3 === 0 ? cyc : 0);
       gc = sugi * (1 - deep); gk *= 1 - seaF; gc *= 1 - seaF;
       let H = 4 + 18 * gk;
-      if (i === 2 && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
+      if (i === GI && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
       const Wd = .25 + gk * 1.1;
       const hT = H * (.3 + .1 * hash1(t.seed * 2.3)); m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(Wd, gk > .02 ? hT : .0001, Wd)); trunks.setMatrixAt(i, m4);
       for (let b = 0; b < NB; b++) { const h2 = hash1(t.seed * 9.1 + b * 2.7), h3 = hash1(t.seed * 1.9 + b * 5.3), ang = (b / NB + t.seed * .13 + (h2 - .5) * .14) * Math.PI * 2, hb = hash1(t.seed * 3.7 + b * 1.3), nb = 3 + Math.floor(hash1(t.seed * 4.4) * 4), on = gk > .02 && b < nb;
@@ -192,18 +192,18 @@ export function create(canvas) {
         e.set(Math.cos(ang) * t1, 0, Math.sin(ang) * t1, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(t.x, y0, t.z), q, s3.set(w0, on ? l1 : .0001, w0)); branches.setMatrixAt((i * NB + b) * 4, m4);
         _bd.set(0, 1, 0).applyQuaternion(q); const bx = t.x + _bd.x * l1, by = y0 + _bd.y * l1, bz = t.z + _bd.z * l1;
         let px = bx, py = by, pz = bz;
-        for (let sg = 1; sg < 4; sg++) { const tt = sg === 3 ? t1 * (1.2 + .8 * h2) : t1 * (sg === 1 ? .5 + .25 * h3 : .2 + .2 * h2), aa = sg === 3 ? ang + (h3 > .5 ? 1 : -1) * (.8 + .9 * h2) : ang + (h3 - .5) * .3 * sg, ll = sg === 3 ? l2 * .45 : l2 * (sg === 1 ? .55 : .5), ww = w0 * (sg === 3 ? .22 : sg === 1 ? .52 : .27);
+        for (let sg = 1; sg < 4; sg++) { const tt = sg === 3 ? t1 * (.9 + .4 * h2) : t1 * (sg === 1 ? .5 + .25 * h3 : .2 + .2 * h2), aa = sg === 3 ? ang + (h3 > .5 ? 1 : -1) * (.8 + .9 * h2) : ang + (h3 - .5) * .3 * sg, ll = sg === 3 ? l2 * .28 : l2 * (sg === 1 ? .55 : .5), ww = w0 * (sg === 3 ? .16 : sg === 1 ? .52 : .27);
           e.set(Math.cos(aa) * tt, 0, Math.sin(aa) * tt, 'YXZ'); q.setFromEuler(e);
           const ox = sg === 3 ? bx : px, oy = sg === 3 ? by + (py - by) * .5 : py, oz = sg === 3 ? bz : pz;
           m4.compose(v3.set(ox, oy, oz), q, s3.set(ww, on ? ll : .0001, ww)); branches.setMatrixAt((i * NB + b) * 4 + sg, m4);
           if (sg < 3) { _bd.set(0, 1, 0).applyQuaternion(q); px = ox + _bd.x * ll; py = oy + _bd.y * ll; pz = oz + _bd.z * ll; } } }   // 根もと→中ほど→先と立ち上がる弧＋細い枝（模式）
       m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(gc * 1.1 + .0001, gc * 20 + .0001, gc * 1.1 + .0001)); cedars.setMatrixAt(i, m4);
       for (let j = 0; j < LPT; j++) { const o = LO[i * LPT + j], k = i * LPT + j, on = o[4] < dens && gk > .05;
-        const cr = (1.8 + 4.6 * gk) * (i === 2 && gw > .01 ? .55 + .45 * gk : 1);
+        const cr = (1.8 + 4.6 * gk) * (i === GI && gw > .01 ? .55 + .45 * gk : 1);
         e.set(o[5] * .3, o[3], o[5] * .2); q.setFromEuler(e);
-        const fan = .35 + .85 * o[1]; m4.compose(v3.set(t.x + o[0] * cr * fan, H * (.5 + o[1] * .5) , t.z + o[2] * cr * fan), q, s3.setScalar(on ? (i === 2 && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
+        const fan = .35 + .85 * o[1]; m4.compose(v3.set(t.x + o[0] * cr * fan, H * (.5 + o[1] * .5) , t.z + o[2] * cr * fan), q, s3.setScalar(on ? (i === GI && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
     }
-    { const yo = gw > .01; if (yo || youngOn) { for (let j = 0; j < LPT; j++) leaves.setColorAt(2 * LPT + j, yo ? YOUNG : WHITE); leaves.instanceColor.needsUpdate = true; trunks.setColorAt(2, yo ? TGLOW : WHITE); trunks.instanceColor.needsUpdate = true; for (let j = 0; j < NB * 4; j++) branches.setColorAt(2 * NB * 4 + j, yo ? TGLOW : WHITE); branches.instanceColor.needsUpdate = true; youngOn = yo; } }
+    { const yo = gw > .01; if (yo || youngOn) { for (let j = 0; j < LPT; j++) leaves.setColorAt(GI * LPT + j, yo ? YOUNG : WHITE); leaves.instanceColor.needsUpdate = true; trunks.setColorAt(GI, yo ? TGLOW : WHITE); trunks.instanceColor.needsUpdate = true; for (let j = 0; j < NB * 4; j++) branches.setColorAt(GI * NB * 4 + j, yo ? TGLOW : WHITE); branches.instanceColor.needsUpdate = true; youngOn = yo; } }
     trunks.instanceMatrix.needsUpdate = branches.instanceMatrix.needsUpdate = cedars.instanceMatrix.needsUpdate = leaves.instanceMatrix.needsUpdate = true;
   }
 
@@ -264,7 +264,7 @@ export function create(canvas) {
     clouds.instanceMatrix.needsUpdate = true;
     // 羽：見かけの回数が毎秒 20 回を超えると、霞んだ扇に
     for (const [b, f, amp, hv] of [[bee, 230, 1.0], [mos, 500, 1.2], [fly, 190, 1.0, 2]]) {
-      const fa = f * rate, blur = sm(12, 30, fa), vis = hv === 2 ? sm(-.75, -.6, n) * (1 - sm(-.15, .05, n)) : hv ? sm(-1.5, -1.2, n) * (1 - sm(-.75, -.55, n)) : (1 - sm(.9, 1.7, n)) * (b === bee ? 1 - sm(-.85, -.65, n) * (1 - sm(-.2, -.05, n)) : 1);
+      const fa = f * rate, blur = sm(12, 30, fa), vis = b === mos ? sm(-3.3, -3.0, n) * (1 - sm(-2.1, -1.8, n)) : hv === 2 ? sm(-.75, -.6, n) * (1 - sm(-.15, .05, n)) : hv ? sm(-1.5, -1.2, n) * (1 - sm(-.75, -.55, n)) : (1 - sm(.9, 1.7, n)) * (b === bee ? 1 - sm(-.85, -.65, n) * (1 - sm(-.2, -.05, n)) : 1);
       b.g.visible = vis > .02; 
       for (const { w, s, k, ghost } of b.wings) { const ph = 2 * Math.PI * f * tFast;
         if (ghost) { w.rotation.z = s * amp * Math.sin(ph - k * .55); w.visible = vis > .02; w.material.opacity = (k ? .2 / k : .55) * vis; continue; }
@@ -292,7 +292,7 @@ export function create(canvas) {
       } }
     // 目：ほんの少しの呼吸と、見回し
     cam.position.y = 1.6 + Math.sin(performance.now() / 1600) * .004;
-    cam.rotation.set((.16 + .1 * Math.min(1, gAge / 45)) * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + Math.atan2(-T[2].x, 4 - T[2].z) * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
+    cam.rotation.set((.12 + .16 * Math.min(1, gAge / 45)) * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + Math.atan2(-T[GI].x, 4 - T[GI].z) * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
     R.render(S, cam);
   }
   return { frame, get grow() { return gw > .3 ? gAge : -1; } };

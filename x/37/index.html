@@ -44,7 +44,7 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 .fold .in{clear:both;margin-top:6px;background:rgba(240,244,242,.96);border:1px solid var(--line);border-radius:2px;padding:14px 16px;font-size:12.5px;line-height:1.75;color:var(--t2);max-height:60vh;overflow:auto;max-width:560px;margin-left:auto}
 .fold .in p+p{margin-top:6px}.fold .in b{font-weight:400;color:var(--t1)}
 .hint{text-shadow:var(--halo);position:fixed;left:calc(50% - 26px);top:40%;transform:translate(-50%,-50%);font-size:13px;color:var(--t1);background:var(--pane);padding:10px 14px;border-radius:2px;pointer-events:none;transition:opacity .8s;white-space:nowrap}
-@media (max-width:420px){.rail{top:calc(max(10px,env(safe-area-inset-top)) + 80px)}h1{font-size:15px}.top{gap:8px}.hint{font-size:12px}h1 small{display:none}.fold summary .w{display:none}.fold{right:16px}.meter{font-size:11px}.meter .big{font-size:17px}.cap{font-size:13.5px}.rail .lab{display:none}}
+@media (max-width:420px){#tq .l,#tq small{display:none}#tq{bottom:calc(132px + env(safe-area-inset-bottom))}.cap{bottom:calc(68px + env(safe-area-inset-bottom));font-size:13px;line-height:1.55}.rail{top:calc(max(10px,env(safe-area-inset-top)) + 80px)}h1{font-size:15px}.top{gap:8px}.hint{font-size:12px}h1 small{display:none}.fold summary .w{display:none}.fold{right:16px}.meter{font-size:11px}.meter .big{font-size:17px}.cap{font-size:13.5px}.rail .lab{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -72,7 +72,7 @@ const $=id=>document.getElementById(id);
 const NMIN=-9.6,NMAX=12.8;
 let n=0,nT=0,ago=0;{const q=parseFloat(new URLSearchParams(location.search).get('n'));if(isFinite(q)){n=nT=Math.max(NMIN,Math.min(NMAX,q))}}  // Qualia/scale から、その大きさに合う速さで入る
 const tqEl=document.getElementById("tq");let tqK=null;
-function tq(k,line,note,href,lab){if(k===tqK)return;tqK=k;if(!k){tqEl.classList.remove("on");return}tqEl.innerHTML=line+(note?'<small>'+note+'</small>':'')+'<a href="'+href+'">'+lab+' →</a>';tqEl.classList.add("on");const a=tqEl.querySelector('a');if(k==='h')a.onclick=e=>{e.preventDefault();setT(0)}}
+function tq(k,line,note,href,lab){if(k===tqK)return;tqK=k;if(!k){tqEl.classList.remove("on");return}tqEl.innerHTML='<span class="l">'+line+'</span>'+(note?'<small>'+note+'</small>':'')+'<a href="'+href+'">'+lab+' →</a>';tqEl.classList.add("on");const a=tqEl.querySelector('a');if(k==='h')a.onclick=e=>{e.preventDefault();setT(0)}}
    // n＝10ⁿ 秒が 1 秒に／ago＝いまから遡った年
 const BANDS=[ // [n, 起きていること, 受けとれること]
  [-9.5,'光が葉の幅を渡る（約 0.3 ナノ秒）','光の届く先が、葉の上を進んでいく（模式）。ほかはすべて止まっている。'],
@@ -87,7 +87,7 @@ const BANDS=[ // [n, 起きていること, 受けとれること]
  [4.8,'一日の影がめぐる','影が足もとを回る。人の姿は速すぎて、もう見えない。'],
  [6.1,'月が満ちて欠ける（約 29.5 日）','参道の先の空で、月が満ち、欠ける。昼と夜は、もう見分けられない。'],
  [7.4,'ケヤキの一年','葉がひらき、色づき、落ちる。一日の明暗は、ちらつきに溶ける。'],
- [8,'欅一本の百年（百年を約 30 秒に）','若い欅が一本、育つ（植えて 45 年ほどで約 22 m・模式）。'],
+ [8,'欅一本の百年（百年を約 30 秒に）','若い欅が一本、育つ。植えて 45 年で約 22 m（模式）。'],
  [9.2,'並木が育つ（数十年）','木が育ち、倒れ、植えかえられる。季節はもう見分けられない。'],
  [10.5,'土が 1 cm できる（条件により、長いと千年ほど）','1 秒で約千年。長いと千年かかる 1 cm の土が、1 秒ほどで積もる。木は生えては消え、並木も道も霞む。'],
  [11.6,'見沼の入り江（数千年）','水が台地の下まで寄せ、引いていく。'],
@@ -119,8 +119,8 @@ function ui(){
  const p=(NMAX-n)/(NMAX-NMIN);$('knob').style.top=(p*100)+'%';rail.setAttribute('aria-valuenow',n.toFixed(1));
  $('mN').innerHTML=Math.abs(n)<.05?'等倍':'10<sup>'+sup(n)+'</sup> 倍の速さ';$('mH').textContent='1 秒で '+human(Math.pow(10,n));
  const b=bandAt(n);if(b!==lastBand){lastBand=b;window.mitsuIchimai&&window.mitsuIchimai.layer(b[1].split('（')[0]);/* 11-12 持ち帰りの一枚に、通った時間の段を足す */$('mE').textContent=b[1];$('cap').textContent=hinted?b[2]:'上下にドラッグ・スクロールで、時間の速さが変わる。'}
- if(n>-3.3&&n<-1.6)tq('f','小さく速く飛ぶ虫は、この細かさまで受けとる（模式）','','../36/?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../36/?s=1.25','一本の欅の大きさへ');else tq(null);
- const gA=W&&W.grow;const a=gA>=0?'植えてから 約 '+Math.round(gA)+' 年':fmtAgo(ago);if(a!==lastTxt){lastTxt=a;$('mA').textContent=a}
+ if(n>-3.3&&n<-1.6)tq('f','小さな虫は、人より細かい時間を見分ける（模式）','','../36/?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../36/?s=1.25','一本の欅の大きさへ');else tq(null);
+ const gA=W&&W.grow;const a=gA>=0?'植えて 約 '+Math.round(gA)+' 年':fmtAgo(ago);if(a!==lastTxt){lastTxt=a;$('mA').textContent=a}
 }
 window.__setN=v=>{nT=v;n=v;};window.__time={get n(){return n},get ago(){return ago}};
 // 3D は後から（文字と操作は先に出す）
