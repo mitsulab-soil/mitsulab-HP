@@ -12,7 +12,7 @@ const LAYERS=[['Qualium','#b7c4ad'],['sound','#9fb2c2'],['touch','#c6b79f'],['si
 // ミミズ＝多くは表層 0〜30 cm、深く掘る種（Lumbricus terrestris）の坑道は 1〜2 m（Edwards & Bohlen 1996, Biology and Ecology of Earthworms）
 // 根＝温帯の森では根の約 6 割が上 30 cm（Jackson et al. 1996, Oecologia）、温帯落葉樹の最大の根の深さは平均 約 2.9 m（Canadell et al. 1996, Oecologia）
 // 地下水＝深さは地点と季節で違う（ここでは根の下に置いた模式）
-const DEPTH=[{d:.05,ja:'落葉層　数 cm（目安）',en:'Leaf litter · a few cm (rough guide)'},{d:.2,ja:'菌根菌の菌糸　0〜20 cm に多い',en:'Mycorrhizal hyphae · mostly 0–20 cm'},{d:.3,ja:'ミミズ・根の多く　〜30 cm',en:'Earthworms, most roots · ~30 cm'},{d:2,ja:'深く掘るミミズの坑道　1〜2 m',en:'Deep earthworm burrows · 1–2 m'},{d:2.9,ja:'根の最も深い所　温帯の落葉樹林の平均 約 2.9 m',en:'Deepest roots · ~2.9 m (temperate deciduous forest average)'},{d:3.6,ja:'地下水　深さは場所で違う',en:'Groundwater · depth varies by site'}];
+const DEPTH=[{d:.05,ja:'落葉層　数 cm（目安）',en:'Leaf litter · a few cm (rough guide)'},{d:.2,ja:'菌根菌の菌糸　落葉の下の腐植の層に多い',en:'Mycorrhizal hyphae · mostly in the humus below the litter'},{d:.3,ja:'ミミズ・根の多く　〜30 cm',en:'Earthworms, most roots · ~30 cm'},{d:2,ja:'深く掘るミミズの坑道　1〜2 m',en:'Deep earthworm burrows · 1–2 m'},{d:2.9,ja:'根の最も深い所　温帯の落葉樹林の平均 約 2.9 m',en:'Deepest roots · ~2.9 m (temperate deciduous forest average)'},{d:3.6,ja:'地下水　深さは場所で違う',en:'Groundwater · depth varies by site'}];
 const SRC_JA='出典：Peitsch 1992／NOAA／国土地理院／Lindahl 2007／Edwards & Bohlen 1996／Jackson 1996／Canadell 1996。色・形・大きさは模式。';
 const SRC_EN='Sources: Peitsch 1992 / NOAA / GSI Japan / Lindahl 2007 / Edwards & Bohlen 1996 / Jackson 1996 / Canadell 1996. Colours, shapes and sizes are models.';
 const DS=1.4;   // 1 m を 3D の何単位で描くか（模式）
@@ -42,15 +42,17 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
   document.body.append(bar);
   const css=document.createElement('style');css.textContent=`.us-bar{position:fixed;left:12px;bottom:12px;z-index:30;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:min(360px,calc(100vw - 24px));pointer-events:none;font:400 12px/1.6 var(--serif,serif);color:#dfe8ec;transition:opacity .4s}
 .us-bar>*{pointer-events:auto}.us-eye{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid rgba(242,244,239,.4);background:rgba(3,6,15,.62);color:#f2f4ef;font:inherit;font-size:13px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{background:rgba(3,6,15,.55);border-radius:6px;padding:3px 10px}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
+.us-eye.us-in-nav{margin:0 10px 0 auto;flex:0 0 auto;min-height:40px;height:40px}.us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{background:rgba(3,6,15,.55);border-radius:6px;padding:3px 10px}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
 #cgWorldCanvas canvas{transition:opacity .6s}
 .us-eye.is-hint{animation:usHint 1.1s ease-out 3}@keyframes usHint{0%{box-shadow:0 0 0 0 rgba(168,242,246,.7)}100%{box-shadow:0 0 0 16px rgba(168,242,246,0)}}
 .us-rip{position:fixed;z-index:29;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:1.5px solid #a8f2f6;pointer-events:none;animation:usRip .7s ease-out forwards}@keyframes usRip{to{transform:scale(5);opacity:0}}
 @media(prefers-reduced-motion:reduce){.us-eye.is-hint,.us-rip{animation:none}}
-@media(max-width:759px){.us-bar{left:4px;bottom:4px}.us-eye{width:44px;padding:0;font-size:14px;background:rgba(3,6,15,.45);opacity:.85}.us-time{transition:opacity .5s}.us-bar:not(.is-new) .us-time{opacity:0}.us-depth{font-size:11px}}`;
+body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.86),rgba(3,6,15,.8) 70%,rgba(3,6,15,.74))!important}body.cg-beyond #top :is(p,li,dd,h2,h3){text-shadow:0 0 8px rgba(3,6,15,.85),0 0 2px rgba(3,6,15,.9)}
+@media(max-width:759px){.us-eye{min-width:44px;padding:0 8px;font-size:13px}.us-time{transition:opacity .5s}.us-bar:not(.is-new) .us-time{opacity:0}.us-depth{font-size:11px}}`;
   document.head.append(css);
-  const eye=bar.querySelector('.us-eye'),tl=bar.querySelector('.us-time'),dl=bar.querySelector('.us-depth'),src=bar.querySelector('.us-src');
-  const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,full=en()?(b?'Honeybee eyes (model)':'Human eyes'):(b?'ミツバチの目（模式）':'人の目');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',full);eye.textContent=sm?(en()?(b?'Bee':'Hu'):(b?'蜂':'人')):full+' ⇄';};
+  {const nv=document.querySelector('.tab-nav-inner'),br=nv&&nv.querySelector(':scope>.brand');if(br){const e=bar.querySelector('.us-eye');e.classList.add('us-in-nav');br.after(e);}}
+  const eye=document.querySelector('.us-eye'),tl=bar.querySelector('.us-time'),dl=bar.querySelector('.us-depth'),src=bar.querySelector('.us-src');
+  const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,full=en()?(b?'Honeybee eyes (model)':'Human eyes'):(b?'ミツバチの目（模式）':'人の目');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',full);eye.textContent=sm?(en()?(b?'Bee⇄':'Hu⇄'):(b?'蜂⇄':'人⇄')):full+' ⇄';};
   const toggle=()=>{st.touched=1;st.beeT=st.beeT>.5?0:1;eyeLabel();kick();};
   eye.addEventListener('click',toggle);
   // 背景の 3D そのもの（文字・ボタン・図のない所）を押しても切りかわる
@@ -139,7 +141,7 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
     if(st.dive>.01){const off=st.dive*(DEPTH[5].d*DS+.6);const look=(c.userData.look||new T.Vector3(0,1,-2)).clone();c.position.y-=off+.5*st.dive;c.position.lerp(new T.Vector3(3.2,c.position.y,4.2),st.dive*.6);look.y-=off;look.lerp(new T.Vector3(-2,look.y,-3),st.dive);c.lookAt(look);
       scene.background.lerp(soilBg,st.dive);scene.fog.color.lerp(soilBg,st.dive);scene.fog.near=T.MathUtils.lerp(save.fn,2,st.dive);scene.fog.far=T.MathUtils.lerp(save.ff,26,st.dive);sunlight.intensity*=1-st.dive*.8;}
     const deep=st.dive>.5;if(dl.hidden===deep)dl.hidden=!deep;bar.classList.toggle('is-deep',deep);if(deep&&tl.textContent){tl.textContent='';label='';}
-    const cv=renderer.domElement;if(host.contains(cv)){const o=Math.max(.26,st.bee*.6,st.meiji*.55,st.dive*.75,ts&&!ts.keep?.34:0);const v=o.toFixed(2);if(cv.style.opacity!==v)cv.style.opacity=v;}
+    const cv=renderer.domElement;if(host.contains(cv)){const o=Math.max(.26,st.bee*.5,st.meiji*.55,st.dive*.75,ts&&!ts.keep?.34:0);const v=o.toFixed(2);if(cv.style.opacity!==v)cv.style.opacity=v;}
     if(st.bee>.01&&!renderer.getRenderTarget()){
       const sz=renderer.getDrawingBufferSize(new T.Vector2());if(!rt||rt.width!==sz.x||rt.height!==sz.y){rt?.dispose();rt=new T.WebGLRenderTarget(sz.x,sz.y,{type:T.HalfFloatType,depthBuffer:true});}
       renderer.setRenderTarget(rt);orig(s,c);renderer.setRenderTarget(null);q.material.uniforms.tex.value=rt.texture;q.material.uniforms.k.value=st.bee;orig(qs,qc);
