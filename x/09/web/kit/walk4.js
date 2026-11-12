@@ -4,10 +4,11 @@
    ④ 足もとの土の中：立ち止まって下を向くと、足もとに根・菌糸・土の中の生き物の層が重なる。音は「聴こえる高さに移した模式」（録った音ではない）。
    軽さ：DOM の膜 1 枚・光の数を変えるだけ・土の層は一度だけ作り、見ているときだけ描く。毎こまの計算は数行。 */
 import * as THREE from "three";
+import { sunAzEl } from "./sunpos.js?v=2";
 
 const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const Q = new URLSearchParams(location.search);
-const ON = new Set(["up"]);   // 足した順に一つずつ公開する（up・light・soil）
+const ON = new Set(["up", "light"]);   // 足した順に一つずつ公開する（up・light・soil）
 
 export function attachWalk4(QW) {
   const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 700;
@@ -18,19 +19,19 @@ export function attachWalk4(QW) {
 #w4up.on{opacity:1}#w4up p{position:absolute;left:0;right:0;top:44%;margin:0;text-align:center;font:400 12px/1.6 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.08em;color:rgba(230,238,242,.55)}
 body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4src,body.w4up header,body.w4up #topbar,body.w4up button:not(#w4src button){opacity:.12!important}
 #w4up p{transition:opacity 1.5s ease 4s}#w4up.on p{opacity:.0}#w4up.on.fresh p{opacity:1}
-#w4src{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 138px);z-index:7;max-width:min(320px,calc(100vw - 96px));font:400 11.5px/1.55 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);color:#eef3f6;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+#w4src{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 250px);z-index:7;max-width:min(240px,calc(100vw - 140px));font:400 11.5px/1.55 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);color:#eef3f6;text-shadow:0 1px 3px rgba(0,0,0,.85)}
 #w4src[hidden]{display:none}#w4src button{all:unset;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;padding:0 12px;border-radius:22px;background:rgba(8,13,22,.5);border:1px solid rgba(225,235,242,.22);font-size:12px;letter-spacing:.04em}
-#w4src ul{margin:6px 0 0;padding:8px 12px 8px 22px;background:rgba(8,13,22,.62);border-radius:10px}#w4src li{margin:2px 0}
+#w4src ul{margin:6px 0 0;padding:6px 10px 6px 20px;font-size:10.5px;line-height:1.45;max-height:30vh;overflow:auto;background:rgba(8,13,22,.62);border-radius:10px}#w4src li{margin:2px 0}
 @media (min-width:641px){#w4src{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 210px);left:24px}}`;
   document.head.appendChild(css);
 
   /* ---------- 出典の札（「＋ 出典」を押すとその場に開く。一段だけ） ---------- */
   const srcBox = document.createElement("div"); srcBox.id = "w4src"; srcBox.hidden = true;
   srcBox.innerHTML = '<button type="button" aria-expanded="false">＋ 出典</button><ul hidden></ul>'; document.body.appendChild(srcBox);
-  const sBtn = srcBox.querySelector("button"), sUl = srcBox.querySelector("ul"); let srcOwner = null, srcT = 0;
-  sBtn.addEventListener("click", e => { e.stopPropagation(); const op = sUl.hidden; sUl.hidden = !op; sBtn.textContent = op ? "− 出典" : "＋ 出典"; sBtn.setAttribute("aria-expanded", String(op)); srcT = op ? 30 : 8; });
+  const sBtn = srcBox.querySelector("button"), sUl = srcBox.querySelector("ul"); let srcOwner = null, srcT = 0, srcLab = "出典";
+  sBtn.addEventListener("click", e => { e.stopPropagation(); const op = sUl.hidden; sUl.hidden = !op; sBtn.textContent = (op ? "− " : "＋ ") + srcLab; sBtn.setAttribute("aria-expanded", String(op)); srcT = op ? 30 : 8; });
   srcBox.addEventListener("pointerdown", e => e.stopPropagation());
-  function showSrc(owner, items, sec = 9) { srcOwner = owner; sUl.innerHTML = items.map(t => `<li>${t}</li>`).join(""); sUl.hidden = true; sBtn.textContent = "＋ 出典"; sBtn.setAttribute("aria-expanded", "false"); srcBox.hidden = false; srcT = sec; }
+  function showSrc(owner, items, sec = 9, lab = "出典") { srcOwner = owner; srcLab = lab; sUl.innerHTML = items.map(t => `<li>${t}</li>`).join(""); sUl.hidden = true; sBtn.textContent = "＋ " + lab; sBtn.setAttribute("aria-expanded", "false"); srcBox.hidden = false; srcT = sec; }
   function hideSrc(owner) { if (owner && srcOwner !== owner) return; srcBox.hidden = true; srcOwner = null; }
 
   /* ---------- 音（app.js の音の出口へ。鳴らせないときは何もしない） ---------- */
@@ -94,19 +95,21 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
     ["#e0ecf6", "#6c7652", .82], ["#e2eefa", "#6f7a52", .8], ["#e4eef8", "#727852", .84], ["#e6ecf2", "#777452", .95], ["#ece9de", "#7d7052", 1.08], ["#ebe7dc", "#7a6e54", 1.15], ["#dfe7f2", "#6f6a5e", 1.22]];
   const L = { t: 0, base: null, mine: null, said: false, cS: new THREE.Color(), cH: new THREE.Color(), cG: new THREE.Color(), k: 1, sun0: QW.sun?.intensity ?? 2.6 };
   function lightTarget() {
-    const d = now0(), el = QW.sunAE ? QW.sunAE[1] : 40, m = d.getMonth() + 1, h = d.getHours() + d.getMinutes() / 60, S = SEASON[m];
-    const low = 1 - sm(3, 30, el);   // 太陽が低いほど、光は赤みに・弱く
-    L.cS.set("#fff4e0").lerp(new THREE.Color("#ffb070"), low * .85);
-    const I = L.sun0 * (.42 + .58 * sm(-2, 32, el));
-    L.cH.set(S[0]); L.cG.set(S[1]);
+    const d = now0(), el = sunAzEl(35.90725, 139.631, d).el,   /* 知らせの時刻と同じ日時から太陽の高さを出す（食い違わない） */ m = d.getMonth() + 1, h = d.getHours() + d.getMinutes() / 60, S = SEASON[m];
+    const low = 1 - sm(1, 14, el);   // 赤みは太陽が 14° を切ってから（夕方・朝の低い光）   // 太陽が低いほど、光は赤みに・弱く
+    L.cS.set("#fff4e0").lerp(new THREE.Color("#ffa060"), low * .5);
+    const I = L.sun0 * (.22 + .78 * sm(-4, 32, el));
+    L.cH.set(S[0]).lerp(new THREE.Color("#f2c9a4"), low * .3); L.cG.set(S[1]).lerp(new THREE.Color("#6a5240"), low * .4);   // 低い太陽のときは空の光も暖かく
     // 空気：季節の倍率に、朝の早い時間（日の出のあと 2 時間ほど）の水けの霞を足す（9〜11 月と 3〜5 月の朝）。夕方はそのまま
     let air = S[2]; if (h >= 5 && h < 8.5 && (m >= 9 && m <= 11 || m >= 3 && m <= 5)) air *= .72;
-    return { I, air, el: Math.round(el), m, day: d.getDate(), h: d.getHours() };
+    return { I, air, low, el: Math.round(el), m, day: d.getDate(), h: d.getHours(), mi: d.getMinutes() };
   }
   function lightStep(dt) {
     if (!QW.sun || !QW.hemi) return; L.t -= dt; if (L.t > 0) return; L.t = .5;
     const T = lightTarget(), a = .25;
     QW.sun.color.lerp(L.cS, a); QW.sun.intensity += (T.I - QW.sun.intensity) * a; QW.hemi.color.lerp(L.cH, a); QW.hemi.groundColor.lerp(L.cG, a);
+    if (!L.veil) { L.veil = document.createElement("div"); L.veil.setAttribute("aria-hidden", "true"); L.veil.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity 2s linear;mix-blend-mode:soft-light;background:linear-gradient(to bottom,rgba(255,150,80,.9),rgba(255,170,110,.55) 45%,rgba(255,190,140,0) 75%)"; document.body.appendChild(L.veil); }
+    { const o = QW.mode === "walk" ? (T.low * .55).toFixed(2) : "0"; if (L.veil.style.opacity !== o) L.veil.style.opacity = o; }   // 低い太陽のとき、空の上の方を夕方の色に（膜 1 枚）
     const f = QW.scene?.fog;
     if (f && QW.mode === "walk") { if (L.mine == null || Math.abs(f.far - L.mine) > .5) L.base = f.far; L.mine = L.base * T.air; f.far = L.mine; }   // app.js が霞を置きなおしたら、それを新しい元にする
     else L.mine = null;
@@ -114,9 +117,9 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
   }
   function sayLight(T) {
     const e = document.getElementById("toast"); if (!e) return;
-    const tm = T.el > 0 ? `太陽の高さ ${T.el}°` : "日の入りのあと";
-    e.textContent = `${T.m}月${T.day}日 ${T.h}時の光（${tm}・計算）。`; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, 5200);
-    showSrc("light", ["太陽の向きと高さ：いまの日時とこの場所の緯度・経度から計算（kit/sunpos.js・NOAA の太陽の位置の近似式。誤差はおよそ 1 度）", "光の色・空気の澄み方：季節と時刻の一般的な傾向から決めた模式。天気（雲・雨）は映していません"], 8);
+    const tm = T.el > 0 ? `太陽の高さ ${T.el}°` : T.h < 12 ? "日の出の前" : "日の入りのあと";
+    e.textContent = `${T.m}月${T.day}日 ${T.h}時${String(T.mi).padStart(2, "0")}分の光（${tm}・日時から計算）。`; e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, 5200);
+    showSrc("light", ["太陽の高さ：日時と緯度・経度から計算（NOAA「General Solar Position Calculations」・誤差約 1°）", "光の色・霞・雲の絵は模式（いまの天気ではない）"], 8, "光の出典");
   }
 
   /* =====================================================================
@@ -192,7 +195,7 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
     if (k > .9 && !SO.said) {
       SO.said = true;
       QW.speak?.([{ t: "足もとの土の中。根と、そこから広がる菌糸と、土の生き物の層。音は、小さな動きを聴こえる高さに移した模式です。", tc: "足もとの土の中。根と菌糸と、土の生き物の層（模式）。音は、聴こえる高さに移した模式。" }]);
-      showSrc("soil", ["根・菌糸・生き物の形、数、深さ、土の層の色は模式（この場所で掘って確かめたものではない）", "菌根菌の菌糸は根から土の中へ伸び、水や養分のやりとりにかかわる：Smith SE & Read DJ (2008) Mycorrhizal Symbiosis, 3rd ed., Academic Press", "ミミズの写実の体：Qualia/sight と同じ 3D", "音：録った音ではなく、端末の中で組み立てた「聴こえる高さに移した模式」"], 14);
+      showSrc("soil", ["根・菌糸・生き物の形、数、深さ、土の層の色は模式（この場所で掘って確かめたものではない）", "菌根菌の菌糸は根から土の中へ伸び、水や養分のやりとりにかかわる：Smith SE & Read DJ (2008) Mycorrhizal Symbiosis, 3rd ed., Academic Press", "ミミズの写実の体：Qualia/sight と同じ 3D", "音：録った音ではなく、端末の中で組み立てた「聴こえる高さに移した模式」"], 14, "土の出典");
     }
   }
 
