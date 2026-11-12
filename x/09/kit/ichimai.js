@@ -53,7 +53,28 @@
   document.addEventListener("mitsu:layer", function (e) { addLayer(e.detail && e.detail.name); });
   window.mitsuIchimai = { step: addPt, layer: addLayer };
 
-  var busy = false;
+  var busy = false, pending = null;
+  // 作品の rAF の後ろに一度だけ写す処理をつなぐ（ふだんは何もしない）
+  var raf0 = window.requestAnimationFrame;
+  // 押したあとだけ、WebGL の描く命令を見張り、作品がそのコマで実際に描いた直後に写す（間引いて描く作品でも空の絵を写さない）
+  var drew = false, hooks = [], made = new WeakMap();
+  // これから作られる WebGL の context を覚えておく（作り方は変えない）
+  try { var gc0 = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function (t) { var x = gc0.apply(this, arguments); if (x && /webgl/.test(t)) made.set(this, x); return x; }; } catch (e) {}
+  function hookGL() {
+    Array.prototype.forEach.call(document.querySelectorAll("canvas"), function (cv) {
+      // 新しく context を作らないよう、記録した context を使う。記録のないものは、すでに画面に大きく出ている canvas だけ問い合わせる（2D なら null が返るだけ）
+      var gl = made.get(cv) || null;
+      if (!gl) { var q = cv.getBoundingClientRect(); if (q.width < 40 || q.height < 40 || !cv.width) return; try { gl = cv.getContext("webgl2") || cv.getContext("webgl"); } catch (e) {} }
+      if (gl && !(gl.drawArrays)) gl = null;
+      if (!gl || gl.__icm) return; gl.__icm = 1;
+      ["drawArrays", "drawElements", "drawArraysInstanced", "drawElementsInstanced", "drawRangeElements"].forEach(function (k) {
+        var o = gl[k]; if (typeof o !== "function") return;
+        gl[k] = function () { drew = true; return o.apply(this, arguments); }; hooks.push([gl, k, o]);
+      });
+    });
+  }
+  function unhookGL() { hooks.forEach(function (h) { h[0][h[1]] = h[2]; delete h[0].__icm; }); hooks = []; }
+  if (raf0) window.requestAnimationFrame = function (cb) { return raf0.call(window, function (t) { drew = false; try { cb(t); } finally { if (pending && drew) { var f = pending; f(); } } }); };
   function toast(s) {
     var t = document.createElement("div"); t.className = "icm-t"; t.textContent = s; document.body.appendChild(t);
     requestAnimationFrame(function () { t.classList.add("on"); });
@@ -125,7 +146,7 @@
     return c;
   }
   function save(c) {
-    c.toBlob(function (blob) {
+    try { c.toBlob(function (blob) {
       busy = false;
       if (!blob) { toast("保存できませんでした"); return; }
       var fn = "mitsulab_" + name.replace(/[^\w぀-ヿ一-鿿-]+/g, "-").replace(/^-|-$/g, "") + ".png";
@@ -136,15 +157,21 @@
       a.href = u; a.download = fn; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
       toast("一枚を保存しました");
-    }, "image/png");
+    }, "image/png"); } catch (e) { busy = false; toast("保存できませんでした"); }
   }
   b.addEventListener("click", function (e) {
     e.stopPropagation(); if (busy) return; busy = true; toast("保存しています");
-    requestAnimationFrame(function () {
+    // 作品の描画の直後に写す：作品の rAF の処理が終わった直後に一度だけ写す（WebGL の絵が消される前）。描かない作品のために 250ms で写す控えもある
+    var fired = false;
+    function shotNow() {
+      if (fired) return; fired = true; pending = null; unhookGL();
       var c = null; try { c = grab(); } catch (er) {}
       if (!c) { busy = false; toast("いまは写せる絵がありません"); return; }
       save(c);
-    });
+    }
+    hookGL(); pending = shotNow;
+    // 描かない作品（2D だけ・止まっている）のための控え：0.6 秒たっても描かれなければ、そのまま写す
+    setTimeout(function () { if (pending === shotNow) shotNow(); }, 600);
   });
   ["pointerdown", "pointerup", "touchstart", "touchend", "mousedown", "mouseup"].forEach(function (t) { b.addEventListener(t, function (e) { e.stopPropagation(); }, { passive: true }); });
   function mount() { document.head.appendChild(st); document.body.appendChild(b); }
