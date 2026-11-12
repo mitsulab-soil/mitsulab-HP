@@ -25,6 +25,7 @@ export function makeBirdEar(o) {
     timer = setInterval(async () => { if (busy || !on || filled < N || document.hidden) return; busy = true;
       const seg = new Float32Array(N); seg.set(ring.subarray(w)); seg.set(ring.subarray(0, w), N - w);
       const r = await run(seg, sr); busy = false; const t = r.top && r.top[0]; if (!on || !t || t.p < .6) return;
+      try { dispatchEvent(new CustomEvent("qualium:bird", { detail: { ja: t.ja, p: t.p } })); } catch { }   // 11-13 聞き分けた種の名と度合いだけを知らせる（音は渡さない）。kit/kikai.js が向きに印を置く
       const now = performance.now(); if (now - (last.get(t.ja) || -1e9) < 90000) return; last.set(t.ja, now);
       const v = (await vo())[t.ja]; if (v && !(o.busy && o.busy())) o.say(v, t); }, 3000);
   }

@@ -13,9 +13,9 @@ const MODES = {
   pit: { say: ["マムシの頬のくぼみ、ピット器官は、赤外線を熱として感じる。その模式で、景色を熱の色に。色の明るさから作った絵で、測った温度ではないよ。", "端末を傾けたり揺らしたりすると、手のぬくもりの色が動くよ。"] },
   lidar: { n: "点群", say: ["機械の受けとり方。LiDAR の点群の模式。光が返るまでの時間で、距離を点にする。ここにセンサーは置いていないよ。"] },
   ir: { n: "赤外線", say: ["赤外線カメラの模式。白いほど温かいと見なす描き方。色の明るさから作った絵で、測ってはいないよ。"] },
-  gis: { n: "等高線", say: ["地図の受けとり方。地形の高さの記録を補って、20 センチごとに引いた等高線。太い線は 1 メートルごと。"] },
+  gis: { n: "等高線", say: ["地図の受けとり方。地形の高さの記録から、20 センチごとの等高線。5 メートルの格子のあいだを補って引いた線だよ。太い線は 1 メートルごと。"] },
 };
-const CYCLE = [null, "lidar", "ir", "gis"];
+const CYCLE = [null, "lidar", "ir", "gis"];   // 11-13：機械のどの受けとり方でも、すぐ下に出る「人の目」を一度押せば戻る（マムシ・生き物の目を押しても戻る）
 
 export function attachKikai(QW, opt = {}) {
   const speak = opt.speak || (l => QW.speak?.(l)), cam = QW.camera, gl = document.getElementById("gl") || QW.renderer?.domElement;
@@ -28,16 +28,18 @@ export function attachKikai(QW, opt = {}) {
 <filter id="kkIR" color-interpolation-filters="sRGB">${heat}<feComponentTransfer><feFuncR type="gamma" amplitude="1.15" exponent="1.4" offset="0"/><feFuncG type="gamma" amplitude="1.15" exponent="1.4" offset="0"/><feFuncB type="gamma" amplitude="1.15" exponent="1.4" offset="0"/></feComponentTransfer></filter>`;
   document.body.appendChild(svg);
   const css = document.createElement("style"); css.id = "qualium-kikai";
-  css.textContent = `#qKK{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2}#qKK[hidden]{display:none}body:not([data-mode="walk"]) #qKK{display:none}`;
+  css.textContent = `#qIK button[hidden]{display:none!important}#qKK{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2}#qKK[hidden]{display:none}body:not([data-mode="walk"]) #qKK{display:none}`;
   document.head.appendChild(css);
   const cv = document.createElement("canvas"); cv.id = "qKK"; cv.hidden = true; cv.setAttribute("aria-hidden", "true");
   (gl?.parentNode || document.body).insertBefore(cv, gl?.nextSibling || null); const g2 = cv.getContext("2d");
   const ik = document.getElementById("qIK"), st = { m: null, filt: "" };
   const icon = { pit: '<path d="M4 15c2-4 5-5.6 8-5.6 2.4 0 4.2 1 5.4 2.6l2.6.4-2.4 1.4c-1 1.8-3 2.8-5.2 2.8"/><path d="M12.4 16.6c-1.6.6-3.2.4-4.4-.6M4 15c-.6 1.6 0 3 1.8 3.6"/><circle cx="15.8" cy="12" r=".55" class="f"/><path d="M13.6 13.6a1.1 1.1 0 0 0 1 .6" opacity=".7"/>',
+    hito: '<path d="M3 12c2.4-3.9 5.5-5.9 9-5.9s6.6 2 9 5.9c-2.4 3.9-5.5 5.9-9 5.9S5.4 15.9 3 12z"/><circle cx="12" cy="12" r="2.7"/>',
     kikai: '<rect x="5" y="8" width="14" height="9" rx="2"/><circle cx="12" cy="12.5" r="2.6"/><circle cx="12" cy="12.5" r=".7" class="f"/><path d="M8.5 8l1-2h5l1 2"/>' };
   const mk = (k, n, lab) => { const b = document.createElement("button"); b.type = "button"; b.dataset.kk = k; b.setAttribute("aria-pressed", "false"); b.setAttribute("aria-label", lab); b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${icon[k]}</svg><span>${n}</span>`; ik?.appendChild(b); return b; };
   const bPit = mk("pit", "マムシ", "マムシの熱の感じ方の模式（もう一度押すと人の目へ）"), bKi = mk("kikai", "機械", "機械の受けとり方：押すたびに点群・赤外線・等高線・人の目");
-  function paintBtn() { bPit.setAttribute("aria-pressed", String(st.m === "pit")); const on = st.m && st.m !== "pit"; bKi.setAttribute("aria-pressed", String(!!on)); bKi.querySelector("span").textContent = on ? MODES[st.m].n : "機械"; }
+  const bHu = mk("hito", "人の目", "人の目にもどる"); bHu.hidden = true;
+  function paintBtn() { bHu.hidden = !st.m; bPit.setAttribute("aria-pressed", String(st.m === "pit")); const on = st.m && st.m !== "pit"; bKi.setAttribute("aria-pressed", String(!!on)); bKi.querySelector("span").textContent = on ? MODES[st.m].n : "機械"; }
   function filterOf(m) { return m === "pit" ? "url(#kkPit)" : m === "ir" ? "url(#kkIR) contrast(1.1)" : m === "lidar" ? "grayscale(1) brightness(.22)" : m === "gis" ? "grayscale(.75) brightness(.6)" : ""; }
   async function motionOk() { try { if (typeof DeviceMotionEvent !== "undefined" && DeviceMotionEvent.requestPermission) await DeviceMotionEvent.requestPermission(); } catch { } }
   async function set(m) {
@@ -47,6 +49,7 @@ export function attachKikai(QW, opt = {}) {
     speak(m ? MODES[m].say.map(t => ({ t, tc: t, src: m === "pit" ? SRC_PIT : "" })) : [{ t: "人の目に、もどります。" }]);
   }
   bPit.addEventListener("click", async e => { e.stopPropagation(); if (st.m !== "pit") await motionOk(); set(st.m === "pit" ? null : "pit"); });
+  bHu.addEventListener("click", e => { e.stopPropagation(); set(null); });
   bKi.addEventListener("click", e => { e.stopPropagation(); const i = CYCLE.indexOf(st.m); set(CYCLE[(Math.max(0, i) + 1) % CYCLE.length]); });
   ik?.addEventListener("click", e => { const b = e.target.closest("button[data-id]"); if (b && st.m) set(null); }, true);   // 生き物の目を押したら、こちらは外す
 
@@ -105,8 +108,7 @@ export function attachKikai(QW, opt = {}) {
 
   /* 鳥の声で地図：birdear の Worker の結果だけを見る（音は受けとらない） */
   const birds = [], tex = glow(); let toldBird = false;
-  const OW = window.Worker; window.Worker = function (url, o) { const w = new OW(url, o); if (/birdear\/worker\.js/.test(String(url))) w.addEventListener("message", e => { const d = e.data; if (d?.type === "result" && d.top?.[0]?.p >= .6) placeBird(d.top[0]); }); return w; };
-  window.Worker.prototype = OW.prototype;
+  addEventListener("qualium:bird", e => { const d = e.detail; if (d?.ja && d.p >= .6) placeBird(d); });   // birdear.js が知らせる種の名と度合いだけ
   function placeBird(r) { if (QW.mode !== "walk" || !QW.world) return; const last = birds.find(b => b.ja === r.ja); if (last && last.age < 20) return;
     const d = new THREE.Vector3(); cam.getWorldDirection(d); d.y = 0; d.normalize(); const ang = (Math.random() - .5) * .5; d.applyAxisAngle(new THREE.Vector3(0, 1, 0), ang);
     const dist = 12 + Math.random() * 8, x = cam.position.x + d.x * dist, z = cam.position.z + d.z * dist, y = gY(x, z) + 5 + Math.random() * 4;
