@@ -2957,7 +2957,7 @@ $("#menuX").addEventListener("click", () => { $("#menu").hidden = true; $("#menu
 /* 11-02 本人決定「鳥の声の認識を本番に入れる」：メニューの「鳥の声を聞く」を押し、端末のマイクの許可を出したあとだけ聞く（kit/birdear・音は端末の中で聞き分けて残さない） */
 let EAR = null;
 $("#earBtn")?.addEventListener("click", async () => { const b = $("#earBtn");
-  if (!EAR) { const { makeBirdEar } = await import("../kit/birdear/birdear.js?v=2"); EAR = QW.BIRDEAR = makeBirdEar({ base: "web/kit/birdear/", model: (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? "web/kit/birdear/model/" : "https://mitsulab-soil.github.io/aoi-walk-hikawa/web/kit/birdear/model/"), busy: () => !!voiceQ,
+  if (!EAR) { const { makeBirdEar } = await import("../kit/birdear/birdear.js?v=3"); EAR = QW.BIRDEAR = makeBirdEar({ base: "web/kit/birdear/", model: (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? "web/kit/birdear/model/" : "https://mitsulab-soil.github.io/aoi-walk-hikawa/web/kit/birdear/model/"), busy: () => !!voiceQ,
     say: v => speakLines([{ t: v.t, tc: v.t, f: v.f, dur: v.dur, id: v.id }], null, { narr: true }),
     onState: s => { b.setAttribute("aria-pressed", String(s === "on" || s === "load")); b.textContent = s === "load" ? "鳥の声 準備中…" : s === "on" ? "鳥の声を聞いています" : s === "denied" ? "マイクが許可されていません" : s === "error" ? "鳥の声を聞けませんでした" : "鳥の声を聞く"; } }); }
   EAR.toggle(); });
