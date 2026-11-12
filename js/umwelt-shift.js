@@ -12,7 +12,7 @@ const LAYERS=[['Qualium','#b7c4ad'],['sound','#9fb2c2'],['touch','#c6b79f'],['si
 // ミミズ＝多くは表層 0〜30 cm、深く掘る種（Lumbricus terrestris）の坑道は 1〜2 m（Edwards & Bohlen 1996, Biology and Ecology of Earthworms）
 // 根＝温帯の森では根の約 6 割が上 30 cm（Jackson et al. 1996, Oecologia）、温帯落葉樹の最大の根の深さは平均 約 2.9 m（Canadell et al. 1996, Oecologia）
 // 地下水＝深さは地点と季節で違う（ここでは根の下に置いた模式）
-const DEPTH=[{d:.05,ja:'落葉層　数 cm（目安）',en:'Leaf litter · a few cm (rough guide)'},{d:.2,ja:'菌根菌の菌糸　0〜20 cm に多い',en:'Mycorrhizal hyphae · mostly 0–20 cm'},{d:.3,ja:'ミミズ・根の多く　〜30 cm',en:'Earthworms, most roots · ~30 cm'},{d:2,ja:'深く掘るミミズの坑道　1〜2 m',en:'Deep earthworm burrows · 1–2 m'},{d:2.9,ja:'根の最も深い所　平均 約 2.9 m',en:'Deepest roots · ~2.9 m on average'},{d:3.6,ja:'地下水　深さは場所で違う',en:'Groundwater · depth varies by site'}];
+const DEPTH=[{d:.05,ja:'落葉層　数 cm（目安）',en:'Leaf litter · a few cm (rough guide)'},{d:.2,ja:'菌根菌の菌糸　0〜20 cm に多い',en:'Mycorrhizal hyphae · mostly 0–20 cm'},{d:.3,ja:'ミミズ・根の多く　〜30 cm',en:'Earthworms, most roots · ~30 cm'},{d:2,ja:'深く掘るミミズの坑道　1〜2 m',en:'Deep earthworm burrows · 1–2 m'},{d:2.9,ja:'根の最も深い所　温帯の落葉樹林の平均 約 2.9 m',en:'Deepest roots · ~2.9 m (temperate deciduous forest average)'},{d:3.6,ja:'地下水　深さは場所で違う',en:'Groundwater · depth varies by site'}];
 const SRC_JA='出典：Peitsch 1992／NOAA／国土地理院／Lindahl 2007／Edwards & Bohlen 1996／Jackson 1996／Canadell 1996。色・形・大きさは模式。';
 const SRC_EN='Sources: Peitsch 1992 / NOAA / GSI Japan / Lindahl 2007 / Edwards & Bohlen 1996 / Jackson 1996 / Canadell 1996. Colours, shapes and sizes are models.';
 const DS=1.4;   // 1 m を 3D の何単位で描くか（模式）
@@ -44,14 +44,17 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
 .us-bar>*{pointer-events:auto}.us-eye{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid rgba(242,244,239,.4);background:rgba(3,6,15,.62);color:#f2f4ef;font:inherit;font-size:13px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{background:rgba(3,6,15,.55);border-radius:6px;padding:3px 10px}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
 #cgWorldCanvas canvas{transition:opacity .6s}
-@media(max-width:759px){.us-eye{width:44px;padding:0;font-size:15px}.us-time{transition:opacity .5s}.us-bar:not(.is-new) .us-time{opacity:0}.us-depth{font-size:11px}}`;
+.us-eye.is-hint{animation:usHint 1.1s ease-out 3}@keyframes usHint{0%{box-shadow:0 0 0 0 rgba(168,242,246,.7)}100%{box-shadow:0 0 0 16px rgba(168,242,246,0)}}
+.us-rip{position:fixed;z-index:29;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:1.5px solid #a8f2f6;pointer-events:none;animation:usRip .7s ease-out forwards}@keyframes usRip{to{transform:scale(5);opacity:0}}
+@media(prefers-reduced-motion:reduce){.us-eye.is-hint,.us-rip{animation:none}}
+@media(max-width:759px){.us-bar{left:4px;bottom:4px}.us-eye{width:44px;padding:0;font-size:14px;background:rgba(3,6,15,.45);opacity:.85}.us-time{transition:opacity .5s}.us-bar:not(.is-new) .us-time{opacity:0}.us-depth{font-size:11px}}`;
   document.head.append(css);
   const eye=bar.querySelector('.us-eye'),tl=bar.querySelector('.us-time'),dl=bar.querySelector('.us-depth'),src=bar.querySelector('.us-src');
   const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,full=en()?(b?'Honeybee eyes (model)':'Human eyes'):(b?'ミツバチの目（模式）':'人の目');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',full);eye.textContent=sm?(en()?(b?'Bee':'Hu'):(b?'蜂':'人')):full+' ⇄';};
   const toggle=()=>{st.touched=1;st.beeT=st.beeT>.5?0:1;eyeLabel();kick();};
   eye.addEventListener('click',toggle);
   // 背景の 3D そのもの（文字・ボタン・図のない所）を押しても切りかわる
-  document.addEventListener('click',e=>{if(e.defaultPrevented||!document.getElementById('top')?.classList.contains('active'))return;if(e.target.closest('a,button,input,select,textarea,summary,details,label,[role],[tabindex],p,h1,h2,h3,h4,li,figure,svg,img,video,canvas:not(#cgWorldCanvas canvas),nav,dialog,.us-bar'))return;if(getSelection&&String(getSelection()).length)return;toggle();});
+  document.addEventListener('click',e=>{if(e.defaultPrevented||!document.getElementById('top')?.classList.contains('active'))return;if(e.target.closest('a,button,input,select,textarea,summary,details,label,[role=button],[role=dialog],[role=tablist],[role=tab],[role=img],[tabindex]:not([tabindex="-1"]),p,h1,h2,h3,h4,li,figure,svg,img,video,canvas:not(#cgWorldCanvas canvas),nav,dialog,.us-bar'))return;if(getSelection&&String(getSelection()).length)return;const r=document.createElement('span');r.className='us-rip';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.append(r);setTimeout(()=>r.remove(),800);toggle();});
   eyeLabel();
 
   // ---- 1 ミツバチの目：一度だけ別の板へ描き、色を写しかえる
@@ -115,7 +118,7 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
     if(p<.2)return {alt:8,az:100,lab:en()?'Morning light (model)':'朝の光（模式）'};
     if(p<.44){const s=sunPos(now),hm=now.toLocaleTimeString(en()?'en-GB':'ja-JP',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tokyo'});return {alt:s.alt,az:s.az,lab:en()?`The sun now over Omiya · ${hm} · ${Math.round(s.alt)}° up`:`いまの大宮の太陽　${hm}　高さ ${Math.round(s.alt)}°`};}
     if(p<.66){const f=(p-.44)/.22,d=new Date(now.getTime()+Math.round(f*365)*864e5),s=sunPos(d),m=d.toLocaleDateString(en()?'en-GB':'ja-JP',{month:'long',timeZone:'Asia/Tokyo'});return {alt:s.alt,az:s.az,season:d,lab:en()?`Same hour in ${m} · ${Math.round(s.alt)}° up`:`同じ時刻の ${m}　高さ ${Math.round(s.alt)}°`};}
-    return {lab:en()?'Meiji-era lowlands around Hikawa (GSI data, ~1880s)':'明治の低湿地　氷川のまわり（国土地理院・明治 13〜19 年の測図）',keep:true};
+    return {lab:en()?'Meiji-era lowlands around Hikawa (GSI data, ~1880s)':'明治の低湿地　氷川のまわり（国土地理院・原典は明治 13〜19 年の迅速測図）',keep:true};
   }
 
   // ---- 描くたびに、その場だけ値を差しかえ、描いたら元へ戻す（共通の loop の値を壊さない）
@@ -142,7 +145,7 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
       renderer.setRenderTarget(rt);orig(s,c);renderer.setRenderTarget(null);q.material.uniforms.tex.value=rt.texture;q.material.uniforms.k.value=st.bee;orig(qs,qc);
     }else orig(s,c);
     sunlight.position.copy(save.sp);sunlight.color.copy(save.sc);sunlight.intensity=save.si;ambientLight.intensity=save.ai;ambientLight.color.copy(save.ac);fillLight.intensity=save.fi;scene.background.copy(save.bg);scene.fog.color.copy(save.fc);scene.fog.near=save.fn;scene.fog.far=save.ff;c.position.copy(save.cp);c.quaternion.copy(save.cq);
-    if(!st.shown&&renderer.getViewport(new T.Vector4()).z>4){st.shown=performance.now();setTimeout(()=>{if(st.beeT===1&&!st.touched){st.beeT=0;eyeLabel();kick();}},reduce?1500:1000);}
+    if(!st.shown&&renderer.getViewport(new T.Vector4()).z>4){st.shown=performance.now();setTimeout(()=>{if(st.beeT===1&&!st.touched){st.beeT=0;eyeLabel();kick();eye.classList.add('is-hint');setTimeout(()=>eye.classList.remove('is-hint'),3600);}},reduce?1500:1000);}
   };
   eye.addEventListener('click',()=>{st.touched=1;});
   measure();
