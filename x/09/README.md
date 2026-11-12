@@ -49,3 +49,8 @@ mitsulab の作品《Qualia/walk 氷川》です。シリーズ《Qualia/walk》
 © 2026 mitsulab. All rights reserved. Copyright in the text, images, audio, 3D and software of this work belongs to mitsulab, except third-party materials credited separately. Copying, reposting or modifying them without permission, and using them for AI training or generation, are not permitted. Text and data mining rights are reserved. [Terms](https://mitsulab.jp/terms/#ai-en)
 
 他者の素材（CC BY・ODbL・CC0・VOICEVOX など）は、それぞれの条件に従います。
+
+## 置いた層・ふたりで歩く（2026-11-12・kit/futari.js）
+- 置いた層：この端末の localStorage だけ（地点の札・受けとり方の種類・1 時間に丸めた時刻）。30 日で消え、1 地点 20 件・1 時間に 5 件まで。外へは送らない。
+- ふたりで歩く：WebRTC の接続情報を QR で互いに読む。STUN・TURN・中継のサーバーは使わない（同じ Wi-Fi かテザリングでつながる）。送るのは受けとり方の種類と向き（8 方位）だけ。カメラは QR を読むあいだだけ。
+- QR の部品（kit/vendor/）：qrcode-generator 1.4.4（MIT・Kazuhiko Arase・LICENSE_qrcode-generator_MIT.txt）、jsQR 1.4.0（Apache-2.0・LICENSE_jsQR_Apache-2.0.txt）。「QR コード」は株式会社デンソーウェーブの登録商標。
