@@ -113,13 +113,14 @@ export function create(canvas) {
   { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
   // ハチドリ（日本にはいない。羽ばたきの速さを比べるための模式）：毎秒 およそ 50 回で描く
   let hum = null; const mkHum = () => { const g = new THREE.Group(), L = .08;
-    const fm = new THREE.MeshStandardMaterial({ color: '#4d6b45', roughness: .45, metalness: .15 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
+    const fm = new THREE.MeshStandardMaterial({ color: '#3f7a4a', roughness: .35, metalness: .35 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
     const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .2, 16, 12), fm); bd.scale.set(.8, .85, 1.6); g.add(bd);
     const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#d9d6c8', roughness: .8 })); bl.scale.set(.75, .7, 1.3); bl.position.set(0, -L * .05, L * .02); g.add(bl);
     const hd = new THREE.Mesh(new THREE.SphereGeometry(L * .13, 14, 10), fm); hd.position.set(0, L * .1, -L * .32); g.add(hd);
-    const bk = new THREE.Mesh(new THREE.ConeGeometry(L * .018, L * .4, 6), dm); bk.rotation.x = -Math.PI / 2; bk.position.set(0, L * .09, -L * .62); g.add(bk);
+    const bk = new THREE.Mesh(new THREE.ConeGeometry(L * .018, L * .4, 6), dm); bk.rotation.x = -Math.PI / 2; bk.position.set(0, L * .09, -L * .6); bk.scale.set(.8, 1.3, .8); g.add(bk);
     const tl = new THREE.Mesh(new THREE.ConeGeometry(L * .09, L * .35, 4), dm); tl.rotation.x = Math.PI / 2 + .5; tl.scale.set(1, .25, 1); tl.position.set(0, -L * .08, L * .42); g.add(tl);
-    const wg2 = new THREE.PlaneGeometry(L * .75, L * .2); wg2.translate(L * .375, 0, 0); const wings = [];
+    const ws = new THREE.Shape(); ws.moveTo(0, -L * .05); ws.quadraticCurveTo(L * .45, -L * .1, L * .85, -L * .02); ws.quadraticCurveTo(L * .5, L * .12, 0, L * .06); ws.lineTo(0, -L * .05);
+    const wg2 = new THREE.ShapeGeometry(ws, 6); const wings = [];
     for (const s of [-1, 1]) { const w = new THREE.Mesh(wg2, wm2.clone()); w.position.set(s * L * .1, L * .1, -L * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k: 0 }); }
     g.rotation.x = .5; g.position.set(mobile ? -.1 : -.3, 1.5, 3.2); g.rotation.y = -.5; g.visible = false; S.add(g); return { g, wings }; };   // ハチドリ（模式）。帯に近づいてから組み立てる
   const mos = bug(.006, '#4a4038', .0055); mos.g.position.set(-.06, 1.62, 3.8); mos.g.rotation.y = -.6; S.add(mos.g);
@@ -188,14 +189,14 @@ export function create(canvas) {
       gk = keyaki * (1 - deep) + deep * (t.seed % 3 === 0 ? cyc : 0);
       gc = sugi * (1 - deep); gk *= 1 - seaF; gc *= 1 - seaF;
       let H = 4 + 18 * gk;
-      if (i === 1 && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
+      if (i === 3 && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
       const Wd = .25 + gk * 1.1;
       m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(Wd, gk > .02 ? H : .0001, Wd)); trunks.setMatrixAt(i, m4);
       m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(gc * 1.1 + .0001, gc * 20 + .0001, gc * 1.1 + .0001)); cedars.setMatrixAt(i, m4);
       for (let j = 0; j < LPT; j++) { const o = LO[i * LPT + j], k = i * LPT + j, on = o[4] < dens && gk > .05;
         const cr = (1.8 + 4.6 * gk);
         e.set(o[5] * .3, o[3], o[5] * .2); q.setFromEuler(e);
-        m4.compose(v3.set(t.x + o[0] * cr, H * (.32 + o[1] * .68) , t.z + o[2] * cr), q, s3.setScalar(on ? .8 + gk * 1.5 : 0)); leaves.setMatrixAt(k, m4); }
+        m4.compose(v3.set(t.x + o[0] * cr, H * (.32 + o[1] * .68) , t.z + o[2] * cr), q, s3.setScalar(on ? (i === 3 && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
     }
     trunks.instanceMatrix.needsUpdate = cedars.instanceMatrix.needsUpdate = leaves.instanceMatrix.needsUpdate = true;
   }
@@ -285,7 +286,7 @@ export function create(canvas) {
       } }
     // 目：ほんの少しの呼吸と、見回し
     cam.position.y = 1.6 + Math.sin(performance.now() / 1600) * .004;
-    cam.rotation.set(.05 * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + .5 * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
+    cam.rotation.set(.26 * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + .3 * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
     R.render(S, cam);
   }
   return { frame };
