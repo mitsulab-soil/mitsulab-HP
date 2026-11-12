@@ -52,6 +52,8 @@ export function create(canvas) {
   const trunkGeo = new THREE.CylinderGeometry(.22, .42, 1, 9, 1, true); trunkGeo.translate(0, .5, 0);
   const tMat = new THREE.MeshStandardMaterial({ map: tex('bark_zelkova', 1, 4), roughness: .95, color: '#b9aa96' }); landTint(tMat, { amt: .1 });
   const trunks = new THREE.InstancedMesh(trunkGeo, tMat, NT); trunks.castShadow = true; trunks.receiveShadow = true; S.add(trunks);
+  // 箒状の樹形（幹が途中で何本にも分かれ、扇のように開く。三重県林業研究所の樹種解説ほか）：幹の上に斜めに立つ枝（模式）
+  const NB = 6, branches = new THREE.InstancedMesh(trunkGeo, tMat, NT * NB); branches.castShadow = true; S.add(branches);
   const leafT = tl.load('tex/leaf_cluster.webp'); leafT.colorSpace = THREE.SRGBColorSpace;
   const lMat = new THREE.MeshStandardMaterial({ map: leafT, alphaTest: .45, side: THREE.DoubleSide, roughness: .8, color: '#e8f0dc' });
   const wind = { value: 0 }, windAmp = { value: 1 };
@@ -116,9 +118,11 @@ export function create(canvas) {
     const fm = new THREE.MeshStandardMaterial({ color: '#3f7a4a', roughness: .35, metalness: .35 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
     const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .2, 16, 12), fm); bd.scale.set(.8, .85, 1.6); g.add(bd);
     const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#d9d6c8', roughness: .8 })); bl.scale.set(.75, .7, 1.3); bl.position.set(0, -L * .05, L * .02); g.add(bl);
-    const hd = new THREE.Mesh(new THREE.SphereGeometry(L * .13, 14, 10), fm); hd.position.set(0, L * .1, -L * .32); g.add(hd);
-    const bk = new THREE.Mesh(new THREE.ConeGeometry(L * .018, L * .4, 6), dm); bk.rotation.x = -Math.PI / 2; bk.position.set(0, L * .09, -L * .6); bk.scale.set(.8, 1.3, .8); g.add(bk);
-    const tl = new THREE.Mesh(new THREE.ConeGeometry(L * .09, L * .35, 4), dm); tl.rotation.x = Math.PI / 2 + .5; tl.scale.set(1, .25, 1); tl.position.set(0, -L * .08, L * .42); g.add(tl);
+    const hd = new THREE.Mesh(new THREE.SphereGeometry(L * .13, 14, 10), fm); hd.position.set(0, L * .14, -L * .38); g.add(hd);
+    const nk = new THREE.Mesh(new THREE.CylinderGeometry(L * .08, L * .13, L * .16, 10), fm); nk.rotation.x = -1.0; nk.position.set(0, L * .08, -L * .27); g.add(nk);
+    const gor = new THREE.Mesh(new THREE.SphereGeometry(L * .09, 10, 8), new THREE.MeshStandardMaterial({ color: '#7a2a2a', roughness: .35, metalness: .3 })); gor.position.set(0, L * .06, -L * .36); gor.scale.set(.9, .7, 1); g.add(gor);
+    const bk = new THREE.Mesh(new THREE.ConeGeometry(L * .018, L * .4, 6), dm); bk.rotation.x = -Math.PI / 2; bk.position.set(0, L * .13, -L * .66); bk.scale.set(.8, 1.3, .8); g.add(bk);
+    for (let f = -2; f <= 2; f++) { const tf = new THREE.Mesh(new THREE.PlaneGeometry(L * .05, L * .34), dm); tf.geometry.translate(0, -L * .17, 0); tf.position.set(0, -L * .04, L * .3); tf.rotation.set(-1.15, 0, f * .22); tf.material.side = THREE.DoubleSide; g.add(tf); }   // 尾羽（扇）
     const ws = new THREE.Shape(); ws.moveTo(0, -L * .05); ws.quadraticCurveTo(L * .45, -L * .1, L * .85, -L * .02); ws.quadraticCurveTo(L * .5, L * .12, 0, L * .06); ws.lineTo(0, -L * .05);
     const wg2 = new THREE.ShapeGeometry(ws, 6); const wings = [];
     for (const s of [-1, 1]) { const w = new THREE.Mesh(wg2, wm2.clone()); w.position.set(s * L * .1, L * .1, -L * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k: 0 }); }
@@ -189,16 +193,18 @@ export function create(canvas) {
       gk = keyaki * (1 - deep) + deep * (t.seed % 3 === 0 ? cyc : 0);
       gc = sugi * (1 - deep); gk *= 1 - seaF; gc *= 1 - seaF;
       let H = 4 + 18 * gk;
-      if (i === 3 && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
+      if (i === 2 && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
       const Wd = .25 + gk * 1.1;
-      m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(Wd, gk > .02 ? H : .0001, Wd)); trunks.setMatrixAt(i, m4);
+      const hT = H * .5; m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(Wd, gk > .02 ? hT : .0001, Wd)); trunks.setMatrixAt(i, m4);
+      for (let b = 0; b < NB; b++) { const ang = (b / NB + t.seed * .13) * Math.PI * 2; const tilt = .28 + .22 * (((t.seed * 7 + b * 3) % 5) / 4); e.set(Math.cos(ang) * tilt, 0, Math.sin(ang) * tilt, 'YXZ'); q.setFromEuler(e);
+        m4.compose(v3.set(t.x, hT * (.8 + .06 * (b % 3)), t.z), q, s3.set(Wd * .42, gk > .02 ? H * (.5 + .04 * (b % 3)) : .0001, Wd * .42)); branches.setMatrixAt(i * NB + b, m4); }
       m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(gc * 1.1 + .0001, gc * 20 + .0001, gc * 1.1 + .0001)); cedars.setMatrixAt(i, m4);
       for (let j = 0; j < LPT; j++) { const o = LO[i * LPT + j], k = i * LPT + j, on = o[4] < dens && gk > .05;
-        const cr = (1.8 + 4.6 * gk);
+        const cr = (1.8 + 4.6 * gk) * (i === 2 && gw > .01 ? .55 + .45 * gk : 1);
         e.set(o[5] * .3, o[3], o[5] * .2); q.setFromEuler(e);
-        m4.compose(v3.set(t.x + o[0] * cr, H * (.32 + o[1] * .68) , t.z + o[2] * cr), q, s3.setScalar(on ? (i === 3 && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
+        const fan = .35 + .85 * o[1]; m4.compose(v3.set(t.x + o[0] * cr * fan, H * (.5 + o[1] * .5) , t.z + o[2] * cr * fan), q, s3.setScalar(on ? (i === 2 && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
     }
-    trunks.instanceMatrix.needsUpdate = cedars.instanceMatrix.needsUpdate = leaves.instanceMatrix.needsUpdate = true;
+    trunks.instanceMatrix.needsUpdate = branches.instanceMatrix.needsUpdate = cedars.instanceMatrix.needsUpdate = leaves.instanceMatrix.needsUpdate = true;
   }
 
   function frame(dt, n, rate, ago, yaw) {
@@ -286,7 +292,7 @@ export function create(canvas) {
       } }
     // 目：ほんの少しの呼吸と、見回し
     cam.position.y = 1.6 + Math.sin(performance.now() / 1600) * .004;
-    cam.rotation.set(.26 * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + .3 * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
+    cam.rotation.set(.2 * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + .42 * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
     R.render(S, cam);
   }
   return { frame };
