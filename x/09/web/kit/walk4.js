@@ -17,6 +17,7 @@ export function attachWalk4(QW) {
   const css = document.createElement("style"); css.id = "walk4";
   css.textContent = `#w4up{position:fixed;inset:0;z-index:3;background:rgba(3,6,10,.93);opacity:0;transition:opacity 1.4s ease;pointer-events:auto;cursor:pointer}
 #w4up.on{opacity:1}#w4up p{position:absolute;left:0;right:0;top:44%;margin:0;text-align:center;font:400 12px/1.6 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.08em;color:rgba(230,238,242,.55)}
+body.w4soil #qS6,body.w4soil #qIK,body.w4soil #walkUI{opacity:.25!important;transition:opacity .4s}
 body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4src,body.w4up header,body.w4up #topbar,body.w4up button:not(#w4src button){opacity:.12!important}
 #w4up p{transition:opacity 1.5s ease 4s}#w4up.on p{opacity:.0}#w4up.on.fresh p{opacity:1}
 #w4src{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 250px);z-index:7;max-width:min(240px,calc(100vw - 140px));font:400 11.5px/1.55 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);color:#eef3f6;text-shadow:0 1px 3px rgba(0,0,0,.85)}
@@ -73,10 +74,11 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
     }
     if (QW.mode !== "walk") { upExit(false); return; }
     // 道の曲がりを、体の向き（歩きつづける＝参道に沿う）の変わり方から読む。曲がる側から音、振動は曲がるときだけ
-    const yaw = QW.CAM.yaw; UP.yaws.push([performance.now(), yaw]); while (UP.yaws.length && performance.now() - UP.yaws[0][0] > 1500) UP.yaws.shift();
-    const d = UP.yaws.length > 2 ? Math.atan2(Math.sin(yaw - UP.yaws[0][1]), Math.cos(yaw - UP.yaws[0][1])) : 0;
+    // 道の曲がりを、参道の線の 10 m 先の向きから先に読む（曲がる前に、曲がる側から知らせる）。読めないときは体の向きの変わり方で
+    let d = 0; try { d = QW.turnAhead ? QW.turnAhead(10) : 0; } catch { d = 0; }
+    if (!QW.turnAhead) { const yaw = QW.CAM.yaw; UP.yaws.push([performance.now(), yaw]); while (UP.yaws.length && performance.now() - UP.yaws[0][0] > 1500) UP.yaws.shift(); d = UP.yaws.length > 2 ? Math.atan2(Math.sin(yaw - UP.yaws[0][1]), Math.cos(yaw - UP.yaws[0][1])) : 0; }
     UP.cueT -= dt; UP.beatT -= dt;
-    if (Math.abs(d) > .12 && UP.cueT <= 0) { const side = d > 0 ? -1 : 1; tone(side < 0 ? 520 : 620, side * .85, .2, .13); vib(28); UP.cueT = 1.3; UP.beatT = 3.5; }   // 左へ曲がる＝左から
+    if (Math.abs(d) > .14 && UP.cueT <= 0) { const side = d > 0 ? -1 : 1; tone(side < 0 ? 520 : 620, side * .85, .2, .13); vib(28); UP.cueT = 1.3; UP.beatT = 3.5; }   // 左へ曲がる＝左から
     else if (UP.beatT <= 0) { tone(440, 0, .09, .045); UP.beatT = 3.5; }   // まっすぐ続く＝真ん中で小さく
     if (!W.moving) { UP.stopT += dt; if (UP.stopT > 20) { upExit(false); return; } if (UP.stopT > 2.5 && !UP.saidEnd) { UP.saidEnd = true; tone(392, 0, .3, .1); vib([30, 60, 30]); QW.speak?.([{ t: "ここで止まりました。触れると、画面に戻ります。", tc: "ここで止まりました。触れると、画面に戻ります。" }]); } }
     else UP.stopT = 0;
@@ -96,7 +98,7 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
   const L = { t: 0, base: null, mine: null, said: false, cS: new THREE.Color(), cH: new THREE.Color(), cG: new THREE.Color(), k: 1, sun0: QW.sun?.intensity ?? 2.6 };
   function lightTarget() {
     const d = now0(), el = sunAzEl(35.90725, 139.631, d).el,   /* 知らせの時刻と同じ日時から太陽の高さを出す（食い違わない） */ m = d.getMonth() + 1, h = d.getHours() + d.getMinutes() / 60, S = SEASON[m];
-    const low = 1 - sm(1, 14, el);   // 赤みは太陽が 14° を切ってから（夕方・朝の低い光）   // 太陽が低いほど、光は赤みに・弱く
+    const low = Math.max(1 - sm(1, 14, el), .3 * (1 - sm(12, 50, el)));   // 夕方・朝は強く、冬の低い昼の太陽はわずかに暖かく   // 赤みは太陽が 14° を切ってから（夕方・朝の低い光）   // 太陽が低いほど、光は赤みに・弱く
     L.cS.set("#fff4e0").lerp(new THREE.Color("#ffa060"), low * .5);
     const I = L.sun0 * (.22 + .78 * sm(-4, 32, el));
     L.cH.set(S[0]).lerp(new THREE.Color("#f2c9a4"), low * .3); L.cG.set(S[1]).lerp(new THREE.Color("#6a5240"), low * .4);   // 低い太陽のときは空の光も暖かく
@@ -188,7 +190,7 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
       SO.g.position.set(x, (QW.groundAt ? QW.groundAt(x, z) : 0) + .01, z);
     }
     SO.k += Math.sign(SO.want - SO.k) * Math.min(Math.abs(SO.want - SO.k), dt / (SO.want ? .6 : .35));
-    SO.g.visible = SO.k > .005;
+    SO.g.visible = SO.k > .005; document.body.classList.toggle("w4soil", SO.k > .2);
     if (!SO.g.visible) { hideSrc("soil"); return; }
     const k = SO.k; for (const m of SO.mats) m.opacity = (m.isLineBasicMaterial ? .55 : m.isPointsMaterial ? .7 : .97) * k;
     const t = performance.now() / 1000;
@@ -203,6 +205,10 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
     }
   }
 
+  // 足もとを見ているあいだは、碧を描かない（足もとの円を隠さないように・その間だけ）。札も薄くする
+  { const pb = QW.scene.onBeforeRender, pa = QW.scene.onAfterRender; let hid = null;
+    QW.scene.onBeforeRender = function (...a) { pb && pb.apply(this, a); hid = []; if (SO.k > .2) for (const A of [QW.AOI?.root, QW.AOISH]) if (A?.visible) { hid.push(A); A.visible = false; } };
+    QW.scene.onAfterRender = function (...a) { try { pa && pa.apply(this, a); } finally { if (hid) { for (const A of hid) A.visible = true; hid = null; } } }; }
   /* ---------- まわす ---------- */
   let tl = performance.now();
   (function loop(t) { const dt = Math.min(.1, (t - tl) / 1000); tl = t;

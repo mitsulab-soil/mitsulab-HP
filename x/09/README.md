@@ -39,6 +39,7 @@ mitsulab の作品《Qualia/walk 氷川》です。シリーズ《Qualia/walk》
 - 碧の 3D：© mitsulab（VRoid Studio で作成した VRM・`web/aoi.vrm`）。この作品の中で碧を表示するためだけに置いています。VRM の利用条件は「アバターとして使えるのは作者のみ・再配布不可・改変不可」です。ファイルを取り出して、ほかで使ったり配ったりしないでください。
 - 碧の 3D の表示：[@pixiv/three-vrm](https://github.com/pixiv/three-vrm)（MIT）
 - 碧の声：VOICEVOX:冥鳴ひまり（AI の合成音声。[VOICEVOX](https://voicevox.hiroshiba.jp/)・[冥鳴ひまりの利用規約](https://www.meimeihimari.com/terms-of-use)）。前もって一行ずつ作った音（`web/voice/`）を鳴らしています
+- 生き物の目のスズメ・タヌキ・ミツバチ、土の中のミミズの 3D：© mitsulab（`web/kit/creatures_sight.js` が画面の中でその場で組み立てる造形。外から取りこんだ 3D・画像は使っていない）。スズメは同じ部品のシジュウカラの体、タヌキは同じ部品の柴犬の体（どちらも mitsulab の自作のコード）をもとに、色と形を替えたもの。mitsulab の作品として商用で使えます。※イヌの目で使う柴犬の写実の 3D（"Animated Dog, Shiba Inu" by quander・CC BY 4.0・商用可・表示が条件）はタヌキには使っていません
 - 木の配置・樹種の割合、根・石・下草の形と並びは模式です（一本ずつの位置と樹種ではありません）。
 
 ## 著作権 ／ Copyright
