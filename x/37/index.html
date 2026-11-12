@@ -115,7 +115,7 @@ function ui(){
  const p=(NMAX-n)/(NMAX-NMIN);$('knob').style.top=(p*100)+'%';rail.setAttribute('aria-valuenow',n.toFixed(1));
  $('mN').innerHTML=Math.abs(n)<.05?'等倍':'10<sup>'+sup(n)+'</sup> 倍の速さ';$('mH').textContent='1 秒で '+human(Math.pow(10,n));
  const b=bandAt(n);if(b!==lastBand){lastBand=b;window.mitsuIchimai&&window.mitsuIchimai.layer(b[1].split('（')[0]);/* 11-12 持ち帰りの一枚に、通った時間の段を足す */$('mE').textContent=b[1];$('cap').textContent=hinted?b[2]:'上下にドラッグ・スクロールで、時間の速さが変わる。'}
- if(n>-1.15&&n<-.2)tq('h','','','#','人の速さに戻る');else if(n>-3.3&&n<-1.6)tq('f','小さく速く飛ぶ虫は、この細かさまで受けとる（模式・出典は ＋）','','../36/?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../36/?s=1.25','一本の欅の大きさへ');else tq(null);
+ if(n>-3.3&&n<-1.6)tq('f','小さく速く飛ぶ虫は、この細かさまで受けとる（模式・出典は ＋）','','../36/?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../36/?s=1.25','一本の欅の大きさへ');else tq(null);
  const a=fmtAgo(ago);if(a!==lastTxt){lastTxt=a;$('mA').textContent=a}
 }
 window.__setN=v=>{nT=v;n=v;};window.__time={get n(){return n},get ago(){return ago}};

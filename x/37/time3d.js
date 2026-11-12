@@ -61,6 +61,8 @@ export function create(canvas) {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uW, uA;').replace('#include <begin_vertex>', '#include <begin_vertex>\n{ vec3 o_ = instanceMatrix[3].xyz; transformed.x += uA * .06 * sin(uW * 1.7 + o_.x * .8 + o_.y) * position.y; transformed.z += uA * .04 * sin(uW * 2.3 + o_.z); }'); };
   const LPT = mobile ? 60 : 90, leafGeo = new THREE.PlaneGeometry(2.4, 1.4);
   const leaves = new THREE.InstancedMesh(leafGeo, lMat, NT * LPT); leaves.castShadow = !mobile; S.add(leaves);
+  { const wc = new THREE.Color(1, 1, 1); for (let k = 0; k < NT * LPT; k++) leaves.setColorAt(k, wc); }
+  const YOUNG = new THREE.Color(1.35, 1.45, 1.15), WHITE = new THREE.Color(1, 1, 1); let youngOn = false;
   const LO = []; for (let i = 0; i < NT * LPT; i++) { const r = hash1(i * 1.37), a = hash1(i * 2.11) * 6.283, h = hash1(i * 3.7); LO.push([Math.cos(a) * r, .55 + h * .45, Math.sin(a) * r, hash1(i * 5.3) * 6.28, hash1(i * 7.9), hash1(i * 4.4) * 3.14]); }
   const cedarGeo = new THREE.ConeGeometry(1.6, 1, 8); cedarGeo.translate(0, .5, 0);
   const cMat = new THREE.MeshStandardMaterial({ color: '#566e48', roughness: .95 }); landTint(cMat, { amt: .14 });
@@ -116,8 +118,8 @@ export function create(canvas) {
   // ハチドリ（日本にはいない。羽ばたきの速さを比べるための模式）：毎秒 およそ 50 回で描く
   let hum = null; const mkHum = () => { const g = new THREE.Group(), L = .13;
     const fm = new THREE.MeshStandardMaterial({ color: '#3f7a4a', roughness: .35, metalness: .35 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
-    const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .2, 16, 12), fm); bd.scale.set(.8, .85, 1.6); g.add(bd);
-    const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#d9d6c8', roughness: .8 })); bl.scale.set(.75, .7, 1.3); bl.position.set(0, -L * .05, L * .02); g.add(bl);
+    const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .2, 16, 12), fm); bd.scale.set(.62, .7, 1.45); g.add(bd);
+    const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#d9d6c8', roughness: .8 })); bl.scale.set(.62, .62, 1.25); bl.position.set(0, -L * .06, L * .0); g.add(bl);
     const hd = new THREE.Mesh(new THREE.SphereGeometry(L * .13, 14, 10), fm); hd.position.set(0, L * .14, -L * .38); g.add(hd);
     const nk = new THREE.Mesh(new THREE.CylinderGeometry(L * .08, L * .13, L * .16, 10), fm); nk.rotation.x = -1.0; nk.position.set(0, L * .08, -L * .27); g.add(nk);
     const gor = new THREE.Mesh(new THREE.SphereGeometry(L * .09, 10, 8), new THREE.MeshStandardMaterial({ color: '#7a2a2a', roughness: .35, metalness: .3 })); gor.position.set(0, L * .06, -L * .36); gor.scale.set(.9, .7, 1); g.add(gor);
@@ -126,7 +128,14 @@ export function create(canvas) {
     const ws = new THREE.Shape(); ws.moveTo(0, -L * .05); ws.quadraticCurveTo(L * .45, -L * .1, L * .85, -L * .02); ws.quadraticCurveTo(L * .5, L * .12, 0, L * .06); ws.lineTo(0, -L * .05);
     const wg2 = new THREE.ShapeGeometry(ws, 6); const wings = [];
     for (const s of [-1, 1]) { const w = new THREE.Mesh(wg2, wm2.clone()); w.position.set(s * L * .1, L * .1, -L * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k: 0 }); }
-    g.rotation.x = .5; g.position.set(mobile ? -.06 : -.22, 1.52, 3.25); g.rotation.y = -.5; g.visible = false; S.add(g); return { g, wings }; };   // ハチドリ（模式）。帯に近づいてから組み立てる
+    const eyeM = new THREE.MeshStandardMaterial({ color: '#0b0b0b', roughness: .15 });
+    for (const sx of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(L * .025, 8, 6), eyeM); ey.position.set(sx * L * .1, L * .19, -L * .44); g.add(ey); }
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(L * .135, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#2f6a3c', roughness: .25, metalness: .5 })); cap.position.copy(hd.position); g.add(cap);
+    { const wc = document.createElement('canvas'); wc.width = 64; wc.height = 16; const x = wc.getContext('2d'); x.fillStyle = '#3a3f36'; x.fillRect(0, 0, 64, 16); x.strokeStyle = 'rgba(200,205,190,.35)'; for (let i = 6; i < 64; i += 6) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i - 4, 16); x.stroke(); }
+      const wt = new THREE.CanvasTexture(wc); wt.colorSpace = THREE.SRGBColorSpace; for (const { w } of wings) { w.material.map = wt; w.material.color.set('#ffffff'); w.material.needsUpdate = true; }
+      const uvs = wg2.attributes.uv, ps = wg2.attributes.position; for (let i = 0; i < uvs.count; i++) uvs.setXY(i, ps.getX(i) / (L * .85), (ps.getY(i) + L * .1) / (L * .22)); }
+    for (const sx of [-1, 1]) { const ft = new THREE.Mesh(new THREE.CylinderGeometry(L * .008, L * .008, L * .1, 4), dm); ft.position.set(sx * L * .05, -L * .17, -L * .02); ft.rotation.x = .4; g.add(ft); }
+    g.rotation.x = .5; g.position.set(mobile ? -.06 : -.22, 1.52, 3.25); g.rotation.y = 1.25; g.visible = false; S.add(g); return { g, wings }; };   // ハチドリ（模式）。帯に近づいてから組み立てる
   const mos = bug(.006, '#4a4038', .0055); mos.g.position.set(-.06, 1.62, 3.8); mos.g.rotation.y = -.6; S.add(mos.g);
 
   // 自分の前腕と神経（模式）
@@ -196,14 +205,15 @@ export function create(canvas) {
       if (i === 2 && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
       const Wd = .25 + gk * 1.1;
       const hT = H * .5; m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(Wd, gk > .02 ? hT : .0001, Wd)); trunks.setMatrixAt(i, m4);
-      for (let b = 0; b < NB; b++) { const ang = (b / NB + t.seed * .13) * Math.PI * 2; const tilt = .28 + .22 * (((t.seed * 7 + b * 3) % 5) / 4); e.set(Math.cos(ang) * tilt, 0, Math.sin(ang) * tilt, 'YXZ'); q.setFromEuler(e);
-        m4.compose(v3.set(t.x, hT * (.8 + .06 * (b % 3)), t.z), q, s3.set(Wd * .42, gk > .02 ? H * (.5 + .04 * (b % 3)) : .0001, Wd * .42)); branches.setMatrixAt(i * NB + b, m4); }
+      for (let b = 0; b < NB; b++) { const ang = (b / NB + t.seed * .13) * Math.PI * 2; const hb = hash1(t.seed * 3.7 + b * 1.3), nb = 4 + (t.seed % 3), tilt = .2 + .38 * hb; e.set(Math.cos(ang) * tilt, 0, Math.sin(ang) * tilt, 'YXZ'); q.setFromEuler(e);
+        m4.compose(v3.set(t.x, hT * (.62 + .36 * hash1(t.seed * 5.1 + b)), t.z), q, s3.set(Wd * (.32 + .16 * hb), gk > .02 && b < nb ? H * (.42 + .16 * hb) : .0001, Wd * (.32 + .16 * hb))); branches.setMatrixAt(i * NB + b, m4); }
       m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(gc * 1.1 + .0001, gc * 20 + .0001, gc * 1.1 + .0001)); cedars.setMatrixAt(i, m4);
       for (let j = 0; j < LPT; j++) { const o = LO[i * LPT + j], k = i * LPT + j, on = o[4] < dens && gk > .05;
         const cr = (1.8 + 4.6 * gk) * (i === 2 && gw > .01 ? .55 + .45 * gk : 1);
         e.set(o[5] * .3, o[3], o[5] * .2); q.setFromEuler(e);
         const fan = .35 + .85 * o[1]; m4.compose(v3.set(t.x + o[0] * cr * fan, H * (.5 + o[1] * .5) , t.z + o[2] * cr * fan), q, s3.setScalar(on ? (i === 2 && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
     }
+    { const yo = gw > .01; if (yo || youngOn) { for (let j = 0; j < LPT; j++) leaves.setColorAt(2 * LPT + j, yo ? YOUNG : WHITE); leaves.instanceColor.needsUpdate = true; youngOn = yo; } }
     trunks.instanceMatrix.needsUpdate = branches.instanceMatrix.needsUpdate = cedars.instanceMatrix.needsUpdate = leaves.instanceMatrix.needsUpdate = true;
   }
 
