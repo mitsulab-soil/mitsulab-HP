@@ -36,7 +36,7 @@ const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const T0 = performance.now();
 const QW = window.__qw = { ready: false, mode: "boot", tm: { m0: performance.now() } }; QW.THREE = THREE;
-const VER = "20261110r5";
+const VER = "20261112m1";
 const status = t => { const e = $("#bootStatus"); if (e) e.textContent = t; };
 
 /* ---------- 描画 ---------- */
@@ -1233,7 +1233,7 @@ function capLines(s) {   // 11-05 採点 P2：375 で「立ち、」だけの行
   const out = []; for (const para of String(s).split("\n")) { let cur = ""; for (const seg0 of para.split(/(?<=[、。！？」』）])/)) { if (!seg0) continue; for (const seg of cut(seg0)) { if (cur && W(cur + seg) > w) { out.push(cur); cur = ""; } cur += seg; } } if (cur) out.push(cur); }
   return out.join("\n"); }
 function capSet(s) { const e = $("#capText"); if (innerWidth < 640) { s = capLines(s); e.style.whiteSpace = "pre-line"; } else e.style.whiteSpace = ""; e.textContent = ""; for (const p of String(s).split(/([^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
-function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
+function caption(t, talk, src, dur = 0) { QW._capT = performance.now(); const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; capSet(ch[i]); if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
   if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); tag.textContent = "● " + QAN(k6) + (s0 ? "　出典：" + s0 : ""); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
@@ -1985,8 +1985,14 @@ function stepTag() {
 /* ---------- まわす ---------- */
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0; const GEO = { t: 0, last: "" };
 function frame() { const _f0 = performance.now(); frame0(); if ((QW._fn = (QW._fn || 0) + 1) <= 4) (QW.tm.fr ||= []).push([Math.round(_f0 - T0), Math.round(performance.now() - _f0)]); }
+function meijiTalk() {   /* 11-12：昔の川が浮かんだとき、字幕で三行だけ（出典は端に） */
+  const L = ["足もとに重ねたのは、明治の地図に描かれた川と、低く湿った土地です。", "明治 13〜19 年の迅速測図から、国土地理院が写しとりました。川は谷の底を流れ、両側に田や湿地などの低い土地が続いていました。", "いまの川は、稲荷橋から空の下に出ます。上流と、童謡「春の小川」のモデルとされる河骨川などの支流は、暗渠になり、下水道の幹線になっています。"];
+  const SR = ["国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "東京都建設局「渋谷川・古川流域とは」／国土交通省「渋谷川・古川かわまちづくり」"];
+  const go = () => { if (voiceQ || !$("#panel").hidden || !$("#caption").hidden || performance.now() - (QW._capT || 0) < 1500) { setTimeout(go, 1200); return; } let k0 = 0; const Q = L.map((t, k) => ({ t, src: SR[k], lay: "x.memory" })); let fin = false; speakLines(Q.slice(k0), null, { narr: true, done: () => { fin = true; } }); const me = voiceQ;
+    const watch = () => { if (fin) return; if (voiceQ === me) { k0 = me.i; setTimeout(watch, 500); return; } L.splice(0, k0 + (k0 < L.length ? 0 : 0)); SR.splice(0, k0); if (L.length) setTimeout(go, 1500); }; setTimeout(watch, 500); }; go(); }   /* 割りこまれたら、残りの行をあとで続ける */
 function frame0() {
   const dt = Math.min(.05, clock.getDelta());
+  QW.meiji?.update(dt);
   if (QW.bldLines) QW.bldLines.visible = QW.mode !== "walk";   // 11-02 採点 P1：歩くときは建物の輪郭の線（地面を横切る細い線に見える）を出さない
   if ((QW.mode === "descend" || QW.mode === "walk") && !QW._pre) { QW._pre = 1; setTimeout(preShaders, 300); }   // 降りる動きのあいだに組む（歩きだしてからは組まない）   // 11-02：歩きはじめに影絵を前もって組み立てる（歩く途中の 100〜300 ms の 1 コマをなくす）
   if (QW.ready) (QW.fliers ||= makeFliers(world, camera, { mobile: MOBILE, groundY, onTouch: touchBird, natural: true })).update(dt, QW.mode === "walk");   // 11-03：鳥は操作できるようになってから
@@ -2048,6 +2054,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; window.MLLoader?.done();   /* 11-05 起動：読み込み画面は ready のその場で閉じる（index.html の 60 ms ごとの見回りを待つと、あとの組み立てに先を越されて 1 秒あまり遅れていた） */ setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
     setTimeout(() => QW.late?.(), 30);
+    setTimeout(() => import("./meiji.js?v=3").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
