@@ -137,6 +137,15 @@ export function create(canvas) {
   const dotC = document.createElement('canvas'); dotC.width = dotC.height = 32; { const g = dotC.getContext('2d'), gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); }
   const snowM = new THREE.PointsMaterial({ map: new THREE.CanvasTexture(dotC), color: '#e6f2ee', size: .03, transparent: true, opacity: 0, depthWrite: false }); const snow = new THREE.Points(snowG, snowM); S.add(snow);   // 海中を漂う粒（模式）
   const glint = new THREE.Mesh(new THREE.PlaneGeometry(40, 40, 1, 1), new THREE.MeshBasicMaterial({ color: '#cfe7e2', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide })); glint.rotation.x = Math.PI / 2; S.add(glint);   // 水面のゆらぐ明るさ（模式）
+  // 月：満ち欠けの周期（朔望月 約 29.53 日）。欠けの形は太陽との離角から計算（模式。大きさは見やすく少し大きい）
+  const moonU = { uL: { value: new THREE.Vector3(1, 0, 0) }, uA: { value: 1 } };
+  const moonM = new THREE.ShaderMaterial({ uniforms: moonU, transparent: true, depthWrite: false, fog: false,
+    vertexShader: 'varying vec3 vN; varying vec3 vP; void main(){ vN = normalize(normalMatrix * normal); vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }',
+    fragmentShader: 'uniform vec3 uL; uniform float uA; varying vec3 vN; varying vec3 vP; float h(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719)))*43758.5453); } float n3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z); }\n void main(){ vec3 q = normalize(vP); float m = n3(q*2.2)*.6 + n3(q*6.)*.3 + n3(q*18.)*.1; float alb = mix(.88, 1., smoothstep(.35,.65,m)); float lit = smoothstep(-.12,.14, dot(normalize(vN), normalize(uL))); vec3 c = vec3(.93,.92,.86)*alb*lit + vec3(.08,.1,.13)*(1.-lit); gl_FragColor = vec4(c, uA*lit*.85); }' });
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(7, 40, 24), moonM); moon.renderOrder = 2; S.add(moon);
+  const SYN = 29.530589;   // 朔望月（日）。国立天文台『理科年表』
+  const _mv = new THREE.Vector3(), _ml = new THREE.Vector3(), _ax = new THREE.Vector3();
+
   function size() { const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < .8 ? 72 : 62; cam.updateProjectionMatrix(); }
   size(); addEventListener('resize', size);
 
@@ -244,6 +253,19 @@ export function create(canvas) {
     // 光の前面が葉を渡る（光速）
     const lv = 1 - sm(-7.8, -6.8, n); front.material.opacity = lv; front.position.x = ((tFast * 3e8) % .2) - .05; front.visible = lv > .02 && Math.abs(front.position.x) < .05;
     oneLeaf.visible = n < -1.5; oneLeaf.material.opacity = 1 - sm(-3, -1.5, n);
+    // 月：離角 E（0＝新月・π＝満月）。一日が見分けられる速さでは日周で動き、それより速いと空の一か所で満ち欠けだけを見せる
+    { const days = tDay / 86400 - ago * 365.25, E = 2 * Math.PI * ((((days / SYN) + .35) % 1 + 1) % 1);
+      const mv = sm(2.6, 3.4, n) * (1 - sm(6.4, 7.0, n)) * (1 - seaF);
+      moon.visible = mv > .02;
+      if (moon.visible) {
+        if (avg < .5) { sunAt((doy + E / (2 * Math.PI) * SYN) % 365, ((hour - E * 12 / Math.PI) % 24 + 24) % 24, _mv); }
+        else _mv.set(0, Math.sin(.09), -Math.cos(.09));
+        moon.position.copy(cam.position).addScaledVector(_mv, 240);
+        // 月から見た太陽の向き：地球からの太陽の向きを、視線の向きを鉛直軸のまわりに離角ぶん回したもの（模式）
+        if (avg < .5) _ml.copy(sunDir); else { _ml.copy(_mv).applyAxisAngle(_Y, E); }
+        moonU.uL.value.copy(_ml).transformDirection(cam.matrixWorldInverse);
+        moonU.uA.value = mv * (_mv.y > -.02 ? 1 : 0) * (avg < .5 ? (1 - .6 * day) + .4 : 1);
+      } }
     // 目：ほんの少しの呼吸と、見回し
     cam.position.y = 1.6 + Math.sin(performance.now() / 1600) * .004;
     cam.rotation.set(-.02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
