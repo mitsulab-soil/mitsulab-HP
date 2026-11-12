@@ -175,6 +175,7 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(audio&&!audio.paused)stopNarration();}else{last=0;dirty=true;wake();}});
  updateEmergence();renderer.render(scene,camera);stage.dataset.ready='true';stage.dataset.readyMs=Math.round(performance.now());
  active=true;loadAoi();queueWorldMode();
+ import('./umwelt-shift.js?v=20261112a').then(m=>{window.__us=m.install({T,scene,renderer,camera,sunlight,ambientLight,fillLight,world,host:worldHost,kick:()=>{dirty=true;wake();}});}).catch(e=>console.warn('umwelt shift',e.message));
  // Sky light from a CC0 Poly Haven forest panorama (forest_slope, reduced to 512px), loaded after the first frame.
  new T.TextureLoader().load('img/common-ground/env_forest_slope.jpg',tx=>{tx.mapping=T.EquirectangularReflectionMapping;tx.colorSpace=T.SRGBColorSpace;const pm=new T.PMREMGenerator(renderer);if(!scene.environment){scene.environment=pm.fromEquirectangular(tx).texture;scene.environmentIntensity=.5;ambientLight.intensity*=.8;}pm.dispose();tx.dispose();dirty=true;wake();});queueWorldMode();wake();
 }
@@ -275,7 +276,7 @@ function loop(now){raf=0;if(!active||document.hidden||warming)return;if(performa
   labelBoxes.push({left:ax,right:ax+el.offsetWidth,top:ay,bottom:ay+el.offsetHeight});
   el.style.transform=`translate(${ax}px,${ay}px)`;const show=!detachedCanvas&&journey>.92&&(step===1||step===2);el.style.opacity=show?'1':'0';el.style.pointerEvents=show?'auto':'none';el.tabIndex=show?0:-1;
  });
- frames++;dirty=false;stage.dataset.frames=frames;
+ frames++;dirty=false;stage.dataset.frames=frames;if(window.__us?.animating){dirty=true;wake();}
  if((!paused&&!detachedCanvas)||dialogue||journeyPlaying&&!detachedCanvas)wake();
 }
 window.__commonGround={choose,selectMode,modes:MODES,setAuto(value){if(value&&paused&&!mq.matches){paused=false;pauseLabel();}tourState(!!value&&!paused);immersionTime=0;dirty=true;wake();},get stats(){return {relations:relations?.stats,relationMode,layers:[...layerKeys],immersionTime,autoImmersion,step,selectedClue,clueBlend,lightAngle,journey,journeyPlaying,detachedCanvas,birth:birth?.stats,instrument:camera?(()=>{const p=V(3.5,1.43,-1.5).project(camera);return {x:(p.x*.5+.5)*width,y:(-p.y*.5+.5)*height,inFrustum:Math.abs(p.x)<1&&Math.abs(p.y)<1&&Math.abs(p.z)<1};})():null,frames,ready:stage.dataset.ready,aoi:!!vrm,drawCalls:renderer?.info.render.calls,triangles:renderer?.info.render.triangles,medianFrameMs:frameTimes.slice().sort((a,b)=>a-b)[Math.floor(frameTimes.length/2)],paused,active};},capture:()=>{renderer.render(scene,camera);return renderer.domElement.toDataURL('image/png');},render:()=>{dirty=true;wake();}};
@@ -320,7 +321,7 @@ let worldModeQueued=false;
 function queueWorldMode(){if(worldModeQueued)return;worldModeQueued=true;requestAnimationFrame(()=>{worldModeQueued=false;updateWorldMode();});}
 function updateWorldMode(){
  if(!renderer)return;const hero=figure.closest('.cg-hero'),top=document.getElementById('top');
- const rect=hero.getBoundingClientRect(),beyond=!top.classList.contains('active')||rect.bottom<160;
+ const rect=hero.getBoundingClientRect(),beyond=!top.classList.contains('active')||rect.bottom<160||ui.getBoundingClientRect().height<8;/* 2026-11-12 場面を隠している間は、TOP のはじめから背景に出す */
  if(beyond!==detachedCanvas){detachedCanvas=beyond;document.body.classList.toggle('cg-beyond',beyond);
   if(beyond){stopNarration();enterPlace();worldHost.append(renderer.domElement);}
   else stage.insertBefore(renderer.domElement,stage.querySelector('[data-anchor]'));
