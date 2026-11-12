@@ -42,7 +42,7 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
   document.body.append(bar);
   const css=document.createElement('style');css.textContent=`.us-bar{position:fixed;left:12px;bottom:12px;z-index:30;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:min(360px,calc(100vw - 24px));pointer-events:none;font:400 12px/1.6 var(--serif,serif);color:#dfe8ec;transition:opacity .4s}
 .us-bar>*{pointer-events:auto}.us-eye{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid rgba(242,244,239,.4);background:rgba(3,6,15,.62);color:#f2f4ef;font:inherit;font-size:13px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.us-eye.us-in-nav{margin:0 10px 0 auto;flex:0 0 auto;min-height:40px;height:40px}.us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{background:rgba(3,6,15,.55);border-radius:6px;padding:3px 10px}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
+.us-eye span{opacity:.5;transition:opacity .3s}.us-eye span.on{opacity:1;color:#a8f2f6}.us-eye.us-in-nav{margin:0 10px 0 auto;flex:0 0 auto;min-height:40px;height:40px}.us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{background:rgba(3,6,15,.55);border-radius:6px;padding:3px 10px}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
 #cgWorldCanvas canvas{transition:opacity .6s}
 .us-eye.is-hint{animation:usHint 1.1s ease-out 3}@keyframes usHint{0%{box-shadow:0 0 0 0 rgba(168,242,246,.7)}100%{box-shadow:0 0 0 16px rgba(168,242,246,0)}}
 .us-rip{position:fixed;z-index:29;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:1.5px solid #a8f2f6;pointer-events:none;animation:usRip .7s ease-out forwards}@keyframes usRip{to{transform:scale(5);opacity:0}}
@@ -52,7 +52,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
   document.head.append(css);
   {const nv=document.querySelector('.tab-nav-inner'),br=nv&&nv.querySelector(':scope>.brand');if(br){const e=bar.querySelector('.us-eye');e.classList.add('us-in-nav');br.after(e);}}
   const eye=document.querySelector('.us-eye'),tl=bar.querySelector('.us-time'),dl=bar.querySelector('.us-depth'),src=bar.querySelector('.us-src');
-  const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,full=en()?(b?'Honeybee eyes (model)':'Human eyes'):(b?'ミツバチの目（模式）':'人の目');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',full);eye.textContent=sm?(en()?(b?'Bee⇄':'Hu⇄'):(b?'蜂⇄':'人⇄')):full+' ⇄';};
+  const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,H=en()?(sm?'Hu':'Human'):(sm?'人':'人の目'),B=en()?(sm?'Bee':'Honeybee (model)'):(sm?'蜂':'ミツバチの目（模式）');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',en()?'Switch between human and honeybee eyes':'人の目とミツバチの目を切りかえる');eye.innerHTML='<span class="'+(b?'':'on')+'">'+H+'</span> ⇄ <span class="'+(b?'on':'')+'">'+B+'</span>';};
   const toggle=()=>{st.touched=1;st.beeT=st.beeT>.5?0:1;eyeLabel();kick();};
   eye.addEventListener('click',toggle);
   // 背景の 3D そのもの（文字・ボタン・図のない所）を押しても切りかわる
@@ -84,7 +84,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
 
   // ---- 4 地面の下
   const under=new T.Group();under.visible=false;world.add(under);
-  const soil=new T.Mesh(new T.PlaneGeometry(60,60),new T.MeshBasicMaterial({color:0x2a1f15,side:T.BackSide}));soil.rotation.x=-Math.PI/2;soil.position.y=-.01;under.add(soil);
+  const soil=new T.Mesh(new T.PlaneGeometry(60,60),new T.MeshBasicMaterial({color:0x2a1f15,side:T.BackSide}));soil.rotation.x=-Math.PI/2;soil.position.y=-.01;under.add(soil);const bowl=new T.Mesh(new T.SphereGeometry(28,24,12,0,Math.PI*2,Math.PI/2,Math.PI/2),new T.MeshBasicMaterial({color:0x3b2c1f,side:T.BackSide,fog:false}));bowl.position.set(-2,-.02,-3);under.add(bowl);
   const litter=new T.Mesh(new T.BoxGeometry(30,DEPTH[0].d*DS,20),new T.MeshBasicMaterial({color:0x6b4f2e,transparent:true,opacity:.55,depthWrite:false}));litter.position.set(-2,-DEPTH[0].d*DS/2,-3);under.add(litter);
   const R=(()=>{let s=7;return()=>(s=(s*16807)%2147483647)/2147483647;})();
   const rootM=new T.MeshBasicMaterial({color:0x8a6a48}),hyM=new T.LineBasicMaterial({color:0xe8e2cf,transparent:true,opacity:.55}),wormM=new T.MeshBasicMaterial({color:0xb07a6a});
@@ -95,6 +95,10 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
   for(let i=0;i<7;i++){const deep=i<2,x=-2+(R()-.5)*6,z=-3+(R()-.5)*4,y=-(deep?1.2+R()*.8:.08+R()*.2)*DS,pts=[];for(let k=0;k<5;k++)pts.push(new T.Vector3(x+k*.05,y+Math.sin(k)*.03,z+Math.cos(k*1.3)*.04));under.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),10,.018,5,false),wormM));
     if(deep){const b=new T.Mesh(new T.CylinderGeometry(.03,.03,y*-1,5,1,true),new T.MeshBasicMaterial({color:0x4a3626}));b.position.set(x,y/2,z);under.add(b);}}
   const gw=new T.Mesh(new T.PlaneGeometry(40,30),new T.MeshBasicMaterial({color:0x3f7f9a,transparent:true,opacity:.45,side:T.DoubleSide,depthWrite:false,fog:false}));gw.rotation.x=-Math.PI/2;gw.position.set(-2,-DEPTH[5].d*DS,-3);under.add(gw);
+  {const lab=(t)=>{const c=document.createElement('canvas');c.width=192;c.height=48;const g=c.getContext('2d');g.font='28px serif';g.fillStyle='#f2f4ef';g.fillText(t,6,34);const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,depthTest:false,fog:false}));sp.scale.set(2.4,.6,1);return sp;};
+   const rx=.6,rz=-1.2;const rl=new T.Mesh(new T.CylinderGeometry(.012,.012,4.2*DS,4),new T.MeshBasicMaterial({color:0xf2f4ef,fog:false}));rl.position.set(rx,-2.1*DS,rz);under.add(rl);
+   [0,1,2,3,4].forEach(m=>{const tk=new T.Mesh(new T.BoxGeometry(.25,.012,.012),rl.material);tk.position.set(rx,-m*DS,rz);under.add(tk);const sp=lab(m?m+' m':(en()?'0 m ground':'0 m 地面'));sp.position.set(rx+.95,-m*DS,rz);under.add(sp);});const gl=lab(en()?'water (model)':'地下水（模式）');gl.scale.set(2.4,.6,1);gl.position.set(rx+1.4,-DEPTH[5].d*DS+.25,rz);under.add(gl);
+   const sky=new T.Mesh(new T.PlaneGeometry(60,.06),new T.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.8,fog:false}));sky.position.set(-2,-.02,1.5);under.add(sky);}
   dl.innerHTML=DEPTH.map(d=>'<li></li>').join('');
   const depthText=()=>{[...dl.children].forEach((li,i)=>li.textContent=en()?DEPTH[i].en:DEPTH[i].ja);src.textContent=en()?SRC_EN:SRC_JA;};depthText();
 
@@ -128,7 +132,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
   renderer.render=function(s,c){
     if(s!==scene)return orig(s,c);
     const nw=performance.now(),dtt=anim?(Math.min(.5,(nw-(st.lt||nw))/1000)||.033):.033;st.lt=nw;const k=reduce?1:1-Math.exp(-dtt/.45);
-    st.bee+=(st.beeT-st.bee)*(reduce?1:1-Math.exp(-dtt/.22));st.meiji+=(st.meijiT-st.meiji)*k;st.dive+=(st.diveT-st.dive)*k;st.layers+=(st.layersT-st.layers)*k;
+    st.bee+=(st.beeT-st.bee)*(reduce?1:1-Math.exp(-dtt/(st.beeT?.15:.6)));st.meiji+=(st.meijiT-st.meiji)*k;st.dive+=(st.diveT-st.dive)*k;st.layers+=(st.layersT-st.layers)*k;
     anim=Math.abs(st.beeT-st.bee)>.01||Math.abs(st.meijiT-st.meiji)>.01||Math.abs(st.diveT-st.dive)>.005||Math.abs(st.layersT-st.layers)>.02;
     const save={sp:sunlight.position.clone(),sc:sunlight.color.clone(),si:sunlight.intensity,ai:ambientLight.intensity,ac:ambientLight.color.clone(),fi:fillLight.intensity,bg:scene.background.clone(),fc:scene.fog.color.clone(),fn:scene.fog.near,ff:scene.fog.far,cp:c.position.clone(),cq:c.quaternion.clone()};
     const ts=timeState();
@@ -139,7 +143,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
     const L=st.layers;sheets.forEach((m,i)=>{const a=Math.max(0,Math.min(1,L-i));m.visible=a>.01&&st.dive<.5;m.material.opacity=a*.16;});
     under.visible=st.dive>.01;
     if(st.dive>.01){const off=st.dive*(DEPTH[5].d*DS+.6);const look=(c.userData.look||new T.Vector3(0,1,-2)).clone();c.position.y-=off+.5*st.dive;c.position.lerp(new T.Vector3(3.2,c.position.y,4.2),st.dive*.6);look.y-=off;look.lerp(new T.Vector3(-2,look.y,-3),st.dive);c.lookAt(look);
-      scene.background.lerp(soilBg,st.dive);scene.fog.color.lerp(soilBg,st.dive);scene.fog.near=T.MathUtils.lerp(save.fn,2,st.dive);scene.fog.far=T.MathUtils.lerp(save.ff,26,st.dive);sunlight.intensity*=1-st.dive*.8;}
+      {const dk=Math.min(1,st.dive*1.8);scene.background.lerp(soilBg,dk);scene.fog.color.lerp(soilBg,dk);}scene.fog.near=T.MathUtils.lerp(save.fn,2,st.dive);scene.fog.far=T.MathUtils.lerp(save.ff,26,st.dive);sunlight.intensity*=1-st.dive*.8;}
     const deep=st.dive>.5;if(dl.hidden===deep)dl.hidden=!deep;bar.classList.toggle('is-deep',deep);if(deep&&tl.textContent){tl.textContent='';label='';}
     const cv=renderer.domElement;if(host.contains(cv)){const o=Math.max(.26,st.bee*.5,st.meiji*.55,st.dive*.75,ts&&!ts.keep?.34:0);const v=o.toFixed(2);if(cv.style.opacity!==v)cv.style.opacity=v;}
     if(st.bee>.01&&!renderer.getRenderTarget()){
@@ -147,7 +151,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
       renderer.setRenderTarget(rt);orig(s,c);renderer.setRenderTarget(null);q.material.uniforms.tex.value=rt.texture;q.material.uniforms.k.value=st.bee;orig(qs,qc);
     }else orig(s,c);
     sunlight.position.copy(save.sp);sunlight.color.copy(save.sc);sunlight.intensity=save.si;ambientLight.intensity=save.ai;ambientLight.color.copy(save.ac);fillLight.intensity=save.fi;scene.background.copy(save.bg);scene.fog.color.copy(save.fc);scene.fog.near=save.fn;scene.fog.far=save.ff;c.position.copy(save.cp);c.quaternion.copy(save.cq);
-    if(!st.shown&&renderer.getViewport(new T.Vector4()).z>4){st.shown=performance.now();setTimeout(()=>{if(st.beeT===1&&!st.touched){st.beeT=0;eyeLabel();kick();eye.classList.add('is-hint');setTimeout(()=>eye.classList.remove('is-hint'),3600);}},reduce?1500:1000);}
+    if(!st.shown&&renderer.getViewport(new T.Vector4()).z>4){st.shown=performance.now();setTimeout(()=>{if(st.beeT===1&&!st.touched){st.beeT=0;eyeLabel();kick();eye.classList.add('is-hint');setTimeout(()=>eye.classList.remove('is-hint'),3600);}},reduce?1500:1500);}
   };
   eye.addEventListener('click',()=>{st.touched=1;});
   measure();
