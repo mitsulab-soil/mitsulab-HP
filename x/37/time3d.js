@@ -140,7 +140,7 @@ export function create(canvas) {
       const uvs = wg2.attributes.uv, ps = wg2.attributes.position; for (let i = 0; i < uvs.count; i++) uvs.setXY(i, ps.getX(i) / (L * .58), (ps.getY(i) + L * .08) / (L * .17)); }
     for (const sx of [-1, 1]) { const ft = new THREE.Mesh(new THREE.CylinderGeometry(L * .008, L * .008, L * .1, 4), dm); ft.position.set(sx * L * .04, -L * .13, -L * .02); ft.rotation.x = .4; g.add(ft); }
     g.rotation.order = 'YXZ'; g.rotation.x = .75; g.position.set(mobile ? -.06 : -.22, 1.52, 3.25); g.rotation.y = 1.25; g.visible = false; S.add(g); return { g, wings }; };   // ハチドリ（模式）。帯に近づいてから組み立てる
-  const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .03 : .1, 1.58, 3.72); fly.g.rotation.y = 2.2; fly.bm.color.set('#4a4a44'); S.add(fly.g);   // イエバエのなかま（模式）
+  const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .012 : .03, 1.585, 3.79); fly.g.rotation.y = 1.57; fly.bm.color.set('#4a4a44'); S.add(fly.g);   // イエバエのなかま（模式）
   const mos = bug(.006, '#4a4038', .0055); mos.g.position.set(-.06, 1.62, 3.8); mos.g.rotation.y = -.6; S.add(mos.g);
 
   // 自分の前腕と神経（模式）
@@ -210,13 +210,13 @@ export function create(canvas) {
       if (i === 2 && gw > .01) { const h = hOf(gAge); H = H * (1 - gw) + h * gw; gk = gk * (1 - gw) + Math.min(1, h / 22) * gw; }
       const Wd = .25 + gk * 1.1;
       const hT = H * (.3 + .1 * hash1(t.seed * 2.3)); m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(Wd, gk > .02 ? hT : .0001, Wd)); trunks.setMatrixAt(i, m4);
-      for (let b = 0; b < NB; b++) { const ang = (b / NB + t.seed * .13) * Math.PI * 2, hb = hash1(t.seed * 3.7 + b * 1.3), nb = 4 + (t.seed % 3), on = gk > .02 && b < nb;
+      for (let b = 0; b < NB; b++) { const h2 = hash1(t.seed * 9.1 + b * 2.7), h3 = hash1(t.seed * 1.9 + b * 5.3), ang = (b / NB + t.seed * .13 + (h2 - .5) * .14) * Math.PI * 2, hb = hash1(t.seed * 3.7 + b * 1.3), nb = 3 + Math.floor(hash1(t.seed * 4.4) * 4), on = gk > .02 && b < nb;
         // 弧を描く枝（二つの節で、根もとは斜め・先は立ち上がる）
-        const t1 = .38 + .3 * hb, t2 = t1 * .4, l1 = H * (.2 + .06 * hb), l2 = H * (.26 + .1 * hb), w0 = Wd * (.42 + .08 * hb), y0 = hT * (.82 + .16 * hash1(t.seed * 5.1 + b));
+        const t1 = .26 + .5 * hb, t2 = t1 * .4, l1 = H * (.13 + .14 * h2), l2 = H * (.2 + .18 * h3), w0 = Wd * (.42 + .08 * hb), y0 = hT * (.7 + .3 * hash1(t.seed * 5.1 + b)) + H * .06 * h3;
         e.set(Math.cos(ang) * t1, 0, Math.sin(ang) * t1, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(t.x, y0, t.z), q, s3.set(w0, on ? l1 : .0001, w0)); branches.setMatrixAt((i * NB + b) * 4, m4);
         _bd.set(0, 1, 0).applyQuaternion(q); const bx = t.x + _bd.x * l1, by = y0 + _bd.y * l1, bz = t.z + _bd.z * l1;
         let px = bx, py = by, pz = bz;
-        for (let sg = 1; sg < 4; sg++) { const tt = sg === 3 ? t1 * 1.6 : t1 * (sg === 1 ? .62 : .3), aa = sg === 3 ? ang + 1.3 : ang, ll = sg === 3 ? l2 * .45 : l2 * (sg === 1 ? .55 : .5), ww = w0 * (sg === 3 ? .22 : sg === 1 ? .52 : .27);
+        for (let sg = 1; sg < 4; sg++) { const tt = sg === 3 ? t1 * (1.2 + .8 * h2) : t1 * (sg === 1 ? .5 + .25 * h3 : .2 + .2 * h2), aa = sg === 3 ? ang + (h3 > .5 ? 1 : -1) * (.8 + .9 * h2) : ang + (h3 - .5) * .3 * sg, ll = sg === 3 ? l2 * .45 : l2 * (sg === 1 ? .55 : .5), ww = w0 * (sg === 3 ? .22 : sg === 1 ? .52 : .27);
           e.set(Math.cos(aa) * tt, 0, Math.sin(aa) * tt, 'YXZ'); q.setFromEuler(e);
           const ox = sg === 3 ? bx : px, oy = sg === 3 ? by + (py - by) * .5 : py, oz = sg === 3 ? bz : pz;
           m4.compose(v3.set(ox, oy, oz), q, s3.set(ww, on ? ll : .0001, ww)); branches.setMatrixAt((i * NB + b) * 4 + sg, m4);
