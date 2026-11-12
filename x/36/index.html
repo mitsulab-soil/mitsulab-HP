@@ -292,10 +292,10 @@ function buildTrees() {
   Promise.resolve([{ GLTFLoader: GLTFLoader_ }, { MeshoptDecoder: MeshoptDecoder_ }]).then(([{ GLTFLoader }, { MeshoptDecoder }]) => {
     const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); window.__GL = GLTFLoader; window.__MD = MeshoptDecoder;
     const get = u => new Promise((ok, ng) => L.load(u, ok, undefined, ng));
-    const pHi = get("./tree/keyaki.glb"); return get("./tree/keyaki_lod1_notex.glb").then(lo => { add(lo, null); return pHi; }).then(hi => add(hi, hi));
+    const pHi = get("./tree/keyaki.glb"); window.__pB = new Promise(ok => L.load("./bldg/buildings.glb", ok, undefined, () => ok(null)));   /* 11-12 建物は並木と同時に読みはじめ、細かい並木を待たずに置く（落ち着くまでのばらつきを減らす） */ return get("./tree/keyaki_lod1_notex.glb").then(lo => { add(lo, null); pHi.then(hi => add(hi, hi)).catch(e => console.warn("tree hi", e)); });
     }).then(() => { /* 並木の外の町：国土交通省 PLATEAU さいたま市（2022 年度）LOD1 の輪郭と高さ（Qualium 大宮と同じ型。屋根の形・色は模式）。参道の帯にかかる建物は外してある */
       const L2 = new (window.__GL)(); L2.setMeshoptDecoder(window.__MD);
-      return new Promise(ok => L2.load("./bldg/buildings.glb", ok, undefined, () => ok(null))); }).then(g => { if (!g) return;
+      return window.__pB || new Promise(ok => L2.load("./bldg/buildings.glb", ok, undefined, () => ok(null))); }).then(g => { if (!g) return;
       const box = new THREE.Group(); box.rotation.y = .0436; box.add(g.scene); g.scene.position.set(-18.9, -14.02, -359.21);
       const bm = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }); window.__bm = bm;
       { const cv = document.createElement("canvas"); cv.width = 512; cv.height = 512; const cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.textAlign = "center"; cx.textBaseline = "middle"; const W_ = ["珈琲", "ぱん", "そば", "花", "書店", "薬局", "酒", "和菓子"]; W_.forEach((w, i) => { cx.font = `600 ${w.length > 2 ? 40 : 46}px "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif`; const tw = Math.min(cx.measureText(w).width, 120); cx.save(); cx.translate(256, i * 64 + 33); cx.scale(Math.min(1, 120 / Math.max(cx.measureText(w).width, 1)), 1); cx.fillText(w, 0, 0); cx.restore(); }); const t = new THREE.CanvasTexture(cv); t.anisotropy = 4; window.__tSg = t; }   /* 看板の文字＝架空の一般の業種名だけ（実在の店名は使わない） */
