@@ -53,7 +53,7 @@ export function create(canvas) {
   const tMat = new THREE.MeshStandardMaterial({ map: tex('bark_zelkova', 1, 4), roughness: .95, color: '#b9aa96' }); landTint(tMat, { amt: .1 });
   const trunks = new THREE.InstancedMesh(trunkGeo, tMat, NT); trunks.castShadow = true; trunks.receiveShadow = true; S.add(trunks);
   // 箒状の樹形（幹が樹高の三〜四割ほどの所で何本にも分かれ、扇のように開く。三重県林業研究所の樹種解説ほか。分かれる高さは模式）：幹の上に斜めに立つ枝（模式）
-  const NB = 6, branches = new THREE.InstancedMesh(trunkGeo, tMat, NT * NB * 2), _bd = new THREE.Vector3(); branches.castShadow = true; S.add(branches);
+  const NB = 6, branches = new THREE.InstancedMesh(trunkGeo, tMat, NT * NB * 4), _bd = new THREE.Vector3(); branches.castShadow = true; S.add(branches);
   const leafT = tl.load('tex/leaf_cluster.webp'); leafT.colorSpace = THREE.SRGBColorSpace;
   const lMat = new THREE.MeshStandardMaterial({ map: leafT, alphaTest: .45, side: THREE.DoubleSide, roughness: .8, color: '#e8f0dc' });
   const wind = { value: 0 }, windAmp = { value: 1 };
@@ -61,7 +61,8 @@ export function create(canvas) {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uW, uA;').replace('#include <begin_vertex>', '#include <begin_vertex>\n{ vec3 o_ = instanceMatrix[3].xyz; transformed.x += uA * .06 * sin(uW * 1.7 + o_.x * .8 + o_.y) * position.y; transformed.z += uA * .04 * sin(uW * 2.3 + o_.z); }'); };
   const LPT = mobile ? 60 : 90, leafGeo = new THREE.PlaneGeometry(2.4, 1.4);
   const leaves = new THREE.InstancedMesh(leafGeo, lMat, NT * LPT); leaves.castShadow = !mobile; S.add(leaves);
-  { const wc = new THREE.Color(1, 1, 1); for (let k = 0; k < NT * LPT; k++) leaves.setColorAt(k, wc); }
+  { const wc = new THREE.Color(1, 1, 1); for (let k = 0; k < NT * LPT; k++) leaves.setColorAt(k, wc); for (let k = 0; k < NT; k++) trunks.setColorAt(k, wc); for (let k = 0; k < NT * NB * 4; k++) branches.setColorAt(k, wc); }
+  const TGLOW = new THREE.Color(1.5, 1.38, 1.18);
   const YOUNG = new THREE.Color(1.35, 1.45, 1.15), WHITE = new THREE.Color(1, 1, 1); let youngOn = false;
   const LO = []; for (let i = 0; i < NT * LPT; i++) { const r = hash1(i * 1.37), a = hash1(i * 2.11) * 6.283, h = hash1(i * 3.7); LO.push([Math.cos(a) * r, .55 + h * .45, Math.sin(a) * r, hash1(i * 5.3) * 6.28, hash1(i * 7.9), hash1(i * 4.4) * 3.14]); }
   const cedarGeo = new THREE.ConeGeometry(1.6, 1, 8); cedarGeo.translate(0, .5, 0);
@@ -117,9 +118,12 @@ export function create(canvas) {
   { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
   // ハチドリ（日本にはいない。羽ばたきの速さを比べるための模式）：毎秒 およそ 50 回で描く
   let hum = null; const mkHum = () => { const g = new THREE.Group(), L = .13;
-    const fm = new THREE.MeshStandardMaterial({ color: '#3f7a4a', roughness: .35, metalness: .35 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
+    const fc = document.createElement('canvas'); fc.width = fc.height = 64; { const x = fc.getContext('2d'); const gr = x.createLinearGradient(0, 0, 0, 64); gr.addColorStop(0, '#2f6b3d'); gr.addColorStop(.6, '#4f8a4f'); gr.addColorStop(1, '#7c9a6a'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+      for (let yy = 0; yy < 64; yy += 5) for (let xx = (yy / 5 % 2) * 3; xx < 64; xx += 6) { x.strokeStyle = 'rgba(20,40,24,.35)'; x.beginPath(); x.arc(xx, yy, 3, 0, Math.PI); x.stroke(); x.strokeStyle = 'rgba(190,220,170,.18)'; x.beginPath(); x.arc(xx, yy - 1, 2.5, Math.PI * 1.1, Math.PI * 1.9); x.stroke(); } }
+    const ft = new THREE.CanvasTexture(fc); ft.colorSpace = THREE.SRGBColorSpace; ft.wrapS = ft.wrapT = THREE.RepeatWrapping; ft.repeat.set(3, 2);
+    const fm = new THREE.MeshStandardMaterial({ map: ft, color: '#ffffff', roughness: .6, metalness: .12 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
     const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .2, 16, 12), fm); bd.scale.set(.62, .7, 1.45); g.add(bd);
-    const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#d9d6c8', roughness: .8 })); bl.scale.set(.62, .62, 1.25); bl.position.set(0, -L * .06, L * .0); g.add(bl);
+    const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#cfccbd', roughness: .95 })); bl.scale.set(.62, .62, 1.25); bl.position.set(0, -L * .06, L * .0); g.add(bl);
     const hd = new THREE.Mesh(new THREE.SphereGeometry(L * .13, 14, 10), fm); hd.position.set(0, L * .14, -L * .38); g.add(hd);
     const nk = new THREE.Mesh(new THREE.CylinderGeometry(L * .08, L * .13, L * .16, 10), fm); nk.rotation.x = -1.0; nk.position.set(0, L * .08, -L * .27); g.add(nk);
     const gor = new THREE.Mesh(new THREE.SphereGeometry(L * .09, 10, 8), new THREE.MeshStandardMaterial({ color: '#7a2a2a', roughness: .35, metalness: .3 })); gor.position.set(0, L * .06, -L * .36); gor.scale.set(.9, .7, 1); g.add(gor);
@@ -130,7 +134,7 @@ export function create(canvas) {
     for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg2, wm2.clone()); w.position.set(s * L * .1, L * .1, -L * .05); w.scale.x = s; w.rotation.order = 'ZYX'; w.rotation.y = s * .5; g.add(w); wings.push({ w, s, k, ghost: true }); }   // 0＝羽、1・2＝少し遅れた残像
     const eyeM = new THREE.MeshStandardMaterial({ color: '#0b0b0b', roughness: .15 });
     for (const sx of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(L * .025, 8, 6), eyeM); ey.position.set(sx * L * .1, L * .19, -L * .44); g.add(ey); }
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(L * .135, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#2f6a3c', roughness: .25, metalness: .5 })); cap.position.copy(hd.position); g.add(cap);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(L * .135, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ map: ft, color: '#cfe0c8', roughness: .5, metalness: .2 })); cap.position.copy(hd.position); g.add(cap);
     { const wc = document.createElement('canvas'); wc.width = 64; wc.height = 16; const x = wc.getContext('2d'); x.fillStyle = '#3a3f36'; x.fillRect(0, 0, 64, 16); x.strokeStyle = 'rgba(200,205,190,.35)'; for (let i = 6; i < 64; i += 6) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i - 4, 16); x.stroke(); }
       const wt = new THREE.CanvasTexture(wc); wt.colorSpace = THREE.SRGBColorSpace; for (const { w } of wings) { w.material.map = wt; w.material.color.set('#ffffff'); w.material.needsUpdate = true; }
       const uvs = wg2.attributes.uv, ps = wg2.attributes.position; for (let i = 0; i < uvs.count; i++) uvs.setXY(i, ps.getX(i) / (L * .85), (ps.getY(i) + L * .1) / (L * .22)); }
@@ -208,16 +212,21 @@ export function create(canvas) {
       for (let b = 0; b < NB; b++) { const ang = (b / NB + t.seed * .13) * Math.PI * 2, hb = hash1(t.seed * 3.7 + b * 1.3), nb = 4 + (t.seed % 3), on = gk > .02 && b < nb;
         // 弧を描く枝（二つの節で、根もとは斜め・先は立ち上がる）
         const t1 = .38 + .3 * hb, t2 = t1 * .4, l1 = H * (.2 + .06 * hb), l2 = H * (.26 + .1 * hb), w0 = Wd * (.34 + .14 * hb), y0 = hT * (.82 + .16 * hash1(t.seed * 5.1 + b));
-        e.set(Math.cos(ang) * t1, 0, Math.sin(ang) * t1, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(t.x, y0, t.z), q, s3.set(w0, on ? l1 : .0001, w0)); branches.setMatrixAt((i * NB + b) * 2, m4);
+        e.set(Math.cos(ang) * t1, 0, Math.sin(ang) * t1, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(t.x, y0, t.z), q, s3.set(w0, on ? l1 : .0001, w0)); branches.setMatrixAt((i * NB + b) * 4, m4);
         _bd.set(0, 1, 0).applyQuaternion(q); const bx = t.x + _bd.x * l1, by = y0 + _bd.y * l1, bz = t.z + _bd.z * l1;
-        e.set(Math.cos(ang) * t2, 0, Math.sin(ang) * t2, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(bx, by, bz), q, s3.set(w0 * .7, on ? l2 : .0001, w0 * .7)); branches.setMatrixAt((i * NB + b) * 2 + 1, m4); }
+        let px = bx, py = by, pz = bz;
+        for (let sg = 1; sg < 4; sg++) { const tt = sg === 3 ? t1 * 1.6 : t1 * (sg === 1 ? .62 : .3), aa = sg === 3 ? ang + 1.3 : ang, ll = sg === 3 ? l2 * .45 : l2 * (sg === 1 ? .55 : .5), ww = w0 * (sg === 3 ? .3 : sg === 1 ? .72 : .52);
+          e.set(Math.cos(aa) * tt, 0, Math.sin(aa) * tt, 'YXZ'); q.setFromEuler(e);
+          const ox = sg === 3 ? bx : px, oy = sg === 3 ? by + (py - by) * .5 : py, oz = sg === 3 ? bz : pz;
+          m4.compose(v3.set(ox, oy, oz), q, s3.set(ww, on ? ll : .0001, ww)); branches.setMatrixAt((i * NB + b) * 4 + sg, m4);
+          if (sg < 3) { _bd.set(0, 1, 0).applyQuaternion(q); px = ox + _bd.x * ll; py = oy + _bd.y * ll; pz = oz + _bd.z * ll; } } }   // 根もと→中ほど→先と立ち上がる弧＋細い枝（模式）
       m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(gc * 1.1 + .0001, gc * 20 + .0001, gc * 1.1 + .0001)); cedars.setMatrixAt(i, m4);
       for (let j = 0; j < LPT; j++) { const o = LO[i * LPT + j], k = i * LPT + j, on = o[4] < dens && gk > .05;
         const cr = (1.8 + 4.6 * gk) * (i === 2 && gw > .01 ? .55 + .45 * gk : 1);
         e.set(o[5] * .3, o[3], o[5] * .2); q.setFromEuler(e);
         const fan = .35 + .85 * o[1]; m4.compose(v3.set(t.x + o[0] * cr * fan, H * (.5 + o[1] * .5) , t.z + o[2] * cr * fan), q, s3.setScalar(on ? (i === 2 && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
     }
-    { const yo = gw > .01; if (yo || youngOn) { for (let j = 0; j < LPT; j++) leaves.setColorAt(2 * LPT + j, yo ? YOUNG : WHITE); leaves.instanceColor.needsUpdate = true; youngOn = yo; } }
+    { const yo = gw > .01; if (yo || youngOn) { for (let j = 0; j < LPT; j++) leaves.setColorAt(2 * LPT + j, yo ? YOUNG : WHITE); leaves.instanceColor.needsUpdate = true; trunks.setColorAt(2, yo ? TGLOW : WHITE); trunks.instanceColor.needsUpdate = true; for (let j = 0; j < NB * 4; j++) branches.setColorAt(2 * NB * 4 + j, yo ? TGLOW : WHITE); branches.instanceColor.needsUpdate = true; youngOn = yo; } }
     trunks.instanceMatrix.needsUpdate = branches.instanceMatrix.needsUpdate = cedars.instanceMatrix.needsUpdate = leaves.instanceMatrix.needsUpdate = true;
   }
 
