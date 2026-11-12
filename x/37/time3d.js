@@ -62,7 +62,7 @@ export function create(canvas) {
   const LPT = mobile ? 60 : 90, leafGeo = new THREE.PlaneGeometry(2.4, 1.4);
   const leaves = new THREE.InstancedMesh(leafGeo, lMat, NT * LPT); leaves.castShadow = !mobile; S.add(leaves);
   { const wc = new THREE.Color(1, 1, 1); for (let k = 0; k < NT * LPT; k++) leaves.setColorAt(k, wc); for (let k = 0; k < NT; k++) trunks.setColorAt(k, wc); for (let k = 0; k < NT * NB * 4; k++) branches.setColorAt(k, wc); }
-  const TGLOW = new THREE.Color(1.5, 1.38, 1.18);
+  const TGLOW = new THREE.Color(1.9, 1.7, 1.35);
   const YOUNG = new THREE.Color(1.35, 1.45, 1.15), WHITE = new THREE.Color(1, 1, 1); let youngOn = false;
   const LO = []; for (let i = 0; i < NT * LPT; i++) { const r = hash1(i * 1.37), a = hash1(i * 2.11) * 6.283, h = hash1(i * 3.7); LO.push([Math.cos(a) * r, .55 + h * .45, Math.sin(a) * r, hash1(i * 5.3) * 6.28, hash1(i * 7.9), hash1(i * 4.4) * 3.14]); }
   const cedarGeo = new THREE.ConeGeometry(1.6, 1, 8); cedarGeo.translate(0, .5, 0);
@@ -117,29 +117,30 @@ export function create(canvas) {
   const bee = bug(.014, '#8a6a2c', .011); bee.g.position.set(mobile ? .025 : .07, 1.55, 3.74); bee.g.rotation.y = .9; S.add(bee.g);
   { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
   // ハチドリ（日本にはいない。羽ばたきの速さを比べるための模式）：毎秒 およそ 50 回で描く
-  let hum = null; const mkHum = () => { const g = new THREE.Group(), L = .13;
+  let hum = null; const mkHum = () => { const g = new THREE.Group(), L = .17;
     const fc = document.createElement('canvas'); fc.width = fc.height = 64; { const x = fc.getContext('2d'); const gr = x.createLinearGradient(0, 0, 0, 64); gr.addColorStop(0, '#2f6b3d'); gr.addColorStop(.6, '#4f8a4f'); gr.addColorStop(1, '#7c9a6a'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
       for (let yy = 0; yy < 64; yy += 5) for (let xx = (yy / 5 % 2) * 3; xx < 64; xx += 6) { x.strokeStyle = 'rgba(20,40,24,.35)'; x.beginPath(); x.arc(xx, yy, 3, 0, Math.PI); x.stroke(); x.strokeStyle = 'rgba(190,220,170,.18)'; x.beginPath(); x.arc(xx, yy - 1, 2.5, Math.PI * 1.1, Math.PI * 1.9); x.stroke(); } }
     const ft = new THREE.CanvasTexture(fc); ft.colorSpace = THREE.SRGBColorSpace; ft.wrapS = ft.wrapT = THREE.RepeatWrapping; ft.repeat.set(3, 2);
     const fm = new THREE.MeshStandardMaterial({ map: ft, color: '#ffffff', roughness: .6, metalness: .12 }), dm = new THREE.MeshStandardMaterial({ color: '#2a2a26', roughness: .5 }), wm2 = new THREE.MeshStandardMaterial({ color: '#3b3f36', roughness: .7, transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false });
-    const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .2, 16, 12), fm); bd.scale.set(.62, .7, 1.45); g.add(bd);
-    const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .17, 12, 8), new THREE.MeshStandardMaterial({ color: '#cfccbd', roughness: .95 })); bl.scale.set(.62, .62, 1.25); bl.position.set(0, -L * .06, L * .0); g.add(bl);
-    const hd = new THREE.Mesh(new THREE.SphereGeometry(L * .13, 14, 10), fm); hd.position.set(0, L * .14, -L * .38); g.add(hd);
-    const nk = new THREE.Mesh(new THREE.CylinderGeometry(L * .08, L * .13, L * .16, 10), fm); nk.rotation.x = -1.0; nk.position.set(0, L * .08, -L * .27); g.add(nk);
-    const gor = new THREE.Mesh(new THREE.SphereGeometry(L * .09, 10, 8), new THREE.MeshStandardMaterial({ color: '#7a2a2a', roughness: .35, metalness: .3 })); gor.position.set(0, L * .06, -L * .36); gor.scale.set(.9, .7, 1); g.add(gor);
-    const bk = new THREE.Mesh(new THREE.ConeGeometry(L * .018, L * .4, 6), dm); bk.rotation.x = -Math.PI / 2 - .7; bk.position.set(0, L * .13, -L * .66); bk.scale.set(.55, 1.9, .55); g.add(bk);
-    for (let f = -2; f <= 2; f++) { const tf = new THREE.Mesh(new THREE.PlaneGeometry(L * .05, L * .34), dm); tf.geometry.translate(0, -L * .17, 0); tf.position.set(0, -L * .04, L * .3); tf.rotation.set(-1.15, 0, f * .22); tf.material.side = THREE.DoubleSide; g.add(tf); }   // 尾羽（扇）
-    const ws = new THREE.Shape(); ws.moveTo(0, -L * .05); ws.quadraticCurveTo(L * .45, -L * .1, L * .85, -L * .02); ws.quadraticCurveTo(L * .5, L * .12, 0, L * .06); ws.lineTo(0, -L * .05);
+    // 体形（模式）：全長 L のうち、嘴はおよそ 4 分の 1、頭は小さく、胴は紡錘形、翼は肩から
+    const bd = new THREE.Mesh(new THREE.SphereGeometry(L * .16, 18, 14), fm); bd.scale.set(.78, .78, 1.7); g.add(bd);
+    const bl = new THREE.Mesh(new THREE.SphereGeometry(L * .14, 14, 10), new THREE.MeshStandardMaterial({ color: '#cfccbd', roughness: .95 })); bl.scale.set(.72, .7, 1.45); bl.position.set(0, -L * .035, L * .02); g.add(bl);
+    const hd = new THREE.Mesh(new THREE.SphereGeometry(L * .1, 16, 12), fm); hd.position.set(0, L * .04, -L * .31); g.add(hd);
+    const gor = new THREE.Mesh(new THREE.SphereGeometry(L * .075, 12, 8), new THREE.MeshStandardMaterial({ color: '#7a2a2a', roughness: .4, metalness: .25 })); gor.position.set(0, -L * .01, -L * .29); gor.scale.set(.95, .8, 1); g.add(gor);
+    const BT = -Math.PI / 2 - .7, bdv = [0, Math.cos(BT), Math.sin(BT)];
+    const bk = new THREE.Mesh(new THREE.CylinderGeometry(L * .004, L * .012, L * .26, 6), dm); bk.rotation.x = BT; bk.position.set(0, L * .04 + bdv[1] * L * .21, -L * .31 + bdv[2] * L * .21); g.add(bk);
+    for (let f = -2; f <= 2; f++) { const tf = new THREE.Mesh(new THREE.PlaneGeometry(L * .04, L * .2), dm); tf.geometry.translate(0, -L * .1, 0); tf.position.set(0, -L * .02, L * .26); tf.rotation.set(-1.25, 0, f * .2); tf.material.side = THREE.DoubleSide; g.add(tf); }   // 尾羽（小さな扇）
+    const ws = new THREE.Shape(); ws.moveTo(0, -L * .04); ws.quadraticCurveTo(L * .3, -L * .08, L * .58, -L * .015); ws.quadraticCurveTo(L * .33, L * .09, 0, L * .045); ws.lineTo(0, -L * .04);
     const wg2 = new THREE.ShapeGeometry(ws, 6); const wings = [];
-    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg2, wm2.clone()); w.position.set(s * L * .1, L * .1, -L * .05); w.scale.x = s; w.rotation.order = 'ZYX'; w.rotation.y = s * .5; g.add(w); wings.push({ w, s, k, ghost: true }); }   // 0＝羽、1・2＝少し遅れた残像
+    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg2, wm2.clone()); w.position.set(s * L * .07, L * .08, -L * .12); w.scale.x = s; w.rotation.order = 'ZYX'; w.rotation.y = s * .5; g.add(w); wings.push({ w, s, k, ghost: true }); }   // 0＝羽、1・2＝少し遅れた残像
     const eyeM = new THREE.MeshStandardMaterial({ color: '#0b0b0b', roughness: .15 });
-    for (const sx of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(L * .025, 8, 6), eyeM); ey.position.set(sx * L * .1, L * .19, -L * .44); g.add(ey); }
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(L * .135, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ map: ft, color: '#cfe0c8', roughness: .5, metalness: .2 })); cap.position.copy(hd.position); g.add(cap);
+    for (const sx of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(L * .025, 8, 6), eyeM); ey.position.set(sx * L * .075, L * .07, -L * .36); g.add(ey); }
     { const wc = document.createElement('canvas'); wc.width = 64; wc.height = 16; const x = wc.getContext('2d'); x.fillStyle = '#3a3f36'; x.fillRect(0, 0, 64, 16); x.strokeStyle = 'rgba(200,205,190,.35)'; for (let i = 6; i < 64; i += 6) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i - 4, 16); x.stroke(); }
       const wt = new THREE.CanvasTexture(wc); wt.colorSpace = THREE.SRGBColorSpace; for (const { w } of wings) { w.material.map = wt; w.material.color.set('#ffffff'); w.material.needsUpdate = true; }
-      const uvs = wg2.attributes.uv, ps = wg2.attributes.position; for (let i = 0; i < uvs.count; i++) uvs.setXY(i, ps.getX(i) / (L * .85), (ps.getY(i) + L * .1) / (L * .22)); }
-    for (const sx of [-1, 1]) { const ft = new THREE.Mesh(new THREE.CylinderGeometry(L * .008, L * .008, L * .1, 4), dm); ft.position.set(sx * L * .05, -L * .17, -L * .02); ft.rotation.x = .4; g.add(ft); }
+      const uvs = wg2.attributes.uv, ps = wg2.attributes.position; for (let i = 0; i < uvs.count; i++) uvs.setXY(i, ps.getX(i) / (L * .58), (ps.getY(i) + L * .08) / (L * .17)); }
+    for (const sx of [-1, 1]) { const ft = new THREE.Mesh(new THREE.CylinderGeometry(L * .008, L * .008, L * .1, 4), dm); ft.position.set(sx * L * .04, -L * .13, -L * .02); ft.rotation.x = .4; g.add(ft); }
     g.rotation.order = 'YXZ'; g.rotation.x = .75; g.position.set(mobile ? -.06 : -.22, 1.52, 3.25); g.rotation.y = 1.25; g.visible = false; S.add(g); return { g, wings }; };   // ハチドリ（模式）。帯に近づいてから組み立てる
+  const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .03 : .1, 1.58, 3.72); fly.g.rotation.y = 2.2; fly.bm.color.set('#4a4a44'); S.add(fly.g);   // イエバエのなかま（模式）
   const mos = bug(.006, '#4a4038', .0055); mos.g.position.set(-.06, 1.62, 3.8); mos.g.rotation.y = -.6; S.add(mos.g);
 
   // 自分の前腕と神経（模式）
@@ -211,11 +212,11 @@ export function create(canvas) {
       const hT = H * (.3 + .1 * hash1(t.seed * 2.3)); m4.compose(v3.set(t.x, 0, t.z), q.identity(), s3.set(Wd, gk > .02 ? hT : .0001, Wd)); trunks.setMatrixAt(i, m4);
       for (let b = 0; b < NB; b++) { const ang = (b / NB + t.seed * .13) * Math.PI * 2, hb = hash1(t.seed * 3.7 + b * 1.3), nb = 4 + (t.seed % 3), on = gk > .02 && b < nb;
         // 弧を描く枝（二つの節で、根もとは斜め・先は立ち上がる）
-        const t1 = .38 + .3 * hb, t2 = t1 * .4, l1 = H * (.2 + .06 * hb), l2 = H * (.26 + .1 * hb), w0 = Wd * (.34 + .14 * hb), y0 = hT * (.82 + .16 * hash1(t.seed * 5.1 + b));
+        const t1 = .38 + .3 * hb, t2 = t1 * .4, l1 = H * (.2 + .06 * hb), l2 = H * (.26 + .1 * hb), w0 = Wd * (.42 + .08 * hb), y0 = hT * (.82 + .16 * hash1(t.seed * 5.1 + b));
         e.set(Math.cos(ang) * t1, 0, Math.sin(ang) * t1, 'YXZ'); q.setFromEuler(e); m4.compose(v3.set(t.x, y0, t.z), q, s3.set(w0, on ? l1 : .0001, w0)); branches.setMatrixAt((i * NB + b) * 4, m4);
         _bd.set(0, 1, 0).applyQuaternion(q); const bx = t.x + _bd.x * l1, by = y0 + _bd.y * l1, bz = t.z + _bd.z * l1;
         let px = bx, py = by, pz = bz;
-        for (let sg = 1; sg < 4; sg++) { const tt = sg === 3 ? t1 * 1.6 : t1 * (sg === 1 ? .62 : .3), aa = sg === 3 ? ang + 1.3 : ang, ll = sg === 3 ? l2 * .45 : l2 * (sg === 1 ? .55 : .5), ww = w0 * (sg === 3 ? .3 : sg === 1 ? .72 : .52);
+        for (let sg = 1; sg < 4; sg++) { const tt = sg === 3 ? t1 * 1.6 : t1 * (sg === 1 ? .62 : .3), aa = sg === 3 ? ang + 1.3 : ang, ll = sg === 3 ? l2 * .45 : l2 * (sg === 1 ? .55 : .5), ww = w0 * (sg === 3 ? .22 : sg === 1 ? .52 : .27);
           e.set(Math.cos(aa) * tt, 0, Math.sin(aa) * tt, 'YXZ'); q.setFromEuler(e);
           const ox = sg === 3 ? bx : px, oy = sg === 3 ? by + (py - by) * .5 : py, oz = sg === 3 ? bz : pz;
           m4.compose(v3.set(ox, oy, oz), q, s3.set(ww, on ? ll : .0001, ww)); branches.setMatrixAt((i * NB + b) * 4 + sg, m4);
@@ -287,8 +288,8 @@ export function create(canvas) {
     clouds.instanceMatrix.needsUpdate = true;
     // 羽：見かけの回数が毎秒 20 回を超えると、霞んだ扇に
     if (!hum && n > -2.2 && n < .3) hum = mkHum();
-    for (const [b, f, amp, hv] of hum ? [[bee, 230, 1.0], [mos, 500, 1.2], [hum, 50, 1.1, 1]] : [[bee, 230, 1.0], [mos, 500, 1.2]]) {
-      const fa = f * rate, blur = sm(12, 30, fa), vis = hv ? sm(-1.5, -1.2, n) * (1 - sm(-.75, -.55, n)) : 1 - sm(.9, 1.7, n);
+    for (const [b, f, amp, hv] of hum ? [[bee, 230, 1.0], [mos, 500, 1.2], [fly, 190, 1.0, 2], [hum, 50, 1.1, 1]] : [[bee, 230, 1.0], [mos, 500, 1.2], [fly, 190, 1.0, 2]]) {
+      const fa = f * rate, blur = sm(12, 30, fa), vis = hv === 2 ? sm(-.75, -.6, n) * (1 - sm(-.15, .05, n)) : hv ? sm(-1.5, -1.2, n) * (1 - sm(-.75, -.55, n)) : 1 - sm(.9, 1.7, n);
       b.g.visible = vis > .02; 
       for (const { w, s, k, ghost } of b.wings) { const ph = 2 * Math.PI * f * tFast;
         if (ghost) { w.rotation.z = s * amp * Math.sin(ph - k * .55); w.visible = vis > .02; w.material.opacity = (k ? .2 / k : .55) * vis; continue; }
@@ -316,7 +317,7 @@ export function create(canvas) {
       } }
     // 目：ほんの少しの呼吸と、見回し
     cam.position.y = 1.6 + Math.sin(performance.now() / 1600) * .004;
-    cam.rotation.set(.2 * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + Math.atan2(-T[2].x, 4 - T[2].z) * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
+    cam.rotation.set((.2 + .22 * Math.min(1, gAge / 45)) * gw - .02 + (n < -1.5 ? -.06 : 0) * (1 - sm(-3, -1.5, n)) - .08 * jomon, yaw + Math.atan2(-T[2].x, 4 - T[2].z) * gw - .95 * sm(11, 11.4, n) * (1 - sm(12.1, 12.4, n)), 0, 'YXZ');
     R.render(S, cam);
   }
   return { frame, get grow() { return gw > .3 ? gAge : -1; } };
