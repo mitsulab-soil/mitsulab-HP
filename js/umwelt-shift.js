@@ -42,21 +42,23 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
   document.body.append(bar);
   const css=document.createElement('style');css.textContent=`.us-bar{position:fixed;left:12px;bottom:12px;z-index:30;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:min(360px,calc(100vw - 24px));pointer-events:none;font:400 12px/1.6 var(--serif,serif);color:#dfe8ec;transition:opacity .4s}
 .us-bar>*{pointer-events:auto}.us-eye{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid rgba(242,244,239,.4);background:rgba(3,6,15,.62);color:#f2f4ef;font:inherit;font-size:13px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.us-eye span{opacity:.5;transition:opacity .3s}.us-eye span.on{opacity:1;color:#a8f2f6}.us-eye.us-in-nav{margin:0 10px 0 auto;flex:0 0 auto;min-height:40px;height:40px}.us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{background:rgba(3,6,15,.55);border-radius:6px;padding:3px 10px}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
+.us-eye small{font-size:9px;margin-left:1px;vertical-align:1px}.us-eye span{opacity:.5;transition:opacity .3s}.us-eye span.on{opacity:1;color:#a8f2f6}.us-eye.us-in-nav{margin:0 10px 0 auto;flex:0 0 auto;min-height:40px;height:40px}.us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{background:rgba(3,6,15,.55);border-radius:6px;padding:3px 10px}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
 #cgWorldCanvas canvas{transition:opacity .6s}
+@media(max-width:349px){.us-eye.us-in-nav{position:fixed;left:4px;bottom:4px;margin:0;z-index:30;background:rgba(3,6,15,.6)}}
 .us-eye.is-hint{animation:usHint 1.1s ease-out 3}@keyframes usHint{0%{box-shadow:0 0 0 0 rgba(168,242,246,.7)}100%{box-shadow:0 0 0 16px rgba(168,242,246,0)}}
 .us-rip{position:fixed;z-index:29;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:1.5px solid #a8f2f6;pointer-events:none;animation:usRip .7s ease-out forwards}@keyframes usRip{to{transform:scale(5);opacity:0}}
 @media(prefers-reduced-motion:reduce){.us-eye.is-hint,.us-rip{animation:none}}
-body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.86),rgba(3,6,15,.8) 70%,rgba(3,6,15,.74))!important}body.cg-beyond #top :is(p,li,dd,h2,h3){text-shadow:0 0 8px rgba(3,6,15,.85),0 0 2px rgba(3,6,15,.9)}
-@media(max-width:759px){.us-eye{min-width:44px;padding:0 8px;font-size:13px}.us-time{transition:opacity .5s}.us-bar:not(.is-new) .us-time{opacity:0}.us-depth{font-size:11px}}`;
+body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.86),rgba(3,6,15,.8) 70%,rgba(3,6,15,.74))!important}body.cg-beyond #top :is(p,li,dd,h2,h3){text-shadow:0 1px 3px rgba(3,6,15,.9)}
+@media(max-width:759px){.us-eye{min-width:44px;padding:0 7px;font-size:12px}.us-eye.us-in-nav{margin:0 0 0 auto}.tab-nav-inner{gap:6px!important}.us-time{transition:opacity .5s}.us-bar:not(.is-new) .us-time{opacity:0}.us-depth{font-size:11px}}`;
   document.head.append(css);
   {const nv=document.querySelector('.tab-nav-inner'),br=nv&&nv.querySelector(':scope>.brand');if(br){const e=bar.querySelector('.us-eye');e.classList.add('us-in-nav');br.after(e);}}
   const eye=document.querySelector('.us-eye'),tl=bar.querySelector('.us-time'),dl=bar.querySelector('.us-depth'),src=bar.querySelector('.us-src');
-  const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,H=en()?(sm?'Hu':'Human'):(sm?'人':'人の目'),B=en()?(sm?'Bee':'Honeybee (model)'):(sm?'蜂':'ミツバチの目（模式）');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',en()?'Switch between human and honeybee eyes':'人の目とミツバチの目を切りかえる');eye.innerHTML='<span class="'+(b?'':'on')+'">'+H+'</span> ⇄ <span class="'+(b?'on':'')+'">'+B+'</span>';};
+  const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,H=en()?(sm?'Hu':'Human'):(sm?'人':'人の目'),B=en()?(sm?'Bee*':'Honeybee (model)'):(sm?'蜂<small>模式</small>':'ミツバチの目（模式）');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',en()?'Switch between human and honeybee eyes':'人の目とミツバチの目を切りかえる');eye.innerHTML='<span class="'+(b?'':'on')+'">'+H+'</span> ⇄ <span class="'+(b?'on':'')+'">'+B+'</span>';};
   const toggle=()=>{st.touched=1;st.beeT=st.beeT>.5?0:1;eyeLabel();kick();};
   eye.addEventListener('click',toggle);
   // 背景の 3D そのもの（文字・ボタン・図のない所）を押しても切りかわる
-  document.addEventListener('click',e=>{if(e.defaultPrevented||!document.getElementById('top')?.classList.contains('active'))return;if(e.target.closest('a,button,input,select,textarea,summary,details,label,[role=button],[role=dialog],[role=tablist],[role=tab],[role=img],[tabindex]:not([tabindex="-1"]),p,h1,h2,h3,h4,li,figure,svg,img,video,canvas:not(#cgWorldCanvas canvas),nav,dialog,.us-bar'))return;if(getSelection&&String(getSelection()).length)return;const r=document.createElement('span');r.className='us-rip';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.append(r);setTimeout(()=>r.remove(),800);toggle();});
+  let pd=null;document.addEventListener('pointerdown',e=>{pd={x:e.clientX,y:e.clientY,t:performance.now()};},{passive:true});
+  document.addEventListener('click',e=>{if(!pd||Math.hypot(e.clientX-pd.x,e.clientY-pd.y)>8||performance.now()-pd.t>450)return;if(e.defaultPrevented||!document.getElementById('top')?.classList.contains('active'))return;if(e.target.closest('a,button,input,select,textarea,summary,details,label,[role=button],[role=dialog],[role=tablist],[role=tab],[role=img],[tabindex]:not([tabindex="-1"]),p,h1,h2,h3,h4,li,figure,svg,img,video,canvas:not(#cgWorldCanvas canvas),nav,dialog,.us-bar'))return;if(getSelection&&String(getSelection()).length)return;const r=document.createElement('span');r.className='us-rip';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.append(r);setTimeout(()=>r.remove(),800);st.soft=1;toggle();});
   eyeLabel();
 
   // ---- 1 ミツバチの目：一度だけ別の板へ描き、色を写しかえる
@@ -94,10 +96,11 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
   {const p=[];for(let i=0;i<260;i++){const x=-2+(R()-.5)*8,z=-3+(R()-.5)*6,y=-R()*DEPTH[1].d*DS;p.push(x,y,z,x+(R()-.5)*.5,y-(R()-.5)*.12,z+(R()-.5)*.5);}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));under.add(new T.LineSegments(g,hyM));}
   for(let i=0;i<7;i++){const deep=i<2,x=-2+(R()-.5)*6,z=-3+(R()-.5)*4,y=-(deep?1.2+R()*.8:.08+R()*.2)*DS,pts=[];for(let k=0;k<5;k++)pts.push(new T.Vector3(x+k*.05,y+Math.sin(k)*.03,z+Math.cos(k*1.3)*.04));under.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),10,.018,5,false),wormM));
     if(deep){const b=new T.Mesh(new T.CylinderGeometry(.03,.03,y*-1,5,1,true),new T.MeshBasicMaterial({color:0x4a3626}));b.position.set(x,y/2,z);under.add(b);}}
-  const gw=new T.Mesh(new T.PlaneGeometry(40,30),new T.MeshBasicMaterial({color:0x3f7f9a,transparent:true,opacity:.45,side:T.DoubleSide,depthWrite:false,fog:false}));gw.rotation.x=-Math.PI/2;gw.position.set(-2,-DEPTH[5].d*DS,-3);under.add(gw);
+  const gwT=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.fillStyle='#2f6a82';g.fillRect(0,0,256,256);for(let i=0;i<220;i++){const x=R()*256,y=R()*256,r=6+R()*26;const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(170,225,240,.22)');gr.addColorStop(1,'rgba(170,225,240,0)');g.fillStyle=gr;for(const ox of [-256,0,256])for(const oy of [-256,0,256]){g.save();g.translate(ox,oy);g.fillRect(x-r,y-r,2*r,2*r);g.restore();}}const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(8,6);t.colorSpace=T.SRGBColorSpace;return t;})();
+  const gw=new T.Mesh(new T.PlaneGeometry(40,30),new T.MeshBasicMaterial({map:gwT,transparent:true,opacity:.8,side:T.DoubleSide,depthWrite:false}));const gw2=new T.Mesh(new T.PlaneGeometry(40,30),new T.MeshBasicMaterial({color:0x173848,side:T.DoubleSide}));gw2.rotation.x=-Math.PI/2;gw2.position.set(-2,-DEPTH[5].d*DS-.9,-3);under.add(gw2);gw.rotation.x=-Math.PI/2;gw.position.set(-2,-DEPTH[5].d*DS,-3);under.add(gw);
   {const lab=(t)=>{const c=document.createElement('canvas');c.width=192;c.height=48;const g=c.getContext('2d');g.font='28px serif';g.fillStyle='#f2f4ef';g.fillText(t,6,34);const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),transparent:true,depthTest:false,fog:false}));sp.scale.set(2.4,.6,1);return sp;};
    const rx=.6,rz=-1.2;const rl=new T.Mesh(new T.CylinderGeometry(.012,.012,4.2*DS,4),new T.MeshBasicMaterial({color:0xf2f4ef,fog:false}));rl.position.set(rx,-2.1*DS,rz);under.add(rl);
-   [0,1,2,3,4].forEach(m=>{const tk=new T.Mesh(new T.BoxGeometry(.25,.012,.012),rl.material);tk.position.set(rx,-m*DS,rz);under.add(tk);const sp=lab(m?m+' m':(en()?'0 m ground':'0 m 地面'));sp.position.set(rx+.95,-m*DS,rz);under.add(sp);});const gl=lab(en()?'water (model)':'地下水（模式）');gl.scale.set(2.4,.6,1);gl.position.set(rx+1.4,-DEPTH[5].d*DS+.25,rz);under.add(gl);
+   [0,1,2,3,4].forEach(m=>{const tk=new T.Mesh(new T.BoxGeometry(.25,.012,.012),rl.material);tk.position.set(rx,-m*DS,rz);under.add(tk);const sp=lab(m?m+' m':(en()?'0 m ground':'0 m 地面'));sp.position.set(rx+1.35,-m*DS,rz);under.add(sp);});const gl=lab(en()?'water (model)':'地下水（模式）');gl.scale.set(2.4,.6,1);gl.position.set(rx+1.4,-DEPTH[5].d*DS+.25,rz);under.add(gl);
    const sky=new T.Mesh(new T.PlaneGeometry(60,.06),new T.MeshBasicMaterial({color:0xa8f2f6,transparent:true,opacity:.8,fog:false}));sky.position.set(-2,-.02,1.5);under.add(sky);}
   dl.innerHTML=DEPTH.map(d=>'<li></li>').join('');
   const depthText=()=>{[...dl.children].forEach((li,i)=>li.textContent=en()?DEPTH[i].en:DEPTH[i].ja);src.textContent=en()?SRC_EN:SRC_JA;};depthText();
@@ -132,7 +135,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
   renderer.render=function(s,c){
     if(s!==scene)return orig(s,c);
     const nw=performance.now(),dtt=anim?(Math.min(.5,(nw-(st.lt||nw))/1000)||.033):.033;st.lt=nw;const k=reduce?1:1-Math.exp(-dtt/.45);
-    st.bee+=(st.beeT-st.bee)*(reduce?1:1-Math.exp(-dtt/(st.beeT?.15:.6)));st.meiji+=(st.meijiT-st.meiji)*k;st.dive+=(st.diveT-st.dive)*k;st.layers+=(st.layersT-st.layers)*k;
+    st.bee+=(st.beeT-st.bee)*(reduce?1:1-Math.exp(-dtt/(st.soft?.7:st.beeT?.15:.6)));if(Math.abs(st.beeT-st.bee)<.01)st.soft=0;st.meiji+=(st.meijiT-st.meiji)*k;st.dive+=(st.diveT-st.dive)*k;st.layers+=(st.layersT-st.layers)*k;
     anim=Math.abs(st.beeT-st.bee)>.01||Math.abs(st.meijiT-st.meiji)>.01||Math.abs(st.diveT-st.dive)>.005||Math.abs(st.layersT-st.layers)>.02;
     const save={sp:sunlight.position.clone(),sc:sunlight.color.clone(),si:sunlight.intensity,ai:ambientLight.intensity,ac:ambientLight.color.clone(),fi:fillLight.intensity,bg:scene.background.clone(),fc:scene.fog.color.clone(),fn:scene.fog.near,ff:scene.fog.far,cp:c.position.clone(),cq:c.quaternion.clone()};
     const ts=timeState();
@@ -153,7 +156,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
     sunlight.position.copy(save.sp);sunlight.color.copy(save.sc);sunlight.intensity=save.si;ambientLight.intensity=save.ai;ambientLight.color.copy(save.ac);fillLight.intensity=save.fi;scene.background.copy(save.bg);scene.fog.color.copy(save.fc);scene.fog.near=save.fn;scene.fog.far=save.ff;c.position.copy(save.cp);c.quaternion.copy(save.cq);
     if(!st.shown&&renderer.getViewport(new T.Vector4()).z>4){st.shown=performance.now();setTimeout(()=>{if(st.beeT===1&&!st.touched){st.beeT=0;eyeLabel();kick();eye.classList.add('is-hint');setTimeout(()=>eye.classList.remove('is-hint'),3600);}},reduce?1500:1500);}
   };
-  eye.addEventListener('click',()=>{st.touched=1;});
+  eye.addEventListener('click',()=>{st.touched=1;st.soft=0;});
   measure();
   return {get animating(){return anim;},state:st,sunPos};
 }
