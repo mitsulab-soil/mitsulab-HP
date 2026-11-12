@@ -21,7 +21,7 @@
 <!-- 歩行と碧の待ちを直列にしない。モデルは既存と同じURLで一度だけ先読み。 -->
 <link rel="preload" href="web/lite/data.json?v=20261110r5" as="fetch" crossorigin>
 <!-- 11-11 起動：本体と起動に要る部品 17 本を一つに束ねた（_dev/bundle.mjs）。部品ごとの往復と版の印の食い違いによる二度読みをなくす -->
-<link rel="modulepreload" href="web/lite/app.b.js?v=20261111B8">
+<link rel="modulepreload" href="web/lite/app.b.js?v=20261112B9">
 <link rel="modulepreload" href="web/vendor/BufferGeometryUtils.js">
 <link rel="preload" href="web/lite/terrain.glb" as="fetch" crossorigin>
 <!-- 2026-10-23 起動 5 秒：起動に要る残り（本体・地形の高さ・空・写真）も HTML と同時に読みはじめる（回線の往復を一段へらす） -->
@@ -719,7 +719,7 @@ html:not(.qmap) #qEye{display:none}
 if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import(new URLSearchParams(location.search).get("bundle")==="0"?"./web/lite/app.js?v=20261111N7":"./web/lite/app.b.js?v=20261111B8").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import(new URLSearchParams(location.search).get("bundle")==="0"?"./web/lite/app.js?v=20261111N7":"./web/lite/app.b.js?v=20261112B9").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（木・石の環世界と依代への変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261107flight1").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/lite/senses6.js?v=17")).then(s6 => { q.S6 = s6.mountSenses(q); }).then(() => Promise.all([import("./web/kit/mado.js?v=5").then(m => { q.MADO = m.attachMado(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/tokimusubi.js?v=6").then(m => { q.TOKI = m.attachTokimusubi(q, { speak: l => q.speak?.(l) }); }), import("./web/kit/yoru.js?v=20261110d1").then(m => { q.YORU = m.attachYoru(q); }), import("./web/lite/kasane.js?v=2").then(m => { q.KASANE = m.attachKasane(q, { spots: [{ k: "literature", x: 9, z: 52 }, { k: "trace", x: -4, z: -80 }, { k: "sound", x: 33, z: 765 }, { k: "keyaki", x: -29, z: -503 }, { k: "leaf", x: -22, z: -575 }, { k: "jikan", x: -25, z: -682 }, { k: "chikei", x: 37, z: 905, h: .25 }] }); })])).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
