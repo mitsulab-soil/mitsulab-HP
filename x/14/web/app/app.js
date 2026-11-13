@@ -1229,7 +1229,7 @@ let capChunkT = 0;
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
   const max = innerWidth < 640 ? 20 : 22;   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
-  for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
+  for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max * 1.9) {   /* 11-13 採点：読点で切ると文が途中で止まって見える＝一文は 2 行までまとめて出す */ for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
   return o2.map(x => x.replace(/(\S)(?=[、。，．！？」』）])/g, "$1"));   // 11-05 採点 P2：375 で「、」が行の頭に来た（折り返しの前に語をつなぐ印を入れる）
 }

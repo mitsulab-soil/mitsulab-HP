@@ -17,11 +17,11 @@ export const CREDITS = [
 const GLB = { inu: { f: "shiba.glb", clip: "standing", rx: 0, ry: 0, foot: true } };
 const M_CHOU_RX = 0;
 export const IKIMONO = {
-  hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 3.2, eye: 1.0, fov: 80, back: .5, up: .16, size: .16, bob: .03, fly: true,
-    say: "ミツバチの目の模式。赤は暗く、紫外は青に移し、像は粗く、視野は広く。", band: [20, 500],
+  hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 1.4, eye: 1.0, fov: 80, back: .2, up: .065, size: .055, bob: .03, fly: true,
+    say: "ミツバチの目の模式。赤は暗く、紫外は青に移し、像は粗く、視野は広く。体は見やすく少し大きめ。", band: [20, 500],
     sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
-  chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .12, bob: .06, fly: true,
-    say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。",
+  chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 1.2, eye: 1.3, fov: 74, back: .2, up: .12, size: .045, bob: .06, fly: true,
+    say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。体は見やすく少し大きめ。",
     sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H et al. (2008) J. Exp. Biol. 211:1223–1230" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
     say: "シジュウカラの目の模式。四色で色の差は細かく、紫外は紫に移し、視野は広く。", band: [300, 8000],
@@ -48,7 +48,7 @@ export function attachIkimono(QW, opt = {}) {
     const nav = document.getElementById("qIK"); if (!nav) return;
     const panel = document.createElement("div"); panel.className = "ik-flight"; panel.hidden = true;
     panel.setAttribute("role", "group"); panel.setAttribute("aria-label", "飛ぶ高さ（体験用の模式・R/Fキーでも操作）");
-    panel.innerHTML = '<span class="ik-flight-label">飛ぶ高さ<small>模式 · R / F</small></span><button type="button" class="ik-alt-up" aria-label="上へ（長押し・Rキー）" title="長押しで上へ・Rキーでも操作">↑</button><button type="button" class="ik-alt-down" aria-label="下へ（長押し・Fキー）" title="長押しで下へ・Fキーでも操作">↓</button>';
+    panel.innerHTML = '<span class="ik-flight-label">飛ぶ高さ</span><button type="button" class="ik-alt-up" aria-label="上へ（長押し・Rキー）" title="長押しで上へ・Rキーでも操作">↑</button><button type="button" class="ik-alt-down" aria-label="下へ（長押し・Fキー）" title="長押しで下へ・Fキーでも操作">↓</button>';
     const style = document.createElement("style"); style.textContent = '#qIK .ik-flight[hidden]{display:none!important}#qIK .ik-flight{display:flex;flex-direction:column;align-items:center;gap:3px;width:52px;padding-top:6px;border-top:1px solid #dce8ee44}#qIK .ik-flight-label{color:#edf5f7;text-shadow:0 1px 3px #000;font:10px/1.3 sans-serif;text-align:center}#qIK .ik-flight-label small{display:block;font-size:8px;white-space:nowrap}#qIK .ik-flight button{width:44px;min-width:44px;min-height:44px;height:44px;font:22px/1 sans-serif;touch-action:none;user-select:none}#qIK .ik-flight button:focus-visible{outline:2px solid #d2f6fa;outline-offset:2px}#qIK .ik-flight button.is-held{color:#0b1119;background:#d8e6ec}';
     document.head.appendChild(style); nav.appendChild(panel); flight.panel = panel;
     for (const [selector, dir] of [[".ik-alt-up", 1], [".ik-alt-down", -1]]) {
@@ -124,6 +124,14 @@ export function attachIkimono(QW, opt = {}) {
      体は画面の中央の少し下。見回し（向き）は歩く操作の向きをそのまま使う。描く直前にだけ差しかえ、描いたあと戻す。 */
   const F = new THREE.Vector3(), D = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), L = new THREE.Vector3(), E = new THREE.Euler(0, 0, 0, "YXZ");
   const AP = new THREE.Vector3(), AT = new THREE.Vector3();
+  const OV = { r: null, cv: null, sc: null, b: null, dead: false,   // 生き物の体だけを描く透明な重ね（CSS の目の色の模式の外）
+    ok() { if (this.dead || !canvas) return false; if (!this.r) { try { const cv = document.createElement("canvas"); cv.id = "ikBody"; cv.setAttribute("aria-hidden", "true"); cv.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:" + ((parseInt(getComputedStyle(canvas).zIndex) || 0) + 1);
+        canvas.parentNode.insertBefore(cv, canvas.nextSibling); const r = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, powerPreference: "high-performance" }); r.setClearColor(0, 0); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = QW.renderer?.toneMapping ?? THREE.NeutralToneMapping;
+        const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xf2f4f6, 0x5a5448, 1.6)); const d = new THREE.DirectionalLight(0xfff4e6, 2.2); d.position.set(.5, 1, .35); sc.add(d); this.r = r; this.cv = cv; this.sc = sc; } catch (e) { this.dead = true; return false; } } return true; },
+    draw() { const b = this.b; this.b = null; if (!this.r) return; const r = this.r, cv = this.cv, w = innerWidth, h = innerHeight, pr = Math.min(devicePixelRatio, 1.5);
+      if (r.getPixelRatio() !== pr) r.setPixelRatio(pr); const sz = r.getSize(new THREE.Vector2()); if (sz.x !== w || sz.y !== h) r.setSize(w, h, false);
+      r.clear(); if (!b) { cv.style.visibility = "hidden"; return; } cv.style.visibility = ""; this.sc.environment = scene.environment; r.toneMappingExposure = QW.renderer?.toneMappingExposure ?? 1;
+      const par = b.parent; this.sc.add(b); b.visible = true; const asp = camera.aspect; camera.aspect = w / h; camera.updateProjectionMatrix(); r.render(this.sc, camera); camera.aspect = asp; camera.updateProjectionMatrix(); b.visible = false; par ? par.add(b) : scene.add(b); } };
   function restoreRenderState() {
     for (const item of S.renderHidden || []) item.object.visible = item.visible;
     S.renderHidden = null;
@@ -175,9 +183,10 @@ export function attachIkimono(QW, opt = {}) {
       const gb = b.userData.glb; if (gb) { gb.mixer?.update(dt); if (gb.flap) { const ph = S.t * 9, f = .5 + .5 * Math.cos(ph); gb.w2.scale.set(gb.k * (.45 + .55 * f), gb.k * (1 + .5 * (1 - f)), gb.k); gb.w2.rotation.x = M_CHOU_RX + .18 * Math.sin(ph); gb.w2.position.y = gb.y0 + .004 * Math.sin(ph); }   /* 11-04 P2：後ろ・少し上から見て、翅が上がると幅が狭まり厚みが立つ（一枚の形を、上下の打ちと体のしゃくりで模式に） */ }   // 写実の蝶は翅を一枚の形で持つので、横の幅でゆるくはばたかせる（模式）
       else if (P.make === "chou" && cu.wings) { const bd = cu.wings[0].piv.parent; bd.position.multiplyScalar(.25); bd.rotation.x *= .3; bd.rotation.y *= .3; bd.rotation.z *= .3; }   // 後ろから見るとき、アゲハの体のぶれを抑える（翅が片方だけ伸びて見えた・2026-11-04）
       b.updateMatrixWorld(true);
+      if (OV.ok()) { b.visible = false; OV.b = b; }   // 11-13：体は目の色の模式をかけない別の層に描く（ミツバチの体が赤く見えて、ほかの蜂と取り違えない）
     }
   };
-  scene.onAfterRender = function (...a) { try { pa && pa.apply(this, a); } finally { restoreRenderState(); } };
+  scene.onAfterRender = function (...a) { try { pa && pa.apply(this, a); OV.draw(); } finally { restoreRenderState(); } };
   let tl = performance.now();
   (function loop(t) { const dr = Math.min(.5, (t - tl) / 1000), dt = Math.min(.05, dr); tl = t; S.t += dt; updateFlight(dt, t); const want = S.id && QW.mode === "walk" ? 1 : 0, k0 = S.k;
     S.k += Math.sign(want - S.k) * Math.min(Math.abs(want - S.k), dr / .35);   /* 11-04 P1：こま数でなく時間で 0.35 秒（重い時も 1 秒以内） */ if (S.k !== k0) paint(); requestAnimationFrame(loop); })(tl);
