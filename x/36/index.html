@@ -55,7 +55,7 @@ body.fo #cap{opacity:0}
 <div id="fold" role="dialog" aria-label="出典と模式">
 <h2>大きさと出典</h2>
 <ul>
-<li>ケヤキの葉＝長さ 3〜7 cm ほど（若い木や勢いのある枝では 10 cm に近いものもある）、卵形で鋸歯は葉先へ曲がる（林野庁 東北森林管理局 津軽森林管理署の資料ほか。<a href="https://www.pref.mie.lg.jp/RINGI/HP/m0135700167.htm" target="_blank" rel="noopener">三重県 林業研究所</a>は「長さ 2〜7 cm」）。</li>
+<li>ケヤキの葉＝互生し、長さ 2〜7 cm ほどの卵形または卵状披針形。先は鋭くとがり、縁に鋭い鋸歯がある（<a href="https://www.pref.mie.lg.jp/RINGI/HP/m0135700167.htm" target="_blank" rel="noopener">三重県 林業研究所</a>）。</li>
 <li>氷川参道＝約 2 km のケヤキ並木（さいたま市 氷川参道の並木の調査資料）。</li>
 <li>人の目で見分けられる大きさ＝約 0.1 mm（25 cm 離して見たとき。生理光学の一般的な値）。</li>
 <li>気孔＝孔辺細胞の一対で数十 µm、ケヤキは葉の裏に多い。孔辺細胞は対の両方が葉緑体を持つ。葉肉の細胞のものより小さく数も少ない（Lawson 2009, <i>New Phytologist</i> 181: 13–34）。</li>
@@ -489,11 +489,11 @@ vec4 stB( vec2 p ){ vec2 q = p * 1e6; vec2 w = q + vec2( sin( q.y * .35 ), sin( 
 vec4 stC( vec2 p ){ vec2 q = p * 1e6; float m = chl( q ); float gr = 0., lam = 0., rim = 0.;
   for ( int i = 0; i < 5; i++ ){ vec2 d = ( q - CH[i].xy ) / CH[i].zw; float r = length( d ); float inn = smoothstep( .92, .8, r );
     rim = max( rim, ( smoothstep( .05, .0, abs( r - .9 ) ) + smoothstep( .04, .0, abs( r - .83 ) ) * .8 ) );   /* 外膜と内膜（二重の縁） */
-    vec2 u = vec2( d.x * CH[i].z, d.y * CH[i].w ); float cx = floor( u.x / .42 ); float ox = ( h2( vec2( cx, float( i ) ) ) - .5 ) * .5;
-    float hv_ = h2( vec2( cx, float( i ) + 3. ) ), wv_ = h2( vec2( cx + 7., float( i ) ) ), tl_ = ( h2( vec2( cx, float( i ) + 9. ) ) - .5 ) * .5, fx_ = ( fract( u.x / .42 ) - .5 ) * .42; float stk = smoothstep( .13 + .06 * wv_, .09 + .06 * wv_, abs( fx_ ) ) * smoothstep( .16 + .16 * hv_, .1 + .16 * hv_, abs( u.y - ox - fx_ * tl_ ) ) * step( .06, h2( vec2( cx + 2., float( i ) + 5. ) ) );   /* 積み重ねごとに幅・高さ・傾きを揺らし、ところどころ抜く */   /* グラナ（径 約 0.4 µm）を長軸にそろえて並べる */
+    vec2 u = vec2( d.x * CH[i].z, d.y * CH[i].w ); float cx = floor( u.x / .34 ); float ox = ( h2( vec2( cx, float( i ) ) ) - .5 ) * .5;
+    float hv_ = h2( vec2( cx, float( i ) + 3. ) ), wv_ = h2( vec2( cx + 7., float( i ) ) ), tl_ = ( h2( vec2( cx, float( i ) + 9. ) ) - .5 ) * .5, fx_ = ( fract( u.x / .34 ) - .5 ) * .34; float stk = smoothstep( .13 + .06 * wv_, .09 + .06 * wv_, abs( fx_ ) ) * smoothstep( .16 + .16 * hv_, .1 + .16 * hv_, abs( u.y - ox - fx_ * tl_ ) ) * step( length( vec2( ( cx + .5 ) * .34 / CH[i].z, ox / CH[i].w ) ), .78 );   /* 積み重ねの中心が膜の内側（縁から離れた所）にあるものだけ。はみ出さない */   /* 積み重ねごとに幅・高さ・傾きを揺らし、ところどころ抜く */   /* グラナ（径 約 0.4 µm）を長軸にそろえて並べる */
     float lines = smoothstep( .35, .1, abs( fract( ( u.y - fx_ * tl_ ) * 14. ) - .5 ) );   /* チラコイドの膜の重なり（縞） */
     gr = max( gr, stk * ( .55 + .45 * lines ) * inn ); lam = max( lam, smoothstep( .3, .05, abs( fract( u.y * 3.2 + .5 ) - .5 ) ) * ( 1. - stk ) * inn * .35 ); }   /* グラナをつなぐストロマ・ラメラ */
-  vec3 c = mix( vec3( .85, .89, .78 ), vec3( .55, .7, .4 ), m ); c = mix( c, vec3( .48, .62, .34 ), lam ); c = mix( c, vec3( .24, .42, .16 ), gr * .85 ); c = mix( c, vec3( .32, .48, .22 ), rim * m * .7 ); c *= .96 + .08 * fbm( q * 4. );
+  vec3 c = mix( vec3( .85, .89, .78 ), vec3( .55, .7, .4 ), m ); c = mix( c, vec3( .48, .62, .34 ), lam ); c = mix( c, vec3( .24, .34, .16 ), gr * .85 ); c = mix( c, vec3( .32, .48, .22 ), rim * m * .7 ); c *= .96 + .08 * fbm( q * 4. );
   return vec4( c, m * .55 + gr * .22 + rim * .05 + fbm( q * 3. ) * .04 ); }
 /* D グラナ（nm・模式）：重なる円盤と、それをつなぐ膜 */
 vec4 stD( vec2 p ){ vec2 q = p * 1e9; vec2 c0 = floor( q / 650. ); float disk = 0., r = 1e4;
@@ -541,7 +541,7 @@ function makeDeep() {
   /* 膜：上と下の頭（リン脂質の頭は約 0.8 nm）を二枚。厚さ 4.5 nm */
   const mem = new THREE.Group(); g.add(mem); const NH = MOB ? 2200 : 3400, R0 = 34;   /* 頭の並び＝約 0.7 nm² に一つ（模式） */
   const hg = new THREE.IcosahedronGeometry(MOB ? .24 : .28, 1), hm = new THREE.InstancedMesh(hg, M(0xd3dcc0, .85), NH * 2), T = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), s1 = new THREE.Vector3(1, 1, 1);
-  const PS = [[2, 9.5, .15], [16, -10, .4], [24, 16, 1.1], [-20, 15, 2.2], [-10, -24, .6], [6, 30, 1.7], [-30, -4, .3]];   /* 光化学系 II の二量体の置き場所（模式） */
+  const PS = [[0, 3, .08], [16, -10, .4], [24, 16, 1.1], [-20, 15, 2.2], [-10, -24, .6], [6, 30, 1.7], [-30, -4, .3]];   /* 光化学系 II の二量体の置き場所（模式） */
   const inPS = (x, y) => PS.some(([px, py, a]) => { const c = Math.cos(a), s = Math.sin(a), u = (x - px) * c + (y - py) * s, w = -(x - px) * s + (y - py) * c; return (u / 11.5) ** 2 + (w / 6.2) ** 2 < 1; });
   let n = 0; for (let i = 0; n < NH * 2 && i < NH * 6; i++) { const r = Math.sqrt(rnd(i)) * R0, t = rnd(i + .5) * 6.283, x = Math.cos(t) * r, y = Math.sin(t) * r; if (inPS(x, y) || Math.hypot(x, y) < 1.4) continue;
     for (const z of [0, -4.5]) { if (n >= NH * 2) break; T.compose(v.set(x, y, z + (rnd(i * 3 + z) - .5) * .3), q, s1); hm.setMatrixAt(n++, T); } }
@@ -597,7 +597,7 @@ function deepFrame(S) {
 /* ── 大きさの言葉（いま受けとれるもの・受けとれないもの） ── */
 const CAPS = [[-9, "クロロフィル a（環は約 1 nm）。<span style='color:#a4ec74'>Mg</span> を四つの <span style='color:#8fb2ff'>N</span> が囲む。<span style='color:#ff8a78'>O</span> と炭素の骨組み、水素は省く。模式"], [-7.8, "チラコイドの膜に並ぶ光化学系 II（二量体で約 20 nm）とアンテナ。模式"], [-6.7, "葉緑体の中のグラナ（0.3〜0.5 µm）の円盤の上。膜に並ぶ粒はたんぱく質（約 20 nm）。ここから模式"],
   [-5.6, "孔辺細胞の中の葉緑体（数 µm）。二重の膜の内に、グラナが長い向きにそろう。形は光の顕微鏡で見える"], [-4.5, "葉の裏の気孔（数十 µm）。水蒸気と酸素が出て、二酸化炭素が入る"], [-3.5, "人の目に見える、いちばん小さな大きさ（約 0.1 mm）"],
-  [-2.3, "葉脈の網。目を近づければ、まだ見える"], [-1, "参道の欅の一枚。長さは <span class='nw'>3〜7 cm</span> ほど。手のひらで受けとれる"], [.2, "腕をのばせば届く。からだで測れる大きさ"],
+  [-2.3, "葉脈の網。目を近づければ、まだ見える"], [-1, "参道の欅の一枚。長さは <span class='nw'>2〜7 cm</span> ほど。手のひらで受けとれる"], [.2, "腕をのばせば届く。からだで測れる大きさ"],
   [1.25, "一本の欅。見上げれば、まだ全体が入る"], [1.5, "並木のあいだに立つ。両側の欅が、道の上で枝を重ねる"], [1.85, "梢の高さ。見上げていた枝葉が、目の前にある"], [2.2, "参道の並木（約 2 km）。歩けば受けとれるが、一目では見えない"], [3.6, "大宮の町。<span class='nw'>もう一度には</span>見わたせない"],
   [4.6, "台地と川の低地。高さの差は数 m から十数 m、足では気づきにくい"], [5.45, "関東平野。高い所に登っても、端までは見えない"], [6.3, "日本列島（南北 約 3,000 km）。形は、写真でしか受けとれない"],
   [6.95, "地球（直径 約 12,742 km）。丸さは、足もとでは感じられない"]];
