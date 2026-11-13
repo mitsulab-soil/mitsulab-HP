@@ -33,6 +33,6 @@ export function buildMeiji(THREE, { terrain, world, camera, mode, mobile, onFirs
   const last = new THREE.Vector3(), _a = new THREE.Vector3(); let still = 0, shown = false, inWater = 0;
   return { mesh, update(dt) { if (!U.tex.value) return; U.t.value += dt; camera.getWorldPosition(U.eye.value); { const r = aoi?.(); if (r && r.visible && mode() === "walk") { r.getWorldPosition(_a); U.aoi.value.set(_a.x, _a.y, _a.z, 1); } else U.aoi.value.w = 0; }
       const sp = U.eye.value.distanceTo(last) / Math.max(dt, 1e-3); last.copy(U.eye.value); still = sp < .4 ? Math.min(1, still + dt / 2.5) : Math.max(0, still - dt * 1.5);
-      const on = mode() === "walk" ? 1 : 0; const tgt = on * (.45 + .55 * still); U.k.value += (tgt - U.k.value) * Math.min(1, dt * 1.6);
+      const on = mode() === "walk" ? 1 : 0; const tgt = on * (.22 + .4 * still);   // 11-13 採点：地面が灰緑の水の膜に見える＝明治の川と田の層を控えめに（立ち止まると少し濃く） U.k.value += (tgt - U.k.value) * Math.min(1, dt * 1.6);
       if (!shown && on && still > .8) { shown = true; onFirst?.(); } } };
 }
