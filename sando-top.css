@@ -232,3 +232,7 @@
 #top .sd-snd{transition:opacity .4s}#top .sd-hero.sd-end .sd-hud,#top .sd-hero.sd-end .sd-snd{opacity:0;pointer-events:none}
 @media (max-width:360px){#top .sd-pane #visionH{font-size:25px!important}}
 @media (max-width:360px){body #top .sd-pane.cg-opening h1#visionH{font-size:24px!important;letter-spacing:.02em!important}}
+.cg-design #top .pr-selection .pr-card .pr-card-body{padding:14px 14px 12px!important;gap:8px!important}
+.cg-design #top .pr-selection .pr-card .pr-card-body>*{margin-top:0!important;margin-bottom:0!important}
+.cg-design #top .pr-selection .pr-card .pr-card-body>details{margin-top:auto!important}
+#top .fx3-chips a{min-height:44px!important}.cg-design #top .pr-selection .pr-card details>summary,#top .pr-selection summary{min-height:44px!important}
