@@ -124,6 +124,14 @@ export function attachIkimono(QW, opt = {}) {
      体は画面の中央の少し下。見回し（向き）は歩く操作の向きをそのまま使う。描く直前にだけ差しかえ、描いたあと戻す。 */
   const F = new THREE.Vector3(), D = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), L = new THREE.Vector3(), E = new THREE.Euler(0, 0, 0, "YXZ");
   const AP = new THREE.Vector3(), AT = new THREE.Vector3();
+  const OV = { r: null, cv: null, sc: null, b: null, dead: false,   // 生き物の体だけを描く透明な重ね（CSS の目の色の模式の外）
+    ok() { if (this.dead || !canvas) return false; if (!this.r) { try { const cv = document.createElement("canvas"); cv.id = "ikBody"; cv.setAttribute("aria-hidden", "true"); cv.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:" + ((parseInt(getComputedStyle(canvas).zIndex) || 0) + 1);
+        canvas.parentNode.insertBefore(cv, canvas.nextSibling); const r = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, powerPreference: "high-performance" }); r.setClearColor(0, 0); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = QW.renderer?.toneMapping ?? THREE.NeutralToneMapping;
+        const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xf2f4f6, 0x5a5448, 1.6)); const d = new THREE.DirectionalLight(0xfff4e6, 2.2); d.position.set(.5, 1, .35); sc.add(d); this.r = r; this.cv = cv; this.sc = sc; } catch (e) { this.dead = true; return false; } } return true; },
+    draw() { const b = this.b; this.b = null; if (!this.r) return; const r = this.r, cv = this.cv, w = innerWidth, h = innerHeight, pr = Math.min(devicePixelRatio, 1.5);
+      if (r.getPixelRatio() !== pr) r.setPixelRatio(pr); const sz = r.getSize(new THREE.Vector2()); if (sz.x !== w || sz.y !== h) r.setSize(w, h, false);
+      r.clear(); if (!b) { cv.style.visibility = "hidden"; return; } cv.style.visibility = ""; this.sc.environment = scene.environment; r.toneMappingExposure = QW.renderer?.toneMappingExposure ?? 1;
+      const par = b.parent; this.sc.add(b); b.visible = true; const asp = camera.aspect; camera.aspect = w / h; camera.updateProjectionMatrix(); r.render(this.sc, camera); camera.aspect = asp; camera.updateProjectionMatrix(); b.visible = false; par ? par.add(b) : scene.add(b); } };
   function restoreRenderState() {
     for (const item of S.renderHidden || []) item.object.visible = item.visible;
     S.renderHidden = null;
@@ -175,9 +183,10 @@ export function attachIkimono(QW, opt = {}) {
       const gb = b.userData.glb; if (gb) { gb.mixer?.update(dt); if (gb.flap) { const ph = S.t * 9, f = .5 + .5 * Math.cos(ph); gb.w2.scale.set(gb.k * (.45 + .55 * f), gb.k * (1 + .5 * (1 - f)), gb.k); gb.w2.rotation.x = M_CHOU_RX + .18 * Math.sin(ph); gb.w2.position.y = gb.y0 + .004 * Math.sin(ph); }   /* 11-04 P2：後ろ・少し上から見て、翅が上がると幅が狭まり厚みが立つ（一枚の形を、上下の打ちと体のしゃくりで模式に） */ }   // 写実の蝶は翅を一枚の形で持つので、横の幅でゆるくはばたかせる（模式）
       else if (P.make === "chou" && cu.wings) { const bd = cu.wings[0].piv.parent; bd.position.multiplyScalar(.25); bd.rotation.x *= .3; bd.rotation.y *= .3; bd.rotation.z *= .3; }   // 後ろから見るとき、アゲハの体のぶれを抑える（翅が片方だけ伸びて見えた・2026-11-04）
       b.updateMatrixWorld(true);
+      if (OV.ok()) { b.visible = false; OV.b = b; }   // 11-13：体は目の色の模式をかけない別の層に描く（ミツバチの体が赤く見えて、ほかの蜂と取り違えない）
     }
   };
-  scene.onAfterRender = function (...a) { try { pa && pa.apply(this, a); } finally { restoreRenderState(); } };
+  scene.onAfterRender = function (...a) { try { pa && pa.apply(this, a); OV.draw(); } finally { restoreRenderState(); } };
   let tl = performance.now();
   (function loop(t) { const dr = Math.min(.5, (t - tl) / 1000), dt = Math.min(.05, dr); tl = t; S.t += dt; updateFlight(dt, t); const want = S.id && QW.mode === "walk" ? 1 : 0, k0 = S.k;
     S.k += Math.sign(want - S.k) * Math.min(Math.abs(want - S.k), dr / .35);   /* 11-04 P1：こま数でなく時間で 0.35 秒（重い時も 1 秒以内） */ if (S.k !== k0) paint(); requestAnimationFrame(loop); })(tl);
