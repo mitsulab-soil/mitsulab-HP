@@ -245,3 +245,7 @@
 .cg-design #top .pr-selection .pr-grid>li.pr-sub+li.pr-card:is(:has(+li.pr-sub),:last-child){grid-column:1/-1!important;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}}
 @media (max-width:360px){#top .cg-definition .cg-inline-heading{font-size:19px!important;word-break:keep-all;overflow-wrap:anywhere}}
 @media (max-width:759px){#top .m2-lh .m2-ls{font:italic 400 22px "Times New Roman",serif;color:var(--c);margin-right:8px}}
+@media (max-width:759px){#top .m2-fu{font-size:23px}#top .m2-fu2{font-size:19px}}
+#top .m2-tn{font-size:19px}
+.cg-design #top .pr-selection .pr-card .pr-description{-webkit-line-clamp:5}
+html body #top .m2-sec figcaption.m2-cap{font-size:16px!important;line-height:1.85!important;color:#e3e9f1!important}
