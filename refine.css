@@ -97,3 +97,19 @@ body::after{content:none!important;animation:none!important}
 .fm-apps span:not(.fm-j){min-height:44px!important;display:inline-flex;align-items:center;color:var(--rf-ink)!important}
 .fm-apps .fm-j{margin-top:-8px}
 .four-map{scroll-margin-top:80px}
+/* 冒頭の順：MISSION → ひとことで → はじめての方へ → 大宮の空 */
+#top .cg-opening .ud-first{padding:clamp(40px,5vw,64px) 0 0!important}
+#top .cg-opening .ud-sky{margin-top:clamp(32px,4vw,48px)!important}
+@media (min-width:1100px){#top .cg-opening .ud-sky{margin-top:0!important}}
+#top .ud-steps .ud-sub{margin-top:10px!important;font-size:var(--rf-body)!important;color:var(--rf-ink2)!important}
+/* 冒頭の注記：大きく濃く */
+#top .ud-sky .ud-sky-n,#top .ud-sky p{font-size:15px!important;color:#dfe8f0!important}
+#top .ud-def>summary{font-size:16px!important}
+/* 固定ヘッダーの下に見出しが潜らない */
+#top .four-map,#top .pr-sense-h,#top .ud-first,#top .cg-chapter{scroll-margin-top:84px}
+@media(max-width:759px){#top .four-map{padding-top:24px}}
+/* 遅れて読み込むカードの画：読み込むまで淡い地と碧の細い線 */
+.pr-card .ap-f,.ud-tries a{background:linear-gradient(135deg,#0b1424,#122033);}
+.pr-card .ap-f img,.ud-tries img{background:linear-gradient(135deg,#0b1424 0%,#14243a 60%,#0e1a2c 100%);color:transparent}
+.pr-card .ap-f{aspect-ratio:16/10;border:1px solid var(--rf-weak)}
+@media (min-width:1000px){#top .cg-opening .ud-first{width:min(1100px,calc(100vw - 140px));max-width:none}#top .cg-opening .ud-tries{grid-template-columns:repeat(4,1fr)}}
