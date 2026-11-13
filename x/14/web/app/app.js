@@ -220,7 +220,7 @@ async function buildBase() {
           float ring = exp(-pow((d - mod(t * 14., 160.)) / 2.2, 2.)) * (1. - smoothstep(60., 160., d));
           vec3 cA = vec3(.42, .86, .78), cB = vec3(.45, .74, .95);
           vec3 c = cA * con * 1.05 + cB * grid * .1 * smoothstep(15., 45., d) +   /* 11-02 採点 P1：足もとの 10 m の格子は通りを横切る細い線に見える＝近くでは消し、遠くも淡く */  vec3(.8, .95, 1.) * grain * .55 + cB * ring * (.6 + con * 1.2 + grid * .9);
-          gl_FragColor = vec4(c * k * near * feet, 1.); }` });
+          gl_FragColor = vec4(c * k * near * feet * .5, 1.); }   /* 11-13 採点：足もとの地面が灰緑の膜に見える＝光の層を半分に */` });
     const ov = new THREE.Mesh(geo, om); ov.position.y = .32; ov.renderOrder = 3; ov.name = "fusion"; ov.frustumCulled = false; world.add(ov); QW.fusion = ov; }
   QW.tm.t = performance.now() - T0; buildRoute(); buildRoads(); buildFarGround(); QW.late = () => { buildMarkings(); buildWater(); };   /* 11-03 起動を軽く：路面の標示と水は、操作できるようになってから */ QW.tm.r = performance.now() - T0;   // 広場の石の面は、地面の舗装の細部とつなぎ目ができたのでやめた（10-27）
   if (G.near) setTimeout(() => texP(MOBILE ? "web/geo/near_lo.webp" : "web/geo/near_hi.webp").then(t => {   // 道筋のまわりだけ、細かい写真（約 0.5 m）を上に重ねる
@@ -1300,6 +1300,8 @@ function aoiSpot(out) {
   if (offRoute(CAM.pos.x, CAM.pos.z)) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
   if (inBld(out.x, out.z, .4)) { for (const [ff, ss] of [[f, -s * side], [f * .75, s * side * 1.4], [f * .75, -s * side * 1.4], [f * .6, 0], [2, s * side * 1.6], [2, -s * side * 1.6], [1, 1.3 * side], [1, -1.3 * side], [.2, 1.2 * side], [.2, -1.2 * side]]) { const x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss; if (!inBld(x, z, .4)) { out.x = x; out.z = z; break; } } }   // 11-03 本人「碧が建物を通り抜けない」：立ち位置が建物の中なら、反対側・手前の空いた所へ（近すぎない）
   if (inBld(out.x, out.z, .4)) { let ok = false; for (const r of [1.3, .9, 2.2]) { for (const k of [0, 1, -1, 2, -2]) { if (ok) break; const a = vy + k * Math.PI / 4, x = CAM.pos.x - Math.sin(a) * r, z = CAM.pos.z - Math.cos(a) * r; if (!inBld(x, z, .4)) { out.x = x; out.z = z; ok = true; } } if (ok) break; } }   /* 11-05 採点：それでも壁の中なら、見る人のまわりの空いた所へ */
+  if (MOBILE) { const ox = out.x - CAM.pos.x, oz = out.z - CAM.pos.z, fw = ox * fx + oz * fz, lt = ox * rx + oz * rz, lim = .26 * Math.max(fw, 1.5);   // 11-13 採点：375px で碧が画面の端で切れない（横のずれを画角の内へ）
+    if (Math.abs(lt) > lim) { const l2 = Math.sign(lt) * lim, f2 = Math.max(fw, 2.5), nx = CAM.pos.x + fx * f2 + rx * l2, nz = CAM.pos.z + fz * f2 + rz * l2; if (!inBld(nx, nz, .3)) { out.x = nx; out.z = nz; } } }
   out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
@@ -1440,7 +1442,7 @@ function selectStart(i) { START.sel = i; /* 印の選択（札と 2 回目で歩
   const a = stAt(C.starts[i]); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
 function openYaw() {   // 11-13 採点：降りた目の前と右手が壁で埋まらないよう、開けた向きへ（視野の左右 ±0.5 も見る）
   const free = y0 => { let d = 0; for (; d < 30; d += 1.5) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) break; return d; }, view = y => Math.min(free(y), free(y - .5) * 1.4, free(y + .5) * 1.4);
-  const v0 = view(CAM.yaw); if (v0 >= 12) return; let best = CAM.yaw, bd = v0; for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = view(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; }
+  const v0 = view(CAM.yaw); if (v0 >= 20) return; let best = CAM.yaw, bd = v0; for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = view(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; }
 function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   const s = C.starts[i], xz = !at && s.x != null, d = xz ? 0 : Math.min(at ? at.d : s.d, G.lineD[G.lineD.length - 1] - 3), a = at ? { x: at.x, z: at.z } : xz ? stAt(s) : atD(d), y = groundY(a.x, a.z) + EYE;
   const wait = AREAS.ensureAt(a.x, a.z);   // 広げたエリアの中なら、そのエリアの道と建物を読みながら降りる
@@ -2076,7 +2078,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; window.MLLoader?.done();   /* 11-05 起動：読み込み画面は ready のその場で閉じる（index.html の 60 ms ごとの見回りを待つと、あとの組み立てに先を越されて 1 秒あまり遅れていた） */ setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
     setTimeout(() => QW.late?.(), 30);
-    setTimeout(() => import("./meiji.js?v=5").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
+    setTimeout(() => import("./meiji.js?v=6").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
