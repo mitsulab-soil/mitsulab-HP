@@ -63,7 +63,7 @@ export function create(canvas) {
   const leaves = new THREE.InstancedMesh(leafGeo, lMat, NT * LPT); leaves.castShadow = !mobile; S.add(leaves);
   { const wc = new THREE.Color(1, 1, 1); for (let k = 0; k < NT * LPT; k++) leaves.setColorAt(k, wc); for (let k = 0; k < NT; k++) trunks.setColorAt(k, wc); for (let k = 0; k < NT * NB * 4; k++) branches.setColorAt(k, wc); }
   const TGLOW = new THREE.Color(2.2, 1.95, 1.5);
-  const YOUNG = new THREE.Color(1.6, 1.7, 1.25), WHITE = new THREE.Color(1, 1, 1); let youngOn = false;
+  const YOUNG = new THREE.Color(1.85, 1.95, 1.3), WHITE = new THREE.Color(1, 1, 1), HAZE = new THREE.Color(.62, .66, .66); let youngOn = false;   // 育つ一本のあいだ、ほかの木は霞に沈める
   const LO = []; for (let i = 0; i < NT * LPT; i++) { const r = hash1(i * 1.37), a = hash1(i * 2.11) * 6.283, h = hash1(i * 3.7); LO.push([Math.cos(a) * r, .55 + h * .45, Math.sin(a) * r, hash1(i * 5.3) * 6.28, hash1(i * 7.9), hash1(i * 4.4) * 3.14]); }
   const cedarGeo = new THREE.ConeGeometry(1.6, 1, 8); cedarGeo.translate(0, .5, 0);
   const cMat = new THREE.MeshStandardMaterial({ color: '#566e48', roughness: .95 }); landTint(cMat, { amt: .14 });
@@ -96,7 +96,7 @@ export function create(canvas) {
   S.add(clouds);
 
   // ミツバチ・蚊（目の前でとまる・模式）
-  const bug = (len, col, wingL) => {
+  const bug = (len, col, wingL, hind) => {
     const g = new THREE.Group(), bm = new THREE.MeshStandardMaterial({ color: col, roughness: .6 });
     const th = new THREE.Mesh(new THREE.SphereGeometry(len * .22, 14, 10), bm); g.add(th);
     const sc = document.createElement('canvas'); sc.width = 8; sc.height = 64; { const gg = sc.getContext('2d'); for (let y = 0; y < 64; y++) { const b = Math.floor(y / 8) % 2; gg.fillStyle = b ? '#2a2016' : col; gg.fillRect(0, y, 8, 1); } }
@@ -107,16 +107,21 @@ export function create(canvas) {
     th.scale.set(1.05, 1, 1.1); bm.roughness = 1; bm.sheen = 1;
     const lm = new THREE.MeshStandardMaterial({ color: '#2a241c', roughness: .6 });
     for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { const L = new THREE.Mesh(new THREE.CylinderGeometry(len * .018, len * .012, len * .55, 4), lm); L.position.set(sx * len * .16, -len * .2, (k - 1) * len * .14); L.rotation.set(.3 * (k - 1), 0, sx * .9); g.add(L); }
-    for (const sx of [-1, 1]) { const A = new THREE.Mesh(new THREE.CylinderGeometry(len * .012, len * .012, len * .45, 4), lm); A.position.set(sx * len * .07, len * .12, -len * .5); A.rotation.set(-1.1, 0, sx * .35); g.add(A); }
+    const ants = [];
+    for (const sx of [-1, 1]) { const A = new THREE.Mesh(new THREE.CylinderGeometry(len * .012, len * .012, len * .45, 4), lm); ants.push(A); A.position.set(sx * len * .07, len * .12, -len * .5); A.rotation.set(-1.1, 0, sx * .35); g.add(A); }
     const hd = new THREE.Mesh(new THREE.SphereGeometry(len * .15, 12, 8), new THREE.MeshStandardMaterial({ color: '#1d1a16', roughness: .5 })); hd.position.z = -len * .3; g.add(hd);
     const wm = new THREE.MeshPhysicalMaterial({ color: '#f6fafb', transparent: true, opacity: .22, emissive: '#5a6a70', emissiveIntensity: .05, iridescence: .6, iridescenceIOR: 1.3, side: THREE.DoubleSide, roughness: .2, depthWrite: false });
-    const wg = new THREE.PlaneGeometry(wingL, wingL * .38); wg.translate(wingL / 2, 0, 0);
-    const wings = []; for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg, wm.clone()); w.position.set(s * len * .12, len * .16, len * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k }); }
-    return { g, wings, bm };
+    const wsh = (L, W, x0, y0) => { const p = new THREE.Shape(); p.moveTo(x0, y0); p.bezierCurveTo(x0 + L * .25, y0 + W * .55, x0 + L * .8, y0 + W * .62, x0 + L, y0 + W * .12); p.bezierCurveTo(x0 + L * 1.02, y0 - W * .2, x0 + L * .6, y0 - W * .42, x0 + L * .25, y0 - W * .3); p.lineTo(x0, y0); return p; };
+    const wg = new THREE.ShapeGeometry(hind ? [wsh(wingL, wingL * .34, 0, 0), wsh(wingL * .64, wingL * .24, wingL * .03, -wingL * .2)] : [wsh(wingL, wingL * .4, 0, 0)], 6); wg.rotateX(-Math.PI / 2);   // 翅は体に沿って水平に   // ミツバチは大きな前翅と小さな後翅（模式）
+    const wEdge = new THREE.EdgesGeometry(wg);   // 翅の縁（形が分かるように）
+    const wings = []; for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg, wm.clone()); if (k === 0) w.add(new THREE.LineSegments(wEdge, new THREE.LineBasicMaterial({ color: '#3a3328', transparent: true, opacity: .5, depthWrite: false }))); w.position.set(s * len * .12, len * .16, len * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k }); }
+    return { g, wings, bm, ab, abM, ants, hd };
   };
-  const bee = bug(.014, '#8a6a2c', .011); bee.g.position.set(mobile ? .012 : .04, 1.57, 3.84); bee.g.rotation.y = .9; S.add(bee.g);
+  const bee = bug(.014, '#8a6a2c', .011, true); bee.g.position.set(mobile ? .008 : .022, 1.576, 3.9); bee.g.rotation.y = .9; S.add(bee.g);   // 実寸のまま目の近くへ
   { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
-  const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .012 : .03, 1.585, 3.79); fly.g.rotation.y = 1.57; fly.bm.color.set('#4a4a44'); S.add(fly.g);   // イエバエのなかま（模式）
+  const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .008 : .018, 1.588, 3.89); fly.g.rotation.y = 1.15; fly.bm.color.set('#6a6a62'); fly.abM.map = null; fly.abM.color.set('#55544c'); fly.abM.needsUpdate = true; for (const A of fly.ants) { A.scale.set(1, .25, 1); A.position.z = -.009 * .62; }
+  for (const sx of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(.009 * .12, 10, 8), new THREE.MeshStandardMaterial({ color: '#7a2418', roughness: .35 })); ey.position.set(sx * .009 * .1, .009 * .03, -.009 * .36); ey.scale.set(.8, 1.1, .9); fly.g.add(ey); }   // ハエ：赤い大きな複眼・短い触角・縞のない灰色の腹（模式）
+  S.add(fly.g);   // イエバエのなかま（模式）
   const mos = bug(.006, '#4a4038', .0055); mos.g.position.set(-.06, 1.62, 3.8); mos.g.rotation.y = -.6; S.add(mos.g);
 
   // 自分の前腕と神経（模式）
@@ -203,7 +208,7 @@ export function create(canvas) {
         e.set(o[5] * .3, o[3], o[5] * .2); q.setFromEuler(e);
         const fan = .35 + .85 * o[1]; m4.compose(v3.set(t.x + o[0] * cr * fan, H * (.5 + o[1] * .5) , t.z + o[2] * cr * fan), q, s3.setScalar(on ? (i === GI && gw > .01 ? .35 + gk * .9 : .8 + gk * 1.5) : 0)); leaves.setMatrixAt(k, m4); }
     }
-    { const yo = gw > .01; if (yo || youngOn) { for (let j = 0; j < LPT; j++) leaves.setColorAt(GI * LPT + j, yo ? YOUNG : WHITE); leaves.instanceColor.needsUpdate = true; trunks.setColorAt(GI, yo ? TGLOW : WHITE); trunks.instanceColor.needsUpdate = true; for (let j = 0; j < NB * 4; j++) branches.setColorAt(GI * NB * 4 + j, yo ? TGLOW : WHITE); branches.instanceColor.needsUpdate = true; youngOn = yo; } }
+    { const yo = gw > .01; if (yo !== youngOn) { for (let k = 0; k < NT * LPT; k++) leaves.setColorAt(k, (k / LPT | 0) === GI ? (yo ? YOUNG : WHITE) : (yo ? HAZE : WHITE)); for (let k = 0; k < NT; k++) if (k !== GI) trunks.setColorAt(k, yo ? HAZE : WHITE); for (let k = 0; k < NT * NB * 4; k++) if ((k / (NB * 4) | 0) !== GI) branches.setColorAt(k, yo ? HAZE : WHITE); leaves.instanceColor.needsUpdate = true; trunks.setColorAt(GI, yo ? TGLOW : WHITE); trunks.instanceColor.needsUpdate = true; for (let j = 0; j < NB * 4; j++) branches.setColorAt(GI * NB * 4 + j, yo ? TGLOW : WHITE); branches.instanceColor.needsUpdate = true; youngOn = yo; } }
     trunks.instanceMatrix.needsUpdate = branches.instanceMatrix.needsUpdate = cedars.instanceMatrix.needsUpdate = leaves.instanceMatrix.needsUpdate = true;
   }
 
@@ -269,7 +274,7 @@ export function create(canvas) {
       for (const { w, s, k, ghost } of b.wings) { const ph = 2 * Math.PI * f * tFast;
         if (ghost) { w.rotation.z = s * amp * Math.sin(ph - k * .55); w.visible = vis > .02; w.material.opacity = (k ? .2 / k : .55) * vis; continue; }
         const a = blur > .5 ? (k - 1) * amp * .9 : amp * Math.sin(ph) * (k === 0 ? 1 : 0);
-        w.rotation.z = s * a; w.visible = blur > .5 || k === 0; w.material.opacity = (blur > .5 ? .1 : .26) * vis; }
+        w.rotation.z = s * a; w.visible = blur > .5 || k === 0; w.material.opacity = (blur > .5 ? .1 : .34) * vis; if (w.children[0]) w.children[0].material.opacity = (blur > .5 ? .12 : .55) * vis; }
     }
     // 神経（自分の前腕・模式）：活動電位の山が毎秒 50 m で走る（有髄線維の一例。範囲は毎秒 およそ 0.5〜120 m）
     const nv = sm(-5, -4.2, n) * (1 - sm(-2.9, -2.6, n)); armM.opacity = nv; arm.visible = nv > .02; nerveM.opacity = .7 * nv;
