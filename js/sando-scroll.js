@@ -174,7 +174,7 @@ export async function start(sec) {
     const edge = new T.LineSegments(new T.EdgesGeometry(pl.geometry), new T.LineBasicMaterial({ color: cl, transparent: true, opacity: 0, depthWrite: false, fog: false }));
     edge.rotation.x = -Math.PI / 2; edge.position.y = y; FX.add(edge); fxMats.push([edge.material, 0.8]);
     const s = label(sym + '  ' + nm, c, 40, 1.5); s.position.set(-14.5, y + 0.9, 15); s.center.set(0, 0.5); FX.add(s); fxMats.push([s.material, 1]);
-    apps.forEach((a, j) => { const t = label(a, c, 30, 0.9), ang = j / apps.length * 6.283 + i, rr = 6 + (j % 3) * 3; t.position.set(Math.cos(ang) * rr, y + 0.6, Math.sin(ang) * rr); FX.add(t); fxMats.push([t.material, 0.9]); });
+    if (!mob) apps.forEach((a, j) => { const t = label(a, c, 30, 0.9), ang = j / apps.length * 6.283 + i, rr = 6 + (j % 3) * 3; t.position.set(Math.cos(ang) * rr, y + 0.6, Math.sin(ang) * rr); FX.add(t); fxMats.push([t.material, 0.9]); });
   });
   const ULab = label('U = g( P( E, B ), K )', '#eef5fb', 56, 2.4); ULab.position.set(0, 4 + 5 * 4.2 + 1.5, 0); FX.add(ULab); fxMats.push([ULab.material, 1]);
 

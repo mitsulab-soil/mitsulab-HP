@@ -236,3 +236,12 @@
 .cg-design #top .pr-selection .pr-card .pr-card-body>*{margin-top:0!important;margin-bottom:0!important}
 .cg-design #top .pr-selection .pr-card .pr-card-body>details{margin-top:auto!important}
 #top .fx3-chips a{min-height:44px!important}.cg-design #top .pr-selection .pr-card details>summary,#top .pr-selection summary{min-height:44px!important}
+/* 第6周 */
+#top .fx3-chips a{flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;padding:6px 10px!important}
+#top .fx3-chips a small{font:400 13px/1.3 var(--serif,serif);color:#c3cbdb;letter-spacing:0}
+#top .m2-cap{font-size:16px!important;color:#e3e9f1!important}
+@media (max-width:759px){#top .m2-fu2{font-size:30px}#top .m2-fu{font-size:30px}}
+@media (min-width:760px){.cg-design #top .pr-selection .pr-grid:has(>li.pr-card:nth-child(3):last-child){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.cg-design #top .pr-selection .pr-grid>li.pr-sub+li.pr-card:is(:has(+li.pr-sub),:last-child){grid-column:1/-1!important;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}}
+@media (max-width:360px){#top .cg-definition .cg-inline-heading{font-size:19px!important;word-break:keep-all;overflow-wrap:anywhere}}
+@media (max-width:759px){#top .m2-lh .m2-ls{font:italic 400 22px "Times New Roman",serif;color:var(--c);margin-right:8px}}
