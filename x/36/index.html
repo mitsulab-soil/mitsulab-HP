@@ -20,7 +20,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:
 .top b{font:400 15px/1 "Shippori Mincho","Hiragino Mincho ProN",serif;font-weight:400;letter-spacing:.06em}
 span.nw{white-space:nowrap}
 #tq{position:fixed;bottom:calc(max(22px,calc(env(safe-area-inset-bottom) + 14px)) + 84px);color:#eef3f1;text-shadow:0 0 3px rgba(7,13,26,.9),0 0 10px rgba(7,13,26,.6);left:50%;transform:translateX(-50%);width:min(330px,calc(100% - 120px));text-align:center;font:12px/1.6 "Hiragino Kaku Gothic ProN",sans-serif;opacity:0;pointer-events:none;transition:opacity .6s;z-index:5}#tq.on{opacity:1}#tq.on a{pointer-events:auto}#tq a{background:rgba(20,30,34,.18);display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid currentColor;border-radius:2px;text-decoration:none;color:inherit}#tq small{display:block;font-size:11px;opacity:.85}
-#cap{position:fixed;left:50%;bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));transform:translateX(-50%);width:min(640px,calc(100% - 92px));text-align:center;font:400 15px/1.7 "Shippori Mincho","Hiragino Mincho ProN",serif;color:var(--t1);text-shadow:0 0 2px rgba(7,13,26,.9),0 0 6px rgba(7,13,26,.7),0 0 16px rgba(7,13,26,.45);transition:opacity .5s;text-wrap:balance;word-break:auto-phrase;line-break:strict;pointer-events:none}
+#cap{position:fixed;left:50%;bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px));transform:translateX(-50%);width:min(640px,calc(100% - 92px));text-align:center;font:400 15px/1.7 "Shippori Mincho","Hiragino Mincho ProN",serif;color:var(--t1);text-shadow:0 0 2px rgba(7,13,26,.95),0 0 6px rgba(7,13,26,.85),0 0 14px rgba(7,13,26,.6),0 0 26px rgba(7,13,26,.35);transition:opacity .5s;text-wrap:balance;word-break:auto-phrase;line-break:strict;pointer-events:none}
 #rule{position:fixed;right:0;top:0;bottom:0;width:64px;touch-action:none;cursor:pointer}
 #rule svg{position:absolute;right:14px;top:12%;height:76%;width:34px;overflow:visible}
 #rule text{filter:drop-shadow(0 0 1.5px rgba(7,13,26,.95)) drop-shadow(0 0 5px rgba(7,13,26,.7)) drop-shadow(0 0 12px rgba(7,13,26,.4));font:500 13px/1 "JetBrains Mono",ui-monospace,monospace;fill:var(--t1);opacity:.95;paint-order:stroke;stroke:rgba(7,13,26,.35);stroke-width:2px}
@@ -122,19 +122,21 @@ function tileGeo(z, x, y) {
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeBoundingSphere(); return g;
 }
 /* 写真：近い段は土の色へ寄せる・細かい段ほど遠くで薄れて下の段へ溶ける（継ぎ目を見せない）・台地の段は陰影起伏をかける */
-function tileMat(m, z) {
-  m.userData.uF = { value: new THREE.Vector2(1e12, 2e12) }; m.userData.uHs = { value: 0 }; m.userData.hs = { value: null };
+let SEA = null; const seaT = () => { if (!SEA) { const t = TL.load("img/japan_bmng.webp"); t.colorSpace = THREE.SRGBColorSpace; SEA = { value: t }; } return SEA; };
+function tileMat(m, z) { if (z <= 11) seaT();
+  m.userData.uF = { value: new THREE.Vector2(1e12, 2e12) }; m.userData.ti = { value: new THREE.Vector3(0, 0, 1) }; m.userData.uHs = { value: 0 }; m.userData.hs = { value: null };
   const near = z >= 16, hs = z >= 9 && z <= 15, land = z <= 14;
-  m.onBeforeCompile = sh => { Object.assign(sh.uniforms, CANU); sh.uniforms.uSoil = U.soil; sh.uniforms.uMatch = U.match; sh.uniforms.uPop = U.pop; sh.uniforms.uFade = m.userData.uF; sh.uniforms.uHsA = m.userData.uHs; sh.uniforms.tHs = m.userData.hs;
+  m.onBeforeCompile = sh => { Object.assign(sh.uniforms, CANU); sh.uniforms.uSoil = U.soil; sh.uniforms.uMatch = U.match; sh.uniforms.uPop = U.pop; sh.uniforms.uFade = m.userData.uF; sh.uniforms.uHsA = m.userData.uHs; sh.uniforms.tHs = m.userData.hs; sh.uniforms.tSea = SEA || { value: null }; sh.uniforms.uTi = m.userData.ti;
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vTw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvTw = ( modelMatrix * vec4( transformed, 1. ) ).xyz;");
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\n" + CANF + "\nuniform float uSoil, uHsA, uMatch, uPop; uniform vec2 uFade; uniform sampler2D tHs; varying vec3 vTw;").replace("#include <color_fragment>", `#include <color_fragment>
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\n" + CANF + "\nuniform float uSoil, uHsA, uMatch, uPop; uniform vec2 uFade; uniform sampler2D tHs, tSea; uniform vec3 uTi; varying vec3 vTw;").replace("#include <color_fragment>", `#include <color_fragment>
 ${near ? "{ float sh_ = smoothstep( 12.5, 8., abs( vTw.x ) ) * smoothstep( 2.5, 4.5, abs( vTw.x ) ) * smoothstep( 440., 400., abs( vTw.z ) ) * ( 1. - uSoil ); diffuseColor.rgb *= 1. - .22 * sh_; diffuseColor.rgb *= pow( canLit_( vTw.xz ), 1.7 ); }   /* 樹冠の陰と根もとの暗がりを写真にも落とす（並木が写真の上に浮かないように） */   " : ""}
 ${near ? "{ float l_ = dot( diffuseColor.rgb, vec3( .3, .55, .15 ) ); diffuseColor.rgb = mix( diffuseColor.rgb, vec3( .42, .37, .29 ) * ( .75 + .6 * l_ ), uSoil * .8 ); }" : ""}
 diffuseColor.a *= mix( 1., smoothstep( 40., 140., length( vTw.xz ) ), uSoil );
 ${land ? "{ float l_ = dot( diffuseColor.rgb, vec3( .3, .55, .15 ) ); diffuseColor.rgb = mix( diffuseColor.rgb, vec3( l_ ) * vec3( .98, 1., 1.02 ) * 1.06 + .03, .5 * uMatch ); vec3 c_ = ( diffuseColor.rgb - .45 ) * 1.12 + .44; float m_ = dot( c_, vec3( .3, .55, .15 ) ); diffuseColor.rgb = mix( diffuseColor.rgb, mix( vec3( m_ ), c_, 1.08 ), .55 * uPop ); }" : ""}
 ${hs ? "if ( uHsA > 0. ) { float h_ = texture2D( tHs, vMapUv ).r; float w_ = uHsA * ( 1. - smoothstep( 16000., 26000., length( vTw.xz ) ) ); diffuseColor.rgb *= 1. + ( h_ - .71 ) * 1.7 * w_; }" : ""}
+${z <= 11 ? "{ float lo_ = ( uTi.x + vMapUv.x ) / uTi.z * 360. - 180.; float my_ = 3.14159265 * ( 1. - 2. * ( uTi.y + 1. - vMapUv.y ) / uTi.z ); float la_ = atan( .5 * ( exp( my_ ) - exp( -my_ ) ) ) * 57.29578; vec3 k_ = texture2D( tSea, vec2( ( lo_ - 122. ) / 28., ( la_ - 24. ) / 22. ) ).rgb; vec2 ku_ = vec2( ( lo_ - 122. ) / 28., ( la_ - 24. ) / 22. ); float out_ = step( .5, max( abs( ku_.x - .5 ), abs( ku_.y - .5 ) ) ); float l_ = dot( diffuseColor.rgb, vec3( .3, .55, .15 ) ); float rt_ = ( k_.b + .0004 ) / ( max( k_.r, k_.g ) + .0004 );   /* BMNG の沖はほぼ黒い紺（線形の値はごく小さい）。比で見る */ float land_ = smoothstep( .75, .55, rt_ ) * ( 1. - out_ ); float w_ = max( max( smoothstep( 1.05, 1.3, rt_ ), out_ ) * smoothstep( .16, .06, l_ ), smoothstep( .14, .07, l_ ) * smoothstep( .04, .0, diffuseColor.g - diffuseColor.b ) * ( 1. - land_ ) );   /* 島のまわりなど見分けのつかない所は、写真がほぼ黒なら海とみなす */ diffuseColor.rgb = mix( diffuseColor.rgb, vec3( .09, .22, .4 ) + diffuseColor.rgb * .35, w_ * .92 ); }   /* 低い段の写真の海は黒く写る。海と陸の別は NASA BMNG の色で見分け（山の陰を海にしない）、昼の海の藍へ寄せる */" : ""}
 diffuseColor.a *= 1. - smoothstep( uFade.x, uFade.y, length( vTw - cameraPosition ) );`); };
-  m.customProgramCacheKey = () => "tile" + (near ? 1 : 0) + (hs ? 1 : 0) + (land ? 1 : 0); return m;
+  m.customProgramCacheKey = () => "tile" + (near ? 1 : 0) + (hs ? 1 : 0) + (land ? 1 : 0) + (z <= 11 ? 1 : 0); return m;
 }
 function want(z, x, y, lv, keep) {
   const n = 2 ** z; if (x < 0 || x >= n || y < 0 || y >= n) return;
@@ -149,7 +151,7 @@ function pump() {
     const [z, x, y] = t.key.split("/").map(Number); loading++;
     TL.load(`https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/${z}/${x}/${y}.jpg`, tex => { loading--; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = MOB ? 8 : 16;   /* 斜めに見る写真の筋を抑える */
       const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, fog: true });
-      tileMat(m, z); if (z >= 16) groundMottle(m, { relief: false, k: .8 });
+      tileMat(m, z); m.userData.ti.value.set(x, y, 2 ** z); if (z >= 16) groundMottle(m, { relief: false, k: .8 });
       const tla = Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + .5) / 2 ** z))) / D2R, tlo = (x + .5) / 2 ** z * 360 - 180, half = 20037508 * Math.cos(f0) / 2 ** z;
       if (z >= 11 && z <= 15 && Math.hypot((tla - LAT0) * 111000, (tlo - LON0) * 90000) + half < 30000) TL.load(`https://cyberjapandata.gsi.go.jp/xyz/hillshademap/${z}/${x}/${y}.png`, h => { m.userData.hs.value = h; t.hsOk = 1; }, undefined, () => {});
       t.mesh = new THREE.Mesh(tileGeo(z, x, y), m); t.mesh.renderOrder = -10 + z * .3; t.mesh.frustumCulled = true; scene.add(t.mesh);
@@ -484,10 +486,15 @@ vec4 stB( vec2 p ){ vec2 q = p * 1e6; vec2 w = q + vec2( sin( q.y * .35 ), sin( 
   vec2 oc = on0 ? vec2( 0 ) : sc - vec2( 6., 0. ); float ch = max( chl( q - oc ), chl( vec2( 12., 0. ) + oc - q ) ) * g; c = mix( c, vec3( .36, .55, .24 ), ch * .9 ); h += ch * .15;
   c = mix( c, vec3( .34, .38, .28 ), st.y ); return vec4( c, h ); }
 /* C 葉緑体（µm）：細胞質の中のレンズ形、グラナが点に */
-vec4 stC( vec2 p ){ vec2 q = p * 1e6; float m = chl( q ); vec2 g = q * 2.2; vec3 v = vor( g ); float gr = smoothstep( .35, .1, v.z ) * m;
-  if ( length( q ) < .3 ) gr = max( gr, smoothstep( .22, .12, length( q ) ) * m );
-  vec3 c = mix( vec3( .85, .89, .78 ), vec3( .45, .64, .3 ), m ); c = mix( c, vec3( .3, .5, .2 ), gr * .7 ); c *= .95 + .1 * fbm( q * 4. );
-  return vec4( c, m * .6 + gr * .25 + fbm( q * 3. ) * .05 ); }
+vec4 stC( vec2 p ){ vec2 q = p * 1e6; float m = chl( q ); float gr = 0., lam = 0., rim = 0.;
+  for ( int i = 0; i < 5; i++ ){ vec2 d = ( q - CH[i].xy ) / CH[i].zw; float r = length( d ); float inn = smoothstep( .92, .8, r );
+    rim = max( rim, ( smoothstep( .05, .0, abs( r - .9 ) ) + smoothstep( .04, .0, abs( r - .83 ) ) * .8 ) );   /* 外膜と内膜（二重の縁） */
+    vec2 u = vec2( d.x * CH[i].z, d.y * CH[i].w ); float cx = floor( u.x / .42 ); float ox = ( h2( vec2( cx, float( i ) ) ) - .5 ) * .5;
+    float stk = smoothstep( .15, .1, abs( fract( u.x / .42 ) - .5 ) * .42 ) * smoothstep( .3, .2, abs( u.y - ox ) );   /* グラナ（径 約 0.4 µm）を長軸にそろえて並べる */
+    float lines = smoothstep( .35, .1, abs( fract( u.y * 14. ) - .5 ) );   /* チラコイドの膜の重なり（縞） */
+    gr = max( gr, stk * ( .55 + .45 * lines ) * inn ); lam = max( lam, smoothstep( .3, .05, abs( fract( u.y * 3.2 + .5 ) - .5 ) ) * ( 1. - stk ) * inn * .35 ); }   /* グラナをつなぐストロマ・ラメラ */
+  vec3 c = mix( vec3( .85, .89, .78 ), vec3( .55, .7, .4 ), m ); c = mix( c, vec3( .48, .62, .34 ), lam ); c = mix( c, vec3( .24, .42, .16 ), gr * .85 ); c = mix( c, vec3( .32, .48, .22 ), rim * m * .7 ); c *= .96 + .08 * fbm( q * 4. );
+  return vec4( c, m * .55 + gr * .22 + rim * .05 + fbm( q * 3. ) * .04 ); }
 /* D グラナ（nm・模式）：重なる円盤と、それをつなぐ膜 */
 vec4 stD( vec2 p ){ vec2 q = p * 1e9; vec2 c0 = floor( q / 650. ); float disk = 0., r = 1e4;
   for ( int y = -1; y <= 1; y++ ) for ( int x = -1; x <= 1; x++ ){ vec2 cell = c0 + vec2( x, y ); vec2 cc = ( cell + .5 ) * 650. + ( h22( cell ) - .5 ) * 160.; if ( cell == vec2( -1. ) ) cc = vec2( 0 ); else if ( length( cc ) < 520. ) continue;
@@ -533,28 +540,28 @@ function makeDeep() {
   const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
   /* 膜：上と下の頭（リン脂質の頭は約 0.8 nm）を二枚。厚さ 4.5 nm */
   const mem = new THREE.Group(); g.add(mem); const NH = MOB ? 3200 : 5200, R0 = 34;   /* 頭の並び＝約 0.7 nm² に一つ（模式） */
-  const hg = new THREE.IcosahedronGeometry(MOB ? .27 : .33, 1), hm = new THREE.InstancedMesh(hg, M(0xc9d3b0, .8), NH * 2), T = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), s1 = new THREE.Vector3(1, 1, 1);
-  const PS = [[16, -10, .4], [24, 16, 1.1], [-20, 15, 2.2], [-10, -24, .6], [6, 30, 1.7], [-30, -4, .3]];   /* 光化学系 II の二量体の置き場所（模式） */
+  const hg = new THREE.IcosahedronGeometry(MOB ? .24 : .28, 1), hm = new THREE.InstancedMesh(hg, M(0xd3dcc0, .85), NH * 2), T = new THREE.Matrix4(), q = new THREE.Quaternion(), v = new THREE.Vector3(), s1 = new THREE.Vector3(1, 1, 1);
+  const PS = [[2, 9.5, .15], [16, -10, .4], [24, 16, 1.1], [-20, 15, 2.2], [-10, -24, .6], [6, 30, 1.7], [-30, -4, .3]];   /* 光化学系 II の二量体の置き場所（模式） */
   const inPS = (x, y) => PS.some(([px, py, a]) => { const c = Math.cos(a), s = Math.sin(a), u = (x - px) * c + (y - py) * s, w = -(x - px) * s + (y - py) * c; return (u / 11.5) ** 2 + (w / 6.2) ** 2 < 1; });
   let n = 0; for (let i = 0; n < NH * 2 && i < NH * 6; i++) { const r = Math.sqrt(rnd(i)) * R0, t = rnd(i + .5) * 6.283, x = Math.cos(t) * r, y = Math.sin(t) * r; if (inPS(x, y) || Math.hypot(x, y) < 1.4) continue;
     for (const z of [0, -4.5]) { if (n >= NH * 2) break; T.compose(v.set(x, y, z + (rnd(i * 3 + z) - .5) * .3), q, s1); hm.setMatrixAt(n++, T); } }
   hm.count = n; mem.add(hm);
   /* 光化学系 II の二量体：膜を貫くたんぱく質の塊と、内腔側に出るたんぱく質（形は模式） */
-  const pg = new THREE.IcosahedronGeometry(1, 5); { const P = pg.attributes.position; for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const k = 1 + .08 * Math.sin(v.x * 7.) * Math.sin(v.y * 6.) + .05 * Math.sin(v.z * 9.); P.setXYZ(i, v.x * k, v.y * k, v.z * k); } pg.computeVertexNormals(); }
-  const pm = M(0x7f9a62, .7), pm2 = M(0x93a979, .75);
+  const pg = new THREE.SphereGeometry(1, 48, 32);   /* 頂点を共有する球（面の角を見せない） */ { const P = pg.attributes.position; for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const k = 1 + .08 * Math.sin(v.x * 7.) * Math.sin(v.y * 6.) + .05 * Math.sin(v.z * 9.); P.setXYZ(i, v.x * k, v.y * k, v.z * k); } pg.computeVertexNormals(); }
+  const pm = M(0x557a3c, .6), pm2 = M(0x6e9150, .65);   /* たんぱく質を膜より濃く（二量体の形を読みやすく） */
   for (const [px, py, a] of PS) { const d = new THREE.Group(); d.position.set(px, py, -2.25); d.rotation.z = a; mem.add(d);
-    for (const sx of [-1, 1]) { const m = new THREE.Mesh(pg, pm); m.scale.set(5.4, 5.6, 4.3); m.position.set(sx * 5, 0, 0); d.add(m); const e = new THREE.Mesh(pg, pm2); e.scale.set(3.2, 3, 2.2); e.position.set(sx * 5.4, .6, -3.6); d.add(e); } }
+    for (const sx of [-1, 1]) { const m = new THREE.Mesh(pg, pm); m.scale.set(5.4, 5.6, 4.3); m.position.set(sx * 5, 0, 0); d.add(m); const e = new THREE.Mesh(pg, pm2); e.scale.set(3.4, 3.2, 2.4); e.position.set(sx * 5.2, .5, 3.4); d.add(e); } }
   /* アンテナ（LHCII の三量体・径 約 7 nm・模式）を二量体のまわりに */
-  const lg = new THREE.SphereGeometry(1, 18, 12); const lm = M(0x6f8f55, .72);
-  for (const [px, py, a] of PS) for (let k = 0; k < 4; k++) { const t = a + k * 1.57 + .6; if (k > 1) continue; for (let j = 0; j < 3; j++) { const m = new THREE.Mesh(lg, lm), u = j * 2.094 + t; m.scale.set(1.9, 1.9, 2.4); m.position.set(px + Math.cos(t) * 16 + Math.cos(u) * 1.9, py + Math.sin(t) * 11 + Math.sin(u) * 1.9, -2.25); mem.add(m); } }
+  const lg = new THREE.SphereGeometry(1, 18, 12); const lm = M(0x4c6e36, .65);
+  for (const [px, py, a] of PS) for (let k = 0; k < 4; k++) { const t = a + k * 1.57 + .6; if (k > 1) continue; for (let j = 0; j < 3; j++) { const m = new THREE.Mesh(lg, lm), u = j * 2.094 + t; m.scale.set(1.9, 1.9, 3.4); m.position.set(px + Math.cos(t) * 16 + Math.cos(u) * 1.9, py + Math.sin(t) * 11 + Math.sin(u) * 1.9, -2.25); mem.add(m); } }
   /* クロロフィル a：環（ATOMS の並び）と、フィトールの尾（炭素 20・ジグザグ・模式） */
   const mol = new THREE.Group(); g.add(mol); mol.position.set(0, 0, .9);
   /* 原子の並びと結合＝PubChem CID 12085802（chlorophyll a, C55H72MgN4O5）の 2D 構造の重原子 65 個。Mg–N の距離を約 0.2 nm に合わせて縮め、環は平らに、フィトールの尾は環から離れるほど膜の側へ沈める（尾の曲がり方は模式）。Mg と四つの N の配位を線で足す */
   const CHL = {"a":[[0.0,0.0,0.0,2],[0.207,-0.647,-0.033,3],[0.548,-0.515,-0.073,3],[0.578,-0.261,-0.008,3],[0.948,-0.125,-0.185,3],[0.794,-0.33,-0.132,3],[0.22,0.004,0.0,1],[0.006,-0.192,0.0,1],[0.001,0.199,0.0,1],[-0.209,0.004,0.0,1],[0.439,-0.063,0.0,0],[0.439,0.08,0.0,0],[0.306,-0.101,0.0,0],[0.263,-0.239,0.0,0],[0.557,-0.152,0.0,0],[0.12,-0.277,0.0,0],[0.342,-0.362,0.0,0],[0.301,0.118,0.0,0],[0.077,-0.415,0.0,0],[0.196,-0.5,0.0,0],[0.557,0.17,0.0,0],[-0.066,-0.415,0.0,0],[-0.109,-0.282,0.0,0],[0.694,-0.094,-0.044,0],[0.258,0.252,0.0,0],[0.12,0.295,0.0,0],[0.489,-0.379,0.0,0],[0.072,0.428,0.0,0],[-0.153,-0.535,0.0,0],[-0.114,0.29,0.0,0],[-0.247,-0.239,0.0,0],[-0.071,0.428,0.0,0],[0.812,-0.183,-0.117,0],[2.337,-0.371,-0.961,0],[-0.29,-0.106,0.0,0],[2.219,-0.282,-0.889,0],[1.829,-0.308,-0.679,0],[2.083,-0.339,-0.82,0],[1.965,-0.25,-0.748,0],[-0.252,0.252,0.0,0],[2.473,-0.313,-1.03,0],[-0.428,-0.067,0.0,0],[-0.29,0.114,0.0,0],[0.157,0.549,0.0,0],[1.711,-0.219,-0.608,0],[-0.428,0.075,0.0,0],[2.591,-0.402,-1.101,0],[1.574,-0.277,-0.538,0],[-0.158,0.547,0.0,0],[2.728,-0.344,-1.171,0],[2.319,-0.518,-0.966,0],[1.811,-0.455,-0.686,0],[-0.546,-0.157,0.0,0],[2.846,-0.433,-1.242,0],[1.456,-0.188,-0.467,0],[0.694,-0.533,-0.14,0],[-0.546,0.165,0.0,0],[1.066,-0.214,-0.257,0],[1.32,-0.246,-0.398,0],[1.202,-0.157,-0.326,0],[-0.682,-0.1,-0.038,0],[2.982,-0.376,-1.312,0],[2.828,-0.58,-1.247,0],[-0.099,0.683,-0.038,0],[1.302,-0.392,-0.407,0]],"b":[[1,19,2],[2,26,1],[2,55,1],[3,26,2],[4,32,1],[4,57,1],[5,32,2],[6,12,1],[6,17,2],[7,15,1],[7,22,1],[8,25,1],[8,29,1],[9,34,1],[9,42,2],[10,11,1],[10,12,1],[10,14,1],[11,17,1],[11,20,1],[12,13,2],[13,15,1],[13,16,1],[14,23,1],[15,18,2],[16,19,1],[16,26,1],[17,24,1],[18,19,1],[18,21,1],[21,22,2],[21,28,1],[22,30,1],[23,32,1],[24,25,2],[25,27,1],[27,31,2],[27,43,1],[29,31,1],[29,39,2],[30,34,2],[31,48,1],[33,35,1],[33,40,1],[33,50,1],[34,41,1],[35,37,1],[36,38,1],[36,44,1],[36,51,1],[37,38,1],[39,42,1],[40,46,1],[41,45,2],[41,52,1],[42,45,1],[44,47,1],[45,56,1],[46,49,1],[47,54,1],[48,63,2],[49,53,1],[52,60,1],[53,61,1],[53,62,1],[54,58,1],[57,59,1],[58,59,2],[58,64,1]]};
   const all = CHL.a, ag = new THREE.SphereGeometry(1, 20, 14);
-  const col = e => e === 2 ? 0x9fd06a : e === 1 ? 0x6e9a90 : e === 3 ? 0xb8775f : 0x4f7a40;
+  const col = e => e === 2 ? 0x8fe05a : e === 1 ? 0x4a78d0 : e === 3 ? 0xd2503f : 0x4c5a48;   /* Mg 緑・N 青・O 赤・C 灰（分子模型の慣用の色に寄せる） */
   for (const [x, y, z, e] of all) { const m = new THREE.Mesh(ag, M(col(e), .45)); const r = e === 2 ? .085 : e === 1 ? .066 : e === 3 ? .064 : .062; m.scale.setScalar(r); m.position.set(x, y, z); mol.add(m); }
-  const bg = new THREE.CylinderGeometry(.02, .02, 1, 10), bm_ = M(0x5f8a4c, .5), up = new THREE.Vector3(0, 1, 0);
+  const bg = new THREE.CylinderGeometry(.02, .02, 1, 10), bm_ = M(0x6c7566, .5), up = new THREE.Vector3(0, 1, 0);
   const bond = (a, b) => { const A = new THREE.Vector3(...a.slice(0, 3)), B = new THREE.Vector3(...b.slice(0, 3)), L = A.distanceTo(B); const m = new THREE.Mesh(bg, bm_); m.position.copy(A).add(B).multiplyScalar(.5); m.scale.set(1, L, 1); m.quaternion.setFromUnitVectors(up, B.clone().sub(A).normalize()); mol.add(m); };
   for (const [a, b] of CHL.b) bond(all[a], all[b]);
   { const mg = all.find(a => a[3] === 2); all.filter(a => a[3] === 1).forEach(n => bond(mg, n)); }
@@ -588,8 +595,8 @@ function deepFrame(S) {
 }
 
 /* ── 大きさの言葉（いま受けとれるもの・受けとれないもの） ── */
-const CAPS = [[-9, "クロロフィル a（環は約 1 nm、長い尾はフィトール）。光を受けとる色素。模式"], [-7.8, "チラコイドの膜に並ぶ光化学系 II（二量体で約 20 nm）とアンテナ。模式"], [-6.7, "葉緑体の中のグラナ（0.3〜0.5 µm）の円盤の上。膜に並ぶ粒はたんぱく質（約 20 nm）。ここから模式"],
-  [-5.6, "孔辺細胞の中の葉緑体（数 µm）。光の顕微鏡なら見える"], [-4.5, "葉の裏の気孔（数十 µm）。水蒸気と酸素が出て、二酸化炭素が入る"], [-3.5, "人の目に見える、いちばん小さな大きさ（約 0.1 mm）"],
+const CAPS = [[-9, "クロロフィル a（環は約 1 nm）。<span style='color:#a4ec74'>Mg</span> を四つの <span style='color:#8fb2ff'>N</span> が囲む。<span style='color:#ff8a78'>O</span> と炭素の骨組み、水素は省く。模式"], [-7.8, "チラコイドの膜に並ぶ光化学系 II（二量体で約 20 nm）とアンテナ。模式"], [-6.7, "葉緑体の中のグラナ（0.3〜0.5 µm）の円盤の上。膜に並ぶ粒はたんぱく質（約 20 nm）。ここから模式"],
+  [-5.6, "孔辺細胞の中の葉緑体（数 µm）。二重の膜の内に、グラナが長い向きにそろう。形は光の顕微鏡で見える"], [-4.5, "葉の裏の気孔（数十 µm）。水蒸気と酸素が出て、二酸化炭素が入る"], [-3.5, "人の目に見える、いちばん小さな大きさ（約 0.1 mm）"],
   [-2.3, "葉脈の網。目を近づければ、まだ見える"], [-1, "参道の欅の一枚。長さは <span class='nw'>3〜7 cm</span> ほど。手のひらで受けとれる"], [.2, "腕をのばせば届く。からだで測れる大きさ"],
   [1.25, "一本の欅。見上げれば、まだ全体が入る"], [1.5, "並木のあいだに立つ。両側の欅が、道の上で枝を重ねる"], [1.85, "梢の高さ。見上げていた枝葉が、目の前にある"], [2.2, "参道の並木（約 2 km）。歩けば受けとれるが、一目では見えない"], [3.6, "大宮の町。<span class='nw'>もう一度には</span>見わたせない"],
   [4.6, "台地と川の低地。高さの差は数 m から十数 m、足では気づきにくい"], [5.45, "関東平野。高い所に登っても、端までは見えない"], [6.3, "日本列島（南北 約 3,000 km）。形は、写真でしか受けとれない"],
@@ -667,14 +674,14 @@ function frame(now) {
   const far = Math.max(H * 28 * (1 - .75 * sm(2.6, 3.2, S) * (1 - sm(3.8, 4.3, S))), 380), fogOff = sm(4.2, 5.4, S);
   const dip_ = sm(1.35, 1.95, S) * (1 - sm(2.25, 2.9, S)), farF = far + (Math.max(d * 2.2, 60) - far) * dip_ * .38;
   const dp2_ = sm(1.8, 2.1, S) * (1 - sm(2.3, 2.6, S));   /* 並木を上から見る段：木も写真も同じ空気の厚みで霞ませる（木だけが写真の上に乗って見えないように） */
-  scene.fog.near = farF * (.12 - .05 * dip_) * (1 - dp2_) + d * .32 * dp2_ + fogOff * 1e9; scene.fog.far = farF * (1 - dp2_) + d * 5.5 * dp2_ + fogOff * 1e9; if (window.__gm) { const go_ = 1 - sm(1.95, 2.35, S); __gm.opacity = go_; if (__gm.transparent !== (go_ < 1)) { __gm.transparent = go_ < 1; __gm.needsUpdate = true; } __gm.depthWrite = go_ > .5; }
+  scene.fog.near = farF * (.12 - .05 * dip_) * (1 - dp2_) + d * .45 * dp2_ + fogOff * 1e9; scene.fog.far = farF * (1 - dp2_) + d * 8 * dp2_ + fogOff * 1e9; if (window.__gm) { const go_ = 1 - sm(1.7, 2.0, S); __gm.opacity = go_; if (__gm.transparent !== (go_ < 1)) { __gm.transparent = go_ < 1; __gm.needsUpdate = true; } __gm.depthWrite = go_ > .5; }
   const bg = new THREE.Color().copy(HAZE).lerp(new THREE.Color(0x5d7fa6), sm(4.4, 6, S)).lerp(new THREE.Color(0x0e1a2c), sm(6, 6.9, S));
   scene.fog.color.copy(HAZE).lerp(FOGE, dip_ * .55 * (1 - sm(1.9, 2.1, S)));   /* 梢の高さの段：近い霞を土と葉の色へ寄せる（地面が灰色の面に見えないように） */ R.setClearColor(bg, 1);
   sky.position.copy(cam.position); sky.scale.setScalar(Math.min(far * .9, cam.far * .9)); sky.material.opacity = 1 - sm(3.8, 5.2, S); sky.visible = sky.material.opacity > 0;
   U.soil.value = 1 - sm(1.85, 2.35, S);   /* 写真へ移るのは足もとの地面が溶けるのと同じとき（10^1.8 で写真が灰色に透けないように） */ U.match.value = sm(2.6, 3.2, S) * (1 - sm(3.9, 4.3, S)); U.pop.value = sm(3.9, 4.3, S) * (1 - sm(5.4, 6, S));
   CANU.uCanK.value = 1 - sm(2.5, 3.0, S); trees.visible = S < 2.3; if (window.__bm) { BU.uBx.value = 60 * sm(1.55, 1.7, S) * (1 - sm(1.95, 2.15, S)); BU.uBk.value = sm(1.58, 1.78, S);   /* 引きの段（10^1.55 ほど）までは町の明暗を残し、写真へ溶けるのはそのあと */ const k_ = 1 - sm(1.6, 1.8, S);   /* 上へ離れると町の箱は写真の屋根へ（10^1.8 で消えきる。葉ごしに屋上だけが浮いて見えないように） */ if (window.__roofM) { __roofM.opacity = k_; if (__roofM.transparent !== (k_ < 1)) { __roofM.transparent = k_ < 1; __roofM.needsUpdate = true; } } __bm.opacity = k_; if (window.__aprM) { __aprM.opacity = k_; __shM.opacity = .2 * k_; } if (__bm.transparent !== (k_ < 1)) { __bm.transparent = k_ < 1; __bm.needsUpdate = true; } if (window.__bpre) __bpre.forEach(m => m.visible = k_ < 1); }   /* 町の箱は写真の屋根へ溶けて重なる（高さは PLATEAU のまま） */
   if (S > 4 && !globe) makeGlobe();
-  if (globe) { globe.material.opacity = sm(4.8, 5.8, S); globe.visible = globe.material.opacity > 0; atm.material.uniforms.uA.value = sm(5.4, 6.4, S); atm.visible = S > 5.4; jp.material.opacity = globe.material.opacity; jp.visible = globe.visible; }
+  if (globe) { globe.material.opacity = sm(4.6, 5.3, S);   /* 写真のない沖は、下の地球の海で埋める */ globe.visible = globe.material.opacity > 0; atm.material.uniforms.uA.value = sm(5.4, 6.4, S); atm.visible = S > 5.4; jp.material.opacity = globe.material.opacity; jp.visible = globe.visible; }
   TF = 1 - sm(5.5, 6.05, S);
   if (microA < 1 && TF > 0) { zcNow = needTiles(H, [0, 0]); pump(); }
   tileFrame(dt);
