@@ -25,7 +25,7 @@ span.nw{white-space:nowrap}
 #rule svg{position:absolute;right:14px;top:12%;height:76%;width:34px;overflow:visible}
 #rule text{filter:drop-shadow(0 0 1.5px rgba(7,13,26,.95)) drop-shadow(0 0 5px rgba(7,13,26,.7)) drop-shadow(0 0 12px rgba(7,13,26,.4));font:500 13px/1 "JetBrains Mono",ui-monospace,monospace;fill:var(--t1);opacity:.95;paint-order:stroke;stroke:rgba(7,13,26,.35);stroke-width:2px}
 #rule line{stroke:var(--t1);stroke-opacity:.55}
-#now{position:fixed;right:16px;top:max(14px,env(safe-area-inset-top));padding:4px 8px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);-webkit-mask-image:radial-gradient(closest-side,#000 60%,transparent);mask-image:radial-gradient(closest-side,#000 60%,transparent);font-weight:500;text-align:right;font:400 13px/1.4 "JetBrains Mono",ui-monospace,monospace;color:var(--t1);text-shadow:0 0 3px rgba(7,13,26,.75),0 0 10px rgba(7,13,26,.5);pointer-events:none}
+#now{position:fixed;right:16px;top:max(14px,env(safe-area-inset-top));padding:4px 8px;font-weight:500;text-align:right;font:400 13px/1.4 "JetBrains Mono",ui-monospace,monospace;color:var(--t1);text-shadow:0 0 3px rgba(7,13,26,.75),0 0 10px rgba(7,13,26,.5);pointer-events:none}
 #now small{display:block;font-size:11px;color:var(--t2)}
 #plus{position:fixed;left:16px;bottom:max(16px,env(safe-area-inset-bottom));width:44px;height:44px;border:1px solid rgba(238,245,251,.55);border-radius:2px;background:transparent;color:var(--t1);font:300 22px/1 Inter,sans-serif;cursor:pointer}
 #fold{position:fixed;left:16px;right:16px;bottom:72px;max-width:560px;max-height:62vh;overflow:auto;background:rgba(7,13,26,.86);border:1px solid rgba(195,204,224,.25);border-radius:2px;padding:16px 18px;font:400 12.5px/1.75 Inter,"Hiragino Sans",sans-serif;color:var(--t2);display:none}
@@ -93,8 +93,8 @@ const scene = new THREE.Scene();
 const HAZE = new THREE.Color(0xb7c4c9); const FOGE = new THREE.Color(0x8f8a72);
 scene.fog = new THREE.Fog(HAZE, 50, 400);
 const cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, .001, 1000);
-scene.add(new THREE.HemisphereLight(0xdfe8ee, 0x6d6a52, 1.5));
-const sun = new THREE.DirectionalLight(0xfff3df, 2.1); sun.position.copy(SUN); scene.add(sun); setSightSun(SUN);
+{ const hl = new THREE.HemisphereLight(0xdfe8ee, 0x6d6a52, 1.5); hl.layers.enable(1); scene.add(hl); }
+const sun = new THREE.DirectionalLight(0xfff3df, 2.1); sun.layers.enable(1); sun.position.copy(SUN); scene.add(sun); setSightSun(SUN);
 
 /* ── 地球の上の位置：氷川参道（参道の中ほど）。経緯度 → 局所の東・上・南（m）。倍精度で計算して差だけを渡す ── */
 const LAT0 = 35.9040, LON0 = 139.63125, RE = 6371000, D2R = Math.PI / 180;
@@ -426,7 +426,7 @@ function buildTwig() {
   { const tw2 = new THREE.MeshLambertMaterial({ color: 0x5f5244 }), pet = new THREE.MeshLambertMaterial({ color: 0x7d8a52 }), bud = new THREE.MeshLambertMaterial({ color: 0x6a4a34 });
     const N = [[-5.70, 1.581, -.016], [-5.655, 1.5745, -.006], [-5.61, 1.5785, -.013], [-5.565, 1.5675, -.004], [-5.52, 1.5675, -.008], [-5.475, 1.5735, -.002], [-5.432, 1.569, -.009]].map(a => new THREE.Vector3(...a));
     twig.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(N), 48, .0011, 6), tw2));
-    twig.add(new THREE.Mesh(new THREE.ConeGeometry(.0012, .004, 6), bud).translateX(-5.429).translateY(1.5765).rotateZ(-.9));   /* 先端の芽 */
+    /* 先端の芽は、奥をぼかすと宙に浮いて見えたので外した（11-13） */   /* 先端の芽 */
     const P = [[1, -1.25, .042], [2, 1.2, .05], [3, -1.15, .046], [4, 0, .062], [5, 1.15, .052], [6, -1.2, .04]];
     for (const [k, a, len] of P) { const n = N[k], side = k % 2 ? 1 : -1, ang = -Math.PI / 2 + a + (k === 4 ? .85 : 0);
       const dir = new THREE.Vector3(Math.cos(ang), Math.sin(ang), side * .25).normalize(), pe = n.clone().addScaledVector(dir, .004);
@@ -434,10 +434,10 @@ function buildTwig() {
       twig.add(new THREE.Mesh(new THREE.SphereGeometry(.0011, 6, 4), bud).translateX(n.x - Math.cos(ang) * .0006).translateY(n.y + .0012).translateZ(n.z));   /* 葉のわきの芽 */
       if (k === 4) { hero.position.copy(pe); continue; }
       const l = new THREE.Mesh(leafGeo(len, len * .48, 24), lm); l.position.copy(pe); l.rotation.set(side * .35 - .1, side * .25, ang); twig.add(l); } }
-  trees.add(twig);
+  trees.add(twig); twig.traverse(o => o.layers.enable(1)); window.__twig = twig;
   /* 参道の縁石（花崗岩・Poly Haven Granite Tile〈CC0〉。道の幅と縁石の位置は模式） */
   { const ct = new THREE.TextureLoader().load("./img/g_curb.webp"); ct.wrapS = ct.wrapT = THREE.RepeatWrapping; ct.repeat.set(1, 600); ct.colorSpace = THREE.SRGBColorSpace;
-    const cm = new THREE.MeshBasicMaterial({ map: ct, color: 0x9e9b94, transparent: true }); window.__cm = cm; const cg0 = 0, cg = new THREE.BoxGeometry(.15, .06, 1200);
+    const cm = new THREE.MeshBasicMaterial({ map: ct, color: 0xcfcac0, transparent: true }); window.__cm = cm; const cg0 = 0, cg = new THREE.BoxGeometry(.15, .06, 1200);
     for (const x of [-4.2, 4.2]) { const c = new THREE.Mesh(cg, cm); c.position.set(x, .03, 0); trees.add(c); } }
   /* 参道の地面（踏み固めた土と砂利の色。写真の上に重ねる近い所だけ） */
 }
@@ -529,6 +529,13 @@ const mq = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMateria
 mq.material.fragmentShader = mq.material.fragmentShader.replace("gl_FragColor = vec4( pow( c, vec3( 1. ) ), 1. );", "gl_FragColor = vec4( c, uA );").replace("uniform float uS,", "uniform float uA; uniform float uS,");
 mq.material.uniforms.uA = { value: 0 };
 const mscene = new THREE.Scene(); mscene.add(mq); const mcam = new THREE.Camera(); mq.frustumCulled = false;
+/* 11-13 目の前の葉にピントが合うと、奥の並木と町は大きくぼける（約 10 cm に合わせた写真と同じ。ぼけの量は模式）。奥を小さく描いてぼかし、葉と小枝だけをくっきり重ねる */
+const bRT = new THREE.WebGLRenderTarget(8, 8, { type: THREE.HalfFloatType }); bRT.texture.colorSpace = THREE.LinearSRGBColorSpace;
+const bQ = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ transparent: true, depthTest: false, depthWrite: false, uniforms: { t: { value: bRT.texture }, px: { value: new THREE.Vector2() }, a: { value: 0 } },
+  vertexShader: "varying vec2 vU; void main(){ vU = uv; gl_Position = vec4( position.xy, 0., 1. ); }",
+  fragmentShader: "uniform sampler2D t; uniform vec2 px; uniform float a; varying vec2 vU; void main(){ vec4 c = vec4( 0. ); float w = 0.; for ( int i = 0; i < 28; i++ ){ float g = float( i ) * 2.39996; float r = sqrt( float( i ) + .5 ) * .62; vec2 o = vec2( cos( g ), sin( g ) ) * r * px; c += texture2D( t, vU + o ); w += 1.; } gl_FragColor = vec4( ( c / w ).rgb, a );\n#include <colorspace_fragment>\n }" }));
+bQ.frustumCulled = false; const bScene = new THREE.Scene(); bScene.add(bQ);
+const bSize = () => { const k = MOB ? 5 : 6; bRT.setSize(Math.max(2, Math.round(innerWidth / k)), Math.max(2, Math.round(innerHeight / k))); bQ.material.uniforms.px.value.set(1 / bRT.width, 1 / bRT.height); }; bSize(); addEventListener("resize", bSize);
 /* ── 膜と分子の立体（模式）：近づいてから組み立てる。単位は nm。
    光化学系 II の二量体＝約 20 × 10 nm（Umena ほか 2011, Nature 473: 55–60）・膜の厚さ＝約 4〜5 nm・
    クロロフィル a＝Mg を中心にしたクロリン環（約 1 nm）と炭素 20 のフィトールの尾（Taiz & Zeiger『植物生理学』） ── */
@@ -686,7 +693,10 @@ function frame(now) {
   if (microA < 1 && TF > 0 && (window.__loOk || S > 1.2)) { zcNow = needTiles(H, [0, 0]); pump(); }   /* 写真のタイルは、最初の並木を置いてから読む（足もとの段では使わない） */
   tileFrame(dt);
   R.clear();
-  if (microA < 1) R.render(scene, cam);
+  if (microA < 1) { const df = window.__twig ? 1 - sm(-.55, .25, S) : 0;
+    if (df > 0) { __twig.visible = false; R.setRenderTarget(bRT); R.clear(); R.render(scene, cam); R.setRenderTarget(null); __twig.visible = true; }
+    R.render(scene, cam);
+    if (df > 0) { bQ.material.uniforms.a.value = df * .92; R.render(bScene, mcam); R.clearDepth(); cam.layers.set(1); R.render(scene, cam); cam.layers.set(0); } }
   if (microA > 0) { const mu = mq.material.uniforms; mu.uS.value = S; mu.uAsp.value = innerWidth / innerHeight; mu.uT.value = (now * .001) % 10; mu.uA.value = microA; R.render(mscene, mcam); deepFrame(S); }
   /* 表示 */
   const n = Math.abs(S - Math.round(S)) < .05 ? String(Math.round(S)) : S.toFixed(1); nE.textContent = "10" + n.split("").map(c => c === "." ? "·" : SUP[c]).join("") + " m";   /* 指数は小数一桁まで（下の行の数と食い違わない） */ nH.textContent = human(S);
