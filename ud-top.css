@@ -1,0 +1,94 @@
+/* 2026-11-13 TOP のユニバーサル設計とサイバーパンクの見た目
+   本人「子供から大人までわかるようにユニバーサル設計で。デザインはサイバーパンクなようにしつつ」
+   決まり：灰色の網かけ・半透明の板は使わない（読みやすさは文字の影・縁取り・配色で出す）。
+   3D の背景と層の 3D はそのまま。動きは prefers-reduced-motion で止める。 */
+:root{--ud-cy:#a8f2f6;--ud-cy2:#5fe3f0;--ud-ink:#f4f7fa;--ud-ink2:#d9e4ea;--ud-shadow:0 1px 2px #02040a,0 0 6px rgba(2,4,10,.95),0 0 14px rgba(2,4,10,.7)}
+
+/* 走査線（とても薄く・押す邪魔をしない） */
+body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(168,242,246,.035) 0 1px,transparent 1px 4px)}
+@media (prefers-reduced-motion:no-preference){body::after{animation:udScan 9s linear infinite}}
+@keyframes udScan{to{background-position:0 64px}}
+
+/* 文字は影で読ませる（板は敷かない） */
+#top :is(p,li,dd,dt,h1,h2,h3,figcaption,summary,small){text-shadow:var(--ud-shadow)}
+#top p{color:var(--ud-ink2)}
+#top .cg-definition-text,#top .cg-world-line,#top #missionH{color:var(--ud-ink)!important}
+
+/* 章の見出し：HUD の細い枠 */
+#top .cg-chapter-head h2,#top .ud-ask h2{position:relative;padding-left:18px}
+#top .cg-chapter-head h2::before,#top .ud-ask h2::before{content:"";position:absolute;left:0;top:.35em;bottom:.35em;width:3px;background:var(--ud-cy);box-shadow:0 0 10px var(--ud-cy2)}
+#top .cg-chapter{position:relative}
+#top .cg-chapter::before{content:"";position:absolute;left:clamp(16px,5vw,64px);right:clamp(16px,5vw,64px);top:0;height:1px;background:linear-gradient(90deg,var(--ud-cy),rgba(168,242,246,.25) 40%,transparent);pointer-events:none}
+#top .cg-eyebrow{color:var(--ud-cy)!important;letter-spacing:.24em}
+#top .cg-eyebrow::before{content:"// ";opacity:.8}
+
+/* 押せる所：44px 以上・形で分かる（枠と矢印） */
+#top :is(button,summary,.btn,.cg-play-open){min-height:44px}
+#top summary{display:flex;align-items:center;cursor:pointer}
+#top p a:not(.btn),#top li a:not(.btn){text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--ud-cy)}
+#top .cg-play-open{border-color:var(--ud-cy)!important;color:var(--ud-cy)!important;box-shadow:0 0 0 1px rgba(168,242,246,.25),0 0 18px rgba(95,227,240,.25)}
+:where(a,button,summary,[tabindex]):focus-visible{outline:3px solid #ffe36b!important;outline-offset:3px!important;border-radius:6px}
+
+/* ひとことで言うと */
+#top .ud-plain{font:400 clamp(16px,1.6vw,19px)/1.95 var(--serif,serif);color:var(--ud-ink)!important;max-width:34em;margin:6px 0 18px;padding-left:14px;border-left:2px solid var(--ud-cy)}
+
+/* いまの大宮の空（HUD） */
+.ud-sky{margin:0 0 22px;padding:12px 14px 10px;max-width:300px;border:1px solid rgba(168,242,246,.55);border-radius:4px;position:relative;font-family:var(--serif,serif)}
+.ud-sky::before,.ud-sky::after{content:"";position:absolute;width:10px;height:10px;border:2px solid var(--ud-cy)}
+.ud-sky::before{left:-2px;top:-2px;border-right:0;border-bottom:0}.ud-sky::after{right:-2px;bottom:-2px;border-left:0;border-top:0}
+.ud-sky p{margin:0;font-size:14px;line-height:1.7}
+#top .ud-sky .ud-sky-t{color:var(--ud-cy);font-size:13px;letter-spacing:.06em}
+.ud-sky-fig{display:flex;align-items:flex-end;gap:10px;margin:4px 0}
+.ud-sky-fig svg:first-child{width:170px;height:auto}
+.ud-sky .ud-moon{width:40px;height:40px;flex:0 0 auto}
+.ud-arc{fill:none;stroke:rgba(168,242,246,.7);stroke-width:1;stroke-dasharray:3 3}.ud-hz{stroke:var(--ud-cy);stroke-width:1.2}
+.ud-k{fill:#e6f2f5;font-size:11px;text-anchor:middle;font-family:inherit}
+.ud-sun{fill:#ffd66b}.ud-sun-ring{fill:none;stroke:#ffd66b;stroke-width:1;opacity:.7}
+.ud-moon-dark{fill:#1b2230;stroke:#9fb2c2;stroke-width:1}.ud-moon-lit{fill:#f3f0de}
+#top .ud-sky .ud-sky-n{font-size:12.5px;color:#c5d3da;margin-top:4px}
+@media (min-width:1100px){#top .cg-opening{position:relative}.ud-sky{position:absolute;right:clamp(16px,4vw,64px);top:clamp(20px,4vw,60px);margin:0}}
+
+/* あなたの耳の外側 */
+.ud-ears{padding-top:clamp(36px,5vw,64px);padding-bottom:clamp(30px,4vw,56px)}
+.ud-ears>*:not(.cg-chapter-head){max-width:880px;margin-left:auto;margin-right:auto}
+#top .ud-ears .ud-lead{font:400 clamp(16px,1.6vw,18px)/1.95 var(--serif,serif);color:var(--ud-ink)}
+#top .ud-ears .ud-hint{font-size:15px;color:var(--ud-cy)}
+.ud-scale{margin:18px 0 6px}
+.ud-track{position:relative;height:14px;border-top:1px solid rgba(168,242,246,.45);border-bottom:1px solid rgba(168,242,246,.45)}
+.ud-track-main{height:30px;margin-top:30px}
+.ud-hb{position:absolute;top:0;bottom:0;left:21.7%;width:50%;background:repeating-linear-gradient(90deg,rgba(168,242,246,.55) 0 2px,transparent 2px 6px);border-left:2px solid var(--ud-cy);border-right:2px solid var(--ud-cy)}
+.ud-hb-l{position:absolute;left:21.7%;top:-26px;font:500 13px/1 var(--serif,serif);color:#fff;text-shadow:var(--ud-shadow);white-space:nowrap}
+.ud-ticks{position:relative;height:20px;font-size:12px;color:#dfeaee}
+.ud-ticks span{position:absolute;white-space:nowrap;transform:translateX(-50%);top:4px;text-shadow:var(--ud-shadow)}
+.ud-ticks span:first-child{transform:none}.ud-ticks span:last-child{transform:translateX(-100%)}
+#top .ud-unit{font-size:13px;color:#dfeaee;margin:8px 0 0}
+.ud-rows{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px}
+.ud-row .ud-track{height:10px;margin:6px 0 0}
+.ud-it{position:absolute;top:-3px;bottom:-3px;background:#ffd66b;box-shadow:0 0 8px rgba(255,214,107,.7);border-radius:2px;min-width:6px}
+.ud-it-soil{background:repeating-linear-gradient(90deg,#ffd66b 0 3px,transparent 3px 6px);box-shadow:none}
+.ud-snd{display:grid;grid-template-columns:28px 1fr auto;grid-template-areas:"sh nm pl" "sh rg pl";align-items:center;column-gap:10px;width:100%;min-height:56px;padding:8px 14px;border:1px solid rgba(168,242,246,.6);border-radius:6px;background:none;color:var(--ud-ink);text-align:left;font:inherit;cursor:pointer}
+.ud-snd:hover{border-color:var(--ud-cy);box-shadow:0 0 14px rgba(95,227,240,.3)}
+.ud-snd[aria-pressed=true]{border-color:#ffd66b;box-shadow:0 0 0 1px #ffd66b inset}
+.ud-sh{grid-area:sh;font-size:18px;color:#ffd66b;text-align:center}
+.ud-nm{grid-area:nm;font:500 16px/1.5 var(--serif,serif);color:#fff;text-shadow:var(--ud-shadow)}
+.ud-rg{grid-area:rg;font-size:14px;line-height:1.5;color:#dfeaee;text-shadow:var(--ud-shadow)}
+.ud-play{grid-area:pl;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--ud-cy);border-radius:50%;color:var(--ud-cy)}
+#top .ud-ears-now{min-height:1.8em;margin:12px 0 0;font-size:15px;color:#ffd66b}
+.ud-more{margin-top:10px}
+#top .ud-more summary{color:var(--ud-cy);font-size:15px;list-style:none}
+.ud-more summary::-webkit-details-marker{display:none}
+#top .ud-more p,#top .ud-src{font-size:14px;line-height:1.85;color:#dfeaee}
+.ud-src{padding-left:1.2em}
+
+/* 帰り道の問い（ページの最後） */
+.ud-ask-wrap{position:relative;z-index:1;padding:clamp(56px,10vw,120px) clamp(16px,5vw,64px) clamp(70px,10vw,130px)}
+.ud-ask{max-width:760px;margin:0 auto;position:relative;padding:22px 0 0;border-top:1px solid rgba(168,242,246,.6)}
+.ud-ask h2{margin:0;font:400 clamp(22px,2.4vw,30px)/1.6 var(--serif,serif);color:var(--ud-ink);text-shadow:var(--ud-shadow)}
+.ud-ask-by{margin:8px 0 0;font-size:15px;color:var(--ud-cy);text-shadow:var(--ud-shadow)}
+.ud-ask-q{margin:14px 0 22px;font:400 clamp(19px,2.2vw,26px)/1.9 var(--serif,serif);color:#fff;text-shadow:var(--ud-shadow);text-wrap:pretty}
+.ud-ask-next{min-height:48px;padding:0 22px;border:1px solid var(--ud-cy);border-radius:24px;background:none;color:var(--ud-cy);font:400 16px/1 var(--serif,serif);cursor:pointer}
+.ud-ask-next:hover{box-shadow:0 0 16px rgba(95,227,240,.35)}
+
+@media (max-width:420px){.ud-snd{grid-template-columns:22px 1fr 44px;padding:8px 10px}.ud-nm{font-size:15px}.ud-rg{font-size:13.5px}.ud-ticks{font-size:11px}.ud-sky{max-width:none}}
+@media (prefers-reduced-motion:reduce){body::after{animation:none}}
+body.ud-ask-in .us-bar{opacity:0!important;visibility:hidden;transition:opacity .3s,visibility 0s .3s}
