@@ -82,3 +82,18 @@ body::after{content:none!important;animation:none!important}
 .fm-apps a:hover{text-decoration-color:var(--rf-aoi)}
 @media(max-width:420px){.fm-apps{gap:0 14px}.fm-apps a,.fm-apps span{font-size:14.5px}}
 @media(max-width:600px){.fm-l,.fm-l::before{padding-left:0;left:0}}
+/* 図の作品名に日本語の短い札 */
+.fm-apps>li{display:flex;flex-direction:column;justify-content:center;min-height:52px;padding:4px 0}
+.fm-apps a,.fm-apps span{min-height:28px!important}
+.fm-apps .fm-j{font:400 13px/1.4 var(--serif,serif);color:var(--rf-ink3);letter-spacing:.04em}
+/* SENSE の中の小見出し（音・手・目） */
+.pr-grid>li.pr-sub{grid-column:1/-1;list-style:none;margin:18px 0 -4px;padding:0;border:0!important;background:none!important}
+.pr-grid>li.pr-sub:first-child{margin-top:0}
+.pr-sub-h{display:flex;align-items:baseline;gap:10px;margin:0;font:400 18px/1.5 var(--serif,serif);color:var(--rf-ink);border-bottom:1px solid var(--rf-weak);padding-bottom:6px}
+.pr-sub-kj{color:var(--rf-aoi)}.pr-sub-en{font-size:14px;letter-spacing:.12em;color:var(--rf-ink2)}.pr-sub-h small{font-size:13px;color:var(--rf-ink3)}
+/* 3D の上の文字を読みやすく（板は敷かず、影を濃く） */
+@media(max-width:759px){#top .four-map,#top .pr-card-body,#top .fm-apps,#top .ud-first,#top .cg-world{text-shadow:0 1px 2px #02040a,0 0 8px rgba(2,4,10,.98),0 0 18px rgba(2,4,10,.85)}}
+.fm-apps a{min-height:44px!important}
+.fm-apps span:not(.fm-j){min-height:44px!important;display:inline-flex;align-items:center;color:var(--rf-ink)!important}
+.fm-apps .fm-j{margin-top:-8px}
+.four-map{scroll-margin-top:80px}
