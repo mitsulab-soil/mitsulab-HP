@@ -36,9 +36,9 @@
     var cap = document.createElement("div");
     cap.setAttribute("role", "status");
     cap.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);" + (top != null ? "top:calc(" + top + "px + env(safe-area-inset-top));" : "top:22%;") +
-      "z-index:6;pointer-events:none;font:13px/1.6 'Shippori Mincho','Hiragino Mincho ProN',serif;letter-spacing:.08em;color:rgba(245,248,255,.96);text-align:center;white-space:nowrap;" +
-      "text-shadow:0 0 2px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.7);opacity:0;transition:opacity .6s";
-    cap.innerHTML = "ミツバチの目の色<br><span style=\"font-size:11px;opacity:.8\">紫外・青・緑の三色。紫外は近い色に置きかえた模式</span>";
+      "z-index:6;pointer-events:none;font:600 15px/1.6 'Shippori Mincho','Hiragino Mincho ProN',serif;letter-spacing:.08em;color:#fff;text-align:center;white-space:normal;width:max-content;max-width:calc(100vw - 150px);word-break:keep-all;overflow-wrap:anywhere;" +
+      "text-shadow:0 0 1px #000,0 0 2px #000,0 0 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.75),0 0 24px rgba(0,0,0,.5);opacity:0;transition:opacity .6s";
+    cap.innerHTML = "ミツバチの目の色<br><span style=\"font-size:12.5px;font-weight:400\">紫外・青・緑の三色。紫外は近い色に置きかえた模式</span>";
     document.body.appendChild(cap);
     var e = 0, lt = performance.now(), IN = 900, HOLD = 2600, OUT = 1100, raf = 0, done = false;
     function set(k) {
