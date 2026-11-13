@@ -1135,7 +1135,7 @@ function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!si
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null, heard: new Set() };
 // 10-30 本人（確定）：空間に漂う Qualia の層。層は 6 つ＝Qualia/x（umwelt・beyond・memory・link・soil・scale）・sound（リズムを含む）・touch・sight・taste・smell。印の出典つきの題と本文の語で振り分ける（作り話は足さない）
-const XSUB = { umwelt: "umwelt", beyond: "beyond", memory: "memory", link: "link", soil: "soil", scale: "scale" };
+const XSUB = { umwelt: "ほかの生き物の受けとり方", beyond: "人にない感覚", memory: "この場所の記憶", link: "つながり", soil: "地中", scale: "大きさ" };   // 11-13 採点：英語の小分類名では何の札か分からない
 function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || o.layer || ""), tx = (o.title || "") + " " + (o.lines || []).map(l => l.t || "").join(" "), T = o.title || "";
   if (L.kind === "sound" || t === "sound") return "sound"; if (L.kind === "touch" || t === "touch") return "touch"; if (L.kind === "sho" || t === "sight") return "sight";
   if (/匂い|におい|香り|香る/.test(tx)) return "smell"; if (/団子|菓子|酒|料理|名物|茶屋|米を|醤油|食べ|芋/.test(tx)) return "taste";
@@ -1144,7 +1144,7 @@ function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || 
   if (/水路|流れ|街道|運ば|行き来|つなが|舟運/.test(tx)) return "x.link";
   return t === "culture" || t === "nature" ? "x.memory" : "x.memory"; }
 const QAC = { "x.umwelt": "#7f8cff", "x.beyond": "#a07cff", "x.memory": "#b98be8", "x.link": "#8fb0ff", "x.soil": "#9184c4", "x.scale": "#b0a2ff", sound: COLOR5.sound, touch: COLOR5.touch, sight: COLOR5.sight, taste: "#e3a76c", smell: "#b7d58a" };
-function QAN(k) { return k.startsWith("x.") ? `Qualia/x ── ${XSUB[k.slice(2)]}` : "Qualia/" + k; }
+function QAN(k) { return k.startsWith("x.") ? XSUB[k.slice(2)] : "Qualia/" + k; }
 let QA = null, QAP = null;
 function startQA() { if (QA || QAP) return; QAP = import("./qaurora.js?v=b14hs6").then(({ makeQAurora, sunTimes }) => { QW.sunTimes = sunTimes; QA = QW.QA = makeQAurora(THREE, world, { camera, mobile: MOBILE, marks: () => LAYER.objs.filter(L => L.root?.visible !== false && L.show > .3 && !L.qHide), kind: QAK, color: k => QAC[k], ground: (x, z) => groundY(x, z), say: t => toast(t), hidden: () => true }); }).catch(e => console.warn("qaurora", e));
   setTimeout(() => { try { if (sessionStorage.getItem("q.h.qa")) return; sessionStorage.setItem("q.h.qa", "1"); } catch { } }, 9000);   /* 10-30 パネル：誘いの一言は qaurora.js の一つだけにする（二つ重ねない） */ }
@@ -1444,6 +1444,8 @@ function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   hideSkyUI(); exitSight(true); hideFlyUI(); setMode("descend"); hidePanel(); stopVoice();   // 前の場所の語りを、降りた先へ持ちこまない
   CAM.pos.set(a.x, y, a.z); CAM.yaw = xz ? stYaw(s) : /菓子屋/.test(s.name) ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = -.04;
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
+  { const free = y0 => { let d = 0; for (; d < 30; d += 1.5) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) break; return d; };   // 11-13 採点：降りた目の前が壁で埋まらないよう、開けた向きへ
+    if (free(CAM.yaw) < 9) { let best = CAM.yaw, bd = free(CAM.yaw); for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = free(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; } }
   tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => wait.then(() => { setMode("walk"); showWalkUI(); aoiArrive(); }));
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
