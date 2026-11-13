@@ -218,3 +218,13 @@
 #top .m2-fu2{font:400 17px var(--serif,serif);fill:var(--hx)}
 .cg-design #top .pr-selection .pr-card .pr-description{-webkit-line-clamp:4}
 @media (max-width:520px){.cg-design #top .pr-selection .pr-card .pr-description{-webkit-line-clamp:unset;display:block}}
+/* 第4周 */
+@media (max-width:759px){#top .m2-lw a{display:inline-flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 10px}#top .m2-lw a small{font:400 13px/1.3 var(--serif,serif);color:#c3cbdb}}
+#top .fx3-chips span{border:0!important;padding:0 6px!important;background:none!important;font-family:var(--serif,serif)!important;font-size:13.5px!important;opacity:.9}
+#top .fx3-chips span::before{content:"· "}
+.cg-design #top .pr-selection .pr-card h3.ap-n{min-height:2.9em}
+.cg-design #top .pr-selection .pr-card .pr-description{min-height:7.2em}
+@media (max-width:520px){.cg-design #top .pr-selection .pr-card h3.ap-n,.cg-design #top .pr-selection .pr-card .pr-description{min-height:0}}
+@media (min-width:760px){.cg-design #top .pr-selection .pr-grid>li.pr-card:only-child{grid-column:span 2!important;display:grid!important;grid-template-columns:1.1fr 1fr}.cg-design #top .pr-selection .pr-grid>li.pr-card:only-child .ap-f{border-bottom:0;border-right:1px solid rgba(168,242,246,.14);height:100%}}
+@media (min-width:760px){.cg-design #top .pr-selection .pr-grid>li.pr-sub+li.pr-card:is(:has(+li.pr-sub),:last-child){grid-column:span 2!important;display:grid!important;grid-template-columns:1.1fr 1fr}
+.cg-design #top .pr-selection .pr-grid>li.pr-sub+li.pr-card:is(:has(+li.pr-sub),:last-child) .ap-f{border-bottom:0;border-right:1px solid rgba(168,242,246,.14);height:100%;aspect-ratio:auto}}

@@ -166,7 +166,7 @@ export async function start(sec) {
     const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; const s = new T.Sprite(new T.SpriteMaterial({ map: t, transparent: true, opacity: 0, depthWrite: false, fog: false })); s.scale.set(h * w / c.height, h, 1); return s; };
   const FX = new T.Group(); S.add(FX); const fxMats = [];
   const uF = uEnd * 0.858, PF = curve.getPointAt(uF), DF = curve.getTangentAt(uF);
-  FX.position.copy(PF); FX.rotation.y = Math.atan2(DF.x, DF.z);
+  FX.position.copy(PF); FX.rotation.y = Math.atan2(DF.x, DF.z); if (mob) FX.scale.setScalar(0.62);
   LAY.forEach(([sym, nm, c, apps], i) => {
     const y = 4 + i * 4.2, cl = new T.Color(c);
     const pl = new T.Mesh(new T.PlaneGeometry(30, 30), new T.MeshBasicMaterial({ color: cl, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
