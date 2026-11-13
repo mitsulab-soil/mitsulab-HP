@@ -18,10 +18,10 @@ const GLB = { inu: { f: "shiba.glb", clip: "standing", rx: 0, ry: 0, foot: true 
 const M_CHOU_RX = 0;
 export const IKIMONO = {
   hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 1.4, eye: 1.0, fov: 80, back: .2, up: .065, size: .055, bob: .03, fly: true,
-    say: "ミツバチの目の模式。赤は暗く、紫外は青に移し、像は粗く、視野は広く。体は見やすく少し大きめ。", band: [20, 500],
-    sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
+    say: "ミツバチの目の模式（体は実物より大きく見せる）。赤は暗く、紫外は青に移し、像は粗く、視野は広く。", band: [20, 500],
+    sources: [{ claim: "働きバチの体長はおよそ 12〜15 mm（画面の体は見やすく大きくした模式）", cite: "Winston ML (1987) The Biology of the Honey Bee. Harvard University Press" }, { claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
   chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 1.2, eye: 1.3, fov: 74, back: .2, up: .12, size: .045, bob: .06, fly: true,
-    say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。体は見やすく少し大きめ。",
+    say: "ナミアゲハの目の模式（体は少し大きめに見せる）。色の差は濃く、紫外は紫に移し、像は粗く。",
     sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H et al. (2008) J. Exp. Biol. 211:1223–1230" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
     say: "シジュウカラの目の模式。四色で色の差は細かく、紫外は紫に移し、視野は広く。", band: [300, 8000],
