@@ -9,7 +9,7 @@
    軽さ：見えている範囲（カメラのまわり 72 m 四方・4 m の升）だけを 2 Hz で計算。粒は合わせて 200 前後。 */
 import * as THREE from "three";
 
-const AUT = new THREE.Color(0xd8a050), CELL = 4, N = 18, HALF = CELL * N / 2;          // 72 m 四方
+const AUT = new THREE.Color(0xd8a050), BROWN = new THREE.Color(0x5c4028), FRESH = new THREE.Color(0xa86e34), MATB = new THREE.Color(0x7a5c48), WHITE = new THREE.Color(0xffffff), CELL = 4, N = 18, HALF = CELL * N / 2;          // 72 m 四方
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 // さいたまの月平均気温（気象庁 平年値 1991–2020・さいたま。丸めた値）
@@ -161,6 +161,8 @@ export function attachActors(q, opt = {}) {
     // 欅：陰（太陽の向きと高さで、樹冠の影を地面にずらす）。葉の量は季節の暦
     const el = Math.max(8, C.el) * Math.PI / 180, az = C.az * Math.PI / 180, off = 11 / Math.tan(el), ox = -Math.sin(az) * off, oz = Math.cos(az) * off;
     A.keyaki.state.leaf = C.leaf;
+    { const fr = Math.max(C.autumn, C.falling); if (Math.abs(fr - (F.fr ?? -1)) > .02) { F.fr = fr;   // 落ちたばかりの葉は黄褐色、季節が進むと枯れ葉の茶色へ
+        lgP.material.color.copy(BROWN).lerp(FRESH, fr); matM.color.copy(MATB).lerp(WHITE, fr); } }
     { const P = (q.TREE || window.__TREE)?.protos?.keyaki, au = C.autumn; if (P && Math.abs(au - (F.au ?? -1)) > .02) { F.au = au;   // 欅の黄葉（季節の暦）：近く・中くらいの距離の葉の色を黄褐色へ寄せる
         for (const m of [P.parts?.[1]?.material, P.mid?.[1]?.material]) { if (!m?.color) continue; const o = m.userData.c0 ||= m.color.clone(); m.color.copy(o).lerp(AUT, au * .85); } } }
     const dawn = C.hour > 3 && C.hour < 8 ? 1 - Math.abs(C.hour - 5.5) / 2.5 : 0;
@@ -290,6 +292,7 @@ export function attachActors(q, opt = {}) {
   }
 
   { const cr = document.getElementById("credit"); if (cr && !cr.dataset.act) { cr.dataset.act = "1"; cr.textContent += "／アクターの相互関係（受けとるもの・働きかけるものの連なり。向きは出典、強さ・数・場所は模式）：" + SOURCES.join("／"); } }
+  { const st = document.createElement("style"); st.id = "actors-ui"; st.textContent = "#w4src{left:calc(max(12px,env(safe-area-inset-left)) + 60px)!important}"; document.head.appendChild(st); }   // 「＋ 光の出典」の札を左のボタンの列から外す
   const api = { A, F, update, clock: () => C, lamps, flowers, set: o => { Object.assign(OV, o); tAcc = 1; F.init = false; F.warm = true; F.lFull = false; F.lT = .6; F.matT = 0; }, ask: ASK };
   return api;
 }
