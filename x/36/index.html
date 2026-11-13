@@ -294,7 +294,7 @@ function buildTrees() {
   Promise.resolve([{ GLTFLoader: GLTFLoader_ }, { MeshoptDecoder: MeshoptDecoder_ }]).then(([{ GLTFLoader }, { MeshoptDecoder }]) => {
     const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); window.__GL = GLTFLoader; window.__MD = MeshoptDecoder;
     const get = u => new Promise((ok, ng) => L.load(u, ok, undefined, ng));
-    const pHi = get("./tree/keyaki.glb"); window.__pB = new Promise(ok => L.load("./bldg/buildings.glb", ok, undefined, () => ok(null)));   /* 11-12 建物は並木と同時に読みはじめ、細かい並木を待たずに置く（落ち着くまでのばらつきを減らす） */ return get("./tree/keyaki_lod1_notex.glb").then(lo => { add(lo, null); pHi.then(hi => add(hi, hi)).catch(e => console.warn("tree hi", e)); });
+    const pHi = get("./tree/keyaki.glb"); return get("./tree/keyaki_lod1_notex.glb").then(lo => { add(lo, null); return pHi.then(hi => add(hi, hi)).catch(e => console.warn("tree hi", e)); }).then(() => { window.__loOk = 1; window.__pB = new Promise(ok => L.load("./bldg/buildings.glb", ok, undefined, () => ok(null))); });   /* 11-13 起動を速く：並木（軽い型と細かい型）を先に読み、置いてから建物と写真のタイルを読む（同時に読むと並木が 5〜11 秒遅れていた） */
     }).then(() => { /* 並木の外の町：国土交通省 PLATEAU さいたま市（2022 年度）LOD1 の輪郭と高さ（Qualium 大宮と同じ型。屋根の形・色は模式）。参道の帯にかかる建物は外してある */
       const L2 = new (window.__GL)(); L2.setMeshoptDecoder(window.__MD);
       return window.__pB || new Promise(ok => L2.load("./bldg/buildings.glb", ok, undefined, () => ok(null))); }).then(g => { if (!g) return;
@@ -683,7 +683,7 @@ function frame(now) {
   if (S > 4 && !globe) makeGlobe();
   if (globe) { globe.material.opacity = sm(4.6, 5.3, S);   /* 写真のない沖は、下の地球の海で埋める */ globe.visible = globe.material.opacity > 0; atm.material.uniforms.uA.value = sm(5.4, 6.4, S); atm.visible = S > 5.4; jp.material.opacity = globe.material.opacity; jp.visible = globe.visible; }
   TF = 1 - sm(5.5, 6.05, S);
-  if (microA < 1 && TF > 0) { zcNow = needTiles(H, [0, 0]); pump(); }
+  if (microA < 1 && TF > 0 && (window.__loOk || S > 1.2)) { zcNow = needTiles(H, [0, 0]); pump(); }   /* 写真のタイルは、最初の並木を置いてから読む（足もとの段では使わない） */
   tileFrame(dt);
   R.clear();
   if (microA < 1) R.render(scene, cam);
@@ -699,7 +699,7 @@ window.__setS = v => { S = ST = v; }; window.__loading = () => loading + queue.l
 buildTwig();
 buildTrees(); built = true;
 requestAnimationFrame(t => { last = t; frame(t); window.__ready = performance.now(); });
-setTimeout(() => { if (!globe) makeGlobe(); }, 2500);   /* 地球の写真は起動のあと先に読んでおく（大きく離れたとき、絵が届く前の青一色を見せない） */
+setTimeout(() => { if (!globe) makeGlobe(); }, 6000);   /* 地球の写真は起動のあと先に読んでおく（大きく離れたとき、絵が届く前の青一色を見せない） */
 </script>
 <script src="kit/tsugi.js" data-bottom="210" data-right="90" data-href="../35/" data-name="Qualia/swarm" data-line="群れの一羽の目で、まわりに合わせる" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/scale" data-left="12" data-bottom="76" defer></script>
