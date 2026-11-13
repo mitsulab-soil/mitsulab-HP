@@ -583,6 +583,7 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 @media (max-width:640px){html body #sndTag,html body[data-mode] #sndTag{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 142px)!important;max-width:calc(100% - 2 * var(--g))!important}}
 </style>
 <style id="qualium-cap-375">/* 11-05 採点「375px で字幕が碧の衣に重なる」：スマホで歩くとき、字幕は碧の立つ側と反対の欄に（碧の画面の位置を毎こま見て data-aoi に） */@media (max-width:640px){html body[data-mode="walk"][data-aoi] #caption{width:auto!important;max-width:none!important;transform:none!important;text-align:left!important}html body[data-mode="walk"][data-aoi="l"] #caption{left:46%!important;right:var(--g)!important}html body[data-mode="walk"][data-aoi="r"] #caption{left:var(--g)!important;right:46%!important}html body[data-mode="walk"][data-aoi] #caption:not(.full) #capText{-webkit-line-clamp:5!important;letter-spacing:0!important;font-size:12px!important}}</style>
+<style id="q-menu-solid">/* 11-13 採点：メニューの下の地図の札と文字が重ならないよう、板を濃くしてぼかす */html body #menu{background:rgba(6,10,20,.88)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;padding:14px 16px;border-radius:2px}body:has(#menu:not([hidden])) .icm{display:none!important}</style>
 </head>
 <body data-mode="boot" class="ml-root">
 <script src="loader/loader.js" data-title="Qualium 渋谷" data-en="Qualium Shibuya" data-icon="favicon/icon.svg" data-max="500"></script>
