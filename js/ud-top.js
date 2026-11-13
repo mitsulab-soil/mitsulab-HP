@@ -1,60 +1,12 @@
 /* 2026-11-13 TOP の三つの体験（本人「子供から大人までわかるようにユニバーサル設計で」）
-   ① いまの大宮の空：端末の時計だけで、太陽の位置と月の満ち欠けを計算する（位置情報は使わない・大宮に固定）
+   （2026-11-13 本人：「いまの大宮の空」は外した）
    ② あなたの耳の外側：聴こえる音の帯と、その外の音。触れてから鳴る（聴こえる高さに移した模式）
    記録は取らない（保存も送信もしない）。 */
 (function(){
   'use strict';
-  var LAT=35.9165, LON=139.6305;          // 氷川参道のあたり（umwelt-shift.js と同じ値）
-  var SYN=29.530589;                       // 朔望月の平均の長さ（日）理科年表
-  var NEW0=Date.UTC(2000,0,6,18,14)/864e5; // 基準の新月 2000-01-06 18:14 UTC（Meeus『Astronomical Algorithms』）
   var en=function(){return document.documentElement.dataset.lang==='en';};
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // NOAA の近似式（umwelt-shift.js の「時間がずれる」の太陽と同じ式）
-  function sunPos(date){
-    var doy=Math.floor((Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())-Date.UTC(date.getUTCFullYear(),0,0))/864e5);
-    var hr=date.getUTCHours()+date.getUTCMinutes()/60+date.getUTCSeconds()/3600;
-    var g=2*Math.PI/365*(doy-1+(hr-12)/24);
-    var eqt=229.18*(.000075+.001868*Math.cos(g)-.032077*Math.sin(g)-.014615*Math.cos(2*g)-.040849*Math.sin(2*g));
-    var dec=.006918-.399912*Math.cos(g)+.070257*Math.sin(g)-.006758*Math.cos(2*g)+.000907*Math.sin(2*g)-.002697*Math.cos(3*g)+.00148*Math.sin(3*g);
-    var tst=hr*60+eqt+4*LON, ha=(tst/4-180)*Math.PI/180, la=LAT*Math.PI/180;
-    var cz=Math.sin(la)*Math.sin(dec)+Math.cos(la)*Math.cos(dec)*Math.cos(ha), z=Math.acos(Math.max(-1,Math.min(1,cz)));
-    var az=Math.acos(Math.max(-1,Math.min(1,(Math.sin(la)*Math.cos(z)-Math.sin(dec))/(Math.cos(la)*Math.sin(z)||1e-6))))*180/Math.PI;
-    az=ha>0?(az+180)%360:(540-az)%360;
-    return {alt:90-z*180/Math.PI, az:az};
-  }
-  var DIR_JA=['北','北東','東','南東','南','南西','西','北西'], DIR_EN=['north','north-east','east','south-east','south','south-west','west','north-west'];
-  function dir(az){var i=Math.round(az/45)%8;return en()?DIR_EN[i]:DIR_JA[i];}
-  function moonAge(d){var a=(d.getTime()/864e5-NEW0)%SYN;return a<0?a+SYN:a;}
-  function moonName(a){
-    var J=[[1.5,'新月のころ','around new moon'],[6,'細い月（三日月のころ）','a thin crescent'],[9,'半月（上弦のころ）','half moon (first quarter)'],[13.3,'ふくらむ月','a growing moon'],[16.3,'満月のころ','around full moon'],[20.8,'欠けていく月','a shrinking moon'],[23.8,'半月（下弦のころ）','half moon (last quarter)'],[28.1,'細い月（明け方の月）','a thin morning crescent'],[99,'新月のころ','around new moon']];
-    for(var i=0;i<J.length;i++)if(a<J[i][0])return en()?J[i][2]:J[i][1];
-  }
-  // 月の形（北半球で見た向き：満ちていく月は右が明るい）
-  function moonPath(a,r){
-    var f=a/SYN, k=Math.cos(2*Math.PI*f), rx=Math.abs(k)*r, waxing=f<.5;
-    var outer=waxing?1:0, inner=(waxing?(k>0):(k<0))?0:1;
-    if(f<.02||f>.98)return '';
-    return 'M0,'+(-r)+' A'+r+','+r+' 0 0 '+outer+' 0,'+r+' A'+rx.toFixed(2)+','+r+' 0 0 '+inner+' 0,'+(-r)+'Z';
-  }
-
-  function sky(){
-    var box=document.getElementById('udSky');if(!box)return;
-    var now=new Date(), s=sunPos(now), a=moonAge(now);
-    var hm=now.toLocaleTimeString(en()?'en-GB':'ja-JP',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tokyo'});
-    var up=s.alt>0;
-    // 空の半円：左＝東、まん中＝南、右＝西（北の空は描かない）
-    var t=(s.az-90)/180, x=20+Math.max(0,Math.min(1,t))*160, y=96-Math.max(0,s.alt)/90*80, onArc=up&&s.az>=80&&s.az<=280;
-    var sunSvg=onArc?'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="7" class="ud-sun"/><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="12" class="ud-sun-ring"/>':'';
-    var mp=moonPath(a,13);
-    box.querySelector('.ud-sky-fig').innerHTML='<svg viewBox="0 0 200 110" role="img" aria-hidden="true" focusable="false"><path d="M20,96 A80,80 0 0 1 180,96" class="ud-arc"/><line x1="10" y1="96" x2="190" y2="96" class="ud-hz"/><text x="20" y="108" class="ud-k">'+(en()?'E':'東')+'</text><text x="100" y="108" class="ud-k">'+(en()?'S':'南')+'</text><text x="180" y="108" class="ud-k">'+(en()?'W':'西')+'</text>'+sunSvg+'</svg><svg viewBox="-16 -16 32 32" class="ud-moon" aria-hidden="true" focusable="false"><circle r="13" class="ud-moon-dark"/>'+(mp?'<path d="'+mp+'" class="ud-moon-lit"/>':'')+'</svg>';
-    var sunTxt=up?(en()?'Sun: '+Math.round(s.alt)+'° up, to the '+dir(s.az):'太陽：'+dir(s.az)+'の空、高さ '+Math.round(s.alt)+'°')
-                 :(en()?'Sun: below the horizon':'太陽：いまは地平線の下');
-    var moonTxt=(en()?'Moon: day '+Math.round(a)+' of about 29.5 — ':'月：月齢 約 '+Math.round(a)+' 日 ── ')+moonName(a);
-    box.querySelector('.ud-sky-t').textContent=(en()?'The sky over Omiya now · ':'いまの大宮の空　')+hm;
-    box.querySelector('.ud-sky-sun').textContent=sunTxt;
-    box.querySelector('.ud-sky-moon').textContent=moonTxt;
-  }
 
   // ---- あなたの耳の外側
   var ctx=null;
@@ -84,9 +36,7 @@
   }
 
   function init(){
-    sky();ears();
-    setInterval(sky,60000);
-    new MutationObserver(function(){sky();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-lang']});
+    ears();
     if(reduce)document.documentElement.classList.add('ud-calm');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

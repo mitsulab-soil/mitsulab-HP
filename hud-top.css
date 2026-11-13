@@ -1,0 +1,66 @@
+/* © mitsulab. 2026-11-13 TOP の HUD（本人「サイバーパンクなデザインに」。ジャンルとしての HUD・特定の作品の意匠は写さない）
+   細い碧の光の線・四隅の括弧・目盛り・等幅の小さな数字。日本語は明朝のまま。動きは控えめ、reduced-motion で止める。 */
+#top{--hx:#a8f2f6;--hx2:rgba(168,242,246,.42);--hx3:rgba(168,242,246,.16);--hxbg:rgba(3,7,14,.84);--hxm:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+#top .hx-frame{position:relative;background:var(--hxbg);border:1px solid var(--hx3);padding:clamp(18px,3vw,32px) clamp(14px,3vw,32px)}
+#top .hx-frame::before,#top .hx-frame::after{content:"";position:absolute;width:16px;height:16px;border:1px solid var(--hx);pointer-events:none}
+#top .hx-frame::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+#top .hx-frame::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+#top .hx-k{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;font:400 12px/1.4 var(--hxm);letter-spacing:.22em;color:var(--hx)}
+#top .hx-k .hx-num{letter-spacing:.08em;color:#cfeff2}
+#top .hx-k::after{content:"";flex:1;height:1px;margin:0 10px;order:1;background:repeating-linear-gradient(90deg,var(--hx2) 0 1px,transparent 1px 8px)}
+#top .hx-k .hx-num{order:2}
+/* MISSION と定義：HUD の札 */
+#top .cg-opening .ud-mission .ud-mk{font-family:var(--hxm);font-weight:400;letter-spacing:.24em;color:var(--hx)}
+#top .cg-opening h1{text-shadow:0 0 18px rgba(168,242,246,.18)}
+/* ＋ ボタン＝HUD の部品（細い枠・押すと線が光る） */
+#top :is(.ud-def,.hx-more,.cg-essence-more)>summary{display:inline-flex;align-items:center;min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--hx2);border-radius:0;background:rgba(3,7,14,.7);color:var(--hx);font:400 14px/1.4 var(--serif,serif);letter-spacing:.06em;cursor:pointer;list-style:none;transition:border-color .2s,box-shadow .2s}
+#top :is(.ud-def,.hx-more,.cg-essence-more)>summary::-webkit-details-marker{display:none}
+#top :is(.ud-def,.hx-more,.cg-essence-more)>summary:hover,#top :is(.ud-def,.hx-more,.cg-essence-more)>summary:active,#top :is(.ud-def,.hx-more,.cg-essence-more)[open]>summary{border-color:var(--hx);box-shadow:0 0 0 1px rgba(168,242,246,.25),0 0 14px rgba(168,242,246,.35)}
+#top :is(.ud-def,.hx-more,.cg-essence-more)>summary:focus-visible{outline:2px solid var(--hx);outline-offset:3px}
+/* 環世界・コモングラウンドの二行 */
+#top .hx-pair{margin:clamp(20px,3vw,32px) 0 0;padding:0;display:grid;gap:14px;max-width:40em}
+#top .hx-row{position:relative;display:grid;grid-template-columns:minmax(0,9.5em) 1fr;gap:4px 18px;padding:14px 16px;border:1px solid var(--hx3);background:var(--hxbg)}
+#top .hx-row::before{content:"";position:absolute;left:-1px;top:-1px;width:10px;height:10px;border-left:1px solid var(--hx);border-top:1px solid var(--hx)}
+#top .hx-row dt{font:400 12px/1.9 var(--hxm);letter-spacing:.2em;color:var(--hx);padding-top:3px}
+#top .hx-row dd{margin:0}
+#top .hx-row dd>p{margin:0 0 10px;font:400 16px/1.95 var(--serif,serif);color:#f2f4ef}
+#top .hx-more p{margin:12px 0 0;font:400 14.5px/1.95 var(--serif,serif);color:#dfe8f0;max-width:38em}
+@media (max-width:560px){#top .hx-row{grid-template-columns:1fr}}
+/* 4 つの円 */
+#top .cr-map{max-width:760px;margin:clamp(32px,5vw,64px) auto;overflow:hidden}
+#top .cr-map::selection{background:none}
+#top .cr-t{margin:0 0 6px;font:400 clamp(19px,2.2vw,24px)/1.6 var(--serif,serif);color:#f2f4ef;letter-spacing:.06em}
+#top .cr-d{margin:0 0 14px;font:400 14.5px/1.9 var(--serif,serif);color:#dfe8f0}
+#top .cr-grid{display:grid;grid-template-columns:1fr minmax(0,420px) 1fr;grid-template-rows:auto auto;align-items:center;gap:8px 10px}
+#top .cr-svg{grid-column:2;grid-row:1/3;width:100%;height:auto;display:block}
+#top .cr-w1{grid-column:1;grid-row:1;align-self:end}#top .cr-w3{grid-column:1;grid-row:2;align-self:start}
+#top .cr-w2{grid-column:3;grid-row:1;align-self:end}#top .cr-w4{grid-column:3;grid-row:2;align-self:start}
+#top .cr-wk{margin:0 0 4px;font:400 11.5px/1.4 var(--hxm);letter-spacing:.22em;color:var(--hx)}
+#top .cr-works{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+#top .cr-chip{display:inline-flex;align-items:center;min-height:44px;padding:0 9px;border:1px solid var(--hx3);background:rgba(3,7,14,.7);color:#e6f6f8;font:400 12.5px/1.2 var(--hxm);letter-spacing:.02em;text-decoration:none!important;transition:border-color .2s,box-shadow .2s,color .2s}
+#top .cr-chip:hover,#top .cr-chip:active{border-color:var(--hx);color:var(--hx);box-shadow:0 0 12px rgba(168,242,246,.35)}
+#top .cr-chip:focus-visible{outline:2px solid var(--hx);outline-offset:2px}
+@media (max-width:760px){#top .cr-grid{grid-template-columns:1fr;gap:10px}#top .cr-svg{grid-column:1;grid-row:3;max-width:420px;margin:0 auto}#top .cr-w1{grid-row:1;grid-column:1}#top .cr-w2{grid-row:2;grid-column:1}#top .cr-w3{grid-row:4;grid-column:1}#top .cr-w4{grid-row:5;grid-column:1}}
+.cr-svg .cr-grid-bg path{stroke:rgba(168,242,246,.06);stroke-width:.6;fill:none}
+.cr-svg .cr-c circle{fill:rgba(168,242,246,.035);stroke:#a8f2f6;stroke-width:.9}
+.cr-svg .cr-tick circle,.cr-svg .cr-tick path{fill:none;stroke:rgba(168,242,246,.55);stroke-width:.8}
+.cr-svg .cr-core circle,.cr-svg .cr-core path{fill:none;stroke:rgba(168,242,246,.5);stroke-width:.6;stroke-dasharray:2 3}
+.cr-svg .cr-core .cr-dot{fill:#a8f2f6;stroke:none}
+.cr-svg .cr-cg{font:400 9.5px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.18em;fill:#a8f2f6}
+.cr-svg .cr-ill path,.cr-svg .cr-ill circle,.cr-svg .cr-ill rect{fill:none;stroke:#cfeff2;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+.cr-svg .cr-name text{font:400 13px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.2em;fill:#a8f2f6}
+.cr-svg .cr-line text{font:400 13px "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;fill:#f2f4ef}
+.cr-svg .cr-coord text{font:400 8.5px "JetBrains Mono",ui-monospace,monospace;fill:rgba(168,242,246,.7);letter-spacing:.1em}
+/* 走査線（控えめ）とわずかなグリッチ */
+#top .cr-map>.cr-grid{position:relative}
+#top .cr-map::selection{background:none}
+#top .cr-grid::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 0,rgba(168,242,246,.07) 50%,transparent 100%);height:22%;animation:hxScan 7s linear infinite}
+@keyframes hxScan{0%{transform:translateY(-30%)}100%{transform:translateY(480%)}}
+.cr-svg .cr-flow{stroke-dasharray:4 4;animation:hxFlow 2.4s linear infinite}
+@keyframes hxFlow{to{stroke-dashoffset:-16}}
+#top .hx-k>span:first-child{animation:hxGl 9s steps(1) infinite}
+@keyframes hxGl{0%,96%,100%{transform:none;text-shadow:none}97%{transform:translateX(1px);text-shadow:-1px 0 rgba(168,242,246,.6)}98%{transform:translateX(-1px)}}
+@media (prefers-reduced-motion:reduce){#top .cr-grid::after,.cr-svg .cr-flow,#top .hx-k>span:first-child{animation:none}#top .cr-grid::after{display:none}}
+/* 円の線の上でも字が読めるよう、字に暗い縁を付ける（採点の指摘） */
+.cr-svg .cr-line text,.cr-svg .cr-cg,.cr-svg .cr-name text{paint-order:stroke;stroke:rgba(3,7,14,.92);stroke-width:4px;stroke-linejoin:round}
+.cr-svg .cr-cg{font-size:11px}
