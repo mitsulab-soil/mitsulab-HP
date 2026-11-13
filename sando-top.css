@@ -228,3 +228,7 @@
 @media (min-width:760px){.cg-design #top .pr-selection .pr-grid>li.pr-card:only-child{grid-column:span 2!important;display:grid!important;grid-template-columns:1.1fr 1fr}.cg-design #top .pr-selection .pr-grid>li.pr-card:only-child .ap-f{border-bottom:0;border-right:1px solid rgba(168,242,246,.14);height:100%}}
 @media (min-width:760px){.cg-design #top .pr-selection .pr-grid>li.pr-sub+li.pr-card:is(:has(+li.pr-sub),:last-child){grid-column:span 2!important;display:grid!important;grid-template-columns:1.1fr 1fr}
 .cg-design #top .pr-selection .pr-grid>li.pr-sub+li.pr-card:is(:has(+li.pr-sub),:last-child) .ap-f{border-bottom:0;border-right:1px solid rgba(168,242,246,.14);height:100%;aspect-ratio:auto}}
+#top .m2-lr span:not(.m2-lk)+span::before{content:"・"}
+#top .sd-snd{transition:opacity .4s}#top .sd-hero.sd-end .sd-hud,#top .sd-hero.sd-end .sd-snd{opacity:0;pointer-events:none}
+@media (max-width:360px){#top .sd-pane #visionH{font-size:25px!important}}
+@media (max-width:360px){body #top .sd-pane.cg-opening h1#visionH{font-size:24px!important;letter-spacing:.02em!important}}
