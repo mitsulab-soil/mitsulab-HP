@@ -113,3 +113,8 @@ body::after{content:none!important;animation:none!important}
 .pr-card .ap-f img,.ud-tries img{background:linear-gradient(135deg,#0b1424 0%,#14243a 60%,#0e1a2c 100%);color:transparent}
 .pr-card .ap-f{aspect-ratio:16/10;border:1px solid var(--rf-weak)}
 @media (min-width:1000px){#top .cg-opening .ud-first{width:min(1100px,calc(100vw - 140px));max-width:none}#top .cg-opening .ud-tries{grid-template-columns:repeat(4,1fr)}}
+#top .ud-try-l{font-size:12px;letter-spacing:.16em;color:var(--rf-aoi)}
+/* 冒頭の森の画の下端をぼかす（段にしない） */
+#top .cg-poster,#top .cg-stage canvas{-webkit-mask-image:linear-gradient(#000 55%,transparent 100%)!important;mask-image:linear-gradient(#000 55%,transparent 100%)!important}
+/* 狭い画面では時刻の札を出さない（図の作品名に重ならない） */
+@media(max-width:420px){.us-bar .us-time{display:none!important}}
