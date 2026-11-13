@@ -2973,6 +2973,7 @@ QW.sun = sun; QW.hemi = hemi; QW.sndCtx = () => sndCtx(); QW.sndOut = () => SND.
 QW.groundAt = (x, z) => aoiFootY(x, z); QW.LAYER = LAYER; QW.CAM = CAM; QW.QAK = QAK; QW.QAC = QAC;
 QW.open = id => { const L = LAYER.objs.find(l => l.o.id === id); if (L) { L.show = 1; L.root.visible = true; openObj(L); } return !!L; };
 QW.talkNow = () => { TALK.nextT = 0; };
+QW.D = () => D; QW.caption = (t, src, ms = 7000) => { caption(t, null, src || ""); hideCaption(ms); }; QW.voiceBusy = () => !!voiceQ || !!PANEL.cur;   /* 11-13 アクターの相互関係（actors.js）：碧の問いの字幕だけ */
 QW.place = (x, z, tx, tz, p = -.12) => { const yw = Math.atan2(-(tx - x), -(tz - z)); [x, z] = camOffRoad(x, z, yw); CAM.pos.set(x, groundY(x, z) + EYE, z); CAM.yaw = yw; CAM.look = 0; CAM.pitch = p; };   // 確かめ用：その場所から、その点の方を見る
 QW.sky = SKY;
 
@@ -3042,6 +3043,7 @@ function frame() {
   if (PARK.uT && !RM) PARK.uT.value += dt;
   stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (QW.mode === "walk" && !SEKI.p && /[?&]sekiso=1/.test(location.search)) SEKI.p = import("./sekiso.js?v=p1").then(M => { SEKI.o = M.makeSekiso({ scene, camera, groundY, renderer, MOBILE }); QW.SEKI = SEKI.o; }).catch(e => console.warn("sekiso", e)); SEKI.o?.update(dt, QW.mode === "walk"); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt);
+  QW.ACT?.update(dt);   /* 11-13 本人承認「環境そのものが、受けとって働きかけるアクターどうしの相互関係として動く」（actors.js） */
   if (QW.mode !== "walk") FARWOOD.g.visible = false;
   if (SIGHT.post && QW.mode === "sight") {
     const PU = SIGHT.post.mat.uniforms; PU.time.value += dt; SIGHT.ring = Math.max(0, (SIGHT.ring || 0) - dt / 1.1); PU.pulse.value = SIGHT.ring; PU.move.value += ((SIGHT.sp ? Math.min(1, Math.abs(SIGHT.v) / Math.max(.2, SIGHT.sp.speed || 1)) : 0) - PU.move.value) * Math.min(1, dt * 4);
