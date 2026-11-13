@@ -1,0 +1,60 @@
+/* 2026-11-13 本人「洗練された HP デザインにしてください」：引き算。碧の細い一本の線だけを残し、
+   光・走査線・枠を外す。文字は 4 段（見出し・副見出し・本文・注）。カードの画・角・影をそろえる。 */
+:root{--rf-aoi:#9bdcf0;--rf-line:rgba(155,220,240,.34);--rf-weak:rgba(195,204,224,.16);--rf-ink:#eef5fb;--rf-ink2:#c9d3e2;--rf-ink3:#a9b5c8;
+--rf-h1:clamp(30px,3.4vw,52px);--rf-h2:clamp(22px,2.2vw,30px);--rf-body:clamp(16px,1.2vw,17px);--rf-note:14px;--rf-gap:clamp(72px,9vw,128px)}
+/* 飾りを外す */
+body::after{content:none!important;animation:none!important}
+#top .cg-chapter-head h2::before{width:1px!important;box-shadow:none!important;background:var(--rf-line)!important}
+#top .cg-chapter::before{background:var(--rf-weak)!important}
+#top .cg-eyebrow::before{content:none!important}
+#top .cg-eyebrow{color:var(--rf-aoi)!important;letter-spacing:.2em;font-size:12px}
+.ud-sky::before,.ud-sky::after{content:none!important}
+.ud-sky{border:0!important;border-left:1px solid var(--rf-line)!important;border-radius:0!important;padding:4px 0 4px 16px!important}
+#top .ud-plain{border-left-width:1px!important;border-left-color:var(--rf-line)!important}
+.ud-snd{border-color:var(--rf-weak)!important;border-radius:4px!important;box-shadow:none!important;transition:border-color .2s}
+.ud-snd:hover{border-color:var(--rf-line)!important;box-shadow:none!important}
+.ud-snd[aria-pressed=true]{border-color:var(--rf-aoi)!important;box-shadow:none!important}
+.ud-sh,#top .ud-ears-now{color:var(--rf-aoi)!important}
+.ud-it{background:var(--rf-aoi)!important;box-shadow:none!important}
+.ud-play{border-color:var(--rf-line)!important;color:var(--rf-aoi)!important}
+.ud-hb{background:rgba(155,220,240,.14)!important;border-color:var(--rf-line)!important;border-width:1px!important}
+.ud-track{border-color:var(--rf-weak)!important}
+.ud-sun{fill:var(--rf-ink)!important}.ud-sun-ring{stroke:var(--rf-ink)!important;opacity:.4!important}
+:where(a,button,summary,[tabindex]):focus-visible{outline:2px solid var(--rf-aoi)!important;outline-offset:3px!important}
+/* 文字の組み：4 段 */
+#top #visionH{font-size:var(--rf-h1)!important;font-weight:400!important}
+#top .cg-chapter h2,#top .pr-selection h2,#top .ud-ears h2{font-size:var(--rf-h2)!important;font-weight:400!important;letter-spacing:.06em!important}
+#top .cg-prose p,#top .ud-plain,#top .ud-lead,#top .cg-world-line,#top .cg-definition-text{font-size:var(--rf-body)!important;line-height:2!important;letter-spacing:.04em;max-width:34em}
+#top .cg-world-verse span{font-size:var(--rf-body)}
+#top :is(figcaption,.ud-sky-n,.ud-unit,.ud-src,.ud-more p,.pr-card-body small){font-size:var(--rf-note)!important;color:var(--rf-ink3)!important}
+#top p,#top li{color:var(--rf-ink2)}
+#top :is(#visionH,h2,h3,.ud-plain,.cg-definition-text,.cg-world-line){color:var(--rf-ink)!important}
+#top b,#top strong{font-weight:inherit}
+/* 余白：節のあいだをそろえる */
+#top .cg-chapter,#top .pr-selection,#top .ud-ears{padding-top:var(--rf-gap)!important;padding-bottom:0!important}
+#top .cg-chapter-head{margin-bottom:clamp(20px,2.4vw,32px)}
+/* カード：画・角・影をそろえる */
+.pr-card{box-shadow:none!important;border-radius:4px!important;transition:border-color .25s ease!important;transform:none!important}
+.pr-card .ap-f{border-radius:4px!important;overflow:hidden;box-shadow:none!important}
+.pr-card .ap-f :is(img,video,canvas){aspect-ratio:16/10;width:100%;height:auto;object-fit:cover;border-radius:0!important;box-shadow:none!important;transition:none!important}
+.pr-card:hover,.pr-card:focus-within{transform:none!important;box-shadow:none!important}
+.pr-card:hover .ap-f :is(img,video){transform:none!important;filter:none!important}
+.pr-card-body h3,.pr-card-body h4{font-weight:400!important;letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+/* はじめての方へ（環世界とは・コモングラウンドとは・体験できること） */
+#top .ud-first{max-width:1120px;margin:0 auto;padding:var(--rf-gap) clamp(16px,5vw,64px) 0}
+#top .ud-first h2{font:400 var(--rf-h2)/1.6 var(--serif,serif);letter-spacing:.06em;margin:0 0 clamp(20px,2.4vw,32px);color:var(--rf-ink);padding-left:18px;border-left:1px solid var(--rf-line)}
+#top .ud-steps{list-style:none;margin:0;padding:0;display:grid;gap:clamp(28px,3vw,40px)}
+#top .ud-steps>li>p{max-width:34em;font-size:var(--rf-body);line-height:2;margin:0;color:var(--rf-ink)}
+#top .ud-steps .ud-k{font-size:var(--rf-note)!important;letter-spacing:.12em;color:var(--rf-aoi)!important;margin:0 0 6px!important}
+#top .ud-tries{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+#top .ud-tries a{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--rf-ink);min-height:44px}
+#top .ud-tries img{display:block;width:100%;aspect-ratio:16/10;height:auto;object-fit:cover;border-radius:4px;border:1px solid var(--rf-weak)}
+#top .ud-tries a:hover img,#top .ud-tries a:focus-visible img{border-color:var(--rf-line)}
+#top .ud-try-n{font:400 15px/1.4 var(--serif,serif);color:var(--rf-aoi);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--rf-line)}
+#top .ud-try-t{font-size:15px;line-height:1.85;color:var(--rf-ink2)}
+@media (min-width:1100px){#top .ud-sky{top:clamp(96px,8vw,120px)!important}}
+#top .pr-card-body>p{margin-top:10px}
+#top .ud-tries a{text-decoration:none!important}
+#top .ud-first{max-width:none;padding-left:clamp(16px,6vw,96px);padding-right:clamp(16px,6vw,96px)}
+#top .ud-first,#top .ud-first p,#top .ud-try-t{font-family:var(--serif,serif)!important;letter-spacing:.04em}
