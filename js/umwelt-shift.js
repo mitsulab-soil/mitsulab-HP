@@ -41,6 +41,7 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
       #include <colorspace_fragment>
       }`}));q.frustumCulled=false;const qs=new T.Scene();qs.add(q);const qc=new T.OrthographicCamera(-1,1,1,-1,0,1);
 
+  const LAYERS=[['Qualium','#b7c4ad'],['sound','#9fb2c2'],['touch','#c6b79f'],['sight','#b2abc4'],['time','#a8c1bb'],['scale','#c2a9c0'],['relation','#c4c19e'],['culture','#c2a8a4'],['research','#b9bdbc']];
   // ---- 3 層の板（同じ風景に重なる）
   const blob=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),gr=g.createRadialGradient(64,64,6,64,64,64);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.6,'rgba(255,255,255,.55)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);const t=new T.CanvasTexture(c);return t;})();
   const sheets=LAYERS.map(([,c],i)=>{const m=new T.Mesh(new T.PlaneGeometry(22,16),new T.MeshBasicMaterial({color:new T.Color(c),map:blob,transparent:true,opacity:0,depthWrite:false,side:T.DoubleSide,fog:false}));m.rotation.x=-Math.PI/2;m.rotation.z=i*.21;m.position.set(-1+Math.sin(i*1.3)*.6,.35+i*.34,-2+Math.cos(i*1.1)*.5);m.visible=false;m.renderOrder=3;world.add(m);return m;});

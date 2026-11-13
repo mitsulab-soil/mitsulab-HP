@@ -175,7 +175,7 @@ cgCrownNormal=mat3(viewMatrix)*mat3(modelMatrix)*normalize(cgLeafPosition-aCtr+v
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(audio&&!audio.paused)stopNarration();}else{last=0;dirty=true;wake();}});
  updateEmergence();renderer.render(scene,camera);stage.dataset.ready='true';stage.dataset.readyMs=Math.round(performance.now());
  active=true;loadAoi();queueWorldMode();
- import('./umwelt-shift.js?v=20261113hud').then(m=>{window.__us=m.install({T,scene,renderer,camera,sunlight,ambientLight,fillLight,world,host:worldHost,kick:()=>{dirty=true;wake();}});}).catch(e=>console.warn('umwelt shift',e.message));
+ import('./umwelt-shift.js?v=20261113L').then(m=>{window.__us=m.install({T,scene,renderer,camera,sunlight,ambientLight,fillLight,world,host:worldHost,kick:()=>{dirty=true;wake();}});}).catch(e=>console.warn('umwelt shift',e.message));
  // Sky light from a CC0 Poly Haven forest panorama (forest_slope, reduced to 512px), loaded after the first frame.
  new T.TextureLoader().load('img/common-ground/env_forest_slope.jpg',tx=>{tx.mapping=T.EquirectangularReflectionMapping;tx.colorSpace=T.SRGBColorSpace;const pm=new T.PMREMGenerator(renderer);if(!scene.environment){scene.environment=pm.fromEquirectangular(tx).texture;scene.environmentIntensity=.5;ambientLight.intensity*=.8;}pm.dispose();tx.dispose();dirty=true;wake();});queueWorldMode();wake();
 }

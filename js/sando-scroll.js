@@ -15,7 +15,7 @@ export async function start(sec) {
   R.outputColorSpace = T.SRGBColorSpace;
   const S = new T.Scene(), FOG = new T.Color(0x03060f); S.fog = new T.FogExp2(FOG.getHex(), 0.004);
   const C = new T.PerspectiveCamera(mob ? 66 : 52, 1, 0.1, 1400);
-  S.add(new T.HemisphereLight(0x9fc8ff, 0x1a1208, 1.0));
+  const hemi = new T.HemisphereLight(0x9fc8ff, 0x1a1208, 1.0); S.add(hemi);
   const sun = new T.DirectionalLight(0xffe6c4, 1.6); sun.position.set(-40, 60, 30); S.add(sun);
   const sm = x => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
   const win = (p, a, b, f = 0.025) => sm((p - a) / f) * (1 - sm((p - b) / f));
@@ -82,6 +82,17 @@ export async function start(sec) {
   }
   const pave = new T.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
   const leaf = new T.MeshStandardMaterial({ color: 0x8a7a62, roughness: 1, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
+  // 継ぎ目のくり返しを崩す：同じ質感を 2 つの大きさ・向きで読み、場所ごとの揺らぎで混ぜる（描く数は増えない）
+  const antiTile = m => { m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
+      vec2 uA = vMapUv; vec2 uB = mat2(0.8, -0.6, 0.6, 0.8) * vMapUv * 0.37 + vec2(0.31, 0.77);
+      float nz = fract(sin(dot(floor(vMapUv * 0.25), vec2(12.99, 78.23))) * 43758.5);
+      float nz2 = fract(sin(dot(floor(vMapUv * 0.09 + 3.1), vec2(39.3, 11.7))) * 24634.6);
+      vec4 tA = texture2D(map, uA), tB = texture2D(map, uB);
+      vec4 tc = mix(tA, tB, 0.28 + 0.34 * nz);
+      tc.rgb *= 0.82 + 0.3 * nz2;
+      diffuseColor *= tc;
+    #endif`); }; m.customProgramCacheKey = () => 'antiTile'; };
+  antiTile(pave); antiTile(leaf);
   strip(-6, 6, pave, 0.02); strip(6, 26, leaf, 0); strip(-26, -6, leaf, 0);
   let texLoaded = false, dirtyTex = false;
   const loadTex = () => { if (texLoaded) return; texLoaded = true;
@@ -174,7 +185,7 @@ export async function start(sec) {
     [0.31, 0.44, 'ミツバチの目：人には見えない紫外の光（模式）', 'A honeybee’s eyes: ultraviolet light we cannot see (model)'],
     [0.46, 0.58, 'コウモリの耳：超音波のこだまで道を知る（模式）', 'A bat’s ears: finding the way by ultrasonic echoes (model)'],
     [0.60, 0.71, '土の中：根と菌がつながる（模式）', 'Under the soil: roots and fungi connect (model)'],
-    [0.72, 0.79, '欅の時間：年輪は一年に一つずつ増える（模式）', 'Keyaki time: one tree ring for each year (model)'],
+    [0.72, 0.79, '欅の時間：年輪は、多くの木で一年に一つ（模式）', 'Keyaki time: in most trees, one ring a year (model)'],
     [0.81, 0.9, '作品と領域が、式の層に重なる', 'Works and fields overlap on the layers of the formula'],
     [0.94, 1.01, '', '']];
   const key = (p, K) => { for (let i = 1; i < K.length; i++) if (p <= K[i][0]) { const [a, va] = K[i - 1], [b, vb] = K[i], e = sm((p - a) / (b - a)); return va + (vb - va) * e; } return K[K.length - 1][1]; };
@@ -196,6 +207,7 @@ export async function start(sec) {
     pave.opacity = leaf.opacity = wEye * (1 - wSoil * 0.75) * (1 - wBat * 0.6);
     pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0x8a7a62).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
+    hemi.intensity = 1.0 + wBat * 1.4 + wEye * 0.5; hemi.color.setHex(wBat > 0.5 ? 0x8fb4ff : 0x9fc8ff);
     soilMats.forEach(([m, op]) => m.opacity = op * wSoil); dropM.opacity = 0.8 * wSoil;
     if (wSoil > 0.01) { const pa = dropG.attributes.position; for (let i = 0; i < dropY0.length; i++) pa.array[i * 3 + 1] = dropY0[i] - ((tt * 0.25 + i * 0.137) % 1) * 1.2; pa.needsUpdate = true; }
     bugM.opacity = wBat;
