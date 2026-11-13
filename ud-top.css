@@ -42,10 +42,10 @@ body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;back
 .ud-sky-fig svg:first-child{width:170px;height:auto}
 .ud-sky .ud-moon{width:40px;height:40px;flex:0 0 auto}
 .ud-arc{fill:none;stroke:rgba(168,242,246,.7);stroke-width:1;stroke-dasharray:3 3}.ud-hz{stroke:var(--ud-cy);stroke-width:1.2}
-.ud-k{fill:#e6f2f5;font-size:11px;text-anchor:middle;font-family:inherit}
+.ud-k{fill:#e6f2f5;font-size:13px;text-anchor:middle;font-family:inherit}
 .ud-sun{fill:#ffd66b}.ud-sun-ring{fill:none;stroke:#ffd66b;stroke-width:1;opacity:.7}
 .ud-moon-dark{fill:#1b2230;stroke:#9fb2c2;stroke-width:1}.ud-moon-lit{fill:#f3f0de}
-#top .ud-sky .ud-sky-n{font-size:12.5px;color:#c5d3da;margin-top:4px}
+#top .ud-sky .ud-sky-n{font-size:14px;color:#c5d3da;margin-top:4px}
 @media (min-width:1100px){#top .cg-opening{position:relative}.ud-sky{position:absolute;right:clamp(16px,4vw,64px);top:clamp(20px,4vw,60px);margin:0}}
 
 /* あなたの耳の外側 */
@@ -58,7 +58,7 @@ body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;back
 .ud-track-main{height:30px;margin-top:30px}
 .ud-hb{position:absolute;top:0;bottom:0;left:21.7%;width:50%;background:repeating-linear-gradient(90deg,rgba(168,242,246,.55) 0 2px,transparent 2px 6px);border-left:2px solid var(--ud-cy);border-right:2px solid var(--ud-cy)}
 .ud-hb-l{position:absolute;left:21.7%;top:-26px;font:500 13px/1 var(--serif,serif);color:#fff;text-shadow:var(--ud-shadow);white-space:nowrap}
-.ud-ticks{position:relative;height:20px;font-size:12px;color:#dfeaee}
+.ud-ticks{position:relative;height:22px;font-size:13px;color:#dfeaee}
 .ud-ticks span{position:absolute;white-space:nowrap;transform:translateX(-50%);top:4px;text-shadow:var(--ud-shadow)}
 .ud-ticks span:first-child{transform:none}.ud-ticks span:last-child{transform:translateX(-100%)}
 #top .ud-unit{font-size:13px;color:#dfeaee;margin:8px 0 0}
@@ -81,7 +81,7 @@ body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;back
 .ud-src{padding-left:1.2em}
 
 /* 帰り道の問い（ページの最後） */
-.ud-ask-wrap{position:relative;z-index:1;padding:clamp(56px,10vw,120px) clamp(16px,5vw,64px) clamp(70px,10vw,130px)}
+.ud-ask-wrap{position:relative;z-index:3;background:#03060f;padding:clamp(56px,10vw,120px) clamp(16px,5vw,64px) clamp(70px,10vw,130px)}
 .ud-ask{max-width:760px;margin:0 auto;position:relative;padding:22px 0 0;border-top:1px solid rgba(168,242,246,.6)}
 .ud-ask h2{margin:0;font:400 clamp(22px,2.4vw,30px)/1.6 var(--serif,serif);color:var(--ud-ink);text-shadow:var(--ud-shadow)}
 .ud-ask-by{margin:8px 0 0;font-size:15px;color:var(--ud-cy);text-shadow:var(--ud-shadow)}
@@ -89,6 +89,8 @@ body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;back
 .ud-ask-next{min-height:48px;padding:0 22px;border:1px solid var(--ud-cy);border-radius:24px;background:none;color:var(--ud-cy);font:400 16px/1 var(--serif,serif);cursor:pointer}
 .ud-ask-next:hover{box-shadow:0 0 16px rgba(95,227,240,.35)}
 
-@media (max-width:420px){.ud-snd{grid-template-columns:22px 1fr 44px;padding:8px 10px}.ud-nm{font-size:15px}.ud-rg{font-size:13.5px}.ud-ticks{font-size:11px}.ud-sky{max-width:none}}
+@media (max-width:420px){.ud-snd{grid-template-columns:22px 1fr 44px;padding:8px 10px}.ud-nm{font-size:15px}.ud-rg{font-size:13.5px}.ud-ticks{font-size:12px}.ud-sky{max-width:none}}
 @media (prefers-reduced-motion:reduce){body::after{animation:none}}
 body.ud-ask-in .us-bar{opacity:0!important;visibility:hidden;transition:opacity .3s,visibility 0s .3s}
+#top .ud-def{margin:0 0 8px}#top .ud-def>summary{color:var(--ud-cy);font-size:15px;list-style:none}#top .ud-def>summary::-webkit-details-marker{display:none}#top .ud-def[open]>summary{margin-bottom:6px}
+.us-bar .us-src{font-size:13px!important;color:#dfe8ec!important}.us-bar .us-depth{font-size:13px!important}#top :is(small,figcaption){font-size:max(13px,1em)}
