@@ -213,3 +213,8 @@
  #top .sd-pane.sd-last{padding-bottom:130px}
 }
 @media (max-width:759px){#top .md2{width:300%;margin-left:-100%;margin-top:-72%;margin-bottom:-72%}}
+#top .m2-fx{font:italic 400 92px "Times New Roman",serif;fill:#fff}
+#top .m2-fu{font:400 24px var(--serif,serif);fill:#eef5fb;letter-spacing:.1em}
+#top .m2-fu2{font:400 17px var(--serif,serif);fill:var(--hx)}
+.cg-design #top .pr-selection .pr-card .pr-description{-webkit-line-clamp:4}
+@media (max-width:520px){.cg-design #top .pr-selection .pr-card .pr-description{-webkit-line-clamp:unset;display:block}}
