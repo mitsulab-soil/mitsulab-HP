@@ -87,7 +87,7 @@
   // ---- 帰り道の問い（毎回ちがう問い。保存しない）
   var Q=[
     ['帰り道、足もとの土の下で何が動いているか、耳をすませてみて。土の中の生き物も、小さな音を立てています。','On the way home, listen for what moves in the soil under your feet. Creatures in the soil make small sounds too.'],
-    ['夕方の空に、コウモリが飛んでいないか見上げてみて。その声は、人の耳には届かない高さです。','Look up at the evening sky for bats. Their calls are too high for human ears.'],
+    ['夕方の空に、コウモリが飛んでいないか見上げてみて。獲物をさがす声は、人の耳には届かない高さです。','Look up at the evening sky for bats. Their hunting calls are too high for human ears.'],
     ['道ばたの花を見つけたら、ミツバチにはどんな模様に見えるか考えてみて。ミツバチは、人には見えない紫外の光も見ています。','When you find a flower by the road, imagine its pattern to a honeybee. Bees also see ultraviolet light that we cannot.'],
     ['しゃがんで、ありの目の高さで道を見てみて。何がいちばん大きく見えますか。','Crouch down and look at the path from an ant’s height. What looks biggest?'],
     ['鳥の声が聞こえたら、同じ節を何回くり返しているか数えてみて。','If you hear a bird, count how many times it repeats the same phrase.'],
