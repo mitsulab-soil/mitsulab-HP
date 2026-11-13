@@ -1,7 +1,6 @@
 /* 2026-11-13 TOP の三つの体験（本人「子供から大人までわかるようにユニバーサル設計で」）
    ① いまの大宮の空：端末の時計だけで、太陽の位置と月の満ち欠けを計算する（位置情報は使わない・大宮に固定）
    ② あなたの耳の外側：聴こえる音の帯と、その外の音。触れてから鳴る（聴こえる高さに移した模式）
-   ③ 帰り道の問い：毎回ちがう問いを一つ
    記録は取らない（保存も送信もしない）。 */
 (function(){
   'use strict';
@@ -84,40 +83,11 @@
     });
   }
 
-  // ---- 帰り道の問い（毎回ちがう問い。保存しない）
-  var Q=[
-    ['帰り道、足もとの土の下で何が動いているか、耳をすませてみて。土の中の生き物も、小さな音を立てています。','On the way home, listen for what moves in the soil under your feet. Creatures in the soil make small sounds too.'],
-    ['夕方の空に、コウモリが飛んでいないか見上げてみて。獲物をさがす声は、人の耳には届かない高さです。','Look up at the evening sky for bats. Their hunting calls are too high for human ears.'],
-    ['道ばたの花を見つけたら、ミツバチにはどんな模様に見えるか考えてみて。ミツバチは、人には見えない紫外の光も見ています。','When you find a flower by the road, imagine its pattern to a honeybee. Bees also see ultraviolet light that we cannot.'],
-    ['しゃがんで、ありの目の高さで道を見てみて。何がいちばん大きく見えますか。','Crouch down and look at the path from an ant’s height. What looks biggest?'],
-    ['鳥の声が聞こえたら、同じ節を何回くり返しているか数えてみて。','If you hear a bird, count how many times it repeats the same phrase.'],
-    ['雨のあとの土のにおいに気づいたら。そのにおいの一部は、土の中の細菌（放線菌）がつくる「ゲオスミン」という物質です。','If you notice the smell of soil after rain: part of it is geosmin, made by soil bacteria (actinomycetes).'],
-    ['大きな木のそばを通ったら、その木が何年そこに立っているか想像してみて。','As you pass a large tree, imagine how many years it has stood there.'],
-    ['今夜の月は、どんな形ですか。月は約 29.5 日で、また同じ形にもどります。','What shape is the moon tonight? It returns to the same shape about every 29.5 days.'],
-    ['自分の影の長さを見てみて。朝と夕方では、どう変わるでしょう。','Look at the length of your shadow. How does it change between morning and evening?'],
-    ['道の下には、昔の土地の形がかくれています。ここは昔、どんな場所だったでしょう。','Under the road lies the old shape of the land. What was this place like long ago?'],
-    ['風が吹いたら、木によって音がちがうか聴きくらべてみて。','When the wind blows, listen: do different trees sound different?'],
-    ['今日すれちがった生き物は、あなたをどう受けとっていたでしょう。','How did the creatures you passed today perceive you?']
-  ];
-  var qi=-1;
-  function ask(){
-    var box=document.getElementById('udAsk');if(!box)return;
-    var n;do{n=Math.floor(Math.random()*Q.length);}while(n===qi&&Q.length>1);qi=n;
-    box.querySelector('.ud-ask-q').textContent=en()?Q[n][1]:Q[n][0];
-  }
-
-  // 「足もとの下へ」と同じく TOP のときだけ出す
-  function syncTop(){var top=document.getElementById('top'),on=!!(top&&top.classList.contains('active'));var a=document.getElementById('udAskWrap');if(a&&a.hidden===on)a.hidden=!on;}
-
   function init(){
-    sky();ears();ask();syncTop();
-    var nb=document.querySelector('#udAsk .ud-ask-next');if(nb)nb.addEventListener('click',ask);
+    sky();ears();
     setInterval(sky,60000);
-    var top=document.getElementById('top');if(top)new MutationObserver(syncTop).observe(top,{attributes:true,attributeFilter:['class']});
-    new MutationObserver(function(){sky();if(qi>=0){var b=document.querySelector('#udAsk .ud-ask-q');if(b)b.textContent=en()?Q[qi][1]:Q[qi][0];}}).observe(document.documentElement,{attributes:true,attributeFilter:['data-lang']});
+    new MutationObserver(function(){sky();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-lang']});
     if(reduce)document.documentElement.classList.add('ud-calm');
-    // 帰り道の問いが見えている間は、左下の深さの札を隠す（文字が重ならないように）
-    var aw=document.getElementById('udAskWrap');if(aw&&'IntersectionObserver' in window)new IntersectionObserver(function(es){es.forEach(function(e){document.body.classList.toggle('ud-ask-in',e.isIntersecting);});},{rootMargin:'0px 0px -10% 0px'}).observe(aw);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
