@@ -96,10 +96,10 @@ export function create(canvas) {
   S.add(clouds);
 
   // ミツバチ・蚊（目の前でとまる・模式）
-  const bug = (len, col, wingL, hind) => {
+  const bug = (len, col, wingL, hind, dark = '#2a2016', bw = 8) => {
     const g = new THREE.Group(), bm = new THREE.MeshStandardMaterial({ color: col, roughness: .6 });
     const th = new THREE.Mesh(new THREE.SphereGeometry(len * .22, 14, 10), bm); g.add(th);
-    const sc = document.createElement('canvas'); sc.width = 8; sc.height = 64; { const gg = sc.getContext('2d'); for (let y = 0; y < 64; y++) { const b = Math.floor(y / 8) % 2; gg.fillStyle = b ? '#2a2016' : col; gg.fillRect(0, y, 8, 1); } }
+    const sc = document.createElement('canvas'); sc.width = 8; sc.height = 64; { const gg = sc.getContext('2d'); for (let y = 0; y < 64; y++) { const b = Math.floor(y / bw) % 2; gg.fillStyle = b ? dark : col; gg.fillRect(0, y, 8, 1); } }
     const st = new THREE.CanvasTexture(sc); st.colorSpace = THREE.SRGBColorSpace;
     const abM = new THREE.MeshStandardMaterial({ map: st, roughness: .7 });
     const abG = new THREE.SphereGeometry(len * .3, 18, 14); abG.rotateX(Math.PI / 2);
@@ -117,7 +117,8 @@ export function create(canvas) {
     const wings = []; for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { const w = new THREE.Mesh(wg, wm.clone()); if (k === 0) w.add(new THREE.LineSegments(wEdge, new THREE.LineBasicMaterial({ color: '#3a3328', transparent: true, opacity: .5, depthWrite: false }))); w.position.set(s * len * .12, len * .16, len * .05); w.scale.x = s; g.add(w); wings.push({ w, s, k }); }
     return { g, wings, bm, ab, abM, ants, hd };
   };
-  const bee = bug(.014, '#8a6a2c', .011, true); bee.g.position.set(mobile ? .008 : .022, 1.576, 3.9); bee.g.rotation.y = .9; S.add(bee.g);   // 実寸のまま目の近くへ
+  const bee = bug(.014, '#b3803f', .011, true, '#3b2a1a', 5);   // セイヨウミツバチ：茶がかった橙と黒褐色の細い縞（模式）
+  bee.g.position.set(mobile ? .008 : .022, 1.576, 3.9); bee.g.rotation.y = .9; S.add(bee.g);   // 実寸のまま目の近くへ
   { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
   const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .008 : .018, 1.588, 3.89); fly.g.rotation.y = 1.15; fly.bm.color.set('#6a6a62'); fly.abM.map = null; fly.abM.color.set('#55544c'); fly.abM.needsUpdate = true; for (const A of fly.ants) { A.scale.set(1, .25, 1); A.position.z = -.009 * .62; }
   for (const sx of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(.009 * .12, 10, 8), new THREE.MeshStandardMaterial({ color: '#7a2418', roughness: .35 })); ey.position.set(sx * .009 * .1, .009 * .03, -.009 * .36); ey.scale.set(.8, 1.1, .9); fly.g.add(ey); }   // ハエ：赤い大きな複眼・短い触角・縞のない灰色の腹（模式）

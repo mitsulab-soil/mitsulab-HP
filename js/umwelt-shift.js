@@ -35,31 +35,30 @@ export function install({T,scene,renderer,camera,sunlight,ambientLight,fillLight
   const en=()=>document.documentElement.dataset.lang==='en';
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ss=(a,b,x)=>{x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x);};
-  const st={bee:1,beeT:1,meiji:0,meijiT:0,dive:0,diveT:0,layers:0,layersT:0,p:0,shown:0};
+  const st={bee:0,beeT:0,meiji:0,meijiT:0,dive:0,diveT:0,layers:0,layersT:0,p:0,shown:0};
 
   // ---- 画面の小さな札（押すと目が切りかわる・いまの時刻の模式・地面の下の深さ）
-  const bar=document.createElement('div');bar.className='us-bar';bar.innerHTML='<button type="button" class="us-eye" aria-pressed="true"></button><span class="us-time" aria-live="off"></span><ol class="us-depth" hidden></ol><small class="us-src"></small>';
+  const bar=document.createElement('div');bar.className='us-bar';bar.innerHTML='<span class="us-time" aria-live="off"></span><ol class="us-depth" hidden></ol><small class="us-src"></small>';
   document.body.append(bar);
   const css=document.createElement('style');css.textContent=`.us-bar{position:fixed;left:12px;bottom:12px;z-index:30;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:min(360px,calc(100vw - 24px));pointer-events:none;font:400 12px/1.6 var(--serif,serif);color:#dfe8ec;transition:opacity .4s}
 .us-bar>*{pointer-events:auto}.us-eye{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid rgba(242,244,239,.4);background:rgba(3,6,15,.62);color:#f2f4ef;font:inherit;font-size:13px;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .us-eye small{font-size:11px;margin-left:1px;vertical-align:1px}.us-eye span{opacity:.5;transition:opacity .3s}.us-eye span.on{opacity:1;color:#a8f2f6}.us-eye.us-in-nav{margin:0 10px 0 auto;flex:0 0 auto;min-height:44px;height:44px}.us-eye[aria-pressed=true]{border-color:#a8f2f6;color:#a8f2f6}.us-time:empty{display:none}.us-time,.us-depth,.us-src{padding:2px 4px;text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 4px rgba(0,0,0,.8)}.us-depth{margin:0;padding:6px 10px 6px 26px}.us-depth li{line-height:1.7}.us-src{font-size:10.5px;color:#b9c6cc;display:none}.us-bar.is-deep .us-src{display:block}
 #cgWorldCanvas canvas{transition:opacity .6s}
-@media(max-width:349px){.tab-nav-inner{gap:1px!important;padding:0 4px!important}.tab-nav-inner>.brand{font-size:0!important;gap:0!important}.us-eye.us-in-nav{min-width:44px;height:44px;min-height:44px;padding:0 6px;font-size:13px;letter-spacing:-.02em;white-space:nowrap}.us-eye.us-in-nav span:not(.on){opacity:.6}.us-eye small{display:none}}
+@media(max-width:349px){.us-eye.us-in-nav{min-width:44px;height:44px;min-height:44px;padding:0 6px;font-size:13px;letter-spacing:-.02em;white-space:nowrap}.us-eye.us-in-nav span:not(.on){opacity:.6}.us-eye small{display:none}}
 .us-eye.is-hint{animation:usHint 1.1s ease-out 3}@keyframes usHint{0%{box-shadow:0 0 0 0 rgba(168,242,246,.7)}100%{box-shadow:0 0 0 16px rgba(168,242,246,0)}}
 .us-rip{position:fixed;z-index:29;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:1.5px solid #a8f2f6;pointer-events:none;animation:usRip .7s ease-out forwards}@keyframes usRip{to{transform:scale(5);opacity:0}}
 @media(prefers-reduced-motion:reduce){.us-eye.is-hint,.us-rip{animation:none}}
 body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.86),rgba(3,6,15,.8) 70%,rgba(3,6,15,.74))!important}body.cg-beyond #top :is(p,li,dd,h2,h3){text-shadow:0 1px 3px rgba(3,6,15,.9)}
 @media(max-width:759px){.us-eye{min-width:44px;padding:0 7px;font-size:12px}.us-eye.us-in-nav{margin:0 0 0 auto}.tab-nav-inner{gap:6px!important}.us-time{transition:opacity .5s}.us-bar:not(.is-new) .us-time{opacity:0}.us-depth{font-size:11px}}`;
   document.head.append(css);
-  {const nv=document.querySelector('.tab-nav-inner'),br=nv&&nv.querySelector(':scope>.brand');if(br){const e=bar.querySelector('.us-eye');e.classList.add('us-in-nav');br.after(e);}}
-  const eye=document.querySelector('.us-eye'),tl=bar.querySelector('.us-time'),dl=bar.querySelector('.us-depth'),src=bar.querySelector('.us-src');
-  const eyeLabel=()=>{const b=st.beeT>.5,sm=innerWidth<760,xs=innerWidth<350,H=en()?(xs?'Human':sm?'Hu':'Human'):(xs?'人の目':sm?'人':'人の目'),B=en()?(xs?'Bee':sm?'Bee*':'Honeybee (model)'):(xs?'蜂の目':sm?'蜂<small>模式</small>':'ミツバチの目（模式）');eye.setAttribute('aria-pressed',String(b));eye.setAttribute('aria-label',en()?'Switch between human and honeybee eyes':'人の目とミツバチの目を切りかえる');eye.innerHTML='<span class="'+(b?'':'on')+'">'+H+'</span> ⇄ <span class="'+(b?'on':'')+'">'+B+'</span>';};
-  const toggle=()=>{st.touched=1;st.beeT=st.beeT>.5?0:1;eyeLabel();kick();};
-  eye.addEventListener('click',toggle);
-  // 背景の 3D そのもの（文字・ボタン・図のない所）を押しても切りかわる
-  let pd=null;document.addEventListener('pointerdown',e=>{pd={x:e.clientX,y:e.clientY,t:performance.now()};},{passive:true});
-  document.addEventListener('click',e=>{if(!pd||Math.hypot(e.clientX-pd.x,e.clientY-pd.y)>8||performance.now()-pd.t>450)return;if(e.defaultPrevented||!document.getElementById('top')?.classList.contains('active'))return;if(e.target.closest('a,button,input,select,textarea,summary,details,label,[role=button],[role=dialog],[role=tablist],[role=tab],[role=img],[tabindex]:not([tabindex="-1"]),p,h1,h2,h3,h4,li,figure,svg,img,video,canvas:not(#cgWorldCanvas canvas),nav,dialog,.us-bar'))return;if(getSelection&&String(getSelection()).length)return;const r=document.createElement('span');r.className='us-rip';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.append(r);setTimeout(()=>r.remove(),800);st.soft=1;toggle();});
-  eyeLabel();
+
+  const tl=bar.querySelector('.us-time'),dl=bar.querySelector('.us-depth'),src=bar.querySelector('.us-src');
+  const eyeLabel=()=>{};
+
+
+
+
+
 
   // ---- 1 ミツバチの目：一度だけ別の板へ描き、色を写しかえる
   let rt=null;const q=new T.Mesh(new T.PlaneGeometry(2,2),new T.ShaderMaterial({uniforms:{tex:{value:null},k:{value:0}},depthTest:false,depthWrite:false,
@@ -156,9 +155,9 @@ body.cg-beyond .tab-panel.active{background:linear-gradient(90deg,rgba(3,6,15,.8
     }else orig(s,c);
     hid.forEach(o=>o.visible=true);
     sunlight.position.copy(save.sp);sunlight.color.copy(save.sc);sunlight.intensity=save.si;ambientLight.intensity=save.ai;ambientLight.color.copy(save.ac);fillLight.intensity=save.fi;scene.background.copy(save.bg);scene.fog.color.copy(save.fc);scene.fog.near=save.fn;scene.fog.far=save.ff;c.position.copy(save.cp);c.quaternion.copy(save.cq);
-    if(!st.shown&&renderer.getViewport(new T.Vector4()).z>4){st.shown=performance.now();setTimeout(()=>{if(st.beeT===1&&!st.touched){st.beeT=0;eyeLabel();kick();eye.classList.add('is-hint');setTimeout(()=>eye.classList.remove('is-hint'),3600);if(!reduce)[0,1100].forEach(d=>setTimeout(()=>{const r=document.createElement('span');r.className='us-rip';r.style.left=Math.round(innerWidth*.78)+'px';r.style.top=Math.round(innerHeight*.42)+'px';document.body.append(r);setTimeout(()=>r.remove(),800);},d+300));}},reduce?1500:1500);}
+    if(!st.shown&&renderer.getViewport(new T.Vector4()).z>4){st.shown=performance.now();}
   };
-  eye.addEventListener('click',()=>{st.touched=1;st.soft=0;});
+  // 2026-11-13 本人：人の目・ミツバチの目を外した（切りかえ・開いたときの蜂の目・背景を押す・波紋）
   measure();
   return {get animating(){return anim;},state:st,sunPos};
 }
