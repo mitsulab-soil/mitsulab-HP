@@ -20,14 +20,15 @@ export const SOURCES = [
   "太陽の位置：NOAA Global Monitoring Laboratory「Solar Calculation Details」の近似式",
   "気温の季節：気象庁「平年値（1991–2020）さいたま」",
   "日なたの舗装は高温になり、樹冠の陰で表面温度が下がる：環境省「ヒートアイランド対策ガイドライン 平成24年度版」",
-  "ミツバチは気温が低いと採餌を控え、高温では採餌のしかたを変える（陰の花へ寄る強さと、花のまわりの最適の温度 26℃ は模式）：B. Heinrich『The Hot-Blooded Insects』(Harvard Univ. Press, 1993)／P. D. Cooper et al. 1985, J. Exp. Biol. 114:1–15",
+  "ミツバチは気温が低いと採餌を控え、高温では採餌のしかたを変える（向きのみ。陰の花へ寄る強さと、寄りやすい温度 26℃ は模式の値）：B. Heinrich『The Hot-Blooded Insects』(Harvard Univ. Press, 1993)／P. D. Cooper et al. 1985, J. Exp. Biol. 114:1–15",
   "ケヤキの芽吹き・紅葉・落葉の時期、サクラ・ヤツデの花期：『山溪ハンディ図鑑 樹に咲く花』（山と溪谷社, 2000。離弁花 1・2）",
-  "ミミズなど土の生き物は土の湿りと温度で活動が変わる：C. A. Edwards & P. J. Bohlen『Biology and Ecology of Earthworms』3rd ed. (Chapman & Hall, 1996)",
+  "ミミズなど土の生き物は土の湿りと温度で活動が変わる（湿りへの働きかけは入れていない）：C. A. Edwards & P. J. Bohlen『Biology and Ecology of Earthworms』3rd ed. (Chapman & Hall, 1996)",
   "根が水を吸い、葉から蒸散して空気が湿る：L. Taiz & E. Zeiger『Plant Physiology』3rd ed. (Sinauer, 2002)",
   "夜の灯りに虫が集まる：A. C. S. Owens & S. M. Lewis 2018, Ecol. Evol. 8:11337",
   "街灯のまわりでコウモリが虫を捕り、こだまの間が詰まる：J. Rydell 1992, Funct. Ecol. 6:744–750／D. R. Griffin et al. 1960, Anim. Behav. 8:141",
   "アブラコウモリは冬に冬眠する：『日本の哺乳類 改訂2版』（東海大学出版会, 2008）",
-  "音のセンサーは今は置いていない（テスト開発中）。ここでの記録は模式。街灯・花の場所も模式で、実際の位置ではない",
+  "模式（出典で確かめていない決まり）：夜明けの露で土が湿ること、灯りに虫が集まる時期（4〜10 月）、コウモリが飛ぶ月の境（4〜10 月）、草の花の時期、梅雨・秋雨のころの湿り。いずれも強さ・時期とも模式",
+  "音のセンサーは今は置いていない（テスト開発中）。ここでの記録は模式。灯り（点線の光の柱）・花の場所も模式で、実際の位置ではない",
 ];
 
 export function attachActors(q, opt = {}) {
@@ -35,8 +36,8 @@ export function attachActors(q, opt = {}) {
   const MOBILE = matchMedia("(pointer:coarse)").matches || innerWidth < 820;
   const P = new URLSearchParams(location.search);
   const world = q.world, cam = q.camera, gy = (x, z) => { const y = q.groundAt?.(x, z); return Number.isFinite(y) ? y : 8; };
-  const OV = {};   // 確かめ用の上書き（?act=月-時 例 7-13 ／ ?wet=1）。歩く人の体験の中だけ
-  { const a = P.get("act"); if (a) { const [m, h] = a.split("-").map(Number); if (m) OV.month = m; if (Number.isFinite(h)) OV.hour = h; } if (P.get("wet")) OV.wet = +P.get("wet"); }
+  const OV = {}; const DEV = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);   // 確かめ用の上書き（?act=月-時 例 7-13 ／ ?wet=1）。歩く人の体験の中だけ
+  if (DEV) { const a = P.get("act"); if (a) { const [m, h] = a.split("-").map(Number); if (m) OV.month = m; if (Number.isFinite(h)) OV.hour = h; } if (P.get("wet")) OV.wet = +P.get("wet"); }
 
   /* ── 場の升（受けとるもの・働きかけるものが書きこまれる共有の地） ── */
   const F = { x0: 1e9, z0: 1e9, Ts: new Float32Array(N * N), shade: new Float32Array(N * N), paved: new Uint8Array(N * N), wet: new Float32Array(N * N), hum: new Float32Array(N * N), light: new Float32Array(N * N), init: false };
@@ -48,14 +49,12 @@ export function attachActors(q, opt = {}) {
   const lamps = [];
   { const L = D.cl; let next = L[0][3] + 20, side = 1;
     for (let i = 1; i < L.length; i++) { const a = L[i - 1], b = L[i]; if (b[3] < next) continue; const tx = b[0] - a[0], tz = b[2] - a[2], l = Math.hypot(tx, tz) || 1; const x = b[0] - tz / l * 4.2 * side, z = b[2] + tx / l * 4.2 * side; lamps.push({ x, z, y: gy(x, z), ins: 0, echo: 0, bat: Math.random() * 6.28 }); side = -side; next += 40; } }
-  const poleG = new THREE.CylinderGeometry(.055, .075, 4.6, 6); poleG.translate(0, 2.3, 0);
-  const poleM = new THREE.MeshStandardMaterial({ color: 0x2c3033, roughness: .7, metalness: .3 });
-  const poles = new THREE.InstancedMesh(poleG, poleM, lamps.length); poles.name = "actors_lamps";
-  const headG = new THREE.BoxGeometry(.32, .12, .32); headG.translate(0, 4.62, 0);
-  const headM = new THREE.MeshStandardMaterial({ color: 0x3a3e40, roughness: .5, emissive: 0xffd9a0, emissiveIntensity: 0 });
-  const heads = new THREE.InstancedMesh(headG, headM, lamps.length);
-  { const m = new THREE.Matrix4(); lamps.forEach((l, i) => { m.makeTranslation(l.x, l.y - .05, l.z); poles.setMatrixAt(i, m); heads.setMatrixAt(i, m); }); }
-  poles.frustumCulled = heads.frustumCulled = false; poles.castShadow = false; world.add(poles, heads);
+  // 灯りの位置は確かめられる資料が見つからないため模式。柱の 3D は立てず、夜だけ点線の光の柱（デジタルの印）で示す
+  const poleM = new THREE.LineDashedMaterial({ color: 0xffd9a0, dashSize: .18, gapSize: .14, transparent: true, opacity: 0, depthWrite: false, fog: true });
+  const pv = []; for (const l of lamps) pv.push(l.x, l.y, l.z, l.x, l.y + 4.6, l.z);
+  const poleGeo = new THREE.BufferGeometry(); poleGeo.setAttribute("position", new THREE.Float32BufferAttribute(pv, 3));
+  const poles = new THREE.LineSegments(poleGeo, poleM); poles.computeLineDistances(); poles.frustumCulled = false; poles.name = "actors_lamps";
+  const headM = { emissiveIntensity: 0 }, heads = new THREE.Object3D(); world.add(poles, heads);
 
   /* ── 花の場所（模式）：春はサクラの樹冠、晩秋〜冬はヤツデ（陰に強い低木）を欅の根元の外側に ── */
   let sd = 4177; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
@@ -104,7 +103,11 @@ export function attachActors(q, opt = {}) {
     const m = new THREE.PointsMaterial({ map: dot, color, size, sizeAttenuation: true, transparent: true, opacity: op, depthWrite: false, blending: blend, fog: true });
     const p = new THREE.Points(g, m); p.frustumCulled = false; p.renderOrder = 3; world.add(p); return p;
   }
-  const beeP = pts(NB, 0xffc04d, .2, THREE.AdditiveBlending, .95), mothP = pts(NM, 0xfff1d6, .12, THREE.AdditiveBlending, .9), soilP = pts(NS, 0xc8f0d8, .18, THREE.AdditiveBlending, .0), mistP = pts(NH, 0xdfeaf0, 1.6, THREE.NormalBlending, 0);
+  const beeP = pts(NB, 0xffc04d, MOBILE ? .28 : .2, THREE.AdditiveBlending, .95), mothP = pts(NM, 0xfff1d6, .12, THREE.AdditiveBlending, .9), soilP = pts(NS, 0xc8f0d8, .18, THREE.AdditiveBlending, .0), mistP = pts(NH, 0xdfeaf0, 1.6, THREE.NormalBlending, 0);
+  // 地面の温度（陰の下が冷え、日なたの舗装が熱い）：地表すれすれの粒の色で（熱い＝橙、冷たい＝青緑）。模式
+  const tgG = new THREE.BufferGeometry(); tgG.setAttribute("position", new THREE.BufferAttribute(new Float32Array(N * N * 3).fill(-1e4), 3)); tgG.setAttribute("color", new THREE.BufferAttribute(new Float32Array(N * N * 3), 3));
+  const tgM = new THREE.PointsMaterial({ map: dot, size: MOBILE ? 1.8 : 1.6, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: 0, depthWrite: false, fog: true });
+  const tgP = new THREE.Points(tgG, tgM); tgP.frustumCulled = false; tgP.renderOrder = 2; world.add(tgP);
   const glowM = new THREE.SpriteMaterial({ map: dot, color: 0xffd9a0, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
   const glows = lamps.map(l => { const s = new THREE.Sprite(glowM); s.position.set(l.x, l.y + 4.5, l.z); s.scale.setScalar(2.2); s.visible = false; world.add(s); return s; });
   // こだまの輪（聴こえないこだまを、目に見える輪に移した模式）
@@ -112,7 +115,7 @@ export function attachActors(q, opt = {}) {
   const rings = Array.from({ length: MOBILE ? 6 : 10 }, () => { const m = new THREE.Mesh(ringG, new THREE.MeshBasicMaterial({ color: 0xbfe4ff, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: true })); m.visible = false; m.userData.t = 9; world.add(m); return m; });
   // センサーの小さな灯（記録した瞬間に点る）
   const sensorAt = lamps.length ? lamps[Math.min(2, lamps.length - 1)] : { x: 0, z: 0, y: 8 };
-  const led = new THREE.Mesh(new THREE.BoxGeometry(.09, .14, .06), new THREE.MeshStandardMaterial({ color: 0x24292c, emissive: 0x7fe0c0, emissiveIntensity: 0 })); led.position.set(sensorAt.x + .08, sensorAt.y + 2.2, sensorAt.z); world.add(led);
+  const led = new THREE.Mesh(new THREE.BoxGeometry(.09, .14, .06), new THREE.MeshStandardMaterial({ color: 0x24292c, emissive: 0x7fe0c0, emissiveIntensity: 0 })); led.position.set(sensorAt.x + .6, sensorAt.y + .5, sensorAt.z); world.add(led);
 
   const bees = Array.from({ length: NB }, () => ({ x: 0, y: -1e4, z: 0, f: null, ph: rnd() * 6.28, on: false }));
   const moths = Array.from({ length: NM }, (_, i) => ({ l: null, a: rnd() * 6.28, r: .4 + rnd() * 1.4, h: rnd() * 1.4, w: (1.5 + rnd() * 2) * (i % 2 ? 1 : -1) }));
@@ -141,14 +144,18 @@ export function attachActors(q, opt = {}) {
       const tgt = C.Ta + C.I * (F.paved[k] ? 26 : 14) * (1 - sh * .88) - F.wet[k] * 4 * (F.paved[k] ? 0 : 1);
       F.Ts[k] = F.init ? F.Ts[k] + (tgt - F.Ts[k]) * Math.min(1, dtF / 120) : tgt;   // データで決めた値へ寄せつづける（ずれたら直す）
       if (F.paved[k]) { hot += clamp((F.Ts[k] - 32) / 20); pN++; continue; }
-      // 土の生き物：湿りと土の温度で動く → 土をほぐし、水が染みこみやすくなる（湿りが残る）
+      // 土の生き物：湿りと土の温度で動く
       const st = C.Ta - 2 - sh * 4, a = smooth(.22, .6, F.wet[k]) * smooth(3, 10, st) * (1 - smooth(24, 30, st));
-      F.wet[k] = F.init ? F.wet[k] + (wetBase + .08 * a - F.wet[k]) * Math.min(1, dtF / 90) : wetBase;
+      F.wet[k] = F.init ? F.wet[k] + (wetBase - F.wet[k]) * Math.min(1, dtF / 90) : wetBase;
       // 欅の根：土の水を吸い、葉から蒸散する（日射と葉があるとき） → 空気が湿る。吸った分だけ土は乾く
       const u = sh > .2 ? F.wet[k] * C.leaf * C.I * .6 : 0; F.wet[k] = Math.max(0, F.wet[k] - u * .02 * dtF);
       F.hum[k] += (u * 1.4 + dawn * .35 - F.hum[k]) * Math.min(1, dtF / 40);
       soilAct += a; shN++; if (sh > .2) { upt += u; uN++; }
     }
+    { const pa = tgG.attributes.position, ca = tgG.attributes.color; let span = 0;
+      for (let k = 0; k < N * N; k++) { const x = F.x0 + (k % N + .5) * CELL, z = F.z0 + (Math.floor(k / N) + .5) * CELL; const near = (x - cx) ** 2 + (z - cz) ** 2 < 49; pa.setXYZ(k, x, near ? -1e4 : gy(x, z) + .12, z);   /* 足もと 7 m は描かない（目の前を覆わない） */ const d = clamp((F.Ts[k] - C.Ta) / 22); span = Math.max(span, d);
+        ca.setXYZ(k, .42 + .58 * d, .78 - .2 * d, .82 - .55 * d); }
+      pa.needsUpdate = ca.needsUpdate = true; F.tgK = C.I > .25 && span > .25 ? 1 : 0; }
     F.init = true; { let m = 0; for (let k = 0; k < N * N; k++) if (F.hum[k] > m) m = F.hum[k]; F.hm = m; }
     A.soil.state.act = shN ? soilAct / shN : 0; A.keyaki.state.uptake = uN ? upt / uN : 0; A.pave.state.hot = pN ? hot / pN : 0;
     // 街灯と夜の虫：灯りは夜だけ。虫は暖かい季節に灯りへ集まる（欅の陰の暗がりには集まらない）
@@ -202,19 +209,20 @@ export function attachActors(q, opt = {}) {
   const bp = beeP.geometry.attributes.position, mp = mothP.geometry.attributes.position, spA = soilP.geometry.attributes.position, hp = mistP.geometry.attributes.position;
   let T = 0, vis = false;
   function update(dt) {
-    const on = q.mode === "walk" || q.mode === "sight"; if (on !== vis) { vis = on; for (const o of [beeP, mothP, soilP, mistP, poles, heads, led]) o.visible = on; if (!on) for (const o of [...glows, ...rings]) o.visible = false; }
+    const on = q.mode === "walk" || q.mode === "sight"; if (on !== vis) { vis = on; for (const o of [beeP, mothP, soilP, mistP, poles, heads, led, tgP]) o.visible = on; if (!on) for (const o of [...glows, ...rings]) o.visible = false; }
     if (!on) return; T += dt; const now = performance.now();
-    if ((tAcc += dt) >= .5) { stepField(tAcc); tAcc = 0; stepAoi(now); }
+    if ((tAcc += dt) >= .5) { stepField(Math.min(tAcc, 2)); tAcc = 0; stepAoi(now); }
     const eye = A.walker.state.eye;
     // ミツバチ（秒の速さ）：選んだ花のまわりを小さく行き来する
-    beeP.material.size = eye === "hachi" ? .34 : .2; beeP.material.opacity = eye && eye !== "hachi" ? .45 : .92;
+    beeP.material.size = (eye === "hachi" ? .34 : .2) * (MOBILE ? 1.4 : 1); beeP.material.opacity = eye && eye !== "hachi" ? .45 : .92;
     bees.forEach((b, i) => { if (!b.on || !b.f) { bp.setXYZ(i, 0, -1e4, 0); return; } const f = b.f, ty = gy(f.x, f.z) + f.h + .35 * Math.sin(T * 2 + b.ph), tx = f.x + Math.cos(T * 1.7 + b.ph) * .9, tz = f.z + Math.sin(T * 2.3 + b.ph) * .9, k = Math.min(1, dt * 1.6);
       b.x += (tx - b.x) * k; b.z += (tz - b.z) * k; b.y += (ty - b.y) * k; if ((b.x - cam.position.x) ** 2 + (b.z - cam.position.z) ** 2 < 4) { bp.setXYZ(i, 0, -1e4, 0); return; } bp.setXYZ(i, b.x + Math.sin(T * 19 + b.ph) * .05, b.y, b.z + Math.cos(T * 23 + b.ph) * .05); }); bp.needsUpdate = true;
     // 夜の虫：灯りのまわりを回る（灯りの虫の量だけ）
     const lit = nearL.filter(l => l.ins > .05); let mi = 0;
     for (let i = 0; i < NM; i++) { const m = moths[i]; const l = lit.length ? lit[i % lit.length] : null; if (!l || (i / NM) > l.ins) { mp.setXYZ(i, 0, -1e4, 0); continue; } m.a += m.w * dt; mp.setXYZ(i, l.x + Math.cos(m.a) * m.r, l.y + 3.9 + m.h + .2 * Math.sin(m.a * 3), l.z + Math.sin(m.a) * m.r); mi++; } mp.needsUpdate = true;
+    tgM.opacity += (F.tgK * (A.walker.state.eye ? .5 : .34) - tgM.opacity) * Math.min(1, dt * .8);
     // 灯り
-    const nk = C.night ? 1 : 0; headM.emissiveIntensity += (nk * 2.2 - headM.emissiveIntensity) * Math.min(1, dt); glowM.opacity = headM.emissiveIntensity / 2.2 * .55;
+    const nk = C.night ? 1 : 0; headM.emissiveIntensity += (nk * 2.2 - headM.emissiveIntensity) * Math.min(1, dt); glowM.opacity = headM.emissiveIntensity / 2.2 * .55; poleM.opacity = headM.emissiveIntensity / 2.2 * .5;
     glows.forEach((s, i) => { s.visible = nk > 0 && Math.abs(lamps[i].x - cam.position.x) < 120 && Math.abs(lamps[i].z - cam.position.z) < 120; });
     // こだまの輪（コウモリのこだま＝聴こえない音を輪に移した模式）：虫の多い灯りのまわりほど密に
     const ek = eye === "sight" ? 1.6 : 1;
