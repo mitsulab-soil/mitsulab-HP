@@ -101,6 +101,46 @@ export async function start(sec) {
   const rootM = new T.LineBasicMaterial({ color: 0xe0a864, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending });
   S.add(new T.LineSegments(rg, rootM));
 
+  // 5b) 土の中を満たす模式：菌糸の網・ミミズ・トビムシ・しみ込む水（u で 0.56〜0.68 の区間の地下）
+  const soilV = [], wormV = [], bugP = [], dropP = [], A0 = new T.Vector3(), D0 = new T.Vector3();
+  for (let k = 0; k < (mob ? 420 : 820); k++) { const u = uEnd * (0.55 + rnd() * 0.14); curve.getPointAt(u, A0); curve.getTangentAt(u, D0);
+    const sx = (rnd() - 0.5) * 16, x = A0.x - D0.z * sx, z = A0.z + D0.x * sx, y = A0.y - 0.4 - rnd() * 4;
+    for (let j = 0; j < 3; j++) { const a = rnd() * 6.283, l = 0.4 + rnd() * 1.4; soilV.push(x, y, z, x + Math.cos(a) * l, y + (rnd() - 0.5) * 0.6, z + Math.sin(a) * l); }
+    if (k % 3 === 0) bugP.push(x + rnd(), y + rnd() * 0.5, z + rnd());
+    if (k % 2 === 0) dropP.push(x, A0.y - rnd() * 4.4, z, rnd());
+    if (k % 26 === 0) { let px = x, py = y, pz = z, a = rnd() * 6.283; for (let j = 0; j < 14; j++) { a += (rnd() - 0.5) * 0.9; const nx = px + Math.cos(a) * 0.12, ny = py + (rnd() - 0.5) * 0.04, nz = pz + Math.sin(a) * 0.12; wormV.push(px, py, pz, nx, ny, nz); px = nx; py = ny; pz = nz; } } }
+  const mkL = (v, c, op) => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(v, 3)); const m = new T.LineBasicMaterial({ color: c, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); S.add(new T.LineSegments(g, m)); return [m, op]; };
+  const mkP = (v, c, sz, op) => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(v, 3)); const m = new T.PointsMaterial({ map: dot, color: c, size: sz, sizeAttenuation: true, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); const p = new T.Points(g, m); S.add(p); return [m, op, p]; };
+  const soilMats = [mkL(soilV, 0xf4ecd8, 0.55), mkL(wormV, 0xd88a7a, 0.95), mkP(bugP, 0xfff4e0, 0.14, 1)];
+  const dropArr = new Float32Array(dropP.length / 4 * 3), dropS = dropP.filter((_, i) => i % 4 === 3); for (let i = 0; i < dropS.length; i++) { dropArr[i * 3] = dropP[i * 4]; dropArr[i * 3 + 1] = dropP[i * 4 + 1]; dropArr[i * 3 + 2] = dropP[i * 4 + 2]; }
+  const dropG = new T.BufferGeometry(); dropG.setAttribute('position', new T.BufferAttribute(dropArr, 3));
+  const dropM = new T.PointsMaterial({ map: dot, color: 0x7fc8ff, size: 0.2, sizeAttenuation: true, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); { const dp = new T.Points(dropG, dropM); dp.frustumCulled = false; S.add(dp); }
+  const dropY0 = dropP.filter((_, i) => i % 4 === 1);
+
+  // 5c) コウモリが追う小さな虫（模式）：こだまの輪が届くと光る
+  const NB = mob ? 28 : 48, bugO = [...Array(NB)].map(() => [(rnd() - 0.5) * 14, 1.5 + rnd() * 5, 4 + rnd() * 22, rnd() * 6.283]);
+  const bugArr = new Float32Array(NB * 3), bugCol = new Float32Array(NB * 3), bugG = new T.BufferGeometry();
+  bugG.setAttribute('position', new T.BufferAttribute(bugArr, 3)); bugG.setAttribute('color', new T.BufferAttribute(bugCol, 3));
+  const bugM = new T.PointsMaterial({ map: dot, vertexColors: true, size: 0.5, sizeAttenuation: true, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); { const bp = new T.Points(bugG, bugM); bp.frustumCulled = false; S.add(bp); }
+
+  // 4b) 欅（Qualium 大宮の参道の欅の型）：写実の樹を参道の並木の位置に。目の高さに降りる前に読む
+  const treeMeshes = [];
+  const loadTrees = async () => { try {
+    const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
+    const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
+    const tg = await gl.loadAsync('img/hero/3d/sando_keyaki.glb');
+    tg.scene.updateMatrixWorld(true); const parts = []; tg.scene.traverse(m => { if (m.isMesh) { if (m.material) { m.material.side = T.DoubleSide; if (/leaves/.test(m.name)) { m.material.alphaTest = 0.45; m.material.transparent = false; } if (m.material.map) m.material.map.anisotropy = 4; } parts.push(m); } });
+    const bb = new T.Box3().setFromObject(tg.scene), sz = bb.getSize(new T.Vector3());
+    const dC = (x, z) => { let m = 1e9; for (const c of CP) { const d = Math.hypot(c[0] - o[0] - x, c[2] - o[2] - z); if (d < m) m = d; } return m; };
+    const pick = near.filter(([x, , z]) => { const d = dC(x, z); return d > 9.5 && d < 32; }), lim = mob ? 90 : 170, stp = Math.max(1, pick.length / lim), sel = [];
+    for (let i = 0; i < pick.length && sel.length < lim; i += stp) sel.push(pick[Math.floor(i)]);
+    const M4 = new T.Matrix4(), Q = new T.Quaternion(), V = new T.Vector3(), SCv = new T.Vector3();
+    parts.forEach(m => { const im = new T.InstancedMesh(m.geometry, m.material, sel.length); sel.forEach(([x, y, z], i) => { const h = 14 + (Math.sin(x * 12.9 + z * 3.1) * 0.5 + 0.5) * 6, sc = h / sz.y; Q.setFromAxisAngle(V.set(0, 1, 0), (x * 7.3 + z) % 6.283); SCv.set(sc, sc, sc);
+      M4.compose(V.set(x, y - bb.min.y * sc - 0.2, z), Q, SCv).multiply(m.matrixWorld); im.setMatrixAt(i, M4); }); im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); });
+    if (R.compileAsync) await R.compileAsync(S, C);
+    treeMeshes.forEach(m => m.visible = true); kick();
+  } catch (e) { console.warn('sando trees', String(e && e.message || e)); } };
+
   // 6) こだま・年輪の輪
   const ringG = (() => { const g = new T.BufferGeometry(), P = []; for (let i = 0; i <= 64; i++) { const a = i / 64 * 6.283; P.push(Math.cos(a), 0, Math.sin(a)); } g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); return g; })();
   const rings = [...Array(10)].map(() => { const l = new T.Line(ringG, new T.LineBasicMaterial({ color: 0x9fd8ff, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending })); S.add(l); return l; });
@@ -156,6 +196,15 @@ export async function start(sec) {
     pave.opacity = leaf.opacity = wEye * (1 - wSoil * 0.75) * (1 - wBat * 0.6);
     pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0x8a7a62).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
+    soilMats.forEach(([m, op]) => m.opacity = op * wSoil); dropM.opacity = 0.8 * wSoil;
+    if (wSoil > 0.01) { const pa = dropG.attributes.position; for (let i = 0; i < dropY0.length; i++) pa.array[i * 3 + 1] = dropY0[i] - ((tt * 0.25 + i * 0.137) % 1) * 1.2; pa.needsUpdate = true; }
+    bugM.opacity = wBat;
+    if (wBat > 0.01) { const pa = bugG.attributes.position, ca = bugG.attributes.color, fw = new T.Vector3(B.x - A.x, 0, B.z - A.z).normalize();
+      for (let i = 0; i < NB; i++) { const [sx, sy, sf, ph] = bugO[i], x = A.x + fw.x * sf - fw.z * sx + Math.sin(tt * 3 + ph) * 0.6, z = A.z + fw.z * sf + fw.x * sx + Math.cos(tt * 2.6 + ph) * 0.6, y = A.y + sy + Math.sin(tt * 4 + ph) * 0.3;
+        pa.array[i * 3] = x; pa.array[i * 3 + 1] = y; pa.array[i * 3 + 2] = z;
+        const d = Math.hypot(x - C.position.x, z - C.position.z); let hit = 0; for (let k = 0; k < rings.length; k++) { const f = ((tt * 0.6 + k / rings.length) % 1), rr = 1.5 + f * 30; hit = Math.max(hit, Math.max(0, 1 - Math.abs(rr - d) / 1.2) * (1 - f)); }
+        const c = 0.9 + hit * 2.2; ca.array[i * 3] = c; ca.array[i * 3 + 1] = c * 0.95; ca.array[i * 3 + 2] = c * 0.8; }
+      pa.needsUpdate = ca.needsUpdate = true; }
     FB.setHex(0x03060f).lerp(FU, wBee).lerp(FS, wSoil); S.fog.color.copy(FB); R.setClearColor(FB, 1); S.fog.density = 0.004 + wEye * 0.012 - wFx * 0.002;
     fxMats.forEach(([m, a]) => m.opacity = a * wFx);
     const rk = Math.max(wBat, wKey), bat = wBat >= wKey;
@@ -168,10 +217,10 @@ export async function start(sec) {
     const s = SC.findIndex(x => p >= x[0] && p < x[1]);
     if (s !== scene) { scene = s; if (cap) { const en = document.documentElement.lang === 'en', t = s < 0 ? '' : SC[s][en ? 3 : 2]; cap.textContent = t; cap.classList.toggle('on', !!t); } sec.dataset.scene = s; if (window.__sdSound) window.__sdSound(s); }
     if (read) read.textContent = 'D ' + String(Math.round(u * LEN)).padStart(4, '0') + ' m  ·  H ' + (h < 0 ? '-' : '') + String(Math.abs(Math.round(h))).padStart(2, '0') + ' m';
-    return rk > 0.01;
+    return rk > 0.01 || wSoil > 0.01;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
-  const prog = () => { const r = sec.getBoundingClientRect(), span = r.height - innerHeight; return span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; };
+  const M0 = window.__mdEnd || 0; const prog = () => { const r = sec.getBoundingClientRect(), span = r.height - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; return Math.max(0, (q - M0) / (1 - M0)); };
   let cur = prog(), raf = 0, vis = true, lt = 0, frozen = false;
   const draw = () => { const anim = place(cur); R.render(S, C); return anim; };
   function loop(n) { raf = 0; if (frozen) return; const dt = lt ? Math.min(0.05, (n - lt) / 1000) : 0.016; lt = n; tt += dt; const t = prog(); cur += (t - cur) * 0.2; if (Math.abs(t - cur) < 2e-4) cur = t; const anim = draw(); dirtyTex = false; if (vis && (cur !== t || anim)) raf = requestAnimationFrame(loop); else lt = 0; }
@@ -180,5 +229,6 @@ export async function start(sec) {
   addEventListener('resize', () => { size(); kick(); });
   new IntersectionObserver(e => { vis = e[0].isIntersecting; kick(); }).observe(sec);
   size(); draw(); sec.dataset.ready = '1';
+  (window.requestIdleCallback || (f => setTimeout(f, 300)))(() => { loadTex(); loadTrees(); }, { timeout: 1200 });
   window.__sd = { rings, C, R, set: p => { frozen = true; cur = p; tt = 0.35; draw(); }, LEN, tex: () => loadTex() };
 }
