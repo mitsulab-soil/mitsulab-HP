@@ -1438,15 +1438,17 @@ function selectStart(i) { START.sel = i; /* 印の選択（札と 2 回目で歩
   START.pins.forEach((p, k) => { const on = k === i; p.ring.material.color.set(on ? PICK : "#7fe3f7"); p.ring.material.opacity = on ? 1 : .4; p.ring.scale.setScalar(on ? 1.8 : .8); p.beam.material.color.set(on ? PICK : "#7fe3f7"); p.beam.material.opacity = on ? .9 : .18; p.beam.scale.set(on ? 1.8 : 1, 1, on ? 1.8 : 1); });   // 選んでいる所は濃く、ほかは薄く
   setTimeout(() => { const box = $("#starts"), bb = box?.querySelectorAll(".stBtn")[i]; if (bb && START.sel === i) { box.scrollLeft = Math.max(0, bb.offsetLeft - box.offsetLeft - 8); syncStMeter(); } }, 400);   // 選んだ場所のボタンを列の中に見せる
   const a = stAt(C.starts[i]); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
+function openYaw() {   // 11-13 採点：降りた目の前と右手が壁で埋まらないよう、開けた向きへ（視野の左右 ±0.5 も見る）
+  const free = y0 => { let d = 0; for (; d < 30; d += 1.5) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) break; return d; }, view = y => Math.min(free(y), free(y - .5) * 1.4, free(y + .5) * 1.4);
+  const v0 = view(CAM.yaw); if (v0 >= 12) return; let best = CAM.yaw, bd = v0; for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = view(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; }
 function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   const s = C.starts[i], xz = !at && s.x != null, d = xz ? 0 : Math.min(at ? at.d : s.d, G.lineD[G.lineD.length - 1] - 3), a = at ? { x: at.x, z: at.z } : xz ? stAt(s) : atD(d), y = groundY(a.x, a.z) + EYE;
   const wait = AREAS.ensureAt(a.x, a.z);   // 広げたエリアの中なら、そのエリアの道と建物を読みながら降りる
   hideSkyUI(); exitSight(true); hideFlyUI(); setMode("descend"); hidePanel(); stopVoice();   // 前の場所の語りを、降りた先へ持ちこまない
   CAM.pos.set(a.x, y, a.z); CAM.yaw = xz ? stYaw(s) : /菓子屋/.test(s.name) ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = -.04;
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
-  { const free = y0 => { let d = 0; for (; d < 30; d += 1.5) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) break; return d; };   // 11-13 採点：降りた目の前が壁で埋まらないよう、開けた向きへ
-    if (free(CAM.yaw) < 9) { let best = CAM.yaw, bd = free(CAM.yaw); for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = free(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; } }
-  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => wait.then(() => { setMode("walk"); showWalkUI(); aoiArrive(); }));
+  openYaw();
+  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => wait.then(() => { openYaw(); setMode("walk"); showWalkUI(); aoiArrive(); }));
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
   const n = nearestOnLine(p.x, p.z); if (n.dist <= 14) { solids(p); return; }
@@ -1495,12 +1497,16 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
     if (ahead(h, 5)) for (const k of [.35, -.35, .7, -.7, 1.05, -1.05, 1.4, -1.4]) if (!ahead(h + k, 5) && !ahead(h + k, 10)) { CAM.yaw += k * Math.min(1, dt * 1.4); break; } }
   if (inBld(CAM.pos.x, CAM.pos.z, WR) && !inBld(px0, pz0, WR)) {   // 建物の壁の手前で止まる。斜めに当たったときは、壁に沿ってすべる
     if (!inBld(CAM.pos.x, pz0, WR)) CAM.pos.z = pz0; else if (!inBld(px0, CAM.pos.z, WR)) CAM.pos.x = px0; else { CAM.pos.x = px0; CAM.pos.z = pz0; }
-    if (WALK.goal && Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; }
+    if (WALK.goal && Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0) < 1e-3) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; if (NET.segs) { const q = netNear(CAM.pos.x, CAM.pos.z, 30, {}); if (q.dist < 1e8 && isFinite(q.tx)) { const h = CAM.yaw + CAM.look, a1 = Math.atan2(-q.tx, -q.tz), a2 = a1 + Math.PI; WALK.turnTo = Math.abs(wrap(a1 - h)) < Math.abs(wrap(a2 - h)) ? a1 : a2; } } }   // 11-13 採点：壁で止まったら、通りの向きへ向き直る
     if (performance.now() - (WALK.wallT || 0) > 8000) { WALK.wallT = performance.now(); capNote("建物の中には入れません。通りを歩けます。"); } }
   if (WALK.auto && f) { const mv = Math.hypot(CAM.pos.x - px0, CAM.pos.z - pz0); WALK.stuckT = mv < speed * dt * .25 ? (WALK.stuckT || 0) + dt : 0;   // 10-28 晩：歩きつづけるで壁や道の端に当たって止まったままにならない
     if (WALK.stuckT > .7) { WALK.stuckT = 0; let turned = false; if (NET.segs) { const q = netNear(CAM.pos.x, CAM.pos.z, 30); if (q && isFinite(q.tx)) { const h = CAM.yaw + CAM.look, a1 = Math.atan2(-q.tx, -q.tz), cand = [a1, a1 + Math.PI].sort((u, v) => Math.abs(wrap(u - h - .3)) - Math.abs(wrap(v - h - .3))); for (const c of cand) if (Math.abs(wrap(c - h)) > .35) { CAM.yaw += wrap(c - h); turned = true; break; } } } if (!turned) CAM.yaw += .9; } }
   if (!KURA.blockBell) { }
+  if (WALK.moving) { const h = CAM.yaw + CAM.look, rx = Math.cos(h), rz = -Math.sin(h);   // 11-13 採点：建物の脇を歩くとき、壁から 2.5 m ほど離れて歩く（画面の半分が壁で埋まらない）
+    let push = 0; for (const d of [1.2, 2.5]) { const R = inBld(CAM.pos.x + rx * d, CAM.pos.z + rz * d, .2), L = inBld(CAM.pos.x - rx * d, CAM.pos.z - rz * d, .2); if (R && !L) push -= 1; else if (L && !R) push += 1; }
+    if (push) { const k = Math.min(1, dt * 1.6) * .6 * push, nx = CAM.pos.x + rx * k, nz = CAM.pos.z + rz * k; if (!inBld(nx, nz, WR)) { CAM.pos.x = nx; CAM.pos.z = nz; } } }
   const gy = groundY(CAM.pos.x, CAM.pos.z) + eye + (eye < .5 ? .1 : 0);   // 低い目（ハクセキレイ）は、道の面（地形より約 10 cm 上）から測る CAM.pos.y += (gy - CAM.pos.y) * Math.min(1, dt * 8);
+  if (WALK.turnTo != null) { const tgt = WALK.turnTo - CAM.look, dy = wrap(tgt - CAM.yaw); CAM.yaw += dy * Math.min(1, dt * 3); if (Math.abs(dy) < .02) WALK.turnTo = null; }
   if (performance.now() - CAM.lastDrag > 2600 && WALK.moving) CAM.look *= Math.pow(.25, dt);   // 歩きだすと、見回した向きがゆっくり前へ戻る
   camera.position.copy(CAM.pos); if (!RM_SL && eye === EYE) camera.position.y += sightBob(performance.now() / 1000, WALK.moving); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, CAM.yaw + CAM.look, 0, "YXZ"));
 }
@@ -1545,7 +1551,9 @@ function goalAt(x, y) {
   const l = Math.hypot(dx, dz); if (l < .3) return null; const d = Math.min(MAXGO, hit ? l : MAXGO);
   const g = new THREE.Vector3(CAM.pos.x + dx / l * d, 0, CAM.pos.z + dz / l * d); corridorClamp(g);
   for (let k = 0; k < 40 && inBld(g.x, g.z); k++) { g.x -= dx / l * .8; g.z -= dz / l * .8; }
-  if (Math.hypot(g.x - CAM.pos.x, g.z - CAM.pos.z) < .3) return null; g.y = groundY(g.x, g.z); return g;
+  { const seen = (x, z) => { const ex = x - CAM.pos.x, ez = z - CAM.pos.z, L = Math.hypot(ex, ez); for (let m = 1; m < L; m += 1) if (inBld(CAM.pos.x + ex * m / L, CAM.pos.z + ez * m / L, .3)) return false; return true; };   // 11-13 採点：行き先が建物の陰なら、通り沿い（道の中心の線）へ寄せる
+    if (!seen(g.x, g.z) && NET.segs) { const q = netNear(g.x, g.z, 30, {}); if (q.dist < 1e8 && !inBld(q.x, q.z, .4) && seen(q.x, q.z)) { g.x = q.x; g.z = q.z; } else { const q2 = netNear(CAM.pos.x, CAM.pos.z, 30, {}); if (q2.dist < 1e8 && isFinite(q2.tx)) { const s0 = Math.sign((g.x - CAM.pos.x) * q2.tx + (g.z - CAM.pos.z) * q2.tz) || 1, dd = Math.min(MAXGO, 12); g.x = q2.x + q2.tx * s0 * dd; g.z = q2.z + q2.tz * s0 * dd; } } } }
+if (Math.hypot(g.x - CAM.pos.x, g.z - CAM.pos.z) < .3) return null; g.y = groundY(g.x, g.z); return g;
 }
 function navStop() { const was = WALK.auto || !!WALK.goal; WALK.auto = false; WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; syncAutoBtn(); return was; }
 function nearMarks() { const out = []; for (const L of LAYER.objs) { if (!L.root.visible || L.qHide) continue; L.glyph.getWorldPosition(_v); const d = _v.distanceTo(camera.position); if (d > (MOBILE ? 45 : 55)) continue; const s = _v.clone().project(camera); if (s.z > 1 || Math.abs(s.x) > 1 || Math.abs(s.y) > 1) continue; out.push({ L, d }); } return out.sort((a, b) => a.d - b.d).map(a => a.L); }
@@ -1878,7 +1886,7 @@ const showWalkUI = () => { $("#walkUI").hidden = false; syncAutoBtn(); };
 const hideWalkUI = () => { $("#walkUI").hidden = true; };
 const showFlyUI = () => { $("#flyUI").hidden = false; };
 const hideFlyUI = () => { $("#flyUI").hidden = true; };
-function syncAutoBtn() { const b = $("#autoBtn"); b.setAttribute("aria-pressed", String(WALK.auto)); b.querySelector("span").textContent = WALK.auto ? "止まる" : "歩きつづける"; }
+function syncAutoBtn() { const b = $("#autoBtn"); b.setAttribute("aria-pressed", String(WALK.auto)); b.querySelector("span").textContent = WALK.auto ? "■ 止まる" : "▶ 歩きつづける"; }   // 11-13 採点：いまの状態が記号で分かる
 $("#autoBtn").addEventListener("click", () => { WALK.auto = !WALK.auto; WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; syncAutoBtn(); });
 $("#sightX").addEventListener("click", () => { $("#sightBox").hidden = true; });
 $("#lsHead").addEventListener("click", () => { const c = $("#lstack").classList.toggle("closed"); $("#lsHead").setAttribute("aria-expanded", String(!c)); });
