@@ -118,3 +118,4 @@ body::after{content:none!important;animation:none!important}
 #top .cg-poster,#top .cg-stage canvas{-webkit-mask-image:linear-gradient(#000 55%,transparent 100%)!important;mask-image:linear-gradient(#000 55%,transparent 100%)!important}
 /* 狭い画面では時刻の札を出さない（図の作品名に重ならない） */
 @media(max-width:420px){.us-bar .us-time{display:none!important}}
+#top .ud-try-d{font-size:13px;color:var(--rf-ink2);margin-top:-6px}
