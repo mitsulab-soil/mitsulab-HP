@@ -178,23 +178,32 @@ export async function start(sec) {
   });
   const ULab = label('U = g( P( E, B ), K )', '#eef5fb', 56, 2.4); ULab.position.set(0, 4 + 5 * 4.2 + 1.5, 0); FX.add(ULab); fxMats.push([ULab.material, 1]);
 
-  // 7b) 最初の画面：受けとり方の層（紫外・こだま・土の中・欅の時間）が参道の上に重なる。潜るにつれて薄れる
+  // 7b) 最初の画面（本人の手本＝d4・d5「線形のグラフィックで、情報が積層するイメージ」）：受けとり方ごとの層が線で積み上がる
   const TOPL = new T.Group(); S.add(TOPL); const topMats = [];
-  { const P0 = curve.getPointAt(uEnd * 0.06), D0 = curve.getTangentAt(uEnd * 0.06); TOPL.position.copy(P0); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
-    [[0xb48cff, 18], [0x9fd8ff, 30], [0xe0a864, -6], [0xf2c58a, 42]].forEach(([c, y], i) => {
-      const g = new T.PlaneGeometry(70, 260, 14, 52), pa = g.attributes.position;
-      for (let k = 0; k < pa.count; k++) { const x = pa.getX(k), z = pa.getY(k); pa.setZ(k, Math.sin(x * 0.04 + i) * 2.2 + Math.cos(z * 0.025 + i * 1.7) * 2.6); }
-      g.computeVertexNormals();
-      const m = new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false });
-      const sh = new T.Mesh(g, m); sh.rotation.x = -Math.PI / 2; sh.position.set(0, y, -120); TOPL.add(sh); topMats.push([m, 0.06]);
-      const LG = []; for (let q = 0; q <= 8; q++) { const zz = -130 + q * 32.5; LG.push(-35, zz, 0, 35, zz, 0); } LG.push(-35, -130, 0, -35, 130, 0, 35, -130, 0, 35, 130, 0); const lgg = new T.BufferGeometry(); lgg.setAttribute('position', new T.Float32BufferAttribute(LG, 3));
-      const w = new T.LineSegments(lgg, new T.LineBasicMaterial({ color: c, transparent: true, opacity: 0, depthWrite: false, fog: false }));
-      w.rotation.x = -Math.PI / 2; w.position.copy(sh.position); TOPL.add(w); topMats.push([w.material, 0.35]);
-      const pts = []; for (let k = 0; k < (mob ? 140 : 260); k++) pts.push((rnd() - 0.5) * 70, y + (rnd() - 0.5) * 4, -120 + (rnd() - 0.5) * 260);
-      const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
-      const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false });
-      TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.8]);
-    }); }
+  { const P0 = curve.getPointAt(uEnd * 0.065), D0 = curve.getTangentAt(uEnd * 0.065); const sh_ = mob ? 0 : 46; TOPL.position.set(P0.x - D0.z * sh_, P0.y + (mob ? -64 : -26), P0.z + D0.x * sh_); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
+    const LAYS = [['TERRAIN', 0x7fe0b4], ['ULTRAVIOLET', 0xb48cff], ['ECHO', 0x9fd8ff], ['SOIL', 0xe0a864], ['TIME', 0xf2c58a]];
+    const SZ = 64, N = 8;
+    LAYS.forEach(([nm, c], i) => {
+      const y = 16 + i * 11, L = [];
+      for (let q = 0; q <= N; q++) { const t = -SZ / 2 + q * SZ / N; L.push(-SZ / 2, y, t, SZ / 2, y, t, t, y, -SZ / 2, t, y, SZ / 2); }
+      // 層ごとの模式：地形＝等高線、紫外＝点、こだま＝同心円、土＝根の線、時間＝目盛り
+      if (i === 0) for (let r = 4; r < 30; r += 4) for (let k = 0; k < 48; k++) { const a = k / 48 * 6.283, b = (k + 1) / 48 * 6.283, w = 1 + Math.sin(k * 0.7 + r) * 0.08; L.push(Math.cos(a) * r * w, y, Math.sin(a) * r * w * 0.8, Math.cos(b) * r * w, y, Math.sin(b) * r * w * 0.8); }
+      if (i === 2) for (let r = 3; r < 30; r += 3.5) for (let k = 0; k < 40; k++) { const a = k / 40 * 6.283, b = (k + 1) / 40 * 6.283; L.push(Math.cos(a) * r - 8, y, Math.sin(a) * r, Math.cos(b) * r - 8, y, Math.sin(b) * r); }
+      if (i === 3) { const br = (x, z, a, l, d) => { if (d > 4) return; const ex = x + Math.cos(a) * l, ez = z + Math.sin(a) * l; L.push(x, y, z, ex, y, ez); br(ex, ez, a - 0.5, l * 0.7, d + 1); br(ex, ez, a + 0.45, l * 0.7, d + 1); }; for (let k = 0; k < 5; k++) br((k - 2) * 10, -20, 1.57 + (k - 2) * 0.15, 9, 0); }
+      if (i === 4) for (let k = -30; k <= 30; k += 2) L.push(k, y, SZ / 2 - 1, k, y, SZ / 2 - (k % 10 === 0 ? 6 : 3));
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(L, 3));
+      const m = new T.LineBasicMaterial({ color: c, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false });
+      TOPL.add(new T.LineSegments(g, m)); topMats.push([m, i === 0 ? 0.55 : 0.45]);
+      const pl = new T.Mesh(new T.PlaneGeometry(SZ, SZ), new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
+      pl.rotation.x = -Math.PI / 2; pl.position.y = y; TOPL.add(pl); topMats.push([pl.material, 0.05]);
+      if (i === 1) { const pts = []; for (let k = 0; k < (mob ? 160 : 320); k++) pts.push((rnd() - 0.5) * SZ, y + rnd() * 0.6, (rnd() - 0.5) * SZ); const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.1, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.9]); }
+      const lb = label(nm, '#' + new T.Color(c).getHexString(), 40, mob ? 4.2 : 3.4); lb.position.set(SZ / 2 + 2, y + 1, SZ / 2); lb.center.set(0, 0.5); TOPL.add(lb); topMats.push([lb.material, 0.95]);
+    });
+    // 層をつなぐ縦の細い線
+    const V = []; for (const [x, z] of [[-32, -32], [32, -32], [-32, 32], [32, 32]]) V.push(x, 16, z, x, 16 + 44, z);
+    const vg = new T.BufferGeometry(); vg.setAttribute('position', new T.Float32BufferAttribute(V, 3));
+    const vm = new T.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, depthWrite: false, fog: false }); TOPL.add(new T.LineSegments(vg, vm)); topMats.push([vm, 0.5]);
+  }
   let px = 0, py = 0;
   addEventListener('pointermove', e => { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; kick(); }, { passive: true });
   addEventListener('deviceorientation', e => { if (e.gamma == null) return; px = Math.max(-0.5, Math.min(0.5, e.gamma / 60)); py = Math.max(-0.5, Math.min(0.5, (e.beta - 45) / 90)); kick(); }, { passive: true });
@@ -226,7 +235,7 @@ export async function start(sec) {
     if (wTop > 0.01) { C.rotateY((Math.sin(tt * 0.12) * 0.05 - px * 0.08) * wTop); C.rotateX((-py * 0.05) * wTop); }
     const wBee = win(p, 0.31, 0.44), wBat = win(p, 0.46, 0.58), wSoil = win(p, 0.6, 0.71), wKey = win(p, 0.72, 0.79), wFx = win(p, 0.8, 0.9, 0.025), wEye = win(p, 0.15, 0.79, 0.05);
     treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
-    lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6);
+    lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
     pave.opacity = leaf.opacity = wEye * (1 - wSoil * 0.75) * (1 - wBat * 0.6);
     pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0x8a7a62).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
