@@ -1,0 +1,21 @@
+/* © mitsulab. 2026-11-16 本人「統一感のあるデザインに」：TOP の HUD の部品（色・字体・線・角・ボタン・＋・カード・見出しの番号）を、ほかのタブにも一つの体系で */
+:root{--hx:#a8f2f6;--hx2:rgba(168,242,246,.42);--hx3:rgba(168,242,246,.16);--hxbg:rgba(3,7,14,.84);--hxm:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+/* 見出しの上の小さな札（英字の札）＝等幅・碧 */
+.tab-panel:not(#top) :is(.cg-eyebrow,.eyebrow,.qx-code,.rd-k,.pr-label,.cg-tab-entry>span:first-child){font:400 12px/1.6 var(--hxm)!important;letter-spacing:.24em!important;color:var(--hx)!important;text-transform:uppercase}
+/* 切りかえの札（並んだボタン）＝角を立てた枠・等幅 */
+.tab-panel:not(#top) :is(div,nav,ul):has(>button+button)>button,.tab-panel:not(#top) :is(div,nav,ul):has(>li>button+button)>li>button{border-radius:0!important;border:1px solid var(--hx2)!important;background:rgba(3,7,14,.6)!important;color:#dff6f8!important;font:400 13px/1 var(--hxm)!important;letter-spacing:.06em;min-height:44px;padding:0 16px!important;box-shadow:none!important}
+.tab-panel:not(#top) :is(div,nav,ul):has(>button+button)>button:is(.active,[aria-pressed="true"],[aria-selected="true"]){background:var(--hx)!important;color:#03060f!important;border-color:var(--hx)!important}
+/* 文字だけのリンクボタン（→）＝碧の下線 */
+.tab-panel:not(#top) :is(button[data-tab],a[data-tab],.cg-text-link){color:var(--hx)!important;background:none!important;border:0!important;border-bottom:1px solid var(--hx2)!important;border-radius:0!important;padding:10px 0 6px!important;min-height:44px;font-size:14px}
+/* ＋ の札 */
+.tab-panel:not(#top) summary{min-height:44px;display:flex;align-items:center;color:var(--hx);cursor:pointer}
+/* カード＝細い枠と、角の括弧 */
+.tab-panel:not(#top) :is(li.si-card,li.pr-card,.rs-f,.rd-card){position:relative;border:1px solid var(--hx3)!important;border-radius:0!important;background:var(--hxbg)}
+.tab-panel:not(#top) :is(li.si-card,li.pr-card,.rs-f,.rd-card)::before{content:"";position:absolute;left:-1px;top:-1px;width:12px;height:12px;border:1px solid var(--hx);border-right:0;border-bottom:0;pointer-events:none}
+/* 見出しの番号（01 / …）＝等幅の小さな数字 */
+.tab-panel:not(#top) h3:first-line{letter-spacing:.02em}
+/* 本文の字の段 */
+.tab-panel:not(#top) :is(p,li,dd){line-height:1.9}
+/* 並んだ切りかえの札は、文字リンクの指定より強く */
+.tab-panel.tab-panel:not(#top) :is(div,nav,ul):has(>button+button)>button{border:1px solid var(--hx2)!important;padding:0 16px!important;min-height:44px;color:#dff6f8!important;background:rgba(3,7,14,.6)!important;margin:0 4px 6px 0}
+.tab-panel.tab-panel:not(#top) :is(div,nav,ul):has(>button+button)>button:is(.active,[aria-pressed="true"],[aria-selected="true"]){background:var(--hx)!important;color:#03060f!important;border-color:var(--hx)!important}
