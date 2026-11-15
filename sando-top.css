@@ -249,3 +249,11 @@
 #top .m2-tn{font-size:19px}
 .cg-design #top .pr-selection .pr-card .pr-description{-webkit-line-clamp:5}
 html body #top .m2-sec figcaption.m2-cap{font-size:16px!important;line-height:1.85!important;color:#e3e9f1!important}
+@media (min-width:760px){#top .m2-fu2{font-size:23px}#top .m2-fu{font-size:26px}}
+/* 2026-11-16 最初の画面＝3D の上に見出しと式 */
+#top .sd-first{justify-content:center;padding-top:88px}
+#top .sd-first .m2-head{max-width:760px}
+#top .sd-first .m2-plain,#top .sd-first .sd-why{text-shadow:0 0 12px #03060f,0 0 3px #03060f}
+@media (max-width:759px){#top .sd-first{justify-content:flex-start;padding-top:84px}#top .sd-first .m2-big{font-size:clamp(30px,9.4vw,40px)}}
+#top .m2-sec{padding-top:56px}
+@media (max-width:759px){#top .cg-inline-heading,#top .cg-inline-heading span{white-space:normal!important;overflow-wrap:anywhere}}

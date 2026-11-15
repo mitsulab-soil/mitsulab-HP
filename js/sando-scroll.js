@@ -178,6 +178,27 @@ export async function start(sec) {
   });
   const ULab = label('U = g( P( E, B ), K )', '#eef5fb', 56, 2.4); ULab.position.set(0, 4 + 5 * 4.2 + 1.5, 0); FX.add(ULab); fxMats.push([ULab.material, 1]);
 
+  // 7b) 最初の画面：受けとり方の層（紫外・こだま・土の中・欅の時間）が参道の上に重なる。潜るにつれて薄れる
+  const TOPL = new T.Group(); S.add(TOPL); const topMats = [];
+  { const P0 = curve.getPointAt(uEnd * 0.06), D0 = curve.getTangentAt(uEnd * 0.06); TOPL.position.copy(P0); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
+    [[0xb48cff, 18], [0x9fd8ff, 30], [0xe0a864, -6], [0xf2c58a, 42]].forEach(([c, y], i) => {
+      const g = new T.PlaneGeometry(70, 260, 14, 52), pa = g.attributes.position;
+      for (let k = 0; k < pa.count; k++) { const x = pa.getX(k), z = pa.getY(k); pa.setZ(k, Math.sin(x * 0.04 + i) * 2.2 + Math.cos(z * 0.025 + i * 1.7) * 2.6); }
+      g.computeVertexNormals();
+      const m = new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false });
+      const sh = new T.Mesh(g, m); sh.rotation.x = -Math.PI / 2; sh.position.set(0, y, -120); TOPL.add(sh); topMats.push([m, 0.06]);
+      const LG = []; for (let q = 0; q <= 8; q++) { const zz = -130 + q * 32.5; LG.push(-35, zz, 0, 35, zz, 0); } LG.push(-35, -130, 0, -35, 130, 0, 35, -130, 0, 35, 130, 0); const lgg = new T.BufferGeometry(); lgg.setAttribute('position', new T.Float32BufferAttribute(LG, 3));
+      const w = new T.LineSegments(lgg, new T.LineBasicMaterial({ color: c, transparent: true, opacity: 0, depthWrite: false, fog: false }));
+      w.rotation.x = -Math.PI / 2; w.position.copy(sh.position); TOPL.add(w); topMats.push([w.material, 0.35]);
+      const pts = []; for (let k = 0; k < (mob ? 140 : 260); k++) pts.push((rnd() - 0.5) * 70, y + (rnd() - 0.5) * 4, -120 + (rnd() - 0.5) * 260);
+      const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
+      const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false });
+      TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.8]);
+    }); }
+  let px = 0, py = 0;
+  addEventListener('pointermove', e => { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; kick(); }, { passive: true });
+  addEventListener('deviceorientation', e => { if (e.gamma == null) return; px = Math.max(-0.5, Math.min(0.5, e.gamma / 60)); py = Math.max(-0.5, Math.min(0.5, (e.beta - 45) / 90)); kick(); }, { passive: true });
+
   // 場面（スクロールの量 p で決まる）
   const SC = [
     [0.00, 0.13, '', ''],
@@ -201,6 +222,8 @@ export async function start(sec) {
     C.position.set(A.x + Math.sin(p * 9) * 0.25, A.y + h, A.z + back);
     if (p > 0.8) B.lerp(PF, sm((p - 0.78) / 0.05));
     C.lookAt(B.x, B.y + ly, B.z);
+    const wTop = 1 - sm(p / 0.12); topMats.forEach(([m, o]) => m.opacity = o * wTop); TOPL.visible = wTop > 0.01;
+    if (wTop > 0.01) { C.rotateY((Math.sin(tt * 0.12) * 0.05 - px * 0.08) * wTop); C.rotateX((-py * 0.05) * wTop); }
     const wBee = win(p, 0.31, 0.44), wBat = win(p, 0.46, 0.58), wSoil = win(p, 0.6, 0.71), wKey = win(p, 0.72, 0.79), wFx = win(p, 0.8, 0.9, 0.025), wEye = win(p, 0.15, 0.79, 0.05);
     treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
     lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6);
@@ -229,7 +252,7 @@ export async function start(sec) {
     const s = SC.findIndex(x => p >= x[0] && p < x[1]);
     if (s !== scene) { scene = s; if (cap) { const en = document.documentElement.lang === 'en', t = s < 0 ? '' : SC[s][en ? 3 : 2]; cap.textContent = t; cap.classList.toggle('on', !!t); } sec.dataset.scene = s; if (window.__sdSound) window.__sdSound(s); }
     if (read) read.textContent = 'D ' + String(Math.round(u * LEN)).padStart(4, '0') + ' m  ·  H ' + (h < 0 ? '-' : '') + String(Math.abs(Math.round(h))).padStart(2, '0') + ' m';
-    return rk > 0.01 || wSoil > 0.01;
+    return rk > 0.01 || wSoil > 0.01 || p < 0.04;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
   const M0 = window.__mdEnd || 0; const prog = () => { const r = sec.getBoundingClientRect(), span = r.height - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; return Math.max(0, (q - M0) / (1 - M0)); };
