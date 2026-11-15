@@ -19,3 +19,10 @@
 /* 並んだ切りかえの札は、文字リンクの指定より強く */
 .tab-panel.tab-panel:not(#top) :is(div,nav,ul):has(>button+button)>button{border:1px solid var(--hx2)!important;padding:0 16px!important;min-height:44px;color:#dff6f8!important;background:rgba(3,7,14,.6)!important;margin:0 4px 6px 0}
 .tab-panel.tab-panel:not(#top) :is(div,nav,ul):has(>button+button)>button:is(.active,[aria-pressed="true"],[aria-selected="true"]){background:var(--hx)!important;color:#03060f!important;border-color:var(--hx)!important}
+/* 第8周（統一感の指摘） */
+.tab-panel.tab-panel:not(#top) :is(div,nav,ul):has(>button+button)>button{border-color:rgba(168,242,246,.62)!important}
+.tab-panel:not(#top) .cg-tab-entry{padding-top:28px!important;padding-left:0!important}
+.tab-panel:not(#top) .cg-tab-entry>a{display:inline-flex;align-items:center;min-height:44px;color:var(--hx)!important;border-bottom:1px solid var(--hx2)}
+.tab-panel:not(#top) :is(.si-fold,.pr-position)>summary{border:1px solid var(--hx2);padding:0 14px;font-size:13px;width:max-content;max-width:100%}
+.tab-panel:not(#top) .qt-origin{background:transparent!important;border:1px solid var(--hx3)!important;border-radius:0!important;position:relative}
+.tab-panel:not(#top) .qt-origin::before{content:"";position:absolute;left:-1px;top:-1px;width:14px;height:14px;border:1px solid var(--hx);border-right:0;border-bottom:0}
