@@ -88,3 +88,10 @@ html .cg-design .pr-grid>li.pr-card>.ap-f img{width:100%!important;height:100%!i
 
 /* 第18周：スマホの目的別の案内は 3＋2 にそろえる */
 @media (max-width:759px){.sub-sw button{flex:0 1 calc(33.33% - 6px);padding:0 6px!important;line-height:1.3}}
+
+/* 第19周：関係図のあとの空きを詰める（冒頭の 3D のスクロールの長さを短く。視点が動く形は残す） */
+@media (prefers-reduced-motion: no-preference){html body #top .sd-hero{height:580vh!important;height:580svh!important}}
+@media (prefers-reduced-motion: no-preference) and (max-width:759px){html body #top .sd-hero{height:640vh!important;height:640svh!important}}
+.sd-lay{transition:opacity .4s}
+/* 第19周：協働者などの欄の地の文を、一覧の字の大きさにそろえる */
+.tab-panel .rd-s>p{font-size:14px!important;line-height:1.8!important;color:#c3cbdb;max-width:40em}
