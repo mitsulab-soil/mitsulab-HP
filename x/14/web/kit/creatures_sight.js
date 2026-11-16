@@ -537,9 +537,9 @@ export function makeTit(mat = stdMat, o = {}) {
     poseHead(0, 0); body.rotation.y = 0; body.position.y = 0; body.scale.set(1, 1, 1); legs.rotation.x = 0;
     legs.visible = false;
     const cyc = (t + g.userData.ph) * 9, beat = cyc % 6;               // 4 回はばたいて、2 拍ぶんたたむ
-    if (beat > 4 && moving !== 'hover') { const u = sstep(4, 4.3, beat) * (1 - sstep(5.7, 6, beat)); for (const w of wings) poseWing(w, lerp(.3, -.28, u), u); tailPiv.rotation.x = .05; return -1; }
+    if (beat > 4 && moving !== 'hover') { const u = sstep(4, 4.3, beat) * (1 - sstep(5.7, 6, beat)); for (const w of wings) poseWing(w, lerp(.3, -.12, u), .62 * u); tailPiv.rotation.x = .05; return -1; }   /* 11-17：たたむときも半ばまで（後ろから見ると、たたみきった羽が箱を積んだ形に見えた） */
     const p = cyc * TAU, s1 = Math.sin(p), up = Math.cos(p) > 0 ? 0 : 1;   // 下ろすときは広げ、上げるときは少したたむ
-    const elev = .25 + .85 * s1, fold = .38 * Math.max(0, -Math.cos(p));
+    const elev = .18 + .62 * s1, fold = .3 * Math.max(0, -Math.cos(p));   /* 11-17：打ち上げで翼が縦に立ちすぎて棒に見えた＝振れ幅を少し小さく */
     for (const w of wings) poseWing(w, elev, fold, -.1 * Math.max(0, s1));
     tailPiv.rotation.x = .08 * Math.sin(p + 1); return s1;
   };

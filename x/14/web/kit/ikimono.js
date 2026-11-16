@@ -78,7 +78,7 @@ export function attachIkimono(QW, opt = {}) {
   function bodyOf(id) { return cache[id] ? Promise.resolve(cache[id]) : (pend[id] ||= build(id)); }
   async function build(id) {
     const P = IKIMONO[id];
-    mod ||= await import("./creatures_sight.js?v=5");
+    mod ||= await import("./creatures_sight.js?v=6");
     const c = P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : mod.makeDog();
     const g = new THREE.Group(); c.scale.setScalar(P.size); g.add(c); g.userData.c = c;
     g.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
@@ -160,7 +160,7 @@ export function attachIkimono(QW, opt = {}) {
     L.copy(B).addScaledVector(F, back * .9); L.y += up * .25 - (camera.aspect < 1 && !P.fly ? .3 : 0);   // 11-04 P2：縦長の画面では、地を歩く体を少し上に見せて下の字幕にかけない   // 少し先を見る＝体は画面の中央の少し下
     S.flightFrame = { offset: P.fly ? S.flightAltitude : 0, groundY: gy, bodyY: B.y, cameraY: camera.position.y };
     camera.lookAt(L);
-    camera.fov = S.saved.fov + (P.fov - S.saved.fov) * k; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
+    const fv = camera.aspect < .8 ? Math.min(98, 2 * Math.atan(Math.tan(P.fov * Math.PI / 360) / Math.max(.45, camera.aspect) * .62) * 180 / Math.PI) : P.fov; camera.fov = S.saved.fov + (fv - S.saved.fov) * k;   /* 11-16：縦長の画面では、生き物の目の横の広さを保つ（建物が画面の外に出て見えなくならない） */ camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
     // 同じ物理位置の碧を同伴させる。中央の体・進路を塞ぐ近接時だけ、この描画中は避ける。
     // 人物の接地・身長・歩行座標には触れず、影も人物と同じ条件で復元する。
     const A = QW.AOI?.root;
