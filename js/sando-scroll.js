@@ -180,7 +180,7 @@ export async function start(sec) {
 
   // 7b) 最初の画面（本人の手本＝d4・d5「線形のグラフィックで、情報が積層するイメージ」）：受けとり方ごとの層が線で積み上がる
   const TOPL = new T.Group(); S.add(TOPL); const topMats = [];
-  { const P0 = curve.getPointAt(uEnd * 0.065), D0 = curve.getTangentAt(uEnd * 0.065); const sh_ = mob ? 15 : 58; TOPL.position.set(P0.x - D0.z * sh_, P0.y + (mob ? (innerWidth < 360 ? -146 : -104) : -34), P0.z + D0.x * sh_); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
+  { const P0 = curve.getPointAt(uEnd * 0.065), D0 = curve.getTangentAt(uEnd * 0.065); const sh_ = mob ? 15 : 58; TOPL.position.set(P0.x - D0.z * sh_, P0.y + (mob ? (innerWidth < 360 ? -160 : -122) : -34), P0.z + D0.x * sh_); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
     const LAYS = [['TERRAIN', 0x7fe0b4], ['ULTRAVIOLET', 0xb48cff], ['ECHO', 0x9fd8ff], ['SOIL', 0xe0a864], ['TIME', 0xf2c58a]];
     const SZ = 64, N = 8;
     LAYS.forEach(([nm, c], i) => {

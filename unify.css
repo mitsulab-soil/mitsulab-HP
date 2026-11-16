@@ -42,3 +42,5 @@
 @media (max-width:359px){#research .rs-switch button{font-size:12.5px!important;letter-spacing:0!important;white-space:nowrap;padding:0 4px}}
 body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 #top .sd-cv{filter:brightness(1.2) saturate(1.05)}
+/* 第12周：スマホの目的別ボタンを同じ幅の 2 列に */
+@media (max-width:759px){.sub-sw{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}.sub-sw .sub-k{grid-column:1/-1}.sub-sw>a,.sub-sw>button{width:100%;box-sizing:border-box;justify-content:center;text-align:center;margin:0!important}}
