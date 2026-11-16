@@ -48,7 +48,9 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 @media (min-width:1040px){#profile>.wrap,#contact>.wrap{max-width:990px!important;padding-left:0!important;padding-right:0!important;margin-left:auto!important;margin-right:auto!important}#profile>.wrap>*,#contact>.wrap>*{margin-left:0!important}#contact .card.ask{margin-left:0!important;max-width:none}}
 @media (max-width:359px){.sub-sw{grid-template-columns:1fr!important}}
 /* 第13周：本文は明朝ひとつに（タブ全体）・明朝の字の混ざりをなくす・関係図の引き出し線を明るく・Qualium のボタンの書体 */
-.tab-panel:not(#top) :is(.cg-deep>p,.cg-deep p,.pr-description,.ap-d,.card.ask p,.pf p,.rd-lead,.rs-lead,.pr-wrap>header>p,dd){font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif!important;font-weight:400!important}
+.tab-panel:not(#top) :is(.cg-deep>p,.cg-deep p,.pr-description,.ap-d,.card.ask p,.pf p,.rd-lead,.rs-lead,.pr-wrap>header>p,dd):not(.cg-eyebrow,.eyebrow,.qx-code,.rd-k,.pr-label){font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif!important;font-weight:400!important}
 .sub-sw :is(a,button){font-family:var(--sans,"Hiragino Sans",sans-serif)!important;letter-spacing:.06em!important}
 #top .m2-l3{stroke-opacity:.55!important;stroke-width:1.6!important}
 #top .m2-l1,#top .m2-l2{stroke-opacity:.6!important}
+
+.tab-panel:not(#top) :is(.cg-eyebrow,.eyebrow,.qx-code,.rd-k,.pr-label){font-family:var(--hxm)!important}
