@@ -300,3 +300,8 @@ html body #top #mdTop figcaption.m2-cap,html body #top #mdTop figcaption.m2-cap 
 #top .sd-hero[data-scene="0"] .sd-stick::after{background:radial-gradient(ellipse at 30% 50%,rgba(3,6,15,.45),rgba(3,6,15,.12) 70%)}
 @media (max-width:759px){#top .sd-hero[data-scene="0"] .sd-stick::after{background:linear-gradient(180deg,rgba(3,6,15,.6),rgba(3,6,15,.35) 40%,rgba(3,6,15,.05) 52%,rgba(3,6,15,.1) 78%,#03060f)}}
 @media (max-width:759px){#top .m2-lw{align-items:stretch!important}#top .m2-lw a{justify-content:flex-start!important}}
+/* P2：参道の数字を背景から浮かせる・320 で作品名を途中で折らない */
+#top .sd-hud{color:#e6f7f9;text-shadow:0 0 6px #03060f,0 0 2px #03060f,0 1px 10px rgba(3,6,15,.9)}
+#top .sd-hud span{color:#f2fbfc}
+@media (max-width:359px){#top .m2-lw a span{overflow-wrap:normal!important;word-break:keep-all;font-size:12px;letter-spacing:0}#top .m2-lw a{padding:10px 8px!important}}
+@media (max-width:359px){#top .m2-lw{grid-template-columns:1fr!important}#top .m2-lw a span{font-size:13px}}
