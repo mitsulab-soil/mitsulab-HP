@@ -35,3 +35,6 @@
 .tab-panel:not(#top) :is(.rd-lead,.rs-lead,.pr-wrap>header>p){font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif!important;font-weight:400;font-size:15.5px;line-height:1.95;color:#dfe6ef;letter-spacing:.02em}
 .sub-sw{justify-content:flex-start!important;max-width:1022px!important}.sub-k{text-align:left!important}
 @media (max-width:1040px){.tab-panel:not(#top) .cg-tab-entry{padding-left:22px!important;padding-right:22px!important}}
+.nw2{white-space:nowrap}
+.pr-page .pr-card>:not(figure){padding-left:16px!important;padding-right:16px!important;box-sizing:border-box}
+@media (max-width:767px){.pr-page .pr-card>:not(figure){padding-left:14px!important;padding-right:14px!important}}
