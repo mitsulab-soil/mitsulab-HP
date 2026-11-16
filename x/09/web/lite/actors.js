@@ -106,7 +106,7 @@ export function attachActors(q, opt = {}) {
     const m = new THREE.PointsMaterial({ map: dot, color, size, sizeAttenuation: true, transparent: true, opacity: op, depthWrite: false, blending: blend, fog: true });
     const p = new THREE.Points(g, m); p.frustumCulled = false; p.renderOrder = 3; world.add(p); return p;
   }
-  const beeP = pts(NB, 0x3a2a10, MOBILE ? .28 : .2, THREE.NormalBlending, 1), mothP = pts(NM, 0xfff1d6, .28, THREE.AdditiveBlending, .9), soilP = pts(NS, 0xc8f0d8, .18, THREE.AdditiveBlending, .0), mistP = pts(NH, 0xdfeaf0, 1.6, THREE.NormalBlending, 0);
+  const beeP = pts(NB, 0xffffff, MOBILE ? .28 : .2, THREE.NormalBlending, 1), mothP = pts(NM, 0xfff1d6, .28, THREE.AdditiveBlending, .9), soilP = pts(NS, 0xc8f0d8, .18, THREE.AdditiveBlending, .0), mistP = pts(NH, 0xdfeaf0, 1.6, THREE.NormalBlending, 0);
   // 地面の温度（陰の下が冷え、日なたの舗装が熱い）：地表すれすれの粒の色で（熱い＝橙、冷たい＝青緑）。模式
   const tgG = new THREE.BufferGeometry(); tgG.setAttribute("position", new THREE.BufferAttribute(new Float32Array(N * N * 3).fill(-1e4), 3)); tgG.setAttribute("color", new THREE.BufferAttribute(new Float32Array(N * N * 3), 3));
   const tgM = new THREE.PointsMaterial({ map: dot, size: MOBILE ? 1.3 : 1.1, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: 0, depthWrite: false, fog: true });
@@ -128,10 +128,10 @@ export function attachActors(q, opt = {}) {
   const leafTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 32; const g = c.getContext("2d"); g.translate(16, 16); g.rotate(.6); g.fillStyle = "#fff"; g.beginPath(); g.ellipse(0, 0, 13, 6, 0, 0, 6.283); g.fill(); g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(-12, 0); g.lineTo(12, 0); g.stroke(); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();   // 葉の形（光の玉に見えないように）
   const lgP = pts(NL, 0xa86e34, MOBILE ? .42 : .36, THREE.NormalBlending, 1), lgA = lgP.geometry.attributes.position;   // 積もった落ち葉（模式の粒）
   const lfP = pts(NF, 0xc98a3a, MOBILE ? .42 : .36, THREE.NormalBlending, 0), lfA = lfP.geometry.attributes.position;   // いま落ちている欅の葉
-  { const c = document.createElement("canvas"); c.width = c.height = 32; const g = c.getContext("2d"); g.fillStyle = "#fff"; g.beginPath(); g.ellipse(16, 16, 9, 6, 0, 0, 6.283); g.fill(); g.fillStyle = "rgba(255,255,255,.55)"; g.beginPath(); g.ellipse(10, 9, 7, 4, -.5, 0, 6.283); g.ellipse(22, 9, 7, 4, .5, 0, 6.283); g.fill(); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; beeP.material.map = t; beeP.material.alphaTest = .3; }   // ミツバチは体と翅の小さな形（光の玉にしない）
+  { const c = document.createElement("canvas"); c.width = c.height = 32; const g = c.getContext("2d"); g.fillStyle = "#c08a3a"; g.beginPath(); g.ellipse(16, 17, 10, 5.5, 0, 0, 6.283); g.fill(); g.fillStyle = "#2a1e10"; for (const x of [13, 18, 23]) g.fillRect(x, 11, 2, 12); g.beginPath(); g.ellipse(6.5, 17, 3, 3.4, 0, 0, 6.283); g.fill(); g.fillStyle = "rgba(240,246,250,.7)";   /* 11-17：橙褐色の体に黒褐色の帯・頭（花や玉と見分けられるように） */ g.beginPath(); g.ellipse(10, 9, 7, 4, -.5, 0, 6.283); g.ellipse(22, 9, 7, 4, .5, 0, 6.283); g.fill(); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; beeP.material.map = t; beeP.material.alphaTest = .3; }   // ミツバチは体と翅の小さな形（光の玉にしない）
   for (const P of [lgP, lfP]) { P.material.map = leafTex; P.material.alphaTest = .4; P.material.transparent = P === lfP; }
   // 落ち葉の敷き（地面に水平な葉の群れの板・一回の描画）：樹冠の下の土ほど多く、開けた所は少ない
-  const NMAT = MOBILE ? 90 : 140;
+  const NMAT = MOBILE ? 140 : 220;
   const matTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); let sd3 = 7; const r3 = () => (sd3 = (sd3 * 16807) % 2147483647) / 2147483647;
     for (let i = 0; i < 70; i++) { const a = r3() * 6.28, rr = Math.sqrt(r3()) * 54, x = 64 + Math.cos(a) * rr, y = 64 + Math.sin(a) * rr, h = 25 + r3() * 18, l = 30 + r3() * 22; g.save(); g.translate(x, y); g.rotate(r3() * 6.28); g.fillStyle = `hsl(${h},55%,${l}%)`; g.beginPath(); g.ellipse(0, 0, 7, 3.2, 0, 0, 6.283); g.fill(); g.restore(); }
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
@@ -142,8 +142,8 @@ export function attachActors(q, opt = {}) {
   function layMats() {   // 縁石のすぐ外の土（参道の中心から 4.8〜6.4 m・見える帯）に、その升の落ち葉の厚さに比べて置く
     let n = 0; const lt0 = C.litter, cx = cam.position.x, cz = cam.position.z; if (lt0 > .05) { const L = D.cl; let i0 = 1, bd = 1e18; for (let i = 0; i < L.length; i += 2) { const e = (L[i][0] - cx) ** 2 + (L[i][2] - cz) ** 2; if (e < bd) { bd = e; i0 = i; } } const span = Math.max(4, Math.round(32 / Math.max(.5, Math.hypot(L[Math.min(L.length - 1, i0 + 1)][0] - L[i0][0], L[Math.min(L.length - 1, i0 + 1)][2] - L[i0][2]))));   /* 見る人にいちばん近い中心線のまわり ±32 m から */
       const order = []; for (let d = 0; d <= span; d++) { order.push(i0 + d); if (d) order.push(i0 - d); } let sdm = 1; const rnd = () => (sdm = (sdm * 16807) % 2147483647) / 2147483647;   /* 近い点から順に・点ごとに同じ種 */
-      for (const ib of order) { if (n >= NMAT) break; const ia = Math.min(L.length - 2, Math.max(1, ib)); if (ia !== ib) continue; for (let j = 0; j < 3 && n < NMAT; j++) { sdm = (ia * 131 + j * 7919 + 1) % 2147483647 || 1; rnd(); rnd(); const a = L[ia]; if (Math.abs(a[0] - cx) > 32 || Math.abs(a[2] - cz) > 32) continue; const b = L[ia + 1], tx = b[0] - a[0], tz = b[2] - a[2], l = Math.hypot(tx, tz) || 1, o = (4.8 + 1.6 * rnd()) * (rnd() < .5 ? -1 : 1), x = a[0] - tz / l * o + tx / l * rnd() * 2, z = a[2] + tx / l * o + tz / l * rnd() * 2, k = cellOf(x, z), lv = k >= 0 ? F.lit[k] : 0;
-        if (rnd() > lv) continue; _mp.set(x, gy(x, z) + .03, z); _mq.setFromAxisAngle(_my, rnd() * 6.28); const sc = .8 + 2.2 * lv; _ms.set(sc, 1, sc); _mm.compose(_mp, _mq, _ms); mats.setMatrixAt(n++, _mm); } } }   /* 厚い所ほど大きく（差が読める） */
+      for (const ib of order) { if (n >= NMAT) break; const ia = Math.min(L.length - 2, Math.max(1, ib)); if (ia !== ib) continue; for (let j = 0; j < 5 && n < NMAT; j++) { sdm = (ia * 131 + j * 7919 + 1) % 2147483647 || 1; rnd(); rnd(); const a = L[ia]; if (Math.abs(a[0] - cx) > 32 || Math.abs(a[2] - cz) > 32) continue; const b = L[ia + 1], tx = b[0] - a[0], tz = b[2] - a[2], l = Math.hypot(tx, tz) || 1, o = (4.8 + 1.6 * rnd()) * (rnd() < .5 ? -1 : 1), x = a[0] - tz / l * o + tx / l * rnd() * 2, z = a[2] + tx / l * o + tz / l * rnd() * 2, k = cellOf(x, z), lv = k >= 0 ? F.lit[k] : 0;
+        if (rnd() > Math.min(1, lv * lv * 1.5)) continue; _mp.set(x, gy(x, z) + .03, z);   /* 11-17：薄い所はほとんど置かず、厚い所に重ねて置く（差を読みやすく） */ _mq.setFromAxisAngle(_my, rnd() * 6.28); const sc = .8 + 2.2 * lv; _ms.set(sc, 1, sc); _mm.compose(_mp, _mq, _ms); mats.setMatrixAt(n++, _mm); } } }   /* 厚い所ほど大きく（差が読める） */
     mats.count = n; mats.instanceMatrix.needsUpdate = true; }
   const falls = Array.from({ length: NF }, () => ({ x: 0, y: -1e4, z: 0, g: 0 }));
   const bees = Array.from({ length: NB }, () => ({ x: 0, y: -1e4, z: 0, f: null, ph: rnd() * 6.28, on: false }));
@@ -255,7 +255,7 @@ export function attachActors(q, opt = {}) {
     if ((tAcc += dt) >= .5) { stepField(Math.min(tAcc, 2)); tAcc = 0; stepAoi(now); }
     const eye = A.walker.state.eye;
     // ミツバチ（秒の速さ）：選んだ花のまわりを小さく行き来する
-    beeP.material.size = (eye === "hachi" ? .34 : .27) * (MOBILE ? 1.3 : 1);   /* 11-16：夏のミツバチを見つけやすく（実寸より大きいことは模式の欄に明記） */ beeP.material.opacity = eye && eye !== "hachi" ? .45 : .92;
+    beeP.material.size = (eye === "hachi" ? .4 : .42) * (MOBILE ? 1.3 : 1);   /* 11-17：夏の草の花のミツバチを、緑の中で見つけられる大きさと橙褐色に */   /* 11-16：夏のミツバチを見つけやすく（実寸より大きいことは模式の欄に明記） */ beeP.material.opacity = eye && eye !== "hachi" ? .45 : .92;
     bees.forEach((b, i) => { if (!b.on || !b.f) { bp.setXYZ(i, 0, -1e4, 0); return; } const f = b.f, ty = gy(f.x, f.z) + f.h + .35 * Math.sin(T * 2 + b.ph), tx = f.x + Math.cos(T * 1.7 + b.ph) * .9, tz = f.z + Math.sin(T * 2.3 + b.ph) * .9, k = Math.min(1, dt * 1.6);
       b.x += (tx - b.x) * k; b.z += (tz - b.z) * k; b.y += (ty - b.y) * k; if ((b.x - cam.position.x) ** 2 + (b.z - cam.position.z) ** 2 < 12) { bp.setXYZ(i, 0, -1e4, 0); return; } bp.setXYZ(i, b.x + Math.sin(T * 19 + b.ph) * .05, b.y, b.z + Math.cos(T * 23 + b.ph) * .05); }); bp.needsUpdate = true;
     // 夜の虫：灯りのまわりを回る（灯りの虫の量だけ）
