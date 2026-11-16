@@ -180,7 +180,7 @@ export async function start(sec) {
 
   // 7b) 最初の画面（本人の手本＝d4・d5「線形のグラフィックで、情報が積層するイメージ」）：受けとり方ごとの層が線で積み上がる
   const TOPL = new T.Group(); S.add(TOPL); const topMats = [];
-  { const P0 = curve.getPointAt(uEnd * 0.065), D0 = curve.getTangentAt(uEnd * 0.065); const sh_ = mob ? 0 : 58; TOPL.position.set(P0.x - D0.z * sh_, P0.y + (mob ? (innerWidth < 360 ? -124 : -100) : -26), P0.z + D0.x * sh_); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
+  { const P0 = curve.getPointAt(uEnd * 0.065), D0 = curve.getTangentAt(uEnd * 0.065); const sh_ = mob ? 15 : 58; TOPL.position.set(P0.x - D0.z * sh_, P0.y + (mob ? (innerWidth < 360 ? -146 : -104) : -34), P0.z + D0.x * sh_); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
     const LAYS = [['TERRAIN', 0x7fe0b4], ['ULTRAVIOLET', 0xb48cff], ['ECHO', 0x9fd8ff], ['SOIL', 0xe0a864], ['TIME', 0xf2c58a]];
     const SZ = 64, N = 8;
     LAYS.forEach(([nm, c], i) => {
@@ -201,7 +201,7 @@ export async function start(sec) {
       const pl = new T.Mesh(new T.PlaneGeometry(SZ, SZ), new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
       pl.rotation.x = -Math.PI / 2; pl.position.y = y; TOPL.add(pl); topMats.push([pl.material, 0.035 * hz]);
       if (i === 1) { const pts = []; for (let k = 0; k < (mob ? 160 : 320); k++) pts.push((rnd() - 0.5) * SZ, y + rnd() * 0.6, (rnd() - 0.5) * SZ); const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.1, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.9]); }
-      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), mob ? 0.55 : 0.35).getHexString(), mob ? 56 : 44, mob ? 7 : 4.2); lb.position.set(SZ / 2 + (mob ? 4 : 2), y + (mob ? 2.2 : 1), SZ / 2 + (mob ? 4 : 0)); lb.center.set(0, 0.5); TOPL.add(lb); topMats.push([lb.material, 1]);
+      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), mob ? 0.55 : 0.35).getHexString(), mob ? 56 : 44, mob ? 7 : 4.2); if (mob) { lb.position.set(SZ / 2 + 3, y + 1, SZ / 2); lb.center.set(1, 0.5); } else { lb.position.set(SZ / 2 + 2, y + 1, SZ / 2); lb.center.set(0, 0.5); } TOPL.add(lb); topMats.push([lb.material, 1]);
     });
     // 層をつなぐ縦の細い線
     const V = []; for (const [x, z] of [[-32, -32], [32, -32], [-32, 32], [32, 32]]) V.push(x, 16, z, x, 16 + 44, z);

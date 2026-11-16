@@ -279,3 +279,6 @@ html body #top .m2-sec figcaption.m2-cap{font-size:16px!important;line-height:1.
 #top .m2-mnote{display:none}
 @media (max-width:759px){#top .m2-mnote{display:inline}}
 @media (min-width:760px){#top .m2-sec{padding-top:128px}}
+@media (max-width:359px){#top .m2-plain .nw{white-space:normal}}
+/* 一覧の項の後ろの面を外す（板に見えないように）・説明は明朝で */
+@media (max-width:759px){#top .m2-list li{background:none!important}html body #top .m2-sec figcaption.m2-cap{font-family:var(--serif,serif)!important}}
