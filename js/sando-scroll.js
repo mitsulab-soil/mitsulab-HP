@@ -201,7 +201,7 @@ export async function start(sec) {
       const pl = new T.Mesh(new T.PlaneGeometry(SZ, SZ), new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
       pl.rotation.x = -Math.PI / 2; pl.position.y = y; TOPL.add(pl); topMats.push([pl.material, 0.035 * hz]);
       if (i === 1) { const pts = []; for (let k = 0; k < (mob ? 160 : 320); k++) pts.push((rnd() - 0.5) * SZ, y + rnd() * 0.6, (rnd() - 0.5) * SZ); const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.1, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.9]); }
-      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), 0.35).getHexString(), 44, mob ? 5.4 : 4.2); lb.position.set(SZ / 2 + 2, y + 1, SZ / 2); lb.center.set(0, 0.5); TOPL.add(lb); topMats.push([lb.material, 1]);
+      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), mob ? 0.55 : 0.35).getHexString(), mob ? 56 : 44, mob ? 7 : 4.2); lb.position.set(SZ / 2 + (mob ? 4 : 2), y + (mob ? 2.2 : 1), SZ / 2 + (mob ? 4 : 0)); lb.center.set(0, 0.5); TOPL.add(lb); topMats.push([lb.material, 1]);
     });
     // 層をつなぐ縦の細い線
     const V = []; for (const [x, z] of [[-32, -32], [32, -32], [-32, 32], [32, 32]]) V.push(x, 16, z, x, 16 + 44, z);

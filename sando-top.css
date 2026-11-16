@@ -273,3 +273,9 @@ html body #top .m2-sec figcaption.m2-cap{font-size:16px!important;line-height:1.
 #top .m2-plain .nw{white-space:nowrap}
 @media (min-width:760px){#top .sd-first .m2-plain{max-width:27em}#top .m2-sec{padding-top:96px}}
 @media (min-width:760px){#top .sd-first .m2-head{margin-left:0;margin-right:auto}#top .sd-first .m2-plain{max-width:25em}}
+/* 第9周 P2：凡例はリンクに見せない・札の下線は項の色・スマホの一覧の説明 */
+#top .m2-key .m2-k3{text-decoration:none!important}
+#top .m2-lw a,#top .m2-lw a *{text-decoration-color:var(--c)!important;border-bottom-color:var(--c)!important}
+#top .m2-mnote{display:none}
+@media (max-width:759px){#top .m2-mnote{display:inline}}
+@media (min-width:760px){#top .m2-sec{padding-top:128px}}
