@@ -69,3 +69,13 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 #top .m2-lr span{white-space:nowrap}
 /* 第15周 2：ワークショップの下の暗い面を外す */
 #collab .v2-social{background:transparent!important}
+
+/* 第16周（2026-11-17 本人）：PC のカードは横に 3 つまで・1 枚の章も同じ大きさ（横に広げない） */
+@media (min-width:760px){
+html .cg-design .pr-grid,html .cg-design :is(#top,#apps) .pr-grid:not(#_a){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html .cg-design .pr-grid>li.pr-card:not(#_a):not(#_b),html .cg-design :is(#top,#apps) .pr-grid>li.pr-card:not(#_a):not(#_b){grid-column:auto!important;display:flex!important;flex-direction:column!important;grid-template-columns:none!important;gap:0}
+html .cg-design .pr-grid>li.pr-card:not(#_a):not(#_b)>.ap-f,html .cg-design :is(#top,#apps) .pr-grid>li.pr-card:not(#_a):not(#_b)>.ap-f{border-right:0!important;border-bottom:1px solid rgba(168,242,246,.14)!important;height:auto!important;aspect-ratio:16/10!important}
+}
+@media (min-width:1100px){
+html .cg-design .pr-grid,html .cg-design :is(#top,#apps) .pr-grid:not(#_a){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
