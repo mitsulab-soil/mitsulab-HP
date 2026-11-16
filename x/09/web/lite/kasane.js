@@ -38,6 +38,19 @@ const LINES = {
     { t: "その上に、箱根や富士の火山灰が積もった。線は地形の模式。" },
     { t: "（出典：国土交通省『土地分類基本調査 説明書「大宮」』2012）" },
   ],
+  time: [
+    { t: "内の輪は一秒で一回り。外へいくほど、十倍ずつ遅い。" },
+    { t: "いちばん外の輪は、一回りに約十七分。止まって見えても、動いている。" },
+    { t: "速すぎる時間も遅すぎる時間も、同じ場所に重なっている。輪は模式。Qualia/time の芯。" },
+  ],
+  scale: [
+    { t: "入れ子の箱は、大きさの桁をまたぐことの模式。" },
+    { t: "土の粒から参道の木の高さまで、およそ四つの桁。目は、その間を一度に見ていない。Qualia/scale の芯。" },
+  ],
+  touch: [
+    { t: "触れると、手ざわりの凹凸を、ふるえと音で返す。" },
+    { t: "強さは模式。振動が使える端末では振動、ほかは音だけ。Qualia/touch の芯。" },
+  ],
   trace: [
     { t: "雨のあと、葉に残った水が、遅れて土に落ちる。" },
     { t: "記録計は、その量を一つの数として記録する。光の線は模式。" },
@@ -78,15 +91,33 @@ function contourGeo() {   // 地形：ゆがんだ等高線を三段、足もと
   const ring = (r, y, ph) => { const c = new THREE.Curve(); c.getPoint = t => { const th = t * Math.PI * 2, rr = r * (1 + .12 * Math.sin(th * 3 + ph) + .06 * Math.sin(th * 5)); return new THREE.Vector3(Math.cos(th) * rr, y, Math.sin(th) * rr * .7); }; return new THREE.TubeGeometry(c, 90, .012, 4, true); };
   return mergeGeos([ring(.9, 0, 0), ring(.62, .12, 1), ring(.34, .24, 2)]);
 }
-const FORMS = { jikan: [ringsGeo, 0xb48a62, 5], chikei: [contourGeo, 0xc8d0a8, 6], literature: [leafGeo, 0xd9b26a, 0], sound: [waveGeo, 0x9fc6d8, 1], keyaki: [ringsGeo, 0xc89a72, 2], leaf: [chainGeo, 0xb8d6a8, 3], trace: [traceGeo, 0xa9c9e6, 4] };
+function clockGeo() {   // time：十倍ずつ遅い輪を四重に（光の粒が回る速さは描き方で：1・10・100・1000 秒で一回り）
+  const L = []; for (let i = 0; i < 4; i++) { const r = .1 + i * .075; L.push(new THREE.TorusGeometry(r, .006, 5, 64)); }
+  return mergeGeos(L);
+}
+function boxesGeo() {   // scale：十倍ずつの箱を入れ子に（線の箱）
+  const L = []; for (let i = 0; i < 4; i++) { const a = .02 * Math.pow(2.25, i); const e = new THREE.EdgesGeometry(new THREE.BoxGeometry(a * 2, a * 2, a * 2)), p = e.attributes.position;
+    for (let j = 0; j < p.count; j += 2) { const s0 = new THREE.Vector3().fromBufferAttribute(p, j), s1 = new THREE.Vector3().fromBufferAttribute(p, j + 1), c = new THREE.LineCurve3(s0, s1); L.push(new THREE.TubeGeometry(c, 1, .004 + i * .0015, 4, false)); } }
+  return mergeGeos(L);
+}
+function barkGeo() {   // touch：樹皮のうねりの板（触れると波がひろがる）
+  const g = new THREE.PlaneGeometry(.6, .6, 28, 28), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, .02 * Math.sin(y * 34 + Math.sin(x * 9) * 2) + .012 * Math.sin(x * 51 + y * 7)); }
+  g.computeVertexNormals(); return g;
+}
+const FORMS = { time: [clockGeo, 0xe0c98a, 7], scale: [boxesGeo, 0x9ad0c4, 8], touch: [barkGeo, 0xc9b8a0, 9], jikan: [ringsGeo, 0xb48a62, 5], chikei: [contourGeo, 0xc8d0a8, 6], literature: [leafGeo, 0xd9b26a, 0], sound: [waveGeo, 0x9fc6d8, 1], keyaki: [ringsGeo, 0xc89a72, 2], leaf: [chainGeo, 0xb8d6a8, 3], trace: [traceGeo, 0xa9c9e6, 4] };
 
+const BIG = { time: 1.6, scale: 1.6, touch: 1.45 };
 const VS = `varying vec3 vW; varying vec3 vN; varying vec3 vL;
 void main(){ vL=position; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`;
 const FS = `uniform vec3 uC; uniform float uA; uniform float uT; uniform float uK; uniform float uOn; varying vec3 vW; varying vec3 vN; varying vec3 vL;
 void main(){ vec3 n=normalize(vN), v=normalize(cameraPosition-vW); if(!gl_FrontFacing) n=-n; float nv=abs(dot(n,v)); float fr=pow(1.-nv,2.);
   float dif=.5+.5*max(0.,dot(n,normalize(vec3(.3,1.,.4))));
   float pat=0.;
-  if(uK<.5){ pat=smoothstep(.012,.0,abs(vL.y))*.8 + smoothstep(.01,.0,abs(fract(vL.x*9.+abs(vL.y)*14.)-.5)-.47)*.25; }   // 葉の中の筋と側脈
+  if(uK>8.5){ float r=length(vL.xy); pat=uOn*exp(-pow(r-fract(uT*.8)*.45,2.)*300.)*1.4 + smoothstep(.0,.03,vL.z)*.25; }   // 触れた所から波がひろがる
+  else if(uK>7.5){ pat=.2+.25*sin(uT*1.2-length(vL)*20.); }   // 入れ子の箱を、内から外へ光が渡る
+  else if(uK>6.5){ float r=length(vL.xy), i=floor((r-.0625)/.075+.5), a=atan(vL.y,vL.x)/6.2832+.5, ph=fract(uT/pow(10.,i)); float d=abs(fract(a-ph+.5)-.5); pat=.15+exp(-d*d*900.)*1.6; }   // 1 秒・10 秒・100 秒・1000 秒で一回りする光の粒
+  else if(uK<.5){ pat=smoothstep(.012,.0,abs(vL.y))*.8 + smoothstep(.01,.0,abs(fract(vL.x*9.+abs(vL.y)*14.)-.5)-.47)*.25; }   // 葉の中の筋と側脈
   else if(uK>5.5){ pat=exp(-pow(fract(vL.y*4.-uT*.2)-.5,2.)*40.)*.9; }   // 地形の線を、上から下へ光が渡る
   else if(uK>4.5){ float r=length(vL.xz); pat=smoothstep(.05,.0,abs(fract(r*18.-uT*.12)-.5)-.42)*.8; }   // 年輪が外へ広がる（太る時間の模式）
   else if(uK<2.5 && uK>1.5){ float r=length(vL.xz); pat=smoothstep(.06,.0,abs(fract(r*26.+.15*sin(atan(vL.z,vL.x)*3.))-.5)-.40)*.7*step(.02,abs(vL.y)+.0) ; }   // 年輪
@@ -108,18 +139,25 @@ function playDrip() {   // 「木の雫の音」：高い音が下がる短い�
   } catch { }
 }
 
+function playTap() {   // touch：手ざわりのざらつきを、短い雑音の粒で（合成）
+  try { ac ||= new (window.AudioContext || window.webkitAudioContext)(); ac.resume?.(); const n = ac.sampleRate * .9, b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) { const t = i / ac.sampleRate, env = Math.pow(Math.max(0, Math.sin(t * Math.PI / .9)), 2) * (.5 + .5 * Math.sin(t * 2 * Math.PI * 7)); d[i] = (Math.random() * 2 - 1) * env * .5; }
+    const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = b; f.type = "bandpass"; f.frequency.value = 1800; f.Q.value = .8; g.gain.value = .35; src.connect(f).connect(g).connect(ac.destination); src.start(); } catch { }
+}
+
 export function attachKasane(q, opt = {}) {
   const spots = opt.spots || [];
   const root = new THREE.Group(); root.name = "kasane"; (q.world || q.scene).add(root);
   const items = spots.map(s => { const [gf, col, k] = FORMS[s.k]; const m = new THREE.ShaderMaterial({ uniforms: { uC: { value: new THREE.Color(col) }, uA: { value: 0 }, uT: { value: 0 }, uK: { value: k }, uOn: { value: 0 } }, vertexShader: VS, fragmentShader: FS, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
     const me = new THREE.Mesh(gf(), m); me.renderOrder = 6; me.frustumCulled = false; const y = (q.groundAt?.(s.x, s.z) ?? 0) + (s.h ?? 1.35); me.position.set(s.x, y, s.z); me.visible = false; root.add(me);
-    return { ...s, me, y, on: 0, tOn: -99 }; });
+    const big = BIG[s.k] || 1; me.scale.setScalar(big);   // 11-18：time・scale・touch は見つけやすく少し大きく
+    return { ...s, me, y, big, on: 0, tOn: -99 }; });
   const _v = new THREE.Vector3(); let last = performance.now();
   function frame() {
     requestAnimationFrame(frame); const now = performance.now(), t = now / 1000, dt = Math.min(.1, (now - last) / 1000); last = now;
     const cam = q.camera; if (!cam) return; const walk = q.mode === "walk";
     for (const it of items) { const d = Math.hypot(it.x - cam.position.x, it.z - cam.position.z);
-      const want = walk ? Math.min(1, Math.max(0, (42 - d) / 22)) * (.55 + .45 * Math.min(1, Math.max(0, (18 - d) / 10))) : 0;   // 遠くは淡く・近いほどはっきり（風景から浮かび上がる）
+      const far = it.big > 1 ? 52 : 42, want = walk ? Math.min(1, Math.max(0, (far - d) / 22)) * ((it.big > 1 ? .72 : .55) + (it.big > 1 ? .28 : .45) * Math.min(1, Math.max(0, (18 - d) / 10))) : 0;   // 遠くは淡く・近いほどはっきり（風景から浮かび上がる）
       const u = it.me.material.uniforms; u.uA.value += (want - u.uA.value) * Math.min(1, dt * 2.5); u.uT.value = t; it.me.visible = u.uA.value > .01;
       const on = now - it.tOn < 9000 ? 1 : 0; it.on += (on - it.on) * Math.min(1, dt * 3); u.uOn.value = it.on;
       if (!it.me.visible) continue;
@@ -127,7 +165,10 @@ export function attachKasane(q, opt = {}) {
       if (it.k === "literature") { it.me.rotation.set(.5 + Math.sin(t * .7) * .25, t * .25, Math.sin(t * .5) * .3); }
       else if (it.k === "chikei") { it.me.rotation.set(0, t * .05, 0); }
       else if (it.k === "keyaki" || it.k === "jikan") { it.me.lookAt(_v.set(cam.position.x, it.me.position.y, cam.position.z)); it.me.rotateX(Math.PI / 2 - .45); }
-      else if (it.k === "sound") { it.me.rotation.set(.35, t * (.3 + it.on * .9), 0); const s = 1 + it.on * .08 * Math.sin(t * 18); it.me.scale.set(s, 1, s); }
+      else if (it.k === "time") { it.me.lookAt(_v.set(cam.position.x, it.me.position.y, cam.position.z)); }
+      else if (it.k === "scale") { it.me.rotation.set(.35, t * .12, .2); }
+      else if (it.k === "touch") { it.me.lookAt(_v.set(cam.position.x, it.me.position.y, cam.position.z)); }
+      else if (it.k === "sound") { it.me.rotation.set(.35, t * (.3 + it.on * .9), 0); const s = (1 + it.on * .08 * Math.sin(t * 18)) * it.big; it.me.scale.set(s, it.big, s); }
       else { it.me.lookAt(_v.set(cam.position.x, it.me.position.y, cam.position.z)); it.me.rotateY(Math.PI / 2 * 0); }
     }
   }
@@ -139,7 +180,7 @@ export function attachKasane(q, opt = {}) {
       for (const it of items) { if (!it.me.visible) continue; const d = it.me.position.distanceTo(cam.position); if (d > 16) continue; _v.copy(it.me.position).project(cam); if (_v.z > 1) continue;
         const sx = (_v.x + 1) / 2 * innerWidth, sy = (1 - _v.y) / 2 * innerHeight, r = Math.max(46, 360 / d), dd = (sx - x) ** 2 + (sy - y) ** 2; if (dd < Math.max(bd, r * r) && dd < r * r) { bd = dd; best = it; } }
       if (!best) return false;
-      best.tOn = performance.now(); navigator.vibrate?.(8); if (best.k === "sound") playDrip();
+      best.tOn = performance.now(); navigator.vibrate?.(best.k === "touch" ? [14, 40, 8, 30, 22, 50, 10] : 8); if (best.k === "sound") playDrip(); if (best.k === "touch") playTap();
       if (best.k === "keyaki" && q.S6?.pickIk && !q.S6.state?.id) setTimeout(() => q.S6.pickIk("hachi"), 2600);   // 触れると、ミツバチの目に受けとり方が変わる（説明で終わらせない）
       q.speak?.(LINES[best.k]); return true;
     },

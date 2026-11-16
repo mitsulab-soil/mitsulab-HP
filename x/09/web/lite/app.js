@@ -2113,9 +2113,10 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
   const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
   for (let k = 0; k < 16; k++) { const v = _pv3.set(out.x, out.y + .8, out.z).project(camera), px = (v.x * .5 + .5) * innerWidth; if (v.z < 1 && px > 80 && px < innerWidth - 80 && !AREAS.onCarriage(out.x, out.z)) return true; out.x += fx * 2.5; out.z += fz * 2.5; out.y = groundY(out.x, out.z); } return false;
 }
+const aoiYaw = () => CAM.yaw + (MOBILE ? (CAM.look || 0) : 0);   // 11-18：見ている向き（スマホは見回しの分も）
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
   const f = MOBILE ? 3.0 : 2.3, s = MOBILE ? .2 : .9;   /* 11-10 第7周：375 で碧が右端で切れない */   /* 11-03 本人「碧との距離をもっと近く」：前 3.15/2.9 m */   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
-  const vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
+  const vy = AOI.sy ?? aoiYaw(), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = PANEL.cur && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：道の中心を歩くと左右がこまごとに入れかわり、碧が真ん中に留まっていた。0.8 m の幅でしか入れかえない */   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
   if (Math.hypot(a.x - CAM.pos.x, a.z - CAM.pos.z) > 30) { const c = aoiPick(fx, fz, rx, rz, MOBILE ? f : f + .7);   /* PC は少し離して足もとまで */ out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); out.y = groundY(out.x, out.z); aoiOffRoad(out, rx, rz); return out; }
@@ -2128,7 +2129,7 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
 function aoiArrive() {
   loadAoi().then(() => {
     if (!AOI.m || QW.mode !== "walk") return;
-    aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, Math.atan2(CAM.pos.x - AOI.pos.x, CAM.pos.z - AOI.pos.z)); AOI.root.visible = true;
+    AOI.sy = aoiYaw(); aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, Math.atan2(CAM.pos.x - AOI.pos.x, CAM.pos.z - AOI.pos.z)); AOI.root.visible = true;
     if (!AOI.greeted) { AOI.greeted = true; TALK.nextT = performance.now() + 7000; setTimeout(() => { if (QW.mode === "walk" && !PANEL.cur) { speakLines([D.intro], null); setTimeout(() => hintQ(), 5200); } }, 900); }
   });
 }
@@ -2137,15 +2138,19 @@ const _ap = new THREE.Vector3();
 const _ndc = new THREE.Vector3();
 function stepAoi(dt) {
   if (!AOI.m || !AOI.root.visible) return;
+  /* 11-18 本人「視線を回転させると碧がカクカク」：立ち位置は見回しの向きをそのまま追わず、ゆるく追う向き（AOI.sy）で決める。
+     見回している間（AOI.rot が大きい間）は、画面の端・後ろでの置き直し（瞬間移動）をやめ、足で歩いて回りこむ */
+  { const y1 = aoiYaw(), y0 = AOI.sy ?? y1, e = wrap(y1 - y0); AOI.sy = y0 + e * (1 - Math.exp(-dt * 1.6)); const yv = CAM.yaw + (CAM.look || 0), ev = Math.abs(wrap(yv - (AOI.yv ?? yv))) / Math.max(dt, 1e-3); AOI.yv = yv; AOI.rot = Math.max(Math.abs(e), ev * .25, (AOI.rot || 0) * Math.exp(-dt * 1.5)); }   // 見回しの速さ（PC の見回し＝CAM.look も数える）
+  const turning = AOI.rot > .12; if (turning) AOI.tT = performance.now(); const turned = performance.now() - (AOI.tT || -1e9) < 4000;   // 見回したあと 4 秒は、歩いて視野へ戻る（後ろで置き直さない）
   aoiSpot(_ap);
   const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
   AOI.bt = _ndc.copy(P).setY(P.y + 1).project(camera).z > 1 && QW.mode === "walk" ? (AOI.bt || 0) + dt : 0;   // 10-30：碧が見る人の後ろに 1.2 秒より長くいたら、前の立ち位置へ（375px で後ろへ消えていた）
-  if (dist > 18 || AOI.bt > 1.2 || (MOBILE && Math.hypot(P.x - CAM.pos.x, P.z - CAM.pos.z) < 1.7) || (MOBILE && !WALK.moving && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .6))   /* 11-10 375 で碧が右端で切れる画角：端を越えたらすぐ立ち位置へ */   /* 11-10 第7周：375 で碧の顔が画面を塞がない（近すぎたら立ち位置へ） */ { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; }
+  if (dist > 18 || AOI.bt > (turned ? 5 : 1.2) || (MOBILE && Math.hypot(P.x - CAM.pos.x, P.z - CAM.pos.z) < (turned ? .9 : 1.7)) || (MOBILE && !turned && !WALK.moving && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .6))   /* 11-10 375 で碧が右端で切れる画角：端を越えたらすぐ立ち位置へ */   /* 11-10 第7周：375 で碧の顔が画面を塞がない（近すぎたら立ち位置へ） */ { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; AOI.sy = aoiYaw(); }
   else {
     const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .3;   /* 10-28 夜 8：375px で碧が画面の端に寄ったら、立ち位置へ戻る（川越・渋谷と同じ） */
     const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3);
-    const want = go ? Math.min(2.9, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
-    AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.8) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
+    const want = go ? Math.min(turned ? 2.2 : 2.9, dist * (turned ? 1.1 : 1.4) + (WALK.moving ? WALK.speed * .6 : 0)) : 0;   /* 11-18：見回しの間は早足にしすぎない（歩幅がとぶとカクつく） */
+    AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.2) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   /* 11-18：止まり方もゆるく（急に止まって足が揃うのがカクつきに見えた） */   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam + 0 * Math.sign(wrap(CAM.yaw + Math.PI - toCam) || 1)); } }   // 2026-10-26 3：待つあいだは真正面で立ちつくさず、行く先へ少し体をひらく（話すときは見る人へほぼ正面）。2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
   }
