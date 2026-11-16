@@ -180,12 +180,16 @@ export async function start(sec) {
 
   // 7b) 最初の画面（本人の手本＝d4・d5「線形のグラフィックで、情報が積層するイメージ」）：受けとり方ごとの層が線で積み上がる
   const TOPL = new T.Group(); S.add(TOPL); const topMats = [];
-  { const P0 = curve.getPointAt(uEnd * 0.065), D0 = curve.getTangentAt(uEnd * 0.065); const sh_ = mob ? 0 : 46; TOPL.position.set(P0.x - D0.z * sh_, P0.y + (mob ? -64 : -26), P0.z + D0.x * sh_); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
+  { const P0 = curve.getPointAt(uEnd * 0.065), D0 = curve.getTangentAt(uEnd * 0.065); const sh_ = mob ? 0 : 58; TOPL.position.set(P0.x - D0.z * sh_, P0.y + (mob ? (innerWidth < 360 ? -124 : -100) : -26), P0.z + D0.x * sh_); TOPL.rotation.y = Math.atan2(D0.x, D0.z);
     const LAYS = [['TERRAIN', 0x7fe0b4], ['ULTRAVIOLET', 0xb48cff], ['ECHO', 0x9fd8ff], ['SOIL', 0xe0a864], ['TIME', 0xf2c58a]];
     const SZ = 64, N = 8;
     LAYS.forEach(([nm, c], i) => {
       const y = 16 + i * 11, L = [];
-      for (let q = 0; q <= N; q++) { const t = -SZ / 2 + q * SZ / N; L.push(-SZ / 2, y, t, SZ / 2, y, t, t, y, -SZ / 2, t, y, SZ / 2); }
+      const GL = []; for (let q = 1; q < N; q++) { const t = -SZ / 2 + q * SZ / N; GL.push(-SZ / 2, y, t, SZ / 2, y, t, t, y, -SZ / 2, t, y, SZ / 2); }
+      const AO = [0x5fc9c0, 0x78d6ec, 0x8fe4ee, 0xa8f2f6, 0xd4fbfc][i], hz = 1 - i * 0.12;
+      { const gg = new T.BufferGeometry(); gg.setAttribute('position', new T.Float32BufferAttribute(GL, 3)); const gm = new T.LineBasicMaterial({ color: AO, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.LineSegments(gg, gm)); topMats.push([gm, 0.16 * hz]);
+        const h2 = SZ / 2, FR = [-h2, y, -h2, h2, y, -h2, h2, y, -h2, h2, y, h2, h2, y, h2, -h2, y, h2, -h2, y, h2, -h2, y, -h2];
+        [[0, 0.85], [0.18, 0.35], [0.4, 0.14]].forEach(([d, a]) => { const fg = new T.BufferGeometry(); fg.setAttribute('position', new T.Float32BufferAttribute(FR.map((v, k) => k % 3 === 1 ? v + d : v), 3)); const fm = new T.LineBasicMaterial({ color: AO, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.LineSegments(fg, fm)); topMats.push([fm, a * hz]); }); }
       // 層ごとの模式：地形＝等高線、紫外＝点、こだま＝同心円、土＝根の線、時間＝目盛り
       if (i === 0) for (let r = 4; r < 30; r += 4) for (let k = 0; k < 48; k++) { const a = k / 48 * 6.283, b = (k + 1) / 48 * 6.283, w = 1 + Math.sin(k * 0.7 + r) * 0.08; L.push(Math.cos(a) * r * w, y, Math.sin(a) * r * w * 0.8, Math.cos(b) * r * w, y, Math.sin(b) * r * w * 0.8); }
       if (i === 2) for (let r = 3; r < 30; r += 3.5) for (let k = 0; k < 40; k++) { const a = k / 40 * 6.283, b = (k + 1) / 40 * 6.283; L.push(Math.cos(a) * r - 8, y, Math.sin(a) * r, Math.cos(b) * r - 8, y, Math.sin(b) * r); }
@@ -193,16 +197,16 @@ export async function start(sec) {
       if (i === 4) for (let k = -30; k <= 30; k += 2) L.push(k, y, SZ / 2 - 1, k, y, SZ / 2 - (k % 10 === 0 ? 6 : 3));
       const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(L, 3));
       const m = new T.LineBasicMaterial({ color: c, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false });
-      TOPL.add(new T.LineSegments(g, m)); topMats.push([m, i === 0 ? 0.55 : 0.45]);
+      TOPL.add(new T.LineSegments(g, m)); topMats.push([m, (i === 0 ? 0.6 : 0.5) * hz]);
       const pl = new T.Mesh(new T.PlaneGeometry(SZ, SZ), new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
-      pl.rotation.x = -Math.PI / 2; pl.position.y = y; TOPL.add(pl); topMats.push([pl.material, 0.05]);
+      pl.rotation.x = -Math.PI / 2; pl.position.y = y; TOPL.add(pl); topMats.push([pl.material, 0.035 * hz]);
       if (i === 1) { const pts = []; for (let k = 0; k < (mob ? 160 : 320); k++) pts.push((rnd() - 0.5) * SZ, y + rnd() * 0.6, (rnd() - 0.5) * SZ); const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.1, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.9]); }
       const lb = label(nm, '#' + new T.Color(c).getHexString(), 40, mob ? 4.2 : 3.4); lb.position.set(SZ / 2 + 2, y + 1, SZ / 2); lb.center.set(0, 0.5); TOPL.add(lb); topMats.push([lb.material, 0.95]);
     });
     // 層をつなぐ縦の細い線
     const V = []; for (const [x, z] of [[-32, -32], [32, -32], [-32, 32], [32, 32]]) V.push(x, 16, z, x, 16 + 44, z);
     const vg = new T.BufferGeometry(); vg.setAttribute('position', new T.Float32BufferAttribute(V, 3));
-    const vm = new T.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, depthWrite: false, fog: false }); TOPL.add(new T.LineSegments(vg, vm)); topMats.push([vm, 0.5]);
+    const vm = new T.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: 0, depthWrite: false, fog: false }); TOPL.add(new T.LineSegments(vg, vm)); topMats.push([vm, 0.32]);
   }
   let px = 0, py = 0;
   addEventListener('pointermove', e => { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; kick(); }, { passive: true });
@@ -264,7 +268,7 @@ export async function start(sec) {
     return rk > 0.01 || wSoil > 0.01 || p < 0.04;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
-  const M0 = window.__mdEnd || 0; const prog = () => { const r = sec.getBoundingClientRect(), span = r.height - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; return Math.max(0, (q - M0) / (1 - M0)); };
+  const prog = () => { const M0 = window.__mdEnd || 0; const r = sec.getBoundingClientRect(), span = r.height - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; return Math.max(0, (q - M0) / (1 - M0)); };
   let cur = prog(), raf = 0, vis = true, lt = 0, frozen = false;
   const draw = () => { const anim = place(cur); R.render(S, C); return anim; };
   function loop(n) { raf = 0; if (frozen) return; const dt = lt ? Math.min(0.05, (n - lt) / 1000) : 0.016; lt = n; tt += dt; const t = prog(); cur += (t - cur) * 0.2; if (Math.abs(t - cur) < 2e-4) cur = t; const anim = draw(); dirtyTex = false; if (vis && (cur !== t || anim)) raf = requestAnimationFrame(loop); else lt = 0; }
