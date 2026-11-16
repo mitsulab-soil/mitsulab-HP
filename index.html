@@ -1508,7 +1508,7 @@ b.addEventListener('keydown',function(e){if(e.key==='Tab'&&!e.shiftKey&&!l.hidde
 
 <style id="pr-p2-css">@media(min-width:760px){.cg-design .pr-grid>li.pr-card:only-child{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}.cg-design .pr-grid>li.pr-card:only-child>.ap-f{margin:0}}@media(max-width:759px){.cg-design .pr-cases-h>span{font-size:18px;letter-spacing:.02em}.cg-design .pr-cases-h>span::before{width:14px!important;margin-right:.4em!important}}.cg-design .pr-flow{font-size:15px;line-height:1.95}</style>
 <script>document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-pr-open]');if(!b)return;var d=b.closest('li').querySelector('details');if(!d)return;d.open=true;d.scrollIntoView({block:'nearest',behavior:'smooth'});var s=d.querySelector('summary');s&&s.focus({preventScroll:true})});</script>
-<link rel="stylesheet" href="refine.css?v=20261113rc"><link rel="stylesheet" href="sando-top.css?v=20261116k"><link rel="stylesheet" href="unify.css?v=20261116c">
+<link rel="stylesheet" href="refine.css?v=20261113rc"><link rel="stylesheet" href="sando-top.css?v=20261116m"><link rel="stylesheet" href="unify.css?v=20261116c">
 </head>
 <body class="cg-design">
 
@@ -1590,7 +1590,7 @@ b.addEventListener("click",function(){var on=b.getAttribute("aria-pressed")!=="t
 document.addEventListener("visibilitychange",function(){if(document.hidden&&ac)ac.suspend()})})();</script>
 <script>/* 終わりの MISSION・VISION が見えている間は、下の帯と音の札を隠す（重ならないように） */(function(){var h=document.getElementById("sdHero"),l=h&&h.querySelector(".sd-last");if(!l||!window.IntersectionObserver)return;new IntersectionObserver(function(e){h.classList.toggle("sd-end",e[0].intersectionRatio>0.05)},{threshold:[0,0.05,0.2]}).observe(l)})();</script>
 <script>/* 2026-11-16 第9周：最初の 3D → 関係図 → 参道の 3D。関係図のぶんだけ参道を長くし、関係図を過ぎてから進む */(function(){var h=document.getElementById("sdHero"),d=document.getElementById("mdTop");if(!h||!d)return;function f(){if(matchMedia("(prefers-reduced-motion: reduce)").matches){window.__mdEnd=0;h.style.height="";return}var H=innerHeight,m=d.offsetHeight;h.style.height=(8.2*H+m)+"px";var span=h.offsetHeight-H;window.__mdEnd=span>0?Math.min(.6,(d.offsetTop+m)/span):0}f();addEventListener("resize",f);if(window.IntersectionObserver)new IntersectionObserver(function(e){h.classList.toggle("md-on",e[0].intersectionRatio>0.15)},{threshold:[0,0.15,0.3]}).observe(d)})();</script>
-<script type="module">/* 2026-11-13 参道の 3D は静止画のあとで読む。動きを減らす設定では静止画のまま */(function(){var s=document.getElementById("sdHero");if(!s||matchMedia("(prefers-reduced-motion: reduce)").matches)return;var go=function(){import("./js/sando-scroll.js?v=20261116m").then(function(m){m.start(s)}).catch(function(){})};var later=function(){(window.requestIdleCallback||function(f){setTimeout(f,150)})(go,{timeout:500})};if(document.readyState==="complete")later();else addEventListener("load",later,{once:true});})();</script>
+<script type="module">/* 2026-11-13 参道の 3D は静止画のあとで読む。動きを減らす設定では静止画のまま */(function(){var s=document.getElementById("sdHero");if(!s||matchMedia("(prefers-reduced-motion: reduce)").matches)return;var go=function(){import("./js/sando-scroll.js?v=20261116n").then(function(m){m.start(s)}).catch(function(){})};var later=function(){(window.requestIdleCallback||function(f){setTimeout(f,150)})(go,{timeout:500})};if(document.readyState==="complete")later();else addEventListener("load",later,{once:true});})();</script>
 <div class="cg-home">
 
 
