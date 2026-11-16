@@ -67,3 +67,5 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 @media (min-width:760px){#top .m2-sec{padding-top:150px!important}}
 @media (max-width:759px){#top .m2-lw a{text-decoration:none!important}#top .m2-lw a>span{text-decoration:underline!important;text-decoration-color:var(--c)!important;text-underline-offset:4px}}
 #top .m2-lr span{white-space:nowrap}
+/* 第15周 2：ワークショップの下の暗い面を外す */
+#collab .v2-social{background:transparent!important}
