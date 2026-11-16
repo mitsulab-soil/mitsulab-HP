@@ -54,3 +54,8 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 #top .m2-l1,#top .m2-l2{stroke-opacity:.6!important}
 
 .tab-panel:not(#top) :is(.cg-eyebrow,.eyebrow,.qx-code,.rd-k,.pr-label){font-family:var(--hxm)!important}
+/* 第13周 2：タブの切り替えから見出しまでの空きをそろえる */
+.tab-panel:not(#top) .wrap{padding-top:28px!important}
+.tab-panel:not(#top) .panel-head{padding-top:20px!important}
+.tab-panel:not(#top) .cg-deep{padding-top:44px!important}
+@media (max-width:759px){.tab-panel:not(#top) .wrap{padding-top:16px!important}.tab-panel:not(#top) .panel-head{padding-top:12px!important}.tab-panel:not(#top) .cg-deep{padding-top:28px!important}}
