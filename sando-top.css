@@ -270,3 +270,6 @@ html body #top .m2-sec figcaption.m2-cap{font-size:16px!important;line-height:1.
 #top .sd-hero.md-on .sd-hud,#top .sd-hero.md-on .sd-snd,#top .sd-hero.md-on .sd-cap{opacity:0;pointer-events:none}
 /* 二重の＋をなくし、ほかのカードの「＋ 詳細」とそろえる */
 #top .ap-x.pr-position>summary{border:0!important;border-radius:0!important;background:none!important;padding:0!important;margin:0!important;font-size:15px}#top .ap-x.pr-position>summary::before{content:none!important}
+#top .m2-plain .nw{white-space:nowrap}
+@media (min-width:760px){#top .sd-first .m2-plain{max-width:27em}#top .m2-sec{padding-top:96px}}
+@media (min-width:760px){#top .sd-first .m2-head{margin-left:0;margin-right:auto}#top .sd-first .m2-plain{max-width:25em}}
