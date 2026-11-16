@@ -44,3 +44,6 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 #top .sd-cv{filter:brightness(1.2) saturate(1.05)}
 /* 第12周：スマホの目的別ボタンを同じ幅の 2 列に */
 @media (max-width:759px){.sub-sw{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}.sub-sw .sub-k{grid-column:1/-1}.sub-sw>a,.sub-sw>button{width:100%;box-sizing:border-box;justify-content:center;text-align:center;margin:0!important}}
+/* 第12周 2：プロフィール・お問い合わせの左端をほかのタブ（990px の段）にそろえる・320 のボタンは 1 列・320 の層は元の位置 */
+@media (min-width:1040px){#profile>.wrap,#contact>.wrap{max-width:990px!important;padding-left:0!important;padding-right:0!important;margin-left:auto!important;margin-right:auto!important}#profile>.wrap>*,#contact>.wrap>*{margin-left:0!important}#contact .card.ask{margin-left:0!important;max-width:none}}
+@media (max-width:359px){.sub-sw{grid-template-columns:1fr!important}}
