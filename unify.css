@@ -95,3 +95,4 @@ html .cg-design .pr-grid>li.pr-card>.ap-f img{width:100%!important;height:100%!i
 .sd-lay{transition:opacity .4s}
 /* 第19周：協働者などの欄の地の文を、一覧の字の大きさにそろえる */
 .tab-panel .rd-s>p{font-size:14px!important;line-height:1.8!important;color:#c3cbdb;max-width:40em}
+.f-credit .nw{white-space:nowrap}
