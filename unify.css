@@ -59,3 +59,10 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 .tab-panel:not(#top) .panel-head{padding-top:20px!important}
 .tab-panel:not(#top) .cg-deep{padding-top:44px!important}
 @media (max-width:759px){.tab-panel:not(#top) .wrap{padding-top:16px!important}.tab-panel:not(#top) .panel-head{padding-top:12px!important}.tab-panel:not(#top) .cg-deep{padding-top:28px!important}}
+/* 第14周：角の形をそろえる（直角）・スマホの作品の副題は下線なし・タブの上の空きを詰める・関係図の上に余白 */
+.tab-panel:not(#top) :is(a,button,div,section,dl,details,summary,table){border-radius:2px!important}
+@media (max-width:759px){#top .m2-lw a small{text-decoration:none!important;border-bottom:0!important}#top .m2-lw a small *{text-decoration:none!important}}
+.sub-sw{padding-top:84px!important}
+@media (max-width:759px){.sub-sw{padding-top:72px!important}}
+@media (min-width:760px){#top .m2-sec{padding-top:150px!important}}
+@media (max-width:759px){#top .m2-lw a{text-decoration:none!important}#top .m2-lw a>span{text-decoration:underline!important;text-decoration-color:var(--c)!important;text-underline-offset:4px}}
