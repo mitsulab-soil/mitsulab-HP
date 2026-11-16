@@ -11,12 +11,12 @@ export async function start(sec) {
     fetch('img/hero/sando_wire.json').then(r => r.json()), fetch('img/hero/sando_wire.bin').then(r => r.arrayBuffer())])));
   const I = new Int16Array(buf), q = meta.q, CP = meta.center, o = CP[Math.floor(CP.length / 2)];
   const R = new T.WebGLRenderer({ canvas: cv, antialias: !mob, alpha: false, powerPreference: 'high-performance' });
-  R.setPixelRatio(Math.min(devicePixelRatio || 1, mob ? 1.25 : 1.5)); R.setClearColor(0x03060f, 1);
+  R.setPixelRatio(Math.min(devicePixelRatio || 1, mob ? 1.25 : 1.5)); R.setClearColor(0x15243c, 1);
   R.outputColorSpace = T.SRGBColorSpace;
-  const S = new T.Scene(), FOG = new T.Color(0x03060f); S.fog = new T.FogExp2(FOG.getHex(), 0.004);
+  const S = new T.Scene(), FOG = new T.Color(0x15243c); S.fog = new T.FogExp2(FOG.getHex(), 0.003);
   const C = new T.PerspectiveCamera(mob ? 66 : 52, 1, 0.1, 1400);
-  const hemi = new T.HemisphereLight(0x9fc8ff, 0x1a1208, 1.0); S.add(hemi);
-  const sun = new T.DirectionalLight(0xffe6c4, 1.6); sun.position.set(-40, 60, 30); S.add(sun);
+  const hemi = new T.HemisphereLight(0x9fc8ff, 0x2a2214, 1.7); S.add(hemi);
+  const sun = new T.DirectionalLight(0xffe6c4, 2.3); sun.position.set(-40, 60, 30); S.add(sun);
   const sm = x => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
   const win = (p, a, b, f = 0.025) => sm((p - a) / f) * (1 - sm((p - b) / f));
 
@@ -253,7 +253,7 @@ export async function start(sec) {
         const d = Math.hypot(x - C.position.x, z - C.position.z); let hit = 0; for (let k = 0; k < rings.length; k++) { const f = ((tt * 0.6 + k / rings.length) % 1), rr = 1.5 + f * 30; hit = Math.max(hit, Math.max(0, 1 - Math.abs(rr - d) / 1.2) * (1 - f)); }
         const c = 0.9 + hit * 2.2; ca.array[i * 3] = c; ca.array[i * 3 + 1] = c * 0.95; ca.array[i * 3 + 2] = c * 0.8; }
       pa.needsUpdate = ca.needsUpdate = true; }
-    FB.setHex(0x03060f).lerp(FU, wBee).lerp(FS, wSoil); S.fog.color.copy(FB); R.setClearColor(FB, 1); S.fog.density = 0.004 + wEye * 0.012 - wFx * 0.002;
+    FB.setHex(0x15243c).lerp(FU, wBee).lerp(FS, wSoil); S.fog.color.copy(FB); R.setClearColor(FB, 1); S.fog.density = 0.003 + wEye * 0.012 - wFx * 0.002;
     fxMats.forEach(([m, a]) => m.opacity = a * wFx);
     const rk = Math.max(wBat, wKey), bat = wBat >= wKey;
     let t0 = null; if (!bat && rk > 0) { t0 = near.reduce((b, n) => (Math.hypot(n[0] - A.x, n[2] - A.z) < Math.hypot(b[0] - A.x, b[2] - A.z) ? n : b), near[0]); if (!t0 || Math.hypot(t0[0] - B.x, t0[2] - B.z) > 18) t0 = [B.x + 4, A.y, B.z]; }
