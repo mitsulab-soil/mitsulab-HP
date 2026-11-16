@@ -85,3 +85,6 @@ html .cg-design .pr-grid,html .cg-design :is(#top,#apps) .pr-grid:not(#_a){grid-
 @media (max-width:759px){.sd-lay{font-size:10px;max-width:58vw;bottom:68px;right:14px}
 html .cg-design .pr-grid>li.pr-card>.ap-f{aspect-ratio:16/10!important;overflow:hidden}
 html .cg-design .pr-grid>li.pr-card>.ap-f img{width:100%!important;height:100%!important;object-fit:cover}}
+
+/* 第18周：スマホの目的別の案内は 3＋2 にそろえる */
+@media (max-width:759px){.sub-sw button{flex:0 1 calc(33.33% - 6px);padding:0 6px!important;line-height:1.3}}
