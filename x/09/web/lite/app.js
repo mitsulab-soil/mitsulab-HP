@@ -636,6 +636,7 @@ function barkUV(m) {
   m.needsUpdate = true;
 }
 /* 遠くの木：中くらいの形を一度だけ横から写した絵を、十字に組んだ 2 枚の板に貼る（1 本 4 三角形）。歩くときの遠景だけに使う */
+TREE.reImp = P => reImp(P);
 function reImp(P) {   /* 11-10 採点 P2「遠景の木は元の絵」：遠景の板の絵を、差し替えた葉の絵で描き直す（1 種 1 回） */
   const I = P?.impR; if (!I) return; const old = renderer.getRenderTarget(), oc = new THREE.Color(), oa = renderer.getClearAlpha(); renderer.getClearColor(oc);
   const g = new THREE.Group(); for (const im of P.mid) g.add(new THREE.Mesh(im.geometry, im.material)); I.sc.add(g);

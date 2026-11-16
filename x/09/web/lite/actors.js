@@ -141,8 +141,9 @@ export function attachActors(q, opt = {}) {
   const _mm = new THREE.Matrix4(), _mq = new THREE.Quaternion(), _ms = new THREE.Vector3(), _mp = new THREE.Vector3(), _my = new THREE.Vector3(0, 1, 0);
   function layMats() {   // 縁石のすぐ外の土（参道の中心から 4.8〜6.4 m・見える帯）に、その升の落ち葉の厚さに比べて置く
     let n = 0; const lt0 = C.litter, cx = cam.position.x, cz = cam.position.z; if (lt0 > .05) { const L = D.cl; let i0 = 1, bd = 1e18; for (let i = 0; i < L.length; i += 2) { const e = (L[i][0] - cx) ** 2 + (L[i][2] - cz) ** 2; if (e < bd) { bd = e; i0 = i; } } const span = Math.max(4, Math.round(32 / Math.max(.5, Math.hypot(L[Math.min(L.length - 1, i0 + 1)][0] - L[i0][0], L[Math.min(L.length - 1, i0 + 1)][2] - L[i0][2]))));   /* 見る人にいちばん近い中心線のまわり ±32 m から */
-      for (let t = 0; t < NMAT * 6 && n < NMAT; t++) { const ia = Math.min(L.length - 2, Math.max(1, i0 + Math.round((rnd() * 2 - 1) * span))), a = L[ia]; if (Math.abs(a[0] - cx) > 32 || Math.abs(a[2] - cz) > 32) continue; const b = L[ia + 1], tx = b[0] - a[0], tz = b[2] - a[2], l = Math.hypot(tx, tz) || 1, o = (4.8 + 1.6 * rnd()) * (rnd() < .5 ? -1 : 1), x = a[0] - tz / l * o + tx / l * rnd() * 2, z = a[2] + tx / l * o + tz / l * rnd() * 2, k = cellOf(x, z), lv = k >= 0 ? F.lit[k] : 0;
-        if (rnd() > lv) continue; _mp.set(x, gy(x, z) + .03, z); _mq.setFromAxisAngle(_my, rnd() * 6.28); const sc = 1.2 + 1.2 * lv; _ms.set(sc, 1, sc); _mm.compose(_mp, _mq, _ms); mats.setMatrixAt(n++, _mm); } }
+      const order = []; for (let d = 0; d <= span; d++) { order.push(i0 + d); if (d) order.push(i0 - d); } let sdm = 1; const rnd = () => (sdm = (sdm * 16807) % 2147483647) / 2147483647;   /* 近い点から順に・点ごとに同じ種 */
+      for (const ib of order) { if (n >= NMAT) break; const ia = Math.min(L.length - 2, Math.max(1, ib)); if (ia !== ib) continue; for (let j = 0; j < 3 && n < NMAT; j++) { sdm = (ia * 131 + j * 7919 + 1) % 2147483647 || 1; rnd(); rnd(); const a = L[ia]; if (Math.abs(a[0] - cx) > 32 || Math.abs(a[2] - cz) > 32) continue; const b = L[ia + 1], tx = b[0] - a[0], tz = b[2] - a[2], l = Math.hypot(tx, tz) || 1, o = (4.8 + 1.6 * rnd()) * (rnd() < .5 ? -1 : 1), x = a[0] - tz / l * o + tx / l * rnd() * 2, z = a[2] + tx / l * o + tz / l * rnd() * 2, k = cellOf(x, z), lv = k >= 0 ? F.lit[k] : 0;
+        if (rnd() > lv) continue; _mp.set(x, gy(x, z) + .03, z); _mq.setFromAxisAngle(_my, rnd() * 6.28); const sc = .8 + 2.2 * lv; _ms.set(sc, 1, sc); _mm.compose(_mp, _mq, _ms); mats.setMatrixAt(n++, _mm); } } }   /* 厚い所ほど大きく（差が読める） */
     mats.count = n; mats.instanceMatrix.needsUpdate = true; }
   const falls = Array.from({ length: NF }, () => ({ x: 0, y: -1e4, z: 0, g: 0 }));
   const bees = Array.from({ length: NB }, () => ({ x: 0, y: -1e4, z: 0, f: null, ph: rnd() * 6.28, on: false }));
@@ -164,7 +165,7 @@ export function attachActors(q, opt = {}) {
     { const fr = Math.max(C.autumn, C.falling); if (Math.abs(fr - (F.fr ?? -1)) > .02) { F.fr = fr;   // 落ちたばかりの葉は黄褐色、季節が進むと枯れ葉の茶色へ
         lgP.material.color.copy(BROWN).lerp(FRESH, fr); matM.color.copy(MATB).lerp(WHITE, fr); } }
     { const P = (q.TREE || window.__TREE)?.protos?.keyaki, au = C.autumn; if (P && Math.abs(au - (F.au ?? -1)) > .02) { F.au = au;   // 欅の黄葉（季節の暦）：近く・中くらいの距離の葉の色を黄褐色へ寄せる
-        for (const m of [P.parts?.[1]?.material, P.mid?.[1]?.material]) { if (!m?.color) continue; const o = m.userData.c0 ||= m.color.clone(); m.color.copy(o).lerp(AUT, au * .85); } } }
+        for (const m of [P.parts?.[1]?.material, P.mid?.[1]?.material]) { if (!m?.color) continue; const o = m.userData.c0 ||= m.color.clone(); m.color.copy(o).lerp(AUT, au * .85); } (q.TREE || window.__TREE)?.reImp?.(P); } }   /* 11-16：遠景の板の欅も同じ黄葉に描き直す */
     const dawn = C.hour > 3 && C.hour < 8 ? 1 - Math.abs(C.hour - 5.5) / 2.5 : 0;
     const wetBase = OV.wet ?? clamp(.32 + .25 * (C.month === 6 || C.month === 7 || C.month === 9 ? 1 : 0) + .25 * dawn);   // 梅雨・秋雨のころと夜明けの露（季節の暦の模式）
     let soilAct = 0, upt = 0, hot = 0, shN = 0, pN = 0, uN = 0;
@@ -189,7 +190,7 @@ export function attachActors(q, opt = {}) {
       for (let k = 0; k < N * N; k++) { const x = F.x0 + (k % N + .5) * CELL, z = F.z0 + (Math.floor(k / N) + .5) * CELL; const d2c = (x - cx) ** 2 + (z - cz) ** 2, near = d2c < 49 || d2c > 784 || !F.side[k];   /* 参道とその両脇だけ（池や芝の上に粒を浮かべない） */ pa.setXYZ(k, x, near ? -1e4 : gy(x, z) + .12, z);   /* 足もと 7 m は描かない（目の前を覆わない） */ const d = clamp((F.Ts[k] - C.Ta) / 22); span = Math.max(span, d);
         ca.setXYZ(k, .42 + .58 * d, .78 - .2 * d, .82 - .55 * d); }
       pa.needsUpdate = ca.needsUpdate = true; F.tgK = C.I > .25 && span > .25 ? 1 : 0; }
-    F.init = true; if (F.matT === 0 || !F.matC || Math.hypot(cx - F.matC[0], cz - F.matC[1]) > 20) { F.matT = 1; F.matC = [cx, cz]; layMats(); } {   /* 敷きは 20 m 動いたときだけ置き直す（歩くたびにちらつかない） */ let m = 0; for (let k = 0; k < N * N; k++) if (F.hum[k] > m) m = F.hum[k]; F.hm = m; }
+    F.init = true; if (F.matT === 0 || !F.matC || Math.hypot(cx - F.matC[0], cz - F.matC[1]) > 3) { F.matT = 1; F.matC = [cx, cz]; layMats(); } {   /* 11-16：敷きは中心線の点ごとに決まった場所（同じ種）に置くので、3 m ごとに置き直しても前の葉は同じ所に残る */ let m = 0; for (let k = 0; k < N * N; k++) if (F.hum[k] > m) m = F.hum[k]; F.hm = m; }
     A.soil.state.act = shN ? soilAct / shN : 0; { const c0 = cellOf(cx, cz); let lsum = 0, ln = 0; if (c0 >= 0) for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const k = c0 + dj * N + di; if (k >= 0 && k < N * N && !F.paved[k]) { lsum += F.lit[k]; ln++; } } A.keyaki.state.litterHere = ln ? lsum / ln : 0; A.keyaki.state.litter = C.litter; } A.keyaki.state.uptake = uN ? upt / uN : 0; A.pave.state.hot = pN ? hot / pN : 0;
     // 街灯と夜の虫：灯りは夜だけ。虫は暖かい季節に灯りへ集まる（欅の陰の暗がりには集まらない）
     const insectSeason = smooth(10, 16, C.Ta) * (C.month >= 4 && C.month <= 10 ? 1 : .25);
@@ -254,7 +255,7 @@ export function attachActors(q, opt = {}) {
     if ((tAcc += dt) >= .5) { stepField(Math.min(tAcc, 2)); tAcc = 0; stepAoi(now); }
     const eye = A.walker.state.eye;
     // ミツバチ（秒の速さ）：選んだ花のまわりを小さく行き来する
-    beeP.material.size = (eye === "hachi" ? .32 : .2) * (MOBILE ? 1.3 : 1); beeP.material.opacity = eye && eye !== "hachi" ? .45 : .92;
+    beeP.material.size = (eye === "hachi" ? .34 : .27) * (MOBILE ? 1.3 : 1);   /* 11-16：夏のミツバチを見つけやすく（実寸より大きいことは模式の欄に明記） */ beeP.material.opacity = eye && eye !== "hachi" ? .45 : .92;
     bees.forEach((b, i) => { if (!b.on || !b.f) { bp.setXYZ(i, 0, -1e4, 0); return; } const f = b.f, ty = gy(f.x, f.z) + f.h + .35 * Math.sin(T * 2 + b.ph), tx = f.x + Math.cos(T * 1.7 + b.ph) * .9, tz = f.z + Math.sin(T * 2.3 + b.ph) * .9, k = Math.min(1, dt * 1.6);
       b.x += (tx - b.x) * k; b.z += (tz - b.z) * k; b.y += (ty - b.y) * k; if ((b.x - cam.position.x) ** 2 + (b.z - cam.position.z) ** 2 < 12) { bp.setXYZ(i, 0, -1e4, 0); return; } bp.setXYZ(i, b.x + Math.sin(T * 19 + b.ph) * .05, b.y, b.z + Math.cos(T * 23 + b.ph) * .05); }); bp.needsUpdate = true;
     // 夜の虫：灯りのまわりを回る（灯りの虫の量だけ）

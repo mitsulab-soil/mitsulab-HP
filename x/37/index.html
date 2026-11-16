@@ -45,13 +45,13 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 .fold .in{clear:both;margin-top:6px;background:rgba(240,244,242,.96);border:1px solid var(--line);border-radius:2px;padding:14px 16px;font-size:12.5px;line-height:1.75;color:var(--t2);max-height:60vh;overflow:auto;max-width:560px;margin-left:auto}
 .fold .in p+p{margin-top:6px}.fold .in b{font-weight:400;color:var(--t1)}
 .hint{text-shadow:var(--halo);position:fixed;left:calc(50% - 26px);top:40%;transform:translate(-50%,-50%);font-size:13px;color:var(--t1);background:var(--pane);padding:10px 14px;border-radius:2px;pointer-events:none;transition:opacity .8s;white-space:nowrap}
-@media (max-width:420px){#tq .l,#tq small{display:none}#tq{bottom:calc(132px + env(safe-area-inset-bottom))}.cap{bottom:calc(68px + env(safe-area-inset-bottom));font-size:13px;line-height:1.55}.rail{top:calc(max(10px,env(safe-area-inset-top)) + 80px)}h1{font-size:15px}.top{gap:8px}.hint{font-size:12px}h1 small{display:none}.fold summary .w{display:none}.fold{right:16px}.meter{font-size:11px}.meter .big{font-size:17px}.cap{font-size:13.5px}.rail .lab{display:none}}
+@media (max-width:420px){.meter,.top{background:radial-gradient(ellipse 85% 90% at 35% 50%,rgba(238,243,241,.86),rgba(238,243,241,0) 78%)}.meter .big,.meter div,.meter .ev,.meter .ago,.top h1,.top .back{text-shadow:0 0 4px #eef3f1,0 0 10px #eef3f1,0 0 18px #eef3f1,0 0 2px #fff}.rail i span{text-shadow:0 0 1px #fff,0 0 4px #eef3f1,0 0 9px #eef3f1,0 0 16px #eef3f1}.rail i{background:var(--t1)}.rail b{box-shadow:0 0 0 4px rgba(47,143,168,.25),0 0 10px #eef3f1}#tq .l,#tq small{display:none}#tq{bottom:calc(132px + env(safe-area-inset-bottom))}.cap{bottom:calc(68px + env(safe-area-inset-bottom));font-size:13px;line-height:1.55}.rail{top:calc(max(10px,env(safe-area-inset-top)) + 80px)}h1{font-size:15px}.top{gap:8px}.hint{font-size:12px}h1 small{display:none}.fold summary .w{display:none}.fold{right:16px}.meter{font-size:11px}.meter .big{font-size:17px}.cap{font-size:13.5px}.rail .lab{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <canvas id="c" aria-label="氷川参道の目の高さの3Dの風景。上下にスクロールかドラッグで、時間の速さが変わります。"></canvas>
-<div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/time<small>時間の速さ</small></h1></div>
+<div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/time</h1></div>
 <div class="meter" aria-live="polite"><div class="big" id="mH">画面の 1 秒＝実際の 1 秒</div><div id="mN" hidden>10<sup>0</sup> 倍</div><div class="ev" id="mE">いまの 1 秒</div><div class="ago" id="mA"></div></div>
 <div class="rail" id="rail" role="slider" aria-label="時間の速さ" aria-valuemin="-10" aria-valuemax="13" aria-valuenow="0" tabindex="0"><b id="knob"></b></div>
 <details class="fold" id="fold"><summary>＋ 出典<span class="w">と模式</span></summary><div class="in">
@@ -126,7 +126,7 @@ function ui(){
 window.__setN=v=>{nT=v;n=v;};window.__time={get n(){return n},get ago(){return ago}};
 // 3D は後から（文字と操作は先に出す）
 let W=null;
-import('./time3d.js').then(m=>{W=m.create($('c'));window.__ready=performance.now()}).catch(e=>console.warn(e));
+import('./time3d.js?v=20261116').then(m=>{W=m.create($('c'));window.__ready=performance.now()}).catch(e=>console.warn(e));
 let tp=performance.now();
 function loop(t){const dt=Math.min(.1,(t-tp)/1000);tp=t;
  n+=(nT-n)*Math.min(1,dt*4);

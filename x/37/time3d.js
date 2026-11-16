@@ -63,7 +63,7 @@ export function create(canvas) {
   const leaves = new THREE.InstancedMesh(leafGeo, lMat, NT * LPT); leaves.castShadow = !mobile; S.add(leaves);
   { const wc = new THREE.Color(1, 1, 1); for (let k = 0; k < NT * LPT; k++) leaves.setColorAt(k, wc); for (let k = 0; k < NT; k++) trunks.setColorAt(k, wc); for (let k = 0; k < NT * NB * 4; k++) branches.setColorAt(k, wc); }
   const TGLOW = new THREE.Color(2.2, 1.95, 1.5);
-  const YOUNG = new THREE.Color(1.85, 1.95, 1.3), WHITE = new THREE.Color(1, 1, 1), HAZE = new THREE.Color(.62, .66, .66); let youngOn = false;   // 育つ一本のあいだ、ほかの木は霞に沈める
+  const YOUNG = new THREE.Color(1.85, 1.95, 1.3), WHITE = new THREE.Color(1, 1, 1), HAZE = new THREE.Color(1.28, 1.34, 1.38);   /* 11-16：ほかの木は明るい霞へ溶かす（暗くすると育つ一本と並んで見えた） */ let youngOn = false;   // 育つ一本のあいだ、ほかの木は霞に沈める
   const LO = []; for (let i = 0; i < NT * LPT; i++) { const r = hash1(i * 1.37), a = hash1(i * 2.11) * 6.283, h = hash1(i * 3.7); LO.push([Math.cos(a) * r, .55 + h * .45, Math.sin(a) * r, hash1(i * 5.3) * 6.28, hash1(i * 7.9), hash1(i * 4.4) * 3.14]); }
   const cedarGeo = new THREE.ConeGeometry(1.6, 1, 8); cedarGeo.translate(0, .5, 0);
   const cMat = new THREE.MeshStandardMaterial({ color: '#566e48', roughness: .95 }); landTint(cMat, { amt: .14 });
@@ -103,13 +103,15 @@ export function create(canvas) {
     const st = new THREE.CanvasTexture(sc); st.colorSpace = THREE.SRGBColorSpace;
     const abM = new THREE.MeshStandardMaterial({ map: st, roughness: .7 });
     const abG = new THREE.SphereGeometry(len * .3, 18, 14); abG.rotateX(Math.PI / 2);
-    const ab = new THREE.Mesh(abG, abM); ab.scale.set(.8, .8, 1.35); ab.position.z = len * .44; g.add(ab);
-    th.scale.set(1.05, 1, 1.1); bm.roughness = 1; bm.sheen = 1;
+    const ab = new THREE.Mesh(abG, abM); ab.scale.set(.64, .58, 1.6); ab.position.z = len * .5; g.add(ab);   /* 11-16：腹は細長く先へ細る（丸い玉に見えた） */
+    { const p = ab.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const z = p.getZ(i) / (len * .3), t = .78 + .22 * (1 - Math.max(0, z)) ; p.setX(i, p.getX(i) * t); p.setY(i, p.getY(i) * t); } ab.geometry.computeVertexNormals(); }
+    th.scale.set(.9, .84, 1); bm.roughness = 1;   /* 胸は毛の多いつや消し */
     const lm = new THREE.MeshStandardMaterial({ color: '#2a241c', roughness: .6 });
     for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) { const L = new THREE.Mesh(new THREE.CylinderGeometry(len * .018, len * .012, len * .55, 4), lm); L.position.set(sx * len * .16, -len * .2, (k - 1) * len * .14); L.rotation.set(.3 * (k - 1), 0, sx * .9); g.add(L); }
     const ants = [];
     for (const sx of [-1, 1]) { const A = new THREE.Mesh(new THREE.CylinderGeometry(len * .012, len * .012, len * .45, 4), lm); ants.push(A); A.position.set(sx * len * .07, len * .12, -len * .5); A.rotation.set(-1.1, 0, sx * .35); g.add(A); }
-    const hd = new THREE.Mesh(new THREE.SphereGeometry(len * .15, 12, 8), new THREE.MeshStandardMaterial({ color: '#1d1a16', roughness: .5 })); hd.position.z = -len * .3; g.add(hd);
+    const hd = new THREE.Mesh(new THREE.SphereGeometry(len * .15, 12, 8), new THREE.MeshStandardMaterial({ color: '#1d1a16', roughness: .5 })); hd.position.z = -len * .3; hd.scale.set(1.25, .95, .62); g.add(hd);   /* 頭は横に広く前後に薄い */
+    for (const sx of [-1, 1]) { const ce = new THREE.Mesh(new THREE.SphereGeometry(len * .07, 10, 8), new THREE.MeshStandardMaterial({ color: '#16130f', roughness: .3 })); ce.scale.set(.6, 1.25, .8); ce.position.set(sx * len * .14, len * .02, -len * .3); g.add(ce); }   /* 複眼（模式） */
     const wm = new THREE.MeshPhysicalMaterial({ color: '#f6fafb', transparent: true, opacity: .22, emissive: '#5a6a70', emissiveIntensity: .05, iridescence: .6, iridescenceIOR: 1.3, side: THREE.DoubleSide, roughness: .2, depthWrite: false });
     const wsh = (L, W, x0, y0) => { const p = new THREE.Shape(); p.moveTo(x0, y0); p.bezierCurveTo(x0 + L * .25, y0 + W * .55, x0 + L * .8, y0 + W * .62, x0 + L, y0 + W * .12); p.bezierCurveTo(x0 + L * 1.02, y0 - W * .2, x0 + L * .6, y0 - W * .42, x0 + L * .25, y0 - W * .3); p.lineTo(x0, y0); return p; };
     const wg = new THREE.ShapeGeometry(hind ? [wsh(wingL, wingL * .34, 0, 0), wsh(wingL * .64, wingL * .24, wingL * .03, -wingL * .2)] : [wsh(wingL, wingL * .4, 0, 0)], 6); wg.rotateX(-Math.PI / 2);   // 翅は体に沿って水平に   // ミツバチは大きな前翅と小さな後翅（模式）
@@ -119,7 +121,7 @@ export function create(canvas) {
   };
   const bee = bug(.014, '#b3803f', .011, true, '#3b2a1a', 5);   // セイヨウミツバチ：茶がかった橙と黒褐色の細い縞（模式）
   bee.g.position.set(mobile ? .008 : .022, 1.576, 3.9); bee.g.rotation.y = .9; S.add(bee.g);   // 実寸のまま目の近くへ
-  { const st = new THREE.Mesh(new THREE.TorusGeometry(.0034, .0012, 6, 16), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.position.z = .007; bee.g.add(st); }
+  { const st = new THREE.Mesh(new THREE.ConeGeometry(.0007, .0026, 6), new THREE.MeshStandardMaterial({ color: '#2b2418' })); st.rotation.x = Math.PI / 2; st.position.z = .0145; bee.g.add(st); }   /* 11-16：腹の黒い輪（大きな円盤に見えた）をやめ、腹の先の小さな針に */
   const fly = bug(.009, '#3b3a36', .008); fly.g.position.set(mobile ? .008 : .018, 1.588, 3.89); fly.g.rotation.y = 1.15; fly.bm.color.set('#6a6a62'); fly.abM.map = null; fly.abM.color.set('#55544c'); fly.abM.needsUpdate = true; for (const A of fly.ants) { A.scale.set(1, .25, 1); A.position.z = -.009 * .62; }
   for (const sx of [-1, 1]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(.009 * .12, 10, 8), new THREE.MeshStandardMaterial({ color: '#7a2418', roughness: .35 })); ey.position.set(sx * .009 * .1, .009 * .03, -.009 * .36); ey.scale.set(.8, 1.1, .9); fly.g.add(ey); }   // ハエ：赤い大きな複眼・短い触角・縞のない灰色の腹（模式）
   S.add(fly.g);   // イエバエのなかま（模式）
