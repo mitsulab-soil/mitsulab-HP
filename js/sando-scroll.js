@@ -64,7 +64,7 @@ export async function start(sec) {
     L([-w, 0], [-w * 0.92, h]); L([w, 0], [w * 0.92, h]); L([-w * 1.35, h + 0.9], [w * 1.35, h + 0.9]); L([-w * 1.2, h], [w * 1.2, h]); L([-w * 1.1, h - 1.6], [w * 1.1, h - 1.6]);
   }
   const og = new T.BufferGeometry(); og.setAttribute('position', new T.Float32BufferAttribute(tv, 3));
-  S.add(new T.LineSegments(og, new T.LineBasicMaterial({ color: 0xff6b4a, transparent: true, opacity: 0.95, fog: true })));
+  const toriiM = new T.LineBasicMaterial({ color: 0xff6b4a, transparent: true, opacity: 0.95, fog: true }); S.add(new T.LineSegments(og, toriiM));
 
   // 4) フォトリアルの地：参道に沿う帯（中＝石畳、両脇＝落ち葉の林床）。質感は目の高さに近づいてから読む
   const tl = new T.TextureLoader();
@@ -163,7 +163,7 @@ export async function start(sec) {
     ['K', 'CONTEXT', '#b4a2ff', ['Qualia/time', 'Qualia/scale', 'Qualia/literature', 'Qualia/letter', 'Qualia/fable', 'Qualia/rakugo']],
     ['g', 'MEANING', '#f2c58a', ['Qualia/yose', 'Qualia/song', 'Qualia/museum', 'ART']]];
   const label = (txt, color, px, h) => { const c = document.createElement('canvas'), g = c.getContext('2d'), F = px + 'px "JetBrains Mono",ui-monospace,Menlo,monospace'; g.font = F; const w = Math.ceil(g.measureText(txt).width) + 16; c.width = w; c.height = px + 16; g.font = F; g.fillStyle = color; g.textBaseline = 'middle'; g.fillText(txt, 8, c.height / 2);
-    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; const s = new T.Sprite(new T.SpriteMaterial({ map: t, transparent: true, opacity: 0, depthWrite: false, fog: false })); s.scale.set(h * w / c.height, h, 1); return s; };
+    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; const s = new T.Sprite(new T.SpriteMaterial({ map: t, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false })); s.scale.set(h * w / c.height, h, 1); return s; };
   const FX = new T.Group(); S.add(FX); const fxMats = [];
   const uF = uEnd * 0.858, PF = curve.getPointAt(uF), DF = curve.getTangentAt(uF);
   FX.position.copy(PF); FX.rotation.y = Math.atan2(DF.x, DF.z); if (mob) FX.scale.setScalar(0.62);
@@ -201,7 +201,7 @@ export async function start(sec) {
       const pl = new T.Mesh(new T.PlaneGeometry(SZ, SZ), new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
       pl.rotation.x = -Math.PI / 2; pl.position.y = y; TOPL.add(pl); topMats.push([pl.material, 0.035 * hz]);
       if (i === 1) { const pts = []; for (let k = 0; k < (mob ? 160 : 320); k++) pts.push((rnd() - 0.5) * SZ, y + rnd() * 0.6, (rnd() - 0.5) * SZ); const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.1, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.9]); }
-      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), 0.55).getHexString(), mob ? 56 : 52, mob ? 7 : 5.4); if (mob) { lb.position.set(SZ / 2 + 3, y + 1, SZ / 2); lb.center.set(1, 0.5); } else { lb.position.set(SZ / 2 + 2, y + 1, SZ / 2); lb.center.set(0, 0.5); } TOPL.add(lb); topMats.push([lb.material, 1]);
+      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), 0.86).getHexString(), mob ? 56 : 52, mob ? 7 : 5.4); if (mob) { lb.position.set(SZ / 2 + (innerWidth < 360 ? 7 : 5), y + 0.4, SZ / 2 + (innerWidth < 360 ? 7 : 5)); lb.center.set(1, 0.5); } else { lb.position.set(SZ / 2 + 6, y, SZ / 2 + 6); lb.center.set(1, 0.5); } TOPL.add(lb); topMats.push([lb.material, 1]);
     });
     // 層をつなぐ縦の細い線
     const V = []; for (const [x, z] of [[-32, -32], [32, -32], [-32, 32], [32, 32]]) V.push(x, 16, z, x, 16 + 44, z);
@@ -238,8 +238,8 @@ export async function start(sec) {
     const wTop = 1 - sm(p / 0.12); topMats.forEach(([m, o]) => m.opacity = o * wTop); TOPL.visible = wTop > 0.01;
     if (wTop > 0.01) { C.rotateY((Math.sin(tt * 0.12) * 0.05 - px * 0.08) * wTop); C.rotateX((-py * 0.05) * wTop); }
     const wBee = win(p, 0.31, 0.44), wBat = win(p, 0.46, 0.58), wSoil = win(p, 0.6, 0.71), wKey = win(p, 0.72, 0.79), wFx = win(p, 0.8, 0.9, 0.025), wEye = win(p, 0.15, 0.79, 0.05);
-    treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
-    lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
+    treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7) * (1 - (mob ? 0.8 : 0.6) * (1 - sm(p / 0.12))); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
+    toriiM.opacity = 0.95 * (1 - (mob ? 0.85 : 0.3) * (1 - sm(p / 0.12))); lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
     pave.opacity = leaf.opacity = wEye * (1 - wSoil * 0.75) * (1 - wBat * 0.6);
     pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0x8a7a62).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
@@ -268,7 +268,7 @@ export async function start(sec) {
     return rk > 0.01 || wSoil > 0.01 || p < 0.04;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
-  const prog = () => { const M0 = window.__mdEnd || 0; const r = sec.getBoundingClientRect(), span = r.height - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; return Math.max(0, (q - M0) / (1 - M0)); };
+  const prog = () => { const M0 = window.__mdEnd || 0; const r = sec.getBoundingClientRect(), span = r.height - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; return M0 > 0 ? (q < M0 ? 0 : 0.13 + 0.87 * (q - M0) / (1 - M0)) : q; };
   let cur = prog(), raf = 0, vis = true, lt = 0, frozen = false;
   const draw = () => { const anim = place(cur); R.render(S, C); return anim; };
   function loop(n) { raf = 0; if (frozen) return; const dt = lt ? Math.min(0.05, (n - lt) / 1000) : 0.016; lt = n; tt += dt; const t = prog(); cur += (t - cur) * 0.2; if (Math.abs(t - cur) < 2e-4) cur = t; const anim = draw(); dirtyTex = false; if (vis && (cur !== t || anim)) raf = requestAnimationFrame(loop); else lt = 0; }

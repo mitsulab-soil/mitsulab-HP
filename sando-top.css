@@ -283,3 +283,20 @@ html body #top .m2-sec figcaption.m2-cap{font-size:16px!important;line-height:1.
 /* 一覧の項の後ろの面を外す（板に見えないように）・説明は明朝で */
 @media (max-width:759px){#top .m2-list li{background:none!important}html body #top .m2-sec figcaption.m2-cap{font-family:var(--serif,serif)!important}}
 html body #top #mdTop figcaption.m2-cap,html body #top #mdTop figcaption.m2-cap *{font-family:"Shippori Mincho","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif!important}
+/* 2026-11-16 第9周 仕上げ：説明文は明朝ひとつに・作品名の重みを学問に近づける・スマホの作品の札を 2 列でそろえる・関係図の下の余白 */
+html body #top #mdTop figcaption.m2-cap,html body #top #mdTop figcaption.m2-cap *{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif!important;font-weight:400!important}
+#top #mdTop .m2-cap .nw{white-space:nowrap}
+@media (max-width:359px){#top #mdTop .m2-cap{font-size:15px!important}}
+@media (min-width:760px){#top .m2-a text{font-size:23px;fill:#f2f4ef;font-weight:500}#top .m2-f{font-size:27px}}
+@media (max-width:759px){
+ #top .m2-lw{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #top .m2-lw .m2-lk{grid-column:1/-1;margin:2px 0 0}
+ #top .m2-lw a{min-width:0;box-sizing:border-box;width:100%}
+ #top .m2-lw a span{overflow-wrap:anywhere}
+ #top .md2{margin-bottom:-86%!important}
+ #top .m2-cap{margin-top:0!important}
+}
+/* 最初の画面（層の 3D）だけ、霞の幕を薄くして層の名前を明るく読ませる */
+#top .sd-hero[data-scene="0"] .sd-stick::after{background:radial-gradient(ellipse at 30% 50%,rgba(3,6,15,.45),rgba(3,6,15,.12) 70%)}
+@media (max-width:759px){#top .sd-hero[data-scene="0"] .sd-stick::after{background:linear-gradient(180deg,rgba(3,6,15,.6),rgba(3,6,15,.35) 40%,rgba(3,6,15,.05) 52%,rgba(3,6,15,.1) 78%,#03060f)}}
+@media (max-width:759px){#top .m2-lw{align-items:stretch!important}#top .m2-lw a{justify-content:flex-start!important}}
