@@ -79,3 +79,9 @@ html .cg-design .pr-grid>li.pr-card:not(#_a):not(#_b)>.ap-f,html .cg-design :is(
 @media (min-width:1100px){
 html .cg-design .pr-grid,html .cg-design :is(#top,#apps) .pr-grid:not(#_a){grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
+
+/* 第17周：TOP の 3D の層の名前に、図の外で短い日本語を添える（本人了承 11-17）／スマホのカードの画の高さをそろえる */
+.sd-lay{position:absolute;right:clamp(14px,3vw,40px);bottom:calc(clamp(16px,3vh,32px) + 52px);z-index:1;margin:0;font:400 11px/1.6 var(--hxm,ui-monospace,monospace);letter-spacing:.12em;color:var(--hx,#a8f2f6);opacity:.85;text-align:right;max-width:46vw}
+@media (max-width:759px){.sd-lay{font-size:10px;max-width:58vw;bottom:68px;right:14px}
+html .cg-design .pr-grid>li.pr-card>.ap-f{aspect-ratio:16/10!important;overflow:hidden}
+html .cg-design .pr-grid>li.pr-card>.ap-f img{width:100%!important;height:100%!important;object-fit:cover}}
