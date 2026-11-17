@@ -12,7 +12,7 @@ export async function start(sec) {
   const I = new Int16Array(buf), q = meta.q, CP = meta.center, o = CP[Math.floor(CP.length / 2)];
   const R = new T.WebGLRenderer({ canvas: cv, antialias: !mob, alpha: false, powerPreference: 'high-performance' });
   R.setPixelRatio(Math.min(devicePixelRatio || 1, mob ? 1.25 : 1.5)); R.setClearColor(0x15243c, 1);
-  R.outputColorSpace = T.SRGBColorSpace;
+  R.outputColorSpace = T.SRGBColorSpace; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 0.95;
   const S = new T.Scene(), FOG = new T.Color(0x15243c); S.fog = new T.FogExp2(FOG.getHex(), 0.003);
   const C = new T.PerspectiveCamera(mob ? 66 : 52, 1, 0.1, 1400);
   const hemi = new T.HemisphereLight(0x9fc8ff, 0x2a2214, 1.7); S.add(hemi);
@@ -83,6 +83,7 @@ export async function start(sec) {
   const pave = new T.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
   const leaf = new T.MeshStandardMaterial({ color: 0x8a7a62, roughness: 1, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
   // 継ぎ目のくり返しを崩す：同じ質感を 2 つの大きさ・向きで読み、場所ごとの揺らぎで混ぜる（描く数は増えない）
+  const UT = { value: 0 }, UDAP = { value: 0.7 };
   const antiTile = m => { m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
       vec2 uA = vMapUv; vec2 uB = mat2(0.8, -0.6, 0.6, 0.8) * vMapUv * 0.37 + vec2(0.31, 0.77);
       float nz = fract(sin(dot(floor(vMapUv * 0.25), vec2(12.99, 78.23))) * 43758.5);
@@ -91,14 +92,20 @@ export async function start(sec) {
       vec4 tc = mix(tA, tB, 0.28 + 0.34 * nz);
       tc.rgb *= 0.82 + 0.3 * nz2;
       diffuseColor *= tc;
-    #endif`); }; m.customProgramCacheKey = () => 'antiTile'; };
+      vec2 wq = vMapUv * 0.55 + vec2(uT * 0.05, uT * 0.03);
+      float dp = sin(wq.x * 2.3 + sin(wq.y * 1.7)) * sin(wq.y * 2.9 + sin(wq.x * 1.3 + uT * 0.2));
+      diffuseColor.rgb *= 0.72 + 0.8 * uDap * smoothstep(0.25, 0.85, dp) * vec3(1.0, 0.9, 0.7);
+    #endif`); sh.uniforms.uT = UT; sh.uniforms.uDap = UDAP; sh.fragmentShader = 'uniform float uT; uniform float uDap;\n' + sh.fragmentShader; }; m.customProgramCacheKey = () => 'antiTile'; };
   antiTile(pave); antiTile(leaf);
   strip(-6, 6, pave, 0.02); strip(6, 26, leaf, 0); strip(-26, -6, leaf, 0);
+  const soilG = new T.MeshStandardMaterial({ color: 0x6e5a44, roughness: 1, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false }); antiTile(soilG);
+  if (!mob) { strip(26, 70, soilG, -0.05); strip(-70, -26, soilG, -0.05); }
   let texLoaded = false, dirtyTex = false;
   const loadTex = () => { if (texLoaded) return; texLoaded = true;
     pave.map = tex('img/hero/3d/ql_paving_c.webp', true); pave.normalMap = tex('img/hero/3d/ql_paving_n.webp'); pave.roughnessMap = tex('img/hero/3d/dio/paving_r.webp');
     leaf.map = tex('img/hero/3d/dio/leaves_c.webp', true); leaf.normalMap = tex('img/hero/3d/dio/leaves_n.webp'); leaf.roughnessMap = tex('img/hero/3d/dio/leaves_r.webp');
-    pave.needsUpdate = leaf.needsUpdate = true; };
+    soilG.map = tex('img/hero/3d/dio/soil_c.webp', true); soilG.normalMap = tex('img/hero/3d/dio/soil_n.webp');
+    pave.needsUpdate = leaf.needsUpdate = soilG.needsUpdate = true; };
 
   // 5) 土の中：根と菌糸（模式）
   const rv = [];
@@ -140,7 +147,7 @@ export async function start(sec) {
     const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
     const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
     const tg = await gl.loadAsync('img/hero/3d/sando_keyaki.glb');
-    tg.scene.updateMatrixWorld(true); const parts = []; tg.scene.traverse(m => { if (m.isMesh) { if (m.material) { m.material.side = T.DoubleSide; if (/leaves/.test(m.name)) { m.material.alphaTest = 0.45; m.material.transparent = false; } if (m.material.map) m.material.map.anisotropy = 4; } parts.push(m); } });
+    tg.scene.updateMatrixWorld(true); const parts = []; tg.scene.traverse(m => { if (m.isMesh) { if (m.material) { m.material.side = T.DoubleSide; if (/leaves/.test(m.name)) { m.material.alphaTest = 0.45; m.material.transparent = false; m.material.onBeforeCompile = sh => { sh.uniforms.uT = UT; sh.vertexShader = 'uniform float uT;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  transformed.x += sin(uT * 1.3 + position.y * 4.0 + position.z * 3.0) * 0.025 * (position.y + 1.0);\n  transformed.z += cos(uT * 1.1 + position.x * 3.5) * 0.02 * (position.y + 1.0);'); }; m.material.customProgramCacheKey = () => 'keyakiSway'; } if (m.material.map) m.material.map.anisotropy = 4; } parts.push(m); } });
     const bb = new T.Box3().setFromObject(tg.scene), sz = bb.getSize(new T.Vector3());
     const dC = (x, z) => { let m = 1e9; for (const c of CP) { const d = Math.hypot(c[0] - o[0] - x, c[2] - o[2] - z); if (d < m) m = d; } return m; };
     const pick = near.filter(([x, , z]) => { const d = dC(x, z); return d > 9.5 && d < 32; }), lim = mob ? 90 : 170, stp = Math.max(1, pick.length / lim), sel = [];
@@ -214,6 +221,11 @@ export async function start(sec) {
 
   // 場面（スクロールの量 p で決まる）
 
+
+  const skyM = new T.ShaderMaterial({ side: T.BackSide, depthWrite: false, transparent: true, fog: false, uniforms: { uO: { value: 0 }, uSun: { value: new T.Vector3(-0.55, 0.42, -0.72).normalize() } },
+    vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform float uO; uniform vec3 uSun; varying vec3 vD; void main(){ float h = clamp(vD.y, -0.1, 1.0); vec3 c = mix(vec3(0.86,0.80,0.70), vec3(0.36,0.52,0.70), smoothstep(0.0, 0.55, h)); float s = max(0.0, dot(vD, uSun)); c += vec3(1.0,0.82,0.55) * (pow(s, 48.0) * 1.4 + pow(s, 6.0) * 0.22); gl_FragColor = vec4(c, uO); }' });
+  const skyD = new T.Mesh(new T.SphereGeometry(900, 32, 16), skyM); skyD.frustumCulled = false; skyD.renderOrder = -1; S.add(skyD);
   // 2026-11-18 背景の演出：木漏れ日の光の筋・漂う粒・地面を走る走査の帯（すべて手続きで生成）
   const shaftT = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 128; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(255,240,210,0)'); gr.addColorStop(0.25, 'rgba(255,240,210,.9)'); gr.addColorStop(1, 'rgba(255,240,210,0)'); g.fillStyle = gr; g.fillRect(0, 0, 16, 128); const g2 = g.createLinearGradient(0, 0, 16, 0); return new T.CanvasTexture(c); })();
   const shafts = [], NS = mob ? 7 : 16, SA = new T.Vector3(), SD = new T.Vector3();
@@ -262,7 +274,7 @@ export async function start(sec) {
     const wBee = win(p, 0.31, 0.44), wBat = win(p, 0.46, 0.58), wSoil = win(p, 0.6, 0.71), wKey = win(p, 0.72, 0.79), wFx = win(p, 0.8, 0.9, 0.025), wEye = win(p, 0.15, 0.79, 0.05);
     treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7) * (1 - (mob ? 0.8 : 0.6) * (1 - sm(p / 0.12))); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
     toriiM.opacity = 0.95 * (1 - (mob ? 0.85 : 0.3) * (1 - sm(p / 0.12))); lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
-    pave.opacity = leaf.opacity = wEye * (1 - wSoil * 0.75) * (1 - wBat * 0.6);
+    pave.opacity = leaf.opacity = wEye * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
     pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0x8a7a62).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
     hemi.intensity = 1.0 + wBat * 1.4 + wEye * 0.5; hemi.color.setHex(wBat > 0.5 ? 0x8fb4ff : 0x9fc8ff);
@@ -284,6 +296,7 @@ export async function start(sec) {
       else if (t0) { r.position.set(t0[0], t0[1] + 1.4, t0[2]); r.scale.setScalar(0.3 + (i + f) * 0.45); r.material.color.setHex(0xf2c58a); r.material.opacity = rk * 0.7; }
       else r.material.opacity = 0; });
     const fxa = fx2(p, u, wEye, wSoil, wBee, wBat);
+    skyD.position.copy(C.position); skyM.uniforms.uO.value = wEye * (1 - wSoil) * (1 - wBat * 0.8) * (1 - wBee * 0.6) * 0.32;
     if (wEye > 0.01) loadTex();
     const s = SC.findIndex(x => p >= x[0] && p < x[1]);
     if (s !== scene) { scene = s; if (cap) { const en = document.documentElement.lang === 'en', t = s < 0 ? '' : SC[s][en ? 3 : 2]; cap.textContent = t; cap.classList.toggle('on', !!t); } sec.dataset.scene = s; if (window.__sdSound) window.__sdSound(s); }
