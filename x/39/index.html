@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="tdm-reservation" content="1">
+<meta name="robots" content="noai, noimageai">
+<meta name="referrer" content="no-referrer">
+<title>Qualia/map ／ mitsulab</title>
+<meta name="description" content="五感マップ。見る・聴く・触れる・嗅ぐ・味わう・測る。感じたことを、日本の地図に置いて重ねる。">
+<meta property="og:title" content="Qualia/map ／ mitsulab">
+<meta property="og:description" content="五感マップ。感じたことを、日本の地図に置いて重ねる。">
+<link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+html,body{margin:0;height:100%;background:var(--ml-bg);color:var(--ml-ink);font-family:var(--ml-sans);-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow:hidden}
+#map{position:fixed;inset:0;background:#050a14}
+.leaflet-container{background:#050a14;font-family:var(--ml-sans)}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(185deg) brightness(.78) contrast(.92) saturate(.55)}
+.leaflet-control-attribution{background:transparent!important;color:var(--ml-ink-3)!important;font-size:10px;text-shadow:0 0 3px #03060f}
+.leaflet-control-attribution a{color:var(--ml-ink-2)!important}
+.leaflet-control-zoom{display:none}
+/* 見出し */
+.hd{position:fixed;left:16px;top:calc(14px + env(safe-area-inset-top));z-index:500;pointer-events:none;max-width:calc(100% - 32px)}
+.hd a{pointer-events:auto;color:var(--ml-ink-3);font:500 11px/1 var(--ml-mono);letter-spacing:.24em;text-decoration:none}
+.hd h1{margin:8px 0 4px;font:600 26px/1.2 var(--ml-serif);letter-spacing:.1em;text-shadow:0 0 12px #03060f,0 0 2px #03060f}
+.hd p{margin:0;font-size:13px;color:var(--ml-ink-2);letter-spacing:.04em;text-shadow:0 0 10px #03060f,0 0 2px #03060f}
+/* 感覚の並び（絞りこみ） */
+.senses{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom));z-index:500;display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:wrap;pointer-events:none}
+.chip{pointer-events:auto;appearance:none;min-height:36px;padding:0 12px;border:1px solid var(--c);border-radius:var(--ml-radius);background:rgba(3,6,15,.55);color:var(--ml-ink);font:500 13px/1 var(--ml-sans);letter-spacing:.06em;display:inline-flex;align-items:center;gap:7px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.chip[aria-pressed="false"]{opacity:.38}
+/* 下の操作 */
+.bar{position:fixed;left:16px;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:500;display:flex;gap:10px;justify-content:center}
+.btn{appearance:none;min-height:48px;padding:0 22px;border:1px solid var(--ml-aoi);border-radius:var(--ml-radius);background:rgba(3,6,15,.6);color:var(--ml-ink);font:500 15px/1 var(--ml-sans);letter-spacing:.1em;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.btn.sub{border-color:var(--ml-line-2);color:var(--ml-ink-2);padding:0 16px}
+.btn:focus-visible,.chip:focus-visible,.opt:focus-visible{outline:2px solid var(--ml-aoi-2);outline-offset:2px}
+/* 置く場所の照準 */
+.aim{position:fixed;left:50%;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;z-index:450;pointer-events:none;display:none}
+.aim::before,.aim::after{content:"";position:absolute;background:var(--ml-aoi)}
+.aim::before{left:18px;top:0;width:1px;height:38px}.aim::after{top:18px;left:0;height:1px;width:38px}
+.aim span{position:absolute;inset:9px;border:1px solid var(--ml-aoi-2);border-radius:50%}
+body.placing .aim{display:block}
+body.placing .senses{display:none}
+/* 置くパネル */
+.sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));width:min(440px,calc(100% - 32px));z-index:600;display:none;background:rgba(5,9,18,.86);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);padding:14px 14px 12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-sizing:border-box}
+body.placing .sheet{display:block}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.opt{appearance:none;flex:1 1 0;min-width:56px;min-height:44px;border:1px solid var(--ml-line-weak);border-radius:var(--ml-radius);background:transparent;color:var(--ml-ink-2);font:500 13px/1.2 var(--ml-sans);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.opt i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.opt[aria-checked="true"]{border-color:var(--c,var(--ml-aoi));color:var(--ml-ink);box-shadow:inset 0 0 0 1px var(--c,var(--ml-aoi))}
+.lv i{display:inline-block;width:6px;height:6px;margin:0 1px;border-radius:50%;background:var(--ml-aoi)}
+.txt{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px}
+.txt input{flex:1;min-width:0;min-height:44px;box-sizing:border-box;border:1px solid var(--ml-line-weak);border-radius:var(--ml-radius);background:rgba(3,6,15,.5);color:var(--ml-ink);padding:0 10px;font:15px var(--ml-sans)}
+.ph{min-height:40px}
+.thumb{display:none;margin:0 0 8px;align-items:center;gap:10px;font-size:12px;color:var(--ml-ink-3)}
+.thumb img{width:56px;height:56px;object-fit:cover;border-radius:var(--ml-radius)}
+.note{margin:2px 0 0;font-size:12px;line-height:1.6;color:var(--ml-ink-3)}
+.err{color:var(--ml-l-people);font-size:12px;min-height:0;margin:0 0 6px}
+/* 印の吹き出し */
+.leaflet-popup-content-wrapper{background:rgba(5,9,18,.92);color:var(--ml-ink);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);box-shadow:none}
+.leaflet-popup-tip{background:rgba(5,9,18,.92)}
+.leaflet-popup-content{margin:12px 14px;font:13px/1.65 var(--ml-sans);max-width:260px}
+.leaflet-container a.leaflet-popup-close-button{color:var(--ml-ink-3)}
+.pk{font:500 11px/1 var(--ml-mono);letter-spacing:.2em;color:var(--c);margin:0 0 6px}
+.pt{margin:0 0 6px;color:var(--ml-ink)}
+.pm{margin:0;color:var(--ml-ink-3);font-size:11.5px}
+.pm a{color:var(--ml-aoi-2)}
+.pimg{display:block;width:230px;max-width:100%;height:160px;background:#0a1222;object-fit:cover;margin:0 0 8px;border-radius:var(--ml-radius)}
+.del{appearance:none;background:none;border:0;color:var(--ml-ink-3);font:12px var(--ml-sans);padding:8px 0 0;cursor:pointer;text-decoration:underline}
+.toast{position:fixed;left:50%;top:auto;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:700;font-size:13px;color:var(--ml-ink);text-shadow:0 0 10px #03060f,0 0 2px #03060f;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+@media (min-width:768px){.hd h1{font-size:32px}.senses{bottom:calc(88px + env(safe-area-inset-bottom))}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body class="ml-root">
+<div id="map" role="application" aria-label="日本の地図"></div>
+<header class="hd">
+  <a href="/" translate="no">mitsulab</a>
+  <h1 translate="no">Qualia/map</h1>
+  <p>五感マップ。感じたことを、地図に置いて重ねる。</p>
+</header>
+<div class="senses" id="senses" aria-label="感覚で絞りこむ"></div>
+<div class="aim" aria-hidden="true"><span></span></div>
+<form class="sheet" id="sheet" aria-label="感じたことを置く" autocomplete="off">
+  <div class="row" id="pSense" role="radiogroup" aria-label="感覚"></div>
+  <div class="row" id="pLevel" role="radiogroup" aria-label="強さ"></div>
+  <div class="txt">
+    <input id="pText" maxlength="40" placeholder="ひとこと（任意）" aria-label="ひとこと（40字まで）" enterkeyhint="done">
+    <button type="button" class="opt ph" id="pPhoto">＋ 写真（任意）</button>
+    <input type="file" id="pFile" accept="image/*" hidden>
+  </div>
+  <div class="thumb" id="pThumb"><img alt="選んだ写真"><span>顔や車のナンバーが写っていないか確かめてください。<br><button type="button" class="del" id="pNoPhoto">写真を外す</button></span></div>
+  <p class="err" id="pErr" role="alert"></p>
+  <p class="note">照準の所に置きます。この端末にだけ残ります（位置は約 250 m・時刻は時間帯に丸めます）。</p>
+</form>
+<div class="bar">
+  <button class="btn sub" id="bHere" type="button">現在地</button>
+  <button class="btn" id="bPut" type="button">感じたことを置く</button>
+  <button class="btn sub" id="bCancel" type="button" hidden>やめる</button>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script>
+(function(){
+'use strict';
+var S=[
+ {k:'see',n:'見る',c:'#9bdcf0'},
+ {k:'hear',n:'聴く',c:'#7fe0b4'},
+ {k:'touch',n:'触れる',c:'#f2cf8c'},
+ {k:'smell',n:'嗅ぐ',c:'#f4aa96'},
+ {k:'taste',n:'味わう',c:'#e8b6d8'},
+ {k:'meas',n:'測る',c:'#b4a2ff'}
+];
+var SM={};S.forEach(function(s){SM[s.k]=s});
+var LV=['かすか','ふつう','つよい'];
+/* mitsulab が出典で確かめた印（位置はおおよそ） */
+var SEED=[
+ {s:'see',lv:2,la:35.9050,lo:139.6325,t:'氷川参道。一の鳥居から三の鳥居まで約 2 km の並木道。樹木の 62.5％ がケヤキ。',src:'さいたま市「氷川参道 樹木調査報告書」',u:'https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf'},
+ {s:'meas',lv:3,la:36.1508,lo:139.3800,t:'熊谷。2018 年 7 月 23 日、日最高気温 41.1℃ を観測。',src:'気象庁「夏（6〜8月）の天候」2018',u:'https://www.jma.go.jp/jma/press/1809/03c/tenko180608.html'},
+ {s:'smell',lv:2,la:35.9236,lo:139.4818,t:'川越の菓子屋横丁。約 80 m の通りに、ハッカ飴や駄菓子のかおり。',src:'環境省「かおり風景100選」No.24',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:35.6958,lo:139.7585,t:'神田古書店街。約 200 m にわたる古書のかおり。',src:'環境省「かおり風景100選」No.28',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:34.8902,lo:135.8078,t:'宇治 平等院表参道。お茶屋が並び、宇治茶のかおり。',src:'環境省「かおり風景100選」No.57',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:3,la:43.4050,lo:142.4250,t:'富良野周辺のラベンダー畑。',src:'環境省「かおり風景100選」No.1',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'hear',lv:2,la:37.9130,lo:139.2470,t:'福島潟のヒシクイの声。',src:'環境省「残したい日本の音風景100選」',u:'https://www.env.go.jp/air/life/sonooto.pdf'},
+ {s:'hear',lv:3,la:26.3600,lo:127.8700,t:'エイサー（旧 与那城町・勝連町、いまのうるま市）。',src:'環境省「残したい日本の音風景100選」',u:'https://www.env.go.jp/air/life/sonooto.pdf'},
+ {s:'taste',lv:2,la:35.9810,lo:139.4790,t:'冷や汁／すったて。ごま・みそ・きゅうり・大葉をすり、うどんで食べる（川島町・入間地域・県北）。',src:'農林水産省「うちの郷土料理」',u:'https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_3_saitama.html'}
+];
+var KEY='qmap.v1';
+function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}}
+/* 写真は IndexedDB に */
+var dbp=null;
+function db(){if(dbp)return dbp;dbp=new Promise(function(res,rej){try{var r=indexedDB.open('qmap',1);r.onupgradeneeded=function(){r.result.createObjectStore('ph')};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}}catch(e){rej(e)}});return dbp}
+function phPut(id,b){return db().then(function(d){return new Promise(function(res,rej){var t=d.transaction('ph','readwrite');t.objectStore('ph').put(b,id);t.oncomplete=res;t.onerror=function(){rej(t.error)}})})}
+function phGet(id){return db().then(function(d){return new Promise(function(res){var q=d.transaction('ph').objectStore('ph').get(id);q.onsuccess=function(){res(q.result||null)};q.onerror=function(){res(null)}})}).catch(function(){return null})}
+function phDel(id){return db().then(function(d){d.transaction('ph','readwrite').objectStore('ph').delete(id)}).catch(function(){})}
+
+/* 地図 */
+var map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:true,minZoom:4,maxZoom:17,worldCopyJump:false,maxBounds:[[18,118],[50,160]]}).setView([36.5,137.5],5);
+if(innerWidth<768)map.setView([36.2,137.8],4);
+L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{minZoom:2,maxZoom:18,maxNativeZoom:18,attribution:'地図：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a> ・ <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'}).addTo(map);
+map.attributionControl.setPrefix(false);
+
+var on={};S.forEach(function(s){on[s.k]=true});
+var layer=L.layerGroup().addTo(map);
+function esc(t){return String(t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function draw(){
+  layer.clearLayers();
+  SEED.forEach(function(p){if(on[p.s])mark(p,true)});
+  load().forEach(function(p){if(on[p.s]&&SM[p.s])mark(p,false)});
+}
+function mark(p,seed){
+  var s=SM[p.s],r=4+p.lv*2.5;
+  L.circleMarker([p.la,p.lo],{radius:r+7,stroke:false,fillColor:s.c,fillOpacity:.14,interactive:false}).addTo(layer);
+  var m=L.circleMarker([p.la,p.lo],{radius:r,color:s.c,weight:seed?1.5:1,opacity:.95,fillColor:s.c,fillOpacity:seed?.25:.7}).addTo(layer);
+  m.on('click',function(){
+    var h='<p class="pk" style="--c:'+s.c+'">'+s.n+' ・ '+LV[p.lv-1]+'</p>';
+    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p>'}
+    else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p><button class="del" data-del="'+p.id+'">この印を消す</button>'}
+    var pop=L.popup({maxWidth:270,autoPanPadding:[16,120]}).setLatLng([p.la,p.lo]).setContent(h).openOn(map);
+    var el=pop.getElement();
+    var im=el&&el.querySelector('[data-ph]');
+    if(im)phGet(p.id).then(function(b){if(b){var u=URL.createObjectURL(b);im.src=u}else im.remove()});
+    var d=el&&el.querySelector('[data-del]');
+    if(d)d.onclick=function(){save(load().filter(function(x){return x.id!==p.id}));phDel(p.id);map.closePopup();draw();toast('消しました')};
+  });
+}
+/* 絞りこみの札 */
+var sv=document.getElementById('senses');
+S.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='chip';b.style.setProperty('--c',s.c);b.setAttribute('aria-pressed','true');b.innerHTML='<i></i>'+s.n;
+  b.onclick=function(){on[s.k]=!on[s.k];b.setAttribute('aria-pressed',on[s.k]);draw()};sv.appendChild(b)});
+draw();
+
+/* 置く */
+var st={s:null,lv:2,ph:null};
+var pS=document.getElementById('pSense'),pL=document.getElementById('pLevel');
+function radio(box,items,key){items.forEach(function(it,i){var b=document.createElement('button');b.type='button';b.className='opt'+(key==='lv'?' lv':'');b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
+  if(it.c)b.style.setProperty('--c',it.c);
+  b.innerHTML=key==='lv'?'<span>'+new Array(i+2).join('<i></i>')+'</span>'+it:'<i></i>'+it.n;
+  b.onclick=function(){st[key]=key==='lv'?i+1:it.k;[].forEach.call(box.children,function(x){x.setAttribute('aria-checked',x===b)});ready()};box.appendChild(b)})}
+radio(pS,S,'s');radio(pL,LV,'lv');function lvDef(){[].forEach.call(pL.children,function(x,i){x.setAttribute('aria-checked',i===1)})}lvDef();
+var body=document.body,bPut=document.getElementById('bPut'),bCancel=document.getElementById('bCancel'),bHere=document.getElementById('bHere'),err=document.getElementById('pErr'),txt=document.getElementById('pText');
+function ready(){if(body.classList.contains('placing'))bPut.textContent='ここに置く';bPut.style.opacity=st.s?1:.5}
+function open(){body.classList.add('placing');bCancel.hidden=false;bHere.hidden=true;map.closePopup();if(map.getZoom()<13)map.setZoom(13);ready()}
+function close(){body.classList.remove('placing');bCancel.hidden=true;bHere.hidden=false;bPut.textContent='感じたことを置く';st={s:null,lv:2,ph:null};bPut.style.opacity=1;txt.value='';err.textContent='';setThumb(null);[].forEach.call(document.querySelectorAll('.sheet [role=radio]'),function(x){x.setAttribute('aria-checked','false')});lvDef()}
+/* 名前・連絡先らしきものを弾く */
+var BAD=[/\d[\d\-\s－ー]{8,}\d/,/[0-9０-９]{5,}/,/@|＠/,/https?:|www\.|\.(com|jp|net|org)\b/i,/〒/,/[一-鿿゠-ヿA-Za-z]{1,}(さん|くん|君|ちゃん|様|氏)/,/\d+\s*(丁目|番地|番|号)/];
+function bad(t){return BAD.some(function(r){return r.test(t)})}
+/* 丸め：4 分の 1 地域メッシュ（約 250 m）の中心 */
+function snap(la,lo){var a=7.5/3600,b=11.25/3600;return[(Math.floor(la/a)+.5)*a,(Math.floor(lo/b)+.5)*b]}
+function band(){var d=new Date(),h=d.getHours(),m=d.getMonth()+1;var t=h>=5&&h<10?'朝':h<16&&h>=10?'昼':h<19&&h>=16?'夕':'夜';var s=m>=3&&m<=5?'春':m<=8&&m>=6?'夏':m<=11&&m>=9?'秋':'冬';return s+'の'+t}
+bPut.onclick=function(){
+  if(!body.classList.contains('placing')){open();return}
+  if(!st.s){err.textContent='感覚を選んでください';return}
+  var t=txt.value.trim().slice(0,40);
+  if(t&&bad(t)){err.textContent='名前や連絡先・住所は書けません';return}
+  var c=map.getCenter(),g=snap(c.lat,c.lng);
+  var p={id:'p'+Math.random().toString(36).slice(2,12),s:st.s,lv:st.lv,la:+g[0].toFixed(5),lo:+g[1].toFixed(5),t:t,when:band(),ph:!!st.ph};
+  var a=load();a.push(p);
+  if(!save(a)){err.textContent='この端末では保存できませんでした';return}
+  var fin=function(){close();draw();toast('置きました')};
+  if(st.ph)phPut(p.id,st.ph).then(fin,function(){p.ph=false;var b=load().map(function(x){return x.id===p.id?p:x});save(b);fin()});else fin();
+};
+bCancel.onclick=close;
+txt.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();txt.blur()}});
+document.getElementById('sheet').onsubmit=function(e){e.preventDefault()};
+/* 写真：縮小して描き直す（撮影位置・機種・日時の情報はここで消える） */
+var pFile=document.getElementById('pFile'),thumb=document.getElementById('pThumb');
+document.getElementById('pPhoto').onclick=function(){pFile.click()};
+document.getElementById('pNoPhoto').onclick=function(){setThumb(null)};
+function setThumb(b){st.ph=b;var im=thumb.querySelector('img');if(im.src&&im.src.indexOf('blob:')===0)URL.revokeObjectURL(im.src);if(b){im.src=URL.createObjectURL(b);thumb.style.display='flex'}else{im.removeAttribute('src');thumb.style.display='none';pFile.value=''}}
+pFile.onchange=function(){
+  var f=pFile.files&&pFile.files[0];if(!f)return;
+  var u=URL.createObjectURL(f),img=new Image();
+  img.onload=function(){var M=1080,w=img.naturalWidth,h=img.naturalHeight,k=Math.min(1,M/Math.max(w,h));
+    var cv=document.createElement('canvas');cv.width=Math.round(w*k);cv.height=Math.round(h*k);
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(u);
+    cv.toBlob(function(b){if(b)setThumb(b);else err.textContent='写真を読めませんでした'},'image/jpeg',.82)};
+  img.onerror=function(){URL.revokeObjectURL(u);err.textContent='写真を読めませんでした'};
+  img.src=u;
+};
+/* 現在地：押したときだけ。丸めた升目へ移るだけで、どこにも残さない */
+bHere.onclick=function(){
+  if(!navigator.geolocation){toast('この端末では使えません');return}
+  navigator.geolocation.getCurrentPosition(function(q){var g=snap(q.coords.latitude,q.coords.longitude);map.setView(g,14)},function(){toast('現在地を使えませんでした')},{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
+};
+var tt;function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},1800)}
+})();
+</script>
+</body>
+</html>
