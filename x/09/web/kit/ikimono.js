@@ -18,10 +18,10 @@ const GLB = { inu: { f: "shiba.glb", clip: "standing", rx: 0, ry: 0, foot: true 
 const M_CHOU_RX = 0;
 export const IKIMONO = {
   hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 3.2, eye: 1.0, fov: 80, back: .5, up: .16, size: .16, bob: .03, fly: true,
-    say: "ミツバチの目の模式。赤は暗く、紫外は青に移し、像は粗く、視野は広く。", band: [20, 500],
+    say: "ミツバチの目の模式。色は置きかえ（緑→赤・青→緑・紫外→青）。紫外の量は測っていない。像は粗く、視野は広く。", band: [20, 500],
     sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
   chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .155, bob: .06, fly: true,
-    say: "ナミアゲハの目の模式。色の差は濃く、紫外は紫に移し、像は粗く。",
+    say: "ナミアゲハの目の模式。色の差は濃く、紫外の手がかりは紫の置きかえ（量は測っていない）。像は粗く。",
     sources: [{ claim: "ナミアゲハ（アゲハチョウ科）の複眼は紫外から赤まで感じる細胞をもつ", cite: "Koshitaka H, Kinoshita M, Vorobyev M, Arikawa K (2008) Proc. R. Soc. B 275:947–954" }, { claim: "チョウの視力は人よりはるかに低い（像を粗くしたのは模式）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }] },
   tori: { name: "シジュウカラ", make: "tori", lens: "tori", mix: 1, blur: .7, eye: 1.1, fov: 80, back: .44, up: .12, size: .3, bob: .02, fly: true,
     say: "シジュウカラの目の模式。四色で色の差は細かく、紫外は紫に移し、視野は広く。", band: [300, 8000],
@@ -119,7 +119,52 @@ export function attachIkimono(QW, opt = {}) {
     const m = LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], I = [1, 0, 0, 0, 1, 0, 0, 0, 1], a = (P.mix ?? 1) * k, r = i => I[i] + (m[i] - I[i]) * a;
     return `${r(0)} ${r(1)} ${r(2)} 0 0 ${r(3)} ${r(4)} ${r(5)} 0 0 ${r(6)} ${r(7)} ${r(8)} 0 0 0 0 0 1 0`;
   }
-  function paint() { if (!canvas) return; if (S.k < .01) { canvas.style.filter = ""; return; } const P = IKIMONO[S.id || S.last]; if (!P) return; fm.setAttribute("values", lensMatrix(P, S.k)); const bl = (P.blur || 0) * S.k * Math.min(innerWidth, 1600) / 1000; canvas.style.filter = bl > .05 ? `url(#ikF) blur(${bl.toFixed(2)}px)` : "url(#ikF)"; }   /* 11-04 夜 本人「見え方が変わらない」：色は混ぜずに全部かけ、視力の低さを軽いぼかしで（CSS の blur は GPU で軽い） */
+  /* 11-18 本人「生き物の視点に入っても視野が変わっていない」：CSS の SVG フィルタは iPhone の Safari では WebGL の画面にかからないことがある。
+     Qualia/sight と同じく、画面を一度べつの面へ描いて、色（受けとる細胞の感度の模式）・像の粗さ（視力の模式＝描く細かさを下げる）・視野の広さ（ふちを寄せる）・紫外の手がかり（模式）を置きかえる。
+     生き物の目のときだけ描く。像を粗くする分、描く画素は減るので重くならない。 */
+  const RES = { hachi: .7, chou: .72, tori: .8, suzume: .8, tanuki: .68, inu: .68 };   // 描く細かさ（視力の低さの模式。実際の差よりずっと弱め）
+  const WIDE = { hachi: .28, chou: .16, tori: .16, suzume: .16, tanuki: .08, inu: .08 };   // ふちを寄せる強さ（目が頭の横＝視野が広い、の模式）
+  const HEX = { hachi: 1, chou: 1 };   // 複眼の個眼の並び（ふちだけ・模式）
+  const PO = { rt: null, mat: null, sc: null, cam: null, busy: false, sz: new THREE.Vector2() };
+  function postSetup() {
+    if (PO.mat) return;
+    PO.rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: true });
+    PO.rt.texture.minFilter = PO.rt.texture.magFilter = THREE.LinearFilter; PO.rt.texture.generateMipmaps = false;
+    PO.mat = new THREE.ShaderMaterial({
+      uniforms: { tD: { value: PO.rt.texture }, uM: { value: new THREE.Matrix3() }, uUV: { value: new THREE.Vector3() }, uK: { value: 0 }, uW: { value: 0 }, uHex: { value: 0 }, uTx: { value: new THREE.Vector2(1, 1) }, res: { value: new THREE.Vector2(1, 1) } },
+      vertexShader: "varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }",
+      fragmentShader: `uniform sampler2D tD; uniform mat3 uM; uniform vec3 uUV; uniform float uK; uniform float uW; uniform float uHex; uniform vec2 uTx; uniform vec2 res; varying vec2 vUv;
+        void main(){ vec2 q=vUv-.5; vec2 uv=.5+q*(1.-uW*uK*dot(q,q)*2.);
+          vec2 tx=uTx*1.2; vec3 c0=(texture2D(tD,uv).rgb*4.+texture2D(tD,uv+vec2(tx.x,0.)).rgb+texture2D(tD,uv-vec2(tx.x,0.)).rgb+texture2D(tD,uv+vec2(0.,tx.y)).rgb+texture2D(tD,uv-vec2(0.,tx.y)).rgb+texture2D(tD,uv+tx*.7).rgb+texture2D(tD,uv-tx*.7).rgb)/10.;   /* 粗い像をやわらかく（四角いモザイクにしない） */
+          vec3 c=max(vec3(0.),uM*c0);
+          float l=dot(c0,vec3(.2126,.7152,.0722));
+          float uvk=smoothstep(.0,.2,c0.b-c0.r)*smoothstep(.15,.7,l)*(.4+.6*smoothstep(.4,.9,uv.y));   // 紫外の手がかり（模式）：空・青みの散乱光は紫外をふくむ、を置きかえの色で重ねる。紫外は測っていない
+          c+=uUV*uvk*.35;
+          if(uHex>.5){ float rq=length(q*vec2(res.x/res.y,1.)); float cs=res.y/110.; vec2 p=vUv*res/cs; vec2 r=vec2(1.,1.732), h=r*.5; vec2 a=mod(p,r)-h, b=mod(p-h,r)-h; vec2 g=dot(a,a)<dot(b,b)?a:b; float e=smoothstep(.5,.85,rq); c*=1.-.2*e*smoothstep(.34,.5,length(g)); }
+          c=mix(c0,c,uK);
+          c*=mix(1.,.78+.22*smoothstep(.85,.3,length(q)),uK);
+          gl_FragColor=vec4(c,1.);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+        }`, depthTest: false, depthWrite: false });
+    PO.mat.toneMapped = true;
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), PO.mat); quad.frustumCulled = false;
+    PO.sc = new THREE.Scene(); PO.sc.add(quad); PO.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  }
+  { const R = QW.renderer; if (R && !R.__ikPost) { R.__ikPost = true; const orig = R.render.bind(R);
+    R.render = function (sc, cam) {
+      const id = S.id || S.last;
+      if (PO.busy || sc !== scene || S.k < .01 || !id || QW.mode !== "walk" || R.getRenderTarget() !== null) return orig(sc, cam);
+      PO.busy = true; try {
+        postSetup(); R.getDrawingBufferSize(PO.sz); const f = RES[id] ?? 1, k = S.k, kk = 1 + (f - 1) * k, w = Math.max(64, Math.round(PO.sz.x * kk)), h = Math.max(64, Math.round(PO.sz.y * kk));
+        if (PO.rt.width !== w || PO.rt.height !== h) PO.rt.setSize(w, h);
+        const P = IKIMONO[id], m = LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], u = PO.mat.uniforms;
+        u.uM.value.set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]); const uw = LENS[P.lens]?.uvw || [0, 0, 0]; u.uUV.value.set(uw[0], uw[1], uw[2]);
+        u.uK.value = k; u.uW.value = WIDE[id] || 0; u.uHex.value = HEX[id] ? 1 : 0; u.res.value.copy(PO.sz); u.uTx.value.set(1 / w, 1 / h);
+        R.setRenderTarget(PO.rt); orig(sc, cam); R.setRenderTarget(null); orig(PO.sc, PO.cam);
+      } finally { PO.busy = false; }
+    }; } }
+  function paint() { if (!canvas) return; if (canvas.style.filter.includes("ikF")) canvas.style.filter = ""; }   // 色と像の置きかえは上の描き直しで（CSS のフィルタは使わない）
   async function go(id) {   // id＝生き物（同じものをもう一度＝人の目へ戻る）
     if (!id || id === S.id) { S.id = null; S.flightAltitude = 0; S.cam = null; clearFlightInput(); if (flight.panel) flight.panel.hidden = true; document.body.classList.remove("iki"); QW.sndBand?.(); opt.onChange?.(null); return null; }
     const P = IKIMONO[id]; if (!P) return null; const t0 = performance.now();

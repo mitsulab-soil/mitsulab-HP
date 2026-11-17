@@ -1,6 +1,6 @@
-# Qualium 渋谷
+# Qualia/渋谷
 
-mitsulab の作品《Qualium 渋谷》です。Qualium は、ひとつの場所に Qualia の層（sight・sound・touch・sho など）が重なる場で、大宮・川越に続く三つめの場所です。
+mitsulab の作品《Qualia/渋谷》です。Qualium は、ひとつの場所に Qualia の層（sight・sound・touch・sho など）が重なる場で、大宮・川越に続く三つめの場所です。
 
 谷の底の渋谷駅前から、大山道の坂（宮益坂・道玄坂）、暗渠と、空の下に出る渋谷川、金王八幡宮、公園通り、代々木公園・明治神宮の入口までを、実寸の 3D の中で歩きます。写実の地の上に、光の等高線や地面のグリッドなどの情報の層と、Qualia/sight・touch・sound・nature・culture の五つの層（sound に書の Qualia/sho、culture に歴史を含む）を重ねます。碧（あおい）がそばで、近くの記録を出典つきで話します。
 

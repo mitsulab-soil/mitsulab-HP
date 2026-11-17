@@ -1,0 +1,19 @@
+# Qualia/sound（mitsulab）：検索は止めない。AI の学習用のクローラは止める（mitsulab の方針）
+User-agent: GPTBot
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+User-agent: anthropic-ai
+Disallow: /
+User-agent: Google-Extended
+Disallow: /
+User-agent: CCBot
+Disallow: /
+User-agent: Applebot-Extended
+Disallow: /
+User-agent: Bytespider
+Disallow: /
+User-agent: meta-externalagent
+Disallow: /
+User-agent: *
+Allow: /

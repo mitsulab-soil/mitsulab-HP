@@ -1,6 +1,6 @@
 {
  "v": "20261026s",
- "note": "Qualium 川越の地点ごとの典拠つきの情報（content.json から生成）。facts は碧が話す文と声、src は出典。",
+ "note": "Qualia/川越の地点ごとの典拠つきの情報（content.json から生成）。facts は碧が話す文と声、src は出典。",
  "places": [
   {
    "id": "n_tani",
