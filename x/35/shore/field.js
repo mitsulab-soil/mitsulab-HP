@@ -198,7 +198,7 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   {const dE=Math.hypot(me.x-goP.x,me.z-goP.z);if(edgeOn&&dE<1.2)edgeOn=0;const k=edgeOn?.75+.25*(reduce?0:Math.sin(now*.003)):0;edgeM.opacity+=(k-edgeM.opacity)*Math.min(1,dt*3);edgeGlow.visible=edgeM.opacity>.01;}
   {prV.set(PROBE.x,.85,PROBE.z).project(cam);const dP=Math.hypot(me.x-PROBE.x,me.z-PROBE.z),on=prV.z<1&&Math.abs(prV.x)<.9&&Math.abs(prV.y)<.9&&dP<7;probeTag.style.opacity=on?.9:0;if(on)probeTag.style.left=((prV.x+1)/2*innerWidth|0)+'px',probeTag.style.top=((1-prV.y)/2*innerHeight|0)+'px';}
   // 空気 → 霧と光
-  fog.copy(dry).lerp(wet,field.air);scene.fog.color.copy(fog);scene.background.copy(fog);scene.fog.density=(.012+.022*field.air)*(1-.35*field.pulse);
+  fog.copy(dry).lerp(wet,field.air);scene.fog.color.copy(fog);scene.background.copy(fog);scene.fog.density=(.022+.02*field.air)*(1-.35*field.pulse);
   sun.intensity=2.5-1.0*field.air;
   // 状態 → 地面（r=地表の水 g=土の湿り b=踏み跡）
   const px=fieldTex.image.data;for(let k=0;k<NN;k++){px[k*4]=w[k]*255;px[k*4+1]=s[k]*255;px[k*4+2]=c[k]*255;px[k*4+3]=255;}fieldTex.needsUpdate=true;
