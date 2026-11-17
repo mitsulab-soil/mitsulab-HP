@@ -226,6 +226,7 @@ function bands(m0){const m=m0===M.human?M.bee:m0;
   `<div class="row"><span class="k">光</span><span class="who">人</span>${bar(...hl,hc)}</div>`+
   `<div class="row"><span class="k"></span><span class="who">${m.n}</span>${bar(...L,c,m.dim)}</div>`+
   `<div class="row lab"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${lp(335)}%">紫外</b><b style="left:${lp(580)}%">見える光</b><b style="left:${lp(940)}%">赤外</b></span></div>`+
+  `<div class="row lab"><span class="k"></span><span class="who"></span><span class="scale nm" style="font-size:11px;opacity:.85">人 380〜780 nm${m.light[1]?`／${m.n} ${m.light[0]}〜${m.light[1]} nm`:""}（目安）</span></div>`+
   (false?"":`<div class="row snd"><span class="k">音</span><span class="who">人</span>${bar(...hs,hc)}</div><div class="row snd"><span class="k"></span><span class="who">${m.n}</span>${bar(...S,c)}</div><div class="row lab snd"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:${sp(12)}%">低い</b><b style="left:${sp(630)}%">人の耳</b><b style="left:${sp(63000)}%">超音波</b></span></div>`)+
   `<div class="row lab snd"><span class="k"></span><span class="who"></span><span class="scale"><b style="left:50%">帯の端は模式の目安</b></span></div>`+
   `<button id="bandmore" aria-expanded="false" onclick="this.parentNode.classList.toggle('open');this.setAttribute('aria-expanded',this.parentNode.classList.contains('open'))">＋ 音と時間</button><div class="row snd"><span class="k">時間</span><em style="width:auto;max-width:none;text-align:left">${m0.time}<b id="wait"></b></em></div>`;
