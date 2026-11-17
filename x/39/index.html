@@ -17,7 +17,7 @@
 html,body{margin:0;height:100%;background:var(--ml-bg);color:var(--ml-ink);font-family:var(--ml-sans);-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow:hidden}
 #map{position:fixed;inset:0;background:#050a14}
 .leaflet-container{background:#050a14;font-family:var(--ml-sans)}
-.leaflet-tile-pane{filter:invert(1) hue-rotate(185deg) brightness(.78) contrast(.92) saturate(.55)}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(185deg) brightness(.6) contrast(.8) saturate(.45)}
 .leaflet-control-attribution{background:transparent!important;color:var(--ml-ink-3)!important;font-size:10px;text-shadow:0 0 3px #03060f}
 .leaflet-control-attribution a{color:var(--ml-ink-2)!important}
 .leaflet-control-zoom{display:none}
@@ -69,7 +69,7 @@ body.placing .sheet{display:block}
 .ph{min-height:40px}
 .thumb{display:none;margin:0 0 8px;align-items:center;gap:10px;font-size:12px;color:var(--ml-ink-3)}
 .thumb img{width:56px;height:56px;object-fit:cover;border-radius:var(--ml-radius)}
-.note{margin:2px 0 0;font-size:12px;line-height:1.6;color:var(--ml-ink-3)}
+.note{margin:2px 0 0;font-size:13px;line-height:1.6;color:var(--ml-ink-2)}
 .err{color:var(--ml-l-people);font-size:12px;min-height:0;margin:0 0 6px}
 /* 印の吹き出し */
 .leaflet-popup-content-wrapper{background:rgba(5,9,18,.92);color:var(--ml-ink);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);box-shadow:none}
@@ -110,7 +110,7 @@ body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
   </div>
   <div class="thumb" id="pThumb"><img alt="選んだ写真"><span>顔や車のナンバーが写っていないか確かめてください。<br><button type="button" class="del" id="pNoPhoto">写真を外す</button></span></div>
   <p class="err" id="pErr" role="alert"></p>
-  <p class="note">照準の所に置きます。人の名前（ひらがな・続け書きも）・住所は書かないでください。この端末にだけ残ります（位置は約 250 m・時刻は時間帯に丸めます）。</p>
+  <p class="note">人の名前・住所は書かないでください。この端末にだけ残ります（位置は約 250 m に丸めます）。</p>
 </form>
 <div class="bar">
   <button class="btn sub" id="bHere" type="button">現在地</button>
@@ -238,7 +238,10 @@ var BD='[\\s、。，．・「」（）()!！?？]';
 var KN=new RegExp('(?:^|'+BD+'|の|と)('+SEI+')([一-鿿々]{1,2})(?=$|'+BD+'|さん|と|が|は|に|を|へ|で|も|の|です)','g');
 var NOTN=/^.?(駅|城|町|村|市|区|郡|県|川|山|寺|宮|橋|通|線|港|池|沢|台|谷|坂|口|前|園|家|邸|屋|道|田|畑|神|社|郷|里|浦|島|野|原|森|林)$/;
 var HN=new RegExp('(?:^|'+BD+')('+SEIH+')\\s?[ぁ-ん]{2,4}(?=$|'+BD+'|さん|くん|ちゃん)');
-function nameLike(t){var m;KN.lastIndex=0;while((m=KN.exec(t))){if(!NOTN.test(m[2]))return true}return HN.test(t)||/(私|わたし|僕|ぼく|俺)の名前/.test(t)}
+/* 歴史上の人物・作品のゆかり（句碑・生家など）と、植物や食べ物の名は通す */
+var OKW=/(句碑|歌碑|文学碑|の碑|の句|の歌|の墓|墓所|記念館|記念碑|生家|旧居|生誕|ゆかり|銅像|の像|の詩|の書)/;
+var OKH=/さとうきび|さとういも|あべかわ|いとうり|すずきのこ/;
+function nameLike(t){if(OKW.test(t))t=t.replace(new RegExp('('+SEI+')[一-鿿々]{1,2}(?=(の)?'+OKW.source+')','g'),'');t=t.replace(OKH,'');var m;KN.lastIndex=0;while((m=KN.exec(t))){if(!NOTN.test(m[2]))return true}return HN.test(t)||/(^|[\s、。])[一-鿿々]{3,4}と(一緒|いっしょ|歩|行|来|話|会|遊)/.test(t)||/(私|わたし|僕|ぼく|俺)の名前/.test(t)}
 var BAD=[/\d[\d\-\s－ー]{8,}\d/,/[0-9０-９]{5,}/,/@|＠/,/https?:|www\.|\.(com|jp|net|org)\b/i,/〒/,/[一-鿿゠-ヿA-Za-z]{1,}(さん|くん|君|ちゃん|様|氏)/,/[\d０-９]+\s*(丁目|番地|番|号)/,/[一二三四五六七八九十〇]+\s*(丁目|番地)/,/(名前|氏名|本名)は/];
 function bad(t){return nameLike(t)||BAD.some(function(r){return r.test(t)})}
 /* 丸め：4 分の 1 地域メッシュ（約 250 m）の中心 */
