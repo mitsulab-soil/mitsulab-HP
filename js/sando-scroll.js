@@ -201,7 +201,7 @@ export async function start(sec) {
       const pl = new T.Mesh(new T.PlaneGeometry(SZ, SZ), new T.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending, fog: false }));
       pl.rotation.x = -Math.PI / 2; pl.position.y = y; TOPL.add(pl); topMats.push([pl.material, 0.035 * hz]);
       if (i === 1) { const pts = []; for (let k = 0; k < (mob ? 160 : 320); k++) pts.push((rnd() - 0.5) * SZ, y + rnd() * 0.6, (rnd() - 0.5) * SZ); const pg = new T.BufferGeometry(); pg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); const pm = new T.PointsMaterial({ map: dot, color: c, size: 1.1, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false }); TOPL.add(new T.Points(pg, pm)); topMats.push([pm, 0.9]); }
-      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), 0.86).getHexString(), mob ? 56 : 52, mob ? 7 : 5.4); if (mob) { lb.position.set(SZ / 2 + (innerWidth < 360 ? 10 : 5), y + 0.4, SZ / 2 + (innerWidth < 360 ? 10 : 5)); lb.center.set(1, 0.5); } else { lb.position.set(SZ / 2 + 6, y, SZ / 2 + 6); lb.center.set(1, 0.5); } TOPL.add(lb); topMats.push([lb.material, 1]); { const o = mob ? (innerWidth < 360 ? 10 : 5) : 6, q = o - 1; const lg = new T.BufferGeometry(); lg.setAttribute('position', new T.Float32BufferAttribute([SZ / 2 + q, mob ? y + 0.4 : y, SZ / 2 + q, SZ / 2, y, SZ / 2], 3)); const lm = new T.LineBasicMaterial({ color: 0xdff6f8, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false }); TOPL.add(new T.LineSegments(lg, lm)); topMats.push([lm, 0.7]); }
+      const lb = label(nm, '#' + new T.Color(c).lerp(new T.Color(0xffffff), 0.86).getHexString(), mob ? 56 : 52, mob ? 7 : 5.4); if (mob) { lb.position.set(SZ / 2 + (innerWidth < 360 ? 10 : 5), y + 0.4, SZ / 2 + (innerWidth < 360 ? 10 : 5)); lb.center.set(1, 0.5); } else { lb.position.set(SZ / 2 + 6, y, SZ / 2 + 6); lb.center.set(1, 0.5); } if (0) { const o = mob ? (innerWidth < 360 ? 10 : 5) : 6, q = o - 1; const lg = new T.BufferGeometry(); lg.setAttribute('position', new T.Float32BufferAttribute([SZ / 2 + q, mob ? y + 0.4 : y, SZ / 2 + q, SZ / 2, y, SZ / 2], 3)); const lm = new T.LineBasicMaterial({ color: 0xdff6f8, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false }); TOPL.add(new T.LineSegments(lg, lm)); topMats.push([lm, 0.7]); }
     });
     // 層をつなぐ縦の細い線
     const V = []; for (const [x, z] of [[-32, -32], [32, -32], [-32, 32], [32, 32]]) V.push(x, 16, z, x, 16 + 44, z);
@@ -213,6 +213,28 @@ export async function start(sec) {
   addEventListener('deviceorientation', e => { if (e.gamma == null) return; px = Math.max(-0.5, Math.min(0.5, e.gamma / 60)); py = Math.max(-0.5, Math.min(0.5, (e.beta - 45) / 90)); kick(); }, { passive: true });
 
   // 場面（スクロールの量 p で決まる）
+
+  // 2026-11-18 背景の演出：木漏れ日の光の筋・漂う粒・地面を走る走査の帯（すべて手続きで生成）
+  const shaftT = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 128; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(255,240,210,0)'); gr.addColorStop(0.25, 'rgba(255,240,210,.9)'); gr.addColorStop(1, 'rgba(255,240,210,0)'); g.fillStyle = gr; g.fillRect(0, 0, 16, 128); const g2 = g.createLinearGradient(0, 0, 16, 0); return new T.CanvasTexture(c); })();
+  const shafts = [], NS = mob ? 7 : 16, SA = new T.Vector3(), SD = new T.Vector3();
+  for (let i = 0; i < NS; i++) { const m = new T.MeshBasicMaterial({ map: shaftT, color: 0xffe2b0, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide, fog: false });
+    const me = new T.Mesh(new T.PlaneGeometry(1.4 + rnd() * 2.4, 34), m); S.add(me); shafts.push([me, rnd(), (rnd() - 0.5) * 20, rnd() * 6.283]); }
+  const ND = mob ? 260 : 700, dV = new Float32Array(ND * 3), dO = []; for (let i = 0; i < ND; i++) dO.push([(rnd() - 0.5) * 40, rnd() * 14, (rnd() - 0.5) * 40, rnd() * 6.283]);
+  const dG = new T.BufferGeometry(); dG.setAttribute('position', new T.BufferAttribute(dV, 3));
+  const dM = new T.PointsMaterial({ map: dot, color: 0xfff0d0, size: mob ? 0.34 : 0.26, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: true }); S.add(new T.Points(dG, dM));
+  const scanM = new T.MeshBasicMaterial({ color: 0x7fe8ff, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide, fog: true });
+  const scan = new T.Mesh(new T.PlaneGeometry(56, 0.35), scanM); scan.rotation.x = -Math.PI / 2; S.add(scan);
+  const fx2 = (p, u, wEye, wSoil, wBee, wBat) => {
+    const day = wEye * (1 - wSoil) * (1 - wBat * 0.7), top = 1 - sm(p / 0.12);
+    shafts.forEach(([me, r, sx, ph], i) => { const uu = Math.min(1, u + 0.004 + r * 0.05); curve.getPointAt(uu, SA); curve.getTangentAt(uu, SD);
+      me.position.set(SA.x - SD.z * sx, SA.y + 12, SA.z + SD.x * sx); me.rotation.set(0, Math.atan2(SD.x, SD.z) + ph, 0.38);
+      me.material.opacity = (day * 0.22 + top * 0.12) * (0.6 + 0.4 * Math.sin(tt * 0.5 + ph)); me.material.color.setHex(wBee > 0.5 ? 0xc8a0ff : 0xffe2b0); });
+    dM.opacity = Math.max(day, top * 0.6) * 0.8; dM.color.setHex(wBee > 0.5 ? 0xd8c0ff : 0xfff0d0);
+    for (let i = 0; i < ND; i++) { const [x, y, z, ph] = dO[i]; dV[i * 3] = C.position.x + x + Math.sin(tt * 0.3 + ph) * 1.2; dV[i * 3 + 1] = (A.y + ((y + tt * 0.25 + ph) % 14)); dV[i * 3 + 2] = C.position.z + z + Math.cos(tt * 0.25 + ph) * 1.2; }
+    dG.attributes.position.needsUpdate = true;
+    const f = (tt * 0.12) % 1, su = Math.min(1, u + 0.002 + f * 0.03); curve.getPointAt(su, SA); curve.getTangentAt(su, SD);
+    scan.position.set(SA.x, SA.y + 0.06, SA.z); scan.rotation.z = -Math.atan2(SD.x, SD.z); scanM.opacity = (wEye * 0.55 + top * 0.3) * Math.sin(f * Math.PI) * (1 - wSoil);
+    return day > 0.01 || top > 0.01; };
   const SC = [
     [0.00, 0.13, '', ''],
     [0.15, 0.29, '目の高さへ。人の受けとる参道。', 'Down to eye level. The approach as people receive it.'],
@@ -261,11 +283,12 @@ export async function start(sec) {
       if (bat) { r.position.set(C.position.x, A.y + 0.08, C.position.z); r.scale.setScalar(1.5 + f * 30); r.material.color.setHex(0xc8ecff); r.material.opacity = rk * (1 - f); }
       else if (t0) { r.position.set(t0[0], t0[1] + 1.4, t0[2]); r.scale.setScalar(0.3 + (i + f) * 0.45); r.material.color.setHex(0xf2c58a); r.material.opacity = rk * 0.7; }
       else r.material.opacity = 0; });
+    const fxa = fx2(p, u, wEye, wSoil, wBee, wBat);
     if (wEye > 0.01) loadTex();
     const s = SC.findIndex(x => p >= x[0] && p < x[1]);
     if (s !== scene) { scene = s; if (cap) { const en = document.documentElement.lang === 'en', t = s < 0 ? '' : SC[s][en ? 3 : 2]; cap.textContent = t; cap.classList.toggle('on', !!t); } sec.dataset.scene = s; if (window.__sdSound) window.__sdSound(s); }
     if (read) read.textContent = 'D ' + String(Math.round(u * LEN)).padStart(4, '0') + ' m  ·  H ' + (h < 0 ? '-' : '') + String(Math.abs(Math.round(h))).padStart(2, '0') + ' m';
-    return rk > 0.01 || wSoil > 0.01 || p < 0.04;
+    return rk > 0.01 || wSoil > 0.01 || p < 0.04 || fxa;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
   const prog = () => { const M0 = window.__mdEnd || 0; const span = document.documentElement.scrollHeight - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, scrollY / span)) : 0; return 0.76 * (M0 > 0 ? (q < M0 ? 0 : 0.13 + 0.87 * (q - M0) / (1 - M0)) : q); };
