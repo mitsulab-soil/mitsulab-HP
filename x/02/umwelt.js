@@ -21,7 +21,9 @@ THREE.DefaultLoadingManager.onLoad = () => { STARTUP.assetsLoading = false; STAR
 THREE.DefaultLoadingManager.onError = url => { STARTUP.assetErrors.push(url); };
 // Start fetching the VRM and its decoder while the forest geometry is built.
 // A settled result avoids an unhandled rejection before loadAoi awaits it.
+let bootOpen; const bootGate = new Promise(r => { bootOpen = r; setTimeout(r, 2500); });   // 2026-11-18 起動 1 秒：碧の 3D は幕を上げてから読む（森と操作を先に）
 const aoiAssetTask = (async () => {
+  await bootGate;
   const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder); loader.register(p => new V.VRMLoaderPlugin(p));
   const gltf = await loader.loadAsync(P.aoi); STARTUP.aoiAssetAt = performance.now(); return { gltf, V };
@@ -1288,7 +1290,7 @@ STARTUP.sceneBuiltAt = performance.now();
     if (vrm && A.sayOnShow && !started) $("say").textContent = A.sayOnShow;   // 碧が現れてから「となりに立っているのが…」を出す
     if (vrm) { STARTUP.aoiAppearAt = performance.now(); A.late = !!$("boot").hidden; if (A.late) { A.shadowOn = false; aoi.traverse(o => { if (o.isMesh) o.castShadow = false; }); } A.hold = false; A.appear = true; if (!started) A.intro = true; if (AM) AM.calm = 2.4; }   // 幕のあとに届いたときは、1 秒かけて静かに現れる
   });
-  await preCompile; prog(100);   // 2026-11-03：PC も碧を待たない（森と操作を先に出す・起動 2 秒）
+  await Promise.race([preCompile, new Promise(r => setTimeout(r, 120))]); prog(100);   // 2026-11-18 起動 1 秒：材質の組み立ては待ちきらず、残りは霞の中で（下の幕上げ後のかすみ）   // 2026-11-03：PC も碧を待たない（森と操作を先に出す・起動 2 秒）
   // 右の ↑ ↓ ↶ ↷（2026-10-13）：押しているあいだ進む・向きを変える。短く押したときは一歩（1.2 m）・一ふり（約 17°）
   const hold = (btn, key, tapFn) => { let t0 = 0;
     btn.onpointerdown = e => { first(); if (LENS[lens].under) return; t0 = performance.now(); keys.add(key); btn.setPointerCapture?.(e.pointerId); };
@@ -1309,9 +1311,10 @@ STARTUP.sceneBuiltAt = performance.now();
       if (renderer.compileAsync) { for (const c of g.children) { try { await renderer.compileAsync(c, camera, scene); } catch (e) {} await nf(); } }   // 2026-11-04 一つの仕事で材質を 7〜10 まとめて組むと 0.12〜0.3 秒止まった → 一こまに一つずつ
       for (const c of [...g.children]) forest.add(c); }
     STARTUP.forestRestAt = performance.now(); })();
-  /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 400))]);   /* 2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
-  requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 3 && dt < 50) || t - t0 > 700) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
-  window.__muBoot = true; $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
+  /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 60))]);   /* 2026-11-18 起動 1 秒：400→60（あとは霞から現れる）。2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
+  requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 2 && dt < 50) || t - t0 > 160) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
+  { const f = scene.fog, D = f.density, t0 = performance.now(); f.density = D * 3.2; const st = () => { const k = Math.min(1, (performance.now() - t0) / 1600); f.density = D * (3.2 - 2.2 * k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); }   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
+  window.__muBoot = true; bootOpen(); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
