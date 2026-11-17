@@ -237,7 +237,7 @@ export async function start(sec) {
   const scanM = new T.MeshBasicMaterial({ color: 0x7fe8ff, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide, fog: true });
   const scan = new T.Mesh(new T.PlaneGeometry(56, 0.35), scanM); scan.rotation.x = -Math.PI / 2; S.add(scan);
   const fx2 = (p, u, wEye, wSoil, wBee, wBat) => {
-    const day = wEye * (1 - wSoil) * (1 - wBat * 0.7), top = 1 - sm(p / 0.12);
+    const day = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil) * (1 - wBat * 0.7), top = 0;
     shafts.forEach(([me, r, sx, ph], i) => { const uu = Math.min(1, u + 0.004 + r * 0.05); curve.getPointAt(uu, SA); curve.getTangentAt(uu, SD);
       me.position.set(SA.x - SD.z * sx, SA.y + 12, SA.z + SD.x * sx); me.rotation.set(0, Math.atan2(SD.x, SD.z) + ph, 0.38);
       me.material.opacity = (day * 0.22 + top * 0.12) * (0.6 + 0.4 * Math.sin(tt * 0.5 + ph)); me.material.color.setHex(wBee > 0.5 ? 0xc8a0ff : 0xffe2b0); });
@@ -257,24 +257,24 @@ export async function start(sec) {
     [0.81, 0.9, '作品と領域が、式の層に重なる', 'Works and fields overlap on the layers of the formula'],
     [0.94, 1.01, '', '']];
   const key = (p, K) => { for (let i = 1; i < K.length; i++) if (p <= K[i][0]) { const [a, va] = K[i - 1], [b, vb] = K[i], e = sm((p - a) / (b - a)); return va + (vb - va) * e; } return K[K.length - 1][1]; };
-  const KH = [[0, mob ? 95 : 80], [0.13, mob ? 70 : 58], [0.29, 1.6], [0.6, 1.6], [0.64, -2.4], [0.71, -2.4], [0.76, 1.8], [0.8, 4], [0.88, 10], [0.95, 40], [1, 90]];
-  const KL = [[0, -6], [0.29, 1.5], [0.6, 1.4], [0.64, -3.2], [0.71, -3.2], [0.76, 2], [0.8, 10], [0.9, 18], [1, 30]];
-  const KU = [[0, 0], [0.13, 0.04], [0.29, 0.3], [0.6, 0.58], [0.71, 0.66], [0.8, 0.8], [0.92, 0.86], [1, 0.9]];
+  const KH = [[0, mob ? 7 : 6], [0.13, mob ? 4 : 3.5], [0.29, 1.6], [0.6, 1.6], [0.64, -2.4], [0.71, -2.4], [0.76, 1.8], [0.8, 4], [0.88, 10], [0.95, 40], [1, 90]];
+  const KL = [[0, 2.2], [0.29, 1.5], [0.6, 1.4], [0.64, -3.2], [0.71, -3.2], [0.76, 2], [0.8, 10], [0.9, 18], [1, 30]];
+  const KU = [[0, 0.05], [0.13, 0.07], [0.29, 0.3], [0.6, 0.58], [0.71, 0.66], [0.8, 0.8], [0.92, 0.86], [1, 0.9]];
   const A = new T.Vector3(), B = new T.Vector3(), FB = new T.Color(), FU = new T.Color(0x0c0620), FS = new T.Color(0x0d0904), PV = new T.Color(0x7a5cff), LV = new T.Color(0x5a3ca0);
   let scene = -2, tt = 0;
   function place(p) {
     const u = uEnd * key(p, KU), h = key(p, KH), ly = key(p, KL);
     curve.getPointAt(u, A); curve.getPointAt(Math.min(1, u + 0.03 + 0.02 * (1 - sm(p / 0.3))), B);
-    const back = 46 * (1 - sm(p / 0.29));
+    const back = 0;
     C.position.set(A.x + Math.sin(p * 9) * 0.25, A.y + h, A.z + back);
     if (p > 0.8) B.lerp(PF, sm((p - 0.78) / 0.05));
     C.lookAt(B.x, B.y + ly, B.z);
-    const wTop = 1 - sm(p / 0.12); topMats.forEach(([m, o]) => m.opacity = o * wTop); TOPL.visible = wTop > 0.01;
+    const wTop = 1 - sm(p / 0.12); topMats.forEach(([m]) => m.opacity = 0); TOPL.visible = false;
     if (wTop > 0.01) { C.rotateY((Math.sin(tt * 0.12) * 0.05 - px * 0.08) * wTop); C.rotateX((-py * 0.05) * wTop); }
     const wBee = win(p, 0.31, 0.44), wBat = win(p, 0.46, 0.58), wSoil = win(p, 0.6, 0.71), wKey = win(p, 0.72, 0.79), wFx = win(p, 0.8, 0.9, 0.025), wEye = win(p, 0.15, 0.79, 0.05);
-    treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7) * (1 - (mob ? 0.8 : 0.6) * (1 - sm(p / 0.12))); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
+    treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7) * (1 - (mob ? 0.8 : 0.6) * (1 - sm(p / 0.12))); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, 1 - sm((p - 0.1) / 0.06), sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
     toriiM.opacity = 0.95 * (1 - (mob ? 0.85 : 0.3) * (1 - sm(p / 0.12))); lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
-    pave.opacity = leaf.opacity = wEye * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
+    pave.opacity = leaf.opacity = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
     pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0x8a7a62).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
     hemi.intensity = 1.0 + wBat * 1.4 + wEye * 0.5; hemi.color.setHex(wBat > 0.5 ? 0x8fb4ff : 0x9fc8ff);
@@ -296,7 +296,7 @@ export async function start(sec) {
       else if (t0) { r.position.set(t0[0], t0[1] + 1.4, t0[2]); r.scale.setScalar(0.3 + (i + f) * 0.45); r.material.color.setHex(0xf2c58a); r.material.opacity = rk * 0.7; }
       else r.material.opacity = 0; });
     const fxa = fx2(p, u, wEye, wSoil, wBee, wBat);
-    skyD.position.copy(C.position); skyM.uniforms.uO.value = wEye * (1 - wSoil) * (1 - wBat * 0.8) * (1 - wBee * 0.6) * 0.32;
+    skyD.position.copy(C.position); skyM.uniforms.uO.value = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil) * (1 - wBat * 0.8) * (1 - wBee * 0.6) * 0.32;
     if (wEye > 0.01) loadTex();
     const s = SC.findIndex(x => p >= x[0] && p < x[1]);
     if (s !== scene) { scene = s; if (cap) { const en = document.documentElement.lang === 'en', t = s < 0 ? '' : SC[s][en ? 3 : 2]; cap.textContent = t; cap.classList.toggle('on', !!t); } sec.dataset.scene = s; if (window.__sdSound) window.__sdSound(s); }
