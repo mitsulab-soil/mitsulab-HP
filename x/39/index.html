@@ -30,7 +30,19 @@ html,body{margin:0;height:100%;background:var(--ml-bg);color:var(--ml-ink);font-
 .senses{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom));z-index:500;display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:wrap;pointer-events:none}
 .chip{pointer-events:auto;appearance:none;min-height:36px;padding:0 12px;border:1px solid var(--c);border-radius:var(--ml-radius);background:rgba(3,6,15,.55);color:var(--ml-ink);font:500 13px/1 var(--ml-sans);letter-spacing:.06em;display:inline-flex;align-items:center;gap:7px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .chip i{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
-.chip[aria-pressed="false"]{opacity:.38}
+.chip[aria-pressed="false"]{opacity:.68;border-style:dashed}
+.chip[aria-pressed="false"] i{background:transparent;box-shadow:none;border:1px solid var(--c)}
+.chip[aria-pressed="false"] span{text-decoration:line-through}
+.slab{pointer-events:none;align-self:center;font:500 10px/1 var(--ml-mono);letter-spacing:.24em;color:var(--ml-ink-3);text-shadow:0 0 6px #03060f}
+.grp{display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--ml-aoi-2);background:rgba(5,9,18,.75);color:var(--ml-ink);flex-direction:column;gap:2px;box-shadow:0 0 0 6px rgba(155,220,240,.08)}
+.grp span{display:flex;gap:3px}.grp span i{width:8px;height:8px;border-radius:50%}
+.grp b{font:500 13px/1 var(--ml-mono);font-weight:500}
+#hint{position:fixed;left:30%;top:64%;width:0;height:0;z-index:460;pointer-events:none}
+#hint i{position:absolute;width:30px;height:30px;margin:-15px;border-radius:50%;border:1px solid var(--ml-aoi-2);background:rgba(155,220,240,.18);animation:hdrag 2.2s var(--ml-ease) 2 both}
+#hint i+i{animation-name:hpinch;opacity:0}
+@keyframes hdrag{0%{transform:translate(-40px,10px) scale(.7);opacity:0}15%{transform:translate(-40px,10px) scale(1);opacity:1}55%{transform:translate(40px,-10px);opacity:1}70%,100%{transform:translate(40px,-10px) scale(.7);opacity:0}}
+@keyframes hpinch{0%,55%{opacity:0;transform:translate(40px,-10px)}70%{opacity:1;transform:translate(40px,-10px)}100%{opacity:0;transform:translate(70px,-34px)}}
+@media (prefers-reduced-motion:reduce){#hint{display:none}}
 /* 下の操作 */
 .bar{position:fixed;left:16px;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:500;display:flex;gap:10px;justify-content:center}
 .btn{appearance:none;min-height:48px;padding:0 22px;border:1px solid var(--ml-aoi);border-radius:var(--ml-radius);background:rgba(3,6,15,.6);color:var(--ml-ink);font:500 15px/1 var(--ml-sans);letter-spacing:.1em;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
@@ -48,7 +60,8 @@ body.placing .senses{display:none}
 body.placing .sheet{display:block}
 .row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
 .opt{appearance:none;flex:1 1 0;min-width:56px;min-height:44px;border:1px solid var(--ml-line-weak);border-radius:var(--ml-radius);background:transparent;color:var(--ml-ink-2);font:500 13px/1.2 var(--ml-sans);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-.opt i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.opt i{width:14px;height:14px;border-radius:50%;background:var(--c)}
+.sk{margin:0 0 8px;font:500 11px/1 var(--ml-mono);letter-spacing:.24em;color:var(--ml-ink-3)}
 .opt[aria-checked="true"]{border-color:var(--c,var(--ml-aoi));color:var(--ml-ink);box-shadow:inset 0 0 0 1px var(--c,var(--ml-aoi))}
 .lv i{display:inline-block;width:6px;height:6px;margin:0 1px;border-radius:50%;background:var(--ml-aoi)}
 .txt{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px}
@@ -69,8 +82,9 @@ body.placing .sheet{display:block}
 .pm a{color:var(--ml-aoi-2)}
 .pimg{display:block;width:230px;max-width:100%;height:160px;background:#0a1222;object-fit:cover;margin:0 0 8px;border-radius:var(--ml-radius)}
 .del{appearance:none;background:none;border:0;color:var(--ml-ink-3);font:12px var(--ml-sans);padding:8px 0 0;cursor:pointer;text-decoration:underline}
-.toast{position:fixed;left:50%;top:auto;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:700;font-size:13px;color:var(--ml-ink);text-shadow:0 0 10px #03060f,0 0 2px #03060f;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;left:50%;top:auto;bottom:calc(200px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:700;font-size:13px;color:var(--ml-ink);text-shadow:0 0 10px #03060f,0 0 2px #03060f;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
+body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
 @media (min-width:768px){.hd h1{font-size:32px}.senses{bottom:calc(88px + env(safe-area-inset-bottom))}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
@@ -82,10 +96,12 @@ body.placing .sheet{display:block}
   <h1 translate="no">Qualia/map</h1>
   <p>五感マップ。感じたことを、地図に置いて重ねる。</p>
 </header>
-<div class="senses" id="senses" aria-label="感覚で絞りこむ"></div>
+<div class="senses" id="senses" aria-label="感覚で絞りこむ"><span class="slab" aria-hidden="true">表示</span></div>
+<div id="hint" hidden aria-hidden="true"><i></i><i></i></div>
 <div class="aim" aria-hidden="true"><span></span></div>
 <form class="sheet" id="sheet" aria-label="感じたことを置く" autocomplete="off">
-  <div class="row" id="pSense" role="radiogroup" aria-label="感覚"></div>
+  <p class="sk">置く感覚</p>
+  <div class="row" id="pSense" role="radiogroup" aria-label="置く感覚"></div>
   <div class="row" id="pLevel" role="radiogroup" aria-label="強さ"></div>
   <div class="txt">
     <input id="pText" maxlength="40" placeholder="ひとこと（任意）" aria-label="ひとこと（40字まで）" enterkeyhint="done">
@@ -94,7 +110,7 @@ body.placing .sheet{display:block}
   </div>
   <div class="thumb" id="pThumb"><img alt="選んだ写真"><span>顔や車のナンバーが写っていないか確かめてください。<br><button type="button" class="del" id="pNoPhoto">写真を外す</button></span></div>
   <p class="err" id="pErr" role="alert"></p>
-  <p class="note">照準の所に置きます。この端末にだけ残ります（位置は約 250 m・時刻は時間帯に丸めます）。</p>
+  <p class="note">照準の所に置きます。人の名前・住所は書かないでください。この端末にだけ残ります（位置は約 250 m・時刻は時間帯に丸めます）。</p>
 </form>
 <div class="bar">
   <button class="btn sub" id="bHere" type="button">現在地</button>
@@ -150,9 +166,23 @@ var layer=L.layerGroup().addTo(map);
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function draw(){
   layer.clearLayers();
-  SEED.forEach(function(p){if(on[p.s])mark(p,true)});
-  load().forEach(function(p){if(on[p.s]&&SM[p.s])mark(p,false)});
+  var all=[];SEED.forEach(function(p){if(on[p.s])all.push([p,true])});
+  load().forEach(function(p){if(on[p.s]&&SM[p.s])all.push([p,false])});
+  /* 近い印は一つにまとめる（画面で 34px 以内）。寄ると分かれる */
+  var gs=[],D=34;
+  all.forEach(function(a){var pt=map.latLngToLayerPoint([a[0].la,a[0].lo]),g=null;
+    for(var i=0;i<gs.length;i++){if(gs[i].pt.distanceTo(pt)<D){g=gs[i];break}}
+    if(g)g.m.push(a);else gs.push({pt:pt,m:[a]})});
+  gs.forEach(function(g){if(g.m.length===1||map.getZoom()>=16)g.m.forEach(function(a){mark(a[0],a[1])});else group(g.m)});
 }
+function group(m){
+  var la=0,lo=0,cs=[];m.forEach(function(a){la+=a[0].la;lo+=a[0].lo;var c=SM[a[0].s].c;if(cs.indexOf(c)<0)cs.push(c)});la/=m.length;lo/=m.length;
+  var dots=cs.slice(0,4).map(function(c){return'<i style="background:'+c+'"></i>'}).join('');
+  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b>'+m.length+'</b>',iconSize:[52,52]});
+  L.marker([la,lo],{icon:ic,keyboard:true,title:m.length+' 件の印。押すと寄ります'}).addTo(layer).on('click',function(){
+    map.fitBounds(L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]})).pad(.6),{maxZoom:16})});
+}
+map.on('zoomend',function(){draw()});
 function mark(p,seed){
   var s=SM[p.s],r=4+p.lv*2.5;
   L.circleMarker([p.la,p.lo],{radius:r+7,stroke:false,fillColor:s.c,fillOpacity:.14,interactive:false}).addTo(layer);
@@ -171,12 +201,17 @@ function mark(p,seed){
 }
 /* 絞りこみの札 */
 var sv=document.getElementById('senses');
-S.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='chip';b.style.setProperty('--c',s.c);b.setAttribute('aria-pressed','true');b.innerHTML='<i></i>'+s.n;
-  b.onclick=function(){on[s.k]=!on[s.k];b.setAttribute('aria-pressed',on[s.k]);draw()};sv.appendChild(b)});
+S.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='chip';b.style.setProperty('--c',s.c);b.setAttribute('aria-pressed','true');b.innerHTML='<i></i><span>'+s.n+'</span>';b.title=s.n+'の印を出す／隠す';
+  b.onclick=function(){on[s.k]=!on[s.k];b.setAttribute('aria-pressed',on[s.k]);draw();toast(on[s.k]?s.n+'の印を出しました':s.n+'の印を隠しました')};sv.appendChild(b)});
+/* 初めての人へ：指の動きで、地図を動かせること・印に触れられることを一度だけ見せる */
+(function(){var seen=false;try{seen=localStorage.getItem('qmap.hint')==='1'}catch(e){}
+  if(seen)return;var h=document.getElementById('hint');h.hidden=false;
+  function end(){h.hidden=true;try{localStorage.setItem('qmap.hint','1')}catch(e){}}
+  ['pointerdown','wheel','touchstart','keydown'].forEach(function(e){addEventListener(e,end,{once:true,passive:true})});setTimeout(end,4600)})();
 draw();
 
 /* 置く */
-var st={s:null,lv:2,ph:null};
+var st={s:null,lv:2,ph:null},aimY=innerHeight/2,aimEl=document.querySelector('.aim');
 var pS=document.getElementById('pSense'),pL=document.getElementById('pLevel');
 function radio(box,items,key){items.forEach(function(it,i){var b=document.createElement('button');b.type='button';b.className='opt'+(key==='lv'?' lv':'');b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
   if(it.c)b.style.setProperty('--c',it.c);
@@ -185,10 +220,10 @@ function radio(box,items,key){items.forEach(function(it,i){var b=document.create
 radio(pS,S,'s');radio(pL,LV,'lv');function lvDef(){[].forEach.call(pL.children,function(x,i){x.setAttribute('aria-checked',i===1)})}lvDef();
 var body=document.body,bPut=document.getElementById('bPut'),bCancel=document.getElementById('bCancel'),bHere=document.getElementById('bHere'),err=document.getElementById('pErr'),txt=document.getElementById('pText');
 function ready(){if(body.classList.contains('placing'))bPut.textContent='ここに置く';bPut.style.opacity=st.s?1:.5}
-function open(){body.classList.add('placing');bCancel.hidden=false;bHere.hidden=true;map.closePopup();if(map.getZoom()<13)map.setZoom(13);ready()}
+function open(){body.classList.add('placing');var sh=document.getElementById('sheet').getBoundingClientRect(),ay=Math.min(innerHeight/2,Math.max(150,(sh.top+120)/2));aimY=ay;aimEl.style.top=ay+'px';bCancel.hidden=false;bHere.hidden=true;map.closePopup();if(map.getZoom()<13)map.setZoom(13);ready()}
 function close(){body.classList.remove('placing');bCancel.hidden=true;bHere.hidden=false;bPut.textContent='感じたことを置く';st={s:null,lv:2,ph:null};bPut.style.opacity=1;txt.value='';err.textContent='';setThumb(null);[].forEach.call(document.querySelectorAll('.sheet [role=radio]'),function(x){x.setAttribute('aria-checked','false')});lvDef()}
 /* 名前・連絡先らしきものを弾く */
-var BAD=[/\d[\d\-\s－ー]{8,}\d/,/[0-9０-９]{5,}/,/@|＠/,/https?:|www\.|\.(com|jp|net|org)\b/i,/〒/,/[一-鿿゠-ヿA-Za-z]{1,}(さん|くん|君|ちゃん|様|氏)/,/\d+\s*(丁目|番地|番|号)/];
+var BAD=[/\d[\d\-\s－ー]{8,}\d/,/[0-9０-９]{5,}/,/@|＠/,/https?:|www\.|\.(com|jp|net|org)\b/i,/〒/,/[一-鿿゠-ヿA-Za-z]{1,}(さん|くん|君|ちゃん|様|氏)/,/[\d０-９]+\s*(丁目|番地|番|号)/,/[一二三四五六七八九十〇]+\s*(丁目|番地)/,/(名前|氏名|本名)は/];
 function bad(t){return BAD.some(function(r){return r.test(t)})}
 /* 丸め：4 分の 1 地域メッシュ（約 250 m）の中心 */
 function snap(la,lo){var a=7.5/3600,b=11.25/3600;return[(Math.floor(la/a)+.5)*a,(Math.floor(lo/b)+.5)*b]}
@@ -198,7 +233,7 @@ bPut.onclick=function(){
   if(!st.s){err.textContent='感覚を選んでください';return}
   var t=txt.value.trim().slice(0,40);
   if(t&&bad(t)){err.textContent='名前や連絡先・住所は書けません';return}
-  var c=map.getCenter(),g=snap(c.lat,c.lng);
+  var c=map.containerPointToLatLng([innerWidth/2,aimY]),g=snap(c.lat,c.lng);
   var p={id:'p'+Math.random().toString(36).slice(2,12),s:st.s,lv:st.lv,la:+g[0].toFixed(5),lo:+g[1].toFixed(5),t:t,when:band(),ph:!!st.ph};
   var a=load();a.push(p);
   if(!save(a)){err.textContent='この端末では保存できませんでした';return}
