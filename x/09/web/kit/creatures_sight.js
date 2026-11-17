@@ -492,7 +492,8 @@ export function makeTit(mat = stdMat, o = {}) {
   const wingMats = texs.map((tx, m) => { const wm = mk(mat, 0xffffff, { map: tx, side: T.DoubleSide, rough: .8, temp: .85, uv: .18 }); if (m >= 2) { wm.polygonOffset = true; wm.polygonOffsetFactor = -(m - 1); wm.polygonOffsetUnits = -(m - 1) * 2; } return wm; });   // 雨覆は風切より手前に描く（深さの取りあいで縞にならない）
   function wingMesh(side) {
     const geos = [], base = [];
-    for (const f of F) { const fg = featherGeo(f.len, f.wid, f.asym || 0); base.push(Float32Array.from(fg.attributes.position.array)); geos.push(fg); }
+    const WK = o.sp === 'suzume' ? 1.6 : 1;   /* 11-18：スズメの翼が棒に見えた→羽の幅を広げて重ねる */
+    for (const f of F) { const fg = featherGeo(f.len, f.wid * WK, f.asym || 0); base.push(Float32Array.from(fg.attributes.position.array)); geos.push(fg); }
     const groups = [0, 1, 2, 3].map(m => F.map((f, i) => [f, i]).filter(([f]) => f.m === m));
     const ordered = groups.flat(), geo = mergeGeometries(ordered.map(([, i]) => geos[i]), true);
     { const gs = geo.groups.slice(); geo.clearGroups(); let gi = 0; for (let m = 0; m < 4; m++) { let start = null, count = 0; for (let q = 0; q < groups[m].length; q++, gi++) { if (start == null) start = gs[gi].start; count += gs[gi].count; } if (count) geo.addGroup(start, count, m); } }

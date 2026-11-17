@@ -56,8 +56,8 @@ export function attachIkimono(QW, opt = {}) {
     const nav = document.getElementById("qIK"); if (!nav) return;
     const panel = document.createElement("div"); panel.className = "ik-flight"; panel.hidden = true;
     panel.setAttribute("role", "group"); panel.setAttribute("aria-label", "飛ぶ高さ（体験用の模式・R/Fキーでも操作）");
-    panel.innerHTML = '<span class="ik-flight-label">飛ぶ高さ<small>模式 · R / F</small></span><button type="button" class="ik-alt-up" aria-label="上へ（長押し・Rキー）" title="長押しで上へ・Rキーでも操作">↑</button><button type="button" class="ik-alt-down" aria-label="下へ（長押し・Fキー）" title="長押しで下へ・Fキーでも操作">↓</button>';
-    const style = document.createElement("style"); style.textContent = '#qIK .ik-flight[hidden]{display:none!important}#qIK .ik-flight{display:flex;flex-direction:column;align-items:center;gap:3px;width:52px;padding-top:6px;border-top:1px solid #dce8ee44}#qIK .ik-flight-label{color:#edf5f7;text-shadow:0 1px 3px #000;font:10px/1.3 sans-serif;text-align:center}#qIK .ik-flight-label small{display:block;font-size:8px;white-space:nowrap}#qIK .ik-flight button{width:44px;min-width:44px;min-height:44px;height:44px;font:22px/1 sans-serif;touch-action:none;user-select:none}#qIK .ik-flight button:focus-visible{outline:2px solid #d2f6fa;outline-offset:2px}#qIK .ik-flight button.is-held{color:#0b1119;background:#d8e6ec}';
+    panel.innerHTML = '<span class="ik-flight-label">飛ぶ高さ</span><button type="button" class="ik-alt-up" aria-label="上へ（長押し・Rキー）" title="長押しで上へ・Rキーでも操作">↑</button><button type="button" class="ik-alt-down" aria-label="下へ（長押し・Fキー）" title="長押しで下へ・Fキーでも操作">↓</button>';
+    const style = document.createElement("style"); style.textContent = '#qIK .ik-flight[hidden]{display:none!important}#qIK .ik-flight{display:flex;flex-direction:column;align-items:center;gap:3px;width:52px;padding-top:6px;border-top:1px solid #dce8ee44}#qIK .ik-flight-label{color:#edf5f7;text-shadow:0 1px 3px #000;font:600 12px/1.3 sans-serif;text-align:center}#qIK .ik-flight-label small{display:block;font-size:8px;white-space:nowrap}#qIK .ik-flight button{width:44px;min-width:44px;min-height:44px;height:44px;font:22px/1 sans-serif;touch-action:none;user-select:none}#qIK .ik-flight button:focus-visible{outline:2px solid #d2f6fa;outline-offset:2px}#qIK .ik-flight button.is-held{color:#0b1119;background:#d8e6ec}';
     document.head.appendChild(style); nav.appendChild(panel); flight.panel = panel;
     for (const [selector, dir] of [[".ik-alt-up", 1], [".ik-alt-down", -1]]) {
       const button = panel.querySelector(selector); if (dir > 0) flight.up = button; else flight.down = button;
@@ -86,7 +86,7 @@ export function attachIkimono(QW, opt = {}) {
   function bodyOf(id) { return cache[id] ? Promise.resolve(cache[id]) : (pend[id] ||= build(id)); }
   async function build(id) {
     const P = IKIMONO[id];
-    mod ||= await import("./creatures_sight.js?v=11");
+    mod ||= await import("./creatures_sight.js?v=12");
     const c = P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : P.make === "suzume" ? mod.makeTit(undefined, { sp: "suzume" }) : P.make === "tanuki" ? mod.makeDog(undefined, { tanuki: true }) : mod.makeDog();
     const g = new THREE.Group(); c.scale.setScalar(P.size); g.add(c); g.userData.c = c;
     g.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
@@ -126,7 +126,7 @@ export function attachIkimono(QW, opt = {}) {
   const WIDE = { hachi: .28, chou: .16, tori: .16, suzume: .34, tanuki: .08, inu: .08 };   // ふちを寄せる強さ（目が頭の横＝視野が広い、の模式）
   const HEX = { hachi: 1, chou: 1 };
   /* 11-18：ミツバチは赤を見ないので、置きかえの色に赤を使わない（緑→黄・青→水色・紫外→青紫。人の赤は暗く）。数は模式 */
-  const MOV = { hachi: [.02, .62, .04, .02, .52, .38, 0, .10, .72] };
+  const MOV = { hachi: [.03, .8, .05, .03, .68, .5, 0, .14, .92] };   /* 11-18：暗すぎた→明るく（色の向きは同じ） */
   const UVK = { suzume: 2.4, tori: 1.6 };   /* 11-18：スズメの見え方の違いが弱い→紫外の置きかえ（模式）と視野の広さを強める。量は測っていない */   // 複眼の個眼の並び（ふちだけ・模式）
   const PO = { rt: null, mat: null, sc: null, cam: null, busy: false, sz: new THREE.Vector2() };
   function postSetup() {
@@ -134,9 +134,9 @@ export function attachIkimono(QW, opt = {}) {
     PO.rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: true });
     PO.rt.texture.minFilter = PO.rt.texture.magFilter = THREE.LinearFilter; PO.rt.texture.generateMipmaps = false;
     PO.mat = new THREE.ShaderMaterial({
-      uniforms: { tD: { value: PO.rt.texture }, uM: { value: new THREE.Matrix3() }, uUV: { value: new THREE.Vector3() }, uK: { value: 0 }, uUk: { value: 1 }, uW: { value: 0 }, uHex: { value: 0 }, uTx: { value: new THREE.Vector2(1, 1) }, res: { value: new THREE.Vector2(1, 1) } },
+      uniforms: { tD: { value: PO.rt.texture }, uM: { value: new THREE.Matrix3() }, uUV: { value: new THREE.Vector3() }, uK: { value: 0 }, uUk: { value: 1 }, uRd: { value: 0 }, uW: { value: 0 }, uHex: { value: 0 }, uTx: { value: new THREE.Vector2(1, 1) }, res: { value: new THREE.Vector2(1, 1) } },
       vertexShader: "varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }",
-      fragmentShader: `uniform sampler2D tD; uniform mat3 uM; uniform vec3 uUV; uniform float uK; uniform float uUk; uniform float uW; uniform float uHex; uniform vec2 uTx; uniform vec2 res; varying vec2 vUv;
+      fragmentShader: `uniform sampler2D tD; uniform mat3 uM; uniform vec3 uUV; uniform float uK; uniform float uUk; uniform float uRd; uniform float uW; uniform float uHex; uniform vec2 uTx; uniform vec2 res; varying vec2 vUv;
         void main(){ vec2 q=vUv-.5; vec2 uv=.5+q*(1.-uW*uK*dot(q,q)*2.);
           vec2 tx=uTx*1.2; vec3 c0=(texture2D(tD,uv).rgb*4.+texture2D(tD,uv+vec2(tx.x,0.)).rgb+texture2D(tD,uv-vec2(tx.x,0.)).rgb+texture2D(tD,uv+vec2(0.,tx.y)).rgb+texture2D(tD,uv-vec2(0.,tx.y)).rgb+texture2D(tD,uv+tx*.7).rgb+texture2D(tD,uv-tx*.7).rgb)/10.;   /* 粗い像をやわらかく（四角いモザイクにしない） */
           vec3 c=max(vec3(0.),uM*c0);
@@ -144,7 +144,8 @@ export function attachIkimono(QW, opt = {}) {
           float uvk=smoothstep(.0,.2,c0.b-c0.r)*smoothstep(.15,.7,l)*(.4+.6*smoothstep(.4,.9,uv.y));   // 紫外の手がかり（模式）：空・青みの散乱光は紫外をふくむ、を置きかえの色で重ねる。紫外は測っていない
           c+=uUV*uvk*.35*uUk;
           if(uHex>.5){ float rq=length(q*vec2(res.x/res.y,1.)); float cs=res.y/110.; vec2 p=vUv*res/cs; vec2 r=vec2(1.,1.732), h=r*.5; vec2 a=mod(p,r)-h, b=mod(p-h,r)-h; vec2 g=dot(a,a)<dot(b,b)?a:b; float e=smoothstep(.5,.85,rq); c*=1.-.2*e*smoothstep(.34,.5,length(g)); }
-          { float mx=max(c0.r,max(c0.g,c0.b)), mn=min(c0.r,min(c0.g,c0.b)), sa=(mx-mn)/max(mx,1e-4); float tl=smoothstep(.3,.5,sa)*smoothstep(.0,.08,min(c0.g,c0.b)-c0.r)*(1.-smoothstep(.0,.12,abs(c0.g-c0.b)-.08)); c=mix(c,c0,tl*.85); }   /* 11-18：碧の髪と裾の碧色（青緑）は置きかえずに残す＝生き物の目でも碧と分かる */
+          { float mx=max(c0.r,max(c0.g,c0.b)), mn=min(c0.r,min(c0.g,c0.b)), sa=(mx-mn)/max(mx,1e-4); float tl=smoothstep(.18,.38,sa)*smoothstep(.0,.04,min(c0.g,c0.b)-c0.r)*(1.-smoothstep(.0,.15,abs(c0.g-c0.b)-.1)); c=mix(c,c0*1.08,tl); }   /* 11-18：碧の髪と裾の碧色（青緑）は置きかえずに残す＝生き物の目でも碧と分かる */
+          c*=1.-uRd*.75*smoothstep(.06,.3,c0.r-max(c0.g,c0.b));   /* 11-18：ミツバチは赤を受けとらない→赤い物（鳥居の朱）は暗く沈める */
           c=mix(c0,c,uK);
           c*=mix(1.,.78+.22*smoothstep(.85,.3,length(q)),uK);
           gl_FragColor=vec4(c,1.);
@@ -164,7 +165,7 @@ export function attachIkimono(QW, opt = {}) {
         if (PO.rt.width !== w || PO.rt.height !== h) PO.rt.setSize(w, h);
         const P = IKIMONO[id], m = MOV[id] || LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], u = PO.mat.uniforms;
         u.uM.value.set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]); const uw = LENS[P.lens]?.uvw || [0, 0, 0]; u.uUV.value.set(uw[0], uw[1], uw[2]);
-        u.uK.value = k; u.uUk.value = UVK[id] || 1; u.uW.value = WIDE[id] || 0; u.uHex.value = HEX[id] ? 1 : 0; u.res.value.copy(PO.sz); u.uTx.value.set(1 / w, 1 / h);
+        u.uK.value = k; u.uUk.value = UVK[id] || 1; u.uRd.value = id === "hachi" ? 1 : 0; u.uW.value = WIDE[id] || 0; u.uHex.value = HEX[id] ? 1 : 0; u.res.value.copy(PO.sz); u.uTx.value.set(1 / w, 1 / h);
         R.setRenderTarget(PO.rt); orig(sc, cam); R.setRenderTarget(null); orig(PO.sc, PO.cam);
       } finally { PO.busy = false; }
     }; } }
