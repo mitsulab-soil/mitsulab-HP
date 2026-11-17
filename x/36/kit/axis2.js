@@ -11,7 +11,7 @@
   '#ax2 small{position:absolute;top:-6px;white-space:nowrap;font-size:14px;font-weight:600;color:#c9d3e2;letter-spacing:.08em;text-shadow:0 0 4px #000}#ax2 .l{left:0}#ax2 .r{right:0}#ax2 .c{left:50%;transform:translateX(-50%)}'+
   '#ax2.low{top:auto;bottom:calc(14px + env(safe-area-inset-bottom));left:calc(84px + env(safe-area-inset-left));right:calc(16px + env(safe-area-inset-right))}'+
   '#ax2.low small{color:#f3f6f8;font-weight:600;text-shadow:0 0 1px #000,0 0 1px #000}'+
-  '@media (max-width:420px){#ax2 .l,#ax2 .r{top:22px;font-size:11px!important}#ax2 small{font-size:14px}#ax2{left:76px;right:58px}#ax2.low{right:16px}}';
+  '@media (max-width:420px){#ax2 .l,#ax2 .r{top:24px;font-size:13px!important;font-weight:700}#ax2 small{font-size:14px}#ax2{left:76px;right:58px}#ax2.low{right:16px}}';
   var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
   var el=document.createElement('div');el.id='ax2';el.setAttribute('role','slider');el.setAttribute('aria-label','時間の速さ（横の軸）');
   el.setAttribute('aria-valuemin',MIN);el.setAttribute('aria-valuemax',MAX);el.tabIndex=0;
