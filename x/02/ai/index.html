@@ -66,7 +66,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--ml-bg);color:var
 </div>
 <style id="a18b">/* 2026-11-18 375：札を出しっぱなしにせず、大きな一つのボタンで開く（3D を広く見せる） */#pick{display:none}
 @media (max-width:600px){#pick{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin:0 0 6px;border:1px solid #5cc8e0;border-radius:2px;background:transparent;color:#eef5fb;font:600 15px/1 "Hiragino Mincho ProN",serif;letter-spacing:.06em;cursor:pointer}
-#talk:not(.open) .sc{display:none!important}#talk.open #say{display:none}#band .scale.nm{white-space:normal;height:auto!important;font-size:12px!important;line-height:1.5}#band .scale.nm .nm2{white-space:nowrap}#talk.open #pick{border-color:transparent;min-height:44px;margin:0;justify-content:flex-end;font-size:14px;color:#c9d3e2}}</style>
+#talk:not(.open) .sc{display:none!important}#talk.open #say{display:none}@media (max-width:600px){#modes,#chips{gap:4px!important}#modes button,#chips button{min-height:40px!important;padding:0 8px!important;font-size:12.5px!important}}#band .scale.nm{white-space:normal;height:auto!important;font-size:12px!important;line-height:1.5}#band .scale.nm .nm2{white-space:nowrap}#talk.open #pick{border-color:transparent;min-height:44px;margin:0;justify-content:flex-end;font-size:14px;color:#c9d3e2}}</style>
 <script>(function(){var t=document.getElementById('talk'),b=document.createElement('button');b.type='button';b.id='pick';b.setAttribute('aria-expanded','false');
 function lab(){b.textContent=t.classList.contains('open')?'閉じる ▴':'主体をかえる・問いかける ▾'}
 b.onclick=function(){t.classList.toggle('open');b.setAttribute('aria-expanded',t.classList.contains('open'));lab()};lab();t.insertBefore(b,t.firstChild);

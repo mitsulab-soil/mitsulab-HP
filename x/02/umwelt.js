@@ -1313,7 +1313,7 @@ STARTUP.sceneBuiltAt = performance.now();
     STARTUP.forestRestAt = performance.now(); })();
   /* 2026-11-04 コマ落ち：影の材質は前もって組めない（three の作り）→ 起動画面の裏で一こま描き、影の材質と絵を先に用意してから幕を上げる（はじめのこまの 0.2〜0.35 秒の止まりを幕の裏へ） */ if (texPending.size) await Promise.race([Promise.all([...texPending]), new Promise(r => setTimeout(r, 60))]);   /* 2026-11-18 起動 1 秒：400→60（あとは霞から現れる）。2026-11-05 夕：ほどいている質感がそろってから（幕を上げたあとに絵が入れかわらないように） */ try { renderer.render(scene, camera); } catch (e) {}
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 2 && dt < 50) || t - t0 > 160) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
-  { const f = scene.fog, D = f.density, t0 = performance.now(); f.density = D * 3.2; const st = () => { const k = Math.min(1, (performance.now() - t0) / 1600); f.density = D * (3.2 - 2.2 * k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); }   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
+  { const f = scene.fog, D = f.density, t0 = performance.now(); f.density = D * 3.2; const st = () => { const k = Math.min(1, (performance.now() - t0) / 2800); f.density = D * (3.2 - 2.2 * k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); }   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
   window.__muBoot = true; bootOpen(); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
   { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);

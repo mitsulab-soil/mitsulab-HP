@@ -164,7 +164,7 @@ cv.addEventListener('pointerup',e=>{if(down&&!down.moved){GO.end();ndc.set(e.cli
 /* 2026-11-18 字を足さずに、触れられる所を風景で示す：指（ポインタ）の下の地面に淡い輪。水際と杭に近いほど明るく、大きく */
 const hoverRing=new T.Mesh(new T.RingGeometry(.5,.62,48).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0xe9f6f2,transparent:true,opacity:0,depthWrite:false,toneMapped:false}));hoverRing.visible=false;hoverRing.userData.o=0;scene.add(hoverRing);
 let hvT=0;cv.addEventListener('pointermove',e=>{if(down||e.pointerType!=='mouse'||innerWidth<700)return;const t=performance.now();if(t-hvT<50)return;hvT=t;ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(!h){hoverRing.userData.o=0;return}
-  const dp=Math.max(0,Math.hypot(h.point.x-POND.x,h.point.z-POND.z)-pondR()),near=Math.max(0,1-dp/2.2);hoverRing.position.set(h.point.x,h.point.y+.035,h.point.z);const k=1+near*1.1;hoverRing.scale.set(k,1,k);hoverRing.userData.o=.16+near*.44;hoverRing.visible=true;});
+  const dp=Math.max(0,Math.hypot(h.point.x-POND.x,h.point.z-POND.z)-pondR()),near=Math.max(0,1-dp/2.2);hoverRing.position.set(h.point.x,h.point.y+.035,h.point.z);const k=.55+near*1.5;hoverRing.scale.set(k,1,k);hoverRing.userData.o=.16+near*.44;hoverRing.visible=true;});
 cv.addEventListener('pointerleave',()=>{hoverRing.userData.o=0});
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 function walk(dt){let vx=0,vz=0;const f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),sd=(keys.d?1:0)-(keys.a?1:0);
