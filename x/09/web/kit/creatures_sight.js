@@ -492,7 +492,7 @@ export function makeTit(mat = stdMat, o = {}) {
   const wingMats = texs.map((tx, m) => { const wm = mk(mat, 0xffffff, { map: tx, side: T.DoubleSide, rough: .8, temp: .85, uv: .18 }); if (m >= 2) { wm.polygonOffset = true; wm.polygonOffsetFactor = -(m - 1); wm.polygonOffsetUnits = -(m - 1) * 2; } return wm; });   // 雨覆は風切より手前に描く（深さの取りあいで縞にならない）
   function wingMesh(side) {
     const geos = [], base = [];
-    const WK = o.sp === 'suzume' ? 1.6 : 1;   /* 11-18：スズメの翼が棒に見えた→羽の幅を広げて重ねる */
+    const WK = o.sp === 'suzume' ? 1.6 : 1; g.userData.wide = o.sp === 'suzume';   /* 11-18：スズメの翼が棒に見えた→羽の幅を広げて重ねる */
     for (const f of F) { const fg = featherGeo(f.len, f.wid * WK, f.asym || 0); base.push(Float32Array.from(fg.attributes.position.array)); geos.push(fg); }
     const groups = [0, 1, 2, 3].map(m => F.map((f, i) => [f, i]).filter(([f]) => f.m === m));
     const ordered = groups.flat(), geo = mergeGeometries(ordered.map(([, i]) => geos[i]), true);
@@ -551,7 +551,8 @@ export function makeTit(mat = stdMat, o = {}) {
     poseHead(0, 0); body.rotation.y = 0; body.position.y = 0; body.scale.set(1, 1, 1); legs.rotation.x = 0;
     legs.visible = false;
     const cyc = (t + g.userData.ph) * 9, beat = cyc % 6;               // 4 回はばたいて、2 拍ぶんたたむ
-    if (beat > 4 && moving !== 'hover') { const u = sstep(4, 4.3, beat) * (1 - sstep(5.7, 6, beat)); for (const w of wings) poseWing(w, lerp(.3, -.28, u), u); tailPiv.rotation.x = .05; return -1; }
+    if (beat > 4 && moving !== 'hover' && !g.userData.wide) {   /* 11-18：スズメ（後ろから見る）はたたむ間を入れず、翼を広げた姿を保つ */
+    const u = sstep(4, 4.3, beat) * (1 - sstep(5.7, 6, beat)); for (const w of wings) poseWing(w, lerp(.3, -.28, u), u); tailPiv.rotation.x = .05; return -1; }
     const p = cyc * TAU, s1 = Math.sin(p), up = Math.cos(p) > 0 ? 0 : 1;   // 下ろすときは広げ、上げるときは少したたむ
     const elev = .25 + .85 * s1, fold = .38 * Math.max(0, -Math.cos(p));
     for (const w of wings) poseWing(w, elev, fold, -.1 * Math.max(0, s1));
