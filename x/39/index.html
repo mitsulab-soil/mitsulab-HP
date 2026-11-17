@@ -16,6 +16,8 @@
 <style>
 html,body{margin:0;height:100%;background:var(--ml-bg);color:var(--ml-ink);font-family:var(--ml-sans);-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow:hidden}
 #map{position:fixed;inset:0;background:#050a14}
+/* 見出しの下では地図の字を淡く（帯は敷かず、地図そのものを上へ向けて薄める） */
+body.zin #map{-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.3) 0,rgba(0,0,0,.3) 96px,#000 168px);mask-image:linear-gradient(to bottom,rgba(0,0,0,.3) 0,rgba(0,0,0,.3) 96px,#000 168px)}
 .leaflet-container{background:#050a14;font-family:var(--ml-sans)}
 .leaflet-tile-pane{filter:invert(1) hue-rotate(185deg) brightness(.6) contrast(.8) saturate(.45)}
 .leaflet-control-attribution{background:transparent!important;color:var(--ml-ink-3)!important;font-size:10px;text-shadow:0 0 3px #03060f}
@@ -71,7 +73,7 @@ body.placing .sheet{display:block}
 .thumb img{width:56px;height:56px;object-fit:cover;border-radius:var(--ml-radius)}
 .note{margin:2px 0 0;font-size:13px;line-height:1.6;color:var(--ml-ink-2)}
 .txt input.ng{border-color:var(--ml-l-people);box-shadow:inset 0 0 0 1px var(--ml-l-people)}
-.btn[aria-disabled="true"]{opacity:.38;border-style:dashed;cursor:not-allowed}
+.btn[aria-disabled="true"]{color:var(--ml-ink-3);border-color:var(--ml-ink-3);border-style:dashed;opacity:.55;cursor:not-allowed}
 .err{color:var(--ml-l-people);font-size:15px;font-weight:600;min-height:0;margin:0 0 8px}
 /* 印の吹き出し */
 .leaflet-popup-content-wrapper{background:rgba(5,9,18,.92);color:var(--ml-ink);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);box-shadow:none}
@@ -131,7 +133,7 @@ var S=[
  {k:'touch',n:'触れる',c:'#f2cf8c'},
  {k:'smell',n:'嗅ぐ',c:'#f4aa96'},
  {k:'taste',n:'味わう',c:'#e8b6d8'},
- {k:'meas',n:'測る',c:'#b4a2ff'}
+ {k:'meas',n:'測る',c:'#b4a2ff'}   /* 五感ではなく機器で測った値（気温・音の大きさなど）。表示では「機器」の札で五感と分ける */
 ];
 var SM={};S.forEach(function(s){SM[s.k]=s});
 var LV=['かすか','ふつう','つよい'];
@@ -188,7 +190,7 @@ function group(m){
 function tight(m){var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));return map.getZoom()>=13&&b.getNorthEast().distanceTo(b.getSouthWest())<300}
 function spread(m){var c=map.latLngToLayerPoint([m[0][0].la,m[0][0].lo]),n=m.length,R=Math.max(26,n*7);
   m.forEach(function(a,i){var t=-Math.PI/2+i*2*Math.PI/n,ll=map.layerPointToLatLng(c.add(L.point(Math.cos(t)*R,Math.sin(t)*R)));
-    L.polyline([[a[0].la,a[0].lo],ll],{color:SM[a[0].s].c,weight:1,opacity:.45,interactive:false}).addTo(layer);
+    L.polyline([[a[0].la,a[0].lo],ll],{color:SM[a[0].s].c,weight:1.5,opacity:.8,interactive:false}).addTo(layer);
     mark(Object.assign({},a[0],{la:ll.lat,lo:ll.lng,_o:a[0]}),a[1])});
   L.circleMarker([m[0][0].la,m[0][0].lo],{radius:3,stroke:false,fillColor:'#e8f4fa',fillOpacity:.8,interactive:false}).addTo(layer)}
 map.on('zoomend',function(){draw();body.classList.toggle('zin',map.getZoom()>=11)});
@@ -210,7 +212,7 @@ function mark(p,seed){
 }
 /* 絞りこみの札 */
 var sv=document.getElementById('senses');
-S.forEach(function(s){var b=document.createElement('button');b.type='button';b.className='chip';b.style.setProperty('--c',s.c);b.setAttribute('aria-pressed','true');b.innerHTML='<i></i><span>'+s.n+'</span>';b.title=s.n+'の印を出す／隠す';
+S.forEach(function(s){if(s.k==='meas'){var sl=document.createElement('span');sl.className='slab';sl.textContent='機器';sv.appendChild(sl)}var b=document.createElement('button');b.type='button';b.className='chip';b.style.setProperty('--c',s.c);b.setAttribute('aria-pressed','true');b.innerHTML='<i></i><span>'+s.n+'</span>';b.title=s.n+'の印を出す／隠す';
   b.onclick=function(){on[s.k]=!on[s.k];b.setAttribute('aria-pressed',on[s.k]);draw();toast(on[s.k]?s.n+'の印を出しました':s.n+'の印を隠しました')};sv.appendChild(b)});
 /* 初めての人へ：指の動きで、地図を動かせること・印に触れられることを一度だけ見せる */
 (function(){var seen=false;try{seen=localStorage.getItem('qmap.hint')==='1'}catch(e){}
