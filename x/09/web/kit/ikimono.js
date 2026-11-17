@@ -18,7 +18,7 @@ const GLB = { inu: { f: "shiba.glb", clip: "standing", rx: 0, ry: 0, foot: true 
 const M_CHOU_RX = 0;
 export const IKIMONO = {
   hachi: { name: "ミツバチ", make: "hachi", lens: "hachi", mix: 1, blur: 3.2, eye: 1.0, fov: 80, back: .5, up: .16, size: .16, bob: .03, fly: true,
-    say: "ミツバチの目の模式。色は置きかえ（緑→赤・青→緑・紫外→青）。紫外の量は測っていない。像は粗く、視野は広く。", band: [20, 500],
+    say: "ミツバチの目に寄せた模式。赤は見えず、紫外が見える。色は置きかえの色で、像は粗く、視野は広く。", band: [20, 500],
     sources: [{ claim: "受けとる細胞は紫外・青・緑の三種類（約 340・435・540 nm）", cite: "Peitsch D et al. (1992) J. Comp. Physiol. A 170:23–40" }, { claim: "視力は人よりはるかに低い（像を粗くしたのは模式で、実際よりずっと弱め）", cite: "Caves EM, Brandley NC, Johnsen S (2018) Trends Ecol. Evol. 33:358–372" }, { claim: "空気の音は触角のジョンストン器官で、数百 Hz の低いふるえとして受ける", cite: "Dreller C & Kirchner WH (1993) J. Comp. Physiol. A 173:275–279" }] },
   chou: { name: "ナミアゲハ", make: "chou", lens: "chou", mix: 1, blur: 2.4, eye: 1.3, fov: 74, back: .5, up: .3, size: .155, bob: .06, fly: true,
     say: "ナミアゲハの目の模式。色の差は濃く、紫外の手がかりは紫の置きかえ（量は測っていない）。像は粗く。",
@@ -125,6 +125,8 @@ export function attachIkimono(QW, opt = {}) {
   const RES = { hachi: .7, chou: .72, tori: .8, suzume: .72, tanuki: .68, inu: .68 };   // 描く細かさ（視力の低さの模式。実際の差よりずっと弱め）
   const WIDE = { hachi: .28, chou: .16, tori: .16, suzume: .34, tanuki: .08, inu: .08 };   // ふちを寄せる強さ（目が頭の横＝視野が広い、の模式）
   const HEX = { hachi: 1, chou: 1 };
+  /* 11-18：ミツバチは赤を見ないので、置きかえの色に赤を使わない（緑→黄・青→水色・紫外→青紫。人の赤は暗く）。数は模式 */
+  const MOV = { hachi: [.02, .62, .04, .02, .52, .38, 0, .10, .72] };
   const UVK = { suzume: 2.4, tori: 1.6 };   /* 11-18：スズメの見え方の違いが弱い→紫外の置きかえ（模式）と視野の広さを強める。量は測っていない */   // 複眼の個眼の並び（ふちだけ・模式）
   const PO = { rt: null, mat: null, sc: null, cam: null, busy: false, sz: new THREE.Vector2() };
   function postSetup() {
@@ -160,7 +162,7 @@ export function attachIkimono(QW, opt = {}) {
       PO.busy = true; try {
         postSetup(); R.getDrawingBufferSize(PO.sz); const f = RES[id] ?? 1, k = S.k, kk = 1 + (f - 1) * k, w = Math.max(64, Math.round(PO.sz.x * kk)), h = Math.max(64, Math.round(PO.sz.y * kk));
         if (PO.rt.width !== w || PO.rt.height !== h) PO.rt.setSize(w, h);
-        const P = IKIMONO[id], m = LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], u = PO.mat.uniforms;
+        const P = IKIMONO[id], m = MOV[id] || LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], u = PO.mat.uniforms;
         u.uM.value.set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]); const uw = LENS[P.lens]?.uvw || [0, 0, 0]; u.uUV.value.set(uw[0], uw[1], uw[2]);
         u.uK.value = k; u.uUk.value = UVK[id] || 1; u.uW.value = WIDE[id] || 0; u.uHex.value = HEX[id] ? 1 : 0; u.res.value.copy(PO.sz); u.uTx.value.set(1 / w, 1 / h);
         R.setRenderTarget(PO.rt); orig(sc, cam); R.setRenderTarget(null); orig(PO.sc, PO.cam);
