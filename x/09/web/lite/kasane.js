@@ -41,7 +41,7 @@ const LINES = {
   time: [
     { t: "内の輪は一秒で一回り。外へいくほど、十倍ずつ遅い。" },
     { t: "いちばん外の輪は、一回りに約十七分。止まって見えても、動いている。" },
-    { t: "速すぎる時間も遅すぎる時間も、同じ場所に重なっている。輪は模式。Qualia/time の芯。" },
+    { t: "速すぎる時間も遅すぎる時間も、同じ場所に重なっている。輪は模式。Qualia/scale の、時間の桁。" },
   ],
   scale: [
     { t: "入れ子の箱は、大きさの桁をまたぐことの模式。" },
@@ -92,7 +92,7 @@ function contourGeo() {   // 地形：ゆがんだ等高線を三段、足もと
   return mergeGeos([ring(.9, 0, 0), ring(.62, .12, 1), ring(.34, .24, 2)]);
 }
 function clockGeo() {   // time：十倍ずつ遅い輪を四重に（光の粒が回る速さは描き方で：1・10・100・1000 秒で一回り）
-  const L = []; for (let i = 0; i < 4; i++) { const r = .1 + i * .075; L.push(new THREE.TorusGeometry(r, .006, 5, 64)); }
+  const L = []; for (let i = 0; i < 4; i++) { const r = .1 + i * .075; L.push(new THREE.TorusGeometry(r, .006 + i * .0015, 6, 72)); }
   return mergeGeos(L);
 }
 function boxesGeo() {   // scale：十倍ずつの箱を入れ子に（線の箱）
@@ -107,7 +107,7 @@ function barkGeo() {   // touch：樹皮のうねりの板（触れると波が�
 }
 const FORMS = { time: [clockGeo, 0xe0c98a, 7], scale: [boxesGeo, 0x9ad0c4, 8], touch: [barkGeo, 0xc9b8a0, 9], jikan: [ringsGeo, 0xb48a62, 5], chikei: [contourGeo, 0xc8d0a8, 6], literature: [leafGeo, 0xd9b26a, 0], sound: [waveGeo, 0x9fc6d8, 1], keyaki: [ringsGeo, 0xc89a72, 2], leaf: [chainGeo, 0xb8d6a8, 3], trace: [traceGeo, 0xa9c9e6, 4] };
 
-const BIG = { time: 1.6, scale: 1.6, touch: 1.45 };
+const BIG = { time: 2.6, scale: 2.8, touch: 1.45 };   // 11-18：time（Qualia/scale の時間の桁）・scale は人の背丈ほどに
 const VS = `varying vec3 vW; varying vec3 vN; varying vec3 vL;
 void main(){ vL=position; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*w; }`;
 const FS = `uniform vec3 uC; uniform float uA; uniform float uT; uniform float uK; uniform float uOn; varying vec3 vW; varying vec3 vN; varying vec3 vL;

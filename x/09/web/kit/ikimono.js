@@ -122,25 +122,27 @@ export function attachIkimono(QW, opt = {}) {
   /* 11-18 本人「生き物の視点に入っても視野が変わっていない」：CSS の SVG フィルタは iPhone の Safari では WebGL の画面にかからないことがある。
      Qualia/sight と同じく、画面を一度べつの面へ描いて、色（受けとる細胞の感度の模式）・像の粗さ（視力の模式＝描く細かさを下げる）・視野の広さ（ふちを寄せる）・紫外の手がかり（模式）を置きかえる。
      生き物の目のときだけ描く。像を粗くする分、描く画素は減るので重くならない。 */
-  const RES = { hachi: .7, chou: .72, tori: .8, suzume: .8, tanuki: .68, inu: .68 };   // 描く細かさ（視力の低さの模式。実際の差よりずっと弱め）
-  const WIDE = { hachi: .28, chou: .16, tori: .16, suzume: .16, tanuki: .08, inu: .08 };   // ふちを寄せる強さ（目が頭の横＝視野が広い、の模式）
-  const HEX = { hachi: 1, chou: 1 };   // 複眼の個眼の並び（ふちだけ・模式）
+  const RES = { hachi: .7, chou: .72, tori: .8, suzume: .72, tanuki: .68, inu: .68 };   // 描く細かさ（視力の低さの模式。実際の差よりずっと弱め）
+  const WIDE = { hachi: .28, chou: .16, tori: .16, suzume: .34, tanuki: .08, inu: .08 };   // ふちを寄せる強さ（目が頭の横＝視野が広い、の模式）
+  const HEX = { hachi: 1, chou: 1 };
+  const UVK = { suzume: 2.4, tori: 1.6 };   /* 11-18：スズメの見え方の違いが弱い→紫外の置きかえ（模式）と視野の広さを強める。量は測っていない */   // 複眼の個眼の並び（ふちだけ・模式）
   const PO = { rt: null, mat: null, sc: null, cam: null, busy: false, sz: new THREE.Vector2() };
   function postSetup() {
     if (PO.mat) return;
     PO.rt = new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, depthBuffer: true });
     PO.rt.texture.minFilter = PO.rt.texture.magFilter = THREE.LinearFilter; PO.rt.texture.generateMipmaps = false;
     PO.mat = new THREE.ShaderMaterial({
-      uniforms: { tD: { value: PO.rt.texture }, uM: { value: new THREE.Matrix3() }, uUV: { value: new THREE.Vector3() }, uK: { value: 0 }, uW: { value: 0 }, uHex: { value: 0 }, uTx: { value: new THREE.Vector2(1, 1) }, res: { value: new THREE.Vector2(1, 1) } },
+      uniforms: { tD: { value: PO.rt.texture }, uM: { value: new THREE.Matrix3() }, uUV: { value: new THREE.Vector3() }, uK: { value: 0 }, uUk: { value: 1 }, uW: { value: 0 }, uHex: { value: 0 }, uTx: { value: new THREE.Vector2(1, 1) }, res: { value: new THREE.Vector2(1, 1) } },
       vertexShader: "varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }",
-      fragmentShader: `uniform sampler2D tD; uniform mat3 uM; uniform vec3 uUV; uniform float uK; uniform float uW; uniform float uHex; uniform vec2 uTx; uniform vec2 res; varying vec2 vUv;
+      fragmentShader: `uniform sampler2D tD; uniform mat3 uM; uniform vec3 uUV; uniform float uK; uniform float uUk; uniform float uW; uniform float uHex; uniform vec2 uTx; uniform vec2 res; varying vec2 vUv;
         void main(){ vec2 q=vUv-.5; vec2 uv=.5+q*(1.-uW*uK*dot(q,q)*2.);
           vec2 tx=uTx*1.2; vec3 c0=(texture2D(tD,uv).rgb*4.+texture2D(tD,uv+vec2(tx.x,0.)).rgb+texture2D(tD,uv-vec2(tx.x,0.)).rgb+texture2D(tD,uv+vec2(0.,tx.y)).rgb+texture2D(tD,uv-vec2(0.,tx.y)).rgb+texture2D(tD,uv+tx*.7).rgb+texture2D(tD,uv-tx*.7).rgb)/10.;   /* 粗い像をやわらかく（四角いモザイクにしない） */
           vec3 c=max(vec3(0.),uM*c0);
           float l=dot(c0,vec3(.2126,.7152,.0722));
           float uvk=smoothstep(.0,.2,c0.b-c0.r)*smoothstep(.15,.7,l)*(.4+.6*smoothstep(.4,.9,uv.y));   // 紫外の手がかり（模式）：空・青みの散乱光は紫外をふくむ、を置きかえの色で重ねる。紫外は測っていない
-          c+=uUV*uvk*.35;
+          c+=uUV*uvk*.35*uUk;
           if(uHex>.5){ float rq=length(q*vec2(res.x/res.y,1.)); float cs=res.y/110.; vec2 p=vUv*res/cs; vec2 r=vec2(1.,1.732), h=r*.5; vec2 a=mod(p,r)-h, b=mod(p-h,r)-h; vec2 g=dot(a,a)<dot(b,b)?a:b; float e=smoothstep(.5,.85,rq); c*=1.-.2*e*smoothstep(.34,.5,length(g)); }
+          { float mx=max(c0.r,max(c0.g,c0.b)), mn=min(c0.r,min(c0.g,c0.b)), sa=(mx-mn)/max(mx,1e-4); float tl=smoothstep(.3,.5,sa)*smoothstep(.0,.08,min(c0.g,c0.b)-c0.r)*(1.-smoothstep(.0,.12,abs(c0.g-c0.b)-.08)); c=mix(c,c0,tl*.85); }   /* 11-18：碧の髪と裾の碧色（青緑）は置きかえずに残す＝生き物の目でも碧と分かる */
           c=mix(c0,c,uK);
           c*=mix(1.,.78+.22*smoothstep(.85,.3,length(q)),uK);
           gl_FragColor=vec4(c,1.);
@@ -160,7 +162,7 @@ export function attachIkimono(QW, opt = {}) {
         if (PO.rt.width !== w || PO.rt.height !== h) PO.rt.setSize(w, h);
         const P = IKIMONO[id], m = LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], u = PO.mat.uniforms;
         u.uM.value.set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]); const uw = LENS[P.lens]?.uvw || [0, 0, 0]; u.uUV.value.set(uw[0], uw[1], uw[2]);
-        u.uK.value = k; u.uW.value = WIDE[id] || 0; u.uHex.value = HEX[id] ? 1 : 0; u.res.value.copy(PO.sz); u.uTx.value.set(1 / w, 1 / h);
+        u.uK.value = k; u.uUk.value = UVK[id] || 1; u.uW.value = WIDE[id] || 0; u.uHex.value = HEX[id] ? 1 : 0; u.res.value.copy(PO.sz); u.uTx.value.set(1 / w, 1 / h);
         R.setRenderTarget(PO.rt); orig(sc, cam); R.setRenderTarget(null); orig(PO.sc, PO.cam);
       } finally { PO.busy = false; }
     }; } }
