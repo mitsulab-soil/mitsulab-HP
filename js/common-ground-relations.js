@@ -2,12 +2,12 @@
 import * as T from 'three';
 export const MODES=Object.freeze([
  {id:'forest',title:'森',en:'Forest',description:'枝葉・光・生きもの。同じ場所の異なる手がかりをたどる。',href:'x/02/',eye:[6.3,2.6,11.2],look:[.7,1,-1.3]},
- {id:'soil',title:'土',en:'Soil',description:'足元をひらく。根・地層・水の通り道を、断面の模型で結ぶ。',href:'x/24/',eye:[1.55,1.4,3.65],look:[-.65,.3,1.0]},
+ {id:'soil',title:'土',en:'Soil',description:'足元をひらく。根・地層・水の通り道を、断面の模型で結ぶ。',href:'x/02/?m=machine',eye:[1.55,1.4,3.65],look:[-.65,.3,1.0]},
  {id:'water',title:'水',en:'Water',description:'流れをたどる。地形と水面、音の関係が一つの場所に重なる。',href:'x/29/',eye:[-1.1,1.25,5],look:[-4,.15,-2.4]},
  {id:'body',title:'身体',en:'Body',description:'碧を介して、計算で捉えた関係を人が感じられる形へ。',href:'x/09/',eye:[7.6,1.8,7.9],look:[5.0,1.1,3.0]},
  {id:'sound',title:'音',en:'Sound',description:'時間と強さを立体波形へ変換する生成模型。ここでは実音との同期ではなく、音を形へ訳す入口を示します。',href:'x/07/',eye:[5,2.5,5],look:[1.8,1,-.7]},
  {id:'time',title:'時間',en:'Time',description:'年輪と場所の履歴。ひとつの現在に重なる異なる時間を見る。',href:'x/12/',eye:[1.2,1.65,1.6],look:[-1.1,.3,-1.8]},
- {id:'language',title:'言語',en:'Language',description:'同じ木、水、土を違うことばで結ぶ。意味は場所との関係から生まれる。',href:'x/21/',eye:[6.5,2.8,5.7],look:[1.4,1.7,-1.8]},
+ {id:'language',title:'言語',en:'Language',description:'同じ木、水、土を違うことばで結ぶ。意味は場所との関係から生まれる。',href:'x/36/?m=leaf',eye:[6.5,2.8,5.7],look:[1.4,1.7,-1.8]},
  {id:'computation',title:'計算',en:'Computation',description:'形を標本化し、関係を結び直す。光・音・空間へ翻訳する共有地。',href:'x/14/',eye:[8.6,5.6,13.5],look:[.5,.9,.6]}
 ]);
 const V=(...x)=>new T.Vector3(...x);
