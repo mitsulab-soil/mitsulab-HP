@@ -70,6 +70,8 @@ body.placing .sheet{display:block}
 .thumb{display:none;margin:0 0 8px;align-items:center;gap:10px;font-size:12px;color:var(--ml-ink-3)}
 .thumb img{width:56px;height:56px;object-fit:cover;border-radius:var(--ml-radius)}
 .note{margin:2px 0 0;font-size:13px;line-height:1.6;color:var(--ml-ink-2)}
+.txt input.ng{border-color:var(--ml-l-people);box-shadow:inset 0 0 0 1px var(--ml-l-people)}
+.btn[aria-disabled="true"]{opacity:.38;border-style:dashed;cursor:not-allowed}
 .err{color:var(--ml-l-people);font-size:15px;font-weight:600;min-height:0;margin:0 0 8px}
 /* 印の吹き出し */
 .leaflet-popup-content-wrapper{background:rgba(5,9,18,.92);color:var(--ml-ink);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);box-shadow:none}
@@ -189,7 +191,7 @@ function spread(m){var c=map.latLngToLayerPoint([m[0][0].la,m[0][0].lo]),n=m.len
     L.polyline([[a[0].la,a[0].lo],ll],{color:SM[a[0].s].c,weight:1,opacity:.45,interactive:false}).addTo(layer);
     mark(Object.assign({},a[0],{la:ll.lat,lo:ll.lng,_o:a[0]}),a[1])});
   L.circleMarker([m[0][0].la,m[0][0].lo],{radius:3,stroke:false,fillColor:'#e8f4fa',fillOpacity:.8,interactive:false}).addTo(layer)}
-map.on('zoomend',function(){draw()});
+map.on('zoomend',function(){draw();body.classList.toggle('zin',map.getZoom()>=11)});
 function mark(p,seed){
   var s=SM[p.s],r=4+p.lv*2.5;
   L.circleMarker([p.la,p.lo],{radius:r+7,stroke:false,fillColor:s.c,fillOpacity:.14,interactive:false}).addTo(layer);
@@ -226,9 +228,9 @@ function radio(box,items,key){items.forEach(function(it,i){var b=document.create
   b.onclick=function(){st[key]=key==='lv'?i+1:it.k;[].forEach.call(box.children,function(x){x.setAttribute('aria-checked',x===b)});ready()};box.appendChild(b)})}
 radio(pS,S,'s');radio(pL,LV,'lv');function lvDef(){[].forEach.call(pL.children,function(x,i){x.setAttribute('aria-checked',i===1)})}lvDef();
 var body=document.body,bPut=document.getElementById('bPut'),bCancel=document.getElementById('bCancel'),bHere=document.getElementById('bHere'),err=document.getElementById('pErr'),txt=document.getElementById('pText');
-function ready(){if(body.classList.contains('placing'))bPut.textContent='ここに置く';bPut.style.opacity=st.s?1:.5}
+function ready(){if(body.classList.contains('placing'))bPut.textContent='ここに置く';var ng=!!(txt.value.trim()&&bad(txt.value.trim()));txt.classList.toggle('ng',ng);err.textContent=ng?'名前や連絡先・住所は書けません':err.textContent==='名前や連絡先・住所は書けません'?'':err.textContent;bPut.setAttribute('aria-disabled',String(ng||!st.s));bPut.style.opacity=''}
 function open(){body.classList.add('placing');var sh=document.getElementById('sheet').getBoundingClientRect(),ay=Math.min(innerHeight/2,Math.max(150,(sh.top+120)/2));aimY=ay;aimEl.style.top=ay+'px';bCancel.hidden=false;bHere.hidden=true;map.closePopup();if(map.getZoom()<13)map.setZoom(13);ready()}
-function close(){body.classList.remove('placing');bCancel.hidden=true;bHere.hidden=false;bPut.textContent='感じたことを置く';st={s:null,lv:2,ph:null};bPut.style.opacity=1;txt.value='';err.textContent='';setThumb(null);[].forEach.call(document.querySelectorAll('.sheet [role=radio]'),function(x){x.setAttribute('aria-checked','false')});lvDef()}
+function close(){body.classList.remove('placing');bCancel.hidden=true;bHere.hidden=false;bPut.textContent='感じたことを置く';st={s:null,lv:2,ph:null};bPut.removeAttribute('aria-disabled');txt.value='';txt.classList.remove('ng');err.textContent='';setThumb(null);[].forEach.call(document.querySelectorAll('.sheet [role=radio]'),function(x){x.setAttribute('aria-checked','false')});lvDef()}
 /* 名前・連絡先らしきものを弾く */
 /* 空白なしの漢字の氏名・ひらがなの氏名：よくある姓のあとに名が続き、地名の終わり（駅・城・町ほか）でないもの */
 var SEI='佐藤|鈴木|高橋|田中|伊藤|渡辺|山本|中村|小林|加藤|吉田|山田|佐々木|山口|松本|井上|木村|斎藤|清水|山崎|池田|橋本|阿部|石川|山下|中島|石井|小川|前田|岡田|長谷川|藤田|後藤|近藤|村上|遠藤|青木|坂本|斉藤|福田|太田|西村|藤井|金子|岡本|藤原|中野|三浦|原田|中川|松田|竹内|小野|田村|中山|和田|石田|森田|上田|内田|柴田|酒井|宮崎|横山|高木|安藤|宮本|大野|小島|工藤|谷口|今井|高田|丸山|増田|杉山|村田|大塚|小山|平野|藤本|河野|上野|野口|武田|松井|千葉|岩崎|菅原|木下|久保|佐野|野村|松尾';
@@ -260,6 +262,7 @@ bPut.onclick=function(){
   if(st.ph)phPut(p.id,st.ph).then(fin,function(){p.ph=false;var b=load().map(function(x){return x.id===p.id?p:x});save(b);fin()});else fin();
 };
 bCancel.onclick=close;
+txt.addEventListener('input',function(){ready()});
 txt.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();txt.blur()}});
 document.getElementById('sheet').onsubmit=function(e){e.preventDefault()};
 /* 写真：縮小して描き直す（撮影位置・機種・日時の情報はここで消える） */
