@@ -24,7 +24,7 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 .cap{text-wrap:balance;word-break:keep-all;overflow-wrap:anywhere;position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));text-align:center;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;font-size:14px;line-height:1.7;color:var(--t1);text-shadow:0 0 8px #03060f,0 0 2px #03060f;pointer-events:none;transition:opacity .8s;max-width:640px;margin:0 auto}
 .bar{position:fixed;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;justify-content:center;gap:8px;padding:0 16px;flex-wrap:nowrap}
 .bar button,.fold summary{font:inherit;font-size:13px;color:var(--t2);background:rgba(3,6,15,.55);border:1px solid var(--line);border-radius:2px;min-height:44px;padding:0 14px;cursor:pointer;letter-spacing:.04em;white-space:nowrap;min-width:64px}
-.bar button[aria-pressed="true"]{color:var(--t1);border-color:var(--aoi)}
+.bar button[aria-pressed="true"]{color:#fff;border-color:var(--aoi);background:rgba(92,200,224,.28)}
 .bar button:focus-visible,.fold summary:focus-visible,.back:focus-visible{outline:1px solid var(--aoi);outline-offset:2px}
 .fold{position:fixed;right:16px;top:calc(max(26px,calc(env(safe-area-inset-top) + 12px)) + 62px);max-width:min(420px,calc(100vw - 32px))}
 .fold summary{list-style:none;display:inline-flex;align-items:center;float:right}
@@ -235,7 +235,7 @@ function tap(x,y){
  let i;if(N<MAXN){i=N;N++;}else{i=(Math.random()*N)|0;}
  P[i*3]=px;P[i*3+1]=py;P[i*3+2]=pz;V[i*3]=dx*5;V[i*3+1]=dy*5;V[i*3+2]=dz*5;GLOW[i]=0;
  focus=i;
- setCap(eye?'あたたかく光るのは、あなたを見ている仲間。':'殻があなたの見える範囲。光る仲間は、あなたを入力にしています。');
+ setCap(eye?'あたたかく光るのは、あなたを見ている仲間。':'まわりの殻が、あなたの見える範囲。光る仲間は、あなたを入力にしています。');
  audioOn(true);ping();
 }
 function invert(m){const inv=new Array(16);const a=m;

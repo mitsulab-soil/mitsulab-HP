@@ -51,7 +51,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--ml-bg);color:var
 #f{display:flex;gap:6px;max-width:720px;margin:0 auto}
 #q{flex:1;min-height:44px;border-radius:22px;border:1px solid var(--ml-line);background:rgba(3,6,15,.6);color:var(--ml-ink);padding:0 16px;font:15px var(--ml-sans)}
 #f button{min-height:44px;min-width:56px;border-radius:22px;border:1px solid var(--ml-aoi);background:transparent;color:var(--ml-ink);font:14px var(--ml-sans)}
-</style></head>
+</style><style id="a18">#band .scale{font-size:13px!important;height:17px!important}#band .scale.nm{font-size:12.5px!important}</style>
+</head>
 <body class="ml-root">
 <canvas id="cv"></canvas>
 <!-- 犬の模式：Neitz・Geist・Jacobs 1989 の二つの錐体（約429nm・約555nm）に合わせ、赤と緑を一つの量（黄）に、青を別の量に分ける。画面の RGB からの近似で、犬の見え方そのものではない --><svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="dichro"><feColorMatrix type="matrix" values="0.44 0.56 0 0 0  0.40 0.52 0.08 0 0  0.02 0.10 0.88 0 0  0 0 0 1 0"/></filter></svg>
