@@ -64,5 +64,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--ml-bg);color:var
   <div class="sc"><div id="chips"></div><span class="more" aria-hidden="true">›</span></div>
   <form id="f"><input id="q" placeholder="話しかける" autocomplete="off" enterkeyhint="send"><button>送る</button></form>
 </div>
+<style id="a18b">/* 2026-11-18 375：札を出しっぱなしにせず、大きな一つのボタンで開く（3D を広く見せる） */#pick{display:none}
+@media (max-width:600px){#pick{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin:0 0 6px;border:1px solid #5cc8e0;border-radius:2px;background:transparent;color:#eef5fb;font:600 15px/1 "Hiragino Mincho ProN",serif;letter-spacing:.06em;cursor:pointer}
+#talk:not(.open) .sc{display:none!important}#talk.open #pick{border-color:rgba(195,204,224,.5)}}</style>
+<script>(function(){var t=document.getElementById('talk'),b=document.createElement('button');b.type='button';b.id='pick';b.setAttribute('aria-expanded','false');
+function lab(){b.textContent=t.classList.contains('open')?'閉じる ▴':'主体をかえる・問いかける ▾'}
+b.onclick=function(){t.classList.toggle('open');b.setAttribute('aria-expanded',t.classList.contains('open'));lab()};lab();t.insertBefore(b,t.firstChild);
+t.addEventListener('click',function(e){var x=e.target.closest('#modes button,#chips button');if(x&&matchMedia('(max-width:600px)').matches){setTimeout(function(){t.classList.remove('open');b.setAttribute('aria-expanded','false');lab()},150)}});})();</script>
 <script type="module" src="app.js?v=20261118k"></script>
 </body></html>

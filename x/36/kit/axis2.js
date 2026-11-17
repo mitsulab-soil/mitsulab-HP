@@ -19,7 +19,7 @@
   var knob=el.querySelector('b'),lab=el.querySelector('#ax2t'),n=0,drag=0;
   function pos(v){return v<=0?50*(1-v/MIN):50+50*v/MAX}
   function val(p){return p<=50?MIN*(1-p/50):MAX*(p-50)/50}
-  function word(v){var r=Math.round(v);if(Math.abs(v)<.4)return '横になぞると、時間が流れる';return '1 秒＝約 10'+(r<0?'⁻':'')+String(Math.abs(r)).replace(/./g,function(d){return '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]})+' 秒'}
+  function word(v){return Math.abs(v)<.4?'横になぞると、時間が流れる':''}
   function timeWin(){var f=[].filter.call(document.querySelectorAll('iframe.qmf'),function(x){return /\/time\/$/.test(x.src)})[0];return f&&f.contentWindow}
   function apply(v,fromUser){
     n=Math.max(MIN,Math.min(MAX,v));knob.style.left=pos(n)+'%';lab.textContent=word(n);el.setAttribute('aria-valuenow',n.toFixed(1));

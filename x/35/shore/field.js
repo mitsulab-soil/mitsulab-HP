@@ -161,6 +161,11 @@ const cv=$('w');
 cv.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,yaw,pitch,moved:false};cv.setPointerCapture(e.pointerId);});
 cv.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.hypot(dx,dy)>6)down.moved=true;if(down.moved){yaw=down.yaw+dx*.005;pitch=Math.max(-.7,Math.min(.5,down.pitch+dy*.004));}});
 cv.addEventListener('pointerup',e=>{if(down&&!down.moved){GO.end();ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(h){target={x:Math.max(-11,Math.min(11,h.point.x)),z:Math.max(-11,Math.min(11,h.point.z))};tapRing.position.set(target.x,h.point.y+.03,target.z);tapRing.userData.t=0;tapRing.visible=true;splash(target.x,target.z,.6);}$('hint').style.opacity=0;}down=null;});
+/* 2026-11-18 字を足さずに、触れられる所を風景で示す：指（ポインタ）の下の地面に淡い輪。水際と杭に近いほど明るく、大きく */
+const hoverRing=new T.Mesh(new T.RingGeometry(.5,.62,48).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:0xe9f6f2,transparent:true,opacity:0,depthWrite:false,toneMapped:false}));hoverRing.visible=false;hoverRing.userData.o=0;scene.add(hoverRing);
+let hvT=0;cv.addEventListener('pointermove',e=>{if(down)return;const t=performance.now();if(t-hvT<50)return;hvT=t;ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(ndc,cam);const h=ray.intersectObject(ground)[0];if(!h){hoverRing.userData.o=0;return}
+  const dp=Math.abs(Math.hypot(h.point.x-POND.x,h.point.z-POND.z)-pondR()),near=Math.max(0,1-dp/1.6);hoverRing.position.set(h.point.x,h.point.y+.035,h.point.z);const k=1+near*.6;hoverRing.scale.set(k,1,k);hoverRing.userData.o=.18+near*.32;hoverRing.visible=true;});
+cv.addEventListener('pointerleave',()=>{hoverRing.userData.o=0});
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 function walk(dt){let vx=0,vz=0;const f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),sd=(keys.d?1:0)-(keys.a?1:0);
   if(keys.arrowleft)yaw+=dt*1.2;if(keys.arrowright)yaw-=dt*1.2;
@@ -217,6 +222,7 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   const P=field.pulse;leafM.color.setRGB(.7+.12*field.sap+.12*P,.8+.14*field.sap+.12*P,.64+.08*field.sap+.06*P);gMat.userData.u&&(gMat.userData.u.uPulse.value=P,gMat.userData.u.uRad.value=1.2+9*(1-P));
   updateOthers(now,dt);
   sound();
+  if(hoverRing.visible){const m=hoverRing.material;m.opacity+=(hoverRing.userData.o-m.opacity)*Math.min(1,dt*6);hoverRing.userData.o*=.985;if(m.opacity<.01&&hoverRing.userData.o<.01)hoverRing.visible=false;}
   renderer.render(scene,cam);
   if(ready&&held.length&&frames>1){const o=held.shift();if(!bees.includes(o))o.visible=true;}else if(ready&&later.length&&frames>2)later.shift()();else if(ready&&wantShadow&&!renderer.shadowMap.enabled&&frames>6){renderer.shadowMap.enabled=true;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});}
   if(ready&&frames===8)loadCreatures();
