@@ -9,7 +9,8 @@
   '#ax2 .z{position:absolute;left:50%;top:14px;width:1px;height:16px;background:rgba(195,204,224,.6)}'+
   '#ax2 b{position:absolute;top:12px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:#5cc8e0;box-shadow:0 0 0 4px rgba(92,200,224,.22)}'+
   '#ax2 small{position:absolute;top:-2px;white-space:nowrap;font-size:11px;color:#c9d3e2;letter-spacing:.08em;text-shadow:0 0 4px #000}#ax2 .l{left:0}#ax2 .r{right:0}#ax2 .c{left:50%;transform:translateX(-50%)}'+
-  '#ax2.low{top:auto;bottom:calc(134px + env(safe-area-inset-bottom));left:calc(84px + env(safe-area-inset-left));right:calc(16px + env(safe-area-inset-right))}'+
+  '#ax2.low{top:auto;bottom:calc(14px + env(safe-area-inset-bottom));left:calc(84px + env(safe-area-inset-left));right:calc(16px + env(safe-area-inset-right))}'+
+  '#ax2.low small{color:#1f2a2e;font-weight:600;text-shadow:0 0 2px #fff,0 0 1px #fff}#ax2.low .ln{background:linear-gradient(90deg,rgba(31,42,46,.15),rgba(31,42,46,.6) 50%,rgba(31,42,46,.15))}#ax2.low .z{background:rgba(31,42,46,.6)}'+
   '@media (max-width:420px){#ax2 .l,#ax2 .r{display:none}#ax2 small{font-size:12px}#ax2{left:76px;right:58px}#ax2.low{right:16px}}';
   var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
   var el=document.createElement('div');el.id='ax2';el.setAttribute('role','slider');el.setAttribute('aria-label','時間の速さ（横の軸）');

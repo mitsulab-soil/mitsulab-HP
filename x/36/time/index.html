@@ -48,7 +48,7 @@ h1 small{font-size:12px;color:var(--t3);margin-left:6px}
 @media (max-width:420px){.meter,.top{background:radial-gradient(ellipse 85% 90% at 35% 50%,rgba(238,243,241,.86),rgba(238,243,241,0) 78%)}.meter .big,.meter div,.meter .ev,.meter .ago,.top h1,.top .back{text-shadow:0 0 4px #eef3f1,0 0 10px #eef3f1,0 0 18px #eef3f1,0 0 2px #fff}.rail i span{text-shadow:0 0 1px #fff,0 0 4px #eef3f1,0 0 9px #eef3f1,0 0 16px #eef3f1}.rail i{background:var(--t1)}.rail b{box-shadow:0 0 0 4px rgba(47,143,168,.25),0 0 10px #eef3f1}#tq .l,#tq small{display:none}#tq{bottom:calc(132px + env(safe-area-inset-bottom))}.cap{bottom:calc(68px + env(safe-area-inset-bottom));font-size:13px;line-height:1.55}.rail{top:calc(max(10px,env(safe-area-inset-top)) + 80px)}h1{font-size:15px}.top{gap:8px}.hint{font-size:12px}h1 small{display:none}.fold summary .w{display:none}.fold{right:16px}.meter{font-size:11px}.meter .big{font-size:17px}.cap{font-size:13.5px}.rail .lab{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<style id="t18">/* 2026-11-18 霞の上でも読めるよう、文字の地を濃く・下の札は横の帯と重なるので scale の中では出さない */.meter{background:rgba(7,13,26,.62)!important;color:#e9eef6!important;text-shadow:none!important}.meter .big,.meter .ev,.meter .ago,.meter div{color:#eef3f8!important}.fold summary{background:rgba(7,13,26,.62)!important;color:#eef3f8!important;text-shadow:none!important}.cap{background:rgba(7,13,26,.55);border-radius:6px;padding:6px 12px!important;color:#eef3f8!important;text-shadow:none!important;left:84px!important;right:16px!important}</style>
+<base target="_top"><style id="t18">/* 2026-11-18 地は使わず、字の大きさ・太さと細い縁取りで読ませる */.meter{background:none!important;text-shadow:0 0 2px #fff,0 0 1px #fff!important}.meter .big{font-size:21px!important;font-weight:600}.meter .ev,.meter .ago{font-size:13.5px!important}.cap{font-weight:600;text-shadow:0 0 2px #fff,0 0 1px #fff!important}#tq{font-size:13px!important;font-weight:600}</style>
 </head>
 <body>
 <canvas id="c" aria-label="氷川参道の目の高さの3Dの風景。上下にスクロールかドラッグで、時間の速さが変わります。"></canvas>
@@ -121,7 +121,7 @@ function ui(){
  const p=(NMAX-n)/(NMAX-NMIN);$('knob').style.top=(p*100)+'%';rail.setAttribute('aria-valuenow',n.toFixed(1));
  $('mN').innerHTML=Math.abs(n)<.05?'等倍':'10<sup>'+sup(n)+'</sup> 倍の速さ';$('mH').textContent='画面の 1 秒＝実際の '+human(Math.pow(10,n));
  const b=bandAt(n);if(b!==lastBand){lastBand=b;window.mitsuIchimai&&window.mitsuIchimai.layer(b[1].split('（')[0]);/* 11-12 持ち帰りの一枚に、通った時間の段を足す */$('mE').textContent=b[1];$('cap').textContent=hinted?b[2]:'上下にドラッグ・スクロールで、時間の速さが変わる。'}
- if(n>-3.3&&n<-1.6)tq('f','小さな虫の多くは、人より細かい時間を見分ける傾向がある（模式）','','../36/?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../36/?s=1.25','一本の欅の大きさへ');else tq(null);
+ if(n>-3.3&&n<-1.6)tq('f','小さな虫の多くは、人より細かい時間を見分ける傾向がある（模式）','','../?s=-2.3','虫の大きさへ');else if(n>6.8&&n<9.7&&Math.abs(n-8)>.55)tq('b','この速さで見えてくるのは、大きな木の変化','','../?s=1.25','一本の欅の大きさへ');else tq(null);
  const gA=W&&W.grow;const a=gA>=0?'植えて 約 '+Math.round(gA)+' 年':fmtAgo(ago);if(a!==lastTxt){lastTxt=a;$('mA').textContent=a}
 }
 window.__setN=v=>{nT=v;n=v;};window.__time={get n(){return n},get ago(){return ago}};
@@ -137,7 +137,7 @@ function loop(t){const dt=Math.min(.1,(t-tp)/1000);tp=t;
 requestAnimationFrame(loop);
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-10 公開。Qualia/time＝氷川参道の目の高さで、時間の速さを 10 のべき乗で変える模式。AI の学習・生成への利用はお断りします。 -->
-<script src="kit/tsugi.js" data-bottom="186" data-right="80" data-href="../36/" data-name="Qualia/scale" data-line="大きさを 10 のべき乗で移る" defer></script>
+<script src="kit/tsugi.js" data-bottom="186" data-right="80" data-href="../" data-name="Qualia/scale" data-line="大きさを 10 のべき乗で移る" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/time" data-left="12" data-bottom="132" defer></script>
 </body>
 </html>
