@@ -52,7 +52,7 @@ export async function start(sec) {
   }
   const tg = new T.BufferGeometry(); tg.setAttribute('position', new T.Float32BufferAttribute(tp, 3));
   const treeM = new T.PointsMaterial({ map: dot, color: 0x7fe0b4, size: mob ? 2.6 : 2.2, sizeAttenuation: true, transparent: true, opacity: 0.75, fog: true, depthWrite: false, blending: T.AdditiveBlending });
-  S.add(new T.Points(tg, treeM));
+  /* 点の樹冠は写実の樹と二重に見えるので出さない */
   const TREE0 = new T.Color(0x7fe0b4), TREE_UV = new T.Color(0xb48cff), TREE_BAT = new T.Color(0x4a6a8a);
 
   // 3) 鳥居（朱の線）
@@ -156,6 +156,23 @@ export async function start(sec) {
     parts.forEach(m => { const im = new T.InstancedMesh(m.geometry, m.material, sel.length); sel.forEach(([x, y, z], i) => { const h = 14 + (Math.sin(x * 12.9 + z * 3.1) * 0.5 + 0.5) * 6, sc = h / sz.y; Q.setFromAxisAngle(V.set(0, 1, 0), (x * 7.3 + z) % 6.283); SCv.set(sc, sc, sc);
       M4.compose(V.set(x, y - bb.min.y * sc - 0.2, z), Q, SCv).multiply(m.matrixWorld); im.setMatrixAt(i, M4); }); im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); });
 
+    // 並木を密に：道の両脇 8〜16 m に 6〜8 m ごと。幹の太さ・高さ・葉の色にばらつき（欅の形を共有し、色で樹の違いを模式に）
+    { const extra = [], step = mob ? 40 : 13; const PA = new T.Vector3(), PD = new T.Vector3();
+      for (let u = 0.02; u < uEnd; u += step / LEN) { curve.getPointAt(u, PA); curve.getTangentAt(u, PD);
+        for (const sd of [-1, 1]) { const off = sd * (8.5 + rnd() * 7.5), x = PA.x - PD.z * off + (rnd() - 0.5) * 2, z = PA.z + PD.x * off + (rnd() - 0.5) * 2;
+          if (dC(x, z) > 8.3) extra.push([x, PA.y, z]); } }
+      const TC = [0x9db58a, 0x8fae7a, 0xa9bf8e, 0x7f9f70, 0xb3c49a]; const col = new T.Color();
+      parts.forEach(m => { const leafP = /leaves/.test(m.name); const im = new T.InstancedMesh(m.geometry, m.material, extra.length); extra.forEach(([x, y, z], i) => { const h = 10 + rnd() * 10, sc = h / sz.y, th = 0.75 + rnd() * 0.6; Q.setFromAxisAngle(V.set(0, 1, 0), rnd() * 6.283); SCv.set(sc * th, sc, sc * th);
+          M4.compose(V.set(x, y - bb.min.y * sc - 0.2, z), Q, SCv).multiply(m.matrixWorld); im.setMatrixAt(i, M4); if (leafP) { im.setColorAt(i, col.setHex(TC[i % TC.length])); } }); im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); });
+      // 下草：葉の塊を低く小さく（同じ素材）
+      const lp = parts.find(m => /leaves/.test(m.name));
+      if (lp) { const nb = mob ? 0 : 80, im = new T.InstancedMesh(lp.geometry, lp.material, nb); for (let i = 0; i < nb; i++) { const u = rnd() * uEnd; curve.getPointAt(u, PA); curve.getTangentAt(u, PD); const sd = rnd() < 0.5 ? -1 : 1, off = sd * (6.8 + rnd() * 12), x = PA.x - PD.z * off, z = PA.z + PD.x * off, s0 = (0.9 + rnd() * 1.1) / sz.y * 1.0;
+          Q.setFromAxisAngle(V.set(0, 1, 0), rnd() * 6.283); SCv.set(s0 * 1.6, s0, s0 * 1.6); M4.compose(V.set(x, PA.y - 0.15, z), Q, SCv).multiply(lp.matrixWorld); im.setMatrixAt(i, M4); im.setColorAt(i, col.setHex(i % 2 ? 0x6f8f5c : 0x86a06a)); }
+        im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); }
+      treeSel = sel;
+      parts.forEach(m => { const im = new T.InstancedMesh(m.geometry, m.material, shrTrees.length); shrTrees.forEach(([x, y, z], i) => { const h = 16 + rnd() * 10, sc = h / sz.y, th = 0.8 + rnd() * 0.7; Q.setFromAxisAngle(V.set(0, 1, 0), rnd() * 6.283); SCv.set(sc * th, sc, sc * th); M4.compose(V.set(x, y - bb.min.y * sc - 0.2, z), Q, SCv).multiply(m.matrixWorld); im.setMatrixAt(i, M4); }); im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); });
+      netAddTrees(sel.concat(extra.filter((_, i) => i % 3 === 0))); }
+
     // 欅の根元の苔（縁だけ。石畳には置かない＝並木の位置は道の中心から 9.5 m 以上）
     { const mc = document.createElement('canvas'); mc.width = mc.height = 64; const g2 = mc.getContext('2d'), gr = g2.createRadialGradient(32, 32, 6, 32, 32, 32); gr.addColorStop(0, '#fff'); gr.addColorStop(0.55, '#bbb'); gr.addColorStop(1, '#000'); g2.fillStyle = gr; g2.fillRect(0, 0, 64, 64);
       const mm = new T.MeshStandardMaterial({ map: tex('img/hero/3d/dio/moss_c_' + (mob ? 512 : 1024) + '.webp', true), normalMap: tex('img/hero/3d/dio/moss_n_512.webp'), alphaMap: new T.CanvasTexture(mc), transparent: true, depthWrite: false, roughness: 1, metalness: 0, color: 0x6f7a5c, polygonOffset: true, polygonOffsetFactor: -2 });
@@ -233,6 +250,76 @@ export async function start(sec) {
     vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: 'uniform float uO; uniform vec3 uSun; varying vec3 vD; void main(){ float h = clamp(vD.y, -0.1, 1.0); vec3 c = mix(vec3(0.86,0.80,0.70), vec3(0.36,0.52,0.70), smoothstep(0.0, 0.55, h)); float s = max(0.0, dot(vD, uSun)); c += vec3(1.0,0.82,0.55) * (pow(s, 48.0) * 1.4 + pow(s, 6.0) * 0.22); gl_FragColor = vec4(c, uO); }' });
   const skyD = new T.Mesh(new T.SphereGeometry(900, 32, 16), skyM); skyD.frustumCulled = false; skyD.renderOrder = -5; S.add(skyD);
+
+  // ── 氷川神社の境内（公開されている配置にもとづく模式）：参道の先に 神池と朱の神橋 → 楼門 → 拝殿
+  const PE = new T.Vector3(), DE = new T.Vector3(); curve.getPointAt(uEnd, PE); curve.getTangentAt(uEnd, DE); DE.y = 0; DE.normalize();
+  const SIDE = new T.Vector3(-DE.z, 0, DE.x), ang = Math.atan2(DE.x, DE.z);
+  const at = (f, s, y = 0) => new T.Vector3(PE.x + DE.x * f + SIDE.x * s, PE.y + y, PE.z + DE.z * f + SIDE.z * s);
+  const SHR = new T.Group(); S.add(SHR);
+  const shuM = new T.MeshStandardMaterial({ color: 0xb8432c, roughness: 0.6, metalness: 0, transparent: true, opacity: 0 });
+  const roofM = new T.MeshStandardMaterial({ color: 0x3c4a44, roughness: 0.55, metalness: 0.25, transparent: true, opacity: 0 });
+  const wallM = new T.MeshStandardMaterial({ color: 0xe8e2d4, roughness: 0.9, metalness: 0, transparent: true, opacity: 0 });
+  const waterM = new T.MeshStandardMaterial({ color: 0x3c5560, roughness: 0.08, metalness: 0.6, transparent: true, opacity: 0 });
+  const gravM = new T.MeshStandardMaterial({ color: 0xbdb6a6, roughness: 1, metalness: 0, transparent: true, opacity: 0 });
+  const shrMats = [[shuM, 1], [roofM, 1], [wallM, 1], [waterM, 0.92], [gravM, 1]];
+  const box = (w, h, d, m, p, yaw = ang) => { const me = new T.Mesh(new T.BoxGeometry(w, h, d), m); me.position.copy(p); me.rotation.y = yaw; SHR.add(me); return me; };
+  // 境内の地面（玉砂利）
+  { const g = new T.PlaneGeometry(90, 150); g.rotateX(-Math.PI / 2); const me = new T.Mesh(g, gravM); me.position.copy(at(80, 0, -0.02)); me.rotation.y = ang; SHR.add(me); }
+  // 神池（左右に）と朱の神橋
+  for (const s of [-1, 1]) { const g = new T.PlaneGeometry(26, 18); g.rotateX(-Math.PI / 2); const me = new T.Mesh(g, waterM); me.position.copy(at(16, s * 17, 0.02)); me.rotation.y = ang; SHR.add(me); }
+  { const br = new T.Group(); for (const s of [-1, 1]) { for (let k = 0; k <= 10; k++) { const f = k / 10, y = 0.5 + Math.sin(f * Math.PI) * 1.1; const p = at(10 + f * 12, s * 2.6, y); box(0.18, 0.9, 0.18, shuM, p); } box(0.14, 0.14, 12.4, shuM, at(16, s * 2.6, 1.95)); }
+    for (let k = 0; k <= 24; k++) { const f = k / 24; box(5.4, 0.16, 0.56, shuM, at(10 + f * 12, 0, 0.35 + Math.sin(f * Math.PI) * 1.1)); } }
+  // 楼門（朱の二層の門：柱・貫・屋根）
+  { const f0 = 42; for (const s of [-3.6, -1.2, 1.2, 3.6]) for (const d of [-2, 2]) box(0.5, 7.2, 0.5, shuM, at(f0 + d, s, 3.6));
+    box(9.4, 0.5, 5, shuM, at(f0, 0, 4.3)); box(11.2, 0.7, 6.8, roofM, at(f0, 0, 7.6)); box(9.0, 2.2, 4.6, shuM, at(f0, 0, 8.9)); box(12.4, 0.8, 7.6, roofM, at(f0, 0, 10.4)); box(8.2, 0.5, 2.2, roofM, at(f0, 0, 11.0)); }
+  // 回廊（左右に低く）
+  for (const s of [-1, 1]) { box(0.3, 3.2, 40, shuM, at(62, s * 22, 1.6)); box(3.6, 0.5, 41, roofM, at(62, s * 22, 3.5)); }
+  // 拝殿（朱の柱と白い壁、深い屋根）
+  { const f0 = 92; box(16, 4.6, 10, wallM, at(f0, 0, 2.6)); for (const s of [-7.6, -3.8, 0, 3.8, 7.6]) box(0.55, 5.2, 0.55, shuM, at(f0 - 5.2, s, 2.6)); box(19, 1.0, 13, roofM, at(f0, 0, 5.6)); box(15, 1.6, 9.4, roofM, at(f0, 0, 6.8)); box(9, 1.2, 5, roofM, at(f0, 0, 8.0)); }
+  // 境内の木（欅の形は後で読む。ここでは位置だけ）
+  const shrTrees = []; for (let f = 8; f < 120; f += (mob ? 18 : 11)) for (const s of [-1, 1]) { const sd = s * (27 + rnd() * 10); const p = at(f, sd, 0); shrTrees.push([p.x, p.y, p.z]); }
+
+  // ── ネットワーク：場（地面の格子の節）・オブジェクト（木・石・水・道具）・エージェント（人・生き物・碧・センサーや AI）
+  // 節点は小さな形（光の玉ではない）：場＝十字、オブジェクト＝四角、エージェント＝三角。結び目は時間とスクロールで結ばれ、ほどける。
+  const NODES = []; const KIND = { place: 0x7fe0e8, object: 0xe8c48a, agent: 0x9fe8a8 };
+  const addN = (x, y, z, k) => NODES.push({ p: new T.Vector3(x, y, z), k, ph: rnd() * 6.283 });
+  const PB = new T.Vector3(), DB = new T.Vector3();
+  for (let u = 0.01; u < uEnd; u += (mob ? 34 : 22) / LEN) { curve.getPointAt(u, PB); curve.getTangentAt(u, DB);
+    addN(PB.x, PB.y + 0.05, PB.z, 'place');
+    for (const sd of [-1, 1]) { const off = sd * (3 + rnd() * 2.5); addN(PB.x - DB.z * off, PB.y + 1.6, PB.z + DB.x * off, 'agent'); } }
+  for (let f = 0; f < 110; f += 14) { const p = at(f, 0, 0.05); addN(p.x, p.y, p.z, 'place'); const a = at(f + 5, (rnd() - 0.5) * 10, 1.6); addN(a.x, a.y, a.z, 'agent'); }
+  for (const [f, s] of [[16, -17], [16, 17]]) { const p = at(f, s, 0.3); addN(p.x, p.y, p.z, 'object'); }
+  for (const f of [42, 92]) { const p = at(f, 0, 3.5); addN(p.x, p.y, p.z, 'object'); }
+  let netTrees = false; function netAddTrees(arr) { if (netTrees) return; netTrees = true; arr.forEach(([x, y, z], i) => { if (i % (mob ? 3 : 2) === 0) addN(x, y + 2.2, z, 'object'); }); shrTrees.forEach(([x, y, z], i) => { if (i % 2 === 0) addN(x, y + 2.2, z, 'object'); }); buildNet(); }
+  const glyph = (k) => k === 'place' ? [[-0.5, 0, 0], [0.5, 0, 0], [0, 0, -0.5], [0, 0, 0.5]] : k === 'object' ? [[-0.4, -0.4, 0], [0.4, -0.4, 0], [0.4, -0.4, 0], [0.4, 0.4, 0], [0.4, 0.4, 0], [-0.4, 0.4, 0], [-0.4, 0.4, 0], [-0.4, -0.4, 0]] : [[0, 0.5, 0], [0.45, -0.3, 0], [0.45, -0.3, 0], [-0.45, -0.3, 0], [-0.45, -0.3, 0], [0, 0.5, 0]];
+  let netL = null, netG = null, linkA = null, glyphL = null, bitL = null, bitA = null, LINKS = [];
+  const netM = new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, depthWrite: false, fog: true, blending: T.AdditiveBlending });
+  const glyM = new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, depthWrite: false, fog: true });
+  const bitM = new T.LineDashedMaterial({ color: 0x9fe8f0, dashSize: 0.35, gapSize: 0.25, transparent: true, opacity: 0, depthWrite: false, fog: true });
+  function buildNet() {
+    // 結び目：近い節どうし（種類の違う節を優先）
+    const N = NODES.length, maxL = mob ? 140 : 320; LINKS = [];
+    for (let i = 0; i < N && LINKS.length < maxL; i++) { let c = 0; for (let k = i + 1; k < N && c < 3; k++) { const d = NODES[i].p.distanceTo(NODES[k].p); if (d < 17 && (NODES[i].k !== NODES[k].k || d < 9)) { LINKS.push([i, k, rnd() * 6.283, 0.35 + rnd() * 0.5, new T.Color(KIND[NODES[i].k]).lerp(new T.Color(KIND[NODES[k].k]), 0.5)]); c++; } } }
+    const P = new Float32Array(LINKS.length * 6), Cc = new Float32Array(LINKS.length * 6); linkA = Cc;
+    LINKS.forEach(([a, b], n) => { P.set([NODES[a].p.x, NODES[a].p.y, NODES[a].p.z, NODES[b].p.x, NODES[b].p.y, NODES[b].p.z], n * 6); });
+    netG = new T.BufferGeometry(); netG.setAttribute('position', new T.BufferAttribute(P, 3)); netG.setAttribute('color', new T.BufferAttribute(Cc, 3));
+    netL = new T.LineSegments(netG, netM); netL.frustumCulled = false; S.add(netL);
+    // 節の形
+    const GP = [], GC = [], col = new T.Color(); NODES.forEach(nd => { col.setHex(KIND[nd.k]); const s = nd.k === 'place' ? 1.4 : 0.95; for (const v of glyph(nd.k)) { GP.push(nd.p.x + v[0] * s, nd.p.y + v[1] * s, nd.p.z + v[2] * s); GC.push(col.r, col.g, col.b); } });
+    const gg = new T.BufferGeometry(); gg.setAttribute('position', new T.Float32BufferAttribute(GP, 3)); gg.setAttribute('color', new T.Float32BufferAttribute(GC, 3));
+    glyphL = new T.LineSegments(gg, glyM); glyphL.frustumCulled = false; S.add(glyphL);
+    // ビット↔アトム：物（オブジェクト）から上へデータの破線が立ち上がり、上からは地面へ降りる（互いに描きあう）
+    const BP = []; NODES.forEach(nd => { if (nd.k !== 'object') return; const x = nd.p.x, z = nd.p.z, y0 = nd.p.y - 2.2; BP.push(x + 0.6, y0, z, x + 0.6, y0 + 9, z, x - 0.6, y0 + 9, z, x - 0.6, y0, z); });
+    const bg = new T.BufferGeometry(); bg.setAttribute('position', new T.Float32BufferAttribute(BP, 3)); bitL = new T.LineSegments(bg, bitM); bitL.computeLineDistances(); bitL.frustumCulled = false; S.add(bitL);
+  }
+  const netUpd = (p, wEye, wSoil, wShr) => {
+    const vis = Math.max(wEye, 1 - sm((p - 0.1) / 0.06), wShr) * (1 - wSoil * 0.8);
+    netM.opacity = 0.9 * vis; glyM.opacity = 0.85 * vis; bitM.opacity = 0.8 * vis;
+    if (!netG || vis < 0.01) return vis > 0.01;
+    netUpd.k = (netUpd.k || 0) + 1; if (netUpd.k % 2) return true; const c = new T.Color(); const pr = p * 6;
+    for (let n = 0; n < LINKS.length; n++) { const L = LINKS[n], s = Math.sin(tt * L[3] + L[2] + pr), w = (s > 0.15 ? Math.min(1, (s - 0.15) * 2.2) : 0) * 1.5, q = n * 6, lc = L[4];
+      linkA[q] = linkA[q + 3] = lc.r * w; linkA[q + 1] = linkA[q + 4] = lc.g * w; linkA[q + 2] = linkA[q + 5] = lc.b * w; }
+    netG.attributes.color.needsUpdate = true; bitM.dashSize = 0.35; bitL.material.uniforms; bitM.gapSize = 0.25 + 0.15 * Math.sin(tt * 0.8); return true; };
   // 2026-11-18 背景の演出：木漏れ日の光の筋・漂う粒・地面を走る走査の帯（すべて手続きで生成）
   const shaftT = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 128; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(255,240,210,0)'); gr.addColorStop(0.25, 'rgba(255,240,210,.9)'); gr.addColorStop(1, 'rgba(255,240,210,0)'); g.fillStyle = gr; g.fillRect(0, 0, 16, 128); const g2 = g.createLinearGradient(0, 0, 16, 0); return new T.CanvasTexture(c); })();
   const shafts = [], NS = mob ? 7 : 16, SA = new T.Vector3(), SD = new T.Vector3();
@@ -240,14 +327,14 @@ export async function start(sec) {
     const me = new T.Mesh(new T.PlaneGeometry(1.4 + rnd() * 2.4, 34), m); S.add(me); shafts.push([me, rnd(), (rnd() - 0.5) * 20, rnd() * 6.283]); }
   const ND = mob ? 260 : 700, dV = new Float32Array(ND * 3), dO = []; for (let i = 0; i < ND; i++) dO.push([(rnd() - 0.5) * 40, rnd() * 14, (rnd() - 0.5) * 40, rnd() * 6.283]);
   const dG = new T.BufferGeometry(); dG.setAttribute('position', new T.BufferAttribute(dV, 3));
-  const dM = new T.PointsMaterial({ map: dot, color: 0xfff0d0, size: mob ? 0.34 : 0.26, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: true }); S.add(new T.Points(dG, dM));
+  const dM = new T.PointsMaterial({ map: dot, color: 0xfff0d0, size: mob ? 0.34 : 0.26, sizeAttenuation: true, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: true }); /* 漂う粒は出さない */
   const scanM = new T.MeshBasicMaterial({ color: 0x7fe8ff, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide, fog: true });
   const scan = new T.Mesh(new T.PlaneGeometry(56, 0.35), scanM); scan.rotation.x = -Math.PI / 2; S.add(scan);
   const fx2 = (p, u, wEye, wSoil, wBee, wBat) => {
     const day = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil) * (1 - wBat * 0.7), top = 0;
     shafts.forEach(([me, r, sx, ph], i) => { const uu = Math.min(1, u + 0.004 + r * 0.05); curve.getPointAt(uu, SA); curve.getTangentAt(uu, SD);
       me.position.set(SA.x - SD.z * sx, SA.y + 12, SA.z + SD.x * sx); me.rotation.set(0, Math.atan2(SD.x, SD.z) + ph, 0.38);
-      me.material.opacity = (day * 0.22 + top * 0.12) * (0.6 + 0.4 * Math.sin(tt * 0.5 + ph)); me.material.color.setHex(wBee > 0.5 ? 0xc8a0ff : 0xffe2b0); });
+      me.material.opacity = (day * 0.22 + top * 0.12) * (0.6 + 0.4 * Math.sin(tt * 0.5 + ph)); me.material.color.setHex(0xffe2b0); });
     dM.opacity = Math.max(day, top * 0.6) * 0.8; dM.color.setHex(wBee > 0.5 ? 0xd8c0ff : 0xfff0d0);
     for (let i = 0; i < ND; i++) { const [x, y, z, ph] = dO[i]; dV[i * 3] = C.position.x + x + Math.sin(tt * 0.3 + ph) * 1.2; dV[i * 3 + 1] = (A.y + ((y + tt * 0.25 + ph) % 14)); dV[i * 3 + 2] = C.position.z + z + Math.cos(tt * 0.25 + ph) * 1.2; }
     dG.attributes.position.needsUpdate = true;
@@ -264,9 +351,9 @@ export async function start(sec) {
     [0.81, 0.9, '作品と領域が、式の層に重なる', 'Works and fields overlap on the layers of the formula'],
     [0.94, 1.01, '', '']];
   const key = (p, K) => { for (let i = 1; i < K.length; i++) if (p <= K[i][0]) { const [a, va] = K[i - 1], [b, vb] = K[i], e = sm((p - a) / (b - a)); return va + (vb - va) * e; } return K[K.length - 1][1]; };
-  const KH = [[0, mob ? 7 : 6], [0.13, mob ? 4 : 3.5], [0.29, 1.6], [0.6, 1.6], [0.64, -2.4], [0.71, -2.4], [0.76, 1.8], [0.8, 4], [0.88, 10], [0.95, 40], [1, 90]];
+  const KH = [[0, mob ? 7 : 6], [0.13, mob ? 4 : 3.5], [0.29, 1.6], [0.6, 1.6], [0.64, -2.4], [0.7, -2.4], [0.73, 1.7], [0.8, 1.9], [0.88, 10], [0.95, 40], [1, 90]];
   const KL = [[0, 2.2], [0.29, 1.5], [0.6, 1.4], [0.64, -3.2], [0.71, -3.2], [0.76, 2], [0.8, 10], [0.9, 18], [1, 30]];
-  const KU = [[0, 0.05], [0.13, 0.07], [0.29, 0.3], [0.6, 0.58], [0.71, 0.66], [0.8, 0.8], [0.92, 0.86], [1, 0.9]];
+  const KU = [[0, 0.05], [0.13, 0.07], [0.29, 0.3], [0.6, 0.58], [0.71, 0.66], [0.735, 1], [1, 1]];
   const A = new T.Vector3(), B = new T.Vector3(), FB = new T.Color(), FU = new T.Color(0x0c0620), FS = new T.Color(0x0d0904), PV = new T.Color(0x7a5cff), LV = new T.Color(0x5a3ca0);
   let scene = -2, tt = 0;
   function place(p) {
@@ -275,6 +362,7 @@ export async function start(sec) {
     const back = 0;
     C.position.set(A.x + Math.sin(p * 9) * 0.25, A.y + h, A.z + back);
     if (p > 0.8) B.lerp(PF, sm((p - 0.78) / 0.05));
+    const ext = 68 * sm((p - 0.735) / 0.05); if (ext > 0.01) { A.copy(PE).addScaledVector(DE, ext); C.position.set(A.x, A.y + h, A.z); B.copy(PE).addScaledVector(DE, ext + 14); B.y = PE.y + 1.5; }
     C.lookAt(B.x, B.y + ly, B.z);
 
     // 足もとへ寄る場面（.sd-pause の区間だけ）
@@ -294,19 +382,19 @@ export async function start(sec) {
     treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7) * (1 - (mob ? 0.8 : 0.6) * (1 - sm(p / 0.12))); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, 1 - sm((p - 0.1) / 0.06), sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
     toriiM.opacity = 0.95 * (1 - (mob ? 0.85 : 0.3) * (1 - sm(p / 0.12))); lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
     pave.opacity = leaf.opacity = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; if (mossM) mossM.opacity = Math.min(1, pave.opacity * 1.1); { const wc = window.__sdClose || 0; if (wc > 0.001) { pave.opacity = leaf.opacity = Math.max(pave.opacity, wc); soilG.opacity = Math.max(soilG.opacity, wc * 0.9); if (mossM) mossM.opacity = Math.max(mossM.opacity, wc); UDAP.value = Math.max(UDAP.value, 0.6 * wc); } } UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
-    pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0xd2c6b0).lerp(LV, wBee * 0.5);
+    pave.color.setHex(0x9a968c); leaf.color.setHex(0xd2c6b0);
     rootM.opacity = wSoil * 0.9;
     hemi.intensity = 1.0 + wBat * 1.4 + wEye * 0.5; hemi.color.setHex(wBat > 0.5 ? 0x8fb4ff : 0x9fc8ff);
-    soilMats.forEach(([m, op]) => m.opacity = op * wSoil); dropM.opacity = 0.8 * wSoil;
+    soilMats.forEach(([m, op]) => m.opacity = op * wSoil); dropM.opacity = 0;
     if (wSoil > 0.01) { const pa = dropG.attributes.position; for (let i = 0; i < dropY0.length; i++) pa.array[i * 3 + 1] = dropY0[i] - ((tt * 0.25 + i * 0.137) % 1) * 1.2; pa.needsUpdate = true; }
-    bugM.opacity = wBat;
+    bugM.opacity = 0;
     if (wBat > 0.01) { const pa = bugG.attributes.position, ca = bugG.attributes.color, fw = new T.Vector3(B.x - A.x, 0, B.z - A.z).normalize();
       for (let i = 0; i < NB; i++) { const [sx, sy, sf, ph] = bugO[i], x = A.x + fw.x * sf - fw.z * sx + Math.sin(tt * 3 + ph) * 0.6, z = A.z + fw.z * sf + fw.x * sx + Math.cos(tt * 2.6 + ph) * 0.6, y = A.y + sy + Math.sin(tt * 4 + ph) * 0.3;
         pa.array[i * 3] = x; pa.array[i * 3 + 1] = y; pa.array[i * 3 + 2] = z;
         const d = Math.hypot(x - C.position.x, z - C.position.z); let hit = 0; for (let k = 0; k < rings.length; k++) { const f = ((tt * 0.6 + k / rings.length) % 1), rr = 1.5 + f * 30; hit = Math.max(hit, Math.max(0, 1 - Math.abs(rr - d) / 1.2) * (1 - f)); }
         const c = 0.9 + hit * 2.2; ca.array[i * 3] = c; ca.array[i * 3 + 1] = c * 0.95; ca.array[i * 3 + 2] = c * 0.8; }
       pa.needsUpdate = ca.needsUpdate = true; }
-    FB.setHex(0x15243c).lerp(FU, wBee).lerp(FS, wSoil); S.fog.color.copy(FB); R.setClearColor(FB, 1); S.fog.density = 0.003 + wEye * 0.012 - wFx * 0.002;
+    FB.setHex(0x15243c).lerp(FS, wSoil); S.fog.color.copy(FB); R.setClearColor(FB, 1); S.fog.density = 0.003 + wEye * 0.012 - wFx * 0.002;
     fxMats.forEach(([m, a]) => m.opacity = a * wFx);
     const rk = Math.max(wBat, wKey), bat = wBat >= wKey;
     let t0 = null; if (!bat && rk > 0) { t0 = near.reduce((b, n) => (Math.hypot(n[0] - A.x, n[2] - A.z) < Math.hypot(b[0] - A.x, b[2] - A.z) ? n : b), near[0]); if (!t0 || Math.hypot(t0[0] - B.x, t0[2] - B.z) > 18) t0 = [B.x + 4, A.y, B.z]; }
@@ -314,16 +402,17 @@ export async function start(sec) {
       if (bat) { r.position.set(C.position.x, A.y + 0.08, C.position.z); r.scale.setScalar(1.5 + f * 30); r.material.color.setHex(0xc8ecff); r.material.opacity = rk * (1 - f); }
       else if (t0) { r.position.set(t0[0], t0[1] + 1.4, t0[2]); r.scale.setScalar(0.3 + (i + f) * 0.45); r.material.color.setHex(0xf2c58a); r.material.opacity = rk * 0.7; }
       else r.material.opacity = 0; });
-    const fxa = fx2(p, u, wEye, wSoil, wBee, wBat);
+    const wShr = sm((p - 0.705) / 0.03); shrMats.forEach(([m, o]) => m.opacity = o * wShr); SHR.visible = wShr > 0.01;
+    const fxa = fx2(p, u, wEye, wSoil, wBee, wBat); const nta = netUpd(p, wEye, wSoil, wShr);
     skyD.position.copy(C.position); skyM.uniforms.uO.value = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil) * (1 - wBat * 0.8) * (1 - wBee * 0.6) * 0.32;
     if (wEye > 0.01) loadTex();
     const s = SC.findIndex(x => p >= x[0] && p < x[1]);
     if (s !== scene) { scene = s; if (cap) { const en = document.documentElement.lang === 'en', t = s < 0 ? '' : SC[s][en ? 3 : 2]; cap.textContent = t; cap.classList.toggle('on', !!t); } sec.dataset.scene = s; if (window.__sdSound) window.__sdSound(s); }
     if (read) read.textContent = 'D ' + String(Math.round(u * LEN)).padStart(4, '0') + ' m  ·  H ' + (h < 0 ? '-' : '') + String(Math.abs(Math.round(h))).padStart(2, '0') + ' m';
-    return rk > 0.01 || wSoil > 0.01 || p < 0.04 || fxa;
+    return rk > 0.01 || wSoil > 0.01 || p < 0.04 || fxa || nta;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
-  const prog = () => { const M0 = window.__mdEnd || 0; const span = document.documentElement.scrollHeight - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, scrollY / span)) : 0; return 0.76 * (M0 > 0 ? (q < M0 ? 0 : 0.13 + 0.87 * (q - M0) / (1 - M0)) : q); };
+  const prog = () => { const M0 = window.__mdEnd || 0; const span = document.documentElement.scrollHeight - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, scrollY / span)) : 0; return 0.79 * (M0 > 0 ? (q < M0 ? 0 : 0.13 + 0.87 * (q - M0) / (1 - M0)) : q); };
   let cur = prog(), raf = 0, vis = true, lt = 0, frozen = false;
   const draw = () => { const anim = place(cur); R.render(S, C); return anim; };
   function loop(n) { raf = 0; if (frozen) return; const dt = lt ? Math.min(0.05, (n - lt) / 1000) : 0.016; lt = n; tt += dt; const t = prog(); cur += (t - cur) * 0.2; if (Math.abs(t - cur) < 2e-4) cur = t; const anim = draw(); dirtyTex = false; if (vis && (cur !== t || anim)) raf = requestAnimationFrame(loop); else lt = 0; }
