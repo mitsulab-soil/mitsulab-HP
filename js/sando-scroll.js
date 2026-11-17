@@ -158,9 +158,9 @@ export async function start(sec) {
 
   // 7) 式の層：U = g( P( E, B ), K ) と作品・領域（名前だけ。押して開くのは下の 02 の図）
   const LAY = [['E', 'ENVIRONMENT', '#7fe0b4', ['Qualium Omiya', 'Qualium Kawagoe', 'Qualium Shibuya', 'GIS', 'IoT']],
-    ['B', 'BODY', '#78d6ec', ['Qualia/sight', 'Qualia/swarm', 'Qualia/AI', 'Qualia/translate', 'AI']],
+    ['B', 'BODY', '#78d6ec', ['Qualia/sight', 'Qualia/swarm', 'Qualia/sight', 'Qualia/sight', 'AI']],
     ['P', 'PERCEPTION', '#a8f2f6', ['Qualia/sound', 'Qualia/touch', 'Qualia/gaze', 'Qualia/oto']],
-    ['K', 'CONTEXT', '#b4a2ff', ['Qualia/time', 'Qualia/scale', 'Qualia/literature', 'Qualia/rakugo']],
+    ['K', 'CONTEXT', '#b4a2ff', ['Qualia/scale', 'Qualia/scale', 'Qualia/scale', 'Qualia/rakugo']],
     ['g', 'MEANING', '#f2c58a', ['Qualia/yose', 'Qualia/song', 'Qualia/museum', 'ART']]];
   const label = (txt, color, px, h) => { const c = document.createElement('canvas'), g = c.getContext('2d'), F = px + 'px "JetBrains Mono",ui-monospace,Menlo,monospace'; g.font = F; const w = Math.ceil(g.measureText(txt).width) + 16; c.width = w; c.height = px + 16; g.font = F; g.fillStyle = color; g.textBaseline = 'middle'; g.fillText(txt, 8, c.height / 2);
     const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; const s = new T.Sprite(new T.SpriteMaterial({ map: t, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false })); s.scale.set(h * w / c.height, h, 1); return s; };
