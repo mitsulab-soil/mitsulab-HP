@@ -81,7 +81,7 @@ export async function start(sec) {
     S.add(new T.Mesh(g, mat));
   }
   const pave = new T.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
-  const leaf = new T.MeshStandardMaterial({ color: 0x8a7a62, roughness: 1, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
+  const leaf = new T.MeshStandardMaterial({ color: 0xd2c6b0, roughness: 1, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
   // 継ぎ目のくり返しを崩す：同じ質感を 2 つの大きさ・向きで読み、場所ごとの揺らぎで混ぜる（描く数は増えない）
   const UT = { value: 0 }, UDAP = { value: 0.7 };
   const antiTile = m => { m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
@@ -103,7 +103,7 @@ export async function start(sec) {
   let texLoaded = false, dirtyTex = false;
   const loadTex = () => { if (texLoaded) return; texLoaded = true;
     pave.map = tex('img/hero/3d/ql_paving_c.webp', true); pave.normalMap = tex('img/hero/3d/ql_paving_n.webp'); pave.roughnessMap = tex('img/hero/3d/dio/paving_r.webp');
-    leaf.map = tex('img/hero/3d/dio/leaves_c.webp', true); leaf.normalMap = tex('img/hero/3d/dio/leaves_n.webp'); leaf.roughnessMap = tex('img/hero/3d/dio/leaves_r.webp');
+    leaf.map = tex('img/hero/3d/dio/lsgravel_c_' + (mob ? 512 : 1024) + '.webp', true); leaf.normalMap = tex('img/hero/3d/dio/lsgravel_n_512.webp');
     soilG.map = tex('img/hero/3d/dio/soil_c.webp', true); soilG.normalMap = tex('img/hero/3d/dio/soil_n.webp');
     pave.needsUpdate = leaf.needsUpdate = soilG.needsUpdate = true; };
 
@@ -142,7 +142,7 @@ export async function start(sec) {
   const bugM = new T.PointsMaterial({ map: dot, vertexColors: true, size: 0.5, sizeAttenuation: true, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); { const bp = new T.Points(bugG, bugM); bp.frustumCulled = false; S.add(bp); }
 
   // 4b) 欅（Qualium 大宮の参道の欅の型）：写実の樹を参道の並木の位置に。目の高さに降りる前に読む
-  const treeMeshes = [];
+  const treeMeshes = []; let mossM = null;
   const loadTrees = async () => { try {
     const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
     const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
@@ -155,6 +155,13 @@ export async function start(sec) {
     const M4 = new T.Matrix4(), Q = new T.Quaternion(), V = new T.Vector3(), SCv = new T.Vector3();
     parts.forEach(m => { const im = new T.InstancedMesh(m.geometry, m.material, sel.length); sel.forEach(([x, y, z], i) => { const h = 14 + (Math.sin(x * 12.9 + z * 3.1) * 0.5 + 0.5) * 6, sc = h / sz.y; Q.setFromAxisAngle(V.set(0, 1, 0), (x * 7.3 + z) % 6.283); SCv.set(sc, sc, sc);
       M4.compose(V.set(x, y - bb.min.y * sc - 0.2, z), Q, SCv).multiply(m.matrixWorld); im.setMatrixAt(i, M4); }); im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); });
+
+    // 欅の根元の苔（縁だけ。石畳には置かない＝並木の位置は道の中心から 9.5 m 以上）
+    { const mc = document.createElement('canvas'); mc.width = mc.height = 64; const g2 = mc.getContext('2d'), gr = g2.createRadialGradient(32, 32, 6, 32, 32, 32); gr.addColorStop(0, '#fff'); gr.addColorStop(0.55, '#bbb'); gr.addColorStop(1, '#000'); g2.fillStyle = gr; g2.fillRect(0, 0, 64, 64);
+      const mm = new T.MeshStandardMaterial({ map: tex('img/hero/3d/dio/moss_c_' + (mob ? 512 : 1024) + '.webp', true), normalMap: tex('img/hero/3d/dio/moss_n_512.webp'), alphaMap: new T.CanvasTexture(mc), transparent: true, depthWrite: false, roughness: 1, metalness: 0, color: 0x9aa884, polygonOffset: true, polygonOffsetFactor: -2 });
+      const mg = new T.CircleGeometry(1, 24); mg.rotateX(-Math.PI / 2); const im = new T.InstancedMesh(mg, mm, sel.length);
+      sel.forEach(([x, y, z], i) => { const r = 1.8 + (Math.sin(x * 3.7 + z) * 0.5 + 0.5) * 1.2; M4.compose(V.set(x, y + 0.03, z), Q.identity(), SCv.set(r, 1, r)); im.setMatrixAt(i, M4); });
+      im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); mossM = mm; }
     if (R.compileAsync) await R.compileAsync(S, C);
     treeMeshes.forEach(m => m.visible = true); kick();
   } catch (e) { console.warn('sando trees', String(e && e.message || e)); } };
@@ -274,8 +281,8 @@ export async function start(sec) {
     const wBee = win(p, 0.31, 0.44), wBat = win(p, 0.46, 0.58), wSoil = win(p, 0.6, 0.71), wKey = win(p, 0.72, 0.79), wFx = win(p, 0.8, 0.9, 0.025), wEye = win(p, 0.15, 0.79, 0.05);
     treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7) * (1 - (mob ? 0.8 : 0.6) * (1 - sm(p / 0.12))); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, 1 - sm((p - 0.1) / 0.06), sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
     toriiM.opacity = 0.95 * (1 - (mob ? 0.85 : 0.3) * (1 - sm(p / 0.12))); lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
-    pave.opacity = leaf.opacity = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
-    pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0x8a7a62).lerp(LV, wBee * 0.5);
+    pave.opacity = leaf.opacity = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; if (mossM) mossM.opacity = Math.min(1, pave.opacity * 1.1); UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
+    pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0xd2c6b0).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
     hemi.intensity = 1.0 + wBat * 1.4 + wEye * 0.5; hemi.color.setHex(wBat > 0.5 ? 0x8fb4ff : 0x9fc8ff);
     soilMats.forEach(([m, op]) => m.opacity = op * wSoil); dropM.opacity = 0.8 * wSoil;
