@@ -25,7 +25,7 @@ html,body{margin:0;height:100%;background:var(--ml-bg);color:var(--ml-ink);font-
 .hd{position:fixed;left:16px;top:calc(14px + env(safe-area-inset-top));z-index:500;pointer-events:none;max-width:calc(100% - 32px)}
 .hd a{pointer-events:auto;color:var(--ml-ink-3);font:500 11px/1 var(--ml-mono);letter-spacing:.24em;text-decoration:none}
 .hd h1{margin:8px 0 4px;font:600 26px/1.2 var(--ml-serif);letter-spacing:.1em;text-shadow:0 0 12px #03060f,0 0 2px #03060f}
-.hd p{margin:0;font-size:13px;color:var(--ml-ink-2);letter-spacing:.04em;text-shadow:0 0 10px #03060f,0 0 2px #03060f}
+.hd p{margin:0;font-size:13px;color:var(--ml-ink);letter-spacing:.04em;text-shadow:0 0 2px #03060f,0 0 4px #03060f,0 0 10px #03060f,0 0 18px #03060f}
 /* 感覚の並び（絞りこみ） */
 .senses{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom));z-index:500;display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:wrap;pointer-events:none}
 .chip{pointer-events:auto;appearance:none;min-height:36px;padding:0 12px;border:1px solid var(--c);border-radius:var(--ml-radius);background:rgba(3,6,15,.55);color:var(--ml-ink);font:500 13px/1 var(--ml-sans);letter-spacing:.06em;display:inline-flex;align-items:center;gap:7px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -37,8 +37,8 @@ html,body{margin:0;height:100%;background:var(--ml-bg);color:var(--ml-ink);font-
 .grp{display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--ml-aoi-2);background:rgba(5,9,18,.75);color:var(--ml-ink);flex-direction:column;gap:2px;box-shadow:0 0 0 6px rgba(155,220,240,.08)}
 .grp span{display:flex;gap:3px}.grp span i{width:8px;height:8px;border-radius:50%}
 .grp b{font:500 13px/1 var(--ml-mono);font-weight:500}
-#hint{position:fixed;left:50%;top:42%;width:0;height:0;z-index:460;pointer-events:none}
-#hint i{position:absolute;width:30px;height:30px;margin:-15px;border-radius:50%;border:1px solid var(--ml-aoi-2);background:rgba(155,220,240,.18);animation:hdrag 2.2s var(--ml-ease) 2 both}
+#hint{position:fixed;left:56%;top:58%;width:0;height:0;z-index:460;pointer-events:none}
+#hint i{position:absolute;width:30px;height:30px;margin:-15px;border-radius:50%;border:1.5px dashed rgba(232,244,250,.7);background:transparent;animation:hdrag 2.2s var(--ml-ease) 2 both}
 #hint i+i{animation-name:hpinch;opacity:0}
 @keyframes hdrag{0%{transform:translate(-40px,10px) scale(.7);opacity:0}15%{transform:translate(-40px,10px) scale(1);opacity:1}55%{transform:translate(40px,-10px);opacity:1}70%,100%{transform:translate(40px,-10px) scale(.7);opacity:0}}
 @keyframes hpinch{0%,55%{opacity:0;transform:translate(40px,-10px)}70%{opacity:1;transform:translate(40px,-10px)}100%{opacity:0;transform:translate(70px,-34px)}}
@@ -70,7 +70,7 @@ body.placing .sheet{display:block}
 .thumb{display:none;margin:0 0 8px;align-items:center;gap:10px;font-size:12px;color:var(--ml-ink-3)}
 .thumb img{width:56px;height:56px;object-fit:cover;border-radius:var(--ml-radius)}
 .note{margin:2px 0 0;font-size:13px;line-height:1.6;color:var(--ml-ink-2)}
-.err{color:var(--ml-l-people);font-size:12px;min-height:0;margin:0 0 6px}
+.err{color:var(--ml-l-people);font-size:15px;font-weight:600;min-height:0;margin:0 0 8px}
 /* 印の吹き出し */
 .leaflet-popup-content-wrapper{background:rgba(5,9,18,.92);color:var(--ml-ink);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);box-shadow:none}
 .leaflet-popup-tip{background:rgba(5,9,18,.92)}
@@ -212,7 +212,7 @@ S.forEach(function(s){var b=document.createElement('button');b.type='button';b.c
   b.onclick=function(){on[s.k]=!on[s.k];b.setAttribute('aria-pressed',on[s.k]);draw();toast(on[s.k]?s.n+'の印を出しました':s.n+'の印を隠しました')};sv.appendChild(b)});
 /* 初めての人へ：指の動きで、地図を動かせること・印に触れられることを一度だけ見せる */
 (function(){var seen=false;try{seen=localStorage.getItem('qmap.hint')==='1'}catch(e){}
-  if(seen)return;var h=document.getElementById('hint');h.hidden=false;
+  return;/* 11-18：初回の輪は印と見分けにくかったので出さない（地図は触ればそのまま動く） */
   function end(){h.hidden=true;try{localStorage.setItem('qmap.hint','1')}catch(e){}}
   ['pointerdown','wheel','touchstart','keydown'].forEach(function(e){addEventListener(e,end,{once:true,passive:true})});setTimeout(end,4600)})();
 draw();
