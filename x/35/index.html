@@ -42,7 +42,7 @@ body.fo .cap{opacity:0!important;transition:none}
 <canvas id="c" aria-label="数千の点が群れをつくる3Dの空間。触れた所に、あなたが一体として入ります。"></canvas>
 <div id="halo"></div>
 <div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/swarm<small>群れ</small></h1></div>
-<div class="meter" aria-live="off"><span id="mN"></span><br>向きのそろい <b id="mA">0.00</b><br>群れ <b id="mG">0</b></div>
+<div class="meter" aria-live="off"><span id="mN"></span><br>向きのそろい <b id="mA">0.00</b><small style="opacity:.8;font-size:11px">（1＝みな同じ向き）</small><br>まとまった群れ <b id="mG">0</b></div>
 <details class="fold" id="fold"><summary>＋ 出典と模式</summary><div class="in">
 <p>一つひとつの点は、近くの仲間だけを見て動きます。<b style="font-weight:400;color:var(--t1)">離れる</b>（ぶつからない）・<b style="font-weight:400;color:var(--t1)">そろえる</b>（向きを合わせる）・<b style="font-weight:400;color:var(--t1)">寄る</b>（近くの中心へ）。全体の形を知る者も、指示を出す中心もありません。</p>
 <p>見える範囲（半径と視野角）がそれぞれの環世界です。範囲が重なると、互いの動きが互いの入力になり、そのくり返しで群れの形が生まれます。明るい点ほど、多くの仲間の範囲に入っています。緑の細い線は「見ている → 見られている」のつながり（一部だけを描いています）。あたたかい色の点と線は、いま一体（あなた）を見ている仲間です。一体の目では、目に入らない後ろや横の仲間の分だけ、画面の縁があたたかくなります。</p>
@@ -356,6 +356,6 @@ document.addEventListener('visibilitychange',()=>{if(snd)document.hidden?snd.ac.
 <!-- © mitsulab. All rights reserved. 2026-11-10 公開。Qualia/swarm＝局所の規則だけを持つ主体の群れ（Reynolds 1987 の boids をもとにした模式）。AI の学習・生成への利用はお断りします。 -->
 <script src="kit/tsugi.js" data-bottom="186" data-href="../37/" data-name="Qualia/time" data-line="時間の速さを 10 のべき乗で変える" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/swarm" data-right="12" data-bottom="132" defer></script>
-<script src="kit/modes.js?v=20261118c" data-modes='[["swarm","群れ",""],["shore","水際","shore/"]]' data-hide="#t" defer></script>
+<script src="kit/modes.js?v=20261118d" data-modes='[["swarm","群れ",""],["shore","水際","shore/"]]' data-hide="#t" defer></script>
 </body>
 </html>
