@@ -73,7 +73,7 @@ body.placing .sheet{display:block}
 .thumb img{width:56px;height:56px;object-fit:cover;border-radius:var(--ml-radius)}
 .note{margin:2px 0 0;font-size:13px;line-height:1.6;color:var(--ml-ink-2)}
 .txt input.ng{border-color:var(--ml-l-people);box-shadow:inset 0 0 0 1px var(--ml-l-people)}
-.btn[aria-disabled="true"]{color:var(--ml-ink-3);border-color:var(--ml-ink-3);border-style:dashed;opacity:.55;cursor:not-allowed}
+.btn[aria-disabled="true"]{color:var(--ml-ink-3);border-color:var(--ml-ink-3);border-style:dashed;opacity:.8;cursor:not-allowed}
 .err{color:var(--ml-l-people);font-size:15px;font-weight:600;min-height:0;margin:0 0 8px}
 /* 印の吹き出し */
 .leaflet-popup-content-wrapper{background:rgba(5,9,18,.92);color:var(--ml-ink);border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);box-shadow:none}
@@ -188,7 +188,7 @@ function group(m){
 }
 /* ほぼ同じ場所の印（寄っても重なるもの）は、輪にして少し散らす */
 function tight(m){var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));return map.getZoom()>=13&&b.getNorthEast().distanceTo(b.getSouthWest())<300}
-function spread(m){var c=map.latLngToLayerPoint([m[0][0].la,m[0][0].lo]),n=m.length,R=Math.max(26,n*7);
+function spread(m){var c=map.latLngToLayerPoint([m[0][0].la,m[0][0].lo]),n=m.length,R=Math.max(36,n*10);
   m.forEach(function(a,i){var t=-Math.PI/2+i*2*Math.PI/n,ll=map.layerPointToLatLng(c.add(L.point(Math.cos(t)*R,Math.sin(t)*R)));
     L.polyline([[a[0].la,a[0].lo],ll],{color:SM[a[0].s].c,weight:1.5,opacity:.8,interactive:false}).addTo(layer);
     mark(Object.assign({},a[0],{la:ll.lat,lo:ll.lng,_o:a[0]}),a[1])});
@@ -226,11 +226,11 @@ var st={s:null,lv:2,ph:null},aimY=innerHeight/2,aimEl=document.querySelector('.a
 var pS=document.getElementById('pSense'),pL=document.getElementById('pLevel');
 function radio(box,items,key){items.forEach(function(it,i){var b=document.createElement('button');b.type='button';b.className='opt'+(key==='lv'?' lv':'');b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
   if(it.c)b.style.setProperty('--c',it.c);
-  b.innerHTML=key==='lv'?'<span>'+new Array(i+2).join('<i></i>')+'</span>'+it:'<i></i>'+it.n;
+  b.innerHTML=key==='lv'?'<span>'+new Array(i+2).join('<i></i>')+'</span>'+it:'<i></i>'+it.n+(it.k==='meas'?'<small style="font-size:10px;color:var(--ml-ink-3)">機器</small>':'');
   b.onclick=function(){st[key]=key==='lv'?i+1:it.k;[].forEach.call(box.children,function(x){x.setAttribute('aria-checked',x===b)});ready()};box.appendChild(b)})}
 radio(pS,S,'s');radio(pL,LV,'lv');function lvDef(){[].forEach.call(pL.children,function(x,i){x.setAttribute('aria-checked',i===1)})}lvDef();
 var body=document.body,bPut=document.getElementById('bPut'),bCancel=document.getElementById('bCancel'),bHere=document.getElementById('bHere'),err=document.getElementById('pErr'),txt=document.getElementById('pText');
-function ready(){if(body.classList.contains('placing'))bPut.textContent='ここに置く';var ng=!!(txt.value.trim()&&bad(txt.value.trim()));txt.classList.toggle('ng',ng);err.textContent=ng?'名前や連絡先・住所は書けません':err.textContent==='名前や連絡先・住所は書けません'?'':err.textContent;bPut.setAttribute('aria-disabled',String(ng||!st.s));bPut.style.opacity=''}
+function ready(){var ng=!!(txt.value.trim()&&bad(txt.value.trim()));txt.classList.toggle('ng',ng);err.textContent=ng?'名前や連絡先・住所は書けません':err.textContent==='名前や連絡先・住所は書けません'?'':err.textContent;if(body.classList.contains('placing'))bPut.textContent=ng?'名前を消すと置けます':'ここに置く';bPut.setAttribute('aria-disabled',String(ng||!st.s));bPut.style.opacity=''}
 function open(){body.classList.add('placing');var sh=document.getElementById('sheet').getBoundingClientRect(),ay=Math.min(innerHeight/2,Math.max(150,(sh.top+120)/2));aimY=ay;aimEl.style.top=ay+'px';bCancel.hidden=false;bHere.hidden=true;map.closePopup();if(map.getZoom()<13)map.setZoom(13);ready()}
 function close(){body.classList.remove('placing');bCancel.hidden=true;bHere.hidden=false;bPut.textContent='感じたことを置く';st={s:null,lv:2,ph:null};bPut.removeAttribute('aria-disabled');txt.value='';txt.classList.remove('ng');err.textContent='';setThumb(null);[].forEach.call(document.querySelectorAll('.sheet [role=radio]'),function(x){x.setAttribute('aria-checked','false')});lvDef()}
 /* 名前・連絡先らしきものを弾く */
