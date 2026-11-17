@@ -268,14 +268,14 @@ export async function start(sec) {
     return rk > 0.01 || wSoil > 0.01 || p < 0.04;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
-  const prog = () => { const M0 = window.__mdEnd || 0; const r = sec.getBoundingClientRect(), span = r.height - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0; return M0 > 0 ? (q < M0 ? 0 : 0.13 + 0.87 * (q - M0) / (1 - M0)) : q; };
+  const prog = () => { const M0 = window.__mdEnd || 0; const span = document.documentElement.scrollHeight - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, scrollY / span)) : 0; return 0.76 * (M0 > 0 ? (q < M0 ? 0 : 0.13 + 0.87 * (q - M0) / (1 - M0)) : q); };
   let cur = prog(), raf = 0, vis = true, lt = 0, frozen = false;
   const draw = () => { const anim = place(cur); R.render(S, C); return anim; };
   function loop(n) { raf = 0; if (frozen) return; const dt = lt ? Math.min(0.05, (n - lt) / 1000) : 0.016; lt = n; tt += dt; const t = prog(); cur += (t - cur) * 0.2; if (Math.abs(t - cur) < 2e-4) cur = t; const anim = draw(); dirtyTex = false; if (vis && (cur !== t || anim)) raf = requestAnimationFrame(loop); else lt = 0; }
   function kick() { if (vis && !raf) raf = requestAnimationFrame(loop); }
   addEventListener('scroll', kick, { passive: true });
   addEventListener('resize', () => { size(); kick(); });
-  new IntersectionObserver(e => { vis = e[0].isIntersecting; kick(); }).observe(sec);
+  vis = true; document.addEventListener('visibilitychange', () => { vis = !document.hidden; kick(); });
   size(); draw(); sec.dataset.ready = '1';
   (window.requestIdleCallback || (f => setTimeout(f, 300)))(() => { loadTex(); loadTrees(); }, { timeout: 1200 });
   window.__sd = { rings, C, R, set: p => { frozen = true; cur = p; tt = 0.35; draw(); }, LEN, tex: () => loadTex() };
