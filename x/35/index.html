@@ -306,6 +306,7 @@ function frame(now){
   for(let k=0;k<3;k++)cc[k]+=([mx/m,my/m,mz/m][k]*0.5-cc[k])*0.02;
   const e=[cc[0]+dist*Math.cos(pitch)*Math.sin(yaw),cc[1]+dist*Math.sin(pitch),cc[2]+dist*Math.cos(pitch)*Math.cos(yaw)];
   VP=mul(persp(mobile&&asp<1?1.05:0.9,asp,0.5,600),look(e,cc,[0,1,0]));
+  if(mobile&&asp<1)for(let j=0;j<4;j++)VP[j*4]+=.2*VP[j*4+3];   /* 11-19 スマホは群れを少し右へ（左の切りかえの下に隠れない） */
  }
  lastVP=VP;
  // upload
