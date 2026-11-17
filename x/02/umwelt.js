@@ -827,7 +827,7 @@ function aoiTick(dt) {
   A.talkT += dt;
   // 体・足・向き・目・まばたき・口・表情・裾は AoiMotion（位置だけこちらで決める。向きは歩く向き／止まると見る人へ、足を踏みかえて）
   AM.faceTo(null); AM.lookAt(aoiGlance(dt)); AM.drive(A.pos.x, A.pos.z); AM.update(dt, camera); A.yaw = AM.yaw;
-  if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / (A.intro ? (A.late ? .55 : .18) : 2.2)); opacity(A.fade * A.fade * (3 - 2 * A.fade));  if (A.late && A.intro) { const sh = A.fade >= 1; if (A.shadowOn !== sh) { A.shadowOn = sh; aoi.traverse(o => { if (o.isMesh) o.castShadow = sh; }); renderer.shadowMap.needsUpdate = true; } } }   // 透けている間は影を落とさない（半透明の体に濃い影は不自然・影の材質の組み立てを現れ終わりのあとへ回す）   // 初回は180msで表示。体験中の出現は従来の2.2秒を保つ（2026-10-17）。幕のあとに届いたときは 0.55 秒（2026-10-25 起動 5 秒）
+  if (A.fade < 1 && A.appear) { A.fade = Math.min(1, A.fade + Math.max(dt, RDT) / (A.intro ? (A.late ? .14 : .18) : 2.2)); opacity(A.fade * A.fade * (3 - 2 * A.fade));  if (A.late && A.intro) { const sh = A.fade >= 1; if (A.shadowOn !== sh) { A.shadowOn = sh; aoi.traverse(o => { if (o.isMesh) o.castShadow = sh; }); renderer.shadowMap.needsUpdate = true; } } }   // 透けている間は影を落とさない（半透明の体に濃い影は不自然・影の材質の組み立てを現れ終わりのあとへ回す）   // 初回は180msで表示。体験中の出現は従来の2.2秒を保つ（2026-10-17）。幕のあとに届いたときは 0.55 秒（2026-10-25 起動 5 秒）
 }
 // 体の動き（以前の pose() ＝森羅研究室の式の写し）は、2026-10-13 に共通部品 AoiMotion へ置きかえた。元＝../旧ver/2026-10-13_碧の動きv3の前/umwelt.js
 
