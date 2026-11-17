@@ -90,7 +90,7 @@ body{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid
 #fold{grid-area:2/1/7/2;position:relative;top:auto;right:auto;justify-self:end;align-self:stretch;margin:0 12px 8px;width:min(calc(100% - 24px),420px);min-height:0;max-height:100%;overflow:auto;touch-action:pan-y;z-index:7}
 body:not(.info) #spec,body:not(.info) #heatbar{display:none}
 @media (max-width:520px){.top .mark{position:absolute;left:14px;top:calc(56px + env(safe-area-inset-top));background:rgba(14,26,46,.58);border-radius:6px;padding:4px 10px}.top{padding-left:118px!important}#projToggle{top:calc(92px + env(safe-area-inset-top))!important}}
-</style><style id="m18">@media (max-width:520px){#cap{font-size:12px!important;line-height:1.55!important;letter-spacing:0!important;padding-left:6px!important;padding-right:6px!important}}</style>
+</style><style id="m18">/* 上の小さな札を背景から浮かせる */.lab{text-shadow:0 0 3px #000,0 0 8px rgba(0,0,0,.8)}@media (max-width:520px){#cap{font-size:12px!important;line-height:1.55!important;letter-spacing:0!important;padding-left:6px!important;padding-right:6px!important}}</style>
 </head><body>
 <script src="loader.js" data-max="4000"></script>
 <div id="stage"></div>
