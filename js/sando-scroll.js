@@ -78,7 +78,7 @@ export async function start(sec) {
       if (i < N) { const b = i * 2; ix.push(b, b + 1, b + 2, b + 1, b + 3, b + 2); }
     }
     const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(U, 2)); g.setIndex(ix); g.computeVertexNormals();
-    S.add(new T.Mesh(g, mat));
+    { const me = new T.Mesh(g, mat); me.renderOrder = mat === pave ? 1 : -2; S.add(me); }
   }
   const pave = new T.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
   const leaf = new T.MeshStandardMaterial({ color: 0xd2c6b0, roughness: 1, metalness: 0, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false });
@@ -142,7 +142,7 @@ export async function start(sec) {
   const bugM = new T.PointsMaterial({ map: dot, vertexColors: true, size: 0.5, sizeAttenuation: true, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); { const bp = new T.Points(bugG, bugM); bp.frustumCulled = false; S.add(bp); }
 
   // 4b) 欅（Qualium 大宮の参道の欅の型）：写実の樹を参道の並木の位置に。目の高さに降りる前に読む
-  const treeMeshes = []; let mossM = null;
+  const treeMeshes = []; let mossM = null, treeSel = []; const stk = sec.querySelector('.sd-stick'), base0 = mob ? 0.28 : 0.34;
   const loadTrees = async () => { try {
     const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
     const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
@@ -152,16 +152,16 @@ export async function start(sec) {
     const dC = (x, z) => { let m = 1e9; for (const c of CP) { const d = Math.hypot(c[0] - o[0] - x, c[2] - o[2] - z); if (d < m) m = d; } return m; };
     const pick = near.filter(([x, , z]) => { const d = dC(x, z); return d > 9.5 && d < 32; }), lim = mob ? 90 : 170, stp = Math.max(1, pick.length / lim), sel = [];
     for (let i = 0; i < pick.length && sel.length < lim; i += stp) sel.push(pick[Math.floor(i)]);
-    const M4 = new T.Matrix4(), Q = new T.Quaternion(), V = new T.Vector3(), SCv = new T.Vector3();
+    const M4 = new T.Matrix4(), Q = new T.Quaternion(), V = new T.Vector3(), SCv = new T.Vector3(); treeSel = sel;
     parts.forEach(m => { const im = new T.InstancedMesh(m.geometry, m.material, sel.length); sel.forEach(([x, y, z], i) => { const h = 14 + (Math.sin(x * 12.9 + z * 3.1) * 0.5 + 0.5) * 6, sc = h / sz.y; Q.setFromAxisAngle(V.set(0, 1, 0), (x * 7.3 + z) % 6.283); SCv.set(sc, sc, sc);
       M4.compose(V.set(x, y - bb.min.y * sc - 0.2, z), Q, SCv).multiply(m.matrixWorld); im.setMatrixAt(i, M4); }); im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); });
 
     // 欅の根元の苔（縁だけ。石畳には置かない＝並木の位置は道の中心から 9.5 m 以上）
     { const mc = document.createElement('canvas'); mc.width = mc.height = 64; const g2 = mc.getContext('2d'), gr = g2.createRadialGradient(32, 32, 6, 32, 32, 32); gr.addColorStop(0, '#fff'); gr.addColorStop(0.55, '#bbb'); gr.addColorStop(1, '#000'); g2.fillStyle = gr; g2.fillRect(0, 0, 64, 64);
-      const mm = new T.MeshStandardMaterial({ map: tex('img/hero/3d/dio/moss_c_' + (mob ? 512 : 1024) + '.webp', true), normalMap: tex('img/hero/3d/dio/moss_n_512.webp'), alphaMap: new T.CanvasTexture(mc), transparent: true, depthWrite: false, roughness: 1, metalness: 0, color: 0x9aa884, polygonOffset: true, polygonOffsetFactor: -2 });
+      const mm = new T.MeshStandardMaterial({ map: tex('img/hero/3d/dio/moss_c_' + (mob ? 512 : 1024) + '.webp', true), normalMap: tex('img/hero/3d/dio/moss_n_512.webp'), alphaMap: new T.CanvasTexture(mc), transparent: true, depthWrite: false, roughness: 1, metalness: 0, color: 0x6f7a5c, polygonOffset: true, polygonOffsetFactor: -2 });
       const mg = new T.CircleGeometry(1, 24); mg.rotateX(-Math.PI / 2); const im = new T.InstancedMesh(mg, mm, sel.length);
-      sel.forEach(([x, y, z], i) => { const r = 1.8 + (Math.sin(x * 3.7 + z) * 0.5 + 0.5) * 1.2; M4.compose(V.set(x, y + 0.03, z), Q.identity(), SCv.set(r, 1, r)); im.setMatrixAt(i, M4); });
-      im.frustumCulled = false; im.visible = false; S.add(im); treeMeshes.push(im); mossM = mm; }
+      sel.forEach(([x, y, z], i) => { const r0 = Math.min(1.8 + (Math.sin(x * 3.7 + z) * 0.5 + 0.5) * 0.6, dC(x, z) - 8.2), r = r0 < 0.9 ? 0.001 : r0; M4.compose(V.set(x, y + 0.03, z), Q.identity(), SCv.set(r, 1, r)); im.setMatrixAt(i, M4); });
+      im.frustumCulled = false; im.renderOrder = -1; im.visible = false; S.add(im); treeMeshes.push(im); mossM = mm; }
     if (R.compileAsync) await R.compileAsync(S, C);
     treeMeshes.forEach(m => m.visible = true); kick();
   } catch (e) { console.warn('sando trees', String(e && e.message || e)); } };
@@ -232,7 +232,7 @@ export async function start(sec) {
   const skyM = new T.ShaderMaterial({ side: T.BackSide, depthWrite: false, transparent: true, fog: false, uniforms: { uO: { value: 0 }, uSun: { value: new T.Vector3(-0.55, 0.42, -0.72).normalize() } },
     vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: 'uniform float uO; uniform vec3 uSun; varying vec3 vD; void main(){ float h = clamp(vD.y, -0.1, 1.0); vec3 c = mix(vec3(0.86,0.80,0.70), vec3(0.36,0.52,0.70), smoothstep(0.0, 0.55, h)); float s = max(0.0, dot(vD, uSun)); c += vec3(1.0,0.82,0.55) * (pow(s, 48.0) * 1.4 + pow(s, 6.0) * 0.22); gl_FragColor = vec4(c, uO); }' });
-  const skyD = new T.Mesh(new T.SphereGeometry(900, 32, 16), skyM); skyD.frustumCulled = false; skyD.renderOrder = -1; S.add(skyD);
+  const skyD = new T.Mesh(new T.SphereGeometry(900, 32, 16), skyM); skyD.frustumCulled = false; skyD.renderOrder = -5; S.add(skyD);
   // 2026-11-18 背景の演出：木漏れ日の光の筋・漂う粒・地面を走る走査の帯（すべて手続きで生成）
   const shaftT = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 128; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(255,240,210,0)'); gr.addColorStop(0.25, 'rgba(255,240,210,.9)'); gr.addColorStop(1, 'rgba(255,240,210,0)'); g.fillStyle = gr; g.fillRect(0, 0, 16, 128); const g2 = g.createLinearGradient(0, 0, 16, 0); return new T.CanvasTexture(c); })();
   const shafts = [], NS = mob ? 7 : 16, SA = new T.Vector3(), SD = new T.Vector3();
@@ -276,12 +276,24 @@ export async function start(sec) {
     C.position.set(A.x + Math.sin(p * 9) * 0.25, A.y + h, A.z + back);
     if (p > 0.8) B.lerp(PF, sm((p - 0.78) / 0.05));
     C.lookAt(B.x, B.y + ly, B.z);
+
+    // 足もとへ寄る場面（.sd-pause の区間だけ）
+    const pz = document.querySelector('.sd-pause'); let wC = 0;
+    if (pz) { const r = pz.getBoundingClientRect(); wC = sm(1 - Math.abs(r.top + r.height / 2 - innerHeight / 2) / (innerHeight * 0.75)); }
+    if (wC > 0.001) {
+      let tb = null, bd = 1e9; for (const n of treeSel) { const d = Math.hypot(n[0] - A.x, n[2] - A.z); if (d < bd) { bd = d; tb = n; } }
+      if (tb) { const q0 = C.quaternion.clone(), p0 = C.position.clone(), dx = A.x - tb[0], dz = A.z - tb[2], dl = Math.hypot(dx, dz) || 1;
+        C.position.set(tb[0] + dx / dl * 4.2, tb[1] + 1.25, tb[2] + dz / dl * 4.2); C.lookAt(tb[0], tb[1] + 0.15, tb[2]);
+        const q1 = C.quaternion.clone(); C.position.lerpVectors(p0, C.position, wC); C.quaternion.copy(q0).slerp(q1, wC); }
+    }
+    if (stk) { const o = wC > 0.01 ? String(base0 + 0.38 * wC) : ''; if (stk.style.opacity !== o) stk.style.opacity = o; }
+    window.__sdClose = wC;
     const wTop = 1 - sm(p / 0.12); topMats.forEach(([m]) => m.opacity = 0); TOPL.visible = false;
     if (wTop > 0.01) { C.rotateY((Math.sin(tt * 0.12) * 0.05 - px * 0.08) * wTop); C.rotateX((-py * 0.05) * wTop); }
     const wBee = win(p, 0.31, 0.44), wBat = win(p, 0.46, 0.58), wSoil = win(p, 0.6, 0.71), wKey = win(p, 0.72, 0.79), wFx = win(p, 0.8, 0.9, 0.025), wEye = win(p, 0.15, 0.79, 0.05);
     treeM.color.copy(TREE0).lerp(TREE_UV, wBee).lerp(TREE_BAT, wBat * 0.8); treeM.opacity = 0.75 * (1 - wSoil * 0.7) * (1 - (mob ? 0.8 : 0.6) * (1 - sm(p / 0.12))); treeM.size = (mob ? 2.6 : 2.2) * (1 - 0.72 * Math.max(wEye, 1 - sm((p - 0.1) / 0.06), sm((p - 0.15) / 0.05) * (1 - sm((p - 0.95) / 0.04))));
     toriiM.opacity = 0.95 * (1 - (mob ? 0.85 : 0.3) * (1 - sm(p / 0.12))); lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
-    pave.opacity = leaf.opacity = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; if (mossM) mossM.opacity = Math.min(1, pave.opacity * 1.1); UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
+    pave.opacity = leaf.opacity = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; if (mossM) mossM.opacity = Math.min(1, pave.opacity * 1.1); { const wc = window.__sdClose || 0; if (wc > 0.001) { pave.opacity = leaf.opacity = Math.max(pave.opacity, wc); soilG.opacity = Math.max(soilG.opacity, wc * 0.9); if (mossM) mossM.opacity = Math.max(mossM.opacity, wc); UDAP.value = Math.max(UDAP.value, 0.6 * wc); } } UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
     pave.color.setHex(0x9a968c).lerp(PV, wBee * 0.45); leaf.color.setHex(0xd2c6b0).lerp(LV, wBee * 0.5);
     rootM.opacity = wSoil * 0.9;
     hemi.intensity = 1.0 + wBat * 1.4 + wEye * 0.5; hemi.color.setHex(wBat > 0.5 ? 0x8fb4ff : 0x9fc8ff);
