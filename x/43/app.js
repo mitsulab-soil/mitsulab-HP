@@ -81,15 +81,20 @@ books.forEach((b, i) => { bo.position.set(b[0], b[1], b[2]); bo.scale.set(b[3], 
 // 見台と、ひらいた本（紙の頁は canvas に描く）
 put(new THREE.BoxGeometry(.7, 1, .5), shM, 0, .5, K - 1.2);
 const pc = document.createElement("canvas"); pc.width = 1024; pc.height = 640; const pg2 = pc.getContext("2d"), ptex = new THREE.CanvasTexture(pc); ptex.colorSpace = THREE.SRGBColorSpace; ptex.anisotropy = 8;
-drawPage = function (h, lines) { curl = 1; const g = pg2; g.fillStyle = "#efe6d2"; g.fillRect(0, 0, 1024, 640); for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(120,100,70,${rnd() * .05})`; g.fillRect(rnd() * 1024, rnd() * 640, 2, 2); }
+drawPage = function (h, lines, img, cap) { curl = 1; const g = pg2; g.fillStyle = "#efe6d2"; g.fillRect(0, 0, 1024, 640); for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(120,100,70,${rnd() * .05})`; g.fillRect(rnd() * 1024, rnd() * 640, 2, 2); }
   const sh = g.createLinearGradient(452, 0, 572, 0); sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(.5, "rgba(60,40,20,.25)"); sh.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = sh; g.fillRect(452, 0, 120, 640);
   g.fillStyle = "#2a2420"; g.font = "bold 44px 'Hiragino Mincho ProN',serif"; g.fillText(h || "", 60, 90); g.font = "26px 'Hiragino Mincho ProN',serif";
   let y = 150; const col = (t, x0) => { for (const line of t.match(/.{1,15}/g) || []) { if (y > 600) { if (x0 < 500) { y = 90; x0 = 572; } else return; } g.fillText(line, x0, y); y += 40; } return x0; };
+  if (img) { const W0 = 380, H0 = 440, sc = Math.min(W0 / img.width, H0 / img.height), w = img.width * sc, hh = img.height * sc; g.drawImage(img, 60 + (W0 - w) / 2, 120 + (H0 - hh) / 2, w, hh); g.font = "20px 'Hiragino Mincho ProN',serif"; g.fillStyle = "#5a4a3c"; g.fillText(cap || "", 60, 600); y = 150; let x = 572; for (const l of lines || []) x = col(l, x) || x; ptex.needsUpdate = true; return; }
   let x = 60; for (const l of lines || []) x = col(l, x) || x; ptex.needsUpdate = true; };
 drawPage("つち百景", ["左に絵、右に文。押すと、碧が読みます。"]);
 const pageG = new THREE.PlaneGeometry(1.1, .69, 8, 1); const pp = pageG.attributes.position; for (let i = 0; i < pp.count; i++) pp.setZ(i, .05 * Math.sin(Math.abs(pp.getX(i)) / .55 * Math.PI / 2)); pageG.computeVertexNormals();
-const page3 = put(pageG, new THREE.MeshStandardMaterial({ map: ptex, roughness: .95, side: THREE.DoubleSide }), 0, 1.3, K - 1.05); page3.rotation.x = -.85; page3.scale.setScalar(W.mobile ? .8 : .85);
-const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); W.on("frame", ({ t }) => { if (modeNow !== "kan") return; lamp.intensity = 8 + Math.sin(t * 1.7) * .25 + Math.sin(t * 4.3) * .12; if (curl > 0) { curl = Math.max(0, curl - .04); page3.rotation.x = -.85 + Math.sin(curl * Math.PI) * .12; } }); lamp.position.set(0, 3.9, K - 1); lamp.target.position.set(0, 1, K - 1.2); hall.add(lamp, lamp.target);
+const page3 = put(pageG, new THREE.MeshStandardMaterial({ map: ptex, roughness: .95, side: THREE.DoubleSide }), 0, 1.3, K - 1.05);
+const leafG = new THREE.PlaneGeometry(.55, .69, 10, 1); leafG.translate(.275, 0, 0); const leafP0 = leafG.attributes.position.array.slice();
+const leaf = new THREE.Mesh(leafG, new THREE.MeshStandardMaterial({ color: 0xefe6d2, roughness: .95, side: THREE.DoubleSide })); leaf.visible = false; page3.add(leaf); leaf.position.z = .052; page3.rotation.x = -.85; page3.scale.setScalar(W.mobile ? .8 : .85);
+const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); W.on("frame", ({ t }) => { if (modeNow !== "kan") return; lamp.intensity = 8 + Math.sin(t * 1.7) * .25 + Math.sin(t * 4.3) * .12; if (curl > 0) { curl = Math.max(0, curl - .035); page3.rotation.x = -.85 + Math.sin(curl * Math.PI) * .06;
+      const a = (1 - curl) * Math.PI, p = leafG.attributes.position; leaf.visible = curl > .02;
+      for (let k = 0; k < p.count; k++) { const x0 = leafP0[k * 3], r = x0, bend = Math.sin(a) * .25 * (x0 / .55); p.setX(k, Math.cos(a) * r - bend * Math.sin(a) * .2); p.setZ(k, Math.sin(a) * r * .9 + bend * .1); } p.needsUpdate = true; leafG.computeVertexNormals(); } }); lamp.position.set(0, 3.9, K - 1); lamp.target.position.set(0, 1, K - 1.2); hall.add(lamp, lamp.target);
 }
 // 群れ：水際と群れ（Reynolds 1987 の三つの決まり）。選んだときに作る
 let water = null, birds = null, rain = null, steam = null, steamP = [], sitM = [], flyM = [], treesM = [], dry = 0, B = [], ride = false, wet = 0;
@@ -125,11 +130,11 @@ function buildMure() { if (birds) return; birds = true;
 let stage = null, curtains = []; function buildStage() { if (stage) return; stage = new THREE.Group(); scene.add(stage);
   const TLs = new THREE.TextureLoader(), ts = (n, r, c) => { const t = TLs.load("tex/" + n + ".webp"); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(r[0], r[1]); if (c) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
   const ps = (n, r, o = {}) => new THREE.MeshStandardMaterial({ map: ts(n + "_diff", r, 1), normalMap: ts(n + "_nor", r), roughnessMap: ts(n + "_rough", r), roughness: 1, ...o });
-  const floor = ps("japanese_cedar_planks", [2, 1], { color: 0xa89c8e }), wood = ps("dark_wood", [1, 2], { color: 0x9a8a80 }), z = Z.uta - 4.4;
+  const floor = ps("japanese_cedar_planks", [2, 1], { color: 0x8a7e72, roughness: .55 }), wood = ps("dark_wood", [1, 2], { color: 0x9a8a80 }), z = Z.uta - 4.4;
   const top = new THREE.Mesh(new THREE.BoxGeometry(4.4, .45, 2.6), wood); top.position.set(0, .225, z + .6); stage.add(top);
   const fl = new THREE.Mesh(new THREE.PlaneGeometry(4.3, 2.5), floor); fl.rotation.x = -Math.PI / 2; fl.position.set(0, .452, z + .6); stage.add(fl);
   const step = new THREE.Mesh(new THREE.BoxGeometry(1.4, .2, .5), wood); step.position.set(0, .1, z + 2.1); stage.add(step);
-  const back = new THREE.Mesh(new THREE.BoxGeometry(4.4, 3.2, .12), wood); back.position.set(0, 2, z - .7); stage.add(back);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(4.4, 3.2, .12), ps("clay_plaster", [2, 1.4], { color: 0xd2c4b4, emissive: 0x2a2420 })); back.position.set(0, 2, z - .7); stage.add(back);
   const curtM = ps("velour_velvet", [2, 3], { color: 0x5a2a30 });
   for (const sd of [-1, 1]) { const cg = new THREE.PlaneGeometry(.9, 3.5, 24, 1); const p = cg.attributes.position; for (let k = 0; k < p.count; k++) p.setZ(k, Math.sin(p.getX(k) * 22) * .06); cg.computeVertexNormals(); const c = new THREE.Mesh(cg, curtM); c.position.set(sd * 1.75, 2.2, z + 1.7); stage.add(c); curtains.push(c); }
   W.on("frame", ({ t }) => { if (modeNow !== "uta" || !stage.visible) return; curtains.forEach((c, k) => { c.rotation.y = Math.sin(t * .6 + k * 2) * .04; c.position.z = z + 1.7 + Math.sin(t * .9 + k) * .02; }); });
@@ -190,19 +195,21 @@ W.addMode({ id: "koza", label: LABEL.koza, name: "rakugo", icon: "ask",
 W.addMode({ id: "uta", label: LABEL.uta, name: "song", icon: "ear",
   subs: [{ label: LABEL.mv }, { label: LABEL.live }],
   info: { title: "《Breathing OS》", body: "碧がうたう、杜の息づかいの歌。1分45秒・音が出ます。息づかい＝湿った土と風のゆらぎのたとえ。", src: "楽曲：Suno（Pro Plan）／Hamza & Anderson 2005・Tyree & Zimmermann 2002・『神道事典』1994" },
-  enter(w, sub) { plantVeg(); buildStage(); stage.visible = sub === 1; go(Z.uta); play(MEDIA.song + (sub ? "live" : "mv") + "_540.mp4", sub ? Z.uta - 4.5 : Z.uta - 4, (sub ? "poster/live.webp" : "poster/mv.webp")); if (sub && curV) curV.position.y = 2.2; w.say(sub ? "同じ歌を、舞台で。" : "同じ歌を、杜で。"); }, exit: stop });
-let pages = null;
+  enter(w, sub) { plantVeg(); buildStage(); stage.visible = sub === 1; go(Z.uta); if (!W.mobile) setTimeout(() => { if (modeNow === "uta") W.setAoi({ pos: [-3.1, 0, Z.uta - .4], lookAt: [0, 1.4, Z.uta + 4] }); }, 700); play(MEDIA.song + (sub ? "live" : "mv") + "_540.mp4", sub ? Z.uta - 4.5 : Z.uta - 4, (sub ? "poster/live.webp" : "poster/mv.webp")); if (sub && curV) curV.position.y = 2.2; w.say(sub ? "同じ歌を、舞台で。" : "同じ歌を、杜で。"); }, exit() { stop(); W.follow(); } });
+let pages = null, figs = null;
 W.addMode({ id: "kan", label: LABEL.kan, name: "museum", icon: "book",
   subs: [{ label: "つち百景" }, { label: "蜂の本" }, { label: "蛾の本" }, { label: "歌の本" }],
   info: { title: "館", body: "書架の本をひらくと、碧が頁を読む。押すたびに次の頁。" },
-  async enter(w, sub) { buildHall(); moveTo(V(W.mobile ? -.35 : .05, 1.55, Z.kan - 3 - 1.2 + 1.35)); setTimeout(() => W.setAoi({ pos: W.mobile ? [-.8, 0, Z.kan - 3 - 2.9] : [-1.75, 0, Z.kan - 3 - 2.4], lookAt: [-.35, 1.4, Z.kan - 3 + .15] }), 650); pages = pages || await (await fetch("data/museum-pages.json")).json().catch(() => ({}));
+  async enter(w, sub) { buildHall(); moveTo(V(W.mobile ? -.35 : .05, 1.55, Z.kan - 3 - 1.2 + 1.35)); setTimeout(() => W.setAoi({ pos: W.mobile ? [-.8, 0, Z.kan - 3 - 2.9] : [-1.75, 0, Z.kan - 3 - 2.4], lookAt: [-.35, 1.4, Z.kan - 3 + .15] }), 650); pages = pages || await (await fetch("data/museum-pages.json")).json().catch(() => ({})); figs = figs || await (await fetch("data/tsuchi-figs.json")).json().catch(() => ({}));
     const LINK = [null, { e: 0, to: ["koza", 0], go: "高座で「蜂の目」を聞く" }, { e: 2, to: ["koza", 2], go: "高座で「蛾の恋文」を聞く" }, { song: 1, to: ["uta", 0], go: "中庭の杜で歌を聴く" }];
     const L = LINK[sub || 0];
     if (L) { const e = L.e != null ? ENM[L.e] : null; const h = e ? e.t : "《Breathing OS》";
       const lines = e ? [e.lead, e.invite, "本を閉じて、" + L.go + "。"] : ["碧がうたう、杜の息づかいの歌。", "息づかいは、湿った土と風のゆらぎのたとえ。", "本を閉じて、" + L.go + "。"];
       drawPage(h, lines); w.sayLines(lines, { hint: "押して進む → " + L.go, done: () => W.setMode(L.to[0], L.to[1]) }); return; }
     const pg = (pages.tsuchi || []).filter(p => !(p.R && p.R.t === "toc")); let i = 0;
-    const show = () => { const p = pg[i]; if (!p) return; drawPage(p.h, p.say); w.sayLines(p.say || [], { hint: p.h, done: () => { i = (i + 1) % pg.length; show(); } }); }; show();
+    const show = () => { const p = pg[i]; if (!p) return; const go2 = (img, cap) => { if (modeNow !== "kan") return; drawPage(p.h, p.say, img, cap); w.sayLines(p.say || [], { hint: p.h, done: () => { i = (i + 1) % pg.length; show(); } }); };
+      const L = p.L || {}, fw = L.t === "fig" && figs && figs[L.k] && figs[L.k][L.wi];
+      if (fw && fw.f) { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => go2(im, fw.t); im.onerror = () => go2(null); im.src = fw.f; w.say("頁をひらいています。", 0); } else go2(null); }; show();
   }, exit() { W.follow(); } });
 W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
   subs: [{ label: LABEL.calm }, { label: LABEL.eye }, { label: LABEL.rain }],
