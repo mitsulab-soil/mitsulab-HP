@@ -52,3 +52,15 @@ html,body{height:100%;overflow:hidden;background:var(--qe-haze,#8e98a8);color:#e
 /* 2026-11-19：スマホは受けとり方の札を 1 段に収める（横に送らない）。字幕は碧をよけて左寄りの中央に */
 @media (max-width:520px){#qeModes{-webkit-mask-image:none;mask-image:none;padding-right:0;overflow:visible}#qeModes button{flex:1 1 0;min-width:0;padding:4px 1px;border-radius:12px}#qeModes .v{font-size:10.5px;letter-spacing:-.03em;white-space:nowrap}#qeModes .n{font-size:9px}#qeCap{left:12px;right:auto;transform:none;width:calc(100% - 120px);text-align:left}}
 @media (min-width:521px){#qeCap{left:calc(50% - 140px);width:min(560px,calc(100% - 420px))}}
+/* スマホ：左下の札の列はカメラ（右下）に重ならないよう、幅を絞って上へ折り返す */
+@media (max-width:520px){#qeTR{max-width:calc(100% - 100px);flex-wrap:wrap-reverse}}
+@media (max-width:520px){#qeInfo{top:auto;bottom:calc(80px + env(safe-area-inset-bottom));max-height:calc(100% - 260px)}}
+.qe-btn[hidden]{display:none!important}
+/* 2 段目の札は、右に続きがあるとき右端を淡く */
+#qeSub{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);padding-right:30px}
+/* 2 段目の札は折り返して全部見せる */
+#qeSub{flex-wrap:wrap;overflow:visible;-webkit-mask-image:none;mask-image:none;padding-right:0}
+/* スマホは 2 段目を 1 段の横送りに（右端を淡く）、PC だけ折り返す */
+@media (max-width:520px){#qeSub{flex-wrap:nowrap;overflow-x:auto;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);padding-right:30px}}
+/* スマホの 2 段目：左に余白、右端は大きく淡くして、続きがあると分かるように（2026-11-19） */
+@media (max-width:520px){#qeSub{padding-left:2px;scroll-padding-left:8px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 64px),rgba(0,0,0,.15));mask-image:linear-gradient(90deg,#000 calc(100% - 64px),rgba(0,0,0,.15));padding-right:56px}}
