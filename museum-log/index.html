@@ -62,7 +62,7 @@ const VT=tally('v'),TOP=Object.entries(VT).sort((a,b)=>b[1]-a[1]).slice(0,8).map
 function pie(el,key,entries){const tot=entries.reduce((a,b)=>a+b[1],0);let a0=-Math.PI/2,ps='',lg='';const R=48,r=28;
 entries.forEach(([k,n],i)=>{const a1=a0+n/tot*2*Math.PI,lf=a1-a0>Math.PI?1:0,P=(a,R)=>(50+R*Math.cos(a)).toFixed(2)+' '+(50+R*Math.sin(a)).toFixed(2);
 const dd=entries.length==1?`M50 2A48 48 0 1 1 49.99 2L49.99 22A28 28 0 1 0 50 22Z`:`M${P(a0,R)}A${R} ${R} 0 ${lf} 1 ${P(a1,R)}L${P(a1,r)}A${r} ${r} 0 ${lf} 0 ${P(a0,r)}Z`;
-ps+=`<path d="${dd}" fill="${C[i%C.length]}" data-k="${k}"><title>${k} ${n} 件</title></path>`;lg+=`<li data-k="${k}" title="${k}"><i style="background:${C[i%C.length]}"></i><span>${k.replace(/（[^）]*）$/,"")}</span><b>${n}</b></li>`;a0=a1});
+ps+=`<path d="${dd}" fill="${C[i%C.length]}" data-k="${k}"><title>${k} ${n} 件</title></path>`;lg+=`<li data-k="${k}" title="${k}"><i style="background:${C[i%C.length]}"></i><span>${k.replace(/（[^）]*）$/,"").replace(/ /g,"\u00a0")}</span><b>${n}</b></li>`;a0=a1});
 el.innerHTML=`<svg viewBox="0 0 100 100" role="img" aria-label="${key}の割合">${ps}<text x="50" y="54" text-anchor="middle" fill="#eef5fb" font-size="11" font-family="system-ui">${tot}</text></svg><ul class="lg">${lg}</ul>`;
 el.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{st[key]=st[key]===x.dataset.k?null:x.dataset.k;show()})}
 const gE=Object.entries(tally('g')).sort((a,b)=>b[1]-a[1]);pie(document.getElementById('pg'),'g',gE);
