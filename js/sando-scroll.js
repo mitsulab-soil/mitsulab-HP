@@ -363,6 +363,7 @@ export async function start(sec) {
     const BP = []; NODES.forEach(nd => { if (nd.k !== 'object') return; const x = nd.p.x, z = nd.p.z, y0 = nd.p.y - 2.2; BP.push(x + 0.6, y0, z, x + 0.6, y0 + 9, z, x - 0.6, y0 + 9, z, x - 0.6, y0, z); });
     const bg = new T.BufferGeometry(); bg.setAttribute('position', new T.Float32BufferAttribute(BP, 3)); bitL = new T.LineSegments(bg, bitM); bitL.computeLineDistances(); bitL.frustumCulled = false; S.add(bitL);
   }
+  let QQ = 0, SQ = 0;
   const netUpd = (p, wEye, wSoil, wShr) => {
     const vis = Math.max(wEye, 1 - sm((p - 0.1) / 0.06), wShr) * (1 - wSoil * 0.8);
     netM.opacity = 0.6 * vis * (1 - 0.7 * wShr); netM.dashOffset = -tt * 1.1; bitM.dashOffset = -tt * 0.7; glyM.opacity = 0.85 * vis; bitM.opacity = 0.8 * vis;
@@ -454,13 +455,13 @@ export async function start(sec) {
       else if (t0) { r.position.set(t0[0], t0[1] + 1.4, t0[2]); r.scale.setScalar(0.3 + (i + f) * 0.45); r.material.color.setHex(0xf2c58a); r.material.opacity = rk * 0.7; }
       else r.material.opacity = 0; });
     const wShr = sm((p - 0.705) / 0.03); shrMats.forEach(([m, o]) => m.opacity = o * wShr * (mob ? 0.32 : 0.42)); SHR.visible = wShr > 0.01;
-    const fxa = fx2(p, u, wEye, wSoil, wBee, wBat); const nta = netUpd(p, wEye, wSoil, wShr);
+    const fxa = fx2(p, u, wEye, wSoil, wBee, wBat); const nta = netUpd(p, wEye, wSoil, wShr); const qT = window.__sdQuiet || 0, sT = mob ? (window.__sdNoShr || 0) : 0; QQ += (qT - QQ) * 0.2; SQ += (sT - SQ) * 0.2; if (Math.abs(qT - QQ) < 0.005) QQ = qT; if (Math.abs(sT - SQ) < 0.005) SQ = sT; { const k = 1 - QQ; netM.opacity *= k; bitM.opacity *= k; glyM.opacity *= k; rootM.opacity *= k; soilMats.forEach(([m]) => m.opacity *= k); } { const k = 1 - SQ; shrMats.forEach(([m]) => m.opacity *= k); toriiM.opacity *= k; lineM.opacity *= k; if (SQ > 0.995) SHR.visible = false; } const qa = QQ !== qT || SQ !== sT;
     skyD.position.copy(C.position); skyM.uniforms.uO.value = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil) * (1 - wBat * 0.8) * (1 - wBee * 0.6) * 0.32;
     if (wEye > 0.01) loadTex();
     const s = SC.findIndex(x => p >= x[0] && p < x[1]);
     if (s !== scene) { scene = s; if (cap) { const en = document.documentElement.lang === 'en', t = s < 0 ? '' : SC[s][en ? 3 : 2]; cap.textContent = t; cap.classList.toggle('on', !!t); } sec.dataset.scene = s; if (window.__sdSound) window.__sdSound(s); }
     if (read) read.textContent = 'D ' + String(Math.round(u * LEN)).padStart(4, '0') + ' m  ·  H ' + (h < 0 ? '-' : '') + String(Math.abs(Math.round(h))).padStart(2, '0') + ' m';
-    return rk > 0.01 || wSoil > 0.01 || p < 0.04 || fxa || nta;
+    return rk > 0.01 || wSoil > 0.01 || p < 0.04 || fxa || nta || qa;
   }
   function size() { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return; R.setSize(w, h, false); C.aspect = w / h; C.updateProjectionMatrix(); }
   const prog = () => { const M0 = window.__mdEnd || 0; const span = document.documentElement.scrollHeight - innerHeight, q = span > 0 ? Math.min(1, Math.max(0, scrollY / span)) : 0; return 0.79 * (M0 > 0 ? (q < M0 ? 0 : 0.13 + 0.87 * (q - M0) / (1 - M0)) : q); };
