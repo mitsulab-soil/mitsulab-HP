@@ -142,7 +142,7 @@ export async function start(sec) {
   const bugM = new T.PointsMaterial({ map: dot, vertexColors: true, size: 0.5, sizeAttenuation: true, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); { const bp = new T.Points(bugG, bugM); bp.frustumCulled = false; S.add(bp); }
 
   // 4b) 欅（Qualium 大宮の参道の欅の型）：写実の樹を参道の並木の位置に。目の高さに降りる前に読む
-  const treeMeshes = []; let mossM = null, treeSel = []; const stk = sec.querySelector('.sd-stick'), base0 = mob ? 0.28 : 0.34;
+  const treeMeshes = []; let mossM = null, treeSel = []; const stk = sec.querySelector('.sd-stick'), base0 = mob ? 0.33 : 0.4;
   const loadTrees = async () => { try {
     const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
     const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
@@ -180,8 +180,42 @@ export async function start(sec) {
       sel.forEach(([x, y, z], i) => { const r0 = Math.min(1.8 + (Math.sin(x * 3.7 + z) * 0.5 + 0.5) * 0.6, dC(x, z) - 8.2), r = r0 < 0.9 ? 0.001 : r0; M4.compose(V.set(x, y + 0.03, z), Q.identity(), SCv.set(r, 1, r)); im.setMatrixAt(i, M4); });
       im.frustumCulled = false; im.renderOrder = -1; im.visible = false; S.add(im); treeMeshes.push(im); mossM = mm; }
     if (R.compileAsync) await R.compileAsync(S, C);
-    treeMeshes.forEach(m => m.visible = true); kick();
+    treeMeshes.forEach(m => m.visible = true); kick(); (window.requestIdleCallback || (f => setTimeout(f, 400)))(() => loadVeg(), { timeout: 2500 });
   } catch (e) { console.warn('sando trees', String(e && e.message || e)); } };
+
+
+  // 植生（Poly Haven CC0 の縮めた写し）。種名は出さない。道の両脇・石畳の外だけに置く
+  const loadVeg = async () => { try { R.domElement.addEventListener('webglcontextlost', () => console.warn('sando ctx lost'));
+    const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
+    const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
+    const PA = new T.Vector3(), PD = new T.Vector3(), M4 = new T.Matrix4(), Q = new T.Quaternion(), V = new T.Vector3(), SCv = new T.Vector3(), IV = new T.Matrix4();
+    const dP = (x, z) => { let m = 1e9; for (const c of CP) { const d = Math.hypot(c[0] - o[0] - x, c[2] - o[2] - z); if (d < m) m = d; } return m; };
+    // 置き場所：道の中心から dMin〜dMax m
+    const spots = (n, dMin, dMax) => { const r = []; let g = 0; while (r.length < n && g++ < n * 8) { const u = 0.015 + rnd() * (uEnd - 0.02); curve.getPointAt(u, PA); curve.getTangentAt(u, PD); const off = (rnd() < 0.5 ? -1 : 1) * (dMin + rnd() * (dMax - dMin)), x = PA.x - PD.z * off, z = PA.z + PD.x * off; if (dP(x, z) > dMin - 0.5) r.push([x, PA.y, z]); } return r; };
+    // 一つの glb の中の変種（子の節）ごとに InstancedMesh を作る
+    const plant = async (url, list, hMin, hMax, opt = {}) => {
+      const g = await gl.loadAsync(url); g.scene.updateMatrixWorld(true);
+      const vars = g.scene.children.filter(c => { let has = false; c.traverse(m => { if (m.isMesh) has = true; }); return has; });
+      if (!vars.length) return;
+      vars.forEach((vn, vi) => {
+        const pts = list.filter((_, i) => i % vars.length === vi); if (!pts.length) return;
+        IV.copy(vn.matrixWorld).invert(); const ms = []; const bb = new T.Box3(), tb = new T.Box3();
+        vn.traverse(m => { if (!m.isMesh) return; const rel = new T.Matrix4().multiplyMatrices(IV, m.matrixWorld); m.geometry.computeBoundingBox(); tb.copy(m.geometry.boundingBox).applyMatrix4(rel); bb.union(tb); ms.push([m, rel]); });
+        const sz = bb.getSize(new T.Vector3()), ctr = bb.getCenter(new T.Vector3()), toC = new T.Matrix4().makeTranslation(-ctr.x, -bb.min.y, -ctr.z);
+        ms.forEach(([m, rel]) => { if (m.material) { m.material.side = T.DoubleSide; if (m.material.map) { m.material.alphaTest = 0.4; m.material.transparent = false; } }
+          const im = new T.InstancedMesh(m.geometry, m.material, pts.length);
+          pts.forEach(([x, y, z], i) => { const h = hMin + rnd() * (hMax - hMin), sc = h / Math.max(0.01, sz.y); Q.setFromAxisAngle(V.set(0, 1, 0), rnd() * 6.283); SCv.set(sc, sc, sc);
+            M4.compose(V.set(x, y - 0.05, z), Q, SCv).multiply(toC).multiply(rel); im.setMatrixAt(i, M4); });
+          im.frustumCulled = false; im.renderOrder = opt.ro || 0; S.add(im); treeMeshes.push(im); });
+      }); kick(); };
+    const nP = mob ? 4 : 14, nB = mob ? 8 : 26, nS = mob ? 18 : 70, nF = mob ? 22 : 80, nG = mob ? 30 : 110, nR = mob ? 4 : 12;
+    await plant('img/hero/3d/veg/broad_lo.glb', spots(nB, 7.5, 15), 7, 12);
+    await plant('img/hero/3d/veg/pine_lo.glb', spots(nP, 9, 18), 12, 18);
+    await plant('img/hero/3d/veg/shrub_02.glb', spots(nS, 6.8, 12), 1.2, 2.4);
+    await plant('img/hero/3d/veg/fern_02.glb', spots(nF, 6.5, 10), 0.5, 0.9);
+    await plant('img/hero/3d/veg/grass_medium_02.glb', spots(nG, 6.3, 12), 0.3, 0.6);
+    await plant('img/hero/3d/veg/root_cluster_01.glb', (treeSel || []).filter((_, i) => i % 3 === 0).slice(0, nR), 0.5, 0.9);
+  } catch (e) { console.warn('sando veg', String(e && e.message || e)); } };
 
   // 6) こだま・年輪の輪
   const ringG = (() => { const g = new T.BufferGeometry(), P = []; for (let i = 0; i <= 64; i++) { const a = i / 64 * 6.283; P.push(Math.cos(a), 0, Math.sin(a)); } g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); return g; })();
