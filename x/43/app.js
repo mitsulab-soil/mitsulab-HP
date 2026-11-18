@@ -92,7 +92,7 @@ const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); lamp.position.set(0
 // 群れ：水際と群れ（Reynolds 1987 の三つの決まり）。選んだときに作る
 let water = null, birds = null, rain = null, steam = null, steamP = [], sitM = [], flyM = [], treesM = [], dry = 0, B = [], ride = false, wet = 0;
 const lead = new THREE.Object3D(); scene.add(lead);
-const m4 = new THREE.Object3D(), ctr = V(W.mobile ? -1.2 : 0, W.mobile ? 3.2 : 3.8, Z.mure - 10), N = 18;
+const m4 = new THREE.Object3D(), ctr = V(W.mobile ? -1.2 : 0, W.mobile ? 3.2 : 3.4, Z.mure - (W.mobile ? 10 : 5)), N = 18;
 function pondShore() { const t = new THREE.TextureLoader().load("../hub/engine/tex/soil_forest.webp"); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 8); return new THREE.MeshStandardMaterial({ map: t, color: 0x9a8a78, roughness: .95 }); }
 function buildMure() { if (birds) return; birds = true;
   water = add(new THREE.PlaneGeometry(14, 9), new THREE.MeshPhysicalMaterial({ color: 0x506e82, roughness: .12, metalness: 0, clearcoat: 1, clearcoatRoughness: .1 }), 0, .04, Z.mure - 7); water.rotation.x = -Math.PI / 2;
@@ -112,7 +112,8 @@ function buildMure() { if (birds) return; birds = true;
   // 蒸散の線（太さのある細い帯。光の玉にはしない）
   const sgeo = new THREE.PlaneGeometry(.03, 1.1, 1, 12); { const p = sgeo.attributes.position; for (let k = 0; k < p.count; k++) { const y = p.getY(k); p.setX(k, p.getX(k) * (1 - (y + .55) / 1.3) + Math.sin(y * 9) * .05); } }
   const SG = 220; steam = new THREE.InstancedMesh(sgeo, new THREE.MeshBasicMaterial({ color: 0xbfe2f0, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }), SG); steam.frustumCulled = false; scene.add(steam);
-  steamP = [...Array(SG)].map(() => { const t = treesM[Math.floor(Math.random() * treesM.length)] || [6, Z.mure - 6]; return V(t[0] + (Math.random() - .5) * 3, 3.5 + Math.random() * 5, t[1] + (Math.random() - .5) * 3); });
+  const tL = treesM.filter(t => t[0] < 0), tR = treesM.filter(t => t[0] > 0);
+  steamP = [...Array(SG)].map((_, k) => { const side = k % 2 ? tL : tR, t = side[Math.floor(Math.random() * side.length)] || treesM[0] || [6, Z.mure - 6]; return V(t[0] + (Math.random() - .5) * 3, 3.5 + Math.random() * 5, t[1] + (Math.random() - .5) * 3); });
   const rg = new THREE.BufferGeometry(), rp = new Float32Array(900 * 3); for (let k = 0; k < 900; k++) { rp[k * 3] = Math.random() * 14 - 7; rp[k * 3 + 1] = Math.random() * 8; rp[k * 3 + 2] = Z.mure - 2 - Math.random() * 12; }
   rg.setAttribute("position", new THREE.BufferAttribute(rp, 3)); rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xc8d0da, transparent: true, opacity: 0 })); scene.add(rain); }
 // 杜と水際の木（種を確かめた並木の場所ではないので、名は出さない）
@@ -173,7 +174,7 @@ const src = e => `<p>${e.fic}</p>` + e.src.map(s => `<p>${s[0]}<br>${s[1]}</p>`)
 W.addMode({ id: "koza", label: LABEL.koza, name: "rakugo", icon: "ask",
   subs: ENM.map(e => ({ label: e.t, info: { title: e.t, body: e.lead + "<br>" + e.invite, src: src(e) } })),
   info: { title: "高座", body: "演目を選ぶと、その場で噺がはじまる。" },
-  enter(w, sub, changed) { buildKoza(); go(Z.koza); setTimeout(() => W.setAoi({ pos: [-2.3, 0, Z.koza - 1.2], lookAt: [0, 1.4, Z.koza + 4] }), 650); const e = ENM[sub]; if (changed && !new URL(location.href).searchParams.has("s")) { w.say("高座。演目を選ぶと、噺がはじまるよ。"); setTimeout(() => { if (curV || modeNow !== "koza") return; play(MEDIA.rakugo + ENM[0].slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(ENM[0].t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); const v = curV.userData.video; v.muted = true; v.addEventListener("loadeddata", () => { v.currentTime = 6; v.pause(); }, { once: true }); } }, 900); return; } play(MEDIA.rakugo + e.slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(e.t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); } w.say(e.lead, 7000); }, exit() { stop(); W.follow(); } });
+  enter(w, sub, changed) { buildKoza(); if (W.mobile) moveTo(V(0, 1.55, Z.koza + 2.2)); else go(Z.koza); setTimeout(() => W.setAoi({ pos: [-2.3, 0, Z.koza - 1.2], lookAt: [0, 1.4, Z.koza + 4] }), 650); const e = ENM[sub]; if (changed && !new URL(location.href).searchParams.has("s")) { w.say("高座。演目を選ぶと、噺がはじまるよ。"); setTimeout(() => { if (curV || modeNow !== "koza") return; play(MEDIA.rakugo + ENM[0].slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(ENM[0].t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); const v = curV.userData.video; v.muted = true; v.addEventListener("loadeddata", () => { v.currentTime = 6; v.pause(); }, { once: true }); } }, 900); return; } play(MEDIA.rakugo + e.slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(e.t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); } w.say(e.lead, 7000); }, exit() { stop(); W.follow(); } });
 W.addMode({ id: "uta", label: LABEL.uta, name: "song", icon: "ear",
   subs: [{ label: LABEL.mv }, { label: LABEL.live }],
   info: { title: "《Breathing OS》", body: "碧がうたう、杜の息づかいの歌。1分45秒・音が出ます。息づかい＝湿った土と風のゆらぎのたとえ。", src: "楽曲：Suno（Pro Plan）／Hamza & Anderson 2005・Tyree & Zimmermann 2002・『神道事典』1994" },
@@ -189,11 +190,11 @@ W.addMode({ id: "kan", label: LABEL.kan, name: "museum", icon: "book",
 W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
   subs: [{ label: LABEL.calm }, { label: LABEL.eye }, { label: LABEL.rain }],
   info: { title: "群れ", body: "群れは三つの決まり（離れる・そろう・寄る）で動く模式。飛ぶ形は模式（体と翼だけ）。雨は土にしみ、木から空へ戻る（模式）。", src: "Reynolds 1987, Computer Graphics 21(4): 25–34／Horton 1933／Jasechko ほか 2013, Nature 496<br>とまっている 3D：\"スズメ Tree sparrow\" by Tit_birdy, CC BY 4.0／飛ぶ形：mitsulab が手続きで作った模式" },
-  enter(w, sub) { plantVeg(); buildMure(); ride = sub === 1; if (ride) takeOff(); w.attachEye(ride ? lead : null, [0, 1.5, 4]); W.aoi.root.visible = !ride; if (!ride) go(Z.mure);
+  enter(w, sub) { plantVeg(); buildMure(); ride = sub === 1; if (ride) takeOff(); w.attachEye(ride ? lead : null, [0, .5, 3.2]); W.aoi.root.visible = !ride; W.camera.near = ride ? .6 : .03; W.camera.updateProjectionMatrix(); if (!ride) go(Z.mure);
     if (sub === 2) { wet = 1; saidDry = false; B.forEach(b => { const tt = treesM[Math.floor(Math.random() * treesM.length)] || [6, Z.mure - 6]; b.perch.set(tt[0] + (Math.random() - .5) * 2.4, 2.6 + Math.random() * 2.2, tt[1] + (Math.random() - .5) * 2.4); });
       if (st === "sit") { B.forEach(b => b.v.set(0, 2, 0)); } st = "tree"; w.say("雨。スズメは木の中へ退いて、雨がやむのを待つ。雨は土にしみて、やがて木から空へ戻っていく（模式）。"); }
     else { if (sub === 0 && st === "tree") { st = "fly"; } w.say(ride ? "一羽のすぐ後ろから。近くの数羽に合わせて向きを変える（模式）。" : "岸にスズメの群れ。だれかが指図しているわけではないのに、飛ぶと向きがそろう。"); } },
-  exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; } });
+  exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; W.camera.near = .03; W.camera.updateProjectionMatrix(); } });
 const u = new URL(location.href).searchParams; W.setMode(u.get("m") || "koza", +(u.get("s") || 0));
 if (!u.get("m")) setTimeout(() => W.say("同じ蜂や土でも、\n噺で聞くか、歌で聴くか、\n本で読むか、群れで見るかで、\n受けとる意味が変わる。\n四つの間で、くらべてみて。", 7000), 1200);
 if (!u.get("m")) setTimeout(() => W.say("場所を選ばない道具。どこにいても、意味づけの型を持ち歩ける。", 6000), 8400);
