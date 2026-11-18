@@ -64,7 +64,7 @@ const loadWorks = async () => { if (works) return; try { works = (await fetch(".
       /* 紙の地（生成り）に墨の書。参道の両脇に、目の高さで立てる */
       const paper = new THREE.Mesh(new THREE.PlaneGeometry(h * a + .16, h + .16), new THREE.MeshLambertMaterial({ color: "#efe8d8", side: THREE.DoubleSide }));
       const m = new THREE.Mesh(new THREE.PlaneGeometry(h * a, h), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide, color: "#ffffff", toneMapped: false })); m.position.z = .01;
-      const sd = i % 2 ? 1 : -1, holder = new THREE.Group(); holder.add(paper, m); holder.position.set(sd * 2.3, 1.45, 1 - i * 5); holder.lookAt(-sd * 10, 1.45, 1 - i * 5 + 3);   /* 道の手前を向く（字が鏡に映らない） */ g.add(holder);
+      const sd = i % 2 ? 1 : -1, holder = new THREE.Group(); holder.add(paper, m); holder.position.set(sd * 2.3, 1.45, 1 - i * 5); holder.lookAt(sd * .3, 1.45, 1 - i * 5 + (W.mobile ? 4.2 : 2.6));   /* 書の前に立つ目の位置を向く（斜めにゆがんで見えない） */   /* 道の手前を向く（字が鏡に映らない） */ g.add(holder);
       paper.userData.wk = m.userData.wk = wk; plaques.push(paper, m); }); }); };
 const OTO = { id: "oto", label: LABEL.oto, name: "oto", icon: "brush", subs: [], info: { title: "書の音", body: "「〇〇の音」と書いた書が、参道の両脇に立っています。書に触れると、その字から組み立てた音（合成）が鳴ります。", src: "書の作品：mitsulab" },
   async enter(w, s) { show("oto"); w.setColor(null); w.setEye(1.55); await loadWorks(); const i = Math.min(s || 0, works.length - 1); if (i < 0) return; const sd = i % 2 ? 1 : -1, z = 1 - i * 5;
@@ -72,7 +72,7 @@ const OTO = { id: "oto", label: LABEL.oto, name: "oto", icon: "brush", subs: [],
     w.setView({ position: [sd * .3, w.eye(), z + (w.mobile ? 4.2 : 2.6)], lookAt: [sd * 2.3, 1.45, z] }); w.setAoi && w.setAoi({ pos: [-sd * (w.mobile ? 1.1 : 1.5), 0, z + (w.mobile ? 1.6 : .8)], lookAt: [sd * .3, 1.5, z + 3] });
     say("「" + (works[i].title || "") + "」── 書に触れると、その字の音が鳴ります。", 8000); },
   exit() { W.follow && W.follow(); } };
-W.addMode(OTO); loadWorks().then(() => { OTO.subs = works.slice(0, 8).map(wk => { const t = (wk.title || "書").replace(/の音$/, ""); return { label: t.length > 7 ? t.slice(0, 6) + "…" : t }; });   /* 札は短く（題の全文は字幕に） */ });   /* 選ぶ札＝書の題（読みこめたら並ぶ） */
+W.addMode(OTO); loadWorks().then(() => { OTO.subs = works.slice(0, 8).map(wk => { const t = (wk.title || "書").replace(/の音$/, ""); return { label: t.length > (W.mobile ? 5 : 7) ? t.slice(0, W.mobile ? 4 : 6) + "…" : t }; });   /* 札は短く（題の全文は字幕に） */ });   /* 選ぶ札＝書の題（読みこめたら並ぶ） */
 
 /* ── touch：触れる（足もとの面の手ざわりを、振動と音で） ── */
 const SURF = { road: { name: "砂利（参道）", vib: [12, 30, 12, 30, 12], f: 3800 }, soil: { name: "土（並木の根もと）", vib: [40], f: 600 } };
