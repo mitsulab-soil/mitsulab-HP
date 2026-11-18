@@ -43,7 +43,7 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:10px 10px calc(12px + env(saf
 <script>
 (()=>{
 const cv=document.getElementById('cv'),g=cv.getContext('2d'),cap=document.getElementById('cap');
-let ac,an,ring,ri=0,sr=48000,rate=1,keep=true,el=null,url=null;
+let ac,an,ring,ri=0,sr=48000,rate=1,keep=true,el=null,snap=null;
 const SEC=4;
 function size(){const d=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*d;cv.height=innerHeight*d}
 addEventListener('resize',size);size();
@@ -54,13 +54,21 @@ function say(){
  cap.innerHTML='<small>直近 4 秒</small>'.repeat(rate!=1)+lines[rate]+(rate!=1?'<small>'+(keep?'高さを保ったまま速さだけ変えています。':'テープのように高さも一緒に変えています。')+'</small>':'')+
   (rate==0.25?'<small>鳥は 1〜2 ms、人は 3〜4 ms ほどまで（Dooling et al. 2002 J Acoust Soc Am 112:748）</small>':'<small>超音波はスマホのマイクではほとんど録れません。</small>');
 }
-function wav(){const n=ring.length,b=new ArrayBuffer(44+n*2),d=new DataView(b);const w=(o,s)=>{for(let i=0;i<s.length;i++)d.setUint8(o+i,s.charCodeAt(i))};
- w(0,'RIFF');d.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,1,true);d.setUint32(24,sr,true);d.setUint32(28,sr*2,true);d.setUint16(32,2,true);d.setUint16(34,16,true);w(36,'data');d.setUint32(40,n*2,true);
- for(let i=0;i<n;i++){const s=Math.max(-1,Math.min(1,ring[(ri+i)%n]));d.setInt16(44+i*2,s*32767,true)}return new Blob([b],{type:'audio/wav'})}
-function stop(){if(el){el.pause();el=null}if(url){URL.revokeObjectURL(url);url=null}}
-function play(){stop();say();if(rate==1)return;url=URL.createObjectURL(wav());el=new Audio(url);el.preservesPitch=keep;el.webkitPreservesPitch=keep;el.playbackRate=rate;
- el.onended=()=>{if(el){setRate(1)}};el.play().catch(()=>{})}
-function setRate(r){rate=r;document.querySelectorAll('#rates button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r==r));r==1?(stop(),say()):play()}
+// 高さを保った遅い再生は、ブラウザの機能に頼らず端末の中で組み立てる（WSOLA。iOS Safari でも同じに聴こえる）
+function grab(){const n=ring.length,o=new Float32Array(n);for(let i=0;i<n;i++)o[i]=ring[(ri+i)%n];return o}
+function stretch(x,r){const N=2048,H=N/4,T=384,out=new Float32Array(Math.ceil(x.length/r)+N),w=new Float32Array(N),norm=new Float32Array(out.length);
+ for(let i=0;i<N;i++)w[i]=.5-.5*Math.cos(2*Math.PI*i/N);
+ let prev=0;for(let k=0,o=0;o+N<out.length;k++,o+=H){let c=Math.round(o*r);if(c+N+T>=x.length)break;
+  let best=0;if(k>0){let bv=-1e9;const nat=prev+H;for(let d=-T;d<=T;d+=4){const p=c+d;if(p<0)continue;let v=0;for(let i=0;i<N/2;i+=8)v+=x[p+i]*x[nat+i];if(v>bv){bv=v;best=d}}}
+  const p=Math.max(0,c+best);prev=p;for(let i=0;i<N;i++){out[o+i]+=x[p+i]*w[i];norm[o+i]+=w[i]}}
+ for(let i=0;i<out.length;i++)if(norm[i]>1e-3)out[i]/=norm[i];return out}
+function stop(){if(el){try{el.onended=null;el.stop()}catch(_){}el=null}}
+function play(){stop();say();if(rate==1)return;const x=snap||(snap=grab());
+ const y=keep?stretch(x,rate):x,bf=ac.createBuffer(1,y.length,sr);bf.getChannelData(0).set(y);
+ const s=ac.createBufferSource();s.buffer=bf;if(!keep)s.playbackRate.value=rate;
+ const fade=ac.createGain();fade.gain.value=1;s.connect(fade).connect(ac.destination);
+ s.t0=ac.currentTime;s.dur=y.length/sr/(keep?1:rate);s.paused=false;s.onended=()=>{if(el===s){el=null;setRate(1)}};el=s;s.start()}
+function setRate(r){rate=r;document.querySelectorAll('#rates button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r==r));if(r==1){stop();snap=null;say()}else play()}
 document.querySelectorAll('#rates button').forEach(b=>b.onclick=()=>setRate(+b.dataset.r));
 const pb=document.getElementById('pitch');pb.onclick=()=>{keep=!keep;pb.setAttribute('aria-pressed',!keep);pb.querySelector('small').textContent=keep?'いまは高さを保つ':'いまは高さも変わる';if(rate!=1)play();else say()};
 let fd;
@@ -68,14 +76,20 @@ function draw(){requestAnimationFrame(draw);if(!an)return;an.getByteFrequencyDat
  const W=cv.width,H=cv.height,s=Math.max(2,W/300|0);g.drawImage(cv,-s,0);g.fillStyle='rgba(3,6,15,.25)';g.fillRect(W-s,0,s,H);
  const top=H*.12,bot=H*.72,n=fd.length,maxHz=sr/2;
  for(let y=0;y<bot-top;y++){const hz=Math.pow(20000/40,1-y/(bot-top))*40;const k=Math.min(n-1,hz/maxHz*n|0);const v=fd[k]/255;if(v<.12)continue;
-  g.fillStyle=`rgba(${92+v*120|0},${200|0},${224},${v*v})`;g.fillRect(W-s,top+y,s,1)}
- if(el&&!el.paused){const p=el.currentTime/el.duration;g.fillStyle='#5cc8e0';g.fillRect(0,bot+6,W*p,2)}}
+  g.fillStyle=`rgba(${70+v*70|0},${190+v*40|0},${224},${v*v})`;g.fillRect(W-s,top+y,s,1)}
+ if(el&&!el.paused){const p=Math.min(1,(ac.currentTime-el.t0)/el.dur);g.fillStyle='#5cc8e0';g.fillRect(0,bot+6,W*p,2)}}
+function push(d){if(el)return;for(let i=0;i<d.length;i++){ring[ri]=d[i];ri=(ri+1)%ring.length}}
+const WK="registerProcessor('cap',class extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0];if(c)this.port.postMessage(c.slice(0));return true}})";
 document.getElementById('go').onclick=async()=>{
+ // 押した瞬間に音の場を起こす（iOS は押した操作の中でないと音が出ない）
+ ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume();
  try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-  ac=new (window.AudioContext||window.webkitAudioContext)();sr=ac.sampleRate;ring=new Float32Array(sr*SEC);
+  sr=ac.sampleRate;ring=new Float32Array(sr*SEC);
   const m=ac.createMediaStreamSource(st);an=ac.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=.5;fd=new Uint8Array(an.frequencyBinCount);m.connect(an);
-  const sp=ac.createScriptProcessor(2048,1,1);sp.onaudioprocess=e=>{if(el&&!el.paused)return;const d=e.inputBuffer.getChannelData(0);for(let i=0;i<d.length;i++){ring[ri]=d[i];ri=(ri+1)%ring.length}};
-  const z=ac.createGain();z.gain.value=0;m.connect(sp);sp.connect(z);z.connect(ac.destination);
+  let ok=false;
+  if(ac.audioWorklet&&window.AudioWorkletNode){try{const u=URL.createObjectURL(new Blob([WK],{type:'application/javascript'}));await ac.audioWorklet.addModule(u);URL.revokeObjectURL(u);
+   const n=new AudioWorkletNode(ac,'cap',{numberOfInputs:1,numberOfOutputs:1});n.port.onmessage=e=>push(e.data);const z=ac.createGain();z.gain.value=0;m.connect(n);n.connect(z).connect(ac.destination);ok=true}catch(_){}}
+  if(!ok){const sp=ac.createScriptProcessor(2048,1,1);sp.onaudioprocess=e=>push(e.inputBuffer.getChannelData(0));const z=ac.createGain();z.gain.value=0;m.connect(sp);sp.connect(z);z.connect(ac.destination)}
   document.getElementById('start').remove();say();}
  catch(e){document.querySelector('#start p').textContent='マイクをひらけませんでした。設定でマイクを許可してから、もう一度押してください。'}
 };

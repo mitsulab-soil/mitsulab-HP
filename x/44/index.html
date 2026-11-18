@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="スマホが受けとる地磁気の方位を、音と振動で感じる。">
+<meta name="description" content="スマホが受けとる地磁気の方位（磁北）を、音のうなりで感じる。">
 <meta name="tdm-reservation" content="1">
 <title>Qualia/magnet</title>
 <style>
@@ -43,32 +43,43 @@ button.on{border-color:var(--acc);color:var(--acc)}
 (()=>{
 const $=id=>document.getElementById(id);
 const ticks=$('ticks');for(let i=0;i<36;i++){const a=i*10*Math.PI/180,r1=i%9?88:82;const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',Math.sin(a)*r1);l.setAttribute('y1',-Math.cos(a)*r1);l.setAttribute('x2',Math.sin(a)*92);l.setAttribute('y2',-Math.cos(a)*92);l.setAttribute('stroke','#2c3a37');ticks.appendChild(l)}
-let ctx,pan,gain,filt,lfoG,running=false,heading=null,field=null,lastVib=0,hasVib='vibrate' in navigator;
+let ctx,pan,gain,filt,toneG,oA,oB,running=false,heading=null,sm=null,field=null,lastVib=0,inN=false,hasVib='vibrate' in navigator;
 const ios=typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
 function audio(){
  ctx=new (window.AudioContext||window.webkitAudioContext)();
- // 自然な音色：やわらかい風のようなノイズを帯域でしぼる
- const len=ctx.sampleRate*2,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);let b=0;
+ // 地の音：やわらかい風のようなノイズ。長く聴いても疲れないよう小さく、高い所を落とす
+ const len=ctx.sampleRate*4,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);let b=0;
  for(let i=0;i<len;i++){b=(b+0.02*(Math.random()*2-1))/1.02;d[i]=b*3.5}
  const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;
- filt=ctx.createBiquadFilter();filt.type='bandpass';filt.frequency.value=520;filt.Q.value=4;
+ filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;filt.Q.value=.7;
  gain=ctx.createGain();gain.gain.value=0;
  pan=ctx.createStereoPanner?ctx.createStereoPanner():null;
- src.connect(filt);filt.connect(gain);(pan?gain.connect(pan).connect(ctx.destination):gain.connect(ctx.destination));
- src.start();
+ const bus=ctx.createGain();bus.gain.value=1;
+ src.connect(filt);filt.connect(gain);gain.connect(bus);
+ // 北の手がかり：近い高さの二つの音。北からずれるほど「うなり」が速く、北（磁北）で止まって一つの澄んだ音になる
+ oA=ctx.createOscillator();oB=ctx.createOscillator();oA.type=oB.type='sine';oA.frequency.value=392;oB.frequency.value=392;
+ toneG=ctx.createGain();toneG.gain.value=0;oA.connect(toneG);oB.connect(toneG);toneG.connect(bus);
+ (pan?bus.connect(pan).connect(ctx.destination):bus.connect(ctx.destination));
+ src.start();oA.start();oB.start();
 }
+function chime(){const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=784;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+1.2);o.connect(g).connect(pan||ctx.destination);o.start(t);o.stop(t+1.3)}
 function update(){
- if(heading==null||!ctx)return;
- // rel：北が自分から見てどちらか（-180..180、0＝正面）
- let rel=((-heading+540)%360)-180;
- $('needle').setAttribute('transform','rotate('+(-heading)+')');
- $('deg').textContent=Math.round(heading)+'°';
- const t=ctx.currentTime,front=Math.cos(rel*Math.PI/180);
- if(pan)pan.pan.setTargetAtTime(Math.sin(rel*Math.PI/180),t,.08);
- // 正面に北が来るほど澄んで少し大きく、背にあると低く遠い
- filt.frequency.setTargetAtTime(380+front*260+(field?Math.min(field,70)*2:0),t,.1);
- gain.gain.setTargetAtTime(.18+.14*Math.max(0,front),t,.1);
- if(hasVib&&Math.abs(rel)<12&&Date.now()-lastVib>1500){navigator.vibrate(18);lastVib=Date.now()}
+ if(heading==null||!ctx||!running)return;
+ // 手の揺れでちらつかないよう、向きをなめらかにする（円の上で）
+ if(sm==null)sm=heading;else{const df=((heading-sm+540)%360)-180;sm=(sm+df*.25+360)%360}
+ const h=sm;let rel=((-h+540)%360)-180; // 北が自分から見てどちらか（0＝正面）
+ $('needle').setAttribute('transform','rotate('+(-h)+')');
+ $('deg').textContent=Math.round(h)+'°';
+ const t=ctx.currentTime,front=Math.cos(rel*Math.PI/180),ar=Math.abs(rel);
+ if(pan)pan.pan.setTargetAtTime(Math.sin(rel*Math.PI/180)*.8,t,.08);
+ // 正面ほど明るく、背にあるほどこもる
+ filt.frequency.setTargetAtTime(260+(front+1)*260,t,.15);
+ gain.gain.setTargetAtTime(.07+.05*Math.max(0,front),t,.15);
+ // うなり：1° ずれると 0.15 回／秒、10° で 1.5 回／秒。±40° より外では鳴らさない
+ oB.frequency.setTargetAtTime(392+Math.min(ar,40)*.15,t,.05);
+ toneG.gain.setTargetAtTime(ar<40?.05*Math.pow(1-ar/40,1.5):0,t,.12);
+ if(ar<4&&!inN){inN=true;$('deg').style.color='var(--acc)';if(Date.now()-lastVib>2000){lastVib=Date.now();chime();if(hasVib)navigator.vibrate(18)}}
+ else if(ar>9&&inN){inN=false;$('deg').style.color=''}
 }
 function onOri(e){
  let h=null;
@@ -77,16 +88,16 @@ function onOri(e){
  if(h==null)return;heading=h;update();
 }
 function mag(){
- if(!('Magnetometer' in window)){$('uT').textContent='強さ：この端末では取れません（方位のみ）';return}
- try{const m=new Magnetometer({frequency:10});m.onreading=()=>{field=Math.hypot(m.x,m.y,m.z);$('uT').textContent='強さ '+field.toFixed(0)+' µT'};m.onerror=()=>{$('uT').textContent='強さ：取れません（方位のみ）'};m.start()}catch(_){$('uT').textContent='強さ：取れません（方位のみ）'}
+ if(!('Magnetometer' in window)){return}
+ try{const m=new Magnetometer({frequency:10});m.onreading=()=>{field=Math.hypot(m.x,m.y,m.z);$('uT').textContent='強さ '+field.toFixed(0)+' µT'};m.onerror=()=>{$('uT').textContent=''};m.start()}catch(_){$('uT').textContent=''}
 }
 $('start').onclick=async()=>{
- if(running){running=false;gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
+ if(running){running=false;gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
  if(!ctx)audio();await ctx.resume();
  if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').textContent='向きの許可がないため、使えません。';return}}catch(_){ $('note').textContent='向きの許可を得られませんでした。';return}}
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
  mag();running=true;$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
- $('note').innerHTML='北が右にあれば右の耳、正面なら澄んだ音。'+(hasVib?'<br>正面に北が来ると小さく震えます。':'<br>この端末は振動できないため、音だけで伝えます。');
+ $('note').innerHTML='北が右なら右の耳から。北に近づくと音がうなり、<br>北（磁北）を向くとうなりが止まり、小さな鈴が一度鳴ります。';
  setTimeout(()=>{if(heading==null)$('note').textContent='方位が取れません。スマホで開いてください。'},2500);
 };
 $('pk').onclick=()=>{$('pocket').classList.add('show');navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})};

@@ -45,7 +45,7 @@ const CAP=[
  ['ハエの目の模式。速く飛ぶハエの視細胞は、光の変化に約 50〜107 Hz まで応じる（夜のガガンボは 16〜19 Hz）。ここでは、動いたものほど浮かぶ形で表す。','Laughlin & Weckström 1993 J Comp Physiol A 172:593']
 ];
 const cv=document.getElementById('cv'),v=document.getElementById('v'),cap=document.getElementById('cap');
-const gl=cv.getContext('webgl',{preserveDrawingBuffer:true});
+const gl=cv.getContext('webgl',{alpha:false,antialias:false,depth:false,stencil:false,powerPreference:'high-performance',desynchronized:true});
 let mode=0,src=null;
 function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(o);return o}
 const vs='attribute vec2 p;varying vec2 u;void main(){u=p*.5+.5;gl_Position=vec4(p,0,1);}';
@@ -72,6 +72,10 @@ gl.uniform1i(gl.getUniformLocation(pr,'cur'),0);gl.uniform1i(gl.getUniformLocati
 const uM=gl.getUniformLocation(pr,'m'),uR=gl.getUniformLocation(pr,'res'),uV=gl.getUniformLocation(pr,'vres');
 function size(){const d=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*d;cv.height=innerHeight*d;gl.viewport(0,0,cv.width,cv.height)}
 addEventListener('resize',size);size();
+// 起動を速く：読みこみ時に小さな絵で全モードを一度描き、シェーダの組み立てを先に済ませる
+{const px=new Uint8Array([40,60,50]);for(const x of T){gl.bindTexture(gl.TEXTURE_2D,x);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,1,1,0,gl.RGB,gl.UNSIGNED_BYTE,px)}
+ gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,T[1]);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,T[0]);
+ gl.uniform2f(uR,cv.width,cv.height);gl.uniform2f(uV,1,1);for(let i=0;i<4;i++){gl.uniform1i(uM,i);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(4));}
 function frame(){if(src&&src.videoWidth){ti^=1;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,T[ti]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,src);
  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,T[ti^1]);
  gl.uniform1i(uM,mode);gl.uniform2f(uR,cv.width,cv.height);gl.uniform2f(uV,src.videoWidth,src.videoHeight);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
@@ -80,8 +84,11 @@ function setM(i){mode=i;document.querySelectorAll('nav button').forEach(b=>b.set
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>setM(+b.dataset.m));
 setM(0);
 document.getElementById('go').onclick=async()=>{
- try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}},audio:false});v.srcObject=s;await v.play();src=v;document.getElementById('start').remove();}
- catch(e){document.querySelector('#start p').textContent='カメラをひらけませんでした。設定でカメラを許可してから、もう一度押してください。';}
+ const b=document.getElementById('go');b.disabled=true;b.textContent='ひらいています…';
+ try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:960},height:{ideal:540},frameRate:{ideal:30}},audio:false});v.srcObject=s;src=v;
+  // 最初のこまが届いた時点で幕を外す（再生の約束を待たない）
+  const open=()=>{const st=document.getElementById('start');st&&st.remove()};v.addEventListener('loadeddata',open,{once:true});v.play().catch(()=>{});const wait=()=>v.videoWidth?open():setTimeout(wait,100);setTimeout(wait,300);}
+ catch(e){b.disabled=false;b.textContent='カメラをひらく';document.querySelector('#start p').textContent='カメラをひらけませんでした。設定でカメラを許可してから、もう一度押してください。';}
 };
 requestAnimationFrame(frame);
 })();
