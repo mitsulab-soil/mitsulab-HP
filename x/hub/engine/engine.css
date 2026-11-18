@@ -37,7 +37,7 @@ html,body{height:100%;overflow:hidden;background:var(--qe-haze,#8e98a8);color:#e
 #qeInfo h2{font-size:16px;font-weight:400;margin-bottom:6px}
 #qeInfo .src{font-size:12px;color:#c3cce0;margin-top:10px}
 /* 読み込み：ロゴの線だけ */
-#qeLoad{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--qe-haze,#8e98a8);transition:opacity .5s}
+#qeLoad{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--qe-haze,#8e98a8);transition:opacity .22s}
 #qeLoad.out{opacity:0;pointer-events:none}
 #qeLoad i{display:block;width:44px;height:44px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:qer .9s linear infinite}
 @keyframes qer{to{transform:rotate(1turn)}}

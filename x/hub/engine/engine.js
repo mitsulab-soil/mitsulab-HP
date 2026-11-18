@@ -198,7 +198,7 @@ export async function createWorld(opt = {}) {
     api.emit("frame", { dt, t, wdt: dt * ts, clock: clockSec }); api.render(); rafId = requestAnimationFrame(frame); }
   rafId = requestAnimationFrame(frame);
   /* 最初のこまが描けたら幕を上げ、そのあと重いもの（植生・碧）を読む */
-  requestAnimationFrame(() => requestAnimationFrame(() => { load.classList.add("out"); setTimeout(() => load.remove(), 600);
+  requestAnimationFrame(() => requestAnimationFrame(() => { load.classList.add("out"); setTimeout(() => load.remove(), 240);   /* 幕は 0.22 秒で上げる（操作できるまで 1 秒以内に） */
     (window.requestIdleCallback || (f => setTimeout(f, 300)))(async () => {
       if (opt.vegetation !== false && !QE.has("noveg")) {
       await plant(QE.has("oldtree") ? "broad_lo.glb" : "sight", trees, 9, 15);
@@ -215,6 +215,6 @@ export async function createWorld(opt = {}) {
   async function loadAoi() { try { const { VRMLoaderPlugin, VRMUtils } = await import("@pixiv/three-vrm"); const g = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).register(p => new VRMLoaderPlugin(p)).loadAsync(BASE + "aoi/aoi.vrm");
     const v = g.userData.vrm; VRMUtils.rotateVRM0?.(v); const N = n => v.humanoid.getNormalizedBoneNode(n);
     for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1; N(sd + "UpperArm")?.rotation.set(-.06, sg * .06, sg * -1.3); N(sd + "LowerArm")?.rotation.set(0, sg * -.3, 0); }
-    v.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; }); try { if (R.compileAsync) await R.compileAsync(v.scene, C, S); } catch (e) { } aoi.root.add(v.scene); aoi.vrm = v; api.emit("aoi", v); } catch (e) { console.warn("aoi", String(e && e.message || e)); } }
+    v.scene.traverse(o => { if (o.isMesh) { o.frustumCulled = false; for (const m of [].concat(o.material)) if (m && m.alphaTest > 0) { if (/Outline/.test(m.name) && /HAIR|Hair/.test(m.name)) m.visible = false; m.alphaToCoverage = true; m.needsUpdate = true; } } });   /* 髪の縁の点のちらつき：切り抜いた髪の縁取り（裏面の太らせ）が毛先で点になっていた。髪だけ縁取りを止め、PC は MSAA で縁をならす */ try { if (R.compileAsync) await R.compileAsync(v.scene, C, S); } catch (e) { } aoi.root.add(v.scene); aoi.vrm = v; api.emit("aoi", v); } catch (e) { console.warn("aoi", String(e && e.message || e)); } }
   return api;
 }
