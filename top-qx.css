@@ -239,17 +239,17 @@ html{scroll-padding-top:80px}
 .y-fig{margin:22px 0 8px}.y-fig img{display:block;width:100%;height:auto;border-radius:6px;border:1px solid rgba(139,204,202,.18)}.y-fig figcaption{font-size:13px;color:#b9c1d3;margin-top:6px}
 .y-roles{margin-top:14px}
 /* 六つの見出しを同じ型に（字・大きさ・字間・寄せ） */
-#top .qx-code,#top .qx-sec-code{font:500 11px/1 var(--latin,serif)!important;letter-spacing:.34em!important;color:#a8f2f6!important;font-style:normal!important;text-transform:uppercase;margin:0 0 14px!important;text-align:left!important}
-#top .qx-s2 .qx-code{color:#f2c56e!important}
-#top .qx-h,#top .qx-sec-h{font:500 clamp(34px,3.6vw,54px)/1.2 var(--serif,serif)!important;letter-spacing:.06em!important;margin:0 0 18px!important;color:#f4f6fb!important;text-align:left!important}
+:is(#top,#pf) .qx-code,:is(#top,#pf) .qx-sec-code{font:500 11px/1 var(--latin,serif)!important;letter-spacing:.34em!important;color:#a8f2f6!important;font-style:normal!important;text-transform:uppercase;margin:0 0 14px!important;text-align:left!important}
+:is(#top,#pf) .qx-s2 .qx-code{color:#f2c56e!important}
+:is(#top,#pf) .qx-h,:is(#top,#pf) .qx-sec-h{font:500 clamp(34px,3.6vw,54px)/1.2 var(--serif,serif)!important;letter-spacing:.06em!important;margin:0 0 18px!important;color:#f4f6fb!important;text-align:left!important}
 .ws-grid .si-more,.si-grid .si-more{opacity:1!important;filter:brightness(1.35)}
 #yorishiro .block>.lead,#yorishiro .y-roles,#yorishiro .y-fig{max-width:760px;margin-left:auto;margin-right:auto}
 .qx-tag{font:500 clamp(17px,1.6vw,22px)/1.6 var(--serif,serif);letter-spacing:.12em;color:#f2c56e;margin:-6px 0 18px}
 /* 見出しの左端を社会実装・ワークショップとそろえる・二重の罫線を外す */
-#top .ql-tier-head{border-top:0!important;padding-top:0!important}
-@media (min-width:1000px){#top #appguide,#top .v2-originwrap{max-width:1200px;margin-left:auto!important;margin-right:auto!important}}
-@media (min-width:1000px){#top .v2-originwrap{padding-left:0!important;padding-right:0!important}#top .v2-originwrap .qt-origin{padding-left:0!important;padding-right:0!important;margin-left:0!important}}
-@media (min-width:1000px){#top .qx-scene{max-width:1200px;padding-left:0;padding-right:0}}
+:is(#top,#pf) .ql-tier-head{border-top:0!important;padding-top:0!important}
+@media (min-width:1000px){:is(#top,#pf) #appguide,:is(#top,#pf) .v2-originwrap{max-width:1200px;margin-left:auto!important;margin-right:auto!important}}
+@media (min-width:1000px){:is(#top,#pf) .v2-originwrap{padding-left:0!important;padding-right:0!important}:is(#top,#pf) .v2-originwrap .qt-origin{padding-left:0!important;padding-right:0!important;margin-left:0!important}}
+@media (min-width:1000px){:is(#top,#pf) .qx-scene{max-width:1200px;padding-left:0;padding-right:0}}
 /* 2026-10-28 P2：1.0 の左の列の下が空く＝図を 2 行にまたがせ、文と「もっと詳しく」を図の中央に寄せて続けて置く */
 @media (min-width:701px){#umwelt1 .qx-figd{grid-column:2;grid-row:1 / span 2;align-self:center}#umwelt1 .qx-tx{align-self:end!important;padding-bottom:4px}#umwelt1 .qx-m1{align-self:start;grid-row:2}}
 @media (max-width:700px){.qx-sl{display:none}}   /* 2026-10-29 スマホは図の下の札（qx-labs）に層の名と説明があるので、図の上の凡例は出さない（層と重なるため） */
@@ -326,7 +326,7 @@ html{scroll-padding-top:80px}
 .qx-spm>summary::-webkit-details-marker{display:none}
 @media (min-width:701px){.qx-spm>summary{display:none}}
 #umwelt1>.qx-m1,#umwelt2>.qx-all{max-width:760px}
-#top #umwelt1.qx-scene,#top #umwelt2.qx-scene,#umwelt1.qx-scene,#umwelt2.qx-scene{margin-left:auto;margin-right:auto;padding-left:max(16px,4vw);padding-right:max(16px,4vw)}
-@media (min-width:1000px){#top #umwelt1.qx-scene,#top #umwelt2.qx-scene{padding-left:40px;padding-right:40px}}
+:is(#top,#pf) #umwelt1.qx-scene,:is(#top,#pf) #umwelt2.qx-scene,#umwelt1.qx-scene,#umwelt2.qx-scene{margin-left:auto;margin-right:auto;padding-left:max(16px,4vw);padding-right:max(16px,4vw)}
+@media (min-width:1000px){:is(#top,#pf) #umwelt1.qx-scene,:is(#top,#pf) #umwelt2.qx-scene{padding-left:40px;padding-right:40px}}
 @media (max-width:700px){#umwelt1 .qx-figd,#umwelt2 .qx-figd{margin-top:-56px!important}.qx-figd .qx-lab span{word-break:keep-all;overflow-wrap:anywhere}}
 @media (max-width:700px){.qx-figd .qx-lab .k{font-size:15.5px}.qx-figd .qx-lab span:not(.k){font-size:13.5px;line-height:1.5;color:#dbe2ec;word-break:keep-all;overflow-wrap:normal}.qx-figd .qx-labs{gap:12px 10px}.qx-figd{margin-bottom:190px}.qx-pl{font-size:13px}.qx-pl i{font-size:14.5px}}   /* 2026-11-03 P2d：スマホで環世界 2.0 の図の字が小さかった → 読める大きさへ */

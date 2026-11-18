@@ -3,16 +3,16 @@
 
 /* The focus control stays with the physical scene instead of below the fold. */
 .cg-scene>.cg-atlas-nav{position:absolute;left:24px;right:24px;bottom:96px;z-index:8;justify-content:center;background:linear-gradient(90deg,#061016dd,#061016b8);backdrop-filter:blur(14px);border:1px solid #c5d9cb33;border-radius:3px;padding:0 .25rem}.cg-scene>.cg-atlas-nav button{font-size:13px;min-width:66px;min-height:46px;color:#dce9df}.cg-scene>.cg-atlas-nav button[aria-pressed=true]{background:#a2c6b414;color:#fff}.cg-scene>.cg-atlas-nav button:focus-visible{outline:2px solid #c4ebda;outline-offset:-3px}
-@media(max-width:600px){.cg-scene>.cg-atlas-nav{left:12px;right:12px;bottom:76px}.cg-scene>.cg-atlas-nav button{min-width:0;min-height:43px;font-size:12px;padding:.4rem .2rem}.cg-scene .cg-scroll-cue{display:none}#top .cg-scene .cg-journey{bottom:16px}.cg-scene .cg-journey-line{gap:8px}}
+@media(max-width:600px){.cg-scene>.cg-atlas-nav{left:12px;right:12px;bottom:76px}.cg-scene>.cg-atlas-nav button{min-width:0;min-height:43px;font-size:12px;padding:.4rem .2rem}.cg-scene .cg-scroll-cue{display:none}:is(#top,#pf) .cg-scene .cg-journey{bottom:16px}.cg-scene .cg-journey-line{gap:8px}}
 
 .cg-platform-practice{max-width:920px;margin:2rem auto 1rem;padding:0 24px;color:#c7d0cf;font-size:15px;line-height:2}.cg-platform-practice p{max-width:48em;margin:1rem 0}
-#top #cgSceneH{text-shadow:0 1px 10px #000a}#top #cgSceneH>span:first-child{color:#d3e2dc;font-size:.68em}
+:is(#top,#pf) #cgSceneH{text-shadow:0 1px 10px #000a}:is(#top,#pf) #cgSceneH>span:first-child{color:#d3e2dc;font-size:.68em}
 @media(min-width:601px){.cg-scene>.cg-atlas-nav{left:50%;right:auto;transform:translateX(-50%);max-width:calc(100% - 48px)}}
-#top .cg-legend{display:flex;gap:14px;margin:6px 0 0;font:12px/1.6 var(--sans,sans-serif);color:#e3ece6;text-shadow:0 1px 8px #000b;letter-spacing:.08em}#top .cg-legend span::before{content:"";display:inline-block;width:14px;height:2px;margin-right:6px;vertical-align:middle;background:var(--c)}
-#top .cg-legend{font-size:15px!important;color:#f3f7f2!important}#top .cg-legend span{background:#06101688;padding:2px 8px;border-radius:2px}#top .cg-hint{margin:8px 0 0;font:13px/1.6 var(--sans,sans-serif);color:#dfe9e4;text-shadow:0 1px 8px #000c}
-#top .cg-legend span{white-space:nowrap}@media(max-width:600px){#top .cg-legend{font-size:12px!important;gap:6px 8px}#top .cg-legend span::before{width:12px}#top .cg-hint{font-size:12px}}
-#top .cg-legend{flex-wrap:wrap;max-width:calc(100vw - 44px)}
-#top .cg-legend span{background:none;padding:0;text-shadow:0 1px 3px #000,0 0 12px #000c;font-weight:500}
-@media(min-width:601px){#top .cg-scene .cg-journey{left:50%;right:auto;transform:translateX(-50%);max-width:none}#top .cg-scene .cg-journey-line{justify-content:center}#top .cg-scroll-cue{left:50%;transform:translateX(-50%)}}
-#top .cg-legend span::before{width:22px!important;height:4px!important}#top #cgSceneH,#top .cg-hint{color:#f2f6f3}
-@media(min-width:601px){#top .cg-hint{font-size:14px}}
+:is(#top,#pf) .cg-legend{display:flex;gap:14px;margin:6px 0 0;font:12px/1.6 var(--sans,sans-serif);color:#e3ece6;text-shadow:0 1px 8px #000b;letter-spacing:.08em}:is(#top,#pf) .cg-legend span::before{content:"";display:inline-block;width:14px;height:2px;margin-right:6px;vertical-align:middle;background:var(--c)}
+:is(#top,#pf) .cg-legend{font-size:15px!important;color:#f3f7f2!important}:is(#top,#pf) .cg-legend span{background:#06101688;padding:2px 8px;border-radius:2px}:is(#top,#pf) .cg-hint{margin:8px 0 0;font:13px/1.6 var(--sans,sans-serif);color:#dfe9e4;text-shadow:0 1px 8px #000c}
+:is(#top,#pf) .cg-legend span{white-space:nowrap}@media(max-width:600px){:is(#top,#pf) .cg-legend{font-size:12px!important;gap:6px 8px}:is(#top,#pf) .cg-legend span::before{width:12px}:is(#top,#pf) .cg-hint{font-size:12px}}
+:is(#top,#pf) .cg-legend{flex-wrap:wrap;max-width:calc(100vw - 44px)}
+:is(#top,#pf) .cg-legend span{background:none;padding:0;text-shadow:0 1px 3px #000,0 0 12px #000c;font-weight:500}
+@media(min-width:601px){:is(#top,#pf) .cg-scene .cg-journey{left:50%;right:auto;transform:translateX(-50%);max-width:none}:is(#top,#pf) .cg-scene .cg-journey-line{justify-content:center}:is(#top,#pf) .cg-scroll-cue{left:50%;transform:translateX(-50%)}}
+:is(#top,#pf) .cg-legend span::before{width:22px!important;height:4px!important}:is(#top,#pf) #cgSceneH,:is(#top,#pf) .cg-hint{color:#f2f6f3}
+@media(min-width:601px){:is(#top,#pf) .cg-hint{font-size:14px}}

@@ -1,7 +1,7 @@
 /* © mitsulab. HP v2（2026-10-26）TOP：画面いっぱいの 3D（js/v2-world.js）の上を、場面のカードがスクロールで流れる。
    電脳の空気＝意味のある線と、細い等幅の札（実の座標・層コード・記録の数）。飾りの格子は使わない。 */
 #top{position:relative}
-#top>.v2-stage{position:sticky;top:0;height:100vh;height:100svh;margin-bottom:-100vh;margin-bottom:-100svh;z-index:0;pointer-events:none;background:#03060f;overflow:hidden}
+:is(#top,#pf)>.v2-stage{position:sticky;top:0;height:100vh;height:100svh;margin-bottom:-100vh;margin-bottom:-100svh;z-index:0;pointer-events:none;background:#03060f;overflow:hidden}
 
 .v2-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.2s}
 .v2-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
@@ -152,8 +152,8 @@ html[data-lang=en] .v2-umw-ja{font-family:var(--latin);letter-spacing:0}
 body:has(#top.active) footer{margin-top:0}
 .v2-lead-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .v2-lead-svg line{stroke:currentColor;stroke-width:.8;opacity:.55}.v2-lead-svg circle{fill:none;stroke:currentColor;stroke-width:1;opacity:.85}
-@media (max-width:700px){#top .v2-lab{font-size:8px;line-height:1.4;max-width:44vw;background:#03060fe6;padding:2px 5px 2px 8px}#top .v2-lab .k{font-size:7.5px;letter-spacing:.1em}}
-@media (max-width:700px){html[data-lang=en] #top .v2-lab{font-family:var(--sans);letter-spacing:0;max-width:40vw}}
+@media (max-width:700px){:is(#top,#pf) .v2-lab{font-size:8px;line-height:1.4;max-width:44vw;background:#03060fe6;padding:2px 5px 2px 8px}:is(#top,#pf) .v2-lab .k{font-size:7.5px;letter-spacing:.1em}}
+@media (max-width:700px){html[data-lang=en] :is(#top,#pf) .v2-lab{font-family:var(--sans);letter-spacing:0;max-width:40vw}}
 .v2-nw{white-space:nowrap}
 /* v4（2026-10-26 夜 本人「スクロールで動くグラフィックは廃止」）：TOP は 6 節を上から順に。1.0・2.0 の 3D は節の中の枠に */
 #top{background:#03060f}
@@ -228,14 +228,14 @@ html[data-lang=en] .v2-ex2 li{grid-template-columns:9em 1fr}
 .v2-fig .v2-lab .k{font:400 9.5px/1.6 var(--mono);letter-spacing:.2em;color:var(--c,#a8f2f6);margin-bottom:1px}
 html[data-lang=en] .v2-fig .v2-lab{font-family:var(--latin);font-style:italic;font-size:14px;letter-spacing:0}
 .v2-figbox{border-color:#8bccca1f}
-@media (max-width:700px){#top .v2-fig .v2-lab{font-size:11px;max-width:none;background:none;padding:1px 0 1px 8px}#top .v2-fig .v2-lab .k{font-size:8.5px}html[data-lang=en] #top .v2-fig .v2-lab{font-family:var(--latin);font-size:12px}}
-@media (max-width:700px){#top .v2-fig .v2-lab{white-space:normal;max-width:48vw}}
-@media (max-width:700px){#top .v2-fig .v2-lab{max-width:54vw;font-size:10.5px;word-break:keep-all;overflow-wrap:anywhere}}
+@media (max-width:700px){:is(#top,#pf) .v2-fig .v2-lab{font-size:11px;max-width:none;background:none;padding:1px 0 1px 8px}:is(#top,#pf) .v2-fig .v2-lab .k{font-size:8.5px}html[data-lang=en] :is(#top,#pf) .v2-fig .v2-lab{font-family:var(--latin);font-size:12px}}
+@media (max-width:700px){:is(#top,#pf) .v2-fig .v2-lab{white-space:normal;max-width:48vw}}
+@media (max-width:700px){:is(#top,#pf) .v2-fig .v2-lab{max-width:54vw;font-size:10.5px;word-break:keep-all;overflow-wrap:anywhere}}
 .v2-fig .v2-lead-svg polyline{stroke:currentColor;stroke-width:.8;opacity:.7}.v2-fig .v2-lead-svg circle{fill:currentColor;stroke:none;opacity:.9}
 .v2-fig .v2-lab{max-width:34%;white-space:normal}
 html[data-lang=en] .v2-fig .v2-lab{font-family:var(--sans);font-style:normal;font-size:12.5px;letter-spacing:.01em}
-@media (max-width:700px){#top .v2-fig .v2-lab{max-width:40%}html[data-lang=en] #top .v2-fig .v2-lab{font-family:var(--sans);font-size:10.5px}}
-@media (max-width:700px){#top .v2-fig .v2-lab{max-width:46%}}
+@media (max-width:700px){:is(#top,#pf) .v2-fig .v2-lab{max-width:40%}html[data-lang=en] :is(#top,#pf) .v2-fig .v2-lab{font-family:var(--sans);font-size:10.5px}}
+@media (max-width:700px){:is(#top,#pf) .v2-fig .v2-lab{max-width:46%}}
 /* スマホ：図の下の凡例（番号つき） */
 .v2-fig.nar .v2-figbox{overflow:visible}
 .v2-fig.nar .v2-labs{overflow:visible}
@@ -250,7 +250,7 @@ html[data-lang=en] .v2-fig .v2-lab{font-family:var(--sans);font-style:normal;fon
 /* v5：札の字を一回り大きく */
 .v2-fig .v2-lab{font-size:15px}.v2-fig .v2-lab .k{font-size:10px}
 html[data-lang=en] .v2-fig .v2-lab{font-size:14px}
-@media (max-width:700px){#top .v2-fig .v2-lab{font-size:13px}html[data-lang=en] #top .v2-fig .v2-lab{font-size:12.5px}}
+@media (max-width:700px){:is(#top,#pf) .v2-fig .v2-lab{font-size:13px}html[data-lang=en] :is(#top,#pf) .v2-fig .v2-lab{font-size:12.5px}}
 /* 2026-10-27 v7：2.0 の節を一つの流れに */
 .v2-sub{margin:22px 0 6px;font:500 11px/1.6 var(--mono);letter-spacing:.14em;color:#a8f2f6}
 .v2-qblk{margin-top:6px;padding-top:4px;border-top:1px dashed #8bccca40}
