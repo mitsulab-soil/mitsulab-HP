@@ -171,12 +171,14 @@ const moveTo = p => { const C = W.camera; if (C.position.distanceTo(p) < 5) { W.
   veil.style.opacity = 1; setTimeout(() => { C.position.copy(p); W.aoi.root.position.set(p.x + 1, 0, p.z - 2.4); W.walkTo(p); veil.style.opacity = 0; }, 300); };
 const go = z => moveTo(V(0, 1.55, z + 4));
 let curV = null;
-const PL = new THREE.TextureLoader(); PL.setCrossOrigin("anonymous");
+const PL = new THREE.TextureLoader(), PT = {};
+const getP = u => { if (!PT[u]) { const t = new THREE.Texture(); t.colorSpace = THREE.SRGBColorSpace; t.ready = false; const im = new Image(); im.onload = () => { t.image = im; t.needsUpdate = true; t.ready = true; (t.cb || []).forEach(f => f()); }; im.src = u; PT[u] = t; } return PT[u]; };
+getP("poster/hachi_poster.webp"); // 最初の一席は幕の前に先読み
 const play = (url, z, poster) => { stop(); const m = W.videoPlane(url, 3.2, 1.8, { autoplay: true }); m.position.set(0, 1.9, z); scene.add(m); curV = m; const v = m.userData.video;
-  const vmap = m.material.map; m.visible = false; if (poster) PL.load(poster, t => { t.colorSpace = THREE.SRGBColorSpace; if (curV !== m || v.readyState >= 2 && v.currentTime > 0) return; m.material.map = t; m.material.needsUpdate = true; m.visible = true; });
+  const vmap = m.material.map; m.visible = false; if (poster) { const t = getP(poster), put = () => { if (curV !== m || v.readyState >= 2 && v.currentTime > 0) return; m.material.map = t; m.material.needsUpdate = true; m.visible = true; }; if (t.ready) put(); else (t.cb = t.cb || []).push(put); }
   const show = () => { if (curV !== m) return; m.material.map = vmap; m.material.needsUpdate = true; m.visible = true; }; v.addEventListener("playing", show, { once: true }); v.addEventListener("seeked", show, { once: true }); v.addEventListener("error", () => { if (curV === m) { stop(); W.say("映像を読みこめませんでした。回線を確かめて、もう一度選んでください。", 6000); } }, { once: true }); W.unlockAudio && W.unlockAudio(); v.muted = false; v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); };
 const stop = () => { if (!curV) return; const v = curV.userData.video; v.pause(); v.removeAttribute("src"); v.load(); scene.remove(curV); curV.geometry.dispose(); curV.material.map && curV.material.map.dispose(); curV.material.dispose(); curV = null; };
-const vt = () => (W.mobile ? "v540" : "h720"), RP = "https://mitsulab-soil.github.io/aoi-shizen-rakugo/img/", pst = e => RP + e.slug + "_poster" + ".webp";
+const vt = () => (W.mobile ? "v540" : "h720"), pst = e => "poster/" + e.slug + "_poster.webp";
 const src = e => `<p>${e.fic}</p>` + e.src.map(s => `<p>${s[0]}<br>${s[1]}</p>`).join("") + (e.warn ? `<p>${e.warn}</p>` : "");
 W.addMode({ id: "koza", label: LABEL.koza, name: "rakugo", icon: "ask",
   subs: ENM.map(e => ({ label: e.t, info: { title: e.t, body: e.lead + "<br>" + e.invite, src: src(e) } })),
@@ -185,7 +187,7 @@ W.addMode({ id: "koza", label: LABEL.koza, name: "rakugo", icon: "ask",
 W.addMode({ id: "uta", label: LABEL.uta, name: "song", icon: "ear",
   subs: [{ label: LABEL.mv }, { label: LABEL.live }],
   info: { title: "《Breathing OS》", body: "碧がうたう、杜の息づかいの歌。1分45秒・音が出ます。息づかい＝湿った土と風のゆらぎのたとえ。", src: "楽曲：Suno（Pro Plan）／Hamza & Anderson 2005・Tyree & Zimmermann 2002・『神道事典』1994" },
-  enter(w, sub) { plantVeg(); buildStage(); stage.visible = sub === 1; go(Z.uta); play(MEDIA.song + (sub ? "live" : "mv") + "_540.mp4", sub ? Z.uta - 4.5 : Z.uta - 4, MEDIA.song + (sub ? "live_poster.webp" : "poster.jpg")); if (sub && curV) curV.position.y = 2.2; w.say(sub ? "同じ歌を、舞台で。" : "同じ歌を、杜で。"); }, exit: stop });
+  enter(w, sub) { plantVeg(); buildStage(); stage.visible = sub === 1; go(Z.uta); play(MEDIA.song + (sub ? "live" : "mv") + "_540.mp4", sub ? Z.uta - 4.5 : Z.uta - 4, (sub ? "poster/live.webp" : "poster/mv.webp")); if (sub && curV) curV.position.y = 2.2; w.say(sub ? "同じ歌を、舞台で。" : "同じ歌を、杜で。"); }, exit: stop });
 let pages = null;
 W.addMode({ id: "kan", label: LABEL.kan, name: "museum", icon: "book",
   subs: [{ label: "つち百景" }],
