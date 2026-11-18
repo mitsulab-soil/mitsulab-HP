@@ -3,6 +3,8 @@ import { createWorld } from "../hub/engine/engine.js?v=1";
 import { ENM } from "./enmoku.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+const SEED = +new URL(location.href).searchParams.get("seed") || 0; let _sd = SEED; // 採点の写真のときだけ乱数を固定（ふだんは自然な揺らぎ）
+const rnd = SEED ? () => { _sd = _sd + 0x6D2B79F5 | 0; let t = Math.imul(_sd ^ _sd >>> 15, 1 | _sd); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; } : Math.random;
 const GL = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const LABEL = { title: "Qualia/meaning", def: "意味づけ", koza: "高座", uta: "唄", kan: "館", mure: "群れ",
   mv: "杜で歌う", live: "舞台で歌う", calm: "群れを見る", eye: "一体の目", rain: "雨を降らす" };
@@ -72,14 +74,14 @@ for (const sx of [-3, 0, 3]) { const sh = new THREE.Group(); sh.position.set(sx,
   { const bb = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.6, .05), shM); bb.position.set(0, 1.3, -.2); sh.add(bb); }
   for (const y of [.05, .7, 1.35, 2, 2.6]) { const b = new THREE.Mesh(new THREE.BoxGeometry(2.4, .05, .45), shM); b.position.set(0, y, 0); sh.add(b); }
   for (const x of [-1.2, 1.2]) { const b = new THREE.Mesh(new THREE.BoxGeometry(.05, 2.6, .45), shM); b.position.set(x, 1.3, 0); sh.add(b); }
-  for (const y of [.08, .73, 1.38, 2.03]) { let x = -1.15; while (x < 1.1) { const w = .03 + Math.random() * .05, h = .42 + Math.random() * .16; books.push([sx + x + w / 2, y + h / 2, K - 4.7 - .02, w, h]); x += w + .004; } } }
+  for (const y of [.08, .73, 1.38, 2.03]) { let x = -1.15; while (x < 1.1) { const w = .03 + rnd() * .05, h = .42 + rnd() * .16; books.push([sx + x + w / 2, y + h / 2, K - 4.7 - .02, w, h]); x += w + .004; } } }
 const bk = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, .32), new THREE.MeshStandardMaterial({ roughness: .8 }), books.length), bo = new THREE.Object3D(), bc = new THREE.Color();
 const tones = [0x6b3a2e, 0x2f4a3c, 0x384560, 0x8a6a3a, 0x5a4a44, 0xc8b89a];
-books.forEach((b, i) => { bo.position.set(b[0], b[1], b[2]); bo.scale.set(b[3], b[4], 1); bo.updateMatrix(); bk.setMatrixAt(i, bo.matrix); bk.setColorAt(i, bc.setHex(tones[i % 6]).multiplyScalar(.7 + Math.random() * .4)); }); hall.add(bk);
+books.forEach((b, i) => { bo.position.set(b[0], b[1], b[2]); bo.scale.set(b[3], b[4], 1); bo.updateMatrix(); bk.setMatrixAt(i, bo.matrix); bk.setColorAt(i, bc.setHex(tones[i % 6]).multiplyScalar(.7 + rnd() * .4)); }); hall.add(bk);
 // 見台と、ひらいた本（紙の頁は canvas に描く）
 put(new THREE.BoxGeometry(.7, 1, .5), shM, 0, .5, K - 1.2);
 const pc = document.createElement("canvas"); pc.width = 1024; pc.height = 640; const pg2 = pc.getContext("2d"), ptex = new THREE.CanvasTexture(pc); ptex.colorSpace = THREE.SRGBColorSpace; ptex.anisotropy = 8;
-drawPage = function (h, lines) { curl = 1; const g = pg2; g.fillStyle = "#efe6d2"; g.fillRect(0, 0, 1024, 640); for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(120,100,70,${Math.random() * .05})`; g.fillRect(Math.random() * 1024, Math.random() * 640, 2, 2); }
+drawPage = function (h, lines) { curl = 1; const g = pg2; g.fillStyle = "#efe6d2"; g.fillRect(0, 0, 1024, 640); for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(120,100,70,${rnd() * .05})`; g.fillRect(rnd() * 1024, rnd() * 640, 2, 2); }
   const sh = g.createLinearGradient(452, 0, 572, 0); sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(.5, "rgba(60,40,20,.25)"); sh.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = sh; g.fillRect(452, 0, 120, 640);
   g.fillStyle = "#2a2420"; g.font = "bold 44px 'Hiragino Mincho ProN',serif"; g.fillText(h || "", 60, 90); g.font = "26px 'Hiragino Mincho ProN',serif";
   let y = 150; const col = (t, x0) => { for (const line of t.match(/.{1,15}/g) || []) { if (y > 600) { if (x0 < 500) { y = 90; x0 = 572; } else return; } g.fillText(line, x0, y); y += 40; } return x0; };
@@ -92,14 +94,14 @@ const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); W.on("frame", ({ t 
 // 群れ：水際と群れ（Reynolds 1987 の三つの決まり）。選んだときに作る
 let water = null, birds = null, rain = null, steam = null, steamP = [], sitM = [], flyM = [], treesM = [], dry = 0, B = [], ride = false, wet = 0;
 const lead = new THREE.Object3D(); scene.add(lead);
-const m4 = new THREE.Object3D(), ctr = V(W.mobile ? .2 : 0, W.mobile ? 3.0 : 3.1, Z.mure - (W.mobile ? 8 : 2.5)), N = 18; const ctrEye = V(W.mobile ? -.3 : 0, 6.5, Z.mure - 8);
+const m4 = new THREE.Object3D(), ctr = V(W.mobile ? -.9 : 0, W.mobile ? 3.0 : 3.1, Z.mure - (W.mobile ? 8 : 2.5)), N = 18; const ctrEye = V(W.mobile ? -.3 : 0, 6.5, Z.mure - 8);
 function pondShore() { const t = new THREE.TextureLoader().load("../hub/engine/tex/soil_forest.webp"); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 8); return new THREE.MeshStandardMaterial({ map: t, color: 0x9a8a78, roughness: .95 }); }
 function buildMure() { if (birds) return; birds = true;
   water = add(new THREE.PlaneGeometry(14, 9), new THREE.MeshPhysicalMaterial({ color: 0x506e82, roughness: .12, metalness: 0, clearcoat: 1, clearcoatRoughness: .1 }), 0, .04, Z.mure - 7); water.rotation.x = -Math.PI / 2;
   { const c = document.createElement("canvas"); c.width = c.height = 256; const g = c.getContext("2d"); const im = g.createImageData(256, 256); for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) { const a = Math.sin(x * .15 + Math.sin(y * .07) * 2) * .5 + Math.sin(y * .21 + x * .03) * .5, k = (y * 256 + x) * 4; im.data[k] = 128 + a * 40; im.data[k + 1] = 128 + Math.cos(y * .19 + x * .05) * 40; im.data[k + 2] = 255; im.data[k + 3] = 255; } g.putImageData(im, 0, 0);
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); water.material.normalMap = t; water.material.normalScale.set(.35, .35); water.material.needsUpdate = true; W.on("frame", ({ dt }) => { t.offset.x += dt * .01; t.offset.y += dt * .006; }); }
   const shore = add(new THREE.RingGeometry(4.6, 6.2, 64), pondShore(), 0, .03, Z.mure - 7); shore.rotation.x = -Math.PI / 2; shore.scale.set(1.5, 1, 1);
-  B = [...Array(N)].map((_, i) => { const a = (i / N) * Math.PI * 2 + Math.random() * .3, r = 5.1 + Math.random() * .9; const h = V(Math.cos(a) * r * 1.5 + (Math.random() - .5) * .6, .02, Z.mure - 7 + Math.sin(a) * r); return { home: h, perch: h.clone(), p: h.clone(), v: V(0, 0, 0), yaw: Math.random() * 6.3, ph: Math.random() * 9, k: .7 + Math.random() * .6 }; });
+  B = [...Array(N)].map((_, i) => { const a = (i / N) * Math.PI * 2 + rnd() * .3, r = 5.1 + rnd() * .9; const h = V(Math.cos(a) * r * 1.5 + (rnd() - .5) * .6, .02, Z.mure - 7 + Math.sin(a) * r); return { home: h, perch: h.clone(), p: h.clone(), v: V(0, 0, 0), yaw: rnd() * 6.3, ph: rnd() * 9, k: .7 + rnd() * .6 }; });
   sitM = []; GL.load("models/suzume.glb", g => { g.scene.traverse(o => { if (o.isMesh && /suzume/i.test(o.name + (o.parent && o.parent.name))) { const im = new THREE.InstancedMesh(o.geometry, o.material, N); im.frustumCulled = false; scene.add(im); sitM.push(im); } }); });
   // 飛ぶ形：mitsulab が手続きで作った模式（体と、羽ばたく左右の翼）
   const brown = new THREE.MeshStandardMaterial({ color: 0x8a6446, roughness: .9 }), wingM = new THREE.MeshStandardMaterial({ color: 0x6a4a30, roughness: .9, side: THREE.DoubleSide }), headM = new THREE.MeshStandardMaterial({ color: 0x7a4a2e, roughness: .9 }), dark = new THREE.MeshStandardMaterial({ color: 0x3a2a20, roughness: .9, side: THREE.DoubleSide });
@@ -108,7 +110,7 @@ function buildMure() { if (birds) return; birds = true;
   const beak = new THREE.ConeGeometry(.011, .03, 6); beak.rotateX(Math.PI / 2); beak.translate(0, .002, .112); // 前向きの短いくちばし
   const cheek = new THREE.SphereGeometry(.013, 8, 6); cheek.scale(.5, 1, 1); const ck = cheek.clone(); cheek.translate(.026, 0, .074); ck.translate(-.026, 0, .074); // スズメの白い頬（模式）
   const cheekM = new THREE.MeshStandardMaterial({ color: 0xe8e2d4, roughness: .9 });
-  const ws = new THREE.Shape(); ws.moveTo(0, .042); ws.quadraticCurveTo(.09, .045, .13, .0); ws.quadraticCurveTo(.12, -.035, .07, -.04); ws.quadraticCurveTo(.03, -.045, 0, -.035); // 短く先の丸い翼
+  const ws = new THREE.Shape(); ws.moveTo(0, .042); ws.quadraticCurveTo(.06, .04, .13, .006); ws.quadraticCurveTo(.1, -.012, .06, -.03); ws.quadraticCurveTo(.03, -.045, 0, -.035); // 短く先の丸い翼
   const wing = new THREE.ExtrudeGeometry(ws, { depth: .006, bevelEnabled: true, bevelThickness: .003, bevelSize: .003, bevelSegments: 1, curveSegments: 6 }); wing.rotateX(-Math.PI / 2); wing.scale(1.35, 1, .7); wing.translate(.012, .01, 0);
   const tail = new THREE.BoxGeometry(.034, .006, .045); tail.translate(0, .006, -.088); // 平たく短い尾
   flyM = [[body, brown], [wing, wingM], [wing.clone().scale(-1, 1, 1), wingM], [head, headM], [tail, wingM], [beak, dark], [cheek, cheekM], [ck, cheekM]].map(([geo, mt]) => { const im = new THREE.InstancedMesh(geo, mt, N); im.frustumCulled = false; im.visible = false; scene.add(im); return im; });
@@ -116,8 +118,8 @@ function buildMure() { if (birds) return; birds = true;
   const sgeo = new THREE.PlaneGeometry(.03, 1.1, 1, 12); { const p = sgeo.attributes.position; for (let k = 0; k < p.count; k++) { const y = p.getY(k); p.setX(k, p.getX(k) * (1 - (y + .55) / 1.3) + Math.sin(y * 9) * .05); } }
   const SG = 110; steam = new THREE.InstancedMesh(sgeo, new THREE.MeshBasicMaterial({ color: 0xe2f4fb, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }), SG); steam.frustumCulled = false; scene.add(steam);
   const tL = treesM.filter(t => t[0] < 0), tR = treesM.filter(t => t[0] > 0);
-  steamP = [...Array(SG)].map((_, k) => { const side = k % 2 ? tL : tR, t = side[Math.floor(Math.random() * side.length)] || treesM[0] || [6, Z.mure - 6]; return V(t[0] + (Math.random() - .5) * 3, 4.2 + Math.random() * 2.2, t[1] + (Math.random() - .5) * 3); });
-  const rg = new THREE.BufferGeometry(), rp = new Float32Array(900 * 3); for (let k = 0; k < 900; k++) { rp[k * 3] = Math.random() * 14 - 7; rp[k * 3 + 1] = Math.random() * 8; rp[k * 3 + 2] = Z.mure - 2 - Math.random() * 12; }
+  steamP = [...Array(SG)].map((_, k) => { const side = k % 2 ? tL : tR, t = side[Math.floor(rnd() * side.length)] || treesM[0] || [6, Z.mure - 6]; return V(t[0] + (rnd() - .5) * 3, 4.2 + rnd() * 2.2, t[1] + (rnd() - .5) * 3); });
+  const rg = new THREE.BufferGeometry(), rp = new Float32Array(900 * 3); for (let k = 0; k < 900; k++) { rp[k * 3] = rnd() * 14 - 7; rp[k * 3 + 1] = rnd() * 8; rp[k * 3 + 2] = Z.mure - 2 - rnd() * 12; }
   rg.setAttribute("position", new THREE.BufferAttribute(rp, 3)); rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xc8d0da, transparent: true, opacity: 0 })); scene.add(rain); }
 // 杜と水際の木（種を確かめた並木の場所ではないので、名は出さない）
 let stage = null, curtains = []; function buildStage() { if (stage) return; stage = new THREE.Group(); scene.add(stage);
@@ -135,17 +137,18 @@ let stage = null, curtains = []; function buildStage() { if (stage) return; stag
   const beam = new THREE.Mesh(new THREE.BoxGeometry(4.6, .2, .2), wood); beam.position.set(0, 4.05, z + 1.8); stage.add(beam);
   const sl = new THREE.SpotLight(0xffe2c0, 9, 9, .55, .5, 2); sl.position.set(0, 4, z + 3.5); sl.target.position.set(0, 1.5, z); stage.add(sl, sl.target); }
 let vegDone = false; function plantVeg() { if (vegDone) return; vegDone = true; const tr = [], sh = [];
-  for (let k = 0; k < 14; k++) { const sd = k % 2 ? 1 : -1; tr.push([sd * (4 + Math.random() * 3), Z.uta - 2 - Math.random() * 9]); }
-  for (let k = 0; k < 6; k++) { const t = [(k % 2 ? 1 : -1) * (6 + Math.random() * 3), Z.mure - 3 - Math.random() * 9]; tr.push(t); treesM.push(t); }
-  for (let k = 0; k < 24; k++) sh.push([(k % 2 ? 1 : -1) * (2.4 + Math.random() * 4), Z.uta - Math.random() * 10]);
+  for (let k = 0; k < 14; k++) { const sd = k % 2 ? 1 : -1; tr.push([sd * (4 + rnd() * 3), Z.uta - 2 - rnd() * 9]); }
+  for (let k = 0; k < 6; k++) { const t = [(k % 2 ? 1 : -1) * (6 + rnd() * 3), Z.mure - 3 - rnd() * 9]; tr.push(t); treesM.push(t); }
+  for (let k = 0; k < 24; k++) sh.push([(k % 2 ? 1 : -1) * (2.4 + rnd() * 4), Z.uta - rnd() * 10]);
   const mu = n => new URL("models/" + n, location.href).href;
   W.setVegetation([{ file: mu("tree_small_02.glb"), pts: tr, h: [5, 8] }, { file: mu("shrub_04.glb"), pts: sh.filter((_, k) => k % 3 === 0), h: [.8, 1.4] }, { file: "fern_02.glb", pts: sh, h: [.4, .8] }]).catch(() => {}); }
 let modeNow = "", saidDry = false, st = "sit", inMure = 0; // sit（岸）→ fly → tree（雨で木へ）
 W.on("mode", e => { modeNow = e.id; document.body.classList.toggle("capTop", e.id === "kan" && W.mobile); const sb = document.getElementById("qeSub"); requestAnimationFrame(() => document.body.classList.toggle("subMore", !!sb && sb.scrollWidth > sb.clientWidth + 4)); });
-const takeOff = () => { if (st === "fly") return; st = "fly"; for (const b of B) b.v.set((Math.random() - .5) * .8, 2 + Math.random(), -1 - Math.random()); W.say("一羽が飛ぶと、まわりもいっしょに飛び立つ。", 5000); };
+const takeOff = () => { if (st === "fly") return; st = "fly"; for (const b of B) b.v.set((rnd() - .5) * .8, 2 + rnd(), -1 - rnd()); W.say("一羽が飛ぶと、まわりもいっしょに飛び立つ。", 5000); };
 const _a = V(), _c = V(), _s = V(), _t = V(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
 const setSit = () => { B.forEach((b, i) => { b.ph += .016; const hop = st === "sit" ? Math.max(0, Math.sin(b.ph * 3)) * .04 : 0; m4.position.set(b.p.x, b.p.y + hop, b.p.z); m4.rotation.set(0, b.yaw + Math.sin(b.ph * .7) * .3, 0); m4.scale.setScalar(.3); m4.updateMatrix(); for (const im of sitM) im.setMatrixAt(i, m4.matrix); }); for (const im of sitM) { im.instanceMatrix.needsUpdate = true; im.visible = true; } flyM.forEach(m => m.visible = false); };
-W.on("frame", ({ dt, t }) => { try { mureFrame(dt, t); } catch (er) { if (!window.__e) { window.__e = String(er.stack); console.error(window.__e); } } });
+const hideSteamTop = () => { if (!steam || !steam.visible) return; const m = new THREE.Matrix4(); steamP.forEach((p, k) => { m4.position.copy(p); m4.rotation.set(0, Math.atan2(W.camera.position.x - p.x, W.camera.position.z - p.z), 0); _t.copy(p).setY(p.y + .55).project(W.camera); m4.scale.setScalar(_t.y > .64 ? 0 : 1); m4.updateMatrix(); steam.setMatrixAt(k, m4.matrix); }); steam.instanceMatrix.needsUpdate = true; };
+let warm = false; W.on("frame", ({ dt, t }) => { if (SEED && birds && modeNow === "mure") { if (warm) { hideSteamTop(); return; } warm = true; try { for (let k = 0; k < 600; k++) mureFrame(1 / 60, k / 60); } catch (er) { console.error(er); } return; } try { mureFrame(dt, t); } catch (er) { if (!window.__e) { window.__e = String(er.stack); console.error(window.__e); } } });
 function mureFrame(dt, t) { if (!birds || modeNow !== "mure") return; inMure += dt; if (st === "sit" && inMure > 4) takeOff();
   if (st === "sit") { B.forEach(b => b.p.copy(b.home)); setSit(); lead.position.copy(B[0].p); }
   else if (st === "tree") { let all = true; B.forEach(b => { _t.subVectors(b.perch, b.p); const L = _t.length(); if (L > .05) { all = false; b.p.addScaledVector(_t.normalize(), Math.min(L, dt * 5)); b.v.copy(_t).multiplyScalar(3); } }); if (all) setSit(); else drawFly(t); }
@@ -162,7 +165,7 @@ function mureFrame(dt, t) { if (!birds || modeNow !== "mure") return; inMure += 
   rain.material.opacity = wet * .5; rain.visible = wet > 0; if (wet > 0) { const p = rain.geometry.attributes.position; for (let k = 0; k < p.count; k += 2) { let y = p.getY(k) - dt * 9; if (y < 0) y += 8; p.setY(k, y); p.setY(k + 1, y + .25); p.setX(k + 1, p.getX(k)); p.setZ(k + 1, p.getZ(k)); } p.needsUpdate = true; }
 }
 function drawFly(t) { for (const im of sitM) im.visible = false; flyM.forEach(m => m.visible = true);
-  B.forEach((b, i) => { m4.position.copy(b.p); m4.lookAt(_t.copy(b.p).add(b.v)); m4.scale.setScalar(1.6); m4.updateMatrix(); flyM[0].setMatrixAt(i, m4.matrix); flyM[3].setMatrixAt(i, m4.matrix); flyM[4].setMatrixAt(i, m4.matrix); flyM[5].setMatrixAt(i, m4.matrix); flyM[6].setMatrixAt(i, m4.matrix); flyM[7].setMatrixAt(i, m4.matrix);
+  B.forEach((b, i) => { m4.position.copy(b.p); m4.lookAt(_t.copy(b.p).add(b.v)); m4.scale.setScalar(ride && b !== B[0] && b.p.distanceTo(W.camera.position) < 3 ? 0 : 1.6); m4.updateMatrix(); flyM[0].setMatrixAt(i, m4.matrix); flyM[3].setMatrixAt(i, m4.matrix); flyM[4].setMatrixAt(i, m4.matrix); flyM[5].setMatrixAt(i, m4.matrix); flyM[6].setMatrixAt(i, m4.matrix); flyM[7].setMatrixAt(i, m4.matrix);
     const f = Math.sin(t * 22 + b.ph) * .45 + .1; for (const [k, sg] of [[1, 1], [2, -1]]) { const w = m4.clone(); w.rotateZ(-sg * f); w.updateMatrix(); flyM[k].setMatrixAt(i, w.matrix); } });
   flyM.forEach(m => m.instanceMatrix.needsUpdate = true); }
 // 間を移る：近ければ歩く（2 秒以内）、遠ければ霞で場面を移す（約 0.6 秒）
@@ -199,11 +202,11 @@ W.addMode({ id: "kan", label: LABEL.kan, name: "museum", icon: "book",
 W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
   subs: [{ label: LABEL.calm }, { label: LABEL.eye }, { label: LABEL.rain }],
   info: { title: "群れ", body: "群れは三つの決まり（離れる・そろう・寄る）で動く模式。飛ぶ形は模式（体と翼だけ）。雨は土にしみ、木から空へ戻る（模式）。", src: "Reynolds 1987, Computer Graphics 21(4): 25–34／Horton 1933／Jasechko ほか 2013, Nature 496<br>とまっている 3D：\"スズメ Tree sparrow\" by Tit_birdy, CC BY 4.0／飛ぶ形：mitsulab が手続きで作った模式" },
-  enter(w, sub) { plantVeg(); buildMure(); ride = sub === 1; if (ride) takeOff(); w.attachEye(ride ? lead : null, [0, .5, 3.2]); W.aoi.root.visible = !ride; W.camera.near = ride ? 1.2 : .03; W.camera.updateProjectionMatrix(); if (!ride) go(Z.mure);
-    if (sub === 2) { wet = 1; saidDry = false; B.forEach(b => { const tt = treesM[Math.floor(Math.random() * treesM.length)] || [6, Z.mure - 6]; b.perch.set(tt[0] + (Math.random() - .5) * 2.4, 2.6 + Math.random() * 2.2, tt[1] + (Math.random() - .5) * 2.4); });
+  enter(w, sub) { plantVeg(); buildMure(); ride = sub === 1; if (ride) takeOff(); w.attachEye(ride ? lead : null, [0, 1.2, 4.5]); W.aoi.root.visible = !ride; W.camera.near = ride ? 1.2 : .03; W.camera.updateProjectionMatrix(); if (!ride) { go(Z.mure); setTimeout(() => { if (modeNow === "mure" && !ride) W.setAoi({ pos: [W.mobile ? 1.1 : 2.1, 0, Z.mure + .6], lookAt: [0, 1.4, Z.mure + 4] }); }, 700); }
+    if (sub === 2) { wet = 1; saidDry = false; B.forEach(b => { const tt = treesM[Math.floor(rnd() * treesM.length)] || [6, Z.mure - 6]; b.perch.set(tt[0] + (rnd() - .5) * 2.4, 2.6 + rnd() * 2.2, tt[1] + (rnd() - .5) * 2.4); });
       if (st === "sit") { B.forEach(b => b.v.set(0, 2, 0)); } st = "tree"; w.say("雨。スズメは木の中へ退いて、雨がやむのを待つ。雨は土にしみて、やがて木から空へ戻っていく（模式）。"); }
-    else { if (sub === 0 && st === "tree") { st = "fly"; } w.say(ride ? "一羽のすぐ後ろから。近くの数羽に合わせて向きを変える（模式）。" : "岸にスズメの群れ。だれかが指図しているわけではないのに、飛ぶと向きがそろう。"); } },
-  exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; W.camera.near = .03; W.camera.updateProjectionMatrix(); } });
+    else { if (sub === 0 && st === "tree") { st = "fly"; } w.say(ride ? "一羽のすぐ後ろから。近くの数羽に合わせて向きを変える（模式）。" : "岸にスズメの群れ。だれかが指図しているわけではないのに、飛ぶと向きがそろう。", ride ? 12000 : 6000); } },
+  exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; W.follow(); W.camera.near = .03; W.camera.updateProjectionMatrix(); } });
 const u = new URL(location.href).searchParams; W.setMode(u.get("m") || "koza", +(u.get("s") || 0));
 if (!u.get("m")) setTimeout(() => W.say("同じ蜂や土でも、\n噺で聞くか、歌で聴くか、\n本で読むか、群れで見るかで、\n受けとる意味が変わる。\n四つの間で、くらべてみて。", 7000), 1200);
 if (!u.get("m")) setTimeout(() => W.say("場所を選ばない道具。どこにいても、意味づけの型を持ち歩ける。", 6000), 8400);
