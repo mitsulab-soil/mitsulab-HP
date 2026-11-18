@@ -27,9 +27,9 @@
 .tab-panel:not(#top) .qt-origin{background:transparent!important;border:1px solid var(--hx3)!important;border-radius:0!important;position:relative}
 .tab-panel:not(#top) .qt-origin::before{content:"";position:absolute;left:-1px;top:-1px;width:14px;height:14px;border:1px solid var(--hx);border-right:0;border-bottom:0}
 /* 2026-11-17 第11周：関係図の作品＝押せる印（輪）・タブの見出しの下の文を明朝に・帯をはずす・協賛ほかの導入文の左をそろえる */
-:is(#top,#pf) .m2-wn{fill:#03060f;stroke-width:2.2;transition:fill .2s}
-:is(#top,#pf) .m2-a{cursor:pointer}
-:is(#top,#pf) .m2-a:hover text{text-decoration-thickness:2px}
+:is(#top,#pf,#eco) .m2-wn{fill:#03060f;stroke-width:2.2;transition:fill .2s}
+:is(#top,#pf,#eco) .m2-a{cursor:pointer}
+:is(#top,#pf,#eco) .m2-a:hover text{text-decoration-thickness:2px}
 .cg-design .pr-sense-h::before{display:none!important}
 .tab-panel:not(#top) .rd-lead{margin-left:0!important;margin-right:0!important}
 .tab-panel:not(#top) :is(.rd-lead,.rs-lead,.pr-wrap>header>p){font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif!important;font-weight:400;font-size:15.5px;line-height:1.95;color:#dfe6ef;letter-spacing:.02em}
@@ -41,7 +41,7 @@
 /* 第11周 P2：研究の切り替え（320）・碧の吹き出しは TOP だけ・参道を少し明るく */
 @media (max-width:359px){#research .rs-switch button{font-size:12.5px!important;letter-spacing:0!important;white-space:nowrap;padding:0 4px}}
 body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
-:is(#top,#pf) .sd-cv{filter:brightness(1.2) saturate(1.05)}
+:is(#top,#pf,#eco) .sd-cv{filter:brightness(1.2) saturate(1.05)}
 /* 第12周：スマホの目的別ボタンを同じ幅の 2 列に */
 @media (max-width:759px){.sub-sw{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}.sub-sw .sub-k{grid-column:1/-1}.sub-sw>a,.sub-sw>button{width:100%;box-sizing:border-box;justify-content:center;text-align:center;margin:0!important}}
 /* 第12周 2：プロフィール・お問い合わせの左端をほかのタブ（990px の段）にそろえる・320 のボタンは 1 列・320 の層は元の位置 */
@@ -50,8 +50,8 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 /* 第13周：本文は明朝ひとつに（タブ全体）・明朝の字の混ざりをなくす・関係図の引き出し線を明るく・Qualium のボタンの書体 */
 .tab-panel:not(#top) :is(.cg-deep>p,.cg-deep p,.pr-description,.ap-d,.card.ask p,.pf p,.rd-lead,.rs-lead,.pr-wrap>header>p,dd):not(.cg-eyebrow,.eyebrow,.qx-code,.rd-k,.pr-label){font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif!important;font-weight:400!important}
 .sub-sw :is(a,button){font-family:var(--sans,"Hiragino Sans",sans-serif)!important;letter-spacing:.06em!important}
-:is(#top,#pf) .m2-l3{stroke-opacity:.55!important;stroke-width:1.6!important}
-:is(#top,#pf) .m2-l1,:is(#top,#pf) .m2-l2{stroke-opacity:.6!important}
+:is(#top,#pf,#eco) .m2-l3{stroke-opacity:.55!important;stroke-width:1.6!important}
+:is(#top,#pf,#eco) .m2-l1,:is(#top,#pf,#eco) .m2-l2{stroke-opacity:.6!important}
 
 .tab-panel:not(#top) :is(.cg-eyebrow,.eyebrow,.qx-code,.rd-k,.pr-label){font-family:var(--hxm)!important}
 /* 第13周 2：タブの切り替えから見出しまでの空きをそろえる */
@@ -61,12 +61,12 @@ body:not(:has(#top.active)) .aoi-guide-bubble{display:none!important}
 @media (max-width:759px){.tab-panel:not(#top) .wrap{padding-top:16px!important}.tab-panel:not(#top) .panel-head{padding-top:12px!important}.tab-panel:not(#top) .cg-deep{padding-top:28px!important}}
 /* 第14周：角の形をそろえる（直角）・スマホの作品の副題は下線なし・タブの上の空きを詰める・関係図の上に余白 */
 .tab-panel:not(#top) :is(a,button,div,section,dl,details,summary,table){border-radius:2px!important}
-@media (max-width:759px){:is(#top,#pf) .m2-lw a small{text-decoration:none!important;border-bottom:0!important}:is(#top,#pf) .m2-lw a small *{text-decoration:none!important}}
+@media (max-width:759px){:is(#top,#pf,#eco) .m2-lw a small{text-decoration:none!important;border-bottom:0!important}:is(#top,#pf,#eco) .m2-lw a small *{text-decoration:none!important}}
 .sub-sw{padding-top:84px!important}
 @media (max-width:759px){.sub-sw{padding-top:72px!important}}
-@media (min-width:760px){:is(#top,#pf) .m2-sec{padding-top:150px!important}}
-@media (max-width:759px){:is(#top,#pf) .m2-lw a{text-decoration:none!important}:is(#top,#pf) .m2-lw a>span{text-decoration:underline!important;text-decoration-color:var(--c)!important;text-underline-offset:4px}}
-:is(#top,#pf) .m2-lr span{white-space:nowrap}
+@media (min-width:760px){:is(#top,#pf,#eco) .m2-sec{padding-top:150px!important}}
+@media (max-width:759px){:is(#top,#pf,#eco) .m2-lw a{text-decoration:none!important}:is(#top,#pf,#eco) .m2-lw a>span{text-decoration:underline!important;text-decoration-color:var(--c)!important;text-underline-offset:4px}}
+:is(#top,#pf,#eco) .m2-lr span{white-space:nowrap}
 /* 第15周 2：ワークショップの下の暗い面を外す */
 #collab .v2-social{background:transparent!important}
 
@@ -90,18 +90,18 @@ html .cg-design .pr-grid>li.pr-card>.ap-f img{width:100%!important;height:100%!i
 @media (max-width:759px){.sub-sw button{flex:0 1 calc(33.33% - 6px);padding:0 6px!important;line-height:1.3}}
 
 /* 第19周：関係図のあとの空きを詰める（冒頭の 3D のスクロールの長さを短く。視点が動く形は残す） */
-@media (prefers-reduced-motion: no-preference){html body :is(#top,#pf) .sd-hero{height:580vh!important;height:580svh!important}}
-@media (prefers-reduced-motion: no-preference) and (max-width:759px){html body :is(#top,#pf) .sd-hero{height:640vh!important;height:640svh!important}}
+@media (prefers-reduced-motion: no-preference){html body :is(#top,#pf,#eco) .sd-hero{height:580vh!important;height:580svh!important}}
+@media (prefers-reduced-motion: no-preference) and (max-width:759px){html body :is(#top,#pf,#eco) .sd-hero{height:640vh!important;height:640svh!important}}
 .sd-lay{transition:opacity .4s}
 /* 第19周：協働者などの欄の地の文を、一覧の字の大きさにそろえる */
 .tab-panel .rd-s>p{font-size:14px!important;line-height:1.8!important;color:#c3cbdb;max-width:40em}
 .f-credit .nw{white-space:nowrap}
 
 /* 2026-11-18 本人：TOP の 3D をもっと明るく（スマホも）／式と層の対応 */
-html body :is(#top,#pf) .sd-poster,html body :is(#top,#pf) .sd-cv{filter:brightness(1.3) saturate(1.1)}
-html body :is(#top,#pf) .sd-stick,html body :is(#top,#pf) .sd-hero{background:#15243c}
-html body :is(#top,#pf) .sd-stick::after{background:linear-gradient(90deg,rgba(8,14,26,.55),rgba(8,14,26,.12) 55%,transparent),linear-gradient(0deg,#03060f,transparent 14%)!important}
-@media (max-width:759px){html body :is(#top,#pf) .sd-stick::after{background:linear-gradient(180deg,rgba(3,6,15,.15),rgba(3,6,15,.38) 60%,#03060f)!important}}
+html body :is(#top,#pf,#eco) .sd-poster,html body :is(#top,#pf,#eco) .sd-cv{filter:brightness(1.3) saturate(1.1)}
+html body :is(#top,#pf,#eco) .sd-stick,html body :is(#top,#pf,#eco) .sd-hero{background:#15243c}
+html body :is(#top,#pf,#eco) .sd-stick::after{background:linear-gradient(90deg,rgba(8,14,26,.55),rgba(8,14,26,.12) 55%,transparent),linear-gradient(0deg,#03060f,transparent 14%)!important}
+@media (max-width:759px){html body :is(#top,#pf,#eco) .sd-stick::after{background:linear-gradient(180deg,rgba(3,6,15,.15),rgba(3,6,15,.38) 60%,#03060f)!important}}
 .qf{margin:18px 0 8px;max-width:34em}
 html .qf .qf-eq{font:400 clamp(18px,2.1vw,24px)/1.5 "Times New Roman",serif!important;color:#eef5fb;letter-spacing:.03em;margin:0 0 12px;overflow-wrap:anywhere}
 .qf-map{list-style:none;margin:0;padding:0;display:grid;gap:8px}

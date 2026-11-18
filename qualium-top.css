@@ -1,13 +1,13 @@
 /* A single editorial rhythm. All backgrounds inherit the existing navy. */
 #top{padding-top:0}.qt-hero{padding-top:52px}
-:is(#top,#pf) .qt-kicker{font:400 11px/1.6 var(--mono);letter-spacing:.2em;color:#8bccca;margin:0 0 18px}
+:is(#top,#pf,#eco) .qt-kicker{font:400 11px/1.6 var(--mono);letter-spacing:.2em;color:#8bccca;margin:0 0 18px}
 .qt-opening,.qt-content{max-width:1200px;margin:auto;padding-inline:40px}
 .qt-opening{padding-block:35px 46px;display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}
 .qt-opening h1{font:400 clamp(38px,4.5vw,64px)/1.65 var(--serif);letter-spacing:.08em;margin:0;color:var(--ink)}
 .qt-opening>p{font-size:16px;line-height:2.1;color:var(--ink-2);margin:0;max-width:490px}
 html[data-lang=en] .qt-opening h1{font-family:var(--latin);line-height:1.2;letter-spacing:0}
-:is(#top,#pf) .scene-current-statement{font:400 clamp(28px,4.2vw,54px)/1.7 var(--serif);letter-spacing:.12em;margin:0 0 22px;text-shadow:0 3px 22px #030812}
-:is(#top,#pf) .beat-hero .core-plain{max-width:760px;margin-inline:auto;line-height:2}
+:is(#top,#pf,#eco) .scene-current-statement{font:400 clamp(28px,4.2vw,54px)/1.7 var(--serif);letter-spacing:.12em;margin:0 0 22px;text-shadow:0 3px 22px #030812}
+:is(#top,#pf,#eco) .beat-hero .core-plain{max-width:760px;margin-inline:auto;line-height:2}
 .qt-unified{padding:90px 0 60px}.qt-mission{display:grid;grid-template-columns:1.1fr 1fr;gap:70px;align-items:start}
 .qt-mission h2,.qt-origin h2,.qt-purpose h2{font:400 clamp(25px,2.8vw,40px)/1.75 var(--serif);letter-spacing:.045em;margin:0;color:var(--ink)}
 .qt-mission p,.qt-origin p{font-size:16px;line-height:2.1;margin:0 0 20px;color:var(--ink-2)}
@@ -43,7 +43,7 @@ button:focus-visible{outline:1px solid #b5eee0;outline-offset:5px}
 html[data-lang=en] .qt-mission h2,html[data-lang=en] .qt-origin h2{font-family:var(--latin);letter-spacing:0;line-height:1.35}
 @media(max-width:700px){
 .qt-hero{padding-top:30px}.qt-opening,.qt-content{padding-inline:24px}.qt-opening{padding-block:24px 30px;grid-template-columns:1fr;gap:20px}.qt-opening h1{font-size:34px}.qt-opening>p{font-size:15px}
-:is(#top,#pf) .scene-current-statement{font-size:28px;letter-spacing:.08em}:is(#top,#pf) .beat-hero .core-plain{font-size:14px;max-width:330px}
+:is(#top,#pf,#eco) .scene-current-statement{font-size:28px;letter-spacing:.08em}:is(#top,#pf,#eco) .beat-hero .core-plain{font-size:14px;max-width:330px}
 .qt-unified{padding:48px 0 24px}.qt-mission,.qt-origin{grid-template-columns:1fr;gap:24px}.qt-mission p,.qt-origin p{font-size:16px}.qt-mission h2{font-size:25px}
 .qt-flow{width:calc(100vw - 20px);height:780px;margin-top:12px}.qt-world-label{width:92%;left:50%;top:15%}.qt-world-two{top:56%}.qt-world-label h3{font-size:22px}.qt-world-label small{font-size:11px}.qt-world-label>span{font-size:10px}
 .qt-flow-core{max-width:90%;width:90%}.qt-flow-core>span{font-size:19px}.qt-flow-core small{font-size:11px}.qt-ai-label{font-size:9px}.qt-pause{font-size:10px;right:12px;bottom:0}
@@ -53,7 +53,7 @@ html[data-lang=en] .qt-mission h2,html[data-lang=en] .qt-origin h2{font-family:v
 }
 /* The opening already contains live Aoi. Keep the concept controls unobstructed. */
 body:has(#top.active) .aoi-guide{display:none}
-:is(#top,#pf)>.scene{margin-top:0}.qt-tour{position:absolute;left:18px;bottom:12px;min-height:44px;padding:8px 0;background:none;border:0;border-bottom:1px solid #416268;color:var(--ink-2);font:400 12px/1.8 var(--sans);cursor:pointer}.qt-tour[aria-pressed=true]{color:#b5eadb}
+:is(#top,#pf,#eco)>.scene{margin-top:0}.qt-tour{position:absolute;left:18px;bottom:12px;min-height:44px;padding:8px 0;background:none;border:0;border-bottom:1px solid #416268;color:var(--ink-2);font:400 12px/1.8 var(--sans);cursor:pointer}.qt-tour[aria-pressed=true]{color:#b5eadb}
 .qt-explanation{max-width:900px;margin:35px 0 45px;padding-top:32px;border-top:1px solid #8bccca30}.qt-explanation h3{font:400 25px/1.8 var(--serif);color:var(--ink);margin:0 0 18px}.qt-explanation p{font-size:16px;line-height:2.1;color:var(--ink-2)}
 .qt-bottom-credits{max-width:1120px;padding:35px 24px 12px;margin:auto;border-top:1px solid #8bccca30}.qt-bottom-credits a{color:#9ed6ce}
 .qt-role-graph{padding:36px 0 60px;border-top:1px solid #8bccca30}.qt-role-graph h2{font:400 30px/1.7 var(--serif);margin:0 0 28px;color:var(--ink)}.qt-role-source,.qt-role-return{font:400 18px/1.8 var(--serif);color:#c5e9da;text-align:center;margin:16px 0 24px}
@@ -84,8 +84,8 @@ body:has(#top.active) .aoi-guide{display:none}
 .qt-hero-read{pointer-events:auto;min-height:44px;padding:0 4px;border:0;background:none;color:#b3d7d0;font:400 13px/1.8 var(--sans);letter-spacing:.04em;cursor:pointer;text-decoration:underline;text-underline-offset:5px;text-decoration-color:#638f8b}
 .qt-hero-read:hover{color:#e0f1e9;text-decoration-color:currentColor}
 .beat:not(.on) .qt-hero-read{pointer-events:none}
-:is(#top,#pf) .beat-hero .hero-go{column-gap:20px}
-@media(max-width:480px){:is(#top,#pf) .beat-hero .hero-go{column-gap:14px}.qt-hero-read{font-size:12px;letter-spacing:0}}
+:is(#top,#pf,#eco) .beat-hero .hero-go{column-gap:20px}
+@media(max-width:480px){:is(#top,#pf,#eco) .beat-hero .hero-go{column-gap:14px}.qt-hero-read{font-size:12px;letter-spacing:0}}
 
 .qt-mission-line{display:block}
 @media(max-width:700px){.qt-mission-line{white-space:nowrap;letter-spacing:.025em}.qt-mission h2{font-size:24px}}
@@ -123,16 +123,16 @@ body:has(#top.active) .aoi-guide{display:none}
 .qt-method-dl dt{font-size:16px}
 @media(max-width:700px){.qt-three>div,.qt-method-dl>div{grid-template-columns:1fr;gap:6px;padding:16px 0}.qt-three dt{font-size:16px}.qt-three dd{font-size:15px}.qt-method h3{font-size:22px}.qt-method>p{font-size:15px}}
 /* 2026-10-19 本人のミッション（hero の大きな字の下） */
-:is(#top,#pf) .hero-mission .hm-k{display:block;font:400 10px/1.8 var(--mono);letter-spacing:.24em;color:#9fe3d2;margin-bottom:4px}
-:is(#top,#pf) .hero-mission .hm-t{display:block;font-family:var(--serif);font-size:clamp(1rem,2.6vw,1.2rem);line-height:1.85;letter-spacing:.05em;color:#eef5fb}
-:is(#top,#pf) .hero-how{margin-top:-6px;color:#c3cce0}
-html[lang="en"] :is(#top,#pf) .hero-mission .hm-t{letter-spacing:0}
+:is(#top,#pf,#eco) .hero-mission .hm-k{display:block;font:400 10px/1.8 var(--mono);letter-spacing:.24em;color:#9fe3d2;margin-bottom:4px}
+:is(#top,#pf,#eco) .hero-mission .hm-t{display:block;font-family:var(--serif);font-size:clamp(1rem,2.6vw,1.2rem);line-height:1.85;letter-spacing:.05em;color:#eef5fb}
+:is(#top,#pf,#eco) .hero-how{margin-top:-6px;color:#c3cce0}
+html[lang="en"] :is(#top,#pf,#eco) .hero-mission .hm-t{letter-spacing:0}
 /* 2026-10-19 WHY（本人決定）：VISION の前に一段 */
 .qt-why{margin-bottom:56px}
 @media(max-width:700px){.qt-why{margin-bottom:36px}}
 /* ===== 2026-10-19 再デザイン：世界を、重ねる（層を一枚ずつ重ねる道具の系列）===== */
-:is(#top,#pf) .hero-call{margin:0 0 14px;font:400 clamp(.95rem,2.6vw,1.15rem)/1.8 var(--serif);letter-spacing:.14em;color:#c6f8f2}
-html[lang="en"] :is(#top,#pf) .hero-call{font-family:var(--latin);font-style:italic;letter-spacing:.08em}
+:is(#top,#pf,#eco) .hero-call{margin:0 0 14px;font:400 clamp(.95rem,2.6vw,1.15rem)/1.8 var(--serif);letter-spacing:.14em;color:#c6f8f2}
+html[lang="en"] :is(#top,#pf,#eco) .hero-call{font-family:var(--latin);font-style:italic;letter-spacing:.08em}
 .qt-intro{padding-bottom:30px}
 .qt-layers-sec{position:relative;padding:72px 0 40px;border-top:1px solid #8bccca30}
 .qt-layers-head{max-width:900px;margin:0 0 28px}
@@ -201,17 +201,17 @@ html[lang="en"] .qt-layers-title{font-family:var(--latin);letter-spacing:.02em}
  .qt-layer,.qt-stack-end{scroll-margin-top:calc(64px + 34svh + 24px)}
 }
 /* 2026-10-19 hero の位置（札がナビに寄らないように）・英語の大きな字・終わりの段は層の図の外へ */
-@media(min-width:861px){:is(#top,#pf) .beat-hero{top:44%}}
-html[lang="en"] :is(#top,#pf) .scene-current-statement{letter-spacing:.03em;line-height:1.35}
+@media(min-width:861px){:is(#top,#pf,#eco) .beat-hero{top:44%}}
+html[lang="en"] :is(#top,#pf,#eco) .scene-current-statement{letter-spacing:.03em;line-height:1.35}
 .qt-stack-end{grid-column:auto;max-width:720px;margin:24px 0 0 auto}
 @media(max-width:860px){.qt-stack-end{margin:24px 0 0}}
-:is(#top,#pf) .hero-mission .hm-t{word-break:keep-all;overflow-wrap:anywhere}
+:is(#top,#pf,#eco) .hero-mission .hm-t{word-break:keep-all;overflow-wrap:anywhere}
 /* ===== 2026-10-19 二回目：Qualia Layer の 3D（中央に碧） ===== */
-:is(#top,#pf) .scene-current-statement .h1-sub{display:block;font-size:.5em;letter-spacing:.14em;line-height:1.9;margin-top:.2em;color:#dff6f1}
-:is(#top,#pf) .scene-current-statement{font-family:var(--latin)}
-:is(#top,#pf) .scene-current-statement .h1-sub{font-family:var(--serif)}
-html[lang="en"] :is(#top,#pf) .scene-current-statement .h1-sub{font-family:var(--latin);font-style:italic;letter-spacing:.04em}
-:is(#top,#pf) .hero-plain{max-width:30em;font-size:clamp(.84rem,2.2vw,.95rem);color:#c3cce0;margin:0 auto 12px}
+:is(#top,#pf,#eco) .scene-current-statement .h1-sub{display:block;font-size:.5em;letter-spacing:.14em;line-height:1.9;margin-top:.2em;color:#dff6f1}
+:is(#top,#pf,#eco) .scene-current-statement{font-family:var(--latin)}
+:is(#top,#pf,#eco) .scene-current-statement .h1-sub{font-family:var(--serif)}
+html[lang="en"] :is(#top,#pf,#eco) .scene-current-statement .h1-sub{font-family:var(--latin);font-style:italic;letter-spacing:.04em}
+:is(#top,#pf,#eco) .hero-plain{max-width:30em;font-size:clamp(.84rem,2.2vw,.95rem);color:#c3cce0;margin:0 auto 12px}
 .qt-stack-stage canvas.ql3d{position:absolute;inset:0;width:100%;height:100%;display:block}
 .qt-stack-stage.has-3d .qt-stack-scene{visibility:hidden}
 .qt-stack-stage .qt-stack-count{position:absolute;left:0;right:0;bottom:6px;margin:0;text-align:center}
@@ -227,9 +227,9 @@ html[lang="en"] :is(#top,#pf) .scene-current-statement .h1-sub{font-family:var(-
 .qt-stack-stage .qsc-name{letter-spacing:.04em;color:#9fd9cf}
 .qt-meter{position:absolute;left:18%;right:18%;bottom:8px;height:2px;background:#8bccca22}
 .qt-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#c9a27a,#c4b2ff,#78b8ec,#c2c7cc,#9aa3b8,#f08a6c,#f4fbff);transition:width .6s ease}
-:is(#top,#pf) .scene-current-statement{font-size:clamp(44px,6.4vw,88px);letter-spacing:.04em;line-height:1.15;margin-bottom:18px}
-:is(#top,#pf) .scene-current-statement .h1-sub{font-size:clamp(17px,.3em,30px);letter-spacing:.16em;margin-top:.5em}
-@media(max-width:860px){:is(#top,#pf) .beat-hero{top:43%}:is(#top,#pf) .scene-current-statement{font-size:46px}:is(#top,#pf) .scene-current-statement .h1-sub{font-size:18px}}
+:is(#top,#pf,#eco) .scene-current-statement{font-size:clamp(44px,6.4vw,88px);letter-spacing:.04em;line-height:1.15;margin-bottom:18px}
+:is(#top,#pf,#eco) .scene-current-statement .h1-sub{font-size:clamp(17px,.3em,30px);letter-spacing:.16em;margin-top:.5em}
+@media(max-width:860px){:is(#top,#pf,#eco) .beat-hero{top:43%}:is(#top,#pf,#eco) .scene-current-statement{font-size:46px}:is(#top,#pf,#eco) .scene-current-statement .h1-sub{font-size:18px}}
 .qt-stack-end h3{word-break:keep-all;overflow-wrap:anywhere}
 .qt-layer .ql-card{border-top-style:dashed}
 @media(max-width:860px){.qt-layer,.qt-stack-end{scroll-margin-top:calc(64px + 44svh + 48px)}}
@@ -296,10 +296,10 @@ html.simple .qt-layer,html.simple .qt-stack-end{scroll-margin-top:80px}
 html.simple .qt-layer{opacity:1!important}
 html.simple #why .scene-cv,html.simple #why .scene-labs{display:none}
 html.simple #why .scene-poster{position:relative;display:block;width:100%;height:52svh;max-height:480px;object-fit:cover;opacity:.5;-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent)}
-html.simple :is(#top,#pf) .beat-hero{position:relative;top:auto;left:auto;right:auto;transform:none;margin-top:-30svh;padding:0 0 8px}
+html.simple :is(#top,#pf,#eco) .beat-hero{position:relative;top:auto;left:auto;right:auto;transform:none;margin-top:-30svh;padding:0 0 8px}
 html.simple #why .scene-words{padding-top:0}
 .scene-static .mission .ch{opacity:1;transform:none;filter:none}
-html.simple :is(#top,#pf) .beat-mission{margin-top:28px}
+html.simple :is(#top,#pf,#eco) .beat-mission{margin-top:28px}
 /* 2026-10-20 夜 本人「Qualia Lab のカードにも写真を」：Museum と同じ並び（絵＋文）。狭い画面は縦に */
 .qt-gather-lab.has-img{grid-template-columns:minmax(0,440px) 1fr}
 @media(max-width:860px){.qt-gather-lab.has-img{grid-template-columns:1fr}}
@@ -400,8 +400,8 @@ html[lang=en] .pf>div:last-child>p,html[lang=en] .pf .pf-poem .poem-st{font-fami
 @media(max-width:700px){
   html.simple #why .scene-poster{opacity:.78;height:58svh;max-height:540px}
   html.simple #why .scene-sticky{background:linear-gradient(#03060f 0,#03060f 78%,rgba(3,6,15,0) 100%)}
-  html.simple :is(#top,#pf) .beat-hero{margin-top:-24svh}
-  html.simple :is(#top,#pf) .beat-l,html.simple :is(#top,#pf) .beat-r{padding-inline:6px}
+  html.simple :is(#top,#pf,#eco) .beat-hero{margin-top:-24svh}
+  html.simple :is(#top,#pf,#eco) .beat-l,html.simple :is(#top,#pf,#eco) .beat-r{padding-inline:6px}
 }
 /* 採点 1 回目の直し */
 details.q-more>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;margin:4px 0 18px;border:1px solid #8bccca55;border-radius:999px;color:#8bccca;font:400 14px/1 var(--serif);letter-spacing:.08em}
@@ -554,7 +554,7 @@ html.simple .qt-layer .ql-card{min-height:0}
 .ql3d-tag{max-width:min(18.5em,44%)}.ql3d-tag .qt-l{word-break:keep-all;overflow-wrap:anywhere}
 
 /* ===== 2026-10-23 朝 本人の指示：QUALIA LAYER を一番上に・ビジョン・各層にアプリ・場・PHILOSOPHY の 3D・場面は最後へ ===== */
-:is(#top,#pf) .qt-content>#appguide{border-top:0;padding-top:clamp(96px,11vw,132px)}
+:is(#top,#pf,#eco) .qt-content>#appguide{border-top:0;padding-top:clamp(96px,11vw,132px)}
 #appguide .qt-layers-title{margin:6px 0 26px}
 .qt-vision{max-width:760px;margin:0 0 26px;padding:18px 0 20px 22px;border-left:1px solid #8bccca66}
 .qt-vision-k{margin:0 0 6px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;font:400 11px/1.6 var(--mono);letter-spacing:.24em;color:#8bccca}
@@ -612,10 +612,10 @@ html[lang="en"] .qt-places-title{font-family:var(--latin);letter-spacing:.01em}
 html[lang="en"] .qp-es-now p{font-family:var(--latin);letter-spacing:0}
 .qp-more>.qp-fig{margin:18px 0 26px}
 /* 場面（氷川参道のアニメーション）はページの最後：上の余白 */
-:is(#top,#pf)>.scene{margin-top:56px}
+:is(#top,#pf,#eco)>.scene{margin-top:56px}
 /* スマホ：層の 3D も出す（10-23 本人「スマホでも見やすく」）。上に小さく貼りつけ、札は下を流れる（3D と字が重ならない） */
 @media(max-width:700px){
-  :is(#top,#pf) .qt-content>#appguide{padding-top:84px}
+  :is(#top,#pf,#eco) .qt-content>#appguide{padding-top:84px}
   .qt-vision{padding:12px 0 14px 14px;margin-bottom:20px}
   .qt-vision-p{font-size:15px;line-height:1.95}
   html.simple .qt-stack{display:grid;grid-template-columns:1fr;gap:0}
@@ -767,8 +767,8 @@ html[lang="en"] .qv-base{font-family:var(--latin);letter-spacing:.02em}
 .qe-kas{background:rgba(3,6,15,.72)}
 
 /* ===== 2026-10-24 TOP 6（本人）：OVERVIEW を外し、PHILOSOPHY を一番上へ。VISION は短い見出し。式と定義は開閉（既定は閉じる） ===== */
-:is(#top,#pf) .qt-content>.qt-first .qp-head{margin-top:0;border-top:0;padding-top:clamp(96px,11vw,132px)}
-:is(#top,#pf) .qt-content>#appguide{border-top:1px solid #8bccca30;padding-top:64px;margin-top:64px}
+:is(#top,#pf,#eco) .qt-content>.qt-first .qp-head{margin-top:0;border-top:0;padding-top:clamp(96px,11vw,132px)}
+:is(#top,#pf,#eco) .qt-content>#appguide{border-top:1px solid #8bccca30;padding-top:64px;margin-top:64px}
 .qp-vision{margin:0 0 30px;padding:2px 0 2px 16px;border-left:1px solid #8bccca88;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
 .qp-vision-k{font:400 11px/1.6 var(--mono);letter-spacing:.24em;color:#8bccca}
 .qp-vision-name{font:400 italic clamp(22px,2.2vw,28px)/1.25 var(--latin);letter-spacing:.02em;color:var(--ink)}
@@ -802,8 +802,8 @@ html[lang="en"] .qp-defs-fold .qp-term{font-size:19px}
 .qp-struct>.qp-fig{margin:18px 0 10px}
 .qp-note-s{font-size:12.5px!important;line-height:1.85;color:#8f9bb4}
 @media(max-width:700px){
-  :is(#top,#pf) .qt-content>.qt-first .qp-head{padding-top:84px}
-  :is(#top,#pf) .qt-content>#appguide{padding-top:48px;margin-top:48px}
+  :is(#top,#pf,#eco) .qt-content>.qt-first .qp-head{padding-top:84px}
+  :is(#top,#pf,#eco) .qt-content>#appguide{padding-top:48px;margin-top:48px}
   .qp-vision{margin-bottom:22px;padding-left:12px;gap:2px 12px}
   .qp-defs-fold summary{grid-template-columns:2.4em minmax(0,1fr) 20px;gap:2px 12px;padding:14px 0}
   .qp-defs-fold summary .qp-one{grid-column:2;grid-row:2}
@@ -831,16 +831,16 @@ html[lang="en"] .qp-defs-fold .qp-term{font-size:19px}
 @media(max-width:700px){.qe-l5{padding:2px 5px;gap:2px}.qe-l5k{font-size:9.6px}.qe-l5c{font-size:8.8px;padding:0 2px}.qe-l5r{gap:3px;flex-wrap:wrap;justify-content:center;max-width:120px}}
 .qe-q{translate:-50% -100%}
 /* ── 2026-10-24 TOP8：創業ストーリー → VISION → ポートフォリオ → PHILOSOPHY ── */
-:is(#top,#pf) .qt-content>.qt-origin.qt-first{border-top:0;padding-top:clamp(104px,11vw,140px);padding-bottom:72px}
+:is(#top,#pf,#eco) .qt-content>.qt-origin.qt-first{border-top:0;padding-top:clamp(104px,11vw,140px);padding-bottom:72px}
 .qt-origin h1{font:400 clamp(28px,3.2vw,44px)/1.7 var(--serif);letter-spacing:.06em;margin:0;color:var(--ink)}
 html[lang="en"] .qt-origin h1{font-family:var(--latin);letter-spacing:0;line-height:1.35}
-:is(#top,#pf) .qt-origin.qt-first>div:first-child{align-self:start;position:static}
+:is(#top,#pf,#eco) .qt-origin.qt-first>div:first-child{align-self:start;position:static}
 .qt-vision-sec{border-top:1px solid #8bccca30;padding:clamp(72px,9vw,120px) 0;text-align:center}
 .qt-vision-sec .qt-kicker{margin:0 0 14px}
 .qt-vision-name{font:400 italic clamp(44px,6vw,84px)/1.1 var(--latin);letter-spacing:.02em;color:var(--ink);margin:0;text-shadow:0 0 34px #8fe6f033}
 .qt-vision-line{font:400 clamp(18px,1.8vw,24px)/1.8 var(--serif);letter-spacing:.16em;color:#dff6f1;margin:16px 0 0}
 html[lang="en"] .qt-vision-line{font-family:var(--latin);font-style:italic;letter-spacing:.03em}
-:is(#top,#pf) .qt-content>#appguide{margin-top:0}
+:is(#top,#pf,#eco) .qt-content>#appguide{margin-top:0}
 /* PHILOSOPHY の図：絵の中は短い説明と矢印、式は下の帯へ */
 .qe-arrows{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;overflow:visible}
 .qe-arrows path{fill:none;stroke:#d6fbfb;stroke-width:2;stroke-dasharray:6 4;marker-end:url(#qeArw);opacity:0;transition:opacity .4s;filter:drop-shadow(0 0 3px #03060f)}
@@ -859,7 +859,7 @@ html[lang="en"] .qf-t{font-family:var(--latin);letter-spacing:0;font-size:14px;l
 .qf-eq sub,.qf-eq sup{font-size:.72em;line-height:0}
 @media(max-width:1000px){.qp-es-flow{grid-template-columns:1fr}.qp-es-flow li{border-left:0;border-top:1px solid #8bccca22;grid-template-columns:1.4em 1fr;column-gap:8px;padding:11px 14px}.qp-es-flow li:first-child{border-top:0}.qp-es-flow li .qf-eq{grid-column:2}.qp-es-flow li+li::before{content:"↓";left:14px;top:-.62em}}
 @media(max-width:700px){
-  :is(#top,#pf) .qt-content>.qt-origin.qt-first{padding-top:88px;padding-bottom:40px}
+  :is(#top,#pf,#eco) .qt-content>.qt-origin.qt-first{padding-top:88px;padding-bottom:40px}
   .qt-origin h1{font-size:28px;line-height:1.65}
   .qt-origin>div:first-child{position:static}
   .qt-vision-sec{padding:64px 0 68px}
@@ -888,7 +888,7 @@ html.simple #bgRain{display:none}
 html[lang="en"] .vis-title{letter-spacing:.01em}
 .vis-lead{font:400 clamp(16px,1.5vw,18px)/2 var(--serif);letter-spacing:.06em;color:#dff6f1}
 html[lang="en"] .vis-lead{font-family:var(--latin);letter-spacing:0}
-:is(#top,#pf) .qt-content>.qt-umw .qp-head{margin-top:64px}
+:is(#top,#pf,#eco) .qt-content>.qt-umw .qp-head{margin-top:64px}
 /* 1.0：身体の感覚の泡だけの世界（電脳の枠・走査線・格子は使わない。土と夕方の光） */
 .um1 .qp-es-stage{background:radial-gradient(80% 70% at 45% 62%,#241c12,#0a0806 80%);border-color:#c9a27a33}
 .um1 .qp-es-stage::before,.um1 .qp-es-stage::after{display:none}
@@ -909,7 +909,7 @@ html[lang="en"] .vis-lead{font-family:var(--latin);letter-spacing:0}
 .um1 .um-now p{color:#f1e6d6}
 .um-note{font-size:13px!important;line-height:1.9!important;color:#8f9bb4!important}
 @media(max-width:700px){
-  :is(#top,#pf) .qt-content>.qt-umw .qp-head{margin-top:48px}
+  :is(#top,#pf,#eco) .qt-content>.qt-umw .qp-head{margin-top:48px}
   .vis-title{font-size:34px;letter-spacing:.1em}
   .um-l{font-size:10.5px;padding:1px 6px}.um-l small{font-size:8.6px}.um-s{font-size:11px}.um-c,.um-m{font-size:9.8px}
 }
