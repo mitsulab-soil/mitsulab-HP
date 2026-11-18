@@ -1,0 +1,54 @@
+/* Qualia エンジンの共通の見た目（2026-11-19）。色と書体は tokens.css。© mitsulab. All rights reserved. */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--qe-haze,#8e98a8);color:#eef5fb;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans",sans-serif;-webkit-tap-highlight-color:transparent}
+#qeCanvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.qe-shadow{text-shadow:0 0 2px #03060f,0 0 6px rgba(3,6,15,.95),0 1px 12px rgba(3,6,15,.8)}
+/* 上の帯：題・定義・切りかえ */
+#qeTop{position:fixed;left:0;right:0;top:0;z-index:20;padding:calc(10px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
+#qeTop .row{display:flex;align-items:center;gap:12px;pointer-events:auto}
+#qeTop a.back{color:#eef5fb;text-decoration:none;font-size:18px;min-width:40px;min-height:40px;display:inline-flex;align-items:center}
+#qeTop h1{font:400 18px/1.2 "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.06em}
+#qeTop .def{font:400 12px/1.4 "Hiragino Mincho ProN",serif;color:#dfe6f0;letter-spacing:.08em}
+#qeTop .def b{color:#9bdcf0;font-weight:400;font-style:italic;font-family:"Times New Roman",serif;font-size:14px;margin-right:4px}
+#qeModes{display:flex;gap:4px;padding:8px 0 0;pointer-events:auto;overflow-x:auto;scrollbar-width:none}
+#qeModes::-webkit-scrollbar{display:none}
+#qeModes button{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid rgba(238,245,251,.42);background:rgba(3,6,15,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#eef5fb;font:400 14px/1 "Hiragino Mincho ProN",serif;letter-spacing:.06em;cursor:pointer}
+#qeModes button[aria-pressed=true]{border-color:#5cc8e0;color:#04121a;background:#5cc8e0}
+#qeModes svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#qeModes .n{font:400 11px/1 Inter,sans-serif;opacity:.75}
+/* 二段目：受けとり方の中の選び（生き物など） */
+#qeSub{display:flex;gap:4px;padding:6px 0 0;pointer-events:auto;overflow-x:auto;scrollbar-width:none}
+#qeSub[hidden]{display:none}
+#qeSub button{flex:0 0 auto;min-height:36px;padding:0 13px;border-radius:999px;border:1px solid rgba(238,245,251,.3);background:rgba(3,6,15,.32);color:#eef5fb;font:400 13px/1 "Hiragino Mincho ProN",serif;cursor:pointer}
+#qeSub button[aria-pressed=true]{border-color:#9bdcf0;color:#9bdcf0}
+/* 共通の操作の札：右上＝一覧・説明（＋）、左下＝おわる、右下＝カメラ */
+.qe-btn{min-height:44px;min-width:44px;padding:0 14px;border-radius:999px;border:1px solid rgba(238,245,251,.42);background:rgba(3,6,15,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#eef5fb;font:400 14px/1 "Hiragino Mincho ProN",serif;letter-spacing:.06em;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.qe-btn:focus-visible,#qeModes button:focus-visible,#qeSub button:focus-visible{outline:2px solid #9bdcf0;outline-offset:2px}
+#qeTR{position:fixed;right:calc(12px + env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));z-index:21;display:flex;gap:6px}
+#qeBR{position:fixed;right:calc(12px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:21;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+#qeBL{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));z-index:21;display:flex;gap:6px}
+/* 字幕：画面の下に小さく、帯は敷かず影だけ */
+#qeCap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:19;width:min(640px,calc(100% - 140px));text-align:center;font:400 16px/1.65 "Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.04em;opacity:0;transition:opacity .35s;pointer-events:none;text-wrap:balance}
+#qeCap.on{opacity:1}
+#qeCap small{display:block;font-size:12px;color:#dfe6f0;margin-top:2px}
+/* 説明の面（＋） */
+#qeInfo{position:fixed;right:12px;top:calc(64px + env(safe-area-inset-top));z-index:30;width:min(420px,calc(100% - 24px));max-height:calc(100% - 140px);overflow:auto;padding:18px 18px 14px;border-radius:14px;background:rgba(3,6,15,.86);border:1px solid rgba(195,204,224,.28);font:400 14px/1.8 "Hiragino Mincho ProN",serif;color:#eef5fb}
+#qeInfo[hidden]{display:none}
+#qeInfo h2{font-size:16px;font-weight:400;margin-bottom:6px}
+#qeInfo .src{font-size:12px;color:#c3cce0;margin-top:10px}
+/* 読み込み：ロゴの線だけ */
+#qeLoad{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--qe-haze,#8e98a8);transition:opacity .5s}
+#qeLoad.out{opacity:0;pointer-events:none}
+#qeLoad i{display:block;width:44px;height:44px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:qer .9s linear infinite}
+@keyframes qer{to{transform:rotate(1turn)}}
+@media (max-width:520px){#qeTop h1{font-size:16px}#qeModes button{flex-direction:column;gap:2px;min-height:52px;padding:4px 8px;font-size:12px;border-radius:14px}#qeModes svg{width:16px;height:16px}#qeModes .n{font-size:9.5px}#qeCap{width:calc(100% - 32px);font-size:15px;bottom:calc(132px + env(safe-area-inset-bottom))}#qeTR{top:auto;bottom:calc(16px + env(safe-area-inset-bottom));right:auto;left:calc(12px + env(safe-area-inset-left))}#qeBL{bottom:calc(72px + env(safe-area-inset-bottom))}}
+@media (prefers-reduced-motion:reduce){#qeLoad i{animation:none}#qeCap{transition:none}}
+/* v2：描く先の要素（container）の中に描くとき */
+.qe-host{overflow:hidden}
+.qe-host #qeCanvas,.qe-host #qeTop,.qe-host #qeTR,.qe-host #qeBR,.qe-host #qeBL,.qe-host #qeCap,.qe-host #qeInfo,.qe-host #qeLoad{position:absolute}
+/* v2：札の列が画面より長いときは右端を淡くして、続きがあると分かるように */
+#qeModes,#qeSub{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);padding-right:24px}
+#qeTop .def{text-shadow:0 0 2px #03060f,0 0 6px rgba(3,6,15,.9)}#qeTop h1{text-shadow:0 0 2px #03060f,0 0 8px rgba(3,6,15,.8)}
+/* 2026-11-19：スマホは受けとり方の札を 1 段に収める（横に送らない）。字幕は碧をよけて左寄りの中央に */
+@media (max-width:520px){#qeModes{-webkit-mask-image:none;mask-image:none;padding-right:0;overflow:visible}#qeModes button{flex:1 1 0;min-width:0;padding:4px 1px;border-radius:12px}#qeModes .v{font-size:10.5px;letter-spacing:-.03em;white-space:nowrap}#qeModes .n{font-size:9px}#qeCap{left:12px;right:auto;transform:none;width:calc(100% - 120px);text-align:left}}
+@media (min-width:521px){#qeCap{left:calc(50% - 140px);width:min(560px,calc(100% - 420px))}}
