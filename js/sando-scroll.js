@@ -344,7 +344,7 @@ export async function start(sec) {
   let netTrees = false; function netAddTrees(arr) { if (netTrees) return; netTrees = true; arr.forEach(([x, y, z], i) => { if (i % (mob ? 3 : 2) === 0) addN(x, y + 2.2, z, 'object'); }); shrTrees.forEach(([x, y, z], i) => { if (i % 2 === 0) addN(x, y + 2.2, z, 'object'); }); buildNet(); }
   const glyph = (k) => k === 'place' ? [[-0.5, 0, 0], [0.5, 0, 0], [0, 0, -0.5], [0, 0, 0.5]] : k === 'object' ? [[-0.4, -0.4, 0], [0.4, -0.4, 0], [0.4, -0.4, 0], [0.4, 0.4, 0], [0.4, 0.4, 0], [-0.4, 0.4, 0], [-0.4, 0.4, 0], [-0.4, -0.4, 0]] : [[0, 0.5, 0], [0.45, -0.3, 0], [0.45, -0.3, 0], [-0.45, -0.3, 0], [-0.45, -0.3, 0], [0, 0.5, 0]];
   let netL = null, netG = null, linkA = null, glyphL = null, bitL = null, bitA = null, LINKS = [];
-  const netM = new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, depthWrite: false, fog: true, blending: T.AdditiveBlending });
+  const netM = new T.LineDashedMaterial({ vertexColors: true, dashSize: 1.6, gapSize: 0.9, transparent: true, opacity: 0, depthWrite: false, fog: true, blending: T.AdditiveBlending });
   const glyM = new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0, depthWrite: false, fog: true });
   const bitM = new T.LineDashedMaterial({ color: 0x9fe8f0, dashSize: 0.35, gapSize: 0.25, transparent: true, opacity: 0, depthWrite: false, fog: true });
   function buildNet() {
@@ -354,7 +354,7 @@ export async function start(sec) {
     const P = new Float32Array(LINKS.length * 6), Cc = new Float32Array(LINKS.length * 6); linkA = Cc;
     LINKS.forEach(([a, b], n) => { P.set([NODES[a].p.x, NODES[a].p.y, NODES[a].p.z, NODES[b].p.x, NODES[b].p.y, NODES[b].p.z], n * 6); });
     netG = new T.BufferGeometry(); netG.setAttribute('position', new T.BufferAttribute(P, 3)); netG.setAttribute('color', new T.BufferAttribute(Cc, 3));
-    netL = new T.LineSegments(netG, netM); netL.frustumCulled = false; S.add(netL);
+    netL = new T.LineSegments(netG, netM); netL.computeLineDistances(); netL.frustumCulled = false; S.add(netL);
     // 節の形
     const GP = [], GC = [], col = new T.Color(); NODES.forEach(nd => { col.setHex(KIND[nd.k]); const s = nd.k === 'place' ? 1.4 : 0.95; for (const v of glyph(nd.k)) { GP.push(nd.p.x + v[0] * s, nd.p.y + v[1] * s, nd.p.z + v[2] * s); GC.push(col.r, col.g, col.b); } });
     const gg = new T.BufferGeometry(); gg.setAttribute('position', new T.Float32BufferAttribute(GP, 3)); gg.setAttribute('color', new T.Float32BufferAttribute(GC, 3));
@@ -365,7 +365,7 @@ export async function start(sec) {
   }
   const netUpd = (p, wEye, wSoil, wShr) => {
     const vis = Math.max(wEye, 1 - sm((p - 0.1) / 0.06), wShr) * (1 - wSoil * 0.8);
-    netM.opacity = 0.9 * vis; glyM.opacity = 0.85 * vis; bitM.opacity = 0.8 * vis;
+    netM.opacity = 0.6 * vis; netM.dashOffset = -tt * 1.1; bitM.dashOffset = -tt * 0.7; glyM.opacity = 0.85 * vis; bitM.opacity = 0.8 * vis;
     if (!netG || vis < 0.01) return vis > 0.01;
     netUpd.k = (netUpd.k || 0) + 1; if (netUpd.k % 2) return true; const c = new T.Color(); const pr = p * 6;
     for (let n = 0; n < LINKS.length; n++) { const L = LINKS[n], s = Math.sin(tt * L[3] + L[2] + pr), w = (s > 0.25 ? Math.min(1, (s - 0.25) * 2.0) : 0) * 1.05, q = n * 6, lc = L[4];
