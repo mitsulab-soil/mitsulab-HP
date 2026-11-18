@@ -109,7 +109,13 @@ export async function createWorld(opt = {}) {
   const cap = $("p", { id: "qeCap", className: "qe-shadow", ariaLive: "polite" }, host);
   const info = $("section", { id: "qeInfo", hidden: true, role: "dialog", ariaLabel: "説明" }, host);
   const btn = (slot, label, fn, aria) => { const b = $("button", { className: "qe-btn", type: "button", innerHTML: label, onclick: fn }, { tr, br, bl }[slot]); if (aria) b.setAttribute("aria-label", aria); return b; };
-  let capT = 0; const say = (text, ms = 6000, small) => { clearTimeout(capT); cap.innerHTML = ""; cap.textContent = text; if (small) $("small", { textContent: small }, cap); cap.classList.add("on"); if (ms) capT = setTimeout(() => cap.classList.remove("on"), ms); };
+  let capK = 0; const _bb = new THREE.Box3(), _v3 = new THREE.Vector3(); const CAPK = ["left", "right", "width", "text-align", "top", "bottom"], capSet = o => { for (const k of CAPK) { if (o && k in o) cap.style.setProperty(k, o[k]); else cap.style.removeProperty(k); } };   /* 字幕の位置だけを変える（アプリが付けた押せる指定などは残す） */
+  const capAvoid = () => { if (!cap.classList.contains("on") || !aoi.root.visible) { capSet(null); return; }
+    _bb.setFromObject(aoi.root); if (_bb.isEmpty()) return; let x0 = 1e9, x1 = -1e9, y0 = 1e9; const W0 = innerWidth, H0 = innerHeight;
+    for (const px of [_bb.min.x, _bb.max.x]) for (const py of [_bb.min.y, _bb.max.y]) for (const pz of [_bb.min.z, _bb.max.z]) { _v3.set(px, py, pz).project(C); if (_v3.z > 1) continue; const sx = (_v3.x + 1) / 2 * W0, sy = (1 - _v3.y) / 2 * H0; x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); }
+    if (x1 < 0 || x0 > W0) { capSet(null); return; } capSet(null); const r = cap.getBoundingClientRect(); if (r.right < x0 + 6 || r.left > x1 - 6 || r.bottom < y0) return;
+    const L = x0 - 24, R = W0 - x1 - 24; if (Math.max(L, R) >= 150) capSet(L >= R ? { left: "12px", right: "auto", width: Math.round(L) + "px" } : { left: "auto", right: "12px", width: Math.round(R) + "px", "text-align": "right" }); else capSet({ bottom: "auto", top: "calc(178px + env(safe-area-inset-top))" }); };
+  let capT = 0; const say = (text, ms = 6000, small) => { clearTimeout(capT); cap.innerHTML = ""; cap.textContent = text; const sm = small && typeof small === "object" ? small.note : small; if (sm) $("small", { textContent: sm }, cap);   /* say(文, ms, "小さい一行") か say(文, ms, { note: "出典：…" }) */ cap.classList.add("on"); if (ms) capT = setTimeout(() => cap.classList.remove("on"), ms); };
   const helpBtn = btn("tr", "＋", () => { info.hidden = !info.hidden; }, "説明");
   const shot = btn("br", '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-2.5h5L16 7"/></svg>', () => { api.render(); canvas.toBlob(b => { const a = $("a", { href: URL.createObjectURL(b), download: (opt.title || "qualia").replace(/\W+/g, "_") + ".png" }); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }); }, "この画面を一枚の画像で保存（どこにも送りません）");
   /* 受けとり方（モード） */
@@ -195,6 +201,7 @@ export async function createWorld(opt = {}) {
       const ch = N("chest") || N("spine"); if (ch) ch.rotation.x = Math.sin(t * 1.6) * .012; const hd = N("head"); if (hd) { hd.rotation.y = Math.sin(t * .35) * .12; hd.rotation.x = Math.sin(t * .5) * .03; }
       aoi.vrm.update(dt); }
     if (rider) { rider.obj.updateWorldMatrix(true, false); rider.obj.getWorldQuaternion(_q); _p.copy(rider.off).applyQuaternion(_q).add(rider.obj.getWorldPosition(new THREE.Vector3())); C.position.copy(_p); C.quaternion.copy(_q); C.rotateX(pitch); }
+    if (mob && aoi.vrm && (++capK % 10 === 0)) capAvoid();   /* スマホ：字幕が碧の体にかからないよう、碧の反対側へ寄せる */
     api.emit("frame", { dt, t, wdt: dt * ts, clock: clockSec }); api.render(); rafId = requestAnimationFrame(frame); }
   rafId = requestAnimationFrame(frame);
   /* 最初のこまが描けたら幕を上げ、そのあと重いもの（植生・碧）を読む */
