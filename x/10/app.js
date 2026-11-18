@@ -221,7 +221,7 @@ function applySurface(v, keepParams = false) {
   $("#originT").textContent = T(v.origin === "photo" ? "origin.photo" : "origin.normal");
   for (const b of document.querySelectorAll("#chips .chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
   const fi = $("#faceS"); if (v.thumb) fi.src = v.thumb; else fi.src = `tex/${v.id}_t.webp?v=20261021`;
-  const fn = $("#faceSN"); if (v.label) { delete fn.dataset.t; fn.textContent = v.label; } else { fn.dataset.t = "s." + v.id; fn.textContent = T("s." + v.id); }
+  const fn = $("#faceSN"); if (v.label) { delete fn.dataset.t; fn.textContent = v.label; } else { fn.dataset.t = "s." + v.id; fn.textContent = T("s." + v.id); const sb = T("s." + v.id + ".sub"); if (sb && sb !== "s." + v.id + ".sub" && v.id !== "photo") { delete fn.dataset.t; fn.textContent = T("s." + v.id) + "（" + sb + "）"; } }   /* 11-19 札は具体の名（ケヤキ・畑の土…）で、見た目と合わせる */
 }
 // ---- 形に貼る（触覚の mixed reality）
 // 形のための光：後ろからの縁の光と、斜め上からの締まった主光（形を選んだときだけ点ける）

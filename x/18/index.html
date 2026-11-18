@@ -71,7 +71,8 @@ body:not(.solo) #note{display:none}
 @media (prefers-reduced-motion:reduce){#bShot.first{animation:none;box-shadow:0 0 0 2px #a8f2f6}}
 html,body{background:#5a6178}/* 第6周：3D の前も夕方の参道の色 */#qn,#cnt,#cnt2,footer,footer *{color:#fbf6ee!important;opacity:1!important;text-shadow:0 1px 3px rgba(40,24,16,.9),0 0 10px rgba(40,24,16,.6)}
 </style>
-<style id="r7">/* 11-10 第7周：題を切らない */#brand{white-space:nowrap;overflow:visible!important;max-width:none!important;text-overflow:clip!important}#brand .nm{display:inline!important}</style></head>
+<style id="r7">/* 11-10 第7周：題を切らない */#brand{white-space:nowrap;overflow:visible!important;max-width:none!important;text-overflow:clip!important}#brand .nm{display:inline!important}</style><style id="g19">/* 11-19 「おわる」を読める字に（灰色の地をやめ、線と字で示す） */#bEnd{background:transparent!important;color:#eef5fb!important;border:1px solid rgba(238,245,251,.6)!important;text-shadow:0 0 2px #03060f,0 1px 8px rgba(3,6,15,.9);opacity:1!important}body:not(.cam) #topr{opacity:.9}</style>
+</head>
 <body>
 <script src="loader/loader.js" data-max="1000"></script>
 <canvas id="c" aria-label="みんなの層を重ねた 3D の空間"></canvas>
@@ -107,7 +108,7 @@ html,body{background:#5a6178}/* 第6周：3D の前も夕方の参道の色 */#q
 <input type="file" id="pic" accept="image/*" capture="environment" style="display:none">
 <div id="end" role="dialog" aria-label="おわる"><div id="endb"><button class="big" id="bKeep">持ち帰る</button><button class="big" id="bBack">もどる</button><button class="big" id="bWipe">消す</button></div></div>
 <div id="drop">層のファイルを、ここに置く</div>
-<script type="module" src="web/app.js?v=20261110r6"></script>
+<script type="module" src="web/app.js?v=20261119a"></script>
 <script>document.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest(".big"))document.getElementById("bShot").classList.remove("first")},true)</script>
 </body>
 </html>

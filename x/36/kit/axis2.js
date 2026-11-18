@@ -2,7 +2,7 @@
    横の帯をなぞると時間の速さが変わる（真ん中＝いまの速さ・左＝遅く・右＝速く）。真ん中に戻すと大きさの画面へ。
    © mitsulab. All rights reserved. */
 (function(){
-  if(window.top!==window)return;
+  if(window.top!==window&&!(function(){try{return parent.__hubModes}catch(e){}})())return;
   var MIN=-10,MAX=13; /* time の範囲（10 のべき乗・1 秒あたり） */
   var css='#ax2{position:fixed;left:calc(240px + env(safe-area-inset-left));right:calc(240px + env(safe-area-inset-right));top:calc(62px + env(safe-area-inset-top));height:44px;z-index:2147483601;touch-action:none;cursor:ew-resize;user-select:none;-webkit-user-select:none;font-family:"Hiragino Mincho ProN","Yu Mincho",serif}'+
   '#ax2 .ln{position:absolute;left:0;right:0;top:20px;height:4px;border-radius:2px;background:linear-gradient(90deg,rgba(195,204,224,.15),rgba(195,204,224,.55) 50%,rgba(195,204,224,.15))}'+
@@ -36,7 +36,7 @@
   el.addEventListener('pointermove',function(e){if(drag){apply(at(e.clientX),true);e.stopPropagation()}});
   el.addEventListener('pointerup',function(e){drag=0;if(Math.abs(n)<.6)apply(0,true)});
   el.addEventListener('keydown',function(e){if(e.key==='ArrowRight')apply(n+.5,true);if(e.key==='ArrowLeft')apply(n-.5,true)});
-  addEventListener('qualia-mode',function(e){if(e.detail==='leaf')el.style.display='none';else{el.style.display='';el.classList.toggle('low',e.detail==='time');if(e.detail==='scale')apply(0,false)}});
-  function boot(){document.body.appendChild(el);apply(0,false);var q=new URLSearchParams(location.search).get('m');if(q==='leaf')el.style.display='none';el.classList.toggle('low',q==='time')}
+  addEventListener('qualia-mode',function(e){if(e.detail!=='time')el.style.display='none';else{el.style.display='';el.classList.add('low')}});   /* 11-19 大きさの画面では時間のつまみを出さない（なぞる操作を一つに）。時間の画面だけ下に出す */
+  function boot(){document.body.appendChild(el);apply(0,false);var q=new URLSearchParams(location.search).get('m');el.style.display=q==='time'?'':'none';el.classList.toggle('low',q==='time')}
   document.readyState==='loading'?addEventListener('DOMContentLoaded',boot):boot();
 })();

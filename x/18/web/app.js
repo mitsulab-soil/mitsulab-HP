@@ -97,7 +97,7 @@ S.add(new THREE.HemisphereLight("#ffe6cc", "#5a4a3a", 1.7)); sun = new THREE.Dir
     m.rotation.x = -Math.PI / 2; m.position.y = -.004; m.renderOrder = -1; S.add(m);
     // 2026-11-10 第4周：奥へ続く参道の砂利の道（場所として感じられるように）
     const t2 = t.clone(); t2.needsUpdate = true; t2.repeat.set(2, 14);
-    const road = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 30), new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: .62, color: "#cfc6b2", depthWrite: false }));
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 30), new THREE.MeshBasicMaterial({ map: t2, transparent: true, opacity: .92, color: "#d9d0bc", depthWrite: false }));   /* 11-19 砂利の道をはっきり */
     road.rotation.x = -Math.PI / 2; road.position.set(0, -.002, -11); road.renderOrder = -1; S.add(road);
     // 2026-11-10 第6周：問い「砂利を踏む音は、どこで変わる？」の出どころ＝道の先の、砂利が厚く敷かれた一か所（夕日に光る足あと）
     const gp = new THREE.Group(); gp.position.set(.35, .003, -2.6); const gm = new THREE.MeshBasicMaterial({ color: "#ffd9a0", transparent: true, opacity: .13, depthWrite: false, blending: THREE.AdditiveBlending });
@@ -110,7 +110,30 @@ S.add(new THREE.HemisphereLight("#ffe6cc", "#5a4a3a", 1.7)); sun = new THREE.Dir
     for (let i = 0; i < n; i++) { const side = i % 2 ? 1 : -1, k = Math.floor(i / 2); o.position.set(side * (2.3 + (k % 3) * .35), 3.5, 2 - k * 2.4); o.rotation.set(0, 0, side * .03); o.scale.setScalar(.85 + (k % 4) * .08); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }
     S.add(im);
     // 2026-11-10 第5周：幹にケヤキの樹皮の写真（CC0・碧の層と同じ）。黒い柱に見えないように
-    new THREE.TextureLoader().load("web/bark_zelkova.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 4); t.anisotropy = 4; mat.map = t; mat.needsUpdate = true; }); }
+    new THREE.TextureLoader().load("web/bark_zelkova.webp", t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 4); t.anisotropy = 4; mat.map = t; mat.needsUpdate = true; });
+    // 2026-11-19：枝と葉のある木・低木・シダ・草（Poly Haven CC0 の縮めた写し＝HP の参道と同じ）。3D を組んだあと、手が空いたときに読む。読めたら円柱の幹を消す
+    const vegLater = () => { const mob = innerWidth < 760; let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const gl = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3(), IV = new THREE.Matrix4();
+      const plant = async (url, pts, hMin, hMax) => { const g = await gl.loadAsync(url); g.scene.updateMatrixWorld(true);
+        const vars = g.scene.children.filter(c => { let h = false; c.traverse(m => { if (m.isMesh) h = true; }); return h; }); if (!vars.length) return;
+        vars.forEach((vn, vi) => { const list = pts.filter((_, i) => i % vars.length === vi); if (!list.length) return;
+          IV.copy(vn.matrixWorld).invert(); const ms = [], bb = new THREE.Box3(), tb = new THREE.Box3();
+          vn.traverse(m => { if (!m.isMesh) return; const rel = new THREE.Matrix4().multiplyMatrices(IV, m.matrixWorld); m.geometry.computeBoundingBox(); tb.copy(m.geometry.boundingBox).applyMatrix4(rel); bb.union(tb); ms.push([m, rel]); });
+          const sz = bb.getSize(new THREE.Vector3()), ctr = bb.getCenter(new THREE.Vector3()), toC = new THREE.Matrix4().makeTranslation(-ctr.x, -bb.min.y, -ctr.z);
+          ms.forEach(([m, rel]) => { if (m.material) { m.material.side = THREE.DoubleSide; if (m.material.map) { m.material.alphaTest = .4; m.material.transparent = false; } }
+            const ii = new THREE.InstancedMesh(m.geometry, m.material, list.length);
+            list.forEach(([x, z], i) => { const h = hMin + rnd() * (hMax - hMin), sc = h / Math.max(.01, sz.y); Q.setFromAxisAngle(V.set(0, 1, 0), rnd() * 6.283); SC.set(sc, sc, sc);
+              M4.compose(V.set(x, -.02, z), Q, SC).multiply(toC).multiply(rel); ii.setMatrixAt(i, M4); });
+            ii.frustumCulled = false; S.add(ii); }); }); };
+      const side = (n, dMin, dMax, z0, z1) => [...Array(n)].map(() => [(rnd() < .5 ? -1 : 1) * (dMin + rnd() * (dMax - dMin)), z0 + rnd() * (z1 - z0)]);
+      (async () => { try {
+        const tr = []; for (let k = 0; k < (mob ? 8 : 12); k++) for (const sd of [-1, 1]) tr.push([sd * (2.5 + rnd() * 1.2), 2 - k * 2.4 + (rnd() - .5) * .8]);
+        await plant("web/veg/broad_lo.glb", tr, 7, 11); im.visible = false;
+        await plant("web/veg/shrub_02.glb", side(mob ? 10 : 22, 1.7, 4, 3, -24), .7, 1.6);
+        await plant("web/veg/fern_02.glb", side(mob ? 16 : 36, 1.5, 3.6, 3, -22), .35, .7);
+        await plant("web/veg/grass_medium_02.glb", side(mob ? 24 : 60, 1.4, 4, 3, -24), .25, .5);
+      } catch (e) { console.warn("gaze veg", String(e && e.message || e)); } })(); };
+    (window.requestIdleCallback || (f => setTimeout(f, 600)))(vegLater, { timeout: 2500 }); }
 }
 // 2026-11-05：はじめて描く時の止まり（材質の中身の読み出し）を、網一つずつ別のこまに分ける。見えないほど小さくして描き、終わったら元の大きさで出す
 const yieldF = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));

@@ -72,3 +72,5 @@ SOFTWARE.
 
 碧の声：VOICEVOX:冥鳴ひまり（https://voicevox.hiroshiba.jp/ ・ https://meimeihimari.wixsite.com/himari ）
 碧の 3D（aoi.vrm）：© mitsulab（VRM のライセンス：作者のみ・再配布不可・改変不可）
+
+web/veg/（broad_lo・shrub_02・fern_02・grass_medium_02.glb）: Poly Haven（CC0・https://polyhaven.com/license）。縮めた写し（台帳 M-0957）。
