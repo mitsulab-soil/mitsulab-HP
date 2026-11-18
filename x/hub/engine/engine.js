@@ -34,7 +34,9 @@ export async function createWorld(opt = {}) {
   R.setPixelRatio(QE.has("pr1") ? 1 : Math.min(devicePixelRatio, small ? 1.25 : 2)); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
   const S = new THREE.Scene(); S.background = new THREE.Color(haze); S.fog = QE.has("nofog") ? null : new THREE.Fog(haze, 8, 46);
   const C = new THREE.PerspectiveCamera(60, 1, .03, 4000); C.position.set(0, 1.55, 6);
-  S.add(new THREE.HemisphereLight("#f2f0e6", "#5b4e3e", 1.5)); const sun = new THREE.DirectionalLight("#ffe7c2", 2.1); sun.position.set(4, 9, 3); S.add(sun);
+  const hemi = new THREE.HemisphereLight("#f2f0e6", "#5b4e3e", 1.5); S.add(hemi); const sun = new THREE.DirectionalLight("#ffe7c2", 2.1); sun.position.set(4, 9, 3); S.add(sun);
+  /* v2：時の速さ（1＝いま）。世界の時刻（秒）は 10 時から。速くすると日が動き、昼と夜が移る（模式） */
+  let ts = 1, clockSec = 10 * 3600; const hazeC = new THREE.Color(haze), nightC = new THREE.Color("#0b1220");
   const tl = new THREE.TextureLoader(), tex = (f, rep) => new Promise(ok => tl.load(BASE + "tex/" + f, t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); t.anisotropy = 8; ok(t); }, undefined, () => ok(null)));
   /* 地面：一面の土と、参道の砂利の帯 */
   /* v2：地面に起伏（道の両脇から外へ、ゆるい凹凸と根もとの盛り上がり）。道の上は平ら */
@@ -81,9 +83,9 @@ export async function createWorld(opt = {}) {
   const onKD = e => { keys[e.key.toLowerCase()] = 1; unlockAudio(); }, onKU = e => { keys[e.key.toLowerCase()] = 0; }; addEventListener("keydown", onKD); addEventListener("keyup", onKU);
   /* 受けとり方の色：画面全体に色の行列をかける（受けとり方の模式） */
   const rt = new THREE.WebGLRenderTarget(2, 2, { samples: small ? 0 : 4 }); rt.texture.colorSpace = THREE.SRGBColorSpace;
-  const post = new THREE.ShaderMaterial({ uniforms: { t: { value: rt.texture }, m: { value: new THREE.Matrix3() }, vig: { value: 0 }, blur: { value: 0 }, px: { value: new THREE.Vector2(1, 1) }, mono: { value: 0 } },
+  const post = new THREE.ShaderMaterial({ uniforms: { t: { value: rt.texture }, m: { value: new THREE.Matrix3() }, vig: { value: 0 }, blur: { value: 0 }, px: { value: new THREE.Vector2(1, 1) }, mono: { value: 0 }, split: { value: 0 } },
     vertexShader: "varying vec2 u;void main(){u=uv;gl_Position=vec4(position.xy,0.,1.);}",
-    fragmentShader: "uniform sampler2D t;uniform mat3 m;uniform float vig,blur,mono;uniform vec2 px;varying vec2 u;void main(){vec3 c=texture2D(t,u).rgb;if(blur>0.){vec3 s=vec3(0.);for(int i=-2;i<=2;i++)for(int j=-2;j<=2;j++)s+=texture2D(t,u+vec2(float(i),float(j))*px*blur).rgb;c=s/25.;}c=m*c;if(mono>1.5){float l=pow(clamp(dot(c,vec3(.3,.59,.11)),0.,1.),2.2);vec3 a=vec3(.02,.05,.14),b2=vec3(.1,.3,.48),d=vec3(.92,.45,.15),e=vec3(1.,.92,.62);c=l<.33?mix(a,b2,l/.33):l<.66?mix(b2,d,(l-.33)/.33):mix(d,e,(l-.66)/.34);}else if(mono>0.){float l=dot(c,vec3(.3,.59,.11));c=mix(c,vec3(l),mono);}float r=length(u-.5);c*=1.-vig*smoothstep(.3,.75,r);gl_FragColor=vec4(c,1.);}" });
+    fragmentShader: "uniform sampler2D t;uniform mat3 m;uniform float vig,blur,mono,split;uniform vec2 px;varying vec2 u;void main(){vec3 c0=texture2D(t,u).rgb;vec3 c=c0;if(blur>0.){vec3 s=vec3(0.);for(int i=-2;i<=2;i++)for(int j=-2;j<=2;j++)s+=texture2D(t,u+vec2(float(i),float(j))*px*blur).rgb;c=s/25.;}c=m*c;if(mono>1.5){float l=pow(clamp(dot(c,vec3(.3,.59,.11)),0.,1.),2.2);vec3 a=vec3(.02,.05,.14),b2=vec3(.1,.3,.48),d=vec3(.92,.45,.15),e=vec3(1.,.92,.62);c=l<.33?mix(a,b2,l/.33):l<.66?mix(b2,d,(l-.33)/.33):mix(d,e,(l-.66)/.34);}else if(mono>0.){float l=dot(c,vec3(.3,.59,.11));c=mix(c,vec3(l),mono);}float r=length(u-.5);c*=1.-vig*smoothstep(.3,.75,r);if(split>0.){if(u.x<.5)c=c0;if(abs(u.x-.5)<px.x*1.5)c=vec3(.93,.96,.98);}gl_FragColor=vec4(c,1.);}" });
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), post), pS = new THREE.Scene(), pC = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); pS.add(quad);
   let usePost = false;
   /* 大きさ：目の高さ（m）。1.55 が人。下げれば小さな生き物、上げれば鳥から空の上まで */
@@ -121,6 +123,8 @@ export async function createWorld(opt = {}) {
     setMode, setLabel(id, label) { const b = modesEl.querySelector(`[data-id="${id}"] .v`); if (b) b.textContent = label; },
     /* 色の行列（行優先の 9 つの数）。null で元の色 */
     setColor(mat, o = {}) { usePost = !!mat || !!o.vig || !!o.blur || !!o.mono; post.uniforms.m.value.set(...(mat || [1, 0, 0, 0, 1, 0, 0, 0, 1])); post.uniforms.vig.value = o.vig || 0; post.uniforms.blur.value = o.blur || 0; post.uniforms.mono.value = o.mono || 0; },
+    /* くらべる：画面の左半分を元の色、右半分を受けとり方の色にする（true/false） */
+    setSplit(on) { post.uniforms.split.value = on ? 1 : 0; },
     setEye(h) { eyeT = h; }, eye: () => eye, setFog(near, far) { if (S.fog) { S.fog.near = near; S.fog.far = far; } },
     render() { if (usePost) { R.setRenderTarget(rt); R.render(S, C); R.setRenderTarget(null); R.render(pS, pC); } else R.render(S, C); },
     walkTo(p) { target = p.clone(); } };
@@ -135,6 +139,14 @@ export async function createWorld(opt = {}) {
       S.traverse(o => { if (o.geometry) o.geometry.dispose(); const ms = o.material ? [].concat(o.material) : []; ms.forEach(m => { for (const k in m) if (m[k] && m[k].isTexture) m[k].dispose(); m.dispose(); }); });
       rt.dispose(); R.dispose(); try { R.forceContextLoss(); } catch (e) { } [canvas, load, top, tr, br, bl, cap, info].forEach(e => e && e.remove()); try { ac && ac.close(); } catch (e) { } },
     setBound(b) { bound = { ...bound, ...b }; },
+    /* 地面を平らに：flattenGround({ x, z, r, y = 0, edge = 1 })。中心 (x, z) から半径 r の内を高さ y に、外へ edge m でなめらかにつなぐ。何度呼んでもよい */
+    flattenGround(o) { const P = ground.geometry.attributes.position, y0 = o.y || 0, e = o.edge === undefined ? 1 : o.edge;
+      for (let i = 0; i < P.count; i++) { const gx = P.getX(i), gz = -P.getY(i), d = Math.hypot(gx - o.x, gz - o.z); if (d > o.r + e) continue; const k = d <= o.r ? 1 : 1 - (d - o.r) / e; P.setZ(i, P.getZ(i) * (1 - k) + y0 * k); }
+      P.needsUpdate = true; ground.geometry.computeVertexNormals(); ground.geometry.computeBoundingSphere(); },
+    /* 霞と空の色を自分で決めるとき true（エンジンの毎こまの霞・昼夜の色を止める） */
+    fogLock: false,
+    /* 時の速さ：setTimeScale(k)（1＝いま、1000＝千倍速）。worldTime() は世界の時刻（秒・0〜86400） */
+    setTimeScale(k) { ts = k; }, timeScale: () => ts, worldTime: () => clockSec, setWorldTime(sec) { clockSec = sec % 86400; },
     /* 向き：setView({ lookAt: [x, y, z] }) か setView({ yaw, pitch })。毎こまの向きはこの値から決まる（camera.lookAt は毎こま上書きされるので使わない） */
     setView(o) { if (o.lookAt) { const d = new THREE.Vector3().fromArray(o.lookAt).sub(C.position); yaw = Math.atan2(-d.x, -d.z); pitch = Math.atan2(d.y, Math.hypot(d.x, d.z)); } if (o.yaw !== undefined) yaw = o.yaw; if (o.pitch !== undefined) pitch = o.pitch; if (o.position) C.position.fromArray(o.position); },
     /* 碧の立ち位置：setAoi({ pos: [x,y,z], lookAt: [x,y,z] }) でそこに立たせる（lookAt を省くと今の向き）。follow() で、また少し前を一緒に歩く */
@@ -163,15 +175,16 @@ export async function createWorld(opt = {}) {
     if (target) { const d = new THREE.Vector3().subVectors(target, C.position); d.y = 0; const L = d.length(); if (L < .05) target = null; else { C.position.addScaledVector(d.normalize(), Math.min(L, sp)); yaw += (Math.atan2(-d.x, -d.z) - yaw) * 0 ; } }
     C.position.x = Math.max(-bound.x, Math.min(bound.x, C.position.x)); C.position.z = Math.max(bound.z0, Math.min(bound.z1, C.position.z));
     eye += (eyeT - eye) * Math.min(1, dt * 3); if (walkables.length > 1 || walkables[0] !== ground) { down1.set(new THREE.Vector3(C.position.x, 2000, C.position.z), DOWN); const hh = down1.intersectObjects(walkables, true)[0]; if (hh) groundY += (hh.point.y - groundY) * Math.min(1, dt * 6); } C.position.y = groundY + eye; C.near = Math.max(.005, eye * .02); C.far = Math.max(200, eye * 60); C.updateProjectionMatrix();
-    if (S.fog) { S.fog.far = Math.max(46, eye * 9); S.fog.near = Math.max(8, eye * .6); }   /* v2：高く上がるほど霞を厚く（並木の外の平らな地面が地平で切れて見えない） */ C.rotation.set(pitch, yaw, 0, "YXZ");
+    if (S.fog && !api.fogLock) { S.fog.far = Math.max(46, eye * 9); S.fog.near = Math.max(8, eye * .6); }   /* v2：高く上がるほど霞を厚く（並木の外の平らな地面が地平で切れて見えない） */ C.rotation.set(pitch, yaw, 0, "YXZ");
     /* 碧は少し前を、同じ速さで歩く */
     if (!aoiPin) { const ap = C.position.clone().addScaledVector(fwd, mob ? 4.4 : 3).addScaledVector(rt2, mob ? .62 : 1.35); ap.y = groundY;   /* v2：スマホは少し遠く・中寄りに（画面の右で切れない） */ aoi.root.position.lerp(ap, Math.min(1, dt * 1.2)); aoi.root.rotation.y += ((yaw + Math.PI) * 0 + Math.atan2(C.position.x - aoi.root.position.x, C.position.z - aoi.root.position.z) - aoi.root.rotation.y) * Math.min(1, dt * 2); }
+    clockSec = (clockSec + dt * ts) % 86400; { const a = (clockSec / 86400) * Math.PI * 2 - Math.PI / 2, h = Math.sin(a); sun.position.set(Math.cos(a) * 10, h * 10, 3); const day = Math.max(0, Math.min(1, h * 3 + .3)); sun.intensity = 2.1 * day; hemi.intensity = .35 + 1.15 * day; if (!api.fogLock) { S.background.copy(nightC).lerp(hazeC, day); if (S.fog) S.fog.color.copy(S.background); } }
     if (aoi.vrm) { /* v2：立っているときの小さな動き（息・腕・首）。棒立ちにしない */ const N = n => aoi.vrm.humanoid.getNormalizedBoneNode(n);
       for (const sd of ["left", "right"]) { const sg = sd === "left" ? 1 : -1; N(sd + "UpperArm")?.rotation.set(.05 + Math.sin(t * .9 + sg) * .03, sg * .08, sg * -(1.36 + Math.sin(t * 1.1) * .025)); N(sd + "LowerArm")?.rotation.set(0, sg * -.35, sg * -.12); }
       const ch = N("chest") || N("spine"); if (ch) ch.rotation.x = Math.sin(t * 1.6) * .012; const hd = N("head"); if (hd) { hd.rotation.y = Math.sin(t * .35) * .12; hd.rotation.x = Math.sin(t * .5) * .03; }
       aoi.vrm.update(dt); }
     if (rider) { rider.obj.updateWorldMatrix(true, false); rider.obj.getWorldQuaternion(_q); _p.copy(rider.off).applyQuaternion(_q).add(rider.obj.getWorldPosition(new THREE.Vector3())); C.position.copy(_p); C.quaternion.copy(_q); C.rotateX(pitch); }
-    api.emit("frame", { dt, t }); api.render(); rafId = requestAnimationFrame(frame); }
+    api.emit("frame", { dt, t, wdt: dt * ts, clock: clockSec }); api.render(); rafId = requestAnimationFrame(frame); }
   rafId = requestAnimationFrame(frame);
   /* 最初のこまが描けたら幕を上げ、そのあと重いもの（植生・碧）を読む */
   requestAnimationFrame(() => requestAnimationFrame(() => { load.classList.add("out"); setTimeout(() => load.remove(), 600);

@@ -9,6 +9,9 @@ const LABEL = { title: "Qualia/meaning", def: "意味づけ", koza: "高座", ut
 const MEDIA = { rakugo: "https://mitsulab-soil.github.io/aoi-shizen-rakugo/video/", song: "https://mitsulab.jp/x/08/" };
 const W = await createWorld({ title: LABEL.title, def: { sym: "M", text: LABEL.def }, haze: "#8e98a8", vegetation: false, bound: { x: 7, z0: -60, z1: 12 } });
 const { THREE, scene } = W, V = (x, y, z) => new THREE.Vector3(x, y, z);
+const Z0 = { koza: 0, uta: -16, kan: -32, mure: -48 };
+// 四つの間の地面を平らに（池の縁・館の床にこぶを出さない）
+if (W.flattenGround) { W.flattenGround({ x: 0, z: Z0.koza - 2, r: 6, y: 0, edge: 3 }); W.flattenGround({ x: 0, z: Z0.uta - 5, r: 8, y: 0, edge: 4 }); W.flattenGround({ x: 0, z: Z0.kan - 3, r: 7, y: 0, edge: 3 }); W.flattenGround({ x: 0, z: Z0.mure - 7, r: 16, y: 0, edge: 10 }); }
 const Z = { koza: 0, uta: -16, kan: -32, mure: -48 };
 const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .9 });
 const add = (g, m, x, y, z) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); scene.add(o); return o; };
@@ -50,7 +53,7 @@ const TL = new THREE.TextureLoader(), tx = (n, rep, srgb) => { const t = srgb ? 
 const pbr = (n, rep, o = {}) => new THREE.MeshStandardMaterial({ map: tx(n + "_diff", rep, 1), normalMap: tx(n + "_nor", rep), roughnessMap: tx(n + "_rough", rep), roughness: 1, ...o });
 const K = Z.kan - 3, hall = new THREE.Group(); scene.add(hall);
 const put = (g, m, x, y, z, ry = 0) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.rotation.y = ry; hall.add(o); return o; };
-const floor = put(new THREE.PlaneGeometry(9, 10), pbr("japanese_cedar_planks", [3, 3], { color: 0xa89c8e }), 0, .1, K); floor.rotation.x = -Math.PI / 2;
+const floor = put(new THREE.PlaneGeometry(9, 10), pbr("japanese_cedar_planks", [3, 3], { color: 0xa89c8e }), 0, .02, K); floor.rotation.x = -Math.PI / 2;
 const wallM = pbr("clay_plaster", [3, 1.4], { color: 0xfff6ea, emissive: 0x4a4640 });
 put(new THREE.PlaneGeometry(9, 4.2), wallM, 0, 2.1, K - 5);
 put(new THREE.PlaneGeometry(10, 4.2), wallM, -4.5, 2.1, K, Math.PI / 2); put(new THREE.PlaneGeometry(10, 4.2), wallM, 4.5, 2.1, K, -Math.PI / 2);
@@ -89,25 +92,26 @@ const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); lamp.position.set(0
 // 群れ：水際と群れ（Reynolds 1987 の三つの決まり）。選んだときに作る
 let water = null, birds = null, rain = null, steam = null, steamP = [], sitM = [], flyM = [], treesM = [], dry = 0, B = [], ride = false, wet = 0;
 const lead = new THREE.Object3D(); scene.add(lead);
-const m4 = new THREE.Object3D(), ctr = V(0, W.mobile ? 2.7 : 3.2, Z.mure - 7), N = 18;
+const m4 = new THREE.Object3D(), ctr = V(W.mobile ? -1.2 : 0, W.mobile ? 3.2 : 3.8, Z.mure - 10), N = 18;
+function pondShore() { const t = new THREE.TextureLoader().load("../hub/engine/tex/soil_forest.webp"); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 8); return new THREE.MeshStandardMaterial({ map: t, color: 0x9a8a78, roughness: .95 }); }
 function buildMure() { if (birds) return; birds = true;
-  water = add(new THREE.PlaneGeometry(14, 9), new THREE.MeshPhysicalMaterial({ color: 0x506e82, roughness: .12, metalness: 0, clearcoat: 1, clearcoatRoughness: .1 }), 0, .16, Z.mure - 7); water.rotation.x = -Math.PI / 2;
+  water = add(new THREE.PlaneGeometry(14, 9), new THREE.MeshPhysicalMaterial({ color: 0x506e82, roughness: .12, metalness: 0, clearcoat: 1, clearcoatRoughness: .1 }), 0, .04, Z.mure - 7); water.rotation.x = -Math.PI / 2;
   { const c = document.createElement("canvas"); c.width = c.height = 256; const g = c.getContext("2d"); const im = g.createImageData(256, 256); for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) { const a = Math.sin(x * .15 + Math.sin(y * .07) * 2) * .5 + Math.sin(y * .21 + x * .03) * .5, k = (y * 256 + x) * 4; im.data[k] = 128 + a * 40; im.data[k + 1] = 128 + Math.cos(y * .19 + x * .05) * 40; im.data[k + 2] = 255; im.data[k + 3] = 255; } g.putImageData(im, 0, 0);
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); water.material.normalMap = t; water.material.normalScale.set(.35, .35); water.material.needsUpdate = true; W.on("frame", ({ dt }) => { t.offset.x += dt * .01; t.offset.y += dt * .006; }); }
-  const shore = add(new THREE.RingGeometry(4.6, 6.2, 48), mat(0x4a4034), 0, .15, Z.mure - 7); shore.rotation.x = -Math.PI / 2; shore.scale.set(1.5, 1, 1);
-  B = [...Array(N)].map((_, i) => { const a = (i / N) * Math.PI * 2 + Math.random() * .3, r = 5.1 + Math.random() * .9; const h = V(Math.cos(a) * r * 1.5 + (Math.random() - .5) * .6, .02, Z.mure - 7 + Math.sin(a) * r); return { home: h, perch: h.clone(), p: h.clone(), v: V(0, 0, 0), yaw: Math.random() * 6.3, ph: Math.random() * 9 }; });
+  const shore = add(new THREE.RingGeometry(4.6, 6.2, 64), pondShore(), 0, .03, Z.mure - 7); shore.rotation.x = -Math.PI / 2; shore.scale.set(1.5, 1, 1);
+  B = [...Array(N)].map((_, i) => { const a = (i / N) * Math.PI * 2 + Math.random() * .3, r = 5.1 + Math.random() * .9; const h = V(Math.cos(a) * r * 1.5 + (Math.random() - .5) * .6, .02, Z.mure - 7 + Math.sin(a) * r); return { home: h, perch: h.clone(), p: h.clone(), v: V(0, 0, 0), yaw: Math.random() * 6.3, ph: Math.random() * 9, k: .7 + Math.random() * .6 }; });
   sitM = []; GL.load("models/suzume.glb", g => { g.scene.traverse(o => { if (o.isMesh && /suzume/i.test(o.name + (o.parent && o.parent.name))) { const im = new THREE.InstancedMesh(o.geometry, o.material, N); im.frustumCulled = false; scene.add(im); sitM.push(im); } }); });
   // 飛ぶ形：mitsulab が手続きで作った模式（体と、羽ばたく左右の翼）
   const brown = new THREE.MeshStandardMaterial({ color: 0x8a6446, roughness: .9 }), wingM = new THREE.MeshStandardMaterial({ color: 0x6a4a30, roughness: .9, side: THREE.DoubleSide }), dark = new THREE.MeshStandardMaterial({ color: 0x5a3a26, roughness: .9, side: THREE.DoubleSide });
   const body = new THREE.SphereGeometry(.05, 14, 10); body.scale(.9, .8, 1.6); // 丸みのある紡錘形（スズメの体長およそ 14 cm を模式に）
   const head = new THREE.SphereGeometry(.032, 12, 8); head.translate(0, .012, .07);
   const ws = new THREE.Shape(); ws.moveTo(0, .03); ws.quadraticCurveTo(.09, .045, .13, .0); ws.quadraticCurveTo(.12, -.035, .07, -.04); ws.quadraticCurveTo(.03, -.04, 0, -.02); // 短く先の丸い翼
-  const wing = new THREE.ExtrudeGeometry(ws, { depth: .006, bevelEnabled: true, bevelThickness: .003, bevelSize: .003, bevelSegments: 1, curveSegments: 6 }); wing.rotateX(-Math.PI / 2); wing.translate(.02, .01, 0);
+  const wing = new THREE.ExtrudeGeometry(ws, { depth: .006, bevelEnabled: true, bevelThickness: .003, bevelSize: .003, bevelSegments: 1, curveSegments: 6 }); wing.rotateX(-Math.PI / 2); wing.scale(1.35, 1, .7); wing.translate(.012, .01, 0);
   const tail = new THREE.ConeGeometry(.022, .07, 4); tail.rotateX(-Math.PI / 2); tail.scale(1.4, .35, 1); tail.translate(0, .004, -.1); // 短い尾
   flyM = [[body, brown], [wing, wingM], [wing.clone().scale(-1, 1, 1), wingM], [head, dark], [tail, dark]].map(([geo, mt]) => { const im = new THREE.InstancedMesh(geo, mt, N); im.frustumCulled = false; im.visible = false; scene.add(im); return im; });
   // 蒸散の線（太さのある細い帯。光の玉にはしない）
   const sgeo = new THREE.PlaneGeometry(.03, 1.1, 1, 12); { const p = sgeo.attributes.position; for (let k = 0; k < p.count; k++) { const y = p.getY(k); p.setX(k, p.getX(k) * (1 - (y + .55) / 1.3) + Math.sin(y * 9) * .05); } }
-  const SG = 160; steam = new THREE.InstancedMesh(sgeo, new THREE.MeshBasicMaterial({ color: 0xbfe2f0, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }), SG); steam.frustumCulled = false; scene.add(steam);
+  const SG = 220; steam = new THREE.InstancedMesh(sgeo, new THREE.MeshBasicMaterial({ color: 0xbfe2f0, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }), SG); steam.frustumCulled = false; scene.add(steam);
   steamP = [...Array(SG)].map(() => { const t = treesM[Math.floor(Math.random() * treesM.length)] || [6, Z.mure - 6]; return V(t[0] + (Math.random() - .5) * 3, 3.5 + Math.random() * 5, t[1] + (Math.random() - .5) * 3); });
   const rg = new THREE.BufferGeometry(), rp = new Float32Array(900 * 3); for (let k = 0; k < 900; k++) { rp[k * 3] = Math.random() * 14 - 7; rp[k * 3 + 1] = Math.random() * 8; rp[k * 3 + 2] = Z.mure - 2 - Math.random() * 12; }
   rg.setAttribute("position", new THREE.BufferAttribute(rp, 3)); rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xc8d0da, transparent: true, opacity: 0 })); scene.add(rain); }
@@ -142,13 +146,13 @@ function mureFrame(dt, t) { if (!birds || modeNow !== "mure") return; inMure += 
   else if (st === "tree") { let all = true; B.forEach(b => { _t.subVectors(b.perch, b.p); const L = _t.length(); if (L > .05) { all = false; b.p.addScaledVector(_t.normalize(), Math.min(L, dt * 5)); b.v.copy(_t).multiplyScalar(3); } }); if (all) setSit(); else drawFly(t); }
   else { for (const b of B) { _a.set(0, 0, 0); _c.set(0, 0, 0); _s.set(0, 0, 0); let n = 0;
       for (const o of B) { if (o === b) continue; const d = o.p.distanceToSquared(b.p); if (d < 9) { n++; _a.add(o.v); _c.add(o.p); if (d < 2.25) _s.add(_t.subVectors(b.p, o.p).divideScalar(d + .05)); } }
-      if (n) { b.v.lerp(_a.divideScalar(n), .05); b.v.addScaledVector(_c.divideScalar(n).sub(b.p), .01); b.v.addScaledVector(_s, .05); }
-      _t.subVectors(ctr, b.p); b.v.addScaledVector(_t, _t.length() > 5 ? .03 : .004); b.v.clampLength(2, 4); b.p.addScaledVector(b.v, dt); }
+      if (n) { b.v.lerp(_a.divideScalar(n), .05); b.v.addScaledVector(_c.divideScalar(n).sub(b.p), .01); b.v.addScaledVector(_s, .05 * b.k); }
+      _t.subVectors(ctr, b.p); b.v.addScaledVector(_t, _t.length() > 3.5 ? .05 : .006); b.v.clampLength(2 * b.k, 4 * b.k); b.v.y += Math.sin(t * 1.3 + b.ph) * .02; b.p.addScaledVector(b.v, dt); }
     drawFly(t); }
   lead.position.copy(B[0].p); lead.lookAt(_t.copy(B[0].p).sub(B[0].v));
   wet = Math.max(0, wet - dt * .08); water.material.color.setRGB(.31 - wet * .08, .43 - wet * .05, .51 + wet * .1);
   if (wet > 0 && wet < .5) dry = Math.min(1, dry + dt * .6); else dry = Math.max(0, dry - dt * .12);
-  steam.material.opacity = dry * .8; steam.visible = dry > 0; if (dry > 0) { steamP.forEach((p, k) => { p.y += dt * .45; if (p.y > 11) p.y = 3.5; m4.position.copy(p); m4.rotation.set(0, Math.atan2(W.camera.position.x - p.x, W.camera.position.z - p.z), 0); m4.scale.setScalar(1); m4.updateMatrix(); steam.setMatrixAt(k, m4.matrix); }); steam.instanceMatrix.needsUpdate = true;
+  steam.material.opacity = dry * .95; steam.visible = dry > 0; if (dry > 0) { steamP.forEach((p, k) => { p.y += dt * .45; if (p.y > 11) p.y = 3.5; m4.position.copy(p); m4.rotation.set(0, Math.atan2(W.camera.position.x - p.x, W.camera.position.z - p.z), 0); m4.scale.setScalar(1); m4.updateMatrix(); steam.setMatrixAt(k, m4.matrix); }); steam.instanceMatrix.needsUpdate = true;
     if (dry > .95 && !saidDry) { saidDry = true; W.say("雨のあと、土の水は根から木を通って、葉から空へ戻っていく（蒸散。見えない水蒸気を線で描いた模式）。", 7000); } }
   rain.material.opacity = wet * .5; rain.visible = wet > 0; if (wet > 0) { const p = rain.geometry.attributes.position; for (let k = 0; k < p.count; k += 2) { let y = p.getY(k) - dt * 9; if (y < 0) y += 8; p.setY(k, y); p.setY(k + 1, y + .25); p.setX(k + 1, p.getX(k)); p.setZ(k + 1, p.getZ(k)); } p.needsUpdate = true; }
 }
@@ -169,7 +173,7 @@ const src = e => `<p>${e.fic}</p>` + e.src.map(s => `<p>${s[0]}<br>${s[1]}</p>`)
 W.addMode({ id: "koza", label: LABEL.koza, name: "rakugo", icon: "ask",
   subs: ENM.map(e => ({ label: e.t, info: { title: e.t, body: e.lead + "<br>" + e.invite, src: src(e) } })),
   info: { title: "高座", body: "演目を選ぶと、その場で噺がはじまる。" },
-  enter(w, sub, changed) { buildKoza(); go(Z.koza); setTimeout(() => W.setAoi({ pos: [-2.3, 0, Z.koza - 1.2], lookAt: [0, 1.4, Z.koza + 4] }), 650); const e = ENM[sub]; if (changed && !new URL(location.href).searchParams.has("s")) { w.say("高座。演目を選ぶと、噺がはじまるよ。"); setTimeout(() => { if (curV || modeNow !== "koza") return; play(MEDIA.rakugo + ENM[0].slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(ENM[0].t); if (curV) { curV.position.y = 2.2; const v = curV.userData.video; v.muted = true; v.addEventListener("loadeddata", () => { v.currentTime = 6; v.pause(); }, { once: true }); } }, 900); return; } play(MEDIA.rakugo + e.slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(e.t); if (curV) curV.position.y = 2.2; w.say(e.lead, 7000); }, exit() { stop(); W.follow(); } });
+  enter(w, sub, changed) { buildKoza(); go(Z.koza); setTimeout(() => W.setAoi({ pos: [-2.3, 0, Z.koza - 1.2], lookAt: [0, 1.4, Z.koza + 4] }), 650); const e = ENM[sub]; if (changed && !new URL(location.href).searchParams.has("s")) { w.say("高座。演目を選ぶと、噺がはじまるよ。"); setTimeout(() => { if (curV || modeNow !== "koza") return; play(MEDIA.rakugo + ENM[0].slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(ENM[0].t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); const v = curV.userData.video; v.muted = true; v.addEventListener("loadeddata", () => { v.currentTime = 6; v.pause(); }, { once: true }); } }, 900); return; } play(MEDIA.rakugo + e.slug + "_" + vt() + ".mp4", Z.koza - 4.1); drawMekuri(e.t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); } w.say(e.lead, 7000); }, exit() { stop(); W.follow(); } });
 W.addMode({ id: "uta", label: LABEL.uta, name: "song", icon: "ear",
   subs: [{ label: LABEL.mv }, { label: LABEL.live }],
   info: { title: "《Breathing OS》", body: "碧がうたう、杜の息づかいの歌。1分45秒・音が出ます。息づかい＝湿った土と風のゆらぎのたとえ。", src: "楽曲：Suno（Pro Plan）／Hamza & Anderson 2005・Tyree & Zimmermann 2002・『神道事典』1994" },
@@ -191,5 +195,5 @@ W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
     else { if (sub === 0 && st === "tree") { st = "fly"; } w.say(ride ? "一羽のすぐ後ろから。近くの数羽に合わせて向きを変える（模式）。" : "岸にスズメの群れ。だれかが指図しているわけではないのに、飛ぶと向きがそろう。"); } },
   exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; } });
 const u = new URL(location.href).searchParams; W.setMode(u.get("m") || "koza", +(u.get("s") || 0));
-if (!u.get("m")) setTimeout(() => W.say("同じ蜂や土でも、噺で聞くか、歌で聴くか、本で読むか、群れで見るかで、受けとる意味が変わる。四つの間で、くらべてみて。", 7000), 1200);
+if (!u.get("m")) setTimeout(() => W.say("同じ蜂や土でも、\n噺で聞くか、歌で聴くか、\n本で読むか、群れで見るかで、\n受けとる意味が変わる。\n四つの間で、くらべてみて。", 7000), 1200);
 if (!u.get("m")) setTimeout(() => W.say("場所を選ばない道具。どこにいても、意味づけの型を持ち歩ける。", 6000), 8400);
