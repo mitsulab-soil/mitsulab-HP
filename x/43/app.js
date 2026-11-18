@@ -88,8 +88,8 @@ drawPage = function (h, lines) { curl = 1; const g = pg2; g.fillStyle = "#efe6d2
   let x = 60; for (const l of lines || []) x = col(l, x) || x; ptex.needsUpdate = true; };
 drawPage("つち百景", ["左に絵、右に文。押すと、碧が読みます。"]);
 const pageG = new THREE.PlaneGeometry(1.1, .69, 8, 1); const pp = pageG.attributes.position; for (let i = 0; i < pp.count; i++) pp.setZ(i, .05 * Math.sin(Math.abs(pp.getX(i)) / .55 * Math.PI / 2)); pageG.computeVertexNormals();
-const page3 = put(pageG, new THREE.MeshStandardMaterial({ map: ptex, roughness: .95, side: THREE.DoubleSide }), 0, 1.04, K - 1.2); page3.rotation.x = -1.05;
-const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); W.on("frame", ({ t }) => { if (modeNow !== "kan") return; lamp.intensity = 8 + Math.sin(t * 1.7) * .25 + Math.sin(t * 4.3) * .12; if (curl > 0) { curl = Math.max(0, curl - .04); page3.rotation.x = -1.05 + Math.sin(curl * Math.PI) * .12; } }); lamp.position.set(0, 3.9, K - 1); lamp.target.position.set(0, 1, K - 1.2); hall.add(lamp, lamp.target);
+const page3 = put(pageG, new THREE.MeshStandardMaterial({ map: ptex, roughness: .95, side: THREE.DoubleSide }), 0, 1.3, K - 1.05); page3.rotation.x = -.85; if (W.mobile) page3.scale.setScalar(.8);
+const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); W.on("frame", ({ t }) => { if (modeNow !== "kan") return; lamp.intensity = 8 + Math.sin(t * 1.7) * .25 + Math.sin(t * 4.3) * .12; if (curl > 0) { curl = Math.max(0, curl - .04); page3.rotation.x = -.85 + Math.sin(curl * Math.PI) * .12; } }); lamp.position.set(0, 3.9, K - 1); lamp.target.position.set(0, 1, K - 1.2); hall.add(lamp, lamp.target);
 }
 // 群れ：水際と群れ（Reynolds 1987 の三つの決まり）。選んだときに作る
 let water = null, birds = null, rain = null, steam = null, steamP = [], sitM = [], flyM = [], treesM = [], dry = 0, B = [], ride = false, wet = 0;
@@ -143,7 +143,7 @@ let vegDone = false; function plantVeg() { if (vegDone) return; vegDone = true; 
   const mu = n => new URL("models/" + n, location.href).href;
   W.setVegetation([{ file: mu("tree_small_02.glb"), pts: tr, h: [5, 8] }, { file: mu("shrub_04.glb"), pts: sh.filter((_, k) => k % 3 === 0), h: [.8, 1.4] }, { file: "fern_02.glb", pts: sh, h: [.4, .8] }]).catch(() => {}); }
 let modeNow = "", saidDry = false, st = "sit", inMure = 0; // sit（岸）→ fly → tree（雨で木へ）
-W.on("mode", e => { modeNow = e.id; document.body.classList.toggle("capTop", e.id === "kan" && W.mobile); const sb = document.getElementById("qeSub"); requestAnimationFrame(() => document.body.classList.toggle("subMore", !!sb && sb.scrollWidth > sb.clientWidth + 4)); });
+W.on("mode", e => { modeNow = e.id; document.body.classList.toggle("capTop", e.id === "kan"); const sb = document.getElementById("qeSub"); requestAnimationFrame(() => document.body.classList.toggle("subMore", !!sb && sb.scrollWidth > sb.clientWidth + 4)); });
 const takeOff = () => { if (st === "fly") return; st = "fly"; for (const b of B) b.v.set((rnd() - .5) * .8, 2 + rnd(), -1 - rnd()); W.say("一羽が飛ぶと、まわりもいっしょに飛び立つ。", 5000); };
 const _a = V(), _c = V(), _s = V(), _t = V(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
 const setSit = () => { B.forEach((b, i) => { b.ph += .016; const hop = st === "sit" ? Math.max(0, Math.sin(b.ph * 3)) * .04 : 0; m4.position.set(b.p.x, b.p.y + hop, b.p.z); m4.rotation.set(0, b.yaw + Math.sin(b.ph * .7) * .3, 0); m4.scale.setScalar(.3); m4.updateMatrix(); for (const im of sitM) im.setMatrixAt(i, m4.matrix); }); for (const im of sitM) { im.instanceMatrix.needsUpdate = true; im.visible = true; } flyM.forEach(m => m.visible = false); };
@@ -186,16 +186,21 @@ const src = e => `<p>${e.fic}</p>` + e.src.map(s => `<p>${s[0]}<br>${s[1]}</p>`)
 W.addMode({ id: "koza", label: LABEL.koza, name: "rakugo", icon: "ask",
   subs: ENM.map(e => ({ label: e.t, info: { title: e.t, body: e.lead + "<br>" + e.invite, src: src(e) } })),
   info: { title: "高座", body: "演目を選ぶと、その場で噺がはじまる。" },
-  enter(w, sub, changed) { buildKoza(); if (W.mobile) moveTo(V(0, 1.55, Z.koza + 2.2)); else go(Z.koza); setTimeout(() => W.setAoi({ pos: [-2.3, 0, Z.koza - 1.2], lookAt: [0, 1.4, Z.koza + 4] }), 650); const e = ENM[sub]; if (changed && !new URL(location.href).searchParams.has("s")) { w.say("高座。演目を選ぶと、噺がはじまるよ。"); setTimeout(() => { if (curV || modeNow !== "koza") return; play(MEDIA.rakugo + ENM[0].slug + "_" + vt() + ".mp4", Z.koza - 4.1, pst(ENM[0])); drawMekuri(ENM[0].t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); const v = curV.userData.video; v.muted = true; v.addEventListener("loadeddata", () => { v.currentTime = 6; v.pause(); }, { once: true }); } }, 900); return; } play(MEDIA.rakugo + e.slug + "_" + vt() + ".mp4", Z.koza - 4.1, pst(e)); drawMekuri(e.t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); } w.say(e.lead, 7000); }, exit() { stop(); W.follow(); } });
+  enter(w, sub, changed) { buildKoza(); if (W.mobile) moveTo(V(0, 1.55, Z.koza + 2.2)); else go(Z.koza); setTimeout(() => W.setAoi({ pos: W.mobile ? [-1.55, 0, Z.koza - 2.3] : [2.9, 0, Z.koza - 1.2], lookAt: [0, 1.4, Z.koza + 4] }), 650); const e = ENM[sub]; if (changed && !new URL(location.href).searchParams.has("s")) { w.say("高座。演目を選ぶと、噺がはじまるよ。"); setTimeout(() => { if (curV || modeNow !== "koza") return; play(MEDIA.rakugo + ENM[0].slug + "_" + vt() + ".mp4", Z.koza - 4.1, pst(ENM[0])); drawMekuri(ENM[0].t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); const v = curV.userData.video; v.muted = true; v.addEventListener("loadeddata", () => { v.currentTime = 6; v.pause(); }, { once: true }); } }, 900); return; } play(MEDIA.rakugo + e.slug + "_" + vt() + ".mp4", Z.koza - 4.1, pst(e)); drawMekuri(e.t); if (curV) { curV.position.y = 2.2; if (W.mobile) curV.scale.setScalar(1.3); } w.say(e.lead, 7000); }, exit() { stop(); W.follow(); } });
 W.addMode({ id: "uta", label: LABEL.uta, name: "song", icon: "ear",
   subs: [{ label: LABEL.mv }, { label: LABEL.live }],
   info: { title: "《Breathing OS》", body: "碧がうたう、杜の息づかいの歌。1分45秒・音が出ます。息づかい＝湿った土と風のゆらぎのたとえ。", src: "楽曲：Suno（Pro Plan）／Hamza & Anderson 2005・Tyree & Zimmermann 2002・『神道事典』1994" },
   enter(w, sub) { plantVeg(); buildStage(); stage.visible = sub === 1; go(Z.uta); play(MEDIA.song + (sub ? "live" : "mv") + "_540.mp4", sub ? Z.uta - 4.5 : Z.uta - 4, (sub ? "poster/live.webp" : "poster/mv.webp")); if (sub && curV) curV.position.y = 2.2; w.say(sub ? "同じ歌を、舞台で。" : "同じ歌を、杜で。"); }, exit: stop });
 let pages = null;
 W.addMode({ id: "kan", label: LABEL.kan, name: "museum", icon: "book",
-  subs: [{ label: "つち百景" }],
+  subs: [{ label: "つち百景" }, { label: "蜂の本" }, { label: "蛾の本" }, { label: "歌の本" }],
   info: { title: "館", body: "書架の本をひらくと、碧が頁を読む。押すたびに次の頁。" },
-  async enter(w) { buildHall(); moveTo(V(-.35, 1.55, Z.kan - 3 - 1.2 + 1.35)); setTimeout(() => W.setAoi({ pos: [-1.15, 0, Z.kan - 3 - 2.6], lookAt: [-.35, 1.4, Z.kan - 3 + .15] }), 650); pages = pages || await (await fetch("data/museum-pages.json")).json().catch(() => ({}));
+  async enter(w, sub) { buildHall(); moveTo(V(-.35, 1.55, Z.kan - 3 - 1.2 + 1.35)); setTimeout(() => W.setAoi({ pos: [-1.15, 0, Z.kan - 3 - 2.6], lookAt: [-.35, 1.4, Z.kan - 3 + .15] }), 650); pages = pages || await (await fetch("data/museum-pages.json")).json().catch(() => ({}));
+    const LINK = [null, { e: 0, to: ["koza", 0], go: "高座で「蜂の目」を聞く" }, { e: 2, to: ["koza", 2], go: "高座で「蛾の恋文」を聞く" }, { song: 1, to: ["uta", 0], go: "中庭の杜で歌を聴く" }];
+    const L = LINK[sub || 0];
+    if (L) { const e = L.e != null ? ENM[L.e] : null; const h = e ? e.t : "《Breathing OS》";
+      const lines = e ? [e.lead, e.invite, "本を閉じて、" + L.go + "。"] : ["碧がうたう、杜の息づかいの歌。", "息づかいは、湿った土と風のゆらぎのたとえ。", "本を閉じて、" + L.go + "。"];
+      drawPage(h, lines); w.sayLines(lines, { hint: "押して進む → " + L.go, done: () => W.setMode(L.to[0], L.to[1]) }); return; }
     const pg = (pages.tsuchi || []).filter(p => !(p.R && p.R.t === "toc")); let i = 0;
     const show = () => { const p = pg[i]; if (!p) return; drawPage(p.h, p.say); w.sayLines(p.say || [], { hint: p.h, done: () => { i = (i + 1) % pg.length; show(); } }); }; show();
   }, exit() { W.follow(); } });
@@ -203,7 +208,7 @@ W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
   subs: [{ label: LABEL.calm }, { label: LABEL.eye }, { label: LABEL.rain }],
   info: { title: "群れ", body: "群れは三つの決まり（離れる・そろう・寄る）で動く模式。飛ぶ形は模式（体と翼だけ）。雨は土にしみ、木から空へ戻る（模式）。", src: "Reynolds 1987, Computer Graphics 21(4): 25–34／Horton 1933／Jasechko ほか 2013, Nature 496<br>とまっている 3D：\"スズメ Tree sparrow\" by Tit_birdy, CC BY 4.0／飛ぶ形：mitsulab が手続きで作った模式" },
   enter(w, sub) { plantVeg(); buildMure(); ride = sub === 1; if (ride) takeOff(); w.attachEye(ride ? lead : null, [0, 1.2, 4.5]); W.aoi.root.visible = !ride; W.camera.near = ride ? 1.2 : .03; W.camera.updateProjectionMatrix(); if (!ride) { go(Z.mure); setTimeout(() => { if (modeNow === "mure" && !ride) W.setAoi({ pos: [W.mobile ? 1.2 : 2.5, 0, Z.mure - .6], lookAt: [0, 1.4, Z.mure + 4] }); }, 700); }
-    if (sub === 2) { wet = 1; saidDry = false; const near = treesM.slice().sort((a, b) => (b[1] - a[1])).slice(0, 2); B.forEach((b, i) => { const tt = i < 4 ? near[i % near.length] || [6, Z.mure - 6] : treesM[Math.floor(rnd() * treesM.length)] || [6, Z.mure - 6]; if (i < 4) b.perch.set(tt[0] - Math.sign(tt[0]) * (.6 + rnd() * .5), 1.7 + rnd() * .6, tt[1] + 1 + rnd() * .5); else b.perch.set(tt[0] + (rnd() - .5) * 2.4, 2.6 + rnd() * 2.2, tt[1] + (rnd() - .5) * 2.4); });
+    if (sub === 2) { wet = 1; saidDry = false; const near = treesM.slice().sort((a, b) => (b[1] - a[1])).slice(0, 2); B.forEach((b, i) => { const tt = i < 4 ? near[i % near.length] || [6, Z.mure - 6] : treesM[Math.floor(rnd() * treesM.length)] || [6, Z.mure - 6]; if (i < 4) b.perch.set(tt[0] - Math.sign(tt[0]) * (.5 + (i >> 1) * .6 + rnd() * .2) * (tt[0] > 0 ? 1.6 : 1), 2.2 + (i >> 1) * 1.2 + rnd() * .3, tt[1] + .3 + (i >> 1) * 1.2); else b.perch.set(tt[0] + (rnd() - .5) * 2.4, 2.6 + rnd() * 2.2, tt[1] + (rnd() - .5) * 2.4); });
       if (st === "sit") { B.forEach(b => b.v.set(0, 2, 0)); } st = "tree"; w.say("雨。スズメは木の中へ退いて、雨がやむのを待つ。雨は土にしみて、やがて木から空へ戻っていく（模式）。"); }
     else { if (sub === 0 && st === "tree") { st = "fly"; } w.say(ride ? "一羽のすぐ後ろから。近くの数羽に合わせて向きを変える（模式）。" : "岸にスズメの群れ。だれかが指図しているわけではないのに、飛ぶと向きがそろう。", ride ? 12000 : 6000); } },
   exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; W.follow(); W.camera.near = .03; W.camera.updateProjectionMatrix(); } });
