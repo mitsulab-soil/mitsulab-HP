@@ -56,10 +56,10 @@ const pbr = (n, rep, o = {}) => new THREE.MeshStandardMaterial({ map: tx(n + "_d
 const K = Z.kan - 3, hall = new THREE.Group(); scene.add(hall);
 const put = (g, m, x, y, z, ry = 0) => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.rotation.y = ry; hall.add(o); return o; };
 const floor = put(new THREE.PlaneGeometry(9, 10), pbr("japanese_cedar_planks", [3, 3], { color: 0xa89c8e }), 0, .02, K); floor.rotation.x = -Math.PI / 2;
-const wallM = pbr("clay_plaster", [3, 1.4], { color: 0xfff6ea, emissive: 0x4a4640 });
+const wallM = pbr("clay_plaster", [3, 1.4], { color: 0xfff8ee, emissive: 0x6a645c });
 put(new THREE.PlaneGeometry(9, 4.2), wallM, 0, 2.1, K - 5);
 put(new THREE.PlaneGeometry(10, 4.2), wallM, -4.5, 2.1, K, Math.PI / 2); put(new THREE.PlaneGeometry(10, 4.2), wallM, 4.5, 2.1, K, -Math.PI / 2);
-const pilM = pbr("japanese_cedar_planks", [.3, 2], { color: 0xd8c4a8 }), pil = new THREE.BoxGeometry(.24, 4.2, .24);
+const pilM = pbr("japanese_cedar_planks", [.3, 2], { color: 0xe4d2b8, emissive: 0x241c14 }), pil = new THREE.BoxGeometry(.24, 4.2, .24);
 for (const x of [-4.4, -1.5, 1.5, 4.4]) for (const z of [K - 4.9, K + 4.6]) put(pil, pilM, x, 2.1, z);
 put(new THREE.BoxGeometry(9, .22, .26), pilM, 0, 4.1, K - 4.9); // 長押
 // 手前の面（中央を戸口にあける）と屋根
@@ -207,9 +207,9 @@ W.addMode({ id: "kan", label: LABEL.kan, name: "museum", icon: "book",
       const lines = e ? [e.lead, e.invite, "本を閉じて、" + L.go + "。"] : ["碧がうたう、杜の息づかいの歌。", "息づかいは、湿った土と風のゆらぎのたとえ。", "本を閉じて、" + L.go + "。"];
       drawPage(h, lines); w.sayLines(lines, { hint: "押して進む → " + L.go, done: () => W.setMode(L.to[0], L.to[1]) }); return; }
     const pg = (pages.tsuchi || []).filter(p => !(p.R && p.R.t === "toc")); let i = 0;
-    const show = () => { const p = pg[i]; if (!p) return; const go2 = (img, cap) => { if (modeNow !== "kan") return; drawPage(p.h, p.say, img, cap); w.sayLines(p.say || [], { hint: p.h, done: () => { i = (i + 1) % pg.length; show(); } }); };
+    const show = () => { const p = pg[i]; if (!p) return; const go2 = (img, cap) => { if (modeNow !== "kan") return; { const nL = (pg[(i + 1) % pg.length] || {}).L || {}; const nw = nL.t === "fig" && figs && figs[nL.k] && figs[nL.k][nL.wi]; if (nw && nw.f) preImg(nw.f); } drawPage(p.h, p.say, img, cap); w.sayLines(p.say || [], { hint: p.h, done: () => { i = (i + 1) % pg.length; show(); } }); };
       const L = p.L || {}, fw = L.t === "fig" && figs && figs[L.k] && figs[L.k][L.wi];
-      if (fw && fw.f) { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => go2(im, fw.t); im.onerror = () => go2(null); im.src = fw.f; w.say("頁をひらいています。", 0); } else go2(null); }; show();
+      if (fw && fw.f) { const im = preImg(fw.f); if (im.complete && im.naturalWidth) go2(im, fw.t); else { im.onload = () => go2(im, fw.t); im.onerror = () => go2(null); w.say("頁をひらいています。", 0); } } else go2(null); }; show();
   }, exit() { W.follow(); } });
 W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
   subs: [{ label: LABEL.calm }, { label: LABEL.eye }, { label: LABEL.rain }],
@@ -219,6 +219,8 @@ W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
       if (st === "sit") { B.forEach(b => b.v.set(0, 2, 0)); } st = "tree"; w.say("雨。スズメは木の中へ退いて、雨がやむのを待つ。雨は土にしみて、やがて木から空へ戻っていく（模式）。"); }
     else { if (sub === 0 && st === "tree") { st = "fly"; } w.say(ride ? "一羽のすぐ後ろから。近くの数羽に合わせて向きを変える（模式）。" : "岸にスズメの群れ。だれかが指図しているわけではないのに、飛ぶと向きがそろう。", ride ? 12000 : 6000); } },
   exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; W.follow(); W.camera.near = .03; W.camera.updateProjectionMatrix(); } });
+const IMGC = {}; const preImg = f => { if (!f || IMGC[f]) return IMGC[f]; const im = new Image(); im.crossOrigin = "anonymous"; im.src = f; IMGC[f] = im; return im; };
+setTimeout(async () => { try { figs = figs || await (await fetch("data/tsuchi-figs.json")).json(); Object.values(figs).slice(0, 3).forEach(a => a.forEach(w => w.f && preImg(w.f))); } catch (e) {} }, 2000);
 const u = new URL(location.href).searchParams; W.setMode(u.get("m") || "koza", +(u.get("s") || 0));
-if (!u.get("m")) setTimeout(() => W.say("同じ蜂や土でも、\n噺で聞くか、歌で聴くか、\n本で読むか、群れで見るかで、\n受けとる意味が変わる。\n四つの間で、くらべてみて。", 7000), 1200);
-if (!u.get("m")) setTimeout(() => W.say("場所を選ばない道具。どこにいても、意味づけの型を持ち歩ける。", 6000), 8400);
+if (!u.get("m")) setTimeout(() => modeNow === "koza" && W.say("同じ蜂や土でも、\n噺で聞くか、歌で聴くか、\n本で読むか、群れで見るかで、\n受けとる意味が変わる。\n四つの間で、くらべてみて。", 7000), 1200);
+if (!u.get("m")) setTimeout(() => modeNow === "koza" && W.say("場所を選ばない道具。どこにいても、意味づけの型を持ち歩ける。", 6000), 8400);
