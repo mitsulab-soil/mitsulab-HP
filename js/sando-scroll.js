@@ -12,7 +12,7 @@ export async function start(sec) {
   const I = new Int16Array(buf), q = meta.q, CP = meta.center, o = CP[Math.floor(CP.length / 2)];
   const R = new T.WebGLRenderer({ canvas: cv, antialias: !mob, alpha: false, powerPreference: 'high-performance' });
   R.setPixelRatio(Math.min(devicePixelRatio || 1, mob ? 1.25 : 1.5)); R.setClearColor(0x15243c, 1);
-  R.outputColorSpace = T.SRGBColorSpace; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 0.95;
+  R.outputColorSpace = T.SRGBColorSpace; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.04;
   const S = new T.Scene(), FOG = new T.Color(0x15243c); S.fog = new T.FogExp2(FOG.getHex(), 0.003);
   const C = new T.PerspectiveCamera(mob ? 66 : 52, 1, 0.1, 1400);
   const hemi = new T.HemisphereLight(0x9fc8ff, 0x2a2214, 1.7); S.add(hemi);
@@ -365,7 +365,7 @@ export async function start(sec) {
   }
   const netUpd = (p, wEye, wSoil, wShr) => {
     const vis = Math.max(wEye, 1 - sm((p - 0.1) / 0.06), wShr) * (1 - wSoil * 0.8);
-    netM.opacity = 0.6 * vis; netM.dashOffset = -tt * 1.1; bitM.dashOffset = -tt * 0.7; glyM.opacity = 0.85 * vis; bitM.opacity = 0.8 * vis;
+    netM.opacity = 0.6 * vis * (1 - 0.7 * wShr); netM.dashOffset = -tt * 1.1; bitM.dashOffset = -tt * 0.7; glyM.opacity = 0.85 * vis; bitM.opacity = 0.8 * vis;
     if (!netG || vis < 0.01) return vis > 0.01;
     netUpd.k = (netUpd.k || 0) + 1; if (netUpd.k % 2) return true; const c = new T.Color(); const pr = p * 6;
     for (let n = 0; n < LINKS.length; n++) { const L = LINKS[n], s = Math.sin(tt * L[3] + L[2] + pr), w = (s > 0.25 ? Math.min(1, (s - 0.25) * 2.0) : 0) * 1.05, q = n * 6, lc = L[4];
@@ -434,9 +434,9 @@ export async function start(sec) {
     toriiM.opacity = 0.95 * (1 - (mob ? 0.85 : 0.3) * (1 - sm(p / 0.12))); lineM.opacity = 0.85 * (1 - wBat * 0.5) * (1 - wSoil * 0.6) * (1 - 0.7 * (1 - sm(p / 0.12)));
     pave.opacity = leaf.opacity = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil * 0.75) * (1 - wBat * 0.6); soilG.opacity = pave.opacity * 0.9; if (mossM) mossM.opacity = Math.min(1, pave.opacity * 1.1); { const wc = window.__sdClose || 0; if (wc > 0.001) { pave.opacity = leaf.opacity = Math.max(pave.opacity, wc); soilG.opacity = Math.max(soilG.opacity, wc * 0.9); if (mossM) mossM.opacity = Math.max(mossM.opacity, wc); UDAP.value = Math.max(UDAP.value, 0.6 * wc); } } UT.value = tt; UDAP.value = 0.75 * (1 - wBat) * (1 - wSoil);
     pave.color.setHex(0x9a968c); leaf.color.setHex(0xd2c6b0);
-    rootM.opacity = wSoil * 0.9;
+    rootM.opacity = wSoil * 0.3;
     hemi.intensity = 1.0 + wBat * 1.4 + wEye * 0.5; hemi.color.setHex(wBat > 0.5 ? 0x8fb4ff : 0x9fc8ff);
-    soilMats.forEach(([m, op]) => m.opacity = op * wSoil); dropM.opacity = 0;
+    soilMats.forEach(([m, op]) => m.opacity = op * wSoil * 0.35); dropM.opacity = 0;
     if (wSoil > 0.01) { const pa = dropG.attributes.position; for (let i = 0; i < dropY0.length; i++) pa.array[i * 3 + 1] = dropY0[i] - ((tt * 0.25 + i * 0.137) % 1) * 1.2; pa.needsUpdate = true; }
     bugM.opacity = 0;
     if (wBat > 0.01) { const pa = bugG.attributes.position, ca = bugG.attributes.color, fw = new T.Vector3(B.x - A.x, 0, B.z - A.z).normalize();
@@ -453,7 +453,7 @@ export async function start(sec) {
       if (bat) { r.position.set(C.position.x, A.y + 0.08, C.position.z); r.scale.setScalar(1.5 + f * 30); r.material.color.setHex(0xc8ecff); r.material.opacity = rk * (1 - f); }
       else if (t0) { r.position.set(t0[0], t0[1] + 1.4, t0[2]); r.scale.setScalar(0.3 + (i + f) * 0.45); r.material.color.setHex(0xf2c58a); r.material.opacity = rk * 0.7; }
       else r.material.opacity = 0; });
-    const wShr = sm((p - 0.705) / 0.03); shrMats.forEach(([m, o]) => m.opacity = o * wShr * 0.8); SHR.visible = wShr > 0.01;
+    const wShr = sm((p - 0.705) / 0.03); shrMats.forEach(([m, o]) => m.opacity = o * wShr * (mob ? 0.32 : 0.42)); SHR.visible = wShr > 0.01;
     const fxa = fx2(p, u, wEye, wSoil, wBee, wBat); const nta = netUpd(p, wEye, wSoil, wShr);
     skyD.position.copy(C.position); skyM.uniforms.uO.value = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil) * (1 - wBat * 0.8) * (1 - wBee * 0.6) * 0.32;
     if (wEye > 0.01) loadTex();
