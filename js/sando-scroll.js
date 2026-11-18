@@ -142,7 +142,7 @@ export async function start(sec) {
   const bugM = new T.PointsMaterial({ map: dot, vertexColors: true, size: 0.5, sizeAttenuation: true, transparent: true, opacity: 0, fog: true, depthWrite: false, blending: T.AdditiveBlending }); { const bp = new T.Points(bugG, bugM); bp.frustumCulled = false; S.add(bp); }
 
   // 4b) 欅（Qualium 大宮の参道の欅の型）：写実の樹を参道の並木の位置に。目の高さに降りる前に読む
-  const treeMeshes = []; let mossM = null, treeSel = []; const stk = sec.querySelector('.sd-stick'), base0 = mob ? 0.33 : 0.4;
+  const treeMeshes = []; let mossM = null, treeSel = []; const stk = sec.querySelector('.sd-stick'), base0 = mob ? 0.42 : 0.4;
   const loadTrees = async () => { try {
     const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
     const gl = new GLTFLoader(); gl.setMeshoptDecoder(MeshoptDecoder);
@@ -290,13 +290,24 @@ export async function start(sec) {
   const SIDE = new T.Vector3(-DE.z, 0, DE.x), ang = Math.atan2(DE.x, DE.z);
   const at = (f, s, y = 0) => new T.Vector3(PE.x + DE.x * f + SIDE.x * s, PE.y + y, PE.z + DE.z * f + SIDE.z * s);
   const SHR = new T.Group(); S.add(SHR);
-  const shuM = new T.MeshStandardMaterial({ color: 0xb8432c, roughness: 0.6, metalness: 0, transparent: true, opacity: 0 });
+  const shuM = new T.MeshStandardMaterial({ color: 0x9c4a3a, roughness: 0.6, metalness: 0, transparent: true, opacity: 0 });
   const roofM = new T.MeshStandardMaterial({ color: 0x3c4a44, roughness: 0.55, metalness: 0.25, transparent: true, opacity: 0 });
   const wallM = new T.MeshStandardMaterial({ color: 0xe8e2d4, roughness: 0.9, metalness: 0, transparent: true, opacity: 0 });
   const waterM = new T.MeshStandardMaterial({ color: 0x3c5560, roughness: 0.08, metalness: 0.6, transparent: true, opacity: 0 });
   const gravM = new T.MeshStandardMaterial({ color: 0xbdb6a6, roughness: 1, metalness: 0, transparent: true, opacity: 0 });
   const shrMats = [[shuM, 1], [roofM, 1], [wallM, 1], [waterM, 0.92], [gravM, 1]];
   const box = (w, h, d, m, p, yaw = ang) => { const me = new T.Mesh(new T.BoxGeometry(w, h, d), m); me.position.copy(p); me.rotation.y = yaw; SHR.add(me); return me; };
+
+  const stoneM = new T.MeshStandardMaterial({ color: 0x8e8a80, roughness: 0.95, metalness: 0, transparent: true, opacity: 0 }); shrMats.push([stoneM, 1]);
+  const goldM = new T.MeshStandardMaterial({ color: 0xc9a75a, roughness: 0.45, metalness: 0.6, transparent: true, opacity: 0 }); shrMats.push([goldM, 1]);
+  // 寄棟の屋根（四方へ流れる面）＋軒の薄い板
+  const roof = (w, d, h, p, m = roofM) => { const g = new T.CylinderGeometry(0.16, 0.7071, h, 4, 1); g.rotateY(Math.PI / 4); g.scale(w, 1, d); const me = new T.Mesh(g, m); me.position.copy(p); me.rotation.y = ang; SHR.add(me);
+    box(w * 1.02, 0.12, d * 1.02, m, p.clone().setY(p.y - h / 2)); return me; };
+  // 石灯籠（基礎・竿・中台・火袋・笠・宝珠）
+  const lantern = (f, s) => { const b = at(f, s, 0); const y0 = b.y;
+    box(0.9, 0.3, 0.9, stoneM, b.clone().setY(y0 + 0.15)); const c = new T.Mesh(new T.CylinderGeometry(0.16, 0.2, 1.3, 10), stoneM); c.position.copy(b).setY(y0 + 0.95); SHR.add(c);
+    box(0.75, 0.22, 0.75, stoneM, b.clone().setY(y0 + 1.7)); box(0.5, 0.5, 0.5, stoneM, b.clone().setY(y0 + 2.05));
+    roof(1.05, 1.05, 0.32, b.clone().setY(y0 + 2.48), stoneM); const q = new T.Mesh(new T.SphereGeometry(0.11, 10, 8), stoneM); q.position.copy(b).setY(y0 + 2.72); SHR.add(q); };
   // 境内の地面（玉砂利）
   { const g = new T.PlaneGeometry(90, 150); g.rotateX(-Math.PI / 2); const me = new T.Mesh(g, gravM); me.position.copy(at(80, 0, -0.02)); me.rotation.y = ang; SHR.add(me); }
   // 神池（左右に）と朱の神橋
@@ -305,11 +316,17 @@ export async function start(sec) {
     for (let k = 0; k <= 24; k++) { const f = k / 24; box(5.4, 0.16, 0.56, shuM, at(10 + f * 12, 0, 0.35 + Math.sin(f * Math.PI) * 1.1)); } }
   // 楼門（朱の二層の門：柱・貫・屋根）
   { const f0 = 42; for (const s of [-3.6, -1.2, 1.2, 3.6]) for (const d of [-2, 2]) box(0.5, 7.2, 0.5, shuM, at(f0 + d, s, 3.6));
-    box(9.4, 0.5, 5, shuM, at(f0, 0, 4.3)); box(11.2, 0.7, 6.8, roofM, at(f0, 0, 7.6)); box(9.0, 2.2, 4.6, shuM, at(f0, 0, 8.9)); box(12.4, 0.8, 7.6, roofM, at(f0, 0, 10.4)); box(8.2, 0.5, 2.2, roofM, at(f0, 0, 11.0)); }
+    box(9.4, 0.45, 5, shuM, at(f0, 0, 4.3)); box(9.6, 0.25, 5.2, shuM, at(f0, 0, 6.9)); roof(12, 7.2, 1.0, at(f0, 0, 7.75)); box(8.6, 2.0, 4.4, shuM, at(f0, 0, 9.2));
+    for (const s of [-3.4, -1.15, 1.15, 3.4]) box(0.32, 2.0, 0.32, wallM, at(f0 - 2.21, s, 9.2)); roof(13.4, 8.2, 2.2, at(f0, 0, 11.3)); box(1.2, 0.5, 0.2, goldM, at(f0 - 2.6, 0, 7.15));
+    box(10.4, 0.35, 6.4, stoneM, at(f0, 0, 0.17)); }
   // 回廊（左右に低く）
   for (const s of [-1, 1]) { box(0.3, 3.2, 40, shuM, at(62, s * 22, 1.6)); box(3.6, 0.5, 41, roofM, at(62, s * 22, 3.5)); }
   // 拝殿（朱の柱と白い壁、深い屋根）
-  { const f0 = 92; box(16, 4.6, 10, wallM, at(f0, 0, 2.6)); for (const s of [-7.6, -3.8, 0, 3.8, 7.6]) box(0.55, 5.2, 0.55, shuM, at(f0 - 5.2, s, 2.6)); box(19, 1.0, 13, roofM, at(f0, 0, 5.6)); box(15, 1.6, 9.4, roofM, at(f0, 0, 6.8)); box(9, 1.2, 5, roofM, at(f0, 0, 8.0)); }
+  { const f0 = 92; box(18, 0.9, 12, stoneM, at(f0, 0, 0.45)); for (let k = 0; k < 4; k++) box(6, 0.22, 0.6, stoneM, at(f0 - 6.3 - k * 0.6, 0, 0.11 + (3 - k) * 0.22));
+    box(16, 4.2, 10, wallM, at(f0, 0, 3.0)); for (const s of [-7.6, -3.8, 0, 3.8, 7.6]) box(0.55, 4.6, 0.55, shuM, at(f0 - 5.2, s, 3.2)); box(16.4, 0.35, 0.6, shuM, at(f0 - 5.2, 0, 5.3));
+    roof(21, 14, 3.4, at(f0, 0, 6.9)); box(5, 0.6, 1.6, roofM, at(f0 - 7.2, 0, 5.6)); box(1.4, 0.45, 0.2, goldM, at(f0 - 5.55, 0, 5.75)); }
+  // 石灯籠：楼門の前と、拝殿へ向かう道の両脇
+  for (const f of [30, 36, 54, 66, 78]) for (const s of [-4.5, 4.5]) lantern(f, s);
   // 境内の木（欅の形は後で読む。ここでは位置だけ）
   const shrTrees = []; for (let f = 8; f < 120; f += (mob ? 18 : 11)) for (const s of [-1, 1]) { const sd = s * (27 + rnd() * 10); const p = at(f, sd, 0); shrTrees.push([p.x, p.y, p.z]); }
 
@@ -332,7 +349,7 @@ export async function start(sec) {
   const bitM = new T.LineDashedMaterial({ color: 0x9fe8f0, dashSize: 0.35, gapSize: 0.25, transparent: true, opacity: 0, depthWrite: false, fog: true });
   function buildNet() {
     // 結び目：近い節どうし（種類の違う節を優先）
-    const N = NODES.length, maxL = mob ? 140 : 320; LINKS = [];
+    const N = NODES.length, maxL = mob ? 110 : 240; LINKS = [];
     for (let i = 0; i < N && LINKS.length < maxL; i++) { let c = 0; for (let k = i + 1; k < N && c < 3; k++) { const d = NODES[i].p.distanceTo(NODES[k].p); if (d < 17 && (NODES[i].k !== NODES[k].k || d < 9)) { LINKS.push([i, k, rnd() * 6.283, 0.35 + rnd() * 0.5, new T.Color(KIND[NODES[i].k]).lerp(new T.Color(KIND[NODES[k].k]), 0.5)]); c++; } } }
     const P = new Float32Array(LINKS.length * 6), Cc = new Float32Array(LINKS.length * 6); linkA = Cc;
     LINKS.forEach(([a, b], n) => { P.set([NODES[a].p.x, NODES[a].p.y, NODES[a].p.z, NODES[b].p.x, NODES[b].p.y, NODES[b].p.z], n * 6); });
@@ -351,7 +368,7 @@ export async function start(sec) {
     netM.opacity = 0.9 * vis; glyM.opacity = 0.85 * vis; bitM.opacity = 0.8 * vis;
     if (!netG || vis < 0.01) return vis > 0.01;
     netUpd.k = (netUpd.k || 0) + 1; if (netUpd.k % 2) return true; const c = new T.Color(); const pr = p * 6;
-    for (let n = 0; n < LINKS.length; n++) { const L = LINKS[n], s = Math.sin(tt * L[3] + L[2] + pr), w = (s > 0.15 ? Math.min(1, (s - 0.15) * 2.2) : 0) * 1.5, q = n * 6, lc = L[4];
+    for (let n = 0; n < LINKS.length; n++) { const L = LINKS[n], s = Math.sin(tt * L[3] + L[2] + pr), w = (s > 0.25 ? Math.min(1, (s - 0.25) * 2.0) : 0) * 1.05, q = n * 6, lc = L[4];
       linkA[q] = linkA[q + 3] = lc.r * w; linkA[q + 1] = linkA[q + 4] = lc.g * w; linkA[q + 2] = linkA[q + 5] = lc.b * w; }
     netG.attributes.color.needsUpdate = true; bitM.dashSize = 0.35; bitL.material.uniforms; bitM.gapSize = 0.25 + 0.15 * Math.sin(tt * 0.8); return true; };
   // 2026-11-18 背景の演出：木漏れ日の光の筋・漂う粒・地面を走る走査の帯（すべて手続きで生成）
@@ -436,7 +453,7 @@ export async function start(sec) {
       if (bat) { r.position.set(C.position.x, A.y + 0.08, C.position.z); r.scale.setScalar(1.5 + f * 30); r.material.color.setHex(0xc8ecff); r.material.opacity = rk * (1 - f); }
       else if (t0) { r.position.set(t0[0], t0[1] + 1.4, t0[2]); r.scale.setScalar(0.3 + (i + f) * 0.45); r.material.color.setHex(0xf2c58a); r.material.opacity = rk * 0.7; }
       else r.material.opacity = 0; });
-    const wShr = sm((p - 0.705) / 0.03); shrMats.forEach(([m, o]) => m.opacity = o * wShr); SHR.visible = wShr > 0.01;
+    const wShr = sm((p - 0.705) / 0.03); shrMats.forEach(([m, o]) => m.opacity = o * wShr * 0.8); SHR.visible = wShr > 0.01;
     const fxa = fx2(p, u, wEye, wSoil, wBee, wBat); const nta = netUpd(p, wEye, wSoil, wShr);
     skyD.position.copy(C.position); skyM.uniforms.uO.value = Math.max(wEye, 1 - sm((p - 0.1) / 0.06)) * (1 - wSoil) * (1 - wBat * 0.8) * (1 - wBee * 0.6) * 0.32;
     if (wEye > 0.01) loadTex();
