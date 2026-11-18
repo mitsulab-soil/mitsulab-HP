@@ -2,7 +2,7 @@
    φ = f( P, E, M ) の P。参道を歩いたまま、受けとり方を切りかえる。
    中身：sight（生き物の目）・sound（言葉を聴く）・oto（書の音）・touch（触れる）・gaze（問う）・scale（時と大きさ）。
    色・音・大きさはどれも、出典で確かめた事実にもとづく模式（くわしくは各モードの＋）。 © mitsulab. All rights reserved. */
-import { createWorld } from "../hub/engine/engine.js?v=26";
+import { createWorld } from "../hub/engine/engine.js?v=29";
 
 /* 札の言葉（ここ一か所で差し替える。sound の札は本人の確認待ち） */
 const LABEL = { sight: "見る", sound: "言葉を聴く", oto: "書の音", touch: "触れる", gaze: "問う", scale: "時と大きさ" };
@@ -15,8 +15,8 @@ const show = id => { shown = id; Object.keys(groups).forEach(k => groups[k].visi
 /* ── sight：生き物の目（色の受けとり方の模式） ── */
 const LENS = [
   { label: "ひと", m: null, cap: "ひと：色を受けとる細胞は三種類（三色型）。", info: { title: "ひとの目", body: "網膜の錐体は三種類で、およそ 420・534・564 nm に感度の山があります。", src: "Dartnall, Bowmaker & Mollon (1983) Proc. R. Soc. Lond. B 220: 115–130" } },
-  { label: "ミツバチ", eye: .95, blur: .7, m: [.3, 1.05, .14, 0, .3, 1.05, 0, .05, .25],   /* Qualia/sight と同じ（感度の山からの近似） */ cap: "ミツバチ：紫外・青・緑の三種類。赤は暗く、細かいものはぼやける。花の中心の輪は、紫外で見える蜜のしるし（模式）。", info: { title: "ミツバチの目", body: "受けとる色の山は紫外（約 344 nm）・青（約 436 nm）・緑（約 544 nm）。赤への感度は低く、画面では赤みを抑えて示しています。紫外そのものは画面では出せません（模式）。", src: "Peitsch et al. (1992) J. Comp. Physiol. A 170: 23–40" } },
-  { label: "イヌ", eye: .5, m: [.625, .375, 0, .7, .3, 0, 0, .3, .7], blur: .3,   /* 二色型（赤と緑を一つの黄の軸に寄せ、青はのこす。Viénot ほか 1999 の近似） */   /* Qualia/sight と同じ */ cap: "イヌ：色を受けとる細胞は二種類（二色型）。赤と緑を分けにくい（模式）。", info: { title: "イヌの目", body: "錐体は二種類（約 429 nm と 555 nm）。赤と緑の見分けが難しく、細かいものの見え方も人より粗いとされます。", src: "Neitz, Geist & Jacobs (1989) Visual Neuroscience 3: 1–8" } },
+  { label: "ミツバチ", eye: .95, blur: .5, vig: .1, m: [.22, .9, .12, .02, .38, .85, .04, .12, .42],   /* Qualia/sight と同じ（感度の山からの近似） */ cap: "ミツバチ：紫外・青・緑の三種類。赤は暗く、細かいものはぼやける。花の中心の輪は、紫外で見える蜜のしるし（模式）。", info: { title: "ミツバチの目", body: "受けとる色の山は紫外（約 344 nm）・青（約 436 nm）・緑（約 544 nm）。赤への感度は低く、画面では赤みを抑えて示しています。紫外そのものは画面では出せません（模式）。", src: "Peitsch et al. (1992) J. Comp. Physiol. A 170: 23–40" } },
+  { label: "イヌ", eye: .5, vig: .08, m: [.74, .44, 0, .82, .35, 0, 0, .33, .86], blur: .3,   /* 二色型（赤と緑を一つの黄の軸に寄せ、青はのこす。Viénot ほか 1999 の近似） */   /* Qualia/sight と同じ */ cap: "イヌ：色を受けとる細胞は二種類（二色型）。赤と緑を分けにくい（模式）。", info: { title: "イヌの目", body: "錐体は二種類（約 429 nm と 555 nm）。赤と緑の見分けが難しく、細かいものの見え方も人より粗いとされます。", src: "Neitz, Geist & Jacobs (1989) Visual Neuroscience 3: 1–8" } },
   { label: "距離の目（機械）", m: null, mono: 1, vig: 0, depth: true, cap: "距離センサー（機械）：近いものほど明るく、遠いものほど暗く受けとる（模式）。色は受けとらない。", info: { title: "機械の受けとり方：距離", body: "距離を測る機械（LiDAR など）は、色ではなく、光が返ってくるまでの時間から一点ずつの距離を受けとります。画面では、近いほど明るく遠いほど暗い模式にしています。機械が「感じている」わけではなく、受けとり方の違いです。" } },
   { label: "マムシ", eye: .25, m: [.8, 0, 0, 0, .8, 0, 0, 0, .8], mono: .55, vig: .3, cap: "マムシ：熱（赤外線）を受けとるのは目ではなく、目と鼻の穴のあいだのピット器官。", info: { title: "マムシのピット器官", body: "ピットの薄い膜が、温かいものから出る赤外線を受けとります。ピットの像は目の像に重なって受けとられるとされます。画面では、目の像（少し淡く）の上に、温かいもの（ここでは碧の体）を橙の光として重ねる模式にしています。実際の温度は測っていません。", src: "Goris, R. C. (2011) Journal of Herpetology 45(1): 2–14／Gracheva et al. (2010) Nature 464: 1006–1011" } }];
 /* なぜ、そう見えるの？（Qualia/sight の典拠つきの説明をそのまま使う） */
@@ -44,7 +44,8 @@ function warm(on) { const v = W.aoi.vrm; if (!v) return; const hot = warm.m || (
 let words = []; const pts = [];
 const loadWords = async () => { if (words.length) return; try { const [d, h] = await Promise.all([fetch("../07/data/sounds.json").then(r => r.json()), fetch("../07/data/hidden.js").then(r => r.text())]);
   const hid = new Set((h.match(/\[([\d,\s]+)\]/) || [, ""])[1].split(",").map(Number)); words = d.items.filter(it => !hid.has(it.n)).map(it => ({ ...it, t: it.t.replace(/(?:の音){2,}$/, "の音") })); } catch (e) { console.warn("words", e); }
-  const g = grp("sound"), geo = new THREE.SphereGeometry(.05, 10, 8); words.slice(0, 160).forEach((it, i) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color().setHSL((i * .137) % 1, .55, .7), transparent: true, opacity: .9 }));
+  const g = grp("sound"), geo = new THREE.SphereGeometry(.045, 10, 8), cv = document.createElement("canvas"); cv.width = cv.height = 64; { const x = cv.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,.9)"); gr.addColorStop(.35, "rgba(255,255,255,.35)"); gr.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); } const haloT = new THREE.CanvasTexture(cv);   /* 霞に溶けないよう、霞をかけずに小さな芯と淡い光の輪で */
+  words.slice(0, 160).forEach((it, i) => { const col = new THREE.Color().setHSL((i * .137) % 1, .7, .72), m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: col, fog: false, toneMapped: false })); const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloT, color: col, fog: false, toneMapped: false, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); halo.scale.setScalar(.32); halo.raycast = () => {}; m.add(halo);
     m.position.set((Math.random() - .5) * 9, .4 + Math.random() * 2.2, 8 - Math.random() * 60); m.userData.it = it; g.add(m); pts.push(m); }); };
 function tone(seed, kind = "word") { const ac = W.audio(); if (!ac) return; const t = ac.currentTime, o = ac.createOscillator(), gn = ac.createGain(), f = ac.createBiquadFilter();
   const base = 220 * Math.pow(2, (seed % 24) / 12); o.type = kind === "ink" ? "triangle" : "sine"; o.frequency.setValueAtTime(base, t); o.frequency.exponentialRampToValueAtTime(base * (kind === "ink" ? .5 : 1.5), t + 1.6);
@@ -65,8 +66,13 @@ const loadWorks = async () => { if (works) return; try { works = (await fetch(".
       const m = new THREE.Mesh(new THREE.PlaneGeometry(h * a, h), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide, color: "#ffffff", toneMapped: false })); m.position.z = .01;
       const sd = i % 2 ? 1 : -1, holder = new THREE.Group(); holder.add(paper, m); holder.position.set(sd * 2.3, 1.45, 1 - i * 5); holder.lookAt(-sd * 10, 1.45, 1 - i * 5 + 3);   /* 道の手前を向く（字が鏡に映らない） */ g.add(holder);
       paper.userData.wk = m.userData.wk = wk; plaques.push(paper, m); }); }); };
-W.addMode({ id: "oto", label: LABEL.oto, name: "oto", icon: "brush", info: { title: "書の音", body: "「〇〇の音」と書いた書が、参道の両脇に立っています。書に触れると、その字から組み立てた音（合成）が鳴ります。", src: "書の作品：mitsulab" },
-  async enter(w) { show("oto"); w.setColor(null); w.setEye(1.55); await loadWorks(); say("書に触れると、その字の音が鳴ります。右上の目録からも選べます。", 8000); } });
+const OTO = { id: "oto", label: LABEL.oto, name: "oto", icon: "brush", subs: [], info: { title: "書の音", body: "「〇〇の音」と書いた書が、参道の両脇に立っています。書に触れると、その字から組み立てた音（合成）が鳴ります。", src: "書の作品：mitsulab" },
+  async enter(w, s) { show("oto"); w.setColor(null); w.setEye(1.55); await loadWorks(); const i = Math.min(s || 0, works.length - 1); if (i < 0) return; const sd = i % 2 ? 1 : -1, z = 1 - i * 5;
+    /* 選んだ書の前に立つ。碧は道の反対側へ（スマホで額を隠さない） */
+    w.setView({ position: [sd * .3, w.eye(), z + (w.mobile ? 4.2 : 2.6)], lookAt: [sd * 2.3, 1.45, z] }); w.setAoi && w.setAoi({ pos: [-sd * (w.mobile ? 1.1 : 1.5), 0, z + (w.mobile ? 1.6 : .8)], lookAt: [sd * .3, 1.5, z + 3] });
+    say("「" + (works[i].title || "") + "」── 書に触れると、その字の音が鳴ります。", 8000); },
+  exit() { W.follow && W.follow(); } };
+W.addMode(OTO); loadWorks().then(() => { OTO.subs = works.slice(0, 8).map(wk => { const t = (wk.title || "書").replace(/の音$/, ""); return { label: t.length > 7 ? t.slice(0, 6) + "…" : t }; });   /* 札は短く（題の全文は字幕に） */ });   /* 選ぶ札＝書の題（読みこめたら並ぶ） */
 
 /* ── touch：触れる（足もとの面の手ざわりを、振動と音で） ── */
 const SURF = { road: { name: "砂利（参道）", vib: [12, 30, 12, 30, 12], f: 3800 }, soil: { name: "土（並木の根もと）", vib: [40], f: 600 } };
