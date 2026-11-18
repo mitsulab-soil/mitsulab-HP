@@ -88,7 +88,7 @@ drawPage = function (h, lines) { curl = 1; const g = pg2; g.fillStyle = "#efe6d2
   let x = 60; for (const l of lines || []) x = col(l, x) || x; ptex.needsUpdate = true; };
 drawPage("つち百景", ["左に絵、右に文。押すと、碧が読みます。"]);
 const pageG = new THREE.PlaneGeometry(1.1, .69, 8, 1); const pp = pageG.attributes.position; for (let i = 0; i < pp.count; i++) pp.setZ(i, .05 * Math.sin(Math.abs(pp.getX(i)) / .55 * Math.PI / 2)); pageG.computeVertexNormals();
-const page3 = put(pageG, new THREE.MeshStandardMaterial({ map: ptex, roughness: .95, side: THREE.DoubleSide }), 0, 1.3, K - 1.05); page3.rotation.x = -.85; if (W.mobile) page3.scale.setScalar(.8);
+const page3 = put(pageG, new THREE.MeshStandardMaterial({ map: ptex, roughness: .95, side: THREE.DoubleSide }), 0, 1.3, K - 1.05); page3.rotation.x = -.85; page3.scale.setScalar(W.mobile ? .8 : .85);
 const lamp = new THREE.SpotLight(0xffd2a0, 8, 7, .6, .6, 2); W.on("frame", ({ t }) => { if (modeNow !== "kan") return; lamp.intensity = 8 + Math.sin(t * 1.7) * .25 + Math.sin(t * 4.3) * .12; if (curl > 0) { curl = Math.max(0, curl - .04); page3.rotation.x = -.85 + Math.sin(curl * Math.PI) * .12; } }); lamp.position.set(0, 3.9, K - 1); lamp.target.position.set(0, 1, K - 1.2); hall.add(lamp, lamp.target);
 }
 // 群れ：水際と群れ（Reynolds 1987 の三つの決まり）。選んだときに作る
@@ -179,9 +179,9 @@ const getP = u => { if (!PT[u]) { const t = new THREE.Texture(); t.colorSpace = 
 getP("poster/hachi_poster.webp"); // 最初の一席は幕の前に先読み
 const play = (url, z, poster) => { stop(); const m = W.videoPlane(url, 3.2, 1.8, { autoplay: true }); m.position.set(0, 1.9, z); scene.add(m); curV = m; const v = m.userData.video;
   const vmap = m.material.map; m.visible = false; if (poster) { const t = getP(poster), put = () => { if (curV !== m || v.readyState >= 2 && v.currentTime > 0) return; m.material.map = t; m.material.needsUpdate = true; m.visible = true; }; if (t.ready) put(); else (t.cb = t.cb || []).push(put); }
-  const show = () => { if (curV !== m) return; m.material.map = vmap; m.material.needsUpdate = true; m.visible = true; }; v.addEventListener("playing", show, { once: true }); v.addEventListener("seeked", show, { once: true }); v.addEventListener("error", () => { if (curV === m) { stop(); W.say("映像を読みこめませんでした。回線を確かめて、もう一度選んでください。", 6000); } }, { once: true }); W.unlockAudio && W.unlockAudio(); v.muted = false; v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); };
+  const show = () => { if (curV !== m) return; m.material.map = vmap; m.material.needsUpdate = true; m.visible = true; }; const tu = () => { if (v.currentTime >= (poster && /_poster/.test(poster) ? 6 : 0)) { v.removeEventListener("timeupdate", tu); show(); } }; v.addEventListener("timeupdate", tu); v.addEventListener("seeked", tu); v.addEventListener("error", () => { if (curV === m) { stop(); W.say("映像を読みこめませんでした。回線を確かめて、もう一度選んでください。", 6000); } }, { once: true }); W.unlockAudio && W.unlockAudio(); v.muted = false; v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); };
 const stop = () => { if (!curV) return; const v = curV.userData.video; v.pause(); v.removeAttribute("src"); v.load(); scene.remove(curV); curV.geometry.dispose(); curV.material.map && curV.material.map.dispose(); curV.material.dispose(); curV = null; };
-const vt = () => (W.mobile ? "v540" : "h720"), pst = e => "poster/" + e.slug + "_poster.webp";
+const vt = () => "h720", pst = e => "poster/" + e.slug + "_poster.webp";
 const src = e => `<p>${e.fic}</p>` + e.src.map(s => `<p>${s[0]}<br>${s[1]}</p>`).join("") + (e.warn ? `<p>${e.warn}</p>` : "");
 W.addMode({ id: "koza", label: LABEL.koza, name: "rakugo", icon: "ask",
   subs: ENM.map(e => ({ label: e.t, info: { title: e.t, body: e.lead + "<br>" + e.invite, src: src(e) } })),
@@ -195,7 +195,7 @@ let pages = null;
 W.addMode({ id: "kan", label: LABEL.kan, name: "museum", icon: "book",
   subs: [{ label: "つち百景" }, { label: "蜂の本" }, { label: "蛾の本" }, { label: "歌の本" }],
   info: { title: "館", body: "書架の本をひらくと、碧が頁を読む。押すたびに次の頁。" },
-  async enter(w, sub) { buildHall(); moveTo(V(-.35, 1.55, Z.kan - 3 - 1.2 + 1.35)); setTimeout(() => W.setAoi({ pos: [-1.15, 0, Z.kan - 3 - 2.6], lookAt: [-.35, 1.4, Z.kan - 3 + .15] }), 650); pages = pages || await (await fetch("data/museum-pages.json")).json().catch(() => ({}));
+  async enter(w, sub) { buildHall(); moveTo(V(W.mobile ? -.35 : .05, 1.55, Z.kan - 3 - 1.2 + 1.35)); setTimeout(() => W.setAoi({ pos: [-1.15, 0, Z.kan - 3 - 2.6], lookAt: [-.35, 1.4, Z.kan - 3 + .15] }), 650); pages = pages || await (await fetch("data/museum-pages.json")).json().catch(() => ({}));
     const LINK = [null, { e: 0, to: ["koza", 0], go: "高座で「蜂の目」を聞く" }, { e: 2, to: ["koza", 2], go: "高座で「蛾の恋文」を聞く" }, { song: 1, to: ["uta", 0], go: "中庭の杜で歌を聴く" }];
     const L = LINK[sub || 0];
     if (L) { const e = L.e != null ? ENM[L.e] : null; const h = e ? e.t : "《Breathing OS》";
