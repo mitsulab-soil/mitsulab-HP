@@ -154,7 +154,7 @@ const _a = V(), _c = V(), _s = V(), _t = V(), _q = new THREE.Quaternion(), _e = 
 const setSit = () => { B.forEach((b, i) => { b.ph += .016; const hop = st === "sit" ? Math.max(0, Math.sin(b.ph * 3)) * .04 : 0; m4.position.set(b.p.x, b.p.y + hop, b.p.z); m4.rotation.set(0, b.yaw + Math.sin(b.ph * .7) * .3, 0); m4.scale.setScalar(.3); m4.updateMatrix(); for (const im of sitM) im.setMatrixAt(i, m4.matrix); }); for (const im of sitM) { im.instanceMatrix.needsUpdate = true; im.visible = true; } flyM.forEach(m => m.visible = false); };
 const hideSteamTop = () => { if (!steam || !steam.visible) return; const m = new THREE.Matrix4(); steamP.forEach((p, k) => { m4.position.copy(p); m4.rotation.set(0, Math.atan2(W.camera.position.x - p.x, W.camera.position.z - p.z), 0); _t.copy(p).setY(p.y + .55).project(W.camera); m4.scale.setScalar(_t.y > .64 ? 0 : 1); m4.updateMatrix(); steam.setMatrixAt(k, m4.matrix); }); steam.instanceMatrix.needsUpdate = true; };
 let warm = false; W.on("frame", ({ dt, t }) => { if (SEED && birds && modeNow === "mure") { if (warm) { hideSteamTop(); if (st !== "fly" && sitM.length) setSit(); return; } warm = true; try { for (let k = 0; k < 600; k++) mureFrame(1 / 60, k / 60); } catch (er) { console.error(er); } return; } try { mureFrame(dt, t); } catch (er) { if (!window.__e) { window.__e = String(er.stack); console.error(window.__e); } } });
-function mureFrame(dt, t) { if (!birds || modeNow !== "mure") return; inMure += dt; if (st === "sit" && inMure > 4) takeOff();
+function mureFrame(dt, t) { if (!birds || modeNow !== "mure") return; if (st === "fly" && !ride) { const C = W.camera.position; ctr.x += ((W.mobile ? -.8 : 0) + C.x - ctr.x) * Math.min(1, dt); ctr.z += (Math.min(Z.mure - (W.mobile ? 8 : 2.5), C.z - (W.mobile ? 12 : 7.5)) - ctr.z) * Math.min(1, dt); } inMure += dt; if (st === "sit" && inMure > 4) takeOff();
   if (st === "sit") { B.forEach(b => b.p.copy(b.home)); setSit(); lead.position.copy(B[0].p); }
   else if (st === "tree") { let all = true; B.forEach(b => { _t.subVectors(b.perch, b.p); const L = _t.length(); if (L > .05) { all = false; b.p.addScaledVector(_t.normalize(), Math.min(L, dt * 5)); b.v.copy(_t).multiplyScalar(3); } }); if (all) setSit(); else drawFly(t); }
   else { for (const b of B) { _a.set(0, 0, 0); _c.set(0, 0, 0); _s.set(0, 0, 0); let n = 0;
@@ -221,6 +221,8 @@ W.addMode({ id: "mure", label: LABEL.mure, name: "swarm", icon: "eye",
   exit(w) { ride = false; w.attachEye(null); W.aoi.root.visible = true; W.follow(); W.camera.near = .03; W.camera.updateProjectionMatrix(); } });
 const IMGC = {}; const preImg = f => { if (!f || IMGC[f]) return IMGC[f]; const im = new Image(); im.crossOrigin = "anonymous"; im.src = f; IMGC[f] = im; return im; };
 setTimeout(async () => { try { figs = figs || await (await fetch("data/tsuchi-figs.json")).json(); Object.values(figs).slice(0, 3).forEach(a => a.forEach(w => w.f && preImg(w.f))); } catch (e) {} }, 2000);
+// 画面を押して歩き出したら、固定した碧の立ち位置をやめて一緒に歩く
+W.on("tap", () => { if ((modeNow === "mure" && !ride) || modeNow === "uta") W.follow(); });
 const u = new URL(location.href).searchParams; W.setMode(u.get("m") || "koza", +(u.get("s") || 0));
 if (!u.get("m")) setTimeout(() => modeNow === "koza" && W.say("同じ蜂や土でも、\n噺で聞くか、歌で聴くか、\n本で読むか、群れで見るかで、\n受けとる意味が変わる。\n四つの間で、くらべてみて。", 7000), 1200);
 if (!u.get("m")) setTimeout(() => modeNow === "koza" && W.say("場所を選ばない道具。どこにいても、意味づけの型を持ち歩ける。", 6000), 8400);
