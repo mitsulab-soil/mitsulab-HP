@@ -171,7 +171,7 @@ export async function createWorld(opt = {}) {
     clearVegetation() { vegG.traverse(o => { if (o.isMesh) { o.geometry.dispose(); } }); vegG.clear(); },
     async setVegetation(list) { api.clearVegetation(); for (const v of list) await plant(v.file, v.pts, v.h[0], v.h[1]); },
     /* 字幕の段落送り：字幕か画面の下を押すたびに次の文へ。最後で done を呼ぶ */
-    sayLines(lines, o = {}) { let i = 0; const go = () => { if (i >= lines.length) { cap.classList.remove("on"); cap.style.pointerEvents = ""; cap.onclick = null; o.done && o.done(); return; } say(lines[i], 0, o.hint || (i < lines.length - 1 ? "押すと次へ" : "")); i++; };
+    sayLines(lines, o = {}) { let i = 0; const go = () => { if (i >= lines.length) { cap.classList.remove("on"); cap.style.pointerEvents = ""; cap.onclick = null; o.done && o.done(); return; } { const L = lines[i], txt = typeof L === "string" ? L : L.t, nx = o.hint || (i < lines.length - 1 ? "押すと次へ" : ""), nt = L && typeof L === "object" && L.note; say(txt, 0, nt ? { note: nt + (nx ? "　" + nx : "") } : nx); } i++; };   /* 文は文字列か { t, note }。note（出典）と「押すと次へ」は小さい一行に並べる */
       cap.style.pointerEvents = "auto"; cap.style.cursor = "pointer"; cap.onclick = go; go(); return { next: go }; },
     /* 映像の面：<video> を面に貼る（音は既定で消す。押したときに鳴らす） */
     videoPlane(url, w = 1.6, h = .9, o = {}) { const v = document.createElement("video"); v.src = url; v.crossOrigin = "anonymous"; v.loop = o.loop !== false; v.muted = o.muted !== false; v.playsInline = true; v.preload = "metadata";
