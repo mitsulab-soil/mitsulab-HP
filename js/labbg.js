@@ -55,11 +55,11 @@ export function start(){
   [2,3,4,5,8,9,10].forEach(k=>{const B=HW[k];wa.push(.04,-.02,0,B[0]*.95,B[1]*.95,0)});
   // 翅を点群で（脈と縁は密に、膜は疎らに。アゲハの翅の形と脈をなぞった模式）
   const inPoly=(P,x,y)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const xi=P[i][0],yi=P[i][1],xj=P[j][0],yj=P[j][1];if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c}return c};
-  const wp=[]; for(let k=0;k<wa.length;k+=6){const n=sp?8:16;for(let t=0;t<n;t++){const u=Math.random();wp.push(wa[k]+(wa[k+3]-wa[k])*u+(Math.random()-.5)*.012,wa[k+1]+(wa[k+4]-wa[k+1])*u+(Math.random()-.5)*.012,(Math.random()-.5)*.02)}}
-  for(let t=0;t<(sp?520:1500);t++){const x=Math.random()*1.25,y=Math.random()*2.2-1.05;if(inPoly(FW,x,y)||inPoly(HW,x,y))wp.push(x,y,(Math.random()-.5)*.02)}
+  const wp=[]; for(let k=0;k<wa.length;k+=6){const n=sp?8:22;for(let t=0;t<n;t++){const u=Math.random();wp.push(wa[k]+(wa[k+3]-wa[k])*u+(Math.random()-.5)*.012,wa[k+1]+(wa[k+4]-wa[k+1])*u+(Math.random()-.5)*.012,(Math.random()-.5)*.02)}}
+  for(let t=0;t<(sp?520:2400);t++){const x=Math.random()*1.25,y=Math.random()*2.2-1.05;if(inPoly(FW,x,y)||inPoly(HW,x,y))wp.push(x,y,(Math.random()-.5)*.02)}
   wp.push(0,.18,0, 0,.05,0, 0,-.1,0, 0,-.25,0, 0,-.4,0);
   const wg=new THREE.BufferGeometry(); wg.setAttribute('position',new THREE.Float32BufferAttribute(wp,3));
-  const wmat=new THREE.PointsMaterial({color:0xfffbe8,size:sp?.055:.04,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}); wmat.fog=false;
+  const wmat=new THREE.PointsMaterial({color:0xfffbe8,size:sp?.055:.032,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}); wmat.fog=false;
   const wR=new THREE.Points(wg,wmat), wL=new THREE.Points(wg,wmat); wL.scale.x=-1;
   // 蝶のまわりに立ち上がる受けとり方の場（色の偏りを点の帯で。模式）
   const UN=sp?160:360, up=new Float32Array(UN*3), uc=new Float32Array(UN*3);
@@ -84,7 +84,7 @@ export function start(){
       const marg=(innerWidth-1180)/2, mw=marg>110?marg/innerWidth*2*hw:0;
       let op, x, yy, sc2;
       if(inTop){ op=sp?.6:.95; x=sp?hw*.3:hw*.45; yy=sp?-hh*.6:hh*.12+by*.4; sc2=sp?.62:1.5; }
-      else if(mw>0){ const side=Math.sin(s*.023)>0?1:-1; op=.9; sc2=Math.min(.95,mw*.24); x=side*(hw-mw*.42); yy=Math.sin(s*.13)*hh*.45; }
+      else if(mw>0){ const side=Math.sin(s*.023)>0?1:-1; op=.9; sc2=Math.min(.85,mw*.2); x=side*(hw-mw*.5); yy=Math.sin(s*.13)*hh*.45; }
       else { op=0; x=0; yy=0; sc2=1; }
       wing.material.opacity=op; wing.visible=op>.01; umat.opacity=op*(.6+.3*Math.sin(s*.5)); halo.rotation.z=s*.05; halo.scale.setScalar(.9+.15*Math.sin(s*.31));
       wing.position.set(x, yy, -D);
