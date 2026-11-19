@@ -55,7 +55,7 @@ export function start(){
   [2,3,4,5,8,9,10].forEach(k=>{const B=HW[k];wa.push(.04,-.02,0,B[0]*.95,B[1]*.95,0)});
   // 翅を点群で（脈と縁は密に、膜は疎らに。アゲハの翅の形と脈をなぞった模式）
   const inPoly=(P,x,y)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const xi=P[i][0],yi=P[i][1],xj=P[j][0],yj=P[j][1];if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c}return c};
-  const wp=[]; for(let k=0;k<wa.length;k+=6){const n=sp?8:22;for(let t=0;t<n;t++){const u=Math.random();wp.push(wa[k]+(wa[k+3]-wa[k])*u+(Math.random()-.5)*.012,wa[k+1]+(wa[k+4]-wa[k+1])*u+(Math.random()-.5)*.012,(Math.random()-.5)*.02)}}
+  const wp=[]; for(let k=0;k<wa.length;k+=6){const n=sp?8:22;for(let t=0;t<n;t++){const u=Math.random();wp.push(wa[k]+(wa[k+3]-wa[k])*u+(Math.random()-.5)*.006,wa[k+1]+(wa[k+4]-wa[k+1])*u+(Math.random()-.5)*.006,(Math.random()-.5)*.02)}}
   for(let t=0;t<(sp?520:2400);t++){const x=Math.random()*1.25,y=Math.random()*2.2-1.05;if(inPoly(FW,x,y)||inPoly(HW,x,y))wp.push(x,y,(Math.random()-.5)*.02)}
   wp.push(0,.18,0, 0,.05,0, 0,-.1,0, 0,-.25,0, 0,-.4,0);
   const wg=new THREE.BufferGeometry(); wg.setAttribute('position',new THREE.Float32BufferAttribute(wp,3));
