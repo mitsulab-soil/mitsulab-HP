@@ -22,15 +22,15 @@ export function start(){
     flocks.push(fl); }
   const size=()=>{const w=innerWidth,h=innerHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}; size(); addEventListener('resize',size);
   const tag=document.createElement('p'); tag.id='labBgTag'; tag.setAttribute('aria-hidden','true'); document.body.appendChild(tag);
-  const NAMES=['U₁ 人の受けとり方（模式）','U₂ ミツバチの受けとり方（模式）','U₃ 鳥の受けとり方（模式）'];
+  const NAMES=['翅の色：人の受けとり方（色分けの模式）','翅の色：ミツバチの受けとり方（色分けの模式）','翅の色：鳥の受けとり方（色分けの模式）'];
   // 画面の点（px）→ カメラの前の面（z=0）の座標
   const toW=(px,py)=>{const hh=Math.tan(20*Math.PI/180)*10, hw=hh*cam.aspect; return new THREE.Vector3((px/innerWidth*2-1)*hw,(1-py/innerHeight*2)*hh,0)};
   let hub=new THREE.Vector3(2.5,0,0), hubR=1.6, alpha=0, last=0, t0=performance.now();
   // 群れは冒頭の位置のまま飛び続ける（逃げない・瞬間移動しない）。スクロールして文字に重なるあいだは少し薄くする
   const HOME={x:.74,y:.46};
   function target(){ const first=scrollY<innerHeight*.6&&!!document.querySelector('#top.active');
-    if(sp){ const v=document.querySelector('.sd-vis'); const rr=v&&v.getBoundingClientRect(); const cy=rr&&first?(rr.top+rr.bottom)/2:innerHeight*.62; return {p:toW(innerWidth*.5,cy),R:.5,a:first?1:.18}; }
-    return {p:toW(innerWidth*HOME.x,innerHeight*HOME.y),R:.9,a:first?1:.3}; }
+    if(sp){ const v=document.querySelector('.sd-vis'); const rr=v&&v.getBoundingClientRect(); const cy=rr&&first?(rr.top+rr.bottom)/2:innerHeight*.62; return {p:toW(innerWidth*.5,cy),R:.28,a:first?1:.18}; }
+    return {p:toW(innerWidth*HOME.x,innerHeight*HOME.y),R:.9,a:first?1:.2}; }
   const tmp=new THREE.Vector3(), q=new THREE.Quaternion(), fwd=new THREE.Vector3(0,0,1), m4=new THREE.Matrix4();
   function frame(now){ const s=(now-t0)/1000, dt=Math.min(.05,Math.max(.001,(now-(last||now))/1000)); last=now;
     const T=target(); hub.lerp(T.p,Math.min(1,dt*1.2)); hubR+= (T.R-hubR)*Math.min(1,dt*1.2); alpha+=(T.a-alpha)*Math.min(1,dt*(T.a<alpha?4:1.5));
