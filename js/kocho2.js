@@ -29,7 +29,8 @@ export function start(){
   let hub=new THREE.Vector3(2.5,0,0), hubR=1.6, alpha=0, last=0, t0=performance.now();
   // 群れは冒頭の位置のまま飛び続ける（逃げない・瞬間移動しない）。スクロールして文字に重なるあいだは少し薄くする
   const HOME={x:.74,y:.46};
-  function target(){ const first=scrollY<innerHeight*.6&&!!document.querySelector('#top.active');
+  function target(){ const fx=document.querySelector('.wv-more[open]'); if(fx){const r=fx.getBoundingClientRect(); if(r.bottom>0&&r.top<innerHeight) return {p:hub,R:hubR,a:0};}
+    const first=scrollY<innerHeight*.6&&!!document.querySelector('#top.active');
     if(sp){ const v=document.querySelector('.sd-vis'); const rr=v&&v.getBoundingClientRect(); const cy=rr&&first?(rr.top+rr.bottom)/2:innerHeight*.62; return {p:toW(innerWidth*.5,cy),R:.28,a:first?1:.18}; }
     return {p:toW(innerWidth*HOME.x,innerHeight*HOME.y),R:.9,a:first?1:.12}; }
   const tmp=new THREE.Vector3(), q=new THREE.Quaternion(), fwd=new THREE.Vector3(0,0,1), m4=new THREE.Matrix4();
