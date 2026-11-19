@@ -31,8 +31,11 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(10px + env(safe
 .row button small{display:block;font-family:var(--goth);font-size:10px;color:var(--dim)}
 .row button[aria-pressed=true]{border-color:var(--aoi);box-shadow:inset 0 0 0 1px var(--aoi)}
 #pitch{flex:0 0 64px}
-#cap{position:fixed;left:12px;right:12px;bottom:calc(210px + env(safe-area-inset-bottom));z-index:3;text-align:center;font-size:13px;line-height:1.6;margin:0;text-shadow:0 1px 3px #000,0 0 8px #000}
-#cap small{display:block;color:var(--dim);font-size:11px}
+#cap{position:fixed;left:16px;right:16px;bottom:calc(210px + env(safe-area-inset-bottom));z-index:3;text-align:center;font-size:13px;line-height:1.6;margin:0;text-shadow:0 1px 3px #000,0 0 8px #000}
+#cap{font-size:14px;font-weight:500;text-shadow:0 0 2px #000,0 0 4px #000,0 1px 6px #000,0 0 14px #000a}
+#cap small{display:block;color:#d6dde6;font-size:11px}
+#cap .src{display:none}#cap.open .src{display:block}
+#cap button{font:inherit;font-size:12px;color:var(--ink);background:none;border:1px solid #ffffff66;border-radius:999px;min-width:44px;min-height:32px;margin-top:4px;cursor:pointer;text-shadow:inherit}
 </style>
 </head>
 <body>
@@ -53,22 +56,24 @@ const EYE=[
  ['人の目。赤・緑・青の三つの錐体で見ている。',''],
  ['犬の目の模式。錐体は二種類（よく応える光は約 429 nm と 555 nm）で、赤と緑の区別がつきにくい。細かいところは人よりぼやける。','Neitz, Geist & Jacobs 1989 Visual Neuroscience 3:119／Miller & Murphy 1995 JAVMA 207:1623'],
  ['ミツバチの目の模式。受けとるのは紫外・青・緑（約 344・436・544 nm）で、赤は暗く沈む。見分けられる細かさは人のおよそ百分の一とされる（画面の粒は模式）。紫外線はカメラに写らないため描けない。','Peitsch et al. 1992 J Comp Physiol A 170:23／Srinivasan & Lehrer 1988 J Comp Physiol A 162:159'],
- ['ハエの目の模式。速く飛ぶハエの視細胞は、光の変化に約 50〜107 Hz まで応じる（夜のガガンボは 16〜19 Hz）。ここでは、動いたものほど浮かぶ形で表す。','Laughlin & Weckström 1993 J Comp Physiol A 172:593']
+ ['ハエの目の模式。速く飛ぶハエの視細胞は光の変化に約 50〜107 Hz まで応じる。動きが一コマずつ区切れて見える様子を、くっきりした数コマの線で表す。','Laughlin & Weckström 1993 J Comp Physiol A 172:593']
 ];
 const cap=document.getElementById('cap');
 let mode=0,rate=1,keep=true,last='eye',noMic=0;
+function plus(on){return on?'<br><button type="button" id="plus" aria-expanded="'+cap.classList.contains('open')+'" aria-label="出典をひらく">'+(cap.classList.contains('open')?'−':'＋')+'</button>':''}
+cap.addEventListener('click',e=>{if(e.target.id=='plus'){cap.classList.toggle('open');render()}});
 function render(){
- if(last=='eye'){const e=EYE[mode];cap.innerHTML=e[0]+(e[1]?'<small>出典：'+e[1]+'</small>':'');return}
+ if(last=='eye'){const e=EYE[mode];cap.innerHTML=e[0]+(e[1]?'<small class="src">出典：'+e[1]+'</small>':'')+plus(!!e[1]);return}
  const L={1:'今の音。人が聴けるのはおよそ 20 Hz〜20 kHz。',0.25:'直近 4 秒を ¼ の速さで。鳥が聴き分ける細かな音の変化が、人の耳でも追える。',0.5:'直近 4 秒を ½ の速さで。',2:'直近 4 秒を 2 倍の速さで。長い音のうねりが一つにまとまる。'};
  cap.innerHTML=L[rate]+(rate!=1?'<small>'+(keep?'高さを保ったまま速さだけ変えています。':'テープのように高さも一緒に変えています。')+'</small>':'')+
-  (rate==0.25?'<small>鳥は 1〜2 ms、人は 3〜4 ms ほどまで（Dooling et al. 2002 J Acoust Soc Am 112:748）</small>':'<small>超音波はスマホのマイクではほとんど録れません。</small>');
+  (rate==0.25?'<small class="src">鳥は 1〜2 ms、人は 3〜4 ms ほどまで（出典：Dooling et al. 2002 J Acoust Soc Am 112:748）</small>'+plus(1):'<small>超音波はスマホのマイクではほとんど録れません。</small>')+(rate!=1&&!(el&&!el.paused)?'<small>同じボタンをもう一度押すと、新しい 4 秒を聴けます。</small>':'');
 }
 /* ---- 目（WebGL） ---- */
 const cv=document.getElementById('cv'),v=document.getElementById('v');
 const gl=cv.getContext('webgl');let src=null;
 function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(o);return o}
 const vs='attribute vec2 p;varying vec2 u;void main(){u=p*.5+.5;gl_Position=vec4(p,0,1);}';
-const fs=`precision mediump float;varying vec2 u;uniform sampler2D cur,prev;uniform int m;uniform vec2 res,vres;
+const fs=`precision mediump float;varying vec2 u;uniform sampler2D cur,prev,p2,p3;uniform int m;uniform vec2 res,vres;
 vec2 cover(vec2 q){float a=res.x/res.y,b=vres.x/vres.y;vec2 s=a>b?vec2(1.,b/a):vec2(a/b,1.);return vec2((q.x-.5)*s.x+.5,1.-((q.y-.5)*s.y+.5));}
 vec3 t(vec2 q){return texture2D(cur,cover(q)).rgb;}
 vec3 blur(vec2 q,float r){vec3 c=vec3(0);for(int i=-2;i<=2;i++)for(int j=-2;j<=2;j++)c+=t(q+vec2(float(i),float(j))*r/res);return c/25.;}
@@ -76,14 +81,16 @@ void main(){vec3 c=t(u);
 if(m==1){c=blur(u,2.2);float lm=dot(c,vec3(.45,.55,0.));c=vec3(lm*.95,lm*.92,c.b*.9+lm*.08);}
 else if(m==2){vec2 cell=vec2(48.*res.x/res.y,48.);vec2 q=(floor(u*cell)+.5)/cell;c=blur(q,3.);
  float g=c.g,b=c.b;c=vec3(g*.15,g*.85+b*.1,b*.95);vec2 f=fract(u*cell)-.5;c*=1.-smoothstep(.36,.5,length(f))*.35;}
-else if(m==3){vec3 p=texture2D(prev,cover(u)).rgb;float d=length(c-p);float l=dot(c,vec3(.3,.59,.11));c=vec3(l*.45)+vec3(.85,.95,.9)*smoothstep(.04,.25,d);}
+else if(m==3){vec2 q=cover(u);vec3 a=texture2D(prev,q).rgb,b2=texture2D(p2,q).rgb,c3=texture2D(p3,q).rgb;float l=dot(c,vec3(.3,.59,.11));
+ float d0=smoothstep(.04,.25,length(c-a)),d1=smoothstep(.04,.25,length(a-b2)),d2=smoothstep(.04,.25,length(b2-c3));
+ c=vec3(l*.4)+vec3(.85,.95,.9)*d0+vec3(.55,.75,.8)*d1*.7+vec3(.35,.5,.6)*d2*.45;}
 gl_FragColor=vec4(c,1);}`;
 const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
 const bf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
 const pl=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(pl);gl.vertexAttribPointer(pl,2,gl.FLOAT,false,0,0);
 function tex(){const x=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,x);for(const [k,w] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,w);return x}
-const T=[tex(),tex()];let ti=0;
-gl.uniform1i(gl.getUniformLocation(pr,'cur'),0);gl.uniform1i(gl.getUniformLocation(pr,'prev'),1);
+const T=[tex(),tex(),tex(),tex()];let ti=0;
+['cur','prev','p2','p3'].forEach((n,i)=>gl.uniform1i(gl.getUniformLocation(pr,n),i));
 const uM=gl.getUniformLocation(pr,'m'),uR=gl.getUniformLocation(pr,'res'),uV=gl.getUniformLocation(pr,'vres');
 /* ---- 耳 ---- */
 const sp=document.getElementById('sp'),g=sp.getContext('2d');
@@ -94,15 +101,15 @@ function wav(){const n=ring.length,b=new ArrayBuffer(44+n*2),d=new DataView(b);c
  w(0,'RIFF');d.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,1,true);d.setUint32(24,sr,true);d.setUint32(28,sr*2,true);d.setUint16(32,2,true);d.setUint16(34,16,true);w(36,'data');d.setUint32(40,n*2,true);
  for(let i=0;i<n;i++){const s=Math.max(-1,Math.min(1,ring[(ri+i)%n]));d.setInt16(44+i*2,s*32767,true)}return new Blob([b],{type:'audio/wav'})}
 function stop(){if(el){el.pause();el=null}if(url){URL.revokeObjectURL(url);url=null}}
-function play(){stop();if(rate==1||!ring)return;url=URL.createObjectURL(wav());el=new Audio(url);el.preservesPitch=keep;el.webkitPreservesPitch=keep;el.playbackRate=rate;el.onended=()=>{if(el)setRate(1)};el.play().catch(()=>{})}
+function play(){stop();if(rate==1||!ring)return;url=URL.createObjectURL(wav());el=new Audio(url);el.preservesPitch=keep;el.webkitPreservesPitch=keep;el.playbackRate=rate;el.onended=()=>{el=null;render()};el.play().catch(()=>{})}
 function setRate(r){rate=r;last='ear';document.querySelectorAll('#rates [data-r]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r==r));r==1?stop():play();render()}
 function setM(i){mode=i;last='eye';document.querySelectorAll('#eyes button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==i));render()}
 document.querySelectorAll('#eyes button').forEach(b=>b.onclick=()=>setM(+b.dataset.m));
 document.querySelectorAll('#rates [data-r]').forEach(b=>b.onclick=()=>setRate(+b.dataset.r));
 const pb=document.getElementById('pitch');pb.onclick=()=>{keep=!keep;last='ear';pb.setAttribute('aria-pressed',!keep);pb.querySelector('small').textContent=keep?'保つ':'変わる';pb.setAttribute('aria-label','音の高さも変える（いまは'+(keep?'高さを保つ':'高さも変わる')+'）');if(rate!=1)play();render()};
 function frame(){requestAnimationFrame(frame);
- if(src&&src.videoWidth){ti^=1;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,T[ti]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,src);
-  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,T[ti^1]);gl.uniform1i(uM,mode);gl.uniform2f(uR,cv.width,cv.height);gl.uniform2f(uV,src.videoWidth,src.videoHeight);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
+ if(src&&src.videoWidth){ti=(ti+1)%4;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,T[ti]);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,src);
+  for(let k=1;k<4;k++){gl.activeTexture(gl.TEXTURE0+k);gl.bindTexture(gl.TEXTURE_2D,T[(ti+4-k)%4])}gl.uniform1i(uM,mode);gl.uniform2f(uR,cv.width,cv.height);gl.uniform2f(uV,src.videoWidth,src.videoHeight);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
  if(an){an.getByteFrequencyData(fd);const W=sp.width,H=sp.height,s=Math.max(2,W/300|0);g.drawImage(sp,-s,0);g.clearRect(W-s,0,s,H);
   for(let y=0;y<H;y++){const hz=Math.pow(20000/40,1-y/H)*40;const k=Math.min(fd.length-1,hz/(sr/2)*fd.length|0);const a=fd[k]/255;if(a<.12)continue;g.fillStyle=`rgba(${92+a*120|0},200,224,${a*a})`;g.fillRect(W-s,y,s,1)}
   if(el&&!el.paused&&el.duration){g.fillStyle='#5cc8e0';g.fillRect(0,H-2,W*el.currentTime/el.duration,2)}}}
@@ -113,8 +120,12 @@ document.getElementById('go').onclick=async()=>{
  if(st.getVideoTracks().length){v.srcObject=new MediaStream(st.getVideoTracks());await v.play().catch(()=>{});src=v}
  if(st.getAudioTracks().length){ac=new (window.AudioContext||window.webkitAudioContext)();sr=ac.sampleRate;ring=new Float32Array(sr*SEC);
   const m=ac.createMediaStreamSource(new MediaStream(st.getAudioTracks()));an=ac.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=.5;fd=new Uint8Array(an.frequencyBinCount);m.connect(an);
-  const pn=ac.createScriptProcessor(2048,1,1);pn.onaudioprocess=e=>{if(el&&!el.paused)return;const d=e.inputBuffer.getChannelData(0);for(let i=0;i<d.length;i++){ring[ri]=d[i];ri=(ri+1)%ring.length}};
-  const z=ac.createGain();z.gain.value=0;m.connect(pn);pn.connect(z);z.connect(ac.destination)}
+  const put=d=>{if(el&&!el.paused)return;for(let i=0;i<d.length;i++){ring[ri]=d[i];ri=(ri+1)%ring.length}};
+  const z=ac.createGain();z.gain.value=0;z.connect(ac.destination);let pn;
+  try{if(!ac.audioWorklet)throw 0;const code="registerProcessor('rec',class extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0];if(c)this.port.postMessage(c.slice(0));return true}})";
+   const wu=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));await ac.audioWorklet.addModule(wu);URL.revokeObjectURL(wu);pn=new AudioWorkletNode(ac,'rec');pn.port.onmessage=e=>put(e.data)}
+  catch(_){pn=ac.createScriptProcessor(2048,1,1);pn.onaudioprocess=e=>put(e.inputBuffer.getChannelData(0))}
+  m.connect(pn);pn.connect(z)}
  else{document.querySelectorAll('#rates button').forEach(b=>b.disabled=true);noMic=1}
  document.getElementById('start').remove();render();if(noMic)cap.innerHTML+='<small>マイクが許可されていないため、耳の列は使えません。</small>'};
 render();requestAnimationFrame(frame);
