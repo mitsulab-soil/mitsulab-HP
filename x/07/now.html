@@ -63,11 +63,14 @@ function stretch(x,r){const N=2048,H=N/4,T=384,out=new Float32Array(Math.ceil(x.
   const p=Math.max(0,c+best);prev=p;for(let i=0;i<N;i++){out[o+i]+=x[p+i]*w[i];norm[o+i]+=w[i]}}
  for(let i=0;i<out.length;i++)if(norm[i]>1e-3)out[i]/=norm[i];return out}
 function stop(){if(el){try{el.onended=null;el.stop()}catch(_){}el=null}}
-function play(){stop();say();if(rate==1)return;const x=snap||(snap=grab());
+function play(){
+ // 再生の途中で速さ・高さを切りかえたら、聴いていた所から続ける（最初から鳴り直さない）
+ let off=0;if(el&&!el.paused)off=Math.min(SEC-.3,el.off+(ac.currentTime-el.t0)*el.r);
+ stop();say();if(rate==1)return;const x0=snap||(snap=grab()),x=off>0?x0.subarray(Math.floor(off*sr)):x0;
  const y=keep?stretch(x,rate):x,bf=ac.createBuffer(1,y.length,sr);bf.getChannelData(0).set(y);
  const s=ac.createBufferSource();s.buffer=bf;if(!keep)s.playbackRate.value=rate;
  const fade=ac.createGain();fade.gain.value=1;s.connect(fade).connect(ac.destination);
- s.t0=ac.currentTime;s.dur=y.length/sr/(keep?1:rate);s.paused=false;s.onended=()=>{if(el===s){el=null;setRate(1)}};el=s;s.start()}
+ s.t0=ac.currentTime;s.off=off;s.r=rate;s.dur=y.length/sr/(keep?1:rate);s.paused=false;s.onended=()=>{if(el===s){el=null;setRate(1)}};el=s;s.start()}
 function setRate(r){rate=r;document.querySelectorAll('#rates button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r==r));if(r==1){stop();snap=null;say()}else play()}
 document.querySelectorAll('#rates button').forEach(b=>b.onclick=()=>setRate(+b.dataset.r));
 const pb=document.getElementById('pitch');pb.onclick=()=>{keep=!keep;pb.setAttribute('aria-pressed',!keep);pb.querySelector('small').textContent=keep?'いまは高さを保つ':'いまは高さも変わる';if(rate!=1)play();else say()};
@@ -77,7 +80,7 @@ function draw(){requestAnimationFrame(draw);if(!an)return;an.getByteFrequencyDat
  const top=H*.12,bot=H*.72,n=fd.length,maxHz=sr/2;
  for(let y=0;y<bot-top;y++){const hz=Math.pow(20000/40,1-y/(bot-top))*40;const k=Math.min(n-1,hz/maxHz*n|0);const v=fd[k]/255;if(v<.12)continue;
   g.fillStyle=`rgba(${70+v*70|0},${190+v*40|0},${224},${v*v})`;g.fillRect(W-s,top+y,s,1)}
- if(el&&!el.paused){const p=Math.min(1,(ac.currentTime-el.t0)/el.dur);g.fillStyle='#5cc8e0';g.fillRect(0,bot+6,W*p,2)}}
+ if(el&&!el.paused){const p=Math.min(1,(el.off+(ac.currentTime-el.t0)*el.r)/SEC);g.fillStyle='#5cc8e0';g.fillRect(0,bot+6,W*p,2)}}
 function push(d){if(el)return;for(let i=0;i<d.length;i++){ring[ri]=d[i];ri=(ri+1)%ring.length}}
 const WK="registerProcessor('cap',class extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0];if(c)this.port.postMessage(c.slice(0));return true}})";
 document.getElementById('go').onclick=async()=>{

@@ -1,4 +1,4 @@
-/* Qualia/川越（旧 Qualia/walk 川越）── （2026-10-22 初版・10-23 公開）
+/* Qualia/kawagoe（旧 Qualia/walk 川越）── （2026-10-22 初版・10-23 公開）
    3D 地図（上空）から始める場所を選ぶ → 降りて歩く（見回しながら）／鳥になって飛ぶ／生きもの（Qualia/sight）になる。
    左の層の一覧：Qualia/sight・touch・sound（sho を含む）・nature・culture（歴史を含む）の 5 つ。触れると重ねる／外す（既定は全部重ねる）。
    建物は OpenStreetMap の平面を、電脳の HUD のような半透明の薄いグラフィックに（高さは模式）。一番街の店蔵の型と時の鐘だけ写実の 3D。

@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="ja" data-theme="dark"><head><meta charset="utf-8">
 <script>/* 11-10 第5周：地図から・別の地点から始めるときの印 */if(/[?&](map|start)(=|&|$)/.test(location.search))document.documentElement.classList.add("qmap")</script><script data-embed>/* 2026-11-09：?embed=1 は集約アプリ（Qualia/yose・Qualium x/31）の中で、自分の見出しを隠す。引数なしは今までどおり */if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add("embed")</script><style>.embed .brand,.embed .mu-logo{display:none!important}</style><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Qualia/川越</title>
+<title>Qualia/kawagoe</title>
 <meta name="description" content="本川越駅から一番街・時の鐘・札の辻・菓子屋横丁へ。蔵造りの町に、Qualia/sight・touch・sound・nature・culture の五つの層（sound に書の Qualia/sho、culture に歴史を含む）を重ねて歩く場、Qualium。">
 <meta name="tdm-reservation" content="1">
-<meta property="og:title" content="Qualia/川越"><meta property="og:description" content="蔵造りの町に Qualia の層を重ね、本川越駅から時の鐘・菓子屋横丁へ歩く。"><meta property="og:image" content="https://mitsulab-soil.github.io/aoi-walk-kawagoe/web/poster_1600.webp"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:title" content="Qualia/kawagoe"><meta property="og:description" content="蔵造りの町に Qualia の層を重ね、本川越駅から時の鐘・菓子屋横丁へ歩く。"><meta property="og:image" content="https://mitsulab-soil.github.io/aoi-walk-kawagoe/web/poster_1600.webp"><meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#03060f">
 <link rel="icon" href="favicon/favicon.ico" sizes="any"><link rel="icon" href="favicon/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -573,7 +573,7 @@ html body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 @media (min-width:900px){html body #qIK button{background:rgba(6,10,18,.78)!important}}</style>
 <style id="q-cap-1118">/* 11-18：375px で字幕が右に寄って折れる→左右いっぱい・中央に */@media (max-width:640px){html body #caption#caption#caption{left:72px!important;right:16px!important;transform:none!important;width:auto!important;max-width:none!important;text-align:center!important;align-items:center!important}html body #caption#caption #capTag{max-width:none!important;margin:0 auto!important;text-align:center!important}}</style></head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualia/川越" data-en="Qualia/Kawagoe" data-icon="favicon/icon.svg" data-max="500"></script>
+<script src="loader/loader.js" data-title="Qualia/kawagoe" data-en="Qualia/kawagoe" data-icon="favicon/icon.svg" data-max="500"></script>
 <canvas id="gl" aria-label="川越の蔵の町の 3D（地形は国土地理院、道と建物の平面は OpenStreetMap）" tabindex="-1"></canvas>
 <div id="pinLabels" hidden></div>
 
@@ -610,7 +610,7 @@ html:not(.qmap) #qEye{display:none}
 <header id="hud">
   <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">← <span class="qhl">mitsulab</span></a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand">Qualia/川越</div>
+  <div class="brand">Qualia/kawagoe</div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -662,7 +662,7 @@ html:not(.qmap) #qEye{display:none}
 
 <nav id="menu" class="ml-panel ml-panel--corner" hidden aria-label="メニュー">
   <button class="ib" id="menuX" aria-label="閉じる">×</button>
-  <h3>Qualia/川越</h3>
+  <h3>Qualia/kawagoe</h3>
   <div class="mrow"><button class="ml-btn" id="sndBtn" aria-pressed="true">声と音 オン</button><button class="ml-btn" id="earBtn" aria-pressed="false">鳥の声を聞く</button></div>
   <p id="about"></p>
   <p class="small">碧（あおい）は、この作品の案内役です。歩くあいだ、いまいる所に結びついた記録を話しつづけます（字幕の「出典」から典拠を開けます）。碧の姿：mitsulab（VRoid）／声：VOICEVOX:冥鳴ひまり。</p>
@@ -694,7 +694,7 @@ html body #capTag{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.7)!i
 @media (prefers-reduced-motion:reduce){#qTown{transition:none}}</style>
 <div id="qTown" aria-hidden="true"><b>川越</b><small>蔵造りの町</small><i>記録をもとにつくった風景です</i></div>
 <script>/* 11-10 第8周：歩きはじめたとき一度だけ、着いた町の名を大きく */(()=>{const t=document.getElementById("qTown");let done=0;const go=()=>{if(done||document.body.dataset.mode!=="walk")return;done=1;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1800)};new MutationObserver(go).observe(document.body,{attributes:true,attributeFilter:["data-mode"]});go()})()</script>
-<script src="kit/tsugi.js" data-bottom="220" data-href="../14/" data-name="Qualia/渋谷" data-line="谷の町を、同じ碧と歩く" defer></script>
-<script src="kit/ichimai.js" data-name="Qualia/川越" data-right="12" data-bottom="284" data-wide-bottom="156" defer></script>
+<script src="kit/tsugi.js" data-bottom="220" data-href="../14/" data-name="Qualia/shibuya" data-line="谷の町を、同じ碧と歩く" defer></script>
+<script src="kit/ichimai.js" data-name="Qualia/kawagoe" data-right="12" data-bottom="284" data-wide-bottom="156" defer></script>
 <script src="kit/hajime.js" data-delay="2200" data-mix=".85" data-sat="1.35" defer></script>
 </body></html>

@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="ja" data-theme="dark"><head><meta charset="utf-8">
 <script>/* 11-10 第5周：地図から・別の地点から始めるときの印 */if(/[?&](map|start)(=|&|$)/.test(location.search))document.documentElement.classList.add("qmap")</script><script>/* 11-10 第5周：夜は最初の静止画も同じ暗さに（3D の夜の暗さ〔kit/yoru.js〕が後から重なって暗転して見えないように。太陽の高さは kit/sunpos.js と同じ近似式） */(()=>{try{const d=new Date(),R=Math.PI/180,n=d.getTime()/864e5+2440587.5-2451545,L=(280.46+.9856474*n)%360,g=((357.528+.9856003*n)%360)*R,l=(L+1.915*Math.sin(g)+.02*Math.sin(2*g))*R,e=(23.439-4e-7*n)*R,ra=Math.atan2(Math.cos(e)*Math.sin(l),Math.cos(l)),dc=Math.asin(Math.sin(e)*Math.sin(l)),gm=(18.697374558+24.06570982441908*n)%24,H=(gm*15+139.63)*R-ra,f=35.916*R,el=Math.asin(Math.sin(f)*Math.sin(dc)+Math.cos(f)*Math.cos(dc)*Math.cos(H))/R,t=Math.min(1,Math.max(0,-el/12)),k=Math.min(.3,t*t*(3-2*t));/* 11-10 第6周：最初の画は参道が見える明るさで止める */if(k>.02&&/[?&]toki=1/.test(location.search))document.documentElement.style.setProperty("--qnight",(1-.62*k).toFixed(3))}catch(_){}})()</script><style>#qposter{filter:brightness(var(--qnight,1))}</style><script data-embed>/* 2026-11-09：?embed=1 は集約アプリ（Qualia/yose・Qualium x/31）の中で、自分の見出しを隠す。引数なしは今までどおり */if(/[?&]embed=1/.test(location.search))document.documentElement.classList.add("embed")</script><style>.embed .brand,.embed .mu-logo{display:none!important}</style><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Qualia/大宮</title>
+<title>Qualia/omiya</title>
 <meta name="description" content="氷川参道と境内を碧と歩き、土地の記録・音・生き物の手がかりを重ねる。互いの受けとり方に触れ、現実の町へ問いを持ち帰るQualium。">
-<meta property="og:title" content="Qualia/大宮"><meta property="og:description" content="氷川参道と境内を碧と歩き、土地の記録・音・生き物の手がかりを重ねる。互いの受けとり方に触れ、現実の町へ問いを持ち帰るQualium。">
+<meta property="og:title" content="Qualia/omiya"><meta property="og:description" content="氷川参道と境内を碧と歩き、土地の記録・音・生き物の手がかりを重ねる。互いの受けとり方に触れ、現実の町へ問いを持ち帰るQualium。">
 <meta property="og:image" content="https://mitsulab-soil.github.io/aoi-walk-hikawa/web/poster_1600.webp">
 <meta name="theme-color" content="#03060f"><meta name="tdm-reservation" content="1">
 <meta name="aoiwalk-build" content="lite-20261022">
@@ -614,7 +614,7 @@ body:has(#caption:not([hidden])) #sndTag{visibility:hidden!important}
 <style id="q7lab">/* 11-10 第7周：戻る先と音の札に名前を出す */html:not(.embed) .qhome{width:auto!important;padding:0 10px 0 8px!important;gap:4px;display:inline-flex!important;align-items:center;font-size:18px!important}.qhome .qhl{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}#walkUI #qSnd{width:auto!important;max-width:none!important;padding:0 12px!important;gap:6px}.q7t{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}@media (min-width:641px){#menuBtn{width:auto!important;padding:0 12px!important;gap:6px;display:inline-flex!important;align-items:center}}@media (max-width:640px){#menuBtn .q7t{display:none}}@media (max-width:400px){html:not(.embed) .brand{display:none!important}}</style><script>/* 11-10 第7周 */(()=>{const iv=setInterval(()=>{const s=document.getElementById("qSnd"),m=document.getElementById("menuBtn");if(m&&!m.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="メニュー";t.setAttribute("aria-hidden","true");m.append(t)}if(s&&!s.querySelector(".q7t")){const t=document.createElement("span");t.className="q7t";t.textContent="音";t.setAttribute("aria-hidden","true");s.append(t);clearInterval(iv)}},300);setTimeout(()=>clearInterval(iv),20000)})()</script><style id="r9-capsrc">html body #caption #capTag .capSrc{pointer-events:auto;cursor:pointer;opacity:.75;padding:6px 2px;margin:-6px 0}html body #caption #capTag{pointer-events:auto}</style>
 </head>
 <body data-mode="boot" class="ml-root">
-<script src="loader/loader.js" data-title="Qualia/大宮" data-en="Qualia/Omiya" data-icon="favicon/icon.svg" data-max="500"></script>
+<script src="loader/loader.js" data-title="Qualia/omiya" data-en="Qualia/omiya" data-icon="favicon/icon.svg" data-max="500"></script>
 <canvas id="gl" aria-label="氷川参道の 3D（実寸。地形は国土地理院、建物は PLATEAU）" tabindex="-1"></canvas>
 <div id="mapLabels" hidden></div>
 <div id="pinLabels" hidden></div>
@@ -654,7 +654,7 @@ html:not(.qmap) #qEye{display:none}
 <header id="hud">
   <a class="qhome" href="https://mitsulab.jp/" aria-label="mitsulab.jp へ戻る" title="mitsulab.jp">← <span class="qhl">mitsulab</span></a>
   <button class="ib" id="menuBtn" aria-label="メニュー（声・出典・この作品について）" aria-expanded="false" aria-controls="menu">≡</button>
-  <div class="brand mu-logo">Qualia/大宮</div>
+  <div class="brand mu-logo">Qualia/omiya</div>
   <nav class="seg" aria-label="見方">
     <button id="modeSky" aria-pressed="true">3D 地図</button><button id="modeWalk" aria-pressed="false">歩く</button><button id="modeFly" aria-pressed="false">飛ぶ</button>
   </nav>
@@ -705,7 +705,7 @@ html:not(.qmap) #qEye{display:none}
 
 <nav id="menu" class="ml-panel ml-panel--corner" hidden aria-label="メニュー">
   <button class="ib" id="menuX" aria-label="閉じる">×</button>
-  <h3>Qualia/大宮</h3>
+  <h3>Qualia/omiya</h3>
   <div class="mrow"><button class="mu-btn ml-btn" id="sndBtn" aria-pressed="true">声 オン</button><button class="mu-btn ml-btn" id="earBtn" aria-pressed="false">鳥の声を聞く</button><a class="mu-btn ml-btn" href="field-ar.html">実景AR</a></div>
   <p id="about"></p>
   <p class="small" id="aoiNote"></p>
@@ -740,8 +740,8 @@ html body #capTag{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.7)!i
 @media (prefers-reduced-motion:reduce){#qTown{transition:none}}</style>
 <div id="qTown" aria-hidden="true"><b>大宮</b><small>氷川参道</small><i>記録をもとにつくった風景です</i></div>
 <script>/* 11-10 第8周：歩きはじめたとき一度だけ、着いた町の名を大きく */(()=>{const t=document.getElementById("qTown");let done=0;const go=()=>{if(done||document.body.dataset.mode!=="walk")return;done=1;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1800)};new MutationObserver(go).observe(document.body,{attributes:true,attributeFilter:["data-mode"]});go()})()</script>
-<script src="kit/tsugi.js" data-bottom="220" data-href="../12/" data-name="Qualia/川越" data-line="小江戸の町を、同じ碧と歩く" defer></script>
-<script src="kit/ichimai.js" data-name="Qualia/大宮" data-left="12" data-bottom="220" defer></script>
+<script src="kit/tsugi.js" data-bottom="220" data-href="../12/" data-name="Qualia/kawagoe" data-line="小江戸の町を、同じ碧と歩く" defer></script>
+<script src="kit/ichimai.js" data-name="Qualia/omiya" data-left="12" data-bottom="220" defer></script>
 <script src="kit/futari.js?v=20261112F1" defer></script>
 <style id="r23-col">/* 11-18：375 の右の列を窮屈にしない（間を広げ、飛ぶ高さの字は畳んで矢印だけ・札を少し小さく） */@media (max-width:640px){html body #qIK{gap:10px}html body #qIK button{min-height:46px!important;height:46px!important}html body #qIK .ik-flight{gap:6px;padding-top:8px}html body #qIK .ik-flight-label{display:none}html body #qIK .ik-flight button{width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;font-size:19px!important;border-radius:50%}}</style>
 </body></html>
