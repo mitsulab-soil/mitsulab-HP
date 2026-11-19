@@ -150,7 +150,7 @@ var SEED=[
  {s:'hear',lv:3,la:26.3600,lo:127.8700,t:'エイサー（旧 与那城町・勝連町、いまのうるま市）。',src:'環境省「残したい日本の音風景100選」',u:'https://www.env.go.jp/air/life/sonooto.pdf'},
  {s:'taste',lv:2,la:35.9810,lo:139.4790,t:'冷や汁／すったて。ごま・みそ・きゅうり・大葉をすり、うどんで食べる（川島町・入間地域・県北）。',src:'農林水産省「うちの郷土料理」',u:'https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_3_saitama.html'}
 ];
-var KEY='qmap.v1';
+var KEY='qmap.v1',needMove=false;
 function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}}
 /* 写真は IndexedDB に */
@@ -233,7 +233,7 @@ radio(pS,S,'s');radio(pL,LV,'lv');function lvDef(){[].forEach.call(pL.children,f
 var body=document.body,bPut=document.getElementById('bPut'),bCancel=document.getElementById('bCancel'),bHere=document.getElementById('bHere'),err=document.getElementById('pErr'),txt=document.getElementById('pText');
 function ready(){var ng=!!(txt.value.trim()&&bad(txt.value.trim()));txt.classList.toggle('ng',ng);err.textContent=ng?'名前や連絡先・住所は書けません':err.textContent==='名前や連絡先・住所は書けません'?'':err.textContent;if(body.classList.contains('placing'))bPut.textContent=ng?'名前を消すと置けます':'ここに置く';bPut.setAttribute('aria-disabled',String(ng||!st.s));bPut.style.opacity=''}
 function open(){body.classList.add('placing');var sh=document.getElementById('sheet').getBoundingClientRect(),ay=Math.min(innerHeight/2,Math.max(150,(sh.top+120)/2));aimY=ay;aimEl.style.top=ay+'px';bCancel.hidden=false;bHere.hidden=true;map.closePopup();if(map.getZoom()<13)map.setZoom(13);ready()}
-function close(){body.classList.remove('placing');bCancel.hidden=true;bHere.hidden=false;bPut.textContent='感じたことを置く';st={s:null,lv:2,ph:null};bPut.removeAttribute('aria-disabled');txt.value='';txt.classList.remove('ng');err.textContent='';setThumb(null);[].forEach.call(document.querySelectorAll('.sheet [role=radio]'),function(x){x.setAttribute('aria-checked','false')});lvDef()}
+function close(){needMove=false;body.classList.remove('placing');bCancel.hidden=true;bHere.hidden=false;bPut.textContent='感じたことを置く';st={s:null,lv:2,ph:null};bPut.removeAttribute('aria-disabled');txt.value='';txt.classList.remove('ng');err.textContent='';setThumb(null);[].forEach.call(document.querySelectorAll('.sheet [role=radio]'),function(x){x.setAttribute('aria-checked','false')});lvDef()}
 /* 名前・連絡先らしきものを弾く */
 /* 空白なしの漢字の氏名・ひらがなの氏名：よくある姓のあとに名が続き、地名の終わり（駅・城・町ほか）でないもの */
 var SEI='佐藤|鈴木|高橋|田中|伊藤|渡辺|山本|中村|小林|加藤|吉田|山田|佐々木|山口|松本|井上|木村|斎藤|清水|山崎|池田|橋本|阿部|石川|山下|中島|石井|小川|前田|岡田|長谷川|藤田|後藤|近藤|村上|遠藤|青木|坂本|斉藤|福田|太田|西村|藤井|金子|岡本|藤原|中野|三浦|原田|中川|松田|竹内|小野|田村|中山|和田|石田|森田|上田|内田|柴田|酒井|宮崎|横山|高木|安藤|宮本|大野|小島|工藤|谷口|今井|高田|丸山|増田|杉山|村田|大塚|小山|平野|藤本|河野|上野|野口|武田|松井|千葉|岩崎|菅原|木下|久保|佐野|野村|松尾';
@@ -254,6 +254,7 @@ function snap(la,lo){var a=7.5/3600,b=11.25/3600;return[(Math.floor(la/a)+.5)*a,
 function band(){var d=new Date(),h=d.getHours(),m=d.getMonth()+1;var t=h>=5&&h<10?'朝':h<16&&h>=10?'昼':h<19&&h>=16?'夕':'夜';var s=m>=3&&m<=5?'春':m<=8&&m>=6?'夏':m<=11&&m>=9?'秋':'冬';return s+'の'+t}
 bPut.onclick=function(){
   if(!body.classList.contains('placing')){open();return}
+  if(needMove){err.textContent='「現在地」を押すか地図を動かして、場所を合わせてください';return}
   if(!st.s){err.textContent='感覚を選んでください';return}
   var t=txt.value.trim().slice(0,40);
   if(t&&bad(t)){err.textContent='名前や連絡先・住所は書けません';return}
@@ -288,6 +289,11 @@ bHere.onclick=function(){
   if(!navigator.geolocation){toast('この端末では使えません');return}
   navigator.geolocation.getCurrentPosition(function(q){var g=snap(q.coords.latitude,q.coords.longitude);map.setView(g,14)},function(){toast('現在地を使えませんでした')},{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
 };
+/* 11-19：lens・magnet の「前と後の一問」から、本人が「地図に置く」を押して来たとき。下書きを置く画面に入れるだけで、置くかどうかはここで決める */
+(function(){var d=null;try{d=JSON.parse(sessionStorage.getItem('qmap.draft')||'null');sessionStorage.removeItem('qmap.draft')}catch(e){}
+  if(!d||!SM[d.s]||typeof d.t!=='string')return;
+  setTimeout(function(){open();bHere.hidden=false;needMove=true;bPut.style.opacity='.45';setTimeout(function(){map.once('movestart',function(){needMove=false;bPut.style.opacity=''})},1500);S.forEach(function(s,i){if(s.k===d.s)pS.children[i].click()});txt.value=d.t.slice(0,40);ready();
+    var e=document.getElementById('toast');e.textContent='「現在地」か地図を動かして場所を合わせ、「ここに置く」';e.classList.add('on');setTimeout(function(){e.classList.remove('on')},6000)},500)})();
 var tt;function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},1800)}
 })();
 </script>

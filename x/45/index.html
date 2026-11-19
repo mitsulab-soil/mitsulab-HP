@@ -76,6 +76,8 @@ const UPE='碧：顔を上げて、今の音を自分の耳で聴いてみて。
 const rest=document.getElementById('rest');let rt=0,rb=0;
 function up(t){rest.querySelector('span').textContent=t;rest.classList.add('on');clearTimeout(rb);rb=setTimeout(()=>rest.classList.remove('on'),12000)}
 rest.onclick=()=>rest.classList.remove('on');
+/* 11-19：顔を上げる間が明けたら、一度だけ「前と後の一問」 */
+new MutationObserver(()=>{if(!rest.classList.contains('on')&&window.atosaki)setTimeout(()=>window.atosaki('さっきと違って感じたものは？',[{n:'色',s:'see',t:'別の受けとり方のあと、色が違って見えた'},{n:'動くもの',s:'see',t:'別の受けとり方のあと、動くものに目がいった'},{n:'音',s:'hear',t:'別の受けとり方のあと、音が違って聴こえた'},{n:'変わらない',s:'see',t:'別の受けとり方のあとも、同じに感じた'}]),900)}).observe(rest,{attributes:true,attributeFilter:['class']});
 function later(t,ms){clearTimeout(rt);rt=setTimeout(()=>{if(!document.hidden)up(t)},ms)}
 let seen=0,pmode=0,t0=-1e9,mode=0,rate=1,keep=true,last='eye',noMic=0;
 function plus(on){return on?'<br><button type="button" id="plus" aria-expanded="'+cap.classList.contains('open')+'" aria-label="出典をひらく">'+(cap.classList.contains('open')?'−':'＋')+'</button>':''}
@@ -200,5 +202,6 @@ function aiLoop(now){requestAnimationFrame(aiLoop);
 requestAnimationFrame(aiLoop);
 })();
 </script>
+<script src="../39/atosaki.js" defer></script>
 </body>
 </html>
