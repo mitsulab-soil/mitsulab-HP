@@ -53,9 +53,22 @@ export function start(){
   seg(FW,true); seg(HW,true);
   [2,3,4,5,6,7,8].forEach(k=>{const B=FW[k];wa.push(.04,.02,0,B[0]*.96,B[1]*.96,0)});
   [2,3,4,5,7,8,9].forEach(k=>{const B=HW[k];wa.push(.04,-.02,0,B[0]*.95,B[1]*.95,0)});
-  const n0=wa.length; for(let k=0;k<n0;k+=3){wa.push(-wa[k],wa[k+1],wa[k+2])}
-  const wg=new THREE.BufferGeometry(); wg.setAttribute('position',new THREE.Float32BufferAttribute(wa,3));
-  const wing=new THREE.LineSegments(wg,new THREE.LineBasicMaterial({color:0xf0f4e6,transparent:true,opacity:0,depthWrite:false})); wing.scale.set(2.1,2.1,1); wing.position.set(0,1.6,-5); sc.add(wing);
+  // 翅を点群で（脈と縁は密に、膜は疎らに。アゲハの翅の形と脈をなぞった模式）
+  const inPoly=(P,x,y)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const xi=P[i][0],yi=P[i][1],xj=P[j][0],yj=P[j][1];if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c}return c};
+  const wp=[]; for(let k=0;k<wa.length;k+=6){const n=sp?5:9;for(let t=0;t<n;t++){const u=Math.random();wp.push(wa[k]+(wa[k+3]-wa[k])*u+(Math.random()-.5)*.012,wa[k+1]+(wa[k+4]-wa[k+1])*u+(Math.random()-.5)*.012,(Math.random()-.5)*.02)}}
+  for(let t=0;t<(sp?260:620);t++){const x=Math.random()*1.1,y=Math.random()*2.05-1.0;if(inPoly(FW,x,y)||inPoly(HW,x,y))wp.push(x,y,(Math.random()-.5)*.02)}
+  wp.push(0,.18,0, 0,.05,0, 0,-.1,0, 0,-.25,0, 0,-.4,0);
+  const wg=new THREE.BufferGeometry(); wg.setAttribute('position',new THREE.Float32BufferAttribute(wp,3));
+  const wmat=new THREE.PointsMaterial({color:0xfffbe8,size:sp?.05:.035,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}); wmat.fog=false;
+  const wR=new THREE.Points(wg,wmat), wL=new THREE.Points(wg,wmat); wL.scale.x=-1;
+  // 蝶のまわりに立ち上がる受けとり方の場（色の偏りを点の帯で。模式）
+  const UN=sp?160:360, up=new Float32Array(UN*3), uc=new Float32Array(UN*3);
+  const CA=new THREE.Color(0xd9f27a), CB=new THREE.Color(0x7fe3e8), CC2=new THREE.Color(0xffe9a8);
+  for(let i=0;i<UN;i++){const t=Math.random()*6.283,r=1.1+Math.random()*1.5;up[i*3]=Math.cos(t)*r*1.25;up[i*3+1]=Math.sin(t)*r*.8-.1;up[i*3+2]=(Math.random()-.5)*.6;const c=[CA,CB,CC2][i%3];uc[i*3]=c.r;uc[i*3+1]=c.g;uc[i*3+2]=c.b}
+  const ug=new THREE.BufferGeometry(); ug.setAttribute('position',new THREE.BufferAttribute(up,3)); ug.setAttribute('color',new THREE.BufferAttribute(uc,3));
+  const umat=new THREE.PointsMaterial({size:sp?.04:.028,vertexColors:true,transparent:true,opacity:0,depthWrite:false}); umat.fog=false;
+  const halo=new THREE.Points(ug,umat);
+  const wing=new THREE.Group(); wing.add(halo); wing.add(wR); wing.add(wL); wing.material=wmat; cam.add(wing); sc.add(cam);
   const size=()=>{const w=innerWidth,h=innerHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}; size(); addEventListener('resize',size);
   let t0=performance.now(), on=true, last=0, scrolling=false, stT=0;
   addEventListener('scroll',()=>{scrolling=true;clearTimeout(stT);stT=setTimeout(()=>scrolling=false,180)},{passive:true});
@@ -67,7 +80,15 @@ export function start(){
     for(let i=0;i<K;i++){const j=i*3;T[j]=T0[j]*fl+bx;T[j+1]=T0[j+1]+by;T[j+2]=T0[j+2]}
     for(let i=0;i<K*3;i++){P[i]=P0[i]+(T[i]-P0[i])*e} pg.attributes.position.needsUpdate=true;
     lines.material.opacity=.18*(1-e*.8);
-    wing.material.opacity=.8*e*(scrollY<innerHeight*.8?1:.4); wing.visible=e>.01; wing.position.x=bx*.8; wing.position.y=1.6+by; wing.scale.x=2.1*fl;
+    { const inTop=scrollY<innerHeight*.8, D=10, hw=Math.tan(27.5*Math.PI/180)*D*cam.aspect, hh=Math.tan(27.5*Math.PI/180)*D;
+      const marg=(innerWidth-1180)/2, mw=marg>110?marg/innerWidth*2*hw:0;
+      let op, x, yy, sc2;
+      if(inTop){ op=.95*Math.max(e,.55); x=bx*.6; yy=by*.6; sc2=1.6; }
+      else if(mw>0){ const side=Math.sin(s*.023)>0?1:-1; op=.9; x=side*(hw-mw*.5); yy=Math.sin(s*.13)*hh*.5; sc2=Math.min(1.3,mw*.42); }
+      else { op=.12; x=bx*.5; yy=by; sc2=1.4; }
+      wing.material.opacity=op; wing.visible=op>.01; umat.opacity=op*(.35+.35*Math.sin(s*.5)); halo.rotation.z=s*.05; halo.scale.setScalar(.9+.15*Math.sin(s*.31));
+      wing.position.set(x, yy, -D);
+      wing.scale.set(sc2, sc2, sc2); const fa=(Math.sin(s*5.2)*.5+.5)*1.05+.15; wR.rotation.y=-fa; wL.rotation.y=fa; wing.rotation.x=-.35; wing.rotation.z=Math.sin(s*.4)*.12; }
     world(s); pts.rotation.y=Math.sin(s*.02)*.06; lines.rotation.y=pts.rotation.y; r.render(sc,cam)}
   function loop(t){ if(!on) return; if(t-last>(sp?66:33)&&!(sp&&scrolling)){last=t;frame(t)} requestAnimationFrame(loop)}
   if(still) frame(t0); else requestAnimationFrame(loop);
