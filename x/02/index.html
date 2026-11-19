@@ -5,9 +5,9 @@
 <meta name="tdm-reservation" content="1">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qualia/sight</title>
-<meta name="description" content="ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズの受けとり方に切り替えて歩く。碧が案内する。">
+<meta name="description" content="ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
 <meta property="og:title" content="Qualia/sight">
-<meta property="og:description" content="ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズの受けとり方に切り替えて歩く。碧が案内する。">
+<meta property="og:description" content="ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
 <style>
 :root{--bg:#0f1412;--ink:#eef2ea;--dim:#aab7ad;--line:#33443b;--card:#16201b;--card2:#1d2a23;--aoi:#4fb3a8;--aoi2:#18322f;--gold:#d9c27a;
   --shadow:0 10px 30px rgba(0,0,0,.45);--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;--goth:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif}
@@ -232,12 +232,12 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261119a">
+<link rel="modulepreload" href="umwelt.js?v=20261120a">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
 <link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1">
-<link rel="modulepreload" href="bodies.js?v=20261016-startup1">
+<link rel="modulepreload" href="bodies.js?v=20261120a">
 <link rel="modulepreload" href="forest.js?v=20261119a">
 <link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
 <link rel="modulepreload" href="nature.js?v=20261105s">
@@ -245,6 +245,7 @@ body{word-break:auto-phrase;line-break:strict}
 <link rel="modulepreload" href="kit/aoi_motion.js?v=20261104a">
 <link rel="modulepreload" href="kit/warm.js">
 <link rel="modulepreload" href="creatures.js?v=20261013k80">
+<link rel="modulepreload" href="ring.js?v=20261120a">
 <link rel="modulepreload" href="kit/aoi_mocap.js">
 <link rel="modulepreload" href="kit/aoi_robe.js">
 <!-- 最初に見える森の材質だけを先読みし、3D構築後の画像通信を避ける。 -->
@@ -288,7 +289,7 @@ body{word-break:auto-phrase;line-break:strict}
 
 <header id="top">
   <span class="dream-title">Qualia/sight</span>
-  <span class="topR"><a class="btn why" href="now.html" style="text-decoration:none;display:inline-flex;align-items:center">今ここ</a><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
+  <span class="topR"><button class="btn why" id="kurBtn">くらべる</button><button class="btn why" id="whyBtn" aria-haspopup="dialog">なぜ、そう見えるの？</button><button class="ico" id="menuBtn" aria-label="設定と出典">⚙</button></span>
 </header>
 <aside id="bodyControls" aria-label="身体の操作"><button id="bodyForward" aria-label="この身体で前へ進む">↑<small>進む</small></button><div><button data-turn="left" aria-label="左を向く">↶</button><button data-turn="right" aria-label="右を向く">↷</button></div><button id="bodyBack" aria-label="後ろへ進む">↓<small>戻る</small></button><button id="cmpBtn" aria-pressed="false" aria-label="押しているあいだ、同じ場所を人の目で見る（キーボードは H）" hidden><b>◐</b><small>人の目と<br>くらべる</small></button><div id="flightControls" hidden><button data-fly="r" aria-label="上昇">＋<small>上昇</small></button><button data-fly="f" aria-label="下降">−<small>下降</small></button></div></aside><p id="moveNote"></p>
 <div id="where" aria-live="polite"><b id="whereName"></b><small id="whereSub"></small></div>
@@ -305,7 +306,8 @@ body{word-break:auto-phrase;line-break:strict}
 </div></div>
 <div id="panHint" hidden>↔ 左右になぞると、壁が動きます</div>
 
-<aside id="bodyWheel" aria-label="いまの身体（押すと次の身体へ）"><nav id="dial" aria-label="受けとり方"></nav></aside>
+<nav id="ring" aria-label="身体と受けとり方を選ぶ（左右の体を押すか、なぞって回す）"></nav>
+<aside id="bodyWheel" hidden aria-hidden="true"><nav id="dial"></nav></aside>
 <nav id="langs" hidden aria-label="言葉"></nav>
 <!-- 碧の小さな窓（声だけになる受けとり方のときも、碧がとなりで一緒に感じている）2026-10-08 -->
 <div id="aoiWin" hidden aria-hidden="true"><i></i><small id="aoiWinCap"></small></div>
@@ -332,10 +334,10 @@ body{word-break:auto-phrase;line-break:strict}
   <label class="opt">音を出す<input type="checkbox" id="optSound" checked></label>
   <label class="opt">動きを減らす<input type="checkbox" id="optRM"></label>
   <label class="opt">文字を大きく<input type="checkbox" id="optBig"></label>
-  <h2>八つの受けとり方（くらべる）</h2>
+  <h2>十の受けとり方（くらべる）</h2>
   <table id="lensTable"></table>
   <h2>操作</h2>
-  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 左のダイヤル＝身体と受けとり方を切り替える ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
+  <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 上の並び＝身体と受けとり方を切り替える（左右の体を押すか、なぞって回す） ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
   <p>上の「くらべる」＝同じ場所に立ったまま、ミツバチ・犬・マムシに体を入れかえる旅。切り替える前に見え方を予想してから確かめ、最後に外で使える見方を持ち帰ります。右の「◐ 人の目とくらべる」は、押しているあいだだけ同じ場所を人の目に戻します。</p>
   <h2>この空間のつくり</h2>
   <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、モンシロチョウの雌雄と空です。白い花の多くが紫外を吸うことは研究の報告にもとづきますが、この森の草花・鳥の一つひとつの値は測ったものではなく、目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
@@ -371,21 +373,42 @@ body{word-break:auto-phrase;line-break:strict}
 })();
 </script>
 <script src="data/paths.js?v=20261010"></script>
-<script src="data/daihon.js?v=20261014p2"></script>
-<script src="data/voice.js?v=20261013k80" onerror="window.VOICE={}"></script>
-<script src="data/why.js?v=20261119a"></script>
+<script src="data/daihon.js?v=20261120a"></script>
+<script src="data/voice.js?v=20261120a" onerror="window.VOICE={}"></script>
+<script src="data/why.js?v=20261120a"></script>
 <script>
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261119a';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261120a';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
 <script src="kit/tsugi.js" data-bottom="230" data-href="../07/" data-name="Qualia/sound" data-line="聴こえない音を聴く" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/sight" data-right="12" data-bottom="140" defer></script>
 <style id="pc18">/* 2026-11-18 PC はキーと押した場所で歩けるので、右の矢印の盤は出さない（文字と操作を減らす） */@media (hover:hover) and (pointer:fine) and (min-width:900px){#bodyControls{display:none!important}#moveNote{font-size:15px!important;color:#f4f8f2!important}}@media (max-width:700px){#where b,#where small{text-shadow:0 0 1px #000,0 0 1px #000,0 0 1px #000!important;font-weight:700}#where{top:74px!important}#moveNote{font-weight:600;text-shadow:0 0 2px #000,0 0 1px #000}}</style>
-<script src="kit/modes.js?v=20261119a" data-modes='[["sight","生き物",""],["machine","機械","machine/"],["ai","話すAI","ai/"]]' data-hide=".mark,#top>b" defer></script>
+<style id="ring20">/* 2026-11-20 生きものの 3D の並び（選んでいる体をまん中に、前後の体を左右に。回して選ぶ） */
+#ring{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(8px,env(safe-area-inset-top)) + 46px);width:min(620px,100vw);height:132px;z-index:5;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+#ring canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 16%,#000 84%,transparent 100%)}
+#ring .rg-row{position:absolute;inset:0}
+#ring .rg-it{position:absolute;left:50%;top:0;width:112px;margin-left:-56px;height:100%;border:0;background:none;padding:0;display:flex;align-items:flex-end;justify-content:center;color:var(--dim);-webkit-tap-highlight-color:transparent;border-radius:2px}
+#ring .rg-it span{font-family:var(--mincho);font-size:13px;letter-spacing:.06em;line-height:1.2;padding:0 2px 2px;white-space:nowrap;text-shadow:0 0 2px #071108,0 0 6px rgba(7,17,8,.95),0 1px 10px rgba(7,17,8,.8);transition:font-size .25s,color .25s}
+#ring .rg-it.on span{font-size:21px;font-weight:600;color:#fff;letter-spacing:.1em;border-bottom:1px solid var(--aoi)}
+#ring .rg-it:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+#ring .rg-arrow{position:absolute;top:50%;margin-top:-26px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(6,10,18,.5);color:var(--ink);font-size:22px;line-height:1;display:grid;place-items:center;padding:0 0 3px;z-index:2}
+#ring .rg-prev{left:4px}#ring .rg-next{right:4px}
+#ring .rg-arrow:hover,#ring .rg-arrow:focus-visible{border-color:var(--aoi);color:var(--aoi3)}
+body.kur #ring{display:none}
+#acts{flex-wrap:wrap;overflow:visible}   /* 問いの札が増えても、PC で右に切れない */
+#ring .rg-it{color:#f1f6ee}
+#where #whereName{display:none}
+#where{top:calc(max(8px,env(safe-area-inset-top)) + 180px)!important}
+#moveNote{animation:mvfade 9s forwards}@keyframes mvfade{0%,82%{opacity:1}100%{opacity:0}}
+body.kur #where{top:62px!important}
+@media (min-width:1000px){#ring{height:150px;width:min(720px,100vw)}#ring .rg-it{width:132px;margin-left:-66px}#ring .rg-it span{font-size:14px}#ring .rg-it.on span{font-size:24px}#where{top:calc(max(8px,env(safe-area-inset-top)) + 198px)!important}}
+@media (max-width:700px){#ring{height:112px;top:calc(max(8px,env(safe-area-inset-top)) + 46px)}#ring .rg-it{width:100px;margin-left:-50px}#ring .rg-it span{font-size:12px}#ring .rg-it.on span{font-size:18px}#ring .rg-arrow{width:44px;height:44px;background:rgba(6,10,18,.35)}#ring .rg-prev{left:0}#ring .rg-next{right:0}#where{top:calc(max(8px,env(safe-area-inset-top)) + 160px)!important}body.kur #where{top:74px!important}}
+@media (prefers-reduced-motion:reduce){#moveNote{animation:none}}
+</style>
 <style id="rd19">/* 2026-11-19 上の案内を幹や葉の上でも読める濃い影に（帯や網かけは敷かない） */#moveNote,#where{text-shadow:0 0 2px #071108,0 0 6px rgba(7,17,8,.95),0 1px 12px rgba(7,17,8,.8)!important;font-weight:600}</style>
 </body>
 </html>

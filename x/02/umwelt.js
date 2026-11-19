@@ -6,7 +6,8 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
-import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261016-startup1";
+import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120a";
+import { makeRing } from "./ring.js?v=20261120a";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
 import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261119a";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
@@ -72,7 +73,7 @@ scene.background = new THREE.Color(0x0f1412);
 const G = {
   uM: { value: new THREE.Matrix3() }, uUVw: { value: new THREE.Vector3() }, uMode: { value: 0 },
   uEcho: { value: new THREE.Vector4(0, 0, 0, -9) }, uEchoW: { value: .45 }, uTouch: { value: new THREE.Vector4(0, -99, 0, .6) },
-  uCam: { value: new THREE.Vector3() }, uWorm: { value: 0 }, uHeatR: { value: 14 }, uTime: { value: 0 },
+  uCam: { value: new THREE.Vector3() }, uWorm: { value: 0 }, uHeatR: { value: 14 }, uTime: { value: 0 }, uCell: { value: 4 },
 };
 // 風で揺れる（葉・草）：頂点を世界の位置で少しずらす。uWindH＝この高さで揺れが最大になる
 const WIND = `
@@ -94,7 +95,7 @@ mvPosition = viewMatrix * wq_;
 gl_Position = projectionMatrix * mvPosition;
 `;
 const HEAD = `varying vec3 vWP;
-uniform mat3 uM; uniform vec3 uUVw; uniform int uMode; uniform float uUV, uTemp, uEchoK, uWorm, uEchoW, uHeatR;
+uniform mat3 uM; uniform vec3 uUVw; uniform int uMode; uniform float uUV, uTemp, uEchoK, uWorm, uEchoW, uHeatR, uCell;
 uniform vec4 uEcho; uniform vec4 uTouch; uniform vec3 uCam;
 #ifdef HAS_UVMAP
 uniform sampler2D uUVMap;
@@ -125,6 +126,15 @@ if (uMode == 1) {            // マムシ：目の像を暗く、温かいもの
   gl_FragColor.rgb = gl_FragColor.rgb * .015 + vec3(.55, .82, 1.0) * k;
 } else if (uMode == 4) {     // ミミズ：明るさだけ
   gl_FragColor.rgb = vec3(uWorm);
+} else if (uMode == 5) {     // カメラ：一画素に一色（赤・緑・青の格子＝ベイヤー配列。緑が半分）を、大きくして見せる模式
+  vec2 bc = mod(floor(gl_FragCoord.xy / uCell), 2.0);
+  vec3 bf = bc.x < .5 ? (bc.y < .5 ? vec3(0., 1., 0.) : vec3(2., 0., 0.)) : (bc.y < .5 ? vec3(0., 0., 2.) : vec3(0., 1., 0.));   // 赤と青は四つに一つ、緑は二つ（平均の色が元と同じになるよう、赤と青を二倍に）
+  vec2 bi = fract(gl_FragCoord.xy / uCell); float edge = smoothstep(0., .18, bi.x) * smoothstep(0., .18, bi.y);
+  gl_FragColor.rgb = gl_FragColor.rgb * mix(vec3(1.), bf * 1.9, .72) * mix(.8, 1., edge);
+} else if (uMode == 6) {     // 熱カメラ：温かいほど明るい（白が熱い）。値は模式（面の「温かさ」と日なたの明るさから）
+  float lum = dot(gl_FragColor.rgb, vec3(.3, .55, .15));
+  float tk = clamp(.12 + uTemp * .9 + lum * .16, 0., 1.);
+  gl_FragColor.rgb = vec3(pow(tk, 1.15)) * vec3(1., .985, .95);
 }
 `;
 function prep(m, o = {}) {
@@ -181,7 +191,7 @@ const sonic = [];                // 画面のまん中にあるものの紫外�
 {
   const geo = new THREE.SphereGeometry(120, 48, 24);
   geo.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 3), 3));
-  var sky = new THREE.Mesh(geo, M(0xffffff, { basic: true, vc: true, side: THREE.BackSide, uv: .85, temp: 0, echo: 0, fog: false })); garden.add(sky);
+  var sky = new THREE.Mesh(geo, M(0xffffff, { basic: true, vc: true, side: THREE.BackSide, uv: .85, temp: -1, echo: 0, fog: false })   /* temp −1＝熱カメラで空がいちばん冷たく写る（マムシの見え方は 0 と同じ） */); garden.add(sky);
 }
 const SKY = { zen: new THREE.Color(0x5f8fc4), hor: new THREE.Color(0xd5e0e6), glow: new THREE.Color(0xfff1d6), dusk: new THREE.Color(0xf0a070) };
 function paintSky(dir, dusk = 0, lit = 1) {
@@ -351,9 +361,12 @@ const LENS = {
   hebi: { eye: .25, mode: 1, spot: [MOUSE.x - .5, MOUSE.z + 1.4, MOUSE.x, .08, MOUSE.z], m: I3, uvw: [0, 0, 0], sub: "目と、ピット（赤外を熱で感じる）", legend: "<b>明るいところ</b>＝温かいもの<br>温かいものを見ると、低い音" },
   koumori: { eye: 2.0, mode: 2, spot: [.5, 6.5, 1, 1.6, -1], m: I3, uvw: [0, 0, 0], night: true, sub: "反響で形をとらえる（エコーロケーション）", legend: "<b>光る輪</b>＝声のとどいたところ<br>（ゆっくりにして見せている）<br>音＝人に聞こえる高さに下げた作り音" },
   mimizu: { under: "light", mode: 4, m: I3, uvw: [0, 0, 0], sub: "目はない・体で光の明るさを感じる", legend: "<b>画面の明るさ</b>＝光の明るさだけ<br>▲▼で上へ・下へ" },
+  // 2026-11-20 機械（別の画面だったものを、同じ森の中の受けとり方に）。カメラ＝ベイヤー配列（Bayer 1976）、熱カメラ＝8〜14 µm の赤外を温度の値に（値は模式）
+  camera: { eye: 1.35, mode: 5, machine: true, m: I3, uvw: [0, 0, 0], sub: "一画素に一色・のこりは計算でうめる", legend: "<b>格子</b>＝一画素が受ける一色（赤・緑・青）<br>大きくして見せている模式" },
+  netsu: { eye: 1.35, mode: 6, machine: true, m: I3, uvw: [0, 0, 0], sub: "赤外線の量を、温度の値に", legend: "<b>明るい</b>＝温かい　<b>暗い</b>＝冷たい<br>値は模式" },
 };
 const FLIGHT=new Set(['hachi','chou','tori','koumori']);
-const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:2,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mimizu:{speed:.04,bob:0,freq:3}};
+const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:2,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mimizu:{speed:.04,bob:0,freq:3},camera:{speed:1.2,bob:.004,freq:7},netsu:{speed:1.2,bob:.012,freq:8}};
 // 森（2026-10-12 組み直し：モグラと都市を外し、木と草花を森らしく。forest.js）
 const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='forest',flightHeight=1.5;
 // Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
@@ -421,15 +434,15 @@ for (const o of [...butterflies, ageha, bee, ...moths, ...residents.filter(b => 
 //   2026-10-13：画面のまん中をふさがないよう、少し小さく・下へ。切り替えた直後の見せ場のあとは、うすく透ける
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.2);bodyRoot.rotation.y=Math.PI;
 let bodyYaw0=0,bodyRoll=0,showLens='',showT=0;
-const BODYPOS={hachi:[-.19,-.78],chou:[-.2,-.84],tori:[-.2,-.84],inu:[-.3,-.98],hebi:[-.22,-.92],koumori:[-.19,-.84]};
+const BODYPOS={camera:[-.33,-.8],netsu:[-.3,-.72],hachi:[-.19,-.78],chou:[-.2,-.84],tori:[-.2,-.84],inu:[-.3,-.98],hebi:[-.22,-.92],koumori:[-.19,-.84]};
 // 切り替えた直後の「寄り」（ry＝横へ回す・rx＝手前へ傾けて背を見せる・y z＝寄せる位置・s＝大きさの倍率）
-const SHOW={def:{ry:1.2,rx:0,y:-.13,z:-.52,s:1.35},hachi:{ry:1.35,rx:.12,y:-.1,z:-.44,s:1.9},tori:{ry:1.3,rx:.1,y:-.11,z:-.46,s:1.7},chou:{ry:1.0,rx:.35,y:-.12,z:-.5,s:1.45},inu:{ry:1.25,rx:.05,y:-.15,z:-.55,s:1.35},hebi:{ry:.55,rx:.85,y:-.12,z:-.5,s:1.8},koumori:{ry:.4,rx:.55,y:-.05,z:-.82,s:1.0}};
+const SHOW={camera:{ry:.9,rx:.1,y:-.2,z:-.62,s:1.25},netsu:{ry:.9,rx:.15,y:-.16,z:-.6,s:1.0},def:{ry:1.2,rx:0,y:-.13,z:-.52,s:1.35},hachi:{ry:1.35,rx:.12,y:-.1,z:-.44,s:1.9},tori:{ry:1.3,rx:.1,y:-.11,z:-.46,s:1.7},chou:{ry:1.0,rx:.35,y:-.12,z:-.5,s:1.45},inu:{ry:1.25,rx:.05,y:-.15,z:-.55,s:1.35},hebi:{ry:.55,rx:.85,y:-.12,z:-.5,s:1.8},koumori:{ry:.4,rx:.55,y:-.05,z:-.82,s:1.0}};
 // 自分の体の質感（森の生きものと共有している質感は、透かさない）
 const worldMats = new Set(); forest.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) worldMats.add(mt); });
 const bodyMats = {};
 function ensureBody(id) {
   if (bodies[id] || id === 'hito') return bodies[id];
-  const b = makeBody(id, (c,o={})=>M(c,{temp:.7,uv:.05,...o}));
+  const b = makeBody(id, (c,o={})=>M(c,{temp:LENS[id]?.machine?.16:.7,uv:.05,...o}));   // 機械の体は温かくない
   if (['hachi','chou','hebi','mimizu'].includes(id)) asAmbient(b);
   const list=[]; b.traverse(o=>{if(o.isMesh)for(const mt of [].concat(o.material))if(!worldMats.has(mt))list.push([mt,mt.opacity,mt.transparent]);});
   bodyMats[id]=list; b.visible=false; bodyRoot.add(b); bodies[id]=b; return b;
@@ -462,11 +475,12 @@ let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
 // 見え方だけを切りかえる（色の写し方・ぼかし・夜）。「人の目とくらべる」を押しているあいだは、ひとの見え方を一時的に重ねる（2026-10-13）
 function lensVisual(id) {
   const L = LENS[id];
-  G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0;
+  G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0; G.uCell.value = (mobile ? 3 : 4) * BASE_PR;
   renderer.setPixelRatio(L.blur ? Math.max(.5, BASE_PR * .5) : BASE_PR); renderer.setSize(innerWidth, innerHeight);
   renderer.domElement.style.filter = L.blur ? `blur(${mobile ? 1.6 : 2.2}px)` : "";
   const night = !!L.night;
   if (night) { hemi.intensity = .05; sun.intensity = 0; scene.fog.color.set(0x020306); } else setDay(LIT.base);
+  if (L.mode === 6) scene.fog.color.set(0x0a0a0a);   // 熱カメラ：晴れた空はとても冷たく写る（Berdahl & Martin 1984）＝遠くも空も暗い側へ
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
   for (const m of moths) m.visible = night;
   if (FOREST.shafts) FOREST.shafts.visible = (id === 'hito' || id === 'inu') && !night;
@@ -481,12 +495,13 @@ function applyLens(id) {
   const L = LENS[id];
   if (id === "koumori" && typeof echo !== "undefined") echo.t = 99;   // 切り替えてすぐ最初の声を出す（2026-10-14：はじめの数秒が真っ黒だった）
   if (comparing) { comparing = false; $("cmpBtn")?.setAttribute("aria-pressed", "false"); $("cmpTag") && ($("cmpTag").hidden = true); }
-  G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0;
+  G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0; G.uCell.value = (mobile ? 3 : 4) * BASE_PR;
   // 犬のぼかし（2026-10-13）：画素を粗くすると四角いモザイクに見えるので、描く細かさを半分にし、画面全体をなめらかにぼかす
   renderer.setPixelRatio(L.blur ? Math.max(.5, BASE_PR * .5) : BASE_PR); renderer.setSize(innerWidth, innerHeight);
   renderer.domElement.style.filter = L.blur ? `blur(${mobile ? 1.6 : 2.2}px)` : "";
   const night = !!L.night;
   if (night) { hemi.intensity = .05; sun.intensity = 0;scene.fog.color.set(0x020306); } else setDay(LIT.base);
+  if (L.mode === 6) scene.fog.color.set(0x0a0a0a);
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
   for (const m of moths) m.visible = night;
   garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';if(FOREST.shafts)FOREST.shafts.visible=(id==='hito'||id==='inu')&&!night;
@@ -496,7 +511,8 @@ function applyLens(id) {
   { const bp = BODYPOS[id] || [-.27, -.65]; bodyRoot.position.set(0, bp[0], bp[1]); }   // 画面の下の字幕に隠れない高さに（2026-10-12）
   $('flightControls').hidden=!FLIGHT.has(id)||chapter!=='umwelt';
   // 操作の説明（2026-10-13）：指で触る端末では、キーボードの説明を出さない
-  $('moveNote').innerHTML = phrases(L.under ? '土の中 · ▲ 上へ・▼ 下へ で明るさが変わる'
+  { const mn = $('moveNote'); mn.style.animation = 'none'; void mn.offsetWidth; mn.style.animation = ''; }   // 操作の一行は、体を入れかえてしばらくしたら消える（文字を減らす・2026-11-20）
+  $('moveNote').innerHTML = phrases(L.machine ? (TOUCH ? '持って歩く · ↑ 長押しで進む・なぞって見回す' : '地面を押すと、そこへ持って歩く · W A S D でも') : L.under ? '土の中 · ▲ 上へ・▼ 下へ で明るさが変わる'
     : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ 長押しで進む・＋ − で上下' : (id === 'hebi' ? '地面を這う' : '歩く') + ' · ↑ 長押しで進む・なぞって見回す')
     : FLIGHT.has(id) ? '飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも）' : id === 'hebi' ? '地面を押すと、そこへ這う · W A S D でも' : '地面を押すと、そこへ歩く · W A S D でも');
   $('bodyControls').hidden = !!L.under || chapter !== 'umwelt';   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
@@ -835,7 +851,9 @@ function aoiTick(dt) {
 const dial = $("dial"), spoken = new Set();
 const pendingPortraits = new Set(S.lens.map(l => l.id));
 let portraitTask = null;
-function schedulePortraits() {
+function schedulePortraits(go) {
+  if (go !== true && !(STARTUP.interactiveAt || STARTUP.fallbackAt)) return;
+  if (!schedulePortraits.ring) { schedulePortraits.ring = true; bodyRing.start(); } return;   // 2026-11-20 札の絵は使わない（並びは 3D）。森が出てから、並びの体を裏で組む
   if (portraitTask !== null || document.hidden || !(STARTUP.interactiveAt || STARTUP.fallbackAt)) return;
   if (!pendingPortraits.size) { disposePortraitRenderer(); STARTUP.portraitsReadyAt ||= performance.now(); return; }
   const renderOne = () => {
@@ -853,7 +871,10 @@ for (const [i, l] of S.lens.entries()) {
   const b = document.createElement("button"); b.className = "pill"; b.dataset.id = l.id; b.setAttribute("aria-pressed", String(l.id === lens)); b.setAttribute("aria-keyshortcuts", String(i + 1));
   b.innerHTML = `<img class="creaturePortrait" alt="" style="visibility:hidden"><span>${l.name}</span><i>${i + 1}</i>`; b.setAttribute("aria-label",`${l.name}の身体と受けとり方`); b.onclick = () => { first(false); const k = LENS_IDS.indexOf(lensRequest); setLens(l.id === lensRequest ? LENS_IDS[(k + 1) % LENS_IDS.length] : l.id); }; /* 2026-11-04 本人「消す」＝左の一覧を外し、いまの身体の一枚だけ。押すと次の身体へ */ dial.appendChild(b);
 }
-function layoutBodyWheel(){const cur=lensRequest;[...dial.children].forEach(b=>{b.hidden=b.dataset.id!==cur;b.style.transform='';b.style.opacity='';});}
+// 2026-11-20 本人「選択中の生き物だけでなく、前後の生き物も見れるように」＝上に、体の 3D の並び（回して選ぶ）。左下の一枚の札は外した
+const bodyRing = makeRing({ host: $("ring"), items: S.lens.map(l => ({ id: l.id, name: l.name })), reduced: RM, onPick: id => { first(false); setLens(id); } });
+bodyRing.set(lens, true);
+function layoutBodyWheel(){bodyRing.set(lensRequest);const cur=lensRequest;[...dial.children].forEach(b=>{b.hidden=b.dataset.id!==cur;b.style.transform='';b.style.opacity='';});}
 $('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:LENS_IDS.length-1))%LENS_IDS.length]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
 async function veil(fn, token) { $("veil").classList.add("on"); await sleep(RM ? 60 : 260); if(token!==undefined&&token!==lensToken)return false; fn(); await sleep(60); if(token!==undefined&&token!==lensToken)return false; $("veil").classList.remove("on");return true; }
 function setWhere() {
@@ -905,10 +926,12 @@ async function setLens(id, silent = false, opt = {}) {
 function talkLens(id, again = false) {
   const l = S.lens.find(x => x.id === id), i = LENS_IDS.indexOf(id), next = LENS_IDS[i + 1];
   const extra = [["もう一度", () => talkLens(id, true)]];
-  if (next) extra.push([`次：${S.lens[i + 1].name} ›`, () => setLens(next), true]);
-  else extra.push(["人の身体へ戻る",()=>setLens("hito"),true]);
+  const nx = next ? [`次：${S.lens[i + 1].name} ›`, () => setLens(next), true] : ["人の身体へ戻る", () => setLens("hito"), true];
+  extra.push(nx);
+  // 2026-11-20 別の画面だった「話す AI」の問いを、同じ森の中で碧に聞ける（話のあとに、問いの札が出る）
+  const A_ = (S.ask || {})[id], asks = A_ ? Object.keys(S.askQ).filter(k => A_[k]).map(k => [S.askQ[k], () => talk([A_[k]], after)]) : [], after = asks.length ? [...asks, nx] : extra;
   spoken.add(id);
-  talk(l.lines, extra).then(ok => { if (ok && !next && !again) talk(S.outro, extra); });
+  talk(l.lines, extra).then(ok => { if (!ok) return; if (!next && !again) talk(S.outro, after).then(k => k && setActs(after)); else setActs(after); });
 }
 
 // ---------------------------------------------------------------- 言葉と色
@@ -1053,14 +1076,14 @@ function closeMenu() { $("menu").hidden = true; keys.clear(); $("menuBtn").focus
 $("menuBtn").onclick = () => { keys.clear(); $("menu").hidden = false; $("menuX").focus(); };
 $("menuX").onclick = closeMenu;
 $("menu").addEventListener("click", e => { if (e.target.id === "menu") closeMenu(); });
-$("optRM").checked = RM; $("optRM").onchange = e => { RM = e.target.checked; };
+$("optRM").checked = RM; $("optRM").onchange = e => { RM = e.target.checked; bodyRing.setReduced(RM); };
 // 文字を大きく（端末に覚える。読めなくても動く）
 try { $("optBig").checked = localStorage.getItem("umw-big") === "1"; } catch {}
 document.body.classList.toggle("big", $("optBig").checked);
 $("optBig").onchange = e => { document.body.classList.toggle("big", e.target.checked); try { e.target.checked ? localStorage.setItem("umw-big", "1") : localStorage.removeItem("umw-big"); } catch {} };
 // 八つの受けとり方をくらべる表（授業でも使えるように）
 // ダイヤルの名前（短い呼び名）と、この森で形を作った種の名前（2026-10-13）
-const SPECIES = { chou: "ナミアゲハ", tori: "シジュウカラ", inu: "柴犬", hebi: "ニホンマムシ", koumori: "アブラコウモリ", mimizu: "フトミミズのなかま" };
+const SPECIES = { chou: "ナミアゲハ", tori: "シジュウカラ", inu: "トイプードル",   /* 2026-11-20 形はトイプードル（巻き毛・垂れ耳）。名前を形に合わせた */ hebi: "ニホンマムシ", koumori: "アブラコウモリ", mimizu: "フトミミズのなかま" };
 $("lensTable").innerHTML = S.lens.map(l => `<tr><td>${l.name}${SPECIES[l.id] ? `<br><small style="font-size:13px;font-weight:400;color:var(--dim)">${SPECIES[l.id]}</small>` : ""}</td><td>${LENS[l.id].sub}</td></tr>`).join("");
 // なぜ、そう見えるの？（2026-10-12）：いまの身体の受けとり方が、どうして分かったのか
 let whyId = "hito", whyBack = null;
@@ -1069,7 +1092,7 @@ function renderWhy(id) {
   const esc = x => String(x).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
   const name = S.lens.find(l => l.id === id)?.name || id, li = a => a.map(x => `<li>${esc(x)}</li>`).join("");
   // 題は塊ごとに折る（375px で語の途中で折れない）。ダイヤルの名前と、典拠の種の名前をそろえて見せる
-  $("whyTitle").innerHTML = `<span class="nw">${esc(name)}${SPECIES[id] ? `（${esc(SPECIES[id])}）` : ""} ──</span> <span class="nw">なぜ、そう${["hebi", "koumori", "mimizu"].includes(id) ? "感じとれる" : "見える"}の？</span>`;
+  $("whyTitle").innerHTML = `<span class="nw">${esc(name)}${SPECIES[id] ? `（${esc(SPECIES[id])}）` : ""} ──</span> <span class="nw">なぜ、そう${LENS[id]?.machine ? "写る" : ["hebi", "koumori", "mimizu"].includes(id) ? "感じとれる" : "見える"}の？</span>`;
   $("whyCaution").textContent = d.caution || ""; $("whyCaution").hidden = !d.caution;
   $("whyBody").innerHTML = li(d.body); $("whyHow").innerHTML = li(d.how); $("whyUnknown").innerHTML = li(d.unknown); $("whyRefs").innerHTML = li(d.refs); $("whyNote").textContent = W.note || "";
   $("whyTabs").innerHTML = ""; for (const l of S.lens) { const b = document.createElement("button"); b.textContent = l.name; b.setAttribute("aria-pressed", String(l.id === id)); b.onclick = () => renderWhy(l.id); $("whyTabs").appendChild(b); }
@@ -1116,7 +1139,7 @@ function kurabeSpot() {
 }
 function kurabeStart() {
   if (habitat !== "forest") setHabitat("forest");
-  KUR.on = true; KUR.i = 0; KUR.hits = 0; KUR.picks = []; KUR.cur = "all"; A.intro = false; $("takeaway").hidden = true;
+  KUR.on = true; KUR.i = 0; KUR.hits = 0; KUR.picks = []; KUR.cur = "all"; A.intro = false; $("takeaway").hidden = true; document.body.classList.add("kur");
   setLens("hito", true, { at: kurabeSpot() }).then(() => talk([...(K.intro || []), K.hito].filter(Boolean), [["予想する ›", () => kurabeStep(), true]]));
 }
 function kurabeStep() {
@@ -1139,14 +1162,14 @@ async function kurabeReveal(q, j) {
   talk([hit ? K.hit : K.miss, ...q.reveal, ...(KUR.i === 1 ? [K.cmp] : [])].filter(Boolean), next);
 }
 function kurabeFinish() {
-  $("kurQ").hidden = true; KUR.on = false; $("moveNote").hidden = false;
+  $("kurQ").hidden = true; KUR.on = false; $("moveNote").hidden = false; document.body.classList.remove("kur");
   $("takeHits").textContent = `予想が当たったのは ${KUR.hits}／${(K.steps || []).length}。`;
   $("takeList").innerHTML = (K.take || []).map(t => `<li><b>${t[0]}</b>${t[1]}</li>`).join("");
   $("takeaway").hidden = false; $("takeX").focus();
   talk(K.end || [], [["自由に歩く ›", () => freeWalk(), true], ["もう一度くらべる", kurabeStart]]);   // 押したことが分かるよう、字幕を替える（2026-10-14 r2）
 }
-function kurabeEnd(talkOn = true) { KUR.on = false; $("kurQ").hidden = true; $("moveNote").hidden = chapter !== "umwelt"; }
-const freeWalk = () => { $("takeaway").hidden = true; hush(); setActs([]); $("say").textContent = "ここからは自由に歩けます。左のダイヤルで体を入れかえたり、右の ↑ で進んだりしてみてください。"; };   // 押したことが分かるよう、字幕を替える（2026-10-14 r3）
+function kurabeEnd(talkOn = true) { document.body.classList.remove("kur"); KUR.on = false; $("kurQ").hidden = true; $("moveNote").hidden = chapter !== "umwelt"; }
+const freeWalk = () => { $("takeaway").hidden = true; hush(); setActs([]); $("say").textContent = "ここからは自由に歩けます。上の並びで体を入れかえたり、地面を押して歩いたりしてみてください。"; };   // 押したことが分かるよう、字幕を替える（2026-10-14 r3）
 $("takeX").onclick = freeWalk;
 $("takeAgain").onclick = () => { $("takeaway").hidden = true; kurabeStart(); };
 $("kurBtn").onclick = () => { first(false); hush(); kurabeStart(); };
@@ -1251,7 +1274,7 @@ function frame(now=0) {
   }
   aoiTick(dt); kurMarks();
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); }
-  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
+  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);

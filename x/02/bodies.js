@@ -32,12 +32,43 @@ function makeHito(material) {
   ell(0xb07a6a, 0, 1.037, .074, .018, .005, .006);   // 口
   g.userData.animate = () => {}; return g;
 }
+// 機械（2026-11-20 本人「一つのアプリケーションに統合」＝別の画面だったカメラ・熱カメラを、同じ森の中の受けとり方に）。形は一般的な三脚つきのカメラと、手持ちの熱カメラの模式（特定の製品の形は写さない）。前が +Z
+function makeMachine(id, material) {
+  const g = new T.Group();
+  const box = (c, w, h, d, x, y, z, o) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d, 2, 2, 2), material(c, o)); m.position.set(x, y, z); g.add(m); return m; };
+  const cyl = (c, r0, r1, h, x, y, z, rx = 0, rz = 0, o) => { const m = new T.Mesh(new T.CylinderGeometry(r0, r1, h, 28), material(c, o)); m.position.set(x, y, z); m.rotation.set(rx, 0, rz); g.add(m); return m; };
+  const dark = 0x4a4e56, mid = 0x686e78, metal = 0xa9afb7;
+  if (id === 'camera') {
+    // 三脚（開いた三本の脚と雲台）
+    for (let i = 0; i < 3; i++) { const a = i * Math.PI * 2 / 3 + Math.PI / 6, leg = cyl(dark, .014, .02, .66, Math.sin(a) * .13, .32, Math.cos(a) * .13, 0, 0, { rough: .5 }); leg.rotation.set(-Math.cos(a) * .4, 0, Math.sin(a) * .4); }
+    cyl(metal, .022, .022, .12, 0, .66, 0, 0, 0, { rough: .35 }); box(dark, .09, .03, .09, 0, .725, 0, { rough: .6 });
+    // 本体・握り・ファインダーの山
+    box(dark, .3, .19, .13, 0, .835, 0, { rough: .55 }); box(dark, .07, .2, .15, -.13, .835, .02, { rough: .8 }); box(dark, .11, .06, .1, .01, .955, -.005, { rough: .55 });
+    cyl(metal, .017, .017, .012, -.11, .94, .02, 0, 0, { rough: .3 });   // シャッターのボタン
+    // レンズ（鏡胴・縁・前玉）
+    cyl(mid, .078, .082, .15, .02, .835, .135, Math.PI / 2, 0, { rough: .45 }); cyl(dark, .086, .086, .03, .02, .835, .2, Math.PI / 2, 0, { rough: .7 });
+    cyl(0x10161f, .066, .066, .012, .02, .835, .214, Math.PI / 2, 0, { rough: .06, phys: { clearcoat: 1, clearcoatRoughness: .05 } });
+    cyl(0x2c4a66, .04, .04, .014, .02, .835, .216, Math.PI / 2, 0, { rough: .05, phys: { clearcoat: 1, clearcoatRoughness: .03 } });
+    box(0x0c0f13, .2, .12, .006, .02, .835, -.068, { rough: .2 });   // 背面の画面
+  } else {
+    // 手持ちの熱カメラ（握り・本体・レンズ・背面の画面）
+    const grip = box(dark, .1, .36, .11, 0, .22, -.02, { rough: .85 }); grip.rotation.x = -.16;
+    box(mid, .2, .2, .3, 0, .5, .02, { rough: .6 }); box(0xc7772b, .204, .03, .304, 0, .41, .02, { rough: .6 });   // 帯の色は橙（温かさの印）
+    cyl(dark, .075, .08, .07, 0, .5, .2, Math.PI / 2, 0, { rough: .5 });
+    cyl(0x3b3323, .058, .058, .012, 0, .5, .238, Math.PI / 2, 0, { rough: .12, phys: { clearcoat: 1, clearcoatRoughness: .1 } });   // 赤外を通すレンズ（ゲルマニウムの暗い色）
+    const scr = new T.Mesh(new T.PlaneGeometry(.15, .12, 8, 1), material(0xffffff, { vc: true, rough: .25 })); { const p = scr.geometry.attributes.position, c = []; for (let i = 0; i < p.count; i++) { const u = (p.getX(i) / .15 + .5), v = .12 + .8 * Math.pow(u, 1.4); c.push(v, v, v * .96); } scr.geometry.setAttribute('color', new T.Float32BufferAttribute(c, 3)); }
+    scr.position.set(0, .5, -.132); scr.rotation.y = Math.PI; g.add(scr);
+    box(dark, .19, .16, .012, 0, .5, -.127, { rough: .4 });
+  }
+  g.userData.animate = () => {}; return g;
+}
 export function makeCreature(id, mat = stdMat, o = {}) {
   return id === 'hachi' ? makeBee(mat, o) : id === 'chou' ? makeButterfly(o.kind || 'ageha', mat, o) : id === 'tori' ? makeTit(mat, o) : id === 'inu' ? makeDog(mat, o)
     : id === 'hebi' ? makeMamushi(mat, o) : id === 'koumori' ? makeBat(mat, o) : id === 'mimizu' ? makeWorm(mat, o) : null;
 }
 export function makeBody(id, material = (c, o) => stdMat(c, o)) {
   if (id === 'hito') return makeHito(c => material(c, {}));
+  if (id === 'camera' || id === 'netsu') return makeMachine(id, (c, o = {}) => material(c, o));
   const g = new T.Group(), c = makeCreature(id, material);
   c.scale.setScalar(FIT[id] || 1); g.add(c);
   g.userData.creature = c; g.userData.animate = (t, moving = true) => c.userData.animate(t, moving);

@@ -18,10 +18,32 @@ export const OBJECTS = [
   { id: "pot", name: "鉢", sub: "実物を測った素焼きの鉢", src: "models/planter_pot_clay.gltf", rep: [2, 2], size: .5, tint: [1.15, .78, .55] },
   { id: "branch", name: "枯れ枝", sub: "実物を測った枝", src: "models/dead_quiver_branch_01.gltf", rep: [1, 1] },
   { id: "tile", name: "瓦", sub: "反りのある瓦（模型）", rep: [1.6, 2], scale: .8 },
+  // 2026-11-20 本人「形の３dについて、自然だけでなく、生き物も入れてください」＝Qualia/sight の生き物の 3D（mitsulab の造形）の形だけを使う。色と模様は外し、選んだ触れ心地を貼る。大きさは手のひらほどの模型
+  { id: "tit", name: "小鳥", sub: "シジュウカラの形（模型）", creature: "makeTit", opt: { state: "perch" }, rep: [2, 2], size: .8 },
+  { id: "dog", name: "犬", sub: "犬の形（模型）", creature: "makeDog", rep: [2, 2], size: .74 },
+  { id: "mamushi", name: "マムシ", sub: "ニホンマムシの形（模型）", creature: "makeMamushi", rep: [3, 1], size: 1.15, bend: .11 },
 ];
+const SIGHT = location.pathname.includes("/x/") ? "../02/" : "./sight/";
+// 生き物の 3D（部品の集まり）を、触れ心地を貼れる一つの形にまとめる。透ける翅・細い毛の束（インスタンス）は外し、体の面だけを使う
+async function creatureGeometry(o) {
+  const C = await import(SIGHT + "creatures.js?v=20261013k80"), root = C[o.creature](undefined, o.opt || {}); try { if (o.opt) root.userData.animate?.(1.3, false); } catch (e) {}
+  root.updateMatrixWorld(true); const P = [], N = [], UV = [], v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
+  root.traverse(m => { if (!m.isMesh || m.isInstancedMesh || !m.visible) return; const mt = [].concat(m.material)[0]; if (!mt || mt.transparent || mt.opacity < 1 || mt.alphaTest > 0) return;
+    let g = m.geometry; if (!g.attributes.uv || !g.attributes.normal) return; if (g.index) g = g.toNonIndexed(); g.computeBoundingSphere(); const sc = m.getWorldScale(v.clone()); if (g.boundingSphere.radius * Math.max(sc.x, sc.y, sc.z) < .012) return;   // 目のつやなど、ごく小さな部品は外す
+    const p = g.attributes.position, nn = g.attributes.normal, uv = g.attributes.uv; nm.getNormalMatrix(m.matrixWorld);
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld); n.fromBufferAttribute(nn, i).applyMatrix3(nm).normalize(); P.push(v.x, v.y, v.z); N.push(n.x, n.y, n.z); UV.push(uv.getX(i), uv.getY(i)); } });
+  root.traverse(m => { if (m.isMesh) { m.geometry.dispose(); [].concat(m.material).forEach(x => x.dispose()); } });
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(N, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(UV, 2));
+  g.computeBoundingBox(); const b = g.boundingBox, s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3()), k = (o.size || .62) / Math.max(s.x, s.y, s.z);
+  g.translate(-c.x, -b.min.y, -c.z); g.scale(k, k, k); g.translate(0, -.1, 0);
+  if (o.bend) { const p = g.attributes.position, L = (o.size || 1); for (let i = 0; i < p.count; i++) { const z = p.getZ(i); p.setX(i, p.getX(i) + o.bend * Math.sin(z / L * Math.PI * 2.6)); } g.computeVertexNormals(); }   // 体をくねらせた姿（まっすぐの棒に見えないように）
+  g.rotateY(-.5);
+  g.userData.base = g.attributes.position.array.slice(); g.userData.n0 = g.attributes.normal.array.slice(); g.userData.keepNormals = true; return g;
+}
 let _loader = null;
 // 測った形を読み、いちばん大きな部分の形を、0.8 単位（8 cm）に収めて床に置く
 export async function loadGeometry(o) {
+  if (o.creature) return creatureGeometry(o);
   if (!o.src) { const g = baseGeometry(o.id); if (o.scale) { g.scale(o.scale, o.scale, o.scale); g.userData.base = g.attributes.position.array.slice(); } return g; }
   if (!_loader) { const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js"); _loader = new GLTFLoader(); }
   const gl = await _loader.loadAsync(o.src); gl.scene.updateMatrixWorld(true); let best = null;
@@ -67,7 +89,7 @@ export function applyRelief(g, rep, hAt, depth, pole = false) {
     const u = (uv.getX(i) * rep[0]) % 1, v = (uv.getY(i) * rep[1]) % 1, w = pole ? Math.sin(Math.PI * uv.getY(i)) : 1, h = (hAt(u, v) - .5) * depth * w;   // 球の極では凹凸を弱める（一点に集まって見えないように）
     p.setXYZ(i, B[i * 3] + N[i * 3] * h, B[i * 3 + 1] + N[i * 3 + 1] * h, B[i * 3 + 2] + N[i * 3 + 2] * h);
   }
-  p.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere(); g.computeBoundingBox();
+  p.needsUpdate = true; if (!g.userData.keepNormals) g.computeVertexNormals();   /* 部品をまとめた形は、つなぎ目が割れないよう元の法線のまま */ g.computeBoundingSphere(); g.computeBoundingBox();
 }
 
 // 二進の STL（mm）。この端末の中でつくるだけで、送信しない

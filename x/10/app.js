@@ -2,11 +2,12 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261105h";
+import { T, setLang, lang } from "./i18n.js?v=20261120a";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
-import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261027g";
+import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261120a";
+import { buildSightSpace, SKY, SUN } from "./kit/sightspace.js?v=20261120a";   // 2026-11-20 本人「sight と同じ空間で」
 
 // 形の札の絵（細い線の輪郭）
 const SV = d => `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>`;
@@ -18,6 +19,9 @@ const SHAPE = {
   pot: SV("M8 12h24 M10 12l3 20h14l3-20 M9 16h22"),
   branch: SV("M6 32C14 26 20 20 34 8 M18 22c-2-4-1-8 1-11 M24 16c4 0 7 2 9 5 M12 27c-3-1-5-3-6-6"),
   tile: SV("M8 30C8 18 12 10 20 10s12 8 12 20 M12 30c0-10 3-16 8-16s8 6 8 16"),
+  tit: SV("M9 22c0-6 5-10 11-10 3 0 5 1 7 3l5-1-3 4c0 7-5 11-11 11-5 0-9-3-9-7z M9 22l-4 5 M24 16.5h.5 M16 29v4 M20 29v4"),
+  dog: SV("M7 14l3-4 3 3h9l6-5 3 2-2 5v6l-2 1v9h-3v-7h-9v7h-3V20c-3-1-5-3-5-6z"),
+  mamushi: SV("M6 30c5 0 5-6 10-6s5 6 10 6 6-4 6-8-3-7-7-7c-3 0-5 2-5 4 M25 13l4-4 3 1-1 3-3 1"),
 };
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 899px)").matches;
@@ -56,21 +60,22 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.05;
 renderer.autoClear = false;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(36, 1, .02, 20);
+const camera = new THREE.PerspectiveCamera(36, 1, .04, 2600);   // 遠くの森まで（10 cm＝1）
 
 // 環境の光：上が明るい空、下が紺の地の、ゆるい階調（にじみの効果ではなく、面の照り返しの元）
 function makeEnv() {
   const es = new THREE.Scene();
   const m = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, uniforms: {},
     vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }",
-    fragmentShader: "varying vec3 vP; void main(){ float y = vP.y; vec3 top = vec3(.78,.82,.9), hor = vec3(.22,.26,.34), bot = vec3(.02,.03,.06); vec3 c = y > 0. ? mix(hor, top, pow(y,.6)) : mix(hor, bot, pow(-y,.5)); gl_FragColor = vec4(c,1.); }" });
+    fragmentShader: "varying vec3 vP; void main(){ float y = vP.y; vec3 top = vec3(.82,.88,.95), hor = vec3(.5,.56,.5), bot = vec3(.16,.13,.09);   /* 2026-11-20 森の空・木立・土の照り返し */ vec3 c = y > 0. ? mix(hor, top, pow(y,.6)) : mix(hor, bot, pow(-y,.5)); gl_FragColor = vec4(c,1.); }" });
   es.add(new THREE.Mesh(new THREE.SphereGeometry(5, 32, 16), m));
   const pm = new THREE.PMREMGenerator(renderer), t = pm.fromScene(es, .04).texture; pm.dispose(); return t;
 }
 scene.environment = makeEnv();
 const key = new THREE.DirectionalLight(0xfff1e2, 2.6); key.position.set(-1.1, .62, .35); scene.add(key);   // 低く斜めに当たる光（凹凸が読める）
 const fill = new THREE.DirectionalLight(0x9bdcf0, .28); fill.position.set(1, .8, -.4); scene.add(fill);
-scene.add(new THREE.HemisphereLight(0x8a96ad, 0x05080f, .25));
+scene.add(new THREE.HemisphereLight(0xdfefff, 0x6b6450, .8));   // 2026-11-20 sight の森と同じ空と地の光
+{ const sun = new THREE.DirectionalLight(0xfff4e0, 1.5); sun.position.copy(SUN).multiplyScalar(6); scene.add(sun); }
 
 // ---- 表面（10 cm 四方＝1 単位）
 const SEG = MOBILE ? 200 : 300;
@@ -123,13 +128,18 @@ let ripW = 0, ripT = 0;
 function ripple(pos, quat, amp = .6) { const m = RIP[ripW++ % RIP.length]; m.position.copy(pos); m.quaternion.copy(quat); m.userData.age = 0; m.userData.amp = amp; m.material.color.copy(ring.material.color); }
 function tickRipples(dt) { for (const m of RIP) { const a = m.userData.age += dt; if (a > 1) { m.material.opacity = 0; continue; } m.scale.setScalar(.03 + a * .16 * (.6 + m.userData.amp)); m.material.opacity = Math.pow(1 - a, 1.5) * (.5 + .5 * m.userData.amp); } }
 // ---- デジタルの層（2026-10-27 本人「デジタルとフィジカルの融合」）：写真の面の上に、点群・走査線・地の光のグリッドを薄く重ねる
-scene.fog = new THREE.FogExp2(0x03060f, .22);
+scene.fog = new THREE.FogExp2(SKY, MOBILE ? .003 : .0026);   // sight の森の霞（1 m あたり .026〜.03 を、10 cm＝1 の世界に）
+const GRID_OFF = true;
 { const L = [], C = [], E = 1.6, S = .1;
   const n = Math.round(2 * E / S);   // 線を短い区間に分けて、中心から遠いほど薄くする
   for (let a = 0; a <= n; a++) for (let k = 0; k < n; k++) { const v = -E + a * S, u0 = -E + k * S, u1 = u0 + S; L.push(u0, -.106, v, u1, -.106, v, v, -.106, u0, v, -.106, u1); }
   for (let i = 0; i < L.length; i += 3) { const r = Math.hypot(L[i], L[i + 2]), o = Math.pow(Math.max(0, 1 - r / E), 1.6) * (r < .56 ? .3 : 1); C.push(o * .5, o * .9, 1 * o); }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(L, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(C, 3));
-  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false }))); }
+  const grid = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false })); grid.visible = !GRID_OFF; scene.add(grid); }
+// 面や形が地面に落とす、やわらかい陰（森の地面になじませる）
+{ const c = document.createElement("canvas"); c.width = c.height = 96; const g = c.getContext("2d"), gr = g.createRadialGradient(48, 48, 6, 48, 48, 48); gr.addColorStop(0, "rgba(10,8,4,.62)"); gr.addColorStop(.55, "rgba(10,8,4,.3)"); gr.addColorStop(1, "rgba(10,8,4,0)"); g.fillStyle = gr; g.fillRect(0, 0, 96, 96);
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.3), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = -.1035; sh.renderOrder = -1; scene.add(sh); }
+buildSightSpace({ scene, mobile: MOBILE }).then(() => { dirty = 4; }).catch(e => console.warn("森を読めませんでした", e));
 const CN = MOBILE ? 64 : 96, cPos = new Float32Array(CN * CN * 3);
 const cloudU = { uScan: { value: 0 }, uSize: { value: (MOBILE ? 2.2 : 2.4) * Math.min(devicePixelRatio, 2) } };
 const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(cPos, 3)), new THREE.ShaderMaterial({
@@ -219,7 +229,7 @@ function applySurface(v, keepParams = false) {
   if (!keepParams) params = { ...v.p0 };
   applyParams(); buildSliders(); setSnd(v.snd);
   $("#originT").textContent = T(v.origin === "photo" ? "origin.photo" : "origin.normal");
-  for (const b of document.querySelectorAll("#chips .chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id));
+  for (const b of document.querySelectorAll("#chips .chip")) b.setAttribute("aria-pressed", String(b.dataset.s === v.id)); markCombo();
   const fi = $("#faceS"); if (v.thumb) fi.src = v.thumb; else fi.src = `tex/${v.id}_t.webp?v=20261021`;
   const fn = $("#faceSN"); if (v.label) { delete fn.dataset.t; fn.textContent = v.label; } else { fn.dataset.t = "s." + v.id; fn.textContent = T("s." + v.id); const sb = T("s." + v.id + ".sub"); if (sb && sb !== "s." + v.id + ".sub" && v.id !== "photo") { delete fn.dataset.t; fn.textContent = T("s." + v.id) + "（" + sb + "）"; } }   /* 11-19 札は具体の名（ケヤキ・畑の土…）で、見た目と合わせる */
 }
@@ -245,11 +255,12 @@ async function setObject(id) {
   for (const b of document.querySelectorAll(".objchip")) b.setAttribute("aria-pressed", String((b.dataset.o || null) === id));
   $("#bGlb").hidden = !objDef;
   const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "板"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
+  markCombo();
   if (!objDef) { aoi?.motion.lookAt(null); aoi?.place(AOI_X, AOI_Z, .35); setView(0); return; }
-  Object.assign(G, { zoom: MOBILE ? .62 : .8, tx: 0, tz: MOBILE ? .12 : .05 }); clampG();   // 形は小さいので寄る
+  Object.assign(G, { zoom: MOBILE ? .74 : .6, tx: 0, tz: 0, el: MOBILE ? .2 : .17 }); clampG();   // 形は小さいので寄り、森が見える低い目の高さから
   const want = objDef; let g; try { busy(true); g = await loadGeometry(objDef); } finally { busy(false); } if (objDef !== want) { g.dispose(); return; }
-  objMesh = new THREE.Mesh(g, objMat); objMesh.castShadow = true; scene.add(objMesh); relief();
-  const c = new THREE.Vector3(0, .15, 0); const ox = MOBILE ? -.34 : AOI_X, oz = MOBILE ? .08 : AOI_Z; if (aoi) aoi.place(ox, oz, Math.atan2(-ox, -oz)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
+  objMesh = new THREE.Mesh(g, objMat); objMesh.castShadow = true; scene.add(objMesh); relief(); JIG.v = 2.2; idleT = performance.now() - 1500;
+  const c = new THREE.Vector3(0, .15, 0); const ox = MOBILE ? -.36 : AOI_X, oz = MOBILE ? -.62 : AOI_Z - .3;   /* 2026-11-20 形の少し奥に立つ（形を隠さない） */ if (aoi) aoi.place(ox, oz, Math.atan2(-ox, -oz)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
   say("aoi.obj", 6500);
 }
 function applyParams() {
@@ -292,6 +303,15 @@ for (const s of SAMPLES) {
   b.addEventListener("click", async () => { if (surf?.id === s.id) return; busy(true); try { applySurface(await loadSample(s)); say("aoi." + s.id, 6500); aoiReact(); } finally { busy(false); } });
   chips.insertBefore(b, photoChip);
 }
+// ---- はじめに選ぶ「触れるもの × かたち」（2026-11-20 本人「デフォルトで触覚と３dの組み合わせを選択できるguiを」）。一つめがおすすめで、開いたときから選ばれている
+const COMBOS = [["bark", "tit"], ["moss", "dog"], ["bark", null], ["cloth", "shell"], ["leaves", "boulder"], ["stone", "mamushi"]];
+const ONAME = id => id ? OBJECTS.find(o => o.id === id).name : "板";
+function markCombo() { for (const b of document.querySelectorAll("#combos .cb")) b.setAttribute("aria-pressed", String(b.dataset.s === surf?.id && (b.dataset.o || null) === (objDef?.id || null))); }
+async function setCombo(s, o, quiet) { busy(true); try { const sm = SAMPLES.find(x => x.id === s); if (surf?.id !== s) applySurface(await loadSample(sm)); if ((objDef?.id || null) !== o) await setObject(o); markCombo(); if (!quiet) { say(o ? "aoi.obj" : "aoi." + s, 6000); aoiReact(); } } finally { busy(false); } }
+{ const box = $("#combos");
+  if (box) for (const [s, o] of COMBOS) { const b = document.createElement("button"); b.type = "button"; b.className = "cb"; b.dataset.s = s; if (o) b.dataset.o = o; b.setAttribute("aria-pressed", "false");
+    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261120a" alt="" width="72" height="72"><b>${T("s." + s)} × ${ONAME(o)}</b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
+    b.addEventListener("click", () => setCombo(s, o)); box.append(b); } }
 // ---- 下の三つの印：押すと選択肢が重なって開く。選ぶと閉じる（画面は遷移しない）
 function openTray(id) {
   const tray = $("#tray"), cur = tray.hidden ? null : [...tray.children].find(t => !t.hidden)?.id, next = cur === id ? null : id;
@@ -378,11 +398,13 @@ $("#bBlind").addEventListener("click", () => setBlind(!blind));
 function busy(on) { $("#busy").hidden = !on; }
 
 // ---- 見る向き（回す・傾ける・寄る・ずらす）。V＝いま、G＝向かう先
-const VIEWS = [{ el: .9, d: 1 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 斜め・真上・低く
-const Z_MIN = .5, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .3 : .1;   // 下の帯（波・字幕）のぶん、面を少し上へ
+const VIEWS = [{ el: MOBILE ? .78 : .7, d: 1 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 2026-11-20 少し低く（奥に森の木立が見える）   // 斜め・真上・低く
+const Z_MIN = .5, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .42 : .26;   // 下の帯（波・字幕）のぶん、面を少し上へ
 let view = 0, baseD = 2;
 const V = { az: 0, el: VIEWS[0].el, zoom: 1, tx: 0, tz: T0 }, G = { ...V };
-const look = new THREE.Vector3();
+const look = new THREE.Vector3(), SKYTILT = 0;
+// 触れた形が応える（ばねの揺れ）と、手を離しているあいだのゆっくりした回転
+const JIG = { s: 0, v: 0 }; let idleT = performance.now();
 let fitAspect = 1;
 function fitDist() {
   const a = fitAspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
@@ -395,9 +417,9 @@ const viewMoving = () => Math.abs(V.az - G.az) + Math.abs(V.el - G.el) + Math.ab
 function placeCam(dt) {
   const k = RM ? 1 : 1 - Math.exp(-dt * 14);
   for (const key of ["az", "el", "zoom", "tx", "tz"]) V[key] += (G[key] - V[key]) * k;
-  const d = baseD * VIEWS[view].d * V.zoom; look.set(V.tx, 0, V.tz);
-  camera.position.set(V.tx + d * Math.sin(V.az) * Math.cos(V.el), d * Math.sin(V.el), V.tz + d * Math.cos(V.az) * Math.cos(V.el));
-  camera.lookAt(look);
+  const d = baseD * VIEWS[view].d * V.zoom; look.set(V.tx, objMesh ? (MOBILE ? -.02 : .02) : 0, V.tz);   // 形は画面の少し上に（下の札に隠れない）
+  camera.position.set(V.tx + d * Math.sin(V.az) * Math.cos(V.el), look.y + d * Math.sin(V.el), V.tz + d * Math.cos(V.az) * Math.cos(V.el));
+  camera.lookAt(look); camera.rotateX(SKYTILT * Math.max(0, 1 - (V.el - .3) / 1.1));   // 少し見上げて、面は下寄りに・奥に森を入れる（真上から見るときは傾けない）
 }
 $("#bView").addEventListener("click", () => setView((view + 1) % VIEWS.length));
 $("#bHome").addEventListener("click", () => { setView(0); say("aoi.home", 3500); });
@@ -467,7 +489,7 @@ const ptrs = new Map(); let drag = null, pinch = null;   // drag＝一本の指�
 const mm = p => [(p.x + .5) * SIZE_MM, (p.z + .5) * SIZE_MM];
 const two = () => { const [a, b] = [...ptrs.values()]; return { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; };
 cv.addEventListener("pointerdown", e => {
-  closeTray(); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); cv.setPointerCapture(e.pointerId); e.preventDefault();
+  idleT = performance.now(); closeTray(); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); cv.setPointerCapture(e.pointerId); e.preventDefault();
   if (ptrs.size === 2) {   // 二本目の指：なでるのをやめて、寄る・回す・ずらすへ
     if (touch) endStroke(); drag = null; pinch = { ...two(), lastX: 0, lastY: 0 }; pinch.lastX = pinch.x; pinch.lastY = pinch.y; return;
   }
@@ -475,6 +497,7 @@ cv.addEventListener("pointerdown", e => {
   const p = toPlate(e), btn = e.button;
   if (btn === 2 || btn === 1 || e.shiftKey) { drag = { kind: "pan", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
   if (mode === "move" || !inside(p)) { drag = { kind: "orbit", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
+  if (objMesh) JIG.v += 1.5;
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
   dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.arm(); vibe.tap(); sonic.tap(); addTrail(p, p, true); model.takeEdges(); shown.copy(dentAt);
   $("#waveHint").style.opacity = 0; $("#fhint").classList.add("off"); aoiWatch(true);
@@ -648,6 +671,9 @@ function frame(now) {
   trGeo.attributes.color.needsUpdate = true;
   if (touch && now - ripT > (RM ? 400 : 150) && (r.amp > .05 || now - ripT > 600)) { ripT = now; ripple(ring.position, ring.quaternion, Math.min(1, .3 + r.amp)); }
   tickRipples(dt); if (RIP.some(m => m.userData.age < 1)) dirty = 2;
+  // 形：触れると弾み、手を離して 4 秒たつと、ゆっくり回って全身を見せる
+  if (objMesh) { const a = -90 * JIG.s - 9 * JIG.v; JIG.v += a * dt; JIG.s += JIG.v * dt; if (Math.abs(JIG.s) + Math.abs(JIG.v) > .002) { objMesh.scale.set(1 + JIG.s * .05, 1 - JIG.s * .08, 1 + JIG.s * .05); dirty = 2; } else if (objMesh.scale.y !== 1) objMesh.scale.set(1, 1, 1);
+    if (touch || drag || pinch) idleT = now; else if (!RM && now - idleT > 4000 && $("#tray").hidden) { G.az += dt * .22; dirty = 2; } }
   // カメラ
   placeCam(dt);
   updateScan(now / 1000);
@@ -659,7 +685,7 @@ function frame(now) {
   drawWave();
   // 描く
   renderer.setScissorTest(false); renderer.setViewport(0, 0, stage.clientWidth, stage.clientHeight);
-  renderer.setClearColor(0x03060f, 1); renderer.clear(); renderer.render(scene, camera);
+  renderer.setClearColor(SKY, 1); renderer.clear(); renderer.render(scene, camera);
   if (aoi) {
     aoi.tick(dt, camera);   // 碧は同じ 3D 空間の中（別の枠では描かない）
   }
@@ -672,6 +698,7 @@ resize();
 (async () => {
   try { applySurface(await loadSample(SAMPLES[0])); }
   catch (e) { console.error(e); }
+  if (!WS && !/[?&]plate=1/.test(location.search)) setCombo(...COMBOS[0], true).catch(e => console.warn(e));   // おすすめの組（樹皮 × 小鳥）が、開いたときから選ばれている
   try { const W = await import("./kit/warm.js"); await W.warmScene(renderer, scene, camera); } catch (e) { console.warn(e); }   // 2026-11-05：見せる前に材質を組み・絵を送る（最初のこまの止まりを分ける）
   window.MLLoader?.done();
   requestAnimationFrame(frame);
