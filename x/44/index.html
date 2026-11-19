@@ -40,6 +40,7 @@ button.on{border-color:var(--acc);color:var(--acc)}
  <line x1="0" y1="-96" x2="0" y2="-88" stroke="#e6ece8" stroke-width="2"/>
 </svg>
 </div>
+<svg id="trail" viewBox="-60 -60 120 120" style="display:none;width:140px;height:140px" aria-label="歩いたあいだに北がどう回ったか"></svg>
 <div id="read"><div id="deg">―</div><div id="uT"></div></div>
 <p id="note">触れると、北の向きが音になります。<br>イヤホン推奨。</p>
 <details id="more"><summary aria-label="生き物の磁気の感覚について">＋</summary><p>ヨーロッパコマドリは、渡りの向きを決めるときに地磁気を手がかりにしていると考えられています（Wiltschko &amp; Wiltschko 1972, <i>Science</i> 176:62–64）。どのように感じているかは、まだ分かっていないことが多くあります。この音は、スマホの磁気センサーの方位を人の耳に移した模式です。</p></details>
@@ -49,7 +50,7 @@ button.on{border-color:var(--acc);color:var(--acc)}
 (()=>{
 const $=id=>document.getElementById(id);
 const ticks=$('ticks');for(let i=0;i<36;i++){const a=i*10*Math.PI/180,r1=i%9?88:82;const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',Math.sin(a)*r1);l.setAttribute('y1',-Math.cos(a)*r1);l.setAttribute('x2',Math.sin(a)*92);l.setAttribute('y2',-Math.cos(a)*92);l.setAttribute('stroke','#2c3a37');ticks.appendChild(l)}
-let ctx,pan,gain,filt,toneG,oA,oB,running=false,heading=null,sm=null,field=null,lastVib=0,inN=false,hasVib='vibrate' in navigator;
+let log=[],t0s=0,finds=0,W=40,ctx,pan,gain,filt,toneG,oA,oB,running=false,heading=null,sm=null,field=null,lastVib=0,inN=false,hasVib='vibrate' in navigator;
 const ios=typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
 function audio(){
  ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -76,15 +77,16 @@ function update(){
  const h=sm;let rel=((-h+540)%360)-180; // 北が自分から見てどちらか（0＝正面）
  $('needle').setAttribute('transform','rotate('+(-h)+')');
  $('deg').textContent=Math.round(h)+'°';
+ if(!log.length||Date.now()-log[log.length-1][0]>1000)log.push([Date.now(),h]);
  const t=ctx.currentTime,front=Math.cos(rel*Math.PI/180),ar=Math.abs(rel);
  if(pan)pan.pan.setTargetAtTime(Math.sin(rel*Math.PI/180)*.8,t,.08);
  // 正面ほど明るく、背にあるほどこもる
  filt.frequency.setTargetAtTime(260+(front+1)*260,t,.15);
  gain.gain.setTargetAtTime(.07+.05*Math.max(0,front),t,.15);
  // うなり：1° ずれると 0.15 回／秒、10° で 1.5 回／秒。±40° より外では鳴らさない
- oB.frequency.setTargetAtTime(392+Math.min(ar,40)*.15,t,.05);
- toneG.gain.setTargetAtTime(ar<40?.05*Math.pow(1-ar/40,1.5):0,t,.12);
- if(ar<4&&!inN){inN=true;$('deg').style.color='var(--acc)';if(Date.now()-lastVib>2000){lastVib=Date.now();chime();if(hasVib)navigator.vibrate(18)}}
+ oB.frequency.setTargetAtTime(392+Math.min(ar,W)*.15,t,.05);
+ toneG.gain.setTargetAtTime(ar<W?.05*Math.pow(1-ar/W,1.5):0,t,.12);
+ if(ar<4&&!inN){inN=true;finds++;if(finds==3){W=25;$('note').textContent='北の音を細くしました。耳より先に、体で北を探してみて。'}$('deg').style.color='var(--acc)';if(Date.now()-lastVib>2000){lastVib=Date.now();chime();if(hasVib)navigator.vibrate(18)}}
  else if(ar>9&&inN){inN=false;$('deg').style.color=''}
 }
 function onOri(e){
@@ -98,14 +100,22 @@ function mag(){
  try{const m=new Magnetometer({frequency:10});m.onreading=()=>{field=Math.hypot(m.x,m.y,m.z);$('uT').textContent='強さ '+field.toFixed(0)+' µT'};m.onerror=()=>{$('uT').textContent=''};m.start()}catch(_){$('uT').textContent=''}
 }
 $('start').onclick=async()=>{
- if(running){running=false;gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
+ if(running){running=false;showTrail();gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
  if(!ctx)audio();await ctx.resume();
  if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').textContent='向きの許可がないため、使えません。';return}}catch(_){ $('note').textContent='向きの許可を得られませんでした。';return}}
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
- mag();running=true;$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
+ mag();running=true;log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
  $('note').innerHTML='北が右なら右の耳から。北に近づくと音がうなり、<br>北（磁北）を向くとうなりが止まり、小さな鈴が一度鳴ります。';
  setTimeout(()=>{if(heading==null)$('note').textContent='方位が取れません。スマホで開いてください。'},2500);
 };
+function showTrail(){
+ if(log.length<5)return;const sv=$('trail'),n=log.length;let p='';
+ log.forEach(([,h],i)=>{const r=14+44*i/(n-1),a=-h*Math.PI/180;p+=(i?'L':'M')+(Math.sin(a)*r).toFixed(1)+' '+(-Math.cos(a)*r).toFixed(1)});
+ sv.innerHTML='<circle r="58" fill="none" stroke="#2c3a37"/><path d="'+p+'" fill="none" stroke="#7fc4b4" stroke-width="1.4" stroke-linecap="round"/><text y="4" fill="#8fa39c" font-size="9" text-anchor="middle">はじめ</text>';
+ $('dial').style.display='none';sv.style.display='';
+ const m=Math.round((Date.now()-t0s)/60000);
+ $('note').innerHTML='内から外へ、'+(m?m+' 分':'この間')+'に北が自分から見てどう回ったか。北を見つけたのは '+finds+' 回。<br>記録はこの画面だけで、閉じると消えます。';
+}
 $('pk').onclick=()=>{$('pocket').classList.add('show');navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})};
 $('pocket').onclick=()=>$('pocket').classList.remove('show');
 })();
