@@ -55,7 +55,7 @@ export function start(){
   [2,3,4,5,7,8,9].forEach(k=>{const B=HW[k];wa.push(.04,-.02,0,B[0]*.95,B[1]*.95,0)});
   const n0=wa.length; for(let k=0;k<n0;k+=3){wa.push(-wa[k],wa[k+1],wa[k+2])}
   const wg=new THREE.BufferGeometry(); wg.setAttribute('position',new THREE.Float32BufferAttribute(wa,3));
-  const wing=new THREE.LineSegments(wg,new THREE.LineBasicMaterial({color:0xf0f4e6,transparent:true,opacity:0,depthWrite:false})); wing.scale.set(1.6,1.6,1); wing.position.set(0,1.6,-5); sc.add(wing);
+  const wing=new THREE.LineSegments(wg,new THREE.LineBasicMaterial({color:0xf0f4e6,transparent:true,opacity:0,depthWrite:false})); wing.scale.set(2.1,2.1,1); wing.position.set(0,1.6,-5); sc.add(wing);
   const size=()=>{const w=innerWidth,h=innerHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}; size(); addEventListener('resize',size);
   let t0=performance.now(), on=true, last=0, scrolling=false, stT=0;
   addEventListener('scroll',()=>{scrolling=true;clearTimeout(stT);stT=setTimeout(()=>scrolling=false,180)},{passive:true});
@@ -67,7 +67,7 @@ export function start(){
     for(let i=0;i<K;i++){const j=i*3;T[j]=T0[j]*fl+bx;T[j+1]=T0[j+1]+by;T[j+2]=T0[j+2]}
     for(let i=0;i<K*3;i++){P[i]=P0[i]+(T[i]-P0[i])*e} pg.attributes.position.needsUpdate=true;
     lines.material.opacity=.18*(1-e*.8);
-    wing.material.opacity=.62*e; wing.visible=e>.01; wing.position.x=bx*.8; wing.position.y=1.6+by; wing.scale.x=1.6*fl;
+    wing.material.opacity=.8*e; wing.visible=e>.01; wing.position.x=bx*.8; wing.position.y=1.6+by; wing.scale.x=2.1*fl;
     world(s); pts.rotation.y=Math.sin(s*.02)*.06; lines.rotation.y=pts.rotation.y; r.render(sc,cam)}
   function loop(t){ if(!on) return; if(t-last>(sp?66:33)&&!(sp&&scrolling)){last=t;frame(t)} requestAnimationFrame(loop)}
   if(still) frame(t0); else requestAnimationFrame(loop);
