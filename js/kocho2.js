@@ -11,7 +11,7 @@ export function start(){
   const sc=new THREE.Scene(), cam=new THREE.PerspectiveCamera(40,1,.1,100); cam.position.set(0,0,10); sc.add(cam);
   sc.add(new THREE.HemisphereLight(0xfff6e0,0x1a2a20,1.2)); const dl=new THREE.DirectionalLight(0xfff2d8,2.2); dl.position.set(3,6,5); sc.add(dl); const rim=new THREE.DirectionalLight(0xbfe8f0,.9); rim.position.set(-4,2,-3); sc.add(rim);
   // 受けとり方の色（模式）：人＝そのまま、ミツバチ＝黄緑・青緑へ寄せる（紫は使わない）、鳥＝彩りを強く
-  const TINT=[new THREE.Color(1,1,1),new THREE.Color(.78,1,.88),new THREE.Color(1.12,1.04,.82)];
+  const TINT=[new THREE.Color(1,1,1),new THREE.Color(.55,1,.8),new THREE.Color(1.25,.95,.6)];
   const base=makeButterfly('ageha');
   const FM=[], proto=[0].map(k=>{const m=base.clone(true); const mats=[]; m.traverse(o=>{if(o.isMesh){o.material=o.material.clone();if(o.material.color)o.material.userData.c0=o.material.color.clone();o.material.transparent=true;mats.push(o.material)}}); FM.push(mats); return m;});
   const mkModel=(k)=>{const m=proto[k].clone(true); const piv=[]; m.traverse(o=>{if(o.isGroup&&o.rotation.order==='ZXY')piv.push(o)}); return {m,piv};};
@@ -29,8 +29,8 @@ export function start(){
   // 群れは冒頭の位置のまま飛び続ける（逃げない・瞬間移動しない）。スクロールして文字に重なるあいだは少し薄くする
   const HOME={x:.74,y:.46};
   function target(){ const first=scrollY<innerHeight*.6&&!!document.querySelector('#top.active');
-    if(sp){ const v=document.querySelector('.sd-vis'); const rr=v&&v.getBoundingClientRect(); const cy=rr&&first?(rr.top+rr.bottom)/2:innerHeight*.62; return {p:toW(innerWidth*.5,cy),R:.5,a:first?1:.3}; }
-    return {p:toW(innerWidth*HOME.x,innerHeight*HOME.y),R:.9,a:first?1:.42}; }
+    if(sp){ const v=document.querySelector('.sd-vis'); const rr=v&&v.getBoundingClientRect(); const cy=rr&&first?(rr.top+rr.bottom)/2:innerHeight*.62; return {p:toW(innerWidth*.5,cy),R:.5,a:first?1:.18}; }
+    return {p:toW(innerWidth*HOME.x,innerHeight*HOME.y),R:.9,a:first?1:.3}; }
   const tmp=new THREE.Vector3(), q=new THREE.Quaternion(), fwd=new THREE.Vector3(0,0,1), m4=new THREE.Matrix4();
   function frame(now){ const s=(now-t0)/1000, dt=Math.min(.05,Math.max(.001,(now-(last||now))/1000)); last=now;
     const T=target(); hub.lerp(T.p,Math.min(1,dt*1.2)); hubR+= (T.R-hubR)*Math.min(1,dt*1.2); alpha+=(T.a-alpha)*Math.min(1,dt*(T.a<alpha?4:1.5));
@@ -49,7 +49,7 @@ export function start(){
         b.m.visible=op>.02;
       }); });
     { const u=(((s/8)%3)+3)%3, i0=Math.floor(u), f=u-i0, e2=f<.6?0:(f-.6)/.4, e3=e2*e2*(3-2*e2); const cc=TINT[i0].clone().lerp(TINT[(i0+1)%3],e3); FM[0].forEach((mt,j)=>{ mt.opacity=op; if(mt.color&&mt.userData.c0) mt.color.copy(mt.userData.c0).multiply(cc); }); }
-    const ui=Math.floor((((s/8)%3)+3)%3); tag.textContent=op>.05?NAMES[ui]:'';
+    const ui=Math.floor((((s/8)%3)+3)%3); tag.textContent=op>.6?NAMES[ui]:'';
     r.render(sc,cam); }
   let on=true; document.addEventListener('visibilitychange',()=>{on=!document.hidden; if(on) requestAnimationFrame(loop)});
   function loop(t){ if(!on) return; if(t-(last||0)>(sp?40:20)||!last) frame(t); requestAnimationFrame(loop); }
