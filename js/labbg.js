@@ -12,7 +12,7 @@ export function start(){
   // 床の格子（奥へ続く）
   const g=new THREE.GridHelper(80,sp?40:80,C,C); g.material.transparent=true; g.material.opacity=.16; g.position.y=-2; sc.add(g);
   // 点の雲（格子の上に浮かぶ測点）
-  const N=sp?700:1800, P=new Float32Array(N*3);
+  const N=sp?380:1800, P=new Float32Array(N*3);
   for(let i=0;i<N;i++){P[i*3]=(Math.random()-.5)*40;P[i*3+1]=-2+Math.random()*7;P[i*3+2]=-Math.random()*36+6}
   // 翅の形（点が淡くほどけて翅の脈と縁をなし、また格子の点に戻る。模式）
   const P0=P.slice(), T=new Float32Array(N*3), K=Math.floor(N*.42);
@@ -27,7 +27,7 @@ export function start(){
   const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:C,size:sp?.05:.04,transparent:true,opacity:.55,depthWrite:false}));
   sc.add(pts);
   // 近い点どうしを結ぶ細い線（ネットワーク）
-  const L=[]; const M=sp?140:360;
+  const L=[]; const M=sp?70:360;
   for(let k=0;k<M;k++){const a=(Math.random()*N)|0;let best=-1,bd=9;for(let t=0;t<24;t++){const b=(Math.random()*N)|0;if(b===a)continue;const dx=P[a*3]-P[b*3],dy=P[a*3+1]-P[b*3+1],dz=P[a*3+2]-P[b*3+2];const d=dx*dx+dy*dy+dz*dz;if(d<bd){bd=d;best=b}}if(best>=0)L.push(P[a*3],P[a*3+1],P[a*3+2],P[best*3],P[best*3+1],P[best*3+2])}
   const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.Float32BufferAttribute(L,3));
   const lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:C,transparent:true,opacity:.18,depthWrite:false})); sc.add(lines);
@@ -46,8 +46,19 @@ export function start(){
     const wgt=i=>(i===idx?1-f:0)+(i===nx?f:0);
     g.material.opacity=.05+.11*wgt(0); pts.material.opacity=.32+.23*wgt(0);
     W.forEach((o,i)=>{o.material.opacity=o.userData.op*wgt(i+1);o.visible=o.material.opacity>.002}) }
+  // 翅の脈（アゲハ〔Papilio xuthus〕の翅の形と脈をなぞった模式。右の翅を描き、左へ写す）
+  const FW=[[0,0],[.18,.34],[.42,.66],[.70,.92],[1.00,1.02],[1.08,.86],[1.00,.62],[.86,.40],[.62,.22],[.36,.08]];
+  const HW=[[0,0],[.30,-.06],[.62,-.18],[.84,-.36],[.86,-.56],[.74,-.70],[.70,-.98],[.62,-.74],[.46,-.70],[.30,-.56],[.14,-.34]];
+  const wa=[]; const seg=(P,close)=>{for(let k=0;k<P.length-1+(close?1:0);k++){const A=P[k],B=P[(k+1)%P.length];wa.push(A[0],A[1],0,B[0],B[1],0)}};
+  seg(FW,true); seg(HW,true);
+  [2,3,4,5,6,7,8].forEach(k=>{const B=FW[k];wa.push(.04,.02,0,B[0]*.96,B[1]*.96,0)});
+  [2,3,4,5,7,8,9].forEach(k=>{const B=HW[k];wa.push(.04,-.02,0,B[0]*.95,B[1]*.95,0)});
+  const n0=wa.length; for(let k=0;k<n0;k+=3){wa.push(-wa[k],wa[k+1],wa[k+2])}
+  const wg=new THREE.BufferGeometry(); wg.setAttribute('position',new THREE.Float32BufferAttribute(wa,3));
+  const wing=new THREE.LineSegments(wg,new THREE.LineBasicMaterial({color:0xdfe9d8,transparent:true,opacity:0,depthWrite:false})); wing.scale.set(1.6,1.6,1); wing.position.set(0,1.6,-5); sc.add(wing);
   const size=()=>{const w=innerWidth,h=innerHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}; size(); addEventListener('resize',size);
-  let t0=performance.now(), on=true, last=0;
+  let t0=performance.now(), on=true, last=0, scrolling=false, stT=0;
+  addEventListener('scroll',()=>{scrolling=true;clearTimeout(stT);stT=setTimeout(()=>scrolling=false,180)},{passive:true});
   document.addEventListener('visibilitychange',()=>{on=!document.hidden; if(on) requestAnimationFrame(loop)});
   function frame(t){const s=(t-t0)/1000; const y=scrollY/innerHeight;
     cam.position.x=Math.sin(s*.03)*1.2; cam.position.z=9-((y*1.4)%12); cam.lookAt(0,0,cam.position.z-9);
@@ -56,8 +67,9 @@ export function start(){
     for(let i=0;i<K;i++){const j=i*3;T[j]=T0[j]*fl+bx;T[j+1]=T0[j+1]+by;T[j+2]=T0[j+2]}
     for(let i=0;i<K*3;i++){P[i]=P0[i]+(T[i]-P0[i])*e} pg.attributes.position.needsUpdate=true;
     lines.material.opacity=.18*(1-e*.8);
+    wing.material.opacity=.42*e; wing.visible=e>.01; wing.position.x=bx*.8; wing.position.y=1.6+by; wing.scale.x=1.6*fl;
     world(s); pts.rotation.y=Math.sin(s*.02)*.06; lines.rotation.y=pts.rotation.y; r.render(sc,cam)}
-  function loop(t){ if(!on) return; if(t-last>(sp?50:33)){last=t;frame(t)} requestAnimationFrame(loop)}
+  function loop(t){ if(!on) return; if(t-last>(sp?66:33)&&!(sp&&scrolling)){last=t;frame(t)} requestAnimationFrame(loop)}
   if(still) frame(t0); else requestAnimationFrame(loop);
   addEventListener('scroll',()=>{ if(still) frame(performance.now()) },{passive:true});
 }
