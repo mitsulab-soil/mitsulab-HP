@@ -34,12 +34,14 @@
   }
   function check() {
     if (!walking()) return;
-    if (!walked) { walked = 1; t1 = Date.now(); }
-    if (Date.now() - t1 < 15000) return; // 歩きはじめは景色に慣れる間をおく
-    if (el.classList.contains("on") || Date.now() - last < GAP) return;
     var c = window.__qw && window.__qw.camera; if (!c) return;
     var x = c.position.x, z = c.position.z, best = null, bd = R;
-    for (var i = 0; i < P.length; i++) { if (P[i].done) continue; var dd = Math.hypot(P[i].x - x, P[i].z - z); if (dd < bd) { bd = dd; best = P[i]; } }
+    // 歩きはじめの地点にいる間は出さない。一度離れて（R＋10 m より外へ）からまた着いたら出す
+    if (!walked) { walked = 1; t1 = Date.now(); P.forEach(function (p) { if (Math.hypot(p.x - x, p.z - z) < R) p.wait = 1; }); }
+    P.forEach(function (p) { if (p.wait && Math.hypot(p.x - x, p.z - z) > R + 10) p.wait = 0; });
+    if (Date.now() - t1 < 15000) return; // 歩きはじめは景色に慣れる間をおく
+    if (el.classList.contains("on") || Date.now() - last < GAP) return;
+    for (var i = 0; i < P.length; i++) { if (P[i].done || P[i].wait) continue; var dd = Math.hypot(P[i].x - x, P[i].z - z); if (dd < bd) { bd = dd; best = P[i]; } }
     if (best) ask(best);
   }
   function onMode() {
