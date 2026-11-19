@@ -16,7 +16,7 @@
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--goth);-webkit-text-size-adjust:100%}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block;background:#000}
 #hud{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
-#sp{position:fixed;left:0;right:0;bottom:calc(206px + env(safe-area-inset-bottom));height:56px;width:100%;z-index:2;pointer-events:none}
+#sp{position:fixed;left:0;right:0;bottom:calc(150px + env(safe-area-inset-bottom));height:56px;width:100%;z-index:2;pointer-events:none}
 header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;z-index:3;background:linear-gradient(#0f1412cc,#0f141200)}
 header a{color:var(--ink);text-decoration:none;font-size:20px;min-width:44px;min-height:44px;display:grid;place-items:center}
 header b{font-family:var(--mincho);font-weight:600;letter-spacing:.06em;font-size:17px}
@@ -31,8 +31,12 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(10px + env(safe
 .row button{flex:1;min-height:48px;font-family:var(--mincho);font-size:15px;color:var(--ink);background:#0f141299;border:1px solid var(--line);border-radius:12px;cursor:pointer;padding:0 2px}
 .row button small{display:block;font-family:var(--goth);font-size:10px;color:var(--dim)}
 .row button[aria-pressed=true]{border-color:var(--aoi);box-shadow:inset 0 0 0 1px var(--aoi)}
-#pitch{flex:0 0 64px}
-#cap{position:fixed;left:16px;right:16px;bottom:calc(266px + env(safe-area-inset-bottom));z-index:3;text-align:center;font-size:13px;line-height:1.6;margin:0;text-shadow:0 1px 3px #000,0 0 8px #000}
+#pitch{flex:0 0 56px}
+.row #aiE,.row #aiA{flex:1.15}
+#cap.top{bottom:auto;top:calc(58px + env(safe-area-inset-top))}
+@media (max-width:420px){.row{gap:4px}.row>span{flex-basis:26px}.row button{font-size:13px;letter-spacing:0;white-space:nowrap}.row button small{font-size:9px}#pitch{flex-basis:46px}}
+#birdEar{white-space:nowrap;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(222px + env(safe-area-inset-bottom));z-index:3;background:#0f141299!important;font:inherit;font-size:12px;color:var(--ink);background:none;border:1px solid var(--aoi);border-radius:999px;min-height:32px;padding:0 12px;margin:4px 0 0;cursor:pointer}
+#cap{position:fixed;left:16px;right:16px;bottom:calc(214px + env(safe-area-inset-bottom));z-index:3;text-align:center;font-size:13px;line-height:1.6;margin:0;text-shadow:0 1px 3px #000,0 0 8px #000}
 #cap{font-size:14px;font-weight:500;text-shadow:0 0 2px #000,0 0 4px #000,0 1px 6px #000,0 0 14px #000a}
 #cap small{display:block;color:#d6dde6;font-size:11px}
 #cap .src{display:none}#cap.open .src{display:block}
@@ -47,11 +51,11 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(10px + env(safe
 <header><a href="https://mitsulab.jp/" aria-label="mitsulab のトップへ戻る">←</a><b>Qualia/lens</b></header>
 <div id="start"><div><h1>Qualia/lens</h1><p class="sub">今ここの景色と音を、別の受けとり方で。<br>見たら、顔を上げて実物と見くらべる。</p><button id="go" type="button">カメラとマイクをひらく</button><p class="n">映像と音は端末の中だけで変えます（音は直近 4 秒だけ持つ）。<br>保存も送信もしません。機械の受けとり方も端末の中で動き、人の顔や個人は見分けません。</p></div></div>
 <nav aria-label="受けとり方">
- <div class="row" id="eyes"><span>目</span><button data-m="0" aria-pressed="true">人</button><button data-m="1" aria-pressed="false">犬</button><button data-m="2" aria-pressed="false">ミツバチ</button><button data-m="3" aria-pressed="false">ハエ</button></div>
- <div class="row" id="rates"><span>耳</span><button data-r="0.25" aria-pressed="false">¼<small>遅く</small></button><button data-r="0.5" aria-pressed="false">½<small>遅く</small></button><button data-r="1" aria-pressed="true">今<small>そのまま</small></button><button data-r="2" aria-pressed="false">×2<small>速く</small></button><button id="pitch" aria-pressed="false" aria-label="音の高さも変える（いまは高さを保つ）">高さ<small>保つ</small></button></div>
- <div class="row" id="ai"><span>機械</span><button id="aiE" aria-pressed="false">目<small>切り分ける</small></button><button id="aiA" aria-pressed="false">耳<small>聞き分ける</small></button></div>
+ <div class="row" id="eyes"><span>目</span><button data-m="0" aria-pressed="true">人</button><button data-m="1" aria-pressed="false">犬</button><button data-m="2" aria-pressed="false">ミツバチ</button><button data-m="3" aria-pressed="false">ハエ</button><button id="aiE" aria-pressed="false">機械<small>切り分け</small></button></div>
+ <div class="row" id="rates"><span>耳</span><button data-r="0.25" aria-pressed="false">¼<small>遅く</small></button><button data-r="0.5" aria-pressed="false">½<small>遅く</small></button><button data-r="1" aria-pressed="true">今<small>そのまま</small></button><button data-r="2" aria-pressed="false">×2<small>速く</small></button><button id="pitch" aria-pressed="false" aria-label="音の高さも変える（いまは高さを保つ）">高さ<small>保つ</small></button><button id="aiA" aria-pressed="false">機械<small>聞き分け</small></button></div>
 </nav>
 <p id="cap" aria-live="polite" role="status"></p>
+<button type="button" id="birdEar" hidden>鳥の耳で聴く（¼ の速さ）</button>
 <div id="rest" role="status" aria-live="polite"><p><span></span><small>立ち止まって、顔を上げて。画面に触れると戻ります。</small></p></div>
 <video id="v" playsinline muted hidden></video>
 <script>
@@ -72,12 +76,14 @@ const UPE='碧：顔を上げて、今の音を自分の耳で聴いてみて。
 const rest=document.getElementById('rest');let rt=0,rb=0;
 function up(t){rest.querySelector('span').textContent=t;rest.classList.add('on');clearTimeout(rb);rb=setTimeout(()=>rest.classList.remove('on'),12000)}
 rest.onclick=()=>rest.classList.remove('on');
+/* 11-19：顔を上げる間が明けたら、一度だけ「前と後の一問」 */
+new MutationObserver(()=>{if(!rest.classList.contains('on')&&window.atosaki)setTimeout(()=>window.atosaki('さっきと違って感じたものは？',[{n:'色',s:'see',t:'別の受けとり方のあと、色が違って見えた'},{n:'動くもの',s:'see',t:'別の受けとり方のあと、動くものに目がいった'},{n:'音',s:'hear',t:'別の受けとり方のあと、音が違って聴こえた'},{n:'変わらない',s:'see',t:'別の受けとり方のあとも、同じに感じた'}]),900)}).observe(rest,{attributes:true,attributeFilter:['class']});
 function later(t,ms){clearTimeout(rt);rt=setTimeout(()=>{if(!document.hidden)up(t)},ms)}
 let seen=0,pmode=0,t0=-1e9,mode=0,rate=1,keep=true,last='eye',noMic=0;
 function plus(on){return on?'<br><button type="button" id="plus" aria-expanded="'+cap.classList.contains('open')+'" aria-label="出典をひらく">'+(cap.classList.contains('open')?'−':'＋')+'</button>':''}
-cap.addEventListener('click',e=>{if(e.target.id=='plus'){cap.classList.toggle('open');render()}});
+cap.addEventListener('click',e=>{if(e.target.id=='plus'){cap.classList.toggle('open');render.h='';render()}});
 function render(){
- if(last=='ai'){const h=aiText();if(h!=render.h){render.h=h;cap.innerHTML=h}return}render.h='';
+ cap.classList.toggle('top',last=='ai');{const be=document.getElementById('birdEar');if(be)be.hidden=!(last=='ai'&&aiA&&bird)}if(last=='ai'){const h=aiText();if(h!=render.h){render.h=h;cap.innerHTML=h}return}render.h='';
  if(last=='eye'){const e=EYE[mode];cap.innerHTML=(seen>0?'<span style="display:block;font-family:var(--mincho);font-size:15px;margin-bottom:2px">'+Q[mode]+'</span>':'')+SH[mode]+(e[1]?'<small class="src">'+e[0]+'<br>出典：'+e[1]+'</small>':'')+plus(!!e[1]);return}
  const L={1:'今の音。人が聴けるのはおよそ 20 Hz〜20 kHz。',0.25:'直近 4 秒を ¼ の速さで。鳥が聴き分ける細かな音の変化が、人の耳でも追える。',0.5:'直近 4 秒を ½ の速さで。',2:'直近 4 秒を 2 倍の速さで。長い音のうねりが一つにまとまる。'};
  cap.innerHTML=L[rate]+(rate!=1?'<small>'+(keep?'高さを保ったまま速さだけ変えています。':'テープのように高さも一緒に変えています。')+'</small>':'')+
@@ -121,8 +127,8 @@ function wav(){const n=ring.length,b=new ArrayBuffer(44+n*2),d=new DataView(b);c
 function stop(){if(el){el.pause();el=null}if(url){URL.revokeObjectURL(url);url=null}}
 function play(){stop();if(rate==1||!ring)return;url=URL.createObjectURL(wav());el=new Audio(url);el.preservesPitch=keep;el.webkitPreservesPitch=keep;el.playbackRate=rate;el.onended=()=>{el=null;render();if(rate<1)later(UPE,600)};el.play().catch(()=>{})}
 function setRate(r){rate=r;last='ear';document.querySelectorAll('#rates [data-r]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r==r));r==1?stop():play();render()}
-function setM(i){if(i==mode)return;seen++;pmode=mode;t0=performance.now();mode=i;last='eye';document.querySelectorAll('#eyes button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==i));render();later(UP[i],14000)}
-document.querySelectorAll('#eyes button').forEach(b=>b.onclick=()=>setM(+b.dataset.m));
+function setM(i){if(i==mode)return;seen++;pmode=mode;t0=performance.now();mode=i;last='eye';document.querySelectorAll('#eyes [data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==i));render();later(UP[i],14000)}
+document.querySelectorAll('#eyes [data-m]').forEach(b=>b.onclick=()=>setM(+b.dataset.m));
 document.querySelectorAll('#rates [data-r]').forEach(b=>b.onclick=()=>setRate(+b.dataset.r));
 const pb=document.getElementById('pitch');pb.onclick=()=>{keep=!keep;last='ear';pb.setAttribute('aria-pressed',!keep);pb.querySelector('small').textContent=keep?'保つ':'変わる';pb.setAttribute('aria-label','音の高さも変える（いまは'+(keep?'高さを保つ':'高さも変わる')+'）');if(rate!=1)play();render()};
 function frame(){requestAnimationFrame(frame);
@@ -146,22 +152,24 @@ document.getElementById('go').onclick=async()=>{
   m.connect(pn);pn.connect(z)}
  else{document.querySelectorAll('#rates button').forEach(b=>b.disabled=true);noMic=1}
  document.getElementById('start').remove();render();if(noMic)cap.innerHTML+='<small>マイクが許可されていないため、耳の列は使えません。</small>'};
+document.getElementById('birdEar').onclick=()=>setRate(.25);
 render();requestAnimationFrame(frame);
 /* ---- 機械の受けとり方（2026-11-19 本人）。解析は端末の中だけ。映像・音は送らず残さない。人は「人」の数だけ、枠も顔も扱わない ----
  物の切り分け＝MediaPipe Object Detector（EfficientDet-Lite0・COCO の 80 の名前）／音＝MediaPipe Audio Classifier（YAMNet・AudioSet の 521 の名前）。どれも Apache 2.0 */
 const MP='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-',MV='@0.10.14';
 const JP={person:'人',bicycle:'自転車',car:'車',motorcycle:'バイク',bus:'バス',truck:'トラック',train:'電車',bird:'鳥',cat:'猫',dog:'犬',bench:'ベンチ',umbrella:'傘',backpack:'リュック',handbag:'かばん','traffic light':'信号','stop sign':'標識','potted plant':'鉢植え',chair:'椅子',bottle:'瓶',cup:'カップ','cell phone':'スマホ',book:'本',clock:'時計',vase:'花瓶',laptop:'パソコン',tv:'画面',keyboard:'キーボード',mouse:'マウス',couch:'ソファ','dining table':'机',bed:'ベッド',boat:'船',airplane:'飛行機','fire hydrant':'消火栓','parking meter':'パーキングメーター',horse:'馬',sheep:'羊',cow:'牛',kite:'凧',banana:'バナナ',apple:'りんご',orange:'みかん',scissors:'はさみ','teddy bear':'ぬいぐるみ'};
 const SND=[['人の声',/speech|conversation|narration|laugh|shout|chatter|crowd|child|whisper|babbl/i],['鳥',/bird|chirp|tweet|crow|pigeon|dove|caw|owl|squawk|coo/i],['虫',/insect|cricket|cicada|bee|mosquito|fly,/i],['犬',/dog|bark|howl|bow-wow/i],['車・乗り物',/vehicle|car|traffic|engine|bus|truck|train|motorcycle|tire|horn|siren|rail|aircraft/i],['水',/water|stream|rain|drip|pour|splash|ocean|wave|gurgl/i],['風',/wind|rustl/i],['足音',/footstep|walk/i],['音楽',/music|singing|song|instrument|bell/i],['静か',/silence/i]];
+const BN=[['カラス',/^(crow|caw)$/i],['ハト',/pigeon|^coo$/i],['フクロウ',/^(owl|hoot)$/i],['カモ',/^(duck|quack)$/i],['ガン',/^(goose|honk)$/i],['ニワトリ',/chicken|crowing/i]];
 const hud=document.getElementById('hud'),hg=hud.getContext('2d');
-let det=null,acl=null,aiE=false,aiA=false,dets=[],snd=[],nP=0,lastDet=0,lastSnd=0,busyE=0,busyA=0,aiMsg='';
+let bird=null,det=null,acl=null,aiE=false,aiA=false,dets=[],snd=[],nP=0,lastDet=0,lastSnd=0,busyE=0,busyA=0,aiMsg='';
 function hsize(){const d=Math.min(devicePixelRatio||1,2);hud.width=innerWidth*d;hud.height=innerHeight*d}addEventListener('resize',hsize);hsize();
-function pct(x){return Math.round(x*100)+'%'}
+const FF=getComputedStyle(document.body).fontFamily;function pct(x){return Math.round(x*100)+'%'}
 function aiText(){
  if(aiMsg)return aiMsg;
  let t='',x='';
- if(aiE){const d=dets[0];t+=d?'機械の目：「'+d.n+'」と受けとった（'+pct(d.p)+'）':'機械の目：名前のつくものは、まだない';if(nP)t+='<small>人 ×'+nP+'（数えるだけ。顔も個人も見分けない）</small>';
+ if(aiE){const d=dets[0];t+=(d?'機械の目：「'+d.n+'」と受けとった（'+pct(d.p)+'）':'機械の目：名前のつくものは、まだない')+'<small>枠のない所は、機械には見えていない（木・空・影、ときには車も）</small>';if(nP)t+='<small>人 ×'+nP+'（数えるだけ。顔も個人も見分けない）</small>';
   x+='機械は学んだ 80 の名前のどれに近いかで、物を枠で切り分ける。木・空・道・影は名前の外にあり、機械には無いのと同じ。人は形・使い道・記憶で見ている。<br>物の切り分け：EfficientDet-Lite0（COCO の 80 の名前）'}
- if(aiA){t+=(t?'<br>':'')+(snd.length?'機械の耳：'+snd.map(x=>x[0]+' '+pct(x[1])).join('・'):'機械の耳：聞き分けている…');
+ if(aiA){t+=(t?'<br>':'')+(snd.length?'機械の耳：'+snd.map(x=>x[0]+' '+pct(x[1])).join('・'):'機械の耳：聞き分けている…');if(bird&&bird[0])t+='<small>'+bird[0]+'の声に近い（'+pct(bird[1])+'）。種の決めつけではない</small>';
   x+=(x?'<br>':'')+'機械は音を 521 の名前に振り分け、名前ごとの確からしさで受けとる。人は重なった音を一つの風景として聴く。<br>音の聞き分け：YAMNet（AudioSet の 521 の名前）'}
  cap.dataset.ai=1;return t+'<small class="src">'+x+'<br>どちらも Apache License 2.0（Google）。MediaPipe で端末の中だけで動かし、映像と音は送らず残さない。</small>'+plus(1)}
 async function loadE(){if(det)return;const m=await import(MP+'vision'+MV+'/vision_bundle.mjs');const fs=await m.FilesetResolver.forVisionTasks(MP+'vision'+MV+'/wasm');
@@ -170,7 +178,7 @@ async function loadA(){if(acl)return;const m=await import(MP+'audio'+MV+'/audio_
  acl=await m.AudioClassifier.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite'},maxResults:12})}
 let aiT=0;function aiUp(){clearTimeout(aiT);aiT=setTimeout(()=>{if(!document.hidden&&(aiE||aiA))up('碧：顔を上げて、機械と自分の受けとり方の違いを見てみて。機械が名前をつけなかったもの──木や空や影──は、あなたにはどう見えている？')},16000)}
 async function tog(k){const b=document.getElementById(k);const on=b.getAttribute('aria-pressed')!='true';b.setAttribute('aria-pressed',on);last='ai';
- if(k=='aiE'){aiE=on;if(!on){dets=[];nP=0}}else{aiA=on;if(!on)snd=[]}
+ if(k=='aiE'){aiE=on;if(!on){dets=[];nP=0}}else{aiA=on;if(!on){snd=[];bird=null}}
  if(on){aiMsg='機械の受けとり方を読み込んでいます…';render();try{await(k=='aiE'?loadE():loadA());aiMsg=''}catch(e){aiMsg='機械の受けとり方を読み込めませんでした。通信を確かめて、もう一度押してください。';b.setAttribute('aria-pressed',false);if(k=='aiE')aiE=false;else aiA=false;console.warn(e)}aiUp()}
  render()}
 document.getElementById('aiE').onclick=()=>tog('aiE');document.getElementById('aiA').onclick=()=>{if(!ring)return;tog('aiA')};
@@ -179,19 +187,21 @@ function aiLoop(now){requestAnimationFrame(aiLoop);
  if(aiE&&det&&src&&v.videoWidth&&!busyE&&now-lastDet>250){busyE=1;lastDet=now;try{const r=det.detectForVideo(v,now);nP=0;dets=[];for(const d of r.detections){const c=d.categories[0];if(c.categoryName=='person'){nP++;continue}dets.push({n:JP[c.categoryName]||c.categoryName,p:c.score,b:d.boundingBox})}dets.sort((a,b)=>b.p-a.p);if(last=='ai')render()}catch(e){console.warn(e)}busyE=0}
  if(aiA&&acl&&ring&&!busyA&&now-lastSnd>1000){busyA=1;lastSnd=now;try{const n=Math.min(ring.length,Math.round(sr*.975)),x=new Float32Array(n);for(let i=0;i<n;i++)x[i]=ring[(ri-n+i+ring.length)%ring.length];
   const r=acl.classify(x,sr),agg={};for(const c of (r[0]&&r[0].classifications[0].categories)||[]){for(const [j,re] of SND)if(re.test(c.categoryName)){agg[j]=Math.max(agg[j]||0,c.score);break}}
+  bird=null;if(agg['鳥']>.15){bird=['',agg['鳥']];for(const c of (r[0]&&r[0].classifications[0].categories)||[]){const h=BN.find(z=>z[1].test(c.categoryName));if(h&&c.score>.1){bird=[h[0],c.score];break}}}
   snd=Object.entries(agg).filter(e=>e[1]>.08).sort((a,b)=>b[1]-a[1]).slice(0,3);if(last=='ai')render()}catch(e){console.warn(e)}busyA=0}
- const W=hud.width,H=hud.height,d=W/innerWidth;hg.clearRect(0,0,W,H);if(!aiE&&!aiA)return;
- hg.lineWidth=d;hg.font=(11*d)+'px '+getComputedStyle(document.body).fontFamily;
+ const W=hud.width,H=hud.height,d=W/innerWidth;hg.clearRect(0,0,W,H);const capB=cap.classList.contains('top')?cap.getBoundingClientRect().bottom*d:60*d;hg.lineWidth=d;hg.font=(11*d)+'px '+FF;
  if(aiE){const y=(now/12%H);const gr=hg.createLinearGradient(0,y-40*d,0,y);gr.addColorStop(0,'rgba(92,200,224,0)');gr.addColorStop(1,'rgba(92,200,224,.10)');hg.fillStyle=gr;hg.fillRect(0,y-40*d,W,40*d);hg.fillStyle='rgba(92,200,224,.35)';hg.fillRect(0,y,W,d);
   for(const o of dets){if(!v.videoWidth)break;const [x0,y0]=toScr(o.b.originX,o.b.originY),[x1,y1]=toScr(o.b.originX+o.b.width,o.b.originY+o.b.height),L=Math.min(14*d,(x1-x0)/3,(y1-y0)/3);
    hg.strokeStyle='rgba(92,200,224,'+(.35+o.p*.6)+')';hg.beginPath();for(const [cx,cy,sx,sy] of [[x0,y0,1,1],[x1,y0,-1,1],[x0,y1,1,-1],[x1,y1,-1,-1]]){hg.moveTo(cx+sx*L,cy);hg.lineTo(cx,cy);hg.lineTo(cx,cy+sy*L)}hg.stroke();
    hg.strokeStyle='rgba(92,200,224,.18)';hg.strokeRect(x0,y0,x1-x0,y1-y0);
-   const tx=o.n+'  '+o.p.toFixed(2);hg.fillStyle='rgba(8,14,16,.55)';const tw=hg.measureText(tx).width+8*d;const lx=Math.max(4*d,Math.min(W-tw-4*d,x0)),ly=Math.max(60*d,y0);hg.fillRect(lx,ly-16*d,tw,15*d);hg.fillStyle='#dff6fb';hg.fillText(tx,lx+4*d,ly-4.5*d)}}
+   const tx=o.n+'  '+o.p.toFixed(2);hg.fillStyle='rgba(8,14,16,.55)';const tw=hg.measureText(tx).width+8*d;const lx=Math.max(4*d,Math.min(W-tw-4*d,x0)),ly=Math.max(capB+18*d,y0);hg.fillRect(lx,ly-16*d,tw,15*d);hg.fillStyle='#dff6fb';hg.fillText(tx,lx+4*d,ly-4.5*d)}}
+ if(an){const by0=H-(150+56)*d;hg.fillStyle='rgba(223,246,251,.55)';hg.fillText('耳の帯：いまの音（上ほど高い音）',W-hg.measureText('耳の帯：いまの音（上ほど高い音）').width-12*d,by0-4*d)}
  if(aiA&&snd.length){let x=16*d;/* 音の名前は耳の帯の上に淡く */
-  const by=H-(206+40)*d;snd.forEach((s,i)=>{const tx=s[0]+' '+s[1].toFixed(2);hg.fillStyle='rgba(92,200,224,'+(.25+s[1]*.6)+')';hg.fillText(tx,x,by-6*d);hg.fillRect(x,by-3*d,Math.max(6*d,s[1]*90*d),d);x+=hg.measureText(tx).width+18*d})}}
+  const by=H-(150+40)*d;snd.forEach((s,i)=>{const tx=s[0]+' '+s[1].toFixed(2);hg.fillStyle='rgba(92,200,224,'+(.25+s[1]*.6)+')';hg.fillText(tx,x,by-6*d);hg.fillRect(x,by-3*d,Math.max(6*d,s[1]*90*d),d);x+=hg.measureText(tx).width+18*d})}}
 
 requestAnimationFrame(aiLoop);
 })();
 </script>
+<script src="../39/atosaki.js" defer></script>
 </body>
 </html>
