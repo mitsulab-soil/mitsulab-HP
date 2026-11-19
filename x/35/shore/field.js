@@ -150,8 +150,8 @@ function updateOthers(now,dt){
 // ---------- 身体と操作 ----------
 let yaw=Math.atan2(-(TREE.x-me.x),-(TREE.z-me.z))+.5,pitch=-.06,target=null,moving=false,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* 2026-11-10 第4周：最初に見せる一つ＝水際の光。押すとそこへ歩き、着く前から足もとの土に水がしみこむ */
-const goP=(()=>{const dx=me.x-POND.x,dz=me.z-POND.z,l=Math.hypot(dx,dz),r=pondR()+.7;return{x:POND.x+dx/l*r,z:POND.z+dz/l*r};})(),goV=new T.Vector3();
-const edgeM=new T.SpriteMaterial({map:dotTex(),color:0xfff3c8,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0});const edgeGlow=new T.Sprite(edgeM);edgeGlow.scale.set(2.2,2.2,1);edgeGlow.position.set(goP.x,.12,goP.z);_add(edgeGlow);let edgeOn=1;
+const goP=(()=>{const dx=me.x-POND.x,dz=me.z-POND.z,l=Math.hypot(dx,dz),r=pondR()+(innerWidth<520?.15:.7);return{x:POND.x+dx/l*r,z:POND.z+dz/l*r};})(),goV=new T.Vector3();
+/* 2026-11-19 光の玉（板）が地面に半分めり込み、下が直線で切れて見えた→地面に隠されないように */const edgeM=new T.SpriteMaterial({map:dotTex(),color:0xfff3c8,transparent:true,depthWrite:false,depthTest:false,blending:T.AdditiveBlending,opacity:0});const edgeGlow=new T.Sprite(edgeM);edgeGlow.scale.set(2.2,2.2,1);edgeGlow.position.set(goP.x,.12,goP.z);_add(edgeGlow);let edgeOn=1;
 function splash(x,z,a=.8){const k0=idx(x,z);if(k0<0)return;for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const kk=k0+dj*N+di;if(kk<0||kk>=NN)continue;const f=1-Math.hypot(di,dj)/3.2;if(f<=0)continue;w[kk]=Math.min(1,w[kk]+a*f);d[kk]=Math.min(2,d[kk]+1.4*f);}}
 let walked=false;/* 2026-11-18 はじめは光る水際だけを見せ、杭の札は歩きはじめてから（目線を一つに） */const probeTag=document.createElement('div');probeTag.textContent='土の湿りを測る棒（センサー）';probeTag.setAttribute('aria-hidden','true');probeTag.style.cssText='position:fixed;left:0;top:0;pointer-events:none;font-size:13px;font-weight:600;letter-spacing:.04em;white-space:nowrap;text-shadow:0 0 1px #000,0 0 1px #000,0 0 1px #000;transform:translate(-50%,-140%);opacity:0;transition:opacity .6s';document.body.appendChild(probeTag);const prV=new T.Vector3();
 setTimeout(()=>{splash(goP.x,goP.z,.9);},1200);const GO=qxEntry({label:'ここへ歩く（足もとの変化が見える）',css:'#t{left:112px!important}.qx-home{width:auto!important;padding:0 10px;font-size:14px!important;letter-spacing:.06em}',onPress:()=>{target={x:goP.x,z:goP.z};splash(goP.x,goP.z,.7);$('hint').style.opacity=0;}});{const h=document.querySelector('.qx-home');if(h){h.textContent='← mitsulab';h.href='https://mitsulab.jp/';}}
@@ -169,7 +169,7 @@ cv.addEventListener('pointerleave',()=>{hoverRing.userData.o=0});
 const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;});addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 function walk(dt){let vx=0,vz=0;const f=(keys.w||keys.arrowup?1:0)-(keys.s||keys.arrowdown?1:0),sd=(keys.d?1:0)-(keys.a?1:0);
   if(keys.arrowleft)yaw+=dt*1.2;if(keys.arrowright)yaw-=dt*1.2;
-  if(f||sd){target=null;vx=(-Math.sin(yaw)*f+Math.cos(yaw)*sd)*1.4;vz=(-Math.cos(yaw)*f-Math.sin(yaw)*sd)*1.4;}
+  if(f||sd){target=null;walked=true;vx=(-Math.sin(yaw)*f+Math.cos(yaw)*sd)*1.4;vz=(-Math.cos(yaw)*f-Math.sin(yaw)*sd)*1.4;}
   else if(target){const dx=target.x-me.x,dz=target.z-me.z,l=Math.hypot(dx,dz);if(l<.08)target=null;else{const v=Math.min(1.4,l*2);vx=dx/l*v;vz=dz/l*v;const ty=Math.atan2(-dx,-dz);let dd=ty-yaw;dd=Math.atan2(Math.sin(dd),Math.cos(dd));yaw+=dd*Math.min(1,dt*2.5);}}
   me.x+=vx*dt;me.z+=vz*dt;const pr=Math.hypot(me.x-POND.x,me.z-POND.z),lim=pondR()+.35;if(pr<lim){me.x=POND.x+(me.x-POND.x)/pr*lim;me.z=POND.z+(me.z-POND.z)/pr*lim;target=null;}
   me.x=Math.max(-11.5,Math.min(11.5,me.x));me.z=Math.max(-11.5,Math.min(11.5,me.z));moving=Math.hypot(vx,vz)>.05;}
@@ -201,7 +201,7 @@ function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
   cam.rotation.set(0,0,0);cam.rotateY(yaw);cam.rotateX(pitch);
   if(!GO.done){cam.updateMatrixWorld();goV.set(goP.x,.05,goP.z).project(cam);GO.place(goV.z<1&&Math.abs(goV.x)<.9&&Math.abs(goV.y)<.9?(goV.x+1)/2*innerWidth:null,(1-goV.y)/2*innerHeight);}
   {const dE=Math.hypot(me.x-goP.x,me.z-goP.z);if(edgeOn&&dE<1.2)edgeOn=0;const k=edgeOn?.75+.25*(reduce?0:Math.sin(now*.003)):0;edgeM.opacity+=(k-edgeM.opacity)*Math.min(1,dt*3);edgeGlow.visible=edgeM.opacity>.01;}
-  {prV.set(PROBE.x,.85,PROBE.z).project(cam);const dP=Math.hypot(me.x-PROBE.x,me.z-PROBE.z),on=prV.z<1&&Math.abs(prV.x)<.9&&Math.abs(prV.y)<.9&&dP<7&&walked;probeTag.style.opacity=on?.9:0;if(on)probeTag.style.left=((prV.x+1)/2*innerWidth|0)+'px',probeTag.style.top=((1-prV.y)/2*innerHeight|0)+'px';}
+  {prV.set(PROBE.x,.85,PROBE.z).project(cam);const dP=Math.hypot(me.x-PROBE.x,me.z-PROBE.z),on=prV.z<1&&Math.abs(prV.x)<.9&&Math.abs(prV.y)<.9&&dP<7&&walked;probeTag.style.opacity=on?.9:0;if(probe.visible!==walked)probe.visible=walked;if(on)probeTag.style.left=((prV.x+1)/2*innerWidth|0)+'px',probeTag.style.top=((1-prV.y)/2*innerHeight|0)+'px';}
   // 空気 → 霧と光
   fog.copy(dry).lerp(wet,field.air);scene.fog.color.copy(fog);scene.background.copy(fog);scene.fog.density=(.022+.02*field.air)*(1-.35*field.pulse);
   sun.intensity=2.5-1.0*field.air;
