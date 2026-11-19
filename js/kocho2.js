@@ -22,6 +22,7 @@ export function start(){
     flocks.push(fl); }
   const size=()=>{const w=innerWidth,h=innerHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}; size(); addEventListener('resize',size);
   const tag=document.createElement('p'); tag.id='labBgTag'; tag.setAttribute('aria-hidden','true'); document.body.appendChild(tag);
+  const NAMES_EN=['Wing colour: how people receive (colour-coded model)','Wing colour: how honeybees receive (colour-coded model)','Wing colour: how birds receive (colour-coded model)'];
   const NAMES=['翅の色：人の受けとり方（色分けの模式）','翅の色：ミツバチの受けとり方（色分けの模式）','翅の色：鳥の受けとり方（色分けの模式）'];
   // 画面の点（px）→ カメラの前の面（z=0）の座標
   const toW=(px,py)=>{const hh=Math.tan(20*Math.PI/180)*10, hw=hh*cam.aspect; return new THREE.Vector3((px/innerWidth*2-1)*hw,(1-py/innerHeight*2)*hh,0)};
@@ -30,7 +31,7 @@ export function start(){
   const HOME={x:.74,y:.46};
   function target(){ const first=scrollY<innerHeight*.6&&!!document.querySelector('#top.active');
     if(sp){ const v=document.querySelector('.sd-vis'); const rr=v&&v.getBoundingClientRect(); const cy=rr&&first?(rr.top+rr.bottom)/2:innerHeight*.62; return {p:toW(innerWidth*.5,cy),R:.28,a:first?1:.18}; }
-    return {p:toW(innerWidth*HOME.x,innerHeight*HOME.y),R:.9,a:first?1:.2}; }
+    return {p:toW(innerWidth*HOME.x,innerHeight*HOME.y),R:.9,a:first?1:.12}; }
   const tmp=new THREE.Vector3(), q=new THREE.Quaternion(), fwd=new THREE.Vector3(0,0,1), m4=new THREE.Matrix4();
   function frame(now){ const s=(now-t0)/1000, dt=Math.min(.05,Math.max(.001,(now-(last||now))/1000)); last=now;
     const T=target(); hub.lerp(T.p,Math.min(1,dt*1.2)); hubR+= (T.R-hubR)*Math.min(1,dt*1.2); alpha+=(T.a-alpha)*Math.min(1,dt*(T.a<alpha?4:1.5));
@@ -49,7 +50,7 @@ export function start(){
         b.m.visible=op>.02;
       }); });
     { const u=(((s/8)%3)+3)%3, i0=Math.floor(u), f=u-i0, e2=f<.6?0:(f-.6)/.4, e3=e2*e2*(3-2*e2); const cc=TINT[i0].clone().lerp(TINT[(i0+1)%3],e3); FM[0].forEach((mt,j)=>{ mt.opacity=op; if(mt.color&&mt.userData.c0) mt.color.copy(mt.userData.c0).multiply(cc); }); }
-    const ui=Math.floor((((s/8)%3)+3)%3); tag.textContent=op>.6?NAMES[ui]:'';
+    const ui=Math.floor((((s/8)%3)+3)%3); tag.textContent=op>.6?(document.documentElement.lang==='en'?NAMES_EN[ui]:NAMES[ui]):'';
     r.render(sc,cam); }
   let on=true; document.addEventListener('visibilitychange',()=>{on=!document.hidden; if(on) requestAnimationFrame(loop)});
   function loop(t){ if(!on) return; if(t-(last||0)>(sp?40:20)||!last) frame(t); requestAnimationFrame(loop); }
