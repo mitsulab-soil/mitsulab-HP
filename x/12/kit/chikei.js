@@ -32,7 +32,7 @@
   function fill() {
     var q = pos(), h = q && at(q.x, q.z, "abs"), r = q && at(q.x, q.z, "rel");
     p.innerHTML = (!q ? "<b>歩きはじめると、足もとの高さが分かります。</b>" : h == null ? "<b>この辺りの高さは、データの範囲の外です。</b>" :
-      "<b>" + (r > 1 ? "周りより、少し高い所" : r < -1 ? "周りより、少し低い所" : "周りと、ほぼ同じ高さ") + "</b><br>標高 およそ " + h.toFixed(1) + " m ／ 周り（半径 " + (G.r || 150) + " m）との差 " + (r >= 0 ? "+" : "") + r.toFixed(1) + " m") +
+      "<b>" + (r > 3 ? "周りより、高い所" : r > 1 ? "周りより、少し高い所" : r < -3 ? "周りより、低い所" : r < -1 ? "周りより、少し低い所" : "周りと、ほぼ同じ高さ") + "</b><br>標高 およそ " + h.toFixed(1) + " m ／ 周り（半径 " + (G.r || 150) + " m）との差 " + (r >= 0 ? "+" : "") + r.toFixed(1) + " m") +
       "<small>音が深いほど低い所。Android では振動も重くなります。<br>出典：<a href=\"https://maps.gsi.go.jp/development/ichiran.html\" target=\"_blank\" rel=\"noopener\" style=\"color:inherit\">国土地理院 標高タイル</a>を mitsulab が加工。</small>";
   }
   function soundOn() { var s = document.getElementById("qSnd"); return !s || s.getAttribute("aria-pressed") !== "false"; }
