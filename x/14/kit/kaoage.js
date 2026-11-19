@@ -34,6 +34,7 @@
   }
   function check() {
     if (!walking()) return;
+    if (window.__qw && window.__qw.hold) return; // 時間の層を見ているあいだは問いを出さない（11-20）
     var c = window.__qw && window.__qw.camera; if (!c) return;
     var x = c.position.x, z = c.position.z, best = null, bd = R;
     // 歩きはじめの地点にいる間は出さない。一度離れて（R＋10 m より外へ）からまた着いたら出す

@@ -1131,7 +1131,7 @@ function aoiFootY(x, z, own) {   // own＝町の依代など碧でないもの�
 }
 const FOOT = { m: new Map(), list: null, t: 0, last: 0, off: 0 }, _fr = new THREE.Raycaster(), _fd = new THREE.Vector3(0, -1, 0), _fo = new THREE.Vector3();
 let WL = null;
-function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!sightFor(L);   /* 生きものの受けとり方へ入れる印の目印 */ QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ, skip: M => THIN.test((M.o.title || "") + (M.o.lines || []).map(l => l.t || "").join("")),   /* 10-29：語りが途中で切りかわると PANEL.cur が残り、問い・ミクロ⇄マクロが止まっていた */ quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of LAYER.objs) { if (!M.root?.visible || M.qHide) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } const v = WALK.moving ? (WALK.speed || 1.3) : 1.3; return Math.max(8, Math.min(16, nd / v * .45)); },   /* 近くに印があれば早めに、遠ければゆっくり問う */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 視野の外の印も含めて探す */   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk", ground: (x, z) => groundY(x, z) }); }
+function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!sightFor(L);   /* 生きものの受けとり方へ入れる印の目印 */ QW.CAM = CAM;   /* 自動の通しのテストプレーで向きを変えるため */ WL = makeWorldLayers(THREE, world, { marks: () => LAYER.objs.filter(L => L.root?.visible && L.kind !== "sound"), pitch: () => CAM.pitch, narrate: (L, k, from) => narrate(L, k, from), color: L => GL[L.layer]?.color || "#bfe3ee", busy: () => !$("#panel").hidden, speaking: () => !!voiceQ, skip: M => THIN.test((M.o.title || "") + (M.o.lines || []).map(l => l.t || "").join("")),   /* 10-29：語りが途中で切りかわると PANEL.cur が残り、問い・ミクロ⇄マクロが止まっていた */ quietFor: () => { const cp = camera.position; let nd = 1e9; for (const M of LAYER.objs) { if (!M.root?.visible || M.qHide) continue; const d = Math.hypot(M.o.x - cp.x, M.o.z - cp.z); if (d > 6 && d < nd) nd = d; } const v = WALK.moving ? (WALK.speed || 1.3) : 1.3; return Math.max(8, Math.min(16, nd / v * .45)); },   /* 近くに印があれば早めに、遠ければゆっくり問う */ ask: () => { if (!WL_HINT.done) { const h = "足もとを見下ろすと小さなものの話を、見上げると土地の大きな形の話をします。"; speakLines([{ t: h, tc: h, hint: true }], null); return; } const q = nextMarkAsk(null) || nextMarkAsk(null, true); if (q) speakLines([{ t: q, tc: q }], null); },   /* 視野の外の印も含めて探す */   /* 10-28 晩：見下ろす／見上げるの知らせは、最初の静かな間に */ active: () => QW.mode === "walk" && !QW.hold, ground: (x, z) => groundY(x, z) }); }
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null, heard: new Set() };
 // 10-30 本人（確定）：空間に漂う Qualia の層。層は 6 つ＝Qualia/x（umwelt・beyond・memory・link・soil・scale）・sound（リズムを含む）・touch・sight・taste・smell。印の出典つきの題と本文の語で振り分ける（作り話は足さない）
@@ -1256,7 +1256,7 @@ $("#caption").addEventListener("click", () => { return; /* 10-28 午後：重ね
 const TALK = { on: true, spoken: new Set(), nextT: 0 };
 function stepTalk() {
   if (performance.now() - VOICE_END < 4500) return;   // 10-29：語りのあとは 4.5 秒あける（途中で切りかわっても詰まらない）
-  if (!TALK.on || QW.mode !== "walk" || voiceQ || !$("#panel").hidden || performance.now() < TALK.nextT || !AOI.greeted) return;
+  if (QW.hold || !TALK.on || QW.mode !== "walk" || voiceQ || !$("#panel").hidden || performance.now() < TALK.nextT || !AOI.greeted) return;
   const cp = camera.position; let best = null, bd = 30;
   for (const L of LAYER.objs) { if (L.kind !== "rec" || TALK.spoken.has(L.o.id) || !LAYER.worn.includes(L.layer)) continue; const d = Math.hypot(L.o.x - cp.x, L.o.z - cp.z); if (d < bd) { bd = d; best = L; } }
   if (!best) return; TALK.spoken.add(best.o.id); TALK.nextT = performance.now() + 2500;
@@ -1268,7 +1268,9 @@ $("#talkBtn").addEventListener("click", () => { TALK.on = !TALK.on; if (!TALK.on
 /* ---------- 碧（共通部品 AoiMotion） ---------- */
 const AOI = { root: null, m: null, ready: false, pos: new THREE.Vector3(), focus: null, greeted: false, loading: null, v: 0 };
 QW.AOI = AOI;
-QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.stopSpeak = () => stopVoice();   // 11-02 変身（kit/henshin.js）の碧の語り
+QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.stopSpeak = () => stopVoice();
+QW.holdTalk = on => { on = !!on; if (on && !QW.hold && voiceQ) { if (voiceQ.talk) TALK.spoken.delete(voiceQ.talk.o.id); stopVoice(); } if (!on && QW.hold) TALK.nextT = performance.now() + 1500; QW.hold = on; };   // 11-20 本人：時間の層（kit/jidai.js）を見ているあいだは町の語りを止め、閉じたら再開する（途中で切った話は、あとではじめから）
+   // 11-02 変身（kit/henshin.js）の碧の語り
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
@@ -2015,7 +2017,7 @@ function frame() { const _f0 = performance.now(); frame0(); if ((QW._fn = (QW._f
 function meijiTalk() {   /* 11-12：昔の川が浮かんだとき、字幕で三行だけ（出典は端に） */
   const L = ["足もとに、明治の地図の川を重ねました。", "明治13〜19年の迅速測図からです。", "川は谷の底を流れていました。", "両岸は田や湿地などの低い土地でした。", "いまは稲荷橋から先が空の下です。", "上流と河骨川は暗渠になりました。", "河骨川は「春の小川」のモデルとされます。"];   /* 11-12：スマホで一行が割れない長さ（20 字まで）に */
   const SR = ["国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "東京都建設局「渋谷川・古川流域とは」", "東京都建設局「渋谷川・古川流域とは」", "国土交通省「渋谷川・古川かわまちづくり」"];
-  const go = () => { if (voiceQ || !$("#panel").hidden || !$("#caption").hidden || performance.now() - (QW._capT || 0) < 1500) { setTimeout(go, 1200); return; } let k0 = 0; const Q = L.map((t, k) => ({ t, src: SR[k], lay: "x.memory" })); let fin = false; speakLines(Q.slice(k0), null, { narr: true, done: () => { fin = true; } }); const me = voiceQ;
+  const go = () => { if (QW.hold || voiceQ || !$("#panel").hidden || !$("#caption").hidden || performance.now() - (QW._capT || 0) < 1500) { setTimeout(go, 1200); return; } let k0 = 0; const Q = L.map((t, k) => ({ t, src: SR[k], lay: "x.memory" })); let fin = false; speakLines(Q.slice(k0), null, { narr: true, done: () => { fin = true; } }); const me = voiceQ;
     const watch = () => { if (fin) return; if (voiceQ === me) { k0 = me.i; setTimeout(watch, 500); return; } L.splice(0, k0 + (k0 < L.length ? 0 : 0)); SR.splice(0, k0); if (L.length) setTimeout(go, 1500); }; setTimeout(watch, 500); }; go(); }   /* 割りこまれたら、残りの行をあとで続ける */
 function frame0() {
   const dt = Math.min(.05, clock.getDelta());
