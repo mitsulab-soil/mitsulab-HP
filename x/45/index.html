@@ -41,6 +41,7 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(10px + env(safe
 #cap small{display:block;color:#d6dde6;font-size:11px}
 #cap .src{display:none}#cap.open .src{display:block}
 #rest{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:rgba(6,9,8,.9);opacity:0;pointer-events:none;transition:opacity 1.2s}#rest.on{opacity:1;pointer-events:auto}#rest p{max-width:400px;margin:0;text-align:center;font-family:var(--mincho);font-size:17px;line-height:1.9;letter-spacing:.05em}#rest small{display:block;margin-top:14px;font-family:var(--goth);font-size:12px;color:var(--dim)}
+#next{position:fixed;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:3;display:flex;align-items:center;min-height:44px;padding:0 12px;font-family:var(--mincho);font-size:13px;letter-spacing:.06em;color:var(--ink);text-decoration:none;border-bottom:0;text-shadow:0 0 3px #000,0 1px 8px #000;opacity:0;transition:opacity 1.6s}#next.on{opacity:.92}#next[hidden]{display:none}@media (max-width:420px){#next{right:4px;padding:0 8px;font-size:12px;letter-spacing:0}}
 #cap button{font:inherit;font-size:12px;color:var(--ink);background:none;border:1px solid #ffffff66;border-radius:999px;min-width:44px;min-height:32px;margin-top:4px;cursor:pointer;text-shadow:inherit}
 </style>
 </head>
@@ -54,6 +55,7 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(10px + env(safe
  <div class="row" id="eyes"><span>目</span><button data-m="0" aria-pressed="true">人</button><button data-m="1" aria-pressed="false">犬</button><button data-m="2" aria-pressed="false">ミツバチ</button><button data-m="3" aria-pressed="false">ハエ</button><button id="aiE" aria-pressed="false">機械<small>切り分け</small></button></div>
  <div class="row" id="rates"><span>耳</span><button data-r="0.25" aria-pressed="false">¼<small>遅く</small></button><button data-r="0.5" aria-pressed="false">½<small>遅く</small></button><button data-r="1" aria-pressed="true">今<small>そのまま</small></button><button data-r="2" aria-pressed="false">×2<small>速く</small></button><button id="pitch" aria-pressed="false" aria-label="音の高さも変える（いまは高さを保つ）">高さ<small>保つ</small></button><button id="aiA" aria-pressed="false">機械<small>聞き分け</small></button></div>
 </nav>
+<a id="next" href="../09/" hidden>参道を歩く　Qualia/omiya ›</a>
 <p id="cap" aria-live="polite" role="status"></p>
 <button type="button" id="birdEar" hidden>鳥の耳で聴く（¼ の速さ）</button>
 <div id="rest" role="status" aria-live="polite"><p><span></span><small>立ち止まって、顔を上げて。画面に触れると戻ります。</small></p></div>
@@ -68,7 +70,9 @@ const EYE=[
  ['ハエの目の模式。速く飛ぶハエの視細胞は光の変化に約 50〜107 Hz まで応じる。動いたところが、数コマの線で浮かぶ。','Laughlin & Weckström 1993 J Comp Physiol A 172:593']
 ];
 const SH=['人の目。','犬の目の模式。赤と緑が近い色に。','ミツバチの目の模式。赤は暗く、粒は粗く。','ハエの目の模式。動いた所が線で浮かぶ。'];
-const Q=['碧：さっきの目のあとで、いつもの色はどう見える？','碧：赤い実や花は、犬にはどこにあるだろう。','碧：蜂の目で見ると、花はまだ目立つだろうか。','碧：止まっているものと動いたもの、ハエにはどちらが先に届くだろう。'];
+const Q=['碧：さっきの目のあとで、いつもの色はどう見える？','碧：赤い実や花は、犬にはどこにあるだろう。','碧：ミツバチなら、この景色のどこへ向かうだろう。花はまだ目立つ？','碧：止まっているものと動いたもの、ハエにはどちらが先に届くだろう。'];
+/* 11-20 本人：gaze をここへ。はじめに問いを一つ受けて、今の景色を見つめ直す。そのあと別の目・耳へ */
+const G0='碧：いま、あなたの足を止めたものは？<br>見つけたら、別の目で。',GE='碧：足もとの音は、どこで変わる？';
 const cap=document.getElementById('cap');
 /* 2026-11-20 本人「スマホを見つめるだけでなく、現実世界の捉え方が変わるように」：見たあとは画面を静め、自分の目と耳で確かめる間 */
 const UP=['碧：顔を上げて、いつもの色を自分の目で見てみて。さっきと同じに見える？','碧：顔を上げて、赤い花や実を自分の目で探してみて。犬の目では、さっきの色だった。','碧：顔を上げて、近くの花を見てみて。蜂には、人に見えない紫外の模様が見えている花もある。','碧：顔を上げて、動いているものを一つ見つけてみて。葉か、人か、雲か。'];
@@ -77,16 +81,16 @@ const rest=document.getElementById('rest');let rt=0,rb=0;
 function up(t){rest.querySelector('span').textContent=t;rest.classList.add('on');clearTimeout(rb);rb=setTimeout(()=>rest.classList.remove('on'),12000)}
 rest.onclick=()=>rest.classList.remove('on');
 /* 11-19：顔を上げる間が明けたら、一度だけ「前と後の一問」 */
-new MutationObserver(()=>{if(!rest.classList.contains('on')&&window.atosaki)setTimeout(()=>window.atosaki('さっきと違って感じたものは？',[{n:'色',s:'see',t:'別の受けとり方のあと、色が違って見えた'},{n:'動くもの',s:'see',t:'別の受けとり方のあと、動くものに目がいった'},{n:'音',s:'hear',t:'別の受けとり方のあと、音が違って聴こえた'},{n:'変わらない',s:'see',t:'別の受けとり方のあとも、同じに感じた'}]),900)}).observe(rest,{attributes:true,attributeFilter:['class']});
+new MutationObserver(()=>{if(!rest.classList.contains('on')&&window.atosaki)setTimeout(()=>window.atosaki('さっきと違って感じたものは？',[{n:'色',s:'see',t:'別の受けとり方のあと、色が違って見えた'},{n:'動くもの',s:'see',t:'別の受けとり方のあと、動くものに目がいった'},{n:'音',s:'hear',t:'別の受けとり方のあと、音が違って聴こえた'},{n:'変わらない',s:'see',t:'別の受けとり方のあとも、同じに感じた'}],null,()=>{const a=document.getElementById('next');a.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>a.classList.add('on')))}),900)}).observe(rest,{attributes:true,attributeFilter:['class']});
 function later(t,ms){clearTimeout(rt);rt=setTimeout(()=>{if(!document.hidden)up(t)},ms)}
 let seen=0,pmode=0,t0=-1e9,mode=0,rate=1,keep=true,last='eye',noMic=0;
 function plus(on){return on?'<br><button type="button" id="plus" aria-expanded="'+cap.classList.contains('open')+'" aria-label="出典をひらく">'+(cap.classList.contains('open')?'−':'＋')+'</button>':''}
 cap.addEventListener('click',e=>{if(e.target.id=='plus'){cap.classList.toggle('open');render.h='';render()}});
 function render(){
  cap.classList.toggle('top',last=='ai');{const be=document.getElementById('birdEar');if(be)be.hidden=!(last=='ai'&&aiA&&bird)}if(last=='ai'){const h=aiText();if(h!=render.h){render.h=h;cap.innerHTML=h}return}render.h='';
- if(last=='eye'){const e=EYE[mode];cap.innerHTML=(seen>0?'<span style="display:block;font-family:var(--mincho);font-size:15px;margin-bottom:2px">'+Q[mode]+'</span>':'')+SH[mode]+(e[1]?'<small class="src">'+e[0]+'<br>出典：'+e[1]+'</small>':'')+plus(!!e[1]);return}
+ if(last=='eye'){const e=EYE[mode];cap.innerHTML='<span style="display:block;font-family:var(--mincho);font-size:15px;margin-bottom:2px">'+(seen>0?Q[mode]:G0)+'</span>'+SH[mode]+(e[1]?'<small class="src">'+e[0]+'<br>出典：'+e[1]+'</small>':'')+plus(!!e[1]);return}
  const L={1:'今の音。人が聴けるのはおよそ 20 Hz〜20 kHz。',0.25:'直近 4 秒を ¼ の速さで。鳥が聴き分ける細かな音の変化が、人の耳でも追える。',0.5:'直近 4 秒を ½ の速さで。',2:'直近 4 秒を 2 倍の速さで。長い音のうねりが一つにまとまる。'};
- cap.innerHTML=L[rate]+(rate!=1?'<small>'+(keep?'高さを保ったまま速さだけ変えています。':'テープのように高さも一緒に変えています。')+'</small>':'')+
+ cap.innerHTML=(rate<1?'<span style="display:block;font-family:var(--mincho);font-size:15px;margin-bottom:2px">'+GE+'</span>':'')+L[rate]+(rate!=1?'<small>'+(keep?'高さを保ったまま速さだけ変えています。':'テープのように高さも一緒に変えています。')+'</small>':'')+
   (rate==0.25?'<small class="src">鳥は 1〜2 ms、人は 3〜4 ms ほどまで（出典：Dooling et al. 2002 J Acoust Soc Am 112:748）</small>'+plus(1):'<small>超音波はスマホのマイクではほとんど録れません。</small>')+(rate!=1&&!(el&&!el.paused)?'<small>同じボタンをもう一度押すと、新しい 4 秒を聴けます。</small>':'');
 }
 /* ---- 目（WebGL） ---- */

@@ -85,6 +85,7 @@ body.placing .sheet{display:block}
 .pt{margin:0 0 6px;color:var(--ml-ink)}
 .pm{margin:0;color:var(--ml-ink-3);font-size:11.5px}
 .pm a{color:var(--ml-aoi-2)}
+.pa{display:flex;align-items:center;min-height:44px;margin:6px 0 -8px;font:500 12px/1 var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-2)!important;text-decoration:none;border-top:1px solid var(--ml-line-2)}
 .pimg{display:block;width:230px;max-width:100%;height:160px;background:#0a1222;object-fit:cover;margin:0 0 8px;border-radius:var(--ml-radius)}
 .del{appearance:none;background:none;border:0;color:var(--ml-ink-3);font:12px var(--ml-sans);padding:8px 0 0;cursor:pointer;text-decoration:underline}
 .toast{position:fixed;left:50%;top:auto;bottom:calc(200px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:700;font-size:13px;color:var(--ml-ink);text-shadow:0 0 10px #03060f,0 0 2px #03060f;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
@@ -134,10 +135,13 @@ var S=[
  {k:'touch',n:'触れる',c:'#f2cf8c'},
  {k:'smell',n:'嗅ぐ',c:'#f4aa96'},
  {k:'taste',n:'味わう',c:'#e8b6d8'},
- {k:'meas',n:'測る',c:'#b4a2ff'}   /* 五感ではなく機器で測った値（気温・音の大きさなど）。表示では「機器」の札で五感と分ける */
+ {k:'meas',n:'測る',c:'#c9d2d6'}   /* 五感ではなく機器で測った値（気温・音の大きさなど）。表示では「機器」の札で五感と分ける */
 ];
 var SM={};S.forEach(function(s){SM[s.k]=s});
 var LV=['かすか','ふつう','つよい'];
+/* 11-20：印を開いたとき、その感覚をひらく公開中のアプリへの小さな入口（嗅ぐ・味わうは無い） */
+var APP={see:['02','Qualia/sight','見る道具'],hear:['07','Qualia/sound','聴く道具'],touch:['10','Qualia/touch','触れる道具'],meas:['44','Qualia/magnet','地磁気を測る道具']};
+function app(k){var a=APP[k];return a?'<a class="pa" href="../'+a[0]+'/"><span style="font-family:var(--ml-sans);letter-spacing:.06em;color:var(--ml-ink-3);margin-right:10px">'+a[2]+'</span>'+a[1]+' ›</a>':''}
 /* mitsulab が出典で確かめた印（位置はおおよそ） */
 var SEED=[
  {s:'see',lv:2,la:35.9050,lo:139.6325,t:'氷川参道。一の鳥居から三の鳥居まで約 2 km の並木道。樹木の 62.5％ がケヤキ。',src:'さいたま市「氷川参道 樹木調査報告書」',u:'https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf'},
@@ -201,8 +205,8 @@ function mark(p,seed){
   var m=L.circleMarker([p.la,p.lo],{radius:r,color:s.c,weight:seed?1.5:1,opacity:.95,fillColor:s.c,fillOpacity:seed?.25:.7}).addTo(layer);
   m.on('click',function(){
     var h='<p class="pk" style="--c:'+s.c+'">'+s.n+' ・ '+LV[p.lv-1]+'</p>';
-    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p>'}
-    else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p><button class="del" data-del="'+p.id+'">この印を消す</button>'}
+    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p>'+app(p.s)}
+    else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p><button class="del" data-del="'+p.id+'">この印を消す</button>'+app(p.s)}
     var pop=L.popup({maxWidth:270,autoPanPadding:[16,120]}).setLatLng([p.la,p.lo]).setContent(h).openOn(map);
     var el=pop.getElement();
     var im=el&&el.querySelector('[data-ph]');
@@ -294,7 +298,7 @@ bHere.onclick=function(){
   if(!d||!SM[d.s]||typeof d.t!=='string')return;
   var BK={'44':'Qualia/magnet','45':'Qualia/lens'}[d.b];if(BK){var ba=document.createElement('a');ba.href='../'+d.b+'/';ba.textContent='← '+BK+' に戻る';ba.style.cssText='display:inline-block;margin-top:6px;padding:15px 0;min-height:44px;box-sizing:border-box;font-size:13px;letter-spacing:.08em;color:var(--ml-ink-2,#cfe3ea)';document.querySelector('.hd').appendChild(ba)}
   setTimeout(function(){open();bHere.hidden=false;needMove=true;bPut.style.opacity='.45';setTimeout(function(){map.once('movestart',function(){needMove=false;bPut.style.opacity=''})},1500);S.forEach(function(s,i){if(s.k===d.s)pS.children[i].click()});txt.value=d.t.slice(0,40);ready();
-    var e=document.getElementById('toast');e.textContent='「現在地」か地図を動かして場所を合わせ、「ここに置く」';e.classList.add('on');setTimeout(function(){e.classList.remove('on')},6000)},500)})();
+    var e=document.getElementById('toast');e.textContent='「現在地」か地図を動かして場所を合わせ、「ここに置く」';if(BK)e.style.top='calc(180px + env(safe-area-inset-top))';e.classList.add('on');setTimeout(function(){e.classList.remove('on');setTimeout(function(){e.style.top=''},400)},6000)},500)})();
 var tt;function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},1800)}
 })();
 </script>

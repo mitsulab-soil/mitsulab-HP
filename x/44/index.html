@@ -115,7 +115,7 @@ function showTrail(){
  $('dial').style.display='none';sv.style.display='';
  const m=Math.round((Date.now()-t0s)/60000);
  $('note').innerHTML='線は、北が自分から見てどちらにあったか（中心がはじめ、外ほどあと'+(m?'・'+m+' 分':'')+'）。北を見つけたのは '+finds+' 回。<br>碧：閉じたあと、いつもの道で北がどちらか、思い出してみて。'+(W<40?'途中から手がかりを細くしました。':'')+'<br>記録はこの画面だけで、閉じると消えます。';
- if(window.atosaki)setTimeout(()=>window.atosaki('いま、画面を見ずに北を指せる？',[{n:'指せる',s:'touch',t:'北の音を聴いたあと、体で北を指せた'},{n:'だいたい',s:'touch',t:'北の音を聴いたあと、北がだいたい分かった'},{n:'まだ',s:'touch',t:'北の音を聴いたあとも、北はまだ分からない'}]),1500);
+ if(window.atosaki)setTimeout(()=>window.atosaki('いま、画面を見ずに北を指せる？',[{n:'指せる',s:'meas',t:'機器が測った北を音で聴いたあと、体で北を指せた'},{n:'だいたい',s:'meas',t:'機器が測った北を音で聴いたあと、北がだいたい分かった'},{n:'まだ',s:'meas',t:'機器が測った北を音で聴いたあとも、北はまだ分からない'}]),1500);
 }
 $('pk').onclick=()=>{$('pocket').classList.add('show');navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})};
 $('pocket').onclick=()=>$('pocket').classList.remove('show');
