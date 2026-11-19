@@ -331,6 +331,13 @@ html,body{background-color:#1a2026}
   v.addEventListener('play', () => { b.hidden = true; pp.textContent = '❚❚'; pp.setAttribute('aria-label', '一時停止'); });
   v.addEventListener('pause', () => { pp.textContent = '▶'; pp.setAttribute('aria-label', '再生する'); });
   v.addEventListener('ended', () => { b.hidden = false; v.currentTime = 0; });
+  // 11-19：曲が終わったら一度だけ、画面を静めて、いまいる場所の音へ耳を戻す問い（触れるか 12 秒で戻る）
+  let asked = false; v.addEventListener('ended', () => { if (asked) return; asked = true;
+    const o = document.createElement('div'); o.setAttribute('role', 'status');
+    o.style.cssText = 'position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:rgba(3,6,12,.88);opacity:0;transition:opacity 1.2s ease;cursor:pointer';
+    o.innerHTML = '<div style="max-width:420px;text-align:center;color:#eef4f6;font:500 17px/1.9 \'Shippori Mincho B1\',\'Hiragino Mincho ProN\',serif;letter-spacing:.05em">碧：曲が終わったあとの、<br>いまいる場所の音を聴いてみて。<br>自分の息は、聴こえる？<small style="display:block;margin-top:14px;font:400 12px/1.6 \'Hiragino Sans\',sans-serif;color:#9fb0b8">画面に触れると戻ります。</small></div>';
+    document.body.appendChild(o); requestAnimationFrame(() => requestAnimationFrame(() => { o.style.opacity = 1; }));
+    const end = () => { o.style.opacity = 0; setTimeout(() => o.remove(), 1300); }; o.onclick = end; setTimeout(end, 12000); });
   let dragging = false;
   seek.addEventListener('input', () => { dragging = true; if (v.duration) tm.textContent = fmt(seek.value / 1000 * v.duration) + ' / ' + fmt(v.duration); });
   seek.addEventListener('change', () => { if (v.duration) v.currentTime = seek.value / 1000 * v.duration; dragging = false; });

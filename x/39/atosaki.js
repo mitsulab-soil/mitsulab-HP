@@ -16,9 +16,11 @@ window.atosaki=function(q,choices,href){
   choices.forEach(function(c){var b=document.createElement('button');b.type='button';b.textContent=c.n;b.setAttribute('aria-pressed','false');
     b.onclick=function(){pick=c;[].forEach.call(row.children,function(x){x.setAttribute('aria-pressed',x===b)});act.hidden=false};row.appendChild(b)});
   var go=document.createElement('button');go.type='button';go.className='go';go.textContent='地図に置く';
-  go.onclick=function(){if(!pick)return;try{sessionStorage.setItem('qmap.draft',JSON.stringify({s:pick.s,t:pick.t}))}catch(e){}location.href=href||'../39/'};
+  go.onclick=function(){if(!pick)return;try{sessionStorage.setItem('qmap.draft',JSON.stringify({s:pick.s,t:pick.t,b:(location.pathname.match(/\/(44|45)\//)||[])[1]||''}))}catch(e){}location.href=href||'../39/'};
   var no=document.createElement('button');no.type='button';no.textContent='置かずに閉じる';no.onclick=close;
   act.appendChild(go);act.appendChild(no);
+  /* 触れないまま 25 秒たったら静かに下がる（操作をふさがない） */
+  var tm=setTimeout(close,25000);el.addEventListener('pointerdown',function(){clearTimeout(tm)},{once:true});
   document.body.appendChild(el);requestAnimationFrame(function(){requestAnimationFrame(function(){el&&el.classList.add('on')})});
 };
 })();

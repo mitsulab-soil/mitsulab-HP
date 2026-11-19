@@ -292,6 +292,7 @@ bHere.onclick=function(){
 /* 11-19：lens・magnet の「前と後の一問」から、本人が「地図に置く」を押して来たとき。下書きを置く画面に入れるだけで、置くかどうかはここで決める */
 (function(){var d=null;try{d=JSON.parse(sessionStorage.getItem('qmap.draft')||'null');sessionStorage.removeItem('qmap.draft')}catch(e){}
   if(!d||!SM[d.s]||typeof d.t!=='string')return;
+  var BK={'44':'Qualia/magnet','45':'Qualia/lens'}[d.b];if(BK){var ba=document.createElement('a');ba.href='../'+d.b+'/';ba.textContent='← '+BK+' に戻る';ba.style.cssText='display:inline-block;margin-top:6px;padding:15px 0;min-height:44px;box-sizing:border-box;font-size:13px;letter-spacing:.08em;color:var(--ml-ink-2,#cfe3ea)';document.querySelector('.hd').appendChild(ba)}
   setTimeout(function(){open();bHere.hidden=false;needMove=true;bPut.style.opacity='.45';setTimeout(function(){map.once('movestart',function(){needMove=false;bPut.style.opacity=''})},1500);S.forEach(function(s,i){if(s.k===d.s)pS.children[i].click()});txt.value=d.t.slice(0,40);ready();
     var e=document.getElementById('toast');e.textContent='「現在地」か地図を動かして場所を合わせ、「ここに置く」';e.classList.add('on');setTimeout(function(){e.classList.remove('on')},6000)},500)})();
 var tt;function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},1800)}
