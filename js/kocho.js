@@ -105,14 +105,14 @@ export function start(){
       const marg=(innerWidth-1180)/2, mw=marg>110?marg/innerWidth*2*hw:0;
       let op, x, yy, sc2;
       if(inTop&&!sp){ op=.95; x=hw*.45; yy=hh*.12+by*.4; sc2=1.5; }
-      else if(inTop&&sp){ const g=document.querySelector('.sd-first .sd-go1')||document.querySelector('.sd-first'); const bt=g?g.getBoundingClientRect().bottom:innerHeight; const free=innerHeight-bt-20;
-        if(free>150){ const cy=bt+20+free/2; op=.6; x=hw*.25; yy=hh*(1-2*cy/innerHeight); sc2=Math.min(.62,free/innerHeight*2.2); } else { op=0; x=0; yy=0; sc2=1; } }
-      else if(mw>0){ const side=Math.sin(s*.023)>0?1:-1; op=.9; sc2=Math.min(.85,mw*.2); x=side*(hw-mw*.5); yy=Math.sin(s*.13)*hh*.45; }
+      else if(inTop&&sp){ const v=document.querySelector('.sd-vis'); const r=v?v.getBoundingClientRect():null;
+        if(r&&r.bottom>60&&r.top<innerHeight-40){ const cy=(r.top+r.bottom)/2; op=.9; x=hw*.05; yy=hh*(1-2*cy/innerHeight); sc2=Math.min(.7,r.height/innerHeight*3.2); } else { op=0; x=0; yy=0; sc2=1; } }
+      else if(mw>0){ const side=Math.sin(s*.023)>0?1:-1; op=.9; sc2=Math.min(.75,mw*.17); x=side*(hw-mw*.45); yy=Math.sin(s*.13)*hh*.45; }
       else { op=0; x=0; yy=0; sc2=1; }
       const pr=Math.min(1,scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight));
-      const dg=.5+.5*Math.sin(s*.22+pr*7); realMat.opacity=op*(1-dg)*.95; wing.material.opacity=op*(.25+.75*dg); wing.visible=op>.01;
+      let dg=.5+.8*Math.sin(s*.22+pr*7); dg=Math.max(0,Math.min(1,dg)); realMat.opacity=op*(1-dg); wing.material.opacity=op*dg*dg; umat.opacity*=dg; wing.visible=op>.01;
       const uu=(((s/12+pr*3)%3)+3)%3, ui=Math.floor(uu), uf=uu-ui, ue=uf<.7?0:(uf-.7)/.3; const cc=UMW[ui].clone().lerp(UMW[(ui+1)%3],ue*ue*(3-2*ue)); realMat.color.copy(cc); wing.material.color.setRGB(Math.min(1,cc.r),Math.min(1,cc.g),Math.min(1,cc.b));
-      const zs=.75+.55*Math.sin(pr*Math.PI*2+s*.05); sc2*=zs; umat.opacity=op*(.6+.3*Math.sin(s*.5)); halo.rotation.z=s*.05; halo.scale.setScalar(.9+.15*Math.sin(s*.31));
+      const zs=.75+.55*Math.sin(pr*Math.PI*2+s*.05); sc2*=zs; umat.opacity=op*(.6+.3*Math.sin(s*.5))*(.3+.7*dg); halo.rotation.z=s*.05; halo.scale.setScalar(.9+.15*Math.sin(s*.31));
       wing.position.set(x, yy, -D);
       wing.scale.set(sc2, sc2, sc2); const fa=(Math.sin(s*5.2)*.5+.5)*.8+.12; wR.rotation.y=-fa; wL.rotation.y=fa; wing.rotation.x=-.35; wing.rotation.z=Math.sin(s*.4)*.12; }
     world(s); pts.rotation.y=Math.sin(s*.02)*.06; lines.rotation.y=pts.rotation.y; r.render(sc,cam)}
