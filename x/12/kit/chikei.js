@@ -1,5 +1,5 @@
 // 足もとの高さ（2026-11-19 本人 ok「一つの場所・一つの瞬間・一つの感覚・一つの問い」）
-// いま立っている所が周り（半径 150 m）より高いか低いかを、低い音の深さと、足もとの振動の重さ（Android）で感じる。
+// いま立っている所が周り（半径は chikei.json の r・なければ 150 m）より高いか低いかを、低い音の深さと、足もとの振動の重さ（Android）で感じる。
 // 歩いている間は静かに続く音と振動だけ。数字と出典は「＋」の中だけ。地点の問いは kit/kaoage.js の data-pts に置く。
 // データ：kit/chikei.json＝国土地理院 標高タイル（DEM5A）を mitsulab が 25 m 格子に間引き、周りとの差を計算したもの（地形図は使わない・焼き込まない）。
 // 位置は window.__qw.camera から読むだけ。記録しない・どこにも送らない。
@@ -12,7 +12,7 @@
   st.textContent = ".qck{all:unset;position:fixed;left:calc(" + px(d.left, 12) + "px + env(safe-area-inset-left));bottom:calc(" + px(d.bottom, 272) + "px + env(safe-area-inset-bottom));z-index:50;box-sizing:border-box;min-width:44px;height:44px;padding:0 12px;border-radius:22px;cursor:pointer;display:none;align-items:center;gap:6px;background:rgba(18,26,32,.55);border:1px solid rgba(190,220,235,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#eef3f6;opacity:.72;font:400 12px/1 'Shippori Mincho B1','Hiragino Mincho ProN',serif;letter-spacing:.04em}" +
     "body[data-mode=walk] .qck.ok{display:inline-flex}.qck:focus-visible{outline:2px solid #bfe3f0;outline-offset:2px}" +
     ".qckp{position:fixed;left:calc(" + (px(d.left, 12) + 52) + "px + env(safe-area-inset-left));bottom:calc(" + (px(d.bottom, 272) + 52) + "px + env(safe-area-inset-bottom));z-index:51;max-width:min(300px,calc(100vw - 150px));box-sizing:border-box;padding:12px 14px;border-radius:12px;background:rgba(12,18,24,.86);border:1px solid rgba(190,220,235,.22);color:#e8f0f3;font:400 12px/1.7 'Hiragino Sans',sans-serif;display:none}.qckp.on{display:block}.qckp b{font:500 14px/1.6 'Shippori Mincho B1','Hiragino Mincho ProN',serif;font-weight:500}.qckp small{display:block;margin-top:6px;color:rgba(220,232,238,.62);font-size:11px;line-height:1.6}" +
-    "body:not([data-mode=walk]) .qckp{display:none!important}@media print{.qck,.qckp{display:none!important}}";
+    "@media (max-width:640px){.qckp{left:calc(12px + env(safe-area-inset-left));max-width:calc(100vw - 100px);font-size:11.5px;padding:10px 12px}.qckp b{font-size:13px}}body:not([data-mode=walk]) .qckp{display:none!important}@media print{.qck,.qckp{display:none!important}}";
   document.head.appendChild(st);
   var b = document.createElement("button"); b.type = "button"; b.className = "qck"; b.textContent = "＋ 足もとの高さ";
   b.setAttribute("aria-expanded", "false");
@@ -32,8 +32,8 @@
   function fill() {
     var q = pos(), h = q && at(q.x, q.z, "abs"), r = q && at(q.x, q.z, "rel");
     p.innerHTML = (!q ? "<b>歩きはじめると、足もとの高さが分かります。</b>" : h == null ? "<b>この辺りの高さは、データの範囲の外です。</b>" :
-      "<b>" + (r > 1 ? "周りより、少し高い所" : r < -1 ? "周りより、少し低い所" : "周りと、ほぼ同じ高さ") + "</b><br>標高 およそ " + h.toFixed(1) + " m ／ 周り（半径 150 m）との差 " + (r >= 0 ? "+" : "") + r.toFixed(1) + " m") +
-      "<small>音が深いほど、振動が重いほど低い所。<br>出典：<a href=\"https://maps.gsi.go.jp/development/ichiran.html\" target=\"_blank\" rel=\"noopener\" style=\"color:inherit\">国土地理院 標高タイル（DEM5A）</a>を mitsulab が加工（25 m 格子・周りとの差）。</small>";
+      "<b>" + (r > 1 ? "周りより、少し高い所" : r < -1 ? "周りより、少し低い所" : "周りと、ほぼ同じ高さ") + "</b><br>標高 およそ " + h.toFixed(1) + " m ／ 周り（半径 " + (G.r || 150) + " m）との差 " + (r >= 0 ? "+" : "") + r.toFixed(1) + " m") +
+      "<small>音が深いほど低い所。Android では振動も重くなります。<br>出典：<a href=\"https://maps.gsi.go.jp/development/ichiran.html\" target=\"_blank\" rel=\"noopener\" style=\"color:inherit\">国土地理院 標高タイル</a>を mitsulab が加工。</small>";
   }
   function soundOn() { var s = document.getElementById("qSnd"); return !s || s.getAttribute("aria-pressed") !== "false"; }
   function walking() { return document.body.dataset.mode === "walk" && !document.hidden; }
@@ -49,7 +49,7 @@
     if (!G) return;
     var q = pos(), on = walking() && q, r = on ? at(q.x, q.z, "rel") : null;
     if (r != null) rel += (r - rel) * .35;
-    var k = Math.max(-1, Math.min(1, rel / 3)); // -1＝周りより 3 m 低い … +1＝3 m 高い
+    var k = Math.max(-1, Math.min(1, rel / ((G.r || 150) > 200 ? 6 : 3))); // -1＝周りより 3 m 低い … +1＝3 m 高い
     if (ac && osc) {
       var t = ac.currentTime, g = on && r != null && soundOn() ? .028 + .022 * (1 - k) / 2 : 0;
       osc.frequency.setTargetAtTime(82 * Math.pow(2, k * .75), t, .8); // 低い所ほど深い（高い所で約 1.7 倍、低い所で約 0.6 倍）
