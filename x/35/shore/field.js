@@ -150,7 +150,8 @@ function updateOthers(now,dt){
 // ---------- 身体と操作 ----------
 let yaw=Math.atan2(-(TREE.x-me.x),-(TREE.z-me.z))+.5,pitch=-.06,target=null,moving=false,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* 2026-11-10 第4周：最初に見せる一つ＝水際の光。押すとそこへ歩き、着く前から足もとの土に水がしみこむ */
-const goP=(()=>{const dx=me.x-POND.x,dz=me.z-POND.z,l=Math.hypot(dx,dz),r=pondR()+(innerWidth<520?.15:.7);return{x:POND.x+dx/l*r,z:POND.z+dz/l*r};})(),goV=new T.Vector3();
+const goP=(()=>{const dx=me.x-POND.x,dz=me.z-POND.z,l=Math.hypot(dx,dz),r=pondR()+(innerWidth<520?.45:.7);return{x:POND.x+dx/l*r,z:POND.z+dz/l*r};})(),goV=new T.Vector3();
+/* 2026-11-19 375：光る水際が画面の端に寄って見えないので、はじめの向きを少し水際へ */if(innerWidth<520){const yg=Math.atan2(-(goP.x-me.x),-(goP.z-me.z));let dd=yg-yaw;dd=Math.atan2(Math.sin(dd),Math.cos(dd));yaw+=dd*.6;}
 /* 2026-11-19 光の玉（板）が地面に半分めり込み、下が直線で切れて見えた→地面に隠されないように */const edgeM=new T.SpriteMaterial({map:dotTex(),color:0xfff3c8,transparent:true,depthWrite:false,depthTest:false,blending:T.AdditiveBlending,opacity:0});const edgeGlow=new T.Sprite(edgeM);edgeGlow.scale.set(2.2,2.2,1);edgeGlow.position.set(goP.x,.12,goP.z);_add(edgeGlow);let edgeOn=1;
 function splash(x,z,a=.8){const k0=idx(x,z);if(k0<0)return;for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const kk=k0+dj*N+di;if(kk<0||kk>=NN)continue;const f=1-Math.hypot(di,dj)/3.2;if(f<=0)continue;w[kk]=Math.min(1,w[kk]+a*f);d[kk]=Math.min(2,d[kk]+1.4*f);}}
 let walked=false;/* 2026-11-18 はじめは光る水際だけを見せ、杭の札は歩きはじめてから（目線を一つに） */const probeTag=document.createElement('div');probeTag.textContent='土の湿りを測る棒（センサー）';probeTag.setAttribute('aria-hidden','true');probeTag.style.cssText='position:fixed;left:0;top:0;pointer-events:none;font-size:13px;font-weight:600;letter-spacing:.04em;white-space:nowrap;text-shadow:0 0 1px #000,0 0 1px #000,0 0 1px #000;transform:translate(-50%,-140%);opacity:0;transition:opacity .6s';document.body.appendChild(probeTag);const prV=new T.Vector3();
