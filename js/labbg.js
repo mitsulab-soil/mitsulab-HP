@@ -67,7 +67,7 @@ export function start(){
     for(let i=0;i<K;i++){const j=i*3;T[j]=T0[j]*fl+bx;T[j+1]=T0[j+1]+by;T[j+2]=T0[j+2]}
     for(let i=0;i<K*3;i++){P[i]=P0[i]+(T[i]-P0[i])*e} pg.attributes.position.needsUpdate=true;
     lines.material.opacity=.18*(1-e*.8);
-    wing.material.opacity=.8*e; wing.visible=e>.01; wing.position.x=bx*.8; wing.position.y=1.6+by; wing.scale.x=2.1*fl;
+    wing.material.opacity=.8*e*(scrollY<innerHeight*.8?1:.4); wing.visible=e>.01; wing.position.x=bx*.8; wing.position.y=1.6+by; wing.scale.x=2.1*fl;
     world(s); pts.rotation.y=Math.sin(s*.02)*.06; lines.rotation.y=pts.rotation.y; r.render(sc,cam)}
   function loop(t){ if(!on) return; if(t-last>(sp?66:33)&&!(sp&&scrolling)){last=t;frame(t)} requestAnimationFrame(loop)}
   if(still) frame(t0); else requestAnimationFrame(loop);
