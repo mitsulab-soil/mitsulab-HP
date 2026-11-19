@@ -48,11 +48,11 @@ export function start(){
     W.forEach((o,i)=>{o.material.opacity=o.userData.op*wgt(i+1);o.visible=o.material.opacity>.002}) }
   // 翅の脈（アゲハ〔Papilio xuthus〕の翅の形と脈をなぞった模式。右の翅を描き、左へ写す）
   const FW=[[0,0],[.12,.36],[.30,.70],[.56,.98],[.90,1.10],[1.16,1.02],[1.20,.80],[1.08,.52],[.86,.30],[.56,.12],[.26,.02]];
-  const HW=[[0,0],[.34,-.04],[.68,-.16],[.90,-.36],[.92,-.58],[.80,-.74],[.74,-1.02],[.64,-.78],[.48,-.76],[.30,-.62],[.14,-.36]];
+  const HW=[[0,0],[.34,-.04],[.68,-.16],[.90,-.36],[.92,-.58],[.80,-.74],[.74,-.82],[.72,-1.26],[.64,-.82],[.48,-.76],[.30,-.62],[.14,-.36]];
   const wa=[]; const seg=(P,close)=>{for(let k=0;k<P.length-1+(close?1:0);k++){const A=P[k],B=P[(k+1)%P.length];wa.push(A[0],A[1],0,B[0],B[1],0)}};
   seg(FW,true); seg(HW,true);
   [2,3,4,5,6,7,8,9].forEach(k=>{const B=FW[k];wa.push(.04,.02,0,B[0]*.96,B[1]*.96,0)});
-  [2,3,4,5,7,8,9].forEach(k=>{const B=HW[k];wa.push(.04,-.02,0,B[0]*.95,B[1]*.95,0)});
+  [2,3,4,5,8,9,10].forEach(k=>{const B=HW[k];wa.push(.04,-.02,0,B[0]*.95,B[1]*.95,0)});
   // 翅を点群で（脈と縁は密に、膜は疎らに。アゲハの翅の形と脈をなぞった模式）
   const inPoly=(P,x,y)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const xi=P[i][0],yi=P[i][1],xj=P[j][0],yj=P[j][1];if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c}return c};
   const wp=[]; for(let k=0;k<wa.length;k+=6){const n=sp?8:16;for(let t=0;t<n;t++){const u=Math.random();wp.push(wa[k]+(wa[k+3]-wa[k])*u+(Math.random()-.5)*.012,wa[k+1]+(wa[k+4]-wa[k+1])*u+(Math.random()-.5)*.012,(Math.random()-.5)*.02)}}
@@ -84,7 +84,7 @@ export function start(){
       const marg=(innerWidth-1180)/2, mw=marg>110?marg/innerWidth*2*hw:0;
       let op, x, yy, sc2;
       if(inTop){ op=sp?.6:.95; x=sp?hw*.3:hw*.45; yy=sp?-hh*.6:hh*.12+by*.4; sc2=sp?.62:1.5; }
-      else if(mw>0){ const side=Math.sin(s*.023)>0?1:-1; op=.9; sc2=Math.min(.95,mw*.24); x=side*(hw-mw*.55); yy=Math.sin(s*.13)*hh*.45; }
+      else if(mw>0){ const side=Math.sin(s*.023)>0?1:-1; op=.9; sc2=Math.min(.95,mw*.24); x=side*(hw-mw*.42); yy=Math.sin(s*.13)*hh*.45; }
       else { op=0; x=0; yy=0; sc2=1; }
       wing.material.opacity=op; wing.visible=op>.01; umat.opacity=op*(.6+.3*Math.sin(s*.5)); halo.rotation.z=s*.05; halo.scale.setScalar(.9+.15*Math.sin(s*.31));
       wing.position.set(x, yy, -D);
