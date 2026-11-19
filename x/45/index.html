@@ -35,6 +35,7 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(10px + env(safe
 #cap{font-size:14px;font-weight:500;text-shadow:0 0 2px #000,0 0 4px #000,0 1px 6px #000,0 0 14px #000a}
 #cap small{display:block;color:#d6dde6;font-size:11px}
 #cap .src{display:none}#cap.open .src{display:block}
+#rest{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:rgba(6,9,8,.9);opacity:0;pointer-events:none;transition:opacity 1.2s}#rest.on{opacity:1;pointer-events:auto}#rest p{max-width:400px;margin:0;text-align:center;font-family:var(--mincho);font-size:17px;line-height:1.9;letter-spacing:.05em}#rest small{display:block;margin-top:14px;font-family:var(--goth);font-size:12px;color:var(--dim)}
 #cap button{font:inherit;font-size:12px;color:var(--ink);background:none;border:1px solid #ffffff66;border-radius:999px;min-width:44px;min-height:32px;margin-top:4px;cursor:pointer;text-shadow:inherit}
 </style>
 </head>
@@ -42,12 +43,13 @@ nav{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(10px + env(safe
 <canvas id="cv" aria-label="カメラの映像を、選んだ生き物の見え方の模式に変えて映す画面"></canvas>
 <canvas id="sp" aria-hidden="true"></canvas>
 <header><a href="https://mitsulab.jp/" aria-label="mitsulab のトップへ戻る">←</a><b>Qualia/lens</b></header>
-<div id="start"><div><h1>Qualia/lens</h1><p class="sub">今ここの景色と音を、別の受けとり方で。</p><button id="go" type="button">カメラとマイクをひらく</button><p class="n">映像と音は端末の中だけで変えます（音は直近 4 秒だけ持つ）。<br>保存も送信もしません。</p></div></div>
+<div id="start"><div><h1>Qualia/lens</h1><p class="sub">今ここの景色と音を、別の受けとり方で。<br>見たら、顔を上げて実物と見くらべる。</p><button id="go" type="button">カメラとマイクをひらく</button><p class="n">映像と音は端末の中だけで変えます（音は直近 4 秒だけ持つ）。<br>保存も送信もしません。</p></div></div>
 <nav aria-label="受けとり方">
  <div class="row" id="eyes"><span>目</span><button data-m="0" aria-pressed="true">人</button><button data-m="1" aria-pressed="false">犬</button><button data-m="2" aria-pressed="false">ミツバチ</button><button data-m="3" aria-pressed="false">ハエ</button></div>
  <div class="row" id="rates"><span>耳</span><button data-r="0.25" aria-pressed="false">¼<small>遅く</small></button><button data-r="0.5" aria-pressed="false">½<small>遅く</small></button><button data-r="1" aria-pressed="true">今<small>そのまま</small></button><button data-r="2" aria-pressed="false">×2<small>速く</small></button><button id="pitch" aria-pressed="false" aria-label="音の高さも変える（いまは高さを保つ）">高さ<small>保つ</small></button></div>
 </nav>
 <p id="cap" aria-live="polite" role="status"></p>
+<div id="rest" role="status" aria-live="polite"><p><span></span><small>立ち止まって、顔を上げて。画面に触れると戻ります。</small></p></div>
 <video id="v" playsinline muted hidden></video>
 <script>
 (()=>{
@@ -61,6 +63,13 @@ const EYE=[
 const SH=['人の目。','犬の目の模式。赤と緑が近い色に。','ミツバチの目の模式。赤は暗く、粒は粗く。','ハエの目の模式。動いた所が線で浮かぶ。'];
 const Q=['碧：さっきの目のあとで、いつもの色はどう見える？','碧：赤い実や花は、犬にはどこにあるだろう。','碧：蜂の目で見ると、花はまだ目立つだろうか。','碧：止まっているものと動いたもの、ハエにはどちらが先に届くだろう。'];
 const cap=document.getElementById('cap');
+/* 2026-11-20 本人「スマホを見つめるだけでなく、現実世界の捉え方が変わるように」：見たあとは画面を静め、自分の目と耳で確かめる間 */
+const UP=['碧：顔を上げて、いつもの色を自分の目で見てみて。さっきと同じに見える？','碧：顔を上げて、赤い花や実を自分の目で探してみて。犬の目では、さっきの色だった。','碧：顔を上げて、近くの花を見てみて。蜂には、人に見えない紫外の模様が見えている花もある。','碧：顔を上げて、動いているものを一つ見つけてみて。葉か、人か、雲か。'];
+const UPE='碧：顔を上げて、今の音を自分の耳で聴いてみて。さっきの遅い音の中にあったものは、聴こえる？';
+const rest=document.getElementById('rest');let rt=0,rb=0;
+function up(t){rest.querySelector('span').textContent=t;rest.classList.add('on');clearTimeout(rb);rb=setTimeout(()=>rest.classList.remove('on'),12000)}
+rest.onclick=()=>rest.classList.remove('on');
+function later(t,ms){clearTimeout(rt);rt=setTimeout(()=>{if(!document.hidden)up(t)},ms)}
 let seen=0,pmode=0,t0=-1e9,mode=0,rate=1,keep=true,last='eye',noMic=0;
 function plus(on){return on?'<br><button type="button" id="plus" aria-expanded="'+cap.classList.contains('open')+'" aria-label="出典をひらく">'+(cap.classList.contains('open')?'−':'＋')+'</button>':''}
 cap.addEventListener('click',e=>{if(e.target.id=='plus'){cap.classList.toggle('open');render()}});
@@ -106,9 +115,9 @@ function wav(){const n=ring.length,b=new ArrayBuffer(44+n*2),d=new DataView(b);c
  w(0,'RIFF');d.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,1,true);d.setUint32(24,sr,true);d.setUint32(28,sr*2,true);d.setUint16(32,2,true);d.setUint16(34,16,true);w(36,'data');d.setUint32(40,n*2,true);
  for(let i=0;i<n;i++){const s=Math.max(-1,Math.min(1,ring[(ri+i)%n]));d.setInt16(44+i*2,s*32767,true)}return new Blob([b],{type:'audio/wav'})}
 function stop(){if(el){el.pause();el=null}if(url){URL.revokeObjectURL(url);url=null}}
-function play(){stop();if(rate==1||!ring)return;url=URL.createObjectURL(wav());el=new Audio(url);el.preservesPitch=keep;el.webkitPreservesPitch=keep;el.playbackRate=rate;el.onended=()=>{el=null;render()};el.play().catch(()=>{})}
+function play(){stop();if(rate==1||!ring)return;url=URL.createObjectURL(wav());el=new Audio(url);el.preservesPitch=keep;el.webkitPreservesPitch=keep;el.playbackRate=rate;el.onended=()=>{el=null;render();if(rate<1)later(UPE,600)};el.play().catch(()=>{})}
 function setRate(r){rate=r;last='ear';document.querySelectorAll('#rates [data-r]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.r==r));r==1?stop():play();render()}
-function setM(i){if(i==mode)return;seen++;pmode=mode;t0=performance.now();mode=i;last='eye';document.querySelectorAll('#eyes button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==i));render()}
+function setM(i){if(i==mode)return;seen++;pmode=mode;t0=performance.now();mode=i;last='eye';document.querySelectorAll('#eyes button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m==i));render();later(UP[i],14000)}
 document.querySelectorAll('#eyes button').forEach(b=>b.onclick=()=>setM(+b.dataset.m));
 document.querySelectorAll('#rates [data-r]').forEach(b=>b.onclick=()=>setRate(+b.dataset.r));
 const pb=document.getElementById('pitch');pb.onclick=()=>{keep=!keep;last='ear';pb.setAttribute('aria-pressed',!keep);pb.querySelector('small').textContent=keep?'保つ':'変わる';pb.setAttribute('aria-label','音の高さも変える（いまは'+(keep?'高さを保つ':'高さも変わる')+'）');if(rate!=1)play();render()};

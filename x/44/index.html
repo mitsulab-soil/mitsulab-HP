@@ -27,7 +27,7 @@ button.on{border-color:var(--acc);color:var(--acc)}
 #more[open] summary{color:var(--acc)}
 #more p{text-align:left}
 #pocket{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;color:#333;font-size:13px;letter-spacing:.1em}
-#pocket.show{display:flex}
+#pocket.show{display:flex}#pocket span{max-width:300px;text-align:center;line-height:1.9;color:#6f817b;font-size:14px}
 </style>
 </head>
 <body>
@@ -45,7 +45,7 @@ button.on{border-color:var(--acc);color:var(--acc)}
 <p id="note">触れると、北の向きが音になります。<br>イヤホン推奨。</p>
 <details id="more"><summary aria-label="生き物の磁気の感覚について">＋</summary><p>ヨーロッパコマドリは、渡りの向きを決めるときに地磁気を手がかりにしていると考えられています（Wiltschko &amp; Wiltschko 1972, <i>Science</i> 176:62–64）。どのように感じているかは、まだ分かっていないことが多くあります。この音は、スマホの磁気センサーの方位を人の耳に移した模式です。</p></details>
 <div class="row"><button id="start">はじめる</button><button id="pk" disabled>ポケットへ</button></div>
-<div id="pocket">触れると戻る</div>
+<div id="pocket"><span>画面を暗くしました。<br>耳と体で、北を探して。<br>触れると戻る</span></div>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -86,7 +86,7 @@ function update(){
  // うなり：1° ずれると 0.15 回／秒、10° で 1.5 回／秒。±40° より外では鳴らさない
  oB.frequency.setTargetAtTime(392+Math.min(ar,W)*.15,t,.05);
  toneG.gain.setTargetAtTime(ar<W?.05*Math.pow(1-ar/W,1.5):0,t,.12);
- if(ar<4&&!inN){inN=true;finds++;if(finds==3){W=25;$('note').textContent='北の音を細くしました。耳より先に、体で北を探してみて。'}$('deg').style.color='var(--acc)';if(Date.now()-lastVib>2000){lastVib=Date.now();chime();if(hasVib)navigator.vibrate(18)}}
+ if(ar<4&&!inN){inN=true;finds++;if(finds==3){W=25;$('note').textContent='北の音を細くしました。耳より先に、体で北を探してみて。'}$('deg').style.color='var(--acc)';if(finds==1&&!$('pocket').classList.contains('show'))$('note').textContent='碧：顔を上げて。いま向いている北（磁北）の先に、実際には何がある？';if(Date.now()-lastVib>2000){lastVib=Date.now();chime();if(hasVib)navigator.vibrate(18)}}
  else if(ar>9&&inN){inN=false;$('deg').style.color=''}
 }
 function onOri(e){
@@ -104,7 +104,7 @@ $('start').onclick=async()=>{
  if(!ctx)audio();await ctx.resume();
  if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').textContent='向きの許可がないため、使えません。';return}}catch(_){ $('note').textContent='向きの許可を得られませんでした。';return}}
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
- mag();running=true;log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
+ mag();running=true;clearTimeout(window.__pkT);window.__pkT=setTimeout(()=>{if(running&&heading!=null)$('pk').onclick()},25000);log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
  $('note').innerHTML='北が右なら右の耳から。北に近づくと音がうなり、<br>北（磁北）を向くとうなりが止まり、小さな鈴が一度鳴ります。';
  setTimeout(()=>{if(heading==null)$('note').textContent='方位が取れません。スマホで開いてください。'},2500);
 };
@@ -114,7 +114,7 @@ function showTrail(){
  sv.innerHTML='<circle r="58" fill="none" stroke="#2c3a37"/><path d="'+p+'" fill="none" stroke="#7fc4b4" stroke-width="1.4" stroke-linecap="round"/><text y="4" fill="#8fa39c" font-size="9" text-anchor="middle">はじめ</text>';
  $('dial').style.display='none';sv.style.display='';
  const m=Math.round((Date.now()-t0s)/60000);
- $('note').innerHTML='線は、北が自分から見てどちらにあったか（中心がはじめ、外ほどあと'+(m?'・'+m+' 分':'')+'）。北を見つけたのは '+finds+' 回。'+(W<40?'途中から手がかりを細くしました。':'')+'<br>記録はこの画面だけで、閉じると消えます。';
+ $('note').innerHTML='線は、北が自分から見てどちらにあったか（中心がはじめ、外ほどあと'+(m?'・'+m+' 分':'')+'）。北を見つけたのは '+finds+' 回。<br>碧：閉じたあと、いつもの道で北がどちらか、思い出してみて。'+(W<40?'途中から手がかりを細くしました。':'')+'<br>記録はこの画面だけで、閉じると消えます。';
 }
 $('pk').onclick=()=>{$('pocket').classList.add('show');navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})};
 $('pocket').onclick=()=>$('pocket').classList.remove('show');
