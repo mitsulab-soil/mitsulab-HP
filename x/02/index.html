@@ -232,7 +232,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261120k">
+<link rel="modulepreload" href="umwelt.js?v=20261121a">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -249,12 +249,10 @@ body{word-break:auto-phrase;line-break:strict}
 <link rel="modulepreload" href="kit/aoi_mocap.js">
 <link rel="modulepreload" href="kit/aoi_robe.js">
 <!-- 最初に見える森の材質だけを先読みし、3D構築後の画像通信を避ける。 -->
-<link rel="preload" href="tex/soil_forest.webp" as="image" crossorigin>
-<link rel="preload" href="tex/leaf_spray.webp" as="image" crossorigin>
-<link rel="preload" href="tex/leaf_spray2.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_camphor.webp" as="image" crossorigin>
-<link rel="preload" href="tex/bark_zelkova.webp" as="image" crossorigin>
-<link rel="preload" href="tex/rock_surface.webp" as="image" crossorigin>
+<!-- 2026-11-21 森の質感は fetch で読む（kit/warm.js の bitmapTex）。as="image" の先読みは使われず二度読みになっていた → 読み方に合わせる（Safari・Firefox の葉の絵だけは画像で読む） -->
+<script>(()=>{const U=navigator.userAgent,S=/^((?!chrome|android).)*safari/i.test(U),F=/firefox/i.test(U),h=document.head,a=(f,as)=>{const l=document.createElement("link");l.rel="preload";l.href="tex/"+f;l.as=as;l.crossOrigin="anonymous";h.appendChild(l);};
+for(const f of ["soil_forest.webp","bark_camphor.webp","bark_zelkova.webp","rock_surface.webp","bark_camphor_n.webp","bark_camphor_orm.webp","bark_zelkova_n.webp","bark_zelkova_orm.webp"])a(f,"fetch");
+for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");})();</script>
 
 <link rel="stylesheet" href="kit/ui.css?v=20261103">
 <style id="mu-align">/* 共通 GUI（kit/ui.css）に合わせる＝左上の名前・押せる大きさを全アプリでそろえる（2026-11-03） */
@@ -384,7 +382,7 @@ body{word-break:auto-phrase;line-break:strict}
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261120k';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261121a';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>

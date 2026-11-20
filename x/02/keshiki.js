@@ -12,7 +12,7 @@ const NAME = id => (S.lens.find(l => l.id === id) || {}).name || "";
 const CAP = {
   hito: "カメラが写した、今の景色。上の並びで体をえらぶと、その受けとり方の模式に変わります。",
   inu: "犬の目の模式。色を受ける細胞は二種類で、赤と緑が近い色に。細かい所は人よりぼやけます。",
-  hachi: "ミツバチの目の模式。紫外・青・緑で受け、赤は暗く沈みます。粒の粗さは模式。紫外はカメラに写らないので描けません。",
+  hachi: "ミツバチの目の模式。置きかえは森と同じ（緑→赤・青→緑・紫外→青）。カメラに紫外は写らないので、森で見える青がここでは出ず、黄や赤の粒に。粒の粗さも模式。",
   chou: "アゲハの目の模式。紫外から赤まで受けるとされます。四つ目の色（紫外）はカメラに写らないので描けません。",
   tori: "小鳥の目の模式。四種類の細胞で色を受け、種によって紫外まで。紫外はカメラに写らないので描けません。",
   hebi: "マムシのピットは赤外（熱）を感じます。熱はこのカメラに写りません。熱の見え方は、まわりの森で確かめられます。",
@@ -40,8 +40,8 @@ const CALC = {
   ugoki: { name: "動き", legend: "<b>光る所</b>＝いま動いた所　<b>淡い跡</b>＝数秒前に動いた所<br>前のこまとの差を計算した結果",
     cap: "前のこまと今のこまの引き算。端末を止めて持つと、動いた所だけが残ります。淡い跡は数秒前の動き。計算した結果です。",
     say: ["計算機は、前のこまと今のこまを引き算できます。残るのは、動いたものだけ。", "立ち止まって、十数えてみて。風の通り道が、跡になって残ります。"] },
-  kazu: { name: "色を数に", legend: "<b>緑</b>＝草木らしい色　<b>水色</b>＝青く明るい所（空の目安）<br>色からの推定。測った値ではありません",
-    cap: "色を数に分けます。緑＝草木らしい色、水色＝青く明るい所（空の目安）。色からの推定で、測った値ではありません。",
+  kazu: { name: "色を数に", legend: "<b>緑</b>＝草木らしい色　<b>水色</b>＝空の目安<br>色だけの推定（緑の物も数えます）",
+    cap: "色を数に分けます。緑＝草木らしい色、水色＝青く明るい所（空の目安）。色だけで見るので、緑の髪や水の色も草木に数えることがあります。測った値ではありません。",
     say: ["計算機は、景色を数に分けられます。緑の量、空の割合、明るさの分布。", "数は、色からの推定です。向きを変えると、数も変わります。"] },
   yure: { name: "ゆれ", legend: "<b>淡い青緑</b>＝わずかな明るさの変化を強めた所（計算結果）<br>立ち止まると、小さなゆれが大きく見える",
     cap: "少し前の平均との差を強めて、わずかなゆれを大きく見せます（淡い青緑＝強めた所）。計算した結果で、実際の動きの大きさではありません。",
@@ -99,9 +99,10 @@ body.kur #kesDock,body.kur #kesWin{display:none}
 #kesTile{width:112px;height:72px}#kesTile b{font-size:15px}#kesTile small{font-size:11px;margin-top:1px}
 #kesChips button{padding:0 10px;min-width:48px;font-size:13.5px}#kesChips>span{display:none}
 #kesWin{left:8px;right:8px;width:auto;top:236px;height:auto;bottom:210px}
-#kesHead b{font-size:14px}#kesFoot{font-size:12.5px;padding:7px 10px 8px}
+#kesHead b{font-size:13px;white-space:normal;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding:3px 0}#kesFoot{font-size:12.5px;padding:7px 10px 8px}
 #kesNum{right:auto;left:50%;top:252px;transform:translateX(-50%);width:200px}
 #kesBody #kesNum{transform:none;left:10px;top:8px;width:170px}
+body.kes-calc #kesTile{height:44px;width:auto;padding:0 14px}body.kes-calc #kesTile svg,body.kes-calc #kesTile small{display:none}body.kes-calc #kesTile b{font-size:14px}
 body.kes-open #bodyControls,body.kes-open .icm,body.kes-open .tsg,body.kes-open #moveNote,body.kes-open #kesDock,body.kes-open #legend,body.kes-open #aoiWin,body.kes-open #worm{display:none!important}
 }
 @media (min-width:700px){body.kes-open #kesDock,body.kes-open #moveNote{display:none!important}}
@@ -135,7 +136,7 @@ const VS = "attribute vec2 p;varying vec2 u;void main(){u=p*.5+.5;gl_Position=ve
 const HEAD = `precision mediump float;varying vec2 u;uniform sampler2D src;uniform vec2 sres,dres;
 vec2 cov(vec2 q){float a=dres.x/dres.y,b=sres.x/sres.y;vec2 s=a>b?vec2(1.,b/a):vec2(a/b,1.);return (q-.5)*s+.5;}
 vec3 S(vec2 q){return texture2D(src,cov(q)).rgb;}
-float veg(vec3 c){float s=c.r+c.g+c.b;vec3 n=c/max(s,.001);return step(.09,2.*n.g-n.r-n.b)*step(n.r+.012,n.g)*step(.12,s);}
+float veg(vec3 c){float s=c.r+c.g+c.b;vec3 n=c/max(s,.001);return step(.09,2.*n.g-n.r-n.b)*step(n.r+.012,n.g)*step(n.b+.06,n.g)*step(.12,s);}
 float sky(vec3 c){float l=dot(c,vec3(.299,.587,.114));return step(.5,l)*step(c.r*1.06,c.b)*step(c.g*.97,c.b);}
 `;
 const FS = {
@@ -219,6 +220,7 @@ function showNum(mode) {
 }
 
 /* ---------------- 状態と切りかえ ---------------- */
+let pv = null, settle = 0;
 let lens = U.lens, open = false, calc = null, stream = null, photo = null, photoNew = false, lastV = 0, restT = 0, restOff = 0, said = false;
 const MODE = { hito: 0, hachi: 1, chou: 1, tori: 1, inu: 1, mimizu: 2, hebi: 3, koumori: 3, netsu: 3, camera: 4 }, CM = { ugoki: 5, kazu: 6, yure: 7 };
 const modeNow = () => lens === "camera" && calc ? CM[calc] : MODE[lens] || 0;
@@ -235,6 +237,7 @@ function refresh() {
   if (open) { $("kesTitle").textContent = "今の景色 ── " + (lens === "hito" ? "カメラの画" : NAME(lens) + (cam && calc ? "・" + CALC[calc].name : MODE[lens] === 3 ? (lens === "koumori" ? "（反響は写りません）" : "（熱は写りません）") : "の模式"));
     $("kesCap").textContent = cam && calc ? CALC[calc].cap : CAP[lens] || ""; }
   if (!open && cam && calc && um) { const lg = $("legend"); lg.innerHTML = CALC[calc].legend; lg.hidden = false; }
+  document.body.classList.toggle("kes-calc", !open && !!calc && cam && um);
   lay();
 }
 function calcOff() { if (!calc) return; calc = null; place(); if (lens === "camera") { G.uMode.value = LENS.camera.mode; const lg = $("legend"); lg.innerHTML = LENS.camera.legend; } refresh(); }
@@ -312,6 +315,10 @@ window.__kes = {
     if (open || !calc || lens !== "camera" || !ok) return;
     if (G.uMode.value !== 0) G.uMode.value = 0;   // 格子の模式でなく、写った画そのものを計算に渡す
     const c = U.renderer.domElement, cmp = $("cmpBtn").getAttribute("aria-pressed") === "true"; full.style.visibility = cmp ? "hidden" : "";
+    // 2026-11-21 向きや場所が変わったこまは、画面全体が「動いた」になり文字が読めない → 変わっているあいだと止まって数こまは差を数えない（跡と平均を今の画にそろえる）
+    const q = U.camera.quaternion, o = U.camera.position, k = [q.x, q.y, q.z, q.w, o.x, o.z];   // 実際に描いたカメラの向き（なめらかに追う分も含む）
+    if (pv && (Math.abs(q.x * pv[0] + q.y * pv[1] + q.z * pv[2] + q.w * pv[3]) < .99999 || Math.hypot(k[4] - pv[4], k[5] - pv[5]) > .006)) settle = 6;
+    pv = k; if (settle > 0) { settle--; firstN = Math.max(firstN, 1); }
     step(c, c.width, c.height, c.width, c.height, CM[calc]);
   },
   lens(id) {
