@@ -32,8 +32,8 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
   const g = new THREE.BufferGeometry(), pos = new Float32Array(pts.length * 3), col = new Float32Array(pts.length * 3), sz = new Float32Array(pts.length);
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('size', new THREE.BufferAttribute(sz, 1));
   const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uPx: { value: Math.min(devicePixelRatio, 2) } },
-    vertexShader: 'attribute float size; attribute vec3 color; uniform float uPx; varying vec3 vC; void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = clamp(size * uPx * (40. / -mv.z), 2., 48.); gl_Position = projectionMatrix * mv; }',
-    fragmentShader: 'varying vec3 vC; void main(){ vec2 d = gl_PointCoord - .5; float r = length(d); float a = smoothstep(.5, .0, r); a = a * a; gl_FragColor = vec4(vC * a, a); }' });
+    vertexShader: 'attribute float size; attribute vec3 color; uniform float uPx; varying vec3 vC; varying float vS; void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = clamp(size * uPx * (42. / -mv.z), 2., 50.); vS = gl_PointSize / uPx; gl_Position = projectionMatrix * mv; }',
+    fragmentShader: 'varying vec3 vC; varying float vS; void main(){ vec2 d = gl_PointCoord - .5; float r = length(d); float k = smoothstep(7., 14., vS); float core = smoothstep(mix(.5, .2, k), .0, r); core *= core; float ring = smoothstep(.045, .0, abs(r - .42)) * .42 * k; float a = max(core, ring); gl_FragColor = vec4(vC * a, a); }' });
   const cloud = new THREE.Points(g, mat); cloud.frustumCulled = false; cloud.renderOrder = 3; scene.add(cloud);
   // 書と言葉をつなぐ細い線
   const lg = new THREE.BufferGeometry(), lpos = new Float32Array(24 * 6); lg.setAttribute('position', new THREE.BufferAttribute(lpos, 3));
@@ -45,8 +45,8 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, opacity: 0 })); s.renderOrder = 6; s.center.set(0, -.3); s.userData = { cv, tx, q: null }; scene.add(s); return s; };
   const labels = [mkLabel(), mkLabel(), mkLabel(), mkLabel()];
   const draw = (s, q, big) => { const { cv, tx } = s.userData, x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.font = `${big ? 600 : 500} 44px "Shippori Mincho","Hiragino Mincho ProN",serif`; x.textBaseline = 'middle';
-    x.shadowColor = 'rgba(0,0,0,.95)'; x.shadowBlur = 12; x.lineWidth = 8; x.lineJoin = 'round'; x.strokeStyle = 'rgba(3,6,15,.85)'; const tt = String(q.it.t).replace(/(?:の音){2,}$/, 'の音'); x.strokeText(tt, 8, 50); x.fillStyle = q.onWork ? '#f3dcae' : '#e4eef4'; x.fillText(tt, 8, 50); tx.needsUpdate = true; s.userData.q = q; s.userData.big = big; };
-  let lblT = 0, focusQ = null, focusT = 0;
+    x.shadowColor = 'rgba(0,0,0,.95)'; x.shadowBlur = 12; x.lineWidth = 8; x.lineJoin = 'round'; x.strokeStyle = 'rgba(3,6,15,.85)'; const tt = String(q.it.t).replace(/(?:の音){2,}$/, 'の音'); x.strokeText(tt, 8, 50); x.fillStyle = q.onWork ? '#f3dcae' : '#e4eef4'; x.fillText(tt, 8, 50); s.userData.tw = Math.min(1, (x.measureText(tt).width + 16) / cv.width); tx.needsUpdate = true; s.userData.q = q; s.userData.big = big; };
+  let lblT = 0, focusQ = null, focusT = 0, nPick = 0;
   const base = new THREE.Color(0xcfe3ee), warm = new THREE.Color(0xf3d9a6), c = new THREE.Color(), v = new THREE.Vector3();
   function pick(x, y) {
     const lim = mobile ? 44 : 30; let best = null, bd = lim;
@@ -56,6 +56,7 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
     best.glow = 1; focusQ = best; focusT = 6; draw(labels[0], best, true);
     if (soundOk()) syn.play({ n: best.it.n, t: best.it.t, tag: best.it.tag });
     const bt = String(best.it.t).replace(/(?:の音){2,}$/, 'の音'); say(best.onWork ? `${bt}（書になった言葉）` : `${bt}（まだ書になっていない言葉）`);
+    if (++nPick === 3) setTimeout(() => say('この広間を出たら、看板や手紙の字を一つ、読むかわりに音を思い浮かべてみて。'), 7000);   /* 2026-11-20：聴いたあと、目と耳を身のまわりの字へ */
     return { kind: 'word', q: best };
   }
   function touchWork(it) {
@@ -78,7 +79,7 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
       const near = pts.filter(q => q !== focusQ && !q.dim).map(q => { v.copy(q.p).sub(cam.position); const d = v.length(); return { q, d, dot: v.dot(f) / d }; }).filter(o => o.d < (o.q.front ? 4.5 : 3.2) && o.dot > .85).sort((a, b) => (b.q.front - a.q.front) || (a.d - b.d)).slice(0, focusQ ? 1 : 3);
       const pool = focusQ ? labels.slice(1) : labels; pool.forEach((s, i) => { const o = near[i]; if (!o) { s.userData.q = null; return; } if (s.userData.q !== o.q || s.userData.big) draw(s, o.q, false); }); }
     labels.forEach((s, i) => { const q = s.userData.q; const big = i === 0 && focusQ; if (!q || (i === 0 && !focusQ && s.userData.big)) { s.material.opacity = Math.max(0, s.material.opacity - dt * 2); s.visible = s.material.opacity > .01; if (!s.visible) s.userData.big = false; return; }
-      const d = q.p.distanceTo(cam.position), w = (big ? .05 : .04) * d * (mobile ? .9 : 1); s.scale.set(w * 10.7, w, 1); s.position.copy(q.p).add(new THREE.Vector3(0, .02, 0)); v.copy(q.p).project(cam); s.center.set(v.x > 0 ? 1 : 0, -.3); const low = v.y < -.4;   /* 11-19 下の説明の帯にかかる高さでは札を出さない（重ならない） */
+      const d = q.p.distanceTo(cam.position), w = (big ? .05 : .04) * d * (mobile ? .9 : 1); s.scale.set(w * 10.7, w, 1); s.position.copy(q.p).add(new THREE.Vector3(0, .02, 0)); v.copy(q.p).project(cam); s.center.set(v.x > 0 ? (s.userData.tw || 1) : 0, -.3); const low = v.y < -.4;   /* 11-19 下の説明の帯にかかる高さでは札を出さない（重ならない） */
       s.material.opacity = low ? Math.max(0, s.material.opacity - dt * 4) : Math.min(big ? 1 : .85, s.material.opacity + dt * 2); s.visible = s.material.opacity > .01; });
     lineT = Math.max(0, lineT - dt); lm.opacity = Math.min(1, lineT / 1.5) * .3; lines.visible = lm.opacity > .01;
   }

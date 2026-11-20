@@ -86,7 +86,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 /* 何も選んでいないとき */
 .hint{position:fixed;z-index:4;left:50%;transform:translateX(-50%);bottom:max(22px,env(safe-area-inset-bottom));width:min(700px,calc(100vw - 32px));display:grid;justify-items:center;gap:10px;text-align:center}
 .hint p{margin:0;font:500 15px/1.8 var(--ml-serif);letter-spacing:.06em;color:var(--ml-ink-2);
-  background:linear-gradient(90deg,transparent,rgba(3,6,15,.62) 12%,rgba(3,6,15,.62) 88%,transparent);padding:6px 8%}
+  text-shadow:0 1px 2px #02050c,0 0 10px #02050c,0 0 18px #02050c;padding:2px 8%}
 .spo{display:none}
 
 /* 一覧・この作品 */
@@ -114,7 +114,8 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 /* スマホ */
 @media (max-width:720px){
   .top{padding:0 var(--ml-gutter);height:56px}
-  .tools .ml-btn{padding:0 10px}
+  .tools{gap:2px}.tools .ml-btn{padding:0 8px;font-size:.8rem;letter-spacing:.02em;white-space:nowrap;min-width:44px}
+  .brand .ml-title{font-size:16px;white-space:nowrap}
   .sp{display:inline}
   .panel{left:var(--ml-gutter);right:var(--ml-gutter);bottom:max(12px,env(safe-area-inset-bottom));width:auto;max-height:64dvh;padding:14px var(--ml-gutter) 8px;gap:8px}
   .p-line{font-size:20px;line-height:1.55}
