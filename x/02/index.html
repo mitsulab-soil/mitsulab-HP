@@ -413,7 +413,7 @@ body.kur #where{top:62px!important}
 <style id="m20">/* 2026-11-20 2 周目：スマホで案内とボタンが込み合うのを直す＝操作の一行は折り返さない・右の操作は 2 列にまとめて低く・凡例は操作にかからない幅に */
 @media (max-width:700px){
 #moveNote{white-space:nowrap!important;font-size:12px!important;max-width:96vw!important;letter-spacing:0}
-#bodyControls{display:grid!important;grid-template-columns:44px 44px;gap:5px!important;width:auto!important;right:6px!important;top:auto!important;bottom:calc(var(--gh,64px) + 118px)!important;transform:none!important;justify-items:stretch}
+#bodyControls{display:grid!important;grid-template-columns:44px 44px;gap:5px!important;width:auto!important;right:6px!important;top:auto!important;bottom:max(calc(var(--gh,64px) + 118px),192px)!important;transform:none!important;justify-items:stretch}   /* 192px＝写真のボタン（下から 140〜184px）にかからない高さ */
 #bodyControls>button,#bodyControls>div>button,#flightControls button{min-width:44px!important;width:44px!important;min-height:44px!important;height:44px!important;padding:2px!important;font-size:18px!important}
 #bodyControls small{font-size:11px!important;line-height:1.15}
 #bodyForward{order:1}#bodyBack{order:2}#bodyControls>div:not(#flightControls){order:3;grid-column:1/3;display:flex;gap:5px!important}
