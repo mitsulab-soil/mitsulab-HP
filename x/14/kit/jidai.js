@@ -1,3 +1,4 @@
+// v9 2026-11-20：PC も窓を地面に寝かせず、画面の上の正面の板に（寝かせた窓は暗く粗く見え、字幕を画面の中ほどへ押し上げていた）。板は PC では少し大きく。字幕は動かさない。
 // v8 2026-11-20：水と草は足もとのまわり 8 m まで（前は 30 m で、見わたすかぎり水に見えた）・川の幅を地図の線に近づける・水面のきらめきを弱く・窓は広めに写す（写真の粗さが目立たない）。
 // v7 2026-11-20 本人：スマホは窓を地面に寝かせず画面の上の正面の板に／見ているあいだは町の語りを止め、閉じたら再開。
 // 時間の層（足もと）── 2026-11-19 本人「時間の層を音・振動などの体験に落とし込む」
@@ -75,8 +76,8 @@
     (terr.parent || q.scene).add(mesh);
     // v7（11-20 本人）：スマホ（幅 700px 以下）では窓を地面に寝かせず、画面の上のほうに正面を向いた小さな板で出す（375px で切れない）。
     // 板は画面に固定（視点を回しても揺れない）。板の上＝進む向き。写真・川の縁の線・自分の位置の点は足もとの窓と同じ。
-    function mob() { return innerWidth <= 700; }
-    var BW = 232, BH = 104, BX = 14, BY = 116;   // 板の幅・高さ・左・上（px。上は年代の札の下）
+    function mob() { return true; }   // v9：どの幅でも板
+    var WIDE = innerWidth > 700, BW = WIDE ? 348 : 232, BH = WIDE ? 156 : 104, BX = WIDE ? 24 : 14, BY = WIDE ? 124 : 116;   // 板の幅・高さ・左・上（px。上は年代の札の下）
     U.br = { value: new T.Vector4(0, 0, .5, .2) }; U.bz = { value: 56 };   // bz＝板の縦の半分が写す距離（m）
     var bmat = new T.ShaderMaterial({ uniforms: U, transparent: true, depthTest: false, depthWrite: false, fog: false,
       vertexShader: "uniform vec4 br; varying vec2 vL; void main(){ vL = position.xy; gl_Position = vec4(br.xy + position.xy * br.zw, 0., 1.); }",

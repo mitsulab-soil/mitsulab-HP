@@ -2,11 +2,11 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261120a";
+import { T, setLang, lang } from "./i18n.js?v=20261120t";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
-import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261120a";
+import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261120t";
 import { buildSightSpace, SKY, SUN } from "./kit/sightspace.js?v=20261120a";   // 2026-11-20 本人「sight と同じ空間で」
 
 // 形の札の絵（細い線の輪郭）
@@ -14,14 +14,11 @@ const SV = d => `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="${d}" fill
 const SHAPE = {
   plate: SV("M6 24l14-7 14 7-14 7z M6 24v3l14 7 14-7v-3"),
   boulder: SV("M7 28c-1-6 3-12 9-14 4-3 10-2 13 2 4 3 5 8 3 12z M7 28h25"),
-  shell: SV("M8 26c2-9 9-15 18-14 4 1 6 4 5 8-1 6-8 10-15 9z M14 22c3-3 7-4 11-3 M17 26c2-2 5-3 8-2"),
+  lump: SV("M6 25c0-8 6-13 15-13s13 5 13 12-5 8-14 8S6 30 6 25z M13 20c2-3 6-4 10-4"),
+  ring: SV("M20 11c8 0 14 4 14 9s-6 9-14 9S6 25 6 20s6-9 14-9z M20 17c3 0 6 1 6 3s-3 3-6 3-6-1-6-3 3-3 6-3z"),
+  log: SV("M10 13h20 M10 27h20 M10 13c-3 0-4 3-4 7s1 7 4 7 M30 13c3 0 4 3 4 7s-1 7-4 7-4-3-4-7 1-7 4-7z"),
+  rise: SV("M4 30c6 0 8-15 14-15s6 6 10 6 4 9 8 9z M4 30h32"),
   vase: SV("M16 6h8 M17 6c0 4-6 7-6 15s4 13 9 13 9-5 9-13-6-11-6-15"),
-  pot: SV("M8 12h24 M10 12l3 20h14l3-20 M9 16h22"),
-  branch: SV("M6 32C14 26 20 20 34 8 M18 22c-2-4-1-8 1-11 M24 16c4 0 7 2 9 5 M12 27c-3-1-5-3-6-6"),
-  tile: SV("M8 30C8 18 12 10 20 10s12 8 12 20 M12 30c0-10 3-16 8-16s8 6 8 16"),
-  tit: SV("M9 22c0-6 5-10 11-10 3 0 5 1 7 3l5-1-3 4c0 7-5 11-11 11-5 0-9-3-9-7z M9 22l-4 5 M24 16.5h.5 M16 29v4 M20 29v4"),
-  dog: SV("M7 14l3-4 3 3h9l6-5 3 2-2 5v6l-2 1v9h-3v-7h-9v7h-3V20c-3-1-5-3-5-6z"),
-  mamushi: SV("M6 30c5 0 5-6 10-6s5 6 10 6 6-4 6-8-3-7-7-7c-3 0-5 2-5 4 M25 13l4-4 3 1-1 3-3 1"),
 };
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 899px)").matches;
@@ -236,12 +233,12 @@ function applySurface(v, keepParams = false) {
 // ---- 形に貼る（触覚の mixed reality）
 // 形のための光：後ろからの縁の光と、斜め上からの締まった主光（形を選んだときだけ点ける）
 const objRim = new THREE.DirectionalLight(0xbfe6ff, 2.4); objRim.position.set(.6, .9, -1.2); objRim.visible = false; scene.add(objRim);
-const objKey = new THREE.SpotLight(0xfff1e2, 6, 4, .5, .6); objKey.position.set(-.9, 1.4, .8); objKey.visible = false; scene.add(objKey, objKey.target);
+const objKey = new THREE.SpotLight(0xfff1e2, 4.4, 4, .5, .6); objKey.position.set(-1.1, 1.15, .7);   /* 11-20 低めの斜めの光＝凹凸の陰影がはっきり出る */ objKey.visible = false; scene.add(objKey, objKey.target);
 let objMesh = null, objDef = null, objHit = null; const _nq = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 const objMat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, envMapIntensity: .55, side: THREE.DoubleSide });
 const cloneTex = (t, rep) => { if (!t) return null; const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(rep[0], rep[1]); c.needsUpdate = true; return c; };
 function relief() {
-  applyRelief(objMesh.geometry, objDef.rep, (u, v) => heightAt(u * SIZE_MM, (1 - v) * SIZE_MM), params.depth / SIZE_MM * .55, objDef.pole);
+  applyRelief(objMesh.geometry, objDef.rep, (u, v) => heightAt(u * SIZE_MM, (1 - v) * SIZE_MM), params.depth / SIZE_MM * (objDef.relief || .55), objDef.pole);
   for (const k of ["map", "normalMap", "roughnessMap"]) objMat[k]?.dispose();
   objMat.map = cloneTex(mat.map, objDef.rep); objMat.normalMap = cloneTex(mat.normalMap, objDef.rep); objMat.roughnessMap = cloneTex(mat.roughnessMap, objDef.rep);
   objMat.color.setRGB(...(objDef.tint || [1, 1, 1])); objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.needsUpdate = true; dirty = 2;
@@ -257,10 +254,10 @@ async function setObject(id) {
   const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "板"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
   markCombo();
   if (!objDef) { aoi?.motion.lookAt(null); aoi?.place(AOI_X, AOI_Z, .35); setView(0); return; }
-  Object.assign(G, { zoom: MOBILE ? .74 : .6, tx: 0, tz: 0, el: MOBILE ? .2 : .17 }); clampG();   // 形は小さいので寄り、森が見える低い目の高さから
+  Object.assign(G, { zoom: (objDef.zoom || .6) * (MOBILE ? 1.2 : 1), tx: 0, tz: 0, el: (objDef.el || .17) + (MOBILE ? .04 : 0), az: MOBILE ? .3 : -.3 }); clampG();   // 形は小さいので寄り、森が見える低い目の高さから
   const want = objDef; let g; try { busy(true); g = await loadGeometry(objDef); } finally { busy(false); } if (objDef !== want) { g.dispose(); return; }
   objMesh = new THREE.Mesh(g, objMat); objMesh.castShadow = true; scene.add(objMesh); relief(); JIG.v = 2.2; idleT = performance.now() - 1500;
-  const c = new THREE.Vector3(0, .15, 0); const ox = MOBILE ? -.36 : AOI_X, oz = MOBILE ? -.62 : AOI_Z - .3;   /* 2026-11-20 形の少し奥に立つ（形を隠さない） */ if (aoi) aoi.place(ox, oz, Math.atan2(-ox, -oz)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
+  const c = new THREE.Vector3(0, .15, 0); const ox = MOBILE ? -.66 : AOI_X, oz = MOBILE ? -.5 : AOI_Z - .3;   /* 2026-11-20 形の少し奥に立つ（形を隠さない） */ if (aoi) aoi.place(ox, oz, Math.atan2(-ox, -oz)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
   say("aoi.obj", 6500);
 }
 function applyParams() {
@@ -304,13 +301,15 @@ for (const s of SAMPLES) {
   chips.insertBefore(b, photoChip);
 }
 // ---- はじめに選ぶ「触れるもの × かたち」（2026-11-20 本人「デフォルトで触覚と３dの組み合わせを選択できるguiを」）。一つめがおすすめで、開いたときから選ばれている
-const COMBOS = [["bark", "tit"], ["moss", "dog"], ["bark", null], ["cloth", "shell"], ["leaves", "boulder"], ["stone", "mamushi"]];
+// 2026-11-20 本人「犬でなく、もっと触覚が味わえる３dオブジェクトに。触覚が入れ替わって違和感ないものに」＝どの組も「その素材でできた物」に見える
+const COMBOS = [["moss", "lump"], ["stone", "lump"], ["bark", "log"], ["soil", "rise"], ["cloth", "ring"], ["bark", null]];
+const HERO = !/[?&](ws|plate)=1/.test(location.search);   // 開いたとき、おすすめの組が選ばれている（触覚さがしと ?plate=1 は板から）
 const ONAME = id => id ? OBJECTS.find(o => o.id === id).name : "板";
 function markCombo() { for (const b of document.querySelectorAll("#combos .cb")) b.setAttribute("aria-pressed", String(b.dataset.s === surf?.id && (b.dataset.o || null) === (objDef?.id || null))); }
 async function setCombo(s, o, quiet) { busy(true); try { const sm = SAMPLES.find(x => x.id === s); if (surf?.id !== s) applySurface(await loadSample(sm)); if ((objDef?.id || null) !== o) await setObject(o); markCombo(); if (!quiet) { say(o ? "aoi.obj" : "aoi." + s, 6000); aoiReact(); } } finally { busy(false); } }
 { const box = $("#combos");
   if (box) for (const [s, o] of COMBOS) { const b = document.createElement("button"); b.type = "button"; b.className = "cb"; b.dataset.s = s; if (o) b.dataset.o = o; b.setAttribute("aria-pressed", "false");
-    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261120a" alt="" width="72" height="72"><b>${T("s." + s)} × ${ONAME(o)}</b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
+    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261120t" alt="" width="72" height="72"><b>${T("s." + s)} × ${ONAME(o)}</b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
     b.addEventListener("click", () => setCombo(s, o)); box.append(b); } }
 // ---- 下の三つの印：押すと選択肢が重なって開く。選ぶと閉じる（画面は遷移しない）
 function openTray(id) {
@@ -696,9 +695,9 @@ function frame(now) {
 setLang(lang());
 resize();
 (async () => {
-  try { applySurface(await loadSample(SAMPLES[0])); }
+  try { applySurface(await loadSample(HERO ? SAMPLES.find(s => s.id === COMBOS[0][0]) : SAMPLES[0])); }
   catch (e) { console.error(e); }
-  if (!WS && !/[?&]plate=1/.test(location.search)) setCombo(...COMBOS[0], true).catch(e => console.warn(e));   // おすすめの組（樹皮 × 小鳥）が、開いたときから選ばれている
+  if (HERO) setCombo(...COMBOS[0], true).catch(e => console.warn(e));   // おすすめの組（苔 × かたまり）が、開いたときから選ばれている
   try { const W = await import("./kit/warm.js"); await W.warmScene(renderer, scene, camera); } catch (e) { console.warn(e); }   // 2026-11-05：見せる前に材質を組み・絵を送る（最初のこまの止まりを分ける）
   window.MLLoader?.done();
   requestAnimationFrame(frame);
@@ -707,6 +706,6 @@ resize();
   setTimeout(() => sonic.prefetch(), 400);   // 最初になぞる前に音を用意しておく
   // ほかの見本は、手が空いたときに先に読んでおく
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
-  idle(() => SAMPLES.slice(1, 4).reduce((p, s) => p.then(() => loadSample(s).catch(() => {})), Promise.resolve()));
+  idle(() => [...new Set(COMBOS.map(c => c[0]))].map(id => SAMPLES.find(x => x.id === id)).filter(x => x.id !== surf?.id).reduce((p, s) => p.then(() => loadSample(s).catch(() => {})), Promise.resolve()));
 })();
-window.__qt = { get blind() { return blind; }, setBlind, takeFiles, give, found: FOUND, model, sonic, vibe, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };
+window.__qt = { setCombo, get blind() { return blind; }, setBlind, takeFiles, give, found: FOUND, model, sonic, vibe, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };

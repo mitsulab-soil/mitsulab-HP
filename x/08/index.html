@@ -243,7 +243,18 @@ body:not(.pre) #mv{filter:brightness(1.16) contrast(.97) saturate(.7) sepia(.1)}
 body:not(.pre) #mv{filter:brightness(1.3) contrast(.94) saturate(.72) sepia(.1)}
 #mist::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(236,240,236,0) 30%,rgba(236,240,236,.10) 46%,rgba(236,240,236,.05) 58%,rgba(236,240,236,0) 74%),radial-gradient(60% 22% at 30% 52%,rgba(240,236,224,.10),rgba(240,236,224,0) 70%),radial-gradient(50% 18% at 78% 48%,rgba(240,236,224,.08),rgba(240,236,224,0) 70%);mix-blend-mode:screen}
 html,body{background-color:#1a2026}
-</style><style id="r7">/* 11-10 第7周：題を背景から浮かせる（帯は使わず縁取り） */.ml-title,.ml-kicker,.ml-title *,.ml-kicker *{text-shadow:0 0 2px #03060f,0 0 6px rgba(3,6,15,.9),0 1px 14px rgba(3,6,15,.8)!important}</style></head>
+</style><style id="r7">/* 11-10 第7周：題を背景から浮かせる（帯は使わず縁取り） */.ml-title,.ml-kicker,.ml-title *,.ml-kicker *{text-shadow:0 0 2px #03060f,0 0 6px rgba(3,6,15,.9),0 1px 14px rgba(3,6,15,.8)!important}</style><style id="song-r12">
+/* 2026-11-20：上端と下段の灰色の帯をやめ、字と線だけを映像の上に（影で読ませる）。曲のあとの問いは下の画を透かさない */
+.top,.top.mu-top{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.top .ml-title,.top .song-sub,.top .ver button,.top .home{text-shadow:0 1px 2px #000,0 0 10px rgba(0,0,0,.85),0 0 22px rgba(0,0,0,.6)}
+.bar.ml-panel{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.bar.ml-panel::before,.bar.ml-panel::after{display:none}
+.bar .ml-btn{background:rgba(3,6,15,.28);border-color:rgba(155,220,240,.6);color:#eef5fb;text-shadow:0 1px 2px #000,0 0 8px rgba(0,0,0,.8)}
+.bar input[type=range]{filter:drop-shadow(0 1px 2px rgba(0,0,0,.9)) drop-shadow(0 0 6px rgba(0,0,0,.6))}
+.bar .t{color:#eef5fb;text-shadow:0 1px 2px #000,0 0 8px rgba(0,0,0,.85)}
+#framing{background:rgba(3,6,15,.28)!important;border-color:rgba(155,220,240,.6)!important;color:#eef5fb!important;text-shadow:0 1px 2px #000,0 0 8px rgba(0,0,0,.8)}
+</style>
+</head>
 <body class="ml-root pre">
 <div id="keep" aria-hidden="true"></div>
 <div id="mist" aria-hidden="true"></div><script>(function(){var h=new Date().getHours(),m=document.getElementById("mist"),t=h<5||h>=19?["70,74,96","255,196,130"]:h<9?["150,112,62","255,214,150"]:h<15?["128,108,74","255,232,186"]:["156,92,58","255,170,110"];m.style.setProperty("--mc",t[0]);m.style.setProperty("--mg",t[1]);})();</script>
@@ -334,7 +345,7 @@ html,body{background-color:#1a2026}
   // 11-19：曲が終わったら一度だけ、画面を静めて、いまいる場所の音へ耳を戻す問い（触れるか 12 秒で戻る）
   let asked = false; v.addEventListener('ended', () => { if (asked) return; asked = true;
     const o = document.createElement('div'); o.setAttribute('role', 'status');
-    o.style.cssText = 'position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:rgba(3,6,12,.88);opacity:0;transition:opacity 1.2s ease;cursor:pointer';
+    o.style.cssText = 'position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:#03060c;opacity:0;transition:opacity 1.2s ease;cursor:pointer';
     o.innerHTML = '<div style="max-width:420px;text-align:center;color:#eef4f6;font:500 17px/1.9 \'Shippori Mincho B1\',\'Hiragino Mincho ProN\',serif;letter-spacing:.05em">碧：曲が終わったあとの、<br>いまいる場所の音を聴いてみて。<br>自分の息は、聴こえる？<small style="display:block;margin-top:14px;font:400 12px/1.6 \'Hiragino Sans\',sans-serif;color:#9fb0b8">画面に触れると戻ります。</small></div>';
     document.body.appendChild(o); requestAnimationFrame(() => requestAnimationFrame(() => { o.style.opacity = 1; }));
     const end = () => { o.style.opacity = 0; setTimeout(() => o.remove(), 1300); }; o.onclick = end; setTimeout(end, 12000); });

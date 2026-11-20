@@ -1,4 +1,4 @@
-/* © mitsulab. 2026-11-16 本人「あなたの耳の外側」を削除。残すのは、13px 未満の字を 13px に上げる処理だけ */
+/* © mitsulab. 13px 未満の字を 13px に上げる */
 (function(){
   var SKIP='svg,canvas,[class*="atlas"],[class*="fig"],[class*="map"],[class*="mural"],.cg-stage,.us-bar,.th3d,[aria-hidden="true"]';
   function bump(){

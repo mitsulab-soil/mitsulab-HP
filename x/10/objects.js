@@ -10,40 +10,84 @@ function noise3(seed) {
   return (x, y, z) => { let s = 0; for (const [a, b, c, ph, f] of P) s += Math.sin((a * x + b * y + c * z) * f * 3 + ph) / f; return s / 6; };
 }
 
-// 実物を測った形（Poly Haven・CC0。形だけを使い、質感の画像は使わない＝触れ心地を貼るため）。台帳 M-0900
+// 2026-11-20 本人「犬でなく、もっと触覚が味わえる３dオブジェクトに。触覚が入れ替わって違和感ないものに」
+// ＝どの触れ心地を貼っても「その素材でできた物」に見える、中立で形の読みやすい物だけにする。生き物の形は外した（毛並みやうろこの面を用意できたら、その面と対で戻す）。
+// はじめの四つは mitsulab がこの場でつくる形（外の素材なし）。面のどこでも模様が同じ細かさで並び、つなぎ目が割れないように作る。器と岩は実物を測った形（Poly Haven・CC0。台帳 M-0900）
 export const OBJECTS = [
-  { id: "boulder", name: "岩", sub: "実物を測った岩", src: "models/boulder_01.gltf", rep: [1, 1] },
-  { id: "shell", name: "貝", sub: "実物を測った貝", src: "models/lambis_shell.gltf", rep: [1, 1], tint: [1.6, 1.5, 1.35] },
+  { id: "lump", name: "かたまり", sub: "手のひらに収まる丸い塊（模型）", make: "lump", rep: [1, 1], el: .2, zoom: .74, relief: .85 },
+  { id: "ring", name: "輪", sub: "指を通せる太い輪（模型）", make: "ring", rep: [2, 1], el: .4, zoom: .78, relief: .85 },
+  { id: "log", name: "円柱", sub: "片手でにぎれる円柱（模型）", make: "log", rep: [1, 1], el: .2, zoom: .78, relief: .85 },
+  { id: "rise", name: "起伏", sub: "手のひらほどの起伏（模型）", make: "rise", rep: [1, 1], el: .27, zoom: .8, relief: .85 },
   { id: "vase", name: "器", sub: "実物を測った花瓶", src: "models/ceramic_vase_01.gltf", rep: [2, 2], size: .55, tint: [1.7, 1.6, 1.45] },
-  { id: "pot", name: "鉢", sub: "実物を測った素焼きの鉢", src: "models/planter_pot_clay.gltf", rep: [2, 2], size: .5, tint: [1.15, .78, .55] },
-  { id: "branch", name: "枯れ枝", sub: "実物を測った枝", src: "models/dead_quiver_branch_01.gltf", rep: [1, 1] },
-  { id: "tile", name: "瓦", sub: "反りのある瓦（模型）", rep: [1.6, 2], scale: .8 },
-  // 2026-11-20 本人「形の３dについて、自然だけでなく、生き物も入れてください」＝Qualia/sight の生き物の 3D（mitsulab の造形）の形だけを使う。色と模様は外し、選んだ触れ心地を貼る。大きさは手のひらほどの模型
-  { id: "tit", name: "小鳥", sub: "シジュウカラの形（模型）", creature: "makeTit", opt: { state: "perch" }, rep: [2, 2], size: .8 },
-  { id: "dog", name: "犬", sub: "犬の形（模型）", creature: "makeDog", rep: [2, 2], size: .74 },
-  { id: "mamushi", name: "マムシ", sub: "ニホンマムシの形（模型）", creature: "makeMamushi", rep: [3, 1], size: 1.15, bend: .11 },
+  { id: "boulder", name: "岩", sub: "実物を測った岩", src: "models/boulder_01.gltf", rep: [1, 1] },
 ];
-const SIGHT = location.pathname.includes("/x/") ? "../02/" : "./sight/";
-// 生き物の 3D（部品の集まり）を、触れ心地を貼れる一つの形にまとめる。透ける翅・細い毛の束（インスタンス）は外し、体の面だけを使う
-async function creatureGeometry(o) {
-  const C = await import(SIGHT + "creatures.js?v=20261013k80"), root = C[o.creature](undefined, o.opt || {}); try { if (o.opt) root.userData.animate?.(1.3, false); } catch (e) {}
-  root.updateMatrixWorld(true); const P = [], N = [], UV = [], v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
-  root.traverse(m => { if (!m.isMesh || m.isInstancedMesh || !m.visible) return; const mt = [].concat(m.material)[0]; if (!mt || mt.transparent || mt.opacity < 1 || mt.alphaTest > 0) return;
-    let g = m.geometry; if (!g.attributes.uv || !g.attributes.normal) return; if (g.index) g = g.toNonIndexed(); g.computeBoundingSphere(); const sc = m.getWorldScale(v.clone()); if (g.boundingSphere.radius * Math.max(sc.x, sc.y, sc.z) < .012) return;   // 目のつやなど、ごく小さな部品は外す
-    const p = g.attributes.position, nn = g.attributes.normal, uv = g.attributes.uv; nm.getNormalMatrix(m.matrixWorld);
-    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld); n.fromBufferAttribute(nn, i).applyMatrix3(nm).normalize(); P.push(v.x, v.y, v.z); N.push(n.x, n.y, n.z); UV.push(uv.getX(i), uv.getY(i)); } });
-  root.traverse(m => { if (m.isMesh) { m.geometry.dispose(); [].concat(m.material).forEach(x => x.dispose()); } });
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(N, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(UV, 2));
-  g.computeBoundingBox(); const b = g.boundingBox, s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3()), k = (o.size || .62) / Math.max(s.x, s.y, s.z);
-  g.translate(-c.x, -b.min.y, -c.z); g.scale(k, k, k); g.translate(0, -.1, 0);
-  if (o.bend) { const p = g.attributes.position, L = (o.size || 1); for (let i = 0; i < p.count; i++) { const z = p.getZ(i); p.setX(i, p.getX(i) + o.bend * Math.sin(z / L * Math.PI * 2.6)); } g.computeVertexNormals(); }   // 体をくねらせた姿（まっすぐの棒に見えないように）
-  g.rotateY(-.5);
-  g.userData.base = g.attributes.position.array.slice(); g.userData.n0 = g.attributes.normal.array.slice(); g.userData.keepNormals = true; return g;
+
+// ---- この場でつくる形の土台
+// 格子の面を足す。f(s,t) → [x,y,z,u,v,w]（w＝凹凸の効き。面のつなぎ目では 0 にして割れを防ぐ）。c＝形の内側の一点（面の表を外へ向ける）
+function sheet(P, ns, nt, f, c) {
+  const o = P.pos.length / 3;
+  for (let j = 0; j <= nt; j++) for (let i = 0; i <= ns; i++) { const r = f(i / ns, j / nt); P.pos.push(r[0], r[1], r[2]); P.uv.push(r[3], r[4]); P.w.push(r[5] ?? 1); }
+  const id = []; for (let j = 0; j < nt; j++) for (let i = 0; i < ns; i++) { const a = o + j * (ns + 1) + i, b = a + 1, d = a + ns + 1, e = d + 1; id.push(a, d, b, b, d, e); }
+  let sum = 0; const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), q = k => new THREE.Vector3(P.pos[k * 3], P.pos[k * 3 + 1], P.pos[k * 3 + 2]);
+  for (let k = 0; k < id.length; k += 3 * 29) { A.copy(q(id[k])); B.copy(q(id[k + 1])).sub(A); C.copy(q(id[k + 2])).sub(A); sum += B.cross(C).normalize().dot(A.sub(c).normalize()); }
+  if (sum < 0) for (let k = 0; k < id.length; k += 3) { const t = id[k + 1]; id[k + 1] = id[k + 2]; id[k + 2] = t; }
+  for (let k = 0; k < id.length; k++) P.idx.push(id[k]);
 }
+// 同じ場所に重なる頂点の組（面のつなぎ目）。凹凸を貼ったあと、向きをそろえて継ぎ目を消す
+function weldGroups(g) {
+  const p = g.attributes.position, m = new Map(), out = [];
+  for (let i = 0; i < p.count; i++) { const k = Math.round(p.getX(i) * 2e4) + "," + Math.round(p.getY(i) * 2e4) + "," + Math.round(p.getZ(i) * 2e4); const a = m.get(k); if (a) a.push(i); else m.set(k, [i]); }
+  for (const a of m.values()) if (a.length > 1) out.push(a); return out;
+}
+function finish(P, ry = 0, sink = 0) {
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P.pos, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(P.uv, 2)); g.setIndex(new THREE.BufferAttribute(new Uint32Array(P.idx), 1));
+  g.computeBoundingBox(); const b = g.boundingBox, c = b.getCenter(new THREE.Vector3()); g.translate(-c.x, -b.min.y - .104 - sink, -c.z); if (ry) g.rotateY(ry);   // 森の地面（y＝−.106）に置く
+  g.userData.w = new Float32Array(P.w); return seal(g);
+}
+function seal(g) { g.userData.weld = weldGroups(g); g.computeVertexNormals(); smoothWeld(g); g.userData.base = g.attributes.position.array.slice(); g.userData.n0 = g.attributes.normal.array.slice(); return g; }
+function smoothWeld(g) {
+  const W = g.userData.weld, n = g.attributes.normal; if (!W) return;
+  for (const a of W) { let x = 0, y = 0, z = 0; for (const i of a) { x += n.getX(i); y += n.getY(i); z += n.getZ(i); } const l = Math.hypot(x, y, z) || 1; for (const i of a) n.setXYZ(i, x / l, y / l, z / l); }
+  n.needsUpdate = true;
+}
+const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const newP = () => ({ pos: [], uv: [], w: [], idx: [] });
+const MAKE = {
+  // かたまり：川原の丸石ほどの塊。上と下の二枚の面を合わせる（合わせ目は、土に近い下まわりに置く）
+  lump(N) {
+    const n = noise3(23), P = newP(), TH = 1.95;
+    const pt = sg => (s, t) => {
+      const a = s * 2 - 1, b = t * 2 - 1, dx = a * Math.sqrt(1 - b * b / 2), dz = b * Math.sqrt(1 - a * a / 2), rho = Math.hypot(dx, dz), th = sg > 0 ? rho * TH : Math.PI - rho * (Math.PI - TH), k = rho < 1e-6 ? (sg > 0 ? TH : Math.PI - TH) : Math.sin(th) / rho;
+      const x = dx * k, z = dz * k, y = Math.cos(th), kk = 1 + n(x * .62, y * .62, z * .62) * .34;
+      return [x * kk * .36, y * kk * (y > 0 ? .26 : .2), z * kk * .29, s, t, 1];
+    };
+    sheet(P, N, N, pt(1), new THREE.Vector3(0, .02, 0)); sheet(P, N, N, pt(-1), new THREE.Vector3(0, .02, 0)); return finish(P, -.45, .06);   // 下を少し土に沈める
+  },
+  // 円柱：胴は巻いた面、両はしは平らに切った面。角では凹凸を 0 にして、割れずに丸くつなぐ
+  log(N) {
+    const n = noise3(41), P = newP(), L = .84, R0 = .2, NS = Math.round(N * 1.5);
+    const R = (ph, x) => R0 * (1 + n(Math.cos(ph) * .9, Math.sin(ph) * .9, x * 1.4) * .16) * (1 - .06 * sstep(.86, 1, Math.abs(x) * 2 / L) ** 2);
+    sheet(P, NS, N, (s, t) => { const ph = s * Math.PI * 2, x = (t - .5) * L, r = R(ph, x); return [x, r * Math.cos(ph), r * Math.sin(ph), s, t, 1 - sstep(.84, 1, Math.abs(t * 2 - 1))]; }, new THREE.Vector3());
+    for (const e of [-1, 1]) sheet(P, NS, Math.round(N * .3), (s, t) => { const ph = s * Math.PI * 2, x = e * L / 2, r = R(ph, x) * t; return [x + e * .014 * (1 - t * t), r * Math.cos(ph), r * Math.sin(ph), .5 + e * r * Math.sin(ph), .5 + r * Math.cos(ph), 1 - sstep(.72, 1, t)]; }, new THREE.Vector3());
+    return finish(P, .5);
+  },
+  // 起伏：地面からなだらかに立ち上がる、手のひらほどの丘。ふちは地面にとけこむ
+  rise(N) {
+    const n = noise3(7), P = newP(), R = .5;
+    sheet(P, Math.round(N * 1.5), Math.round(N * .75), (s, t) => { const ph = s * Math.PI * 2, x = t * R * Math.cos(ph), z = t * R * Math.sin(ph), f = (1 - t * t) ** 1.7; return [x, f * (.2 + .3 * n(x * 2.6, .3, z * 2.6)), z, .5 + x / (2 * R), .5 + z / (2 * R), 1 - sstep(.8, 1, t)]; }, new THREE.Vector3(0, -1, 0));
+    return finish(P, 0, .012);
+  },
+  // 輪：太い輪。どこにも模様の集まる所がない
+  ring(N) {
+    const g = new THREE.TorusGeometry(.27, .118, Math.round(N * .6), Math.round(N * 1.7)); g.rotateX(Math.PI / 2); g.rotateZ(.2); g.computeBoundingBox(); g.translate(0, -g.boundingBox.min.y - .104, 0);
+    return seal(g);
+  },
+};
+
 let _loader = null;
 // 測った形を読み、いちばん大きな部分の形を、0.8 単位（8 cm）に収めて床に置く
 export async function loadGeometry(o) {
-  if (o.creature) return creatureGeometry(o);
+  if (o.make) return MAKE[o.make](matchMedia("(max-width: 899px)").matches ? 110 : 150);
   if (!o.src) { const g = baseGeometry(o.id); if (o.scale) { g.scale(o.scale, o.scale, o.scale); g.userData.base = g.attributes.position.array.slice(); } return g; }
   if (!_loader) { const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js"); _loader = new GLTFLoader(); }
   const gl = await _loader.loadAsync(o.src); gl.scene.updateMatrixWorld(true); let best = null;
@@ -84,12 +128,12 @@ export function baseGeometry(id) {
 
 // 触覚の地図を形に貼る（凹凸を形の上に押し出す）。hAt(u,v)＝0..1、depth＝単位（10 cm＝1）
 export function applyRelief(g, rep, hAt, depth, pole = false) {
-  const p = g.attributes.position, uv = g.attributes.uv, B = g.userData.base, N = g.userData.n0;
+  const p = g.attributes.position, uv = g.attributes.uv, B = g.userData.base, N = g.userData.n0, W = g.userData.w;
   for (let i = 0; i < p.count; i++) {
-    const u = (uv.getX(i) * rep[0]) % 1, v = (uv.getY(i) * rep[1]) % 1, w = pole ? Math.sin(Math.PI * uv.getY(i)) : 1, h = (hAt(u, v) - .5) * depth * w;   // 球の極では凹凸を弱める（一点に集まって見えないように）
+    const u = (((uv.getX(i) * rep[0]) % 1) + 1) % 1, v = (((uv.getY(i) * rep[1]) % 1) + 1) % 1, w = W ? W[i] : pole ? Math.sin(Math.PI * uv.getY(i)) : 1, h = (hAt(u, v) - .5) * depth * w;   // 球の極では凹凸を弱める（一点に集まって見えないように）
     p.setXYZ(i, B[i * 3] + N[i * 3] * h, B[i * 3 + 1] + N[i * 3 + 1] * h, B[i * 3 + 2] + N[i * 3 + 2] * h);
   }
-  p.needsUpdate = true; if (!g.userData.keepNormals) g.computeVertexNormals();   /* 部品をまとめた形は、つなぎ目が割れないよう元の法線のまま */ g.computeBoundingSphere(); g.computeBoundingBox();
+  p.needsUpdate = true; if (!g.userData.keepNormals) { g.computeVertexNormals(); smoothWeld(g); }   /* 部品をまとめた形は、つなぎ目が割れないよう元の法線のまま */ g.computeBoundingSphere(); g.computeBoundingBox();
 }
 
 // 二進の STL（mm）。この端末の中でつくるだけで、送信しない

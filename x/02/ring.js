@@ -2,7 +2,7 @@
    本人「切り替える時に選択中の生き物だけでなく、前後の生き物も見れるように」＝選んでいる体の 3D をまん中に、前後の体の 3D を左右に並べ、回して選ぶ。
    森とは別の小さな描き手（犬のぼかしや夜の見え方が、並びにはかからないように）。回っているときと、まん中の体が動くあいだだけ描く。 */
 import * as T from 'three';
-import { makeBody } from './bodies.js?v=20261120a';
+import { makeBody } from './bodies.js?v=20261120m';
 
 export function makeRing({ host, items, onPick, reduced = false }) {
   const n = items.length, ids = items.map(i => i.id);
@@ -21,6 +21,7 @@ export function makeRing({ host, items, onPick, reduced = false }) {
     const g = new T.Group(), b = makeBody(ids[i]); try { b.userData.animate(ids[i] === 'koumori' ? .04 : .13, ids[i] === 'koumori'); } catch (e) {}
     const box = new T.Box3().setFromObject(b), c = box.getCenter(new T.Vector3()), s = box.getSize(new T.Vector3());
     b.position.sub(c); const k = 1 / Math.max(s.x, s.y * .86, s.z, .001); const inner = new T.Group(); inner.add(b); inner.scale.setScalar(k); g.add(inner);
+    b.userData.creature?.userData.whenReady?.(() => kick());   // あとから届く体の 3D（犬・マムシ）が届いたら描き直す
     g.userData.body = b; g.userData.tall = s.y > Math.max(s.x, s.z) * 1.2; scene.add(g); slots[i] = g;
   }
   function init() {

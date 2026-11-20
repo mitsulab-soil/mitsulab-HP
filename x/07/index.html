@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261109q">
+<link rel="stylesheet" href="style.css?v=20261120a">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 <!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
-<link rel="modulepreload" href="js/app.js?v=20261110e">
+<link rel="modulepreload" href="js/app.js?v=20261120a">
 <link rel="modulepreload" href="vendor/three.module.js">
 <link rel="modulepreload" href="vendor/OrbitControls.js">
 <link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
@@ -109,7 +109,7 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
         <div class="viewActions"><p id="spaceCaption"></p><button type="button" id="freezeSound" class="ml-btn ml-btn--quiet" aria-pressed="false">表示を止める</button></div>
         <div class="heatLegend" hidden><span>弱い −100 dB</span><i></i><span>強い −20 dB</span></div>
         <canvas id="wave" class="wave" aria-label="最終出力の波形"></canvas>
-        <p class="spaceNote">いま鳴っている音から描いた形です。</p>
+        <p class="spaceNote">言葉から合成した音です（録音ではない模式）。形は、いま鳴っている音から描いています。</p>
       </div>
       <div class="soundActions"><p class="playHint" id="playHint">点をもう一度押すと止まり、ほかの点を押すと切りかわります。</p><button id="bKeep" type="button" class="ml-btn ml-btn--quiet">Aの素材にする</button></div>
       <div class="p-nav"><button class="ml-btn ml-btn--quiet" id="bPrev" type="button">← 前の音</button><button class="ml-btn ml-btn--quiet" id="bRand" type="button">偶然の一行</button><button class="ml-btn ml-btn--quiet" id="bNext" type="button">次の音 →</button></div>
@@ -172,7 +172,7 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 <dialog id="dAbout" class="sheet" aria-labelledby="aboutT">
   <div class="sheet-in about">
     <div class="sheet-head"><h2 id="aboutT" class="ml-title">Qualia/sound</h2><span class="ml-en">about</span><button class="ml-btn ml-btn--quiet" data-close type="button">とじる</button></div>
-    <p>Qualia/sound は、mitsulab 代表・上原光瑛の、書と言葉の作品のシリーズです。「音」一字の書と、その字から生まれた言葉の作品（ZINE『Qualia/sound Ⅰ・Ⅱ』）。このアプリはその続きで、書きためた「◯◯の音」の一覧《音の言然》<span id="aTotal">839</span> 行を元にしています。いま浮かんでいるのは <span id="aShown"></span> の言葉です。</p>
+    <p>Qualia/sound は、mitsulab 代表・上原光瑛の、書と言葉の作品のシリーズです。「音」一字の書と、その字から生まれた言葉の作品（ZINE『Qualia/sound Ⅰ・Ⅱ』）。この道具はその続きで、書きためた「◯◯の音」の一覧《音の言然》<span id="aTotal">839</span> 行を元にしています。いま浮かんでいるのは <span id="aShown"></span> の言葉です。</p>
     <p>音は作者の言葉から合成した表現です。実録音や、ほかの人の主観を再現したものではありません。</p>
     <p>だれかの耳に聞こえている音そのものは、ほかの人に渡せません。ここで鳴る音は、一行の言葉を音に翻訳した模式のひとつです。同じ一行から、聴く人の数だけ別の音が立ちあがる。その違いに、順番はありません。</p>
     <details class="ml-fold">

@@ -13,13 +13,13 @@ import { WIND, rng, growTree, plantTrees, leafMaterial, barkMaterial, poisson, g
 import { LAYER, lineMaterial } from "../kit/layers.js";
 import { QSynth, readingOf, seedOf } from "./synth.js";
 
-import { SoundSpace } from "./sound-space.js?v=20261107entry1";
+import { SoundSpace } from "./sound-space.js?v=20261120a";
 import { PERFORMANCE_DEFAULTS, filterHz, rhythmHz } from "./performance-fx.js";
 const D = window.QS_SOUNDS, ITEMS = D.items.filter(item=>!(window.QS_HIDDEN||[]).includes(item.n)).map(item=>({...item,t:item.t.replace(/(?:の音){2,}$/,'の音')})).filter((item,i,all)=>all.findIndex(x=>x.t===item.t)===i), TAGS = D.tags;
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = id => document.getElementById(id);
 // 分類の色（線と点だけに使う。HP の層の色と同じ値）
-const TAGC = { uchu: 0xeef5fb, seimei: LAYER.nature, toshi: LAYER.info, kokoro: LAYER.people, kotoba: LAYER.culture, toki: 0x8f9bb4, mizu: 0x3f9fc0, iro: 0xff8fc8, oto: LAYER.aoi };   // 色と光の桃だけは層の色の表の外（九つを見分けるため）
+const TAGC = { uchu: 0xeef5fb, seimei: LAYER.nature, toshi: 0xc9dc6e, kokoro: LAYER.people, kotoba: LAYER.culture, toki: 0x8f9bb4, mizu: 0x3f9fc0, iro: 0xff8fc8, oto: LAYER.aoi };   // 色と光の桃だけは層の色の表の外（九つを見分けるため）
 const css = h => "#" + new THREE.Color(h).getHexString();
 const tagOf = id => TAGS.find(t => t.id === id);
 
@@ -178,7 +178,7 @@ function select(it, { fly = true, audible = true } = {}) {
     fly = s.z > 1 || (sheetMQ.matches ? y > r.top - 40 || y < 90 : x > r.left - 40); }
   if (fly) { const p = new THREE.Vector3().fromArray(POS, it.i * 3); target = sheetMQ.matches ? p.clone() : p.clone().lerp(new THREE.Vector3(0, 3.1, 0), .25); controls.autoRotate = false; }
 }
-function clearSel() { if (entryReturn) { const b = entryReturn; requestAnimationFrame(() => b.focus({preventScroll:true})); entryReturn = null; } cur = null; halt(); panel.hidden = true; $("hint").hidden = false; sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
+function clearSel() { if (entryReturn) { const b = entryReturn; requestAnimationFrame(() => b.focus({preventScroll:true})); entryReturn = null; } cur = null; halt(); panel.hidden = true; $("hint").hidden = false; { const al = document.querySelector(".aoi-line"); if (al) al.textContent = "いまいる場所の音にも、耳を澄ましてみて。"; } sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
 $("bClose").addEventListener("click", clearSel);
 addEventListener("keydown", e => { if (e.key !== "Escape" || document.querySelector("dialog[open]")) return; if (cur) clearSel(); });
 const step = k => { const i = cur ? order.indexOf(cur) : -1; select(order[(i + k + order.length) % order.length]); };

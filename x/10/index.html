@@ -17,18 +17,18 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css?v=20261027q">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="app.js?v=20261120a">
+<link rel="modulepreload" href="app.js?v=20261120t">
 <link rel="modulepreload" href="vendor/three/build/three.module.js">
-<link rel="modulepreload" href="i18n.js?v=20261120a">
+<link rel="modulepreload" href="i18n.js?v=20261120t">
 <link rel="modulepreload" href="haptics.js?v=20261105f">
 <link rel="modulepreload" href="estimate.js">
 <link rel="modulepreload" href="sounds.js?v=20261021">
-<link rel="modulepreload" href="objects.js?v=20261120a">
+<link rel="modulepreload" href="objects.js?v=20261120t">
 <link rel="modulepreload" href="kit/warm.js">
-<link rel="preload" as="image" href="tex/bark_r.webp?v=20261021" type="image/webp">
-<link rel="preload" as="image" href="tex/bark_c.webp?v=20261021" type="image/webp">
-<link rel="preload" as="image" href="tex/bark_n.webp?v=20261021" type="image/webp">
-<link rel="preload" as="image" href="tex/bark_h.webp?v=20261021" type="image/webp">
+<link rel="preload" as="image" href="tex/moss_r.webp?v=20261021" type="image/webp">
+<link rel="preload" as="image" href="tex/moss_c.webp?v=20261021" type="image/webp">
+<link rel="preload" as="image" href="tex/moss_n.webp?v=20261021" type="image/webp">
+<link rel="preload" as="image" href="tex/moss_h.webp?v=20261021" type="image/webp">
 <link rel="stylesheet" href="kit/ui.css?v=20261103">
 <style id="mu-align">/* 共通 GUI（kit/ui.css）に合わせる＝左上の名前・押せる大きさを全アプリでそろえる（2026-11-03） */
 .brand .ml-title{font:600 16px/1 var(--mu-serif);letter-spacing:.12em;color:#fff;text-shadow:var(--mu-shadow)}
@@ -94,9 +94,9 @@ body:not(.ws) #cap{bottom:calc(238px + env(safe-area-inset-bottom));font-size:13
   </div>
   <nav id="combos" class="combos" aria-label="触れるもの × かたち（組み合わせを選ぶ）"></nav>
   <nav class="dock" aria-label="操作">
-    <button type="button" class="dk" data-tray="trayS" aria-expanded="false"><span class="face"><img id="faceS" src="tex/bark_t.webp?v=20261021" alt=""></span><b>触れるもの</b><small id="faceSN">樹皮（ケヤキ）</small></button>
+    <button type="button" class="dk" data-tray="trayS" aria-expanded="false"><span class="face"><img id="faceS" src="tex/moss_t.webp?v=20261021" alt=""></span><b>触れるもの</b><small id="faceSN">苔</small></button>
     <button type="button" class="dk" id="bBlind" aria-pressed="false" hidden><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path id="blindIco" d="M7 17c3.5 5.5 8 8.3 13 8.3s9.5-2.8 13-8.3M11 22l-2 3M20 25.3v3.5M29 22l2 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><b id="blindB">かくす</b><small id="blindS">見ずになぞる</small></button>
-    <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>かたち</b><small id="faceON">板</small></button>
+    <button type="button" class="dk" data-tray="trayO" aria-expanded="false"><span class="face" id="faceO"></span><b>かたち</b><small id="faceON">かたまり</small></button>
     <button type="button" class="dk dk-s" data-tray="trayK" aria-expanded="false" aria-label="形を保存"><span class="face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 9v15M13 18l7 7 7-7M10 30h20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span><b>残す</b><small>立体で保存</small></button>
   </nav>
   <div id="reveal" class="reveal" hidden role="status"><img id="rvImg" alt="" width="120" height="120"><div><small>答え</small><b id="rvName"></b></div></div>
@@ -119,7 +119,7 @@ body:not(.ws) #cap{bottom:calc(238px + env(safe-area-inset-bottom));font-size:13
     <p class="ml-kicker">mitsulab</p>
     <h2 class="ml-title" data-t="about.h">Qualia/touch</h2>
     <p data-t="about.lead"></p>
-    <p class="howto">選ぶ：下の左の印で、触れるもの（樹皮・石・布ほか、または手もとの画像）を。まん中の印で、形（板・岩・器ほか）を。<br>なぞる：面を指でなぞると、波紋と音（振動のある端末では振動も）が返ります。面の外をなぞると向きが変わり、二本の指（ホイール）で寄れます。<br>保存：右の印で、形を STL（3D プリント）や GLB に。この端末の中でつくるだけで、送信はしません。選んだ画像も、どこにも送りません。</p>
+    <p class="howto">選ぶ：下の左の印で、触れるもの（樹皮・石・布ほか、または手もとの画像）を。まん中の印で、形（かたまり・輪・円柱・板ほか）を。<br>なぞる：面を指でなぞると、波紋と音（振動のある端末では振動も）が返ります。面の外をなぞると向きが変わり、二本の指（ホイール）で寄れます。<br>保存：右の印で、形を STL（3D プリント）や GLB に。この端末の中でつくるだけで、送信はしません。選んだ画像も、どこにも送りません。</p>
     <h3 data-t="about.h1"></h3><p data-t="about.p1"></p>
     <h3 data-t="about.h2"></h3><p data-t="about.p2"></p>
     <h3 data-t="about.h3"></h3><p data-t="about.p3"></p>
@@ -142,7 +142,7 @@ body:not(.ws) #cap{bottom:calc(238px + env(safe-area-inset-bottom));font-size:13
   </div>
 </dialog>
 
-<script type="module" src="app.js?v=20261120a"></script>
+<script type="module" src="app.js?v=20261120t"></script>
 <script src="kit/tsugi.js" data-bottom="272" data-href="../02/" data-name="Qualia/sight" data-line="ほかの生き物の目で見る" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/touch" data-right="12" data-bottom="336" defer></script>
 </body>
