@@ -1,5 +1,5 @@
 /* © mitsulab. 背景：氷川参道（3D から撮った一枚）の上に、Qualium の主題を一度に一つだけ、細い線と点で静かに重ねる。
-   場 → オブジェクト → エージェント → 関係（グラフ）→ 環世界と五感の拡張 → センサーと AI → 時間・歴史 → 輪（Qualium ループへ）。道具の章では 文化・文学／エンジニアリング。
+   場 → オブジェクト → エージェント → 関係（グラフ）→ 環世界と五感の拡張 → センサーと AI → 時間・歴史 → 輪（Qualium-Physium ループへ）。道具の章では 文化・文学／エンジニアリング。
    すべて模式。描くのは主題が移るあいだだけ（止まっているときは描かない）。光の玉・紫は使わない。prefers-reduced-motion では移りかわりを省く。
    位置のデータ（木・鳥居・道）は _dev/20261120_bg/ の道具が 3D から書き出したもの。このファイルは qualium-bg.src.js からの生成物。 */
 export function start(){
@@ -14,8 +14,11 @@ export function start(){
   const sp=()=>innerWidth<761,en=()=>document.documentElement.lang==='en';
   const CY='160,236,242',BR='232,184,146',GR='186,224,170',WH='238,245,248',B=1.7,LW=1.5;
   let W=0,H=0,DPR=1,A=ANC.pc,sc=1,ox=0,oy=0,FF='sans-serif',FS='serif';
-  function size(){
-    const r=stick?stick.getBoundingClientRect():null;W=(r&&r.width)||innerWidth;H=(r&&r.height)||innerHeight;
+  let W0=-1,H0=-1;
+  function size(force){
+    const r=stick?stick.getBoundingClientRect():null,nw=(r&&r.width)||innerWidth,nh=(r&&r.height)||innerHeight;
+    if(!force&&nw===W0&&Math.abs(nh-H0)<160&&sp())return;   // スマホのアドレスバーの出入り（高さだけの小さな変化）では組み直さない
+    W0=nw;H0=nh;W=nw;H=nh;
     DPR=Math.min(devicePixelRatio||1,sp()?1.5:2);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cv.style.width=W+'px';cv.style.height=H+'px';
     A=sp()?ANC.sp:ANC.pc;sc=Math.max(W/A.w,H/A.h);ox=(W-A.w*sc)/2;oy=(H-A.h*sc)/2;
     lens.style.width=W+'px';lens.style.height=H+'px';
@@ -39,7 +42,12 @@ export function start(){
     const al=o.al||'left',x0=al==='center'?p[0]-w/2:al==='right'?p[0]-w:p[0],m=8,yMax=H*(sp()?0.9:0.87);
     const C=[[x0,p[1]],[p[0]-20-w,p[1]],[x0,p[1]-h-6],[x0,p[1]+h+6],[p[0]-w/2,p[1]-h*2],[p[0]-w/2,p[1]+h*2]];
     for(const c of C){const x=Math.min(W-m-w,Math.max(m,c[0])),y=c[1];if(y-h/2<m||y+h/2>yMax)continue;if(!hitKO(x,y-h/2,x+w,y+h/2))return[x,y]}return null}
-  function tx(t,p,col,al,o){if(al<=0.004||!t)return;o=o||{};if(!o.fixed){const q=spot(t,p,o);if(!q)return;p=q;o=Object.assign({},o,{al:'left'})}al=Math.min(1,al*B*1.3);cx.save();cx.shadowColor='rgba(2,7,13,.95)';cx.shadowBlur=7;cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;cx.textAlign=o.al||'left';cx.textBaseline='middle';try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}cx.fillStyle=`rgba(${col},${al})`;cx.fillText(t,p[0],p[1]);cx.fillText(t,p[0],p[1]);cx.restore()}
+  const LS={};let lblBusy=false;
+  function tx(t,p,col,al,o){if(al<=0.004||!t)return;o=o||{};if(!o.fixed){const q=spot(t,p,o),k=t+'|'+(o.s||12);let z=LS[k];
+      if(!z){if(!q)return;z=LS[k]={x:q[0],y:q[1],a:0}}
+      if(q){z.x+=(q[0]-z.x)*0.18;z.y+=(q[1]-z.y)*0.18}z.a+=((q?1:0)-z.a)*0.09;
+      if(Math.abs((q?1:0)-z.a)>0.01||(q&&Math.hypot(q[0]-z.x,q[1]-z.y)>0.5))lblBusy=true;
+      if(z.a<0.01)return;al*=z.a;p=[z.x,z.y];o=Object.assign({},o,{al:'left'})}al=Math.min(1,al*B*1.3);cx.save();cx.shadowColor='rgba(2,7,13,.95)';cx.shadowBlur=7;cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;cx.textAlign=o.al||'left';cx.textBaseline='middle';try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}cx.fillStyle=`rgba(${col},${al})`;cx.fillText(t,p[0],p[1]);cx.fillText(t,p[0],p[1]);cx.restore()}
   // ── 場面の要素（位置は 3D から）
   const T=()=>A.trees.filter(t=>t.d>30&&t.c[0]>0.04&&t.c[0]<0.96).slice(0,4);
   const row=m=>A.path.find(r=>r.m===m)||A.path[A.path.length-1];
@@ -51,7 +59,7 @@ export function start(){
     return[{k:'人',e:'person',p:M(r16.up),g:M(r16.c),R:0.085},{k:'鳥',e:'bird',p:bird,g:null,R:0.12},{k:'蝶',e:'butterfly',p:mix(M(mix(r25.up,r25.hi,0.35)),M(r25.r),0.5),g:null,R:0.05},{k:'碧',e:'Aoi',p:mix(M(r40.up),M(r40.l),0.45),g:mix(M(r40.c),M(r40.l),0.45),R:0.07,m:1},{k:'センサー',e:'sensor',p:mix(M(o.br),[M(o.br)[0],M(o.tr)[1]],0.55),g:null,R:0.1,s:1}];
   }
   // ── 主題
-  let LF=null;
+  let LF=null;const LC={x:0,y:0,r:0,a:0,on:0};
   function lensFit(c0,r0){const ok=(c,r)=>{const e=r+10;return c[0]-e>=6&&c[0]+e<=W-6&&c[1]-e>=50&&c[1]+e+26<=H*(sp()?0.9:0.87)&&!hitKO(c[0]-e,c[1]-e,c[0]+e,c[1]+e+26)};
     if(LF&&LF[2]===W&&ok(LF[0],LF[1]))return LF;
     for(let r=r0;r>=(sp()?26:60);r*=0.86){let best=null,bd=1e9;const st=Math.max(16,r*0.3);for(let y=r+50;y<H;y+=st)for(let x=r+16;x<W-r-6;x+=st){if(!ok([x,y],r))continue;const d=Math.hypot(x-c0[0],y-c0[1]);if(d<bd){bd=d;best=[x,y]}}if(best)return LF=[best,r,W]}
@@ -76,7 +84,10 @@ export function start(){
       E.forEach((e,i)=>{const s=st(pr,i*0.9,E.length*0.9+1),q=mix(e[0],e[1],s);ln([e[0],q],e[2]?WH:CY,k*(e[2]?0.75:0.55)*(s>0?1:0),1)});
       ob.forEach(p=>sq(p,3,BR,k));ag.forEach(g=>tri(g.p,g.m?6:4.5,g.m?WH:CY,k*1.3,g.m));
       ell(aoi.p,13,13,WH,k*st(pr,2,3)*0.9,1);tx(en()?'Aoi — mediates':'碧 ── あいだをつなぐ',[aoi.p[0]+20,aoi.p[1]-2],WH,k*st(pr,2,3)*1.25)},
-    umwelt(a,pr){const k=K()*a,f=lensFit(M(sp()?[0.80,0.50]:[0.715,0.34]),Math.min(W,H)*(sp()?0.2:0.19));if(!f){lens.style.clipPath=lens.style.webkitClipPath='circle(0px at 0px 0px)';return}const c=f[0],r=f[1]*(0.9+0.1*cl(pr*2));
+    umwelt(a,pr){let k=K()*a;const f=lensFit(M(sp()?[0.80,0.50]:[0.715,0.34]),Math.min(W,H)*(sp()?0.2:0.19));
+      if(f){if(!LC.on){LC.x=f[0][0];LC.y=f[0][1];LC.r=f[1];LC.on=1}LC.x+=(f[0][0]-LC.x)*0.12;LC.y+=(f[0][1]-LC.y)*0.12;LC.r+=(f[1]-LC.r)*0.12}
+      LC.a+=((f?1:0)-LC.a)*0.08;if(Math.abs((f?1:0)-LC.a)>0.01||(f&&Math.hypot(f[0][0]-LC.x,f[0][1]-LC.y)>0.5))lblBusy=true;
+      if(!LC.on||LC.a<0.01){lens.style.clipPath=lens.style.webkitClipPath='circle(0px at 0px 0px)';return}k*=LC.a;const c=[LC.x,LC.y],r=LC.r*(0.9+0.1*cl(pr*2));
       if(!lens.dataset.on){lens.dataset.on='1';lens.src=lens.dataset.s}
       lens.style.clipPath=lens.style.webkitClipPath=`circle(${r.toFixed(1)}px at ${c[0].toFixed(1)}px ${c[1].toFixed(1)}px)`;
       ell(c,r,r,GR,k*1.4,1.2);ell(c,r+7,r+7,GR,k*0.5,1,0,Math.PI*2,[1,6]);
@@ -108,45 +119,46 @@ export function start(){
   let MK=[];
   function marks(){MK=[];const add=(el,t)=>{if(el)MK.push([el,t])};
     add(document.getElementById('sdHero'),'field');
-    const LY={0:'object',1:'agent',2:'relation',3:'umwelt',4:'sensor',5:'time',7:'ring'},seen={};
+    const LY={0:'object',1:'agent',2:'relation',3:'umwelt',4:'sensor',5:'time',6:'lit',7:'ring'},seen={};
     document.querySelectorAll('#qStory [data-ly]').forEach(p=>{const v=p.dataset.ly;if(seen[v])return;seen[v]=1;add(p,LY[v]||'field')});
     add(document.getElementById('qloop'),'none');
     document.querySelectorAll('.tp-lab .tp-chh').forEach(h=>add(h.parentNode,{M:'lit',F:'eng'}[h.dataset.k]||'none'));
     add(document.querySelector('section.nx'),'none')}
   function active(){let t='field';for(const m of MK){if(m[0].getBoundingClientRect().top<H*0.62)t=m[1];else break}const top=document.getElementById('top');if(top&&!top.classList.contains('active'))t='none';return t}
-  // ── 輪：物語の終わりで線が輪になり、Qualium ループの円へつながる
+  // ── 輪：物語の終わりで線が輪になり、Qualium-Physium ループの円へつながる
   const R0=document.querySelector('#qStory [data-ly="7"]'),R1=document.querySelector('#qloop .ql-c');
   function ring(){
     if(!R0||!R1)return null;const a=R0.getBoundingClientRect(),b=R1.getBoundingClientRect();if(!b.width)return null;
     const rest=H*0.6,rc=b.top+b.height*(R1.dataset.cy?+R1.dataset.cy:0.5),d0=H*0.9-a.top;if(d0<=0||rc<-H)return null;
     const t=rc<=rest?1:cl(d0/(d0+(rc-rest))),e=t*t*(3-2*t),cr=R1.dataset.r?+R1.dataset.r:0.4394;
-    return{t,e,x:b.left+b.width*(R1.dataset.cx?+R1.dataset.cx:0.5),y:Math.min(rc,rest),R:b.width*cr,out:cl((rest-rc)/(H*0.42))}}
+    return{t,e,x:b.left+b.width*(R1.dataset.cx?+R1.dataset.cx:0.5),y:Math.min(rc,rest),R:b.width*cr,out:cl((rest-rc)/(H*0.85))}}
   const al={},pr={};Object.keys(D).forEach(k=>{al[k]=0;pr[k]=0});
-  let cur='field',raf=0,tagA=0,tagK='';
+  let cur='field',raf=0,tagA=0,tagK='',ringA=0,lastRg=null;
   function draw(){
-    raf=0;cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);koRead();
+    raf=0;lblBusy=false;cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);koRead();
     let busy=false,mx=0;for(const k in D)if(k!==cur)mx=Math.max(mx,al[k]);
     for(const k in D){const tg=k===cur&&mx<0.2?1:0;
-      if(rm){al[k]=k===cur?1:0;pr[k]=al[k]}else{al[k]+=(tg-al[k])*(tg?0.07:0.12);if(Math.abs(tg-al[k])<0.01)al[k]=tg;if(k===cur&&mx<0.2)pr[k]=Math.min(1,pr[k]+0.016);else if(al[k]===0)pr[k]=0}
+      if(rm){al[k]=k===cur?1:0;pr[k]=al[k]}else{al[k]+=(tg-al[k])*(tg?0.032:0.045);if(Math.abs(tg-al[k])<0.01)al[k]=tg;if(k===cur&&mx<0.2)pr[k]=Math.min(1,pr[k]+0.016);else if(al[k]===0)pr[k]=0}
       if(al[k]>0)D[k](al[k],pr[k]);
       if(al[k]!==tg||(k===cur&&pr[k]<1))busy=true}
-    lens.style.opacity=(al.umwelt*0.92).toFixed(3);
-    const rg=cur==='ring'||cur==='none'?ring():null;
-    if(rg&&rg.out<1){const N=5,Aa=Math.min(1,rg.t*4)*(1-rg.out);
+    lens.style.opacity=(al.umwelt*0.92*LC.a).toFixed(3);
+    let rg=cur==='ring'||cur==='none'?ring():null;const rt=rg&&rg.out<1?1:0;ringA+=(rt-ringA)*0.06;if(Math.abs(rt-ringA)<0.01)ringA=rt;else lblBusy=true;
+    if(rg)lastRg=rg;else if(ringA>0)rg=lastRg;
+    if(rg&&ringA>0){const N=5,Aa=Math.min(1,rg.t*4)*(1-rg.out)*ringA;
       for(let k=0;k<N;k++){const g=1-rg.e,rx=rg.R*(1+0.16*(N-1-k)*g),ry=rx*(0.2+0.8*rg.e),y=rg.y-(k-(N-1)/2)*H*0.035*g,sw=Math.PI*2*Math.min(1,0.25+rg.t*1.1),s0=-Math.PI/2+k*1.26*g;
         ell([rg.x,y],rx,ry,k%2?BR:CY,Aa*(0.5-k*0.05),k===N-1?1.4:1,s0,s0+sw)}}
-    if(KO.length){cx.save();cx.globalCompositeOperation='destination-out';KO.forEach(q=>{cx.fillStyle='rgba(0,0,0,1)';cx.fillRect(q[0],q[1],q[2]-q[0],q[3]-q[1]);cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(q[0]-6,q[1]-6,q[2]-q[0]+12,q[3]-q[1]+12)});cx.restore()}
+    if(KO.length){cx.save();cx.globalCompositeOperation='destination-out';[[18,.25],[12,.35],[6,.5],[0,1]].forEach(e=>{cx.fillStyle='rgba(0,0,0,'+e[1]+')';KO.forEach(q=>cx.fillRect(q[0]-e[0],q[1]-e[0],q[2]-q[0]+e[0]*2,q[3]-q[1]+e[0]*2))});cx.restore()}
     // 隅の一語（主題の名）
     const nm=NAME[cur];if(nm){tagK=cur}tagA+=((nm?1:0)-tagA)*(rm?1:0.1);if(Math.abs((nm?1:0)-tagA)<0.02)tagA=nm?1:0;else busy=true;
     if(tagA>0&&NAME[tagK]){const n=NAME[tagK],x=sp()?16:24,y=H*(sp()?0.93:0.9);ln([[x,y],[x+18,y]],CY,tagA*0.85,1);tx(en()?n[1]:n[1]+'　'+n[0],[x+26,y],WH,tagA*0.9,{s:11.5,ls:2,fixed:1})}
-    if(busy&&!rm)raf=requestAnimationFrame(draw);
+    if((busy||lblBusy)&&!rm)raf=requestAnimationFrame(draw);
   }
   const kick=()=>{const t=active();if(t!==cur)cur=t;if(!raf)raf=requestAnimationFrame(draw)};
-  size();marks();cur=active();draw();
+  size(1);marks();cur=active();draw();
   addEventListener('scroll',kick,{passive:true});
   let rt=0;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{size();marks();kick()},120)});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)kick()});
   document.addEventListener('click',()=>setTimeout(()=>{marks();kick()},80));
   new MutationObserver(kick).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{size();kick()});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{size(1);kick()});
 }
