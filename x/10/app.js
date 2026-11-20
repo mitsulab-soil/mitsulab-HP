@@ -2,11 +2,11 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261120t";
+import { T, setLang, lang } from "./i18n.js?v=20261120u";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
-import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261120t";
+import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261120u";
 import { buildSightSpace, SKY, SUN } from "./kit/sightspace.js?v=20261120a";   // 2026-11-20 本人「sight と同じ空間で」
 
 // 形の札の絵（細い線の輪郭）
@@ -47,6 +47,13 @@ const PARAMS = [
 const SND_IDS = ["bark", "soil", "stone", "moss", "wood", "cloth", "metal", "leaves", "paper", "glass"];
 const SND_P = { paper: { hard: .45, rough: .35 }, glass: { hard: 1, rough: .05 } };
 const nearestSnd = p => { let best = "wood", bd = 9; for (const id of SND_IDS) { const q = SND_P[id] || SAMPLES.find(s => s.id === id).p, d = (q.hard - p.hard) ** 2 + (q.rough - p.rough) ** 2; if (d < bd) { bd = d; best = id; } } return best; };
+// 素材ごとの光り方（2026-11-20 2 周目）：rmin＝粗さの下限（つや消し）、env＝空の照り返し、fuzz＝毛足・繊維が縁で光をやわらかく散らす量、ns＝細かな凹凸の陰の強さ。見た目の模式で、測った値ではない
+const LOOK = { moss: { rmin: .93, env: .14, fuzz: .5, ns: 1.15 }, stone: { rmin: .7, env: .36, fuzz: 0, ns: 1 }, bark: { rmin: .88, env: .2, fuzz: .06, ns: 1.25 }, soil: { rmin: .97, env: .05, fuzz: 0, ns: 2.1 }, wood: { rmin: .6, env: .4, fuzz: 0, ns: 1 }, cloth: { rmin: .95, env: .18, fuzz: .6, ns: 1.1 }, metal: { rmin: .3, env: .9, fuzz: 0, ns: 1 }, leaves: { rmin: .82, env: .22, fuzz: .1, ns: 1 }, photo: { rmin: .72, env: .3, fuzz: .08, ns: 1 } };
+const LK = { uRMin: { value: .7 }, uFuzz: { value: 0 } };
+const lookPatch = sh => { sh.uniforms.uRMin = LK.uRMin; sh.uniforms.uFuzz = LK.uFuzz;
+  if (!sh.fragmentShader.includes("#include <roughnessmap_fragment>") || !sh.fragmentShader.includes("#include <opaque_fragment>")) return;
+  sh.fragmentShader = "uniform float uRMin, uFuzz;\n" + sh.fragmentShader.replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n roughnessFactor = max(roughnessFactor, uRMin);")
+    .replace("#include <opaque_fragment>", " outgoingLight += uFuzz * pow(1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0), 3.0) * diffuseColor.rgb * 0.5;\n#include <opaque_fragment>"); };
 const NAME = { hard: "p.hard", rough: "p.rough", depth: "p.depth", fric: "p.fric", spring: "p.spring", warm: "p.warm" };
 
 // ---- 描画の土台
@@ -91,10 +98,11 @@ mat.onBeforeCompile = sh => {
       { vec2 dd = position.xy - uDent.xy; float g = exp(-dot(dd, dd) / (uDentR * uDentR)); transformed.z -= uDent.z * g; vDentG = uDent.z * g; }`);
   // へこんだところは光が入りにくく、少し暗い
   sh.fragmentShader = "varying float vDentG;\n" + sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= 1.0 - clamp(vDentG * 7.0, 0.0, 0.5);");
+  lookPatch(sh);
 };
 mat.fog = false; const plate = new THREE.Mesh(geo, mat); plate.rotation.x = -Math.PI / 2; scene.add(plate);
 // 台：上の面のない箱（へこみが台に隠れない深さ 10 mm の側面だけ）
-{ const dark = new THREE.MeshStandardMaterial({ color: 0x0a0f1a, roughness: 1 }), none = new THREE.MeshBasicMaterial({ visible: false });
+{ const dark = new THREE.MeshStandardMaterial({ color: 0x2b2118, roughness: 1 })   /* 2026-11-20 台の側面は土の色（紺の板に見えないように） */, none = new THREE.MeshBasicMaterial({ visible: false });
   const base = new THREE.Mesh(new THREE.BoxGeometry(1.002, .105, 1.002), [dark, dark, none, dark, dark, dark]); base.position.y = -.0535; base.userData.plate = true; scene.add(base); }
 // 四隅の印と、10 cm の目盛り（事実の線）
 {
@@ -113,17 +121,18 @@ const COLD = new THREE.Color(0x78d6ec), WARM = new THREE.Color(0xf2cf8c);
 const TR = 900, trPos = new Float32Array(TR * 2 * 3), trCol = new Float32Array(TR * 2 * 4), trAge = new Float32Array(TR * 2).fill(99);
 const trGeo = new THREE.BufferGeometry(); trGeo.setAttribute("position", new THREE.BufferAttribute(trPos, 3)); trGeo.setAttribute("color", new THREE.BufferAttribute(trCol, 4));
 const trail = new THREE.LineSegments(trGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-trail.frustumCulled = false; trail.userData.plate = true; scene.add(trail); let trW = 0;
-// 光る跡（線に沿った光の粒。なぞった所が数秒光って消える）
+trail.frustumCulled = false; scene.add(trail); let trW = 0;   // 形に貼ったときは、形の表面に沿って描く
+// 2026-11-20 光の粒はやめた（手ごたえは、面のへこみ・寝た跡・細い線・縁ごとの輪で返す）
+/*
 const glow = new THREE.Points(trGeo, new THREE.PointsMaterial({ size: MOBILE ? 7 : 6, sizeAttenuation: false, vertexColors: true, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, fog: false, map: (() => { const c = document.createElement("canvas"); c.width = c.height = 32; const g = c.getContext("2d"), r = g.createRadialGradient(16, 16, 0, 16, 16, 16); r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.4, "rgba(170,240,255,.55)"); r.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = r; g.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); })() }));
-glow.frustumCulled = false; glow.renderOrder = 4; glow.userData.plate = true; scene.add(glow);
+*/
 
 // 波紋（触れた所から短く広がって消える光の輪。数値の代わりに返す）
-const ripGeo = new THREE.RingGeometry(.93, 1, 72).rotateX(-Math.PI / 2);
+const ripGeo = new THREE.RingGeometry(.962, 1, 72).rotateX(-Math.PI / 2);
 const RIP = Array.from({ length: 10 }, () => { const m = new THREE.Mesh(ripGeo, new THREE.MeshBasicMaterial({ color: 0x9bdcf0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, side: THREE.DoubleSide, fog: false })); m.renderOrder = 5; m.userData.age = 9; m.frustumCulled = false; scene.add(m); return m; });
 let ripW = 0, ripT = 0;
 function ripple(pos, quat, amp = .6) { const m = RIP[ripW++ % RIP.length]; m.position.copy(pos); m.quaternion.copy(quat); m.userData.age = 0; m.userData.amp = amp; m.material.color.copy(ring.material.color); }
-function tickRipples(dt) { for (const m of RIP) { const a = m.userData.age += dt; if (a > 1) { m.material.opacity = 0; continue; } m.scale.setScalar(.03 + a * .16 * (.6 + m.userData.amp)); m.material.opacity = Math.pow(1 - a, 1.5) * (.5 + .5 * m.userData.amp); } }
+function tickRipples(dt) { for (const m of RIP) { const a = m.userData.age += dt * 1.7; if (a > 1) { m.material.opacity = 0; continue; } m.scale.setScalar(.035 + a * .13 * (.5 + m.userData.amp)); m.material.opacity = Math.pow(1 - a, 1.3) * (.28 + .34 * m.userData.amp); } }   // 凸の縁を一つ越えるごとに一つ（振動・音と同じ刻み）。.6 秒で消える
 // ---- デジタルの層（2026-10-27 本人「デジタルとフィジカルの融合」）：写真の面の上に、点群・走査線・地の光のグリッドを薄く重ねる
 scene.fog = new THREE.FogExp2(SKY, MOBILE ? .003 : .0026);   // sight の森の霞（1 m あたり .026〜.03 を、10 cm＝1 の世界に）
 const GRID_OFF = true;
@@ -142,10 +151,10 @@ const cloudU = { uScan: { value: 0 }, uSize: { value: (MOBILE ? 2.2 : 2.4) * Mat
 const cloud = new THREE.Points(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(cPos, 3)), new THREE.ShaderMaterial({
   uniforms: cloudU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
   vertexShader: "uniform float uScan, uSize; varying float vA; void main(){ float d = position.z - uScan; vA = .2 + .75 * exp(-d * d / .0008); gl_PointSize = uSize * (.8 + .6 * vA); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
-  fragmentShader: "varying float vA; void main(){ vec2 c = gl_PointCoord - .5; if (dot(c, c) > .25) discard; gl_FragColor = vec4(.66, .95, .97, vA * .45); }" }));
+  fragmentShader: "varying float vA; void main(){ vec2 c = gl_PointCoord - .5; if (dot(c, c) > .25) discard; gl_FragColor = vec4(.66, .95, .97, vA * (vA > .5 ? .34 : .0)); }   /* 2026-11-20 点は、走査の線が通る所だけ薄く出す（面の写真を網点で覆わない） */" }));
 cloud.frustumCulled = false; cloud.userData.plate = true; scene.add(cloud);
 const SCN = 128, scPos = new Float32Array(SCN * 3);
-const scan = new THREE.Line(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(scPos, 3)), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false }));
+const scan = new THREE.Line(new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(scPos, 3)), new THREE.LineBasicMaterial({ color: 0xa8f2f6, transparent: true, opacity: .38, blending: THREE.AdditiveBlending, depthWrite: false }));
 scan.frustumCulled = false; scan.userData.plate = true; scene.add(scan);
 function updateCloud() {
   if (!params) return; const k = params.depth / SIZE_MM;
@@ -236,15 +245,36 @@ const objRim = new THREE.DirectionalLight(0xbfe6ff, 2.4); objRim.position.set(.6
 const objKey = new THREE.SpotLight(0xfff1e2, 4.4, 4, .5, .6); objKey.position.set(-1.1, 1.15, .7);   /* 11-20 低めの斜めの光＝凹凸の陰影がはっきり出る */ objKey.visible = false; scene.add(objKey, objKey.target);
 let objMesh = null, objDef = null, objHit = null; const _nq = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 const objMat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, envMapIntensity: .55, side: THREE.DoubleSide });
+// 指の下：やわらかい物ほど広く沈み（uHit）、なぞった跡は寝て少し暗くなり、弾む物ほど早く戻る（uTr）。硬い石にはほとんど残らない
+const TRN = 14, HU = { uHit: { value: new THREE.Vector3(0, 99, 0) }, uHitR: { value: .08 }, uHitZ: { value: 0 }, uSoft: { value: 0 }, uTr: { value: Array.from({ length: TRN }, () => new THREE.Vector4(0, 99, 0, 0)) } };
+let trN = 0; const _lp = new THREE.Vector3(), _tl = new THREE.Vector3(0, 99, 0);
+objMat.onBeforeCompile = sh => {
+  Object.assign(sh.uniforms, HU);
+  if (sh.vertexShader.includes("#include <beginnormal_vertex>") && sh.vertexShader.includes("#include <begin_vertex>") && sh.fragmentShader.includes("#include <map_fragment>")) {
+    // 沈んだ分だけ面を下げ、沈みの斜面に合わせて面の向きも傾ける（光の当たり方で、へこみと寝た跡が読める）
+    sh.vertexShader = `uniform vec3 uHit; uniform float uHitR, uHitZ, uSoft; uniform vec4 uTr[${TRN}]; varying float vDentG;\n` + sh.vertexShader.replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
+      vec3 qN0 = normalize(objectNormal); float qS = 0.0; vec3 qG = vec3(0.0);
+      { vec3 dd = position - uHit; float g = uHitZ * exp(-dot(dd, dd) / (uHitR * uHitR)); qS += g; qG += g * dd / (uHitR * uHitR); }
+      { float qA = 0.0; vec3 qB = vec3(0.0); for (int i = 0; i < ${TRN}; i++) { vec3 d = position - uTr[i].xyz; float g = uTr[i].w * exp(-dot(d, d) / 0.0022); qA += g; qB += g * d / 0.0022; }
+        float qE = exp(-qA); qS += uSoft * (1.0 - qE); qG += uSoft * qE * qB; }   // 跡が重なっても、沈みは uSoft を越えない
+      objectNormal = normalize(qN0 - 2.0 * (qG - qN0 * dot(qG, qN0)));`).replace("#include <begin_vertex>", "#include <begin_vertex>\n transformed -= qN0 * qS; vDentG = qS;");
+    sh.fragmentShader = "varying float vDentG;\n" + sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n diffuseColor.rgb *= 1.0 - clamp(vDentG * 21.0, 0.0, 0.5);");
+  }
+  lookPatch(sh);
+};
+function pressTrace(local) { if (local.distanceTo(_tl) < .028) return; _tl.copy(local); HU.uTr.value[trN++ % TRN].set(local.x, local.y, local.z, 1); }
+function tickTrace(dt) { const k = Math.exp(-dt / (params ? 3.6 - 3 * params.spring : 2)); let any = false; for (const v of HU.uTr.value) if (v.w > .004) { v.w *= k; any = true; } else v.w = 0; if (any) dirty = 2; }
+const clearTrace = () => { for (const v of HU.uTr.value) v.set(0, 99, 0, 0); _tl.set(0, 99, 0); HU.uHitZ.value = 0; trAge.fill(99); };
 const cloneTex = (t, rep) => { if (!t) return null; const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(rep[0], rep[1]); c.needsUpdate = true; return c; };
 function relief() {
   applyRelief(objMesh.geometry, objDef.rep, (u, v) => heightAt(u * SIZE_MM, (1 - v) * SIZE_MM), params.depth / SIZE_MM * (objDef.relief || .55), objDef.pole);
   for (const k of ["map", "normalMap", "roughnessMap"]) objMat[k]?.dispose();
   objMat.map = cloneTex(mat.map, objDef.rep); objMat.normalMap = cloneTex(mat.normalMap, objDef.rep); objMat.roughnessMap = cloneTex(mat.roughnessMap, objDef.rep);
-  objMat.color.setRGB(...(objDef.tint || [1, 1, 1])); objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.needsUpdate = true; dirty = 2;
+  objMat.color.setRGB(...(objDef.tint || [1, 1, 1])); objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.envMapIntensity = mat.envMapIntensity; objMat.needsUpdate = true; dirty = 2;
 }
 async function setObject(id) {
   if (objMesh) { scene.remove(objMesh); objMesh.geometry.dispose(); objMesh = null; objHit = null; }
+  clearTrace(); idleOn = false;
   objDef = OBJECTS.find(o => o.id === id) || null;
   for (const o of scene.children) if (o.userData.plate) o.visible = !objDef;
   objRim.visible = objKey.visible = !!objDef; fill.intensity = objDef ? .12 : .28;
@@ -253,18 +283,19 @@ async function setObject(id) {
   $("#bGlb").hidden = !objDef;
   const od = OBJECTS.find(o => o.id === id); $("#faceON").textContent = od ? od.name : "板"; $("#faceO").innerHTML = SHAPE[id || "plate"] || SHAPE.plate;
   markCombo();
-  if (!objDef) { aoi?.motion.lookAt(null); aoi?.place(AOI_X, AOI_Z, .35); setView(0); return; }
+  if (!objDef) { aoi?.motion.lookAt(null); setView(0); aoiSnap(); return; }
   Object.assign(G, { zoom: (objDef.zoom || .6) * (MOBILE ? 1.2 : 1), tx: 0, tz: 0, el: (objDef.el || .17) + (MOBILE ? .04 : 0), az: MOBILE ? .3 : -.3 }); clampG();   // 形は小さいので寄り、森が見える低い目の高さから
   const want = objDef; let g; try { busy(true); g = await loadGeometry(objDef); } finally { busy(false); } if (objDef !== want) { g.dispose(); return; }
   objMesh = new THREE.Mesh(g, objMat); objMesh.castShadow = true; scene.add(objMesh); relief(); JIG.v = 2.2; idleT = performance.now() - 1500;
-  const c = new THREE.Vector3(0, .15, 0); const ox = MOBILE ? -.66 : AOI_X, oz = MOBILE ? -.5 : AOI_Z - .3;   /* 2026-11-20 形の少し奥に立つ（形を隠さない） */ if (aoi) aoi.place(ox, oz, Math.atan2(-ox, -oz)); aoi?.motion.point?.(c, 2.6);   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
+  const c = new THREE.Vector3(0, .15, 0); aoiSnap(); aoi?.motion.point?.(c, 2.6);   /* 2026-11-20 形の左奥に立つ。見る向きを回しても、形の前には来ない（aoiFollow） */   // 形のほうを向いて示す aoi?.motion.lookAt(c); aoi?.motion.express("curious", .5, 2.4);
   say("aoi.obj", 6500);
 }
 function applyParams() {
   const p = params; mat.displacementScale = p.depth / SIZE_MM;
   const ns = (p.depth / Math.max(.3, surf.p0.depth)) ** .6 * (.55 + .9 * p.rough) / (.55 + .9 * surf.p0.rough) * surf.nBase;
-  mat.normalScale.set(ns, ns);
-  mat.roughness = .55 + .45 * p.rough;
+  const lk = LOOK[surf.id] || LOOK.photo; mat.normalScale.set(ns * lk.ns, ns * lk.ns);
+  mat.roughness = .55 + .45 * p.rough; mat.envMapIntensity = lk.env; LK.uRMin.value = surf.metal ? lk.rmin : Math.min(.97, lk.rmin + .04 * (p.rough - surf.p0.rough)); LK.uFuzz.value = lk.fuzz;
+  HU.uHitR.value = (5 + 7 * (1 - p.hard)) / SIZE_MM; HU.uSoft.value = .034 * (1 - p.hard) ** 1.3;   // 寝た跡の深さ（苔・土・布で 2 mm ほど、樹皮はわずか、石はほぼ 0。見て分かる大きさにした模式）
   U.uDentR.value = (5 + 7 * (1 - p.hard)) / SIZE_MM;
   ring.material.color.copy(COLD).lerp(WARM, p.warm);
   model.setSurface(heightAt, p); sonic.setSurface(p, surf.p0);
@@ -309,7 +340,7 @@ function markCombo() { for (const b of document.querySelectorAll("#combos .cb"))
 async function setCombo(s, o, quiet) { busy(true); try { const sm = SAMPLES.find(x => x.id === s); if (surf?.id !== s) applySurface(await loadSample(sm)); if ((objDef?.id || null) !== o) await setObject(o); markCombo(); if (!quiet) { say(o ? "aoi.obj" : "aoi." + s, 6000); aoiReact(); } } finally { busy(false); } }
 { const box = $("#combos");
   if (box) for (const [s, o] of COMBOS) { const b = document.createElement("button"); b.type = "button"; b.className = "cb"; b.dataset.s = s; if (o) b.dataset.o = o; b.setAttribute("aria-pressed", "false");
-    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261120t" alt="" width="72" height="72"><b>${T("s." + s)} × ${ONAME(o)}</b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
+    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261120u" alt="" width="72" height="72"><b>${T("s." + s)} <i>×</i> <span>${ONAME(o)}</span></b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
     b.addEventListener("click", () => setCombo(s, o)); box.append(b); } }
 // ---- 下の三つの印：押すと選択肢が重なって開く。選ぶと閉じる（画面は遷移しない）
 function openTray(id) {
@@ -398,12 +429,12 @@ function busy(on) { $("#busy").hidden = !on; }
 
 // ---- 見る向き（回す・傾ける・寄る・ずらす）。V＝いま、G＝向かう先
 const VIEWS = [{ el: MOBILE ? .78 : .7, d: 1 }, { el: 1.53, d: .98 }, { el: .36, d: 1.05 }];   // 2026-11-20 少し低く（奥に森の木立が見える）   // 斜め・真上・低く
-const Z_MIN = .5, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .42 : .26;   // 下の帯（波・字幕）のぶん、面を少し上へ
+const Z_MIN = .4, Z_MAX = 1.8, EL_MIN = .1, EL_MAX = 1.55, T0 = MOBILE ? .42 : .26;   // 下の帯（波・字幕）のぶん、面を少し上へ
 let view = 0, baseD = 2;
 const V = { az: 0, el: VIEWS[0].el, zoom: 1, tx: 0, tz: T0 }, G = { ...V };
 const look = new THREE.Vector3(), SKYTILT = 0;
 // 触れた形が応える（ばねの揺れ）と、手を離しているあいだのゆっくりした回転
-const JIG = { s: 0, v: 0 }; let idleT = performance.now();
+const JIG = { s: 0, v: 0 }; let idleT = performance.now(), idleOn = false, idleAz = 0, idlePh = 0;
 let fitAspect = 1;
 function fitDist() {
   const a = fitAspect, vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * a);
@@ -479,7 +510,7 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), flat = new THREE.P
 const toPlate = e => { const r = cv.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera);
   if (objMesh) {   // 形に貼ったとき：形の表面の触れた所を、触覚の地図の上の位置に読みかえる
     const h = ray.intersectObject(objMesh)[0]; if (!h || !h.uv) return null; objHit = h;
-    const u = (h.uv.x * objDef.rep[0]) % 1, v = (h.uv.y * objDef.rep[1]) % 1; return new THREE.Vector3(u - .5, 0, .5 - v);
+    const u = (((h.uv.x * objDef.rep[0]) % 1) + 1) % 1, v = (((h.uv.y * objDef.rep[1]) % 1) + 1) % 1; return new THREE.Vector3(u - .5, 0, .5 - v);
   }
   return ray.ray.intersectPlane(flat, hitP) ? hitP.clone() : null; };
 const inside = p => p && Math.abs(p.x) <= .5 && Math.abs(p.z) <= .5;
@@ -498,7 +529,7 @@ cv.addEventListener("pointerdown", e => {
   if (mode === "move" || !inside(p)) { drag = { kind: "orbit", x: e.clientX, y: e.clientY }; cv.classList.add("grabbing"); return; }
   if (objMesh) JIG.v += 1.5;
   touch = { id: e.pointerId, p, t: e.timeStamp, t0: performance.now(), pen: e.pointerType !== "mouse" && e.pressure > 0 && e.pressure !== .5 };
-  dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.arm(); vibe.tap(); sonic.tap(); addTrail(p, p, true); model.takeEdges(); shown.copy(dentAt);
+  dentAt.set(p.x, -p.z); model.recording = true; model.stroke = []; sonic.wake(); vibe.arm(); vibe.tap(); sonic.tap(); touch.w = hitW(); touch.dir = null; addTrail(p, p, true, touch.w, touch.w); model.takeEdges(); shown.copy(dentAt);
   $("#waveHint").style.opacity = 0; $("#fhint").classList.add("off"); aoiWatch(true);
   if (capKey === "aoi.name") { clearTimeout(capTimer); $("#cap").classList.remove("on"); capKey = null; }   // 2026-10-22 なではじめたら名乗りの字幕をたたむ（面を覆わない）
 });
@@ -517,7 +548,7 @@ cv.addEventListener("pointermove", e => {
   for (const ev of evs.length ? evs : [e]) {
     const p = toPlate(ev); if (!p) continue; p.x = Math.max(-.5, Math.min(.5, p.x)); p.z = Math.max(-.5, Math.min(.5, p.z));
     const dt = Math.max(1, ev.timeStamp - touch.t), [x0, y0] = mm(touch.p), [x1, y1] = mm(p);
-    model.move(x0, y0, x1, y1, Math.min(dt, 120)); addTrail(touch.p, p); touch.p = p; touch.t = ev.timeStamp;
+    model.move(x0, y0, x1, y1, Math.min(dt, 120)); const w1 = hitW(); addTrail(touch.p, p, false, touch.w, w1); touch.w = w1; touch.p = p; touch.t = ev.timeStamp;
     if (touch.pen && ev.pressure > 0) touch.pr = ev.pressure;
   }
   dentAt.set(touch.p.x, -touch.p.z); lastMove = performance.now(); dirty = 2;
@@ -532,9 +563,13 @@ const end = e => {
   if (!WS && !said.zoomhint && strokeMs > 900) { said.zoomhint = true; setTimeout(() => { if (!touch && !capKey) say(MOBILE ? "aoi.zoom" : "aoi.zoom.pc", 7000); }, 900); }
 };
 cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
-function addTrail(a, b, start) {
+// 形に貼ったとき：触れた所（形の表面の点）を、面から少し浮かせて返す。寝た跡の点も足す
+function hitW() { if (!objMesh || !objHit) return null; _nq.copy(objHit.face.normal).transformDirection(objMesh.matrixWorld); pressTrace(objMesh.worldToLocal(_lp.copy(objHit.point))); return objHit.point.clone().addScaledVector(_nq, .006); }
+function addTrail(a, b, start, wa, wb) {
+  const i = trW % TR;
+  if (objMesh) { if (!wa || !wb || wa.distanceTo(wb) > .2) return; trW++; trPos.set([wa.x, wa.y, wa.z, wb.x, wb.y, wb.z], i * 6); trAge[i * 2] = trAge[i * 2 + 1] = 0; trGeo.attributes.position.needsUpdate = true; return; }
   const ya = heightAt(...mm(a)) * params.depth / SIZE_MM + .0015, yb = heightAt(...mm(b)) * params.depth / SIZE_MM + .0015;
-  const i = trW % TR; trW++;
+  trW++;
   trPos.set([a.x, ya, a.z, b.x, yb, b.z], i * 6); trAge[i * 2] = trAge[i * 2 + 1] = 0;
   if (start) trAge[i * 2] = trAge[i * 2 + 1] = 0;
   trGeo.attributes.position.needsUpdate = true;
@@ -563,19 +598,36 @@ async function firstUse(root) { const ms = []; root.traverse(o => { if (o.isMesh
   for (const [o, v] of ms) { o.visible = v; await y(); await y(); } root.scale.copy(sc); }   // 2026-11-05：はじめて描く時の止まりを、網一つずつ別のこまに分ける（見えないほど小さくして描く）
 async function loadAoi() {
   try {
-    const K = await import("./kit/aoi.js");
+    const K = await import("./kit/aoi.js?v=20261120u");
     const a = await K.loadAoi(AOI_URL, { scene, height: MOBILE ? .6 : .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
     a.root.visible = false; try { const W = await import("./kit/warm.js"); await W.warmAoi(renderer, a.root, camera, scene, { batch: 1 }); } catch { } await firstUse(a.root); aoi = a;   // 2026-11-05：碧が出る瞬間の止まりを分ける
-    aoi.root.position.y = -.106; aoi.place(AOI_X, AOI_Z, .35);
+    aoi.root.position.y = -.106; aoiSnap();
     { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-      const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, AOI_Z); scene.add(sh);
-      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 48 }, (_, i) => new THREE.Vector3(Math.cos(i / 48 * Math.PI * 2) * .12, 0, Math.sin(i / 48 * Math.PI * 2) * .12))), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .5 })); ring.position.set(AOI_X, -.103, AOI_Z); scene.add(ring); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：触覚の板の左に、小さく立つ
+      const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, AOI_Z); scene.add(sh); aoiFoot.push(sh);
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 48 }, (_, i) => new THREE.Vector3(Math.cos(i / 48 * Math.PI * 2) * .12, 0, Math.sin(i / 48 * Math.PI * 2) * .12))), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .5 })); ring.position.set(AOI_X, -.103, AOI_Z); scene.add(ring); aoiFoot.push(ring); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：触覚の板の左に、小さく立つ
     if (!said.hello) hello();
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
 const AOI_X = MOBILE ? -.46 : -.78, AOI_Z = MOBILE ? -.62 : -.08;
-const LOOK = new THREE.Vector3(0, .02, 0);
-function aoiWatch(on) { aoi?.motion.lookAt(on && !blind ? LOOK : null); }
+const LOOKP = new THREE.Vector3(0, .02, 0);
+/* 2026-11-20 2 周目：碧は、見る人から見ていつも主役の左奥に立つ。見る向きを少し回すあいだは動かず、大きく回したら歩いてついてくる。
+   主役の手前に入ってしまうほど速く回したときは、奥に現れ直す（主役と下の札に重ならない） */
+const aoiFoot = []; let aoiAz = 0, aoiV = 0, aoiMove = false; const _seat = new THREE.Vector3();
+const aoiBase = () => objDef ? (MOBILE ? [-.6, -1.0] : [-.86, -.42]) : [AOI_X, AOI_Z];
+const seat = az => { const [ox, oz] = aoiBase(), c = Math.cos(az), s = Math.sin(az); return _seat.set(ox * c + oz * s, 0, -ox * s + oz * c); };
+function aoiSnap(again) { aoiAz = G.az; aoiV = 0; aoiMove = false; if (!aoi) return; seat(aoiAz); aoi.place(_seat.x, _seat.z, Math.atan2(-_seat.x, -_seat.z)); if (again) aoi.appear?.(); dirty = 4; }
+function aoiFollow(dt) {
+  if (!aoi) return; const P = aoi.motion.pos; for (const o of aoiFoot) { o.position.x = P.x; o.position.z = P.z; }
+  let d = V.az - aoiAz; d = Math.atan2(Math.sin(d), Math.cos(d));
+  const pl = Math.hypot(P.x, P.z) || 1, front = (P.x * Math.sin(V.az) + P.z * Math.cos(V.az)) / pl;   // 見る人の側にどれだけ入っているか（1＝真正面）
+  if (front > .3 && !RM) { aoiSnap(true); return; } if (front > .3) { aoiSnap(); return; }
+  if (!aoiMove && Math.abs(d) > .85) aoiMove = true;
+  if (!aoiMove) return;
+  const R = Math.hypot(...aoiBase()), want = Math.sign(d) * Math.min(.3 / R, Math.abs(d) * 1.6); aoiV += (want - aoiV) * Math.min(1, dt * 3); aoiAz += aoiV * dt;
+  seat(aoiAz); aoi.motion.drive(_seat.x, _seat.z); dirty = 2;
+  if (Math.abs(d) < .04 && Math.abs(aoiV) < .04) { aoiMove = false; aoiV = 0; }
+}
+function aoiWatch(on) { aoi?.motion.lookAt(on && !blind ? LOOKP : null); }
 function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 
 // ---- 碧の字幕
@@ -638,7 +690,15 @@ for (const b of document.querySelectorAll("[data-lang]")) b.addEventListener("cl
 });
 
 // ---- 毎こま
-let last = performance.now(), uiT = 0, frames = 0;
+let last = performance.now(), uiT = 0, frames = 0, lastTouch = 0, rubT = 0, rubN = 0;
+// 「指でなぞる」の案内：主役の上のふちの少し上に置く（主役にかからない）。触れたら消え、触れなくても 12 秒で消える
+const fh = $("#fhint"), _hp = new THREE.Vector3(); let fhT0 = 0;
+function placeHint(now) {
+  if (!fh || fh.classList.contains("off")) return; if (!fhT0) fhT0 = now; if (now - fhT0 > 12000) { fh.classList.add("off"); return; }
+  if (objMesh) { const b = objMesh.geometry.boundingBox; _hp.set(0, (b ? b.max.y : .3) + .03, 0); } else _hp.set(0, .02, -.52);
+  _hp.project(camera); const x = (_hp.x + 1) / 2 * stage.clientWidth, y = (1 - _hp.y) / 2 * stage.clientHeight;
+  fh.style.left = Math.round(x) + "px"; fh.style.top = Math.round(Math.max(96, y - 26)) + "px"; fh.classList.add("pos");
+}
 function frame(now) {
   requestAnimationFrame(frame);
   const dtMs = Math.min(100, now - last);
@@ -654,6 +714,10 @@ function frame(now) {
   const r = model.measure();
   // 擬似触覚：ざらつく所・縁に当たった瞬間ほど、指の下の光とへこみが少し遅れてついてくる（引っかかる感じ）。振動のない端末でも効く
   const hit = touch ? vibe.edges(now, model.takeEdges()) : 0;
+  if (hit > 0 && now - ripT > 60) { ripT = now; ripple(ring.position, ring.quaternion, Math.min(1, .25 + hit)); }
+  // すべる音：凸の縁に当たらないあいだも、指が動いていれば、面をこする静かな音が続く（速いほど間が詰まる。振動は縁だけ）
+  if (touch && !hit && model.speed > 10 && now - vibe.last > Math.max(70, 240 - model.speed * 1.4) && now - rubT > Math.max(70, 240 - model.speed * 1.4)) { rubT = now; sonic.grain(16, (.1 + .22 * Math.min(1, model.speed / 160)) * (.6 + .6 * model.d.mu), model.speed); rubN++; }   // 凸の縁を越えた瞬間に、輪が一つ（振動・音と同じ刻み）
+  if (objMesh) { if (touch && objHit) objMesh.worldToLocal(HU.uHit.value.copy(objHit.point)); HU.uHitZ.value = Math.min(.05, Math.max(0, dent) / SIZE_MM * 1.6); tickTrace(dt); }
   stick = Math.max(stick * Math.exp(-dt / .05), hit * model.d.mu);
   const follow = !touch ? 1 : Math.min(1, dt * 60 * (1 - .8 * Math.min(1, model.d.mu * (.3 + r.amp) * .9 + stick)));
   shown.lerp(dentAt, follow); if (shown.distanceTo(dentAt) > 1e-4) dirty = 2;
@@ -663,19 +727,21 @@ function frame(now) {
   // 振動の代わりに目で：強く当たるほど輪が明るく、少し広がる
   ring.material.opacity += ((touch ? .55 + .45 * r.amp : 0) - ring.material.opacity) * Math.min(1, dt * 8);
   ring.position.set(shown.x, heightAt((shown.x + .5) * SIZE_MM, (-shown.y + .5) * SIZE_MM) * params.depth / SIZE_MM - dent / SIZE_MM * .6 + .002, -shown.y);
-  ring.scale.setScalar(U.uDentR.value * (.9 + (touch ? .35 * r.amp : 0)));
+  ring.scale.setScalar((objMesh ? .034 + .03 * (1 - params.hard) : U.uDentR.value) * (.9 + (touch ? .35 * r.amp : 0)));   // 形の上では指先ほどの輪
   if (objMesh && objHit) { ring.position.copy(objHit.point); _nq.copy(objHit.face.normal).transformDirection(objMesh.matrixWorld); ring.quaternion.setFromUnitVectors(_up, _nq); ring.position.addScaledVector(_nq, .004); } else ring.quaternion.identity();
   // 通り道の色（2.4 秒で消える）
   for (let i = 0; i < TR * 2; i++) { const a = trAge[i] += dt, o = Math.max(0, 1 - a / 2.4); trCol[i * 4] = .75 + .25 * o; trCol[i * 4 + 1] = .95; trCol[i * 4 + 2] = 1; trCol[i * 4 + 3] = o; }
   trGeo.attributes.color.needsUpdate = true;
-  if (touch && now - ripT > (RM ? 400 : 150) && (r.amp > .05 || now - ripT > 600)) { ripT = now; ripple(ring.position, ring.quaternion, Math.min(1, .3 + r.amp)); }
+  if (touch && now - ripT > 700 && !RM) { ripT = now; ripple(ring.position, ring.quaternion, .2); }   // なめらかな所・止まっているときは、ごく薄い輪だけ
   tickRipples(dt); if (RIP.some(m => m.userData.age < 1)) dirty = 2;
   // 形：触れると弾み、手を離して 4 秒たつと、ゆっくり回って全身を見せる
   if (objMesh) { const a = -90 * JIG.s - 9 * JIG.v; JIG.v += a * dt; JIG.s += JIG.v * dt; if (Math.abs(JIG.s) + Math.abs(JIG.v) > .002) { objMesh.scale.set(1 + JIG.s * .05, 1 - JIG.s * .08, 1 + JIG.s * .05); dirty = 2; } else if (objMesh.scale.y !== 1) objMesh.scale.set(1, 1, 1);
-    if (touch || drag || pinch) idleT = now; else if (!RM && now - idleT > 4000 && $("#tray").hidden) { G.az += dt * .22; dirty = 2; } }
+    if (touch || drag || pinch) { idleT = now; idleOn = false; } else if (!RM && now - idleT > 4000 && $("#tray").hidden) { if (!idleOn) { idleOn = true; idleAz = G.az; idlePh = 0; } idlePh += dt * .26; G.az = idleAz + .45 * Math.sin(idlePh); dirty = 2; } }   // 左右にゆっくり振って、横の面も見せる（一周はしない＝碧が前に来ない）
   // カメラ
-  placeCam(dt);
+  placeCam(dt); aoiFollow(dt); placeHint(now);
   updateScan(now / 1000);
+  // 体験の芯：しばらくなぞって手を止めたら、一度だけ、身のまわりの実物へ（札は増やさず、碧の字幕で）
+  if (touch) lastTouch = now; else if (!WS && !said.real && strokeMs > 14000 && now - lastTouch > 4500 && !capKey && $("#tray").hidden) say("aoi.real", 14000);
   // 目盛りの字
   const sp = new THREE.Vector3(0, 0, .6).project(camera), sl = $("#scaleL");
   sl.style.left = ((sp.x + 1) / 2 * stage.clientWidth) + "px"; sl.style.top = ((1 - sp.y) / 2 * stage.clientHeight + 4) + "px"; const ctlTop = $("#ctl").offsetTop, sy = (1 - sp.y) / 2 * stage.clientHeight + 4; sl.style.visibility = Math.abs(sp.x) < .92 && sy > 40 && sy + 14 < ctlTop && sp.z < 1 ? "" : "hidden";
@@ -708,4 +774,4 @@ resize();
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
   idle(() => [...new Set(COMBOS.map(c => c[0]))].map(id => SAMPLES.find(x => x.id === id)).filter(x => x.id !== surf?.id).reduce((p, s) => p.then(() => loadSample(s).catch(() => {})), Promise.resolve()));
 })();
-window.__qt = { setCombo, get blind() { return blind; }, setBlind, takeFiles, give, found: FOUND, model, sonic, vibe, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };
+window.__qt = { get rubN() { return rubN; }, poke() { idleT = performance.now(); idleOn = false; }, HU, setCombo, get blind() { return blind; }, setBlind, takeFiles, give, found: FOUND, model, sonic, vibe, V, G, setMode, zoomAt, saveSTL, stl: (o) => buildSTL(heightAt, params, o), get params() { return params; }, get surf() { return surf; }, renderer, frames: () => frames };

@@ -1251,7 +1251,7 @@ function playNext() {
   if (!soundOn || !l.f) { next(Math.max(3200, l.t.length * 160 + 1200))   /* 10-28 晩：読める長さ */; return; }
   audio.src = l.f; audio.currentTime = 0;
   if (AOI.m && v.i === 0) AOI.m.express?.("warm", .5, Math.min(6, (l.dur || 3) + 1));
-  audio.play().then(() => { AOI.m?.speak({ timeline: LIP[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }); }).catch(() => next(1500));
+  audio.play().then(() => { AOI.m?.speak({ timeline: LIP[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime, gesture: l.id && l.id === C.intro?.id ? [{ t: 3.4, type: "metaphoric", shape: "contrast", hold: 1.6 }, { t: 6.7, type: "metaphoric", shape: "present", hold: 1.2 }] : null   /* 11-20 本人「説明しているそぶり」：はじめの名乗りは、見る人へ正面を向き、「この場所の…」で両手をひらいて話す（共通部品 AoiMotion の身ぶり） */ }); }).catch(() => next(1500));
   audio.onended = () => { if (voiceQ !== v) return; AOI.m?.stopSpeaking(); next(420); };
   { const i0 = v.i; setTimeout(() => { if (voiceQ === v && v.i === i0 && !audio.ended && (audio.paused || audio.currentTime < .05)) { AOI.m?.stopSpeaking(); v.i++; playNext(); } }, ((l.dur || 3) + 4) * 1000); }   // 10-29：声の読み込みが止まっても、語りが黙ったまま止まらない
 }
@@ -1326,12 +1326,12 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 4.1 : 2.3, s = MOBILE ? .22 : 1.1,   /* 11-10 第7周 採点「375 で碧が左下を大きく塞ぐ」：前 3.0→4.1 m */   /* 11-10 第6周 採点「375 で碧が左端で切れる」：横 .5→.2 */   /* 11-03 本人「碧との距離をもっと近く」：前 3.6/3.0 m・横 1.25 */   /* 10-30 パネル：375px で碧を真ん中から外す */   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
+  const f = MOBILE ? 3.0 : 2.3, s = MOBILE ? .25 : 1.1,   /* 11-20 本人「碧がもっと近く見えるように」：375 は前 4.1→3.0 m（全身が画面の高さの約 4 割・話すとき 4.5 割強。2.6 m は左の札と重なり採点で下がった） */   /* 11-10 第7周 採点「375 で碧が左下を大きく塞ぐ」：前 3.0→4.1 m */   /* 11-10 第6周 採点「375 で碧が左端で切れる」：横 .5→.2 */   /* 11-03 本人「碧との距離をもっと近く」：前 3.6/3.0 m・横 1.25 */   /* 10-30 パネル：375px で碧を真ん中から外す */   /* 2026-10-27 375px で足もとが右下のボタンに重なる→少し遠く・左寄りに */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
-  const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = MOBILE ? -1 : !$("#panel").hidden ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：左右がこまごとに入れかわらない */
+  const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = MOBILE ? 1   /* 11-20：近くに立つぶん、375 は右寄りに（左は生き物の札の列・足もとの高さの札と重なる。右は写真の札だけ） */ : !$("#panel").hidden ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：左右がこまごとに入れかわらない */
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   if (offRoute(CAM.pos.x, CAM.pos.z) && n.dist < 40) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
-  if (solidAt(out.x, out.z, .3)) { for (const [a, b] of [[f, 0], [f * .6, 0], [f, -s * side], [1.4, 0]]) { const x = CAM.pos.x + fx * a + rx * b, z = CAM.pos.z + fz * a + rz * b; if (!solidAt(x, z, .3)) { out.x = x; out.z = z; break; } } }   /* 11-03 立ち位置が壁の中なら、通りの側へ */
+  if (solidAt(out.x, out.z, .3)) { for (const [a, b] of (MOBILE ? [[f, 0], [2.05, 0], [f, -s * side], [1.75, 0]] : [[f, 0], [f * .6, 0], [f, -s * side], [1.4, 0]])   /* 11-20：375 は壁ぎわでも 1.75 m より寄せない（顔が画面を塞がない・置き直しをくり返さない） */) { const x = CAM.pos.x + fx * a + rx * b, z = CAM.pos.z + fz * a + rz * b; if (!solidAt(x, z, .3)) { out.x = x; out.z = z; break; } } }   /* 11-03 立ち位置が壁の中なら、通りの側へ */
   if (solidAt(out.x, out.z, .3)) { let ok = false; for (const r of [1.3, .9, 2.2]) { for (const k of [0, 1, -1, 2, -2]) { if (ok) break; const a = vy + k * Math.PI / 4, x = CAM.pos.x - Math.sin(a) * r, z = CAM.pos.z - Math.cos(a) * r; if (!solidAt(x, z, .3)) { out.x = x; out.z = z; ok = true; } } if (ok) break; } }   /* 11-05 採点：それでも壁の中なら、見る人のまわりの空いた所へ */
   out.y = groundY(out.x, out.z); return out;
 }
@@ -1347,6 +1347,15 @@ function aoiArrive() {
 const _ap = new THREE.Vector3();
 const _ndc = new THREE.Vector3();
 const _aq = new THREE.Vector3();
+/* 11-20 本人「碧がもっと近く見えるように」：碧が話しているあいだ、視野をゆっくり少し寄せて顔が見えるようにする（画角は変えず camera.zoom。歩く場面だけ・碧が視野の内にいるときだけ・動きを減らす設定では寄せない） */
+const AOIZ = { k: 0 }, _az = new THREE.Vector3();
+function aoiZoom(dt) {
+  let t = 0;
+  if (QW.mode === "walk" && !RM && voiceQ && AOI.m && AOI.root?.visible && !WALK.moving) { const P = AOI.m.pos; _az.set(P.x, P.y + 1.4, P.z).project(camera); if (_az.z < 1 && Math.abs(_az.x) < (AOIZ.k > .05 ? .7 : .5) && Math.abs(_az.y) < .8) AOIZ.h = 2.6; }   /* 行と行の間（2.6 秒まで）は寄せたまま：寄り引きをくり返さない */
+  AOIZ.h = Math.max(0, (AOIZ.h || 0) - dt); if (WALK.moving || QW.mode !== "walk") AOIZ.h = 0; t = AOIZ.h > 0 ? 1 : 0;
+  if (QW.mode !== "walk") AOIZ.k = 0; else AOIZ.k += (t - AOIZ.k) * (1 - Math.exp(-dt * (t ? 1.5 : 1.3)));
+  const z = 1 + .14 * AOIZ.k * AOIZ.k * (3 - 2 * AOIZ.k); if (Math.abs(camera.zoom - z) > 5e-4) { camera.zoom = z; camera.updateProjectionMatrix(); }
+}
 function stepAoi(dt) {
   if (!AOI.m || !AOI.root.visible) return;
   aoiSpot(_ap); const P = AOI.m.pos, dx = _ap.x - P.x, dz = _ap.z - P.z, dist = Math.hypot(dx, dz);
@@ -1356,8 +1365,8 @@ function stepAoi(dt) {
   else {
     const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .4;
     if (MOBILE) { const sx = _ndc.copy(P).setY(P.y + 1).project(camera).x, sd = sx < -.08 ? "l" : sx > .08 ? "r" : null; if (sd && document.body.dataset.aoi !== sd) document.body.dataset.aoi = sd; }   // 11-05 375px：字幕を碧と反対の側へ   // 2026-10-25 375px で碧が画面の端で切れない：端に寄ったら、立ち位置へ歩いて戻る
-    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(2.8, dist * 1.4 + (WALK.moving ? WALK.speed * .6 : 0)) : 0;
-    AOI.v += Math.max(-1.8 * dt, Math.min(1.0 * dt, want - AOI.v));
+    const go = WALK.moving ? dist > .04 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3), want = go ? Math.min(WALK.moving ? 3.6 : 2.8, dist * 1.4 + (WALK.moving ? WALK.speed * (WALK.vk || 1) : 0)) : 0;   /* 11-20：歩くあいだは見る人と同じ速さで前を歩く */
+    AOI.v += Math.max(-1.8 * dt, Math.min((WALK.moving ? 4.5 : 1.0) * dt, want - AOI.v));
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt), q = _aq.set(P.x + dx / dist * st, 0, P.z + dz / dist * st); if (slideOut(q, P.x, P.z, .28) && Math.hypot(q.x - P.x, q.z - P.z) < 1e-4) { AOI.v = 0; if ((AOI.blk = (AOI.blk || 0) + dt) > 1.2) { AOI.blk = 0; if (!solidAt(_ap.x, _ap.z, .3)) AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); } } else { AOI.blk = 0; AOI.m.drive(q.x, q.z); } }   /* 11-03 碧も壁を抜けない（沿ってすべる） */
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; AOI.m.faceTo(Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z)); }
   }
@@ -2054,7 +2063,7 @@ function frame() {
   stepLayer(dt); stepSho(dt); stepTalk(); WAVE.step(); stepSoundWalk(dt); MY.L?.update(dt); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !$("#panel").hidden || !!voiceQ });   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   kuraCull(dt);
   if (KURA.tags) stepTag();
-  if (QW.mode === "walk") { stepAoi(dt); EAR.update(dt); } else if (EAR.on && QW.mode !== "descend") EAR.stop();
+  aoiZoom(dt); if (QW.mode === "walk") { stepAoi(dt); EAR.update(dt); } else if (EAR.on && QW.mode !== "descend") EAR.stop();
   if (QW.mode === "sight") stepBody(dt);
   if (SIGHT.post && QW.mode === "sight") { renderer.setRenderTarget(SIGHT.post.rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(SIGHT.post.ps, SIGHT.post.cam); renderBody(); }
   else { const _r0 = performance.now(); renderer.render(scene, camera); if ((QW.tm?.fr?.length ?? 9) < 4) QW.tm.fr.push(Math.round(performance.now() - _r0)); }
