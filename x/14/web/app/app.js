@@ -1292,6 +1292,8 @@ function loadAoi() {
     await Y();
     AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" }); if (MOBILE && AOI.m.q) { AOI.m.q.tier = "mid"; AOI.m.q.auto = true; }   /* 11-05 375 の fps：スマホは mid から始め、遅ければ low へ自動で下げる（髪・揺れものも一こまおき） */
     if (AOI.m.robe) AOI.m.robe.wind = .2;
+    /* 11-21 P2「近くで見ると袖と手の輪郭に点のぎざぎざ」：碧を近くに寄せたので、肌と服の輪郭線（裏返しの殻）が指のすき間・袖口から点で透けていた＝肌・服の輪郭線を外す（髪は残す）。PC は切り抜きの縁を MSAA でなめらかに */
+    v.scene.traverse(o => { for (const m of [].concat(o.material || [])) { if (/SKIN|CLOTH/.test(m.name || "")) { if (m.isOutline || /Outline/.test(m.name)) { m.visible = false; } else if (m.outlineWidthFactor != null) m.outlineWidthFactor = 0; } if (!MOBILE && m.alphaTest > 0 && !m.transparent) { m.alphaToCoverage = true; m.needsUpdate = true; } } });
     AOI.root = root; AOI.ready = true;
     try { if (Mot.warmAoi) await Mot.warmAoi(renderer, root, camera, scene); else { root.visible = true; await renderer.compileAsync(root, camera, scene); } } catch { } root.visible = QW.mode === "walk";   /* 11-03：見せないまま、テクスチャ・シェーダー・影を少しずつ組む（碧が出る瞬間に止まらない） */
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
@@ -1306,6 +1308,10 @@ function aoiSpot(out) {
   if (inBld(out.x, out.z, .4)) { let ok = false; for (const r of [1.3, .9, 2.2]) { for (const k of [0, 1, -1, 2, -2]) { if (ok) break; const a = vy + k * Math.PI / 4, x = CAM.pos.x - Math.sin(a) * r, z = CAM.pos.z - Math.cos(a) * r; if (!inBld(x, z, .4)) { out.x = x; out.z = z; ok = true; } } if (ok) break; } }   /* 11-05 採点：それでも壁の中なら、見る人のまわりの空いた所へ */
   if (MOBILE) { const ox = out.x - CAM.pos.x, oz = out.z - CAM.pos.z, fw = ox * fx + oz * fz, lt = ox * rx + oz * rz, lim = .17 * Math.max(fw, 1.5);   /* 11-20：近くに寄せた分、端で袖が切れない幅に（前 .26） */   // 11-13 採点：375px で碧が画面の端で切れない（横のずれを画角の内へ）
     if (Math.abs(lt) > lim) { const l2 = Math.sign(lt) * lim, f2 = Math.max(fw, 2.5), nx = CAM.pos.x + fx * f2 + rx * l2, nz = CAM.pos.z + fz * f2 + rz * l2; if (!inBld(nx, nz, .3)) { out.x = nx; out.z = nz; } } }
+  if (Math.hypot(out.x - CAM.pos.x, out.z - CAM.pos.z) < 2.1 || inBld(out.x, out.z, .4)) { const sd = AOI.side || 1; for (const k of [.5, .75, 1, 1.25, 1.5]) for (const sg of [sd, -sd]) { const a = k * sg, ca = Math.cos(a), sa = Math.sin(a), x = CAM.pos.x + (fx * ca + rx * sa) * 2.4, z = CAM.pos.z + (fz * ca + rz * sa) * 2.4; if (!inBld(x, z, .4) && (Math.hypot(out.x - CAM.pos.x, out.z - CAM.pos.z) < 2.1 || inBld(out.x, out.z, .4))) { out.x = x; out.z = z; } } }   /* 11-21：壁に向かって止まったら、前の斜め（2.4 m）の空いた所へ（近くへ寄らない） */
+  { const dd = Math.hypot(out.x - CAM.pos.x, out.z - CAM.pos.z), L = AOI.lastOk;   /* 11-21 P2「壁で止まると碧が一瞬 1.7 m まで寄ってから戻る」：近すぎる逃げ場や壁の中になったら、直前の立ち位置（見る人の前 1.6 m より先・2〜5 m・建物の外）に留まる */
+    if ((dd < 2.1 || inBld(out.x, out.z, .4)) && L) { const ld = Math.hypot(L.x - CAM.pos.x, L.z - CAM.pos.z); if (ld >= 2 && ld <= 5 && (L.x - CAM.pos.x) * fx + (L.z - CAM.pos.z) * fz > 1.6 && !inBld(L.x, L.z, .4)) { out.x = L.x; out.z = L.z; } }
+    else if (dd >= 2.1 && !inBld(out.x, out.z, .4)) (AOI.lastOk ??= { x: 0, z: 0 }, AOI.lastOk.x = out.x, AOI.lastOk.z = out.z); }
   out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
