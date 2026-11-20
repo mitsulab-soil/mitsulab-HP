@@ -2,11 +2,11 @@
 const links={
 forest:[['森を歩く','Walk the forest','x/02/'],['一本の木を見比べる','Compare one tree','x/29/']],
 soil:[['触覚を探す','Explore touch','x/10/']],
-water:[['まちの手がかりへ','Explore a place','x/09/'],['観察を持ち帰る','Collect observations','x/18/']],
+water:[['まちの手がかりへ','Explore a place','x/09/'],['今の景色で試す','Try it on the scene before you','x/45/']],
 body:[['碧と層をひらく','Explore with Aoi','x/17/'],['人と機械を比べる','People and machines','x/02/?m=machine']],
 sound:[['音を彫刻にする','Sculpt sound','x/07/'],['碧の唄','Aoi’s song','x/08/']],
 time:[['同じ場所の続き','The same place, continued','x/26/'],['川越を歩く','Walk Kawagoe','x/12/'],['渋谷を歩く','Walk Shibuya','x/14/']],
-language:[['言葉を重ねる','Layer words','x/36/?m=leaf'],['書を空間へ','Calligraphy in space','x/11/'],['噺を聴く','Hear a story','https://mitsulab-soil.github.io/aoi-shizen-rakugo/'],['博物館へ','Visit the museum','https://mitsulab-soil.github.io/museum/']],
+language:[['書を空間へ','Calligraphy in space','x/11/'],['噺を聴く','Hear a story','https://mitsulab-soil.github.io/aoi-shizen-rakugo/'],['博物館へ','Visit the museum','https://mitsulab-soil.github.io/museum/']],
 computation:[['計算と応答','Computation and response','x/27/'],['人と機械の翻訳','Translate between people and machines','x/02/?m=machine'],['研究を読む','Read the research','#research']]
 };
 let current='forest';
