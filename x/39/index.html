@@ -30,13 +30,13 @@ body.zin #map{-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.3) 0,rgba
 .hd p{margin:0;font-size:13px;color:var(--ml-ink);letter-spacing:.04em;text-shadow:0 0 2px #03060f,0 0 4px #03060f,0 0 10px #03060f,0 0 18px #03060f}
 /* 感覚の並び（絞りこみ） */
 .senses{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom));z-index:500;display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:wrap;pointer-events:none}
-.chip{pointer-events:auto;appearance:none;min-height:36px;padding:0 12px;border:1px solid var(--c);border-radius:var(--ml-radius);background:rgba(3,6,15,.55);color:var(--ml-ink);font:500 13px/1 var(--ml-sans);letter-spacing:.06em;display:inline-flex;align-items:center;gap:7px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.chip i{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.chip{pointer-events:auto;appearance:none;min-height:44px;padding:0 12px;border:1px solid var(--c);border-radius:var(--ml-radius);background:rgba(3,6,15,.55);color:var(--ml-ink);font:500 13px/1 var(--ml-sans);letter-spacing:.06em;display:inline-flex;align-items:center;gap:7px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--c)}
 .chip[aria-pressed="false"]{opacity:.68;border-style:dashed}
 .chip[aria-pressed="false"] i{background:transparent;box-shadow:none;border:1px solid var(--c)}
 .chip[aria-pressed="false"] span{text-decoration:line-through}
 .slab{pointer-events:none;align-self:center;font:500 10px/1 var(--ml-mono);letter-spacing:.24em;color:var(--ml-ink-3);text-shadow:0 0 6px #03060f}
-.grp{display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--ml-aoi-2);background:rgba(5,9,18,.75);color:var(--ml-ink);flex-direction:column;gap:2px;box-shadow:0 0 0 6px rgba(155,220,240,.08)}
+.grp{display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--ml-aoi-2);background:rgba(5,9,18,.75);color:var(--ml-ink);flex-direction:column;gap:2px}
 .grp span{display:flex;gap:3px}.grp span i{width:8px;height:8px;border-radius:50%}
 .grp b{font:500 13px/1 var(--ml-mono);font-weight:500}
 #hint{position:fixed;left:56%;top:58%;width:0;height:0;z-index:460;pointer-events:none}
@@ -83,7 +83,8 @@ body.placing .sheet{display:block}
 .leaflet-container a.leaflet-popup-close-button{color:var(--ml-ink-3)}
 .pk{font:500 11px/1 var(--ml-mono);letter-spacing:.2em;color:var(--c);margin:0 0 6px}
 .pt{margin:0 0 6px;color:var(--ml-ink)}
-.pm{margin:0;color:var(--ml-ink-3);font-size:11.5px}
+.pm{margin:0;color:var(--ml-ink-2);font-size:12px}
+.pq{margin:8px 0 0;color:var(--ml-ink);font:13px/1.65 var(--ml-serif);letter-spacing:.04em}
 .pm a{color:var(--ml-aoi-2)}
 .pa{display:flex;align-items:center;min-height:44px;margin:6px 0 -8px;font:500 12px/1 var(--ml-mono);letter-spacing:.14em;color:var(--ml-ink-2)!important;text-decoration:none;border-top:1px solid var(--ml-line-2)}
 .pimg{display:block;width:230px;max-width:100%;height:160px;background:#0a1222;object-fit:cover;margin:0 0 8px;border-radius:var(--ml-radius)}
@@ -91,6 +92,9 @@ body.placing .sheet{display:block}
 .toast{position:fixed;left:50%;top:auto;bottom:calc(200px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:700;font-size:13px;color:var(--ml-ink);text-shadow:0 0 10px #03060f,0 0 2px #03060f;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
 body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
+/* スマホ：印の吹き出しをひらいているあいだは、重なる見出しを下げる */
+.hd{transition:opacity .25s}
+@media (max-width:767px){body.pop .hd{opacity:0}body.pop .hd a{pointer-events:none}}
 @media (min-width:768px){.hd h1{font-size:32px}.senses{bottom:calc(88px + env(safe-area-inset-bottom))}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
@@ -106,7 +110,7 @@ body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
 <div id="hint" hidden aria-hidden="true"><i></i><i></i></div>
 <div class="aim" aria-hidden="true"><span></span></div>
 <form class="sheet" id="sheet" aria-label="感じたことを置く" autocomplete="off">
-  <p class="sk">置く感覚</p>
+  <p class="sk">いま、ここで感じること</p>
   <div class="row" id="pSense" role="radiogroup" aria-label="置く感覚"></div>
   <div class="row" id="pLevel" role="radiogroup" aria-label="強さ"></div>
   <div class="txt">
@@ -141,6 +145,8 @@ var SM={};S.forEach(function(s){SM[s.k]=s});
 var LV=['かすか','ふつう','つよい'];
 /* 11-20：印を開いたとき、その感覚をひらく公開中のアプリへの小さな入口（嗅ぐ・味わうは無い） */
 var APP={see:['02','Qualia/sight','見る道具'],hear:['07','Qualia/sound','聴く道具'],touch:['10','Qualia/touch','触れる道具'],meas:['44','Qualia/magnet','地磁気を測る道具']};
+/* 11-20：印を読んだあと、画面から顔を上げて、いまいる場所で同じ感覚をひらく一言 */
+var ASK={see:'顔を上げて。いまいる場所で、いちばん遠くに見えるものは？',hear:'目を閉じて十秒。いまいる場所で、いちばん遠い音は？',touch:'いま手の届くものに、ひとつ触れてみて。',smell:'ひと息、鼻から吸ってみて。いまいる場所は、何のにおい？',taste:'さいごに食べたものの味を、まだ思い出せる？',meas:'いまの暑さ寒さを、肌は何度くらいと感じている？'};
 function app(k){var a=APP[k];return a?'<a class="pa" href="../'+a[0]+'/"><span style="font-family:var(--ml-sans);letter-spacing:.06em;color:var(--ml-ink-3);margin-right:10px">'+a[2]+'</span>'+a[1]+' ›</a>':''}
 /* mitsulab が出典で確かめた印（位置はおおよそ） */
 var SEED=[
@@ -165,7 +171,7 @@ function phGet(id){return db().then(function(d){return new Promise(function(res)
 function phDel(id){return db().then(function(d){d.transaction('ph','readwrite').objectStore('ph').delete(id)}).catch(function(){})}
 
 /* 地図 */
-var map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:true,minZoom:4,maxZoom:17,worldCopyJump:false,maxBounds:[[18,118],[50,160]]}).setView([36.5,137.5],5);
+var map=L.map('map',{renderer:L.canvas({tolerance:14}),preferCanvas:true,zoomControl:false,attributionControl:true,minZoom:4,maxZoom:17,worldCopyJump:false,maxBounds:[[18,118],[50,160]]}).setView([36.5,137.5],5);
 if(innerWidth<768)map.setView([36.2,137.8],4);
 L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{minZoom:2,maxZoom:18,maxNativeZoom:18,attribution:'地図：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a> ・ <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'}).addTo(map);
 map.attributionControl.setPrefix(false);
@@ -198,14 +204,15 @@ function spread(m){var c=map.latLngToLayerPoint([m[0][0].la,m[0][0].lo]),n=m.len
     L.polyline([[a[0].la,a[0].lo],ll],{color:SM[a[0].s].c,weight:1.5,opacity:.8,interactive:false}).addTo(layer);
     mark(Object.assign({},a[0],{la:ll.lat,lo:ll.lng,_o:a[0]}),a[1])});
   L.circleMarker([m[0][0].la,m[0][0].lo],{radius:3,stroke:false,fillColor:'#e8f4fa',fillOpacity:.8,interactive:false}).addTo(layer)}
+map.on('popupopen',function(){document.body.classList.add('pop')});map.on('popupclose',function(){document.body.classList.remove('pop')});
 map.on('zoomend',function(){draw();body.classList.toggle('zin',map.getZoom()>=11)});
 function mark(p,seed){
   var s=SM[p.s],r=4+p.lv*2.5;
-  L.circleMarker([p.la,p.lo],{radius:r+7,stroke:false,fillColor:s.c,fillOpacity:.14,interactive:false}).addTo(layer);
+  L.circleMarker([p.la,p.lo],{radius:r+6,color:s.c,weight:1,opacity:.32,fill:false,interactive:false}).addTo(layer);
   var m=L.circleMarker([p.la,p.lo],{radius:r,color:s.c,weight:seed?1.5:1,opacity:.95,fillColor:s.c,fillOpacity:seed?.25:.7}).addTo(layer);
   m.on('click',function(){
     var h='<p class="pk" style="--c:'+s.c+'">'+s.n+' ・ '+LV[p.lv-1]+'</p>';
-    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p>'+app(p.s)}
+    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p><p class="pq">'+ASK[p.s]+'</p>'+app(p.s)}
     else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p><button class="del" data-del="'+p.id+'">この印を消す</button>'+app(p.s)}
     var pop=L.popup({maxWidth:270,autoPanPadding:[16,120]}).setLatLng([p.la,p.lo]).setContent(h).openOn(map);
     var el=pop.getElement();
@@ -266,7 +273,7 @@ bPut.onclick=function(){
   var p={id:'p'+Math.random().toString(36).slice(2,12),s:st.s,lv:st.lv,la:+g[0].toFixed(5),lo:+g[1].toFixed(5),t:t,when:band(),ph:!!st.ph};
   var a=load();a.push(p);
   if(!save(a)){err.textContent='この端末では保存できませんでした';return}
-  var fin=function(){close();draw();toast('置きました')};
+  var fin=function(){close();draw();toast('置きました。顔を上げて、もう一つ探してみて。',4200)};
   if(st.ph)phPut(p.id,st.ph).then(fin,function(){p.ph=false;var b=load().map(function(x){return x.id===p.id?p:x});save(b);fin()});else fin();
 };
 bCancel.onclick=close;
@@ -299,7 +306,9 @@ bHere.onclick=function(){
   var BK={'44':'Qualia/magnet','45':'Qualia/lens'}[d.b];if(BK){var ba=document.createElement('a');ba.href='../'+d.b+'/';ba.textContent='← '+BK+' に戻る';ba.style.cssText='display:inline-block;margin-top:6px;padding:15px 0;min-height:44px;box-sizing:border-box;font-size:13px;letter-spacing:.08em;color:var(--ml-ink-2,#cfe3ea)';document.querySelector('.hd').appendChild(ba)}
   setTimeout(function(){open();bHere.hidden=false;needMove=true;bPut.style.opacity='.45';setTimeout(function(){map.once('movestart',function(){needMove=false;bPut.style.opacity=''})},1500);S.forEach(function(s,i){if(s.k===d.s)pS.children[i].click()});txt.value=d.t.slice(0,40);ready();
     var e=document.getElementById('toast');e.textContent='「現在地」か地図を動かして場所を合わせ、「ここに置く」';if(BK)e.style.top='calc(180px + env(safe-area-inset-top))';e.classList.add('on');setTimeout(function(){e.classList.remove('on');setTimeout(function(){e.style.top=''},400)},6000)},500)})();
-var tt;function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},1800)}
+var tt;function toast(m,ms){var e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},ms||1800)}
+/* はじめの一言：印に触れられることを一度だけ（下書きを受けとったときは出さない） */
+if(!body.classList.contains('placing')){var first=true;try{first=localStorage.getItem('qmap.first')!=='1';localStorage.setItem('qmap.first','1')}catch(e){}if(first)setTimeout(function(){if(!body.classList.contains('placing'))toast('印に触れると、そこで感じられたことが読めます',4200)},900)}
 })();
 </script>
 </body>

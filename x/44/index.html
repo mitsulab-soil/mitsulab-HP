@@ -17,12 +17,14 @@ header{width:100%;max-width:480px;display:flex;justify-content:space-between;fon
 #read{text-align:center;min-height:64px}
 #deg{font-size:34px;letter-spacing:.04em}
 #uT{font-size:13px;color:var(--sub);margin-top:4px}
-#note{font-size:12px;color:var(--sub);text-align:center;max-width:340px;line-height:1.7;min-height:40px}
+#note{font-size:14px;color:#b9c8c2;text-align:center;max-width:340px;line-height:1.8;min-height:50px}
 .row{display:flex;gap:10px;width:100%;max-width:480px}
 button{flex:1;min-height:52px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;font:inherit;font-size:15px;letter-spacing:.1em}
 button.on{border-color:var(--acc);color:var(--acc)}
-#more{font-size:12px;color:var(--sub);max-width:340px;text-align:center;line-height:1.7}
-#more summary{list-style:none;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;color:var(--sub)}
+button:disabled{opacity:.38}
+#needle{transition:opacity .4s}#needle.off{opacity:.18}
+#more{font-size:13px;color:var(--sub);max-width:340px;text-align:center;line-height:1.7}
+#more summary{list-style:none;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.1em;color:var(--sub)}
 #more summary::-webkit-details-marker{display:none}
 #more[open] summary{color:var(--acc)}
 #more p{text-align:left}
@@ -36,16 +38,16 @@ button.on{border-color:var(--acc);color:var(--acc)}
 <svg viewBox="-100 -100 200 200">
  <circle r="92" fill="none" stroke="#2c3a37" stroke-width="1"/>
  <g id="ticks"></g>
- <g id="needle"><line x1="0" y1="-10" x2="0" y2="-84" stroke="#7fc4b4" stroke-width="2"/><text x="0" y="-62" fill="#7fc4b4" font-size="12" text-anchor="middle" dx="12">北</text></g>
+ <g id="needle" class="off"><line x1="0" y1="-10" x2="0" y2="-84" stroke="#7fc4b4" stroke-width="2"/><text id="nlab" x="12" y="-58" fill="#7fc4b4" font-size="12" text-anchor="middle">北</text></g>
  <line x1="0" y1="-96" x2="0" y2="-88" stroke="#e6ece8" stroke-width="2"/>
 </svg>
 </div>
 <svg id="trail" viewBox="-60 -60 120 120" style="display:none;width:min(60vw,240px);height:min(60vw,240px)" aria-label="歩いたあいだに北がどう回ったか"></svg>
 <div id="read"><div id="deg">―</div><div id="uT"></div></div>
 <p id="note">触れると、北の向きが音になります。<br>イヤホン推奨。</p>
-<details id="more"><summary aria-label="生き物の磁気の感覚について">＋</summary><p>ヨーロッパコマドリは、渡りの向きを決めるときに地磁気を手がかりにしていると考えられています（Wiltschko &amp; Wiltschko 1972, <i>Science</i> 176:62–64）。どのように感じているかは、まだ分かっていないことが多くあります。この音は、スマホの磁気センサーの方位を人の耳に移した模式です。</p></details>
+<details id="more"><summary aria-label="生き物の磁気の感覚について">＋ 鳥と地磁気</summary><p>ヨーロッパコマドリは、渡りの向きを決めるときに地磁気を手がかりにしていると考えられています（Wiltschko &amp; Wiltschko 1972, <i>Science</i> 176:62–64）。どのように感じているかは、まだ分かっていないことが多くあります。この音は、スマホの磁気センサーの方位を人の耳に移した模式です。</p></details>
 <div class="row"><button id="start">はじめる</button><button id="pk" disabled>ポケットへ</button></div>
-<div id="pocket"><span>画面を暗くしました。<br>耳と体で、北を探して。<br>触れると戻る</span></div>
+<div id="pocket"><span>画面を暗くしました。<br>顔を上げて、耳と体で北を探して。<br>触れると戻る</span></div>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -75,7 +77,7 @@ function update(){
  // 手の揺れでちらつかないよう、向きをなめらかにする（円の上で）
  if(sm==null)sm=heading;else{const df=((heading-sm+540)%360)-180;sm=(sm+df*.25+360)%360}
  const h=sm;let rel=((-h+540)%360)-180; // 北が自分から見てどちらか（0＝正面）
- $('needle').setAttribute('transform','rotate('+(-h)+')');
+ $('needle').setAttribute('transform','rotate('+(-h)+')');$('needle').classList.remove('off');$('nlab').setAttribute('transform','rotate('+h+' 12 -62)');
  $('deg').textContent=Math.round(h)+'°';
  if(!log.length||Date.now()-log[log.length-1][0]>1000)log.push([Date.now(),h]);
  const t=ctx.currentTime,front=Math.cos(rel*Math.PI/180),ar=Math.abs(rel);
@@ -100,12 +102,12 @@ function mag(){
  try{const m=new Magnetometer({frequency:10});m.onreading=()=>{field=Math.hypot(m.x,m.y,m.z);$('uT').textContent='強さ '+field.toFixed(0)+' µT'};m.onerror=()=>{$('uT').textContent=''};m.start()}catch(_){$('uT').textContent=''}
 }
 $('start').onclick=async()=>{
- if(running){running=false;showTrail();gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
+ if(running){running=false;$('needle').classList.add('off');showTrail();gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
  if(!ctx)audio();await ctx.resume();
- if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').textContent='向きの許可がないため、使えません。';return}}catch(_){ $('note').textContent='向きの許可を得られませんでした。';return}}
+ if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}catch(_){ $('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
  mag();running=true;clearTimeout(window.__pkT);window.__pkT=setTimeout(()=>{if(running&&heading!=null)$('pk').onclick()},25000);log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
- $('note').innerHTML='北が右なら右の耳から。北に近づくと音がうなり、<br>北（磁北）を向くとうなりが止まり、小さな鈴が一度鳴ります。';
+ $('note').innerHTML='北のある側の耳から聴こえます。<br>うなりが止まり、鈴が鳴ったら、そこが北（磁北）。';
  setTimeout(()=>{if(heading==null)$('note').textContent='方位が取れません。スマホで開いてください。'},2500);
 };
 function showTrail(){
@@ -114,11 +116,14 @@ function showTrail(){
  sv.innerHTML='<circle r="58" fill="none" stroke="#2c3a37"/><path d="'+p+'" fill="none" stroke="#7fc4b4" stroke-width="1.4" stroke-linecap="round"/><text y="4" fill="#8fa39c" font-size="9" text-anchor="middle">はじめ</text>';
  $('dial').style.display='none';sv.style.display='';
  const m=Math.round((Date.now()-t0s)/60000);
- $('note').innerHTML='線は、北が自分から見てどちらにあったか（中心がはじめ、外ほどあと'+(m?'・'+m+' 分':'')+'）。北を見つけたのは '+finds+' 回。<br>碧：閉じたあと、いつもの道で北がどちらか、思い出してみて。'+(W<40?'途中から手がかりを細くしました。':'')+'<br>記録はこの画面だけで、閉じると消えます。';
+ $('note').innerHTML='北の回り方（中心がはじめ、外ほどあと'+(m?'・'+m+' 分':'')+'）。北を見つけたのは '+finds+' 回。<br>碧：閉じたあと、いつもの道で北がどちらか、思い出してみて。<br>この線は、閉じると消えます。';
  if(window.atosaki)setTimeout(()=>window.atosaki('いま、画面を見ずに北を指せる？',[{n:'指せる',s:'meas',t:'機器が測った北を音で聴いたあと、体で北を指せた'},{n:'だいたい',s:'meas',t:'機器が測った北を音で聴いたあと、北がだいたい分かった'},{n:'まだ',s:'meas',t:'機器が測った北を音で聴いたあとも、北はまだ分からない'}]),1500);
 }
-$('pk').onclick=()=>{$('pocket').classList.add('show');navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})};
-$('pocket').onclick=()=>$('pocket').classList.remove('show');
+let wl=null;
+$('pk').onclick=()=>{$('pocket').classList.add('show');navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>{wl=l}).catch(()=>{})};
+$('pocket').onclick=()=>{$('pocket').classList.remove('show');if(wl){wl.release().catch(()=>{});wl=null}};
+// 向きのセンサーのない PC では、押す前に伝える
+if(!('ontouchstart' in window)&&matchMedia('(pointer:fine)').matches)$('note').innerHTML='スマホで開くと、北の向きが音になります。<br>イヤホン推奨。';
 })();
 </script>
 <script src="../39/atosaki.js" defer></script>
