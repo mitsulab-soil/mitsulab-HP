@@ -15,7 +15,7 @@ function noise3(seed) {
 // はじめの四つは mitsulab がこの場でつくる形（外の素材なし）。面のどこでも模様が同じ細かさで並び、つなぎ目が割れないように作る。器と岩は実物を測った形（Poly Haven・CC0。台帳 M-0900）
 export const OBJECTS = [
   { id: "lump", name: "かたまり", sub: "手のひらに収まる丸い塊（模型）", make: "lump", rep: [1, 1], el: .2, zoom: .74, relief: .85 },
-  { id: "ring", name: "輪", sub: "指を通せる太い輪（模型）", make: "ring", rep: [2, 1], el: .4, zoom: .78, relief: .85 },
+  { id: "rope", name: "結び目", sub: "麻縄のひと結び（三つ撚り・模型）", make: "rope", rep: [1, 1], el: .4, zoom: .7, relief: .7, tintFor: { cloth: [1.5, .98, .5] } },   // 2026-11-21 本人「ドーナツ型は削除。もっと触覚的に面白い 3D に」＝輪をやめ、撚りの溝と結び目の重なりを指でたどれる縄に
   { id: "log", name: "円柱", sub: "片手でにぎれる円柱（模型）", make: "log", rep: [1, 1], el: .2, zoom: .78, relief: .85 },
   { id: "rise", name: "起伏", sub: "手のひらほどの起伏（模型）", make: "rise", rep: [1, 1], el: .27, zoom: .8, relief: .5 },
   { id: "vase", name: "器", sub: "実物を測った花瓶", src: "models/ceramic_vase_01.gltf", rep: [2, 2], size: .55, tint: [1.7, 1.6, 1.45] },
@@ -29,7 +29,7 @@ function sheet(P, ns, nt, f, c) {
   for (let j = 0; j <= nt; j++) for (let i = 0; i <= ns; i++) { const r = f(i / ns, j / nt); P.pos.push(r[0], r[1], r[2]); P.uv.push(r[3], r[4]); P.w.push(r[5] ?? 1); }
   const id = []; for (let j = 0; j < nt; j++) for (let i = 0; i < ns; i++) { const a = o + j * (ns + 1) + i, b = a + 1, d = a + ns + 1, e = d + 1; id.push(a, d, b, b, d, e); }
   let sum = 0; const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), q = k => new THREE.Vector3(P.pos[k * 3], P.pos[k * 3 + 1], P.pos[k * 3 + 2]);
-  for (let k = 0; k < id.length; k += 3 * 29) { A.copy(q(id[k])); B.copy(q(id[k + 1])).sub(A); C.copy(q(id[k + 2])).sub(A); sum += B.cross(C).normalize().dot(A.sub(c).normalize()); }
+  for (let k = 0; k < id.length; k += 3 * 29) { A.copy(q(id[k])); B.copy(q(id[k + 1])).sub(A); C.copy(q(id[k + 2])).sub(A); sum += B.cross(C).normalize().dot(A.sub(typeof c === "function" ? c(id[k] - o) : c).normalize()); }   // c が関数なら、頂点ごとの内側の点（管の芯）
   if (sum < 0) for (let k = 0; k < id.length; k += 3) { const t = id[k + 1]; id[k + 1] = id[k + 2]; id[k + 2] = t; }
   for (let k = 0; k < id.length; k++) P.idx.push(id[k]);
 }
@@ -81,10 +81,29 @@ const MAKE = {
     sheet(P, ns, nt, (s, t) => { const i = Math.round(s * ns), j = Math.round(t * nt), ph = s * Math.PI * 2, l = (Ln[j * (ns + 1) + i] + t * R) / 2; return [t * R * Math.cos(ph), Hh(ph, t), t * R * Math.sin(ph), .5 + l * Math.cos(ph), .5 + l * Math.sin(ph), 1 - sstep(.8, 1, t)]; }, new THREE.Vector3(0, -1, 0));
     return finish(P, 0, .012);
   },
-  // 輪：太い輪。どこにも模様の集まる所がない
-  ring(N) {
-    const g = new THREE.TorusGeometry(.27, .118, Math.round(N * .6), Math.round(N * 1.7)); g.rotateX(Math.PI / 2); g.rotateZ(.2); g.computeBoundingBox(); g.translate(0, -g.boundingBox.min.y - .104, 0);
-    return seal(g);
+  // 結び目：三つ撚りの麻縄を、ひと結び（止め結び）にして床に置いた形。撚りの溝・結び目の重なり・両はしの尾を指でたどれる
+  rope(N) {
+    const n = noise3(57), P = newP(), K = .078, pts = [];
+    const tre = t => new THREE.Vector3((Math.sin(t) + 2 * Math.sin(2 * t)) * K, (-Math.sin(3 * t) * 1.25 + 1.3) * K, (Math.cos(t) - 2 * Math.cos(2 * t)) * K);   // 止め結び（三つ葉結びを一か所で切って開いた形）。高さ＝重なりの上下
+    const t0 = 3.0 + .42, t1 = 3.0 + Math.PI * 2 - .42, a = tre(t0), b = tre(t1);   // 外の輪のはしで切り、二本の尾を外へ開く
+    const out = (p, q, rot) => { const ph = Math.atan2(p.z, p.x) + rot; return new THREE.Vector3(Math.cos(ph), 0, Math.sin(ph)); };
+    const da = out(a, b, -.62), db = out(b, a, .62);
+    const tail = (e, d, k, w) => { const s = k * .058, q = e.clone().addScaledVector(d, s); q.y = .056 + (e.y - .056) * Math.exp(-k * .9); q.addScaledVector(new THREE.Vector3(-d.z, 0, d.x), Math.sin(k * .5) * .008 * k * w); return q; };   // 尾は床へ下りて、ゆるく曲がる
+    for (let k = 9; k >= 1; k--) pts.push(tail(a, da, k, 1));
+    for (let k = 0; k <= 72; k++) pts.push(tre(t0 + (t1 - t0) * k / 72));
+    for (let k = 1; k <= 11; k++) pts.push(tail(b, db, k, -1));
+    const cv = new THREE.CatmullRomCurve3(pts, false, "centripetal"), L = cv.getLength(), R0 = .056, C = 2 * Math.PI * R0, W = 2 * Math.PI / .5;   // W＝撚りの回り方（ひと撚り 5 cm）
+    const nt = Math.round(N * 4.2), ns = Math.round(N * .5), F = cv.computeFrenetFrames(nt, false), Pp = [];
+    for (let j = 0; j <= nt; j++) Pp.push(cv.getPointAt(j / nt));
+    sheet(P, ns, nt, (s, t) => {
+      const j = Math.round(t * nt), c = Pp[j], th = s * Math.PI * 2, x = t * L, end = Math.min(x, L - x);
+      const lobe = Math.pow(.5 + .5 * Math.cos(3 * (th - W * x)), .42);   // 三本の撚り（丸い山と細い溝）
+      const cap = end < R0 ? Math.sqrt(Math.max(0, 1 - (1 - end / R0) ** 2)) : 1;   // はしは丸く閉じる（ほつれ止め）
+      const r = R0 * (.72 + .28 * lobe) * (1 + n(c.x * 9, c.y * 9, c.z * 9) * .05) * cap;
+      const N_ = F.normals[j], B_ = F.binormals[j], ox = Math.cos(th) * r, oy = Math.sin(th) * r;
+      return [c.x + N_.x * ox + B_.x * oy, c.y + N_.y * ox + B_.y * oy, c.z + N_.z * ox + B_.z * oy, (th - W * x) / (Math.PI * 2), .5 + x / C * .5, (.35 + .65 * lobe) * (1 - sstep(.5, 1, 1 - end / (R0 * 2.2)))];
+    }, k => Pp[Math.floor(k / (ns + 1))]);
+    return finish(P, .35);
   },
 };
 

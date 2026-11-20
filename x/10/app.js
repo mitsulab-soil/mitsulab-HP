@@ -6,7 +6,7 @@ import { T, setLang, lang } from "./i18n.js?v=20261120u";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
-import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261120u";
+import { OBJECTS, loadGeometry, applyRelief, geometrySTL } from "./objects.js?v=20261121r";
 import { buildSightSpace, SKY, SUN } from "./kit/sightspace.js?v=20261120a";   // 2026-11-20 本人「sight と同じ空間で」
 
 // 形の札の絵（細い線の輪郭）
@@ -15,7 +15,7 @@ const SHAPE = {
   plate: SV("M6 24l14-7 14 7-14 7z M6 24v3l14 7 14-7v-3"),
   boulder: SV("M7 28c-1-6 3-12 9-14 4-3 10-2 13 2 4 3 5 8 3 12z M7 28h25"),
   lump: SV("M6 25c0-8 6-13 15-13s13 5 13 12-5 8-14 8S6 30 6 25z M13 20c2-3 6-4 10-4"),
-  ring: SV("M20 11c8 0 14 4 14 9s-6 9-14 9S6 25 6 20s6-9 14-9z M20 17c3 0 6 1 6 3s-3 3-6 3-6-1-6-3 3-3 6-3z"),
+  rope: SV("M4 30c5 0 8-2 11-6 3-5 9-9 13-6s0 9-5 8-7-8-3-12 8-3 10 1 3 9 10 9"),
   log: SV("M10 13h20 M10 27h20 M10 13c-3 0-4 3-4 7s1 7 4 7 M30 13c3 0 4 3 4 7s-1 7-4 7-4-3-4-7 1-7 4-7z"),
   rise: SV("M4 30c6 0 8-15 14-15s6 6 10 6 4 9 8 9z M4 30h32"),
   vase: SV("M16 6h8 M17 6c0 4-6 7-6 15s4 13 9 13 9-5 9-13-6-11-6-15"),
@@ -270,7 +270,7 @@ function relief() {
   applyRelief(objMesh.geometry, objDef.rep, (u, v) => heightAt(u * SIZE_MM, (1 - v) * SIZE_MM), params.depth / SIZE_MM * (objDef.relief || .55), objDef.pole);
   for (const k of ["map", "normalMap", "roughnessMap"]) objMat[k]?.dispose();
   objMat.map = cloneTex(mat.map, objDef.rep); objMat.normalMap = cloneTex(mat.normalMap, objDef.rep); objMat.roughnessMap = cloneTex(mat.roughnessMap, objDef.rep);
-  objMat.color.setRGB(...(objDef.tint || [1, 1, 1])); objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.envMapIntensity = mat.envMapIntensity; objMat.needsUpdate = true; dirty = 2;
+  objMat.color.setRGB(...(objDef.tintFor?.[surf?.id] || objDef.tint || [1, 1, 1]));   // 縄に麻の布を貼るときは、生成りの麻の色に寄せる objMat.metalness = mat.metalness; objMat.roughness = mat.roughness; objMat.normalScale.copy(mat.normalScale); objMat.envMapIntensity = mat.envMapIntensity; objMat.needsUpdate = true; dirty = 2;
 }
 async function setObject(id) {
   if (objMesh) { scene.remove(objMesh); objMesh.geometry.dispose(); objMesh = null; objHit = null; }
@@ -333,14 +333,14 @@ for (const s of SAMPLES) {
 }
 // ---- はじめに選ぶ「触れるもの × かたち」（2026-11-20 本人「デフォルトで触覚と３dの組み合わせを選択できるguiを」）。一つめがおすすめで、開いたときから選ばれている
 // 2026-11-20 本人「犬でなく、もっと触覚が味わえる３dオブジェクトに。触覚が入れ替わって違和感ないものに」＝どの組も「その素材でできた物」に見える
-const COMBOS = [["moss", "lump"], ["stone", "lump"], ["bark", "log"], ["soil", "rise"], ["cloth", "ring"], ["bark", null]];
+const COMBOS = [["moss", "lump"], ["stone", "lump"], ["bark", "log"], ["soil", "rise"], ["cloth", "rope"], ["bark", null]];
 const HERO = !/[?&](ws|plate)=1/.test(location.search);   // 開いたとき、おすすめの組が選ばれている（触覚さがしと ?plate=1 は板から）
 const ONAME = id => id ? OBJECTS.find(o => o.id === id).name : "板";
 function markCombo() { for (const b of document.querySelectorAll("#combos .cb")) b.setAttribute("aria-pressed", String(b.dataset.s === surf?.id && (b.dataset.o || null) === (objDef?.id || null))); }
 async function setCombo(s, o, quiet) { busy(true); try { const sm = SAMPLES.find(x => x.id === s); if (surf?.id !== s) applySurface(await loadSample(sm)); if ((objDef?.id || null) !== o) await setObject(o); markCombo(); if (!quiet) { say(o ? "aoi.obj" : "aoi." + s, 6000); aoiReact(); } } finally { busy(false); } }
 { const box = $("#combos");
   if (box) for (const [s, o] of COMBOS) { const b = document.createElement("button"); b.type = "button"; b.className = "cb"; b.dataset.s = s; if (o) b.dataset.o = o; b.setAttribute("aria-pressed", "false");
-    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261120u" alt="" width="72" height="72"><b>${T("s." + s)} <i>×</i> <span>${ONAME(o)}</span></b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
+    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261121r" alt="" width="72" height="72"><b>${T("s." + s)} <i>×</i> <span>${ONAME(o)}</span></b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
     b.addEventListener("click", () => setCombo(s, o)); box.append(b); } }
 // ---- 下の三つの印：押すと選択肢が重なって開く。選ぶと閉じる（画面は遷移しない）
 function openTray(id) {
