@@ -529,6 +529,7 @@ function applyLens(id) {
   $("legend").dataset.lens = id; $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
   $("cmpBtn").hidden = id === "hito" || !!L.under || chapter !== "umwelt";
+  window.__kes?.lens(id);   // 2026-11-20 今の景色の窓・計算機を通す視点へ、体が変わったことを伝える
 }
 
 // ---------------------------------------------------------------- 見る人（カメラ）の動き
@@ -1283,8 +1284,8 @@ function frame(now=0) {
     if (AUD.wind) AUD.wind.gain.setTargetAtTime(chapter === "umwelt" && !LENS[lens].under && !LENS[lens].night ? .05 : 0, AUD.ctx.currentTime, .5);
   }
   aoiTick(dt); kurMarks();
-  if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); }
-  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
+  if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); window.__kes?.after(); }   // 2026-11-20 計算機を通す視点（keshiki.js）は、描いたすぐあとの画から作る
+  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); setTimeout(() => import("./keshiki.js?v=20261120k").catch(e => console.warn(e)), 700); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);
@@ -1371,4 +1372,4 @@ function kurMarks() {
     el.hidden = v.z > 1 || x < 0 || x > innerWidth || y < 0 || y > gTop - 8; el.classList.toggle("l", x > innerWidth * (innerWidth < 700 ? .4 : .52)); el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
     if (innerWidth < 700) { const lg = $("legend"), lt = lg && !lg.hidden ? lg.getBoundingClientRect().top : 1e9, rr = parseFloat(el.style.getPropertyValue("--r")) || 22; el.classList.toggle("up", y + rr + 34 > Math.min(lt, gTop)); const sp = el.querySelector("span"), hw = (sp?.offsetWidth || 120) / 2; el.style.setProperty("--dx", Math.round(clamp(x, 92 + hw, innerWidth - 82 - hw) - x) + "px"); } }   // スマホは輪の下に名前。左のダイヤルと右のボタンにかからないよう寄せる
 }
-window.__um = {FPS,get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };
+window.__um = {FPS,get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, talk, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };

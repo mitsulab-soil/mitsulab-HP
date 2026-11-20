@@ -232,7 +232,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261120r">
+<link rel="modulepreload" href="umwelt.js?v=20261120k">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -339,6 +339,10 @@ body{word-break:auto-phrase;line-break:strict}
   <h2>操作</h2>
   <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 上の並び＝身体と受けとり方を切り替える（左右の体を押すか、なぞって回す） ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
   <p>上の「くらべる」＝同じ場所に立ったまま、ミツバチ・犬・マムシに体を入れかえる旅。切り替える前に見え方を予想してから確かめ、最後に外で使える見方を持ち帰ります。右の「◐ 人の目とくらべる」は、押しているあいだだけ同じ場所を人の目に戻します。</p>
+  <p>左の「今の景色」＝窓がひらき、端末のカメラの景色（か、えらんだ写真一枚）が、いま選んでいる体の受けとり方の模式で映ります。✕ で森へ戻ります。カメラの体のときに出る「計算機を通す」＝動き・色を数に・ゆれ。もう一度押すと元に戻ります。</p>
+  <h2>今の景色の窓・計算機を通す</h2>
+  <p>窓の映像と写真は、この端末の中だけで計算し、送らず、残しません。色の写し方は森と同じ近似です。紫外・熱（赤外）・反響はカメラに写らないので、窓では描きません（森の中の模式で確かめられます）。ミツバチの粒の粗さ、犬のぼかしは模式です。</p>
+  <p>計算機を通す三つは、どれも計算した結果です。<b>動き</b>＝前のこまとの差（淡い跡は数秒前の動き）。<b>色を数に</b>＝緑は草木らしい色（緑の強さの指標：Woebbecke ほか 1995）、空は青く明るい所の目安で、色からの推定です。測った値ではありません。<b>ゆれ</b>＝少し前の平均との差を強めたもの（考え方：Wu ほか 2012）で、実際の動きの大きさではありません。</p>
   <h2>この空間のつくり</h2>
   <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、モンシロチョウの雌雄と空です。白い花の多くが紫外を吸うことは研究の報告にもとづきますが、この森の草花・鳥の一つひとつの値は測ったものではなく、目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
   <h2>場所のつくり</h2><p>森・池・川をつないだ創作空間です。関東の雑木林（コナラ・ケヤキ・イロハモミジ）と谷すじのスギ林の、夏のはじめ（7 月ごろ）の午後のつもりで、木は列にせず散らばるように、草花はそれぞれが育つ場所に群れで置いています。実在する場所を再現したものではありません。花の紫外・熱・反響などは、感覚の違いを考えるための模式表現です。</p>
@@ -380,7 +384,7 @@ body{word-break:auto-phrase;line-break:strict}
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261120r';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261120k';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
