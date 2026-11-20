@@ -6,8 +6,8 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
-import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120a";
-import { makeRing } from "./ring.js?v=20261120a";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
+import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120m";
+import { makeRing } from "./ring.js?v=20261120m";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
 import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261119a";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
@@ -445,7 +445,10 @@ function ensureBody(id) {
   const b = makeBody(id, (c,o={})=>M(c,{temp:LENS[id]?.machine?.16:.7,uv:.05,...o}));   // 機械の体は温かくない
   if (['hachi','chou','hebi','mimizu'].includes(id)) asAmbient(b);
   const list=[]; b.traverse(o=>{if(o.isMesh)for(const mt of [].concat(o.material))if(!worldMats.has(mt))list.push([mt,mt.opacity,mt.transparent]);});
-  bodyMats[id]=list; b.visible=false; bodyRoot.add(b); bodies[id]=b; return b;
+  bodyMats[id]=list; b.visible=false; bodyRoot.add(b); bodies[id]=b;
+  // 2026-11-20 あとから届く体の 3D（犬・マムシのモデル）：届いたら、透かしの対象と温かさの扱いに足す
+  b.userData.creature?.userData.whenReady?.(()=>{const seen=new Set(list.map(x=>x[0]));b.traverse(o=>{if(!o.isMesh)return;for(const mt of [].concat(o.material))if(!worldMats.has(mt)&&!seen.has(mt)){seen.add(mt);list.push([mt,mt.opacity,mt.transparent]);}});if(id==='hebi')asAmbient(b);const a=bodyA[id];if(a!=null&&a<.999){bodyA[id]=1;setBodyAlpha(id,a);}});
+  return b;
 }
 const bodyA = {};
 // 2026-11-03 動いている間も 1 秒：生きものの体と、隠れている物（夜の蛾・土の中など）の材質を、起動のあとに裏で組んでおく（切り替えの一こまで組み直して 1〜4 秒止まっていた）
@@ -454,6 +457,7 @@ const slow = (k, t0) => { const d = performance.now() - t0; if (d > 30) (STARTUP
 async function warmAll() {
   if (warmed) return; warmed = true; const nx = () => new Promise(r => setTimeout(r, 0));
   for (const id of LENS_IDS) { if (id !== 'hito') { const t0 = performance.now(); ensureBody(id); slow('body:' + id, t0); await nx(); } }
+  await Promise.race([Promise.all(Object.values(bodies).map(b => { const w = b?.userData.creature?.userData.whenReady; return w ? new Promise(r => w(r)) : 0; })), new Promise(r => setTimeout(r, 6000))]);   // 2026-11-20 犬・マムシのモデルが届いてから、材質を裏で組む
   // 一つずつ、別の時間に組む（まとめて組むと 1 秒を超えて止まった）
   const comp = async (o, prep, undo) => { const hid = []; let q = o; o.traverse(c => { if (!c.visible) { hid.push(c); c.visible = true; } }); prep && prep(); let p; try { p = renderer.compileAsync(o, camera, scene); } catch (e) {} for (const c of hid) c.visible = false; undo && undo(); if (p) await p.catch(() => {}); await nx(); };
   const KV = (await import("./kit/warm.js")).keepVariant;   // 2026-11-05：半透明の形は写しの材質で組んで持っておく（同じ材質で続けて組むと、前に組んだ不透明の形が捨てられ、体を入れかえたこまで 0.1〜0.2 秒止まっていた）
@@ -1083,7 +1087,7 @@ document.body.classList.toggle("big", $("optBig").checked);
 $("optBig").onchange = e => { document.body.classList.toggle("big", e.target.checked); try { e.target.checked ? localStorage.setItem("umw-big", "1") : localStorage.removeItem("umw-big"); } catch {} };
 // 八つの受けとり方をくらべる表（授業でも使えるように）
 // ダイヤルの名前（短い呼び名）と、この森で形を作った種の名前（2026-10-13）
-const SPECIES = { chou: "ナミアゲハ", tori: "シジュウカラ", inu: "トイプードル",   /* 2026-11-20 形はトイプードル（巻き毛・垂れ耳）。名前を形に合わせた */ hebi: "ニホンマムシ", koumori: "アブラコウモリ", mimizu: "フトミミズのなかま" };
+const SPECIES = { chou: "ナミアゲハ", tori: "シジュウカラ", inu: "柴犬",   /* 2026-11-20 昼：体の 3D を柴犬のモデル（CC BY 4.0）に。名前を形に合わせた */ hebi: "ニホンマムシ", koumori: "アブラコウモリ", mimizu: "フトミミズのなかま" };
 $("lensTable").innerHTML = S.lens.map(l => `<tr><td>${l.name}${SPECIES[l.id] ? `<br><small style="font-size:13px;font-weight:400;color:var(--dim)">${SPECIES[l.id]}</small>` : ""}</td><td>${LENS[l.id].sub}</td></tr>`).join("");
 // なぜ、そう見えるの？（2026-10-12）：いまの身体の受けとり方が、どうして分かったのか
 let whyId = "hito", whyBack = null;
@@ -1107,7 +1111,7 @@ $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target
 $("cred").innerHTML = [
   "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。樹皮・葉・土・石の写真は CC0（Poly Haven・ambientCG）。花・モミジとスギの葉・シダ・落ち葉・空の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
   "「なぜ、そう見えるの？」の典拠は、その画面に一つずつ示しています。この作品が参考にしたおもな文献：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Heinrich 1993（虫の体温）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
-  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（外から取りこんだ 3D はありません）。ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・柴犬・マムシ・アブラコウモリ・フトミミズのなかま・夜の蛾。毛・艶・透けも、画面の中で作った質感です。動きは、はばたきの回数や歩き方などの研究の記載をもとにしていますが、羽ばたきの速さ（鳥・蝶・コウモリは実際より遅く、蜂は扇のかすみで示す）やカメラの動きは見やすく調整しています。実際の速さや、生きものの主観そのものを再現したものではありません。",
+  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・アブラコウモリ・フトミミズのなかま・夜の蛾。毛・艶・透けも、画面の中で作った質感）。柴犬とニホンマムシの体は、公開されている 3D を軽くして使っています：柴犬＝“Animated Dog, Shiba Inu” by quander（CC BY 4.0・Sketchfab）、歩きの動きは mitsulab が足したもの。ニホンマムシ＝「ニホンマムシ ♀ Japanese Pit Viper」ffishAsia-and-floraZia（CC0・実物の標本を写真から立体にしたもの）、まっすぐな体を mitsulab が曲げて動かしています。動きは、はばたきの回数や歩き方などの研究の記載をもとにしていますが、羽ばたきの速さ（鳥・蝶・コウモリは実際より遅く、蜂は扇のかすみで示す）やカメラの動きは見やすく調整しています。実際の速さや、生きものの主観そのものを再現したものではありません。",
   "マムシの熱の見え方では、体温を自分で保つ鳥・けもの・人を明るく重ね、体温がまわりの気温に近い虫・ヘビ・ミミズは、まわりと同じ暗さにしています。温かさの値は目安です。",
   "森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
