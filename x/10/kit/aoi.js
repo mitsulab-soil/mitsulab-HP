@@ -31,6 +31,7 @@ export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0,
   return {
     vrm, root, motion, state: motion.s,
     place(x, z, yaw) { motion.place(x, z, yaw); },
+    appear() { if (live) { fade = 0; opacity(0); } },   // 2026-11-20 touch：立つ場所を変えたとき、はじめと同じようにゆっくり現れ直す
     walkTo(v3) { motion.walkTo(v3); },
     // 声の時刻表がないときは、話しているあいだ身ぶりと口を合わせる（sec 秒）
     talk(opts = {}) { motion.speak({ dur: 3, kana: "", ...opts }); },

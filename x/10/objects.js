@@ -17,7 +17,7 @@ export const OBJECTS = [
   { id: "lump", name: "かたまり", sub: "手のひらに収まる丸い塊（模型）", make: "lump", rep: [1, 1], el: .2, zoom: .74, relief: .85 },
   { id: "ring", name: "輪", sub: "指を通せる太い輪（模型）", make: "ring", rep: [2, 1], el: .4, zoom: .78, relief: .85 },
   { id: "log", name: "円柱", sub: "片手でにぎれる円柱（模型）", make: "log", rep: [1, 1], el: .2, zoom: .78, relief: .85 },
-  { id: "rise", name: "起伏", sub: "手のひらほどの起伏（模型）", make: "rise", rep: [1, 1], el: .27, zoom: .8, relief: .85 },
+  { id: "rise", name: "起伏", sub: "手のひらほどの起伏（模型）", make: "rise", rep: [1, 1], el: .27, zoom: .8, relief: .5 },
   { id: "vase", name: "器", sub: "実物を測った花瓶", src: "models/ceramic_vase_01.gltf", rep: [2, 2], size: .55, tint: [1.7, 1.6, 1.45] },
   { id: "boulder", name: "岩", sub: "実物を測った岩", src: "models/boulder_01.gltf", rep: [1, 1] },
 ];
@@ -65,16 +65,20 @@ const MAKE = {
   },
   // 円柱：胴は巻いた面、両はしは平らに切った面。角では凹凸を 0 にして、割れずに丸くつなぐ
   log(N) {
-    const n = noise3(41), P = newP(), L = .84, R0 = .2, NS = Math.round(N * 1.5);
+    const n = noise3(41), P = newP(), L = .84, R0 = .2, NS = Math.round(N * 1.5), C = 2 * Math.PI * R0;   // C＝胴まわり。模様の一枚を胴まわり一周に合わせ、長さの向きと木口も同じ細かさで貼る（伸びない）
     const R = (ph, x) => R0 * (1 + n(Math.cos(ph) * .9, Math.sin(ph) * .9, x * 1.4) * .16) * (1 - .06 * sstep(.86, 1, Math.abs(x) * 2 / L) ** 2);
-    sheet(P, NS, N, (s, t) => { const ph = s * Math.PI * 2, x = (t - .5) * L, r = R(ph, x); return [x, r * Math.cos(ph), r * Math.sin(ph), s, t, 1 - sstep(.84, 1, Math.abs(t * 2 - 1))]; }, new THREE.Vector3());
-    for (const e of [-1, 1]) sheet(P, NS, Math.round(N * .3), (s, t) => { const ph = s * Math.PI * 2, x = e * L / 2, r = R(ph, x) * t; return [x + e * .014 * (1 - t * t), r * Math.cos(ph), r * Math.sin(ph), .5 + e * r * Math.sin(ph), .5 + r * Math.cos(ph), 1 - sstep(.72, 1, t)]; }, new THREE.Vector3());
+    sheet(P, NS, N, (s, t) => { const ph = s * Math.PI * 2, x = (t - .5) * L, r = R(ph, x); return [x, r * Math.cos(ph), r * Math.sin(ph), s, .5 + (t - .5) * L / C, 1 - sstep(.84, 1, Math.abs(t * 2 - 1))]; }, new THREE.Vector3());
+    for (const e of [-1, 1]) sheet(P, NS, Math.round(N * .3), (s, t) => { const ph = s * Math.PI * 2, x = e * L / 2, r = R(ph, x) * t; return [x + e * .014 * (1 - t * t), r * Math.cos(ph), r * Math.sin(ph), .5 + e * r * Math.sin(ph) / C, .5 + r * Math.cos(ph) / C, .4 * (1 - sstep(.72, 1, t))]; }, new THREE.Vector3());   // 切った面は、胴より平らに
     return finish(P, .5);
   },
   // 起伏：地面からなだらかに立ち上がる、手のひらほどの丘。ふちは地面にとけこむ
   rise(N) {
-    const n = noise3(7), P = newP(), R = .5;
-    sheet(P, Math.round(N * 1.5), Math.round(N * .75), (s, t) => { const ph = s * Math.PI * 2, x = t * R * Math.cos(ph), z = t * R * Math.sin(ph), f = (1 - t * t) ** 1.7; return [x, f * (.2 + .3 * n(x * 2.6, .3, z * 2.6)), z, .5 + x / (2 * R), .5 + z / (2 * R), 1 - sstep(.8, 1, t)]; }, new THREE.Vector3(0, -1, 0));
+    const n = noise3(7), P = newP(), R = .5, ns = Math.round(N * 1.5), nt = Math.round(N * .75);
+    const Hh = (ph, t) => { const x = t * R * Math.cos(ph), z = t * R * Math.sin(ph); return (1 - t * t) ** 1.7 * (.19 + .1 * n(x * 2.2, .3, z * 2.2)); };
+    // 真上から貼ると斜面で模様が伸びる。中心から斜面に沿って測った長さ（と、真上から見た長さの中ほど）で貼る
+    const Ln = new Float32Array((ns + 1) * (nt + 1));
+    for (let i = 0; i <= ns; i++) { const ph = i / ns * Math.PI * 2; let l = 0, h0 = Hh(ph, 0); for (let j = 1; j <= nt; j++) { const h1 = Hh(ph, j / nt); l += Math.hypot(R / nt, h1 - h0); h0 = h1; Ln[j * (ns + 1) + i] = l; } }
+    sheet(P, ns, nt, (s, t) => { const i = Math.round(s * ns), j = Math.round(t * nt), ph = s * Math.PI * 2, l = (Ln[j * (ns + 1) + i] + t * R) / 2; return [t * R * Math.cos(ph), Hh(ph, t), t * R * Math.sin(ph), .5 + l * Math.cos(ph), .5 + l * Math.sin(ph), 1 - sstep(.8, 1, t)]; }, new THREE.Vector3(0, -1, 0));
     return finish(P, 0, .012);
   },
   // 輪：太い輪。どこにも模様の集まる所がない
