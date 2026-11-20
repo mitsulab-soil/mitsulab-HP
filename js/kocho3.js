@@ -1,8 +1,10 @@
 // © mitsulab. 背景：氷川参道の画の上を、意匠の違う蝶が 1 羽ずつ舞う。
 // 意匠＝写実（ナミアゲハ）・線と点（ナミアゲハ）・セル調（モンシロチョウ）・切り紙（ナミアゲハ）。群れにしない（boid なし）・瞬間移動しない。
 // 蝶の形は mitsulab が図鑑の形態にそって組み立てた造形（creatures_kochou.js。翅 4 枚・脚 6 本・触角 2 本。外から取りこんだ 3D はない）。
+// ナミアゲハの翅の外形・翅脈・斑紋は kocho_ageha.js で描く（外から取りこんだ画像はない）。
 import * as THREE from 'three';
 import { makeButterfly } from './creatures_kochou.js';
+import { upgradeAgeha } from './kocho_ageha.js';
 export function start(){
   const sp=matchMedia('(max-width:560px)').matches, still=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cv=document.createElement('canvas'); cv.id='labBg'; cv.setAttribute('aria-hidden','true'); document.body.prepend(cv);
@@ -30,13 +32,15 @@ export function start(){
   };
   // 意匠・種・居場所（画面の割合）・大きさ・ゆらぎの速さ。1 意匠 1 羽
   const DEF=[
-    {st:'photo',kind:'ageha',home:[.74,.44],hs:[.50,0],s:.62,w:.31,jp:'写実',en:'photoreal'},
-    {st:'digital',kind:'ageha',home:[.88,.24],hs:[.24,-14],s:.44,w:.23,jp:'線と点',en:'line and points'},
-    {st:'cel',kind:'monshiro-f',home:[.62,.70],hs:[.77,16],s:.5,w:.27,jp:'セル調',en:'cel-shaded'},
-    {st:'paper',kind:'ageha',home:[.90,.66],hs:null,s:.46,w:.19,jp:'切り紙',en:'cut paper'}
+    {st:'photo',kind:'ageha',home:[.71,.54],hs:[.40,8],s:.62,w:.31,jp:'写実',en:'photoreal'},
+    {st:'digital',kind:'ageha',home:[.57,.17],hs:[.13,-40],s:.44,w:.23,jp:'線と点',en:'line and points'},
+    {st:'cel',kind:'monshiro-f',home:[.59,.72],hs:[.60,-52],s:.5,w:.27,jp:'セル調',en:'cel-shaded'},
+    {st:'paper',kind:'ageha',home:[.89,.46],hs:null,s:.46,w:.19,jp:'切り紙',en:'cut paper'}
   ].filter(d=>!sp||d.hs);
-  const B=DEF.map((d,i)=>{ const m=makeButterfly(d.kind); STYLE[d.st](m); const piv=[], mats=[]; m.traverse(o=>{ if(o.isGroup&&o.rotation.order==='ZXY')piv.push(o); if(o.material){ o.material.userData.o0=o.material.opacity; mats.push(o.material);} });
-    m.scale.setScalar(sp?d.s*.72:d.s); sc.add(m); return {d,m,piv,mats,p:new THREE.Vector3(),v:new THREE.Vector3(.2,0,0),ph:i*1.7,init:false}; });
+  // 1 羽ずつ、こまを分けて組み立てる（組み立てで画面を止めない）
+  const B=[], build=(d,i)=>{ const m=makeButterfly(d.kind); if(d.kind==='ageha') upgradeAgeha(m,{photo:d.st==='photo',lite:sp}); STYLE[d.st](m); const piv=[], mats=[]; m.traverse(o=>{ if(o.isGroup&&o.rotation.order==='ZXY')piv.push(o); if(o.material){ o.material.userData.o0=o.material.opacity; mats.push(o.material);} });
+    m.scale.setScalar(sp?d.s*.72:d.s); sc.add(m); B.push({d,m,piv,mats,body:m.children[0],p:new THREE.Vector3(),v:new THREE.Vector3(.2,0,0),ph:i*1.7,P:i*2.1,init:false}); };
+  const sst=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
   const size=()=>{const w=innerWidth,h=innerHeight;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}; size(); addEventListener('resize',size);
   const tag=document.createElement('p'); tag.id='labBgTag'; tag.setAttribute('aria-hidden','true'); document.body.appendChild(tag);
   const TJ='蝶の意匠（各 1 羽・3D の模式）：'+DEF.map(d=>d.jp).join('・'), TE='Butterfly designs (one each, 3D models): '+DEF.map(d=>d.en).join(' · ');
@@ -48,22 +52,28 @@ export function start(){
   const tmp=new THREE.Vector3(), q=new THREE.Quaternion(), fwd=new THREE.Vector3(0,0,1);
   function frame(now){ const s=(now-t0)/1000, dt=Math.min(.05,Math.max(.001,(now-(last||now))/1000)); last=now;
     const A=aim(); alpha+=(A-alpha)*Math.min(1,dt*(A<alpha?4:1.5));
-    const R=sp?.3:.95;
+    const R=sp?.2:.5;
     let vy=innerHeight*.56; if(sp){ const v=document.querySelector('.sd-vis'), rr=v&&v.getBoundingClientRect(); if(rr&&rr.height>40&&A>.5) vy=(rr.top+rr.bottom)/2; }
     B.forEach((b,i)=>{ const h=sp?b.d.hs:b.d.home, c=sp?toW(innerWidth*h[0],vy+h[1]):toW(innerWidth*h[0],innerHeight*h[1]), w=b.d.w;
       const goal=tmp.set(c.x+Math.sin(s*w+b.ph)*R,c.y+Math.sin(s*w*2.03+b.ph*1.3)*R*.42,Math.sin(s*w*.74+b.ph)*.8);
       if(!b.init){ b.p.copy(goal); b.init=true; }
       b.v.lerp(goal.sub(b.p).multiplyScalar(.9),Math.min(1,dt*1.2)); b.p.addScaledVector(b.v,dt); b.m.position.copy(b.p);
       if(b.v.lengthSq()>1e-6){ q.setFromUnitVectors(fwd,tmp.copy(b.v).normalize()); b.m.quaternion.slerp(q,Math.min(1,dt*4)); }
-      const P=s*(4.4+i*.5)*6.283+b.ph, a=Math.sin(P)*.5+.5, ang=-.42+(1.48+.42)*a, ang2=-.38+(1.4+.38)*(Math.sin(P-.45)*.5+.5);
-      if(b.piv.length>=4){ b.piv[0].rotation.set(0,0,-ang); b.piv[1].rotation.set(0,0,-ang2); b.piv[2].rotation.set(0,0,ang); b.piv[3].rotation.set(0,0,ang2); }
+      // 羽ばたき：ナミアゲハは毎秒 約 10 回、モンシロチョウは 約 12 回（スマホはこま数に合わせて少し遅く）。打ち下ろしで前縁が下がり、後翅は前翅に少し遅れる。
+      // アゲハは数回はばたいては、翅を浅い V 字に上げたまま短く滑る。体は頭を少し上げ、打ち下ろしのあとに持ち上がる
+      const ag=b.d.kind==='ageha', f=ag?(sp?7:10):(sp?8:12), gl=ag?sst(.62,.86,Math.sin(s*.83+b.ph*2.3)):0;
+      b.P+=dt*f*6.283*(1-gl*.9); const P=b.P, a=Math.sin(P)*.5+.5, a2=Math.sin(P-.5)*.5+.5, tw=(1-gl)*.24*Math.cos(P);
+      const ang=(-.44+1.9*a)*(1-gl)+gl*.34, ang2=(-.4+1.8*a2)*(1-gl)+gl*.3, lift=(1-gl)*Math.sin(P-1.2);
+      if(b.piv.length>=4){ b.piv[0].rotation.set(-tw,0,-ang); b.piv[1].rotation.set(-tw*.7,0,-ang2); b.piv[2].rotation.set(-tw,0,ang); b.piv[3].rotation.set(-tw*.7,0,ang2); }
+      if(b.body){ b.body.position.y=lift*.09; b.body.rotation.x=-.26-lift*.16+gl*.12; }
       const tg=A>.5?1:(A>0&&b.d.st==='photo'&&!sp?.12:0); b.a=(b.a||0)+(tg-(b.a||0))*Math.min(1,dt*(tg<(b.a||0)?4:1.5)); b.m.visible=b.a>.02; b.mats.forEach(mt=>{ mt.opacity=(mt.userData.o0??1)*b.a; }); });
     tag.textContent=alpha>.6?(document.documentElement.lang==='en'?TE:TJ):'';
     r.render(sc,cam); }
   let on=true; document.addEventListener('visibilitychange',()=>{on=!document.hidden; if(on) requestAnimationFrame(loop)});
-  function loop(t){ if(!on) return; if(t-(last||0)>(sp?40:20)||!last) frame(t); requestAnimationFrame(loop); }
+  function loop(t){ if(!on) return; if(t-(last||0)>(sp?30:12)||!last) frame(t); requestAnimationFrame(loop); }
   // 材質の組み立てを先に済ませてから描きはじめる（最初のこまで画面を止めない）
   const go=()=>{ if(still) frame(performance.now()); else requestAnimationFrame(loop); };
   let began=false; const once=()=>{ if(!began){ began=true; go(); } };
-  if(r.compileAsync){ r.compileAsync(sc,cam).then(once,once); setTimeout(once,1500); } else once();
+  (async()=>{ for(let i=0;i<DEF.length;i++){ try{ build(DEF[i],i); }catch(e){} await new Promise(f=>setTimeout(f,30)); }
+    if(r.compileAsync){ r.compileAsync(sc,cam).then(once,once); setTimeout(once,1500); } else once(); })();
 }
