@@ -31,7 +31,15 @@ export function start(){
   function sq(p,s,col,al){if(al<=0.004)return;al=Math.min(1,al*B);cx.strokeStyle=`rgba(${col},${al})`;cx.lineWidth=LW;cx.fillStyle=`rgba(${col},${al*0.3})`;cx.fillRect(p[0]-s,p[1]-s,s*2,s*2);cx.strokeRect(p[0]-s,p[1]-s,s*2,s*2)}
   function tri(p,s,col,al,fill){if(al<=0.004)return;cx.beginPath();cx.moveTo(p[0],p[1]-s);cx.lineTo(p[0]+s*0.9,p[1]+s*0.7);cx.lineTo(p[0]-s*0.9,p[1]+s*0.7);cx.closePath();al=Math.min(1,al*B);cx.strokeStyle=`rgba(${col},${al})`;cx.lineWidth=LW;cx.stroke();if(fill){cx.fillStyle=`rgba(${col},${al*0.35})`;cx.fill()}}
   function ell(p,rx,ry,col,al,w,a0,a1,dash){if(al<=0.004||rx<=0||ry<=0)return;al=Math.min(1,al*B);w=(w||1)*LW;cx.beginPath();cx.ellipse(p[0],p[1],rx,ry,0,a0||0,a1==null?Math.PI*2:a1);cx.strokeStyle=`rgba(${col},${al})`;cx.lineWidth=w||1;cx.setLineDash(dash||[]);cx.stroke();cx.setLineDash([])}
-  function tx(t,p,col,al,o){if(al<=0.004||!t)return;o=o||{};al=Math.min(1,al*B*1.3);cx.save();cx.shadowColor='rgba(2,7,13,.95)';cx.shadowBlur=7;cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;cx.textAlign=o.al||'left';cx.textBaseline='middle';try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}cx.fillStyle=`rgba(${col},${al})`;cx.fillText(t,p[0],p[1]);cx.fillText(t,p[0],p[1]);cx.restore()}
+  // ── 本文から離す：本文の行の矩形（余白つき）を「空ける区域」にする
+  let KO=[];const KP=()=>sp()?10:16;
+  function koRead(){KO=[];const p=KP();document.querySelectorAll('#qStory .sy-h,#qStory .sy-p').forEach(e=>{const r0=e.getBoundingClientRect();if(r0.bottom<-40||r0.top>H+40)return;const r=document.createRange();r.selectNodeContents(e);for(const q of r.getClientRects()){if(q.width<2||q.bottom<-p||q.top>H+p)continue;KO.push([q.left-p,q.top-p,q.right+p,q.bottom+p])}})}
+  const hitKO=(x0,y0,x1,y1)=>KO.some(k=>x0<k[2]&&x1>k[0]&&y0<k[3]&&y1>k[1]);
+  function spot(t,p,o){cx.save();cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}const w=cx.measureText(t).width,h=(o.s||12)*1.3;cx.restore();
+    const al=o.al||'left',x0=al==='center'?p[0]-w/2:al==='right'?p[0]-w:p[0],m=8,yMax=H*(sp()?0.9:0.87);
+    const C=[[x0,p[1]],[p[0]-20-w,p[1]],[x0,p[1]-h-6],[x0,p[1]+h+6],[p[0]-w/2,p[1]-h*2],[p[0]-w/2,p[1]+h*2]];
+    for(const c of C){const x=Math.min(W-m-w,Math.max(m,c[0])),y=c[1];if(y-h/2<m||y+h/2>yMax)continue;if(!hitKO(x,y-h/2,x+w,y+h/2))return[x,y]}return null}
+  function tx(t,p,col,al,o){if(al<=0.004||!t)return;o=o||{};if(!o.fixed){const q=spot(t,p,o);if(!q)return;p=q;o=Object.assign({},o,{al:'left'})}al=Math.min(1,al*B*1.3);cx.save();cx.shadowColor='rgba(2,7,13,.95)';cx.shadowBlur=7;cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;cx.textAlign=o.al||'left';cx.textBaseline='middle';try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}cx.fillStyle=`rgba(${col},${al})`;cx.fillText(t,p[0],p[1]);cx.fillText(t,p[0],p[1]);cx.restore()}
   // ── 場面の要素（位置は 3D から）
   const T=()=>A.trees.filter(t=>t.d>30&&t.c[0]>0.04&&t.c[0]<0.96).slice(0,4);
   const row=m=>A.path.find(r=>r.m===m)||A.path[A.path.length-1];
@@ -43,6 +51,11 @@ export function start(){
     return[{k:'人',e:'person',p:M(r16.up),g:M(r16.c),R:0.085},{k:'鳥',e:'bird',p:bird,g:null,R:0.12},{k:'蝶',e:'butterfly',p:mix(M(mix(r25.up,r25.hi,0.35)),M(r25.r),0.5),g:null,R:0.05},{k:'碧',e:'Aoi',p:mix(M(r40.up),M(r40.l),0.45),g:mix(M(r40.c),M(r40.l),0.45),R:0.07,m:1},{k:'センサー',e:'sensor',p:mix(M(o.br),[M(o.br)[0],M(o.tr)[1]],0.55),g:null,R:0.1,s:1}];
   }
   // ── 主題
+  let LF=null;
+  function lensFit(c0,r0){const ok=(c,r)=>{const e=r+10;return c[0]-e>=6&&c[0]+e<=W-6&&c[1]-e>=50&&c[1]+e+26<=H*(sp()?0.9:0.87)&&!hitKO(c[0]-e,c[1]-e,c[0]+e,c[1]+e+26)};
+    if(LF&&LF[2]===W&&ok(LF[0],LF[1]))return LF;
+    for(let r=r0;r>=(sp()?26:60);r*=0.86){let best=null,bd=1e9;const st=Math.max(16,r*0.3);for(let y=r+50;y<H;y+=st)for(let x=r+16;x<W-r-6;x+=st){if(!ok([x,y],r))continue;const d=Math.hypot(x-c0[0],y-c0[1]);if(d<bd){bd=d;best=[x,y]}}if(best)return LF=[best,r,W]}
+    return LF=null}
   const D={
     object(a,pr){const o=objects(),k=K()*a;
       const [bl,br,tl,tr,nl,nr]=o.tor,s0=st(pr,0,5);
@@ -63,7 +76,7 @@ export function start(){
       E.forEach((e,i)=>{const s=st(pr,i*0.9,E.length*0.9+1),q=mix(e[0],e[1],s);ln([e[0],q],e[2]?WH:CY,k*(e[2]?0.75:0.55)*(s>0?1:0),1)});
       ob.forEach(p=>sq(p,3,BR,k));ag.forEach(g=>tri(g.p,g.m?6:4.5,g.m?WH:CY,k*1.3,g.m));
       ell(aoi.p,13,13,WH,k*st(pr,2,3)*0.9,1);tx(en()?'Aoi — mediates':'碧 ── あいだをつなぐ',[aoi.p[0]+20,aoi.p[1]-2],WH,k*st(pr,2,3)*1.25)},
-    umwelt(a,pr){const k=K()*a,c=M(sp()?[0.80,0.50]:[0.715,0.34]),r=Math.min(W,H)*(sp()?0.2:0.19)*(0.9+0.1*cl(pr*2));
+    umwelt(a,pr){const k=K()*a,f=lensFit(M(sp()?[0.80,0.50]:[0.715,0.34]),Math.min(W,H)*(sp()?0.2:0.19));if(!f){lens.style.clipPath=lens.style.webkitClipPath='circle(0px at 0px 0px)';return}const c=f[0],r=f[1]*(0.9+0.1*cl(pr*2));
       if(!lens.dataset.on){lens.dataset.on='1';lens.src=lens.dataset.s}
       lens.style.clipPath=lens.style.webkitClipPath=`circle(${r.toFixed(1)}px at ${c[0].toFixed(1)}px ${c[1].toFixed(1)}px)`;
       ell(c,r,r,GR,k*1.4,1.2);ell(c,r+7,r+7,GR,k*0.5,1,0,Math.PI*2,[1,6]);
@@ -111,7 +124,7 @@ export function start(){
   const al={},pr={};Object.keys(D).forEach(k=>{al[k]=0;pr[k]=0});
   let cur='field',raf=0,tagA=0,tagK='';
   function draw(){
-    raf=0;cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);
+    raf=0;cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);koRead();
     let busy=false,mx=0;for(const k in D)if(k!==cur)mx=Math.max(mx,al[k]);
     for(const k in D){const tg=k===cur&&mx<0.2?1:0;
       if(rm){al[k]=k===cur?1:0;pr[k]=al[k]}else{al[k]+=(tg-al[k])*(tg?0.07:0.12);if(Math.abs(tg-al[k])<0.01)al[k]=tg;if(k===cur&&mx<0.2)pr[k]=Math.min(1,pr[k]+0.016);else if(al[k]===0)pr[k]=0}
@@ -122,9 +135,10 @@ export function start(){
     if(rg&&rg.out<1){const N=5,Aa=Math.min(1,rg.t*4)*(1-rg.out);
       for(let k=0;k<N;k++){const g=1-rg.e,rx=rg.R*(1+0.16*(N-1-k)*g),ry=rx*(0.2+0.8*rg.e),y=rg.y-(k-(N-1)/2)*H*0.035*g,sw=Math.PI*2*Math.min(1,0.25+rg.t*1.1),s0=-Math.PI/2+k*1.26*g;
         ell([rg.x,y],rx,ry,k%2?BR:CY,Aa*(0.5-k*0.05),k===N-1?1.4:1,s0,s0+sw)}}
+    if(KO.length){cx.save();cx.globalCompositeOperation='destination-out';KO.forEach(q=>{cx.fillStyle='rgba(0,0,0,1)';cx.fillRect(q[0],q[1],q[2]-q[0],q[3]-q[1]);cx.fillStyle='rgba(0,0,0,.55)';cx.fillRect(q[0]-6,q[1]-6,q[2]-q[0]+12,q[3]-q[1]+12)});cx.restore()}
     // 隅の一語（主題の名）
     const nm=NAME[cur];if(nm){tagK=cur}tagA+=((nm?1:0)-tagA)*(rm?1:0.1);if(Math.abs((nm?1:0)-tagA)<0.02)tagA=nm?1:0;else busy=true;
-    if(tagA>0&&NAME[tagK]){const n=NAME[tagK],x=sp()?16:24,y=H*(sp()?0.93:0.9);ln([[x,y],[x+18,y]],CY,tagA*0.85,1);tx(en()?n[1]:n[1]+'　'+n[0],[x+26,y],WH,tagA*0.9,{s:11.5,ls:2})}
+    if(tagA>0&&NAME[tagK]){const n=NAME[tagK],x=sp()?16:24,y=H*(sp()?0.93:0.9);ln([[x,y],[x+18,y]],CY,tagA*0.85,1);tx(en()?n[1]:n[1]+'　'+n[0],[x+26,y],WH,tagA*0.9,{s:11.5,ls:2,fixed:1})}
     if(busy&&!rm)raf=requestAnimationFrame(draw);
   }
   const kick=()=>{const t=active();if(t!==cur)cur=t;if(!raf)raf=requestAnimationFrame(draw)};
