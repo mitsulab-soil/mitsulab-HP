@@ -6,9 +6,9 @@
    操作は森羅博物館と同じ（押して歩く・一回 6 m まで／なぞって見回す／キーボード）。 */
 import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
-import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120m";
-import { makeRing } from "./ring.js?v=20261120m";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
-import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261119a";
+import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120r";
+import { makeRing } from "./ring.js?v=20261120r";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
+import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261120r";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -366,11 +366,16 @@ const LENS = {
   netsu: { eye: 1.35, mode: 6, machine: true, m: I3, uvw: [0, 0, 0], sub: "赤外線の量を、温度の値に", legend: "<b>明るい</b>＝温かい　<b>暗い</b>＝冷たい<br>値は模式" },
 };
 const FLIGHT=new Set(['hachi','chou','tori','koumori']);
-const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:2,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mimizu:{speed:.04,bob:0,freq:3},camera:{speed:1.2,bob:.004,freq:7},netsu:{speed:1.2,bob:.012,freq:8}};
+const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:1.3,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mimizu:{speed:.04,bob:0,freq:3},camera:{speed:1.2,bob:.004,freq:7},netsu:{speed:1.2,bob:.012,freq:8}};
 // 森（2026-10-12 組み直し：モグラと都市を外し、木と草花を森らしく。forest.js）
 const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='forest',flightHeight=1.5;
 // Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
-const waterMaterial=M(0x426e70,{std:true,rough:.13,metal:0,env:1,uv:.12,temp:.1,echo:.08});
+// 2026-11-20 2 周目：水面を、林の中の水らしく（前は明るい青緑の平らな面に見えた）。色を深い緑褐色に落とし、空と木立の映りこみを主に、さざ波の細かな凹凸を足す（模式）
+const rippleN = (() => { const n = 128, cv = document.createElement('canvas'); cv.width = cv.height = n; const g = cv.getContext('2d'), H = new Float32Array(n * n), W8 = [[1, 2, .9, .3], [2, -1, .7, 1.7], [3, 1, .5, 2.9], [-2, 3, .45, .8], [4, 3, .3, 4.1], [5, -2, .25, 5.3], [-3, -5, .2, 2.2], [7, 2, .14, 3.6]];
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { let h = 0; for (const [fx, fy, a, ph] of W8) h += a * Math.sin((fx * x + fy * y) / n * Math.PI * 2 + ph); H[y * n + x] = h; }
+  const im = g.createImageData(n, n), at = (x, y) => H[((y + n) % n) * n + (x + n) % n]; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { const dx = at(x + 1, y) - at(x - 1, y), dy = at(x, y + 1) - at(x, y - 1), k = (y * n + x) * 4; im.data[k] = 128 - dx * 70; im.data[k + 1] = 128 - dy * 70; im.data[k + 2] = 255; im.data[k + 3] = 255; } g.putImageData(im, 0, 0);
+  const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 6); return t; })();
+const waterMaterial=M(0x3a584a,{std:true,rough:.09,metal:.42,env:1.3,nmap:rippleN,ns:.15,uv:.12,temp:.1,echo:.08});
 const pool=new THREE.Mesh(new THREE.CircleGeometry(4.8,72),waterMaterial);pool.rotation.x=-Math.PI/2;pool.position.set(-8,.025,-7);{const g=pool.geometry,p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),r=Math.hypot(x,y);if(r<1e-3)continue;const wx=-8+x,wz=-7-y,k=(4.8+shoreWob(wx,wz))/4.8*(r/4.8)+(1-r/4.8);p.setXY(i,x*(r>4.79?(4.8+shoreWob(wx,wz))/4.8:1+(k-1)*0),y*(r>4.79?(4.8+shoreWob(wx,wz))/4.8:1));}p.needsUpdate=true;g.computeBoundingSphere();}pool.userData.noCast=true;forest.add(pool);
 const riverCurve=new THREE.CatmullRomCurve3([[-8,-7],[-5,-13],[1,-15],[9,-12],[18,-7],[30,-2],[44,4]].map(([x,z])=>new THREE.Vector3(x,.035,z)));const river=new THREE.Mesh(new THREE.TubeGeometry(riverCurve,140,.75,12,false),waterMaterial);river.scale.y=.035;{const g=river.geometry,p=g.attributes.position,c=new THREE.Vector3(),v=new THREE.Vector3(),seg=141,rad=13;for(let i=0;i<seg;i++){riverCurve.getPointAt(i/(seg-1),c);for(let j=0;j<rad;j++){const k=i*rad+j;v.fromBufferAttribute(p,k);const dx=v.x-c.x,dz=v.z-c.z,f=Math.max(.35,(.75+riverWob(v.x,v.z))/.75);p.setXYZ(k,c.x+dx*f,v.y,c.z+dz*f);}}p.needsUpdate=true;g.computeVertexNormals();g.computeBoundingSphere();}river.userData.noCast=true;forest.add(river);
 // 2026-11-03 本人「水辺だけ直線で自然でない」：水面と地面の境目に、濡れた土の帯（内は水にかかり、外へ消える）を置いてなじませる
@@ -434,6 +439,7 @@ for (const o of [...butterflies, ageha, bee, ...moths, ...residents.filter(b => 
 //   2026-10-13：画面のまん中をふさがないよう、少し小さく・下へ。切り替えた直後の見せ場のあとは、うすく透ける
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.2);bodyRoot.rotation.y=Math.PI;
 let bodyYaw0=0,bodyRoll=0,showLens='',showT=0;
+const BODYREST = 1.6;   // 2026-11-20 2 周目：見せ場のあとの自分の体を大きく（プレイ画面で体が小さかった）
 const BODYPOS={camera:[-.33,-.8],netsu:[-.3,-.72],hachi:[-.19,-.78],chou:[-.2,-.84],tori:[-.2,-.84],inu:[-.3,-.98],hebi:[-.22,-.92],koumori:[-.19,-.84]};
 // 切り替えた直後の「寄り」（ry＝横へ回す・rx＝手前へ傾けて背を見せる・y z＝寄せる位置・s＝大きさの倍率）
 const SHOW={camera:{ry:.9,rx:.1,y:-.2,z:-.62,s:1.25},netsu:{ry:.9,rx:.15,y:-.16,z:-.6,s:1.0},def:{ry:1.2,rx:0,y:-.13,z:-.52,s:1.35},hachi:{ry:1.35,rx:.12,y:-.1,z:-.44,s:1.9},tori:{ry:1.3,rx:.1,y:-.11,z:-.46,s:1.7},chou:{ry:1.0,rx:.35,y:-.12,z:-.5,s:1.45},inu:{ry:1.25,rx:.05,y:-.15,z:-.55,s:1.35},hebi:{ry:.55,rx:.85,y:-.12,z:-.5,s:1.8},koumori:{ry:.4,rx:.55,y:-.05,z:-.82,s:1.0}};
@@ -1111,7 +1117,7 @@ $("optSound").onchange = e => { if (AUD.master) AUD.master.gain.value = e.target
 $("cred").innerHTML = [
   "碧の声：VOICEVOX:冥鳴ひまり。碧の 3D の姿 © mitsulab。表示の道具：three.js・three-vrm（MIT）。樹皮・葉・土・石の写真は CC0（Poly Haven・ambientCG）。花・モミジとスギの葉・シダ・落ち葉・空の絵と音は、この画面の中でその場で作っています（録音は使っていません）。",
   "「なぜ、そう見えるの？」の典拠は、その画面に一つずつ示しています。この作品が参考にしたおもな文献：von Uexküll 1934／Nagel 1974／Peitsch ら 1992（蜂の色覚）／von Frisch 1914／Chittka & Waser 1997／Eisner ら 1969・Todesco ら 2022（花の紫外の模様）／Kevan, Giurfa & Chittka 1996（白い花）／Arikawa 2003・Koshitaka ら 2008（アゲハ）／Obara 1970（モンシロチョウ）／Hart 2001（鳥の色覚）／Hunt ら 1998・Andersson ら 1998（アオガラ）／Neitz, Geist & Jacobs 1989・Miller & Murphy 1995（犬）／Machado ら 2009（二色型の近似の行列）／Gracheva ら 2010・Hartline ら 1978（ピット）／Heinrich 1993（虫の体温）／Griffin 1944・Griffin ら 1960・Greif & Siemers 2010（コウモリ）／Darwin 1881（ミミズ）",
-  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・アブラコウモリ・フトミミズのなかま・夜の蛾。毛・艶・透けも、画面の中で作った質感）。柴犬とニホンマムシの体は、公開されている 3D を軽くして使っています：柴犬＝“Animated Dog, Shiba Inu” by quander（CC BY 4.0・Sketchfab）、歩きの動きは mitsulab が足したもの。ニホンマムシ＝「ニホンマムシ ♀ Japanese Pit Viper」ffishAsia-and-floraZia（CC0・実物の標本を写真から立体にしたもの）、まっすぐな体を mitsulab が曲げて動かしています。動きは、はばたきの回数や歩き方などの研究の記載をもとにしていますが、羽ばたきの速さ（鳥・蝶・コウモリは実際より遅く、蜂は扇のかすみで示す）やカメラの動きは見やすく調整しています。実際の速さや、生きものの主観そのものを再現したものではありません。",
+  "生きものの 3D は、図鑑・教科書の形態（脚・翅・羽・指の数と並び、模様）にそって、この画面の中で組み立てた mitsulab の造形です（ミツバチ・ナミアゲハ・モンシロチョウ・シジュウカラ・アブラコウモリ・フトミミズのなかま・夜の蛾〔ヨトウガ〕。毛・艶・透けも、画面の中で作った質感）。柴犬とニホンマムシの体は、公開されている 3D を軽くして使っています：柴犬＝“Animated Dog, Shiba Inu” by quander（CC BY 4.0・Sketchfab）、歩きの動きは mitsulab が足したもの。ニホンマムシ＝「ニホンマムシ ♀ Japanese Pit Viper」ffishAsia-and-floraZia（CC0・実物の標本を写真から立体にしたもの）、まっすぐな体を mitsulab が曲げて動かし、模様は体にそった一枚の絵に写し直し、太さを少し足しています（模式）。並びの「ひと」の立ち姿＝MakeHuman の素材（CC0）を組んだもの。動きは、はばたきの回数や歩き方などの研究の記載をもとにしていますが、羽ばたきの速さ（鳥・蝶・コウモリは実際より遅く、蜂は扇のかすみで示す）やカメラの動きは見やすく調整しています。実際の速さや、生きものの主観そのものを再現したものではありません。",
   "マムシの熱の見え方では、体温を自分で保つ鳥・けもの・人を明るく重ね、体温がまわりの気温に近い虫・ヘビ・ミミズは、まわりと同じ暗さにしています。温かさの値は目安です。",
   "森・池・川は体験用につくった空間で、関東の雑木林と谷すじのスギ林、夏のはじめ（7 月ごろ）の午後のつもりです。草花の形は図鑑の記載にそって作り、草花はこの季節に日本の林と草地に自然に生える在来のものだけで、紫外の値は目安です（モンシロチョウの雌雄と空のほか）。",
 ].map(t => `<span style="display:block;margin-bottom:8px">${t}</span>`).join("");
@@ -1241,8 +1247,8 @@ function frame(now=0) {
     //   画面が横に広いと体が小さく見えるので大きく。見せ場は 3.6 秒。⟲ のボタン（showAgain）でもう一度見られる
     { if (lens !== showLens) { showLens = lens; showT = t; } const u = t - showT, sv = innerWidth < 700 && lens === 'hachi' ? { ...SHOW.hachi, y:-.20, z:-.72, s:1.2 } : SHOW[lens] || SHOW.def, wide = innerWidth / innerHeight > 1.2 ? 1.3 : 1,
         k = (RM || KUR.on || lens === 'hito' || lens === 'mimizu') ? 0 :   /* くらべる旅では体の見せ場を出さない（答えの瞬間に自分の体が花をふさいだ・2026-10-14 r3） */ sstep(0, .5, u) * (1 - sstep(3.3, 4.1, u)), bp = BODYPOS[lens] || [-.27, -.65];
-      bodyRoot.rotation.set(0, Math.PI, 0, 'YXZ'); bodyRoot.position.set(0, bp[0] + (sv.y - bp[0]) * k, bp[1] + (sv.z - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (1 + (sv.s * wide - 1) * k));
-      setBodyAlpha(lens, KUR.on ? k : .55 + .45 * k); if (KUR.on && k < .01) bodyRoot.visible = false; }   // くらべる旅では、見せ場のあとは自分の体を消して、見比べる花を隠さない（2026-10-14 r2：PC の犬が中央を占めた）
+      bodyRoot.rotation.set(0, Math.PI, 0, 'YXZ'); bodyRoot.position.set(0, bp[0] + (sv.y - bp[0]) * k, bp[1] + (sv.z - bp[1]) * k); bodyRoot.scale.setScalar(.2 * (BODYREST + (sv.s * wide - BODYREST) * k));
+      setBodyAlpha(lens, KUR.on ? k : .72 + .28 * k); if (KUR.on && k < .01) bodyRoot.visible = false; }   // くらべる旅では、見せ場のあとは自分の体を消して、見比べる花を隠さない（2026-10-14 r2：PC の犬が中央を占めた）
     if (quake > 0) { camera.position.y += (Math.random() - .5) * .02 * quake; quake = Math.max(0, quake - dt * 2); }
   }
   $('stage').dataset.flightHeight=flightHeight.toFixed(3);$('stage').dataset.lens=lens;$('stage').dataset.habitat=habitat;$('stage').dataset.position=camera.position.toArray().map(v=>v.toFixed(3)).join(',');$('stage').dataset.depth=me.depth.toFixed(3);

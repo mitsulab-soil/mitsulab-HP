@@ -2,7 +2,7 @@
    本人「切り替える時に選択中の生き物だけでなく、前後の生き物も見れるように」＝選んでいる体の 3D をまん中に、前後の体の 3D を左右に並べ、回して選ぶ。
    森とは別の小さな描き手（犬のぼかしや夜の見え方が、並びにはかからないように）。回っているときと、まん中の体が動くあいだだけ描く。 */
 import * as T from 'three';
-import { makeBody } from './bodies.js?v=20261120m';
+import { makeBody } from './bodies.js?v=20261120r';
 
 export function makeRing({ host, items, onPick, reduced = false }) {
   const n = items.length, ids = items.map(i => i.id);

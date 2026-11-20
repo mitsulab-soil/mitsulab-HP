@@ -1,7 +1,7 @@
 /* © mitsulab. 生きものの身体（見る人がなる身体と、ダイヤルの絵）。2026-10-12 写実の造形（creatures.js）に替えた。
    向き：頭が +Z。呼ぶ側（umwelt.js）で、見る人の身体は前（-Z）へ向けて置く。実寸・主観の再現ではない。 */
 import * as T from 'three';
-import { stdMat, makeBee, makeButterfly, makeTit, makeDog, makeMamushi, makeWorm, makeBat } from './creatures.js?v=20261120m';
+import { stdMat, makeBee, makeButterfly, makeTit, makeDog, makeMamushi, makeWorm, makeBat, makeHuman } from './creatures.js?v=20261120r';
 // 画面の前に置くときの大きさ（体の長さ＝1 の造形を、見やすい大きさへ）
 const FIT = { hachi: .9, chou: .55, tori: 1, inu: .95, hebi: 1.3, koumori: .5, mimizu: 1.2 };
 // ひと（ダイヤルの絵だけに使う）。2026-10-14 テストプレー「ひとだけ作りが粗い（緑の丸い人形）」→ 7 頭身の、首・肩・肘・手・脚・靴のある立ち姿に（ほかの生き物と同じ、落ち着いた写実寄りの色）
@@ -33,32 +33,50 @@ function makeHito(material) {
   g.userData.animate = () => {}; return g;
 }
 // 機械（2026-11-20 本人「一つのアプリケーションに統合」＝別の画面だったカメラ・熱カメラを、同じ森の中の受けとり方に）。形は一般的な三脚つきのカメラと、手持ちの熱カメラの模式（特定の製品の形は写さない）。前が +Z
+//   2026-11-20 2 周目：角を丸め、握りの革張り・レンズの輪・ダイヤル・三脚の継ぎ目などの細部を足した（前は箱を組んだ形に見えた）
 function makeMachine(id, material) {
   const g = new T.Group();
-  const box = (c, w, h, d, x, y, z, o) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d, 2, 2, 2), material(c, o)); m.position.set(x, y, z); g.add(m); return m; };
-  const cyl = (c, r0, r1, h, x, y, z, rx = 0, rz = 0, o) => { const m = new T.Mesh(new T.CylinderGeometry(r0, r1, h, 28), material(c, o)); m.position.set(x, y, z); m.rotation.set(rx, 0, rz); g.add(m); return m; };
-  const dark = 0x4a4e56, mid = 0x686e78, metal = 0xa9afb7;
+  // 角の丸い箱
+  const rgeo = (w, h, d, r, n = 5) => { const ge = new T.BoxGeometry(w, h, d, n, n, n), p = ge.attributes.position, nr = ge.attributes.normal, hx = w / 2 - r, hy = h / 2 - r, hz = d / 2 - r;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), ix = Math.max(-hx, Math.min(hx, x)), iy = Math.max(-hy, Math.min(hy, y)), iz = Math.max(-hz, Math.min(hz, z)); let ox = x - ix, oy = y - iy, oz = z - iz; const l = Math.hypot(ox, oy, oz) || 1; ox /= l; oy /= l; oz /= l; p.setXYZ(i, ix + ox * r, iy + oy * r, iz + oz * r); nr.setXYZ(i, ox, oy, oz); } return ge; };
+  const box = (c, w, h, d, x, y, z, o, r = Math.min(w, h, d) * .22) => { const m = new T.Mesh(rgeo(w, h, d, r), material(c, o)); m.position.set(x, y, z); g.add(m); return m; };
+  const cyl = (c, r0, r1, h, x, y, z, rx = 0, rz = 0, o) => { const m = new T.Mesh(new T.CylinderGeometry(r0, r1, h, 36), material(c, o)); m.position.set(x, y, z); m.rotation.set(rx, 0, rz); g.add(m); return m; };
+  const ring = (c, R, r, x, y, z, o) => { const m = new T.Mesh(new T.TorusGeometry(R, r, 8, 40), material(c, o)); m.position.set(x, y, z); g.add(m); return m; };
+  const dark = 0x2e3136, body = 0x3c4046, mid = 0x5a6068, metal = 0xb4bac2, rubber = 0x22252a;
   if (id === 'camera') {
-    // 三脚（開いた三本の脚と雲台）
-    for (let i = 0; i < 3; i++) { const a = i * Math.PI * 2 / 3 + Math.PI / 6, leg = cyl(dark, .014, .02, .66, Math.sin(a) * .13, .32, Math.cos(a) * .13, 0, 0, { rough: .5 }); leg.rotation.set(-Math.cos(a) * .4, 0, Math.sin(a) * .4); }
-    cyl(metal, .022, .022, .12, 0, .66, 0, 0, 0, { rough: .35 }); box(dark, .09, .03, .09, 0, .725, 0, { rough: .6 });
+    // 三脚：雲台・エレベーター・二段の脚（継ぎ目の締め輪）・石づき
+    for (let i = 0; i < 3; i++) { const a = i * Math.PI * 2 / 3 + Math.PI / 6, sx = Math.sin(a), cz = Math.cos(a), leg = new T.Group(); leg.position.set(sx * .03, .63, cz * .03); leg.rotation.set(cz * .42, 0, -sx * .42); g.add(leg);
+      const part = (c, r0, r1, h, y, o) => { const m = new T.Mesh(new T.CylinderGeometry(r0, r1, h, 16), material(c, o)); m.position.y = y; leg.add(m); };
+      part(dark, .017, .017, .36, -.18, { rough: .45 }); part(metal, .012, .012, .32, -.5, { rough: .3 }); part(rubber, .0195, .0195, .035, -.35, { rough: .9 }); part(rubber, .015, .011, .03, -.67, { rough: .95 }); }
+    cyl(dark, .034, .04, .05, 0, .635, 0, 0, 0, { rough: .5 }); cyl(metal, .014, .014, .13, 0, .7, 0, 0, 0, { rough: .3 }); cyl(dark, .03, .034, .04, 0, .765, 0, 0, 0, { rough: .55 });
+    box(dark, .1, .016, .08, 0, .79, 0, { rough: .6 }, .006); { const h = cyl(dark, .008, .008, .16, -.07, .75, -.06, .9, .5, { rough: .5 }); }   // 雲台の板と、傾ける棒
     // 本体・握り・ファインダーの山
-    box(dark, .3, .19, .13, 0, .835, 0, { rough: .55 }); box(dark, .07, .2, .15, -.13, .835, .02, { rough: .8 }); box(dark, .11, .06, .1, .01, .955, -.005, { rough: .55 });
-    cyl(metal, .017, .017, .012, -.11, .94, .02, 0, 0, { rough: .3 });   // シャッターのボタン
-    // レンズ（鏡胴・縁・前玉）
-    cyl(mid, .078, .082, .15, .02, .835, .135, Math.PI / 2, 0, { rough: .45 }); cyl(dark, .086, .086, .03, .02, .835, .2, Math.PI / 2, 0, { rough: .7 });
-    cyl(0x10161f, .066, .066, .012, .02, .835, .214, Math.PI / 2, 0, { rough: .06, phys: { clearcoat: 1, clearcoatRoughness: .05 } });
-    cyl(0x2c4a66, .04, .04, .014, .02, .835, .216, Math.PI / 2, 0, { rough: .05, phys: { clearcoat: 1, clearcoatRoughness: .03 } });
-    box(0x0c0f13, .2, .12, .006, .02, .835, -.068, { rough: .2 });   // 背面の画面
+    const Y = .89; box(body, .29, .17, .11, 0, Y, 0, { rough: .6 }, .022); box(rubber, .075, .175, .13, -.125, Y - .002, .022, { rough: .92 }, .03); box(body, .1, .06, .09, .012, Y + .105, -.004, { rough: .6 }, .018);
+    box(rubber, .12, .1, .004, .085, Y - .02, .056, { rough: .95 }, .0015);   // 前の革張り
+    cyl(metal, .016, .016, .01, -.118, Y + .09, .045, 0, 0, { rough: .28 }); cyl(dark, .026, .026, .018, .105, Y + .094, -.005, 0, 0, { rough: .7 }); cyl(dark, .02, .02, .014, -.07, Y + .092, -.02, 0, 0, { rough: .7 });   // シャッター・ダイヤル
+    box(metal, .04, .006, .04, .012, Y + .137, -.004, { rough: .35 }, .002);   // アクセサリーの台
+    box(0x0b0d10, .19, .11, .006, .015, Y - .005, -.057, { rough: .18 }, .002); box(dark, .04, .028, .02, .012, Y + .1, -.052, { rough: .8 }, .006);   // 背面の画面・のぞき窓
+    // レンズ：台座・鏡胴・ピントの輪（細かい溝）・前の縁・前玉
+    const LX = .02; cyl(metal, .07, .07, .012, LX, Y, .058, Math.PI / 2, 0, { rough: .3 }); cyl(dark, .066, .068, .06, LX, Y, .092, Math.PI / 2, 0, { rough: .5 });
+    for (let k = 0; k < 7; k++) { const r = ring(rubber, .0705, .0042, LX, Y, .128 + k * .0085, { rough: .95 }); }
+    cyl(dark, .072, .07, .03, LX, Y, .2, Math.PI / 2, 0, { rough: .5 }); ring(dark, .07, .006, LX, Y, .216, { rough: .6 });
+    cyl(0x090b10, .062, .062, .004, LX, Y, .208, Math.PI / 2, 0, { rough: .5 });
+    { const gl = new T.Mesh(new T.SphereGeometry(.09, 32, 12, 0, Math.PI * 2, 0, .68), material(0x1b2c40, { rough: .04, phys: { clearcoat: 1, clearcoatRoughness: .02 } })); gl.rotation.x = Math.PI / 2; gl.position.set(LX, Y, .141); g.add(gl); }   // 前玉（ふくらんだガラス）
   } else {
-    // 手持ちの熱カメラ（握り・本体・レンズ・背面の画面）
-    const grip = box(dark, .1, .36, .11, 0, .22, -.02, { rough: .85 }); grip.rotation.x = -.16;
-    box(mid, .2, .2, .3, 0, .5, .02, { rough: .6 }); box(0xc7772b, .204, .03, .304, 0, .41, .02, { rough: .6 });   // 帯の色は橙（温かさの印）
-    cyl(dark, .075, .08, .07, 0, .5, .2, Math.PI / 2, 0, { rough: .5 });
-    cyl(0x3b3323, .058, .058, .012, 0, .5, .238, Math.PI / 2, 0, { rough: .12, phys: { clearcoat: 1, clearcoatRoughness: .1 } });   // 赤外を通すレンズ（ゲルマニウムの暗い色）
-    const scr = new T.Mesh(new T.PlaneGeometry(.15, .12, 8, 1), material(0xffffff, { vc: true, rough: .25 })); { const p = scr.geometry.attributes.position, c = []; for (let i = 0; i < p.count; i++) { const u = (p.getX(i) / .15 + .5), v = .12 + .8 * Math.pow(u, 1.4); c.push(v, v, v * .96); } scr.geometry.setAttribute('color', new T.Float32BufferAttribute(c, 3)); }
-    scr.position.set(0, .5, -.132); scr.rotation.y = Math.PI; g.add(scr);
-    box(dark, .19, .16, .012, 0, .5, -.127, { rough: .4 });
+    // 手持ちの熱カメラ（握り・引き金・本体・レンズのひさし・背面の画面と押しボタン）
+    const grip = box(rubber, .085, .36, .1, 0, .245, -.025, { rough: .92 }, .03); grip.rotation.x = -.2;
+    for (let k = 0; k < 6; k++) { const rb = box(dark, .089, .012, .04, 0, .12 + k * .034, -.03 - (.12 + k * .034 - .245) * .2 + .035, { rough: .85 }, .005); rb.rotation.x = -.2; }   // 握りのすべり止め
+    { const tr = box(0xc7772b, .03, .06, .03, 0, .36, .05, { rough: .6 }, .011); tr.rotation.x = -.5; }   // 引き金（橙）
+    box(body, .16, .15, .3, 0, .47, .02, { rough: .62 }, .04); box(mid, .15, .06, .22, 0, .545, .0, { rough: .6 }, .028);
+    box(0xc7772b, .164, .012, .26, 0, .425, .02, { rough: .6 }, .005);   // 橙の帯（温かさの印）
+    cyl(rubber, .07, .074, .06, 0, .47, .185, Math.PI / 2, 0, { rough: .9 }); ring(rubber, .068, .008, 0, .47, .216, { rough: .9 });   // レンズのひさし
+    cyl(0x15120c, .058, .058, .006, 0, .47, .2, Math.PI / 2, 0, { rough: .5 });
+    { const gl = new T.Mesh(new T.SphereGeometry(.075, 28, 10, 0, Math.PI * 2, 0, .7), material(0x4a3d26, { rough: .1, phys: { clearcoat: 1, clearcoatRoughness: .08 } })); gl.rotation.x = Math.PI / 2; gl.position.set(0, .47, .146); g.add(gl); }   // 赤外を通すレンズ（ゲルマニウムの暗い色）
+    cyl(dark, .012, .012, .01, .05, .47, .205, Math.PI / 2, 0, { rough: .4 });   // 小さな窓（見える光のカメラ・模式）
+    box(dark, .15, .13, .02, 0, .48, -.132, { rough: .5 }, .008);
+    const scr = new T.Mesh(new T.PlaneGeometry(.125, .095, 8, 1), material(0xffffff, { vc: true, rough: .25 })); { const p = scr.geometry.attributes.position, c = []; for (let i = 0; i < p.count; i++) { const u = (p.getX(i) / .125 + .5), v = .12 + .8 * Math.pow(u, 1.4); c.push(v, v, v * .96); } scr.geometry.setAttribute('color', new T.Float32BufferAttribute(c, 3)); }
+    scr.position.set(0, .49, -.1425); scr.rotation.y = Math.PI; g.add(scr);
+    for (const x of [-.04, 0, .04]) cyl(mid, .009, .009, .006, x, .425, -.142, Math.PI / 2, 0, { rough: .5 });   // 押しボタン
   }
   g.userData.animate = () => {}; return g;
 }
@@ -67,7 +85,7 @@ export function makeCreature(id, mat = stdMat, o = {}) {
     : id === 'hebi' ? makeMamushi(mat, o) : id === 'koumori' ? makeBat(mat, o) : id === 'mimizu' ? makeWorm(mat, o) : null;
 }
 export function makeBody(id, material = (c, o) => stdMat(c, o)) {
-  if (id === 'hito') return makeHito(c => material(c, {}));
+  if (id === 'hito') { const g = new T.Group(), c = makeHuman(material, {}, () => makeHito(c => material(c, {}))); g.add(c); g.userData.creature = c; g.userData.animate = () => {}; return g; }   // 2026-11-20 2 周目：立ち姿は CC0 の人体に（読めないときは前の造形）
   if (id === 'camera' || id === 'netsu') return makeMachine(id, (c, o = {}) => material(c, o));
   const g = new T.Group(), c = makeCreature(id, material);
   c.scale.setScalar(FIT[id] || 1); g.add(c);
