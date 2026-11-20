@@ -1,5 +1,4 @@
-// © mitsulab. 2026-11-20 背景：氷川参道の画の上を、意匠の違う蝶が 1 羽ずつ舞う（胡蝶の夢）。
-// 本人「フォトリアルな蝶と、デジタルな蝶、アニメ風の蝶など色々な種類な蝶を表示してください。１デザインで１羽にします。」
+// © mitsulab. 背景：氷川参道の画の上を、意匠の違う蝶が 1 羽ずつ舞う。
 // 意匠＝写実（ナミアゲハ）・線と点（ナミアゲハ）・セル調（モンシロチョウ）・切り紙（ナミアゲハ）。群れにしない（boid なし）・瞬間移動しない。
 // 蝶の形は mitsulab が図鑑の形態にそって組み立てた造形（creatures_kochou.js。翅 4 枚・脚 6 本・触角 2 本。外から取りこんだ 3D はない）。
 import * as THREE from 'three';
@@ -63,5 +62,8 @@ export function start(){
     r.render(sc,cam); }
   let on=true; document.addEventListener('visibilitychange',()=>{on=!document.hidden; if(on) requestAnimationFrame(loop)});
   function loop(t){ if(!on) return; if(t-(last||0)>(sp?40:20)||!last) frame(t); requestAnimationFrame(loop); }
-  if(still) frame(performance.now()); else requestAnimationFrame(loop);
+  // 材質の組み立てを先に済ませてから描きはじめる（最初のこまで画面を止めない）
+  const go=()=>{ if(still) frame(performance.now()); else requestAnimationFrame(loop); };
+  let began=false; const once=()=>{ if(!began){ began=true; go(); } };
+  if(r.compileAsync){ r.compileAsync(sc,cam).then(once,once); setTimeout(once,1500); } else once();
 }

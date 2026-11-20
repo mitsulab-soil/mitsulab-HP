@@ -1,4 +1,4 @@
-/* mitsulab / Common Ground, 2026-11-06. Scoped to preserve existing application pages. */
+
 #top.cg-page{--cg-muted:#b3becb;--cg-line:rgba(179,205,212,.21);--cg-accent:#a8f2f6;background:transparent!important}
 :is(#top,#pf,#eco) .cg-home{max-width:1440px;margin:auto;padding:0 clamp(20px,5vw,80px);overflow:clip}
 :is(#top,#pf,#eco) .cg-eyebrow{font:400 10px/1.5 var(--sans,sans-serif);letter-spacing:.21em;color:var(--cg-accent);margin:0 0 24px}
@@ -72,7 +72,7 @@
 @media(max-width:1000px){#top.cg-page .ap-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}:is(#top,#pf,#eco) .cg-stage{height:500px}:is(#top,#pf,#eco) .cg-scene{margin-left:-35px;margin-right:-30px}:is(#top,#pf,#eco) .cg-hero-note{font-size:12px}}
 @media(max-width:759px){:is(#top,#pf,#eco) .cg-home{padding:0 22px}:is(#top,#pf,#eco) .cg-hero{display:flex;flex-direction:column;align-items:stretch;padding:32px 0 54px;min-height:0}:is(#top,#pf,#eco) .cg-hero-copy{padding:0;z-index:2}:is(#top,#pf,#eco) #visionH{font-size:clamp(29px,7.8vw,44px)!important;line-height:1.65!important;margin-bottom:20px}:is(#top,#pf,#eco) .cg-eyebrow{margin-bottom:20px;font-size:9px}:is(#top,#pf,#eco) .cg-hero-lead{font-size:19px;line-height:1.8;margin-bottom:16px}:is(#top,#pf,#eco) .cg-hero-note{font-size:12px;line-height:1.9}:is(#top,#pf,#eco) .cg-scene{margin:12px -22px 0}:is(#top,#pf,#eco) .cg-stage{height:420px}:is(#top,#pf,#eco) .cg-scene-bar,:is(#top,#pf,#eco) .cg-steps{margin:0 22px}:is(#top,#pf,#eco) .cg-steps{gap:7px}:is(#top,#pf,#eco) .cg-steps button{font-size:11px;min-height:78px;padding:12px 0}:is(#top,#pf,#eco) .cg-caption{margin:14px 22px 0;min-height:56px}:is(#top,#pf,#eco) .cg-source-note{margin:10px 22px 0;font-size:10px}:is(#top,#pf,#eco) .cg-chapter{grid-template-columns:1fr;gap:0;padding:52px 0}:is(#top,#pf,#eco) .cg-chapter h2{font-size:27px;line-height:1.7}:is(#top,#pf,#eco) .cg-prose{padding-top:26px}:is(#top,#pf,#eco) .cg-prose p{font-size:14px;line-height:2.1}:is(#top,#pf,#eco) .cg-prose .cg-statement{font-size:20px;margin:30px 0 22px}:is(#top,#pf,#eco) .cg-entrances a{font-size:17px}:is(#top,#pf,#eco) .cg-entrances small{font-size:9px}#top.cg-page .ap-grid{grid-template-columns:1fr!important;gap:36px!important}#top.cg-page .ap-t{font-size:14px!important}#top.cg-page :is(.lb.dw,.ap){padding-bottom:46px!important}#top.cg-page .chp{padding-top:26px}#top.cg-page .chp-t{font-size:23px}#qualium .cg-deep{padding:45px 22px 65px}#qualium .cg-deep section{grid-template-columns:1fr;gap:20px;padding:30px 0}#qualium .cg-deep h3{font-size:22px}#qualium .cg-deep p{font-size:14px}}
 @media(prefers-reduced-motion:reduce){:is(#top,#pf,#eco) .cg-stage canvas,:is(#top,#pf,#eco) .cg-stage .cg-poster,:is(#top,#pf,#eco) .cg-scene-label{transition:none}}
-/* 2026-11-06 latest direction: edge-to-edge living scene, Aoi in the same space. */
+
 #top.cg-page{padding-top:0!important}
 :is(#top,#pf,#eco) .cg-home{max-width:none;overflow:visible;padding:0}
 :is(#top,#pf,#eco) .cg-hero{display:block;min-height:740px;height:calc(100svh - 64px);max-height:1100px;margin:0;padding:0;isolation:isolate;background:#03060f}
@@ -176,7 +176,7 @@ body.cg-design #bgRain,body.cg-design>.aurora{display:none}
 :is(#top,#pf,#eco) .cg-hero.is-observing .cg-stage:after{background:linear-gradient(0deg,#03060f 0%,rgba(3,6,15,.4) 18%,transparent 42%)}
 @media(max-width:759px){:is(#top,#pf,#eco) .cg-hero.is-observing .cg-hero-copy{left:22px;top:68px;width:calc(100% - 44px)}:is(#top,#pf,#eco) .cg-hero.is-observing #visionH{font-size:14px!important}}
 
-/* 2026-11-07: a visit begins as a work, before its explanation. */
+
 :is(#top,#pf,#eco) .cg-hero{height:calc(100svh - 64px);min-height:560px;max-height:none}
 :is(#top,#pf,#eco) .cg-hero-copy{top:30px;left:5vw;width:70%;opacity:.85}
 :is(#top,#pf,#eco) #visionH,:is(#top,#pf,#eco) .cg-hero.is-observing #visionH{font:400 15px/1.6 var(--serif,serif)!important;letter-spacing:.1em!important;margin:0}
@@ -244,7 +244,7 @@ body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
 :is(#top,#pf,#eco) .cg-journey progress::-moz-progress-bar{background:#b1e5dc}
 :is(#top,#pf,#eco) .cg-stage canvas{cursor:default}
 
-/* 2026-11-07: concept -> definition -> shared 3D -> works. Keep the established background. */
+
 :is(#top,#pf,#eco) .cg-opening{padding:clamp(60px,8vw,112px) 0 clamp(45px,6vw,80px);max-width:1000px}
 :is(#top,#pf,#eco) .cg-opening #visionH{font:400 clamp(30px,4.2vw,60px)/1.6 var(--serif,serif)!important;letter-spacing:.045em!important;margin:0 0 24px;word-break:normal;overflow-wrap:anywhere}
 :is(#top,#pf,#eco) .cg-opening-lead{font:400 clamp(15px,1.5vw,19px)/2 var(--sans,sans-serif);color:var(--cg-muted);margin:0 0 22px}
@@ -276,7 +276,7 @@ body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
 :is(#top,#pf,#eco) .cg-opening{padding-top:calc(64px + clamp(40px,5vw,72px))}
 :is(#top,#pf,#eco) .cg-opening #visionH br{display:block}
 @media(max-width:759px){:is(#top,#pf,#eco) .cg-opening{padding-top:100px}}
-/* 2026-11-10 第5周：冒頭のプレイ画を主役の大きさに（PC は見出しの右に大きく）・親子の入口 */
+
 :is(#top,#pf,#eco) .cg-play-wrap .cg-play-shot{max-width:none!important}
 :is(#top,#pf,#eco) .cg-kids{margin:clamp(48px,9vh,88px) 0 0;padding:16px 18px;border:1px solid rgba(242,244,239,.22);border-radius:8px;background:rgba(14,24,44,.55);max-width:560px}
 :is(#top,#pf,#eco) .cg-kids-h{font:500 16px/1.5 var(--serif,serif);color:var(--ink,#f2f4ef);margin:0 0 2px}
@@ -291,6 +291,6 @@ body.cg-beyond .pr-card{background:rgba(3,6,15,.78)}
  :is(#top,#pf,#eco) .cg-opening>.cg-play-wrap .cg-play-shot{margin:0!important}
  :is(#top,#pf,#eco) .cg-opening #visionH{font-size:clamp(34px,3.3vw,50px)!important}
 }
-/* 11-10 第6周：仮説の旗を見えやすく（本文の前に小さな札） */
+
 .hyp-flag{display:inline-block;margin:0 .5em 0 0;padding:1px 8px;border:1px solid #e8c27a;border-radius:10px;color:#f3d79c;font:600 11px/1.6 var(--sans,sans-serif);letter-spacing:.12em;vertical-align:.12em}
 .rs-kid .hyp-flag{margin:0 0 0 .4em}

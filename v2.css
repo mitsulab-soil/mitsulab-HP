@@ -1,5 +1,4 @@
-/* © mitsulab. HP v2（2026-10-26）TOP：画面いっぱいの 3D（js/v2-world.js）の上を、場面のカードがスクロールで流れる。
-   電脳の空気＝意味のある線と、細い等幅の札（実の座標・層コード・記録の数）。飾りの格子は使わない。 */
+
 #top{position:relative}
 :is(#top,#pf,#eco)>.v2-stage{position:sticky;top:0;height:100vh;height:100svh;margin-bottom:-100vh;margin-bottom:-100svh;z-index:0;pointer-events:none;background:#03060f;overflow:hidden}
 
@@ -48,7 +47,7 @@ html.v2-no3d .v2-poster{opacity:.6}
 }
 @media (prefers-reduced-motion:reduce){.v2-stage canvas,.v2-poster,.v2-lab,.v2-veil{transition:none}}
 html[data-lang=en] .v2-s0 .v2-title{white-space:normal}
-/* 2026-10-26 環世界 1.0／2.0 を場面の主役の字に */
+
 .v2-umw{margin:6px 0 16px;display:flex;flex-direction:column;gap:2px}
 .v2-umw-ja{font:400 clamp(40px,5vw,72px)/1.2 var(--serif);letter-spacing:.06em;color:var(--ink);white-space:nowrap}
 .v2-umw-en{font:400 13px/1.6 var(--mono);letter-spacing:.32em;color:#a8f2f6}
@@ -88,7 +87,7 @@ html[data-lang=en] .v2-umw-ja{font-family:var(--latin);letter-spacing:0}
 .si-body{margin:0;padding:0 12px 12px;font-size:12.5px;line-height:1.7;color:var(--ink-2);border-top:1px dashed #8bccca26;padding-top:12px}
 @media (max-width:1100px){.si-grid{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:700px){.si-grid{grid-template-columns:1fr;gap:6px}.si-fold>summary{grid-template-columns:1fr auto;column-gap:10px;padding:8px 12px}.si-k{grid-column:1/-1}.si-what{grid-column:1}.si-more{grid-column:2;grid-row:2/4;align-self:center}.si-name{font-size:15px}}
-/* v3（2026-10-26）知覚と認知の輪（1.0 → 2.0）と開閉の節 */
+
 .lp-sec{max-width:1200px;margin:0 auto}
 .lp-figs{display:flex;align-items:center;gap:12px;margin:22px 0 8px}
 .lp-svg{flex:1;min-width:0;width:100%;height:auto;display:block}
@@ -143,7 +142,7 @@ html[data-lang=en] .v2-umw-ja{font-family:var(--latin);letter-spacing:0}
 #vision .v2-hud{display:none}
 #vision .v2-card{padding-top:28px;padding-bottom:28px}
 @media (max-width:700px){#vision .v2-vlead{font-size:18px}}
-/* v3b（2026-10-26）層の 3D（碧だけ・カメラ固定）を「一枚ずつ、ひらける層」の右の欄に。スマホは一覧の上に貼りつく */
+
 @media (min-width:861px){.qt-stack>.qt-stack-stage{grid-column:2;grid-row:1 / span 2}.qt-stack>.qt-layer-list{grid-column:1;grid-row:1}}
 .qt-meter i{background:linear-gradient(90deg,#c9abe0,#f0d19d,#8fb6dc,#88b68f,#e79592)}
 @media (max-width:860px){.qt-stack-stage .qt-stack-count{bottom:16px}.qt-stack-stage .qt-meter{bottom:6px}}
@@ -155,7 +154,7 @@ body:has(#top.active) footer{margin-top:0}
 @media (max-width:700px){:is(#top,#pf,#eco) .v2-lab{font-size:8px;line-height:1.4;max-width:44vw;background:#03060fe6;padding:2px 5px 2px 8px}:is(#top,#pf,#eco) .v2-lab .k{font-size:7.5px;letter-spacing:.1em}}
 @media (max-width:700px){html[data-lang=en] :is(#top,#pf,#eco) .v2-lab{font-family:var(--sans);letter-spacing:0;max-width:40vw}}
 .v2-nw{white-space:nowrap}
-/* v4（2026-10-26 夜 本人「スクロールで動くグラフィックは廃止」）：TOP は 6 節を上から順に。1.0・2.0 の 3D は節の中の枠に */
+
 #top{background:#03060f}
 .v2-scene{min-height:0;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:28px 36px;align-items:start;padding:72px max(16px,4vw) 40px;max-width:1440px;margin:0 auto;position:relative}
 .v2-scene>.v2-card{grid-column:1}
@@ -188,7 +187,7 @@ body:has(#top.active) footer{margin-top:0}
   #vision{min-height:70svh;padding-top:96px;display:flex;align-items:flex-end}
   #vision::after{background:linear-gradient(0deg,#03060fee 0,#03060f66 55%,#03060f22 100%)}
 }
-/* フッターの SNS と記録（2026-10-26 夜。アイコンは自作の線） */
+
 .f-sns{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
 .f-sns a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px;border:1px solid #8bccca40;color:var(--ink);text-decoration:none;font-size:13.5px}
 .f-sns a:hover,.f-sns a:focus-visible{border-color:#a8f2f6;background:#a8f2f60f}
@@ -200,7 +199,7 @@ body:has(#top.active) footer{margin-top:0}
 .si-grid{align-items:stretch}.si-card{display:flex;flex-direction:column}
 .v2-portfolio{padding-top:48px}
 @media (max-width:860px){.v2-fig .v2-inset{width:132px;height:118px}}
-/* v4b（10-26 夜 本人「わかりにくい」）：一言 → 身近な例 → くわしくは開閉 */
+
 .v2-plain{font:400 clamp(17px,1.4vw,19px)/1.95 var(--serif);color:var(--ink)}
 .v2-ex2{list-style:none;margin:14px 0 4px;padding:0;display:grid;gap:8px}
 .v2-ex2 li{display:grid;grid-template-columns:7.5em 1fr;gap:10px;padding:8px 0;border-top:1px solid #8bccca26;font-size:15px;line-height:1.8;color:var(--ink-2)}
@@ -251,14 +250,14 @@ html[data-lang=en] .v2-fig .v2-lab{font-family:var(--sans);font-style:normal;fon
 .v2-fig .v2-lab{font-size:15px}.v2-fig .v2-lab .k{font-size:10px}
 html[data-lang=en] .v2-fig .v2-lab{font-size:14px}
 @media (max-width:700px){:is(#top,#pf,#eco) .v2-fig .v2-lab{font-size:13px}html[data-lang=en] :is(#top,#pf,#eco) .v2-fig .v2-lab{font-size:12.5px}}
-/* 2026-10-27 v7：2.0 の節を一つの流れに */
+
 .v2-sub{margin:22px 0 6px;font:500 11px/1.6 var(--mono);letter-spacing:.14em;color:#a8f2f6}
 .v2-qblk{margin-top:6px;padding-top:4px;border-top:1px dashed #8bccca40}
 .lp-blk{padding:14px 0;border-top:1px solid #8bccca26}.lp-blk:first-child{border-top:0}
 .lp-bh{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 8px}
 .v2-loopfold .lp-fb{padding:0}
 .v2-abc li{grid-template-columns:9.2em 1fr}html[data-lang=en] .v2-abc li{grid-template-columns:11em 1fr}@media (max-width:700px){.v2-abc li,html[data-lang=en] .v2-abc li{grid-template-columns:1fr}}
-/* 2026-10-27 v7：リンクとアイコンの規則（線のアイコン 20px・線 1.4・押せる高さ 48px・中央にそろえる） */
+
 .f-sns{display:grid;grid-template-columns:repeat(4,auto);justify-content:center;margin:18px auto 10px;gap:10px}@media (max-width:1280px){.f-sns{grid-template-columns:repeat(2,auto)}}.f-sns a{padding-right:16px}
 .f-sns a{min-height:48px;padding:6px 16px 6px 14px;gap:10px;font-family:var(--serif);letter-spacing:.04em;border-color:#8bccca38;background:#07101c80}
 .f-sns svg{width:20px;height:20px;stroke-width:1.4}
@@ -269,7 +268,7 @@ html[data-lang=en] .v2-fig .v2-lab{font-size:14px}
 .v2-fig:not(.nar) .v2-lab>span:last-child{white-space:nowrap}
 html[data-lang=en] .v2-fig.nar .v2-lab{font-size:12.5px;letter-spacing:0}
 @media (max-width:860px){#umwelt2 .v2-figbox{aspect-ratio:1/1}}
-/* 2026-10-27 v20：拡張のプラットフォーム・スケールの図・ワークショップ・カードの軸 */
+
 .v2-plat{margin-top:6px}
 .v2-sax{position:relative;margin:14px 0 6px;aspect-ratio:4/5;max-height:520px;background:#03060f;border:1px solid #8bccca2e;overflow:hidden}
 .v2-sax canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -278,7 +277,7 @@ html[data-lang=en] .v2-fig.nar .v2-lab{font-size:12.5px;letter-spacing:0}
 .ws-grid{grid-template-columns:repeat(4,1fr)}@media (max-width:980px){.ws-grid{grid-template-columns:1fr 1fr}}@media (max-width:560px){.ws-grid{grid-template-columns:1fr}}
 .ws-c{display:grid;gap:6px;padding:14px 16px}.ws-t{font-size:12.5px;color:#9fb6b8}.ws-note{margin-top:16px}.ws-note a{color:#a8f2f6}
 .pf-axis{margin:12px 0 4px;padding:10px 0 0;border-top:1px dashed #8bccca40}.pf-axis p{margin:.3em 0}
-/* 2026-10-27 カードの重ね窓 */
+
 .pf-card,.si-card{cursor:pointer}.pf-card:focus-visible,.si-card:focus-visible{outline:2px solid #a8f2f6;outline-offset:3px}
 #mlpop{margin:auto;inset:0;width:min(980px,94vw);max-height:92vh;padding:0;border:1px solid #8bccca55;background:#050b16;color:var(--ink,#e9f3f4);overflow:auto}
 #mlpop::backdrop{background:#01040acc;backdrop-filter:blur(4px)}

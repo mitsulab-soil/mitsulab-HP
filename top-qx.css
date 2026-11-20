@@ -1,4 +1,4 @@
-/* © mitsulab. 2026-10-27 TOP：Qualium のロゴと VISION・環世界 1.0 / 2.0（本人「ロゴを大きく・ビジョンをカッコよく・文字は本質だけ」） */
+
 .brand{display:inline-flex;align-items:center;gap:9px}
 .brand-mark{width:26px;height:26px;flex:none;opacity:.95;filter:drop-shadow(0 0 6px #a8f2f655)}
 
@@ -101,7 +101,7 @@ html.v2-no3d .qx-fig{display:none}
 @media (max-width:700px){.qx-fan-k{font-size:25px}.qx-fan-lim{font-size:20px}.qx-hqgrid .qx-lim .d{display:block}
   .qx-fan{max-width:none;margin:0 -8px;width:calc(100% + 16px)}.qx-eight{padding:12px 12px 20px}.qx-eight .qx-code{margin-bottom:6px}.qx-h2{font-size:19px;margin-bottom:8px}.qx-cards{gap:5px}.qx-cards li{padding:7px 7px 6px;grid-template-columns:18px 1fr;column-gap:6px;row-gap:1px}.qx-cards svg{width:18px;height:18px}.qx-cards .k{font-size:13px}.qx-cards .d{font-size:11px;line-height:1.42}.qx-eight>.v2-note{margin:6px 0 0;font-size:11px}}
 html[data-lang=en] .qx-fan-lim{font-size:13px;letter-spacing:.04em}
-/* 2026-10-27 本人：もっと詳しくは先頭に＋、開いたら− */
+
 .qx-more>summary,.v2-loopfold>summary{list-style:none;cursor:pointer}
 .qx-more>summary::-webkit-details-marker,.v2-loopfold>summary::-webkit-details-marker{display:none}
 .qx-more>summary::before,.v2-loopfold>summary::before{content:"＋";display:inline-block;width:1.4em;color:#a8f2f6;font-family:var(--mono,monospace)}
@@ -114,7 +114,7 @@ html[data-lang=en] .qx-fan-lim{font-size:13px;letter-spacing:.04em}
 .qx-logo-img{filter:grayscale(1) brightness(1.15)}
 .qx-fig2 .qx-labs{position:absolute;left:0;right:0;bottom:2.6em;top:auto;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;pointer-events:none}
 .qx-fig2 .qx-lab{position:static!important;transform:none!important;transition:opacity .4s}
-/* 2026-10-27 P2：2.0 は上ぞろえ・下の開閉二つは全幅で詰める */
+
 @media (min-width:701px){.qx-s2{align-items:start}.qx-s2 .qx-fig{margin-bottom:8px}}
 .qx-scene>.qx-think{grid-column:1/-1;max-width:760px;margin:0}
 .qx-scene>.qx-think+.v2-loopfold{margin-top:0}
@@ -190,7 +190,7 @@ html{scroll-padding-top:80px}
 @media (min-width:701px){.qx-s2{grid-template-columns:minmax(0,400px) minmax(0,1fr)}.qx-fig2{margin-right:-2vw}}
 .qx-fig2 .qx-lab .k::before{width:22px;height:4px}
 @media (max-width:700px){.qx-s2 .qx-fig2{margin-top:-56px}.qx-fig2 .qx-labs{align-items:start}html:not([data-lang=en]) .qx-fig2{margin-bottom:140px}html[data-lang=en] .qx-fig2{margin-bottom:170px}html[data-lang=en] .qx-fig2 .qx-cap{margin-top:7.2em!important}.qx-fig2 .qx-lab .k{letter-spacing:.04em}}
-/* 2026-10-28 P2：1.0 の「もっと詳しく」を図の下（PC は文の下）にそろえ、縦の位置を合わせる */
+
 #umwelt1 .qx-m1{grid-column:1;margin:0;border-top:1px dashed #8bccca33;padding-top:6px}
 @media (min-width:701px){#umwelt1{align-items:center;grid-template-rows:auto auto;row-gap:12px}#umwelt1 .qx-tx{align-self:end}#umwelt1 .qx-m1{align-self:start;grid-row:2}#umwelt1 .qx-fig1{grid-row:1 / span 2;align-self:center}
   .qx-fig2{aspect-ratio:2/1;margin-bottom:28px}.qx-s2{padding-top:48px;padding-bottom:36px}}
@@ -203,11 +203,11 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-fig1 .qx-lab{min-height:3.3em}}
 @media (min-width:701px){.qx-fig2 .qx-labs{grid-template-columns:repeat(4,minmax(0,1fr));justify-items:center;left:6%;right:6%}.qx-fig2{margin-top:16px}}
 @media (max-width:700px){.qx-fig1 .qx-lab>span:not(.k){font-size:12.5px;line-height:1.35}}
-/* 2026-10-28 写実の地：札は図の下へ（写真の上に字を載せない） */
+
 @media (min-width:701px){.qx-fig2 .qx-labs{top:100%!important;bottom:auto!important;margin-top:10px}.qx-fig2 .qx-cap{margin-top:5.2em!important}.qx-fig2{margin-bottom:110px!important}}
 .qx-fig2 canvas{border-radius:6px}
 @media (max-width:700px){.qx-fig2 .qx-labs{top:100%!important;bottom:auto!important;margin-top:6px!important}html:not([data-lang=en]) .qx-fig2 .qx-cap{margin-top:7.4em!important}html[data-lang=en] .qx-fig2 .qx-cap{margin-top:8.2em!important}html:not([data-lang=en]) .qx-fig2{margin-bottom:180px!important}html[data-lang=en] .qx-fig2{margin-bottom:200px!important}}
-/* 2026-10-28 環世界の概念図（同じ断面の舞台。1.0＝身体で届く線、2.0＝情報の層を通してつながる線） */
+
 .qx-figd{aspect-ratio:4/3;margin-bottom:120px}
 .qx-figd .qx-labs{position:absolute;left:0;right:0;top:100%;display:flex;justify-content:center;flex-wrap:wrap;gap:6px 24px;margin-top:8px;pointer-events:none}
 .qx-figd .qx-lab{position:static!important;transform:none!important;opacity:1!important;text-align:center}
@@ -230,7 +230,7 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-sl span{display:none}.qx-sl b{font-size:12px}}
 .qx-figd .qx-lab-off .k{color:#c6ced8}
 .qx-figd .qx-lab-off .k::before{background:repeating-linear-gradient(90deg,#b7c0ca 0 5px,transparent 5px 9px)}
-/* 2026-10-28 TOP の見出しを一つの型に（環世界 1.0／2.0 と同じ：英字の札＋明朝の大見出し） */
+
 .qx-sec-code{margin:0 0 14px}
 .qx-sec-h{margin:0 0 18px}
 .v2-social .qx-sec-h,.v2-ws .qx-sec-h,.ql-tier-head .qx-sec-h,.qt-origin .qx-sec-h{text-align:left}
@@ -250,10 +250,10 @@ html{scroll-padding-top:80px}
 @media (min-width:1000px){:is(#top,#pf,#eco) #appguide,:is(#top,#pf,#eco) .v2-originwrap{max-width:1200px;margin-left:auto!important;margin-right:auto!important}}
 @media (min-width:1000px){:is(#top,#pf,#eco) .v2-originwrap{padding-left:0!important;padding-right:0!important}:is(#top,#pf,#eco) .v2-originwrap .qt-origin{padding-left:0!important;padding-right:0!important;margin-left:0!important}}
 @media (min-width:1000px){:is(#top,#pf,#eco) .qx-scene{max-width:1200px;padding-left:0;padding-right:0}}
-/* 2026-10-28 P2：1.0 の左の列の下が空く＝図を 2 行にまたがせ、文と「もっと詳しく」を図の中央に寄せて続けて置く */
+
 @media (min-width:701px){#umwelt1 .qx-figd{grid-column:2;grid-row:1 / span 2;align-self:center}#umwelt1 .qx-tx{align-self:end!important;padding-bottom:4px}#umwelt1 .qx-m1{align-self:start;grid-row:2}}
-@media (max-width:700px){.qx-sl{display:none}}   /* 2026-10-29 スマホは図の下の札（qx-labs）に層の名と説明があるので、図の上の凡例は出さない（層と重なるため） */
-/* 2026-10-29 夜：環世界の式と、境界での試み */
+@media (max-width:700px){.qx-sl{display:none}}   
+
 .qx-eq{margin:6px 0 18px;padding:14px 16px 12px;border:1px solid #a8f2f633;border-radius:4px;background:#0a1222aa}
 .qx-eq2{border-color:#f2c56e44}
 .qx-eqf{font:400 clamp(20px,1.9vw,26px)/1.4 "Shippori Mincho",var(--serif,serif);color:#f4f6fb;letter-spacing:.06em;margin:0 0 10px;text-align:center;white-space:nowrap}
@@ -275,11 +275,10 @@ html{scroll-padding-top:80px}
 @media (max-width:700px){.qx-bdl{grid-template-columns:1fr}.qx-eqf{font-size:19px;white-space:normal}.qx-eql li{font-size:13px}}
 .qx-scene{scroll-margin-top:76px}
 .qx-bdm{margin:0 0 16px}.qx-bdm>summary{font:500 15px/1.5 var(--serif,serif);color:#f6dca2}.qx-bdm[open]>summary{margin-bottom:10px}
-/* 2026-10-30 本人「読み込み画面のロゴがそのまま TOP のロゴになるように」：TOP のロゴの位置を、下の文字の高さ（書体の読み込み・日英）に左右されない固定の位置にする。
-   読み込み画面（js/loader_qualium.js の data-match）はこのロゴの位置を測って重ねる。 */
+
 .qx-hero{justify-content:flex-start;padding-top:max(84px,calc(50svh - min(78vw,56svh,560px)*.5 - 107px))}
 @media (max-width:700px){.qx-hero{padding-top:max(76px,calc(46svh - min(84vw,48svh)*.5 - 86px))}}
-/* 2026-10-30 本人：環世界の認知のプロセス（環境→知覚→認知、2.0 は Qualia layer を経由）を札の列で */
+
 .qx-proc{list-style:none;margin:0 0 12px;padding:0;display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap}
 .qx-proc li{display:flex;align-items:baseline;gap:6px;padding:4px 10px;border:1px solid #a8f2f644;border-radius:999px;font:400 13px/1.4 var(--serif,serif);color:#cfd6e6}
 .qx-proc li i{font:italic 400 16px/1 "Times New Roman",var(--latin,serif);color:#a8f2f6}
@@ -297,24 +296,23 @@ html{scroll-padding-top:80px}
 /* 同上：静止画のロゴも読み込み画面・3D と同じ白に（灰色を挟まない） */
 .qx-logo-img{filter:brightness(0) invert(1);opacity:1}
 .qx-logo.on .qx-logo-img{transition:opacity .4s 1.1s}
-/* 2026-10-30 2.0 の札は六つ（Qualia/x・sound・touch・sight・taste・smell）：三段になるので、下の説明と余白を広げる */
+
 #umwelt2 .qx-figd .qx-lab{max-width:30%}
 #umwelt2 .qx-figd .qx-cap{margin-top:8.4em!important}
 #umwelt2 .qx-figd{margin-bottom:170px}
 @media (max-width:700px){#umwelt2 .qx-figd .qx-lab{max-width:none}#umwelt2 .qx-figd .qx-cap{margin-top:11.5em!important}html[data-lang=en] #umwelt2 .qx-figd .qx-cap{margin-top:12.5em!important}#umwelt2 .qx-figd{margin-bottom:400px!important}}
-#umwelt2 .qx-sl{display:none}   /* 2026-10-30 採点 P2：層の名は図の下の札に一本化 */
+#umwelt2 .qx-sl{display:none}   
 @media (max-width:700px){.qx-pl{font-size:12.6px}.qx-pl i{font-size:14.4px}}
 @media (min-width:701px){.qx-eq2 .qx-eqf{font-size:clamp(17px,1.55vw,22px)}}
 @media (max-width:700px){#umwelt2 .qx-figd{width:calc(100% + 32px);margin-left:-16px}}   /* 採点 P2：スマホの 2.0 の図を幅いっぱいに */
 .qx-pl{text-shadow:0 0 4px #070b12,0 0 8px #070b12,0 0 2px #000,1px 1px 0 #000,-1px -1px 0 #000}   /* 採点 P2：石畳の上でも読めるよう暗い縁取り */
 .qx-pl{background:#070b12b3;padding:1px 6px;border-radius:3px}   /* 採点 P2：札に地の色の下敷き */
 @media (max-width:700px){#umwelt2 .qx-figd{margin-top:-24px;margin-bottom:270px!important}}
-/* 2026-10-30 本人：式は Q = の 1 本に。下に g・h の添え */
+
 .qx-eqs{font:400 12.5px/1.6 var(--serif,serif);color:#9aa4b8;text-align:center;margin:-4px 0 12px}
 .qx-eqs i{font-family:"Times New Roman",var(--latin,serif);font-style:italic}
 @media (max-width:700px){.qx-eqf{white-space:nowrap!important;font-size:17px!important;letter-spacing:.02em}}
-/* 2026-10-30 本人「説明の後に 3D グラフィックがあります。順番を入れ替えて」「スマホでは情報量を落として」：
-   環世界 1.0・2.0 は 見出し → 図 → 一行と式 → 詳しく（スマホは畳む・PC は開いたまま）の一列に */
+
 #umwelt1.qx-scene,#umwelt2.qx-scene{display:block;max-width:1100px}
 #umwelt1 .qx-tx,#umwelt2 .qx-tx{max-width:760px}
 #umwelt1 .qx-head,#umwelt2 .qx-head{margin-bottom:8px}
@@ -329,4 +327,4 @@ html{scroll-padding-top:80px}
 :is(#top,#pf,#eco) #umwelt1.qx-scene,:is(#top,#pf,#eco) #umwelt2.qx-scene,#umwelt1.qx-scene,#umwelt2.qx-scene{margin-left:auto;margin-right:auto;padding-left:max(16px,4vw);padding-right:max(16px,4vw)}
 @media (min-width:1000px){:is(#top,#pf,#eco) #umwelt1.qx-scene,:is(#top,#pf,#eco) #umwelt2.qx-scene{padding-left:40px;padding-right:40px}}
 @media (max-width:700px){#umwelt1 .qx-figd,#umwelt2 .qx-figd{margin-top:-56px!important}.qx-figd .qx-lab span{word-break:keep-all;overflow-wrap:anywhere}}
-@media (max-width:700px){.qx-figd .qx-lab .k{font-size:15.5px}.qx-figd .qx-lab span:not(.k){font-size:13.5px;line-height:1.5;color:#dbe2ec;word-break:keep-all;overflow-wrap:normal}.qx-figd .qx-labs{gap:12px 10px}.qx-figd{margin-bottom:190px}.qx-pl{font-size:13px}.qx-pl i{font-size:14.5px}}   /* 2026-11-03 P2d：スマホで環世界 2.0 の図の字が小さかった → 読める大きさへ */
+@media (max-width:700px){.qx-figd .qx-lab .k{font-size:15.5px}.qx-figd .qx-lab span:not(.k){font-size:13.5px;line-height:1.5;color:#dbe2ec;word-break:keep-all;overflow-wrap:normal}.qx-figd .qx-labs{gap:12px 10px}.qx-figd{margin-bottom:190px}.qx-pl{font-size:13px}.qx-pl i{font-size:14.5px}}   

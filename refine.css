@@ -1,5 +1,4 @@
-/* 2026-11-13 本人「洗練された HP デザインにしてください」：引き算。碧の細い一本の線だけを残し、
-   光・走査線・枠を外す。文字は 4 段（見出し・副見出し・本文・注）。カードの画・角・影をそろえる。 */
+
 :root{--rf-aoi:#9bdcf0;--rf-line:rgba(155,220,240,.34);--rf-weak:rgba(195,204,224,.16);--rf-ink:#eef5fb;--rf-ink2:#c9d3e2;--rf-ink3:#a9b5c8;
 --rf-h1:clamp(30px,3.4vw,52px);--rf-h2:clamp(22px,2.2vw,30px);--rf-body:clamp(16px,1.2vw,17px);--rf-note:14px;--rf-gap:clamp(72px,9vw,128px)}
 /* 飾りを外す */
