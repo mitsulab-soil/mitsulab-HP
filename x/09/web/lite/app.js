@@ -1974,7 +1974,7 @@ function playNext() {
   if (!soundOn || !l.f) { next(Math.max(3200, (l.dur || l.t.length * .16) * 1000 + 1200))   /* 10-28 晩：声のない行も読める長さ（1 字 0.2 秒＋1.2 秒・最低 3.2 秒） */; return; }
   audio.src = l.f; audio.currentTime = 0;
   if (AOI.m && v.i === 0) AOI.m.express(v.talk ? (Math.random() < .5 ? "warm" : "curious") : "warm", .55, Math.min(6, (l.dur || 3) + 1));
-  audio.play().then(() => { AOI.m?.speak({ timeline: D.lip[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime, ref: v.L && v.i === 0 && AOI.focus ? AOI.focus : null, autoGesture: !v.L || (v.i === 0 && !!AOI.focus) /* 2026-10-23 札の読み上げで指すのは、物が前にある最初の一行だけ */ }); }).catch(() => next(1500));
+  audio.play().then(() => { AOI.m?.speak({ timeline: D.lip[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime, gesture: l.id && l.id === D.intro?.id ? [{ t: 3.4, type: "metaphoric", shape: "contrast", hold: 1.6 }, { t: 6.7, type: "metaphoric", shape: "present", hold: 1.2 }] : null   /* 11-20 本人「説明しているそぶり」：はじめの名乗りは、見る人へ正面を向き、「この場所の…」で両手をひらいて話す（共通部品 AoiMotion の身ぶり） */, ref: v.L && v.i === 0 && AOI.focus ? AOI.focus : null, autoGesture: !v.L || (v.i === 0 && !!AOI.focus) /* 2026-10-23 札の読み上げで指すのは、物が前にある最初の一行だけ */ }); }).catch(() => next(1500));
   audio.onended = () => { if (voiceQ !== v) return; AOI.m?.stopSpeaking(); next(420); };
   { const i0 = v.i; setTimeout(() => { if (voiceQ === v && v.i === i0 && !audio.ended && (audio.paused || audio.currentTime < .05)) { AOI.m?.stopSpeaking(); v.i++; playNext(); } }, ((l.dur || 3) + 4) * 1000); }   // 10-29：声が止まっても黙ったまま止まらない
 }
@@ -2115,7 +2115,7 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
 }
 const aoiYaw = () => CAM.yaw + (MOBILE ? (CAM.look || 0) : 0);   // 11-18：見ている向き（スマホは見回しの分も）
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 3.0 : 2.3, s = MOBILE ? .2 : .9;   /* 11-10 第7周：375 で碧が右端で切れない */   /* 11-03 本人「碧との距離をもっと近く」：前 3.15/2.9 m */   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 2.5 : 2.3, s = MOBILE ? .2 : .9;   /* 11-20 本人「碧がもっと近く見えるように」：375 は前 3.0→2.5 m（全身が画面の高さの約 5 割） */   /* 11-10 第7周：375 で碧が右端で切れない */   /* 11-03 本人「碧との距離をもっと近く」：前 3.15/2.9 m */   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const vy = AOI.sy ?? aoiYaw(), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = PANEL.cur && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：道の中心を歩くと左右がこまごとに入れかわり、碧が真ん中に留まっていた。0.8 m の幅でしか入れかえない */   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
@@ -2124,6 +2124,7 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
     out.set(CAM.pos.x + fx * c[0] + rx * c[1], 0, CAM.pos.z + fz * c[0] + rz * c[1]); }
   aoiOffRoad(out, rx, rz);
   for (let k = 0; k < 24 && blocked(out.x, out.z); k++) { const dx = a.x - out.x, dz = a.z - out.z, l = Math.hypot(dx, dz) || 1; out.x += dx / l * .35; out.z += dz / l * .35; }   // 碧も植え込み・幹・池には立たない（道の中心の側へ寄る）
+  if (MOBILE) { const lat = (out.x - CAM.pos.x) * rx + (out.z - CAM.pos.z) * rz, fw = (out.x - CAM.pos.x) * fx + (out.z - CAM.pos.z) * fz, lim = .3; if (Math.abs(lat) > lim || fw < 2.1) { const L2 = Math.max(-lim, Math.min(lim, lat)), F2 = Math.max(2.1, fw), x = CAM.pos.x + fx * F2 + rx * L2, z = CAM.pos.z + fz * F2 + rz * L2; if (!blocked(x, z) && !AREAS?.onCarriage?.(x, z)) { out.x = x; out.z = z; } } }   /* 11-20：近くに立つぶん、375 では横へ寄りすぎない・近すぎない（画面の端で切れない・左右の札に重ならない） */
   out.y = groundY(out.x, out.z); return out;
 }
 function aoiArrive() {
@@ -2136,6 +2137,15 @@ function aoiArrive() {
 function hintQ() { }
 const _ap = new THREE.Vector3();
 const _ndc = new THREE.Vector3();
+/* 11-20 本人「碧がもっと近く見えるように」：碧が話しているあいだ、視野をゆっくり少し寄せて顔が見えるようにする（画角は変えず camera.zoom。歩く場面だけ・碧が視野の内にいるときだけ・動きを減らす設定では寄せない） */
+const AOIZ = { k: 0 }, _az = new THREE.Vector3();
+function aoiZoom(dt) {
+  let t = 0;
+  if (QW.mode === "walk" && !RM && voiceQ && AOI.m && AOI.root?.visible && !WALK.moving) { const P = AOI.m.pos; _az.set(P.x, P.y + 1.4, P.z).project(camera); if (_az.z < 1 && Math.abs(_az.x) < (AOIZ.k > .05 ? .7 : .5) && Math.abs(_az.y) < .8) AOIZ.h = 2.6; }   /* 行と行の間（2.6 秒まで）は寄せたまま：寄り引きをくり返さない */
+  AOIZ.h = Math.max(0, (AOIZ.h || 0) - dt); if (WALK.moving || QW.mode !== "walk") AOIZ.h = 0; t = AOIZ.h > 0 ? 1 : 0;
+  if (QW.mode !== "walk") AOIZ.k = 0; else AOIZ.k += (t - AOIZ.k) * (1 - Math.exp(-dt * (t ? 1.5 : 1.3)));
+  const z = 1 + .14 * AOIZ.k * AOIZ.k * (3 - 2 * AOIZ.k); if (Math.abs(camera.zoom - z) > 5e-4) { camera.zoom = z; camera.updateProjectionMatrix(); }
+}
 function stepAoi(dt) {
   if (!AOI.m || !AOI.root.visible) return;
   /* 11-18 本人「視線を回転させると碧がカクカク」：立ち位置は見回しの向きをそのまま追わず、ゆるく追う向き（AOI.sy）で決める。
@@ -2148,9 +2158,9 @@ function stepAoi(dt) {
   if (dist > 18 || AOI.bt > (turned ? 5 : 1.2) || (MOBILE && Math.hypot(P.x - CAM.pos.x, P.z - CAM.pos.z) < (turned ? .9 : 1.7)) || (MOBILE && !turned && !WALK.moving && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .6))   /* 11-10 375 で碧が右端で切れる画角：端を越えたらすぐ立ち位置へ */   /* 11-10 第7周：375 で碧の顔が画面を塞がない（近すぎたら立ち位置へ） */ { AOI.bt = 0; AOI.m.teleport(_ap.x, _ap.z, CAM.yaw + Math.PI); AOI.v = 0; AOI.sy = aoiYaw(); }
   else {
     const edge = MOBILE && Math.abs(_ndc.copy(P).setY(P.y + 1).project(camera).x) > .3;   /* 10-28 夜 8：375px で碧が画面の端に寄ったら、立ち位置へ戻る（川越・渋谷と同じ） */
-    const go = WALK.moving ? dist > .25 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3);
-    const want = go ? Math.min(turned ? 2.2 : 2.9, dist * (turned ? 1.1 : 1.4) + (WALK.moving ? WALK.speed * .6 : 0)) : 0;   /* 11-18：見回しの間は早足にしすぎない（歩幅がとぶとカクつく） */
-    AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.2) * dt, Math.min((PANEL.cur ? 2.4 : 1.0) * dt, want - (AOI.v || 0)));   /* 11-18：止まり方もゆるく（急に止まって足が揃うのがカクつきに見えた） */   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
+    const go = WALK.moving ? dist > .04 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3);
+    const want = go ? Math.min(WALK.moving ? 3.6 : turned ? 2.2 : 2.9, dist * (turned ? 1.1 : 1.4) + (WALK.moving ? WALK.speed * (WALK.vk || 1) : 0)) : 0;   /* 11-20：歩くあいだは見る人と同じ速さで前を歩く（遅れて追いこされ、置き直しで飛んでいた） */   /* 11-18：見回しの間は早足にしすぎない（歩幅がとぶとカクつく） */
+    AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.2) * dt, Math.min((PANEL.cur ? 2.4 : WALK.moving ? 4.5 : 1.0) * dt, want - (AOI.v || 0)));   /* 11-18：止まり方もゆるく（急に止まって足が揃うのがカクつきに見えた） */   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
     if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam + 0 * Math.sign(wrap(CAM.yaw + Math.PI - toCam) || 1)); } }   // 2026-10-26 3：待つあいだは真正面で立ちつくさず、行く先へ少し体をひらく（話すときは見る人へほぼ正面）。2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
   }
@@ -3048,7 +3058,7 @@ function frame() {
     if (QW.skyTex && m !== "sight") { const vt = m === "boot" || m === "sky" ? 1 : 0;   /* 11-09 第2周：入口の地図は紺の地（灰色の霞にしない）。降りると空の写真へ溶ける */ VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp((QW.mapNavy ||= new THREE.Color("#0b1a30")), Math.max(CYBER.v.value, VEIL.k ?? 0)); } else VEIL.visible = false; { const hv = Q.get("hz") !== "0" && (m === "walk") && scene.background === QW.skyTex; HAZE.visible = hv; if (hv) { HAZE.material.uniforms.uC.value.copy(scene.fog.color).multiplyScalar(.78); HAZE.material.uniforms.opacity.value = .95; if ((HAZE.n = (HAZE.n || 0) + 1) % 20 === 1 && D && D.cl) { const t = atD(nearestOnLine(camera.position.x, camera.position.z).d); HAZE.material.uniforms.uDir.value.set(t.tx, t.tz).normalize(); } HAZE.position.copy(camera.position); HAZE.scale.setScalar(camera.far * .85); } } CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
   if (PARK.uT && !RM) PARK.uT.value += dt;
   stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (QW.mode === "walk" && !SEKI.p && /[?&]sekiso=1/.test(location.search)) SEKI.p = import("./sekiso.js?v=p1").then(M => { SEKI.o = M.makeSekiso({ scene, camera, groundY, renderer, MOBILE }); QW.SEKI = SEKI.o; }).catch(e => console.warn("sekiso", e)); SEKI.o?.update(dt, QW.mode === "walk"); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
-  if (QW.mode === "walk") stepAoi(dt);
+  if (QW.mode === "walk") stepAoi(dt); aoiZoom(dt);
   QW.ACT?.update(dt);   /* 11-13 本人承認「環境そのものが、受けとって働きかけるアクターどうしの相互関係として動く」（actors.js） */
   if (QW.mode !== "walk") FARWOOD.g.visible = false;
   if (SIGHT.post && QW.mode === "sight") {
