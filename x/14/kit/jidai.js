@@ -1,3 +1,4 @@
+// v8 2026-11-20：水と草は足もとのまわり 8 m まで（前は 30 m で、見わたすかぎり水に見えた）・川の幅を地図の線に近づける・水面のきらめきを弱く・窓は広めに写す（写真の粗さが目立たない）。
 // v7 2026-11-20 本人：スマホは窓を地面に寝かせず画面の上の正面の板に／見ているあいだは町の語りを止め、閉じたら再開。
 // 時間の層（足もと）── 2026-11-19 本人「時間の層を音・振動などの体験に落とし込む」
 // 歩いて昔の川の近く（国土地理院「明治期の低湿地データ」の川の線）に来ると、
@@ -35,7 +36,7 @@
     function tx0() { return { value: null }; }
     var U = { mk: { value: mtex }, gc: tx0(), gn: tx0(), sc: tx0(), sn: tx0(), o0: tx0(), o1: tx0(), o2: tx0(), h0: tx0(), h1: tx0(), h2: tx0(),
       box: { value: new T.Vector4(BOX[0], BOX[1], BOX[2], BOX[3]) }, hiR: { value: new T.Vector4(+HI[1], +HI[2], +HI[3], +HI[4]) },
-      k: { value: 0 }, e: { value: 0 }, t: { value: 0 }, eye: { value: new T.Vector3() }, fw: { value: new T.Vector2(0, -1) }, wx: { value: innerWidth > 700 ? 1.0 : .66 }, wd: { value: innerWidth > 700 ? 3.3 : 3.7 }, wh: { value: innerWidth > 700 ? .95 : .52 }, wz: { value: innerWidth > 700 ? 30 : 52 }, R: { value: 30 } };
+      k: { value: 0 }, e: { value: 0 }, t: { value: 0 }, eye: { value: new T.Vector3() }, fw: { value: new T.Vector2(0, -1) }, wx: { value: innerWidth > 700 ? 1.0 : .66 }, wd: { value: innerWidth > 700 ? 3.3 : 3.7 }, wh: { value: innerWidth > 700 ? .95 : .52 }, wz: { value: innerWidth > 700 ? 30 : 52 }, R: { value: 8 } };
     var FS = [
       "uniform sampler2D mk, gc, gn, sc, sn, o0, o1, o2, h0, h1, h2; uniform vec4 box, hiR; uniform float k, e, t, R, wx, wd, wh, wz; uniform vec3 eye; uniform vec2 fw; varying vec3 vW;",
       "float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); } float n(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y); }",
@@ -53,13 +54,13 @@
       "    vec3 col = mix(ph, vec3(.5,.89,.97), max(max(frame*.7, dot0*.9), edge)); gl_FragColor = vec4(col, .94*k*(1.-smoothstep(-.005,0.,box2))); return; }",
       // ① 明治の地図の川と低地だけ、写実の質感に（形は地図・質感は模式）
       "  float near = 1. - smoothstep(R*.3, R, d + (n(p*.11)-.5)*9.); float a0 = near*near*k; if (a0 < .004) discard;",
-      "  vec3 m = texture2D(mk, wuv(p)).rgb; float wtr = smoothstep(.45,.9,m.r); float low = smoothstep(.15,.85,m.g)*(1.-wtr); float bank = smoothstep(.0,.35,m.r)*(1.-wtr);",
+      "  vec3 m = texture2D(mk, wuv(p)).rgb; float wtr = smoothstep(.62,.95,m.r); float low = smoothstep(.15,.85,m.g)*(1.-wtr); float bank = smoothstep(.0,.35,m.r)*(1.-wtr);",
       "  if (wtr + low + bank < .01) discard;",
       "  vec2 tu = p/2.2; vec3 grass = texture2D(gc, tu).rgb * lit(texture2D(gn, tu).xyz*2.-1., 1.); vec3 soil = texture2D(sc, p/1.8).rgb * lit(texture2D(sn, p/1.8).xyz*2.-1., .95);",
       "  soil *= .78; vec3 landc = mix(grass, soil, smoothstep(.35,.75, n(p*.35))*.55);",   // 草の中に湿った土の斑
       "  vec3 V = normalize(eye - vW); float fr = pow(1. - clamp(V.y,0.,1.), 4.);",
       "  vec2 fl = vec2(n(p*.07), n(p*.07+7.)) - .5; float rip = n(p*vec2(1.3,.5) + fl*3. - vec2(0.,t*1.1))*.6 + n(p*3.2 - t*.8)*.4;",
-      "  float r2 = n(p*vec2(7.,2.6) + fl*4. - vec2(0.,t*1.6)); vec3 deep = vec3(.05,.12,.11) + soil*.08; vec3 sky = vec3(.66,.77,.86); float gl = pow(n(p*9. + vec2(t*1.1, -t*.6)), 10.); vec3 water = mix(deep, sky, clamp(.08 + fr*.9 + (rip-.5)*.22 + (r2-.5)*.14, 0., 1.)) + pow(rip*.6 + r2*.4, 7.)*.6 + gl*.7; water = mix(water, soil*.5, (1.-fr)*.25*(1.-smoothstep(.5,.95,texture2D(mk, wuv(p)).r)));",
+      "  float r2 = n(p*vec2(7.,2.6) + fl*4. - vec2(0.,t*1.6)); vec3 deep = vec3(.05,.12,.11) + soil*.08; vec3 sky = vec3(.66,.77,.86); float gl = pow(n(p*9. + vec2(t*1.1, -t*.6)), 10.); vec3 water = mix(deep, sky, clamp(.08 + fr*.9 + (rip-.5)*.22 + (r2-.5)*.14, 0., 1.)) + pow(rip*.6 + r2*.4, 7.)*.3 + gl*.3; water = mix(water, soil*.5, (1.-fr)*.25*(1.-smoothstep(.5,.95,texture2D(mk, wuv(p)).r)));",
       "  vec3 col = water*wtr + soil*bank*.85 + landc*low; float a = (wtr*.93 + bank*.9 + low*.97) * smoothstep(0., .25, a0) * min(1., a0*3.);",
       "  gl_FragColor = vec4(col / max(wtr + bank + low, 1e-3), a); }"
     ].join("\n");
@@ -75,8 +76,8 @@
     // v7（11-20 本人）：スマホ（幅 700px 以下）では窓を地面に寝かせず、画面の上のほうに正面を向いた小さな板で出す（375px で切れない）。
     // 板は画面に固定（視点を回しても揺れない）。板の上＝進む向き。写真・川の縁の線・自分の位置の点は足もとの窓と同じ。
     function mob() { return innerWidth <= 700; }
-    var BW = 232, BH = 104, BX = 14, BY = 98;   // 板の幅・高さ・左・上（px。上は年代の札の下）
-    U.br = { value: new T.Vector4(0, 0, .5, .2) }; U.bz = { value: 34 };   // bz＝板の縦の半分が写す距離（m）
+    var BW = 232, BH = 104, BX = 14, BY = 116;   // 板の幅・高さ・左・上（px。上は年代の札の下）
+    U.br = { value: new T.Vector4(0, 0, .5, .2) }; U.bz = { value: 56 };   // bz＝板の縦の半分が写す距離（m）
     var bmat = new T.ShaderMaterial({ uniforms: U, transparent: true, depthTest: false, depthWrite: false, fog: false,
       vertexShader: "uniform vec4 br; varying vec2 vL; void main(){ vL = position.xy; gl_Position = vec4(br.xy + position.xy * br.zw, 0., 1.); }",
       fragmentShader: [FS.split("\n").slice(0, 7).join("\n").replace("varying vec3 vW;", "varying vec2 vL; uniform vec4 br; uniform float bz;"),
@@ -97,15 +98,15 @@
       if (Math.abs(want - capY) > 2) { capY = want; el.style.translate = capY ? "0 " + Math.round(capY) + "px" : ""; } }
     var tag = document.createElement("div"); tag.id = "qJidaiTag"; tag.setAttribute("aria-hidden", "true");   // 窓の上の端に、年代と出典をいつも
     tag.style.cssText = "position:fixed;left:0;top:0;z-index:20;pointer-events:none;white-space:nowrap;opacity:0;transition:opacity .5s;padding:3px 8px;border-radius:2px;background:rgba(6,12,18,.72);color:#eaf3f6;font:500 12px/1.5 'Shippori Mincho B1','Hiragino Mincho ProN',serif;letter-spacing:.04em";
-    tag.innerHTML = "<b style='font-weight:500;color:#9be0f0'></b><span style='margin-left:8px;font:400 10px/1.5 \"Hiragino Sans\",sans-serif;color:rgba(225,236,241,.78)'>国土地理院 空中写真を加工</span>";
+    tag.innerHTML = "<b style='font-weight:500;color:#9be0f0'></b><span style='margin-left:8px;font:400 10px/1.5 \"Hiragino Sans\",sans-serif;color:rgba(225,236,241,.78)'>国土地理院 空中写真を加工</span><div style='font:400 10px/1.6 \"Hiragino Sans\",sans-serif;color:rgba(225,236,241,.86)'>水と草＝明治の地図の模式・線＝川の縁・点＝現在地</div>";   // v8：模式の断りと凡例をいつも画面に
     document.body.appendChild(tag); var tagE = -1, _t = new T.Vector3();
-    function tagFit() { if (mob()) { var onM = k > .5 && q.mode === "walk"; tag.style.opacity = onM ? 1 : 0; if (!onM) return; var eM = Math.round(U.e.value); if (eM !== tagE) { tagE = eM; tag.firstChild.textContent = (ERA[eM] || ERA[0]).src; } tag.style.transform = "translate(" + BX + "px," + (BY - 25) + "px)"; return; }
+    function tagFit() { if (mob()) { var onM = k > .5 && q.mode === "walk"; tag.style.opacity = onM ? 1 : 0; if (!onM) return; var eM = Math.round(U.e.value); if (eM !== tagE) { tagE = eM; tag.firstChild.textContent = (ERA[eM] || ERA[0]).src; } tag.style.transform = "translate(" + BX + "px," + (BY - 43) + "px)"; return; }
       var e0 = U.eye.value, f = U.fw.value, hh = U.wh.value, wxv = U.wx.value;
       _t.set(e0.x + f.x * (U.wd.value + hh) - f.y * wxv, e0.y - 1.1, e0.z + f.y * (U.wd.value + hh) + f.x * wxv).project(cam);
       var on = k > .5 && _t.z < 1 && q.mode === "walk"; tag.style.opacity = on ? 1 : 0; if (!on) return;
       var ei = Math.round(U.e.value); if (ei !== tagE) { tagE = ei; tag.firstChild.textContent = (ERA[ei] || ERA[0]).src; }
       var x = (_t.x + 1) / 2 * innerWidth, y = (1 - _t.y) / 2 * innerHeight, w = tag.offsetWidth;
-      tag.style.transform = "translate(" + Math.round(Math.max(8, Math.min(innerWidth - w - 8, x - w / 2))) + "px," + Math.round(y - 26) + "px)"; }
+      tag.style.transform = "translate(" + Math.round(Math.max(8, Math.min(innerWidth - w - 8, x - w / 2))) + "px," + Math.round(y - 44) + "px)"; }
     var ac = null, gn = null, au = null;
     function sound() { if (ac || !SND) return; try { ac = new (window.AudioContext || window.webkitAudioContext)(); au = new Audio(SND); au.loop = true;
       var s = ac.createMediaElementSource(au), lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1400; gn = ac.createGain(); gn.gain.value = 0; s.connect(lp).connect(gn).connect(ac.destination); } catch (e) { ac = null; } }
@@ -118,7 +119,7 @@
       var now = performance.now(), rdt = Math.min(.25, (now - last) / 1000), dt = Math.min(.05, rdt); last = now; U.t.value += dt;   // 判定と移りかわりは実際の時間で（コマが少ない端末でも遅れない）
       var walking = q.mode === "walk" && !document.hidden && ready() && ((q.AOI && q.AOI.greeted) || now - t00 > 25000);   // v7：碧の名乗りが済んでからひらく（名乗りを切らない）
       cam.getWorldPosition(U.eye.value);
-      var mb = mob(); U.wh.value = mb ? 0 : .95; U.wx.value = 1; U.wd.value = 3.3; U.wz.value = 30;   // 足もとの窓は広い画面だけ（スマホは大きさ 0＝描かない）
+      var mb = mob(); U.wh.value = mb ? 0 : .95; U.wx.value = 1; U.wd.value = 3.3; U.wz.value = 44;   // 足もとの窓は広い画面だけ（スマホは大きさ 0＝描かない）
       board.visible = mb && k > .003 && q.mode === "walk"; if (board.visible !== jdB) { jdB = board.visible; document.body.classList.toggle("jdB", jdB); } if (board.visible) U.br.value.set((BX + BW / 2) / innerWidth * 2 - 1, 1 - (BY + BH / 2) / innerHeight * 2, BW / innerWidth, BH / innerHeight);
       cam.getWorldDirection(_f); if (Math.hypot(_f.x, _f.z) > .05) U.fw.value.set(_f.x, _f.z).normalize();
       if ((chk += rdt) > .5) { chk = 0; capFit();
