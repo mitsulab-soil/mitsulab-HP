@@ -1220,7 +1220,9 @@ function playNext() {
   if (!soundOn || !l.f) { next(Math.max(3200, l.t.length * 160 + 1200))   /* 10-28 晩：読める長さ */; return; }
   audio.src = l.f; audio.currentTime = 0;
   if (AOI.m && v.i === 0) AOI.m.express?.("warm", .5, Math.min(6, (l.dur || 3) + 1));
-  audio.play().then(() => { AOI.m?.speak({ timeline: LIP[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }); }).catch(() => next(1500));
+  audio.play().then(() => { const sp = { timeline: LIP[l.id] || null, text: l.t, dur: l.dur, clock: () => audio.currentTime }; AOI.m?.speak(sp);
+    /* 11-20 本人「説明しているようなそぶり」：立ち止まって話すとき、言葉から身ぶりが出なかった行は、二行に一度、手のひらを差し出す身ぶり（共通部品 AoiMotion の present）を添える */
+    if (AOI.m && !WALK.moving && !(AOI.m.lastGestures || []).length && (l.dur || 0) > 1.6 && (AOI.gN = (AOI.gN || 0) + 1) % 2 === 1) AOI.m.speak({ ...sp, gesture: [{ t: .3, type: "metaphoric", shape: "present" }] }); }).catch(() => next(1500));
   audio.onended = () => { if (voiceQ !== v) return; AOI.m?.stopSpeaking(); next(420); };
   { const i0 = v.i; setTimeout(() => { if (voiceQ === v && v.i === i0 && !audio.ended && (audio.paused || audio.currentTime < .05)) { AOI.m?.stopSpeaking(); v.i++; playNext(); } }, ((l.dur || 3) + 4) * 1000); }   // 10-29：声の読み込みが止まっても、語りが黙ったまま止まらない
 }
