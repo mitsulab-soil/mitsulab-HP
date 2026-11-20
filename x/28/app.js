@@ -585,6 +585,8 @@ function loadAoi() {
       const v = g.userData.vrm; if (!v) throw new Error('VRM ではない');
       V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
       v.scene.traverse(o => { o.frustumCulled = false; });
+      { let eo = 1e9; v.scene.traverse(o => { if (o.isMesh && /Eye(Iris|Highlight|line)|FaceEyeline/.test([].concat(o.material)[0]?.name || '')) eo = Math.min(eo, o.renderOrder); });   /* 2026-11-21 白目が瞳より後に描かれ、正面で目が白くとぶ → 白目を瞳・ハイライト・目の線より先に描く */
+        if (eo < 1e9) v.scene.traverse(o => { if (o.isMesh && /EyeWhite/.test([].concat(o.material)[0]?.name || '')) o.renderOrder = eo - 1; }); }
       const root = new THREE.Group(); root.name = 'aoi'; root.add(v.scene);
       v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
       const bx = new THREE.Box3().setFromObject(v.scene), h = bx.max.y - bx.min.y, sc = h > .5 ? AOI_H / h : 1;
@@ -606,7 +608,7 @@ function aoiOpacity(o) {
   if (!AO.root) return;
   if (!AO.mats) { AO.mats = []; AO.root.traverse(m => { if (m.isMesh && !m.userData.noFade) for (const mt of [].concat(m.material)) AO.mats.push([mt, mt.transparent, mt.depthWrite]); }); }
   if (AO.shadow) AO.shadow.material.opacity = o;
-  for (const [mt, tr, dw] of AO.mats) { if (tr && !mt.userData.at0) { mt.userData.at0 = 1; mt.alphaTest = Math.max(mt.alphaTest || 0, 0.5); } mt.transparent = o < 1 ? true : false;   /* v11c 裾が透けて背景に溶けない（不透明に・切り抜き） */ mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; }
+  for (const [mt, tr, dw] of AO.mats) { if (tr) { if (!mt.userData.at0) mt.userData.at0 = Math.max(mt.alphaTest || 0, 0.5); mt.alphaTest = mt.userData.at0 * Math.max(0.02, Math.min(1, o)); }   /* 2026-11-21 うすくなるとき（見る人のすぐ前）は切り抜きの線も一緒に下げる＝瞳・まつ毛・目の線だけが消えて白目がとんで見えた */ mt.transparent = o < 1 ? true : false;   /* v11c 裾が透けて背景に溶けない（不透明に・切り抜き） */ mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; }
 }
 function aoiSpot(it) {                                         // 書の脇（紙の原本と反対の側）。見る人から見て、書の幅の外・画面の内に立つ（書と紙の前はふさがない）
   const vx = it.x - P.x, vz = it.z - P.z, l = Math.hypot(vx, vz) || 1, dx = vx / l, dz = vz / l, lx = -dz, lz = dx;
@@ -758,6 +760,8 @@ function frame() {
 }
 function focusDist() {                                         // 画面の中央に見えている書の距離（無ければ近い書）
   rc.setFromCamera(ndc.set(0, 0), cam); let best = 1e9;
+  if (AO.ready && AO.root && AO.fade > 0.3) { const d = tmpV.set(AO.root.position.x, AO.root.position.y + AOI_H * 0.88, AO.root.position.z).sub(cam.position), l = d.length();   /* 2026-11-21 碧が近く・視野の中ほどにいるときは碧の顔に合わせる（書に合わせたままだと、近くの碧の顔がぼけて目が白くとんで見えた） */
+    if (l < 4.5 && d.normalize().angleTo(rc.ray.direction) < 0.42) return l; }
   for (const it of works) { if (!it.sho) continue; const d = tmpV.set(it.x, it.sho.group.position.y, it.z).sub(cam.position), along = d.dot(rc.ray.direction); if (along <= 0) continue; const off = Math.sqrt(Math.max(0, d.lengthSq() - along * along)); if (off < it.sho.width * 0.6 && along < best) best = along; }
   if (best < 1e9) return best;
   let bv = 1e9; const half = THREE.MathUtils.degToRad(cam.fov / 2) * Math.max(1, cam.aspect) * 0.9;   // 中央に無ければ、視野の中でいちばん近い書
