@@ -9,17 +9,18 @@
 <link rel="icon" href="favicon/favicon.ico" sizes="any"><link rel="icon" href="favicon/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：書体は操作できるようになってから読む -->
-<script>{ const f = () => { if (f.d) return; f.d = 1; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap"; document.head.appendChild(l); }; const h = setInterval(() => { if (window.__qw?.ready) { clearInterval(h); setTimeout(f, 200); } }, 100); setTimeout(f, 6000); }</script>
+<script>{ const f = () => { if (f.d) return; f.d = 1; const l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Shippori+Mincho+B1:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap"; document.head.appendChild(l); }; const h = setInterval(() => { if (window.__qw?.ready) { clearInterval(h); setTimeout(f, 200); } }, 100); setTimeout(f, 6000);
+/* 2026-11-20 起動：碧のモデル（1.5 MB）は、本体が動きはじめてから先読みする（はじめから読むと、細い回線で本体と地形の読み込みを押しのける） */
+const v = setInterval(() => { if (window.__qw) { clearInterval(v); const l = document.createElement("link"); l.rel = "preload"; l.as = "fetch"; l.crossOrigin = "anonymous"; l.href = "web/aoi.vrm"; document.head.appendChild(l); } }, 50); }</script>
 <link rel="stylesheet" href="web/app/tokens.css">
 <link rel="stylesheet" href="web/kit/ui.css?v=1">
 <link rel="modulepreload" href="web/vendor/hikawa-runtime-170-355.js">
 <!-- 歩行と碧の待ちを直列にしない。モデルは既存と同じURLで一度だけ先読み。 -->
-<link rel="preload" href="web/aoi.vrm" as="fetch" crossorigin>
 <link rel="modulepreload" href="web/kit/aoi_motion.js?v=20261105s">
 <link rel="modulepreload" href="web/kit/aoi_robe.js">
-<link rel="preload" href="web/geo/geo.json?v=20261107cg2" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/dem.bin?v=20261107cg2" as="fetch" crossorigin>
-<link rel="preload" href="web/geo/walk.json?v=20261107cg2" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/geo.json?v=20261112m2" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/dem.bin?v=20261112m2" as="fetch" crossorigin>
+<link rel="preload" href="web/geo/walk.json?v=20261112m2" as="fetch" crossorigin>
 <script type="importmap">
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
@@ -40,12 +41,15 @@
 <link rel="modulepreload" href="web/app/earwalk.js?v=1">
 <link rel="modulepreload" href="web/app/areas.js?v=2m">
 <link rel="modulepreload" href="web/kit/startpins.js?v=sp13">
-<link rel="modulepreload" href="web/kit/mapveil.js?v=mv1">
+<link rel="modulepreload" href="web/kit/mapveil.js?v=r3">
+<link rel="modulepreload" href="web/kit/sight_look.js?v=2">
+<link rel="modulepreload" href="web/kit/BufferGeometryUtils.js">
 <link rel="modulepreload" href="web/kit/mapguide.js?v=mg2">
 <link rel="modulepreload" href="web/kit/sunpos.js?v=1">
 <link rel="modulepreload" href="web/kit/fliers.js?v=6">
 <link rel="modulepreload" href="web/kit/creatures.js">
-<link rel="preload" href="web/app/content.json?v=20261028t" as="fetch" crossorigin>
+<!-- 2026-11-20 起動：先読みの版の印を本体（app.js の VER）とそろえる。ずれていると同じ物を二度読み、地形の読み込みが本体のあとに回る -->
+<link rel="preload" href="web/app/content.json?v=20261112m2" as="fetch" crossorigin>
 <style>
 :root{--lc:transparent;--sans:"Zen Kaku Gothic New",var(--ml-sans);--serif:"Shippori Mincho B1",var(--ml-serif);--g:max(16px,env(safe-area-inset-left))}
 *{box-sizing:border-box}
@@ -695,7 +699,7 @@ import("./web/app/app.js?v=20261120j").catch(e => { console.error(e); window.MLL
 body:not(.q4used)[data-mode="walk"] #qS6 button:nth-child(2){animation:q4l 2.2s ease-in-out infinite;color:#fff}
 @media (prefers-reduced-motion:reduce){body:not(.q4used)[data-mode="walk"] #qS6 button:nth-child(2){animation:none;box-shadow:0 0 0 2px rgba(255,207,134,.75)}}</style>
 <script>addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);</script>
-<script src="kit/jidai.js?v=7" data-box="-825.786,-1547.061,1628.056,2275.090" data-imgs="web/geo/photo_1936.webp?v=2|足もとの窓は、1936 年ごろの空から。／明治の地図では、すぐそばが渋谷川。|1936 年ごろ;web/geo/photo_1947.webp?v=2|窓は、1945〜50 年ごろの空から。|1945〜50 年ごろ;web/geo/photo_1960s.webp?v=2|窓は、1960 年代の空から。／上流は、このころ暗渠に。|1960 年代" data-hi="web/geo/photo_1936_river.webp?v=3|web/geo/photo_1947_river.webp?v=2|web/geo/photo_1960s_river.webp?v=2,-120,-120,680,540" data-snd="web/snd/ogawa.m4a" data-tex="web/tex/grass_ground_c.webp,web/tex/grass_ground_n.webp,web/tex/farm_soil_c.webp,web/tex/farm_soil_n.webp" defer></script>
+<script src="kit/jidai.js?v=8" data-box="-825.786,-1547.061,1628.056,2275.090" data-imgs="web/geo/photo_1936.webp?v=2|足もとの窓は、1936 年ごろの空から。／明治の地図では、すぐそばが渋谷川。|1936 年ごろ;web/geo/photo_1947.webp?v=2|窓は、1945〜50 年ごろの空から。|1945〜50 年ごろ;web/geo/photo_1960s.webp?v=2|窓は、1960 年代の空から。／上流は、このころ暗渠に。|1960 年代" data-hi="web/geo/photo_1936_river.webp?v=3|web/geo/photo_1947_river.webp?v=2|web/geo/photo_1960s_river.webp?v=2,-120,-120,680,540" data-snd="web/snd/ogawa.m4a" data-tex="web/tex/grass_ground_c.webp,web/tex/grass_ground_n.webp,web/tex/farm_soil_c.webp,web/tex/farm_soil_n.webp" defer></script>
 <script src="kit/chikei.js?v=2" data-left="12" data-bottom="272" defer></script>
 <script src="kit/kaoage.js?v=2" data-pts="6,4,顔を上げて、まわりの人の流れを見てみて。どちらへ多く向かっている？;136,-58,足もとの坂を感じてみて。坂の上と下で、空の広さはどう違う？;208,150,顔を上げて、渋谷川の水面を見てみて。水はどちらへ流れている？;-381,152,足もとの坂を感じてみて。この道はどちらへ下っている？;520,150,近くの桜の木を探して、枝ぶりを見てみて。;161,-425,足もとは、坂の上？ 谷の底？ 低い音に耳をすませて、足で確かめてみて。" data-end="画面を閉じたら、いつもの道で一つだけ、さっきの受けとり方で見てみて。" defer></script>
 <script src="kit/tsugi.js" data-bottom="220" data-href="../09/" data-name="Qualia/omiya" data-line="氷川参道の杜を歩く" defer></script>
