@@ -72,18 +72,20 @@ export function start(hero){
   function layout(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();common.uPx.value=renderer.getPixelRatio()*(MOB?2:2.6)*(h/900)}
   addEventListener('resize',()=>{layout();if(RM)draw(performance.now())});layout();cam.position.set(0,0,MOB?7.2:6.2);
 
-  let sy=scrollY,sT=scrollY,run=true;addEventListener('scroll',()=>{sT=scrollY;if(RM)draw(performance.now());else if(!run&&scrollY<innerHeight*1.2){run=true;requestAnimationFrame(tick)}},{passive:true});
+  let sy=scrollY,sT=scrollY,run=true;addEventListener('scroll',()=>{sT=scrollY;if(RM)draw(performance.now());else if(!run){run=true;requestAnimationFrame(tick)}},{passive:true});
   const v=new THREE.Vector3();
+  function figCircle(){const svg=[...document.querySelectorAll('#qloop svg.lp')].find(s=>s.getBoundingClientRect().width>0);if(!svg)return null;
+    let best=null,bw=0;svg.querySelectorAll('circle').forEach(c=>{const b=c.getBoundingClientRect();if(b.width>bw){bw=b.width;best=b}});return best}
   function draw(now){
     const t=(now-T0)/1000;sy+=(sT-sy)*(RM?1:.075);
-    const H=innerHeight,k=Math.min(1,Math.max(0,(sy-H*(MOB?.12:.22))/(H*(MOB?.24:.38)))),e=k*k*(3-2*k);
-    const out=Math.min(1,Math.max(0,(sy-H*(MOB?.36:.6))/(H*(MOB?.14:.3))));            // 次の章に入ると薄れて背景の 3D へ渡す
+    const H=innerHeight,k=Math.min(1,Math.max(0,(sy-H*(MOB?.12:.2))/(H*(MOB?.2:.3)))),e=k*k*(3-2*k);
+    const out=Math.min(1,Math.max(0,(sy-H*(MOB?.4:.72))/(H*(MOB?.12:.22))));            // 次の章に入ると薄れて背景の 3D へ渡す
     const ph=phase(now-T0);common.uT.value=RM?12:t;common.uDraw.value=ph;common.uFade.value=1-out;
     sIn.material.uniforms.uOn.value=(RM?1:Math.min(1,Math.max(0,(now-T0-seq[2])/1200)))*(1-e*.85);
     sOut.material.uniforms.uOn.value=(RM?1:Math.min(1,Math.max(0,(now-T0-seq[3])/1200)))*(1-e*.85);
     const br=RM?0:Math.sin(t*.55)*.03,s0=MOB?1:1.55,s1=MOB?.78:1;
     ring.scale.setScalar((s0+(s1-s0)*e)*(1+br));ring.rotation.x=-tilt0*(1-e);ring.rotation.z=(RM?0:Math.sin(t*.07)*.04)*(1-e);
-    const wpp=2*Math.tan(cam.fov*Math.PI/360)*cam.position.z/H, lift=Math.min(sy,H*(MOB?.12:.22))*wpp*.9;
+    const wpp=2*Math.tan(cam.fov*Math.PI/360)*cam.position.z/H, lift=Math.min(sy,H*(MOB?.12:.2))*wpp*(MOB?.9:.35);
     ring.position.set(0,((MOB?1.75:1.45)+lift)*(1-e)+(MOB?.9:.15)*e,0);coreMat.uniforms.uO.value=.14+.36*e;
     tone.style.opacity=String((1-e)*(1-out));
     if(stick)stick.style.setProperty('opacity',String(.56+.3*Math.max(0,1-sy/(H*.8))),'important');
@@ -93,9 +95,15 @@ export function start(hero){
     const lo=Math.max(0,(e-.75)/.25)*(1-out),gap=MOB?30:36;
     v.set(0,1,0).applyMatrix4(ring.matrixWorld).project(cam);lq.style.transform=`translate(-50%,${(1-(v.y*.5+.5))*H-gap}px) translateY(-50%)`;lq.style.opacity=lo;
     v.set(0,-1,0).applyMatrix4(ring.matrixWorld).project(cam);lp.style.transform=`translate(-50%,${(1-(v.y*.5+.5))*H+gap}px) translateY(-50%)`;lp.style.opacity=lo;
-    cv.style.visibility=out>=1?'hidden':'visible';
-    renderer.render(scene,cam);
-    return out>=1&&Math.abs(sT-sy)<1;
+    // 次の章の Qualium-Physium ループの図の円へ受けわたす：図の円が下から入ってくるあいだ、同じ位置・大きさの正面の環として重なり、図が定まると薄れる
+    let hand=0;
+    if(out>=1){const b=figCircle();if(b){const cy=b.top+b.height/2,cx=b.left+b.width/2;
+      hand=cy>H*.85?Math.max(0,(H*1.25-cy)/(H*.4)):Math.max(0,(cy-H*.55)/(H*.3));hand=Math.min(1,hand);
+      if(hand>0){ring.rotation.set(0,0,0);ring.scale.setScalar(b.width/2*wpp);ring.position.set((cx-innerWidth/2)*wpp,(H/2-cy)*wpp,0);
+        common.uFade.value=hand*.9;common.uDraw.value=1;sIn.material.uniforms.uOn.value=sOut.material.uniforms.uOn.value=0;coreMat.uniforms.uO.value=.5;}}}
+    cv.style.visibility=(out>=1&&hand<=0)?'hidden':'visible';
+    if(out<1||hand>0)renderer.render(scene,cam);
+    return out>=1&&hand<=0&&Math.abs(sT-sy)<1;
   }
   function tick(now){const idle=draw(now);if(idle){run=false;return}requestAnimationFrame(tick)}
   if(RM)draw(performance.now());else requestAnimationFrame(tick);
