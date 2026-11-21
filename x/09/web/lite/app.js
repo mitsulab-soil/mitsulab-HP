@@ -1822,28 +1822,32 @@ async function startYorishiro() {
 }
 /* 2026-11-21 本人が前に渡した「碧に似ている動物の依代」（05_本人の素材/09_依代キャラクター化 の参考画から自作した狐・蝶。形＝_共通3D/_dev/envAgents/sugata_ref/最良/）を、参道で碧のそばに置く。
    狐＝碧の横を並んで歩く（獣は歩く）・蝶＝碧の肩の高さをゆっくり回る（虫は飛ぶ）。碧が話すと碧へ向き、問いの一行で小さく傾く。触れると碧が短く一言（擬人の断定はしない）。
-   変身の輪の一体（YO.y）とは別の器（YO.c）＝輪で入れ替えても消えない。生き物の目・碧が見えないあいだは隠す。一度に出すのはこの 2 体だけ。 */
-const YO_C = [["kitsune", .46, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["cho", .26, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"]];
+   変身の輪の一体（YO.y）とは別の器（YO.c）＝輪で入れ替えても消えない。生き物の目・碧が見えないあいだは隠す。一度に出すのはこの 2 体だけ（11-21 本人の指示でタヌキ・スズメ・ミツバチを足して 5 体）。 */
+const YO_C = [["kitsune", .46, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["cho", .26, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"],
+  /* 11-21 本人「ほかの依代も入れて」：大宮で本人が見たタヌキ（歩く・碧の反対の脇を少し後ろから）・スズメ（飛ぶ・碧の頭の上を前後に）・ミツバチ（飛ぶ・碧の手もとをゆっくり回る）。形は yorishiro の自作の glb（外の素材なし）。木・石・しずく・土は歩かせないので、ここには入れない */
+  ["tanuki", .4, "タヌキの姿の依代。碧のそばを、とことこ付いて歩きます。"], ["suzume", .2, "スズメの姿の依代。碧の頭の上を、行ったり来たりしています。"], ["mitsubachi", .16, "ミツバチの姿の依代。碧の手もとを、ゆっくり回っています。"]];
+const YO_FLY = { cho: [.7, .55, .35, 1.3, .12, .5], suzume: [.9, -.25, .5, 2.05, .1, .33], mitsubachi: [.15, .4, .25, .95, .07, .8] };   // 飛ぶ姿：[前, 横（碧の脇）, 回る幅, 高さ, 上下の幅, 回る速さ]
 function stepCompanions(dt) {
   if (!YO.y || !AOI.m) return;
   if (!YO.c && !YO.cBusy) { YO.cBusy = true; (async () => { try {
     const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y13"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     c.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z) });
-    const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: k === "cho" ? P.y + 1.3 : null, height: h, follow: false, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) });
+    const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: YO_FLY[k] ? P.y + YO_FLY[k][3] : null, height: h, follow: false, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) });
     YO.c = c; QW.YOC = c; } catch (e) { console.warn("yorishiro-c", e); } })(); return; }
   if (!YO.c) return; const on = QW.mode === "walk" && !!AOI.root?.visible, P = AOI.m.pos, C = camera.position, t = performance.now() / 1000;
   // 置き方（採点 P1「375 で画面の下に大きく見切れる」を直す）：碧より見る人から 1.6 m 奥・横 1.0 m（画面の内側）に置き、大写しにしない。画面の下 25% にかかるときは隠す
   let ax = P.x - C.x, az = P.z - C.z; const al = Math.hypot(ax, az) || 1; ax /= al; az /= al; const rx = -az, rz = ax;
   if (t - (YO.cSideT || -9) > 3) { YO.cSideT = t; YO.cSide = _v3c.set(P.x + rx, P.y + .3, P.z + rz).project(camera).x > _v3c.set(P.x - rx, P.y + .3, P.z - rz).project(camera).x ? -1 : 1; }   // 画面の内側（中央寄り）へ
   const sd = YO.cSide || 1, k = Math.min(1, dt * 2.2);
-  for (const it of YO.c.items) { const R = it.root, cho = it.kind === "cho";
-    const tx = cho ? P.x + ax * .7 + rx * (sd * .55 + .35 * Math.cos(t * .5 + it.ph)) : P.x + ax * 1.6 + rx * sd * 1.0, tz = cho ? P.z + az * .7 + rz * (sd * .55 + .35 * Math.cos(t * .5 + it.ph)) : P.z + az * 1.6 + rz * sd * 1.0;
+  for (const it of YO.c.items) { const R = it.root, F = YO_FLY[it.kind], cho = !!F, tn = it.kind === "tanuki";
+    const fw = cho ? F[0] + (it.kind === "suzume" ? .5 * Math.sin(t * F[5] + it.ph) : 0) : tn ? 2.5 : 1.6, lt = cho ? sd * F[1] + F[2] * Math.cos(t * F[5] + it.ph) : tn ? sd * .25 : sd * 1.0;   // タヌキは狐の少し奥・碧の脇（狐と並ばない）
+    const lm = MOBILE ? .55 : 1, tx = P.x + ax * fw + rx * lt * lm, tz = P.z + az * fw + rz * lt * lm;   // 375 は横の寄せを狭く（左の札に重ねない）
     const dx = tx - R.position.x, dz = tz - R.position.z, d = Math.hypot(dx, dz);
     if (d > 8) { R.position.x = tx; R.position.z = tz; } else { R.position.x += dx * k; R.position.z += dz * k; }
-    R.position.y = cho ? P.y + 1.3 + .12 * Math.sin(t * .9 + it.ph) : aoiFootY(R.position.x, R.position.z);
+    R.position.y = cho ? P.y + F[3] + F[4] * Math.sin(t * .9 + it.ph) : aoiFootY(R.position.x, R.position.z); if (it.kind === "mitsubachi") it.gy = R.position.y - .9;   // 部品のただよい（花の高さ＋0.9 m）を、碧の手もとの高さに合わせる
     if (!cho) { it.bob = d > .25 ? Math.abs(Math.sin(t * 9)) * .03 : 0; if (d > .25) it.yaw0 = Math.atan2(dx, dz); }   // 歩くと小さく弾み、進む向きへ
     else it.yaw0 = Math.atan2(dx, dz) + .6 * Math.sin(t * .6); }
-  YO.c.update(dt);
+  YO.c.update(dt); for (const it of YO.c.items) if (it.kind === "suzume" && it.U?.wa) it.U.wa.value = .5 + .5 * Math.sin(t * 16 + it.ph);   // 飛んでいるスズメは羽を細かくふる
   for (const it of YO.c.items) { const R = it.root; if (!on) { R.visible = false; continue; } const q = _v3c.copy(R.position).setY(R.position.y + .25).project(camera); if (q.y < -.55 || Math.hypot(R.position.x - C.x, R.position.z - C.z) < 2.2) R.visible = false; }
 }
 const _v3c = new THREE.Vector3();
@@ -2189,7 +2193,9 @@ function stepAoi(dt) {
     const go = WALK.moving ? dist > .04 : dist > (AOI.v > .1 ? .3 : edge ? .2 : 1.3);
     const want = go ? Math.min(WALK.moving ? 3.6 : turned ? 2.2 : 2.9, dist * (turned ? 1.1 : 1.4) + (WALK.moving ? WALK.speed * (WALK.vk || 1) : 0)) : 0;   /* 11-20：歩くあいだは見る人と同じ速さで前を歩く（遅れて追いこされ、置き直しで飛んでいた） */   /* 11-18：見回しの間は早足にしすぎない（歩幅がとぶとカクつく） */
     AOI.v = (AOI.v || 0) + Math.max(-(PANEL.cur ? 3 : 1.2) * dt, Math.min((PANEL.cur ? 2.4 : WALK.moving ? 4.5 : 1.0) * dt, want - (AOI.v || 0)));   /* 11-18：止まり方もゆるく（急に止まって足が揃うのがカクつきに見えた） */   // 札を開いたときの立ち位置の入れかえは、きびきびと（解説のあいだ横を向いたままにしない）
-    if ((AOI.v > .02 || want > 0) && dist > .01) { const st = Math.min(dist, AOI.v * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
+    if ((AOI.v > .02 || want > 0) && dist > .01) {   /* 11-21 本人「碧が違う方向を向いている」：歩き出しで体が見る人を向いたまま横歩き（体と進む向きが 96° ずれて約 1 秒）していた。進む向きへ体を向け、ずれが大きいあいだは足を緩めて先に向きを変える */
+      const mv = dist > .3 ? Math.atan2(dx, dz) : WALK.moving ? CAM.yaw + Math.PI : null, mis = mv == null ? 0 : Math.abs(wrap((AOI.m.yaw || 0) - mv)); if (mv != null) AOI.m.faceTo(mv);
+      const sk = mis > .45 ? Math.max(.12, 1 - (mis - .45) / 1.1) : 1, st = Math.min(dist, AOI.v * sk * dt); AOI.m.drive(P.x + dx / dist * st, P.z + dz / dist * st); }
     else { if (AOI.v !== 0 || AOI.m.driven) AOI.m.walkTo(null); AOI.v = 0; { const toCam = Math.atan2(CAM.pos.x - P.x, CAM.pos.z - P.z); AOI.m.faceTo(AOI.focus ? toCam + Math.max(-.9, Math.min(.9, wrap(Math.atan2(AOI.focus.x - P.x, AOI.focus.z - P.z) - toCam) * .4)) : toCam + 0 * Math.sign(wrap(CAM.yaw + Math.PI - toCam) || 1)); } }   // 2026-10-26 3：待つあいだは真正面で立ちつくさず、行く先へ少し体をひらく（話すときは見る人へほぼ正面）。2026-10-23：角の平均を回りこみなしで（物が後ろにあるとき、背を向けて話していた）。体は見る人へ、物へは半分まで
   }
   // 話していないときは、ときどき近くの物（層の目じるし・木）へ目をやり、また見る人へ戻す（ずっと正面で立ちつくさない）

@@ -1302,6 +1302,13 @@ $("#talkBtn").addEventListener("click", () => { TALK.on = !TALK.on; if (!TALK.on
 const AOI = { root: null, m: null, ready: false, pos: new THREE.Vector3(), focus: null, greeted: false, loading: null, v: 0 };
 QW.AOI = AOI;
 QW.speak = (lines, done) => speakLines(lines, null, { narr: true, done }); QW.stopSpeak = () => stopVoice();   // 11-02 変身（kit/henshin.js）の碧の語り
+/* 11-21 本人「川越の碧が変な顔」：大宮と同じ目の守り（まばたきの途中で止まったらひらく・まばたきの外ではまぶたの閉じを 2 割まで・下まぶたと頬は 0.35 まで）。目が線になった顔で止まらない */
+function aoiEyes() {
+  const M = AOI.m, em = M?.vrm?.expressionManager; if (!em) return; const B = M.blink;
+  if (B && B.t >= 0 && B.t > .45) { B.t = -1; B.v = 0; B.next = 2 + Math.random() * 2; }
+  if (B && B.t < 0 && !(M.eyesClosed > 0)) { const v = em.getValue("blink") || 0; if (v > .2) em.setValue("blink", .2); }
+  for (const ch of ["lidLow", "cheek"]) { if (em.getExpression?.(ch)) { const v = em.getValue(ch) || 0; if (v > .35) em.setValue(ch, .35); } }
+}
 function loadAoi() {
   if (AOI.loading) return AOI.loading;
   return AOI.loading = (async () => {
@@ -1311,6 +1318,12 @@ function loadAoi() {
     const Y = Mot.aoiYield || (() => Promise.resolve()); await Y();   /* 11-03 本人「動いている時も 1 秒以内」：重い手順のあいだで一こま譲る */
     V.VRMUtils.removeUnnecessaryVertices(gl.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(gl.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; });
+    /* 11-21 本人「川越の碧が変な顔をしている」：大宮と同じ扱いにそろえる。原因＝顔のほか（髪・体・衣・髪飾り）の輪郭線（裏返しの殻）が顔の前に出て、額の髪飾りが前髪の上に浮き、顔と首の中央に細い線が出ていた。
+       顔・目・眉のほかは輪郭線を描かない。PC は抜き（alphaTest）の縁をなめらかに（alphaToCoverage）。 */
+    v.scene.traverse(o => { for (const m of [].concat(o.material || [])) { if (!m?.isMToonMaterial) continue; if (!/face|eye|brow/i.test(m.name + o.name) && "outlineWidthMode" in m) { m.outlineWidthMode = "none"; m.outlineWidthFactor = 0; m.needsUpdate = true; } if (m.alphaTest > 0 && !MOBILE) { m.alphaToCoverage = true; m.needsUpdate = true; } } });
+    /* 11-21 本人「川越の碧が変な顔」の芯の原因：壁越しに見せる層の印（qmarks の overWalls＝depthTest なし・透明の列 renderOrder 3〜7）が、不透明の列で先に描いた碧の上に重ねて描かれ、
+       額に印の輪・顔と首の中央に印の縦線・胸に横線が浮いていた。碧の不透明の部品を透明の列へ移し（深さは書く・見え方は同じ）、renderOrder 12 で印のあとに描く（目・眉・まつ毛 16〜20 はそのまま）。 */
+    v.scene.traverse(o => { const ms = [].concat(o.material || []); if (!ms.length || ms.some(m => m.transparent)) return; for (const m of ms) { m.transparent = true; m.depthWrite = true; m.needsUpdate = true; } o.renderOrder = 12; });
     const root = new THREE.Group(); root.add(v.scene); root.visible = false; world.add(root);
     for (const j of v.springBoneManager?.joints ?? []) j.center = root;
     await Y();
@@ -1373,7 +1386,7 @@ function stepAoi(dt) {
   AOI.gT = (AOI.gT ?? 5) - dt;
   if (!AOI.focus && AOI.gT <= 0) { if (AOI.glance) { AOI.glance = null; AOI.gT = 5 + Math.random() * 6; } else { AOI.glance = KURA.tower && Math.hypot(KURA.tower.position.x - P.x, KURA.tower.position.z - P.z) < 60 ? new THREE.Vector3(KURA.tower.position.x, KURA.bellY, KURA.tower.position.z) : new THREE.Vector3(P.x - Math.sin(CAM.yaw) * 12, P.y + 6, P.z - Math.cos(CAM.yaw) * 12); AOI.gT = 1.6 + Math.random() * 1.4; } }
   AOI.m.lookAt(AOI.focus || AOI.glance || null);
-  AOI.m.update(dt, camera);
+  AOI.m.update(dt, camera, { vrmUpdate: false }); aoiEyes(); AOI.m.vrm.update(dt); AOI.m.afterVrmUpdate?.(dt);   // 11-21：目の守りを vrm の更新の前に（大宮と同じ順）
 }
 
 /* ---------- カメラと動き ---------- */
