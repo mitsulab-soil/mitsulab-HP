@@ -7,39 +7,58 @@
 <meta name="tdm-reservation" content="1">
 <title>Qualia/magnet</title>
 <style>
-:root{--bg:#0d1214;--ink:#e6ece8;--sub:#8fa39c;--line:#2c3a37;--acc:#7fc4b4}
+:root{--bg:#070b0d;--ink:#e9efeb;--sub:#8ea39c;--line:rgba(160,205,192,.16);--acc:#86d3c1;--acc2:#d9b77a}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%;background:var(--bg);color:var(--ink);font-family:"Hiragino Mincho ProN","Yu Mincho",serif;-webkit-user-select:none;user-select:none}
-body{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:max(20px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));overflow:hidden}
-header{width:100%;max-width:480px;display:flex;justify-content:space-between;font-size:13px;color:var(--sub);letter-spacing:.08em}
-#dial{width:min(72vw,320px);aspect-ratio:1;position:relative}
-#dial svg{width:100%;height:100%}
+body{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom));overflow:hidden;
+background:radial-gradient(120% 80% at 50% 38%,#12201f 0%,#0a1113 45%,#050809 100%)}
+#field{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.8}
+body>*:not(#field):not(#pocket){position:relative;z-index:1}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+header{width:100%;max-width:520px;display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--sub);letter-spacing:.14em;padding-bottom:10px;border-bottom:1px solid var(--line)}
+header b{font-weight:400;color:var(--ink);letter-spacing:.06em;font-family:"Helvetica Neue",Arial,sans-serif;font-size:14px}
+header b i{font-style:normal;color:var(--acc)}
+#dial{width:min(78vw,400px,46vh);aspect-ratio:1;position:relative}
+#dial svg{width:100%;height:100%;overflow:visible}
 #read{text-align:center;min-height:64px}
-#deg{font-size:34px;letter-spacing:.04em}
-#uT{font-size:13px;color:var(--sub);margin-top:4px}
-#note{font-size:14px;color:#b9c8c2;text-align:center;max-width:340px;line-height:1.8;min-height:50px}
-.row{display:flex;gap:10px;width:100%;max-width:480px}
-button{flex:1;min-height:52px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;font:inherit;font-size:15px;letter-spacing:.1em}
-button.on{border-color:var(--acc);color:var(--acc)}
-button:disabled{opacity:.38}
-#needle{transition:opacity .4s}#needle.off{opacity:.18}
-#more{font-size:13px;color:var(--sub);max-width:340px;text-align:center;line-height:1.7}
-#more summary{list-style:none;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.1em;color:var(--sub)}
+#deg{font-size:40px;letter-spacing:.02em;font-family:"Helvetica Neue",Arial,sans-serif;font-weight:200;transition:color .4s,text-shadow .4s}
+#deg.hit{color:var(--acc);text-shadow:0 0 18px rgba(134,211,193,.55)}
+#uT{font-size:13px;color:var(--sub);margin-top:2px;letter-spacing:.12em}
+#note{font-size:15px;color:#c3d1cb;text-align:center;max-width:360px;line-height:1.85;min-height:54px}
+.row{display:flex;gap:12px;width:100%;max-width:520px}
+button{flex:1;min-height:54px;background:rgba(14,24,25,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:var(--ink);border:1px solid rgba(160,205,192,.28);border-radius:28px;font:inherit;font-size:15px;letter-spacing:.18em;cursor:pointer;transition:border-color .3s,color .3s,box-shadow .3s}
+button:hover:not(:disabled){border-color:var(--acc)}
+button.on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 1px rgba(134,211,193,.25),0 0 22px rgba(134,211,193,.18)}
+button:disabled{opacity:.32}
+#needle{transition:opacity .5s}#needle.off{opacity:.2}
+#more{font-size:13px;color:var(--sub);max-width:360px;text-align:center;line-height:1.75}
+#more summary{list-style:none;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.14em;color:var(--sub)}
 #more summary::-webkit-details-marker{display:none}
 #more[open] summary{color:var(--acc)}
 #more p{text-align:left}
-#pocket{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;color:#333;font-size:13px;letter-spacing:.1em}
+#pocket{position:fixed;inset:0;z-index:5;background:#000;display:none;align-items:center;justify-content:center;color:#333;font-size:13px;letter-spacing:.1em}
 #pocket.show{display:flex}#pocket span{max-width:300px;text-align:center;line-height:1.9;color:#6f817b;font-size:14px}
+@media (prefers-reduced-motion:reduce){#field{opacity:.4}}
 </style>
 </head>
 <body>
-<header><span>mitsulab</span><span>Qualia/magnet</span></header>
+<canvas id="field" aria-hidden="true"></canvas>
+<header><span>mitsulab</span><b>Qualia<i>/</i>magnet</b></header>
 <div id="dial" aria-label="北の向き">
 <svg viewBox="-100 -100 200 200">
- <circle r="92" fill="none" stroke="#2c3a37" stroke-width="1"/>
+ <defs>
+  <radialGradient id="glass" r="1"><stop offset="0" stop-color="#16292a" stop-opacity=".55"/><stop offset=".75" stop-color="#0b1415" stop-opacity=".35"/><stop offset="1" stop-color="#060a0b" stop-opacity=".1"/></radialGradient>
+  <linearGradient id="ndl" x1="0" y1="-1" x2="0" y2="0" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#bff0e3"/><stop offset="1" stop-color="#86d3c1" stop-opacity=".2"/></linearGradient>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ </defs>
+ <circle r="94" fill="url(#glass)"/>
+ <circle r="94" fill="none" stroke="rgba(160,205,192,.35)" stroke-width=".6"/>
+ <circle r="70" fill="none" stroke="rgba(160,205,192,.12)" stroke-width=".5" stroke-dasharray="1 3"/>
+ <circle r="22" fill="none" stroke="rgba(160,205,192,.14)" stroke-width=".5"/>
  <g id="ticks"></g>
- <g id="needle" class="off"><line x1="0" y1="-10" x2="0" y2="-84" stroke="#7fc4b4" stroke-width="2"/><text id="nlab" x="12" y="-58" fill="#7fc4b4" font-size="12" text-anchor="middle">北</text></g>
- <line x1="0" y1="-96" x2="0" y2="-88" stroke="#e6ece8" stroke-width="2"/>
+ <path id="arc" d="" fill="none" stroke="#d9b77a" stroke-width="2.2" stroke-linecap="round" opacity=".85"/>
+ <g id="needle" class="off" filter="url(#glow)"><path d="M0 -84 L3.2 -14 L0 -8 L-3.2 -14 Z" fill="#86d3c1"/><path d="M0 8 L2 30 L0 34 L-2 30 Z" fill="rgba(200,215,210,.35)"/><circle r="3.2" fill="#0a1213" stroke="#86d3c1" stroke-width="1"/></g>
+ <path d="M0 -99 L3.5 -92 L-3.5 -92 Z" fill="#e9efeb"/>
 </svg>
 </div>
 <svg id="trail" viewBox="-60 -60 120 120" style="display:none;width:min(60vw,240px);height:min(60vw,240px)" aria-label="歩いたあいだに北がどう回ったか"></svg>
@@ -51,7 +70,18 @@ button:disabled{opacity:.38}
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-const ticks=$('ticks');for(let i=0;i<36;i++){const a=i*10*Math.PI/180,r1=i%9?88:82;const l=document.createElementNS('http://www.w3.org/2000/svg','line');l.setAttribute('x1',Math.sin(a)*r1);l.setAttribute('y1',-Math.cos(a)*r1);l.setAttribute('x2',Math.sin(a)*92);l.setAttribute('y2',-Math.cos(a)*92);l.setAttribute('stroke','#2c3a37');ticks.appendChild(l)}
+const NS='http://www.w3.org/2000/svg',ticks=$('ticks');for(let i=0;i<72;i++){const a=i*5*Math.PI/180,big=i%18==0,mid=i%6==0,r1=big?80:mid?85:88;const l=document.createElementNS(NS,'line');l.setAttribute('x1',Math.sin(a)*r1);l.setAttribute('y1',-Math.cos(a)*r1);l.setAttribute('x2',Math.sin(a)*92);l.setAttribute('y2',-Math.cos(a)*92);l.setAttribute('stroke',big?'rgba(233,239,235,.7)':mid?'rgba(160,205,192,.45)':'rgba(160,205,192,.2)');l.setAttribute('stroke-width',big?1.1:.6);ticks.appendChild(l)}
+[['北',0],['東',90],['南',180],['西',270]].forEach(([c,d])=>{const a=d*Math.PI/180,t=document.createElementNS(NS,'text');t.setAttribute('x',Math.sin(a)*72);t.setAttribute('y',-Math.cos(a)*72+3.5);t.setAttribute('fill',d?'rgba(200,215,210,.55)':'#e9efeb');t.setAttribute('font-size','9.5');t.setAttribute('text-anchor','middle');t.textContent=c;ticks.appendChild(t)});
+// 背景：地球の磁場を棒磁石（双極子）で近似したときの力線 r = L·sin²θ を、ゆっくり流れる線で描く（模式）
+const cv=$('field'),cx=cv.getContext('2d');let fw,fh,dpr=Math.min(2,devicePixelRatio||1),ft=0,still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function fsize(){fw=innerWidth;fh=innerHeight;cv.width=fw*dpr;cv.height=fh*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}fsize();addEventListener('resize',fsize);
+function fdraw(){const db=$('dial').getBoundingClientRect(),R=db.width*.11||Math.min(fw,fh)*.1,ox=db.left+db.width/2||fw/2,oy=db.top+db.height/2||fh*.4;cx.clearRect(0,0,fw,fh);
+ const rot=(window.__h||0)*Math.PI/180;cx.save();cx.translate(ox,oy);cx.rotate(-rot);
+ for(let k=1;k<=9;k++){const L=R*(1.25+k*k*.32);for(const sd of[1,-1]){cx.beginPath();for(let j=0;j<=120;j++){const th=.02+j/120*(Math.PI-.04),r=L*Math.sin(th)**2;if(r<R*.98)continue;const x=sd*r*Math.sin(th),y=-r*Math.cos(th);cx.lineTo(x,y)}
+  const g=.10+.05*Math.sin(ft*.6+k);cx.strokeStyle='rgba(134,211,193,'+(g*2.2).toFixed(3)+')';cx.lineWidth=1;cx.setLineDash([3,9]);cx.lineDashOffset=-ft*14*(k%2?1:-1);cx.stroke()}}
+ cx.setLineDash([]);cx.beginPath();cx.arc(0,0,R*.98,0,7);cx.strokeStyle='rgba(160,205,192,.10)';cx.stroke();cx.restore();
+ ft+=.016;if(!still)requestAnimationFrame(fdraw)}
+requestAnimationFrame(fdraw);
 let log=[],t0s=0,finds=0,W=40,ctx,pan,gain,filt,toneG,oA,oB,running=false,heading=null,sm=null,field=null,lastVib=0,inN=false,hasVib='vibrate' in navigator;
 const ios=typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
 function audio(){
@@ -77,7 +107,7 @@ function update(){
  // 手の揺れでちらつかないよう、向きをなめらかにする（円の上で）
  if(sm==null)sm=heading;else{const df=((heading-sm+540)%360)-180;sm=(sm+df*.25+360)%360}
  const h=sm;let rel=((-h+540)%360)-180; // 北が自分から見てどちらか（0＝正面）
- $('needle').setAttribute('transform','rotate('+(-h)+')');$('needle').classList.remove('off');$('nlab').setAttribute('transform','rotate('+h+' 12 -62)');
+ $('needle').setAttribute('transform','rotate('+(-h)+')');window.__h=h;const ra=Math.min(Math.abs(rel),179)*Math.PI/180,sg=rel>0?1:-1;$('arc').setAttribute('d',Math.abs(rel)<1?'':'M0 -96 A96 96 0 0 '+(sg>0?1:0)+' '+(Math.sin(ra)*96*sg).toFixed(1)+' '+(-Math.cos(ra)*96).toFixed(1));$('needle').classList.remove('off');ticks.setAttribute('transform','rotate('+(-h)+')');
  $('deg').textContent=Math.round(h)+'°';
  if(!log.length||Date.now()-log[log.length-1][0]>1000)log.push([Date.now(),h]);
  const t=ctx.currentTime,front=Math.cos(rel*Math.PI/180),ar=Math.abs(rel);
@@ -88,8 +118,8 @@ function update(){
  // うなり：1° ずれると 0.15 回／秒、10° で 1.5 回／秒。±40° より外では鳴らさない
  oB.frequency.setTargetAtTime(392+Math.min(ar,W)*.15,t,.05);
  toneG.gain.setTargetAtTime(ar<W?.05*Math.pow(1-ar/W,1.5):0,t,.12);
- if(ar<4&&!inN){inN=true;finds++;if(finds==3){W=25;$('note').textContent='北の音を細くしました。耳より先に、体で北を探してみて。'}$('deg').style.color='var(--acc)';if(finds==1&&!$('pocket').classList.contains('show'))$('note').textContent='碧：顔を上げて。いま向いている北（磁北）の先に、実際には何がある？';if(Date.now()-lastVib>2000){lastVib=Date.now();chime();if(hasVib)navigator.vibrate(18)}}
- else if(ar>9&&inN){inN=false;$('deg').style.color=''}
+ if(ar<4&&!inN){inN=true;finds++;if(finds==3){W=25;$('note').textContent='北の音を細くしました。耳より先に、体で北を探してみて。'}$('deg').classList.add('hit');if(finds==1&&!$('pocket').classList.contains('show'))$('note').textContent='碧：顔を上げて。いま向いている北（磁北）の先に、実際には何がある？';if(Date.now()-lastVib>2000){lastVib=Date.now();chime();if(hasVib)navigator.vibrate(18)}}
+ else if(ar>9&&inN){inN=false;$('deg').classList.remove('hit')}
 }
 function onOri(e){
  let h=null;
@@ -107,7 +137,7 @@ $('start').onclick=async()=>{
  if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}catch(_){ $('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
  mag();running=true;clearTimeout(window.__pkT);window.__pkT=setTimeout(()=>{if(running&&heading!=null)$('pk').onclick()},25000);log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
- $('note').innerHTML='北のある側の耳から聴こえます。<br>うなりが止まり、鈴が鳴ったら、そこが北（磁北）。';
+ $('note').innerHTML='北のある側の耳から聴こえます。<br>うなりが止まり、鈴が鳴ったら、<span style="white-space:nowrap">そこが北（磁北）。</span>';
  setTimeout(()=>{if(heading==null)$('note').textContent='方位が取れません。スマホで開いてください。'},2500);
 };
 function showTrail(){
