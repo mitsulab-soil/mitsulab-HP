@@ -150,7 +150,7 @@ export function start(){
     if(KO.length){cx.save();cx.globalCompositeOperation='destination-out';[[18,.25],[12,.35],[6,.5],[0,1]].forEach(e=>{cx.fillStyle='rgba(0,0,0,'+e[1]+')';KO.forEach(q=>cx.fillRect(q[0]-e[0],q[1]-e[0],q[2]-q[0]+e[0]*2,q[3]-q[1]+e[0]*2))});cx.restore()}
     // 隅の一語（主題の名）
     const nm=NAME[cur];if(nm){tagK=cur}tagA+=((nm?1:0)-tagA)*(rm?1:0.1);if(Math.abs((nm?1:0)-tagA)<0.02)tagA=nm?1:0;else busy=true;
-    if(tagA>0&&NAME[tagK]){const n=NAME[tagK],x=sp()?16:24,y=H*(sp()?0.93:0.9);ln([[x,y],[x+18,y]],CY,tagA*0.85,1);tx(en()?n[1]:n[1]+'　'+n[0],[x+26,y],WH,tagA*0.9,{s:11.5,ls:2,fixed:1})}
+    if(tagA>0&&NAME[tagK]&&!sp()&&W>1100){const n=NAME[tagK],x=24,y=H-28;ln([[x,y],[x+14,y]],CY,tagA*0.4,1);tx(en()?n[1]:n[1]+'　'+n[0],[x+22,y],WH,tagA*0.42,{s:10.5,ls:2,fixed:1})}  // 2026-11-21 採点役：本文と重ならない位置・薄く、スマホと狭い PC では出さない
     if((busy||lblBusy)&&!rm)raf=requestAnimationFrame(draw);
   }
   const kick=()=>{const t=active();if(t!==cur)cur=t;if(!raf)raf=requestAnimationFrame(draw)};
