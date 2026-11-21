@@ -76,15 +76,17 @@ export function start(hero){
   const v=new THREE.Vector3();
   function draw(now){
     const t=(now-T0)/1000;sy+=(sT-sy)*(RM?1:.075);
-    const H=innerHeight,k=Math.min(1,Math.max(0,sy/(H*(MOB?.45:.6)))),e=k*k*(3-2*k);
-    const out=Math.min(1,Math.max(0,(sy-H*(MOB?.47:.62))/(H*(MOB?.33:.45))));            // 次の章に入ると薄れて背景の 3D へ渡す
+    const H=innerHeight,k=Math.min(1,Math.max(0,(sy-H*(MOB?.12:.22))/(H*(MOB?.24:.38)))),e=k*k*(3-2*k);
+    const out=Math.min(1,Math.max(0,(sy-H*(MOB?.36:.6))/(H*(MOB?.14:.3))));            // 次の章に入ると薄れて背景の 3D へ渡す
     const ph=phase(now-T0);common.uT.value=RM?12:t;common.uDraw.value=ph;common.uFade.value=1-out;
     sIn.material.uniforms.uOn.value=(RM?1:Math.min(1,Math.max(0,(now-T0-seq[2])/1200)))*(1-e*.85);
     sOut.material.uniforms.uOn.value=(RM?1:Math.min(1,Math.max(0,(now-T0-seq[3])/1200)))*(1-e*.85);
     const br=RM?0:Math.sin(t*.55)*.03,s0=MOB?1:1.55,s1=MOB?.78:1;
     ring.scale.setScalar((s0+(s1-s0)*e)*(1+br));ring.rotation.x=-tilt0*(1-e);ring.rotation.z=(RM?0:Math.sin(t*.07)*.04)*(1-e);
-    ring.position.set(0,(MOB?1.75:1.45)*(1-e),0);coreMat.uniforms.uO.value=.14+.36*e;
+    const wpp=2*Math.tan(cam.fov*Math.PI/360)*cam.position.z/H, lift=Math.min(sy,H*(MOB?.12:.22))*wpp*.9;
+    ring.position.set(0,((MOB?1.75:1.45)+lift)*(1-e)+(MOB?.9:.15)*e,0);coreMat.uniforms.uO.value=.14+.36*e;
     tone.style.opacity=String((1-e)*(1-out));
+    if(stick)stick.style.setProperty('opacity',String(.56+.3*Math.max(0,1-sy/(H*.8))),'important');
     if(head){const b=head.getBoundingClientRect(),pr=renderer.getPixelRatio(),on=b.bottom>0&&b.top<H;
       common.uBox.value.set(on?b.left*pr:0,on?(H-b.bottom)*pr:0,on?b.right*pr:0,on?(H-b.top)*pr:0)}
     ring.updateMatrixWorld();ringM.copy(ring.matrixWorld);
