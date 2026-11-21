@@ -5,7 +5,10 @@ import * as THREE from 'three';
 const P = document.querySelector('#qStory [data-ly="5"]');
 if (P) {
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, SP = () => innerWidth < 761;
-  const cv = document.createElement('canvas'); cv.className = 'aoi-stage'; cv.setAttribute('aria-hidden', 'true'); { const st = document.querySelector('.sd-stick'); st ? st.after(cv) : document.body.appendChild(cv); }
+  const cv = document.createElement('canvas'); cv.className = 'aoi-stage'; cv.setAttribute('aria-hidden', 'true'); const MOB = SP(); let slot = null;
+  // 2026-11-21 本人「スマホで碧が本文の文字に重ならないように」：スマホは段のあいだに場所をあけ、その中に碧を置く（固定の重ねはしない）
+  if (MOB) { slot = document.createElement('div'); slot.className = 'aoi-slot'; slot.setAttribute('aria-hidden', 'true'); P.after(slot); slot.appendChild(cv); }
+  else { const st = document.querySelector('.sd-stick'); st ? st.after(cv) : document.body.appendChild(cv); }
   const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, powerPreference: 'low-power' });
   R.setPixelRatio(Math.min(devicePixelRatio, SP() ? 2 : 1.75)); R.setClearColor(0, 0);
   const CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), -1);
@@ -43,11 +46,11 @@ if (P) {
     ['#top .nx-uc', '研究も、道具も、アートも、使う場へめぐっていきます。', 'Research, tools and art all turn toward the places where they are used.'],
     ['#top .nx-fd', 'mitsulab の代表です。', 'This is the founder of mitsulab.']];
   const END = () => document.querySelector('#qStory [data-ly="7"]') || P; // 本文の広い章（ループ・道具）では文字を読む邪魔になるので、物語の段だけ
-  const cap = document.createElement('p'); cap.className = 'aoi-cap'; cap.setAttribute('aria-live', 'off'); cv.after(cap);
-  let chI = -1;
-  function chapter() { const H = innerHeight; let k = -1; const n = 3;
+  const cap = document.createElement('p'); cap.className = 'aoi-cap'; cap.setAttribute('aria-live', 'off'); cv.after(cap); if (MOB) cap.classList.add('in');
+  let chI = -1, sayAt = 0;
+  function chapter() { if (slot) return 2; const H = innerHeight; let k = -1; const n = 3;
     for (let i = 0; i < n; i++) { const e = document.querySelector(CH[i][0]); if (e && e.getBoundingClientRect().top < H * .62) k = i; } return k; }
-  function say(i) { chI = i; if (i < 0) { cap.classList.remove('on'); return; } const t = CH[i][EN() ? 2 : 1]; cap.classList.remove('on');
+  function say(i) { chI = i; sayAt = performance.now(); if (i < 0) { cap.classList.remove('on'); return; } const t = CH[i][EN() ? 2 : 1]; cap.classList.remove('on');
     setTimeout(() => { if (chI !== i) return; cap.textContent = t; cap.classList.add('on');
       if (mot) { const d = Math.min(4.2, 1.2 + t.length * (EN() ? .045 : .11)); try { mot.speak({ text: t, dur: d, autoGesture: false, gesture: RM ? null : [{ t: .5, type: 'beat' }, { t: d * .55, type: 'iconic', shape: 'small-round' }] }); } catch (e) { } } }, 260); }
   let aoi = null, mot = null, loading = false;
@@ -71,8 +74,8 @@ if (P) {
     try { const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61'); mot = new AoiMotion(v, { root: v.scene, reducedMotion: RM, wind: 0, faceViewer: false, startCalm: 0, posture: 'upright', uprightWeight: .9 }); } catch (e) { }
     kick(); } catch (e) { console.warn('aoi stage', e); } }
   // 進み：段が画面の下から入ると上がり、上へ抜けると下がる
-  function target() { const r = P.getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
-    const e = END().getBoundingClientRect(); const up = (H * .95 - r.top) / (H * .4), down = (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
+  function target() { const r = (slot || P).getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
+    const e = (slot || END()).getBoundingClientRect(); const up = slot ? (H * .98 - r.top) / (H * .3) : (H * .95 - r.top) / (H * .4), down = slot ? (e.bottom - H * .02) / (H * .3) : (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
   let cur = 0, raf = 0, last = 0, W = 0, H = 0;
   function size() { camSet(); const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
   function frame(now) { raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const tg = target(); if (tg > 0 && !aoi) load();
@@ -84,7 +87,10 @@ if (P) {
     U.uRise.value = RM ? (k > .01 ? 2.4 : -1) : -0.02 + rise * 2.0; CLIP.constant = U.uRise.value; U.uA.value = (RM ? Math.min(1, k * 2) : Math.min(1, rise * 2.5)) * .85;
     cv.style.opacity = k > 0 ? '1' : '0';
     { const f = RM ? 1 : Math.min(1, rise * 1.25); cv.style.filter = f >= 1 ? 'none' : 'blur(' + ((1 - f) * 6).toFixed(2) + 'px) brightness(' + (.35 + .65 * f).toFixed(3) + ')'; }
-    { const c = k > .5 ? chapter() : -1; if (c !== chI) say(c); }
+    { const c = k > .5 ? chapter() : -1;
+      if (c < 0) { if (chI >= 0) say(-1); }
+      else if (c < chI) say(c);
+      else if (c > chI && (chI < 0 || performance.now() - sayAt > 2600)) say(chI + 1); }
     if (k > 0) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
     if (k > 0 || tg > 0) raf = requestAnimationFrame(frame); else last = 0; }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
