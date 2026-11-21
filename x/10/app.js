@@ -593,13 +593,15 @@ const aoiScene = new THREE.Scene(); aoiScene.environment = scene.environment;
 { const k = new THREE.DirectionalLight(0xfff1e2, 2.0); k.position.set(-1, 1.4, 1.2); aoiScene.add(k); aoiScene.add(new THREE.HemisphereLight(0xb8c4da, 0x0a0f1a, .9)); }
 const aoiCam = new THREE.PerspectiveCamera(26, .74, .1, 20); aoiCam.position.set(0, 1.3, 1.95); aoiCam.lookAt(0, 1.2, 0);
 let aoi = null;
-const AOI_URL = location.pathname.includes("/x/") ? "../../img/hero/aoi.vrm" : "aoi.vrm";
+const AOI_URL = "aoi.vrm";   // 2026-11-21 髪が横に広がる古い碧（img/hero）をやめ、omiya と同じ碧に
 async function firstUse(root) { const ms = []; root.traverse(o => { if (o.isMesh) { ms.push([o, o.visible]); o.visible = false; } }); const sc = root.scale.clone(); root.scale.multiplyScalar(1e-3); root.visible = true; const y = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
   for (const [o, v] of ms) { o.visible = v; await y(); await y(); } root.scale.copy(sc); }   // 2026-11-05：はじめて描く時の止まりを、網一つずつ別のこまに分ける（見えないほど小さくして描く）
 async function loadAoi() {
   try {
     const K = await import("./kit/aoi.js?v=20261120u");
     const a = await K.loadAoi(AOI_URL, { scene, height: MOBILE ? .6 : .5, wind: .15, posture: "upright", quality: MOBILE ? "mid" : "low" });
+    { const sc = a.vrm.scene.scale.x, sb = a.vrm.springBoneManager;   // 2026-11-21 本人「touch で碧の髪型がおかしい」：碧を小さく置くと、髪のばねの当たり（頭の球）だけが元の大きさのまま残り、髪が横へ押し広げられていた。当たりとばねの太さを同じ割合で縮める
+      if (sb && sc < .999) { for (const c of sb.colliders ?? []) { const sh = c.shape; if (sh?.radius != null) sh.radius *= sc; sh?.offset?.multiplyScalar?.(sc); sh?.tail?.multiplyScalar?.(sc); } for (const j of sb.joints ?? []) if (j.settings?.hitRadius != null) j.settings.hitRadius *= sc; try { sb.reset(); } catch { } } }
     a.root.visible = false; try { const W = await import("./kit/warm.js"); await W.warmAoi(renderer, a.root, camera, scene, { batch: 1 }); } catch { } await firstUse(a.root); aoi = a;   // 2026-11-05：碧が出る瞬間の止まりを分ける
     aoi.root.position.y = -.106; aoiSnap();
     { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
