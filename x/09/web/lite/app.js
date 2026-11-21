@@ -1840,7 +1840,7 @@ function stepCompanions(dt) {
   if (t - (YO.cSideT || -9) > 3) { YO.cSideT = t; YO.cSide = _v3c.set(P.x + rx, P.y + .3, P.z + rz).project(camera).x > _v3c.set(P.x - rx, P.y + .3, P.z - rz).project(camera).x ? -1 : 1; }   // 画面の内側（中央寄り）へ
   const sd = YO.cSide || 1, k = Math.min(1, dt * 2.2);
   for (const it of YO.c.items) { const R = it.root, F = YO_FLY[it.kind], cho = !!F, tn = it.kind === "tanuki";
-    const fw = cho ? F[0] + (it.kind === "suzume" ? .5 * Math.sin(t * F[5] + it.ph) : 0) : tn ? 2.5 : 1.6, lt = cho ? sd * F[1] + F[2] * Math.cos(t * F[5] + it.ph) : tn ? sd * .25 : sd * 1.0;   // タヌキは狐の少し奥・碧の脇（狐と並ばない）
+    const fw = cho ? F[0] + (it.kind === "suzume" ? .5 * Math.sin(t * F[5] + it.ph) : 0) : tn ? 1.9 : 1.6, lt = cho ? sd * F[1] + F[2] * Math.cos(t * F[5] + it.ph) : tn ? -sd * 1.0 : sd * 1.0;   /* 11-21：止まると碧の陰に隠れていた→碧の反対の脇（画面の内側・碧の体から 1 m 横）へ */   // タヌキは狐の少し奥・碧の脇（狐と並ばない）
     const lm = MOBILE ? .55 : 1, tx = P.x + ax * fw + rx * lt * lm, tz = P.z + az * fw + rz * lt * lm;   // 375 は横の寄せを狭く（左の札に重ねない）
     const dx = tx - R.position.x, dz = tz - R.position.z, d = Math.hypot(dx, dz);
     if (d > 8) { R.position.x = tx; R.position.z = tz; } else { R.position.x += dx * k; R.position.z += dz * k; }
