@@ -1499,6 +1499,7 @@ function tap(x, y) {
   if (QW.mode === "walk" && KASA.herd) { const k = KASA.herd.pick(x, y); if (k) { touchKasane(k); return; } }   // かさねっこに触れる
   if (QW.mode === "walk") { for (const h of AREA.herds) { if (h.pickView(x, y)) return; const k = h.pick(x, y); if (k) { touchKasane(k); return; } } const L = pickAreaMark(x, y); if (L) { openObj(L); return; } }   // エリアのかさねっこと地点
   if (QW.mode === "walk" && YO.y && YO.y.pick(x, y, renderer.domElement)) return;   // 依代に触れる
+  if (QW.mode === "walk" && YO.c && YO.c.pick(x, y, renderer.domElement)) return;   // 11-21 碧のそばの依代（狐・蝶）に触れる
   const o = pickObj(x, y) || (QW.mode === "walk" ? QA?.pick(x, y) : null); if (o) { QA?.touch(o); { const k = QAK(o); if (k && QW.mode === "walk") { toast(k === "x.soil" ? "足もとの下（根と菌糸の模式）" : k === "sound" && QW.sunTimes ? (r => `この場所のきょうの日の出 ${r.rise}・日の入り ${r.set}（計算）`)(QW.sunTimes(35.916, 139.632)) : QAN(k));   /* 10-30：リズム＝その場所の周期（日の出・日の入り）を sound の中に */ if (k === "x.soil") QA?.soilOpen(CAM.pos.x, CAM.pos.z); } } const again = LASTM.L === o && performance.now() - LASTM.t < 25000 && !(NARR.L === o && NARR.sp) && !o.o.tch && !o.o.snd;   // 10-29 設計：印を 1 回＝碧が語る、もう 1 回＝そちらへ歩く
     LASTM.L = o; LASTM.t = performance.now(); if (again && QW.mode === "walk") { o.glyph.getWorldPosition(_v3); const dx = _v3.x - CAM.pos.x, dz = _v3.z - CAM.pos.z, l = Math.hypot(dx, dz); if (l > 2) { const sx = (_v3.clone().project(camera).x + 1) / 2 * innerWidth; const g = goalAt(sx, innerHeight * .8); if (g) { WALK.goal = g; showGoalRing(g); } } return; } openObj(o); return; }
   if (QW.mode !== "walk") return;
@@ -1819,6 +1820,33 @@ async function startYorishiro() {
       await YO.y.add(kind, { x: P.x + fz * .95 + fx * 1.8, z: P.z - fx * .95 + fz * 1.8, height: YO_H[kind] || 0, follow: false, onTouch: () => { if (QW.onYoTouch?.(kind)) return; const a1 = `${YO_NM[kind] || ""}の姿の碧です。`; speakLines([{ t: a1, tc: a1 }], null, { narr: true }); } }); };
   } catch (e) { console.warn("yorishiro", e); }
 }
+/* 2026-11-21 本人が前に渡した「碧に似ている動物の依代」（05_本人の素材/09_依代キャラクター化 の参考画から自作した狐・蝶。形＝_共通3D/_dev/envAgents/sugata_ref/最良/）を、参道で碧のそばに置く。
+   狐＝碧の横を並んで歩く（獣は歩く）・蝶＝碧の肩の高さをゆっくり回る（虫は飛ぶ）。碧が話すと碧へ向き、問いの一行で小さく傾く。触れると碧が短く一言（擬人の断定はしない）。
+   変身の輪の一体（YO.y）とは別の器（YO.c）＝輪で入れ替えても消えない。生き物の目・碧が見えないあいだは隠す。一度に出すのはこの 2 体だけ。 */
+const YO_C = [["kitsune", .46, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["cho", .26, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"]];
+function stepCompanions(dt) {
+  if (!YO.y || !AOI.m) return;
+  if (!YO.c && !YO.cBusy) { YO.cBusy = true; (async () => { try {
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y13"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
+    c.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z) });
+    const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: k === "cho" ? P.y + 1.3 : null, height: h, follow: false, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) });
+    YO.c = c; QW.YOC = c; } catch (e) { console.warn("yorishiro-c", e); } })(); return; }
+  if (!YO.c) return; const on = QW.mode === "walk" && !!AOI.root?.visible, P = AOI.m.pos, C = camera.position, t = performance.now() / 1000;
+  // 置き方（採点 P1「375 で画面の下に大きく見切れる」を直す）：碧より見る人から 1.6 m 奥・横 1.0 m（画面の内側）に置き、大写しにしない。画面の下 25% にかかるときは隠す
+  let ax = P.x - C.x, az = P.z - C.z; const al = Math.hypot(ax, az) || 1; ax /= al; az /= al; const rx = -az, rz = ax;
+  if (t - (YO.cSideT || -9) > 3) { YO.cSideT = t; YO.cSide = _v3c.set(P.x + rx, P.y + .3, P.z + rz).project(camera).x > _v3c.set(P.x - rx, P.y + .3, P.z - rz).project(camera).x ? -1 : 1; }   // 画面の内側（中央寄り）へ
+  const sd = YO.cSide || 1, k = Math.min(1, dt * 2.2);
+  for (const it of YO.c.items) { const R = it.root, cho = it.kind === "cho";
+    const tx = cho ? P.x + ax * .7 + rx * (sd * .55 + .35 * Math.cos(t * .5 + it.ph)) : P.x + ax * 1.6 + rx * sd * 1.0, tz = cho ? P.z + az * .7 + rz * (sd * .55 + .35 * Math.cos(t * .5 + it.ph)) : P.z + az * 1.6 + rz * sd * 1.0;
+    const dx = tx - R.position.x, dz = tz - R.position.z, d = Math.hypot(dx, dz);
+    if (d > 8) { R.position.x = tx; R.position.z = tz; } else { R.position.x += dx * k; R.position.z += dz * k; }
+    R.position.y = cho ? P.y + 1.3 + .12 * Math.sin(t * .9 + it.ph) : aoiFootY(R.position.x, R.position.z);
+    if (!cho) { it.bob = d > .25 ? Math.abs(Math.sin(t * 9)) * .03 : 0; if (d > .25) it.yaw0 = Math.atan2(dx, dz); }   // 歩くと小さく弾み、進む向きへ
+    else it.yaw0 = Math.atan2(dx, dz) + .6 * Math.sin(t * .6); }
+  YO.c.update(dt);
+  for (const it of YO.c.items) { const R = it.root; if (!on) { R.visible = false; continue; } const q = _v3c.copy(R.position).setY(R.position.y + .25).project(camera); if (q.y < -.55 || Math.hypot(R.position.x - C.x, R.position.z - C.z) < 2.2) R.visible = false; }
+}
+const _v3c = new THREE.Vector3();
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
 function footHit(m, x, z, y0, y1) {
   let ix = FOOTIX.get(m);
@@ -1966,7 +1994,7 @@ function playNext() {
   if (l && l.hint && WL_HINT.done) { v.i++; return playNext(); }   // 知らせが出ていたら、もう一つは飛ばす
   if (l && l.hint) { WL_HINT.done = true; try { sessionStorage.setItem("wl_hint", "1"); } catch { } }   // 知らせは、実際に出たときにだけ済みにする（触れて切りかわったら、次の静かな間に一言）
   if (!l) { VOICE_END = performance.now(); voiceQ = null; AOI.focus = null; hideCaption(1200); v.done?.(); return; }
-  if (/[？?]\s*$/.test(l.t || "")) YO.y?.react("ask");   // 碧の問いの一行：そばの依代が小さく傾く
+  if (/[？?]\s*$/.test(l.t || "")) { YO.y?.react("ask"); YO.c?.react("ask"); }   // 碧の問いの一行：そばの依代が小さく傾く
   const idx = v.L && !v.narr ? v.L.o.lines.indexOf(l) : -1;
   document.querySelectorAll("#pBody .line").forEach(e => e.classList.toggle("now", +e.dataset.i === idx));
   if (!v.L || v.narr || $("#panel").hidden) CAP_LAY = l.lay ? { n: l.lay, c: l.lc } : null; caption(l.tc || l.t, v.talk, l.src, (soundOn && l.f ? (l.dur || l.t.length * .16) : Math.max(3.2, (l.dur || l.t.length * .16) + 1.2)));
@@ -3057,7 +3085,7 @@ function frame() {
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); if (!QW.mveil && QW.farGM && QW.farGM.userData.gf.gfHole.value.z > QW.farGM.userData.gf.gfHole.value.x) { const h = QW.farGM.userData.gf.gfHole.value; QW.mveil = makeMapVeil({ THREE, parent: world, rect: [h.x, h.y, h.z, h.w], y0: groundY((h.x + h.z) / 2, (h.y + h.w) / 2), fog: scene.fog, k0: m === "sky" || m === "boot" ? 1 : 0 }); } if (QW.mveil) { if (!QW.mveilLift && START.sp) { QW.mveil.lift(START.sp.group); QW.mveilLift = 1; } QW.mveil.update(dt, m === "sky" || m === "boot" || (m === "descend" && camH > 160)); }   /* 11-04 本人「四角い枠が見える＝境界を無くして」：地図の縁を楕円の霞で溶かす（kit/mapveil.js） */
     if (QW.skyTex && m !== "sight") { const vt = m === "boot" || m === "sky" ? 1 : 0;   /* 11-09 第2周：入口の地図は紺の地（灰色の霞にしない）。降りると空の写真へ溶ける */ VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp((QW.mapNavy ||= new THREE.Color("#0b1a30")), Math.max(CYBER.v.value, VEIL.k ?? 0)); } else VEIL.visible = false; { const hv = Q.get("hz") !== "0" && (m === "walk") && scene.background === QW.skyTex; HAZE.visible = hv; if (hv) { HAZE.material.uniforms.uC.value.copy(scene.fog.color).multiplyScalar(.78); HAZE.material.uniforms.opacity.value = .95; if ((HAZE.n = (HAZE.n || 0) + 1) % 20 === 1 && D && D.cl) { const t = atD(nearestOnLine(camera.position.x, camera.position.z).d); HAZE.material.uniforms.uDir.value.set(t.tx, t.tz).normalize(); } HAZE.position.copy(camera.position); HAZE.scale.setScalar(camera.far * .85); } } CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
   if (PARK.uT && !RM) PARK.uT.value += dt;
-  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (QW.mode === "walk" && !SEKI.p && /[?&]sekiso=1/.test(location.search)) SEKI.p = import("./sekiso.js?v=p1").then(M => { SEKI.o = M.makeSekiso({ scene, camera, groundY, renderer, MOBILE }); QW.SEKI = SEKI.o; }).catch(e => console.warn("sekiso", e)); SEKI.o?.update(dt, QW.mode === "walk"); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (QW.mode === "walk" && !SEKI.p && /[?&]sekiso=1/.test(location.search)) SEKI.p = import("./sekiso.js?v=p1").then(M => { SEKI.o = M.makeSekiso({ scene, camera, groundY, renderer, MOBILE }); QW.SEKI = SEKI.o; }).catch(e => console.warn("sekiso", e)); SEKI.o?.update(dt, QW.mode === "walk"); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt); stepCompanions(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt); aoiZoom(dt);
   QW.ACT?.update(dt);   /* 11-13 本人承認「環境そのものが、受けとって働きかけるアクターどうしの相互関係として動く」（actors.js） */
   if (QW.mode !== "walk") FARWOOD.g.visible = false;
