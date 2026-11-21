@@ -1,4 +1,4 @@
-/* 物語の碧の段で、背景に碧（共通の aoi.vrm）が立ち上がる（2026-11-21）。
+/* 物語の碧の段で、背景に碧（共通の aoi.vrm＝Qualia/omiya と同じ正式の碧）が立ち上がる（2026-11-21）。
    暗い舞台に光の粒が集まり → 光の柱と走査線の幕の中で、足もとから順に姿が立ち上がる → 段を過ぎると粒に戻って消える。
    進みはスクロールの位置から決め、時間でなめらかに追う（行き来しても途切れない）。PC は本文の右の余白、スマホは薄く右寄せ・粒を減らす。 */
 import * as THREE from 'three';
@@ -8,6 +8,7 @@ if (P) {
   const cv = document.createElement('canvas'); cv.className = 'aoi-stage'; cv.setAttribute('aria-hidden', 'true'); { const st = document.querySelector('.sd-stick'); st ? st.after(cv) : document.body.appendChild(cv); }
   const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: !SP(), powerPreference: 'low-power' });
   R.setPixelRatio(Math.min(devicePixelRatio, SP() ? 1.25 : 1.75)); R.setClearColor(0, 0);
+  const CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), -1);
   const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(28, 1, .1, 50); cam.position.set(0, 1.0, 6.6); cam.lookAt(0, .9, 0);
   const U = { uRise: { value: -1 }, uA: { value: 0 }, uT: { value: 0 } };
   // 光の柱（上下に薄れる）と床の輪
@@ -42,7 +43,9 @@ if (P) {
           'if (vWp.y > uRise) discard; float fr = 1. - abs(dot(normalize(normal), normalize(vViewPosition))); float sc = .78 + .22 * sin(vWp.y * 260. - uT * 4.); float edge = smoothstep(.06, 0., uRise - vWp.y);' +
           'vec3 c = vec3(.5, .95, 1.) * (pow(fr, 2.2) * 1.3 + .12) * sc + vec3(.9, 1., 1.) * pow(fr, 8.) * .6 + vec3(.8, 1., 1.) * edge * 1.4; vec3 oC = c * uA; gl_FragColor = vec4(oC, clamp(max(oC.r, max(oC.g, oC.b)), 0., 1.));'); };
       return m; };
-    v.scene.traverse(o => { if (o.isMesh) { o.frustumCulled = false; o.material = Array.isArray(o.material) ? o.material.map(holo) : holo(); } });
+    // 2026-11-21 本人「実際の碧のデータで」：材質は碧の VRM のまま（顔と衣の色）、足もとから立ち上がるのは切断面で表す
+    R.localClippingEnabled = true;
+    v.scene.traverse(o => { if (o.isMesh) { o.frustumCulled = false; (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { m.clippingPlanes = [CLIP]; m.needsUpdate = true; }); } });
     const N2 = n => v.humanoid.getNormalizedBoneNode(n); [['leftUpperArm', -.12, 0, -1.25], ['rightUpperArm', -.12, 0, 1.25]].forEach(([n, x, y, z]) => { const o = N2(n); if (o) o.rotation.set(x, y, z); });
     v.scene.rotation.y = 0; S.add(v.scene); aoi = v; v.update(0);
     try { const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61'); mot = new AoiMotion(v, { root: v.scene, reducedMotion: RM, wind: 0, faceViewer: false, startCalm: 0, posture: 'upright', uprightWeight: .9 }); } catch (e) { }
@@ -58,7 +61,7 @@ if (P) {
     const gather = Math.min(1, k / .45), rise = Math.max(0, Math.min(1, (k - .3) / .65));
     pm.uniforms.uG.value = RM ? 1 : gather; pm.uniforms.uA.value = RM ? 0 : Math.min(1, k * 3) * (1 - rise * .75);
     pil.material.uniforms.uA.value = (RM ? .3 : Math.min(1, k * 2.2) * (.45 + .4 * (1 - rise))) * (k > 0 ? 1 : 0); ring.material.uniforms.uA.value = Math.min(1, k * 2);
-    U.uRise.value = RM ? (k > .01 ? 2 : -1) : -0.02 + rise * 1.75; U.uA.value = (RM ? Math.min(1, k * 2) : Math.min(1, rise * 2.5)) * .85;
+    U.uRise.value = RM ? (k > .01 ? 2.4 : -1) : -0.02 + rise * 2.0; CLIP.constant = U.uRise.value; U.uA.value = (RM ? Math.min(1, k * 2) : Math.min(1, rise * 2.5)) * .85;
     cv.style.opacity = k > 0 ? '1' : '0';
     if (k > 0) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
     if (k > 0 || tg > 0) raf = requestAnimationFrame(frame); else last = 0; }
