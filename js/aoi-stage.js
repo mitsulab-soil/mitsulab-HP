@@ -6,10 +6,10 @@ const P = document.querySelector('#qStory [data-ly="5"]');
 if (P) {
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, SP = () => innerWidth < 761;
   const cv = document.createElement('canvas'); cv.className = 'aoi-stage'; cv.setAttribute('aria-hidden', 'true'); { const st = document.querySelector('.sd-stick'); st ? st.after(cv) : document.body.appendChild(cv); }
-  const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: !SP(), powerPreference: 'low-power' });
-  R.setPixelRatio(Math.min(devicePixelRatio, SP() ? 1.25 : 1.75)); R.setClearColor(0, 0);
+  const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, powerPreference: 'low-power' });
+  R.setPixelRatio(Math.min(devicePixelRatio, SP() ? 2 : 1.75)); R.setClearColor(0, 0);
   const CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), -1);
-  const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(28, 1, .1, 50); cam.position.set(0, 1.0, 6.6); cam.lookAt(0, .9, 0);
+  const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(28, 1, .1, 50); const camSet = () => { if (SP()) { cam.position.set(0, 1.32, 2.7); cam.lookAt(0, 1.24, 0); } else { cam.position.set(0, 1.12, 3.5); cam.lookAt(0, 1.0, 0); } }; camSet();
   const U = { uRise: { value: -1 }, uA: { value: 0 }, uT: { value: 0 } };
   // 光の柱（上下に薄れる）と床の輪
   const pil = new THREE.Mesh(new THREE.CylinderGeometry(.26, .3, 3.2, 48, 1, true), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uT: U.uT }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
@@ -29,7 +29,27 @@ if (P) {
     vertexShader: 'uniform float uG; uniform float uT; uniform float uPx; attribute vec3 aT; attribute float aR; varying float vR; void main(){ float g = clamp(uG * 1.25 - aR * .25, 0., 1.); g = g * g * (3. - 2. * g); vec3 p = mix(position, aT, g); float s = (1. - g) * 1.4 + .2; p.x += sin(uT * .7 + aR * 40.) * .05 * s; p.y += cos(uT * .5 + aR * 30.) * .05 * s; vR = aR; vec4 mv = modelViewMatrix * vec4(p,1.); gl_PointSize = (1.5 + aR * 2.5) * uPx * (6. / -mv.z); gl_Position = projectionMatrix * mv; }',
     fragmentShader: 'uniform float uA; uniform float uT; varying float vR; void main(){ float r = length(gl_PointCoord - .5); if (r > .5) discard; float f = smoothstep(.5, 0., r); float tw = .6 + .4 * sin(uT * 2. + vR * 50.); vec3 oC = vec3(.7, .97, 1.) * f * f * tw * uA; gl_FragColor = vec4(oC, clamp(max(oC.r, max(oC.g, oC.b)), 0., 1.)); }' });
   const pts = new THREE.Points(pg, pm); pts.frustumCulled = false; S.add(pts);
-  S.add(new THREE.HemisphereLight(0xcfe9f0, 0x0a1218, .8)); const kl = new THREE.DirectionalLight(0xe6f6ff, 1.2); kl.position.set(-3, 5, 6); S.add(kl);
+  // 2026-11-21 本人「もっと自然に」：背景の夕方の参道の色に合わせた光（上は青みの空・下は暗い土・正面やや左から柔らかい主光・後ろから細い縁の光）
+  S.add(new THREE.HemisphereLight(0xb9cfd8, 0x1a1712, .6)); const kl = new THREE.DirectionalLight(0xf1ece2, .72); kl.position.set(-2.5, 4, 5); S.add(kl); const rim = new THREE.DirectionalLight(0x9fd4e2, .55); rim.position.set(2.5, 3, -4); S.add(rim);
+  // 2026-11-21 本人「立っているだけでなく、何かを話し始めて」：章に合わせた短い語り（HP の言葉から・断定しない・音は鳴らさない）
+  const EN = () => /^en/.test(document.documentElement.lang || '');
+  const CH = [
+    ['#qStory [data-ly="5"]', 'わたしは碧。mitsulab の道具の案内役です。', 'I am Aoi, the guide of mitsulab’s tools.'],
+    ['#qStory [data-ly="6"]', '世界と世界のあわいに立って、受けとり方を移しかえます。', 'I stand between worlds and carry one way of receiving into another.'],
+    ['#qStory [data-ly="7"]', 'いつもの景色に戻ると、少しだけ違って見えるかもしれません。', 'Back in the everyday landscape, it may look a little different.'],
+    ['#qloop', '受けとることと、はたらきかけること。その二つがめぐる円です。', 'Receiving and acting upon: a circle where the two turn together.'],
+    ['#top .tp-lab', '道具をひとつ、ひらいてみませんか。画面は入口です。', 'Would you open one of the tools? The screen is only a door.'],
+    ['#top div.nx-b', '道具を、場所へ持っていきます。', 'We take the tools out to a place.'],
+    ['#top .nx-uc', '研究も、道具も、アートも、使う場へめぐっていきます。', 'Research, tools and art all turn toward the places where they are used.'],
+    ['#top .nx-fd', 'mitsulab の代表です。', 'This is the founder of mitsulab.']];
+  const END = () => document.querySelector('#qStory [data-ly="7"]') || P; // 本文の広い章（ループ・道具）では文字を読む邪魔になるので、物語の段だけ
+  const cap = document.createElement('p'); cap.className = 'aoi-cap'; cap.setAttribute('aria-live', 'off'); cv.after(cap);
+  let chI = -1;
+  function chapter() { const H = innerHeight; let k = -1; const n = 3;
+    for (let i = 0; i < n; i++) { const e = document.querySelector(CH[i][0]); if (e && e.getBoundingClientRect().top < H * .62) k = i; } return k; }
+  function say(i) { chI = i; if (i < 0) { cap.classList.remove('on'); return; } const t = CH[i][EN() ? 2 : 1]; cap.classList.remove('on');
+    setTimeout(() => { if (chI !== i) return; cap.textContent = t; cap.classList.add('on');
+      if (mot) { const d = Math.min(4.2, 1.2 + t.length * (EN() ? .045 : .11)); try { mot.speak({ text: t, dur: d, autoGesture: false, gesture: RM ? null : [{ t: .5, type: 'beat' }, { t: d * .55, type: 'iconic', shape: 'small-round' }] }); } catch (e) { } } }, 260); }
   let aoi = null, mot = null, loading = false;
   async function load() { if (loading) return; loading = true; try {
     const [V, { GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('@pixiv/three-vrm'), import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
@@ -52,17 +72,19 @@ if (P) {
     kick(); } catch (e) { console.warn('aoi stage', e); } }
   // 進み：段が画面の下から入ると上がり、上へ抜けると下がる
   function target() { const r = P.getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
-    const up = (H * .95 - r.top) / (H * .4), down = (r.bottom + H * .55) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
+    const e = END().getBoundingClientRect(); const up = (H * .95 - r.top) / (H * .4), down = (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
   let cur = 0, raf = 0, last = 0, W = 0, H = 0;
-  function size() { const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
+  function size() { camSet(); const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
   function frame(now) { raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const tg = target(); if (tg > 0 && !aoi) load();
     cur = RM ? tg : cur + (tg - cur) * Math.min(1, dt * 1.6); if (Math.abs(tg - cur) < .002) cur = tg;
     U.uT.value += dt; const k = cur;
     const gather = Math.min(1, k / .45), rise = Math.max(0, Math.min(1, (k - .3) / .65));
     pm.uniforms.uG.value = RM ? 1 : gather; pm.uniforms.uA.value = RM ? 0 : Math.min(1, k * 3) * (1 - rise * .75);
-    pil.material.uniforms.uA.value = (RM ? .3 : Math.min(1, k * 2.2) * (.45 + .4 * (1 - rise))) * (k > 0 ? 1 : 0); ring.material.uniforms.uA.value = Math.min(1, k * 2);
+    pil.material.uniforms.uA.value = (RM ? 0 : Math.min(1, k * 2.2) * .7 * (1 - rise)) * (k > 0 ? 1 : 0); ring.material.uniforms.uA.value = Math.min(1, k * 2) * (1 - rise * .8);
     U.uRise.value = RM ? (k > .01 ? 2.4 : -1) : -0.02 + rise * 2.0; CLIP.constant = U.uRise.value; U.uA.value = (RM ? Math.min(1, k * 2) : Math.min(1, rise * 2.5)) * .85;
     cv.style.opacity = k > 0 ? '1' : '0';
+    { const f = RM ? 1 : Math.min(1, rise * 1.25); cv.style.filter = f >= 1 ? 'none' : 'blur(' + ((1 - f) * 6).toFixed(2) + 'px) brightness(' + (.35 + .65 * f).toFixed(3) + ')'; }
+    { const c = k > .5 ? chapter() : -1; if (c !== chI) say(c); }
     if (k > 0) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
     if (k > 0 || tg > 0) raf = requestAnimationFrame(frame); else last = 0; }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
