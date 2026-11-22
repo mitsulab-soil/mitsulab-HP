@@ -9,8 +9,9 @@ export function buildMeiji(THREE, { terrain, world, camera, mode, mobile, onFirs
     fragmentShader: `uniform sampler2D tex; uniform float t, k, R; uniform vec3 eye; uniform vec4 aoi; varying vec2 vU; varying vec3 vW;
       float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f); return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+1.), f.x), f.y); }
-      void main(){ float ad = aoi.w > .5 ? length((vW.xz - aoi.xz) * vec2(1., 1.25)) : 99.; float sh = (1. - smoothstep(.1, .78, ad)) * .55;   // 碧の足もとの接地の影（いつも）
-        if (k < .002) { if (sh < .01) discard; gl_FragColor = vec4(vec3(.03, .04, .04), sh); return; } vec3 m = texture2D(tex, vU).rgb; float d = distance(vW.xz, eye.xz);
+      float aoiHide(vec3 E, vec3 W, vec4 A){ if (A.w < .5) return 0.; vec3 D = W - E; float L = length(D); D /= L; vec2 dh = D.xz; float dd = dot(dh, dh); if (dd < 1e-5) return 0.; float s = dot(A.xz - E.xz, dh) / dd; if (s < L) return 0.; vec2 c = E.xz + dh * s - A.xz; float r = length(c); float y = E.y + D.y * s; float hw = mix(.30, .19, smoothstep(.0, .5, y - A.y)); return (1. - smoothstep(hw, hw + .09, r)) * smoothstep(A.y - .12, A.y - .02, y) * step(y, A.y + 1.8); }
+      void main(){ float aH = aoiHide(eye, vW, aoi); if (aH > .97) discard; float ad = aoi.w > .5 ? length((vW.xz - aoi.xz) * vec2(1., 1.25)) : 99.; float sh = (1. - smoothstep(.1, .78, ad)) * .55;   // 碧の足もとの接地の影（いつも）
+        if (k < .002) { if (sh < .01) discard; gl_FragColor = vec4(vec3(.03, .04, .04), sh * (1. - aH)); return; } vec3 m = texture2D(tex, vU).rgb; float d = distance(vW.xz, eye.xz);
         float near = 1. - smoothstep(R * .2, R, d); near *= near; float a0 = near * k * smoothstep(.25, .95, ad); if (a0 < .004 && sh < .01) discard;
         float wtr = smoothstep(.45, .9, m.r), low = smoothstep(.15, .85, m.g) * (1. - wtr);
         vec2 p = vW.xz;
@@ -27,7 +28,7 @@ export function buildMeiji(THREE, { terrain, world, camera, mode, mobile, onFirs
         vec3 col = water * wtr + paddy * low + vec3(.24, .27, .2) * edge;
         float a = (wtr * (.72 + fr * .2) + low * .34 + edge * .3) * a0;
         a *= .75 + .25 * n(p * .08 + t * .02);   // 縁を霞のようにゆらがせる
-        gl_FragColor = vec4(mix(col, vec3(.03, .04, .04), sh / max(a + sh, 1e-3)), max(a, sh)); }` });
+        gl_FragColor = vec4(mix(col, vec3(.03, .04, .04), sh / max(a + sh, 1e-3)), max(a, sh) * (1. - aH)); }` });
   const mesh = new THREE.Mesh(terrain.geometry, mat); mesh.name = "meiji"; mesh.renderOrder = 7; mesh.frustumCulled = false; mesh.visible = false; world.add(mesh);
   new THREE.TextureLoader().load("web/geo/meiji_lowland.webp?v=1", tx => { tx.colorSpace = THREE.NoColorSpace; tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; U.tex.value = tx; mesh.visible = true; });
   const last = new THREE.Vector3(), _a = new THREE.Vector3(); let still = 0, shown = false, inWater = 0;

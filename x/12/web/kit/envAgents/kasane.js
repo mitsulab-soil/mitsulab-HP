@@ -575,6 +575,10 @@ export class KasaneHerd {
       const sp2 = 3.2 * dt, x = a.pos.x + this.F.x * sp2, z = a.pos.y + this.F.y * sp2;
       if (!this.walkable || this.walkable(x, z)) { a.pos.set(x, z); if (!a.flock) a.anchor.set(a.anchor.x + this.F.x * sp2, a.anchor.y + this.F.y * sp2); if (a.goal) { a.goal.x += this.F.x * sp2; a.goal.y += this.F.y * sp2; } }
       return; }
+    if (!push) {   /* 2026-11-23 採点 P2「小さな子がカメラのボタンに重なる」：画面の丸いボタン・札（カメラ・生き物＋・足もとの高さ など）に子の体がかかったら、ボタンから離れる横へ歩かせる */
+      const now = performance.now(); if (!this._btnT || now - this._btnT > 500) { this._btnT = now; this._btns = [];
+        document.querySelectorAll("button, a.qhome, .qck").forEach(e => { if (!e.offsetParent && getComputedStyle(e).position !== "fixed") return; const r = e.getBoundingClientRect(); if (r.width < 8 || r.height < 8 || r.width * r.height > 60000 || r.top < 64) return; this._btns.push(r); }); }
+      for (const r of this._btns || []) if (sx + half + 8 > r.left && sx - half - 8 < r.right && sy + px * .55 + 8 > r.top && sy - px * .55 - 8 < r.bottom) { push = sx < (r.left + r.right) / 2 ? -1 : 1; break; } }
     if (!push) return;
     const sp = (this.mobile ? 1.1 : .8) * dt, F = this.F;
     // 横へ（画面の内へ）。横が歩けない所なら、見る人から離れる向きへ（遠くなるほど画面の内へ寄る）

@@ -15,7 +15,7 @@ export function attachWalk4(QW) {
   const canVib = typeof navigator.vibrate === "function" && MOBILE;
   const vib = p => { if (!canVib) return; try { navigator.vibrate(p); } catch { } };
   const css = document.createElement("style"); css.id = "walk4";
-  css.textContent = `#w4up{position:fixed;inset:0;z-index:3;background:rgba(3,6,10,.93);opacity:0;transition:opacity 1.4s ease;pointer-events:auto;cursor:pointer}
+  css.textContent = `#w4up{position:fixed;inset:0;z-index:3;background:radial-gradient(ellipse 80% 70% at 50% 46%,rgba(3,6,10,.5),rgba(3,6,10,.74));opacity:0;transition:opacity 1.4s ease;pointer-events:auto;cursor:pointer}
 #w4up.on{opacity:1}#w4up p{position:absolute;left:0;right:0;top:44%;margin:0;text-align:center;font:400 12px/1.6 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.08em;color:rgba(230,238,242,.55)}
 body.w4soil #qS6,body.w4soil #qIK,body.w4soil #walkUI{opacity:.25!important;transition:opacity .4s}
 body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4src,body.w4up header,body.w4up #topbar,body.w4up button:not(#w4src button){opacity:.12!important}

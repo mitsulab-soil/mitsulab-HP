@@ -47,12 +47,13 @@
       "  float g0 = lum(inH ? texture2D(h0,hu).rgb : texture2D(o0,u).rgb), g1 = lum(inH ? texture2D(h1,hu).rgb : texture2D(o1,u).rgb), g2 = lum(inH ? texture2D(h2,hu).rgb : texture2D(o2,u).rgb);",
       "  float g = mix(mix(g0, g1, clamp(e,0.,1.)), g2, clamp(e-1.,0.,1.)); return vec3(g*1.03, g, g*.93); }",
       "vec3 lit(vec3 nt, float ao){ vec3 nn = normalize(vec3(nt.x, nt.z*.6+1.2, -nt.y)); return vec3(clamp(.55 + .55*dot(nn, normalize(vec3(.35,.85,.25))), .3, 1.2)) * ao; }",
-      "void main(){ if (k < .003) discard; vec2 p = vW.xz; float d = distance(p, eye.xz);",
+      "uniform vec4 aoi; float aoiHide(vec3 E, vec3 W, vec4 A){ if (A.w < .5) return 0.; vec3 D = W - E; float L = length(D); D /= L; vec2 dh = D.xz; float dd = dot(dh, dh); if (dd < 1e-5) return 0.; float s = dot(A.xz - E.xz, dh) / dd; if (s < L) return 0.; vec2 c = E.xz + dh * s - A.xz; float r = length(c); float y = E.y + D.y * s; float hw = mix(.30, .19, smoothstep(.0, .5, y - A.y)); return (1. - smoothstep(hw, hw + .09, r)) * smoothstep(A.y - .12, A.y - .02, y) * step(y, A.y + 1.8); }",   // 11-23：碧の足もとが水と草に沈んで見えた＝碧の前に浮く面は抜く
+      "void main(){ if (k < .003) discard; float aH = aoiHide(eye, vW, aoi); if (aH > .97) discard; vec2 p = vW.xz; float d = distance(p, eye.xz);",
       // ② 足もとの窓（上から見た昔の写真。前へ 3.3〜3.6 m（碧より手前。広い画面では右へ 1 m ずらす）・幅 1.9 m・まわり約 50 m を写す。窓の上＝進む向き。細い線＝明治の地図の川の縁）
       "  vec2 rt = vec2(-fw.y, fw.x); vec2 c = eye.xz + fw*wd + rt*wx; vec2 l = vec2(dot(p-c, rt), dot(p-c, fw)); vec2 al = abs(l) - vec2(wh);",
       "  float box2 = length(max(al + .08, 0.)) - .08; if (box2 < 0.) { vec2 P = eye.xz + (l.x*rt + l.y*fw) * wz; vec3 ph = photo(P); float rv = texture2D(mk, wuv(P)).r; float edge = smoothstep(.06, .0, abs(rv - .55)) * .55;",
       "    float frame = smoothstep(-.035, -.02, box2); float dot0 = 1. - smoothstep(.025, .04, length(l));",   // 自分の位置の小さな点
-      "    vec3 col = mix(ph, vec3(.5,.89,.97), max(max(frame*.7, dot0*.9), edge)); gl_FragColor = vec4(col, .94*k*(1.-smoothstep(-.005,0.,box2))); return; }",
+      "    vec3 col = mix(ph, vec3(.5,.89,.97), max(max(frame*.7, dot0*.9), edge)); gl_FragColor = vec4(col, (1. - aH)*.94*k*(1.-smoothstep(-.005,0.,box2))); return; }",
       // ① 明治の地図の川と低地だけ、写実の質感に（形は地図・質感は模式）
       "  float near = 1. - smoothstep(R*.3, R, d + (n(p*.11)-.5)*9.); float a0 = near*near*k; if (a0 < .004) discard;",
       "  vec3 m = texture2D(mk, wuv(p)).rgb; float wtr = smoothstep(.62,.95,m.r); float low = smoothstep(.15,.85,m.g)*(1.-wtr); float bank = smoothstep(.0,.35,m.r)*(1.-wtr);",
@@ -63,7 +64,7 @@
       "  vec2 fl = vec2(n(p*.07), n(p*.07+7.)) - .5; float rip = n(p*vec2(1.3,.5) + fl*3. - vec2(0.,t*1.1))*.6 + n(p*3.2 - t*.8)*.4;",
       "  float r2 = n(p*vec2(7.,2.6) + fl*4. - vec2(0.,t*1.6)); vec3 deep = vec3(.05,.12,.11) + soil*.08; vec3 sky = vec3(.66,.77,.86); float gl = pow(n(p*9. + vec2(t*1.1, -t*.6)), 10.); vec3 water = mix(deep, sky, clamp(.08 + fr*.9 + (rip-.5)*.22 + (r2-.5)*.14, 0., 1.)) + pow(rip*.6 + r2*.4, 7.)*.3 + gl*.3; water = mix(water, soil*.5, (1.-fr)*.25*(1.-smoothstep(.5,.95,texture2D(mk, wuv(p)).r)));",
       "  vec3 col = water*wtr + soil*bank*.85 + landc*low; float a = (wtr*.93 + bank*.9 + low*.97) * smoothstep(0., .25, a0) * min(1., a0*3.);",
-      "  gl_FragColor = vec4(col / max(wtr + bank + low, 1e-3), a); }"
+      "  gl_FragColor = vec4(col / max(wtr + bank + low, 1e-3), a * (1. - aH)); }"
     ].join("\n");
     var mat = new T.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, fog: false, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6,
       vertexShader: "uniform vec4 aoi; varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position,1.); w.y += .45; if (aoi.w > .5) w.y = mix(min(w.y, aoi.y - .03), w.y, smoothstep(1.3, 3.2, distance(w.xz, aoi.xz))); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",

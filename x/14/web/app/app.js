@@ -2102,7 +2102,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready"); QW.ready = true; QW.tReady = performance.now() - T0; window.MLLoader?.done();   /* 11-05 起動：読み込み画面は ready のその場で閉じる（index.html の 60 ms ごとの見回りを待つと、あとの組み立てに先を越されて 1 秒あまり遅れていた） */ setTimeout(() => import("../kit/startbirds.js?v=3").then(m => m.startBirds({ THREE, scene, camera, renderer })).catch(() => { }), 500);   // 2026-11-03 起動の鳥（sight と同じ考え方）
     setTimeout(() => QW.late?.(), 30);
-    setTimeout(() => import("./meiji.js?v=6").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
+    setTimeout(() => import("./meiji.js?v=7").then(m => { QW.meiji = m.buildMeiji(THREE, { terrain: QW.terrain, world, camera, mode: () => QW.mode, mobile: MOBILE, onFirst: meijiTalk, aoi: () => AOI.root }); }).catch(e => console.warn("meiji", e)), 2200);   /* 11-12 渋谷川の昔の姿（明治の地図の川と低い湿った土地）を足もとに重ねる */
     (async () => { await new Promise(r => setTimeout(r, 60)); for (const L of STAGE) { try { await renderer.compileAsync(L[0][0], camera, scene); } catch { } for (const [c, m] of L) c.layers.mask = m; await new Promise(r => requestAnimationFrame(r)); } QW.tm.staged = performance.now() - T0; })();
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
