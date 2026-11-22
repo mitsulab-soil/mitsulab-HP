@@ -606,6 +606,8 @@ function loadAoi() {
 }
 function aoiOpacity(o) {
   if (!AO.root) return;
+  /* 2026-11-22 本人「碧が透けているのが気になる」→ 透けさせない。薄くなる場面（現れる・見る人のすぐ前）は、出す／しまうの二つだけにする */
+  if (AO.shadow) AO.shadow.material.opacity = 1; AO.root.visible = o > .75; if (AO._solid) return; AO._solid = true; o = 1;
   if (!AO.mats) { AO.mats = []; AO.root.traverse(m => { if (m.isMesh && !m.userData.noFade) for (const mt of [].concat(m.material)) AO.mats.push([mt, mt.transparent, mt.depthWrite]); }); }
   if (AO.shadow) AO.shadow.material.opacity = o;
   for (const [mt, tr, dw] of AO.mats) { if (tr) { if (!mt.userData.at0) mt.userData.at0 = Math.max(mt.alphaTest || 0, 0.5); mt.alphaTest = mt.userData.at0 * Math.max(0.02, Math.min(1, o)); }   /* 2026-11-21 うすくなるとき（見る人のすぐ前）は切り抜きの線も一緒に下げる＝瞳・まつ毛・目の線だけが消えて白目がとんで見えた */ mt.transparent = o < 1 ? true : false;   /* v11c 裾が透けて背景に溶けない（不透明に・切り抜き） */ mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; }

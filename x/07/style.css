@@ -232,3 +232,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 .p-near{display:flex;gap:8px;margin:2px 0 6px}.p-near .ml-btn{min-height:44px;min-width:56px;padding:0 14px}
 
 body:has(.away:not([hidden])) .tip{visibility:hidden}
+
+/* 2026-11-22 スマホで下のパネルが画面の半分を超え、景色が隠れた → 半分までにし、中は送って読む */
+@media(max-width:680px){ #panel{height:48dvh!important;max-height:48dvh!important} #panel .soundStage{height:clamp(170px,22dvh,230px)!important} }
+@media(max-width:680px){ body:has(#panel:not([hidden])) .icm{top:calc(52dvh - 56px)!important;bottom:auto!important} }   /* 撮る丸をパネルの上の外へ */
