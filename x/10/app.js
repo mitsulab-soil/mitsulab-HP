@@ -604,18 +604,19 @@ async function loadAoi() {
       if (sb && sc < .999) { for (const c of sb.colliders ?? []) { const sh = c.shape; if (sh?.radius != null) sh.radius *= sc; sh?.offset?.multiplyScalar?.(sc); sh?.tail?.multiplyScalar?.(sc); } for (const j of sb.joints ?? []) if (j.settings?.hitRadius != null) j.settings.hitRadius *= sc; try { sb.reset(); } catch { } } }
     a.root.visible = false; try { const W = await import("./kit/warm.js"); await W.warmAoi(renderer, a.root, camera, scene, { batch: 1 }); } catch { } await firstUse(a.root); aoi = a;   // 2026-11-05：碧が出る瞬間の止まりを分ける
     aoi.root.position.y = -.106; aoiSnap();
+    if (!RM) { const tx = _seat.x, tz = _seat.z; aoi.place(tx * (MOBILE ? 1.15 : 1.9), tz * (MOBILE ? 1.6 : 1.9) - .15, Math.atan2(tx * -.9, tz * -.9 + .15)); aoi.walkTo(new THREE.Vector3(tx, 0, tz)); }   /* 2026-11-22 ぱっと出ず、奥の横から不透明のまま歩いて入ってくる */
     { const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(0,0,0,.7)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
       const sh = new THREE.Mesh(new THREE.PlaneGeometry(.28, .28), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.set(AOI_X, -.104, AOI_Z); scene.add(sh); aoiFoot.push(sh);
       const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 48 }, (_, i) => new THREE.Vector3(Math.cos(i / 48 * Math.PI * 2) * .12, 0, Math.sin(i / 48 * Math.PI * 2) * .12))), new THREE.LineBasicMaterial({ color: 0x5cc8e0, transparent: true, opacity: .5 })); ring.position.set(AOI_X, -.103, AOI_Z); scene.add(ring); aoiFoot.push(ring); }   // 2026-10-27 本人「碧はどのアプリでも 3D 空間の中に 3D で」：触覚の板の左に、小さく立つ
     if (!said.hello) hello();
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
-const AOI_X = MOBILE ? -.46 : -.78, AOI_Z = MOBILE ? -.62 : -.08;
+const AOI_X = MOBILE ? -.4 : -.78, AOI_Z = MOBILE ? -.5 : -.08;   /* 2026-11-22 スマホで左端が切れない位置へ */
 const LOOKP = new THREE.Vector3(0, .02, 0);
 /* 2026-11-20 2 周目：碧は、見る人から見ていつも主役の左奥に立つ。見る向きを少し回すあいだは動かず、大きく回したら歩いてついてくる。
    主役の手前に入ってしまうほど速く回したときは、奥に現れ直す（主役と下の札に重ならない） */
 const aoiFoot = []; let aoiAz = 0, aoiV = 0, aoiMove = false; const _seat = new THREE.Vector3();
-const aoiBase = () => objDef ? (MOBILE ? [-.6, -1.0] : [-.86, -.42]) : [AOI_X, AOI_Z];
+const aoiBase = () => objDef ? (MOBILE ? [-.42, -.42] : [-.86, -.42]) : [AOI_X, AOI_Z];   /* 2026-11-22 スマホで碧が画面の外へ出ていた */
 const seat = az => { const [ox, oz] = aoiBase(), c = Math.cos(az), s = Math.sin(az); return _seat.set(ox * c + oz * s, 0, -ox * s + oz * c); };
 function aoiSnap(again) { aoiAz = G.az; aoiV = 0; aoiMove = false; if (!aoi) return; seat(aoiAz); aoi.place(_seat.x, _seat.z, Math.atan2(-_seat.x, -_seat.z)); if (again) aoi.appear?.(); dirty = 4; }
 function aoiFollow(dt) {

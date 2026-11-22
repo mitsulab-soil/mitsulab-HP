@@ -236,3 +236,5 @@ body:has(.away:not([hidden])) .tip{visibility:hidden}
 /* 2026-11-22 スマホで下のパネルが画面の半分を超え、景色が隠れた → 半分までにし、中は送って読む */
 @media(max-width:680px){ #panel{height:48dvh!important;max-height:48dvh!important} #panel .soundStage{height:clamp(170px,22dvh,230px)!important} }
 @media(max-width:680px){ body:has(#panel:not([hidden])) .icm{top:calc(52dvh - 56px)!important;bottom:auto!important} }   /* 撮る丸をパネルの上の外へ */
+/* 2026-11-22 撮る丸が光の点に紛れる → 地を濃く・縁を明るく */
+.icm{opacity:1!important;background:rgba(8,18,24,.88)!important;border:1px solid rgba(200,236,244,.7)!important;box-shadow:0 0 0 3px rgba(8,18,24,.35)!important}

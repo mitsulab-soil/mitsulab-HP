@@ -599,6 +599,7 @@ function loadAoi() {
       AO.root = root; AO.vrm = v; AO.fade = 0; aoiOpacity(0);
       try { aoiOpacity(1); const W = await WARM; await W.keepVariant(R, root, cam, scene, () => { }, { offscreen: dof.on }); } catch { }   /* 2026-11-05 夕：現れ終わって透けない材質に戻るこまで 6〜10 個組み直して 0.15〜0.28 秒止まっていた → 透けない形を写しで先に組んで持っておく（kit/warm.js keepVariant） */
       try { const W = await WARM; for (const op of [1, 0]) { aoiOpacity(op); await W.warmAoi(R, root, cam, scene, { offscreen: dof.on }); } } catch { }   /* 2026-11-05 夕：kit/warm.js の warmAoi（ぼかしの描き先で組む形）に。aoi_motion.js の warmAoi は画面へ描く形で組み、ぼかしへ描く本番の形は碧が出たこまで組み直していた */   /* 11-03：見せる前に、テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */
+      if (!RM) { const gx = AO.pos.x, gz = AO.pos.z, ax = gx - P.x, az = gz - P.z, al = Math.hypot(ax, az) || 1; AO.goal = AO.goal || { x: gx, z: gz }; [AO.pos.x, AO.pos.z] = keepOut(gx + ax / al * 2.2, gz + az / al * 2.2); AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); AO.fade = 1; }   /* 2026-11-22 はじめも、奥から不透明のまま歩いて入ってくる */
       STARTUP.warmed = performance.now(); scene.remove(aoiFaceStub); scene.add(root); AO.ready = true;
       window.__aoi = AO;
     } catch (e) { console.warn('碧の姿を読み込めませんでした：', e?.message ?? e); }
@@ -643,7 +644,7 @@ function aoiTick(dt) {
   if (AO.goal) {
     const gd = Math.hypot(AO.goal.x - AO.pos.x, AO.goal.z - AO.pos.z);
     if (gd > 4.2 && !AO.out) AO.out = 1;                          // 遠い・書を回りこむ所へは歩かず、うすれて、脇に現れる
-    if (AO.out) { AO.fade = Math.max(0, AO.fade - dt / 0.5); if (AO.fade <= 0) { AO.pos.copy(AO.goal); AO.vel.set(0, 0, 0); M.teleport(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); AO.out = 0; } }
+    if (AO.out) { AO.fade = Math.max(0, AO.fade - dt / 0.5); if (AO.fade <= 0) { AO.pos.copy(AO.goal); if (!RM) { const ax = AO.goal.x - P.x, az = AO.goal.z - P.z, al = Math.hypot(ax, az) || 1; [AO.pos.x, AO.pos.z] = keepOut(AO.goal.x + ax / al * 1.4, AO.goal.z + az / al * 1.4); }   /* 2026-11-22 ぱっと出ず、少し奥から歩いて来る */ AO.vel.set(0, 0, 0); M.teleport(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); AO.out = 0; } }
     else {
       const w = 2.6, n = Math.max(1, Math.ceil(dt / .02)), h = dt / n;
       for (let i = 0; i < n; i++) {
