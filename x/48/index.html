@@ -7,10 +7,10 @@
 <meta name="tdm-reservation" content="1">
 <title>Qualia/sonic ── 聴こえない高さ</title>
 <meta name="description" content="マイクで拾った高い音を、聴こえる高さへ移して聴く。コウモリの声のように録れない高さは、聴こえる高さに移した模式で。">
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
+<link rel="modulepreload" href="kit/vendor/three.module.min.js"><link rel="modulepreload" href="kit/qfield.js"><link rel="modulepreload" href="kit/sight_land.js">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
-.spec{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(178px + env(safe-area-inset-bottom));width:min(560px,calc(100% - 32px));height:96px;pointer-events:none}
+.spec{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top)) + 58px);width:min(460px,calc(100% - 32px));height:76px;pointer-events:none;background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(240,244,242,.7),rgba(240,244,242,.15) 80%);border-radius:2px;padding:4px 8px}
 .spec canvas{width:100%;height:calc(100% - 18px);display:block}
 .spec .ax{display:flex;justify-content:space-between;font:11px/1.4 "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t1);text-shadow:var(--halo)}
 .cap{bottom:calc(122px + env(safe-area-inset-bottom))}
@@ -18,7 +18,7 @@
 .tune button{min-height:44px;padding:0 10px;font:13px "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t1);text-shadow:var(--halo);background:rgba(240,244,242,.25);border:1px solid rgba(47,143,168,.35);border-radius:2px;cursor:pointer}
 .tune button[aria-pressed=true]{border-color:var(--aoi);background:rgba(47,143,168,.18)}
 .tune button:disabled{opacity:.45}
-@media (max-width:420px){#mid{font-size:10px;white-space:nowrap}.spec{height:70px;bottom:calc(250px + env(safe-area-inset-bottom))}.cap{bottom:calc(124px + env(safe-area-inset-bottom))}.tune{bottom:calc(66px + env(safe-area-inset-bottom))}.tune span{display:none}}
+@media (max-width:420px){#mid{font-size:10px;white-space:nowrap}.spec{height:62px}.cap{bottom:calc(124px + env(safe-area-inset-bottom))}.tune{bottom:calc(66px + env(safe-area-inset-bottom))}.tune span{display:none}}
 </style>
 </head>
 <body>
@@ -40,14 +40,16 @@ const $ = id => document.getElementById(id);
 let V = null, S = null, f0 = 18000, batT = null, mod = null;
 const sp = $('sp'), g = sp.getContext('2d');
 function draw() { requestAnimationFrame(draw); if (!S) return; const b = S.spectrum(), nyq = S.nyq, W = sp.width, H = sp.height; g.clearRect(0, 0, W, H);
-  g.fillStyle = 'rgba(240,244,242,.35)'; g.fillRect(0, 0, W, H); let hi = 0, hn = 0;
+  g.fillStyle = 'rgba(31,42,46,.08)'; g.fillRect(0, H - 1, W, 1); let hi = 0, hn = 0;
   for (let i = 0; i < b.length; i++) { const f = i / b.length * nyq, x = f / nyq * W, h = b[i] / 255 * H; g.fillStyle = f > 20000 ? '#2f8fa8' : f > 15000 ? '#5a9fb0' : 'rgba(31,42,46,.55)'; g.fillRect(x, H - h, Math.max(1, W / b.length), h); if (f > 15000) { hi += b[i]; hn++; } }
   const x20 = 20000 / nyq * W; g.fillStyle = '#c0392b'; g.fillRect(x20, 0, 1.5, H); $('mid').style.marginLeft = Math.max(0, x20 / W * 100 - 30) + '%';
-  V && V.setLevel(hn ? Math.min(1, hi / hn / 120) : 0); }
+  V && V.setLevel(hn ? Math.min(1, hi / hn / 120) : 0);
+  if (S.micOn) { quiet.peak = Math.max(quiet.peak, hn ? hi / hn : 0); if (!quiet.done && performance.now() - quiet.t0 > 6000) { quiet.done = true; if (quiet.peak < 4) $('cap').textContent = 'この端末のマイクは、15 kHz より高い音をほとんど拾っていない（端末が切っていることがある）。「コウモリ（模式）」で聴ける。'; } } }
+const quiet = { t0: 0, peak: 0, done: false };
 requestAnimationFrame(draw);
 function ensure() { if (!S) { S = mod.audio(); $('nq').textContent = Math.round(S.nyq / 1000) + 'k'; } if (S.AC.state === 'suspended') S.AC.resume(); }
 $('bMic').onclick = async () => { if (!mod) return; ensure(); if (S.micOn) return;
-  try { await S.openMic(f0); $('bMic').setAttribute('aria-pressed', true); $('bMic').textContent = '聴いている';
+  try { await S.openMic(f0); quiet.t0 = performance.now(); $('bMic').setAttribute('aria-pressed', true); $('bMic').textContent = '聴いている';
     document.querySelectorAll('.tune button').forEach(b => b.disabled = false); document.querySelector('.tune').style.visibility = 'visible';
     $('cap').textContent = '15 kHz より高い音だけを、聴こえる高さに下ろして鳴らしている。虫の声や、機械の音が混じる。'; navigator.vibrate && navigator.vibrate(18);
   } catch (e) { $('cap').textContent = 'マイクがひらけなかった。「コウモリの声（模式）」で聴ける。'; } };

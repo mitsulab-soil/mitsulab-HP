@@ -5,7 +5,7 @@
      const F = create(canvas, { onFrame(dt, t) {} });
      F.patch(material, { key, uniforms, pars, albedo, out })   // 材質ごとに、色（albedo）と光の結果（out）を差しかえる GLSL を足す
      F.lens.value = 0..1                                       // 人の目 → 道具の目 の混ぜ具合（全材質で共有） */
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js';
+import * as THREE from './vendor/three.module.min.js';
 import { installSkyFog, groundMottle, landTint, hash1 } from './sight_land.js';
 export { THREE, hash1 };
 
@@ -125,7 +125,7 @@ export function create(canvas, opt = {}) {
     look.yaw += (look.ty - look.yaw) * Math.min(1, dt * 6); look.pitch += (look.tp - look.pitch) * Math.min(1, dt * 6);
     eu.set(look.pitch, look.yaw, 0, 'YXZ'); cam.quaternion.setFromEuler(eu);
     wind.value = t / 1000; walk += dt;
-    for (let i = 0; i < NP; i++) { const p = people[i], z = -6 - (((p.z0 + p.v * walk) % 60) + 60) % 60, bob = Math.abs(Math.sin(walk * 3.2 + i)) * .03, ry = p.v > 0 ? Math.PI : 0;
+    for (let i = 0; i < NP; i++) { const p = people[i], z = -12 - (((p.z0 + p.v * walk) % 60) + 60) % 60, bob = Math.abs(Math.sin(walk * 3.2 + i)) * .03, ry = p.v > 0 ? Math.PI : 0;
       m4.compose(v3.set(p.x, bob, z), q.setFromAxisAngle(s3.set(0, 1, 0), ry), s3.set(1, 1, 1)); pB.setMatrixAt(i, m4); pH.setMatrixAt(i, m4);
       const sw = Math.sin(walk * 5.1 + i * 1.7) * .45;
       for (let k = 0; k < 2; k++) { const sg = k ? 1 : -1; eu.set(sw * sg, ry, 0, 'YXZ'); q.setFromEuler(eu); m4.compose(v3.set(p.x + Math.cos(ry) * sg * .09, .95 + bob, z), q, s3.set(1, 1, 1)); pL.setMatrixAt(i * 2 + k, m4); } }
