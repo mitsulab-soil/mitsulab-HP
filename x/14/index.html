@@ -796,4 +796,5 @@ var B=document.createElement("button");B.type="button";B.className="sfB";B.textC
 var F=document.createElement("span");F.className="sfF";F.textContent=(rest||full)+(who?"　"+who:"");t.appendChild(B);t.appendChild(S);t.appendChild(F);setTimeout(function(){me=0},0)}
 new MutationObserver(function(){if(me)return;if(t.dataset.sf==="1"&&!t.querySelector(".sfS"))t.dataset.sf="";if(t.dataset.sf!=="1")setTimeout(build,0)}).observe(t,{childList:true,subtree:true,characterData:true})})();</script>
 <style id="cap1123s">/* 2026-11-23 4 周目：スマホで字幕が碧の裾に重なる→碧は近いまま、字幕を空の側（窓の札の下・碧の頭の上）へ。細い帯で */@media (max-width:640px){html body[data-mode="walk"][data-mode="walk"] #caption#caption#caption#caption#caption{top:calc(max(12px,env(safe-area-inset-top)) + 186px)!important;bottom:auto!important;background:rgba(4,8,16,.5)!important;padding:3px 12px!important}}</style>
+<style id="cap1123s2">/* 6 周目：空の側の字幕の地を濃く（ビルの窓の柄に負けない） */@media (max-width:640px){html body[data-mode="walk"][data-mode="walk"] #caption#caption#caption#caption#caption{background:rgba(4,8,16,.76)!important}}</style>
 </body></html>
