@@ -120,3 +120,5 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #b9
 .tag .tt{font-size:.92rem;color:#f4f8fc}
 .tag .tn{font-size:.72rem}
 @media (max-width:600px){.tag .tt{font-size:.86rem}}
+/* 2026-11-23 スマホで見出し「上原光瑛の書と言葉」に光の印が重なって読みにくい → 見出しの段の後ろに下から暗くなる地 */
+@media (max-width:600px){.cap{position:relative;z-index:1}.cap::before{content:"";position:absolute;left:-16px;right:-16px;top:-34px;bottom:-14px;background:linear-gradient(180deg,rgba(3,6,15,0),rgba(3,6,15,.8) 38%);z-index:-1;pointer-events:none}}
