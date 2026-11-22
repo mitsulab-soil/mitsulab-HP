@@ -30,7 +30,7 @@ button{flex:1;min-height:54px;background:rgba(14,24,25,.55);backdrop-filter:blur
 button:hover:not(:disabled){border-color:var(--acc)}
 button.on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 1px rgba(134,211,193,.25),0 0 22px rgba(134,211,193,.18)}
 button:disabled{opacity:.32}
-#needle{transition:opacity .5s}#needle.off{opacity:.2}
+#needle{transition:opacity .5s}#needle.off{opacity:.2}#needle.none{opacity:0}
 #more{font-size:13px;color:var(--sub);max-width:360px;text-align:center;line-height:1.75}
 #more summary{list-style:none;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.14em;color:var(--sub)}
 #more summary::-webkit-details-marker{display:none}
@@ -125,7 +125,7 @@ function onOri(e){
  let h=null;
  if(typeof e.webkitCompassHeading==='number')h=e.webkitCompassHeading;
  else if(e.absolute&&e.alpha!=null)h=(360-e.alpha)%360;
- if(h==null)return;heading=h;update();
+ if(h==null)return;if(heading==null)$('needle').classList.remove('none');heading=h;update();
 }
 function mag(){
  if(!('Magnetometer' in window)){return}
@@ -139,7 +139,7 @@ $('start').onclick=async()=>{
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
  mag();running=true;clearTimeout(window.__pkT);window.__pkT=setTimeout(()=>{if(running&&heading!=null)$('pk').onclick()},25000);log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
  $('note').innerHTML='画面はしまって、景色を見ながら。北のある側の耳から聴こえます。<br>うなりが止まり、鈴が鳴ったら、<span style="white-space:nowrap">そこが北（磁北）。</span>';
- setTimeout(()=>{if(heading==null)$('note').textContent='方位が取れません。スマホで開いてください。'},2500);
+ setTimeout(()=>{if(heading==null){$('needle').classList.add('none');$('note').innerHTML='この端末では方位が取れません。<br>スマホを手に持って開くと、<br>北が音で鳴ります。'}},2500);
 };
 function showTrail(){
  if(log.length<5){$('note').textContent='短すぎて、北の回り方を描けませんでした。少し歩きながら聴いてみてください。';return}const sv=$('trail'),n=log.length;let p='';
