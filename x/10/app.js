@@ -2,7 +2,7 @@
    選んだ画像はこの端末の中だけで処理する（fetch・送信・保存をしない）。
    表面は 10 cm 四方。凹凸（高さ）・法線・粗さの地図で 3D の面にし、押すとへこみ、なぞると振動の波が描かれる。 */
 import * as THREE from "three";
-import { T, setLang, lang } from "./i18n.js?v=20261120u";
+import { T, setLang, lang } from "./i18n.js?v=20261122a";
 import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildLayer, buildSTL } from "./haptics.js?v=20261105f";
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { estimateFromFile, N as EN } from "./estimate.js";
@@ -340,7 +340,7 @@ function markCombo() { for (const b of document.querySelectorAll("#combos .cb"))
 async function setCombo(s, o, quiet) { busy(true); try { const sm = SAMPLES.find(x => x.id === s); if (surf?.id !== s) applySurface(await loadSample(sm)); if ((objDef?.id || null) !== o) await setObject(o); markCombo(); if (!quiet) { say(o ? "aoi.obj" : "aoi." + s, 6000); aoiReact(); } } finally { busy(false); } }
 { const box = $("#combos");
   if (box) for (const [s, o] of COMBOS) { const b = document.createElement("button"); b.type = "button"; b.className = "cb"; b.dataset.s = s; if (o) b.dataset.o = o; b.setAttribute("aria-pressed", "false");
-    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261121r" alt="" width="72" height="72"><b>${T("s." + s)} <i>×</i> <span>${ONAME(o)}</span></b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
+    b.innerHTML = `<img src="combo/${s}_${o || "plate"}.webp?v=20261122a" alt="" width="72" height="72"><b>${T("s." + s)} <i>×</i> <span>${ONAME(o)}</span></b>`; b.setAttribute("aria-label", `${T("s." + s)}の触れ心地 × ${ONAME(o)}の形`);
     b.addEventListener("click", () => setCombo(s, o)); box.append(b); } }
 // ---- 下の三つの印：押すと選択肢が重なって開く。選ぶと閉じる（画面は遷移しない）
 function openTray(id) {
@@ -635,7 +635,7 @@ function aoiReact() { aoi?.motion.express("curious", .55, 2.4); }
 // ---- 碧の字幕
 // はじめに一度だけ名乗り、そのあとに触れ方を伝える（触れはじめたら名乗りは切りあげる）
 const WS = /[?&]ws=1/.test(location.search);   // 2026-11-05 ワークショップ（触覚さがし）
-function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.name", 8600); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 8800); }   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
+function hello() { said.hello = true; if (WS) { say("aoi.ws", 7000); return; } say("aoi.name", 8600); setTimeout(() => { if (capKey === "aoi.name" || !capKey) say("aoi.hello", 8000); }, 8800); setTimeout(() => { if (capKey === "aoi.hello" || !capKey) say("aoi.out", 7000); }, 17000); }   /* 2026-11-22 画面の外の手ざわりへ */   // 2026-10-22 名乗りが長くなったので、読み終えるまで出す
 let capKey = null, capTimer = 0;
 function say(k, ms = 6000) {
   said[k.replace("aoi.", "")] = true; capKey = k; const c = $("#cap"); c.textContent = T(k); c.classList.add("on");

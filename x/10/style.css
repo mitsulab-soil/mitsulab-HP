@@ -95,7 +95,7 @@ body{font-family:var(--ml-sans);line-height:1.6;overscroll-behavior:none}
   .tray-in{max-width:760px}
   #trayO .chips{grid-template-columns:repeat(7,minmax(0,1fr))}
   #trayO .tray-in,#trayO{max-width:560px}
-  #cap{bottom:130px;left:30px;right:auto;max-width:400px;text-align:left;font-size:15px;padding:6px 0 6px 14px;border-left:1px solid rgba(120,214,236,.5)}
+  #cap{bottom:130px;left:50%;right:auto;width:min(620px,70vw);transform:translateX(-50%);text-align:center;font-size:15px;padding:6px 0}   /* 2026-11-22 左右の余白をそろえる */
 }
 @media (max-width:380px){ .chips{gap:4px} .chip img,.chip canvas,.chip svg,.chip .plus{width:48px;height:48px} .dock{gap:12px} }
 @media (prefers-reduced-motion:reduce){ #cap{transition:none} .tray-in{animation:none} }
