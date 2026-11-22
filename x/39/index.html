@@ -95,6 +95,7 @@ body.placing .toast{bottom:auto;top:calc(110px + env(safe-area-inset-top))}
 /* スマホ：印の吹き出しをひらいているあいだは、重なる見出しを下げる */
 .hd{transition:opacity .25s}
 @media (max-width:767px){body.pop .hd{opacity:0}body.pop .hd a{pointer-events:none}}
+@media (max-width:767px){.slab{display:none}}   /* 2026-11-22 スマホは札の列に見出しを混ぜない */
 @media (min-width:768px){.hd h1{font-size:32px}.senses{bottom:calc(88px + env(safe-area-inset-bottom))}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
@@ -152,13 +153,27 @@ function app(k){var a=APP[k];return a?'<a class="pa" href="../'+a[0]+'/"><span s
 var SEED=[
  {s:'see',lv:2,la:35.9050,lo:139.6325,t:'氷川参道。一の鳥居から三の鳥居まで約 2 km の並木道。樹木の 62.5％ がケヤキ。',src:'さいたま市「氷川参道 樹木調査報告書」',u:'https://www.city.saitama.lg.jp/001/010/015/004/004/p014020_d/fil/jumokutyousa_hyoushi4.pdf'},
  {s:'meas',lv:3,la:36.1508,lo:139.3800,t:'熊谷。2018 年 7 月 23 日、日最高気温 41.1℃ を観測。',src:'気象庁「夏（6〜8月）の天候」2018',u:'https://www.jma.go.jp/jma/press/1809/03c/tenko180608.html'},
- {s:'smell',lv:2,la:35.9236,lo:139.4818,t:'川越の菓子屋横丁。約 80 m の通りに、ハッカ飴や駄菓子のかおり。',src:'環境省「かおり風景100選」No.24',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:35.6958,lo:139.7585,t:'神田古書店街。約 200 m にわたる古書のかおり。',src:'環境省「かおり風景100選」No.28',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:2,la:34.8902,lo:135.8078,t:'宇治 平等院表参道。お茶屋が並び、宇治茶のかおり。',src:'環境省「かおり風景100選」No.57',u:'https://www.env.go.jp/content/900525295.pdf'},
- {s:'smell',lv:3,la:43.4050,lo:142.4250,t:'富良野周辺のラベンダー畑。',src:'環境省「かおり風景100選」No.1',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:35.9236,lo:139.4818,t:'川越の菓子屋横丁。約 80 m の通りに、ハッカ飴や駄菓子のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.24',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:35.6958,lo:139.7585,t:'神田古書店街。約 200 m にわたる古書のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.28',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:34.8902,lo:135.8078,t:'宇治 平等院表参道。お茶屋が並び、宇治茶のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.57',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:3,la:43.4050,lo:142.4250,t:'富良野周辺のラベンダー畑。',src:'環境省「かおり風景100選」（2001 年選定）No.1',u:'https://www.env.go.jp/content/900525295.pdf'},
  {s:'hear',lv:2,la:37.9130,lo:139.2470,t:'福島潟のヒシクイの声。',src:'環境省「残したい日本の音風景100選」',u:'https://www.env.go.jp/air/life/sonooto.pdf'},
  {s:'hear',lv:3,la:26.3600,lo:127.8700,t:'エイサー（旧 与那城町・勝連町、いまのうるま市）。',src:'環境省「残したい日本の音風景100選」',u:'https://www.env.go.jp/air/life/sonooto.pdf'},
- {s:'taste',lv:2,la:35.9810,lo:139.4790,t:'冷や汁／すったて。ごま・みそ・きゅうり・大葉をすり、うどんで食べる（川島町・入間地域・県北）。',src:'農林水産省「うちの郷土料理」',u:'https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_3_saitama.html'}
+ {s:'taste',lv:2,la:35.9810,lo:139.4790,t:'冷や汁／すったて。ごま・みそ・きゅうり・大葉をすり、うどんで食べる（川島町・入間地域・県北）。',src:'農林水産省「うちの郷土料理」',u:'https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_3_saitama.html'},
+ {s:'smell',lv:2,la:42.497,lo:141.150,t:'登別 地獄谷。硫黄泉など 11 種類の温泉がわき、湯けむりのにおい。',src:'環境省「かおり風景100選」（2001 年選定）No.3',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:39.651,lo:141.983,t:'宮古 浄土ヶ浜。白い岩と入り江の、潮のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.7',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:36.374,lo:140.452,t:'水戸 偕楽園。正月から彼岸過ぎまで、長く梅のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.19',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:36.623,lo:138.596,t:'草津温泉の湯畑。町の広い範囲に、硫黄のにおい。',src:'環境省「かおり風景100選」（2001 年選定）No.23',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:35.244,lo:139.020,t:'箱根 大涌谷。白い噴煙とともに、硫黄のにおい。',src:'環境省「かおり風景100選」（2001 年選定）No.30',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:36.648,lo:136.962,t:'砺波平野。開花期には一面のチューリップのかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.33',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:37.394,lo:136.901,t:'輪島の朝市。約 360 m の通りに、日本海の魚介のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.36',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:35.737,lo:137.636,t:'上松 赤沢自然休養林。樹齢約 300 年の木曽ヒノキの天然林。',src:'環境省「かおり風景100選」（2001 年選定）No.39',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:34.455,lo:136.725,t:'伊勢神宮 内宮の参道。神宮スギやヒノキの杜のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.53',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:34.296,lo:132.320,t:'宮島 厳島神社。満潮で敷地が海になり、潮のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.74',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:33.080,lo:132.830,t:'四万十川の沈下橋。川面をわたる風と清流のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.83',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:33.284,lo:131.491,t:'別府八湯。八つの地区の温泉の湯けむり。',src:'環境省「かおり風景100選」（2001 年選定）No.93',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:30.430,lo:130.570,t:'屋久島。集落のすぐそばまで照葉樹林、鯖節づくりのかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.98',u:'https://www.env.go.jp/content/900525295.pdf'},
+ {s:'smell',lv:2,la:24.330,lo:124.088,t:'竹富島。島のどこでも潮と花のかおり。',src:'環境省「かおり風景100選」（2001 年選定）No.100',u:'https://www.env.go.jp/content/900525295.pdf'}
 ];
 var KEY='qmap.v1',needMove=false;
 function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
@@ -213,7 +228,7 @@ function mark(p,seed){
   var m=L.circleMarker([p.la,p.lo],{radius:r,color:s.c,weight:seed?1.5:1,opacity:.95,fillColor:s.c,fillOpacity:seed?.25:.7}).addTo(layer);
   m.on('click',function(){
     var h='<p class="pk" style="--c:'+s.c+'">'+s.n+' ・ '+LV[p.lv-1]+'</p>';
-    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p><p class="pq">'+ASK[p.s]+'</p>'+app(p.s)}
+    if(seed){h+='<p class="pt">'+esc(p.t)+'</p><p class="pm">出典：<a href="'+p.u+'" target="_blank" rel="noopener">'+esc(p.src)+'</a><br>mitsulab が確かめた印（位置はおおよそ）</p><p class="pq"><span style="display:block;font-size:10px;letter-spacing:.2em;color:var(--ml-ink-3);margin-bottom:2px">外で確かめる</span>'+ASK[p.s]+'</p>'+app(p.s)}
     else{h+=(p.ph?'<img class="pimg" alt="置いた写真" data-ph="'+p.id+'">':'')+(p.t?'<p class="pt">'+esc(p.t)+'</p>':'')+'<p class="pm">'+esc(p.when)+' ・ この端末の印</p><button class="del" data-del="'+p.id+'">この印を消す</button>'+app(p.s)}
     var pop=L.popup({maxWidth:270,autoPanPadding:[16,120]}).setLatLng([p.la,p.lo]).setContent(h).openOn(map);
     var el=pop.getElement();

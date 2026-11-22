@@ -696,6 +696,8 @@ function stepWalk(dt) {
     else { const s = Math.min(l, SPEED * (P.fast ? 2.4 : 1.2) * dt * Math.min(1, 0.35 + l));   /* 目録・矢印から書の前へは早足で */ const [nx, nz] = keepOut(P.x + dx / l * s, P.z + dz / l * s); if (Math.hypot(nx - P.x, nz - P.z) < s * 0.2) { if (P.fast && P.final && (P.retry = (P.retry || 0) + 1) < 4) { P.x = nx; P.z = nz; route([P.final]); return; } next(); } P.x = nx; P.z = nz; moving = true; }
   }
   if (moving && !RM) P.bob += dt * 7.5;
+  /* 2026-11-22 書の前に着いたら、その書が小さく身じろぎして「触れられる」と知らせる（震え・音・端末の振動は出さない） */
+  const going = !!P.goal; if (P.wasGoing && !going && focus && focus.sho && !focus.paper) { focus.sho.kickT = Math.max(focus.sho.kickT || 0, RM ? 0.25 : 0.8); } P.wasGoing = going;
 }
 function frame() {
   requestAnimationFrame(frame);
