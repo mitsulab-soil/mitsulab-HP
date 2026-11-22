@@ -18,7 +18,7 @@ const QM_OPT = { overWalls: true };   // 2026-10-27 夜：Qualium 共通の基�
 import { kuraMats, kuraGeos, machiGeos, bellGeos, W0, D0 } from "./kura.js?v=k9";
 import { BellSynth } from "./bell.js?v=k1";
 import { makeHereWalk } from "./herewalk.js?v=2";
-import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n11";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=1";
 import { makeAmbience } from "./ambience.js?v=1";
 import { SPOTS } from "./sounds.js?v=s1";
@@ -1135,7 +1135,7 @@ function startWL() { if (WL) return; for (const L of LAYER.objs) L.qSight = !!si
 const WL_HINT = { n: 0, done: (() => { try { return sessionStorage.getItem("wl_hint") === "1"; } catch { return false; } })() };
 const NARR = { L: null, heard: new Set() };
 // 10-30 本人（確定）：空間に漂う Qualia の層。層は 6 つ＝Qualia/x（umwelt・beyond・memory・link・soil・scale）・sound（リズムを含む）・touch・sight・taste・smell。印の出典つきの題と本文の語で振り分ける（作り話は足さない）
-const XSUB = { umwelt: "ほかの生き物の受けとり方", beyond: "人にない感覚", memory: "この場所の記憶", link: "つながり", soil: "地中", scale: "大きさ" };   // 11-13 採点：英語の小分類名では何の札か分からない
+const XSUB = { umwelt: "ほかの生き物の受けとり方", beyond: "人にない感覚", memory: "この場所の昔の姿", link: "つながり", soil: "地中", scale: "大きさ" };   // 11-13 採点：英語の小分類名では何の札か分からない
 function QAK(L) { const o = L.o; if (!o) return null; const t = top5(L.layer || o.layer || ""), tx = (o.title || "") + " " + (o.lines || []).map(l => l.t || "").join(" "), T = o.title || "";
   if (L.kind === "sound" || t === "sound") return "sound"; if (L.kind === "touch" || t === "touch") return "touch"; if (L.kind === "sho" || t === "sight") return "sight";
   if (/匂い|におい|香り|香る/.test(tx)) return "smell"; if (/団子|菓子|酒|料理|名物|茶屋|米を|醤油|食べ|芋/.test(tx)) return "taste";

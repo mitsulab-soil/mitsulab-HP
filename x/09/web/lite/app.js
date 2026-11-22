@@ -20,7 +20,7 @@ import { makeMapGuide, makeEyeView } from "../kit/mapguide.js?v=mg2";
 import { makeHereWalk } from "./herewalk.js?v=2";
 import { sunDir } from "../kit/sunpos.js?v=2";   // 11-02：太陽の位置
 import { makeFliers } from "../kit/fliers.js?v=9";   // 10-29 本人「風景に鳥や虫などをとばして」：シジュウカラ（一年じゅういる鳥）を数羽
-import { installNav } from "../kit/nav.js?v=n10";   // 10-29 操作の設計（3 版共通）
+import { installNav } from "../kit/nav.js?v=n11";   // 10-29 操作の設計（3 版共通）
 import { makeSoundWalk } from "./soundwalk.js?v=2";
 import { makeAreas } from "./areas.js?v=56n";
 
