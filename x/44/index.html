@@ -29,7 +29,7 @@ header b i{font-style:normal;color:var(--acc)}
 button{flex:1;min-height:54px;background:rgba(14,24,25,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:var(--ink);border:1px solid rgba(160,205,192,.28);border-radius:28px;font:inherit;font-size:15px;letter-spacing:.18em;cursor:pointer;transition:border-color .3s,color .3s,box-shadow .3s}
 button:hover:not(:disabled){border-color:var(--acc)}
 button.on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 1px rgba(134,211,193,.25),0 0 22px rgba(134,211,193,.18)}
-button:disabled{opacity:.55}#pk:disabled{position:relative}#pk:disabled::after{content:'「はじめる」のあとで';position:absolute;left:0;right:0;bottom:100%;margin-bottom:6px;font-size:13.5px;letter-spacing:.04em;color:#c4d4cf;text-align:center}   /* 2026-11-22 押せない理由を添える */
+button:disabled{opacity:.55}#pk:disabled{position:relative}#pk:disabled::after{content:'「はじめる」のあとで';position:absolute;left:0;right:0;bottom:100%;margin-bottom:8px;font-size:15px;font-weight:500;letter-spacing:.04em;color:#e2ece9;text-align:center}   /* 2026-11-22 押せない理由を添える */
 @media (min-width:900px){#note{font-size:17px!important}}@media (pointer:fine) and (hover:hover){#pk:disabled::after{content:'スマホで使えます'}}
 #needle{transition:opacity .5s}#needle.off{opacity:.2}#needle.none{opacity:0}
 #more{font-size:13px;color:var(--sub);max-width:360px;text-align:center;line-height:1.75}
@@ -134,7 +134,7 @@ function mag(){
 }
 $('start').onclick=async()=>{
  if(running){running=false;$('needle').classList.add('off');showTrail();gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
- if(!('ontouchstart' in window)&&matchMedia('(pointer:fine)').matches){$('note').textContent='この画面には方位を測るしくみがありません。スマホで開いてください。';return}
+ if(!('ontouchstart' in window)&&matchMedia('(pointer:fine)').matches){/* 2026-11-22 PC では見本：向きがゆっくり回り、北で音が澄む（測った値ではない） */if(window.__demo)return;window.__demo=1;finds=0;W=40;if(!ctx)audio();await ctx.resume();running=true;sm=null;$('needle').classList.remove('none','off');const D='見本の動き（測った向きではありません）。<br>北に近づくとうなりが止まり、鈴が鳴ります。スマホでは、体の向きでこれが起きます。';$('note').innerHTML=D;const t0=performance.now();const tick=()=>{const u=(performance.now()-t0)/1000;if(u>16){running=false;window.__demo=0;heading=null;gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.2);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.2);$('note').innerHTML='スマホで開くと、北の向きが音になります。<br>イヤホン推奨。';return}heading=(360+70*Math.cos(u*0.55))%360;update();if($('note').innerHTML!==D)$('note').innerHTML=D;requestAnimationFrame(tick)};requestAnimationFrame(tick);return}
  if(!ctx)audio();await ctx.resume();
  if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}catch(_){ $('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
