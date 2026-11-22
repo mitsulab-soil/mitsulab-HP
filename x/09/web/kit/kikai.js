@@ -43,7 +43,8 @@ export function attachKikai(QW, opt = {}) {
   function filterOf(m) { return m === "pit" ? "url(#kkPit)" : m === "ir" ? "url(#kkIR) contrast(1.1)" : m === "lidar" ? "grayscale(1) brightness(.22)" : m === "gis" ? "grayscale(.75) brightness(.6)" : ""; }
   async function motionOk() { try { if (typeof DeviceMotionEvent !== "undefined" && DeviceMotionEvent.requestPermission) await DeviceMotionEvent.requestPermission(); } catch { } }
   async function set(m) {
-    if (m && QW.ikimono?.state?.id) { try { await QW.S6?.pickIk?.(QW.ikimono.state.id); } catch { } }   // 生き物の目から入ったら、先に人の目へ（重ねない）
+    if (m && QW.ikimono?.state?.id && !QW.ikimono.state.only) { try { await QW.S6?.pickIk?.(QW.ikimono.state.id); } catch { } }   // 生き物の目から入ったら、先に人の目へ（重ねない）
+    QW.ikimono?.show?.(m === "pit" ? "hebi" : m ? "kikai" : null);   /* 2026-11-23：マムシ・機械の体を画面の中央に（sight のように） */
     st.m = m; st.filt = filterOf(m); if (gl) gl.style.filter = st.filt; cv.hidden = !m; geo.at = null; paintBtn(); navigator.vibrate?.(8);
     if (m) try { window.mitsuIchimai?.layer?.(m === "pit" ? "マムシの熱" : m ? MODES[m].n + "（機械の受けとり方）" : ""); } catch { }
     speak(m ? MODES[m].say.map(t => ({ t, tc: t, src: m === "pit" ? SRC_PIT : "" })) : [{ t: "人の目に、もどります。" }]);

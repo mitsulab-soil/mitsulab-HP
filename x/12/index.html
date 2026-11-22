@@ -681,7 +681,7 @@ html:not(.qmap) #qEye{display:none}
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
 import("./web/app/app.b.js?v=20261123cF21").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261118k").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=18")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261123q").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=18")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 <style id="q4lure">/* 11-10 第4周：下の五つの札は、はじめ「聴く」だけを光らせて誘う（一度押したら消える） */
 @keyframes q4l{0%,100%{box-shadow:0 0 0 0 rgba(255,207,134,0)}50%{box-shadow:0 0 0 2px rgba(255,207,134,.75),0 0 18px rgba(255,207,134,.45)}}
@@ -714,4 +714,6 @@ html body #capTag{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.7)!i
 <style id="tsg1123">/* 2026-11-23 採点 P2「右上が次への札と典拠の札で混み合う」：典拠（音の出典）の札が出ているあいだは、次への札を引っこめる（札が消えたら戻る） */html body:has(#sndTag:not([hidden])) .tsg.on{opacity:0!important;pointer-events:none!important;transform:translateY(-4px)!important}</style>
 <style id="s6see1123">/* 2026-11-23 4 周目 P2「スマホで碧の足もとが操作の帯に隠れる」：帯の地を薄くし、帯ごしに足もとが見えるように（部品はそのまま） */@media (max-width:640px){html body #qS6#qS6{background:rgba(3,6,15,.26)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html body #qS6 button span,html body #qS6 button svg{text-shadow:0 0 4px #000,0 1px 3px #000,0 0 10px rgba(0,0,0,.85)!important;filter:drop-shadow(0 0 2px rgba(0,0,0,.9))}html body #walkUI #qSnd,html body #walkUI #autoBtn{background:rgba(3,6,15,.36)!important;border:1px solid rgba(220,232,238,.28)!important;border-radius:22px!important}}</style>
 <style id="cap1123k">/* 2026-11-23 6 周目 P2「スマホで字幕が碧の腰に重なる」：碧は近いまま、字幕を空の側へ（濃い地で） */@media (max-width:640px){html body[data-mode="walk"][data-mode="walk"] #caption#caption#caption#caption#caption{top:calc(max(12px,env(safe-area-inset-top)) + 150px)!important;bottom:auto!important;background:rgba(4,8,16,.74)!important;padding:4px 12px!important}}</style>
+
+<script type="module">/* 2026-11-23 生き物の選び方を Qualia/sight の並びに（上に 3D の体の並び・はじめは「ひと」） */import("./web/kit/sight/qring.js?v=20261123a").then(m=>{const iv=setInterval(()=>{const q=window.__qw;if(q&&q.ikimono&&document.getElementById("qIK")){clearInterval(iv);m.mountRing(q,[{id:"hito",name:"ひと",sight:"hito"},{id:"hachi",name:"ミツバチ",key:"hachi"},{id:"chou",name:"ナミアゲハ",key:"chou"},{id:"tori",name:"小鳥",key:"tori"},{id:"inu",name:"イヌ",key:"inu",sight:"inu"}])}},300)}).catch(e=>console.warn("qring",e));</script>
 </body></html>

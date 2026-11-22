@@ -761,7 +761,7 @@ html:not(.qmap) #qEye{display:none}
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
 import("./web/app/app.js?v=20261123w").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
-{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261118k").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
+{ const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261123q").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
 <style id="q4lure">/* 11-10 第4周：下の五つの札は、はじめ「聴く」だけを光らせて誘う（一度押したら消える） */
 @keyframes q4l{0%,100%{box-shadow:0 0 0 0 rgba(255,207,134,0)}50%{box-shadow:0 0 0 2px rgba(255,207,134,.75),0 0 18px rgba(255,207,134,.45)}}
@@ -797,4 +797,6 @@ var F=document.createElement("span");F.className="sfF";F.textContent=(rest||full
 new MutationObserver(function(){if(me)return;if(t.dataset.sf==="1"&&!t.querySelector(".sfS"))t.dataset.sf="";if(t.dataset.sf!=="1")setTimeout(build,0)}).observe(t,{childList:true,subtree:true,characterData:true})})();</script>
 <style id="cap1123s">/* 2026-11-23 4 周目：スマホで字幕が碧の裾に重なる→碧は近いまま、字幕を空の側（窓の札の下・碧の頭の上）へ。細い帯で */@media (max-width:640px){html body[data-mode="walk"][data-mode="walk"] #caption#caption#caption#caption#caption{top:calc(max(12px,env(safe-area-inset-top)) + 186px)!important;bottom:auto!important;background:rgba(4,8,16,.5)!important;padding:3px 12px!important}}</style>
 <style id="cap1123s2">/* 6 周目：空の側の字幕の地を濃く（ビルの窓の柄に負けない） */@media (max-width:640px){html body[data-mode="walk"][data-mode="walk"] #caption#caption#caption#caption#caption{background:rgba(4,8,16,.76)!important}}</style>
+
+<script type="module">/* 2026-11-23 生き物の選び方を Qualia/sight の並びに（上に 3D の体の並び・はじめは「ひと」） */import("./web/kit/sight/qring.js?v=20261123a").then(m=>{const iv=setInterval(()=>{const q=window.__qw;if(q&&q.ikimono&&document.getElementById("qIK")){clearInterval(iv);m.mountRing(q,[{id:"hito",name:"ひと",sight:"hito"},{id:"hachi",name:"ミツバチ",key:"hachi"},{id:"chou",name:"ナミアゲハ",key:"chou"},{id:"tori",name:"小鳥",key:"tori"},{id:"inu",name:"イヌ",key:"inu",sight:"inu"}])}},300)}).catch(e=>console.warn("qring",e));</script>
 </body></html>

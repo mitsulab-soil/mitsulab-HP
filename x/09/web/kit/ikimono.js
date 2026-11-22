@@ -38,6 +38,9 @@ export const IKIMONO = {
     say: "イヌの目の模式。青と黄の二色で赤と緑は似て、像はやや粗く、視野は広く。", band: [67, 20000],
     sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの視力は人の数分の一、視野は人より広い", cite: "Miller PE & Murphy CJ (1995) J. Am. Vet. Med. Assoc. 207:1623–1634" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE (1983) Behav. Neurosci. 97(2):310–318／Heffner HE & Heffner RS (2007) J. Am. Assoc. Lab. Anim. Sci. 46(1):20–22" }] },
 };
+/* 2026-11-23 本人「生き物の視点に入るときは sight のように、その生き物の 3D を」：マムシと機械（kikai.js の受けとり方）も体を出す。見え方は kikai.js のまま（only＝体だけ） */
+IKIMONO.hebi = { name: "マムシ", only: true, sight: "hebi", eye: 0, fov: 70, back: .85, up: .42, size: .7, bob: 0, fly: false };
+IKIMONO.kikai = { name: "機械", only: true, sight: "camera", eye: 0, fov: 70, back: 1.7, up: .6, size: .72, bob: 0, fly: false };
 export function attachIkimono(QW, opt = {}) {
   const { camera, scene } = QW, canvas = opt.canvas || document.getElementById("gl") || QW.renderer?.domElement, speak = opt.speak || (() => { });
   const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
@@ -87,7 +90,7 @@ export function attachIkimono(QW, opt = {}) {
   async function build(id) {
     const P = IKIMONO[id];
     mod ||= await import("./creatures_sight.js?v=13");
-    const c = P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : P.make === "suzume" ? mod.makeTit(undefined, { sp: "suzume" }) : P.make === "tanuki" ? mod.makeDog(undefined, { tanuki: true }) : mod.makeDog();
+    const c = P.only ? (await import("./sight/bodies.js?v=20261123a")).makeBody(P.sight) : P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : P.make === "suzume" ? mod.makeTit(undefined, { sp: "suzume" }) : P.make === "tanuki" ? mod.makeDog(undefined, { tanuki: true }) : mod.makeDog();
     const g = new THREE.Group(); c.scale.setScalar(P.size); g.add(c); g.userData.c = c;
     g.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
     g.visible = false;
@@ -103,11 +106,13 @@ export function attachIkimono(QW, opt = {}) {
       gl ||= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
       const gt = await gl.loadAsync(new URL("./ikimono_glb/" + M.f, import.meta.url).href), c = g.userData.c;
       const m = gt.scene, w = new THREE.Group(), w2 = new THREE.Group(); w2.rotation.order = "YXZ"; w2.rotation.set(M.rx, M.ry, 0); w2.add(m); w.add(w2);
+      const gp = g.position.clone(), gr = g.rotation.clone(); g.position.set(0, 0, 0); g.rotation.set(0, 0, 0); g.updateMatrixWorld(true);   /* 2026-11-23：体がもう場所に置かれていると、世界の座標で測って犬が 100 m 先に飛んでいた→体の中の座標で測る */
       const keep = c.scale.x; c.scale.setScalar(1); c.updateMatrixWorld(true); const bc = new THREE.Box3().setFromObject(c); c.scale.setScalar(keep);
       w.updateMatrixWorld(true); const bm = new THREE.Box3().setFromObject(w), sc = bc.getSize(new THREE.Vector3()), sm = bm.getSize(new THREE.Vector3());
       const k = Math.max(sc.x, sc.z) / Math.max(sm.x, sm.z); w2.scale.setScalar(k);
       const cm = bm.getCenter(new THREE.Vector3()).multiplyScalar(k), cc = bc.getCenter(new THREE.Vector3());
       w2.position.set(cc.x - cm.x, M.foot ? bc.min.y - bm.min.y * k : cc.y - cm.y, cc.z - cm.z);
+      g.position.copy(gp); g.rotation.copy(gr); g.updateMatrixWorld(true);
       m.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
       let mixer = null; if (gt.animations.length) { mixer = new THREE.AnimationMixer(m); const a = gt.animations.find(a => a.name.includes(M.clip || "")) || gt.animations[0]; mixer.clipAction(a).play(); }
       try { if (QW.renderer?.compileAsync) await QW.renderer.compileAsync(w, camera, scene); } catch { }
@@ -159,7 +164,7 @@ export function attachIkimono(QW, opt = {}) {
   { const R = QW.renderer; if (R && !R.__ikPost) { R.__ikPost = true; const orig = R.render.bind(R);
     R.render = function (sc, cam) {
       const id = S.id || S.last;
-      if (PO.busy || sc !== scene || S.k < .01 || !id || QW.mode !== "walk" || R.getRenderTarget() !== null) return orig(sc, cam);
+      if (PO.busy || sc !== scene || S.k < .01 || !id || IKIMONO[id]?.only || QW.mode !== "walk" || R.getRenderTarget() !== null) return orig(sc, cam);
       PO.busy = true; try {
         postSetup(); R.getDrawingBufferSize(PO.sz); const f = RES[id] ?? 1, k = S.k, kk = 1 + (f - 1) * k, w = Math.max(64, Math.round(PO.sz.x * kk)), h = Math.max(64, Math.round(PO.sz.y * kk));
         if (PO.rt.width !== w || PO.rt.height !== h) PO.rt.setSize(w, h);
@@ -172,7 +177,7 @@ export function attachIkimono(QW, opt = {}) {
   function paint() { if (!canvas) return; if (canvas.style.filter.includes("ikF")) canvas.style.filter = ""; }   // 色と像の置きかえは上の描き直しで（CSS のフィルタは使わない）
   async function go(id) {   // id＝生き物（同じものをもう一度＝人の目へ戻る）
     if (!id || id === S.id) { S.id = null; S.flightAltitude = 0; S.cam = null; clearFlightInput(); if (flight.panel) flight.panel.hidden = true; document.body.classList.remove("iki"); QW.sndBand?.(); opt.onChange?.(null); return null; }
-    const P = IKIMONO[id]; if (!P) return null; const t0 = performance.now();
+    S.only = false; const P = IKIMONO[id]; if (!P) return null; const t0 = performance.now();
     { const cr = document.getElementById("credit"); if (cr && !cr.textContent.includes("quander")) cr.textContent += "／" + CREDITS.join("／"); }   // 写実の 3D の出典（CC BY）をクレジットに足す
     if (!P.fly) { S.flightAltitude = 0; S.cam = null; clearFlightInput(); }
     const b = await bodyOf(id); for (const k in cache) cache[k].visible = false;
@@ -245,6 +250,10 @@ export function attachIkimono(QW, opt = {}) {
   /* 切り替えを 1 秒以内に：歩きだして手が空いたら、体を一つずつ先に組んでおく（描き方も先に組む） */
   const warm = async () => { for (const id of ["hachi", "suzume", "tanuki"]) { await new Promise(r => (window.requestIdleCallback || setTimeout)(r, { timeout: 1500 })); try { await bodyOf(id); } catch (e) { console.warn("ikimono", id, e); } } };
   { const w = setInterval(() => { if (QW.mode === "walk") { clearInterval(w); setTimeout(warm, 600); } }, 500); }
-  QW.ikimono = { go, state: S, list: IKIMONO };
+  async function show(id) {   // 体だけ出す（マムシ・機械）。null で消す
+    if (!id) { if (S.only) { S.id = null; S.only = false; document.body.classList.remove("iki"); } return; }
+    if (S.id && !S.only) return; const b = await bodyOf(id); for (const k in cache) cache[k].visible = false; S.id = id; S.last = id; S.only = true; S.body = b; S.flightAltitude = 0; S.cam = null;
+  }
+  QW.ikimono = { go, show, state: S, list: IKIMONO };
   return QW.ikimono;
 }
