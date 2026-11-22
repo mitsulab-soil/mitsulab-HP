@@ -200,7 +200,7 @@ function draw(){
   var all=[];SEED.forEach(function(p){if(on[p.s])all.push([p,true])});
   load().forEach(function(p){if(on[p.s]&&SM[p.s])all.push([p,false])});
   /* 近い印は一つにまとめる（画面で 34px 以内）。寄ると分かれる */
-  var gs=[],D=34;
+  var gs=[],D=innerWidth<768?74:58;   /* 2026-11-22 まとまりの札を大きくしたので、重ならない距離に */
   all.forEach(function(a){var pt=map.latLngToLayerPoint([a[0].la,a[0].lo]),g=null;
     for(var i=0;i<gs.length;i++){if(gs[i].pt.distanceTo(pt)<D){g=gs[i];break}}
     if(g)g.m.push(a);else gs.push({pt:pt,m:[a]})});
@@ -209,7 +209,7 @@ function draw(){
 function group(m){
   var la=0,lo=0,cs=[];m.forEach(function(a){la+=a[0].la;lo+=a[0].lo;var c=SM[a[0].s].c;if(cs.indexOf(c)<0)cs.push(c)});la/=m.length;lo/=m.length;
   var dots=cs.slice(0,4).map(function(c){return'<i style="background:'+c+'"></i>'}).join('');
-  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b>'+m.length+'<small style="font-size:9px;margin-left:1px">か所</small></b>',iconSize:[52,52]});
+  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b style="font-size:16px">'+m.length+'<small style="font-size:11px;margin-left:1px">か所</small></b><em style="font:normal 9px/1 var(--ml-sans,sans-serif);letter-spacing:.04em;opacity:.85">押して寄る</em>',iconSize:[66,66]});
   L.marker([la,lo],{icon:ic,keyboard:true,title:m.length+' 件の印。押すと寄ります'}).addTo(layer).on('click',function(){
     var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));if(b.getNorthEast().distanceTo(b.getSouthWest())<300)map.setView(b.getCenter(),Math.max(15,map.getZoom()+2));else map.fitBounds(b.pad(.6),{maxZoom:16})});
 }
