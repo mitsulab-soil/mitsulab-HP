@@ -739,7 +739,7 @@ function frame(now) {
   tickRipples(dt); if (RIP.some(m => m.userData.age < 1)) dirty = 2;
   // 形：触れると弾み、手を離して 4 秒たつと、ゆっくり回って全身を見せる
   if (objMesh) { const a = -90 * JIG.s - 9 * JIG.v; JIG.v += a * dt; JIG.s += JIG.v * dt; if (Math.abs(JIG.s) + Math.abs(JIG.v) > .002) { objMesh.scale.set(1 + JIG.s * .05, 1 - JIG.s * .08, 1 + JIG.s * .05); dirty = 2; } else if (objMesh.scale.y !== 1) objMesh.scale.set(1, 1, 1);
-    if (touch || drag || pinch) { idleT = now; idleOn = false; } else if (!RM && now - idleT > 4000 && $("#tray").hidden) { if (!idleOn) { idleOn = true; idleAz = G.az; idlePh = 0; } idlePh += dt * .26; G.az = idleAz + .45 * Math.sin(idlePh); dirty = 2; } }   // 左右にゆっくり振って、横の面も見せる（一周はしない＝碧が前に来ない）
+    if (touch || drag || pinch) { idleT = now; idleOn = false; } else if (!RM && now - idleT > 4000 && $("#tray").hidden) { if (!idleOn) { idleOn = true; idleAz = G.az; idlePh = 0; } idlePh += dt * .26; G.az = idleAz + (MOBILE ? .45 : .22) * Math.sin(idlePh); dirty = 2; } }   /* 2026-11-22 PC では碧が左にいるので、大きく振ると 10 秒ほどで画面の外へ出た → PC は振りを小さく */   // 左右にゆっくり振って、横の面も見せる（一周はしない＝碧が前に来ない）
   // カメラ
   placeCam(dt); aoiFollow(dt); placeHint(now);
   updateScan(now / 1000);
