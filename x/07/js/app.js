@@ -282,7 +282,7 @@ function updateLabels() {
 const dList = $("dList"), list = $("list"), q = $("q");
 function renderList() {
   const s = q.value.trim(), rows = listOrder().filter(it => !s || it.t.includes(s));
-  $("count").textContent = `${rows.length} の言葉`;
+  $("count").textContent = `${rows.length} の言葉 ── どの音も、言葉から組み立てた音（模式）。実際に録った音ではありません`;   /* 2026-11-22 研究者の目：題が事実の録音と誤解されうる */
   const frag = document.createDocumentFragment();
   for (const it of rows) { const li = document.createElement("li"), b = document.createElement("button"); b.type = "button"; b.innerHTML = `<span>${String(it.n).padStart(3, "0")}</span>`; b.append(it.t);
     b.addEventListener("click", () => { dList.close(); select(it); }); li.appendChild(b); frag.appendChild(li); }
