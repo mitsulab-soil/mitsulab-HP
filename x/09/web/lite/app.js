@@ -1984,7 +1984,7 @@ const audio = $("#voice"); let soundOn = true, voiceQ = null;
 function sessionStorageGet(k) { try { return sessionStorage.getItem(k); } catch { return null; } }
 function sessionStorageSet(k, v) { try { sessionStorage.setItem(k, v); } catch { } }
 let VOICE_END = 0;
-function stopVoice() { if (voiceQ) VOICE_END = performance.now(); document.body.classList.remove("pastOn"); voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
+function stopVoice() { CAPQ.q.length = 0; clearTimeout(CAPQ.t); CAPQ.t = 0; if (voiceQ) VOICE_END = performance.now(); document.body.classList.remove("pastOn"); voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
 function speakLines(lines, L, opt = {}) {
   stopVoice(); const q = lines.slice(); voiceQ = { q, i: 0, L, talk: opt.talk || null, done: opt.done || null, narr: !!opt.narr };   // 2026-10-27 声のない典拠つきの一行も字幕で出す
   if (L && AOI.m) { const p = L.glyph.getWorldPosition(new THREE.Vector3()), P = AOI.root?.position;
@@ -2019,7 +2019,13 @@ function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は�
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); } return o2;   // 改行だけの区切りを出さない・短い切れ端はつなぐ
 }
 let CAP_LAY = null;
-function caption(t, talk, src, dur = 0) {
+/* 11-22：句ごとに読める時間を保証する（1 字 0.15 秒・短くても 2 秒）。次の語りは、前の句を出し切ってから順に出す */
+const CAPQ = { u: 0, q: [], t: 0 };
+for (const k of ["pointerdown", "keydown"]) addEventListener(k, () => { CAPQ.tap = performance.now(); CAPQ.u = 0; CAPQ.q.length = 0; clearTimeout(CAPQ.t); CAPQ.t = 0; }, true);   /* 押した直後（1.5 秒）の語りは待たせずにすぐ出す（押したことへの答えを遅らせない） */
+function capHold(t, dur = 0) { const ch = capChunks(t), tot = ch.reduce((a, x) => a + x.length, 0) || 1; return ch.reduce((a, x) => a + Math.max(2200, x.length * 160, (dur || tot * .2) * 1000 * x.length / tot), 0); }   /* 各句の表示の長さは captionNow の句の送りと同じ式 */
+function caption(...a) { const now = performance.now(); if (now - (CAPQ.tap || -1e9) > 1500 && (now < CAPQ.u || CAPQ.q.length)) { CAPQ.q.push(a); if (!CAPQ.t) CAPQ.t = setTimeout(capNext, Math.max(0, CAPQ.u - now)); return; } CAPQ.u = now + capHold(a[0], a[3]); captionNow(...a); }
+function capNext() { CAPQ.t = 0; const a = CAPQ.q.shift(); if (!a) return; CAPQ.u = performance.now() + capHold(a[0], a[3]); captionNow(...a); if (CAPQ.q.length) CAPQ.t = setTimeout(capNext, CAPQ.u - performance.now()); }
+function captionNow(t, talk, src, dur = 0) {
   const c = $("#caption"); clearInterval(capChunkT); const ch = capChunks(t); $("#capText").textContent = ch[0];
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0, acc = ch[0].length; const step = () => { i++; if (i >= ch.length) return; $("#capText").textContent = ch[i]; acc += ch[i].length; if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const tag = $("#capTag"); const s0 = src || (talk && talk.src && talk.src[0] && talk.src[0].t) || "";

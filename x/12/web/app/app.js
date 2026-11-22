@@ -1235,7 +1235,7 @@ function touchBird() { const n = performance.now(); if (n - BIRD_T < 20000 && vo
 /* ---------- 声（碧） ---------- */
 const audio = $("#voice"); let soundOn = true, voiceQ = null, LIP = {};
 let VOICE_END = 0;
-function stopVoice() { if (voiceQ) VOICE_END = performance.now(); document.body.classList.remove("pastOn"); voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
+function stopVoice() { CAPQ.q.length = 0; clearTimeout(CAPQ.t); CAPQ.t = 0; if (voiceQ) VOICE_END = performance.now(); document.body.classList.remove("pastOn"); voiceQ = null; try { audio.pause(); } catch { } AOI.m?.stopSpeaking(); document.querySelectorAll("#pBody .line.now").forEach(e => e.classList.remove("now")); hideCaption(); }
 function speakLines(lines, L, opt = {}) {
   stopVoice(); voiceQ = { q: lines, i: 0, L, talk: opt.talk || null, done: opt.done || null, narr: !!opt.narr };
   if (L && AOI.m) { const p = L.glyph.getWorldPosition(new THREE.Vector3()); AOI.m.lookAt(p); AOI.focus = p; }
@@ -1258,12 +1258,14 @@ function playNext() {
 }
 let capT = 0;
 let capChunkT = 0;
+function capSplitLong(L, max) {   /* 11-22：スマホの 1 行に収まらない句は、助詞の後ろで二つに分ける（語の途中で切らない） */
+  const out = []; for (let x of L) { while (x.length > max) { let k = 0; for (let i = 3; i < Math.min(x.length - 2, max); i++) if (x.length - i - 1 >= 4 && /[をにがはでとへもやの]/.test(x[i]) && !/[ぁぃぅぇぉっゃゅょ、。！？」』）\s]/.test(x[i + 1] || "")) k = i + 1; if (!k) k = max; out.push(x.slice(0, k)); x = x.slice(k); } out.push(x); } return out; }
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
-  const max = innerWidth < 640 ? 15 : 22;   /* 11-22：スマホは字幕を細い 1 行に（長い文は短く分けて順に出す） */   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
+  const max = innerWidth < 640 ? 20 : 22;   /* 11-22：15 字に分けると一句が 1 秒ほどで次の語りに消された→ 20 字のまま、字を少し小さくして 1 行に収める */   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
-  if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * (innerWidth < 640 ? 1.2 : 1.35)) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
-  return o2.map(x => x.replace(/(\S)(?=[、。，．！？」』）])/g, "$1"));   // 11-05 採点 P2：375 で「、」が行の頭に来た（折り返しの前に語をつなぐ印を入れる）
+  if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * (innerWidth < 640 ? 1 : 1.35)) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
+  return (innerWidth < 640 ? capSplitLong(o2, max) : o2).map(x => x.replace(/(\S)(?=[、。，．！？」』）])/g, "$1"));   // 11-05 採点 P2：375 で「、」が行の頭に来た（折り返しの前に語をつなぐ印を入れる）
 }
 let CAP_LAY = null;
 function capLines(s) {   // 11-05 採点 P2：375 で「立ち、」だけの行や語の途中の折り返し→実際の字の幅を測り、読点・句点、なければ助詞の後ろで、一行に収まる長さずつ行を組む
@@ -1275,7 +1277,13 @@ function capLines(s) {   // 11-05 採点 P2：375 で「立ち、」だけの行
   for (let i = out.length - 1; i > 0; i--) if (out[i].length <= 2 && W(out[i - 1] + out[i]) <= w * 1.08) { out[i - 1] += out[i]; out.splice(i, 1); }   // 一、二字だけの行は前の行へ
   return out.join("\n"); }
 function capSet(s) { const e = $("#capText"); s = String(s).replace(/((?:明治|大正|昭和|平成|令和)?[\d０-９]+年(?:（[\d０-９]+）)?)/g, "$1"); if (innerWidth < 640) { s = capLines(s); e.style.whiteSpace = "pre-line"; } else e.style.whiteSpace = ""; e.textContent = ""; for (const p of String(s).split(/((?:明治|大正|昭和|平成|令和)?[\d０-９]+年(?:（[\d０-９]+）)?[、。]?|[^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p) || /[\d０-９]年/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
-function caption(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
+/* 11-22：句ごとに読める時間を保証する（1 字 0.15 秒・短くても 2 秒）。次の語りは、前の句を出し切ってから順に出す */
+const CAPQ = { u: 0, q: [], t: 0 };
+for (const k of ["pointerdown", "keydown"]) addEventListener(k, () => { CAPQ.tap = performance.now(); CAPQ.u = 0; CAPQ.q.length = 0; clearTimeout(CAPQ.t); CAPQ.t = 0; }, true);   /* 押した直後（1.5 秒）の語りは待たせずにすぐ出す（押したことへの答えを遅らせない） */
+function capHold(t, dur = 0) { const ch = capChunks(t), tot = ch.reduce((a, x) => a + x.length, 0) || 1; return ch.reduce((a, x) => a + Math.max(2200, x.length * 160, (dur || tot * .2) * 1000 * x.length / tot), 0); }   /* 各句の表示の長さは captionNow の句の送りと同じ式 */
+function caption(...a) { const now = performance.now(); if (now - (CAPQ.tap || -1e9) > 1500 && (now < CAPQ.u || CAPQ.q.length)) { CAPQ.q.push(a); if (!CAPQ.t) CAPQ.t = setTimeout(capNext, Math.max(0, CAPQ.u - now)); return; } CAPQ.u = now + capHold(a[0], a[3]); captionNow(...a); }
+function capNext() { CAPQ.t = 0; const a = CAPQ.q.shift(); if (!a) return; CAPQ.u = performance.now() + capHold(a[0], a[3]); captionNow(...a); if (CAPQ.q.length) CAPQ.t = setTimeout(capNext, CAPQ.u - performance.now()); }
+function captionNow(t, talk, src, dur = 0) { const c = $("#caption"); clearTimeout(capChunkT); const ch = capChunks(t); capSet(ch[0]); const tag = $("#capTag");
   if (ch.length > 1) { const tot = ch.reduce((a, x) => a + x.length, 0); let i = 0; const step = () => { i++; if (i >= ch.length) return; capSet(ch[i]); if (i < ch.length - 1) capChunkT = setTimeout(step, Math.max(2200, ch[i].length * 160, (dur || tot * .2) * 1000 * ch[i].length / tot)); }; capChunkT = setTimeout(step, Math.max(2200, ch[0].length * 160, (dur || tot * .2) * 1000 * ch[0].length / tot)); }
   const s0 = src || (talk && talk.o && talk.o.src && talk.o.src[0] && (talk.o.src[0].t || talk.o.src[0])) || "";
   if (s0 || CAP_LAY) { const g = talk ? GL[talk.layer] : null; tag.hidden = false; tag.style.setProperty("--c", CAP_LAY?.c || g?.color || "#9bdcf0"); { const cL = PANEL.cur || NARR.L, ck = cL && cL.o ? QAK(cL) : null, lk = CAP_LAY?.n || talk?.layer || "", k6 = ck || (/sound/.test(lk) ? "sound" : /touch/.test(lk) ? "touch" : /sight/.test(lk) ? "sight" : "x.memory"); tag.style.setProperty("--c", QAC[k6]); capTagSet(tag, k6, s0); } }   /* 10-30：字幕の端も 6 層の名前 */ else tag.hidden = true;   // 10-28 午後：出典は字幕の端に小さく（押して開く窓はなくした）
