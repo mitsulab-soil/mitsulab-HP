@@ -78,6 +78,9 @@ if (P) {
     v.scene.rotation.y = 0; S.add(v.scene); aoi = v; v.update(0);
     try { const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61'); mot = new AoiMotion(v, { root: v.scene, reducedMotion: RM, wind: 0, faceViewer: false, startCalm: 0, posture: 'upright', uprightWeight: .9 }); } catch (e) { }
     try { if (R.compileAsync) await R.compileAsync(S, cam); } catch (e) { }
+    // 2026-11-22 重さ：質感（テクスチャ）を先に GPU へ送り、見えない一こまを先に描いておく（最初に見えたこまで止まらない）
+    try { S.traverse(o => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { for (const k in m) { const t = m[k]; if (t && t.isTexture) R.initTexture(t); } }); });
+      if (cur <= 0) { const w = Math.max(2, cv.clientWidth || 2), h = Math.max(2, cv.clientHeight || 2); R.setSize(w, h, false); W = w; H = h; cam.aspect = w / h; cam.updateProjectionMatrix(); const ur = U.uRise.value, ua = U.uA.value; U.uRise.value = 2.4; U.uA.value = .85; CLIP.constant = 2.4; if (aoi) aoi.update(0); R.render(S, cam); U.uRise.value = ur; U.uA.value = ua; CLIP.constant = ur; R.clear(); } } catch (e) { }
     kick(); } catch (e) { console.warn('aoi stage', e); } }
   // 進み：段が画面の下から入ると上がり、上へ抜けると下がる
   function target() { pick(); const r = (document.querySelector('#qStory') || P).getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
