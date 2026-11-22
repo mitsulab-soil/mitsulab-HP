@@ -89,8 +89,10 @@ const MAKERS = { bands, belt, shift, soil };
 
 function mount(el) {
   const make = MAKERS[el.dataset.fig]; if (!make) return;
-  const cv = el.querySelector('canvas'); let r, scene, cam, step, live = false, raf = 0, t0 = performance.now();
+  let cv = el.querySelector('canvas'); let r, scene, cam, step, live = false, raf = 0, t0 = performance.now();
   function init() {
+    // 2026-11-22 重さ：canvas は描くときに作る（それまでは同じ大きさの空きだけ）
+    if (!cv) { cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true'); const ph = el.querySelector('.rs-cv'); ph ? ph.replaceWith(cv) : el.prepend(cv); }
     r = new THREE.WebGLRenderer({ canvas: cv, antialias: !mobile, alpha: true, powerPreference: 'low-power' });
     r.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.5 : 2)); r.outputColorSpace = THREE.SRGBColorSpace;
     scene = new THREE.Scene(); cam = new THREE.PerspectiveCamera(36, 1, 0.1, 50); cam.position.set(0, 2.2, 8.2); cam.lookAt(0, 0, 0);
