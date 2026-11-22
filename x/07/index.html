@@ -13,10 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Inter:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500&family=JetBrains+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css?v=20261120a">
+<link rel="stylesheet" href="style.css?v=20261122a">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
 <!-- 同じ ES modules を先に取得し、依存の発見による直列通信を避ける。実行・造形は変えない。 -->
-<link rel="modulepreload" href="js/app.js?v=20261120a">
+<link rel="modulepreload" href="js/app.js?v=20261122a">
 <link rel="modulepreload" href="vendor/three.module.js">
 <link rel="modulepreload" href="vendor/OrbitControls.js">
 <link rel="modulepreload" href="vendor/BufferGeometryUtils.js">
@@ -144,17 +144,17 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 <!-- 何も選んでいないときの下の帯 -->
 <div id="hint" class="hint">
   <div class="near-sounds" role="group" aria-labelledby="nearSoundPrompt">
-    <span id="nearSoundPrompt">押して聴く</span>
+    <span id="nearSoundPrompt">押して聴く・森の光の点も鳴る</span>
     <div id="nearSoundPoints" class="near-sound-points">
       <button type="button" class="ncard" data-sound-entry="509" aria-label="雨から聴く：雨の日のバス停の音" title="雨の日のバス停の音"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 30c0-8 7-13 14-12 3-6 13-8 18-1 7 0 11 6 9 12" /><path d="M20 38l-3 8M32 38l-3 8M44 38l-3 8M26 50l-2 6M38 50l-2 6"/></svg><span>雨</span></button>
       <button type="button" class="ncard" data-sound-entry="485" aria-label="水から聴く：青い水たまりの音" title="青い水たまりの音"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 10c-6 9-11 15-11 21a11 11 0 0 0 22 0c0-6-5-12-11-21z"/><ellipse cx="32" cy="52" rx="20" ry="4"/><ellipse cx="32" cy="52" rx="11" ry="2"/></svg><span>水</span></button>
       <button type="button" class="ncard" data-sound-entry="800" aria-label="風から聴く：更科の風の音" title="更科の風の音"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 24h32a7 7 0 1 0-7-7"/><path d="M8 34h42a7 7 0 1 1-7 7"/><path d="M8 44h22"/></svg><span>風</span></button>
     </div>
   </div>
-  <p class="aoi-line">森の光の点も、押すと鳴ります。</p>
+  <p class="aoi-line" hidden></p>
   <div class="p-row">
-    <button class="ml-btn ml-btn--primary" id="bRand2" type="button">偶然の一行</button>
-    <button class="ml-btn" id="bList2" type="button">一覧から選ぶ</button>
+    <button class="ml-btn ml-btn--quiet" id="bRand2" type="button" hidden>偶然の一行</button>
+    <button class="ml-btn ml-btn--quiet" id="bList2" type="button">一覧から選ぶ</button>
   </div>
 </div>
 
@@ -172,9 +172,8 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 <dialog id="dAbout" class="sheet" aria-labelledby="aboutT">
   <div class="sheet-in about">
     <div class="sheet-head"><h2 id="aboutT" class="ml-title">Qualia/sound</h2><span class="ml-en">about</span><button class="ml-btn ml-btn--quiet" data-close type="button">とじる</button></div>
-    <p>Qualia/sound は、mitsulab 代表・上原光瑛の、書と言葉の作品のシリーズです。「音」一字の書と、その字から生まれた言葉の作品（ZINE『Qualia/sound Ⅰ・Ⅱ』）。この道具はその続きで、書きためた「◯◯の音」の一覧《音の言然》<span id="aTotal">839</span> 行を元にしています。いま浮かんでいるのは <span id="aShown"></span> の言葉です。</p>
-    <p>音は作者の言葉から合成した表現です。実録音や、ほかの人の主観を再現したものではありません。</p>
-    <p>だれかの耳に聞こえている音そのものは、ほかの人に渡せません。ここで鳴る音は、一行の言葉を音に翻訳した模式のひとつです。同じ一行から、聴く人の数だけ別の音が立ちあがる。その違いに、順番はありません。</p>
+    <p>書きためた「◯◯の音」という言葉を、その場で音に組み立てる道具です。録音ではなく、言葉を音に翻訳した模式です。<span hidden><span id="aTotal">839</span><span id="aShown"></span></span></p>
+    <p>聴いたあとは画面を閉じて、いまいる場所の音を一つ、言葉にしてみてください。</p>
     <details class="ml-fold">
       <summary>音のつくり</summary>
       <p>「◯◯の音」の言葉は、すべて mitsulab が書いたものです。その言葉を LLM で九つの群れに分け、一行を音の譜にする決まりと、代表の行の譜も LLM で設計しました。その決まりにしたがって、ブラウザがその場で音を合成しています。録音した音は使っていません。</p>
@@ -201,8 +200,9 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 <script defer src="data/sounds.js"></script>
 <script defer src="data/hidden.js?v=20261110"></script>
 <script defer src="data/gain.js"></script>
-<script type="module" src="js/app.js?v=20261110e"></script>
+<script type="module" src="js/app.js?v=20261122a"></script>
 <script src="kit/tsugi.js" data-bottom="300" data-href="../10/" data-name="Qualia/touch" data-line="音を、なぞって触れる手ざわりへ" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/sound" data-right="12" data-bottom="364" defer></script>
+<div id="away" class="away" role="status" aria-live="polite" hidden></div>
 </body>
 </html>
