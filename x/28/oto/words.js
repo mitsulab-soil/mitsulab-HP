@@ -71,7 +71,7 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
       q.glow = Math.max(q.front && t < 20 ? .45 : 0, q.glow - dt * .35);
       pos.set([q.p.x, q.p.y + Math.sin(t * .4 + q.ph) * .05, q.p.z], i * 3);
       c.copy(q.onWork ? warm : base).multiplyScalar(.7 + q.glow * 1.2); col.set([c.r, c.g, c.b], i * 3);
-      sz[i] = (q.onWork ? 2.4 : q.front ? 2.2 : 1.0) * (1 + q.glow * 1.4) * (mobile ? 1.3 : 1);
+      sz[i] = (q.onWork ? 2.4 : q.front ? 2.2 : 1.0) * (1 + q.glow * 1.4) * (mobile ? 1.0 : 1);   /* 2026-11-23 スマホで光の輪が書の字に重なった → 輪を小さく */
     });
     g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; g.attributes.size.needsUpdate = true;
     lblT -= dt; focusT = Math.max(0, focusT - dt); if (!focusT) focusQ = null;
@@ -79,7 +79,7 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
       const near = pts.filter(q => q !== focusQ && !q.dim).map(q => { v.copy(q.p).sub(cam.position); const d = v.length(); return { q, d, dot: v.dot(f) / d }; }).filter(o => o.d < (o.q.front ? 4.5 : 3.2) && o.dot > .85).sort((a, b) => (b.q.front - a.q.front) || (a.d - b.d)).slice(0, focusQ ? 1 : 3);
       const pool = focusQ ? labels.slice(1) : labels; pool.forEach((s, i) => { const o = near[i]; if (!o) { s.userData.q = null; return; } if (s.userData.q !== o.q || s.userData.big) draw(s, o.q, false); }); }
     labels.forEach((s, i) => { const q = s.userData.q; const big = i === 0 && focusQ; if (!q || (i === 0 && !focusQ && s.userData.big)) { s.material.opacity = Math.max(0, s.material.opacity - dt * 2); s.visible = s.material.opacity > .01; if (!s.visible) s.userData.big = false; return; }
-      const d = q.p.distanceTo(cam.position), w = (big ? .05 : .04) * d * (mobile ? .9 : 1); s.scale.set(w * 10.7, w, 1); s.position.copy(q.p).add(new THREE.Vector3(0, .02, 0)); v.copy(q.p).project(cam); s.center.set(v.x > 0 ? (s.userData.tw || 1) : 0, -.3); const low = v.y < -.4;   /* 11-19 下の説明の帯にかかる高さでは札を出さない（重ならない） */
+      const d = q.p.distanceTo(cam.position), w = (big ? .05 : .04) * d * (mobile ? 1.25 : 1);   /* 2026-11-23 スマホで光の点の名前が小さく床に埋もれた → 大きく */ s.scale.set(w * 10.7, w, 1); s.position.copy(q.p).add(new THREE.Vector3(0, .02, 0)); v.copy(q.p).project(cam); s.center.set(v.x > 0 ? (s.userData.tw || 1) : 0, -.3); const low = v.y < -.4;   /* 11-19 下の説明の帯にかかる高さでは札を出さない（重ならない） */
       s.material.opacity = low ? Math.max(0, s.material.opacity - dt * 4) : Math.min(big ? 1 : .85, s.material.opacity + dt * 2); s.visible = s.material.opacity > .01; });
     lineT = Math.max(0, lineT - dt); lm.opacity = Math.min(1, lineT / 1.5) * .3; lines.visible = lm.opacity > .01;
   }
