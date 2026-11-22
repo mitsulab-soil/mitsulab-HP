@@ -548,7 +548,7 @@ works.filter(it => it.sho).forEach(placeInRoom);
 scene.add(paperG);
 resize();
 paintHall();
-if (!SHOT) { P.x = 3.4; P.z = 8.6; P.yaw = Math.PI / 2; P.pitch = -0.04; }   /* 2026-11-10 第4周：oto は sho と別の一枚＝入口の近くから西の漆喰の壁を向き、目の前の光の言葉が主役（墨の立体は遠く） */ //   // 2026-11-09 第3周：最初は入口の奥から広間を見わたす。墨の立体は小さく遠くに
+if (!SHOT) { P.x = 3.4; P.z = 8.6; P.yaw = Math.PI / 2 - (mobile ? 0.07 : 0); P.pitch = -0.04; }   /* 2026-11-23 スマホで書が右に寄り右端で切れ気味 → 少し右を向いて書を中ほどに */   /* 2026-11-10 第4周：oto は sho と別の一枚＝入口の近くから西の漆喰の壁を向き、目の前の光の言葉が主役（墨の立体は遠く） */ //   // 2026-11-09 第3周：最初は入口の奥から広間を見わたす。墨の立体は小さく遠くに
 showHint('<b class="lead">光にさわると、音が鳴るよ。</b><span>床を押すと歩く。</span>');
 const WARM = import('./kit/warm.js');   // 2026-11-05：あとから足す物は、隠したまま材質を組んでから見せる（起動直後の止まりを分ける）
 const warmIn = async (objs) => { try { const W = await WARM; const vs = objs.map(o => o.visible); objs.forEach(o => o.visible = false); for (const o of objs) await W.warmScene(R, scene, cam, { root: o, batch: 2, offscreen: dof.on }); objs.forEach((o, i) => o.visible = vs[i]); } catch (e) { console.warn('warm', e); } };
