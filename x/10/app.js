@@ -611,12 +611,12 @@ async function loadAoi() {
     if (!said.hello) hello();
   } catch (e) { console.warn("碧を読めませんでした", e); }
 }
-const AOI_X = MOBILE ? -.4 : -.78, AOI_Z = MOBILE ? -.5 : -.08;   /* 2026-11-22 スマホで左端が切れない位置へ */
+const AOI_X = MOBILE ? -.44 : -.78, AOI_Z = MOBILE ? -.3 : -.08;   /* 2026-11-22 スマホで左端が切れない位置へ */
 const LOOKP = new THREE.Vector3(0, .02, 0);
 /* 2026-11-20 2 周目：碧は、見る人から見ていつも主役の左奥に立つ。見る向きを少し回すあいだは動かず、大きく回したら歩いてついてくる。
    主役の手前に入ってしまうほど速く回したときは、奥に現れ直す（主役と下の札に重ならない） */
 const aoiFoot = []; let aoiAz = 0, aoiV = 0, aoiMove = false; const _seat = new THREE.Vector3();
-const aoiBase = () => objDef ? (MOBILE ? [-.42, -.42] : [-.86, -.42]) : [AOI_X, AOI_Z];   /* 2026-11-22 スマホで碧が画面の外へ出ていた */
+const aoiBase = () => objDef ? (MOBILE ? [-.46, -.26] : [-.86, -.42]) : [AOI_X, AOI_Z];   /* 2026-11-22 スマホで碧が画面の外へ出ていた */
 const seat = az => { const [ox, oz] = aoiBase(), c = Math.cos(az), s = Math.sin(az); return _seat.set(ox * c + oz * s, 0, -ox * s + oz * c); };
 function aoiSnap(again) { aoiAz = G.az; aoiV = 0; aoiMove = false; if (!aoi) return; seat(aoiAz); aoi.place(_seat.x, _seat.z, Math.atan2(-_seat.x, -_seat.z)); if (again) aoi.appear?.(); dirty = 4; }
 function aoiFollow(dt) {
