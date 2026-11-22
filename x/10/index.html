@@ -73,6 +73,7 @@ body:not(.ws) #cap{bottom:calc(238px + env(safe-area-inset-bottom));font-size:13
 @media (prefers-reduced-motion:reduce){.fhint i{animation:none}}
 </style>
 <style id="t19">/* 11-19 hidden の撮るの札が表示の指定で出てしまい字幕に重なっていた。hidden を守り、出ているときは字幕をその上へ */#wsShoot[hidden]{display:none!important}body:has(#wsShoot:not([hidden])) #cap{bottom:calc(190px + env(safe-area-inset-bottom))!important}@media (min-width:900px){body:has(#wsShoot:not([hidden])) #cap{bottom:204px!important}}</style>
+<style id="t1122">/* 2026-11-22 スマホの字幕が 4〜5 行で窮屈 → 幅を広げ、字を少し小さく、行間を詰めて 2〜3 行に */@media (max-width:899px){#cap{left:14px!important;right:14px!important;width:auto!important;max-width:none!important;transform:none!important;font-size:13px!important;line-height:1.6!important;letter-spacing:.02em!important}}</style>
 </head>
 <body class="ml-root">
 <script src="loader/loader.js" data-title="Qualia/touch" data-en="touch, as a layer" data-icon="favicon/icon.svg" data-max="6000"></script>

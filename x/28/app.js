@@ -600,7 +600,7 @@ function loadAoi() {
       try { aoiOpacity(1); const W = await WARM; await W.keepVariant(R, root, cam, scene, () => { }, { offscreen: dof.on }); } catch { }   /* 2026-11-05 夕：現れ終わって透けない材質に戻るこまで 6〜10 個組み直して 0.15〜0.28 秒止まっていた → 透けない形を写しで先に組んで持っておく（kit/warm.js keepVariant） */
       try { const W = await WARM; for (const op of [1, 0]) { aoiOpacity(op); await W.warmAoi(R, root, cam, scene, { offscreen: dof.on }); } } catch { }   /* 2026-11-05 夕：kit/warm.js の warmAoi（ぼかしの描き先で組む形）に。aoi_motion.js の warmAoi は画面へ描く形で組み、ぼかしへ描く本番の形は碧が出たこまで組み直していた */   /* 11-03：見せる前に、テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */
       if (mobile) { const f0 = fwd(P.yaw); AO.pos.set(P.x + f0.x * 4.8 - f0.z * 0.85, 0, P.z + f0.z * 4.8 + f0.x * 0.85); AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); }   /* 2026-11-22 スマホは見る人の前、少し右に立つ */
-      if (!RM) { const gx = AO.pos.x, gz = AO.pos.z, ax = gx - P.x, az = gz - P.z, al = Math.hypot(ax, az) || 1; AO.goal = AO.goal || { x: gx, z: gz }; { const f1 = fwd(P.yaw), out = mobile ? [f1.x, f1.z] : [ax / al, az / al]; [AO.pos.x, AO.pos.z] = keepOut(gx + out[0] * 2.2, gz + out[1] * 2.2); }   /* スマホはまっすぐ奥から（右端を通らない） */ AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); AO.fade = 1; }   /* 2026-11-22 はじめも、奥から不透明のまま歩いて入ってくる */
+      if (!RM) { if (!mobile) { const f0 = fwd(P.yaw), rx = -f0.z, rz = f0.x, sd = Math.sign((AO.pos.x - P.x) * rx + (AO.pos.z - P.z) * rz) || 1; AO.pos.x = P.x + f0.x * 4.6 + rx * sd * 1.25; AO.pos.z = P.z + f0.z * 4.6 + rz * sd * 1.25; }   /* 2026-11-22 PC で碧が右端に寄りすぎ → 見る人の前、少し右に */ const gx = AO.pos.x, gz = AO.pos.z, ax = gx - P.x, az = gz - P.z, al = Math.hypot(ax, az) || 1; AO.goal = AO.goal || { x: gx, z: gz }; { const f1 = fwd(P.yaw), out = mobile ? [f1.x, f1.z] : [ax / al, az / al]; [AO.pos.x, AO.pos.z] = keepOut(gx + out[0] * 2.2, gz + out[1] * 2.2); }   /* スマホはまっすぐ奥から（右端を通らない） */ AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); AO.fade = 1; }   /* 2026-11-22 はじめも、奥から不透明のまま歩いて入ってくる */
       STARTUP.warmed = performance.now(); scene.remove(aoiFaceStub); scene.add(root); AO.ready = true;
       window.__aoi = AO;
     } catch (e) { console.warn('碧の姿を読み込めませんでした：', e?.message ?? e); }
@@ -619,7 +619,7 @@ function aoiSpot(it) {                                         // 書の脇（�
   const pp = paperOf(it); let side = it.i % 2 ? 1 : -1;
   if (pp) side = ((pp.wx - it.x) * lx + (pp.wz - it.z) * lz) > 0 ? -1 : 1;
   const hf = Math.atan(Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * cam.aspect), hw = Math.atan((it.sho ? it.sho.width / 2 : 1.6) / l);
-  let a = Math.min(hw + 0.07, hf - 0.1), D = Math.max(3.0, l - 0.4);
+  let a = Math.min(hw + 0.07, hf * 0.6), D = Math.max(3.0, l - 0.4);
   if (mobile) { a = hf - 0.01; D = 2.7; }   /* v11c スマホは画面が細く、書の脇が画面の外になる：碧は手前の画面の端に立ち、書の前をふさがない */
   if (it.paper && mobile) { a = hf - 0.02; D = 2.8; }   /* スマホの紙の前：紙の幅が画面いっぱいなので、碧は手前の端に */
   for (const sd of [side, -side]) { const [x, z] = keepOut(P.x + (dx * Math.cos(a) + lx * sd * Math.sin(a)) * D, P.z + (dz * Math.cos(a) + lz * sd * Math.sin(a)) * D); if (Math.hypot(x - P.x, z - P.z) > 1.4) return new THREE.Vector3(x, 0, z); }
