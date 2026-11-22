@@ -1228,12 +1228,14 @@ function playNext() {
 }
 let capT = 0;
 let capChunkT = 0;
+function capSplitLong(L, max) {   /* 11-22：スマホの 1 行に収まらない句は、助詞の後ろで二つに分ける（語の途中で切らない） */
+  const out = []; for (let x of L) { while (x.length > max) { let k = 0; for (let i = 3; i < Math.min(x.length - 2, max); i++) if (x.length - i - 1 >= 4 && (/[をにがはでとへも]/.test(x[i]) || /ような$|ように$|ている$|ました$/.test(x.slice(0, i + 1))) && !/[ぁぃぅぇぉっゃゅょ、。！？」』）\s]/.test(x[i + 1] || "")) k = i + 1; if (!k) k = max; out.push(x.slice(0, k)); x = x.slice(k); } out.push(x); } return out; }
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
   const max = innerWidth < 640 ? 20 : 22;   /* 11-22：15 字に分けると一句が 1 秒ほどで次の語りに消された→ 20 字のまま、字を少し小さくして 1 行に収める */   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max * 1.9) {   /* 11-13 採点：読点で切ると文が途中で止まって見える＝一文は 2 行までまとめて出す */ for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
-  if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * 1.35) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
-  return o2.map(x => x.replace(/(\S)(?=[、。，．！？」』）])/g, "$1"));   // 11-05 採点 P2：375 で「、」が行の頭に来た（折り返しの前に語をつなぐ印を入れる）
+  if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * (innerWidth < 640 ? 1 : 1.35)) o2[o2.length - 1] += x; else o2.push(x); }   // 改行だけの区切りを出さない・短すぎる切れ端は隣とつなぐ
+  return (innerWidth < 640 ? capSplitLong(o2, max) : o2).map(x => x.replace(/(\S)(?=[、。，．！？」』）])/g, "$1"));   // 11-05 採点 P2：375 で「、」が行の頭に来た（折り返しの前に語をつなぐ印を入れる）
 }
 let CAP_LAY = null;
 function capLines(s) {   // 11-05 採点 P2：375 で「立ち、」だけの行や語の途中の折り返し→実際の字の幅を測り、読点・句点、なければ助詞の後ろで、一行に収まる長さずつ行を組む
@@ -1242,7 +1244,7 @@ function capLines(s) {   // 11-05 採点 P2：375 で「立ち、」だけの行
   const cut = q => { const out = []; while (W(q) > w) { let k = 0, k2 = 0; for (let i = 1; i < q.length; i++) { if (W(q.slice(0, i + 1)) > w) break; if (/[をにがはでとへもやの]/.test(q[i]) && !/[ぁぃぅぇぉっゃゅょ、。！？」』）]/.test(q[i + 1] || "、")) { k = i + 1; if (q.length - k >= 4) k2 = k; } } k = k2 || k; if (!k) { k = 1; while (k < q.length && W(q.slice(0, k + 1)) <= w) k++; } out.push(q.slice(0, k)); q = q.slice(k); } out.push(q); return out; };
   const out = []; for (const para of String(s).split("\n")) { let cur = ""; for (const seg0 of para.split(/(?<=[、。！？」』）])/)) { if (!seg0) continue; for (const seg of cut(seg0)) { if (cur && W(cur + seg) > w) { out.push(cur); cur = ""; } cur += seg; } } if (cur) out.push(cur); }
   return out.join("\n"); }
-function capSet(s) { const e = $("#capText"); if (innerWidth < 640) { s = capLines(s); e.style.whiteSpace = "pre-line"; } else e.style.whiteSpace = ""; e.textContent = ""; for (const p of String(s).split(/([^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
+function capSet(s) { const e = $("#capText"); if (innerWidth < 640) { s = String(s).replace(/\s*\n\s*/g, ""); e.style.whiteSpace = "nowrap"; }   /* 11-22：スマホは 1 行なので改行を入れない（改行が空白に見えていた） */ else e.style.whiteSpace = ""; e.textContent = ""; for (const p of String(s).split(/([^\n、。！？]{2}[、。！？」』）]+)/)) { if (!p) continue; if (/[、。！？」』）]$/.test(p)) { const sp = document.createElement("span"); sp.className = "ph"; sp.style.whiteSpace = "nowrap"; sp.textContent = p; e.append(sp); } else e.append(p); } }   // 11-05 採点 P2：375 で「、」が行の頭に来た→句読点を前の二字と離さない
 /* 11-22：句ごとに読める時間を保証する（1 字 0.15 秒・短くても 2 秒）。次の語りは、前の句を出し切ってから順に出す */
 const CAPQ = { u: 0, q: [], t: 0 };
 for (const k of ["pointerdown", "keydown"]) addEventListener(k, () => { CAPQ.tap = performance.now(); CAPQ.u = 0; CAPQ.q.length = 0; clearTimeout(CAPQ.t); CAPQ.t = 0; }, true);   /* 押した直後（1.5 秒）の語りは待たせずにすぐ出す（押したことへの答えを遅らせない） */
