@@ -23,6 +23,7 @@ export function makeRing({ host, items, onPick, makeBody, reduced = false }) {
     const box = new T.Box3().setFromObject(b), c = box.getCenter(new T.Vector3()), s = box.getSize(new T.Vector3());
     b.position.sub(c); const k = 1 / Math.max(s.x, s.y * .86, s.z, .001); const inner = new T.Group(); inner.add(b); inner.scale.setScalar(k); g.add(inner);
     b.userData.creature?.userData.whenReady?.(() => kick());   // あとから届く体の 3D（犬・マムシ）が届いたら描き直す
+    if (s.y < Math.max(s.x, s.z) * .2) inner.rotation.x = .75;   /* 2026-11-23 平たい体（マムシ）は少し起こして、棒に見えないように */
     g.userData.body = b; g.userData.tall = s.y > Math.max(s.x, s.z) * 1.2; scene.add(g); slots[i] = g;
   }
   function init() {

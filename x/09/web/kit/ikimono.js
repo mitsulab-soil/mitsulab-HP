@@ -39,6 +39,7 @@ export const IKIMONO = {
     sources: [{ claim: "イヌは二色型の色覚", cite: "Neitz J, Geist T, Jacobs GH (1989) Vis. Neurosci. 3:119–125" }, { claim: "イヌの視力は人の数分の一、視野は人より広い", cite: "Miller PE & Murphy CJ (1995) J. Am. Vet. Med. Assoc. 207:1623–1634" }, { claim: "イヌの聞こえる帯はおよそ 67 Hz〜45 kHz（人より高い音まで。画面では 20 kHz より上は鳴らせない）", cite: "Heffner HE (1983) Behav. Neurosci. 97(2):310–318／Heffner HE & Heffner RS (2007) J. Am. Assoc. Lab. Anim. Sci. 46(1):20–22" }] },
 };
 /* 2026-11-23 本人「生き物の視点に入るときは sight のように、その生き物の 3D を」：マムシと機械（kikai.js の受けとり方）も体を出す。見え方は kikai.js のまま（only＝体だけ） */
+IKIMONO.tori && (IKIMONO.tori.sight = "tori");   /* 2026-11-23 採点「小鳥が後ろから機械の形に見える」→ sight の小鳥の体に */
 IKIMONO.hebi = { name: "マムシ", only: true, sight: "hebi", eye: 0, fov: 70, back: .85, up: .42, size: .7, bob: 0, fly: false };
 IKIMONO.kikai = { name: "機械", only: true, sight: "camera", eye: 0, fov: 70, back: 1.7, up: .6, size: .72, bob: 0, fly: false };
 export function attachIkimono(QW, opt = {}) {
@@ -90,7 +91,7 @@ export function attachIkimono(QW, opt = {}) {
   async function build(id) {
     const P = IKIMONO[id];
     mod ||= await import("./creatures_sight.js?v=13");
-    const c = P.only ? (await import("./sight/bodies.js?v=20261123a")).makeBody(P.sight) : P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : P.make === "suzume" ? mod.makeTit(undefined, { sp: "suzume" }) : P.make === "tanuki" ? mod.makeDog(undefined, { tanuki: true }) : mod.makeDog();
+    const c = P.sight ? (await import("./sight/bodies.js?v=20261123a")).makeBody(P.sight) : P.make === "hachi" ? mod.makeBee(undefined, { state: "fly" }) : P.make === "chou" ? mod.makeButterfly("ageha") : P.make === "tori" ? mod.makeTit() : P.make === "suzume" ? mod.makeTit(undefined, { sp: "suzume" }) : P.make === "tanuki" ? mod.makeDog(undefined, { tanuki: true }) : mod.makeDog();
     const g = new THREE.Group(); c.scale.setScalar(P.size); g.add(c); g.userData.c = c;
     g.traverse(o => { o.frustumCulled = false; if (o.isMesh) { o.castShadow = false; o.renderOrder = 5; } });
     g.visible = false;
@@ -171,13 +172,16 @@ export function attachIkimono(QW, opt = {}) {
         const P = IKIMONO[id], m = MOV[id] || LENS[P.lens]?.m || [1, 0, 0, 0, 1, 0, 0, 0, 1], u = PO.mat.uniforms;
         u.uM.value.set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]); const uw = LENS[P.lens]?.uvw || [0, 0, 0]; u.uUV.value.set(uw[0], uw[1], uw[2]);
         u.uK.value = k; u.uUk.value = UVK[id] || 1; u.uRd.value = id === "hachi" ? 1 : 0; u.uW.value = WIDE[id] || 0; u.uHex.value = HEX[id] ? 1 : 0; u.res.value.copy(PO.sz); u.uTx.value.set(1 / w, 1 / h);
+        const keep = [QW.AOI?.root, S.body].filter(o => o && o.visible), hid = keep.map(o => (o.visible = false, o));   /* 2026-11-23 採点 P1「生き物の目で碧が白く透けて見える」：碧と生き物の体は置きかえ（色・粗さ）の外で、あとから重ねて描く（sight と同じく体はそのままの姿） */
         R.setRenderTarget(PO.rt); orig(sc, cam); R.setRenderTarget(null); orig(PO.sc, PO.cam);
+        if (hid.length) { const vis = [], bg = sc.background, ac = R.autoClear; const anc = new Set(); for (const o of hid) for (let p = o.parent; p; p = p.parent) anc.add(p); const walk = nd => { for (const c of nd.children) { if (hid.includes(c)) continue; if (anc.has(c)) walk(c); else if (c.visible && !c.isLight) { vis.push(c); c.visible = false; } } }; walk(sc); for (const o of hid) o.visible = true;
+          sc.background = null; R.autoClear = false; try { R.clearDepth(); orig(sc, cam); } finally { R.autoClear = ac; sc.background = bg; for (const c of vis) c.visible = true; } }
       } finally { PO.busy = false; }
     }; } }
   function paint() { if (!canvas) return; if (canvas.style.filter.includes("ikF")) canvas.style.filter = ""; }   // 色と像の置きかえは上の描き直しで（CSS のフィルタは使わない）
   async function go(id) {   // id＝生き物（同じものをもう一度＝人の目へ戻る）
     if (!id || id === S.id) { S.id = null; S.flightAltitude = 0; S.cam = null; clearFlightInput(); if (flight.panel) flight.panel.hidden = true; document.body.classList.remove("iki"); QW.sndBand?.(); opt.onChange?.(null); return null; }
-    S.only = false; const P = IKIMONO[id]; if (!P) return null; const t0 = performance.now();
+    S.only = false; document.body.classList.remove("ikOnly"); const P = IKIMONO[id]; if (!P) return null; const t0 = performance.now();
     { const cr = document.getElementById("credit"); if (cr && !cr.textContent.includes("quander")) cr.textContent += "／" + CREDITS.join("／"); }   // 写実の 3D の出典（CC BY）をクレジットに足す
     if (!P.fly) { S.flightAltitude = 0; S.cam = null; clearFlightInput(); }
     const b = await bodyOf(id); for (const k in cache) cache[k].visible = false;
@@ -251,8 +255,8 @@ export function attachIkimono(QW, opt = {}) {
   const warm = async () => { for (const id of ["hachi", "suzume", "tanuki"]) { await new Promise(r => (window.requestIdleCallback || setTimeout)(r, { timeout: 1500 })); try { await bodyOf(id); } catch (e) { console.warn("ikimono", id, e); } } };
   { const w = setInterval(() => { if (QW.mode === "walk") { clearInterval(w); setTimeout(warm, 600); } }, 500); }
   async function show(id) {   // 体だけ出す（マムシ・機械）。null で消す
-    if (!id) { if (S.only) { S.id = null; S.only = false; document.body.classList.remove("iki"); } return; }
-    if (S.id && !S.only) return; const b = await bodyOf(id); for (const k in cache) cache[k].visible = false; S.id = id; S.last = id; S.only = true; S.body = b; S.flightAltitude = 0; S.cam = null;
+    if (!id) { if (S.only) { S.id = null; S.only = false; document.body.classList.remove("iki", "ikOnly"); } return; }
+    if (S.id && !S.only) return; const b = await bodyOf(id); for (const k in cache) cache[k].visible = false; S.id = id; S.last = id; S.only = true; S.body = b; document.body.classList.add("ikOnly"); S.flightAltitude = 0; S.cam = null;
   }
   QW.ikimono = { go, show, state: S, list: IKIMONO };
   return QW.ikimono;
