@@ -56,7 +56,7 @@
       lp.frequency.setTargetAtTime(160 + 120 * (k + 1), t, .8);
       gn.gain.setTargetAtTime(g, t, .6);
     }
-    if (on && r != null && navigator.vibrate && Date.now() - lastV > 1600) {
+    if (on && r != null && navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive) && Date.now() - lastV > 1600) {
       var moved = lastP && Math.hypot(q.x - lastP.x, q.z - lastP.z) > .8;
       lastP = { x: q.x, z: q.z };
       if (moved) { lastV = Date.now(); try { navigator.vibrate(Math.round(14 + 26 * (1 - k) / 2)); } catch (_) {} }

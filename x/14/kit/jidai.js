@@ -127,12 +127,12 @@
       if ((chk += rdt) > .5) { chk = 0; capFit();
         var dist = walking ? riverNear(U.eye.value.x, U.eye.value.z, inside ? R_OUT : R_IN) : 1e9;
         if (!inside && dist < R_IN) { inside = 1; tgt = 1; if (q.holdTalk) q.holdTalk(1);   /* v7：見ているあいだは町の語りを止める */ eTgt = 0; held = 0; U.e.value = 0; sound(); if (ac) { ac.resume(); au.play().catch(function () {}); }
-          if (navigator.vibrate) try { navigator.vibrate([14, 90, 14, 90, 22]); } catch (e) {}
+          if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) try { navigator.vibrate([14, 90, 14, 90, 22]); } catch (e) {}
           if (!said) { said = 1; sayEra(0); } }
         else if (inside && dist >= R_OUT) { inside = 0; tgt = 0; if (said === 1) { said = 2; setTimeout(function () { say(L_OUT); }, 1800); } }
         if (!inside && q.hold && k < .06 && q.holdTalk) q.holdTalk(0);   // 窓が閉じたら町の語りを再開
       }
-      if (inside && k > .9 && eTgt < ERA.length - 1 && (held += rdt) > HOLD) { held = 0; eTgt++; sayEra(eTgt); if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {} }
+      if (inside && k > .9 && eTgt < ERA.length - 1 && (held += rdt) > HOLD) { held = 0; eTgt++; sayEra(eTgt); if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) try { navigator.vibrate(12); } catch (e) {} }
       U.e.value += (eTgt - U.e.value) * Math.min(1, rdt / 1.6);
       k += (tgt - k) * Math.min(1, rdt / 2.2); U.k.value = k; tagFit();
    // 約 4 秒でうつりかわる

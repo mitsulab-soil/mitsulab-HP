@@ -234,12 +234,13 @@ function roadMat() {   // 道の面：Poly Haven「Asphalt 04」（CC0）の色�
   };
   return ASPH = m;
 }
-function ribbon(pts, w, lift = .05, uvScale = 3) {
+function ribbon(pts, w, lift = .05, uvScale = 3, wRef = 0) {   /* 11-22：wRef＝歩道の帯の幅。車道の高さを歩道の帯の両端の地面の高さから同じ割合で決め、歩道の帯の面より必ず上に置く（車道と歩道の面が交差して、土の面の縁が四角いギザギザに見えていた） */
   const P = [], U = [], I = []; let acc = 0;
   for (let i = 0; i < pts.length; i++) {
     const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; tx /= l; tz /= l;
     if (i) acc += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
     const nx = -tz * w / 2, nz = tx * w / 2, p = pts[i];
+    if (wRef > w) { const f = w / wRef, rx = -tz * wRef / 2, rz = tx * wRef / 2, ya = groundY(p[0] + rx, p[1] + rz), yb = groundY(p[0] - rx, p[1] - rz), ym = (ya + yb) / 2; P.push(p[0] + nx, ym + (ya - ym) * f + lift, p[1] + nz, p[0] - nx, ym + (yb - ym) * f + lift, p[1] - nz); } else
     P.push(p[0] + nx, groundY(p[0] + nx, p[1] + nz) + lift, p[1] + nz, p[0] - nx, groundY(p[0] - nx, p[1] - nz) + lift, p[1] - nz); U.push(0, acc / uvScale, w / uvScale, acc / uvScale);
     if (i) { const k = i * 2; I.push(k - 2, k, k - 1, k - 1, k, k + 1); }
   }
@@ -248,7 +249,7 @@ function ribbon(pts, w, lift = .05, uvScale = 3) {
 function densify(pts, step = 3) { const out = [pts[0]]; for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step)); for (let k = 1; k <= n; k++) out.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return out; }
 function buildRoads() {
   const gs = []; const cp = [0, 0];
-  for (const r of G.roads) { if (r.w < 2.5 && !MOBILE) { } const near = r.p.some(p => Math.hypot(p[0] - cp[0], p[1] - cp[1]) < 1400); if (!near) continue; gs.push(ribbon(densify(r.p, 4), r.w, .04 + r.w * .002)); }
+  for (const r of G.roads) { if (r.w < 2.5 && !MOBILE) { } const near = r.p.some(p => Math.hypot(p[0] - cp[0], p[1] - cp[1]) < 1400); if (!near) continue; gs.push(ribbon(densify(r.p, 4), r.w, .04 + r.w * .002, 3, r.w >= 7 && r.p.some(p => Math.hypot(p[0], p[1] - 400) < 900) ? r.w + 4.6 : 0)); }
   const m = new THREE.Mesh(mergeIdx(gs), roadMat()); m.name = "roads"; world.add(m); QW.roads = m;
   paveStreets(G.roads.filter(r => /大正浪漫|クレアモール/.test(r.nm)).map(r => ({ k: /大正浪漫/.test(r.nm) ? "T" : "M", P: r.p, w: r.w + .4 })));
   // 歩道（模式）：車の通る道の両わきに、コンクリートの舗装の帯を道の下に敷く（Poly Haven「Concrete Pavement」CC0）
