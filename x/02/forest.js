@@ -11,7 +11,7 @@
    軽さ：同じ形は InstancedMesh で一度に描く（木の葉・草・落ち葉・花）。幹は 24 m 四方ごとに一つにまとめて、見えない所は描かない。
    素材：樹皮と葉の写真は CC0（Poly Haven・ambientCG。台帳 M-0793〜0796）。モミジ・スギの葉、シダ、落ち葉、花びらは、この画面の中で描く。 */
 import * as THREE from "three";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { mergeGeometries, mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 import { bladeGeo, stemGeo, geoAt, rockGeo } from "./nature.js?v=20261105s";
 import { crownHook } from "./zen.js";
 
@@ -256,7 +256,7 @@ export function buildForest(ctx) {
     const sg = inSugi(x, z), d = sg ? 2.9 : (near(x, z, 0) ? 4.3 : 5.2) * (mobile ? 1.12 : 1); if (!farEnough(x, z, d)) continue;
     put(x, z, sg ? "sugi" : R() < .62 ? "konara" : "keyaki");
   }
-  for (const [x, z, kind] of placed) tree(kind, x, z, near(x, z, 6), kind === "sugi" ? 1 : rr(.9, 1.15));
+  for (const [x, z, kind] of placed) tree(kind, x, z, near(x, z, 6), kind === "sugi" ? rr(.86, 1.1) : rr(0, 1) < .22 ? rr(.55, .74) : rr(.86, 1.32));   /* 11-10 第9周：樹齢の不揃い（若木を 2 割ほど・大木も）。葉の数は大きさに比例するので平均の重さはほぼ同じ */
   // 亜高木：イロハモミジ（日陰〜半日陰。高木のあいだ）
   let nM = 0;
   for (let i = 0; i < 3000 && nM < (mobile ? 26 : 44); i++) { const x = rr(-34, 36), z = rr(-32, 34); if (!canopyOK(x, z) || inSugi(x, z) || lightAt(x, z) > .55 || !farEnough(x, z, 3)) continue; put(x, z, "momiji"); tree("momiji", x, z, near(x, z, 2), rr(.8, 1.2)); nM++; }
@@ -294,8 +294,10 @@ export function buildForest(ctx) {
       const g = strip(taperTube([pA, pA.clone().lerp(pB, .5).add(new V3(0, .03, 0)), pB], r, r * .7, 9, 8)); logG.push(mossy(g)); addTrunk([x, z, .01]); nLog++;
       out.logs = (out.logs || []).concat([[pA, pB, r]]); }
     if (logG.length) { const lm = new THREE.Mesh(mergeGeometries(logG), logM); lm.castShadow = true; forest.add(lm); }
-    const stoneM = M(0xd8d2c6, { vc: true, map: photoTex("rock_surface.webp", 1, 1), uv: .1, temp: .3 }), rocks = [];
-    const rock = (x, z, s, seed) => { const g = strip(rockGeo(seed, 1)); const gg = geoAt(g, { s, sy: s * rr(.7, 1.1), ry: R() * 6, x, y: s * .18, z }); const c = gg.attributes.normal, cs = []; for (let i = 0; i < c.count; i++) { const m = sstep(.45, .9, c.getY(i)) * (s > .3 ? .8 : .3); cs.push(lerp(.95, .5, m), lerp(.93, .76, m), lerp(.9, .38, m)); } gg.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3)); rocks.push(gg); };
+    const stoneM = M(0xe2ddd2, { std: true, vc: true, map: photoTex("rock_surface.webp", 1.6, 1.6), nmap: tx("rock_surface_n.webp", 1.6, 1.6, false), ns: 2.2, rough: .93, env: .35, uv: .1, temp: .3 }), rocks = [];   // 2026-11-20 2 周目：石の面に細かな凹凸（法線の絵）・面を細かくなめらかに・苔はまだらに（前は暗い泥のかたまりに見えた）
+    const rock = (x, z, s, seed) => { let g = rockGeo(seed, mobile ? 2 : 3); g.deleteAttribute('color'); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g = mergeVertices(g, 1e-4);
+      { const p = g.attributes.position, uv = new Float32Array(p.count * 2), rg = (a, b, c) => 1 - Math.abs(Math.sin(a * 2.3 + seed) * Math.cos(b * 2.9 + seed * 1.7) + .5 * Math.sin(c * 4.7 + a * 3.1 + seed * .6)); for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), pz = p.getZ(i), k = 1 + .13 * (rg(px, py, pz) - .6) + .05 * Math.sin(px * 9 + pz * 7 + seed); p.setXYZ(i, px * k, py * k, pz * k); uv[i * 2] = px * .5 + pz * .21 + .5; uv[i * 2 + 1] = py * .8 + pz * .37 + .5; } g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.computeVertexNormals(); g = g.toNonIndexed(); }   // 稜のある形・面にそった絵の割りつけ（球の割りつけの継ぎ目をなくす）
+      const gg = geoAt(g, { s, sy: s * rr(.7, 1.1), ry: R() * 6, x, y: s * .18, z }); const c = gg.attributes.normal, pp = gg.attributes.position, cs = []; for (let i = 0; i < c.count; i++) { const patch = .3 + .7 * sstep(-.25, .35, Math.sin(pp.getX(i) * 9 + seed) * Math.sin(pp.getZ(i) * 7.3 + seed * 2.1)), m = sstep(.45, .9, c.getY(i)) * (s > .3 ? .8 : .3) * patch; cs.push(lerp(1, .56, m), lerp(1, .72, m), lerp(1.04, .42, m)); } gg.setAttribute("color", new THREE.Float32BufferAttribute(cs, 3)); rocks.push(gg); };
     // 日なたの石（草地）・沢の石・林の中の苔むした石
     for (const [dx, dz, s] of [[-2.6, 1.8, .42], [-1.9, 2.3, .26], [2.8, 2.6, .34]]) rock(MEADOW.x + dx, MEADOW.z + dz, s, Math.floor(R() * 99));
     out.sunStones = [[MEADOW.x - 2.6, MEADOW.z + 1.8], [MEADOW.x + 2.8, MEADOW.z + 2.6]];

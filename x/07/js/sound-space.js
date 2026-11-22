@@ -242,10 +242,10 @@ export class SoundSpace{
    for(let z=0;z<this.waveRows;z++)for(let x=0;x<this.waveBins;x++){const i=z*this.waveBins+x;this.wavePos[i*3]=(x/(this.waveBins-1)-.5)*5.8;this.wavePos[i*3+1]=Math.tanh(this.waveHistory[i]*1.6)*2;/* 大きな音でも枠に収める（小さな振幅ではほぼ比例） */this.wavePos[i*3+2]=1.25-z/(this.waveRows-1)*3.5;}
    this.waveGeo.attributes.position.needsUpdate=true;this.frontGeo.attributes.position.array.set(this.wavePos.subarray(0,this.waveBins*3));this.frontGeo.attributes.position.needsUpdate=true;
    const span=(1024/(this.a.ctx?.sampleRate||48000)*1000).toFixed(1);
-   this.caption('横：'+span+' msの波形 ／ 高さ：振幅 ／ いちばん明るい先頭の線が今、うしろへ流れるほど過去。斜め上からゆっくり一周します（ドラッグで止まり、触らなければ戻ります）。');
+   this.caption('音の波の形（約 '+span+' ms ぶん）。明るい手前の線が今、奥ほど過去。ドラッグで回せます。');
   }else if(this.view==='flow'){
    this.flowMat.uniforms.uTime.value=this.clock;
-   this.caption('粒の流れ：円周＝周波数（40 Hz から一周で 16 kHz・対数。長い目盛り＝100 Hz・1 kHz・10 kHz）／中心から外へ＝時間（外ほど過去・約6秒）／粒の多さ・高さ・明るさ＝その周波数の強さ／色＝周波数（低い琥珀 → 高い青白）。');
+   this.caption('輪をまわる向き＝音の高さ（40 Hz〜16 kHz）。外ほど過去（約6秒）。粒が多く明るいほど、その高さの音が強い。');
   }else if(this.view==='harmonics'){
    const K=this.hK,H=this.hH;
    for(let k=0;k<K;k++){const m=this.hMesh[k].attributes.position.array,l=this.hLine[k].attributes.position.array,z=1.4-k*.4;
@@ -253,7 +253,7 @@ export class SoundSpace{
     this.hMesh[k].attributes.position.needsUpdate=true;this.hLine[k].attributes.position.needsUpdate=true;}
    const f=this.feat;this.caption('倍音の層：手前から奥へ第1〜第8倍音（推定した基音の整数倍）／横＝時間（右が今）／高さ＝各倍音のFFTレベル。'+(f.src==='f0'?'いまの基音の推定：約 '+Math.round(f.f0)+' Hz。':f.src==='peak'?'基音が読みとれないので、最も強い成分（約 '+Math.round(f.f0)+' Hz）を基準にしています。':'いまは音がありません。'));
   }else if(this.view==='sculpture'){
-   this.caption('鳴っているあいだ、音の帯ごとの強さが流れになって、枝が育ちます。くわしく：分岐の成長 × ABC流れ場（カオス的な流れ）。流れの三つの強さ＝低・中・高域／外形の横・縦＝低域・高域の割合／回転の対称の数＝鳴りはじめの周波数の山の数／伸びる長さ＝音の大きさ（RMS −80〜−10 dBFSを表示へ変換）／枝分かれ＝音の変化／色＝音の明るさ（重心周波数）。止めると形が残ります。'+(this.nSeg>=this.segCap?'形は育ちきりました（もう一度育てるには、ほかの音を選ぶか同じ音を鳴らしなおします）。':this.nSeg?'':'音を鳴らすと育ちはじめます。'));
+   this.caption('鳴っているあいだ、低い・中ほど・高い音の強さが流れになって、枝が育ちます。大きい音ほど長く伸び、音が変わると枝分かれします。止めると形が残ります。'+(this.nSeg>=this.segCap?'形は育ちきりました（もう一度育てるには、ほかの音を選ぶか同じ音を鳴らしなおします）。':this.nSeg?'':'音を鳴らすと育ちはじめます。'));
   }else{
    for(let i=0;i<this.history.length;i++){const v=this.history[i],c=this.palette[Math.round(v*255)];this.pos[i*3+1]=v*2.1;for(let k=0;k<3;k++)this.colors[i*3+k]=c[k]/255;}
    this.g.attributes.position.needsUpdate=true;this.g.attributes.color.needsUpdate=true;

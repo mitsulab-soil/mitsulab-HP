@@ -86,12 +86,12 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 /* 何も選んでいないとき */
 .hint{position:fixed;z-index:4;left:50%;transform:translateX(-50%);bottom:max(22px,env(safe-area-inset-bottom));width:min(700px,calc(100vw - 32px));display:grid;justify-items:center;gap:10px;text-align:center}
 .hint p{margin:0;font:500 15px/1.8 var(--ml-serif);letter-spacing:.06em;color:var(--ml-ink-2);
-  background:linear-gradient(90deg,transparent,rgba(3,6,15,.62) 12%,rgba(3,6,15,.62) 88%,transparent);padding:6px 8%}
+  text-shadow:0 1px 2px #02050c,0 0 10px #02050c,0 0 18px #02050c;padding:2px 8%}
 .spo{display:none}
 
 /* 一覧・この作品 */
 .sheet{border:1px solid var(--ml-line-2);border-radius:var(--ml-radius);background:var(--ml-panel-solid);color:var(--ml-ink-2);padding:0;width:min(720px,calc(100vw - 32px));max-height:calc(100dvh - 48px);box-sizing:border-box}
-.sheet::backdrop{background:rgba(3,6,15,.6);backdrop-filter:blur(4px)}
+.sheet::backdrop{background:rgba(3,6,15,.86);backdrop-filter:blur(8px)}/* 2026-11-22 PC で一覧の後ろに右の欄が透けて二重に見えた */
 .sheet-in{padding:18px 22px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .sheet-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;position:sticky;top:0}
 .ml-btn:disabled{opacity:.4;cursor:default}
@@ -114,7 +114,8 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 /* スマホ */
 @media (max-width:720px){
   .top{padding:0 var(--ml-gutter);height:56px}
-  .tools .ml-btn{padding:0 10px}
+  .tools{gap:2px}.tools .ml-btn{padding:0 8px;font-size:.8rem;letter-spacing:.02em;white-space:nowrap;min-width:44px}
+  .brand .ml-title{font-size:16px;white-space:nowrap}
   .sp{display:inline}
   .panel{left:var(--ml-gutter);right:var(--ml-gutter);bottom:max(12px,env(safe-area-inset-bottom));width:auto;max-height:64dvh;padding:14px var(--ml-gutter) 8px;gap:8px}
   .p-line{font-size:20px;line-height:1.55}
@@ -177,7 +178,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 }
 
 /* 2026-10-22 触れて鳴る：面は森を覆いきらない（広い画面＝右、狭い画面＝下）。面の外の点は、そのまま押せる */
-#panel{inset:64px 0 0 auto;width:clamp(400px,40vw,620px);border-left:1px solid #264049}
+#panel{inset:64px 0 0 auto;width:clamp(360px,30vw,520px);border-left:1px solid #264049}
 #panel #sound{grid-template-columns:minmax(0,1fr);gap:18px}
 #panel .performance{border-left:0;padding-left:0;border-top:1px solid #29444c;padding-top:14px}
 #panel .p-line{font-size:clamp(22px,2vw,30px)}
@@ -225,4 +226,17 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 
 #labs .lab.dot{font-size:0!important;padding:5px!important;gap:0!important;letter-spacing:0!important}   /* 2026-11-09 第3周：遠くの群れは色の点だけ */
 
+/* 2026-11-22 採点：窓の中のリンクを押しやすく（44px） */
+.copy a,#about a{display:inline-flex;align-items:center;min-height:44px;padding:0 2px}
+.away{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);width:min(560px,calc(100% - 32px));padding:12px 16px;text-align:center;font-size:15px;line-height:1.7;color:var(--ml-ink-1,#eef);background:rgba(3,6,15,.72);border:1px solid rgba(195,204,224,.25);z-index:60;pointer-events:none}
+.p-near{display:flex;gap:8px;margin:2px 0 6px}.p-near .ml-btn{min-height:44px;min-width:56px;padding:0 14px}
+
 body:has(.away:not([hidden])) .tip{visibility:hidden}
+
+/* 2026-11-22 スマホで下のパネルが画面の半分を超え、景色が隠れた → 半分までにし、中は送って読む */
+@media(max-width:680px){ #panel{height:48dvh!important;max-height:48dvh!important} #panel .soundStage{height:clamp(150px,19dvh,200px)!important} }
+@media(max-width:680px){ body:has(#panel:not([hidden])) .icm{top:calc(52dvh - 56px)!important;bottom:auto!important} }   /* 撮る丸をパネルの上の外へ */
+/* 2026-11-22 撮る丸が光の点に紛れる → 地を濃く・縁を明るく */
+.icm{opacity:1!important;background:rgba(8,18,24,.88)!important;border:1px solid rgba(200,236,244,.7)!important;box-shadow:0 0 0 3px rgba(8,18,24,.35)!important}
+
+@media (max-width:599px){.count{letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}/* 2026-11-22 スマホで模式の注記を一行に */
