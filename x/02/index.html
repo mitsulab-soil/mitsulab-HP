@@ -283,6 +283,7 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
 }
 </style>
 <style id="s19">/* 11-19 PC で碧の案内の字幕が碧の体にかからないよう、左寄りに幅を絞る */@media (min-width:900px){#guide{left:max(150px,9vw)!important;right:auto!important;transform:none!important;max-width:min(560px,42vw)!important;text-align:left}}</style>
+<style id="s1123d">/* 2026-11-23 スマホで「進む」の札が碧の腰に重なった → 右の端へ寄せる／上の帯と生き物の並びの帯が詰まっていた → 並びを少し下げる */@media (max-width:600px){#bodyControls{width:60px!important;right:4px!important;top:58%!important}#ring{top:calc(max(8px,env(safe-area-inset-top)) + 56px)!important}#where{margin-top:8px}}</style>
 <style id="s1123c">/* 2026-11-23 スマホで押したあと下の操作が二段に折れ、画面の下 3 割を占めた → 一段に詰める */@media (max-width:600px){#acts{flex-wrap:nowrap!important;gap:5px!important}#acts .btn{font-size:13px!important;padding:0 8px!important;letter-spacing:.02em!important}}</style>
 <style id="s1123b">/* 2026-11-23 スマホで上の説明が画面の半分の幅に押しこまれ 3 行に折れた → 幅を画面いっぱい（左右 16px）に */@media (max-width:600px){#where{width:calc(100vw - 32px)!important;max-width:none!important}#whereSub{max-width:calc(100vw - 32px)!important}}</style>
 <style id="s1123a">/* 2026-11-23 スマホで上の説明（三種類 など）が 13px と小さく、森の上で読みにくい → 15px・白く・薄い地 */@media (max-width:600px){#whereSub span{font-size:15px!important;color:#fff;font-weight:500}#whereSub{background:rgba(4,10,8,.5)!important;border-radius:8px;padding:2px 10px!important}}</style>
