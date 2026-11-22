@@ -571,6 +571,10 @@ export class KasaneHerd {
     const av = this.avoid?.();
     if (av && !push) { _v2.set(av.x, av.y + .25, av.z); const fd = _v2.distanceTo(cam.position), fc = _v2.project(cam); if (fc.z < 1) { const fx = (fc.x * .5 + .5) * W, fy = (-fc.y * .5 + .5) * H, aw = Math.max(24, .32 / (2 * fd * th) * H);
       if (Math.abs(sx - fx) < aw + half && sy > fy - aw * 2.4 && sy < fy + aw * .8) push = sx < fx ? -1 : 1; } }   // 碧の足もと（膝から下）の前後に重なる
+    if (this.mobile && (sy + px * .5 > H - 260 || a.pd < 7)) {   /* 2026-11-22 深夜 P2「右下で子が下の操作の帯と重なる」：スマホで足もとが下の操作の帯にかかったら、見る人から離れる向きへ歩かせる */
+      const sp2 = 3.2 * dt, x = a.pos.x + this.F.x * sp2, z = a.pos.y + this.F.y * sp2;
+      if (!this.walkable || this.walkable(x, z)) { a.pos.set(x, z); if (!a.flock) a.anchor.set(a.anchor.x + this.F.x * sp2, a.anchor.y + this.F.y * sp2); if (a.goal) { a.goal.x += this.F.x * sp2; a.goal.y += this.F.y * sp2; } }
+      return; }
     if (!push) return;
     const sp = (this.mobile ? 1.1 : .8) * dt, F = this.F;
     // 横へ（画面の内へ）。横が歩けない所なら、見る人から離れる向きへ（遠くなるほど画面の内へ寄る）

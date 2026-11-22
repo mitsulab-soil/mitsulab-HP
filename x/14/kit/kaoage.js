@@ -37,13 +37,15 @@
     if (window.__qw && window.__qw.hold) return; // 時間の層を見ているあいだは問いを出さない（11-20）
     var c = window.__qw && window.__qw.camera; if (!c) return;
     var x = c.position.x, z = c.position.z, best = null, bd = R;
+    // 2026-11-23 本人の芯（短い問いで導き、画面を見続けさせない）は保ち、歩いている最中には急に出さない：2 秒立ち止まってから出す
+    var mv = check.px == null ? 0 : Math.hypot(x - check.px, z - check.pz); check.px = x; check.pz = z; check.still = mv < .15 ? (check.still || 0) + 1 : 0;
     // 歩きはじめの地点にいる間は出さない。一度離れて（R＋10 m より外へ）からまた着いたら出す
     if (!walked) { walked = 1; t1 = Date.now(); P.forEach(function (p) { if (Math.hypot(p.x - x, p.z - z) < R) p.wait = 1; }); }
     P.forEach(function (p) { if (p.wait && Math.hypot(p.x - x, p.z - z) > R + 10) p.wait = 0; });
     if (Date.now() - t1 < 15000) return; // 歩きはじめは景色に慣れる間をおく
     if (el.classList.contains("on") || Date.now() - last < GAP) return;
     for (var i = 0; i < P.length; i++) { if (P[i].done || P[i].wait) continue; var dd = Math.hypot(P[i].x - x, P[i].z - z); if (dd < bd) { bd = dd; best = P[i]; } }
-    if (best) ask(best);
+    if (best && check.still >= 2) ask(best);
   }
   function onMode() {
     if (walked && END && !endShown && document.body.dataset.mode === "sky") { endShown = 1; show("碧：" + END, "画面に触れると戻ります。"); }

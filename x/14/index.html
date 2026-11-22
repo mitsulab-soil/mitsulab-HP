@@ -25,7 +25,7 @@ const v = setInterval(() => { if (window.__qw) { clearInterval(v); const l = doc
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.js?v=20261122q">
+<link rel="modulepreload" href="web/app/app.js?v=20261123r">
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="modulepreload" href="web/app/layers.js?v=k5">
 <link rel="modulepreload" href="web/app/qmarks.js?v=k19s7">
@@ -759,7 +759,7 @@ html:not(.qmap) #qEye{display:none}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.js?v=20261122q").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.js?v=20261123r").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261118k").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=16")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
@@ -773,7 +773,7 @@ body:not(.q4used)[data-mode="walk"] #qS6 button:nth-child(2){animation:q4l 2.2s 
 <script>addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);addEventListener("keydown",e=>{if(e.target.closest&&e.target.closest("#qS6"))document.body.classList.add("q4used")},true);</script>
 <script src="kit/jidai.js?v=12" data-box="-825.786,-1547.061,1628.056,2275.090" data-imgs="web/geo/photo_1936.webp?v=2|足もとの窓は、1936 年ごろの空から。／明治の地図では、すぐそばが渋谷川。|1936 年ごろ;web/geo/photo_1947.webp?v=2|窓は、1945〜50 年ごろの空から。|1945〜50 年ごろ;web/geo/photo_1960s.webp?v=2|窓は、1960 年代の空から。／上流は、このころ暗渠に。|1960 年代" data-hi="web/geo/photo_1936_river.webp?v=3|web/geo/photo_1947_river.webp?v=2|web/geo/photo_1960s_river.webp?v=2,-120,-120,680,540" data-snd="web/snd/ogawa.m4a" data-tex="web/tex/grass_ground_c.webp,web/tex/grass_ground_n.webp,web/tex/farm_soil_c.webp,web/tex/farm_soil_n.webp" defer></script>
 <script src="kit/chikei.js?v=3" data-left="12" data-bottom="17" defer></script>
-<script src="kit/kaoage.js?v=4" data-pts="6,4,顔を上げて、まわりの人の流れを見てみて。どちらへ多く向かっている？;136,-58,足もとの坂を感じてみて。坂の上と下で、空の広さはどう違う？;208,150,顔を上げて、渋谷川の水面を見てみて。水はどちらへ流れている？;-381,152,足もとの坂を感じてみて。この道はどちらへ下っている？;520,150,近くの桜の木を探して、枝ぶりを見てみて。;161,-425,足もとは、坂の上？ 谷の底？ 低い音に耳をすませて、足で確かめてみて。" data-end="画面を閉じたら、いつもの道で一つだけ、さっきの受けとり方で見てみて。" defer></script>
+<script src="kit/kaoage.js?v=6" data-pts="6,4,顔を上げて、まわりの人の流れを見てみて。どちらへ多く向かっている？;136,-58,足もとの坂を感じてみて。坂の上と下で、空の広さはどう違う？;208,150,顔を上げて、渋谷川の水面を見てみて。水はどちらへ流れている？;-381,152,足もとの坂を感じてみて。この道はどちらへ下っている？;520,150,近くの桜の木を探して、枝ぶりを見てみて。;161,-425,足もとは、坂の上？ 谷の底？ 低い音に耳をすませて、足で確かめてみて。" data-end="画面を閉じたら、いつもの道で一つだけ、さっきの受けとり方で見てみて。" defer></script>
 <script src="kit/tsugi.js" data-bottom="220" data-href="../09/" data-name="Qualia/omiya" data-line="氷川参道の杜を歩く" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/shibuya" data-left="140" data-bottom="17" defer></script>
 <!-- 2026-11-22 夜：はじめは人の目で（川越と同じく、最初のひと目のミツバチの色をやめた） -->
