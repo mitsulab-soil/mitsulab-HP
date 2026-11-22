@@ -219,7 +219,7 @@ async function buildBase() {
           float cell = step(.82, fract(sin(dot(floor(p / 2.5), vec2(12.9898, 78.233))) * 43758.5)); vec2 cq = fract(p / 2.5) - .5; float grain = cell * (1. - smoothstep(.04, .07, length(cq))) * (.5 + .5 * sin(t * 1.7 + p.x * .3));
           float ring = exp(-pow((d - mod(t * 14., 160.)) / 2.2, 2.)) * (1. - smoothstep(60., 160., d));
           vec3 cA = vec3(.42, .86, .78), cB = vec3(.45, .74, .95);
-          vec3 c = cA * con * 1.05 + cB * grid * .1 * smoothstep(15., 45., d) +   /* 11-02 採点 P1：足もとの 10 m の格子は通りを横切る細い線に見える＝近くでは消し、遠くも淡く */  vec3(.8, .95, 1.) * grain * .55 + cB * ring * (.6 + con * 1.2 + grid * .9);
+          vec3 c = cA * con * 1.05 + cB * grid * .1 * smoothstep(15., 45., d) +   /* 11-02 採点 P1：足もとの 10 m の格子は通りを横切る細い線に見える＝近くでは消し、遠くも淡く */  vec3(.8, .95, 1.) * grain * .25 + cB * ring * .4 * (.6 + con * 1.2 + grid * .9);
           gl_FragColor = vec4(c * k * near * feet * .5, 1.); }   /* 11-13 採点：足もとの地面が灰緑の膜に見える＝光の層を半分に */` });
     const ov = new THREE.Mesh(geo, om); ov.position.y = .32; ov.renderOrder = 3; ov.name = "fusion"; ov.frustumCulled = false; world.add(ov); QW.fusion = ov; }
   QW.tm.t = performance.now() - T0; buildRoute(); buildRoads(); buildFarGround(); QW.late = () => { buildMarkings(); buildWater(); };   /* 11-03 起動を軽く：路面の標示と水は、操作できるようになってから */ QW.tm.r = performance.now() - T0;   // 広場の石の面は、地面の舗装の細部とつなぎ目ができたのでやめた（10-27）
@@ -306,7 +306,7 @@ function plateauFacadeMat() {   // 案 1（10-27）：PLATEAU の形に、CC0 �
   if (PFM.m) return PFM.m;   // ビルごとの振り分けは、位置（30 m の区画）の乱数と高さ（高いほどガラス）。屋根は灰の防水面。店名・看板・広告は描かない
   const ld = u => TL.load(u, t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 8; });
   const tP = ld("web/tex/plaster_c.webp"), tG = ld("web/tex/granite_c.webp");
-  const m = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: .85, metalness: 0, side: THREE.DoubleSide });
+  const m = new THREE.MeshStandardMaterial({ color: "#cfcfca", roughness: .9, metalness: 0, side: THREE.DoubleSide });   /* 11-23 7 周目 P2「地平の白い線が騒がしい」：標示の白を少し落とす */
   const SKYU = PFM.sky = { value: QW.skyBg || null };   // 10-27 P2：ガラスに空を映す（空の写真〔web/tex/sky.webp〕を反射の向きで引く）
   m.onBeforeCompile = sh => { sh.uniforms.tP = { value: tP }; sh.uniforms.tG = { value: tG }; sh.uniforms.tSky = SKYU;
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec2 hb; varying vec2 vHb; varying vec3 vPw; varying vec3 vNw;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvHb = hb; vPw = (modelMatrix * vec4(transformed, 1.)).xyz; vNw = normalize(mat3(modelMatrix) * objectNormal);");
@@ -396,8 +396,10 @@ function loadPlateau(PL) {   // 国土交通省 PLATEAU（東京都23区 2020・
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vPw; varying vec3 vNw;").replace("#include <map_fragment>", `#include <map_fragment>
         if (abs(vNw.y) < .5) { float hz = abs(vNw.x) > abs(vNw.z) ? vPw.z : vPw.x; float fy = fract(vPw.y / 3.6), fx = fract(hz / 2.4);
           float win = step(.32, fy) * step(fy, .88) * step(.1, fx) * step(fx, .9); float lu = dot(diffuseColor.rgb, vec3(.333));
-          diffuseColor.rgb = mix(diffuseColor.rgb, mix(diffuseColor.rgb, vec3(.12, .15, .18) + lu * .35, .3), win); }`); };
-      mat.customProgramCacheKey = () => "plateauWall"; }
+          vec2 cid = floor(vec2(hz / 2.4, vPw.y / 3.6)); float rw = fract(sin(dot(cid, vec2(12.9898, 78.233))) * 43758.5), rf = fract(sin(cid.y * 7.31 + floor(hz / 19.) * 3.7) * 4375.85);   /* 11-23 7 周目 P2「壁の模様の繰り返しが目立つ」：窓ごと・階ごとにガラスの暗さ・ブラインド・明かりを振る */
+          vec3 gl = mix(vec3(.10, .13, .16), vec3(.2, .23, .26), rw) + lu * .3; gl = mix(gl, vec3(.62, .6, .55) * (.8 + .3 * lu), step(.74, rw) * step(rw, .9)); diffuseColor.rgb *= .9 + .2 * rf;
+          diffuseColor.rgb = mix(diffuseColor.rgb, mix(diffuseColor.rgb, gl, .38), win); }`); };
+      mat.customProgramCacheKey = () => "plateauWall2"; }
     const m = new THREE.Mesh(geo, mat); m.name = "plateau_" + gr.k; g0.add(m); landSweep();
     setTimeout(() => plOccAdd(P, I, PL.r), 0);   /* 11-05 採点 P1「ハチ公前で建物の中へ入る」：PLATEAU の屋根の形から足もとの格子を作り、歩いて入らない */
   }).catch(e => console.warn("plateau", e?.message ?? e));
