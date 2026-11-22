@@ -171,8 +171,9 @@ function phGet(id){return db().then(function(d){return new Promise(function(res)
 function phDel(id){return db().then(function(d){d.transaction('ph','readwrite').objectStore('ph').delete(id)}).catch(function(){})}
 
 /* 地図 */
-var map=L.map('map',{renderer:L.canvas({tolerance:14}),preferCanvas:true,zoomControl:false,attributionControl:true,minZoom:3.5,maxZoom:17,zoomSnap:0.25,zoomDelta:0.5,worldCopyJump:false,maxBounds:[[18,118],[50,160]]}).setView([36.5,137.5],5);
-map.fitBounds(innerWidth<768?[[31.0,129.6],[45.5,145.8]]:[[30.5,128.8],[45.6,146.2]],{padding:innerWidth<768?[0,40]:[20,20]});
+var map=L.map('map',{renderer:L.canvas({tolerance:14}),preferCanvas:true,zoomControl:false,attributionControl:true,minZoom:3.5,maxZoom:17,zoomSnap:0.25,zoomDelta:0.5,worldCopyJump:false,maxBounds:[[18,118],[50,160]]});
+map.fitBounds(innerWidth<768?[[26.1,127.6],[45.5,145.8]]:[[26.0,127.5],[45.6,146.2]],{padding:innerWidth<768?[0,24]:[20,20],animate:false});
+
 L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',{minZoom:2,maxZoom:18,maxNativeZoom:18,attribution:'地図：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a> ・ <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'}).addTo(map);
 map.attributionControl.setPrefix(false);
 
