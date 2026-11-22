@@ -1151,6 +1151,7 @@ const SIGHT_HAZE = new THREE.Color(SIGHT_AIR.color);
 const FOGS = { sky: () => ({ c: FOG_SKY, n: 1450, f: 3700 }), walk: () => ({ c: SIGHT_HAZE, n: SIGHT_AIR.near, f: SIGHT_AIR.far * 1.7 })   /* 11-10 採点 P2「参道の奥が霞で途切れる」：霞の奥だけ広げる（手前 near を動かすと 375 で碧が消えた） */   /* 10-29 本人「淡くなりすぎ」→ 近景〜中景（〜320 m）は霞を掛けない */   /* 2026-10-29 遠景：歩くときは描く距離が 700 m なので、霞をその手前で満たす（旧 220〜1500 m＝700 m で景色が霞の途中で切れていた） */, fly: () => ({ c: FOG_SKY, n: 260, f: MOBILE ? 1100 : 1700 }), mid: () => ({ c: FOG_SKY, n: 400, f: 2600 }) };
 function applyFog(f) { scene.fog.color.copy(f.c); scene.fog.near = f.n; scene.fog.far = f.f; }
 function setMode(m) {
+  if (m === "walk" && !QW.tWalk) QW.tWalk = performance.now();   /* 11-22 起動の時間を測る印（歩きはじめた時刻） */
   const prev = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && prev !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
   const walk = m === "walk", fly = m === "fly", sky = m === "sky", sight = m === "sight";
@@ -1205,6 +1206,16 @@ function descendTo(i, at) {
   });
 }
 let WAITORBIT = null;
+/* 11-22 本人「上空から降りる動きを省き、最初から目の高さで」「1 秒で始める」：道と木・碧を待たずに、その場の目の高さで歩きはじめる（道と木はあとから届く・碧はあとから奥から歩いて来る） */
+function startAtEye(i) {
+  const s = D.starts[i]; if (!s) return;
+  hideSkyUI(); loadLate();
+  const a = atD(s.d), yaw = yawAlong(Math.min(s.d + 6, 1985)), y = groundY(a.x, a.z) + EYE;
+  tween = null; WAITORBIT = null; TWFOG = null;
+  CAM.pos.set(a.x, y, a.z); CAM.yaw = yaw; CAM.look = 0; CAM.pitch = walkPitch();
+  camera.position.copy(CAM.pos); camera.quaternion.setFromEuler(new THREE.Euler(CAM.pitch, yaw, 0, "YXZ"));
+  enterWalk();
+}
 function stepWaitOrbit(dt) {   // 待つあいだも画は止めない
   const W = WAITORBIT; if (!W || tween) return; W.t += dt; const a = W.yaw + W.t * .05;
   camera.position.set(W.c.x + Math.sin(a) * 140, W.c.y + 120, W.c.z + Math.cos(a) * 140); camera.lookAt(W.c.x, W.c.y, W.c.z);
@@ -1806,7 +1817,7 @@ const YO_RE = { shizuku: /湧水|湧き水|湧き|神池|池の水|用水|清水
 /* 11-02 本人「碧以外の依代を Qualium に自然な動作で導入してください。碧と仲良くしてください。」
    置く姿＝しずく・石・木・土・鳥・羊（話の印のそば）、碧のそばにいる姿＝狐（横を歩く）・蝶（肩の高さを回る）。
    碧が近づくと依代は碧へ向いて小さく弾み、碧はそちらへ目をやる。碧が話すと近くの依代は碧へ向き、問いの一行では小さく傾く。 */
-const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tori: "鳥", hitsuji: "羊", kitsune: "狐", cho: "蝶", tanuki: "タヌキ", suzume: "スズメ", mitsubachi: "ミツバチ" }, YO_H = { tanuki: .4, suzume: .2, mitsubachi: .16, ki: .8, tsuchi: .42, tori: .36, hitsuji: .5, kitsune: .46, cho: .26 };
+const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tori: "鳥", hitsuji: "羊", kitsune: "狐", cho: "蝶", tanuki: "タヌキ", suzume: "スズメ", mitsubachi: "ミツバチ" }, YO_H = { tanuki: .4, suzume: .2, mitsubachi: .06, ki: .8, tsuchi: .42, tori: .36, hitsuji: .5, kitsune: .46, cho: .26 };
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
@@ -1825,7 +1836,7 @@ async function startYorishiro() {
    変身の輪の一体（YO.y）とは別の器（YO.c）＝輪で入れ替えても消えない。生き物の目・碧が見えないあいだは隠す。一度に出すのはこの 2 体だけ（11-21 本人の指示でタヌキ・スズメ・ミツバチを足して 5 体）。 */
 const YO_C = [["kitsune", .46, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["cho", .26, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"],
   /* 11-21 本人「ほかの依代も入れて」：大宮で本人が見たタヌキ（歩く・碧の反対の脇を少し後ろから）・スズメ（飛ぶ・碧の頭の上を前後に）・ミツバチ（飛ぶ・碧の手もとをゆっくり回る）。形は yorishiro の自作の glb（外の素材なし）。木・石・しずく・土は歩かせないので、ここには入れない */
-  ["tanuki", .4, "タヌキの姿の依代。碧のそばを、とことこ付いて歩きます。"], ["suzume", .2, "スズメの姿の依代。碧の頭の上を、行ったり来たりしています。"], ["mitsubachi", .16, "ミツバチの姿の依代。碧の手もとを、ゆっくり回っています。"]];
+  ["tanuki", .4, "タヌキの姿の依代。碧のそばを、とことこ付いて歩きます。"], ["suzume", .2, "スズメの姿の依代。碧の頭の上を、行ったり来たりしています。"], ["mitsubachi", .06, "ミツバチの姿の依代。碧の手もとを、ゆっくり回っています。"]];
 const YO_FLY = { cho: [.7, .55, .35, 1.3, .12, .5], suzume: [.9, -.25, .5, 2.05, .1, .33], mitsubachi: [.15, .4, .25, .95, .07, .8] };   // 飛ぶ姿：[前, 横（碧の脇）, 回る幅, 高さ, 上下の幅, 回る速さ]
 function stepCompanions(dt) {
   if (!YO.y || !AOI.m) return;
@@ -2155,7 +2166,7 @@ function aoiOnScreen(out) {   // 歩道へ寄せて画面の外に出たら、�
 }
 const aoiYaw = () => CAM.yaw + (MOBILE ? (CAM.look || 0) : 0);   // 11-18：見ている向き（スマホは見回しの分も）
 function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体の向き（歩く向き）を基準にするので、見回しても碧は動かない
-  const f = MOBILE ? 2.5 : 2.3, s = MOBILE ? .2 : .9;   /* 11-20 本人「碧がもっと近く見えるように」：375 は前 3.0→2.5 m（全身が画面の高さの約 5 割） */   /* 11-10 第7周：375 で碧が右端で切れない */   /* 11-03 本人「碧との距離をもっと近く」：前 3.15/2.9 m */   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
+  const f = MOBILE ? 2.9 : 3.4, s = MOBILE ? .2 : 1.2;   /* 11-22 本人「PC は碧を少し遠ざけ、裾まで全身を」：PC 2.3→3.4 m */   /* 11-20 本人「碧がもっと近く見えるように」：375 は前 3.0→2.5 m（全身が画面の高さの約 5 割） */   /* 11-10 第7周：375 で碧が右端で切れない */   /* 11-03 本人「碧との距離をもっと近く」：前 3.15/2.9 m */   /* 11-02 本人「碧ともっと近づいて」＋採点：寄せるより構図で（やや斜め前・顔は画面の上 3 分の 1） */   /* 10-30 パネル：PC でも進む向きの真ん中から外す */   /* 10-30 パネル：375px で進む向きの真ん中に碧を置かない */   // 2026-10-26 3（採点「PC で足もとが切れる・スマホでボタンに隠れる」）：少し離れて立つ   // スマホは少し離れて、全身が画面の右寄りに入るように   // 視界のまんなかをあけて、斜め前の端寄りに
   const vy = AOI.sy ?? aoiYaw(), fx = -Math.sin(vy), fz = -Math.cos(vy), n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d);   /* 10-28 夜 8：スマホは見ている向きの前に立つ */
   const rx = -fz, rz = fx, sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = PANEL.cur && !MOBILE ? -1 : (Math.abs(sd0) > .8 || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side);   /* 10-30：道の中心を歩くと左右がこまごとに入れかわり、碧が真ん中に留まっていた。0.8 m の幅でしか入れかえない */   // PC で右に札を開いているあいだは、碧は左寄りに（札に隠れない）
   // 2026-10-26 3：参道から離れたエリア（東口・西口・新都心・公園）では、参道の中心へ引っぱらない（スマホで碧が画面の端で切れていた）。右寄りに固定し、道の上へ寄せる
@@ -2167,10 +2178,12 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
   if (MOBILE) { const lat = (out.x - CAM.pos.x) * rx + (out.z - CAM.pos.z) * rz, fw = (out.x - CAM.pos.x) * fx + (out.z - CAM.pos.z) * fz, lim = .3; if (Math.abs(lat) > lim || fw < 2.1) { const L2 = Math.max(-lim, Math.min(lim, lat)), F2 = Math.max(2.1, fw), x = CAM.pos.x + fx * F2 + rx * L2, z = CAM.pos.z + fz * F2 + rz * L2; if (!blocked(x, z) && !AREAS?.onCarriage?.(x, z)) { out.x = x; out.z = z; } } }   /* 11-20：近くに立つぶん、375 では横へ寄りすぎない・近すぎない（画面の端で切れない・左右の札に重ならない） */
   out.y = groundY(out.x, out.z); return out;
 }
+/* 11-22 本人「碧はあとから現れる・一瞬も透けさせない」：立ち位置の奥（見る人から遠い側）に不透明のまま置き、そこから歩いて立ち位置へ来る */
+function aoiFrom(p, ok) { const dx = p.x - CAM.pos.x, dz = p.z - CAM.pos.z, l = Math.hypot(dx, dz) || 1; for (const k of [7, 5.5, 4, 2.5]) { const x = p.x + dx / l * k, z = p.z + dz / l * k; if (!ok || ok(x, z)) return { x, z }; } return { x: p.x, z: p.z }; }
 function aoiArrive() {
   loadAoi().then(() => {
     if (!AOI.m || QW.mode !== "walk") return;
-    AOI.sy = aoiYaw(); aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, Math.atan2(CAM.pos.x - AOI.pos.x, CAM.pos.z - AOI.pos.z)); AOI.root.visible = true;
+    AOI.sy = aoiYaw(); aoiSpot(AOI.pos); { const f = aoiFrom(AOI.pos, (x, z) => !blocked(x, z)); AOI.m.teleport(f.x, f.z, Math.atan2(AOI.pos.x - f.x, AOI.pos.z - f.z)); } AOI.v = 0; AOI.root.visible = true;
     if (!AOI.greeted) { AOI.greeted = true; TALK.nextT = performance.now() + 7000; setTimeout(() => { if (QW.mode === "walk" && !PANEL.cur) { speakLines([D.intro], null); setTimeout(() => hintQ(), 5200); } }, 900); }
   });
 }
@@ -3121,10 +3134,11 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
 
 (async () => {
   try {
-    await buildBase();
+    await buildBase(); QW.tBase = performance.now();
     buildObjs(); loadMore(); fillMenu(); buildTray();
     setMode("sky"); skyCam(); showSkyUI(); selectStart(0);
-    try { if (renderer.compileAsync) await Promise.race([renderer.compileAsync(scene, camera), new Promise(r => setTimeout(r, 1500))]); } catch { }   /* 11-05 起動 1 秒：最初のこまの描き方を並列に組んでから描く（本体の手を止めない） */
+    { const e0 = Q.get("start") ?? (Q.has("map") ? null : String(D.starts.findIndex(s => s.name === "二の鳥居"))); if (e0 != null && D.starts[+e0]) { selectStart(+e0); startAtEye(+e0); QW.eyeStarted = true; } }   /* 11-22 本人「1 秒で始める」：最初のこまを組む前に目の高さへ（上空の画を組まない） */
+    try { if (renderer.compileAsync) await Promise.race([renderer.compileAsync(scene, camera), new Promise(r => setTimeout(r, 350))]); } catch { } QW.tComp = performance.now();   /* 11-05 起動 1 秒：最初のこまの描き方を並列に組んでから描く（本体の手を止めない） */
     renderer.setAnimationLoop(frame);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     document.body.classList.add("ready");
@@ -3134,7 +3148,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     loadLate(); const aoiAfterRoad = () => loadAoi();   /* 11-08：モデルはHTMLで先読み済み。道路取得完了を待たず、姿の準備を重ねる */
     setTimeout(() => { aoiAfterRoad(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 60);
     setTimeout(initAreas, 700);   // 7 つのエリアの輪郭（2 KB）。中身は近づいたときに読む   // 2026-10-23：碧を道・木・構造物と同時に読みはじめる（前は 0.4 秒あと）
-    const s0 = Q.get("start") ?? (Q.has("map") ? null : String(D.starts.findIndex(s => s.name === "二の鳥居")));   /* 11-10 第4周：最初から目の高さ（二の鳥居）へ。地図は「ほかの場所」で開く（?map=1 で地図から） */ if (s0 != null && D.starts[+s0]) { selectStart(+s0); descendTo(+s0); }
+    const s0 = Q.get("start") ?? (Q.has("map") ? null : String(D.starts.findIndex(s => s.name === "二の鳥居")));   /* 11-10 第4周：最初から目の高さ（二の鳥居）へ。地図は「ほかの場所」で開く（?map=1 で地図から） */ if (s0 != null && D.starts[+s0] && !QW.eyeStarted) { selectStart(+s0); startAtEye(+s0); }
     if (Q.get("layer")) setTimeout(() => wearLayer(Q.get("layer")), 200);
     if (Q.get("sight")) setTimeout(() => QW.sight(Q.get("sight")), 300);
   } catch (e) {
