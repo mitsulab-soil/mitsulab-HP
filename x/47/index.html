@@ -7,7 +7,7 @@
 <meta name="tdm-reservation" content="1">
 <title>Qualia/uv ── 紫外の色</title>
 <meta name="description" content="氷川参道の目の高さの景色を、ミツバチやアゲハが受けとるとされる紫外を含む色に置きかえる模式。黄色い花の真ん中に、人には見えない「的」が浮かぶ。">
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
+<link rel="modulepreload" href="kit/vendor/three.module.min.js"><link rel="modulepreload" href="kit/qfield.js"><link rel="modulepreload" href="kit/sight_land.js">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 </head>
 <body>
@@ -19,6 +19,13 @@
 <p><b>この画面の色は模式（偽色）です。</b>ミツバチには、紫外・青・緑の強さを画面の青・緑・赤に割りあてました。アゲハは赤を残し、紫外を青に重ねました。虫に「どう見えているか」そのものではなく、受けとる光の幅のちがいを、人に見える色へ移したものです。カメラで紫外を撮ってはいません（スマホのカメラは紫外をほとんど通しません）。花・葉・石の紫外の返しかたは、上の文献の傾向にもとづく数値の模式です。花の形・ミツバチの姿と大きさ（見やすく 2 倍）も模式です。</p>
 <p>場所は氷川参道の目の高さを模した場で、Qualia/sight・Qualia/time と同じ地（樹皮・葉・土・砂利の写真は CC0）。three.js（MIT）。© mitsulab.</p>
 </div></details>
+<style>
+.card{position:fixed;right:16px;top:calc(max(10px,env(safe-area-inset-top)) + 58px);width:200px;padding:10px 10px 8px;background:rgba(240,244,242,.82);border:1px solid var(--line);border-radius:2px;font:11.5px/1.5 "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t2);pointer-events:none}
+.card canvas{width:100%;height:auto;display:block}
+.card .row{display:flex;justify-content:space-around;margin-top:2px}
+@media (max-width:420px){.card{width:150px;font-size:10.5px;padding:6px}}
+</style>
+<div class="card" aria-label="同じ花の見え方のちがい"><canvas id="fc" width="360" height="170"></canvas><div class="row"><span>人の目</span><span id="fcR">ミツバチの目</span></div></div>
 <div class="cap" id="cap">いまは人の目。下の札で、虫の目に切りかえる。</div>
 <div class="bar" role="group" aria-label="だれの目で見るか">
 <button id="bH" aria-pressed="true">人の目</button><button id="bB" aria-pressed="false">ミツバチ</button><button id="bA" aria-pressed="false">アゲハ</button><button id="bGo">外でさがす</button>
@@ -27,12 +34,24 @@
 <script type="module">
 const $ = id => document.getElementById(id);
 const CAP = {
-  human: 'いまは人の目。黄色い花は、ただの黄色。',
+  human: 'いまは人の目。黄色い花は、ただの黄色（キジムシロのなかま・模式）。',
   bee: 'ミツバチの目。花の真ん中が、紫外を吸う「的」になって浮かぶ。緑の葉は紫外を返さず、赤茶に沈む。',
   ageha: 'アゲハの目。赤も見え、紫外も重なる。花の的は残り、空は紫外で明るい。'
 };
+
+// 同じ一輪を、人の目と虫の目で並べる（模式）
+{ const c = $('fc'), g = c.getContext('2d');
+  const flower = (cx, cy, mode) => { for (let k = 0; k < 5; k++) { g.save(); g.translate(cx, cy); g.rotate(k * Math.PI * 2 / 5);
+      const gr = g.createLinearGradient(0, 0, 0, -70);
+      if (mode === 'h') { gr.addColorStop(0, '#e9b81e'); gr.addColorStop(1, '#f6d63a'); }
+      else if (mode === 'b') { gr.addColorStop(0, '#7a1a0e'); gr.addColorStop(.38, '#8c1d18'); gr.addColorStop(.52, '#c63fa8'); gr.addColorStop(1, '#e05ad8'); }
+      else { gr.addColorStop(0, '#6a2a14'); gr.addColorStop(.38, '#8a3018'); gr.addColorStop(.52, '#d0589a'); gr.addColorStop(1, '#f07ac8'); }
+      g.fillStyle = gr; g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(-34, -20, -40, -66, -8, -70); g.quadraticCurveTo(0, -63, 8, -70); g.bezierCurveTo(40, -66, 34, -20, 0, 0); g.fill(); g.restore(); }
+    g.beginPath(); g.arc(cx, cy, 10, 0, 7); g.fillStyle = mode === 'h' ? '#c88a10' : '#5a1208'; g.fill(); };
+  window.__drawCard = m => { g.clearRect(0, 0, c.width, c.height); flower(88, 88, 'h'); flower(272, 88, m === 'ageha' ? 'a' : 'b'); $('fcR').textContent = m === 'ageha' ? 'アゲハの目' : 'ミツバチの目'; };
+  window.__drawCard('bee'); }
 let A = null;
-const set = n => { A && A.set(n); $('cap').textContent = CAP[n]; for (const [id, k] of [['bH', 'human'], ['bB', 'bee'], ['bA', 'ageha']]) $(id).setAttribute('aria-pressed', k === n); navigator.vibrate && n !== 'human' && navigator.vibrate(18); };
+const set = n => { A && A.set(n); n !== 'human' && window.__drawCard(n); $('cap').textContent = CAP[n]; for (const [id, k] of [['bH', 'human'], ['bB', 'bee'], ['bA', 'ageha']]) $(id).setAttribute('aria-pressed', k === n); navigator.vibrate && n !== 'human' && navigator.vibrate(18); };
 $('bH').onclick = () => set('human'); $('bB').onclick = () => set('bee'); $('bA').onclick = () => set('ageha');
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); };
 $('bBack').onclick = () => $('away').classList.remove('on');

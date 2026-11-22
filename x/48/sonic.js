@@ -3,7 +3,9 @@
 import { create, THREE, hash1 } from './kit/qfield.js';
 
 export function start(canvas) {
-  const F = create(canvas, { pitch: .18, sky: '#9fb2c4' });
+  const F = create(canvas, { pitch: .18, sky: '#c4a598', date: (() => { const d = new Date(); d.setHours(17, 20, 0, 0); return d; })() });
+  // 夕方（日の入りのころ・模式）：空と霞を夕方の色に、光を暖かく弱く
+  F.sun.color.set('#ffb27a'); F.sun.intensity = 1.3; F.hemi.color.set('#d8b8b0'); F.hemi.groundColor.set('#3a2c2a'); F.hemi.intensity = .85;
   // 夕方の空を飛ぶアブラコウモリ（模式。翼を広げて約 20 cm）
   const batM = new THREE.MeshStandardMaterial({ color: '#2a221e', roughness: .8, side: THREE.DoubleSide });
   const bats = []; for (let k = 0; k < 3; k++) { const g = new THREE.Group(); const body = new THREE.Mesh(new THREE.SphereGeometry(.03, 8, 6), batM); body.scale.set(.8, .8, 1.6); g.add(body);

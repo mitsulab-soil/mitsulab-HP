@@ -32,7 +32,7 @@ vec3 qRamp( float x ){ x = clamp( x, 0., 1. );
   const fogH = F.S.fog.color.clone(), fogC = new THREE.Color('#1a0f3a');
 
   let target = 0, date = new Date(), pr = F.R.getPixelRatio(), lowOn = false;
-  function setDate(d) { date = d; F.setDate(d); const ta = airT(d); U.uTair.value = ta; U.uTmin.value = ta - 8; U.uTmax.value = Math.max(ta + 18, 35); U.uSunUp.value = Math.max(0, Math.min(1, Math.sin(F.sunInfo.el) / Math.sin(55 * Math.PI / 180))); U.uAmb.value = F.hemi.intensity * .78; U.uSunI.value = F.sun.intensity; clothFix.value = (ta + 33) / 2 + 5 * U.uSunUp.value; }
+  function setDate(d) { date = d; F.setDate(d); const ta = airT(d); U.uTair.value = ta; U.uTmin.value = ta - 8; U.uTmax.value = Math.max(ta + 18, 35); U.uSunUp.value = Math.max(0, Math.min(1, Math.sin(F.sunInfo.el) / Math.sin(55 * Math.PI / 180))); U.uAmb.value = F.hemi.intensity * 1.08; U.uSunI.value = F.sun.intensity; clothFix.value = (ta + 33) / 2 + 5 * U.uSunUp.value; }
   setDate(date);
   F.onFrame = (dt) => {
     F.lens.value += (target - F.lens.value) * Math.min(1, dt * 2.2);
