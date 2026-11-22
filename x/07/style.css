@@ -225,3 +225,6 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 @media(prefers-reduced-motion:reduce){.near-sound-points button::before{transition:none}}
 
 #labs .lab.dot{font-size:0!important;padding:5px!important;gap:0!important;letter-spacing:0!important}   /* 2026-11-09 第3周：遠くの群れは色の点だけ */
+
+/* 2026-11-22 採点：窓の中のリンクを押しやすく（44px） */
+.copy a,#about a{display:inline-flex;align-items:center;min-height:44px;padding:0 2px}
