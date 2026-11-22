@@ -101,3 +101,7 @@ body{font-family:var(--ml-sans);line-height:1.6;overscroll-behavior:none}
 @media (max-width:380px){ .chips{gap:4px} .chip img,.chip canvas,.chip svg,.chip .plus{width:48px;height:48px} .dock{gap:12px} }
 @media (prefers-reduced-motion:reduce){ #cap{transition:none} .tray-in{animation:none} }
 #trayK{max-width:260px}
+
+/* 2026-11-22 スマホの組の札の字を大きく・PC の字幕を太く */
+@media (max-width:899px){.chip b{font-size:.78rem!important;white-space:normal!important;line-height:1.25}}
+@media (min-width:900px){#cap{font-weight:600;letter-spacing:.06em}}

@@ -408,7 +408,7 @@ body.kur #ring{display:none}
 #acts{flex-wrap:wrap;overflow:visible}   /* 問いの札が増えても、PC で右に切れない */
 #ring .rg-it{color:#f1f6ee}
 @media (max-width:700px){#kesTile{height:44px!important;width:auto!important;padding:0 12px!important}#kesTile svg,#kesTile small{display:none!important}#kesTile b{font-size:13px!important}}   /* 2026-11-22 スマホの左下に札と字幕とボタンが固まる → 今の景色の札を小さく */
-@media (max-width:700px){#bodyControls [data-turn],#bodyBack{display:none!important}#bodyControls{width:auto}#ring .rg-it span{font-size:13px!important;color:#fff}}   /* 2026-11-22 スマホは札とボタンを減らして景色を見せる（向きはなぞって変えられる）・となりの生き物の名を読みやすく */
+@media (max-width:700px){#bodyControls [data-turn],#bodyBack{display:none!important}#bodyControls{width:auto}#ring .rg-it span{font-size:14px!important;color:#fff}#ring .rg-it.on span{font-size:19px!important}}   /* 2026-11-22 スマホは札とボタンを減らして景色を見せる（向きはなぞって変えられる）・となりの生き物の名を読みやすく */
 #where #whereName{display:none}
 #where{top:calc(max(8px,env(safe-area-inset-top)) + 180px)!important}
 #moveNote{animation:mvfade 9s forwards}@keyframes mvfade{0%,82%{opacity:1}100%{opacity:0}}
