@@ -117,6 +117,9 @@ let space=null; // 演奏面を開くまで、2個目のWebGLは作らない。
 const say=t=>{const el=$('say');if(el&&el.textContent!==t)el.textContent=t;};   // 読み上げ：鳴る／止まるを短く伝える
 function halt(){const was=synth.playing||second.playing;synth.stop(.06);second.stop(.06);mixing=false;$('mixRatio').disabled=true;if(was&&cur)say('止めました：'+cur.t);}
 function playAs(){if(!cur||cur.quiet)return;halt();synth.play(cur,dials());say('鳴っています：'+cur.t);}
+// 2026-11-22 体験の芯：三つ聴いたら一度だけ、画面から耳を外へ向ける（短い震え＋字幕。12 秒で消える）
+const heard=new Set();let awayDone=false;const awayOnce=()=>{heard.add(cur.t);if(awayDone||heard.size<3)return;awayDone=true;const el=$('away');if(!el)return;el.textContent='画面を伏せて、10 秒だけ耳を澄ます。いちばん遠い音は、どこから？';el.hidden=false;try{navigator.vibrate&&navigator.vibrate([30,80,30]);}catch(e){}setTimeout(()=>{el.hidden=true;},12000);};
+{const _p=playAs;playAs=function(){_p();if(cur&&!cur.quiet)awayOnce();};}
 const playing=()=>synth.playing||second.playing;
 function mix(){if(!material||!cur||cur.quiet)return;halt();const ctx=synth.ensure();if(!second.ctx){second.attach(ctx);second.lim.disconnect();second.lim.connect(synth.lim);}synth.play(material,dials());second.play(cur,dials());mixing=true;$('mixRatio').disabled=false;balance();$('mixStatus').textContent='A：'+material.t+' ／ B：'+cur.t;}
 function balance(){const r=+$('mixRatio').value/100;if(synth.out)synth.out.gain.setTargetAtTime(mixing?.9*Math.sqrt(1-r):1.45,synth.ctx.currentTime,.04);if(second.out)second.out.gain.setTargetAtTime(.9*Math.sqrt(r),second.ctx.currentTime,.04);}
@@ -178,7 +181,7 @@ function select(it, { fly = true, audible = true } = {}) {
     fly = s.z > 1 || (sheetMQ.matches ? y > r.top - 40 || y < 90 : x > r.left - 40); }
   if (fly) { const p = new THREE.Vector3().fromArray(POS, it.i * 3); target = sheetMQ.matches ? p.clone() : p.clone().lerp(new THREE.Vector3(0, 3.1, 0), .25); controls.autoRotate = false; }
 }
-function clearSel() { if (entryReturn) { const b = entryReturn; requestAnimationFrame(() => b.focus({preventScroll:true})); entryReturn = null; } cur = null; halt(); panel.hidden = true; $("hint").hidden = false; { const al = document.querySelector(".aoi-line"); if (al) al.textContent = "いまいる場所の音にも、耳を澄ましてみて。"; } sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
+function clearSel() { if (entryReturn) { const b = entryReturn; requestAnimationFrame(() => b.focus({preventScroll:true})); entryReturn = null; } cur = null; halt(); panel.hidden = true; $("hint").hidden = false; { const al = document.querySelector(".aoi-line"); if (al) { al.textContent = "いまいる場所の音にも、耳を澄ましてみて。"; al.hidden = false; } } sel.visible = stem.visible = ring.visible = false; nowEl.classList.remove("on"); }
 $("bClose").addEventListener("click", clearSel);
 addEventListener("keydown", e => { if (e.key !== "Escape" || document.querySelector("dialog[open]")) return; if (cur) clearSel(); });
 const step = k => { const i = cur ? order.indexOf(cur) : -1; select(order[(i + k + order.length) % order.length]); };
