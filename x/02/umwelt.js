@@ -442,7 +442,7 @@ let bodyYaw0=0,bodyRoll=0,showLens='',showT=0;
 const BODYREST = 1.6;   // 2026-11-20 2 周目：見せ場のあとの自分の体を大きく（プレイ画面で体が小さかった）
 const BODYPOS={camera:[-.33,-.8],netsu:[-.3,-.72],hachi:[-.19,-.78],chou:[-.2,-.84],tori:[-.2,-.84],inu:[-.3,-.98],hebi:[-.22,-.92],koumori:[-.19,-.84]};
 // 切り替えた直後の「寄り」（ry＝横へ回す・rx＝手前へ傾けて背を見せる・y z＝寄せる位置・s＝大きさの倍率）
-const SHOW={camera:{ry:.9,rx:.1,y:-.2,z:-.62,s:1.25},netsu:{ry:.9,rx:.15,y:-.16,z:-.6,s:1.0},def:{ry:1.2,rx:0,y:-.13,z:-.52,s:1.35},hachi:{ry:1.35,rx:.12,y:-.1,z:-.44,s:1.9},tori:{ry:1.3,rx:.1,y:-.11,z:-.46,s:1.7},chou:{ry:1.0,rx:.35,y:-.12,z:-.5,s:1.45},inu:{ry:1.25,rx:.05,y:-.15,z:-.55,s:1.35},hebi:{ry:.55,rx:.85,y:-.12,z:-.5,s:1.8},koumori:{ry:.4,rx:.55,y:-.05,z:-.82,s:1.0}};
+const SHOW={camera:{ry:.9,rx:.1,y:-.2,z:-.62,s:1.25},netsu:{ry:.9,rx:.15,y:-.16,z:-.6,s:1.0},def:{ry:1.2,rx:0,y:-.13,z:-.52,s:1.35},hachi:{ry:1.35,rx:.12,y:-.1,z:-.44,s:1.9},tori:{ry:1.3,rx:.1,y:-.2,z:-.48,s:1.2},chou:{ry:1.0,rx:.35,y:-.12,z:-.5,s:1.45},inu:{ry:1.25,rx:.05,y:-.15,z:-.55,s:1.35},hebi:{ry:.55,rx:.85,y:-.12,z:-.5,s:1.8},koumori:{ry:.4,rx:.55,y:-.05,z:-.82,s:1.0}};
 // 自分の体の質感（森の生きものと共有している質感は、透かさない）
 const worldMats = new Set(); forest.traverse(o => { if (o.isMesh) for (const mt of [].concat(o.material)) worldMats.add(mt); });
 const bodyMats = {};
@@ -527,7 +527,7 @@ function applyLens(id) {
     : TOUCH ? (FLIGHT.has(id) ? '飛ぶ · ↑ 長押しで進む・＋ − で上下' : (id === 'hebi' ? '地面を這う' : '歩く') + ' · ↑ 長押しで進む・なぞって見回す')
     : FLIGHT.has(id) ? '飛ぶ · W A S D ／ 上昇 R・下降 F（画面のボタンでも）' : id === 'hebi' ? '地面を押すと、そこへ這う · W A S D でも' : '地面を押すと、そこへ歩く · W A S D でも');
   $('bodyControls').hidden = !!L.under || chapter !== 'umwelt';   // ミミズのときは ▲▼ のボタンだけ（進む・戻ると役割が重なるため）
-  $("legend").dataset.lens = id; $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt";
+  $("legend").dataset.lens = id; $("legend").innerHTML = L.legend; $("legend").hidden = !L.legend || chapter !== "umwelt" || innerWidth < 700;   // 2026-11-22 スマホは文字の層を減らす（上の一行と重なる）
   $("worm").hidden = id !== "mimizu" || chapter !== "umwelt";
   $("cmpBtn").hidden = id === "hito" || !!L.under || chapter !== "umwelt";
   window.__kes?.lens(id);   // 2026-11-20 今の景色の窓・計算機を通す視点へ、体が変わったことを伝える
@@ -905,6 +905,7 @@ function echoHit(d) {
 }
 async function setLens(id, silent = false, opt = {}) {
   if (!LENS[id]) return;
+  awayOnce(id);
   first(false);
   if (!opt.at && KUR.on) kurabeEnd(false);   // ダイヤルで自由に切り替えたら、くらべる旅はそこで終わる
   const token=++lensToken; lensRequest=id; keys.clear();
@@ -1353,7 +1354,7 @@ STARTUP.sceneBuiltAt = performance.now();
   requestAnimationFrame(frame); { const t0 = performance.now(); let lt = t0, n = 0; while (true) { await new Promise(r => requestAnimationFrame(r)); const t = performance.now(), dt = t - lt; lt = t; n++; if ((n >= 2 && dt < 50) || t - t0 > 160) break; } }   // 幕の裏で数こま回し、こまが落ち着いてから幕を上げる
   { const f = scene.fog, D = f.density, t0 = performance.now(); f.density = D * 3.2; const st = () => { const k = Math.min(1, (performance.now() - t0) / 2800); f.density = D * (3.2 - 2.2 * k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(st); }; requestAnimationFrame(st); }   // 2026-11-18 幕を上げたら、濃い霞からゆっくり晴れる（あとから入る遠くの木・質感が急に入れかわって見えない）
   window.__muBoot = true; bootOpen(); $("boot").classList.add("gone"); setTimeout(() => $("boot").hidden = true, 180);
-  { const T0 = "となりに立っているのが、案内の碧です。画面を押すと、碧が案内をはじめます。同じ場所に立ったまま、蜂・犬・マムシに体を入れかえて、見え方をくらべます。（およそ 5 分）"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
+  { const T0 = "となりにいるのは案内の碧。画面を押すと、はじまります。"; if (A.hold) A.sayOnShow = T0; else $("say").textContent = T0; }
   setActs([]);
   // 姿は、はじめて押す前から、揺れずにゆっくり現れる
   if (!A.hold) { A.appear = true; A.intro = true; if (AM) AM.calm = 2.4; }   // 2026-10-14：待たずに、最初のこまから現れはじめる

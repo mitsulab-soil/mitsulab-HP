@@ -303,7 +303,7 @@ start(false);   // 2026-11-09 入口の説明は出さない（音は点に触�
 // 2026-11-07: 三つの入口も既存の言葉の点へ。全項目・原文・合成規則はそのまま。
 // 短い手がかりは索引であり、選択後は本人の原文を演奏面と点の札へ出す。
 const nearbyEntries = [
-  { n: 509, label: "雨", title: "雨の日のバス停の音" },
+  { n: 624, label: "雨", title: "雨の重さでもたれかかった木の音" },
   { n: 485, label: "水", title: "青い水たまりの音" },
   { n: 800, label: "風", title: "更科の風の音" }
 ];
@@ -314,6 +314,9 @@ for (const entry of nearbyEntries) {
   const b = document.querySelector(`[data-sound-entry="${entry.n}"]`);
   if (!it || !b) { b && b.remove(); continue; }
   b.addEventListener("click", () => { synth.ensure(); entryReturn = b; select(it); });
+  // 2026-11-22 採点「音の欄が開くと水・風が隠れる」：欄の上にも小さな雨・水・風を置き、閉じずに聴きくらべられるように
+  let row = document.querySelector(".p-near"); if (!row) { row = document.createElement("div"); row.className = "p-near"; row.setAttribute("role", "group"); row.setAttribute("aria-label", "雨・水・風を聴きくらべる"); document.querySelector("#panel .p-head")?.after(row); }
+  const c = document.createElement("button"); c.type = "button"; c.className = "ml-btn ml-btn--quiet"; c.textContent = entry.label; c.title = entry.title; c.addEventListener("click", () => { synth.ensure(); select(it); }); row.appendChild(c);
 }
 if (window.__qsPendEntry) { const b = document.querySelector(`[data-sound-entry="${window.__qsPendEntry}"]`); window.__qsPendEntry = 0; b && setTimeout(() => b.click(), 0); }
 
