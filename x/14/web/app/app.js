@@ -1229,7 +1229,7 @@ function playNext() {
 let capT = 0;
 let capChunkT = 0;
 function capSplitLong(L, max) {   /* 11-22：スマホの 1 行に収まらない句は、助詞の後ろで二つに分ける（語の途中で切らない） */
-  const out = []; for (let x of L) { while (x.length > max) { let k = 0; for (let i = 3; i < Math.min(x.length - 2, max); i++) if (x.length - i - 1 >= 4 && (/[をにがはでとへも]/.test(x[i]) || /ような$|ように$|ている$|ました$/.test(x.slice(0, i + 1))) && !/[ぁぃぅぇぉっゃゅょ、。！？」』）\sはもの]/.test(x[i + 1] || "")) k = i + 1; if (!k) k = max; out.push(x.slice(0, k)); x = x.slice(k); } out.push(x); } return out; }
+  const out = []; for (let x of L) { while (x.length > max) { let k = 0; for (let i = 3; i < Math.min(x.length - 2, max); i++) if (x.length - i - 1 >= 4 && (/[をにがはでとへも]/.test(x[i]) || /ような$|ように$|ている$|ました$/.test(x.slice(0, i + 1))) && !/[ぁぃぅぇぉっゃゅょ、。！？」』）\sはもの]/.test(x[i + 1] || "")) k = i + 1; { const c = x.lastIndexOf("、", max - 1); if (c >= 8 && x.length - c - 1 >= 6) k = c + 1; }   /* 11-23 5 周目：「…層を／重ねます。」と切れた→読点があればそこで切る */ if (!k) k = max; out.push(x.slice(0, k)); x = x.slice(k); } out.push(x); } return out; }
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
   const max = innerWidth < 640 ? 40 : 48;   /* 2026-11-22 2 行に入る文は字幕 1 枚に */   /* 11-22：15 字に分けると一句が 1 秒ほどで次の語りに消された→ 20 字のまま、字を少し小さくして 1 行に収める */   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
