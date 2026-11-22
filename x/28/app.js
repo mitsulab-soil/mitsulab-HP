@@ -771,7 +771,7 @@ function frame() {
 function focusDist() {                                         // 画面の中央に見えている書の距離（無ければ近い書）
   rc.setFromCamera(ndc.set(0, 0), cam); let best = 1e9;
   if (AO.ready && AO.root && AO.fade > 0.3) { const d = tmpV.set(AO.root.position.x, AO.root.position.y + AOI_H * 0.88, AO.root.position.z).sub(cam.position), l = d.length();   /* 2026-11-21 碧が近く・視野の中ほどにいるときは碧の顔に合わせる（書に合わせたままだと、近くの碧の顔がぼけて目が白くとんで見えた） */
-    if (l < 4.5 && d.normalize().angleTo(rc.ray.direction) < 0.42) return l; }
+    if (l < 6 && d.normalize().angleTo(rc.ray.direction) < 0.6) return l; }   /* 2026-11-22 スマホで碧は約 4.8m 先・中央から右に立ち、書に焦点が合って碧の顔がぼけ「目も口もない」ように見えた → 6m・0.6 まで碧に合わせる */
   for (const it of works) { if (!it.sho) continue; const d = tmpV.set(it.x, it.sho.group.position.y, it.z).sub(cam.position), along = d.dot(rc.ray.direction); if (along <= 0) continue; const off = Math.sqrt(Math.max(0, d.lengthSq() - along * along)); if (off < it.sho.width * 0.6 && along < best) best = along; }
   if (best < 1e9) return best;
   let bv = 1e9; const half = THREE.MathUtils.degToRad(cam.fov / 2) * Math.max(1, cam.aspect) * 0.9;   // 中央に無ければ、視野の中でいちばん近い書
