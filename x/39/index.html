@@ -200,7 +200,8 @@ function draw(){
   var all=[];SEED.forEach(function(p){if(on[p.s])all.push([p,true])});
   load().forEach(function(p){if(on[p.s]&&SM[p.s])all.push([p,false])});
   /* 近い印は一つにまとめる（画面で 34px 以内）。寄ると分かれる */
-  var gs=[],D=innerWidth<768?74:58;   /* 2026-11-22 まとまりの札を大きくしたので、重ならない距離に */
+  var gs=[],D=innerWidth<768?74:58;   /* PC は「押して寄る」を出さない（札の題で伝える） */
+  if(!document.getElementById('grpCss')){var st=document.createElement('style');st.id='grpCss';st.textContent='@media(min-width:768px){.grp em{display:none}}';document.head.appendChild(st)}   /* 2026-11-22 まとまりの札を大きくしたので、重ならない距離に */
   all.forEach(function(a){var pt=map.latLngToLayerPoint([a[0].la,a[0].lo]),g=null;
     for(var i=0;i<gs.length;i++){if(gs[i].pt.distanceTo(pt)<D){g=gs[i];break}}
     if(g)g.m.push(a);else gs.push({pt:pt,m:[a]})});

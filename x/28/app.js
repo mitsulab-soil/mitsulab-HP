@@ -572,7 +572,7 @@ const AOI_LINES = {
   '007': '「鳥の雛が卵の殻を破壊し広大な環世界を創造する音」。乾いた墨の殻に、ひびが走ります。',
 };
 const AOI_H = 1.6;
-const AO = { root: null, M: null, mats: null, pos: new THREE.Vector3(mobile ? 1.3 : -2.6, 0, mobile ? 5.4 : 4.6), vel: new THREE.Vector3(), goal: null, from: null, fade: 0, op: -1, out: 0, for: null, said: null, sayT: 99, ready: false };
+const AO = { root: null, M: null, mats: null, pos: new THREE.Vector3(mobile ? 0.65 : -2.6, 0, mobile ? 6.2 : 4.6)   /* 2026-11-22 スマホで碧が画面の外にいた */, vel: new THREE.Vector3(), goal: null, from: null, fade: 0, op: -1, out: 0, for: null, said: null, sayT: 99, ready: false };
 const STARTUP = window.__shoStartup = {};
 let aoiLoading = null;
 function loadAoi() {
@@ -599,6 +599,7 @@ function loadAoi() {
       AO.root = root; AO.vrm = v; AO.fade = 0; aoiOpacity(0);
       try { aoiOpacity(1); const W = await WARM; await W.keepVariant(R, root, cam, scene, () => { }, { offscreen: dof.on }); } catch { }   /* 2026-11-05 夕：現れ終わって透けない材質に戻るこまで 6〜10 個組み直して 0.15〜0.28 秒止まっていた → 透けない形を写しで先に組んで持っておく（kit/warm.js keepVariant） */
       try { const W = await WARM; for (const op of [1, 0]) { aoiOpacity(op); await W.warmAoi(R, root, cam, scene, { offscreen: dof.on }); } } catch { }   /* 2026-11-05 夕：kit/warm.js の warmAoi（ぼかしの描き先で組む形）に。aoi_motion.js の warmAoi は画面へ描く形で組み、ぼかしへ描く本番の形は碧が出たこまで組み直していた */   /* 11-03：見せる前に、テクスチャ・シェーダー・影を少しずつ（出る瞬間に止まらない） */
+      if (mobile) { const f0 = fwd(P.yaw); AO.pos.set(P.x + f0.x * 3.7 - f0.z * 0.75, 0, P.z + f0.z * 3.7 + f0.x * 0.75); AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); }   /* 2026-11-22 スマホは見る人の前、少し右に立つ */
       if (!RM) { const gx = AO.pos.x, gz = AO.pos.z, ax = gx - P.x, az = gz - P.z, al = Math.hypot(ax, az) || 1; AO.goal = AO.goal || { x: gx, z: gz }; [AO.pos.x, AO.pos.z] = keepOut(gx + ax / al * 2.2, gz + az / al * 2.2); AO.M.place(AO.pos.x, AO.pos.z, Math.atan2(P.x - AO.pos.x, P.z - AO.pos.z)); AO.fade = 1; }   /* 2026-11-22 はじめも、奥から不透明のまま歩いて入ってくる */
       STARTUP.warmed = performance.now(); scene.remove(aoiFaceStub); scene.add(root); AO.ready = true;
       window.__aoi = AO;
