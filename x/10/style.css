@@ -105,3 +105,4 @@ body{font-family:var(--ml-sans);line-height:1.6;overscroll-behavior:none}
 /* 2026-11-22 スマホの組の札の字を大きく・PC の字幕を太く */
 @media (max-width:899px){.chip b{font-size:.78rem!important;white-space:normal!important;line-height:1.25}}
 @media (min-width:900px){#cap{font-weight:600;letter-spacing:.06em}}
+#cap{text-shadow:0 0 2px #000,0 0 6px rgba(0,0,0,.95),0 1px 12px rgba(0,0,0,.85)!important;color:#fff!important}#cap.on{background:linear-gradient(90deg,transparent,rgba(5,9,8,.42) 18%,rgba(5,9,8,.42) 82%,transparent)}   /* 2026-11-22 地面の上で読みにくい */
