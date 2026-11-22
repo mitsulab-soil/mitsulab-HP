@@ -2109,7 +2109,7 @@ function loadAoi() {
     AOI.m = new Mot.AoiMotion(v, { root, posture: "natural", reducedMotion: RM, wind: 0, groundAt: (x, z) => aoiFootY(x, z), quality: MOBILE ? "mid" : "auto" });
     if (AOI.m.robe) AOI.m.robe.wind = .25;
     AOI.root = root; AOI.vrm = v; AOI.ready = true;
-    try { if (Mot.warmAoi) await Mot.warmAoi(renderer, root, camera, scene); else { root.visible = true; await renderer.compileAsync(root, camera, scene); } } catch { } root.visible = QW.mode === "walk";   /* 11-03：見せないまま、テクスチャ・シェーダー・影を少しずつ組む（碧が出る瞬間に止まらない） */
+    try { if (Mot.warmAoi) await Mot.warmAoi(renderer, root, camera, scene, { budget: 20, batch: 12 });   /* 11-22：一こまに組む量を増やし、碧が出るまでを縮める（止まりは増えないことを測った） */ else { root.visible = true; await renderer.compileAsync(root, camera, scene); } } catch { } root.visible = QW.mode === "walk";   /* 11-03：見せないまま、テクスチャ・シェーダー・影を少しずつ組む（碧が出る瞬間に止まらない） */
     window.__aoi = AOI;
   })().catch(e => { console.warn("碧の姿を読み込めませんでした：", e?.message ?? e); });
 }
