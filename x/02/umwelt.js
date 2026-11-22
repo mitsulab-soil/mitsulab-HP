@@ -23,11 +23,13 @@ THREE.DefaultLoadingManager.onError = url => { STARTUP.assetErrors.push(url); };
 // Start fetching the VRM and its decoder while the forest geometry is built.
 // A settled result avoids an unhandled rejection before loadAoi awaits it.
 let bootOpen; const bootGate = new Promise(r => { bootOpen = r; setTimeout(r, 2500); });   // 2026-11-18 起動 1 秒：碧の 3D は幕を上げてから読む（森と操作を先に）
+const aoiBuf = fetch(P.aoi).then(r => { if (!r.ok) throw new Error("aoi " + r.status); return r.arrayBuffer(); });   // 2026-11-22 碧の 3D は通信だけ先に（組むのは幕のあと）＝碧が出るまで約 5 秒を縮める
+aoiBuf.catch(() => {});
 const aoiAssetTask = (async () => {
-  await bootGate;
-  const [{ GLTFLoader }, { MeshoptDecoder }, V] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
+  const modsP = Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm")]);
+  await bootGate; const [{ GLTFLoader }, { MeshoptDecoder }, V] = await modsP;   // 2026-11-22 通信と道具の読み込みは先に、組むのは幕のあと
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder); loader.register(p => new V.VRMLoaderPlugin(p));
-  const gltf = await loader.loadAsync(P.aoi); STARTUP.aoiAssetAt = performance.now(); return { gltf, V };
+  const gltf = await loader.parseAsync(await aoiBuf, P.aoi.replace(/[^/]*$/, '')); STARTUP.aoiAssetAt = performance.now(); return { gltf, V };
 })().then(value => ({ value }), error => ({ error }));
 document.querySelectorAll("[data-n]").forEach(e => { if (N[e.dataset.n]) e.textContent = N[e.dataset.n]; });
 document.title = N.app;
@@ -1321,7 +1323,7 @@ STARTUP.sceneBuiltAt = performance.now();
   // 2026-10-23 本人「見える部分は表示してください」：森が組み上がったら幕を上げて操作できるようにし、碧はあとから現れる（PC は 0.8 秒まで待つ・スマホは待たない）
   A.hold = true;
   const aoiReady = loadAoi().then(async () => {
-    if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); try { await (await import("./kit/warm.js")).keepVariant(renderer, aoi, camera, scene, k => { k.transparent = false; }); } catch (e) {} const WA = (await import("./kit/warm.js")).warmAoi; for (const op of [1, 0]) { opacity(op); await WA(renderer, aoi, camera, scene, { batch: 4 }); }   /* 2026-11-22 PC で碧が出るまで約 7 秒かかっていた（一こまに一つずつ組んで約 4 秒）→ 一こまに四つずつ */   /* 2026-11-05 夕：kit/warm.js の warmAoi（骨で動く網の外接球も先に測る＝碧が出たこまの約 30 ms を前へ） */   /* 2026-11-05：不透明の形も写しで持っておく */ scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
+    if (aoi && renderer.compileAsync) { aoi.visible = true; const par = aoi.parent; par?.remove(aoi); try { await (await import("./kit/warm.js")).keepVariant(renderer, aoi, camera, scene, k => { k.transparent = false; }, { batch: 8 }); } catch (e) {} const WA = (await import("./kit/warm.js")).warmAoi; for (const op of [0]) { opacity(op); await WA(renderer, aoi, camera, scene, { batch: 8 }); }   /* 2026-11-22 不透明の形は上の keepVariant で組み済み → 透ける形だけ。PC で碧が出るまで約 7 秒かかっていた（一こまに一つずつ組んで約 4 秒）→ 一こまに四つずつ */   /* 2026-11-05 夕：kit/warm.js の warmAoi（骨で動く網の外接球も先に測る＝碧が出たこまの約 30 ms を前へ） */   /* 2026-11-05：不透明の形も写しで持っておく */ scene.remove(aoiFaceStub); par?.add(aoi); }   /* 2026-11-03 碧が出る瞬間の止まり：場面の外で、透ける・透けない両方の材質・テクスチャ・表情の形（モーフ）・影を一こまずつ組んでから戻す（kit warmAoi。組むあいだ描かれて止まっていた） */
     STARTUP.aoiCompiledAt = performance.now();   // 碧の材質は、出る前に並行で組み立てる（映ったこまで止まらない）
     // 碧のはじめの位置（2026-10-13・2026-11-22 スマホで足もとが下の説明と「今の景色」にかぶった → 4.0→4.7m）：見る人のすぐ前（0.6 m）で見えなかったので、ふだん立つ右前（となり）に置く
     if (vrm) { const nar = innerWidth / innerHeight < .8, D = nar ? 4.7 : 2.6, ang = aoiSideAng(2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect)); A.pos.set(me.pos.x + D * Math.sin(ang), 0, me.pos.z - D * Math.cos(ang)); A.yaw = 0; AM.place(A.pos.x, A.pos.z, A.yaw); aoi.position.copy(A.pos); }

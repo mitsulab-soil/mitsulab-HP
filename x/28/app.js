@@ -112,6 +112,8 @@ async function prepare(it) {
     const g = it.sho.group; if (it.form === 'floor') g.rotation.order = 'YXZ';
     g.position.set(it.x, it.y, it.z); g.rotation.y = it.face; if (it.form === 'floor') g.rotation.x = -Math.PI / 2;
     if (it.form === 'scroll') addScroll(it); else if (it.form === 'hang') addThreads(it);
+    if (it.form !== 'floor') { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 4, 64, 64, 63); gr.addColorStop(0, 'rgba(236,226,206,.55)'); gr.addColorStop(.55, 'rgba(236,226,206,.16)'); gr.addColorStop(1, 'rgba(236,226,206,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128);
+      const bl = new THREE.Mesh(new THREE.PlaneGeometry(width * 1.7, width * 1.7), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .32 })); bl.position.z = -0.35; bl.renderOrder = -2; g.add(bl); }   /* 2026-11-22 PC で書の 3D が暗い壁に沈み、黒い塊に見えた → 書の後ろに淡い光（墨の形が影絵のように浮かぶ） */
     g.updateMatrixWorld(true);
     it.snd = createShoSound(it.w.preset, { pitch: it.w.pitch ?? 1, volume: 0.6, reverb: REVERB[it.w.preset] ?? 0.55 });
     if (soundOn && audioWoken) it.snd.start();
@@ -630,7 +632,7 @@ function aoiSay(it) {
   const line = AOI_LINES[it.w.id]; if (!line) return;
   AO.said = it; AO.sayT = 0;
   $('capRd').textContent = `碧 ──${line}`; $('capRd').classList.add('aoi');
-  if (AO.M) { const c = new THREE.Vector3(it.x, it.form === 'floor' ? 0.15 : it.sho ? it.sho.group.position.y - 0.3 : 2.2, it.z); AO.M.lookAt(c); if (!RM) { AO.M.point(c, 2.4); AO.M.speak({ text: line, dur: Math.min(6.5, 1.2 + line.length * 0.11), ref: c }); } }   /* v11c 語るあいだ、手ぶりと口が動く（棒立ちにしない） */
+  if (AO.M) { const c = new THREE.Vector3(it.x, it.form === 'floor' ? 0.15 : it.sho ? it.sho.group.position.y - 0.3 : 2.2, it.z); AO.M.lookAt(c); if (!RM) { /* 2026-11-22 指さしはしない（目と顔だけ向ける） */ AO.M.speak({ text: line, dur: Math.min(6.5, 1.2 + line.length * 0.11), ref: c }); } }   /* v11c 語るあいだ、手ぶりと口が動く（棒立ちにしない） */
 }
 function aoiTick(dt) {
   if (!AO.ready) return;

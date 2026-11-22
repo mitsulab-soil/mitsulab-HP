@@ -43,7 +43,7 @@ export function initWords({ scene, cam, works, mobile, soundOk, say, keepOut, HA
   // 近くの点には、その言葉を小さく浮かべる（点＝言葉と分かるように）。触れた点の言葉は大きく
   const mkLabel = () => { const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 96; const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace;
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, opacity: 0 })); s.renderOrder = 6; s.center.set(0, -.3); s.userData = { cv, tx, q: null }; scene.add(s); return s; };
-  const labels = [mkLabel(), mkLabel(), mkLabel(), mkLabel()];
+  const labels = mobile ? [mkLabel(), mkLabel()] : [mkLabel(), mkLabel(), mkLabel(), mkLabel()];   // 2026-11-22 スマホで近くの札が重なって読めない → 二つまで
   const draw = (s, q, big) => { const { cv, tx } = s.userData, x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.font = `${big ? 600 : 500} 44px "Shippori Mincho","Hiragino Mincho ProN",serif`; x.textBaseline = 'middle';
     x.shadowColor = 'rgba(0,0,0,.95)'; x.shadowBlur = 12; x.lineWidth = 8; x.lineJoin = 'round'; x.strokeStyle = 'rgba(3,6,15,.85)'; const tt = String(q.it.t).replace(/(?:の音){2,}$/, 'の音'); x.strokeText(tt, 8, 50); x.fillStyle = q.onWork ? '#f3dcae' : '#e4eef4'; x.fillText(tt, 8, 50); s.userData.tw = Math.min(1, (x.measureText(tt).width + 16) / cv.width); tx.needsUpdate = true; s.userData.q = q; s.userData.big = big; };
   let lblT = 0, focusQ = null, focusT = 0, nPick = 0;
