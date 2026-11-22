@@ -178,7 +178,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 }
 
 /* 2026-10-22 触れて鳴る：面は森を覆いきらない（広い画面＝右、狭い画面＝下）。面の外の点は、そのまま押せる */
-#panel{inset:64px 0 0 auto;width:clamp(400px,40vw,620px);border-left:1px solid #264049}
+#panel{inset:64px 0 0 auto;width:clamp(360px,30vw,520px);border-left:1px solid #264049}
 #panel #sound{grid-template-columns:minmax(0,1fr);gap:18px}
 #panel .performance{border-left:0;padding-left:0;border-top:1px solid #29444c;padding-top:14px}
 #panel .p-line{font-size:clamp(22px,2vw,30px)}
@@ -234,7 +234,7 @@ input[type=range]:focus-visible{outline:1px solid var(--ml-aoi-2);outline-offset
 body:has(.away:not([hidden])) .tip{visibility:hidden}
 
 /* 2026-11-22 スマホで下のパネルが画面の半分を超え、景色が隠れた → 半分までにし、中は送って読む */
-@media(max-width:680px){ #panel{height:48dvh!important;max-height:48dvh!important} #panel .soundStage{height:clamp(170px,22dvh,230px)!important} }
+@media(max-width:680px){ #panel{height:48dvh!important;max-height:48dvh!important} #panel .soundStage{height:clamp(150px,19dvh,200px)!important} }
 @media(max-width:680px){ body:has(#panel:not([hidden])) .icm{top:calc(52dvh - 56px)!important;bottom:auto!important} }   /* 撮る丸をパネルの上の外へ */
 /* 2026-11-22 撮る丸が光の点に紛れる → 地を濃く・縁を明るく */
 .icm{opacity:1!important;background:rgba(8,18,24,.88)!important;border:1px solid rgba(200,236,244,.7)!important;box-shadow:0 0 0 3px rgba(8,18,24,.35)!important}

@@ -90,6 +90,7 @@ body{font-family:var(--ml-sans);line-height:1.6;overscroll-behavior:none}
   .hud-c{width:26px;height:26px}
   .dock{gap:22px;bottom:20px}
   .dk .face{width:54px;height:54px}   /* 2026-11-22 下の段を軽く */
+  .dk b{font-size:.82rem}.dk small{font-size:.72rem}
   .tray{bottom:122px}
   .chips{grid-template-columns:repeat(10,minmax(0,1fr))}
   .tray-in{max-width:760px}
