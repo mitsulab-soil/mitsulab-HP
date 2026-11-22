@@ -15,11 +15,11 @@ export function attachWalk4(QW) {
   const canVib = typeof navigator.vibrate === "function" && MOBILE;
   const vib = p => { if (!canVib) return; try { navigator.vibrate(p); } catch { } };
   const css = document.createElement("style"); css.id = "walk4";
-  css.textContent = `#w4up{position:fixed;inset:0;z-index:3;background:radial-gradient(ellipse 80% 70% at 50% 46%,rgba(3,6,10,.5),rgba(3,6,10,.74));opacity:0;transition:opacity 1.4s ease;pointer-events:auto;cursor:pointer}
-#w4up.on{opacity:1}#w4up p{position:absolute;left:0;right:0;top:44%;margin:0;text-align:center;font:400 12px/1.6 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.08em;color:rgba(230,238,242,.55)}
+  css.textContent = `#w4up{position:fixed;inset:0;z-index:3;background:radial-gradient(ellipse 80% 70% at 50% 46%,rgba(3,6,10,.36),rgba(3,6,10,.62));opacity:0;transition:opacity 1.4s ease;pointer-events:auto;cursor:pointer}
+#w4up.on{opacity:1}#w4up p{position:absolute;left:0;right:0;top:44%;margin:0;text-align:center;font:400 12px/1.6 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.08em;color:rgba(240,245,248,.92);font-size:13px;text-shadow:0 1px 6px rgba(0,0,0,.8)}
 body.w4soil #qS6,body.w4soil #qIK,body.w4soil #walkUI{opacity:.25!important;transition:opacity .4s}
 body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4src,body.w4up header,body.w4up #topbar,body.w4up button:not(#w4src button){opacity:.5!important}
-#w4up p{transition:opacity 1.5s ease 4s}#w4up.on p{opacity:.0}#w4up.on.fresh p{opacity:1}
+#w4up p{transition:opacity 1.5s ease 4s}#w4up.on p{opacity:.7}#w4up.on.fresh p{opacity:1}
 #w4src{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 250px);z-index:7;max-width:min(240px,calc(100vw - 140px));font:400 11.5px/1.55 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);color:#eef3f6;text-shadow:0 1px 3px rgba(0,0,0,.85)}
 #w4src[hidden]{display:none}#w4src button{all:unset;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;padding:0 12px;border-radius:22px;background:rgba(8,13,22,.5);border:1px solid rgba(225,235,242,.22);font-size:12px;letter-spacing:.04em}
 #w4src ul{margin:6px 0 0;padding:6px 10px 6px 20px;font-size:10.5px;line-height:1.45;max-height:30vh;overflow:auto;background:rgba(8,13,22,.62);border-radius:10px}#w4src li{margin:2px 0}
