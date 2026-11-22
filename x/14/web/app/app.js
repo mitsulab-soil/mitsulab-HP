@@ -241,7 +241,7 @@ let ASPH = null;
 function roadMat() {   // 道の面：Poly Haven「Asphalt 04」（CC0）の色・法線・粗さ。3 m ごとに繰り返し、大きなむら（補修跡・踏まれた筋）を重ねて繰り返しを目立たせない
   if (ASPH) return ASPH;
   const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 12; return t; };
-  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#8f8b86", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
+  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#6d6a67", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
   m.onBeforeCompile = sh => {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWxz=(modelMatrix*vec4(transformed,1.)).xz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;\nfloat n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);float a=fract(sin(dot(i,vec2(127.1,311.7)))*43758.5),b=fract(sin(dot(i+vec2(1,0),vec2(127.1,311.7)))*43758.5),c=fract(sin(dot(i+vec2(0,1),vec2(127.1,311.7)))*43758.5),d=fract(sin(dot(i+vec2(1,1),vec2(127.1,311.7)))*43758.5);return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}")
@@ -270,7 +270,7 @@ function buildRoads() {
   // 歩道（模式）：車の通る道の両わきに、コンクリートの舗装の帯を道の下に敷く（Poly Haven「Concrete Pavement」CC0）
   const sw = []; for (const r of G.roads) { if (r.w < 7) continue; if (!r.p.some(p => Math.hypot(p[0], p[1] - 400) < 900)) continue; sw.push(ribbon(densify(r.p, 4), r.w + 4.6, .03, 1.2)); }
   if (sw.length) { const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
-    const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#8e8981", roughness: 1, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
+    const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#b8b0a3", roughness: 1, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
     pm.normalScale.set(1.6, 1.6); pm.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 tq = vMapUv * vec2(3., 6.); float tr = floor(tq.y); float tc = floor(tq.x + mod(tr, 2.) * .5); float th = fract(sin(dot(vec2(tc, tr), vec2(12.9898, 78.233))) * 43758.5); float th2 = fract(th * 17.31); diffuseColor.rgb *= .9 + th * .2; diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.04, 1., .95), step(.7, th2) * .6); }"); }; pm.customProgramCacheKey = () => "walkTile";   // 2026-10-29 足もと：平板（pave_c は 1 枚に 3 列×6 段の馬目地）を一枚ずつ明るさ ±10％・わずかな黄み（3 割の板）で揺らし、法線を 1.6 倍に。近寄っても同じ板が並ぶ一枚の模様に見えないように
     const pv = new THREE.Mesh(mergeIdx(sw), pm); pv.name = "walkway"; world.add(pv); QW.pave = pv; }
 }
@@ -286,7 +286,7 @@ function buildPlaza() {   // 渋谷：駅前の広場（OSM の歩行者の面�
 }
 function offsetLine(P, d) { const out = []; for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; out.push([P[i][0] - tz / l * d, P[i][1] + tx / l * d]); } return out; }
 function markMat(kind) {   // 路面標示（白・実寸の模式）：0＝実線、1＝破線（5 m 引いて 5 m あける）、2＝横断歩道の縞（幅 45 cm・間 45 cm）
-  const m = new THREE.MeshStandardMaterial({ color: "#d9d8d2", roughness: .7, metalness: 0, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10 });
+  const m = new THREE.MeshStandardMaterial({ color: "#ecebe6", roughness: .7, metalness: 0, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10 });
   m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n" + (kind === 1 ? "if (fract(vUv.y / 10.) > .5) discard;" : kind === 2 ? "if (fract(vUv.x / .9) > .5) discard;" : "") + "\nfloat wear = fract(sin(dot(floor(vUv * vec2(9., 3.)), vec2(12.9898, 78.233))) * 43758.5); diffuseColor.rgb *= .86 + .14 * wear;"); };
   m.defines = { USE_UV: "" }; m.customProgramCacheKey = () => "mark" + kind; return m;
 }
