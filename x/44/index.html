@@ -62,7 +62,7 @@ button:disabled{opacity:.32}
 </svg>
 </div>
 <svg id="trail" viewBox="-60 -60 120 120" style="display:none;width:min(60vw,240px);height:min(60vw,240px)" aria-label="歩いたあいだに北がどう回ったか"></svg>
-<div id="read"><div id="deg">―</div><div id="uT"></div></div>
+<div id="read"><div id="deg"></div><div id="uT"></div></div>
 <p id="note">「はじめる」で、北の向きが音に。<br>イヤホン推奨。</p>
 <details id="more"><summary aria-label="生き物の磁気の感覚について">＋ 鳥と地磁気</summary><p>ヨーロッパコマドリは、渡りの向きを決めるときに地磁気を手がかりにしていると考えられています（Wiltschko &amp; Wiltschko 1972, <i>Science</i> 176:62–64）。どのように感じているかは、まだ分かっていないことが多くあります。この音は、スマホの磁気センサーの方位を人の耳に移した模式です。</p></details>
 <div class="row"><button id="start">はじめる</button><button id="pk" disabled>画面を消して歩く</button></div>
@@ -139,7 +139,7 @@ $('start').onclick=async()=>{
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
  mag();running=true;clearTimeout(window.__pkT);window.__pkT=setTimeout(()=>{if(running&&heading!=null)$('pk').onclick()},25000);log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
  $('note').innerHTML='画面はしまって、景色を見ながら。北のある側の耳から聴こえます。<br>うなりが止まり、鈴が鳴ったら、<span style="white-space:nowrap">そこが北（磁北）。</span>';
- setTimeout(()=>{if(heading==null){$('needle').classList.add('none');$('note').innerHTML='この端末では方位が取れません。<br>スマホを手に持って開くと、<br>北が音で鳴ります。'}},2500);
+ setTimeout(()=>{if(heading==null){running=false;$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;$('needle').classList.add('none');$('note').innerHTML='この端末では方位が取れません。<br>スマホを手に持って開くと、<br>北が音で鳴ります。'}},2500);
 };
 function showTrail(){
  if(log.length<5){$('note').textContent='短すぎて、北の回り方を描けませんでした。少し歩きながら聴いてみてください。';return}const sv=$('trail'),n=log.length;let p='';
