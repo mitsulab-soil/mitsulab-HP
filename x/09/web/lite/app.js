@@ -2015,7 +2015,7 @@ let capChunkT = 0;
 function capSplitLong(L, max) {   /* 11-22：スマホの 1 行に収まらない句は、助詞の後ろで二つに分ける（語の途中で切らない） */
   const out = []; for (let x of L) { while (x.length > max) { let k = 0; for (let i = 3; i < Math.min(x.length - 2, max); i++) if (x.length - i - 1 >= 4 && (/[をにがはでとへも]/.test(x[i]) || /ような$|ように$|ている$|ました$/.test(x.slice(0, i + 1))) && !/[ぁぃぅぇぉっゃゅょ、。！？」』）\s]/.test(x[i + 1] || "")) k = i + 1; if (!k) k = max; out.push(x.slice(0, k)); x = x.slice(k); } out.push(x); } return out; }
 function capChunks(t) {   // 10-28 午後：字幕は 1〜2 行。長い文は句点・読点で区切って順に出す
-  const max = innerWidth < 640 ? 20 : 22;   /* 11-22：15 字に分けると一句が 1 秒ほどで次の語りに消された→ 20 字のまま、字を少し小さくして 1 行に収める */   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
+  const max = innerWidth < 640 ? 40 : 30;   /* 2026-11-22 2 行に入る文は字幕 1 枚に */   /* 11-22：15 字に分けると一句が 1 秒ほどで次の語りに消された→ 20 字のまま、字を少し小さくして 1 行に収める */   /* 11-10 第4周：PC も一行ずつ */   /* 11-10 第3周：375 は字幕を下の一行ずつ（名乗りの全文を中央に出さない） */ t = String(t).trim(); if (t.length <= max) return [t];
   const parts = t.split(/(?<=[。！？])/); const out = []; let cur = "";
   for (const p of parts) { if ((cur + p).length > max && cur) { out.push(cur); cur = ""; } if (p.length > max) { for (const q of p.split(/(?<=、)/)) { if ((cur + q).length > max && cur) { out.push(cur); cur = ""; } cur += q; } } else cur += p; }
   if (cur) out.push(cur); const o2 = []; for (const x of out.map(x => x.trim()).filter(Boolean)) { if (o2.length && (o2[o2.length - 1].length < 14 || x.length < 8) && (o2[o2.length - 1] + x).length <= max * (innerWidth < 640 ? 1 : 1.35)) o2[o2.length - 1] += x; else o2.push(x); } return (innerWidth < 640 ? capSplitLong(o2, max) : o2);   // 改行だけの区切りを出さない・短い切れ端はつなぐ
