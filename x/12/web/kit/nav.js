@@ -77,7 +77,7 @@ export function installNav(o) {
     if (lookable(m) && !N.drag) {
       const t = (now - N.relT) / 200;
       if (t < 1) { const k = (1 - t) * dt; look(N.vx * k, N.vy * k); }
-      if (m === "walk" && !N.ar && now - N.lookT > 3500 && now - N.relT > 3500 && Math.abs(o.cam.pitch) > .002) o.cam.pitch *= Math.pow(.35, dt);   // 3.5 秒で水平へゆっくり戻る（10-30 パネル）
+      if (m === "walk" && !N.ar && now - N.lookT > (Math.abs(o.cam.pitch) > .25 ? 1200 : 3500) && now - N.relT > (Math.abs(o.cam.pitch) > .25 ? 1200 : 3500) && Math.abs(o.cam.pitch) > .002) o.cam.pitch *= Math.pow(Math.abs(o.cam.pitch) > .25 ? .2 : .35, dt);   /* 11-22 採点「スマホのドラッグで下を向いたまま碧が外れる」：大きく見下ろし・見上げたあとは 1.2 秒で戻りはじめる */   // 3.5 秒で水平へゆっくり戻る（10-30 パネル）
       if (Math.abs(o.cam.pitch) > PMAX && m === "walk") o.cam.pitch = Math.sign(o.cam.pitch) * PMAX;
     }
     if (N.ar && N.ori && m === "walk") { if (N.oriBase == null) N.oriBase = (o.cam.yaw + o.cam.look) - N.ori.yaw; const H = N.oriBase + N.ori.yaw; o.cam.look = H - o.cam.yaw; o.cam.pitch = Math.max(-1.2, Math.min(1.2, N.ori.pitch)); }
