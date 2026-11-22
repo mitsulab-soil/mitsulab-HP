@@ -77,7 +77,7 @@
     // v7（11-20 本人）：スマホ（幅 700px 以下）では窓を地面に寝かせず、画面の上のほうに正面を向いた小さな板で出す（375px で切れない）。
     // 板は画面に固定（視点を回しても揺れない）。板の上＝進む向き。写真・川の縁の線・自分の位置の点は足もとの窓と同じ。
     function mob() { return true; }   // v9：どの幅でも板
-    var WIDE = innerWidth > 700, BW = WIDE ? 348 : 232, BH = WIDE ? 156 : 104, BX = WIDE ? 24 : 14, BY = WIDE ? 124 : 116;   // 板の幅・高さ・左・上（px。上は年代の札の下）
+    var WIDE = innerWidth > 700, BW = WIDE ? 348 : 168, BH = WIDE ? 156 : 76, BX = WIDE ? 24 : 14, BY = WIDE ? 124 : 116;   /* 11-22 夜 P2「スマホで出典の札と空中写真の窓が画面の上を占める」：スマホの窓を 232×104 → 168×76 */   // 板の幅・高さ・左・上（px。上は年代の札の下）
     U.br = { value: new T.Vector4(0, 0, .5, .2) }; U.bz = { value: 56 };   // bz＝板の縦の半分が写す距離（m）
     var bmat = new T.ShaderMaterial({ uniforms: U, transparent: true, depthTest: false, depthWrite: false, fog: false,
       vertexShader: "uniform vec4 br; varying vec2 vL; void main(){ vL = position.xy; gl_Position = vec4(br.xy + position.xy * br.zw, 0., 1.); }",

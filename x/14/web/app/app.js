@@ -1474,7 +1474,7 @@ function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
   const yB = CAM.yaw; openYaw();
   if (!at && /稲荷橋/.test(s.name)) CAM.yaw = yB + (innerWidth / innerHeight < .8 ? 9.2 : 8) * Math.PI / 24;   /* 11-22 本人「スマホでビルの壁が画面の上半分をふさぐ」：縦長の画面では、稲荷橋から空と通りの奥（約 300 m 開けた向き）が見える向きで始める（建物の読み込みを待たずに決める） */
-  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => wait.then(() => { openYaw(); setMode("walk"); showWalkUI(); aoiArrive(); }));
+  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => (dur && dur < .05 ? Promise.resolve() : wait).then(() => {   /* 11-22 起動 1 秒：最初の目の高さは、広げたエリアの読み込みを待たない */ openYaw(); setMode("walk"); showWalkUI(); aoiArrive(); }));
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
   const n = nearestOnLine(p.x, p.z); if (n.dist <= 14) { solids(p); return; }

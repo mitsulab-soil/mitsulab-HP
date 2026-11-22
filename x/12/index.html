@@ -19,7 +19,7 @@
 {"imports": {"three": "./web/vendor/hikawa-runtime-170-355.js", "@pixiv/three-vrm": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/loaders/GLTFLoader.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/libs/meshopt_decoder.module.js": "./web/vendor/hikawa-runtime-170-355.js", "three/addons/utils/BufferGeometryUtils.js": "./web/kit/BufferGeometryUtils.js"}}
 </script>
 <!-- 2026-10-26 起動 5 秒：本体と部品・中身の表を HTML と同時に読みはじめる（回線の往復を 2 段へらす） -->
-<link rel="modulepreload" href="web/app/app.b.js?v=20261122F17">
+<link rel="modulepreload" href="web/app/app.b.js?v=20261122F18">
 <link rel="modulepreload" href="web/kit/BufferGeometryUtils.js">   <!-- 11-11 375 の起動：app.js を読んでから見つかっていた 3 つを先に -->
 <!-- 2026-11-05 起動 2 秒（大宮と同じ）：本体が読む部品をすべて HTML と同時に・版は本体の import とそろえる -->
 <link rel="preload" href="web/app/content.json?v=20261112k5" as="fetch" crossorigin>
@@ -679,7 +679,7 @@ html:not(.qmap) #qEye{display:none}
 <script>if(!window.WebGLRenderingContext){document.body.insertAdjacentHTML("beforeend",'<p style="position:fixed;inset:auto 16px 40% 16px;text-align:center;line-height:1.8">この端末では 3D を表示できません。</p>');window.MLLoader&&MLLoader.done();}</script>
 <script type="module">
 const t = setInterval(() => { const q = window.__qw; if (q && q.ready) { clearInterval(t); window.MLLoader && MLLoader.done(); } }, 60);
-import("./web/app/app.b.js?v=20261122F17").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
+import("./web/app/app.b.js?v=20261122F18").catch(e => { console.error(e); window.MLLoader && MLLoader.done(); });
 /* 11-04 本人：環世界に入るのはリアルな生き物だけ（変身はやめた）＝右の 4 つを押すと、その生き物の目のまま歩ける（kit/ikimono.js・大宮と同じ） */
 { const h = setInterval(() => { const q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); import("./web/kit/ikimono.js?v=20261118k").then(m => m.attachIkimono(q, { speak: l => q.speak?.(l) })).then(() => import("./web/app/senses6.js?v=18")).then(s6 => { q.S6 = s6.mountSenses(q); }).catch(e => console.warn("ikimono", e)); } }, 300); }
 </script>
@@ -699,7 +699,7 @@ html body #capTag{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 8px rgba(0,0,0,.7)!i
 <div id="qTown" aria-hidden="true"><b>川越</b><small>蔵造りの町</small><i>記録をもとにつくった風景です</i></div>
 <script>/* 11-10 第8周：歩きはじめたとき一度だけ、着いた町の名を大きく */(()=>{const t=document.getElementById("qTown");let done=0;const go=()=>{if(done||document.body.dataset.mode!=="walk")return;done=1;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1800)};new MutationObserver(go).observe(document.body,{attributes:true,attributeFilter:["data-mode"]});go()})()</script>
 <script src="kit/chikei.js?v=2" data-left="12" data-bottom="345" defer></script>
-<script src="kit/kaoage.js?v=3" data-pts="-6,4,顔を上げて、実際の時の鐘を見上げてみて。塔はどんな色と肌？;-28.94,-29.63,近くの蔵の黒い壁を見てみて。どんな艶？;-42.57,130.5,蔵の屋根の瓦を見上げてみて。重なりはいくつ見える？;-44.51,180.36,通りの屋根の並びを見てみて。どの蔵がいちばん重そう？;-25.57,-179.2,ここは平らな台地の上。どこまで歩くと、道は下りはじめる？" data-end="画面を閉じたら、いつもの道で一つだけ、さっきの受けとり方で見てみて。" defer></script>
+<script src="kit/kaoage.js?v=4" data-pts="-6,4,顔を上げて、実際の時の鐘を見上げてみて。塔はどんな色と肌？;-28.94,-29.63,近くの蔵の黒い壁を見てみて。どんな艶？;-42.57,130.5,蔵の屋根の瓦を見上げてみて。重なりはいくつ見える？;-44.51,180.36,通りの屋根の並びを見てみて。どの蔵がいちばん重そう？;-25.57,-179.2,ここは平らな台地の上。どこまで歩くと、道は下りはじめる？" data-end="画面を閉じたら、いつもの道で一つだけ、さっきの受けとり方で見てみて。" defer></script>
 <script src="kit/tsugi.js" data-bottom="220" data-href="../14/" data-name="Qualia/shibuya" data-line="谷の町を、同じ碧と歩く" defer></script>
 <script src="kit/ichimai.js" data-name="Qualia/kawagoe" data-right="12" data-bottom="284" data-wide-bottom="156" defer></script>
 <!-- 2026-11-22 夜 本人「はじめはミツバチの目の色でなく、人の目で始める」：最初のひと目（kit/hajime.js のミツバチの色）をやめた -->

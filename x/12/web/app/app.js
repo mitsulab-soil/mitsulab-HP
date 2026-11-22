@@ -1502,7 +1502,7 @@ function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   hideSkyUI(); exitSight(true); hideFlyUI(); setMode("descend"); hidePanel(); stopVoice();   // 前の場所の語りを、降りた先へ持ちこまない
   CAM.pos.set(a.x, y, a.z); CAM.yaw = xz ? stYaw(s) : /菓子屋/.test(s.name) ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = -.04;
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
-  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => wait.then(() => { setMode("walk"); showWalkUI(); aoiArrive(); }));
+  tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => (dur && dur < .05 ? Promise.resolve() : wait).then(() => {   /* 11-22 起動 1 秒：最初の目の高さは、広げたエリアの読み込みを待たない */ setMode("walk"); showWalkUI(); aoiArrive(); }));
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
   const n = nearestOnLine(p.x, p.z); if (n.dist <= 14) { solids(p); return; }
