@@ -77,11 +77,14 @@ if (P) {
     const N2 = n => v.humanoid.getNormalizedBoneNode(n); [['leftUpperArm', -.12, 0, -1.25], ['rightUpperArm', -.12, 0, 1.25]].forEach(([n, x, y, z]) => { const o = N2(n); if (o) o.rotation.set(x, y, z); });
     v.scene.rotation.y = 0; S.add(v.scene); aoi = v; v.update(0);
     try { const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61'); mot = new AoiMotion(v, { root: v.scene, reducedMotion: RM, wind: 0, faceViewer: false, startCalm: 0, posture: 'upright', uprightWeight: .9 }); } catch (e) { }
+    try { if (R.compileAsync) await R.compileAsync(S, cam); } catch (e) { }
     kick(); } catch (e) { console.warn('aoi stage', e); } }
   // 進み：段が画面の下から入ると上がり、上へ抜けると下がる
   function target() { pick(); const r = (document.querySelector('#qStory') || P).getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
     const e = (MOB ? (SLOTS[SLOTS.length - 1] || END()) : END()).getBoundingClientRect(); const up = (H * .95 - r.top) / (H * .4), down = (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
-  let cur = 0, raf = 0, last = 0, W = 0, H = 0;
+  let cur = 0, raf = 0, last = 0, W = 0, H = 0, visT = 0, visOK = true;
+  // 2026-11-22 重さ：祖先ごと見えていない間（不透明度 0・非表示）は描かない。見えたら 1 こま目から描く
+  function shown(now) { if (now - visT > 120) { visT = now; let e = cv.parentElement, ok = true; while (e && e.nodeType === 1) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < .01) { ok = false; break; } e = e.parentElement; } visOK = ok; } return visOK; }
   function size() { camSet(); const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
   function frame(now) { raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const tg = target(); if (tg > 0 && !aoi) load();
     cur = RM ? tg : cur + (tg - cur) * Math.min(1, dt * 4); if (Math.abs(tg - cur) < .002) cur = tg;
@@ -96,8 +99,11 @@ if (P) {
       if (c < 0) { if (chI >= 0) say(-1); }
       else if (c < chI) say(c); else if (MOB && c !== chI) say(c);
       else if (c > chI && (chI < 0 || performance.now() - sayAt > 2600)) say(MOB ? c : chI + 1); }
-    if (k > 0) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
+    if (k > 0 && shown(now)) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
     if (k > 0 || tg > 0) raf = requestAnimationFrame(frame); else last = 0; }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
   addEventListener('scroll', kick, { passive: true }); addEventListener('resize', () => { W = 0; kick(); }); kick();
+  // 2026-11-22 重さ：碧の読み込みと影の準備を、スクロールの前の空き時間に済ませる（スクロール中の止まりを減らす）
+  const idle = window.requestIdleCallback || (f => setTimeout(f, 1500)); const pre = () => idle(() => { if (!aoi) load(); }, { timeout: 5000 });
+  if (document.readyState === 'complete') pre(); else addEventListener('load', pre, { once: true });
 }
