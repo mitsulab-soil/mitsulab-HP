@@ -205,12 +205,13 @@ function draw(){
   all.forEach(function(a){var pt=map.latLngToLayerPoint([a[0].la,a[0].lo]),g=null;
     for(var i=0;i<gs.length;i++){if(gs[i].pt.distanceTo(pt)<D){g=gs[i];break}}
     if(g)g.m.push(a);else gs.push({pt:pt,m:[a]})});
+  group.max=0;gs.forEach(function(g){if(g.m.length>group.max)group.max=g.m.length});   /* 2026-11-22 「押して寄る」はいちばん大きなまとまりだけに */
   gs.forEach(function(g){if(g.m.length===1)mark(g.m[0][0],g.m[0][1]);else if(map.getZoom()>=16||tight(g.m))spread(g.m);else group(g.m)});
 }
 function group(m){
   var la=0,lo=0,cs=[];m.forEach(function(a){la+=a[0].la;lo+=a[0].lo;var c=SM[a[0].s].c;if(cs.indexOf(c)<0)cs.push(c)});la/=m.length;lo/=m.length;
   var dots=cs.slice(0,4).map(function(c){return'<i style="background:'+c+'"></i>'}).join('');
-  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b style="font-size:16px">'+m.length+'<small style="font-size:11px;margin-left:1px">か所</small></b><em style="font:normal 9px/1 var(--ml-sans,sans-serif);letter-spacing:.04em;opacity:.85">押して寄る</em>',iconSize:[66,66]});
+  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b style="font-size:16px">'+m.length+'<small style="font-size:11px;margin-left:1px">か所</small></b>'+(m.length>=group.max?'<em style="font:normal 9px/1 var(--ml-sans,sans-serif);letter-spacing:.04em;opacity:.85">押して寄る</em>':''),iconSize:[66,66]});
   L.marker([la,lo],{icon:ic,keyboard:true,title:m.length+' 件の印。押すと寄ります'}).addTo(layer).on('click',function(){
     var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));if(b.getNorthEast().distanceTo(b.getSouthWest())<300)map.setView(b.getCenter(),Math.max(15,map.getZoom()+2));else map.fitBounds(b.pad(.6),{maxZoom:16})});
 }
