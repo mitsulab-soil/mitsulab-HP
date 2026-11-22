@@ -37,7 +37,7 @@
     function tx0() { return { value: null }; }
     var U = { mk: { value: mtex }, gc: tx0(), gn: tx0(), sc: tx0(), sn: tx0(), o0: tx0(), o1: tx0(), o2: tx0(), h0: tx0(), h1: tx0(), h2: tx0(),
       box: { value: new T.Vector4(BOX[0], BOX[1], BOX[2], BOX[3]) }, hiR: { value: new T.Vector4(+HI[1], +HI[2], +HI[3], +HI[4]) },
-      k: { value: 0 }, e: { value: 0 }, t: { value: 0 }, eye: { value: new T.Vector3() }, fw: { value: new T.Vector2(0, -1) }, wx: { value: innerWidth > 700 ? 1.0 : .66 }, wd: { value: innerWidth > 700 ? 3.3 : 3.7 }, wh: { value: innerWidth > 700 ? .95 : .52 }, wz: { value: innerWidth > 700 ? 30 : 52 }, R: { value: 8 } };
+      k: { value: 0 }, e: { value: 0 }, t: { value: 0 }, eye: { value: new T.Vector3() }, fw: { value: new T.Vector2(0, -1) }, wx: { value: innerWidth > 700 ? 1.0 : .66 }, wd: { value: innerWidth > 700 ? 3.3 : 3.7 }, wh: { value: innerWidth > 700 ? .95 : .52 }, wz: { value: innerWidth > 700 ? 30 : 52 }, R: { value: 8 }, aoi: { value: new T.Vector4(0, 0, 0, 0) } };
     var FS = [
       "uniform sampler2D mk, gc, gn, sc, sn, o0, o1, o2, h0, h1, h2; uniform vec4 box, hiR; uniform float k, e, t, R, wx, wd, wh, wz; uniform vec3 eye; uniform vec2 fw; varying vec3 vW;",
       "float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); } float n(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y); }",
@@ -66,7 +66,7 @@
       "  gl_FragColor = vec4(col / max(wtr + bank + low, 1e-3), a); }"
     ].join("\n");
     var mat = new T.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, fog: false, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6,
-      vertexShader: "varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position,1.); w.y += .45; vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",
+      vertexShader: "uniform vec4 aoi; varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position,1.); w.y += .45; if (aoi.w > .5) w.y = mix(min(w.y, aoi.y - .03), w.y, smoothstep(1.3, 3.2, distance(w.xz, aoi.xz))); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",
       fragmentShader: FS });
     var TL = new T.TextureLoader();
     function L(url, key, rep, srgb) { TL.load(url, function (tx) { if (rep) { tx.wrapS = tx.wrapT = T.RepeatWrapping; tx.anisotropy = 8; } if (srgb) tx.colorSpace = T.SRGBColorSpace; U[key].value = tx; }); }
@@ -120,6 +120,7 @@
       var now = performance.now(), rdt = Math.min(.25, (now - last) / 1000), dt = Math.min(.05, rdt); last = now; U.t.value += dt;   // 判定と移りかわりは実際の時間で（コマが少ない端末でも遅れない）
       var walking = q.mode === "walk" && !document.hidden && ready() && ((q.AOI && q.AOI.greeted) || now - t00 > 25000);   // v7：碧の名乗りが済んでからひらく（名乗りを切らない）
       cam.getWorldPosition(U.eye.value);
+      { var ar = q.AOI && q.AOI.root; if (ar && ar.visible && q.mode === "walk") { var ap = new T.Vector3(); ar.getWorldPosition(ap); U.aoi.value.set(ap.x, ap.y, ap.z, 1); } else U.aoi.value.w = 0; }   // v10 2026-11-22：碧のまわりは水面を碧の足もとの高さまで下げる（碧の裾が水に沈んで透けて見えた）
       var mb = mob(); U.wh.value = mb ? 0 : .95; U.wx.value = 1; U.wd.value = 3.3; U.wz.value = 44;   // 足もとの窓は広い画面だけ（スマホは大きさ 0＝描かない）
       board.visible = mb && k > .003 && q.mode === "walk"; if (board.visible !== jdB) { jdB = board.visible; document.body.classList.toggle("jdB", jdB); } if (board.visible) U.br.value.set((BX + BW / 2) / innerWidth * 2 - 1, 1 - (BY + BH / 2) / innerHeight * 2, BW / innerWidth, BH / innerHeight);
       cam.getWorldDirection(_f); if (Math.hypot(_f.x, _f.z) > .05) U.fw.value.set(_f.x, _f.z).normalize();
