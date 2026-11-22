@@ -1165,7 +1165,7 @@ function setMode(m) {
   
   updateTrees(true);
   $("#modeWalk").setAttribute("aria-pressed", walk || sight); $("#modeFly").setAttribute("aria-pressed", fly); $("#modeSky").setAttribute("aria-pressed", sky);
-  if (AOI.root) AOI.root.visible = walk && AOI.ready;
+  if (AOI.root && !walk) AOI.root.visible = false;   /* 11-22：歩く場面の碧は aoiArrive だけが出す（立ち位置の前の所で一瞬出ない） */
   if (walk || fly) QW.walked = true;
   updateStack();
 }
@@ -2181,7 +2181,7 @@ function aoiSpot(out) {   // 見る人の斜め前（道の中心の側）。体
 /* 11-22 本人「碧はあとから現れる・一瞬も透けさせない」：立ち位置の奥（見る人から遠い側）に不透明のまま置き、そこから歩いて立ち位置へ来る */
 function aoiFrom(p, ok) { const dx = p.x - CAM.pos.x, dz = p.z - CAM.pos.z, l = Math.hypot(dx, dz) || 1; for (const k of [7, 5.5, 4, 2.5]) { const x = p.x + dx / l * k, z = p.z + dz / l * k; if (!ok || ok(x, z)) return { x, z }; } return { x: p.x, z: p.z }; }
 function aoiArrive() {
-  loadAoi().then(() => {
+  loadAoi().then(() => new Promise(r => setTimeout(r, Math.max(0, 2200 - performance.now())))).then(() => {   /* 11-22：読み込みの幕が消えきる前に碧を出さない（幕ごしに透けて見えた） */
     if (!AOI.m || QW.mode !== "walk") return;
     AOI.sy = aoiYaw(); aoiSpot(AOI.pos); { const f = aoiFrom(AOI.pos, (x, z) => !blocked(x, z)); AOI.m.teleport(f.x, f.z, Math.atan2(AOI.pos.x - f.x, AOI.pos.z - f.z)); } AOI.v = 0; AOI.root.visible = true;
     if (!AOI.greeted) { AOI.greeted = true; TALK.nextT = performance.now() + 7000; setTimeout(() => { if (QW.mode === "walk" && !PANEL.cur) { speakLines([D.intro], null); setTimeout(() => hintQ(), 5200); } }, 900); }
