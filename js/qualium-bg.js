@@ -47,7 +47,7 @@ export function start(){
       if(!z){if(!q)return;z=LS[k]={x:q[0],y:q[1],a:0}}
       if(q){z.x+=(q[0]-z.x)*0.18;z.y+=(q[1]-z.y)*0.18}z.a+=((q?1:0)-z.a)*0.09;
       if(Math.abs((q?1:0)-z.a)>0.01||(q&&Math.hypot(q[0]-z.x,q[1]-z.y)>0.5))lblBusy=true;
-      if(z.a<0.01)return;al*=z.a;p=[z.x,z.y];o=Object.assign({},o,{al:'left'})}al=Math.min(1,al*B*1.3);cx.save();cx.shadowColor='rgba(2,7,13,.95)';cx.shadowBlur=7;cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;cx.textAlign=o.al||'left';cx.textBaseline='middle';try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}cx.fillStyle=`rgba(${col},${al})`;cx.fillText(t,p[0],p[1]);cx.fillText(t,p[0],p[1]);cx.restore()}
+      if(z.a<0.01)return;al*=z.a;p=[z.x,z.y];o=Object.assign({},o,{al:'left'})}al=Math.min(1,al*B*2.1);cx.save();cx.shadowColor='rgba(2,7,13,1)';cx.shadowBlur=9;cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;cx.textAlign=o.al||'left';cx.textBaseline='middle';try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}cx.fillStyle=`rgba(${col},${al})`;cx.fillText(t,p[0],p[1]);cx.fillText(t,p[0],p[1]);cx.restore()}
   // ── 場面の要素（位置は 3D から）
   const T=()=>A.trees.filter(t=>t.d>30&&t.c[0]>0.04&&t.c[0]<0.96).slice(0,4);
   const row=m=>A.path.find(r=>r.m===m)||A.path[A.path.length-1];

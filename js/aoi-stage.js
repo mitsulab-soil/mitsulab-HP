@@ -84,7 +84,7 @@ if (P) {
   let cur = 0, raf = 0, last = 0, W = 0, H = 0;
   function size() { camSet(); const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
   function frame(now) { raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const tg = target(); if (tg > 0 && !aoi) load();
-    cur = RM ? tg : cur + (tg - cur) * Math.min(1, dt * 2.4); if (Math.abs(tg - cur) < .002) cur = tg;
+    cur = RM ? tg : cur + (tg - cur) * Math.min(1, dt * 4); if (Math.abs(tg - cur) < .002) cur = tg;
     U.uT.value += dt; const k = cur;
     const gather = Math.min(1, k / .45), rise = Math.max(0, Math.min(1, (k - .3) / .65));
     pm.uniforms.uG.value = RM ? 1 : gather; pm.uniforms.uA.value = RM ? 0 : Math.min(1, k * 3) * (1 - rise * .75);
