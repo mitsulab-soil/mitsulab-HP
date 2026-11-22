@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noai,noimageai">
+<meta name="tdm-reservation" content="1">
+<title>Qualia/uv ── 紫外の色</title>
+<meta name="description" content="氷川参道の目の高さの景色を、ミツバチやアゲハが受けとるとされる紫外を含む色に置きかえる模式。黄色い花の真ん中に、人には見えない「的」が浮かぶ。">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js">
+<link rel="stylesheet" href="kit/qui.css?v=1">
+</head>
+<body>
+<canvas id="c" aria-label="氷川参道の目の高さの3Dの風景と、足もとの黄色い花。ドラッグで見回せます。"></canvas>
+<div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/uv<small>紫外の色</small></h1></div>
+<details class="fold"><summary>＋ 出典と模式</summary><div class="in">
+<p>人の目は、およそ 400〜700 nm の光を受けとります。<b>ミツバチの目</b>には、紫外（極大 約 344 nm）・青（約 436 nm）・緑（約 556 nm）の三種の受容体があります（Peitsch ほか 1992, <i>J. Comp. Physiol. A</i> 170: 23–40）。赤はほとんど受けとりません。<b>ナミアゲハ</b>は紫外から赤までの受容体をもち、色を四つの軸で見分けると示されています（Koshitaka ほか 2008, <i>Proc. R. Soc. B</i> 275: 947–954）。</p>
+<p><b>花の「的」</b>　黄色い花の多くは、花びらの先が紫外を返し、付け根が紫外を吸います。人には一色に見える花に、虫には中心へ向かう模様（ネクターガイド）が見えます。キジムシロのなかま（<i>Argentina anserina</i>）で、紫外を吸う付け根の広さが調べられています（Koski &amp; Ashman 2015, <i>Nature Plants</i> 1: 14007）。緑の葉は紫外をあまり返しません（Chittka ほか 1994, <i>Vision Research</i> 34: 1489–1508）。</p>
+<p><b>この画面の色は模式（偽色）です。</b>ミツバチには、紫外・青・緑の強さを画面の青・緑・赤に割りあてました。アゲハは赤を残し、紫外を青に重ねました。虫に「どう見えているか」そのものではなく、受けとる光の幅のちがいを、人に見える色へ移したものです。カメラで紫外を撮ってはいません（スマホのカメラは紫外をほとんど通しません）。花・葉・石の紫外の返しかたは、上の文献の傾向にもとづく数値の模式です。花の形・ミツバチの姿と大きさ（見やすく 2 倍）も模式です。</p>
+<p>場所は氷川参道の目の高さを模した場で、Qualia/sight・Qualia/time と同じ地（樹皮・葉・土・砂利の写真は CC0）。three.js（MIT）。© mitsulab.</p>
+</div></details>
+<div class="cap" id="cap">いまは人の目。下の札で、虫の目に切りかえる。</div>
+<div class="bar" role="group" aria-label="だれの目で見るか">
+<button id="bH" aria-pressed="true">人の目</button><button id="bB" aria-pressed="false">ミツバチ</button><button id="bA" aria-pressed="false">アゲハ</button><button id="bGo">外でさがす</button>
+</div>
+<div class="away" id="away" role="dialog" aria-label="外へ"><p id="awayQ">道ばたの黄色い花を、一つ見つけてください。<br>真ん中の色の濃いところに、虫は何を見ているでしょう。</p><button id="bBack">画面にもどる</button></div>
+<script type="module">
+const $ = id => document.getElementById(id);
+const CAP = {
+  human: 'いまは人の目。黄色い花は、ただの黄色。',
+  bee: 'ミツバチの目。花の真ん中が、紫外を吸う「的」になって浮かぶ。緑の葉は紫外を返さず、赤茶に沈む。',
+  ageha: 'アゲハの目。赤も見え、紫外も重なる。花の的は残り、空は紫外で明るい。'
+};
+let A = null;
+const set = n => { A && A.set(n); $('cap').textContent = CAP[n]; for (const [id, k] of [['bH', 'human'], ['bB', 'bee'], ['bA', 'ageha']]) $(id).setAttribute('aria-pressed', k === n); navigator.vibrate && n !== 'human' && navigator.vibrate(18); };
+$('bH').onclick = () => set('human'); $('bB').onclick = () => set('bee'); $('bA').onclick = () => set('ageha');
+$('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); };
+$('bBack').onclick = () => $('away').classList.remove('on');
+addEventListener('keydown', e => { if (e.key === '1') set('human'); if (e.key === '2') set('bee'); if (e.key === '3') set('ageha'); });
+import('./uv.js?v=1').then(m => { A = m.start($('c')); window.__uv = A; }).catch(e => console.warn(e));
+</script>
+<!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
+</body>
+</html>
