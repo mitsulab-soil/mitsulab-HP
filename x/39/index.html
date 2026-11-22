@@ -209,7 +209,7 @@ function draw(){
 function group(m){
   var la=0,lo=0,cs=[];m.forEach(function(a){la+=a[0].la;lo+=a[0].lo;var c=SM[a[0].s].c;if(cs.indexOf(c)<0)cs.push(c)});la/=m.length;lo/=m.length;
   var dots=cs.slice(0,4).map(function(c){return'<i style="background:'+c+'"></i>'}).join('');
-  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b>'+m.length+'</b>',iconSize:[52,52]});
+  var ic=L.divIcon({className:'grp',html:'<span>'+dots+'</span><b>'+m.length+'<small style="font-size:9px;margin-left:1px">か所</small></b>',iconSize:[52,52]});
   L.marker([la,lo],{icon:ic,keyboard:true,title:m.length+' 件の印。押すと寄ります'}).addTo(layer).on('click',function(){
     var b=L.latLngBounds(m.map(function(a){return[a[0].la,a[0].lo]}));if(b.getNorthEast().distanceTo(b.getSouthWest())<300)map.setView(b.getCenter(),Math.max(15,map.getZoom()+2));else map.fitBounds(b.pad(.6),{maxZoom:16})});
 }
