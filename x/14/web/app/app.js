@@ -1307,12 +1307,12 @@ function loadAoi() {
   })().catch(e => console.warn("碧の姿を読み込めませんでした：", e?.message ?? e));
 }
 function aoiSpot(out) {
-  const f = MOBILE ? 2.8 : 2.6, s = MOBILE ? .36 : .95,   /* 11-20 本人「碧がもっと近く見えるように」：前 3.8/3.6 m・横 .22/1.1 → 近く・少し脇 */   /* 11-18：375px で碧が左端で切れた→横のずらしを小さく */   /* 11-03 本人「碧との距離をもっと近く」：前 3.6/3.0 m・横 1.25 */   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
+  const f = MOBILE ? 2.8 : 3.4, s = MOBILE ? .36 : .95,   /* 11-22 本人「PC は碧を少し遠ざけ、裾まで全身を」：PC 2.6→3.4 m */   /* 11-20 本人「碧がもっと近く見えるように」：前 3.8/3.6 m・横 .22/1.1 → 近く・少し脇 */   /* 11-18：375px で碧が左端で切れた→横のずらしを小さく */   /* 11-03 本人「碧との距離をもっと近く」：前 3.6/3.0 m・横 1.25 */   /* 10-30 パネル：375px で碧を画面の高さの 4 分の 1 ほどに（少し離す） */   /* 10-30 パネル：375px で碧が前を隠さない（横へ寄せる） */   /* 10-27 P2：375px で裾が右下のボタンに重ならない距離に 4.0→6.8 */   /* 2026-10-26 PC で碧の体が画面の下で切れない距離に 2.4→3.5 */ vy = CAM.yaw + (MOBILE ? (CAM.look || 0) : 0), fx = -Math.sin(vy), fz = -Math.cos(vy);   /* 10-28 夜 8：スマホは見ている向きの前に立つ（見回すと右端で切れていた） */
   const n = nearestOnLine(CAM.pos.x, CAM.pos.z), a = atD(n.d), rx = -fz, rz = fx;
   const sd0 = (a.x - CAM.pos.x) * rx + (a.z - CAM.pos.z) * rz, side = !$("#panel").hidden && !MOBILE ? -1 : ((Math.abs(sd0) > .8 && !WALK.moving) || !AOI.side ? (AOI.side = sd0 >= 0 ? 1 : -1) : AOI.side)   /* 11-20：歩いているあいだは左右を入れかえない（近くで目の前を横切らない） */;   /* 10-30：左右がこまごとに入れかわらない */
   out.set(CAM.pos.x + fx * f + rx * s * side, 0, CAM.pos.z + fz * f + rz * s * side);
   if (offRoute(CAM.pos.x, CAM.pos.z)) { corridorClamp(out); if (inBld(out.x, out.z, .3)) { out.x = CAM.pos.x + fx * f; out.z = CAM.pos.z + fz * f; corridorClamp(out); } }   // 裏路地では、道の幅の中に立つ
-  if (inBld(out.x, out.z, .4)) { for (const [ff, ss] of [[f, -s * side], [f * .75, s * side * 1.4], [f * .75, -s * side * 1.4], [f * .6, 0], [2, s * side * 1.6], [2, -s * side * 1.6], [1, 1.3 * side], [1, -1.3 * side], [.2, 1.2 * side], [.2, -1.2 * side]]) { const x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss; if (!inBld(x, z, .4)) { out.x = x; out.z = z; break; } } }   // 11-03 本人「碧が建物を通り抜けない」：立ち位置が建物の中なら、反対側・手前の空いた所へ（近すぎない）
+  if (inBld(out.x, out.z, MOBILE ? .4 : .8)) { for (const [ff, ss] of [[f, -s * side], [f * .75, s * side * 1.4], [f * .75, -s * side * 1.4], [f * .6, 0], [2, s * side * 1.6], [2, -s * side * 1.6], [1, 1.3 * side], [1, -1.3 * side], [.2, 1.2 * side], [.2, -1.2 * side]]) { const x = CAM.pos.x + fx * ff + rx * ss, z = CAM.pos.z + fz * ff + rz * ss; if (!inBld(x, z, MOBILE ? .4 : .8)) { out.x = x; out.z = z; break; } } }   // 11-03 本人「碧が建物を通り抜けない」：立ち位置が建物の中なら、反対側・手前の空いた所へ（近すぎない）
   if (inBld(out.x, out.z, .4)) { let ok = false; for (const r of [1.3, .9, 2.2]) { for (const k of [0, 1, -1, 2, -2]) { if (ok) break; const a = vy + k * Math.PI / 4, x = CAM.pos.x - Math.sin(a) * r, z = CAM.pos.z - Math.cos(a) * r; if (!inBld(x, z, .4)) { out.x = x; out.z = z; ok = true; } } if (ok) break; } }   /* 11-05 採点：それでも壁の中なら、見る人のまわりの空いた所へ */
   if (MOBILE) { const ox = out.x - CAM.pos.x, oz = out.z - CAM.pos.z, fw = ox * fx + oz * fz, lt = ox * rx + oz * rz, lim = .17 * Math.max(fw, 1.5);   /* 11-20：近くに寄せた分、端で袖が切れない幅に（前 .26） */   // 11-13 採点：375px で碧が画面の端で切れない（横のずれを画角の内へ）
     if (Math.abs(lt) > lim) { const l2 = Math.sign(lt) * lim, f2 = Math.max(fw, 2.5), nx = CAM.pos.x + fx * f2 + rx * l2, nz = CAM.pos.z + fz * f2 + rz * l2; if (!inBld(nx, nz, .3)) { out.x = nx; out.z = nz; } } }
@@ -1322,10 +1322,12 @@ function aoiSpot(out) {
     else if (dd >= 2.1 && !inBld(out.x, out.z, .4)) (AOI.lastOk ??= { x: 0, z: 0 }, AOI.lastOk.x = out.x, AOI.lastOk.z = out.z); }
   out.y = groundY(out.x, out.z); return out;
 }
+/* 11-22 本人「碧はあとから現れる・一瞬も透けさせない」：立ち位置の奥（見る人から遠い側）に不透明のまま置き、そこから歩いて立ち位置へ来る */
+function aoiFrom(p, ok) { const dx = p.x - CAM.pos.x, dz = p.z - CAM.pos.z, l = Math.hypot(dx, dz) || 1; for (const k of [7, 5.5, 4, 2.5]) { const x = p.x + dx / l * k, z = p.z + dz / l * k; if (!ok || ok(x, z)) return { x, z }; } return { x: p.x, z: p.z }; }
 function aoiArrive() {
   loadAoi().then(() => {
     if (!AOI.m || QW.mode !== "walk") return;
-    aoiSpot(AOI.pos); AOI.m.teleport(AOI.pos.x, AOI.pos.z, Math.atan2(CAM.pos.x - AOI.pos.x, CAM.pos.z - AOI.pos.z)); AOI.root.visible = true;
+    aoiSpot(AOI.pos); { const f = aoiFrom(AOI.pos, (x, z) => !inBld(x, z, .3)); AOI.m.teleport(f.x, f.z, Math.atan2(AOI.pos.x - f.x, AOI.pos.z - f.z)); } AOI.v = 0; AOI.root.visible = true;
     if (!AOI.greeted && !AOI.greetPending) {
       AOI.greetPending = true;
       const beginIntro = () => {
@@ -1377,7 +1379,7 @@ const FLY = { up: false, down: false, v: 21 };   // 10-27 1.75 倍
 const KEYS = new Set();
 const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 110, f: 1500 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
-function setMode(m) { const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
+function setMode(m) { if (m === "walk" && !QW.tWalk) QW.tWalk = performance.now(); const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
   $("#modeSky").setAttribute("aria-pressed", String(m === "sky" || m === "descend")); $("#modeWalk").setAttribute("aria-pressed", String(m === "walk" || m === "sight")); $("#modeFly").setAttribute("aria-pressed", String(m === "fly"));
   applyFog(FOGS[m === "descend" ? "sky" : m] || FOGS.walk);
@@ -1460,17 +1462,18 @@ function selectStart(i) { START.sel = i; /* 印の選択（札と 2 回目で歩
   const a = stAt(C.starts[i]); SKY.c.set(a.x, groundY(a.x, a.z), a.z); SKY.tDist = MOBILE ? 520 : 420; }
 function openYaw() {   // 11-13 採点：降りた目の前と右手が壁で埋まらないよう、開けた向きへ（視野の左右 ±0.5 も見る）
   const free = y0 => { let d = 0; for (; d < 30; d += 1.5) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) break; return d; }, view = y => Math.min(free(y), free(y - .5) * 1.4, free(y + .5) * 1.4);
-  const v0 = view(CAM.yaw); if (v0 >= 20) return; let best = CAM.yaw, bd = v0; for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = view(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; if (innerWidth / innerHeight < .8) tallYaw(); }
+  const v0 = view(CAM.yaw); if (v0 >= 20) { if (innerWidth / innerHeight < .8) tallYaw(); return; } let best = CAM.yaw, bd = v0; for (let k = 1; k < 16; k++) { const y1 = CAM.yaw + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 8, f1 = view(y1); if (f1 > bd + 3) { bd = f1; best = y1; } } CAM.yaw = best; if (innerWidth / innerHeight < .8) tallYaw(); }
 function tallYaw() {   /* 11-17 採点 P1：縦長の画面は横の視野が狭く、正面に建物が一つもなかった＝開けた手前（15 m 以上）の先 40〜220 m に建物のある向きへ、±90° の中でいちばん近く回す */
-  const hit = y0 => { let d = 0; for (; d < 220; d += 4) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) return d; return 1e9; }, ok = y => { const d = hit(y); return d >= 15 && d <= 220; };
-  if (ok(CAM.yaw)) return; for (let k = 1; k <= 12; k++) for (const sg of [1, -1]) { const y1 = CAM.yaw + sg * k * Math.PI / 24; if (ok(y1) && ok(y1 + sg * Math.PI / 48)) { CAM.yaw = y1 + sg * Math.PI / 48; return; } } }
+  const hit = y0 => { let d = 0; for (; d < 400; d += 4) if (inBld(CAM.pos.x - Math.sin(y0) * d, CAM.pos.z - Math.cos(y0) * d, .3)) return d; return 1e9; }, ok = y => { const d = hit(y); return d >= 45 && d <= 400 && hit(y - .28) >= 22 && hit(y + .28) >= 22; };   /* 11-22 本人「スマホでビルの壁が画面の上半分をふさぐ」：縦長では、手前 45 m と左右の斜め 22 m が開けた（通りの奥が見える）向きへ */
+  if (ok(CAM.yaw)) return; for (let k = 1; k <= 24; k++) for (const sg of [1, -1]) { const y1 = CAM.yaw + sg * k * Math.PI / 24; if (ok(y1) && ok(y1 + sg * Math.PI / 48)) { CAM.yaw = y1 + sg * Math.PI / 48; return; } } }
 function descendTo(i, at, dur) {   // at＝現在地（GPS）の位置
   const s = C.starts[i], xz = !at && s.x != null, d = xz ? 0 : Math.min(at ? at.d : s.d, G.lineD[G.lineD.length - 1] - 3), a = at ? { x: at.x, z: at.z } : xz ? stAt(s) : atD(d), y = groundY(a.x, a.z) + EYE;
   const wait = AREAS.ensureAt(a.x, a.z);   // 広げたエリアの中なら、そのエリアの道と建物を読みながら降りる
   hideSkyUI(); exitSight(true); hideFlyUI(); setMode("descend"); hidePanel(); stopVoice();   // 前の場所の語りを、降りた先へ持ちこまない
   CAM.pos.set(a.x, y, a.z); CAM.yaw = xz ? stYaw(s) : /菓子屋/.test(s.name) ? yawAlong(d) + Math.PI : yawAlong(d); CAM.look = 0; CAM.pitch = -.04;
   if (!at && /時の鐘/.test(s.name) && G.bell) { const b = atD(1196); CAM.pos.set(b.x, groundY(b.x, b.z) + EYE, b.z); CAM.yaw = Math.atan2(-(G.bell.x - b.x), -(G.bell.z - b.z)); CAM.pitch = .12; }   // 鐘つき通りの入口から、鐘を見上げる
-  openYaw();
+  const yB = CAM.yaw; openYaw();
+  if (!at && /稲荷橋/.test(s.name)) CAM.yaw = yB + (innerWidth / innerHeight < .8 ? 9.2 : 8) * Math.PI / 24;   /* 11-22 本人「スマホでビルの壁が画面の上半分をふさぐ」：縦長の画面では、稲荷橋から空と通りの奥（約 300 m 開けた向き）が見える向きで始める（建物の読み込みを待たずに決める） */
   tweenTo(CAM.pos, CAM.yaw, CAM.pitch, dur || 2.6, () => wait.then(() => { openYaw(); setMode("walk"); showWalkUI(); aoiArrive(); }));
 }
 function corridorClamp(p) {   // 道筋 A のまわり 14 m か、歩ける道（裏路地ほか）の幅の中へ
@@ -1514,7 +1517,7 @@ function stepWalk(dt, eye = EYE, speed = WALK.speed) {
   else if (WALK.goal) { const dx = WALK.goal.x - CAM.pos.x, dz = WALK.goal.z - CAM.pos.z, dd = Math.hypot(dx, dz); if (dd < .4) { WALK.goal = null; if (WALK.ring) WALK.ring.visible = false; } else { mx = dx / dd * Math.min(dd, speed * dt); mz = dz / dd * Math.min(dd, speed * dt); const ty = Math.atan2(-dx, -dz); CAM.yaw += wrap(ty - CAM.yaw - CAM.look) * Math.min(1, dt * 2.2); } }
   WALK.moving = Math.abs(mx) + Math.abs(mz) > 1e-5;
   const px0 = CAM.pos.x, pz0 = CAM.pos.z; CAM.pos.x += mx; CAM.pos.z += mz; corridorClamp(CAM.pos);
-  const WR = MOBILE ? 2.2 : .35;   /* 11-12：スマホは縦の狭い画角で壁に寄ると画面が壁だけになるので、壁から 2.2 m 手前で止まる */
+  const WR = MOBILE ? 2.2 : 1.2;   /* 11-22 採点 P1「PC で歩くと画面の半分がビルの角」：PC も壁から 1.2 m 手前で止まる */   /* 11-12：スマホは縦の狭い画角で壁に寄ると画面が壁だけになるので、壁から 2.2 m 手前で止まる */
   if (MOBILE && QW.mode === "walk" && performance.now() - CAM.lastDrag > 2600) {   /* 11-12：スマホで目の前 5 m が壁なら、空いた通りの方へゆっくり向きを変える（画面が壁だけにならない） */
     const h = CAM.yaw + CAM.look, ahead = (a, d) => inBld(CAM.pos.x - Math.sin(a) * d, CAM.pos.z - Math.cos(a) * d, .2);
     if (ahead(h, 5)) for (const k of [.35, -.35, .7, -.7, 1.05, -1.05, 1.4, -1.4]) if (!ahead(h + k, 5) && !ahead(h + k, 10)) { CAM.yaw += k * Math.min(1, dt * 1.4); break; } }
@@ -2031,8 +2034,8 @@ function stepTag() {
 const clock = new THREE.Clock(); let fpsAcc = 0, fpsN = 0, prT = 0; const GEO = { t: 0, last: "" };
 function frame() { const _f0 = performance.now(); frame0(); if ((QW._fn = (QW._fn || 0) + 1) <= 4) (QW.tm.fr ||= []).push([Math.round(_f0 - T0), Math.round(performance.now() - _f0)]); }
 function meijiTalk() {   /* 11-12：昔の川が浮かんだとき、字幕で三行だけ（出典は端に） */
-  const L = ["足もとに、明治の地図の川を重ねました。", "明治13〜19年の迅速測図からです。", "川は谷の底を流れていました。", "両岸は田や湿地などの低い土地でした。", "いまは稲荷橋から先が空の下です。", "上流と河骨川は暗渠になりました。", "河骨川は「春の小川」のモデルとされます。"];   /* 11-12：スマホで一行が割れない長さ（20 字まで）に */
-  const SR = ["国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "東京都建設局「渋谷川・古川流域とは」", "東京都建設局「渋谷川・古川流域とは」", "国土交通省「渋谷川・古川かわまちづくり」"];
+  const L = ["足もとに、明治13〜19年の迅速測図から、川と低い土地の形を重ねました。", "渋谷川は谷の底を流れ、両岸は田や湿地などの低い土地でした。", "いまは稲荷橋から下流が空の下を流れ、上流と河骨川は暗渠になっています。", "河骨川は「春の小川」のモデルとされています。"];   /* 11-22 本人「明治の地図の語りを、続けて読める文に」：短い句の羅列を、つながる 4 文に（中身と出典は同じ） */
+  const SR = ["国土地理院「明治期の低湿地データ」", "国土地理院「明治期の低湿地データ」", "東京都建設局「渋谷川・古川流域とは」", "国土交通省「渋谷川・古川かわまちづくり」"];
   const go = () => { if (QW.hold || voiceQ || !$("#panel").hidden || !$("#caption").hidden || performance.now() - (QW._capT || 0) < 1500) { setTimeout(go, 1200); return; } let k0 = 0; const Q = L.map((t, k) => ({ t, src: SR[k], lay: "x.memory" })); let fin = false; speakLines(Q.slice(k0), null, { narr: true, done: () => { fin = true; } }); const me = voiceQ;
     const watch = () => { if (fin) return; if (voiceQ === me) { k0 = me.i; setTimeout(watch, 500); return; } L.splice(0, k0 + (k0 < L.length ? 0 : 0)); SR.splice(0, k0); if (L.length) setTimeout(go, 1500); }; setTimeout(watch, 500); }; go(); }   /* 割りこまれたら、残りの行をあとで続ける */
 function frame0() {
@@ -2104,6 +2107,6 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     setTimeout(() => { buildBuildings().catch(e => console.warn("bld", e)); buildKura(); }, 60);   // エリアの輪郭（zones.json・1 KB）は buildBuildings の中で一緒に読む
     setTimeout(loadKasane, 3000); setTimeout(loadMyLayer, 3600);
     setTimeout(() => { loadAoi(); fetch("web/app/lip.json?v=" + VER).then(r => r.json()).then(j => { LIP = j; }).catch(() => { }); }, 0);
-    const s0 = Q.get("start") ?? (Q.has("map") ? null : String(C.starts.findIndex(s => s.name === "渋谷川・稲荷橋")));   /* 11-10 第4周：最初から目の高さへ（地図は「ほかの場所」で開く・?map=1 で地図から） */ if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0, null, 1.1); }
+    const s0 = Q.get("start") ?? (Q.has("map") ? null : String(C.starts.findIndex(s => s.name === "渋谷川・稲荷橋")));   /* 11-10 第4周：最初から目の高さへ（地図は「ほかの場所」で開く・?map=1 で地図から） */ if (s0 != null && C.starts[+s0]) { selectStart(+s0); descendTo(+s0, null, .01); }
   } catch (e) { console.error(e); status("読み込めませんでした。ページを開きなおしてください。"); }
 })();

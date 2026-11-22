@@ -11,7 +11,7 @@
     .filter(function (p) { return p.q && isFinite(p.x) && isFinite(p.z); });
   if (!P.length) return;
   var st = document.createElement("style");
-  st.textContent = "#qKao{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:rgba(3,6,12,.86);opacity:0;pointer-events:none;transition:opacity 1.2s ease}" +
+  st.textContent = "#qKao{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(ellipse 80% 34% at 50% 50%,rgba(3,6,12,.78),rgba(3,6,12,.42) 70%,rgba(3,6,12,.3));opacity:0;pointer-events:none;transition:opacity 1.2s ease}" +
     "#qKao.on{opacity:1;pointer-events:auto}#qKao div{max-width:420px;text-align:center;color:#eef4f6;font:500 17px/1.9 'Shippori Mincho B1','Hiragino Mincho ProN',serif;letter-spacing:.05em}" +
     "#qKao small{display:block;margin-top:14px;font:400 12px/1.6 'Hiragino Sans',sans-serif;color:rgba(220,232,238,.62);letter-spacing:.04em}" +
     "#qKao i{display:block;height:1px;margin:18px auto 0;background:rgba(127,227,247,.5);width:0;transition:width 12s linear}#qKao.on i{width:60%}";
