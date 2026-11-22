@@ -7,12 +7,14 @@ if (P) {
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, SP = () => innerWidth < 761;
   const cv = document.createElement('canvas'); cv.className = 'aoi-stage'; cv.setAttribute('aria-hidden', 'true'); const MOB = SP(); let slot = null;
   // 2026-11-21 本人「スマホで碧が本文の文字に重ならないように」：スマホは段のあいだに場所をあけ、その中に碧を置く（固定の重ねはしない）
-  if (MOB) { slot = document.createElement('div'); slot.className = 'aoi-slot'; slot.setAttribute('aria-hidden', 'true'); P.after(slot); slot.appendChild(cv); }
-  else { const st = document.querySelector('.sd-stick'); st ? st.after(cv) : document.body.appendChild(cv); }
+  // 2026-11-22 本人「胡蝶の夢の章のあいだ、ずっと碧を出す・文字に重ねない」：スマホは各段の下に場所をあけ、いま読んでいる段の下へ碧を移す
+  const SLOTS = []; if (MOB) { ['0', '2', '3', '5'].forEach(n => { const p = document.querySelector('#qStory [data-ly="' + n + '"]'); if (!p) return; const d = document.createElement('div'); d.className = 'aoi-slot' + (n === '5' ? '' : ' aoi-slot-s'); d.setAttribute('aria-hidden', 'true'); p.after(d); SLOTS.push(d); }); slot = SLOTS[SLOTS.length - 1]; slot.appendChild(cv); }
+  function pick() { if (!MOB || !SLOTS.length) return; const H = innerHeight; let best = slot, bd = 1e9; SLOTS.forEach(d => { const r = d.getBoundingClientRect(); const dd = Math.abs((r.top + r.bottom) / 2 - H * .55); if (dd < bd) { bd = dd; best = d; } }); if (best !== slot) { slot = best; slot.appendChild(cv); if (typeof cap !== 'undefined' && cap) slot.appendChild(cap); W = 0; } }
+  if (!MOB) { const st = document.querySelector('.sd-stick'); st ? st.after(cv) : document.body.appendChild(cv); }
   const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, powerPreference: 'low-power' });
   R.setPixelRatio(Math.min(devicePixelRatio, SP() ? 2 : 1.75)); R.setClearColor(0, 0);
   const CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), -1);
-  const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(28, 1, .1, 50); const camSet = () => { if (SP()) { cam.position.set(0, 1.32, 2.7); cam.lookAt(0, 1.24, 0); } else { cam.position.set(0, 1.12, 3.5); cam.lookAt(0, 1.0, 0); } }; camSet();
+  const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(28, 1, .1, 50); const camSet = () => { if (SP()) { cam.position.set(0, 1.05, 5.0); cam.lookAt(0, .92, 0); } else { cam.position.set(0, 1.0, 6.4); cam.lookAt(0, 1.32, 0); } }; camSet();
   const U = { uRise: { value: -1 }, uA: { value: 0 }, uT: { value: 0 } };
   // 光の柱（上下に薄れる）と床の輪
   const pil = new THREE.Mesh(new THREE.CylinderGeometry(.26, .3, 3.2, 48, 1, true), new THREE.ShaderMaterial({ uniforms: { uA: { value: 0 }, uT: U.uT }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
@@ -37,6 +39,9 @@ if (P) {
   // 2026-11-21 本人「立っているだけでなく、何かを話し始めて」：章に合わせた短い語り（HP の言葉から・断定しない・音は鳴らさない）
   const EN = () => /^en/.test(document.documentElement.lang || '');
   const CH = [
+    ['#qStory [data-ly="0"]', '同じ参道でも、見えている世界はひとつではありません。', 'On the same approach, there is more than one world to see.'],
+    ['#qStory [data-ly="2"]', '見ること、聴くことの一部を、いまは計算も担っています。', 'Computation now takes on part of seeing and hearing.'],
+    ['#qStory [data-ly="3"]', 'ミツバチの紫外、コウモリの超音波。ほかの受けとり方へ。', 'A honeybee’s ultraviolet, a bat’s ultrasound: into other ways of receiving.'],
     ['#qStory [data-ly="5"]', 'わたしは碧。mitsulab の道具の案内役です。', 'I am Aoi, the guide of mitsulab’s tools.'],
     ['#qStory [data-ly="6"]', '世界と世界のあわいに立って、受けとり方を移しかえます。', 'I stand between worlds and carry one way of receiving into another.'],
     ['#qStory [data-ly="7"]', 'いつもの景色に戻ると、少しだけ違って見えるかもしれません。', 'Back in the everyday landscape, it may look a little different.'],
@@ -48,7 +53,7 @@ if (P) {
   const END = () => document.querySelector('#qStory [data-ly="7"]') || P; // 本文の広い章（ループ・道具）では文字を読む邪魔になるので、物語の段だけ
   const cap = document.createElement('p'); cap.className = 'aoi-cap'; cap.setAttribute('aria-live', 'off'); cv.after(cap); if (MOB) cap.classList.add('in');
   let chI = -1, sayAt = 0;
-  function chapter() { if (slot) return 2; const H = innerHeight; let k = -1; const n = 3;
+  function chapter() { if (MOB) return Math.max(0, SLOTS.indexOf(slot)); const H = innerHeight; let k = -1; const n = 6;
     for (let i = 0; i < n; i++) { const e = document.querySelector(CH[i][0]); if (e && e.getBoundingClientRect().top < H * .62) k = i; } return k; }
   function say(i) { chI = i; sayAt = performance.now(); if (i < 0) { cap.classList.remove('on'); return; } const t = CH[i][EN() ? 2 : 1]; cap.classList.remove('on');
     setTimeout(() => { if (chI !== i) return; cap.textContent = t; cap.classList.add('on');
@@ -74,12 +79,12 @@ if (P) {
     try { const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61'); mot = new AoiMotion(v, { root: v.scene, reducedMotion: RM, wind: 0, faceViewer: false, startCalm: 0, posture: 'upright', uprightWeight: .9 }); } catch (e) { }
     kick(); } catch (e) { console.warn('aoi stage', e); } }
   // 進み：段が画面の下から入ると上がり、上へ抜けると下がる
-  function target() { const r = (slot || P).getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
-    const e = (slot || END()).getBoundingClientRect(); const up = slot ? (H * .98 - r.top) / (H * .3) : (H * .95 - r.top) / (H * .4), down = slot ? (e.bottom - H * .02) / (H * .3) : (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
+  function target() { pick(); const r = (document.querySelector('#qStory') || P).getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
+    const e = (MOB ? (SLOTS[SLOTS.length - 1] || END()) : END()).getBoundingClientRect(); const up = (H * .95 - r.top) / (H * .4), down = (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
   let cur = 0, raf = 0, last = 0, W = 0, H = 0;
   function size() { camSet(); const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
   function frame(now) { raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const tg = target(); if (tg > 0 && !aoi) load();
-    cur = RM ? tg : cur + (tg - cur) * Math.min(1, dt * 1.6); if (Math.abs(tg - cur) < .002) cur = tg;
+    cur = RM ? tg : cur + (tg - cur) * Math.min(1, dt * 2.4); if (Math.abs(tg - cur) < .002) cur = tg;
     U.uT.value += dt; const k = cur;
     const gather = Math.min(1, k / .45), rise = Math.max(0, Math.min(1, (k - .3) / .65));
     pm.uniforms.uG.value = RM ? 1 : gather; pm.uniforms.uA.value = RM ? 0 : Math.min(1, k * 3) * (1 - rise * .75);
@@ -89,8 +94,8 @@ if (P) {
     { const f = RM ? 1 : Math.min(1, rise * 1.25); cv.style.filter = f >= 1 ? 'none' : 'blur(' + ((1 - f) * 6).toFixed(2) + 'px) brightness(' + (.35 + .65 * f).toFixed(3) + ')'; }
     { const c = k > .5 ? chapter() : -1;
       if (c < 0) { if (chI >= 0) say(-1); }
-      else if (c < chI) say(c);
-      else if (c > chI && (chI < 0 || performance.now() - sayAt > 2600)) say(chI + 1); }
+      else if (c < chI) say(c); else if (MOB && c !== chI) say(c);
+      else if (c > chI && (chI < 0 || performance.now() - sayAt > 2600)) say(MOB ? c : chI + 1); }
     if (k > 0) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
     if (k > 0 || tg > 0) raf = requestAnimationFrame(frame); else last = 0; }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
