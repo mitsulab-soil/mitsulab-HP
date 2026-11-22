@@ -1283,7 +1283,7 @@ export class AoiMotion {
     if (D.rc > 0) { D.rc -= dt; if (D.rc <= 0) { D.y.t = D.p.t = 0; D.f = .6; if (this.rand() < .5) this.s.nod.d += .5 + .4 * this.rand(); } }   /* 向け直したら、ときどき小さくうなずく */
     if (D.f > 0) D.f -= dt; { const dw = D.f > 0 ? 5.5 : 1.1; D.y.step(dt, dw); D.p.step(dt, dw); } D.eyv = (D.eyv ?? 0) + (D.ey - (D.eyv ?? 0)) * (1 - Math.exp(-(D.ey ? 1.1 : 40) * dt)); D.epv = (D.epv ?? 0) + (D.ep - (D.epv ?? 0)) * (1 - Math.exp(-(D.ep ? 1.1 : 40) * dt));
     if (Lk.hHold > 0) Lk.hHold -= dt; else { Lk.hy.t = clamp((yawT + D.y.v) * .72, -1.0, 1.0) * (L ? 1 : .6); Lk.hp.t = clamp((pitT + D.p.v) * .6, -.35, .45); }
-    Lk.hy.step(dt); Lk.hp.step(dt);
+    { const p0 = Lk.hy.v; Lk.hy.step(dt); Lk.hp.step(dt); const mx = 2.2 * dt; if (Math.abs(Lk.hy.v - p0) > mx) { Lk.hy.v = p0 + Math.sign(Lk.hy.v - p0) * mx; Lk.hy.d *= .5; } }   /* 11-22 採点「首がカクッと真横まで回る」：首を回す速さを毎秒 2.2 rad まで */
     const nk = B.neck; const qy = _q[1], qn = _q[2];
     // 大きく振り向くときは、胸も少し回す（首だけで回さない）。目→頭→胸の順に遅れて
     const hyv = Lk.hy.v, big = Math.sign(hyv) * Math.max(0, Math.abs(hyv) - .3) * .45; Lk.cy = (Lk.cy ?? 0) + (big - (Lk.cy ?? 0)) * (1 - Math.exp(-4 * dt));
