@@ -1,5 +1,5 @@
 /* 物語の碧の段で、背景に碧（共通の aoi.vrm＝Qualia/omiya と同じ正式の碧）が立ち上がる（2026-11-21）。
-   暗い舞台に光の粒が集まり → 光の柱と走査線の幕の中で、足もとから順に姿が立ち上がる → 段を過ぎると粒に戻って消える。
+   暗い舞台に光の粒が集まり → 全身が同時に、輪郭の揺らいだ状態から輪郭のはっきりした不透明な姿へ移る（2026-11-23 本人：下から順に出す形はやめた） → 段を過ぎると粒に戻って消える。
    進みはスクロールの位置から決め、時間でなめらかに追う（行き来しても途切れない）。PC は本文の右の余白、スマホは薄く右寄せ・粒を減らす。 */
 import * as THREE from 'three';
 const P = document.querySelector('#qStory [data-ly="5"]');
@@ -72,8 +72,8 @@ if (P) {
           'vec3 c = vec3(.5, .95, 1.) * (pow(fr, 2.2) * 1.3 + .12) * sc + vec3(.9, 1., 1.) * pow(fr, 8.) * .6 + vec3(.8, 1., 1.) * edge * 1.4; vec3 oC = c * uA; gl_FragColor = vec4(oC, clamp(max(oC.r, max(oC.g, oC.b)), 0., 1.));'); };
       return m; };
     // 2026-11-21 本人「実際の碧のデータで」：材質は碧の VRM のまま（顔と衣の色）、足もとから立ち上がるのは切断面で表す
-    R.localClippingEnabled = true;
-    v.scene.traverse(o => { if (o.isMesh) { o.frustumCulled = false; (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { m.clippingPlanes = [CLIP]; m.needsUpdate = true; }); } });
+    // 2026-11-23 本人：下から順に出すのをやめ、全身を同時に出す（切断面は使わない＝頭のない衣だけのこまを作らない）
+    v.scene.traverse(o => { if (o.isMesh) { o.frustumCulled = false; } });
     const N2 = n => v.humanoid.getNormalizedBoneNode(n); [['leftUpperArm', -.12, 0, -1.25], ['rightUpperArm', -.12, 0, 1.25]].forEach(([n, x, y, z]) => { const o = N2(n); if (o) o.rotation.set(x, y, z); });
     v.scene.rotation.y = 0; S.add(v.scene); aoi = v; v.update(0);
     try { const { AoiMotion } = await import('./aoi_motion.js?v=20261026-v61'); mot = new AoiMotion(v, { root: v.scene, reducedMotion: RM, wind: 0, faceViewer: false, startCalm: 0, posture: 'upright', uprightWeight: .9 }); } catch (e) { }
@@ -105,8 +105,11 @@ if (P) {
     pm.uniforms.uG.value = RM ? 1 : gather; pm.uniforms.uA.value = RM ? 0 : Math.min(1, k * 3) * (1 - rise * .75);
     pil.material.uniforms.uA.value = (RM ? 0 : Math.min(1, k * 2.2) * .7 * (1 - rise)) * (k > 0 ? 1 : 0); ring.material.uniforms.uA.value = Math.min(1, k * 2) * (1 - rise * .8);
     U.uRise.value = RM ? (k > .01 ? 2.4 : -1) : -0.02 + rise * 2.0; CLIP.constant = U.uRise.value; U.uA.value = (RM ? Math.min(1, k * 2) : Math.min(1, rise * 2.5)) * .85;
-    cv.style.opacity = k > 0 ? '1' : '0';
-    { const f = RM ? 1 : Math.min(1, rise * 1.25); cv.style.filter = f >= 1 ? 'none' : 'blur(' + ((1 - f) * 6).toFixed(2) + 'px) brightness(' + (.35 + .65 * f).toFixed(3) + ')'; }
+    // 全身が同時に現れる：輪郭が揺らぐ（ぼけ・ゆれ）→ 輪郭がはっきりする。最後は不透明・ぼけなし
+    { let f = RM ? 1 : Math.min(1, rise * 1.25); f = f * f * (3 - 2 * f); const wob = (1 - f);
+      cv.style.opacity = k > 0 ? '1' : '0';
+      cv.style.filter = f >= .999 ? 'none' : 'blur(' + (wob * (6 + 1.5 * Math.sin(U.uT.value * 7))).toFixed(2) + 'px) brightness(' + (.22 + .78 * f).toFixed(3) + ')';
+      if (aoi) { aoi.scene.visible = f > .001; const t = U.uT.value; aoi.scene.scale.set(1 + wob * .025 * Math.sin(t * 9.3), 1, 1 + wob * .02 * Math.cos(t * 7.1)); aoi.scene.position.x = wob * .02 * Math.sin(t * 5.7); } }
     { const c = k > .5 ? chapter() : -1;
       if (c < 0) { if (chI >= 0) say(-1); }
       else if (c < chI) say(c); else if (MOB && c !== chI) say(c);

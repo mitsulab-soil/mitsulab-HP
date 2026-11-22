@@ -23,7 +23,7 @@ export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0,
   const motion = new AoiMotion(vrm, { root, seed, reducedMotion, wind, posture, quality });   // quality（v5）＝"auto"|"high"|"mid"|"low"
   scene.add(root);
   // 透けさせて現れる
-  const live = !reducedMotion; let fade = 1;   /* 2026-11-22 本人「碧が透けているのが気になる」→ 現れるときも透けさせず、はじめから不透明で立つ（揺れものは AoiMotion の静めで止める） */
+  const live = !reducedMotion; let fade = live ? 0 : 1;
   const mats = []; root.traverse(m => { if (m.isMesh) for (const mt of [].concat(m.material)) mats.push([mt, mt.transparent, mt.depthWrite]); });
   // 現れるあいだの「透けた顔に白目と口の中が浮く」のは、AoiMotion（v5）が奥行きだけの写しで防ぐ（どのアプリの現れ方でも効く）
   const opacity = o => { for (const [mt, tr, dw] of mats) { mt.transparent = o < 1 ? true : tr; mt.opacity = o; mt.depthWrite = o < 1 ? o > .6 : dw; mt.needsUpdate = true; } };
@@ -31,7 +31,7 @@ export async function loadAoi(url, { scene, height = 1.62, onProgress, seed = 0,
   return {
     vrm, root, motion, state: motion.s,
     place(x, z, yaw) { motion.place(x, z, yaw); },
-    appear() { },   /* 2026-11-22 透けて現れ直すのはやめた */   // 2026-11-20 touch：立つ場所を変えたとき、はじめと同じようにゆっくり現れ直す
+    appear() { if (live) { fade = 0; opacity(0); } },   // 2026-11-20 touch：立つ場所を変えたとき、はじめと同じようにゆっくり現れ直す
     walkTo(v3) { motion.walkTo(v3); },
     // 声の時刻表がないときは、話しているあいだ身ぶりと口を合わせる（sec 秒）
     talk(opts = {}) { motion.speak({ dur: 3, kana: "", ...opts }); },
