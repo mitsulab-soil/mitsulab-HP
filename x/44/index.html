@@ -133,11 +133,12 @@ function mag(){
 }
 $('start').onclick=async()=>{
  if(running){running=false;$('needle').classList.add('off');showTrail();gain&&gain.gain.setTargetAtTime(0,ctx.currentTime,.1);toneG&&toneG.gain.setTargetAtTime(0,ctx.currentTime,.1);$('start').textContent='はじめる';$('start').classList.remove('on');$('pk').disabled=true;return}
+ if(!('ontouchstart' in window)&&matchMedia('(pointer:fine)').matches){$('note').textContent='この画面には方位を測るしくみがありません。スマホで開いてください。';return}
  if(!ctx)audio();await ctx.resume();
  if(ios){try{if(await DeviceOrientationEvent.requestPermission()!=='granted'){$('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}catch(_){ $('note').innerHTML='向きの許可が要ります。<br>ブラウザを開き直して、許可を選んでください。';return}}
  window.addEventListener('deviceorientationabsolute',onOri);window.addEventListener('deviceorientation',onOri);
  mag();running=true;clearTimeout(window.__pkT);window.__pkT=setTimeout(()=>{if(running&&heading!=null)$('pk').onclick()},25000);log=[];finds=0;W=40;t0s=Date.now();$('trail').style.display='none';$('dial').style.display='';$('start').textContent='とめる';$('start').classList.add('on');$('pk').disabled=false;
- $('note').innerHTML='北のある側の耳から聴こえます。<br>うなりが止まり、鈴が鳴ったら、<span style="white-space:nowrap">そこが北（磁北）。</span>';
+ $('note').innerHTML='画面はしまって、景色を見ながら。北のある側の耳から聴こえます。<br>うなりが止まり、鈴が鳴ったら、<span style="white-space:nowrap">そこが北（磁北）。</span>';
  setTimeout(()=>{if(heading==null)$('note').textContent='方位が取れません。スマホで開いてください。'},2500);
 };
 function showTrail(){
