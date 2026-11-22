@@ -669,9 +669,13 @@ const clock = new THREE.Clock(); let acc = 0, started = false;
 const minDt = mobile ? 1 / 31 : 0;
 const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 function placeCam(t) {
-  const bob = Math.sin(P.bob) * 0.018;
+  /* 2026-11-22 着いたあと画面がぴたりと止まって見えた → 歩き終えると揺れを静かに収め、立っているあいだは息のようなごく小さな上下と首の揺らぎを続ける */
+  P.amp = P.amp ?? 1; P.idle = P.idle ?? 0; const mv = !!(P.goal || P.keys.size);
+  P.amp += ((mv ? 1 : 0) - P.amp) * 0.06; P.idle += ((mv || RM ? 0 : 1) - P.idle) * 0.02;
+  const br = P.idle * (0.006 * Math.sin(t * 1.55) + 0.0025 * Math.sin(t * 0.61 + 1.3));
+  const bob = Math.sin(P.bob) * 0.018 * P.amp + br, sw = P.idle * (0.006 * Math.sin(t * 0.37) + 0.003 * Math.sin(t * 0.83 + 0.7));
   cam.position.set(P.x, EYE + bob, P.z);
-  const f = fwd(P.yaw); tmpV.set(P.x + f.x * Math.cos(P.pitch), EYE + bob + Math.sin(P.pitch), P.z + f.z * Math.cos(P.pitch));
+  const f = fwd(P.yaw + sw); tmpV.set(P.x + f.x * Math.cos(P.pitch), EYE + bob + Math.sin(P.pitch + sw * 0.4), P.z + f.z * Math.cos(P.pitch));
   cam.lookAt(tmpV);
 }
 function stepWalk(dt) {
