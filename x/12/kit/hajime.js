@@ -37,8 +37,8 @@
     cap.setAttribute("role", "status");
     cap.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);" + (top != null ? "top:calc(" + top + "px + env(safe-area-inset-top));" : "top:22%;") +
       "z-index:6;pointer-events:none;font:13px/1.6 'Shippori Mincho','Hiragino Mincho ProN',serif;letter-spacing:.08em;color:rgba(245,248,255,.96);text-align:center;white-space:nowrap;" +
-      "text-shadow:0 0 2px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.7);opacity:0;transition:opacity .6s";
-    cap.innerHTML = "ミツバチの目の色<br><span style=\"font-size:11px;opacity:.8\">紫外・青・緑の三色。紫外は近い色に置きかえた模式</span>";
+      "text-shadow:0 0 2px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.7);opacity:0;transition:opacity .6s;background:rgba(3,6,15,.55);padding:8px 16px;border-radius:6px";   // 2026-11-22 明るい空に沈んで読めなかった → 薄い暗い地
+    cap.innerHTML = "ミツバチの目の色<br><span style=\"font-size:12px;opacity:.92\">紫外・青・緑の三色。紫外は近い色に置きかえた模式</span>";
     document.body.appendChild(cap);
     var e = 0, lt = performance.now(), IN = 900, HOLD = 2600, OUT = 1100, raf = 0, done = false;
     function set(k) {
