@@ -263,14 +263,14 @@ const P = { x: SPAWN.x, z: SPAWN.z, yaw: SPAWN.yaw, pitch: SPAWN.pitch, goal: nu
 const fwd = (yaw, o = new THREE.Vector3()) => o.set(-Math.sin(yaw), 0, -Math.cos(yaw));
 function segOf(it) { const c = Math.cos(it.face), s = -Math.sin(it.face), hw = it.sho ? it.sho.width / 2 : 1.5; return [it.x - c * hw, it.z - s * hw, it.x + c * hw, it.z + s * hw]; }
 function keepOut(x, z) {                                       // 書と壁にぶつからない（書は浮かぶ板＝線分としてよける）
-  const L = HALF - 0.7; x = THREE.MathUtils.clamp(x, -L, L); z = THREE.MathUtils.clamp(z, -L, L);
+  const L = HALF - 2.8; x = THREE.MathUtils.clamp(x, -L, L); z = THREE.MathUtils.clamp(z, -L, L);   /* 2026-11-22 角へ寄ると壁ぎわの書が壁に食い込んで見える＝歩ける範囲を内側へ */
   for (const it of works) {
     if (it.form === 'floor') { const r = (it.sho ? Math.max(it.sho.width, it.sho.height) / 2 : 2.2) + 0.25, dx = x - it.x, dz = z - it.z, d = Math.hypot(dx, dz); if (d < r) { const k = d > 1e-4 ? r / d : 1; x = it.x + dx * k; z = it.z + (d > 1e-4 ? dz * k : r); } continue; }   /* 床の墨だまりには踏みこまない */
     const [ax, az, bx, bz] = segOf(it), vx = bx - ax, vz = bz - az, t = THREE.MathUtils.clamp(((x - ax) * vx + (z - az) * vz) / (vx * vx + vz * vz), 0, 1);
     const px = ax + vx * t, pz = az + vz * t, d = Math.hypot(x - px, z - pz);
     if (d < KEEP) { const k = d > 1e-4 ? KEEP / d : 1; x = px + (x - px) * k; z = pz + (z - pz) * k + (d > 1e-4 ? 0 : KEEP); }
   }
-  return [x, z];
+  return [THREE.MathUtils.clamp(x, -L - 0.4, L + 0.4), THREE.MathUtils.clamp(z, -L - 0.4, L + 0.4)];
 }
 function walkToward(tx, tz, maxStep = STEP_MAX) {
   const dx = tx - P.x, dz = tz - P.z, l = Math.hypot(dx, dz); if (l < 0.05) return;

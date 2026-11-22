@@ -503,6 +503,7 @@ function compareView(on) {
 }
 function applyLens(id) {
   const L = LENS[id];
+  awayOnce(id);   // 2026-11-22 体験の芯：三つの目を見たら一度だけ、画面から目を上げる合図
   if (id === "koumori" && typeof echo !== "undefined") echo.t = 99;   // 切り替えてすぐ最初の声を出す（2026-10-14：はじめの数秒が真っ黒だった）
   if (comparing) { comparing = false; $("cmpBtn")?.setAttribute("aria-pressed", "false"); $("cmpTag") && ($("cmpTag").hidden = true); }
   G.uM.value.set(...L.m); G.uUVw.value.set(...L.uvw); G.uMode.value = L.mode || 0; G.uCell.value = (mobile ? 3 : 4) * BASE_PR;
@@ -709,6 +710,9 @@ function pauseSpeech(on) {
 }
 function skipLine() { if (SP.playing) AUD.voice.pause(); SP.resolve?.(); }
 function hush() { SP.tok++; if (SP.playing) AUD.voice.pause(); SP.resolve?.(); }
+const seenLens = new Set(); let awayDone = false;
+function awayOnce(id) { seenLens.add(id); if (awayDone || seenLens.size < 4) return; awayDone = true;
+  setTimeout(() => { const el = document.getElementById('away'); if (!el) return; el.textContent = '画面から目を上げて、近くの花か葉を一つ。いま選んだ生きものの目なら、どう見えるだろう。'; el.hidden = false; try { navigator.vibrate && navigator.vibrate([30, 80, 30]); } catch (e) {} setTimeout(() => { el.hidden = true; }, 12000); }, 2500); }
 async function sayQ(lines) {
   const tok = ++SP.tok; if (SP.playing) AUD.voice.pause(); SP.resolve?.();
   for (const l of [].concat(lines).filter(Boolean)) {

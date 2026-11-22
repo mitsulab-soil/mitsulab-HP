@@ -225,6 +225,8 @@ body{word-break:auto-phrase;line-break:strict}
 @media(min-width:1000px){#kurMarks .km span{font-size:16px}}
 /* スマホ：飛ぶ体の「上昇・下降」が右の端で切れていた → 二つを細く */
 @media(max-width:700px){#flightControls button{min-width:32px!important;width:32px;padding:2px!important;font-size:17px!important}#flightControls small{font-size:12px}#bodyControls{gap:7px}}
+.away{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 200px);transform:translateX(-50%);width:min(520px,calc(100% - 32px));padding:12px 16px;text-align:center;font-size:15px;line-height:1.7;color:#eef3ee;background:rgba(3,6,15,.74);border:1px solid rgba(195,204,224,.25);z-index:40;pointer-events:none}
+@media (max-width:700px){#ring .rg-prev{left:8px!important}#ring .rg-next{right:8px!important}}
 </style>
 <script type="importmap">
 {"imports":{"three":"./vendor/three/build/three.module.js?v=m1",
@@ -232,11 +234,11 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261121a">
+<link rel="modulepreload" href="umwelt.js?v=20261122a">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
-<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1">
+<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1" fetchpriority="high">
 <link rel="modulepreload" href="bodies.js?v=20261120r">
 <link rel="modulepreload" href="forest.js?v=20261120r">
 <link rel="modulepreload" href="vendor/three/examples/jsm/utils/BufferGeometryUtils.js">
@@ -377,12 +379,12 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
 <script src="data/paths.js?v=20261010"></script>
 <script src="data/daihon.js?v=20261120a"></script>
 <script src="data/voice.js?v=20261120a" onerror="window.VOICE={}"></script>
-<script src="data/why.js?v=20261120a"></script>
+<script src="data/why.js?v=20261120a" defer></script>
 <script>
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261121a';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261122a';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
@@ -426,5 +428,6 @@ body.kur #where{top:62px!important}
 }
 @media (min-width:900px){#legend:not([data-lens="hachi"]),#legend[data-lens="hachi"]{left:auto!important;right:64px!important;transform:none!important;text-align:left!important}}   /* PC：凡例を右下へ（大きくした自分の体にかからないように） */
 </style>
+<div id="away" class="away" role="status" aria-live="polite" hidden></div>
 </body>
 </html>
