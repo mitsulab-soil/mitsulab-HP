@@ -1822,7 +1822,7 @@ const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tor
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y17");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y18");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
@@ -1846,7 +1846,7 @@ const YO_FLY = { cho: [.9, .75, .45, .55, .14, .45], tori: [1.3, -1.0, .6, 1.9, 
 function stepCompanions(dt) {
   if (!YO.y || !AOI.m) return;
   if (!YO.c && !YO.cBusy) { YO.cBusy = true; (async () => { try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y17"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y18"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
     c.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z) });
     const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: YO_FLY[k] ? P.y + YO_FLY[k][3] : null, height: h, follow: false, hide: k === "tori" ? /^(branch|bl)$/ : null, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) }).then(it => { if (k === "tori") it.U.wing.value = .5; });
     YO.c = c; QW.YOC = c; } catch (e) { console.warn("yorishiro-c", e); } })(); return; }
@@ -1881,7 +1881,7 @@ function stepTori(it, dt, t, P, ax, az, rx, rz, sd) {
   if (d > 8) { R.position.x = tx; R.position.z = tz; R.position.y = ty; } else { R.position.x += dx * k; R.position.z += dz * k; R.position.y += (ty - R.position.y) * Math.min(1, dt * (it.st === "fly" ? 2 : 3.5)); }
   if (it.st === "rest") { const w = Math.atan2(P.x - R.position.x, P.z - R.position.z) + .25 * Math.sin(t * 1.7 + it.ph) * (Math.sin(t * .8) > .3 ? 1 : 0); it.yaw0 += Math.atan2(Math.sin(w - it.yaw0), Math.cos(w - it.yaw0)) * Math.min(1, dt * 3); }   // 碧の方を向き、ときどき首をかしげる
   else if (d > .05) it.yaw0 = Math.atan2(dx, dz) + .3 * Math.sin(t * .6);
-  if (MOBILE && it.st !== "rest") { const q = _v3c.copy(R.position).project(camera); if (Math.abs(q.x) > .7) { const k2 = Math.min(1, dt * 4); R.position.x += (P.x - R.position.x) * k2; R.position.z += (P.z - R.position.z) * k2; } }   /* 11-24 375：飛んでいる鳥が画面の右端で切れない（画面の 15% より内へ） */
+  if (MOBILE && it.st !== "rest") { const q = _v3c.copy(R.position).project(camera); if (Math.abs(q.x) > .6) { const k2 = Math.min(1, dt * 9); R.position.x += (P.x - R.position.x) * k2; R.position.z += (P.z - R.position.z) * k2; } }   /* 11-24 375：飛んでいる鳥が画面の右端で切れない（画面の 15% より内へ） */
 }
 /* 11-23 木・石・土・しずく：碧の行く手の脇（狐の反対側）に一体ずつ。碧が 30 m 離れたら次の姿を行く手へ移す（読むのは一度だけ・起動のあとに一つずつ） */
 const _v3s = new THREE.Vector3();
@@ -1896,7 +1896,7 @@ function stillSpot(P, sd) {   // 見る向きの先で、狐（sd の側）の�
 }
 function stepStill(dt, on, P, ax, az, rx, rz, sd) {
   if (!YO.s && !YO.sBusy) { YO.sBusy = true; (async () => { try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y17"), s = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y18"), s = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
     s.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });
     YO.s = s; QW.YOS = s;

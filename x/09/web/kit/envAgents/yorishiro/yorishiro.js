@@ -102,9 +102,12 @@ function refineFox(body) {
     const H = new THREE.Vector3(E.x, N.y + .06, E.z), f = new THREE.Vector3(N.x - H.x, 0, N.z - H.z), fl = f.length(); f.divideScalar(fl); const side = new THREE.Vector3(-f.z, 0, f.x);
     const g = bm.geometry = bm.geometry.clone(), P = g.attributes.position, v = new THREE.Vector3();
     for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const d = v.clone().sub(H), al = d.x * f.x + d.z * f.z; const dy = v.y - N.y; if (al < -fl * .1 || Math.abs(dy) > .2 || v.distanceTo(N) > .36) continue;
-      const w = Math.min(1, (al + fl * .1) / (fl * .9)), sm = w * w * (3 - 2 * w) * Math.max(0, 1 - Math.pow(Math.abs(dy) / .2, 2)), la = d.x * side.x + d.z * side.z, k = .78 * sm;
-      v.x -= side.x * la * k; v.z -= side.z * la * k; v.y -= (v.y - N.y) * .5 * sm; v.x += f.x * .05 * sm * sm; v.z += f.z * .05 * sm * sm; P.setXYZ(i, v.x, v.y, v.z); }
-    g.computeVertexNormals(); nose.position.addScaledVector(new THREE.Vector3(f.x, 0, f.z).applyQuaternion(bm.quaternion), .045); nose.scale.multiplyScalar(.8); }
+      const w = Math.min(1, (al + fl * .1) / (fl * .9)), sm = w * w * (3 - 2 * w) * Math.max(0, 1 - Math.pow(Math.abs(dy) / .2, 2)), la = d.x * side.x + d.z * side.z, k = .88 * sm;
+      v.x -= side.x * la * k; v.z -= side.z * la * k; v.y -= (v.y - N.y) * .5 * sm; v.x += f.x * .08 * sm * sm; v.z += f.z * .08 * sm * sm; P.setXYZ(i, v.x, v.y, v.z); }
+    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const d = v.clone().sub(H), al = d.x * f.x + d.z * f.z, dy = v.y - N.y, la = d.x * side.x + d.z * side.z, A = Math.abs(la);   // 頬の横のふくらみ（正面から白い帯に見えた）を内へ寄せる
+      if (al < -fl * .4 || dy < -.17 || dy > .1 || A < .1) continue; const vw = Math.max(0, 1 - Math.pow((dy + .035) / .135, 2)) * Math.min(1, (al + fl * .4) / (fl * .5)); const nl = Math.sign(la) * (.1 + (A - .1) * (1 - .55 * vw)), dl = nl - la;
+      v.x += side.x * dl; v.z += side.z * dl; P.setXYZ(i, v.x, v.y, v.z); }
+    nose.position.addScaledVector(new THREE.Vector3(f.x, 0, f.z).applyQuaternion(bm.quaternion), .05); nose.scale.multiplyScalar(.8); }
   for (const o of tufts) { o.scale.multiplyScalar(.75); o.rotation.x += .35; o.material = o.material.clone(); o.material.vertexColors = false; o.material.color.set(TEAL2); o.material.needsUpdate = true; }
 }
 const _c = new THREE.Color(), _d = new THREE.Color();
