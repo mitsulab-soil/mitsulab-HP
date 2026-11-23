@@ -240,3 +240,11 @@ body:has(.away:not([hidden])) .tip{visibility:hidden}
 .icm{opacity:1!important;background:rgba(8,18,24,.88)!important;border:1px solid rgba(200,236,244,.7)!important;box-shadow:0 0 0 3px rgba(8,18,24,.35)!important}
 
 @media (max-width:599px){.count{letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}/* 2026-11-22 スマホで模式の注記を一行に */
+
+/* 2026-11-23 現実の音へ耳を向ける一行・PC の三つの入口を大きく */
+.out-ear{margin:4px 0 0;text-align:center;font:12px/1.6 var(--ml-serif);letter-spacing:.08em;color:#d6e6e8;text-shadow:0 1px 6px #000}
+@media (min-width:900px){.near-sound-points{gap:18px}.near-sound-points button{min-width:120px;min-height:56px;font-size:19px}.near-sound-points button::before{width:12px;height:12px}.out-ear{font-size:15px}}
+
+/* 2026-11-23 一覧の題の末尾が一字だけ落ちないように・PC の入口をさらに大きく */
+.list button{text-wrap:pretty}
+@media (min-width:900px){.near-sound-points button{min-width:140px;min-height:64px;font-size:21px}#nearSoundPrompt{font-size:17px}}
