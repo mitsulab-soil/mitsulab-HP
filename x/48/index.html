@@ -36,19 +36,19 @@ html,body{background:#2a2624}
 </style>
 </head>
 <body>
-<canvas id="c" aria-label="夕方の森（Qualia/sight と同じ森）の3Dの風景。空をコウモリが飛びます。マイクで拾った高い音の強さが、目の前の輪と、下の帯に表れます。"></canvas>
+<canvas id="c" aria-label="夕方の森のはしの浜（Qualia/sight と同じ森と海辺）の3Dの風景。空をコウモリが飛びます。マイクで拾った高い音の強さが、目の前の輪と、下の帯に表れます。"></canvas>
 <div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/hear<small>聞こえない音を聞く</small></h1></div>
 <details class="fold"><summary>＋ 出典と模式</summary><div class="in">
 <p><b>人の耳</b>　人に聴こえる高さは、およそ 20 Hz〜20 kHz。上の端は年とともに下がります。</p>
 <p><b>マイクで拾った音（実際の音）</b>　「マイクで聴く」を押すと、スマホやパソコンのマイクが拾った音のうち 15 kHz より高い所だけを取り出し、選んだ高さ（16・18・20 kHz）の音とかけ合わせて、その差の高さ（0〜5 kHz ほど）に下ろして鳴らします。コウモリの声を聴く検出器（ヘテロダイン方式）と同じしくみです。ふつうのマイクと端末は、多くが 20〜24 kHz ほどまでしか拾えません（標本化の周波数 44.1・48 kHz の半分が上限。機種によってはもっと低い所で切っています）。ですから、ここで聴けるのは、虫の声の高い成分や、機械の高い音など、およそ 15〜24 kHz の音です。音は端末の中だけで扱い、録音・送信はしません。ハウリングを防ぐため、イヤホンをおすすめします。</p>
 <p><b>コウモリ（模式）</b>　夕方の空を飛ぶアブラコウモリ（<i>Pipistrellus abramus</i>）は、約 100 kHz から 40 kHz 前後へ下がる、数ミリ秒の声を出して、こだまで虫や物をとらえます（Hase ほか 2016, <i>Scientific Reports</i> 6: 30978 ほか）。この高さはふつうのマイクでは録れません。「コウモリの声」の音は、その形を<b>聴こえる高さに移した模式</b>です（時間を 10 倍にのばし、高さを 10 分の 1 に。実際の録音ではありません）。</p>
 <p><b>都市（模式）</b>　駅前の大通りと交差点の模式（ビル・街路樹・信号・車。特定の店や建物を写したものではありません）。アブラコウモリは家に住み、夕方の街灯のまわりで虫を捕ります。街の中でも、高い音は機械や電子機器から、虫から、コウモリから出ています。路面・歩道の質感は Poly Haven、窓の並びは ambientCG（いずれも CC0）。</p>
-<p><b>海辺（模式）</b>　森の先、川が海へ出る小さな入り江の砂浜と磯。砂・岩の写真は CC0、波・ウミネコ・イソガニの形はこの画面で描いた模式です。</p>
+<p><b>海辺（模式）</b>　自然の場は、森のはし、川が海へ出る小さな入り江の浜に立っています。夕方のコウモリは、林のはしや水辺の上で虫を捕ります。波の音（寄せて返す約 8 秒）とウミネコの「ミャーオ」という声、街の車の音は、音を出すボタンを押すと小さく鳴る、この画面で作った<b>聞こえる音の模式</b>です（録音ではありません）。砂・岩の写真は CC0、波・ウミネコ・イソガニの形はこの画面で描いた模式です。</p>
 <p>場所は Qualia/sight と同じ森（関東の雑木林のつもりの創作空間。樹皮・葉・土の写真は CC0）。Qualia/sight が「見えない世界を見る」のに対し、ここでは聞こえない音を聞きます。碧とコウモリの姿は sight と同じ（コウモリは見やすく 2 倍）、飛び方は模式。three.js（MIT）。© mitsulab.</p>
 </div></details>
 <div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">自然</button><button data-place="city" aria-pressed="false">都市</button></div>
 <div class="spec" aria-hidden="true"><canvas id="sp" width="560" height="80"></canvas><div class="ax"><span>0</span><span id="mid">▲20 kHz（人の耳の上限）</span><span id="nq"></span></div></div>
-<div class="cap" id="cap">空を飛ぶコウモリは、ずっと声を出している。人の耳には届かない高さで。</div>
+<div class="cap" id="cap">浜の上を飛ぶコウモリは、ずっと声を出している。人の耳には届かない高さで。</div>
 <div class="tune" role="group" aria-label="下ろす高さ"><span>下ろす元の高さ</span><button data-f="16000" disabled>16 kHz</button><button data-f="18000" aria-pressed="true" disabled>18 kHz</button><button data-f="20000" disabled>20 kHz</button></div>
 <div class="bar" role="group" aria-label="聴く"><button id="bMic" aria-pressed="false">マイクで聴く</button><button id="bBat" aria-pressed="false">コウモリ（模式）</button><button id="bGo">外へ</button></div>
 <div class="away" id="away" role="dialog" aria-label="外へ"><p>夕方、街灯のまわりを飛ぶ小さな影を、目で追ってみてください。<br>その影は、いまも声を出しています。<br>聴こえない声で、何を見ているのでしょう。</p><button id="bBack">画面にもどる</button></div>
@@ -64,7 +64,7 @@ function draw() { requestAnimationFrame(draw); if (!S) return; const b = S.spect
   if (S.micOn) { quiet.peak = Math.max(quiet.peak, hn ? hi / hn : 0); if (!quiet.done && performance.now() - quiet.t0 > 6000) { quiet.done = true; if (quiet.peak < 4) $('cap').textContent = 'この端末のマイクは、15 kHz より高い音をほとんど拾っていない（端末が切っていることがある）。「コウモリ（模式）」で聴ける。'; } } }
 const quiet = { t0: 0, peak: 0, done: false };
 requestAnimationFrame(draw);
-function ensure() { if (!S) { S = mod.audio(); $('nq').textContent = Math.round(S.nyq / 1000) + 'k'; } if (S.AC.state === 'suspended') S.AC.resume(); }
+function ensure() { if (!S) { S = mod.audio(); $('nq').textContent = Math.round(S.nyq / 1000) + 'k'; S.ambient(V ? V.place : 'forest'); } if (S.AC.state === 'suspended') S.AC.resume(); }
 $('bMic').onclick = async () => { if (!mod) return; ensure(); if (S.micOn) return;
   try { await S.openMic(f0); quiet.t0 = performance.now(); $('bMic').setAttribute('aria-pressed', true); $('bMic').textContent = '聴いている';
     document.querySelectorAll('.tune button').forEach(b => b.disabled = false); document.querySelector('.tune').style.visibility = 'visible';
@@ -75,11 +75,11 @@ $('bBat').onclick = () => { if (!mod) return; ensure(); if (batT) { clearInterva
   const go = () => { S.batCall(); V && V.pulse(); navigator.vibrate && navigator.vibrate(8); }; go(); batT = setInterval(go, 900);
   $('bBat').setAttribute('aria-pressed', true); $('cap').textContent = 'コウモリの声を、時間を 10 倍にのばし、高さを 10 分の 1 にした模式。ほんとうは、この 1 回が数ミリ秒。'; };
 document.querySelectorAll('#place button').forEach(b => b.onclick = async () => { if (!V || b.getAttribute('aria-pressed') === 'true') return; b.setAttribute('aria-busy', 'true');
-  try { await V.setPlace(b.dataset.place); } finally { b.removeAttribute('aria-busy'); }
+  try { await V.setPlace(b.dataset.place); S && S.ambient(b.dataset.place); } finally { b.removeAttribute('aria-busy'); }
   document.querySelectorAll('#place button').forEach(c => c.setAttribute('aria-pressed', c === b));
-  if (!S || (!S.micOn && !batT)) $('cap').textContent = b.dataset.place === 'city' ? '街灯のまわりを飛ぶコウモリも、ずっと声を出している。人の耳には届かない高さで。' : '空を飛ぶコウモリは、ずっと声を出している。人の耳には届かない高さで。'; });
+  if (!S || (!S.micOn && !batT)) $('cap').textContent = b.dataset.place === 'city' ? '街灯のまわりを飛ぶコウモリも、ずっと声を出している。人の耳には届かない高さで。' : '浜の上を飛ぶコウモリは、ずっと声を出している。人の耳には届かない高さで。'; });
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./hear.js?v=h5').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
+import('./hear.js?v=h6').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
 </body>

@@ -8,6 +8,7 @@ import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261120r";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
+import { buildShore, clearForest } from "./kit/shore.js?v=20261123b";
 
 const WIND = `
 vec4 mvPosition = vec4( transformed, 1.0 );
@@ -76,7 +77,7 @@ export function start(canvas) {
   const hemi = new THREE.HemisphereLight("#d6c4c4", "#4a3c30", 1.25); S.add(hemi);
   const sun = new THREE.DirectionalLight("#ffb27a", 1.6); sun.castShadow = true; sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
   Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 120 }); sun.shadow.bias = -.0008; sun.shadow.normalBias = .04;
-  sun.target.position.set(2, 0, -4); sun.position.set(-34, 14, -20); S.add(sun, sun.target);
+  sun.target.position.set(44, 0, 2); sun.position.set(10, 14, -14); S.add(sun, sun.target);
   // 森（sight と同じ）
   const forest = new THREE.Group(); S.add(forest); const pick = [], sonic = [];
   const riverCurve = new THREE.CatmullRomCurve3([[-8, -7], [-5, -13], [1, -15], [9, -12], [18, -7], [30, -2], [44, 4]].map(([x, z]) => new THREE.Vector3(x, .035, z)));
@@ -90,7 +91,8 @@ export function start(canvas) {
   // あとの草花・落ち葉は、起動のあとに一こまずつ（sight と同じ）
   (async () => { for (const job of FOREST.later || []) { await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0))); const g = job(); g.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = !mobile; } }); forest.add(g); } })();
   // 立つ所：森の草地（明るいすき間）の縁から、空の開けた方を見上げる
-  const eye = new THREE.Vector3(SPAWN.x, 1.55, SPAWN.z), look = new THREE.Vector3(MEADOW.x - 1.5, 3.1, MEADOW.z);
+  // 立つ所（2026-11-23 本人「自然の中に海辺の要素を」）：森のはし、川が海へ出る入り江の砂浜から、夕方の海と空を見る。うしろは森
+  const eye = new THREE.Vector3(37.6, 1.55, 6.5), look = new THREE.Vector3(50, 3.6, -16);   // 左に森のはし、右に海
   let yaw = Math.atan2(-(look.x - eye.x), -(look.z - eye.z)), pitch = Math.atan2(look.y - eye.y, Math.hypot(look.x - eye.x, look.z - eye.z)), dy = 0, dp = 0;
   cam.position.copy(eye); cam.rotation.order = "YXZ";
   // 見回す（なぞる）
@@ -115,7 +117,7 @@ export function start(canvas) {
     aoi.traverse(o=>{if(o.isMesh){o.material=[].concat(o.material).map(m=>{const n=new THREE.MeshStandardMaterial({map:m.map||null,color:m.color?.clone()||new THREE.Color(0xffffff),side:m.side,transparent:m.transparent,alphaTest:m.alphaTest||0,roughness:.85});n.name=m.name;if(/SKIN/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.24,.2,.19);n.roughness=.7;}else if(/EYE|FACE/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.45,.45,.45);}else if(/HAIR/i.test(m.name)){n.roughness=.62;}/* 2026-10-15：肌は光の当たらない側も少し透けて明るく（MToon から写すと顔が暗く沈んでいた）・目は暗くしない *//* 2026-10-27 熱の見え方（マムシ）：肌は温かく、衣は体温をさえぎって表面がぬるく、髪はさらに低い（人の赤外線の像で、顔と手が明るく衣が暗いのと同じ）。目は肌と同じ温度にして、光る点にしない */prep(n,{uv:.04,temp:/EYE/i.test(m.name)?.3:/SKIN|FACE|MOUTH|BROW/i.test(m.name)?.55:/HAIR/i.test(m.name)?.22:.38,echo:1});return n;});if(o.material.length===1)o.material=o.material[0];}});
     // 立つ所：見ている向きの右手前、草地の縁（スマホは画面のまん中寄り）
     const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-    const P = eye.clone().setY(0).addScaledVector(fw, nar ? 9.5 : 5).addScaledVector(rt, nar ? .9 : 1.5);
+    const P = eye.clone().setY(0).addScaledVector(fw, nar ? 5.5 : 4.5).addScaledVector(rt, nar ? .3 : .9);
     aoi.position.copy(P);
     AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .3, startCalm: 2.2, posture: "natural", uprightWeight: .25, faceLight: .6 });
     AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z));
@@ -125,14 +127,14 @@ export function start(canvas) {
   // ── 場所の切りかえ（自然／都市。2026-11-23 本人）。都市の場（kit/city.js）は切りかえたときに読む。森の先の海辺（kit/shore.js）は森が出てから組む
   const city = new THREE.Group(); city.visible = false; S.add(city); let CITY = null, cityP = null, SHORE = null, place = "forest";
   const VIEW = { forest: { eye: eye.clone(), look: look.clone() } };
-  setTimeout(() => import("./kit/shore.js?v=20261123a").then(({ buildShore, clearForest }) => {
-    clearForest(forest, FOREST.trunks, [FOREST.ground]);
+  // 森の先の海辺（kit/shore.js）。この場所は浜から見るので、はじめから組む
+  try { clearForest(forest, FOREST.trunks, [FOREST.ground]);
     const add0 = forest.add.bind(forest); forest.add = (...a) => { add0(...a); try { clearForest(forest, FOREST.trunks, [FOREST.ground, aoi], a); } catch { } return forest; };
     SHORE = buildShore({ M, tx, canvasTex, group: forest, pick, sonic, mobile }); SHORE.root.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
-  }).catch(e => console.warn("海辺", e?.message ?? e)), 1500);
+  } catch (e) { console.warn("海辺", e?.message ?? e); }
   setTimeout(() => import("./kit/city.js?v=20261123a").catch(() => { }), 4000);
   function standAoi() { if (!aoi || !AM) return; const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-    const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 9.5 : 5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .9 : 1.5)); aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
+    const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 5.5 : 4.5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .3 : .9)); aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
   async function setPlace(p) {
     if (p === place) return;
     if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123a").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
@@ -153,7 +155,7 @@ export function start(canvas) {
   let level = 0, call = 0, last = performance.now(); const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
   R.setAnimationLoop(() => { const now = performance.now(), dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000; U.uTime.value = t;
     cam.rotation.set(pitch + dp + (RM ? 0 : Math.sin(t * .21) * .012), yaw + dy + (RM ? 0 : Math.sin(t * .13) * .03), 0);
-    const L0 = place === "city" && CITY ? (CITY.lamps[0] || [2.2, 7.8, 12]) : null, cx = L0 ? L0[0] + .4 : (SPAWN.x + MEADOW.x) * .5 - .6, cz = L0 ? L0[2] - 5 : (SPAWN.z + MEADOW.z) * .5 - 1.2, hy = L0 ? 3.4 : 0;   // 都市では街灯のまわり（アブラコウモリは街灯に集まる虫を捕る）
+    const L0 = place === "city" && CITY ? (CITY.lamps[0] || [2.2, 7.8, 12]) : null, cx = L0 ? L0[0] + .4 : 41.5, cz = L0 ? L0[2] - 5 : -2, hy = L0 ? 3.4 : 1.2;   // 森では、森のはしと浜の上（夕方のコウモリは林縁や水辺で虫を捕る）   // 都市では街灯のまわり（アブラコウモリは街灯に集まる虫を捕る）
     for (const B of bats) { const a = B.ph + t * B.sp; B.b.position.set(cx + Math.cos(a) * B.r, B.h + hy + Math.sin(a * 2.3) * .6, cz + Math.sin(a) * B.r * .8); B.b.rotation.y = -a + Math.PI; B.inner.userData.animate?.(t, true); }
     cam.getWorldDirection(fwd);
     for (const Rg of rings) { Rg.t = (Rg.t + dt * .35) % 1; const s = .15 + Rg.t * 3.2; Rg.r.scale.setScalar(s); Rg.r.position.copy(cam.position).addScaledVector(fwd, 3.2); Rg.r.quaternion.copy(cam.quaternion); Rg.r.material.opacity = (1 - Rg.t) * Math.min(1, level * 3 + call) * .5; }
@@ -187,7 +189,23 @@ export function audio() {
     o.type = 'sine'; o.frequency.setValueAtTime(10000, t0); o.frequency.exponentialRampToValueAtTime(4200, t0 + .045); o.frequency.setValueAtTime(4100, t0 + .045); o.frequency.linearRampToValueAtTime(4000, t0 + .07);
     g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.35, t0 + .006); g.gain.setValueAtTime(.35, t0 + .05); g.gain.linearRampToValueAtTime(0, t0 + .075);
     o.connect(g); g.connect(out); g.connect(an); o.start(t0); o.stop(t0 + .09); }
+  // まわりの音（聞こえる音・この画面で作った模式）：浜では寄せては返す波（約 8 秒・画面の泡の線と同じ周期）と、ときどきウミネコの「ミャーオ」。街では遠い車の低い音。
+  //   高い音の帯（上の帯の 15 kHz より上）には入れない（マイクの音と混ぜない）
+  const amb = AC.createGain(); amb.gain.value = 0; amb.connect(out);
+  const nbuf = AC.createBuffer(1, AC.sampleRate * 4, AC.sampleRate); { const d = nbuf.getChannelData(0); let b = 0; for (let i = 0; i < d.length; i++) { b = (b + .02 * (Math.random() * 2 - 1)) / 1.02; d[i] = b * 3.5; } }   // ブラウン雑音
+  const src = AC.createBufferSource(); src.buffer = nbuf; src.loop = true; const lp2 = AC.createBiquadFilter(); lp2.type = "lowpass"; lp2.frequency.value = 700; const swell = AC.createGain(); swell.gain.value = .3;
+  src.connect(lp2); lp2.connect(swell); swell.connect(amb); src.start();
+  let ambKind = null, gullT = 0;
+  function gull() { const t0 = AC.currentTime + .05, o = AC.createOscillator(), g = AC.createGain(), v = AC.createOscillator(), vg = AC.createGain();
+    o.type = "triangle"; o.frequency.setValueAtTime(900, t0); o.frequency.linearRampToValueAtTime(1500, t0 + .18); o.frequency.linearRampToValueAtTime(950, t0 + .55);   // ネコのような「ミャーオ」（上がって下がる）
+    v.frequency.value = 22; vg.gain.value = 40; v.connect(vg); vg.connect(o.frequency);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.05, t0 + .06); g.gain.linearRampToValueAtTime(.035, t0 + .4); g.gain.linearRampToValueAtTime(0, t0 + .6);
+    o.connect(g); g.connect(amb); o.start(t0); v.start(t0); o.stop(t0 + .65); v.stop(t0 + .65); }
+  function ambient(kind) { ambKind = kind; amb.gain.setTargetAtTime(kind ? .16 : 0, AC.currentTime, .6); lp2.frequency.setTargetAtTime(kind === "city" ? 220 : 700, AC.currentTime, .3); }
+  setInterval(() => { if (!ambKind) return; const t = AC.currentTime, u = (performance.now() / 1000 / 8) % 1;
+    swell.gain.setTargetAtTime(ambKind === "forest" ? .15 + .85 * Math.pow(Math.sin(u * Math.PI), 2) : .55, t, .25);   // 波が寄せると大きく、返すと小さく
+    if (ambKind === "forest" && t > gullT) { gullT = t + 9 + Math.random() * 10; gull(); if (Math.random() < .5) setTimeout(gull, 700); } }, 250);
   const bins = new Uint8Array(an.frequencyBinCount);
   function spectrum() { an.getByteFrequencyData(bins); return bins; }
-  return { AC, openMic, tune, batCall, spectrum, get nyq() { return AC.sampleRate / 2; }, get micOn() { return !!mic; } };
+  return { AC, openMic, tune, batCall, spectrum, ambient, get nyq() { return AC.sampleRate / 2; }, get micOn() { return !!mic; } };
 }

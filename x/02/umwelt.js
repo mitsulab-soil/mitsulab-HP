@@ -1356,7 +1356,7 @@ STARTUP.sceneBuiltAt = performance.now();
   hold($('bodyForward'), 'w', () => walkTo(me.pos.x - Math.sin(me.yaw) * 1.2, me.pos.z - Math.cos(me.yaw) * 1.2));
   hold($('bodyBack'), 's', () => walkTo(me.pos.x + Math.sin(me.yaw) * 1.2, me.pos.z + Math.cos(me.yaw) * 1.2));
   document.querySelectorAll('[data-turn]').forEach(b => hold(b, b.dataset.turn === 'left' ? 'q' : 'e', () => { me.yaw += b.dataset.turn === 'left' ? .3 : -.3; }));
-  document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();const p=b.dataset.habitat;if(p===habitat)return;setHabitat(p).then(()=>{if(habitat===p)talk([p==='city'?'駅前の通りに来ました。ここにも、人には見えない色や、温かさがあります。':'森にもどりました。東へ歩くと、川は海へ出ます。']);});});   // 2026-11-23 切りかえたら、その場所の一言（字幕）
+  document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first(false);A.intro=false;const p=b.dataset.habitat;if(p===habitat)return;setHabitat(p).then(()=>{if(habitat===p)talk([p==='city'?'駅前の通りに来ました。ここにも、人には見えない色や、温かさがあります。':'森にもどりました。東へ歩くと、川は海へ出ます。']);});});   // 2026-11-23 切りかえたら、その場所の一言（字幕）
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   STARTUP.controlsReadyAt = performance.now();
   /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉を、一こまに一つずつ組み、材質を場面の外で組んでから森へ入れる（見た目・配置は前と同じ） */

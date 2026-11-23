@@ -235,7 +235,7 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
   // ---------------------------------------------------------------- 落とし物：麻縄の結び目（Qualia/touch の形を写す・実物大）
   let rope = null;
   import("./touch_objects.js").then(({ loadGeometry }) => loadGeometry({ make: "rope" })).then(g => {
-    g.computeBoundingBox(); g.translate(0, -g.boundingBox.min.y, 0); g.scale(.13, .13, .13); g.computeVertexNormals();   // 1 単位＝10 cm の模型 → 実物大（太さ 約 1.4 cm）
+    g.computeBoundingBox(); g.translate(0, -g.boundingBox.min.y, 0); g.scale(.24, .24, .24); g.computeVertexNormals();   // 1 単位＝10 cm の模型 → 太めの麻縄の実物大（太さ 約 2.7 cm・結び目のさしわたし 約 25 cm）
     const hemp = canvasTex(128, 128, (c, w, h) => { c.fillStyle = "#d2bb88"; c.fillRect(0, 0, w, h); for (let i = 0; i < 900; i++) { const l = 120 + Math.random() * 90; c.strokeStyle = `rgba(${l},${l * .82 | 0},${l * .55 | 0},.6)`; c.beginPath(); const x = Math.random() * w, y = Math.random() * h; c.moveTo(x, y); c.lineTo(x + 6, y + 2 + Math.random() * 3); c.stroke(); } });
     hemp.wrapS = hemp.wrapT = THREE.RepeatWrapping; hemp.repeat.set(2, 6);
     rope = new THREE.Mesh(g, M(0xffffff, { std: true, map: hemp, rough: .95, env: .25, uv: .25, temp: .3, echo: .3 })); rope.position.set(6.9, .03, 5.2); rope.rotation.y = 2.2; rope.castShadow = true; rope.receiveShadow = true; rope.name = "落とし物の結び目";
