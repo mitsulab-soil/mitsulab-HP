@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120r";
 import { makeRing } from "./ring.js?v=20261120r";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
-import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261120r";
+import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261123n";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
 import { buildZen, YARD, ENGAWA, STONES, crownHook } from "./zen.js";
@@ -373,10 +373,10 @@ const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35
 const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='forest',flightHeight=1.5;
 // 都市の場（2026-11-23 本人「都市の 3D 空間を別途作って、画面で切り替えられるように」）。はじめは読まず、切りかえたときに kit/city.js を読む（起動 1 秒を守る）
 const city=new THREE.Group();city.visible=false;scene.add(city);let CITY=null,cityP=null;
-function initCity(){return cityP||(cityP=import('./kit/city.js?v=20261123c').then(({buildCity})=>{CITY=buildCity({M,tx,canvasTex,group:city,pick,sonic,mobile});city.visible=true;const p=renderer.compileAsync?renderer.compileAsync(city,camera,scene):Promise.resolve();city.visible=false;return p.catch(()=>{}).then(()=>CITY);}));}   // 形の色の書き方（シェーダー）は、見せる前に別の糸で用意する（切りかえの止まりを減らす）
+function initCity(){return cityP||(cityP=import('./kit/city.js?v=20261123n').then(({buildCity})=>{CITY=buildCity({M,tx,canvasTex,group:city,pick,sonic,mobile});{const seen=new Set();city.traverse(o=>{const m=o.material;if(!m)return;for(const k of['map','normalMap','roughnessMap','alphaMap'])if(m[k]&&!seen.has(m[k])){seen.add(m[k]);try{renderer.initTexture(m[k]);}catch(e){}}});}city.visible=true;const p=renderer.compileAsync?renderer.compileAsync(city,camera,scene):Promise.resolve();city.visible=false;return p.catch(()=>{}).then(()=>CITY);}));}   // 形の色の書き方（シェーダー）は、見せる前に別の糸で用意する（切りかえの止まりを減らす）
 window.__city=()=>CITY;
 // 森の先の海辺（2026-11-23 本人「自然の中に、海辺の要素を」）。森が出てから組む（起動 1 秒を守る）
-let SHORE=null;function initShore(){if(SHORE)return;import('./kit/shore.js?v=20261123e').then(({buildShore,clearForest})=>{clearForest(forest,FOREST.trunks,[FOREST.ground]);{const add0=forest.add.bind(forest);forest.add=(...a)=>{add0(...a);try{clearForest(forest,FOREST.trunks,[FOREST.ground,aoi],a);}catch(e){}return forest;};}SHORE=buildShore({M,tx,canvasTex,group:forest,pick,sonic,mobile});window.__echoList=null;renderer.shadowMap.needsUpdate=true;}).catch(e=>console.warn('海辺',e?.message??e));}
+let SHORE=null;function initShore(){if(SHORE)return;import('./kit/shore.js?v=20261123n').then(({buildShore,clearForest})=>{clearForest(forest,FOREST.trunks,[FOREST.ground]);{const add0=forest.add.bind(forest);forest.add=(...a)=>{add0(...a);try{clearForest(forest,FOREST.trunks,[FOREST.ground,aoi],a);}catch(e){}return forest;};}SHORE=buildShore({M,tx,canvasTex,group:forest,pick,sonic,mobile});window.__echoList=null;renderer.shadowMap.needsUpdate=true;}).catch(e=>console.warn('海辺',e?.message??e));}
 window.__shore=()=>SHORE;
 // Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
 // 2026-11-20 2 周目：水面を、林の中の水らしく（前は明るい青緑の平らな面に見えた）。色を深い緑褐色に落とし、空と木立の映りこみを主に、さざ波の細かな凹凸を足す（模式）
@@ -1306,7 +1306,7 @@ function frame(now=0) {
   }
   aoiTick(dt); kurMarks();
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); window.__kes?.after(); }   // 2026-11-20 計算機を通す視点（keshiki.js）は、描いたすぐあとの画から作る
-  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); setTimeout(() => import("./keshiki.js?v=20261121a").catch(e => console.warn(e)), 700); setTimeout(() => import("./kit/city.js?v=20261123c").catch(() => {}), 4000); setTimeout(initShore, 1500); }   // 都市の場は、森が出てから形の書き方だけ先に読んでおく（組むのは切りかえたとき）   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
+  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); setTimeout(() => import("./keshiki.js?v=20261121a").catch(e => console.warn(e)), 700); setTimeout(() => import("./kit/city.js?v=20261123n").catch(() => {}), 4000); setTimeout(initShore, 1500); }   // 都市の場は、森が出てから形の書き方だけ先に読んでおく（組むのは切りかえたとき）   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);
@@ -1356,6 +1356,7 @@ STARTUP.sceneBuiltAt = performance.now();
   hold($('bodyForward'), 'w', () => walkTo(me.pos.x - Math.sin(me.yaw) * 1.2, me.pos.z - Math.cos(me.yaw) * 1.2));
   hold($('bodyBack'), 's', () => walkTo(me.pos.x + Math.sin(me.yaw) * 1.2, me.pos.z + Math.cos(me.yaw) * 1.2));
   document.querySelectorAll('[data-turn]').forEach(b => hold(b, b.dataset.turn === 'left' ? 'q' : 'e', () => { me.yaw += b.dataset.turn === 'left' ? .3 : -.3; }));
+  document.querySelectorAll('[data-habitat=city]').forEach(b=>{const pre=()=>{if(!CITY)initCity().catch(()=>{});};b.addEventListener('pointerenter',pre,{once:true});b.addEventListener('focus',pre,{once:true});});   /* 2026-11-23 夜：札に指（マウス）が乗ったら都市を組みはじめる（押してから落ち着くまでを短く。森を歩いている間は組まない＝コマ落ちを作らない） */
   document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first(false);A.intro=false;const p=b.dataset.habitat;if(p===habitat)return;setHabitat(p).then(()=>{if(habitat===p)talk([p==='city'?'駅前の通りに来ました。ここにも、人には見えない色や、温かさがあります。':'森にもどりました。東へ歩くと、川は海へ出ます。']);});});   // 2026-11-23 切りかえたら、その場所の一言（字幕）
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   STARTUP.controlsReadyAt = performance.now();

@@ -214,7 +214,10 @@ export function buildForest(ctx) {
     else acc.tips.push(p);
   }
   function tree(kind, x, z, det, scale = 1) {
-    const sp = SP[kind], acc = { geos: [], tips: [], mids: [] }, base = new V3(x, 0, z);
+    // 2026-11-23 夜：一本ずつの癖（枝の開き・立ち上がり・曲がり・幹の高さ・葉の色）。森の並びの乱数とは別の乱数で決める（置き場所・草花は変えない）
+    const vr = rng((Math.round(x * 97) * 73856093) ^ (Math.round(z * 89) * 19349663)), vv = (a, b) => a + (b - a) * vr();
+    const s0 = SP[kind], sp = kind === "sugi" ? s0 : { ...s0, spread: s0.spread * vv(.68, 1.4), up: s0.up * vv(.55, 1.7), wig: s0.wig * vv(.8, 1.7), decay: s0.decay * vv(.9, 1.08), trunkH: s0.trunkH.map(h => h * vv(.82, 1.22)) };
+    const tone = [vv(.84, 1.12), vv(.88, 1.1), vv(.8, 1.12)], acc = { geos: [], tips: [], mids: [] }, base = new V3(x, 0, z);
     if (kind === "sugi") {
       const H = rr(17, 24) * scale, r0 = rr(.24, .34) * scale;
       acc.geos.push(lazy(taperTube, [base, new V3(x + rr(-.15, .15), H * .5, z + rr(-.15, .15)), new V3(x, H, z)], r0, .03, det ? 8 : 5, det ? 6 : 3, 1));
@@ -222,7 +225,7 @@ export function buildForest(ctx) {
       const y0 = H * rr(.32, .42), step = det ? .55 : 1.1, cards = [];
       for (let y = y0; y < H; y += step) { const k = (H - y) / (H - y0), cr = .35 + k * rr(2, 2.6) * scale, n = Math.round((det ? 6 : 4) * (.5 + k));
         for (let i = 0; i < n; i++) { const a = R() * TAU, rd = cr * (.35 + R() * .65), pos = new V3(x + Math.cos(a) * rd, y + rr(-.2, .2), z + Math.sin(a) * rd), o = new V3(Math.cos(a), -.25 - R() * .3, Math.sin(a)).normalize();
-          cards.push([pos, o, new V3(x, y, z), .8 + R() * .5, k]); } }
+          cards.push([pos, o, new V3(x, y, z), .8 + R() * .5, k, tone]); } }
       leafCards.sugi.push(...cards);
       addTrunk([x, z, r0 + .1]);
       for (const g of acc.geos) addWood("sugi", x, z, g);
@@ -240,7 +243,7 @@ export function buildForest(ctx) {
     const anchors = acc.mids.length ? [...acc.tips, ...acc.tips, ...acc.mids] : acc.tips;   // 枝先を多めに、枝の途中にも
     for (let i = 0; i < n; i++) { const t = anchors[i % anchors.length], rd = sp.cluster * (det ? 1 : 1.35) * scale * (.25 + Math.pow(R(), .6) * .75);
       const dv = new V3(R() - .5, (R() - .5) * (sp.flat ? .5 : .9), R() - .5).normalize().multiplyScalar(rd), pos = t.clone().add(dv), o = pos.clone().sub(ctr).normalize();
-      leafCards[kind].push([pos, o, ctr.clone(), (det ? 1 : 1.45) * scale * (.8 + R() * .4), clamp((pos.y - ymin) / Math.max(1, ymax - ymin), 0, 1)]); }
+      leafCards[kind].push([pos, o, ctr.clone(), (det ? 1 : 1.45) * scale * (.8 + R() * .4), clamp((pos.y - ymin) / Math.max(1, ymax - ymin), 0, 1), tone]); }
     addTrunk([x, z, r0 + .08]);
     for (const g of acc.geos) addWood(kind, x, z, g);
   }
@@ -268,11 +271,11 @@ export function buildForest(ctx) {
   const xA = new V3(), yA = new V3(), zA = new V3(), rv = new V3();
   for (const [kind, cards] of Object.entries(leafCards)) {
     if (!cards.length) continue; const sp = SP[kind], geo = cardGeo(sp.card), im = new THREE.InstancedMesh(geo, sp.leaf, cards.length), ctrA = new Float32Array(cards.length * 3);
-    cards.forEach(([pos, o, c, s, h], i) => {
+    cards.forEach(([pos, o, c, s, h, tn], i) => {
       if (kind === "sugi") { yA.copy(o); rv.set(R() - .5, 1, R() - .5); } else { yA.copy(o).add(new V3((R() - .5) * 1.3, .3 + R() * .5, (R() - .5) * 1.3)).normalize(); rv.set(R() - .5, R() - .5, R() - .5); }
       xA.crossVectors(yA, rv).normalize(); zA.crossVectors(xA, yA);
       m4.makeBasis(xA.multiplyScalar(s), yA.multiplyScalar(s), zA.multiplyScalar(s)); m4.setPosition(pos); im.setMatrixAt(i, m4);
-      const l = .62 + .3 * h + R() * .18; im.setColorAt(i, col.setRGB(l * sp.tint[0], l * sp.tint[1], l * sp.tint[2])); ctrA.set([c.x, c.y, c.z], i * 3);
+      const l = .62 + .3 * h + R() * .18; im.setColorAt(i, col.setRGB(l * sp.tint[0] * tn[0], l * sp.tint[1] * tn[1], l * sp.tint[2] * tn[2])); ctrA.set([c.x, c.y, c.z], i * 3);
     });
     geo.setAttribute("aCtr", new THREE.InstancedBufferAttribute(ctrA, 3)); im.raycast = () => {}; im.castShadow = true; im.computeBoundingSphere(); forest.add(im);
     if (kind === "keyaki") { out.leafIM = im; out.leafMat = sp.leaf; }
