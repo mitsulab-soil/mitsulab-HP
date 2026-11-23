@@ -86,17 +86,13 @@ export function start(opt){
       E.forEach((e,i)=>{const s=st(pr,i*0.9,E.length*0.9+1),q=mix(e[0],e[1],s);ln([e[0],q],e[2]?WH:CY,k*(e[2]?0.75:0.55)*(s>0?1:0),1)});
       ob.forEach(p=>sq(p,3,BR,k));ag.forEach(g=>tri(g.p,g.m?6:4.5,g.m?WH:CY,k*1.3,g.m));
       ell(aoi.p,13,13,WH,k*st(pr,2,3)*0.9,1);tx(en()?'Aoi — mediates':'碧 ── あいだをつなぐ',[aoi.p[0]+20,aoi.p[1]-2],WH,k*st(pr,2,3)*1.25)},
-    umwelt(a,pr){let k=K()*a;const gr=pr*pr*(3-2*pr);
-      agents().slice(0,1).forEach(g=>{const u=Math.min(W,H);for(let i=0;i<3;i++){const s=st(pr,i*0.6,2.4),R=u*(0.05+i*0.055)*(0.5+0.5*gr);ell(g.p,R,R*0.42,i?GR:CY,k*s*(0.75-i*0.18),1,0,Math.PI*2,i?[2,5]:null)}tx(en()?'a person’s umwelt, widening':'人の環世界が、広がる',[g.p[0]+12,g.p[1]+16],WH,k*st(pr,0.4,2)*1.1)});const f=lensFit(M(sp()?[0.80,0.50]:[0.715,0.34]),Math.min(W,H)*(sp()?0.2:0.19));
-      if(f){if(!LC.on){LC.x=f[0][0];LC.y=f[0][1];LC.r=f[1];LC.on=1}LC.x+=(f[0][0]-LC.x)*0.12;LC.y+=(f[0][1]-LC.y)*0.12;LC.r+=(f[1]-LC.r)*0.12}
-      LC.a+=((f?1:0)-LC.a)*0.08;if(Math.abs((f?1:0)-LC.a)>0.01||(f&&Math.hypot(f[0][0]-LC.x,f[0][1]-LC.y)>0.5))lblBusy=true;
-      if(!LC.on||LC.a<0.01){lens.style.clipPath=lens.style.webkitClipPath='circle(0px at 0px 0px)';return}k*=LC.a;const c=[LC.x,LC.y],r=LC.r*(0.5+0.5*gr);
-      if(!lens.dataset.on){lens.dataset.on='1';lens.src=lens.dataset.s}
-      lens.style.clipPath=lens.style.webkitClipPath=`circle(${r.toFixed(1)}px at ${c[0].toFixed(1)}px ${c[1].toFixed(1)}px)`;
-      ell(c,r,r,GR,k*1.4,1.2);ell(c,r+7,r+7,GR,k*0.5,1,0,Math.PI*2,[1,6]);
-      tx(en()?'as a honeybee might receive it (model)':'ミツバチの受けとり方（模式）',[c[0],c[1]+r+18],WH,k*st(pr,1,2)*1.3,{al:'center'});
-      const g=M(row(40).c),w=Math.abs(M(row(40).r)[0]-M(row(40).l)[0])/12;                 // こだまの輪（コウモリ・模式）
-      for(let i=0;i<3;i++){const s=st(pr,1+i*0.5,3),R=w*(5+i*5);ell(g,R,R*0.2,CY,k*s*(0.7-i*0.15),1,Math.PI,Math.PI*2)}},
+    umwelt(a,pr){const k=K()*a,gr=pr*pr*(3-2*pr),u=Math.min(W,H),ag=agents();lens.style.clipPath=lens.style.webkitClipPath='circle(0px at 0px 0px)';
+      // 受けとり手ごとの環世界が広がり、重なり、重なった所で受けとり方が受け渡される（模式）
+      ag.forEach((g,i)=>{const s=st(pr,i*0.45,ag.length*0.45+1),R=u*g.R*(0.6+1.1*gr),col=g.s?BR:g.m?WH:CY;
+        if(R>0&&!(AB&&g.p[0]>AB[0]-R&&g.p[0]<AB[2]+R&&g.p[1]>AB[1]&&g.p[1]<AB[3]))ell(g.p,R,R*0.62,col,k*s*0.6,1,0,Math.PI*2,g.s?[3,4]:null);tri(g.p,4.5,col,k*s*1.2,g.m)});
+      const s2=st(pr,1.6,2.6);for(let i=0;i<ag.length;i++)for(let j=i+1;j<ag.length;j++){const A1=ag[i],B1=ag[j],d=Math.hypot(A1.p[0]-B1.p[0],A1.p[1]-B1.p[1]),r=u*(A1.R+B1.R)*(0.6+1.1*gr);if(d>r*1.25)continue;
+        const m=mix(A1.p,B1.p,0.5);ln([A1.p,m,B1.p],WH,k*s2*0.55,1,[1,5]);sq(m,2.2,GR,k*s2)}
+      const p=ag[0].p;tx(en()?'umwelten widen, overlap and pass to one another':'環世界が広がり、重なり、受け渡される',[p[0]+14,p[1]+20],WH,k*st(pr,1,2)*1.1)},
     network(a,pr){D.agent(a*0.85,cl(pr*1.6));D.relation(a,cl(pr*1.4-0.35))},
     layers(a,pr){const k=K()*a,rows=A.path.filter(r=>r.m>=8&&r.m<=110),n=4,C=[CY,GR,BR,WH],
       NM=en()?['sensing','living things','history','meaning']:['センサーの層','生き物の層','時間の層','意味の層'];
@@ -126,7 +122,7 @@ export function start(opt){
       const s2=st(pr,1.2,3);for(let i=0;i<(sp()?3:6);i++){const x=W*(0.12+i*(sp()?0.3:0.15)),y=y0+H*0.02;ln([[x,y],[x+22,y+10]],CY,k*s2,1,[3,3]);ln([[x+22,y+10],[x+16,y+9]],CY,k*s2,1);ln([[x+22,y+10],[x+19,y+5]],CY,k*s2,1)}  // 水のしみ込み（模式）
       const s3=st(pr,2,3);T().slice(0,3).forEach(t=>{const b=M(t.b);ell(b,7,7,GR,k*s3*1.2,1);ln([[b[0]-4,b[1]],[b[0]+4,b[1]]],GR,k*s3*1.2,1);ln([[b[0],b[1]-4],[b[0],b[1]+4]],GR,k*s3*1.2,1)})}                                       // 手を入れる所
   };
-  const NAME={network:['アクターと関係','NETWORK'],layers:['情報の層','LAYERS'],object:['オブジェクト','OBJECT'],agent:['エージェント','AGENT'],relation:['関係・グラフ','RELATION'],umwelt:['環世界と五感の拡張','UMWELT'],sensor:['センサーと AI','SENSOR'],time:['時間・歴史','TIME'],lit:['文化・文学','CULTURE'],eng:['エンジニアリング','ENGINEERING']};
+  const NAME={network:['アクターと関係','NETWORK'],layers:['情報の層','LAYERS'],object:['オブジェクト','OBJECT'],agent:['エージェント','AGENT'],relation:['関係・グラフ','RELATION'],umwelt:['環世界の広がりと重なり','UMWELT'],sensor:['センサーと AI','SENSOR'],time:['時間・歴史','TIME'],lit:['文化・文学','CULTURE'],eng:['エンジニアリング','ENGINEERING']};
   // ── どの主題か（スクロールの位置で決まる）
   let MK=[];
   function marks(){MK=[];const add=(el,t)=>{if(el)MK.push([el,t])};
@@ -153,7 +149,7 @@ export function start(opt){
       if(rm){al[k]=k===cur?1:0;pr[k]=al[k]}else{al[k]+=(tg-al[k])*(tg?0.024:0.03);if(Math.abs(tg-al[k])<0.01)al[k]=tg;if(k===cur)pr[k]=Math.min(1,pr[k]+(k==='umwelt'?0.006:0.012));else if(al[k]===0)pr[k]=0}
       if(al[k]>0)D[k](al[k],pr[k]);
       if(al[k]!==tg||(k===cur&&pr[k]<1))busy=true}
-    lens.style.opacity=(al.umwelt*0.92*LC.a).toFixed(3);
+    lens.style.opacity='0';
     let rg=cur==='ring'||cur==='none'?ring():null;const rt=rg&&rg.out<1?1:0;ringA+=(rt-ringA)*0.06;if(Math.abs(rt-ringA)<0.01)ringA=rt;else lblBusy=true;
     if(rg)lastRg=rg;else if(ringA>0)rg=lastRg;
     if(rg&&ringA>0){const N=5,Aa=Math.min(1,rg.t*4)*(1-rg.out)*ringA;
