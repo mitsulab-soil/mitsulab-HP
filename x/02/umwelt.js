@@ -371,6 +371,13 @@ const FLIGHT=new Set(['hachi','chou','tori','koumori']);
 const MOTION={hito:{speed:1.4,bob:.025,freq:9},hachi:{speed:2.2,bob:.015,freq:35},chou:{speed:1.3,bob:.065,freq:8},tori:{speed:3.2,bob:.025,freq:12},inu:{speed:1.3,bob:.035,freq:11},hebi:{speed:.7,bob:.006,freq:4},koumori:{speed:2.8,bob:.025,freq:16},mimizu:{speed:.04,bob:0,freq:3},camera:{speed:1.2,bob:.004,freq:7},netsu:{speed:1.2,bob:.012,freq:8}};
 // 森（2026-10-12 組み直し：モグラと都市を外し、木と草花を森らしく。forest.js）
 const forest=new THREE.Group();scene.add(forest);scene.add(sky);let habitat='forest',flightHeight=1.5;
+// 都市の場（2026-11-23 本人「都市の 3D 空間を別途作って、画面で切り替えられるように」）。はじめは読まず、切りかえたときに kit/city.js を読む（起動 1 秒を守る）
+const city=new THREE.Group();city.visible=false;scene.add(city);let CITY=null,cityP=null;
+function initCity(){return cityP||(cityP=import('./kit/city.js?v=20261123a').then(({buildCity})=>{CITY=buildCity({M,tx,canvasTex,group:city,pick,sonic,mobile});city.visible=true;const p=renderer.compileAsync?renderer.compileAsync(city,camera,scene):Promise.resolve();city.visible=false;return p.catch(()=>{}).then(()=>CITY);}));}   // 形の色の書き方（シェーダー）は、見せる前に別の糸で用意する（切りかえの止まりを減らす）
+window.__city=()=>CITY;
+// 森の先の海辺（2026-11-23 本人「自然の中に、海辺の要素を」）。森が出てから組む（起動 1 秒を守る）
+let SHORE=null;function initShore(){if(SHORE)return;import('./kit/shore.js?v=20261123a').then(({buildShore,clearForest})=>{clearForest(forest,FOREST.trunks,[FOREST.ground]);{const add0=forest.add.bind(forest);forest.add=(...a)=>{add0(...a);try{clearForest(forest,FOREST.trunks,[FOREST.ground,aoi],a);}catch(e){}return forest;};}SHORE=buildShore({M,tx,canvasTex,group:forest,pick,sonic,mobile});window.__echoList=null;renderer.shadowMap.needsUpdate=true;}).catch(e=>console.warn('海辺',e?.message??e));}
+window.__shore=()=>SHORE;
 // Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
 // 2026-11-20 2 周目：水面を、林の中の水らしく（前は明るい青緑の平らな面に見えた）。色を深い緑褐色に落とし、空と木立の映りこみを主に、さざ波の細かな凹凸を足す（模式）
 const rippleN = (() => { const n = 128, cv = document.createElement('canvas'); cv.width = cv.height = n; const g = cv.getContext('2d'), H = new Float32Array(n * n), W8 = [[1, 2, .9, .3], [2, -1, .7, 1.7], [3, 1, .5, 2.9], [-2, 3, .45, .8], [4, 3, .3, 4.1], [5, -2, .25, 5.3], [-3, -5, .2, 2.2], [7, 2, .14, 3.6]];
@@ -481,7 +488,8 @@ function initLegacyGarden() {
   garden.traverse(o => { if (!o.isMesh || o === sky || o.userData.noShadow) return; o.receiveShadow = true; o.castShadow = !o.userData.noCast && !(mobile && o.userData.smallCast); });
   STARTUP.legacyGardenBuilt = true; renderer.shadowMap.needsUpdate = true;
 }
-function setHabitat(place){window.__echoList=null;if(place==='garden')initLegacyGarden();habitat=place;me.path=null;me.pos.set(0,LENS[lens].eye||1.5,place==='forest'?4:11.2);me.yaw=0;me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
+async function setHabitat(place){if(place==='city'&&!CITY){document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-busy',String(b.dataset.habitat==='city')));try{await initCity();}catch(e){console.warn(e);return;}finally{document.querySelectorAll('[data-habitat]').forEach(b=>b.removeAttribute('aria-busy'));}}
+  window.__echoList=null;if(place==='garden')initLegacyGarden();habitat=place;me.path=null;scene.fog.density=place==='city'?(mobile?.014:.011):(mobile?.03:.026);me.pos.set(place==='city'?CITY.SPAWN.x:0,LENS[lens].eye||1.5,place==='forest'?4:place==='city'?CITY.SPAWN.z:11.2);me.yaw=0;if(LENS[lens].under&&place==='city')gardenSave.pos.copy(me.pos);me.pitch=-.05;applyLens(lens);document.querySelectorAll('[data-habitat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.habitat===place)));setWhere();}
 const LENS_IDS = S.lens.map(l => l.id);
 let lens = "hito", chapter = "umwelt", lensRequest = "hito", lensToken = 0;
 // 見え方だけを切りかえる（色の写し方・ぼかし・夜）。「人の目とくらべる」を押しているあいだは、ひとの見え方を一時的に重ねる（2026-10-13）
@@ -517,7 +525,7 @@ function applyLens(id) {
   if (L.mode === 6) scene.fog.color.set(0x0a0a0a);
   scene.background.set(L.under ? 0x000000 : night ? 0x020306 : 0x0f1412);
   for (const m of moths) m.visible = night;
-  garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';if(FOREST.shafts)FOREST.shafts.visible=(id==='hito'||id==='inu')&&!night;
+  garden.visible = !L.under && habitat==='garden';forest.visible=!L.under && habitat==='forest';city.visible=!L.under && habitat==='city';if(FOREST.shafts)FOREST.shafts.visible=habitat==='forest'&&(id==='hito'||id==='inu')&&!night;
   flightHeight=L.eye||1.5;
   if (!L.under) ensureBody(id);
   Object.entries(bodies).forEach(([key,b])=>{if(b)b.visible=key===id&&key!=='hito'&&!L.under;});
@@ -544,7 +552,8 @@ function setFov() { const a = innerWidth / innerHeight; camera.fov = a < .8 ? 72
 setFov();
 addEventListener("resize", () => { renderer.setSize(innerWidth, innerHeight); setFov(); if (chapter === "iro") { frameWall(); iroLook.x = clamp(iroLook.x, -iroLook.pan, iroLook.pan); } layoutToki(); });
 function okGround(x, z) {   // 塀の内側と縁側。池・木・石組み・植え込みはよける
-  if(habitat==='forest'){if(x<-27||x>29||z<-25||z>26)return false;if(!FLIGHT.has(lens)&&Math.hypot(x+8,z+7)<4.6)return false;return !FOREST.blocked(x,z,FLIGHT.has(lens)?.15:.6);}   // 幹・藪・石・倒木はよける（2026-10-25：歩く身体は幹から 0.6 m＝幹の樹皮が画面をふさがない）
+  if(habitat==='city'){if(!CITY||!CITY.inside(x,z))return false;return !CITY.blocked(x,z,FLIGHT.has(lens)?.15:.35,!FLIGHT.has(lens));}   // 都市：建物・幹・柱はよけ、車道は横断歩道の上だけ渡る（飛ぶ身体はどこでも）
+  if(habitat==='forest'){if(x<-27||z<-25||z>26)return false;if(x>29){if(!SHORE)return false;if(x>SHORE.edgeX(z)){if(FLIGHT.has(lens))return x<SHORE.shoreX(z)+14;return !SHORE.blocked(x,z,.3);}}if(!FLIGHT.has(lens)&&Math.hypot(x+8,z+7)<4.6)return false;return !FOREST.blocked(x,z,FLIGHT.has(lens)?.15:.6);}   // 幹・藪・石・倒木はよける（2026-10-25：歩く身体は幹から 0.6 m＝幹の樹皮が画面をふさがない）
   if(FLIGHT.has(lens)) return x>YARD.x0+.3&&x<YARD.x1-.3&&z>YARD.z0+.3&&z<ENGAWA.z1-.5;
   if (x < YARD.x0 + .4 || x > YARD.x1 - .4 || z < YARD.z0 + .4 || z > ENGAWA.z1 - .5) return false;
   if (Math.hypot(x - POND.x, z - POND.z) < POND.r + .3 || Math.hypot(x - TREE.x, z - TREE.z) < .7) return false;
@@ -623,7 +632,8 @@ function onTap(x, y) {
   if (chapter !== "umwelt") return;
   const L = LENS[lens];
   if (L.under) return;
-  const h = ray.intersectObjects(pick)[0]; if (h) walkTo(h.point.x, h.point.z);
+  const vis = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; };   // 隠れている場（森・都市）の面は押せない
+  const h = ray.intersectObjects(pick).find(x => vis(x.object)); if (h) walkTo(h.point.x, h.point.z);
 }
 addEventListener("keydown", e => {
   // 設定・説明を読んでいる間は庭の移動・視点・音声のショートカットを止める。
@@ -820,7 +830,7 @@ function aoiTick(dt) {
   if (winMode()) { aoiWindowTick(dt); return; }
   $("aoiWin").hidden = true;
   AM.eyesClosed = 0;
-  if (aoi.parent !== (habitat==='forest'?forest:garden)) { (habitat==='forest'?forest:garden).add(aoi); A.fade = 0; opacity(0); AM.calm = 1.2; AM.place(A.pos.x, A.pos.z, A.yaw); }
+  if (aoi.parent !== (habitat==='forest'?forest:habitat==='city'?city:garden)) { (habitat==='forest'?forest:habitat==='city'?city:garden).add(aoi); A.fade = 0; opacity(0); AM.calm = 1.2; AM.place(A.pos.x, A.pos.z, A.yaw); }
   const L = LENS[lens], showNow = A.show && (chapter === "umwelt" || chapter === "iro");   // 2026-10-27 ミミズのときも碧は森に 3D で立つ（窓や絵にしない）
   aoi.visible = showNow;
   if (!showNow) return;
@@ -894,8 +904,10 @@ bodyRing.set(lens, true);
 function layoutBodyWheel(){bodyRing.set(lensRequest);const cur=lensRequest;[...dial.children].forEach(b=>{b.hidden=b.dataset.id!==cur;b.style.transform='';b.style.opacity='';});}
 $('bodyWheel').addEventListener('wheel',e=>{e.preventDefault();if(!e.repeat)setLens(LENS_IDS[(LENS_IDS.indexOf(lensRequest)+(e.deltaY>0?1:LENS_IDS.length-1))%LENS_IDS.length]);},{passive:false});addEventListener('resize',layoutBodyWheel);layoutBodyWheel();
 async function veil(fn, token) { $("veil").classList.add("on"); await sleep(RM ? 60 : 260); if(token!==undefined&&token!==lensToken)return false; fn(); await sleep(60); if(token!==undefined&&token!==lensToken)return false; $("veil").classList.remove("on");return true; }
+// 都市でのその生きものの居場所（事実の範囲で一言。2026-11-23）
+const CITYNOTE = { hachi: "街路樹や花壇の花へ。ビルの屋上で飼われる蜂もいる", chou: "街路樹や庭の柑橘を探すアゲハ", tori: "街路樹にはシジュウカラも来る", inu: "散歩の道。においの跡が重なる", hebi: "駅前の通りにはふつういない。見え方だけの模式", koumori: "家に住むアブラコウモリは、街の夕方を飛ぶ", mimizu: "街路樹の植えますの土の中", netsu: "日なたの路面・車の前・自販機が温かい" };
 function setWhere() {
-  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").innerHTML = phrases(LENS[lens].sub); }
+  if (chapter === "umwelt") { const l = S.lens.find(x => x.id === lens); $("whereName").textContent = l.name; $("whereSub").innerHTML = phrases(LENS[lens].sub) + (habitat === "city" && CITYNOTE[lens] ? '<span class="cityNote">' + CITYNOTE[lens] + '</span>' : ""); }
   else if (chapter === "iro") { $("whereName").textContent = N.ch_iro; $("whereSub").textContent = IRO.lang ? LANGS[IRO.lang].name : "あなたの線を引く"; }
   else { $("whereName").textContent = N.ch_toki; $("whereSub").textContent = "同じ庭を、四つの速さで"; }
 }
@@ -925,7 +937,7 @@ async function setLens(id, silent = false, opt = {}) {
       const a = opt.at, ey = L.eye || 1; me.pos.set(a.x, ey, a.z); me.yaw = Math.atan2(-(a.tx - a.x), -(a.tz - a.z)); me.pitch = clamp(Math.atan2(a.ty - ey, Math.hypot(a.tx - a.x, a.tz - a.z)), -.7, .3); flightHeight = ey; }
     else if (habitat==='forest' && FSPOT[id] && !silent) {   // 話に出てくるものが見える草地の場所へ（蜂は草地の白い花の前、マムシはネズミの近く…）
       const [x, z, tgt] = FSPOT[id](); me.pos.set(x, L.eye || 1, z); me.yaw = Math.atan2(-(tgt.x - x), -(tgt.z - z)); me.pitch = clamp(Math.atan2(tgt.y - (L.eye || 1), Math.hypot(tgt.x - x, tgt.z - z)), -.6, .6); flightHeight = L.eye || 1.5; }
-    else if (habitat==='forest') {if(was.under){me.pos.copy(gardenSave.pos);me.yaw=gardenSave.yaw;}me.pos.y=L.eye||1;me.pitch=clamp(me.pitch,-.6,.6);}
+    else if (habitat!=='garden') {if(was.under){me.pos.copy(gardenSave.pos);me.yaw=gardenSave.yaw;}me.pos.y=L.eye||1;me.pitch=clamp(me.pitch,-.6,.6);}
     else if (L.spot && !silent) {
       // その生きものの受けとり方がよく分かる場所へ（蜂はヒマワリの前、マムシはネズミの近く…）。向きもそちらへ
       const [x, z, lx, ly, lz] = L.spot; me.pos.set(x, L.eye, z); me.yaw = Math.atan2(-(lx - x), -(lz - z)); me.pitch = Math.atan2(ly - L.eye, Math.hypot(lx - x, lz - z));
@@ -1034,7 +1046,7 @@ const SUNDIR = new THREE.Vector3();
 function setDay(h) {  // h 時（0〜24）
   const a = (h - 6) / 12 * Math.PI, up = Math.sin(a), el = Math.asin(clamp(up, -1, 1) * Math.sin(55 / 180 * Math.PI));
   SUNDIR.set(-Math.cos(a) * Math.cos(el), Math.sin(el), -Math.sin(a) * .55 * Math.cos(el) - .25).normalize();
-  if (habitat !== 'forest') sun.target.position.set(0, 0, 0); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position);
+  if (habitat === 'garden') sun.target.position.set(0, 0, 0); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position);
   const hi = clamp(SUNDIR.y / .5, 0, 1), dusk = clamp(1 - SUNDIR.y / .32, 0, 1) * (SUNDIR.y > -.08 ? 1 : 0);
   sun.intensity = LIT.sun * clamp(SUNDIR.y * 6, 0, 1) * (.75 + .25 * hi);
   sun.color.setRGB(1, .96 - .38 * dusk, .9 - .62 * dusk);                       // 朝夕は赤み
@@ -1224,8 +1236,10 @@ function frame(now=0) {
   if (mobile && ++shadowTick % 3 === 0) renderer.shadowMap.needsUpdate = true;   // スマホは影の地図の描き直しを 3 こまに 1 回
   moveCam(dt);
   // 影の地図は、森の中では見る人のまわり（4 m ごとに寄せる）を描く
-  if (habitat === 'forest') { const cx = Math.round(me.pos.x / 4) * 4, cz = Math.round(me.pos.z / 4) * 4; if (cx !== sun.target.position.x || cz !== sun.target.position.z) { sun.target.position.set(cx, 0, cz); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position); sun.target.updateMatrixWorld(); if (!renderer.shadowMap.autoUpdate) renderer.shadowMap.needsUpdate = true; } }
+  if (habitat !== 'garden') { const cx = Math.round(me.pos.x / 4) * 4, cz = Math.round(me.pos.z / 4) * 4; if (cx !== sun.target.position.x || cz !== sun.target.position.z) { sun.target.position.set(cx, 0, cz); sun.position.copy(SUNDIR).multiplyScalar(40).add(sun.target.position); sun.target.updateMatrixWorld(); if (!renderer.shadowMap.autoUpdate) renderer.shadowMap.needsUpdate = true; } }
   bodyRoot.visible=chapter==='umwelt';
+  if (habitat === 'city' && CITY) CITY.update(t, dt);
+  if (habitat === 'forest' && SHORE) SHORE.update(t, dt, me.pos);
   if(!RM&&habitat==='forest')residents.forEach(b=>{const R=b.userData.R,p=t*R.w+R.ph;if(R.id==='hachi'){beeForage(b,t,dt);return;}let y=R.h[0]+Math.sin(p*2.3)*R.h[1];if(R.id==='tori')y+=b.userData.bound||0;b.position.set(R.c[0]+Math.sin(p)*R.r[0]+Math.sin(p*3.1)*.3,y,R.c[1]+Math.cos(p)*R.r[1]);faceVelocity(b,dt,R.id==='tori'?.3:.15,R.id==='tori'?.6:.3);const a=b.userData.animate(t,true);if(R.id==='tori')b.userData.bound=((b.userData.bound||0)+(a===-1?-.35:.12)*dt)*.985;});
   // 生きものの動き
   if (!RM) {
@@ -1263,7 +1277,7 @@ function frame(now=0) {
   G.uCam.value.copy(camera.position);
   // コウモリ：声を出し、波面をひろげる。獲物に近づくと間隔が短くなる
   // 2026-11-03 動いている間も 1 秒：はね返りは、大きな形（幹をまとめた形・地面）は幹の円柱で測り、小さな物だけ光線で測る（森全体へ光線を当てて 0.9 秒止まっていた）
-  if (!window.__echoList) { const L = []; (habitat==='forest'?forest:garden).traverse(o => { if (o.isMesh && o.material?.userData?.u?.uEchoK?.value > .3) { const n = o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3; if ((o.isInstancedMesh ? n * o.count : n) < 4000) L.push(o); } }); window.__echoList = L; }
+  if (!window.__echoList) { const L = []; (habitat==='forest'?forest:habitat==='city'?city:garden).traverse(o => { if (o.isMesh && o.material?.userData?.u?.uEchoK?.value > .3) { const n = o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3; if ((o.isInstancedMesh ? n * o.count : n) < 4000) L.push(o); } }); window.__echoList = L; }
   if (chapter === "umwelt" && lens === "koumori") {
     echo.t += dt; let nearMoth = 99; const f = new THREE.Vector3(); camera.getWorldDirection(f);
     for (const m of moths) { const v = m.position.clone().sub(camera.position), d = v.length(); if (v.normalize().dot(f) > .8) nearMoth = Math.min(nearMoth, d); }
@@ -1292,7 +1306,7 @@ function frame(now=0) {
   }
   aoiTick(dt); kurMarks();
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); window.__kes?.after(); }   // 2026-11-20 計算機を通す視点（keshiki.js）は、描いたすぐあとの画から作る
-  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); setTimeout(() => import("./keshiki.js?v=20261121a").catch(e => console.warn(e)), 700); }   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
+  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); setTimeout(() => import("./keshiki.js?v=20261121a").catch(e => console.warn(e)), 700); setTimeout(() => import("./kit/city.js?v=20261123a").catch(() => {}), 4000); setTimeout(initShore, 1500); }   // 都市の場は、森が出てから形の書き方だけ先に読んでおく（組むのは切りかえたとき）   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);
@@ -1342,7 +1356,7 @@ STARTUP.sceneBuiltAt = performance.now();
   hold($('bodyForward'), 'w', () => walkTo(me.pos.x - Math.sin(me.yaw) * 1.2, me.pos.z - Math.cos(me.yaw) * 1.2));
   hold($('bodyBack'), 's', () => walkTo(me.pos.x + Math.sin(me.yaw) * 1.2, me.pos.z + Math.cos(me.yaw) * 1.2));
   document.querySelectorAll('[data-turn]').forEach(b => hold(b, b.dataset.turn === 'left' ? 'q' : 'e', () => { me.yaw += b.dataset.turn === 'left' ? .3 : -.3; }));
-  document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();setHabitat(b.dataset.habitat);});
+  document.querySelectorAll('[data-habitat]').forEach(b=>b.onclick=()=>{first();const p=b.dataset.habitat;if(p===habitat)return;setHabitat(p).then(()=>{if(habitat===p)talk([p==='city'?'駅前の通りに来ました。ここにも、人には見えない色や、温かさがあります。':'森にもどりました。東へ歩くと、川は海へ出ます。']);});});   // 2026-11-23 切りかえたら、その場所の一言（字幕）
   document.querySelectorAll('[data-fly]').forEach(b=>{const key=b.dataset.fly;const release=()=>keys.delete(key);b.onclick=()=>{flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;};b.onpointerdown=e=>{keys.add(key);b.setPointerCapture(e.pointerId);};b.onpointerup=release;b.onpointercancel=release;b.onlostpointercapture=release;b.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat){flightHeight=clamp(flightHeight+(key==='r'?.45:-.45),.25,8);me.pos.y=flightHeight;}}};b.onkeyup=release;b.onblur=release;});
   STARTUP.controlsReadyAt = performance.now();
   /* 2026-11-03 起動 1 秒：遠くの幹・あとの草花・ヨシ・草と落ち葉を、一こまに一つずつ組み、材質を場面の外で組んでから森へ入れる（見た目・配置は前と同じ） */
