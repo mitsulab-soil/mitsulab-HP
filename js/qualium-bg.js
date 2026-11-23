@@ -1,5 +1,5 @@
 /* © mitsulab. 背景：氷川参道（3D から撮った一枚）の上に、Qualium の主題を一度に一つだけ、細い線と点で静かに重ねる。
-   場 → オブジェクト → エージェント → 関係（グラフ）→ 環世界と五感の拡張 → センサーと AI → 時間・歴史 → 輪（Qualium-Physium ループへ）。道具の章では 文化・文学／エンジニアリング。
+   場 → オブジェクト → エージェント → 関係（グラフ）→ 環世界と五感の拡張 → センサーと AI → 時間・歴史 → 輪（Q-P サイクルへ）。道具の章では 文化・文学／エンジニアリング。
    すべて模式。描くのは主題が移るあいだだけ（止まっているときは描かない）。光の玉・紫は使わない。prefers-reduced-motion では移りかわりを省く。
    位置のデータ（木・鳥居・道）は _dev/20261120_bg/ の道具が 3D から書き出したもの。このファイルは qualium-bg.src.js からの生成物。 */
 export function start(opt){
@@ -133,7 +133,7 @@ export function start(opt){
     document.querySelectorAll('.tp-lab .tp-chh').forEach(h=>add(h.parentNode,{M:'lit',F:'eng'}[h.dataset.k]||'none'));
     add(document.querySelector('section.nx'),'none')}
   function active(){if(FIX)return FIX;let t='field';for(const m of MK){if(m[0].getBoundingClientRect().top<H*0.62)t=m[1];else break}const top=document.getElementById('top');if(top&&!top.classList.contains('active'))t='none';return t}
-  // ── 輪：物語の終わりで線が輪になり、Qualium-Physium ループの円へつながる
+  // ── 輪：物語の終わりで線が輪になり、Q-P サイクルの円へつながる
   const R0=document.querySelector('#qStory [data-ly="7"]'),R1=document.querySelector('#qloop .ql-c');
   function ring(){
     if(!R0||!R1)return null;const a=R0.getBoundingClientRect(),b=R1.getBoundingClientRect();if(!b.width)return null;
