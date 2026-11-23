@@ -25,7 +25,10 @@ export function clearForest(forest, trunks, skip = [], only = null) {
   for (const o of list) {
     const g = o.geometry, p = g.attributes.position;
     if (o.isInstancedMesh) { let ch = false; for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m4); const x = m4.elements[12], z = m4.elements[14]; if (gone(x, z, 5.5)) { o.setMatrixAt(i, Z); ch = true; } } if (ch) { o.instanceMatrix.needsUpdate = true; o.computeBoundingSphere?.(); } continue; }
-    if (g.index || !p) continue;
+    if (!p) continue;
+    if (g.index) { if (o === forest.userData.ground || o.geometry.attributes.position.count > 20000) continue; g.computeBoundingBox(); if (g.boundingBox.max.x < 30) continue; let ch = false; const v = new THREE.Vector3();
+      for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); if (v.x > edgeX(v.z) - 1.5) { const w = v.clone(); w.y = -1.2; o.worldToLocal(w); p.setXYZ(i, w.x, w.y, w.z); ch = true; } }   // 川の先・濡れた岸の帯は、浜の砂の下へ沈める（波打ちぎわに暗い板が浮かない）
+      if (ch) { p.needsUpdate = true; g.computeBoundingSphere(); } continue; }
     g.computeBoundingBox(); if (g.boundingBox.max.x < 20) continue;
     let ch = false; for (let i = 0; i < p.count; i += 3) { const x = (p.getX(i) + p.getX(i + 1) + p.getX(i + 2)) / 3, z = (p.getZ(i) + p.getZ(i + 1) + p.getZ(i + 2)) / 3; if (gone(x, z, 7)) { for (let k = 0; k < 3; k++) p.setXYZ(i + k, x, -50, z); ch = true; } }
     if (ch) { p.needsUpdate = true; g.computeBoundingSphere(); }
@@ -56,16 +59,18 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { let h = 0; for (const [a, b, A, ph] of W) { const s = Math.sin((a * x + b * y) / n * TAU + ph); h += A * (1 - Math.abs(s)) ; } H[y * n + x] = h; }   // 1−|sin|＝とがった山と丸い谷（水の波の形）
     const im = g.createImageData(n, n), at = (x, y) => H[((y + n) % n) * n + (x + n) % n]; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { const k = (y * n + x) * 4; im.data[k] = Math.max(0, Math.min(255, 128 - (at(x + 1, y) - at(x - 1, y)) * 90)); im.data[k + 1] = Math.max(0, Math.min(255, 128 - (at(x, y + 1) - at(x, y - 1)) * 90)); im.data[k + 2] = 255; im.data[k + 3] = 255; }
     g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(26, 26); t.anisotropy = 8; return t; })();
-  const UW = { uSeaT: { value: 0 } };
-  const seaHook = sh => { sh.uniforms.uSeaT = UW.uSeaT;
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSeaT;")
+  const UW = { uSeaT: { value: 0 }, uHaze: { value: new THREE.Color(0xc8d4dc) } };
+  const seaHook = sh => { sh.uniforms.uSeaT = UW.uSeaT; sh.uniforms.uHaze = UW.uHaze;
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSeaT; uniform vec3 uHaze;")
+      .replace("#include <fog_fragment>", "float hz_ = smoothstep( 40.0, 460.0, length( vViewPosition ) );\ngl_FragColor.rgb = mix( gl_FragColor.rgb, uHaze, hz_ * .78 );\n#include <fog_fragment>")   // 霧の代わりに、遠くほど空の地平の色へ（水平線がくっきり残る）
       .replace("vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;",
         "vec3 n1_ = texture2D( normalMap, vNormalMapUv * .23 + vec2( uSeaT * .0021, uSeaT * .0047 ) ).xyz * 2.0 - 1.0;\n" +
         "vec3 n2_ = texture2D( normalMap, vNormalMapUv + vec2( -uSeaT * .011, uSeaT * .006 ) ).xyz * 2.0 - 1.0;\n" +
         "vec3 n3_ = texture2D( normalMap, vNormalMapUv * 2.7 + vec2( uSeaT * .019, -uSeaT * .013 ) ).xyz * 2.0 - 1.0;\n" +
-        "vec3 mapN = normalize( vec3( n1_.xy * 1.3 + n2_.xy * .8 + n3_.xy * .45, 1.0 ) );");
+        "float fd_ = clamp( length( vViewPosition ) / 140.0, 0.0, 1.0 );\n" +
+        "vec3 mapN = normalize( vec3( ( n1_.xy * 1.3 * ( 1.0 - fd_ * .6 ) + n2_.xy * .8 * ( 1.0 - fd_ * .85 ) + n3_.xy * .45 * ( 1.0 - fd_ ) ), 1.0 ) );");   // 遠くほど細かな凹凸を消す（同じ形のくり返しを見せない）
   };
-  const seaM = M(0xffffff, { std: true, rough: .06, metal: 0, env: 1.15, nmap: waveN, ns: .55, vc: true, transparent: true, uv: .12, temp: .02, echo: .95, hook: seaHook, key: "sea" });
+  const seaM = M(0xffffff, { fog: false, std: true, rough: .06, metal: 0, env: 1.15, nmap: waveN, ns: .55, vc: true, transparent: true, uv: .12, temp: .02, echo: .95, hook: seaHook, key: "sea" });
   { const S = 560, nx = mobile ? 70 : 110, nz = mobile ? 60 : 90, g = new THREE.PlaneGeometry(1, S, nx, nz); g.rotateX(-Math.PI / 2);
     const p = g.attributes.position, col = [], deep = new THREE.Color(0x0b2a3a), mid = new THREE.Color(0x15505c), shal = new THREE.Color(0x3f8f8a), c = new THREE.Color();
     for (let i = 0; i < p.count; i++) { const u = p.getX(i) + .5, z = p.getZ(i), x = shoreX(z) - .6 + 520 * Math.pow(u, 2.4); p.setX(i, x); p.setY(i, .02);   // 岸の近くほど細かく
@@ -170,10 +175,10 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     edgeX, blocked(x, z, pad = .3) { if (x > shoreX(z) + .4) return true; for (const [rx, rz, rs] of rocks) if (Math.hypot(x - rx, z - rz) < rs * 1.1 + pad) return true; return false; },
     update(t, dt, cam) {
       for (const f of foams) placeFoam(f, t);
-      UW.uSeaT.value = t;
+      UW.uSeaT.value = t; { const sc = root.parent?.parent; if (sc?.fog) UW.uHaze.value.copy(sc.fog.color); }
       for (const G of gulls) { const a = G.ph + t * G.w; G.g.position.set(G.c[0] + Math.cos(a) * G.r, G.h + Math.sin(a * 1.7) * .6, G.c[1] + Math.sin(a) * G.r); G.g.rotation.set(0, -a + Math.PI, Math.sin(a) * .25 + .3);
         const flap = (Math.sin(t * .35 + G.ph) > .55) ? Math.sin(t * 9 + G.ph) * .55 : .06 * Math.sin(t * 1.3);   // ほとんどは翼を広げて滑り、ときどき羽ばたく
-        for (const W of G.wings) { W.piv.rotation.z = W.sd * flap; W.outer.rotation.z = W.sd * flap * .6; } }
+        for (const W of G.wings) { W.piv.rotation.z = W.sd * (flap + .12); W.outer.rotation.z = W.sd * (flap * .6 - .38); } }   // カモメの仲間の翼は、肘で上がり手先で下がる（M の字の形）。コウモリの細かな羽ばたきと見分けられる
       if (!crabs && cam && cam.x > 30) makeCrabs();
       if (crabs) for (const C of crabs) { const k = Math.sin(t * .4 + C.ph); C.g.position.x = C.x0 + (k > .7 ? (k - .7) * .5 : 0); }   // ときどき横に歩く
     },

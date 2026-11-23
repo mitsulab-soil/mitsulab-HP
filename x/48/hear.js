@@ -8,7 +8,7 @@ import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261120r";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
-import { buildShore, clearForest } from "./kit/shore.js?v=20261123c";
+import { buildShore, clearForest } from "./kit/shore.js?v=20261123d";
 
 const WIND = `
 vec4 mvPosition = vec4( transformed, 1.0 );
@@ -92,7 +92,7 @@ export function start(canvas) {
   (async () => { for (const job of FOREST.later || []) { await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0))); const g = job(); g.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = !mobile; } }); forest.add(g); } })();
   // 立つ所：森の草地（明るいすき間）の縁から、空の開けた方を見上げる
   // 立つ所（2026-11-23 本人「自然の中に海辺の要素を」）：森のはし、川が海へ出る入り江の砂浜から、夕方の海と空を見る。うしろは森
-  const eye = new THREE.Vector3(37.6, 1.55, 6.5), look = new THREE.Vector3(50, 3.6, -16);   // 左に森のはし、右に海
+  const eye = new THREE.Vector3(37.6, 1.55, 6.5), look = innerWidth / innerHeight < .8 ? new THREE.Vector3(53, 3.6, -12) : new THREE.Vector3(50, 3.6, -16);   // スマホは少し海へ向ける（画面の左のはしに森の枝先だけが切れて入らない）   // 左に森のはし、右に海
   let yaw = Math.atan2(-(look.x - eye.x), -(look.z - eye.z)), pitch = Math.atan2(look.y - eye.y, Math.hypot(look.x - eye.x, look.z - eye.z)), dy = 0, dp = 0;
   cam.position.copy(eye); cam.rotation.order = "YXZ";
   // 見回す（なぞる）
