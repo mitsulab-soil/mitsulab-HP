@@ -76,7 +76,26 @@ const REF = {
   tsuchi:  [[/^s0/, ["#6b5440", "#8c7258", "#4c3a2a", "#9a7f62", "#5b4532", "#86664a"], "band"], [/^sprout/, ["#7fb04e", LEAF], "y"], [/^root/, ["#efe9dc"]]],
   shizuku: [[/^(drop|water)/, ["#bfe3ea", "#a9dbe4", "#cfeee6", LEAF], "y", .55]],
 };
-const REF_GROW = { kitsune: [/^(ear|tuft)/, 1.75] };   // 参考画の狐は大きな耳＝耳と房を根もとから大きく
+const REF_GROW = {};   // 11-23 夜：狐の耳は refineFox で作り直す（前は耳と房を 1.75 倍にしていた）
+/* 2026-11-23 夜 本人の参考画（依代の参考_8体）の狐の顔へ：
+   耳＝丸い団扇の形（柄の先に円）をやめ、参考画の大きくとがった木の葉の形に作り直す（白い縁・内側が碧の色・先が若葉色・外へ少し開く）。
+   額の房＝耳のあいだに立つ若葉の三枚を小さくし、碧の色の羽のような房として額に寝かせる。点の目＝少し大きく、まるく。 */
+function leafEar(H, R, sgn) {
+  const pts = []; for (let i = 0; i <= 14; i++) { const t = i / 14; pts.push(new THREE.Vector2(R * Math.pow(Math.sin(Math.PI * Math.pow(t, .62)), .9) * (1 - .15 * t), t * H)); }
+  const g = new THREE.LatheGeometry(pts, 18), P = g.attributes.position, C = new Float32Array(P.count * 3), cw = new THREE.Color(WHITE), ct = new THREE.Color(TEAL), c2 = new THREE.Color(TEAL2), cl = new THREE.Color(LEAF);
+  for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), u = y / H, rr = R * Math.max(.05, Math.sin(Math.PI * Math.pow(Math.max(u, .001), .62)));
+    const front = z > 0 ? 1 : 0, edge = Math.min(1, Math.abs(x) / rr);   // 前の面＝内側（碧の色）・縁と後ろ＝白
+    _c.copy(cw); if (front) _c.lerp(_d.copy(u < .55 ? c2 : ct), Math.max(0, 1 - edge * .95) * Math.min(1, u * 2.4)); _c.lerp(cl, Math.max(0, (u - .72) / .28));
+    C[i * 3] = _c.r; C[i * 3 + 1] = _c.g; C[i * 3 + 2] = _c.b; }
+  g.setAttribute("color", new THREE.BufferAttribute(C, 3)); g.rotateZ(-sgn * .32); g.computeVertexNormals(); return g;
+}
+function refineFox(body) {
+  const ears = [], tufts = []; body.traverse(o => { if (!o.isMesh) return; const n = o.material?.name || ""; if (/^ear/.test(n)) ears.push(o); else if (/^tuft/.test(n)) tufts.push(o); });
+  if (ears.length === 2) { const mid = ears[0].position.clone().add(ears[1].position).multiplyScalar(.5);
+    for (const o of ears) { const lx = new THREE.Vector3(1, 0, 0).applyQuaternion(o.quaternion), sgn = Math.sign(o.position.clone().sub(mid).dot(lx)) || 1;
+      o.geometry = leafEar(.38 / o.scale.y, .125 / o.scale.x, sgn); o.geometry.translate(0, -.07 / o.scale.y, 0); o.material = o.material.clone(); o.material.vertexColors = true; o.material.color.set("#ffffff"); o.material.side = THREE.DoubleSide; o.material.needsUpdate = true; } }
+  for (const o of tufts) { o.scale.multiplyScalar(.75); o.rotation.x += .35; o.material = o.material.clone(); o.material.vertexColors = false; o.material.color.set(TEAL2); o.material.needsUpdate = true; }
+}
 const _c = new THREE.Color(), _d = new THREE.Color();
 function paintRef(o, stops, axis) {
   const g = o.geometry = o.geometry.clone(), P = g.attributes.position; if (!P) return; g.computeBoundingBox(); const b = g.boundingBox, cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2;
@@ -149,6 +168,7 @@ export class Yorishiro {
       pv.position.copy(o.position).add(c.clone().multiply(o.scale).applyQuaternion(o.quaternion)); pv.quaternion.copy(o.quaternion); pv.scale.copy(o.scale);
       par.add(pv); pv.add(o); o.position.set(0, 0, 0); o.quaternion.identity(); o.scale.set(1, 1, 1); eyes.push(o);
     }
+    if (this.look === "ref" && kind === "kitsune") { refineFox(body); for (const e of eyes) e.parent.scale.multiplyScalar(e.material?.name?.startsWith("hl") ? 1.1 : 1.12); }
     if (height) { body.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(body), hh = bb.max.y - bb.min.y; if (hh > 1e-4) scale = height / hh; body.position.y -= bb.min.y; }   // 高さ（m）で大きさを決め、足を地面に
     root.position.set(x, y ?? this.groundAt(x, z), z); root.rotation.y = yaw; root.scale.setScalar(scale);
     root.userData.yorishiro = kind; this.scene.add(root);
