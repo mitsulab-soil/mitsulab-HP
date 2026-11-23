@@ -20,11 +20,23 @@
 .cap{bottom:calc(124px + env(safe-area-inset-bottom))}
 .feel{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top)) + 54px);font:12px/1.6 "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t1);text-shadow:var(--halo);pointer-events:none;opacity:0;transition:opacity .4s;white-space:nowrap}
 .feel.on{opacity:1}
+#place{position:fixed;left:16px;top:42%;z-index:6;display:flex;flex-direction:column}
+#place button{min-width:64px;min-height:44px;padding:0 14px;font:600 14px/1 "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;letter-spacing:.24em;background:rgba(250,252,251,.72);color:var(--t1);text-shadow:var(--halo);border:1px solid rgba(47,143,168,.45);cursor:pointer}
+#place button+button{border-top:0}#place button[aria-pressed=true]{border-color:var(--aoi);background:rgba(47,143,168,.24)}
+#place button[aria-busy=true]{animation:plB 1s ease-in-out infinite}@keyframes plB{50%{opacity:.55}}
+@media(max-width:700px){#place{left:8px;top:38%}#place button{min-width:48px;font-size:13px;letter-spacing:.12em;padding:0 8px}}
+body.near #place button{background:rgba(250,252,251,.85)}
 #bLeave,#bStl{display:none}
 body.near #bLeave,body.near #bStl{display:inline-block}
 @media (min-width:900px){.cap{font-size:17px}.bar button{font-size:15px}}
 @media (max-width:420px){.top{gap:8px}h1{font-size:15px}.fold summary{padding:0 10px;font-size:12px}}
 @media (max-width:420px){.pick{gap:4px;padding:0 10px}.pick button{padding:0 8px;font-size:13px}.cap{bottom:calc(124px + env(safe-area-inset-bottom))}}
+/* 2026-11-23 札を読みやすく：字を大きく、地を濃く */
+.pick button,.bar button{font-size:16px!important;background:rgba(250,252,251,.82)!important;border-color:rgba(47,143,168,.7)!important;text-shadow:none!important}
+.pick button[aria-pressed=true]{background:rgba(214,236,242,.92)!important}
+#place{top:calc(50% - 50px)}#place button{min-width:76px;font-size:16px;background:rgba(250,252,251,.82);text-shadow:none}
+#place button[aria-pressed=true]{background:rgba(214,236,242,.92)}
+@media (max-width:420px){.pick button,.bar button{font-size:14px!important}#place button{min-width:52px;font-size:14px}}
 </style>
 </head>
 <body>
@@ -35,20 +47,22 @@ body.near #bLeave,body.near #bStl{display:inline-block}
 <p><b>手ごたえは模式</b>　かたさ・ざらつき・ひんやり感などの値は、写真の凹凸から組み立てた模式で、測った値ではありません。振動は、振動できる端末だけ（iPhone の Safari は震えないので、音と指の下の光で）。</p>
 <p><b>表面</b>　Poly Haven（Japanese Zelkova Bark・Rock Surface・Moss Wood・Farm Soil・Dry Decay Leaves・Rough Linen・Japanese Cedar Planks）の CC0 の写真を、実寸 10 cm で貼っています。近づくと、10 cm 四方がほぼ画面いっぱいになります。</p>
 <p><b>触れた音</b>　Freesound の CC0 の録音（指でなでる・たたく）。<b>形の保存</b>　「形を保存」で、いま触れている表面の凹凸を STL（3D プリント用・一辺 10 cm）にして、この端末に保存します。送信はしません。</p>
+<p><b>都市（模式）</b>　駅前の大通りの模式で、特定の店や建物を写したものではありません（街路樹の樹皮・敷石は CC0 の写真）。歩道の結び目は、前の Qualia/touch の麻縄の形です。触れた音は、いちばん近い素材の録音（敷石＝石）。Qualia/sight・hear と同じ場の部品です。</p>
 <p>場所は Qualia/sight と同じ森（関東の雑木林のつもりの創作空間）。写真から自分の触覚をつくる前の道具は <a href="studio.html">こちら</a>。three.js（MIT）。© mitsulab.</p>
 </div></details>
 <div class="feel" id="feel" aria-live="off"></div>
 <div class="cap" id="cap">木の幹、石、苔、土。近づいて、指でなぞってみる。</div>
+<div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">森</button><!-- 浜（kit/shore.js）は、sight・hear の浜の地面と海が良くなってから札を出す（touch.js の浜のものは残してある） --><button data-place="city" aria-pressed="false">都市</button></div>
 <div class="pick" role="group" aria-label="触れるもの" id="pick"></div>
 <div class="bar" role="group" aria-label="操作"><button id="bLeave">はなれる</button><button id="bStl">形を保存</button><button id="bGo">外へ</button></div>
 <div class="away" id="away" role="dialog" aria-label="外へ"><p>画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。</p><button id="bBack">画面にもどる</button></div>
 <script type="module">
 const $ = id => document.getElementById(id);
-let V = null, THINGS = [];
+let V = null, THINGS = [], walkCap = '木の幹、石、苔、土。近づいて、指でなぞってみる。';
 const cap = $('cap'), feel = $('feel');
 const ui = {
   mode(m, th) { document.body.classList.toggle('near', m === 'near'); document.querySelectorAll('#pick button').forEach(b => b.setAttribute('aria-pressed', !!th && b.dataset.id === th.id));
-    if (m === 'going' && th) cap.textContent = th.cue; if (m === 'near') feel.textContent = 'なぞる・押したまま待つ'; if (m === 'walk') { cap.textContent = '木の幹、石、苔、土。近づいて、指でなぞってみる。'; feel.classList.remove('on'); } if (m === 'near') feel.classList.add('on'); },
+    if (m === 'going' && th) cap.textContent = th.cue; if (m === 'near') feel.textContent = 'なぞる・押したまま待つ'; if (m === 'walk') { cap.textContent = walkCap; feel.classList.remove('on'); } if (m === 'near') feel.classList.add('on'); },
   touch(on) { if (on) navigator.vibrate; },
   feel(r) { if (!r.held) return; feel.textContent = r.moving ? (r.amp > .3 ? 'ざらつく' : 'なぞっている') : r.dent > .4 ? '指が沈む' : 'じっと押している'; },
 };
@@ -58,7 +72,13 @@ $('bStl').onclick = () => { const r = V && V.stl(); if (!r) return; const d = ne
   cap.textContent = 'この表面の 10 cm 四方の凹凸を、STL で保存した（この端末の中だけ）。'; };
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
 import('./touch.js?v=t1').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui); window.__touchApp = V;
-  const pk = $('pick'); for (const th of THINGS) { const b = document.createElement('button'); b.textContent = th.name; b.dataset.id = th.id; b.setAttribute('aria-pressed', false); b.onclick = () => V.approach(th.id); pk.appendChild(b); }
+  const AWAY = { forest: '画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。', shore: '海や川の近くに行ったら、乾いた砂と、濡れた砂を、指で押してみてください。<br>どちらが、指を押し返しますか。', city: '画面を閉じて、歩道の敷石と、植えこみの土を、手のひらで比べてみてください。<br>日の当たる所と、影の所では、どう違いますか。' };
+  const CAP = { forest: '木の幹、石、苔、土。近づいて、指でなぞってみる。', shore: '砂、貝殻、流木、磯の岩。海辺のものに、近づいて触れる。', city: '歩道の結び目、街路樹の幹、敷石。街の中の手ざわりに、近づいて触れる。' };
+  const pick = p => { const pk = $('pick'); pk.textContent = ''; for (const th of THINGS.filter(t => (t.place || 'forest') === p)) { const b = document.createElement('button'); b.textContent = th.name; b.dataset.id = th.id; b.setAttribute('aria-pressed', false); b.onclick = () => V.approach(th.id); pk.appendChild(b); } cap.textContent = CAP[p]; walkCap = CAP[p]; $('away').querySelector('p').innerHTML = AWAY[p]; };
+  pick('forest');
+  document.querySelectorAll('#place button').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true' && V.place === b.dataset.place) return; b.setAttribute('aria-busy', 'true');
+    try { await V.setPlace(b.dataset.place); } catch (e) { console.warn(e); } finally { b.removeAttribute('aria-busy'); }
+    document.querySelectorAll('#place button').forEach(c => c.setAttribute('aria-pressed', c === b)); pick(b.dataset.place); });
 }).catch(e => console.warn(e));
 </script>
 </body>
