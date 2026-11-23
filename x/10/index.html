@@ -10,7 +10,7 @@
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <script>if (/[?&](ws|plate)=/.test(location.search)) location.replace("studio.html" + location.search);</script>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t2"><link rel="modulepreload" href="forest.js?v=20261123n">
+<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t3"><link rel="modulepreload" href="forest.js?v=20261123n">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
 .pick{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:nowrap}
@@ -38,6 +38,12 @@ body.near #bLeave,body.near #bStl{display:inline-block}
 #place button[aria-pressed=true]{background:rgba(214,236,242,.92)}
 @media (max-width:420px){.pick button,.bar button{font-size:14px!important}#place button{min-width:52px;font-size:14px}}
 </style>
+<style>/* 2026-11-24 本人：sight と同じ切りかえ（自然／都市）の見た目 */
+#place button{background:rgba(6,10,18,.62)!important;border:1px solid rgba(195,204,224,.22)!important;color:#dfe6ee!important;text-shadow:none!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#place button+button{border-top:0!important}
+@media(max-width:700px){#pick{flex-wrap:wrap!important;justify-content:center!important;overflow:visible!important;max-width:calc(100vw - 16px);margin:0 auto}#pick button{min-width:0!important;padding:0 10px!important}.cap.two{bottom:calc(222px + env(safe-area-inset-bottom))!important}}
+#place button[aria-pressed=true]{background:rgba(6,10,18,.82)!important;border-color:var(--aoi,#5ec8c8)!important;color:#bff0ee!important}
+</style>
 </head>
 <body>
 <canvas id="c" aria-label="森（Qualia/sight と同じ森）の3Dの風景。手前にケヤキの幹・石・苔むした倒木・土・落ち葉・杭に結んだ麻縄があり、近づいて指でなぞれます。"></canvas>
@@ -52,7 +58,7 @@ body.near #bLeave,body.near #bStl{display:inline-block}
 </div></details>
 <div class="feel" id="feel" aria-live="off"></div>
 <div class="cap" id="cap">木の幹、石、苔、土。近づいて、指でなぞってみる。</div>
-<div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">森</button><button data-place="shore" aria-pressed="false">浜</button><button data-place="city" aria-pressed="false">都市</button></div>
+<div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">自然</button><button data-place="city" aria-pressed="false">都市</button></div>
 <div class="pick" role="group" aria-label="触れるもの" id="pick"></div>
 <div class="bar" role="group" aria-label="操作"><button id="bLeave">はなれる</button><button id="bStl">形を保存</button><button id="bGo">外へ</button></div>
 <div class="away" id="away" role="dialog" aria-label="外へ"><p>画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。</p><button id="bBack">画面にもどる</button></div>
@@ -71,10 +77,10 @@ $('bStl').onclick = () => { const r = V && V.stl(); if (!r) return; const d = ne
   a.href = u; a.download = `qualia-touch_${r.id}_${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.stl`; a.click(); setTimeout(() => URL.revokeObjectURL(u), 4000);
   cap.textContent = 'この表面の 10 cm 四方の凹凸を、STL で保存した（この端末の中だけ）。'; };
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./touch.js?v=t2').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui); window.__touchApp = V;
+import('./touch.js?v=t3').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui); window.__touchApp = V;
   const AWAY = { forest: '画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。', shore: '海や川の近くに行ったら、乾いた砂と、濡れた砂を、指で押してみてください。<br>どちらが、指を押し返しますか。', city: '画面を閉じて、歩道の敷石と、植えこみの土を、手のひらで比べてみてください。<br>日の当たる所と、影の所では、どう違いますか。' };
-  const CAP = { forest: '木の幹、石、苔、土。近づいて、指でなぞってみる。', shore: '砂、貝殻、流木、磯の岩。海辺のものに、近づいて触れる。', city: '歩道の結び目、街路樹の幹、敷石。街の中の手ざわりに、近づいて触れる。' };
-  const pick = p => { const pk = $('pick'); pk.textContent = ''; for (const th of THINGS.filter(t => (t.place || 'forest') === p)) { const b = document.createElement('button'); b.textContent = th.name; b.dataset.id = th.id; b.setAttribute('aria-pressed', false); b.onclick = () => V.approach(th.id); pk.appendChild(b); } cap.textContent = CAP[p]; walkCap = CAP[p]; $('away').querySelector('p').innerHTML = AWAY[p]; };
+  const CAP = { forest: '森と浜のものに、近づいて指でなぞる。', shore: '砂、貝殻、流木、磯の岩。海辺のものに、近づいて触れる。', city: '歩道の結び目、街路樹の幹、敷石。街の中の手ざわりに、近づいて触れる。' };
+  const pick = p => { const pk = $('pick'); pk.textContent = ''; for (const th of THINGS.filter(t => p === 'city' ? t.place === 'city' : t.place !== 'city')) { const b = document.createElement('button'); b.textContent = th.name; b.dataset.id = th.id; b.setAttribute('aria-pressed', false); b.onclick = () => V.approach(th.id); pk.appendChild(b); } cap.textContent = CAP[p]; cap.classList.toggle('two', p !== 'city'); walkCap = CAP[p]; $('away').querySelector('p').innerHTML = AWAY[p]; };
   pick('forest');
   document.querySelectorAll('#place button').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true' && V.place === b.dataset.place) return; b.setAttribute('aria-busy', 'true');
     try { await V.setPlace(b.dataset.place); } catch (e) { console.warn(e); } finally { b.removeAttribute('aria-busy'); }

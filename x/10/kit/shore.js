@@ -70,19 +70,19 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     const im = g.createImageData(n, n), at = (x, y) => H[((y + n) % n) * n + (x + n) % n]; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { const k = (y * n + x) * 4; im.data[k] = Math.max(0, Math.min(255, 128 - (at(x + 1, y) - at(x - 1, y)) * 90)); im.data[k + 1] = Math.max(0, Math.min(255, 128 - (at(x, y + 1) - at(x, y - 1)) * 90)); im.data[k + 2] = 255; im.data[k + 3] = 255; }
     g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(26, 26); t.anisotropy = 8; return t; })();
   const HZ = new THREE.Color(0x7d97a8);
-  const UW = { uSeaT: { value: 0 }, uHaze: { value: new THREE.Color(0xc8d4dc) } };
-  const seaHook = sh => { sh.uniforms.uSeaT = UW.uSeaT; sh.uniforms.uHaze = UW.uHaze;
-    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSeaT; uniform vec3 uHaze;")
-      .replace("#include <fog_fragment>", "float hz_ = smoothstep( 40.0, 460.0, length( vViewPosition ) );\ngl_FragColor.rgb = mix( gl_FragColor.rgb, uHaze, hz_ * .78 );\n#include <fog_fragment>")   // 霧の代わりに、遠くほど空の地平の色へ（水平線がくっきり残る）
+  const UW = { uSeaT: { value: 0 }, uHaze: { value: new THREE.Color(0xc8d4dc) }, uFogC: { value: new THREE.Color(0xc8d4dc) }, uIn: { value: 0 } };
+  const seaHook = sh => { sh.uniforms.uSeaT = UW.uSeaT; sh.uniforms.uHaze = UW.uHaze; sh.uniforms.uFogC = UW.uFogC; sh.uniforms.uIn = UW.uIn;
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSeaT; uniform vec3 uHaze; uniform vec3 uFogC; uniform float uIn;")
+      .replace("#include <fog_fragment>", "float hz_ = smoothstep( 40.0, 460.0, length( vViewPosition ) );\ngl_FragColor.rgb = mix( gl_FragColor.rgb, uHaze, hz_ * .78 );\n{ float in_ = uIn * smoothstep( 8.0, 40.0, length( vViewPosition ) ); gl_FragColor.rgb = mix( gl_FragColor.rgb, uFogC, in_ ); gl_FragColor.a *= 1.0 - in_; }\n#include <fog_fragment>")   // 霧の代わりに、遠くほど空の地平の色へ（水平線がくっきり残る）
       .replace("#include <normal_fragment_maps>", THREE.ShaderChunk.normal_fragment_maps).replace("vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;",   // 2026-11-23 夜：include を展開してから置きかえる（前は置きかわらず、波が止まっていた）
         "vec2 uw_ = vNormalMapUv;\n" +
         "vec3 n1_ = texture2D( normalMap, mat2( .92, -.39, .39, .92 ) * uw_ * .137 + vec2( uSeaT * .0012, uSeaT * .0026 ) ).xyz * 2.0 - 1.0;\n" +
         "vec3 n2_ = texture2D( normalMap, mat2( .6, .8, -.8, .6 ) * uw_ * 1.07 + vec2( -uSeaT * .011, uSeaT * .006 ) ).xyz * 2.0 - 1.0;\n" +
         "vec3 n3_ = texture2D( normalMap, mat2( .28, -.96, .96, .28 ) * uw_ * 2.93 + vec2( uSeaT * .019, -uSeaT * .013 ) ).xyz * 2.0 - 1.0;\n" +
-        "float fd_ = smoothstep( 4.0, 110.0, length( vViewPosition ) );\n" +
+        "float fd_ = smoothstep( 4.0, 45.0, length( vViewPosition ) );\n" +
         "float gust_ = .45 + .9 * kF_( vKw.xz * .021 + vec2( uSeaT * .012, uSeaT * .004 ) );\n" +   // 風の当たるむら（さざ波の立つ所と凪いだ所）。同じ柄の列を見せない
-        "vec3 mapN = normalize( vec3( n1_.xy * .32 * ( 1.0 - fd_ * .5 ) + ( n2_.xy * .62 + n3_.xy * .4 ) * gust_ * ( 1.0 - fd_ * .92 ), 1.0 ) );")
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix( roughnessFactor, .24, smoothstep( 12.0, 140.0, length( vViewPosition ) ) );");   // 沖の映り込みはぼける（白いむらの列を出さない）
+        "vec3 mapN = normalize( vec3( n1_.xy * .32 * ( 1.0 - fd_ * .9 ) + ( n2_.xy * .62 + n3_.xy * .4 ) * gust_ * ( 1.0 - fd_ * .92 ), 1.0 ) );\nmapN = normalize( vec3( mapN.xy * ( 1.0 - .8 * smoothstep( 6.0, 26.0, length( vViewPosition ) ) ), 1.0 ) );")   // 2026-11-24：沖は面をならす（日の照り返しが白い斑点の帯にならない）
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix( roughnessFactor, .42, smoothstep( 8.0, 55.0, length( vViewPosition ) ) );   /* 2026-11-24：沖の白い斑点（空の映り込みのむら）を出さない */");   // 沖の映り込みはぼける（白いむらの列を出さない）
   };
   const seaM = surface(M(0xffffff, { fog: false, std: true, rough: .06, metal: 0, env: 1.15, nmap: waveN, ns: .55, vc: true, transparent: true, uv: .12, temp: .02, echo: .95, key: "sea" }), "sea", seaHook);   // どの道具の M でも波が動く
   { const S = 560, nx = mobile ? 70 : 110, nz = mobile ? 60 : 90, g = new THREE.PlaneGeometry(1, S, nx, nz); g.rotateX(-Math.PI / 2);
@@ -189,7 +189,8 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     edgeX, blocked(x, z, pad = .3) { if (x > shoreX(z) + .4) return true; for (const [rx, rz, rs] of rocks) if (Math.hypot(x - rx, z - rz) < rs * 1.1 + pad) return true; return false; },
     update(t, dt, cam) {
       for (const f of foams) placeFoam(f, t);
-      UW.uSeaT.value = t; { const sc = root.parent?.parent; if (sc?.fog) UW.uHaze.value.copy(sc.fog.color).lerp(HZ, .5); }   // 地平は少し青みに寄せ、白く飛ばさない
+      UW.uSeaT.value = t; { let sc = root; while (sc.parent) sc = sc.parent; if (sc?.fog) { UW.uHaze.value.copy(sc.fog.color).lerp(HZ, .5); UW.uFogC.value.copy(sc.fog.color); } }
+      if (cam) { const d = shoreX(cam.z) - cam.x; UW.uIn.value = Math.min(1, Math.max(0, (d - 8) / 14)); }   // 2026-11-24：森の奥からは海を霧に溶かす（木のあいだに青緑の線を見せない）   // 地平は少し青みに寄せ、白く飛ばさない
       for (const G of gulls) { const a = G.ph + t * G.w; G.g.position.set(G.c[0] + Math.cos(a) * G.r, G.h + Math.sin(a * 1.7) * .6, G.c[1] + Math.sin(a) * G.r); G.g.rotation.set(0, -a + Math.PI, Math.sin(a) * .25 + .3);
         const flap = (Math.sin(t * .35 + G.ph) > .55) ? Math.sin(t * 9 + G.ph) * .55 : .06 * Math.sin(t * 1.3);   // ほとんどは翼を広げて滑り、ときどき羽ばたく
         for (const W of G.wings) { W.piv.rotation.z = W.sd * (flap + .12); W.outer.rotation.z = W.sd * (flap * .6 - .38); } }   // カモメの仲間の翼は、肘で上がり手先で下がる（M の字の形）。コウモリの細かな羽ばたきと見分けられる
