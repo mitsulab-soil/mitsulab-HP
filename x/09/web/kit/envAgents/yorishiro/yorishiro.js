@@ -61,6 +61,34 @@ const NATURAL = {
   ishi:    [[/^Icosphere/, "#8b8578", .95], [/^peb/, "#9a9284", .95]],
   shizuku: [[/^(drop|body|water)/, "#cfe6ea", .2]],
 };
+/* 2026-11-23 本人「もっと大きくして、もっと可愛いデザインに。前に 3D で碧のデザインの一部を使った感じで（写真のイメージで前に作ったもの）」
+   → 参考画（05_本人の素材/10_参考画像_2026-11-23/依代の参考_8体.webp）の色に戻す：白い体・碧の色の葉と羽・先が若葉色・土は茶の層・しずくは水色。
+   glb には Blender の色の移り（グラデーション）が入っていないので、材質の名ごとに頂点の色で塗る（形の単位の高さ・横で色を移す）。look:"ref" のときだけ（ほかのアプリは前のまま）。
+   [材質の名, 色の段（下→上）, 向き（y＝高さ・x＝横の広がり・r＝中心からの距離）, 透け] */
+const TEAL = "#2f6b66", TEAL2 = "#5f9a8e", MINT = "#cfe9e2", LEAF = "#a8dc5a", WHITE = "#f6f4ee";
+const REF = {
+  kitsune: [[/^tail/, [WHITE, MINT, "#7fbfb0", LEAF], "y"], [/^ear/, [WHITE, TEAL2, TEAL], "y"], [/^tuft/, [TEAL2, LEAF], "y"], [/^body/, [WHITE]], [/^paw/, [TEAL]]],
+  hitsuji: [[/^(horn|hg)/, [TEAL, TEAL2, LEAF], "r"], [/^w\d/, [WHITE]], [/^m\d/, ["#f1f5f2"]]],
+  tori:    [[/^tuft/, [TEAL2, LEAF], "y"], [/^fe0/, [TEAL]], [/^fe1/, [TEAL2]], [/^fe2/, ["#7fbfb0"]], [/^fe3/, [MINT]], [/^body/, [WHITE]], [/^ch/, [WHITE]]],
+  cho:     [[/^w-?1/, [MINT, TEAL2, TEAL, LEAF], "r"], [/^pan/, [WHITE, MINT], "r"], [/^wl/, [TEAL]], [/^vn/, ["#e8f3ef"]]],
+  ki:      [[/^trunk/, [WHITE]], [/^lv38/, [LEAF]]],
+  ishi:    [[/^Icosphere/, ["#ebe7dd"]], [/^lf$/, [TEAL2, LEAF], "y"]],
+  tsuchi:  [[/^s0/, ["#6b5440", "#8c7258", "#4c3a2a", "#9a7f62", "#5b4532", "#86664a"], "band"], [/^sprout/, ["#7fb04e", LEAF], "y"], [/^root/, ["#efe9dc"]]],
+  shizuku: [[/^(drop|water)/, ["#bfe3ea", "#a9dbe4", "#cfeee6", LEAF], "y", .55]],
+};
+const REF_GROW = { kitsune: [/^(ear|tuft)/, 1.75] };   // 参考画の狐は大きな耳＝耳と房を根もとから大きく
+const _c = new THREE.Color(), _d = new THREE.Color();
+function paintRef(o, stops, axis) {
+  const g = o.geometry = o.geometry.clone(), P = g.attributes.position; if (!P) return; g.computeBoundingBox(); const b = g.boundingBox, cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2;
+  const rmax = Math.max(1e-6, Math.hypot(b.max.x - cx, b.max.z - cz, (b.max.y - b.min.y) / 2)), cy = (b.min.y + b.max.y) / 2, C = new Float32Array(P.count * 3), cs = stops.map(s => new THREE.Color(s));
+  for (let i = 0; i < P.count; i++) {
+    const y = P.getY(i); let u;
+    if (axis === "band") { const k = Math.min(cs.length - 1, Math.floor((y - b.min.y) / Math.max(1e-6, b.max.y - b.min.y) * cs.length)); _c.copy(cs[Math.max(0, k)]); }
+    else { u = axis === "r" ? Math.hypot(P.getX(i) - cx, P.getZ(i) - cz, y - cy) / rmax : axis === "x" ? Math.abs(P.getX(i) - cx) / Math.max(1e-6, b.max.x - cx) : (y - b.min.y) / Math.max(1e-6, b.max.y - b.min.y);
+      u = Math.min(.999, Math.max(0, u)) * (cs.length - 1); const k = Math.floor(u), f = u - k; _c.copy(cs[k]).lerp(_d.copy(cs[Math.min(cs.length - 1, k + 1)]), f * f * (3 - 2 * f)); }
+    C[i * 3] = _c.r; C[i * 3 + 1] = _c.g; C[i * 3 + 2] = _c.b; }
+  g.setAttribute("color", new THREE.BufferAttribute(C, 3));
+}
 const RM = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const role = (name, kind) => /^(eye|ey|hl)/.test(name) ? "eye" : (kind === "cho" && /^(w|wl|pan|bfly)/.test(name)) || (kind === "tori" && /^fe/.test(name)) || (kind === "suzume" && /^fe/.test(name)) || (kind === "mitsubachi" && /^w1/.test(name)) ? "wing" : /^(lf|leaf|tuft|mo|lv|sprout|tail|berry)/.test(name) ? "leaf" : /^(water|bub)/.test(name) ? "float" : "body";
 
@@ -84,8 +112,8 @@ function patch(mat, U, kind) {
 }
 
 export class Yorishiro {
-  constructor({ scene, camera, groundAt = () => 0 } = {}) {
-    this.scene = scene; this.camera = camera; this.groundAt = groundAt; this.items = []; this.t = 0;
+  constructor({ scene, camera, groundAt = () => 0, look = "" } = {}) {
+    this.look = look; this.scene = scene; this.camera = camera; this.groundAt = groundAt; this.items = []; this.t = 0;
     this.loader = new GLTFLoader(); this.loader.setMeshoptDecoder(MeshoptDecoder);
     this.ray = new THREE.Raycaster(); this.v2 = new THREE.Vector2();
     this.co = null; this.ask = 0; this.v3 = new THREE.Vector3(); this.fr = new THREE.Frustum(); this.pm = new THREE.Matrix4(); this.sp = new THREE.Sphere();
@@ -93,7 +121,7 @@ export class Yorishiro {
   // 碧と仲良く：aoi()＝{x,y,z,yaw}|null、speaking()＝話しているか、viewer()＝見る人の位置、onGreet(it)＝依代が碧へ向いて弾んだとき（碧が目をやる）
   setCompanion(o) { this.co = o; }
   react(what) { if (what === "ask") this.ask = 1.6; }
-  async add(kind, { x = 0, z = 0, y = null, yaw = 0, scale = .5, height = 0, follow = false, onTouch = null } = {}) {
+  async add(kind, { x = 0, z = 0, y = null, yaw = 0, scale = .5, height = 0, follow = false, onTouch = null, hide = null } = {}) {
     if (!YORISHIRO_KINDS[kind]) throw new Error("unknown yorishiro: " + kind);
     const g = await this.loader.loadAsync(new URL(`./${kind}.glb${new URL(import.meta.url).search || ""}`, import.meta.url).href);
     const M = KIND_MOTION[kind] || KIND_MOTION._, ph = Math.random() * 6.28;
@@ -103,8 +131,14 @@ export class Yorishiro {
     const eyeM = [];
     body.traverse(o => {
       if (!o.isMesh) return; o.castShadow = true; o.receiveShadow = true;
-      const m = o.material, r = role(m?.name || "", kind);
-      if (m) { const nm = m.name || "", P = NATURAL[kind] || []; for (const [re, col, rough] of P) if (re.test(nm)) { m.color.set(col); if (rough) m.roughness = rough; if (kind === "shizuku" && re.source.startsWith("^(drop")) { m.transparent = true; m.opacity = .45; m.depthWrite = false; } break; } }   // 11-02 本人「必ずしも白にしなくてもいい・自然な色合いに」
+      if (hide && hide.test(o.material?.name || "")) { o.visible = false; return; }   // 11-23：飛ぶ鳥は止まり木（枝）を描かない
+      let m = o.material; const r = role(m?.name || "", kind);
+      if (m && this.look === "ref") { const nm = m.name || ""; let cl = false; const G = REF_GROW[kind];
+        if (G && G[0].test(nm)) { const g = o.geometry = o.geometry.clone(); g.computeBoundingBox(); const b = g.boundingBox, cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2; g.translate(-cx, -b.min.y, -cz); g.scale(G[1], G[1], G[1]); g.translate(cx, b.min.y, cz); } for (const [re, st, ax, op] of REF[kind] || []) if (re.test(nm)) { o.material = o.material.clone(); const mm = o.material; mm.name = nm;
+          if (st.length > 1) { paintRef(o, st, ax || "y"); mm.vertexColors = true; mm.color.set("#ffffff"); } else mm.color.set(st[0]);
+          if (op) { mm.transmission = 0; mm.transparent = true; mm.opacity = op; mm.depthWrite = false; } mm.needsUpdate = true; m = mm; cl = true; break; }
+        if (r === "wing" && !RM) { if (!cl) { o.material = m.clone(); m = o.material; } patch(m, U, "wing"); } }   // 11-23：羽ばたき（前は掛かっていなかった）
+      else if (m) { const nm = m.name || "", P = NATURAL[kind] || []; for (const [re, col, rough] of P) if (re.test(nm)) { m.color.set(col); if (rough) m.roughness = rough; if (kind === "shizuku" && re.source.startsWith("^(drop")) { m.transparent = true; m.opacity = .45; m.depthWrite = false; } break; } }   // 11-02 本人「必ずしも白にしなくてもいい・自然な色合いに」
       if (m && m.transmission > 0) { m.transmission = 0; m.transparent = true; m.opacity = Math.min(m.opacity ?? 1, .62); m.depthWrite = false; m.needsUpdate = true; }   // 11-02：透過（transmission）は画面全体をもう一度描く（初めて見えたとき全部の影絵を組み直して 350 ms 止まり、以後も毎コマ重い）＝半透明に置きかえる
       if (m && m.roughness !== undefined && !(m.transmission > 0)) m.roughness = Math.max(m.roughness, .65);   // マットに
       if (r === "eye") eyeM.push(o);   // 瞬き：あとで目の中心に軸を置く（走査中に木の組みを変えない） else if (m && (r !== "body" || M.ripple)) { o.material = m.clone(); patch(o.material, U, r); }

@@ -1822,7 +1822,7 @@ const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tor
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y13");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y14");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
@@ -1835,16 +1835,19 @@ async function startYorishiro() {
 /* 2026-11-21 本人が前に渡した「碧に似ている動物の依代」（05_本人の素材/09_依代キャラクター化 の参考画から自作した狐・蝶。形＝_共通3D/_dev/envAgents/sugata_ref/最良/）を、参道で碧のそばに置く。
    狐＝碧の横を並んで歩く（獣は歩く）・蝶＝碧の肩の高さをゆっくり回る（虫は飛ぶ）。碧が話すと碧へ向き、問いの一行で小さく傾く。触れると碧が短く一言（擬人の断定はしない）。
    変身の輪の一体（YO.y）とは別の器（YO.c）＝輪で入れ替えても消えない。生き物の目・碧が見えないあいだは隠す。一度に出すのはこの 2 体だけ（11-21 本人の指示でタヌキ・スズメ・ミツバチを足して 5 体）。 */
-const YO_C = [["kitsune", .46, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["cho", .26, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"],
-  /* 11-21 本人「ほかの依代も入れて」：大宮で本人が見たタヌキ（歩く・碧の反対の脇を少し後ろから）・スズメ（飛ぶ・碧の頭の上を前後に）・ミツバチ（飛ぶ・碧の手もとをゆっくり回る）。形は yorishiro の自作の glb（外の素材なし）。木・石・しずく・土は歩かせないので、ここには入れない */
-  ["tanuki", .4, "タヌキの姿の依代。碧のそばを、とことこ付いて歩きます。"], ["suzume", .2, "スズメの姿の依代。碧の頭の上を、行ったり来たりしています。"], ["mitsubachi", .06, "ミツバチの姿の依代。碧の手もとを、ゆっくり回っています。"]];
-const YO_FLY = { cho: [.7, .55, .35, 1.3, .12, .5], suzume: [.9, -.25, .5, 2.05, .1, .33], mitsubachi: [.15, .4, .25, .95, .07, .8] };   // 飛ぶ姿：[前, 横（碧の脇）, 回る幅, 高さ, 上下の幅, 回る速さ]
+/* 2026-11-23 本人「omiya の依代について、もっと大きくして、もっと可愛いデザインに。前に 3D で碧のデザインの一部を使った感じで（写真のイメージで前に作ったもの）」
+   → 参考画（依代の参考_8体）から自作した 3D（_共通3D/_dev/envAgents/sugata_ref/最良/）を、参考画の色（白・碧の色の葉と羽・若葉色の先）で（yorishiro.js の look:"ref"）。
+   大きさ＝碧の膝〜腰の背丈。碧のそば＝狐（歩く）・鳥（碧の上を舞う）・蝶（肩の高さを回る）。木・石・土・しずくは碧の行く手の脇に一体ずつ置き、その場で揺れるだけ（歩かせない）。
+   羊は大宮の参道にいないので出さない。タヌキ・スズメ・ミツバチ（11-21）は参考画の 8 体にないので、碧のそばの並びから外した（形は残す）。 */
+const YO_C = [["kitsune", .88, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["tori", .6, "鳥の姿の依代。碧の上を、ゆっくり舞っています。"], ["cho", .55, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"]];
+const YO_S = [["ki", 1.05, "木の姿の依代。道の脇で、葉をそよがせています。"], ["ishi", .75, "石の姿の依代。苔をまとって、じっとしています。"], ["tsuchi", .7, "土の姿の依代。根と芽を抱いて、足もとにいます。"], ["shizuku", .7, "しずくの姿の依代。ゆらゆらと、光っています。"]];
+const YO_FLY = { cho: [.8, .65, .35, 1.4, .12, .5], tori: [1.3, -1.0, .5, 2.2, .14, .3], suzume: [.9, -.25, .5, 2.05, .1, .33], mitsubachi: [.15, .4, .25, .95, .07, .8] };   // 飛ぶ姿：[前, 横（碧の脇）, 回る幅, 高さ, 上下の幅, 回る速さ]
 function stepCompanions(dt) {
   if (!YO.y || !AOI.m) return;
   if (!YO.c && !YO.cBusy) { YO.cBusy = true; (async () => { try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y13"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y14"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
     c.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z) });
-    const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: YO_FLY[k] ? P.y + YO_FLY[k][3] : null, height: h, follow: false, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) });
+    const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: YO_FLY[k] ? P.y + YO_FLY[k][3] : null, height: h, follow: false, hide: k === "tori" ? /^(branch|bl)$/ : null, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) }).then(it => { if (k === "tori") it.U.wing.value = .5; });
     YO.c = c; QW.YOC = c; } catch (e) { console.warn("yorishiro-c", e); } })(); return; }
   if (!YO.c) return; const on = QW.mode === "walk" && !!AOI.root?.visible, P = AOI.m.pos, C = camera.position, t = performance.now() / 1000;
   // 置き方（採点 P1「375 で画面の下に大きく見切れる」を直す）：碧より見る人から 1.6 m 奥・横 1.0 m（画面の内側）に置き、大写しにしない。画面の下 25% にかかるときは隠す
@@ -1852,15 +1855,33 @@ function stepCompanions(dt) {
   if (t - (YO.cSideT || -9) > 3) { YO.cSideT = t; YO.cSide = _v3c.set(P.x + rx, P.y + .3, P.z + rz).project(camera).x > _v3c.set(P.x - rx, P.y + .3, P.z - rz).project(camera).x ? -1 : 1; }   // 画面の内側（中央寄り）へ
   const sd = YO.cSide || 1, k = Math.min(1, dt * 2.2);
   for (const it of YO.c.items) { const R = it.root, F = YO_FLY[it.kind], cho = !!F, tn = it.kind === "tanuki";
-    const fw = cho ? F[0] + (it.kind === "suzume" ? .5 * Math.sin(t * F[5] + it.ph) : 0) : tn ? 2.3 : 2, lt = cho ? sd * F[1] + F[2] * Math.cos(t * F[5] + it.ph) : tn ? -sd * 1.4 : sd * 1.4;   /* 2026-11-22 足もとの動物が碧に寄って画面の下が詰まった → 碧から少し離す（碧は動かさない） */   /* 11-21：止まると碧の陰に隠れていた→碧の反対の脇（画面の内側・碧の体から 1 m 横）へ */   // タヌキは狐の少し奥・碧の脇（狐と並ばない）
-    const lm = MOBILE ? .7 : 1, tx = P.x + ax * fw + rx * lt * lm, tz = P.z + az * fw + rz * lt * lm;   // 375 は横の寄せを狭く（左の札に重ねない）
+    const fw = cho ? F[0] + (it.kind === "suzume" ? .5 * Math.sin(t * F[5] + it.ph) : 0) : tn ? 2.3 : 2, lt = cho ? sd * F[1] + F[2] * Math.cos(t * F[5] + it.ph) : tn ? -sd * 1.4 : sd * 1.5;   /* 2026-11-22 足もとの動物が碧に寄って画面の下が詰まった → 碧から少し離す（碧は動かさない） */   /* 11-21：止まると碧の陰に隠れていた→碧の反対の脇（画面の内側・碧の体から 1 m 横）へ */   // タヌキは狐の少し奥・碧の脇（狐と並ばない）
+    const lm = MOBILE ? (cho ? .7 : .78) : 1, tx = P.x + ax * fw + rx * lt * lm, tz = P.z + az * fw + rz * lt * lm;   // 375 は横の寄せを狭く（左の札に重ねない）
     const dx = tx - R.position.x, dz = tz - R.position.z, d = Math.hypot(dx, dz);
     if (d > 8) { R.position.x = tx; R.position.z = tz; } else { R.position.x += dx * k; R.position.z += dz * k; }
     R.position.y = cho ? P.y + F[3] + F[4] * Math.sin(t * .9 + it.ph) : aoiFootY(R.position.x, R.position.z); if (it.kind === "mitsubachi") it.gy = R.position.y - .9;   // 部品のただよい（花の高さ＋0.9 m）を、碧の手もとの高さに合わせる
     if (!cho) { it.bob = d > .25 ? Math.abs(Math.sin(t * 9)) * .03 : 0; if (d > .25) it.yaw0 = Math.atan2(dx, dz); }   // 歩くと小さく弾み、進む向きへ
     else it.yaw0 = Math.atan2(dx, dz) + .6 * Math.sin(t * .6); }
-  YO.c.update(dt); for (const it of YO.c.items) if (it.kind === "suzume" && it.U?.wa) it.U.wa.value = .5 + .5 * Math.sin(t * 16 + it.ph);   // 飛んでいるスズメは羽を細かくふる
+  YO.c.update(dt); for (const it of YO.c.items) if (it.kind === "suzume" && it.U?.wa) it.U.wa.value = .5 + .5 * Math.sin(t * 16 + it.ph); else if (it.kind === "tori" && it.U?.wa) it.U.wa.value = .5 + .5 * Math.sin(t * 4.2 + it.ph) * (.6 + .4 * Math.sin(t * .5 + it.ph));   // 鳥はゆっくり羽ばたく   // 飛んでいるスズメは羽を細かくふる
   for (const it of YO.c.items) { const R = it.root; if (!on) { R.visible = false; continue; } const q = _v3c.copy(R.position).setY(R.position.y + .25).project(camera); if (q.y < -.55 || Math.hypot(R.position.x - C.x, R.position.z - C.z) < 2.2) R.visible = false; }
+  stepStill(dt, on, P, ax, az, rx, rz, sd);
+}
+/* 11-23 木・石・土・しずく：碧の行く手の脇（狐の反対側）に一体ずつ。碧が 30 m 離れたら次の姿を行く手へ移す（読むのは一度だけ・起動のあとに一つずつ） */
+const _v3s = new THREE.Vector3();
+function stepStill(dt, on, P, ax, az, rx, rz, sd) {
+  if (!YO.s && !YO.sBusy) { YO.sBusy = true; (async () => { try {
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y14"), s = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
+    s.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
+      onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });
+    YO.s = s; QW.YOS = s;
+    for (const [k, h, line] of YO_S) { await new Promise(r => setTimeout(r, 1500)); const it = await s.add(k, { x: 0, z: -9999, height: h, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) }); it.parked = true; it.root.visible = false; }
+  } catch (e) { console.warn("yorishiro-s", e); } })(); return; }
+  if (!YO.s || !YO.s.items.length) return; const its = YO.s.items; let cur = YO.sCur;
+  if (on && (!cur || Math.hypot(cur.root.position.x - P.x, cur.root.position.z - P.z) > 30)) {
+    const nx = its[YO.sI = ((YO.sI ?? -1) + 1) % its.length]; if (cur) cur.parked = true;
+    const C0 = camera.position, f = camera.getWorldDirection(_v3s), fl = Math.hypot(f.x, f.z) || 1, fx = f.x / fl, fz = f.z / fl, pr = _v3c.copy(P).project(camera).x > 0 ? 1 : -1, d0 = Math.hypot(P.x - C0.x, P.z - C0.z) + 8, x = C0.x + fx * d0 + fz * pr * 1.1, z = C0.z + fz * d0 - fx * pr * 1.1; /* 見る向きの先・碧の 8 m 奥で、画面で碧と反対の側へ 1.1 m（碧の陰・植え込みに入れない） */ nx.root.position.set(x, aoiFootY(x, z), z); nx.yaw0 = Math.atan2(-ax, -az); nx.root.rotation.y = nx.yaw0; nx.parked = false; nx.near = false; YO.sCur = cur = nx; }
+  YO.s.update(dt); const C = camera.position;
+  for (const it of its) { const R = it.root; if (!on || it.parked) { R.visible = false; continue; } const q = _v3c.copy(R.position).setY(R.position.y + .3).project(camera); if (q.y < -.6 || Math.hypot(R.position.x - C.x, R.position.z - C.z) < 2.2) R.visible = false; }
 }
 const _v3c = new THREE.Vector3();
 const FOOTIX = new Map();   // 面ごとの 4 m 升目の索引（一度だけ・一度に一つずつ作る）
