@@ -9,6 +9,7 @@
    使い方：const S = buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }); 毎こま S.update(t, dt, camPos)。S.shoreX(z)・S.blocked(x, z)。 */
 import * as THREE from "three";
 import { mergeGeometries, mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
+import { surface } from "./surface.js?v=1";
 
 const TAU = Math.PI * 2;
 // 汀線（波が引いたときの水ぎわ）：川口（z≈4）でいちばん陸へ入った入り江
@@ -30,7 +31,8 @@ export function clearForest(forest, trunks, skip = [], only = null) {
       for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); if (v.x > edgeX(v.z) - 1.5) { const w = v.clone(); w.y = -1.2; o.worldToLocal(w); p.setXYZ(i, w.x, w.y, w.z); ch = true; } }   // 川の先・濡れた岸の帯は、浜の砂の下へ沈める（波打ちぎわに暗い板が浮かない）
       if (ch) { p.needsUpdate = true; g.computeBoundingSphere(); } continue; }
     g.computeBoundingBox(); if (g.boundingBox.max.x < 20) continue;
-    let ch = false; for (let i = 0; i < p.count; i += 3) { const x = (p.getX(i) + p.getX(i + 1) + p.getX(i + 2)) / 3, z = (p.getZ(i) + p.getZ(i + 1) + p.getZ(i + 2)) / 3; if (gone(x, z, 7)) { for (let k = 0; k < 3; k++) p.setXYZ(i + k, x, -50, z); ch = true; } }
+    // 地面の高さの石・落ち葉は、木の根もとでなければ林のはしで畳む（砂の上に暗い楕円が残らない・2026-11-23 夜）
+    let ch = false; for (let i = 0; i < p.count; i += 3) { const x = (p.getX(i) + p.getX(i + 1) + p.getX(i + 2)) / 3, z = (p.getZ(i) + p.getZ(i + 1) + p.getZ(i + 2)) / 3, y = (p.getY(i) + p.getY(i + 1) + p.getY(i + 2)) / 3; if (gone(x, z, 7) || (y < .6 && x > edgeX(z) - 1.2 && !owner(x, z, 1.4))) { for (let k = 0; k < 3; k++) p.setXYZ(i + k, x, -50, z); ch = true; } }
     if (ch) { p.needsUpdate = true; g.computeBoundingSphere(); }
   }
 }
@@ -41,15 +43,23 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
   const root = new THREE.Group(); root.name = "海辺"; root.userData.keep = true; group.add(root);
   // ---------------------------------------------------------------- 砂浜（森の土から砂へ、ゆるやかに移る。水ぎわは濡れて暗い）
   const sand = tx("sand_grit.webp", 1, 1), sandN = tx("sand_grit_n.webp", 1, 1, false);   // 白っぽい砂の粒（森の禅庭と同じ CC0 の写真）
-  { const X0 = 30, X1 = 64, Z0 = -40, Z1 = 44, nx = mobile ? 40 : 64, nz = mobile ? 60 : 96, g = new THREE.PlaneGeometry(X1 - X0, Z1 - Z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((X0 + X1) / 2, 0, (Z0 + Z1) / 2);
+  { const X0 = 30, X1 = 64, Z0 = -40, Z1 = 44, nx = mobile ? 60 : 110, nz = mobile ? 70 : 120, g = new THREE.PlaneGeometry(X1 - X0, Z1 - Z0, nx, nz); g.rotateX(-Math.PI / 2); g.translate((X0 + X1) / 2, 0, (Z0 + Z1) / 2);
     const p = g.attributes.position, uv = g.attributes.uv, col = [];
     for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), sx = shoreX(z), d = sx - x;   // d＝水ぎわまでの距離
-      const y = d > 0 ? .03 + Math.min(.25, d * .025) * Math.min(1, (x - X0) / 8) : -.06 + d * .03; p.setY(i, y);   // 浜は水ぎわへ下がる
+      const y = d > 0 ? .03 + Math.min(.25, d * .025) * Math.min(1, (x - X0) / 8) : .03 + d * .045; p.setY(i, y);   // 浜は水ぎわへなめらかに下がる（汀に段を作らない＝2026-11-23 夜）
       uv.setXY(i, x / 3, z / 3);
       const fade = Math.min(1, Math.max(0, (x - edgeX(z) + 3) / 5)), wet = d < 0 ? 1 : Math.max(0, 1 - d / 3.2), k = 1 - wet * .42;
       col.push(.96 * k, .9 * k, .78 * k, fade); }
     g.setAttribute("color", new THREE.Float32BufferAttribute(col, 4)); g.computeVertexNormals();
-    const m = M(0xffffff, { std: true, map: sand, nmap: sandN, ns: 1, vc: true, transparent: true, rough: .95, env: .3, uv: .3, temp: .45, echo: .5 }); m.depthWrite = true;
+    const m = M(0xffffff, { std: true, map: sand, nmap: sandN, ns: 1, vc: true, transparent: true, rough: .95, env: .3, uv: .3, temp: .45, echo: .5, key: "sand" }); m.depthWrite = true;
+    // 近くは同じ写真を小さく回して重ね（粒がぼけない）、遠くは大きなむらと風紋（くり返しの柄を見せない）
+    surface(m, "sand", sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", `#include <map_fragment>
+{ float dc_ = length(vViewPosition); vec2 q_ = vKw.xz;
+  vec3 d1_ = texture2D(map, mat2(.8, -.6, .6, .8) * q_ * 1.7 + .37).rgb, dm_ = texture2D(map, q_ * 1.7, 9.0).rgb;
+  float near_ = 1.0 - smoothstep(1.5, 9.0, dc_);
+  diffuseColor.rgb *= mix(vec3(1.0), clamp(d1_ / max(dm_, vec3(.05)), .55, 1.6), near_ * .6);
+  float rip_ = sin(dot(q_, vec2(.83, .55)) * 7.0 + kN_(q_ * .45) * 5.0);
+  diffuseColor.rgb *= (.86 + .24 * kF_(q_ * .08)) * (1.0 + .045 * rip_ * (1.0 - smoothstep(5.0, 30.0, dc_)) * vColor.r); }`); });
     const mesh = new THREE.Mesh(g, m); mesh.receiveShadow = true; mesh.renderOrder = 1; root.add(mesh); pick.push(mesh); sonic.push(mesh); }
   // ---------------------------------------------------------------- 海（2026-11-23 本人「うみをもっとリアルに」）
   //   うねり（長い波）とさざ波（短い波）の二枚の凹凸を、向きと速さを変えて流す。水は金属でなく、空と夕日は浅い角度ほど強く映る（フレネル＝物理ベースの材質のまま）。
@@ -59,21 +69,24 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { let h = 0; for (const [a, b, A, ph] of W) { const s = Math.sin((a * x + b * y) / n * TAU + ph); h += A * (1 - Math.abs(s)) ; } H[y * n + x] = h; }   // 1−|sin|＝とがった山と丸い谷（水の波の形）
     const im = g.createImageData(n, n), at = (x, y) => H[((y + n) % n) * n + (x + n) % n]; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { const k = (y * n + x) * 4; im.data[k] = Math.max(0, Math.min(255, 128 - (at(x + 1, y) - at(x - 1, y)) * 90)); im.data[k + 1] = Math.max(0, Math.min(255, 128 - (at(x, y + 1) - at(x, y - 1)) * 90)); im.data[k + 2] = 255; im.data[k + 3] = 255; }
     g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(26, 26); t.anisotropy = 8; return t; })();
-  const HZ = new THREE.Color(0x6f8ea0);
+  const HZ = new THREE.Color(0x7d97a8);
   const UW = { uSeaT: { value: 0 }, uHaze: { value: new THREE.Color(0xc8d4dc) } };
   const seaHook = sh => { sh.uniforms.uSeaT = UW.uSeaT; sh.uniforms.uHaze = UW.uHaze;
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSeaT; uniform vec3 uHaze;")
       .replace("#include <fog_fragment>", "float hz_ = smoothstep( 40.0, 460.0, length( vViewPosition ) );\ngl_FragColor.rgb = mix( gl_FragColor.rgb, uHaze, hz_ * .78 );\n#include <fog_fragment>")   // 霧の代わりに、遠くほど空の地平の色へ（水平線がくっきり残る）
-      .replace("vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;",
-        "vec3 n1_ = texture2D( normalMap, vNormalMapUv * .11 + vec2( uSeaT * .0012, uSeaT * .0026 ) ).xyz * 2.0 - 1.0;\n" +
-        "vec3 n2_ = texture2D( normalMap, vNormalMapUv + vec2( -uSeaT * .011, uSeaT * .006 ) ).xyz * 2.0 - 1.0;\n" +
-        "vec3 n3_ = texture2D( normalMap, vNormalMapUv * 2.7 + vec2( uSeaT * .019, -uSeaT * .013 ) ).xyz * 2.0 - 1.0;\n" +
-        "float fd_ = clamp( length( vViewPosition ) / 140.0, 0.0, 1.0 );\n" +
-        "vec3 mapN = normalize( vec3( ( n1_.xy * 1.3 * ( 1.0 - fd_ * .6 ) + n2_.xy * .8 * ( 1.0 - fd_ * .85 ) + n3_.xy * .45 * ( 1.0 - fd_ ) ), 1.0 ) );");   // 遠くほど細かな凹凸を消す（同じ形のくり返しを見せない）
+      .replace("#include <normal_fragment_maps>", THREE.ShaderChunk.normal_fragment_maps).replace("vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;",   // 2026-11-23 夜：include を展開してから置きかえる（前は置きかわらず、波が止まっていた）
+        "vec2 uw_ = vNormalMapUv;\n" +
+        "vec3 n1_ = texture2D( normalMap, mat2( .92, -.39, .39, .92 ) * uw_ * .137 + vec2( uSeaT * .0012, uSeaT * .0026 ) ).xyz * 2.0 - 1.0;\n" +
+        "vec3 n2_ = texture2D( normalMap, mat2( .6, .8, -.8, .6 ) * uw_ * 1.07 + vec2( -uSeaT * .011, uSeaT * .006 ) ).xyz * 2.0 - 1.0;\n" +
+        "vec3 n3_ = texture2D( normalMap, mat2( .28, -.96, .96, .28 ) * uw_ * 2.93 + vec2( uSeaT * .019, -uSeaT * .013 ) ).xyz * 2.0 - 1.0;\n" +
+        "float fd_ = smoothstep( 4.0, 110.0, length( vViewPosition ) );\n" +
+        "float gust_ = .45 + .9 * kF_( vKw.xz * .021 + vec2( uSeaT * .012, uSeaT * .004 ) );\n" +   // 風の当たるむら（さざ波の立つ所と凪いだ所）。同じ柄の列を見せない
+        "vec3 mapN = normalize( vec3( n1_.xy * .32 * ( 1.0 - fd_ * .5 ) + ( n2_.xy * .62 + n3_.xy * .4 ) * gust_ * ( 1.0 - fd_ * .92 ), 1.0 ) );")
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix( roughnessFactor, .24, smoothstep( 12.0, 140.0, length( vViewPosition ) ) );");   // 沖の映り込みはぼける（白いむらの列を出さない）
   };
-  const seaM = M(0xffffff, { fog: false, std: true, rough: .06, metal: 0, env: 1.15, nmap: waveN, ns: .55, vc: true, transparent: true, uv: .12, temp: .02, echo: .95, hook: seaHook, key: "sea" });
+  const seaM = surface(M(0xffffff, { fog: false, std: true, rough: .06, metal: 0, env: 1.15, nmap: waveN, ns: .55, vc: true, transparent: true, uv: .12, temp: .02, echo: .95, key: "sea" }), "sea", seaHook);   // どの道具の M でも波が動く
   { const S = 560, nx = mobile ? 70 : 110, nz = mobile ? 60 : 90, g = new THREE.PlaneGeometry(1, S, nx, nz); g.rotateX(-Math.PI / 2);
-    const p = g.attributes.position, col = [], deep = new THREE.Color(0x0b2a3a), mid = new THREE.Color(0x15505c), shal = new THREE.Color(0x3f8f8a), c = new THREE.Color();
+    const p = g.attributes.position, col = [], deep = new THREE.Color(0x10303f), mid = new THREE.Color(0x1d5562), shal = new THREE.Color(0x58978d), c = new THREE.Color();
     for (let i = 0; i < p.count; i++) { const u = p.getX(i) + .5, z = p.getZ(i), x = shoreX(z) - .6 + 520 * Math.pow(u, 2.4); p.setX(i, x); p.setY(i, .02);   // 岸の近くほど細かく
       const d = x - shoreX(z), k1 = Math.min(1, Math.max(0, d / 7)), k2 = Math.min(1, Math.max(0, (d - 7) / 60));
       c.copy(shal).lerp(mid, k1).lerp(deep, k2); col.push(c.r, c.g, c.b, Math.min(1, Math.max(0, (d + .6) / 1.4)) * (.42 + .58 * Math.min(1, Math.max(0, d / 4.5)))); }   // 水のはしは透明から始める（砂の上に板の縁を見せない）   // 浅瀬は下の砂が透ける
@@ -176,7 +189,7 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     edgeX, blocked(x, z, pad = .3) { if (x > shoreX(z) + .4) return true; for (const [rx, rz, rs] of rocks) if (Math.hypot(x - rx, z - rz) < rs * 1.1 + pad) return true; return false; },
     update(t, dt, cam) {
       for (const f of foams) placeFoam(f, t);
-      UW.uSeaT.value = t; { const sc = root.parent?.parent; if (sc?.fog) UW.uHaze.value.copy(sc.fog.color).lerp(HZ, .3); }   // 地平は少し青みに寄せ、白く飛ばさない
+      UW.uSeaT.value = t; { const sc = root.parent?.parent; if (sc?.fog) UW.uHaze.value.copy(sc.fog.color).lerp(HZ, .5); }   // 地平は少し青みに寄せ、白く飛ばさない
       for (const G of gulls) { const a = G.ph + t * G.w; G.g.position.set(G.c[0] + Math.cos(a) * G.r, G.h + Math.sin(a * 1.7) * .6, G.c[1] + Math.sin(a) * G.r); G.g.rotation.set(0, -a + Math.PI, Math.sin(a) * .25 + .3);
         const flap = (Math.sin(t * .35 + G.ph) > .55) ? Math.sin(t * 9 + G.ph) * .55 : .06 * Math.sin(t * 1.3);   // ほとんどは翼を広げて滑り、ときどき羽ばたく
         for (const W of G.wings) { W.piv.rotation.z = W.sd * (flap + .12); W.outer.rotation.z = W.sd * (flap * .6 - .38); } }   // カモメの仲間の翼は、肘で上がり手先で下がる（M の字の形）。コウモリの細かな羽ばたきと見分けられる

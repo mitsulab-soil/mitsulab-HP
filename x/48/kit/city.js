@@ -9,6 +9,7 @@
    使い方：const C = buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }); 毎こま C.update(t, dt)。C.blocked(x, z, pad)・C.SPAWN・C.bounds。 */
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { groundMura, wallMura } from "./surface.js?v=1";   // 2026-11-23 夜：敷石・壁の柄のくり返しとのっぺりを、世界の位置のむらで消す
 
 export const SPAWN = { x: 5.9, z: 13, yaw: 0 };   // 東側の歩道。北（−z）の交差点を向く
 const ROAD = 3.5, WALK = 8.5;                       // 車道の半幅（片側 1 車線＋路肩）・歩道の外の線
@@ -27,10 +28,10 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
   // ---------------------------------------------------------------- 路面（アスファルト）
   const asph = tx("city_asphalt.webp", 1, 1), asphN = tx("city_asphalt_n.webp", 1, 1, false);
   { const S = 180, g = new THREE.PlaneGeometry(S, S, 1, 1); g.rotateX(-Math.PI / 2); const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * S / 4, uv.getY(i) * S / 4);
-    add(new THREE.Mesh(g, M(0xb4b2ac, { std: true, map: asph, nmap: asphN, ns: .8, rough: .93, env: .25, uv: .04, temp: .5, echo: .6 })), { cast: false, hit: true }); }
+    add(new THREE.Mesh(g, groundMura(M(0xb4b2ac, { std: true, map: asph, nmap: asphN, ns: .8, rough: .93, env: .25, uv: .04, temp: .5, echo: .6 }), .8)), { cast: false, hit: true }); }
   // 歩道（コンクリートの平板）：車道より 3 cm 高く、縁石（15 cm）で区切る
   const pav = tx("city_pavers.webp", 1, 1), pavN = tx("city_pavers_n.webp", 1, 1, false);
-  const walkM = M(0xfff8ee, { std: true, map: pav, nmap: pavN, ns: .9, rough: .9, env: .3, uv: .22, temp: .35, echo: .7 });
+  const walkM = groundMura(M(0xfff8ee, { std: true, map: pav, nmap: pavN, ns: .9, rough: .9, env: .3, uv: .22, temp: .35, echo: .7 }));
   const walks = [];
   const walkRect = (x0, x1, z0, z1) => { const w = x1 - x0, d = z1 - z0, g = new THREE.PlaneGeometry(w, d); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, .03, (z0 + z1) / 2);
     const p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / 1.6, p.getZ(i) / 1.6); walks.push(g); };
@@ -69,7 +70,7 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
   // ---------------------------------------------------------------- 建物
   const facade = tx("city_facade.webp", 1, 1);   // 窓 13 列 × 8 階（1 枚＝幅 20.8 m・高さ 27.2 m）
   const tints = [0xf1ece2, 0xd8d2c6, 0xc2c6ca, 0xe6dccb, 0xb9b3a8, 0xdcd8d0];
-  const bodyM = tints.map(c => M(c, { std: true, map: facade, rough: .32, metal: .15, env: 1.1, uv: .2, temp: .25, echo: .95 }));   // 窓に空が映る
+  const bodyM = tints.map(c => wallMura(M(c, { std: true, map: facade, rough: .32, metal: .15, env: 1.1, uv: .2, temp: .25, echo: .95 })));   // 窓に空が映る
   // 三つめ・四つめの外壁（画面の中で描いた模式）：ガラスのカーテンウォールのオフィス／白い住宅（各階のバルコニーの手すり）
   const glassTex = canvasTex(256, 256, (g, w, h) => { for (let y = 0; y < h; y += 32) { const gr = g.createLinearGradient(0, y, 0, y + 32); gr.addColorStop(0, "#5f7a8c"); gr.addColorStop(.7, "#2e4352"); gr.addColorStop(1, "#22323d"); g.fillStyle = gr; g.fillRect(0, y, w, 32); }
     g.fillStyle = "#9aa3a8"; for (let x = 0; x < w; x += 32) g.fillRect(x, 0, 2, h); for (let y = 0; y < h; y += 32) g.fillRect(0, y + 28, w, 4);
@@ -79,14 +80,14 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     for (let y = 0; y < h; y += 64) { g.fillStyle = "#3b4752"; for (let x = 8; x < w; x += 64) g.fillRect(x, y + 8, 48, 38); g.fillStyle = "rgba(200,215,225,.35)"; for (let x = 8; x < w; x += 64) g.fillRect(x + 4, y + 10, 18, 34);
       g.fillStyle = "#d8d4cb"; g.fillRect(0, y + 40, w, 18); g.fillStyle = "rgba(90,90,90,.5)"; for (let x = 0; x < w; x += 6) g.fillRect(x, y + 40, 2, 18); g.fillStyle = "#c4beb2"; g.fillRect(0, y + 56, w, 3); }
     for (let i = 0; i < 18; i++) { g.fillStyle = ["#7d8c6a", "#c9a89a", "#9fb4c8", "#e4dccf"][i % 4]; g.fillRect(Math.random() * w, ((Math.random() * 4) | 0) * 64 + 42, 10, 12); } });   // 洗濯物・植木鉢の色
-  const resM = [0xffffff, 0xf2ebe0].map(c => M(c, { std: true, map: resTex, rough: .75, env: .5, uv: .25, temp: .28, echo: .95 }));
+  const resM = [0xffffff, 0xf2ebe0].map(c => wallMura(M(c, { std: true, map: resTex, rough: .75, env: .5, uv: .25, temp: .28, echo: .95 })));
   // 二つめの外壁：タイル張りの壁に横長の窓（日本の中層の雑居ビルによくある形）
   const tileTex = canvasTex(256, 256, (g, w, h) => {
     g.fillStyle = "#c9b79c"; g.fillRect(0, 0, w, h);
     for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 8) { const l = 175 + Math.random() * 40; g.fillStyle = `rgb(${l},${l * .9 | 0},${l * .76 | 0})`; g.fillRect(x + ((y / 4) % 2) * 4, y, 7, 3); }
     for (const y0 of [36, 164]) { const gr = g.createLinearGradient(0, y0, 0, y0 + 56); gr.addColorStop(0, "#3d4c58"); gr.addColorStop(.55, "#6f8290"); gr.addColorStop(1, "#2b3640"); g.fillStyle = gr; g.fillRect(0, y0, w, 56); g.fillStyle = "#d9d6cf"; for (let x = 0; x < w; x += 64) g.fillRect(x, y0, 4, 56); g.fillRect(0, y0 + 54, w, 4); }
   });
-  const tileM = [0xffffff, 0xe7ddd0, 0xd7dde0].map(c => M(c, { std: true, map: tileTex, rough: .7, env: .5, uv: .15, temp: .28, echo: .95 }));
+  const tileM = [0xffffff, 0xe7ddd0, 0xd7dde0].map(c => wallMura(M(c, { std: true, map: tileTex, rough: .7, env: .5, uv: .15, temp: .28, echo: .95 })));
   const roofM = M(0x8d8b86, { std: true, rough: .95, env: .2, uv: .2, temp: .55, echo: .9 });
   const darkM = M(0x3c3f43, { std: true, rough: .6, metal: .3, env: .5, uv: .05, temp: .3, echo: .9 });
   // 一階の店先（ガラスの店先・庇・看板）。字は一般の名詞だけ

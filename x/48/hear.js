@@ -4,11 +4,11 @@
    場：Qualia/sight の森（forest.js・nature.js・tex＝CC0 の写真の質感）をそのまま写して使う（2026-11-23 本人「sight の環境の 3D データをコピーして準用」）。
    時刻は夕方（日の入りのころ・模式）。コウモリは sight の造形（creatures.js の makeBat）。 */
 import * as THREE from "three";
-import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261120r";
+import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261123n";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
-import { buildShore, clearForest } from "./kit/shore.js?v=20261123e";
+import { buildShore, clearForest } from "./kit/shore.js?v=20261123n";
 
 const WIND = `
 vec4 mvPosition = vec4( transformed, 1.0 );
@@ -132,12 +132,12 @@ export function start(canvas) {
     const add0 = forest.add.bind(forest); forest.add = (...a) => { add0(...a); try { clearForest(forest, FOREST.trunks, [FOREST.ground, aoi], a); } catch { } return forest; };
     SHORE = buildShore({ M, tx, canvasTex, group: forest, pick, sonic, mobile }); SHORE.root.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
   } catch (e) { console.warn("海辺", e?.message ?? e); }
-  setTimeout(() => import("./kit/city.js?v=20261123c").catch(() => { }), 4000);
+  setTimeout(() => import("./kit/city.js?v=20261123n").catch(() => { }), 4000);
   function standAoi() { if (!aoi || !AM) return; const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
     const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 5.5 : 4.5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .3 : .9)); aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
   async function setPlace(p) {
     if (p === place) return;
-    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123c").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123n").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
         const L = CITY.lamps[0] || [2.2, 7.8, 12]; VIEW.city = { eye: new THREE.Vector3(7.1, 1.55, L[2] + 5), look: new THREE.Vector3(L[0] + .3, 4.3, L[2] - 8) };   // 歩道の建物寄りから、通りの先の街灯を見上げる
         city.visible = true; const q = R.compileAsync ? R.compileAsync(city, cam, S).catch(() => { }) : null; city.visible = false; return q; }); await cityP; }
     place = p; forest.visible = p === "forest"; city.visible = p === "city";
