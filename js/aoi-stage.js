@@ -98,7 +98,7 @@ if (P) {
   // 2026-11-23 本人：碧の頭の上にマイクの印。押すと音（TOP の環境音）のオン／オフ。初めはオフ
   const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'aoi-mic'; mic.setAttribute('aria-pressed', 'false');
   const micL = () => { const on = mic.getAttribute('aria-pressed') === 'true'; mic.setAttribute('aria-label', EN() ? (on ? 'Sound on — turn off' : 'Sound off — turn on') : (on ? '音はオン（押すとオフ）' : '音はオフ（押すとオン）')); };
-  mic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21"/><path class="mic-x" d="M4.5 4.5l15 15"/></svg>';
+  mic.innerHTML = '<svg viewBox="0 0 46 46" aria-hidden="true"><circle class="mr" cx="23" cy="23" r="14.5"/><circle class="ma" cx="23" cy="23" r="18.5"/><rect class="mb" x="16.6" y="17" width="1.6" height="12" rx=".8"/><rect class="mb" x="20.5" y="15" width="1.6" height="16" rx=".8"/><rect class="mb" x="24.4" y="16" width="1.6" height="14" rx=".8"/><rect class="mb" x="28.3" y="18" width="1.6" height="10" rx=".8"/></svg>';
   document.body.appendChild(mic); micL();
   mic.addEventListener('click', () => { const b = document.querySelector('#sdHero .sd-snd'); if (b) b.click(); const on = b ? b.getAttribute('aria-pressed') === 'true' : mic.getAttribute('aria-pressed') !== 'true'; mic.setAttribute('aria-pressed', on ? 'true' : 'false'); micL(); });
   new MutationObserver(micL).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });

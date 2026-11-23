@@ -11,7 +11,7 @@ import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildSTL } from "./haptics
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { loadGeometry, OBJECTS, baseGeometry } from "./objects.js?v=20261121r";
 // 海辺と都市は、Qualia/sight・hear と同じ共通の部品の写し（mitsulab-HP 516ca17 の x/48/kit）。新しい版が出たら kit/shore.js・kit/city.js（と kit/touch_objects.js・tex）を差し替えるだけで入る
-import { buildShore, clearForest, shoreX } from "./kit/shore.js?v=20261123p";
+import { buildShore, clearForest, shoreX } from "./kit/shore.js?v=20261124s";
 
 const U = { uTime: { value: 0 } };
 function prep(m, o = {}) {
@@ -184,7 +184,7 @@ export function start(canvas, ui) {
     { const b0 = crv.getPointAt(.62), dir = new THREE.Vector3(.35, .55, -.75).normalize(), bp = [b0.clone(), b0.clone().addScaledVector(dir, .12), b0.clone().addScaledVector(dir, .22).add(new THREE.Vector3(0, -.03, 0))], sg = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp), 12, r * .45, 12, false);   // 折れた枝の付け根
       const sp_ = sg.attributes.position, su = sg.attributes.uv; for (let i = 0; i < sp_.count; i++) { const u = su.getX(i), k = 1 - .55 * u; const c0 = new THREE.CatmullRomCurve3(bp).getPointAt(u); sp_.setXYZ(i, c0.x + (sp_.getX(i) - c0.x) * k, c0.y + (sp_.getY(i) - c0.y) * k, c0.z + (sp_.getZ(i) - c0.z) * k); }
       g.copy(mergeGeometries([g.index ? g.toNonIndexed() : g, sg.index ? sg.toNonIndexed() : sg])); g.computeVertexNormals(); }
-    const rep = [Math.round(2 * Math.PI * r / .1) + .5, Math.round(L / .1)], m = new THREE.Mesh(g, mat(THINGS.find(x => x.id === "drift"), rep[1], rep[0], { wrap: THREE.RepeatWrapping }));
+    const rep = [1.5, 3], m = new THREE.Mesh(g, mat(THINGS.find(x => x.id === "drift"), rep[1], rep[0], { normalScale: new THREE.Vector2(1.8, 1.8) }));   /* 2026-11-24：木目と乾いた割れが見える大きさに（前は 16×6 回くり返してのっぺり） */
     m.position.set(P.x, P.y, P.z); m.rotation.y = .9; m.userData.rep = [rep[1], rep[0]];
     m.updateMatrixWorld(true); const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
     add("drift", m, new THREE.Vector3(c.x, P.y + r * 1.7, c.z), new THREE.Vector3(0, 1, 0).addScaledVector(toward(P, SP.shore.eye), .9)); void pa; }

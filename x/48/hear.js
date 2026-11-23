@@ -8,7 +8,7 @@ import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261123n";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
-import { buildShore, clearForest } from "./kit/shore.js?v=20261123p";
+import { buildShore, clearForest } from "./kit/shore.js?v=20261124s";
 
 const WIND = `
 vec4 mvPosition = vec4( transformed, 1.0 );
@@ -100,7 +100,7 @@ export function start(canvas) {
   addEventListener("pointermove", e => { if (!drag) return; dy = Math.max(-1.2, Math.min(1.2, drag[2] - (e.clientX - drag[0]) * .004)); dp = Math.max(-.35, Math.min(.5, drag[3] + (e.clientY - drag[1]) * .003)); });
   addEventListener("pointerup", () => { drag = null; });
   // 夕方の空を飛ぶアブラコウモリ（翼を広げて約 20 cm。sight の造形。見やすく 2 倍）
-  const bats = []; for (let k = 0; k < 3; k++) { const inner = makeBat(), b = new THREE.Group(); b.add(inner); const bb = new THREE.Box3().setFromObject(inner), sz = bb.getSize(new THREE.Vector3()); b.scale.setScalar(.4 / Math.max(sz.x, sz.z, .001)); inner.traverse(o => { if (o.isMesh && o.material && o.material.emissive) { o.material = o.material.clone(); o.material.emissive.set(0x5a3c2a); o.material.emissiveIntensity = .55; } }); /* 夕方の空でも、茶色の体と翼の膜が分かるように（黒い紙片に見せない・2026-11-23 夜） */ forest.add(b); bats.push({ b, inner, ph: k * 2.1, r: 1.3 + k * .8, h: 2.8 + k * .7, sp: .55 + k * .12 }); }
+  const bats = []; for (let k = 0; k < 3; k++) { const inner = makeBat(), b = new THREE.Group(); b.add(inner); const bb = new THREE.Box3().setFromObject(inner), sz = bb.getSize(new THREE.Vector3()); b.scale.setScalar(.4 / Math.max(sz.x, sz.z, .001)); inner.traverse(o => { if (o.isMesh && o.material && o.material.emissive) { o.material = o.material.clone(); o.material.emissive.set(0x5a3c2a); o.material.emissiveIntensity = .55; } }); /* 夕方の空でも、茶色の体と翼の膜が分かるように（黒い紙片に見せない・2026-11-23 夜） */ forest.add(b); bats.push({ b, inner, ph: k * 2.1, r: 1.3 + k * .8, h: 1.5 + k * .45, sp: .55 + k * .12 }); }
 
   // 碧（sight と同じ 3D・共通部品 AoiMotion。2026-11-23 本人「hear にも碧を表示して」）。森と操作を先に出し、碧はあとから読む。組み終えてから場面に入れる（透けて出ない）
   let AM = null, aoi = null; const AOI_H = 1.62;
