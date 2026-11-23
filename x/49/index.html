@@ -3,58 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noai,noimageai">
+<meta name="robots" content="noindex,noai,noimageai">
 <meta name="tdm-reservation" content="1">
-<title>Qualia/heat ── 熱の目</title>
-<meta name="description" content="マムシなどのヘビがピット器官で受けとる赤外（熱）を、氷川参道の目の高さの景色に重ねる模式。日なたと日陰、人と石の温度の差を色で。温度は時刻と日の当たり方からの推定。">
-<link rel="modulepreload" href="kit/vendor/three.module.min.js"><link rel="modulepreload" href="kit/qfield.js"><link rel="modulepreload" href="kit/sight_land.js">
-<link rel="stylesheet" href="kit/qui.css?v=1">
+<title>Qualia/heat は Qualia/sight へ</title>
+<link rel="canonical" href="https://mitsulab.jp/x/02/?eye=hebi">
 <style>
-.legend{position:fixed;right:16px;top:calc(max(10px,env(safe-area-inset-top)) + 56px);width:150px;font:11.5px/1.5 "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t1);text-shadow:var(--halo);pointer-events:none;opacity:0;transition:opacity .6s}
-.legend.on{opacity:1}
-.legend i{display:block;height:8px;border-radius:2px;margin:4px 0 2px;background:linear-gradient(90deg,#0a0529,#4a1a8a,#c2306b,#f07a1f,#ffd84a,#fffae0)}
-.legend .ends{display:flex;justify-content:space-between}
-.est{position:fixed;left:16px;top:calc(max(10px,env(safe-area-inset-top)) + 52px);font:12px/1.75 "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t1);text-shadow:var(--halo);pointer-events:none;max-width:calc(100vw - 190px)}
-.est b{font-weight:600}
-.clock{display:flex;gap:6px;justify-content:center;position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));padding:0 16px}
-.clock button{min-height:44px;padding:0 12px;font:13px "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t1);text-shadow:var(--halo);background:rgba(240,244,242,.25);border:1px solid rgba(47,143,168,.35);border-radius:2px;cursor:pointer}
-.clock button[aria-pressed=true]{border-color:var(--aoi);background:rgba(47,143,168,.18)}
-body.ir .top h1,body.ir h1 small,body.ir .back,body.ir .est,body.ir .legend,body.ir .cap,body.ir .clock button,body.ir .bar button,body.ir .fold summary{color:#f3eee6;text-shadow:0 0 3px #000,0 0 8px rgba(0,0,0,.8)}
-body.ir .top,body.ir .cap{background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(10,6,30,.55),rgba(10,6,30,0) 72%)}
-.cap{bottom:calc(122px + env(safe-area-inset-bottom))}
-@media (max-width:420px){.legend{width:110px}.est{font-size:11.5px;max-width:calc(100vw - 150px)}.cap{bottom:calc(170px + env(safe-area-inset-bottom))}.clock button{padding:0 9px;font-size:12px}}
+:root{--t1:#eef2ef;--t2:#b9c4bf;--aoi:#7cc6d8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:radial-gradient(ellipse at 50% 30%,#243128,#0e1411 70%);color:var(--t1);font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif}
+main{min-height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 16px;text-align:center;gap:18px}
+h1{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;font-weight:400;font-size:22px;letter-spacing:.06em}
+p{font-size:15px;line-height:1.9;color:var(--t2);max-width:30em}
+a.go{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:1px solid var(--aoi);color:var(--t1);text-decoration:none;border-radius:2px;font-size:15px;letter-spacing:.04em}
+a.sub{color:var(--t2);font-size:13px;min-height:44px;display:inline-flex;align-items:center}
 </style>
 </head>
 <body>
-<canvas id="c" aria-label="氷川参道の目の高さの3Dの風景。ヘビの熱の感覚に切りかえると、温度が色で表れます。ドラッグで見回せます。"></canvas>
-<div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/heat<small>熱の目</small></h1></div>
-<div class="est" id="est" aria-live="polite"></div>
-<div class="legend" id="leg"><span>推定の表面温度</span><i></i><div class="ends"><span id="lo"></span><span id="hi"></span></div></div>
-<details class="fold"><summary>＋ 出典と模式</summary><div class="in">
-<p><b>ピット器官</b>　マムシ（<i>Gloydius blomhoffii</i>）などのクサリヘビのなかまは、目と鼻のあいだのくぼみ（ピット器官）で、ものが出す赤外線（熱）を受けとります。薄い膜の熱を感じる神経が TRPA1 というたんぱく質で熱を受けとることが示されています（Gracheva ほか 2010, <i>Nature</i> 464: 1006–1011）。ごくわずかな温度の変化にも応じます（Bullock &amp; Diecke 1956, <i>J. Physiol.</i> 134: 47–87）。</p>
-<p><b>ぼやけた像</b>　ピット器官は、ピンホールのような作りで、像はぼやけています（Bakken &amp; Krochmal 2007, <i>J. Exp. Biol.</i> 210: 2801–2810）。この画面も、熱の目にすると粗くしてあります。ヘビは目で見た像と、熱の像を脳の同じ所（視蓋）で重ねています。</p>
-<p><b>温度は推定です（実測ではありません）。</b>サーモカメラは使っていません。気温は、さいたまの月ごとのおおよその平均に、14 時ごろを最高とする ±4℃ の一日の幅を足した模式。地面・石・葉の温度は、その面に当たる日の強さ（画面の中の光）と、時刻と季節から計算した太陽の高さで上げた模式です（日なたの土で最大 +22℃、砂利 +16℃、石 +14℃、樹皮 +8℃、葉 +4℃。葉は蒸散で冷えるので低め）。石は熱をためるので、日が沈んでも少し温かく描きます。人の肌は約 33℃、服は気温と肌の間。色は、温度を紫→赤→黄→白に割りあてた模式です。</p>
-<p>場所は氷川参道の目の高さを模した場で、Qualia/sight・Qualia/time と同じ地（写真は CC0）。three.js（MIT）。© mitsulab.</p>
-</div></details>
-<div class="cap" id="cap">いまは人の目。日なたと日陰、どちらが熱いか、色ではわからない。</div>
-<div class="clock" role="group" aria-label="時刻"><button id="tN" aria-pressed="true">いま</button><button id="t6" aria-pressed="false">朝 6 時</button><button id="t13" aria-pressed="false">昼 1 時</button><button id="t21" aria-pressed="false">夜 9 時</button></div>
-<div class="bar" role="group" aria-label="だれの感覚で見るか"><button id="bH" aria-pressed="true">人の目</button><button id="bS" aria-pressed="false">マムシの熱の目</button><button id="bGo">外で手をかざす</button></div>
-<div class="away" id="away" role="dialog" aria-label="外へ"><p>日なたの石と、日陰の土に、手のひらを近づけてみてください。<br>さわらずに、熱だけを受けとれますか。</p><button id="bBack">画面にもどる</button></div>
-<script type="module">
-const $ = id => document.getElementById(id);
-let A = null, on = false;
-function est() { if (!A) return; const e = A.est(), d = A.date;
-  $('est').innerHTML = `${d.getHours()}時${String(d.getMinutes()).padStart(2, '0')}分ごろ・推定<br>気温 約 <b>${e.air}℃</b><br>` + (e.sun ? `日なたの土 約 <b>${e.sunSoil}℃</b><br>` : '') + `日陰の土 約 <b>${e.shade}℃</b><br>石 約 <b>${e.stone}℃</b>・葉 約 <b>${e.leaf}℃</b><br>人の肌 約 <b>${e.skin}℃</b>`;
-  const ta = e.air; $('lo').textContent = Math.round(ta - 8) + '℃'; $('hi').textContent = Math.round(Math.max(ta + 18, 35)) + '℃'; }
-const CAP = { off: 'いまは人の目。日なたと日陰、どちらが熱いか、色ではわからない。', on: 'マムシの熱の目。日なたの土が黄に燃え、歩く人は明るく浮かぶ。像はぼやけている。', night: '夜。土は冷え、昼に日を浴びた石と、人のからだが残る。' };
-const cap = () => { $('cap').textContent = !on ? CAP.off : (A && !A.est().sun ? CAP.night : CAP.on); };
-const set = v => { on = v; A && A.set(v); document.body.classList.toggle('ir', v); $('leg').classList.toggle('on', v); $('bH').setAttribute('aria-pressed', !v); $('bS').setAttribute('aria-pressed', v); cap(); v && navigator.vibrate && navigator.vibrate(18); };
-$('bH').onclick = () => set(false); $('bS').onclick = () => set(true);
-const at = (id, h) => { $(id).onclick = () => { const d = new Date(); if (h != null) d.setHours(h, 0, 0, 0); A && A.setDate(d); for (const k of ['tN', 't6', 't13', 't21']) $(k).setAttribute('aria-pressed', k === id); est(); cap(); }; };
-at('tN', null); at('t6', 6); at('t13', 13); at('t21', 21);
-$('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./heat.js?v=1').then(m => { A = m.start($('c')); window.__heat = A; est(); cap(); }).catch(e => console.warn(e));
-</script>
-<!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
+<main>
+<h1>Qualia/heat は、Qualia/sight の中へ</h1>
+<p>見えない世界を見る道具は、ひとつにまとめました。熱（赤外）の像は、Qualia/sight のマムシ（ピット器官）の目と、熱カメラで見られます。</p>
+<a class="go" id="go" href="../02/?eye=hebi">Qualia/sight で、マムシの熱の目で見る ›</a>
+<a class="sub" href="../02/?eye=netsu">熱カメラで見る ›</a>
+<a class="sub" href="https://mitsulab.jp/">← mitsulab</a>
+</main>
+<script>setTimeout(function(){location.replace(document.getElementById('go').href)},2500)</script>
+<!-- © mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。 -->
 </body>
 </html>

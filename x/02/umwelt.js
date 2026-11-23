@@ -1379,4 +1379,6 @@ function kurMarks() {
     el.hidden = v.z > 1 || x < 0 || x > innerWidth || y < 0 || y > gTop - 8; el.classList.toggle("l", x > innerWidth * (innerWidth < 700 ? .4 : .52)); el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
     if (innerWidth < 700) { const lg = $("legend"), lt = lg && !lg.hidden ? lg.getBoundingClientRect().top : 1e9, rr = parseFloat(el.style.getPropertyValue("--r")) || 22; el.classList.toggle("up", y + rr + 34 > Math.min(lt, gTop)); const sp = el.querySelector("span"), hw = (sp?.offsetWidth || 120) / 2; el.style.setProperty("--dx", Math.round(clamp(x, 92 + hw, innerWidth - 82 - hw) - x) + "px"); } }   // スマホは輪の下に名前。左のダイヤルと右のボタンにかからないよう寄せる
 }
+/* 2026-11-23 本人「uv・heat を sight の機能に」＝?eye=hachi（紫外）・?eye=hebi（赤外）などで、その目から始める（x/47・x/49 からの案内） */
+{ const EYE = new URLSearchParams(location.search).get("eye"); if (EYE && LENS[EYE] && EYE !== "hito") { const go = () => (STARTUP.interactiveAt || STARTUP.fallbackAt) ? setLens(EYE) : setTimeout(go, 120); setTimeout(go, 0); } }
 window.__um = {FPS,get habitat(){return habitat;},bodies,forest,FOREST,setHabitat, NAT, renderer, get lens() { return lens; }, get chapter() { return chapter; }, setLens, setChapter, setLang, talk, iroMine, me, A, SP, LENS, G, walkTo, onTap, camera, IRO, get tunT() { return tunT; } };

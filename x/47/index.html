@@ -3,61 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noai,noimageai">
+<meta name="robots" content="noindex,noai,noimageai">
 <meta name="tdm-reservation" content="1">
-<title>Qualia/uv ── 紫外の色</title>
-<meta name="description" content="氷川参道の目の高さの景色を、ミツバチやアゲハが受けとるとされる紫外を含む色に置きかえる模式。黄色い花の真ん中に、人には見えない「的」が浮かぶ。">
-<link rel="modulepreload" href="kit/vendor/three.module.min.js"><link rel="modulepreload" href="kit/qfield.js"><link rel="modulepreload" href="kit/sight_land.js">
-<link rel="stylesheet" href="kit/qui.css?v=1">
+<title>Qualia/uv は Qualia/sight へ</title>
+<link rel="canonical" href="https://mitsulab.jp/x/02/?eye=hachi">
+<style>
+:root{--t1:#eef2ef;--t2:#b9c4bf;--aoi:#7cc6d8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:radial-gradient(ellipse at 50% 30%,#243128,#0e1411 70%);color:var(--t1);font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif}
+main{min-height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 16px;text-align:center;gap:18px}
+h1{font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;font-weight:400;font-size:22px;letter-spacing:.06em}
+p{font-size:15px;line-height:1.9;color:var(--t2);max-width:30em}
+a.go{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:1px solid var(--aoi);color:var(--t1);text-decoration:none;border-radius:2px;font-size:15px;letter-spacing:.04em}
+a.sub{color:var(--t2);font-size:13px;min-height:44px;display:inline-flex;align-items:center}
+</style>
 </head>
 <body>
-<canvas id="c" aria-label="氷川参道の目の高さの3Dの風景と、足もとの黄色い花。ドラッグで見回せます。"></canvas>
-<div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/uv<small>紫外の色</small></h1></div>
-<details class="fold"><summary>＋ 出典と模式</summary><div class="in">
-<p>人の目は、およそ 400〜700 nm の光を受けとります。<b>ミツバチの目</b>には、紫外（極大 約 344 nm）・青（約 436 nm）・緑（約 556 nm）の三種の受容体があります（Peitsch ほか 1992, <i>J. Comp. Physiol. A</i> 170: 23–40）。赤はほとんど受けとりません。<b>ナミアゲハ</b>は紫外から赤までの受容体をもち、色を四つの軸で見分けると示されています（Koshitaka ほか 2008, <i>Proc. R. Soc. B</i> 275: 947–954）。</p>
-<p><b>花の「的」</b>　黄色い花の多くは、花びらの先が紫外を返し、付け根が紫外を吸います。人には一色に見える花に、虫には中心へ向かう模様（ネクターガイド）が見えます。キジムシロのなかま（<i>Argentina anserina</i>）で、紫外を吸う付け根の広さが調べられています（Koski &amp; Ashman 2015, <i>Nature Plants</i> 1: 14007）。緑の葉は紫外をあまり返しません（Chittka ほか 1994, <i>Vision Research</i> 34: 1489–1508）。</p>
-<p><b>この画面の色は模式（偽色）です。</b>ミツバチには、紫外・青・緑の強さを画面の青・緑・赤に割りあてました。アゲハは赤を残し、紫外を青に重ねました。虫に「どう見えているか」そのものではなく、受けとる光の幅のちがいを、人に見える色へ移したものです。カメラで紫外を撮ってはいません（スマホのカメラは紫外をほとんど通しません）。花・葉・石の紫外の返しかたは、上の文献の傾向にもとづく数値の模式です。花の形・ミツバチの姿と大きさ（見やすく 2 倍）も模式です。</p>
-<p>場所は氷川参道の目の高さを模した場で、Qualia/sight・Qualia/time と同じ地（樹皮・葉・土・砂利の写真は CC0）。three.js（MIT）。© mitsulab.</p>
-</div></details>
-<style>
-.card{position:fixed;right:16px;top:calc(max(10px,env(safe-area-inset-top)) + 58px);width:200px;padding:10px 10px 8px;background:rgba(240,244,242,.82);border:1px solid var(--line);border-radius:2px;font:11.5px/1.5 "Hiragino Kaku Gothic ProN",sans-serif;color:var(--t2);pointer-events:none}
-.card canvas{width:100%;height:auto;display:block}
-.card .row{display:flex;justify-content:space-around;margin-top:2px}
-@media (max-width:420px){.card{width:150px;font-size:10.5px;padding:6px}}
-</style>
-<div class="card" aria-label="同じ花の見え方のちがい"><canvas id="fc" width="360" height="170"></canvas><div class="row"><span>人の目</span><span id="fcR">ミツバチの目</span></div></div>
-<div class="cap" id="cap">いまは人の目。下の札で、虫の目に切りかえる。</div>
-<div class="bar" role="group" aria-label="だれの目で見るか">
-<button id="bH" aria-pressed="true">人の目</button><button id="bB" aria-pressed="false">ミツバチ</button><button id="bA" aria-pressed="false">アゲハ</button><button id="bGo">外でさがす</button>
-</div>
-<div class="away" id="away" role="dialog" aria-label="外へ"><p id="awayQ">道ばたの黄色い花を、一つ見つけてください。<br>真ん中の色の濃いところに、虫は何を見ているでしょう。</p><button id="bBack">画面にもどる</button></div>
-<script type="module">
-const $ = id => document.getElementById(id);
-const CAP = {
-  human: 'いまは人の目。黄色い花は、ただの黄色（キジムシロのなかま・模式）。',
-  bee: 'ミツバチの目。花の真ん中が、紫外を吸う「的」になって浮かぶ。緑の葉は紫外を返さず、赤茶に沈む。',
-  ageha: 'アゲハの目。赤も見え、紫外も重なる。花の的は残り、空は紫外で明るい。'
-};
-
-// 同じ一輪を、人の目と虫の目で並べる（模式）
-{ const c = $('fc'), g = c.getContext('2d');
-  const flower = (cx, cy, mode) => { for (let k = 0; k < 5; k++) { g.save(); g.translate(cx, cy); g.rotate(k * Math.PI * 2 / 5);
-      const gr = g.createLinearGradient(0, 0, 0, -70);
-      if (mode === 'h') { gr.addColorStop(0, '#e9b81e'); gr.addColorStop(1, '#f6d63a'); }
-      else if (mode === 'b') { gr.addColorStop(0, '#7a1a0e'); gr.addColorStop(.38, '#8c1d18'); gr.addColorStop(.52, '#c63fa8'); gr.addColorStop(1, '#e05ad8'); }
-      else { gr.addColorStop(0, '#6a2a14'); gr.addColorStop(.38, '#8a3018'); gr.addColorStop(.52, '#d0589a'); gr.addColorStop(1, '#f07ac8'); }
-      g.fillStyle = gr; g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(-34, -20, -40, -66, -8, -70); g.quadraticCurveTo(0, -63, 8, -70); g.bezierCurveTo(40, -66, 34, -20, 0, 0); g.fill(); g.restore(); }
-    g.beginPath(); g.arc(cx, cy, 10, 0, 7); g.fillStyle = mode === 'h' ? '#c88a10' : '#5a1208'; g.fill(); };
-  window.__drawCard = m => { g.clearRect(0, 0, c.width, c.height); flower(88, 88, 'h'); flower(272, 88, m === 'ageha' ? 'a' : 'b'); $('fcR').textContent = m === 'ageha' ? 'アゲハの目' : 'ミツバチの目'; };
-  window.__drawCard('bee'); }
-let A = null;
-const set = n => { A && A.set(n); n !== 'human' && window.__drawCard(n); $('cap').textContent = CAP[n]; for (const [id, k] of [['bH', 'human'], ['bB', 'bee'], ['bA', 'ageha']]) $(id).setAttribute('aria-pressed', k === n); navigator.vibrate && n !== 'human' && navigator.vibrate(18); };
-$('bH').onclick = () => set('human'); $('bB').onclick = () => set('bee'); $('bA').onclick = () => set('ageha');
-$('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); };
-$('bBack').onclick = () => $('away').classList.remove('on');
-addEventListener('keydown', e => { if (e.key === '1') set('human'); if (e.key === '2') set('bee'); if (e.key === '3') set('ageha'); });
-import('./uv.js?v=1').then(m => { A = m.start($('c')); window.__uv = A; }).catch(e => console.warn(e));
-</script>
-<!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
+<main>
+<h1>Qualia/uv は、Qualia/sight の中へ</h1>
+<p>見えない世界を見る道具は、ひとつにまとめました。紫外の色は、Qualia/sight のミツバチ（紫外・青・緑の三色型）とアゲハの目で見られます。黄色い花のまん中へ向かう「的」の模様も、そこで。</p>
+<a class="go" id="go" href="../02/?eye=hachi">Qualia/sight で、ミツバチの目で見る ›</a>
+<a class="sub" href="../02/?eye=chou">アゲハの目で見る ›</a>
+<a class="sub" href="https://mitsulab.jp/">← mitsulab</a>
+</main>
+<script>setTimeout(function(){location.replace(document.getElementById('go').href)},2500)</script>
+<!-- © mitsulab. All rights reserved. AI の学習・生成への利用はお断りします。 -->
 </body>
 </html>

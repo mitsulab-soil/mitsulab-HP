@@ -5,9 +5,9 @@
 <meta name="tdm-reservation" content="1">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qualia/sight</title>
-<meta name="description" content="ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
+<meta name="description" content="見えない世界を見る。ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
 <meta property="og:title" content="Qualia/sight">
-<meta property="og:description" content="ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
+<meta property="og:description" content="見えない世界を見る。ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
 <style>
 :root{--bg:#0f1412;--ink:#eef2ea;--dim:#aab7ad;--line:#33443b;--card:#16201b;--card2:#1d2a23;--aoi:#4fb3a8;--aoi2:#18322f;--gold:#d9c27a;
   --shadow:0 10px 30px rgba(0,0,0,.45);--mincho:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;--goth:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif}
@@ -236,7 +236,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261122b">
+<link rel="modulepreload" href="umwelt.js?v=20261123u">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -387,12 +387,12 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
 <script src="data/paths.js?v=20261010"></script>
 <script src="data/daihon.js?v=20261120a"></script>
 <script src="data/voice.js?v=20261120a" onerror="window.VOICE={}"></script>
-<script src="data/why.js?v=20261120a" defer></script>
+<script src="data/why.js?v=20261123u" defer></script>
 <script>
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261122b';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261123u';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
