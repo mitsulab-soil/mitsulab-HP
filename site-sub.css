@@ -1,0 +1,24 @@
+/* © mitsulab. HP のほかのページ（知覚旅人・巡り歴・ワークショップ・規約ほか）を TOP にそろえる共通の部品（2026-11-23）。js/site-chrome.js と組みで使う。 */
+html{background:#03070b!important}body{background:transparent!important}
+body{padding-top:64px!important}
+.sx-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+.sx-bg img{width:100%;height:100%;object-fit:cover;filter:brightness(.5) saturate(.8);opacity:.75}
+.sx-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,7,11,.4),rgba(3,7,11,.66) 60%,rgba(3,7,11,.84))}
+.sx-bg canvas{position:absolute;left:0;top:0;opacity:.7}
+#qbg,#qbgLens{position:absolute;left:0;top:0;pointer-events:none}
+#qbgLens{object-fit:cover;opacity:0;-webkit-clip-path:circle(0 at 50% 50%);clip-path:circle(0 at 50% 50%)}
+.sx-head{position:fixed;top:0;left:0;right:0;z-index:50;height:64px;display:flex;align-items:center;gap:12px;padding:0 max(16px,calc((100vw - 1180px)/2));background:linear-gradient(180deg,rgba(3,7,11,.92),rgba(3,7,11,.6));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(214,226,232,.08)}
+.sx-brand{display:inline-flex;align-items:center;gap:10px;min-height:44px;margin-right:auto;font:italic 500 1.25rem "Cormorant Garamond","Shippori Mincho",serif;letter-spacing:.04em;color:#e9edfb;text-decoration:none}
+.sx-brand img{width:30px;height:30px}
+.sx-top{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid rgba(143,227,234,.4);border-radius:22px;color:#dfe9ee;font:400 12.5px "Shippori Mincho","Hiragino Mincho ProN",serif;letter-spacing:.2em;text-decoration:none}
+.sx-top:hover,.sx-brand:hover{color:#8fdfe6}
+header a.home{display:none!important}
+.sx-foot{max-width:1180px;margin:72px auto 0;padding:40px 24px 36px;border-top:1px solid rgba(214,226,232,.16);text-align:center;font-family:"Shippori Mincho","Hiragino Mincho ProN",serif;color:#b9c8cf}
+.sx-foot b{display:block;font:italic 500 22px "Cormorant Garamond",serif;color:#f2f7f9;letter-spacing:.08em}
+.sx-foot p{margin:6px 0;font-size:12.5px;letter-spacing:.14em}
+.sx-foot nav{display:flex;justify-content:center;flex-wrap:wrap;gap:0 24px;margin:12px 0}
+.sx-foot nav a{display:inline-flex;align-items:center;min-height:44px;color:#dfe9ee;font-size:13px;text-decoration:none}
+.sx-foot small{display:block;font-size:11px;color:#8ea1a8;line-height:1.8;max-width:42em;margin:8px auto 0}
+@media (max-width:600px){.sx-head{padding:0 16px}.sx-top{padding:0 12px;letter-spacing:.12em}}
+a.back{display:none!important}
+header.top .brand{display:none!important}header.top{position:static!important;background:none!important;border:0!important}
