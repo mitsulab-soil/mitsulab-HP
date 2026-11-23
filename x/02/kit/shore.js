@@ -39,7 +39,7 @@ export function clearForest(forest, trunks, skip = [], only = null) {
 export const ROCKS = { x: 46.5, z: -17, r: 5.5 };
 
 export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
-  let seed = 4242; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  let grass = null, seed = 4242; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const root = new THREE.Group(); root.name = "海辺"; root.userData.keep = true; group.add(root);
   // ---------------------------------------------------------------- 砂浜（森の土から砂へ、ゆるやかに移る。水ぎわは濡れて暗い）
   const sand = tx("sand_grit.webp", 1, 1), sandN = tx("sand_grit_n.webp", 1, 1, false);   // 白っぽい砂の粒（森の禅庭と同じ CC0 の写真）
@@ -147,7 +147,7 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     const bg = new THREE.PlaneGeometry(.011, .42, 1, 3); bg.translate(0, .22, 0); { const p = bg.attributes.position; for (let i = 0; i < p.count; i++) { const t = p.getY(i) / .45; p.setZ(i, .08 * t * t); if (t > .99) p.setX(i, 0); } }
     const bm = M(0x8a9560, { side: THREE.DoubleSide, uv: .05, temp: .2, echo: .3, wind: .06, windH: .5 }), nb = mobile ? 900 : 1800, bim = new THREE.InstancedMesh(bg, bm, nb);
     for (let i = 0; i < nb; i++) { const cz = -28 + Math.floor(i / 30) * 1.1 + R() * .5, cl = edgeX(cz) + .2 + Math.pow(R(), 1.8) * 3.5, x = cl + (R() - .5) * .35, z = cz + (R() - .5) * .35; e.set((R() - .5) * .5, R() * TAU, (R() - .5) * .5); q.setFromEuler(e); const sc = .6 + R() * .8; m4.compose(new THREE.Vector3(x, .03 + Math.min(.25, (shoreX(z) - x) * .025), z), q, new THREE.Vector3(sc, sc, sc)); bim.setMatrixAt(i, m4); bim.setColorAt(i, col.setHSL(.14 + R() * .07, .3, .45 + R() * .15)); }
-    root.add(bim);
+    root.add(bim); grass = bim;
   }
   // ---------------------------------------------------------------- ウミネコ（2 羽。沖の上をゆっくり旋回し、ときどき羽ばたく）
   const gulls = [];
@@ -185,7 +185,7 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
       g.traverse(o => { if (o.isMesh) { o.castShadow = true; sonic.push(o); } }); root.add(g); crabs.push({ g, x0: g.position.x, ph: R() * 9 }); } };
   // ---------------------------------------------------------------- 毎こま
   const out = {
-    root, shoreX, rocks, gulls, get crabs() { return crabs; },
+    root, shoreX, rocks, gulls, get grass() { return grass; }, get crabs() { return crabs; },
     edgeX, blocked(x, z, pad = .3) { if (x > shoreX(z) + .4) return true; for (const [rx, rz, rs] of rocks) if (Math.hypot(x - rx, z - rz) < rs * 1.1 + pad) return true; return false; },
     update(t, dt, cam) {
       for (const f of foams) placeFoam(f, t);
