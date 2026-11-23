@@ -115,15 +115,21 @@ export function start(canvas, ui) {
     const m = new THREE.Mesh(g, mat(THINGS[2], rep[0], rep[1])); m.position.set(P.x, r * .82, P.z); m.rotation.y = yaw + .35; m.userData.rep = rep;
     add("moss", m, new THREE.Vector3(P.x, r * 1.75, P.z), new THREE.Vector3(0, 1, 0).addScaledVector(eye.clone().setY(0).sub(P).normalize(), .7)); }
   // 土と落ち葉（足もとの円い所。縁は地面へなじませる）
-  const patch = (id, f, r, rad) => { const P = at(f, r), rep = [Math.round(rad * 2 / .25), Math.round(rad * 2 / .25)], g = new THREE.CircleGeometry(rad, 64); g.rotateX(-Math.PI / 2);
-    const m = new THREE.Mesh(g, mat(THINGS.find(x => x.id === id), rep[0], rep[1], { transparent: true, alphaMap: edge, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+  const patch = (id, f, r, rad) => { const P = at(f, r), rep = [Math.round(rad * 4) + .5, Math.round(rad * 4) + .5]   /* まん中（寄る所）に模様の継ぎ目が来ないよう半端に */, g = new THREE.CircleGeometry(rad, 64); g.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(g, mat(THINGS.find(x => x.id === id), rep[0], rep[1], { wrap: THREE.RepeatWrapping, transparent: true, alphaMap: edge, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
     m.material.alphaMap.repeat.set(1, 1); m.position.set(P.x, .012, P.z); m.userData.rep = rep; m.renderOrder = 1; add(id, m, new THREE.Vector3(P.x, .012, P.z), new THREE.Vector3(0, 1, 0).addScaledVector(eye.clone().setY(0).sub(P).normalize(), .9)); };
   patch("soil", 2.0, -.35, .5); patch("leaves", 2.2, .75, .6);
+  // 麻縄の繊維：撚りに沿った細い繊維の筋と、ところどころの毛羽（その場で描く。色は麻の生成り）
+  function ropeMat() { const fib = (g, w, h, bump) => { g.fillStyle = bump ? "#808080" : "#b8955c"; g.fillRect(0, 0, w, h); let sd = 7; const rn = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < 2600; i++) { const x = rn() * w, y = rn() * h, L = 10 + rn() * 34, a = -1.05 + (rn() - .5) * .25, l = rn(); g.strokeStyle = bump ? `rgba(${l > .5 ? 255 : 0},${l > .5 ? 255 : 0},${l > .5 ? 255 : 0},${.18 + rn() * .3})` : `rgba(${150 + l * 90 | 0},${118 + l * 70 | 0},${70 + l * 45 | 0},${.35 + rn() * .4})`; g.lineWidth = .6 + rn() * 1.1; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke(); }
+      for (let i = 0; i < 160; i++) { const x = rn() * w, y = rn() * h; g.strokeStyle = bump ? "rgba(255,255,255,.5)" : "rgba(235,215,170,.55)"; g.lineWidth = .5; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + (rn() - .5) * 14, y - 6, x + (rn() - .5) * 20, y - 10 - rn() * 8); g.stroke(); } };
+    const set = t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 1.5); t.anisotropy = 8; return t; };
+    return new THREE.MeshStandardMaterial({ map: set(canvasTex(512, 512, (g, w, h) => fib(g, w, h, false))), bumpMap: set(canvasTex(512, 512, (g, w, h) => fib(g, w, h, true), false)), bumpScale: 2.5, roughness: .95, envMapIntensity: .3 }); }
   // 杭に結んだ麻縄（右の手前。本人が気に入った「結び目」を、杭に結んだ縄として残す）
   { const P = at(1.7, 1.15), stake = new THREE.Mesh(new THREE.BoxGeometry(.07, 1.05, .07), new THREE.MeshStandardMaterial({ map: photoTex("bark_camphor.webp", .3, 1.5), roughness: .95, color: 0x9a9080 }));
     stake.position.set(P.x, .5, P.z); stake.rotation.y = yaw; stake.castShadow = true; forest.add(stake);
     loadGeometry(OBJECTS.find(o => o.id === "rope")).then(g => { g.computeBoundingBox(); const b = g.boundingBox, s = .24 / Math.max(b.max.x - b.min.x, b.max.z - b.min.z, .001);
-      const rep = [3, 3], m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xa88a5c, normalMap: mir(tx("cloth_n.webp", 3, 3, false)), roughness: .92, envMapIntensity: .4 })); m.scale.setScalar(s); m.rotation.set(Math.PI / 2, 0, yaw);
+      const rep = [3, 3], m = new THREE.Mesh(g, ropeMat()); m.scale.setScalar(s); m.rotation.set(Math.PI / 2, 0, yaw);
       const toE = eye.clone().setY(0).sub(P).normalize(); m.position.set(P.x, .86, P.z).addScaledVector(toE, .05); m.userData.rep = rep;
       add("rope", m, new THREE.Vector3(P.x, .86, P.z).addScaledVector(toE, .06), toE.clone()); ui.ready?.("rope"); }).catch(e => console.warn("縄を組めませんでした", e));
   }
@@ -139,7 +145,7 @@ export function start(canvas, ui) {
   function setThing(id) { const th = T[id].th; cur = T[id]; snd.setMaterial(th.snd); snd.setSurface(th.p); model.setSurface(heightAt, th.p); hgt(th.tex).then(v => { if (cur && cur.th === th) H = v; }); if (snd.ctx) snd.prefetch(); }
   // 近づいた所に重ねる、実寸 10 cm の一枚（縁は消えるように。凹凸は面を少し押し出す）
   const nearM = new Map(), nearG0 = new THREE.PlaneGeometry(.11, .11, mobile ? 80 : 128, mobile ? 80 : 128);
-  const nearMesh = new THREE.Mesh(nearG0, new THREE.MeshBasicMaterial()); nearMesh.visible = false; nearMesh.userData.rep = [1, 1]; nearMesh.renderOrder = 2; nearMesh.receiveShadow = true; S.add(nearMesh);
+  const nearMesh = new THREE.Mesh(nearG0, new THREE.MeshBasicMaterial()); nearMesh.visible = false; nearMesh.userData.rep = [1, 1]; nearMesh.renderOrder = 10; nearMesh.receiveShadow = true; S.add(nearMesh);
   const bent = new Map();
   function showNear(th, P, N) { if (th.id === "rope") { nearMesh.visible = false; return; }
     if (!nearM.has(th.id)) nearM.set(th.id, mat(th, 1, 1, { wrap: THREE.RepeatWrapping, transparent: true, alphaMap: edge, disp: th.id === "stone" ? .003 : .005, polygonOffset: true, polygonOffsetFactor: -4, depthTest: !(th.id === "soil" || th.id === "leaves") }));   // 地面に寄ったとき、草の葉がレンズの前に突き抜けないよう、寄った一枚を手前に描く
@@ -158,15 +164,18 @@ export function start(canvas, ui) {
   const walkQ = () => qWalk.setFromEuler(e3.set(pitch, yaw, 0));
   function glide(toPos, toQ, dur, done) { tw = { p0: cam.position.clone(), q0: cam.quaternion.clone(), p1: toPos, q1: toQ, t: 0, dur, done }; }
   function approach(id, P, N) {
-    const it = T[id]; if (!it) return; setThing(id);
+    const it = T[id]; if (!it) return; setThing(id); clutter(true); cam.near = .02; cam.updateProjectionMatrix();
     if (!P && id !== "rope") { const o = base.clone(), h = new THREE.Raycaster(o, it.aim.clone().sub(o).normalize(), 0, 30).intersectObject(it.mesh, false)[0]; if (h) { P = h.point.clone(); N = worldN(h); } }   // 名前から近づくとき：今いる所から見える、ほんとうの表面の一点へ
     const free = !!N; P = P || it.aim; N = (N || it.n).clone().normalize(); if (free && N.dot(cam.position.clone().sub(P)) < 0) N.negate();   // 決まった向き（名前から）は、いまのカメラの位置で裏返さない
-    const d = it.th.id === "rope" ? .24 : it.th.id === "soil" || it.th.id === "leaves" ? .115 : .125, pos = P.clone().addScaledVector(N, d); pos.y = Math.max(.12, pos.y);
+    const d = it.th.id === "rope" ? .18 : it.th.id === "soil" || it.th.id === "leaves" ? .115 : .125, pos = P.clone().addScaledVector(N, d); pos.y = Math.max(.12, pos.y);
     const m = new THREE.Matrix4().lookAt(pos, P, new THREE.Vector3(0, 1, 0)), q = new THREE.Quaternion().setFromRotationMatrix(m);
-    mode = "going"; ui.mode?.("going", it.th); glide(pos, q, 1.1, () => { mode = "near"; ui.mode?.("near", it.th); });
+    mode = "going"; ui.mode?.("going", it.th); glide(pos, q, 1.1, () => { mode = "near"; cam.near = d * .7; cam.updateProjectionMatrix(); if (it.th.id === "soil" || it.th.id === "leaves") clutter(false); ui.mode?.("near", it.th); });   // 寄ったら、目とものの間にある草の葉などは写さない
     aoiLook = P.clone(); showNear(it.th, P, N);
   }
-  function leave() { walkQ(); mode = "going"; ui.mode?.("going", null); glide(base.clone(), qWalk.clone(), .9, () => { mode = "walk"; cur = null; ui.mode?.("walk", null); }); aoiLook = null; nearMesh.visible = false; }
+  // 地面に顔を寄せたとき、目の前に立つ草や散った葉の板が画面を横切らないよう、そのあいだだけ森の小さな草花を消す（寄った面と幹・石は残す）
+  const hidden = []; function clutter(on) { if (on) { for (const o of hidden) o.visible = true; hidden.length = 0; return; }
+    forest.traverse(o => { if (o.isInstancedMesh && o.visible && !items.includes(o)) { o.visible = false; hidden.push(o); } }); }
+  function leave() { clutter(true); cam.near = .02; cam.updateProjectionMatrix(); walkQ(); mode = "going"; ui.mode?.("going", null); glide(base.clone(), qWalk.clone(), .9, () => { mode = "walk"; cur = null; ui.mode?.("walk", null); }); aoiLook = null; nearMesh.visible = false; }
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const hitAt = (e, list) => { ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); return ray.intersectObjects(list, false)[0]; };
   const worldN = h => h.face ? h.face.normal.clone().transformDirection(h.object.matrixWorld) : new THREE.Vector3(0, 1, 0);
@@ -212,7 +221,7 @@ export function start(canvas, ui) {
     AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z));
     try { await R.compileAsync(aoi, cam, S); } catch { }
     forest.add(aoi); window.__aoi = { v, aoi, AM }; window.__touchAoiAt = performance.now();
-  } catch (e) { console.warn("碧の姿を読み込めませんでした", e?.message ?? e); } }, 400);
+  } catch (e) { console.warn("碧の姿を読み込めませんでした", e?.message ?? e); } }, 0);
 
   function size() { const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < .8 ? 70 : 58; cam.updateProjectionMatrix(); }
   addEventListener("resize", size); size();
@@ -224,7 +233,7 @@ export function start(canvas, ui) {
     if (cur && mode === "near") { if (!held || now - lastMove > 30) model.idle(dtMs); force += ((held ? FORCE_MAX : 0) - force) * Math.min(1, dt * 6); const dent = model.press(dt, force);
       const hit = held ? vibe.edges(now, model.takeEdges()) : (model.takeEdges(), 0); const r = model.measure();
       tip.a = Math.max(tip.a * Math.exp(-dt * 5), held ? .35 + .5 * r.amp : 0); tip.material.opacity = tip.a * .8; tip.scale.setScalar(1 + Math.max(0, dent) * .12 + hit * .4);
-      if (now - lastUI > 120) { lastUI = now; ui.feel?.({ speed: r.speed, amp: r.amp, dent: Math.max(0, dent), held, moving: held && now - lastMove < 150 }); } }
+      if (now - lastUI > 120) { lastUI = now; ui.feel?.({ speed: r.speed, amp: r.amp, dent: Math.max(0, dent), held, moving: held && now - lastMove < 400 }); } }
     else { tip.material.opacity = 0; }
     fill.position.copy(cam.position); fill.intensity += ((mode === "near" ? .012 : 0) - fill.intensity) * Math.min(1, dt * 4);
     if (AM) { AM.faceTo(null); AM.lookAt(aoiLook); AM.update(dt, cam); }
