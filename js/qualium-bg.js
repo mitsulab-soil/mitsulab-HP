@@ -36,15 +36,16 @@ export function start(opt){
   function tri(p,s,col,al,fill){if(al<=0.004)return;cx.beginPath();cx.moveTo(p[0],p[1]-s);cx.lineTo(p[0]+s*0.9,p[1]+s*0.7);cx.lineTo(p[0]-s*0.9,p[1]+s*0.7);cx.closePath();al=Math.min(1,al*B);cx.strokeStyle=`rgba(${col},${al})`;cx.lineWidth=LW;cx.stroke();if(fill){cx.fillStyle=`rgba(${col},${al*0.35})`;cx.fill()}}
   function ell(p,rx,ry,col,al,w,a0,a1,dash){if(al<=0.004||rx<=0||ry<=0)return;al=Math.min(1,al*B);w=(w||1)*LW;cx.beginPath();cx.ellipse(p[0],p[1],rx,ry,0,a0||0,a1==null?Math.PI*2:a1);cx.strokeStyle=`rgba(${col},${al})`;cx.lineWidth=w||1;cx.setLineDash(dash||[]);cx.stroke();cx.setLineDash([])}
   // ── 本文から離す：本文の行の矩形（余白つき）を「空ける区域」にする
-  let KO=[];const KP=()=>sp()?10:16;
-  function koRead(){KO=[];const p=KP();document.querySelectorAll(opt.ko||'#qStory .sy-h,#qStory .sy-p').forEach(e=>{const r0=e.getBoundingClientRect();if(r0.bottom<-40||r0.top>H+40)return;const r=document.createRange();r.selectNodeContents(e);for(const q of r.getClientRects()){if(q.width<2||q.bottom<-p||q.top>H+p)continue;KO.push([q.left-p,q.top-p,q.right+p,q.bottom+p])}})}
-  const hitKO=(x0,y0,x1,y1)=>KO.some(k=>x0<k[2]&&x1>k[0]&&y0<k[3]&&y1>k[1]);
+  let KO=[];const KP=()=>sp()?12:22;
+  function koRead(){KO=[];const p=KP();document.querySelectorAll(opt.ko||'#qStory .sy-h,#qStory .sy-p,.aoi-cap').forEach(e=>{const r0=e.getBoundingClientRect();if(r0.bottom<-40||r0.top>H+40)return;const r=document.createRange();r.selectNodeContents(e);for(const q of r.getClientRects()){if(q.width<2||q.bottom<-p||q.top>H+p)continue;KO.push([q.left-p,q.top-p,q.right+p,q.bottom+p])}})}
+  let AB=null;function aoiRead(){AB=null;const c=document.querySelector('.aoi-cap');if(!c)return;const r=c.getBoundingClientRect();if(!r.width||r.bottom<0||r.top>H+H*0.7)return;const m=(r.left+r.right)/2,hw=sp()?70:140;AB=[m-hw,r.top-H*(sp()?0.42:0.6),m+hw,r.top]}
+  const hitKO=(x0,y0,x1,y1)=>KO.some(k=>x0<k[2]&&x1>k[0]&&y0<k[3]&&y1>k[1])||(AB&&x0<AB[2]&&x1>AB[0]&&y0<AB[3]&&y1>AB[1]);
   function spot(t,p,o){cx.save();cx.font=`${o.w||500} ${o.s||12}px ${o.serif?FS:FF}`;try{cx.letterSpacing=(o.ls||1)+'px'}catch(e){}const w=cx.measureText(t).width,h=(o.s||12)*1.3;cx.restore();
     const al=o.al||'left',x0=al==='center'?p[0]-w/2:al==='right'?p[0]-w:p[0],m=8,yMax=H*(sp()?0.9:0.87);
     const C=[[x0,p[1]],[p[0]-20-w,p[1]],[x0,p[1]-h-6],[x0,p[1]+h+6],[p[0]-w/2,p[1]-h*2],[p[0]-w/2,p[1]+h*2]];
     for(const c of C){const x=Math.min(W-m-w,Math.max(m,c[0])),y=c[1];if(y-h/2<m||y+h/2>yMax)continue;if(!hitKO(x,y-h/2,x+w,y+h/2))return[x,y]}return null}
   const LS={};let lblBusy=false;
-  function tx(t,p,col,al,o){if(al<=0.004||!t)return;o=o||{};if(!o.fixed){const q=spot(t,p,o),k=t+'|'+(o.s||12);let z=LS[k];
+  function tx(t,p,col,al,o){if(al<=0.004||!t||opt.nolabel)return;o=o||{};if(!o.fixed){const q=spot(t,p,o),k=t+'|'+(o.s||12);let z=LS[k];
       if(!z){if(!q)return;z=LS[k]={x:q[0],y:q[1],a:0}}
       if(q){z.x+=(q[0]-z.x)*0.18;z.y+=(q[1]-z.y)*0.18}z.a+=((q?1:0)-z.a)*0.09;
       if(Math.abs((q?1:0)-z.a)>0.01||(q&&Math.hypot(q[0]-z.x,q[1]-z.y)>0.5))lblBusy=true;
@@ -52,7 +53,7 @@ export function start(opt){
   // ── 場面の要素（位置は 3D から）
   const T=()=>A.trees.filter(t=>t.d>30&&t.c[0]>0.04&&t.c[0]<0.96).slice(0,4);
   const row=m=>A.path.find(r=>r.m===m)||A.path[A.path.length-1];
-  const K=()=>sp()?0.62:0.7;
+  const K=()=>sp()?0.82:0.7;
   function objects(){const o=A.tor,t=T();return{tor:[M(o.bl),M(o.br),M(o.tl),M(o.tr),M(o.nl),M(o.nr)],trees:t.map(x=>({b:M(x.b),c:M(x.c),t:M(x.t)}))}}
   function agents(){
     const t=T(),o=A.tor,r16=row(16),r25=row(25),r40=row(40);
@@ -146,7 +147,7 @@ export function start(opt){
   const al={},pr={};Object.keys(D).forEach(k=>{al[k]=0;pr[k]=0});
   let cur='field',raf=0,tagA=0,tagK='',ringA=0,lastRg=null;
   function draw(){
-    raf=0;lblBusy=false;cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);koRead();
+    raf=0;lblBusy=false;cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);koRead();aoiRead();
     let busy=false,mx=0;for(const k in D)if(k!==cur)mx=Math.max(mx,al[k]);
     for(const k in D){const tg=k===cur?1:0;   // 移りは溶け合う：前の主題が薄れるあいだに次が重なって現れる
       if(rm){al[k]=k===cur?1:0;pr[k]=al[k]}else{al[k]+=(tg-al[k])*(tg?0.024:0.03);if(Math.abs(tg-al[k])<0.01)al[k]=tg;if(k===cur)pr[k]=Math.min(1,pr[k]+(k==='umwelt'?0.006:0.012));else if(al[k]===0)pr[k]=0}
@@ -161,7 +162,7 @@ export function start(opt){
     if(KO.length){cx.save();cx.globalCompositeOperation='destination-out';[[18,.25],[12,.35],[6,.5],[0,1]].forEach(e=>{cx.fillStyle='rgba(0,0,0,'+e[1]+')';KO.forEach(q=>cx.fillRect(q[0]-e[0],q[1]-e[0],q[2]-q[0]+e[0]*2,q[3]-q[1]+e[0]*2))});cx.restore()}
     // 隅の一語（主題の名）
     const nm=NAME[cur];if(nm){tagK=cur}tagA+=((nm?1:0)-tagA)*(rm?1:0.1);if(Math.abs((nm?1:0)-tagA)<0.02)tagA=nm?1:0;else busy=true;
-    if(tagA>0&&NAME[tagK]){const n=NAME[tagK],x=sp()?16:24,y=H*(sp()?0.93:0.9);ln([[x,y],[x+18,y]],CY,tagA*0.85,1);tx(en()?n[1]:n[1]+'　'+n[0],[x+26,y],WH,tagA*0.9,{s:11.5,ls:2,fixed:1})}
+    if(tagA>0&&NAME[tagK]&&!opt.nolabel){const n=NAME[tagK],x=sp()?16:24,y=H*(sp()?0.93:0.9);ln([[x,y],[x+18,y]],CY,tagA*0.85,1);tx(en()?n[1]:n[1]+'　'+n[0],[x+26,y],WH,tagA*0.9,{s:11.5,ls:2,fixed:1})}
     if((busy||lblBusy)&&!rm)raf=requestAnimationFrame(draw);
   }
   const kick=()=>{const t=active();if(t!==cur)cur=t;if(!raf)raf=requestAnimationFrame(draw)};

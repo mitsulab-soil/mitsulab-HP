@@ -22,3 +22,4 @@ header a.home{display:none!important}
 @media (max-width:600px){.sx-head{padding:0 16px}.sx-top{padding:0 12px;letter-spacing:.12em}}
 a.back{display:none!important}
 header.top .brand{display:none!important}header.top{position:static!important;background:none!important;border:0!important}
+h1,h2{word-break:auto-phrase;text-wrap:balance}
