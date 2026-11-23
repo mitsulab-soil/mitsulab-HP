@@ -8,7 +8,7 @@ import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261120r";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
-import { buildShore, clearForest } from "./kit/shore.js?v=20261123b";
+import { buildShore, clearForest } from "./kit/shore.js?v=20261123e";
 
 const WIND = `
 vec4 mvPosition = vec4( transformed, 1.0 );
@@ -92,7 +92,7 @@ export function start(canvas) {
   (async () => { for (const job of FOREST.later || []) { await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0))); const g = job(); g.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = !mobile; } }); forest.add(g); } })();
   // 立つ所：森の草地（明るいすき間）の縁から、空の開けた方を見上げる
   // 立つ所（2026-11-23 本人「自然の中に海辺の要素を」）：森のはし、川が海へ出る入り江の砂浜から、夕方の海と空を見る。うしろは森
-  const eye = new THREE.Vector3(37.6, 1.55, 6.5), look = new THREE.Vector3(50, 3.6, -16);   // 左に森のはし、右に海
+  const eye = new THREE.Vector3(37.6, 1.55, 6.5), look = innerWidth / innerHeight < .8 ? new THREE.Vector3(53, 3.6, -12) : new THREE.Vector3(50, 3.6, -16);   // スマホは少し海へ向ける（画面の左のはしに森の枝先だけが切れて入らない）   // 左に森のはし、右に海
   let yaw = Math.atan2(-(look.x - eye.x), -(look.z - eye.z)), pitch = Math.atan2(look.y - eye.y, Math.hypot(look.x - eye.x, look.z - eye.z)), dy = 0, dp = 0;
   cam.position.copy(eye); cam.rotation.order = "YXZ";
   // 見回す（なぞる）
@@ -132,12 +132,12 @@ export function start(canvas) {
     const add0 = forest.add.bind(forest); forest.add = (...a) => { add0(...a); try { clearForest(forest, FOREST.trunks, [FOREST.ground, aoi], a); } catch { } return forest; };
     SHORE = buildShore({ M, tx, canvasTex, group: forest, pick, sonic, mobile }); SHORE.root.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
   } catch (e) { console.warn("海辺", e?.message ?? e); }
-  setTimeout(() => import("./kit/city.js?v=20261123b").catch(() => { }), 4000);
+  setTimeout(() => import("./kit/city.js?v=20261123c").catch(() => { }), 4000);
   function standAoi() { if (!aoi || !AM) return; const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
     const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 5.5 : 4.5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .3 : .9)); aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
   async function setPlace(p) {
     if (p === place) return;
-    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123b").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123c").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
         const L = CITY.lamps[0] || [2.2, 7.8, 12]; VIEW.city = { eye: new THREE.Vector3(7.1, 1.55, L[2] + 5), look: new THREE.Vector3(L[0] + .3, 4.3, L[2] - 8) };   // 歩道の建物寄りから、通りの先の街灯を見上げる
         city.visible = true; const q = R.compileAsync ? R.compileAsync(city, cam, S).catch(() => { }) : null; city.visible = false; return q; }); await cityP; }
     place = p; forest.visible = p === "forest"; city.visible = p === "city";
@@ -160,7 +160,7 @@ export function start(canvas) {
     cam.getWorldDirection(fwd);
     for (const Rg of rings) { Rg.t = (Rg.t + dt * .35) % 1; const s = .15 + Rg.t * 3.2; Rg.r.scale.setScalar(s); Rg.r.position.copy(cam.position).addScaledVector(fwd, 3.2); Rg.r.quaternion.copy(cam.quaternion); Rg.r.material.opacity = (1 - Rg.t) * Math.min(1, level * 3 + call) * .5; }
     call = Math.max(0, call - dt * .8);
-    if (AM) { AM.faceTo(null); AM.lookAt(level > .05 || call > .2 ? new THREE.Vector3(cx, 3.2 + hy, cz) : null); AM.update(dt, cam); }   // 高い音が来ると、碧も空のコウモリの方へ目を向ける
+    if (AM) { AM.eyesClosed = 0; AM.faceTo(null); AM.lookAt(level > .05 || call > .2 ? new THREE.Vector3(cx, 3.2 + hy, cz) : null); AM.update(dt, cam); }   // 高い音が来ると、碧も空のコウモリの方へ目を向ける
     if (place === "city" && CITY) CITY.update(t, dt); if (place === "forest" && SHORE) SHORE.update(t, dt, cam.position);
     R.render(S, cam); });
   return { R, S, cam, setLevel(v) { level = v; }, pulse() { call = 1; }, setPlace, get place() { return place; } };
