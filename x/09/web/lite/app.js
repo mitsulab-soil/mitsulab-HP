@@ -1822,7 +1822,7 @@ const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tor
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y15");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y16");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
@@ -1846,7 +1846,7 @@ const YO_FLY = { cho: [.9, .75, .45, .55, .14, .45], tori: [1.3, -1.0, .6, 1.9, 
 function stepCompanions(dt) {
   if (!YO.y || !AOI.m) return;
   if (!YO.c && !YO.cBusy) { YO.cBusy = true; (async () => { try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y15"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y16"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
     c.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z) });
     const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: YO_FLY[k] ? P.y + YO_FLY[k][3] : null, height: h, follow: false, hide: k === "tori" ? /^(branch|bl)$/ : null, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) }).then(it => { if (k === "tori") it.U.wing.value = .5; });
     YO.c = c; QW.YOC = c; } catch (e) { console.warn("yorishiro-c", e); } })(); return; }
@@ -1857,7 +1857,7 @@ function stepCompanions(dt) {
   const sd = YO.cSide || 1, k = Math.min(1, dt * 2.2);
   for (const it of YO.c.items) { const R = it.root, F = YO_FLY[it.kind], cho = !!F, tn = it.kind === "tanuki";
     const fw = cho ? F[0] + (it.kind === "suzume" ? .5 * Math.sin(t * F[5] + it.ph) : 0) : tn ? 2.3 : 2, lt = cho ? (it.kind === "cho" ? -sd : sd) * F[1] + F[2] * Math.cos(t * F[5] + it.ph)   /* 11-23 夜：蝶は狐の反対の脇（スマホで重ねない） */ : tn ? -sd * 1.4 : sd * 1.5;   /* 2026-11-22 足もとの動物が碧に寄って画面の下が詰まった → 碧から少し離す（碧は動かさない） */   /* 11-21：止まると碧の陰に隠れていた→碧の反対の脇（画面の内側・碧の体から 1 m 横）へ */   // タヌキは狐の少し奥・碧の脇（狐と並ばない）
-    const lm = MOBILE ? (cho ? .7 : .78) : 1, tx = P.x + ax * fw + rx * lt * lm, tz = P.z + az * fw + rz * lt * lm;   // 375 は横の寄せを狭く（左の札に重ねない）
+    const lm = MOBILE ? (it.kind === "cho" ? .55 : cho ? .7 : .78) : 1, tx = P.x + ax * fw + rx * lt * lm, tz = P.z + az * fw + rz * lt * lm;   // 375 は横の寄せを狭く（左の札に重ねない）
     const dx = tx - R.position.x, dz = tz - R.position.z, d = Math.hypot(dx, dz);
     if (d > 8) { R.position.x = tx; R.position.z = tz; } else { R.position.x += dx * k; R.position.z += dz * k; }
     if (it.kind === "tori") { stepTori(it, dt, t, P, ax, az, rx, rz, sd); continue; }
@@ -1870,11 +1870,11 @@ function stepCompanions(dt) {
 }
 /* 11-23 夜 本人の指示「鳥は碧のまわりを舞い、ときどき枝や地面に降りる」：舞う（9〜15 秒）→ 降りる（碧の前 2.6 m・狐の反対の脇の地面へ 1.2 秒）→ 地面で首をかしげる（4〜6 秒）→ 飛び立つ。枝に降りるのは、参道の枝の位置が確かめられないので、いまは地面だけ */
 function stepTori(it, dt, t, P, ax, az, rx, rz, sd) {
-  const R = it.root, F = YO_FLY.tori, lm = MOBILE ? .7 : 1; if (!it.st) { it.st = "fly"; it.sT = t + 6 + Math.random() * 4; it.land = 0; }
+  const R = it.root, F = YO_FLY.tori, lm = MOBILE ? .3 : 1;   /* 375 は画面の端で切れないよう内へ */ if (!it.st) { it.st = "fly"; it.sT = t + 6 + Math.random() * 4; it.land = 0; }
   if (t > it.sT) { if (it.st === "fly") { it.st = "down"; it.sT = t + 1.3; const fw = MOBILE ? 3.2 : 2.6, lt = -sd * (MOBILE ? .3 : .9); it.gx = P.x + ax * fw + rx * lt; it.gz = P.z + az * fw + rz * lt; }
     else if (it.st === "down") { it.st = "rest"; it.sT = t + 4 + Math.random() * 2; } else if (it.st === "rest") { it.st = "up"; it.sT = t + 1.2; } else { it.st = "fly"; it.sT = t + 9 + Math.random() * 6; } }
   let tx, tz, ty; const gy = aoiFootY(R.position.x, R.position.z);
-  if (it.st === "fly" || it.st === "up") { const fw = F[0], lt = sd * F[1] + F[2] * Math.cos(t * F[5] + it.ph); tx = P.x + ax * fw + rx * lt * lm; tz = P.z + az * fw + rz * lt * lm; ty = gy + F[3] + F[4] * Math.sin(t * .9 + it.ph); }
+  if (it.st === "fly" || it.st === "up") { const fw = F[0], lt = sd * F[1] + F[2] * Math.cos(t * F[5] + it.ph); tx = P.x + ax * fw + rx * lt * lm; tz = P.z + az * fw + rz * lt * lm; ty = gy + (MOBILE ? 1.3 : F[3]) + F[4] * Math.sin(t * .9 + it.ph); }   /* 11-23 夜：375 は字幕と説明の札（画面の上 3〜5 割）にかぶらないよう、碧の頭の高さを舞う */
   else { if (Math.hypot(it.gx - P.x, it.gz - P.z) > 6) { it.st = "up"; it.sT = t + 1.2; } tx = it.gx; tz = it.gz; ty = aoiFootY(tx, tz); }
   it.land += ((it.st === "rest" || (it.st === "down" && t > it.sT - .3)) ? 1 : -1) * dt * 3; it.land = Math.max(0, Math.min(1, it.land));
   const dx = tx - R.position.x, dz = tz - R.position.z, d = Math.hypot(dx, dz), k = Math.min(1, dt * (it.st === "down" ? 3 : 2.2));
@@ -1895,7 +1895,7 @@ function stillSpot(P, sd) {   // 見る向きの先で、狐（sd の側）の�
 }
 function stepStill(dt, on, P, ax, az, rx, rz, sd) {
   if (!YO.s && !YO.sBusy) { YO.sBusy = true; (async () => { try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y15"), s = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y16"), s = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
     s.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });
     YO.s = s; QW.YOS = s;
@@ -3159,7 +3159,7 @@ function frame() {
   { const m = QW.mode, camH = camera.position.y - groundY(camera.position.x, camera.position.z), want = m === "sky" || m === "boot" ? MAPV : m === "descend" ? Math.min(1, Math.max(0, (camH - 70) / 260)) : 0; CYBER.v.value += (want - CYBER.v.value) * Math.min(1, dt * 2.2); if (!QW.mveil && QW.farGM && QW.farGM.userData.gf.gfHole.value.z > QW.farGM.userData.gf.gfHole.value.x) { const h = QW.farGM.userData.gf.gfHole.value; QW.mveil = makeMapVeil({ THREE, parent: world, rect: [h.x, h.y, h.z, h.w], y0: groundY((h.x + h.z) / 2, (h.y + h.w) / 2), fog: scene.fog, k0: m === "sky" || m === "boot" ? 1 : 0 }); } if (QW.mveil) { if (!QW.mveilLift && START.sp) { QW.mveil.lift(START.sp.group); QW.mveilLift = 1; } QW.mveil.update(dt, m === "sky" || m === "boot" || (m === "descend" && camH > 160)); }   /* 11-04 本人「四角い枠が見える＝境界を無くして」：地図の縁を楕円の霞で溶かす（kit/mapveil.js） */
     if (QW.skyTex && m !== "sight") { const vt = m === "boot" || m === "sky" ? 1 : 0;   /* 11-09 第2周：入口の地図は紺の地（灰色の霞にしない）。降りると空の写真へ溶ける */ VEIL.k = (VEIL.k ?? 1) + (vt - (VEIL.k ?? 1)) * Math.min(1, dt * 1.8); const kc = VEIL.k, bg = kc > .995 ? NAVY : QW.skyTex; if (scene.background !== bg) scene.background = bg; VEIL.visible = bg !== NAVY && kc > .005; if (VEIL.visible) { VEIL.material.uniforms.opacity.value = kc; VEIL.position.copy(camera.position); VEIL.scale.setScalar(camera.far * .9); } if (m === "descend" || m === "sky") scene.fog.color.copy(FOG_SKY).lerp((QW.mapNavy ||= new THREE.Color("#0b1a30")), Math.max(CYBER.v.value, VEIL.k ?? 0)); } else VEIL.visible = false; { const hv = Q.get("hz") !== "0" && (m === "walk") && scene.background === QW.skyTex; HAZE.visible = hv; if (hv) { HAZE.material.uniforms.uC.value.copy(scene.fog.color).multiplyScalar(.78); HAZE.material.uniforms.opacity.value = .95; if ((HAZE.n = (HAZE.n || 0) + 1) % 20 === 1 && D && D.cl) { const t = atD(nearestOnLine(camera.position.x, camera.position.z).d); HAZE.material.uniforms.uDir.value.set(t.tx, t.tz).normalize(); } HAZE.position.copy(camera.position); HAZE.scale.setScalar(camera.far * .85); } } CYBER.scan.value = (performance.now() / 1000 * 70) % 2600 - 1300; if (QW.skirt) { const sm = QW.skirt.material; (sm.userData.c0 ||= sm.color.clone()); sm.color.copy(sm.userData.c0).lerp(NAVY, CYBER.v.value * .97); } }   // 3D 地図の電脳の地面
   if (PARK.uT && !RM) PARK.uT.value += dt;
-  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (QW.mode === "walk" && !SEKI.p && /[?&]sekiso=1/.test(location.search)) SEKI.p = import("./sekiso.js?v=p1").then(M => { SEKI.o = M.makeSekiso({ scene, camera, groundY, renderer, MOBILE }); QW.SEKI = SEKI.o; }).catch(e => console.warn("sekiso", e)); SEKI.o?.update(dt, QW.mode === "walk"); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk") startYorishiro(); YO.y?.update(dt); stepCompanions(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
+  stepLayer(dt); stepSoundscape(dt); stepSho(dt); stepTalk(); KASA.herd?.update(dt, { active: QW.mode === "walk", busy: !!PANEL.cur || !!voiceQ }); stepAreas(dt); if (QW.mode === "walk" && !SEKI.p && /[?&]sekiso=1/.test(location.search)) SEKI.p = import("./sekiso.js?v=p1").then(M => { SEKI.o = M.makeSekiso({ scene, camera, groundY, renderer, MOBILE }); QW.SEKI = SEKI.o; }).catch(e => console.warn("sekiso", e)); SEKI.o?.update(dt, QW.mode === "walk"); if (!WL && QW.mode === "walk") startWL(); WL?.update(dt, camera); if (!YO.y && QW.mode === "walk" && QW.ready && performance.now() - T0 > (QW.tReady || 0) + 1800) startYorishiro()   /* 11-23 夜 起動 1 秒：依代（js と glb 約 3 MB）は起動のあと 1.8 秒から読む＝起動の道すじに入れない */; YO.y?.update(dt); stepCompanions(dt);   // 碧が話しているあいだは、かさねっこの掛け合いを重ねない
   if (QW.mode === "walk") stepAoi(dt); aoiZoom(dt);
   QW.ACT?.update(dt);   /* 11-13 本人承認「環境そのものが、受けとって働きかけるアクターどうしの相互関係として動く」（actors.js） */
   if (QW.mode !== "walk") FARWOOD.g.visible = false;
