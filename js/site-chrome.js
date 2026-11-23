@@ -11,6 +11,6 @@
   const bg=document.createElement('div');bg.className='sx-bg sd-stick';bg.setAttribute('aria-hidden','true');
   const sp=innerWidth<761;bg.innerHTML='<img alt="" decoding="async" src="/img/hero/'+(sp?'sando_real_sp_600.webp':'sando_real_1440.webp')+'">';
   document.body.prepend(bg);
-  const go=()=>import('/js/qualium-bg.js?v=7').then(m=>m.start({base:'/',theme:'network',nolabel:1,ko:'h1,h2,h3,p,dt,dd,li,a,button'})).catch(()=>{});
+  const go=()=>import('/js/qualium-bg.js?v=8').then(m=>m.start({base:'/',theme:'network',nolabel:1,ko:'h1,h2,h3,p,dt,dd,li,a,button'})).catch(()=>{});
   addEventListener('load',()=>{(window.requestIdleCallback?requestIdleCallback(go,{timeout:1500}):setTimeout(go,400))});
 })();

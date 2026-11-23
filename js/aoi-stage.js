@@ -5,7 +5,7 @@ import * as THREE from 'three';
 const P = document.querySelector('#qStory [data-ly="5"]');
 if (P) {
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, SP = () => innerWidth < 761;
-  const cv = document.createElement('canvas'); cv.className = 'aoi-stage'; cv.setAttribute('aria-hidden', 'true'); const MOB = SP(); let slot = null;
+  const cv = document.createElement('canvas'); cv.className = 'aoi-stage'; cv.setAttribute('aria-hidden', 'true'); const MOB = false; let slot = null; // 2026-11-23 本人：スマホも段のあいだへ移さず、画面の右側で文字の後ろに留める
   // 2026-11-21 本人「スマホで碧が本文の文字に重ならないように」：スマホは段のあいだに場所をあけ、その中に碧を置く（固定の重ねはしない）
   // 2026-11-22 本人「胡蝶の夢の章のあいだ、ずっと碧を出す・文字に重ねない」：スマホは各段の下に場所をあけ、いま読んでいる段の下へ碧を移す
   const SLOTS = []; if (MOB) { ['0', '2', '3', '5'].forEach(n => { const p = document.querySelector('#qStory [data-ly="' + n + '"]'); if (!p) return; const d = document.createElement('div'); d.className = 'aoi-slot' + (n === '5' ? '' : ' aoi-slot-s'); d.setAttribute('aria-hidden', 'true'); p.after(d); SLOTS.push(d); }); slot = SLOTS[SLOTS.length - 1]; slot.appendChild(cv); }
@@ -95,6 +95,17 @@ if (P) {
   function target() { pick(); const r = (document.querySelector('#qStory') || P).getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
     const e = (MOB ? (SLOTS[SLOTS.length - 1] || END()) : END()).getBoundingClientRect(); const up = (H * .95 - r.top) / (H * .4), down = (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
   let cur = 0, raf = 0, last = 0, W = 0, H = 0, visT = 0, visOK = true;
+  // 2026-11-23 本人：碧の頭の上にマイクの印。押すと音（TOP の環境音）のオン／オフ。初めはオフ
+  const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'aoi-mic'; mic.setAttribute('aria-pressed', 'false');
+  const micL = () => { const on = mic.getAttribute('aria-pressed') === 'true'; mic.setAttribute('aria-label', EN() ? (on ? 'Sound on — turn off' : 'Sound off — turn on') : (on ? '音はオン（押すとオフ）' : '音はオフ（押すとオン）')); };
+  mic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21"/><path class="mic-x" d="M4.5 4.5l15 15"/></svg>';
+  document.body.appendChild(mic); micL();
+  mic.addEventListener('click', () => { const b = document.querySelector('#sdHero .sd-snd'); if (b) b.click(); const on = b ? b.getAttribute('aria-pressed') === 'true' : mic.getAttribute('aria-pressed') !== 'true'; mic.setAttribute('aria-pressed', on ? 'true' : 'false'); micL(); });
+  new MutationObserver(micL).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+  const HV = new THREE.Vector3(); let mx = -1, my = -1;
+  function micPlace(k) { const hb = aoi && aoi.humanoid && aoi.humanoid.getNormalizedBoneNode('head'); if (!hb || k < .5 || cv.style.opacity === '0') { mic.classList.remove('on'); return; }
+    hb.getWorldPosition(HV); HV.y += .3; HV.project(cam); const r = cv.getBoundingClientRect(); const x = r.left + (HV.x + 1) / 2 * r.width, y = r.top + (1 - HV.y) / 2 * r.height - 26;
+    mx = mx < 0 ? x : mx + (x - mx) * .25; my = my < 0 ? y : my + (y - my) * .25; mic.style.transform = 'translate(' + (mx - 22).toFixed(1) + 'px,' + (my - 22).toFixed(1) + 'px)'; mic.classList.add('on'); }
   // 2026-11-22 重さ：祖先ごと見えていない間（不透明度 0・非表示）は描かない。見えたら 1 こま目から描く
   function shown(now) { if (now - visT > 120) { visT = now; let e = cv.parentElement, ok = true; while (e && e.nodeType === 1) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < .01) { ok = false; break; } e = e.parentElement; } visOK = ok; } return visOK; }
   function size() { camSet(); const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
@@ -115,6 +126,7 @@ if (P) {
       else if (c < chI) say(c); else if (MOB && c !== chI) say(c);
       else if (c > chI && (chI < 0 || performance.now() - sayAt > 2600)) say(MOB ? c : chI + 1); }
     if (k > 0 && shown(now)) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
+    micPlace(k);
     if (k > 0 || tg > 0) raf = requestAnimationFrame(frame); else last = 0; }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
   addEventListener('scroll', kick, { passive: true }); addEventListener('resize', () => { W = 0; kick(); }); kick();
