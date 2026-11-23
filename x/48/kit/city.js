@@ -31,7 +31,7 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     add(new THREE.Mesh(g, groundMura(M(0xb4b2ac, { std: true, map: asph, nmap: asphN, ns: .8, rough: .93, env: .25, uv: .04, temp: .5, echo: .6 }), .8)), { cast: false, hit: true }); }
   // 歩道（コンクリートの平板）：車道より 3 cm 高く、縁石（15 cm）で区切る
   const pav = tx("city_pavers.webp", 1, 1), pavN = tx("city_pavers_n.webp", 1, 1, false);
-  const walkM = groundMura(M(0xfff8ee, { std: true, map: pav, nmap: pavN, ns: .9, rough: .9, env: .3, uv: .22, temp: .35, echo: .7 }));
+  const walkM = groundMura(M(0xfff8ee, { std: true, map: pav, nmap: pavN, ns: .9, rough: .9, env: .3, uv: .22, temp: .35, echo: .7 }), 1.5);
   const walks = [];
   const walkRect = (x0, x1, z0, z1) => { const w = x1 - x0, d = z1 - z0, g = new THREE.PlaneGeometry(w, d); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, .03, (z0 + z1) / 2);
     const p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / 1.6, p.getZ(i) / 1.6); walks.push(g); };
