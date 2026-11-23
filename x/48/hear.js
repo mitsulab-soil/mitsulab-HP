@@ -56,7 +56,10 @@ function canvasTex(w, h, draw, srgb = true) {
   const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 
+// 碧の 3D（約 2 MB）は、Qualia/sight と同じ物を読む（先に sight を開いた人は、ブラウザの控えから出る）。手元で開いたときは、このフォルダの写し
+const AOI_BUF = (() => { let p = null; return () => p || (p = fetch("../02/assets/aoi/aoi.vrm").then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status)).catch(() => fetch("assets/aoi/aoi.vrm").then(r => r.arrayBuffer()))); })();
 export function start(canvas) {
+  AOI_BUF();   // 森を組むあいだに読み始める
   const mobile = matchMedia("(max-width:760px)").matches;
   const R = new THREE.WebGLRenderer({ canvas, antialias: !mobile, powerPreference: "high-performance" });
   R.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75));
@@ -99,10 +102,11 @@ export function start(canvas) {
 
   // 碧（sight と同じ 3D・共通部品 AoiMotion。2026-11-23 本人「hear にも碧を表示して」）。森と操作を先に出し、碧はあとから読む。組み終えてから場面に入れる（透けて出ない）
   let AM = null, aoi = null; const AOI_H = 1.62;
-  setTimeout(async () => { try {
-    const [{ GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm"), import("./kit/aoi_motion.js")]);
+  (async () => { try {
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));   // 森の最初のこまを先に出す
+    const [buf, { GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([AOI_BUF(), import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm"), import("./kit/aoi_motion.js")]);
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder); loader.register(p => new V.VRMLoaderPlugin(p));
-    const g = await loader.loadAsync("assets/aoi/aoi.vrm"), v = g.userData.vrm;
+    const g = await loader.parseAsync(buf, ""), v = g.userData.vrm;
     V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; if (o.isMesh) o.castShadow = true; });
     aoi = new THREE.Group(); aoi.add(v.scene);
@@ -116,8 +120,30 @@ export function start(canvas) {
     AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .3, startCalm: 2.2, posture: "natural", uprightWeight: .25, faceLight: .6 });
     AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z));
     try { await R.compileAsync(aoi, cam, S); } catch { }
-    forest.add(aoi); window.__aoi = { v, aoi, AM }; window.__hearAoiAt = performance.now();
-  } catch (e) { console.warn("碧の姿を読み込めませんでした", e?.message ?? e); } }, 400);
+    (place === "city" ? city : forest).add(aoi); if (place === "city") standAoi(); window.__aoi = { v, aoi, AM }; window.__hearAoiAt = performance.now();
+  } catch (e) { console.warn("碧の姿を読み込めませんでした", e?.message ?? e); } })();
+  // ── 場所の切りかえ（自然／都市。2026-11-23 本人）。都市の場（kit/city.js）は切りかえたときに読む。森の先の海辺（kit/shore.js）は森が出てから組む
+  const city = new THREE.Group(); city.visible = false; S.add(city); let CITY = null, cityP = null, SHORE = null, place = "forest";
+  const VIEW = { forest: { eye: eye.clone(), look: look.clone() } };
+  setTimeout(() => import("./kit/shore.js?v=20261123a").then(({ buildShore, clearForest }) => {
+    clearForest(forest, FOREST.trunks, [FOREST.ground]);
+    const add0 = forest.add.bind(forest); forest.add = (...a) => { add0(...a); try { clearForest(forest, FOREST.trunks, [FOREST.ground, aoi], a); } catch { } return forest; };
+    SHORE = buildShore({ M, tx, canvasTex, group: forest, pick, sonic, mobile }); SHORE.root.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+  }).catch(e => console.warn("海辺", e?.message ?? e)), 1500);
+  setTimeout(() => import("./kit/city.js?v=20261123a").catch(() => { }), 4000);
+  function standAoi() { if (!aoi || !AM) return; const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+    const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 9.5 : 5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .9 : 1.5)); aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
+  async function setPlace(p) {
+    if (p === place) return;
+    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123a").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+        const L = CITY.lamps[0] || [2.2, 7.8, 12]; VIEW.city = { eye: new THREE.Vector3(7.1, 1.55, L[2] + 5), look: new THREE.Vector3(L[0] + .3, 4.3, L[2] - 8) };   // 歩道の建物寄りから、通りの先の街灯を見上げる
+        city.visible = true; const q = R.compileAsync ? R.compileAsync(city, cam, S).catch(() => { }) : null; city.visible = false; return q; }); await cityP; }
+    place = p; forest.visible = p === "forest"; city.visible = p === "city";
+    S.fog.density = p === "city" ? (mobile ? .016 : .013) : (mobile ? .03 : .026);
+    const V = VIEW[p]; eye.copy(V.eye); look.copy(V.look); cam.position.copy(eye); yaw = Math.atan2(-(look.x - eye.x), -(look.z - eye.z)); pitch = Math.atan2(look.y - eye.y, Math.hypot(look.x - eye.x, look.z - eye.z)); dy = dp = 0;
+    const host = p === "city" ? city : forest; for (const B of bats) host.add(B.b); if (aoi) { host.add(aoi); standAoi(); }
+    sun.target.position.set(eye.x + 2, 0, eye.z - 8); sun.position.copy(sun.target.position).add(new THREE.Vector3(-36, 14, -16));
+  }
   // 音の輪（いま拾っている高い音の強さに応じて、目の前に広がる）
   const ringM = new THREE.MeshBasicMaterial({ color: "#cfe9f0", transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, fog: false });
   const rings = []; for (let i = 0; i < 6; i++) { const r = new THREE.Mesh(new THREE.RingGeometry(.985, 1, 72), ringM.clone()); S.add(r); rings.push({ r, t: i / 6 }); }
@@ -127,14 +153,15 @@ export function start(canvas) {
   let level = 0, call = 0, last = performance.now(); const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
   R.setAnimationLoop(() => { const now = performance.now(), dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000; U.uTime.value = t;
     cam.rotation.set(pitch + dp + (RM ? 0 : Math.sin(t * .21) * .012), yaw + dy + (RM ? 0 : Math.sin(t * .13) * .03), 0);
-    const cx = (SPAWN.x + MEADOW.x) * .5 - .6, cz = (SPAWN.z + MEADOW.z) * .5 - 1.2;
-    for (const B of bats) { const a = B.ph + t * B.sp; B.b.position.set(cx + Math.cos(a) * B.r, B.h + Math.sin(a * 2.3) * .6, cz + Math.sin(a) * B.r * .8); B.b.rotation.y = -a + Math.PI; B.inner.userData.animate?.(t, true); }
+    const L0 = place === "city" && CITY ? (CITY.lamps[0] || [2.2, 7.8, 12]) : null, cx = L0 ? L0[0] + .4 : (SPAWN.x + MEADOW.x) * .5 - .6, cz = L0 ? L0[2] - 5 : (SPAWN.z + MEADOW.z) * .5 - 1.2, hy = L0 ? 3.4 : 0;   // 都市では街灯のまわり（アブラコウモリは街灯に集まる虫を捕る）
+    for (const B of bats) { const a = B.ph + t * B.sp; B.b.position.set(cx + Math.cos(a) * B.r, B.h + hy + Math.sin(a * 2.3) * .6, cz + Math.sin(a) * B.r * .8); B.b.rotation.y = -a + Math.PI; B.inner.userData.animate?.(t, true); }
     cam.getWorldDirection(fwd);
     for (const Rg of rings) { Rg.t = (Rg.t + dt * .35) % 1; const s = .15 + Rg.t * 3.2; Rg.r.scale.setScalar(s); Rg.r.position.copy(cam.position).addScaledVector(fwd, 3.2); Rg.r.quaternion.copy(cam.quaternion); Rg.r.material.opacity = (1 - Rg.t) * Math.min(1, level * 3 + call) * .5; }
     call = Math.max(0, call - dt * .8);
-    if (AM) { AM.faceTo(null); AM.lookAt(level > .05 || call > .2 ? new THREE.Vector3(cx, 3.2, cz) : null); AM.update(dt, cam); }   // 高い音が来ると、碧も空のコウモリの方へ目を向ける
+    if (AM) { AM.faceTo(null); AM.lookAt(level > .05 || call > .2 ? new THREE.Vector3(cx, 3.2 + hy, cz) : null); AM.update(dt, cam); }   // 高い音が来ると、碧も空のコウモリの方へ目を向ける
+    if (place === "city" && CITY) CITY.update(t, dt); if (place === "forest" && SHORE) SHORE.update(t, dt, cam.position);
     R.render(S, cam); });
-  return { R, S, cam, setLevel(v) { level = v; }, pulse() { call = 1; } };
+  return { R, S, cam, setLevel(v) { level = v; }, pulse() { call = 1; }, setPlace, get place() { return place; } };
 }
 
 // ── 音 ──
