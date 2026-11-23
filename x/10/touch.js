@@ -48,7 +48,10 @@ export const THINGS = [
     cue: "杭に結んだ麻縄。三本の撚りの溝を、指がたどっていく。結び目で、縄が重なる。" },
 ];
 
+// 碧の 3D は Qualia/sight と同じ物を読む（先に sight・hear を開いた人はブラウザの控えから）。手元ではこのフォルダの写し
+const AOI_BUF = (() => { let p = null; return () => p || (p = fetch("../02/assets/aoi/aoi.vrm").then(r => r.ok ? r.arrayBuffer() : Promise.reject(r.status)).catch(() => fetch("assets/aoi/aoi.vrm").then(r => r.arrayBuffer()))); })();
 export function start(canvas, ui) {
+  AOI_BUF();   // 森を組むあいだに読み始める
   const mobile = matchMedia("(max-width:760px)").matches;
   const R = new THREE.WebGLRenderer({ canvas, antialias: !mobile, powerPreference: "high-performance" });
   R.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75));
@@ -167,7 +170,7 @@ export function start(canvas, ui) {
     const it = T[id]; if (!it) return; setThing(id); clutter(true); cam.near = .02; cam.updateProjectionMatrix();
     if (!P && id !== "rope") { const o = base.clone(), h = new THREE.Raycaster(o, it.aim.clone().sub(o).normalize(), 0, 30).intersectObject(it.mesh, false)[0]; if (h) { P = h.point.clone(); N = worldN(h); } }   // 名前から近づくとき：今いる所から見える、ほんとうの表面の一点へ
     const free = !!N; P = P || it.aim; N = (N || it.n).clone().normalize(); if (free && N.dot(cam.position.clone().sub(P)) < 0) N.negate();   // 決まった向き（名前から）は、いまのカメラの位置で裏返さない
-    const d = it.th.id === "rope" ? .18 : it.th.id === "soil" || it.th.id === "leaves" ? .115 : .125, pos = P.clone().addScaledVector(N, d); pos.y = Math.max(.12, pos.y);
+    const d = it.th.id === "rope" ? (innerWidth / innerHeight < .8 ? .3 : .2) : it.th.id === "soil" || it.th.id === "leaves" ? .115 : .125, pos = P.clone().addScaledVector(N, d); pos.y = Math.max(.12, pos.y);
     const m = new THREE.Matrix4().lookAt(pos, P, new THREE.Vector3(0, 1, 0)), q = new THREE.Quaternion().setFromRotationMatrix(m);
     mode = "going"; ui.mode?.("going", it.th); glide(pos, q, 1.1, () => { mode = "near"; cam.near = d * .7; cam.updateProjectionMatrix(); if (it.th.id === "soil" || it.th.id === "leaves") clutter(false); ui.mode?.("near", it.th); });   // 寄ったら、目とものの間にある草の葉などは写さない
     aoiLook = P.clone(); showNear(it.th, P, N);
@@ -204,9 +207,9 @@ export function start(canvas, ui) {
   // ---- 碧（sight と同じ 3D・AoiMotion。森と操作を先に出し、組み終えてから場面に入れる＝透けて出ない）
   let AM = null, aoi = null, aoiLook = null; const AOI_H = 1.62, RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
   setTimeout(async () => { try {
-    const [{ GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm"), import("./kit/aoi_motion.js")]);
+    const [buf, { GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([AOI_BUF(), import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm"), import("./kit/aoi_motion.js")]);
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder); loader.register(p => new V.VRMLoaderPlugin(p));
-    const g = await loader.loadAsync("assets/aoi/aoi.vrm"), v = g.userData.vrm;
+    const g = await loader.parseAsync(buf, ""), v = g.userData.vrm;
     V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
     v.scene.traverse(o => { o.frustumCulled = false; if (o.isMesh) o.castShadow = true; });
     aoi = new THREE.Group(); aoi.add(v.scene);
