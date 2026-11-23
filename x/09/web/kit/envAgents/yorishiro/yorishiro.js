@@ -94,20 +94,8 @@ function refineFox(body) {
   if (ears.length === 2) { const mid = ears[0].position.clone().add(ears[1].position).multiplyScalar(.5);
     for (const o of ears) { const lx = new THREE.Vector3(1, 0, 0).applyQuaternion(o.quaternion), sgn = Math.sign(o.position.clone().sub(mid).dot(lx)) || 1;
       o.geometry = leafEar(.38 / o.scale.y, .125 / o.scale.x, sgn); o.geometry.translate(0, -.07 / o.scale.y, 0); o.material = o.material.clone(); o.material.vertexColors = true; o.material.color.set("#ffffff"); o.material.side = THREE.DoubleSide; o.material.needsUpdate = true; } }
-  // 口元：参考画の細くとがった口へ（体の形の、鼻のまわりだけを左右と上下に細める）。首と背の白い粒（mo2）は消し、苔（mo）は若葉色に
-  let bm = null, nose = null; const mos = []; body.traverse(o => { if (!o.isMesh) return; const n = o.material?.name || ""; if (/^body/.test(n)) bm = o; else if (/^nose/.test(n)) nose = o; else if (/^mo/.test(n)) o.visible = false; });
-  for (const o of mos) { o.material = o.material.clone(); o.material.vertexColors = false; o.material.color.set("#9cc95a"); o.material.needsUpdate = true; }
-  if (bm && nose && ears.length === 2) {
-    const iq = bm.quaternion.clone().invert(), toL = v => v.clone().sub(bm.position).applyQuaternion(iq), N = toL(nose.position), E = toL(ears[0].position.clone().add(ears[1].position).multiplyScalar(.5));
-    const H = new THREE.Vector3(E.x, N.y + .06, E.z), f = new THREE.Vector3(N.x - H.x, 0, N.z - H.z), fl = f.length(); f.divideScalar(fl); const side = new THREE.Vector3(-f.z, 0, f.x);
-    const g = bm.geometry = bm.geometry.clone(), P = g.attributes.position, v = new THREE.Vector3();
-    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const d = v.clone().sub(H), al = d.x * f.x + d.z * f.z; const dy = v.y - N.y; if (al < -fl * .1 || Math.abs(dy) > .2 || v.distanceTo(N) > .36) continue;
-      const w = Math.min(1, (al + fl * .1) / (fl * .9)), sm = w * w * (3 - 2 * w) * Math.max(0, 1 - Math.pow(Math.abs(dy) / .2, 2)), la = d.x * side.x + d.z * side.z, k = .88 * sm;
-      v.x -= side.x * la * k; v.z -= side.z * la * k; v.y -= (v.y - N.y) * .5 * sm; v.x += f.x * .08 * sm * sm; v.z += f.z * .08 * sm * sm; P.setXYZ(i, v.x, v.y, v.z); }
-    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const d = v.clone().sub(H), al = d.x * f.x + d.z * f.z, dy = v.y - N.y, la = d.x * side.x + d.z * side.z, A = Math.abs(la);   // 頬の横のふくらみ（正面から白い帯に見えた）を内へ寄せる
-      if (al < -fl * .4 || dy < -.17 || dy > .1 || A < .1) continue; const vw = Math.max(0, 1 - Math.pow((dy + .035) / .135, 2)) * Math.min(1, (al + fl * .4) / (fl * .5)); const nl = Math.sign(la) * (.1 + (A - .1) * (1 - .55 * vw)), dl = nl - la;
-      v.x += side.x * dl; v.z += side.z * dl; P.setXYZ(i, v.x, v.y, v.z); }
-    nose.position.addScaledVector(new THREE.Vector3(f.x, 0, f.z).applyQuaternion(bm.quaternion), .05); nose.scale.multiplyScalar(.8); }
+  // 11-24：頭・口先・脚・胴は形（_dev/envAgents/sugata_ref/最良/狐_2026-11-24.py）で作り直した＝ここで頂点を寄せない。背の葉（mo）は若葉色で見せる
+  body.traverse(o => { if (!o.isMesh || !/^mo/.test(o.material?.name || "")) return; o.material = o.material.clone(); o.material.vertexColors = false; o.material.color.set("#9cc95a"); o.material.needsUpdate = true; });
   for (const o of tufts) { o.scale.multiplyScalar(.75); o.rotation.x += .35; o.material = o.material.clone(); o.material.vertexColors = false; o.material.color.set(TEAL2); o.material.needsUpdate = true; }
 }
 const _c = new THREE.Color(), _d = new THREE.Color();
