@@ -8,7 +8,7 @@
 <title>Qualia/hear ── 聞こえない音を聞く</title>
 <meta name="description" content="聞こえない音を聞く。マイクで拾った高い音を、聴こえる高さへ移して聴く。コウモリの声のように録れない高さは、聴こえる高さに移した模式で。">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js?v=m1","three/addons/":"./vendor/three/examples/jsm/"}}</script>
-<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1"><link rel="modulepreload" href="hear.js?v=h1"><link rel="modulepreload" href="forest.js?v=20261120r">
+<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1"><link rel="modulepreload" href="hear.js?v=h2"><link rel="modulepreload" href="forest.js?v=20261120r">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
 .spec{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top)) + 58px);width:min(460px,calc(100% - 32px));height:76px;pointer-events:none;background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(240,244,242,.7),rgba(240,244,242,.15) 80%);border-radius:2px;padding:4px 8px}
@@ -35,9 +35,9 @@ html,body{background:#2a2624}
 <div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/hear<small>聞こえない音を聞く</small></h1></div>
 <details class="fold"><summary>＋ 出典と模式</summary><div class="in">
 <p><b>人の耳</b>　人に聴こえる高さは、およそ 20 Hz〜20 kHz。上の端は年とともに下がります。</p>
-<p><b>マイクで拾った音（実際の音）</b>　「マイクをひらく」と、スマホやパソコンのマイクが拾った音のうち 15 kHz より高い所だけを取り出し、選んだ高さ（16・18・20 kHz）の音とかけ合わせて、その差の高さ（0〜5 kHz ほど）に下ろして鳴らします。コウモリの声を聴く検出器（ヘテロダイン方式）と同じしくみです。ふつうのマイクと端末は、多くが 20〜24 kHz ほどまでしか拾えません（標本化の周波数 44.1・48 kHz の半分が上限。機種によってはもっと低い所で切っています）。ですから、ここで聴けるのは、虫の声の高い成分や、機械の高い音など、およそ 15〜24 kHz の音です。音は端末の中だけで扱い、録音・送信はしません。ハウリングを防ぐため、イヤホンをおすすめします。</p>
-<p><b>コウモリの声（模式）</b>　夕方の空を飛ぶアブラコウモリ（<i>Pipistrellus abramus</i>）は、約 100 kHz から 40 kHz 前後へ下がる、数ミリ秒の声を出して、こだまで虫や物をとらえます（Hase ほか 2016, <i>Scientific Reports</i> 6: 30978 ほか）。この高さはふつうのマイクでは録れません。「コウモリの声」の音は、その形を<b>聴こえる高さに移した模式</b>です（時間を 10 倍にのばし、高さを 10 分の 1 に。実際の録音ではありません）。</p>
-<p>場所は Qualia/sight と同じ森（関東の雑木林のつもりの創作空間。樹皮・葉・土の写真は CC0）。Qualia/sight が「見えない世界を見る」のに対し、ここでは聞こえない音を聞きます。コウモリの姿は sight と同じ造形、飛び方は模式。three.js（MIT）。© mitsulab.</p>
+<p><b>マイクで拾った音（実際の音）</b>　「マイクで聴く」を押すと、スマホやパソコンのマイクが拾った音のうち 15 kHz より高い所だけを取り出し、選んだ高さ（16・18・20 kHz）の音とかけ合わせて、その差の高さ（0〜5 kHz ほど）に下ろして鳴らします。コウモリの声を聴く検出器（ヘテロダイン方式）と同じしくみです。ふつうのマイクと端末は、多くが 20〜24 kHz ほどまでしか拾えません（標本化の周波数 44.1・48 kHz の半分が上限。機種によってはもっと低い所で切っています）。ですから、ここで聴けるのは、虫の声の高い成分や、機械の高い音など、およそ 15〜24 kHz の音です。音は端末の中だけで扱い、録音・送信はしません。ハウリングを防ぐため、イヤホンをおすすめします。</p>
+<p><b>コウモリ（模式）</b>　夕方の空を飛ぶアブラコウモリ（<i>Pipistrellus abramus</i>）は、約 100 kHz から 40 kHz 前後へ下がる、数ミリ秒の声を出して、こだまで虫や物をとらえます（Hase ほか 2016, <i>Scientific Reports</i> 6: 30978 ほか）。この高さはふつうのマイクでは録れません。「コウモリの声」の音は、その形を<b>聴こえる高さに移した模式</b>です（時間を 10 倍にのばし、高さを 10 分の 1 に。実際の録音ではありません）。</p>
+<p>場所は Qualia/sight と同じ森（関東の雑木林のつもりの創作空間。樹皮・葉・土の写真は CC0）。Qualia/sight が「見えない世界を見る」のに対し、ここでは聞こえない音を聞きます。コウモリの姿は sight と同じ造形（見やすく 2 倍）、飛び方は模式。three.js（MIT）。© mitsulab.</p>
 </div></details>
 <div class="spec" aria-hidden="true"><canvas id="sp" width="560" height="80"></canvas><div class="ax"><span>0</span><span id="mid">▲20 kHz（人の耳の上限）</span><span id="nq"></span></div></div>
 <div class="cap" id="cap">空を飛ぶコウモリは、ずっと声を出している。人の耳には届かない高さで。</div>
@@ -61,13 +61,13 @@ $('bMic').onclick = async () => { if (!mod) return; ensure(); if (S.micOn) retur
   try { await S.openMic(f0); quiet.t0 = performance.now(); $('bMic').setAttribute('aria-pressed', true); $('bMic').textContent = '聴いている';
     document.querySelectorAll('.tune button').forEach(b => b.disabled = false); document.querySelector('.tune').style.visibility = 'visible';
     $('cap').textContent = '15 kHz より高い音だけを、聴こえる高さに下ろして鳴らしている。虫の声や、機械の音が混じる。'; navigator.vibrate && navigator.vibrate(18);
-  } catch (e) { $('cap').textContent = 'マイクがひらけなかった。「コウモリの声（模式）」で聴ける。'; } };
+  } catch (e) { $('cap').textContent = 'マイクがひらけなかった。「コウモリ（模式）」で聴ける。'; } };
 document.querySelectorAll('.tune button').forEach(b => b.onclick = () => { f0 = +b.dataset.f; S && S.tune(f0); document.querySelectorAll('.tune button').forEach(c => c.setAttribute('aria-pressed', c === b)); });
 $('bBat').onclick = () => { if (!mod) return; ensure(); if (batT) { clearInterval(batT); batT = null; $('bBat').setAttribute('aria-pressed', false); return; }
   const go = () => { S.batCall(); V && V.pulse(); navigator.vibrate && navigator.vibrate(8); }; go(); batT = setInterval(go, 900);
   $('bBat').setAttribute('aria-pressed', true); $('cap').textContent = 'コウモリの声を、時間を 10 倍にのばし、高さを 10 分の 1 にした模式。ほんとうは、この 1 回が数ミリ秒。'; };
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./hear.js?v=h1').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
+import('./hear.js?v=h2').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
 </body>

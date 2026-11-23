@@ -30,7 +30,7 @@ const set = v => { A && A.set(v); $('bOn').setAttribute('aria-pressed', v); $('b
   $('cap').textContent = v ? '黒い表土に細い根がひしめき、白い菌糸が根の先から広がる。ミミズが通り道をつくる。' : '足もとの土の下は、見えない。下の札で、透かしてみる。'; v && navigator.vibrate && navigator.vibrate([10, 60, 10]); };
 $('bOn').onclick = () => set(true); $('bOff').onclick = () => set(false);
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./deep.js?v=3').then(m => { A = m.start($('c')); window.__deep = A; }).catch(e => console.warn(e));
+import('./deep.js?v=4').then(m => { A = m.start($('c')); window.__deep = A; }).catch(e => console.warn(e));
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
 </body>

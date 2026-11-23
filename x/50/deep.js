@@ -4,7 +4,7 @@ import { create, THREE, hash1 } from './kit/qfield.js';
 export function start(canvas) {
   const mob = matchMedia('(max-width:760px)').matches;
   const F = create(canvas, { pitch: -.18, pitchMin: -1.35 });
-  const C = new THREE.Vector3(mob ? 0 : 1.4, 0, mob ? 2.35 : 1.5), RMAX = mob ? .8 : 1.75, DEP = 1.4;
+  const C = new THREE.Vector3(mob ? 0 : 1.4, 0, mob ? 2.35 : 1.5), RMAX = mob ? .72 : 1.75, DEP = 1.4;
   const uC = { value: C }, uR = { value: 0 };
   // 2026-11-23 本人「deep をさらにフォトリアルに」：土・砂・石・樹皮の写真の質感（CC0・Poly Haven／ambientCG。sight と同じ）と、物理ベースの材質
   const TL = new THREE.TextureLoader(), ptex = (nm, rx, ry, srgb = true) => { const t = TL.load('tex/' + nm + '.webp'); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = 8; return t; };
@@ -67,11 +67,11 @@ export function start(canvas) {
       if (depth < 3 && rnd() < .28) { const a = rnd() * 6.28; grow(x, y, z, Math.cos(a), (rnd() - .5) * .6, Math.sin(a), 4 + (rnd() * 4 | 0), depth + 1); } } };
   for (const t of tips) for (let i = 0; i < 3; i++) { const a = rnd() * 6.28; grow(t.x, t.y, t.z, Math.cos(a), (rnd() - .6) * .5, Math.sin(a), 6, 0); }
   const hg = new THREE.BufferGeometry(); hg.setAttribute('position', new THREE.Float32BufferAttribute(hp, 3));
-  const hM = F.patch(new THREE.LineBasicMaterial({ color: '#efe8d6', transparent: true, opacity: .3 }), inside('h'));
+  const hM = F.patch(new THREE.LineBasicMaterial({ color: '#e8e0cc', transparent: true, opacity: .22 }), inside('h'));
   const hyphae = new THREE.LineSegments(hg, hM); F.S.add(hyphae);
 
   // ミミズ（フトミミズのなかま・表土に近い所を動く。長さ 10〜15 cm ほど・模式）と、その通り道
-  const segT = (() => { const c = document.createElement('canvas'); c.width = 512; c.height = 16; const g = c.getContext('2d'); g.fillStyle = '#a86058'; g.fillRect(0, 0, 512, 16);
+  const segT = (() => { const c = document.createElement('canvas'); c.width = 512; c.height = 16; const g = c.getContext('2d'); g.fillStyle = '#8a4a46'; g.fillRect(0, 0, 512, 16);
     for (let i = 0; i < 110; i++) { const x = i / 110 * 512; g.fillStyle = 'rgba(70,30,28,.45)'; g.fillRect(x, 0, 1.4, 16); }   // 体節の環（フトミミズのなかまは 100 前後の体節）
     g.fillStyle = 'rgba(205,140,120,.85)'; g.fillRect(512 * .12, 0, 512 * .05, 16);   // 環帯（頭に近い、ふくらんだ明るい帯）
     const gr = g.createLinearGradient(0, 0, 0, 16); gr.addColorStop(0, 'rgba(60,25,25,.35)'); gr.addColorStop(.5, 'rgba(255,200,190,.12)'); gr.addColorStop(1, 'rgba(60,25,25,.35)'); g.fillStyle = gr; g.fillRect(0, 0, 512, 16);
@@ -86,7 +86,7 @@ export function start(canvas) {
 
   const tag = (txt, y) => { const c = document.createElement('canvas'); c.width = 256; c.height = 64; const g = c.getContext('2d'); g.font = '600 26px "Hiragino Kaku Gothic ProN",sans-serif'; g.fillStyle = 'rgba(20,14,10,.6)'; g.fillRect(0, 10, 8 + g.measureText(txt).width + 14, 44); g.fillStyle = '#f2ead8'; g.fillText(txt, 12, 42);
     const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, depthTest: false, transparent: true, opacity: 0 })); sp.scale.set(mob ? .78 : .72, mob ? .195 : .18, 1); sp.renderOrder = 9; sp.userData.y = y; F.S.add(sp); return sp; };
-  const tags = [tag('落ち葉', -.01), tag('黒い表土', -.2), tag('ローム層', -.7)];
+  const tags = [tag('落ち葉', -.01), tag('黒い表土', -.2), tag('ローム層', -.9)];
   const _a = new THREE.Vector3(); let target = 0, depth = 0;
   F.onFrame = (dt, t) => {
     F.lens.value += (target - F.lens.value) * Math.min(1, dt * 1.6);

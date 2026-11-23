@@ -60,13 +60,13 @@ export function start(canvas) {
   const mobile = matchMedia("(max-width:760px)").matches;
   const R = new THREE.WebGLRenderer({ canvas, antialias: !mobile, powerPreference: "high-performance" });
   R.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75));
-  R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.18;
+  R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
   R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
-  const S = new THREE.Scene(); const FOG = new THREE.Color("#a48f8c");
+  const S = new THREE.Scene(); const FOG = new THREE.Color("#7c6a6c");
   S.background = FOG.clone(); S.fog = new THREE.FogExp2(FOG.clone(), mobile ? .03 : .026);
   const cam = new THREE.PerspectiveCamera(60, 1, .03, 300);
   // 夕方の空（上は暗い青、地平は夕焼けの色）
-  const skyG = new THREE.SphereGeometry(200, 32, 16), col = [], p = skyG.attributes.position, c = new THREE.Color(), top = new THREE.Color("#3e4a6a"), mid = new THREE.Color("#b49a9a"), low = new THREE.Color("#e2a274");
+  const skyG = new THREE.SphereGeometry(200, 32, 16), col = [], p = skyG.attributes.position, c = new THREE.Color(), top = new THREE.Color("#1f2a48"), mid = new THREE.Color("#8a6f78"), low = new THREE.Color("#e8925a");
   for (let i = 0; i < p.count; i++) { const y = p.getY(i) / 200; if (y > .25) c.copy(mid).lerp(top, Math.min(1, (y - .25) / .6)); else c.copy(low).lerp(mid, Math.max(0, (y + .05) / .3)); col.push(c.r, c.g, c.b); }
   skyG.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
   const sky = new THREE.Mesh(skyG, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false })); S.add(sky);

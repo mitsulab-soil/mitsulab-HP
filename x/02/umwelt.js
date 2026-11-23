@@ -115,7 +115,7 @@ if (uMode == 1) {            // マムシ：目の像を暗く、温かいもの
   float d = distance(vWP, uCam);
   float heat = uTemp * (1.0 - smoothstep(uHeatR * .35, uHeatR, d));
   { vec3 nn = normalize(cross(dFdx(vWP), dFdy(vWP))); heat *= .62 + .38 * abs(dot(nn, normalize(uCam - vWP))); }   // 面の向きで熱の放射が弱まる（縁ほど暗い）＝顔の起伏・手の形が読める
-  vec3 vis = vec3(dot(gl_FragColor.rgb, vec3(.3, .55, .15))) * .28;
+  vec3 vis = vec3(dot(gl_FragColor.rgb, vec3(.3, .55, .15))) * .46;   /* 2026-11-23 暗すぎ（採点）→ 目の像を少し明るく */
   float lum = dot(gl_FragColor.rgb, vec3(.3, .55, .15));
   // 2026-10-27 熱の像にも、わずかな温度のむら（目のくぼみ・鼻先はやや低い）を元の明暗から写す＝顔が「目鼻のない平らな面」にならない
   vec3 hc = mix(vec3(.55, .06, .32), vec3(1., .9, .55), clamp(heat * 1.3 - (.5 - clamp(lum, 0., 1.)) * .3, 0., 1.));
@@ -442,7 +442,7 @@ for (const o of [...butterflies, ageha, bee, ...moths, ...residents.filter(b => 
 const bodyRoot=new THREE.Group();camera.add(bodyRoot);bodyRoot.position.set(0,-.27,-.65);bodyRoot.scale.setScalar(.2);bodyRoot.rotation.y=Math.PI;
 let bodyYaw0=0,bodyRoll=0,showLens='',showT=0;
 const BODYREST = 1.6;   // 2026-11-20 2 周目：見せ場のあとの自分の体を大きく（プレイ画面で体が小さかった）
-const BODYPOS={camera:[-.33,-.8],netsu:[-.3,-.72],hachi:[-.19,-.78],chou:[-.2,-.84],tori:[-.2,-.84],inu:[-.3,-.98],hebi:[-.22,-.92],koumori:[-.19,-.84]};
+const BODYPOS={camera:[-.33,-.8],netsu:[-.3,-.72],hachi:[-.3,-.98],chou:[-.3,-.98],tori:[-.2,-.84],inu:[-.3,-.98],hebi:[-.22,-.92],koumori:[-.19,-.84]};
 // 切り替えた直後の「寄り」（ry＝横へ回す・rx＝手前へ傾けて背を見せる・y z＝寄せる位置・s＝大きさの倍率）
 const SHOW={camera:{ry:.9,rx:.1,y:-.2,z:-.62,s:1.25},netsu:{ry:.9,rx:.15,y:-.16,z:-.6,s:1.0},def:{ry:1.2,rx:0,y:-.13,z:-.52,s:1.35},hachi:{ry:1.35,rx:.12,y:-.1,z:-.44,s:1.9},tori:{ry:1.3,rx:.1,y:-.2,z:-.48,s:1.2},chou:{ry:1.0,rx:.35,y:-.12,z:-.5,s:1.45},inu:{ry:1.25,rx:.05,y:-.15,z:-.55,s:1.35},hebi:{ry:.55,rx:.85,y:-.12,z:-.5,s:1.8},koumori:{ry:.4,rx:.55,y:-.05,z:-.82,s:1.0}};
 // 自分の体の質感（森の生きものと共有している質感は、透かさない）
