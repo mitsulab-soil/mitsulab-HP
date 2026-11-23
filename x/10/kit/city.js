@@ -9,6 +9,7 @@
    使い方：const C = buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }); 毎こま C.update(t, dt)。C.blocked(x, z, pad)・C.SPAWN・C.bounds。 */
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { groundMura, wallMura } from "./surface.js?v=1";   // 2026-11-23 夜：敷石・壁の柄のくり返しとのっぺりを、世界の位置のむらで消す
 
 export const SPAWN = { x: 5.9, z: 13, yaw: 0 };   // 東側の歩道。北（−z）の交差点を向く
 const ROAD = 3.5, WALK = 8.5;                       // 車道の半幅（片側 1 車線＋路肩）・歩道の外の線
@@ -27,10 +28,10 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
   // ---------------------------------------------------------------- 路面（アスファルト）
   const asph = tx("city_asphalt.webp", 1, 1), asphN = tx("city_asphalt_n.webp", 1, 1, false);
   { const S = 180, g = new THREE.PlaneGeometry(S, S, 1, 1); g.rotateX(-Math.PI / 2); const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * S / 4, uv.getY(i) * S / 4);
-    add(new THREE.Mesh(g, M(0xb4b2ac, { std: true, map: asph, nmap: asphN, ns: .8, rough: .93, env: .25, uv: .04, temp: .5, echo: .6 })), { cast: false, hit: true }); }
+    add(new THREE.Mesh(g, groundMura(M(0xb4b2ac, { std: true, map: asph, nmap: asphN, ns: .8, rough: .93, env: .25, uv: .04, temp: .5, echo: .6 }), .8)), { cast: false, hit: true }); }
   // 歩道（コンクリートの平板）：車道より 3 cm 高く、縁石（15 cm）で区切る
   const pav = tx("city_pavers.webp", 1, 1), pavN = tx("city_pavers_n.webp", 1, 1, false);
-  const walkM = M(0xfff8ee, { std: true, map: pav, nmap: pavN, ns: .9, rough: .9, env: .3, uv: .22, temp: .35, echo: .7 });
+  const walkM = groundMura(M(0xfff8ee, { std: true, map: pav, nmap: pavN, ns: .9, rough: .9, env: .3, uv: .22, temp: .35, echo: .7 }));
   const walks = [];
   const walkRect = (x0, x1, z0, z1) => { const w = x1 - x0, d = z1 - z0, g = new THREE.PlaneGeometry(w, d); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, .03, (z0 + z1) / 2);
     const p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / 1.6, p.getZ(i) / 1.6); walks.push(g); };
@@ -69,14 +70,24 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
   // ---------------------------------------------------------------- 建物
   const facade = tx("city_facade.webp", 1, 1);   // 窓 13 列 × 8 階（1 枚＝幅 20.8 m・高さ 27.2 m）
   const tints = [0xf1ece2, 0xd8d2c6, 0xc2c6ca, 0xe6dccb, 0xb9b3a8, 0xdcd8d0];
-  const bodyM = tints.map(c => M(c, { std: true, map: facade, rough: .55, metal: .1, env: .8, uv: .2, temp: .25, echo: .95 }));
+  const bodyM = tints.map(c => wallMura(M(c, { std: true, map: facade, rough: .32, metal: .15, env: 1.1, uv: .2, temp: .25, echo: .95 })));   // 窓に空が映る
+  // 三つめ・四つめの外壁（画面の中で描いた模式）：ガラスのカーテンウォールのオフィス／白い住宅（各階のバルコニーの手すり）
+  const glassTex = canvasTex(256, 256, (g, w, h) => { for (let y = 0; y < h; y += 32) { const gr = g.createLinearGradient(0, y, 0, y + 32); gr.addColorStop(0, "#5f7a8c"); gr.addColorStop(.7, "#2e4352"); gr.addColorStop(1, "#22323d"); g.fillStyle = gr; g.fillRect(0, y, w, 32); }
+    g.fillStyle = "#9aa3a8"; for (let x = 0; x < w; x += 32) g.fillRect(x, 0, 2, h); for (let y = 0; y < h; y += 32) g.fillRect(0, y + 28, w, 4);
+    for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(255,236,200,${Math.random() * .12})`; g.fillRect(((Math.random() * 8) | 0) * 32 + 2, ((Math.random() * 8) | 0) * 32, 30, 28); } });
+  const glassM = [0xffffff, 0xdfe8ee].map(c => M(c, { std: true, map: glassTex, rough: .08, metal: .55, env: 1.4, uv: .03, temp: .2, echo: .95 }));
+  const resTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = "#ece9e2"; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 64) { g.fillStyle = "#3b4752"; for (let x = 8; x < w; x += 64) g.fillRect(x, y + 8, 48, 38); g.fillStyle = "rgba(200,215,225,.35)"; for (let x = 8; x < w; x += 64) g.fillRect(x + 4, y + 10, 18, 34);
+      g.fillStyle = "#d8d4cb"; g.fillRect(0, y + 40, w, 18); g.fillStyle = "rgba(90,90,90,.5)"; for (let x = 0; x < w; x += 6) g.fillRect(x, y + 40, 2, 18); g.fillStyle = "#c4beb2"; g.fillRect(0, y + 56, w, 3); }
+    for (let i = 0; i < 18; i++) { g.fillStyle = ["#7d8c6a", "#c9a89a", "#9fb4c8", "#e4dccf"][i % 4]; g.fillRect(Math.random() * w, ((Math.random() * 4) | 0) * 64 + 42, 10, 12); } });   // 洗濯物・植木鉢の色
+  const resM = [0xffffff, 0xf2ebe0].map(c => wallMura(M(c, { std: true, map: resTex, rough: .75, env: .5, uv: .25, temp: .28, echo: .95 })));
   // 二つめの外壁：タイル張りの壁に横長の窓（日本の中層の雑居ビルによくある形）
   const tileTex = canvasTex(256, 256, (g, w, h) => {
     g.fillStyle = "#c9b79c"; g.fillRect(0, 0, w, h);
     for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 8) { const l = 175 + Math.random() * 40; g.fillStyle = `rgb(${l},${l * .9 | 0},${l * .76 | 0})`; g.fillRect(x + ((y / 4) % 2) * 4, y, 7, 3); }
     for (const y0 of [36, 164]) { const gr = g.createLinearGradient(0, y0, 0, y0 + 56); gr.addColorStop(0, "#3d4c58"); gr.addColorStop(.55, "#6f8290"); gr.addColorStop(1, "#2b3640"); g.fillStyle = gr; g.fillRect(0, y0, w, 56); g.fillStyle = "#d9d6cf"; for (let x = 0; x < w; x += 64) g.fillRect(x, y0, 4, 56); g.fillRect(0, y0 + 54, w, 4); }
   });
-  const tileM = [0xffffff, 0xe7ddd0, 0xd7dde0].map(c => M(c, { std: true, map: tileTex, rough: .7, env: .5, uv: .15, temp: .28, echo: .95 }));
+  const tileM = [0xffffff, 0xe7ddd0, 0xd7dde0].map(c => wallMura(M(c, { std: true, map: tileTex, rough: .7, env: .5, uv: .15, temp: .28, echo: .95 })));
   const roofM = M(0x8d8b86, { std: true, rough: .95, env: .2, uv: .2, temp: .55, echo: .9 });
   const darkM = M(0x3c3f43, { std: true, rough: .6, metal: .3, env: .5, uv: .05, temp: .3, echo: .9 });
   // 一階の店先（ガラスの店先・庇・看板）。字は一般の名詞だけ
@@ -90,10 +101,11 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     g.fillStyle = "rgba(0,0,0,.25)"; g.fillRect(0, 56, w, 4);
   }));
   const shopM = shopTex.map(t => M(0xffffff, { std: true, map: t, rough: .25, metal: .05, env: 1, uv: .03, temp: .3, echo: .9 }));
-  const bld = [];
+  const bld = [], fronts = [];
   const building = (cx, cz, w, d, h, face) => {   // face＝通りに向いた面（+x・−x・+z・−z）
-    const kind = R(), M0 = kind < .62 ? bodyM[(R() * bodyM.length) | 0] : tileM[(R() * tileM.length) | 0], tile = M0.map === tileTex;
-    const g = new THREE.BoxGeometry(w, h - 3.6, d), uv = g.attributes.uv, TW = tile ? 8 : 20.8, TH = tile ? 7 : 27.2;
+    const kind = R(), M0 = kind < .38 ? bodyM[(R() * bodyM.length) | 0] : kind < .62 ? tileM[(R() * tileM.length) | 0] : kind < .8 ? glassM[(R() * glassM.length) | 0] : resM[(R() * resM.length) | 0];
+    const tile = M0.map === tileTex || M0.map === glassTex || M0.map === resTex, TWx = M0.map === tileTex ? 8 : M0.map === glassTex ? 9 : M0.map === resTex ? 12 : 20.8, THx = M0.map === tileTex ? 7 : M0.map === glassTex ? 9.6 : M0.map === resTex ? 12 : 27.2;
+    const g = new THREE.BoxGeometry(w, h - 3.6, d), uv = g.attributes.uv, TW = TWx, TH = THx; void tile;
     for (let f = 0; f < 6; f++) { const [a, b] = f < 2 ? [d, h - 3.6] : f < 4 ? [w, d] : [w, h - 3.6]; for (let k = 0; k < 4; k++) { const i = f * 4 + k; if (f === 2 || f === 3) uv.setXY(i, .012, .005); else uv.setXY(i, uv.getX(i) * a / TW, uv.getY(i) * b / TH); } }
     g.translate(cx, 3.6 + (h - 3.6) / 2, cz); bld.push([g, M0]);
     // 屋上の手すり壁と室外機
@@ -107,7 +119,7 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     const nx = face === "+x" ? 1 : face === "-x" ? -1 : 0, nz = face === "+z" ? 1 : face === "-z" ? -1 : 0, ex = cx + nx * (w / 2), ez = cz + nz * (d / 2);
     { const pw = nx ? d - .3 : w - .3, pg = new THREE.PlaneGeometry(pw, 3.6); pg.rotateY(Math.atan2(nx, nz)); pg.translate(ex + nx * .02, 1.8, ez + nz * .02); bld.push([pg, sh]); }
     const aw = new THREE.BoxGeometry(nx ? .9 : w * .9, .08, nz ? .9 : d * .9); aw.translate(ex + nx * .45, 3.3, ez + nz * .45); bld.push([aw, darkM]);
-    block(cx - w / 2 - .15, cx + w / 2 + .15, cz - d / 2 - .15, cz + d / 2 + .15);
+    block(cx - w / 2 - .15, cx + w / 2 + .15, cz - d / 2 - .15, cz + d / 2 + .15); fronts.push([cx, cz, w, d, face]);
   };
   // 南北の通りに面した列（交差点の四つの角から外へ）
   for (const sx of [1, -1]) for (const [z0, z1, dir] of [[XZ1 + 4, FAR - 20, 1], [XZ0 - 4, -FAR, -1]]) {
@@ -117,8 +129,34 @@ export function buildCity({ M, tx, canvasTex, group, pick, sonic, mobile }) {
   for (const sx of [1, -1]) for (const [zc, face] of [[XZ1 + 4, "-z"], [XZ0 - 4, "+z"]]) {
     let x = WALK + 17; while (x < FAR - 10) { const w = rr(8, 14), h = rr(10, 30), dep = rr(10, 14); building(sx * (x + w / 2), zc + (face === "-z" ? dep / 2 : -dep / 2), w, dep, h, face); x += w + rr(.3, 1.2); }
   }
+  // 袖看板（ビルの角から通りへ突き出す縦長の看板。字は一般の名詞）と、歩道の植え込み
+  { const words = ["喫茶", "整体", "英会話", "居酒屋", "写真", "美容室", "古書", "ギャラリー", "学習塾", "眼科"], ST = words.map((wd, i) => canvasTex(64, 256, (g, w, h) => { const bgc = ["#f4f1ea", "#1f3a5a", "#7a1f1f", "#ffffff", "#2d4a2f"][i % 5]; g.fillStyle = bgc; g.fillRect(0, 0, w, h); g.fillStyle = bgc === "#f4f1ea" || bgc === "#ffffff" ? "#2a2a2a" : "#fff"; g.font = "600 40px 'Hiragino Mincho ProN','Yu Mincho',serif"; g.textAlign = "center"; [...wd].forEach((c, k) => g.fillText(c, w / 2, 48 + k * 46)); g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 4; g.strokeRect(2, 2, w - 4, h - 4); }));
+    const SM = ST.map(t => M(0xffffff, { std: true, map: t, rough: .4, env: .6, uv: .3, temp: .35, echo: .9 })), sg = new Map();
+    let k = 0; for (const [cx, cz, w, d, face] of fronts) { if (R() < .45) continue; const nx = face === "+x" ? 1 : face === "-x" ? -1 : 0, nz = face === "+z" ? 1 : face === "-z" ? -1 : 0, along = nx ? [0, 1] : [1, 0], off = (R() - .5) * (nx ? d : w) * .7, h0 = 4.6 + R() * 3;
+      const g = new THREE.BoxGeometry(nx ? .55 : .12, 2.2, nx ? .12 : .55); g.translate(cx + nx * ((nx ? w : 0) / 2 + .3) + along[0] * off, h0, cz + nz * ((nz ? d : 0) / 2 + .3) + along[1] * off);
+      const m = SM[k++ % SM.length]; (sg.get(m) || sg.set(m, []).get(m)).push(g); }
+    for (const [m, L] of sg) add(new THREE.Mesh(mergeGeometries(L), m), { hit: false });
+    // 植え込み（ツツジのような低木。歩道の車道側、木と木のあいだ）
+    const shrubT = tx("leaf_cluster.webp", 1, 1); shrubT.wrapS = shrubT.wrapT = THREE.ClampToEdgeWrapping;
+    const shM = M(0xffffff, { std: true, map: shrubT, alphaTest: .45, side: THREE.DoubleSide, rough: .7, env: .4, uv: .04, temp: .1, echo: .3, wind: .02, windH: 1 }), cg = new THREE.PlaneGeometry(.38, .38); cg.translate(0, .19, 0);
+    const beds = []; for (const sx of [1, -1]) for (let z = -FAR + 9; z < FAR - 26; z += 10) if (!inCross(z) && Math.abs(z - SPAWN.z) > 3) beds.push([sx * 4.35, z + (sx > 0 ? 0 : 5)]);
+    const per = mobile ? 70 : 140, im = new THREE.InstancedMesh(cg, shM, beds.length * per), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), col = new THREE.Color(), curbG = []; let i = 0;
+    for (const [bx, bz] of beds) { curbG.push(geoAt(new THREE.BoxGeometry(.7, .32, 3.4), { x: bx, y: .16, z: bz })); block(bx - .4, bx + .4, bz - 1.8, bz + 1.8);
+      for (let j = 0; j < per; j++, i++) { const x = bx + (R() - .5) * .62, z = bz + (R() - .5) * 3.2, y = .3 + Math.pow(R(), .7) * .55; e.set((R() - .5) * 1.4, R() * TAU, (R() - .5) * 1.4); q.setFromEuler(e); const sc = .7 + R() * .6; m4.compose(new THREE.Vector3(x, y, z), q, new THREE.Vector3(sc, sc, sc)); im.setMatrixAt(i, m4); im.setColorAt(i, col.setHSL(.27 + R() * .06, .35, .22 + R() * .12)); } }
+    add(im, { cast: !mobile, snd: false }); add(new THREE.Mesh(mergeGeometries(curbG), M(0xb9b4aa, { std: true, map: pav, rough: .85, env: .3, uv: .25, temp: .3, echo: .9 })));
+  }
+  // 路面の汚れと水たまり（雨のあとの浅いくぼみ。空が映る）
+  { const stainT = canvasTex(128, 128, (g, w, h) => { const gr = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2); gr.addColorStop(0, "rgba(20,20,18,.35)"); gr.addColorStop(1, "rgba(20,20,18,0)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(30,28,25,${Math.random() * .15})`; g.beginPath(); g.arc(Math.random() * w, Math.random() * h, 2 + Math.random() * 8, 0, TAU); g.fill(); } });
+    const pud = canvasTex(128, 128, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = "#fff"; g.beginPath(); for (let a = 0; a <= TAU + .01; a += .2) { const r = 40 + 14 * Math.sin(a * 3 + 1) + 8 * Math.sin(a * 7); a ? g.lineTo(w / 2 + Math.cos(a) * r, h / 2 + Math.sin(a) * r * .7) : g.moveTo(w / 2 + r, h / 2); } g.fill(); });
+    const sm = new THREE.MeshBasicMaterial({ map: stainT, transparent: true, depthWrite: false }), pm = M(0x2b2e31, { std: true, alphaMap: null, rough: .02, metal: 0, env: 1.6, transparent: true, uv: .1, temp: .2, echo: .95 }); pm.alphaMap = pud; pm.depthWrite = false;
+    const sgs = [], pgs = [];
+    for (let i = 0; i < (mobile ? 18 : 34); i++) { const ns = R() < .5, x = ns ? rr(-3, 3) : rr(-FAR + 10, FAR - 10), z = ns ? rr(-FAR + 5, FAR - 25) : rr(XZ0 + .3, XZ1 - .3), s = rr(1, 3.2), g = new THREE.PlaneGeometry(s, s * rr(.6, 1.4)); g.rotateX(-Math.PI / 2); g.rotateY(R() * TAU); g.translate(x, .008, z); sgs.push(g); }
+    for (let i = 0; i < (mobile ? 5 : 9); i++) { const x = (R() < .5 ? 1 : -1) * rr(2.4, 3.1), z = rr(-FAR + 8, FAR - 28); if (inCross(z)) continue; const s = rr(.9, 1.8), g = new THREE.PlaneGeometry(s * 1.4, s); g.rotateX(-Math.PI / 2); g.translate(x, .01, z); pgs.push(g); }
+    const st = new THREE.Mesh(mergeGeometries(sgs), sm); st.renderOrder = 1; group.add(st);
+    if (pgs.length) { const pu = new THREE.Mesh(mergeGeometries(pgs), pm); pu.renderOrder = 1; pu.receiveShadow = true; group.add(pu); }
+  }
   // 遠くの高い建物（通りの奥の見通し。歩いては行けない）
-  for (let i = 0; i < (mobile ? 6 : 12); i++) { const sx = R() < .5 ? 1 : -1, x = sx * rr(10, 40), z = rr(-FAR - 20, -FAR) * (R() < .3 ? -1 : 1) - (R() < .3 ? 0 : 0); const w = rr(14, 24), h = rr(30, 60), g = new THREE.BoxGeometry(w, h, w), uv = g.attributes.uv; for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) { const j = f * 4 + k; uv.setXY(j, uv.getX(j) * w / 20.8, uv.getY(j) * h / 27.2); } g.translate(x, h / 2, z); bld.push([g, bodyM[i % bodyM.length]]); }
+  for (let i = 0; i < (mobile ? 12 : 26); i++) { const sx = R() < .5 ? 1 : -1, x = sx * rr(10, 40), z = rr(-FAR - 20, -FAR) * (R() < .3 ? -1 : 1) - (R() < .3 ? 0 : 0); const w = rr(14, 24), h = rr(30, 60), g = new THREE.BoxGeometry(w, h, w), uv = g.attributes.uv; for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) { const j = f * 4 + k; uv.setXY(j, uv.getX(j) * w / 20.8, uv.getY(j) * h / 27.2); } g.translate(x, h / 2, z); bld.push([g, bodyM[i % bodyM.length]]); }
   { const byM = new Map(); for (const [g, m] of bld) { const L = byM.get(m) || byM.set(m, []).get(m); L.push(g.index ? g.toNonIndexed() : g); }
     for (const [m, L] of byM) add(new THREE.Mesh(mergeGeometries(L), m), { hit: false }); }
 

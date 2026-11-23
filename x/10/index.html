@@ -10,7 +10,7 @@
 <link rel="icon" href="favicon/icon.svg" type="image/svg+xml">
 <script>if (/[?&](ws|plate)=/.test(location.search)) location.replace("studio.html" + location.search);</script>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t1"><link rel="modulepreload" href="forest.js?v=20261120r">
+<link rel="modulepreload" href="vendor/three/build/three.module.js"><link rel="modulepreload" href="touch.js?v=t1"><link rel="modulepreload" href="forest.js?v=20261123n">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
 .pick{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));display:flex;gap:6px;justify-content:center;padding:0 16px;flex-wrap:nowrap}
@@ -52,7 +52,7 @@ body.near #bLeave,body.near #bStl{display:inline-block}
 </div></details>
 <div class="feel" id="feel" aria-live="off"></div>
 <div class="cap" id="cap">木の幹、石、苔、土。近づいて、指でなぞってみる。</div>
-<div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">森</button><!-- 浜（kit/shore.js）は、sight・hear の浜の地面と海が良くなってから札を出す（touch.js の浜のものは残してある） --><button data-place="city" aria-pressed="false">都市</button></div>
+<div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">森</button><button data-place="shore" aria-pressed="false">浜</button><button data-place="city" aria-pressed="false">都市</button></div>
 <div class="pick" role="group" aria-label="触れるもの" id="pick"></div>
 <div class="bar" role="group" aria-label="操作"><button id="bLeave">はなれる</button><button id="bStl">形を保存</button><button id="bGo">外へ</button></div>
 <div class="away" id="away" role="dialog" aria-label="外へ"><p>画面を閉じて、近くの木の幹に、手のひらを当ててみてください。<br>それから、石にも。<br>どちらが、ひんやりしますか。</p><button id="bBack">画面にもどる</button></div>
