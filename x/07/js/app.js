@@ -37,7 +37,7 @@ camera.position.set(0, 4.2, camDist());
 const controls = new OrbitControls(camera, cv);
 controls.target.set(0, 3.1, 0); controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 4; controls.maxDistance = 18;
 controls.maxPolarAngle = Math.PI * .53; controls.minPolarAngle = Math.PI * .22; controls.autoRotate = !RM; controls.autoRotateSpeed = .18; controls.rotateSpeed = .6;
-const atm = applyAtmosphere(renderer, scene, "aoi_hour"); renderer.toneMappingExposure = 1.6;  /* 2026-11-23 森が暗く沈む → 少し明るく */
+const atm = applyAtmosphere(renderer, scene, "aoi_hour"); renderer.toneMappingExposure = 1.6; scene.add(new THREE.HemisphereLight(0xc4d6e6, 0x1c1a14, 0.55));  /* 2026-11-23 樹冠が暗い → 空からの淡い光を足す */  /* 2026-11-23 森が暗く沈む → 少し明るく */
 
 // ---- 写実の地：雑木林の空き地（CC0 の写真の質感）
 const manager = new THREE.LoadingManager();

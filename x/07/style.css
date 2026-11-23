@@ -248,3 +248,4 @@ body:has(.away:not([hidden])) .tip{visibility:hidden}
 /* 2026-11-23 一覧の題の末尾が一字だけ落ちないように・PC の入口をさらに大きく */
 .list button{text-wrap:pretty}
 @media (min-width:900px){.near-sound-points button{min-width:140px;min-height:64px;font-size:21px}#nearSoundPrompt{font-size:17px}}
+@media (min-width:900px) and (pointer:fine){.out-ear{font-size:17px!important;letter-spacing:.1em}.sheet{width:min(860px,calc(100vw - 64px))}.list button{font-size:18px;padding:14px 6px}.list button span{font-size:.8rem}}/* 2026-11-23 PC の一覧の字・耳を向ける一行を大きく */
