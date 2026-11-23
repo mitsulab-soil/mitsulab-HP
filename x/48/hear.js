@@ -111,7 +111,7 @@ export function start(canvas) {
     aoi.traverse(o=>{if(o.isMesh){o.material=[].concat(o.material).map(m=>{const n=new THREE.MeshStandardMaterial({map:m.map||null,color:m.color?.clone()||new THREE.Color(0xffffff),side:m.side,transparent:m.transparent,alphaTest:m.alphaTest||0,roughness:.85});n.name=m.name;if(/SKIN/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.24,.2,.19);n.roughness=.7;}else if(/EYE|FACE/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.45,.45,.45);}else if(/HAIR/i.test(m.name)){n.roughness=.62;}/* 2026-10-15：肌は光の当たらない側も少し透けて明るく（MToon から写すと顔が暗く沈んでいた）・目は暗くしない *//* 2026-10-27 熱の見え方（マムシ）：肌は温かく、衣は体温をさえぎって表面がぬるく、髪はさらに低い（人の赤外線の像で、顔と手が明るく衣が暗いのと同じ）。目は肌と同じ温度にして、光る点にしない */prep(n,{uv:.04,temp:/EYE/i.test(m.name)?.3:/SKIN|FACE|MOUTH|BROW/i.test(m.name)?.55:/HAIR/i.test(m.name)?.22:.38,echo:1});return n;});if(o.material.length===1)o.material=o.material[0];}});
     // 立つ所：見ている向きの右手前、草地の縁（スマホは画面のまん中寄り）
     const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-    const P = eye.clone().setY(0).addScaledVector(fw, nar ? 6.8 : 4.4).addScaledVector(rt, nar ? .7 : 1.7);
+    const P = eye.clone().setY(0).addScaledVector(fw, nar ? 9.5 : 5).addScaledVector(rt, nar ? .9 : 1.5);
     aoi.position.copy(P);
     AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .3, startCalm: 2.2, posture: "natural", uprightWeight: .25, faceLight: .6 });
     AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z));

@@ -8,7 +8,7 @@
 <title>Qualia/hear ── 聞こえない音を聞く</title>
 <meta name="description" content="聞こえない音を聞く。マイクで拾った高い音を、聴こえる高さへ移して聴く。コウモリの声のように録れない高さは、聴こえる高さに移した模式で。">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js?v=m1","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
-<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1"><link rel="modulepreload" href="hear.js?v=h3"><link rel="modulepreload" href="forest.js?v=20261120r">
+<link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1"><link rel="modulepreload" href="hear.js?v=h4"><link rel="modulepreload" href="forest.js?v=20261120r">
 <link rel="stylesheet" href="kit/qui.css?v=1">
 <style>
 .spec{position:fixed;left:50%;transform:translateX(-50%);top:calc(max(10px,env(safe-area-inset-top)) + 58px);width:min(460px,calc(100% - 32px));height:76px;pointer-events:none;background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(240,244,242,.7),rgba(240,244,242,.15) 80%);border-radius:2px;padding:4px 8px}
@@ -67,7 +67,7 @@ $('bBat').onclick = () => { if (!mod) return; ensure(); if (batT) { clearInterva
   const go = () => { S.batCall(); V && V.pulse(); navigator.vibrate && navigator.vibrate(8); }; go(); batT = setInterval(go, 900);
   $('bBat').setAttribute('aria-pressed', true); $('cap').textContent = 'コウモリの声を、時間を 10 倍にのばし、高さを 10 分の 1 にした模式。ほんとうは、この 1 回が数ミリ秒。'; };
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./hear.js?v=h3').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
+import('./hear.js?v=h4').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
 </body>
