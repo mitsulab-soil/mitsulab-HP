@@ -11,7 +11,7 @@ import { TouchModel, Vibe, Sonic, SIZE_MM, FORCE_MAX, buildSTL } from "./haptics
 import { SOUNDS } from "./sounds.js?v=20261021";
 import { loadGeometry, OBJECTS, baseGeometry } from "./objects.js?v=20261121r";
 // 海辺と都市は、Qualia/sight・hear と同じ共通の部品の写し（mitsulab-HP 516ca17 の x/48/kit）。新しい版が出たら kit/shore.js・kit/city.js（と kit/touch_objects.js・tex）を差し替えるだけで入る
-import { buildShore, clearForest, shoreX } from "./kit/shore.js?v=20261123n";
+import { buildShore, clearForest, shoreX } from "./kit/shore.js?v=20261123p";
 
 const U = { uTime: { value: 0 } };
 function prep(m, o = {}) {
@@ -156,6 +156,7 @@ export function start(canvas, ui) {
   // ---- 浜：森のはしの砂浜に立ち、海の方を見る（砂・貝殻・流木・磯の岩）
   const SP = {}; SP.forest = { eye: eye.clone(), yaw, pitch };
   { const z0 = 5.5, x0 = shoreX(z0) - 6.2; SP.shore = { eye: new THREE.Vector3(x0, 1.55, z0), yaw: -Math.PI / 2 - .12, pitch: -.2 } }
+  { const G = SHORE?.grass, e = SP.shore.eye; if (G) { const m4 = new THREE.Matrix4(), Z = new THREE.Matrix4().makeScale(0, 0, 0); for (let i = 0; i < G.count; i++) { G.getMatrixAt(i, m4); if (Math.hypot(m4.elements[12] - e.x, m4.elements[14] - e.z) < 3.2) G.setMatrixAt(i, Z); } G.instanceMatrix.needsUpdate = true; } }   // 2026-11-23 夜：目の前の草を抜く（太い黒い線が字に重ならない）
   const sandY = (x, z) => { const d = shoreX(z) - x; return d > 0 ? .03 + Math.min(.25, d * .025) * Math.min(1, (x - 30) / 8) : .03 + d * .045; };   // kit/shore.js の砂と同じ高さ（2026-11-23 夜 水ぎわに段なし）
   const sAt = (f, r) => { const e = SP.shore.eye, yw = SP.shore.yaw, F = new THREE.Vector3(-Math.sin(yw), 0, -Math.cos(yw)), Rt = new THREE.Vector3(Math.cos(yw), 0, -Math.sin(yw)); const P = e.clone().setY(0).addScaledVector(F, f).addScaledVector(Rt, r); P.y = sandY(P.x, P.z); return P; };
   const toward = (P, E) => E.clone().setY(0).sub(P.clone().setY(0)).normalize();
@@ -188,10 +189,10 @@ export function start(canvas, ui) {
     m.updateMatrixWorld(true); const c = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3());
     add("drift", m, new THREE.Vector3(c.x, P.y + r * 1.7, c.z), new THREE.Vector3(0, 1, 0).addScaledVector(toward(P, SP.shore.eye), .9)); void pa; }
   // 磯の岩（波打ち際）
-  { const P = sAt(4.8, 1.4), g = baseGeometry("stone"); g.scale(1.25, 1.1, 1.25);   // 波に削られた角ばった面と、ごつごつした割れ目
+  { const P = sAt(5.6, -.9), g = baseGeometry("stone");   /* 碧の立つ所（スマホ 4.6・.7／PC 3.2・2.2）と重ならない、左奥 */ g.scale(1.25, 1.1, 1.25);   // 波に削られた角ばった面と、ごつごつした割れ目
     { const pa = g.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < pa.count; i++) { v.fromBufferAttribute(pa, i); const f = 1 + .12 * Math.round(Math.sin(v.x * 7.1 + v.z * 3.3) * 2.2) / 2.2 + .05 * Math.sin(v.y * 23 + v.x * 11) * Math.sin(v.z * 19) - .08 * Math.max(0, Math.sin(v.x * 4 - v.z * 6 + 1) ) ** 6; pa.setXYZ(i, v.x * f, v.y * (.9 + .1 * f), v.z * f); } g.computeVertexNormals(); } const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xa9a59c, map: photoTex("rock_surface.webp", 3, 1.5), normalMap: tx("rock_surface_n.webp", 3, 1.5, false), normalScale: new THREE.Vector2(1.6, 1.6), roughness: .55, envMapIntensity: .6 }));
-    m.position.set(P.x, P.y - .1, P.z); m.rotation.y = 1.9; m.userData.rep = [30, 15]; m.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(m), tE = toward(P, SP.shore.eye);
-    add("isorock", m, new THREE.Vector3(P.x, b.max.y * .8 + (P.y - .1) * .2, P.z).addScaledVector(tE, .28), tE.clone().multiplyScalar(.6).add(new THREE.Vector3(0, .8, 0))); }
+    m.position.set(P.x, P.y - .26, P.z); m.rotation.y = 1.9; /* 2026-11-23 夜：砂に沈めて浮かせない・スマホで右端に切れない位置へ */ m.userData.rep = [30, 15]; m.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(m), tE = toward(P, SP.shore.eye);
+    add("isorock", m, new THREE.Vector3(P.x, b.max.y * .8 + (P.y - .26) * .2, P.z).addScaledVector(tE, .28), tE.clone().multiplyScalar(.6).add(new THREE.Vector3(0, .8, 0))); }
 
   // ---- 手ごたえ（haptics.js）
   const model = new TouchModel(), vibe = new Vibe(), snd = new Sonic(SOUNDS); snd.lag = vibe.ok ? .012 : 0;
@@ -290,7 +291,7 @@ export function start(canvas, ui) {
     if (place === "shore") P.y = sandY(P.x, P.z); aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(sp.eye.x - P.x, sp.eye.z - P.z)); }
   // ---- 場所の切りかえ（森／浜／都市）。都市（kit/city.js）は切りかえたときに組む
   async function setPlace(p) { if (p === place && mode === "walk") return;
-    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123n").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick: [], sonic: [], mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123p").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick: [], sonic: [], mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
         SP.city = { eye: new THREE.Vector3(7.25, 1.55, 9.2), yaw: .05, pitch: -.22 };
         const waitRope = () => new Promise(ok => { const k = () => CITY.rope || city.getObjectByName("落とし物の結び目") ? ok(CITY.rope || city.getObjectByName("落とし物の結び目")) : setTimeout(k, 50); k(); });
         return waitRope().then(rope => { rope.updateMatrixWorld(true); rope.userData.rep = [1.5, 1.5]; rope.material = ropeMat(); const b = new THREE.Box3().setFromObject(rope), c = b.getCenter(new THREE.Vector3());
