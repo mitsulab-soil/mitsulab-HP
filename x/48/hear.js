@@ -96,6 +96,28 @@ export function start(canvas) {
   addEventListener("pointerup", () => { drag = null; });
   // 夕方の空を飛ぶアブラコウモリ（翼を広げて約 20 cm。sight の造形。見やすく 2 倍）
   const bats = []; for (let k = 0; k < 3; k++) { const inner = makeBat(), b = new THREE.Group(); b.add(inner); const bb = new THREE.Box3().setFromObject(inner), sz = bb.getSize(new THREE.Vector3()); b.scale.setScalar(.4 / Math.max(sz.x, sz.z, .001)); forest.add(b); bats.push({ b, inner, ph: k * 2.1, r: 1.3 + k * .8, h: 2.8 + k * .7, sp: .55 + k * .12 }); }
+
+  // 碧（sight と同じ 3D・共通部品 AoiMotion。2026-11-23 本人「hear にも碧を表示して」）。森と操作を先に出し、碧はあとから読む。組み終えてから場面に入れる（透けて出ない）
+  let AM = null, aoi = null; const AOI_H = 1.62;
+  setTimeout(async () => { try {
+    const [{ GLTFLoader }, { MeshoptDecoder }, V, { AoiMotion }] = await Promise.all([import("three/addons/loaders/GLTFLoader.js"), import("three/addons/libs/meshopt_decoder.module.js"), import("@pixiv/three-vrm"), import("./kit/aoi_motion.js")]);
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder); loader.register(p => new V.VRMLoaderPlugin(p));
+    const g = await loader.loadAsync("assets/aoi/aoi.vrm"), v = g.userData.vrm;
+    V.VRMUtils.removeUnnecessaryVertices(g.scene); (V.VRMUtils.combineSkeletons ?? V.VRMUtils.removeUnnecessaryJoints)?.(g.scene); V.VRMUtils.rotateVRM0(v);
+    v.scene.traverse(o => { o.frustumCulled = false; if (o.isMesh) o.castShadow = true; });
+    aoi = new THREE.Group(); aoi.add(v.scene);
+    v.humanoid.resetNormalizedPose(); v.update(0); v.scene.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(v.scene), h = box.max.y - box.min.y, sc = h > .5 ? AOI_H / h : 1; v.scene.scale.setScalar(sc); v.scene.position.y = -box.min.y * sc;
+    aoi.traverse(o=>{if(o.isMesh){o.material=[].concat(o.material).map(m=>{const n=new THREE.MeshStandardMaterial({map:m.map||null,color:m.color?.clone()||new THREE.Color(0xffffff),side:m.side,transparent:m.transparent,alphaTest:m.alphaTest||0,roughness:.85});n.name=m.name;if(/SKIN/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.24,.2,.19);n.roughness=.7;}else if(/EYE|FACE/i.test(m.name)){n.emissiveMap=m.map;n.emissive=new THREE.Color(.45,.45,.45);}else if(/HAIR/i.test(m.name)){n.roughness=.62;}/* 2026-10-15：肌は光の当たらない側も少し透けて明るく（MToon から写すと顔が暗く沈んでいた）・目は暗くしない *//* 2026-10-27 熱の見え方（マムシ）：肌は温かく、衣は体温をさえぎって表面がぬるく、髪はさらに低い（人の赤外線の像で、顔と手が明るく衣が暗いのと同じ）。目は肌と同じ温度にして、光る点にしない */prep(n,{uv:.04,temp:/EYE/i.test(m.name)?.3:/SKIN|FACE|MOUTH|BROW/i.test(m.name)?.55:/HAIR/i.test(m.name)?.22:.38,echo:1});return n;});if(o.material.length===1)o.material=o.material[0];}});
+    // 立つ所：見ている向きの右手前、草地の縁（スマホは画面のまん中寄り）
+    const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+    const P = eye.clone().setY(0).addScaledVector(fw, nar ? 6.8 : 4.4).addScaledVector(rt, nar ? .7 : 1.7);
+    aoi.position.copy(P);
+    AM = new AoiMotion(v, { root: aoi, reducedMotion: RM, wind: .3, startCalm: 2.2, posture: "natural", uprightWeight: .25, faceLight: .6 });
+    AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z));
+    try { await R.compileAsync(aoi, cam, S); } catch { }
+    forest.add(aoi); window.__aoi = { v, aoi, AM }; window.__hearAoiAt = performance.now();
+  } catch (e) { console.warn("碧の姿を読み込めませんでした", e?.message ?? e); } }, 400);
   // 音の輪（いま拾っている高い音の強さに応じて、目の前に広がる）
   const ringM = new THREE.MeshBasicMaterial({ color: "#cfe9f0", transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, fog: false });
   const rings = []; for (let i = 0; i < 6; i++) { const r = new THREE.Mesh(new THREE.RingGeometry(.985, 1, 72), ringM.clone()); S.add(r); rings.push({ r, t: i / 6 }); }
@@ -110,6 +132,7 @@ export function start(canvas) {
     cam.getWorldDirection(fwd);
     for (const Rg of rings) { Rg.t = (Rg.t + dt * .35) % 1; const s = .15 + Rg.t * 3.2; Rg.r.scale.setScalar(s); Rg.r.position.copy(cam.position).addScaledVector(fwd, 3.2); Rg.r.quaternion.copy(cam.quaternion); Rg.r.material.opacity = (1 - Rg.t) * Math.min(1, level * 3 + call) * .5; }
     call = Math.max(0, call - dt * .8);
+    if (AM) { AM.faceTo(null); AM.lookAt(level > .05 || call > .2 ? new THREE.Vector3(cx, 3.2, cz) : null); AM.update(dt, cam); }   // 高い音が来ると、碧も空のコウモリの方へ目を向ける
     R.render(S, cam); });
   return { R, S, cam, setLevel(v) { level = v; }, pulse() { call = 1; } };
 }
