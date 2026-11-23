@@ -59,12 +59,13 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { let h = 0; for (const [a, b, A, ph] of W) { const s = Math.sin((a * x + b * y) / n * TAU + ph); h += A * (1 - Math.abs(s)) ; } H[y * n + x] = h; }   // 1−|sin|＝とがった山と丸い谷（水の波の形）
     const im = g.createImageData(n, n), at = (x, y) => H[((y + n) % n) * n + (x + n) % n]; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { const k = (y * n + x) * 4; im.data[k] = Math.max(0, Math.min(255, 128 - (at(x + 1, y) - at(x - 1, y)) * 90)); im.data[k + 1] = Math.max(0, Math.min(255, 128 - (at(x, y + 1) - at(x, y - 1)) * 90)); im.data[k + 2] = 255; im.data[k + 3] = 255; }
     g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(26, 26); t.anisotropy = 8; return t; })();
+  const HZ = new THREE.Color(0x6f8ea0);
   const UW = { uSeaT: { value: 0 }, uHaze: { value: new THREE.Color(0xc8d4dc) } };
   const seaHook = sh => { sh.uniforms.uSeaT = UW.uSeaT; sh.uniforms.uHaze = UW.uHaze;
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform float uSeaT; uniform vec3 uHaze;")
       .replace("#include <fog_fragment>", "float hz_ = smoothstep( 40.0, 460.0, length( vViewPosition ) );\ngl_FragColor.rgb = mix( gl_FragColor.rgb, uHaze, hz_ * .78 );\n#include <fog_fragment>")   // 霧の代わりに、遠くほど空の地平の色へ（水平線がくっきり残る）
       .replace("vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;",
-        "vec3 n1_ = texture2D( normalMap, vNormalMapUv * .23 + vec2( uSeaT * .0021, uSeaT * .0047 ) ).xyz * 2.0 - 1.0;\n" +
+        "vec3 n1_ = texture2D( normalMap, vNormalMapUv * .11 + vec2( uSeaT * .0012, uSeaT * .0026 ) ).xyz * 2.0 - 1.0;\n" +
         "vec3 n2_ = texture2D( normalMap, vNormalMapUv + vec2( -uSeaT * .011, uSeaT * .006 ) ).xyz * 2.0 - 1.0;\n" +
         "vec3 n3_ = texture2D( normalMap, vNormalMapUv * 2.7 + vec2( uSeaT * .019, -uSeaT * .013 ) ).xyz * 2.0 - 1.0;\n" +
         "float fd_ = clamp( length( vViewPosition ) / 140.0, 0.0, 1.0 );\n" +
@@ -75,7 +76,7 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     const p = g.attributes.position, col = [], deep = new THREE.Color(0x0b2a3a), mid = new THREE.Color(0x15505c), shal = new THREE.Color(0x3f8f8a), c = new THREE.Color();
     for (let i = 0; i < p.count; i++) { const u = p.getX(i) + .5, z = p.getZ(i), x = shoreX(z) - .6 + 520 * Math.pow(u, 2.4); p.setX(i, x); p.setY(i, .02);   // 岸の近くほど細かく
       const d = x - shoreX(z), k1 = Math.min(1, Math.max(0, d / 7)), k2 = Math.min(1, Math.max(0, (d - 7) / 60));
-      c.copy(shal).lerp(mid, k1).lerp(deep, k2); col.push(c.r, c.g, c.b, .42 + .58 * Math.min(1, Math.max(0, d / 4.5))); }   // 浅瀬は下の砂が透ける
+      c.copy(shal).lerp(mid, k1).lerp(deep, k2); col.push(c.r, c.g, c.b, Math.min(1, Math.max(0, (d + .6) / 1.4)) * (.42 + .58 * Math.min(1, Math.max(0, d / 4.5)))); }   // 水のはしは透明から始める（砂の上に板の縁を見せない）   // 浅瀬は下の砂が透ける
     g.setAttribute("color", new THREE.Float32BufferAttribute(col, 4)); g.computeVertexNormals();
     const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / 20, p.getZ(i) / 20);
     waveN.repeat.set(1, 1);
@@ -175,7 +176,7 @@ export function buildShore({ M, tx, canvasTex, group, pick, sonic, mobile }) {
     edgeX, blocked(x, z, pad = .3) { if (x > shoreX(z) + .4) return true; for (const [rx, rz, rs] of rocks) if (Math.hypot(x - rx, z - rz) < rs * 1.1 + pad) return true; return false; },
     update(t, dt, cam) {
       for (const f of foams) placeFoam(f, t);
-      UW.uSeaT.value = t; { const sc = root.parent?.parent; if (sc?.fog) UW.uHaze.value.copy(sc.fog.color); }
+      UW.uSeaT.value = t; { const sc = root.parent?.parent; if (sc?.fog) UW.uHaze.value.copy(sc.fog.color).lerp(HZ, .3); }   // 地平は少し青みに寄せ、白く飛ばさない
       for (const G of gulls) { const a = G.ph + t * G.w; G.g.position.set(G.c[0] + Math.cos(a) * G.r, G.h + Math.sin(a * 1.7) * .6, G.c[1] + Math.sin(a) * G.r); G.g.rotation.set(0, -a + Math.PI, Math.sin(a) * .25 + .3);
         const flap = (Math.sin(t * .35 + G.ph) > .55) ? Math.sin(t * 9 + G.ph) * .55 : .06 * Math.sin(t * 1.3);   // ほとんどは翼を広げて滑り、ときどき羽ばたく
         for (const W of G.wings) { W.piv.rotation.z = W.sd * (flap + .12); W.outer.rotation.z = W.sd * (flap * .6 - .38); } }   // カモメの仲間の翼は、肘で上がり手先で下がる（M の字の形）。コウモリの細かな羽ばたきと見分けられる

@@ -8,7 +8,7 @@ import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261120r";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
-import { buildShore, clearForest } from "./kit/shore.js?v=20261123d";
+import { buildShore, clearForest } from "./kit/shore.js?v=20261123e";
 
 const WIND = `
 vec4 mvPosition = vec4( transformed, 1.0 );

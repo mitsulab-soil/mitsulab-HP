@@ -79,7 +79,7 @@ document.querySelectorAll('#place button').forEach(b => b.onclick = async () => 
   document.querySelectorAll('#place button').forEach(c => c.setAttribute('aria-pressed', c === b));
   if (!S || (!S.micOn && !batT)) $('cap').textContent = b.dataset.place === 'city' ? '街灯のまわりを飛ぶコウモリも、ずっと声を出している。人の耳には届かない高さで。' : '浜の上を飛ぶコウモリは、ずっと声を出している。人の耳には届かない高さで。'; });
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
-import('./hear.js?v=h8').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
+import('./hear.js?v=h9').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
 </script>
 <!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
 </body>
