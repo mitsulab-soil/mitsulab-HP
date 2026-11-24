@@ -38,26 +38,27 @@ if (P) {
   S.add(new THREE.HemisphereLight(0xb9cfd8, 0x1a1712, .6)); const kl = new THREE.DirectionalLight(0xf1ece2, .72); kl.position.set(-2.5, 4, 5); S.add(kl); const rim = new THREE.DirectionalLight(0x9fd4e2, .55); rim.position.set(2.5, 3, -4); S.add(rim);
   // 2026-11-21 本人「立っているだけでなく、何かを話し始めて」：章に合わせた短い語り（HP の言葉から・断定しない・音は鳴らさない）
   const EN = () => /^en/.test(document.documentElement.lang || '');
-  const CH = [
-    ['#qStory [data-ly="0"]', '同じ参道でも、見えている世界はひとつではありません。', 'On the same approach, there is more than one world to see.'],
-    ['#qStory [data-ly="2"]', '見ること、聴くことの一部を、いまは計算も担っています。', 'Computation now takes on part of seeing and hearing.'],
-    ['#qStory [data-ly="3"]', 'ミツバチの紫外、コウモリの超音波。ほかの受けとり方へ。', 'A honeybee’s ultraviolet, a bat’s ultrasound: into other ways of receiving.'],
-    ['#qStory [data-ly="5"]', 'わたしは碧。mitsulab の道具の案内役です。', 'I am Aoi, the guide of mitsulab’s tools.'],
-    ['#qStory [data-ly="6"]', '世界と世界のあわいに立って、受けとり方を移しかえます。', 'I stand between worlds and carry one way of receiving into another.'],
-    ['#qStory [data-ly="7"]', 'いつもの景色に戻ると、少しだけ違って見えるかもしれません。', 'Back in the everyday landscape, it may look a little different.'],
-    ['#qloop', '受けとることと、はたらきかけること。その二つがめぐる円です。', 'Receiving and acting upon: a circle where the two turn together.'],
-    ['#top .tp-lab', '道具をひとつ、ひらいてみませんか。画面は入口です。', 'Would you open one of the tools? The screen is only a door.'],
-    ['#top div.nx-b', '道具を、場所へ持っていきます。', 'We take the tools out to a place.'],
-    ['#top .nx-uc', '研究も、道具も、アートも、使う場へめぐっていきます。', 'Research, tools and art all turn toward the places where they are used.'],
-    ['#top .nx-fd', 'mitsulab の代表です。', 'This is the founder of mitsulab.']];
+  // 2026-11-24 本人「碧はスクロールしてもずっと表示・それぞれの項目の説明を語って・途中でやめずにつなげて」：語りの文と声は js/aoi-voice.json（_dev/aoi_voice/build_voice.py の生成物）
+  let CH = [], VO = null, JOIN = 'さて、';
+  fetch('js/aoi-voice.json?v=20261124').then(r => r.json()).then(j => { CH = j.lines || []; VO = j.v || null; JOIN = j.join || JOIN; kick(); }).catch(() => { });
   const END = () => document.querySelector('#qStory [data-ly="7"]') || P; // 本文の広い章（ループ・道具）では文字を読む邪魔になるので、物語の段だけ
   const cap = document.createElement('p'); cap.className = 'aoi-cap'; cap.setAttribute('aria-live', 'off'); cv.after(cap); if (MOB) cap.classList.add('in');
-  let chI = -1, sayAt = 0;
-  function chapter() { if (MOB) return Math.max(0, SLOTS.indexOf(slot)); const H = innerHeight; let k = -1; const n = 6;
-    for (let i = 0; i < n; i++) { const e = document.querySelector(CH[i][0]); if (e && e.getBoundingClientRect().top < H * .62) k = i; } return k; }
-  function say(i) { chI = i; sayAt = performance.now(); if (i < 0) { cap.classList.remove('on'); return; } const t = CH[i][EN() ? 2 : 1]; cap.classList.remove('on');
-    setTimeout(() => { if (chI !== i) return; cap.textContent = t; cap.classList.add('on');
-      if (mot) { const d = Math.min(4.2, 1.2 + t.length * (EN() ? .045 : .11)); try { mot.speak({ text: t, dur: d, autoGesture: false, gesture: RM ? null : [{ t: .5, type: 'beat' }, { t: d * .55, type: 'iconic', shape: 'small-round' }] }); } catch (e) { } } }, 260); }
+    // いま画面にある項目＝上から .62 の線を越えた最後の項目（見えていない項目は数えない）
+  function chapter() { const H = innerHeight; let k = CH.length ? 0 : -1;
+    for (let i = 0; i < CH.length; i++) { const e = document.querySelector(CH[i][0]); if (!e || !e.getClientRects().length) continue; if (e.getBoundingClientRect().top < H * .62) k = i; } return k; }
+  // 話している間は次へ移らない（文は最後まで話す）。話し終えて少し間をあけてから、そのとき画面にある項目へ進む。飛ばしたり戻ったりしたときは「さて、」でつなぐ。同じ項目は続けて語らない
+  const au = new Audio(); au.preload = 'auto'; let busyTill = 0, lastI = -1, curV = null;
+  const micOn = () => typeof mic !== 'undefined' && mic.getAttribute('aria-pressed') === 'true';
+  au.addEventListener('playing', () => { if (curV) busyTill = Math.max(busyTill, performance.now() + curV.dur * 1000 + 800); });
+  au.addEventListener('ended', () => { busyTill = Math.min(busyTill, performance.now() + 800); });
+  function speakLine(i, jump) { const en = EN(), t = CH[i][en ? 2 : 1], shown = jump && !en ? JOIN + t : t, v = VO && !en ? VO[shown] || VO[t] : null;
+    const d = v ? v.dur : 1.4 + t.length * (en ? .06 : .13); lastI = i; curV = v; busyTill = performance.now() + 260 + d * 1000 + 800;
+    cap.classList.remove('on'); setTimeout(() => { if (lastI !== i) return; cap.textContent = v && v === VO[t] ? t : shown; cap.classList.add('on'); }, 260);
+    if (mot) { try { mot.speak({ text: t, dur: Math.min(d, 9), autoGesture: false, gesture: RM ? null : [{ t: .5, type: 'beat' }, { t: d * .55, type: 'iconic', shape: 'small-round' }] }); } catch (e) { } }
+    if (v && micOn()) { try { au.pause(); au.src = v.f; au.currentTime = 0; const pr = au.play(); if (pr) pr.catch(() => { }); } catch (e) { } } }
+  function narrate(k) { if (k < .5 || !CH.length) return; const now = performance.now(); if (now < busyTill) return;
+    const c = chapter(); if (c < 0 || c === lastI) { if (now > busyTill + 3000) cap.classList.remove('on'); return; }
+    speakLine(c, lastI >= 0 && c !== lastI + 1); }
   let aoi = null, mot = null, loading = false;
   async function load() { if (loading) return; loading = true; try {
     const [V, { GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('@pixiv/three-vrm'), import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
@@ -92,15 +93,17 @@ if (P) {
       if (cur <= 0) { const w = Math.max(2, cv.clientWidth || 2), h = Math.max(2, cv.clientHeight || 2); R.setSize(w, h, false); W = w; H = h; cam.aspect = w / h; cam.updateProjectionMatrix(); const ur = U.uRise.value, ua = U.uA.value; U.uRise.value = 2.4; U.uA.value = .85; CLIP.constant = 2.4; if (aoi) aoi.update(0); R.render(S, cam); U.uRise.value = ur; U.uA.value = ua; CLIP.constant = ur; R.clear(); } } catch (e) { }
     kick(); } catch (e) { console.warn('aoi stage', e); } }
   // 進み：段が画面の下から入ると上がり、上へ抜けると下がる
-  function target() { pick(); const r = (document.querySelector('#qStory') || P).getBoundingClientRect(), H = innerHeight; if (!document.getElementById('top').classList.contains('active')) return 0;
-    const e = (MOB ? (SLOTS[SLOTS.length - 1] || END()) : END()).getBoundingClientRect(); const up = (H * .95 - r.top) / (H * .4), down = (e.bottom + H * -.02) / (H * .45); return Math.max(0, Math.min(1, up, down)); }
+  // 2026-11-24 本人「top から碧は表示」：TOP のタブのあいだは冒頭から最後まで出す（読み込みは空き時間に済ませ、最初のこまを遅らせない）
+  function target() { const tp = document.getElementById('top'); if (tp && !tp.classList.contains('active')) return 0; return aoi ? 1 : 0; }
   let cur = 0, raf = 0, last = 0, W = 0, H = 0, visT = 0, visOK = true;
   // 2026-11-23 本人：碧の頭の上にマイクの印。押すと音（TOP の環境音）のオン／オフ。初めはオフ
   const mic = document.createElement('button'); mic.type = 'button'; mic.className = 'aoi-mic'; mic.setAttribute('aria-pressed', 'false');
   const micL = () => { const on = mic.getAttribute('aria-pressed') === 'true'; mic.setAttribute('aria-label', EN() ? (on ? 'Sound on — turn off' : 'Sound off — turn on') : (on ? '音はオン（押すとオフ）' : '音はオフ（押すとオン）')); };
   mic.innerHTML = '<svg viewBox="0 0 46 46" aria-hidden="true"><circle class="mr" cx="23" cy="23" r="14.5"/><circle class="ma" cx="23" cy="23" r="18.5"/><rect class="mb" x="16.6" y="17" width="1.6" height="12" rx=".8"/><rect class="mb" x="20.5" y="15" width="1.6" height="16" rx=".8"/><rect class="mb" x="24.4" y="16" width="1.6" height="14" rx=".8"/><rect class="mb" x="28.3" y="18" width="1.6" height="10" rx=".8"/></svg>';
   document.body.appendChild(mic); micL();
-  mic.addEventListener('click', () => { const b = document.querySelector('#sdHero .sd-snd'); if (b) b.click(); const on = b ? b.getAttribute('aria-pressed') === 'true' : mic.getAttribute('aria-pressed') !== 'true'; mic.setAttribute('aria-pressed', on ? 'true' : 'false'); micL(); });
+  mic.addEventListener('click', () => { const b = document.querySelector('#sdHero .sd-snd'); if (b) b.click(); const on = b ? b.getAttribute('aria-pressed') === 'true' : mic.getAttribute('aria-pressed') !== 'true'; mic.setAttribute('aria-pressed', on ? 'true' : 'false'); micL();
+    // 押した操作の中で声を鳴らす（スマホの Safari の解錠）。オンにしたら、いま画面にある項目を語る
+    if (on) { if (CH.length) speakLine(Math.max(0, chapter()), false); } else { try { au.pause(); } catch (e) { } } });
   new MutationObserver(micL).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
   const HV = new THREE.Vector3(); let mx = -1, my = -1;
   function micPlace(k) { const hb = aoi && aoi.humanoid && aoi.humanoid.getNormalizedBoneNode('head'); if (!hb || k < .5 || cv.style.opacity === '0') { mic.classList.remove('on'); return; }
@@ -109,7 +112,7 @@ if (P) {
   // 2026-11-22 重さ：祖先ごと見えていない間（不透明度 0・非表示）は描かない。見えたら 1 こま目から描く
   function shown(now) { if (now - visT > 120) { visT = now; let e = cv.parentElement, ok = true; while (e && e.nodeType === 1) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < .01) { ok = false; break; } e = e.parentElement; } visOK = ok; } return visOK; }
   function size() { camSet(); const w = cv.clientWidth, h = cv.clientHeight; if (w && h && (w !== W || h !== H)) { W = w; H = h; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } }
-  function frame(now) { raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const tg = target(); if (tg > 0 && !aoi) load();
+  function frame(now) { raf = 0; const dt = Math.min(.05, (now - (last || now)) / 1000); last = now; const tg = target();
     cur = RM ? tg : cur + (tg - cur) * Math.min(1, dt * 4); if (Math.abs(tg - cur) < .002) cur = tg;
     U.uT.value += dt; const k = cur;
     const gather = Math.min(1, k / .45), rise = Math.max(0, Math.min(1, (k - .3) / .65));
@@ -121,15 +124,12 @@ if (P) {
       cv.style.opacity = k > 0 ? '1' : '0';
       cv.style.filter = f >= .999 ? 'none' : 'blur(' + (wob * (6 + 1.5 * Math.sin(U.uT.value * 7))).toFixed(2) + 'px) brightness(' + (.22 + .78 * f).toFixed(3) + ')';
       if (aoi) { aoi.scene.visible = f > .001; const t = U.uT.value; aoi.scene.scale.set(1 + wob * .025 * Math.sin(t * 9.3), 1, 1 + wob * .02 * Math.cos(t * 7.1)); aoi.scene.position.x = wob * .02 * Math.sin(t * 5.7); } }
-    { const c = k > .5 ? chapter() : -1;
-      if (c < 0) { if (chI >= 0) say(-1); }
-      else if (c < chI) say(c); else if (MOB && c !== chI) say(c);
-      else if (c > chI && (chI < 0 || performance.now() - sayAt > 2600)) say(MOB ? c : chI + 1); }
+    narrate(k);
     if (k > 0 && shown(now)) { size(); if (aoi) { try { mot ? mot.update(dt, cam) : aoi.update(dt); } catch (e) { } } R.render(S, cam); }
     micPlace(k);
     if (k > 0 || tg > 0) raf = requestAnimationFrame(frame); else last = 0; }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
-  addEventListener('scroll', kick, { passive: true }); addEventListener('resize', () => { W = 0; kick(); }); kick();
+  addEventListener('scroll', kick, { passive: true }); document.addEventListener('click', () => setTimeout(kick, 80)); addEventListener('resize', () => { W = 0; kick(); }); kick();
   // 2026-11-22 重さ：碧の読み込みと影の準備を、スクロールの前の空き時間に済ませる（スクロール中の止まりを減らす）
   const idle = window.requestIdleCallback || (f => setTimeout(f, 1500)); const pre = () => idle(() => { if (!aoi) load(); }, { timeout: 5000 });
   if (document.readyState === 'complete') pre(); else addEventListener('load', pre, { once: true });

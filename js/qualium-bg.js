@@ -130,8 +130,9 @@ export function start(opt){
     const LY={0:'umwelt',1:'umwelt',2:'umwelt',3:'umwelt',4:'network',5:'network',6:'layers',7:'ring'},seen={};
     document.querySelectorAll('#qStory [data-ly]').forEach(p=>{const v=p.dataset.ly;if(seen[v])return;seen[v]=1;add(p,LY[v]||'field')});
     add(document.getElementById('qloop'),'none');
-    document.querySelectorAll('.tp-lab .tp-chh').forEach(h=>add(h.parentNode,{M:'lit',F:'eng'}[h.dataset.k]||'none'));
-    add(document.querySelector('section.nx'),'none')}
+    // 2026-11-24 本人「アプリケーション以降も、背景の情報提示は続けて」：道具の章とワークショップ・代表・コンタクトにも主題を置く
+    document.querySelectorAll('.tp-lab .tp-chh').forEach(h=>add(h.parentNode,{P:'sensor',E:'object',M:'lit',a:'eng',F:'eng'}[h.dataset.k]||'relation'));
+    document.querySelectorAll('#top section.nx .nx-b').forEach(e=>{if(!e.getClientRects().length)return;add(e,e.classList.contains('nx-fd')?'time':e.classList.contains('nx-ct')?'network':'agent')})}
   function active(){if(FIX)return FIX;let t='field';for(const m of MK){if(m[0].getBoundingClientRect().top<H*0.62)t=m[1];else break}const top=document.getElementById('top');if(top&&!top.classList.contains('active'))t='none';return t}
   // ── 輪：物語の終わりで線が輪になり、Q-P サイクルの円へつながる
   const R0=document.querySelector('#qStory [data-ly="7"]'),R1=document.querySelector('#qloop .ql-c');
