@@ -42,7 +42,7 @@ if (P) {
   let CH = [], VO = null, JOIN = 'さて、';
   fetch('js/aoi-voice.json?v=20261124').then(r => r.json()).then(j => { CH = j.lines || []; VO = j.v || null; JOIN = j.join || JOIN; kick(); }).catch(() => { });
   const END = () => document.querySelector('#qStory [data-ly="7"]') || P; // 本文の広い章（ループ・道具）では文字を読む邪魔になるので、物語の段だけ
-  const cap = document.createElement('p'); cap.className = 'aoi-cap'; cap.setAttribute('aria-live', 'off'); cv.after(cap); if (MOB) cap.classList.add('in');
+  const cap = document.createElement('p'); cap.className = 'aoi-cap'; cap.setAttribute('aria-live', 'off'); if (MOB) { cv.after(cap); cap.classList.add('in'); } else document.body.appendChild(cap); // 2026-11-24：fixed の字幕は body 直下に置き、761〜1100px でヘッダーの上に出せるように
     // いま画面にある項目＝上から .62 の線を越えた最後の項目（見えていない項目は数えない）
   function chapter() { const H = innerHeight; let k = CH.length ? 0 : -1;
     for (let i = 0; i < CH.length; i++) { const e = document.querySelector(CH[i][0]); if (!e || !e.getClientRects().length) continue; if (e.getBoundingClientRect().top < H * .62) k = i; } return k; }
