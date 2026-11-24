@@ -236,7 +236,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261124b">
+<link rel="modulepreload" href="umwelt.js?v=20261124d">
 <link rel="modulepreload" href="vendor/three/examples/jsm/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/libs/meshopt_decoder.module.js">
 <link rel="modulepreload" href="vendor/three-vrm/three-vrm.module.min.js">
@@ -249,7 +249,7 @@ body{word-break:auto-phrase;line-break:strict}
 <link rel="modulepreload" href="kit/aoi_motion.js?v=20261104a">
 <link rel="modulepreload" href="kit/warm.js">
 <link rel="modulepreload" href="creatures.js?v=20261120r">
-<link rel="modulepreload" href="ring.js?v=20261120r">
+<link rel="modulepreload" href="ring.js?v=20261124d">
 <link rel="modulepreload" href="kit/aoi_mocap.js">
 <link rel="modulepreload" href="kit/aoi_robe.js">
 <!-- 最初に見える森の材質だけを先読みし、3D構築後の画像通信を避ける。 -->
@@ -297,6 +297,16 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
 #habitats button[aria-busy=true]{animation:hbBusy 1s ease-in-out infinite}@keyframes hbBusy{50%{opacity:.55}}
 #whereSub .cityNote{display:block;font-size:12.5px;opacity:.9;margin-top:2px}
 @media (max-width:700px){#habitats{left:8px!important;top:46%!important}#habitats button{min-width:52px;font-size:13px!important;letter-spacing:.12em;padding:0 8px!important}}
+</style>
+<style id="s1124b">/* 2026-11-24 本人「生き物の帯の文字を読みやすく」→ 名札と説明と操作の一行を、それぞれ小さな濃い地の札にのせる（森の明るい幹や空の上でも読める）。帯の地も少し濃く */
+#ring{background:linear-gradient(180deg,rgba(4,10,8,.58),rgba(4,10,8,.4) 70%,rgba(4,10,8,0))!important}
+#ring .rg-it span{color:#fff!important;font-weight:600!important;background:rgba(5,10,9,.62)!important;border-radius:4px;padding:2px 8px 3px!important;text-shadow:0 1px 3px rgba(0,0,0,.9)!important}
+#ring .rg-it.on span{background:rgba(5,10,9,.72)!important;border-bottom:2px solid var(--aoi)!important}
+#whereSub span,#whereSub{text-shadow:0 1px 3px rgba(0,0,0,.95)!important}
+#whereSub{background:rgba(5,10,9,.6)!important;border-radius:8px;padding:3px 12px!important;color:#fff!important}
+#moveNote:empty{display:none}
+#moveNote{background:rgba(5,10,9,.55);border-radius:6px;padding:3px 10px;color:#fff!important;text-shadow:0 1px 3px #000!important}
+@media (min-width:601px){#ring .rg-it span{font-size:16px!important}#ring .rg-it.on span{font-size:23px!important}#whereSub span{font-size:16px!important}}
 </style>
 </head>
 <body>
@@ -402,7 +412,7 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261124b';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261124d';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>

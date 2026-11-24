@@ -7,7 +7,7 @@
 import * as THREE from "three";
 import { bitmapTex, texPending } from "./kit/warm.js";   // 2026-11-05 夕：起動 1 秒へ。写真の質感を別の糸でほどく（はじめのこまで 10 枚ほどほどいて約 0.1 秒かかっていた）
 import { makeBody, creaturePortrait, humanPortrait, makeCreature, disposePortraitRenderer } from "./bodies.js?v=20261120r";
-import { makeRing } from "./ring.js?v=20261120r";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
+import { makeRing } from "./ring.js?v=20261124d";   // 2026-11-20 回して選ぶ、生きものの 3D の並び
 import { buildForest, shoreWob, riverWob } from "./forest.js?v=20261123n";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { buildNature, photoTex, makeTree, makeFlowers, makeGrass } from "./nature.js?v=20261105s";
@@ -376,7 +376,7 @@ const city=new THREE.Group();city.visible=false;scene.add(city);let CITY=null,ci
 function initCity(){return cityP||(cityP=import('./kit/city.js?v=20261123p').then(({buildCity})=>{CITY=buildCity({M,tx,canvasTex,group:city,pick,sonic,mobile});{const seen=new Set();city.traverse(o=>{const m=o.material;if(!m)return;for(const k of['map','normalMap','roughnessMap','alphaMap'])if(m[k]&&!seen.has(m[k])){seen.add(m[k]);try{renderer.initTexture(m[k]);}catch(e){}}});}city.visible=true;const p=renderer.compileAsync?renderer.compileAsync(city,camera,scene):Promise.resolve();city.visible=false;return p.catch(()=>{}).then(()=>CITY);}));}   // 形の色の書き方（シェーダー）は、見せる前に別の糸で用意する（切りかえの止まりを減らす）
 window.__city=()=>CITY;
 // 森の先の海辺（2026-11-23 本人「自然の中に、海辺の要素を」）。森が出てから組む（起動 1 秒を守る）
-let SHORE=null;function initShore(){if(SHORE)return;import('./kit/shore.js?v=20261124s').then(({buildShore,clearForest})=>{clearForest(forest,FOREST.trunks,[FOREST.ground]);{const add0=forest.add.bind(forest);forest.add=(...a)=>{add0(...a);try{clearForest(forest,FOREST.trunks,[FOREST.ground,aoi],a);}catch(e){}return forest;};}SHORE=buildShore({M,tx,canvasTex,group:forest,pick,sonic,mobile});window.__echoList=null;renderer.shadowMap.needsUpdate=true;}).catch(e=>console.warn('海辺',e?.message??e));}
+let SHORE=null;function initShore(){if(SHORE)return;import('./kit/shore.js?v=20261124d').then(({buildShore,clearForest})=>{clearForest(forest,FOREST.trunks,[FOREST.ground]);{const add0=forest.add.bind(forest);forest.add=(...a)=>{add0(...a);try{clearForest(forest,FOREST.trunks,[FOREST.ground,aoi],a);}catch(e){}return forest;};}SHORE=buildShore({M,tx,canvasTex,group:forest,pick,sonic,mobile});window.__echoList=null;renderer.shadowMap.needsUpdate=true;}).catch(e=>console.warn('海辺',e?.message??e));}
 window.__shore=()=>SHORE;
 // Water is a dielectric; retain the existing shape and lens cues without metallic reflection.
 // 2026-11-20 2 周目：水面を、林の中の水らしく（前は明るい青緑の平らな面に見えた）。色を深い緑褐色に落とし、空と木立の映りこみを主に、さざ波の細かな凹凸を足す（模式）

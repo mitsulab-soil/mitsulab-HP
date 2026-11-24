@@ -8,7 +8,7 @@ import { buildForest, SPAWN, MEADOW } from "./forest.js?v=20261123n";
 import { photoTex } from "./nature.js?v=20261105s";
 import { makeBat } from "./creatures.js?v=20261120r";
 import { bitmapTex } from "./kit/warm.js";
-import { buildShore, clearForest } from "./kit/shore.js?v=20261124s";
+import { buildShore, clearForest } from "./kit/shore.js?v=20261124d";
 
 const WIND = `
 vec4 mvPosition = vec4( transformed, 1.0 );
@@ -134,7 +134,8 @@ export function start(canvas) {
   } catch (e) { console.warn("海辺", e?.message ?? e); }
   setTimeout(() => import("./kit/city.js?v=20261123p").catch(() => { }), 4000);
   function standAoi() { if (!aoi || !AM) return; const nar = innerWidth / innerHeight < .8, fw = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)), rt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-    const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 5.5 : 4.5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .3 : .9)); aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
+    const P = eye.clone().setY(0).addScaledVector(fw, place === "city" ? (nar ? 9 : 5.5) : (nar ? 5.5 : 4.5)).addScaledVector(rt, place === "city" ? (nar ? .2 : .1) : (nar ? .3 : .9)); if (place === "city" && CITY && nar) { for (const d of [7.5, 6.5, 8.5, 5.5]) { const Q = eye.clone().setY(0).addScaledVector(fw, d).addScaledVector(rt, .2); Q.x = Math.max(Q.x, 5.6); if (!CITY.blocked(Q.x, Q.z, .5)) { P.copy(Q); break; } } }   // 2026-11-24：植え込み（x＝±4.35 の列）より建物側の歩道に立たせ、スマホで植え込みに隠れない
+    aoi.position.copy(P); AM.place(P.x, P.z, Math.atan2(eye.x - P.x, eye.z - P.z)); }
   async function setPlace(p) {
     if (p === place) return;
     if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123p").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick, sonic, mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });

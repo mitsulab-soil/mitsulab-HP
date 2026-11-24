@@ -42,7 +42,7 @@ export function makeRing({ host, items, onPick, reduced = false }) {
     for (let i = 0; i < n; i++) {
       const k = wrap(i - pos), a = Math.abs(k), b = btns[i], on = a < reach;
       b.hidden = !on; b.tabIndex = on ? 0 : -1;
-      if (on) { const sc = a < 1 ? 1 - a * .4 : Math.max(.36, .6 - (a - 1) * .2); b.style.transform = `translateX(${(k * fr * W).toFixed(1)}px)`; b.style.opacity = (a < .5 ? 1 : Math.max(.55, .95 - (a - .5) * .25)).toFixed(2);   /* 2026-11-22 となりの名が薄い */ b.classList.toggle('on', i === cur); b.style.setProperty('--s', sc.toFixed(3)); }
+      if (on) { const sc = a < 1 ? 1 - a * .4 : Math.max(.36, .6 - (a - 1) * .2); b.style.transform = `translateX(${(k * fr * W).toFixed(1)}px)`; b.style.opacity = (a < .5 ? 1 : Math.max(.82, 1 - (a - .5) * .12)).toFixed(2);   /* 2026-11-22 となりの名が薄い */ b.classList.toggle('on', i === cur); b.style.setProperty('--s', sc.toFixed(3)); }
       const g = slots[i]; if (!g) continue; g.visible = on; if (!on) continue;
       const sc = a < 1 ? 1 - a * .36 : Math.max(.34, .64 - (a - 1) * .2);
       g.position.set(k * fr * cam.userData.vw, (g.userData.tall ? .1 : .1) - a * .02, -a * .5); g.scale.setScalar(sc * (g.userData.tall ? 1.02 : .92));
