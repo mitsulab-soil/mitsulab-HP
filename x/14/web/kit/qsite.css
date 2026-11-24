@@ -1,0 +1,37 @@
+/* Qualia/omiya・kawagoe・shibuya 共通の GUI（2026-11-24 本人「3 つは同じ機能・デザインに。shibuya の左側がいい感じなので同じ意匠に」）
+   3 つのよい点を一つに：
+   - shibuya：左のメニューの板を濃く・ぼかして、下の地図や風景と文字が重ならない／下の札を一列にそろえる（足もとの高さ・写真）／音・歩きつづけるを同じ丸い形に
+   - kawagoe・omiya：メニューのボタンに「メニュー」の字を添える（触れば分かる）
+   - shibuya：右上の生き物の札の地と縁をはっきり
+   この部品は各アプリの web/kit/qsite.css に同じものを置き、index.html の最後に読む。元＝12_ブランド/_共通3D/qsite/ */
+
+/* 左のメニューの板（shibuya） */
+html body #menu{z-index:60!important;background:rgba(6,10,20,.88)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;padding:14px 16px;border-radius:2px}
+html body #menu p,html body #menu li,html body #menu small{text-shadow:none}
+body:has(#menu:not([hidden])) .icm,body:has(#menu:not([hidden])) .qck,body:has(#menu:not([hidden])) #qfBtn,body:has(#menu:not([hidden])) .qckp{opacity:0!important;pointer-events:none!important}
+
+/* 生き物の札（shibuya） */
+html body #qIK button{background:rgba(8,13,22,.66)!important;border:1px solid rgba(225,235,242,.5)!important}
+
+/* 音・歩きつづける：同じ丸い形（shibuya） */
+html body #walkUI #qSnd,html body #walkUI #autoBtn{background:rgba(3,6,15,.55)!important;border:1px solid rgba(220,232,238,.28)!important;border-radius:22px!important;min-height:44px}
+html body #walkUI #qSnd::before,html body #walkUI #autoBtn::before,html body #walkUI #autoBtn::after{display:none!important}
+html body #autoBtn[aria-pressed="true"]{box-shadow:inset 0 0 0 1px rgba(155,220,240,.85)!important;background:rgba(155,220,240,.16)!important}
+
+/* 下の一列の左：足もとの高さ → 写真 → 層を置く（shibuya の並び） */
+html body .qck{left:calc(12px + env(safe-area-inset-left))!important;right:auto!important;top:auto!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;transform:none!important}
+html body .icm{left:calc(140px + env(safe-area-inset-left))!important;right:auto!important;top:auto!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;transform:none!important}
+html body #qfBtn{left:calc(192px + env(safe-area-inset-left))!important;right:auto!important;top:auto!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;transform:none!important}
+html body .qckp{left:calc(12px + env(safe-area-inset-left))!important;right:auto!important;top:auto!important;bottom:calc(72px + env(safe-area-inset-bottom))!important}
+@media (max-width:640px){
+  html body .qck{padding:0 10px!important;font-size:11px!important;letter-spacing:0!important;white-space:nowrap;width:auto!important;min-width:0!important}
+  html body .icm{left:calc(104px + env(safe-area-inset-left))!important}
+  /* スマホは右に音・歩きつづけるが並ぶので、層を置くは足もとの上へ */
+  html body #qfBtn{left:calc(12px + env(safe-area-inset-left))!important;bottom:calc(68px + env(safe-area-inset-bottom))!important}
+  html body .qckp{bottom:calc(124px + env(safe-area-inset-bottom))!important;max-width:min(212px,56vw)!important}
+}
+
+/* メニューのボタンに字を添える（kawagoe・omiya）。スマホは「≡」だけ */
+html body #menuBtn{width:auto!important;gap:6px;padding:0 12px!important}
+#menuBtn .q7t{font:400 12px/1 var(--ml-serif,"Shippori Mincho","Hiragino Mincho ProN",serif);letter-spacing:.04em}
+@media (max-width:640px){#menuBtn .q7t{display:none}html body #menuBtn{padding:0!important;width:44px!important}}
