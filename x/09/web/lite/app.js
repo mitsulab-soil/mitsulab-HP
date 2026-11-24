@@ -1822,7 +1822,7 @@ const YO_NM = { shizuku: "しずく", ishi: "石", ki: "木", tsuchi: "土", tor
 async function startYorishiro() {
   if (YO.y || YO.busy) return; YO.busy = true; QW.YO = YO;
   try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y19");
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y20");
     YO.y = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z) });
     YO.y.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });   // 依代が碧へ向いて弾んだら、碧もそちらへ目をやる
@@ -1839,7 +1839,7 @@ async function startYorishiro() {
    → 参考画（依代の参考_8体）から自作した 3D（_共通3D/_dev/envAgents/sugata_ref/最良/）を、参考画の色（白・碧の色の葉と羽・若葉色の先）で（yorishiro.js の look:"ref"）。
    大きさ＝碧の膝〜腰の背丈。碧のそば＝狐（歩く）・鳥（碧の上を舞う）・蝶（肩の高さを回る）。木・石・土・しずくは碧の行く手の脇に一体ずつ置き、その場で揺れるだけ（歩かせない）。
    羊は大宮の参道にいないので出さない。タヌキ・スズメ・ミツバチ（11-21）は参考画の 8 体にないので、碧のそばの並びから外した（形は残す）。 */
-const YO_C = [["kitsune", .88, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["tori", .6, "鳥の姿の依代。碧の上を、ゆっくり舞っています。"], ["cho", .55, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"]];
+const YO_C = [["kitsune", .88, "狐の姿の依代。碧と並んで、参道を歩いています。"], ["tori", MOBILE ? .6 : .74, "鳥の姿の依代。碧の上を、ゆっくり舞っています。"], ["cho", .55, "蝶の姿の依代。碧の肩のあたりを、ゆっくり回っています。"]];
 const YO_S = [["ki", 1.05, "木の姿の依代。道の脇で、葉をそよがせています。"], ["ishi", .75, "石の姿の依代。苔をまとって、じっとしています。"], ["tsuchi", .7, "土の姿の依代。根と芽を抱いて、足もとにいます。"], ["shizuku", .7, "しずくの姿の依代。ゆらゆらと、光っています。"]];
 /* 11-23 夜：宙に浮いて見えない高さに＝蝶は草と花の高さ（地面から 0.45〜0.75 m）、鳥は地面から 1.9 m を舞い、ときどき碧の前の地面に降りて羽をたたむ（下の stepTori）。高さは碧の足でなく、その場の地面から */
 const YO_FLY = { cho: [.2, .85, .25, .9, .12, .45], tori: [1.3, -1.0, .6, 1.9, .14, .3], suzume: [.9, -.25, .5, 2.05, .1, .33], mitsubachi: [.15, .4, .25, .95, .07, .8] };   // 飛ぶ姿：[前, 横（碧の脇）, 回る幅, 高さ, 上下の幅, 回る速さ]
@@ -1848,7 +1848,7 @@ function stepCompanions(dt) {
   if (MOBILE && camera && !document.body.classList.contains("qRingOpen")) { if (QW.mode === "walk") { if (camera.view?.offsetY !== 96 || camera.view?.fullWidth !== innerWidth) camera.setViewOffset(innerWidth, innerHeight, 0, 96, innerWidth, innerHeight); } else if (camera.view?.enabled) camera.clearViewOffset(); }   /* 11-24 P1：375 で碧のすそが下のボタンの帯の裏に入る → 歩くあいだは風景を 96px 上へずらす（カメラの描く窓だけ） */
   if (!YO.y || !AOI.m) return;
   if (!YO.c && !YO.cBusy) { YO.cBusy = true; (async () => { try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y19"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y20"), c = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
     c.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z) });
     const P = AOI.m.pos; for (const [k, h, line] of YO_C) await c.add(k, { x: P.x, z: P.z, y: YO_FLY[k] ? P.y + YO_FLY[k][3] : null, height: h, follow: false, hide: k === "tori" ? /^(branch|bl)$/ : null, onTouch: () => speakLines([{ t: line, tc: line }], null, { narr: true }) }).then(it => { if (k === "tori") it.U.wing.value = .5; });
     YO.c = c; QW.YOC = c; } catch (e) { console.warn("yorishiro-c", e); } })(); return; }
@@ -1922,7 +1922,7 @@ function stillSpot(P, sd) {   // 見る向きの先で、狐（sd の側）の�
 }
 function stepStill(dt, on, P, ax, az, rx, rz, sd) {
   if (!YO.s && !YO.sBusy) { YO.sBusy = true; (async () => { try {
-    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y19"), s = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
+    const Y = await import("../kit/envAgents/yorishiro/yorishiro.js?v=y20"), s = new Y.Yorishiro({ scene: world, camera, groundAt: (x, z) => surfaceY(x, z), look: "ref" });
     s.setCompanion({ aoi: () => AOI.m && AOI.root?.visible ? { x: AOI.m.pos.x, y: AOI.m.pos.y, z: AOI.m.pos.z, yaw: AOI.m.yaw || 0 } : null, speaking: () => !!voiceQ, viewer: () => camera.position, ground: (x, z) => aoiFootY(x, z),
       onGreet: it => { if (!AOI.m || AOI.focus || voiceQ || !AOI.root?.visible) return; AOI.glance = it.root.position.clone().setY(it.root.position.y + .3); AOI.gT = 1.1 + Math.random() * .4; } });
     YO.s = s; QW.YOS = s;
@@ -3123,7 +3123,7 @@ QW.place = (x, z, tx, tz, p = -.12) => { const yw = Math.atan2(-(tx - x), -(tz -
 QW.sky = SKY;
 
 function fillMenu() {
-  $("#about").textContent = D.about; $("#aoiNote").textContent = "碧（あおい）は、この作品の案内役です。歩くあいだ、いまいる所に結びついた記録を話しつづけます（字幕の「出典」から典拠を開けます）。碧の姿：mitsulab（VRoid）／声：VOICEVOX:冥鳴ひまり。";
+  $("#about").textContent = D.about; $("#aoiNote").textContent = "碧（あおい）は案内役。いまいる所の記録を話します（典拠は字幕の「出典」から）。姿：mitsulab（VRoid）／声：VOICEVOX:冥鳴ひまり。";
   $("#credit").textContent = "地形：国土地理院 標高タイル（DEM5A）・全国最新写真（シームレス）を mitsulab が加工／建物：国土交通省 PLATEAU さいたま市 2022（CC BY 4.0）を加工（形と高さ。窓と階の並びは模式）／道・木・鳥居・池の位置と、地図の道・公園・社寺の名前：© OpenStreetMap contributors（ODbL）／等高線：国土地理院 DEM5A から mitsulab が計算／舗装・樹皮・葉の質感：Poly Haven・ambientCG（CC0）／樹木の話：さいたま市・氷川の杜まちづくり協議会『氷川参道の樹木調査』・環境省 巨樹・巨木林データベース／歴史と文化の話：武蔵一宮氷川神社「由緒・歴史」「境内のご案内」「年間の祭典」・さいたま市・さいたま市立博物館・埼玉県立歴史と民俗の博物館・与野郷土資料館・埼玉県・国土地理院（それぞれの物と碧の話の「出典」に）／生きものの話：iNaturalist の投稿者のみなさん（種の名前）・研究論文（それぞれの「出典」に）／Qualia/sound の音：［ほかの場所で録った同じ種類の音］風に鳴る葉（Gravity Sound・CC BY 4.0・録音地の記載なし）・スズメ（Derek Paulo・CC BY-SA 4.0・フィリピン）・アブラゼミ（Cory・CC BY 2.1 JP・日本）・ハシブトガラス（Zeimusu・CC BY-SA 2.5・日本）＝いずれも Wikimedia Commons／［再現音］元往還の人と馬・中の区間の車・玉砂利・神池のしずく＝記録にもとづいて端末の中で組み立てた音／［詩の音］mitsulab のことばから組み立てた音／Qualia/touch：面＝この作品の路面と同じ Poly Haven・ambientCG の写真（CC0）、手ざわりと音は端末の中で組み立てた模式／層の物とグラスの形：mitsulab（three.js の基本形で作成）";
   $("#music").textContent = "";
 }
