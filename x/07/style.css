@@ -249,3 +249,5 @@ body:has(.away:not([hidden])) .tip{visibility:hidden}
 .list button{text-wrap:pretty}
 @media (min-width:900px){.near-sound-points button{min-width:140px;min-height:64px;font-size:21px}#nearSoundPrompt{font-size:17px}}
 @media (min-width:900px) and (pointer:fine){.out-ear{font-size:17px!important;letter-spacing:.1em}.sheet{width:min(860px,calc(100vw - 64px))}.list button{font-size:18px;padding:14px 6px}.list button span{font-size:.8rem}}/* 2026-11-23 PC の一覧の字・耳を向ける一行を大きく */
+/* 2026-11-24 PC で右の面が開いているとき、耳を澄ます帯を森の側の中央へ（面とかぶらない） */
+@media (min-width:900px){body:has(#panel:not([hidden])) .away{left:calc((100vw - min(600px,40vw))/2);width:min(520px,calc(100vw - min(600px,40vw) - 48px))}}
