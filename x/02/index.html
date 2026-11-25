@@ -363,7 +363,7 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
   <p>上の「くらべる」＝同じ場所に立ったまま、ミツバチ・犬・マムシに体を入れかえる旅。切り替える前に見え方を予想してから確かめ、最後に外で使える見方を持ち帰ります。右の「◐ 人の目とくらべる」は、押しているあいだだけ同じ場所を人の目に戻します。</p>
   <p>端の「AR」＝画面いっぱいに端末のカメラの景色が、いま選んでいる体の受けとり方の模式で映ります。✕ で森へ戻ります。カメラの体のときに出る「計算機を通す」＝動き・色を数に・ゆれ。もう一度押すと元に戻ります。</p>
   <h2>今の景色の窓・計算機を通す</h2>
-  <p>窓の映像と写真は、この端末の中だけで計算し、送らず、残しません。色の写し方は森と同じ近似です。紫外・熱（赤外）・反響はカメラに写らないので、窓では描きません（森の中の模式で確かめられます）。ミツバチの粒の粗さ、犬のぼかしは模式です。</p>
+  <p>窓の映像と写真は、この端末の中だけで計算し、送らず、残しません。色の写し方は森と同じ近似です。ミツバチの粒の粗さ、犬のぼかしは模式です。</p>
   <p>計算機を通す三つは、どれも計算した結果です。<b>動き</b>＝前のこまとの差（淡い跡は数秒前の動き）。<b>色を数に</b>＝緑は草木らしい色（緑の強さの指標：Woebbecke ほか 1995）、空は青く明るい所の目安で、色からの推定です。測った値ではありません。<b>ゆれ</b>＝少し前の平均との差を強めたもの（考え方：Wu ほか 2012）で、実際の動きの大きさではありません。</p>
   <h2>この空間のつくり</h2>
   <p>色の写し方は、それぞれの生きものの、色を受けとる細胞の感度の山（論文の値）から作った近似です。紫外は人の画面に出せないので、決まった色に置きかえています（蜂は、紫外→青・青→緑・緑→赤）。紫外の値をはっきり決めているのは、モンシロチョウの雌雄と空です。白い花の多くが紫外を吸うことは研究の報告にもとづきますが、この森の草花・鳥の一つひとつの値は測ったものではなく、目安です。熱・反響・ふれる・光の明るさは、見える形の手がかりと音で表しています。</p>
@@ -508,7 +508,7 @@ r.addEventListener('pointerenter',o);r.addEventListener('pointerdown',o);r.addEv
   <h3>場所</h3><div id="dPlace"></div>
   <h3>見る</h3><div class="qg-row" id="dSee"></div>
   <h3>表示</h3><button class="qg-sw" id="qgTxt" role="switch" aria-checked="false">説明と字幕</button>
-  <p class="qg-note">AR＝スマホのカメラの景色を、下の列で選んだ生きものの見え方の模式で映します（紫外・熱は写らないので描きません）。端末の中だけで計算し、録画・保存・送信はしません。</p>
+  <p class="qg-note">AR＝スマホのカメラの景色を、下の列で選んだ生きものの見え方の模式で映します。端末の中だけで計算し、録画・保存・送信はしません。</p>
   <div class="qg-row" id="dMore" style="margin-top:10px"></div>
 </aside>
 <style id="qg-min-20261126">
@@ -533,9 +533,9 @@ var dr=qg.drawer($('qgDrawer'),$('qgMenu'));qg.txt($('qgTxt'));
 ['kurBtn','whyBtn','menuBtn'].forEach(function(i){$(i).addEventListener('click',function(){dr.set(false)})});
 var ar=false,tag=$('arTag'),b=$('qgAr');
 function lensName(){var o=document.querySelector('#ring .rg-it.on span');return o?o.textContent.trim():''}
-function tagUp(){if(!ar)return;var n=lensName();tag.textContent='AR ── '+(n&&!/^(人|ひと)$/.test(n)?n+'の見え方の模式':'カメラの景色')+'（紫外は写りません）・記録しません'}
+function tagUp(){if(!ar)return;var n=lensName();tag.textContent='AR ── '+(n&&!/^(人|ひと)$/.test(n)?n+'の見え方の模式':'カメラの景色')+'・記録しません'}
 function off(){ar=false;document.body.classList.remove('kes-ar');tag.hidden=true;b.setAttribute('aria-pressed','false');window.__kes&&window.__kes.closeWin()}
-b.onclick=async function(){if(!window.__kes&&!ar){b.setAttribute('aria-busy','true');try{await import('./keshiki.js?v=20261121a');for(var i=0;i<20&&!window.__kes;i++)await new Promise(function(r){setTimeout(r,25)})}catch(e){console.warn(e)}b.removeAttribute('aria-busy')}var k=window.__kes;if(ar){off();return}if(!k||!k.state.ok){(window.__muToast||console.info)('AR はこの端末では使えません');return}
+b.onclick=async function(){if(!window.__kes&&!ar){b.setAttribute('aria-busy','true');try{await import('./keshiki.js?v=20261126b');for(var i=0;i<20&&!window.__kes;i++)await new Promise(function(r){setTimeout(r,25)})}catch(e){console.warn(e)}b.removeAttribute('aria-busy')}var k=window.__kes;if(ar){off();return}if(!k||!k.state.ok){(window.__muToast||console.info)('AR はこの端末では使えません');return}
   ar=true;document.body.classList.add('kes-ar');b.setAttribute('aria-pressed','true');b.setAttribute('aria-busy','true');await k.openWin();b.removeAttribute('aria-busy');
   var s=k.state;if(!s.live&&!s.photo){off();var t=$('toast');if(t){t.textContent='カメラがひらけなかったので、森の 3D に戻りました。';t.classList.add('on');setTimeout(function(){t.classList.remove('on')},3500)}return}
   tag.hidden=false;tagUp()};

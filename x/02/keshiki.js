@@ -12,14 +12,14 @@ const NAME = id => (S.lens.find(l => l.id === id) || {}).name || "";
 const CAP = {
   hito: "カメラが写した、今の景色。上の並びで体をえらぶと、その受けとり方の模式に変わります。",
   inu: "犬の目の模式。色を受ける細胞は二種類で、赤と緑が近い色に。細かい所は人よりぼやけます。",
-  hachi: "ミツバチの目の模式。置きかえは森と同じ（緑→赤・青→緑・紫外→青）。カメラに紫外は写らないので、森で見える青がここでは出ず、黄や赤の粒に。粒の粗さも模式。",
-  chou: "アゲハの目の模式。紫外から赤まで受けるとされます。四つ目の色（紫外）はカメラに写らないので描けません。",
-  tori: "小鳥の目の模式。四種類の細胞で色を受け、種によって紫外まで。紫外はカメラに写らないので描けません。",
-  hebi: "マムシのピットは赤外（熱）を感じます。熱はこのカメラに写りません。熱の見え方は、まわりの森で確かめられます。",
-  koumori: "コウモリは声の反響で形をとらえます。光を写すカメラからは作れません。反響の見え方は、まわりの森で確かめられます。",
+  hachi: "ミツバチの目の模式。置きかえは森と同じ（緑→赤・青→緑）。粒の粗さも模式。",
+  chou: "アゲハの目の模式。色の写し方は森と同じ近似です。",
+  tori: "小鳥の目の模式。四種類の細胞で色を受けます。色の写し方は森と同じ近似です。",
+  hebi: "マムシのピットは赤外（熱）を感じます。熱の見え方は、まわりの森で。",
+  koumori: "コウモリは声の反響で形をとらえます。反響の見え方は、まわりの森で。",
   mimizu: "ミミズに目はなく、体で光の明るさだけを感じます。窓は、今の景色の明るさだけ。",
   camera: "カメラの受けとり方の模式。一画素が受けるのは赤・緑・青のどれか一色（格子は大きくして見せています）。",
-  netsu: "熱カメラは赤外の量を温度の値にします。このカメラには写りません。熱の見え方は、まわりの森で確かめられます。",
+  netsu: "熱カメラは赤外の量を温度の値にします。熱の見え方は、まわりの森で。",
 };
 const UP = {
   hito: "顔を上げて、同じ景色を自分の目で。画面と、どこが違いますか。",
@@ -234,7 +234,7 @@ function refresh() {
   const cam = lens === "camera", um = U.chapter === "umwelt";
   chips.hidden = !cam || !um; chips.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === calc)));
   dock.hidden = !um || !ok || !$("boot").hidden;
-  if (open) { $("kesTitle").textContent = "今の景色 ── " + (lens === "hito" ? "カメラの画" : NAME(lens) + (cam && calc ? "・" + CALC[calc].name : MODE[lens] === 3 ? (lens === "koumori" ? "（反響は写りません）" : "（熱は写りません）") : "の模式"));
+  if (open) { $("kesTitle").textContent = "今の景色 ── " + (lens === "hito" ? "カメラの画" : NAME(lens) + (cam && calc ? "・" + CALC[calc].name : "の模式"));
     $("kesCap").textContent = cam && calc ? CALC[calc].cap : CAP[lens] || ""; }
   if (!open && cam && calc && um) { const lg = $("legend"); lg.innerHTML = CALC[calc].legend; lg.hidden = false; }
   document.body.classList.toggle("kes-calc", !open && !!calc && cam && um);
