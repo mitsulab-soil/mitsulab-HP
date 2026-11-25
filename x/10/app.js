@@ -764,7 +764,7 @@ function frame(now) {
 setLang(lang());
 resize();
 (async () => {
-  try { fetch(AOI_URL).catch(() => { }); } catch { }   /* 2026-11-22 碧が出るまでが遅い → 姿のファイルを先に取りに行く */
+  setTimeout(() => { try { fetch(AOI_URL).catch(() => { }); } catch { } }, 900)   /* 2026-11-22 碧が出るまでが遅い → 姿のファイルを先に取りに行く */
   try { applySurface(await loadSample(HERO ? SAMPLES.find(s => s.id === COMBOS[0][0]) : SAMPLES[0])); }
   catch (e) { console.error(e); }
   if (HERO) setCombo(...COMBOS[0], true).catch(e => console.warn(e));   // おすすめの組（苔 × かたまり）が、開いたときから選ばれている
