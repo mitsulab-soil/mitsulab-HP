@@ -19,3 +19,7 @@ html body #hud button:not(.rg-it):not(.rg-arrow){border:1px solid var(--qg-line)
 html body #hud button[aria-pressed="true"],html body #hud button.on{border-width:1.5px!important;border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body #hud button:not(.rg-it):active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 html body #hud button:disabled{opacity:.35}
+/* 2026-11-26 字幕を 1 行に（#caption は flex なので行数の指定が効かなかった）。長い文は qsite-quiet.js が句読点で区切って順に出す */
+html:root body #caption#caption#caption#caption#caption#caption{display:block!important;height:auto!important;min-height:0!important}
+html:root body #caption #capText{display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip}
+html:root body #caption #capTag{display:none!important}
