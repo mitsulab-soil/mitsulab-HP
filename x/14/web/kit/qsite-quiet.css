@@ -1,0 +1,21 @@
+/* qsite-quiet.css（2026-11-25 本人「生き物の選択の GUI が大きすぎて視界を遮る・字幕が多い。風景がメイン」「GUI を洗練・ボタンも調整」）
+   omiya・kawagoe・shibuya 共通。qgui.css のあとで読む。上の生きものの列は細く畳み、触れるあいだだけ広げる。足もとの地図は小さく、字幕は 1 行で小さく薄く。中央 6 割には何も重ねない */
+html body #qRing{height:58px!important;opacity:.9;background:linear-gradient(180deg,rgba(4,18,20,.34),rgba(4,18,20,0))!important;transition:height .22s ease,opacity .22s}
+html body #qRing.open{height:100px!important;opacity:1}
+html body #qRing .rg-it span{font:500 12px/1.2 var(--qg-font)!important;color:var(--qg-ink-dim)!important;background:none!important;padding:0 2px 2px!important;text-shadow:0 0 2px #000,0 1px 6px rgba(0,0,0,.8)!important}
+html body #qRing .rg-it.on span{font-size:14px!important;color:#fff!important;border-bottom:1.5px solid var(--qg-line-hi)!important}
+html body #qRing .rg-arrow{width:44px!important;height:44px!important;margin-top:-22px!important;border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important}
+html body #qRing:not(.open) .rg-arrow{transform:scale(.82);opacity:.75}
+html body #qMini{width:240px!important;opacity:.85}html body #qMini canvas{width:100%!important;height:auto!important}
+@media (max-width:767px){html body #qMini{width:132px!important}}
+html body #caption,html body #caption *{font-size:13px!important;line-height:1.5!important;font-weight:400!important;letter-spacing:.04em}
+html body #caption{color:rgba(240,248,246,.86)!important;background:none!important;border:0!important;box-shadow:none!important;text-shadow:0 0 2px rgba(0,0,0,.95),0 1px 8px rgba(0,0,0,.75)!important;
+  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:min(560px,calc(100vw - 32px))}
+html:root body[data-mode]:not(.x1):not(.x2) #caption#caption#caption#caption#caption#caption,html:root body:not([data-mode]) #caption#caption#caption#caption#caption#caption{top:calc(max(12px,env(safe-area-inset-top)) + var(--qcap-top,58px))!important;left:var(--qg-edge)!important;right:var(--qg-edge)!important;width:auto!important;bottom:auto!important;transform:none!important;text-align:center!important;background:none!important;-webkit-line-clamp:1}
+:root{--qcap-top:96px}@media (max-width:767px){:root{--qcap-top:112px}}
+html body:has(#qRing.open) #caption{opacity:0!important;transition:opacity .15s}
+/* ボタン：細い線・透ける地・押した所だけ光る */
+html body #hud button:not(.rg-it):not(.rg-arrow){border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important;box-shadow:none;min-height:44px;transition:box-shadow 80ms,transform 80ms,border-color 80ms}
+html body #hud button[aria-pressed="true"],html body #hud button.on{border-width:1.5px!important;border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
+html body #hud button:not(.rg-it):active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
+html body #hud button:disabled{opacity:.35}
