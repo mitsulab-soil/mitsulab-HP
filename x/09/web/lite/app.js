@@ -3220,7 +3220,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) { ren
     // 歩く前に要るものを、上空で選んでいるあいだに読む（地図の線と名前 → 道・木・構造物 → 碧 → 話）
     setTimeout(() => { fetch(BASE + "map.json?v=" + VER).then(r => r.json()).then(buildMap).catch(e => console.warn("map", e)); }, 120);
     loadLate(); const aoiAfterRoad = () => loadAoi();   /* 11-08：モデルはHTMLで先読み済み。道路取得完了を待たず、姿の準備を重ねる */
-    setTimeout(() => { aoiAfterRoad(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 60);
+    setTimeout(() => { aoiAfterRoad(); setTimeout(loadTalk, 900); setTimeout(loadKasane, 2600); }, 900);   /* 2026-11-26 採点 P1「起動 4.5 秒」：碧（1.5 MB）と話は、地面・道・木を先に届けてから読む（最初の画面は参道の景色） */
     setTimeout(initAreas, 700);   // 7 つのエリアの輪郭（2 KB）。中身は近づいたときに読む   // 2026-10-23：碧を道・木・構造物と同時に読みはじめる（前は 0.4 秒あと）
     const s0 = Q.get("start") ?? (Q.has("map") ? null : String(D.starts.findIndex(s => s.name === "二の鳥居")));   /* 11-10 第4周：最初から目の高さ（二の鳥居）へ。地図は「ほかの場所」で開く（?map=1 で地図から） */ if (s0 != null && D.starts[+s0] && !QW.eyeStarted) { selectStart(+s0); startAtEye(+s0); }
     if (Q.get("layer")) setTimeout(() => wearLayer(Q.get("layer")), 200);

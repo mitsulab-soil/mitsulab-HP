@@ -120,7 +120,7 @@ body.w4up #qS6,body.w4up #qIK,body.w4up #qIKsrc,body.w4up #walkUI,body.w4up #w4s
   function sayLight(T) {
     const e = document.getElementById("toast"); if (!e) return;
     const tm = T.el > 0 ? `太陽の高さ ${T.el}°` : (T.h < 12 ? "日の出の前" : "日の入りのあと") + "・参道が見える明るさにした模式";
-    e.textContent = `${T.h}時${String(T.mi).padStart(2, "0")}分の光（日時から計算）`;   /* 11-23 7 周目 P2「光の出典の一文が長い」：一文は短く、詳しくは「＋ 光の出典」へ（中身は削らない） */ e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, 5200);
+    e.textContent = T.el > 0 ? `${T.h}時${String(T.mi).padStart(2, "0")}分の光（日時から計算）` : `${T.h}時${String(T.mi).padStart(2, "0")}・夜の参道（見える明るさにした模式）`;   /* 2026-11-26 採点 P2「0時17分の光なのに空が昼」：太陽が沈んでいるときは、昼の空が模式だと言う */   /* 11-23 7 周目 P2「光の出典の一文が長い」：一文は短く、詳しくは「＋ 光の出典」へ（中身は削らない） */ e.hidden = false; clearTimeout(e._t); e._t = setTimeout(() => { e.hidden = true; }, 5200);
     showSrc("light", [`${T.m}月${T.day}日 ${T.h}時${String(T.mi).padStart(2, "0")}分の光（${tm}）`, "太陽の高さ：日時と緯度・経度から計算（NOAA「General Solar Position Calculations」・誤差約 1°）", "光の色・霞・雲の絵は模式（いまの天気ではない）"], 8, "光の出典");
   }
 

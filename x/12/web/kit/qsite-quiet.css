@@ -23,3 +23,5 @@ html body #hud button:disabled{opacity:.35}
 html:root body #caption#caption#caption#caption#caption#caption{display:block!important;height:auto!important;min-height:0!important}
 html:root body #caption #capText{display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip}
 html:root body #caption #capTag{display:none!important}
+/* 2026-11-26 採点 P2：PC で上の真ん中の札（再現音など）と字幕が重なる → PC の字幕は札の下へ。omiya の 375 は参道が狭く見える → 足もとの地図をしまう（地図は「地図」のタブで見られる） */
+@media (min-width:768px){:root{--qcap-top:140px}html:root body[data-mode]:not(.x1):not(.x2):not(.x3) #caption#caption#caption#caption#caption#caption{left:calc(50% - 280px)!important;right:auto!important;width:560px!important;top:auto!important;bottom:calc(var(--qg-safe-b) + 96px)!important}}
