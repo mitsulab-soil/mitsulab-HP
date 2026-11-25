@@ -20,3 +20,23 @@
 .qg-sub{font:400 13px/1.5 var(--qg-font);letter-spacing:.04em;color:rgba(240,248,246,.86);white-space:nowrap;overflow:hidden;text-overflow:clip;
   text-shadow:0 0 2px rgba(0,0,0,.9),0 1px 8px rgba(0,0,0,.7);transition:opacity .35s}
 .qg-sub.sub-gone{opacity:0}
+/* 2026-11-26 端の操作・≡ の引き出し・説明の on/off・AR（qgui.js と組む）
+   置き場：スマホは右下（親指の届く所）に縦に、PC は右下の端に。中央 6 割には何も置かない */
+.qg-edge{position:fixed;right:var(--qg-edge);bottom:calc(var(--qg-safe-b) + var(--qg-edge));z-index:40;display:flex;flex-direction:column-reverse;gap:10px;align-items:flex-end}
+.qg-edge .qg-btn{width:48px;min-height:48px;padding:0;font-size:12px}
+.qg-edge .qg-menu{font-size:20px;letter-spacing:0}
+.qg-drawer{position:fixed;z-index:50;color:var(--qg-ink);background:rgba(6,22,24,.86);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+  border:1px solid var(--qg-line);font:400 14px/1.6 var(--qg-font);overflow:auto;overscroll-behavior:contain;visibility:hidden;opacity:0;transition:transform .22s ease,opacity .22s,visibility 0s .22s}
+.qg-drawer.on{visibility:visible;opacity:1;transform:none;transition:transform .22s ease,opacity .22s}
+@media (max-width:767px){.qg-drawer{left:0;right:0;bottom:0;max-height:62vh;border-radius:18px 18px 0 0;border-bottom:0;padding:8px var(--qg-edge) calc(var(--qg-safe-b) + 84px);transform:translateY(24px)}
+  .qg-drawer::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--qg-line);margin:0 auto 10px}}
+@media (min-width:768px){.qg-drawer{right:calc(var(--qg-edge) + 60px);bottom:var(--qg-edge);width:300px;max-height:min(560px,calc(100vh - 2*var(--qg-edge)));border-radius:16px;padding:14px 16px;transform:translateX(12px)}}
+.qg-drawer h3{margin:12px 0 6px;font:500 11px/1 var(--qg-font);letter-spacing:.16em;color:var(--qg-ink-dim)}
+.qg-drawer h3:first-child{margin-top:0}
+.qg-row{display:flex;flex-wrap:wrap;gap:8px}
+.qg-row .qg-btn,.qg-row button{min-height:44px}
+.qg-sw{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:0 4px;border:0;background:none;color:var(--qg-ink);font:inherit;cursor:pointer}
+.qg-sw::after{content:"";width:40px;height:24px;border-radius:12px;border:1px solid var(--qg-line);background:radial-gradient(circle at 12px 12px,var(--qg-ink-dim) 7px,transparent 8px);transition:background .15s}
+.qg-sw.on::after{border-color:var(--qg-line-hi);background:radial-gradient(circle at 28px 12px,#fff 7px,transparent 8px),rgba(120,220,235,.28)}
+.qg-note{margin:8px 0 0;font-size:12px;color:var(--qg-ink-dim)}
+.qg-ar-tag{position:fixed;left:var(--qg-edge);top:calc(max(8px,env(safe-area-inset-top)) + 8px);z-index:41;font:400 11px/1.4 var(--qg-font);letter-spacing:.06em;color:var(--qg-ink);text-shadow:0 0 2px #000,0 1px 6px rgba(0,0,0,.8);pointer-events:none}

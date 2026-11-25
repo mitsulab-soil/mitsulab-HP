@@ -5,7 +5,7 @@
 <meta name="tdm-reservation" content="1">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qualia/sight</title>
-<meta name="description" content="見えない世界を見る。ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
+<meta name="description" content="見えない世界を見る。ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。スマホではカメラで、いまの景色に重ねて使える（記録はしない）。">
 <meta property="og:title" content="Qualia/sight">
 <meta property="og:description" content="見えない世界を見る。ひとつの森を、ミツバチ・アゲハ・小鳥・犬・マムシ・コウモリ・ミミズ、そしてカメラと熱カメラの受けとり方に切り替えて歩く。碧が案内する。">
 <style>
@@ -361,7 +361,7 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
   <h2>操作</h2>
   <p>地面を押す＝そこへ歩く（一回 6 m まで）／ なぞる＝見回す ／ 右の ↑ ↓＝押しているあいだ進む・戻る、↶ ↷＝向きを変える ／ 飛ぶ身体では ＋ − で上昇・下降 ／ 上の並び＝身体と受けとり方を切り替える（左右の体を押すか、なぞって回す） ／ キーボード＝矢印・W A S D で歩く、Q E で向きを変える、R F で上昇・下降、1〜8 で受けとり方、スペースで碧の話を止める・続ける、N で次のことば、H を押しているあいだ人の目で見る。</p>
   <p>上の「くらべる」＝同じ場所に立ったまま、ミツバチ・犬・マムシに体を入れかえる旅。切り替える前に見え方を予想してから確かめ、最後に外で使える見方を持ち帰ります。右の「◐ 人の目とくらべる」は、押しているあいだだけ同じ場所を人の目に戻します。</p>
-  <p>左の「今の景色」＝窓がひらき、端末のカメラの景色（か、えらんだ写真一枚）が、いま選んでいる体の受けとり方の模式で映ります。✕ で森へ戻ります。カメラの体のときに出る「計算機を通す」＝動き・色を数に・ゆれ。もう一度押すと元に戻ります。</p>
+  <p>端の「AR」＝画面いっぱいに端末のカメラの景色が、いま選んでいる体の受けとり方の模式で映ります。✕ で森へ戻ります。カメラの体のときに出る「計算機を通す」＝動き・色を数に・ゆれ。もう一度押すと元に戻ります。</p>
   <h2>今の景色の窓・計算機を通す</h2>
   <p>窓の映像と写真は、この端末の中だけで計算し、送らず、残しません。色の写し方は森と同じ近似です。紫外・熱（赤外）・反響はカメラに写らないので、窓では描きません（森の中の模式で確かめられます）。ミツバチの粒の粗さ、犬のぼかしは模式です。</p>
   <p>計算機を通す三つは、どれも計算した結果です。<b>動き</b>＝前のこまとの差（淡い跡は数秒前の動き）。<b>色を数に</b>＝緑は草木らしい色（緑の強さの指標：Woebbecke ほか 1995）、空は青く明るい所の目安で、色からの推定です。測った値ではありません。<b>ゆれ</b>＝少し前の平均との差を強めたもの（考え方：Wu ほか 2012）で、実際の動きの大きさではありません。</p>
@@ -501,6 +501,46 @@ body:has(#acts button) .icm,body:has(#acts button) #bodyControls{opacity:0!impor
 <script>(function(){var r=document.getElementById('ring');if(!r)return;var t=0;function o(){clearTimeout(t);r.classList.add('open')}function c(d){clearTimeout(t);t=setTimeout(function(){if(!r.matches(':hover')&&!r.contains(document.activeElement))r.classList.remove('open')},d)}
 r.addEventListener('pointerenter',o);r.addEventListener('pointerdown',o);r.addEventListener('focusin',o);r.addEventListener('pointerleave',function(){c(600)});r.addEventListener('click',function(){c(1600)});r.addEventListener('focusout',function(){c(800)});addEventListener('pointerup',function(){if(r.classList.contains('open'))c(1800)});})();</script>
 <script src="kit/yokei.js?v=20261126a" data-tool="sight" ></script>
+<!-- 2026-11-26 本人「AR でカメラ」「文字を最小に・≡ で開く・説明は on/off」：常に出すのは端の ≡・AR と、下の生きものの列だけ。ほかは ≡ の引き出しへ -->
+<p class="qg-ar-tag" id="arTag" hidden></p>
+<div class="qg-edge" id="qgEdge"><button class="qg-btn qg-menu" id="qgMenu" aria-label="メニュー（場所・くらべる・説明の on/off・設定と出典）" aria-controls="qgDrawer">≡</button><button class="qg-btn" id="qgAr" aria-pressed="false" aria-label="AR：カメラの景色を、選んだ生きものの見え方の模式で見る（記録しません）">AR</button></div>
+<aside class="qg-drawer" id="qgDrawer" aria-label="メニュー">
+  <h3>場所</h3><div id="dPlace"></div>
+  <h3>見る</h3><div class="qg-row" id="dSee"></div>
+  <h3>表示</h3><button class="qg-sw" id="qgTxt" role="switch" aria-checked="false">説明と字幕</button>
+  <p class="qg-note">AR＝スマホのカメラの景色を、下の列で選んだ生きものの見え方の模式で映します（紫外・熱は写らないので描きません）。端末の中だけで計算し、録画・保存・送信はしません。</p>
+  <div class="qg-row" id="dMore" style="margin-top:10px"></div>
+</aside>
+<style id="qg-min-20261126">
+#top .topR,#kesTile,#kesDock{display:none!important}
+#dPlace #habitats{position:static!important;display:flex!important;flex-direction:row!important;gap:8px;transform:none!important}
+#dSee .btn,#dMore .btn,#dMore .ico{border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;color:var(--qg-ink)!important;border-radius:999px!important;min-height:44px;padding:0 14px!important;font:500 13px/1 var(--qg-font)!important;width:auto!important}
+.qg-txt-off #say,.qg-txt-off #where,.qg-txt-off #moveNote,.qg-txt-off #legend,.qg-txt-off #kesCap,.qg-txt-off #kesFoot small{display:none!important}
+body.kes-ar #kesWin{position:fixed!important;inset:0!important;width:auto!important;height:auto!important;top:0!important;bottom:0!important;left:0!important;right:0!important;border:0!important;border-radius:0!important;z-index:3!important;animation:none!important;background:#000!important}
+body.kes-ar #kesHead{display:none!important}body.kes-ar #kesBody{position:absolute!important;inset:0!important;height:auto!important}
+body.kes-ar #kesFoot{position:absolute;left:0;right:0;bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 64px);background:none!important;border:0!important;text-align:center;pointer-events:none}
+body.kes-ar #kesFoot #kesChips{pointer-events:auto}
+body.kes-ar #ring{z-index:6!important}body.kes-ar #guide{z-index:6!important}
+body.kes-ar #ring{display:block!important}
+@media (max-width:767px){#qgEdge{right:auto;left:var(--qg-edge);bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 72px)}}
+</style>
+<script src="kit/qgui.js?v=20261126a"></script>
+<script>
+(function(){var $=function(i){return document.getElementById(i)};
+$('dPlace').appendChild($('habitats'));$('dSee').append($('kurBtn'),$('whyBtn'));$('menuBtn').textContent='設定と出典';$('dMore').appendChild($('menuBtn'));
+var dr=qg.drawer($('qgDrawer'),$('qgMenu'));qg.txt($('qgTxt'));
+['kurBtn','whyBtn','menuBtn'].forEach(function(i){$(i).addEventListener('click',function(){dr.set(false)})});
+var ar=false,tag=$('arTag'),b=$('qgAr');
+function lensName(){var o=document.querySelector('#ring .rg-it.on span');return o?o.textContent.trim():''}
+function tagUp(){if(!ar)return;var n=lensName();tag.textContent='AR ── '+(n&&!/^(人|ひと)$/.test(n)?n+'の見え方の模式':'カメラの景色')+'（紫外は写りません）・記録しません'}
+function off(){ar=false;document.body.classList.remove('kes-ar');tag.hidden=true;b.setAttribute('aria-pressed','false');window.__kes&&window.__kes.closeWin()}
+b.onclick=async function(){var k=window.__kes;if(ar){off();return}if(!k||!k.state.ok){(window.__muToast||console.info)('AR はこの端末では使えません');return}
+  ar=true;document.body.classList.add('kes-ar');b.setAttribute('aria-pressed','true');b.setAttribute('aria-busy','true');await k.openWin();b.removeAttribute('aria-busy');
+  var s=k.state;if(!s.live&&!s.photo){off();var t=$('toast');if(t){t.textContent='カメラがひらけなかったので、森の 3D に戻りました。';t.classList.add('on');setTimeout(function(){t.classList.remove('on')},3500)}return}
+  tag.hidden=false;tagUp()};
+setInterval(function(){if(ar&&window.__kes&&!window.__kes.state.open)off();tagUp()},500);
+})();
+</script>
 <script>(function(){var t=document.getElementById("takeaway");if(!t)return;new MutationObserver(function(){if(!t.hidden&&window.qYokei)setTimeout(qYokei.show,1500)}).observe(t,{attributes:true,attributeFilter:["hidden"]})})();</script>
 </body>
 </html>

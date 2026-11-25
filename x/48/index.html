@@ -6,7 +6,7 @@
 <meta name="robots" content="noai,noimageai">
 <meta name="tdm-reservation" content="1">
 <title>Qualia/hear ── 聞こえない音を聞く</title>
-<meta name="description" content="聞こえない音を聞く。マイクで拾った高い音を、聴こえる高さへ移して聴く。コウモリの声のように録れない高さは、聴こえる高さに移した模式で。">
+<meta name="description" content="聞こえない音を聞く。マイクで拾った高い音を、聴こえる高さへ移して聴く。コウモリの声のように録れない高さは、聴こえる高さに移した模式で。スマホではカメラとマイクで、いまの景色と音に重ねて使えます（記録はしません）。">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js?v=m1","three/addons/":"./vendor/three/examples/jsm/","@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1"><link rel="modulepreload" href="hear.js?v=h12"><link rel="modulepreload" href="forest.js?v=20261123n">
 <link rel="stylesheet" href="kit/qui.css?v=1">
@@ -39,6 +39,7 @@ html,body{background:#2a2624}
 <canvas id="c" aria-label="夕方の森のはしの浜（Qualia/sight と同じ森と海辺）の3Dの風景。空をコウモリが飛びます。マイクで拾った高い音の強さが、目の前の輪と、下の帯に表れます。"></canvas>
 <div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/hear<small>聞こえない音を聞く</small></h1></div>
 <details class="fold"><summary>＋ 出典と模式</summary><div class="in">
+<p><b>AR</b>　右下の「AR」を押すと、スマホのカメラの景色を背に、マイクで拾ったいまの音を聴こえる高さへ移して聴けます。カメラとマイクは押したときだけ許可を求め、映像と音は端末の中だけで扱い、録画・録音・保存・送信はしません。カメラが無いときは、この森の 3D のまま聴けます。</p>
 <p><b>人の耳</b>　人に聴こえる高さは、およそ 20 Hz〜20 kHz。上の端は年とともに下がります。</p>
 <p><b>マイクで拾った音（実際の音）</b>　「マイクで聴く」を押すと、スマホやパソコンのマイクが拾った音のうち 15 kHz より高い所だけを取り出し、選んだ高さ（16・18・20 kHz）の音とかけ合わせて、その差の高さ（0〜5 kHz ほど）に下ろして鳴らします。コウモリの声を聴く検出器（ヘテロダイン方式）と同じしくみです。ふつうのマイクと端末は、多くが 20〜24 kHz ほどまでしか拾えません（標本化の周波数 44.1・48 kHz の半分が上限。機種によってはもっと低い所で切っています）。ですから、ここで聴けるのは、虫の声の高い成分や、機械の高い音など、およそ 15〜24 kHz の音です。音は端末の中だけで扱い、録音・送信はしません。ハウリングを防ぐため、イヤホンをおすすめします。</p>
 <p><b>コウモリ（模式）</b>　夕方の空を飛ぶアブラコウモリ（<i>Pipistrellus abramus</i>）は、約 100 kHz から 40 kHz 前後へ下がる、数ミリ秒の声を出して、こだまで虫や物をとらえます（Hase ほか 2016, <i>Scientific Reports</i> 6: 30978 ほか）。この高さはふつうのマイクでは録れません。「コウモリの声」の音は、その形を<b>聴こえる高さに移した模式</b>です（時間を 10 倍にのばし、高さを 10 分の 1 に。実際の録音ではありません）。</p>
@@ -81,7 +82,6 @@ document.querySelectorAll('#place button').forEach(b => b.onclick = async () => 
 $('bGo').onclick = () => { $('away').classList.add('on'); navigator.vibrate && navigator.vibrate([12, 80, 12]); }; $('bBack').onclick = () => $('away').classList.remove('on');
 import('./hear.js?v=h12').then(m => { mod = m; V = m.start($('c')); window.__hear = window.__sonic = V; }).catch(e => console.warn(e));
 </script>
-<!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
 <link rel="stylesheet" href="kit/qgui.css?v=20261125q">
 <style id="quiet-gui-20261125">/* 2026-11-25 本人「風景がメイン・字幕が多い・GUI を洗練」：字幕を下の端に小さく薄く（中央 6 割を空ける）、ボタンを共通の線と透ける地に */
 html body #cap.cap{top:auto!important;bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 58px)!important;font:400 13px/1.5 var(--qg-font)!important;letter-spacing:.04em;color:rgba(240,248,246,.86)!important;background:none!important;
@@ -91,5 +91,52 @@ html body button[aria-pressed="true"],html body button.on{border-width:1.5px!imp
 html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
 </style>
 <script src="kit/yokei.js?v=20261126a" data-tool="hear" ></script>
+<!-- 2026-11-26 本人「AR でカメラ・マイク」「文字を最小に・≡ で開く・説明は on/off」：常に出すのは右下の ≡・AR・マイクだけ。ほかは ≡ の引き出しへ -->
+<video id="arv" playsinline muted aria-hidden="true"></video>
+<p class="qg-ar-tag" id="arTag" hidden>AR ── いまの音と景色。録音・録画・送信はしません</p>
+<div class="qg-edge" id="qgEdge"><button class="qg-btn qg-menu" id="qgMenu" aria-label="メニュー（場所・コウモリ・説明の on/off・出典）" aria-controls="qgDrawer">≡</button><button class="qg-btn" id="qgAr" aria-pressed="false" aria-label="AR：カメラとマイクで、いまの景色と音に重ねる（記録しません）">AR</button></div>
+<aside class="qg-drawer" id="qgDrawer" aria-label="メニュー">
+  <h3>場所</h3><div id="dPlace"></div>
+  <h3>聴く</h3><div class="qg-row" id="dListen"></div>
+  <div id="dTune"></div>
+  <h3>表示</h3><button class="qg-sw" id="qgTxt" role="switch" aria-checked="false">説明と字幕</button>
+  <p class="qg-note">AR＝スマホのカメラとマイクで、いまの景色と音に重ねて聴けます。端末の中だけで計算し、録音・録画・保存・送信はしません。</p>
+  <div id="dFold"></div>
+</aside>
+<style id="qg-min-20261126">
+#qgEdge #bMic{width:48px;min-height:48px;padding:0!important;border-radius:999px!important;font-size:11px!important;letter-spacing:.02em}
+#qgDrawer button:not(.qg-sw){border-radius:12px!important;padding:0 14px!important;min-width:56px}
+#arTag{top:calc(max(10px,env(safe-area-inset-top)) + 140px)}
+.bar{display:none!important}
+#dPlace #place{position:static!important;flex-direction:row!important;gap:8px}#dPlace #place button{border-top:1px solid var(--qg-line)!important}
+#dTune .tune{visibility:visible!important;position:static!important;justify-content:flex-start;padding:8px 0 0;flex-wrap:wrap}#dTune .tune span{display:inline!important;font-size:12px;color:var(--qg-ink-dim)}
+#dFold .fold{position:static!important;max-width:none!important;margin-top:10px}#dFold .fold summary{float:none}#dFold .fold .in{background:rgba(10,14,13,.6)!important;max-width:none;font-size:12px}
+.qg-txt-off #cap:not(.force),.qg-txt-off .spec .ax{display:none!important}
+#arv{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;display:none;background:#000}
+body.ar #arv{display:block}body.ar #c{visibility:hidden}
+body.ar .spec{background:radial-gradient(ellipse 70% 90% at 50% 50%,rgba(0,0,0,.5),rgba(0,0,0,.12) 80%)!important}
+.spec,.cap,.top,#qgEdge,.qg-drawer,.away{z-index:5}
+@media (max-width:767px){html body #cap.cap{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 4px)!important;left:var(--qg-edge)!important;transform:none!important;max-width:calc(100vw - 100px)!important;text-align:left}}
+@media (min-width:768px){html body #cap.cap{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 8px)!important}}
+</style>
+<script src="kit/qgui.js?v=20261126a"></script>
+<script>
+(function(){var $=function(i){return document.getElementById(i)};
+$('qgEdge').appendChild($('bMic'));$('bMic').textContent='マイク';
+$('dPlace').appendChild($('place'));$('dListen').append($('bBat'),$('bGo'));$('dTune').appendChild(document.querySelector('.tune'));$('dFold').appendChild(document.querySelector('.fold'));
+var dr=qg.drawer($('qgDrawer'),$('qgMenu'));qg.txt($('qgTxt'));$('bGo').addEventListener('click',function(){dr.set(false)});
+new MutationObserver(function(){var t=$('cap').textContent;if(/ひらけなかった|拾っていない|カメラ/.test(t)){$('cap').classList.add('force');clearTimeout(window.__capT);window.__capT=setTimeout(function(){$('cap').classList.remove('force')},6000)}}).observe($('cap'),{childList:true,characterData:true,subtree:true});
+new MutationObserver(function(){if($('bMic').textContent==='聴いている')$('bMic').textContent='聴取中'}).observe($('bMic'),{childList:true});
+var v=$('arv'),st=null;
+function off(){qg.stop(st);st=null;v.srcObject=null;document.body.classList.remove('ar');$('arTag').hidden=true;$('qgAr').setAttribute('aria-pressed','false')}
+$('qgAr').onclick=async function(){if(st){off();return}
+  var b=this;b.setAttribute('aria-busy','true');st=await qg.cam();b.removeAttribute('aria-busy');
+  if(st){v.srcObject=st;try{await v.play()}catch(e){}document.body.classList.add('ar');$('arTag').hidden=false;b.setAttribute('aria-pressed','true')}
+  else{$('cap').textContent='カメラがひらけなかったので、森の 3D のまま、マイクで聴く。'}
+  if($('bMic').getAttribute('aria-pressed')!=='true')$('bMic').click()};
+document.addEventListener('visibilitychange',function(){if(document.hidden&&st)off()});addEventListener('pagehide',off);
+})();
+</script>
+<!-- © mitsulab. All rights reserved. 2026-11-23 公開。AI の学習・生成への利用はお断りします。 -->
 </body>
 </html>
