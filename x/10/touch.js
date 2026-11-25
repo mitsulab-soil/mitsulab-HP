@@ -57,7 +57,7 @@ export const THINGS = [
   { id: "drift", place: "shore", name: "流木", tex: "drift", snd: "wood", noray: true, direct: true, p: { hard: .55, rough: .3, depth: 1.0, fric: .4, spring: .1, warm: .72 },
     s: "角がとれ、なめらかに乾いている。", cue: "海を漂ってきた木。波と砂に磨かれて角がとれ、日に晒されて白っぽくなる。" },
   // まち（駅前の大通りの模式）。並びは歩道を北へ歩く順＝「次の面」の順。s＝字幕の一行（面の名前のあと）
-  { id: "tenji", place: "city", name: "点字ブロック", tex: "town_tenji", h: "town_tenji", snd: "stone", p: { hard: .9, rough: .45, depth: 5, fric: .55, spring: .03, warm: .45 },
+  { id: "tenji", place: "city", name: "点字ブロック", tex: "town_tenji", h: "town_tenji", direct: true, snd: "stone", p: { hard: .9, rough: .45, depth: 5, fric: .55, spring: .03, warm: .45 },
     s: "点の頭が、指の腹にひとつずつ当たる。" },
   { id: "pave", place: "city", name: "敷石", tex: "pave", snd: "stone", p: { hard: .95, rough: .55, depth: 1.5, fric: .6, spring: .02, warm: .55 },
     s: "目地の溝で、指が止まる。" },
@@ -216,23 +216,16 @@ export function start(canvas, ui) {
   const heightAt = (xmm, ymm) => { const n = H.n, w = v => ((v % n) + n) % n, fx = w(xmm / SIZE_MM * n), fy = w(ymm / SIZE_MM * n), x = fx | 0, y = fy | 0, tx_ = fx - x, ty = fy - y, x1 = (x + 1) % n, y1 = (y + 1) % n, h = H.h;
     return (h[y * n + x] * (1 - tx_) + h[y * n + x1] * tx_) * (1 - ty) + (h[y1 * n + x] * (1 - tx_) + h[y1 * n + x1] * tx_) * ty; };
   let cur = null;   // いま近づいているもの
-  // 点字ブロックは 300 mm の一枚を、近づいた所の位置に合わせて切り出す（tUV＝切り出しの大きさと位置。指の手ごたえも同じ所）
-  const tUV = [.3667, 0, 0]; const tenjiH = (x, y) => heightAt((tUV[1] + x / SIZE_MM * tUV[0]) * SIZE_MM, (1 - (tUV[2] + (1 - y / SIZE_MM) * tUV[0])) * SIZE_MM);
-  function setThing(id) { const th = T[id].th; cur = T[id]; snd.setMaterial(th.snd); snd.setSurface(th.p); model.setSurface(th.id === "tenji" ? tenjiH : heightAt, th.p); hgt(th.h || th.tex).then(v => { if (cur && cur.th === th) H = v; }); if (snd.ctx) snd.prefetch(); }
+  function setThing(id) { const th = T[id].th; cur = T[id]; snd.setMaterial(th.snd); snd.setSurface(th.p); model.setSurface(heightAt, th.p); hgt(th.h || th.tex).then(v => { if (cur && cur.th === th) H = v; }); if (snd.ctx) snd.prefetch(); }
   // 近づいた所に重ねる、実寸 10 cm の一枚（縁は消えるように。凹凸は面を少し押し出す）
   const nearM = new Map(), nearG0 = new THREE.PlaneGeometry(.11, .11, mobile ? 80 : 128, mobile ? 80 : 128);
   const nearMesh = new THREE.Mesh(nearG0, new THREE.MeshBasicMaterial()); nearMesh.visible = false; nearMesh.userData.rep = [1, 1]; nearMesh.renderOrder = 10; nearMesh.receiveShadow = true; S.add(nearMesh);
   const bent = new Map(); let bigG = null; const nearUnder = () => nearMesh.userData.under ? (bigG || (bigG = new THREE.PlaneGeometry(.22, .22, 96, 96))) : nearG0;   // 貝殻の下の砂は、殻のまわりまで広く
   function showNear(th, P, N) { if (false) { th = THINGS.find(x => x.id === "sand"); P = P.clone(); P.y = sandY(P.x, P.z) + .006; N = new THREE.Vector3(0, 1, 0); nearMesh.userData.under = true; } else nearMesh.userData.under = false;
-    if (th.direct) { nearMesh.visible = false; layer.visible = false; return; }
+    if (th.direct) { nearMesh.visible = false; layer.visible = false; if (th.id === "tenji") showLayer(th); return; }
     if (!nearM.has(th.id) && th.id !== "tenji") nearM.set(th.id, mat(th, 1, 1, { wrap: THREE.RepeatWrapping, transparent: true, alphaMap: edge, disp: th.id === "stone" ? .004 : .005, polygonOffset: true, polygonOffsetFactor: -4, depthTest: !(th.id === "soil" || th.id === "leaves") }));   // 地面に寄ったとき、草の葉がレンズの前に突き抜けないよう、寄った一枚を手前に描く
-    if (th.id === "tenji" && !nearM.has("tenji2")) { const k = f => { const t = tx(`town_tenji_${f}.webp`, 1, 1, f === "c"); return t; };
-      nearM.set("tenji2", new THREE.MeshStandardMaterial({ map: k("c"), normalMap: k("n"), displacementMap: k("h"), displacementScale: .005, roughness: .72, envMapIntensity: .55, transparent: true, alphaMap: edge, polygonOffset: true, polygonOffsetFactor: -4 })); }
-    if (th.id === "glass") { const g = nearM.get("glass"); g.opacity = .55; g.roughness = .15; g.envMapIntensity = 1.4; }
-    nearMesh.material = nearM.get(th.id === "tenji" ? "tenji2" : th.id);
-    if (th.id === "tenji") { const tm = T.tenji.mesh, L = tm.worldToLocal(P.clone()), U0 = (L.x + .3) / .6 * 2, V0 = (-L.z + .45) / .9 * 3; tUV[1] = U0 - tUV[0] / 2; tUV[2] = V0 - tUV[0] / 2;
-      for (const t of [nearMesh.material.map, nearMesh.material.normalMap, nearMesh.material.displacementMap]) { t.repeat.set(tUV[0], tUV[0]); t.offset.set(tUV[1], tUV[2]); }
-      P = P.clone(); N = new THREE.Vector3(0, 1, 0); }
+    if (th.id === "glass") { const g = nearM.get("glass"); g.opacity = .55; g.roughness = .08; if (glassEnv && g.envMap !== glassEnv) { g.envMap = glassEnv; g.needsUpdate = true; } g.envMapIntensity = 1.4; }
+    nearMesh.material = nearM.get(th.id);
     if (th.id === "bark" || th.id === "street") { const rr = th.id === "street" ? .2 : .34, kk = "b" + rr; if (!bent.has(kk)) { const g = nearG0.clone(), pa = g.attributes.position, r = rr; for (let i = 0; i < pa.count; i++) { const x = pa.getX(i); pa.setZ(i, -(r - Math.sqrt(r * r - x * x))); } g.computeVertexNormals(); bent.set(kk, g); } nearMesh.geometry = bent.get(kk); } else nearMesh.geometry = nearUnder();
     nearMesh.position.copy(P).addScaledVector(N, .005); const up = Math.abs(N.y) > .9 ? new THREE.Vector3(0, 0, -1) : new THREE.Vector3(0, 1, 0);
     nearMesh.up.copy(up); nearMesh.lookAt(P.clone().add(N)); if (th.id === "rail") nearMesh.rotateZ(Math.PI / 2); nearMesh.visible = true; showLayer(th); }
@@ -264,11 +257,11 @@ export function start(canvas, ui) {
         vec3 col = mix(vec3(.56, .86, .96), vec3(1., .75, .46), uWarm);
         gl_FragColor = vec4(col + tr * .45, clamp(uA * edge * (line * .42 + m * .4 + tr * .8), 0., 1.));
       }` }));
-  layer.visible = false; layer.renderOrder = 11; S.add(layer); const LH = new Map();
-  function showLayer(th) { const t = th.h || th.tex; if (th.id === "tenji") LU.uUv.value.set(tUV[0], tUV[0], tUV[1], tUV[2]); else LU.uUv.value.set(1, 1, 0, 0); if (!t || th.direct) { layer.visible = false; return; } if (!LH.has(t)) LH.set(t, tx(`${t}_h.webp`, 1, 1, false)); LU.hMap.value = LH.get(t);
-    LU.uWarm.value = th.p.warm ?? .5; LU.uWet.value = th.p.wet || 0; LU.uRough.value = th.p.rough ?? .5; LU.uDisp.value = th.id === "stone" ? .004 : .005; LU.uA.value = 0;
-    layer.geometry = nearMesh.geometry; layer.position.copy(nearMesh.position); layer.quaternion.copy(nearMesh.quaternion); layer.material.depthTest = nearMesh.material.depthTest !== false; trClear(); layer.visible = true; }
-  function traceAt(h) { if (!layer.visible || !h.uv || h.object !== nearMesh) return; const x = h.uv.x * 256, y = (1 - h.uv.y) * 256, gr = trG.createRadialGradient(x, y, 0, x, y, 9);
+  layer.visible = false; layer.renderOrder = 11; S.add(layer); const LH = new Map(); let layTo = null;
+  function showLayer(th) { const t = th.h || th.tex, tj = th.id === "tenji"; if (tj) LU.uUv.value.set(2, 3, 0, 0); else LU.uUv.value.set(1, 1, 0, 0); if (!t || (th.direct && !tj)) { layer.visible = false; return; } if (!LH.has(t)) LH.set(t, tx(`${t}_h.webp`, 1, 1, false)); LU.hMap.value = LH.get(t);
+    LU.uWarm.value = th.p.warm ?? .5; LU.uWet.value = th.p.wet || 0; LU.uRough.value = th.p.rough ?? .5; LU.uDisp.value = tj ? 0 : th.id === "stone" ? .004 : .005; LU.uA.value = 0;
+    const src = tj ? T.tenji.mesh : nearMesh; src.updateMatrixWorld(true); layer.geometry = src.geometry; src.matrixWorld.decompose(layer.position, layer.quaternion, layer.scale); layer.material.depthTest = tj || nearMesh.material.depthTest !== false; layTo = src; trClear(); layer.visible = true; }
+  function traceAt(h) { if (!layer.visible || !h.uv || h.object !== layTo) return; const x = h.uv.x * 256, y = (1 - h.uv.y) * 256, gr = trG.createRadialGradient(x, y, 0, x, y, 9);
     gr.addColorStop(0, "rgba(255,255,255,.55)"); gr.addColorStop(1, "rgba(255,255,255,0)"); trG.globalCompositeOperation = "lighter"; trG.fillStyle = gr; trG.fillRect(x - 9, y - 9, 18, 18); trT.needsUpdate = true; trOn = true; }
 
   // ---- 動き：歩く・近づく・はなれる
@@ -343,7 +336,7 @@ export function start(canvas, ui) {
   // ---- まちの面（2026-11-25 夜 本人「touch について、まちの風景と触覚のディティールを表現してください」）
   // 東の歩道を北へ：点字ブロック → 敷石・結び目 → 車道のアスファルト → 植え込みの土・街路樹 → 錆びた鉄の杭 → 店のガラス → 木の手すり → 苔むした石垣。
   // 遠くから見る面は Poly Haven の CC0 の写真（石垣 japanese_stone_wall・手すり rough_wood）、近づいた 10 cm は実寸の切り出し。点字ブロックは JIS T 9251 の寸法で描いた模式。スマホは質感を半分の大きさで読む
-  const townBox = [], sfx = mobile ? "_s" : "";
+  let glassEnv = null; const townBox = [], sfx = mobile ? "_s" : "";
   const townBlocked = (x, z) => townBox.some(([a, b, c, d]) => x > a - .3 && x < b + .3 && z > c - .3 && z < d + .3);
   const standOf = it => { if (it.stand) return it.stand.clone(); let h = it.n.clone().setY(0); if (h.lengthSq() < .04) h = base.clone().sub(it.aim).setY(0); h.normalize();
     const s = it.aim.clone().addScaledVector(h, 1.1); s.x = Math.max(3.95, Math.min(7.6, s.x)); s.y = 1.55; return s; };
@@ -356,7 +349,7 @@ export function start(canvas, ui) {
     const big = (f, rx, ry, o = {}) => new THREE.MeshStandardMaterial({ map: tx(`town_${f}_c${sfx}.webp`, rx, ry), normalMap: tx(`town_${f}_n${sfx}.webp`, rx, ry, false), roughness: o.rough ?? .92, metalness: 0, envMapIntensity: .45, color: o.color ?? 0xffffff });
     // 点字ブロック（点状・300 mm 角を 2×3 枚）。黄色・点の高さ 5 mm
     { const g = new THREE.PlaneGeometry(.6, .9); g.rotateX(-Math.PI / 2); const x = 6.35, z = 7.7, y = gY(x, z) + .006, m = new THREE.Mesh(g, big("tenji", 2, 3, { rough: .7 })); m.material.normalScale.set(1.6, 1.6); m.position.set(x, y, z); m.renderOrder = 2;
-      const P = new THREE.Vector3(x, y, z); add("tenji", m, P, up(P), cityMine); }
+      const P = new THREE.Vector3(x, y, z); m.userData.rep = [2, 3]; add("tenji", m, P, up(P), cityMine); }
     disc("asphalt", 2.95, 7.1, .38, 7);   // 車道の端（路肩）。横断はしない
     // 植え込みの土（街路樹の根もと。幹のまわりのむき出しの土）
     disc("bed", 4.6, 6, .58, 11); T.bed.aim = new THREE.Vector3(4.62, T.bed.aim.y, 6.4);
@@ -371,7 +364,10 @@ export function start(canvas, ui) {
     { const x = 8.44, z = 3.2, y0 = gY(7.9, z), g = new THREE.PlaneGeometry(1.9, 2.1), m = new THREE.Mesh(g, new THREE.MeshPhysicalMaterial({ color: 0x6f8288, roughness: .06, metalness: .2, envMapIntensity: 2.2, clearcoat: 1, clearcoatRoughness: .03 }));
       m.rotation.y = -Math.PI / 2; m.position.set(x, y0 + 1.25, z); const fr = new THREE.MeshStandardMaterial({ color: 0x5b5f61, roughness: .45, metalness: .7 });
       for (const [w, h, dy, dz] of [[.05, 2.2, 0, -.97], [.05, 2.2, 0, .97], [.05, .05, 1.07, 0], [.08, .08, -1.07, 0]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(.06, dy ? .06 : h, dy ? 1.98 : w), fr); b.position.set(x + .01, y0 + 1.25 + dy, z + dz); cityMine.add(b); }
-      townBox.push([8.2, 8.6, z - 1, z + 1]); const P = new THREE.Vector3(x - .002, y0 + 1.15, z - .2); add("glass", m, P, new THREE.Vector3(-1, 0, 0), cityMine); m.castShadow = false; }
+      townBox.push([8.2, 8.6, z - 1, z + 1]); const P = new THREE.Vector3(x - .002, y0 + 1.15, z - .2); add("glass", m, P, new THREE.Vector3(-1, 0, 0), cityMine); m.castShadow = false;
+      // 映りこみ：ガラスの前から通りを一度だけ写した小さな環境（向かいのビルと空がうっすら映る。毎こまは写さない）
+      requestAnimationFrame(() => { try { const rt = new THREE.WebGLCubeRenderTarget(mobile ? 64 : 128), cc = new THREE.CubeCamera(.3, 80, rt); cc.position.set(x - .6, y0 + 1.4, z); const v0 = m.visible; m.visible = false; city.visible = true; S.add(cc); cc.update(R, S); S.remove(cc); city.visible = place === "city"; m.visible = v0;
+        m.material.envMap = rt.texture; m.material.envMapIntensity = 1.1; m.material.color.set(0x55666c); m.material.needsUpdate = true; glassEnv = rt.texture; const g = nearM.get("glass"); if (g) { g.envMap = glassEnv; g.needsUpdate = true; } } catch (e) { } }); }
     // 木の手すり（入口の段の脇。木は rough_wood・実寸 50 cm の写真を長さの向きに）
     { const x = 8.12, z0 = .7, z1 = -1.5, L = z0 - z1, zc = (z0 + z1) / 2, y0 = gY(x, zc), m = new THREE.Mesh(new THREE.BoxGeometry(.07, .055, L, 1, 1, 8), big("rail", L / .5, .14, { rough: .8 }));
       const tm = m.material; tm.map.rotation = tm.normalMap.rotation = Math.PI / 2; tm.map.repeat.set(.14, L / .5); tm.normalMap.repeat.set(.14, L / .5);
@@ -394,9 +390,8 @@ export function start(canvas, ui) {
     const st = standOf(it), dist = st.distanceTo(cam.position); if (dist < 1.6 && mode === "walk") return approach(id);
     clutter(true); nearMesh.visible = false; layer.visible = false; cur = null; cam.near = .02; cam.updateProjectionMatrix(); base.copy(st); faceTo(it.aim); walkQ();
     mode = "going"; ui.mode?.("going", it.th); glide(st, qWalk.clone(), Math.max(.8, Math.min(2.6, dist / 2.2)), () => approach(id)); }
-  // ---- 場所の切りかえ（森／浜／都市）。都市（kit/city.js）は切りかえたときに組む
-  async function setPlace(p) { if (p === place && mode === "walk") return;
-    if (p === "city" && !CITY) { cityP = cityP || import("./kit/city.js?v=20261123p").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick: [], sonic: [], mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+  // 都市は、森が出て落ち着いたら（指が止まっているあいだに）前もって組んでおく＝切りかえを待たせない（2026-11-26）
+  function prepCity() { cityP = cityP || import("./kit/city.js?v=20261123p").then(({ buildCity }) => { CITY = buildCity({ M, tx, canvasTex, group: city, pick: [], sonic: [], mobile }); city.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
         SP.city = { eye: new THREE.Vector3(7.25, 1.55, 9.2), yaw: .05, pitch: -.22 };
         const waitRope = () => new Promise(ok => { const k = () => CITY.rope || city.getObjectByName("落とし物の結び目") ? ok(CITY.rope || city.getObjectByName("落とし物の結び目")) : setTimeout(k, 50); k(); });
         return waitRope().then(rope => { rope.updateMatrixWorld(true); rope.userData.rep = [1.5, 1.5]; rope.material = ropeMat(); const b = new THREE.Box3().setFromObject(rope), c = b.getCenter(new THREE.Vector3());
@@ -409,7 +404,10 @@ export function start(canvas, ui) {
             const pa = g.attributes.position; for (let i = 0; i < pa.count; i++) { const x = pa.getX(i), y = pa.getY(i), z = pa.getZ(i), a = Math.atan2(z, x), k = 1 + .05 * Math.sin(a * 5 + y * .7) + (y < .4 ? (.4 - y) * .4 : 0); pa.setXYZ(i, x * k, y, z * k); } g.computeVertexNormals();
             const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xd8d2c8, map: photoTex("bark_zelkova.webp", 1.5, 4), normalMap: tx("bark_zelkova_n.webp", 1.5, 4, false), roughnessMap: tx("bark_zelkova_orm.webp", 1.5, 4, false), roughness: 1, envMapIntensity: .35 })); m.position.set(tX, 0, tz); m.userData.rep = [1.5, 4];
             const tE = toward(new THREE.Vector3(tX, 0, tz), SP.city.eye); add("street", m, new THREE.Vector3(tX, 1.25, tz).addScaledVector(tE, r0 * 1.02), tE.clone(), cityMine); }
-          buildTown(); city.visible = true; const q = R.compileAsync ? R.compileAsync(city, cam, S).catch(() => { }) : null; city.visible = false; return q; }); }); await cityP; }
+          buildTown(); city.visible = true; const q = R.compileAsync ? R.compileAsync(city, cam, S).catch(() => { }) : null; city.visible = false; return q; }); }); return cityP; }
+  // ---- 場所の切りかえ（森／浜／都市）。都市（kit/city.js）は切りかえたときに組む
+  async function setPlace(p) { if (p === place && mode === "walk") return;
+    if (p === "city" && !CITY) { await prepCity(); }
     if (mode !== "walk") { clutter(true); nearMesh.visible = false; cur = null; aoiLook = null; cam.near = .02; cam.updateProjectionMatrix(); }
     place = p; forest.visible = p !== "city"; city.visible = p === "city";
     const sp = SP[p]; yaw = sp.yaw; pitch = sp.pitch; base.copy(sp.eye); cam.position.copy(sp.eye); walkQ(); cam.quaternion.copy(qWalk); mode = "walk"; tw = null;
@@ -434,6 +432,7 @@ export function start(canvas, ui) {
     if (place === "city" && CITY) CITY.update(t, dt); if (place !== "city" && SHORE) SHORE.update(t, dt, cam.position);
     if (AM) { AM.faceTo(null); AM.lookAt(aoiLook || (mode === "walk" ? cam.position : null)); AM.update(dt, cam); }   // 歩いているあいだは、ときどき見る人の方へ目を向ける（AoiMotion がまばたき・重心の移しを足す）
     R.render(S, cam); });
+  { const idle = window.requestIdleCallback || (f => setTimeout(f, 200)); setTimeout(() => idle(() => { if (mode === "walk" && !down) prepCity().catch(() => { }); }, { timeout: 2000 }), mobile ? 3500 : 2500); }
   window.__touch = { T, cam, approach: goTo, layer, LU, leave, setPlace, get mode() { return mode; }, vibe, model, snd };
   return {
     R, S, cam, approach: goTo, leave, setPlace, get place() { return place; }, things: () => Object.keys(T),
