@@ -9,3 +9,7 @@ html.qx-off #qRingW, html.qx-off #qTown i, html.qx-off #qTown small{display:none
 #qxBtn[aria-pressed="true"]{border-color:#5cc8e0;color:#5cc8e0}
 @media (max-width:640px){#qxBtn{bottom:calc(122px + env(safe-area-inset-bottom))}}
 html body .rg-arrow.rg-arrow{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;transform:none!important}
+/* 11-26 続き：PC は生き物の列を上の中央から右上の端へ（風景の中央を空ける）。字幕は 1 行を短く（qsite-quiet が幅で区切る） */
+@media (min-width:900px){html body #qRing#qRing{left:auto!important;right:12px!important;top:64px!important;transform:none!important;translate:none!important}
+ html body #qRingW{left:auto!important;right:12px!important;transform:none!important;translate:none!important;max-width:360px}}
+html body #caption{max-width:min(92vw,26em)!important;margin-left:auto!important;margin-right:auto!important}
