@@ -286,7 +286,7 @@ function buildPlaza() {   // 渋谷：駅前の広場（OSM の歩行者の面�
 }
 function offsetLine(P, d) { const out = []; for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; out.push([P[i][0] - tz / l * d, P[i][1] + tx / l * d]); } return out; }
 function markMat(kind) {   // 路面標示（白・実寸の模式）：0＝実線、1＝破線（5 m 引いて 5 m あける）、2＝横断歩道の縞（幅 45 cm・間 45 cm）
-  const m = new THREE.MeshStandardMaterial({ color: "#ecebe6", roughness: .7, metalness: 0, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10 });
+  const m = new THREE.MeshStandardMaterial({ color: "#f6f5f0", emissive: "#5a5a56", roughness: .6, metalness: 0, fog: false, polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10 });
   m.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n" + (kind === 1 ? "if (fract(vUv.y / 10.) > .5) discard;" : kind === 2 ? "if (fract(vUv.x / .9) > .5) discard;" : "") + "\nfloat wear = fract(sin(dot(floor(vUv * vec2(9., 3.)), vec2(12.9898, 78.233))) * 43758.5); diffuseColor.rgb *= .86 + .14 * wear;"); };
   m.defines = { USE_UV: "" }; m.customProgramCacheKey = () => "mark" + kind; return m;
 }
@@ -1379,7 +1379,7 @@ const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 �
   moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 21 };   // 10-27 1.75 倍
 const KEYS = new Set();
-const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 200, f: 1700 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 320, f: 2200 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { if (m === "walk" && !QW.tWalk) QW.tWalk = performance.now(); const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ

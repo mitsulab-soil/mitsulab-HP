@@ -50,7 +50,7 @@
   }
   function start() {
     css(); wrap = document.createElement("div"); wrap.id = "qMini"; wrap.setAttribute("aria-hidden", "true"); cv = document.createElement("canvas"); cx = cv.getContext("2d");
-    var sm = document.createElement("small"); sm.textContent = "上＝進む向き・点＝いまいる所（国土地理院 空中写真を加工）"; wrap.append(cv, sm); document.body.appendChild(wrap); requestAnimationFrame(loop);
+    var sm = document.createElement("small"); sm.textContent = "国土地理院 空中写真を加工"; wrap.append(cv, sm); document.body.appendChild(wrap); requestAnimationFrame(loop);
   }
   var h = setInterval(function () { var q = window.__qw; if (q && q.ready && q.camera) { clearInterval(h); setTimeout(start, 1200); } }, 500);
 })();

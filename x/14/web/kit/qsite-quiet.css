@@ -5,7 +5,7 @@ html body #qRing.open{height:100px!important;opacity:1}
 html body #qRing .rg-it span{font:500 12px/1.2 var(--qg-font)!important;color:var(--qg-ink-dim)!important;background:none!important;padding:0 2px 2px!important;text-shadow:0 0 2px #000,0 1px 6px rgba(0,0,0,.8)!important}
 html body #qRing .rg-it.on span{font-size:14px!important;color:#fff!important;border-bottom:1.5px solid var(--qg-line-hi)!important}
 html body #qRing .rg-arrow{width:44px!important;height:44px!important;margin-top:-22px!important;border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important}
-html body #qRing:not(.open) .rg-arrow{transform:scale(.82);opacity:.75}
+html body #qRing:not(.open) .rg-arrow{opacity:.75}
 html body #qMini{width:240px!important;opacity:.85}html body #qMini canvas{width:100%!important;height:auto!important}
 @media (max-width:767px){html body #qMini{width:132px!important}}
 html body #caption,html body #caption *{font-size:13px!important;line-height:1.5!important;font-weight:400!important;letter-spacing:.04em}

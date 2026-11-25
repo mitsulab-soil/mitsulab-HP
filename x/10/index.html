@@ -51,12 +51,16 @@ body.near #bLeave,body.near #bStl{display:inline-block}
 .mosiki{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));font:11px/1.4 "Hiragino Kaku Gothic ProN",sans-serif;color:#eef3f2;text-shadow:0 0 4px rgba(0,0,0,.6);opacity:0;transition:opacity .5s;pointer-events:none}
 body.near .mosiki{opacity:.8}
 @media(max-width:700px){.step button{font-size:14px}#bName{min-width:8em}.mosiki{right:auto;left:50%;transform:translateX(-50%);bottom:calc(118px + env(safe-area-inset-bottom))}body.near .cap{bottom:calc(136px + env(safe-area-inset-bottom))!important}.cap{font-size:14px!important}}
+.fold summary{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;font-size:20px!important;padding:0!important}
+#bCap{position:fixed;right:16px;top:calc(64px + env(safe-area-inset-top));z-index:6;min-width:44px;min-height:44px;border-radius:22px;border:1px solid rgba(195,204,224,.22);background:rgba(6,10,18,.55);color:#dfe6ee;font:13px/1 "Shippori Mincho",serif;cursor:pointer}
+body.nocap .cap,body.nocap .mosiki,body.nocap .feel{display:none!important}
+@media(max-width:700px){#place{top:auto!important;left:12px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;flex-direction:row}#place button+button{border-top:1px solid rgba(195,204,224,.22)!important;border-left:0!important}}
 </style>
 </head>
 <body>
 <canvas id="c" aria-label="森（Qualia/sight と同じ森）の3Dの風景。手前にケヤキの幹・石・苔むした倒木・土・落ち葉・杭に結んだ麻縄があり、近づいて指でなぞれます。"></canvas>
 <div class="top"><a class="back" href="https://mitsulab.jp/">← mitsulab</a><h1>Qualia/touch<small>近づいて、触れる</small></h1></div>
-<details class="fold"><summary>＋ 出典と模式</summary><div class="in">
+<details class="fold"><summary aria-label="説明と出典をひらく">≡</summary><div class="in">
 <p><b>触れ方</b>　下の名前か、森の中のものを押すと近づきます。近づいたら、表面を指（マウス）でなぞる。凹凸の縁を越えるたびに、端末が短く震え、その物に実際に触れた録音から切り出した音が鳴ります。押したままにすると、やわらかい物ほど深く沈みます。何もない所を押すか「はなれる」で戻ります。</p>
 <p><b>手ごたえは模式</b>　かたさ・ざらつき・ひんやり感などの値は、写真の凹凸から組み立てた模式で、測った値ではありません。振動は、振動できる端末だけ（iPhone の Safari は震えないので、音と指の下の光で）。</p>
 <p><b>表面</b>　Poly Haven（Japanese Zelkova Bark・Rock Surface・Moss Wood・Farm Soil・Dry Decay Leaves・Rough Linen・Japanese Cedar Planks）の CC0 の写真を、実寸 10 cm で貼っています。近づくと、10 cm 四方がほぼ画面いっぱいになります。</p>
@@ -65,6 +69,7 @@ body.near .mosiki{opacity:.8}
 <p><b>触覚の層</b>　近づくと重なる線は凹凸の等高線、点は細かな凹凸のざらつき、指の跡の光はなぞった所。色は温もりの手がかり（青み＝ひんやり・琥珀＝温かい）、点のまたたきは湿りの手がかり。触覚そのものの再現ではなく、手がかりを見える形と振動に移した模式です。</p>
 <p>場所は Qualia/sight と同じ森（関東の雑木林のつもりの創作空間）。写真から自分の触覚をつくる前の道具は <a href="studio.html">こちら</a>。three.js（MIT）。© mitsulab.</p>
 </div></details>
+<button id="bCap" aria-pressed="true" aria-label="字幕の表示を切りかえる">字</button>
 <div class="feel" id="feel" aria-live="off"></div>
 <div class="cap" id="cap">木の幹、石、苔、土。近づいて、指でなぞってみる。</div>
 <div id="place" role="group" aria-label="場所を切りかえる"><button data-place="forest" aria-pressed="true">自然</button><button data-place="city" aria-pressed="false">都市</button></div>
@@ -101,5 +106,7 @@ import('./touch.js?v=t6').then(m => { THINGS = m.THINGS; V = m.start($('c'), ui)
 </script>
 <link rel="stylesheet" href="kit/qgui.css?v=20261126a"><script src="kit/yokei.js?v=20261126a" data-tool="touch"></script>
 <style id="touch-top-gap">/* 2026-11-26 採点 P2「← mitsulab と題が重なって見える」：あいだを空け、題を一段小さく */html body .top{gap:20px!important;display:flex;align-items:center}html body .top .back{margin-right:12px!important;white-space:nowrap}html body .top h1 small{margin-left:10px!important}</style>
+<script>(()=>{const b=document.getElementById('bCap');let off=false;try{off=localStorage.getItem('qtouch.nocap')==='1'}catch(e){}
+const set=v=>{off=v;document.body.classList.toggle('nocap',v);b.setAttribute('aria-pressed',String(!v));b.style.opacity=v?.55:1;try{localStorage.setItem('qtouch.nocap',v?'1':'0')}catch(e){}};set(off);b.onclick=()=>set(!off)})();</script>
 </body>
 </html>
