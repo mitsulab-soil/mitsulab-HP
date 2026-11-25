@@ -475,7 +475,10 @@ html body #where #whereSub,html body #where #whereSub *{white-space:nowrap!impor
 #guide{top:auto!important;bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 62px)!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:auto!important;max-width:calc(100vw - 2*var(--qg-edge))!important;text-align:center!important;background:none!important;padding:0!important}
 #say{font:400 13px/1.5 var(--qg-font)!important;letter-spacing:.04em!important;color:rgba(240,248,246,.86)!important;white-space:nowrap!important;overflow:hidden;min-height:0!important;text-shadow:0 0 2px rgba(0,0,0,.95),0 1px 8px rgba(0,0,0,.75)!important;transition:opacity .35s}
 #say.sub-gone{opacity:0}
-#acts{justify-content:center}
+#acts{justify-content:center;flex-wrap:wrap;gap:6px!important}
+#ring.open ~ #guide{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 100px)!important}
+body:has(#acts button) .icm,body:has(#acts button) #bodyControls{opacity:0!important;pointer-events:none!important}
+@media (max-width:767px){#acts .btn{font-size:12px!important;padding:0 12px!important}}
 /* ボタンをそろえる：細い線・透ける地・押した所だけ光る */
 #top .btn,#menuBtn,#habitats button,#bodyControls button,#acts .btn,#kesTile{border:1px solid var(--qg-line)!important;background:var(--qg-ground)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important;box-shadow:none!important;min-height:44px;min-width:44px;font-family:var(--qg-font)!important;transition:box-shadow 80ms,transform 80ms,border-color 80ms}
 #top .btn,#menuBtn,#acts .btn{border-radius:999px!important;font-size:13px!important;padding:0 16px!important;height:44px}
@@ -488,9 +491,10 @@ html body #where #whereSub,html body #where #whereSub *{white-space:nowrap!impor
 @media (max-width:767px){
   #top .btn{font-size:12px!important;padding:0 12px!important}
   #habitats{top:calc(max(8px,env(safe-area-inset-top)) + 84px)!important;bottom:auto!important;left:var(--qg-edge)!important;flex-direction:row!important;display:flex!important;gap:6px}
-  #where{left:var(--qg-edge)!important;right:auto!important;width:auto!important;max-width:calc(100vw - 32px)!important;text-align:left!important;top:calc(max(8px,env(safe-area-inset-top)) + 134px)!important;margin:0!important;padding:0!important}
+  #where{left:var(--qg-edge)!important;right:auto!important;width:auto!important;max-width:calc(100vw - 32px)!important;text-align:left!important;top:calc(max(8px,env(safe-area-inset-top)) + 130px)!important;margin:0!important;padding:0!important}
   #habitats button{height:44px!important;font-size:12px!important;padding:0 10px!important}
-  #bodyControls{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 110px)!important}
+  html body #bodyControls{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 68px)!important;right:var(--qg-edge)!important}
+  html body #where{height:auto!important;line-height:1.3!important}
   #kesTile{bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 110px)!important}
 }
 </style>
