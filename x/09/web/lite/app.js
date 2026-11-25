@@ -283,7 +283,7 @@ function buildSkirt() {
   const ll2 = (lon, lat) => [(lon - D.origin[0]) * 111320 * Math.cos(D.origin[1] * Math.PI / 180), -(lat - D.origin[1]) * 110574];
   const [rx0, rz0] = ll2(139.54833984375, 35.978006180855665), [rx1, rz1] = ll2(139.68017578125, 35.87124685002796);   // 国土地理院 シームレス空中写真 z14（tex/far_photo.webp）の範囲
   const gm = groundFarMat(THREE, { hole: [x0, z0, x1, z1], base: "#8d8a83", rect: [rx0, rz0, rx1, rz1] });
-  setTimeout(() => TL.load(BASE + "tex/far_photo.webp?v=2", t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);   // 起動のあとで読む
+  setTimeout(() => TL.load(BASE + (MOBILE ? "tex/far_photo_sm.webp?v=1" : "tex/far_photo.webp?v=2"), t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 2 : 4; gm.userData.gf.gfMap.value = t; gm.userData.gf.gfOn.value = 1; }), 2600);   // 起動のあとで読む
   QW.farGM = gm; const m = new THREE.Mesh(g, gm);   // 2026-10-27 夜：遠くの地面を灰色の無地にしない（共通部品 kit/ground_far.js・実在の空中写真）
   m.position.y = 9.2; m.renderOrder = -2; world.add(m); QW.skirt = m;
 }
