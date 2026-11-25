@@ -239,7 +239,7 @@ body{word-break:auto-phrase;line-break:strict}
 "@pixiv/three-vrm":"./vendor/three-vrm/three-vrm.module.min.js"}}
 </script>
 <!-- 20261017 Explicit dependency preloads: existing same-version modules and first-view assets only. -->
-<link rel="modulepreload" href="umwelt.js?v=20261125q">
+<link rel="modulepreload" href="umwelt.js?v=20261126a">
 <link rel="modulepreload" href="vendor/three/build/three.module.js?v=m1" fetchpriority="high">
 <link rel="modulepreload" href="bodies.js?v=20261120r">
 <link rel="modulepreload" href="forest.js?v=20261123n">
@@ -409,7 +409,7 @@ for(const f of ["leaf_spray.webp","leaf_spray2.webp"])a(f,S||F?"image":"fetch");
 /* 2026-10-14 テストプレー：広告よけの機能などで読みこみが止まると、森が黒いままになった → 止まったら知らせて、もう一度読みこめるようにする */
 window.__bootFail=function(){if(window.__muBoot||window.__bootFailed)return;window.__bootFailed=true;var m=document.getElementById('bootMsg');if(m)m.textContent='森の読みこみが止まりました。通信が切れたか、ブラウザの広告よけの機能が読みこみを止めたのかもしれません。';var b=document.getElementById('start');b.hidden=false;b.id='bootFail';b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};};
 addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='SCRIPT'&&!/voice\.js/.test(t.src))window.__bootFail();},true);
-if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261125q';s.onerror=window.__bootFail;document.body.appendChild(s);
+if(location.protocol!=='file:'){if(!window.SCRIPT)window.__bootFail();var s=document.createElement('script');s.type='module';s.src='umwelt.js?v=20261126a';s.onerror=window.__bootFail;document.body.appendChild(s);
   setTimeout(function(){if(!window.__muBoot){var m=document.getElementById('bootMsg');if(m&&!window.__bootFailed)m.textContent='まだ組み立てています。止まって見えるときは、下のボタンでもう一度読みこめます。';var b=document.getElementById('start');if(b&&!window.__bootFailed){b.hidden=false;b.textContent='もう一度読みこむ';b.onclick=function(){location.reload();};}}},45000);}
 </script>
 <noscript><p style="padding:20px">この体験は JavaScript で動きます。</p></noscript>
@@ -525,6 +525,7 @@ body.kes-ar #kesFoot{position:absolute;left:0;right:0;bottom:calc(var(--qg-safe-
 body.kes-ar #kesFoot #kesChips{pointer-events:auto}
 body.kes-ar #ring{z-index:6!important}body.kes-ar #guide{z-index:6!important}
 body.kes-ar #ring{display:block!important}
+body.kes-ar #acts{display:none!important}   /* AR 中は碧の話の ⏸（止める）⏭（とばす）を隠す＝視界を遮らない。声はそのまま */
 @media (max-width:767px){#qgEdge{right:auto;left:var(--qg-edge);bottom:calc(var(--qg-safe-b) + var(--qg-edge) + 72px)}}
 </style>
 <script src="kit/qgui.js?v=20261126a"></script>
@@ -537,7 +538,7 @@ var ar=false,tag=$('arTag'),b=$('qgAr');
 function lensName(){var o=document.querySelector('#ring .rg-it.on span');return o?o.textContent.trim():''}
 function tagUp(){if(!ar)return;var n=lensName();tag.textContent='AR ── '+(n&&!/^(人|ひと)$/.test(n)?n+'の見え方の模式':'カメラの景色')+'（紫外は写りません）・記録しません'}
 function off(){ar=false;document.body.classList.remove('kes-ar');tag.hidden=true;b.setAttribute('aria-pressed','false');window.__kes&&window.__kes.closeWin()}
-b.onclick=async function(){var k=window.__kes;if(ar){off();return}if(!k||!k.state.ok){(window.__muToast||console.info)('AR はこの端末では使えません');return}
+b.onclick=async function(){if(!window.__kes&&!ar){b.setAttribute('aria-busy','true');try{await import('./keshiki.js?v=20261121a');for(var i=0;i<20&&!window.__kes;i++)await new Promise(function(r){setTimeout(r,25)})}catch(e){console.warn(e)}b.removeAttribute('aria-busy')}var k=window.__kes;if(ar){off();return}if(!k||!k.state.ok){(window.__muToast||console.info)('AR はこの端末では使えません');return}
   ar=true;document.body.classList.add('kes-ar');b.setAttribute('aria-pressed','true');b.setAttribute('aria-busy','true');await k.openWin();b.removeAttribute('aria-busy');
   var s=k.state;if(!s.live&&!s.photo){off();var t=$('toast');if(t){t.textContent='カメラがひらけなかったので、森の 3D に戻りました。';t.classList.add('on');setTimeout(function(){t.classList.remove('on')},3500)}return}
   tag.hidden=false;tagUp()};

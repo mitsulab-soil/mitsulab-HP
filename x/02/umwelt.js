@@ -1324,7 +1324,7 @@ function frame(now=0) {
   }
   aoiTick(dt); kurMarks();
   if (chapter === "toki") renderToki(); else { renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera); if (winMode()) renderAoiWindow(); window.__kes?.after(); }   // 2026-11-20 計算機を通す視点（keshiki.js）は、描いたすぐあとの画から作る
-  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); setTimeout(() => import("./keshiki.js?v=20261121a").catch(e => console.warn(e)), 700); setTimeout(() => import("./kit/city.js?v=20261123p").catch(() => {}), 4000); setTimeout(initShore, 1500); }   // 都市の場は、森が出てから形の書き方だけ先に読んでおく（組むのは切りかえたとき）   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
+  if (!STARTUP.firstFrameAt) { STARTUP.firstFrameAt = performance.now(); window.MLLoader?.done(); setTimeout(schedulePortraits, 250, true); /* 2026-11-26 今の景色（AR）の部品は AR を押したときに読む（index.html の qgAr） */ setTimeout(() => import("./kit/city.js?v=20261123p").catch(() => {}), 4000); setTimeout(initShore, 1500); }   // 都市の場は、森が出てから形の書き方だけ先に読んでおく（組むのは切りかえたとき）   // 森と操作が出たら読み込み画面を消す（碧はあとから現れる・2026-11-03）
   // Do not count the old poster/boot state as usable 3D. Aoi must be visible.
   if (!STARTUP.interactiveAt && vrm && A.fade >= .99 && !STARTUP.assetsLoading && !STARTUP.assetErrors.length && $("boot").hidden) {
     STARTUP.interactiveAt = performance.now(); $("stage").dataset.ready = 'true'; schedulePortraits(); setTimeout(warmAll, 0);
