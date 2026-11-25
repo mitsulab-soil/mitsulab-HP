@@ -76,7 +76,7 @@ function landSweep() {
   });
 }
 const camera = new THREE.PerspectiveCamera(66 /* 11-03 sight と同じ画角 */, innerWidth / innerHeight, .08, 7000); scene.add(camera); QW.camera = camera;
-const FOG = new THREE.Color("#c6ced8");   // 2026-10-29 夜 本人「淡くなりすぎ」→ 少し濃く（#d2d8df→#c6ced8）・歩くときの霞は 300 m から。以前の注記：空の写真の地平の色（#dddfe4 付近）に合わせ、地面の果てと空の継ぎ目を消す（旧 #b9c8d6）
+const FOG = new THREE.Color("#a9b0b8");   /* 11-26 本人「地面が白すぎ」→ 霞を灰に寄せて暗く */   // 2026-10-29 夜 本人「淡くなりすぎ」→ 少し濃く（#d2d8df→#c6ced8）・歩くときの霞は 300 m から。以前の注記：空の写真の地平の色（#dddfe4 付近）に合わせ、地面の果てと空の継ぎ目を消す（旧 #b9c8d6）
 scene.fog = new THREE.Fog(FOG, 900, 3800);
 const hemi = new THREE.HemisphereLight("#dbe6f4", "#5a5246", 1.1); scene.add(hemi);
 const sun = new THREE.DirectionalLight("#ffeedd", 2.4); sun.position.set(-420, 380, 160); scene.add(sun, sun.target);
@@ -241,7 +241,7 @@ let ASPH = null;
 function roadMat() {   // 道の面：Poly Haven「Asphalt 04」（CC0）の色・法線・粗さ。3 m ごとに繰り返し、大きなむら（補修跡・踏まれた筋）を重ねて繰り返しを目立たせない
   if (ASPH) return ASPH;
   const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 12; return t; };
-  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#5e5b58", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
+  const m = new THREE.MeshStandardMaterial({ map: ld("web/tex/asphalt_c.webp", true), normalMap: ld("web/tex/asphalt_n.webp"), normalScale: new THREE.Vector2(.9, .9), roughnessMap: ld("web/tex/asphalt_r.webp"), roughness: 1, color: "#6a6763", metalness: 0, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -6 });
   m.onBeforeCompile = sh => {
     sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;").replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvWxz=(modelMatrix*vec4(transformed,1.)).xz;");
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vWxz;\nfloat n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);float a=fract(sin(dot(i,vec2(127.1,311.7)))*43758.5),b=fract(sin(dot(i+vec2(1,0),vec2(127.1,311.7)))*43758.5),c=fract(sin(dot(i+vec2(0,1),vec2(127.1,311.7)))*43758.5),d=fract(sin(dot(i+vec2(1,1),vec2(127.1,311.7)))*43758.5);return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}")
@@ -270,7 +270,7 @@ function buildRoads() {
   // 歩道（模式）：車の通る道の両わきに、コンクリートの舗装の帯を道の下に敷く（Poly Haven「Concrete Pavement」CC0）
   const sw = []; for (const r of G.roads) { if (r.w < 7) continue; if (!r.p.some(p => Math.hypot(p[0], p[1] - 400) < 900)) continue; sw.push(ribbon(densify(r.p, 4), r.w + 4.6, .03, 1.2)); }
   if (sw.length) { const ld = (u, srgb) => { const t = TL.load(u); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MOBILE ? 4 : 8; return t; };
-    const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#c6bdae", roughness: 1, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
+    const pm = new THREE.MeshStandardMaterial({ map: ld("web/tex/pave_c.webp", true), normalMap: ld("web/tex/pave_n.webp"), color: "#9c958a", roughness: 1, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -1.5 });
     pm.normalScale.set(1.6, 1.6); pm.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 tq = vMapUv * vec2(3., 6.); float tr = floor(tq.y); float tc = floor(tq.x + mod(tr, 2.) * .5); float th = fract(sin(dot(vec2(tc, tr), vec2(12.9898, 78.233))) * 43758.5); float th2 = fract(th * 17.31); diffuseColor.rgb *= .9 + th * .2; diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.04, 1., .95), step(.7, th2) * .6); }"); }; pm.customProgramCacheKey = () => "walkTile";   // 2026-10-29 足もと：平板（pave_c は 1 枚に 3 列×6 段の馬目地）を一枚ずつ明るさ ±10％・わずかな黄み（3 割の板）で揺らし、法線を 1.6 倍に。近寄っても同じ板が並ぶ一枚の模様に見えないように
     const pv = new THREE.Mesh(mergeIdx(sw), pm); pv.name = "walkway"; world.add(pv); QW.pave = pv; }
 }
@@ -282,7 +282,7 @@ function buildPlaza() {   // 渋谷：駅前の広場（OSM の歩行者の面�
     const g = new THREE.ShapeGeometry(new THREE.Shape(pts)); const p = g.attributes.position, uv = [];
     for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getY(i); p.setXYZ(i, x, groundY(x, z) + .09, z); uv.push(x / 2.4, z / 2.4); }
     g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); const idx = g.index.array; for (let i = 0; i < idx.length; i += 3) { const t = idx[i + 1]; idx[i + 1] = idx[i + 2]; idx[i + 2] = t; } g.computeVertexNormals(); gs.push(g); }
-  if (!gs.length) return; const pm = paveMat("G").clone(); pm.side = THREE.DoubleSide; pm.color.set("#9a958e"); const m = new THREE.Mesh(mergeIdx(gs), pm); m.name = "plaza"; m.renderOrder = 1; world.add(m); QW.plaza = gs.length;
+  if (!gs.length) return; const pm = paveMat("G").clone(); pm.side = THREE.DoubleSide; pm.color.set("#7c7872"); const m = new THREE.Mesh(mergeIdx(gs), pm); m.name = "plaza"; m.renderOrder = 1; world.add(m); QW.plaza = gs.length;
 }
 function offsetLine(P, d) { const out = []; for (let i = 0; i < P.length; i++) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; out.push([P[i][0] - tz / l * d, P[i][1] + tx / l * d]); } return out; }
 function markMat(kind) {   // 路面標示（白・実寸の模式）：0＝実線、1＝破線（5 m 引いて 5 m あける）、2＝横断歩道の縞（幅 45 cm・間 45 cm）
@@ -1379,7 +1379,7 @@ const WALK = { speed: 2.4,   // 2026-10-27 本人「移動の速さを 1.5〜2 �
   moving: false, auto: false, hold: false, goal: null, ring: null };
 const FLY = { up: false, down: false, v: 21 };   // 10-27 1.75 倍
 const KEYS = new Set();
-const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 110, f: 1500 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
+const FOGS = { sky: MOBILE ? { n: 2200, f: 4600 } : { n: 900, f: 3000 }, walk: { n: 200, f: 1700 }, fly: { n: 280, f: 1500 }, sight: { n: 90, f: 800 } };
 function applyFog(f) { scene.fog.near = f.n; scene.fog.far = f.f; if (BLD.mat) { BLD.mat.uniforms.fogNear.value = f.n * .4; BLD.mat.uniforms.fogFar.value = f.f; } }
 function setMode(m) { if (m === "walk" && !QW.tWalk) QW.tWalk = performance.now(); const pm = QW.mode; QW.mode = m; document.body.dataset.mode = m; if (m === "walk" && pm !== "walk") window.__qnav?.firstWalk(); if (m === "sky") window.__qnav?.leaveAR?.();
   if ((m === "sky" || m === "fly" || m === "sight") && QW.HERE?.on) QW.HERE.stop();   // 現在地で歩くのは、歩いているあいだだけ
