@@ -1,0 +1,22 @@
+/* qgui.css — 道具の共通 GUI（2026-11-25 本人「風景がメイン・GUI は視界を遮らない」「GUI を洗練・ボタンも調整」）
+   使い方：各道具の kit/ に写し、ほかの CSS のあとで読む。部品の形と状態だけを決め、置き場は各道具で --qg-edge を使ってそろえる。
+   状態：押せる＝細い線 1px・地 .38／押している（:active）＝線を明るく＋内側の光／選んでいる（.on・[aria-pressed=true]）＝線 1.5px・水色／押せない（:disabled）＝線と字を .35 */
+:root{
+  --qg-line:rgba(170,226,236,.55); --qg-line-hi:#bff3fb; --qg-ground:rgba(6,34,38,.38); --qg-ground-hi:rgba(10,52,58,.55);
+  --qg-ink:#e9f6f5; --qg-ink-dim:rgba(233,246,245,.62); --qg-glow:0 0 0 1px rgba(191,243,251,.35),0 0 14px rgba(120,220,235,.35);
+  --qg-edge:24px; --qg-safe-b:env(safe-area-inset-bottom,0px); --qg-r:999px; --qg-r-sq:12px;
+  --qg-font:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+}
+@media (max-width:767px){:root{--qg-edge:16px}}
+.qg-btn{position:relative;min-width:44px;min-height:44px;display:inline-grid;place-items:center;padding:0 14px;border:1px solid var(--qg-line);border-radius:var(--qg-r);
+  background:var(--qg-ground);-webkit-backdrop-filter:blur(8px) saturate(1.2);backdrop-filter:blur(8px) saturate(1.2);color:var(--qg-ink);
+  font:500 13px/1 var(--qg-font);letter-spacing:.08em;-webkit-tap-highlight-color:transparent;transition:border-color 80ms,box-shadow 80ms,background 80ms,transform 80ms}
+.qg-btn:hover{border-color:var(--qg-line-hi)}
+.qg-btn:active{transform:scale(.96);background:var(--qg-ground-hi);box-shadow:var(--qg-glow);border-color:var(--qg-line-hi)}
+.qg-btn.on,.qg-btn[aria-pressed="true"]{border-width:1.5px;border-color:var(--qg-line-hi);color:#fff;box-shadow:var(--qg-glow)}
+.qg-btn:disabled,.qg-btn[aria-disabled="true"]{opacity:.35;pointer-events:none}
+.qg-btn:focus-visible{outline:1.5px solid var(--qg-line-hi);outline-offset:3px}
+/* 字幕：下の端に 1 行、小さく薄く。話し終えたら早く消える（.sub-gone） */
+.qg-sub{font:400 13px/1.5 var(--qg-font);letter-spacing:.04em;color:rgba(240,248,246,.86);white-space:nowrap;overflow:hidden;text-overflow:clip;
+  text-shadow:0 0 2px rgba(0,0,0,.9),0 1px 8px rgba(0,0,0,.7);transition:opacity .35s}
+.qg-sub.sub-gone{opacity:0}

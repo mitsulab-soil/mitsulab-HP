@@ -206,5 +206,12 @@ button,.ml-btn,.tools,.p-row,.near-sound-points,#labs,.tip,.dock,.panel input,#c
 <!-- 2026-11-24 「次へ」の札は外した（下のパネルとかぶるため） -->
 <script src="kit/ichimai.js" data-name="Qualia/sound" data-right="12" data-top="72" defer></script>
 <div id="away" class="away" role="status" aria-live="polite" hidden></div>
+<link rel="stylesheet" href="qgui.css?v=20261126a">
+<style id="qgui-buttons-20261126">/* 2026-11-26 本人「GUI を洗練・ボタンも調整」：どの道具でもボタンを同じ形に（細い線・透ける地・押した所だけ光る・44px）。置き場と働きはそのまま */
+html body button:not([class*="leaflet"]):not(.qyk button){border:1px solid var(--qg-line)!important;background-color:var(--qg-ground)!important;background-image:none!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--qg-ink)!important;min-height:44px;min-width:44px;font-family:var(--qg-font);box-shadow:none;transition:box-shadow 80ms,transform 80ms,border-color 80ms}
+html body button[aria-pressed="true"],html body button.on,html body button.is-on,html body button[aria-selected="true"]{border-width:1.5px!important;border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
+html body button:active{transform:scale(.95);border-color:var(--qg-line-hi)!important;box-shadow:var(--qg-glow)!important}
+html body button:disabled{opacity:.35}
+</style>
 </body>
 </html>
